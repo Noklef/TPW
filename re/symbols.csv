@@ -51,7 +51,7 @@ address,name,kind,confidence,notes
 0x00403220,VanillaTime_Save,function,high,"reimplemented (src/game/core/vanillatime); thiscall (stream): writes Time_GetMs (4 bytes); Stream_Write's result >= 0, always 1 (sic)"
 0x005506e0,GameSystem_Load,function,high,reimplemented (src/game/world/gamesystem); reads the game system globals
 0x00550520,GameSystem_Save,function,high,reimplemented (src/game/world/gamesystem); writes the game system globals
-0x004647a0,RideSystem_Load,function,high,module RSYS
+0x004647a0,RideSystem_Load,function,high,reimplemented (src/game/world/ridesload); The rides read back from a save
 0x00464140,RideSystem_Save,function,high,module RSYS
 0x00543560,TrackRides_Load,function,high,"reimplemented (src/game/world/trackrides); the track rides' load: chunks 2-9 rebuilding the rides, sections, cars and lists through the module's own calls"
 0x005428e0,TrackRides_Save,function,high,"reimplemented (src/game/world/trackrides); the track rides' save: chunks 1-9 of the rides, sections, cars and lists, the original's inlined chunk code folded into TrakChunk_Begin/End"
@@ -61,7 +61,7 @@ address,name,kind,confidence,notes
 0x00559350,RSSE_Save,function,high,reimplemented (src/game/core/savemods); writes the script contexts to the save game
 0x0042cec0,Camera_Load,function,high,"reimplemented (src/game/core/savemods); 0x42cec0 (stream): the mirror of Camera_Save, then the flags cleared, 0x7909e0 the yaw, and the yaw snapped to a quarter turn when 0x78d912 is set"
 0x0042cdc0,Camera_Save,function,high,reimplemented (src/game/core/savemods); writes the camera values to the save game
-0x00437b60,Coasters_Load,function,high,module COAS
+0x00437b60,Coasters_Load,function,high,"reimplemented (src/game/coaster/coastersload); A park's coasters read from its save (name invented, unconfirmed)"
 0x00437300,Coasters_Save,function,high,"reimplemented (src/game/coaster/save); cdecl u32 (stream): link count, three globals, per link a 0x20-byte record, its pieces' 0x22-byte records and word lists, its cars' 0x1b- and seats' 0xb-byte records and arrays; failed writes never stop it; returns 1"
 0x00599d00,Advisor_Load,function,high,module ADVS
 0x00599c30,Advisor_Save,function,high,"reimplemented (src/game/core/cheatmodule); the advisor module written: a tag, a 0x168 block and a counted buffer"
@@ -371,7 +371,7 @@ address,name,kind,confidence,notes
 0x00412d40,ObjectDefBalance_Dtor,function,low,"reimplemented (src/game/core/balancefile); thiscall: vtable 0x6fd8a8 back, then BalanceFile_Release"
 0x005b0d60,BalanceFile_GetValues,function,high,reimplemented (src/game/core/accessors); the address of the part at 0x8
 0x00451640,HeightMap_LoadOrBuild,function,high,"loads <model>.hmp (magic 0xab1e0003, 0x00640005), rebuilds and rewrites it when missing or the footprint differs; result at model+0xcc"
-0x00451880,HeightMap_Build,function,high,"allocates header + w*h*0x1b bytes; 5x5 cells per tile, tile max heights, footprint flags"
+0x00451880,HeightMap_Build,function,high,"reimplemented (src/game/model/heightmap); An instance's height grid built: rasterized once, or for each block's frames (name invented, unconfirmed)"
 0x00451e20,HeightMap_Rasterize,function,medium,"reimplemented (src/game/model/heightmap); cdecl (node, unused, matrix by value, grid, hit, unused, unused, clipped): the model tree's vertices clamped into the grid and its faces rasterised as heights (y*2.55) into the grid's cells; 1 when nothing went past the grid"
 0x00550e00,Scape_LoadObjects,function,high,"reimplemented (src/game/world/scapeobjects); cdecl (path): reads Scape.omp's OBJ_ records: 1 a point sound, 2 a particle effect, 3 an area sound; coordinates / 1024"
 0x0051bfc0,Sound_PlayAt,function,medium,"reimplemented (src/game/core/soundplay); cdecl (owner, category, sound, x, y, z): with sound on and started and a sound, a stack play command (vtable 0x700b90, floats) posted to the manager's vtable +8; its result, else 0"
@@ -1925,6 +1925,7 @@ address,name,kind,confidence,notes
 0x005aa650,GamePaths_SetSecondRoot,function,low,"reimplemented (src/game/files/gamepaths); the second path string of 0xf816c0 = the drive String (by value, destroyed), "":"" and the String at 0xf79fe8"
 0x005aa500,GamePaths_FindDisc,function,low,"reimplemented (src/game/files/gamepaths); the CD check's loop: drives listed (type mask 8) or a retry/cancel MessageBoxW; the disc's drive letter to GamePaths_SetSecondRoot; 1 found, 0 cancelled"
 0x005c0c10,GamePaths_SetRoots,function,low,reimplemented (src/game/files/gamepaths); The paths object strings set from the base folder and the global roots at start-up
+0x0046e650,GamePaths_ShareTexFolder,function,low,"reimplemented (src/game/files/gamepaths); The share textures' folder path (name invented, unconfirmed)"
 0x005c53c0,DirEntry_IsWad,function,low,"reimplemented (src/game/files/direntry); cdecl (entry); whether the entry's name ends in the global "".wad"" String (0xf80808, Names_Equal)"
 0x0055e470,CpuInfo_Ctor,function,high,"reimplemented (src/game/core/cpuinfo); thiscall; CPUID probe (EFLAGS.ID test, then the vendor string and features); SystemInfo's base"
 0x00591210,Cpu_Ticks,function,low,reimplemented (src/game/core/cpuinfo); cdecl: the low dword of the time-stamp counter (rdtsc)
@@ -2708,6 +2709,7 @@ address,name,kind,confidence,notes
 0x005af810,GlobalSave_MarkTheme,function,low,"reimplemented (src/game/core/globalsave); thiscall (i): the current theme byte i set, then the level reached looked at"
 0x005afb00,GlobalSave_MarkExtra,function,low,"reimplemented (src/game/core/globalsave); thiscall (i): the info byte +0x26 + i set, then the level reached looked at"
 0x005af940,GlobalSave_MarkScore,function,low,"reimplemented (src/game/core/globalsave); thiscall (i, score): a score set on the current theme, or taken from a lower theme record"
+0x005aff50,GlobalSave_Serialize,function,low,"reimplemented (src/game/core/globalsave); The global save info written or read (name invented, unconfirmed)"
 0x005775d0,LiveObjects_Add,function,high,"reimplemented (src/game/core/liveobjects); cdecl (object): appended to the live objects list (0x87a6d8, count 0x87aed8, room for 0x200; the rest dropped); 1 either way"
 0x00577600,LiveObjects_Remove,function,high,"reimplemented (src/game/core/liveobjects); cdecl (object): the last match is replaced by the last entry and the count drops; 1, or 0 when not there"
 0x00579cd0,LiveObject7019f8_Construct,function,low,"reimplemented (src/game/core/liveobjects); thiscall (most derived): two identity matrices, fields cleared, the virtual base's vtable 0x7019f8 set and the base added to the live objects"
@@ -4709,6 +4711,7 @@ address,name,kind,confidence,notes
 0x004f74a0,WStdStringWord_CtorCopy,function,low,reimplemented (src/game/core/stdwstring); the buddy set's value: a string and a word
 0x004f7290,WStdStringWord_Construct,function,low,reimplemented (src/game/core/stdwstring); construct unless null
 0x004ea0e0,WStdString_CtorCopyC,function,low,"reimplemented (src/game/core/stdwstring); thiscall (x), RET 4: copy constructor, 0x4f0250 inlined once more (name invented, unconfirmed)"
+0x004051d0,StdWString_AssignChars,function,low,"reimplemented (src/game/core/stdwstring); The game's MSVC6 std::wstring's assign(chars, n)"
 0x00405b90,GameError_IndexOfCode,function,low,reimplemented (src/game/core/gameerror); the error index of a library code
 0x00405710,GameError_Set,function,low,"reimplemented (src/game/core/gameerror); thiscall (index, arg, text), pops 12: +4 index, +8 arg, text strncpy into +0xc (0x50), +0 = 1"
 0x004ea740,CountedPair_CtorWide,function,low,"reimplemented (src/game/core/countedpair); thiscall (std::wstring by value, pops 16): the 0x24-byte pair of a narrow and a wide string and a dword: the narrow one empty, the wide one assigned the string, the dword 0; the string destroyed"
@@ -5744,6 +5747,7 @@ address,name,kind,confidence,notes
 0x006b6700,SoundMixer_Start,function,low,reimplemented (src/game/core/soundtrigger); A free voice taken and made by the sound's kind and flags
 0x006b87d0,SoundEngine_Play,function,low,reimplemented (src/game/core/soundtrigger); A sound checked against the player and started
 0x006b63a0,SoundMixer_ThreadLoop,function,low,"reimplemented (src/game/core/mixerthread); The sound mixer's thread: voices updated on each signal, until the stop byte"
+0x0054e360,Game_RunFrame,function,low,"reimplemented (src/game/core/gameframe); The game's step each frame, a state machine over the whole session (name invented, unconfirmed)"
 0x0050ffe0,Nav_Ctor,function,high,reimplemented (src/game/world/nav); constants constructor with five integer pairs
 0x0050f200,Nav_Dtor,function,high,reimplemented (src/game/world/nav); thiscall: the five IntPairs at +0x64 destroyed with Stub_Ret (CRT_VectorDtorIterator); also via 0x4f7c30 (+0xd4) and 0x4f8ad0
 0x004f7c30,Nav_DtorAtD4,function,low,reimplemented (src/game/world/nav); thiscall adjustor: Nav_Dtor on this + 0xd4
@@ -6604,6 +6608,8 @@ address,name,kind,confidence,notes
 0x00430ed0,Coaster_PoseCars,function,low,"reimplemented (src/game/coaster/carpose); a coaster's cars and pieces posed for the frame: heights, angles, the nodes' places from the bones"
 0x0043eb70,Coaster_Rebuild,function,low,"reimplemented (src/game/coaster/rebuild); a coaster's track rebuilt after a change: nodes numbered and linked, slopes, the build steps, the mesh's walk over the pieces"
 0x004045b0,ArReplay_Step,function,low,reimplemented (src/game/coaster/arreplay); one recorded action of the action replay read from its stream and done
+0x00404d80,ArReplay_Action,function,low,"reimplemented (src/game/coaster/arreplayaction); The coaster's action replay: an action of the plain kinds (name invented, unconfirmed)"
+0x00404f70,ArReplay_TextAction,function,low,"reimplemented (src/game/coaster/arreplayaction); The coaster's action replay: an action with a text (name invented, unconfirmed)"
 0x0044a590,RenderMode_Size,function,high,"reimplemented (src/game/render/mode); cdecl u32 (): first of 0x2000/0x1000/0x800 in 0x79d86c, else 0x4000 if set, else 0x1000"
 0x0044a5d0,RenderMode_Depth,function,high,"reimplemented (src/game/render/mode); cdecl u32 (): first of 8/0x10 in 0x79d86c, else 0x20 if set, else 8"
 0x0044a600,RenderMode_ResetScale,function,high,reimplemented (src/game/render/mode); cdecl (): 0x79d9e4 = 1.0f
@@ -7169,6 +7175,7 @@ address,name,kind,confidence,notes
 0x005d7fd0,LobbyResource_Ctor,function,low,"reimplemented (src/game/frontend/lobbymake); a lobby resource: its name and pack strings and its load (0x4629d0, by address), given to the scene"
 0x005d8870,LobbyScene_MakeModel,function,low,"reimplemented (src/game/frontend/lobbymake); a lobby model of a resource found by name and pack or new, its ride out of the renderer, given to the scene"
 0x005dfa60,Class702ca8_Ctor,function,low,"reimplemented (src/game/frontend/lobbymake); the object of vtable 0x702ca8: two lobby models, turned and placed, strings, colours from rand, sound categories, given to its owner"
+0x005e3210,LobbyScript_Load,function,low,"reimplemented (src/game/frontend/lobbyscript); The lobby scene's script read: islands, flying meshes, weather and sky (name invented, unconfirmed)"
 0x0065d7d0,Window_FindChild,function,low,"reimplemented (src/game/ui/window); thiscall (id), pops 4: the first child of the window (list +0x5c, next +0x54) whose id (+0x8c) is id, or 0"
 0x0065f697,Window_CallHandler,function,low,"reimplemented (src/game/ui/window); thiscall (message, a, b), pops 12: the cdecl handler at +0x114 called with (window, message, a, b), its result; -1 when none"
 0x00658d9f,Window_SendMessage,function,low,"reimplemented (src/game/ui/window); cdecl (window, message, a, b): -1 for no window or byte +4 set; else the hook [0xfaa5fc] (if set) then Window_CallHandler"

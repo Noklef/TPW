@@ -201,6 +201,7 @@
 #include "../game/core/timesig.h"
 #include "../game/core/countedpair.h"
 #include "../game/core/dsoundsource.h"
+#include "../game/core/gameframe.h"
 #include "../game/core/imaadpcm.h"
 #include "../game/core/iosbase.h"
 #include "../game/core/keyactions.h"
@@ -409,6 +410,7 @@
 #include "../game/world/staffcandidate.h"
 #include "../game/world/trackcircuit.h"
 #include "../game/world/rideskin.h"
+#include "../game/world/ridesload.h"
 #include "../game/world/sign.h"
 #include "../game/world/rideupkeep.h"
 #include "../game/world/scapeobjects.h"
@@ -444,6 +446,8 @@
 #include "../game/coaster/rebuild.h"
 #include "../game/coaster/trainrun.h"
 #include "../game/coaster/arreplay.h"
+#include "../game/coaster/arreplayaction.h"
+#include "../game/coaster/coastersload.h"
 #include "../game/coaster/typemodel.h"
 #include "../game/model/parts.h"
 #include "../game/model/highlight.h"
@@ -530,6 +534,7 @@
 #include "../game/frontend/scenequeue.h"
 #include "../game/frontend/frame.h"
 #include "../game/frontend/lobbymake.h"
+#include "../game/frontend/lobbyscript.h"
 #include "../game/frontend/sceneleave.h"
 #include "../game/frontend/viewcontrols.h"
 #include "../game/online/itemlist.h"
@@ -1881,6 +1886,7 @@ const Hook kHooks[] = {
     {"GamePaths_SetSecondRoot",   0x005aa650, (void *)&GamePaths_SetSecondRoot, {0x6a, 0xff, 0x68, 0xb8, 0xf6}},
     {"GamePaths_FindDisc",        0x005aa500, (void *)&GamePaths_FindDisc, {0x6a, 0xff, 0x68, 0x90, 0xf6}},
     {"GamePaths_SetRoots",        0x005c0c10, (void *)&GamePaths_SetRoots, {0x6a, 0xff, 0x68, 0x60, 0x02}},
+    {"GamePaths_ShareTexFolder",  0x0046e650, (void *)&GamePaths_ShareTexFolder, {0x68, 0x20, 0xf7, 0x7a, 0x00}},
     {"DirEntry_IsWad",            0x005c53c0, (void *)&DirEntry_IsWad, {0x6a, 0xff, 0x68, 0x10, 0x04}},
     {"RegKey_Open",               0x005f8ae0, (void *)&RegKey_Open, {0x51, 0x56, 0x57, 0x8b, 0xf9}},
     {"RegKey_Dtor",               0x005f8b70, (void *)&RegKey_Dtor, {0x51, 0x8d, 0x44, 0x24, 0x00}},
@@ -2753,6 +2759,7 @@ const Hook kHooks[] = {
     {"GlobalSave_MarkTheme",      0x005af810, (void *)&GlobalSave_MarkTheme, {0x56, 0x8b, 0xf1, 0x8b, 0x4c}},
     {"GlobalSave_MarkExtra",      0x005afb00, (void *)&GlobalSave_MarkExtra, {0x8b, 0x44, 0x24, 0x04, 0x53}},
     {"GlobalSave_MarkScore",      0x005af940, (void *)&GlobalSave_MarkScore, {0x53, 0x55, 0x56, 0x57, 0x8b}},
+    {"GlobalSave_Serialize",      0x005aff50, (void *)&GlobalSave_Serialize, {0x6a, 0xff, 0x68, 0xd6, 0xf8}},
     {"LiveObjects_Add",           0x005775d0, (void *)&LiveObjects_Add, {0xa1, 0xd8, 0xae, 0x87, 0x00}},
     {"LiveObjects_Remove",        0x00577600, (void *)&LiveObjects_Remove, {0xa1, 0xd8, 0xae, 0x87, 0x00}},
     {"LiveObject7019f8_Construct", 0x00579cd0, (void *)&LiveObject7019f8_Construct, {0x6a, 0xff, 0x68, 0xad, 0xf2}},
@@ -4722,6 +4729,9 @@ const Hook kHooks[] = {
     {"Coaster_PoseCars",          0x00430ed0, (void *)&Coaster_PoseCars, {0x55, 0x8b, 0xec, 0x81, 0xec}},
     {"Coaster_Rebuild",           0x0043eb70, (void *)&Coaster_Rebuild, {0x83, 0xec, 0x14, 0xa1, 0xec}},
     {"ArReplay_Step",             0x004045b0, (void *)&ArReplay_Step, {0x81, 0xec, 0xa8, 0x00, 0x00}},
+    {"ArReplay_Action",           0x00404d80, (void *)&ArReplay_Action, {0x53, 0x8b, 0x5c, 0x24, 0x0c}},
+    {"ArReplay_TextAction",       0x00404f70, (void *)&ArReplay_TextAction, {0x64, 0xa1, 0x00, 0x00, 0x00}},
+    {"Coasters_Load",             0x00437b60, (void *)&Coasters_Load, {0x81, 0xec, 0xcc, 0x00, 0x00}},
     {"Thing_SpriteChoice",        0x004fcac0, (void *)&Thing_SpriteChoice, {0x51, 0x56, 0x8b, 0xf1, 0x6a}},
     {"Thing_IngredientRecord",    0x004e2200, (void *)&Thing_IngredientRecord, {0x51, 0x66, 0x8b, 0x41, 0x0e}},
     {"Class701378_Ctor",          0x005667d0, (void *)&Class701378_Ctor, {0x51, 0x8b, 0x44, 0x24, 0x08}},
@@ -4957,6 +4967,7 @@ const Hook kHooks[] = {
     {"WStdStringWord_CtorCopy",   0x004f74a0, (void *)&WStdStringWord_CtorCopy, {0x53, 0x55, 0x8b, 0x6c, 0x24}},
     {"WStdStringWord_Construct",  0x004f7290, (void *)&WStdStringWord_Construct, {0x8b, 0x4c, 0x24, 0x04, 0x85}},
     {"WStdString_CtorCopyC",      0x004ea0e0, (void *)&WStdString_CtorCopyC, {0x53, 0x8b, 0x5c, 0x24, 0x08}},
+    {"StdWString_AssignChars",    0x004051d0, (void *)&StdWString_AssignChars, {0x55, 0x56, 0x57, 0x8b, 0x7c}},
     {"GameError_IndexOfCode",     0x00405b90, (void *)&GameError_IndexOfCode, {0x8b, 0x44, 0x24, 0x04, 0x3d}},
     {"GameError_Set",             0x00405710, (void *)&GameError_Set, {0x8b, 0x44, 0x24, 0x04, 0x56}},
     {"CountedPair_CtorWide",      0x004ea740, (void *)&CountedPair_CtorWide,{0x6a, 0xff, 0x68, 0x40, 0xcd}},
@@ -6012,6 +6023,7 @@ const Hook kHooks[] = {
     {"SoundMixer_Start",          0x006b6700, (void *)&SoundMixer_Start, {0x6a, 0xff, 0x68, 0x08, 0x58}},
     {"SoundEngine_Play",          0x006b87d0, (void *)&SoundEngine_Play, {0x83, 0xec, 0x10, 0x53, 0x55}},
     {"SoundMixer_ThreadLoop",     0x006b63a0, (void *)&SoundMixer_ThreadLoop, {0x83, 0xec, 0x08, 0x53, 0x55}},
+    {"Game_RunFrame",             0x0054e360, (void *)&Game_RunFrame, {0x6a, 0xff, 0x68, 0x65, 0xee}},
     {"Nav_Ctor",          0x0050ffe0, (void *)&Nav_Ctor, {0x6a, 0xff, 0x68, 0x2d, 0xe6}},
     {"Nav_Dtor",                  0x0050f200, (void *)&Nav_Dtor, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"Nav_DtorAtD4",              0x004f7c30, (void *)&Nav_DtorAtD4, {0x81, 0xc1, 0xd4, 0x00, 0x00}},
@@ -6332,6 +6344,7 @@ const Hook kHooks[] = {
     {"WorldPeople_Start",         0x004d7af0, (void *)&WorldPeople_Start, {0x56, 0x8b, 0xf1, 0x8d, 0x8e}},
     {"WorldPeople_Step",          0x004d7b20, (void *)&WorldPeople_Step, {0x56, 0x8b, 0xf1, 0x8d, 0x8e}},
     {"Challenges_Step",           0x004d1e90, (void *)&Challenges_Step, {0x64, 0xa1, 0x00, 0x00, 0x00}},
+    {"RideSystem_Load",           0x004647a0, (void *)&RideSystem_Load, {0x83, 0xec, 0x2c, 0x8d, 0x44}},
     {"Holder_Destroy",            0x0045bc60, (void *)&Holder_Destroy, {0x56, 0x8b, 0x74, 0x24, 0x08}},
     {"Mouse_HandleButton",        0x0046c210, (void *)&Mouse_HandleButton, {0x8b, 0x44, 0x24, 0x04, 0x56}},
     {"Mouse_Moved",               0x0046c2a0, (void *)&Mouse_Moved, {0xa1, 0xd4, 0x05, 0x7b, 0x00}},
@@ -6980,6 +6993,7 @@ const Hook kHooks[] = {
     {"ObjModel_LightMesh",        0x0057aa10, (void *)&ObjModel_LightMesh, {0x83, 0xec, 0x0c, 0x53, 0x55}},
     {"ObjModel_BlendTerrainTiles", 0x0057ace0, (void *)&ObjModel_BlendTerrainTiles, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"HeightMap_Rasterize",       0x00451e20, (void *)&HeightMap_Rasterize, {0x83, 0xec, 0x70, 0x53, 0x55}},
+    {"HeightMap_Build",           0x00451880, (void *)&HeightMap_Build, {0x81, 0xec, 0xac, 0x00, 0x00}},
     {"RideBase_TidyUVs",          0x00467310, (void *)&RideBase_TidyUVs, {0x83, 0xec, 0x38, 0x53, 0x55}},
     {"RideBase_TidyAllUVs",       0x004679d0, (void *)&RideBase_TidyAllUVs, {0x8b, 0x44, 0x24, 0x04, 0x53}},
     {"MD2_Load",                  0x0046d6d0, (void *)&MD2_Load, {0x8b, 0x44, 0x24, 0x04, 0x53}},
@@ -7237,6 +7251,7 @@ const Hook kHooks[] = {
     {"LobbyResource_Ctor",        0x005d7fd0, (void *)&LobbyResource_Ctor, {0x6a, 0xff, 0x68, 0xd6, 0x12}},
     {"LobbyScene_MakeModel",      0x005d8870, (void *)&LobbyScene_MakeModel, {0x6a, 0xff, 0x68, 0x7c, 0x13}},
     {"Class702ca8_Ctor",          0x005dfa60, (void *)&Class702ca8_Ctor, {0x6a, 0xff, 0x68, 0xf6, 0x14}},
+    {"LobbyScript_Load",          0x005e3210, (void *)&LobbyScript_Load, {0x6a, 0xff, 0x68, 0x36, 0x17}},
     {"RSSE_Init",                 0x00551600, (void *)&RSSE_Init, {0xa1, 0xa0, 0x91, 0x87, 0x00}},
     {"RsseScript_EventName",      0x00468600, (void *)&RsseScript_EventName, {0x53, 0x55, 0x56, 0x8b, 0x74}},
     {"RSSE_StartTimer",           0x00557160, (void *)&RSSE_StartTimer, {0xb9, 0x70, 0x59, 0x78, 0x00}},

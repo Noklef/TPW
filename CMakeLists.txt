@@ -217,6 +217,7 @@ add_library(tpw_game STATIC
     src/game/core/dsoundsource.cpp
     src/game/core/soundtrigger.cpp
     src/game/core/mixerthread.cpp
+    src/game/core/gameframe.cpp
     src/game/gfx/text.cpp
     src/game/gfx/canvas.cpp
     src/game/gfx/canvasdraw.cpp
@@ -420,6 +421,8 @@ add_library(tpw_game STATIC
     src/game/coaster/carpose.cpp
     src/game/coaster/rebuild.cpp
     src/game/coaster/arreplay.cpp
+    src/game/coaster/arreplayaction.cpp
+    src/game/coaster/coastersload.cpp
     src/game/terrain/terrain_blend.cpp
     src/game/terrain/land.cpp
     src/game/terrain/procedural.cpp
@@ -531,6 +534,7 @@ add_library(tpw_game STATIC
     src/game/frontend/frame.cpp
     src/game/frontend/sceneleave.cpp
     src/game/frontend/lobbymake.cpp
+    src/game/frontend/lobbyscript.cpp
     src/game/input/mouse.cpp
     src/game/ui/dialog7ca1c8.cpp
     src/game/ui/window.cpp
@@ -645,6 +649,7 @@ add_library(tpw_game STATIC
     src/game/world/signtext.cpp
     src/game/world/worldpeople.cpp
     src/game/world/challengestep.cpp
+    src/game/world/ridesload.cpp
     src/game/ui/staffrename.cpp
     src/game/ui/window7cc8bc.cpp
     src/game/ui/dialog7cb2b8.cpp

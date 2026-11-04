@@ -210,12 +210,20 @@
 #include "../../src/game/files/handles.h"
 #include "../../src/game/render/weatherfx.h"
 #include "../../src/game/coaster/arreplay.h"
+#include "../../src/game/coaster/arreplayaction.h"
+#include "../../src/game/coaster/coastersload.h"
+#include "../../src/game/world/ridesload.h"
+#include "../../src/game/model/heightmap.h"
+#include "../../src/game/frontend/lobbyscript.h"
+#include "../../src/game/files/gamepaths.h"
+#include "../../src/game/core/globalsave.h"
 #include "../../src/game/coaster/rebuild.h"
 #include "../../src/game/coaster/carpose.h"
 #include "../../src/game/model/rideresource.h"
 #include "../../src/game/coaster/placecar.h"
 #include "../../src/game/gfx/texcache.h"
 #include "../../src/game/frontend/lobbymake.h"
+#include "../../src/game/core/gameframe.h"
 #include "../../src/game/render/engineerrors.h"
 #include "../../src/game/online/chatavatar.h"
 #include "../../src/game/online/chatcommand.h"
@@ -986,6 +994,268 @@ const SpriteLoadingEnv kSpriteLoadingEnv = {Rec{recorder(1, 2)}, Rec{recorder(2,
 const ThingPatrolEnv kThingPatrolEnv = {Rec{jpeg_recorder(20, 1)}, Rec{jpeg_recorder(21, 5)}};
 // ObjectUnlock_CheckScores's calls: stdcall ones through the COM-style recorders (tools/fncmp.py recorder(k, n, com=True): this logged as 0; tests/fncmp/objectunlockscores.py).
 constexpr u32 stdcall_recorder(u32 k, u32 n) { return kStubs + 0x1000 + 0x4000 + 0x800 * n + 0x20 * k; }
+const AddrCall kArReplayActionCalls[] = {  // tests/fncmp/arreplayaction.py --table
+    {0x447ae0, jpeg_recorder(7, 1)},
+    {0x447b20, jpeg_recorder(8, 1)},
+    {0x447d60, jpeg_recorder(10, 1)},
+    {0x447da0, jpeg_recorder(9, 1)},
+    {0x447dd0, jpeg_recorder(11, 1)},
+    {0x4682b0, jpeg_recorder(12, 3)},
+    {0x4815b0, recorder(19, 1)},
+    {0x4e2860, recorder(18, 2)},
+    {0x4e2920, recorder(16, 2)},
+    {0x4e2950, recorder(15, 1)},
+    {0x4e2a50, recorder(17, 1)},
+    {0x5276d0, jpeg_recorder(6, 1)},
+    {0x52f1b0, jpeg_recorder(5, 2)},
+    {0x52f200, jpeg_recorder(1, 2)},
+    {0x52f580, jpeg_recorder(2, 2)},
+    {0x52fa90, jpeg_recorder(4, 1)},
+    {0x52fad0, jpeg_recorder(3, 1)},
+    {0x5aef50, recorder(13, 0)},
+    {0x5d3230, recorder(14, 2)},
+};
+const AddrCall kCoastersLoadCalls[] = {  // tests/fncmp/coastersload.py --table
+    {0x432c10, jpeg_recorder(10, 6)},
+    {0x432df0, jpeg_recorder(6, 4)},
+    {0x434060, jpeg_recorder(11, 9)},
+    {0x435020, jpeg_recorder(25, 7)},
+    {0x435710, jpeg_recorder(7, 2)},
+    {0x435730, jpeg_recorder(13, 2)},
+    {0x436ac0, jpeg_recorder(23, 5)},
+    {0x436d10, jpeg_recorder(22, 3)},
+    {0x4386d0, jpeg_recorder(9, 3)},
+    {0x43ba90, jpeg_recorder(19, 4)},
+    {0x43e520, jpeg_recorder(14, 2)},
+    {0x441840, jpeg_recorder(21, 2)},
+    {0x4426a0, jpeg_recorder(20, 0)},
+    {0x442880, jpeg_recorder(12, 1)},
+    {0x442cd0, jpeg_recorder(1, 0)},
+    {0x444150, jpeg_recorder(3, 4)},
+    {0x4441d0, jpeg_recorder(4, 4)},
+    {0x444270, jpeg_recorder(5, 5)},
+    {0x44b220, jpeg_recorder(8, 3)},
+    {0x45bdd0, jpeg_recorder(17, 1)},
+    {0x45be80, jpeg_recorder(16, 3)},
+    {0x463ab0, jpeg_recorder(15, 9)},
+    {0x468760, jpeg_recorder(24, 7)},
+    {0x472f40, jpeg_recorder(18, 1)},
+};
+const AddrCall kGlobalSaveCalls[] = {  // tests/fncmp/globalsaveio.py --table
+    {0x423e90, recorder(4, 3)},
+    {0x5b0d70, recorder(5, 3)},
+    {0x5b1620, recorder(6, 2)},
+    {0x5b1650, recorder(7, 2)},
+};
+const AddrCall kShareTexCalls[] = {  // tests/fncmp/sharetexpath.py --table
+    {0x40ef40, jpeg_recorder(1, 0)},
+};
+const AddrCall kLobbyScriptCalls[] = {  // tests/fncmp/lobbyscript.py --table
+    {0x5c4d50, jpeg_recorder(1, 2)},
+    {0x5c4f60, jpeg_recorder(4, 4)},
+    {0x5c4f80, jpeg_recorder(5, 1)},
+    {0x5c4fa0, jpeg_recorder(2, 3)},
+    {0x5c5000, jpeg_recorder(3, 1)},
+    {0x5f5660, jpeg_recorder(6, 1)},
+    {0x5f5680, jpeg_recorder(7, 1)},
+    {0x5d9db0, recorder(10, 7)},
+    {0x5da120, recorder(11, 0)},
+    {0x5dfa60, recorder(8, 12)},
+    {0x5dfca0, recorder(9, 0)},
+};
+// HeightMap_Build's call of 23 arguments, on two recorders (tests/fncmp/heightmapbuild.py hooks it the same).
+struct Args23 {
+    u32 a[23];
+};
+u32 __cdecl heightmap_rasterize_recorder(Args23 s) {
+    using First = u32(__cdecl *)(u32, u32, u32, u32, u32, u32, u32, u32, u32, u32, u32, u32, u32, u32, u32);
+    using Second = u32(__cdecl *)(u32, u32, u32, u32, u32, u32, u32, u32);
+    reinterpret_cast<First>((uintptr_t)jpeg_recorder(10, 15))(s.a[0], s.a[1], s.a[2], s.a[3], s.a[4], s.a[5], s.a[6], s.a[7], s.a[8], s.a[9], s.a[10], s.a[11], s.a[12], s.a[13], s.a[14]);
+    return reinterpret_cast<Second>((uintptr_t)jpeg_recorder(11, 8))(s.a[15], s.a[16], s.a[17], s.a[18], s.a[19], s.a[20], s.a[21], s.a[22]);
+}
+const AddrCall kHeightMapCalls[] = {  // tests/fncmp/heightmapbuild.py --table
+    {0x4557c0, jpeg_recorder(1, 5)},
+    {0x455ad0, jpeg_recorder(15, 3)},
+    {0x45b9d0, jpeg_recorder(3, 2)},
+    {0x468600, jpeg_recorder(4, 5)},
+    {0x46f150, jpeg_recorder(9, 1)},
+    {0x4709d0, jpeg_recorder(5, 1)},
+    {0x4721f0, jpeg_recorder(12, 3)},
+    {0x472270, jpeg_recorder(13, 3)},
+    {0x472310, jpeg_recorder(14, 3)},
+    {0x472bc0, jpeg_recorder(6, 4)},
+    {0x472c60, jpeg_recorder(7, 3)},
+    {0x472f60, jpeg_recorder(8, 6)},
+    {0x473e30, jpeg_recorder(2, 4)},
+    {0x451e20, (u32)(uintptr_t)&heightmap_rasterize_recorder},
+};
+const AddrCall kRidesLoadCalls[] = {  // tests/fncmp/ridesload.py --table
+    {0x4547f0, jpeg_recorder(5, 1)},
+    {0x45b9d0, jpeg_recorder(1, 2)},
+    {0x45ba00, jpeg_recorder(12, 1)},
+    {0x463060, jpeg_recorder(4, 10)},
+    {0x464580, jpeg_recorder(8, 2)},
+    {0x472cb0, jpeg_recorder(7, 2)},
+    {0x472d10, jpeg_recorder(6, 3)},
+    {0x472ee0, jpeg_recorder(11, 1)},
+    {0x472f40, jpeg_recorder(10, 1)},
+    {0x473440, jpeg_recorder(3, 0)},
+    {0x473550, jpeg_recorder(9, 1)},
+    {0x412e90, recorder(13, 1)},
+};
+const GameFrameCall kGameFrameCalls[] = {  // tests/fncmp/gameframe.py --table
+    {0x402d70, recorder(1, 0)},
+    {0x402ea0, recorder(0, 1)},
+    {0x402ed0, recorder(21, 0)},
+    {0x404140, recorder(1, 1)},
+    {0x407d80, recorder(2, 0)},
+    {0x407e00, recorder(3, 1)},
+    {0x4088a0, recorder(29, 1)},
+    {0x409180, recorder(22, 0)},
+    {0x409300, recorder(23, 0)},
+    {0x4093d0, recorder(2, 1)},
+    {0x409480, recorder(28, 1)},
+    {0x40ef40, jpeg_recorder(23, 0)},
+    {0x40fb10, recorder(26, 1)},
+    {0x414d40, recorder(31, 3)},
+    {0x41a820, recorder(26, 0)},
+    {0x429ba0, jpeg_recorder(25, 4)},
+    {0x429df0, jpeg_recorder(0, 1)},
+    {0x429e20, jpeg_recorder(1, 1)},
+    {0x42b1c0, jpeg_recorder(0, 0)},
+    {0x435a30, jpeg_recorder(1, 0)},
+    {0x436490, jpeg_recorder(2, 0)},
+    {0x443340, jpeg_recorder(3, 0)},
+    {0x44a280, jpeg_recorder(0, 3)},
+    {0x44e410, jpeg_recorder(2, 1)},
+    {0x44e510, jpeg_recorder(4, 0)},
+    {0x44e540, jpeg_recorder(5, 0)},
+    {0x44e550, jpeg_recorder(6, 0)},
+    {0x457a90, jpeg_recorder(21, 0)},
+    {0x457c30, jpeg_recorder(22, 0)},
+    {0x457d50, jpeg_recorder(3, 1)},
+    {0x458590, jpeg_recorder(4, 1)},
+    {0x462870, jpeg_recorder(5, 1)},
+    {0x4628a0, jpeg_recorder(7, 0)},
+    {0x46c0d0, recorder(4, 1)},
+    {0x46c350, recorder(5, 1)},
+    {0x473440, jpeg_recorder(8, 0)},
+    {0x4752e0, jpeg_recorder(9, 0)},
+    {0x475360, jpeg_recorder(10, 0)},
+    {0x4813b0, recorder(0, 0)},
+    {0x4813e0, recorder(3, 0)},
+    {0x4813f0, recorder(6, 0)},
+    {0x481400, recorder(7, 0)},
+    {0x481410, recorder(13, 0)},
+    {0x481420, recorder(19, 0)},
+    {0x481430, recorder(20, 0)},
+    {0x48aff0, jpeg_recorder(11, 0)},
+    {0x4c81e0, recorder(12, 0)},
+    {0x4c8d30, recorder(13, 4)},
+    {0x4e5260, recorder(14, 0)},
+    {0x4e5950, recorder(3, 0)},
+    {0x4e5be0, recorder(6, 0)},
+    {0x4e5ef0, recorder(7, 0)},
+    {0x4e6130, recorder(13, 0)},
+    {0x4e6150, recorder(8, 0)},
+    {0x4e6170, recorder(19, 0)},
+    {0x4e6560, recorder(20, 0)},
+    {0x516380, recorder(21, 0)},
+    {0x5166b0, recorder(22, 0)},
+    {0x518f90, recorder(8, 1)},
+    {0x519060, recorder(9, 1)},
+    {0x519510, recorder(23, 0)},
+    {0x51b300, jpeg_recorder(20, 0)},
+    {0x51b350, jpeg_recorder(12, 0)},
+    {0x51bcb0, jpeg_recorder(13, 0)},
+    {0x51bd70, jpeg_recorder(14, 0)},
+    {0x51c1d0, jpeg_recorder(0, 9)},
+    {0x51c700, jpeg_recorder(6, 1)},
+    {0x51e6f0, jpeg_recorder(7, 1)},
+    {0x51e730, jpeg_recorder(15, 0)},
+    {0x51e770, jpeg_recorder(16, 0)},
+    {0x51e790, jpeg_recorder(8, 1)},
+    {0x51e7b0, jpeg_recorder(9, 1)},
+    {0x51e830, jpeg_recorder(10, 1)},
+    {0x51ec50, jpeg_recorder(11, 1)},
+    {0x51eda0, jpeg_recorder(17, 0)},
+    {0x51ee40, jpeg_recorder(18, 0)},
+    {0x51f370, jpeg_recorder(12, 1)},
+    {0x51faa0, jpeg_recorder(1, 3)},
+    {0x51fd20, jpeg_recorder(25, 0)},
+    {0x51fd80, jpeg_recorder(14, 1)},
+    {0x520130, jpeg_recorder(26, 0)},
+    {0x53e760, jpeg_recorder(15, 1)},
+    {0x540900, jpeg_recorder(0, 2)},
+    {0x541ed0, jpeg_recorder(27, 0)},
+    {0x546c80, jpeg_recorder(28, 0)},
+    {0x54df20, jpeg_recorder(29, 0)},
+    {0x54e070, jpeg_recorder(30, 0)},
+    {0x550950, jpeg_recorder(31, 0)},
+    {0x550b30, stdcall_recorder(0, 0)},
+    {0x550ca0, recorder(31, 0)},
+    {0x550d80, recorder(10, 1)},
+    {0x551600, stdcall_recorder(1, 0)},
+    {0x5516b0, stdcall_recorder(2, 0)},
+    {0x557ab0, stdcall_recorder(3, 0)},
+    {0x5584b0, stdcall_recorder(4, 0)},
+    {0x55a470, stdcall_recorder(5, 0)},
+    {0x55a5a0, stdcall_recorder(6, 0)},
+    {0x55ab50, stdcall_recorder(7, 0)},
+    {0x55abf0, stdcall_recorder(8, 0)},
+    {0x55ce60, jpeg_recorder(16, 1)},
+    {0x55d4d0, stdcall_recorder(9, 0)},
+    {0x56b790, recorder(11, 1)},
+    {0x576260, recorder(12, 1)},
+    {0x5765c0, recorder(14, 1)},
+    {0x576820, recorder(0, 0)},
+    {0x578be0, recorder(0, 3)},
+    {0x587380, recorder(1, 3)},
+    {0x5879c0, recorder(27, 0)},
+    {0x58dd60, recorder(15, 1)},
+    {0x5989c0, stdcall_recorder(11, 0)},
+    {0x598ad0, stdcall_recorder(10, 0)},
+    {0x5996d0, jpeg_recorder(17, 1)},
+    {0x599800, stdcall_recorder(12, 0)},
+    {0x599880, stdcall_recorder(13, 0)},
+    {0x5ac5f0, recorder(16, 1)},
+    {0x5ac610, recorder(17, 1)},
+    {0x5accf0, recorder(24, 0)},
+    {0x5aef50, recorder(17, 0)},
+    {0x5af250, recorder(29, 0)},
+    {0x5afc40, recorder(9, 0)},
+    {0x5b0cb0, recorder(10, 0)},
+    {0x5b0cc0, recorder(30, 0)},
+    {0x5b50b0, recorder(15, 0)},
+    {0x5b5920, recorder(25, 0)},
+    {0x5b6480, recorder(24, 0)},
+    {0x5b96a0, recorder(26, 0)},
+    {0x5b96b0, recorder(5, 0)},
+    {0x5bd270, recorder(6, 1)},
+    {0x5c5520, recorder(25, 0)},
+    {0x5c5560, recorder(18, 1)},
+    {0x5c5580, recorder(27, 1)},
+    {0x5c7420, recorder(16, 0)},
+    {0x5c74b0, recorder(27, 0)},
+    {0x5c7d00, recorder(7, 1)},
+    {0x5c7f40, recorder(30, 3)},
+    {0x5c83b0, recorder(19, 1)},
+    {0x5c8650, recorder(28, 0)},
+    {0x5d5770, recorder(18, 0)},
+    {0x5d5840, recorder(31, 0)},
+    {0x5d5970, recorder(28, 0)},
+    {0x5d5c50, recorder(29, 0)},
+    {0x5d5cc0, recorder(30, 0)},
+    {0x5d5cf0, recorder(11, 0)},
+    {0x5f5fa0, jpeg_recorder(24, 0)},
+    {0x619240, recorder(4, 0)},
+    {0x6591e3, stdcall_recorder(14, 0)},
+    {0x659201, stdcall_recorder(15, 0)},
+    {0x6595a8, jpeg_recorder(19, 0)},
+    {0x67a7d0, jpeg_recorder(18, 1)},
+    {0x67acf0, stdcall_recorder(36, 5)},
+    {0x67afa0, stdcall_recorder(37, 4)},
+};
 const ObjectUnlockScoresEnv kObjectUnlockScoresEnv = {Rec{recorder(19, 0)}, Rec{stdcall_recorder(20, 2)}, Rec{stdcall_recorder(21, 1)}, Rec{stdcall_recorder(22, 2)},
                                                       Rec{jpeg_recorder(23, 0)}, Rec{recorder(24, 2)}, Rec{recorder(25, 2)}};
 // StaffRename_Open's calls (tests/fncmp/staffrenameopen.py).
@@ -2103,12 +2373,20 @@ int main(int argc, char **argv) {
     CameraUpdate_SetEnv(&kCameraUpdateEnv);
     WeatherFx_SetReloadEnv(&kWeatherFxReloadEnv);
     ArReplay_SetEnv(&kArReplayEnv);
+    RidesLoad_SetCalls(kRidesLoadCalls, sizeof(kRidesLoadCalls) / sizeof(kRidesLoadCalls[0]));
+    HeightMap_SetCalls(kHeightMapCalls, sizeof(kHeightMapCalls) / sizeof(kHeightMapCalls[0]));
+    LobbyScript_SetEnv(kLobbyScriptCalls, sizeof(kLobbyScriptCalls) / sizeof(kLobbyScriptCalls[0]));
+    GamePaths_SetCalls(kShareTexCalls, sizeof(kShareTexCalls) / sizeof(kShareTexCalls[0]));
+    GlobalSave_SetCalls(kGlobalSaveCalls, sizeof(kGlobalSaveCalls) / sizeof(kGlobalSaveCalls[0]));
+    CoastersLoad_SetEnv(kCoastersLoadCalls, sizeof(kCoastersLoadCalls) / sizeof(kCoastersLoadCalls[0]));
+    ArReplayAction_SetEnv(kArReplayActionCalls, sizeof(kArReplayActionCalls) / sizeof(kArReplayActionCalls[0]));
     CoasterRebuild_SetEnv(&kCoasterRebuildEnv);
     CoasterPose_SetEnv(&kCoasterPoseEnv);
     RideResource_SetEnv(&kRideResourceEnv);
     CoasterPlaceCar_SetEnv(&kCoasterPlaceCarEnv);
     TexCache_SetTraceEnv(&kTexCacheTraceEnv);
     LobbyMake_SetEnv(&kLobbyMakeEnv);
+    GameFrame_SetEnv(kGameFrameCalls, sizeof(kGameFrameCalls) / sizeof(kGameFrameCalls[0]));
     D3dProbe_SetEnv(&kD3dProbeEnv);
     SpriteFrames_SetEnv(&kSpriteFramesEnv);
     ScapeObjects_SetEnv(&kScapeObjectsEnv);

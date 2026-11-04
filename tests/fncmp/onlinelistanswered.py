@@ -11,7 +11,8 @@ from fncmp import HEAP, IMPORT_TABLE, LOG, RAM, Bench, Call, heap, log_region, p
 B = Bench([(0x5b6da0, 0x5b726b)])
 SESSION, LISTS, DATA = RAM, RAM + 0x200, RAM + 0x600
 SLOTS = [0x6fd538, 0x6fd4ec, 0x6fd4e8, 0x6fd4f0, 0x6fd528, 0x6fd524, 0x6fd520, 0x6fd51c, 0x6fd518, 0x6fd514]
-CODES = list(range(-11, 10))
+CODES = list(range(-11, 10)) + [2, 3, 3, 3, 3, 4, 5, 6]   # (a list kind's codes more often: parks has five lists)
+ASKS = {2: [0], 3: [1, 2, 3, 4, 5], 4: [7], 5: [6], 6: [8]}   # a code's lists, by their place from +0xe0
 
 
 def case(r):
@@ -25,13 +26,14 @@ def case(r):
     for k in range(9):
         put(session, 0xe0 + 4 * k, 'I', LISTS + 0x40 * k)
         put(lists, 0x40 * k + 4, 'I', ids[k])
-        put(lists, 0x40 * k + 0x30, 'I', r.choice([0, r.getrandbits(32) | 1]))
+        put(lists, 0x40 * k + 0x30, 'I', r.choice([0, r.getrandbits(32) | 1, r.getrandbits(32) | 1]))
     regions = {SESSION: session, LISTS: lists, IMPORT_TABLE: table, LOG: log_region(), HEAP: heap()}
     # The data freed needs a block of the heap region; the free only counts it.
     data = 0 if r.random() < 0.1 else DATA
     regions[DATA] = put(bytearray(r.bytes(0x10)), 0xc, 'I', r.choice([1, 1, 2, 0, r.getrandbits(32)]))
     code = r.deal(CODES)
-    return Call(0x5b6da0, [SESSION, code & 0xffffffff, r.choice(ids + [99]), r.getrandbits(32), data], regions, conv='t', ret='v')
+    request = ids[r.deal(ASKS[code])] if code in ASKS and r.random() < 0.7 else r.choice(ids + [99])
+    return Call(0x5b6da0, [SESSION, code & 0xffffffff, request, r.getrandbits(32), data], regions, conv='t', ret='v')
 
 
 if __name__ == '__main__':

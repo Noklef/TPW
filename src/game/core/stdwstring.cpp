@@ -217,6 +217,15 @@ StdWString *__fastcall StdWString_CtorFill(StdWString *s, void *, u32 n, u32 ch,
     return StdWString_AssignFill(s, nullptr, n, ch);
 }
 
+StdWString *__fastcall StdWString_AssignChars(StdWString *s, void *, const u16 *chars, u32 n) {
+    if (StdWString_Grow(s, nullptr, n, 1)) {
+        for (u32 i = 0; i < n; ++i) s->ptr[i] = chars[i];
+        s->len = n;
+        s->ptr[n] = 0;
+    }
+    return s;
+}
+
 StdWString *__fastcall StdWString_CtorChars(StdWString *s, void *, const u16 *chars, const u8 *allocator) {
     *bytes(s) = *allocator;
     s->ptr = nullptr;

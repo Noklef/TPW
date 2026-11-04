@@ -4,8 +4,11 @@
 
 #include "../math/matrix.h"
 #include "../math/x87.h"
+#include "../motion/animator.h"
 
 namespace {
+
+AddrCalls g_calls;
 
 template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cast<T *>((uintptr_t)p + offset); }
 template <typename T> T &g(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
@@ -188,3 +191,113 @@ u32 __cdecl HeightMap_Rasterize(u8 *node, u32 unused, Matrix44 m, u8 *grid, u8 *
     return ok;
 }
 }
+
+namespace {
+
+// The clone rasterized once, the grid's globals set first (its size * 0x6fe3e4 and in fifths).
+void RasterizeClone(u8 *clone, u8 *map, u32 block, u32 time, u32 *clipped) {
+    u8 *const held = at<u8 *>(clone, 8);
+    const u32 width = at<u16>(map, 8), height = at<u16>(map, 0xa);
+    g<float>(0x0079fb20) = (float)X87_MulInt(width, g<const float>(0x006fe3e4));
+    g<float>(0x0079fb08) = (float)X87_MulInt(height, g<const float>(0x006fe3e4));
+    g<u32>(0x0079f7d4) = width * 5;
+    g<u32>(0x0079fb0c) = height * 5;
+    Matrix44 matrix;
+    g_calls.Cd(0x0046f150, &matrix);   // Matrix_Identity
+    u8 *const model = at<u8 *>(held, 4);
+    u8 *hit;
+    g_calls.Cd(0x00451e20, at<u32>(model, 0x78), model, matrix, map, &hit, block, time, clipped);   // HeightMap_Rasterize
+}
+
+void PlayBlock(u8 *clone, const u8 *model, u8 *map, u32 i, u32 *clipped) {
+    const u32 block = at<u32>(at<u8 *>(clone, 0xac), 4 * i);
+    u32 time = 0, bank, entry, third;
+    g_calls.Cd(0x00468600, clone, i, &bank, &entry, &third);   // RsseScript_EventName
+    u8 layer[0x38];
+    at<u32>(layer, 4) = 0xc;
+    at<u32>(layer, 8) = 0;
+    at<u32>(layer, 0xc) = 0x3f800000;
+    g_calls.Cd(0x004709d0, time);   // Motion_SetTime
+    g_calls.Cd(0x00472bc0, layer, block, 1u, 0u);   // Layer_Start
+    g_calls.Cd(0x00472c60, layer, &time, 1u);   // Layer_Advance
+    g_calls.Cd(0x00472f60, clone, bank, entry, layer, 0u, 0x3f800000u);   // Layer_Play
+    while (Layer_TimeLeft(layer) >= 0.0) {   // (0x6fe3dc; unordered is "below")
+        g_calls.Cd(0x004721f0, layer, at<u32>(clone, 8), block);   // Motion_Apply
+        RasterizeClone(clone, map, block, (u32)Ftol(X87Reg(at<const float>(layer, 0x20))), clipped);
+        u8 *const held = at<u8 *>(clone, 8);
+        g_calls.Cd(0x00472270, at<u32>(held, 8), held, 1u);   // Motion_CopyVertices
+        u32 *part = at<u32 *>(model, 0x70);
+        for (u32 n = at<u16>(model, 0x44); n; --n, part += 0xa0 / 4)
+            *part &= 0xff7fffff;
+        time += 0x1e;
+        g_calls.Cd(0x004709d0, time);
+        g_calls.Cd(0x00472c60, layer, &time, 1u);
+    }
+    g_calls.Cd(0x00472310, clone, at<u32>(at<u8 *>(clone, 0x20 + 0xc * at<u32>(layer, 4)), 4 + 8 * at<u32>(layer, 8)), 0u);   // Motion_ResetChannels
+}
+
+}  // namespace
+
+void HeightMap_SetCalls(const AddrCall *table, u32 count) { g_calls.Set(table, count); }
+
+u8 *__cdecl HeightMap_Build(u8 *instance, u32 width, u32 height, const u8 *flags, u32 useScale) {
+    u8 *clone;
+    if (!g_calls.Cd(0x004557c0, instance, 0u, 0x211fu, &clone, 0u))   // Instance_Clone
+        return nullptr;
+    g_calls.Cd(0x00473e30, clone, 1u, 0u, 0u);   // Animator_Reset
+    u8 *const model = at<u8 *>(at<u8 *>(clone, 8), 4);
+    u8 *const map = reinterpret_cast<u8 *>((uintptr_t)g_calls.Cd(0x0045b9d0, 0x30u, 1u));   // GlobalMem_Alloc
+    at<u16>(map, 8) = (u16)width;
+    at<u16>(map, 0xa) = (u16)height;
+    const u32 squares = width * height;
+    at<u32>(map, 0) = 0xab1e0003;
+    at<u32>(map, 4) = 0x640005;
+    u8 *const cells = reinterpret_cast<u8 *>((uintptr_t)g_calls.Cd(0x0045b9d0, 27 * squares, 1u));
+    at<u8 *>(map, 0xc) = cells;
+    at<u8 *>(map, 0x10) = cells + 25 * squares;
+    at<u8 *>(map, 0x14) = cells + 26 * squares;
+    u32 clipped = 0;
+    bool moves = false;
+    if (at<u32>(clone, 0xa8)) {
+        for (u32 i = 2; i < 0xc; ++i)
+            if (at<u32>(clone, 0x1c + 0xc * i))
+                moves = true;
+    }
+    if (moves) {
+        for (u32 i = 0; i < 3; ++i) {
+            at<u32>(map, 0x18 + 4 * i) = 0x7f7fffff;
+            at<u32>(map, 0x24 + 4 * i) = 0x800000;
+        }
+        for (u32 i = 0; i < at<u32>(clone, 0xa8); ++i) {
+            const u32 block = at<u32>(at<u8 *>(clone, 0xac), 4 * i);
+            if (!block) continue;
+            u8 *const first = at<u8 *>(clone, 0x20), *const second = at<u8 *>(clone, 0x2c);
+            if (first && block == at<u32>(first, 4)) continue;
+            if (second && block == at<u32>(second, 4)) continue;
+            PlayBlock(clone, model, map, i, &clipped);
+        }
+    } else {
+        const u8 *const bounds = at<u8 *>(at<u8 *>(instance, 8), 4) + 0x80;
+        for (u32 i = 0; i < 6; ++i)
+            at<u32>(map, 0x18 + 4 * i) = at<u32>(bounds, 4 * i);
+        RasterizeClone(clone, map, 0, 0, &clipped);
+    }
+    g_calls.Cd(0x00455ad0, clone, 0u, 0u);   // Instance_Dispose
+    u32 base = 0, row = 0, flag = 1;
+    for (u32 left = height; left; --left) {
+        for (u32 x = 0; x < width; ++x) {
+            const u8 *cell = at<u8 *>(map, 0xc) + row + 5 * x;
+            u8 top = 0;
+            for (u32 i = 0; i < 5; ++i, cell += width * 5)
+                for (u32 k = 0; k < 5; ++k)
+                    if (cell[k] > top) top = cell[k];
+            at<u8 *>(map, 0x10)[x + base] = useScale ? (u8)Ftol(X87Reg(at<const float>(model, 0x90)) * kRise) : top;
+            at<u8 *>(map, 0x14)[x + base] = flags && !at<u32>(flags, 8 * (flag + x)) ? 0 : 1;
+        }
+        base += width;
+        row += width * 25;
+        flag += 0x14;
+    }
+    return map;
+}
+

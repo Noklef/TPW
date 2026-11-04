@@ -7,12 +7,16 @@
 #include "savegame.h"
 #include "stdlist.h"
 #include "stdtree.h"
+#include "string.h"
+#include "vcall.h"
 #include "../files/file.h"
 
 namespace {
 
 template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cast<T *>((uintptr_t)p + offset); }
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
+
+AddrCalls g_calls;
 
 // A tree's constructor as the game inlines it (std::_Tree with a shared nil node; the STL lock around it left out): the nil made the first
 // time (new(0, 1): parent 0, black; its left and right 0), its users counted, the head new(nil, 0) (red) with its left and right itself,
@@ -163,6 +167,111 @@ void __fastcall GlobalSave_SetAllResearchCompleted(u8 *info) {
 u8 __fastcall GlobalSave_Byte4c(const u8 *info) { return info[0x4c]; }
 
 void __fastcall GlobalSave_ClearByte4c(u8 *info) { info[0x4c] = 0; }
+
+void GlobalSave_SetCalls(const AddrCall *table, u32 count) { g_calls.Set(table, count); }
+
+u32 __fastcall GlobalSave_Serialize(u8 *info, void *, Stream *stream, u32 saving, u32 third) {
+    const bool save = saving != 0;
+    const u32 streamAt = (u32)(uintptr_t)stream;
+    const u32 kOptions = 0x0078d8d8;
+    for (u32 i = 0; i < 4; ++i)
+        if (!Field(stream, info + 0x18 + i, 1, save))
+            return 1;
+    for (u32 i = 0; i < 2; ++i)
+        if (!Field(stream, info + 0x26 + i, 1, save))
+            return 1;
+    if (!Field(stream, info + 0x1c, 4, save) || !Field(stream, info + 0x20, 4, save))
+        return 1;
+    if (!Field(stream, info + 0x24, 1, save) || !Field(stream, info + 0x25, 1, save) || !Field(stream, info + 0x4c, 1, save))
+        return 1;
+    if (save) {
+        u32 count = at<u32>(info, 0x44);
+        if (!Field(stream, reinterpret_cast<u8 *>(&count), 4, true))
+            return 1;
+        u8 *const themes = at<u8 *>(info, 0x3c);
+        for (u8 *node = at<u8 *>(themes, 0); node != at<u8 *>(info, 0x3c); StdTree_IncF(&node)) {
+            u32 length = at<u32>(node, 0x10);
+            if (!Field(stream, reinterpret_cast<u8 *>(&length), 4, true))
+                return 1;
+            char *const text = static_cast<char *>(GameHeap_Alloc(length + 1));
+            const char *const from = at<const char *>(node, 0x14);
+            u32 size = 0;
+            while (from[size]) ++size;
+            for (u32 i = 0; i <= size; ++i) text[i] = from[i];
+            for (u32 i = 0; i < length; ++i)
+                if (!Field(stream, reinterpret_cast<u8 *>(text + i), 1, true))
+                    return 1;
+            GameHeap_Free(text);
+            if (g_calls.Th(0x005b0d70, at<u32>(node, 0x20), streamAt, saving, third))   // ThemeSaveRecord_Serialize
+                return 1;
+        }
+        if (g_calls.Th(0x00423e90, kOptions, streamAt, saving, third))
+            return 1;
+        u32 keys = at<u32>(info, 0x34);
+        if (!Field(stream, reinterpret_cast<u8 *>(&keys), 4, true))
+            return 1;
+        u8 *const rides = at<u8 *>(info, 0x2c);
+        for (u8 *node = at<u8 *>(rides, 0); node != at<u8 *>(info, 0x2c); StdTree_IncG(&node)) {
+            u32 value = ((u32)(uintptr_t)node & 0xffff0000u) | at<u16>(node, 0xc);   // (the original's register: its high half is the node's)
+            if (!Field(stream, reinterpret_cast<u8 *>(&value), 2, true))
+                return 1;
+        }
+        return 0;
+    }
+    s32 count;
+    if (!Field(stream, reinterpret_cast<u8 *>(&count), 4, false))
+        return 1;
+    for (s32 i = 0; i < count; ++i) {
+        u32 length;
+        if (!Field(stream, reinterpret_cast<u8 *>(&length), 4, false))
+            return 1;
+        char *const text = static_cast<char *>(GameHeap_Alloc(length + 1));
+        for (u32 k = 0; k < length; ++k)
+            if (!Field(stream, reinterpret_cast<u8 *>(text + k), 1, false))
+                return 1;
+        text[length] = 0;
+        String name;
+        String_CtorStr(&name, nullptr, text);
+        GameHeap_Free(text);
+        u8 *const record = static_cast<u8 *>(GameHeap_Alloc(0xbc));
+        if (record) {
+            at<u32>(record, 0x1c) = 0;
+            String *const held = reinterpret_cast<String *>(record + 0x20);
+            String_Ctor(held);
+            vcall<void>(held, 0x18, &name);
+        }
+        if (g_calls.Th(0x005b0d70, (u32)(uintptr_t)record, streamAt, 0u, third)) {
+            String_Dtor(&name);
+            return 1;
+        }
+        struct {
+            String key;
+            u8 *value;
+        } pair;
+        String_CtorCopy(&pair.key, nullptr, reinterpret_cast<const StringView *>(&name));
+        pair.value = record;
+        u32 inserted[2];
+        g_calls.Th(0x005b1620, (u32)(uintptr_t)(info + 0x38), inserted, &pair);
+        String_Dtor(&pair.key);
+        if ((u8)inserted[1] == 0) {
+            String_Dtor(&name);
+            return 1;
+        }
+        String_Dtor(&name);
+    }
+    if (g_calls.Th(0x00423e90, kOptions, streamAt, 0u, third))
+        return 1;
+    s32 keys;
+    if (Save_ReadU32(stream, &keys, reinterpret_cast<const char *>((uintptr_t)0x007731b0), 1))
+        return 1;
+    for (s32 i = 0; i < keys; ++i) {
+        if (Save_ReadU16(stream, &third, reinterpret_cast<const char *>((uintptr_t)0x007731a8), 1))
+            return 1;
+        u32 inserted[2];
+        g_calls.Th(0x005b1650, (u32)(uintptr_t)(info + 0x28), inserted, &third);
+    }
+    return 0;
+}
 
 u8 *__fastcall GlobalSave_Construct(u8 *info) {
     u8 *const node = static_cast<u8 *>(GameHeap_Alloc(0x18));   // (not checked)
