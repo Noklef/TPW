@@ -240,6 +240,11 @@ s32 __cdecl CRT_stricmp(const char *a, const char *b);
 // 0x699ab0 / 0x69a340: _Tolower / _Toupper of the C++ library: the character by the given (id, code page) or, for null, the current locale. A call of __crtLCMapStringA with no eighth argument: it reads the caller's EDI, as
 // `strict` here, through the shims.
 s32 __cdecl CRT_Tolower(s32 c, const u32 *locale);
+// 0x699a20, 0x69a2b0 (cdecl): _Tolower and _Toupper under the locale's lock; with no locale the plain C mapping, unlocked. The locale passed on as the inner one's last argument too (its EDI).
+s32 __cdecl CRT_TolowerLocking(s32 c, const u32 *locale);
+s32 __cdecl CRT_ToupperLocking(s32 c, const u32 *locale);
+// 0x69a5d0 (cdecl): _Wctob: the unit as one byte, sign-extended; -1 for 0xffff and any other answer than 1 of _Wcrtomb.
+s32 __cdecl CRT_Wctob(u32 unit);
 s32 __cdecl CRT_Toupper(s32 c, const u32 *locale);
 
 // 0x67bb90: memmove: returns dest.

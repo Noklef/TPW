@@ -5,6 +5,7 @@
 
 #include "crt.h"
 #include "stdstring.h"
+#include "vcall.h"
 #include "wfilebuf.h"
 
 namespace {
@@ -300,6 +301,35 @@ u32 __fastcall CtypeW_Widen(void *, void *, u32 c) { return CRT_btowc((u32)(s32)
 
 const char *__fastcall CtypeW_WidenRange(void *, void *, const char *first, const char *last, u16 *to) {
     for (; first != last; ++first, ++to) *to = (u16)CRT_btowc((u32)(s32)(s8)*first);
+    return first;
+}
+
+u32 __fastcall CtypeW_ToLower(u8 *self, void *, u32 c) {
+    const s32 narrow = static_cast<s8>(vcall<u32>(self, 0x30, c, 0u));
+    c = (c & 0xffffff00u) | static_cast<u8>(CRT_TolowerLocking(narrow, reinterpret_cast<const u32 *>(self + 8)));
+    return vcall<u32>(self, 0x28, c);
+}
+
+u16 *__fastcall CtypeW_ToLowerRange(u8 *self, void *, u16 *first, u16 *last) {
+    for (; first != last; ++first) *first = static_cast<u16>(CRT_TolowerLocking(*first, reinterpret_cast<const u32 *>(self + 8)));
+    return first;
+}
+
+u32 __fastcall CtypeW_ToUpper(u8 *self, void *, u32 c) {
+    const s32 narrow = static_cast<s8>(vcall<u32>(self, 0x30, c, 0u));
+    c = (c & 0xffffff00u) | static_cast<u8>(CRT_ToupperLocking(narrow, reinterpret_cast<const u32 *>(self + 8)));
+    return vcall<u32>(self, 0x28, c);
+}
+
+u16 *__fastcall CtypeW_ToUpperRange(u8 *self, void *, u16 *first, u16 *last) {
+    for (; first != last; ++first) *first = static_cast<u16>(CRT_ToupperLocking(*first, reinterpret_cast<const u32 *>(self + 8)));
+    return first;
+}
+
+s32 __fastcall CtypeW_Narrow(void *, void *, u32 c, u32) { return CRT_Wctob(c); }
+
+const u16 *__fastcall CtypeW_NarrowRange(void *, void *, const u16 *first, const u16 *last, u32, char *to) {
+    for (; first != last; ++first, ++to) *to = static_cast<char>(CRT_Wctob(*first));
     return first;
 }
 
