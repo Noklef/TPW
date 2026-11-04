@@ -78,7 +78,6 @@ u16 Pack4444(const u8 *p) {
     return static_cast<u16>((p[0] & 0xf0) << 8 | (p[1] & 0xf0) << 4 | (p[2] & 0xf0) | p[3] >> 4);
 }
 
-// Where the game has its two copies of the mode's checks; the masks stay until the end.
 void DrawLayers(u8 *self, u8 *lit, u8 *a, u8 *b) {
     Array3D_Fill(lit, nullptr, 0, 0, 0, 0);
     if (self[8])

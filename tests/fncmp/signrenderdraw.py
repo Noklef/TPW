@@ -45,7 +45,7 @@ def case(r):
     regions[SELF] = self
     strings(log, FILTER, 0, 1 << 1)
     if width:
-        fill(log, FILTER, 1, r.bytes(min(0x70, 4 * width * height)), through=0xc)
+        fill(log, FILTER, 1, r.bytes(2 * min(0x38, 4 * width * height)), records=2, through=0xc)
     return Call(0x5ecb40, [SELF, 0x2000, ARG], regions, conv='t', ret='b')
 
 
