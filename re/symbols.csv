@@ -7444,6 +7444,7 @@ address,name,kind,confidence,notes
 0x005d8cb0,LobbyCamera_Frame,function,low,reimplemented (src/game/frontend/lobbyscene); the lobby camera applied for a frame
 0x005da3a0,Class702af0_StepAll,function,low,reimplemented (src/game/frontend/lobbyscene); Each scene of the list's step.
 0x005d80a0,Class702a50_DeletingDtor,function,low,reimplemented (src/game/frontend/lobbyscene); The destructor and the block freed by bit 0.
+0x005d84a0,Class702a60_Ctor,function,low,reimplemented (src/game/frontend/lobbyscene); The lobby game's constructor.
 0x005dd310,ViewCtl_Lower48,function,low,reimplemented (src/game/frontend/viewcontrols); thiscall: the float +0x48 lowered by the float +0x14
 0x005dd320,ViewCtl_Raise48,function,low,reimplemented (src/game/frontend/viewcontrols); thiscall: the float +0x48 raised by the float +0x14
 0x005dd330,ViewCtl_Raise50,function,low,reimplemented (src/game/frontend/viewcontrols); thiscall: the float +0x50 raised by the float +0x14

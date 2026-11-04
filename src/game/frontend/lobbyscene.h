@@ -5,6 +5,7 @@
 #include "../../../re/types.h"
 
 struct String;
+struct StringView;
 
 // Class702a50_Dtor's calls (the ports by default; the bench runs them as recorders).
 struct LobbySceneEnv {
@@ -27,6 +28,13 @@ struct LobbySceneEnv {
     void(__fastcall *lookAt)(u8 *camera);                                // Camera_SetLookAt (0x5d8de0)
     void(__cdecl *cameraUpdate)();                                       // Camera_Update (0x42b1c0)
     u32(__fastcall *fadeFog)(u8 *fade);                                  // Render_FadeFog (0x5d96c0)
+    // Class702a60_Ctor's calls.
+    u8 *(__fastcall *baseCtor)(u8 *object);                              // Class7029d0_Ctor (0x5d5700)
+    String *(__fastcall *stringCtor)(String *s, void *, const char *text);   // String_CtorStr (0x5f60b0)
+    void(__fastcall *joinPath)(u8 *paths, void *, const StringView *name);   // Strings5_JoinPath (0x5c5580)
+    void(__cdecl *terrainLoad)(u32 a, u32 b);                            // Terrain_Load (0x4504c0, the game's)
+    u32(__cdecl *removeFromRect)(u8 *object, u32 from, u32 to);          // Obj_RemoveFromRect (0x45be80)
+    void(__cdecl *holderSleep)(u8 *holder);                              // Holder_Sleep (0x45bdd0)
 };
 void LobbyScene_SetEnv(const LobbySceneEnv *env);
 
@@ -38,6 +46,11 @@ void __fastcall Class702a50_Dtor(u8 *object);
 
 // 0x5d80a0 (thiscall, pops 4; name unconfirmed): the destructor, the block freed when bit 0 of the flags is set; returns the object.
 u8 *__fastcall Class702a50_DeletingDtor(u8 *object, void *, u32 flags);
+
+// 0x5d84a0 (class 0x702a60's constructor, thiscall; the SEH frame left out; name invented, unconfirmed): the base (Class7029d0_Ctor), the vtable; the text at 0x774c64 joined
+// to the paths at 0xf816c0; Terrain_Load(1, 0); while +4 is 1 the renderer's holder ([0x79fcb4]+8) taken out (Obj_RemoveFromRect over +0xc0 / +0xc4 when its flags (+4) have
+// 0x4000, else Holder_Sleep). +8 and +0xc: blocks of 16 bytes with the vtables 0x702a58 and 0x702a54, the rest zero (null on a failed block).
+u8 *__fastcall Class702a60_Ctor(u8 *object);
 
 // 0x5da120 (class 0x702af0; name unconfirmed): once (the flag at +4 then set to 1), each item of the list at +0x58 (head +4; nodes {item, next})
 // whose flag at +0xc is clear has its model at +8 set up (RideUser_Acquire) and the flag set to 1.

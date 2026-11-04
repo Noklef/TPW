@@ -7,6 +7,7 @@
 #include "../core/gameheap.h"
 #include "../core/soundplay.h"
 #include "../core/string.h"
+#include "../core/vdtor.h"
 #include "../core/vcall.h"
 #include "../files/userslots.h"
 #include "../math/mat4.h"
@@ -41,8 +42,25 @@ const LobbySceneEnv kPorts = {&Ride_Destroy,
                               reinterpret_cast<decltype(LobbySceneEnv::setFov)>(&ViewQuad_SetFov),
                               &Camera_SetLookAt,
                               &Camera_Update,
-                              &Render_FadeFog};
+                              &Render_FadeFog,
+                              &Class7029d0_Ctor,
+                              &String_CtorStr,
+                              &Strings5_JoinPath,
+                              reinterpret_cast<decltype(LobbySceneEnv::terrainLoad)>((uintptr_t)0x004504c0),
+                              &Obj_RemoveFromRect,
+                              &Holder_Sleep};
 const LobbySceneEnv *g_env = &kPorts;
+
+// A block of 16 bytes with the vtable and the rest zero; null when it fails.
+u8 *NewEmpty(u32 vtable) {
+    u8 *const block = static_cast<u8 *>(GameHeap_Alloc(0x10));
+    if (!block) return nullptr;
+    at<u32>(block, 4) = 0;
+    at<u32>(block, 8) = 0;
+    at<u32>(block, 0xc) = 0;
+    at<u32>(block, 0) = vtable;
+    return block;
+}
 
 // FCOM against a float: C0 (below, or unordered), C3 (equal, or unordered), C0 or C3 (not above).
 bool Below(X87Reg a, float b) { return !(a.v >= b); }
@@ -311,6 +329,26 @@ void __fastcall Class702a50_Dtor(u8 *object) {
 u8 *__fastcall Class702a50_DeletingDtor(u8 *object, void *, u32 flags) {
     Class702a50_Dtor(object);
     if (flags & 1) GameHeap_Free(object);
+    return object;
+}
+
+u8 *__fastcall Class702a60_Ctor(u8 *object) {
+    g_env->baseCtor(object);
+    at<u32>(object, 0) = 0x00702a60;
+    String name;
+    g_env->stringCtor(&name, nullptr, reinterpret_cast<const char *>((uintptr_t)0x00774c64));
+    g_env->joinPath(reinterpret_cast<u8 *>((uintptr_t)0x00f816c0), nullptr, reinterpret_cast<const StringView *>(&name));
+    g_env->stringDtor(&name);
+    g_env->terrainLoad(1, 0);
+    at<u32>(object, 4) = 1;
+    u8 *const renderer = global<u8 *>(0x0079fcb4);
+    if (at<u32>(renderer, 4) & 0x4000)
+        g_env->removeFromRect(at<u8 *>(renderer, 8), at<u32>(renderer, 0xc0), at<u32>(renderer, 0xc4));
+    else
+        g_env->holderSleep(at<u8 *>(renderer, 8));
+    at<u32>(object, 4) = 0;
+    at<u8 *>(object, 8) = NewEmpty(0x00702a58);
+    at<u8 *>(object, 0xc) = NewEmpty(0x00702a54);
     return object;
 }
 
