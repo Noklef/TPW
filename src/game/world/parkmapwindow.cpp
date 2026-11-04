@@ -5,9 +5,11 @@
 #include <cstdint>
 
 #include "../core/accessors.h"
+#include "../core/stdlist.h"
 #include "../core/string.h"
 #include "../core/vcall.h"
 #include "../files/charsets.h"
+#include "../gfx/surface.h"
 #include "../math/x87.h"
 #include "../render/backdrop.h"
 #include "../ui/thingpanel.h"
@@ -27,8 +29,19 @@ T &global(u32 address) {
     return *reinterpret_cast<T *>((uintptr_t)address);
 }
 
+// A function of the game by its address.
+struct Game {
+    u32 address;
+    template <typename F>
+    operator F() const {
+        return reinterpret_cast<F>((uintptr_t)address);
+    }
+};
+
 const ParkMapWindowEnv kPorts = {&ParkMap_Scroll, &ParkMap_LoadPicture, &ParkMap_Draw, &Backdrop_UncacheRect, &Staff_GetName, &Charset_FormatWide,
-                                 &SignText_Format, &Window_FindChild, &ParkMap_ApplyView, &ThingPanel_Show, &Window_CallDefault};
+                                 &SignText_Format, &Window_FindChild, &ParkMap_ApplyView, &ThingPanel_Show, &Window_CallDefault, &ParkMap_LayOut,
+                                 Game{0x0056b450}, Game{0x0056b340}, Game{0x0056b210}, &SurfaceInfo_Free, Game{0x005763f0}, Game{0x00409300},
+                                 Game{0x00662420}, Game{0x00658d9f}, Game{0x00486b40}, Game{0x00485b70}, Game{0x004862a0}, Game{0x00492530}};
 const ParkMapWindowEnv *g_env = &kPorts;
 
 const u32 kBackdrop = 0x0087aee8;
@@ -36,6 +49,74 @@ const u32 kThings = 0x007cfb90;  // (20 bytes a slot)
 const u32 kText = 0x007ba058;
 
 s32 Ftol(double x) { return (s32)(long long)x; }
+
+// The picture reloaded with the filters as they are, redrawn and uncached whole.
+void Reload(u8 *map) {
+    g_env->loadPicture(map, nullptr, 1);
+    g_env->draw(map);
+    g_env->uncacheRect(reinterpret_cast<u8 *>((uintptr_t)kBackdrop), nullptr, 0, 0, at<s32>(map, 0x48) - 1, at<s32>(map, 0x4c) - 1);
+}
+
+void Flip(u8 *map, u32 bit) {
+    at<u32>(map, 0x18) ^= bit;
+    Reload(map);
+}
+
+void Scroll(u8 *map, u32 direction) { g_env->scroll(map, nullptr, direction, 1.0f); }
+
+void Zoom(u8 *map, float step) {
+    const X87Reg z = X87Reg(at<float>(map, 0x5c)) - step;
+    const float low = global<float>(0x00703004), high = global<float>(0x0070302c);
+    at<float>(map, 0x5c) = !(z.v >= low) ? low : z.v > high ? high : (float)z;
+    g_env->layOut(map);
+}
+
+void Close(u8 *map) {
+    while (at<u32>(at<u8 *>(map, 0x20080), 0xc)) {
+        u8 *const object = List_PopHeadObject(at<u8 *>(map, 0x20080));
+        if (object) vcall<void>(object, 0, 1u);
+    }
+    u8 *const list = at<u8 *>(map, 0x20080);
+    if (list) vcall<void>(list, 0, 1u);
+    at<u32>(map, 0x20080) = 0;
+    u8 *const images = reinterpret_cast<u8 *>((uintptr_t)0x00879ce0);
+    for (u32 i = 0; i < 6; ++i) g_env->removeImage(images, nullptr, at<u32>(map, 0x20068 + 4 * i));
+    g_env->release(images);
+    g_env->releaseAll(images);
+    g_env->surfaceFree(reinterpret_cast<SurfaceInfo *>(map + 0x2c));
+    global<u32>(0x008bd47c) = at<u32>(map, 8);
+    g_env->setFlags(global<u8 *>(0x0087a6d0), nullptr, at<u32>(map, 0xc));
+    global<u32>(0x00786ba4) = 1;
+    g_env->restore(reinterpret_cast<u8 *>((uintptr_t)0x00786b68));
+    g_env->restartTimers();
+    at<u32>(map, 4) = 0;
+    g_env->send(global<u8 *>(0x007cb2ac), 6, 1, 0);
+    g_env->cancelAdvisor(0x130);
+    g_env->focusSet(nullptr);
+    g_env->focusRestore();
+    g_env->helpPlace(-1, -1);
+}
+
+void EdgeScroll(u8 *map) {
+    const float low = global<float>(0x00703010), one = global<float>(0x00703004);
+    const float nearEdge = global<float>(0x0070301c), farEdge = global<float>(0x00703024), rate = global<float>(0x00703020);
+    X87Reg x = X87Reg((double)at<s32>(map, 0x10)) * global<float>(0x00703014);
+    if (x.v < low) x = low;
+    else if (x.v > one) x = one;
+    float y = (float)(X87Reg((double)at<s32>(map, 0x14)) * global<float>(0x00703018));
+    if (y < low) y = 0.0f;
+    else if (y > one) y = 1.0f;
+    if (x.v < nearEdge) {
+        g_env->scroll(map, nullptr, 0, (float)((X87Reg(nearEdge) - x) * rate));
+    } else if (x.v > farEdge) {
+        g_env->scroll(map, nullptr, 1, (float)((x - farEdge) * rate));
+    }
+    if (y < nearEdge) {
+        g_env->scroll(map, nullptr, 2, (float)((X87Reg(nearEdge) - y) * rate));
+    } else if (y > farEdge) {
+        g_env->scroll(map, nullptr, 3, (float)((X87Reg(y) - farEdge) * rate));
+    }
+}
 
 bool IsPerson(u8 kind) { return kind == 4 || kind == 5 || kind == 6 || kind == 8 || kind == 7; }
 
@@ -108,11 +189,7 @@ void MouseMoved(u8 *map, u8 *window, u32 a) {
         }
     }
     const u8 *const now = at<u8 *>(map, 0x20060);
-    if (previous != now && (ItemIsPerson(previous) || ItemIsPerson(now))) {
-        g_env->loadPicture(map, nullptr, 1);
-        g_env->draw(map);
-        g_env->uncacheRect(reinterpret_cast<u8 *>((uintptr_t)kBackdrop), nullptr, 0, 0, at<s32>(map, 0x48) - 1, at<s32>(map, 0x4c) - 1);
-    }
+    if (previous != now && (ItemIsPerson(previous) || ItemIsPerson(now))) Reload(map);
     const float zoom = at<float>(map, 0x5c);
     const float half = global<float>(0x00703030);
     const X87Reg toY = X87_DivR(static_cast<double>(at<s32>(map, 0x28)), global<float>(0x00703048));
@@ -187,6 +264,143 @@ s32 __fastcall ParkMap_HandleMouse(u8 *map, void *, u8 *window, u32 message, u32
                 return 0;
             }
             break;
+        default:
+            break;
+    }
+    return g_env->callDefault(window, nullptr, message, a, b);
+}
+
+s32 __fastcall ParkMap_HandleWindow(u8 *map, void *, u8 *window, u32 message, u32 a, u32 b) {
+    switch (message) {
+        case 0x14:
+            Close(map);
+            break;
+        case 0x15:
+            g_env->layOut(map);
+            break;
+        case 0x1e:
+            if (!global<u8>(0x0078d910)) EdgeScroll(map);
+            break;
+        case 0x100:
+            switch (a) {
+                case 0xffffffff:
+                    g_env->applyView(map);
+                    return 0;
+                case 0x982:
+                    Flip(map, 8);
+                    break;
+                case 0x983:
+                    Flip(map, 0x20);
+                    break;
+                case 0x985:
+                    Zoom(map, global<float>(0x00703030));
+                    break;
+                case 0x986:
+                    Zoom(map, global<float>(0x00703028));
+                    break;
+                case 0x987:
+                    Flip(map, 1);
+                    break;
+                case 0x989:
+                    Flip(map, 0x10);
+                    break;
+                case 0x993:
+                    Flip(map, 2);
+                    break;
+                case 0x994:
+                    Flip(map, 4);
+                    break;
+                default:
+                    break;
+            }
+            break;
+        case 0x101: {
+            const bool pressed = b == 1;
+            switch (a) {
+                case 0x98c:
+                    at<u32>(map, 0x1c) = pressed ? 3 : 0;
+                    Reload(map);
+                    break;
+                case 0x98d:
+                    at<u32>(map, 0x1c) = pressed ? 4 : 0;
+                    Reload(map);
+                    break;
+                case 0x98e:
+                    at<u32>(map, 0x1c) = pressed ? 1 : 0;
+                    Reload(map);
+                    break;
+                case 0x98f:
+                    at<u32>(map, 0x1c) = pressed ? 2 : 0;
+                    Reload(map);
+                    break;
+                case 0x997:
+                    at<u32>(map, 0x20) = pressed ? 2 : 0;
+                    Reload(map);
+                    break;
+                case 0x998:
+                    at<u32>(map, 0x20) = pressed ? 1 : 0;
+                    Reload(map);
+                    break;
+                case 0x999:
+                    at<u32>(map, 0x20) = pressed ? 3 : 0;
+                    Reload(map);
+                    break;
+                default:
+                    break;
+            }
+            break;
+        }
+        case 0x10001:
+        case 0x10003:
+            at<u32>(map, 0x10) = a >> 16;
+            at<u32>(map, 0x14) = a & 0xffff;
+            break;
+        case 0x10008:
+        case 0x10009:
+            switch (a) {
+                case 0x981:
+                    Scroll(map, 3);
+                    break;
+                case 0x984:
+                    Scroll(map, 0);
+                    break;
+                case 0x988:
+                    Scroll(map, 1);
+                    break;
+                case 0x98a:
+                    Scroll(map, 2);
+                    break;
+                default:
+                    break;
+            }
+            break;
+        case 0x1000a:
+            switch (a) {
+                case 0x2500:
+                    Scroll(map, 0);
+                    break;
+                case 0x2600:
+                    Scroll(map, 2);
+                    break;
+                case 0x2700:
+                    Scroll(map, 1);
+                    break;
+                case 0x2800:
+                    Scroll(map, 3);
+                    break;
+                case 0x6b00:
+                    Zoom(map, global<float>(0x00703028));
+                    break;
+                case 0x6d00:
+                    Zoom(map, global<float>(0x00703030));
+                    break;
+                default:
+                    break;
+            }
+            break;
+        case 0x1000b:
+            if (a == 0x1b && !(b & 0xff0000)) g_env->send(window, 4, 0, 0);
+            return 0;
         default:
             break;
     }
