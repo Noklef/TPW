@@ -1345,7 +1345,7 @@ address,name,kind,confidence,notes
 0x00fa6fd0,gBaseDir,data,high,"char[0x104], the directory relative paths resolve against"
 0x00fa70d8,gPathBuffer,data,high,"char[0x108], Dir_Create / Dir_Remove resolve into it"
 0x00fa71e0,gClock,data,high,"Timer (0x18): enabled, ticksPerMs, baseMs, pad, s64 start"
-0x0067a650,CRT_sprintf,function,high,MSVC6 sprintf
+0x0067a650,CRT_sprintf,function,high,reimplemented (src/game/core/crtoutput); MSVC6 sprintf
 0x0067b5f0,CRT_strrchr,function,high,reimplemented (src/game/core/crt); strrchr
 0x0067f020,CRT__splitpath,function,high,reimplemented (src/game/core/crtmessage); MSVC6 _splitpath
 0x00618d20,RefObject_AddRef,function,high,reimplemented (src/game/files/handles); thiscall; InterlockedIncrement(+8)
@@ -5970,6 +5970,15 @@ address,name,kind,confidence,notes
 0x00691ea0,Lockit_Dtor,function,low,reimplemented (src/game/core/locinfo); MSVC6 std::_Lockit::~_Lockit
 0x00698fc0,Locinfo_Ctor,function,low,reimplemented (src/game/core/locinfo); MSVC6 std::_Locinfo::_Locinfo
 0x00699100,Locinfo_Dtor,function,low,reimplemented (src/game/core/locinfo); MSVC6 std::_Locinfo::~_Locinfo
+0x00681590,CRT_output_write_char,function,low,reimplemented (src/game/core/crtoutput); MSVC6 write_char (output.c)
+0x006815e0,CRT_output_write_multi_char,function,low,reimplemented (src/game/core/crtoutput); MSVC6 write_multi_char (output.c)
+0x00681620,CRT_output_write_string,function,low,reimplemented (src/game/core/crtoutput); MSVC6 write_string (output.c)
+0x00681660,CRT_output_get_int_arg,function,low,reimplemented (src/game/core/crtoutput); MSVC6 get_int_arg (output.c)
+0x00681680,CRT_output_get_short_arg,function,low,reimplemented (src/game/core/crtoutput); MSVC6 get_short_arg (output.c)
+0x00683aa0,CRT_output_get_int64_arg,function,low,reimplemented (src/game/core/crtoutput); MSVC6 get_int64_arg (output.c)
+0x00680c00,CRT_output,function,low,reimplemented (src/game/core/crtoutput); MSVC6 _output
+0x0068c350,CRT_aulldiv,function,low,reimplemented (src/game/core/crtoutput); MSVC6 _aulldiv
+0x0068c3c0,CRT_aullrem,function,low,reimplemented (src/game/core/crtoutput); MSVC6 _aullrem
 0x0050ffe0,Nav_Ctor,function,high,reimplemented (src/game/world/nav); constants constructor with five integer pairs
 0x0050f200,Nav_Dtor,function,high,reimplemented (src/game/world/nav); thiscall: the five IntPairs at +0x64 destroyed with Stub_Ret (CRT_VectorDtorIterator); also via 0x4f7c30 (+0xd4) and 0x4f8ad0
 0x004f7c30,Nav_DtorAtD4,function,low,reimplemented (src/game/world/nav); thiscall adjustor: Nav_Dtor on this + 0xd4

@@ -207,6 +207,7 @@
 #include "../game/core/crtlock.h"
 #include "../game/core/crtmessage.h"
 #include "../game/core/crtopen.h"
+#include "../game/core/crtoutput.h"
 #include "../game/core/crtrealloc.h"
 #include "../game/core/crtsbh.h"
 #include "../game/core/crtstartup.h"
@@ -6275,6 +6276,16 @@ const Hook kHooks[] = {
     {"Lockit_Dtor",               0x00691ea0, (void *)&Lockit_Dtor, {0x83, 0x3d, 0x68, 0x19, 0xfb}},
     {"Locinfo_Ctor",              0x00698fc0, (void *)&Locinfo_Ctor, {0x6a, 0xff, 0x68, 0xb9, 0x40}},
     {"Locinfo_Dtor",              0x00699100, (void *)&Locinfo_Dtor, {0x53, 0x56, 0x8b, 0xf1, 0x33}},
+    {"CRT_output_write_char",     0x00681590, (void *)&CRT_output_write_char, {0x8b, 0x4c, 0x24, 0x08, 0x8b}},
+    {"CRT_output_write_multi_char", 0x006815e0, (void *)&CRT_output_write_multi_char, {0x53, 0x55, 0x8b, 0x6c, 0x24}},
+    {"CRT_output_write_string",   0x00681620, (void *)&CRT_output_write_string, {0x53, 0x55, 0x8b, 0x6c, 0x24}},
+    {"CRT_output_get_int_arg",    0x00681660, (void *)&CRT_output_get_int_arg, {0x8b, 0x44, 0x24, 0x04, 0x8b}},
+    {"CRT_output_get_short_arg",  0x00681680, (void *)&CRT_output_get_short_arg, {0x8b, 0x44, 0x24, 0x04, 0x8b}},
+    {"CRT_output_get_int64_arg",  0x00683aa0, (void *)&CRT_output_get_int64_arg, {0x8b, 0x44, 0x24, 0x04, 0x8b}},
+    {"CRT_output",                0x00680c00, (void *)&CRT_output, {0x81, 0xec, 0x4c, 0x02, 0x00}},
+    {"CRT_sprintf",               0x0067a650, (void *)&CRT_sprintf, {0x83, 0xec, 0x20, 0x8b, 0x44}},
+    {"CRT_aulldiv",               0x0068c350, (void *)&CRT_aulldiv, {0x53, 0x56, 0x8b, 0x44, 0x24}},
+    {"CRT_aullrem",               0x0068c3c0, (void *)&CRT_aullrem, {0x53, 0x8b, 0x44, 0x24, 0x14}},
     {"Nav_Ctor",          0x0050ffe0, (void *)&Nav_Ctor, {0x6a, 0xff, 0x68, 0x2d, 0xe6}},
     {"Nav_Dtor",                  0x0050f200, (void *)&Nav_Dtor, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"Nav_DtorAtD4",              0x004f7c30, (void *)&Nav_DtorAtD4, {0x81, 0xc1, 0xd4, 0x00, 0x00}},
