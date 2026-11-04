@@ -3,9 +3,13 @@
 #include <cstdint>
 #include <cstring>
 
+#include "buffers.h"
 #include "crt.h"
 #include "gameheap.h"
+#include "globals.h"
 #include "iosbase.h"
+#include "sharedglobals.h"
+#include "stdlocale.h"
 #include "stdstring.h"
 #include "streambuf.h"
 #include "vcall.h"
@@ -23,7 +27,13 @@ const WFileBufEnv kGameEnv = {reinterpret_cast<u32(__cdecl *)()>((uintptr_t)0x00
                               reinterpret_cast<u32(__cdecl *)(u32, u32)>((uintptr_t)0x0067cca0),
                               reinterpret_cast<s32(__cdecl *)(u32, u32)>((uintptr_t)0x0067cbe0),
                               reinterpret_cast<s32(__cdecl *)(u32)>((uintptr_t)0x0067cb90),
-                              reinterpret_cast<u32(__cdecl *)(u32)>((uintptr_t)0x0067cdf0)};
+                              reinterpret_cast<u32(__cdecl *)(u32)>((uintptr_t)0x0067cdf0),
+                              CRT_Mbrtowc,
+                              CRT_Wcrtomb,
+                              reinterpret_cast<void(__stdcall *)(void *, const void *)>((uintptr_t)0x0067d3a0),
+                              reinterpret_cast<void *(__fastcall *)(void *, void *, const char *)>((uintptr_t)0x00698fc0),
+                              reinterpret_cast<void *(__fastcall *)(void *)>((uintptr_t)0x00699100),
+                              reinterpret_cast<u8 **(__fastcall *)(u8 **, void *, u8 *, u32, u32)>((uintptr_t)0x00693f50)};
 const WFileBufEnv *g_env = &kGameEnv;
 constexpr u32 kFile = 0x50;
 
@@ -70,6 +80,27 @@ void set_slot_pointers(u8 *buf) {
 void lose_use(u8 *counted) {
     if (!counted) return;
     if (u8 *const dead = Counted_Release(counted)) vcall<void>(dead, 0, (u32)1);
+}
+
+// The conversion facet of the locale (use_facet<codecvt<wchar_t, char, mbstate_t>>, inline at 0x4f5ad0): the id 0xfb1e00 given out on the first use. Not in it: the classic locale has the one kept at 0x7ced40 (made with a
+// use, 0x7ced48 too, on the first use); else bad_cast thrown.
+u8 *use_codecvt(u8 **locale) {
+    const u32 id = Id_Get(reinterpret_cast<u32 *>((uintptr_t)0x00fb1e00));
+    u8 *const facet = Locale_Getfacet(locale, nullptr, id, 1);
+    if (facet) return facet;
+    if (Locale_Iscloc(locale)) {
+        u8 *&kept = global<u8 *>(0x007ced40);
+        if (kept) return kept;
+        u8 *const block = static_cast<u8 *>(GameHeap_Alloc(0x10));
+        if (block) CodecvtW_Ctor(block, nullptr, 0);
+        Global7ced48_Set(block);
+        kept = block;
+        return block;
+    }
+    u32 bad_cast[3];
+    BadCast_Ctor(bad_cast, nullptr, reinterpret_cast<const char *>((uintptr_t)0x0075c734));
+    g_env->cxxThrow(bad_cast, reinterpret_cast<const void *>((uintptr_t)0x007193a8));
+    return nullptr;
 }
 
 // (A stream's first word is its vbtable, whose +4 is the offset of the virtual base's word.)
@@ -274,5 +305,122 @@ u16 __fastcall WFileBuf_Uflow(u8 *buf) {
         got = g_env->fgetc(at<u32>(buf, kFile));
     }
     return 0xffff;
+}
+
+u8 *__fastcall CodecvtW_Ctor(u8 *self, void *, u32 refs) {
+    at<u32>(self, 4) = refs;
+    at<u32>(self, 0) = 0x00709ce4;
+    u8 info[0x48];
+    g_env->locinfoCtor(info, nullptr, reinterpret_cast<const char *>((uintptr_t)0x0075c74c));
+    const unsigned long long conversion = CRT_Getcvt();
+    at<u32>(self, 8) = static_cast<u32>(conversion);
+    at<u32>(self, 0xc) = static_cast<u32>(conversion >> 32);
+    g_env->locinfoDtor(info);
+    return self;
+}
+
+u8 **__cdecl Locale_WithCodecvt(u8 **out, u8 *locale, u8 *facet) {
+    const u32 id = Id_Get(reinterpret_cast<u32 *>((uintptr_t)0x00fb1e00));
+    u8 *const made = *g_env->addfac(&locale, nullptr, facet, id, 2);
+    *out = made;
+    Counted_AddRef(made);
+    lose_use(locale);
+    return out;
+}
+
+void __fastcall WFileBuf_InitConversion(u8 *buf) {
+    u8 *held;
+    u8 **const locale = Obj_ShareMember34(buf, nullptr, &held);
+    at<u8 *>(buf, 0x38) = use_codecvt(locale);
+    lose_use(held);
+    u8 *by_value;
+    Counted_CopyCtor(reinterpret_cast<u8 *>(&by_value), nullptr, buf + 0x4c);
+    u8 *made;
+    Locale_WithCodecvt(&made, by_value, at<u8 *>(buf, 0x38));
+    u8 *const before = at<u8 *>(buf, 0x4c);
+    if (before != made) {
+        if (u8 *const dead = Counted_Release(before)) vcall<void>(dead, 0, (u32)1);
+        at<u8 *>(buf, 0x4c) = made;
+        Counted_AddRef(made);
+    }
+    lose_use(made);
+    if (static_cast<u8>(vcall<u32>(at<u8 *>(buf, 0x38), 4))) at<u32>(buf, 0x38) = 0;
+    if (!at<u32>(buf, 0x44)) {
+        u8 *const text = static_cast<u8 *>(GameHeap_Alloc(0x10));
+        if (text) {
+            text[0] = 0;   // (the allocator's byte: stack garbage in the original, read by nothing)
+            at<u32>(text, 4) = 0;
+            at<u32>(text, 8) = 0;
+            at<u32>(text, 0xc) = 0;
+        }
+        at<u8 *>(buf, 0x44) = text;
+    }
+}
+
+u8 *__fastcall WFileBuf_Open(u8 *buf, void *, const char *name, u32 mode) {
+    if (at<u32>(buf, kFile)) return nullptr;
+    void *const file = Std_Fiopen(name, mode);
+    if (!file) return nullptr;
+    WFileBuf_Init(buf, nullptr, static_cast<u32>(reinterpret_cast<uintptr_t>(file)), 1);
+    WFileBuf_InitConversion(buf);
+    return buf;
+}
+
+u32 __fastcall CodecvtW_In(u8 *self, void *, u8 *state, const u8 *from, const u8 *from_end, const u8 **from_next, u16 *to, u16 *to_end, u16 **to_next) {
+    *from_next = from;
+    *to_next = to;
+    u32 partial = *from_next != from_end ? 1 : 0;
+    if (!partial) return 0;
+    const u8 *text = *from_next;
+    while (*to_next != to_end) {
+        const s32 got = g_env->mbrtowc(*to_next, reinterpret_cast<const char *>(text), static_cast<u32>(from_end - text), state, reinterpret_cast<const u32 *>(self + 8));
+        if (got == -2) {
+            *from_next = from_end;
+            return partial;
+        }
+        if (got == -1) return 2;
+        *from_next += got ? got : static_cast<s32>(std::strlen(reinterpret_cast<const char *>(*from_next))) + 1;
+        ++*to_next;
+        partial = 0;
+        text = *from_next;
+        if (text == from_end) return 0;
+    }
+    return partial;
+}
+
+u32 __fastcall CodecvtW_Out(u8 *self, void *, u32 *state, const u16 *from, const u16 *from_end, const u16 **from_next, u8 *to, u8 *to_end, u8 **to_next) {
+    const u32 *const conversion = reinterpret_cast<const u32 *>(self + 8);
+    *from_next = from;
+    *to_next = to;
+    u32 partial = *from_next != from_end ? 1 : 0;
+    if (!partial) return 0;
+    const u16 *text = *from_next;
+    for (;;) {
+        u8 *const place = *to_next;
+        if (place == to_end) return partial;
+        const u32 room = static_cast<u32>(to_end - place);
+        s32 written;
+        if (global<s32>(0x0077e7dc) <= static_cast<s32>(room)) {
+            // (The high half of the unit passed is the source pointer's, here, and the room's below, sic.)
+            written = g_env->wcrtomb(reinterpret_cast<char *>(place), (static_cast<u32>(reinterpret_cast<uintptr_t>(text)) & 0xffff0000u) | *text, state, conversion);
+            if (written <= 0) return 2;
+        } else {
+            u8 bytes[12];
+            const u32 saved = *state;
+            written = g_env->wcrtomb(reinterpret_cast<char *>(bytes), (room & 0xffff0000u) | *text, state, conversion);
+            if (written <= 0) return 2;
+            u8 *const now = *to_next;
+            if (static_cast<s32>(to_end - now) < written) {
+                *state = saved;
+                return partial;
+            }
+            for (s32 i = 0; i < written; ++i) now[i] = bytes[i];
+        }
+        partial = 0;
+        ++*from_next;
+        *to_next += written;
+        text = *from_next;
+        if (text == from_end) return 0;
+    }
 }
 }

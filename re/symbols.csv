@@ -5642,6 +5642,12 @@ address,name,kind,confidence,notes
 0x004f0a10,WFileBuf_Overflow,function,low,reimplemented (src/game/core/wfilebuf); basic_filebuf<wchar_t>::overflow by its shape
 0x004f0c50,WFileBuf_PutBack,function,low,reimplemented (src/game/core/wfilebuf); basic_filebuf<wchar_t>::pbackfail by its shape
 0x004f0e60,WFileBuf_Uflow,function,low,reimplemented (src/game/core/wfilebuf); basic_filebuf<wchar_t>::uflow by its shape
+0x004f5d60,CodecvtW_Ctor,function,low,"reimplemented (src/game/core/wfilebuf); codecvt<wchar_t, char, mbstate_t>'s constructor by its shape"
+0x004f7180,Locale_WithCodecvt,function,low,reimplemented (src/game/core/wfilebuf); a locale with the conversion facet added; name invented
+0x004f5ad0,WFileBuf_InitConversion,function,low,reimplemented (src/game/core/wfilebuf); basic_filebuf<wchar_t>::_Initcvt by its shape
+0x004f3920,WFileBuf_Open,function,low,reimplemented (src/game/core/wfilebuf); basic_filebuf<wchar_t>::open by its shape
+0x004f5dd0,CodecvtW_In,function,low,reimplemented (src/game/core/wfilebuf); codecvt::do_in by its shape
+0x004f5e80,CodecvtW_Out,function,low,reimplemented (src/game/core/wfilebuf); codecvt::do_out by its shape
 0x006d6f70,SoundBuffer_FillFromVoice,function,low,"reimplemented (src/game/core/soundworker); thiscall (voice, offset, size), pops 0xc; a voice's mix into its locked DirectSound buffer (name invented)"
 0x006d3850,SoundWorker_RefillVoice,function,low,"reimplemented (src/game/core/soundworker); thiscall (position), pops 4; the slot's voice refilled under the section (name invented)"
 0x006d75c0,ComList_ReleaseAll,function,low,"reimplemented (src/game/core/soundworker); thiscall; each listed COM object's slots 6 and 2, the node freed (name invented)"
