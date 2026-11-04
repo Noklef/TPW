@@ -451,7 +451,7 @@ address,name,kind,confidence,notes
 0x00540bd0,Sprite_Ctor,function,high,"reimplemented (src/game/sprite/sprite); thiscall; 0x260-byte sprite definition: clears the counts, actions and animations, +0x207 = 1"
 0x00540c70,Sprite_GetAction,function,high,"reimplemented (src/game/sprite/script); thiscall (action 0-3, &entry, &anim, &r17, &r18): bytes +0x20e + 4 * action (entry + 1, anim + 1, r17, r18); entry indexes gSpriteScriptActions"
 0x00540c60,Sprite_GetAnimFrameCount,function,high,"reimplemented (src/game/sprite/script); thiscall (anim): byte +0x222 + 4 * anim"
-0x00540900,Sprites_Init,function,medium,"(ground camera, particles only); calls Sprites_LoadAll"
+0x00540900,Sprites_Setup,function,low,reimplemented (src/game/sprite/loading); the sprites loaded and the map's 4 by 4 grid of sprite arrays made
 0x00542420,Sprites_UseGroundFrames,function,high,"reimplemented (src/game/sprite/loading); cdecl, returns a byte: the loaded sprites' frame sets reloaded from the ground (.fpc) files of the sprite folder, unless already in use; answers 1, or 0 when nothing was done"
 0x00542640,Sprites_UseParkFrames,function,high,"reimplemented (src/game/sprite/loading); cdecl, returns a byte: the loaded sprites' frame sets reloaded from the park (.tpc) files of the sprite folder, unless already in use; answers 1, or 0 when nothing was done"
 0x00587db0,SpriteFrames_Load,function,medium,"reimplemented (src/game/gfx/spriteframe); thiscall (stream, unused; pops 8): reads a .tpc/.fpc stream into a frame set: its two arrays, the palette (kind 3) and the run-length or WCT images"
