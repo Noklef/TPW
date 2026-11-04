@@ -16,6 +16,7 @@ void SceneViews_SetEnv(const SceneViewsEnv *env);
 // What ViewCtl702bc8_Update calls (the port by default; the bench records it).
 struct ViewCtlEnv {
     void(__cdecl *showThing)(u8 *thing);  // Dialog7cc4c4_ShowThing (0x4b9980)
+    void(__cdecl *openRooms)();           // Dialog7cdac4_Open (0x4c4670)
 };
 void ViewCtl_SetEnv(const ViewCtlEnv *env);
 
@@ -75,6 +76,8 @@ void __fastcall Obj_ChooseVector(u8 *object);
 // object's slot 7 (+0x1c) called.
 void __fastcall ViewCtl702bc8_Message(u8 *self, void *, u32 message, u32 key, u32 unused);
 void __fastcall ViewCtl702e70_Message(u8 *self, void *, u32 message, u32 key, u32 unused);
+// 0x5dd840 (Class702e20 slot 5; name invented): 0x5dced0's, then for message 0x10005 with key 0 and an object at +0x70: [0xf82888] = its +0xc, Dialog7cdac4_Open.
+void __fastcall ViewCtl702e20_Message(u8 *self, void *, u32 message, u32 key, u32 unused);
 
 // 0x5dd810 (Class702e70 slot 16; stdcall; object, pops 4): 1 when the signed dword at +0x40 is above 0, else 0.
 u32 __stdcall Obj_Positive40(const u8 *object);

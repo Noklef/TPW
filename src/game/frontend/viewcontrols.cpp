@@ -9,6 +9,7 @@
 #include "../math/mat4.h"
 #include "../math/x87.h"
 #include "../render/randomsegments.h"
+#include "../ui/dialog7cdac4.h"
 #include "../ui/dialogs.h"
 #include "lobbymodel.h"
 
@@ -48,7 +49,7 @@ template <typename Ctor> u8 *new_view(u32 size, Ctor ctor, u32 vtable) {
 void SceneViews_SetEnv(const SceneViewsEnv *env) { g_sceneEnv = env ? env : &kScenePorts; }
 
 namespace {
-const ViewCtlEnv kViewCtlPorts = {&Dialog7cc4c4_ShowThing};
+const ViewCtlEnv kViewCtlPorts = {&Dialog7cc4c4_ShowThing, &Dialog7cdac4_Open};
 const ViewCtlEnv *g_viewCtlEnv = &kViewCtlPorts;
 
 // The ray through the mouse from the camera, met with a sphere of radius 116 about the origin: the nearest of the list's things within 10 of where it meets it goes to +0x70, and is shown.
@@ -278,6 +279,16 @@ void __fastcall ViewCtl702e70_Message(u8 *self, void *, u32 message, u32 key, u3
             *reinterpret_cast<u32 *>((uintptr_t)0x00f82888) = at<u32>(target, 0xc);
             vcall<void>(self, 0x20);
             vcall<void>(at<u8 *>(*reinterpret_cast<u8 **>((uintptr_t)0x00f85614), 8), 0x1c);
+        }
+    }
+}
+
+void __fastcall ViewCtl702e20_Message(u8 *self, void *, u32 message, u32 key, u32) {
+    view_message(self, message, key);
+    if (message == 0x10005 && key == 0) {
+        if (const u8 *const target = at<const u8 *>(self, 0x70)) {
+            *reinterpret_cast<u32 *>((uintptr_t)0x00f82888) = at<u32>(target, 0xc);
+            g_viewCtlEnv->openRooms();
         }
     }
 }
