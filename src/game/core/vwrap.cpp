@@ -4,6 +4,7 @@
 
 #include "../render/device.h"
 #include "../render/engineerrors.h"
+#include "addrcalls.h"
 #include "gameheap.h"
 #include "liveobjects.h"
 #include "misc.h"
@@ -14,9 +15,40 @@ namespace {
 template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cast<T *>((uintptr_t)p + offset); }
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
 
+AddrCalls g_calls;
+
 }  // namespace
 
+void VWrap_SetCalls(const AddrCall *table, u32 count) { g_calls.Set(table, count); }
+
 extern "C" {
+
+u32 __fastcall Global8bba48_ClipAndTouch(u8 *self, void *) {
+    typedef u32(__cdecl * Entry)(u32);
+    typedef void(__cdecl * Box)(u32, s32 *, s32 *);
+    typedef void(__cdecl * Give)(u32);
+    for (u32 i = 0; i < 0x78; i++) {
+        s32 count = (s32)reinterpret_cast<Entry>(at<u32>(self, 0u - 8))(i);
+        if (count == 0) continue;
+        s32 v[6];
+        reinterpret_cast<Box>(at<u32>(self, 0u - 0x20))(i, &v[0], &v[3]);
+        u8 code = 0x7c;
+        if (v[0] != 0 || v[1] != 0 || v[2] != 0 || v[3] != 0 || v[4] != 0 || v[5] != 0) {
+            float out[6];
+            for (s32 j = 0; j < 6; j++) out[j] = (float)((double)v[j] * global<float>(0x00701b24));
+            code = (u8)g_calls.Th(0x00561a30, global<u32>(0x00879a20), (u32)(uintptr_t)out, global<u32>(0x0087b088));
+        }
+        at<u8>(self, i - 0x98) = code;
+        const u32 records = reinterpret_cast<Entry>(at<u32>(self, 0u - 0x10))(i);
+        if (records == 0) continue;
+        for (u32 record = records + 0x10; count > 0; count--, record += 0x1c) {
+            const u32 item = global<u32>(record);
+            if (item != 0xffffffffu) g_calls.Th(0x0058c9f0, global<u32>(0x008c4b44), global<u32>(item), 0x3f000000u);
+        }
+        reinterpret_cast<Give>(at<u32>(self, 0u - 0xc))(records);
+    }
+    return 1;
+}
 
 u32 __fastcall Obj_CallSlot18(u8 *object, void *, u32 a) { return vcall<u32>(object, 0x18, a); }
 

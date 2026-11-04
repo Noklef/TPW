@@ -4176,6 +4176,7 @@ const Hook kHooks[] = {
     {"Obj7b51f0_PassThingTo7cc218", 0x00481530, (void *)&Obj7b51f0_PassThingTo7cc218, {0x8b, 0x44, 0x24, 0x04, 0xb9}},
     {"Obj_CallSlot2cIfGlobalIf10", 0x004b7a00, (void *)&Obj_CallSlot2cIfGlobalIf10, {0x8b, 0x41, 0x10, 0x85, 0xc0}},
     {"Global8023d8_Release",      0x0051af90, (void *)&Global8023d8_Release, {0xa1, 0xd0, 0x23, 0x80, 0x00}},
+    {"Global8bba48_ClipAndTouch", 0x0057c4d0, (void *)&Global8bba48_ClipAndTouch, {0x83, 0xec, 0x34, 0x53, 0x55}},
     {"Class702d48_Ctor",          0x005e3b90, (void *)&Class702d48_Ctor, {0x56, 0x8b, 0xf1, 0x56, 0xc7}},
     {"Class702d48_Release",       0x005e3c00, (void *)&Class702d48_Release, {0x8b, 0xc1, 0x50, 0xc7, 0x00}},
     {"Class702d48_DeletingDtor",  0x005e3bd0, (void *)&Class702d48_DeletingDtor, {0x56, 0x8b, 0xf1, 0x56, 0xc7}},

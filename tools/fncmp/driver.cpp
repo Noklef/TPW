@@ -435,6 +435,7 @@
 #include "../../src/game/core/language.h"
 #include "../../src/game/math/mat4.h"
 #include "../../src/game/core/vobj2.h"
+#include "../../src/game/core/vwrap.h"
 #include "../../src/game/sprite/loading.h"
 #include "../../src/game/core/namedobjects.h"
 #include "../../src/game/world/object.h"
@@ -1284,6 +1285,7 @@ const AddrCall kTerrainTexCalls[] = {{0x578ca0, recorder(2, 1)}, {0x5783b0, jpeg
 const AddrCall kDeviceCreateCalls[] = {{0x573080, recorder(20, 1)}, {0x573b90, recorder(21, 1)}, {0x678e70, jpeg_recorder(22, 4)}, {0x579b80, jpeg_recorder(23, 1)}, {0x679270, jpeg_recorder(24, 0)}, {0x56af20, recorder(25, 2)}, {0x5645e0, jpeg_recorder(26, 1)}};  // tests/fncmp/devicecreate.py, softcreate.py
 const AddrCall kImageBufferCalls[] = {{0x56a770, jpeg_recorder(1, 1)}, {0x564650, jpeg_recorder(2, 1)}, {0x56af20, recorder(3, 2)}, {0x591270, jpeg_recorder(4, 9)}, {0x574bd0, jpeg_recorder(5, 6)}, {0x579b80, jpeg_recorder(6, 1)}};  // tests/fncmp/imagebuffer.py
 const AddrCall kScrollLayersCalls[] = {{0x590f90, recorder(1, 0)}, {0x58c9f0, recorder(2, 2)}};  // tests/fncmp/scrolllayers.py
+const AddrCall kVWrapCalls[] = {{0x58c9f0, recorder(5, 2)}, {0x561a30, recorder(6, 2)}};  // tests/fncmp/vwrapclip.py
 const AddrCall kAdvisorSendCalls[] = {{0x59bea0, recorder(1, 0)}, {0x67a7d0, jpeg_recorder(2, 1)}, {0x59c0a0, recorder(3, 3)}, {0x59c2b0, recorder(4, 1)}, {0x59c240, recorder(5, 1)}, {0x599050, jpeg_recorder(6, 1)}, {0x5997b0, jpeg_recorder(7, 1)}, {0x40fb10, recorder(8, 1)}};  // tests/fncmp/advisorsend.py
 const AddrCall kObjModelTreeCalls[] = {{0x56ee90, recorder(9, 1)}, {0x561a30, recorder(10, 2)}, {0x57aa10, recorder(11, 4)}, {0x581cd0, recorder(12, 5)}, {0x57a420, recorder(13, 1)}};  // tests/fncmp/objmodeltree.py
 const AddrCall kWeatherBoltCalls[] ={{0x57ec50, recorder(1, 2)}, {0x57ed50, jpeg_recorder(2, 0)}, {0x591210, jpeg_recorder(3, 0)}, {0x67b5c0, jpeg_recorder(4, 0)}, {0x57ee30, recorder(5, 0)}, {0x57efd0, recorder(6, 3)}, {0x57f490, recorder(7, 3)}, {0x402d70, recorder(8, 0)}};  // tests/fncmp/weatherbolts.py
@@ -2566,6 +2568,7 @@ int main(int argc, char **argv) {
     Research_SetEnv(&kResearchEnv);
     ObjModel_SetEnv(&kObjModelEnv);
     ObjModel_SetTreeCalls(kObjModelTreeCalls, sizeof(kObjModelTreeCalls) / sizeof(kObjModelTreeCalls[0]));
+    VWrap_SetCalls(kVWrapCalls, sizeof(kVWrapCalls) / sizeof(kVWrapCalls[0]));
     SharedGlobals_SetEnv(&kSharedGlobalsEnv);
     ReleaseList_SetEnv(&kReleaseListEnv);
     SoundCategory_SetEnv(&kSoundCategoryEnv);
