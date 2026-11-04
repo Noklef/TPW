@@ -13,6 +13,7 @@
 #include "../model/holder.h"
 #include "../render/weatherfx.h"
 #include "../world/rides.h"
+#include "lobbyflight.h"
 #include "lobbymodel.h"
 
 namespace {
@@ -27,7 +28,10 @@ const LobbySceneEnv kPorts = {&Ride_Destroy,
                               &LobbyModel_TimeLeft,
                               &Sound_PlayAt,
                               reinterpret_cast<int(__cdecl *)()>((uintptr_t)0x0067b5c0),
-                              reinterpret_cast<decltype(LobbySceneEnv::weatherBurst)>((uintptr_t)0x00580320)};
+                              reinterpret_cast<decltype(LobbySceneEnv::weatherBurst)>((uintptr_t)0x00580320),
+                              &LobbyFlight_Ctor,
+                              &RideUser_Acquire,
+                              &LobbyFlyer_Step};
 const LobbySceneEnv *g_env = &kPorts;
 
 // FCOM against a float: C0 (below, or unordered), C3 (equal, or unordered), C0 or C3 (not above).
@@ -292,6 +296,32 @@ void __fastcall Class702a50_Dtor(u8 *object) {
     g_env->destroy(at<u32>(object, 4));
     g_env->stringDtor(reinterpret_cast<String *>(object + 0x20));
     g_env->stringDtor(reinterpret_cast<String *>(object + 0xc));
+}
+
+void __fastcall Class702af0_Step(u8 *object) {
+    if (at<s32>(object, 0xc) < at<s32>(object, 8)) {
+        u32 bits;
+        do {
+            u8 *const block = static_cast<u8 *>(GameHeap_Alloc(0x60));
+            u8 *const flyer = block ? g_env->flightCtor(block, nullptr, object, at<u32>(object, 0x18), at<u32>(object, 0x2c), reinterpret_cast<const u32 *>(object + 0x38), reinterpret_cast<const u32 *>(object + 0x44),
+                                                        at<u32>(object, 0x50), at<u32>(object, 0x54))
+                                    : nullptr;
+            if (at<u32>(object, 4) && at<u32>(flyer, 0xc) == 0) {
+                g_env->acquire(at<u8 *>(flyer, 8));
+                at<u32>(flyer, 0xc) = 1;
+            }
+            if (++at<s32>(object, 0xc) >= at<s32>(object, 8)) break;
+            u8 *const frame = global<u8 *>(0x00f82884);
+            const u32 next = at<u32>(frame, 0x34) * 0x19660d + 0x3c6ef35f;
+            bits = next >> 13 | next << 19;
+            at<u32>(frame, 0x34) = bits;
+        } while ((bits & 7) != 1);
+    }
+    for (u8 *node = at<u8 *>(at<u8 *>(object, 0x58), 4); node;) {
+        u8 *const flyer = at<u8 *>(node, 0);
+        node = at<u8 *>(node, 4);
+        g_env->flyerStep(flyer);
+    }
 }
 
 void __fastcall Class702af0_AcquireModels(u8 *object) {

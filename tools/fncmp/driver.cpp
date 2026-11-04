@@ -965,7 +965,7 @@ const WeatherFxReloadEnv kWeatherFxReloadEnv = {Rec{jpeg_recorder(1, 3)}, Rec{re
                                                 reinterpret_cast<void(__fastcall *)(Handle *)>(&ReloadDtor), Rec{jpeg_recorder(10, 0)}};  // tests/fncmp/weatherreload.py
 const CameraUpdateEnv kCameraUpdateEnv = {Rec{recorder(1, 0)}, Rec{recorder(2, 1)}, Rec{jpeg_recorder(3, 4)}, Rec{jpeg_recorder(4, 2)}, Rec{recorder(5, 1)}, Rec{recorder(6, 1)},
                                           Rec{jpeg_recorder(7, 3)}, Rec{jpeg_recorder(8, 2)}};  // tests/fncmp/cameraupdate.py
-const LobbySceneEnv kLobbySceneEnv = {Rec{jpeg_recorder(1, 1)}, Rec{recorder(2, 0)}, Rec{recorder(3, 2)}, Rec{recorder(4, 0)}, Rec{jpeg_recorder(6, 6)}, Rec{jpeg_recorder(7, 0)}, Rec{recorder(5, 8)}};
+const LobbySceneEnv kLobbySceneEnv = {Rec{jpeg_recorder(1, 1)}, Rec{recorder(2, 0)}, Rec{recorder(3, 2)}, Rec{recorder(4, 0)}, Rec{jpeg_recorder(6, 6)}, Rec{jpeg_recorder(7, 0)}, Rec{recorder(5, 8)}, Rec{recorder(13, 7)}, Rec{recorder(14, 0)}, Rec{recorder(15, 0)}};
 const ChatCursorEnv kChatCursorEnv = {Rec{jpeg_recorder(1, 0)}, Rec{jpeg_recorder(2, 4)}, Rec{jpeg_recorder(3, 0)}, Rec{recorder(4, 1)}, Rec{recorder(5, 1)}};
 // tests/fncmp/d3dprobe.py: the clock a recorder.
 const SpriteFramesEnv kSpriteFramesEnv = {reinterpret_cast<u32(__fastcall *)(u8 *)>((uintptr_t)(kStubs + 0x1000 + 0x20 * 20))};   // (slot 20's thiscall recorder of no arguments)

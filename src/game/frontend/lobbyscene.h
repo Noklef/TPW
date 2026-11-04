@@ -17,6 +17,10 @@ struct LobbySceneEnv {
     int(__cdecl *rand)();                                                // the CRT's rand (0x67b5c0, by address)
     // 0x580320 (thiscall on the weather, unported: it reads the time stamp counter; by address): two points by value and two dwords.
     void(__fastcall *weatherBurst)(u8 *weather, void *, float x, float y, float z, float x2, float y2, float z2, u32 life, u32 kind);
+    // Class702af0_Step's calls.
+    u8 *(__fastcall *flightCtor)(u8 *self, void *, u8 *owner, u32 a, u32 b, const u32 *centre, const u32 *spread, u32 e, u32 f);  // LobbyFlight_Ctor (0x5d9830)
+    void(__fastcall *acquire)(u8 *user);                                 // RideUser_Acquire (0x5d8130)
+    void(__fastcall *flyerStep)(u8 *flyer);                              // LobbyFlyer_Step (0x5d9b50)
 };
 void LobbyScene_SetEnv(const LobbySceneEnv *env);
 
@@ -29,6 +33,11 @@ void __fastcall Class702a50_Dtor(u8 *object);
 // 0x5da120 (class 0x702af0; name unconfirmed): once (the flag at +4 then set to 1), each item of the list at +0x58 (head +4; nodes {item, next})
 // whose flag at +0xc is clear has its model at +8 set up (RideUser_Acquire) and the flag set to 1.
 void __fastcall Class702af0_AcquireModels(u8 *object);
+
+// 0x5da020 (class 0x702af0; the SEH frame left out; name invented, unconfirmed): with the count +0xc below the limit +8 (signed), flyers made: a block of 0x60, LobbyFlight_Ctor (+0x18, +0x2c, +0x38, +0x44, +0x50, +0x54), its
+// model set up when the flag +4 is set and its +0xc clear (a failed block leaves a null flyer: a fault, sic), the count up; at the limit it stops, else the frame's seed +0x34 steps and another comes unless its bits 0-2 are 1.
+// Then each flyer of the list +0x58 steps (LobbyFlyer_Step).
+void __fastcall Class702af0_Step(u8 *object);
 
 // 0x5dfca0 (class 0x702ca8; name unconfirmed): once (the flag at +0x10 then set to 1), the models at +4 and +8 set up (RideUser_Acquire).
 void __fastcall Class702ca8_AcquireModels(u8 *object);
