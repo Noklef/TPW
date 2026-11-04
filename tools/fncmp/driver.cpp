@@ -72,6 +72,7 @@
 #include "../../src/game/ui/window7cb2cc.h"
 #include "../../src/game/ui/window7cc8bcmenu.h"
 #include "../../src/game/ui/window7cc8c0handler.h"
+#include "../../src/game/world/objectscript.h"
 #include "../../src/game/gfx/moviedisplay.h"
 #include "../../src/game/gfx/madvideo.h"
 #include "../../src/game/gfx/movieshow.h"
@@ -1168,6 +1169,11 @@ template <u32 K> void __fastcall mad_video_stand_in(u32 ecx, u32 edx, u32 third)
 const MadVideoEnv kMadVideoEnv = {Rec{jpeg_recorder(10, 2)}, Rec{reinterpret_cast<uintptr_t>(&mad_video_stand_in<1>)}, Rec{reinterpret_cast<uintptr_t>(&mad_video_stand_in<2>)}, Rec{jpeg_recorder(11, 3)}};
 template <u32 K, typename... A> void __fastcall movie_display_stand_in(u32 ecx, u32 edx, A... args) { u32 &h = *reinterpret_cast<u32 *>((uintptr_t)0x30003000); for (u32 v : {K, ecx, edx, static_cast<u32>(args)...}) h = h * 33 ^ v; }  // (tests/fncmp/moviedisplay.py)
 const MovieDisplayEnv kMovieDisplayEnv = {Rec{recorder(10, 0)}, Rec{recorder(11, 0)}, Rec{reinterpret_cast<uintptr_t>(&movie_display_stand_in<1, u32>)}, Rec{jpeg_recorder(12, 1)}, Rec{recorder(13, 0)}, Rec{reinterpret_cast<uintptr_t>(&movie_display_stand_in<2>)}};
+u32 object_script_mix(std::initializer_list<u32> values) { u32 &h = *reinterpret_cast<u32 *>((uintptr_t)0x30002000); for (u32 v : values) h = h * 33 ^ v; return h; }  // (tests/fncmp/objectscript.py: the stand-ins)
+template <u32 K, u32 Answer> u8 *__fastcall object_script_find(u8 *defs, void *, u16 id) { object_script_mix({K, static_cast<u32>(reinterpret_cast<uintptr_t>(defs)), id}); return reinterpret_cast<u8 *>((uintptr_t)Answer); }
+u16 *__fastcall object_script_handle(const u8 *thing, void *, u16 *out) { *out = *reinterpret_cast<const u16 *>(thing + 0x10); return out; }
+u32 __cdecl object_script_load(const char *name, u32 handle, u32 quiet) { return object_script_mix({3, static_cast<u32>(reinterpret_cast<uintptr_t>(name)), handle & 0xffff, quiet}); }
+const ObjectScriptEnv kObjectScriptEnv = {&object_script_find<1, 0x30003000>, &object_script_find<2, 0x30004000>, Rec{jpeg_recorder(10, 5)}, Rec{jpeg_recorder(11, 3)}, &object_script_handle, &object_script_load, Rec{jpeg_recorder(12, 2)}};
 const Window7cc8c0HandlerEnv kWindow7cc8c0HandlerEnv = {Rec{recorder(12, 2)}, Rec{jpeg_recorder(15, 2)}, Rec{jpeg_recorder(20, 4)}, Rec{jpeg_recorder(25, 4)}, Rec{recorder(13, 0)}, Rec{recorder(14, 0)}, Rec{jpeg_recorder(28, 3)}, Rec{recorder(15, 0)}, Rec{recorder(16, 0)}, Rec{jpeg_recorder(31, 0)}, Rec{recorder(17, 2)}, Rec{recorder(18, 2)}, Rec{jpeg_recorder(29, 3)}, Rec{recorder(19, 1)}, Rec{recorder(20, 0)}, Rec{recorder(21, 1)}, Rec{jpeg_recorder(27, 1)}, Rec{jpeg_recorder(30, 5)}, Rec{jpeg_recorder(13, 1)}, Rec{jpeg_recorder(12, 0)}, Rec{jpeg_recorder(19, 0)}, Rec{jpeg_recorder(14, 0)}, Rec{recorder(23, 2)}, Rec{recorder(24, 2)}, Rec{recorder(25, 1)}, Rec{recorder(26, 1)}, Rec{recorder(27, 2)}, Rec{jpeg_recorder(16, 5)}, Rec{jpeg_recorder(17, 0)}, Rec{jpeg_recorder(18, 1)}, Rec{recorder(28, 3)}};
 const Window7cc8bcMenuEnv kWindow7cc8bcMenuEnv = {Rec{recorder(10, 2)}, Rec{recorder(11, 3)}, Rec{jpeg_recorder(12, 0)}, Rec{recorder(13, 1)}, Rec{jpeg_recorder(14, 2)}, Rec{recorder(15, 2)}, Rec{recorder(16, 2)}, Rec{recorder(17, 3)}};
 const Dialog7cb2b8TabsEnv kDialog7cb2b8TabsEnv = {Rec{jpeg_recorder(10, 1)}, Rec{jpeg_recorder(11, 0)}, Rec{jpeg_recorder(12, 0)}, Rec{recorder(13, 0)}, Rec{jpeg_recorder(14, 0)}, Rec{recorder(15, 3)}};
@@ -2195,6 +2201,7 @@ int main(int argc, char **argv) {
     Window7cb2cc_SetEnv(&kWindow7cb2ccEnv);
     Window7cc8bc_SetMenuEnv(&kWindow7cc8bcMenuEnv);
     Window7cc8c0Handler_SetEnv(&kWindow7cc8c0HandlerEnv);
+    ObjectScript_SetEnv(&kObjectScriptEnv);
     MovieDisplay_SetEnv(&kMovieDisplayEnv);
     MadVideo_SetEnv(&kMadVideoEnv);
     MovieShow_SetEnv(&kMovieShowEnv);
