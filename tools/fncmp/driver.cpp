@@ -268,6 +268,7 @@
 #include "../../src/game/world/savegamefile.h"
 #include "../../src/game/ui/windowgroup.h"
 #include "../../src/game/world/gamefile.h"
+#include "../../src/game/world/objectdefs.h"
 #include "../../src/game/core/globalsave.h"
 #include "../../src/game/coaster/rebuild.h"
 #include "../../src/game/coaster/setup.h"
@@ -1183,6 +1184,11 @@ const AddrCall kGameFileCalls[] = {  // tests/fncmp/gamefile.py
     {0x403780, recorder(29, 4)}, {0x4053b0, recorder(30, 0)}, {0x59bea0, recorder(31, 0)},  // (thiscall slots below 32: those of the cdecl calls the other function makes)
     {0x5179c0, recorder(16, 1)}, {0x40fd60, recorder(17, 1)}, {0x402e30, recorder(18, 1)}, {0x403260, recorder(19, 1)}, {0x405570, recorder(20, 1)}, {0x59c860, recorder(21, 1)}, {0x481680, recorder(22, 1)},
     {0x516c80, recorder(1, 1)}, {0x40fc80, recorder(4, 1)}, {0x402e00, recorder(7, 1)}, {0x403220, recorder(8, 1)}, {0x4055d0, recorder(9, 1)}, {0x59c890, recorder(10, 1)}, {0x4816a0, recorder(11, 1)}};
+const AddrCall kObjectDefsLoadCalls[] = {  // tests/fncmp/objectdefsload.py
+    {0x401700, recorder(7, 3)}, {0x405710, recorder(8, 3)}, {0x412c20, recorder(9, 0)}, {0x401030, recorder(10, 0)}, {0x401250, recorder(11, 0)}, {0x41e660, recorder(26, 2)}, {0x41e720, recorder(13, 2)}, {0x41f170, recorder(14, 1)}, {0x41f190, recorder(15, 1)}, {0x41f260, recorder(16, 1)}, {0x41f330, recorder(17, 1)}, {0x41f350, recorder(18, 1)},
+    {0x41f420, recorder(19, 0)}, {0x41f630, recorder(20, 0)}, {0x414420, recorder(21, 1)}, {0x413410, recorder(22, 1)}, {0x413600, recorder(23, 1)}, {0x412fb0, recorder(24, 3)}, {0x550ca0, recorder(25, 0)},
+    {0x4629d0, jpeg_recorder(12, 11)}, {0x42fad0, jpeg_recorder(27, 3)}, {0x51b4f0, jpeg_recorder(28, 2)}, {0x67a7d0, jpeg_recorder(29, 1)}, {0x51fa20, jpeg_recorder(31, 1)}};
+const AddrCall kCoasterTypeLoadCalls[] = {{0x42fd90, jpeg_recorder(1, 4)}, {0x424ef0, jpeg_recorder(2, 4)}, {0x424ed0, jpeg_recorder(3, 1)}, {0x46f150, jpeg_recorder(4, 1)}, {0x430130, jpeg_recorder(5, 2)}, {0x430590, jpeg_recorder(6, 3)}};  // tests/fncmp/objectdefsload.py
 const AddrCall kWindowGroupCalls[] = {{0x65c707, recorder(1, 0)}};  // tests/fncmp/windowgroup.py
 const AddrCall kWindowProcCalls[] = {{0x6590d0, jpeg_recorder(1, 2)}, {0x6588ef, jpeg_recorder(2, 2)}, {0x658af1, jpeg_recorder(3, 3)}, {0x658b5b, jpeg_recorder(4, 3)}, {0x658bcb, jpeg_recorder(5, 4)}, {0x658c38, jpeg_recorder(6, 2)}, {0x658c67, jpeg_recorder(7, 2)}, {0x658c96, jpeg_recorder(8, 2)}, {0x659333, jpeg_recorder(9, 0)}, {0x51bd30, jpeg_recorder(10, 0)}, {0x51b350, jpeg_recorder(11, 0)}, {0x6593c5, jpeg_recorder(12, 0)}, {0x51bcf0, jpeg_recorder(13, 0)}, {0x47e9d0, jpeg_recorder(14, 1)}, {0x46b460, jpeg_recorder(15, 1)}, {0x58dd60, recorder(16, 1)}, {0x40c900, recorder(17, 2)}, {0x40c990, recorder(18, 2)}, {0x4092a0, recorder(19, 2)}, {0x41a850, recorder(20, 0)}};
 const AddrCall kLanguageLoadCalls[] = {{0x6ad1b0, recorder(1, 2)}, {0x6ad230, recorder(2, 2)}, {0x6ad4b0, recorder(3, 3)}, {0x6ad460, recorder(4, 3)}, {0x6ad510, recorder(5, 3)}, {0x6ad570, recorder(6, 3)}, {0x405710, recorder(7, 3)}, {0x6ad790, recorder(8, 1)}, {0x67a650, jpeg_recorder(9, 4)}};
@@ -2581,6 +2587,8 @@ int main(int argc, char **argv) {
     NamedObjects_SetCalls(kThemeTextCalls, sizeof(kThemeTextCalls) / sizeof(kThemeTextCalls[0]));
     AsyncPointer_SetCalls(kPointerMakeCalls, sizeof(kPointerMakeCalls) / sizeof(kPointerMakeCalls[0]));
     GameFile_SetCalls(kGameFileCalls, sizeof(kGameFileCalls) / sizeof(kGameFileCalls[0]));
+    ObjectDefs_SetLoadCalls(kObjectDefsLoadCalls, sizeof(kObjectDefsLoadCalls) / sizeof(kObjectDefsLoadCalls[0]));
+    CoasterType_SetLoadCalls(kCoasterTypeLoadCalls, sizeof(kCoasterTypeLoadCalls) / sizeof(kCoasterTypeLoadCalls[0]));
     Dialog_SetCalls(kDialogBoxCalls, sizeof(kDialogBoxCalls) / sizeof(kDialogBoxCalls[0]));
     ArReplay_SetCalls(kArReplayCalls, sizeof(kArReplayCalls) / sizeof(kArReplayCalls[0]));
     Contacts_SetCalls(kContactsCalls, sizeof(kContactsCalls) / sizeof(kContactsCalls[0]));

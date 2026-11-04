@@ -4,6 +4,8 @@
 #include <cstring>
 
 #include "../core/balancefile.h"
+#include "../core/string.h"
+#include "../files/handles.h"
 #include "../core/crt.h"
 #include "../core/defids.h"
 #include "../core/gameheap.h"
@@ -568,5 +570,191 @@ s32 __stdcall ObjectDefs_ListBuiltNumbers(u16 *out) {
         }
     }
     return 0;
+}
+}
+
+namespace {
+
+AddrCalls g_loadCalls;
+
+u32 address(const void *p) { return static_cast<u32>(reinterpret_cast<uintptr_t>(p)); }
+
+const char *const kPathFormat = reinterpret_cast<const char *>((uintptr_t)0x007488ac);    // "%s\\%s"
+const char *const kPrefixedFormat = reinterpret_cast<const char *>((uintptr_t)0x007488a4);   // "%s\\%s%s"
+
+const char *handleFolder(u8 *handle) { return vcall<const char *>(handle, 0x18); }
+
+// The setting's mode, read at the first use (a static with its destructor registered).
+u32 settingMode() {
+    u8 &made = global<u8>(0x00fb3b78);
+    if (!(made & 1)) {
+        made |= 1;
+        g_loadCalls.Th(0x00550ca0, 0x00fb3b7cu);
+        g_loadCalls.Cd(0x0067a7d0, 0x005d1750u);
+    }
+    return global<u32>(0x00fb3b7c);
+}
+
+struct DefLoad {
+    u8 *source;
+    StreamBase *stream;
+    char *name;
+
+    void namePath(const char *file) {
+        Crt().sprintf(name, kPathFormat, handleFolder(source + 0x2c), file);
+    }
+    void namePrefixed(u32 prefixText) {
+        const char *const file = at<const char *>(source, 0xc);
+        const char *const prefix = global<const char *>(prefixText);
+        Crt().sprintf(name, kPrefixedFormat, handleFolder(source + 0x2c), prefix, file);
+    }
+    // The stream read into a balance file; failed: the error, unless silent.
+    bool read(u8 *balance, u32 keep, bool silent = false) {
+        if (g_loadCalls.Th(0x00401700, address(balance), address(name), address(stream), keep)) {
+            StreamBase_Close(stream);
+            return true;
+        }
+        if (!silent) g_loadCalls.Th(0x00405710, 0x00785de8u, 3u, 0u, address(name));
+        return false;
+    }
+};
+
+u32 loadDefinition(u8 *defs, u8 *entry, u8 *opener, u8 *source, String *path, StreamBase *stream, char *name, u8 *balance) {
+    if (at<u32>(defs, 0x528) == 0x14a) return 0;
+    void *const block = GameHeap_Alloc(0x50c);
+    const u32 made = block ? g_loadCalls.Th(0x00412c20, address(block)) : 0;
+    at<u32>(defs, at<u32>(defs, 0x528) * 4) = made;
+    const u32 index = at<u32>(defs, 0x528);
+    u8 *def = at<u8 *>(defs, index * 4);
+    at<u32>(defs, 0x528) = index + 1;
+    {
+        const char *from = path->data;
+        const u32 size = static_cast<u32>(std::strlen(from)) + 1;
+        std::memcpy(def + 0x28c, from, size);
+    }
+    Crt().swprintf(reinterpret_cast<u16 *>(def + 0x390), reinterpret_cast<const u16 *>((uintptr_t)0x007488b4), at<const char *>(source, 0xc));
+    DefLoad load = {source, stream, name};
+    u8 *const handle = source + 0x2c;
+    const u32 streamAt = address(stream);
+    if (g_loadCalls.Th(0x0041e660, address(entry), address(opener), streamAt)) {
+        load.namePath(at<const char *>(source, 0xc));
+        if (!load.read(def + 4, 0, true)) return 0;
+        if (settingMode() == 1 && g_loadCalls.Th(0x0041e720, address(entry), address(opener), streamAt)) {
+            load.namePath(at<const char *>(source, 0xc));
+            if (!load.read(def + 4, 1)) return 0;
+        }
+    }
+    load.namePath(at<const char *>(source, 0xc));
+    if (g_loadCalls.Th(0x0041f170, address(source), streamAt) && !load.read(def + 4, 1)) return 0;
+    if (settingMode() == 1) {
+        load.namePrefixed(0x0078a338);
+        if (g_loadCalls.Th(0x0041f260, address(source), streamAt) && !load.read(def + 4, 1)) return 0;
+    } else if (settingMode() == 2) {
+        load.namePrefixed(0x00788df0);
+        if (g_loadCalls.Th(0x0041f190, address(source), streamAt) && !load.read(def + 4, 1)) return 0;
+    }
+    if (g_loadCalls.Th(0x0041f420, address(source))) at<u32>(def, 0x4f0) = g_loadCalls.Cd(0x0051b4f0, address(handleFolder(handle)), 0x0074787cu);
+    if (g_loadCalls.Th(0x0041f630, address(source))) g_loadCalls.Th(0x00414420, address(def), address(handle));
+    g_loadCalls.Th(0x00413410, address(defs), address(&def));
+    if (g_loadCalls.Th(0x0041f350, address(source), streamAt)) {
+        at<u32>(def, 0x504) |= 1;
+        g_loadCalls.Th(0x00413600, address(def), streamAt);
+    }
+    StreamBase_Close(stream);
+    g_loadCalls.Th(0x00412fb0, address(defs), at<u32>(def, 0x10), address(def + 0x410), 0x40u);
+    const u32 folder = address(path->data);
+    const u32 sourceName = at<u32>(source, 0xc);
+    if (at<u32>(def, 0x38)) {
+        const u32 flags = at<u32>(def, 0x84) ? 0x450c00u : 0x50c00u;
+        at<u32>(def, 0x490) = g_loadCalls.Cd(0x004629d0, folder, sourceName, at<u32>(def, 0x18), at<u32>(def, 0x1c), flags, static_cast<u32>(at<u16>(def, 0)), at<u32>(def, 0x170), 0u, 0u, at<u32>(def, 0x28), at<u32>(def, 0x2c));
+    } else {
+        const u32 flags = at<u32>(def, 0x84) ? 0x4b24a9u : 0xb24a9u;
+        at<u32>(def, 0x490) = g_loadCalls.Cd(0x004629d0, folder, sourceName, at<u32>(def, 0x18), at<u32>(def, 0x1c), flags, static_cast<u32>(at<u16>(def, 0)), at<u32>(def, 0x170), 0u, 0u, 0u, 0u);
+        if (at<u32>(def, 0x490) && at<u32>(def, 0x9c) == 3) {
+            at<u32>(balance, 0) = 0x006fd8b0;
+            g_loadCalls.Th(0x00401030, address(balance));
+            Crt().sprintf(name, kPathFormat, handleFolder(handle), global<const char *>(0x0078a0b0));
+            if (g_loadCalls.Th(0x0041f330, address(source), streamAt) && !load.read(balance, 0)) {
+                at<u32>(balance, 0) = 0x006fd8b0;
+                g_loadCalls.Th(0x00401250, address(balance));
+                return 0;
+            }
+            g_loadCalls.Cd(0x0042fad0, at<u32>(def, 0x490), address(path->data), address(balance));
+            at<u32>(balance, 0) = 0x006fd8b0;
+            g_loadCalls.Th(0x00401250, address(balance));
+        }
+    }
+    at<u32>(def, 0x508) = at<u32>(def, 0x490) ? 0 : 1;
+    if (!at<u32>(def, 0x508)) {
+        at<u32>(def, 0x4b8) = at<u32>(def, 0x264);
+        for (s32 i = 0; i < at<s32>(def, 0x4b8); ++i)
+            at<u32>(def, 0x4bc + i * 4) = g_loadCalls.Cd(0x004629d0, address(path->data), at<u32>(def, 0x244 + i * 4), 0u, 0u, 0xc0u, static_cast<u32>(i) + 1 + at<u16>(def, 0), 1u, 0u, 0u, 0u, 0u);
+    }
+    return 1;
+}
+
+}  // namespace
+
+void ObjectDefs_SetLoadCalls(const AddrCall *table, u32 count) { g_loadCalls.Set(table, count); }
+
+extern "C" {
+u32 __fastcall ObjectDefs_Load(u8 *defs, void *, u8 *entry, u8 *opener, u8 *source) {
+    struct {
+        char name[0x104];
+        u8 balance[0x3b80];
+    } frame;
+    String path;
+    String_Ctor(&path);
+    StreamBase stream;
+    StreamBase_Ctor(&stream);
+    vcall<void>(&path, 0x18, source + 0x18);
+    const StringView *const suffix = reinterpret_cast<const StringView *>((uintptr_t)0x007898c8);
+    StringView view;
+    String copy;
+    String_CtorCopy(&copy, nullptr, String_Right(&path, nullptr, &view, suffix->length));
+    const bool ends = Names_Equal(reinterpret_cast<const u8 *>(&copy), reinterpret_cast<const u8 *>(suffix)) == 1;
+    String_Dtor(&copy);
+    if (ends) {
+        vcall<void>(&path, 0x1c, String_Left(&path, nullptr, &view, path.length - suffix->length));
+        String_EnsureTrailingBackslash(&path);
+    }
+    const u32 result = loadDefinition(defs, entry, opener, source, &path, &stream, frame.name, frame.balance);
+    StreamBase_Dtor(&stream);
+    String_Dtor(&path);
+    return result;
+}
+
+void __fastcall ObjectDef_LoadTrackTypes(u8 *def, void *, u8 *handle) {
+    struct {
+        u8 head[0x20];
+        char *name;
+        char text[0x104];
+    } found;
+    found.name = found.text;
+    found.text[0] = 0;
+    s32 result;
+    if (*vcall<s32 *>(handle, 4, &result, global<const char *>(0x00788f40), &found) < 0) return;
+    StreamBase stream;
+    StreamBase_Ctor(&stream);
+    String text;
+    String_Ctor(&text);
+    do {
+        if (*vcall<s32 *>(handle, 0xc, &result, &stream, found.name, 0x80000001u, 0u) >= 0) {
+            vcall<void>(&text, 0x14, found.name);
+            vcall<void>(&text, 0x18, String_StripSuffix(reinterpret_cast<const String *>((uintptr_t)0x00789010), &text));
+            StringView view;
+            vcall<void>(&text, 0x1c, String_Right(&text, nullptr, &view, 1));
+            char digit[4];
+            {
+                const u32 size = static_cast<u32>(std::strlen(text.data)) + 1;
+                std::memcpy(digit, text.data, size);
+            }
+            const s32 index = CRT_atol(digit);
+            at<u32>(def, 0x4dc + index * 4) = g_loadCalls.Cd(0x0051fa20, address(&stream));
+        }
+        StreamBase_Close(&stream);
+    } while (*vcall<s32 *>(handle, 8, &result, &found) >= 0);
+    String_Dtor(&text);
+    StreamBase_Dtor(&stream);
 }
 }
