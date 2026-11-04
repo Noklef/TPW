@@ -1161,6 +1161,12 @@ const AddrCall kLobbyFlightCalls[] ={{0x5d8870, recorder(4, 6)}, {0x5d83f0, reco
 const AddrCall kPointSpritesCalls[] ={{0x67a7d0, jpeg_recorder(1, 1)}, {0x590c40, recorder(2, 0)}, {0x565240, recorder(3, 5)}, {0x565bb0, recorder(4, 5)}, {0x5658c0, recorder(5, 1)}};
 const AddrCall kCoastersUpdateCalls[] ={{0x435d50, jpeg_recorder(1, 1)}, {0x403d00, recorder(2, 2)}, {0x43eb70, jpeg_recorder(3, 1)}, {0x43ce20, jpeg_recorder(4, 1)}, {0x4709e0, jpeg_recorder(5, 1)}, {0x43b8b0, jpeg_recorder(6, 2)}, {0x439570, jpeg_recorder(7, 2)}};
 const AddrCall kModelListCalls[] = {{0x575f90, recorder(1, 1)}, {0x581790, recorder(2, 2)}, {0x581880, recorder(3, 2)}, {0x580530, recorder(4, 3)}, {0x5658c0, recorder(5, 1)}};
+const AddrCall kDialogBoxCalls[] = {  // tests/fncmp/dialogbox.py
+    {0x47ed80, jpeg_recorder(1, 3)}, {0x659d00, recorder(2, 0)}, {0x67acc0, jpeg_recorder(3, 1)}, {0x48f6a0, recorder(4, 1)}, {0x65d1c8, recorder(5, 1)}, {0x65c428, recorder(6, 2)}, {0x65c4b9, recorder(7, 2)},
+    {0x485a70, jpeg_recorder(8, 1)}, {0x65c388, recorder(9, 1)}, {0x65c5d5, recorder(10, 4)}, {0x65f5b7, recorder(11, 1)}, {0x65d7d0, recorder(12, 1)}, {0x659bc9, jpeg_recorder(13, 1)}, {0x65d070, recorder(14, 1)},
+    {0x65d9dd, recorder(15, 1)}, {0x65e6d5, recorder(16, 2)}, {0x486b80, jpeg_recorder(17, 0)}, {0x486b70, jpeg_recorder(18, 0)}, {0x4092a0, recorder(19, 2)}, {0x662411, jpeg_recorder(20, 0)}, {0x659d90, recorder(21, 0)},
+    {0x65e705, recorder(22, 1)}, {0x658d9f, jpeg_recorder(23, 4)}, {0x486b60, jpeg_recorder(24, 0)}, {0x409300, recorder(25, 0)}, {0x662420, jpeg_recorder(26, 0)}, {0x65d55a, recorder(27, 0)}, {0x658ccc, jpeg_recorder(28, 4)},
+    {0x4862a0, jpeg_recorder(29, 0)}, {0x65f66e, recorder(30, 3)}};
 const AddrCall kGameOwnerCalls[] = {  // tests/fncmp/gameowner.py
     {0x481440, recorder(1, 0)}, {0x402d90, recorder(2, 0)}, {0x481450, recorder(3, 0)}, {0x402db0, recorder(4, 0)}, {0x481460, recorder(5, 0)}, {0x402dd0, recorder(6, 0)}, {0x515dd0, recorder(7, 0)}, {0x409240, recorder(8, 0)},
     {0x412d50, recorder(9, 0)}, {0x585e20, recorder(10, 0)}, {0x418d70, recorder(11, 0)}, {0x409250, recorder(12, 0)}, {0x408f00, recorder(13, 0)},
@@ -2522,6 +2528,7 @@ int main(int argc, char **argv) {
     MMPlaceStaff_SetCalls(kMMPlaceStaffCalls, sizeof(kMMPlaceStaffCalls) / sizeof(kMMPlaceStaffCalls[0]));
     AdvisorSpeech_SetCalls(kAdvisorSpeechCalls, sizeof(kAdvisorSpeechCalls) / sizeof(kAdvisorSpeechCalls[0]));
     GameOwner_SetCalls(kGameOwnerCalls, sizeof(kGameOwnerCalls) / sizeof(kGameOwnerCalls[0]));
+    Dialog_SetCalls(kDialogBoxCalls, sizeof(kDialogBoxCalls) / sizeof(kDialogBoxCalls[0]));
     ArReplay_SetCalls(kArReplayCalls, sizeof(kArReplayCalls) / sizeof(kArReplayCalls[0]));
     Contacts_SetCalls(kContactsCalls, sizeof(kContactsCalls) / sizeof(kContactsCalls[0]));
     HeightMap_SetCalls(kHeightMapCalls, sizeof(kHeightMapCalls) / sizeof(kHeightMapCalls[0]));

@@ -3,6 +3,10 @@
 #pragma once
 
 #include "../../../re/types.h"
+#include "../core/addrcalls.h"
+
+// Dialog_Box's and Dialog_BoxHandler's calls by address (the bench's recorders).
+void Dialog_SetCalls(const AddrCall *table, u32 count);
 
 // Dialog_KeyHandler's calls (the ports by default, 0x59ab50 raw: unported, agent B's; the bench's recorders: their own benches have them).
 struct DialogKeyEnv {
@@ -34,4 +38,16 @@ s32 __cdecl Dialog_BaseHandler(u8 *window, u32 message, u32 a, u32 b);
 // (Window_SetDepth), the built window given the handler when not 0 (Window_SetHandler) and the focus (Window_SetFocus(0)). Returns the
 // built window, or 0 when the frame or the script made none.
 u8 *__cdecl Dialog_Create(u8 *script, u32 handler, u32 shaded);
+
+// 0x47f020 (cdecl (record, kind, callback, kind, callback, kind, callback, keys kept); name invented, unconfirmed): the message box: Dialog_Create(the script 0x74f920, Dialog_BoxHandler, 1) (0 returned
+// when none), a text part made its implementation (none when the memory fails) and two calls with (1, 1); the record gives the font (+8 through Language_Font), the colour (+4, +5, +6, signed; alpha 0xff),
+// the text (+0) and the callbacks' value (+0xc, its slot 3). The three buttons (children 0x9873c8-0x9873ca): kind 0 hidden, else given the implementation by kind (1 and 2 named, others none), shown and
+// their callback in slots 0-2. Slot 4: -1 when the keys are kept, else the byte Global7c24d0_GetByte and the keys reset. Slot 5: 0; while the game was paused by a box ([0x786ba4]) and [0xf82884] is 0, the
+// game owner paused (0, 0), the flag cleared, 0x662411 called and the slot 1. Returns the window.
+u8 *__cdecl Dialog_Box(const u8 *record, u32 kind0, u32 callback0, u32 kind1, u32 callback1, u32 kind2, u32 callback2, u8 keysKept);
+
+// 0x47eed0 (cdecl (window, message, a, b); name invented, unconfirmed): the box's handler. 0x100 from a button (a): its callback (slot 0-2; none counts as 1) given slot 3; a true answer posts the window
+// message 4 (0, 0) and returns 0. 0x14: slot 4 unless -1 gives the keys back (true: KeyMaps_ResetAllAndSetFlag, else KeyMaps_EnableAllAndClearFlag); slot 5 true, [0x786ba4] and [0xf82884] 0: the flag set,
+// the game owner resumed, 0x662420 called; then the parent posted message 4 and the focus given back. The rest, and 0x14 after that, Window_CallDefault, whose answer is returned.
+s32 __cdecl Dialog_BoxHandler(u8 *window, u32 message, u32 a, u32 b);
 }
