@@ -7372,6 +7372,7 @@ address,name,kind,confidence,notes
 0x004a7bf0,Postcard_OnSent,function,low,"reimplemented (src/game/frontend/postcard); cdecl (done, result): the postcard sender's callback; when done and the result is 0-4, the command of the table {0x34, 0x39, 0x3a, 0x3b, 0x3b} posted (CommandQueue_Post)"
 0x005d6060,Class702da0_Clear,function,low,reimplemented (src/game/frontend/scenequeue); the advisor stopped and every queued id freed
 0x005d6110,Class702da0_Push,function,low,"reimplemented (src/game/frontend/scenequeue); an id pushed at the head, the queue cleared first on request"
+0x005d61a0,Class702da0_Show,function,low,reimplemented (src/game/frontend/scenequeue); a text shown for a time
 0x005d5cf0,Class7029f0_Close,function,low,"reimplemented (src/game/frontend/frame); the front-end frame's objects closed and deleted, the lobby sfx released, the window told"
 0x005dd220,ViewCtl702bc8_Leave,function,low,"reimplemented (src/game/frontend/sceneleave); slot 8 of the vtable 0x702bc8: the view's dialog sent message 4, its lists drained, its two sounds stopped (name unconfirmed)"
 0x005dd690,ViewCtl702e70_Leave,function,low,"reimplemented (src/game/frontend/sceneleave); slot 8 of the vtable 0x702e70: as 0x5dd220, then the dialog [0x7cc4c4] sent message 4 (name unconfirmed)"
