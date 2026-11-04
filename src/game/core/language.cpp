@@ -17,6 +17,30 @@ template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((ui
 
 u16 *const kWideBuffer = reinterpret_cast<u16 *>(0x007ba058);
 
+AddrCalls g_calls;
+
+// Language_Load's tables: each charset's key and two names (the first the error's), in the original's order; the 13 fonts' keys of each set.
+struct CharsetRow { u16 key; u32 name, second; };
+const CharsetRow kCharsets[21] = {
+    {0x3fc, 0x74c6b4, 0x74c6a4}, {0x3e8, 0x74c668, 0x74c65c}, {0x3e9, 0x74c648, 0x74c638}, {0x3ea, 0x74c624, 0x74c618}, {0x3ee, 0x74c608, 0x74c600},
+    {0x3ef, 0x74c5ec, 0x74c5e0}, {0x3eb, 0x74c5cc, 0x74c5c0}, {0x3ec, 0x74c5ac, 0x74c59c}, {0x3ed, 0x74c584, 0x74c574}, {0x3f3, 0x74c55c, 0x74c54c},
+    {0x3f4, 0x74c534, 0x74c524}, {0x3f5, 0x74c508, 0x74c4f4}, {0x3f6, 0x74c4dc, 0x74c4d0}, {0x3f7, 0x74c4b4, 0x74c4a0}, {0x3f8, 0x74c488, 0x74c478},
+    {0x3fb, 0x74c460, 0x74c454}, {0x3fa, 0x74c440, 0x74c430}, {0x3f0, 0x74c418, 0x74c408}, {0x3f2, 0x74c3f0, 0x74c3e0}, {0x3f9, 0x74c3cc, 0x74c3b8},
+    {0x3f1, 0x74c3a4, 0x74c398},
+};
+const u16 kFontKeys[4][13] = {
+    {0x415, 0x40f, 0x410, 0x418, 0x3ff, 0x40c, 0x3fd, 0x3ff, 0x3fd, 0x3fd, 0x40a, 0x3ff, 0x41c},
+    {0x416, 0x411, 0x412, 0x419, 0x407, 0x40d, 0x400, 0x402, 0x403, 0x400, 0x40a, 0x400, 0x41c},
+    {0x417, 0x413, 0x414, 0x41b, 0x403, 0x40e, 0x402, 0x404, 0x403, 0x402, 0x40a, 0x402, 0x41c},
+    {0x417, 0x413, 0x414, 0x41b, 0x409, 0x40e, 0x404, 0x406, 0x408, 0x404, 0x40a, 0x404, 0x41c},
+};
+
+bool failed(u32 status) { return *reinterpret_cast<const s32 *>(static_cast<uintptr_t>(status)) < 0; }
+s32 load_error(u32 name) {
+    g_calls.Th(0x00405710, 0x00785de8u, 3u, 0u, name);
+    return 0;
+}
+
 // The text widened into the static buffer while the converter is on; status is the caller's argument slot (as the originals use it).
 u16 *widen(const u8 *text, u32 *status) {
     if (global<u32>(0x0078ba80) != 0)
@@ -123,4 +147,34 @@ void __fastcall Language_Dtor(u8 *lang) {
     CRT_VectorDtorIterator(lang + 0x1c, 0x18, 0x34, EntryDtor);
     ResFolder_Dtor(lang + 0xc);
 }
+
+s32 __fastcall Language_Load(u8 *lang) {
+    s32 result;
+    const u32 self = static_cast<u32>(reinterpret_cast<uintptr_t>(lang));
+    const u32 folder = self + 0xc;
+    const u32 out = static_cast<u32>(reinterpret_cast<uintptr_t>(&result));
+    if (failed(g_calls.Th(0x006ad1b0, folder, out, 0x006fd990u))) return load_error(0x006fd990);
+    if (failed(g_calls.Th(0x006ad230, folder, out, 0x00f7f230u))) return load_error(0x00f7f230);
+    if (failed(g_calls.Th(0x006ad4b0, folder, out, self + 0x550, 2u))) return -1;
+    if (failed(g_calls.Th(0x006ad460, folder, out, self + 0x54c, 1u))) return -1;
+    for (u32 i = 0; i < 21; i++) {
+        const CharsetRow &row = kCharsets[i];
+        if (failed(g_calls.Th(0x006ad510, folder, out, self + 0x554 + 4 * i, static_cast<u32>(row.key)))) {
+            char line[0x100];
+            g_calls.Cd(0x0067a650, static_cast<u32>(reinterpret_cast<uintptr_t>(line)), 0x0074c67cu, row.second, row.name);
+            global<void(__stdcall *)(const char *)>(0x006fd1e0)(line);
+            return load_error(row.name);
+        }
+    }
+    const s32 by_setting = global<s32>(0x007858ec);
+    const s32 by_screen = global<s32>(0x0078d8dc);
+    const u32 set = by_setting > 0 ? (by_setting >= 4 ? 3 : by_setting - 1) : (by_screen == 0 || by_screen == 1 || by_screen == 2 ? by_screen : 3);
+    for (u32 i = 0; i < 13; i++)
+        if (failed(g_calls.Th(0x006ad570, folder, out, self + 0x30 + 0x138 * set + 0x18 * i, static_cast<u32>(kFontKeys[set][i])))) return load_error(0x0074c390);
+    g_calls.Th(0x006ad790, self + 0x4fc, out);
+    at<u32>(lang, 0) = 1;
+    return 1;
 }
+}
+
+void Language_SetCalls(const AddrCall *table, u32 count) { g_calls.Set(table, count); }
