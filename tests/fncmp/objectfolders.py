@@ -15,7 +15,7 @@ B = Bench([(0x413930, 0x413c02), (0x5c5230, 0x5c524b), (0x5c53c0, 0x5c5480), (0x
           hooks={0x41dc80: _recorder(CTOR, 2), 0x41ede0: _recorder(HAS, 1), 0x41eaa0: _recorder(ADD, 1), 0x413c10: _recorder(LOAD, 3), 0x41f170: _recorder(OWN, 1), 0x41f190: _recorder(EASY, 1), 0x550ca0: _recorder(MODE, 0), 0x67a7d0: _recorder(ATEXIT, 1, cdecl=True)})
 DEFS, FOLDERS, LIST, NODES, SOURCE, VT, OBJECT, OBJECT_VT, STATUS, TABLES = RAM, RAM + 0x100, RAM + 0x200, RAM + 0x300, RAM + 0x400, RAM + 0x500, RAM + 0x600, RAM + 0x700, RAM + 0x800, RAM + 0x900
 FOUND, ENDED = STATUS, STATUS + 4
-OPS = ['some', 'some', 'some', 'no list', 'empty', 'no memory', 'no object', 'easy', 'plain', 'load fails']
+OPS = ['some', 'some', 'some', 'no list', 'empty', 'no object', 'easy', 'plain', 'load fails'] * 2 + ['no memory']   # (no memory crashes in both: the String's, unchecked)
 NAMES = [b'Big', b'.', b'..', b'Pack.wad', b'Pack.WAD', b'Note.txt', b'a', b'Rides2']
 
 

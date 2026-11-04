@@ -6199,6 +6199,8 @@ address,name,kind,confidence,notes
 0x0046cdc0,MMStaffDrop_Cancel,function,low,"reimplemented (src/game/world/mousemodeclick); thiscall: the sprite killed, the staff put back"
 0x0046d000,MouseMode6fead0_Hover,function,low,"reimplemented (src/game/world/mousemodeclick); thiscall, four arguments unread: the map preview and the cursor over the tile"
 0x0046d0d0,MouseMode6fead0_Click,function,low,"reimplemented (src/game/world/mousemodeclick); thiscall, two arguments unread: the tile clicked in the mode"
+0x0059b620,AdvisorMsg_SendScored,function,low,"reimplemented (src/game/world/advisorsend); thiscall (out, offset), pops 8: a scored advisor message said and posted; name invented"
+0x0059b870,AdvisorMsg_Send,function,low,"reimplemented (src/game/world/advisorsend); thiscall (out, offset), pops 8: an advisor message said and posted; name invented"
 0x0045bc60,Holder_Destroy,function,high,"reimplemented (src/game/model/holder); a holder's part sleeps, its owner's count drops and the part is deleted"
 0x0046c210,Mouse_HandleButton,function,high,reimplemented (src/game/input/mouse); the left and right mouse buttons go down or up
 0x0046c2a0,Mouse_Moved,function,high,reimplemented (src/game/input/mouse); the mouse moved
