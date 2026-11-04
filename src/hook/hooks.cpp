@@ -203,6 +203,7 @@
 #include "../game/core/crtfile.h"
 #include "../game/core/crtfloat.h"
 #include "../game/core/crtlock.h"
+#include "../game/core/crtmessage.h"
 #include "../game/core/crtopen.h"
 #include "../game/core/crtstartup.h"
 #include "../game/core/crtstream.h"
@@ -6216,6 +6217,13 @@ const Hook kHooks[] = {
     {"CRT_flsall",                0x0067d170, (void *)&CRT_flsall, {0x51, 0x53, 0x55, 0x56, 0x57}},
     {"CRT_flushall",              0x0067d160, (void *)&CRT_flushall, {0x6a, 0x01, 0xe8, 0x09, 0x00}},
     {"CRT_commit",                0x00687b20, (void *)&CRT_commit, {0xa1, 0xa0, 0x3c, 0xfb, 0x00}},
+    {"CRT_amsg_exit",             0x0067efc0, (void *)&CRT_amsg_exit, {0x83, 0x3d, 0x5c, 0x13, 0xfb}},
+    {"CRT_fast_error_exit",       0x0067eff0, (void *)&CRT_fast_error_exit, {0x83, 0x3d, 0x5c, 0x13, 0xfb}},
+    {"CRT_FF_MSGBANNER",          0x0068a170, (void *)&CRT_FF_MSGBANNER, {0xa1, 0x5c, 0x13, 0xfb, 0x00}},
+    {"CRT_NMSG_WRITE",            0x0068a1b0, (void *)&CRT_NMSG_WRITE, {0x8b, 0x4c, 0x24, 0x04, 0x81}},
+    {"CRT_crtMessageBoxA",        0x0068efb0, (void *)&CRT_crtMessageBoxA, {0xa1, 0x00, 0x19, 0xfb, 0x00}},
+    {"CRT_mbsnbcpy",              0x0068a390, (void *)&CRT_mbsnbcpy, {0xa1, 0x70, 0x18, 0xfb, 0x00}},
+    {"CRT__splitpath",            0x0067f020, (void *)&CRT__splitpath, {0x51, 0x53, 0x55, 0x8b, 0x6c}},
     {"Nav_Ctor",          0x0050ffe0, (void *)&Nav_Ctor, {0x6a, 0xff, 0x68, 0x2d, 0xe6}},
     {"Nav_Dtor",                  0x0050f200, (void *)&Nav_Dtor, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"Nav_DtorAtD4",              0x004f7c30, (void *)&Nav_DtorAtD4, {0x81, 0xc1, 0xd4, 0x00, 0x00}},

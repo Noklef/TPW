@@ -1330,7 +1330,7 @@ address,name,kind,confidence,notes
 0x00fa71e0,gClock,data,high,"Timer (0x18): enabled, ticksPerMs, baseMs, pad, s64 start"
 0x0067a650,CRT_sprintf,function,high,MSVC6 sprintf
 0x0067b5f0,CRT_strrchr,function,high,reimplemented (src/game/core/crt); strrchr
-0x0067f020,CRT__splitpath,function,high,MSVC6 _splitpath
+0x0067f020,CRT__splitpath,function,high,reimplemented (src/game/core/crtmessage); MSVC6 _splitpath
 0x00618d20,RefObject_AddRef,function,high,reimplemented (src/game/files/handles); thiscall; InterlockedIncrement(+8)
 0x00618d30,RefObject_Release,function,high,"reimplemented (src/game/files/handles); thiscall; InterlockedDecrement(+8); at 0: vtbl+0x24, release the link (+4), deleting destructor (1)"
 0x00618d80,RefObject_SetLink,function,high,reimplemented (src/game/files/handles); thiscall (link); the new link gets the old one (vtbl+0x28) before replacing it
@@ -5919,6 +5919,12 @@ address,name,kind,confidence,notes
 0x0067d170,CRT_flsall,function,low,reimplemented (src/game/core/crtopen); flsall
 0x0067d160,CRT_flushall,function,low,reimplemented (src/game/core/crtopen); _flushall
 0x00687b20,CRT_commit,function,low,reimplemented (src/game/core/crtopen); _commit
+0x0067efc0,CRT_amsg_exit,function,low,"reimplemented (src/game/core/crtmessage); MSVC6 _amsg_exit: the banner when [0xfb135c] is 1, the message, exit(0xff) by [0x77ea80]"
+0x0067eff0,CRT_fast_error_exit,function,low,"reimplemented (src/game/core/crtmessage); MSVC6 fast_error_exit: as _amsg_exit, ExitProcess(0xff)"
+0x0068a170,CRT_FF_MSGBANNER,function,low,reimplemented (src/game/core/crtmessage); MSVC6 _FF_MSGBANNER
+0x0068a1b0,CRT_NMSG_WRITE,function,low,reimplemented (src/game/core/crtmessage); MSVC6 _NMSG_WRITE: the runtime error text to stderr or a message box
+0x0068efb0,CRT_crtMessageBoxA,function,low,reimplemented (src/game/core/crtmessage); MSVC6 __crtMessageBoxA: user32 loaded on first use
+0x0068a390,CRT_mbsnbcpy,function,low,reimplemented (src/game/core/crtmessage); MSVC6 _mbsnbcpy
 0x0050ffe0,Nav_Ctor,function,high,reimplemented (src/game/world/nav); constants constructor with five integer pairs
 0x0050f200,Nav_Dtor,function,high,reimplemented (src/game/world/nav); thiscall: the five IntPairs at +0x64 destroyed with Stub_Ret (CRT_VectorDtorIterator); also via 0x4f7c30 (+0xd4) and 0x4f8ad0
 0x004f7c30,Nav_DtorAtD4,function,low,reimplemented (src/game/world/nav); thiscall adjustor: Nav_Dtor on this + 0xd4

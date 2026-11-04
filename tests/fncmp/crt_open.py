@@ -23,6 +23,7 @@ OPS = [n for n in ('fopen', 'fsopen', 'getstream', 'openfile', 'sopen', 'sopen',
        if not os.environ.get('OPS') or n in os.environ['OPS'].split(',')]
 FDS = [0, 1, 2, 5, 0x1f, 0x20, 0x21, 0x3f, 0x40, 0x50]
 MODES = ['r', 'w', 'a', 'x', '', 'r+', 'w+', 'a+', 'rb', 'rt', 'wb', 'r+b', 'rb+', 'rbt', 'rtb', 'rc', 'rn', 'rcn', 'wc', 'rbc', 'rS', 'rR', 'rSR', 'rT', 'rTT', 'rD', 'rDD', 'r++', 'rz', 'rzb', 'r+D', 'r bS', 'wcbSTD', 'a+tnRTD', 'r\xff', 'rb\x2a', 'r,', 'ru']
+REPEATS = ['rn', 'wbn', 'rcc', 'rnn', 'rnc', 'rcn', 'rSS', 'rRR', 'rRS', 'rSR', 'rSSb', 'rRRb']   # (a second letter of a kind ends the scan; n clears what [0xfb1894] gave)
 
 
 def table(r):
@@ -72,7 +73,9 @@ def case(r):
     fill(log, READ, 1, bytes([r.choice([0x1a, 0x1a, 0x41])]), which=1)
     fill(log, READ, 3, struct.pack('<I', r.choice([1, 1, 0])), which=2)
     blob(log, CREATE, 3, 0b111)
-    set_return(log, ERROR, r.choice([5, 2, 6, 0x83, 0x83, 0x13, 0x24, 0xbc, 0x57, 1, 0]))
+    set_return(log, ERROR, 0x83 if name == 'sopen' and r.random() < 0.5 else r.choice([5, 2, 6, 0x83, 0x83, 0x13, 0x24, 0xbc, 0x57, 1, 0]))   # (0x83: a seek before the start, which _sopen lets pass)
+    if name == 'getstream' and r.random() < 0.4:   # (the stream taken by another thread while its lock was awaited)
+        fill(log, LOCKFILE2, 1, struct.pack('<4I', 0, 0, 0, 0x83))
     set_return(log, NHMALLOC, r.choice([BLOCK, BLOCK, BLOCK, 0]))
     set_return(log, CREATE, r.choice([0x2222, 0x2222, 0x2222, 0x2222, 0xffffffff]))
     set_return(log, TYPE, r.choice([1, 1, 1, 1, 0, 2, 3, 4]))
@@ -86,7 +89,7 @@ def case(r):
     regions[0xfb3cbc] = struct.pack('<I', STREAMS)
     regions[0xfb4cc0] = struct.pack('<I', count)
     fd = r.choice(FDS)
-    mode = r.choice(MODES).encode('latin-1') + b'\0'
+    mode = r.choice(REPEATS if r.random() < 0.4 else MODES).encode('latin-1') + b'\0'
     share = r.choice([0x10, 0x20, 0x30, 0x40, 0x40, 0x40, 0x40, 0, 0x50, 0x11, 0x41, 0x3f])
     regions[MODE] = mode + bytes(8)
     if name in ('alloc', 'sopen', 'fopen', 'fsopen', 'openfile'):   # (the first block now and then all open, so the search goes on; now and then no more blocks)
