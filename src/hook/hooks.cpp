@@ -554,6 +554,7 @@
 #include "../game/online/chatlists.h"
 #include "../game/online/postcardsend.h"
 #include "../game/online/roomcounts.h"
+#include "../game/online/roomtexthandler.h"
 #include "../game/online/session.h"
 #include "../game/ui/dialog7ca1c8.h"
 #include "../game/ui/dialog7cb398.h"
@@ -7223,6 +7224,7 @@ const Hook kHooks[] = {
     {"ChatClient_Connect",        0x004e5be0, (void *)&ChatClient_Connect, {0x6a, 0xff, 0x68, 0x5f, 0xc6}},
     {"ChatClient_EnterWorld",     0x004e5ef0, (void *)&ChatClient_EnterWorld, {0x6a, 0xff, 0x68, 0xa7, 0xc6}},
     {"Postcard_Send",             0x004a8600, (void *)&Postcard_Send, {0x6a, 0xff, 0x68, 0xb9, 0xa8}},
+    {"RoomText_Handler",          0x004c56e0, (void *)&RoomText_Handler, {0x56, 0x8b, 0x74, 0x24, 0x08}},
     {"LobbyModel_SetPosition",    0x005d8190, (void *)&LobbyModel_SetPosition, {0x8b, 0x41, 0x04, 0x8b, 0x54}},
     {"LobbyModel_TurnY",          0x005d8380, (void *)&LobbyModel_TurnY, {0x8b, 0x49, 0x04, 0x8d, 0x44}},
     {"LobbyModel_SetScale",       0x005d83b0, (void *)&LobbyModel_SetScale, {0x83, 0xec, 0x0c, 0x8b, 0x44}},

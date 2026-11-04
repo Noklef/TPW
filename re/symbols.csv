@@ -7134,6 +7134,7 @@ address,name,kind,confidence,notes
 0x004e5be0,ChatClient_Connect,function,low,reimplemented (src/game/online/chatclient); The chat client connects to the host and logs in
 0x004e5ef0,ChatClient_EnterWorld,function,low,"reimplemented (src/game/online/chatclient); The chat client's player made at the entrance, the mouse mode set"
 0x004a8600,Postcard_Send,function,low,"reimplemented (src/game/online/postcardsend); the postcard sent: name invented, unconfirmed"
+0x004c56e0,RoomText_Handler,function,low,"reimplemented (src/game/online/roomtexthandler); the chat rooms' text windows' handler: name invented, unconfirmed"
 0x005d8190,LobbyModel_SetPosition,function,high,"reimplemented (src/game/frontend/lobbymodel); thiscall (v): the lobby model's (+4: 0x7a4610 index) matrix (+8 -> +4 -> +0x78, +0x10) translation = v[0..2] (x87 loads, all read first)"
 0x005d8380,LobbyModel_TurnY,function,high,"reimplemented (src/game/frontend/lobbymodel); thiscall (angle): Matrix_RotateEulerFast(the lobby model's matrix, 2 ""Y"", &angle)"
 0x005d83b0,LobbyModel_SetScale,function,high,"reimplemented (src/game/frontend/lobbymodel); thiscall (x, y, z): Holder_SetScale(the lobby model's entry +8, (x, y, z))"
