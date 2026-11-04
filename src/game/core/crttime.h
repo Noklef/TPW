@@ -19,6 +19,10 @@ void __cdecl CRT_tzset_once();
 // By day of the month (type 1, by the week and the day of the week) or by the day itself. The last's time counts [0x7813e0] seconds more and wraps at a day, one millisecond short.
 void __cdecl CRT_cvtdate(s32 transition, s32 type, s32 year, s32 month, s32 week, s32 weekday, s32 day, s32 hour, s32 minute, s32 second, s32 millisecond);
 
+// 0x688090: _isindst_lk: whether the struct tm's time is daylight time, by the year's two transitions: made again by cvtdate when the year is not that of both, from the time zone's dates (a date with no year: by the week and the day of the week)
+// or with no zone information [0xfb1458] from the first Sunday of April to the last of October, at 2:00. No daylight rule [0x7813dc]: 0.
+s32 __cdecl CRT_isindst_lk(const s32 *when);
+
 // 0x6884a0: gmtime: the seconds at *when into the thread's struct tm (made by malloc at its +0x40; if that fails the shared one at 0xfb1518), null for a time before 1970.
 s32 *__cdecl CRT_gmtime(const s32 *when);
 

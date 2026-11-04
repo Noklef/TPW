@@ -308,6 +308,39 @@ void __cdecl CRT_cvtdate(s32 transition, s32 type, s32 year, s32 month, s32 week
     globals[4] = static_cast<u32>(year);
 }
 
+s32 __cdecl CRT_isindst_lk(const s32 *when) {
+    enum { kSecond, kMinute, kHour, kYear = 5, kYearday = 7 };
+    const auto global = [](u32 address) { return *reinterpret_cast<const s32 *>((uintptr_t)address); };
+    if (!global(0x007813dc)) return 0;
+    if (when[kYear] != global(0x00781470) || when[kYear] != global(0x00781480)) {
+        if (global(0x00fb1458)) {
+            const auto transition = [&](s32 first, u32 date) {
+                const u16 *const d = reinterpret_cast<const u16 *>((uintptr_t)date);   // (a SYSTEMTIME)
+                if (d[0]) CRT_cvtdate(first, 0, when[kYear], d[1], 0, 0, d[3], d[4], d[5], d[6], d[7]);
+                else CRT_cvtdate(first, 1, when[kYear], d[1], d[3], d[2], 0, d[4], d[5], d[6], d[7]);
+            };
+            transition(1, 0x00fb14f8);
+            transition(0, 0x00fb14a4);
+        } else {
+            CRT_cvtdate(1, 1, when[kYear], 4, 1, 0, 0, 2, 0, 0, 0);
+            CRT_cvtdate(0, 1, when[kYear], 10, 5, 0, 0, 2, 0, 0, 0);
+        }
+    }
+    const s32 start = global(0x00781474);
+    const s32 end = global(0x00781484);
+    const s32 day = when[kYearday];
+    if (start < end) {
+        if (day < start || day > end) return 0;
+        if (day > start && day < end) return 1;
+    } else {
+        if (day < end || day > start) return 1;
+        if (day > end && day < start) return 0;
+    }
+    const s32 ms = ((when[kHour] * 60 + when[kMinute]) * 60 + when[kSecond]) * 1000;
+    if (day == start) return ms >= global(0x00781478);
+    return ms < global(0x00781488);
+}
+
 s32 *__cdecl CRT_gmtime(const s32 *when) {
     enum { kFourYears = 0x7861f80, kYearSeconds = 0x1e13380, kLeapYear = 0x1e28500, kDaySeconds = 86400 };
     s32 left = *when;
