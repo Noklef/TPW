@@ -32,6 +32,8 @@ s32 __fastcall Window705af0_Distance(u8 *window, void *, u8 *other);
 // is +0x140 already: 0 (AX) unless the byte +0x154 is set. Otherwise the byte +0x154 cleared, +0x144 = +0x140, +0x140 = value, Window_Notify80(value),
 // the parent +0x60 posted 0x800 (the id +0x8c, the value; Window_PostMessage); 1 (AX).
 u16 __fastcall Window705af0_SetValue(u8 *window, void *, s32 value);
+// 0x66a6ae (thiscall (value), pops 4; name unconfirmed): Window705af0_SetValue.
+u16 __fastcall Window705af0_SetValueOuter(u8 *window, void *, s32 value);
 
 // 0x66a7e1 (thiscall (mode: a word), pops 4; name unconfirmed): the value +0x140 moved by the step +0x148 (Window705af0_SetValue) by
 // mode: 0 down, 1 up; 2 a hold begun (step 1: the count +0x14c 0x14 and the speed +0x150 1, else the count 5), 3 the same and up;

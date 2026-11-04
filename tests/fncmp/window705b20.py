@@ -25,7 +25,7 @@ CALLS = {'SetRange': 0x66b47d, 'SetEnabled': 0x66ae83, 'SetPos': 0x66b088, 'PosF
          'NotifyScroll': 0x66b9bc, 'NotifyScrollEnd': 0x66b9ef}
 B = Bench(sorted(set(WINDOW_RANGES + [(0x66b47d, 0x66b508), (0x66ae83, 0x66af19), (0x65d56b, 0x65d57c), (0x65da8d, 0x65db25),
                                       (0x668a23, 0x668aad), (0x668820, 0x6688b3),
-                                      (0x66b088, 0x66b438), (0x661525, 0x661596), (0x65c9bd, 0x65cd95), (0x661700, 0x66176a),
+                                      (0x66b088, 0x66b438), (0x66b508, 0x66b523),(0x661525, 0x661596), (0x65c9bd, 0x65cd95), (0x661700, 0x66176a),
                                       (0x659e3e, 0x659e83), (0x659d43, 0x659d90), (0x66af19, 0x66b088), (0x66b8aa, 0x66b9ba),
                                       (0x66b771, 0x66b8aa), (0x659d90, 0x659dac), (0x66bff7, 0x66c00b),
                                       (0x66ba22, 0x66bb9b), (0x65f6d1, 0x65fba8), (0x680050, 0x68005b), (0x65c707, 0x65c778), (0x65dcaf, 0x65dd18),
@@ -86,6 +86,8 @@ def set_pos(r, op):
         return Call(CALLS[op], [BAR] + xy, regions, conv='t', ret='v')
     mode = r.choice([0, 1, 2, 3, 0xffffffff, 0xffffffff, 0xfffffffe])
     value = r.choice([lo, hi, pos, lo + 1, hi - 1, r.randrange(-200, 300), r.getrandbits(32)]) & 0xffffffff
+    if mode == 0xffffffff and r.random() < 0.6:
+        return Call(0x66b508, [BAR, value], regions, conv='t', ret='a')
     return Call(CALLS['SetPos'], [BAR, mode, value], regions, conv='t', ret='a')
 
 

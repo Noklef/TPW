@@ -23,6 +23,8 @@ void __fastcall Window705b20_SetRange(u8 *window, void *, s32 from, s32 to);
 // whose dword +0 is (pos - +0x13c) << 10 / range, its low word sign-extended), Window_Notify80 (pos), and when the position changed the
 // parent +0x60 sent 0x800 (id +0x8c, pos) (Window_SendMessage). Returns 1.
 u32 __fastcall Window705b20_SetPos(u8 *window, void *, s32 mode, s32 value);
+// 0x66b508 (thiscall (value), pops 4; name unconfirmed): Window705b20_SetPos(-1, value).
+u32 __fastcall Window705b20_SetPosDirect(u8 *window, void *, s32 value);
 
 // 0x66af19 (thiscall; name unconfirmed): the position +0x140 read back from the thumb (child id 3; Window_FindChild, its inner rectangle
 // by Window_GetRect): by bit 2 of the word +0x14c its left's offset from +0x30, else its bottom's from +0x36, times the range +0x138 -

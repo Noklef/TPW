@@ -56,6 +56,8 @@ s32 __fastcall Window705af0_Distance(u8 *window, void *, u8 *other) {
     return at<s32>(window, 0x140) - at<s32>(other, 0x140);
 }
 
+u16 __fastcall Window705af0_SetValueOuter(u8 *window, void *, s32 value) { return Window705af0_SetValue(window, nullptr, value); }
+
 u16 __fastcall Window705af0_SetValue(u8 *window, void *, s32 value) {
     if (value > at<s32>(window, 0x13c)) value = at<s32>(window, 0x13c);
     else if (value < at<s32>(window, 0x138)) value = at<s32>(window, 0x138);

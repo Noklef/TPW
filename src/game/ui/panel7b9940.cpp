@@ -20,6 +20,7 @@
 #include "msgtags.h"
 #include "thingbrowser.h"
 #include "window.h"
+#include "window7cc8bc.h"
 #include "windowfactory.h"
 #include "windowscript.h"
 
@@ -39,7 +40,7 @@ const Panel7b9940ExitEnv kExitGameEnv = {&Window7cc8bc_Close_4bf8e0};
 const Panel7b9940ExitEnv *g_exit = &kExitGameEnv;
 
 const Panel7b9940OpenEnv kOpenGameEnv = {&Gui_ResetQueues, &MsgTags_Create, &GameHeap_Alloc,&MouseModeOnlineBase_Ctor, &MouseMode_Set, &Renderer_Add, &Window_CreateChild, &Window_SetShown, &Window_SetHandler, &Window_GetRect, &Window_SetCursor, &WindowScript_Build,
-                                         &Dialog7cb2b8_Build, &Dialog7ca1e0_Create, &ThingBrowser_Create, &Dialog7ca1bc_Create, &Dialog7ca098_Create, &Dialog7ca1c8_Create, &Focus_Restore, &GuiManager_CallSlot4, &GuiManager_CallSlot3};
+                                         &Dialog7cb2b8_Build, &Dialog7ca1e0_Create, &ThingBrowser_Create, &Dialog7ca1bc_Create, &Dialog7ca098_Create, &Dialog7ca1c8_Create, &Focus_Restore, &GuiManager_CallSlot4, &GuiManager_CallSlot3, &Window7cc8bc_Create};
 const Panel7b9940OpenEnv *g_open = &kOpenGameEnv;
 }
 
@@ -180,6 +181,31 @@ u32 __cdecl Panel7b9940_Show() {
     at<u32>(base, 0x34) = 0x3f4ccccd;  // 0.8f
     Renderer_Add(global<u8 *>(0x0087a6d0), nullptr, self + vbase(self, 0, 4), 0x20);
     return global<u8>(0x0078d90e) ? GuiManager_CallSlot3() : GuiManager_CallSlot4();
+}
+
+u32 __cdecl Panel7b9940_ShowWindow() {
+    u8 *const self = reinterpret_cast<u8 *>((uintptr_t)0x007b9940);
+    g_open->resetQueues();
+    const u32 one = global<u32>(0x006ff148);
+    u8 *base = self + vbase(self, 0, 8);
+    SceneFlags_Touch(kSceneFlags);
+    at<u32>(base, 0x54) = 0xffffffff;
+    for (u32 off = 4; off <= 0x10; off += 4) at<u32>(base, off) = one;
+    base = self + vbase(self, 0, 8);
+    SceneFlags_Touch(kSceneFlags);
+    at<u32>(base, 0x2c) = 0xbe99999a;  // -0.3f
+    at<u32>(base, 0x30) = 0xbf000000;  // -0.5f
+    at<u32>(base, 0x34) = 0x3f4ccccd;  // 0.8f
+    g_open->add(global<u8 *>(0x0087a6d0), nullptr, self + vbase(self, 0, 4), 0x20);
+    g_open->create7cc8bc();
+    u8 *const made = g_open->create(global<u8 *>(0x00faa5d8), nullptr, 1, 0, 1, 0, 0, 0x7ff, 0x5ff);
+    if (made) {
+        g_open->setHandler(made, nullptr, 0x488a00);
+        global<u8 *>(0x007cb2b0) = made;
+        g_open->setCursor(made, nullptr, 0x15);
+        g_open->build(global<u8 *>(0x007cb2b0), nullptr, reinterpret_cast<u8 *>((uintptr_t)0x0074fa98), 0);
+    }
+    return global<u8>(0x0078d90e) ? g_open->slot3() : g_open->slot4();
 }
 
 void __cdecl Panel7b9940_SizeAtExit() {}

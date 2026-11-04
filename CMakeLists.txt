@@ -532,6 +532,7 @@ add_library(tpw_game STATIC
     src/game/online/chatlists.cpp
     src/game/online/chatclient.cpp
     src/game/online/postcardsend.cpp
+    src/game/online/roomtexthandler.cpp
     src/game/frontend/lobbymodel.cpp
     src/game/frontend/helpbg.cpp
     src/game/frontend/islandcamera.cpp
@@ -543,6 +544,7 @@ add_library(tpw_game STATIC
     src/game/frontend/sceneleave.cpp
     src/game/frontend/lobbymake.cpp
     src/game/frontend/lobbyscript.cpp
+    src/game/frontend/helpbgstart.cpp
     src/game/input/mouse.cpp
     src/game/ui/dialog7ca1c8.cpp
     src/game/ui/window.cpp
@@ -636,6 +638,13 @@ add_library(tpw_game STATIC
     src/game/gfx/moviestart.cpp
     src/game/gfx/moviechunks.cpp
     src/game/gfx/moviecontrol.cpp
+    src/game/gfx/moviefile.cpp
+    src/game/gfx/movielife.cpp
+    src/game/gfx/moviesoundthread.cpp
+    src/game/gfx/overlayloadall.cpp
+    src/game/gfx/movieshow.cpp
+    src/game/gfx/madvideo.cpp
+    src/game/gfx/moviedisplay.cpp
     src/game/ui/panel7cc3b0handler.cpp
     src/game/world/rideupkeep.cpp
     src/game/world/objectwear.cpp
@@ -658,6 +667,7 @@ add_library(tpw_game STATIC
     src/game/world/worldpeople.cpp
     src/game/world/challengestep.cpp
     src/game/world/ridesload.cpp
+    src/game/world/objectscript.cpp
     src/game/ui/staffrename.cpp
     src/game/ui/window7cc8bc.cpp
     src/game/ui/dialog7cb2b8.cpp
@@ -743,6 +753,33 @@ add_library(tpw_game STATIC
     src/game/ui/dialog7cc184handler.cpp
     src/game/ui/dialog7cc188handler.cpp
     src/game/ui/dialog7cc654handler.cpp
+    src/game/ui/dialog7cc654open.cpp
+    src/game/ui/dialog7cca70handler.cpp
+    src/game/ui/textbuttonwindow.cpp
+    src/game/ui/panel7c2534online.cpp
+    src/game/ui/dialog7cc654lists.cpp
+    src/game/ui/window7cc8bcedit.cpp
+    src/game/ui/dialog7cc944handler.cpp
+    src/game/ui/dialog7ca13chandler.cpp
+    src/game/ui/dialog7cc534handler.cpp
+    src/game/ui/dialog7cc5f4dial.cpp
+    src/game/ui/dialog7cc4b4open.cpp
+    src/game/ui/dialog7cc654picture.cpp
+    src/game/ui/cursorfiles.cpp
+    src/game/ui/dialog7cc944row.cpp
+    src/game/ui/dialogf82884child.cpp
+    src/game/ui/guiclassdtors.cpp
+    src/game/ui/windowbroadcast.cpp
+    src/game/ui/windowareacalls.cpp
+    src/game/ui/windowname.cpp
+    src/game/ui/syscursorshow.cpp
+    src/game/ui/window705950find.cpp
+    src/game/ui/frontendentries.cpp
+    src/game/ui/dialuphangup.cpp
+    src/game/ui/windowtimersrestart.cpp
+    src/game/ui/guistaticobjects.cpp
+    src/game/ui/guitokenwide.cpp
+    src/game/ui/dialog7cc47cinfo.cpp
 )
 # The libraries whose functions replace the exe's copies (src/game/lib); their headers stay private to those units.
 target_link_libraries(tpw_game PRIVATE tpw_zlib tpw_jpeg6b tpw_jpeg6a)
