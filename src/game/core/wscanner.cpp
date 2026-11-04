@@ -1,11 +1,13 @@
 #include "wscanner.h"
 
 #include <cstdint>
+#include <initializer_list>
 
 #include "../files/charsets.h"
 #include "buffers.h"
 #include "gameheap.h"
 #include "stdtree.h"
+#include "string.h"
 #include "trivial.h"
 #include "wtraits.h"
 
@@ -87,6 +89,24 @@ void assignPart(u8 *scanner, StdWString *out, u32 n) {
 
 extern "C" {
 
+u8 *__fastcall WScanner_ConstructBase(u8 *scanner) {
+    at<u32>(scanner, 8) = 0;
+    at<u32>(scanner, 0xc) = 0;
+    at<u32>(scanner, 0x10) = 0;
+    at<u8>(scanner, 0x1c) = 0;
+    StdTree_CtorG(scanner + 0x14);
+    at<u8>(scanner, 0x2c) = 0;
+    StdTree_CtorG(scanner + 0x24);
+    at<u32>(scanner, 0) = 0x702f18;
+    for (const u32 set : {0x24u, 0x14u}) {
+        for (const u16 c : {u16(0x20), u16(0xa), u16(9), u16(0xd)}) {
+            u8 *result[2];
+            StdMapG_Insert(scanner + set, nullptr, result, &c);
+        }
+    }
+    return scanner;
+}
+
 void __fastcall WScanner_SetText(u8 *scanner, void *, StdWString text, u32 context, const u8 *flags) {
     at<u16>(scanner, 0x3d) = at<u16>(flags, 0);
     at<u32>(scanner, 0x40) = context;
@@ -121,7 +141,7 @@ u8 *__fastcall WKeywordPair_Ctor(u8 *pair, void *, StdWString key, u32 v0, u32 v
 }  // extern "C"
 
 namespace {
-const WKeywordsEnv kKeywordsPorts = {Charset_FormatWide};
+const WKeywordsEnv kKeywordsPorts = {Charset_FormatWide, reinterpret_cast<u32(__cdecl *)(u32)>((uintptr_t)0x0067ed00)};
 const WKeywordsEnv *g_keywords = &kKeywordsPorts;
 }  // namespace
 
@@ -231,6 +251,100 @@ u8 pushCountedRest(u8 *scanner) {
 }  // namespace
 
 extern "C" {
+
+s32 __cdecl WString_CompareNoCase(const u8 *a, const u8 *b, u32 flag) {
+    const auto end = [](const u8 *s) { return at<u16 *>(s, 4) ? at<u16 *>(s, 4) + at<u32>(s, 8) : nullptr; };
+    const u16 *p = at<u16 *>(a, 4);
+    const u16 *q = at<u16 *>(b, 4);
+    while (p != end(a) && q != end(b)) {
+        const u16 x = static_cast<u16>(g_keywords->upper(*p));
+        const u16 y = static_cast<u16>(g_keywords->upper(*q));
+        if (x != y)
+            return x < y ? -1 : 1;
+        ++p;
+        ++q;
+    }
+    if (static_cast<u8>(flag) && q == end(b))
+        return 0;
+    const u32 n = at<u32>(a, 8);
+    const u32 m = at<u32>(b, 8);
+    return n == m ? 0 : n < m ? -1 : 1;
+}
+
+u8 *__fastcall WScanner_FindKeyword(u8 *scanner, void *, StdWString text) {
+    u8 *found = nullptr;
+    for (u8 *node = at<u8 *>(at<u8 *>(scanner, 0x40), 4); (node = at<u8 *>(node, 0)) != at<u8 *>(at<u8 *>(scanner, 0x40), 4);) {
+        u8 *const key = node + 8;
+        s32 difference;
+        if (at<u8>(scanner, 0x3f))
+            difference = WString_CompareNoCase(key, reinterpret_cast<const u8 *>(&text), 1);
+        else if (at<u8>(scanner, 0x3d))
+            difference = WString_CompareSub(key, nullptr, 0, at<u32>(key, 8), text.ptr ? text.ptr : kNullStr, text.len);
+        else
+            difference = WString_CompareNoCase(key, reinterpret_cast<const u8 *>(&text), 0);
+        if (difference == 0) {
+            found = key;
+            break;
+        }
+    }
+    destroy(text);
+    return found;
+}
+
+s32 __fastcall WScanner_ReadKeywords(u8 *scanner) {
+    using Handler = u8(__fastcall *)(u8 *);
+    s32 count = 0;
+    while (at<u32>(scanner, 0x38) < at<u32>(scanner, 0xc)) {
+        while (inSet(scanner, 0x24, charAt(scanner, at<u32>(scanner, 0x38))) || inSet(scanner, 0x14, charAt(scanner, at<u32>(scanner, 0x38)))) {
+            if (++at<u32>(scanner, 0x38) >= at<u32>(scanner, 0xc))
+                break;
+        }
+        u32 n = 0;
+        while (!inSet(scanner, 0x14, charAt(scanner, at<u32>(scanner, 0x38) + n))) {
+            if (++n + at<u32>(scanner, 0x38) >= at<u32>(scanner, 0xc))
+                break;
+        }
+        StdWString word;
+        StdWString_Substr(reinterpret_cast<StdWString *>(scanner + 4), nullptr, &word, at<u32>(scanner, 0x38), n);
+        u8 *const pair = WScanner_FindKeyword(scanner, nullptr, word);
+        at<u32>(scanner, 0x38) += n;
+        if (pair) {
+            ++count;
+            if (!at<Handler>(pair, 0x10)(scanner + at<u32>(pair, 0x14)))
+                return -1;
+        }
+        if (at<u8>(scanner, 0x3e))
+            return count;
+    }
+    return count;
+}
+
+u8 __fastcall WScanner_NextChar(u8 *scanner, void *, u16 *out) {
+    const u32 position = at<u32>(scanner, 0x38);
+    if (position >= at<u32>(scanner, 0xc))
+        return 0;
+    at<u32>(scanner, 0x38) = position + 1;
+    *out = *charAt(scanner, position);
+    return 1;
+}
+
+void __fastcall WScanner_Parse(u8 *scanner, void *, StdWString text) {
+    const u8 flags[3] = {0, 1, 1};
+    StdWString copy;
+    StdWString_CtorCopy(&copy, nullptr, &text);
+    WScanner_SetText(scanner, nullptr, copy, reinterpret_cast<u32>(scanner + 0x44), flags);
+    WScanner_SpanInSet14(scanner);
+    u16 c;
+    if (WScanner_NextChar(scanner, nullptr, &c) && c == '/') {
+        if (WScanner_ReadKeywords(scanner) == 0)
+            pushKind(scanner, 0x18);
+    } else {
+        StdWString_AssignSub(at<StdWString *>(scanner, 0x54), nullptr, &text, 0, *reinterpret_cast<const u32 *>(0x006fef00));
+        pushKind(scanner, 0);
+        pushText(scanner, text);
+    }
+    destroy(text);
+}
 
 u32 __fastcall WScanner_PushToken0c(u8 *scanner) { return pushToken(scanner, 0xc); }
 u32 __fastcall WScanner_PushToken12(u8 *scanner) { return pushToken(scanner, 0x12); }

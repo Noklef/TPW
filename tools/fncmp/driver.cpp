@@ -949,7 +949,8 @@ const TexCacheTraceEnv kTexCacheTraceEnv = {reinterpret_cast<void *(__cdecl *)(c
                                             reinterpret_cast<u32(__cdecl *)(const void *, u32, u32, void *)>((uintptr_t)jpeg_recorder(12, 4)),
                                             reinterpret_cast<s32(__cdecl *)(void *)>((uintptr_t)jpeg_recorder(13, 1)),
                                             reinterpret_cast<s32(__cdecl *)(void *)>((uintptr_t)jpeg_recorder(14, 1))};  // tests/fncmp/texcachetouch.py
-const WKeywordsEnv kWKeywordsEnv = {reinterpret_cast<s32(__cdecl *)(u8 *, u16 *, u32, u32, ...)>((uintptr_t)jpeg_recorder(12, 4))};  // tests/fncmp/wkeywords.py
+u32 __cdecl WScannerUpperC(u32 c) { return (c & 0xffff) >= 0x61 && (c & 0xffff) <= 0x7a ? (c & 0xffff) - 0x20 : c & 0xffff; }   // towupper in the C locale, tests/fncmp/wscanner.py
+const WKeywordsEnv kWKeywordsEnv = {reinterpret_cast<s32(__cdecl *)(u8 *, u16 *, u32, u32, ...)>((uintptr_t)jpeg_recorder(12, 4)), &WScannerUpperC};  // tests/fncmp/wkeywords.py
 
 const KeyCancelEnv kKeyCancelEnv = {Rec{recorder(20, 0)}, Rec{jpeg_recorder(21, 2)}, Rec{jpeg_recorder(22, 6)}, Rec{jpeg_recorder(23, 4)}, Rec{jpeg_recorder(24, 2)}};
 const SceneViewsEnv kSceneViewsEnv = {Rec{recorder(20, 0)}, Rec{recorder(21, 0)}};
