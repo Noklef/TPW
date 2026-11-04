@@ -8,6 +8,7 @@
 #include "texture.h"
 #include "../core/vcall.h"
 #include "../core/gameheap.h"
+#include "../math/x87.h"
 
 namespace {
 
@@ -64,6 +65,20 @@ u32 CreateTimed(u8 *device, u8 *sub, u32 *desc) {
 void TexSurface_SetCalls(const AddrCall *table, u32 count) { g_calls.Set(table, count); }
 
 extern "C" {
+
+double __fastcall TexSurface_LockRate(u8 *sub) {
+    const u32 ticks = g_calls.Th(0x0057cb90, 0x008bba80u);
+    u8 *base = sub + at<s32>(at<u8 *>(sub, -0x3c), 4) - 0x3c;
+    const s32 area = static_cast<s32>(static_cast<u32>(at<s32>(base, 0xc) * at<s32>(base, 8)) << 4);
+    for (u32 i = 0; i < 0x10; i++) {
+        base = sub + at<s32>(at<u8 *>(sub, -0x3c), 4) - 0x3c;
+        vcall<void>(base, 0x10);
+        base = sub + at<s32>(at<u8 *>(sub, -0x3c), 4) - 0x3c;
+        vcall<void>(base, 0x14);
+    }
+    const s32 spent = static_cast<s32>((g_calls.Th(0x0057cb90, 0x008bba80u) - ticks) << 4);
+    return (X87Reg(static_cast<double>(area)) / X87Reg(static_cast<double>(spent))).v;
+}
 
 u32 __fastcall TexSurfaceA_Create(u8 *sub, void *, u32 width, u32 height, u32 format, u32 levels) {
     u8 *const device = at<u8 *>(global<u8 *>(0x00879a24), 8);

@@ -71,6 +71,11 @@ u8 *__fastcall Renderer_NewSurfaceA(void *self);
 // 0x573e70 (thiscall, this unused; name unconfirmed; behind the thunk 0x573f00): the same for class B (0x24 bytes, TexSurfaceB_Ctor).
 u8 *__fastcall SoftRenderer_NewSurfaceB(void *self);
 
+// 0x58b470 (thiscall on a sub-object 0x3c above the object, behind the thunk 0x58c353; x87; name invented, unconfirmed): the virtual base (its offset at
+// [+-0x3c]+4, read again each time) has its slots 0x10 and 0x14 called in turn 16 times between two readings of the clock (0x57cb90 on 0x8bba80).
+// Returns the area ([base+0xc] * [base+8] * 16) over the ticks * 16, in integers.
+double __fastcall TexSurface_LockRate(u8 *sub);
+
 // 0x58b4f0 (thiscall on class A's sub-object; pops 0x10; name invented, unconfirmed): the surfaces of a texture: a surface description of the pixel
 // format's record (0x573820; none: the error 0xb0754003 on the engine's list, 0), `levels` mip levels (0 is 1) and caps 0x10405008 goes to the device's
 // CreateSurface (slot 0x18), with the caps' bit 0x10000000 changed to 0x20000000 if it fails (it failing again: its result on the list, 0), the video
