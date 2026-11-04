@@ -1,7 +1,7 @@
 # The movie's file opened, its headers counted, closed (src/game/gfx/moviefile: 0x66e080, 0x66e250, 0x66ef50) against the originals. The mmio calls are import recorders, calloc a
 # recorder (0 or the rings), the next chunk (0x66e410, which has its own bench, moviechunks.py) a stand-in as driver.cpp's movie_file_next: 21 sound blocks read need more calls
 # than a log's room lets a fill's records count. The stand-in's answer is one of four in the player's +0x4e0; it counts its calls in +0x4f0, frames in +0x384, blocks in +0x388
-# and +0x390 (a skip answering 2: not +0x388), adds +0x4f4 to the sound's bytes +0x3a0 and +0x4f8 to the frames +0x38c. The rings are whole regions, so a few cases have them
+# and +0x390 (a skip answering 2: +0x388 by the player's +0x4fc), adds +0x4f4 to the sound's bytes +0x3a0 and +0x4f8 to the frames +0x38c. The rings are whole regions, so a few cases have them
 # (2 ms per KB): a tenth of Open's, with 0x20 bytes past each end. The opens' divide: the bytes are never too few for the blocks, as the original would fault.
 # usage: moviefile.py [CASES [SEED]] [--wild|--both] [--show N]
 import os
@@ -23,7 +23,7 @@ def _next(e):  # thiscall (): as driver.cpp's movie_file_next
     calls = e.u32(player + 0x4f0)
     answer = e.u32(player + 0x4e0 + 4 * (calls & 3))
     e.write(player + 0x4f0, struct.pack('<I', calls + 1 & 0xffffffff))
-    for offset, more in ((0x384, 1), (0x388, 0 if answer == 2 else 1), (0x390, 1), (0x3a0, e.u32(player + 0x4f4)), (0x38c, e.u32(player + 0x4f8))):
+    for offset, more in ((0x384, 1), (0x388, e.u32(player + 0x4fc) if answer == 2 else 1), (0x390, 1), (0x3a0, e.u32(player + 0x4f4)), (0x38c, e.u32(player + 0x4f8))):
         e.write(player + offset, struct.pack('<I', e.u32(player + offset) + more & 0xffffffff))
     e.r['EAX'] = answer
 
@@ -42,7 +42,7 @@ def base(r):
 
 def headers(r, log):
     """The file's first chunks: up to five of the headers, each stepped over, then another chunk or a failed read."""
-    count = r.deal([0, 1, 1, 2, 3, 5])
+    count = r.deal([0, 0, 0, 1, 1, 2, 3, 5])
     records = [r.deal(HEADERS) + struct.pack('<I', r.deal([8, 0x10, 0x48, 0, 7, r.getrandbits(32)])) for _ in range(count)]
     records.append(r.deal(OTHERS) + r.bytes(4))
     fill(log, READ, 1, b''.join(records), records=len(records))
@@ -83,6 +83,7 @@ def open_case(r, log, player, settings):
     put(player, 0x4f0, 'I', r.deal([0, 1, 2, 3]))
     put(player, 0x4f4, 'I', r.deal([0x10, 0x100, 0x1000, 0x4000, 0x9000, 0x9001]))
     put(player, 0x4f8, 'I', r.deal([0, 0, 1]))
+    put(player, 0x4fc, 'I', r.deal([0, 1]))
     return Call(0x66e080, [NAME, PLAYER], regions, conv='f', ret='a')
 
 
