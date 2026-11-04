@@ -6920,6 +6920,7 @@ address,name,kind,confidence,notes
 0x00435570,Coaster_AddStartCars,function,low,"reimplemented (src/game/coaster/startcars); cdecl (keepFrontEnd): the coaster's first cars placed at their parts, its flags, tools and state set; name invented, unconfirmed"
 0x0044e380,Ride_AnimateOne,function,low,"reimplemented (src/game/coaster/rideanimate); One ride's layers reset when marked, animator updated and strip stepped"
 0x0044e410,Rides_AnimateAll,function,low,"reimplemented (src/game/coaster/rideanimate); The followed ride animated, or every ride in the table as not shown"
+0x00463030,Object_AnimateRide,function,low,"reimplemented (src/game/coaster/rideanimate); the object's ride (+0xb4) animated as shown, its bit 0x200000 set (name invented, unconfirmed)"
 0x0044a590,RenderMode_Size,function,high,"reimplemented (src/game/render/mode); cdecl u32 (): first of 0x2000/0x1000/0x800 in 0x79d86c, else 0x4000 if set, else 0x1000"
 0x0044a5d0,RenderMode_Depth,function,high,"reimplemented (src/game/render/mode); cdecl u32 (): first of 8/0x10 in 0x79d86c, else 0x20 if set, else 8"
 0x0044a600,RenderMode_ResetScale,function,high,reimplemented (src/game/render/mode); cdecl (): 0x79d9e4 = 1.0f

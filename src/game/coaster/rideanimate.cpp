@@ -61,4 +61,11 @@ void __cdecl Rides_AnimateAll(u32 mode) {
         at<u32>(ride, 4) |= 0x800000;
     }
 }
+
+void __cdecl Object_AnimateRide(u8 *object) {
+    u8 *const ride = at<u8 *>(object, 0xb4);
+    if (!ride) return;
+    g_calls.Cd(0x0044e380, Address(ride), 1u);
+    at<u32>(ride, 4) |= 0x200000;
+}
 }
