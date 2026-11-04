@@ -12,7 +12,7 @@ B = Bench([(0x59f220, 0x59f353), (0x519510, 0x519550), (0x67c320, 0x67c3e0), (0x
 SELF, POINTER, GAME1, GAME2, TABLE = RAM, RAM + 0x800, RAM + 0x900, RAM + 0xa00, RAM + 0x1000
 RING = 0x216d8
 MONTH = 0x1792f8648000
-OPS = ['falls', 'falls', 'falls', 'falls', 'wrapped', 'wrapped', 'too old', 'negative age', 'one value', 'cursor below', 'first value', 'empty', 'size one', 'zero before', 'rises', 'level', 'small fall', 'big values']
+OPS = ['falls', 'falls', 'falls', 'falls', 'wrapped', 'wrapped', 'too old', 'negative age', 'one value', 'cursor below', 'first value', 'empty', 'size one', 'zero before', 'rises', 'level', 'small fall', 'big values', 'big values', 'at threshold']
 
 
 def case(r):
@@ -47,7 +47,11 @@ def case(r):
     elif op == 'zero before':
         before = 0
     elif op == 'big values':
-        latest, before = r.randrange(-1 << 31, 1 << 31), r.randrange(-1 << 31, 1 << 31)
+        latest, before = sorted((r.randrange(-1 << 31, 1 << 31), r.randrange(-1 << 31, 1 << 31)))
+    if op in ('big values', 'at threshold') and before:   # the threshold about the drop itself: 100 - (latest * 100, wrapped to 32 bits) / before, signed and truncated
+        wrapped100 = (latest * 100 + (1 << 31)) % (1 << 32) - (1 << 31)
+        quotient = abs(wrapped100) // abs(before) * (1 if (wrapped100 < 0) == (before < 0) else -1)
+        put(self, 0x3cc, 'i', (100 - quotient + r.choice([-1, 0, 0, 1]) + (1 << 31)) % (1 << 32) - (1 << 31))
     if size > 0:
         put(ring, 4 * (cursor if cursor >= 1 else max(cursor + size, 0)), 'i', before)
         put(ring, 4 + 4 * (cursor if cursor >= 0 else max(cursor + size, 0)), 'i', latest)
