@@ -290,6 +290,12 @@ u32 *__fastcall BadCast_DeletingDtor(u32 *self, void *, u32 flags) {
     return self;
 }
 
+void __fastcall BadCast_Throw(const u32 *from) {
+    u32 copy[3];
+    BadCast_Copy(copy, nullptr, from);
+    g_env->cxxThrow(copy, reinterpret_cast<const void *>((uintptr_t)0x007193a8));
+}
+
 u32 __fastcall CtypeW_Widen(void *, void *, u32 c) { return CRT_btowc((u32)(s32)(s8)c); }
 
 const char *__fastcall CtypeW_WidenRange(void *, void *, const char *first, const char *last, u16 *to) {

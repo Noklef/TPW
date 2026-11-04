@@ -92,6 +92,8 @@ u32 *__fastcall BadCast_Copy(u32 *self, void *edx, const u32 *from);
 void __fastcall BadCast_Dtor(u32 *self);
 // 0x4f1850 (thiscall (flags), pops 4): BadCast_Dtor, the object freed for flags bit 0. Returns it.
 u32 *__fastcall BadCast_DeletingDtor(u32 *self, void *, u32 flags);
+// 0x4f1830 (thiscall; name unconfirmed): a copy of the bad_cast at this thrown with info 0x7193a8.
+void __fastcall BadCast_Throw(const u32 *from);
 
 // 0x4f1ad0 (thiscall (c), pops 4): ctype<wchar_t>::do_widen(c): btowc of the sign-extended byte.
 u32 __fastcall CtypeW_Widen(void *self, void *edx, u32 c);

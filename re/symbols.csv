@@ -5762,6 +5762,7 @@ address,name,kind,confidence,notes
 0x004f1230,BasicIstreamW_DeletingDtor,function,low,reimplemented (src/game/core/iosbase); basic_istream<wchar_t>'s deleting destructor
 0x004f1850,BadCast_DeletingDtor,function,low,reimplemented (src/game/core/iosbase); bad_cast's deleting destructor
 0x004f1b80,CtypeW_DeletingDtor,function,low,reimplemented (src/game/core/iosbase); ctype<wchar_t>'s deleting destructor
+0x004f1830,BadCast_Throw,function,low,reimplemented (src/game/core/iosbase); throws a copy of the bad_cast at this
 0x006d2110,SoundSource711920_Open,function,low,reimplemented (src/game/core/qsoundmixer); The QSound session opened on the source's config
 0x006d2220,SoundSource711920_SetOptions,function,low,reimplemented (src/game/core/qsoundmixer); The library's options from the flags
 0x006d2260,SoundSource711920_GetBuffer,function,low,reimplemented (src/game/core/qsoundmixer); The channel's DirectSound buffer

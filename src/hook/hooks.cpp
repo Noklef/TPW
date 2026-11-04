@@ -6057,6 +6057,7 @@ const Hook kHooks[] = {
     {"BasicIstreamW_DeletingDtor", 0x004f1230, (void *)&BasicIstreamW_DeletingDtor, {0x56, 0x8d, 0x71, 0xf8, 0x8b}},
     {"BadCast_DeletingDtor",      0x004f1850, (void *)&BadCast_DeletingDtor, {0x56, 0x8b, 0xf1, 0xe8, 0xc8}},
     {"CtypeW_DeletingDtor",       0x004f1b80, (void *)&CtypeW_DeletingDtor, {0x56, 0x8b, 0xf1, 0xe8, 0x18}},
+    {"BadCast_Throw",             0x004f1830, (void *)&BadCast_Throw, {0x83, 0xec, 0x0c, 0x51, 0x8d}},
     {"SoundSource711920_Open",    0x006d2110, (void *)&SoundSource711920_Open, {0x8b, 0x44, 0x24, 0x08, 0x83}},
     {"SoundSource711920_SetOptions", 0x006d2220, (void *)&SoundSource711920_SetOptions, {0x8a, 0x54, 0x24, 0x08, 0x33}},
     {"SoundSource711920_GetBuffer", 0x006d2260, (void *)&SoundSource711920_GetBuffer, {0x56, 0x8b, 0x74, 0x24, 0x0c}},
