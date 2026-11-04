@@ -379,6 +379,8 @@
 #include "../../src/game/world/personscripts.h"
 #include "../../src/game/core/funnytime.h"
 #include "../../src/game/core/narrowfilebuf.h"
+#include "../../src/game/core/themenames.h"
+#include "../../src/game/core/nstream.h"
 #include "../../src/game/core/swearfilter.h"
 #include "../../src/game/core/wfilebuf.h"
 #include "../../src/game/core/wstream.h"
@@ -934,6 +936,8 @@ const LobbyMakeEnv kLobbyMakeEnv = {Rec{jpeg_recorder(20, 11)}, Rec{jpeg_recorde
                                     Rec{recorder(28, 0)}, Rec{recorder(29, 1)}, Rec{recorder(30, 3)}};
 u32 __cdecl SwearLowerC(u32 c) { return (c & 0xffff) >= 0x41 && (c & 0xffff) <= 0x5a ? (c & 0xffff) + 0x20 : c & 0xffff; }   // towlower in the C locale, tests/fncmp/swearfilter.py
 const SwearFilterEnv kSwearFilterEnv = {&SwearLowerC};
+const NStreamEnv kNStreamEnv = {Rec{kStubs + 0x5000 + 0x800 * 2 + 0x20 * 14}, Rec{recorder(26, 1)}, Rec{recorder(27, 0)}, Rec{jpeg_recorder(28, 1)}, reinterpret_cast<s32(__cdecl *)(void *)>((uintptr_t)(kStubs + 0x50))};
+const ThemeNamesEnv kThemeNamesEnv = {Rec{jpeg_recorder(1, 5)}, Rec{jpeg_recorder(2, 2)}, Rec{recorder(3, 3)}, Rec{recorder(4, 3)}, Rec{recorder(5, 3)}};
 const CoasterPlaceCarEnv kCoasterPlaceCarEnv = {Rec{jpeg_recorder(1, 6)}, Rec{jpeg_recorder(2, 9)}, Rec{jpeg_recorder(3, 7)}, Rec{jpeg_recorder(4, 5)}, Rec{jpeg_recorder(5, 2)}, Rec{jpeg_recorder(6, 7)},
                                                  Rec{jpeg_recorder(7, 1)}, Rec{jpeg_recorder(8, 1)}, Rec{jpeg_recorder(9, 0)}, Rec{jpeg_recorder(10, 0)}, Rec{jpeg_recorder(11, 0)}, Rec{jpeg_recorder(12, 0)},
                                                  Rec{recorder(13, 0)}, Rec{recorder(14, 0)}, Rec{recorder(15, 1)}};  // tests/fncmp/coasterplacecar.py
@@ -2680,6 +2684,8 @@ int main(int argc, char **argv) {
     VersionLabel_SetEnv(&kVersionLabelEnv);
     BankAccountCtor_SetEnv(&kBankAccountCtorEnv);
     NarrowFileBuf_SetEnv(&kNarrowFileBufEnv);
+    ThemeNames_SetEnv(&kThemeNamesEnv);
+    NStream_SetEnv(&kNStreamEnv);
     SwearFilter_SetEnv(&kSwearFilterEnv);
     SaveDialog_SetEnv(&kSaveDialogEnv);
     SaveDialogCreate_SetEnv(&kSaveDialogCreateEnv);

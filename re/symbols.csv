@@ -5925,6 +5925,8 @@ address,name,kind,confidence,notes
 0x005d06c0,NFileBuf_Ctor,function,low,reimplemented (src/game/core/narrowfilebuf); the narrow file buffer's constructor
 0x005d2d40,SwearFilter_Find,function,low,reimplemented (src/game/core/swearfilter); wcsistr for the swear filter
 0x005d3230,SwearFilter_Apply,function,low,reimplemented (src/game/core/swearfilter); the swear filter over a wide string
+0x005cfb60,NCtype_Ctor,function,low,reimplemented (src/game/core/nstream); ctype<char>'s constructor
+0x005d0080,NIstream_Ipfx,function,low,reimplemented (src/game/core/nstream); basic_istream<char>::ipfx
 0x0050ffe0,Nav_Ctor,function,high,reimplemented (src/game/world/nav); constants constructor with five integer pairs
 0x0050f200,Nav_Dtor,function,high,reimplemented (src/game/world/nav); thiscall: the five IntPairs at +0x64 destroyed with Stub_Ret (CRT_VectorDtorIterator); also via 0x4f7c30 (+0xd4) and 0x4f8ad0
 0x004f7c30,Nav_DtorAtD4,function,low,reimplemented (src/game/world/nav); thiscall adjustor: Nav_Dtor on this + 0xd4
