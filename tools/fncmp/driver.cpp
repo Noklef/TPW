@@ -2858,7 +2858,8 @@ int main(int argc, char **argv) {
                                              return (u16)(c >= 0x41 && c <= 0x5a || c >= 0x100 && c < 0x180 ? c ^ 0x20 : c);
                                          },
                                          Rec{jpeg_recorder(21, 3)}, Rec{jpeg_recorder(22, 2)}, Rec{jpeg_recorder(23, 5)}, Rec{jpeg_recorder(24, 2)},
-                                         Rec{jpeg_recorder(25, 1)}, Rec{jpeg_recorder(26, 1)}, Rec{jpeg_recorder(27, 1)}, Rec{jpeg_recorder(29, 0)}};
+                                         Rec{jpeg_recorder(25, 1)}, Rec{jpeg_recorder(26, 1)}, Rec{jpeg_recorder(27, 1)}, Rec{jpeg_recorder(29, 0)},
+                                         Rec{jpeg_recorder(30, 2)}, Rec{jpeg_recorder(31, 2)}};
     CrtInner_SetEnv(&crtInner);
     // The C++ library's: the locks do nothing (the bench's hooks of 0x691de0 / 0x691ea0), the rest recorders (tests/fncmp/iosbase.py).
     static const IosBaseEnv iosBase = {[](void *lock) -> void * { return lock; }, [](void *) {}, &heap_free, Rec{kStubs + 0x5000 + 0x800 * 2 + 0x20 * 14}, Rec{jpeg_recorder(16, 2)}, Rec{jpeg_recorder(17, 3)},

@@ -5900,6 +5900,25 @@ address,name,kind,confidence,notes
 0x00682800,CRT_lock_file2,function,low,reimplemented (src/game/core/crtlock); _lock_file2
 0x00682830,CRT_unlock_file,function,low,reimplemented (src/game/core/crtlock); _unlock_file
 0x00682870,CRT_unlock_file2,function,low,reimplemented (src/game/core/crtlock); _unlock_file2
+0x006868a0,CRT_getstream,function,low,reimplemented (src/game/core/crtopen); _getstream
+0x006866d0,CRT_openfile,function,low,reimplemented (src/game/core/crtopen); _openfile
+0x0067b860,CRT_fsopen,function,low,reimplemented (src/game/core/crtopen); _fsopen
+0x0067b8a0,CRT_fopen,function,low,reimplemented (src/game/core/crtopen); fopen
+0x0068b640,CRT_sopen,function,low,reimplemented (src/game/core/crtopen); _sopen
+0x0068e810,CRT_alloc_osfhnd,function,low,reimplemented (src/game/core/crtopen); _alloc_osfhnd
+0x0068e980,CRT_set_osfhnd,function,low,reimplemented (src/game/core/crtopen); _set_osfhnd
+0x0068ea30,CRT_free_osfhnd,function,low,reimplemented (src/game/core/crtopen); _free_osfhnd
+0x00686300,CRT_close,function,low,reimplemented (src/game/core/crtopen); _close
+0x00686370,CRT_close_lk,function,low,reimplemented (src/game/core/crtopen); _close_lk
+0x0068f630,CRT_chsize_lk,function,low,reimplemented (src/game/core/crtopen); _chsize_lk
+0x00691610,CRT_setmode_lk,function,low,reimplemented (src/game/core/crtopen); _setmode_lk
+0x00686400,CRT_freebuf,function,low,reimplemented (src/game/core/crtopen); _freebuf
+0x0067cf90,CRT_setvbuf,function,low,reimplemented (src/game/core/crtopen); setvbuf
+0x0067d0b0,CRT_fflush_lk,function,low,reimplemented (src/game/core/crtopen); _fflush_lk
+0x0067d070,CRT_fflush,function,low,reimplemented (src/game/core/crtopen); fflush
+0x0067d170,CRT_flsall,function,low,reimplemented (src/game/core/crtopen); flsall
+0x0067d160,CRT_flushall,function,low,reimplemented (src/game/core/crtopen); _flushall
+0x00687b20,CRT_commit,function,low,reimplemented (src/game/core/crtopen); _commit
 0x0050ffe0,Nav_Ctor,function,high,reimplemented (src/game/world/nav); constants constructor with five integer pairs
 0x0050f200,Nav_Dtor,function,high,reimplemented (src/game/world/nav); thiscall: the five IntPairs at +0x64 destroyed with Stub_Ret (CRT_VectorDtorIterator); also via 0x4f7c30 (+0xd4) and 0x4f8ad0
 0x004f7c30,Nav_DtorAtD4,function,low,reimplemented (src/game/world/nav); thiscall adjustor: Nav_Dtor on this + 0xd4
