@@ -49,8 +49,9 @@ def case(r):
     put(player, 0x18, 'I', r.deal([0, 1, 9, r.getrandbits(16)]))
     settings = bytearray(r.bytes(0x100))
     flags = r.getrandbits(32) & ~0x8000c70
-    for bit in (0x10, 0x20, 0x40, 0x400, 0x400, 0x8000000):
+    for bit in (0x10, 0x20, 0x40, 0x8000000):
         flags |= r.deal([0, bit])
+    flags |= r.deal([0, 0x400, 0x400])   # (one deck per list: two deals of [0, 0x400] in a case are always one of each)
     flags |= r.deal([0, 0, 0, 0, 0x800])
     put(settings, 4, 'I', flags)
     put(settings, 0x48, 'I', r.deal([8, 8, 0x10, 0x11, 0x20]))
