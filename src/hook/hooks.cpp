@@ -434,6 +434,7 @@
 #include "../game/world/ridesload.h"
 #include "../game/world/sign.h"
 #include "../game/world/rideupkeep.h"
+#include "../game/world/savegamefile.h"
 #include "../game/world/scapeobjects.h"
 #include "../game/world/signtext.h"
 #include "../game/world/staffctors.h"
@@ -6599,6 +6600,9 @@ const Hook kHooks[] = {
     {"MMStaffDrop_Cancel",        0x0046cdc0, (void *)&MMStaffDrop_Cancel, {0x51, 0x56, 0x8b, 0xf1, 0x8b}},
     {"MouseMode6fead0_Hover",     0x0046d000, (void *)&MouseMode6fead0_Hover, {0x51, 0x66, 0xa1, 0xcc, 0x05}},
     {"MouseMode6fead0_Click",     0x0046d0d0, (void *)&MouseMode6fead0_Click, {0x6a, 0xff, 0x68, 0x12, 0x8b}},
+    {"SaveGame_Save",             0x00414920, (void *)&SaveGame_Save, {0x6a, 0xff, 0x68, 0x50, 0x7f}},
+    {"SaveGame_Load",             0x00414d40, (void *)&SaveGame_Load, {0x64, 0xa1, 0x00, 0x00, 0x00}},
+    {"SaveGame_AfterLoad",        0x00415140, (void *)&SaveGame_AfterLoad, {0x51, 0x53, 0x56, 0x57, 0xe8}},
     {"Holder_Destroy",            0x0045bc60, (void *)&Holder_Destroy, {0x56, 0x8b, 0x74, 0x24, 0x08}},
     {"Mouse_HandleButton",        0x0046c210, (void *)&Mouse_HandleButton, {0x8b, 0x44, 0x24, 0x04, 0x56}},
     {"Mouse_Moved",               0x0046c2a0, (void *)&Mouse_Moved, {0xa1, 0xd4, 0x05, 0x7b, 0x00}},

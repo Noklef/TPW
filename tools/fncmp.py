@@ -671,6 +671,16 @@ def fill(log, k, arg, data, which=0, offset=0, records=1, through=None):
     log[at + 0x10:at + 0x10 + len(data)] = data
 
 
+def fill_this(log, k, data, offset=0, which=0):
+    """Makes slot k's thiscall recorder write `data` (at most 0x70 bytes) at `this` + offset, as a local object's open method sets its handle (the fill's argument 0x1f)."""
+    assert 0 <= which < FILLS and len(data) <= 0x70
+    at = _fill_at(which) - LOG
+    if len(log) < at + 0x80:
+        log.extend(bytearray(at + 0x80 - len(log)))
+    struct.pack_into('<4I', log, at, (k & 63) | 0x80000000, 0x1f, len(data), offset)
+    log[at + 0x10:at + 0x10 + len(data)] = data
+
+
 def fill_arg(log, k, arg, source, which=0):
     """Makes slot k's recorder write its argument `source` (a dword, as passed) through its argument `arg`: ReadFile's bytes read, all it was asked for."""
     at = _fill_at(which) - LOG
@@ -918,6 +928,11 @@ def _fold(e, words):  # (driver.cpp record_call)
 def _recorder(k, n, com=False, cdecl=False):
     def hook(e):
         sp = e.r['ESP'] + (4 if e.tail else 0)
+        if not com and not cdecl:   # (fill_this())
+            for f in range(FILLS):
+                fk, fa, fn, offset = struct.unpack('<4I', e.read(_fill_at(f), 16))
+                if fk == (k & 63) | 0x80000000 and fa == 0x1f and e.r['ECX']:
+                    e.write(e.r['ECX'] + offset, e.read(_fill_at(f) + 0x10, fn))
         raw = [e.u32(sp + 4 * i) for i in range(n)]
         this = 0 if com or cdecl or e.u32(LOG + LOG_BYTES + 4 * (k & 63)) >> 31 else e.u32(e.r['ECX']) if e.u32(LOG + LOG_BYTES + 4 * (k & 63)) >> 30 & 1 else e.r['ECX']
         kk = k | 0x100 if com else k | 0x200 if cdecl else k

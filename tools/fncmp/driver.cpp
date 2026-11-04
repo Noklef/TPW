@@ -265,6 +265,7 @@
 #include "../../src/game/files/gamepaths.h"
 #include "../../src/game/core/gameowner.h"
 #include "../../src/game/world/mousemodeclick.h"
+#include "../../src/game/world/savegamefile.h"
 #include "../../src/game/world/gamefile.h"
 #include "../../src/game/core/globalsave.h"
 #include "../../src/game/coaster/rebuild.h"
@@ -1176,6 +1177,13 @@ const AddrCall kGameFileCalls[] = {  // tests/fncmp/gamefile.py
     {0x403780, recorder(29, 4)}, {0x4053b0, recorder(30, 0)}, {0x59bea0, recorder(31, 0)},  // (thiscall slots below 32: those of the cdecl calls the other function makes)
     {0x5179c0, recorder(16, 1)}, {0x40fd60, recorder(17, 1)}, {0x402e30, recorder(18, 1)}, {0x403260, recorder(19, 1)}, {0x405570, recorder(20, 1)}, {0x59c860, recorder(21, 1)}, {0x481680, recorder(22, 1)},
     {0x516c80, recorder(1, 1)}, {0x40fc80, recorder(4, 1)}, {0x402e00, recorder(7, 1)}, {0x403220, recorder(8, 1)}, {0x4055d0, recorder(9, 1)}, {0x59c890, recorder(10, 1)}, {0x4816a0, recorder(11, 1)}};
+const AddrCall kSaveGameCalls[] = {  // tests/fncmp/savegamefile.py
+    {0x5f7180, recorder(4, 0)}, {0x5f71e0, recorder(5, 0)}, {0x5f71f0, recorder(6, 0)}, {0x5f7210, recorder(7, 2)}, {0x415f50, recorder(8, 2)}, {0x4164c0, recorder(9, 2)}, {0x416240, recorder(10, 3)}, {0x415270, recorder(11, 2)}, {0x639100, recorder(12, 0)}, {0x5f72c0, recorder(13, 2)},
+    {0x5f7ed0, recorder(14, 3)}, {0x402e60, recorder(16, 0)}, {0x4d8330, recorder(17, 0)}, {0x5191e0, recorder(18, 0)}, {0x515fb0, recorder(19, 0)}, {0x515f30, recorder(20, 0)}, {0x4815d0, recorder(21, 0)}, {0x519120, recorder(22, 0)}, {0x4d83a0, recorder(23, 0)},
+    {0x4d3e00, recorder(27, 0)}, {0x402e80, recorder(28, 0)}, {0x4815e0, recorder(29, 0)},
+    {0x5f8100, jpeg_recorder(24, 3)}, {0x5f8120, jpeg_recorder(25, 1)}, {0x5f8050, jpeg_recorder(26, 4)}, {0x5f5ad0, jpeg_recorder(27, 4)}, {0x5f5b80, jpeg_recorder(28, 2)}, {0x5f5d60, jpeg_recorder(29, 2)}, {0x67acc0, jpeg_recorder(30, 1)}, {0x67acb0, jpeg_recorder(31, 1)},
+    {0x52f8d0, jpeg_recorder(8, 2)}, {0x457e10, jpeg_recorder(9, 0)}, {0x42a190, jpeg_recorder(10, 0)}, {0x5445d0, jpeg_recorder(11, 0)}, {0x437150, jpeg_recorder(15, 0)}, {0x5584b0, jpeg_recorder(16, 0)}, {0x5996d0, jpeg_recorder(17, 1)},
+    {0x5508c0, jpeg_recorder(18, 0)}, {0x550930, jpeg_recorder(19, 0)}, {0x55e3b0, jpeg_recorder(20, 0)}, {0x450d10, jpeg_recorder(21, 0)}, {0x473440, jpeg_recorder(22, 0)}, {0x468500, jpeg_recorder(23, 0)}, {0x51c1c0, jpeg_recorder(1, 1)}, {0x51fd80, jpeg_recorder(2, 1)}, {0x475f40, jpeg_recorder(3, 0)}};
 const AddrCall kMouseModeClickCalls[] = {  // tests/fncmp/mousemodeclick.py
     {0x4814a0, recorder(1, 1)}, {0x535db0, recorder(2, 1)}, {0x5363a0, recorder(3, 0)}, {0x4d0af0, recorder(4, 0)}, {0x53ad90, recorder(5, 0)}, {0x53ad60, recorder(6, 0)}, {0x46c350, recorder(7, 1)}, {0x46d550, recorder(8, 0)}, {0x550ca0, recorder(9, 0)}, {0x4dd4e0, recorder(10, 0)},
     {0x4e15b0, recorder(11, 1)}, {0x536450, recorder(12, 0)}, {0x5363f0, recorder(13, 0)}, {0x536390, recorder(14, 0)}, {0x536310, recorder(15, 0)}, {0x536320, recorder(16, 0)}, {0x519450, recorder(17, 0)}, {0x509af0, recorder(18, 1)},
@@ -1747,6 +1755,10 @@ u32 __cdecl record_call(u32 k, u32 n, u32 self, const u32 *stack) {
     u32 *log = reinterpret_cast<u32 *>((uintptr_t)kLog);
     u32 args[16];
     const u32 mask = log[0x280 + (k & 63)];
+    for (u32 f = 0; self && f < 8; ++f) {  // (fncmp.fill_this())
+        const u32 *fill = log + (f < 2 ? 0x2c0 + 0x20 * f : 0x400 + 0x20 * (f - 2));
+        if (fill[0] == ((k & 63) | 0x80000000u) && fill[1] == 0x1f) memcpy(reinterpret_cast<void *>((uintptr_t)self + fill[3]), fill + 4, fill[2]);
+    }
     if (log[0x300 + (k & 63)] >> 31) self = 0;  // (fncmp.mask_this(): a method on a local object)
     else if (log[0x300 + (k & 63)] >> 30 & 1) self = *reinterpret_cast<const u32 *>((uintptr_t)self);  // (fncmp.this_first(): the vtable it was given)
     u32 earlier = 0;  // (this slot's calls in the log so far: fncmp.fail_after(), a fill's records)
@@ -2542,6 +2554,7 @@ int main(int argc, char **argv) {
     AdvisorSpeech_SetCalls(kAdvisorSpeechCalls, sizeof(kAdvisorSpeechCalls) / sizeof(kAdvisorSpeechCalls[0]));
     GameOwner_SetCalls(kGameOwnerCalls, sizeof(kGameOwnerCalls) / sizeof(kGameOwnerCalls[0]));
     MouseModeClick_SetCalls(kMouseModeClickCalls, sizeof(kMouseModeClickCalls) / sizeof(kMouseModeClickCalls[0]));
+    SaveGame_SetCalls(kSaveGameCalls, sizeof(kSaveGameCalls) / sizeof(kSaveGameCalls[0]));
     GameFile_SetCalls(kGameFileCalls, sizeof(kGameFileCalls) / sizeof(kGameFileCalls[0]));
     Dialog_SetCalls(kDialogBoxCalls, sizeof(kDialogBoxCalls) / sizeof(kDialogBoxCalls[0]));
     ArReplay_SetCalls(kArReplayCalls, sizeof(kArReplayCalls) / sizeof(kArReplayCalls[0]));
