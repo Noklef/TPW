@@ -16,4 +16,9 @@ extern "C" {
 // 0xc + its length + 1 bytes to +0xc (which it never clears) and counts it, the second places it (number, the name copied after the
 // last) and counts +0x14; either counts it in the group. Other punctuation skips the line; other characters are passed over. Returns 1.
 u32 __cdecl TerrainSets_Load(const char *name, u8 *sets);
+// 0x427ad0 (cdecl; name invented, unconfirmed): the level's name at [0x786b70]: "<base>\Terrain\<name>.tct" located (Quickload_Locate, 1, 0) and loaded into the sets 0x74c8a8 if found; located again (0, 0), and if found "<it>[\]data\levels\<name>\Terrain\" added (Model_AddTerrainSets). Returns 1.
+u32 __cdecl TerrainSets_LoadLevel(u32 model);
 }
+
+struct AddrCall;
+void TerrainSets_SetLevelCalls(const AddrCall *table, u32 count);   // tests/fncmp/tctlevel.py
