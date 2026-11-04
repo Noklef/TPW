@@ -548,4 +548,25 @@ void __fastcall ObjectDefs_Free(u8 *defs) {
 void __cdecl ObjectDefs_FreeAll() {
     ObjectDefs_Free(reinterpret_cast<u8 *>(0x007890a0));   // (inlined, the table's words read as globals)
 }
+
+s32 __stdcall ObjectDefs_ListBuiltNumbers(u16 *out) {
+    std::memset(out, 0, 0x200);
+    u8 *const defs = reinterpret_cast<u8 *>(0x007890a0);
+    const u8 *const built = reinterpret_cast<const u8 *>(0x00802080);
+    u32 count = 0;
+    for (u32 index = 0; index < 0x20; ++index) {
+        for (u32 bit = 0; bit < 8; ++bit) {
+            if (!(built[index] >> bit & 1)) continue;
+            const u32 id = index * 8 + bit + 1;
+            u8 *def = ObjectDefs_First(defs);
+            while (def && *reinterpret_cast<u32 *>(def + 0x94) != id) def = ObjectDefs_Next(defs);
+            if (!def) continue;
+            const char *const name = CRT_strrchr(reinterpret_cast<const char *>(def + 0x28c), 0x5c);
+            const char *const digits = CRT_strpbrk(name, reinterpret_cast<const char *>(0x00762b18));
+            const char *end;
+            out[count++] = static_cast<u16>(CRT_strtol(digits, &end, 10));
+        }
+    }
+    return 0;
+}
 }
