@@ -1163,9 +1163,17 @@ const AddrCall kHeightMapCalls[] = {  // tests/fncmp/heightmapbuild.py --table
     {0x473e30, jpeg_recorder(2, 4)},
     {0x451e20, (u32)(uintptr_t)&heightmap_rasterize_recorder},
 };
-const AddrCall kContactsCalls[] = {  // tests/fncmp/contactspair.py
+// The frees of tests/fncmp/contactstestall.py (its _free, the same): the control word kept first.
+u32 __cdecl contactsFreeStandIn(u32 block) {
+    u16 control;
+    __asm fnstcw control;
+    *reinterpret_cast<u32 *>((uintptr_t)0x30000800) = control;
+    return reinterpret_cast<u32(__cdecl *)(u32)>((uintptr_t)jpeg_recorder(6, 1))(block);
+}
+const AddrCall kContactsCalls[] = {  // tests/fncmp/contactspair.py, contactstestall.py
     {0x43a060, jpeg_recorder(1, 6)},
     {0x43a2b0, jpeg_recorder(2, 2)},
+    {0x43ad50, jpeg_recorder(3, 2)}, {0x439c40, jpeg_recorder(4, 6)}, {0x45b9d0, jpeg_recorder(5, 2)}, {0x45ba00, (u32)(uintptr_t)&contactsFreeStandIn},
 };
 const AddrCall kAimSpritesCalls[] = {{0x475590, jpeg_recorder(13, 3)}, {0x475480, jpeg_recorder(14, 5)}, {0x4755d0, jpeg_recorder(15, 3)}};
 const BumpLightEnv kBumpLightEnv = {Rec{jpeg_recorder(12, 4)}};
@@ -1213,7 +1221,8 @@ u32 __fastcall signRenderStandIn(u32 self, u32, u32 dc, const u32 *params) {
 }
 const AddrCall kSignApplyCalls[] = {  // tests/fncmp/signapply.py
     {0x5ebfc0, recorder(1, 0)}, {0x5ec220, recorder(2, 0)}, {0x5ec3a0, recorder(3, 1)}, {0x5ec680, recorder(4, 1)}, {0x5ecb40, (u32)(uintptr_t)&signRenderStandIn}, {0x57b120, recorder(6, 2)}, {0x41a820, recorder(7, 0)},
-    {0x467310, jpeg_recorder(8, 6)}, {0x46f120, jpeg_recorder(9, 1)}, {0x45b9d0, jpeg_recorder(10, 2)}, {0x45ba00, jpeg_recorder(11, 1)}};
+    {0x467310, jpeg_recorder(8, 6)}, {0x46f120, jpeg_recorder(9, 1)}, {0x45b9d0, jpeg_recorder(10, 2)}, {0x45ba00, jpeg_recorder(11, 1)},
+    {0x4dd4e0, recorder(14, 0)}, {0x5f6980, recorder(15, 1)}, {0x5f61a0, recorder(16, 0)}, {0x424db0, jpeg_recorder(17, 2)}, {0x467a80, jpeg_recorder(18, 6)}, {0x5f61e0, recorder(19, 0)}, {0x5f6a60, recorder(20, 0)}};  // (the last seven: tests/fncmp/signobject.py)
 const AddrCall kEngineStartCalls[] = {  // tests/fncmp/engineinit.py, enginestart.py
     {0x5913f0, jpeg_recorder(0, 0)}, {0x56b6c0, jpeg_recorder(1, 0)}, {0x5781d0, jpeg_recorder(2, 0)}, {0x569e10, jpeg_recorder(3, 0)}, {0x5666f0, jpeg_recorder(4, 0)}, {0x573a30, jpeg_recorder(5, 0)}, {0x5821e0, jpeg_recorder(6, 0)}, {0x573fd0, jpeg_recorder(7, 0)}, {0x5804b0, jpeg_recorder(8, 0)},
     {0x56ddf0, jpeg_recorder(9, 0)}, {0x5760a0, jpeg_recorder(10, 0)}, {0x58aff0, jpeg_recorder(11, 0)}, {0x561840, jpeg_recorder(12, 0)}, {0x58a430, jpeg_recorder(13, 0)}, {0x57c360, jpeg_recorder(14, 0)}, {0x574a20, jpeg_recorder(15, 0)}, {0x57d100, jpeg_recorder(16, 0)}, {0x564b20, jpeg_recorder(17, 0)},

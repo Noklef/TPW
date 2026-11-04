@@ -203,3 +203,32 @@ void __cdecl Contacts_SegmentsInBox(const u8 *owner, const u8 *node, const u8 *n
     *count = found;
 }
 }
+
+extern "C" void __cdecl Contacts_TestAll(u8 *owner) {
+    u16 saved, truncating;
+    __asm fnstcw saved;
+    truncating = saved | 0x0c00;
+    __asm fldcw truncating;
+    global<u32>(0x00792238) = g_calls.Cd(0x0045b9d0, at<u32>(owner, 0xa0) * 0x1c, 1u);   // GlobalMem_Alloc
+    global<u32>(0x00792230) = g_calls.Cd(0x0045b9d0, at<u32>(owner, 0xa0) * 0x1c, 1u);
+    global<u32>(0x007922e8) = g_calls.Cd(0x0045b9d0, at<u32>(owner, 0xa0) * 0x78, 1u);
+    global<u32>(0x007922e4) = g_calls.Cd(0x0045b9d0, at<u32>(owner, 0xa0) * 0x78, 1u);
+    for (u8 *node = at<u8 *>(owner, 0x54); node && at<u8 *>(node, 0x64); node = at<u8 *>(node, 0x64)) {
+        const u32 flags = at<u32>(node, 8);
+        if (!(flags & 0x200000)) continue;
+        g_calls.Cd(0x0043ad50, owner, node);   // Contacts_Clear
+        if (flags & 0x10000) continue;
+        at<u32>(node, 8) &= 0xff9fffff;
+        for (u8 *other = at<u8 *>(at<u8 *>(node, 0x64), 0x64); other && at<u8 *>(other, 0x64); other = at<u8 *>(other, 0x64))
+            g_calls.Cd(0x00439c40, owner, owner, node, at<u8 *>(node, 0x64), other, at<u8 *>(other, 0x64));   // Contacts_TestPair
+        const u8 *const partner = at<const u8 *>(node, 0x68);
+        if (!partner) continue;
+        for (u8 *other = at<u8 *>(partner, 0x68); other; other = at<u8 *>(other, 0x68))
+            g_calls.Cd(0x00439c40, owner, owner, node, at<u8 *>(node, 0x64), other, at<u8 *>(other, 0x64));
+    }
+    g_calls.Cd(0x0045ba00, global<u32>(0x007922e4));   // GlobalMem_Free
+    g_calls.Cd(0x0045ba00, global<u32>(0x007922e8));
+    g_calls.Cd(0x0045ba00, global<u32>(0x00792230));
+    g_calls.Cd(0x0045ba00, global<u32>(0x00792238));
+    __asm fldcw saved;
+}
