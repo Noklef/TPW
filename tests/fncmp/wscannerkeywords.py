@@ -28,6 +28,9 @@ def scene(r, op):
     regions = wscanner.span(r, op).regions
     scanner = bytearray(regions[wscanner.SCANNER]) + struct.pack('<2I', VECTOR, wscanner.OUT)
     regions[wscanner.SCANNER] = scanner
+    text, length = struct.unpack_from('<2I', scanner, 8)
+    if text and not length:   # (an empty text shared: read, it would be freed and read through null, a fault in both)
+        regions[stdwstring.BLOCKS][text - stdwstring.BLOCKS - 1] = r.choice([0, 0xff])
     count = r.choice([0, 1, 2, 3])
     first, last = ARRAY, ARRAY + 0x24 * count
     pairs = bytearray(r.bytes(0x24 * (count + 4)))
