@@ -145,4 +145,9 @@ u32 __fastcall WeatherFx_DrawBolts(u8 *fx);
 // 0x580320 (thiscall (start, end by value, life, flash), pops 0x20; name invented, unconfirmed; x87 in the original's order): with fewer than 16 bolts a new one: +0 the start, +0xc the end, +0x18 start less end at unit length (not when its length is 0 or a NaN),
 // +0x24 the life, +0x2c 0 or, with flash, Cpu_Ticks | 1. Returns 1 either way.
 u32 __fastcall WeatherFx_AddBolt(u8 *fx, void *, u32 ax, u32 ay, u32 az, u32 bx, u32 by, u32 bz, u32 life, u32 flash);
+
+// 0x57ff60 (thiscall; name invented, unconfirmed; x87 in the original's order): the clock's time into +0x3344, the time since the last (at most 500, signed) into +0x9d9c, times 0.001 (0 with the pause bit 4 of [0x8bd508]) into +0x9d98; +0x330c 2;
+// WeatherFx_DrawBolts: 0 gives 0. With drops (+0x3318): the view's offset from the camera at [0x87afe8] (+0x30.. times +0x3340, or 0.3 with [0x790ab0] & 0x16; y negated) in fixed point; +0x9d58 the matrix at [0x87b154], its translation cleared; the
+// place +0x3328.. moved by the wind +0x331c.. times the speed (+0x3338 with +0 bit 0, else +0x333c) and the time, wrapped into -4..4; +0xa1bc.. the camera's +0x20..; +0xa1c8 0; DrawStreaks with bit 0, else DrawDrops with bit 1 (offset plus place): 0 gives 0. Returns 1.
+u32 __fastcall WeatherFx_Frame(u8 *fx);
 }

@@ -6935,6 +6935,7 @@ address,name,kind,confidence,notes
 0x00550950,WeatherFx_ReloadEffects,function,low,"reimplemented (src/game/render/weatherfx); the frame's effect textures loaded again, the data folder opened, the ramps set"
 0x0057ee30,WeatherFx_DrawBolts,function,low,reimplemented (src/game/render/weatherfx); thiscall: the lightning's list of bolts timed and drawn; name invented
 0x00580320,WeatherFx_AddBolt,function,low,"reimplemented (src/game/render/weatherfx); thiscall (start, end by value, life, flash), pops 0x20: a new lightning bolt on the list; name invented"
+0x0057ff60,WeatherFx_Frame,function,low,"reimplemented (src/game/render/weatherfx); the weather's frame: the time, the bolts, the place wrapped, the drops"
 0x00576260,Renderer_SetRestoreCallback,function,high,"reimplemented (src/game/render/renderer); thiscall (the renderer, [0x87a6d0]; fn): +0x78 = fn, called when the display device generation moves on (0x576c26)"
 0x005763f0,Renderer_SetStateFlags,function,high,"reimplemented (src/game/render/renderer); thiscall (flags): +0x48, the render state flags (0x1f31 by default)"
 0x00576400,Renderer_StateFlags,function,high,"reimplemented (src/game/render/renderer); thiscall: +0x48, the render state flags"
