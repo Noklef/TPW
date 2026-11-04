@@ -37,7 +37,7 @@ def case(r):
     strings(log, GETINFO, 0, 1)
     strings(log, LOAD, 0, 1)
     strings(log, RELEASE, 0, 1)
-    blob(log, INFO, 3, 0x3ff)
+    blob(log, INFO, 3, 0x3f0)   # (the constructor sets +0x10-+0x27)
     blob(log, GETINFO, 0, 0x3ff)
     blob(log, LOAD, 1, 0x3ff)
     fill(log, INFO, 3, description(r)[0x1c:0x24], which=0, offset=0x1c)   # (only the size: the rest as the constructor left it)
