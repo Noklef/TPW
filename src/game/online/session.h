@@ -26,6 +26,10 @@ struct OnlineStartEnv {
     void(__fastcall *listStart)(u8 *list, void *, u32 value, u32 callback, u32 user);  // ListRequest_Start66 (0x5bcd10)
     void(__cdecl *openDialog)(u32 value);          // Dialog7cc530_Open (0x4ba980)
     u8 *(__fastcall *findKind)(u8 *owner);         // Owner2c_FindKind100 (0x5bd690)
+    u32(__fastcall *uploadConnect)(u8 *session);   // Online_UploadConnect (0x5b8290)
+    u32(__cdecl *post)(u32 code, u32 param);       // CommandQueue_Post (0x47f410)
+    u32(__fastcall *findLast)(u8 *object, void *, const char *name);  // Names_FindLastValue (0x5bd230)
+    void(__cdecl *crtFree)(void *block);           // CRT_free (0x67ad90)
 };
 void Online_SetStartEnv(const OnlineStartEnv *env);
 
@@ -105,7 +109,19 @@ void __fastcall Online_ResetAll(u8 *session);
 // 0x5b8290 (thiscall; the SEH frame left out; name invented, unconfirmed): the connection +0x104 released when set (0x6fd5ec), a new one made (0x6fd5dc; a failed block: 0); said; the record of +0xfc
 // (Owner2c_FindKind100) gives the host (+0x2c, wide, in ANSI) and port (word +0x3c, in AX: the record's high half stays above it, sic): connect 0x6fd5e0 (host, Global7cc53c_Pick7cc4f0, port, the
 // callback 0x5b8260). Answering 1: said, 0x6fd5e4 (Language_Id, +0x34, +0x38, +0x28), returns 1; else said, returns 0.
-u32 __fastcall Online_ConnectLobby(u8 *session);
+u32 __fastcall Online_UploadConnect(u8 *session);
+
+// 0x5b7cd0 (thiscall; name invented, unconfirmed): without flag 0x10 of +0x58, or no Upload (+0x104) and Online_UploadConnect failing: said and given up (code 0x4e, 0x4f posted; with a login (+0x320) the
+// session reset as Online_ResetAll; the callback +0x374 (1, +0x378); the Upload released). Else said, +0x324 = 1, the request sent (0x6fd5d0: +0x338, a stack record, 0): +0 = +0x344, +4 the byte
+// Names_FindLastValue(+0xf8, +0x114), +5 = +0x370, +6 and +0x2e the wide texts +0x350 and +0x364, +0x22e 0x200 bytes of +0x120; said.
+void __fastcall Online_UploadStart(u8 *session);
+
+// 0x5b7fa0 (thiscall, pops 16; name invented, unconfirmed): the Upload's events. 0x50: the record's uses (+8) down, at none its block (+0) freed and it; said; 0x6fd5e8 (+0x338, 0). 0: said, +0x32c and
+// +0x328 = 1. Errors -40 (0xde; +0x380 = [0x78ba94]), -20 (0x55), -6 (0x4e), -5 (0x4d), -4 (0x4c), -2 (0x4b), -1 (0x37): the code in +0x37c, +0x32c = 0, +0x328 = 1. Any other: nothing.
+void __fastcall Online_UploadEvent(u8 *session, void *, u32 code, u32 a, u32 b, u8 *record);
+
+// 0x5b8260 (stdcall; name invented, unconfirmed): Online_UploadEvent on Online_Instance: the callback Online_UploadConnect gives.
+void __stdcall Online_UploadCallback(u32 code, u32 a, u32 b, u8 *record);
 
 // 0x5b87e0 (thiscall (a, b, c), pops 12; name invented, unconfirmed): Online_ReleaseNews; +0x74, +0x90 and +0xac = -1; +0xc8, +0xcc, +0x78, +0x94, +0xb0, +0xd0 = 0; the strings +0x7c (0x786de4), +0x98 and +0xb4 (0x78a374)
 // assigned by slot 5; the city, upload and download reset; the dialog's message. +0x3a8 = a, +0x3c0 = b, +0x3c4 = c. Logged in (+0x60): the instance's list +0xf0 starts on its +0x3a8 with the callback 0x5b88e0. Otherwise

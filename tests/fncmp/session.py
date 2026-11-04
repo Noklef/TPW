@@ -13,7 +13,7 @@ import struct
 import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
-from fncmp import CDECL_LOG4, HEAP, IMPORT_TABLE, LOG, Bench, Call, RAM, heap, log_region, put, recorder, set_return, strings, vtable  # noqa: E402
+from fncmp import CDECL_LOG4, HEAP, IMPORT_TABLE, LOG, Bench, Call, RAM, _recorder, blob_array, heap, log_region, put, recorder, set_return, strings, vtable  # noqa: E402
 
 B = Bench([(0x5b6450, 0x5b64c4), (0x5b64d0, 0x5b650b), (0x5b6b20, 0x5b6b5e), (0x5b6980, 0x5b6a27), (0x5b83e0, 0x5b83ff), (0x5b8400, 0x5b8483),
            (0x5b9040, 0x5b90d7), (0x5b7b80, 0x5b7b9f), (0x5b62e0, 0x5b63f0), (0x67acb0, 0x67acb1),
@@ -22,18 +22,21 @@ B = Bench([(0x5b6450, 0x5b64c4), (0x5b64d0, 0x5b650b), (0x5b6b20, 0x5b6b5e), (0x
            (0x5b72f0, 0x5b742a), (0x4bae30, 0x4bae3f), (0x41a830, 0x41a834), (0x67acc0, 0x67acc1), (0x5b7960, 0x5b7987),
            (0x4bae40, 0x4bae62), (0x4c25e0, 0x4c25f9), (0x5b5e40, 0x5b606b), (0x5b6070, 0x5b622a), (0x658d9f, 0x658e04), (0x659710, 0x659740), (0x65f697, 0x65f6e1),
            (0x5b50b0, 0x5b55d7), (0x5b96e0, 0x5b97a0), (0x5bce60, 0x5bcee0), (0x5bd2a0, 0x5bd320), (0x5bd6b0, 0x5bd730), (0x5bdcd0, 0x5bde20),
-           (0x5f5fc0, 0x5f7f00), (0x67a400, 0x67acb0), (0x67acd0, 0x67afa0), (0x67b0d0, 0x690000)])
+           (0x5f5fc0, 0x5f7f00), (0x67a400, 0x67acb0), (0x67acd0, 0x67afa0), (0x67b0d0, 0x690000), (0x5b7cd0, 0x5b7fa0), (0x5b7fa0, 0x5b8160), (0x5b8260, 0x5b8290)],
+          hooks={0x5b8290: _recorder(17, 0), 0x47f410: _recorder(18, 2, cdecl=True), 0x5bd230: _recorder(19, 1), 0x48b390: _recorder(26, 0, cdecl=True), 0x67ad90: _recorder(23, 1, cdecl=True)})
 GETTERS = {'LoggedIn': 0x5b6450, 'Flag20': 0x5b6460, 'String14': 0x5b6480, 'String28': 0x5b6490,
            'UserName': 0x5b64a0, 'UserFlags': 0x5b64b0, 'User5c': 0x5b64c0}
 RELEASES = {'ReleaseLogin': 0x5b64d0, 'ReleaseNews': 0x5b6b20, 'ResetNews': 0x5b6980, 'ReleaseUpload': 0x5b83e0, 'ResetUpload': 0x5b8400,
             'ResetDownload': 0x5b9040, 'AuthDelete': 0x5b7b80, 'LoginResult': 0x5b62e0, 'ResetCity': 0x5b7430,
-            'OpenCity': 0x5b72f0, 'Unpublish': 0x5b7960, 'ResetConnections': 0x5b6070, 'ResetAll': 0x5b5e40, 'Construct': 0x5b50b0}
+            'OpenCity': 0x5b72f0, 'Unpublish': 0x5b7960, 'ResetConnections': 0x5b6070, 'ResetAll': 0x5b5e40, 'Construct': 0x5b50b0,
+           'UploadStart': 0x5b7cd0, 'UploadEvent': 0x5b7fa0, 'UploadCallback': 0x5b8260}
 CALLS = {**GETTERS, **RELEASES}
 # the imports: OutputDebugStringA (stdcall, its text logged), Auth::Release, Auth::~Auth, News::Release, News::~News, Upload::Release (thiscall)
 OUTPUT = 0x6fd1e0
 METHODS = [0x6fd45c, 0x6fd460, 0x6fd58c, 0x6fd588, 0x6fd5ec]
 SESSION, OBJ, VT, REC, LISTS, ARRAYS = RAM, RAM + 0x800, RAM + 0x900, RAM + 0xa00, RAM + 0xc00, RAM + 0x2000
 WINDOW = RAM + 0x8000
+TEXTS = RAM + 0x4000
 
 
 def release(r, op):
@@ -150,6 +153,48 @@ def reset_all(r, op):
     return Call(CALLS[op], [SESSION], regions, conv='t', ret='v')
 
 
+def upload_start(r):
+    """0x5b7cd0: reset_all()'s world for its failures. Flag 0x10 of +0x58 or not, the Upload (+0x104) there or Online_UploadConnect (a recorder) answering; the request (0x6fd5d0, a recorder) with its
+    stack record hashed whole, 0x42e bytes (five at a time, the first argument's number), when the two names fill their fields (19 and 255 wide characters), else not: the rest would be stack garbage."""
+    regions = reset_all(r, 'ResetAll').regions
+    log, s = regions[LOG], regions[SESSION]
+    put(regions[IMPORT_TABLE], 0x6fd5d0 - IMPORT_TABLE, 'I', recorder(21, 3))
+    blob_array(log, 21, 1, 0, 5)
+    set_return(log, 17, r.choice([0, 1, 2]))
+    set_return(log, 19, r.getrandbits(32))
+    put(s, 0x58, 'I', r.getrandbits(32) | 0x10 if r.random() < 0.7 else r.getrandbits(32) & ~0x10)
+    put(s, 0x320, 'I', r.choice([0, 1, r.getrandbits(32)]))
+    put(s, 0x374, 'I', r.choice([0, recorder(20, 2, cdecl=True)]))
+    full = r.random() < 0.7
+    put(s, 0x338, 'I', 214 if full else 0)
+    first, second = TEXTS, TEXTS + 0x100
+    short = r.choice([0, 1, 7])
+    put(s, 0x350, 'I', first)
+    put(s, 0x364, 'I', second)
+    regions[first] = b''.join(struct.pack('<H', r.randrange(1, 0x10000)) for _ in range(19 if full else short)) + bytes(2)
+    regions[second] = b''.join(struct.pack('<H', r.randrange(1, 0x10000)) for _ in range(255 if full else short)) + bytes(2)
+    return Call(0x5b7cd0, [SESSION], regions, conv='t', ret='v')
+
+
+def upload_event(r, op):
+    """0x5b7fa0 (and 0x5b8260, Online_Instance a recorder answering the session): the codes of its switch, their neighbours and any; for 0x50 a record of uses 1 to 3, its block (+0) a heap block or none."""
+    log = log_region()
+    table = bytearray(0x600)
+    struct.pack_into('<I', table, OUTPUT - IMPORT_TABLE, recorder(1, 1, True))
+    strings(log, 1, 1)
+    struct.pack_into('<I', table, 0x6fd5e8 - IMPORT_TABLE, recorder(22, 2))
+    set_return(log, 26, SESSION)
+    code = r.choice([-40, -20, -6, -5, -4, -2, -1, 0, 0x50, 0x50, 0x50, -41, -3, 1, 0x51, r.getrandbits(32)])
+    record = bytearray(r.bytes(0x10))
+    put(record, 0, 'I', r.choice([0, HEAP + 0x100]))
+    put(record, 8, 'I', r.choice([1, 1, 2, 3]))
+    regions = {LOG: log, IMPORT_TABLE: table, HEAP: heap(), SESSION: r.bytes(0x400), REC: record, 0x78ba94: r.bytes(4)}
+    args = [code & 0xffffffff, r.getrandbits(32), r.getrandbits(32), REC]
+    if op == 'UploadCallback':
+        return Call(0x5b8260, args, regions, conv='s', ret='v')
+    return Call(0x5b7fa0, [SESSION] + args, regions, conv='t', ret='v')
+
+
 def construct(r):
     """0x5b50b0: the session's memory random, the heap failing no block, or one of the first 15 (12 strings', then the first lists: a list not had
     faults in the city's reset; fncmp's heap fails none later, so the download object's block, +0x3a4, is always had); timeGetTime and OutputDebugStringA recorders; the strings real."""
@@ -168,6 +213,10 @@ def case(r):
     op = r.deal(OPS)
     if op == 'Construct':
         return construct(r)
+    if op == 'UploadStart':
+        return upload_start(r)
+    if op in ('UploadEvent', 'UploadCallback'):
+        return upload_event(r, op)
     if op in ('ResetConnections', 'ResetAll'):
         return reset_all(r, op)
     if op == 'ResetCity':

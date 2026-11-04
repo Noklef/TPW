@@ -1,8 +1,11 @@
 #include "session.h"
 
 #include <cstdint>
+#include <cstring>
 #include <initializer_list>
 
+#include "../core/crt.h"
+#include "../core/dequeiter.h"
 #include "../core/gameheap.h"
 #include "../core/buffers.h"
 #include "../core/language.h"
@@ -279,7 +282,7 @@ void __fastcall Online_ResetConnections(u8 *session) {
 }
 
 namespace {
-const OnlineStartEnv kStartGameEnv = {&Online_ReleaseNews, &Online_ResetCity, &Online_ResetUpload, &Online_ResetDownload, &Dialog7cca94_Message4IfUp, &Online_Instance, &ListRequest_Start66, &Dialog7cc530_Open, &Owner2c_FindKind100};
+const OnlineStartEnv kStartGameEnv = {&Online_ReleaseNews, &Online_ResetCity, &Online_ResetUpload, &Online_ResetDownload, &Dialog7cca94_Message4IfUp, &Online_Instance, &ListRequest_Start66, &Dialog7cc530_Open, &Owner2c_FindKind100, &Online_UploadConnect, &CommandQueue_Post, &Names_FindLastValue, &CRT_free};
 const OnlineStartEnv *g_start = &kStartGameEnv;
 }  // namespace
 
@@ -330,7 +333,7 @@ void __fastcall Online_ResetAll(u8 *session) {
     Dialup_HangUpIfOpen();
 }
 
-u32 __fastcall Online_ConnectLobby(u8 *session) {
+u32 __fastcall Online_UploadConnect(u8 *session) {
     if (void *const old = at<void *>(session, 0x104)) {
         CallImport(0x006fd5ec, old);
         at<u32>(session, 0x104) = 0;
@@ -362,6 +365,95 @@ u32 __fastcall Online_ConnectLobby(u8 *session) {
     WString_Dtor(&wide);
     return result;
 }
+
+namespace {
+
+// The upload given up: the code posted; with a login (+0x320) the whole session reset; the callback (+0x374) told 1; the Upload released (0x6fd5ec) when set.
+void UploadGiveUp(u8 *session, u32 code) {
+    at<u32>(session, 0x37c) = code;
+    at<u32>(session, 0x380) = 0;
+    g_start->post(code, 0);
+    at<u32>(session, 0x37c) = 0;
+    at<u32>(session, 0x380) = 0;
+    using Callback = void(__cdecl *)(u32, u32);
+    const Callback callback = at<Callback>(session, 0x374);
+    const u32 user = at<u32>(session, 0x378);
+    if (at<u32>(session, 0x320)) Online_ResetAll(session);
+    if (callback) callback(1, user);
+    if (void *const upload = at<void *>(session, 0x104)) {
+        CallImport(0x006fd5ec, upload);
+        at<u32>(session, 0x104) = 0;
+    }
+}
+
+}  // namespace
+
+void __fastcall Online_UploadStart(u8 *session) {
+    if (!(at<u8>(session, 0x58) & 0x10)) {
+        Say(0x007738d0);
+        UploadGiveUp(session, 0x4e);
+        return;
+    }
+    if (!at<u32>(session, 0x104) && !g_start->uploadConnect(session)) {
+        Say(0x00773940);
+        UploadGiveUp(session, 0x4f);
+        return;
+    }
+    Say(0x00773924);
+    at<u32>(session, 0x324) = 1;
+    u8 request[0x430];
+    request[4] = 0;
+    request[5] = 0;
+    CRT_wcscpy(reinterpret_cast<u16 *>(request + 6), at<const u16 *>(session, 0x350));
+    CRT_wcscpy(reinterpret_cast<u16 *>(request + 0x2e), at<const u16 *>(session, 0x364));
+    std::memcpy(request + 0x22e, session + 0x120, 0x200);
+    at<u32>(request, 0) = at<u32>(session, 0x344);
+    request[4] = static_cast<u8>(g_start->findLast(at<u8 *>(session, 0xf8), nullptr, at<const char *>(session, 0x114)));
+    request[5] = at<u8>(session, 0x370);
+    using Send = void(__fastcall *)(void *, void *, u32, u8 *, u32);
+    (*reinterpret_cast<const Send *>((uintptr_t)0x006fd5d0))(at<void *>(session, 0x104), nullptr, at<u32>(session, 0x338), request, 0);
+    Say(0x00773900);
+}
+
+void __fastcall Online_UploadEvent(u8 *session, void *, u32 code, u32, u32, u8 *record) {
+    u32 answer;
+    switch (code) {
+        case 0x50: {
+            if (--at<u32>(record, 8) == 0) {
+                if (void *const block = at<void *>(record, 0)) g_start->crtFree(block);
+                at<u32>(record, 0) = 0;
+                GameHeap_Free(record);
+            }
+            Say(0x007739a4);
+            using Next = void(__fastcall *)(void *, void *, u32, u32);
+            (*reinterpret_cast<const Next *>((uintptr_t)0x006fd5e8))(at<void *>(session, 0x104), nullptr, at<u32>(session, 0x338), 0);
+            return;
+        }
+        case 0:
+            Say(0x00773980);
+            at<u32>(session, 0x32c) = 1;
+            at<u32>(session, 0x328) = 1;
+            return;
+        case 0xffffffd8u:
+            at<u32>(session, 0x37c) = 0xde;
+            at<u32>(session, 0x380) = *reinterpret_cast<const u32 *>((uintptr_t)0x0078ba94);
+            at<u32>(session, 0x32c) = 0;
+            at<u32>(session, 0x328) = 1;
+            return;
+        case 0xffffffecu: answer = 0x55; break;
+        case 0xfffffffau: answer = 0x4e; break;
+        case 0xfffffffbu: answer = 0x4d; break;
+        case 0xfffffffcu: answer = 0x4c; break;
+        case 0xfffffffeu: answer = 0x4b; break;
+        case 0xffffffffu: answer = 0x37; break;
+        default: return;
+    }
+    at<u32>(session, 0x37c) = answer;
+    at<u32>(session, 0x32c) = 0;
+    at<u32>(session, 0x328) = 1;
+}
+
+void __stdcall Online_UploadCallback(u32 code, u32 a, u32 b, u8 *record) { Online_UploadEvent(g_start->instance(), nullptr, code, a, b, record); }
 
 namespace {
 
