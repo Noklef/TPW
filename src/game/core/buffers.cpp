@@ -3,6 +3,7 @@
 #include <cstdint>
 
 #include "../files/file.h"
+#include "../files/quickload.h"
 #include "../gfx/imageops.h"
 #include "crt.h"
 #include "gameheap.h"
@@ -103,7 +104,12 @@ void ClearCountedVector(u8 *object, u32 begin, u32 end, u32 capacity) {
     at<u32>(object, capacity) = 0;
 }
 
+const Blocks7LoadEnv kLoadEnv = {&Quickload_Locate, &Image_LoadFile};
+const Blocks7LoadEnv *g_loadEnv = &kLoadEnv;
+
 }  // namespace
+
+void Blocks7_SetLoadEnv(const Blocks7LoadEnv *env) { g_loadEnv = env ? env : &kLoadEnv; }
 
 extern "C" {
 
@@ -261,6 +267,25 @@ void __fastcall Blocks7_Free(u8 *object) {
 
 u8 __fastcall Blocks7_ShrinkSurface(u8 *object, void *, const SurfaceDesc *desc) {
     Image_ShrinkSurface(object + 0x60, nullptr, *desc);
+    return 1;
+}
+
+u8 __fastcall Blocks7_LoadAll(u8 *object) {
+    static const u32 kNames[5] = {0x007748d4, 0x007748b8, 0x007748a0, 0x00774888, 0x00774870};
+    for (u32 i = 0; i < 5; ++i)
+        g_loadEnv->load(object + 0x10 * i, nullptr, reinterpret_cast<const char *>((uintptr_t)0x00786de4), g_loadEnv->locate(reinterpret_cast<const char *>((uintptr_t)kNames[i]), 1, nullptr));
+    if (at<void *>(object, 0x5c)) GameHeap_Free(at<void *>(object, 0x5c));
+    at<void *>(object, 0x5c) = GameHeap_Alloc(0x96000);
+    if (at<void *>(object, 0x5c)) {
+        at<u32>(object, 0x50) = 640;
+        at<u32>(object, 0x54) = 240;
+        at<u32>(object, 0x58) = 4;
+    }
+    at<u32>(object, 0x60) = 0;
+    at<u32>(object, 0x64) = 0;
+    at<u32>(object, 0x68) = 0;
+    if (at<void *>(object, 0x6c)) GameHeap_Free(at<void *>(object, 0x6c));
+    at<u32>(object, 0x6c) = 0;
     return 1;
 }
 

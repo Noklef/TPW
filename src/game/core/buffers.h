@@ -5,6 +5,13 @@
 
 struct SurfaceDesc;  // (gfx/imageops)
 
+struct Blocks7LoadEnv {
+    char *(__cdecl *locate)(const char *name, u32 flags, s32 *index);                        // Quickload_Locate
+    u8(__fastcall *load)(u8 *image, void *, const char *directory, const char *name);       // Image_LoadFile
+};
+
+void Blocks7_SetLoadEnv(const Blocks7LoadEnv *env);
+
 extern "C" {
 
 // 0x5b15a0 (thiscall): every node of the circular list at +4 (count at +8) is unlinked, its counted buffer at +8 reset (CountedBuf_Reset, releasing)
@@ -62,6 +69,10 @@ u8 *__fastcall Blocks7_Ctor(u8 *object);
 // 0x5d48a0 (thiscall (description), pops 4; name unconfirmed): the image at +0x60 made 320 x 240 from a copy of the surface description
 // (Image_ShrinkSurface; its result left in EAX's upper bytes). Returns 1 (AL).
 u8 __fastcall Blocks7_ShrinkSurface(u8 *object, void *, const SurfaceDesc *desc);
+
+// 0x5d47a0 (thiscall; name invented, unconfirmed): the five images at +0, +0x10 .. +0x40 loaded from the folder 0x786de4 and the located names 0x7748d4, 0x7748b8, 0x7748a0, 0x774888, 0x774870. The block +0x5c
+// made anew of 0x96000 bytes, and with one +0x50, +0x54, +0x58 = 640, 240, 4. +0x60, +0x64, +0x68 = 0; the block +0x6c freed and 0. Returns 1 (AL).
+u8 __fastcall Blocks7_LoadAll(u8 *object);
 
 // 0x598760 (thiscall on a pointer variable): the block it points to is freed when it is set; the pointer is left.
 void __fastcall Ptr_FreeIfSet(u8 **ref);
