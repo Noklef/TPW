@@ -10,7 +10,7 @@ from fncmp import LOG, RAM, Bench, Call, _recorder, blob, fb, fill, fill_this, l
 MULTIPLY, TREE, RENDER, UNLINK, BEGIN, ALLOC, ATEXIT, MAKE = 6, 7, 8, 9, 10, 11, 12, 13
 B = Bench([(0x57b8a0, 0x57be81), (0x57b410, 0x57b490)], hooks={0x57b610: _recorder(TREE, 4), 0x57b6e0: _recorder(RENDER, 1), 0x58dc50: _recorder(UNLINK, 1), 0x565240: _recorder(BEGIN, 5), 0x582640: _recorder(ALLOC, 1), 0x67a7d0: _recorder(ATEXIT, 1, cdecl=True), 0x57b490: _recorder(MAKE, 0)})
 SELF, OBJECT, BLOCK, TRANSFORMER, VT, BATCH, VERTICES = RAM, RAM + 0x200, RAM + 0x300, RAM + 0x380, RAM + 0x400, RAM + 0x500, RAM + 0x600
-OPS = ['drawn', 'drawn', 'drawn', 'new block', 'new block', 'cannot make', 'no sun', 'sun upward', 'sun nan', 'due later', 'no batch', 'no vertices', 'tree fails', 'render fails', 'flat box', 'no static']
+OPS = ['drawn', 'drawn', 'drawn', 'new block', 'new block', 'cannot make', 'no sun', 'sun upward', 'sun nan', 'due later', 'no batch', 'no vertices', 'tree fails', 'render fails', 'flat box', 'huge box', 'no static']   # huge box: the grown ends pass the float range, where the registers keep them
 
 
 def floats(r, n, a, b):
@@ -31,6 +31,8 @@ def case(r):
     if op == 'flat box':
         box[3], box[5] = box[0], box[2]
         box[4] = box[1]
+    if op == 'huge box':
+        box = floats(r, 3, -3.4e38, -3.3e38) + floats(r, 3, 3.3e38, 3.4e38)
     obj = bytearray(r.bytes(0x98))
     put(obj, 0x78, 'I', r.getrandbits(32))
     put(obj, 0x80, '6I', *box)
