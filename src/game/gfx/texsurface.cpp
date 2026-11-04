@@ -139,6 +139,34 @@ u8 *__fastcall TexSurfaceB_Ctor(u8 *surface, void *, u32 mostDerived) {
     return surface;
 }
 
+u32 __fastcall TexSurfaceA_BuildMips(u8 *sub) {
+    s32 side = at<s32>(sub, at<u32>(back<const u8 *>(sub, 0x3c), 4) - 0x34) >> 1;
+    u32 desc[0x1f] = {};
+    desc[0] = 0x7c;
+    u8 **const levels = &back<u8 *>(sub, 0x28);
+    u8 *made = nullptr;
+    u32 level = 0, result;
+    for (s32 left = back<s32>(sub, 0x10) - 1; left != 0; --left) {
+        made = reinterpret_cast<u8 *>((uintptr_t)g_calls.Th(0x0058b1f0, 0x008c47d8u, (u32)side, back<u32>(sub, 0xc)));   // the pool's surface
+        if ((result = LevelResult(comcall<u32>(made, 0x64, 0u, desc, 1u, 0u)))) goto failed;
+        g_calls.Th(0x0058b890, (u32)(uintptr_t)(sub - 0x3c), desc, 0x008c48a8u);   // the last level halved into it
+        if ((result = LevelResult(comcall<u32>(back<u8 *>(sub, 0x18), 0x80, 0u)))) goto failed;
+        if ((result = LevelResult(comcall<u32>(levels[level], 0x14, 0u, back<u8 *>(sub, 0x18), 0u, 0x01000000u, 0u)))) goto failed;
+        back<u8 *>(sub, 0x18) = made;
+        made = nullptr;
+        ++level;
+        side >>= 1;
+        for (u32 i = 0; i < 0x1f; ++i) reinterpret_cast<u32 *>((uintptr_t)0x008c48a8)[i] = desc[i];
+    }
+    if ((result = LevelResult(comcall<u32>(back<u8 *>(sub, 0x18), 0x80, 0u)))) goto failed;
+    if (!(result = LevelResult(comcall<u32>(levels[level], 0x14, 0u, back<u8 *>(sub, 0x18), 0u, 0x01000000u, 0u)))) return 1;
+failed:
+    CreateFailed(result);
+    if (made) comcall<u32>(made, 0x80, 0u);
+    comcall<u32>(back<u8 *>(sub, 0x18), 0x80, 0u);
+    return 0;
+}
+
 u32 __fastcall TexSurfaceA_Field38(const u8 *sub) { return back<u32>(sub, 0x38); }
 
 u32 __fastcall TexSurfaceA_Area(const u8 *sub) {

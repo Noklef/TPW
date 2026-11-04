@@ -102,4 +102,7 @@ u32 __fastcall TexSurfaceB_Blit(u8 *sub, void *, u8 *texture, s32 x, s32 y);
 // or, with texture flag 0x400 and a shade map at +0x3c (bytes, the same pitch), multiplied per channel by the dword the map's byte picks
 // from 0x879e38 (4-bit channels below the top one for 2-byte pixels, bytes below the top one for 4-byte), >> 8. Returns 1.
 u32 __fastcall TexSurfaceA_Blit(u8 *sub, void *, u8 *texture, s32 x, s32 y);
+
+// 0x58baf0 (thiscall on class A's sub-object; name invented, unconfirmed): each mip level past the first: a surface of half the side from the pool (0x8c47d8, 0x58b1f0), locked (slot 0x19), the level above halved into it (0x58b890, its last description 0x8c48a8), the one held at ECX - 0x18 unlocked and loaded into the level's array entry (ECX - 0x28, slot 5), the new one then held; the last the same way. A failure goes to the list (kind 2), the surfaces in hand unlocked, 0. Returns 1.
+u32 __fastcall TexSurfaceA_BuildMips(u8 *sub);
 }
