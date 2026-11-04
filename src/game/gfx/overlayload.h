@@ -9,6 +9,9 @@ struct OverlayFile {
     u8 before[0x20];
     const char *name;
     u8 after[0x104];
+
+    OverlayFile() = default;
+    OverlayFile(const OverlayFile &from) { Record_CopyWithText(reinterpret_cast<u8 *>(this), nullptr, reinterpret_cast<const u8 *>(&from)); }
 };
 static_assert(sizeof(OverlayFile) == 0x128, "the entry is 0x128 bytes");
 
