@@ -105,5 +105,7 @@ u32 __fastcall GlobalSave_Serialize(u8 *info, void *, Stream *stream, u32 save, 
 // 0x5b0bc0 (thiscall): each record in the map destroyed (ThemeRecord_Dtor) and freed, then all the map's nodes erased.
 u8 *__fastcall GlobalSave_ThemeMake(u8 *info, void *, const u8 *name);
 u8 *__fastcall GlobalSave_ThemeGet(u8 *info, void *, const u8 *name);
+// 0x5b08a0 (thiscall (name), pops 4; name invented, unconfirmed): the same record kept at +0x48; returns what ThemeRecord_LoadGlobalSam answers (all of EAX). The Debug_Printf on a new one is left out.
+u32 __fastcall GlobalSave_ThemeSelect(u8 *info, void *, const u8 *name);
 void __fastcall GlobalSave_ClearThemes(u8 *info);
 }

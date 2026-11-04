@@ -197,12 +197,22 @@ u8 *__fastcall GlobalSave_ThemeMake(u8 *info, void *, const u8 *name) {
     return record;
 }
 
-u8 *__fastcall GlobalSave_ThemeGet(u8 *info, void *, const u8 *name) {
+static u8 *theme_record(u8 *info, const u8 *name) {
     u8 *const tree = info + 0x38;
     u8 *const node = StdTreeF_LowerBound(tree, nullptr, name);
     const bool there = node != at<u8 *>(tree, 4) && !String_Less(reinterpret_cast<const String *>(name), nullptr, reinterpret_cast<const StringView *>(node + 0xc));
-    u8 *const record = there ? at<u8 *>(node, 0x20) : GlobalSave_ThemeMake(info, nullptr, name);
+    return there ? at<u8 *>(node, 0x20) : GlobalSave_ThemeMake(info, nullptr, name);
+}
+
+u8 *__fastcall GlobalSave_ThemeGet(u8 *info, void *, const u8 *name) {
+    u8 *const record = theme_record(info, name);
     return static_cast<u8>(g_calls.Th(0x005b11c0, (u32)(uintptr_t)record)) ? record : nullptr;   // ThemeRecord_LoadGlobalSam
+}
+
+u32 __fastcall GlobalSave_ThemeSelect(u8 *info, void *, const u8 *name) {
+    u8 *const record = theme_record(info, name);
+    at<u8 *>(info, 0x48) = record;
+    return g_calls.Th(0x005b11c0, (u32)(uintptr_t)record);
 }
 
 void __fastcall GlobalSave_ClearThemes(u8 *info) {
