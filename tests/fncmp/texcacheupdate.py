@@ -152,6 +152,10 @@ def arrange(r):
 
 def place_next(r):
     regions, cache = world(r, r.choice([1, 1, 2, 3, 5, 8, 14]))
+    if r.random() < 0.3:   # (each size's room per entry the same: the choice between sizes a tie)
+        for size in range(6):
+            count, used = struct.unpack_from('<i', cache, 0x1800 + 4 * size)[0], struct.unpack_from('<i', cache, 0x1830 + 4 * size)[0]
+            put(cache, 0x1818 + 4 * size, 'i', used + count)
     return Call(0x58f190, [CACHE, CACHE + 0x18c4], regions, conv='t', ret='a', ignore=IGNORE)
 
 
