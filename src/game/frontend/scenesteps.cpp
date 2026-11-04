@@ -2,8 +2,10 @@
 
 #include <cstdint>
 
+#include "../core/balancefile.h"
 #include "../core/crt.h"
 #include "../core/gameheap.h"
+#include "../core/globalsave.h"
 #include "../core/options.h"
 #include "../core/vcall.h"
 #include "../files/userslots.h"
@@ -27,7 +29,8 @@ template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((ui
 
 const SceneStepsEnv kPorts = {&LobbyModel_Play,   &FrontEnd_Dialog7cc4b4Child, &Dialog7cc4b4_ShowTheme, &Setting_ReadMode, reinterpret_cast<s32(__cdecl *)(void(__cdecl *)())>((uintptr_t)0x0067a7d0),
                               &Class702cb0_NextItem, &Class702cb0_PreviousItem, &Online_ResetConnections, &Dialog7cc47c_Message6On, &Dialog7cc47c_Message6Off, &Dialog7cc984_Open, &Setting_SetMode,
-                              &Class702cb0_Step, &Dialog7cc47cInfo_Show, &UserSlots_Instance, &Class702da0_Show, &Class702bb8_Ctor, &Class702da0_Push};
+                              &Class702cb0_Step, &Dialog7cc47cInfo_Show, &UserSlots_Instance, &Class702da0_Show, &Class702bb8_Ctor, &Class702da0_Push,
+                              &String_CtorStr, &GlobalSave_ThemeGet, &String_Dtor, &GlobalSave_Construct, &GlobalSave_CountSetLevel, &ThemeRecord_GlobalSamField14};
 const SceneStepsEnv *g_env = &kPorts;
 
 u8 *Setting() {
@@ -39,6 +42,15 @@ u8 *Setting() {
         g_env->atExit(reinterpret_cast<void(__cdecl *)()>((uintptr_t)0x005d1750));
     }
     return setting;
+}
+
+u8 *SaveInfo() {
+    u8 *&info = global<u8 *>(0x00f7c58c);
+    if (!info) {
+        u8 *const block = static_cast<u8 *>(GameHeap_Alloc(0x50));
+        info = block ? g_env->saveCtor(block) : nullptr;
+    }
+    return info;
 }
 
 u32 EndState(u8 *self) {
@@ -125,6 +137,21 @@ u32 __fastcall ViewCtl702e70_Back(u8 *self) {
 
 u32 __cdecl ViewCtl702bc8_ListDone(u32 failed, u8 *object, u32 list) {
     return failed ? vcall<u32>(object, 0x2c) : vcall<u32>(object, 0x28, list);
+}
+
+void __fastcall Scene_CheckThemeLevel(u8 *self) {
+    if (at<u32>(self, 0x14) != 0 || !at<u32>(self, 0xc)) return;
+    if (at<u32>(Setting(), 0) == 2) {
+        vcall<void>(self, 0x44);
+        return;
+    }
+    String name;
+    g_env->stringCtor(&name, nullptr, at<const char *>(at<u8 *>(self, 0xc), 0x30));
+    u8 *const record = g_env->themeGet(SaveInfo(), nullptr, reinterpret_cast<const u8 *>(&name));
+    g_env->stringDtor(&name);
+    if (!record) return;
+    const s32 level = g_env->countLevel(SaveInfo());
+    if (static_cast<s32>(g_env->samField(record)) <= level) vcall<void>(self, 0x44);
 }
 
 void __fastcall Scene702dd0_OpenRecord(u8 *self) {

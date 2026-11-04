@@ -3,6 +3,7 @@
 #pragma once
 
 #include "../../../re/types.h"
+#include "../core/string.h"
 
 // Their calls go to env (nullptr: the ports).
 struct SceneStepsEnv {
@@ -24,10 +25,20 @@ struct SceneStepsEnv {
     void(__fastcall *queueShow)(u8 *queue, void *, u32 id, u32 time);     // the queue's show (0x5d61a0)
     u8 *(__fastcall *makeMarker)(u8 *self, void *, u8 *owner, const u8 *record);  // Class702bb8_Ctor (0x5dc3e0)
     void(__fastcall *queuePush)(u8 *queue, void *, u32 id, u32 clear);    // the queue's push (0x5d6110)
+    String *(__fastcall *stringCtor)(String *s, void *edx, const char *text);   // String_CtorStr (0x5f60b0)
+    u8 *(__fastcall *themeGet)(u8 *info, void *, const u8 *name);         // GlobalSave_ThemeGet (0x5b09c0)
+    void(__fastcall *stringDtor)(String *s);                              // String_Dtor (0x5f61e0)
+    u8 *(__fastcall *saveCtor)(u8 *info);                                 // GlobalSave_Construct (0x5aef50)
+    s32(__fastcall *countLevel)(const u8 *info);                          // GlobalSave_CountSetLevel (0x5af680)
+    u32(__fastcall *samField)(u8 *record);                                // ThemeRecord_GlobalSamField14 (0x5b11a0)
 };
 void SceneSteps_SetEnv(const SceneStepsEnv *env);
 
 extern "C" {
+// 0x5e1cc0 (thiscall; name invented, unconfirmed): nothing unless idle with a holder at +0xc. In the mode setting 2 slot 0x44; else the theme named by the holder's text at +0x30 looked up in the
+// global save info (0xf7c58c, made the first time, each time as GlobalSave_Instance does; none: 0): found, and its GlobalSamField14 at most (signed) the info's CountSetLevel: slot 0x44.
+void __fastcall Scene_CheckThemeLevel(u8 *self);
+
 
 // 0x5e1890 (0x702ec0 slot 6): a state not 0 ended (2: the model played (1, 0)), +0x14 = 0; then the dialog 0x7cc4b4's child and theme shown. 1 when a state ended, else 0.
 u32 __fastcall Scene702ec0_EndState(u8 *self);
