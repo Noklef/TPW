@@ -57,6 +57,13 @@ void SortFrame(SortNode *nodes, SortNode *&next, u8 *frame, u32 texture, s32 key
 }  // namespace
 
 void SpriteQueue_SetCalls(const AddrCall *table, u32 count) { g_calls.Set(table, count); }
+
+extern "C" u32 __fastcall SpriteQueue_DrawWithPanels(u8 *self) {
+    if (!g_drawCalls.Th(0x0058a770, (u32)(uintptr_t)self)) return 0;   // SpriteQueue_Draw
+    for (u32 i = at<u32>(self, 0x2408); i > 0; --i)
+        if (!g_drawCalls.Th(0x0058a010, at<u32>(self, 0x2000 + (i - 1) * 4))) return 0;   // TiledPanel_Draw
+    return 1;
+}
 void SpriteQueue_SetDrawCalls(const AddrCall *table, u32 count) { g_drawCalls.Set(table, count); }
 
 extern "C" {
