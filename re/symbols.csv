@@ -5928,6 +5928,9 @@ address,name,kind,confidence,notes
 0x005cefe0,NFileBuf_PutBack,function,low,reimplemented (src/game/core/narrowfilebuf); the narrow file buffer's pbackfail
 0x005cf200,NFileBuf_Uflow,function,low,reimplemented (src/game/core/narrowfilebuf); the narrow file buffer's uflow
 0x005d06c0,NFileBuf_Ctor,function,low,reimplemented (src/game/core/narrowfilebuf); the narrow file buffer's constructor
+0x005d09b0,NFileBuf_Close,function,low,reimplemented (src/game/core/narrowfilebuf); a narrow file buffer's file closed and its pointers cleared
+0x005d0a90,NFileBuf_Init,function,low,reimplemented (src/game/core/narrowfilebuf); a narrow file buffer's _Init
+0x005cf890,NFileBuf_DeletingDtor,function,low,reimplemented (src/game/core/narrowfilebuf); a narrow file buffer destroyed and freed
 0x005d2d40,SwearFilter_Find,function,low,reimplemented (src/game/core/swearfilter); wcsistr for the swear filter
 0x005d3230,SwearFilter_Apply,function,low,reimplemented (src/game/core/swearfilter); the swear filter over a wide string
 0x005cfb60,NCtype_Ctor,function,low,reimplemented (src/game/core/nstream); ctype<char>'s constructor

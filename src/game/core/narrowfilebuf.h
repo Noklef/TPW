@@ -15,6 +15,12 @@ extern "C" {
 // three slots zeroed, vtable 0x709914, Targets3_Set (0, 0, 0). LocaleRef_Ctor on +0x4c, vtable 0x7098dc, byte +0x48 = 0; the reference loses a use and is made again, the pointers again, +0x44 = 0, Targets2_Set (0, 0),
 // Targets3_Set (0, 0, 0). With a file, the slots to its fields: Fn_5d0e00 (+8, +0, +4, +8, +0, +4 of the file). +0x50 = file, +0x40 and +0x3c = [0xfb2760], +0x38 = 0. Returns the buffer.
 u8 *__fastcall NFileBuf_Ctor(u8 *buf, void *, u8 *file);
+// 0x5d09b0 (thiscall; name invented, unconfirmed): a file +0x50 whose fclose answers 0: +0x48 = 0, the pointers cleared, +0x50 = 0, +0x40 and +0x3c = [0xfb2760], +0x38 = 0, returns the buffer; else 0.
+// 0x5d0a90 _Init (file, mode), pops 8 (name invented, unconfirmed): +0x48 = mode is 1. Mode 0: the reference +0x4c loses a use and is made again, +0x44 = 0. The pointers cleared; a file with +0x48 clear: the slots to its fields. Then as above with the file.
+// 0x5cf890 (flags), pops 4 (name invented, unconfirmed): 0x5cec80, then freed with bit 0 of the flags. Returns the buffer.
+u8 *__fastcall NFileBuf_Close(u8 *buf);
+void __fastcall NFileBuf_Init(u8 *buf, void *, u8 *file, u32 mode);
+u8 *__fastcall NFileBuf_DeletingDtor(u8 *buf, void *, u32 flags);
 // 0x5cec80 (an SEH frame, dropped; name invented, unconfirmed): vtable 0x7098dc. Byte +0x48 and a file +0x50 whose fclose answers 0: +0x48 = 0, Wstreambuf_InitPointers, +0x50 = 0, +0x40 and +0x3c = [0xfb2760], +0x38 = 0.
 // The string +0x44, when set, tidied and freed. The locale references +0x4c, then (after vtable 0x709914) +0x34, each when set lose a use, deleted (slot 0 with 1) at the last.
 void __fastcall NFileBuf_Dtor(u8 *buf);

@@ -55,6 +55,18 @@ void set_slot_pointers(u8 *buf) {
     for (const auto &slot : kSlots) at<u8 *>(buf, slot[0]) = buf + slot[1];
 }
 
+void point_at_file(u8 *buf, u8 *file) {
+    const u32 base = (u32)(uintptr_t)file;
+    Fn_5d0e00(buf, nullptr, base + 8, base, base + 4, base + 8, base, base + 4);
+}
+
+void keep_file(u8 *buf, u8 *file) {
+    at<u8 *>(buf, 0x50) = file;
+    at<u32>(buf, 0x40) = global<u32>(0x00fb2760);
+    at<u32>(buf, 0x3c) = global<u32>(0x00fb2760);
+    at<u32>(buf, 0x38) = 0;
+}
+
 }  // namespace
 
 void NarrowFileBuf_SetEnv(const NarrowFileBufEnv *env) { g_env = env ? env : &kGameEnv; }
@@ -78,14 +90,35 @@ u8 *__fastcall NFileBuf_Ctor(u8 *buf, void *, u8 *file) {
     at<u32>(buf, 0x44) = 0;
     Targets2_Set(buf, nullptr, 0, 0);
     Targets3_Set(buf, nullptr, 0, 0, 0);
-    if (file) {
-        const u32 base = (u32)(uintptr_t)file;
-        Fn_5d0e00(buf, nullptr, base + 8, base, base + 4, base + 8, base, base + 4);
+    if (file) point_at_file(buf, file);
+    keep_file(buf, file);
+    return buf;
+}
+
+u8 *__fastcall NFileBuf_Close(u8 *buf) {
+    u8 *const file = at<u8 *>(buf, 0x50);
+    if (!file || g_env->fclose(file)) return nullptr;
+    buf[0x48] = 0;
+    Wstreambuf_InitPointers(buf);
+    keep_file(buf, nullptr);
+    return buf;
+}
+
+void __fastcall NFileBuf_Init(u8 *buf, void *, u8 *file, u32 mode) {
+    buf[0x48] = mode == 1;
+    if (mode == 0) {
+        lose_use(at<u8 *>(buf, 0x4c));
+        LocaleRef_Ctor(reinterpret_cast<u32 *>(buf + 0x4c));
+        at<u32>(buf, 0x44) = 0;
     }
-    at<u8 *>(buf, 0x50) = file;
-    at<u32>(buf, 0x40) = global<u32>(0x00fb2760);
-    at<u32>(buf, 0x3c) = global<u32>(0x00fb2760);
-    at<u32>(buf, 0x38) = 0;
+    Wstreambuf_InitPointers(buf);
+    if (file && !buf[0x48]) point_at_file(buf, file);
+    keep_file(buf, file);
+}
+
+u8 *__fastcall NFileBuf_DeletingDtor(u8 *buf, void *, u32 flags) {
+    NFileBuf_Dtor(buf);
+    if (flags & 1) GameHeap_Free(buf);
     return buf;
 }
 
@@ -94,10 +127,7 @@ void __fastcall NFileBuf_Dtor(u8 *buf) {
     if (buf[0x48] && at<void *>(buf, 0x50) && g_env->fclose(at<void *>(buf, 0x50)) == 0) {
         buf[0x48] = 0;
         Wstreambuf_InitPointers(buf);
-        at<u32>(buf, 0x50) = 0;
-        at<u32>(buf, 0x40) = global<u32>(0x00fb2760);
-        at<u32>(buf, 0x3c) = global<u32>(0x00fb2760);
-        at<u32>(buf, 0x38) = 0;
+        keep_file(buf, nullptr);
     }
     if (u8 *const name = at<u8 *>(buf, 0x44)) {
         StdString_Tidy(reinterpret_cast<StdString *>(name), nullptr, 1);

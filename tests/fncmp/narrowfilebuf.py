@@ -1,6 +1,6 @@
-# A narrow file buffer's constructor, destructor, pbackfail and uflow (src/game/core/narrowfilebuf: 0x5d06c0, 0x5cec80, 0x5cefe0, 0x5cf200) against the originals: fclose, ungetc and fgetc cdecl recorders 18, 23 and 24, the conversion's slot 4 a recorder of
+# A narrow file buffer's constructor, destructor, pbackfail, uflow, close, _Init and deleting destructor (src/game/core/narrowfilebuf: 0x5d06c0, 0x5cec80, 0x5cefe0, 0x5cf200, 0x5d09b0, 0x5d0a90, 0x5cf890) against the originals: fclose, ungetc and fgetc cdecl recorders 18, 23 and 24, the conversion's slot 4 a recorder of
 # 7 arguments whose stack ones are logged as 0 (it writes its local byte); the locale references' deletes slot 0 of a vtable of recorders. The string +0x44 real, in the heap.
-# usage: narrowfilebuf.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=ctor,dtor,putback,uflow)
+# usage: narrowfilebuf.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=ctor,dtor,putback,uflow,close,init,delete)
 import os
 import struct
 import sys
@@ -10,16 +10,16 @@ from fncmp import HEAP, LOG, RAM, Bench, Call, _recorder, answers, fill, heap, l
 
 FCLOSE, UNGETC, FGETC = 18, 23, 24
 IN = 4   # (the conversion's slot)
-B = Bench([(0x5d06c0, 0x5d08e0), (0x5d0e00, 0x5d0e70), (0x5cec80, 0x5cedd0), (0x5cefe0, 0x5cf1c0), (0x5cf200, 0x5cf410), (0x45b340, 0x45b9a0), (0x47b280, 0x47b300), (0x4f6020, 0x4f6080), (0x4ef7b0, 0x4ef800), (0x67acb0, 0x67acb1), (0x67acc0, 0x67acc1)],
+B = Bench([(0x5cf890, 0x5cf8ae), (0x5d09b0, 0x5d0a4c),(0x5d0a90, 0x5d0b72), (0x4f5a50, 0x4f5ad0),(0x5d06c0, 0x5d08e0),(0x5d0e00, 0x5d0e70), (0x5cec80, 0x5cedd0), (0x5cefe0, 0x5cf1c0), (0x5cf200, 0x5cf410), (0x45b340, 0x45b9a0), (0x47b280, 0x47b300), (0x4f6020, 0x4f6080), (0x4ef7b0, 0x4ef800), (0x67acb0, 0x67acb1), (0x67acc0, 0x67acc1)],
           hooks={0x699da0: _recorder(15, 0, cdecl=True), 0x691de0: lambda e: e.r.__setitem__('EAX', e.r['ECX']), 0x691ea0: lambda e: None, 0x67b620: _recorder(FCLOSE, 1, cdecl=True), 0x67cbe0: _recorder(UNGETC, 2, cdecl=True), 0x67cb90: _recorder(FGETC, 1, cdecl=True)})
 BUF, GET, GETN, GETB, CONVERT, CONVERT_VT, STRING, TABLE, TABLE2, LOCALE, LOCALE2, LOCALE_VT = (RAM + 0x100 * i for i in range(12))
 FILE = 0x12345678
-OPS = [n for n in ('ctor', 'dtor', 'putback', 'uflow') if not os.environ.get('OPS') or n in os.environ['OPS'].split(',')]
+OPS = [n for n in ('ctor', 'dtor', 'putback', 'uflow', 'close', 'init', 'delete') if not os.environ.get('OPS') or n in os.environ['OPS'].split(',')]
 
 
 def string_regions(r, regions, length=None):
     """The string +0x44: no text, or a text in the heap with its use count 0, shared or not shareable."""
-    block = heap(0x400, fail=r.choice([0, 0, 0, 0, 0, 0, 1]))
+    block = heap(0x400, fail=r.choice([0] * 39 + [1]))   # (a failed block: a fault in both in StdString_Grow, which ends the case)
     string = bytearray(0x10)
     length = r.choice([0, 1, 2, 5, 16]) if length is None else length
     if length or r.random() < 0.8:
@@ -53,7 +53,7 @@ def case(r):
         regions[0xfb1dd0] = struct.pack('<I', LOCALE)
         regions[0xfb2760] = r.bytes(4)
         return Call(0x5d06c0, [BUF, r.choice([0, r.getrandbits(32) | 1, RAM + 0x1000])], regions, conv='t', ret='a')
-    if name == 'dtor':
+    if name in ('dtor', 'delete'):
         buf[0x48] = r.choice([0, 1, 1, 1])
         put(buf, 0x44, 'I', r.choice([STRING, STRING, 0]))
         put(buf, 0x4c, 'I', r.choice([LOCALE, LOCALE, 0]))
@@ -63,7 +63,21 @@ def case(r):
         regions[LOCALE_VT] = vtable({0: 1})
         regions[0xfb2760] = r.bytes(4)
         set_return(log, FCLOSE, r.choice([0, 0, 1, 0xffffffff]))
+        if name == 'delete':
+            return Call(0x5cf890, [BUF, r.choice([0, 1, 2, 3, r.getrandbits(32)])], regions, conv='t', ret='a')
         return Call(0x5cec80, [BUF], regions, conv='t', ret='v')
+    if name == 'close':   # (0x5d09b0: no file, fclose failing or not)
+        regions[0xfb2760] = r.bytes(4)
+        set_return(log, FCLOSE, r.choice([0, 0, 0, 1, 0xffffffff]))
+        return Call(0x5d09b0, [BUF], regions, conv='t', ret='a')
+    if name == 'init':    # (0x5d0a90: the file set or not, the mode 0, 1 or other; mode 0 loses the locale reference +0x4c)
+        put(buf, 0x4c, 'I', r.choice([LOCALE, LOCALE, 0]))
+        regions[LOCALE] = struct.pack('<II', LOCALE_VT, r.choice([0, 1, 1, 2, 5, 0xffffffff]))
+        regions[LOCALE_VT] = vtable({0: 1})
+        regions[0xfb1dd0] = struct.pack('<I', LOCALE)
+        regions[0xfb2760] = r.bytes(4)
+        set_return(log, 15, LOCALE)
+        return Call(0x5d0a90, [BUF, r.choice([0, RAM + 0x1000, RAM + 0x1000]), r.choice([0, 0, 1, 1, 2, r.getrandbits(32)])], regions, conv='t', ret='v')
     if name == 'putback':
         put(buf, 0xc, 'I', GETB)
         put(buf, 0x2c, 'I', GETN)
@@ -79,9 +93,11 @@ def case(r):
     put(buf, 0x1c, 'I', GET)
     put(buf, 0x2c, 'I', GETN)
     regions[GET] = bytearray(0x20)
-    put(regions[GET], 0, 'I', r.choice([0, GET + 0x10, GET + 0x10, 0xfffffff0]))
+    position = r.choice([0, GET + 0x10, GET + 0x10, 0xfffffff0])
+    put(regions[GET], 0, 'I', position)
     regions[GET][0x10] = r.randrange(256)
-    regions[GETN] = struct.pack('<I', r.choice([0, 0, 0, 1, 3, 0x80000000]))
+    # (the position near the top wraps with the big count, so no read; with a small count it reads and faults in both)
+    regions[GETN] = struct.pack('<I', r.choice([0, 0x80000000] if position == 0xfffffff0 else [0, 0, 0, 1, 3, 0x80000000]))
     regions[TABLE] = struct.pack('<40I', *[r.choice([0, 1, 1, 3, 3, 2]) for _ in range(40)])
     answers(log, IN, TABLE)
     fgetc = [r.choice([0x41, r.randrange(256), r.randrange(256), r.getrandbits(32) & ~1]) for _ in range(r.randrange(1, 8))] + [0xffffffff]
