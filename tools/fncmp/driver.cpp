@@ -9,10 +9,10 @@
 //
 // Memory is laid out as the emulator has it: the game's data sections sit at their own addresses,
 // reloaded from tp.exe before each case, and any other region is mapped on demand and released
-// after each case. The driver's image is fixed at 0x100000 (CMakeLists.txt), so the game's
+// after each case. The driver's image is fixed at 0x10000 (CMakeLists.txt), so the game's
 // whole image lies in the driver's g_game, a section of its own (.game) that the linker puts
 // right after the driver's code; that it covers the range is checked at start-up:
-//   0x100000 ..             the driver's headers and code (.text), below the game's image
+//   0x10000 ..              the driver's headers and code (.text), below the game's image
 //   .. 0x400000             g_game's head: no access (nothing of the game's)
 //   0x400000 - 0x401000     the game's headers: no access (the emulator has only its sections)
 //   0x401000 - 0x6e7000     the game's code, loaded once from tp.exe, read-only: the emulator reads
@@ -446,13 +446,13 @@ using s32 = std::int32_t;
 const u32 kGameBase = 0x00400000, kGameCode = 0x00401000;  // the game's image base, its .text
 const u32 kGameLow = 0x006e7000, kGameHigh = 0x00fc5200;  // cseg .. .rsrc
 const u32 kGameTailEnd = 0x01110000;                       // g_game reaches at least this far (see below)
-// The game's whole image, in a section of its own that the linker places right after the driver's .text (the image is fixed at 0x100000,
+// The game's whole image, in a section of its own that the linker places right after the driver's .text (the image is fixed at 0x10000,
 // so the code ends below 0x400000: load_exe checks it). It reaches from wherever the code ends to past kGameTailEnd: the driver's
 // .rdata / .data / .bss follow it, and what follows the game's data natively is g_game's own tail, which load_exe takes all access from
 // (when the CRT's statics followed the game's data, a case's wild pointer read natively what the emulator does not have:
 // windowtimers.py's 0x65f024 read the CRT's stdout buffer at 0x10d30e4).
 #pragma bss_seg(".game")
-u8 g_game[kGameTailEnd - 0x00101000];  // (sized for a driver .text of no size at all; it is ~1.8 MB, so g_game ends near 0x12c0000)
+u8 g_game[kGameTailEnd - 0x00011000];  // (sized for a driver .text of no size at all; it is ~3 MB, so g_game ends near 0x1410000)
 #pragma bss_seg()
 
 struct Section {
