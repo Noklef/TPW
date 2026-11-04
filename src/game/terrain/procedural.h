@@ -17,6 +17,9 @@ void TerrainTex_SetCalls(const AddrCall *table, u32 count);
 
 extern "C" {
 
+// 0x56dfe0 (cdecl (a, b); name invented, unconfirmed): flag 0x10000000 of [0x8bd550] clear: TerrainTex_Init (a, b) of the object [0x879d60] and its answer, or 1 with none. Set: 1, with a fallback line logged when [0x8bd508] has 0x2000000.
+u32 __cdecl TerrainTex_InitGlobal(u32 a, u32 b);
+
 // 0x56dfb0: renderer flags 0x8bd550 |= 4, unless they have 0x10000000.
 void __cdecl TerrainTex_Enable();
 
