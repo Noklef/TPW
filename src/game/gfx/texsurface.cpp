@@ -32,9 +32,77 @@ s32 Idiv(s32 a, s32 divisor) {
     return q;
 }
 
+AddrCalls g_calls;
+
+template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
+
+u32 CreateFailed(u32 code) {
+    g_calls.Th(0x0056af20, 0x00879ad0u, 2u, code);   // EngineErrors_Push
+    return 0;
+}
+
+// A level's call result kept, a failure written to the debug log; read back as the original does.
+u32 LevelResult(u32 result) {
+    global<u32>(0x00879cd4) = result;
+    if ((s32)result < 0) {
+        g_calls.Cd(0x00564650, g_calls.Cd(0x0056a770, result));   // EngineDebug_Log, DxResult_Message
+        return global<u32>(0x00879cd4);
+    }
+    return result;
+}
+
+// The device's CreateSurface timed by the free video memory.
+u32 CreateTimed(u8 *device, u8 *sub, u32 *desc) {
+    const u32 before = g_calls.Th(0x005645a0, global<u32>(0x00879a24));   // Obj_FreeVideoMemory
+    global<u32>(0x00879cd4) = comcall<u32>(device, 0x18, desc, sub - 0x28, 0u);
+    global<u32>(0x008c4898) = before - g_calls.Th(0x005645a0, global<u32>(0x00879a24));
+    return global<u32>(0x00879cd4);
+}
+
 }  // namespace
 
+void TexSurface_SetCalls(const AddrCall *table, u32 count) { g_calls.Set(table, count); }
+
 extern "C" {
+
+u32 __fastcall TexSurfaceA_Create(u8 *sub, void *, u32 width, u32 height, u32 format, u32 levels) {
+    u8 *const device = at<u8 *>(global<u8 *>(0x00879a24), 8);
+    u32 desc[0x1f] = {};
+    desc[3] = width;
+    desc[0] = 0x7c;
+    desc[2] = height;
+    const u32 *pixelFormat;
+    if (!g_calls.Th(0x00573820, global<u32>(0x00879da8), &pixelFormat, format))   // TexFormat_Record
+        return CreateFailed(0xb0754003);
+    for (u32 i = 0; i < 8; ++i)
+        desc[0x12 + i] = pixelFormat[i];
+    desc[1] = 0x21007;
+    desc[6] = levels ? levels : 1;
+    desc[0x1a] = 0x10405008;
+    if (CreateTimed(device, sub, desc)) {
+        desc[0x1a] = 0x20405008;
+        if (const u32 result = CreateTimed(device, sub, desc))
+            return CreateFailed(result);
+    }
+    back<u32>(sub, 0x14) = reinterpret_cast<const u32 *>((uintptr_t)0x007021c0)[format];
+    back<u32>(sub + at<u32>(back<const u8 *>(sub, 0x3c), 4), 0x34) = width;
+    back<u32>(sub + at<u32>(back<const u8 *>(sub, 0x3c), 4), 0x30) = height;
+    back<u32>(sub, 0xc) = format;
+    const u32 count = levels ? levels : 1;
+    back<u32>(sub, 0x10) = count;
+    u32 caps[4];   // (only the first set: the rest the stack's, sic)
+    caps[0] = 0x401000;
+    u8 **const surfaces = &back<u8 *>(sub, 0x28);
+    for (u32 i = 0; i + 1 < count; ++i)
+        if (const u32 result = LevelResult(comcall<u32>(surfaces[i], 0x30, caps, &surfaces[i + 1])))
+            return CreateFailed(result);
+    u8 **const interfaces = &back<u8 *>(sub, 0x38);
+    for (u32 i = back<u32>(sub, 0x10); i-- > 0;)
+        if (const u32 result = LevelResult(comcall<u32>(surfaces[i], 0, 0x007075d0u, &interfaces[i])))
+            return CreateFailed(result);
+    return 1;
+}
+
 
 u8 *__fastcall TexSurfaceA_Ctor(u8 *surface, void *, u32 mostDerived) {
     if (mostDerived) {
@@ -69,6 +137,34 @@ u8 *__fastcall TexSurfaceB_Ctor(u8 *surface, void *, u32 mostDerived) {
     at<u32>(surface, 8) = 0;
     at<u32>(surface, 4) = 0;
     return surface;
+}
+
+u32 __fastcall TexSurfaceA_BuildMips(u8 *sub) {
+    s32 side = at<s32>(sub, at<u32>(back<const u8 *>(sub, 0x3c), 4) - 0x34) >> 1;
+    u32 desc[0x1f] = {};
+    desc[0] = 0x7c;
+    u8 **const levels = &back<u8 *>(sub, 0x28);
+    u8 *made = nullptr;
+    u32 level = 0, result;
+    for (s32 left = back<s32>(sub, 0x10) - 1; left != 0; --left) {
+        made = reinterpret_cast<u8 *>((uintptr_t)g_calls.Th(0x0058b1f0, 0x008c47d8u, (u32)side, back<u32>(sub, 0xc)));   // the pool's surface
+        if ((result = LevelResult(comcall<u32>(made, 0x64, 0u, desc, 1u, 0u)))) goto failed;
+        g_calls.Th(0x0058b890, (u32)(uintptr_t)(sub - 0x3c), desc, 0x008c48a8u);   // the last level halved into it
+        if ((result = LevelResult(comcall<u32>(back<u8 *>(sub, 0x18), 0x80, 0u)))) goto failed;
+        if ((result = LevelResult(comcall<u32>(levels[level], 0x14, 0u, back<u8 *>(sub, 0x18), 0u, 0x01000000u, 0u)))) goto failed;
+        back<u8 *>(sub, 0x18) = made;
+        made = nullptr;
+        ++level;
+        side >>= 1;
+        for (u32 i = 0; i < 0x1f; ++i) reinterpret_cast<u32 *>((uintptr_t)0x008c48a8)[i] = desc[i];
+    }
+    if ((result = LevelResult(comcall<u32>(back<u8 *>(sub, 0x18), 0x80, 0u)))) goto failed;
+    if (!(result = LevelResult(comcall<u32>(levels[level], 0x14, 0u, back<u8 *>(sub, 0x18), 0u, 0x01000000u, 0u)))) return 1;
+failed:
+    CreateFailed(result);
+    if (made) comcall<u32>(made, 0x80, 0u);
+    comcall<u32>(back<u8 *>(sub, 0x18), 0x80, 0u);
+    return 0;
 }
 
 u32 __fastcall TexSurfaceA_Field38(const u8 *sub) { return back<u32>(sub, 0x38); }

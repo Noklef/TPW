@@ -10,6 +10,7 @@
 #include "../math/x87.h"
 #include "../render/engineerrors.h"
 #include "../render/meshlist.h"
+#include "../render/clipcodes.h"
 #include "../render/renderer.h"
 #include "../render/worldview.h"
 #include "land.h"
@@ -247,6 +248,40 @@ void __fastcall Extents_Include(u8 *extents, void *, s32 low, s32 first, s32 hig
         if (highest < high)
             highest = (s8)high;
     }
+}
+
+void __fastcall TerrainTex_CullRect(u8 *self, void *, s32 x0, s32 y0, s32 x1, s32 y1) {
+    const u8 *const header = at<const u8 *>(self, 0);
+    const s32 area = (x1 - x0) * (y1 - y0);
+    const float xa = (float)(X87Reg((double)x0) * at<float>(header, 0x10) + at<float>(header, 8));
+    const float ya = (float)(X87Reg((double)y0) * at<float>(header, 0x14) + at<float>(header, 0xc));
+    const float xb = (float)(X87Reg((double)x1) * at<float>(header, 0x10) + at<float>(header, 8));
+    const float yb = (float)(X87Reg((double)y1) * at<float>(header, 0x14) + at<float>(header, 0xc));
+    const float low = at<float>(header, 0x20), high = at<float>(header, 0x24);
+    const float points[8][3] = {{xa, X87_Through(low), ya}, {xb, low, ya}, {xa, low, yb}, {xb, low, yb}, {xa, high, ya}, {xb, high, ya}, {xa, high, yb}, {xb, high, yb}};
+    float out[8][4];
+    u8 *const object = *reinterpret_cast<u8 **>(0x0087b1d8);
+    using Transform = void(__cdecl *)(u8 *, u32, float *, const float *, u32, u32, u32, u32);
+    reinterpret_cast<Transform>(at<u32>(at<u8 *>(object, 0), 4))(object, global(0x0087b088), out[0], points[0], 0x10, 0xc, 8, 0);
+    u32 result;
+    u8 codes[8];
+    ClipCodes_Compute(global(0x00879a20), 0, reinterpret_cast<u8 *>(&result), codes, reinterpret_cast<const u8 *>(out), 8, 0x10, 0xff);
+    if (result & 0xff) return;
+    if ((result & 0xff00) && area != 1) {
+        const s32 xm = (x1 + x0) >> 1, ym = (y1 + y0) >> 1;
+        if (xm > x0) {
+            if (ym > y0) TerrainTex_CullRect(self, nullptr, x0, y0, xm, ym);
+            if (y1 > ym) TerrainTex_CullRect(self, nullptr, x0, ym, xm, y1);
+        }
+        if (x1 > xm) {
+            if (ym > y0) TerrainTex_CullRect(self, nullptr, xm, y0, x1, ym);
+            if (y1 > ym) TerrainTex_CullRect(self, nullptr, xm, ym, x1, y1);
+        }
+        return;
+    }
+    Extents_Include(self, nullptr, x0, y0, x1, y1);
+    for (const float *corner : out)
+        if (!((double)at<float>(self, 0x1c) >= (double)corner[2])) at<u32>(self, 0x1c) = *reinterpret_cast<const u32 *>(&corner[2]);
 }
 
 void __fastcall TerrainTex_LightGrid(u8 *tex) {

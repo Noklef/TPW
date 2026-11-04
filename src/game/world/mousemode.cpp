@@ -40,10 +40,12 @@ const MouseModeEnv kGameEnv = {reinterpret_cast<void(__cdecl *)(void *)>(0x0067a
                                 reinterpret_cast<void(__cdecl *)(s32, s32, u32)>(0x005234d0),
                                 &GameMode_Set};
 const MouseModeEnv *g_env = &kGameEnv;
+AddrCalls g_calls;
 
 }  // namespace
 
 void MouseModes_SetEnv(const MouseModeEnv *env) { g_env = env ? env : &kGameEnv; }
+void MMPlaceStaff_SetCalls(const AddrCall *table, u32 count) { g_calls.Set(table, count); }
 
 extern "C" {
 
@@ -132,6 +134,30 @@ void __fastcall MMPlaceStaff_Hover(u8 *self, void *, u32, u32, u32, u32) {
         (MapCell_IsType0(cell) || MapCell_IsType1(cell) || MapCell_IsType3Or9(cell)))
         return;
     DynFaces_AddSquare(bits(x - 5.0f), 0x3f800000, bits(z - 5.0f), 0, 1, 0, 0x3f800000, 0, 0, 0, 0);
+}
+
+void __fastcall MMPlaceStaff_Click(u8 *self, void *, u32, u32) {
+    const u32 tile = *reinterpret_cast<const u16 *>(0x007b05cc);
+    u8 *const cell = *reinterpret_cast<u8 **>(0x007cf83c) + 0x294 + tile * 0x44;
+    const u16 *const handle = reinterpret_cast<const u16 *>(cell);
+    if (MapHandle_IsTypeBDOr10Or12Or19(handle) || MapCell_HasFlags(cell, nullptr, 0x40) || MapHandle_ParentIsType19(handle) ||
+        !(MapCell_IsType0(cell) || MapCell_IsType1(cell) || MapCell_IsType3Or9(cell)))
+        return;   // (a Debug_Printf left out)
+    struct Staff {
+        u32 kind, size, ctor;
+    };
+    static const Staff kStaff[] = {{4, 0x220, 0x004d9eb0}, {5, 0x220, 0x004d6b60}, {6, 0x218, 0x004d4340}, {7, 0x218, 0x004d5d40}, {8, 0x218, 0x00502600}};
+    for (const Staff &staff : kStaff) {
+        if (at<u32>(self, 0xc) != staff.kind) continue;
+        if (void *const block = GameHeap_Alloc(staff.size))
+            g_calls.Th(staff.ctor, (u32)(uintptr_t)block, tile, (u32)at<u8>(self, 0x10), (u32)at<u8>(self, 0x11), at<u32>(self, 0x14));
+        break;
+    }
+    at<u8>(self, 0x18) = 1;
+    u8 *const block = static_cast<u8 *>(GameHeap_Alloc(8));
+    u8 *const mode = block ? MouseModeOnlineBase_Ctor(block) : nullptr;
+    MouseModes_EnsureHolder();   // (inlined)
+    MouseMode_Set(mode);
 }
 
 void __fastcall MouseMode_Nop2(void *, void *, u32, u32) {}

@@ -633,3 +633,54 @@ u32 __fastcall SpriteFrame_GroundQuad(u8 *frame, void *, float *quad, u32 matrix
     return global<u32>(0x008c1808 + 4 * global<u32>(0x008c181c));
 }
 }
+
+namespace {
+AddrCalls g_calls;
+}
+
+void SpriteFrame_SetCalls(const AddrCall *table, u32 count) { g_calls.Set(table, count); }
+
+extern "C" {
+
+u32 __fastcall SpriteFrame_Show(u8 *frame) {
+    const u32 flags = at<u32>(frame, 0x10);
+    if (flags & 1) {
+        at<u32>(frame, 0x10) = flags & ~0x10000000u;
+        return 1;
+    }
+    u8 *image = at<u8 *>(frame, 0x28);
+    if (!image) return 1;
+    if (at<u32>(image, 4)) {
+        const u16 shownWide = at<u16>(frame, 0x30), shownHigh = at<u16>(frame, 0x32);
+        if (at<u32>(image, 0) && ((s32)at<u16>(image, 0x10) != (s32)(s16)shownWide || (s32)at<u16>(image, 0x12) != (s32)(s16)shownHigh))   // sic: unsigned against signed
+            g_calls.Th(0x00588ba0, (u32)(uintptr_t)image);   // SpriteImage_FreeTextures
+        at<u16>(image, 0x10) = shownWide;
+        at<u16>(image, 0x12) = shownHigh;
+        image = at<u8 *>(frame, 0x28);
+        if (!at<u32>(image, 0)) g_calls.Th(0x005889b0, (u32)(uintptr_t)image, (s32)at<s16>(frame, 0x34), (s32)at<s16>(frame, 0x36));   // SpriteImage_MakeTextures
+        for (u32 i = 0; i < at<u16>(image, 0x16); ++i)
+            g_calls.Th(0x0058c9f0, global<u32>(0x008c4b44), at<u32>(image, 0) + i * 0x60, 0x3dcccccdu);   // TexCache_TouchItem (0.1)
+        g_calls.Th(0x0058a6e0, global<u32>(0x008c47a0), frame);   // SpriteQueue_Add2
+        return 1;
+    }
+    if (flags & 0x40000) {
+        at<u32>(frame, 0x10) = flags | 0x10000000u;
+        g_calls.Th(0x0058c9f0, global<u32>(0x008c4b44), at<u32>(image, 0), 0x3f000000u);   // (0.5)
+        g_calls.Th(0x0058a6b0, global<u32>(0x008c47a0), frame);   // SpriteQueue_Add
+        return 1;
+    }
+    g_calls.Th(0x00578d20, global<u32>(0x0087b088), frame, frame + 0x14, 0u);   // Mat4_Transform
+    const float radius = (float)(X87Reg(at<float>(frame, 0x2c)) * 20.0f);
+    const float x = at<float>(frame, 0), y = at<float>(frame, 4), z = at<float>(frame, 8), w = at<float>(frame, 0xc);
+    if (!(z > 0.0f) || (double)z >= (double)w ||
+        (X87Reg(x) - radius).v >= (double)w || !((X87Reg(radius) + x).v > (double)-w) ||
+        (X87Reg(y) - radius).v >= (double)w || !((X87Reg(radius) + y).v > (double)-w)) {
+        at<u32>(frame, 0x10) &= ~0x10000000u;
+        return 1;
+    }
+    g_calls.Th(0x0058a6b0, global<u32>(0x008c47a0), frame);
+    at<u32>(frame, 0x10) |= 0x10000000u;
+    g_calls.Th(0x0058c9f0, global<u32>(0x008c4b44), at<u32>(at<u8 *>(frame, 0x28), 0), at<u32>(frame, 8));
+    return 1;
+}
+}

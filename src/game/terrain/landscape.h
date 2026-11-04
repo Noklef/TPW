@@ -50,6 +50,11 @@ void __fastcall Landscape_SetPoint(u8 *landscape, void *, s32 i, u32 x, u32 y, u
 // 0x585710 (thiscall; level): +0x2ec8, the detail level.
 void __fastcall Landscape_SetDetail(u8 *landscape, void *, u32 level);
 
+// 0x585720 (thiscall; name unconfirmed): the dome rebuilt from the sizes (ints +0x21e0, +0x21e4) and the centre (+0x1f64, floats). A 16 by 16 grid at +0x360 (0xc bytes a point, the row's step 0xc, the column's 0xc0), each point's y the centre's less 0.2 of its distance, with a grey from rand
+// in each of the four colour layers from +0xf60 (0x400 apart). Two runs of 9 rims of 4 points (0x30 bytes each, from +0): the first and second halves of a circle at 0.6 of the width, the first at the top, the last at minus the top, 0.98, 0.96 and 0.84 of the way inward (sic: the 16th appears twice).
+// The triangles of the grid whose corners are all above the rim's lowest level, as words at +0x21fc; their word count to +0x1f60. Returns 1.
+u32 __fastcall Landscape_BuildDome(u8 *landscape);
+
 // 0x585ef0 (thiscall): +0x1fd0.
 u32 __fastcall Landscape_List(const u8 *landscape);
 

@@ -13,6 +13,7 @@
 #pragma once
 
 #include "../../../re/types.h"
+#include "../core/addrcalls.h"
 
 struct MouseModeEnv {
     void(__cdecl *free)(void *block);                  // Mem_Free (0x67acb0)
@@ -23,8 +24,14 @@ struct MouseModeEnv {
 // The deleting destructors' frees, MouseMode_Set's atexit and MouseModeTile_Assign's two calls go to env (nullptr: the game's, GameMode_Set
 // the port).
 void MouseModes_SetEnv(const MouseModeEnv *env);
+void MMPlaceStaff_SetCalls(const AddrCall *table, u32 count);   // MMPlaceStaff_Click's staff constructors
 
 extern "C" {
+
+// 0x46c8e0 (thiscall on CMMPlaceStaff, two arguments unused, pops 8; name invented, unconfirmed): on a tile fit for it (as MMPlaceStaff_Hover tests the cell)
+// a new member of the kind +0xc (4 mechanic, 5 handyman, 6 entertainer, 7 guard, 8 researcher; another kind: none) on the tile with the type byte +0x10,
+// sprite byte +0x11 and name +0x14; the byte +0x18 set; a new CMMOnline base mode (0x6fea10) made the mode, the holder made first if there is none.
+void __fastcall MMPlaceStaff_Click(u8 *self, void *, u32, u32);
 
 // 0x40bed0 (cdecl; name unconfirmed; also inlined in 0x481a10 and 0x485b70): the one-byte object at [0x7b05e8] made the first time
 // (Mem_Alloc(1), its byte left as it is) and constructed (MouseModeHolder_Ctor, inlined there). Its allocation failing: [0x7b05e8] stays

@@ -27,4 +27,11 @@ u32 __cdecl Sprite_RandomAnim(u32 folder, u32 sprite);
 // counts animations, 16 per sprite): the frame's entry in the frame table; no mirroring
 // (direction & 7, 0 for a sprite without directions). Nothing calls it.
 u32 __cdecl Sprite_FrameEntry(s32 anim, u32 frame, u32 dir);
+// 0x540d90 (thiscall on the sprite; entry, files; pops 8): the file named at the entry's +0x24, opened on a new stream by the file system (its vtable's +0xc: (result out, stream, path, 0x80000001, 0),
+// the result's dword below 0 a failure): 0x10c bytes skipped, the flags +0x205 / +0x206, 16 animations (word, two bytes; the count of those with the first byte +0x21e), 4 actions of four bytes, the first's
+// read failing leaving them clear (the count of those with a first byte +0x20c). The stream is closed; +4 gets the path without the suffix the global string 0x8757a8 is as long as. The path then has that length
+// taken off and a suffix put on: by [0x763f28] 0x875fe8 / 0x876270 or else 0x875598 / 0x8757a8, the first of each when [0x8768fc] and +0x205 are set. That file opened, a new 0x10-byte frame set (+0)
+// is loaded (SpriteFrames_Load; +0x204 = loaded), +0x208 = its count, +0x207 = [0x877354], and if that is set SpriteFrames_MarkTextures; [0x87626c] counts up. Returns 1 in AL, 0 for a failed open or stream
+// block (the stream is not freed: sic).
+u32 __fastcall Sprite_LoadEsp(u8 *sprite, void *, const u8 *entry, u8 *files);
 }

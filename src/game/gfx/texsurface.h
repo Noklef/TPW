@@ -9,6 +9,9 @@
 #pragma once
 
 #include "../../../re/types.h"
+#include "../core/addrcalls.h"
+
+void TexSurface_SetCalls(const AddrCall *table, u32 count);
 
 extern "C" {
 
@@ -68,6 +71,14 @@ u8 *__fastcall Renderer_NewSurfaceA(void *self);
 // 0x573e70 (thiscall, this unused; name unconfirmed; behind the thunk 0x573f00): the same for class B (0x24 bytes, TexSurfaceB_Ctor).
 u8 *__fastcall SoftRenderer_NewSurfaceB(void *self);
 
+// 0x58b4f0 (thiscall on class A's sub-object; pops 0x10; name invented, unconfirmed): the surfaces of a texture: a surface description of the pixel
+// format's record (0x573820; none: the error 0xb0754003 on the engine's list, 0), `levels` mip levels (0 is 1) and caps 0x10405008 goes to the device's
+// CreateSurface (slot 0x18), with the caps' bit 0x10000000 changed to 0x20000000 if it fails (it failing again: its result on the list, 0), the video
+// memory used noted at 0x8c4898. Then the format's bits, the sizes in the virtual base (the vbtable read for each), the format and levels stored; each
+// level's attached surface (slot 0x30) goes into the array at ECX - 0x28, and each level's interface (slot 0, IID 0x7075d0; last level first) into the
+// array at ECX - 0x38. A result below 0 goes to the debug log; any non-zero one to the list, 0. Returns 1.
+u32 __fastcall TexSurfaceA_Create(u8 *sub, void *, u32 width, u32 height, u32 format, u32 levels);
+
 // 0x58b790 (thiscall on class A's sub-object; name unconfirmed; behind the thunk 0x58c2a0): for each index from count - 1 down to 0 (count the
 // dword at ECX - 0x10, at least 1), the COM objects of the two arrays at ECX - 0x38 and ECX - 0x28 (that order) that are set are released
 // (slot 2) and cleared; then the dword at ECX - 0x18 is cleared. Returns 1.
@@ -91,4 +102,7 @@ u32 __fastcall TexSurfaceB_Blit(u8 *sub, void *, u8 *texture, s32 x, s32 y);
 // or, with texture flag 0x400 and a shade map at +0x3c (bytes, the same pitch), multiplied per channel by the dword the map's byte picks
 // from 0x879e38 (4-bit channels below the top one for 2-byte pixels, bytes below the top one for 4-byte), >> 8. Returns 1.
 u32 __fastcall TexSurfaceA_Blit(u8 *sub, void *, u8 *texture, s32 x, s32 y);
+
+// 0x58baf0 (thiscall on class A's sub-object; name invented, unconfirmed): each mip level past the first: a surface of half the side from the pool (0x8c47d8, 0x58b1f0), locked (slot 0x19), the level above halved into it (0x58b890, its last description 0x8c48a8), the one held at ECX - 0x18 unlocked and loaded into the level's array entry (ECX - 0x28, slot 5), the new one then held; the last the same way. A failure goes to the list (kind 2), the surfaces in hand unlocked, 0. Returns 1.
+u32 __fastcall TexSurfaceA_BuildMips(u8 *sub);
 }

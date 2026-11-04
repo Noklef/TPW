@@ -6,6 +6,7 @@
 
 #include "../core/gameheap.h"
 #include "array3d.h"
+#include "imagecodec.h"
 #include "../math/x87.h"
 
 namespace {
@@ -654,6 +655,59 @@ u8 __fastcall Image_ShrinkToImage(const u8 *image, void *, u8 *dest) {
     GameHeap_Free(ycounts);
     GameHeap_Free(xcounts);
     GameHeap_Free(rows);
+    return 1;
+}
+}  // extern "C"
+
+namespace {
+AddrCalls g_calls;
+}
+
+void Image_SetCalls(const AddrCall *table, u32 count) { g_calls.Set(table, count); }
+
+extern "C" {
+
+u8 __fastcall Image_LoadFile(u8 *image, void *, const char *directory, const char *name) {
+    ImageCodec codec;   // (the TGA codec, on the stack)
+    SurfaceInfo_Ctor(&codec.info);
+    codec.vtable = reinterpret_cast<void *const *>((uintptr_t)0x006fefa8);
+    SurfaceInfo info;
+    SurfaceInfo_Ctor(&info);
+    char path[0x100];
+    char *end = path;
+    while ((*end = *directory++)) ++end;
+    while ((*end++ = *name++)) {}
+    s32 status;
+    if (*reinterpret_cast<s32 *>((uintptr_t)g_calls.Th(0x005fa8a0, (u32)(uintptr_t)&codec, &status, path, 0u, &info)) < 0) return 0;   // ImageCodec_InfoFromFile
+    g_calls.Th(0x005fa6f0, (u32)(uintptr_t)&info, &status);   // SurfaceInfo_Alloc
+    if (*reinterpret_cast<s32 *>((uintptr_t)g_calls.Th(0x005faa00, (u32)(uintptr_t)&codec, &status, &info, path, 0u, 0u)) < 0) {   // ImageCodec_LoadFromFile
+        g_calls.Th(0x005fa740, (u32)(uintptr_t)&info);   // SurfaceInfo_Free
+        return 0;
+    }
+    const bool single = info.paletted == 1;
+    u8 *&block = *reinterpret_cast<u8 **>(image + 0xc);
+    if (block) GameHeap_Free(block);
+    const u32 size = single ? info.width * info.height : info.width * info.height * 4;
+    u8 *const pixels = static_cast<u8 *>(GameHeap_Alloc(size));
+    block = pixels;
+    if (!pixels) return 0;   // sic: the bits stay allocated
+    if (single) {
+        std::memcpy(pixels, info.bits, size);
+    } else {
+        const u8 *from = static_cast<const u8 *>(info.bits);
+        u8 *to = pixels;
+        for (u32 y = 0; y < info.height; ++y)
+            for (u32 x = 0; x < info.width; ++x, from += 4, to += 4) {
+                to[0] = from[3];
+                to[1] = from[2];
+                to[2] = from[1];
+                to[3] = from[0];
+            }
+    }
+    *reinterpret_cast<u32 *>(image) = info.width;
+    *reinterpret_cast<u32 *>(image + 4) = info.height;
+    *reinterpret_cast<u32 *>(image + 8) = single ? 1 : 4;
+    g_calls.Th(0x005fa740, (u32)(uintptr_t)&info);
     return 1;
 }
 }  // extern "C"

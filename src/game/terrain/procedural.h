@@ -100,4 +100,9 @@ void __cdecl Terrain_InitUnusedEpsilon();
 // inclusive, the signed byte at +0x28 + column is lowered to the low byte of `low` when above it
 // (compared as a dword) and the byte at +0xa8 + column raised to the low byte of `high` when below.
 void __fastcall Extents_Include(u8 *extents, void *, s32 low, s32 first, s32 high, s32 last);
+
+// 0x56e7e0 (thiscall; x0, y0, x1, y1, pops 16; invented name, unconfirmed): a rectangle of the terrain's texture tested against the view:
+// its box (heights +0x20, +0x24 of the header) goes through the transform object's slot 1 and the clip codes. All out: nothing. Some out,
+// area not 1: its quarters in turn. Else its columns' extents, and +0x1c raised to the corners' farthest depth.
+void __fastcall TerrainTex_CullRect(u8 *self, void *, s32 x0, s32 y0, s32 x1, s32 y1);
 }

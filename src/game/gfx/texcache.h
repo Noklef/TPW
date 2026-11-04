@@ -30,6 +30,18 @@ void __fastcall TexCache_Halve(u8 *cache, void *, u8 *dest, const u8 *source);
 // then what remains of the owner's. Maxima of width and height are tracked but never used.
 u32 __stdcall TexCache_MergeItems(u32 *out, const u8 *listB, const u8 *owner);
 
+// 0x58eca0 (thiscall on the cache; items, out, outCount, area, a fifth never read; pops 0x14; name unconfirmed; 0x58f540 and 0x58f639 ask it):
+// a zero-ended array of items packed into the area's s32 width (+8) and height (+0xc), out getting 0x14-byte rows (x, y, width, height,
+// item), zero-ended at the row's +0x10, and *outCount their number. Free rectangles start as the whole area and stay sorted (RecordSort_Run
+// on a key of width << 16 + height, from the rectangle used up); each item (s16 sizes +0x14 / +0x16, rounded up by the mask +0x18e4 when
+// +0x18e8 is set) takes the last that holds it. With cache flag 2 (+0x18cc) the row is rounded up and the item centred in it. What is left
+// of the rectangle is split by leftovers over 8 on each side. An item with no room while nothing is placed yet, cache flag 1 set, flags & 0x30
+// (with the driver filter, also a width above [0x702434]), is halved (flags - 0x10, sizes (n + 1) >> 1, its key set) and moved down the array
+// by descending s32 +0x38, and the new one at its place tried; other items with no room clear the answer. Stops at 0x7f rows or no
+// rectangles. +0x1918 / +0x191c get the widest and highest; +0x1924 is set by a halving. 0x8c4b6c counts the rows, 0x8c4b68 likewise but is not cleared.
+// Returns 1 when every item found a place.
+u32 __fastcall TexCache_PackItems(u8 *cache, void *, u8 **items, u8 *out, u32 *outCount, const s32 *area, u32 unused);
+
 // 0x58d0f0 (thiscall on the cache, 0x1930+ bytes): its default settings: five 0x80s at
 // +0x18b0-+0x18c0, a falling series of floats (0.5, 0.25, 0.17, 0.065, 0.012, 0.0030) at
 // +0x187c-+0x1890, +0x1878 = 4, +0x18ac = 0x100, +0x18e4 = 7, +0x1900 = 1.0f, the entry
@@ -122,6 +134,17 @@ void __fastcall TexCache_ShrinkItems(u8 *cache, void *, u8 **items, s32 count, s
 // that is 0) and the turns go on while it is at least [0x8c4898]. *made = the entries made; AnimTextures_Set(cache, cache +
 // 0x1800); returns made > 0.
 u32 __fastcall TexCache_AddSurfaces(u8 *cache, void *, s32 side, s32 *made, u32 format, s32 levels);
+
+// 0x58d670 (thiscall; invented name, unconfirmed): the surfaces of the six sides (0x7022e8), two passes: a side with a budget (+0x1860 + 4 * i) adds
+// surfaces; in the first pass one that adds none gives up the last entry of side index -1 or else 8 (SurfacePool_SideIndex of 0 and 1, sic) and tries
+// again: failing, all freed (the debug log told) and 0. The budget left goes to the next side's; after each pass the last's goes to the first's.
+// The debug log has the counts; +0x18ec = the first side with entries; 1.
+u32 __fastcall TexCache_CreateSurfaces(u8 *cache);
+
+// 0x58d400 (thiscall; invented name, unconfirmed): the budgets from the texture memory: the render device's slot 2 or, with none, what a run of 0x100
+// surfaces reaches ([0x8c1620] or 0x2000000 to spend; freed again), kept at 0x8c1624. Too few surfaces for it (or none added): error kind 3 and 0.
+// The mipmaps stay with flag 2 of +0x18cc, more than 0x40 surfaces and [0x8bd524] 1; else are off. Each size's budget = its share (+0x187c) of the memory; 1.
+u32 __fastcall TexCache_ChooseBudget(u8 *cache);
 
 // 0x58ea20 (thiscall on the cache; a, b, limit: two size indices; pops 0xc; name unconfirmed; 0x58f6ca asks it): each size's share
 // (+0x1818 - +0x1830, 32-bit, over its count +0x1800; fild / fidiv at 24 bits, stored as floats); slot 3 of a's first entry's

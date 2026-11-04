@@ -164,21 +164,129 @@ void __fastcall WKeywords_AddAll(u8 *self) {
 
 namespace {
 
-u32 pushToken(u8 *scanner, u32 kind) {
+AddrCalls g_calls;
+
+void insertToken(u8 *scanner, u32 kind) {
     CountedPair token{};
     token.value = kind;
     u8 *const tokens = at<u8 *>(scanner, 0x50);
     CountedPairVector_InsertN(tokens, nullptr, at<u32>(tokens, 8), 1, &token);
+}
+
+u32 pushToken(u8 *scanner, u32 kind) {
+    insertToken(scanner, kind);
     return Obj_CopyCToMark(scanner);
 }
 
+// A token of the text inserted at the end; its pair destroyed (the narrow string holds no block).
+void pushPair(u8 *scanner, StdWString &copy) {
+    CountedPair pair;
+    CountedPair_CtorWide(&pair, nullptr, copy);
+    u8 *const tokens = at<u8 *>(scanner, 0x50);
+    CountedPairVector_InsertN(tokens, nullptr, at<u32>(tokens, 8), 1, &pair);
+    CountedBuf_Reset(reinterpret_cast<u8 *>(&pair.wide), nullptr, 1);
+}
+
+void pushCopy(u8 *scanner, const StdWString *text) {
+    StdWString copy{};
+    at<u8>(&copy, 0) = at<u8>(text, 0);
+    StdWString_AssignSub(&copy, nullptr, text, 0, *reinterpret_cast<const u32 *>(0x006fef00));
+    pushPair(scanner, copy);
+}
+
+u8 keywordRest(u8 *scanner, u32 kind) {
+    insertToken(scanner, kind);
+    StdWString *const out = at<StdWString *>(scanner, 0x54);
+    if (!WScanner_TakeRest(scanner, nullptr, out, nullptr)) return 0;
+    pushCopy(scanner, out);
+    return 1;
+}
+
+u8 keywordCounted(u8 *scanner, u32 kind) {
+    insertToken(scanner, kind);
+    StdWString *const out = at<StdWString *>(scanner, 0x54);
+    u32 count;
+    if (!WScanner_TakeRest(scanner, nullptr, out, &count)) return 0;
+    if (count != 0) pushCopy(scanner, out);
+    return 1;
+}
+
+u8 keywordWord(u8 *scanner, u32 kind) {
+    insertToken(scanner, kind);
+    StdWString word{};
+    if (!WScanner_NextToken(scanner, nullptr, &word)) {
+        destroy(word);
+        return 0;
+    }
+    pushCopy(scanner, &word);
+    const u8 result = (u8)Obj_CopyCToMark(scanner);
+    destroy(word);
+    return result;
+}
+
 }  // namespace
+
+void WScanner_SetCalls(const AddrCall *table, u32 count) { g_calls.Set(table, count); }
 
 extern "C" {
 
 u32 __fastcall WScanner_PushToken0c(u8 *scanner) { return pushToken(scanner, 0xc); }
 u32 __fastcall WScanner_PushToken12(u8 *scanner) { return pushToken(scanner, 0x12); }
 u32 __fastcall WScanner_PushToken15(u8 *scanner) { return pushToken(scanner, 0x15); }
+u32 __fastcall WScanner_PushToken16(u8 *scanner) { return pushToken(scanner, 0x16); }
+
+u8 __fastcall WScanner_Keyword00(u8 *scanner) { return keywordRest(scanner, 0); }
+u8 __fastcall WScanner_Keyword04(u8 *scanner) { return keywordRest(scanner, 4); }
+u8 __fastcall WScanner_Keyword05(u8 *scanner) { return keywordRest(scanner, 5); }
+u8 __fastcall WScanner_Keyword02(u8 *scanner) { return keywordCounted(scanner, 2); }
+u8 __fastcall WScanner_Keyword03(u8 *scanner) { return keywordCounted(scanner, 3); }
+u8 __fastcall WScanner_Keyword0d(u8 *scanner) { return keywordWord(scanner, 0xd); }
+u8 __fastcall WScanner_Keyword0e(u8 *scanner) { return keywordWord(scanner, 0xe); }
+u8 __fastcall WScanner_Keyword0f(u8 *scanner) { return keywordWord(scanner, 0xf); }
+u8 __fastcall WScanner_Keyword11(u8 *scanner) { return keywordWord(scanner, 0x11); }
+u8 __fastcall WScanner_Keyword13(u8 *scanner) { return keywordWord(scanner, 0x13); }
+u8 __fastcall WScanner_Keyword14(u8 *scanner) { return keywordWord(scanner, 0x14); }
+
+u8 __fastcall WScanner_Keyword01(u8 *scanner) {
+    insertToken(scanner, 1);
+    StdWString word{};
+    if (!WScanner_NextToken(scanner, nullptr, &word)) return 1;   // (the word then holds no block)
+    pushCopy(scanner, &word);
+    StdWString *const out = at<StdWString *>(scanner, 0x54);
+    u8 result = 0;
+    if (WScanner_TakeRest(scanner, nullptr, out, nullptr)) {
+        pushCopy(scanner, out);
+        result = 1;
+    }
+    destroy(word);
+    return result;
+}
+
+u8 __fastcall WScanner_Keyword06(u8 *scanner) {
+    CountedPair token{};
+    token.value = 6;
+    u8 *const tokens = at<u8 *>(scanner, 0x50);
+    CountedPairVector_Insert(tokens, nullptr, at<u32>(tokens, 8), &token);
+    StdWString word{};
+    if (WScanner_NextToken(scanner, nullptr, &word)) {
+        pushCopy(scanner, &word);
+    } else {   // (the rest below then throws in the game: the position is past the text's end)
+        const u16 *const text = reinterpret_cast<const u16 *>(0x0078a374);
+        u32 n = 0;
+        while (text[n]) ++n;
+        StdWString copy{};
+        StdWString_AssignChars(&copy, nullptr, text, n);
+        pushPair(scanner, copy);
+    }
+    StdWString *const out = at<StdWString *>(scanner, 0x54);
+    u8 result = 0;
+    if ((u8)g_calls.Th(0x005e7200, (u32)(uintptr_t)scanner, (u32)(uintptr_t)out, 0u)) {
+        pushCopy(scanner, out);
+        result = 1;
+    }
+    destroy(word);
+    return result;
+}
 
 StdWString *__fastcall StdWString_Substr(const StdWString *s, void *, StdWString *out, u32 pos, u32 n) {
     *reinterpret_cast<u8 *>(&out->allocator) = static_cast<u8>(reinterpret_cast<uintptr_t>(out));   // (sic: the low byte of its own address, the "allocator" argument's slot)

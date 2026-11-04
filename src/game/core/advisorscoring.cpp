@@ -3,6 +3,7 @@
 #include <cstdint>
 
 #include "../math/x87.h"
+#include "filetime.h"
 #include "../world/analyser.h"
 #include "../world/mapcell.h"
 #include "../world/money.h"
@@ -673,5 +674,107 @@ s32 __fastcall AdvisorScoring_VeryWornObjectsStaff5(u8 *scoring) { return worn_o
 s32 __fastcall AdvisorScoring_RingAverageBelow(const u8 *scoring) { return ring_average(scoring, false, 0x2f0, 0x2f4); }
 
 s32 __fastcall AdvisorScoring_RingAverageAbove(const u8 *scoring) { return ring_average(scoring, true, 0x2f8, 0x2fc); }
+
+}  // extern "C"
+
+namespace {
+
+AddrCalls g_calls;
+
+// A ring of the table's: the average (the x87's _ftol of it, rounded in 24 bits) of its last `window` values, as many as it holds; `used` how many that was.
+s32 history_average(const u8 *ring, s32 window, s32 &used) {
+    const s32 cursor = at<s32>(ring, 0x244);
+    const bool wrapped = at<u8>(ring, 0x24c) != 0;
+    const s32 held = wrapped ? at<s32>(ring, 0x248) : cursor + 1;
+    used = window > held ? held : window;
+    X87Reg sum = 0.0;
+    for (s32 i = 0; i < used; ++i) {
+        const s32 size = at<s32>(ring, 0x248);
+        if (i >= size) continue;
+        if (i <= cursor)
+            sum = sum + X87Reg((double)at<s32>(ring, 4 + 4 * (cursor - i)));
+        else if (wrapped)
+            sum = sum + X87Reg((double)at<s32>(ring, 4 + 4 * (cursor - i + size)));
+    }
+    return used > 0 ? (s32)(long long)(sum / X87Reg((double)used)).v : 0;   // (_ftol)
+}
+
+}  // namespace
+
+void AdvisorScoring_SetCalls(const AddrCall *table, u32 count) { g_calls.Set(table, count); }
+
+extern "C" {
+
+s32 __fastcall AdvisorScoring_RingRatio(const u8 *scoring) {
+    FileTime out;
+    const FileTime *const elapsed = reinterpret_cast<const FileTime *>((uintptr_t)g_calls.Th(0x004f8800, (u32)(uintptr_t)(**reinterpret_cast<u8 ***>((uintptr_t)0x007cf6ec) + 0x2a0), &out));   // FunnyTime_Elapsed
+    const long long time = (long long)(((unsigned long long)elapsed->high << 32) | elapsed->low);
+    if ((s32)(time / 0x1792f8648000LL) < 3) return 0;
+    const u8 *const rings = reinterpret_cast<const u8 *>((uintptr_t)GameTable7cfb90_Get1da720_519510(*reinterpret_cast<u8 **>((uintptr_t)0x007cf83c)));
+    s32 used;
+    const s32 first = history_average(rings + 0x1f7f0, at<s32>(scoring, 0x358), used);
+    if (used == 0) return 0;
+    const s32 second = history_average(rings + 0x1fc90, at<s32>(scoring, 0x358), used);
+    if (!used) return 0;
+    const X87Reg scaled = X87Reg((double)second) * at<float>(scoring, 0x354);
+    return !(scaled.v >= (double)first) ? at<s32>(scoring, 0x35c) : 0;   // (FCOMPP's C0: below or unordered)
+}
+
+namespace {
+
+u8 *criterion(s32 index) { return reinterpret_cast<u8 *>((uintptr_t)0x0076e300 + (u32)index * 0x38); }
+
+// The criterion of an id: its place in the table when that one holds the id or any other does (sic: the address by the id all the same); the two out of range or unknown, none.
+const u8 *find_criterion(s32 id) {
+    if (id == 0x160 || id == 0x15f) return nullptr;
+    if (at<s32>(criterion(id), 4) == id) return criterion(id);
+    for (u32 entry = 0x0076e304; entry < 0x00772fcc; entry += 0x38)
+        if (*reinterpret_cast<const s32 *>((uintptr_t)entry) == id) return criterion(id);
+    return nullptr;
+}
+
+// The state the game object is in, its function-local static (guard byte 0xfb34bc, bit 0) made at first use.
+s32 game_state() {
+    u8 &guard = *reinterpret_cast<u8 *>((uintptr_t)0x00fb34bc);
+    if (!(guard & 1)) {
+        guard |= 1;
+        g_calls.Th(0x00550ca0, 0x00fb3b7cu);
+        g_calls.Cd(0x0067a7d0, 0x005d1750u);   // atexit
+    }
+    return *reinterpret_cast<const s32 *>((uintptr_t)0x00fb3b7c);
+}
+
+// Whether a criterion of this kind runs: kind 2 always, 0 with the state 0, 1 with the state 2.
+bool kind_runs(const u8 *found) {
+    if (!found) return false;
+    if (at<s32>(found, 0xc) == 2) return true;
+    if (at<s32>(found, 0xc) == 0 && game_state() == 0) return true;
+    return at<s32>(found, 0xc) == 1 && game_state() == 2;
+}
+
+}  // namespace
+
+s32 __fastcall AdvisorScoring_PickNext(s32 *cursor, void *, s32 steps) {
+    s32 best = 0, chosen = 0x160;
+    for (s32 step = 0; step < steps; ++*cursor) {
+        if (*cursor >= 0x15f) *cursor = 0;
+        if (at<u32>(criterion(*cursor), 0)) continue;   // (a step not counted)
+        if (kind_runs(find_criterion(at<s32>(criterion(*cursor), 4)))) {
+            using Score = s32(__fastcall *)(u8 *, void *);
+            const u8 *const entry = criterion(*cursor);
+            const s32 score = at<Score>(entry, 0x10)(reinterpret_cast<u8 *>(cursor) + at<u32>(entry, 0x14), nullptr);
+            if (score > best) {
+                const u32 id = at<u32>(criterion(*cursor), 4);
+                const u32 record = g_calls.Th(0x005194d0, **reinterpret_cast<u32 **>((uintptr_t)0x007cf6ec), id, 0u);
+                if ((u8)g_calls.Th(0x0059abc0, record)) {
+                    best = score;
+                    chosen = at<s32>(criterion(*cursor), 4);
+                }
+            }
+        }
+        ++step;
+    }
+    return chosen;
+}
 
 }  // extern "C"
