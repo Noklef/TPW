@@ -66,7 +66,7 @@ def stream_regions(r, regions, name='s'):
     ios_at = STREAM + base
     ios = bytearray(0x40)
     put(ios, 4, 'I', r.choice([0, 0, 0, 0, 1, 2, 4]))
-    put(ios, 0xc, 'I', r.choice([0, 1, 2, 3, 0x40, 0x41, 0x42, 0x80, 0x100, 0x1c0]))
+    put(ios, 0xc, 'I', r.choice([0, 1, 2, 3, 0x40, 0x41, 0x42, 0x80, 0xc0, 0x100, 0x1c0]))
     put(ios, 0x14, 'I', r.choice([0, 0, 1, 3, 8, 0xffffffff]))
     put(ios, 0x20, 'I', IMP)
     put(ios, 0x28, 'I', r.choice([BUF, BUF, BUF, BUF, BUF, 0]))
@@ -88,6 +88,8 @@ def stream_regions(r, regions, name='s'):
     regions[BUF_VT] = vtable({OVERFLOW: 1, UNDERFLOW: 0, UFLOW: 0, XSPUTN: 2, SYNC: 0})
     delimiter = r.randrange(0x10000)
     units = [r.choice([delimiter, 0xffff, 0x41, r.randrange(0x10000), r.randrange(0x10000), r.randrange(0x10000)]) for _ in range(16)]
+    if r.random() < 0.3:
+        units[0] = delimiter
     regions[GET] = struct.pack('<I', r.choice([0, GET + 8, GET + 8, GET + 8])) + b'\0' * 4 + struct.pack('<16H', *units)
     regions[GETN] = struct.pack('<I', r.choice([0, 1, 3, 16, 0x80000000]))
     regions[PUT] = struct.pack('<I', r.choice([0, PUT + 8, PUT + 8])) + bytes(0x40)
