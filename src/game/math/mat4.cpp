@@ -6,6 +6,7 @@
 #include <initializer_list>
 
 #include "x87.h"
+#include "vec2.h"
 #include "../render/viewport.h"
 
 namespace {
@@ -29,7 +30,62 @@ double DivRound(double a, double b) {
     return q < 0 ? -r : r;
 }
 
+AddrCalls g_calls;
+
+// The C library's asin (0x67db20) and acos (0x67b4e0) of a register, in double as they leave it; below 1 under the caller's precision. Exactly 1:
+// their constants. Past it or infinite: the indefinite (negative) quiet NaN; a NaN stays. (Past 1 they also set errno and raise a masked exception, not kept here.)
+bool crt_arc_special(X87Reg x, double &result) {
+    const unsigned long long bits = X87_Bits(x.v);
+    const u32 exponent = static_cast<u32>(bits >> 52) & 0x7ff;
+    if (exponent < 0x3ff) return false;
+    if (x.v != x.v) result = x.v;
+    else if (exponent == 0x3ff && (bits & 0xfffffffffffffULL) == 0) result = 2.0;   // (the caller's: 2 for 1 itself, its sign in x)
+    else result = X87_FromBits(0xfff8000000000000ULL);
+    return true;
+}
+double crt_asin(X87Reg x) {
+    double special;
+    if (crt_arc_special(x, special)) return special == 2.0 ? (x.v > 0 ? 1.5707963267948966 : -1.5707963267948966) : special;
+    const X87Reg r = X87_Sqrt((X87Reg(1.0) + x) * (X87Reg(1.0) - x));
+    return X87_Atan2(x.v, r.v);
+}
+double crt_acos(X87Reg x) {
+    double special;
+    if (crt_arc_special(x, special)) return special == 2.0 ? (x.v > 0 ? 0.0 : 3.141592653589793) : special;
+    const X87Reg r = X87_Sqrt((X87Reg(1.0) + x) * (X87Reg(1.0) - x));
+    return X87_Atan2(r.v, x.v);
+}
+
+void copy16(u32 to, u32 from) { std::memcpy(reinterpret_cast<void *>((uintptr_t)to), reinterpret_cast<const void *>((uintptr_t)from), 0x40); }
+
+// A static matrix made identity on first use.
+void static_matrix(u32 guard, u32 matrix) {
+    if (global<u8>(guard) & 1) return;
+    global<u8>(guard) |= 1;
+    Mat4_Identity(&global<u32>(matrix));
+    g_calls.Cd(0x0067a7d0, 0x005d1750u);
+}
+
+void transform(u32 in, u32 by, u32 out) {
+    u32 *const self = global<u32 *>(0x0087b1d8);
+    reinterpret_cast<void(__cdecl *)(u32 *, u32, u32, u32)>(reinterpret_cast<u32 *>(static_cast<uintptr_t>(*self))[6])(self, in, by, out);
+}
+
+// The inverse of `from` at `inverse`, and through the two statics to `result`.
+void inverse_through(u32 from, u32 inverse, u32 result) {
+    copy16(inverse, from);
+    Mat4_Invert(&global<u32>(inverse));
+    static_matrix(0x00fb33e0, 0x00fb3400);
+    transform(inverse, 0x0087b110, 0x00fb3400);
+    copy16(result, 0x00fb3400);
+    static_matrix(0x00fb3440, 0x00fb3460);
+    transform(result, 0x0087b0d0, 0x00fb3460);
+    copy16(result, 0x00fb3460);
+}
+
 }  // namespace
+
+void Mat4_SetCalls(const AddrCall *table, u32 count) { g_calls.Set(table, count); }
 
 extern "C" {
 
@@ -135,6 +191,36 @@ void __cdecl Mat4_LuDecompose(float *a, s32 *index, float *sign) {
                 a[i * 4 + j] = (float)(X87Reg(inverse) * a[i * 4 + j]);
         }
     }
+}
+
+u32 __cdecl Matrices_Update() {
+    inverse_through(0x0087aff0, 0x0087af68, 0x0087b158);
+    const float one = global<float>(0x00701890), zero = global<float>(0x0070189c);
+    const float a = global<float>(0x0087af70), b = global<float>(0x0087af90);
+    X87Reg s = (X87Reg(b) * b) + (X87Reg(a) * a);
+    if (s.v == zero || s.v != s.v) s = X87Reg(one);
+    const X87Reg unit = X87Reg(one) / X87_Sqrt(s);
+    global<float>(0x0087b078) = (float)(unit * a);
+    global<float>(0x0087b07c) = (float)(unit * b);
+    if (global<u32>(0x008bd508) & 0x20000000) {
+        inverse_through(0x0087b030, 0x0087afa8, 0x0087b198);
+        global<u32>(0x0087b080) = global<u32>(0x0087afb0);
+        global<u32>(0x0087b084) = global<u32>(0x0087afd0);
+        Vec2_Normalize(&global<float>(0x0087b080));
+    }
+    Mat4_Identity(&global<u32>(0x0087b090));
+    const float *const m = global<const float *>(0x0087afe8);
+    const float x = m[1];
+    float y = m[5], c = 1.0f;
+    const X87Reg length = (X87Reg(x) * x) + (X87Reg(y) * y);
+    if (length.v == zero || length.v != length.v) y = 1.0f;
+    else c = (float)(X87Reg(global<double>(0x007018a0)) / X87_Sqrt(length));
+    const float side = (float)crt_asin(X87Reg(-(X87Reg(c) * x).v));
+    double turn = crt_acos(X87Reg(c) * y);
+    if (!(side > zero)) turn = -turn;
+    const float pi = global<float>(0x00701888);
+    global<float>(0x0087af60) = (float)(X87Reg(turn) / (X87Reg(pi) + X87Reg(pi)));
+    return 1;
 }
 
 void __fastcall Mat4_Invert(u32 *m) {

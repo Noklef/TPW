@@ -24,7 +24,7 @@ def matrix(r):
 
 def pivotable(r):
     """A matrix for 0x578900: any bits (a quarter of them 0, a NaN, a signalling one or infinity), rows of zeros and copied rows now and
-    then; a row with a non-NaN first entry and some nonzero non-NaN one is made if none is (else the first pivot is the stack's)."""
+    then; a row with a finite first entry and some non-NaN one that is not tiny is made if none is (else the first pivot is the stack's: an infinite first entry, or a tiny row's infinite scale times 0, is a NaN that no pivot passes)."""
     m = bytearray(matrix(r))
     for i in range(r.choice([0, 0, 1, 3, 6])):
         struct.pack_into('<I', m, 4 * r.randrange(16), r.choice([0, 0x80000000, 0x7fc00000, 0x7f800001, 0x7f800000, 0xff800000]))
@@ -34,7 +34,7 @@ def pivotable(r):
         a, b = r.sample(range(4), 2)
         m[0x10 * a:0x10 * a + 0x10] = m[0x10 * b:0x10 * b + 0x10]
     rows = [struct.unpack_from('<4f', m, 0x10 * i) for i in range(4)]
-    if not any(row[0] == row[0] and any(v == v and v != 0 for v in row) for row in rows):
+    if not any(row[0] == row[0] and abs(row[0]) != float('inf') and any(v == v and abs(v) > 1e-30 for v in row) for row in rows):
         struct.pack_into('<f', m, 0, 1.0)
     return bytes(m)
 
