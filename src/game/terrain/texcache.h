@@ -1,6 +1,6 @@
 // The procedural terrain textures' tile cache: reimplementation of 0x5720d0, 0x572110, 0x572350 and 0x572630.
 //
-// TerrainTex_Init (0x56e550) allocates it (0x10014 bytes, kept at the terrain's +0x230) and reads
+// TerrainTex_Init, 0x56e550, allocates it (0x10014 bytes, kept at the terrain's +0x230) and reads
 // the .lnd into it (0x5723f0); TerrainTexCache_Update (0x572440) is an LRU of tiles keyed by
 // (x, y). +4 is 0x40 (its tile count), +8 0x10000 bytes of tables, +0x10010 the tiles in use (the
 // destructor 0x572350 frees that many).
