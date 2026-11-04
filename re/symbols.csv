@@ -1556,6 +1556,10 @@ address,name,kind,confidence,notes
 0x0067d540,CRT_strtoxl,function,low,reimplemented (src/game/core/crt); strtoxl
 0x0067d520,CRT_strtol,function,low,reimplemented (src/game/core/crt); strtol
 0x0067d7d0,CRT_strtoul,function,low,reimplemented (src/game/core/crt); strtoul
+0x006871b0,CRT_wctomb_lk,function,low,reimplemented (src/game/core/crt); _wctomb_lk
+0x00687140,CRT_wctomb,function,low,reimplemented (src/game/core/crt); wctomb
+0x00687710,CRT_mbtowc_lk,function,low,reimplemented (src/game/core/crt); _mbtowc_lk
+0x00687690,CRT_mbtowc,function,low,reimplemented (src/game/core/crt); mbtowc
 0x0067fa60,CRT_tolower,function,medium,"cdecl; the CRT tolower (locale-aware, ASCII in the C locale)"
 0x006fe67c,StringList2_vtable,data,high,one entry (0x61a7e0); src/game/files/waddir
 0x006fe680,StringList_vtable,data,high,one entry (0x45f8e0); src/game/files/waddir
@@ -5789,6 +5793,20 @@ address,name,kind,confidence,notes
 0x00680ad0,CRT_flsbuf,function,low,reimplemented (src/game/core/crtfile); _flsbuf
 0x0067b710,CRT_fwrite_lk,function,low,reimplemented (src/game/core/crtfile); _fwrite_lk
 0x0067b6d0,CRT_fwrite,function,low,reimplemented (src/game/core/crtfile); fwrite
+0x00686ff0,CRT_flswbuf,function,low,reimplemented (src/game/core/crtfile); _flswbuf
+0x00688ad0,CRT_read_lk,function,low,reimplemented (src/game/core/crtstream); _read_lk
+0x00688a50,CRT_read,function,low,reimplemented (src/game/core/crtstream); _read
+0x00687440,CRT_filbuf,function,low,reimplemented (src/game/core/crtstream); _filbuf
+0x00687590,CRT_filwbuf,function,low,reimplemented (src/game/core/crtstream); _filwbuf
+0x0067cb90,CRT_fgetc,function,low,reimplemented (src/game/core/crtstream); fgetc
+0x0067cc10,CRT_ungetc_lk,function,low,reimplemented (src/game/core/crtstream); _ungetc_lk
+0x0067cbe0,CRT_ungetc,function,low,reimplemented (src/game/core/crtstream); ungetc
+0x0067ce20,CRT_fgetwc_lk,function,low,reimplemented (src/game/core/crtstream); _getwc_lk
+0x0067cdf0,CRT_fgetwc,function,low,reimplemented (src/game/core/crtstream); fgetwc
+0x0067ca20,CRT_fputwc_lk,function,low,reimplemented (src/game/core/crtstream); _fputwc_lk
+0x0067c9f0,CRT_fputwc,function,low,reimplemented (src/game/core/crtstream); fputwc
+0x0067ccd0,CRT_ungetwc_lk,function,low,reimplemented (src/game/core/crtstream); _ungetwc_lk
+0x0067cca0,CRT_ungetwc,function,low,reimplemented (src/game/core/crtstream); ungetwc
 0x0050ffe0,Nav_Ctor,function,high,reimplemented (src/game/world/nav); constants constructor with five integer pairs
 0x0050f200,Nav_Dtor,function,high,reimplemented (src/game/world/nav); thiscall: the five IntPairs at +0x64 destroyed with Stub_Ret (CRT_VectorDtorIterator); also via 0x4f7c30 (+0xd4) and 0x4f8ad0
 0x004f7c30,Nav_DtorAtD4,function,low,reimplemented (src/game/world/nav); thiscall adjustor: Nav_Dtor on this + 0xd4

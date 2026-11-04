@@ -479,6 +479,62 @@ s32 __cdecl CRT_Mbrtowc(u16 *unit, const char *text, u32 n, u8 *state, const u32
     return result;
 }
 
+s32 __cdecl CRT_wctomb_lk(char *out, u32 c) {
+    if (!out) return 0;
+    const u16 unit = static_cast<u16>(c);
+    s32 result = 0;
+    s32 defaulted = 0;
+    if (!locale_set()) {
+        if (unit <= 0xff) {
+            *out = static_cast<char>(unit);
+            return 1;
+        }
+    } else {
+        result = import_slot<s32(__stdcall *)(u32, u32, const u16 *, s32, char *, s32, const char *, s32 *)>(0x006fd1dc)(global_u32(0x00fb1450), 0x220, &unit, 1, out, static_cast<s32>(global_u32(0x0077e7dc)), nullptr, &defaulted);
+        if (result && !defaulted) return result;
+    }
+    *CRT_errno() = 0x2a;
+    return -1;
+}
+
+s32 __cdecl CRT_wctomb(char *out, u32 c) {
+    const bool locked = locale_enter();
+    const s32 result = CRT_wctomb_lk(out, c);
+    locale_leave(locked);
+    return result;
+}
+
+s32 __cdecl CRT_mbtowc_lk(u16 *out, const char *text, u32 size) {
+    if (!text || !size) return 0;
+    const u8 first = static_cast<u8>(*text);
+    if (!first) {
+        if (out) *out = 0;
+        return 0;
+    }
+    if (!locale_set()) {
+        if (out) *out = first;
+        return 1;
+    }
+    const auto convert = import_slot<s32(__stdcall *)(u32, u32, const char *, s32, u16 *, s32)>(0x006fd174);
+    const u32 page = global_u32(0x00fb1450);
+    if (reinterpret_cast<const u16 *>((uintptr_t)global_u32(0x0077ea90))[first] & 0x8000) {
+        const s32 most = static_cast<s32>(global_u32(0x0077e7dc));
+        if (most > 1 && static_cast<s32>(size) >= most && convert(page, 9, text, most, out, out != nullptr)) return most;
+        if (size >= static_cast<u32>(most) && text[1]) return most;
+    } else if (convert(page, 9, text, 1, out, out != nullptr)) {
+        return 1;
+    }
+    *CRT_errno() = 0x2a;
+    return -1;
+}
+
+s32 __cdecl CRT_mbtowc(u16 *out, const char *text, u32 size) {
+    const bool locked = locale_enter();
+    const s32 result = CRT_mbtowc_lk(out, text, size);
+    locale_leave(locked);
+    return result;
+}
+
 char *__cdecl CRT_strrchr(const char *text, s32 c) {
     const char *at = text + std::strlen(text);
     for (;;) {

@@ -180,6 +180,15 @@ s32 __cdecl CRT_Wcrtomb(char *to, u32 unit, void *state, const u32 *conversion);
 // a kept lead byte joined with this byte, else _mb_cur_max bytes for a lead byte (of the table _pctype), else one: MultiByteToWideChar's answer, _mb_cur_max or 1. Fails with errno 0x2a and -1.
 s32 __cdecl CRT_MbrtowcLocked(u16 *unit, const char *text, u32 n, u8 *state, const u32 *conversion);
 
+// 0x6871b0 / 0x687140: _wctomb_lk / wctomb: the word as the locale's bytes (no locale: as itself, up to 0xff). No buffer: 0. Not representable: errno 0x2a, -1.
+s32 __cdecl CRT_wctomb_lk(char *out, u32 c);
+s32 __cdecl CRT_wctomb(char *out, u32 c);
+
+// 0x687710 / 0x687690: _mbtowc_lk / mbtowc: one character of the text as a word, returning its bytes: 0 for no text or a null, -1 and errno 0x2a if bad. A lead byte in a bad conversion still counts as the
+// whole character when another byte follows.
+s32 __cdecl CRT_mbtowc_lk(u16 *out, const char *text, u32 size);
+s32 __cdecl CRT_mbtowc(u16 *out, const char *text, u32 size);
+
 // 0x693bc0: _Mbrtowc: the same under the locale's lock.
 s32 __cdecl CRT_Mbrtowc(u16 *unit, const char *text, u32 n, u8 *state, const u32 *conversion);
 

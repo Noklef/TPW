@@ -58,7 +58,7 @@ def case(r):
     if name == 'doserrno':
         return Call(0x686a10, [], regions, conv='c', ret='a')
     if name == 'dosmaperr':
-        return Call(0x686980, [r.choice([0, 1, 2, 5, 0x12, 0x13, 0x24, 0x25, 0xbb, 0xbc, 0xca, 0xcb, 0x57, r.getrandbits(32), r.randrange(0x100)])], regions, conv='c')
+        return Call(0x686980, [r.choice([0, 1, 2, 5, 0x12, 0x13, 0x24, 0x25, 0xbb, 0xbc, 0xca, 0xcb, 0x57, 0xd7, 0x718, r.getrandbits(32), r.randrange(0x100)])], regions, conv='c')
     fd = r.choice(FDS)
     if name == 'osfhandle':
         return Call(0x68ead0, [fd], regions, conv='c', ret='a')
@@ -70,7 +70,7 @@ def case(r):
         return Call(0x686a20 if name == 'lseek' else 0x686aa0, [fd, r.choice([0, 4, 0xffffffff]), r.randrange(3)], regions, conv='c', ret='a')
     if name == 'isatty':
         return Call(0x68c320, [fd], regions, conv='c', ret='a')
-    size = r.choice([0, 1, 2, 3, 8, 0x20, 0x80, 0x3ff, 0x400, 0x500])
+    size = r.choice([0, 1, 2, 3, 8, 0x20, 0x80, 0x3ff, 0x400, 0x500, 0x500, 0x500])
     regions[DATA] = text(r, 0x600)
     if name in ('write', 'write_lk'):
         return Call(0x686440 if name == 'write' else 0x6864c0, [fd if name == 'write' else r.choice(FDS[:8]), DATA, size], regions, conv='c', ret='a')

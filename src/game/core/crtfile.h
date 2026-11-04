@@ -2,6 +2,8 @@
 // +4 the flags, +8 its lock made, +0xc the lock), _write, _lseek, _flsbuf, fwrite.
 #pragma once
 
+#include <cstdint>
+
 #include "../../../re/types.h"
 
 struct CrtFile {
@@ -14,6 +16,16 @@ struct CrtFile {
     s32 size;
     void *name;
 };
+
+inline u8 *crt_handle(s32 fd) { return reinterpret_cast<u8 **>((uintptr_t)0x00fb3ba0)[fd >> 5] + (fd & 0x1f) * 0x24; }
+
+// The record, or the dummy record 0x7813b0 for no file.
+inline u8 *crt_handle_or_dummy(s32 fd) { return fd == -1 ? reinterpret_cast<u8 *>((uintptr_t)0x007813b0) : crt_handle(fd); }
+
+inline bool crt_handle_open(u32 fd) { return fd < *reinterpret_cast<u32 *>((uintptr_t)0x00fb3ca0) && crt_handle(static_cast<s32>(fd))[4] & 1; }
+
+// A bad handle's errno 9, __doserrno 0: -1.
+s32 crt_bad_handle();
 
 extern "C" {
 
@@ -54,6 +66,9 @@ s32 __cdecl CRT_flush(CrtFile *file);
 
 // 0x680ad0: _flsbuf: the byte and the buffer written (made if there is none, but not for a terminal's stdout or stderr). Unwritable or short: flag 0x20, -1. Else the byte as unsigned.
 s32 __cdecl CRT_flsbuf(s32 c, CrtFile *file);
+
+// 0x686ff0: _flswbuf: the same for a word: 0xffff, or the word.
+u32 __cdecl CRT_flswbuf(u32 c, CrtFile *file);
 
 // 0x67b710: _fwrite_lk: through the buffer, past it in whole buffers, or by _flsbuf. Returns the whole items written.
 u32 __cdecl CRT_fwrite_lk(const void *data, u32 size, u32 items, CrtFile *file);
