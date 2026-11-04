@@ -34,4 +34,10 @@ extern "C" {
 // With bit 0x40: [0x79c664] counts down: at 0 the bit is cleared and (no height given, no [0x785a2c]) CoasterEdit_SwitchToTool1; at 1 under the same two, CoasterEdit_RefreshTools.
 // CoasterEdit_SetBounds, the outs (either null) and the answer 1.
 u32 __cdecl CoasterEdit_PlaceCar(s32 x, s32 y, u32 height, u8 **outNode, u32 *outCar, u32 kind, u32 claim);
+
+// 0x4419b0 (cdecl; name invented, unconfirmed): CoasterEdit_PlaceCar (kind 0xff, claim 0). If out is given: the car's dword at +0x70 when a node came back (node and car start as the height and y, sic), else 0. Returns its answer.
+u32 __cdecl CoasterEdit_PlaceCarPart(s32 x, s32 y, u32 height, u32 *out);
 }
+
+struct AddrCall;
+void CoasterPlaceCar_SetPartCalls(const AddrCall *table, u32 count);   // tests/fncmp/placecarpart.py

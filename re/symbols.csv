@@ -6910,6 +6910,7 @@ address,name,kind,confidence,notes
 0x00438800,Coaster_BendMesh,function,low,"reimplemented (src/game/coaster/bendmesh); a car's mesh bent along the track (name invented, unconfirmed)"
 0x0043ce20,Coaster_RunTrains,function,low,"reimplemented (src/game/coaster/trainrun); a coaster's trains moved on one step (name invented, unconfirmed)"
 0x00435020,CoasterEdit_PlaceCar,function,low,"reimplemented (src/game/coaster/placecar); a car placed at a map square while editing: the node found or added, height and level found, the car added, its cost debited, the tools advanced"
+0x004419b0,CoasterEdit_PlaceCarPart,function,low,reimplemented (src/game/coaster/placecar); CoasterEdit_PlaceCar with no claim; the car's +0x70 given back through out.
 0x0043aa10,CarPrisms_InQuad,function,low,reimplemented (src/game/coaster/carprisms); a point along a way against the current quad's corners: their angles at the full turn or more
 0x0043a2b0,CarPrisms_Touch,function,low,reimplemented (src/game/coaster/carprisms); two cars' shapes placed and their edges tested against each other's quads
 0x00430ed0,Coaster_PoseCars,function,low,"reimplemented (src/game/coaster/carpose); a coaster's cars and pieces posed for the frame: heights, angles, the nodes' places from the bones"

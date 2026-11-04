@@ -2,6 +2,7 @@
 
 #include <cstdint>
 
+#include "../core/addrcalls.h"
 #include "../files/wrapsources.h"
 #include "../math/x87.h"
 #include "../world/money.h"
@@ -117,4 +118,17 @@ extern "C" u32 __cdecl CoasterEdit_PlaceCar(s32 x, s32 y, u32 height, u8 **outNo
     if (outCar)
         *outCar = static_cast<u32>(reinterpret_cast<uintptr_t>(car));
     return 1;
+}
+
+namespace {
+AddrCalls g_partCalls;
+}  // namespace
+
+void CoasterPlaceCar_SetPartCalls(const AddrCall *table, u32 count) { g_partCalls.Set(table, count); }
+
+extern "C" u32 __cdecl CoasterEdit_PlaceCarPart(s32 x, s32 y, u32 height, u32 *out) {
+    u32 node = height, car = (u32)y;   // (the original uses its own argument slots for the outs)
+    const u32 result = g_partCalls.Cd(0x00435020, x, y, height, &node, &car, 0xffu, 0u);   // CoasterEdit_PlaceCar
+    if (out) *out = node ? at<u32>((u8 *)(uintptr_t)car, 0x70) : 0;
+    return result;
 }
