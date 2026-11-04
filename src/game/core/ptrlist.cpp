@@ -6,6 +6,7 @@
 #include "../gfx/spriteframe.h"
 #include "../render/engineerrors.h"
 #include "../render/renderer.h"
+#include "addrcalls.h"
 #include "gameheap.h"
 #include "initializers.h"
 #include "liveobjects.h"
@@ -21,9 +22,12 @@ const PtrListEnv *g_env = &kGameEnv;
 
 template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cast<T *>((uintptr_t)p + offset); }
 
+AddrCalls g_imageCalls;
+
 }  // namespace
 
 void PtrList_SetEnv(const PtrListEnv *e) { g_env = e ? e : &kGameEnv; }
+void PtrArray_SetImageCalls(const AddrCall *table, u32 count) { g_imageCalls.Set(table, count); }
 
 extern "C" {
 
@@ -98,6 +102,24 @@ u32 __fastcall PtrArray_RemoveAndFree(u8 *object, void *, u32 item) {
     items[index] = items[count];
     at<s32>(at<u8 *>(object, 4), 4) = at<s32>(object, 0x1c);
     return 1;
+}
+
+u8 *__fastcall PtrArray_AddImage(u8 *object, void *, const char *name) {
+    if (at<u32>(object, 0x18) == at<u32>(object, 0x14)) return nullptr;
+    u8 *image = static_cast<u8 *>(GameHeap_Alloc(0x18));
+    if (image) image = SpriteImage_Init(image);
+    if (!image) {
+        EngineErrors_Push(reinterpret_cast<u8 *>((uintptr_t)0x00879ad0), nullptr, 2, 0xb0754000);
+        return nullptr;
+    }
+    if (!g_imageCalls.Th(0x588820, (u32)(uintptr_t)image, name)) {
+        g_imageCalls.Th(0x588350, (u32)(uintptr_t)image);
+        GameHeap_Free(image);
+        return nullptr;
+    }
+    at<u8 **>(object, 0xc)[at<u32>(object, 0x18)] = image;
+    at<u32>(object, 0x18) = at<u32>(object, 0x18) + 1;
+    return image;
 }
 
 u8 *__fastcall PtrArray_AddSpriteFrame(u8 *object, void *, u32 image) {
