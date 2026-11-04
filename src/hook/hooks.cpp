@@ -678,6 +678,7 @@
 #include "../game/ui/guistaticobjects.h"
 #include "../game/ui/guisystem.h"
 #include "../game/ui/guitoken.h"
+#include "../game/ui/guitokenwide.h"
 #include "../game/ui/hoverlabel.h"
 #include "../game/ui/imecandidates.h"
 #include "../game/ui/imehostattach.h"
@@ -8490,6 +8491,7 @@ const Hook kHooks[] = {
     {"GuiClock_Init",             0x0065965b, (void *)&GuiClock_Init, {0x55, 0x8b, 0xec, 0xe8, 0x02}},
     {"GuiClock_Make",             0x00659665, (void *)&GuiClock_Make, {0x55, 0x8b, 0xec, 0xb9, 0x80}},
     {"GuiClock_Ctor",             0x00659750, (void *)&GuiClock_Ctor, {0x55, 0x8b, 0xec, 0x51, 0x89}},
+    {"GuiToken_ReadWide",         0x0066de4c, (void *)&GuiToken_ReadWide, {0x55, 0x8b, 0xec, 0x83, 0xec}},
     {"jdmarker_examine_app14",    0x0063bf50, (void *)&jdmarker_examine_app14, {0x8b, 0x4c, 0x24, 0x0c, 0x53}},
     {"jdmarker_examine_app0",     0x0063bcc0, (void *)&jdmarker_examine_app0, {0x8b, 0x44, 0x24, 0x0c, 0x8b}},
     {"jdmarker_get_interesting_appn", 0x0063bb80, (void *)&jdmarker_get_interesting_appn, {0x8b, 0x44, 0x24, 0x04, 0x83}},
