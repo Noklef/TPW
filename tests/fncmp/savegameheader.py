@@ -31,8 +31,6 @@ def case(r):
     regions = {LOG: log, 0x749870: struct.pack('<I', version), 0x802080: r.bytes(0x20), 0x6fd3fc: struct.pack('<2I', recorder(TO_NET, 1, True), recorder(TO_HOST, 1, True)), 0x7cf83c: r.bytes(4), SELF: r.bytes(0x10), THE_PARK: r.bytes(0x10)}
     park = r.choice([0, THE_PARK])
     set_return(log, PARK, r.choice([0, 0, 1, 2, r.getrandbits(32)]))
-    if not park:
-        mask_this(log, PARK)
     if op == WRITE:
         mask_this(log, CTOR)
         mask_this(log, EQUALS)
@@ -57,7 +55,10 @@ def case(r):
     set_return(log, DIFFERS, r.choice([0, 0, 0, 0, 0x100, 1, 0x101]))
     set_return(log, HAS_RIDES, r.choice([1, 1, 1, 1, r.getrandbits(32) | 1, 0]))
     set_return(log, TO_HOST, version if r.randrange(6) else version ^ 1)
-    data = bytes([r.choice([0, 3, 6, r.getrandbits(8)])]) + r.bytes(0x500 + 0x100 + 4) + struct.pack('<I', r.choice([0, 0, 1, 1, 2, r.getrandbits(32)]))
+    has_park = r.choice([0, 0, 1, 1, 2, r.getrandbits(32)])
+    if has_park == 1 and not park:
+        mask_this(log, PARK)   # (the local one)
+    data = bytes([r.choice([0, 3, 6, r.getrandbits(8)])]) + r.bytes(0x500 + 0x100 + 4) + struct.pack('<I', has_park)
     data = cut(r, data)
     regions[DATA] = data + b'\0'
     regions[STREAM] = memory_stream(STREAM, DATA, len(data))
