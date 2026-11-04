@@ -59,6 +59,11 @@ s32 __fastcall Frame_HandleMessage(u8 *frame, void *, u8 *window, u32 message, u
     return g_env->callDefault(window, nullptr, message, wparam, lparam);
 }
 
+s32 __cdecl Frame_WindowProc(u8 *window, u32 message, u32 wparam, u32 lparam) {
+    u8 *const frame = global<u8 *>(0x00f82884);
+    return frame ? Frame_HandleMessage(frame, nullptr, window, message, wparam, lparam) : 0;
+}
+
 u32 __fastcall Class7029f0_Close(u8 *frame) {
     for (u8 *node = at<u8 *>(at<u8 *>(frame, 0x18), 4); node;) {
         u8 *const object = at<u8 *>(node, 0);

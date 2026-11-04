@@ -17,6 +17,8 @@ extern "C" {
 // 0x10003: +0x20 and +0x24 = the high and low words of wparam. 0x10004 and 0x10005: wparam 0, 1 or 2 clears and sets bits 1, 2, 4 of +0x1c. Then with a frame the list at +0x18 (as below) gets slot 5 of each
 // object with (message, wparam, lparam). Returns Window_CallDefault's answer.
 s32 __fastcall Frame_HandleMessage(u8 *frame, void *, u8 *window, u32 message, u32 wparam, u32 lparam);
+// 0x5d58b0 (cdecl; name invented, unconfirmed): that on the frame at [0xf82884]; with none 0.
+s32 __cdecl Frame_WindowProc(u8 *window, u32 message, u32 wparam, u32 lparam);
 
 // 0x5d5cf0 (thiscall; called from 0x54e7c0 on [0xf82884]; name invented, unconfirmed): over the list whose sentinel is at +0x18 (the first
 // node at its +4; nodes {object, next}, the next read first) each object's slot 4 is called; then the objects [0xf83784], [0xf83778],
