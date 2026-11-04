@@ -151,15 +151,15 @@ def reset_all(r, op):
 
 
 def construct(r):
-    """0x5b50b0: the session's memory random, the heap failing no block, or one of the first 15 (the lists' or their own; a list not had faults
-    in the city's reset, the last two do not); timeGetTime and OutputDebugStringA recorders; the strings real."""
+    """0x5b50b0: the session's memory random, the heap failing no block, or one of the first 15 (12 strings', then the first lists: a list not had
+    faults in the city's reset; fncmp's heap fails none later, so the download object's block, +0x3a4, is always had); timeGetTime and OutputDebugStringA recorders; the strings real."""
     log = log_region()
     table = bytearray(0x600)
     struct.pack_into('<I', table, OUTPUT - IMPORT_TABLE, recorder(1, 1, True))
     strings(log, 1, 1)
     struct.pack_into('<I', table, 0x6fd3ec - IMPORT_TABLE, recorder(6, 0, True))
     set_return(log, 6, r.getrandbits(32))
-    regions = {LOG: log, IMPORT_TABLE: table, HEAP: heap(0x4000, r.deal([0] * 7 + [1, 2, 4, 7, 8, 9, 10, 11])), SESSION: r.bytes(0x404), 0xfa71e0: bytes(4),
+    regions = {LOG: log, IMPORT_TABLE: table, HEAP: heap(0x4000, r.deal([0] * 10 + [1, 6, 12, 13, 14, 15])), SESSION: r.bytes(0x404), 0xfa71e0: bytes(4),
                0x78a374: bytes(4), 0x786de4: bytes(4)}
     return Call(0x5b50b0, [SESSION], regions, conv='t', ret='a')
 
