@@ -2121,6 +2121,7 @@ address,name,kind,confidence,notes
 0x0047ec30,PointerFrames_Hide,function,low,"reimplemented (src/game/gfx/pointer); thiscall, the 0x6fefc8 class slot 3: the async pointer [0x7b4b84] given no image, a zero rectangle and hot spot; +4 = 0 (name unconfirmed)"
 0x0047eca0,PointerFrames_Step,function,low,reimplemented (src/game/gfx/pointer); the animated pointer stepped to its next frame every 300 ticks
 0x0047ec80,PointerFrames_LoadFile,function,low,reimplemented (src/game/gfx/pointer); thiscall (name): Surface_LoadTga into its Surface and frame count; the result kept at +0x64
+0x0047e7d0,AsyncPointer_Make,function,low,reimplemented (src/game/gfx/pointer); cdecl: the game's asynchronous pointer made
 0x005fbde0,EventQueue_StaticInit,function,high,"reimplemented (src/game/core/events); cdecl; the queue at 0xfa7cb0 constructed, its destructor registered"
 0x005fbdf0,EventQueue_Construct,function,high,reimplemented (src/game/core/events); cdecl; EventQueue_Ctor(0xfa7cb0)
 0x005fbe00,EventQueue_RegisterExit,function,high,reimplemented (src/game/core/events); cdecl; atexit(EventQueue_AtExit)

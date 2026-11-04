@@ -865,7 +865,7 @@ def _log_args(e, k, raw, kk):
     matched = False   # (blob(only_when=True): logged as 0 unless a blob_when() matches)
     for w in range(4):   # (blob_when(): the mask for this call's argument; blob_when_inner(): the second structure's selection)
         wk, wa, wv, wm = struct.unpack('<4I', e.read(LOG + LOG_BLOB_WHEN + 16 * w, 16))
-        if wa >= 0x200 or wa & 0xff >= n:   # (the argument's bit 8: the dword it points to, blob_when()'s deref; a null one matches nothing)
+        if wk & 63 != k & 63 or wa >= 0x200 or wa & 0xff >= n:   # (only this slot's: another slot's argument may be no pointer. The argument's bit 8: the dword it points to, blob_when()'s deref; a null one matches nothing)
             continue
         got = raw[wa & 0xff] if not wa & 0x100 else e.u32(raw[wa & 0xff]) if raw[wa & 0xff] else None
         if wk == (k & 63) | 0x80000000 and got == wv:

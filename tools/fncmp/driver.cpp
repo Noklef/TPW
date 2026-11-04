@@ -1829,7 +1829,7 @@ u32 __cdecl record_call(u32 k, u32 n, u32 self, const u32 *stack) {
             for (u32 w = 0; w < 4; ++w) {  // (at + 0xf80, fncmp.blob_when(): (k | 0x80000000, argument, value, mask), the mask for this call's argument;
                                            // fncmp.blob_when_inner(): k | 0xc0000000 and the second structure's selection, bits 5-30 of how)
                 const u32 *const when = log + 0x3e0 + 4 * w;
-                if (when[1] >= 0x200u || (when[1] & 0xffu) >= n) continue;
+                if ((when[0] & 63) != (k & 63) || when[1] >= 0x200u || (when[1] & 0xffu) >= n) continue;  // (only this slot's: another slot's argument may be no pointer)
                 u32 value = stack[1 + (when[1] & 0xffu)];
                 if (when[1] & 0x100u) {  // (the argument's bit 8, blob_when()'s deref: the dword it points to; a null one matches nothing)
                     if (!value) continue;
