@@ -4394,6 +4394,9 @@ address,name,kind,confidence,notes
 0x005d03e0,StdListString_Merge,function,low,"reimplemented (src/game/core/stdlist); Merges the other list<string> into this one, by StdString_CompareSub."
 0x005ce190,StdListString_Sort,function,low,reimplemented (src/game/core/stdlist); list<string>'s sort.
 0x005ce5a0,StdListDword_Sort,function,low,reimplemented (src/game/core/stdlist); The list of dwords' sort.
+0x005cc640,List64_AddKeySorted,function,low,"reimplemented (src/game/core/stdlist); The key pushed on the list at +0x64, sorted, duplicates cut."
+0x005cc770,List70_AddKeySorted,function,low,"reimplemented (src/game/core/stdlist); The key pushed on the list at +0x70, sorted, duplicates cut."
+0x005cd510,StdListString_AddSorted,function,low,"reimplemented (src/game/core/stdlist); A string pushed, the list sorted, duplicates cut; its index."
 0x0041e2c0,Class6fda48_Dtor,function,high,reimplemented (src/game/core/class6fd9d8); derived destructor: vtable then the 0x6fd9d8 base destructor
 0x0041e320,Class6fda68_Dtor,function,high,reimplemented (src/game/core/class6fd9d8); derived destructor: vtable then the 0x6fd9d8 base destructor
 0x0041e4d0,Class6fdaa8_Dtor,function,high,reimplemented (src/game/core/class6fd9d8); derived destructor: vtable then the 0x6fd9d8 base destructor

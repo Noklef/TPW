@@ -58,6 +58,26 @@ void EraseMatching(u8 *object, u32 sentinelOffset, u32 countOffset) {
     }
 }
 
+// The key at [+0x7c]+8 pushed on the list of dwords at the offset, the list sorted, each run of equal dwords cut to its first.
+void AddKeySorted(u8 *object, u32 listOffset) {
+    u8 *const list = object + listOffset;
+    StdListDword_PushBack(list, nullptr, reinterpret_cast<const u32 *>(at<u8 *>(object, 0x7c) + 8));
+    StdListDword_Sort(list);
+    u8 *const head = at<u8 *>(list, 4);
+    u8 *kept = at<u8 *>(head, 0);
+    if (kept == head) return;
+    for (u8 *next = at<u8 *>(kept, 0); next != head; next = at<u8 *>(kept, 0)) {
+        if (at<u32>(kept, 8) == at<u32>(next, 8)) {
+            at<u32>(at<u8 *>(next, 4), 0) = at<u32>(next, 0);
+            at<u32>(at<u8 *>(next, 0), 4) = at<u32>(next, 4);
+            GameHeap_Free(next);
+            at<u32>(list, 8) -= 1;
+        } else {
+            kept = next;
+        }
+    }
+}
+
 // Unlinks the node and releases its counted buffer (the count is the block's first byte), clears the fields and frees the node.
 void EraseCounted1(u8 *node) {
     at<u32>(at<u8 *>(node, 4), 0) = at<u32>(node, 0);
@@ -154,6 +174,42 @@ void __fastcall StdListDword_PushBack(u8 *list, void *, const u32 *value) {
 void __fastcall List68_EraseMatching(u8 *object) { EraseMatching(object, 0x68, 0x6c); }
 
 void __fastcall List74_EraseMatching(u8 *object) { EraseMatching(object, 0x74, 0x78); }
+
+void __fastcall List64_AddKeySorted(u8 *object) { AddKeySorted(object, 0x64); }
+
+void __fastcall List70_AddKeySorted(u8 *object) { AddKeySorted(object, 0x70); }
+
+s32 __fastcall StdListString_AddSorted(u8 *list, void *, const StdString *x) {
+    u8 *inserted;
+    StdListString_Insert(list, nullptr, &inserted, at<u8 *>(list, 4), x);
+    StdListString_Sort(list);
+    u8 *const head = at<u8 *>(list, 4);
+    u8 *kept = at<u8 *>(head, 0);
+    if (kept != head) {
+        for (u8 *next = at<u8 *>(kept, 0); next != head; next = at<u8 *>(kept, 0)) {
+            if (ByteString_Compare(kept + 8, nullptr, next + 8) == 0) {
+                u32 after;
+                List_EraseNodeCounted(list, nullptr, &after, next);
+            } else {
+                kept = next;
+            }
+        }
+    }
+    u8 *node = at<u8 *>(head, 0);
+    if (node == head) return -1;
+    const u32 length = x->len;
+    const char *const raw = x->ptr;
+    const u8 *const wanted = raw ? reinterpret_cast<const u8 *>(raw) : reinterpret_cast<const u8 *>(0x006fe5b0);
+    for (s32 index = 0; node != head; node = at<u8 *>(node, 0), ++index) {
+        const u32 nodeLength = at<u32>(node, 0x10);
+        const u8 *const chars = at<const u8 *>(node, 0xc);
+        const u32 common = nodeLength < length ? nodeLength : length;
+        bool same = true;
+        for (u32 i = 0; i < common && same; ++i) same = wanted[i] == chars[i];
+        if (same && nodeLength == length) return index;
+    }
+    return -1;
+}
 
 u32 *__fastcall List_EraseNodeCounted(u8 *object, void *, u32 *out, u8 *node) {
     u8 *next = at<u8 *>(node, 0);

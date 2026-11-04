@@ -104,6 +104,14 @@ void __fastcall StdListString_Merge(u8 *list, void *, u8 *other);
 
 // 0x5ce190 / 0x5ce5a0 (thiscall): list::sort, stable, of a list<string> (by ByteString_Compare) / a list of dwords (unsigned): nothing below 2 elements; bins of 2^i nodes, the last holding the rest.
 void __fastcall StdListString_Sort(u8 *list);
+
+// 0x5cc640, 0x5cc770 (thiscall; names invented, unconfirmed): the key at [+0x7c]+8 pushed on the list of dwords at +0x64, +0x70, the list sorted, each run of equal dwords cut to its first.
+void __fastcall List64_AddKeySorted(u8 *object);
+void __fastcall List70_AddKeySorted(u8 *object);
+
+// 0x5cd510 (thiscall, pops 4; name invented, unconfirmed): x pushed, the list sorted, each run of equal strings cut to its first; the index of the first string equal to x, or -1
+// (x a node's own string and erased reads empty, sic).
+s32 __fastcall StdListString_AddSorted(u8 *list, void *, const StdString *x);
 void __fastcall StdListDword_Sort(u8 *list);
 
 // 0x5b2fd0 (stdcall; a, b): a new block of 0x28 bytes (otherwise left as it is) with a at +4 and b at +0x24. Returns it.
