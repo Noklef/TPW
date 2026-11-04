@@ -13,6 +13,8 @@
 
 #pragma intrinsic(_ReturnAddress)
 
+extern "C" void __cdecl __report_gsfailure();
+
 namespace tpw::testing {
 
 namespace {
@@ -179,6 +181,29 @@ HRESULT WINAPI t_DirectSoundCreate(const GUID *guid, void **out, IUnknown *outer
     return r;
 }
 
+// A fault's call chain, roughly: the code addresses on its stack (a DLL offset goes to tools/dllsym.py).
+void log_stack(const DWORD *stack) {
+    char chain[160] = "";
+    int found = 0;
+    for (int i = 0; i < 256 && found < 16 && !IsBadReadPtr(stack + i, 4); ++i) {
+        MEMORY_BASIC_INFORMATION m;
+        if (!VirtualQuery(reinterpret_cast<void *>(static_cast<uintptr_t>(stack[i])), &m, sizeof m)) continue;
+        if (m.Type != MEM_IMAGE || !(m.Protect & 0xf0)) continue;   // (0xf0: the PAGE_EXECUTE kinds)
+        wsprintfA(chain + lstrlenA(chain), " %08X", stack[i]);
+        ++found;
+    }
+    log_line("[%6.1fs] stack:%s", log_seconds(), chain);
+}
+
+// Stands in for the CRT's /GS report, which fails fast past every handler: the first address logged is in the
+// function whose stack buffer overran.
+void __cdecl on_stack_cookie() {
+    const DWORD *const stack = reinterpret_cast<const DWORD *>(_AddressOfReturnAddress());
+    log_line("[%6.1fs] stack cookie overwritten, in the function returned to at %08X", log_seconds(), *stack);
+    log_stack(stack);
+    TerminateProcess(GetCurrentProcess(), 0xC0000409);
+}
+
 LONG CALLBACK on_exception(EXCEPTION_POINTERS *info) {
     const EXCEPTION_RECORD *e = info->ExceptionRecord;
     // C++ throws (E06D7363) and thread naming (406D1388) are routine.
@@ -196,20 +221,7 @@ LONG CALLBACK on_exception(EXCEPTION_POINTERS *info) {
                  log_seconds(), e->ExceptionCode, (unsigned)(uintptr_t)e->ExceptionAddress, detail,
                  GetCurrentThreadId(), c->Eax, c->Ecx, c->Edx, c->Esi, c->Edi, c->Esp,
                  IsBadReadPtr((void *)(uintptr_t)c->Esp, 4) ? 0 : *(DWORD *)(uintptr_t)c->Esp);
-        // A fault's call chain, roughly: the code addresses on its stack (a DLL offset goes to tools/dllsym.py).
-        if (e->ExceptionCode == EXCEPTION_ACCESS_VIOLATION) {
-            char chain[160] = "";
-            const DWORD *stack = reinterpret_cast<const DWORD *>(static_cast<uintptr_t>(c->Esp));
-            int found = 0;
-            for (int i = 0; i < 256 && found < 16 && !IsBadReadPtr(stack + i, 4); ++i) {
-                MEMORY_BASIC_INFORMATION m;
-                if (!VirtualQuery(reinterpret_cast<void *>(static_cast<uintptr_t>(stack[i])), &m, sizeof m)) continue;
-                if (m.Type != MEM_IMAGE || !(m.Protect & 0xf0)) continue;   // (0xf0: the PAGE_EXECUTE kinds)
-                wsprintfA(chain + lstrlenA(chain), " %08X", stack[i]);
-                ++found;
-            }
-            log_line("[%6.1fs] stack:%s", log_seconds(), chain);
-        }
+        if (e->ExceptionCode == EXCEPTION_ACCESS_VIOLATION) log_stack(reinterpret_cast<const DWORD *>(static_cast<uintptr_t>(c->Esp)));
     }
     return EXCEPTION_CONTINUE_SEARCH;
 }
@@ -350,6 +362,11 @@ void install_trace() {
         }
     }
     AddVectoredExceptionHandler(1, on_exception);
+    {
+        std::uint8_t bytes[5];
+        std::memcpy(bytes, reinterpret_cast<const void *>(&__report_gsfailure), 5);
+        tpw::hook::patch_jump(reinterpret_cast<void *>(&__report_gsfailure), reinterpret_cast<const void *>(&on_stack_cookie), bytes);
+    }
 
     g_image_end = reinterpret_cast<uintptr_t>(base) + nt->OptionalHeader.SizeOfImage;
     _set_invalid_parameter_handler(ignore_invalid_parameter);  // a bad game format must not end the process
