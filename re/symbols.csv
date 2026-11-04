@@ -6034,6 +6034,10 @@ address,name,kind,confidence,notes
 0x0068c440,CRT_strgtold12,function,low,reimplemented (src/game/core/crtfloat); __strgtold12
 0x006816a0,CRT_fltin2,function,low,reimplemented (src/game/core/crtfloat); _fltin2
 0x006d7710,CRT_strtod,function,low,reimplemented (src/game/core/crtfloat); strtod
+0x0068fbd0,CRT_i10_output,function,low,reimplemented (src/game/core/crtfloat); $I10_OUTPUT
+0x0068c250,CRT_dtold,function,low,reimplemented (src/game/core/crtfloat); __dtold
+0x0068c1c0,CRT_fltout2,function,low,reimplemented (src/game/core/crtfloat); _fltout2
+0x0068c120,CRT_fptostr,function,low,reimplemented (src/game/core/crtfloat); _fptostr
 0x004092a0,GameOwner_Pause,function,low,"reimplemented (src/game/core/gameowner); thiscall (mode, flag), pops 8: the game held: the front end, the clocks, the sounds or the advisor's speech"
 0x00409300,GameOwner_Resume,function,low,reimplemented (src/game/core/gameowner); thiscall: the game let go
 0x00409350,GameOwner_TogglePause,function,low,"reimplemented (src/game/core/gameowner); thiscall (flag), pops 4: paused or not, by +0x1c"

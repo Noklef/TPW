@@ -346,6 +346,146 @@ void __cdecl CRT_multtenpow12(u32 *value, s32 power, u32 keep_low) {
     }
 }
 
+s32 __cdecl CRT_i10_output(u32 low, u32 high, u32 sign_exp, s32 digits, u32 flags, u8 *out) {
+    const u32 exponent = sign_exp & 0x7fff;
+    const bool negative = (sign_exp & 0x8000) != 0;
+    s16 &point = *reinterpret_cast<s16 *>(out);
+    out[2] = negative ? 0x2d : 0x20;
+    const auto zero = [&] {
+        point = 0;
+        out[2] = 0x20;
+        out[3] = 1;
+        out[4] = 0x30;
+        out[5] = 0;
+        return 1;
+    };
+    if (!exponent && !high && !low) return zero();
+    if (exponent == 0x7fff) {
+        const auto text = [&](u32 address, u8 length) {
+            std::memcpy(out + 4, reinterpret_cast<const void *>((uintptr_t)address), length + 1u);
+            out[3] = length;
+            return 0;
+        };
+        point = 1;
+        if ((high != 0x80000000 || low) && !(high & 0x40000000)) return text(0x00709748, 6);
+        if (negative && high == 0xc0000000 && !low) return text(0x00709740, 5);
+        if (high == 0x80000000 && !low) return text(0x00709738, 5);
+        return text(0x00709730, 6);
+    }
+    u32 man[3] = {low << 16, low >> 16 | high << 16, high >> 16 | exponent << 16};
+    const u32 estimate = (exponent >> 8) + (high >> 24) * 2;
+    s32 power = static_cast<s32>(estimate * 77 + exponent * 19728 + 0xecbced0cu) >> 16;
+    CRT_multtenpow12(man, -static_cast<s16>(power), 1);
+    if (man[2] >> 16 >= 0x3fff) {
+        static const u32 kTenth[3] = {0xcccccccc, 0xcccccccc, 0x3ffbcccc};
+        CRT_ld12mul(man, kTenth);
+        ++power;
+    }
+    point = static_cast<s16>(power);
+    if (flags & 1) {
+        digits += static_cast<s16>(power);
+        if (digits <= 0) return zero();
+    }
+    if (digits > 0x15) digits = 0x15;
+    const s32 shift = static_cast<s32>(man[2] >> 16) - 0x3ffe;
+    man[2] &= 0xffff;
+    for (int i = 0; i < 8; ++i) CRT_shl_12(man);
+    if (shift < 0) {
+        for (u32 n = static_cast<u32>(-shift) & 0xff; n; --n) CRT_shr_12(man);
+    }
+    u8 *const first = out + 4;
+    u8 *end = first;
+    for (s32 count = digits + 1; count > 0; --count) {   // (times ten: the top byte the digit)
+        const u32 copy[3] = {man[0], man[1], man[2]};
+        CRT_shl_12(man);
+        CRT_shl_12(man);
+        CRT_add_12(man, copy);
+        CRT_shl_12(man);
+        *end++ = static_cast<u8>((man[2] >> 24) + 0x30);
+        man[2] &= 0x00ffffff;
+    }
+    u8 *last = end - 2;
+    if (static_cast<signed char>(end[-1]) >= 0x35) {
+        while (last >= first && *last == 0x39) *last-- = 0x30;
+        if (last < first) {
+            ++last;
+            ++point;
+        }
+        ++*last;
+    } else {
+        while (last >= first && *last == 0x30) --last;
+        if (last < first) return zero();
+    }
+    const u8 length = static_cast<u8>(static_cast<u8>(last - out) - 3);
+    out[3] = length;
+    out[4 + static_cast<signed char>(length)] = 0;
+    return 1;
+}
+
+u32 *__cdecl CRT_dtold(u32 *to, const u32 *x) {
+    u32 low = x[0];
+    const u16 top = reinterpret_cast<const u16 *>(x)[3];
+    const u32 exponent = top >> 4 & 0x7ff;
+    u32 high = x[1] & 0xfffff;
+    u32 one = 0x80000000;
+    u32 e = exponent + 0x3c00;
+    if (exponent == 0x7ff) {
+        e = 0x7fff;
+    } else if (!exponent) {
+        one = 0;
+        if (!high && !low) {
+            to[0] = to[1] = 0;
+            *reinterpret_cast<u16 *>(to + 2) = 0;
+            return to;
+        }
+        e = 0x3c01;
+    }
+    high = low >> 21 | high << 11 | one;
+    low <<= 11;
+    while (!(high >> 31)) {
+        high = high << 1 | low >> 31;
+        low <<= 1;
+        --e;
+    }
+    to[0] = low;
+    to[1] = high;
+    *reinterpret_cast<u16 *>(to + 2) = static_cast<u16>(e | (top & 0x8000));
+    return to;
+}
+
+u32 *__cdecl CRT_fltout2(u32 low, u32 high, u32 *flt, char *buf) {
+    const u32 x[2] = {low, high};
+    u32 ten[3] = {0, 0, 0};
+    CRT_dtold(ten, x);
+    u8 out[0x1c];
+    const s32 answer = CRT_i10_output(ten[0], ten[1], ten[2], 0x11, 0, out);
+    flt[2] = static_cast<u32>(answer);
+    flt[1] = static_cast<u32>(static_cast<s32>(*reinterpret_cast<s16 *>(out)));
+    flt[0] = static_cast<u32>(static_cast<s32>(static_cast<signed char>(out[2])));
+    std::strcpy(buf, reinterpret_cast<const char *>(out + 4));
+    flt[3] = static_cast<u32>(reinterpret_cast<uintptr_t>(buf));
+    return flt;
+}
+
+u32 __cdecl CRT_fptostr(char *buf, s32 digits, u32 *flt) {
+    const char *from = reinterpret_cast<const char *>((uintptr_t)flt[3]);
+    char *p = buf + 1;
+    *buf = 0x30;
+    for (; digits > 0; --digits) *p++ = *from ? *from++ : 0x30;
+    *p = 0;
+    if (digits >= 0 && static_cast<signed char>(*from) >= 0x35) {
+        while (*--p == 0x39) *p = 0x30;
+        ++*p;
+    }
+    if (*buf == 0x31) {
+        ++flt[1];
+        return static_cast<u32>(reinterpret_cast<uintptr_t>(p));
+    }
+    const u32 length = static_cast<u32>(std::strlen(buf + 1)) + 1;
+    std::memmove(buf, buf + 1, length);
+    return length;
+}
+
 u32 __cdecl CRT_strgtold12(u32 *out, const char **end, const char *text, u32 keep_low, s32 scale, s32 decimals, s32 implicit_e) {
     enum { kStart, kZeros, kSigned, kWhole, kFraction, kPoint, kMark, kExponentSign, kExponentZeros, kExponent, kDone, kImplicit };
     char digits[0x1c];

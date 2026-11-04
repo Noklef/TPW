@@ -55,6 +55,19 @@ void __cdecl CRT_ld12mul(u32 *x, const u32 *y);
 // 0x690220: __multtenpow12: *value *= 10^power from the tables at 0x781f70 / 0x7820d0; without keep_low the low word is cleared first.
 void __cdecl CRT_multtenpow12(u32 *value, s32 power, u32 keep_low);
 
+// 0x68fbd0: $I10_OUTPUT: ten bytes (low, high, then sign and exponent in a dword, its top half not read) as decimal digits in `out`: s16 decimal point, the sign's character
+// (' ' for a zero), the digits' count, the digits and an end. At most 0x15 digits and one to round by; bit 0 of flags takes `digits` after the point. Returns 0 for
+// "1#SNAN", "1#IND", "1#INF" and "1#QNAN", else 1. A digit count below 0 rounds on what lay before the digits (sic).
+s32 __cdecl CRT_i10_output(u32 low, u32 high, u32 sign_exp, s32 digits, u32 flags, u8 *out);
+// 0x68c250: __dtold: the double at x as ten bytes at `to`, returned. A zero loses its sign (sic).
+u32 *__cdecl CRT_dtold(u32 *to, const u32 *x);
+// 0x68c1c0: _fltout2: a double (its two dwords, so that no x87 load quiets a NaN) as 0x11 digits: flt gets the sign's character, the decimal point, the answer of $I10_OUTPUT and `buf`, which
+// gets the digits. Returns flt.
+u32 *__cdecl CRT_fltout2(u32 low, u32 high, u32 *flt, char *buf);
+// 0x68c120: _fptostr: the digits at flt[3] into buf, cut and rounded to `digits` (below 0: no digits, not rounded), '0's after their end. A carry out of the first digit is
+// kept and flt[1] goes up. Returns EAX as it stands: the last digit changed or the end, or the length moved down by one over the unused first place.
+u32 __cdecl CRT_fptostr(char *buf, s32 digits, u32 *flt);
+
 // 0x68c440: __strgtold12: reads a decimal number; 1 underflow, 2 overflow, 4 no digits.
 u32 __cdecl CRT_strgtold12(u32 *out, const char **end, const char *text, u32 keep_low, s32 scale, s32 decimals, s32 implicit_e);
 
