@@ -379,6 +379,7 @@
 #include "../../src/game/world/personscripts.h"
 #include "../../src/game/core/funnytime.h"
 #include "../../src/game/core/narrowfilebuf.h"
+#include "../../src/game/core/stdlist.h"
 #include "../../src/game/core/thunks.h"
 #include "../../src/game/ui/panelkeys.h"
 #include "../../src/game/frontend/frame.h"
@@ -951,6 +952,7 @@ const PanelKeysEnv kPanelKeysEnv = {Rec{jpeg_recorder(1, 1)}};
 const OnlineStartEnv kOnlineStartEnv = {Rec{recorder(21, 0)}, Rec{recorder(22, 0)}, Rec{recorder(23, 0)}, Rec{recorder(24, 0)}, Rec{jpeg_recorder(25, 0)}, Rec{jpeg_recorder(26, 0)}, Rec{recorder(27, 3)}, Rec{jpeg_recorder(28, 1)}};
 const BumpStepsEnv kBumpStepsEnv = {Rec{recorder(1, 3)}, Rec{recorder(2, 3)}, Rec{recorder(3, 3)}, Rec{recorder(4, 1)}, Rec{jpeg_recorder(5, 4)}, Rec{jpeg_recorder(6, 2)}, Rec{jpeg_recorder(7, 2)}, Rec{jpeg_recorder(8, 3)}, Rec{recorder(9, 0)}};
 const ThunksEnv kThunksEnv = {reinterpret_cast<s32(__cdecl *)(void *)>((uintptr_t)(kStubs + 0x50)), Rec{jpeg_recorder(7, 3)}};  // tests/fncmp/thunks_static.py
+const StdListEnv kStdListEnv = {Rec{recorder(3, 0)}};  // tests/fncmp/std_lists.py
 const CoasterPlaceCarEnv kCoasterPlaceCarEnv = {Rec{jpeg_recorder(1, 6)}, Rec{jpeg_recorder(2, 9)}, Rec{jpeg_recorder(3, 7)}, Rec{jpeg_recorder(4, 5)}, Rec{jpeg_recorder(5, 2)}, Rec{jpeg_recorder(6, 7)},
                                                  Rec{jpeg_recorder(7, 1)}, Rec{jpeg_recorder(8, 1)}, Rec{jpeg_recorder(9, 0)}, Rec{jpeg_recorder(10, 0)}, Rec{jpeg_recorder(11, 0)}, Rec{jpeg_recorder(12, 0)},
                                                  Rec{recorder(13, 0)}, Rec{recorder(14, 0)}, Rec{recorder(15, 1)}};  // tests/fncmp/coasterplacecar.py
@@ -2699,6 +2701,7 @@ int main(int argc, char **argv) {
     VersionLabel_SetEnv(&kVersionLabelEnv);
     BankAccountCtor_SetEnv(&kBankAccountCtorEnv);
     NarrowFileBuf_SetEnv(&kNarrowFileBufEnv);
+    StdList_SetEnv(&kStdListEnv);
     Thunks_SetEnv(&kThunksEnv);
     BumpSteps_SetEnv(&kBumpStepsEnv);
     Online_SetStartEnv(&kOnlineStartEnv);

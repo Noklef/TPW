@@ -4392,6 +4392,8 @@ address,name,kind,confidence,notes
 0x005cf7e0,ListHead_Init18,function,low,"reimplemented (src/game/core/stdlist); thiscall: the byte +0 the object pointer's top byte, a self-linked 0x18-byte head node at +4, the count +8 0; returns the node"
 0x005cf810,ListHead_Init0c,function,low,"reimplemented (src/game/core/stdlist); thiscall: the byte +0 the object pointer's top byte, a self-linked 0xc-byte head node at +4, the count +8 0; returns the node"
 0x005d03e0,StdListString_Merge,function,low,"reimplemented (src/game/core/stdlist); Merges the other list<string> into this one, by StdString_CompareSub."
+0x005ce190,StdListString_Sort,function,low,reimplemented (src/game/core/stdlist); list<string>'s sort.
+0x005ce5a0,StdListDword_Sort,function,low,reimplemented (src/game/core/stdlist); The list of dwords' sort.
 0x0041e2c0,Class6fda48_Dtor,function,high,reimplemented (src/game/core/class6fd9d8); derived destructor: vtable then the 0x6fd9d8 base destructor
 0x0041e320,Class6fda68_Dtor,function,high,reimplemented (src/game/core/class6fd9d8); derived destructor: vtable then the 0x6fd9d8 base destructor
 0x0041e4d0,Class6fdaa8_Dtor,function,high,reimplemented (src/game/core/class6fd9d8); derived destructor: vtable then the 0x6fd9d8 base destructor

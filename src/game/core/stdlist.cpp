@@ -7,6 +7,7 @@
 #include "buffers.h"
 #include "crt.h"
 #include "gameheap.h"
+#include "rings.h"
 #include "string.h"
 #include "stdstring.h"
 #include "stdwstring.h"
@@ -15,6 +16,9 @@ namespace {
 
 template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cast<T *>((uintptr_t)p + offset); }
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
+
+const StdListEnv kGameEnv = {reinterpret_cast<void(__fastcall *)(u8 *)>((uintptr_t)0x00634bf0)};
+const StdListEnv *g_env = &kGameEnv;
 
 // A new node of `size` bytes linked in front of `before` (its +0 the next, +4 the previous; a null `before` or previous node is taken to be the node itself).
 u8 *LinkBefore(u8 *before, u32 size) {
@@ -365,6 +369,85 @@ void __fastcall StdListDword_Merge(u8 *list, void *, u8 *other) {
     if (first2 != head2) SpliceBefore(head1, first2, head2);
     at<u32>(list, 8) = at<u32>(list, 8) + at<u32>(other, 8);
     at<u32>(other, 8) = 0;
+}
+
+}  // extern "C"
+
+namespace {
+
+struct ListHeader {
+    u32 allocator;
+    u8 *head;
+    u32 count;
+};
+
+// The merge inlined in the sorts: as the list's merge, the carry's node in front of the bin's when below it.
+template <typename Below> void MergeCarry(ListHeader *bin, ListHeader *carry, Below below) {
+    u8 *const binHead = bin->head, *const carryHead = carry->head;
+    u8 *place = at<u8 *>(binHead, 0), *first = at<u8 *>(carryHead, 0);
+    while (place != binHead && first != carryHead) {
+        if (below(first, place)) {
+            u8 *const next = at<u8 *>(first, 0);
+            Ring_Splice(place, 0, first, next);
+            first = next;
+        } else {
+            place = at<u8 *>(place, 0);
+        }
+    }
+    if (first != carryHead) Ring_Splice(binHead, 0, first, carryHead);
+    bin->count += carry->count;
+    carry->count = 0;
+}
+
+// MSVC6's list::sort: nodes moved one at a time through 16 bins of 2^i nodes (the last holding the rest); a carry and the 16 made and destroyed around it, each with a head of its own.
+template <typename Below> void SortList(u8 *list, u32 nodeSize, u8 *(__fastcall *init)(u8 *), void(__fastcall *merge)(u8 *, void *, u8 *), void(__fastcall *clear)(u8 *), Below below) {
+    if (at<u32>(list, 8) < 2) return;
+    ListHeader carry;
+    carry.head = static_cast<u8 *>(GameHeap_Alloc(nodeSize));
+    at<u8 *>(carry.head, 0) = carry.head;
+    at<u8 *>(carry.head, 4) = carry.head;
+    carry.count = 0;
+    ListHeader bins[16];
+    for (ListHeader &bin : bins) init(reinterpret_cast<u8 *>(&bin));
+    u32 top = 0;
+    while (at<u32>(list, 8) != 0) {
+        u8 *const first = at<u8 *>(at<u8 *>(list, 4), 0), *const position = at<u8 *>(carry.head, 0);
+        if (position != first && position != at<u8 *>(first, 0)) Ring_Splice(position, 0, first, at<u8 *>(first, 0));
+        carry.count++;
+        at<u32>(list, 8)--;
+        u32 i = 0;
+        for (; i < top && bins[i].count != 0; i++) {
+            MergeCarry(&bins[i], &carry, below);
+            u8 *const head = bins[i].head;
+            bins[i].head = carry.head;
+            carry.head = head;
+            carry.count = bins[i].count;
+            bins[i].count = 0;
+        }
+        if (i == 15) {
+            MergeCarry(&bins[15], &carry, below);
+        } else {
+            Obj_SwapPair(reinterpret_cast<u8 *>(&bins[i]), nullptr, reinterpret_cast<u8 *>(&carry));
+            if (i == top) top++;
+        }
+    }
+    for (u32 k = top; k-- != 0;) merge(list, nullptr, reinterpret_cast<u8 *>(&bins[k]));
+    for (u32 k = 16; k-- != 0;) clear(reinterpret_cast<u8 *>(&bins[k]));
+    clear(reinterpret_cast<u8 *>(&carry));
+}
+
+}  // namespace
+
+void StdList_SetEnv(const StdListEnv *env) { g_env = env ? env : &kGameEnv; }
+
+extern "C" {
+
+void __fastcall StdListString_Sort(u8 *list) {
+    SortList(list, 0x18, &ListHead_Init18, &StdListString_Merge, &StdListString_Clear, [](u8 *a, u8 *b) { return ByteString_Compare(a + 8, nullptr, b + 8) < 0; });
+}
+
+void __fastcall StdListDword_Sort(u8 *list) {
+    SortList(list, 0xc, &ListHead_Init0c, &StdListDword_Merge, g_env->dwordListClear, [](u8 *a, u8 *b) { return at<u32>(a, 8) < at<u32>(b, 8); });
 }
 
 void __fastcall StdListString_Merge(u8 *list, void *, u8 *other) {

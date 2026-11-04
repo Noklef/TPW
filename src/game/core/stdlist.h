@@ -6,6 +6,11 @@
 #include "stdstring.h"
 #include "stdwstring.h"
 
+struct StdListEnv {
+    void(__fastcall *dwordListClear)(u8 *list);   // the list of dwords' clear, 0x634bf0: unported, outside every range (by address)
+};
+void StdList_SetEnv(const StdListEnv *env);  // nullptr: the game's
+
 extern "C" {
 
 // 0x5cde80 (thiscall): every node is unlinked, its string tidied (StdString_Tidy with built) and the node freed, the count lowered; then the sentinel is freed and the sentinel
@@ -96,6 +101,10 @@ void __fastcall StdListDword_Merge(u8 *list, void *, u8 *other);
 
 // 0x5d03e0 (thiscall; other list, pops 4): the same for a list<string> (an element of the other goes before the first of this that it compares below, StdString_CompareSub).
 void __fastcall StdListString_Merge(u8 *list, void *, u8 *other);
+
+// 0x5ce190 / 0x5ce5a0 (thiscall): list::sort, stable, of a list<string> (by ByteString_Compare) / a list of dwords (unsigned): nothing below 2 elements; bins of 2^i nodes, the last holding the rest.
+void __fastcall StdListString_Sort(u8 *list);
+void __fastcall StdListDword_Sort(u8 *list);
 
 // 0x5b2fd0 (stdcall; a, b): a new block of 0x28 bytes (otherwise left as it is) with a at +4 and b at +0x24. Returns it.
 u8 *__stdcall Node28_New(u32 a, u32 b);
