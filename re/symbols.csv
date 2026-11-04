@@ -7382,6 +7382,7 @@ address,name,kind,confidence,notes
 0x005e1730,Class702cb0_PreviousItem,function,low,"reimplemented (src/game/frontend/sceneleave); slot 15 of the vtable 0x702cb0: the item before, going round, chosen and its sounds played (name invented, unconfirmed)"
 0x005e1bd0,Scene702ec0_Leave,function,low,"reimplemented (src/game/frontend/sceneleave); slot 8 of the vtable 0x702ec0: the sounds stopped, the lists drained, the dialog [0x7cc4b4] sent message 4 (name unconfirmed)"
 0x005e2550,Scene702dd0_Leave,function,low,reimplemented (src/game/frontend/sceneleave); slot 8 of the vtable 0x702dd0: as 0x5e1bd0 with the dialog [0x7cc47c] (name unconfirmed)
+0x005dd950,ViewCtl702e20_Leave,function,low,"reimplemented (src/game/frontend/sceneleave); the view leaving, then the session's name and words cleared"
 0x005d7fd0,LobbyResource_Ctor,function,low,"reimplemented (src/game/frontend/lobbymake); a lobby resource: its name and pack strings and its load (0x4629d0, by address), given to the scene"
 0x005d8870,LobbyScene_MakeModel,function,low,"reimplemented (src/game/frontend/lobbymake); a lobby model of a resource found by name and pack or new, its ride out of the renderer, given to the scene"
 0x005dfa60,Class702ca8_Ctor,function,low,"reimplemented (src/game/frontend/lobbymake); the object of vtable 0x702ca8: two lobby models, turned and placed, strings, colours from rand, sound categories, given to its owner"
