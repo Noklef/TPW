@@ -43,4 +43,15 @@ u32 __cdecl CRT_fread(char *data, u32 size, u32 count, CrtFile *file);
 s32 __cdecl CRT_ftell_lk(CrtFile *file);
 s32 __cdecl CRT_ftell(CrtFile *file);
 
+// 0x67c140: _fseek_lk: the flags have no read, write or both, or the origin is not 0, 1 or 2: errno 0x16, -1. Origin 1 goes by _ftell_lk. The buffer flushed; a both-ways file forgets its direction,
+// a read file with its own buffer (not 0x400) has a buffer size of 0x200 again. -1 if _lseek fails, else 0. 0x67c100: fseek: the same under the file's lock.
+s32 __cdecl CRT_fseek_lk(CrtFile *file, s32 offset, s32 origin);
+s32 __cdecl CRT_fseek(CrtFile *file, s32 offset, s32 origin);
+
+// 0x688610: _stbuf: stdout (0x77e820) or stderr (0x77e840) on a device gets a temporary buffer: its slot at 0xfb1540's block of 0x1000 from malloc, kept there, or 2 bytes in the file itself. 1 if given. [0xfb1350] counts the tries.
+s32 __cdecl CRT_stbuf(CrtFile *file);
+
+// 0x6886d0: _ftbuf: a flag and a file with a temporary buffer (0x1000): flushed and given up.
+void __cdecl CRT_ftbuf(s32 flag, CrtFile *file);
+
 }  // extern "C"

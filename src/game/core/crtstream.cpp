@@ -250,6 +250,60 @@ s32 __cdecl CRT_ftell(CrtFile *file) {
     return result;
 }
 
+s32 __cdecl CRT_fseek_lk(CrtFile *file, s32 offset, s32 origin) {
+    if (!(file->flags & 0x83) || (origin != 0 && origin != 1 && origin != 2)) {
+        *CRT_errno() = 0x16;
+        return -1;
+    }
+    file->flags &= ~0x10;
+    if (origin == 1) {
+        offset += CRT_ftell_lk(file);
+        origin = 0;
+    }
+    CRT_flush(file);
+    if (file->flags & 0x80) file->flags &= ~3;
+    else if (file->flags & 1 && file->flags & 8 && !(file->flags & 0x400)) file->size = 0x200;
+    return CRT_lseek(static_cast<u32>(file->fd), offset, static_cast<u32>(origin)) == -1 ? -1 : 0;
+}
+
+s32 __cdecl CRT_fseek(CrtFile *file, s32 offset, s32 origin) {
+    CrtInner().lockFile(file);
+    const s32 result = CRT_fseek_lk(file, offset, origin);
+    CrtInner().unlockFile(file);
+    return result;
+}
+
+s32 __cdecl CRT_stbuf(CrtFile *file) {
+    if (!CRT_isatty(static_cast<u32>(file->fd))) return 0;
+    u32 slot;
+    if (reinterpret_cast<uintptr_t>(file) == 0x0077e820) slot = 0;
+    else if (reinterpret_cast<uintptr_t>(file) == 0x0077e840) slot = 1;
+    else return 0;
+    ++*reinterpret_cast<u32 *>((uintptr_t)0x00fb1350);
+    if (file->flags & 0x10c) return 0;
+    char *&kept = reinterpret_cast<char **>((uintptr_t)0x00fb1540)[slot];
+    if (!kept) kept = static_cast<char *>(CRT_malloc(0x1000));
+    if (kept) {
+        file->size = 0x1000;
+        file->base = file->ptr = kept;
+        file->count = 0x1000;
+    } else {
+        file->base = file->ptr = reinterpret_cast<char *>(&file->charBuffer);
+        file->size = file->count = 2;
+    }
+    file->flags |= 0x1102;
+    return 1;
+}
+
+void __cdecl CRT_ftbuf(s32 flag, CrtFile *file) {
+    if (!flag || !(file->flags & 0x1000)) return;
+    CRT_flush(file);
+    file->flags &= ~0x1100;
+    file->size = 0;
+    file->ptr = nullptr;
+    file->base = nullptr;
+}
+
 s32 __cdecl CRT_ungetc_lk(s32 c, CrtFile *file) {
     if (c == -1 || !may_unget(file)) return -1;
     if (!file->base) CRT_getbuf(file);
