@@ -11,7 +11,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from fncmp import HEAP, LOG, RAM, Bench, Call, blob, fill, heap, log_region, put, recorder, set_return, strings  # noqa: E402
 import enginedebug  # noqa: E402
 
-CALLS = {'Open': (0x573080, 0x5735f6 + 0x6b), 'Close': (0x5736a0, 0x573711), 'Reopen': (0x573720, 0x573733), 'Clear': (0x573740, 0x573820), 'Teardown': (0x572d50, 0x572dd0), 'Pick': (0x572f70, 0x57305d), 'OnFormat': (0x573060, 0x573074), 'OnZ': (0x573660, 0x57369c)}
+CALLS = {'Open': (0x573080, 0x573660), 'Close': (0x5736a0, 0x573711), 'Reopen': (0x573720, 0x573733), 'Clear': (0x573740, 0x573820), 'Teardown': (0x572d50, 0x572dd0), 'Pick': (0x572f70, 0x57305d), 'OnFormat': (0x573060, 0x573074), 'OnZ': (0x573660, 0x57369c)}
 B = Bench(list(CALLS.values()) + [(0x572dd0, 0x572f64), (0x5644e0, 0x5645a0), (0x5911d0, 0x5911f0), (0x56a770, 0x56ae60), (0x56af20, 0x56af9c), enginedebug.RANGE, enginedebug.FALLBACK, (0x67a400, 0x690000)], hooks=enginedebug.HOOKS)
 SELF, VB, BASEVT, ADAPTER = RAM, RAM + 0x300, RAM + 0x310, RAM + 0x400
 DRAW, DRAWVT, D3D, D3DVT, DEV, DEVVT, VIEW, VIEWVT, MAT, MATVT, MEMBER, MEMBERVT, FORMAT, SECOND = (RAM + 0x1000 + 0x100 * k for k in range(14))
@@ -46,16 +46,13 @@ def world(r, log, regions):
     strings(log, SURFACE, 0, out=1 << 2)
     blob(log, SURFACE, 1, 0x7fffffff)
     fill(log, SURFACE, 2, struct.pack('<I', r.getrandbits(32)), which=1)
-    strings(log, ENUMZ, 0, out=1 << 3)
     blob(log, ENUMZ, 3, 0xff)
     fill(log, ENUMZ, 3, struct.pack('<8I', r.choice([0x20, 0x20, 0x20, 0x20, 0x1f, 0]), *[r.getrandbits(32) for _ in range(7)]), which=2)
     fill(log, DEVICE, 3, struct.pack('<I', DEV), which=3)
     fill(log, CREATEVIEW, 1, struct.pack('<I', VIEW), which=4)
     fill(log, MATERIAL, 1, struct.pack('<I', MAT), which=5)
     fill(log, HANDLE, 2, struct.pack('<I', r.getrandbits(32)), which=6)
-    strings(log, SETMAT, 0, out=1 << 1)
     blob(log, SETMAT, 1, 0xfffff)
-    strings(log, SETVIEW, 0, out=1 << 1)
     blob(log, SETVIEW, 1, 0x7ff)
     enginedebug.texts(log)
     if r.random() < 0.3:
@@ -114,7 +111,6 @@ def case(r):
     if op == 'Reopen':
         return Call(address, [SELF + 0x228], regions, conv='t', ret='a')
     if op == 'Clear':
-        strings(log, CLEAR, 0, out=1 << 2)
         blob(log, CLEAR, 2, 0xf)
         put(regions[SELF], 0xc, 'I', VIEW)
         floats = [r.choice([0.0, 1.5, -1.5, 639.5, 100000.0, -2.5, 3e9, r.uniform(-5000, 5000)]) for _ in range(4)]

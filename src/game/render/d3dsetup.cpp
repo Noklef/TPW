@@ -59,25 +59,23 @@ void ZeroDwords(u32 *to, u32 count) {
         to[i] = 0;
 }
 
-enum Built { kFailed, kDone, kQuiet };
-
-Built Build(u8 *self, u32 flags) {
+bool Build(u8 *self, u32 flags) {
     u8 *const draw = at<u8 *>(global<u8 *>(0x00879a24), 8);
     if (at<u32>(global<u8 *>(0x00879a24), 0x428) == 0x121a && at<u32>(global<u8 *>(0x00879a24), 0x42c) == 1) {
         noted(0x007689d0);
-        return kFailed;
+        return false;
     }
     logged(0x007689b0);
     noted(0x00768998);
     keep(comcall<u32>(draw, 0, 0x00707520u, self + 4));
-    if (result()) return kFailed;
+    if (result()) return false;
     if (flags & 0x10) {
         logged(0x00768988);
         u32 format[8];
         ZeroDwords(format, 8);
         format[1] = 0x400;
         keep(comcall<u32>(at<u8 *>(self, 4), 0x28, self + 0x18, 0x00573660u, format));
-        if (result() || format[0] != 0x20) return kFailed;
+        if (result() || format[0] != 0x20) return false;
         u32 description[0x1f];
         ZeroDwords(description, 0x1f);
         description[0] = 0x7c;
@@ -89,7 +87,7 @@ Built Build(u8 *self, u32 flags) {
         logged(0x0076896c, format[3]);
         u32 surface;
         keep(comcall<u32>(draw, 0x18, description, &surface, 0u));
-        if (result()) return kFailed;
+        if (result()) return false;
         Obj_AddAttached(global<u8 *>(0x00879a24), nullptr, surface);
         at<u32>(self, 0x220) |= 0x10;
     } else {
@@ -97,23 +95,22 @@ Built Build(u8 *self, u32 flags) {
         at<u32>(self, 0x220) &= ~0x10u;
     }
     keep(comcall<u32>(at<u8 *>(self, 4), 0x20, self + 0x18, at<u32>(global<u8 *>(0x00879a24), 0x14), self + 8, 0u));
-    if (result()) return kFailed;
+    if (result()) return false;
     ZeroDwords(&at<u32>(self, 0x28), 0x3f);
     ZeroDwords(&at<u32>(self, 0x124), 0x3f);
     at<u32>(self, 0x28) = 0xfc;
     at<u32>(self, 0x124) = 0xfc;
     keep(comcall<u32>(at<u8 *>(self, 8), 0xc, self + 0x28, self + 0x124));
-    if (result()) return kFailed;
-    if (!D3dSetup_CreateViewport(self)) return kFailed;
+    if (result()) return false;
+    if (!D3dSetup_CreateViewport(self)) return false;
     keep(comcall<u32>(at<u8 *>(self, 8), 0x20, 0x00573060u, self));
-    if (result()) return kFailed;
+    if (result()) return false;
     if (!global<u32>(0x008bd598)) {
-        if (!(debugFlags() & 0x2000000)) return kQuiet;
         noted(0x00768910);
-        return kFailed;
+        return false;
     }
     keep(comcall<u32>(at<u8 *>(self, 4), 0x14, self + 0x10, 0u));
-    if (result()) return kFailed;
+    if (result()) return false;
     u32 material[0x14];
     ZeroDwords(material, 0x14);
     material[0] = 0x50;
@@ -121,12 +118,12 @@ Built Build(u8 *self, u32 flags) {
         material[i] = 0x3f800000;
     material[0x13] = 1;
     keep(comcall<u32>(at<u8 *>(self, 0x10), 0xc, material));
-    if (result()) return kFailed;
+    if (result()) return false;
     keep(comcall<u32>(at<u8 *>(self, 0x10), 0x14, at<u8 *>(self, 8), self + 0x14));
-    if (result()) return kFailed;
+    if (result()) return false;
     keep(comcall<u32>(at<u8 *>(self, 0xc), 0x20, at<u32>(self, 0x14)));
-    if (result()) return kFailed;
-    return vcall<u32>(self + at<u32>(at<u8 *>(self, 0), 4), 0) ? kDone : kFailed;
+    if (result()) return false;
+    return vcall<u32>(self + at<u32>(at<u8 *>(self, 0), 4), 0) != 0;
 }
 
 }  // namespace
@@ -134,8 +131,7 @@ Built Build(u8 *self, u32 flags) {
 extern "C" {
 
 u32 __fastcall D3dSetup_Open(u8 *self, void *, u32 flags) {
-    const Built built = Build(self, flags);
-    if (built == kDone) {
+    if (Build(self, flags)) {
         u8 *const device = at<u8 *>(self, 8);
         if (at<u32>(self, 0x220) & 0x10) {
             comcall<u32>(device, 0x58, 7u, 1u);
@@ -148,7 +144,7 @@ u32 __fastcall D3dSetup_Open(u8 *self, void *, u32 flags) {
         noted(0x007688ec);
         return 1;
     }
-    if (built == kFailed && (debugFlags() & 0x2000000)) {
+    if (debugFlags() & 0x2000000) {
         char text[0x100];
         Crt().sprintf(text, reinterpret_cast<const char *>((uintptr_t)0x007661cc), result());
         EngineDebug_LogFallback(text);
