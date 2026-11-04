@@ -7,6 +7,7 @@
 #pragma once
 
 #include "../../../re/types.h"
+#include "../core/addrcalls.h"
 
 extern "C" {
 
@@ -36,4 +37,12 @@ u32 __fastcall TerrainTexCache_Init(u8 *cache, void *, s32 count, u32 size);
 // TexFormat_ConvertSquare at that size (0x879a68 read again after the blend); else into the pixels themselves, each of the size squared
 // (signed; re-read each turn) then byte-reversed. Returns 1.
 u32 __fastcall TerrainTexCache_BlendTile(u8 *cache, void *, u8 *texture, u32 x, u32 y, const TerrainOverlay *overlay);
+
+// 0x572440 (thiscall (keys, records, count), pops 0xc): for each dword key (x low byte, y above it; replaced by the tile's texture) the table +8 (y << 7) + x names its tile in the ring: moved just
+// before the mark ([+0x1000c] on entry; that one itself only moves the mark on); not there, the tile before +0x1000c takes the key over, its old slot cleared, +0x1000c that tile. A taken over tile,
+// or one with the record's (0x14 bytes) flag 0x100, is blended again as TerrainTexCache_BlendTile does (the record's first dword, set, first Texture_LockFlipped's) and unlinked from the texture cache
+// (TexCache_UnlinkItem). Every tile: Texture_SetKeep and TexCache_TouchItem (0). Returns 1.
+u32 __fastcall TerrainTexCache_Update(u8 *cache, void *, u32 *keys, u8 *records, s32 count);
 }
+
+void TerrainTexCache_SetCalls(const AddrCall *table, u32 count);
