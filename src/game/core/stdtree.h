@@ -67,6 +67,8 @@ void __fastcall StdTree_EraseSubtreeE(u8 *tree, void *, u8 *node);
 // (_Erase from the root; the head's parent the nil node, its left and right itself, the size 0); otherwise the range is erased node by node (StdTree_IncB, StdTree_EraseB).
 // *out = last; returns out.
 u8 **__fastcall StdTree_EraseRangeB(u8 *tree, void *, u8 **out, u8 *first, u8 *last);
+// 0x47c540 (name invented, unconfirmed): the same for tree A.
+u8 **__fastcall StdTree_EraseRangeA(u8 *tree, void *, u8 **out, u8 *first, u8 *last);
 // 0x4f2590 / 0x4f2960 / 0x4f3290: the same erase(first, last) for trees C, D and E (the whole tree cleared by their _Erase, whose root loop releases each string with
 // CountedBuf_Reset; node by node with their increment and erase).
 u8 **__fastcall StdTree_EraseRangeC(u8 *tree, void *, u8 **out, u8 *first, u8 *last);
