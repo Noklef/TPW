@@ -8,6 +8,7 @@
 
 struct ListRequestEnv {
     u32(__cdecl *post)(u32 code, u32 param);   // CommandQueue_Post
+    void(__cdecl *open)(const u8 *record, u8 *parent, u32 callback, u32 a, u32 b);   // Dialog7cc984_Open
 };
 void ListRequest_SetEnv(const ListRequestEnv *env);   // nullptr: the game's
 
@@ -44,6 +45,10 @@ void __cdecl ListRequest_Login66(u32 flag, u8 *list);
 void __cdecl ListRequest_Login10(u32 flag);
 void __cdecl ListRequest_Login26(u32 flag);
 void __cdecl ListRequest_Login34(u32 flag);
+
+// 0x5b7910 (thiscall (index), pops 4; name invented, unconfirmed): an index within the owner of the session's list +0xf4: its item (Owner2c_At), [[0xf85614] + 0xc]'s vtable +0x48 called, and the
+// item's dialog opened (Dialog7cc984_Open(item, 0, 0x4c4fa0, 0x4c0830, 0)).
+void __fastcall Online_OpenListItem(u8 *session, void *, s32 index);
 
 // 0x5bc8e0 (cdecl): the session's +0x108 set and its user flags without 0x10: 1. Else 0.
 u32 __cdecl Online_Has108NoFlag10();

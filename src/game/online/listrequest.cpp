@@ -6,6 +6,8 @@
 #include "../core/dequeiter.h"
 #include "../core/gameheap.h"
 #include "../core/vcall.h"
+#include "../ui/dialog7cc984open.h"
+#include "itemlist.h"
 #include "session.h"
 #include "sessionlogin.h"
 
@@ -13,7 +15,7 @@ namespace {
 
 template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cast<T *>((uintptr_t)p + offset); }
 
-const ListRequestEnv kGameEnv = {&CommandQueue_Post};
+const ListRequestEnv kGameEnv = {&CommandQueue_Post, &Dialog7cc984_Open};
 const ListRequestEnv *g_env = &kGameEnv;
 
 using Callback = void(__cdecl *)(u32, u32, u32);
@@ -178,6 +180,15 @@ void __cdecl ListRequest_Login66(u32 flag, u8 *list) { Login(flag, list, &ListRe
 void __cdecl ListRequest_Login10(u32 flag) { Login(flag, at<u8 *>(Online_Instance(), 0xf8), &ListRequest_Done10); }
 void __cdecl ListRequest_Login26(u32 flag) { Login(flag, at<u8 *>(Online_Instance(), 0xfc), &ListRequest_Done26); }
 void __cdecl ListRequest_Login34(u32 flag) { Login(flag, at<u8 *>(Online_Instance(), 0x100), &ListRequest_Done34); }
+
+void __fastcall Online_OpenListItem(u8 *session, void *, s32 index) {
+    u8 *const list = at<u8 *>(session, 0xf4);
+    if (index >= at<s32>(at<u8 *>(list, 0x2c), 0xc))
+        return;
+    u8 *const item = Owner2c_At(list, nullptr, index);
+    vcall<void>(at<u8 *>(*reinterpret_cast<u8 **>(0x00f85614), 0xc), 0x48);
+    g_env->open(item, nullptr, 0x004c4fa0, 0x004c0830, 0);
+}
 
 u32 __cdecl Online_Has108NoFlag10() {
     if (!at<u32>(Online_Instance(), 0x108))

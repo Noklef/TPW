@@ -7324,6 +7324,7 @@ address,name,kind,confidence,notes
 0x005bd3f0,ListRequest_Login26,function,low,"reimplemented (src/game/online/listrequest); the same, the session's +0xfc"
 0x005bd800,ListRequest_Login34,function,low,"reimplemented (src/game/online/listrequest); the same, the session's +0x100"
 0x005bc8e0,Online_Has108NoFlag10,function,low,reimplemented (src/game/online/listrequest); +0x108 set and no flag 0x10
+0x005b7910,Online_OpenListItem,function,low,reimplemented (src/game/online/listrequest); a list item's dialog opened by index
 0x005d8190,LobbyModel_SetPosition,function,high,"reimplemented (src/game/frontend/lobbymodel); thiscall (v): the lobby model's (+4: 0x7a4610 index) matrix (+8 -> +4 -> +0x78, +0x10) translation = v[0..2] (x87 loads, all read first)"
 0x005d8380,LobbyModel_TurnY,function,high,"reimplemented (src/game/frontend/lobbymodel); thiscall (angle): Matrix_RotateEulerFast(the lobby model's matrix, 2 ""Y"", &angle)"
 0x005d83b0,LobbyModel_SetScale,function,high,"reimplemented (src/game/frontend/lobbymodel); thiscall (x, y, z): Holder_SetScale(the lobby model's entry +8, (x, y, z))"
