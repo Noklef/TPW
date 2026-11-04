@@ -10,7 +10,7 @@ from fncmp import LOG, RAM, Bench, Call, blob, fb, fill, log_region, strings, vt
 PROJECT = 1
 B = Bench([(0x561a30, 0x561bb6)])
 SELF, BOX, MATRIX, PROJECTION, VT = RAM, RAM + 0x40, RAM + 0x80, RAM + 0xc0, RAM + 0x100
-OPS = ['mixed', 'mixed', 'mixed', 'outside', 'nan', 'flat', 'huge']
+OPS = ['mixed', 'mixed', 'six', 'six', 'outside', 'nan', 'flat', 'huge']   # six: the game's table has six bits, so an OR of random bytes does not always hold 0x40
 
 
 def case(r):
@@ -34,6 +34,8 @@ def case(r):
     table = bytearray(r.bytes(0x80))
     if op == 'outside':
         table = bytearray(b | 0x10 for b in table)
+    if op == 'six':
+        table = bytearray(b & 0x3f for b in table)
     regions = {LOG: log, SELF: r.bytes(8), BOX: struct.pack('<6I', *box), PROJECTION: struct.pack('<I', VT), VT: vtable({}, cdecl={PROJECT: 8}), 0x87b1d8: struct.pack('<I', PROJECTION), 0x879970: table}
     return Call(0x561a30, [SELF, BOX, MATRIX], regions, conv='t', ret='a')
 
