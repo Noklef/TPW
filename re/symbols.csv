@@ -276,7 +276,7 @@ address,name,kind,confidence,notes
 0x00508a30,StaffHQ_HandleMessage,function,high,"reimplemented (src/game/world/staff); thiscall (message), pops 4: the staff HQ's message by type (vtable slot 0): 0xc StaffAdvice_Tick; 0xe, when the RE cell (Map_RECell) of the cell of the message's thing (+8) has word +6 above 0, the nearest free guard (Guard_NearestFree) gets agent C's 0x4d6260 (handle, its high word the message pointer's, sic) through StaffAdviceEnv; others nothing"
 0x004dadc0,MechanicHQ_HandleMessage,function,high,"reimplemented (src/game/world/headquarters); thiscall (event): a kind-7 event's mechanic (+8) looked up along the HQs' chain from the world's +0x1da73e; the advisor message 0x44, 0x45 or 0x46 posted, or nothing"
 0x0059b060,Advisor_HandleMessage,function,high,"reimplemented (src/game/world/advisor); thiscall (event), pops 4: the event by its code (slot 0) posted as an advisor message, handed to HandleCode or PostKindEvent"
-0x0059a550,Advisor_Update,function,medium,Thing_Update case 11 (works on a global; skipped when DAT_00fb3b7c == 1)
+0x0059a550,Advisor_Update,function,medium,"reimplemented (src/game/world/advisor); the advisor's update: the next pick posted, then the best slot said when the time is up"
 0x004c7370,ParkAnalyser_HandleMessage,function,high,"reimplemented (src/game/world/analyser); thiscall (message), pops 4: the analyser message handler"
 0x00503d40,ResearchLab_HandleMessage,function,high,"reimplemented (src/game/world/research); thiscall (message), pops 4: type 0x11 only: the project after the definition of the message's id (+8) added (ResearchProject_SetNextUpgrade), ResearchLab_UpdateLevels of its category (+0xc), message 12 posted (Object_PostMessage); with every project done: the current theme's mAllResearchCompleted set, and with the mode setting (0xfb3b7c, guard 0xfb34ac) 2, or 0 with every theme's set (StdTreeF_AllFlagged), advisor message 0xa7 posted and EndThing_Create"
 0x00512880,Weather_Update,function,low,"reimplemented (src/game/world/weather); thiscall; the due messages, the drops stepped, the bolts and thunder"
@@ -3146,6 +3146,7 @@ address,name,kind,confidence,notes
 0x00598dc0,Advisor_UpdateHighlight,function,low,"reimplemented (src/game/world/advisor); cdecl; name invented: the slot's highlighted parts flagged and selection kinds applied, particle pool 0 set by the flag bits 0x3e0000 of 0xf79660"
 0x00598ad0,Advisor_ClearSpeechText,function,low,reimplemented (src/game/world/advisor); the speech's text freed and its pointer cleared
 0x005996d0,Advisor_EndSpeech,function,low,reimplemented (src/game/world/advisor); the speech stopped without a closing sound; the voice by Sound_Stop or Sound_Forward6
+0x0059ab50,Advisor_PostHeld,function,low,reimplemented (src/game/world/advisor); the held message posted with the scoring's +0x32c as its score
 0x00486610,Global7c24d8_CopyScript,function,high,reimplemented (src/game/ui/thingpreview); a sprite script slot made a copy of another
 0x00557110,Rsse_TakeFinished,function,high,"reimplemented (src/game/rsse/rsse_vm); the value of the first finished entry, which is cleared"
 0x0054dcc0,Flag54dcc0_Test,function,high,reimplemented (src/game/render/mode); a flag test on two settings

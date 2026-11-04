@@ -361,10 +361,11 @@ void __cdecl Advisor_EndSpeech(u32 stop) {
 
 void __fastcall Advisor_Update(u8 *self) {
     const u32 scoring = (u32)(uintptr_t)AdvisorScoring_Instance();
-    const s32 floor = at<s32>(reinterpret_cast<void *>((uintptr_t)scoring), 0x20);
+    const s32 &floor = at<s32>(reinterpret_cast<void *>((uintptr_t)scoring), 0x20);
     const u32 me = (u32)(uintptr_t)self;
     const u32 picked = g_calls.Th(0x0059c680, scoring, 1u);
-    if ((s32)g_calls.Th(0x0059bf20, scoring, picked) > floor) {
+    const s32 score = (s32)g_calls.Th(0x0059bf20, scoring, picked);
+    if (score > floor) {
         u8 message[0x18];
         g_calls.Th(0x0059a940, me, g_calls.Th(0x0059b590, (u32)(uintptr_t)message, picked, 0u, 0u, 0xffffffffu, 0u, 0xffffffffu));
     }
@@ -381,7 +382,7 @@ void __fastcall Advisor_Update(u8 *self) {
             best = at<s32>(slot, 0x10);
         }
     }
-    if (index < 0 || best <= at<s32>(reinterpret_cast<void *>((uintptr_t)scoring), 0x20)) {
+    if (index < 0 || best <= floor) {
         g_calls.Th(0x0041a990, me + 0xc);
         return;
     }
