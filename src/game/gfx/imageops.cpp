@@ -667,6 +667,27 @@ void Image_SetCalls(const AddrCall *table, u32 count) { g_calls.Set(table, count
 
 extern "C" {
 
+u32 __cdecl Surface_LoadTga(const char *name, u8 *surface, u32 *frames) {
+    ImageCodec codec;   // (the TGA codec, on the stack)
+    SurfaceInfo_Ctor(&codec.info);
+    codec.vtable = reinterpret_cast<void *const *>((uintptr_t)0x006fefa8);
+    SurfaceInfo info;
+    SurfaceInfo_Ctor(&info);
+    s32 status;
+    if (*reinterpret_cast<s32 *>((uintptr_t)g_calls.Th(0x005fa8a0, (u32)(uintptr_t)&codec, &status, name, 0u, &info)) < 0) return 0;   // ImageCodec_InfoFromFile
+    g_calls.Cd(0x005f9070, &status, info.width, info.height, 0x800u, surface);   // Surface_Create
+    void *bits;   // (unread: Surface_GetInfo gives them too)
+    if (*reinterpret_cast<s32 *>((uintptr_t)g_calls.Cd(0x005f9550, &status, surface, &bits)) < 0) return 0;   // Surface_Lock
+    g_calls.Cd(0x005fad40, &info, surface);   // Surface_GetInfo
+    if (*reinterpret_cast<s32 *>((uintptr_t)g_calls.Th(0x005faa00, (u32)(uintptr_t)&codec, &status, &info, name, 0u, 0u)) < 0) {   // ImageCodec_LoadFromFile
+        g_calls.Cd(0x005f9130, &status, surface);   // Surface_Release
+        return 0;
+    }
+    g_calls.Cd(0x005f9600, surface);   // Surface_Unlock
+    *frames = info.width >> 5;
+    return 1;
+}
+
 u8 __fastcall Image_LoadFile(u8 *image, void *, const char *directory, const char *name) {
     ImageCodec codec;   // (the TGA codec, on the stack)
     SurfaceInfo_Ctor(&codec.info);

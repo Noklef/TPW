@@ -1155,7 +1155,8 @@ const AddrCall kAdvisorRingCalls[] ={{0x4f8800, recorder(1, 1)}, {0x5194d0, reco
 const AddrCall kSpriteFrameShowCalls[] ={{0x588ba0, recorder(1, 0)}, {0x5889b0, recorder(2, 2)}, {0x58c9f0, recorder(3, 2)}, {0x58a6b0, recorder(4, 1)}, {0x58a6e0, recorder(5, 1)}, {0x578d20, recorder(6, 3)}, {0x574bd0, jpeg_recorder(7, 6)}, {0x588410, recorder(8, 7)}, {0x579b80, jpeg_recorder(9, 1)}};
 const AddrCall kTerrainTexUpdateCalls[] ={{0x590da0, recorder(1, 0)}, {0x590d40, recorder(2, 0)}, {0x55f780, recorder(3, 4)}, {0x562f70, jpeg_recorder(4, 3)}, {0x58dc50, recorder(5, 1)}, {0x590f90, recorder(6, 0)}, {0x58c9f0, recorder(7, 2)}, {0x55f720, recorder(8, 1)}, {0x560ff0, recorder(9, 1)}, {0x56af20, recorder(10, 2)}};
 const AddrCall kDynFacesCalls[] ={{0x53d790, recorder(1, 11)}, {0x424ec0, jpeg_recorder(2, 1)}, {0x424ed0, jpeg_recorder(3, 1)}};
-const AddrCall kImageLoadCalls[] ={{0x5fa8a0, recorder(1, 4)}, {0x5faa00, recorder(2, 5)}, {0x5fa6f0, recorder(3, 1)}, {0x5fa740, recorder(4, 0)}};
+const AddrCall kImageLoadCalls[] ={{0x5fa8a0, recorder(1, 4)}, {0x5faa00, recorder(2, 5)}, {0x5fa6f0, recorder(3, 1)}, {0x5fa740, recorder(4, 0)},
+                                   {0x5f9070, jpeg_recorder(5, 5)}, {0x5f9550, jpeg_recorder(6, 3)}, {0x5fad40, jpeg_recorder(7, 2)}, {0x5f9600, jpeg_recorder(8, 1)}, {0x5f9130, jpeg_recorder(9, 2)}};  // (tests/fncmp/imageload.py, tgasurface.py)
 const AddrCall kLobbyFlightCalls[] ={{0x5d8870, recorder(4, 6)}, {0x5d83f0, recorder(5, 2)}, {0x5d8190, recorder(6, 1)}};
 const AddrCall kPointSpritesCalls[] ={{0x67a7d0, jpeg_recorder(1, 1)}, {0x590c40, recorder(2, 0)}, {0x565240, recorder(3, 5)}, {0x565bb0, recorder(4, 5)}, {0x5658c0, recorder(5, 1)}};
 const AddrCall kCoastersUpdateCalls[] ={{0x435d50, jpeg_recorder(1, 1)}, {0x403d00, recorder(2, 2)}, {0x43eb70, jpeg_recorder(3, 1)}, {0x43ce20, jpeg_recorder(4, 1)}, {0x4709e0, jpeg_recorder(5, 1)}, {0x43b8b0, jpeg_recorder(6, 2)}, {0x439570, jpeg_recorder(7, 2)}};
@@ -1728,6 +1729,7 @@ u32 __cdecl record_call(u32 k, u32 n, u32 self, const u32 *stack) {
     u32 args[16];
     const u32 mask = log[0x280 + (k & 63)];
     if (log[0x300 + (k & 63)] >> 31) self = 0;  // (fncmp.mask_this(): a method on a local object)
+    else if (log[0x300 + (k & 63)] >> 30 & 1) self = *reinterpret_cast<const u32 *>((uintptr_t)self);  // (fncmp.this_first(): the vtable it was given)
     u32 earlier = 0;  // (this slot's calls in the log so far: fncmp.fail_after(), a fill's records)
     for (u32 i = 0; i < log[0] && i < 40; ++i) earlier += log[1 + 12 * i] == k;
     // Answers by name at + 0x1400 (fncmp.named()): (k | 0x80000000, the name argument | (an offset + 1) << 8, the out argument + 1 | a length (0-8)
@@ -2512,7 +2514,7 @@ int main(int argc, char **argv) {
     LobbyFlight_SetCalls(kLobbyFlightCalls, sizeof(kLobbyFlightCalls) / sizeof(kLobbyFlightCalls[0]));
     TexSurface_SetCalls(kTexSurfaceCalls, sizeof(kTexSurfaceCalls) / sizeof(kTexSurfaceCalls[0]));
     AdvisorScoring_SetCalls(kAdvisorRingCalls, 5);
-    Image_SetCalls(kImageLoadCalls, 4);
+    Image_SetCalls(kImageLoadCalls, sizeof(kImageLoadCalls) / sizeof(kImageLoadCalls[0]));
     SpriteFrame_SetCalls(kSpriteFrameShowCalls, 9);
     TerrainTexCache_SetCalls(kTerrainTexUpdateCalls, 10);
     DynFaces_SetCalls(kDynFacesCalls, 3);

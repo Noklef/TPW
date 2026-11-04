@@ -100,6 +100,11 @@ u8 __cdecl Image_GaussianBlurLines(const u32 *image, double sigma);
 // (ImageCodec_InfoFromFile, SurfaceInfo_Alloc, ImageCodec_LoadFromFile: a result below 0 gives 0). The old bytes freed; new ones: one per pixel when the description's +0x14 is 1, copied, else
 // four, each pixel's reversed. Sic: no new bytes gives 0 with the bits kept. Returns 1.
 u8 __fastcall Image_LoadFile(u8 *image, void *, const char *directory, const char *name);
+
+// 0x47e5a0 (cdecl (name, surface, &frames); name invented, unconfirmed): the TGA named read into a new offscreen surface (0x800, Surface_Create) of its
+// size: the codec on the stack as Image_LoadFile's, the surface locked for the load and unlocked. frames = the width / 32; returns 1. Returns 0 when the
+// file's description can not be read, the lock fails (the surface left), or the load fails (the surface released, still locked).
+u32 __cdecl Surface_LoadTga(const char *name, u8 *surface, u32 *frames);
 }  // extern "C"
 
 void Image_SetCalls(const AddrCall *table, u32 count);

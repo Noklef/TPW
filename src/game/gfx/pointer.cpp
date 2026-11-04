@@ -5,6 +5,7 @@
 
 #include "../core/vcall.h"
 #include "../files/file.h"
+#include "imageops.h"
 
 namespace {
 
@@ -210,6 +211,12 @@ void __fastcall PointerFrames_Hide(u8 *self) {
     s32 out = 0;
     AsyncPointer_SetImage(*at<AsyncPointer **>(0x007b4b84), nullptr, &out, nullptr, &rect, hot);
     self[4] = 0;
+}
+
+u32 __fastcall PointerFrames_LoadFile(u8 *self, void *, const char *name) {
+    const u32 loaded = Surface_LoadTga(name, self + 0x14, reinterpret_cast<u32 *>(self + 8));
+    *reinterpret_cast<u32 *>(self + 0x64) = loaded;
+    return loaded;
 }
 
 void __fastcall PointerFrames_Step(u8 *self, void *, s32 now) {
