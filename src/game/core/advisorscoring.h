@@ -5,6 +5,7 @@
 
 #include "../../../re/types.h"
 #include "../files/wrapsources.h"
+#include "addrcalls.h"
 
 // What the criteria 0x59e9b0, 0x59ef60, 0x59f860 and 0x59f8d0 call (the ports by default; the bench runs them as recorders).
 struct AdvisorCriteriaEnv {
@@ -16,6 +17,7 @@ struct AdvisorCriteriaEnv {
     u16 *(__fastcall *findCutOff)(u8 *analyser, void *, u16 *out, u32 any);   // ParkAnalyser_FindCutOff (0x4ccb00)
 };
 void AdvisorCriteria_SetEnv(const AdvisorCriteriaEnv *env);
+void AdvisorScoring_SetCalls(const AddrCall *table, u32 count);   // FunnyTime_Elapsed (0x4f8800) for AdvisorScoring_RingRatio
 
 extern "C" {
 
@@ -293,4 +295,6 @@ s32 __fastcall AdvisorScoring_VeryWornObjectsStaff5(u8 *scoring);
 // ParkAnalyser_RingAverage gives) below +0x2f0 (signed): +0x2f4 / above +0x2f8: +0x2fc; else 0.
 s32 __fastcall AdvisorScoring_RingAverageBelow(const u8 *scoring);
 s32 __fastcall AdvisorScoring_RingAverageAbove(const u8 *scoring);
+// 0x59eb80 (name invented, unconfirmed): from the park's third month (FunnyTime_Elapsed), +0x35c when the average of the table's ring +0x1fc90 over the last +0x358 values, times +0x354, is below that of the ring +0x1f7f0; else or a ring empty 0.
+s32 __fastcall AdvisorScoring_RingRatio(const u8 *scoring);
 }

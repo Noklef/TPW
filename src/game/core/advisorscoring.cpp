@@ -3,6 +3,7 @@
 #include <cstdint>
 
 #include "../math/x87.h"
+#include "filetime.h"
 #include "../world/analyser.h"
 #include "../world/mapcell.h"
 #include "../world/money.h"
@@ -673,5 +674,50 @@ s32 __fastcall AdvisorScoring_VeryWornObjectsStaff5(u8 *scoring) { return worn_o
 s32 __fastcall AdvisorScoring_RingAverageBelow(const u8 *scoring) { return ring_average(scoring, false, 0x2f0, 0x2f4); }
 
 s32 __fastcall AdvisorScoring_RingAverageAbove(const u8 *scoring) { return ring_average(scoring, true, 0x2f8, 0x2fc); }
+
+}  // extern "C"
+
+namespace {
+
+AddrCalls g_calls;
+
+// A ring of the table's: the average (the x87's _ftol of it, rounded in 24 bits) of its last `window` values, as many as it holds; `used` how many that was.
+s32 history_average(const u8 *ring, s32 window, s32 &used) {
+    const s32 cursor = at<s32>(ring, 0x244);
+    const bool wrapped = at<u8>(ring, 0x24c) != 0;
+    const s32 held = wrapped ? at<s32>(ring, 0x248) : cursor + 1;
+    used = window > held ? held : window;
+    X87Reg sum = 0.0;
+    for (s32 i = 0; i < used; ++i) {
+        const s32 size = at<s32>(ring, 0x248);
+        if (i >= size) continue;
+        if (i <= cursor)
+            sum = sum + X87Reg((double)at<s32>(ring, 4 + 4 * (cursor - i)));
+        else if (wrapped)
+            sum = sum + X87Reg((double)at<s32>(ring, 4 + 4 * (cursor - i + size)));
+    }
+    return used > 0 ? (s32)(long long)(sum / X87Reg((double)used)).v : 0;   // (_ftol)
+}
+
+}  // namespace
+
+void AdvisorScoring_SetCalls(const AddrCall *table, u32 count) { g_calls.Set(table, count); }
+
+extern "C" {
+
+s32 __fastcall AdvisorScoring_RingRatio(const u8 *scoring) {
+    FileTime out;
+    const FileTime *const elapsed = reinterpret_cast<const FileTime *>((uintptr_t)g_calls.Th(0x004f8800, (u32)(uintptr_t)(**reinterpret_cast<u8 ***>((uintptr_t)0x007cf6ec) + 0x2a0), &out));   // FunnyTime_Elapsed
+    const long long time = (long long)(((unsigned long long)elapsed->high << 32) | elapsed->low);
+    if ((s32)(time / 0x1792f8648000LL) < 3) return 0;
+    const u8 *const rings = reinterpret_cast<const u8 *>((uintptr_t)GameTable7cfb90_Get1da720_519510(*reinterpret_cast<u8 **>((uintptr_t)0x007cf83c)));
+    s32 used;
+    const s32 first = history_average(rings + 0x1f7f0, at<s32>(scoring, 0x358), used);
+    if (used == 0) return 0;
+    const s32 second = history_average(rings + 0x1fc90, at<s32>(scoring, 0x358), used);
+    if (!used) return 0;
+    const X87Reg scaled = X87Reg((double)second) * at<float>(scoring, 0x354);
+    return !(scaled.v >= (double)first) ? at<s32>(scoring, 0x35c) : 0;   // (FCOMPP's C0: below or unordered)
+}
 
 }  // extern "C"
