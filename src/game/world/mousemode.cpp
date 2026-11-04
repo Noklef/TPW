@@ -368,4 +368,7 @@ void __cdecl ChatButtons_Select(u32 leave) {
 }
 
 void __stdcall ChatButtons_SetChat(u32 on) { ChatButtons_Select(on == 0); }
+
+u32 __fastcall MouseMode6feaa0_Press(void *, void *, u32, u32) { return g_calls.Cd(0x446300, 1u); }
+u32 __fastcall MouseMode6feaa0_Release(void *, void *, u32, u32) { return g_calls.Cd(0x446300, 0u); }
 }

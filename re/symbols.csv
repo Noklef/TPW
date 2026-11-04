@@ -855,6 +855,8 @@ address,name,kind,confidence,notes
 0x00481470,ChatButtons_SetChat,function,low,reimplemented (src/game/world/mousemode); ChatButtons_Select(on == 0)
 0x0040c5e0,MouseMode_EnterTile3a,function,low,"reimplemented (src/game/world/mousemode); a new tile mouse mode (0x3a) set, the holder made when missing"
 0x0046c8e0,MMPlaceStaff_Click,function,low,"reimplemented (src/game/world/mousemode); thiscall (2 unused), pops 8; name unconfirmed; the staff member placed on the tile under the pointer, then the mouse mode back to the online base"
+0x0046cfd0,MouseMode6feaa0_Press,function,low,reimplemented (src/game/world/mousemode); 0x446300 (1).
+0x0046cfe0,MouseMode6feaa0_Release,function,low,reimplemented (src/game/world/mousemode); 0x446300 (0).
 0x0040f290,ThingMsg01_Ctor,function,high,"reimplemented (src/game/world/thingmsg); thiscall (a): +8 a; vtable set, +4 cleared; returns this"
 0x0040f240,ThingMsg02_Ctor,function,high,"reimplemented (src/game/world/thingmsg); thiscall (c, b): +8 b, +0xc c; vtable set, +4 cleared; returns this"
 0x0040f330,ThingMsg06_Ctor,function,high,"reimplemented (src/game/world/thingmsg); thiscall (u16 a): +8 a; vtable set, +4 cleared; returns this"
@@ -7454,6 +7456,9 @@ address,name,kind,confidence,notes
 0x0046c610,ChatCursor_Click,function,low,"reimplemented (src/game/online/chatcursor); a map click on the cell under the cursor with the async modifiers (name invented, unconfirmed)"
 0x0046cee0,ChatCursor_GoTo,function,low,"reimplemented (src/game/online/chatcursor); the online chat's avatar sent to the cell under the cursor (name invented, unconfirmed)"
 0x0046cf80,ChatCursor_MoveTo,function,low,"reimplemented (src/game/online/chatcursor); the online chat's avatar moved to the cell under the cursor (name invented, unconfirmed)"
+0x0046c5d0,ChatCursor_Press,function,low,reimplemented (src/game/online/chatcursor); The cursor's cell pressed with the modifiers.
+0x0046c660,ChatCursor_Preview,function,low,reimplemented (src/game/online/chatcursor); The cursor's cell previewed.
+0x0046c6b0,ChatCursor_ShowHelp,function,low,reimplemented (src/game/online/chatcursor); 0x4814f0 on 0x7b51f0 with 1.
 0x004c4920,RoomCounts_ChatEvent,function,low,"reimplemented (src/game/online/roomcounts); stdcall (type, unused, arguments), the Chat's callback; name invented, unconfirmed; the chat rooms' counts from a room's info"
 0x004c4bb0,RoomCounts_Update,function,low,"reimplemented (src/game/online/roomcounts); cdecl; name invented, unconfirmed; a round of the chat rooms' head counts asked for, the counts shown when ready"
 0x005ca320,PostcardMail_Build,function,low,reimplemented (src/game/online/postcardmail); the virtual postcard's mail text

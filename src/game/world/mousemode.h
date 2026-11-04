@@ -161,4 +161,7 @@ void __cdecl MouseMode_EnterTile16();
 void __cdecl ChatButtons_Select(u32 leave);
 // 0x481470 (stdcall (on), pops 4; name invented): ChatButtons_Select(on == 0).
 void __stdcall ChatButtons_SetChat(u32 on);
+// 0x46cfd0 / 0x46cfe0 (thiscall, pops 8; names invented, unconfirmed): 0x446300 of 1 / 0; its answer.
+u32 __fastcall MouseMode6feaa0_Press(void *, void *, u32, u32);
+u32 __fastcall MouseMode6feaa0_Release(void *, void *, u32, u32);
 }
