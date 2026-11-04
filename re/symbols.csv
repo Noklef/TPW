@@ -7420,6 +7420,7 @@ address,name,kind,confidence,notes
 0x005d80c0,Class702a50_Dtor,function,low,"reimplemented (src/game/frontend/lobbyscene); class 0x702a50's destructor: out of the registry, the ride destroyed, its two strings destroyed (name unconfirmed)"
 0x005e0470,Class702cb0_Step,function,low,"reimplemented (src/game/frontend/lobbyscene); the lobby's step: the camera follows or roams, the weather's drops, a model's burst and sounds"
 0x005da020,Class702af0_Step,function,low,reimplemented (src/game/frontend/lobbyscene); the lobby's flyers spawned and stepped
+0x005d8cb0,LobbyCamera_Frame,function,low,reimplemented (src/game/frontend/lobbyscene); the lobby camera applied for a frame
 0x005dd310,ViewCtl_Lower48,function,low,reimplemented (src/game/frontend/viewcontrols); thiscall: the float +0x48 lowered by the float +0x14
 0x005dd320,ViewCtl_Raise48,function,low,reimplemented (src/game/frontend/viewcontrols); thiscall: the float +0x48 raised by the float +0x14
 0x005dd330,ViewCtl_Raise50,function,low,reimplemented (src/game/frontend/viewcontrols); thiscall: the float +0x50 raised by the float +0x14

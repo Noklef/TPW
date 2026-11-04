@@ -21,6 +21,12 @@ struct LobbySceneEnv {
     u8 *(__fastcall *flightCtor)(u8 *self, void *, u8 *owner, u32 a, u32 b, const u32 *centre, const u32 *spread, u32 e, u32 f);  // LobbyFlight_Ctor (0x5d9830)
     void(__fastcall *acquire)(u8 *user);                                 // RideUser_Acquire (0x5d8130)
     void(__fastcall *flyerStep)(u8 *flyer);                              // LobbyFlyer_Step (0x5d9b50)
+    // LobbyCamera_Frame's calls (the floats as their bits, as the original passes them).
+    void(__fastcall *perspective)(void *matrix, void *, u32 near_, u32 far_, u32 fov);  // Mat4_Perspective (0x578be0)
+    void(__fastcall *setFov)(void *quad, void *, u32 fov);               // ViewQuad_SetFov (0x56b790)
+    void(__fastcall *lookAt)(u8 *camera);                                // Camera_SetLookAt (0x5d8de0)
+    void(__cdecl *cameraUpdate)();                                       // Camera_Update (0x42b1c0)
+    u32(__fastcall *fadeFog)(u8 *fade);                                  // Render_FadeFog (0x5d96c0)
 };
 void LobbyScene_SetEnv(const LobbySceneEnv *env);
 
@@ -38,6 +44,10 @@ void __fastcall Class702af0_AcquireModels(u8 *object);
 // model set up when the flag +4 is set and its +0xc clear (a failed block leaves a null flyer: a fault, sic), the count up; at the limit it stops, else the frame's seed +0x34 steps and another comes unless its bits 0-2 are 1.
 // Then each flyer of the list +0x58 steps (LobbyFlyer_Step).
 void __fastcall Class702af0_Step(u8 *object);
+
+// 0x5d8cb0 (thiscall; name invented, unconfirmed): the perspective at 0x87b110 (0.1, 1000, the angle +4), ViewQuad_SetFov on [0x879d54], Camera_SetLookAt, Camera_Update, Render_FadeFog on the camera. The fade +0x5c moves an eighth
+// (arithmetic) towards +0x60. Above 0: the render flag bit 0x80000 of 0x8bcbc8 set and 0x8bd4e4 the fade >> 8, at most 255, in its top byte. Otherwise that bit clear.
+void __fastcall LobbyCamera_Frame(u8 *camera);
 
 // 0x5dfca0 (class 0x702ca8; name unconfirmed): once (the flag at +0x10 then set to 1), the models at +4 and +8 set up (RideUser_Acquire).
 void __fastcall Class702ca8_AcquireModels(u8 *object);

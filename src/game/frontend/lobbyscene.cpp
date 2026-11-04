@@ -9,9 +9,14 @@
 #include "../core/string.h"
 #include "../core/vcall.h"
 #include "../files/userslots.h"
+#include "../math/mat4.h"
 #include "../math/x87.h"
 #include "../model/holder.h"
+#include "../render/state.h"
+#include "../render/viewquad.h"
 #include "../render/weatherfx.h"
+#include "../world/camera.h"
+#include "../world/cameraupdate.h"
 #include "../world/rides.h"
 #include "lobbyflight.h"
 #include "lobbymodel.h"
@@ -31,7 +36,12 @@ const LobbySceneEnv kPorts = {&Ride_Destroy,
                               reinterpret_cast<decltype(LobbySceneEnv::weatherBurst)>((uintptr_t)0x00580320),
                               &LobbyFlight_Ctor,
                               &RideUser_Acquire,
-                              &LobbyFlyer_Step};
+                              &LobbyFlyer_Step,
+                              reinterpret_cast<decltype(LobbySceneEnv::perspective)>(&Mat4_Perspective),
+                              reinterpret_cast<decltype(LobbySceneEnv::setFov)>(&ViewQuad_SetFov),
+                              &Camera_SetLookAt,
+                              &Camera_Update,
+                              &Render_FadeFog};
 const LobbySceneEnv *g_env = &kPorts;
 
 // FCOM against a float: C0 (below, or unordered), C3 (equal, or unordered), C0 or C3 (not above).
@@ -296,6 +306,25 @@ void __fastcall Class702a50_Dtor(u8 *object) {
     g_env->destroy(at<u32>(object, 4));
     g_env->stringDtor(reinterpret_cast<String *>(object + 0x20));
     g_env->stringDtor(reinterpret_cast<String *>(object + 0xc));
+}
+
+void __fastcall LobbyCamera_Frame(u8 *camera) {
+    const u32 fov = at<u32>(camera, 4);
+    g_env->perspective(reinterpret_cast<void *>((uintptr_t)0x0087b110), nullptr, 0x3dcccccd, 0x447a0000, fov);
+    g_env->setFov(global<void *>(0x00879d54), nullptr, fov);
+    g_env->lookAt(camera);
+    g_env->cameraUpdate();
+    g_env->fadeFog(camera);
+    const u32 fade = at<u32>(camera, 0x5c);
+    const u32 gap = at<u32>(camera, 0x60) - fade;
+    if (gap) at<u32>(camera, 0x5c) = fade + static_cast<u32>(static_cast<s32>(gap) >> 3);
+    if (at<s32>(camera, 0x5c) > 0) {
+        global<u32>(0x008bcbc8) |= 0x80000;
+        const s32 alpha = at<s32>(camera, 0x5c) >> 8;
+        global<u32>(0x008bd4e4) = static_cast<u32>(alpha > 0xff ? 0xff : alpha) << 24;
+    } else {
+        global<u32>(0x008bcbc8) &= 0xfff7ffff;
+    }
 }
 
 void __fastcall Class702af0_Step(u8 *object) {
