@@ -51,6 +51,8 @@ def case(r):
     nodes, items = bytearray(0x40), bytearray(r.bytes(0x40 * 4))
     for i in range(4):
         put(items, 0x40 * i + 0xc, '2f', x + r.uniform(-8, 8), y + r.uniform(-8, 8))
+        if r.random() < 0.1:   # (a NaN passes the reach, and is the nearest)
+            put(items, 0x40 * i + 0xc + 4 * r.randrange(2), 'I', 0x7fc00000)
         put(items, 0x40 * i + 0x18, 'I', r.choice([0, THINGS, THINGS + 0x200, THINGS + 0x400, THINGS + 0x600]))
         put(items, 0x40 * i + 0x2c, 'I', r.choice([0, 1, 1, 1]))
     for i in range(count):
@@ -60,12 +62,19 @@ def case(r):
     regions[LIST] = struct.pack('<2I', r.getrandbits(32), NODES if count else 0)
     # The map: its squares' words small enough for the thing table.
     pattern = b''.join(r.bytes(4) + struct.pack('<H', r.randrange(8)) + r.bytes(2) for _ in range(8))
-    m = bytearray(pattern * (0x20088 // len(pattern) + 1))[:0x20088]
+    m = bytearray(pattern * (0x20488 // len(pattern) + 1))[:0x20488]   # (past its end too: row 0x80)
     put(m, 0, '24s', r.bytes(24))
     put(m, 0x10, '2I', r.getrandbits(11), r.getrandbits(11))
     put(m, 0x24, '2i', r.choice([128, 128, 64, 0]), r.choice([128, 128, 64, 0]))
     put(m, 0x48, '2I', r.getrandbits(32), r.getrandbits(32))
-    put(m, 0x54, '3f', r.uniform(0, 128), r.uniform(0, 128), r.choice([1.0, 0.5, 2.0, 0.25]))
+    zoom = r.choice([1.0, 0.5, 2.0, 0.25])
+    put(m, 0x54, '3f', r.uniform(0, 128), r.uniform(0, 128), zoom)
+    if r.random() < 0.3:   # (the edge of the squares: column or row 0x80, the other inside)
+        columns, rows = struct.unpack_from('<2i', m, 0x24)
+        if columns and rows:
+            placed = [(x - (width & 0xffff) / 2) / (480 / columns * zoom), (y - (height & 0xffff) / 2) / (425 / rows * zoom)]
+            edge = r.randrange(2)
+            put(m, 0x54, '2f', *[(128.3 if i == edge else 60.5) - placed[i] for i in range(2)])
     put(m, 0x20060, 'I', r.choice([0, ITEMS, ITEMS + 0x40, ITEMS + 0xc0]))
     put(m, 0x20064, 'I', r.randrange(8))
     put(m, 0x20080, '2I', LIST, r.choice([0, 1]))
