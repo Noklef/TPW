@@ -6568,6 +6568,7 @@ address,name,kind,confidence,notes
 0x006771a0,MadVideo_DecodeFrame,function,low,"reimplemented (src/game/gfx/madvideo); the DCT video frames of kinds 5, 6, 7: name invented, unconfirmed"
 0x006700d0,MovieDisplay_Prepare,function,low,"reimplemented (src/game/gfx/moviedisplay); a movie's display made ready: name invented, unconfirmed"
 0x005eb8a0,LightShade_Apply,function,low,"reimplemented (src/game/gfx/lightshade); a height image lit: each pixel's normal, diffuse and specular on a tiled colour"
+0x005d3890,Image_LoadFile,function,low,reimplemented (src/game/gfx/imageload); an image read from a file through the codec
 0x00fa9f3c,gScreenOpen,data,high,Screen_Open has run (Screen_Close clears it)
 0x00fa77d0,gScreenModes,data,high,List of ScreenMode (width, height, bit count) from EnumDisplayModes
 0x006fefa8,TgaCodec_vtable,data,high,"TgaCodec (ImageCodec: vtable, SurfaceInfo): 0x47e750 deleting dtor, GetInfo, Load, IsTga; the work is done by a stack TgaReader (0x44, vtable 0x703630)"

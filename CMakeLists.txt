@@ -650,6 +650,7 @@ add_library(tpw_game STATIC
     src/game/gfx/madvideo.cpp
     src/game/gfx/moviedisplay.cpp
     src/game/gfx/lightshade.cpp
+    src/game/gfx/imageload.cpp
     src/game/ui/panel7cc3b0handler.cpp
     src/game/world/rideupkeep.cpp
     src/game/world/objectwear.cpp

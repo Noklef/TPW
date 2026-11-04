@@ -236,6 +236,7 @@
 #include "../../src/game/gfx/draw.h"
 #include "../../src/game/gfx/glyphrender.h"
 #include "../../src/game/gfx/imagecodec.h"
+#include "../../src/game/gfx/imageload.h"
 #include "../../src/game/gfx/invmap.h"
 #include "../../src/game/gfx/lightshade.h"
 #include "../../src/game/gfx/pixconv.h"
@@ -1503,6 +1504,7 @@ const Dialog7cc188AddressEnv kDialog7cc188AddressEnv = {Rec{recorder(10, 1)}, Re
 const UserSlotsEnv kUserSlotsEnv = {Rec{recorder(27, 0)}};
 const BankAccountCtorEnv kBankAccountCtorEnv = {Rec{jpeg_recorder(10, 4)}};
 const LightShadeEnv kLightShadeEnv = {Rec{jpeg_recorder(10, 4)}};  // tests/fncmp/lightshade.py
+const ImageLoadEnv kImageLoadEnv = {Rec{recorder(16, 4)}, Rec{recorder(17, 1)}, Rec{recorder(18, 5)}, Rec{recorder(19, 0)}};  // tests/fncmp/imageload.py
 const Dialog7ca150ListEnv kDialog7ca150ListEnv = {Rec{recorder(10, 2)}, Rec{recorder(11, 1)}, Rec{recorder(12, 2)}, Rec{recorder(13, 5)}, Rec{recorder(14, 1)}, Rec{recorder(15, 1)}, Rec{recorder(16, 0)}, Rec{recorder(17, 0)}, Rec{recorder(18, 0)}, Rec{recorder(19, 0)}, Rec{recorder(20, 3)}};
 const Dialog7cb3f8SlotsEnv kDialog7cb3f8SlotsEnv = {Rec{jpeg_recorder(10, 0)}, Rec{recorder(11, 1)}, Rec{recorder(12, 1)}, Rec{jpeg_recorder(13, 1)}, Rec{recorder(14, 1)}};
 const Panel7cc328HandlerEnv kPanel7cc328HandlerEnv = {Rec{recorder(10, 0)}, Rec{recorder(11, 2)}, Rec{recorder(12, 5)}, Rec{recorder(13, 2)}, Rec{recorder(14, 1)}, Rec{jpeg_recorder(15, 1)}, Rec{recorder(16, 0)}, Rec{recorder(17, 0)}, Rec{recorder(18, 0)}, Rec{jpeg_recorder(19, 2)}, Rec{jpeg_recorder(20, 2)},
@@ -2620,6 +2622,7 @@ int main(int argc, char **argv) {
     VersionLabel_SetEnv(&kVersionLabelEnv);
     BankAccountCtor_SetEnv(&kBankAccountCtorEnv);
     LightShade_SetEnv(&kLightShadeEnv);
+    ImageLoad_SetEnv(&kImageLoadEnv);
     SaveDialog_SetEnv(&kSaveDialogEnv);
     SaveDialogCreate_SetEnv(&kSaveDialogCreateEnv);
     Panel7cc328Handler_SetEnv(&kPanel7cc328HandlerEnv);
