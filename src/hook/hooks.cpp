@@ -668,6 +668,7 @@
 #include "../game/ui/panel7c2534.h"
 #include "../game/ui/panel7c2534handler.h"
 #include "../game/ui/panel7c2534menus.h"
+#include "../game/ui/panel7c2534online.h"
 #include "../game/ui/panel7ca178.h"
 #include "../game/ui/panel7ca228handler.h"
 #include "../game/ui/panel7cc218.h"
@@ -8341,6 +8342,12 @@ const Hook kHooks[] = {
     {"Dialog7cc654_Open",         0x004bc710, (void *)&Dialog7cc654_Open, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"Dialog7cca70_Handler",      0x004c1a10, (void *)&Dialog7cca70_Handler, {0x53, 0x8b, 0x5c, 0x24, 0x10}},
     {"TextButton_CreateWindow",   0x00492e80, (void *)&TextButton_CreateWindow, {0x6a, 0xff, 0x68, 0x5b, 0x9c}},
+    {"Panel7c2534_OnlineHandler", 0x0048bd40, (void *)&Panel7c2534_OnlineHandler, {0x83, 0xec, 0x20, 0x56, 0x8b}},
+    {"Panel7c2534_AnswerSave",    0x0048b400, (void *)&Panel7c2534_AnswerSave, {0x64, 0xa1, 0x00, 0x00, 0x00}},
+    {"Panel7c2534_AnswerQuit",    0x0048b5b0, (void *)&Panel7c2534_AnswerQuit, {0x56, 0x6a, 0x01, 0xe8, 0xf8}},
+    {"Panel7c2534_AnswerQuit2",   0x0048b620, (void *)&Panel7c2534_AnswerQuit2, {0x56, 0x6a, 0x01, 0xe8, 0x88}},
+    {"Panel7c2534_AnswerMode3",   0x0048bc30, (void *)&Panel7c2534_AnswerMode3, {0x8b, 0x0d, 0x84, 0x28, 0xf8}},
+    {"Panel7c2534_AnswerSaves",   0x0048bc50, (void *)&Panel7c2534_AnswerSaves, {0x56, 0xe8, 0x7a, 0x00, 0x00}},
     {"jdmarker_examine_app14",    0x0063bf50, (void *)&jdmarker_examine_app14, {0x8b, 0x4c, 0x24, 0x0c, 0x53}},
     {"jdmarker_examine_app0",     0x0063bcc0, (void *)&jdmarker_examine_app0, {0x8b, 0x44, 0x24, 0x0c, 0x8b}},
     {"jdmarker_get_interesting_appn", 0x0063bb80, (void *)&jdmarker_get_interesting_appn, {0x8b, 0x44, 0x24, 0x04, 0x83}},
