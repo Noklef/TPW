@@ -2,6 +2,7 @@
 
 #include <cstdint>
 
+#include "../core/addrcalls.h"
 #include "../core/gameheap.h"
 #include "../core/liveobjects.h"
 #include "../render/engineerrors.h"
@@ -11,8 +12,13 @@
 namespace {
 
 template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cast<T *>((uintptr_t)p + offset); }
+template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
+
+AddrCalls g_calls;
 
 }  // namespace
+
+void SpriteQueue_SetCalls(const AddrCall *table, u32 count) { g_calls.Set(table, count); }
 
 extern "C" {
 
@@ -118,6 +124,27 @@ u32 __fastcall SpriteQueue_LoadTexture(u8 *queue, void *, const char *name) {
     if (*slot != nullptr)
         *reinterpret_cast<u32 *>(*slot + 8) = (*reinterpret_cast<u32 *>(*slot + 8) & ~0x80u) | 0x40040;
     return *slot != nullptr;
+}
+
+u32 __fastcall SpriteQueue_Clear(u8 *queue) {
+    at<u32>(queue, 0x2404) = 0;
+    at<u32>(queue, 0x2408) = 0;
+    at<u32>(queue, 0x240c) = 0;
+    return g_calls.Th(0x58c9f0, global<u32>(0x008c4b44), at<u32>(queue, 0x2400), 0u);
+}
+
+u32 __fastcall SpriteQueue_ShowAll(u8 *queue) {
+    for (u32 l = at<u32>(queue, 0x240c); l != 0; l--) {
+        const u8 *const list = at<const u8 *>(queue, 0x2200 + (l - 1) * 4);
+        for (u32 f = at<u32>(list, 4); f != 0; f--)
+            g_calls.Th(0x588ef0, at<const u32 *>(list, 0x14)[f - 1]);
+    }
+    return 1;
+}
+
+u32 __fastcall Global8c47b0_Touch(u8 *object) {
+    g_calls.Th(0x58c9f0, global<u32>(0x008c4b44), at<u32>(object, 8), 0x3f000000u);
+    return 1;
 }
 
 void __cdecl Global8c47b0_Release() {

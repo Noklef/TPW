@@ -631,6 +631,19 @@ void WeatherFx_SetBoltCalls(const AddrCall *table, u32 count) { g_boltCalls.Set(
 
 extern "C" {
 
+u32 __fastcall WeatherFx_TouchTextures(u8 *fx) {
+    if (at<u32>(fx, 0x3308) && at<u32>(fx, 0x334c)) g_boltCalls.Th(0x58c9f0, global<u32>(0x008c4b44), at<u32>(fx, 0x334c), 0x3f000000u);
+    if (at<u32>(fx, 0x3318)) {
+        const u32 kind = at<u32>(fx, 0);
+        if (kind == 1) {
+            if (at<u32>(fx, 0x3350)) g_boltCalls.Th(0x58c9f0, global<u32>(0x008c4b44), at<u32>(fx, 0x3350), 0x3f000000u);
+        } else if (kind == 2) {
+            if (at<u32>(fx, 0x3348)) g_boltCalls.Th(0x58c9f0, global<u32>(0x008c4b44), at<u32>(fx, 0x3348), 0x3dcccccdu);
+        }
+    }
+    return 1;
+}
+
 u32 __fastcall WeatherFx_DrawBolts(u8 *fx) {
     if (at<u32>(fx, 4) && !g_boltCalls.Cd(0x0057ed50))
         return 0;

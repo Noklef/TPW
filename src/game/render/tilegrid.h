@@ -9,8 +9,14 @@ struct TileGridEnv {
 };
 // The call goes to env (nullptr: the port).
 void TileGrid_SetEnv(const TileGridEnv *env);
+struct AddrCall;
+void TileGrid_SetCalls(const AddrCall *table, u32 count);   // tests/fncmp/texturetouches.py
 
 extern "C" {
+
+// 0x577a30 (thiscall; name invented, unconfirmed): 0 without the cells (+0x1c). Each cell of the rectangle (in 64s: +0x20, +0x24 to +0x28, +0x2c) touched in the texture cache [0x8c4b44]:
+// the cell (row * +0x10 + column + +0x48) of 0x60 bytes, with 0. Returns 1.
+u32 __fastcall TileGrid_TouchVisible(u8 *grid);
 
 // 0x577ae0 (thiscall, on the object at 0x87aee8; name invented, unconfirmed). The object: +0x10 the grid's width, +0x1c its cells (0x60 bytes each; null returns 0), +0x20 to +0x2c the rectangle's x0, y0, x1, y1,
 // +0x30 to +0x3c its corners on screen likewise, +0x40 colour (an alpha of 0xff: batch flags 0x1256, else 0x556), +0x44 z (with 0.03 added in render mode 4), +0x48 the first cell's index, +0x5c 0: batch flag 0x20000.

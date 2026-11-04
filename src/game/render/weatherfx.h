@@ -137,6 +137,10 @@ void WeatherFx_SetBoltCalls(const AddrCall *table, u32 count);
 
 extern "C" {
 
+// 0x57dc80 (thiscall; name invented, unconfirmed): the bolt's texture (+0x334c, with bolts +0x3308) touched in the cache [0x8c4b44] at 0.5. With drops (+0x3318): kind (+0) 1: +0x3350 at 0.5; 2: +0x3348 at 0.1.
+// Returns 1.
+u32 __fastcall WeatherFx_TouchTextures(u8 *fx);
+
 // 0x57ee30 (thiscall; name invented, unconfirmed; x87 in the original's order): with +4 set Batch_DrawScreenQuad first; its 0 gives 0. The bolts of the list at +0x3008 (0x30 bytes each, the count at +0x3308), last first: +0x24 less +0x9d9c. At 0 or below the
 // bolt goes, the last one copied over it. Else +0x9da0 its index. With its +0x2c set: +0xa198 that, +0xa1a0 4, and +0xa19c a shade that fades over each 500 of +0x24, plus rand() & 0x3f, in each channel (sic: a shade over 0xff runs into the next channel). Without: +0xa198 Cpu_Ticks, +0xa19c white, +0xa1a0 0.
 // WeatherFx_DrawBolt(its +0xc, it): 0 gives 0. Returns 1.

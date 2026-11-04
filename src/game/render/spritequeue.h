@@ -8,7 +8,17 @@
 
 #include "../../../re/types.h"
 
+struct AddrCall;
+void SpriteQueue_SetCalls(const AddrCall *table, u32 count);   // tests/fncmp/texturetouches.py
+
 extern "C" {
+
+// 0x58a630 (thiscall; name invented, unconfirmed): the three counts 0; TexCache_TouchItem of [0x8c4b44] (+0x2400, 0), its answer returned.
+u32 __fastcall SpriteQueue_Clear(u8 *queue);
+// 0x58a720 (thiscall; name invented, unconfirmed): each frame set from the last, each of its frames (+0x14, count +4) from the last, SpriteFrame_Show. Returns 1.
+u32 __fastcall SpriteQueue_ShowAll(u8 *queue);
+// 0x58ac70 (thiscall; name invented, unconfirmed): TexCache_TouchItem of [0x8c4b44] (+8, 0.5). Returns 1.
+u32 __fastcall Global8c47b0_Touch(u8 *object);
 
 // 0x58a550 (thiscall on a frame set's +0x20; _ = the set's address + 0x20): the set is queued
 // once for the current stamp (0x8bcc40, 0x8bcc44). If its stamp (+0xc, +0x10) already matches,
