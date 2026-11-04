@@ -7631,6 +7631,7 @@ address,name,kind,confidence,notes
 0x004ee9e0,ChatAvatar_FillBuddyList,function,low,"reimplemented (src/game/online/chatcommand); thiscall on the avatar; the buddy set +0xe90's names in order, each with its ChatAvatar_NameFlags, to Window7cc8bc_ListAdd1Std"
 0x004ebb00,ChatAvatar_AddIgnore,function,low,"reimplemented (src/game/online/chatcommand); thiscall (name), pops 4; the command 0xd run on the name when it is not in the ignore set +0xea0 (name invented)"
 0x004ebcf0,ChatAvatar_RemoveIgnore,function,low,"reimplemented (src/game/online/chatcommand); thiscall (name), pops 4; the command 0xd run on the name when it is in the ignore set +0xea0 (name invented)"
+0x004ea490,ChatAvatar_ParseCommand,function,low,reimplemented (src/game/online/chatcommand); a typed line parsed and run
 0x004e6e80,ChatAvatar_HandleEvent,function,low,"reimplemented (src/game/online/chatevents); thiscall (tokens), RET 4: the event the tokens carry (name invented, unconfirmed)"
 0x004ee710,ChatAvatar_SetBuddy,function,low,"reimplemented (src/game/online/chatevents); thiscall (name, flags), RET 8: the buddy set's entry of name given the flags, told to both window lists (name invented, unconfirmed)"
 0x004eec40,ChatAvatar_ShowResult,function,low,reimplemented (src/game/online/chatevents); the result of a connection told as a notice
