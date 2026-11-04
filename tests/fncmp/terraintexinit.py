@@ -23,7 +23,7 @@ def case(r):
     put(self, 0x230, 'I', r.choice([0, RAM + 0x600]))
     regions = {LOG: log, SELF: self, NAME: b'land.lnd\0', HEAP: heap(0x30000, 1 if op == 'no memory' else 0),
                0x8bd524: struct.pack('<I', r.choice([0, 2, 4]) if op == 'other driver' else 1), 0x8bd508: struct.pack('<I', r.getrandbits(32) & ~0x2000000 | r.choice([0, 0x2000000])), 0x8c162c: r.bytes(4)}
-    return Call(0x56e550, [SELF, 0 if op == 'no name' else NAME, r.getrandbits(32)], regions, conv='t')
+    return Call(0x56e550, [SELF, 0 if op == 'no name' else NAME, r.getrandbits(32)], regions, conv='t', ret='a')
 
 
 if __name__ == '__main__':
