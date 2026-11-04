@@ -24,6 +24,8 @@ def fbox(r, buf, at, x, spread):
     for k in range(3):
         put(buf, at + 4 * k, 'I', number(r, x - spread, x))
         put(buf, at + 0xc + 4 * k, 'I', number(r, x, x + spread))
+        if x == 0 and r.random() < 0.15:   # limits of a tie that differ only in the zero's sign: which side's the box takes shows
+            put(buf, at + r.choice([0, 0xc]) + 4 * k, 'I', r.choice([0, 0x80000000]))
 
 
 def node(r, x):
@@ -53,6 +55,10 @@ def case(r):
     n1, n2 = r.choice([0, 1, 1, 2, 3, 4]), r.choice([0, 1, 1, 2, 3, 4])
     regions = {LOG: log, OWNER1: bytearray(r.bytes(0x144)), OWNER2: bytearray(r.bytes(0x144)), TYPE1: r.bytes(8), TYPE2: r.bytes(8), SEGS1: segments(r, n1, 0.0), SEGS2: segments(r, n2, far),
                a: node(r, 0.0), a2: node(r, 0.0), b: node(r, far), b2: node(r, far)}
+    if far == 0.0 and r.random() < 0.25:   # (the two boxes' upper limits tying but for the zero's sign: which the common part takes shows)
+        limit = 0x98 + 0xc + 4 * r.choice([1, 2])
+        put(regions[a], limit, 'I', 0)
+        put(regions[b], limit, 'I', 0x80000000)
     globals_ = bytearray(r.bytes(0x18))
     put(globals_, 0, 'I', SEGS2)
     put(globals_, 8, 'I', SEGS1)

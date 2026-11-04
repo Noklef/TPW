@@ -48,6 +48,7 @@ def case(r):
     regions[FACES], regions[OTHERS] = faces, others
     vertices = bytearray(r.bytes(0x14 * 4))
     reached = False
+    identity = struct.pack('<16f', 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1)
     for i in range(4):
         at = i * 0x14
         put(vertices, at, 'B', r.getrandbits(8) & ~2 | r.choice([2, 2, 2, 0]))
@@ -60,6 +61,9 @@ def case(r):
             if not flags & 0x8000:
                 if reached and r.randrange(4) == 0:
                     put(m, r.choice([0x30, 0x34, 0x38]), 'I', NAN)
+                elif reached and r.randrange(4) == 0:   # (where the camera is: no direction with the view whole, so the kept up shows in the roll)
+                    m = identity
+                    regions[CAMERA] = identity
                 reached = True
         regions[MATRICES + i * 0x40] = m
     regions[VERTICES] = vertices
