@@ -629,6 +629,11 @@ void wrap_place(float &out, X87Reg v) {
 
 void WeatherFx_SetBoltCalls(const AddrCall *table, u32 count) { g_boltCalls.Set(table, count); }
 
+extern "C" void __cdecl KidShadow_LoadTexture() {
+    const u32 queue = global<u32>(0x008c47a0);
+    if (queue) g_boltCalls.Th(0x0058a5c0, queue, 0x00765238u);
+}
+
 extern "C" {
 
 u32 __fastcall WeatherFx_TouchTextures(u8 *fx) {

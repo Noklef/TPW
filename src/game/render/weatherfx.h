@@ -136,6 +136,8 @@ void WeatherFx_SetReloadEnv(const WeatherFxReloadEnv *env);
 void WeatherFx_SetBoltCalls(const AddrCall *table, u32 count);
 
 extern "C" {
+// 0x550930 (cdecl; name invented, unconfirmed): SpriteQueue_LoadTexture of "data\generic\shadow\alphkid.tga" (0x765238) on the queue [0x8c47a0], if any.
+void __cdecl KidShadow_LoadTexture();
 
 // 0x57dc80 (thiscall; name invented, unconfirmed): the bolt's texture (+0x334c, with bolts +0x3308) touched in the cache [0x8c4b44] at 0.5. With drops (+0x3318): kind (+0) 1: +0x3350 at 0.5; 2: +0x3348 at 0.1.
 // Returns 1.
