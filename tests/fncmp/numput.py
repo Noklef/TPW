@@ -33,7 +33,7 @@ def case(r):
     answers(log, OVERFLOW, A_OVERFLOW)
     regions[A_OVERFLOW] = struct.pack('<40I', *[r.choice([0, 0x41, 0x41, 0xffffffff, 0xffff, 0xffff0041]) for _ in range(40)])
     width = r.choice([0, 0, -1, 1, 7, 8, 9, 12, 20, -20 & 0xffffffff])
-    regions[IOS] = bytes(0xc) + struct.pack('<2I', r.choice([0, 0x40, 0x40, 0x80, 0x100, 0x140, 0x1c0, 0xffffffff, 0xfffffe3f]), width & 0xffffffff)
+    regions[IOS] = bytes(0xc) + struct.pack('<3I', r.choice([0, 0x40, 0x40, 0x80, 0x100, 0x140, 0x1c0, 0xffffffff, 0xfffffe3f]), r.getrandbits(32), width & 0xffffffff)
     if wide:
         strings(log, MBRTOWC, 0, out=9)
         blob(log, MBRTOWC, 1, 1)

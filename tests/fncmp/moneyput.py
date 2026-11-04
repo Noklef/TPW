@@ -102,7 +102,7 @@ def facet_state(r, regions, log):
     regions[BUFFER] = struct.pack('<I', BUFFER_VTABLE) + bytes(0x1c) + struct.pack('<I', POINTER) + bytes(0xc) + struct.pack('<I', COUNT)
     answers(log, OVERFLOW, A_OVERFLOW)
     regions[A_OVERFLOW] = struct.pack('<40I', *[r.choice([0, 0x41, 0x41, 0xffffffff, 0xffff, 0xffff0041]) for _ in range(40)])
-    regions[IOS] = bytes(0xc) + struct.pack('<2I', r.choice([0, 8, 0x40, 0x48, 0x100, 0x108, 0x140, 0x1c0, 0x88, 0xfffffe3f, 0xffffffff]), r.choice([0, 0xffffffff, 1, 5, 12, 30, 100, 0xffffffec])) + bytes(0xc) + struct.pack('<I', SOURCE) + bytes(0x1c)
+    regions[IOS] = bytes(0xc) + struct.pack('<3I', r.choice([0, 8, 0x40, 0x48, 0x100, 0x108, 0x140, 0x1c0, 0x88, 0xfffffe3f, 0xffffffff]), r.getrandbits(32), r.choice([0, 0xffffffff, 1, 5, 12, 30, 100, 0xffffffec])) + bytes(8) + struct.pack('<I', SOURCE) + bytes(0x1c)
     # The stream's locale.
     regions[IMP_VTABLE] = struct.pack('<I', recorder(DELETE, 1))
     regions[OTHER_FACETS] = struct.pack('<%dI' % 0x20, *[r.choice([OBJECT, OBJECT, OBJECT, 0]) for _ in range(0x20)])
