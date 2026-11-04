@@ -5834,6 +5834,18 @@ address,name,kind,confidence,notes
 0x006a4f20,MoneypunctW_Init,function,low,reimplemented (src/game/core/moneypunct); moneypunct<wchar_t>::_Init
 0x006a8830,MoneypunctC_Ctor,function,low,reimplemented (src/game/core/moneypunct); moneypunct<char>'s constructor
 0x006a18a0,MoneypunctW_Ctor,function,low,reimplemented (src/game/core/moneypunct); moneypunct<wchar_t>'s constructor
+0x0068bad0,CRT_abstract_cw,function,low,reimplemented (src/game/core/crtfloat); _abstract_cw
+0x0068bb70,CRT_hw_cw,function,low,reimplemented (src/game/core/crtfloat); _hw_cw
+0x0068f9d0,CRT_addl,function,low,reimplemented (src/game/core/crtfloat); __addl
+0x0068bc00,CRT_ZeroTail,function,low,reimplemented (src/game/core/crtfloat); _ZeroTail
+0x0068bc70,CRT_IncMan,function,low,reimplemented (src/game/core/crtfloat); _IncMan
+0x0068bce0,CRT_RoundMan,function,low,reimplemented (src/game/core/crtfloat); _RoundMan
+0x0068bd80,CRT_CopyMan,function,low,reimplemented (src/game/core/crtfloat); _CopyMan
+0x0068bdb0,CRT_IsZeroMan,function,low,reimplemented (src/game/core/crtfloat); _IsZeroMan
+0x0068bdd0,CRT_ShrMan,function,low,reimplemented (src/game/core/crtfloat); _ShrMan
+0x0068be90,CRT_ld12cvt,function,low,reimplemented (src/game/core/crtfloat); _ld12cvt
+0x0068c060,CRT_ld12tod,function,low,reimplemented (src/game/core/crtfloat); _ld12tod
+0x0068c080,CRT_ld12tof,function,low,reimplemented (src/game/core/crtfloat); _ld12tof
 0x0050ffe0,Nav_Ctor,function,high,reimplemented (src/game/world/nav); constants constructor with five integer pairs
 0x0050f200,Nav_Dtor,function,high,reimplemented (src/game/world/nav); thiscall: the five IntPairs at +0x64 destroyed with Stub_Ret (CRT_VectorDtorIterator); also via 0x4f7c30 (+0xd4) and 0x4f8ad0
 0x004f7c30,Nav_DtorAtD4,function,low,reimplemented (src/game/world/nav); thiscall adjustor: Nav_Dtor on this + 0xd4

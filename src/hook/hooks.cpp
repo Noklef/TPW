@@ -199,6 +199,7 @@
 #include "../game/core/timesig.h"
 #include "../game/core/countedpair.h"
 #include "../game/core/crtfile.h"
+#include "../game/core/crtfloat.h"
 #include "../game/core/crtstartup.h"
 #include "../game/core/crtstream.h"
 #include "../game/core/crttime.h"
@@ -6082,6 +6083,18 @@ const Hook kHooks[] = {
     {"MoneypunctW_Init",          0x006a4f20, (void *)&MoneypunctW_Init, {0x83, 0xec, 0x08, 0x53, 0x55}},
     {"MoneypunctC_Ctor",          0x006a8830, (void *)&MoneypunctC_Ctor, {0x6a, 0xff, 0x68, 0x68, 0x50}},
     {"MoneypunctW_Ctor",          0x006a18a0, (void *)&MoneypunctW_Ctor, {0x6a, 0xff, 0x68, 0x28, 0x48}},
+    {"CRT_abstract_cw",           0x0068bad0, (void *)&CRT_abstract_cw, {0x53, 0x8b, 0x5c, 0x24, 0x08}},
+    {"CRT_hw_cw",                 0x0068bb70, (void *)&CRT_hw_cw, {0x8b, 0x54, 0x24, 0x04, 0x33}},
+    {"CRT_addl",                  0x0068f9d0, (void *)&CRT_addl, {0x8b, 0x54, 0x24, 0x04, 0x56}},
+    {"CRT_ZeroTail",              0x0068bc00, (void *)&CRT_ZeroTail, {0x8b, 0x4c, 0x24, 0x08, 0x56}},
+    {"CRT_IncMan",                0x0068bc70, (void *)&CRT_IncMan, {0x8b, 0x4c, 0x24, 0x08, 0x53}},
+    {"CRT_RoundMan",              0x0068bce0, (void *)&CRT_RoundMan, {0x51, 0x8b, 0x44, 0x24, 0x0c}},
+    {"CRT_CopyMan",               0x0068bd80, (void *)&CRT_CopyMan, {0x8b, 0x44, 0x24, 0x08, 0x8b}},
+    {"CRT_IsZeroMan",             0x0068bdb0, (void *)&CRT_IsZeroMan, {0x8b, 0x4c, 0x24, 0x04, 0x33}},
+    {"CRT_ShrMan",                0x0068bdd0, (void *)&CRT_ShrMan, {0x83, 0xec, 0x08, 0x8b, 0x4c}},
+    {"CRT_ld12cvt",               0x0068be90, (void *)&CRT_ld12cvt, {0x83, 0xec, 0x18, 0x8b, 0x4c}},
+    {"CRT_ld12tod",               0x0068c060, (void *)&CRT_ld12tod, {0x8b, 0x44, 0x24, 0x08, 0x8b}},
+    {"CRT_ld12tof",               0x0068c080, (void *)&CRT_ld12tof, {0x8b, 0x44, 0x24, 0x08, 0x8b}},
     {"Nav_Ctor",          0x0050ffe0, (void *)&Nav_Ctor, {0x6a, 0xff, 0x68, 0x2d, 0xe6}},
     {"Nav_Dtor",                  0x0050f200, (void *)&Nav_Dtor, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"Nav_DtorAtD4",              0x004f7c30, (void *)&Nav_DtorAtD4, {0x81, 0xc1, 0xd4, 0x00, 0x00}},
