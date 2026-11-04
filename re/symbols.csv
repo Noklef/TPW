@@ -3148,6 +3148,11 @@ address,name,kind,confidence,notes
 0x0048bcd0,UserSlots_Instance,function,low,"reimplemented (src/game/files/userslots); cdecl; name invented, unconfirmed; the user slots object [0xf81ebc], made when 0"
 0x005cadf0,UserSlotsPart_Ctor,function,low,reimplemented (src/game/files/userslots); the slots' part object: strings and lists made empty
 0x005c7420,UserSlots_Ctor,function,low,reimplemented (src/game/files/userslots); the user slots object's constructor
+0x005c7d30,UserSlots_SlotName,function,low,reimplemented (src/game/files/userslots); a slot's folder name: number and name
+0x005c7de0,UserSlots_SlotFolder,function,low,reimplemented (src/game/files/userslots); a slot's folder under the users folder
+0x005c8870,UserSlots_ChosenFolder,function,low,reimplemented (src/game/files/userslots); the chosen slot's folder
+0x005c8890,UserSlots_ThemeFolder,function,low,reimplemented (src/game/files/userslots); the chosen slot's folder of the theme
+0x005b8160,UserSlots_ThemePath,function,low,reimplemented (src/game/files/userslots); the theme's path in the chosen slot's folder
 0x005b0d40,Table73f8a8_At,function,high,reimplemented (src/game/core/balancefile); the address of a 60-byte record of the table at 0x73f8a8
 0x005b11c0,ThemeRecord_LoadGlobalSam,function,low,reimplemented (src/game/core/balancefile); a theme's global.sam loaded
 0x005b11a0,ThemeRecord_GlobalSamField14,function,low,"reimplemented (src/game/core/balancefile); thiscall: the theme record's global.sam loaded when missing; its dword +0x14, else -1 (name unconfirmed)"
