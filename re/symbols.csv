@@ -6021,6 +6021,15 @@ address,name,kind,confidence,notes
 0x0068be90,CRT_ld12cvt,function,low,reimplemented (src/game/core/crtfloat); _ld12cvt
 0x0068c060,CRT_ld12tod,function,low,reimplemented (src/game/core/crtfloat); _ld12tod
 0x0068c080,CRT_ld12tof,function,low,reimplemented (src/game/core/crtfloat); _ld12tof
+0x0068fa00,CRT_add_12,function,low,reimplemented (src/game/core/crtfloat); __add_12
+0x0068fa70,CRT_shl_12,function,low,reimplemented (src/game/core/crtfloat); __shl_12
+0x0068faa0,CRT_shr_12,function,low,reimplemented (src/game/core/crtfloat); __shr_12
+0x0068fad0,CRT_mtold12,function,low,reimplemented (src/game/core/crtfloat); __mtold12
+0x0068ff60,CRT_ld12mul,function,low,reimplemented (src/game/core/crtfloat); __ld12mul
+0x00690220,CRT_multtenpow12,function,low,reimplemented (src/game/core/crtfloat); __multtenpow12
+0x0068c440,CRT_strgtold12,function,low,reimplemented (src/game/core/crtfloat); __strgtold12
+0x006816a0,CRT_fltin2,function,low,reimplemented (src/game/core/crtfloat); _fltin2
+0x006d7710,CRT_strtod,function,low,reimplemented (src/game/core/crtfloat); strtod
 0x004092a0,GameOwner_Pause,function,low,"reimplemented (src/game/core/gameowner); thiscall (mode, flag), pops 8: the game held: the front end, the clocks, the sounds or the advisor's speech"
 0x00409300,GameOwner_Resume,function,low,reimplemented (src/game/core/gameowner); thiscall: the game let go
 0x00409350,GameOwner_TogglePause,function,low,"reimplemented (src/game/core/gameowner); thiscall (flag), pops 4: paused or not, by +0x1c"

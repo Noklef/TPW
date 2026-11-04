@@ -40,4 +40,28 @@ s32 __cdecl CRT_ld12cvt(const u8 *from, u32 *to, const s32 *format);
 s32 __cdecl CRT_ld12tod(const u8 *from, u32 *to);
 s32 __cdecl CRT_ld12tof(const u8 *from, u32 *to);
 
+// 0x68fa00: __add_12: *x += *y, the twelve bytes as one number.
+void __cdecl CRT_add_12(u32 *x, const u32 *y);
+// 0x68fa70 / 0x68faa0: __shl_12 / __shr_12: one bit.
+void __cdecl CRT_shl_12(u32 *x);
+void __cdecl CRT_shr_12(u32 *x);
+
+// 0x68fad0: __mtold12: `length` digit bytes (signed) as a 12-byte number, normalised. Never ends when they are all zero (sic).
+void __cdecl CRT_mtold12(const char *digits, u32 length, u32 *out);
+
+// 0x68ff60: __ld12mul: *x *= *y.
+void __cdecl CRT_ld12mul(u32 *x, const u32 *y);
+
+// 0x690220: __multtenpow12: *value *= 10^power from the tables at 0x781f70 / 0x7820d0; without keep_low the low word is cleared first.
+void __cdecl CRT_multtenpow12(u32 *value, s32 power, u32 keep_low);
+
+// 0x68c440: __strgtold12: reads a decimal number; 1 underflow, 2 overflow, 4 no digits.
+u32 __cdecl CRT_strgtold12(u32 *out, const char **end, const char *text, u32 keep_low, s32 scale, s32 decimals, s32 implicit_e);
+
+// 0x6816a0: _fltin2: fills flt (+0 flags: 0x80 overflow, 0x100 underflow, 0x200 no digits; +4 the bytes read; +0x10 the double). Returns flt.
+u32 *__cdecl CRT_fltin2(u32 *flt, const char *text, s32 length, s32 scale, s32 decimals);
+
+// 0x6d7710: strtod.
+double __cdecl CRT_strtod(const char *text, const char **end);
+
 }  // extern "C"
