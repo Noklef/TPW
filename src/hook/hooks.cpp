@@ -719,6 +719,7 @@
 #include "../game/ui/uimessage.h"
 #include "../game/ui/versionlabel.h"
 #include "../game/ui/viewbuttons.h"
+#include "../game/ui/window705950find.h"
 #include "../game/ui/window705950nodes.h"
 #include "../game/ui/window7059f0texts.h"
 #include "../game/ui/window705a20char.h"
@@ -8441,6 +8442,7 @@ const Hook kHooks[] = {
     {"SysCursor_Show",            0x006619a6, (void *)&SysCursor_Show, {0x55, 0x8b, 0xec, 0x51, 0x89}},
     {"SysCursor_Hide",            0x006619c0, (void *)&SysCursor_Hide, {0x55, 0x8b, 0xec, 0x51, 0x89}},
     {"SysCursor_Apply",           0x006619da, (void *)&SysCursor_Apply, {0x55, 0x8b, 0xec, 0x51, 0x89}},
+    {"Window705950_FindRow",      0x0065b864, (void *)&Window705950_FindRow, {0x55, 0x8b, 0xec, 0x83, 0xec}},
     {"jdmarker_examine_app14",    0x0063bf50, (void *)&jdmarker_examine_app14, {0x8b, 0x4c, 0x24, 0x0c, 0x53}},
     {"jdmarker_examine_app0",     0x0063bcc0, (void *)&jdmarker_examine_app0, {0x8b, 0x44, 0x24, 0x0c, 0x8b}},
     {"jdmarker_get_interesting_appn", 0x0063bb80, (void *)&jdmarker_get_interesting_appn, {0x8b, 0x44, 0x24, 0x04, 0x83}},

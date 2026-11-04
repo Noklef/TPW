@@ -8314,6 +8314,7 @@ address,name,kind,confidence,notes
 0x006619a6,SysCursor_Show,function,low,"reimplemented (src/game/ui/syscursorshow); ShowCursor(1): name invented, unconfirmed"
 0x006619c0,SysCursor_Hide,function,low,"reimplemented (src/game/ui/syscursorshow); ShowCursor(0): name invented, unconfirmed"
 0x006619da,SysCursor_Apply,function,low,"reimplemented (src/game/ui/syscursorshow); SetCursor on the handle or 0: name invented, unconfirmed"
+0x0065b864,Window705950_FindRow,function,low,"reimplemented (src/game/ui/window705950find); the row found by its text: name invented, unconfirmed"
 0x0063bb10,jinit_marker_reader,function,high,"reimplemented (src/game/lib/jpeg6b); libjpeg 6b jdmarker.c jinit_marker_reader: the marker reader allocated and set up (the library's, through the method-address shim)"
 0x0063d3a0,jdmarker_reset_marker_reader,function,low,"reimplemented (src/game/lib/jpeg6b); libjpeg 6b jdmarker.c reset_marker_reader (the library's, through wrap/jpeg-6b/jdmarker.c)"
 0x0063c0e0,jdmarker_read_markers,function,low,"reimplemented (src/game/lib/jpeg6b); libjpeg 6b jdmarker.c read_markers: markers up to SOS or EOI (the library's, through wrap/jpeg-6b/jdmarker.c)"
