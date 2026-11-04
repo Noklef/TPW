@@ -15,6 +15,8 @@
 #include "../core/vdtor.h"
 #include "../files/file.h"
 #include "../ui/dialog7cc530open.h"
+#include "../ui/dialog7cc944row.h"
+#include "../ui/dialog7cca94.h"
 #include "../ui/dialogs.h"
 #include "../ui/dialuphangup.h"
 #include "itemlist.h"
@@ -454,6 +456,79 @@ void __fastcall Online_UploadEvent(u8 *session, void *, u32 code, u32, u32, u8 *
 }
 
 void __stdcall Online_UploadCallback(u32 code, u32 a, u32 b, u8 *record) { Online_UploadEvent(g_start->instance(), nullptr, code, a, b, record); }
+
+namespace {
+
+const OnlineCityPollEnv kCityPollGameEnv = {&ListRequest_Start10, &ListRequest_Start26, &ListRequest_Start34, &ListRequest_Start66, &ListRequest_Done10, &ListRequest_Done26, &ListRequest_Done34, &ListRequest_Done66,
+                                            &ListRequest_Done30, &Time_GetMs, reinterpret_cast<decltype(OnlineCityPollEnv::showText)>(&Dialog7cca94_ShowText), &Dialog7cca94_Message4IfUp,
+                                            reinterpret_cast<decltype(OnlineCityPollEnv::setProgress)>(&Dialog7cca94_SetProgress), reinterpret_cast<decltype(OnlineCityPollEnv::waitingRow)>(&Dialog7cc944_SetWaitingRow)};
+const OnlineCityPollEnv *g_cityPoll = &kCityPollGameEnv;
+
+// A list flagged is answered; its +0xc after.
+u32 AnswerList(u8 *list, void(__fastcall *done)(u8 *, void *, u32)) {
+    if (at<u32>(list, 0xc) && at<u32>(list, 0x10)) {
+        at<u32>(list, 0xc) = 0;
+        done(list, nullptr, 0);
+    }
+    return at<u32>(list, 0xc);
+}
+
+}  // namespace
+
+void Online_SetCityPollEnv(const OnlineCityPollEnv *env) { g_cityPoll = env ? env : &kCityPollGameEnv; }
+
+void __fastcall Online_CityPoll(u8 *session) {
+    if (!at<u32>(session, 0xd4)) return;
+    if (at<u32>(session, 0xdc)) {
+        g_cityPoll->start10(at<u8 *>(session, 0xf8));
+        g_cityPoll->start26(at<u8 *>(session, 0xfc));
+        g_cityPoll->start34(at<u8 *>(session, 0x100));
+        g_cityPoll->start66(at<u8 *>(session, 0xf4), nullptr, 1, 0, 0);
+        at<u32>(session, 0xdc) = 0;
+    }
+    u32 busy = AnswerList(at<u8 *>(session, 0xf8), g_cityPoll->done10);
+    busy |= AnswerList(at<u8 *>(session, 0xfc), g_cityPoll->done26);
+    busy |= AnswerList(at<u8 *>(session, 0x100), g_cityPoll->done34);
+    busy |= AnswerList(at<u8 *>(session, 0xf4), g_cityPoll->done66);
+    busy |= AnswerList(at<u8 *>(session, 0xe0), g_cityPoll->done30);
+    for (const u32 offset : {0xe4u, 0xe8u, 0xecu, 0xf0u})
+        busy |= AnswerList(at<u8 *>(session, offset), g_cityPoll->done66);
+    if (!busy) {
+        g_cityPoll->message4();
+        if (static_cast<s32>(g_cityPoll->now() - at<u32>(session, 0xd8)) <= 0x57e40) return;
+        if (!at<u32>(session, 0xd4)) return;
+        CallImport(0x006fd4f4, at<void *>(session, 0xd4));
+        if (void *const city = at<void *>(session, 0xd4)) {
+            CallImport(0x006fd540, city);
+            GameHeap_Free(city);
+        }
+        at<u32>(session, 0xd4) = 0;
+        Say(0x0077386c);
+        return;
+    }
+    at<u32>(session, 0xd8) = g_cityPoll->now();
+    using Current = u32(__fastcall *)(void *, void *, u32);
+    const Current current = *reinterpret_cast<const Current *>((uintptr_t)0x006fd4f8);
+    u32 id = current(at<void *>(session, 0xd4), nullptr, 0);
+    if (!id) id = current(at<void *>(session, 0xd4), nullptr, 1);
+    const struct { u32 offset, text; } kTexts[] = {{0xe0, 0xf9}, {0xe4, 0xfa}, {0xe8, 0xfb}, {0xec, 0xfc}, {0xf4, 0xfd}, {0xf8, 0xfe}, {0xfc, 0xff}, {0x100, 0x100}};
+    bool shown = false;
+    for (const auto &t : kTexts) {
+        if (at<u32>(at<u8 *>(session, t.offset), 4) == id) {
+            g_cityPoll->showText(t.text);
+            shown = true;
+            break;
+        }
+    }
+    if (!shown) g_cityPoll->message4();
+    s32 done, total;
+    using Progress = void(__fastcall *)(void *, void *, u32, s32 *, s32 *);
+    (*reinterpret_cast<const Progress *>((uintptr_t)0x006fd4e0))(at<void *>(session, 0xd4), nullptr, id, &done, &total);
+    if (total <= 0) return;
+    const s32 percent = static_cast<s32>(static_cast<u32>(done) * 100u) / total;
+    g_cityPoll->setProgress(percent);
+    if (at<u32>(at<u8 *>(session, 0xec), 4) == id) g_cityPoll->waitingRow(percent);
+}
 
 namespace {
 

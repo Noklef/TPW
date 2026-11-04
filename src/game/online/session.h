@@ -33,6 +33,25 @@ struct OnlineStartEnv {
 };
 void Online_SetStartEnv(const OnlineStartEnv *env);
 
+// Online_CityPoll's calls: the ports by default; the bench's recorders.
+struct OnlineCityPollEnv {
+    void(__fastcall *start10)(u8 *list);           // ListRequest_Start10 (0x5bd070)
+    void(__fastcall *start26)(u8 *list);           // ListRequest_Start26 (0x5bd4b0)
+    void(__fastcall *start34)(u8 *list);           // ListRequest_Start34 (0x5bd8c0)
+    void(__fastcall *start66)(u8 *list, void *, u32 value, u32 callback, u32 user);  // ListRequest_Start66 (0x5bcd10)
+    void(__fastcall *done10)(u8 *list, void *, u32 failed);  // ListRequest_Done10 (0x5ba030)
+    void(__fastcall *done26)(u8 *list, void *, u32 failed);  // ListRequest_Done26 (0x5ba2f0)
+    void(__fastcall *done34)(u8 *list, void *, u32 failed);  // ListRequest_Done34 (0x5ba560)
+    void(__fastcall *done66)(u8 *list, void *, u32 failed);  // ListRequest_Done66 (0x5b9d60)
+    void(__fastcall *done30)(u8 *list, void *, u32 failed);  // ListRequest_Done30 (0x5b9b00)
+    u32(__cdecl *now)();                           // Time_GetMs (0x5f5fa0)
+    void(__cdecl *showText)(u32 text);             // Dialog7cca94_ShowText (0x4c25b0)
+    s32(__cdecl *message4)();                      // Dialog7cca94_Message4IfUp (0x4c25e0)
+    void(__cdecl *setProgress)(s32 percent);       // Dialog7cca94_SetProgress (0x4c2600)
+    void(__cdecl *waitingRow)(s32 percent);        // Dialog7cc944_SetWaitingRow (0x4c0660)
+};
+void Online_SetCityPollEnv(const OnlineCityPollEnv *env);
+
 extern "C" {
 
 // 0x5b6450: +0x60, set while logged in.
@@ -122,6 +141,12 @@ void __fastcall Online_UploadEvent(u8 *session, void *, u32 code, u32 a, u32 b, 
 
 // 0x5b8260 (stdcall; name invented, unconfirmed): Online_UploadEvent on Online_Instance: the callback Online_UploadConnect gives.
 void __stdcall Online_UploadCallback(u32 code, u32 a, u32 b, u8 *record);
+
+// 0x5b75d0 (thiscall; name invented, unconfirmed): with a City (+0xd4): first (+0xdc set) the four lists +0xf8, +0xfc, +0x100, +0xf4 requested and +0xdc cleared. Each of the nine lists flagged (+0xc and +0x10
+// set) is answered (+0xc cleared, its ListRequest_Done*(0)). Any +0xc still set: the time in +0xd8; the transfer 0x6fd4f8(0), or (1) when 0; its list's text (0xf9 on) shown, none: Dialog7cca94_Message4IfUp;
+// the progress 0x6fd4e0 as a percent (when the total is above 0) to Dialog7cca94_SetProgress, and to Dialog7cc944_SetWaitingRow for +0xec's list. None: Dialog7cca94_Message4IfUp, and 360 s past +0xd8 the City
+// closed (0x6fd4f4), destroyed (0x6fd540), freed, said, +0xd4 cleared.
+void __fastcall Online_CityPoll(u8 *session);
 
 // 0x5b87e0 (thiscall (a, b, c), pops 12; name invented, unconfirmed): Online_ReleaseNews; +0x74, +0x90 and +0xac = -1; +0xc8, +0xcc, +0x78, +0x94, +0xb0, +0xd0 = 0; the strings +0x7c (0x786de4), +0x98 and +0xb4 (0x78a374)
 // assigned by slot 5; the city, upload and download reset; the dialog's message. +0x3a8 = a, +0x3c0 = b, +0x3c4 = c. Logged in (+0x60): the instance's list +0xf0 starts on its +0x3a8 with the callback 0x5b88e0. Otherwise

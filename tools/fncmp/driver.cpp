@@ -949,6 +949,8 @@ const GuardHeapEnv kGuardHeapEnv = {Rec{jpeg_recorder(1, 1)}, Rec{jpeg_recorder(
 const Blocks7LoadEnv kBlocks7LoadEnv = {Rec{jpeg_recorder(1, 3)}, Rec{recorder(2, 2)}};
 const FrameEnv kFrameEnv = {Rec{jpeg_recorder(7, 0)}, Rec{recorder(6, 3)}};
 const PanelKeysEnv kPanelKeysEnv = {Rec{jpeg_recorder(1, 1)}};
+const OnlineCityPollEnv kOnlineCityPollEnv = {Rec{recorder(8, 0)}, Rec{recorder(9, 0)}, Rec{recorder(10, 0)}, Rec{recorder(11, 3)}, Rec{recorder(12, 1)}, Rec{recorder(13, 1)}, Rec{recorder(14, 1)}, Rec{recorder(15, 1)}, Rec{recorder(16, 1)},
+                                              Rec{jpeg_recorder(17, 0)}, Rec{jpeg_recorder(18, 1)}, Rec{jpeg_recorder(19, 0)}, Rec{jpeg_recorder(20, 1)}, Rec{jpeg_recorder(21, 1)}};
 const OnlineStartEnv kOnlineStartEnv = {Rec{recorder(21, 0)}, Rec{recorder(22, 0)}, Rec{recorder(23, 0)}, Rec{recorder(24, 0)}, Rec{jpeg_recorder(25, 0)}, Rec{jpeg_recorder(26, 0)}, Rec{recorder(27, 3)}, Rec{jpeg_recorder(28, 1)}, Rec{recorder(29, 0)}, Rec{recorder(17, 0)}, Rec{jpeg_recorder(18, 2)}, Rec{recorder(19, 1)}, Rec{jpeg_recorder(23, 1)}};
 const BumpStepsEnv kBumpStepsEnv = {Rec{recorder(1, 3)}, Rec{recorder(2, 3)}, Rec{recorder(3, 3)}, Rec{recorder(4, 1)}, Rec{jpeg_recorder(5, 4)}, Rec{jpeg_recorder(6, 2)}, Rec{jpeg_recorder(7, 2)}, Rec{jpeg_recorder(8, 3)}, Rec{recorder(9, 0)}};
 const ThunksEnv kThunksEnv = {reinterpret_cast<s32(__cdecl *)(void *)>((uintptr_t)(kStubs + 0x50)), Rec{jpeg_recorder(7, 3)}};  // tests/fncmp/thunks_static.py
@@ -2706,6 +2708,7 @@ int main(int argc, char **argv) {
     Thunks_SetEnv(&kThunksEnv);
     BumpSteps_SetEnv(&kBumpStepsEnv);
     Online_SetStartEnv(&kOnlineStartEnv);
+    Online_SetCityPollEnv(&kOnlineCityPollEnv);
     PanelKeys_SetEnv(&kPanelKeysEnv);
     Frame_SetEnv(&kFrameEnv);
     Blocks7_SetLoadEnv(&kBlocks7LoadEnv);
