@@ -971,6 +971,7 @@ const ParkMapPictureEnv kParkMapPictureEnv = {Rec{jpeg_recorder(8, 0)}, Rec{reco
 const ParkMapWindowEnv kParkMapWindowEnv = {Rec{recorder(8, 2)}, Rec{recorder(10, 1)}, Rec{recorder(11, 0)}, Rec{recorder(12, 4)}, Rec{recorder(13, 0)}, Rec{jpeg_recorder(14, 5)}, Rec{recorder(15, 2)}, Rec{recorder(16, 1)}, Rec{recorder(17, 0)}, Rec{jpeg_recorder(18, 1)}, Rec{recorder(19, 3)},
                                             Rec{recorder(20, 0)}, Rec{recorder(21, 1)}, Rec{recorder(22, 0)}, Rec{recorder(23, 0)}, Rec{recorder(24, 0)}, Rec{recorder(25, 1)}, Rec{recorder(26, 0)},
                                             Rec{jpeg_recorder(27, 0)}, Rec{jpeg_recorder(28, 4)}, Rec{jpeg_recorder(29, 1)}, Rec{jpeg_recorder(30, 1)}, Rec{jpeg_recorder(31, 0)}, Rec{jpeg_recorder(7, 2)}};
+const ParkMapSpritesEnv kParkMapSpritesEnv = {Rec{recorder(8, 1)}, Rec{recorder(9, 2)}, Rec{recorder(10, 2)}, Rec{recorder(11, 0)}, Rec{recorder(12, 1)}, Rec{recorder(13, 0)}};
 const CoasterPlaceCarEnv kCoasterPlaceCarEnv = {Rec{jpeg_recorder(1, 6)}, Rec{jpeg_recorder(2, 9)}, Rec{jpeg_recorder(3, 7)}, Rec{jpeg_recorder(4, 5)}, Rec{jpeg_recorder(5, 2)}, Rec{jpeg_recorder(6, 7)},
                                                  Rec{jpeg_recorder(7, 1)}, Rec{jpeg_recorder(8, 1)}, Rec{jpeg_recorder(9, 0)}, Rec{jpeg_recorder(10, 0)}, Rec{jpeg_recorder(11, 0)}, Rec{jpeg_recorder(12, 0)},
                                                  Rec{recorder(13, 0)}, Rec{recorder(14, 0)}, Rec{recorder(15, 1)}};  // tests/fncmp/coasterplacecar.py
@@ -2720,6 +2721,7 @@ int main(int argc, char **argv) {
     VersionLabel_SetEnv(&kVersionLabelEnv);
     BankAccountCtor_SetEnv(&kBankAccountCtorEnv);
     NarrowFileBuf_SetEnv(&kNarrowFileBufEnv);
+        ParkMapSprites_SetEnv(&kParkMapSpritesEnv);
         ParkMapWindow_SetEnv(&kParkMapWindowEnv);
         ParkMap_SetPictureEnv(&kParkMapPictureEnv);
     ThemeMenu_SetEnv(&kThemeMenuEnv);

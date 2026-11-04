@@ -5,6 +5,7 @@
 #include <cstdint>
 
 #include "../core/accessors.h"
+#include "../core/gameheap.h"
 #include "../core/stdlist.h"
 #include "../core/string.h"
 #include "../core/vcall.h"
@@ -238,6 +239,13 @@ void MouseClicked(u8 *map) {
 
 void ParkMapWindow_SetEnv(const ParkMapWindowEnv *env) { g_env = env ? env : &kPorts; }
 
+namespace {
+const ParkMapSpritesEnv kSpritePorts = {Game{0x00516130}, Game{0x00516160}, Game{0x0056b0c0}, Game{0x0056b2f0}, Game{0x0056b380}, Game{0x005f3940}};
+const ParkMapSpritesEnv *g_sprites = &kSpritePorts;
+}  // namespace
+
+void ParkMapSprites_SetEnv(const ParkMapSpritesEnv *env) { g_sprites = env ? env : &kSpritePorts; }
+
 extern "C" {
 
 s32 __fastcall ParkMap_HandleMouse(u8 *map, void *, u8 *window, u32 message, u32 a, u32 b) {
@@ -405,6 +413,49 @@ s32 __fastcall ParkMap_HandleWindow(u8 *map, void *, u8 *window, u32 message, u3
             break;
     }
     return g_env->callDefault(window, nullptr, message, a, b);
+}
+
+void __fastcall ParkMap_PrepareSprites(u8 *map) {
+    u8 *const world = global<u8 *>(0x007cf83c);
+    s32 count = 0;
+    u16 id;
+    g_sprites->firstThing(world, nullptr, &id);
+    while (id) {
+        u8 *const thing = global<u8 *>(kThings + id * 20u);
+        const u8 kind = at<u8>(thing, 2);
+        if (kind == 1 || kind == 6 || kind == 7) {
+            count += 2;
+        } else if (kind == 4 || kind == 5) {
+            count += 1;
+        }
+        u16 next;
+        id = *g_sprites->nextThing(world, nullptr, &next, thing);
+    }
+    const s32 width = at<s32>(map, 0x24), height = at<s32>(map, 0x28);
+    for (s32 y = 0; y < height; ++y) {
+        for (s32 x = 0; x < width; ++x) {
+            const u32 cell = (u32)((y << 7) + 1 + x) & 0xffff;
+            if (at<u32>(world, cell * 0x44 + 0x2c0)) ++count;
+        }
+    }
+    for (u16 chain = at<u16>(world, 0x1da746); chain;) {
+        const u8 *const thing = global<u8 *>(kThings + chain * 20u);
+        if (at<u8>(thing, 0x32) & 0x10) ++count;
+        chain = at<u16>(thing, 0xc);
+    }
+    u8 *const images = reinterpret_cast<u8 *>((uintptr_t)0x00879ce0);
+    g_sprites->arrayInit(images, nullptr, count + 6, 0);
+    g_sprites->addToRenderer(images);
+    for (u32 i = 0; i < 6; ++i) at<u32>(map, 0x20068 + 4 * i) = g_sprites->addImage(images, nullptr, global<u32>(0x00f86d48 + 0x14 * i));
+    u32 *const list = static_cast<u32 *>(GameHeap_Alloc(0x10));
+    if (list) {
+        list[1] = 0;
+        list[2] = 0;
+        list[3] = 0;
+        list[0] = 0x00703080;
+    }
+    at<u32 *>(map, 0x20080) = list;
+    g_sprites->addSprites(map);
 }
 
 }  // extern "C"

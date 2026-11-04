@@ -37,6 +37,17 @@ struct ParkMapWindowEnv {
 };
 void ParkMapWindow_SetEnv(const ParkMapWindowEnv *env);
 
+// ParkMap_PrepareSprites's calls.
+struct ParkMapSpritesEnv {
+    void(__fastcall *firstThing)(u8 *world, void *, u16 *out);                  // World_FirstThing
+    u16 *(__fastcall *nextThing)(u8 *world, void *, u16 *out, u8 *thing);       // World_NextThing
+    void(__fastcall *arrayInit)(u8 *array, void *, u32 frames, u32 flags);      // PtrArray_Init
+    void(__fastcall *addToRenderer)(u8 *array);                                 // Obj_AddToRenderer
+    u32(__fastcall *addImage)(u8 *array, void *, u32 image);                    // 0x56b380
+    void(__fastcall *addSprites)(u8 *map);                                      // ParkMap_AddSprites
+};
+void ParkMapSprites_SetEnv(const ParkMapSpritesEnv *env);
+
 extern "C" {
 // 0x5f18d0 (thiscall on the map; window, message, a, b; pops 0x10):
 // - 0x1e: with [0x78d910] set and the right button down, ParkMap_Scroll 1 and 3 by the mouse's distance from the middle.
@@ -59,4 +70,10 @@ s32 __fastcall ParkMap_HandleMouse(u8 *map, void *, u8 *window, u32 message, u32
 // - 0x10001, 0x10003: the mouse kept. 0x10008, 0x10009 (a a button), 0x1000a (a a key): a step of scroll or zoom.
 // - 0x1000b: Escape (a 0x1b, no bits 0xff0000 in b) closes the window (message 4); returns 0.
 s32 __fastcall ParkMap_HandleWindow(u8 *map, void *, u8 *window, u32 message, u32 a, u32 b);
+// 0x5f3710 (thiscall on the map): the sprites counted: 2 for each thing of kind 1, 6 or 7 and 1 of kind 4 or 5 in the world's
+// walk; 1 for each square with a word at +0x2c0 of its 0x44-byte cell; 1 for each thing with flag 0x10 (+0x32) on the
+// chain from the world's +0x1da746 (next at +0xc). The array at 0x879ce0 made for those and 6 more, and added to the renderer;
+// the six images of the table at 0xf86d48 (0x14 bytes each) added and kept at +0x20068; a new list (vtable 0x703080) at
+// +0x20080, or 0; then ParkMap_AddSprites.
+void __fastcall ParkMap_PrepareSprites(u8 *map);
 }
