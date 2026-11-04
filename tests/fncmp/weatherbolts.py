@@ -9,7 +9,7 @@ from fncmp import LOG, RAM, Bench, Call, _recorder, answers, fb, log_region, put
 
 BOLT, QUAD, TICKS, RAND = 1, 2, 3, 4
 B = Bench([(0x57ee30, 0x57efcb), (0x580320, 0x58046c), (0x67a830, 0x67a860)],
-          hooks={0x57ec50: _recorder(BOLT, 2), 0x57ed50: _recorder(QUAD, 0, cdecl=True), 0x591210: _recorder(TICKS, 0, cdecl=True), 0x67b5c0: _recorder(RAND, 0, cdecl=True)})
+          hooks={0x57ec50: _recorder(BOLT, 2), 0x57ed50: _recorder(QUAD, 0),0x591210: _recorder(TICKS, 0, cdecl=True), 0x67b5c0: _recorder(RAND, 0, cdecl=True)})
 FX, LIST, TIMES, LOOK, DRAWN = RAM, RAM + 0x3000, RAM + 0x9d90, RAM + 0xa190, RAM + 0xb000
 OPS = ['draw', 'draw', 'draw', 'quad fails', 'draw fails', 'add', 'add', 'add', 'full', 'same ends', 'huge', 'nan']
 

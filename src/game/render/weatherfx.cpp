@@ -617,7 +617,7 @@ void WeatherFx_SetBoltCalls(const AddrCall *table, u32 count) { g_boltCalls.Set(
 extern "C" {
 
 u32 __fastcall WeatherFx_DrawBolts(u8 *fx) {
-    if (at<u32>(fx, 4) && !g_boltCalls.Cd(0x0057ed50))
+    if (at<u32>(fx, 4) && !g_boltCalls.Th(0x0057ed50, (u32)(uintptr_t)fx))   // (Batch_DrawScreenQuad: ECX still fx)
         return 0;
     u32 i = at<u32>(fx, 0x3308);
     while (i--) {
