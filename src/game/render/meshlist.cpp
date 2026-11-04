@@ -4,10 +4,27 @@
 #include <cstring>
 #include <xmmintrin.h>
 
+#include "../core/gameheap.h"
 #include "../math/mat4.h"
 #include "../math/x87.h"
+#include "engineerrors.h"
 
 namespace {
+
+__declspec(naked) double __cdecl GamePow(double, double) {
+    __asm {
+        fld qword ptr [esp + 4]
+        fld qword ptr [esp + 12]
+        mov eax, 0x0067c5d0
+        call eax
+        ret
+    }
+}
+
+double(__cdecl *g_pow)(double, double) = &GamePow;
+
+const float kPi = 3.14159274f, kHalf = 0.5f;   // 0x7016b8, 0x7016cc
+const u32 kStepBits = 0xbc010204;              // 0x7016d8
 
 template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cast<T *>((uintptr_t)p + offset); }
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
@@ -52,7 +69,37 @@ void AddLight(const u8 *light, X87Reg factor) {
 
 }  // namespace
 
+void Meshes_SetPow(double(__cdecl *pow)(double, double)) { g_pow = pow ? pow : &GamePow; }
+
 extern "C" {
+
+u32 __cdecl Meshes_CreateObject() {
+    if (global<u32>(0x0087a248)) return 0;
+    u8 *const block = static_cast<u8 *>(GameHeap_Alloc(0x8244));
+    if (block) {
+        at<u32>(block, 0) = 0;
+        at<u32>(block, 0x28) = 0;
+        at<u32>(block, 0x2c) = 0xffffffff;
+        global<u32>(0x00879dd8) = 0x3f800000;
+        global<u32>(0x00879ddc) = 0x3e19999a;
+        global<u32>(0x00879de0) = 0x3e19999a;
+        global<u32>(0x00879de4) = 0x3e19999a;
+        float x, kStep;
+        const u32 start = 0xb1800000;
+        std::memcpy(&x, &start, 4);
+        std::memcpy(&kStep, &kStepBits, 4);
+        for (u32 i = 0; i < 0x80; ++i) {
+            const double sine = X87_Sin((X87Reg(x) * kPi * kHalf).v);
+            at<float>(block, 0x40 + 4 * i) = (float)X87Reg(g_pow(sine, 4.0));
+            x = (float)(X87Reg(x) - kStep);
+        }
+        at<u32>(block, 4) = 0;
+    }
+    global<u8 *>(0x0087a248) = block;
+    if (block) return 1;
+    EngineErrors_Push(reinterpret_cast<u8 *>(0x00879ad0), nullptr, 3, 0xb0754000);
+    return 0;
+}
 
 u32 __fastcall Meshes_Ready(u8 *object, void *, const u32 *list) {
     for (; *list; list++) {

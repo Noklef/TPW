@@ -9,7 +9,14 @@
 
 #include "../../../re/types.h"
 
+// _CIpow for Meshes_CreateObject (the bench's recorder; null: the game's 0x67c5d0).
+void Meshes_SetPow(double(__cdecl *pow)(double, double));
+
 extern "C" {
+
+// 0x573fd0 (cdecl; name unconfirmed): 0 when [0x87a248] is set. Else a block of 0x8244 bytes (GameHeap_Alloc) goes there: got, +0 and +4 and +0x28 = 0, +0x2c = -1, the ambient 0x879dd8-0x879de4 =
+// 1.0, 0.15, 0.15, 0.15 and a table of 0x80 floats at +0x40, sin(x * pi * 0.5) ^ 4 with x from the float 0xb1800000 stepping by 1/127; returns 1. None: the error (3, 0xb0754000) pushed, 0.
+u32 __cdecl Meshes_CreateObject();
 
 // 0x5744d0 (thiscall on the object; list): for each mesh in the zero-ended array: flag 0x20 sets
 // the object's +0x30 = mesh + 0x38; without flag 0x10000000, the mesh's +0x58 = the list head

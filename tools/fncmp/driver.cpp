@@ -253,6 +253,7 @@
 #include "../../src/game/render/modellist.h"
 #include "../../src/game/world/advisorspeech.h"
 #include "../../src/game/gfx/bumplight.h"
+#include "../../src/game/render/meshlist.h"
 #include "../../src/game/gfx/imageops.h"
 #include "../../src/game/render/dynfaces.h"
 #include "../../src/game/terrain/texcache.h"
@@ -2653,6 +2654,7 @@ int main(int argc, char **argv) {
     AimSprites_SetCalls(kAimSpritesCalls, sizeof(kAimSpritesCalls) / sizeof(kAimSpritesCalls[0]));
     ModelList_SetCalls(kModelListCalls, sizeof(kModelListCalls) / sizeof(kModelListCalls[0]));
     BumpLight_SetEnv(&kBumpLightEnv, kBumpLightCalls, sizeof(kBumpLightCalls) / sizeof(kBumpLightCalls[0]));
+    Meshes_SetPow(Rec{jpeg_recorder(12, 4)});
     CoastersUpdate_SetCalls(kCoastersUpdateCalls, sizeof(kCoastersUpdateCalls) / sizeof(kCoastersUpdateCalls[0]));
     PointSprites_SetCalls(kPointSpritesCalls, sizeof(kPointSpritesCalls) / sizeof(kPointSpritesCalls[0]));
     LobbyFlight_SetCalls(kLobbyFlightCalls, sizeof(kLobbyFlightCalls) / sizeof(kLobbyFlightCalls[0]));
