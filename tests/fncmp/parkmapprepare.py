@@ -39,7 +39,11 @@ def case(r):
     regions[THINGS] = things
     regions[0x7cfb90] = slots
     regions[0x7cf83c] = struct.pack('<I', WORLD)
-    regions[WORLD] = r.bytes(0x5000) if r.random() < 0.5 else bytes(0x5000)
+    world = bytearray(0x5000)
+    for y in range(3):
+        for x in range(3):
+            put(world, ((y << 7) + 1 + x) * 0x44 + 0x2c0, '2I', r.choice([0, r.getrandbits(32)]), r.choice([0, 1]))
+    regions[WORLD] = world
     regions[WORLD + 0x1da746] = struct.pack('<H', chain[0] if chain else 0)
     regions[0xf86d48] = r.bytes(0x78)
     regions[IMAGES] = struct.pack('<40I', *[r.getrandbits(32) for _ in range(40)])
