@@ -2,9 +2,9 @@
 #include "savegamefile.h"
 
 #include <cstdint>
+#include <cstring>
 
 #include "../core/vcall.h"
-#include "../files/file.h"
 
 namespace {
 
@@ -34,6 +34,45 @@ void destroy(LocalStream &stream) { g_calls.Th(0x005f71e0, self_of(stream)); }
 void seek(LocalStream &stream, u32 whence) { g_calls.Th(0x005f7210, self_of(stream), 0u, whence); }
 s32 readInto(LocalStream &stream, u32 to, u32 size) { return stream.file ? vcall<s32>(stream.file, 4, to, size) : -1; }
 s32 writeFrom(LocalStream &stream, u32 from, u32 size) { return stream.file ? vcall<s32>(stream.file, 8, from, size) : -1; }
+
+// A header's field in full (the stream's status is 0 or 1: never the negative the original tests).
+bool put(Stream *stream, const void *from, s32 size) {
+    s32 status, done = 0;
+    Stream_Write(&status, stream, from, size, &done);
+    return done == size;
+}
+bool get(Stream *stream, void *to, s32 size) {
+    s32 status, done = 0;
+    Stream_Read(&status, stream, to, size, &done);
+    return done == size;
+}
+
+const u32 kLanguageNames[] = {0x0074bdc8, 0x0074bdc0, 0x0074bdb8, 0x0074bdb0, 0x0074bda8, 0x0074bda0, 0x0074bd94};
+const u32 kLanguages = 0x0078a460, kGameId = 0x00802080;
+
+u8 languageNumber(u8 *text) {
+    for (u8 i = 0; i < 7; ++i) {
+        if ((u8)g_calls.Th(0x005f7980, (u32)(uintptr_t)text, kLanguageNames[i])) return i;
+    }
+    return 0;
+}
+
+bool headerWritten(Stream *stream, u8 *park, u8 *text) {
+    u8 wide[0x500] = {};
+    const u32 language = languageNumber(text);
+    const u32 entry = kLanguages + language * 0x14;
+    memcpy(wide, global<const void *>(entry + 8), global<u32>(entry + 4) * 2);
+    const u8 number = (u8)language;
+    if (!put(stream, &number, 1) || !put(stream, wide, 0x500)) return false;
+    u8 id[0x100] = {};
+    memcpy(id, reinterpret_cast<const void *>((uintptr_t)kGameId), 0x20);
+    if (!put(stream, id, 0x100)) return false;
+    const u32 version = global<u32(__stdcall *)(u32)>(0x006fd3fc)(global<u32>(0x00749870));
+    if (!put(stream, &version, 4)) return false;
+    const u32 hasPark = park ? 1 : 0;
+    if (!put(stream, &hasPark, 4)) return false;
+    return !park || g_calls.Th(0x00418da0, (u32)(uintptr_t)park, stream, 1u, 1u, 0u) != 1;
+}
 
 }  // namespace
 
@@ -207,6 +246,40 @@ u32 __fastcall SaveGame_Load(u8 *self, void *, const char *name, u32 header, u32
     destroy(memory);
     destroy(file);
     return result;
+}
+
+u32 __fastcall SaveGame_WriteHeader(void *, void *, Stream *stream, u8 *park) {
+    u8 text[0x14];
+    g_calls.Th(0x005f60b0, (u32)(uintptr_t)text, g_calls.Th(0x0041a820, 0x0078b530u));
+    const bool written = headerWritten(stream, park, text);
+    g_calls.Th(0x005f61e0, (u32)(uintptr_t)text);
+    return written ? 1 : 0;
+}
+
+u32 __fastcall SaveGame_ReadHeader(u8 *self, void *, Stream *stream, u32 mode, u8 *park) {
+    u8 number;
+    u8 wide[0x500];
+    if (!get(stream, &number, 1) || !get(stream, wide, 0x500)) return 0;
+    if ((u8)g_calls.Th(0x005f7e60, kLanguages + (u32)number * 0x14, wide)) return 0;
+    u8 id[0x100];
+    if (!get(stream, id, 0x100)) return 0;
+    if (!g_calls.Th(0x0051ab60, level(), id, mode == 2 ? 1u : 0u)) {
+        *reinterpret_cast<u32 *>(self + 4) = 8;
+        return 0;
+    }
+    memcpy(reinterpret_cast<void *>((uintptr_t)kGameId), id, 0x20);
+    u32 version = 0;
+    if (!get(stream, &version, 4)) return 0;
+    if (global<u32(__stdcall *)(u32)>(0x006fd400)(version) != global<u32>(0x00749870)) {
+        *reinterpret_cast<u32 *>(self + 4) = 6;
+        return 0;
+    }
+    u32 hasPark;
+    if (!get(stream, &hasPark, 4)) return 0;
+    if (!hasPark) return 1;
+    u8 local[0x3d4];
+    u8 *into = hasPark == 1 && !park ? local : park;
+    return g_calls.Th(0x00418da0, (u32)(uintptr_t)into, stream, 0u, 1u, 0u) ? 0 : 1;
 }
 
 void __fastcall SaveGame_AfterLoad(void *) {

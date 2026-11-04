@@ -1177,7 +1177,8 @@ const AddrCall kGameFileCalls[] = {  // tests/fncmp/gamefile.py
     {0x403780, recorder(29, 4)}, {0x4053b0, recorder(30, 0)}, {0x59bea0, recorder(31, 0)},  // (thiscall slots below 32: those of the cdecl calls the other function makes)
     {0x5179c0, recorder(16, 1)}, {0x40fd60, recorder(17, 1)}, {0x402e30, recorder(18, 1)}, {0x403260, recorder(19, 1)}, {0x405570, recorder(20, 1)}, {0x59c860, recorder(21, 1)}, {0x481680, recorder(22, 1)},
     {0x516c80, recorder(1, 1)}, {0x40fc80, recorder(4, 1)}, {0x402e00, recorder(7, 1)}, {0x403220, recorder(8, 1)}, {0x4055d0, recorder(9, 1)}, {0x59c890, recorder(10, 1)}, {0x4816a0, recorder(11, 1)}};
-const AddrCall kSaveGameCalls[] = {  // tests/fncmp/savegamefile.py
+const AddrCall kSaveGameCalls[] = {  // tests/fncmp/savegamefile.py, savegameheader.py
+    {0x41a820, recorder(1, 0)}, {0x5f60b0, recorder(2, 1)}, {0x5f7980, recorder(3, 1)}, {0x5f61e0, recorder(4, 0)}, {0x418da0, recorder(5, 4)}, {0x5f7e60, recorder(6, 1)}, {0x51ab60, recorder(7, 2)},
     {0x5f7180, recorder(4, 0)}, {0x5f71e0, recorder(5, 0)}, {0x5f71f0, recorder(6, 0)}, {0x5f7210, recorder(7, 2)}, {0x415f50, recorder(8, 2)}, {0x4164c0, recorder(9, 2)}, {0x416240, recorder(10, 3)}, {0x415270, recorder(11, 2)}, {0x639100, recorder(12, 0)}, {0x5f72c0, recorder(13, 2)},
     {0x5f7ed0, recorder(14, 3)}, {0x402e60, recorder(16, 0)}, {0x4d8330, recorder(17, 0)}, {0x5191e0, recorder(18, 0)}, {0x515fb0, recorder(19, 0)}, {0x515f30, recorder(20, 0)}, {0x4815d0, recorder(21, 0)}, {0x519120, recorder(22, 0)}, {0x4d83a0, recorder(23, 0)},
     {0x4d3e00, recorder(27, 0)}, {0x402e80, recorder(28, 0)}, {0x4815e0, recorder(29, 0)},
