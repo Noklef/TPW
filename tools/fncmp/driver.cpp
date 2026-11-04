@@ -72,6 +72,7 @@
 #include "../../src/game/ui/window7cb2cc.h"
 #include "../../src/game/ui/window7cc8bcmenu.h"
 #include "../../src/game/ui/window7cc8c0handler.h"
+#include "../../src/game/gfx/overlayloadall.h"
 #include "../../src/game/gfx/moviesoundthread.h"
 #include "../../src/game/gfx/movielife.h"
 #include "../../src/game/gfx/moviefile.h"
@@ -1157,6 +1158,7 @@ u32 __fastcall movie_life_open(const char *file, u8 *player) { *reinterpret_cast
 void __fastcall movie_life_show(u8 *player, u8 *entry) { u32 &hash = *reinterpret_cast<u32 *>(player + 0x668); hash = hash * 33 ^ static_cast<u32>(entry - player); }
 const MovieLifeEnv kMovieLifeEnv = {Rec{jpeg_recorder(10, 2)}, &movie_life_open, Rec{recorder(14, 0)}, Rec{recorder(15, 0)}, Rec{recorder(16, 0)}, Rec{jpeg_recorder(11, 3)}, Rec{jpeg_recorder(12, 0)}, Rec{recorder(17, 0)}, Rec{recorder(18, 0)}, Rec{recorder(19, 0)}, &movie_life_show, Rec{recorder(20, 0)}, Rec{recorder(21, 0)}, Rec{recorder(22, 0)}, Rec{recorder(23, 0)}};
 const MovieSoundThreadEnv kMovieSoundThreadEnv = {Rec{jpeg_recorder(10, 0)}, Rec{recorder(11, 0)}, Rec{recorder(12, 0)}, Rec{recorder(13, 3)}};
+const OverlayLoadAllEnv kOverlayLoadAllEnv = {Rec{jpeg_recorder(10, 3)}, Rec{recorder(11, 2)}, Rec{recorder(12, 2)}, Rec{recorder(13, 1)}};
 const Window7cc8c0HandlerEnv kWindow7cc8c0HandlerEnv = {Rec{recorder(12, 2)}, Rec{jpeg_recorder(15, 2)}, Rec{jpeg_recorder(20, 4)}, Rec{jpeg_recorder(25, 4)}, Rec{recorder(13, 0)}, Rec{recorder(14, 0)}, Rec{jpeg_recorder(28, 3)}, Rec{recorder(15, 0)}, Rec{recorder(16, 0)}, Rec{jpeg_recorder(31, 0)}, Rec{recorder(17, 2)}, Rec{recorder(18, 2)}, Rec{jpeg_recorder(29, 3)}, Rec{recorder(19, 1)}, Rec{recorder(20, 0)}, Rec{recorder(21, 1)}, Rec{jpeg_recorder(27, 1)}, Rec{jpeg_recorder(30, 5)}, Rec{jpeg_recorder(13, 1)}, Rec{jpeg_recorder(12, 0)}, Rec{jpeg_recorder(19, 0)}, Rec{jpeg_recorder(14, 0)}, Rec{recorder(23, 2)}, Rec{recorder(24, 2)}, Rec{recorder(25, 1)}, Rec{recorder(26, 1)}, Rec{recorder(27, 2)}, Rec{jpeg_recorder(16, 5)}, Rec{jpeg_recorder(17, 0)}, Rec{jpeg_recorder(18, 1)}, Rec{recorder(28, 3)}};
 const Window7cc8bcMenuEnv kWindow7cc8bcMenuEnv = {Rec{recorder(10, 2)}, Rec{recorder(11, 3)}, Rec{jpeg_recorder(12, 0)}, Rec{recorder(13, 1)}, Rec{jpeg_recorder(14, 2)}, Rec{recorder(15, 2)}, Rec{recorder(16, 2)}, Rec{recorder(17, 3)}};
 const Dialog7cb2b8TabsEnv kDialog7cb2b8TabsEnv = {Rec{jpeg_recorder(10, 1)}, Rec{jpeg_recorder(11, 0)}, Rec{jpeg_recorder(12, 0)}, Rec{recorder(13, 0)}, Rec{jpeg_recorder(14, 0)}, Rec{recorder(15, 3)}};
@@ -2184,6 +2186,7 @@ int main(int argc, char **argv) {
     Window7cb2cc_SetEnv(&kWindow7cb2ccEnv);
     Window7cc8bc_SetMenuEnv(&kWindow7cc8bcMenuEnv);
     Window7cc8c0Handler_SetEnv(&kWindow7cc8c0HandlerEnv);
+    OverlayLoadAll_SetEnv(&kOverlayLoadAllEnv);
     MovieSoundThread_SetEnv(&kMovieSoundThreadEnv);
     MovieLife_SetEnv(&kMovieLifeEnv);
     MovieFile_SetEnv(&kMovieFileEnv);
