@@ -37,7 +37,7 @@ def case(r):
     strings(log, M2W, 4, 0b10000)
     narrow = b'conv\0'
     set_return(log, W2M, len(narrow))
-    fill(log, W2M, 4, narrow)
+    fill(log, W2M, 4, b'cona\0conb\0conc\0cond\0', records=4)
     back = 'back\0'.encode('utf-16-le')
     set_return(log, M2W, len(back) // 2)
     fill(log, M2W, 4, back, 1)
