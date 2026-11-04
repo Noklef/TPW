@@ -517,6 +517,11 @@ void __fastcall StdTree_DecF(u8 **it) { TreeF::Dec(it); }
 void __fastcall StdTree_DecG(u8 **it) { TreeG::Dec(it); }
 
 void __fastcall StdTree_CtorA(u8 *tree) { TreeA::Ctor(tree); }
+u8 *__fastcall StdTree_CtorFullA(u8 *tree) {
+    at<u8>(tree, 8) = 0;
+    TreeA::Ctor(tree);
+    return tree;
+}
 void __fastcall StdTree_CtorC(u8 *tree) { TreeC::Ctor(tree); }
 void __fastcall StdTree_CtorD(u8 *tree) { TreeD::Ctor(tree); }
 void __fastcall StdTree_CtorE(u8 *tree) { TreeE::Ctor(tree); }
@@ -565,6 +570,7 @@ u8 **__fastcall StdTree_EraseE(u8 *tree, void *, u8 **out, u8 *node) { return Tr
 u8 **__fastcall StdTree_EraseF(u8 *tree, void *, u8 **out, u8 *node) { return TreeF::Erase(tree, out, node); }
 u8 **__fastcall StdTree_EraseG(u8 *tree, void *, u8 **out, u8 *node) { return TreeG::Erase(tree, out, node); }
 
+void __fastcall StdTree_EraseSubtreeA(u8 *, void *, u8 *node) { TreeA::EraseSubtree(node); }
 void __fastcall StdTree_EraseSubtreeB(u8 *, void *, u8 *node) { TreeB::EraseSubtree(node); }
 void __fastcall StdTree_EraseSubtreeC(u8 *, void *, u8 *node) { TreeC::EraseSubtree(node); }
 void __fastcall StdTree_EraseSubtreeD(u8 *, void *, u8 *node) { TreeD::EraseSubtree(node); }

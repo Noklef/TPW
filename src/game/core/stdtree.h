@@ -36,6 +36,10 @@ void __fastcall StdTree_DecG(u8 **it);
 // parent 0, black) and the head node (red, parent the nil node, left and right itself) are allocated (node sizes 0x1c, 0x24, 0x20, 0x20, 0x14), the head is the object's +4 and
 // its size +0xc is 0; the dword counting the maps (0x7b4a50, 0x7ced30, 0x7ced28, 0x7ced38, 0xf7c96c) is raised.
 void __fastcall StdTree_CtorA(u8 *tree);
+// 0x478720 (thiscall; name invented, unconfirmed): +8 = 0 and the tree as StdTree_CtorA makes it; returns the tree. Its bytes +0 and +1 take stack garbage in the original (no arguments given), left as they are here.
+u8 *__fastcall StdTree_CtorFullA(u8 *tree);
+// 0x47cde0 (thiscall on tree A, the tree unused; a node, pops 4): _Erase, as StdTree_EraseSubtreeB.
+void __fastcall StdTree_EraseSubtreeA(u8 *tree, void *, u8 *node);
 void __fastcall StdTree_CtorC(u8 *tree);
 void __fastcall StdTree_CtorD(u8 *tree);
 void __fastcall StdTree_CtorE(u8 *tree);
