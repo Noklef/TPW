@@ -105,5 +105,7 @@ def load(r):
     return Call(0x413c10, [DEFS, ENTRY, OPENER, SOURCE], regions, conv='t', ret='a')
 
 
+case = load
+
 if __name__ == '__main__':
-    B.main(load)
+    B.main(case)
