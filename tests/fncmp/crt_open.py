@@ -10,7 +10,7 @@ from fncmp import HEAP, IMPORT_TABLE, LOG, RAM, Bench, Call, _free, _recorder, a
 
 GETPTD, LOCK, UNLOCK, LOCKFILE, UNLOCKFILE, NHMALLOC, LOCKFILE2, UNLOCKFILE2 = 2, 7, 8, 11, 12, 28, 30, 31
 CSINIT, CSENTER, CSLEAVE, WRITE, SEEK, ERROR, READ, CREATE, TYPE, CLOSE, SETSTD, SEOF, FLUSHFB = 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26
-B = Bench([(0x686a00, 0x686a19), (0x686980, 0x6869f3), (0x68ead0, 0x68eb19), (0x68eb20, 0x68eb85), (0x68eb90, 0x68ebb2), (0x686440, 0x6864b2), (0x6864c0, 0x6866ca), (0x686aa0, 0x686b20), (0x67d0f0, 0x67d15e), (0x67dcd0, 0x67dcf0),
+B = Bench([(0x4f1070, 0x4f10a2), (0x4f10b0, 0x4f10cb), (0x686a00, 0x686a19), (0x686980, 0x6869f3), (0x68ead0, 0x68eb19), (0x68eb20, 0x68eb85), (0x68eb90, 0x68ebb2), (0x686440, 0x6864b2), (0x6864c0, 0x6866ca), (0x686aa0, 0x686b20), (0x67d0f0, 0x67d15e), (0x67dcd0, 0x67dcf0),
            (0x688ad0, 0x688cf5), (0x67b110, 0x67b13f), (0x67b860, 0x67b897), (0x67b8a0, 0x67b8b5), (0x6868a0, 0x686979), (0x6866d0, 0x68682b), (0x68b640, 0x68b991), (0x68e810, 0x68e978), (0x68e980, 0x68ea21), (0x68ea30, 0x68eac3),
            (0x686300, 0x686368), (0x686370, 0x686400), (0x686400, 0x686433), (0x68f630, 0x68f77e), (0x691610, 0x691674), (0x67cf90, 0x67d067), (0x67d070, 0x67d0a7), (0x67d0b0, 0x67d0e5), (0x67d160, 0x67d16b), (0x67d170, 0x67d22b),
            (0x687b20, 0x687bbe)],
@@ -18,8 +18,8 @@ B = Bench([(0x686a00, 0x686a19), (0x686980, 0x6869f3), (0x68ead0, 0x68eb19), (0x
                  0x67dcf0: _recorder(NHMALLOC, 2, cdecl=True), 0x682800: _recorder(LOCKFILE2, 2, cdecl=True), 0x682870: _recorder(UNLOCKFILE2, 2, cdecl=True), 0x67ad90: _free})
 PTD, ANSWERS, SEEKS, READS = (RAM + 0x100 * i for i in range(4))
 INFO0, INFO1, TEXT, STREAMS, FILES, GIVEN, BLOCK = RAM + 0x1000, RAM + 0x1800, RAM + 0x2000, RAM + 0x2100, RAM + 0x2200, RAM + 0x2800, RAM + 0x3000
-BUFFER, MODE = HEAP + 0x100, RAM + 0x2f00
-OPS = [n for n in ('fopen', 'fsopen', 'getstream', 'openfile', 'sopen', 'sopen', 'alloc', 'set', 'free', 'close', 'close_lk', 'chsize', 'setmode', 'freebuf', 'setvbuf', 'fflush', 'fflush_lk', 'flsall', 'flushall', 'commit')
+BUFFER, MODE, WBUF = HEAP + 0x100, RAM + 0x2f00, RAM + 0x2e00
+OPS = [n for n in ('fopen', 'fsopen', 'getstream', 'openfile', 'sopen', 'sopen', 'alloc', 'set', 'free', 'close', 'close_lk', 'chsize', 'setmode', 'freebuf', 'setvbuf', 'fflush', 'fflush_lk', 'flsall', 'flushall', 'commit', 'wsetbuf', 'wsync')
        if not os.environ.get('OPS') or n in os.environ['OPS'].split(',')]
 FDS = [0, 1, 2, 5, 0x1f, 0x20, 0x21, 0x3f, 0x40, 0x50]
 MODES = ['r', 'w', 'a', 'x', '', 'r+', 'w+', 'a+', 'rb', 'rt', 'wb', 'r+b', 'rb+', 'rbt', 'rtb', 'rc', 'rn', 'rcn', 'wc', 'rbc', 'rS', 'rR', 'rSR', 'rT', 'rTT', 'rD', 'rDD', 'r++', 'rz', 'rzb', 'r+D', 'r bS', 'wcbSTD', 'a+tnRTD', 'r\xff', 'rb\x2a', 'r,', 'ru']
@@ -137,6 +137,11 @@ def case(r):
         return Call(0x691610, [r.choice(FDS[:8]), r.choice([0x8000, 0x8000, 0x4000, 0x4000, 0, 0x8001])], regions, conv='c', ret='a')
     if name == 'freebuf':
         return Call(0x686400, [FILES], regions, conv='c')
+    if name in ('wsetbuf', 'wsync'):   # (core/wfilebuf's two calls of them)
+        regions[WBUF] = bytes(0x50) + struct.pack('<I', r.choice([FILES, FILES, FILES, 0]))
+        if name == 'wsetbuf':
+            return Call(0x4f1070, [WBUF, r.choice([0, 0, GIVEN]), r.choice([0, 1, 2, 0x10, 0x800, 0x40000000, 0x7fffffff, 0x80000000])], regions, conv='t', ret='a')
+        return Call(0x4f10b0, [WBUF], regions, conv='t', ret='a')
     if name == 'setvbuf':
         return Call(0x67cf90, [FILES, r.choice([0, 0, GIVEN]), r.choice([0, 0, 0x40, 0x40, 4, 4, 1, 2, 0x80, 0x44]), r.choice([0, 1, 2, 3, 0x100, 0x1001, 0x7fffffff, 0x80000000, 0xffffffff])], regions, conv='c', ret='a')
     if name == 'fflush':

@@ -68,6 +68,10 @@ u16 __fastcall WFileBuf_PutBack(u8 *buf, void *, u32 c);
 // 0x4f0e60 uflow: a char in the get area taken. No file: eof. No conversion: fgetwc. Otherwise +0x3c = +0x40, the string emptied, bytes from fgetc appended one at a time, each followed by the conversion's slot 4
 // (the string as from, a local as to) from the state +0x40 = +0x3c: 0 answers the local; 1 reads on; 3 with two bytes or more answers the string's first word, with fewer reads on; others, or no byte, eof.
 u16 __fastcall WFileBuf_Uflow(u8 *buf);
+// 0x4f1070 (pops 8; basic_filebuf<wchar_t>::setbuf, by its shape; name unconfirmed): setvbuf on the file +0x50, full buffering, count * 2 bytes. Returns buf when that answers 0; no file or another answer: 0.
+u8 *__fastcall WFileBuf_SetBuf(u8 *buf, void *, char *buffer, u32 count);
+// 0x4f10b0 (basic_filebuf<wchar_t>::sync, by its shape; name unconfirmed): fflush of the file +0x50. -1 when that answers below 0; no file or another answer: 0.
+s32 __fastcall WFileBuf_Sync(u8 *buf);
 
 // 0x4f5d60 (thiscall (refs), pops 4; codecvt<wchar_t, char, mbstate_t>'s constructor, by its shape; name unconfirmed): the use count +4, the vtable 0x709ce4, _Getcvt's block at +8 (under a _Locinfo of "" at 0x75c74c). Returns self.
 u8 *__fastcall CodecvtW_Ctor(u8 *self, void *, u32 refs);

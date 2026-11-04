@@ -5,6 +5,7 @@
 
 #include "buffers.h"
 #include "crt.h"
+#include "crtopen.h"
 #include "gameheap.h"
 #include "globals.h"
 #include "iosbase.h"
@@ -283,6 +284,16 @@ u16 __fastcall WFileBuf_PutBack(u8 *buf, void *, u32 c) {
     erase_all_unshared(at<StdString *>(buf, 0x44));
     at<u32>(buf, 0x40) = at<u32>(buf, 0x3c);
     return static_cast<u16>(c);
+}
+
+u8 *__fastcall WFileBuf_SetBuf(u8 *buf, void *, char *buffer, u32 count) {
+    CrtFile *const file = *reinterpret_cast<CrtFile **>(buf + 0x50);
+    return file && CRT_setvbuf(file, buffer, 0, count * 2) == 0 ? buf : nullptr;
+}
+
+s32 __fastcall WFileBuf_Sync(u8 *buf) {
+    CrtFile *const file = *reinterpret_cast<CrtFile **>(buf + 0x50);
+    return file && CRT_fflush(file) < 0 ? -1 : 0;
 }
 
 u16 __fastcall WFileBuf_Uflow(u8 *buf) {
