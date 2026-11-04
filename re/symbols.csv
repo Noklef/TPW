@@ -428,7 +428,7 @@ address,name,kind,confidence,notes
 0x005ec220,Renderer_Teardown,function,high,reimplemented (src/game/render/renderer); releases the two array groups and two blocks after calling the sub object
 0x005ec3a0,SignStyle_Load,function,high,"reimplemented (src/game/gfx/signstyle); a sign style read from its .sgn file: version 100 or above, two line styles, the effects, two fill strips and the background"
 0x005eb1a0,Eleven_Read,function,high,reimplemented (src/game/core/streambuf); reads eleven dwords from a stream
-0x005ecb40,SignStyle_Render,function,medium,"(HDC, text lines + target textures)"
+0x005ecb40,SignRender_Draw,function,low,"reimplemented (src/game/gfx/signrender); A sign's two lines drawn, filtered, lit and written out to its two pixel blocks at 32 or 16 bits."
 0x005e7990,Array3D_ReadCompressed,function,high,"reimplemented (src/game/gfx/array3d); thiscall (stream, codec; pops 8): width, height, depth read and a cleared block made; by the depth (1, 3, 4) the parts read and decoded through the codec's slot 3, the depth 4 alpha and colour interleaved; AL 0 when a part's block is not made, else 1"
 0x005987b0,WaveletCodec_DecodePlanes,function,high,"vtable slot 3: colour -> 0x592730, grey -> 0x592e60; takes float quantiser steps"
 0x00592730,WaveletCodec_DecodeColour,function,low,"reimplemented (src/game/gfx/wavelet); thiscall (width, height, packed source, BGR pixels, three quantisers), pops 0x1c: the colour decoder, Y then Cb and Cr at half the side through the row and column inverse steps, then YUV to BGR"
