@@ -9,6 +9,8 @@
 #include "trivial.h"
 #include "wtraits.h"
 
+extern "C" u32 __cdecl CRT_wcslen(const u16 *text);   // (online/chatlists)
+
 namespace {
 
 template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cast<T *>((uintptr_t)p + offset); }
@@ -164,12 +166,66 @@ void __fastcall WKeywords_AddAll(u8 *self) {
 
 namespace {
 
-u32 pushToken(u8 *scanner, u32 kind) {
+void pushKind(u8 *scanner, u32 kind) {
     CountedPair token{};
     token.value = kind;
     u8 *const tokens = at<u8 *>(scanner, 0x50);
     CountedPairVector_InsertN(tokens, nullptr, at<u32>(tokens, 8), 1, &token);
+}
+
+u32 pushToken(u8 *scanner, u32 kind) {
+    pushKind(scanner, kind);
     return Obj_CopyCToMark(scanner);
+}
+
+// A token of the text (it goes by value; the constructor destroys it): value 0.
+void pushOwned(u8 *scanner, StdWString text) {
+    CountedPair pair;
+    CountedPair_CtorWide(&pair, nullptr, text);
+    u8 *const tokens = at<u8 *>(scanner, 0x50);
+    CountedPairVector_InsertN(tokens, nullptr, at<u32>(tokens, 8), 1, &pair);
+    CountedBuf_Reset(reinterpret_cast<u8 *>(&pair.wide), nullptr, 1);
+    StdString_Tidy(&pair.narrow, nullptr, 1);
+}
+
+void pushText(u8 *scanner, const StdWString &text) {
+    StdWString copy{};
+    StdWString_AssignSub(&copy, nullptr, &text, 0, *reinterpret_cast<const u32 *>(0x006fef00));
+    pushOwned(scanner, copy);
+}
+
+// The kind's token, then a token of the next word. No word: 0.
+u8 nextWord(u8 *scanner, u32 kind) {
+    pushKind(scanner, kind);
+    StdWString word{};
+    if (!WScanner_NextToken(scanner, nullptr, &word)) {
+        destroy(word);
+        return 0;
+    }
+    pushText(scanner, word);
+    const u8 result = static_cast<u8>(Obj_CopyCToMark(scanner));
+    destroy(word);
+    return result;
+}
+
+// A token of the rest of the text, kept in the string [+0x54].
+u8 pushRest(u8 *scanner) {
+    StdWString *const rest = at<StdWString *>(scanner, 0x54);
+    if (!WScanner_TakeRest(scanner, nullptr, rest, nullptr))
+        return 0;
+    pushText(scanner, *rest);
+    return 1;
+}
+
+// As pushRest, but no token for a rest of no characters.
+u8 pushCountedRest(u8 *scanner) {
+    StdWString *const rest = at<StdWString *>(scanner, 0x54);
+    u32 count;
+    if (!WScanner_TakeRest(scanner, nullptr, rest, &count))
+        return 0;
+    if (count != 0)
+        pushText(scanner, *rest);
+    return 1;
 }
 
 }  // namespace
@@ -179,6 +235,71 @@ extern "C" {
 u32 __fastcall WScanner_PushToken0c(u8 *scanner) { return pushToken(scanner, 0xc); }
 u32 __fastcall WScanner_PushToken12(u8 *scanner) { return pushToken(scanner, 0x12); }
 u32 __fastcall WScanner_PushToken15(u8 *scanner) { return pushToken(scanner, 0x15); }
+u32 __fastcall WScanner_PushToken16(u8 *scanner) { return pushToken(scanner, 0x16); }
+
+u8 __fastcall WScanner_NextWord0d(u8 *scanner) { return nextWord(scanner, 0xd); }
+u8 __fastcall WScanner_NextWord0e(u8 *scanner) { return nextWord(scanner, 0xe); }
+u8 __fastcall WScanner_NextWord0f(u8 *scanner) { return nextWord(scanner, 0xf); }
+u8 __fastcall WScanner_NextWord11(u8 *scanner) { return nextWord(scanner, 0x11); }
+u8 __fastcall WScanner_NextWord13(u8 *scanner) { return nextWord(scanner, 0x13); }
+u8 __fastcall WScanner_NextWord14(u8 *scanner) { return nextWord(scanner, 0x14); }
+
+u8 __fastcall WScanner_Rest00(u8 *scanner) {
+    pushKind(scanner, 0);
+    return pushRest(scanner);
+}
+
+u8 __fastcall WScanner_Rest04(u8 *scanner) {
+    pushKind(scanner, 4);
+    return pushRest(scanner);
+}
+
+u8 __fastcall WScanner_Rest05(u8 *scanner) {
+    pushKind(scanner, 5);
+    return pushRest(scanner);
+}
+
+u8 __fastcall WScanner_CountedRest02(u8 *scanner) {
+    pushKind(scanner, 2);
+    return pushCountedRest(scanner);
+}
+
+u8 __fastcall WScanner_CountedRest03(u8 *scanner) {
+    pushKind(scanner, 3);
+    return pushCountedRest(scanner);
+}
+
+u8 __fastcall WScanner_WordAndRest01(u8 *scanner) {
+    pushKind(scanner, 1);
+    StdWString word{};
+    if (!WScanner_NextToken(scanner, nullptr, &word)) {
+        destroy(word);
+        return 1;   // sic: 1, where the others return 0
+    }
+    pushText(scanner, word);
+    const u8 result = pushRest(scanner);
+    destroy(word);
+    return result;
+}
+
+u8 __fastcall WScanner_WordAndRest06(u8 *scanner) {
+    CountedPair kind{};
+    kind.value = 6;
+    u8 *const tokens = at<u8 *>(scanner, 0x50);
+    CountedPairVector_Insert(tokens, nullptr, at<u32>(tokens, 8), &kind);
+    StdWString word{};
+    if (WScanner_NextToken(scanner, nullptr, &word)) {
+        pushText(scanner, word);
+    } else {
+        const u16 *const none = reinterpret_cast<const u16 *>(0x0078a374);
+        StdWString text{};
+        StdWString_AssignChars(&text, nullptr, none, CRT_wcslen(none));
+        pushOwned(scanner, text);
+    }
+    const u8 result = pushRest(scanner);
+    destroy(word);
+    return result;
+}
 
 StdWString *__fastcall StdWString_Substr(const StdWString *s, void *, StdWString *out, u32 pos, u32 n) {
     *reinterpret_cast<u8 *>(&out->allocator) = static_cast<u8>(reinterpret_cast<uintptr_t>(out));   // (sic: the low byte of its own address, the "allocator" argument's slot)

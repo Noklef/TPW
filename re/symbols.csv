@@ -4776,6 +4776,20 @@ address,name,kind,confidence,notes
 0x005e7520,StdWString_Substr,function,low,"reimplemented (src/game/core/wscanner); std::wstring::substr's copy: out's allocator byte its own address's low byte, assign of the part"
 0x005e70a0,WScanner_NextToken,function,low,"reimplemented (src/game/core/wscanner); the next token: past the set at +0x14, up to the set at +0x24 or the length, assigned to out"
 0x005e7200,WScanner_TakeRest,function,low,"reimplemented (src/game/core/wscanner); past the set at +0x14, the characters left counted and assigned to out, the position at the length"
+0x005e4b20,WScanner_Rest00,function,low,reimplemented (src/game/core/wscanner); kind 0: the rest as a token
+0x005e4ca0,WScanner_WordAndRest01,function,low,reimplemented (src/game/core/wscanner); kind 1: next word and rest as tokens
+0x005e4f00,WScanner_CountedRest02,function,low,reimplemented (src/game/core/wscanner); kind 2: the rest as a token unless empty
+0x005e50a0,WScanner_CountedRest03,function,low,reimplemented (src/game/core/wscanner); kind 3: the rest as a token unless empty
+0x005e5240,WScanner_Rest04,function,low,reimplemented (src/game/core/wscanner); kind 4: the rest as a token
+0x005e53c0,WScanner_Rest05,function,low,reimplemented (src/game/core/wscanner); kind 5: the rest as a token
+0x005e5540,WScanner_WordAndRest06,function,low,"reimplemented (src/game/core/wscanner); kind 6: next word or fixed text, and rest"
+0x005e58b0,WScanner_NextWord0d,function,low,reimplemented (src/game/core/wscanner); kind 0xd: next word as a token
+0x005e5aa0,WScanner_NextWord0e,function,low,reimplemented (src/game/core/wscanner); kind 0xe: next word as a token
+0x005e5c90,WScanner_NextWord0f,function,low,reimplemented (src/game/core/wscanner); kind 0xf: next word as a token
+0x005e5e80,WScanner_NextWord11,function,low,reimplemented (src/game/core/wscanner); kind 0x11: next word as a token
+0x005e6160,WScanner_NextWord13,function,low,reimplemented (src/game/core/wscanner); kind 0x13: next word as a token
+0x005e6350,WScanner_NextWord14,function,low,reimplemented (src/game/core/wscanner); kind 0x14: next word as a token
+0x005e6630,WScanner_PushToken16,function,low,reimplemented (src/game/core/wscanner); kind 0x16: the token and the position at the end
 0x0045f640,Startup_CheckCanRun,function,low,"reimplemented (src/game/core/startcheck); cdecl u8 (): 0 with game error 0 when not installed (Registry_GameInstalled); else CreateMutexA(0, 1, [0x7a2508]) kept at 0x7a267c, and when made with GetLastError 0xb7 (already exists) game error 1, CloseHandle, 0; else 1"
 0x0040c120,KeyAction_Turn90,function,low,"reimplemented (src/game/core/keyactions); cdecl: Global81d7a4_SetRecorded((0x81d7a4 + 90) signed mod 360, 1); returns 1 (key ',')"
 0x0040c150,KeyAction_Turn270,function,low,"reimplemented (src/game/core/keyactions); cdecl: Global81d7a4_SetRecorded((0x81d7a4 + 270) signed mod 360, 1); returns 1 (key '.')"

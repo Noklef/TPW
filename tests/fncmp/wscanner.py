@@ -6,7 +6,9 @@
 # Span (0x5e6fc0): the scanner's set at +0x14 a valid red-black tree of stdtree.py (1-11 word keys of 0-99), its text as stdwstring.py makes
 # one with characters mostly in the set (else 0, 7, 99, 100, 0xffff, any), the position at 0, inside, at or past the length.
 # Next (0x5e70a0), Rest (0x5e7200): Span's scanner with a second set at +0x24 and a string to assign to (a null count now and then); Substr (0x5e7520): any part of a string (a position past its length throws, not run), from an out that may be the string itself.
-# usage: wscanner.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=SetText,Pair,Token,Span,Next,Rest,Substr)
+# Handler (0x5e4b20-0x5e6350, the keyword handlers that read on): Rest's scanner with its vector of tokens [+0x50] (0-2 random-byte tokens, room
+# for 4 more) and its out string [+0x54]; the allocator bytes of the tokens pushed (as Token's) left out.
+# usage: wscanner.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=SetText,Pair,Token,Span,Next,Rest,Substr,Handler)
 import os
 import struct
 import sys
@@ -19,17 +21,19 @@ import stdtree  # noqa: E402
 import stdwstring  # noqa: E402
 
 # (with stdwstring.py's helpers: _Grow, erase, the counted buffer reset, the traits' copy, the length setter)
-B = Bench([(0x405280, 0x405390), (0x479150, 0x4791b0), (0x47b750, 0x47bcf0), (0x4f23f0, 0x4f2450), (0x4f6080, 0x4f60a0),
-           (0x67acd0, 0x67ad00), (0x4ea740, 0x4ea7e0), (0x47ae60, 0x47b060), (0x47b600, 0x47b750), (0x479230, 0x479256),
-           (0x47cc10, 0x47cd00), (0x47b460, 0x47b5b0), (0x47d9d0, 0x47db00), (0x47d620, 0x47d780), (0x47b320, 0x47b460),
-           (0x5e6b30, 0x5e6c87), (0x5e73f0, 0x5e7518), (0x5e57c0, 0x5e58a6), (0x5e6070, 0x5e6156), (0x5e6540, 0x5e6626), (0x5e7310, 0x5e7319), (0x5e6fc0, 0x5e7093), (0x5b30b0, 0x5b3110), (0x5e70a0, 0x5e72ff), (0x5e7520, 0x5e76b9), (0x5e76c0, 0x5e7720),
-           (0x45b380, 0x45b5f0), (0x45b680, 0x45b9b0), (0x4e6410, 0x4e6560), (0x4f5860, 0x4f5988), (0x4f5560, 0x4f5852), (0x4e51a0, 0x4e520e),
-           (0x4f67b0, 0x4f67e1), (0x4f67f0, 0x4f6819), (0x4f7410, 0x4f7423)],
+B = Bench([(0x4051d0, 0x405390), (0x45b380, 0x45b5f0), (0x45b680, 0x45b9b0), (0x479150, 0x4791b0), (0x479230, 0x479270), (0x47ae60, 0x47b060),
+           (0x47b320, 0x47b5b0), (0x47b600, 0x47bcf0), (0x47cc10, 0x47cd00), (0x47d620, 0x47d780), (0x47d9d0, 0x47db00), (0x4e51a0, 0x4e5220),
+           (0x4e6410, 0x4e6570), (0x4ea740, 0x4ea7f0), (0x4f0150, 0x4f0180), (0x4f23f0, 0x4f2450), (0x4f34a0, 0x4f3730), (0x4f5560, 0x4f59a0),
+           (0x4f6080, 0x4f60a0), (0x4f67b0, 0x4f6830), (0x4f6ef0, 0x4f7180), (0x4f7410, 0x4f7440), (0x5b30b0, 0x5b3120), (0x5e4b20, 0x5e6730),
+           (0x5e6b30, 0x5e6c87), (0x5e6fc0, 0x5e7330), (0x5e73f0, 0x5e7518), (0x5e7520, 0x5e7730), (0x67acd0, 0x67ad00), (0x6918f0, 0x691a30),
+           (0x691ba0, 0x691ce0)],
           hooks={0x691de0: lambda e: e.r.__setitem__('EAX', e.r['ECX']), 0x691ea0: lambda e: None})   # (_Lockit's constructor and destructor)
 SCANNER, FLAGS = RAM + 0x800, RAM + 0x900
-OPS = [k for k in os.environ.get('OPS', 'SetText,Pair,Token,Span,Next,Rest,Substr').split(',') if k]
-TOKENS = [0x5e57c0, 0x5e6070, 0x5e6540]
+OPS = [k for k in os.environ.get('OPS', 'SetText,Pair,Token,Span,Next,Rest,Substr,Handler').split(',') if k]
+TOKENS = [0x5e57c0, 0x5e6070, 0x5e6540, 0x5e6630]
+HANDLERS = [0x5e4b20, 0x5e4ca0, 0x5e4f00, 0x5e50a0, 0x5e5240, 0x5e53c0, 0x5e5540, 0x5e58b0, 0x5e5aa0, 0x5e5c90, 0x5e5e80, 0x5e6160, 0x5e6350]
 OUT, HEAD2, NODES2 = RAM + 0x980, RAM + 0xa00, RAM + 0x2000
+VECTOR, TOKEN_ARRAY = RAM + 0xb00, RAM + 0xc00
 
 
 def pair(r):
@@ -102,6 +106,18 @@ def span(r, op='Span'):
     return Call(0x5e7200, [SCANNER, OUT, r.choice([OUT + 0x10, OUT + 0x10, 0])], regions, conv='t', ret='b')
 
 
+def handler(r):
+    """As Rest, a handler reading the scanner's word and rest onto a vector with room; the allocator bytes of its up to 3 tokens left out."""
+    c = span(r, 'Rest')
+    held = r.choice([0, 0, 1, 2])
+    last = TOKEN_ARRAY + 0x24 * held
+    c.regions[SCANNER] += struct.pack('<II', VECTOR, OUT)
+    c.regions[VECTOR] = struct.pack('<IIII', r.getrandbits(32), TOKEN_ARRAY, last, last + 0x24 * 4)
+    c.regions[TOKEN_ARRAY] = r.bytes(0x24 * (held + 4))
+    ignore = [(last + 0x24 * i + k, 1) for i in range(3) for k in (0, 0x10)]
+    return Call(HANDLERS[r.deal(list(range(len(HANDLERS))))], [SCANNER], c.regions, conv='t', ret='b', ignore=ignore)
+
+
 def substr(r):
     blocks = bytearray(r.bytes(4 * stdwstring.SLOT))
     x = stdwstring.string(r, blocks, 0)
@@ -117,6 +133,8 @@ def case(r):
         return span(r, op)
     if op == 'Substr':
         return substr(r)
+    if op == 'Handler':
+        return handler(r)
     if op == 'Pair':
         return pair(r)
     if op == 'Token':
