@@ -981,3 +981,508 @@ void __fastcall TexCache_SortListByAddress(u8 *, void *, u8 **list) {
     }
     *list = head;
 }
+
+namespace {
+
+s32 &used(const u8 *cache, s32 size) { return at<s32>(cache, 0x1830 + size * 4); }
+s32 &split(const u8 *cache, s32 size) { return at<s32>(cache, 0x1818 + size * 4); }
+s32 &entryCount(const u8 *cache, s32 size) { return at<s32>(cache, 0x1800 + size * 4); }
+u8 **entriesOf(u8 *cache, s32 size) { return reinterpret_cast<u8 **>(cache + 0x400 * size); }
+
+// The item can come down a level: bits 4-5 of its flags set and, with the driver filter, wider than the smallest (0x702434).
+bool canHalve(const u8 *item) {
+    if (Texture_UsesDriverFilter(item))
+        return (at<u8>(item, 8) & 0x30) && at<s16>(item, 0x14) > global<s32>(0x00702434);
+    return (at<u8>(item, 8) & 0x30) != 0;
+}
+
+// One level down: flags - 0x10, the current sizes halved upward, the key again (inlined in places). With the driver filter at the smallest width: nothing.
+void halveItem(u8 *item) {
+    if (Texture_UsesDriverFilter(item) && at<s16>(item, 0x14) == global<s32>(0x00702434))
+        return;
+    at<u32>(item, 8) -= 0x10;
+    const s32 height = at<s16>(item, 0x16);
+    at<u16>(item, 0x14) = (u16)(((s32)at<s16>(item, 0x14) + 1) >> 1);
+    at<u16>(item, 0x16) = (u16)((height + 1) >> 1);
+    TexCacheItem_SetKey(item);
+}
+
+// Back to the wanted size: flags 0xf030 cleared, bits 6-7 copied to 4-5, the current sizes the wanted ones rounded up to 8, the key again (inlined).
+void resetItem(u8 *item) {
+    const u32 kept = at<u32>(item, 8) & 0xffff0fcf;
+    at<u32>(item, 8) = kept | ((u32)((s32)kept >> 2) & 0x30);
+    at<u16>(item, 0x14) = (u16)((at<u16>(item, 0x10) + 7) & ~7);
+    at<u16>(item, 0x16) = (u16)((at<u16>(item, 0x12) + 7) & ~7);
+    TexCacheItem_SetKey(item);
+}
+
+// The entry's items off it and those with flag 0x40000000 on the pending list (flag 0x2000, 0x4000 kept); its surface's flags 0.
+void releaseEntry(u8 *cache, u8 *entry) {
+    u8 *item = at<u8 *>(entry, 4);
+    u8 *const surface = at<u8 *>(entry, 0);
+    at<u8 *>(entry, 4) = nullptr;
+    while (item) {
+        const u32 had = at<u32>(item, 8) & 0x4000;
+        u8 *const next = at<u8 *>(item, 4);
+        Texture_ClearCacheFlags(item);
+        at<u32>(item, 0x1c) = 0;
+        const u32 flags = at<u32>(item, 8);
+        if (flags & 0x40000000) {
+            at<u32>(item, 8) = flags | (had ? 0x6000 : 0x2000);
+            at<u8 *>(item, 4) = at<u8 *>(cache, 0x18c4);
+            at<u8 *>(cache, 0x18c4) = item;
+        }
+        item = next;
+    }
+    TexCacheItem_SetFlags(surface, nullptr, 0);
+}
+
+// A place in the short list of 16 entries (slots 0-15) and their keys (slots 16-31); slot 32 is the next local. The move up is a forward
+// copy, so the old value at the place fills all up to cap, and at cap 16 it runs on into the keys and past them (sic).
+void shortListPut(u32 *slots, s32 &count, s32 cap, s32 place, const u8 *entry, s32 key) {
+    for (s32 i = 0; i != cap - place; ++i)
+        slots[place + 1 + i] = slots[place + i];
+    for (s32 i = 0; i != cap - place; ++i)
+        slots[16 + place + 1 + i] = slots[16 + place + i];
+    if (count < cap)
+        ++count;
+    slots[place] = (u32)(uintptr_t)entry;
+    slots[16 + place] = (u32)key;
+}
+
+u8 *slotEntry(u32 *slots, s32 i) { return reinterpret_cast<u8 *>((uintptr_t)slots[i]); }
+
+}  // namespace
+
+void __fastcall TexCache_TraceUpdate(u8 *) {
+    const u32 tag = 0x10;
+    void *const file = g_traceEnv->fopen("c:\\tcache.log", "a");
+    if (!file)
+        return;
+    g_traceEnv->fwrite(&tag, 1, 1, file);
+    g_traceEnv->fflush(file);
+    g_traceEnv->fclose(file);
+}
+
+void __fastcall TexCache_RankEntries(u8 *cache) {
+    at<u32>(cache, 0x18d0) = 0;
+    at<u32>(cache, 0x18d4) = 0;
+    at<u32>(cache, 0x18d8) = 0;
+    for (s32 size = 0; size < 6; ++size) {
+        u8 **const entries = entriesOf(cache, size);
+        for (s32 i = 0; i < entryCount(cache, size); ++i) {
+            if ((at<u8>(cache, 0x18cc) & 1) || !TexCacheItem_Flag1(at<u8 *>(entries[i], 0)))
+                TexCacheEntry_Score(entries[i], nullptr, at<u32>(cache, 0x18cc));
+        }
+        s32 ranked;
+        if (at<u8>(cache, 0x18cc) & 1) {
+            if (entryCount(cache, size))
+                TexCache_SortEntriesByKept(cache, nullptr, entries, 0, entryCount(cache, size) - 1);
+            ranked = entryCount(cache, size);
+        } else {
+            const s32 count = entryCount(cache, size);
+            s32 lo = 0, hi = count - 1;
+            if (hi > 0) {
+                do {
+                    while (lo < hi && !TexCacheItem_Flag1(at<u8 *>(entries[lo], 0)))
+                        ++lo;
+                    while (lo < hi && TexCacheItem_Flag1(at<u8 *>(entries[hi], 0)))
+                        --hi;
+                    u8 *const moved = entries[lo];
+                    entries[lo] = entries[hi];
+                    entries[hi] = moved;
+                    ++lo;
+                    --hi;
+                } while (lo < hi);
+                if (hi > 0)
+                    TexCache_SortEntriesByKept(cache, nullptr, entries, 0, hi);
+            }
+            ranked = hi < count ? hi + 1 : hi;
+        }
+        split(cache, size) = ranked;
+        s32 last = ranked - 1;
+        if (last > 0) {
+            while (last > 0) {
+                const u8 *const entry = entries[last];
+                const u32 kept = at<u32>(entry, 0xc);
+                if ((s32)(kept * 2) <= vcall<s32>(at<u8 *>(entry, 0), 0xc))
+                    break;
+                --last;
+            }
+            if (last > 0)
+                TexCache_SortEntriesByScore(cache, nullptr, entries, 0, last);
+        }
+        split(cache, size) = last;
+    }
+    at<u32>(cache, 0x18d0) = 0;
+    at<u32>(cache, 0x18d4) = 0;
+    at<u32>(cache, 0x18d8) = 0;
+    for (s32 size = 0; size < 6; ++size) {
+        u8 **const entries = entriesOf(cache, size);
+        for (s32 i = 0; i < entryCount(cache, size); ++i) {
+            u8 *const surface = at<u8 *>(entries[i], 0);
+            if (!(at<u8>(cache, 0x18cc) & 1) && TexCacheItem_Flag1(surface))
+                continue;
+            TexCacheEntry_Score(entries[i], nullptr, at<u32>(cache, 0x18cc));
+            at<u32>(cache, 0x18d0) += at<u32>(entries[i], 8);
+            at<u32>(cache, 0x18d4) += at<u32>(entries[i], 0xc);
+            at<u32>(cache, 0x18d8) += vcall<u32>(surface, 0xc);
+        }
+    }
+}
+
+void __fastcall TexCache_ArrangePending(u8 *cache) {
+    u8 *items[0x1000];
+    u32 temp;
+    RecordSort *const sort = reinterpret_cast<RecordSort *>(0x008bcb98);
+    double top = 0.0f;   // 0x7023f8
+    s32 count = 0;
+    u8 *item = at<u8 *>(cache, 0x18c4);
+    while (item && count < 0x1000) {
+        items[count++] = item;
+        const double lod = at<float>(item, 0x30);
+        if (!(top >= lod))   // (unordered too)
+            top = lod;
+        item = at<u8 *>(item, 4);
+    }
+    for (; item; item = at<u8 *>(item, 4))
+        resetItem(item);
+    const X87Reg high = X87Reg(top) - -0.001f;   // 0x7023fc
+    const X87Reg span = high - -0.001f;
+    at<u32>(cache, 0x1904) = 0xba83126f;   // (-0.001)
+    at<float>(cache, 0x1914) = (float)high;
+    at<float>(cache, 0x1908) = (float)X87_SubR(span * -0.125f, -0.001f);
+    at<float>(cache, 0x190c) = (float)X87_SubR(span * -0.25f, -0.001f);
+    at<float>(cache, 0x1910) = (float)X87_SubR(span * -0.5f, -0.001f);
+    if (count > 1)
+        RecordSort_RunPointersByFloat(sort, nullptr, items, reinterpret_cast<u8 *>(&temp), 0x60, 0x30, 0, count - 1);
+    at<u32>(cache, 0x18dc) = 0;
+    for (s32 i = 0; i < count; ++i)
+        at<s32>(cache, 0x18dc) += (s32)at<s16>(items[i], 0x12) * at<s16>(items[i], 0x10);
+    for (s32 tier = 0; tier < at<s32>(cache, 0x18f8); ++tier)
+        TexCache_ShrinkItems(cache, nullptr, items, count, tier, (s32)0x80000000);
+    const s32 room = at<s32>(cache, 0x18d8) - at<s32>(cache, 0x18d4);
+    const s32 area = at<s32>(cache, 0x18dc);
+    const bool tight = (s32)(long long)(X87Reg((double)area) * 1.5f).v > room;   // 0x7023c0
+    if (((at<u8>(cache, 0x18cc) & 4) && area > at<s32>(cache, 0x18fc)) || tight) {
+        s32 tier = at<s32>(cache, 0x18f8);
+        if (tier != 0xc) {
+            for (;;) {
+                TexCache_ShrinkItems(cache, nullptr, items, count, tier, room);
+                const s32 now = at<s32>(cache, 0x18dc);
+                if (now <= room && (!(at<u8>(cache, 0x18cc) & 4) || now <= at<s32>(cache, 0x18fc)))
+                    break;
+                if (++tier >= 0xc)
+                    break;
+            }
+        }
+        if (at<u8>(cache, 0x18cc) & 4) {
+            for (s32 i = count - 1; i >= 0 && at<s32>(cache, 0x18dc) > at<s32>(cache, 0x18fc); --i) {
+                if (at<u32>(items[i], 8) & 0x80000)
+                    continue;
+                at<u32>(items[i], 8) |= 0x8000;
+                at<s32>(cache, 0x18dc) -= (s32)at<s16>(items[i], 0x16) * at<s16>(items[i], 0x14);
+            }
+        }
+    }
+    if (count - 1 > 0)
+        RecordSort_RunPointersUp(sort, nullptr, items, reinterpret_cast<u8 *>(&temp), 0x60, 0x38, 0, count - 1);
+    at<u8 *>(cache, 0x18c4) = nullptr;
+    for (s32 i = 0; i < count; ++i) {
+        if (at<u32>(items[i], 8) & 0x8000) {
+            resetItem(items[i]);
+        } else {
+            at<u8 *>(items[i], 4) = at<u8 *>(cache, 0x18c4);
+            at<u8 *>(cache, 0x18c4) = items[i];
+        }
+    }
+}
+
+u32 __fastcall TexCache_Rebalance(u8 *cache) {
+    if (global<u32>(0x008bd524) != 1)
+        return 1;
+    bool changed = false;
+    float shares[6];
+    for (s32 size = 0; size < 6; ++size)
+        shares[size] = (float)(X87Reg((double)split(cache, size)) / X87Reg((double)entryCount(cache, size)));
+    for (s32 size = 0; size < 6; ++size) {
+        const float share = shares[size];
+        if (share >= 0.67f)   // 0x70246c (a NaN goes on)
+            continue;
+        const s32 side = reinterpret_cast<const s32 *>((uintptr_t)0x00702420)[size];
+        const X87Reg more = X87Reg(share) * 1.5f;   // 0x702460
+        const bool belowSmaller = size > 0 && !(more.v >= shares[size - 1]);
+        const bool belowLarger = size < 5 && !(more.v >= shares[size + 1]);
+        u32 slots[33];
+        if (belowSmaller) {
+            s32 cap = 1 - (s32)(long long)((X87Reg(share) - shares[size - 1]) * -0.25f).v;   // 0x702470
+            if (cap > 16)
+                cap = 16;
+            s32 listed = 0;
+            const s32 start = split(cache, size) < 0 ? 0 : split(cache, size);
+            u8 **const entries = entriesOf(cache, size);
+            for (s32 i = entryCount(cache, size) - 1; i >= start; --i) {
+                const u8 *const entry = entries[i];
+                const u8 *const surface = at<u8 *>(entry, 0);
+                if (TexCacheItem_Flag1(surface) && !(at<u8>(cache, 0x18cc) & 1))
+                    continue;
+                if (TexCacheItem_Flag2(surface))
+                    continue;
+                s32 wanted = 0;
+                for (const u8 *item = at<u8 *>(entry, 4); item; item = at<u8 *>(item, 4)) {
+                    if (at<u32>(item, 8) & 0x40000000)
+                        ++wanted;
+                }
+                s32 place = listed;
+                while (place > 0 && wanted < (s32)slots[16 + place - 1])
+                    --place;
+                shortListPut(slots, listed, cap, place, entry, wanted);
+            }
+            for (s32 i = listed - 1; i >= 0; --i) {
+                releaseEntry(cache, slotEntry(slots, i));
+                changed = true;
+            }
+        }
+        if (!belowLarger)
+            continue;
+        s32 cap = 1 - (s32)(long long)((X87Reg(share) - shares[size + 1]) * -0.25f).v;
+        if (cap > 16)
+            cap = 16;
+        s32 listed = 0;
+        const s32 start = split(cache, size) < 0 ? 0 : split(cache, size);
+        u8 **const entries = entriesOf(cache, size);
+        for (s32 i = entryCount(cache, size) - 1; i >= start; --i) {
+            const u8 *const entry = entries[i];
+            const u8 *const surface = at<u8 *>(entry, 0);
+            if (TexCacheItem_Flag1(surface) && !(at<u8>(cache, 0x18cc) & 1))
+                continue;
+            if (TexCacheItem_Flag2(surface)) {
+                if (TexCacheItem_Flag4(surface))
+                    continue;
+            } else if ((s32)(at<u32>(entry, 0xc) * 2) >= side * side) {
+                continue;
+            }
+            const u8 *const item = at<u8 *>(entry, 4);
+            s32 key = 0;
+            if (item)
+                key = (s32)(long long)((1.5f - X87Reg(at<float>(item, 0x30))) * 2047.0f).v + (s32)((at<u32>(item, 8) & 0x30) << 8);
+            s32 place = listed;
+            while (place > 0 && key > (s32)slots[16 + place - 1])
+                --place;
+            shortListPut(slots, listed, cap, place, entry, key);
+        }
+        for (s32 i = listed - 1; i >= 0; --i) {
+            u8 *const entry = slotEntry(slots, i);
+            for (u8 *item = at<u8 *>(entry, 4); item; item = at<u8 *>(item, 4)) {
+                if (canHalve(item))
+                    halveItem(item);
+            }
+            releaseEntry(cache, entry);
+            changed = true;
+        }
+    }
+    if (changed) {
+        TexCache_RankEntries(cache);
+        TexCache_ArrangePending(cache);
+    }
+    return 1;
+}
+
+s32 __fastcall TexCache_PlaceNext(u8 *cache, void *, u8 **list) {
+    struct Row {
+        u32 x, y, w, h, item;
+    };
+    Row rows[0x80], spare[0x80];
+    u8 *merged[0x1000];
+    u8 *const head = *list;
+    s32 size = Texture_UsesDriverFilter(head) ? (s32)Texture_Level(head) : 0;
+    if (used(cache, size) >= split(cache, size)) {
+        while (size < 6) {
+            const s32 taken = used(cache, size + 1), last = split(cache, size + 1);
+            ++size;
+            if (taken < last)
+                break;
+        }
+    }
+    if (size == 6)
+        return -1;
+    const s32 first = size;
+    u8 *entry = entriesOf(cache, size)[used(cache, size)];
+    u8 *surface = at<u8 *>(entry, 0);
+    if (Texture_UsesDriverFilter(head)) {
+        const s32 width = at<s32>(surface, 8);
+        while (canHalve(head) && width < at<s16>(head, 0x14)) {
+            halveItem(head);
+            ++global<u32>(0x008c4b70);
+        }
+        if (width < at<s16>(head, 0x14))
+            return -1;
+        if (canHalve(head) && size < 5) {
+            const X87Reg here = X87Reg((double)(split(cache, size) - used(cache, size))) / X87Reg((double)entryCount(cache, size));
+            const X87Reg there = X87Reg((double)(split(cache, size + 1) - used(cache, size + 1))) / X87Reg((double)entryCount(cache, size + 1));
+            if (there.v >= here.v) {
+                halveItem(head);
+                ++size;
+                entry = entriesOf(cache, size)[used(cache, size)];
+                surface = at<u8 *>(entry, 0);
+            }
+        }
+        *list = at<u8 *>(head, 4);
+        TexCache_RequeueItems(cache, nullptr, list, at<u8 *>(entry, 4));
+        at<u8 *>(entry, 4) = nullptr;
+        ++used(cache, size);
+        TexCacheItem_SetFlags(surface, nullptr, 0);
+        if (!vcall<u32>(surface, 0x10))
+            return 0;
+        const s32 place[5] = {0, 0, at<s32>(surface, 8), at<s32>(surface, 0xc), (s32)(uintptr_t)head};
+        if (!TexCache_PlaceTexture(cache, nullptr, entry, place, nullptr))
+            return 0;
+        at<u8 *>(entry, 4) = head;
+        at<u8 *>(head, 4) = nullptr;
+        u32 flags = ((at<u32>(head, 8) & 0x4000) | 0x8000) >> 0xe;
+        if (!canHalve(head))
+            flags |= 4;
+        TexCacheItem_SetFlags(surface, nullptr, flags);
+        return (s32)Texture_Reload(entry);
+    }
+    const u32 areaSum = TexCache_MergeItems(reinterpret_cast<u32 *>(merged), head, entry);
+    u32 placed;
+    u32 whole = TexCache_PackItems(cache, nullptr, merged, reinterpret_cast<u8 *>(rows), &placed, reinterpret_cast<const s32 *>(surface), 1);
+    if (!placed) {
+        TexCache_SortListByKey(cache, nullptr, list);
+        return -1;
+    }
+    s32 chosen = size;
+    while (whole) {
+        whole = 0;
+        if ((at<s32>(surface, 8) >> 1) < at<s32>(cache, 0x1918) || (at<s32>(surface, 0xc) >> 1) < at<s32>(cache, 0x191c))
+            break;
+        ++size;
+        ++global<u32>(0x008c4b5c);
+        if (used(cache, size) >= split(cache, size)) {
+            while (size < 6) {
+                const s32 taken = used(cache, size + 1), last = split(cache, size + 1);
+                ++size;
+                if (taken < last)
+                    break;
+            }
+        }
+        if (size >= 6)
+            break;
+        u8 *const smaller = entriesOf(cache, size)[used(cache, size)];
+        u8 *const smallerSurface = at<u8 *>(smaller, 0);
+        TexCache_MergeItems(reinterpret_cast<u32 *>(merged), head, smaller);
+        const u32 counted = global<u32>(0x008c4b6c);
+        u32 count;
+        whole = TexCache_PackItems(cache, nullptr, merged, reinterpret_cast<u8 *>(spare), &count, reinterpret_cast<const s32 *>(smallerSurface), 0);
+        if (!whole) {
+            global<u32>(0x008c4b6c) = counted;
+            break;
+        }
+        for (u32 i = 0; i != count + 1; ++i)
+            rows[i] = spare[i];
+        placed = count;
+        chosen = size;
+        entry = smaller;
+        surface = smallerSurface;
+    }
+    if (at<u32>(cache, 0x1924))
+        TexCache_SortListByKey(cache, nullptr, list);
+    if (first != chosen) {
+        chosen = TexCache_ChooseSize(cache, nullptr, chosen, first, (s32)areaSum);
+        entry = entriesOf(cache, chosen)[used(cache, chosen)];
+        surface = at<u8 *>(entry, 0);
+    }
+    TexCache_RequeueItems(cache, nullptr, list, at<u8 *>(entry, 4));
+    at<u8 *>(entry, 4) = nullptr;
+    const s32 rowCount = (s32)placed;
+    for (s32 a = 0; a < rowCount - 1; ++a) {
+        for (s32 b = a + 1; b < rowCount; ++b) {
+            if (rows[a].item > rows[b].item) {
+                const Row moved = rows[a];
+                rows[a] = rows[b];
+                rows[b] = moved;
+            }
+        }
+    }
+    ++used(cache, chosen);
+    TexCacheItem_SetFlags(surface, nullptr, 0);
+    if (!vcall<u32>(surface, 0x10))
+        return 0;
+    TexCache_SortListByAddress(cache, nullptr, list);
+    const Row *row = rows;
+    u8 *before = nullptr, *tail = nullptr;
+    bool none = true;
+    for (u8 *item = *list; item && row->item;) {
+        u8 *const next = at<u8 *>(item, 4);
+        if ((u32)(uintptr_t)item == row->item) {
+            if (canHalve(item))
+                none = false;
+            if (at<u32>(item, 8) & 0x4000)
+                TexCacheItem_SetFlag1(surface);
+            if (!TexCache_PlaceTexture(cache, nullptr, entry, reinterpret_cast<const s32 *>(row), nullptr)) {
+                vcall<void>(surface, 0x14);
+                return 0;
+            }
+            if (before)
+                at<u8 *>(before, 4) = next;
+            else
+                *list = at<u8 *>(*list, 4);
+            if (tail)
+                at<u8 *>(tail, 4) = item;
+            else
+                at<u8 *>(entry, 4) = item;
+            at<u8 *>(item, 4) = nullptr;
+            --global<u32>(0x008c4b6c);
+            ++row;
+            tail = item;
+        } else {
+            before = item;
+        }
+        item = next;
+    }
+    if (none)
+        TexCacheItem_SetFlags(surface, nullptr, at<u32>(surface, 4) | 4);
+    if (*list)
+        TexCache_SortListByKey(cache, nullptr, list);
+    u8 *kept = at<u8 *>(entry, 4);
+    TexCache_SortListByKey(cache, nullptr, &kept);
+    at<u8 *>(entry, 4) = kept;
+    return (s32)Texture_Reload(entry);
+}
+
+s32 __fastcall TexCache_PlacePending(u8 *cache) {
+    for (s32 size = 0; size < 6; ++size)
+        used(cache, size) = 0;
+    u8 **const list = &at<u8 *>(cache, 0x18c4);
+    s32 result = 1;
+    while (*list && result) {
+        result = TexCache_PlaceNext(cache, nullptr, list);
+        if (result == -1) {
+            u8 *const head = *list;
+            resetItem(head);
+            result = 1;
+            *list = at<u8 *>(head, 4);
+        }
+    }
+    for (u8 *item = *list; item; item = at<u8 *>(item, 4))
+        resetItem(item);
+    *list = nullptr;
+    return result;
+}
+
+u32 __fastcall TexCache_Update(u8 *cache) {
+    if (global<u8>(0x008bd550) & 0x80)
+        TexCache_TraceUpdate(cache);
+    if (!at<u8 *>(cache, 0x18c4))
+        return 1;
+    if (global<u32>(0x008bd508) & 0xc0000000)
+        TexCache_Evict(cache);
+    TexCache_RankEntries(cache);
+    TexCache_ArrangePending(cache);
+    TexCache_Rebalance(cache);
+    if (TexCache_PlacePending(cache))
+        return 1;
+    EngineErrors_Push(reinterpret_cast<u8 *>((uintptr_t)0x00879ad0), nullptr, 2, 0xb0754011);
+    return 0;
+}

@@ -6288,6 +6288,13 @@ address,name,kind,confidence,notes
 0x0058e1a0,TexCache_SortItemsByKey,function,low,"reimplemented (src/game/gfx/texcache); thiscall on the cache (items, first, last), pops 0xc: first below last, items' pointers by their key +0x38"
 0x0058e790,TexCache_SortListByKey,function,low,"reimplemented (src/game/gfx/texcache); thiscall on the cache (list head pointer), pops 4: the chain's first 0x1000 items by key, the greatest the head; past those flags lost and dropped"
 0x0058e820,TexCache_SortListByAddress,function,low,"reimplemented (src/game/gfx/texcache); thiscall on the cache (list head pointer), pops 4: the chain's first 0x1000 items by address, the lowest the head"
+0x0058ccc0,TexCache_RankEntries,function,low,"reimplemented (src/game/gfx/texcache); thiscall on the cache: each size's entries scored and ordered, +0x1818 the split, the totals +0x18d0-0x18d8"
+0x0058cf40,TexCache_Update,function,low,"reimplemented (src/game/gfx/texcache); thiscall on the cache: the frame's work: trace, evict, rank, arrange, rebalance, place; 0 and an engine error when the placing fails"
+0x0058e110,TexCache_TraceUpdate,function,low,"reimplemented (src/game/gfx/texcache); thiscall, the cache not used: a byte 0x10 appended to the trace file"
+0x0058e390,TexCache_ArrangePending,function,low,"reimplemented (src/game/gfx/texcache); thiscall on the cache: the pending list sorted, its bands set, shrunk to the room, reset past the limit, rebuilt by key"
+0x0058f190,TexCache_PlaceNext,function,low,"reimplemented (src/game/gfx/texcache); thiscall on the cache (list head pointer), pops 4: the list's first item (and the entry's items) placed on the next entry with room; -1 none"
+0x0058f940,TexCache_PlacePending,function,low,reimplemented (src/game/gfx/texcache); thiscall on the cache: TexCache_PlaceNext until the pending list is empty or 0 comes back; items left reset
+0x0058fcf0,TexCache_Rebalance,function,low,"reimplemented (src/game/gfx/texcache); thiscall on the cache, returns 1: with driver kind 1 sizes with a low share lose spare entries to the sizes next to them"
 0x00575bd0,TexSet_Ctor,function,high,"reimplemented (src/game/gfx/texset); thiscall (a texture set, 16 bytes): all zero; returns the set"
 0x00575f90,TexSet_Texture,function,high,"reimplemented (src/game/gfx/texset); thiscall (i): texture i, [+8][i]"
 0x00575fa0,TexSet_TextureSlot,function,high,reimplemented (src/game/gfx/texset); thiscall (i): &[+8][i]
