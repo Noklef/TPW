@@ -71,6 +71,7 @@
 #include "../../src/game/ui/window7cb2cc.h"
 #include "../../src/game/ui/window7cc8bcmenu.h"
 #include "../../src/game/ui/window7cc8c0handler.h"
+#include "../../src/game/ui/dialog7cc5f4dial.h"
 #include "../../src/game/ui/dialog7cc534handler.h"
 #include "../../src/game/ui/dialog7ca13chandler.h"
 #include "../../src/game/ui/dialog7cc944handler.h"
@@ -1143,6 +1144,7 @@ const Window7cc8bcEditEnv kWindow7cc8bcEditEnv = {Rec{recorder(10, 2)}, Rec{reco
 const Dialog7cc944HandlerEnv kDialog7cc944HandlerEnv = {Rec{recorder(10, 1)}, Rec{recorder(11, 0)}, Rec{jpeg_recorder(12, 4)}, Rec{jpeg_recorder(13, 4)}, Rec{recorder(14, 3)}, Rec{recorder(15, 0)}, Rec{jpeg_recorder(16, 1)}, Rec{recorder(17, 4)}, Rec{recorder(18, 2)}, Rec{jpeg_recorder(19, 5)}, Rec{recorder(20, 0)}, Rec{recorder(21, 2)}, Rec{recorder(22, 0)}, Rec{recorder(23, 3)}};
 const Dialog7ca13cHandlerEnv kDialog7ca13cHandlerEnv = {Rec{jpeg_recorder(10, 4)}, Rec{recorder(11, 2)}, Rec{recorder(12, 0)}, Rec{recorder(13, 2)}, Rec{recorder(14, 5)}, Rec{jpeg_recorder(15, 1)}, Rec{jpeg_recorder(16, 3)}, Rec{jpeg_recorder(17, 1)}, Rec{jpeg_recorder(18, 0)}, Rec{jpeg_recorder(19, 2)}, Rec{jpeg_recorder(20, 2)}, Rec{recorder(21, 1)}, Rec{jpeg_recorder(22, 1)}, Rec{recorder(23, 1)}, Rec{jpeg_recorder(24, 4)}};
 const Dialog7cc534HandlerEnv kDialog7cc534HandlerEnv = {Rec{jpeg_recorder(11, 1)}, Rec{jpeg_recorder(12, 4)}, Rec{jpeg_recorder(13, 1)}, Rec{jpeg_recorder(14, 4)}};
+const Dialog7cc5f4DialEnv kDialog7cc5f4DialEnv = {Rec{jpeg_recorder(11, 0)}, Rec{jpeg_recorder(12, 0)}, Rec{jpeg_recorder(13, 4)}, Rec{jpeg_recorder(14, 4)}, Rec{recorder(15, 1)}, Rec{jpeg_recorder(16, 1)}, Rec{jpeg_recorder(17, 8)}, Rec{recorder(18, 1)}, Rec{recorder(19, 1)}, Rec{jpeg_recorder(20, 4)}};
 const Window7cc8c0HandlerEnv kWindow7cc8c0HandlerEnv = {Rec{recorder(12, 2)}, Rec{jpeg_recorder(15, 2)}, Rec{jpeg_recorder(20, 4)}, Rec{jpeg_recorder(25, 4)}, Rec{recorder(13, 0)}, Rec{recorder(14, 0)}, Rec{jpeg_recorder(28, 3)}, Rec{recorder(15, 0)}, Rec{recorder(16, 0)}, Rec{jpeg_recorder(31, 0)}, Rec{recorder(17, 2)}, Rec{recorder(18, 2)}, Rec{jpeg_recorder(29, 3)}, Rec{recorder(19, 1)}, Rec{recorder(20, 0)}, Rec{recorder(21, 1)}, Rec{jpeg_recorder(27, 1)}, Rec{jpeg_recorder(30, 5)}, Rec{jpeg_recorder(13, 1)}, Rec{jpeg_recorder(12, 0)}, Rec{jpeg_recorder(19, 0)}, Rec{jpeg_recorder(14, 0)}, Rec{recorder(23, 2)}, Rec{recorder(24, 2)}, Rec{recorder(25, 1)}, Rec{recorder(26, 1)}, Rec{recorder(27, 2)}, Rec{jpeg_recorder(16, 5)}, Rec{jpeg_recorder(17, 0)}, Rec{jpeg_recorder(18, 1)}, Rec{recorder(28, 3)}};
 const Window7cc8bcMenuEnv kWindow7cc8bcMenuEnv = {Rec{recorder(10, 2)}, Rec{recorder(11, 3)}, Rec{jpeg_recorder(12, 0)}, Rec{recorder(13, 1)}, Rec{jpeg_recorder(14, 2)}, Rec{recorder(15, 2)}, Rec{recorder(16, 2)}, Rec{recorder(17, 3)}};
 const Dialog7cb2b8TabsEnv kDialog7cb2b8TabsEnv = {Rec{jpeg_recorder(10, 1)}, Rec{jpeg_recorder(11, 0)}, Rec{jpeg_recorder(12, 0)}, Rec{recorder(13, 0)}, Rec{jpeg_recorder(14, 0)}, Rec{recorder(15, 3)}};
@@ -2170,6 +2172,7 @@ int main(int argc, char **argv) {
     Window7cb2cc_SetEnv(&kWindow7cb2ccEnv);
     Window7cc8bc_SetMenuEnv(&kWindow7cc8bcMenuEnv);
     Window7cc8c0Handler_SetEnv(&kWindow7cc8c0HandlerEnv);
+    Dialog7cc5f4Dial_SetEnv(&kDialog7cc5f4DialEnv);
     Dialog7cc534Handler_SetEnv(&kDialog7cc534HandlerEnv);
     Dialog7ca13cHandler_SetEnv(&kDialog7ca13cHandlerEnv);
     Dialog7cc944Handler_SetEnv(&kDialog7cc944HandlerEnv);

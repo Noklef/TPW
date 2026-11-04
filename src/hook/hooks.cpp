@@ -629,6 +629,7 @@
 #include "../game/ui/dialog7cc530open.h"
 #include "../game/ui/dialog7cc534handler.h"
 #include "../game/ui/dialog7cc5f4.h"
+#include "../game/ui/dialog7cc5f4dial.h"
 #include "../game/ui/dialog7cc5f4handler.h"
 #include "../game/ui/dialog7cc654.h"
 #include "../game/ui/dialog7cc654handler.h"
@@ -8360,6 +8361,7 @@ const Hook kHooks[] = {
     {"Dialog7cc944_Handler",      0x004bf9f0, (void *)&Dialog7cc944_Handler, {0x83, 0xec, 0x18, 0x53, 0x8b}},
     {"Dialog7ca13c_Handler",      0x00493230, (void *)&Dialog7ca13c_Handler, {0x83, 0xec, 0x24, 0x53, 0x55}},
     {"Dialog7cc534_Handler",      0x004b9f70, (void *)&Dialog7cc534_Handler, {0x81, 0xec, 0x3c, 0x08, 0x00}},
+    {"Dialog7cc5f4_DialHandler",  0x004b9d00, (void *)&Dialog7cc5f4_DialHandler, {0x83, 0xec, 0x10, 0x53, 0x55}},
     {"jdmarker_examine_app14",    0x0063bf50, (void *)&jdmarker_examine_app14, {0x8b, 0x4c, 0x24, 0x0c, 0x53}},
     {"jdmarker_examine_app0",     0x0063bcc0, (void *)&jdmarker_examine_app0, {0x8b, 0x44, 0x24, 0x0c, 0x8b}},
     {"jdmarker_get_interesting_appn", 0x0063bb80, (void *)&jdmarker_get_interesting_appn, {0x8b, 0x44, 0x24, 0x04, 0x83}},
