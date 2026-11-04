@@ -9,6 +9,9 @@
 
 #include "../../../re/types.h"
 
+struct AddrCall;
+void Accessors_SetFreeCalls(const AddrCall *table, u32 count);   // tests/fncmp/objfree204.py
+
 extern "C" {
 
 // Fields of an object (thiscall).
@@ -131,6 +134,8 @@ u32 __cdecl Obj_Read30_34_38(const u8 *source, u32 *a, u32 *b, u32 *c);
 u8 *__fastcall Obj_AddrOf4(u8 *object);
 // 0x56dd70 (thiscall; name invented, unconfirmed): the address 0x1cc bytes into the object.
 u8 *__fastcall Obj_AddrOf1cc(u8 *object);
+// 0x4056d0 (thiscall; name invented, unconfirmed): CRT_free of the block at +0x204.
+void __fastcall Obj_FreeAt204(u8 *object);
 
 // 0x47a9a0 (thiscall): the dword at +0xc, or 0x6fd6c4 when it is 0.
 u32 __fastcall Obj_GetCOr6fd6c4(const u8 *object);

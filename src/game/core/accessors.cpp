@@ -2,6 +2,7 @@
 
 #include <cstdint>
 
+#include "addrcalls.h"
 #include "gameheap.h"
 #include "string.h"
 
@@ -10,7 +11,10 @@ namespace {
 template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cast<T *>((uintptr_t)p + offset); }
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
 
+AddrCalls g_freeCalls;
 }  // namespace
+
+void Accessors_SetFreeCalls(const AddrCall *table, u32 count) { g_freeCalls.Set(table, count); }
 
 extern "C" {
 
@@ -256,6 +260,7 @@ u32 __cdecl Obj_Read30_34_38(const u8 *source, u32 *a, u32 *b, u32 *c) {
 
 u8 *__fastcall Obj_AddrOf4(u8 *object) { return object + 4; }
 u8 *__fastcall Obj_AddrOf1cc(u8 *object) { return object + 0x1cc; }
+void __fastcall Obj_FreeAt204(u8 *object) { g_freeCalls.Cd(0x0067ad90, at<u32>(object, 0x204)); }
 
 u32 __fastcall Obj_GetCOr6fd6c4(const u8 *object) {
     const u32 value = at<u32>(object, 0xc);

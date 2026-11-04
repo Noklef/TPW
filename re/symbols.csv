@@ -4203,6 +4203,7 @@ address,name,kind,confidence,notes
 0x004f08a0,Obj_InitMinus1B,function,high,reimplemented (src/game/core/accessors); initialises an object with -1 ignoring seven arguments
 0x0048c980,Globals7c264c_Clear,function,low,"reimplemented (src/game/core/accessors); cdecl static initialiser: 0x7c264c, 0x7c2650, 0x7c2654 = 0; returns 0"
 0x0056dd70,Obj_AddrOf1cc,function,low,"reimplemented (src/game/core/accessors); The address 0x1cc bytes into the object (name invented, unconfirmed)"
+0x004056d0,Obj_FreeAt204,function,low,"reimplemented (src/game/core/accessors); CRT_free of the block at +0x204 (name invented, unconfirmed)"
 0x00421680,Obj_SetAt8AndAdd,function,high,reimplemented (src/game/core/observers); records an item and adds it to the observer list
 0x005f9f80,Class7035d8_Ctor,function,high,reimplemented (src/game/core/fpu); constructor of the class with vtable pointer 0x7035d8
 0x005f9f70,Class7035d8_InitGlobal,function,high,reimplemented (src/game/core/fpu); constructs the global object at 0xfa78e8
