@@ -1,7 +1,8 @@
 # The texture cache's frame work (src/game/gfx/texcache: 0x58cf40, 0x58ccc0, 0x58e110, 0x58e390, 0x58f190, 0x58f940, 0x58fcf0) against the originals, all the cache's children real, the surfaces' slots
 # recorders: six sizes of 0-7 entries (surfaces 0x100 >> size wide now and then a little off, flags 0-7, kept around half the area), chains of 0-4 items on them, a pending list of 0-30 items (now and then
 # 0x1003), sizes around powers of two, levels (flags 0x30, 0xc0), the driver filter on or off, bands and limits, splits within the counts or (shares far negative) past them; slots 4 and 5 answering 0 now and then.
-# usage: texcacheupdate.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Rank,Trace,Arrange,Next,Pending,Rebalance,Update)
+# Arrange now and then with the room exactly 1.5 times the wanted area. Spread: 5-7 entries each, every other size's share 8-17 below its neighbours' and its surfaces skipped (its own short list's size is negative and would run off the stack), so that the others' short lists hold 3-5 (their smear, sic).
+# usage: texcacheupdate.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Rank,Trace,Arrange,Next,Pending,Rebalance,Spread,Update)
 import os
 import struct
 import sys
@@ -13,7 +14,7 @@ FOPEN, FWRITE, FFLUSH, FCLOSE = 11, 12, 13, 14   # driver.cpp's kTexCacheTraceEn
 HOOKS = {0x67b8a0: _recorder(FOPEN, 2, cdecl=True), 0x67b6d0: _recorder(FWRITE, 4, cdecl=True), 0x67d070: _recorder(FFLUSH, 1, cdecl=True), 0x67b620: _recorder(FCLOSE, 1, cdecl=True)}
 B = Bench([(0x58b330, 0x58b3a0), (0x58cb40, 0x58cfaa), (0x58dc50, 0x58dd5e), (0x58e110, 0x58e159), (0x58e1a0, 0x58e74d), (0x58e790, 0x58f938), (0x58f940, 0x590341), (0x590350, 0x590692), (0x590cb0, 0x590d40),
            (0x590f80, 0x590fe0), (0x590ff0, 0x59118c), (0x4217e0, 0x4217e4), (0x56af20, 0x56afa0), (0x56b650, 0x56b690), (0x57cbc0, 0x57d0d0), (0x67a830, 0x67a860), (0x67b110, 0x67b140)], hooks=HOOKS)
-OPS = os.environ.get('OPS', 'Rank,Trace,Arrange,Arrange,Next,Next,Next,Pending,Rebalance,Rebalance,Update').split(',')
+OPS = os.environ.get('OPS', 'Rank,Trace,Arrange,Arrange,Next,Next,Next,Pending,Rebalance,Rebalance,Spread,Update').split(',')
 CACHE, ENTRIES, SURFACES, VT, OBJ, VBT, ITEMS = RAM, RAM + 0x2000, RAM + 0x2800, RAM + 0x3000, RAM + 0x3100, RAM + 0x3200, RAM + 0x4000
 ITEM = 0x80
 MAX_ITEMS = 0xa8   # (the entries' chains)
@@ -44,7 +45,7 @@ def make_item(r, items, i, link, filtered):
     put(items, at + 0x3c, 'I', r.choice([0, r.getrandbits(32)]))
 
 
-def world(r, pending=None, negative=False):
+def world(r, pending=None, negative=False, spread=False):
     """The regions, and the cache's bytes (at CACHE, to set more in)."""
     log = log_region()
     log_fold(log)
@@ -73,10 +74,13 @@ def world(r, pending=None, negative=False):
     head = chain(n)
     put(cache, 0x18c4, 'I', head)
     ne = 0
+    odd = r.randrange(2)
     for size in range(6):
-        count = r.choice([0, 1, 2, 3, 4, 6, 7])
+        count = r.choice([5, 6, 7]) if spread else r.choice([0, 1, 2, 3, 4, 6, 7])
         put(cache, 0x1800 + 4 * size, 'i', count)
-        if negative and count:
+        if spread:
+            shared = int(count * (r.uniform(-50, -44) if (size + odd) & 1 else r.uniform(-36, -33)))
+        elif negative and count:
             shared = int(count * r.uniform(-40, -33)) if r.random() < 0.9 else r.randrange(-40 * count, -33 * count)
         elif count:
             shared = r.choice([0, count, count // 2, r.randrange(count + 1), r.randrange(count + 1), -1])
@@ -88,10 +92,10 @@ def world(r, pending=None, negative=False):
         for i in range(count):
             at = 0x20 * ne
             side = 0x100 >> size
-            put(surfaces, at, 'III', VT, r.choice([0, 1, 2, 3, 4, 5, 7, r.getrandbits(32)]), r.choice([side, side, side, side >> 1, side * 2]))
+            put(surfaces, at, 'III', VT, (6 if (size + odd) & 1 else r.choice([0, 0, 0, 4, 1])) if spread else r.choice([0, 1, 2, 3, 4, 5, 7, r.getrandbits(32)]), r.choice([side, side, side, side >> 1, side * 2]))
             put(surfaces, at + 0xc, 'I', r.choice([side, side, side >> 1]))
             put(entries, at, 'II', SURFACES + at, chain(r.choice([0, 0, 1, 1, 2, 3, 4])))
-            kept = r.choice([area_answer // 2, area_answer // 2 + 1, r.randrange(area_answer), side * side // 2, side * side // 2 - 1, 0])
+            kept = r.choice([side * side // 2 - 1, 0]) if spread else r.choice([area_answer // 2, area_answer // 2 + 1, r.randrange(area_answer), side * side // 2, side * side // 2 - 1, 0])
             put(entries, at + 8, 'iii', r.randrange(0x8000), kept, r.randrange(-100, 100))
             put(entries, at + 0x14, 'i', r.getrandbits(31))
             put(cache, 0x400 * size + 4 * i, 'I', ENTRIES + at)
@@ -133,6 +137,16 @@ def trace(r):
 
 def arrange(r):
     regions, cache = world(r, 0x1003 if r.randrange(150) == 0 else None)
+    if r.random() < 0.25:   # (the room just 1.5 times the area: no shrinking yet)
+        link, area = struct.unpack_from('<I', cache, 0x18c4)[0], 0
+        while link:
+            at = link - ITEMS
+            w, h = struct.unpack_from('<hh', regions[ITEMS], at + 0x10)
+            area += w * h
+            link = struct.unpack_from('<I', regions[ITEMS], at + 4)[0]
+        put(cache, 0x18cc, 'I', 0)
+        put(cache, 0x18d4, 'ii', 0x1000, 0x1000 + area * 3 // 2)
+        put(cache, 0x18f8, 'i', 0)
     return Call(0x58e390, [CACHE], regions, conv='t', ret='v', ignore=IGNORE, steps=60_000_000)
 
 
@@ -153,12 +167,18 @@ def rebalance(r):
     return Call(0x58fcf0, [CACHE], regions, conv='t', ret='a', ignore=IGNORE)
 
 
+def spread(r):
+    regions, cache = world(r, 0, spread=True)
+    regions[0x8bd520] = regions[0x8bd520][:4] + struct.pack('<I', 1)
+    return Call(0x58fcf0, [CACHE], regions, conv='t', ret='a', ignore=IGNORE)
+
+
 def update(r):
     regions, cache = world(r, r.choice([0, 1, 2, 3, 5, 8]))
     return Call(0x58cf40, [CACHE], regions, conv='t', ret='a', ignore=IGNORE)
 
 
-FUNCS = {'Rank': rank, 'Trace': trace, 'Arrange': arrange, 'Next': place_next, 'Pending': pending, 'Rebalance': rebalance, 'Update': update}
+FUNCS = {'Rank': rank, 'Trace': trace, 'Arrange': arrange, 'Next': place_next, 'Pending': pending, 'Rebalance': rebalance, 'Spread': spread, 'Update': update}
 
 
 def case(r):
