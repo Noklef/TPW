@@ -300,3 +300,8 @@ s32 __fastcall AdvisorScoring_RingRatio(const u8 *scoring);
 // 0x59c680 (thiscall (steps), pops 4; name invented, unconfirmed): that many criteria of the table 0x76e300 (0x38 bytes each, wrapping at 0x15f; the cursor at +0 left past the last) tried: the skipped ones (+0) not counted; its id's entry (sic: by the id's place, when any entry holds the id) of kind (+0xc) 2, or 0 with the state 0xfb3b7c 0, or 1 with it 2, the score of its method (+0x10, on this + its +0x14); over the best so far (signed, from 0) and the id's game table entry (0x5194d0, then 0x59abc0) allowing, the new best. Returns its id, or 0x160.
 s32 __fastcall AdvisorScoring_PickNext(s32 *cursor, void *, s32 steps);
 }
+
+// 0x59f220 (thiscall; name invented, unconfirmed): before the month +0x3c8 (FunnyTime_Elapsed), with more than one value in the table's ring +0x216d8 (wrapped: its size + 1; else its cursor + 1): +0x3d0 when the latest value is below the one before, not 0, by more than +0x3cc per cent (100 - latest * 100 / before, wrapped in 32 bits); else 0.
+extern "C" {
+s32 __fastcall AdvisorScoring_RingDrop(const u8 *scoring);
+}

@@ -778,3 +778,32 @@ s32 __fastcall AdvisorScoring_PickNext(s32 *cursor, void *, s32 steps) {
 }
 
 }  // extern "C"
+
+extern "C" s32 __fastcall AdvisorScoring_RingDrop(const u8 *scoring) {
+    FileTime out;
+    const FileTime *const elapsed = reinterpret_cast<const FileTime *>((uintptr_t)g_calls.Th(0x004f8800, (u32)(uintptr_t)(**reinterpret_cast<u8 ***>((uintptr_t)0x007cf6ec) + 0x2a0), &out));   // FunnyTime_Elapsed
+    const long long time = (long long)(((unsigned long long)elapsed->high << 32) | elapsed->low);
+    const s32 months = (s32)(time / 0x1792f8648000LL);
+    const u8 *const ring = reinterpret_cast<const u8 *>((uintptr_t)GameTable7cfb90_Get1da720_519510(*reinterpret_cast<u8 **>((uintptr_t)0x007cf83c))) + 0x216d8;
+    const bool wrapped = at<u8>(ring, 0x20) != 0;
+    const s32 size = at<s32>(ring, 0x1c), cursor = at<s32>(ring, 0x18);
+    if ((wrapped ? size : cursor) + 1 <= 1 || months >= at<s32>(scoring, 0x3c8)) return 0;
+    if (size <= 0) return 0;
+    s32 latest, before;
+    if (cursor >= 0)
+        latest = at<s32>(ring, 4 + 4 * cursor);
+    else if (wrapped)
+        latest = at<s32>(ring, 4 + 4 * (cursor + size));
+    else
+        return 0;
+    if (size <= 1) return 0;
+    if (cursor >= 1)
+        before = at<s32>(ring, 4 * cursor);
+    else if (wrapped)
+        before = at<s32>(ring, 4 * (cursor + size));
+    else
+        return 0;
+    if (!before || latest >= before) return 0;
+    const s32 drop = 100 - (s32)((u32)latest * 100u) / before;
+    return drop > at<s32>(scoring, 0x3cc) ? at<s32>(scoring, 0x3d0) : 0;
+}
