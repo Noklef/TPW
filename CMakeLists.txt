@@ -471,6 +471,7 @@ add_library(tpw_game STATIC
     src/game/model/ridebase.cpp
     src/game/model/rideresource.cpp
     src/game/model/aimsprites.cpp
+    src/game/model/signapply.cpp
     src/game/render/mode.cpp
     src/game/render/frame.cpp
     src/game/render/screen.cpp

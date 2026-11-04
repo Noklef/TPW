@@ -496,6 +496,7 @@
 #include "../game/model/ridebase.h"
 #include "../game/model/rideresource.h"
 #include "../game/model/aimsprites.h"
+#include "../game/model/signapply.h"
 #include "../game/model/worldverts.h"
 #include "../game/render/frame.h"
 #include "../game/render/lightlist.h"
@@ -7310,6 +7311,7 @@ const Hook kHooks[] = {
     {"RideBase_Prepare",          0x0046a5a0, (void *)&RideBase_Prepare, {0x81, 0xec, 0x70, 0x02, 0x00}},
     {"Ride_LoadResource",         0x004629d0, (void *)&Ride_LoadResource, {0x81, 0xec, 0x24, 0x04, 0x00}},
     {"AimSprites_Update",         0x0044b510, (void *)&AimSprites_Update, {0x55, 0x8b, 0xec, 0x81, 0xec}},
+    {"Sign_Apply",                0x00467a80, (void *)&Sign_Apply, {0x6a, 0xff, 0x68, 0xbb, 0x89}},
     {"Terrain_IsParkLand",        0x00450420, (void *)&Terrain_IsParkLand, {0xa1, 0x54, 0x08, 0x7a, 0x00}},
     {"Terrain_CopyAttrs",         0x00450a30, (void *)&Terrain_CopyAttrs, {0x8b, 0x44, 0x24, 0x04, 0x56}},
     {"Terrain_GridSize",          0x00450b00, (void *)&Terrain_GridSize, {0xa1, 0x54, 0x08, 0x7a, 0x00}},

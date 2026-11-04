@@ -269,6 +269,7 @@
 #include "../../src/game/ui/windowgroup.h"
 #include "../../src/game/world/gamefile.h"
 #include "../../src/game/world/objectdefs.h"
+#include "../../src/game/model/signapply.h"
 #include "../../src/game/core/globalsave.h"
 #include "../../src/game/coaster/rebuild.h"
 #include "../../src/game/coaster/setup.h"
@@ -1189,6 +1190,18 @@ const AddrCall kObjectDefsLoadCalls[] = {  // tests/fncmp/objectdefsload.py
     {0x41f420, recorder(19, 0)}, {0x41f630, recorder(20, 0)}, {0x414420, recorder(21, 1)}, {0x413410, recorder(22, 1)}, {0x413600, recorder(23, 1)}, {0x412fb0, recorder(24, 3)}, {0x550ca0, recorder(25, 0)},
     {0x4629d0, jpeg_recorder(12, 11)}, {0x42fad0, jpeg_recorder(27, 3)}, {0x51b4f0, jpeg_recorder(28, 2)}, {0x67a7d0, jpeg_recorder(29, 1)}, {0x51fa20, jpeg_recorder(31, 1)}};
 const AddrCall kCoasterTypeLoadCalls[] = {{0x42fd90, jpeg_recorder(1, 4)}, {0x424ef0, jpeg_recorder(2, 4)}, {0x424ed0, jpeg_recorder(3, 1)}, {0x46f150, jpeg_recorder(4, 1)}, {0x430130, jpeg_recorder(5, 2)}, {0x430590, jpeg_recorder(6, 3)}};  // tests/fncmp/objectdefsload.py
+// SignStyle_Render's recorder that first copies the two wide lines off the stack (tests/fncmp/signapply.py: its _render, the same).
+u32 __fastcall signRenderStandIn(u32 self, u32, u32 dc, const u32 *params) {
+    for (u32 i = 0; i < 2; ++i) {
+        const u16 *from = reinterpret_cast<const u16 *>((uintptr_t)params[i]);
+        u16 *to = reinterpret_cast<u16 *>((uintptr_t)0x30007000 + 0x200 * i);
+        for (u32 n = 0; n < 0x100 && (to[n] = from[n]) != 0; ++n) {}
+    }
+    return reinterpret_cast<u32(__fastcall *)(u32, u32, u32, const u32 *)>((uintptr_t)recorder(5, 2))(self, 0, dc, params);
+}
+const AddrCall kSignApplyCalls[] = {  // tests/fncmp/signapply.py
+    {0x5ebfc0, recorder(1, 0)}, {0x5ec220, recorder(2, 0)}, {0x5ec3a0, recorder(3, 1)}, {0x5ec680, recorder(4, 1)}, {0x5ecb40, (u32)(uintptr_t)&signRenderStandIn}, {0x57b120, recorder(6, 2)}, {0x41a820, recorder(7, 0)},
+    {0x467310, jpeg_recorder(8, 6)}, {0x46f120, jpeg_recorder(9, 1)}, {0x45b9d0, jpeg_recorder(10, 2)}, {0x45ba00, jpeg_recorder(11, 1)}};
 const AddrCall kWindowGroupCalls[] = {{0x65c707, recorder(1, 0)}};  // tests/fncmp/windowgroup.py
 const AddrCall kWindowProcCalls[] = {{0x6590d0, jpeg_recorder(1, 2)}, {0x6588ef, jpeg_recorder(2, 2)}, {0x658af1, jpeg_recorder(3, 3)}, {0x658b5b, jpeg_recorder(4, 3)}, {0x658bcb, jpeg_recorder(5, 4)}, {0x658c38, jpeg_recorder(6, 2)}, {0x658c67, jpeg_recorder(7, 2)}, {0x658c96, jpeg_recorder(8, 2)}, {0x659333, jpeg_recorder(9, 0)}, {0x51bd30, jpeg_recorder(10, 0)}, {0x51b350, jpeg_recorder(11, 0)}, {0x6593c5, jpeg_recorder(12, 0)}, {0x51bcf0, jpeg_recorder(13, 0)}, {0x47e9d0, jpeg_recorder(14, 1)}, {0x46b460, jpeg_recorder(15, 1)}, {0x58dd60, recorder(16, 1)}, {0x40c900, recorder(17, 2)}, {0x40c990, recorder(18, 2)}, {0x4092a0, recorder(19, 2)}, {0x41a850, recorder(20, 0)}};
 const AddrCall kLanguageLoadCalls[] = {{0x6ad1b0, recorder(1, 2)}, {0x6ad230, recorder(2, 2)}, {0x6ad4b0, recorder(3, 3)}, {0x6ad460, recorder(4, 3)}, {0x6ad510, recorder(5, 3)}, {0x6ad570, recorder(6, 3)}, {0x405710, recorder(7, 3)}, {0x6ad790, recorder(8, 1)}, {0x67a650, jpeg_recorder(9, 4)}};
@@ -2588,6 +2601,7 @@ int main(int argc, char **argv) {
     AsyncPointer_SetCalls(kPointerMakeCalls, sizeof(kPointerMakeCalls) / sizeof(kPointerMakeCalls[0]));
     GameFile_SetCalls(kGameFileCalls, sizeof(kGameFileCalls) / sizeof(kGameFileCalls[0]));
     ObjectDefs_SetLoadCalls(kObjectDefsLoadCalls, sizeof(kObjectDefsLoadCalls) / sizeof(kObjectDefsLoadCalls[0]));
+    Sign_SetApplyCalls(kSignApplyCalls, sizeof(kSignApplyCalls) / sizeof(kSignApplyCalls[0]));
     CoasterType_SetLoadCalls(kCoasterTypeLoadCalls, sizeof(kCoasterTypeLoadCalls) / sizeof(kCoasterTypeLoadCalls[0]));
     Dialog_SetCalls(kDialogBoxCalls, sizeof(kDialogBoxCalls) / sizeof(kDialogBoxCalls[0]));
     ArReplay_SetCalls(kArReplayCalls, sizeof(kArReplayCalls) / sizeof(kArReplayCalls[0]));
