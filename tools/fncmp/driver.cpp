@@ -264,6 +264,7 @@
 #include "../../src/game/frontend/lobbyscript.h"
 #include "../../src/game/files/gamepaths.h"
 #include "../../src/game/core/gameowner.h"
+#include "../../src/game/world/mousemodeclick.h"
 #include "../../src/game/world/gamefile.h"
 #include "../../src/game/core/globalsave.h"
 #include "../../src/game/coaster/rebuild.h"
@@ -1175,6 +1176,10 @@ const AddrCall kGameFileCalls[] = {  // tests/fncmp/gamefile.py
     {0x403780, recorder(29, 4)}, {0x4053b0, recorder(30, 0)}, {0x59bea0, recorder(31, 0)},  // (thiscall slots below 32: those of the cdecl calls the other function makes)
     {0x5179c0, recorder(16, 1)}, {0x40fd60, recorder(17, 1)}, {0x402e30, recorder(18, 1)}, {0x403260, recorder(19, 1)}, {0x405570, recorder(20, 1)}, {0x59c860, recorder(21, 1)}, {0x481680, recorder(22, 1)},
     {0x516c80, recorder(1, 1)}, {0x40fc80, recorder(4, 1)}, {0x402e00, recorder(7, 1)}, {0x403220, recorder(8, 1)}, {0x4055d0, recorder(9, 1)}, {0x59c890, recorder(10, 1)}, {0x4816a0, recorder(11, 1)}};
+const AddrCall kMouseModeClickCalls[] = {  // tests/fncmp/mousemodeclick.py
+    {0x4814a0, recorder(1, 1)}, {0x535db0, recorder(2, 1)}, {0x5363a0, recorder(3, 0)}, {0x4d0af0, recorder(4, 0)}, {0x53ad90, recorder(5, 0)}, {0x53ad60, recorder(6, 0)}, {0x46c350, recorder(7, 1)}, {0x46d550, recorder(8, 0)}, {0x550ca0, recorder(9, 0)}, {0x4dd4e0, recorder(10, 0)},
+    {0x4e15b0, recorder(11, 1)}, {0x536450, recorder(12, 0)}, {0x5363f0, recorder(13, 0)}, {0x536390, recorder(14, 0)}, {0x536310, recorder(15, 0)}, {0x536320, recorder(16, 0)}, {0x519450, recorder(17, 0)}, {0x509af0, recorder(18, 1)},
+    {0x67acc0, jpeg_recorder(19, 1)}, {0x67a7d0, jpeg_recorder(20, 1)}, {0x5234d0, jpeg_recorder(21, 3)}, {0x527e80, jpeg_recorder(22, 3)}, {0x42ae70, jpeg_recorder(23, 0)}, {0x475550, jpeg_recorder(24, 1)}};
 const AddrCall kGameOwnerCalls[] = {  // tests/fncmp/gameowner.py
     {0x481440, recorder(1, 0)}, {0x402d90, recorder(2, 0)}, {0x481450, recorder(3, 0)}, {0x402db0, recorder(4, 0)}, {0x481460, recorder(5, 0)}, {0x402dd0, recorder(6, 0)}, {0x515dd0, recorder(7, 0)}, {0x409240, recorder(8, 0)},
     {0x412d50, recorder(9, 0)}, {0x585e20, recorder(10, 0)}, {0x418d70, recorder(11, 0)}, {0x409250, recorder(12, 0)}, {0x408f00, recorder(13, 0)},
@@ -2536,6 +2541,7 @@ int main(int argc, char **argv) {
     MMPlaceStaff_SetCalls(kMMPlaceStaffCalls, sizeof(kMMPlaceStaffCalls) / sizeof(kMMPlaceStaffCalls[0]));
     AdvisorSpeech_SetCalls(kAdvisorSpeechCalls, sizeof(kAdvisorSpeechCalls) / sizeof(kAdvisorSpeechCalls[0]));
     GameOwner_SetCalls(kGameOwnerCalls, sizeof(kGameOwnerCalls) / sizeof(kGameOwnerCalls[0]));
+    MouseModeClick_SetCalls(kMouseModeClickCalls, sizeof(kMouseModeClickCalls) / sizeof(kMouseModeClickCalls[0]));
     GameFile_SetCalls(kGameFileCalls, sizeof(kGameFileCalls) / sizeof(kGameFileCalls[0]));
     Dialog_SetCalls(kDialogBoxCalls, sizeof(kDialogBoxCalls) / sizeof(kDialogBoxCalls[0]));
     ArReplay_SetCalls(kArReplayCalls, sizeof(kArReplayCalls) / sizeof(kArReplayCalls[0]));

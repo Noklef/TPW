@@ -6176,6 +6176,10 @@ address,name,kind,confidence,notes
 0x004d7af0,WorldPeople_Start,function,low,"reimplemented (src/game/world/worldpeople); the world's people at the start: name invented, unconfirmed"
 0x004d7b20,WorldPeople_Step,function,low,"reimplemented (src/game/world/worldpeople); the world's people at each tick: name invented, unconfirmed"
 0x004dcf90,Object_LoadScript,function,low,"reimplemented (src/game/world/objectscript); an object's script loaded when it is built: name invented, unconfirmed"
+0x0046cc40,MMStaffDrop_Click,function,low,"reimplemented (src/game/world/mousemodeclick); thiscall, two arguments unread: a member of staff placed on the tile"
+0x0046cdc0,MMStaffDrop_Cancel,function,low,"reimplemented (src/game/world/mousemodeclick); thiscall: the sprite killed, the staff put back"
+0x0046d000,MouseMode6fead0_Hover,function,low,"reimplemented (src/game/world/mousemodeclick); thiscall, four arguments unread: the map preview and the cursor over the tile"
+0x0046d0d0,MouseMode6fead0_Click,function,low,"reimplemented (src/game/world/mousemodeclick); thiscall, two arguments unread: the tile clicked in the mode"
 0x0045bc60,Holder_Destroy,function,high,"reimplemented (src/game/model/holder); a holder's part sleeps, its owner's count drops and the part is deleted"
 0x0046c210,Mouse_HandleButton,function,high,reimplemented (src/game/input/mouse); the left and right mouse buttons go down or up
 0x0046c2a0,Mouse_Moved,function,high,reimplemented (src/game/input/mouse); the mouse moved

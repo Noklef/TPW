@@ -679,6 +679,7 @@ add_library(tpw_game STATIC
     src/game/world/objectscript.cpp
     src/game/world/advisorspeech.cpp
     src/game/world/gamefile.cpp
+    src/game/world/mousemodeclick.cpp
     src/game/ui/staffrename.cpp
     src/game/ui/window7cc8bc.cpp
     src/game/ui/dialog7cb2b8.cpp

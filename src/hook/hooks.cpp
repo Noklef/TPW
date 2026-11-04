@@ -408,6 +408,7 @@
 #include "../game/world/mappreview.h"
 #include "../game/world/mapreset.h"
 #include "../game/world/mapsweep.h"
+#include "../game/world/mousemodeclick.h"
 #include "../game/world/objectctor.h"
 #include "../game/world/objectride.h"
 #include "../game/world/objectscript.h"
@@ -6594,6 +6595,10 @@ const Hook kHooks[] = {
     {"Advisor_Load",              0x00599d00, (void *)&Advisor_Load, {0x51, 0x56, 0x8b, 0x74, 0x24}},
     {"GameFile_Load",             0x00415270, (void *)&GameFile_Load, {0x51, 0x8b, 0x44, 0x24, 0x08}},
     {"GameFile_Save",             0x004164c0, (void *)&GameFile_Save, {0x8b, 0x44, 0x24, 0x04, 0x53}},
+    {"MMStaffDrop_Click",         0x0046cc40, (void *)&MMStaffDrop_Click, {0x6a, 0xff, 0x68, 0x6b, 0x8a}},
+    {"MMStaffDrop_Cancel",        0x0046cdc0, (void *)&MMStaffDrop_Cancel, {0x51, 0x56, 0x8b, 0xf1, 0x8b}},
+    {"MouseMode6fead0_Hover",     0x0046d000, (void *)&MouseMode6fead0_Hover, {0x51, 0x66, 0xa1, 0xcc, 0x05}},
+    {"MouseMode6fead0_Click",     0x0046d0d0, (void *)&MouseMode6fead0_Click, {0x6a, 0xff, 0x68, 0x12, 0x8b}},
     {"Holder_Destroy",            0x0045bc60, (void *)&Holder_Destroy, {0x56, 0x8b, 0x74, 0x24, 0x08}},
     {"Mouse_HandleButton",        0x0046c210, (void *)&Mouse_HandleButton, {0x8b, 0x44, 0x24, 0x04, 0x56}},
     {"Mouse_Moved",               0x0046c2a0, (void *)&Mouse_Moved, {0xa1, 0xd4, 0x05, 0x7b, 0x00}},
