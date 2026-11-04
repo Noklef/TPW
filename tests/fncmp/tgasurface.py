@@ -40,7 +40,7 @@ def case(r):
     blob(log, INFO, 3, 0x3ff)
     blob(log, GETINFO, 0, 0x3ff)
     blob(log, LOAD, 1, 0x3ff)
-    fill(log, INFO, 3, description(r), which=0)
+    fill(log, INFO, 3, description(r)[0x1c:0x24], which=0, offset=0x1c)   # (only the size: the rest as the constructor left it)
     fill(log, INFO, 0, status(r), which=1)
     fill(log, LOCK, 0, status(r), which=2)
     fill(log, GETINFO, 0, description(r), which=3)
