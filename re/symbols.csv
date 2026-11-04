@@ -8346,6 +8346,8 @@ address,name,kind,confidence,notes
 0x004bf9d0,FrontEnd_ReplyList,function,low,"reimplemented (src/game/ui/frontendentries); the front end's entry point: name invented, unconfirmed"
 0x004cf3d0,FrontEnd_GatesStep,function,low,"reimplemented (src/game/ui/frontendentries); the front end's entry point: name invented, unconfirmed"
 0x004da5a0,FrontEnd_TickSpeed,function,low,"reimplemented (src/game/ui/frontendentries); the front end's entry point: name invented, unconfirmed"
+0x004b9f30,Dialup_HangUpIfBusy,function,low,"reimplemented (src/game/ui/dialuphangup); the dial-up connection let go when busy: name invented, unconfirmed"
+0x004bae40,Dialup_HangUpIfOpen,function,low,"reimplemented (src/game/ui/dialuphangup); the dial-up connection let go when open: name invented, unconfirmed"
 0x0063bb10,jinit_marker_reader,function,high,"reimplemented (src/game/lib/jpeg6b); libjpeg 6b jdmarker.c jinit_marker_reader: the marker reader allocated and set up (the library's, through the method-address shim)"
 0x0063d3a0,jdmarker_reset_marker_reader,function,low,"reimplemented (src/game/lib/jpeg6b); libjpeg 6b jdmarker.c reset_marker_reader (the library's, through wrap/jpeg-6b/jdmarker.c)"
 0x0063c0e0,jdmarker_read_markers,function,low,"reimplemented (src/game/lib/jpeg6b); libjpeg 6b jdmarker.c read_markers: markers up to SOS or EOI (the library's, through wrap/jpeg-6b/jdmarker.c)"

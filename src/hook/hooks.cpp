@@ -662,6 +662,7 @@
 #include "../game/ui/dialogf82884child.h"
 #include "../game/ui/dialogtabhandlers.h"
 #include "../game/ui/dialogtabs.h"
+#include "../game/ui/dialuphangup.h"
 #include "../game/ui/dialuplist.h"
 #include "../game/ui/frontendentries.h"
 #include "../game/ui/gamepartdialogs.h"
@@ -8475,6 +8476,8 @@ const Hook kHooks[] = {
     {"FrontEnd_ReplyList",        0x004bf9d0, (void *)&FrontEnd_ReplyList, {0x8b, 0x44, 0x24, 0x04, 0x85}},
     {"FrontEnd_GatesStep",        0x004cf3d0, (void *)&FrontEnd_GatesStep, {0xe9, 0x0b, 0x00, 0x00, 0x00}},
     {"FrontEnd_TickSpeed",        0x004da5a0, (void *)&FrontEnd_TickSpeed, {0xe9, 0xeb, 0xae, 0x02, 0x00}},
+    {"Dialup_HangUpIfBusy",       0x004b9f30, (void *)&Dialup_HangUpIfBusy, {0xa1, 0x38, 0xc5, 0x7c, 0x00}},
+    {"Dialup_HangUpIfOpen",       0x004bae40, (void *)&Dialup_HangUpIfOpen, {0xa0, 0x40, 0xc5, 0x7c, 0x00}},
     {"jdmarker_examine_app14",    0x0063bf50, (void *)&jdmarker_examine_app14, {0x8b, 0x4c, 0x24, 0x0c, 0x53}},
     {"jdmarker_examine_app0",     0x0063bcc0, (void *)&jdmarker_examine_app0, {0x8b, 0x44, 0x24, 0x0c, 0x8b}},
     {"jdmarker_get_interesting_appn", 0x0063bb80, (void *)&jdmarker_get_interesting_appn, {0x8b, 0x44, 0x24, 0x04, 0x83}},
