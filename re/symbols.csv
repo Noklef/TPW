@@ -1284,7 +1284,24 @@ address,name,kind,confidence,notes
 0x007030f8,WStringView_vtable,data,high,"wide view (AssignNarrow): two empty slots"
 0x0067ae00,CRT_strncpy,function,high,"MSVC6 strncpy: a byte at a time to align the source, then a dword at a time (read before written)"
 0x0067b8c0,CRT_strncat,function,high,reimplemented (src/game/core/crt); strncat
-0x0067c250,CRT_strncmp,function,high,MSVC6 strncmp (unsigned)
+0x0067c250,CRT_strncmp,function,high,reimplemented (src/game/core/crtlocale); MSVC6 strncmp
+0x0068db70,CRT_strcspn,function,low,reimplemented (src/game/core/crtlocale); MSVC6 strcspn
+0x00684210,CRT_strcats,function,low,reimplemented (src/game/core/crtlocale); MSVC6 _strcats
+0x00684260,CRT_lc_strtolc,function,low,reimplemented (src/game/core/crtlocale); MSVC6 __lc_strtolc
+0x00684370,CRT_lc_lctostr,function,low,reimplemented (src/game/core/crtlocale); MSVC6 __lc_lctostr
+0x0068e6c0,CRT_GetPrimaryLen,function,low,reimplemented (src/game/core/crtlocale); MSVC6 GetPrimaryLen
+0x0068e510,CRT_IsThisWindowsNT,function,low,reimplemented (src/game/core/crtlocale); MSVC6 IsThisWindowsNT
+0x0068dd50,CRT_TranslateName,function,low,reimplemented (src/game/core/crtlocale); MSVC6 TranslateName
+0x0068ddb0,CRT_GetLcidFromLangCountry,function,low,reimplemented (src/game/core/crtlocale); MSVC6 GetLcidFromLangCountry
+0x0068e120,CRT_GetLcidFromLanguage,function,low,reimplemented (src/game/core/crtlocale); MSVC6 GetLcidFromLanguage
+0x0068e260,CRT_GetLcidFromCountry,function,low,reimplemented (src/game/core/crtlocale); MSVC6 GetLcidFromCountry
+0x0068e340,CRT_GetLcidFromDefault,function,low,reimplemented (src/game/core/crtlocale); MSVC6 GetLcidFromDefault
+0x0068e360,CRT_ProcessCodePage,function,low,reimplemented (src/game/core/crtlocale); MSVC6 ProcessCodePage
+0x0068dbb0,CRT_get_qualified_locale,function,low,reimplemented (src/game/core/crtlocale); MSVC6 __get_qualified_locale
+0x00684010,CRT_expandlocale,function,low,reimplemented (src/game/core/crtlocale); MSVC6 _expandlocale
+0x00683ef0,CRT_setlocale_get_all,function,low,reimplemented (src/game/core/crtlocale); MSVC6 _setlocale_get_all
+0x00683d90,CRT_setlocale_set_cat,function,low,reimplemented (src/game/core/crtlocale); MSVC6 _setlocale_set_cat
+0x00683ac0,CRT_setlocale,function,low,reimplemented (src/game/core/crtlocale); MSVC6 setlocale
 0x0067c080,CRT_strstr,function,high,reimplemented (src/game/core/crt); strstr
 0x0067bfc0,CRT_strchr,function,high,reimplemented (src/game/core/crt); strchr
 0x0067a520,CRT_atoi,function,high,MSVC6 atoi

@@ -203,6 +203,7 @@
 #include "../game/core/crtenv.h"
 #include "../game/core/crtfile.h"
 #include "../game/core/crtfloat.h"
+#include "../game/core/crtlocale.h"
 #include "../game/core/crtlock.h"
 #include "../game/core/crtmessage.h"
 #include "../game/core/crtopen.h"
@@ -6251,6 +6252,24 @@ const Hook kHooks[] = {
     {"CRT_sbh_free_block",        0x00682ba0, (void *)&CRT_sbh_free_block, {0x8b, 0x44, 0x24, 0x04, 0x8b}},
     {"CRT_sbh_resize_block",      0x00682fc0, (void *)&CRT_sbh_resize_block, {0x8b, 0x4c, 0x24, 0x04, 0x53}},
     {"CRT_realloc",               0x00681740, (void *)&CRT_realloc, {0x83, 0xec, 0x08, 0x53, 0x55}},
+    {"CRT_strncmp",               0x0067c250, (void *)&CRT_strncmp, {0x55, 0x8b, 0xec, 0x57, 0x56}},
+    {"CRT_strcspn",               0x0068db70, (void *)&CRT_strcspn, {0x55, 0x8b, 0xec, 0x56, 0x33}},
+    {"CRT_strcats",               0x00684210, (void *)&CRT_strcats, {0x53, 0x8b, 0x5c, 0x24, 0x0c}},
+    {"CRT_lc_strtolc",            0x00684260, (void *)&CRT_lc_strtolc, {0x8b, 0x54, 0x24, 0x04, 0x53}},
+    {"CRT_lc_lctostr",            0x00684370, (void *)&CRT_lc_lctostr, {0x53, 0x8b, 0x5c, 0x24, 0x0c}},
+    {"CRT_GetPrimaryLen",         0x0068e6c0, (void *)&CRT_GetPrimaryLen, {0x8b, 0x54, 0x24, 0x04, 0x33}},
+    {"CRT_IsThisWindowsNT",       0x0068e510, (void *)&CRT_IsThisWindowsNT, {0x81, 0xec, 0x94, 0x00, 0x00}},
+    {"CRT_TranslateName",         0x0068dd50, (void *)&CRT_TranslateName, {0x53, 0x8b, 0x5c, 0x24, 0x0c}},
+    {"CRT_GetLcidFromLangCountry", 0x0068ddb0, (void *)&CRT_GetLcidFromLangCountry, {0x56, 0x8b, 0x35, 0xec, 0x18}},
+    {"CRT_GetLcidFromLanguage",   0x0068e120, (void *)&CRT_GetLcidFromLanguage, {0x8b, 0x15, 0xec, 0x18, 0xfb}},
+    {"CRT_GetLcidFromCountry",    0x0068e260, (void *)&CRT_GetLcidFromCountry, {0x57, 0x8b, 0x3d, 0xf0, 0x18}},
+    {"CRT_GetLcidFromDefault",    0x0068e340, (void *)&CRT_GetLcidFromDefault, {0x81, 0x0d, 0xf4, 0x18, 0xfb}},
+    {"CRT_ProcessCodePage",       0x0068e360, (void *)&CRT_ProcessCodePage, {0x83, 0xec, 0x08, 0x53, 0x56}},
+    {"CRT_get_qualified_locale",  0x0068dbb0, (void *)&CRT_get_qualified_locale, {0xa1, 0xfc, 0x18, 0xfb, 0x00}},
+    {"CRT_expandlocale",          0x00684010, (void *)&CRT_expandlocale, {0x81, 0xec, 0x88, 0x00, 0x00}},
+    {"CRT_setlocale_get_all",     0x00683ef0, (void *)&CRT_setlocale_get_all, {0x51, 0xa1, 0xd4, 0x0d, 0x78}},
+    {"CRT_setlocale_set_cat",     0x00683d90, (void *)&CRT_setlocale_set_cat, {0x81, 0xec, 0xa0, 0x00, 0x00}},
+    {"CRT_setlocale",             0x00683ac0, (void *)&CRT_setlocale, {0x81, 0xec, 0x90, 0x00, 0x00}},
     {"Nav_Ctor",          0x0050ffe0, (void *)&Nav_Ctor, {0x6a, 0xff, 0x68, 0x2d, 0xe6}},
     {"Nav_Dtor",                  0x0050f200, (void *)&Nav_Dtor, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"Nav_DtorAtD4",              0x004f7c30, (void *)&Nav_DtorAtD4, {0x81, 0xc1, 0xd4, 0x00, 0x00}},
