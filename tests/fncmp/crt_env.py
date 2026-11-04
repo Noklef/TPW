@@ -58,7 +58,7 @@ def case(r):
     if r.random() < 0.7:
         lead[0x81] = lead[0x82] = 4
     regions[0xfb1669] = bytes(lead)
-    fill(log, CPINFO, 1, struct.pack('<I2B12B', r.choice([1, 2, 2]), 0x3f, 0, *r.choice([[0x41, 0x4f] + [0] * 10, [0x81, 0x9f, 0xe0, 0xfc] + [0] * 8, [0x41] + [0] * 11, [0] * 12, [0x50, 0x60, 0x41, 0x41] + [0] * 8])))
+    fill(log, CPINFO, 1, struct.pack('<I2B12B', r.choice([1, 2, 2]), 0x3f, 0, *r.choice([[0x41, 0x4f] + [0] * 10, [0x81, 0x9f, 0xe0, 0xfc] + [0] * 8, [0x41] + [0] * 11, [0] * 12, [0x50, 0x60, 0x41, 0x41] + [0] * 8, [0x50, 0, 0x41, 0x42] + [0] * 8])))
     set_return(log, CPINFO, r.choice([1, 1, 1, 0]))
     fill(log, TONARROW, 4, bytes(r.choice([0x41, 0x42, 0x81, 0]) for _ in range(4)), which=0)
     fill(log, TONARROW, 7, struct.pack('<I', 1 if r.random() < 0.15 else 0), which=1)
@@ -74,13 +74,13 @@ def case(r):
         at += 0x20
     regions[STRINGS] = strings
     regions[ENV] = struct.pack('<16I', *(pointers + [0] * 16)[:16])
-    regions[ENV2] = struct.pack('<16I', *(pointers + [0] * 16)[:16])
+    regions[ENV2] = struct.pack('<16I', *(pointers + [0] + [0xabababab] * 16)[:16])   # (past the end what realloc leaves: garbage)
     regions[WIDE_ENV] = struct.pack('<8I', *([STRINGS + 0x100] * r.choice([0, 1, 2]) + [0] * 8)[:8])
     strings[0x100:0x108] = wide(b'A=b')
     env = r.choice([ENV, ENV, ENV, ENV, 0]) if name not in ('findenv',) else ENV
     regions[0xfb1380] = struct.pack('<3I', env, r.choice([env, 0, 0, 0]), r.choice([WIDE_ENV, WIDE_ENV, 0]))
     text = bytes(r.choice([0x41, 0x41, 0x3d, 0x81, 0x82, 0x42]) for _ in range(r.choice([0, 1, 2, 3, 5, 8]))) + b'\0'
-    regions[OUT] = text + r.bytes(0x20)
+    regions[OUT] = text + r.choice([b'A=B', b'=', b'']) + r.bytes(0x20)   # (past the end what a scan that does not stop would find)
     units = wide(bytes(r.choice([0x41, 0x42, 0x7f]) for _ in range(r.choice([0, 1, 2, 3, 5]))))
     if r.random() < 0.2 and len(units) > 2:
         units = b'\x00\x30' + units
@@ -107,6 +107,24 @@ def case(r):
         regions[0xfb1380] = struct.pack('<3I', env, 0, WIDE_ENV)
         return Call(0x68b570, [], regions, conv='c', ret='a')
     if name == 'getenv':
+        if r.random() < 0.3:   # (the wide environment's second entry fails, with the first already in the narrow one)
+            regions[0xfb1380] = struct.pack('<3I', 0, 0, WIDE_ENV)
+            regions[WIDE_ENV] = struct.pack('<8I', STRINGS + 0x100, STRINGS + 0x100, 0, 0, 0, 0, 0, 0)
+            regions[A_NARROW] = struct.pack('<40I', 4, 4, 0, *[0] * 37)
+            regions[A_MALLOC] = struct.pack('<40I', *BLOCKS)
+            regions[A_REALLOC] = struct.pack('<40I', *[ENV2] * 40)
+            regions[A_CMP] = struct.pack('<40I', *[2] * 40)
+            regions[0xfb1910] = struct.pack('<I', 2)
+            fill(log, TONARROW, 4, b'A=1\0', which=0)
+            strings[0x20:0x22] = b'A\0'
+            return Call(0x67fc20, [STRINGS + 0x20], regions, conv='c', ret='a')
+        if r.random() < 0.3:   # (a shorter entry, with its "=" past the end)
+            regions[ENV] = struct.pack('<4I', STRINGS + 0x40, 0, 0, 0)
+            regions[0xfb1380] = struct.pack('<3I', ENV, 0, 0)
+            regions[A_CMP] = struct.pack('<40I', *[2] * 40)
+            strings[0x20:0x24] = b'xyz\0'
+            strings[0x40:0x46] = b'AB\0=z\0'
+            return Call(0x67fc20, [STRINGS + 0x20], regions, conv='c', ret='a')
         return Call(0x67fc20, [r.choice([STRINGS + 0x20, STRINGS + 0x20, STRINGS + 0x40, 0])], regions, conv='c', ret='a')
     if name == 'wcsncnt':
         return Call(0x68ef70, [ZONE, r.choice([0, 1, 2, 3, 0x20])], regions, conv='c', ret='a')

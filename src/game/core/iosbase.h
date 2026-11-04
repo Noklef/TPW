@@ -15,9 +15,11 @@ struct IosBaseEnv {
     void *(__cdecl *memAlloc)(u32 size);                           // Mem_Alloc 0x67acc0
     void *(__fastcall *locimpCtor)(void *self, void *edx, u32 refs);   // 0x699f70: locale::_Locimp's constructor
     s32(__cdecl *atexit)(void(__cdecl *fn)());                     // 0x67a7d0
+    void(__cdecl *makeloc)(void *info, u32 categories, void *imp, void *loc);   // 0x694120: locale::_Locimp::_Makeloc
 };
 
 void IosBase_SetEnv(const IosBaseEnv *env);
+const IosBaseEnv &IosBase_Env();
 
 extern "C" {
 

@@ -23,6 +23,7 @@ const IosBaseEnv kGameEnv = {
     game<void *(__cdecl *)(u32)>(0x0067acc0),
     game<void *(__fastcall *)(void *, void *, u32)>(0x00699f70),
     game<s32(__cdecl *)(void(__cdecl *)())>(0x0067a7d0),
+    game<void(__cdecl *)(void *, u32, void *, void *)>(0x00694120),
 };
 const IosBaseEnv *g_env = &kGameEnv;
 
@@ -80,6 +81,8 @@ void free_list(u8 *head) {
 }  // namespace
 
 void IosBase_SetEnv(const IosBaseEnv *env) { g_env = env ? env : &kGameEnv; }
+
+const IosBaseEnv &IosBase_Env() { return *g_env; }
 
 extern "C" {
 

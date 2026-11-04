@@ -5979,6 +5979,13 @@ address,name,kind,confidence,notes
 0x00680c00,CRT_output,function,low,reimplemented (src/game/core/crtoutput); MSVC6 _output
 0x0068c350,CRT_aulldiv,function,low,reimplemented (src/game/core/crtoutput); MSVC6 _aulldiv
 0x0068c3c0,CRT_aullrem,function,low,reimplemented (src/game/core/crtoutput); MSVC6 _aullrem
+0x006a6650,BadAlloc_Ctor,function,low,reimplemented (src/game/core/locimp); bad_alloc's constructor (MSVC6)
+0x006a66c0,BadAlloc_Copy,function,low,reimplemented (src/game/core/locimp); bad_alloc's copy
+0x006a6670,BadAlloc_Dtor,function,low,reimplemented (src/game/core/locimp); bad_alloc's destructor
+0x006a65f0,Nomemory,function,low,reimplemented (src/game/core/locimp); std::_Nomemory: throws a copy of the one bad_alloc
+0x00698ea0,Locimp_Addfac,function,low,reimplemented (src/game/core/locimp); locale::_Locimp::_Addfac
+0x00698c70,Locimp_Copy,function,low,reimplemented (src/game/core/locimp); locale::_Locimp's copy constructor
+0x00693f50,Locale_Addfac,function,low,reimplemented (src/game/core/locimp); locale::_Addfac
 0x0050ffe0,Nav_Ctor,function,high,reimplemented (src/game/world/nav); constants constructor with five integer pairs
 0x0050f200,Nav_Dtor,function,high,reimplemented (src/game/world/nav); thiscall: the five IntPairs at +0x64 destroyed with Stub_Ret (CRT_VectorDtorIterator); also via 0x4f7c30 (+0xd4) and 0x4f8ad0
 0x004f7c30,Nav_DtorAtD4,function,low,reimplemented (src/game/world/nav); thiscall adjustor: Nav_Dtor on this + 0xd4

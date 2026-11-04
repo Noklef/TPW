@@ -218,6 +218,7 @@
 #include "../game/core/imaadpcm.h"
 #include "../game/core/iosbase.h"
 #include "../game/core/keyactions.h"
+#include "../game/core/locimp.h"
 #include "../game/core/locinfo.h"
 #include "../game/core/loopstream.h"
 #include "../game/core/mixerthread.h"
@@ -6286,6 +6287,13 @@ const Hook kHooks[] = {
     {"CRT_sprintf",               0x0067a650, (void *)&CRT_sprintf, {0x83, 0xec, 0x20, 0x8b, 0x44}},
     {"CRT_aulldiv",               0x0068c350, (void *)&CRT_aulldiv, {0x53, 0x56, 0x8b, 0x44, 0x24}},
     {"CRT_aullrem",               0x0068c3c0, (void *)&CRT_aullrem, {0x53, 0x8b, 0x44, 0x24, 0x14}},
+    {"BadAlloc_Ctor",             0x006a6650, (void *)&BadAlloc_Ctor, {0x8d, 0x44, 0x24, 0x04, 0x56}},
+    {"BadAlloc_Copy",             0x006a66c0, (void *)&BadAlloc_Copy, {0x8b, 0x44, 0x24, 0x04, 0x56}},
+    {"BadAlloc_Dtor",             0x006a6670, (void *)&BadAlloc_Dtor, {0xc7, 0x01, 0x1c, 0x9f, 0x70}},
+    {"Nomemory",                  0x006a65f0, (void *)&Nomemory, {0x8a, 0x0d, 0x68, 0x1e, 0xfb}},
+    {"Locimp_Addfac",             0x00698ea0, (void *)&Locimp_Addfac, {0x6a, 0xff, 0x68, 0x78, 0x40}},
+    {"Locimp_Copy",               0x00698c70, (void *)&Locimp_Copy, {0x6a, 0xff, 0x68, 0x5b, 0x40}},
+    {"Locale_Addfac",             0x00693f50, (void *)&Locale_Addfac, {0x6a, 0xff, 0x68, 0xbb, 0x3c}},
     {"Nav_Ctor",          0x0050ffe0, (void *)&Nav_Ctor, {0x6a, 0xff, 0x68, 0x2d, 0xe6}},
     {"Nav_Dtor",                  0x0050f200, (void *)&Nav_Dtor, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"Nav_DtorAtD4",              0x004f7c30, (void *)&Nav_DtorAtD4, {0x81, 0xc1, 0xd4, 0x00, 0x00}},
