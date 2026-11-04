@@ -49,7 +49,7 @@ def case(r):
         regions[OUT] = r.bytes(0x10)
         blob(log, W2M, 2, 1)
         fill(log, W2M, 7, struct.pack('<I', r.choice([0, 0, 0, 1])))
-        unit = r.choice([0, 0x41, 0xff, 0x100, 0x3042, r.getrandbits(32), r.getrandbits(16)])
+        unit = r.choice([0, 0x41, 0xff, 0x100, 0x3042, 0x10041, r.getrandbits(32), r.getrandbits(16)])
         return Call(0x69a460 if name == 'wcrtomb' else 0x69a4e0, [OUT, unit, r.getrandbits(32), conversion], regions, conv='c', ret='a')
     regions[TEXT] = bytes(r.choice([0, 0x41, 0x81, 0xff, r.randrange(1, 256), r.randrange(1, 256)]) for _ in range(4)) + bytes(4)
     regions[STATE] = struct.pack('<I', r.choice([0, 0, 0, 1, r.getrandbits(32)]))

@@ -477,4 +477,221 @@ s32 __cdecl CRT_Mbrtowc(u16 *unit, const char *text, u32 n, u8 *state, const u32
     return result;
 }
 
+char *__cdecl CRT_strrchr(const char *text, s32 c) {
+    const char *at = text + std::strlen(text);
+    for (;;) {
+        if (*at == static_cast<char>(c)) return const_cast<char *>(at);
+        if (at == text) return nullptr;
+        --at;
+    }
+}
+
+char *__cdecl CRT_strpbrk(const char *text, const char *set) {
+    u32 bits[8] = {};
+    for (; *set; ++set) {
+        const u8 c = static_cast<u8>(*set);
+        bits[c >> 5] |= 1u << (c & 31);
+    }
+    for (; *text; ++text) {
+        const u8 c = static_cast<u8>(*text);
+        if (bits[c >> 5] >> (c & 31) & 1) return const_cast<char *>(text);
+    }
+    return nullptr;
+}
+
+void __stdcall CRT_CxxThrowException(void *object, const void *info) {
+    u32 record[8];
+    std::memcpy(record, reinterpret_cast<const void *>((uintptr_t)0x007089e8), sizeof record);
+    record[6] = static_cast<u32>(reinterpret_cast<uintptr_t>(object));
+    record[7] = static_cast<u32>(reinterpret_cast<uintptr_t>(info));
+    import_slot<void(__stdcall *)(u32, u32, u32, const u32 *)>(0x006fd218)(record[0], record[1], record[4], &record[5]);
+}
+
+u32 __cdecl CRT_strncnt(const char *text, u32 n) {
+    const char *at = text;
+    u32 left = n;
+    if (left) {
+        while (*at) {
+            ++at;
+            if (!--left) break;
+        }
+    }
+    return *at ? n : static_cast<u32>(at - text);
+}
+
+s32 __cdecl CRT_GetStringTypeA(u32 info, const char *text, s32 count, u16 *types, u32 page, u32 id, s32 strict) {
+    using TypesW = s32(__stdcall *)(u32, const void *, s32, u16 *);
+    using TypesA = s32(__stdcall *)(u32, u32, const void *, s32, u16 *);
+    using Widen = s32(__stdcall *)(u32, u32, const char *, s32, u16 *, s32);
+    u32 &mode = *reinterpret_cast<u32 *>((uintptr_t)0x00fb1890);
+    u16 probe[2];
+    if (!mode) {
+        if (import_slot<TypesW>(0x006fd1ec)(1, reinterpret_cast<const void *>((uintptr_t)0x00708da8), 1, probe))
+            mode = 1;
+        else if (import_slot<TypesA>(0x006fd1f0)(0, 1, reinterpret_cast<const void *>((uintptr_t)0x00708da4), 1, probe))
+            mode = 2;
+        else
+            return 0;
+    }
+    if (mode == 2) return import_slot<TypesA>(0x006fd1f0)(id ? id : global_u32(0x00fb1440), info, text, count, types);
+    if (mode != 1) return static_cast<s32>(mode);
+    const u32 code = page ? page : global_u32(0x00fb1450);
+    u16 *block = nullptr;
+    s32 result = 0;
+    const s32 units = import_slot<Widen>(0x006fd174)(code, strict ? 9 : 1, text, count, nullptr, 0);
+    if (units) {
+        block = static_cast<u16 *>(g_inner->calloc(2, units));
+        if (block) {
+            const s32 made = import_slot<Widen>(0x006fd174)(code, 1, text, count, block, units);
+            if (made) {
+                result = import_slot<TypesW>(0x006fd1ec)(info, block, made, types);
+            }
+        }
+    }
+    Crt().free(block);
+    return result;
+}
+
+s32 __cdecl CRT_LCMapStringA(u32 id, u32 flags, const char *from, s32 count, char *to, s32 size, u32 page, s32 strict) {
+    using MapW = s32(__stdcall *)(u32, u32, const void *, s32, void *, s32);
+    using MapA = s32(__stdcall *)(u32, u32, const void *, s32, void *, s32);
+    using Widen = s32(__stdcall *)(u32, u32, const char *, s32, u16 *, s32);
+    using Narrow = s32(__stdcall *)(u32, u32, const u16 *, s32, char *, s32, const char *, u32 *);
+    u32 &mode = *reinterpret_cast<u32 *>((uintptr_t)0x00fb1554);
+    if (!mode) {
+        if (import_slot<MapW>(0x006fd198)(0, 0x100, reinterpret_cast<const void *>((uintptr_t)0x00708da8), 1, nullptr, 0))
+            mode = 1;
+        else if (import_slot<MapA>(0x006fd19c)(0, 0x100, reinterpret_cast<const void *>((uintptr_t)0x00708da4), 1, nullptr, 0))
+            mode = 2;
+        else
+            return 0;
+    }
+    if (count > 0) count = static_cast<s32>(CRT_strncnt(from, static_cast<u32>(count)));
+    if (mode == 2) return import_slot<MapA>(0x006fd19c)(id, flags, from, count, to, size);
+    if (mode != 1) return static_cast<s32>(mode);
+    const u32 code = page ? page : global_u32(0x00fb1450);
+    const s32 units = import_slot<Widen>(0x006fd174)(code, strict ? 9 : 1, from, count, nullptr, 0);
+    if (!units) return 0;
+    u16 *const wide = static_cast<u16 *>(CRT_malloc(static_cast<u32>(units) * 2));
+    if (!wide) return 0;
+    u16 *mapped = nullptr;
+    s32 result = 0;
+    if (import_slot<Widen>(0x006fd174)(code, 1, from, count, wide, units)) {
+        const s32 needed = import_slot<MapW>(0x006fd198)(id, flags, wide, units, nullptr, 0);
+        if (needed) {
+            if (flags & 0x400) {
+                if (!size || (needed <= size && import_slot<MapW>(0x006fd198)(id, flags, wide, units, to, size))) result = needed;
+            } else {
+                mapped = static_cast<u16 *>(CRT_malloc(static_cast<u32>(needed) * 2));
+                if (mapped && import_slot<MapW>(0x006fd198)(id, flags, wide, units, mapped, needed))
+                    result = size ? import_slot<Narrow>(0x006fd1dc)(code, 0x220, mapped, needed, to, size, nullptr, nullptr)
+                                  : import_slot<Narrow>(0x006fd1dc)(code, 0x220, mapped, needed, nullptr, 0, nullptr, nullptr);
+            }
+        }
+    }
+    Crt().free(wide);
+    Crt().free(mapped);
+    return result;
+}
+
+// A character's one or two bytes as the two routines below hand them on: true for two.
+static bool lead_and_trail(s32 c, char *bytes) {
+    const u32 lead = static_cast<u32>(c >> 8) & 0xff;
+    if (reinterpret_cast<const u16 *>((uintptr_t)global_u32(0x0077ea90))[lead] & 0x8000) {
+        bytes[0] = static_cast<char>(lead);
+        bytes[1] = static_cast<char>(c);
+        bytes[2] = 0;
+        return true;
+    }
+    bytes[0] = static_cast<char>(c);
+    bytes[1] = 0;
+    return false;
+}
+
+s32 __cdecl CRT_isctype(s32 c, s32 mask) {
+    if (static_cast<u32>(c) + 1 <= 0x100) return reinterpret_cast<const u16 *>((uintptr_t)global_u32(0x0077ea90))[c] & mask;
+    char bytes[4];
+    const s32 count = lead_and_trail(c, bytes) ? 2 : 1;
+    u16 types;
+    if (!CRT_GetStringTypeA(1, bytes, count, &types, 0, 0, 1)) return 0;
+    return types & mask;
+}
+
+s32 __cdecl CRT_toupperLocked(s32 c) {
+    if (!locale_set()) return c >= 0x61 && c <= 0x7a ? c - 0x20 : c;
+    if (c < 0x100) {
+        const s32 lower = static_cast<s32>(global_u32(0x0077e7dc)) > 1 ? CRT_isctype(c, 2) : reinterpret_cast<const u16 *>((uintptr_t)global_u32(0x0077ea90))[c] & 2;
+        if (!lower) return c;
+    }
+    char bytes[4];
+    const s32 count = lead_and_trail(c, bytes) ? 2 : 1;
+    u8 mapped[8];
+    const s32 got = CRT_LCMapStringA(global_u32(0x00fb1440), 0x200, bytes, count, reinterpret_cast<char *>(mapped), 3, 0, 1);
+    if (!got) return c;
+    return got == 1 ? mapped[0] : mapped[1] << 8 | mapped[0];
+}
+
+s32 __cdecl CRT_toupper(s32 c) {
+    if (!locale_set()) return c >= 0x61 && c <= 0x7a ? c - 0x20 : c;
+    const bool locked = locale_enter();
+    const s32 result = CRT_toupperLocked(c);
+    locale_leave(locked);
+    return result;
+}
+
+// A byte's class for strtoxl: _isctype under a multibyte locale, else the table.
+static bool byte_is(u8 c, u32 mask) {
+    if (static_cast<s32>(global_u32(0x0077e7dc)) > 1) return CRT_isctype(c, static_cast<s32>(mask)) != 0;
+    return (reinterpret_cast<const u16 *>((uintptr_t)global_u32(0x0077ea90))[c] & mask) != 0;
+}
+
+u32 __cdecl CRT_strtoxl(const char *text, const char **end, s32 base, u32 flags) {
+    const char *at = text;
+    char c = *at++;
+    while (byte_is(static_cast<u8>(c), 8)) c = *at++;
+    if (c == '-') flags |= 2;
+    if (c == '-' || c == '+') c = *at++;
+    if (base < 0 || base == 1 || base > 36) {
+        if (end) *end = text;
+        return 0;
+    }
+    if (!base) base = c != '0' ? 10 : *at == 'x' || *at == 'X' ? 16 : 8;
+    if (base == 16 && c == '0' && (*at == 'x' || *at == 'X')) {
+        c = at[1];
+        at += 2;
+    }
+    const u32 radix = static_cast<u32>(base);
+    const u32 most = 0xffffffffu / radix;
+    u32 number = 0;
+    for (;; c = *at++) {
+        u32 digit;
+        if (byte_is(static_cast<u8>(c), 4))
+            digit = static_cast<u32>(static_cast<s32>(c) - 0x30);
+        else if (byte_is(static_cast<u8>(c), 0x103))
+            digit = static_cast<u32>(CRT_toupper(c) - 0x37);
+        else
+            break;
+        if (digit >= radix) break;
+        flags |= 8;
+        if (number < most || (number == most && digit <= 0xffffffffu % radix))
+            number = number * radix + digit;
+        else
+            flags |= 4;
+    }
+    --at;
+    if (!(flags & 8)) {
+        at = text;
+        number = 0;
+    } else if (flags & 4 || (!(flags & 1) && (flags & 2 ? number > 0x80000000u : number > 0x7fffffffu))) {
+        *CRT_errno() = 0x22;
+        number = flags & 1 ? 0xffffffffu : flags & 2 ? 0x80000000u : 0x7fffffffu;
+    }
+    if (end) *end = at;
+    return flags & 2 ? 0u - number : number;
+}
+
+s32 __cdecl CRT_strtol(const char *text, const char **end, s32 base) { return static_cast<s32>(CRT_strtoxl(text, end, base, 0)); }
+
+u32 __cdecl CRT_strtoul(const char *text, const char **end, s32 base) { return CRT_strtoxl(text, end, base, 1); }
+
 }  // extern "C"

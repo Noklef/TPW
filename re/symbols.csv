@@ -1326,7 +1326,7 @@ address,name,kind,confidence,notes
 0x00fa70d8,gPathBuffer,data,high,"char[0x108], Dir_Create / Dir_Remove resolve into it"
 0x00fa71e0,gClock,data,high,"Timer (0x18): enabled, ticksPerMs, baseMs, pad, s64 start"
 0x0067a650,CRT_sprintf,function,high,MSVC6 sprintf
-0x0067b5f0,CRT_strrchr,function,high,MSVC6 strrchr
+0x0067b5f0,CRT_strrchr,function,high,reimplemented (src/game/core/crt); strrchr
 0x0067f020,CRT__splitpath,function,high,MSVC6 _splitpath
 0x00618d20,RefObject_AddRef,function,high,reimplemented (src/game/files/handles); thiscall; InterlockedIncrement(+8)
 0x00618d30,RefObject_Release,function,high,"reimplemented (src/game/files/handles); thiscall; InterlockedDecrement(+8); at 0: vtbl+0x24, release the link (+4), deleting destructor (1)"
@@ -1545,7 +1545,17 @@ address,name,kind,confidence,notes
 0x0069a460,CRT_Wcrtomb,function,low,reimplemented (src/game/core/crt); _Wcrtomb
 0x00693c40,CRT_MbrtowcLocked,function,low,reimplemented (src/game/core/crt); _Mbrtowc's body
 0x00693bc0,CRT_Mbrtowc,function,low,reimplemented (src/game/core/crt); _Mbrtowc
-0x0067f1a0,CRT_toupper,function,medium,"cdecl; the CRT toupper (locale-aware, ASCII in the C locale)"
+0x0067d7f0,CRT_strpbrk,function,low,reimplemented (src/game/core/crt); strpbrk
+0x0067d3a0,CRT_CxxThrowException,function,low,reimplemented (src/game/core/crt); _CxxThrowException
+0x00689180,CRT_strncnt,function,low,"reimplemented (src/game/core/crt); strncnt, the C library's helper of __crtLCMapStringA"
+0x0068a5d0,CRT_GetStringTypeA,function,low,reimplemented (src/game/core/crt); __crtGetStringTypeA
+0x00688f50,CRT_LCMapStringA,function,low,reimplemented (src/game/core/crt); __crtLCMapStringA
+0x00680430,CRT_isctype,function,low,reimplemented (src/game/core/crt); _isctype
+0x0067f230,CRT_toupperLocked,function,low,reimplemented (src/game/core/crt); _toupper_lk
+0x0067f1a0,CRT_toupper,function,medium,reimplemented (src/game/core/crt); toupper
+0x0067d540,CRT_strtoxl,function,low,reimplemented (src/game/core/crt); strtoxl
+0x0067d520,CRT_strtol,function,low,reimplemented (src/game/core/crt); strtol
+0x0067d7d0,CRT_strtoul,function,low,reimplemented (src/game/core/crt); strtoul
 0x0067fa60,CRT_tolower,function,medium,"cdecl; the CRT tolower (locale-aware, ASCII in the C locale)"
 0x006fe67c,StringList2_vtable,data,high,one entry (0x61a7e0); src/game/files/waddir
 0x006fe680,StringList_vtable,data,high,one entry (0x45f8e0); src/game/files/waddir

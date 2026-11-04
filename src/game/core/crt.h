@@ -181,4 +181,42 @@ s32 __cdecl CRT_MbrtowcLocked(u16 *unit, const char *text, u32 n, u8 *state, con
 // 0x693bc0: _Mbrtowc: the same under the locale's lock.
 s32 __cdecl CRT_Mbrtowc(u16 *unit, const char *text, u32 n, u8 *state, const u32 *conversion);
 
+// 0x67b5f0: strrchr: the last c (its low byte; 0 finds the terminator), else null.
+char *__cdecl CRT_strrchr(const char *text, s32 c);
+
+// 0x67d7f0: strpbrk: the first byte of the text in the set, else null.
+char *__cdecl CRT_strpbrk(const char *text, const char *set);
+
+// 0x67d3a0 (stdcall, pops 8): _CxxThrowException: RaiseException with the record at 0x7089e8 (3 arguments: its magic, the object, the type's info).
+void __stdcall CRT_CxxThrowException(void *object, const void *info);
+
+// 0x689180: strncnt: the bytes before a terminator within n; n when there is none (the byte at n is read too).
+u32 __cdecl CRT_strncnt(const char *text, u32 n);
+
+// 0x68a5d0: __crtGetStringTypeA: which call works is found once (0xfb1890: 1 GetStringTypeW, 2 GetStringTypeA; neither: 0). 2: GetStringTypeA under the id (or the current 0xfb1440). 1: the text
+// through MultiByteToWideChar (code page or the current 0xfb1450; a block of calloc(2, n)) to GetStringTypeW; 0 if a step fails. Any other value there is returned (sic).
+s32 __cdecl CRT_GetStringTypeA(u32 info, const char *text, s32 count, u16 *types, u32 page, u32 id, s32 strict);
+
+// 0x688f50: __crtLCMapStringA: the same choice (0xfb1554, LCMapStringW or A). 2: LCMapStringA. 1: the text widened, mapped, and with flag 0x400 (a sort key) the bytes given as they are, else
+// the units narrowed. The size written or needed; 0 if a step fails. Any other value there is returned (sic).
+s32 __cdecl CRT_LCMapStringA(u32 id, u32 flags, const char *from, s32 count, char *to, s32 size, u32 page, s32 strict);
+
+// 0x680430: _isctype: -1 to 0xff: the table _pctype; others a lead and a trail byte (one byte if the lead is no lead byte) through __crtGetStringTypeA, 0 if that fails. Anded with the mask.
+s32 __cdecl CRT_isctype(s32 c, s32 mask);
+
+// 0x67f230: _toupper_lk: no locale (0xfb1440): a-z only. Below 0x100 and not lower case (signed; negatives index before the table, sic): as it is. Else __crtLCMapStringA (LCMAP_UPPERCASE):
+// the one or two bytes it gives, or c when it fails.
+s32 __cdecl CRT_toupperLocked(s32 c);
+
+// 0x67f1a0: toupper: no locale: a-z only. Else the same under the locale's lock.
+s32 __cdecl CRT_toupper(s32 c);
+
+// 0x67d540: strtoxl: white space, a sign, the base (0: by the prefix; 0x prefix skipped for 16), digits. Flags: 1 unsigned; a number too big: errno 0x22, the limit. A bad base (below 0, 1, above 36):
+// 0 and *end the text. No digits: 0 and *end the text.
+u32 __cdecl CRT_strtoxl(const char *text, const char **end, s32 base, u32 flags);
+
+// 0x67d520 / 0x67d7d0: strtol / strtoul.
+s32 __cdecl CRT_strtol(const char *text, const char **end, s32 base);
+u32 __cdecl CRT_strtoul(const char *text, const char **end, s32 base);
+
 }  // extern "C"
