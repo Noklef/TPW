@@ -15,6 +15,19 @@ struct OnlineInstanceEnv {
 };
 void Online_SetInstanceEnv(const OnlineInstanceEnv *env);
 
+// Online_Start's calls (the bench's recorders; each has a bench of its own).
+struct OnlineStartEnv {
+    void(__fastcall *releaseNews)(u8 *session);    // Online_ReleaseNews (0x5b6b20)
+    void(__fastcall *resetCity)(u8 *session);      // Online_ResetCity (0x5b7430)
+    void(__fastcall *resetUpload)(u8 *session);    // Online_ResetUpload (0x5b8400)
+    void(__fastcall *resetDownload)(u8 *session);  // Online_ResetDownload (0x5b9040)
+    s32(__cdecl *message4)();                      // Dialog7cca94_Message4IfUp (0x4c25e0)
+    u8 *(__cdecl *instance)();                     // Online_Instance (0x48b390)
+    void(__fastcall *listStart)(u8 *list, void *, u32 value, u32 callback, u32 user);  // ListRequest_Start66 (0x5bcd10)
+    void(__cdecl *openDialog)(u32 value);          // Dialog7cc530_Open (0x4ba980)
+};
+void Online_SetStartEnv(const OnlineStartEnv *env);
+
 extern "C" {
 
 // 0x5b6450: +0x60, set while logged in.
@@ -87,6 +100,11 @@ void __fastcall Online_ResetConnections(u8 *session);
 // 0x5b5e40 (thiscall; name invented): the login released, +0x64, +0x60, +0x68, +4, +8, +0x34, +0x38 and +0x50 = 0, the strings at +0xc, +0x20
 // and +0x3c assigned ""; then Online_ResetConnections and Dialup_HangUpIfOpen.
 void __fastcall Online_ResetAll(u8 *session);
+
+// 0x5b87e0 (thiscall (a, b, c), pops 12; name invented, unconfirmed): Online_ReleaseNews; +0x74, +0x90 and +0xac = -1; +0xc8, +0xcc, +0x78, +0x94, +0xb0, +0xd0 = 0; the strings +0x7c (0x786de4), +0x98 and +0xb4 (0x78a374)
+// assigned by slot 5; the city, upload and download reset; the dialog's message. +0x3a8 = a, +0x3c0 = b, +0x3c4 = c. Logged in (+0x60): the instance's list +0xf0 starts on its +0x3a8 with the callback 0x5b88e0. Otherwise
+// +4 = 0x5b87a0, +8 = 0 and Dialog7cc530_Open (0x5b5cb0).
+void __fastcall Online_Start(u8 *session, void *, u32 a, u32 b, u32 c);
 
 // 0x5b50b0 (thiscall; name invented): the session's constructor. Its strings made and emptied, its members as the resets leave them, the nine
 // lists made (+0xe0 to +0x100: none when a block is not had), Online_ResetCity on them, the download object +0x3a4 (Class70293c_Ctor).

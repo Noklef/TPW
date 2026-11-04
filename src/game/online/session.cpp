@@ -11,9 +11,11 @@
 #include "../core/vcall.h"
 #include "../core/vdtor.h"
 #include "../files/file.h"
+#include "../ui/dialog7cc530open.h"
 #include "../ui/dialogs.h"
 #include "../ui/dialuphangup.h"
 #include "items.h"
+#include "listrequest.h"
 
 namespace {
 
@@ -273,6 +275,44 @@ void __fastcall Online_ResetConnections(u8 *session) {
     Online_ResetUpload(session);
     Online_ResetDownload(session);
     Dialog7cca94_Message4IfUp();
+}
+
+namespace {
+const OnlineStartEnv kStartGameEnv = {&Online_ReleaseNews, &Online_ResetCity, &Online_ResetUpload, &Online_ResetDownload, &Dialog7cca94_Message4IfUp, &Online_Instance, &ListRequest_Start66, &Dialog7cc530_Open};
+const OnlineStartEnv *g_start = &kStartGameEnv;
+}  // namespace
+
+void Online_SetStartEnv(const OnlineStartEnv *env) { g_start = env ? env : &kStartGameEnv; }
+
+void __fastcall Online_Start(u8 *session, void *, u32 a, u32 b, u32 c) {
+    g_start->releaseNews(session);
+    at<u32>(session, 0x74) = 0xffffffff;
+    at<u32>(session, 0xc8) = 0;
+    at<u32>(session, 0xcc) = 0;
+    at<u32>(session, 0x78) = 0;
+    vcall<void>(session + 0x7c, 0x14, 0x00786de4u);
+    at<u32>(session, 0x90) = 0xffffffff;
+    at<u32>(session, 0x94) = 0;
+    vcall<void>(session + 0x98, 0x14, 0x0078a374u);
+    at<u32>(session, 0xac) = 0xffffffff;
+    at<u32>(session, 0xb0) = 0;
+    vcall<void>(session + 0xb4, 0x14, 0x0078a374u);
+    at<u32>(session, 0xd0) = 0;
+    g_start->resetCity(session);
+    g_start->resetUpload(session);
+    g_start->resetDownload(session);
+    g_start->message4();
+    at<u32>(session, 0x3c4) = c;
+    at<u32>(session, 0x3a8) = a;
+    at<u32>(session, 0x3c0) = b;
+    if (at<u32>(session, 0x60)) {
+        u8 *const instance = g_start->instance();
+        g_start->listStart(at<u8 *>(instance, 0xf0), nullptr, at<u32>(instance, 0x3a8), 0x005b88e0, 0);
+    } else {
+        at<u32>(session, 4) = 0x005b87a0;
+        at<u32>(session, 8) = 0;
+        g_start->openDialog(0x005b5cb0);
+    }
 }
 
 void __fastcall Online_ResetAll(u8 *session) {
