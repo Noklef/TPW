@@ -16,7 +16,7 @@ FAILURES = [0x88760000 + 0x10, 1, 0x80004005]
 
 
 def results(r, rate):
-    return [r.choice(FAILURES) if r.randrange(rate) == 0 else 0 for _ in range(40)]
+    return [r.choice(FAILURES) if r.randrange(rate) == 0 else 0 for _ in range(0x40)]
 
 
 def case(r):
@@ -39,10 +39,10 @@ def case(r):
     answers(log, LOCK, TABLES + 0x100)
     answers(log, UNLOCK, TABLES + 0x200)
     answers(log, LOAD, TABLES + 0x300)
-    pool = [r.choice(surfaces[5:]) for _ in range(40)]
+    pool = [r.choice(surfaces[5:]) for _ in range(0x40)]
     tables = pool + results(r, rate) + results(r, rate) + results(r, rate)
     regions = {LOG: log, OBJECT: obj, SURFACES: b''.join(struct.pack('<I', SURFACE_VT) + r.bytes(0xc) for _ in surfaces), SURFACE_VT: vtable({}, 33, com={LOAD: 6, LOCK: 5, UNLOCK: 2}),
-               VBTABLE: struct.pack('<2I', r.getrandbits(32), offset), TABLES: struct.pack('<160I', *tables), 0x879cd4: r.bytes(4), 0x8c48a8: r.bytes(0x7c)}
+               VBTABLE: struct.pack('<2I', r.getrandbits(32), offset), TABLES: struct.pack('<256I', *tables), 0x879cd4: r.bytes(4), 0x8c48a8: r.bytes(0x7c)}
     return Call(0x58baf0, [SUB], regions, conv='t', ret='a')
 
 

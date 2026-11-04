@@ -59,7 +59,7 @@ def create(r):
 def budget(r):
     fmt = r.randrange(8)
     regions, log, cache = world(r, fmt)
-    memory = r.choice([0, 0, 0x10000, 0x20000, 0x100000, 0x400000, 0x1000000, 0x4000000, 0x7fff0000, r.randrange(0x10000), r.getrandbits(32)])
+    memory = r.choice([0, 0, 0x40 * SIZES[fmt] << 16, 0x41 * SIZES[fmt] << 16, 0x10000, 0x20000, 0x100000, 0x400000, 0x1000000, 0x4000000, 0x7fff0000, r.randrange(0x10000), r.getrandbits(32)])
     set_return(log, DEVICE, memory)
     regions[0x8c1620] = struct.pack('<I', r.choice([0, 0, SIZES[fmt] << 16, 4 * SIZES[fmt] << 16, SIZES[fmt] << 15]))
     regions[0x8c1624] = r.bytes(4)
