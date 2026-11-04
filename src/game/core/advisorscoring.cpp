@@ -720,4 +720,61 @@ s32 __fastcall AdvisorScoring_RingRatio(const u8 *scoring) {
     return !(scaled.v >= (double)first) ? at<s32>(scoring, 0x35c) : 0;   // (FCOMPP's C0: below or unordered)
 }
 
+namespace {
+
+u8 *criterion(s32 index) { return reinterpret_cast<u8 *>((uintptr_t)0x0076e300 + (u32)index * 0x38); }
+
+// The criterion of an id: its place in the table when that one holds the id or any other does (sic: the address by the id all the same); the two out of range or unknown, none.
+const u8 *find_criterion(s32 id) {
+    if (id == 0x160 || id == 0x15f) return nullptr;
+    if (at<s32>(criterion(id), 4) == id) return criterion(id);
+    for (u32 entry = 0x0076e304; entry < 0x00772fcc; entry += 0x38)
+        if (*reinterpret_cast<const s32 *>((uintptr_t)entry) == id) return criterion(id);
+    return nullptr;
+}
+
+// The state the game object is in, its function-local static (guard byte 0xfb34bc, bit 0) made at first use.
+s32 game_state() {
+    u8 &guard = *reinterpret_cast<u8 *>((uintptr_t)0x00fb34bc);
+    if (!(guard & 1)) {
+        guard |= 1;
+        g_calls.Th(0x00550ca0, 0x00fb3b7cu);
+        g_calls.Cd(0x0067a7d0, 0x005d1750u);   // atexit
+    }
+    return *reinterpret_cast<const s32 *>((uintptr_t)0x00fb3b7c);
+}
+
+// Whether a criterion of this kind runs: kind 2 always, 0 with the state 0, 1 with the state 2.
+bool kind_runs(const u8 *found) {
+    if (!found) return false;
+    if (at<s32>(found, 0xc) == 2) return true;
+    if (at<s32>(found, 0xc) == 0 && game_state() == 0) return true;
+    return at<s32>(found, 0xc) == 1 && game_state() == 2;
+}
+
+}  // namespace
+
+s32 __fastcall AdvisorScoring_PickNext(s32 *cursor, void *, s32 steps) {
+    s32 best = 0, chosen = 0x160;
+    for (s32 step = 0; step < steps; ++*cursor) {
+        if (*cursor >= 0x15f) *cursor = 0;
+        if (at<u32>(criterion(*cursor), 0)) continue;   // (a step not counted)
+        if (kind_runs(find_criterion(at<s32>(criterion(*cursor), 4)))) {
+            using Score = s32(__fastcall *)(u8 *, void *);
+            const u8 *const entry = criterion(*cursor);
+            const s32 score = at<Score>(entry, 0x10)(reinterpret_cast<u8 *>(cursor) + at<u32>(entry, 0x14), nullptr);
+            if (score > best) {
+                const u32 id = at<u32>(criterion(*cursor), 4);
+                const u32 record = g_calls.Th(0x005194d0, **reinterpret_cast<u32 **>((uintptr_t)0x007cf6ec), id, 0u);
+                if ((u8)g_calls.Th(0x0059abc0, record)) {
+                    best = score;
+                    chosen = at<s32>(criterion(*cursor), 4);
+                }
+            }
+        }
+        ++step;
+    }
+    return chosen;
+}
+
 }  // extern "C"

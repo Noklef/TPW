@@ -5570,6 +5570,7 @@ const Hook kHooks[] = {
     {"AdvisorScoring_CutOffObject", 0x0059ef60, (void *)&AdvisorScoring_CutOffObject, {0x51, 0x56, 0x8b, 0xf1, 0x8b}},
     {"AdvisorScoring_RidesRatedAbove", 0x0059f4f0, (void *)&AdvisorScoring_RidesRatedAbove, {0xa1, 0xec, 0xf6, 0x7c, 0x00}},
     {"AdvisorScoring_RingRatio",  0x0059eb80, (void *)&AdvisorScoring_RingRatio, {0x83, 0xec, 0x14, 0x55, 0x56}},
+    {"AdvisorScoring_PickNext",   0x0059c680, (void *)&AdvisorScoring_PickNext, {0x83, 0xec, 0x08, 0x8b, 0x44}},
     {"ParkInfo_Serialize",        0x00418da0, (void *)&ParkInfo_Serialize, {0x51, 0x8b, 0x44, 0x24, 0x0c}},
     {"AuthStamp_Text",           0x005d55a0, (void *)&AuthStamp_Text, {0x53, 0x56, 0x57, 0xbe, 0xd8}},
     {"Mp2Decoder_ParseHeader",   0x006cc7b0, (void *)&Mp2Decoder_ParseHeader, {0x83, 0xec, 0x0c, 0x53, 0x56}},

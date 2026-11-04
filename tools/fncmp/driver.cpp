@@ -1112,7 +1112,7 @@ const AddrCall kBumpLightCalls[] = {{0x67acc0, jpeg_recorder(10, 1)}, {0x5e80d0,
 const AddrCall kWScannerCalls[] = {{0x5e7200, recorder(1, 2)}};
 const AddrCall kMMPlaceStaffCalls[] ={{0x4d6b60, recorder(1, 4)}, {0x4d4340, recorder(2, 4)}, {0x4d5d40, recorder(3, 4)}, {0x4d9eb0, recorder(4, 4)}, {0x502600, recorder(5, 4)}};
 const AddrCall kTexSurfaceCalls[] ={{0x573820, recorder(1, 2)}, {0x56af20, recorder(2, 2)}, {0x56a770, jpeg_recorder(3, 1)}, {0x564650, jpeg_recorder(4, 1)}, {0x5645a0, recorder(5, 0)}, {0x58b1f0, recorder(6, 2)}, {0x58b890, recorder(7, 2)}};
-const AddrCall kAdvisorRingCalls[] ={{0x4f8800, recorder(1, 1)}};
+const AddrCall kAdvisorRingCalls[] ={{0x4f8800, recorder(1, 1)}, {0x5194d0, recorder(2, 2)}, {0x59abc0, recorder(3, 0)}, {0x550ca0, recorder(4, 0)}, {0x67a7d0, jpeg_recorder(5, 1)}};
 const AddrCall kSpriteFrameShowCalls[] ={{0x588ba0, recorder(1, 0)}, {0x5889b0, recorder(2, 2)}, {0x58c9f0, recorder(3, 2)}, {0x58a6b0, recorder(4, 1)}, {0x58a6e0, recorder(5, 1)}, {0x578d20, recorder(6, 3)}};
 const AddrCall kTerrainTexUpdateCalls[] ={{0x590da0, recorder(1, 0)}, {0x590d40, recorder(2, 0)}, {0x55f780, recorder(3, 4)}, {0x562f70, jpeg_recorder(4, 3)}, {0x58dc50, recorder(5, 1)}, {0x590f90, recorder(6, 0)}, {0x58c9f0, recorder(7, 2)}};
 const AddrCall kDynFacesCalls[] ={{0x53d790, recorder(1, 11)}, {0x424ec0, jpeg_recorder(2, 1)}, {0x424ed0, jpeg_recorder(3, 1)}};
@@ -2420,7 +2420,7 @@ int main(int argc, char **argv) {
     PointSprites_SetCalls(kPointSpritesCalls, sizeof(kPointSpritesCalls) / sizeof(kPointSpritesCalls[0]));
     LobbyFlight_SetCalls(kLobbyFlightCalls, sizeof(kLobbyFlightCalls) / sizeof(kLobbyFlightCalls[0]));
     TexSurface_SetCalls(kTexSurfaceCalls, sizeof(kTexSurfaceCalls) / sizeof(kTexSurfaceCalls[0]));
-    AdvisorScoring_SetCalls(kAdvisorRingCalls, 1);
+    AdvisorScoring_SetCalls(kAdvisorRingCalls, 5);
     Image_SetCalls(kImageLoadCalls, 4);
     SpriteFrame_SetCalls(kSpriteFrameShowCalls, 6);
     TerrainTexCache_SetCalls(kTerrainTexUpdateCalls, 7);
