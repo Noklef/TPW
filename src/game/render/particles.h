@@ -114,6 +114,11 @@ void __cdecl ParticlePools_Reset();
 // is neither 0 nor NaN, +0x10 is the game clock's real time less its pauses (Clocks_RealNowLessPauses) as a float and +0x14 is t.
 void __cdecl ParticlePool_Move(s32 pool, s32 jump, float x, float y, float t);
 
+// 0x5ed770 (cdecl; name invented, unconfirmed): each of the three pools with a count: t = (the clock's real time less its pauses - +0x10) / +0x14, kept to 1 for the radii (a NaN too) but
+// not for the centre, which moves from +0 / +4 to +8 / +0xc by t. Its systems stand on a circle turning by t * +0x18 and spaced by 1 / count: the turn's fraction * 512 the angle, the radii
+// from +0x1c / +0x20 to +0x24 / +0x28 by t; each system's vector (ParticleSystem_SetVectorA) (x + 1) * 50000, 0, (y + 1) * 37500 (y less the radius times the cosine).
+void __cdecl ParticlePools_Update();
+
 // 0x5ed920 (cdecl; x, y, width, height; name unconfirmed; 0x485a21 asks it): pool 2 set up for an area: its size width * height (x87, at the
 // game's precision) less [0x774d8c] (0.0016), over [0x774d90] (0.0051), times -3, truncated, taken from 2 and kept to 2 to 5 (the size and
 // count go to the empty Debug_Printf) is the pool's count (ParticlePool_Resize(2, count, 0x23)); then ParticlePool_Move(2, jump, x, y, 400)

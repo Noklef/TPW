@@ -4,6 +4,7 @@
 # right or not), none or random. Also pool 2's emptying (0x5edac0) and its marking then emptying (0x5eda70). And a pool's move (0x5ed660:
 # the position blocks at 0xf86900, 0x44 apart, of random floats; the old position kept or jumped; a third float 0, -0 or not, with the game
 # clock's real time less its pauses as gameclock.py's less_pauses() sets it up). Pool 2's set-up for an area (0x5ed920): see case().
+# Update (0x5ed770): the block of three pools of random floats (now and then the odd ones), counts of 0-16 (or negative) and handles as Resize's, the clock as for a move, the sine table any.
 # usage: particlepools.py [CASES [SEED]] [--wild|--both] [--show N]
 import os
 import struct
@@ -17,10 +18,10 @@ from fncmp import Bench, Call, fb, put  # noqa: E402
 from gameclock import less_pauses  # noqa: E402
 
 B = Bench([(0x51feb0, 0x51ff70), (0x520560, 0x520e10), (0x521d60, 0x5222f0), (0x522360, 0x522500), (0x5ed5a0, 0x5ed670), (0x5eda70, 0x5edad0), (0x5da3c0, 0x5da3c1),
-           (0x5ed660, 0x5ed6f1), (0x402d70, 0x402e00), (0x402e60, 0x4030f0), (0x403150, 0x403172), (0x4031e0, 0x403202), (0x4033a0, 0x4033f0),
-           (0x5f5e20, 0x5f5e80), (0x5f5f10, 0x5f5fc0), (0x5988e0, 0x598955), (0x5ed920, 0x5eda36), (0x67a830, 0x67a860)])
+           (0x5ed660, 0x5ed6f1), (0x5ed770, 0x5ed920), (0x51fe30, 0x51feb0), (0x5428a0, 0x5428e0), (0x67a400, 0x690000), (0x402d70, 0x402e00), (0x402e60, 0x4030f0), (0x403150, 0x403172), (0x4031e0, 0x403202), (0x4033a0, 0x4033f0),
+           (0x5f5e20, 0x5f5e80), (0x5f5f10, 0x5f5fc0), (0x5988e0, 0x598955), (0x5ed920, 0x5eda36)])
 POOLS = 0xf8692c
-OPS = [k for k in os.environ.get('OPS', 'Resize,Finish,Empty,Move,Setup').split(',') if k]
+OPS = [k for k in os.environ.get('OPS', 'Resize,Finish,Empty,Move,Setup,Update').split(',') if k]
 
 
 def move(r):   # 0x5ed660 (pool, jump, x, y, t): +0 the old position (x, y if jumping, else the last), +8 the new; when t is not 0 the clock's time at
@@ -51,6 +52,19 @@ def case(r):
     op = r.deal(OPS)
     if op == 'Move':
         return move(r)
+    if op == 'Update':   # 0x5ed770: the three pools' block (the handles past 0xf869cc not read)
+        regions.update(less_pauses(r).regions)
+        block = bytearray(r.floats(bytearray(r.bytes(0x44 * 3)), [k for pool in range(3) for k in range(0x44 * pool, 0x44 * pool + 0x2c, 4)]))
+        for pool in range(3):
+            put(block, 0x44 * pool + 0x2c, 'i', r.choice([0, 0, 1, 2, 5, 16, -1]))
+            for k in range(4):
+                put(block, 0x44 * pool + 0x30 + 4 * k, 'I', handle())
+            if r.random() < 0.8:   # (a time in step with the clock's now and then: t about 0 to 1)
+                put(block, 0x44 * pool + 0x14, 'f', r.choice([400.0, 1000.0, 0.5]))
+                put(block, 0x44 * pool + 0x18, 'f', r.choice([0.4, 1.0, 0.0]))
+        regions[0xf86900] = block
+        regions[0x877358] = r.bytes(0x800)
+        return Call(0x5ed770, [], regions, ret='v')
     index = r.choice([0, 1, 2, 3]) if op == 'Resize' else 2
     pools = bytearray(r.bytes(0x44 * (index + 2)))
     old = r.choice([0, 1, 2, 5, 8, 16, r.randrange(17)])
