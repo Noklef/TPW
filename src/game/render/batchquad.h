@@ -11,6 +11,7 @@ struct BatchQuadEnv {
     u32(__fastcall *flush)(u8 *object, void *);                                                             // Batch_Flush (0x565590)
     u32(__fastcall *drawQuad)(u8 *object, void *, u8 *spec, u32 mask);                                      // Batch_DrawQuad (0x565f90)
     u32(__fastcall *fillItem)(u8 *frame, void *, u8 *item);                                                 // SpriteFrame_FillItem (0x589b50)
+    u32(__fastcall *drawInPlace)(u8 *object, void *, u8 *spec, u32 mask);                                   // Batch_DrawQuadInPlace (0x566220)
 };
 // The calls go to env (nullptr: the ports).
 void BatchQuad_SetEnv(const BatchQuadEnv *env);
@@ -37,4 +38,7 @@ u32 __fastcall Batch_DrawScreenQuad(u8 *self);
 // 0x589f90 (thiscall on a sprite frame; name invented, unconfirmed): a spec on the stack, its points inside it, filled (SpriteFrame_FillItem); its answer 0 returns 0, else drawn on [0x879ab0] with mask -1 and Batch_DrawQuad's
 // answer. What the fill leaves unset is stack garbage in the original, 0 here.
 u32 __fastcall SpriteFrame_DrawQuad(u8 *frame);
+
+// 0x589fd0 (thiscall on a sprite frame; name invented, unconfirmed): as SpriteFrame_DrawQuad, with Batch_DrawQuadInPlace.
+u32 __fastcall SpriteFrame_DrawQuadInPlace(u8 *frame);
 }
