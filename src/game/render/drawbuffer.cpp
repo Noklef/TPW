@@ -115,6 +115,13 @@ u8 *DrawRecord(const u8 *buffer, u32 index) { return at<u8 *>(buffer, 0x44) + in
 
 void DrawBuffer_SetDrawAllCalls(const AddrCall *table, u32 count) { g_drawAllCalls.Set(table, count); }
 
+extern "C" u32 __cdecl DrawBuffer_DrawFrame() {
+    if (!g_drawAllCalls.Cd(0x00581db0)) return 0;   // ModelList_Draw
+    if (!g_drawAllCalls.Th(0x00582ad0, global<u32>(0x8bcbc4))) return 0;   // DrawBuffer_DrawAll
+    if (global<u32>(0x8bd524) == 4) __asm emms   // (the software renderer's MMX code)
+    return 1;
+}
+
 extern "C" {
 
 u32 __fastcall DrawStream_Free(u8 *stream) {

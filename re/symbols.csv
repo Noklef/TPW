@@ -7048,6 +7048,7 @@ address,name,kind,confidence,notes
 0x005828f0,DrawBuffer_SortByFloat30Up,function,low,reimplemented (src/game/render/drawbuffer); Batch indices sorted up by the batches' float +0x30
 0x005829e0,DrawBuffer_SortByFloat30Down,function,low,reimplemented (src/game/render/drawbuffer); Batch indices sorted down by the batches' float +0x30
 0x00582ad0,DrawBuffer_DrawAll,function,low,"reimplemented (src/game/render/drawbuffer); the buffer's batches ordered (mode 4: shared first by the dword, the rest by depth; else by depth), drawn, and in mode 4 with the device's flags the later ones' vertices doubled (name invented, unconfirmed)"
+0x00582170,DrawBuffer_DrawFrame,function,low,"reimplemented (src/game/render/drawbuffer); cdecl: ModelList_Draw, then DrawBuffer_DrawAll of the buffer at 0x8bcbc4; 0 from either returns 0; mode 4 ends the MMX state (name invented)"
 0x005839a0,TexFormat_SetArgb32,function,high,"reimplemented (src/game/render/texformat); thiscall (the renderer settings, 0x8bd550): the DDPIXELFORMAT at +0x68 made 32-bit ARGB (software driver)"
 0x005839e0,TexFormat_Table,function,high,"reimplemented (src/game/render/texformat); thiscall: the current texture format's table, +0x88 + 0x1000 * (+4)"
 0x00581790,TexLoad_DriverFlags,function,high,reimplemented (src/game/render/texformat); the word for the driver to load a texture with
