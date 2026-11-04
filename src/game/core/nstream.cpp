@@ -125,7 +125,24 @@ void __fastcall NCtype_Dtor(u8 *self) {
     at<u32>(self, 0) = 0x00709b44;
 }
 
+u8 *__fastcall NCtype_DeletingDtor(u8 *self, void *, u32 flags) {
+    NCtype_Dtor(self);
+    if (flags & 1) GameHeap_Free(self);
+    return self;
+}
+
 void __cdecl NCtype_FreeTable() { Crt().free(global<void *>(0x00fb1dd8)); }
+
+u8 __fastcall NIos_Widen(u8 *ios, void *, u32 c) {
+    u8 *held;
+    u8 **const locale = Obj_ShareMember20(ios, nullptr, &held);
+    use_ctype(locale);
+    if (held) {
+        u8 *const dead = Counted_Release(held);
+        if (dead) vcall<u32>(dead, 0, 1u);
+    }
+    return static_cast<u8>(c);
+}
 
 u8 *__fastcall NOstream_Ctor(u8 *self, void *, u8 *buffer, u32 addstd, u32 init, u32 derived) {
     if (derived) {

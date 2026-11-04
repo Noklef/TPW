@@ -19,8 +19,12 @@ extern "C" {
 
 // 0x5cfd50 (thiscall; names invented, unconfirmed): ctype<char>'s destructor: the table +0x10 freed when +0x14 owns it; vtables 0x709b1c then 0x709b44.
 // 0x5cfc80 (cdecl, registered at exit by 0x5cfb60): the table kept at 0xfb1dd8 freed.
+// 0x5cfd30 (thiscall (flags), pops 4): the destructor, then freed with bit 0 of the flags. Returns the object.
+// 0x5cf9c0 (thiscall on an ios (c), pops 4): basic_ios<char>::widen: the ctype facet looked up as in 0x5d0080 (a share of the locale held), which answers c unchanged (AL).
 void __fastcall NCtype_Dtor(u8 *self);
+u8 *__fastcall NCtype_DeletingDtor(u8 *self, void *, u32 flags);
 void __cdecl NCtype_FreeTable();
+u8 __fastcall NIos_Widen(u8 *ios, void *, u32 c);
 
 // 0x5cf900 (thiscall (buffer, addstd, init, most derived), pops 16): basic_ostream<char>'s constructor. Most derived: the vbtable 0x702980, +0x28 0 and the ios vtable at +4 0x709954.
 // The ios (through the vbtable) gets vtable 0x70995c and, with init, its buffer, tie 0 and fill ' ', IosBase_Init, IosBase_Clear with badbit when the buffer is null, and with

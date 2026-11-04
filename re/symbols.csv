@@ -5942,6 +5942,8 @@ address,name,kind,confidence,notes
 0x005cfd90,NIstream_Ctor,function,low,reimplemented (src/game/core/nstream); basic_istream<char>'s constructor
 0x005d1190,NOstream_Opfx,function,low,reimplemented (src/game/core/nstream); basic_ostream<char>::opfx
 0x005d1120,NOstream_Sentry,function,low,reimplemented (src/game/core/nstream); the output sentry's end
+0x005cfd30,NCtype_DeletingDtor,function,low,"reimplemented (src/game/core/nstream); ctype<char>'s destructor, then freed"
+0x005cf9c0,NIos_Widen,function,low,reimplemented (src/game/core/nstream); basic_ios<char>::widen
 0x005b12e0,ThemeRecord_FullName,function,low,reimplemented (src/game/core/themenames); a theme record's full name
 0x005b1410,ThemeRecord_Name,function,low,reimplemented (src/game/core/themenames); a theme record's name
 0x005b1520,ThemeRecord_Suffix,function,low,reimplemented (src/game/core/themenames); a theme record's suffix
