@@ -217,6 +217,7 @@
 #include "../game/core/imaadpcm.h"
 #include "../game/core/iosbase.h"
 #include "../game/core/keyactions.h"
+#include "../game/core/locinfo.h"
 #include "../game/core/loopstream.h"
 #include "../game/core/mixerthread.h"
 #include "../game/core/moneypunct.h"
@@ -6270,6 +6271,10 @@ const Hook kHooks[] = {
     {"CRT_setlocale_get_all",     0x00683ef0, (void *)&CRT_setlocale_get_all, {0x51, 0xa1, 0xd4, 0x0d, 0x78}},
     {"CRT_setlocale_set_cat",     0x00683d90, (void *)&CRT_setlocale_set_cat, {0x81, 0xec, 0xa0, 0x00, 0x00}},
     {"CRT_setlocale",             0x00683ac0, (void *)&CRT_setlocale, {0x81, 0xec, 0x90, 0x00, 0x00}},
+    {"Lockit_Ctor",               0x00691de0, (void *)&Lockit_Ctor, {0xa1, 0x68, 0x19, 0xfb, 0x00}},
+    {"Lockit_Dtor",               0x00691ea0, (void *)&Lockit_Dtor, {0x83, 0x3d, 0x68, 0x19, 0xfb}},
+    {"Locinfo_Ctor",              0x00698fc0, (void *)&Locinfo_Ctor, {0x6a, 0xff, 0x68, 0xb9, 0x40}},
+    {"Locinfo_Dtor",              0x00699100, (void *)&Locinfo_Dtor, {0x53, 0x56, 0x8b, 0xf1, 0x33}},
     {"Nav_Ctor",          0x0050ffe0, (void *)&Nav_Ctor, {0x6a, 0xff, 0x68, 0x2d, 0xe6}},
     {"Nav_Dtor",                  0x0050f200, (void *)&Nav_Dtor, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"Nav_DtorAtD4",              0x004f7c30, (void *)&Nav_DtorAtD4, {0x81, 0xc1, 0xd4, 0x00, 0x00}},
