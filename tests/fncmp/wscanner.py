@@ -115,7 +115,11 @@ def handler(r):
     c.regions[VECTOR] = struct.pack('<IIII', r.getrandbits(32), TOKEN_ARRAY, last, last + 0x24 * 4)
     c.regions[TOKEN_ARRAY] = r.bytes(0x24 * (held + 4))
     ignore = [(last + 0x24 * i + k, 1) for i in range(3) for k in (0, 0x10)]
-    return Call(HANDLERS[r.deal(list(range(len(HANDLERS))))], [SCANNER], c.regions, conv='t', ret='b', ignore=ignore)
+    address = HANDLERS[r.deal(list(range(len(HANDLERS))))]
+    if address == 0x5e4ca0 or address >= 0x5e58b0:   # (no word: only a position past the length gives none; 0x5e5540's rest then throws, _Xran, so not there)
+        if r.random() < 0.3:
+            put(c.regions[SCANNER], 0x38, 'I', struct.unpack_from('<I', c.regions[SCANNER], 0xc)[0] + r.choice([1, 9]))
+    return Call(address, [SCANNER], c.regions, conv='t', ret='b', ignore=ignore)
 
 
 def substr(r):
