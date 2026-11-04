@@ -5943,6 +5943,12 @@ address,name,kind,confidence,notes
 0x0068ed80,CRT_wcstombs_lk,function,low,reimplemented (src/game/core/crtenv); MSVC6 _wcstombs_lk
 0x0068ed00,CRT_wcstombs,function,low,reimplemented (src/game/core/crtenv); MSVC6 wcstombs
 0x00687d80,CRT_tzset,function,low,reimplemented (src/game/core/crtenv); MSVC6 _tzset
+0x00682b40,CRT_sbh_find_block,function,low,reimplemented (src/game/core/crtrealloc); MSVC6 __sbh_find_block
+0x00682a10,CRT_sbh_release_region,function,low,reimplemented (src/game/core/crtrealloc); MSVC6 __sbh_release_region
+0x00682a70,CRT_sbh_decommit_pages,function,low,reimplemented (src/game/core/crtrealloc); MSVC6 __sbh_decommit_pages
+0x00682ba0,CRT_sbh_free_block,function,low,reimplemented (src/game/core/crtrealloc); MSVC6 __sbh_free_block
+0x00682fc0,CRT_sbh_resize_block,function,low,reimplemented (src/game/core/crtrealloc); MSVC6 __sbh_resize_block
+0x00681740,CRT_realloc,function,low,reimplemented (src/game/core/crtrealloc); MSVC6 realloc
 0x0050ffe0,Nav_Ctor,function,high,reimplemented (src/game/world/nav); constants constructor with five integer pairs
 0x0050f200,Nav_Dtor,function,high,reimplemented (src/game/world/nav); thiscall: the five IntPairs at +0x64 destroyed with Stub_Ret (CRT_VectorDtorIterator); also via 0x4f7c30 (+0xd4) and 0x4f8ad0
 0x004f7c30,Nav_DtorAtD4,function,low,reimplemented (src/game/world/nav); thiscall adjustor: Nav_Dtor on this + 0xd4
