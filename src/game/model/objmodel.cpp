@@ -28,6 +28,7 @@ u8 *ptr(const void *p, u32 offset) { return reinterpret_cast<u8 *>((uintptr_t)at
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
 
 AddrCalls g_treeCalls;
+AddrCalls g_drawCalls;
 
 // Whether a mesh of the tree goes to the clip test: its flags, the render flags, its band.
 bool tree_mesh_wanted(const u8 *mesh) {
@@ -86,6 +87,7 @@ void transform_into(MatrixFrame &frame, u32 *into) {
 
 void ObjModel_SetEnv(const ObjModelEnv *env) { g_env = env ? env : &kGameEnv; }
 void ObjModel_SetTreeCalls(const AddrCall *table, u32 count) { g_treeCalls.Set(table, count); }
+void ObjModel_SetDrawCalls(const AddrCall *table, u32 count) { g_drawCalls.Set(table, count); }
 
 extern "C" {
 
@@ -376,5 +378,56 @@ u32 __fastcall ObjModel_DrawMeshTree(u8 *object, void *, u8 *mesh, const u32 *fi
             return 0;
     }
     return 1;
+}
+
+u32 __fastcall ObjModel_DrawOrQueue(u8 *part) {
+    u8 *const object = part - 0x154;
+    const u32 me = (u32)(uintptr_t)object;
+    const u32 stampA = global<u32>(0x008bcc40), stampB = global<u32>(0x008bcc44);
+    if (at<u32>(object, 0x90) == stampA && at<u32>(object, 0x94) == stampB) return 1;
+    if ((at<u32>(ptr(object, 8), 0x30) & 0x200000) && !(at<u8>(object, 4) & 0x10)) {
+        const s32 count = global<s32>(0x008bb620);
+        if (count >= 0x100) return 1;
+        global<u32>(0x008bb220 + count * 4) = me;
+        global<s32>(0x008bb620) = count + 1;
+        return 1;
+    }
+    at<u32>(object, 4) &= ~0x10u;
+    const u32 prepare = at<u32>(object, 0x140);
+    if (prepare && at<u32>(object, 0x90) != stampA) reinterpret_cast<void(__cdecl *)(u8 *)>((uintptr_t)prepare)(ptr(object, 8));
+    at<u32>(object, 0x90) = stampA;
+    at<u32>(object, 0x94) = stampB;
+    at<u32>(object, 0x14c) = 0;
+    if (global<u32>(0x008bd524) == 4) {
+        at<u32>(object, 0x14c) = (global<u32>(0x008bcbc8) & 0x800) << 0x11;
+        if (at<u32>(ptr(object, 8), 0x30) & 0x400000) at<u32>(object, 0x14c) |= 0x4000000;
+        if (at<u32>(ptr(object, 8), 0x30) & 0x800000) at<u32>(object, 0x14c) |= 0x8000000;
+    }
+    if (at<u8>(object, 4) & 4) return 1;
+    if (at<u32>(ptr(object, 8), 0x30) & 0x200) {
+        global<u32>(0x008bb624) |= 0x2000000;
+        return g_drawCalls.Th(0x0057a530, me, at<u32>(ptr(object, 8), 0x78), object + 0x10, object + 0x50);
+    }
+    global<u32>(0x008bb624) &= ~0x2000000u;
+    if (global<u32>(0x008bcbc8) & 0x200000) {
+        const u32 flags = at<u32>(ptr(object, 8), 0x30);
+        if (!(flags & 2) && (flags & 0x800)) {
+            if (!g_drawCalls.Th(0x0057b8a0, me)) return 0;   // Object_UpdateShadow
+            const u8 *const shadow = at<const u8 *>(object, 0x13c);
+            if (shadow) {
+                g_drawCalls.Th(0x0058c9f0, global<u32>(0x008c4b44), at<u32>(shadow, 0x18), 0x3f000000u);   // TexCache_TouchItem (0.5f)
+                g_drawCalls.Th(0x0057c270, 0x008bb638u, me);   // MeshQueue2_Add
+            }
+        }
+    }
+    u32 matrix[16];
+    std::memcpy(matrix, global<const u32 *>(0x0087b088), sizeof(matrix));
+    if (at<u8>(object, 4) & 1) {
+        u32 *const result = static_matrix();
+        u8 *const xf = global<u8 *>(0x0087b1d8);
+        reinterpret_cast<void(__cdecl *)(u8 *, u8 *, const u32 *, u32 *)>((uintptr_t)at<u32>(ptr(xf, 0), 0x18))(xf, object + 0x10, matrix, result);
+        std::memcpy(matrix, result, sizeof(matrix));
+    }
+    return g_drawCalls.Th(0x0057a530, me, at<u32>(ptr(object, 8), 0x78), matrix, 0x0087b090u);
 }
 }
