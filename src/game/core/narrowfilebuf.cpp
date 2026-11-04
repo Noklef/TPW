@@ -4,6 +4,8 @@
 #include <cstring>
 
 #include "buffers.h"
+#include "fieldops.h"
+#include "initializers.h"
 #include "crt.h"
 #include "gameheap.h"
 #include "globals.h"
@@ -13,6 +15,7 @@
 #include "streambuf.h"
 #include "vcall.h"
 #include "vobj3.h"
+#include "wfilebuf.h"
 
 namespace {
 
@@ -47,11 +50,44 @@ void lose_use(u8 *counted) {
     if (u8 *const dead = Counted_Release(counted)) vcall<void>(dead, 0, (u32)1);
 }
 
+void set_slot_pointers(u8 *buf) {
+    static const u8 kSlots[6][2] = {{0xc, 4}, {0x1c, 0x14}, {0x20, 0x18}, {0x10, 8}, {0x2c, 0x24}, {0x30, 0x28}};
+    for (const auto &slot : kSlots) at<u8 *>(buf, slot[0]) = buf + slot[1];
+}
+
 }  // namespace
 
 void NarrowFileBuf_SetEnv(const NarrowFileBufEnv *env) { g_env = env ? env : &kGameEnv; }
 
 extern "C" {
+
+u8 *__fastcall NFileBuf_Ctor(u8 *buf, void *, u8 *file) {
+    LocaleRef_Ctor(reinterpret_cast<u32 *>(buf + 0x34));
+    set_slot_pointers(buf);
+    at<u32>(buf, 0) = 0x00709914;
+    at<u32>(buf, 8) = 0;
+    at<u32>(buf, 0x18) = 0;
+    at<u32>(buf, 0x28) = 0;
+    Targets3_Set(buf, nullptr, 0, 0, 0);
+    LocaleRef_Ctor(reinterpret_cast<u32 *>(buf + 0x4c));
+    at<u32>(buf, 0) = 0x007098dc;
+    buf[0x48] = 0;
+    lose_use(at<u8 *>(buf, 0x4c));
+    LocaleRef_Ctor(reinterpret_cast<u32 *>(buf + 0x4c));
+    set_slot_pointers(buf);
+    at<u32>(buf, 0x44) = 0;
+    Targets2_Set(buf, nullptr, 0, 0);
+    Targets3_Set(buf, nullptr, 0, 0, 0);
+    if (file) {
+        const u32 base = (u32)(uintptr_t)file;
+        Fn_5d0e00(buf, nullptr, base + 8, base, base + 4, base + 8, base, base + 4);
+    }
+    at<u8 *>(buf, 0x50) = file;
+    at<u32>(buf, 0x40) = global<u32>(0x00fb2760);
+    at<u32>(buf, 0x3c) = global<u32>(0x00fb2760);
+    at<u32>(buf, 0x38) = 0;
+    return buf;
+}
 
 void __fastcall NFileBuf_Dtor(u8 *buf) {
     at<u32>(buf, 0) = 0x007098dc;

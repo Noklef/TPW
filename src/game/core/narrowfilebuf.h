@@ -11,6 +11,10 @@ struct NarrowFileBufEnv {
 void NarrowFileBuf_SetEnv(const NarrowFileBufEnv *env);
 
 extern "C" {
+// 0x5d06c0 (thiscall (file), pops 4; an SEH frame, dropped; basic_filebuf<char>'s constructor, by its shape; name invented, unconfirmed): the streambuf part: its locale reference +0x34 (LocaleRef_Ctor), the six slot pointers,
+// three slots zeroed, vtable 0x709914, Targets3_Set (0, 0, 0). LocaleRef_Ctor on +0x4c, vtable 0x7098dc, byte +0x48 = 0; the reference loses a use and is made again, the pointers again, +0x44 = 0, Targets2_Set (0, 0),
+// Targets3_Set (0, 0, 0). With a file, the slots to its fields: Fn_5d0e00 (+8, +0, +4, +8, +0, +4 of the file). +0x50 = file, +0x40 and +0x3c = [0xfb2760], +0x38 = 0. Returns the buffer.
+u8 *__fastcall NFileBuf_Ctor(u8 *buf, void *, u8 *file);
 // 0x5cec80 (an SEH frame, dropped; name invented, unconfirmed): vtable 0x7098dc. Byte +0x48 and a file +0x50 whose fclose answers 0: +0x48 = 0, Wstreambuf_InitPointers, +0x50 = 0, +0x40 and +0x3c = [0xfb2760], +0x38 = 0.
 // The string +0x44, when set, tidied and freed. The locale references +0x4c, then (after vtable 0x709914) +0x34, each when set lose a use, deleted (slot 0 with 1) at the last.
 void __fastcall NFileBuf_Dtor(u8 *buf);

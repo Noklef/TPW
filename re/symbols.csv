@@ -5906,6 +5906,7 @@ address,name,kind,confidence,notes
 0x005cec80,NFileBuf_Dtor,function,low,reimplemented (src/game/core/narrowfilebuf); the narrow file buffer's destructor
 0x005cefe0,NFileBuf_PutBack,function,low,reimplemented (src/game/core/narrowfilebuf); the narrow file buffer's pbackfail
 0x005cf200,NFileBuf_Uflow,function,low,reimplemented (src/game/core/narrowfilebuf); the narrow file buffer's uflow
+0x005d06c0,NFileBuf_Ctor,function,low,reimplemented (src/game/core/narrowfilebuf); the narrow file buffer's constructor
 0x0050ffe0,Nav_Ctor,function,high,reimplemented (src/game/world/nav); constants constructor with five integer pairs
 0x0050f200,Nav_Dtor,function,high,reimplemented (src/game/world/nav); thiscall: the five IntPairs at +0x64 destroyed with Stub_Ret (CRT_VectorDtorIterator); also via 0x4f7c30 (+0xd4) and 0x4f8ad0
 0x004f7c30,Nav_DtorAtD4,function,low,reimplemented (src/game/world/nav); thiscall adjustor: Nav_Dtor on this + 0xd4
