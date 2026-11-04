@@ -1,6 +1,6 @@
 # The loading screen shown (src/game/gfx/loadscreen: 0x587380 LoadScreen_Show) against the original: the image load, the stamp, the image show and the restore recorders (driver.cpp's kLoadScreenCalls), the image filled in (widths 400, 512, 640, 800,
 # 1024 and others, a handle or none), the load answering 0 or not; the first show or later for either count; the screen's old blocks held or not (their handles in the tracked table or not, as loadscreen.py); the name and folder none or a short text, the folder with its backslash or empty; the display's width
-# the five named or another; ms 0, small, large or negative; timeGetTime moving on 1000 at each call, so the waits end.
+# the five named or another; ms 0, small, large or negative; timeGetTime moving on 500 at each call, so the waits end, on their 2500 exactly.
 # usage: loadscreenshow.py [CASES [SEED]] [--wild|--both] [--show N]
 import os
 import struct
@@ -49,7 +49,7 @@ def case(r):
     folder = r.choice([b'', b'data', b'data\\init', b'data\\init\\', b'\\'])
     name = r.choice([b'', b'a', b'loading'])
     regions = {HEAP: heap(0x100, r.choice([0, 0, 0, 0, 0, 0, 0, 0, 0, 1])), **global_heap(), LOG: log, SCREEN: screen, BLOCKS: blocks, PAIRS: table, COUNT: struct.pack('<I', r.choice([0, 1, 2, 4, 8])),
-               NAME: name + b'\0', FOLDER: folder + b'\0', TIMES: struct.pack('<40I', *[(now + 1000 * i) & 0xffffffff for i in range(40)]),
+               NAME: name + b'\0', FOLDER: folder + b'\0', TIMES: struct.pack('<40I', *[(now + 500 * i) & 0xffffffff for i in range(40)]),
                ANSWERS: struct.pack('<40I', *[r.choice([0, 1, r.getrandbits(32)]) for _ in range(40)]), 0x6fd3ec: struct.pack('<I', recorder(TIME, 0, True)), 0x8c4780: counts,
                0x8bcbc8: r.bytes(4), 0x8bd508: r.bytes(4), 0x8bcbd0: struct.pack('<i', r.choice([400, 512, 640, 800, 1024, 0, 1, 1280]))}
     ms = r.choice([0, 0, 1, 500, 1000, 0x1000001, 0x7fffffff, -1, -500, r.getrandbits(31)])
