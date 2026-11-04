@@ -92,3 +92,10 @@ u32 __fastcall Object_RenderToBlock13c(u8 *object, void *, u8 *mesh);
 
 // Test seam: fncmp's driver sends Object_MakeSavedPairs130's calls to recorders.
 void VObj2_SetCalls(const AddrCall *table, u32 count);
+
+// 0x57b8a0 (thiscall; name invented, unconfirmed; x87 in the original's order): the object's shadow. A block at +0x13c made when none (Object_MakeBlock13c: its 0 gives 0, and a new block's next time is set at the end). A sun at 0x8c17c8 ([0x8c1818] set) with its y below 0, or NaN, else 1. The six
+// floats at +0x80 of +8 into the block's +0x20, each low and high in order, +4 bit 8 (none: cleared). The block's +0 to +0x14 that box grown by 1/100, Box_Extend to the two far corners moved along the sun. With +0x1c after the frame [0x8bcc40]: +0x1c = the frame + [0x8bd4b4], 1. Else the matrix to the block's texture
+// (the transformer's slot 6 on 0xfb3400, a static identity at first), Batch_Begin (none: 1), DrawBuffer_Alloc(0x2000) (none: 1), Model_AddTree (0: 0), Object_RenderToBlock13c (0: 0), TexCache_UnlinkItem(the block's +0x18). A new block's +0x1c: the next of [0x8bd4b8] within [0x8bd4b4], after the frame. Returns 1.
+extern "C" {
+u32 __fastcall Object_UpdateShadow(u8 *self);
+}

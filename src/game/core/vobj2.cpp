@@ -1,6 +1,7 @@
 #include "vobj2.h"
 
 #include <cstdint>
+#include <cstring>
 
 #include "crt.h"
 #include "gameheap.h"
@@ -9,6 +10,8 @@
 #include "vobj3.h"
 #include "../gfx/texset.h"
 #include "../gfx/texture.h"
+#include "../math/geometry.h"
+#include "../math/x87.h"
 #include "../render/fixedverts.h"
 #include "../render/softrender.h"
 #include "../render/engineerrors.h"
@@ -367,3 +370,122 @@ u32 __fastcall Object_RenderToBlock13c(u8 *object, void *, u8 *mesh) {
 }  // extern "C"
 
 void VObj2_SetCalls(const AddrCall *table, u32 count) { g_calls.Set(table, count); }
+
+extern "C" u32 __fastcall Object_UpdateShadow(u8 *self) {
+    const auto bits = [](float f) { return *reinterpret_cast<u32 *>(&f); };
+    u32 made = 0;
+    if (!at<u32>(self, 0x13c)) {
+        if (!g_calls.Th(0x0057b490, static_cast<u32>(reinterpret_cast<uintptr_t>(self))))
+            return 0;
+        made = 1;
+    }
+    const float *const light = global<u32>(0x008c1818) ? reinterpret_cast<const float *>((uintptr_t)0x008c17c8) : nullptr;
+    if (!light || light[1] >= 0.0f)   // 0x701abc (a NaN goes on: fcom's C0)
+        return 1;
+    const u8 *const source = at<u8 *>(self, 8) + 0x80;
+    u8 *const block = at<u8 *>(self, 0x13c);
+    if (!source) {
+        at<u32>(self, 4) &= ~8u;
+    } else if (block) {
+        std::memcpy(block + 0x20, source, 0x18);
+        at<u32>(self, 4) |= 8;
+    }
+    for (u32 low = 0x20; low <= 0x28; low += 4) {
+        if (at<float>(block, low) > at<float>(block, low + 0xc)) {
+            const u32 was = at<u32>(block, low);
+            at<u32>(block, low) = at<u32>(block, low + 0xc);
+            at<u32>(block, low + 0xc) = was;
+        }
+    }
+
+    // The box grown by 1 in 100 of its size each way, x87 as the original keeps it: x's growth and the three ends unrounded while they last.
+    const float kGrow = 0.01f;   // 0x701ac0
+    const X87Reg growY = (X87Reg(at<float>(block, 0x30)) - at<float>(block, 0x24)) * kGrow;
+    const X87Reg growX = (X87Reg(at<float>(block, 0x2c)) - at<float>(block, 0x20)) * kGrow;
+    const X87Reg growZ = (X87Reg(at<float>(block, 0x34)) - at<float>(block, 0x28)) * kGrow;
+    const X87Reg lowY = X87Reg(at<float>(block, 0x24)) - growY;
+    const float growXf = (float)growX, growZf = (float)growZ;
+    const float lowX = (float)(X87Reg(at<float>(block, 0x20)) - growXf);
+    const float highX = (float)(growX + at<float>(block, 0x2c));
+    const float highY = (float)(growY + at<float>(block, 0x30));
+    const X87Reg span = lowY - highY;
+    const float lowZ = (float)(X87Reg(at<float>(block, 0x28)) - growZf);
+    const float highZ = (float)(growZ + at<float>(block, 0x34));
+    at<u32>(block, 4) = bits((float)lowY);
+    at<u32>(block, 0) = bits(lowX);
+    at<u32>(block, 8) = bits(lowZ);
+    at<u32>(block, 0xc) = bits(highX);
+    at<u32>(block, 0x10) = bits(highY);
+    at<u32>(block, 0x14) = bits(highZ);
+
+    // Its shadow along the light: the far corners moved to the low y.
+    const X87Reg along = span / light[1];
+    const u32 shadowY = bits((float)(along * light[1] + highY));
+    const X87Reg alongZ = along * light[2];
+    const float moveZ = (float)alongZ;
+    const u32 nearZ = bits((float)(alongZ + lowZ));
+    const X87Reg alongX = along * light[0];
+    const float moveX = (float)alongX;
+    Box_Extend(reinterpret_cast<u32 *>(block), nullptr, bits((float)(alongX + lowX)), shadowY, nearZ);
+    const u32 farZ = bits((float)(X87Reg(moveZ) + highZ));
+    Box_Extend(reinterpret_cast<u32 *>(block), nullptr, bits((float)(X87Reg(moveX) + highX)), shadowY, farZ);
+
+    if (block && at<s32>(block, 0x1c) > global<s32>(0x008bcc40)) {
+        at<u32>(block, 0x1c) = global<u32>(0x008bcc40) + global<u32>(0x008bd4b4);
+        return 1;
+    }
+
+    // The matrix to the block's texture: 1 over the box's size (0 for none, or a NaN), then flipped.
+    const X87Reg sizeX = X87Reg(at<float>(block, 0xc)) - at<float>(block, 0);
+    const float sizeZ = (float)(X87Reg(at<float>(block, 0x14)) - at<float>(block, 8));
+    const float scaleX = sizeX.v != 0.0 && sizeX.v == sizeX.v ? (float)(X87Reg(1.0f) / sizeX) : 0.0f;   // 0x701ab8
+    const float scaleZ = sizeZ != 0.0f && sizeZ == sizeZ ? (float)(X87Reg(1.0f) / sizeZ) : 0.0f;
+    const X87Reg slopeX = X87Reg(light[0]) / light[1];
+    const float cornerX = at<float>(block, 0), cornerZ = at<float>(block, 8);
+    const u32 pair[2] = {bits(moveX), at<u32>(at<u8 *>(self, 8), 0x78)};   // (Model_AddTree's model: its +4 the model)
+    float matrix[16] = {}, scale[16] = {}, flip[16] = {};
+    matrix[0] = matrix[10] = matrix[15] = scale[15] = 1.0f;
+    matrix[4] = (float)X87Reg(-slopeX.v);
+    matrix[6] = (float)X87Reg(-(X87Reg(light[2]) / light[1]).v);
+    scale[0] = scaleX;
+    scale[10] = scaleZ;
+    u8 &guard = global<u8>(0x00fb33e0);
+    float *const product = reinterpret_cast<float *>((uintptr_t)0x00fb3400);   // (a function-local static, an identity)
+    if (!(guard & 1)) {
+        guard |= 1;
+        std::memset(product, 0, 0x40);
+        product[0] = product[5] = product[10] = product[15] = 1.0f;
+        g_calls.Cd(0x0067a7d0, 0x005d1750u);
+    }
+    u8 *const transformer = global<u8 *>(0x0087b1d8);
+    const auto multiply = reinterpret_cast<void(__cdecl *)(u8 *, const float *, const float *, float *)>((uintptr_t)(*reinterpret_cast<u32 **>(transformer))[6]);
+    multiply(transformer, matrix, scale, product);
+    std::memcpy(matrix, product, 0x40);
+    const float y = at<float>(block, 4);
+    matrix[12] = (float)X87Reg(-(X87Reg(y) * matrix[4] + X87Reg(cornerX) * scaleX).v);
+    matrix[14] = (float)X87Reg(-(X87Reg(matrix[6]) * y + X87Reg(cornerZ) * scaleZ).v);
+    flip[0] = -1.0f;
+    flip[5] = flip[10] = flip[15] = 1.0f;
+    multiply(transformer, matrix, flip, product);
+    std::memcpy(matrix, product, 0x40);
+    matrix[12] = (float)(X87Reg(product[12]) - -1.0f);   // 0x701ac4
+
+    const u32 batch = g_calls.Th(0x00565240, global<u32>(0x00879ab0), 2u, 4u, 0x1c4u, 0x1256u, 0u);
+    if (!batch)
+        return 1;
+    const u32 vertices = g_calls.Th(0x00582640, global<u32>(0x008bcbc4), 0x2000u);
+    if (!vertices)
+        return 1;
+    const u32 me = static_cast<u32>(reinterpret_cast<uintptr_t>(self));
+    if (!g_calls.Th(0x0057b610, me, pair, matrix, batch, vertices))
+        return 0;
+    if (!g_calls.Th(0x0057b6e0, me, batch))
+        return 0;
+    g_calls.Th(0x0058dc50, global<u32>(0x008c4b44), at<u32>(block, 0x18));
+    if (made) {
+        const u32 interval = global<u32>(0x008bd4b4);
+        const u32 turn = ++global<u32>(0x008bd4b8);
+        at<u32>(block, 0x1c) = ((interval - 1) & turn) + global<u32>(0x008bcc40) + interval;
+    }
+    return 1;
+}
