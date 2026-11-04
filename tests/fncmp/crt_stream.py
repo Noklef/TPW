@@ -89,7 +89,7 @@ def case(r):
     if name in ('read', 'read_lk'):
         return Call(0x688a50 if name == 'read' else 0x688ad0, [r.choice(FDS + [0x40, 0x50]) if name == 'read' else r.choice(FDS), BUFFER, r.choice([0, 1, 2, 3, 8, 0x20, 0x80])], regions, conv='c', ret='a')
     file = r.choice([FILE, FILE, FILE, FILE, 0x77e820, 0x77e840])
-    flags = r.choice([1, 1 | 8, 0x81, 0x81 | 8, 1 | 0x100, 1 | 4, 0x80, 0x80 | 8, 0x82, 0x82 | 8, 2, 2 | 8, 0x83 | 8, 0x40, 0x41, 0x49, 0, 8, 1 | 8 | 0x400, 1 | 0x10 | 8, 0x81 | 0x10])
+    flags = r.choice([1, 1 | 8, 0x81, 0x81 | 8, 1 | 0x100, 1 | 4, 0x80, 0x80 | 8, 0x82, 0x82 | 8, 2, 2 | 8, 0x83 | 8, 0x40, 0x41, 0x49, 0, 8, 1 | 8 | 0x400, 1 | 0x10 | 8, 0x81 | 0x10, 1 | 8 | 0x2000])
     size = r.choice([0, 1, 4, 0x10, 0x200, 0x1000, -1])
     fd = r.choice(FDS + [-1, 0x40])
     base = r.choice([BUFFER, BUFFER, BUFFER, BUFFER, 0])
@@ -105,6 +105,10 @@ def case(r):
     if name in ('fseek', 'fseek_lk'):
         return Call(0x67c100 if name == 'fseek' else 0x67c140, [file, r.choice([0, 1, 0x10, 0x200, 0xffffffff, r.getrandbits(32)]), r.choice([0, 0, 1, 1, 2, 2, 3, 0xffffffff])], regions, conv='c', ret='a')
     if name == 'stbuf':
+        if r.random() < 0.7:      # (a standard file with no buffer yet, malloc failing half of the time)
+            file = r.choice([0x77e820, 0x77e840])
+            regions[file] = struct.pack('<6Ii', 0, 0, 0, r.choice([1, 2, 0x82]), r.choice(FDS), r.getrandbits(32), size) + bytes(4)
+            set_return(log, NHMALLOC, r.choice([BLOCK, 0]))
         regions[0xfb1540] = struct.pack('<2I', r.choice([0, BLOCK + 0x100]), r.choice([0, BLOCK + 0x200]))
         return Call(0x688610, [file], regions, conv='c', ret='a')
     if name == 'ftbuf':

@@ -75,8 +75,12 @@ def case(r):
         regions[0xfb14f8] = date()
         regions[WHEN] = struct.pack('<9i', r.randrange(60), r.randrange(60), r.randrange(24), r.randrange(1, 29), r.randrange(12), year, r.randrange(7), yearday, r.randrange(2))
         if r.random() < 0.3:      # (the time of day itself at the change)
-            ms = struct.unpack_from('<i', regions[0x781470], r.choice([8, 0x18]))[0]
-            regions[WHEN] = struct.pack('<9i', ms // 1000 % 60, ms // 60000 % 60, ms // 3600000, 1, 0, year, 0, yearday, 0)
+            seconds = r.randrange(86400)
+            block = bytearray(regions[0x781470])
+            struct.pack_into('<i', block, 8, seconds * 1000)
+            struct.pack_into('<i', block, 0x18, seconds * 1000)
+            regions[0x781470] = block
+            regions[WHEN] = struct.pack('<9i', seconds % 60, seconds // 60 % 60, seconds // 3600, 1, 0, year, 0, yearday, 0)
         return Call(0x688090, [WHEN], regions, conv='c', ret='a')
     if name == 'gmtime':
         regions[PTD] = struct.pack('<I', r.choice([0, 0, BLOCK + 0x100])).rjust(0x44, b'\0')

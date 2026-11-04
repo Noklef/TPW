@@ -141,6 +141,8 @@ def case(r):
         words = [b'', b'a', b'A', b'ab', b'abc', b'abd', b'abcd', b'abcde', b'abcdefgh', b'abcdefgi', b'\xe9', b'\xe9a', b'a\xe9', b'aab', b'aaab', b'abab', b'xabcdabcde', b'bc', b'cd', b'de']
         regions[TEXT] = bytes(r.randrange(1, 256) for _ in range(3)) + r.choice(words) + b'\0' + r.bytes(8)
         regions[SET] = bytes(r.randrange(1, 256) for _ in range(3)) + r.choice(words) + b'\0' + r.bytes(8)
+        if name == 'strstr' and r.random() < 0.1:     # (an empty one wanted in an empty text)
+            regions[TEXT] = regions[SET] = bytes(3) + b'\0' + r.bytes(8)
         return Call(0x680060 if name == 'strcmp' else 0x67c080, [TEXT + 3, SET + 3], regions, conv='c', ret='a')
     if name in ('memchr', 'strchr'):
         wanted = r.choice([0x41, 0x80, 0xff, 0xe9, 0x141, 0, r.getrandbits(32)])
