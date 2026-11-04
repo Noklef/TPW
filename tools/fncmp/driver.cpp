@@ -1048,7 +1048,7 @@ const Dialog7cc188ListEnv kDialog7cc188ListEnv = {Rec{jpeg_recorder(16, 0)}, Rec
 // Dialog7cc1f8_ShowPreview's calls (tests/fncmp/dialog7cc1f8preview.py).
 const Dialog7cc1f8PreviewEnv kDialog7cc1f8PreviewEnv = {Rec{recorder(10, 1)}, Rec{stdcall_recorder(11, 1)}, Rec{jpeg_recorder(12, 3)}, Rec{recorder(13, 2)}, Rec{recorder(14, 0)}, Rec{jpeg_recorder(15, 4)}, Rec{jpeg_recorder(16, 1)}, Rec{jpeg_recorder(17, 3)}, Rec{jpeg_recorder(18, 1)}, Rec{recorder(19, 1)}, Rec{jpeg_recorder(20, 1)}, Rec{jpeg_recorder(21, 1)}};
 // TqiVideo's frames' macroblocks (tests/fncmp/tqiframe.py).
-const TqiFrameEnv kTqiFrameEnv = {Rec{jpeg_recorder(10, 3)}, Rec{jpeg_recorder(11, 3)}, Rec{jpeg_recorder(12, 3)}};
+const TqiFrameEnv kTqiFrameEnv = {Rec{jpeg_recorder(10, 3)}, Rec{jpeg_recorder(11, 3)}, Rec{jpeg_recorder(12, 3)}, Rec{jpeg_recorder(13, 3)}, Rec{jpeg_recorder(14, 3)}};
 // DctVideo_DecodeMacroblock's calls (tests/fncmp/dctmacroblock.py).
 const DctMacroblockEnv kDctMacroblockEnv = {Rec{jpeg_recorder(10, 0)}, Rec{jpeg_recorder(11, 2)}, Rec{jpeg_recorder(12, 4)}};
 // The thing panels' sign slot's calls (tests/fncmp/thingsign.py).
