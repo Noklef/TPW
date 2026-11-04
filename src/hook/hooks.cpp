@@ -597,6 +597,7 @@
 #include "../game/ui/windowscript.h"
 #include "../game/ui/buttontext.h"
 #include "../game/ui/chatnamemenu.h"
+#include "../game/ui/cursorfiles.h"
 #include "../game/ui/dialog74fb20.h"
 #include "../game/ui/dialog7ca098.h"
 #include "../game/ui/dialog7ca13c.h"
@@ -8400,6 +8401,8 @@ const Hook kHooks[] = {
     {"Dialog7cc5f4_DialHandler",  0x004b9d00, (void *)&Dialog7cc5f4_DialHandler, {0x83, 0xec, 0x10, 0x53, 0x55}},
     {"Dialog7cc4b4_Open",         0x004b8ca0, (void *)&Dialog7cc4b4_Open, {0x6a, 0xff, 0x68, 0xf6, 0xb5}},
     {"Dialog7cc654_ShowPicture",  0x004bc270, (void *)&Dialog7cc654_ShowPicture, {0x6a, 0xff, 0x68, 0x86, 0xb8}},
+    {"CursorFiles_LoadSystem",    0x004895b0, (void *)&CursorFiles_LoadSystem, {0x64, 0xa1, 0x00, 0x00, 0x00}},
+    {"CursorFiles_LoadPicture",   0x00489670, (void *)&CursorFiles_LoadPicture, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"jdmarker_examine_app14",    0x0063bf50, (void *)&jdmarker_examine_app14, {0x8b, 0x4c, 0x24, 0x0c, 0x53}},
     {"jdmarker_examine_app0",     0x0063bcc0, (void *)&jdmarker_examine_app0, {0x8b, 0x44, 0x24, 0x0c, 0x8b}},
     {"jdmarker_get_interesting_appn", 0x0063bb80, (void *)&jdmarker_get_interesting_appn, {0x8b, 0x44, 0x24, 0x04, 0x83}},

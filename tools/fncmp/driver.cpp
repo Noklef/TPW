@@ -72,6 +72,7 @@
 #include "../../src/game/ui/window7cb2cc.h"
 #include "../../src/game/ui/window7cc8bcmenu.h"
 #include "../../src/game/ui/window7cc8c0handler.h"
+#include "../../src/game/ui/cursorfiles.h"
 #include "../../src/game/ui/dialog7cc654picture.h"
 #include "../../src/game/world/objectscript.h"
 #include "../../src/game/gfx/moviedisplay.h"
@@ -1177,6 +1178,7 @@ u32 __cdecl object_script_load(const char *name, u32 handle, u32 quiet) { return
 const ObjectScriptEnv kObjectScriptEnv = {&object_script_find<1, 0x30003000>, &object_script_find<2, 0x30004000>, Rec{jpeg_recorder(10, 5)}, Rec{jpeg_recorder(11, 3)}, &object_script_handle, &object_script_load, Rec{jpeg_recorder(12, 2)}};
 void __fastcall dialog_picture_array(u32 *array, void *, u32 width, u32 height, u32) { array[0] = width; array[1] = height; array[3] = 0x30003000; }  // (tests/fncmp/dialog7cc654picture.py)
 const Dialog7cc654PictureEnv kDialog7cc654PictureEnv = {Rec{recorder(10, 0)}, Rec{recorder(11, 1)}, Rec{recorder(12, 2)}, Rec{jpeg_recorder(13, 4)}, Rec{recorder(14, 4)}, Rec{recorder(15, 5)}, Rec{reinterpret_cast<uintptr_t>(&dialog_picture_array)}, Rec{recorder(16, 4)}, Rec{recorder(17, 0)}, Rec{recorder(18, 0)}};
+const CursorFilesEnv kCursorFilesEnv = {Rec{jpeg_recorder(10, 4)}, Rec{jpeg_recorder(11, 3)}, Rec{jpeg_recorder(12, 1)}, Rec{recorder(13, 0)}, Rec{recorder(14, 0)}, Rec{recorder(15, 1)}};
 const Window7cc8c0HandlerEnv kWindow7cc8c0HandlerEnv = {Rec{recorder(12, 2)}, Rec{jpeg_recorder(15, 2)}, Rec{jpeg_recorder(20, 4)}, Rec{jpeg_recorder(25, 4)}, Rec{recorder(13, 0)}, Rec{recorder(14, 0)}, Rec{jpeg_recorder(28, 3)}, Rec{recorder(15, 0)}, Rec{recorder(16, 0)}, Rec{jpeg_recorder(31, 0)}, Rec{recorder(17, 2)}, Rec{recorder(18, 2)}, Rec{jpeg_recorder(29, 3)}, Rec{recorder(19, 1)}, Rec{recorder(20, 0)}, Rec{recorder(21, 1)}, Rec{jpeg_recorder(27, 1)}, Rec{jpeg_recorder(30, 5)}, Rec{jpeg_recorder(13, 1)}, Rec{jpeg_recorder(12, 0)}, Rec{jpeg_recorder(19, 0)}, Rec{jpeg_recorder(14, 0)}, Rec{recorder(23, 2)}, Rec{recorder(24, 2)}, Rec{recorder(25, 1)}, Rec{recorder(26, 1)}, Rec{recorder(27, 2)}, Rec{jpeg_recorder(16, 5)}, Rec{jpeg_recorder(17, 0)}, Rec{jpeg_recorder(18, 1)}, Rec{recorder(28, 3)}};
 const Window7cc8bcMenuEnv kWindow7cc8bcMenuEnv = {Rec{recorder(10, 2)}, Rec{recorder(11, 3)}, Rec{jpeg_recorder(12, 0)}, Rec{recorder(13, 1)}, Rec{jpeg_recorder(14, 2)}, Rec{recorder(15, 2)}, Rec{recorder(16, 2)}, Rec{recorder(17, 3)}};
 const Dialog7cb2b8TabsEnv kDialog7cb2b8TabsEnv = {Rec{jpeg_recorder(10, 1)}, Rec{jpeg_recorder(11, 0)}, Rec{jpeg_recorder(12, 0)}, Rec{recorder(13, 0)}, Rec{jpeg_recorder(14, 0)}, Rec{recorder(15, 3)}};
@@ -2204,6 +2206,7 @@ int main(int argc, char **argv) {
     Window7cb2cc_SetEnv(&kWindow7cb2ccEnv);
     Window7cc8bc_SetMenuEnv(&kWindow7cc8bcMenuEnv);
     Window7cc8c0Handler_SetEnv(&kWindow7cc8c0HandlerEnv);
+    CursorFiles_SetEnv(&kCursorFilesEnv);
     Dialog7cc654Picture_SetEnv(&kDialog7cc654PictureEnv);
     ObjectScript_SetEnv(&kObjectScriptEnv);
     MovieDisplay_SetEnv(&kMovieDisplayEnv);
