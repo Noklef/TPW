@@ -31,6 +31,10 @@ void __fastcall WScanner_SetText(u8 *scanner, void *, StdWString text, u32 conte
 // the stack's garbage there: left as they are. Returns the scanner.
 u8 *__fastcall WScanner_ConstructBase(u8 *scanner);
 
+// 0x5e6a00 (thiscall; name invented, unconfirmed): the base's destructor: vtable 0x702f18, the sets at +0x24 and +0x14 destroyed (StdTree_DtorG), the string at +4 released: its count byte down by one,
+// or (0 or 0xff) its block freed; +8 to +0x10 zero.
+void __fastcall WScanner_DestructBase(u8 *scanner);
+
 // 0x5e6750 (cdecl (a, b, flag); name invented, unconfirmed): the strings compared without case (towupper, as unsigned words): -1 or 1 at the first difference. All of the
 // shorter one the same: 0 when the flag byte is set and b has ended (a may be longer); else by the lengths, -1, 0 or 1. A null string has no characters, whatever its length.
 s32 __cdecl WString_CompareNoCase(const u8 *a, const u8 *b, u32 flag);

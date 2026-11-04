@@ -107,6 +107,22 @@ u8 *__fastcall WScanner_ConstructBase(u8 *scanner) {
     return scanner;
 }
 
+void __fastcall WScanner_DestructBase(u8 *scanner) {
+    at<u32>(scanner, 0) = 0x702f18;
+    StdTree_DtorG(scanner + 0x24);
+    StdTree_DtorG(scanner + 0x14);
+    if (u16 *const chars = at<u16 *>(scanner, 8)) {
+        u8 &count = reinterpret_cast<u8 *>(chars)[-1];
+        if (count == 0 || count == 0xff)
+            GameHeap_Free(reinterpret_cast<u8 *>(chars) - 2);
+        else
+            --count;
+    }
+    at<u32>(scanner, 8) = 0;
+    at<u32>(scanner, 0xc) = 0;
+    at<u32>(scanner, 0x10) = 0;
+}
+
 void __fastcall WScanner_SetText(u8 *scanner, void *, StdWString text, u32 context, const u8 *flags) {
     at<u16>(scanner, 0x3d) = at<u16>(flags, 0);
     at<u32>(scanner, 0x40) = context;
