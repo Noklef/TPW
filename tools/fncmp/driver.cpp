@@ -1097,6 +1097,11 @@ const AddrCall kContactsCalls[] = {  // tests/fncmp/contactspair.py
     {0x43a2b0, jpeg_recorder(2, 2)},
 };
 const AddrCall kAimSpritesCalls[] = {{0x475590, jpeg_recorder(13, 3)}, {0x475480, jpeg_recorder(14, 5)}, {0x4755d0, jpeg_recorder(15, 3)}};
+u32 __fastcall arreplay_step_recorder(u8 *self, void *) {   // as tests/fncmp/arreplayupdate.py's step: +0x2c copied to the wait
+    *reinterpret_cast<u32 *>(self + 0x30) = *reinterpret_cast<u32 *>(self + 0x2c);
+    return reinterpret_cast<u32(__fastcall *)(u8 *, void *)>((uintptr_t)recorder(1, 0))(self, nullptr);
+}
+const AddrCall kArReplayCalls[] = {{0x4045b0, (u32)(uintptr_t)&arreplay_step_recorder}, {0x5195d0, recorder(2, 0)}, {0x527940, jpeg_recorder(3, 1)}, {0x5516b0, jpeg_recorder(5, 0)}, {0x439390, jpeg_recorder(6, 0)}};
 const AddrCall kRidesLoadCalls[] = {  // tests/fncmp/ridesload.py --table
     {0x4547f0, jpeg_recorder(5, 1)},
     {0x45b9d0, jpeg_recorder(1, 2)},
@@ -2383,6 +2388,7 @@ int main(int argc, char **argv) {
     ArReplay_SetEnv(&kArReplayEnv);
     RidesLoad_SetCalls(kRidesLoadCalls, sizeof(kRidesLoadCalls) / sizeof(kRidesLoadCalls[0]));
     AimSprites_SetCalls(kAimSpritesCalls, sizeof(kAimSpritesCalls) / sizeof(kAimSpritesCalls[0]));
+    ArReplay_SetCalls(kArReplayCalls, sizeof(kArReplayCalls) / sizeof(kArReplayCalls[0]));
     Contacts_SetCalls(kContactsCalls, sizeof(kContactsCalls) / sizeof(kContactsCalls[0]));
     HeightMap_SetCalls(kHeightMapCalls, sizeof(kHeightMapCalls) / sizeof(kHeightMapCalls[0]));
     LobbyScript_SetEnv(kLobbyScriptCalls, sizeof(kLobbyScriptCalls) / sizeof(kLobbyScriptCalls[0]));
