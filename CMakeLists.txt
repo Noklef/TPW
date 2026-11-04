@@ -558,6 +558,7 @@ add_library(tpw_game STATIC
     src/game/frontend/sceneenter.cpp
     src/game/frontend/scenesteps.cpp
     src/game/frontend/lobbyflight.cpp
+    src/game/frontend/thememenu.cpp
     src/game/input/mouse.cpp
     src/game/ui/dialog7ca1c8.cpp
     src/game/ui/window.cpp

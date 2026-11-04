@@ -379,6 +379,7 @@
 #include "../../src/game/world/personscripts.h"
 #include "../../src/game/core/funnytime.h"
 #include "../../src/game/core/narrowfilebuf.h"
+#include "../../src/game/frontend/thememenu.h"
 #include "../../src/game/gfx/signrender.h"
 #include "../../src/game/files/signfonts.h"
 #include "../../src/game/core/stdlist.h"
@@ -964,6 +965,7 @@ const OnlinePollEnv kOnlinePollEnv = {Rec{recorder(8, 1)}, Rec{recorder(9, 0)}, 
 const OnlineNextEnv kOnlineNextEnv = {Rec{recorder(8, 0)}, Rec{recorder(9, 1)}, Rec{recorder(10, 2)}, Rec{recorder(11, 0)}};
 const SignRenderEnv kSignRenderEnv = {Rec{recorder(8, 3)}, Rec{recorder(9, 2)}, Rec{recorder(10, 0)}};
 const FrameStartEnv kFrameStartEnv = {Rec{recorder(8, 2)}, Rec{recorder(9, 1)}, Rec{recorder(10, 1)}, Rec{recorder(11, 1)}, Rec{recorder(12, 0)}, Rec{jpeg_recorder(13, 4)}, Rec{jpeg_recorder(14, 1)}, Rec{recorder(15, 0)}, Rec{jpeg_recorder(16, 0)}, Rec{recorder(17, 0)}, Rec{recorder(18, 0)}, Rec{recorder(19, 0)}, Rec{recorder(20, 0)}, Rec{recorder(21, 0)}, Rec{recorder(22, 0)}, Rec{jpeg_recorder(23, 0)}};
+const ThemeMenuEnv kThemeMenuEnv = {Rec{recorder(8, 0)}, Rec{recorder(9, 0)}, Rec{recorder(10, 1)}, Rec{recorder(11, 2)}, Rec{recorder(12, 2)}, Rec{recorder(13, 3)}, Rec{recorder(14, 2)}, Rec{jpeg_recorder(15, 2)}, Rec{recorder(16, 0)}, Rec{recorder(17, 1)}, Rec{recorder(18, 5)}};
 const CoasterPlaceCarEnv kCoasterPlaceCarEnv = {Rec{jpeg_recorder(1, 6)}, Rec{jpeg_recorder(2, 9)}, Rec{jpeg_recorder(3, 7)}, Rec{jpeg_recorder(4, 5)}, Rec{jpeg_recorder(5, 2)}, Rec{jpeg_recorder(6, 7)},
                                                  Rec{jpeg_recorder(7, 1)}, Rec{jpeg_recorder(8, 1)}, Rec{jpeg_recorder(9, 0)}, Rec{jpeg_recorder(10, 0)}, Rec{jpeg_recorder(11, 0)}, Rec{jpeg_recorder(12, 0)},
                                                  Rec{recorder(13, 0)}, Rec{recorder(14, 0)}, Rec{recorder(15, 1)}};  // tests/fncmp/coasterplacecar.py
@@ -2713,6 +2715,7 @@ int main(int argc, char **argv) {
     VersionLabel_SetEnv(&kVersionLabelEnv);
     BankAccountCtor_SetEnv(&kBankAccountCtorEnv);
     NarrowFileBuf_SetEnv(&kNarrowFileBufEnv);
+    ThemeMenu_SetEnv(&kThemeMenuEnv);
     Frame_SetStartEnv(&kFrameStartEnv);
     SignRender_SetEnv(&kSignRenderEnv);
     Online_SetNextEnv(&kOnlineNextEnv);
