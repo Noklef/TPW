@@ -547,6 +547,7 @@ add_library(tpw_game STATIC
     src/game/frontend/lobbymake.cpp
     src/game/frontend/lobbyscript.cpp
     src/game/frontend/helpbgstart.cpp
+    src/game/frontend/sceneenter.cpp
     src/game/input/mouse.cpp
     src/game/ui/dialog7ca1c8.cpp
     src/game/ui/window.cpp

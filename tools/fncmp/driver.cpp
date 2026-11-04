@@ -337,6 +337,7 @@
 #include "../../src/game/world/parkmap.h"
 #include "../../src/game/world/rideskin.h"
 #include "../../src/game/core/advisorscoring.h"
+#include "../../src/game/frontend/sceneenter.h"
 #include "../../src/game/frontend/sceneleave.h"
 #include "../../src/game/terrain/raypick.h"
 #include "../../src/game/terrain/ground.h"
@@ -900,6 +901,8 @@ void __cdecl ride_base_fit(const u8 *node, u8 *frame, u16 **cursor, GridFitMatri
 const RideBaseEnv kRideBaseEnv = {&ride_base_fit, Rec{jpeg_recorder(2, 5)}, Rec{jpeg_recorder(3, 2)}};
 const ParkEntranceEnv kParkEntranceEnv = {Rec{jpeg_recorder(1, 2)}, Rec{jpeg_recorder(2, 1)}, Rec{jpeg_recorder(3, 4)}, Rec{jpeg_recorder(4, 1)}, Rec{jpeg_recorder(5, 0)}, Rec{jpeg_recorder(6, 6)}, Rec{recorder(7, 0)}, Rec{jpeg_recorder(8, 0)}, Rec{jpeg_recorder(9, 1)}};
 const CarSoundUpdateEnv kCarSoundUpdateEnv = {Rec{jpeg_recorder(1, 0)}, Rec{jpeg_recorder(2, 3)}, Rec{jpeg_recorder(3, 4)}, Rec{jpeg_recorder(4, 5)}};
+const SceneEnterEnv kSceneEnterEnv = {Rec{recorder(16, 1)}, Rec{recorder(17, 0)}, Rec{recorder(18, 2)}, Rec{recorder(19, 4)}, Rec{jpeg_recorder(20, 6)}, Rec{recorder(21, 6)}, Rec{recorder(22, 0)}, Rec{recorder(23, 0)},
+                                     Rec{recorder(24, 2)}, Rec{recorder(25, 0)}, Rec{jpeg_recorder(26, 0)}, Rec{recorder(27, 0)}, Rec{recorder(28, 0)}, Rec{recorder(29, 3)}, Rec{recorder(30, 3)}, Rec{jpeg_recorder(31, 0)}};  // tests/fncmp/sceneenter.py
 const SceneLeaveEnv kSceneLeaveEnv = {Rec{jpeg_recorder(20, 1)}, Rec{jpeg_recorder(21, 6)}, Rec{jpeg_recorder(22, 0)}, Rec{recorder(23, 0)}, Rec{recorder(24, 0)}, Rec{recorder(25, 0)},
                                        Rec{jpeg_recorder(26, 0)}, Rec{jpeg_recorder(27, 0)}, Rec{jpeg_recorder(28, 0)}, Rec{jpeg_recorder(29, 0)}};
 const AdvisorCriteriaEnv kAdvisorCriteriaEnv = {Rec{recorder(1, 1)}, Rec{jpeg_recorder(2, 0)}, Rec{recorder(3, 1)}, Rec{recorder(4, 0)}, Rec{recorder(5, 0)}, Rec{recorder(6, 2)}};
@@ -2488,6 +2491,7 @@ int main(int argc, char **argv) {
     RideSkin_SetEnv(&kRideSkinEnv);
     CellPaint_SetEnv(&kCellPaintEnv);
     AdvisorCriteria_SetEnv(&kAdvisorCriteriaEnv);
+    SceneEnter_SetEnv(&kSceneEnterEnv);
     SceneLeave_SetEnv(&kSceneLeaveEnv);
     CarSoundUpdate_SetEnv(&kCarSoundUpdateEnv);
     SceneViews_SetEnv(&kSceneViewsEnv);
