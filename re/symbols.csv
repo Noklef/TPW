@@ -6397,6 +6397,10 @@ address,name,kind,confidence,notes
 0x0066f090,MovieLife_Run,function,low,"reimplemented (src/game/gfx/movielife); the movie's loop: name invented, unconfirmed"
 0x0066f4e0,MovieLife_OpenAndStart,function,low,"reimplemented (src/game/gfx/movielife); the movie made and started: name invented, unconfirmed"
 0x00670710,MovieLife_ReleaseSurfaces,function,low,"reimplemented (src/game/gfx/movielife); the movie's tables and surfaces let go: name invented, unconfirmed"
+0x006724a0,MovieSoundThread_Main,function,low,"reimplemented (src/game/gfx/moviesoundthread); the movie's sound's thread: name invented, unconfirmed"
+0x00672520,MovieSoundThread_Write,function,low,"reimplemented (src/game/gfx/moviesoundthread); the next block or silence written to the movie's stream: name invented, unconfirmed"
+0x00672850,MovieSoundThread_OpenDevice,function,low,"reimplemented (src/game/gfx/moviesoundthread); the movie's sound device made and asked: name invented, unconfirmed"
+0x00672910,MovieSoundThread_CreateDevice,function,low,"reimplemented (src/game/gfx/moviesoundthread); DirectSoundCreate and the cooperative level: name invented, unconfirmed"
 0x00fa9f3c,gScreenOpen,data,high,Screen_Open has run (Screen_Close clears it)
 0x00fa77d0,gScreenModes,data,high,List of ScreenMode (width, height, bit count) from EnumDisplayModes
 0x006fefa8,TgaCodec_vtable,data,high,"TgaCodec (ImageCodec: vtable, SurfaceInfo): 0x47e750 deleting dtor, GetInfo, Load, IsTga; the work is done by a stack TgaReader (0x44, vtable 0x703630)"

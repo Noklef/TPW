@@ -155,6 +155,7 @@
 #include "../game/gfx/moviepixels.h"
 #include "../game/gfx/movieplayer.h"
 #include "../game/gfx/moviesound.h"
+#include "../game/gfx/moviesoundthread.h"
 #include "../game/gfx/moviestart.h"
 #include "../game/gfx/moviesurface.h"
 #include "../game/gfx/overlayload.h"
@@ -6575,6 +6576,10 @@ const Hook kHooks[] = {
     {"MovieLife_Run",             0x0066f090, (void *)&MovieLife_Run, {0x83, 0xec, 0x0c, 0x53, 0x55}},
     {"MovieLife_OpenAndStart",    0x0066f4e0, (void *)&MovieLife_OpenAndStart, {0x8b, 0x44, 0x24, 0x0c, 0x8b}},
     {"MovieLife_ReleaseSurfaces", 0x00670710, (void *)&MovieLife_ReleaseSurfaces, {0x56, 0x8b, 0xf1, 0x57, 0x33}},
+    {"MovieSoundThread_Main",     0x006724a0, (void *)&MovieSoundThread_Main, {0x53, 0x8b, 0x1d, 0xd4, 0xd1}},
+    {"MovieSoundThread_Write",    0x00672520, (void *)&MovieSoundThread_Write, {0x83, 0xec, 0x14, 0x53, 0x8b}},
+    {"MovieSoundThread_OpenDevice", 0x00672850, (void *)&MovieSoundThread_OpenDevice, {0x83, 0xec, 0x60, 0x56, 0x8b}},
+    {"MovieSoundThread_CreateDevice", 0x00672910, (void *)&MovieSoundThread_CreateDevice, {0x56, 0x57, 0x8b, 0xf1, 0x6a}},
     {"RenderMode_Size",           0x0044a590, (void *)&RenderMode_Size, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_Depth",          0x0044a5d0, (void *)&RenderMode_Depth, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_ResetScale",     0x0044a600, (void *)&RenderMode_ResetScale, {0x51, 0xc7, 0x44, 0x24, 0x00}},
