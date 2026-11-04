@@ -81,8 +81,22 @@ struct OnlineEndEnv {
     void(__cdecl *setProgress)(s32 percent);       // Dialog7cca94_SetProgress (0x4c2600)
     u8 *(__cdecl *instance)();                     // Online_Instance (0x48b390)
     void(__fastcall *uploadStart)(u8 *session);    // Online_UploadStart (0x5b7cd0)
+    void(__cdecl *openDialog)(u32 value);          // Dialog7cc530_Open (0x4ba980)
 };
 void Online_SetEndEnv(const OnlineEndEnv *env);
+
+// Online_Poll's calls: the ports by default; the bench's recorders.
+struct OnlinePollEnv {
+    void(__fastcall *loginFinish)(u8 *session, void *, u32 failed);  // Online_LoginFinish (0x5b6510)
+    void(__fastcall *newsPoll)(u8 *session);       // Online_NewsPoll (0x5b6a30)
+    void(__fastcall *cityPoll)(u8 *session);       // Online_CityPoll (0x5b75d0)
+    void(__fastcall *uploadPoll)(u8 *session);     // Online_UploadPoll (0x5b8490)
+    void(__fastcall *downloadEnd)(u8 *session, void *, u32 failed);  // Online_DownloadEnd (0x5b90e0)
+    s32(__cdecl *message4)();                      // Dialog7cca94_Message4IfUp (0x4c25e0)
+    void(__cdecl *showText)(u32 text);             // Dialog7cca94_ShowText (0x4c25b0)
+    void(__cdecl *setProgress)(s32 percent);       // Dialog7cca94_SetProgress (0x4c2600)
+};
+void Online_SetPollEnv(const OnlinePollEnv *env);
 
 extern "C" {
 
@@ -194,6 +208,14 @@ void __fastcall Online_UploadPoll(u8 *session);
 
 // 0x5b79f0 (cdecl; failed): not failed: Online_UploadStart. Failed: as Online_UploadPoll's end, the callback with 1.
 void __cdecl Online_UploadLoginDone(u32 failed);
+
+// 0x5b7ba0 (thiscall; pops 28): the Upload reset; the string at +0x330 assigned the first argument, +0x344 the second, the strings at +0x348 and +0x35c the next two, +0x370, +0x374 and +0x378 the rest.
+// Logged in: Online_UploadStart. Otherwise +0x320 = 1, the login's callback +4 = Online_UploadLoginDone, +8 = 0, and the login dialog opened.
+void __fastcall Online_UploadBegin(u8 *session, void *, const void *a, u32 b, const void *c, const void *d, u32 e, u32 f, u32 g);
+
+// 0x5b5bf0 (thiscall): the frame's poll. With an Auth and +0x64: the login finished, +0x64 = 0. The news, city and upload polled. A download running (+0x39c, +0x3a0 and +0x38c set): when ended (+0x390)
+// Message4, +0x38c = 0, and Online_DownloadEnd(+0x394 clear); otherwise its text (0x102) and, with a total above 0, its progress.
+void __fastcall Online_Poll(u8 *session);
 
 // 0x5b87e0 (thiscall (a, b, c), pops 12; name invented, unconfirmed): Online_ReleaseNews; +0x74, +0x90 and +0xac = -1; +0xc8, +0xcc, +0x78, +0x94, +0xb0, +0xd0 = 0; the strings +0x7c (0x786de4), +0x98 and +0xb4 (0x78a374)
 // assigned by slot 5; the city, upload and download reset; the dialog's message. +0x3a8 = a, +0x3c0 = b, +0x3c4 = c. Logged in (+0x60): the instance's list +0xf0 starts on its +0x3a8 with the callback 0x5b88e0. Otherwise

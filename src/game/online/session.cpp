@@ -22,6 +22,7 @@
 #include "itemlist.h"
 #include "items.h"
 #include "listrequest.h"
+#include "sessionlogin.h"
 
 namespace {
 
@@ -539,7 +540,7 @@ void __fastcall Online_Dtor(u8 *session) {
 namespace {
 
 const OnlineEndEnv kEndGameEnv = {&CommandQueue_Post, &Online_OpenCity, &Online_ReleaseNews, &Online_ResetNews, &Online_ResetCity, &Online_ResetUpload, &Online_ResetDownload, &Dialog7cca94_Message4IfUp, &Dialup_HangUpIfOpen,
-                                  reinterpret_cast<decltype(OnlineEndEnv::showText)>(&Dialog7cca94_ShowText), reinterpret_cast<decltype(OnlineEndEnv::setProgress)>(&Dialog7cca94_SetProgress), &Online_Instance, &Online_UploadStart};
+                                  reinterpret_cast<decltype(OnlineEndEnv::showText)>(&Dialog7cca94_ShowText), reinterpret_cast<decltype(OnlineEndEnv::setProgress)>(&Dialog7cca94_SetProgress), &Online_Instance, &Online_UploadStart, &Dialog7cc530_Open};
 const OnlineEndEnv *g_end = &kEndGameEnv;
 
 using TransferCallback = void(__cdecl *)(u32 result, u32 user);
@@ -644,6 +645,56 @@ void __cdecl Online_UploadLoginDone(u32 failed) {
     }
     if (callback) callback(1, user);
     Online_ReleaseUpload(session);
+}
+
+void __fastcall Online_UploadBegin(u8 *session, void *, const void *a, u32 b, const void *c, const void *d, u32 e, u32 f, u32 g) {
+    Online_ResetUpload(session);   // the game has it inline
+    vcall<void>(session + 0x330, 0x14, a);
+    at<u32>(session, 0x344) = b;
+    vcall<void>(session + 0x348, 0x14, c);
+    vcall<void>(session + 0x35c, 0x14, d);
+    at<u32>(session, 0x370) = e;
+    at<u32>(session, 0x374) = f;
+    at<u32>(session, 0x378) = g;
+    if (at<u32>(session, 0x60)) {
+        g_end->instance();   // sic: asked twice
+        g_end->uploadStart(g_end->instance());
+        return;
+    }
+    at<u32>(session, 0x320) = 1;
+    at<u32>(session, 4) = 0x005b79f0;
+    at<u32>(session, 8) = 0;
+    g_end->openDialog(0x005b5cb0);
+}
+
+namespace {
+const OnlinePollEnv kPollGameEnv = {&Online_LoginFinish, &Online_NewsPoll, &Online_CityPoll, &Online_UploadPoll, &Online_DownloadEnd, &Dialog7cca94_Message4IfUp,
+                                    reinterpret_cast<decltype(OnlinePollEnv::showText)>(&Dialog7cca94_ShowText), reinterpret_cast<decltype(OnlinePollEnv::setProgress)>(&Dialog7cca94_SetProgress)};
+const OnlinePollEnv *g_poll = &kPollGameEnv;
+}  // namespace
+
+void Online_SetPollEnv(const OnlinePollEnv *env) { g_poll = env ? env : &kPollGameEnv; }
+
+void __fastcall Online_Poll(u8 *session) {
+    if (at<u32>(session, 0) && at<u32>(session, 0x64)) {
+        g_poll->loginFinish(session, nullptr, 0);
+        at<u32>(session, 0x64) = 0;
+    }
+    g_poll->newsPoll(session);
+    g_poll->cityPoll(session);
+    g_poll->uploadPoll(session);
+    if (!at<u32>(session, 0x39c) || !at<u32>(session, 0x3a0) || !at<u32>(session, 0x38c)) return;
+    if (at<u32>(session, 0x390)) {
+        g_poll->message4();
+        const u32 failed = at<u32>(session, 0x394) == 0;
+        at<u32>(session, 0x38c) = 0;
+        g_poll->downloadEnd(session, nullptr, failed);
+        return;
+    }
+    g_poll->showText(0x102);
+    const u8 *const transfer = at<u8 *>(session, 0x3a0);
+    const s32 total = at<s32>(transfer, 0x18);
+    if (total > 0) g_poll->setProgress(static_cast<s32>(at<u32>(transfer, 0x1c) * 100u) / total);
 }
 
 void __fastcall Online_CityPoll(u8 *session) {

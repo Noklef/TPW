@@ -11,10 +11,11 @@ from fncmp import HEAP, IMPORT_TABLE, LOG, RAM, Bench, Call, _recorder, answers,
 # (0 and 5: the vtable's deleting destructor and assign)
 SAY, CURRENT, PROGRESS, AUTH_RELEASE, AUTH_DTOR, UPLOAD, CITY_START, CALLBACK = 1, 2, 3, 4, 6, 7, 22, 23
 POST, OPEN, RELEASE_NEWS, NEWS, CITY, UP, DOWN, MESSAGE, HANGUP, SHOW, SET, INSTANCE, UP_START = range(8, 21)
-B = Bench([(0x5b90e0, 0x5b92d0), (0x5b8490, 0x5b8680), (0x5b79f0, 0x5b7b80), (0x5b7b80, 0x5b7b9f), (0x5b83e0, 0x5b8400), (0x67acb0, 0x67acb1)],
+DIALOG = 21
+B = Bench([(0x5b90e0, 0x5b92d0), (0x5b8490, 0x5b8680), (0x5b79f0, 0x5b7b80), (0x5b7b80, 0x5b7b9f), (0x5b83e0, 0x5b8400), (0x5b7ba0, 0x5b7cd0), (0x67acb0, 0x67acb1)],
           hooks={0x47f410: _recorder(POST, 2, cdecl=True), 0x5b72f0: _recorder(OPEN, 0), 0x5b6b20: _recorder(RELEASE_NEWS, 0), 0x5b6980: _recorder(NEWS, 0), 0x5b7430: _recorder(CITY, 0),
                  0x5b8400: _recorder(UP, 0), 0x5b9040: _recorder(DOWN, 0), 0x4c25e0: _recorder(MESSAGE, 0, cdecl=True), 0x4bae40: _recorder(HANGUP, 0, cdecl=True),
-                 0x4c25b0: _recorder(SHOW, 1, cdecl=True), 0x4c2600: _recorder(SET, 1, cdecl=True), 0x48b390: _recorder(INSTANCE, 0, cdecl=True), 0x5b7cd0: _recorder(UP_START, 0)})
+                 0x4c25b0: _recorder(SHOW, 1, cdecl=True), 0x4c2600: _recorder(SET, 1, cdecl=True), 0x48b390: _recorder(INSTANCE, 0, cdecl=True), 0x5b7cd0: _recorder(UP_START, 0), 0x4ba980: _recorder(DIALOG, 1, cdecl=True)})
 SESSION, OBJECTS, ANSWERS, VT = RAM, RAM + 0x800, RAM + 0x1000, RAM + 0x1800
 
 
@@ -33,7 +34,7 @@ def case(r):
     session = bytearray(r.bytes(0x400))
     objects = bytearray(r.bytes(0x400))
     put(objects, 0, 'I', VT)
-    for at in (0xc, 0x20, 0x3c, 0x7c, 0x98, 0xb4, 0x348, 0x35c):
+    for at in (0xc, 0x20, 0x3c, 0x7c, 0x98, 0xb4, 0x330, 0x348, 0x35c):
         put(session, at, 'I', VT)
     put(session, 0, 'I', r.choice([0, OBJECTS + 0x100, OBJECTS + 0x100]))
     put(session, 0x104, 'I', r.choice([0, OBJECTS + 0x140, OBJECTS + 0x140, OBJECTS + 0x140]))
@@ -55,7 +56,10 @@ def case(r):
     fill(log, PROGRESS, 1, struct.pack('<I', r.choice([0, 1, 3, 50, 100, r.randrange(1 << 25)])), 0)
     fill(log, PROGRESS, 2, struct.pack('<I', r.choice([0, 1, 3, 100, 0xffffffff, r.randrange(1, 1 << 30)])), 1)
     regions = {LOG: log, IMPORT_TABLE: table, HEAP: heap(), SESSION: session, OBJECTS: objects, ANSWERS: block, VT: vtable({0: 1, 5: 1})}
-    op = r.randrange(3)
+    op = r.randrange(4)
+    if op == 3:
+        put(session, 0x60, 'I', r.choice([0, 1]))
+        return Call(0x5b7ba0, [SESSION] + [r.getrandbits(32) for _ in range(7)], regions, conv='t', ret='v')
     if op == 0:
         return Call(0x5b90e0, [SESSION, r.choice([0, 0, 1, 2])], regions, conv='t', ret='v')
     if op == 1:
