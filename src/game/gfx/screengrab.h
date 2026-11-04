@@ -16,6 +16,11 @@ extern "C" {
 // returned. Any other depth leaves everything. Returns 1.
 u32 __fastcall ScreenGrab_ToRgb24(u8 *grab, void *);
 
+// 0x561610 (thiscall; name unconfirmed): +8 = the display's width * height ([0x8bcbd0], [0x8bcbd4]), +0 a tracked block of that many times the depth in bits (sic); none: the error (2, 0xb0754000)
+// pushed, 0. The front surface ([[0x879a24]] +0x14) locked with a cleared description (flags 1), its result kept (0x879cd4, a failure logged): not 0, returns 0. Each row copied, depth >> 3 times the
+// width in bytes, the source stepping by the description's pitch; the surface unlocked and that result kept: 1 when it is 0.
+u32 __fastcall ScreenGrab_TakeFront(u8 *grab, void *);
+
 // 0x5617c0 (thiscall on the grab at 0x8798d0; name; pops 4; name unconfirmed): the file name to grab to next: a name is measured, then
 // copied with its 0 to +0xc (0x80 bytes, unchecked, sic) and +0x8c pointed at the copy; a null name leaves both. Returns 1.
 u32 __fastcall ScreenGrab_SetName(u8 *grab, void *, const char *name);
