@@ -648,6 +648,7 @@ add_library(tpw_game STATIC
     src/game/render/scrolllayers.cpp
     src/game/render/settingslog.cpp
     src/game/render/meshtextures.cpp
+    src/game/render/engineshutdown.cpp
     src/game/ui/quitconfirm.cpp
     src/game/world/mapsweep.cpp
     src/game/ui/imehostattach.cpp
