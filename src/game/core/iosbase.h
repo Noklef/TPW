@@ -16,6 +16,9 @@ struct IosBaseEnv {
     void *(__fastcall *locimpCtor)(void *self, void *edx, u32 refs);   // 0x699f70: locale::_Locimp's constructor
     s32(__cdecl *atexit)(void(__cdecl *fn)());                     // 0x67a7d0
     void(__cdecl *makeloc)(void *info, u32 categories, void *imp, void *loc);   // 0x694120: locale::_Locimp::_Makeloc
+    void *(__fastcall *ctypeCtor)(void *self, void *edx, u32 table, u32 owned, u32 refs);   // 0x5cfb60: ctype<char>'s constructor
+    void(__cdecl *makexloc)(void *info, u32 categories, void *imp, void *loc);   // 0x6a67f0: _Locimp::_Makexloc
+    void(__cdecl *makewloc)(void *info, u32 categories, void *imp, void *loc);   // 0x69a7a0: _Locimp::_Makewloc
 };
 
 void IosBase_SetEnv(const IosBaseEnv *env);

@@ -2863,7 +2863,7 @@ int main(int argc, char **argv) {
     CrtInner_SetEnv(&crtInner);
     // The C++ library's: the locks do nothing (the bench's hooks of 0x691de0 / 0x691ea0), the rest recorders (tests/fncmp/iosbase.py).
     static const IosBaseEnv iosBase = {[](void *lock) -> void * { return lock; }, [](void *) {}, &heap_free, Rec{kStubs + 0x5000 + 0x800 * 2 + 0x20 * 14}, Rec{jpeg_recorder(16, 2)}, Rec{jpeg_recorder(17, 3)},
-                                       Rec{jpeg_recorder(18, 1)}, &heap_alloc, Rec{recorder(19, 1)}, Rec{jpeg_recorder(20, 1)}, Rec{jpeg_recorder(21, 4)}};
+                                       Rec{jpeg_recorder(18, 1)}, &heap_alloc, Rec{recorder(19, 1)}, Rec{jpeg_recorder(20, 1)}, Rec{jpeg_recorder(21, 4)}, Rec{recorder(18, 3)}, Rec{jpeg_recorder(0, 4)}, Rec{jpeg_recorder(1, 4)}};
     IosBase_SetEnv(&iosBase);
     Libc_SetEnv(&kDriverLibc);
     static FpuEnv fpu = *Fpu_GetEnv();  // (the guard's deleting destructors free with the stand-in heap)

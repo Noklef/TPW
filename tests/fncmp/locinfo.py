@@ -46,7 +46,7 @@ def locale_regions(r, regions, log):
     regions[STRINGS] = strings
     table = bytearray(0x48)
     other = HEAP + 0x1000
-    regions[HEAP][0x1000:0x1007] = b'German\0'
+    regions[HEAP][0x1000:0x1007] = b'French\0'
     mixed = r.random() < 0.3
     init = recorder(INIT, 0, cdecl=True)
     for i in range(6):

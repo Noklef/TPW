@@ -84,11 +84,11 @@ def case(r):
         answers(log, NHMALLOC, A_MALLOC)
         regions[A_MALLOC] = struct.pack('<40I', *[BLOCKS[i] if r.random() < 0.9 else 0 for i in range(40)])
         regions[HEAP][0x800:0x803] = b'ab\0'
-        object_ =struct.pack('<3I', r.getrandbits(32), r.choice([TEXT, 0]), r.choice([0, 1, 1]))
+        object_ = struct.pack('<3I', r.getrandbits(32), TEXT, r.choice([0, 1, 1])) if r.random() < 0.9 else struct.pack('<3I', r.getrandbits(32), 0, 0)
         regions[OBJECT] = object_
         regions[FROM] = object_
         if name == 'badctor':
-            return Call(0x6a6650, [OBJECT, r.choice([0x709f08, TEXT, 0])], regions, conv='t', ret='a')
+            return Call(0x6a6650, [OBJECT, r.choice([0x709f08, TEXT])], regions, conv='t', ret='a')
         if name == 'badcopy':
             return Call(0x6a66c0, [OBJECT, FROM], regions, conv='t', ret='a')
         if name == 'baddtor':

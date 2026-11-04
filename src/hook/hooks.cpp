@@ -218,6 +218,7 @@
 #include "../game/core/imaadpcm.h"
 #include "../game/core/iosbase.h"
 #include "../game/core/keyactions.h"
+#include "../game/core/localefacet.h"
 #include "../game/core/locimp.h"
 #include "../game/core/locinfo.h"
 #include "../game/core/loopstream.h"
@@ -6294,6 +6295,16 @@ const Hook kHooks[] = {
     {"Locimp_Addfac",             0x00698ea0, (void *)&Locimp_Addfac, {0x6a, 0xff, 0x68, 0x78, 0x40}},
     {"Locimp_Copy",               0x00698c70, (void *)&Locimp_Copy, {0x6a, 0xff, 0x68, 0x5b, 0x40}},
     {"Locale_Addfac",             0x00693f50, (void *)&Locale_Addfac, {0x6a, 0xff, 0x68, 0xbb, 0x3c}},
+    {"CtypeChar_Init",            0x00694710, (void *)&CtypeChar_Init, {0x83, 0xec, 0x14, 0x56, 0x8b}},
+    {"NumPut_Ctor",               0x00694780, (void *)&NumPut_Ctor, {0x6a, 0xff, 0x68, 0x68, 0x3d}},
+    {"NumGet_Ctor",               0x00695c40, (void *)&NumGet_Ctor, {0x6a, 0xff, 0x68, 0x48, 0x3e}},
+    {"Numpunct_Init",             0x00695a30, (void *)&Numpunct_Init, {0x53, 0x55, 0x56, 0x57, 0x8b}},
+    {"Numpunct_Copy",             0x00699410, (void *)&Numpunct_Copy, {0x56, 0x8b, 0x74, 0x24, 0x08}},
+    {"Codecvt_Ctor",              0x00698c40, (void *)&Codecvt_Ctor, {0x8b, 0x44, 0x24, 0x08, 0x56}},
+    {"UseFacet_Numpunct",         0x006991f0, (void *)&UseFacet_Numpunct, {0x6a, 0xff, 0x68, 0xfb, 0x40}},
+    {"UseFacet_Codecvt",          0x00699440, (void *)&UseFacet_Codecvt, {0x6a, 0xff, 0x68, 0x33, 0x41}},
+    {"Locinfo_GetName",           0x00693e20, (void *)&Locinfo_GetName, {0x51, 0x8a, 0x41, 0x30, 0x53}},
+    {"Locimp_Makeloc",            0x00694120, (void *)&Locimp_Makeloc, {0x6a, 0xff, 0x68, 0x4a, 0x3d}},
     {"Nav_Ctor",          0x0050ffe0, (void *)&Nav_Ctor, {0x6a, 0xff, 0x68, 0x2d, 0xe6}},
     {"Nav_Dtor",                  0x0050f200, (void *)&Nav_Dtor, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"Nav_DtorAtD4",              0x004f7c30, (void *)&Nav_DtorAtD4, {0x81, 0xc1, 0xd4, 0x00, 0x00}},
