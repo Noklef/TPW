@@ -57,12 +57,14 @@ void Put(u32 *&out, u32 &area, const u8 *item) {
 }
 
 AddrCalls g_destroyCalls;
+AddrCalls g_setupCalls;
 
 u32 address(const void *p) { return (u32)(uintptr_t)p; }
 
 }  // namespace
 
 void TexCache_SetDestroyCalls(const AddrCall *table, u32 count) { g_destroyCalls.Set(table, count); }
+void TexCache_SetSetupCalls(const AddrCall *table, u32 count) { g_setupCalls.Set(table, count); }
 
 extern "C" {
 
@@ -1512,4 +1514,38 @@ extern "C" u32 __fastcall TexCache_ReleaseGraphics(u8 *self) {
     g_destroyCalls.Th(0x0058b280, 0x008c47d8u);
     at<u32>(self, 0x18cc) &= ~0x20000000u;
     return 1;
+}
+
+extern "C" u32 __fastcall TexCache_Setup(u8 *self, void *, u32 format) {
+    debugLog("\n\n ***** Texture Cache Initialization");
+    debugLog("Surfaceformat chosen %d", format);
+    if (global<u8>(0x8bd550) & 2) {
+        at<u32>(self, 0x18e8) = 4;
+        at<u32>(self, 0x18cc) |= 2;
+    }
+    if (global<u32>(0x8bd524) == 4) {
+        global<u32>(0x8bd554) = 3;
+    } else {
+        global<u32>(0x8bd554) = format;
+        if (!g_setupCalls.Th(0x0058b220, 0x008c47d8u, global<u32>(0x7022e8), at<u32>(self, 0x18e8), format)) return 0;   // SurfacePool_MakeLevels
+    }
+    if (!g_setupCalls.Th(0x0058d400, (u32)(uintptr_t)self)) return 0;   // TexCache_ChooseBudget
+    if (!g_setupCalls.Th(0x0058d670, (u32)(uintptr_t)self)) return 0;   // TexCache_CreateSurfaces
+    at<u32>(self, 0x18f0) = 0x10;   // (the original first sets 0x40, 0x80 or 0x100 here by +0x1804 and +0x1808: overwritten)
+    at<u32>(self, 0x18cc) |= 0x20000000;
+    return 1;
+}
+
+extern "C" u32 __fastcall TexCache_ChangeFormat(u8 *self, void *, u32 format) {
+    if (at<u32>(self, 0x18cc) & 0x20000000) {
+        g_setupCalls.Th(0x0058dd60, global<u32>(0x8c4b44), 1u);   // TexCache_ReleaseItems
+        g_setupCalls.Th(0x0058d380, (u32)(uintptr_t)self);   // Object_FreeSixPointerArrays
+        g_setupCalls.Th(0x0058b280, 0x008c47d8u);   // SurfacePool_ReleaseAll
+        at<u32>(self, 0x18cc) &= 0xdfffffff;
+    }
+    if (format != 0xffffffff) {
+        global<u32>(0x8bd554) = format;
+        if (global<u32>(0x8bd524) == 1 && !g_setupCalls.Th(0x0058b220, 0x008c47d8u, global<u32>(0x7022e8), at<u32>(self, 0x18e8), format)) return 0;
+    }
+    return g_setupCalls.Th(0x0058d670, (u32)(uintptr_t)self);
 }

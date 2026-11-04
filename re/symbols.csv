@@ -6377,6 +6377,8 @@ address,name,kind,confidence,notes
 0x0058fcf0,TexCache_Rebalance,function,low,"reimplemented (src/game/gfx/texcache); thiscall on the cache, returns 1: with driver kind 1 sizes with a low share lose spare entries to the sizes next to them"
 0x0058d090,TexCache_Destroy,function,low,"reimplemented (src/game/gfx/texcache); the cache at 0x8c4b44 released and freed (name invented, unconfirmed)"
 0x0058dc10,TexCache_ReleaseGraphics,function,low,"reimplemented (src/game/gfx/texcache); the cache's items, arrays and pool's surfaces released, its 0x20000000 off (name invented, unconfirmed)"
+0x0058da40,TexCache_Setup,function,low,"reimplemented (src/game/gfx/texcache); thiscall(format): the cache's first format, budget and surfaces; 0 on failure (name invented)"
+0x0058db90,TexCache_ChangeFormat,function,low,"reimplemented (src/game/gfx/texcache); thiscall(format): releases the surfaces if made, -1 keeps the format, then makes them again (name invented)"
 0x00575bd0,TexSet_Ctor,function,high,"reimplemented (src/game/gfx/texset); thiscall (a texture set, 16 bytes): all zero; returns the set"
 0x00575f90,TexSet_Texture,function,high,"reimplemented (src/game/gfx/texset); thiscall (i): texture i, [+8][i]"
 0x00575fa0,TexSet_TextureSlot,function,high,reimplemented (src/game/gfx/texset); thiscall (i): &[+8][i]
