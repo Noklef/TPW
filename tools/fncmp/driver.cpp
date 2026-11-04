@@ -271,6 +271,7 @@
 #include "../../src/game/world/objectdefs.h"
 #include "../../src/game/model/signapply.h"
 #include "../../src/game/render/enginestart.h"
+#include "../../src/game/coaster/startcars.h"
 #include "../../src/game/render/meshtextures.h"
 #include "../../src/game/gfx/surfacepool.h"
 #include "../../src/game/world/advisorsend.h"
@@ -1265,6 +1266,7 @@ const AddrCall kAdvisorSendCalls[] = {{0x59bea0, recorder(1, 0)}, {0x67a7d0, jpe
 const AddrCall kWeatherBoltCalls[] = {{0x57ec50, recorder(1, 2)}, {0x57ed50, jpeg_recorder(2, 0)}, {0x591210, jpeg_recorder(3, 0)}, {0x67b5c0, jpeg_recorder(4, 0)}};  // tests/fncmp/weatherbolts.py
 const AddrCall kSurfacePoolCalls[] = {{0x573820, recorder(1, 2)}, {0x56af20, recorder(2, 2)}, {0x564650, jpeg_recorder(3, 1)}, {0x56a770, jpeg_recorder(4, 1)}};  // tests/fncmp/surfacemake.py
 const AddrCall kMeshTexturesCalls[] = {{0x575f90, recorder(1, 1)}, {0x590f90, recorder(2, 0)}, {0x58dc50, recorder(3, 1)}, {0x58c9f0, recorder(4, 2)}};  // tests/fncmp/meshtextures.py
+const AddrCall kStartCarsCalls[] = {{0x435710, jpeg_recorder(1, 2)}, {0x44b220, jpeg_recorder(2, 3)}, {0x432c10, jpeg_recorder(3, 6)}, {0x434060, jpeg_recorder(4, 9)}, {0x442880, jpeg_recorder(5, 1)}, {0x498780, jpeg_recorder(6, 0)}, {0x435730, jpeg_recorder(7, 2)}};  // tests/fncmp/coasterstartcars.py
 const AddrCall kWindowGroupCalls[] = {{0x65c707, recorder(1, 0)}};  // tests/fncmp/windowgroup.py
 const AddrCall kWindowProcCalls[] = {{0x6590d0, jpeg_recorder(1, 2)}, {0x6588ef, jpeg_recorder(2, 2)}, {0x658af1, jpeg_recorder(3, 3)}, {0x658b5b, jpeg_recorder(4, 3)}, {0x658bcb, jpeg_recorder(5, 4)}, {0x658c38, jpeg_recorder(6, 2)}, {0x658c67, jpeg_recorder(7, 2)}, {0x658c96, jpeg_recorder(8, 2)}, {0x659333, jpeg_recorder(9, 0)}, {0x51bd30, jpeg_recorder(10, 0)}, {0x51b350, jpeg_recorder(11, 0)}, {0x6593c5, jpeg_recorder(12, 0)}, {0x51bcf0, jpeg_recorder(13, 0)}, {0x47e9d0, jpeg_recorder(14, 1)}, {0x46b460, jpeg_recorder(15, 1)}, {0x58dd60, recorder(16, 1)}, {0x40c900, recorder(17, 2)}, {0x40c990, recorder(18, 2)}, {0x4092a0, recorder(19, 2)}, {0x41a850, recorder(20, 0)}};
 const AddrCall kLanguageLoadCalls[] = {{0x6ad1b0, recorder(1, 2)}, {0x6ad230, recorder(2, 2)}, {0x6ad4b0, recorder(3, 3)}, {0x6ad460, recorder(4, 3)}, {0x6ad510, recorder(5, 3)}, {0x6ad570, recorder(6, 3)}, {0x405710, recorder(7, 3)}, {0x6ad790, recorder(8, 1)}, {0x67a650, jpeg_recorder(9, 4)}};
@@ -2678,6 +2680,7 @@ int main(int argc, char **argv) {
     WeatherFx_SetBoltCalls(kWeatherBoltCalls, sizeof(kWeatherBoltCalls) / sizeof(kWeatherBoltCalls[0]));
     SurfacePool_SetCalls(kSurfacePoolCalls, sizeof(kSurfacePoolCalls) / sizeof(kSurfacePoolCalls[0]));
     Mesh_SetTextureCalls(kMeshTexturesCalls, sizeof(kMeshTexturesCalls) / sizeof(kMeshTexturesCalls[0]));
+    StartCars_SetCalls(kStartCarsCalls, sizeof(kStartCarsCalls) / sizeof(kStartCarsCalls[0]));
     CoasterType_SetLoadCalls(kCoasterTypeLoadCalls, sizeof(kCoasterTypeLoadCalls) / sizeof(kCoasterTypeLoadCalls[0]));
     Dialog_SetCalls(kDialogBoxCalls, sizeof(kDialogBoxCalls) / sizeof(kDialogBoxCalls[0]));
     ArReplay_SetCalls(kArReplayCalls, sizeof(kArReplayCalls) / sizeof(kArReplayCalls[0]));
