@@ -32,6 +32,12 @@ u32 __fastcall MovieSurface_CreateOffscreen(u8 *draw, u8 **out, u32 width, u32 h
 // (the later interfaces are not, sic), and the outs are written only on success.
 u32 __fastcall MovieSurface_CreateFlipOverlay(u8 *draw, u8 **out, u8 **backOut, u32 width, u32 height, u32 fourcc);
 
+// 0x6719e0 (fastcall (player); name invented, unconfirmed): the movie's surfaces by the settings' flags +4. With 0x400, unless the player's mode +0x4c is 1 or +0x1c is set: GetFourCCCodes (0x34; a failure: the mode 1); the mode 4: MovieSurface_CreateOffscreen (a failure: the
+// mode 1); else MovieSurface_CreateFlipOverlay (+0x1c, +0x20), or when it fails MovieSurface_CreateOverlay (a failure: the mode 1) and a buffer of width * height * 2 (malloc) in +0x648; both then the view rectangle (+0x14, +0x18 sized +0xc, +0x10) filled black-ish on +0x14 (Blt, its result
+// not read, colour 1), +0x50 = 1 and +0x54 = 1 after the flip, 0 after the overlay. FourCC 'YUY2', width +0x64, height +0x60. Answers 0. Without 0x400, unless +0x1c is set: two plain surfaces (flags 7, caps 0x40, 0x840 with 0x180 in the flags; width doubled with 0x40), each with
+// CreateSurface (a failure answers 1) and its later interface (QueryInterface's result not read) into +0x1c and +0x20; the first ones not released (sic). 0.
+u32 __fastcall MovieSurface_CreateForMode(u8 *player);
+
 // 0x66fa70 (fastcall (player, show); returns 0 or 1; name unconfirmed): the settings' surface +0x1c shown over +0x14 with UpdateOverlay (0x84): the source rectangle from 0 sized settings +0x64, +0x60, the destination from (player +0x14,
 // +0x18) sized +0xc, +0x10, the effects (0x38 bytes, cleared; show: +0x30 1, flags 0x84000; else flags 0x200). A failure sets the player's +0x4c to 1 for five errors (invalid or unsupported ones), restores the surface +0x1c (Restore,
 // 0x6c) on DDERR_SURFACELOST, and answers 1.

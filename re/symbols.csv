@@ -6352,6 +6352,7 @@ address,name,kind,confidence,notes
 0x00671ea0,MovieSurface_CreateOffscreen,function,low,"reimplemented (src/game/gfx/moviesurface); fastcall (draw, out, width, height, fourcc); name invented, unconfirmed: an off-screen surface in video memory"
 0x0066fa70,MovieSurface_UpdateOverlay,function,low,"reimplemented (src/game/gfx/moviesurface); fastcall (player, show); returns 0 or 1; name unconfirmed: the overlay shown with UpdateOverlay"
 0x0066f600,MovieSurface_Present,function,low,"reimplemented (src/game/gfx/moviesurface); one movie frame shown, by the player's mode: name invented, unconfirmed"
+0x006719e0,MovieSurface_CreateForMode,function,low,"reimplemented (src/game/gfx/moviesurface); the movie's surfaces made for its mode: name invented, unconfirmed"
 0x00672950,MovieSound_BufferBytes,function,low,"reimplemented (src/game/gfx/moviesound); thiscall on an IDirectSoundBuffer: its size, GetCaps' DSBCAPS dwBufferBytes (returned whatever GetCaps answers)"
 0x006729e0,MovieSound_Release,function,low,"reimplemented (src/game/gfx/moviesound); thiscall on a COM pointer's place, returns 0: the object released and the place cleared unless null"
 0x00672bf0,MovieSound_ReleaseStream,function,low,"reimplemented (src/game/gfx/moviesound); thiscall on the player, returns 0: the settings' streaming buffer (+0x5c) released and cleared unless null"

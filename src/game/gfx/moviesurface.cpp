@@ -2,6 +2,7 @@
 
 #include <cstdint>
 
+#include "../core/crt.h"
 #include "dderrors.h"
 
 namespace {
@@ -87,6 +88,23 @@ void fillGrey(u8 *surface) {
     u32 effects[0x19] = {0x64};
     effects[0x14] = 0x80808080;
     com(surface, 0x14, 0u, 0u, 0u, 0x01000400u, effects);
+}
+
+void fillViewOnPrimary(u8 *player) {
+    u32 effects[0x19] = {0x64};
+    effects[0x14] = 1;
+    u32 rect[4];
+    rect[0] = at<u32>(player, 0x14);
+    rect[1] = at<u32>(player, 0x18);
+    rect[2] = at<u32>(player, 0xc) + rect[0];
+    rect[3] = at<u32>(player, 0x10) + rect[1];
+    com(at<u8 *>(settings(player), 0x14), 0x14, rect, 0u, 0u, 0x01000400u, effects);
+}
+
+void viewReady(u8 *player, u32 fromFlip) {
+    fillViewOnPrimary(player);
+    at<u32>(player, 0x54) = fromFlip;
+    at<u32>(player, 0x50) = 1;
 }
 
 }  // namespace
@@ -184,6 +202,50 @@ u32 __fastcall MovieSurface_CreateFlipOverlay(u8 *draw, u8 **out, u8 **backOut, 
     if (surface) com(surface, 8);
     if (back) com(back, 8);
     return 1;
+}
+
+u32 __fastcall MovieSurface_CreateForMode(u8 *player) {
+    u8 *const s = settings(player);
+    if (at<u32>(s, 4) & 0x400) {
+        const u32 mode = at<u32>(player, 0x4c);
+        if (mode == 1 || at<u32>(s, 0x1c)) return 0;
+        u32 count = 0x40;
+        u32 codes[0x40];
+        if (com(at<u8 *>(s, 0x10), 0x34, &count, codes)) {
+            at<u32>(player, 0x4c) = 1;
+            return 0;
+        }
+        u8 *const draw = at<u8 *>(s, 0x10);
+        u8 **const out = &at<u8 *>(s, 0x1c);
+        const u32 width = at<u32>(s, 0x64), height = at<u32>(s, 0x60);
+        if (at<u32>(player, 0x4c) == 4) {
+            if (MovieSurface_CreateOffscreen(draw, out, width, height, 0x32595559)) at<u32>(player, 0x4c) = 1;
+            return 0;
+        }
+        if (!MovieSurface_CreateFlipOverlay(draw, out, &at<u8 *>(s, 0x20), width, height, 0x32595559)) {
+            viewReady(player, 1);
+            return 0;
+        }
+        if (MovieSurface_CreateOverlay(draw, out, at<u32>(s, 0x64), at<u32>(s, 0x60), 0x32595559)) {
+            at<u32>(player, 0x4c) = 1;
+            return 0;
+        }
+        at<void *>(player, 0x648) = CRT_malloc(at<u32>(s, 0x64) * at<u32>(s, 0x60) * 2);
+        viewReady(player, 0);
+        return 0;
+    }
+    if (at<u32>(s, 0x1c)) return 0;
+    u32 description[0x1b] = {0x6c, 7};
+    description[0x1a] = at<u32>(s, 4) & 0x180 ? 0x840 : 0x40;
+    description[3] = at<u32>(s, 0x64);
+    description[2] = at<u32>(s, 0x60);
+    if (at<u8>(s, 4) & 0x40) description[3] *= 2;
+    u8 *surface;
+    if (com(at<u8 *>(s, 0x10), 0x18, description, &surface, 0u)) return 1;
+    queryLater(surface, &at<u8 *>(s, 0x1c));
+    if (com(at<u8 *>(s, 0x10), 0x18, description, &surface, 0u)) return 1;
+    queryLater(surface, &at<u8 *>(s, 0x20));
+    return 0;
 }
 
 u32 __fastcall MovieSurface_UpdateOverlay(u8 *player, u32 show) {
