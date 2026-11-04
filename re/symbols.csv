@@ -1969,6 +1969,7 @@ address,name,kind,confidence,notes
 0x0067c430,CRT_wcstok,function,low,reimplemented (src/game/core/crt); wcstok
 0x00699a20,CRT_TolowerLocking,function,low,reimplemented (src/game/core/crt); _Tolower under the locale's lock
 0x0069a2b0,CRT_ToupperLocking,function,low,reimplemented (src/game/core/crt); _Toupper under the locale's lock
+0x0069a5d0,CRT_Wctob,function,low,reimplemented (src/game/core/crt); _Wctob
 0x00f7a7d0,gCdVolumeLabel,data,medium,"const char *: the CD's volume label, looked for on the CD-ROM drives by the CD check (0x5aa585)"
 0x005f8ae0,RegKey_Open,function,high,"reimplemented (src/game/core/regkey); thiscall (&out, subkey or null, nonzero: HKCU else HKLM); the company key (0x775748) made, then the subkey in it; a held key closed first"
 0x005f8b70,RegKey_Dtor,function,high,reimplemented (src/game/core/regkey); thiscall; RegKey_Close
@@ -5770,6 +5771,8 @@ address,name,kind,confidence,notes
 0x004f1a10,CtypeW_ToLowerRange,function,low,reimplemented (src/game/core/iosbase); ctype<wchar_t>::do_tolower over a range
 0x004f1a50,CtypeW_ToUpper,function,low,reimplemented (src/game/core/iosbase); ctype<wchar_t>::do_toupper by its shape
 0x004f1a90,CtypeW_ToUpperRange,function,low,reimplemented (src/game/core/iosbase); ctype<wchar_t>::do_toupper over a range
+0x004f1b30,CtypeW_Narrow,function,low,reimplemented (src/game/core/iosbase); ctype<wchar_t>::do_narrow by its shape
+0x004f1b40,CtypeW_NarrowRange,function,low,reimplemented (src/game/core/iosbase); ctype<wchar_t>::do_narrow over a range
 0x006d2110,SoundSource711920_Open,function,low,reimplemented (src/game/core/qsoundmixer); The QSound session opened on the source's config
 0x006d2220,SoundSource711920_SetOptions,function,low,reimplemented (src/game/core/qsoundmixer); The library's options from the flags
 0x006d2260,SoundSource711920_GetBuffer,function,low,reimplemented (src/game/core/qsoundmixer); The channel's DirectSound buffer

@@ -10,11 +10,11 @@ from fncmp import IMPORT_TABLE, LOG, RAM, Bench, Call, _recorder, answers, blob,
 
 GETPTD, LOCK, UNLOCK, NHMALLOC = 2, 7, 8, 28
 INC, DEC, M2W, W2M = 14, 15, 16, 17
-B = Bench([(0x69a460, 0x69a4d3), (0x69a4e0, 0x69a55e), (0x69a560, 0x69a5c8), (0x693bc0, 0x693c3b), (0x693c40, 0x693db7), (0x699bd0, 0x699c89), (0x686a00, 0x686a10), (0x67dcd0, 0x67dcf0), (0x4f5fb0, 0x4f6006)],
+B = Bench([(0x69a460, 0x69a4d3), (0x69a4e0, 0x69a55e), (0x69a560, 0x69a5c8), (0x693bc0, 0x693c3b), (0x693c40, 0x693db7), (0x699bd0, 0x699c89), (0x686a00, 0x686a10), (0x67dcd0, 0x67dcf0), (0x4f5fb0, 0x4f6006), (0x69a5d0, 0x69a5fb), (0x4f1b30, 0x4f1b40), (0x4f1b40, 0x4f1b71)],
           hooks={0x682720: _recorder(LOCK, 1, cdecl=True), 0x6827a0: _recorder(UNLOCK, 1, cdecl=True), 0x682460: _recorder(GETPTD, 0, cdecl=True), 0x67dcf0: _recorder(NHMALLOC, 2, cdecl=True)})
 PTD, TABLE, CONV, TEXT, STATE, UNIT, OUT, ANSWERS, PCTYPE = (RAM + 0x100 * i for i in range(9))
 COPY, RESULT = RAM + 0x1000, RAM + 0x1400
-OPS = [n for n in ('getcvt', 'getctype', 'wcrtomb', 'wcrtomb_lk', 'mbrtowc', 'mbrtowc_lk', 'length') if not os.environ.get('OPS') or n in os.environ['OPS'].split(',')]
+OPS = [n for n in ('getcvt', 'getctype', 'wcrtomb', 'wcrtomb_lk', 'mbrtowc', 'mbrtowc_lk', 'length', 'wctob', 'narrow', 'narrow_range') if not os.environ.get('OPS') or n in os.environ['OPS'].split(',')]
 
 
 def case(r):
@@ -62,6 +62,20 @@ def case(r):
         count = r.choice([0, 1, 2, 3, 5, 8])
         regions[TEXT] = struct.pack('<16H', *[r.choice([0x41, 0xff, 0x100, 0x3042, r.getrandbits(16)]) for _ in range(16)])
         return Call(0x4f5fb0, [RESULT, r.getrandbits(32), TEXT, TEXT + 2 * count, r.choice([0, 1, 2, 3, 4, 5, 8, 0x100, 0xffffffff])], regions, conv='t', ret='a')
+    if name in ('wctob', 'narrow', 'narrow_range'):   # (_Wctob 0x69a5d0, ctype<wchar_t>'s do_narrow 0x4f1b30, 0x4f1b40: the byte written to _Wctob's own argument slot, the high half of the unit the caller's EAX for the range.)
+        strings(log, W2M, 0, out=0b10010000)
+        blob_bytes(log, W2M, 2, 0b11)
+        fill(log, W2M, 7, struct.pack('<I', r.choice([0, 0, 0, 0, 1])))
+        fill(log, W2M, 4, bytes([r.choice([0x41, 0x80, 0xe9, r.getrandbits(8)])]), which=1)
+        regions[ANSWERS] = struct.pack('<40I', *[r.choice([1, 1, 1, 1, 2, 0]) for _ in range(40)])
+        unit = r.choice([0xffff, 0x1ffff, 0x41, 0xe9, 0xff, 0x100, 0x3042, r.getrandbits(32)])
+        if name == 'wctob':
+            return Call(0x69a5d0, [unit], regions, conv='c', ret='a')
+        if name == 'narrow':
+            return Call(0x4f1b30, [RESULT, unit, r.getrandbits(32)], regions, conv='t', ret='a')
+        regions[TEXT] = struct.pack('<8H', *[r.choice([0xffff, 0x41, 0xe9, 0x100, 0x3042, r.getrandbits(16)]) for _ in range(8)])
+        regions[OUT] = r.bytes(0x10)
+        return Call(0x4f1b40, [RESULT, TEXT, TEXT + 2 * r.choice([0, 1, 2, 3, 6]), r.getrandbits(32), OUT], regions, conv='t', ret='a')
     regions[TEXT] = bytes(r.choice([0, 0x41, 0x81, 0xff, r.randrange(1, 256), r.randrange(1, 256)]) for _ in range(4)) + bytes(4)
     regions[STATE] = struct.pack('<I', r.choice([0, 0, 0, 1, r.getrandbits(32)]))
     regions[UNIT] = r.bytes(4)
