@@ -5920,6 +5920,8 @@ address,name,kind,confidence,notes
 0x00692040,Ostream_CtorUninit,function,low,reimplemented (src/game/core/iosbase); basic_ostream<char>'s uninitialized constructor
 0x00692a40,IstreamW_CtorUninit,function,low,reimplemented (src/game/core/iosbase); basic_istream<wchar_t>'s uninitialized constructor
 0x00692b10,OstreamW_CtorUninit,function,low,reimplemented (src/game/core/iosbase); basic_ostream<wchar_t>'s uninitialized constructor
+0x006921d0,Ios_InitCtor,function,low,reimplemented (src/game/core/iosbase); ios_base::Init's constructor (shape; unconfirmed): the first one builds the narrow standard streams
+0x00692c60,Ios_WinitCtor,function,low,reimplemented (src/game/core/iosbase); the wide side's constructor
 0x006d2110,SoundSource711920_Open,function,low,reimplemented (src/game/core/qsoundmixer); The QSound session opened on the source's config
 0x006d2220,SoundSource711920_SetOptions,function,low,reimplemented (src/game/core/qsoundmixer); The library's options from the flags
 0x006d2260,SoundSource711920_GetBuffer,function,low,reimplemented (src/game/core/qsoundmixer); The channel's DirectSound buffer

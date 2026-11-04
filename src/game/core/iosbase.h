@@ -66,6 +66,12 @@ u8 *__fastcall Ostream_CtorUninit(u8 *self, void *edx, u32 unused, u32 derived);
 u8 *__fastcall IstreamW_CtorUninit(u8 *self, void *edx, u32 unused, u32 derived);
 u8 *__fastcall OstreamW_CtorUninit(u8 *self, void *edx, u32 unused, u32 derived);
 
+// 0x6921d0 / 0x692c60 (thiscall; names by their shape, unconfirmed): ios_base::Init's constructors, narrow and wide: under the lock the counter 0x7822b0 / 0x78240c goes up (below 0: it becomes 1, and the
+// first one builds the standard streams): the file buffers over the FILEs 0x77e800, 0x77e820 and 0x77e840; cin (0xfb1a90 / 0xfb1bd8) tied to cout (0xfb1a00 / 0xfb1cc8); cerr (0xfb1b28 / 0xfb1b60) tied to cout with
+// unitbuf (+0xc bit 1); clog (0xfb1970 / 0xfb1ba0) tied to cout. Returns self.
+u8 *__fastcall Ios_InitCtor(u8 *self);
+u8 *__fastcall Ios_WinitCtor(u8 *self);
+
 // 0x692650 / 0x6930e0 (thiscall, this not read; names by their shape, unconfirmed): ios_base::Init's destructors, narrow and wide: under the lock the counter 0x7822b0 / 0x78240c
 // goes down, and at 0 three streams (0xfb1a00, 0xfb1b28, 0xfb1970 / 0xfb1cc8, 0xfb1b60, 0xfb1ba0) are flushed: a good stream's rdbuf synced (vtable +0x2c), an answer of -1 the bad
 // bit by IosBase_Clear (the original's test of a null rdbuf only sets the same bit again).
