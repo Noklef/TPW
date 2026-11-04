@@ -6360,6 +6360,8 @@ address,name,kind,confidence,notes
 0x0058f190,TexCache_PlaceNext,function,low,"reimplemented (src/game/gfx/texcache); thiscall on the cache (list head pointer), pops 4: the list's first item (and the entry's items) placed on the next entry with room; -1 none"
 0x0058f940,TexCache_PlacePending,function,low,reimplemented (src/game/gfx/texcache); thiscall on the cache: TexCache_PlaceNext until the pending list is empty or 0 comes back; items left reset
 0x0058fcf0,TexCache_Rebalance,function,low,"reimplemented (src/game/gfx/texcache); thiscall on the cache, returns 1: with driver kind 1 sizes with a low share lose spare entries to the sizes next to them"
+0x0058d090,TexCache_Destroy,function,low,"reimplemented (src/game/gfx/texcache); the cache at 0x8c4b44 released and freed (name invented, unconfirmed)"
+0x0058dc10,TexCache_ReleaseGraphics,function,low,"reimplemented (src/game/gfx/texcache); the cache's items, arrays and pool's surfaces released, its 0x20000000 off (name invented, unconfirmed)"
 0x00575bd0,TexSet_Ctor,function,high,"reimplemented (src/game/gfx/texset); thiscall (a texture set, 16 bytes): all zero; returns the set"
 0x00575f90,TexSet_Texture,function,high,"reimplemented (src/game/gfx/texset); thiscall (i): texture i, [+8][i]"
 0x00575fa0,TexSet_TextureSlot,function,high,reimplemented (src/game/gfx/texset); thiscall (i): &[+8][i]
@@ -6488,6 +6490,7 @@ address,name,kind,confidence,notes
 0x0058b1f0,SurfacePool_Next,function,low,"reimplemented (src/game/gfx/surfacepool); thiscall on the surface pool 0x8c47d8 (side, unused; pops 8): the side's turn (+0x80) flipped, the surface of the old turn returned"
 0x0058b0b0,SurfacePool_MakeSurfaces,function,low,"reimplemented (src/game/gfx/surfacepool); thiscall (side, format), pops 8: a side's two surfaces made; name invented"
 0x0058b280,SurfacePool_ReleaseAll,function,low,"reimplemented (src/game/gfx/surfacepool); The 32 surfaces released: slot 0x98 (0), then Release; a failure logged; the pointer cleared; returns 1."
+0x0058b220,SurfacePool_MakeLevels,function,low,"reimplemented (src/game/gfx/surfacepool); the surfaces of each mip level, halving the side, released all at a failure (name invented, unconfirmed)"
 0x006ad5d0,TextStyle_Ctor,function,low,"reimplemented (src/game/gfx/textlayout); thiscall: the text style's fields cleared (state 3, +0x10 1, its SurfaceInfo constructed), vtable 0x70a0d8; returns this"
 0x006ad640,TextStyle_Dtor,function,low,reimplemented (src/game/gfx/textlayout); thiscall: vtable 0x70a0d8; the font (+4) released (slot 0) and cleared
 0x006ad620,TextStyle_DeletingDtor,function,low,"reimplemented (src/game/gfx/textlayout); thiscall (flags): TextStyle_Dtor, freed for flags bit 0; returns this"

@@ -1298,6 +1298,8 @@ const AddrCall kRideAnimateCalls[] = {{0x473c70, jpeg_recorder(1, 3)}, {0x44b510
 const AddrCall kAdvisorSendCalls[] = {{0x59bea0, recorder(1, 0)}, {0x67a7d0, jpeg_recorder(2, 1)}, {0x59c0a0, recorder(3, 3)}, {0x59c2b0, recorder(4, 1)}, {0x59c240, recorder(5, 1)}, {0x599050, jpeg_recorder(6, 1)}, {0x5997b0, jpeg_recorder(7, 1)}, {0x40fb10, recorder(8, 1)}};  // tests/fncmp/advisorsend.py
 const AddrCall kObjModelDrawCalls[] = {{0x57a530, recorder(1, 3)}, {0x57b8a0, recorder(2, 0)}, {0x58c9f0, recorder(3, 2)}, {0x57c270, recorder(4, 1)}};  // tests/fncmp/objmodeldraw.py
 const AddrCall kDrawAllCalls[] = {{0x579b40, jpeg_recorder(1, 1)}, {0x579b80, jpeg_recorder(2, 1)}, {0x56af20, recorder(3, 2)}, {0x565930, recorder(4, 1)}, {0x582810, recorder(5, 3)}, {0x5828f0, recorder(6, 3)}, {0x5829e0, recorder(7, 3)}, {0x565560, recorder(8, 1)}};  // tests/fncmp/drawbufferdraw.py
+const AddrCall kTexCacheDestroyCalls[] = {{0x58dd60, recorder(1, 1)}, {0x58d380, recorder(2, 0)}, {0x58b280, recorder(3, 0)}, {0x67acb0, jpeg_recorder(4, 1)}};  // tests/fncmp/texcachedestroy.py
+const AddrCall kSurfaceLevelsCalls[] = {{0x58b0b0, recorder(5, 2)}, {0x58b280, recorder(3, 0)}};
 const AddrCall kObjModelTreeCalls[] = {{0x56ee90, recorder(9, 1)}, {0x561a30, recorder(10, 2)}, {0x57aa10, recorder(11, 4)}, {0x581cd0, recorder(12, 5)}, {0x57a420, recorder(13, 1)}};  // tests/fncmp/objmodeltree.py
 const AddrCall kTextureTouchCalls[] = {{0x58c9f0, recorder(14, 2)}, {0x588ef0, recorder(15, 0)}};  // tests/fncmp/texturetouches.py
 const AddrCall kWeatherBoltCalls[] ={{0x58c9f0, recorder(14, 2)}, {0x57ec50, recorder(1, 2)}, {0x57ed50, jpeg_recorder(2, 0)}, {0x591210, jpeg_recorder(3, 0)}, {0x67b5c0, jpeg_recorder(4, 0)}, {0x57ee30, recorder(5, 0)}, {0x57efd0, recorder(6, 3)}, {0x57f490, recorder(7, 3)}, {0x402d70, recorder(8, 0)}};  // tests/fncmp/weatherbolts.py
@@ -2580,6 +2582,8 @@ int main(int argc, char **argv) {
     Research_SetEnv(&kResearchEnv);
     ObjModel_SetEnv(&kObjModelEnv);
     ObjModel_SetTreeCalls(kObjModelTreeCalls, sizeof(kObjModelTreeCalls) / sizeof(kObjModelTreeCalls[0]));
+    TexCache_SetDestroyCalls(kTexCacheDestroyCalls, sizeof(kTexCacheDestroyCalls) / sizeof(kTexCacheDestroyCalls[0]));
+    SurfacePool_SetLevelsCalls(kSurfaceLevelsCalls, sizeof(kSurfaceLevelsCalls) / sizeof(kSurfaceLevelsCalls[0]));
     DrawBuffer_SetDrawAllCalls(kDrawAllCalls, sizeof(kDrawAllCalls) / sizeof(kDrawAllCalls[0]));
     ObjModel_SetDrawCalls(kObjModelDrawCalls, sizeof(kObjModelDrawCalls) / sizeof(kObjModelDrawCalls[0]));
     VWrap_SetCalls(kVWrapCalls, sizeof(kVWrapCalls) / sizeof(kVWrapCalls[0]));

@@ -63,6 +63,26 @@ u32 kept(u32 result) {
 
 void SurfacePool_SetCalls(const AddrCall *table, u32 count) { g_poolCalls.Set(table, count); }
 
+namespace {
+AddrCalls g_levelsCalls;
+u32 address(const void *p) { return (u32)(uintptr_t)p; }
+}  // namespace
+
+void SurfacePool_SetLevelsCalls(const AddrCall *table, u32 count) { g_levelsCalls.Set(table, count); }
+
+extern "C" u32 __fastcall SurfacePool_MakeLevels(u8 *pool, void *, s32 side, u32 levels, u32 format) {
+    u32 rounds = (levels ? levels : 1) + 5;
+    for (; rounds; --rounds) {
+        if (side <= 0) return 1;
+        if (!g_levelsCalls.Th(0x0058b0b0, address(pool), side, format)) {   // SurfacePool_MakeSurfaces
+            g_levelsCalls.Th(0x0058b280, address(pool));
+            return 0;
+        }
+        side >>= 1;
+    }
+    return 1;
+}
+
 extern "C" u32 __fastcall SurfacePool_ReleaseAll(u8 *pool) {
     for (u32 i = 0; i < 32; i++) {
         u8 *const surface = reinterpret_cast<u8 **>(pool)[i];

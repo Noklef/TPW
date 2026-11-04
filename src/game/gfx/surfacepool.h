@@ -19,6 +19,11 @@ u32 __fastcall SurfacePool_Next(u8 *pool, void *, s32 side, u32 unused);
 
 // (Test seam: the fncmp driver's table replaces the calls by address.)
 void SurfacePool_SetCalls(const AddrCall *table, u32 count);
+void SurfacePool_SetLevelsCalls(const AddrCall *table, u32 count);   // tests/fncmp/texcachedestroy.py
+extern "C" {
+// 0x58b220 (thiscall (side, levels, format), pops 12; name invented, unconfirmed): levels (0: 1) + 5 rounds of SurfacePool_MakeSurfaces (side, format), the side halved each (signed; not above 0: 1). A failure releases all (SurfacePool_ReleaseAll): 0. Else 1.
+u32 __fastcall SurfacePool_MakeLevels(u8 *pool, void *, s32 side, u32 levels, u32 format);
+}
 
 // 0x58b0b0 (thiscall (side, format), pops 8; name invented, unconfirmed): the side's two surfaces at +8 * index made. The format's record (TexFormat_Record on [0x879da8]): none gives 0. Each: a description (0x7c bytes, flags 0x1007, height and width the side, the record's 0x20 bytes at +0x48, caps 0x1800),
 // the device's (+8 of [0x879a24]) slot 0x18, the surface's slot 0x94 with 0. Each result kept at [0x879cd4], a negative one logged; not 0 pushed on the engine's list (kind 3, 0x879ad0) and 0. Returns 1.
