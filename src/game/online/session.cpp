@@ -7,8 +7,13 @@
 #include "../core/buffers.h"
 #include "../core/language.h"
 #include "../core/selectors.h"
+#include "../core/string.h"
 #include "../core/vcall.h"
+#include "../core/vdtor.h"
 #include "../files/file.h"
+#include "../ui/dialogs.h"
+#include "../ui/dialuphangup.h"
+#include "items.h"
 
 namespace {
 
@@ -256,11 +261,118 @@ u32 __fastcall Online_UnpublishPark(u8 *session, void *, u32 park) {
 }
 
 namespace {
-const OnlineInstanceEnv kInstanceGameEnv = {reinterpret_cast<u8 *(__fastcall *)(u8 *)>((uintptr_t)0x005b50b0)};
+const OnlineInstanceEnv kInstanceGameEnv = {&Online_Construct};
 const OnlineInstanceEnv *g_instance = &kInstanceGameEnv;
 }  // namespace
 
 void Online_SetInstanceEnv(const OnlineInstanceEnv *env) { g_instance = env ? env : &kInstanceGameEnv; }
+
+void __fastcall Online_ResetConnections(u8 *session) {
+    Online_ResetNews(session);
+    Online_ResetCity(session);
+    Online_ResetUpload(session);
+    Online_ResetDownload(session);
+    Dialog7cca94_Message4IfUp();
+}
+
+void __fastcall Online_ResetAll(u8 *session) {
+    Online_ReleaseLogin(session);
+    for (u32 offset : {0x64u, 0x60u, 0x68u, 0x4u, 0x8u})
+        at<u32>(session, offset) = 0;
+    vcall<void>(session + 0xc, 0x14, 0x0078a374u);
+    vcall<void>(session + 0x20, 0x14, 0x0078a374u);
+    at<u32>(session, 0x34) = 0;
+    at<u32>(session, 0x38) = 0;
+    vcall<void>(session + 0x3c, 0x14, 0x0078a374u);
+    at<u32>(session, 0x50) = 0;
+    Online_ResetConnections(session);
+    Dialup_HangUpIfOpen();
+}
+
+namespace {
+
+// A city list's block: its base (Class702890_Ctor), the vtable, +0x34 = -1; none when the block is not had.
+u8 *NewList(u32 size, u32 table) {
+    u8 *const list = static_cast<u8 *>(GameHeap_Alloc(size));
+    if (!list) return nullptr;
+    Class702890_Ctor(list);
+    at<u32>(list, 0) = table;
+    at<u32>(list, 0x34) = 0xffffffff;
+    return list;
+}
+
+template <typename Ctor> u8 *NewObject(u32 size, Ctor ctor) {
+    u8 *const object = static_cast<u8 *>(GameHeap_Alloc(size));
+    return object ? ctor(object) : nullptr;
+}
+
+}  // namespace
+
+u8 *__fastcall Online_Construct(u8 *session) {
+    for (u32 offset : {0xcu, 0x20u, 0x3cu})
+        WString_Ctor(reinterpret_cast<WString *>(session + offset));
+    String_Ctor(reinterpret_cast<String *>(session + 0x7c));
+    WString_Ctor(reinterpret_cast<WString *>(session + 0x98));
+    WString_Ctor(reinterpret_cast<WString *>(session + 0xb4));
+    String_Ctor(reinterpret_cast<String *>(session + 0x10c));
+    String_Ctor(reinterpret_cast<String *>(session + 0x330));
+    WString_Ctor(reinterpret_cast<WString *>(session + 0x348));
+    WString_Ctor(reinterpret_cast<WString *>(session + 0x35c));
+    String_Ctor(reinterpret_cast<String *>(session + 0x3ac));
+    at<u32>(session, 0x3cc) = 0;
+    at<u32>(session, 0x3d0) = 0;
+    at<u32>(session, 0x3d4) = 0;
+    at<u32>(session, 0x3c8) = 0x00702878;
+    String_Ctor(reinterpret_cast<String *>(session + 0x3dc));
+    for (u32 offset : {0x0u, 0x64u, 0x60u, 0x68u, 0x4u, 0x8u})
+        at<u32>(session, offset) = 0;
+    vcall<void>(session + 0xc, 0x14, 0x0078a374u);
+    vcall<void>(session + 0x20, 0x14, 0x0078a374u);
+    at<u32>(session, 0x34) = 0;
+    at<u32>(session, 0x38) = 0;
+    vcall<void>(session + 0x3c, 0x14, 0x0078a374u);
+    at<u32>(session, 0x50) = 0;
+    at<u32>(session, 0x6c) = 0;
+    at<u32>(session, 0x70) = 0;
+    Online_ResetNews(session);
+    at<u32>(session, 0xd4) = 0;
+    u8 *cities = static_cast<u8 *>(GameHeap_Alloc(0x34));
+    if (cities) {
+        Class702880_Ctor(cities);
+        at<u32>(cities, 0) = 0x00702868;
+    }
+    at<u8 *>(session, 0xe0) = cities;
+    at<u8 *>(session, 0xe4) = NewList(0x38, 0x00702858);
+    at<u8 *>(session, 0xe8) = NewList(0x38, 0x00702848);
+    u8 *const named = static_cast<u8 *>(GameHeap_Alloc(0x48));
+    if (named) {
+        Class702890_Ctor(named);
+        at<u32>(named, 0) = 0x00702838;
+        WString_Ctor(reinterpret_cast<WString *>(named + 0x34));
+        at<u32>(named, 0) = 0x00702828;
+        vcall<void>(named + 0x34, 0x14, 0x0078a374u);
+    }
+    at<u8 *>(session, 0xec) = named;
+    at<u8 *>(session, 0xf0) = NewList(0x38, 0x00702818);
+    at<u8 *>(session, 0xf4) = NewList(0x38, 0x00702848);
+    at<u8 *>(session, 0xf8) = NewObject(0x34, [](u8 *object) { return Class7028b8_Ctor(object); });
+    at<u8 *>(session, 0xfc) = NewObject(0x34, [](u8 *object) { return Class7028e0_Ctor(object); });
+    at<u8 *>(session, 0x100) = NewObject(0x34, [](u8 *object) { return Class702908_Ctor(object); });
+    Online_ResetCity(session);
+    at<u32>(session, 0x104) = 0;
+    at<u32>(session, 0x108) = 0;
+    for (u32 offset : {0x328u, 0x320u, 0x324u, 0x32cu, 0x344u})
+        at<u32>(session, offset) = 0;
+    vcall<void>(session + 0x348, 0x14, 0x0078a374u);
+    vcall<void>(session + 0x35c, 0x14, 0x0078a374u);
+    for (u32 offset = 0x370; offset <= 0x380; offset += 4)
+        at<u32>(session, offset) = 0;
+    at<u32>(session, 0x39c) = 0;
+    at<u32>(session, 0x3a0) = 0;
+    at<u8 *>(session, 0x3a4) = NewObject(0xc0, [](u8 *object) { return Class70293c_Ctor(object); });
+    Online_ResetDownload(session);
+    return session;
+}
 
 u8 *__cdecl Online_Instance() {
     u8 *&session = *reinterpret_cast<u8 **>((uintptr_t)0x00f7d88c);

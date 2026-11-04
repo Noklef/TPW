@@ -9,7 +9,7 @@
 
 #include "../../../re/types.h"
 
-// Online_Instance's call: 0x5b50b0, unported (agent B's), by address; the bench's recorder.
+// Online_Instance's call: Online_Construct; the bench's recorder.
 struct OnlineInstanceEnv {
     u8 *(__fastcall *ctor)(u8 *memory);
 };
@@ -80,6 +80,19 @@ void __fastcall Online_ResetCity(u8 *session);
 // Online_ResetCity does. 1: "Connected" said, +0xd8 = Time_GetMs, City::SetSessionInfo (0x6fd53c) with the language's id (0x78b530) and
 // +0x34, +0x38, +0x28; +0xdc = 1. Returns +0xd4. (The City::City call's unwind, freeing the block, is not kept.)
 u8 *__fastcall Online_OpenCity(u8 *session);
+
+// 0x5b6070 (thiscall; name invented): the news, city, upload and download reset (each as above), then Dialog7cca94_Message4IfUp.
+void __fastcall Online_ResetConnections(u8 *session);
+
+// 0x5b5e40 (thiscall; name invented): the login released, +0x64, +0x60, +0x68, +4, +8, +0x34, +0x38 and +0x50 = 0, the strings at +0xc, +0x20
+// and +0x3c assigned ""; then Online_ResetConnections and Dialup_HangUpIfOpen.
+void __fastcall Online_ResetAll(u8 *session);
+
+// 0x5b50b0 (thiscall; name invented): the session's constructor. Its strings made and emptied, its members as the resets leave them, the nine
+// lists made (+0xe0 to +0x100: none when a block is not had), Online_ResetCity on them, the download object +0x3a4 (Class70293c_Ctor).
+// The news' and the download's releases in the listing see their members just cleared, so they do nothing but the reset. Returns the session.
+// (The unwinds of a throwing constructor are not kept.)
+u8 *__fastcall Online_Construct(u8 *session);
 
 // 0x48b390 (cdecl; name invented): the session [0xf7d88c], made the first time (0x404 bytes, constructed by OnlineInstanceEnv's ctor; memory refused: none, asked again next time).
 u8 *__cdecl Online_Instance();

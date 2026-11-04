@@ -5,30 +5,35 @@
 # recorders, OutputDebugStringA one logging its text, the members' string assigns (vtable +0x14) and the
 # download object's deleting destructor (vtable +0) recorders, the block at +0x39c a heap block or none. The login's answer (0x5b62e0):
 # statuses 60 (OK), -7..-1, 0, 59, 61 or any, the record's count 1, 2, 0 or -1. The city's reset (0x5b7430): see reset_city().
-# Its opening (0x5b72f0) and a park's unpublishing on it (0x5b7960): see open_city().
+# Its opening (0x5b72f0) and a park's unpublishing on it (0x5b7960): see open_city(). All connections' and
+# the whole session's resets (0x5b6070, 0x5b5e40): see reset_all(). The constructor (0x5b50b0): see construct().
 # usage: session.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=LoggedIn,...)
 import os
 import struct
 import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
-from fncmp import HEAP, IMPORT_TABLE, LOG, Bench, Call, RAM, heap, log_region, put, recorder, set_return, strings, vtable  # noqa: E402
+from fncmp import CDECL_LOG4, HEAP, IMPORT_TABLE, LOG, Bench, Call, RAM, heap, log_region, put, recorder, set_return, strings, vtable  # noqa: E402
 
 B = Bench([(0x5b6450, 0x5b64c4), (0x5b64d0, 0x5b650b), (0x5b6b20, 0x5b6b5e), (0x5b6980, 0x5b6a27), (0x5b83e0, 0x5b83ff), (0x5b8400, 0x5b8483),
            (0x5b9040, 0x5b90d7), (0x5b7b80, 0x5b7b9f), (0x5b62e0, 0x5b63f0), (0x67acb0, 0x67acb1),
            (0x5b7430, 0x5b75cc), (0x5f5fa0, 0x5f5faa), (0x5f5f10, 0x5f5f7d), (0x5b9fd0, 0x5ba02a), (0x5ba290, 0x5ba2ea), (0x5b97a0, 0x5b981c),
            (0x5b9820, 0x5b989c), (0x67afa0, 0x67b0d0),
-           (0x5b72f0, 0x5b742a), (0x4bae30, 0x4bae3f), (0x41a830, 0x41a834), (0x67acc0, 0x67acc1), (0x5b7960, 0x5b7987)])
+           (0x5b72f0, 0x5b742a), (0x4bae30, 0x4bae3f), (0x41a830, 0x41a834), (0x67acc0, 0x67acc1), (0x5b7960, 0x5b7987),
+           (0x4bae40, 0x4bae62), (0x4c25e0, 0x4c25f9), (0x5b5e40, 0x5b606b), (0x5b6070, 0x5b622a), (0x658d9f, 0x658e04), (0x659710, 0x659740), (0x65f697, 0x65f6e1),
+           (0x5b50b0, 0x5b55d7), (0x5b96e0, 0x5b97a0), (0x5bce60, 0x5bcee0), (0x5bd2a0, 0x5bd320), (0x5bd6b0, 0x5bd730), (0x5bdcd0, 0x5bde20),
+           (0x5f5fc0, 0x5f7f00), (0x67a400, 0x67acb0), (0x67acd0, 0x67afa0), (0x67b0d0, 0x690000)])
 GETTERS = {'LoggedIn': 0x5b6450, 'Flag20': 0x5b6460, 'String14': 0x5b6480, 'String28': 0x5b6490,
            'UserName': 0x5b64a0, 'UserFlags': 0x5b64b0, 'User5c': 0x5b64c0}
 RELEASES = {'ReleaseLogin': 0x5b64d0, 'ReleaseNews': 0x5b6b20, 'ResetNews': 0x5b6980, 'ReleaseUpload': 0x5b83e0, 'ResetUpload': 0x5b8400,
             'ResetDownload': 0x5b9040, 'AuthDelete': 0x5b7b80, 'LoginResult': 0x5b62e0, 'ResetCity': 0x5b7430,
-            'OpenCity': 0x5b72f0, 'Unpublish': 0x5b7960}
+            'OpenCity': 0x5b72f0, 'Unpublish': 0x5b7960, 'ResetConnections': 0x5b6070, 'ResetAll': 0x5b5e40, 'Construct': 0x5b50b0}
 CALLS = {**GETTERS, **RELEASES}
 # the imports: OutputDebugStringA (stdcall, its text logged), Auth::Release, Auth::~Auth, News::Release, News::~News, Upload::Release (thiscall)
 OUTPUT = 0x6fd1e0
 METHODS = [0x6fd45c, 0x6fd460, 0x6fd58c, 0x6fd588, 0x6fd5ec]
 SESSION, OBJ, VT, REC, LISTS, ARRAYS = RAM, RAM + 0x800, RAM + 0x900, RAM + 0xa00, RAM + 0xc00, RAM + 0x2000
+WINDOW = RAM + 0x8000
 
 
 def release(r, op):
@@ -120,8 +125,51 @@ def open_city(r, unpublish=False):
     return Call(0x5b72f0, [SESSION], regions, conv='t', ret='a')
 
 
+def reset_all(r, op):
+    """0x5b6070, 0x5b5e40: reset_city()'s world, the Auth, News and Upload as release()'s, the other strings recorders; the dialog [0x7cca94] none or
+    up (byte +4 now and then set, handler +0x114 fncmp's logger or none). 0x5b5e40's end: the flag byte [0x7cc540] and Dialup::Disconnect's
+    recorder (its argument [0x7cc50c])."""
+    regions = reset_city(r).regions
+    table = regions[IMPORT_TABLE]
+    for k, slot in enumerate(METHODS):
+        struct.pack_into('<I', table, slot - IMPORT_TABLE, recorder(11 + k, 0))
+    struct.pack_into('<I', table, 0x6fd5b8 - IMPORT_TABLE, recorder(16, 1))
+    s = bytearray(r.bytes(0x400))
+    s[:0x110] = regions[SESSION]
+    for at in (0xc, 0x20, 0x3c, 0x7c, 0x98, 0xb4, 0x348, 0x35c, 0x3dc):
+        put(s, at, 'I', VT)
+    for at in (0, 0x6c, 0x104):
+        put(s, at, 'I', r.choice([0, OBJ, OBJ + 0x40]))
+    put(s, 0x3a0, 'I', r.choice([0, OBJ + 0x80]))
+    put(s, 0x39c, 'I', r.choice([0, HEAP + 0x100, HEAP + 0x200]))
+    window = bytearray(r.bytes(0x120))
+    window[4] = r.choice([0, 0, 0, 1])
+    put(window, 0x114, 'I', r.choice([CDECL_LOG4, CDECL_LOG4, 0]))
+    regions.update({SESSION: s, VT: vtable({0: 1, 5: 1}), OBJ: r.bytes(0x80) + struct.pack('<I', VT) + r.bytes(0x1c), WINDOW: window,
+                    0x7cca94: struct.pack('<I', r.choice([0, WINDOW])), 0xfaa5fc: bytes(4), 0x7cc540: bytes([r.deal([0, 1, 0x80])]), 0x7cc50c: r.bytes(4)})
+    return Call(CALLS[op], [SESSION], regions, conv='t', ret='v')
+
+
+def construct(r):
+    """0x5b50b0: the session's memory random, the heap failing no block, or one of the first 15 (the lists' or their own; a list not had faults
+    in the city's reset, the last two do not); timeGetTime and OutputDebugStringA recorders; the strings real."""
+    log = log_region()
+    table = bytearray(0x600)
+    struct.pack_into('<I', table, OUTPUT - IMPORT_TABLE, recorder(1, 1, True))
+    strings(log, 1, 1)
+    struct.pack_into('<I', table, 0x6fd3ec - IMPORT_TABLE, recorder(6, 0, True))
+    set_return(log, 6, r.getrandbits(32))
+    regions = {LOG: log, IMPORT_TABLE: table, HEAP: heap(0x4000, r.deal([0] * 7 + [1, 2, 4, 7, 8, 9, 10, 11])), SESSION: r.bytes(0x404), 0xfa71e0: bytes(4),
+               0x78a374: bytes(4), 0x786de4: bytes(4)}
+    return Call(0x5b50b0, [SESSION], regions, conv='t', ret='a')
+
+
 def case(r):
     op = r.deal(OPS)
+    if op == 'Construct':
+        return construct(r)
+    if op in ('ResetConnections', 'ResetAll'):
+        return reset_all(r, op)
     if op == 'ResetCity':
         return reset_city(r)
     if op in ('OpenCity', 'Unpublish'):
