@@ -3,6 +3,7 @@
 #include <cstdint>
 
 #include "../core/crt.h"
+#include "../core/gameheap.h"
 #include "../core/options.h"
 #include "../core/vcall.h"
 #include "../files/userslots.h"
@@ -12,6 +13,7 @@
 #include "../ui/dialog7cc984open.h"
 #include "../ui/dialogs.h"
 #include "../ui/frontendentries.h"
+#include "lobbymake.h"
 #include "lobbymodel.h"
 #include "lobbyscene.h"
 #include "scenequeue.h"
@@ -25,7 +27,7 @@ template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((ui
 
 const SceneStepsEnv kPorts = {&LobbyModel_Play,   &FrontEnd_Dialog7cc4b4Child, &Dialog7cc4b4_ShowTheme, &Setting_ReadMode, reinterpret_cast<s32(__cdecl *)(void(__cdecl *)())>((uintptr_t)0x0067a7d0),
                               &Class702cb0_NextItem, &Class702cb0_PreviousItem, &Online_ResetConnections, &Dialog7cc47c_Message6On, &Dialog7cc47c_Message6Off, &Dialog7cc984_Open, &Setting_SetMode,
-                              &Class702cb0_Step, &Dialog7cc47cInfo_Show, &UserSlots_Instance, &Class702da0_Show};
+                              &Class702cb0_Step, &Dialog7cc47cInfo_Show, &UserSlots_Instance, &Class702da0_Show, &Class702bb8_Ctor, &Class702da0_Push};
 const SceneStepsEnv *g_env = &kPorts;
 
 u8 *Setting() {
@@ -134,6 +136,25 @@ void __fastcall Scene702dd0_OpenRecord(u8 *self) {
     at<u32>(self, 0xe8) = 0;
     g_env->dialogOff();
     g_env->open(at<const u8 *>(at<const u8 *>(self, 0xc), 0x70), nullptr, 0x005e2650, 0x005e2660, reinterpret_cast<u32>(self));
+}
+
+void __fastcall ViewCtl702bc8_TakeList(u8 *self, void *, const u8 *list) {
+    const u8 *node = at<const u8 *>(list, 4);
+    while (node) {
+        const u8 *const item = at<const u8 *>(node, 0);
+        node = at<const u8 *>(node, 4);
+        if (vcall<u32>(self, 0x40, item)) {
+            u8 *const marker = static_cast<u8 *>(GameHeap_Alloc(0x10));
+            if (marker)
+                g_env->makeMarker(marker, nullptr, self, item);
+        }
+    }
+    at<u32>(self, 0x68) = 1;
+}
+
+void __fastcall ViewCtl702e70_TakeList(u8 *self, void *, const u8 *list) {
+    ViewCtl702bc8_TakeList(self, nullptr, list);
+    g_env->queuePush(at<u8 *>(global<u8 *>(0x00f85614), 0x14), nullptr, 0x256, 1);
 }
 
 void __cdecl Scene_SetOnlineMode() {

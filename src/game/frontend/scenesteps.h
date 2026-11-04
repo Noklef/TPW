@@ -22,6 +22,8 @@ struct SceneStepsEnv {
     void(__cdecl *showRecord)(const u8 *holder);                          // Dialog7cc47cInfo_Show (0x4b8850)
     u8 *(__cdecl *users)();                                               // UserSlots_Instance (0x48bcd0)
     void(__fastcall *queueShow)(u8 *queue, void *, u32 id, u32 time);     // the queue's show (0x5d61a0)
+    u8 *(__fastcall *makeMarker)(u8 *self, void *, u8 *owner, const u8 *record);  // Class702bb8_Ctor (0x5dc3e0)
+    void(__fastcall *queuePush)(u8 *queue, void *, u32 id, u32 clear);    // the queue's push (0x5d6110)
 };
 void SceneSteps_SetEnv(const SceneStepsEnv *env);
 
@@ -58,4 +60,10 @@ void __fastcall Scene702dd0_OpenRecord(u8 *self);
 
 // 0x5e2700: [0xf82884]'s +0x14 = 2 and the mode setting (read the first time, as above) set to 1.
 void __cdecl Scene_SetOnlineMode();
+
+// 0x5dd400 (class 0x702bc8 slot 10, thiscall (list), pops 4; name invented): the list's nodes in turn (+4 the first; a node's +0 an item, +4 the next): slot 16 with the item, not 0: a 0x10-byte marker for
+// it if the allocation works. Then +0x68 = 1.
+void __fastcall ViewCtl702bc8_TakeList(u8 *self, void *, const u8 *list);
+// 0x5dd7c0 (class 0x702e70 slot 10; name invented): ViewCtl702bc8_TakeList, then the queue at [[0xf85614] + 0x14] pushes (0x256, 1).
+void __fastcall ViewCtl702e70_TakeList(u8 *self, void *, const u8 *list);
 }
