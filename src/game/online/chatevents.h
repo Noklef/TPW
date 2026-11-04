@@ -36,6 +36,15 @@ void __fastcall ChatAvatar_LobbyEvent(u8 *avatar, void *, const u8 *tokens);
 // (on the chat's instance; the second token's word), else to ChatAvatar_HandleEvent (+0x28 set) or ChatAvatar_LobbyEvent. The map is left in +0xeec (sic).
 void __fastcall ChatAvatar_PumpEvents(u8 *chat);
 
+// 0x4e5230 (cdecl, a callback handed to the session's join; name invented, unconfirmed): a failure (nonzero): ChatAvatar_GotoDone on the online chat and
+// "goto ftp download failed" on the debugger's output, EAX the import's. None: Global879088_Set_5508b0(2).
+u32 __cdecl ChatAvatar_GotoFtpDone(s32 failed);
+
+// 0x4e6170 (thiscall on the chat, each frame; name invented, unconfirmed): ChatAvatar_PumpEvents; then with a vote +0xec4 and the byte +0xec0 set the vote is
+// done: a line on the debugger's output, Vote::Release (0x6fd604), ~Vote (0x6fd608) and its block freed unless +0xec4 was cleared meanwhile, both fields
+// cleared, a second line, Window7cc8bc_SetC3129(0).
+void __fastcall ChatAvatar_Update(u8 *chat);
+
 }
 
 // What the events call through an environment (the fncmp driver's recorders; the game's by default: the ports, or the game's addresses for the unported).
@@ -63,5 +72,6 @@ struct ChatEventEnv {
     void(__fastcall *readBuddies)(u8 *avatar, void *, const char *path);                  // 0x4ef3b0
     void(__fastcall *readIgnored)(u8 *avatar, void *, const char *path);                  // 0x4efc10
     void(__fastcall *handleEvent)(u8 *avatar, void *, const u8 *tokens);                  // ChatAvatar_HandleEvent 0x4e6e80
+    void(__cdecl *setC3129)(u8 value);                                                    // Window7cc8bc_SetC3129 0x4bd450
 };
 void ChatEvents_SetEnv(const ChatEventEnv *env);   // nullptr: the game's

@@ -7256,6 +7256,8 @@ address,name,kind,confidence,notes
 0x004eec40,ChatAvatar_ShowResult,function,low,reimplemented (src/game/online/chatevents); the result of a connection told as a notice
 0x004e6790,ChatAvatar_LobbyEvent,function,low,reimplemented (src/game/online/chatevents); an event of the tokens queue while not yet in a room
 0x004e6560,ChatAvatar_PumpEvents,function,low,reimplemented (src/game/online/chatevents); the tokens queue handed out and emptied under the lock
+0x004e5230,ChatAvatar_GotoFtpDone,function,low,"reimplemented (src/game/online/chatevents); cdecl, a callback of the session's join: a failure: ChatAvatar_GotoDone on the online chat and a line on the debugger's output; none: 0x879088 = 2 (name invented)"
+0x004e6170,ChatAvatar_Update,function,low,"reimplemented (src/game/online/chatevents); thiscall on the chat, each frame: the queue pumped; a finished vote released (Vote::Release, ~Vote, freed), both fields cleared, Window7cc8bc_SetC3129(0) (name invented)"
 0x0046c610,ChatCursor_Click,function,low,"reimplemented (src/game/online/chatcursor); a map click on the cell under the cursor with the async modifiers (name invented, unconfirmed)"
 0x0046cee0,ChatCursor_GoTo,function,low,"reimplemented (src/game/online/chatcursor); the online chat's avatar sent to the cell under the cursor (name invented, unconfirmed)"
 0x0046cf80,ChatCursor_MoveTo,function,low,"reimplemented (src/game/online/chatcursor); the online chat's avatar moved to the cell under the cursor (name invented, unconfirmed)"
