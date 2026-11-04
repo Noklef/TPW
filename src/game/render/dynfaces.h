@@ -3,6 +3,7 @@
 #pragma once
 
 #include "../../../re/types.h"
+#include "../core/addrcalls.h"
 
 extern "C" {
 
@@ -65,4 +66,10 @@ void __cdecl DynFaces_ReleaseModels();
 // (__ftol); past 6 with the flag byte 0x763c98 set, or past 1 with it clear, the flag flips and the counter is 0.
 void __cdecl DynFaces_Frame();
 
+// 0x53bfe0 (name invented, unconfirmed): 0x874fc4 cleared; with the holder 0x763c78 awake (0x424ec0) the queue's counts cleared, the flag byte 0x763c98 set, the table 0x871d18 dealt 15-17 at random,
+// and the three models made (0x871f64, 0x871ee4, 0x871ed8; 0xa4 bytes each, VertexBlock_Construct with 0x600, 0x86, 0x180 cubes), a result of 0 putting the holder to sleep once (0x424ed0); 0x874fcc set.
+void __cdecl DynFaces_InitModels();
+
 }  // extern "C"
+
+void DynFaces_SetCalls(const AddrCall *table, u32 count);

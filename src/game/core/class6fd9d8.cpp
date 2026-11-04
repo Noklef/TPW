@@ -561,6 +561,21 @@ u32 __fastcall Class6fdaa4_HasEmt(u8 *object) {
     return *vcall<s32 *>(object + 0x2c, 4, &result, pattern, &found) >= 0 ? 1 : 0;
 }
 
+u32 __fastcall Class6fdaa4_HasAllParts(u8 *object) {
+    for (const uintptr_t text : {0x0078c440u, 0x0078c248u, 0x0078c4e8u}) {
+        struct Found {
+            u8 head[0x20];   // sic: unwritten for the first find, then copied from a local record never written
+            char *name;
+            char text[260];
+        } record;
+        record.text[0] = 0;
+        record.name = record.text;
+        s32 status;
+        if (*vcall<s32 *>(object + 0x2c, 4, &status, *reinterpret_cast<const char *const *>(text), &record) < 0) return 0;
+    }
+    return 1;
+}
+
 u8 *__fastcall Class6fda48_Ctor(u8 *object, void *, const WString *name, const WString *folder) { return Plain(object, name, folder, 0x006fda48); }
 u8 *__fastcall Class6fda68_Ctor(u8 *object, void *, const WString *name, const WString *folder) { return Plain(object, name, folder, 0x006fda68); }
 u8 *__fastcall Class6fdaa8_Ctor(u8 *object, void *, const WString *name, const WString *folder) { return Plain(object, name, folder, 0x006fdaa8); }

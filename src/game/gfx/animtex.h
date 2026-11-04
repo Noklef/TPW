@@ -15,4 +15,9 @@ void __cdecl AnimTextures_Set(const u32 *from, const u32 *fromCounts);
 
 // 0x590730: the six counts cleared.
 void __cdecl AnimTextures_Clear();
+
+// 0x590750 (name invented, unconfirmed): while the flag byte 0x8c639c is on, from the height -4 * the clock (0x790acc) down to the screen's (0x7a1930), a row for each animation
+// (of over one frame) of its frames in the renderer's slot 10 (x, y, x + w, y + h, -1, texture), each 2 past the last's size, sliding by the count 0x8c63a0 * 0x102 and the screen's
+// width (0x7a1968) a pass; mode 4 (0x8bd524) leaves out the ones not inside 0x8bcbd0, 0x8bcbd4. Sic: the first animation at one frame or less leaves the row's height a stack slot not yet written.
+void __cdecl AnimTextures_DrawSheet();
 }

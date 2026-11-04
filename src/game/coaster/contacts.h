@@ -4,9 +4,17 @@
 // the contacts held.
 #pragma once
 
+#include "../core/addrcalls.h"
 #include "../../../re/types.h"
 
 extern "C" {
+
+// Contacts_TestPair's calls go by the game's addresses; a table of replacements (tests/fncmp/contactspair.py gives them recorders).
+void Contacts_SetCalls(const AddrCall *table, u32 count);
+
+// 0x439c40 (cdecl; name unconfirmed): the span nodeA..nextA of owner1 against nodeB..nextB of owner2. With one owner, none of: the spans' next types the other's first (+0x100), a next type with flag 1 (+4) against a first node whose +0 is 0. Not with nodeB's flag 0x10000 or when the boxes (+0x98) do not overlap (a NaN does).
+// The segments of both (Contacts_SegmentsInBox) in the boxes' common part, into the arrays at 0x792238 and 0x792230, all pairs: the globals 0x79223c, 0x792240, 0x7922dc, 0x792244 set for the test 0x43a2b0 and, for a pair overlapping that it answers non-zero, each node joins the other's contacts (up to 8, then flag 0x400000) and it ends.
+void __cdecl Contacts_TestPair(u8 *owner1, u8 *owner2, u8 *nodeA, const u8 *nextA, u8 *nodeB, const u8 *nextB);
 
 // 0x43ad50: drops all of node's contacts: from every node in the owner's list when node is
 // marked 0x400000 (clearing the mark), else from each node it holds. Each node losing any

@@ -6,7 +6,16 @@
 
 #include "../../../re/types.h"
 
+// What CoasterPiece_Load loads with (default Ride_LoadResource; the bench's recorder; nullptr restores it).
+using CoasterPieceLoad = u32(__cdecl *)(const char *folder, const char *name, const u8 *cells, const u8 *grid, u32 flags, u32 id, u32 layers, const u8 *def, u32 signArg, u32 width, u32 height);
+void CoasterPiece_SetLoad(CoasterPieceLoad load);
+
 extern "C" {
+
+// 0x430130 (cdecl; piece, folder; name unconfirmed; one of the three of a type, +0x300, +0x2fc, +0x304): Ride_LoadResource (folder, the name +8, flags 0xc0, id +4, one layer) gives +0xc, its slot in the table 0x7ae6a8;
+// 0 or an empty slot end here. +0x28 = +0x14 - (the model's bound +0x88 - the float +0x48 of its +0x78), +0x24 = +0x10 + (bound +0x94 - that); +0x30 = its parts with flag 0x80 and +0x2c a GlobalMem list of them (0 for none).
+// With the piece's bit 0: the model's bounds +0x80 and those (+0x78) of its face (+0x70, 0xa0 each, the first +0x44) with the greatest u16 +0x58 widened to the longer corner's length + 4 on all sides, that face's flag 0x200000 set, its index to +0x20.
+void __cdecl CoasterPiece_Load(u8 *piece, const char *folder);
 
 // 0x430ad0 (cdecl; name unconfirmed): every coaster type of the table 0x790b08 (the count 0x790fe8) freed, then the count 0. For each:
 // the GlobalMem blocks +0x2c of its three pieces +0x300, +0x2fc and +0x304 (the latter two only when not the first), +0x308, the

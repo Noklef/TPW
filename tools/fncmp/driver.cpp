@@ -236,9 +236,7 @@
 #include "../../src/game/gfx/draw.h"
 #include "../../src/game/gfx/glyphrender.h"
 #include "../../src/game/gfx/imagecodec.h"
-#include "../../src/game/gfx/imageload.h"
 #include "../../src/game/gfx/invmap.h"
-#include "../../src/game/gfx/lightshade.h"
 #include "../../src/game/gfx/pixconv.h"
 #include "../../src/game/gfx/surfbuf.h"
 #include "../../src/game/gfx/tga.h"
@@ -251,12 +249,25 @@
 #include "../../src/game/coaster/arreplayaction.h"
 #include "../../src/game/coaster/coastersload.h"
 #include "../../src/game/world/ridesload.h"
+#include "../../src/game/model/aimsprites.h"
+#include "../../src/game/render/modellist.h"
+#include "../../src/game/world/advisorspeech.h"
+#include "../../src/game/gfx/bumplight.h"
+#include "../../src/game/gfx/imageops.h"
+#include "../../src/game/render/dynfaces.h"
+#include "../../src/game/terrain/texcache.h"
+#include "../../src/game/coaster/coastersupdate.h"
+#include "../../src/game/render/pointsprites.h"
+#include "../../src/game/frontend/lobbyflight.h"
+#include "../../src/game/gfx/texsurface.h"
 #include "../../src/game/model/heightmap.h"
 #include "../../src/game/frontend/lobbyscript.h"
 #include "../../src/game/files/gamepaths.h"
 #include "../../src/game/core/globalsave.h"
 #include "../../src/game/coaster/rebuild.h"
+#include "../../src/game/coaster/setup.h"
 #include "../../src/game/coaster/carpose.h"
+#include "../../src/game/coaster/contacts.h"
 #include "../../src/game/model/rideresource.h"
 #include "../../src/game/coaster/placecar.h"
 #include "../../src/game/gfx/texcache.h"
@@ -919,7 +930,7 @@ const RideSkinEnv kRideSkinEnv = {Rec{jpeg_recorder(1, 1)}};
 // (ParkMap_Draw's: thiscall 10 of 1 argument, 11 of none, 12 of 3, 13 of none, as tests/fncmp/parkmapdraw.py hooks those addresses.)
 const ParkMapEnv kParkMapEnv = {Rec{recorder(10, 1)}, Rec{recorder(11, 0)}, Rec{recorder(12, 3)}, Rec{recorder(13, 0)}};
 const LobbyMakeEnv kLobbyMakeEnv = {Rec{jpeg_recorder(20, 11)}, Rec{jpeg_recorder(21, 10)}, Rec{jpeg_recorder(22, 1)}, Rec{jpeg_recorder(23, 3)}, Rec{recorder(24, 1)}, Rec{recorder(25, 1)}, Rec{jpeg_recorder(26, 1)},
-                                    Rec{recorder(27, 2)}, Rec{recorder(28, 0)}, Rec{recorder(29, 1)}, Rec{recorder(30, 3)}};
+                                    Rec{recorder(28, 0)}, Rec{recorder(29, 1)}, Rec{recorder(30, 3)}};
 const CoasterPlaceCarEnv kCoasterPlaceCarEnv = {Rec{jpeg_recorder(1, 6)}, Rec{jpeg_recorder(2, 9)}, Rec{jpeg_recorder(3, 7)}, Rec{jpeg_recorder(4, 5)}, Rec{jpeg_recorder(5, 2)}, Rec{jpeg_recorder(6, 7)},
                                                  Rec{jpeg_recorder(7, 1)}, Rec{jpeg_recorder(8, 1)}, Rec{jpeg_recorder(9, 0)}, Rec{jpeg_recorder(10, 0)}, Rec{jpeg_recorder(11, 0)}, Rec{jpeg_recorder(12, 0)},
                                                  Rec{recorder(13, 0)}, Rec{recorder(14, 0)}, Rec{recorder(15, 1)}};  // tests/fncmp/coasterplacecar.py
@@ -1140,6 +1151,32 @@ const AddrCall kHeightMapCalls[] = {  // tests/fncmp/heightmapbuild.py --table
     {0x473e30, jpeg_recorder(2, 4)},
     {0x451e20, (u32)(uintptr_t)&heightmap_rasterize_recorder},
 };
+const AddrCall kContactsCalls[] = {  // tests/fncmp/contactspair.py
+    {0x43a060, jpeg_recorder(1, 6)},
+    {0x43a2b0, jpeg_recorder(2, 2)},
+};
+const AddrCall kAimSpritesCalls[] = {{0x475590, jpeg_recorder(13, 3)}, {0x475480, jpeg_recorder(14, 5)}, {0x4755d0, jpeg_recorder(15, 3)}};
+const BumpLightEnv kBumpLightEnv = {Rec{jpeg_recorder(12, 4)}};
+const AddrCall kBumpLightCalls[] = {{0x67acc0, jpeg_recorder(10, 1)}, {0x5e80d0, recorder(11, 1)}, {0x55f1e0, recorder(13, 0)}};
+const AddrCall kWScannerCalls[] = {{0x5e7200, recorder(1, 2)}};
+const AddrCall kMMPlaceStaffCalls[] ={{0x4d6b60, recorder(1, 4)}, {0x4d4340, recorder(2, 4)}, {0x4d5d40, recorder(3, 4)}, {0x4d9eb0, recorder(4, 4)}, {0x502600, recorder(5, 4)}};
+const AddrCall kTexSurfaceCalls[] ={{0x573820, recorder(1, 2)}, {0x56af20, recorder(2, 2)}, {0x56a770, jpeg_recorder(3, 1)}, {0x564650, jpeg_recorder(4, 1)}, {0x5645a0, recorder(5, 0)}, {0x58b1f0, recorder(6, 2)}, {0x58b890, recorder(7, 2)}};
+const AddrCall kAdvisorRingCalls[] ={{0x4f8800, recorder(1, 1)}, {0x5194d0, recorder(2, 2)}, {0x59abc0, recorder(3, 0)}, {0x550ca0, recorder(4, 0)}, {0x67a7d0, jpeg_recorder(5, 1)}};
+const AddrCall kSpriteFrameShowCalls[] ={{0x588ba0, recorder(1, 0)}, {0x5889b0, recorder(2, 2)}, {0x58c9f0, recorder(3, 2)}, {0x58a6b0, recorder(4, 1)}, {0x58a6e0, recorder(5, 1)}, {0x578d20, recorder(6, 3)}};
+const AddrCall kTerrainTexUpdateCalls[] ={{0x590da0, recorder(1, 0)}, {0x590d40, recorder(2, 0)}, {0x55f780, recorder(3, 4)}, {0x562f70, jpeg_recorder(4, 3)}, {0x58dc50, recorder(5, 1)}, {0x590f90, recorder(6, 0)}, {0x58c9f0, recorder(7, 2)}};
+const AddrCall kDynFacesCalls[] ={{0x53d790, recorder(1, 11)}, {0x424ec0, jpeg_recorder(2, 1)}, {0x424ed0, jpeg_recorder(3, 1)}};
+const AddrCall kImageLoadCalls[] ={{0x5fa8a0, recorder(1, 4)}, {0x5faa00, recorder(2, 5)}, {0x5fa6f0, recorder(3, 1)}, {0x5fa740, recorder(4, 0)}};
+const AddrCall kLobbyFlightCalls[] ={{0x5d8870, recorder(4, 6)}, {0x5d83f0, recorder(5, 2)}, {0x5d8190, recorder(6, 1)}};
+const AddrCall kPointSpritesCalls[] ={{0x67a7d0, jpeg_recorder(1, 1)}, {0x590c40, recorder(2, 0)}, {0x565240, recorder(3, 5)}, {0x565bb0, recorder(4, 5)}, {0x5658c0, recorder(5, 1)}};
+const AddrCall kCoastersUpdateCalls[] ={{0x435d50, jpeg_recorder(1, 1)}, {0x403d00, recorder(2, 2)}, {0x43eb70, jpeg_recorder(3, 1)}, {0x43ce20, jpeg_recorder(4, 1)}, {0x4709e0, jpeg_recorder(5, 1)}, {0x43b8b0, jpeg_recorder(6, 2)}, {0x439570, jpeg_recorder(7, 2)}};
+const AddrCall kModelListCalls[] = {{0x575f90, recorder(1, 1)}, {0x581790, recorder(2, 2)}, {0x581880, recorder(3, 2)}, {0x580530, recorder(4, 3)}, {0x5658c0, recorder(5, 1)}};
+const AddrCall kAdvisorSpeechCalls[] = {{0x402d80, recorder(1, 0)}, {0x402df0, recorder(2, 0)}, {0x51c270, jpeg_recorder(3, 4)}, {0x51e6f0, jpeg_recorder(4, 1)}, {0x5ed5a0, jpeg_recorder(5, 3)}, {0x51bfc0, jpeg_recorder(6, 6)},
+                                        {0x521e60, jpeg_recorder(7, 4)}, {0x4b9340, jpeg_recorder(8, 0)}, {0x429fe0, jpeg_recorder(9, 1)}, {0x473ff0, jpeg_recorder(10, 4)}, {0x4732a0, jpeg_recorder(11, 6)}, {0x67ad90, jpeg_recorder(12, 1)}};
+u32 __fastcall arreplay_step_recorder(u8 *self, void *) {   // as tests/fncmp/arreplayupdate.py's step: +0x2c copied to the wait
+    *reinterpret_cast<u32 *>(self + 0x30) = *reinterpret_cast<u32 *>(self + 0x2c);
+    return reinterpret_cast<u32(__fastcall *)(u8 *, void *)>((uintptr_t)recorder(1, 0))(self, nullptr);
+}
+const AddrCall kArReplayCalls[] = {{0x4045b0, (u32)(uintptr_t)&arreplay_step_recorder}, {0x5195d0, recorder(2, 0)}, {0x527940, jpeg_recorder(3, 1)}, {0x5516b0, jpeg_recorder(5, 0)}, {0x439390, jpeg_recorder(6, 0)}};
 const AddrCall kRidesLoadCalls[] = {  // tests/fncmp/ridesload.py --table
     {0x4547f0, jpeg_recorder(5, 1)},
     {0x45b9d0, jpeg_recorder(1, 2)},
@@ -1504,9 +1541,7 @@ const Dialog7cb400CloseEnv kDialog7cb400CloseEnv = {Rec{jpeg_recorder(10, 4)}, R
 const Dialog7cc188AddressEnv kDialog7cc188AddressEnv = {Rec{recorder(10, 1)}, Rec{jpeg_recorder(11, 1)}, Rec{recorder(12, 1)}, Rec{jpeg_recorder(13, 1)}, Rec{jpeg_recorder(14, 5)}, Rec{jpeg_recorder(15, 8)}, Rec{recorder(16, 3)}};
 const UserSlotsEnv kUserSlotsEnv = {Rec{recorder(27, 0)}};
 const BankAccountCtorEnv kBankAccountCtorEnv = {Rec{jpeg_recorder(10, 4)}};
-const LightShadeEnv kLightShadeEnv = {Rec{jpeg_recorder(10, 4)}};  // tests/fncmp/lightshade.py
 const NarrowFileBufEnv kNarrowFileBufEnv = {Rec{jpeg_recorder(18, 1)}, Rec{jpeg_recorder(23, 2)}, Rec{jpeg_recorder(24, 1)}};  // tests/fncmp/narrowfilebuf.py
-const ImageLoadEnv kImageLoadEnv = {Rec{recorder(16, 4)}, Rec{recorder(17, 1)}, Rec{recorder(18, 5)}, Rec{recorder(19, 0)}};  // tests/fncmp/imageload.py
 const Dialog7ca150ListEnv kDialog7ca150ListEnv = {Rec{recorder(10, 2)}, Rec{recorder(11, 1)}, Rec{recorder(12, 2)}, Rec{recorder(13, 5)}, Rec{recorder(14, 1)}, Rec{recorder(15, 1)}, Rec{recorder(16, 0)}, Rec{recorder(17, 0)}, Rec{recorder(18, 0)}, Rec{recorder(19, 0)}, Rec{recorder(20, 3)}};
 const Dialog7cb3f8SlotsEnv kDialog7cb3f8SlotsEnv = {Rec{jpeg_recorder(10, 0)}, Rec{recorder(11, 1)}, Rec{recorder(12, 1)}, Rec{jpeg_recorder(13, 1)}, Rec{recorder(14, 1)}};
 const Panel7cc328HandlerEnv kPanel7cc328HandlerEnv = {Rec{recorder(10, 0)}, Rec{recorder(11, 2)}, Rec{recorder(12, 5)}, Rec{recorder(13, 2)}, Rec{recorder(14, 1)}, Rec{jpeg_recorder(15, 1)}, Rec{recorder(16, 0)}, Rec{recorder(17, 0)}, Rec{recorder(18, 0)}, Rec{jpeg_recorder(19, 2)}, Rec{jpeg_recorder(20, 2)},
@@ -2479,6 +2514,23 @@ int main(int argc, char **argv) {
     WeatherFx_SetReloadEnv(&kWeatherFxReloadEnv);
     ArReplay_SetEnv(&kArReplayEnv);
     RidesLoad_SetCalls(kRidesLoadCalls, sizeof(kRidesLoadCalls) / sizeof(kRidesLoadCalls[0]));
+    AimSprites_SetCalls(kAimSpritesCalls, sizeof(kAimSpritesCalls) / sizeof(kAimSpritesCalls[0]));
+    ModelList_SetCalls(kModelListCalls, sizeof(kModelListCalls) / sizeof(kModelListCalls[0]));
+    BumpLight_SetEnv(&kBumpLightEnv, kBumpLightCalls, sizeof(kBumpLightCalls) / sizeof(kBumpLightCalls[0]));
+    CoastersUpdate_SetCalls(kCoastersUpdateCalls, sizeof(kCoastersUpdateCalls) / sizeof(kCoastersUpdateCalls[0]));
+    PointSprites_SetCalls(kPointSpritesCalls, sizeof(kPointSpritesCalls) / sizeof(kPointSpritesCalls[0]));
+    LobbyFlight_SetCalls(kLobbyFlightCalls, sizeof(kLobbyFlightCalls) / sizeof(kLobbyFlightCalls[0]));
+    TexSurface_SetCalls(kTexSurfaceCalls, sizeof(kTexSurfaceCalls) / sizeof(kTexSurfaceCalls[0]));
+    AdvisorScoring_SetCalls(kAdvisorRingCalls, 5);
+    Image_SetCalls(kImageLoadCalls, 4);
+    SpriteFrame_SetCalls(kSpriteFrameShowCalls, 6);
+    TerrainTexCache_SetCalls(kTerrainTexUpdateCalls, 7);
+    DynFaces_SetCalls(kDynFacesCalls, 3);
+    WScanner_SetCalls(kWScannerCalls, 1);
+    MMPlaceStaff_SetCalls(kMMPlaceStaffCalls, sizeof(kMMPlaceStaffCalls) / sizeof(kMMPlaceStaffCalls[0]));
+    AdvisorSpeech_SetCalls(kAdvisorSpeechCalls, sizeof(kAdvisorSpeechCalls) / sizeof(kAdvisorSpeechCalls[0]));
+    ArReplay_SetCalls(kArReplayCalls, sizeof(kArReplayCalls) / sizeof(kArReplayCalls[0]));
+    Contacts_SetCalls(kContactsCalls, sizeof(kContactsCalls) / sizeof(kContactsCalls[0]));
     HeightMap_SetCalls(kHeightMapCalls, sizeof(kHeightMapCalls) / sizeof(kHeightMapCalls[0]));
     LobbyScript_SetEnv(kLobbyScriptCalls, sizeof(kLobbyScriptCalls) / sizeof(kLobbyScriptCalls[0]));
     GamePaths_SetCalls(kShareTexCalls, sizeof(kShareTexCalls) / sizeof(kShareTexCalls[0]));
@@ -2488,6 +2540,7 @@ int main(int argc, char **argv) {
     CoasterRebuild_SetEnv(&kCoasterRebuildEnv);
     CoasterPose_SetEnv(&kCoasterPoseEnv);
     RideResource_SetEnv(&kRideResourceEnv);
+    CoasterPiece_SetLoad(reinterpret_cast<CoasterPieceLoad>(jpeg_recorder(12, 11)));
     CoasterPlaceCar_SetEnv(&kCoasterPlaceCarEnv);
     TexCache_SetTraceEnv(&kTexCacheTraceEnv);
     LobbyMake_SetEnv(&kLobbyMakeEnv);
@@ -2623,8 +2676,6 @@ int main(int argc, char **argv) {
     Dialog7cc188Address_SetEnv(&kDialog7cc188AddressEnv);
     VersionLabel_SetEnv(&kVersionLabelEnv);
     BankAccountCtor_SetEnv(&kBankAccountCtorEnv);
-    LightShade_SetEnv(&kLightShadeEnv);
-    ImageLoad_SetEnv(&kImageLoadEnv);
     NarrowFileBuf_SetEnv(&kNarrowFileBufEnv);
     SaveDialog_SetEnv(&kSaveDialogEnv);
     SaveDialogCreate_SetEnv(&kSaveDialogCreateEnv);

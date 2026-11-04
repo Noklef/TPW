@@ -7,6 +7,8 @@
 #include "../core/globalmem.h"
 #include "../math/x87.h"
 #include "../model/holder.h"
+#include "../model/parts.h"
+#include "../model/rideresource.h"
 #include "queue.h"
 #include "xsection.h"
 
@@ -37,12 +39,38 @@ char *copyName(const char *name) {
     return copy;
 }
 
+CoasterPieceLoad g_pieceLoad = Ride_LoadResource;
+
+// A box's corners (min xyz, max xyz) pushed out to at least the longer corner's length + 4 on every side. A NaN stays in the min corner and gives way in the max corner.
+void widenBox(float *box) {
+    const auto square = [](float x) {
+        const X87Reg r(x);
+        return r * r;
+    };
+    const X87Reg first = X87_Sqrt(square(box[0]) + square(box[1]) + square(box[2]));
+    const X87Reg second = X87_Sqrt(square(box[3]) + square(box[4]) + square(box[5]));
+    const float stored = (float)second;
+    const X87Reg longer = first.v > (double)stored ? first : X87Reg(stored);
+    const X87Reg high = longer - -4.0f;   // (the constant 0x6fde98)
+    const X87Reg low(-high.v);
+    for (u32 i = 0; i < 3; ++i) {
+        const X87Reg own(box[i]);
+        box[i] = (float)(own.v >= low.v ? low : own);
+    }
+    for (u32 i = 3; i < 6; ++i) {
+        const X87Reg own(box[i]);
+        box[i] = (float)(own.v > high.v ? own : high);
+    }
+}
+
 // The u32 at from + src to to + dst when it is a non-zero float.
 void copyFloat(u8 *to, u32 dst, const u8 *from, u32 src) {
     if (!zero(at<float>(from, src))) at<u32>(to, dst) = at<u32>(from, src);
 }
 
 }  // namespace
+
+void CoasterPiece_SetLoad(CoasterPieceLoad load) { g_pieceLoad = load ? load : Ride_LoadResource; }
 
 extern "C" {
 
@@ -200,6 +228,43 @@ void __cdecl Coaster_SetTrainCount(u8 *coaster, u32 count) {
         }
     }
     at<u32>(coaster, 0xf4) = count;
+}
+
+void __cdecl CoasterPiece_Load(u8 *piece, const char *folder) {
+    const u32 id = g_pieceLoad(folder, at<const char *>(piece, 8), nullptr, nullptr, 0xc0, at<u32>(piece, 4), 1, nullptr, 0, 0, 0);
+    at<u32>(piece, 0xc) = id;
+    if (!id) return;
+    u8 *const holder = reinterpret_cast<u8 **>(0x007ae6a8)[id];
+    if (!holder) return;
+    u8 *const model = at<u8 *>(at<u8 *>(holder, 8), 4);
+    const float base = at<float>(at<u8 *>(model, 0x78), 0x48);
+    const X87Reg top = X87Reg(at<float>(model, 0x94)) - base;
+    at<float>(piece, 0x28) = (float)(at<float>(piece, 0x14) - (X87Reg(at<float>(model, 0x88)) - base));
+    at<float>(piece, 0x24) = (float)(X87Reg(at<float>(piece, 0x10)) + top);
+    const u32 parts = Model_CountParts(holder, 0x80);
+    at<u32>(piece, 0x30) = parts;
+    if (parts) {
+        at<u32 *>(piece, 0x2c) = static_cast<u32 *>(GlobalMem_Alloc(parts * 4, 1));
+        for (u32 i = 0; i < at<u32>(piece, 0x30); ++i)
+            at<u32 *>(piece, 0x2c)[i] = Model_NthPart(holder, 0x80, i + 1);
+    } else {
+        at<u32>(piece, 0x2c) = 0;
+    }
+    if (!(at<u8>(piece, 0) & 1)) return;
+    u32 best = 0, most = 0;
+    const u32 faces = at<u16>(model, 0x44);
+    for (u32 i = 0; i < faces; ++i) {
+        const u32 weight = at<u16>(at<u8 *>(model, 0x70) + i * 0xa0, 0x58);
+        if (weight > most) {
+            most = weight;
+            best = i;
+        }
+    }
+    widenBox(&at<float>(model, 0x80));
+    u8 *const face = at<u8 *>(model, 0x70) + best * 0xa0;
+    widenBox(&at<float>(face, 0x78));
+    at<u32>(face, 0) |= 0x200000;
+    at<u32>(piece, 0x20) = best;
 }
 
 void __cdecl CoasterTypes_FreeAll() {

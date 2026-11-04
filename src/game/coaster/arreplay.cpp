@@ -3,6 +3,7 @@
 #include <cstdint>
 
 #include "../core/actionrec.h"
+#include "../core/vcall.h"
 #include "../world/mapclick.h"
 #include "../world/mappress.h"
 #include "cars.h"
@@ -39,6 +40,56 @@ bool Read(u8 *stream, void *buffer, u32 bytes) {
 }  // namespace
 
 void ArReplay_SetEnv(const ArReplayEnv *env) { g_env = env ? env : &kGame; }
+
+namespace {
+
+AddrCalls g_calls;
+
+// The replay over: the streams closed (slot 4 (0, 2)), the third and fourth only when it is not +4's, the flag cleared, and the frames stepped.
+void Finish(u8 *self) {
+    vcall<void>(self + 0xc, 0x10, 0u, 2u);
+    if (!at<u32>(self, 4)) {
+        vcall<void>(self + 0x14, 0x10, 0u, 2u);
+        vcall<void>(self + 0x1c, 0x10, 0u, 2u);
+    }
+    at<u32>(self, 0x24) = 0;
+    at<u32>(self, 8) = 1;
+    for (u32 i = 0; i < 8; ++i)
+        g_calls.Cd(0x005516b0);
+    g_calls.Cd(0x00439390);
+    const u32 result = g_calls.Th(0x005195d0, at<u32>(reinterpret_cast<void *>((uintptr_t)0x007cf83c), 0));
+    at<u32>(reinterpret_cast<void *>((uintptr_t)result), 0x114) = 1;
+}
+
+}  // namespace
+
+void ArReplay_SetCalls(const AddrCall *table, u32 count) { g_calls.Set(table, count); }
+
+extern "C" void __fastcall ArReplay_Update(u8 *self) {
+    if (!at<u32>(self, 0x24)) return;
+    g_calls.Cd(0x00527940, 0u);
+    const s32 mode = at<s32>(self, 0x28);
+    if (mode == 0) {
+        while (g_calls.Th(0x004045b0, (u32)(uintptr_t)self)) {
+        }
+        Finish(self);
+        return;
+    }
+    if (mode < 0 || mode > 2) return;
+    bool waited = false;
+    if (!at<u32>(self, 0x30)) {
+        waited = true;
+        for (;;) {
+            if (!g_calls.Th(0x004045b0, (u32)(uintptr_t)self)) {
+                Finish(self);
+                break;
+            }
+            if (at<u32>(self, 0x30)) break;
+        }
+    }
+    const u32 left = --at<u32>(self, 0x30);
+    if (at<u32>(self, 0x28) == 1 && waited && left > 2) at<u32>(self, 0x30) = 2;
+}
 
 extern "C" u32 __fastcall ArReplay_Step(u8 *self) {
     u8 *const stream = self + 0xc;

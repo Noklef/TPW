@@ -5,6 +5,7 @@
 
 #include "../../../re/types.h"
 #include "../files/wrapsources.h"
+#include "addrcalls.h"
 
 // What the criteria 0x59e9b0, 0x59ef60, 0x59f860 and 0x59f8d0 call (the ports by default; the bench runs them as recorders).
 struct AdvisorCriteriaEnv {
@@ -16,6 +17,7 @@ struct AdvisorCriteriaEnv {
     u16 *(__fastcall *findCutOff)(u8 *analyser, void *, u16 *out, u32 any);   // ParkAnalyser_FindCutOff (0x4ccb00)
 };
 void AdvisorCriteria_SetEnv(const AdvisorCriteriaEnv *env);
+void AdvisorScoring_SetCalls(const AddrCall *table, u32 count);   // FunnyTime_Elapsed (0x4f8800) for AdvisorScoring_RingRatio
 
 extern "C" {
 
@@ -293,4 +295,8 @@ s32 __fastcall AdvisorScoring_VeryWornObjectsStaff5(u8 *scoring);
 // ParkAnalyser_RingAverage gives) below +0x2f0 (signed): +0x2f4 / above +0x2f8: +0x2fc; else 0.
 s32 __fastcall AdvisorScoring_RingAverageBelow(const u8 *scoring);
 s32 __fastcall AdvisorScoring_RingAverageAbove(const u8 *scoring);
+// 0x59eb80 (name invented, unconfirmed): from the park's third month (FunnyTime_Elapsed), +0x35c when the average of the table's ring +0x1fc90 over the last +0x358 values, times +0x354, is below that of the ring +0x1f7f0; else or a ring empty 0.
+s32 __fastcall AdvisorScoring_RingRatio(const u8 *scoring);
+// 0x59c680 (thiscall (steps), pops 4; name invented, unconfirmed): that many criteria of the table 0x76e300 (0x38 bytes each, wrapping at 0x15f; the cursor at +0 left past the last) tried: the skipped ones (+0) not counted; its id's entry (sic: by the id's place, when any entry holds the id) of kind (+0xc) 2, or 0 with the state 0xfb3b7c 0, or 1 with it 2, the score of its method (+0x10, on this + its +0x14); over the best so far (signed, from 0) and the id's game table entry (0x5194d0, then 0x59abc0) allowing, the new best. Returns its id, or 0x160.
+s32 __fastcall AdvisorScoring_PickNext(s32 *cursor, void *, s32 steps);
 }

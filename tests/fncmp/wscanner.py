@@ -6,13 +6,11 @@
 # Span (0x5e6fc0): the scanner's set at +0x14 a valid red-black tree of stdtree.py (1-11 word keys of 0-99), its text as stdwstring.py makes
 # one with characters mostly in the set (else 0, 7, 99, 100, 0xffff, any), the position at 0, inside, at or past the length.
 # Next (0x5e70a0), Rest (0x5e7200): Span's scanner with a second set at +0x24 and a string to assign to (a null count now and then); Substr (0x5e7520): any part of a string (a position past its length throws, not run), from an out that may be the string itself.
-# Handler (0x5e4b20-0x5e6350, the keyword handlers that read on): Rest's scanner with its vector of tokens [+0x50] (0-2 random-byte tokens, room
-# for 4 more) and its out string [+0x54]; the allocator bytes of the tokens pushed (as Token's) left out.
 # Base (0x5e6820): random bytes, the node nil made or not, the map counter any; the five allocator bytes (the stack's garbage) left out.
 # Compare (0x5e6750): two strings of letters, the second made from the first (same, other case, cut, longer, one changed), towupper the original's C-locale branch against the
 # driver's. Char (0x5e7320): Span's scanner. Find (0x5e6e50): a list of 0-6 keywords, the text one of them (other case, cut, longer) or none. Read (0x5e6c90): Rest's scanner, its
-# words the keys, the handlers recorders answering mostly 1. Parse (0x5e45d0): Handler's scanner, the list inside it, a text with or without its '/' and words.
-# usage: wscanner.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=SetText,Pair,Token,Span,Next,Rest,Substr,Handler,Base,Compare,Char,Find,Read,Parse)
+# words the keys, the handlers recorders answering mostly 1. Parse (0x5e45d0): Rest's scanner with its vector of tokens [+0x50] (0-2 random-byte tokens, room for 4 more) and its out string [+0x54], the list inside it, a text with or without its '/' and words.
+# usage: wscanner.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=SetText,Pair,Token,Span,Next,Rest,Substr,Base,Compare,Char,Find,Read,Parse)
 import os
 import struct
 import sys
@@ -33,9 +31,8 @@ B = Bench([(0x4051d0, 0x405390), (0x45b380, 0x45b5f0), (0x45b680, 0x45b9b0), (0x
            (0x691ba0, 0x691ce0)],
           hooks={0x691de0: lambda e: e.r.__setitem__('EAX', e.r['ECX']), 0x691ea0: lambda e: None})   # (_Lockit's constructor and destructor)
 SCANNER, FLAGS = RAM + 0x800, RAM + 0x900
-OPS = [k for k in os.environ.get('OPS', 'SetText,Pair,Token,Span,Next,Rest,Substr,Handler,Base,Compare,Char,Find,Read,Parse').split(',') if k]
+OPS = [k for k in os.environ.get('OPS', 'SetText,Pair,Token,Span,Next,Rest,Substr,Base,Compare,Char,Find,Read,Parse').split(',') if k]
 TOKENS = [0x5e57c0, 0x5e6070, 0x5e6540, 0x5e6630]
-HANDLERS = [0x5e4b20, 0x5e4ca0, 0x5e4f00, 0x5e50a0, 0x5e5240, 0x5e53c0, 0x5e5540, 0x5e58b0, 0x5e5aa0, 0x5e5c90, 0x5e5e80, 0x5e6160, 0x5e6350]
 OUT, HEAD2, NODES2 = RAM + 0x980, RAM + 0xa00, RAM + 0x2000
 VECTOR, TOKEN_ARRAY = RAM + 0xb00, RAM + 0xc00
 CTX, LIST, KEYS, STR_A, STR_B = RAM + 0x3000, RAM + 0x3100, RAM + 0x3400, RAM + 0x4000, RAM + 0x4400
@@ -245,22 +242,6 @@ def span(r, op='Span', stops=None):
     return Call(0x5e7200, [SCANNER, OUT, r.choice([OUT + 0x10, OUT + 0x10, 0])], regions, conv='t', ret='b')
 
 
-def handler(r):
-    """As Rest, a handler reading the scanner's word and rest onto a vector with room; the allocator bytes of its up to 3 tokens left out."""
-    c = span(r, 'Rest')
-    held = r.choice([0, 0, 1, 2])
-    last = TOKEN_ARRAY + 0x24 * held
-    c.regions[SCANNER] += struct.pack('<II', VECTOR, OUT)
-    c.regions[VECTOR] = struct.pack('<IIII', r.getrandbits(32), TOKEN_ARRAY, last, last + 0x24 * 4)
-    c.regions[TOKEN_ARRAY] = r.bytes(0x24 * (held + 4))
-    ignore = [(last + 0x24 * i + k, 1) for i in range(3) for k in (0, 0x10)]
-    address = HANDLERS[r.deal(list(range(len(HANDLERS))))]
-    if address == 0x5e4ca0 or address >= 0x5e58b0:   # (no word: only a position past the length gives none; 0x5e5540's rest then throws, _Xran, so not there)
-        if r.random() < 0.3:
-            put(c.regions[SCANNER], 0x38, 'I', struct.unpack_from('<I', c.regions[SCANNER], 0xc)[0] + r.choice([1, 9]))
-    return Call(address, [SCANNER], c.regions, conv='t', ret='b', ignore=ignore)
-
-
 def substr(r):
     blocks = bytearray(r.bytes(4 * stdwstring.SLOT))
     x = stdwstring.string(r, blocks, 0)
@@ -276,8 +257,6 @@ def case(r):
         return span(r, op)
     if op == 'Substr':
         return substr(r)
-    if op == 'Handler':
-        return handler(r)
     if op == 'Pair':
         return pair(r)
     if op == 'Base':

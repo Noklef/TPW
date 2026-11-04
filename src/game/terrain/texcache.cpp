@@ -119,3 +119,78 @@ u32 __fastcall TerrainTexCache_BlendTile(u8 *cache, void *, u8 *texture, u32 x, 
     return 1;
 }
 }
+
+namespace {
+
+AddrCalls g_calls;
+
+u32 Self(const void *p) { return (u32)(uintptr_t)p; }
+
+// The tile's pixels blended for the record (the record's first dword, when set, its texture locked first).
+void RedrawTile(const u8 *cache, u8 *tile, u8 *record, s32 x, s32 y) {
+    if (at<u8 *>(record, 0)) at<u32>(record, 0) = g_calls.Th(0x00590da0, Self(at<u8 *>(record, 0)));   // Texture_LockFlipped
+    const u32 format = *reinterpret_cast<const u32 *>((uintptr_t)0x008bd554);
+    const u32 scratch = *reinterpret_cast<const u32 *>((uintptr_t)0x00879a68);
+    if (reinterpret_cast<const s32 *>((uintptr_t)0x00701548)[format] == 2) {
+        g_calls.Th(0x0055f780, at<u32>(cache, 0), scratch, (u32)x, (u32)y, record);   // TerrainBlend_Tile
+        g_calls.Cd(0x00562f70, g_calls.Th(0x00590d40, Self(tile)), scratch, at<u32>(cache, 4));   // TexFormat_ConvertSquare, Texture_Lock
+    } else {
+        g_calls.Th(0x0055f780, at<u32>(cache, 0), g_calls.Th(0x00590d40, Self(tile)), (u32)x, (u32)y, record);
+        u8 *pixel = reinterpret_cast<u8 *>((uintptr_t)g_calls.Th(0x00590d40, Self(tile)));
+        for (u32 left = at<u32>(cache, 4) * at<u32>(cache, 4); left != 0; --left, pixel += 4) {
+            const u8 b0 = pixel[0], b1 = pixel[1];
+            pixel[0] = pixel[3];
+            pixel[3] = b0;
+            pixel[1] = pixel[2];
+            pixel[2] = b1;
+        }
+    }
+    g_calls.Th(0x0058dc50, *reinterpret_cast<const u32 *>((uintptr_t)0x008c4b44), tile);   // TexCache_UnlinkItem
+}
+
+}  // namespace
+
+void TerrainTexCache_SetCalls(const AddrCall *table, u32 count) { g_calls.Set(table, count); }
+
+extern "C" {
+
+u32 __fastcall TerrainTexCache_Update(u8 *cache, void *, u32 *keys, u8 *records, s32 count) {
+    u8 *mark = at<u8 *>(cache, 0x1000c);
+    for (; count > 0; --count, ++keys, records += 0x14) {
+        const s32 x = (s32)(*keys & 0xff), y = (s32)*keys >> 8;
+        u8 **const slot = reinterpret_cast<u8 **>(cache + 8 + 4 * ((y << 7) + x));
+        u8 *node = *slot;
+        u8 *tile;
+        bool redraw;
+        if (node) {
+            tile = at<u8 *>(node, 0xc);
+            *keys = Self(tile);
+            if (node == mark) {
+                mark = at<u8 *>(mark, 4);
+            } else {   // to just before the mark
+                at<u8 *>(at<u8 *>(node, 0), 4) = at<u8 *>(node, 4);
+                at<u8 *>(at<u8 *>(node, 4), 0) = at<u8 *>(node, 0);
+                at<u8 *>(at<u8 *>(mark, 0), 4) = node;
+                at<u8 *>(node, 0) = at<u8 *>(mark, 0);
+                at<u8 *>(node, 4) = mark;
+                at<u8 *>(mark, 0) = node;
+                if (mark == at<u8 *>(cache, 0x1000c)) at<u8 *>(cache, 0x1000c) = at<u8 *>(mark, 0);
+            }
+            redraw = (at<u32>(records, 0x10) & 0x100) != 0;
+        } else {   // the oldest taken over
+            node = at<u8 *>(at<u8 *>(cache, 0x1000c), 0);
+            at<u8 *>(cache, 0x1000c) = node;
+            tile = at<u8 *>(node, 0xc);
+            *keys = Self(tile);
+            if (at<u32 *>(node, 8)) *at<u32 *>(node, 8) = 0;
+            *slot = node;
+            at<u8 **>(node, 8) = slot;
+            redraw = true;
+        }
+        if (redraw) RedrawTile(cache, tile, records, x, y);
+        g_calls.Th(0x00590f90, Self(tile));   // Texture_SetKeep
+        g_calls.Th(0x0058c9f0, *reinterpret_cast<const u32 *>((uintptr_t)0x008c4b44), tile, 0u);   // TexCache_TouchItem
+    }
+    return 1;
+}
+}

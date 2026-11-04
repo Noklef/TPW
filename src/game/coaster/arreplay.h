@@ -1,6 +1,7 @@
 // The coaster's action replay (the debug prints' "AR replay"): reimplementation of 0x4045b0, one recorded action read and done.
 #pragma once
 
+#include "../core/addrcalls.h"
 #include "../../../re/types.h"
 
 extern "C" {
@@ -14,7 +15,14 @@ extern "C" {
 // 9: byte n, n words dropped ("no longer used"). 10: word w, byte n, n words; 0x404f70 (action, w, n, words). 11: 0x80 bytes dropped.
 // sic: n words go into a 0x80-byte buffer on the stack, so n above 0x40 runs over the frame.
 u32 __fastcall ArReplay_Step(u8 *self);
+
+// 0x4041d0 (thiscall, no arguments; name unconfirmed): nothing unless this+0x24. 0x527940 (0) first. Mode (this+0x28) 0: every action stepped, then finished: the streams at +0xc and, when +4 is 0, +0x14 and +0x1c closed (slot 4 (0, 2)), +0x24 = 0, +8 = 1,
+// eight frames of 0x5516b0, 0x439390, and 0x5195d0's object (of 0x7cf83c) +0x114 = 1. Modes 1 and 2 (others: nothing): when the wait (+0x30) is 0, stepped until it is not, or finished; then the wait counted down, and in mode 1, having stepped, cut to 2 (as unsigned).
+void __fastcall ArReplay_Update(u8 *self);
 }
+
+// Its calls by the game's addresses; a table of replacements (tests/fncmp/arreplayupdate.py).
+void ArReplay_SetCalls(const AddrCall *table, u32 count);
 
 // What an action does (the bench's recorders; null: the game's).
 struct ArReplayEnv {

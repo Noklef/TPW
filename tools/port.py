@@ -62,15 +62,15 @@ def fail(msg):
 
 
 def take(a, flag):
-    """Removes flag and the values after it (up to the next flag) from a; returns the values."""
-    if flag not in a:
-        return []
-    i = a.index(flag)
-    j = i + 1
-    while j < len(a) and a[j] not in FLAGS:
-        j += 1
-    vals = a[i + 1:j]
-    del a[i:j]
+    """Removes each flag and the values after it (up to the next flag) from a; returns all the values."""
+    vals = []
+    while flag in a:
+        i = a.index(flag)
+        j = i + 1
+        while j < len(a) and a[j] not in FLAGS:
+            j += 1
+        vals += a[i + 1:j]
+        del a[i:j]
     return vals
 
 

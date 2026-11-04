@@ -2,6 +2,7 @@
 #pragma once
 
 #include "../../../re/types.h"
+#include "../core/addrcalls.h"
 
 extern "C" {
 
@@ -94,4 +95,11 @@ void __fastcall Image_GaussianBlur(void *object, void *, const u32 *image, const
 // the kernel not renormalized where a line's ends cut it off (edges darken). Rows step by width * pixel size but take width bytes, sic: at a pixel size above 1 only the first width bytes of each row and of each
 // pixel's column. Returns 0 (the kernel left allocated, sic) when the work line of the larger of width and height is not to be had, else 1.
 u8 __cdecl Image_GaussianBlurLines(const u32 *image, double sigma);
+
+// 0x5d3890 (thiscall on the image {width +0, height +4, bytes per pixel +8, bytes +0xc}; two names, pops 8; name invented, unconfirmed): the names joined into a file read by the TGA codec
+// (ImageCodec_InfoFromFile, SurfaceInfo_Alloc, ImageCodec_LoadFromFile: a result below 0 gives 0). The old bytes freed; new ones: one per pixel when the description's +0x14 is 1, copied, else
+// four, each pixel's reversed. Sic: no new bytes gives 0 with the bits kept. Returns 1.
+u8 __fastcall Image_LoadFile(u8 *image, void *, const char *directory, const char *name);
 }  // extern "C"
+
+void Image_SetCalls(const AddrCall *table, u32 count);

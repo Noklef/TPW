@@ -4,6 +4,7 @@
 #include <cstring>
 #include <xmmintrin.h>
 
+#include "../core/crt.h"
 #include "../core/gameheap.h"
 #include "../math/sintable.h"
 #include "../math/x87.h"
@@ -436,6 +437,52 @@ void __cdecl DynFaces_Frame() {
         global<u8>(0x00763c98) = 1;
         global<s32>(0x00874fc8) = 0;
     }
+}
+
+}  // extern "C"
+
+namespace {
+
+AddrCalls g_calls;
+
+u32 MakeModel(u32 cubes, s32 *result, u32 name, u32 head) {
+    u8 *const block = static_cast<u8 *>(GameHeap_Alloc(0xa4));
+    if (!block) return 0;
+    return g_calls.Th(0x0053d790, (u32)(uintptr_t)block, cubes, 0x14u, result, name, head, 0u, 0xc1200000u, 0xc3480000u, 0x44800000u, 0x44800000u, 0x44800000u);   // VertexBlock_Construct: -10, -200, 1024 x 3
+}
+
+}  // namespace
+
+void DynFaces_SetCalls(const AddrCall *table, u32 count) { g_calls.Set(table, count); }
+
+extern "C" {
+
+void __cdecl DynFaces_InitModels() {
+    global<u32>(0x00874fc4) = 0;
+    if (!g_calls.Cd(0x00424ec0, 0x00763c78u)) return;
+    bool awake = true;
+    global<u32>(0x00871ee0) = 0;
+    global<u32>(0x00874fc0) = 0;
+    global<u32>(0x00871ed0) = 0;
+    global<u32>(0x00871f60) = 0;
+    global<u8>(0x00763c98) = 1;
+    global<u32>(0x00874fc8) = 0;
+    for (u32 address = 0x00871d18; address < 0x00871ed0; address += 4)
+        global<s32>(address) = Crt().rand() % 3 + 0xf;
+    s32 result = 0;   // sic: in the original a stack slot not yet written, read when the first allocation fails
+    global<u32>(0x00871f64) = MakeModel(0x600, &result, 0x00763e54u, 0);
+    if (result == 0) {
+        g_calls.Cd(0x00424ed0, 0x00763c78u);
+        awake = false;
+    }
+    global<u32>(0x00871ee4) = MakeModel(0x86, &result, 0x00763e48u, 1);
+    if (awake && result == 0) {
+        g_calls.Cd(0x00424ed0, 0x00763c78u);
+        awake = false;
+    }
+    global<u32>(0x00871ed8) = MakeModel(0x180, &result, 0x00763e3cu, 3);
+    if (awake && result == 0) g_calls.Cd(0x00424ed0, 0x00763c78u);
+    global<u32>(0x00874fcc) = 1;
 }
 
 }  // extern "C"
