@@ -8308,6 +8308,8 @@ address,name,kind,confidence,notes
 0x006593c5,Gui_TellInactive,function,low,"reimplemented (src/game/ui/windowbroadcast); the tree told off: name invented, unconfirmed"
 0x0065d58d,Window_AreaRectOrEmpty,function,low,"reimplemented (src/game/ui/windowareacalls); the area's rectangle, or an empty one: name invented, unconfirmed"
 0x0065d717,Window_CallAreaSlot6,function,low,"reimplemented (src/game/ui/windowareacalls); the area's slot 6: name invented, unconfirmed"
+0x0065d40c,Window_SetName,function,low,"reimplemented (src/game/ui/windowname); the window's name stored: name invented, unconfirmed"
+0x0065d521,Window_GetName,function,low,"reimplemented (src/game/ui/windowname); the window's name copied out: name invented, unconfirmed"
 0x0063bb10,jinit_marker_reader,function,high,"reimplemented (src/game/lib/jpeg6b); libjpeg 6b jdmarker.c jinit_marker_reader: the marker reader allocated and set up (the library's, through the method-address shim)"
 0x0063d3a0,jdmarker_reset_marker_reader,function,low,"reimplemented (src/game/lib/jpeg6b); libjpeg 6b jdmarker.c reset_marker_reader (the library's, through wrap/jpeg-6b/jdmarker.c)"
 0x0063c0e0,jdmarker_read_markers,function,low,"reimplemented (src/game/lib/jpeg6b); libjpeg 6b jdmarker.c read_markers: markers up to SOS or EOI (the library's, through wrap/jpeg-6b/jdmarker.c)"
