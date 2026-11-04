@@ -230,6 +230,7 @@ add_library(tpw_game STATIC
     src/game/core/crtopen.cpp
     src/game/core/crtmessage.cpp
     src/game/core/crtsbh.cpp
+    src/game/core/crtenv.cpp
     src/game/gfx/text.cpp
     src/game/gfx/canvas.cpp
     src/game/gfx/canvasdraw.cpp

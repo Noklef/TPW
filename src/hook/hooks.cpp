@@ -200,6 +200,7 @@
 #include "../game/core/gameerror.h"
 #include "../game/core/timesig.h"
 #include "../game/core/countedpair.h"
+#include "../game/core/crtenv.h"
 #include "../game/core/crtfile.h"
 #include "../game/core/crtfloat.h"
 #include "../game/core/crtlock.h"
@@ -6230,6 +6231,19 @@ const Hook kHooks[] = {
     {"CRT_sbh_alloc_block_from_page", 0x00682e40, (void *)&CRT_sbh_alloc_block_from_page, {0x8b, 0x54, 0x24, 0x0c, 0x53}},
     {"CRT_callnewh",              0x00688710, (void *)&CRT_callnewh, {0xa1, 0x4c, 0x15, 0xfb, 0x00}},
     {"CRT_calloc",                0x0067fcb0, (void *)&CRT_calloc, {0x53, 0x8b, 0x5c, 0x24, 0x0c}},
+    {"CRT_crtCompareStringA",     0x0068f060, (void *)&CRT_crtCompareStringA, {0xa1, 0x10, 0x19, 0xfb, 0x00}},
+    {"CRT_mbsnbicoll",            0x0068b530, (void *)&CRT_mbsnbicoll, {0x8b, 0x44, 0x24, 0x0c, 0x85}},
+    {"CRT_mbschr",                0x00691540, (void *)&CRT_mbschr, {0xa1, 0x70, 0x18, 0xfb, 0x00}},
+    {"CRT_strdup",                0x0068b5f0, (void *)&CRT_strdup, {0x53, 0x56, 0x8b, 0x74, 0x24}},
+    {"CRT_findenv",               0x0068f540, (void *)&CRT_findenv, {0x53, 0x56, 0x8b, 0x35, 0x80}},
+    {"CRT_copy_environ",          0x0068f5c0, (void *)&CRT_copy_environ, {0x57, 0x8b, 0x7c, 0x24, 0x08}},
+    {"CRT_crtsetenv",             0x0068f330, (void *)&CRT_crtsetenv, {0x51, 0x53, 0x55, 0x56, 0x57}},
+    {"CRT_wtomb_environ",         0x0068b570, (void *)&CRT_wtomb_environ, {0x53, 0x8b, 0x1d, 0x88, 0x13}},
+    {"CRT_getenv",                0x0067fc20, (void *)&CRT_getenv, {0x53, 0x8b, 0x1d, 0x80, 0x13}},
+    {"CRT_wcsncnt",               0x0068ef70, (void *)&CRT_wcsncnt, {0x8b, 0x54, 0x24, 0x04, 0x56}},
+    {"CRT_wcstombs_lk",           0x0068ed80, (void *)&CRT_wcstombs_lk, {0x51, 0x53, 0x55, 0x8b, 0x6c}},
+    {"CRT_wcstombs",              0x0068ed00, (void *)&CRT_wcstombs, {0x53, 0x56, 0x57, 0x68, 0xa8}},
+    {"CRT_tzset",                 0x00687d80, (void *)&CRT_tzset, {0x51, 0x55, 0x56, 0x57, 0x33}},
     {"Nav_Ctor",          0x0050ffe0, (void *)&Nav_Ctor, {0x6a, 0xff, 0x68, 0x2d, 0xe6}},
     {"Nav_Dtor",                  0x0050f200, (void *)&Nav_Dtor, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"Nav_DtorAtD4",              0x004f7c30, (void *)&Nav_DtorAtD4, {0x81, 0xc1, 0xd4, 0x00, 0x00}},

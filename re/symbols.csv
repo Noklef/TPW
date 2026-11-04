@@ -5930,6 +5930,19 @@ address,name,kind,confidence,notes
 0x00682e40,CRT_sbh_alloc_block_from_page,function,low,reimplemented (src/game/core/crtsbh); MSVC6 __sbh_alloc_block_from_page
 0x00688710,CRT_callnewh,function,low,reimplemented (src/game/core/crtsbh); MSVC6 _callnewh
 0x0067fcb0,CRT_calloc,function,low,reimplemented (src/game/core/crtsbh); MSVC6 calloc
+0x0068f060,CRT_crtCompareStringA,function,low,reimplemented (src/game/core/crtenv); MSVC6 __crtCompareStringA
+0x0068b530,CRT_mbsnbicoll,function,low,reimplemented (src/game/core/crtenv); MSVC6 _mbsnbicoll
+0x00691540,CRT_mbschr,function,low,reimplemented (src/game/core/crtenv); MSVC6 _mbschr
+0x0068b5f0,CRT_strdup,function,low,reimplemented (src/game/core/crtenv); MSVC6 _strdup
+0x0068f540,CRT_findenv,function,low,reimplemented (src/game/core/crtenv); MSVC6 findenv
+0x0068f5c0,CRT_copy_environ,function,low,reimplemented (src/game/core/crtenv); MSVC6 copy_environ
+0x0068f330,CRT_crtsetenv,function,low,reimplemented (src/game/core/crtenv); MSVC6 __crtsetenv
+0x0068b570,CRT_wtomb_environ,function,low,reimplemented (src/game/core/crtenv); MSVC6 __wtomb_environ
+0x0067fc20,CRT_getenv,function,low,reimplemented (src/game/core/crtenv); MSVC6 getenv
+0x0068ef70,CRT_wcsncnt,function,low,reimplemented (src/game/core/crtenv); MSVC6 wcsncnt
+0x0068ed80,CRT_wcstombs_lk,function,low,reimplemented (src/game/core/crtenv); MSVC6 _wcstombs_lk
+0x0068ed00,CRT_wcstombs,function,low,reimplemented (src/game/core/crtenv); MSVC6 wcstombs
+0x00687d80,CRT_tzset,function,low,reimplemented (src/game/core/crtenv); MSVC6 _tzset
 0x0050ffe0,Nav_Ctor,function,high,reimplemented (src/game/world/nav); constants constructor with five integer pairs
 0x0050f200,Nav_Dtor,function,high,reimplemented (src/game/world/nav); thiscall: the five IntPairs at +0x64 destroyed with Stub_Ret (CRT_VectorDtorIterator); also via 0x4f7c30 (+0xd4) and 0x4f8ad0
 0x004f7c30,Nav_DtorAtD4,function,low,reimplemented (src/game/world/nav); thiscall adjustor: Nav_Dtor on this + 0xd4

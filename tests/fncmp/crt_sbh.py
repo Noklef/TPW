@@ -39,8 +39,19 @@ def page(r, at):
     run = 0
     while not data[8 + start + run]:
         run += 1
-    struct.pack_into('<II', data, 0, at + 8 + start, r.choice([run, run, run // 2, 0]))
+    other = r.choice(bounds)   # (a stale count, past the free run: to another block's start)
+    struct.pack_into('<II', data, 0, at + 8 + start, r.choice([run, run, run // 2, 0, other - start if other > start else run]))
     return data, total
+
+
+def fitting(at, n, start_at_end):
+    """A page whose only free run, of n paragraphs, ends at the sentinel, for the fits that leave no room: its start there or before it, nothing counted free."""
+    data = bytearray(b'\xcd') * 0x1000
+    data[8:0xf8] = bytes(LIMIT)
+    data[8] = LIMIT - n
+    data[0xf8] = 0xff
+    struct.pack_into('<II', data, 0, at + 8 + (LIMIT - n if start_at_end else 0), n if start_at_end else 0)
+    return data
 
 
 def region(r, regions, at, memory, committed, uncommitted):
@@ -54,7 +65,7 @@ def region(r, regions, at, memory, committed, uncommitted):
             pages += bytes_
             count, bound = r.choice([total, total, total // 2, 0xf0]), r.choice([0xf1, 0xf1, 0xf1, 2, 1])
         elif i < committed + uncommitted:
-            count = 0xffffffff
+            count, bound = 0xffffffff, r.choice([0xf1, 0, 7])
         struct.pack_into('<II', data, 0x18 + i * 8, count, bound)
     if committed + uncommitted + 2 < 0x400 and r.random() < 0.3:
         struct.pack_into('<I', data, 0x18 + (committed + uncommitted + 2) * 8, 0xffffffff)
@@ -106,6 +117,7 @@ def case(r):
         if r.random() < 0.5:   # (no memory yet: the static region is the new one, its links zero or its own)
             struct.pack_into('<I', static, 0x10, 0xffffffff)
             struct.pack_into('<2I', static, 0, STATIC, STATIC)
+            struct.pack_into('<I', static, 0xc, r.choice([0, STATIC + 0x18]))   # (a first uncommitted group, of no use without memory)
             regions[0x780dc0] = struct.pack('<I', STATIC)
             if name == 'new':
                 struct.pack_into('<2I', static, 0, *r.choice([(0, 0), (0, STATIC), (STATIC, 0)]))
@@ -113,6 +125,10 @@ def case(r):
     regions[VAS] = struct.pack('<40I', *va)
     regions[HEAPS] = struct.pack('<40I', *heaps)
     if name == 'page':
+        if r.random() < 0.3:
+            n = r.choice([1, 2, 3, 8, 0x20])
+            regions[PAGES] = fitting(PAGES, n, r.random() < 0.5)
+            return Call(0x682e40, [PAGES, 0xf0, n], regions, conv='c', ret='a')
         return Call(0x682e40, [PAGES + 0x1000 * r.randrange(committed), r.choice([0, 1, 4, 0x10, 0x40, 0xf0]), r.choice(PARAS)], regions, conv='c', ret='a')
     if name == 'block':
         return Call(0x682c00, [r.choice(PARAS)], regions, conv='c', ret='a')
