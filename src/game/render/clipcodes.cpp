@@ -3,6 +3,7 @@
 #include <cstdint>
 
 #include "../core/gameheap.h"
+#include "../math/x87.h"
 #include "engineerrors.h"
 
 namespace {
@@ -64,4 +65,29 @@ u32 __cdecl ClipCodes_InitTable() {
     EngineErrors_Push(reinterpret_cast<u8 *>((uintptr_t)0x00879ad0), nullptr, 3, 0xb0754000);
     return 0;
 }
+}
+
+extern "C" u32 __fastcall ClipCodes_Box(u8 *self, void *, const float *box, u32 matrix) {
+    const X87Reg growX = (X87Reg(box[3]) - box[0]) * 0.05f;   // 0x701124
+    const float growY = (float)((X87Reg(box[4]) - box[1]) * 0.05f);
+    const float growZ = (float)((X87Reg(box[5]) - box[2]) * 0.05f);
+    const float x0 = (float)(X87Reg(box[0]) - growX), x1 = (float)(growX + box[3]);
+    const float y0 = (float)(X87Reg(box[1]) - growY), y1 = (float)(X87Reg(growY) + box[4]);
+    const float z0 = (float)(X87Reg(box[2]) - growZ), z1 = (float)(X87Reg(growZ) + box[5]);
+    const float points[8][3] = {{x0, y0, z0}, {x0, y0, z1}, {x0, y1, z0}, {x0, y1, z1}, {x1, y0, z0}, {x1, y0, z1}, {x1, y1, z0}, {x1, y1, z1}};
+    u8 projected[0x80];
+    u8 *const projection = *reinterpret_cast<u8 **>((uintptr_t)0x0087b1d8);
+    using Project = void(__cdecl *)(u8 *, u32, u8 *, const float *, u32, u32, u32, u32);
+    reinterpret_cast<Project *>(*reinterpret_cast<u8 **>(projection))[1](projection, matrix, projected, points[0], 0x10, 0xc, 8, 0);
+    u32 *const nearest = reinterpret_cast<u32 *>(self + 4);
+    *nearest = 0;
+    for (s32 i = 7; i >= 0; --i) {
+        const u8 *const z = projected + 0x10 * i + 8;
+        if (!(*reinterpret_cast<const float *>(z) >= *reinterpret_cast<const float *>(nearest)))   // (a NaN is taken: fcom sets C0 on unordered)
+            *nearest = *reinterpret_cast<const u32 *>(z);
+    }
+    u8 codes[8];
+    u32 both;
+    ClipCodes_Compute(0, 0, reinterpret_cast<u8 *>(&both), codes, projected, 8, 0x10, 0xff);
+    return both & 0xff ? 0 : (both >> 8 & 0xff) | 0x40;
 }

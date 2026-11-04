@@ -23,3 +23,9 @@ u8 *__fastcall ClipCodes_Run(u32 ecx, u32 edx, u8 *out, u8 *codes, const u8 *poi
 // error (3, 0xb0754000) pushed onto the engine's list and 0. 0 when the block was there.
 u32 __cdecl ClipCodes_InitTable();
 }
+
+// 0x561a30 (thiscall (box, matrix), pops 8; name invented, unconfirmed; x87 in the original's order): the box (min, max) grown by 0.05 of its size each way, its corners projected by [0x87b1d8]'s slot 1 (cdecl). +4 the least z of the eight and 0. The clip codes as ClipCodes_Compute's (the game inlines them):
+// all outside one plane gives 0, else the codes of any | 0x40.
+extern "C" {
+u32 __fastcall ClipCodes_Box(u8 *self, void *, const float *box, u32 matrix);
+}
