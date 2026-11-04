@@ -17,7 +17,7 @@ def case(r):
     log = log_region()
     strings(log, TEXT, 1)
     blob(log, CAPS, 1, 1)
-    strings(log, CAPS, 0, 6)
+    strings(log, CAPS, 0, 4)
     set_return(log, CAPS, r.choice([0, 0, 1, -1, 0x80000000]))
     set_return(log, ERRTEXT, RAM + 0x5800)
     fill(log, CAPS, 1, struct.pack('<I', r.choice([0, 0x10, r.getrandbits(32) | 0x10, r.getrandbits(32) & ~0x10])), offset=0xf4)
