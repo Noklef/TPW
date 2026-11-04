@@ -205,6 +205,7 @@
 #include "../game/core/crtfloat.h"
 #include "../game/core/crtlocale.h"
 #include "../game/core/crtlock.h"
+#include "../game/core/crtmbstring.h"
 #include "../game/core/crtmessage.h"
 #include "../game/core/crtopen.h"
 #include "../game/core/crtoutput.h"
@@ -6305,6 +6306,9 @@ const Hook kHooks[] = {
     {"UseFacet_Codecvt",          0x00699440, (void *)&UseFacet_Codecvt, {0x6a, 0xff, 0x68, 0x33, 0x41}},
     {"Locinfo_GetName",           0x00693e20, (void *)&Locinfo_GetName, {0x51, 0x8a, 0x41, 0x30, 0x53}},
     {"Locimp_Makeloc",            0x00694120, (void *)&Locimp_Makeloc, {0x6a, 0xff, 0x68, 0x4a, 0x3d}},
+    {"CRT_mbctolower",            0x006895b0, (void *)&CRT_mbctolower, {0x83, 0xec, 0x08, 0x53, 0x8b}},
+    {"CRT_mbspbrk",               0x00689650, (void *)&CRT_mbspbrk, {0xa1, 0x70, 0x18, 0xfb, 0x00}},
+    {"CRT_mbsrchr",               0x00689400, (void *)&CRT_mbsrchr, {0xa1, 0x70, 0x18, 0xfb, 0x00}},
     {"Nav_Ctor",          0x0050ffe0, (void *)&Nav_Ctor, {0x6a, 0xff, 0x68, 0x2d, 0xe6}},
     {"Nav_Dtor",                  0x0050f200, (void *)&Nav_Dtor, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"Nav_DtorAtD4",              0x004f7c30, (void *)&Nav_DtorAtD4, {0x81, 0xc1, 0xd4, 0x00, 0x00}},

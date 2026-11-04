@@ -5996,6 +5996,9 @@ address,name,kind,confidence,notes
 0x00699440,UseFacet_Codecvt,function,low,"reimplemented (src/game/core/localefacet); use_facet of codecvt<char, char, int>"
 0x00693e20,Locinfo_GetName,function,low,reimplemented (src/game/core/localefacet); _Locinfo::_Getname
 0x00694120,Locimp_Makeloc,function,low,reimplemented (src/game/core/localefacet); locale::_Locimp::_Makeloc
+0x006895b0,CRT_mbctolower,function,low,reimplemented (src/game/core/crtmbstring); _mbctolower
+0x00689650,CRT_mbspbrk,function,low,reimplemented (src/game/core/crtmbstring); _mbspbrk
+0x00689400,CRT_mbsrchr,function,low,reimplemented (src/game/core/crtmbstring); _mbsrchr
 0x0050ffe0,Nav_Ctor,function,high,reimplemented (src/game/world/nav); constants constructor with five integer pairs
 0x0050f200,Nav_Dtor,function,high,reimplemented (src/game/world/nav); thiscall: the five IntPairs at +0x64 destroyed with Stub_Ret (CRT_VectorDtorIterator); also via 0x4f7c30 (+0xd4) and 0x4f8ad0
 0x004f7c30,Nav_DtorAtD4,function,low,reimplemented (src/game/world/nav); thiscall adjustor: Nav_Dtor on this + 0xd4
