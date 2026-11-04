@@ -218,6 +218,7 @@
 #include "../../src/game/world/advisorspeech.h"
 #include "../../src/game/gfx/bumplight.h"
 #include "../../src/game/coaster/coastersupdate.h"
+#include "../../src/game/render/pointsprites.h"
 #include "../../src/game/model/heightmap.h"
 #include "../../src/game/frontend/lobbyscript.h"
 #include "../../src/game/files/gamepaths.h"
@@ -1103,7 +1104,8 @@ const AddrCall kContactsCalls[] = {  // tests/fncmp/contactspair.py
 const AddrCall kAimSpritesCalls[] = {{0x475590, jpeg_recorder(13, 3)}, {0x475480, jpeg_recorder(14, 5)}, {0x4755d0, jpeg_recorder(15, 3)}};
 const BumpLightEnv kBumpLightEnv = {Rec{jpeg_recorder(12, 4)}};
 const AddrCall kBumpLightCalls[] = {{0x67acc0, jpeg_recorder(10, 1)}, {0x5e80d0, recorder(11, 1)}, {0x55f1e0, recorder(13, 0)}};
-const AddrCall kCoastersUpdateCalls[] = {{0x435d50, jpeg_recorder(1, 1)}, {0x403d00, recorder(2, 2)}, {0x43eb70, jpeg_recorder(3, 1)}, {0x43ce20, jpeg_recorder(4, 1)}, {0x4709e0, jpeg_recorder(5, 1)}, {0x43b8b0, jpeg_recorder(6, 2)}, {0x439570, jpeg_recorder(7, 2)}};
+const AddrCall kPointSpritesCalls[] = {{0x67a7d0, jpeg_recorder(1, 1)}, {0x590c40, recorder(2, 0)}, {0x565240, recorder(3, 5)}, {0x565bb0, recorder(4, 5)}, {0x5658c0, recorder(5, 1)}};
+const AddrCall kCoastersUpdateCalls[] ={{0x435d50, jpeg_recorder(1, 1)}, {0x403d00, recorder(2, 2)}, {0x43eb70, jpeg_recorder(3, 1)}, {0x43ce20, jpeg_recorder(4, 1)}, {0x4709e0, jpeg_recorder(5, 1)}, {0x43b8b0, jpeg_recorder(6, 2)}, {0x439570, jpeg_recorder(7, 2)}};
 const AddrCall kModelListCalls[] = {{0x575f90, recorder(1, 1)}, {0x581790, recorder(2, 2)}, {0x581880, recorder(3, 2)}, {0x580530, recorder(4, 3)}, {0x5658c0, recorder(5, 1)}};
 const AddrCall kAdvisorSpeechCalls[] = {{0x402d80, recorder(1, 0)}, {0x402df0, recorder(2, 0)}, {0x51c270, jpeg_recorder(3, 4)}, {0x51e6f0, jpeg_recorder(4, 1)}, {0x5ed5a0, jpeg_recorder(5, 3)}, {0x51bfc0, jpeg_recorder(6, 6)},
                                         {0x521e60, jpeg_recorder(7, 4)}, {0x4b9340, jpeg_recorder(8, 0)}, {0x429fe0, jpeg_recorder(9, 1)}, {0x473ff0, jpeg_recorder(10, 4)}, {0x4732a0, jpeg_recorder(11, 6)}, {0x67ad90, jpeg_recorder(12, 1)}};
@@ -2401,6 +2403,7 @@ int main(int argc, char **argv) {
     ModelList_SetCalls(kModelListCalls, sizeof(kModelListCalls) / sizeof(kModelListCalls[0]));
     BumpLight_SetEnv(&kBumpLightEnv, kBumpLightCalls, sizeof(kBumpLightCalls) / sizeof(kBumpLightCalls[0]));
     CoastersUpdate_SetCalls(kCoastersUpdateCalls, sizeof(kCoastersUpdateCalls) / sizeof(kCoastersUpdateCalls[0]));
+    PointSprites_SetCalls(kPointSpritesCalls, sizeof(kPointSpritesCalls) / sizeof(kPointSpritesCalls[0]));
     AdvisorSpeech_SetCalls(kAdvisorSpeechCalls, sizeof(kAdvisorSpeechCalls) / sizeof(kAdvisorSpeechCalls[0]));
     ArReplay_SetCalls(kArReplayCalls, sizeof(kArReplayCalls) / sizeof(kArReplayCalls[0]));
     Contacts_SetCalls(kContactsCalls, sizeof(kContactsCalls) / sizeof(kContactsCalls[0]));
