@@ -145,6 +145,7 @@
 #include "../game/gfx/dderrors.h"
 #include "../game/gfx/glyphrender.h"
 #include "../game/gfx/guitext.h"
+#include "../game/gfx/lightshade.h"
 #include "../game/gfx/madvideo.h"
 #include "../game/gfx/mmxblit.h"
 #include "../game/gfx/moviechunks.h"
@@ -6800,6 +6801,7 @@ const Hook kHooks[] = {
     {"MovieShow_Frame",           0x00670c20, (void *)&MovieShow_Frame, {0x83, 0xec, 0x70, 0x53, 0x8b}},
     {"MadVideo_DecodeFrame",      0x006771a0, (void *)&MadVideo_DecodeFrame, {0x51, 0xa1, 0x64, 0xac, 0xfa}},
     {"MovieDisplay_Prepare",      0x006700d0, (void *)&MovieDisplay_Prepare, {0x56, 0x8b, 0xf1, 0x57, 0x33}},
+    {"LightShade_Apply",          0x005eb8a0, (void *)&LightShade_Apply, {0x6a, 0xff, 0x68, 0x08, 0x1e}},
     {"RenderMode_Size",           0x0044a590, (void *)&RenderMode_Size, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_Depth",          0x0044a5d0, (void *)&RenderMode_Depth, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_ResetScale",     0x0044a600, (void *)&RenderMode_ResetScale, {0x51, 0xc7, 0x44, 0x24, 0x00}},
