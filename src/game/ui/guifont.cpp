@@ -13,6 +13,18 @@ template <typename T> const T &at(const void *p, u32 offset) { return *reinterpr
 
 extern "C" {
 
+void __fastcall GuiFont_Dtor(u8 *font) {
+    *reinterpret_cast<u32 *>(font) = 0x007058d8;
+    u8 *const glyphs = *reinterpret_cast<u8 **>(font + 0xc);
+    if (glyphs) GameHeap_Free(glyphs);
+}
+
+u8 *__fastcall GuiFont_DeletingDtor(u8 *font, void *, u32 flags) {
+    GuiFont_Dtor(font);
+    if (flags & 1) GameHeap_Free(font);
+    return font;
+}
+
 u8 *__fastcall GuiFont_Init(u8 *font, void *, u32 count, u32 width, u32 spacing, u32 height, u32 b) {
     u8 *const glyphs = static_cast<u8 *>(GameHeap_Alloc((u32)((s32)(s16)count << 3)));
     *reinterpret_cast<u8 **>(font + 0xc) = glyphs;

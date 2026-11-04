@@ -7947,6 +7947,8 @@ address,name,kind,confidence,notes
 0x00658243,GuiFont_Init,function,low,"reimplemented (src/game/ui/guifont); thiscall (count, width, spacing, height, b), pops 20: count glyphs of 8 bytes (Mem_Alloc; width, b, 0) with the count and height set when allocated; the spacing either way; returns the font"
 0x006583fe,GuiFont_CharWidth,function,low,"reimplemented (src/game/ui/guifont); thiscall (character word), pops 4: the glyph's signed width + the spacing +6 in AX; 0 with no glyphs or the character not below the count +4"
 0x006582ec,GuiFont_SetGlyph,function,low,"reimplemented (src/game/ui/guifont); thiscall (index word, width, b bytes), pops 12: with glyphs and the index (signed) below the count, the glyph's two bytes set"
+0x00657d6c,GuiFont_Dtor,function,low,reimplemented (src/game/ui/guifont); the GUI font's destructor: name unconfirmed
+0x00658460,GuiFont_DeletingDtor,function,low,reimplemented (src/game/ui/guifont); the GUI font's deleting destructor: name unconfirmed
 0x004b6540,Panel7cc3e0_Dress,function,low,"reimplemented (src/game/ui/panel7cc3e0); thiscall, slot 3 of 0x6ffec8: with the window +0x14, its children 0x5211-0x520e found dressed (texts 0x37 / 0x38, 0x6ff350 / 0x6ff3b0 parts with 0)"
 0x004b67a0,Panel7cc3e0_Open,function,low,"reimplemented (src/game/ui/panel7cc3e0); thiscall, slot 0 of the vtable 0x6ffec8: the children 0x520a / 0x520b hidden when the group counts under 2, the hover label 0x5212 bound"
 0x004b6ae0,Panel7cc3e0_Show,function,low,"reimplemented (src/game/ui/panel7cc3e0); thiscall (thing), slot 10 of the vtable 0x6ffec8: the selected thing set, the window built (script 0x7573c8, handler 0x4b67f0, children 0x520c / 0x520d), the advisor posted 0x12d"

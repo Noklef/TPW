@@ -25,4 +25,10 @@ u16 __fastcall GuiFont_TextWidth(const u8 *font, void *, const u16 *text, s16 fr
 // 0x6583fe (thiscall (character: a word), pops 4; name unconfirmed): the character's glyph width (signed) plus the spacing +6, in AX; 0
 // with no glyphs or a character not below the count +4.
 u16 __fastcall GuiFont_CharWidth(const u8 *font, void *, u32 character);
+
+// 0x657d6c (thiscall; name unconfirmed): the vtable set back to 0x7058d8, the glyphs +0xc freed when there are any (+0xc kept).
+void __fastcall GuiFont_Dtor(u8 *font);
+
+// 0x658460 (thiscall (flags), pops 4; name unconfirmed): GuiFont_Dtor, then the font freed with bit 0 of the flags. Returns the font.
+u8 *__fastcall GuiFont_DeletingDtor(u8 *font, void *, u32 flags);
 }
