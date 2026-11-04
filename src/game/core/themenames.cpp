@@ -23,10 +23,10 @@ const ThemeNamesEnv *g_env = &kGameEnv;
 
 using Defs = void(__fastcall *)(u8 *, void *, u32, u16 *, u32);
 
-// The name of the definitions for the global.sam's id, or the empty text.
+// The name of the definitions for the global.sam's id, or the empty text. (0x409cd0 makes the id's argument: its low word; the game's high half is the stack's.)
 void from_defs(u8 *self, Defs get, u16 *to, u32 count) {
     if (ThemeRecord_LoadGlobalSam(self))
-        get(kDefs, nullptr, at<u32>(at<u8 *>(self, 0x1c), 0x18), to, count);
+        get(kDefs, nullptr, at<u16>(at<u8 *>(self, 0x1c), 0x18), to, count);
     else
         g_env->swprintf(to, kNone);
 }

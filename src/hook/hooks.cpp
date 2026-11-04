@@ -272,6 +272,7 @@
 #include "../game/core/streampool.h"
 #include "../game/core/stringmapsrecord.h"
 #include "../game/core/swearfilter.h"
+#include "../game/core/themenames.h"
 #include "../game/core/voicecodec.h"
 #include "../game/core/voiceevents.h"
 #include "../game/core/voicesample.h"
@@ -6282,6 +6283,9 @@ const Hook kHooks[] = {
     {"SwearFilter_Apply",         0x005d3230, (void *)&SwearFilter_Apply, {0x83, 0xec, 0x10, 0x8b, 0x41}},
     {"NCtype_Ctor",               0x005cfb60, (void *)&NCtype_Ctor, {0x6a, 0xff, 0x68, 0xf8, 0x0e}},
     {"NIstream_Ipfx",             0x005d0080, (void *)&NIstream_Ipfx, {0x55, 0x8b, 0xec, 0x6a, 0xff}},
+    {"ThemeRecord_FullName",      0x005b12e0, (void *)&ThemeRecord_FullName, {0x55, 0x56, 0x8b, 0xf1, 0x57}},
+    {"ThemeRecord_Name",          0x005b1410, (void *)&ThemeRecord_Name, {0x53, 0x56, 0x57, 0x8b, 0xf9}},
+    {"ThemeRecord_Suffix",        0x005b1520, (void *)&ThemeRecord_Suffix, {0x56, 0x8b, 0xf1, 0x8a, 0x86}},
     {"Nav_Ctor",          0x0050ffe0, (void *)&Nav_Ctor, {0x6a, 0xff, 0x68, 0x2d, 0xe6}},
     {"Nav_Dtor",                  0x0050f200, (void *)&Nav_Dtor, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"Nav_DtorAtD4",              0x004f7c30, (void *)&Nav_DtorAtD4, {0x81, 0xc1, 0xd4, 0x00, 0x00}},
