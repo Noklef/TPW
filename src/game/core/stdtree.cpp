@@ -564,6 +564,9 @@ u8 **__fastcall StdTree_EraseD(u8 *tree, void *, u8 **out, u8 *node) { return Tr
 u8 **__fastcall StdTree_EraseE(u8 *tree, void *, u8 **out, u8 *node) { return TreeE::Erase(tree, out, node); }
 u8 **__fastcall StdTree_EraseF(u8 *tree, void *, u8 **out, u8 *node) { return TreeF::Erase(tree, out, node); }
 u8 **__fastcall StdTree_EraseG(u8 *tree, void *, u8 **out, u8 *node) { return TreeG::Erase(tree, out, node); }
+void __fastcall StdTree_EraseSubtreeG(u8 *, void *, u8 *node) { TreeG::EraseSubtree(node); }
+u8 **__fastcall StdTree_EraseRangeG(u8 *tree, void *, u8 **out, u8 *first, u8 *last) { return TreeG::EraseRange(tree, out, first, last); }
+void __fastcall StdTree_DtorG(u8 *tree) { TreeG::Dtor(tree); }
 
 void __fastcall StdTree_EraseSubtreeB(u8 *, void *, u8 *node) { TreeB::EraseSubtree(node); }
 void __fastcall StdTree_EraseSubtreeC(u8 *, void *, u8 *node) { TreeC::EraseSubtree(node); }

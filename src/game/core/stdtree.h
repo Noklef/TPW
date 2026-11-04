@@ -84,6 +84,12 @@ u8 **__fastcall StdTree_EraseE(u8 *tree, void *, u8 **out, u8 *node);
 u8 **__fastcall StdTree_EraseF(u8 *tree, void *, u8 **out, u8 *node);
 u8 **__fastcall StdTree_EraseG(u8 *tree, void *, u8 **out, u8 *node);
 
+// 0x5b2a60 (thiscall (node), pops 4) / 0x5b1a20 (thiscall (out, first, last), pops 12): tree G's _Erase and erase(first, last), as StdTree_EraseSubtreeH / StdTree_EraseRangeH. StdTree_DtorG: as
+// StdTree_DtorH (the game has it inline: WScanner_DestructBase; no address of its own).
+void __fastcall StdTree_EraseSubtreeG(u8 *tree, void *, u8 *node);
+u8 **__fastcall StdTree_EraseRangeG(u8 *tree, void *, u8 **out, u8 *first, u8 *last);
+void __fastcall StdTree_DtorG(u8 *tree);
+
 // 0x410ac0 / 0x47d460 / 0x5b30b0 (thiscall on a tree object whose +4 is the head node; key pointer, pops 4): the lower bound of the key (a word / dword / word, unsigned; at
 // +0xc of the nodes, left child at +0, right child at +8, the sentinel the dword at 0x785de4 / 0x7b4a54 / 0xf7c970 holds): the first node not below the key, the head node
 // when there is none.
