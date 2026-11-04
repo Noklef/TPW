@@ -1296,7 +1296,8 @@ const AddrCall kLanguageLoadCalls[] = {{0x6ad1b0, recorder(1, 2)}, {0x6ad230, re
 const AddrCall kMatricesUpdateCalls[] = {{0x67a7d0, jpeg_recorder(1, 1)}};
 const AddrCall kSavedPairsMakeCalls[] = {{0x575ee0, recorder(1, 1)}, {0x575f90, recorder(2, 1)}, {0x590d40, recorder(3, 0)}, {0x57b2e0, recorder(4, 0)}, {0x579b80, jpeg_recorder(5, 1)}, {0x57b610, recorder(7, 4)}, {0x57b6e0, recorder(8, 1)}, {0x58dc50, recorder(9, 1)}, {0x565240, recorder(10, 5)}, {0x582640, recorder(11, 1)}, {0x67a7d0, jpeg_recorder(12, 1)}, {0x57b490, recorder(13, 0)}};
 const AddrCall kSpriteFolderCalls[] = {{0x41a9d0, recorder(1, 0)}, {0x41aa40, recorder(2, 0)}, {0x41d570, recorder(3, 2)}, {0x41d710, recorder(4, 1)}, {0x5f8240, recorder(5, 0)}, {0x5f82b0, recorder(6, 1)}, {0x540d90, recorder(7, 2)}, {0x541310, jpeg_recorder(8, 2)}, {0x421770, recorder(9, 2)}};  // tests/fncmp/spritefolder.py
-const AddrCall kThemeTextCalls[] = {{0x413020, recorder(1, 3)}, {0x4130b0, recorder(2, 3)}};  // tests/fncmp/themetexts.py
+const AddrCall kThemeTextCalls[] = {{0x413020, recorder(1, 3)}, {0x4130b0, recorder(2, 3)},  // tests/fncmp/themetexts.py
+    {0x40ef40, jpeg_recorder(3, 0)}, {0x44a280, jpeg_recorder(4, 3)}, {0x550e00, jpeg_recorder(5, 1)}, {0x5852b0, recorder(6, 1)}, {0x418c30, recorder(7, 0)}, {0x401650, recorder(8, 2)}};  // tests/fncmp/namedobjectsload.py
 const AddrCall kPointerMakeCalls[] = {  // tests/fncmp/pointermake.py
     {0x5fbf80, recorder(1, 2)}, {0x47e460, recorder(2, 0)}, {0x5fb8e0, recorder(3, 1)}, {0x5fbbd0, recorder(4, 2)}, {0x5fbc80, recorder(5, 2)}, {0x5fb7b0, recorder(6, 1)},
     {0x5f73a0, jpeg_recorder(7, 4)}, {0x5f5650, jpeg_recorder(8, 1)}, {0x5f5640, jpeg_recorder(9, 0)}, {0x67acc0, jpeg_recorder(10, 1)}};

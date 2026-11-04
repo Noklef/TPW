@@ -359,4 +359,32 @@ u32 __fastcall NamedObjects_CreateWorld(u8 *) {
     if (!world) return 0;
     return World_Attach(world) != 0;
 }
+
+u32 __fastcall NamedObjects_LoadData(u8 *self) {
+    const auto base = [] { return reinterpret_cast<const char *>((uintptr_t)g_calls.Cd(0x0040ef40)); };
+    String path;
+    String_Ctor(&path);
+    vcall<void>(&path, 0x14, base());
+    vcall<void>(&path, 0x20, reinterpret_cast<const char *>(0x00747ee8));
+    g_calls.Cd(0x00550e00, g_calls.Cd(0x0044a280, path.data, 1u, 0u));   // Scape_LoadObjects(Quickload_Locate(the path, 1, 0))
+    g_calls.Th(0x005852b0, 0x008c1828u, base());                          // Landscape_LoadSky
+    if ((*reinterpret_cast<u32 *>((uintptr_t)0x008bcbc8) & 0x400000) && *reinterpret_cast<s32 *>((uintptr_t)0x00785724) > 0 && !at<u32>(self, 0x38)) {
+        void *const list = GameHeap_Alloc(0x10);
+        at<void *>(self, 0x38) = list;
+        g_calls.Th(0x00418c30, (u32)(uintptr_t)list);                     // Landscape_AddTextureList (a null list too)
+    }
+    static const struct { u32 name, file; } kFiles[2] = {{0x00786bd8, 0x00784e30}, {0x007868c8, 0x00784c20}};
+    u32 result = 1;
+    for (const auto &file : kFiles) {
+        vcall<void>(&path, 0x14, base());
+        String_EnsureTrailingBackslash(&path);
+        vcall<void>(&path, 0x28, reinterpret_cast<const String *>((uintptr_t)file.name));
+        if (!g_calls.Th(0x00401650, file.file, path.data, 0u)) {   // BalanceFile_Load
+            result = 0;
+            break;
+        }
+    }
+    String_Dtor(&path);
+    return result;
+}
 }
