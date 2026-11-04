@@ -49,6 +49,51 @@ void __fastcall GamePaths_MakeFolders(void *, void *, const WString *root) {
     }
 }
 
+void __stdcall GamePaths_MakeFoldersCopying(const WString *root, u32 copy) {
+    const String *const separator = at<const String *>(0x00f81b48);
+    const char *const easymode = at<const char *>(0x00773cd0);
+    const String *const extension = at<const String *>(0x00f825e0);
+    String base;
+    String_Ctor(&base);
+    String_AssignFromWide(&base, root);
+    s32 result;
+    Dir_Create(&result, base.data);
+    for (const u32 *node = *at<const u32 *const *>(0x00786b90); node;) {
+        const String *const name = reinterpret_cast<const String *>((uintptr_t)node[0]);
+        node = reinterpret_cast<const u32 *>((uintptr_t)node[1]);
+        String folder;
+        String_CtorCopy(&folder, nullptr, reinterpret_cast<const StringView *>(&base));
+        vcall<void>(&folder, 0x28, separator);
+        vcall<void>(&folder, 0x28, name);
+        Dir_Create(&result, folder.data);
+        if (copy) {
+            String from;
+            String_Ctor(&from);
+            vcall<void>(&from, 0x18, at<const String *>(0x00f816e8));   // (MemorySource_GetLock of 0xf816c0)
+            vcall<void>(&from, 0x28, separator);
+            vcall<void>(&from, 0x28, at<const String *>(0x00f81980));
+            vcall<void>(&from, 0x28, separator);
+            vcall<void>(&from, 0x28, name);
+            vcall<void>(&from, 0x28, separator);
+            vcall<void>(&from, 0x20, easymode);
+            vcall<void>(&from, 0x28, extension);
+            if (File_Exists(from.data)) {
+                String to;
+                String_Ctor(&to);
+                vcall<void>(&to, 0x18, &folder);
+                vcall<void>(&to, 0x28, separator);
+                vcall<void>(&to, 0x20, easymode);
+                vcall<void>(&to, 0x28, extension);
+                File_Copy(&result, from.data, to.data);
+                String_Dtor(&to);
+            }
+            String_Dtor(&from);
+        }
+        String_Dtor(&folder);
+    }
+    String_Dtor(&base);
+}
+
 void __cdecl GamePaths_SetSecondRoot(String drive) {
     String path;
     String_Ctor(&path);

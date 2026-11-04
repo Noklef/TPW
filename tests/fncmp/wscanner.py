@@ -101,7 +101,7 @@ def keyword_list(r, regions, words):
 
 def find(r):
     blocks = bytearray(r.bytes(4 * stdwstring.SLOT))
-    chars = [r.choice(LETTERS) for _ in range(r.choice([0, 1, 3, 8]))]
+    chars = [r.choice(LETTERS + [0, 0]) for _ in range(r.choice([0, 1, 3, 8]))]   # (a NUL: _wcsnicmp's compare stops there, the other does not)
     ptr = stdwstring.BLOCKS + 2
     blocks[1] = r.choice([0, 1, 2, 0xfd, 0xfe, 0xff])
     blocks[2:4 + 2 * len(chars)] = wide(chars) + bytes(2)

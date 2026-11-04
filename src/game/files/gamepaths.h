@@ -16,6 +16,10 @@ extern "C" {
 // not open (a folder handle, vtable 0x6fd9e8, Handle_Open28) it is created (Dir_Create).
 void __fastcall GamePaths_MakeFolders(void *, void *, const WString *root);
 
+// 0x5c8190 (stdcall; root, copy; name invented, unconfirmed): the root folder made (Dir_Create), then for each node as above its folder (the root, "\\" 0xf81b48, the name) made.
+// With copy: the file (the third String of 0xf816c0, "\\", 0xf81980, "\\", the name, "\\", "easymode" 0x773cd0, 0xf825e0), when it exists, copied to the same name in that folder.
+void __stdcall GamePaths_MakeFoldersCopying(const WString *root, u32 copy);
+
 // 0x5aa650 (cdecl; a String by value, destroyed at the end; name unconfirmed): a local String given the drive (vtable +0x18, assign), ":" (0x77316c,
 // +0x20, append a C string) and the String at 0xf79fe8 (+0x28, append) is assigned to the second path string of 0xf816c0 (Obj_CallSub14Slot18:
 // its +0x14's vtable +0x18); a second local String is made and destroyed unused. Its caller (in 0x5aa4xx's drive scan) passes a drive's letter.
