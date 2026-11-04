@@ -45,13 +45,16 @@ def case(r):
         set_return(log, k, r.choice([0, 0, 1, r.getrandbits(32)]))
     set_return(log, OBJECT, OBJ)
     set_return(log, HOLDER_CTOR, r.getrandbits(32))
-    set_return(log, WINDOWED, r.choice([THING, THING + 0x40, THING + 0x80]))
+    set_return(log, WINDOWED, THING)
     set_return(log, PLACER, PLACE_OBJ)
     struct.pack_into('<I', log, LOG_BYTES + 4 * PLACE, 1 << 16)
     strings(log, FIND, 0, 1)
     fill(log, FIND, 0, struct.pack('<H', found), which=0)
     address = {'Click': 0x46cc40, 'Cancel': 0x46cdc0, 'Hover': 0x46d000, 'ModeClick': 0x46d0d0}[op]
     args = {'Click': 2, 'Cancel': 0, 'Hover': 4, 'ModeClick': 2}[op]
+    window = bytearray(regions[THING])
+    struct.pack_into('<I', window, 0x4ac, r.choice([0, 0, r.getrandbits(32)]))
+    regions[THING] = window
     if op == 'Cancel':
         block = bytearray(regions[PLACE_OBJ])
         struct.pack_into('<H', block, 0x60, r.choice([0, found, found]))
