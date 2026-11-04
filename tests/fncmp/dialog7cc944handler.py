@@ -42,7 +42,7 @@ def case(r):
     strings(log, NTH, 0, 1 << 1)
     blob(log, ADD, 0, 0x3f)
     set_return(log, TEXT, r.getrandbits(32))
-    set_return(log, STATE, r.deal([0, 0, 0, 1, 0x10000, 0x10001, 0xffffffff]))
+    set_return(log, STATE, r.deal([0, 0, 0, 1, 0x100, 0x10000, 0x10001, 0xffffffff]))
     set_return(log, DEFAULT, r.getrandbits(32))
     return Call(0x4bf9f0, [WINDOW, message, a, b], regions, ret='a')
 

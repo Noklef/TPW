@@ -40,6 +40,8 @@ void __fastcall Window705b20_SetRange(u8 *window, void *, s32 from, s32 to) {
     at<s32>(window, 0x138) = to;
 }
 
+u32 __fastcall Window705b20_SetPosDirect(u8 *window, void *, s32 value) { return Window705b20_SetPos(window, nullptr, -1, value); }
+
 u32 __fastcall Window705b20_SetPos(u8 *window, void *, s32 mode, s32 value) {
     u8 rect[12];
     GuiRect_Ctor(rect);
