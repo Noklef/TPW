@@ -160,7 +160,10 @@ void __fastcall Online_ResetUpload(u8 *session) {
         at<u32>(session, offset) = 0;
 }
 
-void __fastcall Online_ResetDownload(u8 *session) {
+namespace {
+
+// "Reseting" said; the object at +0x3a0 deleted, the block at +0x39c freed, both cleared.
+void DropDownload(u8 *session) {
     Say(0x007733d0);
     if (u8 *const object = at<u8 *>(session, 0x3a0)) {
         at<u32>(session, 0x3a0) = 0;
@@ -170,6 +173,12 @@ void __fastcall Online_ResetDownload(u8 *session) {
         GameHeap_Free(block);
         at<u32>(session, 0x39c) = 0;
     }
+}
+
+}  // namespace
+
+void __fastcall Online_ResetDownload(u8 *session) {
+    DropDownload(session);
     for (u32 offset : {0x390u, 0x394u, 0x384u, 0x388u, 0x38cu, 0x398u, 0x3a8u, 0x3c0u, 0x3c4u})
         at<u32>(session, offset) = 0;
     vcall<void>(session + 0x3dc, 0x14, 0x00786de4u);
@@ -476,6 +485,60 @@ u32 AnswerList(u8 *list, void(__fastcall *done)(u8 *, void *, u32)) {
 }  // namespace
 
 void Online_SetCityPollEnv(const OnlineCityPollEnv *env) { g_cityPoll = env ? env : &kCityPollGameEnv; }
+
+namespace {
+const OnlineDtorEnv kDtorGameEnv = {&Online_ReleaseLogin, &Online_ResetNews, &Online_ResetCity, &Online_ResetUpload, &Online_ResetDownload, &Dialog7cca94_Message4IfUp, &Dialup_HangUpIfOpen,
+                                    reinterpret_cast<decltype(OnlineDtorEnv::stringDtor)>(&String_Dtor), reinterpret_cast<decltype(OnlineDtorEnv::wstringDtor)>(&WString_Dtor)};
+const OnlineDtorEnv *g_dtor = &kDtorGameEnv;
+}  // namespace
+
+void Online_SetDtorEnv(const OnlineDtorEnv *env) { g_dtor = env ? env : &kDtorGameEnv; }
+
+void __fastcall Online_Dtor(u8 *session) {
+    g_dtor->releaseLogin(session);
+    for (u32 offset : {0x64u, 0x60u, 0x68u, 4u, 8u})
+        at<u32>(session, offset) = 0;
+    vcall<void>(session + 0xc, 0x14, 0x0078a374u);
+    vcall<void>(session + 0x20, 0x14, 0x0078a374u);
+    at<u32>(session, 0x34) = 0;
+    at<u32>(session, 0x38) = 0;
+    vcall<void>(session + 0x3c, 0x14, 0x0078a374u);
+    at<u32>(session, 0x50) = 0;
+    g_dtor->resetNews(session);
+    g_dtor->resetCity(session);
+    g_dtor->resetUpload(session);
+    g_dtor->resetDownload(session);
+    g_dtor->message4();
+    g_dtor->hangUp();
+    if (at<u32>(session, 0x6c)) FreeNews(session);
+    for (u32 offset = 0xe0; offset <= 0x100; offset += 4)
+        if (u8 *const list = at<u8 *>(session, offset)) vcall<void>(list, 0, 1u);
+    Online_ReleaseUpload(session);
+    DropDownload(session);
+    if (u8 *const object = at<u8 *>(session, 0x3a4)) vcall<void>(object, 0, 1u);   // sic: +0x3a4 stays
+    g_dtor->stringDtor(session + 0x3dc);
+    u8 *node = at<u8 *>(session, 0x3cc);
+    at<u32>(session, 0x3c8) = 0x007028a0;
+    at<u32>(session, 0x3d0) = 0;
+    at<u32>(session, 0x3cc) = 0;
+    while (node) {
+        u8 *const next = at<u8 *>(node, 4);
+        GameHeap_Free(node);
+        node = next;
+    }
+    at<u32>(session, 0x3d4) = 0;
+    g_dtor->stringDtor(session + 0x3ac);
+    g_dtor->wstringDtor(session + 0x35c);
+    g_dtor->wstringDtor(session + 0x348);
+    g_dtor->stringDtor(session + 0x330);
+    g_dtor->stringDtor(session + 0x10c);
+    g_dtor->wstringDtor(session + 0xb4);
+    g_dtor->wstringDtor(session + 0x98);
+    g_dtor->stringDtor(session + 0x7c);
+    g_dtor->wstringDtor(session + 0x3c);
+    g_dtor->wstringDtor(session + 0x20);
+    g_dtor->wstringDtor(session + 0xc);
+}
 
 void __fastcall Online_CityPoll(u8 *session) {
     if (!at<u32>(session, 0xd4)) return;

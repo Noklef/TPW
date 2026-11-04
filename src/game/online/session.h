@@ -52,6 +52,20 @@ struct OnlineCityPollEnv {
 };
 void Online_SetCityPollEnv(const OnlineCityPollEnv *env);
 
+// Online_Dtor's calls: the ports by default; the bench's recorders.
+struct OnlineDtorEnv {
+    void(__fastcall *releaseLogin)(u8 *session);   // Online_ReleaseLogin (0x5b64d0)
+    void(__fastcall *resetNews)(u8 *session);      // Online_ResetNews (0x5b6980)
+    void(__fastcall *resetCity)(u8 *session);      // Online_ResetCity (0x5b7430)
+    void(__fastcall *resetUpload)(u8 *session);    // Online_ResetUpload (0x5b8400)
+    void(__fastcall *resetDownload)(u8 *session);  // Online_ResetDownload (0x5b9040)
+    s32(__cdecl *message4)();                      // Dialog7cca94_Message4IfUp (0x4c25e0)
+    void(__cdecl *hangUp)();                       // Dialup_HangUpIfOpen (0x4bae40)
+    void(__fastcall *stringDtor)(u8 *string);      // String_Dtor (0x5f61e0)
+    void(__fastcall *wstringDtor)(u8 *string);     // WString_Dtor (0x5f6a60)
+};
+void Online_SetDtorEnv(const OnlineDtorEnv *env);
+
 extern "C" {
 
 // 0x5b6450: +0x60, set while logged in.
@@ -147,6 +161,10 @@ void __stdcall Online_UploadCallback(u32 code, u32 a, u32 b, u8 *record);
 // the progress 0x6fd4e0 as a percent (when the total is above 0) to Dialog7cca94_SetProgress, and to Dialog7cc944_SetWaitingRow for +0xec's list. None: Dialog7cca94_Message4IfUp, and 360 s past +0xd8 the City
 // closed (0x6fd4f4), destroyed (0x6fd540), freed, said, +0xd4 cleared.
 void __fastcall Online_CityPoll(u8 *session);
+
+// 0x5b5920 (thiscall): the destructor. The login released, its state and strings cleared; the News, City, Upload and Download reset, Message4 and hang up. The News (still set) dropped, the lists at
+// +0xe0..+0x100 deleted (not cleared), the Upload and the Download's object and block dropped, the object at +0x3a4 deleted (not cleared). The strings destroyed, the node list at +0x3cc freed.
+void __fastcall Online_Dtor(u8 *session);
 
 // 0x5b87e0 (thiscall (a, b, c), pops 12; name invented, unconfirmed): Online_ReleaseNews; +0x74, +0x90 and +0xac = -1; +0xc8, +0xcc, +0x78, +0x94, +0xb0, +0xd0 = 0; the strings +0x7c (0x786de4), +0x98 and +0xb4 (0x78a374)
 // assigned by slot 5; the city, upload and download reset; the dialog's message. +0x3a8 = a, +0x3c0 = b, +0x3c4 = c. Logged in (+0x60): the instance's list +0xf0 starts on its +0x3a8 with the callback 0x5b88e0. Otherwise
