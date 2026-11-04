@@ -7425,6 +7425,7 @@ address,name,kind,confidence,notes
 0x0048a6d0,Panel7b9940_SizeAtExit,function,low,"reimplemented (src/game/ui/panel7b9940); cdecl, no arguments: the atexit entry of the screen size 0x48a580 remembers at 0x7b9d00; a bare RET"
 0x0048a520,Panel7b9940_Exit,function,low,"reimplemented (src/game/ui/panel7b9940); the panel left: the menu closed, the window [0x7cb2b0] sent 4, detached: name invented, unconfirmed"
 0x00489f50,Panel7b9940_Open,function,low,"reimplemented (src/game/ui/panel7b9940); the panel opened and its windows made: name invented, unconfirmed"
+0x0048a410,Panel7b9940_ShowWindow,function,low,"reimplemented (src/game/ui/panel7b9940); the front end's panel shown again with its window made: name invented, unconfirmed"
 0x006588b6,Gui_HashName,function,low,"reimplemented (src/game/ui/windowreg); cdecl (text, multiplier): h = (signed char ^ h) * multiplier over the characters; returns h"
 0x00659bc9,GuiWindows_FindByName,function,low,"reimplemented (src/game/ui/windowreg); cdecl (name): the first node with the name's hash (0x2f): its window's slot 0x20, else 0"
 0x00659c42,GuiWindows_FindByHash,function,low,"reimplemented (src/game/ui/windowreg); cdecl (hash): the first node with the hash: its window's slot 0x20, else 0"

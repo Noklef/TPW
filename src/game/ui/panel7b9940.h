@@ -34,6 +34,7 @@ struct Panel7b9940OpenEnv {
     u32(__cdecl *focus)();                                                                                  // Focus_Restore
     u32(__cdecl *slot4)();                                                                                  // GuiManager_CallSlot4
     u32(__cdecl *slot3)();                                                                                  // GuiManager_CallSlot3
+    void(__cdecl *create7cc8bc)();                                                                          // Window7cc8bc_Create (Panel7b9940_ShowWindow's)
 };
 void Panel7b9940_SetOpenEnv(const Panel7b9940OpenEnv *env);
 
@@ -76,6 +77,10 @@ void __cdecl Panel7b9940_Close();
 // ([0x87a6d0]) tag 0x20 list (Renderer_Add); then the GUI manager's slot 3 when the byte at 0x78d90e is set, else its slot 4
 // (GuiManager_CallSlot3 / 4), whose result is returned.
 u32 __cdecl Panel7b9940_Show();
+
+// 0x48a410 (no arguments; name invented, unconfirmed): as Panel7b9940_Show up to the renderer's list; then the window [0x7cc8bc] made (Window7cc8bc_Create) and the window [0x7cb2b0] made as
+// Panel7b9940_Open's (child 1, 0, 1, 0, 0, 0x7ff, 0x5ff of [0xfaa5d8]; none: left): the handler 0x488a00, the cursor 0x15, the script 0x74fa98 built on it, no handler. Then the slot as _Show.
+u32 __cdecl Panel7b9940_ShowWindow();
 
 // 0x48a6d0 (no arguments): the atexit entry of the screen size 0x48a580 remembers at 0x7b9d00 (a pair, registered when its guard bit
 // 0x7c20e4 bit 0 is first set): nothing to destroy, a bare RET.
