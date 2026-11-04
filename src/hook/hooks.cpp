@@ -666,6 +666,7 @@
 #include "../game/ui/gamepartdialogs.h"
 #include "../game/ui/gamepause.h"
 #include "../game/ui/gamewindowinput.h"
+#include "../game/ui/guiclassdtors.h"
 #include "../game/ui/guifont.h"
 #include "../game/ui/guiframe.h"
 #include "../game/ui/guimessagefx.h"
@@ -8411,6 +8412,20 @@ const Hook kHooks[] = {
     {"CursorFiles_LoadPicture",   0x00489670, (void *)&CursorFiles_LoadPicture, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"Dialog7cc944_SetWaitingRow", 0x004c0660, (void *)&Dialog7cc944_SetWaitingRow, {0x8b, 0x0d, 0x44, 0xc9, 0x7c}},
     {"DialogF82884_ShowChild",    0x004bbbd0, (void *)&DialogF82884_ShowChild, {0xe8, 0xfb, 0x00, 0xfd, 0xff}},
+    {"Window705950_Dtor",         0x0065acd0, (void *)&Window705950_Dtor, {0x55, 0x8b, 0xec, 0x6a, 0xff}},
+    {"Window705950_Delete",       0x0065bc30, (void *)&Window705950_Delete, {0x55, 0x8b, 0xec, 0x51, 0x89}},
+    {"SysCursor_Dtor",            0x0066195e, (void *)&SysCursor_Dtor, {0x55, 0x8b, 0xec, 0x51, 0x89}},
+    {"SysCursor_Delete",          0x00661e00, (void *)&SysCursor_Delete, {0x55, 0x8b, 0xec, 0x51, 0x89}},
+    {"Window705ac0_Dtor",         0x0066a255, (void *)&Window705ac0_Dtor, {0x55, 0x8b, 0xec, 0x51, 0x89}},
+    {"Window705ac0_Delete",       0x0066a490, (void *)&Window705ac0_Delete, {0x55, 0x8b, 0xec, 0x51, 0x89}},
+    {"Window705b20_Dtor",         0x0066ae57, (void *)&Window705b20_Dtor, {0x55, 0x8b, 0xec, 0x51, 0x89}},
+    {"Window705b20_Delete",       0x0066bf90, (void *)&Window705b20_Delete, {0x55, 0x8b, 0xec, 0x51, 0x89}},
+    {"Window705b98_Dtor",         0x0066c82e, (void *)&Window705b98_Dtor, {0x55, 0x8b, 0xec, 0x51, 0x89}},
+    {"Window705b98_Delete",       0x0066c940, (void *)&Window705b98_Delete, {0x55, 0x8b, 0xec, 0x51, 0x89}},
+    {"Window705bc8_Dtor",         0x0066caa7, (void *)&Window705bc8_Dtor, {0x55, 0x8b, 0xec, 0x51, 0x89}},
+    {"Window705bc8_Delete",       0x0066d090, (void *)&Window705bc8_Delete, {0x55, 0x8b, 0xec, 0x51, 0x89}},
+    {"Window705c58_Dtor",         0x0066da21, (void *)&Window705c58_Dtor, {0x55, 0x8b, 0xec, 0x51, 0x89}},
+    {"Window705c58_Delete",       0x0066daf0, (void *)&Window705c58_Delete, {0x55, 0x8b, 0xec, 0x51, 0x89}},
     {"jdmarker_examine_app14",    0x0063bf50, (void *)&jdmarker_examine_app14, {0x8b, 0x4c, 0x24, 0x0c, 0x53}},
     {"jdmarker_examine_app0",     0x0063bcc0, (void *)&jdmarker_examine_app0, {0x8b, 0x44, 0x24, 0x0c, 0x8b}},
     {"jdmarker_get_interesting_appn", 0x0063bb80, (void *)&jdmarker_get_interesting_appn, {0x8b, 0x44, 0x24, 0x04, 0x83}},
