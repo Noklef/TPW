@@ -148,6 +148,23 @@ WString *__stdcall GamePaths_OnlineFolder(WString *out) {
 
 void GamePaths_SetCalls(const AddrCall *table, u32 count) { g_calls.Set(table, count); }
 
+extern "C" const char *__cdecl GamePaths_Base() {
+    String *const path = at<String *>(0x00788028);
+    u8 &guard = *at<u8 *>(0x007887e4);
+    if (!(guard & 1)) {
+        guard |= 1;
+        String_Ctor(path);
+        g_calls.Cd(0x0067a7d0, 0x0040eff0u);   // CRT_atexit (the String's destructor)
+    }
+    vcall<void>(path, 0x18, at<const StringView *>(0x00f816e8));
+    String_EnsureTrailingBackslash(path);
+    String_EnsureTrailingBackslash(path);
+    vcall<void>(path, 0x28, at<const StringView *>(0x00787f50));
+    String_EnsureTrailingBackslash(path);
+    vcall<void>(path, 0x28, at<const StringView *>(0x00786b68));
+    return *at<const char *const *>(0x00788030);
+}
+
 s32 __cdecl GamePaths_ShareTexFolder(char *out) {
     const u32 root = g_calls.Cd(0x0040ef40);
     return Crt().sprintf(out, reinterpret_cast<const char *>((uintptr_t)0x007488ac), reinterpret_cast<const char *>((uintptr_t)root), reinterpret_cast<const char *>((uintptr_t)0x007af720));

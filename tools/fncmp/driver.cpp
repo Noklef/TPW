@@ -1099,6 +1099,7 @@ const AddrCall kGlobalSaveCalls[] = {  // tests/fncmp/globalsaveio.py --table
 };
 const AddrCall kShareTexCalls[] = {  // tests/fncmp/sharetexpath.py --table
     {0x40ef40, jpeg_recorder(1, 0)},
+    {0x67a7d0, jpeg_recorder(2, 1)},   // (tests/fncmp/gamebase.py)
 };
 const AddrCall kLobbyScriptCalls[] = {  // tests/fncmp/lobbyscript.py --table
     {0x5c4d50, jpeg_recorder(1, 2)},
