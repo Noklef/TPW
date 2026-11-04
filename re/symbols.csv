@@ -5925,6 +5925,11 @@ address,name,kind,confidence,notes
 0x0068a1b0,CRT_NMSG_WRITE,function,low,reimplemented (src/game/core/crtmessage); MSVC6 _NMSG_WRITE: the runtime error text to stderr or a message box
 0x0068efb0,CRT_crtMessageBoxA,function,low,reimplemented (src/game/core/crtmessage); MSVC6 __crtMessageBoxA: user32 loaded on first use
 0x0068a390,CRT_mbsnbcpy,function,low,reimplemented (src/game/core/crtmessage); MSVC6 _mbsnbcpy
+0x006828a0,CRT_sbh_alloc_new_region,function,low,reimplemented (src/game/core/crtsbh); MSVC6 __sbh_alloc_new_region
+0x00682c00,CRT_sbh_alloc_block,function,low,reimplemented (src/game/core/crtsbh); MSVC6 __sbh_alloc_block
+0x00682e40,CRT_sbh_alloc_block_from_page,function,low,reimplemented (src/game/core/crtsbh); MSVC6 __sbh_alloc_block_from_page
+0x00688710,CRT_callnewh,function,low,reimplemented (src/game/core/crtsbh); MSVC6 _callnewh
+0x0067fcb0,CRT_calloc,function,low,reimplemented (src/game/core/crtsbh); MSVC6 calloc
 0x0050ffe0,Nav_Ctor,function,high,reimplemented (src/game/world/nav); constants constructor with five integer pairs
 0x0050f200,Nav_Dtor,function,high,reimplemented (src/game/world/nav); thiscall: the five IntPairs at +0x64 destroyed with Stub_Ret (CRT_VectorDtorIterator); also via 0x4f7c30 (+0xd4) and 0x4f8ad0
 0x004f7c30,Nav_DtorAtD4,function,low,reimplemented (src/game/world/nav); thiscall adjustor: Nav_Dtor on this + 0xd4

@@ -205,6 +205,7 @@
 #include "../game/core/crtlock.h"
 #include "../game/core/crtmessage.h"
 #include "../game/core/crtopen.h"
+#include "../game/core/crtsbh.h"
 #include "../game/core/crtstartup.h"
 #include "../game/core/crtstream.h"
 #include "../game/core/crttime.h"
@@ -6224,6 +6225,11 @@ const Hook kHooks[] = {
     {"CRT_crtMessageBoxA",        0x0068efb0, (void *)&CRT_crtMessageBoxA, {0xa1, 0x00, 0x19, 0xfb, 0x00}},
     {"CRT_mbsnbcpy",              0x0068a390, (void *)&CRT_mbsnbcpy, {0xa1, 0x70, 0x18, 0xfb, 0x00}},
     {"CRT__splitpath",            0x0067f020, (void *)&CRT__splitpath, {0x51, 0x53, 0x55, 0x8b, 0x6c}},
+    {"CRT_sbh_alloc_new_region",  0x006828a0, (void *)&CRT_sbh_alloc_new_region, {0xa1, 0xb0, 0xed, 0x77, 0x00}},
+    {"CRT_sbh_alloc_block",       0x00682c00, (void *)&CRT_sbh_alloc_block, {0x51, 0x8b, 0x0d, 0xc0, 0x0d}},
+    {"CRT_sbh_alloc_block_from_page", 0x00682e40, (void *)&CRT_sbh_alloc_block_from_page, {0x8b, 0x54, 0x24, 0x0c, 0x53}},
+    {"CRT_callnewh",              0x00688710, (void *)&CRT_callnewh, {0xa1, 0x4c, 0x15, 0xfb, 0x00}},
+    {"CRT_calloc",                0x0067fcb0, (void *)&CRT_calloc, {0x53, 0x8b, 0x5c, 0x24, 0x0c}},
     {"Nav_Ctor",          0x0050ffe0, (void *)&Nav_Ctor, {0x6a, 0xff, 0x68, 0x2d, 0xe6}},
     {"Nav_Dtor",                  0x0050f200, (void *)&Nav_Dtor, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"Nav_DtorAtD4",              0x004f7c30, (void *)&Nav_DtorAtD4, {0x81, 0xc1, 0xd4, 0x00, 0x00}},

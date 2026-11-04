@@ -19,7 +19,7 @@ B.emu.next = dict(zip(B.emu.order, B.emu.order[1:]))
 TEXTS, BLOCK, PATH, OUT, ANSWERS = RAM, RAM + 0x400, RAM + 0x500, RAM + 0x800, RAM + 0x1000
 CODES = [2, 8, 9, 0x10, 0x12, 0x1e, 0xfc, 0xff, 0xfc, 0xff, 0, 1, 0x100]
 OPS = [n for n in ('amsg', 'fast', 'banner', 'nmsg', 'nmsg', 'box', 'mbsnbcpy', 'mbsnbcpy', 'splitpath', 'splitpath') if not os.environ.get('OPS') or n in os.environ['OPS'].split(',')]
-PATHS = [b'', b'a', b'C:', b'C:\\', b'C:\\dir\\name.ext', b'C:/dir/sub\\name', b'name.ext', b'.ext', b'dir.d/name', b'dir.d\\', b'a:b:c', b'C:name.tar.gz', b'\x81\\dir\\n\x81.x', b'\\\x81', b'd\\' + b'n' * 0x120 + b'.' + b'e' * 0x120, b'd' * 0x120 + b'\\x']
+PATHS = [b'', b'\0:x', b'a', b'C:', b'C:\\', b'C:\\dir\\name.ext', b'C:/dir/sub\\name', b'name.ext', b'.ext', b'dir.d/name', b'dir.d\\', b'a:b:c', b'C:name.tar.gz', b'\x81\\dir\\n\x81.x', b'\\\x81', b'd\\' + b'n' * 0x120 + b'.' + b'e' * 0x120, b'd' * 0x120 + b'\\x']
 
 
 def case(r):
