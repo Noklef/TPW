@@ -199,6 +199,7 @@
 #include "../game/core/timesig.h"
 #include "../game/core/countedpair.h"
 #include "../game/core/crtfile.h"
+#include "../game/core/crtstartup.h"
 #include "../game/core/crtstream.h"
 #include "../game/core/dsoundsource.h"
 #include "../game/core/imaadpcm.h"
@@ -6050,6 +6051,7 @@ const Hook kHooks[] = {
     {"CRT_ungetwc_lk",            0x0067ccd0, (void *)&CRT_ungetwc_lk, {0x56, 0x57, 0x8b, 0x7c, 0x24}},
     {"CRT_ungetwc",               0x0067cca0, (void *)&CRT_ungetwc, {0x56, 0x8b, 0x74, 0x24, 0x0c}},
     {"CRT_flswbuf",               0x00686ff0, (void *)&CRT_flswbuf, {0x53, 0x55, 0x56, 0x8b, 0x74}},
+    {"CRT_parse_cmdline",         0x006898f0, (void *)&CRT_parse_cmdline, {0x8b, 0x44, 0x24, 0x10, 0x53}},
     {"Nav_Ctor",          0x0050ffe0, (void *)&Nav_Ctor, {0x6a, 0xff, 0x68, 0x2d, 0xe6}},
     {"Nav_Dtor",                  0x0050f200, (void *)&Nav_Dtor, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"Nav_DtorAtD4",              0x004f7c30, (void *)&Nav_DtorAtD4, {0x81, 0xc1, 0xd4, 0x00, 0x00}},

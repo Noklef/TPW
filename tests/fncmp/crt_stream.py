@@ -67,15 +67,17 @@ def case(r):
     else:
         fill(log, READ, 3, struct.pack('<4I', *[r.choice([0, 1, 2, 3, 8, 0x20]) for _ in range(4)]), which=1, records=4)
     fill(log, READ, 1, bytes(r.choice([0xa, 0xd, 0x41]) for _ in range(4)), which=2, records=4)
-    fill(log, W2M, 4, r.bytes(2), which=3)
+    if name not in ('ungetwc', 'ungetwc_lk') or r.random() < 0.5:   # (not written: _ungetwc_lk's bytes are the character's own, _getwc_lk's answer the file argument's low word)
+        fill(log, W2M, 4, r.bytes(2), which=3)
     fill(log, W2M, 7, struct.pack('<I', r.choice([0, 0, 0, 1])), which=4)
-    fill(log, M2W, 4, r.bytes(2), which=5)
+    if name not in ('fgetwc', 'fgetwc_lk') or r.random() < 0.5:
+        fill(log, M2W, 4, r.bytes(2), which=5)
     set_return(log, W2M, r.choice([1, 1, 2, 2, 0]))
     set_return(log, M2W, r.choice([1, 1, 2, 0]))
     set_return(log, ERROR, r.choice([5, 2, 6, 0x6d, 0x13, 0x57, 0]))
     set_return(log, NHMALLOC, r.choice([BLOCK, BLOCK, BLOCK, 0]))
     regions[OUT] = r.bytes(0x10)
-    c = r.choice([0x41, 0xe9, 0x8140, 0xffff, 0x10041, 0xa, 0xffffffff, 0x100])
+    c = r.choice([0x41, 0xe9, 0x8140, 0xffff, 0x10041, 0xa, 0xffffffff, 0x100, 0xff])
     if name in ('wctomb', 'wctomb_lk'):
         return Call(0x687140 if name == 'wctomb' else 0x6871b0, [r.choice([OUT, OUT, OUT, 0]), c], regions, conv='c', ret='a')
     if name in ('mbtowc', 'mbtowc_lk'):
