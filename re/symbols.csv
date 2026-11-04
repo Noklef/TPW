@@ -63,7 +63,7 @@ address,name,kind,confidence,notes
 0x0042cdc0,Camera_Save,function,high,reimplemented (src/game/core/savemods); writes the camera values to the save game
 0x00437b60,Coasters_Load,function,high,"reimplemented (src/game/coaster/coastersload); A park's coasters read from its save (name invented, unconfirmed)"
 0x00437300,Coasters_Save,function,high,"reimplemented (src/game/coaster/save); cdecl u32 (stream): link count, three globals, per link a 0x20-byte record, its pieces' 0x22-byte records and word lists, its cars' 0x1b- and seats' 0xb-byte records and arrays; failed writes never stop it; returns 1"
-0x00599d00,Advisor_Load,function,high,module ADVS
+0x00599d00,Advisor_Load,function,high,"reimplemented (src/game/world/advisorspeech); cdecl (stream); ""ADV_"", the block 0xf79660, the lip times"
 0x00599c30,Advisor_Save,function,high,"reimplemented (src/game/core/cheatmodule); the advisor module written: a tag, a 0x168 block and a counted buffer"
 0x0051c400,Sound_Load,function,high,reimplemented (src/game/core/soundset); the sound globals and settings read; complete: the manager posts 0x700bb4 and 0x700b30 (none: the object's record skipped); short: the on flag put back
 0x0051c350,Sound_Save,function,high,"reimplemented (src/game/core/soundset); the sound globals and the 0x54 settings bytes written; on and started, the manager posts 0x700bb0"
@@ -434,8 +434,10 @@ address,name,kind,confidence,notes
 0x00592730,WaveletCodec_DecodeColour,function,low,"reimplemented (src/game/gfx/wavelet); thiscall (width, height, packed source, BGR pixels, three quantisers), pops 0x1c: the colour decoder, Y then Cb and Cr at half the side through the row and column inverse steps, then YUV to BGR"
 0x00592e60,WaveletCodec_DecodeGrey,function,low,"reimplemented (src/game/gfx/wavelet); thiscall (width, height, packed source, pixels, q): the grey decoder, rows through the coefficient reader and inverse D4, then the columns, then clamped bytes (name unconfirmed)"
 0x005935a0,WaveletCodec_YuvToRgb,function,high,"reimplemented (src/game/gfx/wavelet); thiscall (width, height, luma stride, pixels), pops 0x10: the Y, Cb and Cr planes to BGR pixels through the clamp tables, 2 x 2 blocks then an odd last column and row"
-0x00599050,Advisor_Say,function,high,"'Advisor says ResponseID %d': looks up gAdvisorResponses, loads Speech/lips/sp_%03d.lip, starts gesture and animation"
+0x00599050,Advisor_Say,function,high,"reimplemented (src/game/world/advisorspeech); cdecl (id); a response from 0x768fb8: lip times read, sound played, first animation called; returns the time"
 0x00599880,Advisor_UpdateSpeech,function,medium,"reimplemented (src/game/world/advisorspeech); cdecl; time without pauses, the voice's end, the sample and end effects at their times, the queued animation, the lip times and the mouth's shapes"
+0x00598b20,Advisor_QueueRandom,function,low,reimplemented (src/game/world/advisorspeech); cdecl (length); random gestures fill the queue 0xf79718; returns their length
+0x00598bf0,Advisor_QueueAnim,function,low,"reimplemented (src/game/world/advisorspeech); cdecl (index, length); the queue from the row of 0x76dc18; returns its length"
 0x00768fb8,gAdvisorResponses,data,high,"0x20-byte rows: response id, sample, lip number, gesture, theme<<16|anim, ?, ?, ?; ends with 9999"
 0x00541d90,Sprites_LoadAll,function,high,"loads every esprites.wad folder in gSpriteFolders order; arg 1 = particles only"
 0x00541310,Sprites_LoadFolder,function,high,"finds *.ESP in a folder; loads gAvatarSprites first ('Loading Avatar Sprites')"

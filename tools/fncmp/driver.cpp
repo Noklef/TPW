@@ -1160,7 +1160,9 @@ const AddrCall kPointSpritesCalls[] ={{0x67a7d0, jpeg_recorder(1, 1)}, {0x590c40
 const AddrCall kCoastersUpdateCalls[] ={{0x435d50, jpeg_recorder(1, 1)}, {0x403d00, recorder(2, 2)}, {0x43eb70, jpeg_recorder(3, 1)}, {0x43ce20, jpeg_recorder(4, 1)}, {0x4709e0, jpeg_recorder(5, 1)}, {0x43b8b0, jpeg_recorder(6, 2)}, {0x439570, jpeg_recorder(7, 2)}};
 const AddrCall kModelListCalls[] = {{0x575f90, recorder(1, 1)}, {0x581790, recorder(2, 2)}, {0x581880, recorder(3, 2)}, {0x580530, recorder(4, 3)}, {0x5658c0, recorder(5, 1)}};
 const AddrCall kAdvisorSpeechCalls[] = {{0x402d80, recorder(1, 0)}, {0x402df0, recorder(2, 0)}, {0x51c270, jpeg_recorder(3, 4)}, {0x51e6f0, jpeg_recorder(4, 1)}, {0x5ed5a0, jpeg_recorder(5, 3)}, {0x51bfc0, jpeg_recorder(6, 6)},
-                                        {0x521e60, jpeg_recorder(7, 4)}, {0x4b9340, jpeg_recorder(8, 0)}, {0x429fe0, jpeg_recorder(9, 1)}, {0x473ff0, jpeg_recorder(10, 4)}, {0x4732a0, jpeg_recorder(11, 6)}, {0x67ad90, jpeg_recorder(12, 1)}};
+                                        {0x521e60, jpeg_recorder(7, 4)}, {0x4b9340, jpeg_recorder(8, 0)}, {0x429fe0, jpeg_recorder(9, 1)}, {0x473ff0, jpeg_recorder(10, 4)}, {0x4732a0, jpeg_recorder(11, 6)}, {0x67ad90, jpeg_recorder(12, 1)},
+                                        {0x67b5c0, jpeg_recorder(13, 0)}, {0x40ef40, jpeg_recorder(14, 0)}, {0x67a650, jpeg_recorder(15, 3)}, {0x44a280, jpeg_recorder(16, 3)}, {0x5c4d50, jpeg_recorder(17, 2)}, {0x5c5000, jpeg_recorder(18, 1)},
+                                        {0x67dcd0, jpeg_recorder(19, 1)}, {0x5f5b80, jpeg_recorder(20, 2)}, {0x51c570, jpeg_recorder(21, 1)}, {0x429e90, jpeg_recorder(22, 2)}, {0x51c2c0, jpeg_recorder(23, 1)}};  // (these for tests/fncmp/advisorsay.py)
 u32 __fastcall arreplay_step_recorder(u8 *self, void *) {   // as tests/fncmp/arreplayupdate.py's step: +0x2c copied to the wait
     *reinterpret_cast<u32 *>(self + 0x30) = *reinterpret_cast<u32 *>(self + 0x2c);
     return reinterpret_cast<u32(__fastcall *)(u8 *, void *)>((uintptr_t)recorder(1, 0))(self, nullptr);
