@@ -86,4 +86,10 @@ s32 __fastcall DrawBatch_AddClippedTriangles(u8 *object, void *, u32 *vertexCoun
 // flag 2 (first, first + k + 1, first + k). Returns 1.
 u32 __fastcall DrawBatch_AddPolygon(u8 *object, void *, u8 *vertices, u32 count, u32 stride, const u8 *codes, u32 flags);
 
+// 0x582810, 0x5828f0, 0x5829e0 (names invented): batch indices order[lo..hi] sorted by the batches' (+0x44, 0x38 bytes each) dword +8,
+// float +0x30 up, float +0x30 down.
+void __fastcall DrawBuffer_SortByDword8(u8 *buffer, void *, u32 *order, s32 lo, s32 hi);
+void __fastcall DrawBuffer_SortByFloat30Up(u8 *buffer, void *, u32 *order, s32 lo, s32 hi);
+void __fastcall DrawBuffer_SortByFloat30Down(u8 *buffer, void *, u32 *order, s32 lo, s32 hi);
+
 }

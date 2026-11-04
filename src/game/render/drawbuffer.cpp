@@ -18,6 +18,49 @@ u32 *current(const u8 *buffer) { return stream(buffer, at<u32>(buffer, 4)); }
 
 void PushError() { EngineErrors_Push(reinterpret_cast<u8 *>((uintptr_t)0x00879ad0), nullptr, 3, 0xb0754000); }
 
+// The three sorts' keys and tests. A NaN passes `!(v >= p)`, so a float's scan runs over it. A NaN pivot recurses for ever, as in the original.
+struct ByDword8 {
+    typedef u32 Key;
+    static Key key(const u8 *batch) { return at<u32>(batch, 8); }
+    static bool before(Key v, Key p) { return v < p; }
+    static bool after(Key v, Key p) { return v > p; }
+};
+struct ByFloat30Up {
+    typedef float Key;
+    static Key key(const u8 *batch) { return at<float>(batch, 0x30); }
+    static bool before(Key v, Key p) { return !(v >= p); }
+    static bool after(Key v, Key p) { return v > p; }
+};
+struct ByFloat30Down {
+    typedef float Key;
+    static Key key(const u8 *batch) { return at<float>(batch, 0x30); }
+    static bool before(Key v, Key p) { return v > p; }
+    static bool after(Key v, Key p) { return !(v >= p); }
+};
+
+// Batch indices order[lo..hi] sorted: Hoare's partition around the middle entry's key, recursing on the left part and looping on the right.
+template <typename By> void SortBatches(const u8 *buffer, u32 *order, s32 lo, s32 hi) {
+    const u8 *batches = reinterpret_cast<const u8 *>((uintptr_t)at<u32>(buffer, 0x44));
+    const auto key = [&](s32 n) { return By::key(batches + order[n] * 0x38); };
+    for (;;) {
+        s32 i = lo, j = hi;
+        const typename By::Key pivot = key((s32)((u32)lo + (u32)hi) >> 1);
+        do {
+            while (i <= hi && By::before(key(i), pivot)) i++;
+            while (j > lo && By::after(key(j), pivot)) j--;
+            if (i > j) break;
+            const u32 swapped = order[i];
+            order[i] = order[j];
+            order[j] = swapped;
+            i++;
+            j--;
+        } while (i <= j);
+        if (lo < j) SortBatches<By>(buffer, order, lo, j);
+        if (hi <= i) return;
+        lo = i;
+    }
+}
+
 // A stream's record made (inlined twice in 0x5823f0): 1 MB of vertices and 0x20000 bytes of indices. On a failure the error is
 // pushed (and what was got freed); the caller pushes it again.
 bool MakeStream(u8 *s) {
@@ -345,5 +388,9 @@ u32 __fastcall DrawBatch_AddPolygon(u8 *object, void *, u8 *vertices, u32 count,
     }
     return 1;
 }
+
+void __fastcall DrawBuffer_SortByDword8(u8 *buffer, void *, u32 *order, s32 lo, s32 hi) { SortBatches<ByDword8>(buffer, order, lo, hi); }
+void __fastcall DrawBuffer_SortByFloat30Up(u8 *buffer, void *, u32 *order, s32 lo, s32 hi) { SortBatches<ByFloat30Up>(buffer, order, lo, hi); }
+void __fastcall DrawBuffer_SortByFloat30Down(u8 *buffer, void *, u32 *order, s32 lo, s32 hi) { SortBatches<ByFloat30Down>(buffer, order, lo, hi); }
 
 }
