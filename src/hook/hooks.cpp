@@ -208,6 +208,7 @@
 #include "../game/core/keyactions.h"
 #include "../game/core/loopstream.h"
 #include "../game/core/mixerthread.h"
+#include "../game/core/moneypunct.h"
 #include "../game/core/mp2decoder.h"
 #include "../game/core/mp2frame.h"
 #include "../game/core/mp2layer1.h"
@@ -6077,6 +6078,10 @@ const Hook kHooks[] = {
     {"CRT_Getmonths",             0x006903a0, (void *)&CRT_Getmonths, {0x83, 0xec, 0x08, 0x8b, 0x15}},
     {"CRT_cvtdate",               0x00688300, (void *)&CRT_cvtdate, {0x8b, 0x44, 0x24, 0x08, 0x53}},
     {"CRT_gmtime",                0x006884a0, (void *)&CRT_gmtime, {0x53, 0x55, 0x8b, 0x6c, 0x24}},
+    {"MoneypunctC_Init",          0x006ab880, (void *)&MoneypunctC_Init, {0x51, 0x53, 0x55, 0x56, 0x57}},
+    {"MoneypunctW_Init",          0x006a4f20, (void *)&MoneypunctW_Init, {0x83, 0xec, 0x08, 0x53, 0x55}},
+    {"MoneypunctC_Ctor",          0x006a8830, (void *)&MoneypunctC_Ctor, {0x6a, 0xff, 0x68, 0x68, 0x50}},
+    {"MoneypunctW_Ctor",          0x006a18a0, (void *)&MoneypunctW_Ctor, {0x6a, 0xff, 0x68, 0x28, 0x48}},
     {"Nav_Ctor",          0x0050ffe0, (void *)&Nav_Ctor, {0x6a, 0xff, 0x68, 0x2d, 0xe6}},
     {"Nav_Dtor",                  0x0050f200, (void *)&Nav_Dtor, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"Nav_DtorAtD4",              0x004f7c30, (void *)&Nav_DtorAtD4, {0x81, 0xc1, 0xd4, 0x00, 0x00}},

@@ -5830,6 +5830,10 @@ address,name,kind,confidence,notes
 0x006903a0,CRT_Getmonths,function,low,reimplemented (src/game/core/crttime); _Getmonths
 0x00688300,CRT_cvtdate,function,low,reimplemented (src/game/core/crttime); cvtdate
 0x006884a0,CRT_gmtime,function,low,reimplemented (src/game/core/crttime); gmtime
+0x006ab880,MoneypunctC_Init,function,low,reimplemented (src/game/core/moneypunct); moneypunct<char>::_Init
+0x006a4f20,MoneypunctW_Init,function,low,reimplemented (src/game/core/moneypunct); moneypunct<wchar_t>::_Init
+0x006a8830,MoneypunctC_Ctor,function,low,reimplemented (src/game/core/moneypunct); moneypunct<char>'s constructor
+0x006a18a0,MoneypunctW_Ctor,function,low,reimplemented (src/game/core/moneypunct); moneypunct<wchar_t>'s constructor
 0x0050ffe0,Nav_Ctor,function,high,reimplemented (src/game/world/nav); constants constructor with five integer pairs
 0x0050f200,Nav_Dtor,function,high,reimplemented (src/game/world/nav); thiscall: the five IntPairs at +0x64 destroyed with Stub_Ret (CRT_VectorDtorIterator); also via 0x4f7c30 (+0xd4) and 0x4f8ad0
 0x004f7c30,Nav_DtorAtD4,function,low,reimplemented (src/game/world/nav); thiscall adjustor: Nav_Dtor on this + 0xd4
