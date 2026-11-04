@@ -7009,6 +7009,7 @@ address,name,kind,confidence,notes
 0x00452e70,HoardingMesh_Build,function,low,"reimplemented (src/game/model/hoardingmesh); a hoarding's boards built as a mesh around a grid of cells (name invented, unconfirmed)"
 0x0046a5a0,RideBase_Prepare,function,low,"reimplemented (src/game/model/ridebase); a ride base's edge table, and its frames fitted to its grid (name invented, unconfirmed)"
 0x004629d0,Ride_LoadResource,function,low,"reimplemented (src/game/model/rideresource); a ride's resource loaded: files, model, sign, height map, parts marked, its slot in the table at 0x7ae6a8"
+0x0044b510,AimSprites_Update,function,low,"reimplemented (src/game/model/aimsprites); cdecl (instance); name unconfirmed; a model's sprite vertices turned to the camera: the cell of 8 turns and 7 tilts nearest the direction, and a roll"
 0x0045aee0,Online_ApplyBalance,function,high,reimplemented (src/game/online/servers); copies Online.sam (gBalanceOnline) into the servers object 0x7a14f0
 0x005d2a80,OnlineServers_Ctor,function,low,"reimplemented (src/game/online/servers); thiscall: the online servers' settings' defaults (the server names, ports and complaints address) as the static initialiser 0x45ad60 builds them at 0x7a14f0; returns the object (name unconfirmed)"
 0x0045ad90,OnlineServers_Dtor,function,low,"reimplemented (src/game/online/servers); thiscall: the servers' destructor: the complaints address, then the six server names released (_Tidy(true)) (name unconfirmed)"
