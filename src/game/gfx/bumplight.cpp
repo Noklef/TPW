@@ -5,6 +5,8 @@
 
 #include "../math/vector.h"
 #include "../math/x87.h"
+#include "array3d.h"
+#include "imageops.h"
 
 namespace {
 
@@ -20,6 +22,8 @@ __declspec(naked) double __cdecl GamePow(double, double) {
 
 const BumpLightEnv kGameEnv = {&GamePow};
 const BumpLightEnv *g_env = &kGameEnv;
+const BumpStepsEnv kGameSteps = {&Array3D_Realloc, &Image_ErosionRamp, &Image_GaussianBlur, &BumpLight_Render, &Image_CropInto, &Image_Erode, &Image_Dilate, &Image_GaussianBlurLines, &Array3D_Free};
+const BumpStepsEnv *g_steps = &kGameSteps;
 AddrCalls g_calls;
 
 template <typename T>
@@ -35,6 +39,8 @@ void BumpLight_SetEnv(const BumpLightEnv *env, const AddrCall *table, u32 count)
     g_env = env ? env : &kGameEnv;
     g_calls.Set(table, count);
 }
+
+void BumpSteps_SetEnv(const BumpStepsEnv *env) { g_steps = env ? env : &kGameSteps; }
 
 extern "C" {
 
@@ -99,5 +105,34 @@ void __fastcall BumpLight_Render(u8 *self, void *, const u8 *heights) {
         }
     }
     g_calls.Th(0x0055f1e0, (u32)(uintptr_t)block);   // BufferC_FreeAndClear
+}
+
+void __fastcall Bump_Build(u8 *self) {
+    if (!at<u32>(self, 0x38) || !at<u32>(self, 0x48)) return;
+    u8 *const heights = self + 0x2c, *const out = self + 0x4c;
+    g_steps->realloc(out, nullptr, at<u32>(self, 0x2c), at<u32>(self, 0x30), 1);
+    g_steps->realloc(self + 0x5c, nullptr, at<u32>(self, 0x2c), at<u32>(self, 0x30), 4);
+    g_steps->ramp(self, nullptr, reinterpret_cast<const u32 *>(heights), at<u32>(self, 0), reinterpret_cast<const u32 *>(out));
+    const float sigma = at<float>(self, 8);
+    if (sigma > 0) g_steps->blur(self, nullptr, reinterpret_cast<const u32 *>(out), reinterpret_cast<const u32 *>(heights), sigma);
+    g_steps->render(self, nullptr, out);
+}
+
+u8 __fastcall Bump_FilterInto(u8 *self, void *, u32 *source, u8 *dest) {
+    if (!source[3]) return 0;
+    g_steps->realloc(dest, nullptr, source[0], source[1], 1);
+    u8 result = g_steps->crop(dest, reinterpret_cast<u8 *>(source), at<s32>(self, 0xc), at<s32>(self, 0x10));
+    if (result == 1) {
+        const s32 radius = at<s32>(self, 4);
+        if (radius < 0) result = static_cast<u8>(g_steps->erode(reinterpret_cast<u32 *>(dest), -radius));
+        else if (radius > 0) result = static_cast<u8>(g_steps->dilate(reinterpret_cast<u32 *>(dest), radius));
+    }
+    if (result != 1) {
+        g_steps->free(dest);
+        return 0;
+    }
+    const double sigma = at<float>(self, 8);
+    if (sigma > 0 || sigma < 0) result = g_steps->lines(reinterpret_cast<const u32 *>(dest), sigma);
+    return result;
 }
 }
