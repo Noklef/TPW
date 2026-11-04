@@ -12,11 +12,13 @@ sys.path.insert(0, os.path.join(HERE, '..', '..', 'tools'))
 from fncmp import HEAP, LOG, RAM, Bench, Call, _recorder, heap, log_region, put, set_return, vtable  # noqa: E402
 
 FCLOSE = 18
-B = Bench([(0x4f5990, 0x4f5a4f), (0x4f5a50, 0x4f5acc), (0x4ef7b0, 0x4ef800), (0x5da3c0, 0x5da3c1), (0x4f08c0, 0x4f0a10), (0x4f0540, 0x4f0650), (0x4f10d0, 0x4f11e0), (0x45b340, 0x45b9a0), (0x4f6020, 0x4f6080), (0x4f3720, 0x4f3920), (0x4f6820, 0x4f6890)],
+B = Bench([(0x4f5990, 0x4f5a4f), (0x4f5a50, 0x4f5acc), (0x4ef7b0, 0x4ef800), (0x5da3c0, 0x5da3c1), (0x4f08c0, 0x4f0a10), (0x4f0540, 0x4f0650), (0x4f10d0, 0x4f11e0), (0x45b340, 0x45b9a0), (0x4f6020, 0x4f6080), (0x4f3720, 0x4f3920), (0x4f6820, 0x4f6890), (0x4ef390, 0x4ef3a4), (0x4ef860, 0x4ef874), (0x4f1280, 0x4f12ad), (0x4f12d0, 0x4f12ee), (0x4f12f0, 0x4f131d), (0x4f0100, 0x4f0108), (0x693830, 0x693a90)],
           hooks={0x699da0: _recorder(15, 0, cdecl=True), 0x691de0: lambda e: e.r.__setitem__('EAX', e.r['ECX']), 0x691ea0: lambda e: None, 0x67b620: _recorder(FCLOSE, 1, cdecl=True)})
 BUF, OLD, OLDVT, GLOBAL, OLD2, OLD2VT, VBT = RAM, RAM + 0x100, RAM + 0x200, RAM + 0x300, RAM + 0x400, RAM + 0x500, RAM + 0x600
 STREAM = RAM + 0x800
-OPS = [n for n in ('Locale', 'Init', 'Dtor', 'Ofstream', 'Ifstream', 'Ctor') if not os.environ.get('OPS') or n in os.environ['OPS'].split(',')]
+OLD3, OLD3VT = RAM + 0x680, RAM + 0x6c0
+FLAGS = [0, 1, 2, 3, 0x100, 0x101]
+OPS = [n for n in ('Locale', 'Init', 'Dtor', 'Ofstream', 'Ifstream', 'Ctor', 'OfDtor', 'IfDtor', 'OfDel', 'IfDel', 'BufDel') if not os.environ.get('OPS') or n in os.environ['OPS'].split(',')]
 
 
 def counted_regions(r, regions, at, table, slot):
@@ -56,6 +58,23 @@ def dtor(r, op, log, regions):
     return Call(0x4f10d0, [STREAM + 0x5c], regions, conv='t', ret='v')
 
 
+def fstream(r, op, log, regions):
+    """The streams' whole destructors: dtor()'s stream with a basic_ios behind it (no callbacks or words: ios_base's lists are iosbase.py's; its locale reference and its stream's count)."""
+    of = op.startswith('Of')
+    ios = 0x58 if of else 0x5c
+    regions = dtor(r, 'Ofstream' if of else 'Ifstream', log, regions).regions
+    stream = bytearray(regions[STREAM]) + bytearray(r.bytes(0x20))
+    struct.pack_into('<3I', stream, ios + 0x18, 0, 0, r.choice([0, OLD3, OLD3]))
+    struct.pack_into('<I', stream, ios + 0x24, r.choice([0, 0, 1, 2, 7]))
+    regions[STREAM] = stream
+    counted_regions(r, regions, OLD3, OLD3VT, 0)
+    regions[0xfb1d88] = bytes(r.choice([0, 1, 1, 2, 0x7f, 0x80, 0xff]) for _ in range(8))
+    regions[VBT] = struct.pack('<II', r.getrandbits(32), r.choice([ios, ios + 0x38]))
+    if op.endswith('Del'):
+        return Call(0x4f1280 if of else 0x4f12f0, [STREAM + ios, r.choice(FLAGS)], regions, conv='t', ret='a')
+    return Call(0x4ef390 if of else 0x4ef860, [STREAM], regions, conv='t', ret='v')
+
+
 def case(r):
     op = r.deal(OPS)
     log = log_region()
@@ -65,6 +84,11 @@ def case(r):
     regions = {LOG: log, BUF: bytearray(r.bytes(0x60)), 0xfb1dd0: struct.pack('<I', GLOBAL), GLOBAL: counted, 0xfb34b4: r.bytes(4)}
     if op in ('Dtor', 'Ofstream', 'Ifstream'):
         return dtor(r, op, log, regions)
+    if op == 'BufDel':
+        call = dtor(r, 'Dtor', log, regions)
+        return Call(0x4f12d0, [BUF, r.choice(FLAGS)], call.regions, conv='t', ret='a')
+    if op in ('OfDtor', 'IfDtor', 'OfDel', 'IfDel'):
+        return fstream(r, op, log, regions)
     if op == 'Ctor':   # (the locale's answers: the global's counted object each time, at its last use or not, its slot 0 a recorder)
         set_return(log, 15, GLOBAL)
         put(counted, 0, 'I', OLDVT)

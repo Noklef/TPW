@@ -105,6 +105,13 @@ def case(r):
         words = [b'', b'a', b'A', b'am/pm', b'AM/PM', b'a/p', b'Zz', b'zZ', b'[', b'_', b'`', b'\xe9', b'\xc9', b'abc', b'abd', b'ABE']
         regions[TEXT] = r.choice(words) + b'\0'
         regions[SET] = r.choice(words) + b'\0'
+        if r.random() < 0.3:   # (Two capitals that map to one same pair of bytes: x keeps the map's high byte, and stricmp returns it at the end.)
+            same = r.choice([b'', b'A', b'a/p'])
+            regions[TEXT] = r.choice([b'B', b'XA']) + same + b'\0'
+            regions[SET] = r.choice([b'C', b'YB']) + same + b'\0'
+            regions[0xfb1440] = struct.pack('<5I', r.choice([0x409, 0x411]), 0, 0, 0, r.choice([932, 1252]))
+            regions[0xfb1554] = struct.pack('<I', 2)
+            regions[ANSWERS] = struct.pack('<40I', *[2] * 40)
         return Call(0x67df40, [TEXT, SET], regions, conv='c', ret='a')
     if name == 'memmove':
         regions[TEXT] = r.bytes(0x100)
