@@ -103,4 +103,9 @@ u32 __fastcall Landscape_RemoveTextureList(u8 **list);
 // 0x418c30 (thiscall on the list; name invented, unconfirmed): for each of the [0x785724] rows at 0x785728 (0x18 bytes): the path GamePaths_Base \ the String 0x78aa30 \ the row's name +0x14 given to Landscape_AddTexture of 0x8c1828 (&got, path, the row's four dwords, 0, 1 when +0x10 is set, else 2);
 // when that answers, list[i] = got (0 at first and kept from row to row). All four callees' strings go through one String, assigned afresh for each row.
 void __fastcall Landscape_AddTextureList(u8 **list);
+
+// 0x585690 (thiscall (a, b, c), pops 12; name invented, unconfirmed): the dome's centre at +0x1f64 set, then Landscape_BuildDome and its answer.
+u32 __fastcall Landscape_SetDomeCentre(u8 *landscape, void *, u32 a, u32 b, u32 c);
+// 0x5856c0 (thiscall; name invented, unconfirmed): the centre (0, 300.0, 0), then Landscape_BuildDome and its answer.
+u32 __fastcall Landscape_ResetDomeCentre(u8 *landscape);
 }

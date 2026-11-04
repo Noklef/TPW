@@ -562,4 +562,18 @@ u32 __fastcall Landscape_Draw(u8 *landscape) {
     }
     return SkyRim(landscape, colourMask, stride);
 }
+
+u32 __fastcall Landscape_SetDomeCentre(u8 *landscape, void *, u32 a, u32 b, u32 c) {
+    at<u32>(landscape, 0x1f64) = a;
+    at<u32>(landscape, 0x1f68) = b;
+    at<u32>(landscape, 0x1f6c) = c;
+    return g_calls.Th(0x00585720, (u32)(uintptr_t)landscape);
+}
+
+u32 __fastcall Landscape_ResetDomeCentre(u8 *landscape) {
+    at<u32>(landscape, 0x1f68) = 0x43960000;
+    at<u32>(landscape, 0x1f64) = 0;
+    at<u32>(landscape, 0x1f6c) = 0;
+    return g_calls.Th(0x00585720, (u32)(uintptr_t)landscape);
+}
 }

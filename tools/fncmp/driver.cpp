@@ -1202,7 +1202,7 @@ const AddrCall kWScannerCalls[] = {{0x5e7200, recorder(1, 2)}};
 const AddrCall kMMPlaceStaffCalls[] ={{0x4d6b60, recorder(1, 4)}, {0x4d4340, recorder(2, 4)}, {0x4d5d40, recorder(3, 4)}, {0x4d9eb0, recorder(4, 4)}, {0x502600, recorder(5, 4)}, {0x446300, jpeg_recorder(8, 1)}};
 const AddrCall kChatCursorCalls[] = {{0x524790, jpeg_recorder(6, 4)}, {0x5234d0, jpeg_recorder(7, 3)}, {0x4814f0, recorder(9, 1)}};  // tests/fncmp/chatcursorcalls.py
 const AddrCall kCommandQueueCalls[] = {{0x659409, jpeg_recorder(3, 2)}, {0x47f020, jpeg_recorder(4, 8)}, {0x65e526, recorder(5, 1)}};  // tests/fncmp/dequeiter.py
-const AddrCall kLandscapeCalls[] = {{0x40ef40, jpeg_recorder(3, 0)}, {0x5850c0, recorder(4, 8)}};  // tests/fncmp/landscapetexlist.py
+const AddrCall kLandscapeCalls[] = {{0x40ef40, jpeg_recorder(3, 0)}, {0x5850c0, recorder(4, 8)}, {0x585720, recorder(5, 0)}};  // tests/fncmp/landscapetexlist.py, landscapeset.py
 const AddrCall kLoadScreenCalls[] = {{0x586e40, recorder(1, 1)}, {0x586f40, recorder(2, 3)}, {0x587130, recorder(3, 0)}, {0x583730, jpeg_recorder(4, 0)}};  // tests/fncmp/loadscreenshow.py
 const AddrCall kAdvisorCalls[] = {{0x59c680, recorder(1, 1)}, {0x59bf20, recorder(2, 1)}, {0x59b590, recorder(3, 6)}, {0x59a940, recorder(4, 1)}, {0x402d80, recorder(5, 0)}, {0x59c2b0, recorder(6, 1)},
                                   {0x59c490, recorder(7, 1)}, {0x516330, recorder(8, 0)}, {0x59b870, recorder(9, 2)}, {0x59b620, recorder(10, 2)}, {0x41a960, recorder(11, 0)}, {0x41a990, recorder(12, 0)}};  // tests/fncmp/advisorupdate.py
