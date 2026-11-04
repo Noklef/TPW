@@ -5764,6 +5764,12 @@ address,name,kind,confidence,notes
 0x006bb940,SoundRandom_Seed,function,low,reimplemented (src/game/core/soundseed); the random number 0xfb1f20 seeded from the time
 0x0057ced0,RecordSort_Range,function,low,"reimplemented (src/game/core/recordsort); a quicksort of records by a dword key, the largest first, through a temporary record"
 0x0057d090,RecordSort_Run,function,low,"reimplemented (src/game/core/recordsort); the sort's fields set, then RecordSort_Range"
+0x0057cbc0,RecordSort_PointersUp,function,low,"reimplemented (src/game/core/recordsort); thiscall (pointers, first, last), pops 0xc: pointers to records by the records' dword key, the smallest first; each swap through the sort's +8"
+0x0057ccb0,RecordSort_PointersByFloat,function,low,"reimplemented (src/game/core/recordsort); thiscall (pointers, first, last), pops 0xc: pointers to records by a float key, the largest first"
+0x0057cda0,RecordSort_RangeUp,function,low,"reimplemented (src/game/core/recordsort); thiscall (base, first, last), pops 0xc: records by a dword key, the smallest first, through the sort's temp"
+0x0057d000,RecordSort_RunPointersUp,function,low,"reimplemented (src/game/core/recordsort); thiscall (pointers, temp, stride, keyOffset, first, last), pops 0x18: the fields set, then RecordSort_PointersUp"
+0x0057d030,RecordSort_RunPointersByFloat,function,low,"reimplemented (src/game/core/recordsort); thiscall (pointers, temp, stride, keyOffset, first, last), pops 0x18: the fields set, then RecordSort_PointersByFloat"
+0x0057d060,RecordSort_RunUp,function,low,"reimplemented (src/game/core/recordsort); thiscall (base, temp, stride, keyOffset, first, last), pops 0x18: the fields set, then RecordSort_RangeUp"
 0x006918f0,Std_Xlen,function,high,reimplemented (src/game/core/iosbase); std::_Xlen: throws length_error
 0x00691ba0,Std_Xran,function,high,reimplemented (src/game/core/iosbase); std::_Xran: throws out_of_range
 0x00693340,IosBase_Clear,function,high,reimplemented (src/game/core/iosbase); std::ios_base::clear
