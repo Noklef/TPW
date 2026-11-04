@@ -733,6 +733,7 @@
 #include "../game/ui/window7cc8bcmenu.h"
 #include "../game/ui/window7cc8c0handler.h"
 #include "../game/ui/windowarea.h"
+#include "../game/ui/windowareacalls.h"
 #include "../game/ui/windowbroadcast.h"
 #include "../game/ui/windowscripttext.h"
 #include "../game/ui/windowtick.h"
@@ -8430,6 +8431,8 @@ const Hook kHooks[] = {
     {"WindowTree_PostActive",     0x00659364, (void *)&WindowTree_PostActive, {0x55, 0x8b, 0xec, 0x83, 0x7d}},
     {"Gui_TellActive",            0x00659333, (void *)&Gui_TellActive, {0x55, 0x8b, 0xec, 0x83, 0x3d}},
     {"Gui_TellInactive",          0x006593c5, (void *)&Gui_TellInactive, {0x55, 0x8b, 0xec, 0x83, 0x3d}},
+    {"Window_AreaRectOrEmpty",    0x0065d58d, (void *)&Window_AreaRectOrEmpty, {0x55, 0x8b, 0xec, 0x6a, 0xff}},
+    {"Window_CallAreaSlot6",      0x0065d717, (void *)&Window_CallAreaSlot6, {0x55, 0x8b, 0xec, 0x51, 0x89}},
     {"jdmarker_examine_app14",    0x0063bf50, (void *)&jdmarker_examine_app14, {0x8b, 0x4c, 0x24, 0x0c, 0x53}},
     {"jdmarker_examine_app0",     0x0063bcc0, (void *)&jdmarker_examine_app0, {0x8b, 0x44, 0x24, 0x0c, 0x8b}},
     {"jdmarker_get_interesting_appn", 0x0063bb80, (void *)&jdmarker_get_interesting_appn, {0x8b, 0x44, 0x24, 0x04, 0x83}},
