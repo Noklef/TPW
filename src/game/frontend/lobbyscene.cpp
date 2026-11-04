@@ -353,6 +353,14 @@ void __fastcall Class702af0_Step(u8 *object) {
     }
 }
 
+void __fastcall Class702af0_StepAll(u8 *all) {
+    for (u8 *node = at<u8 *>(at<u8 *>(all, 4), 4); node;) {
+        u8 *const scene = at<u8 *>(node, 0);
+        node = at<u8 *>(node, 4);
+        Class702af0_Step(scene);
+    }
+}
+
 void __fastcall Class702af0_AcquireModels(u8 *object) {
     if (at<u32>(object, 4) != 0)
         return;

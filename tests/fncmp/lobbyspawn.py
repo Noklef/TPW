@@ -9,8 +9,8 @@ sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'
 from fncmp import HEAP, LOG, RAM, Bench, Call, _recorder, heap, log_region, put, set_return  # noqa: E402
 
 CTOR, ACQUIRE, STEP = 13, 14, 15
-B = Bench([(0x5da020, 0x5da114), (0x67a400, 0x690000)], hooks={0x5d9830: _recorder(CTOR, 7), 0x5d8130: _recorder(ACQUIRE, 0), 0x5d9b50: _recorder(STEP, 0)})
-SCENE, OWNER, NODES, FLYER, FRAME = RAM, RAM + 0x100, RAM + 0x200, RAM + 0x300, RAM + 0x400
+B = Bench([(0x5da020, 0x5da114), (0x5da3a0, 0x5da3c0), (0x67a400, 0x690000)], hooks={0x5d9830: _recorder(CTOR, 7), 0x5d8130: _recorder(ACQUIRE, 0), 0x5d9b50: _recorder(STEP, 0)})
+SCENE, OWNER, NODES, FLYER, FRAME, ALL = RAM, RAM + 0x100, RAM + 0x200, RAM + 0x300, RAM + 0x400, RAM + 0x700
 
 
 def next_seed(seed):
@@ -39,6 +39,13 @@ def case(r):
     flyer = bytearray(r.bytes(0x10))
     put(flyer, 0xc, 'I', r.choice([0, 0, 1, r.getrandbits(32)]))
     regions = {LOG: log, SCENE: scene, OWNER: struct.pack('<II', r.getrandbits(32), NODES if n else 0), NODES: nodes, FLYER: flyer, FRAME: frame, 0xf82884: struct.pack('<I', FRAME), HEAP: heap(fail=fail)}
+    if r.random() < 0.25:   # 0x5da3a0: each of a list's scenes (here the same one up to three times), or none
+        steps = r.choice([0, 1, 2, 3])
+        links = bytearray(r.bytes(0x20))
+        for i in range(steps):
+            put(links, 8 * i, '2I', SCENE, ALL + 0x20 + 8 * (i + 1) if i + 1 < steps else 0)
+        regions[ALL] = struct.pack('<II', r.getrandbits(32), ALL + 0x10) + bytes(8) + struct.pack('<II', r.getrandbits(32), ALL + 0x20 if steps else 0) + bytes(8) + bytes(links)
+        return Call(0x5da3a0, [ALL], regions, conv='t', ret='v')
     return Call(0x5da020, [SCENE], regions, conv='t', ret='v')
 
 

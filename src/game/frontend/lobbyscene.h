@@ -45,6 +45,9 @@ void __fastcall Class702af0_AcquireModels(u8 *object);
 // Then each flyer of the list +0x58 steps (LobbyFlyer_Step).
 void __fastcall Class702af0_Step(u8 *object);
 
+// 0x5da3a0 (thiscall; name invented, unconfirmed): each scene of the list at [+4]+4 (nodes {scene, next}; the next read before the call) steps (Class702af0_Step).
+void __fastcall Class702af0_StepAll(u8 *all);
+
 // 0x5d8cb0 (thiscall; name invented, unconfirmed): the perspective at 0x87b110 (0.1, 1000, the angle +4), ViewQuad_SetFov on [0x879d54], Camera_SetLookAt, Camera_Update, Render_FadeFog on the camera. The fade +0x5c moves an eighth
 // (arithmetic) towards +0x60. Above 0: the render flag bit 0x80000 of 0x8bcbc8 set and 0x8bd4e4 the fade >> 8, at most 255, in its top byte. Otherwise that bit clear.
 void __fastcall LobbyCamera_Frame(u8 *camera);
