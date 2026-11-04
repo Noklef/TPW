@@ -9,6 +9,7 @@
 #pragma once
 
 #include "../../../re/types.h"
+#include "../core/addrcalls.h"
 
 extern "C" {
 
@@ -130,3 +131,18 @@ struct WeatherFxReloadEnv {
     void(__cdecl *setRamps)();
 };
 void WeatherFx_SetReloadEnv(const WeatherFxReloadEnv *env);
+
+// (Test seam: the fncmp driver's table replaces the calls by address of WeatherFx_DrawBolts and WeatherFx_AddBolt.)
+void WeatherFx_SetBoltCalls(const AddrCall *table, u32 count);
+
+extern "C" {
+
+// 0x57ee30 (thiscall; name invented, unconfirmed; x87 in the original's order): with +4 set Batch_DrawScreenQuad first; its 0 gives 0. The bolts of the list at +0x3008 (0x30 bytes each, the count at +0x3308), last first: +0x24 less +0x9d9c. At 0 or below the
+// bolt goes, the last one copied over it. Else +0x9da0 its index. With its +0x2c set: +0xa198 that, +0xa1a0 4, and +0xa19c a shade that fades over each 500 of +0x24, plus rand() & 0x3f, in each channel (sic: a shade over 0xff runs into the next channel). Without: +0xa198 Cpu_Ticks, +0xa19c white, +0xa1a0 0.
+// WeatherFx_DrawBolt(its +0xc, it): 0 gives 0. Returns 1.
+u32 __fastcall WeatherFx_DrawBolts(u8 *fx);
+
+// 0x580320 (thiscall (start, end by value, life, flash), pops 0x20; name invented, unconfirmed; x87 in the original's order): with fewer than 16 bolts a new one: +0 the start, +0xc the end, +0x18 start less end at unit length (not when its length is 0 or a NaN),
+// +0x24 the life, +0x2c 0 or, with flash, Cpu_Ticks | 1. Returns 1 either way.
+u32 __fastcall WeatherFx_AddBolt(u8 *fx, void *, u32 ax, u32 ay, u32 az, u32 bx, u32 by, u32 bz, u32 life, u32 flash);
+}

@@ -5,12 +5,20 @@
 #pragma once
 
 #include "../../../re/types.h"
+#include "../core/addrcalls.h"
 
 // What CoasterPiece_Load loads with (default Ride_LoadResource; the bench's recorder; nullptr restores it).
 using CoasterPieceLoad = u32(__cdecl *)(const char *folder, const char *name, const u8 *cells, const u8 *grid, u32 flags, u32 id, u32 layers, const u8 *def, u32 signArg, u32 width, u32 height);
 void CoasterPiece_SetLoad(CoasterPieceLoad load);
+// CoasterType_Load's calls by address (the bench's recorders).
+void CoasterType_SetLoadCalls(const AddrCall *table, u32 count);
 
 extern "C" {
+// 0x42fad0 (cdecl; slot, folder, source; name invented, unconfirmed): a coaster type read for a definition: CoasterType_Create (slot, folder, "<folder>\GTexture", source); bit 0x40000 set in the
+// holder's dword +4 (the table 0x7ae6a8), the largest +0x3c (signed, 0x790fd0) and part +0x1c's word +4 (unsigned, 0x791cfc) kept; the holder at +0x14 given its sizes, zero and 800.0 vectors; the animator
+// (+0x18, +0x1c, "TrackMaster", 1), on failure Dword_ClearBit0 of +0x1c; Matrix_Identity of its matrix; the three pieces (+0x300, then +0x2fc and +0x304 unless the same as the first) loaded with their
+// three lengths and the total for +0x2f4 sections; the optional parts +0xa8 and +0x1c8 (a name at +0x10): Ride_LoadResource, the model read, flags 1 / 2; +0x318 the total times +0x2e8.
+void __cdecl CoasterType_Load(u32 slot, const char *folder, const u8 *source);
 
 // 0x430130 (cdecl; piece, folder; name unconfirmed; one of the three of a type, +0x300, +0x2fc, +0x304): Ride_LoadResource (folder, the name +8, flags 0xc0, id +4, one layer) gives +0xc, its slot in the table 0x7ae6a8;
 // 0 or an empty slot end here. +0x28 = +0x14 - (the model's bound +0x88 - the float +0x48 of its +0x78), +0x24 = +0x10 + (bound +0x94 - that); +0x30 = its parts with flag 0x80 and +0x2c a GlobalMem list of them (0 for none).

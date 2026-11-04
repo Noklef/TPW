@@ -13,7 +13,7 @@ namespace {
 template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cast<T *>((uintptr_t)p + offset); }
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
 
-const SpriteFrameLightsEnv kPortEnv = {&LightList_First, &LightList_Next, &SpriteFrame_GroundQuad, &Batch_DrawQuad};
+const SpriteFrameLightsEnv kPortEnv = {&LightList_First, &LightList_Next, &SpriteFrame_GroundQuad, &Batch_DrawQuad, &Batch_DrawQuadInPlace};
 const SpriteFrameLightsEnv *g_env = &kPortEnv;
 
 u8 *const kLights = reinterpret_cast<u8 *>((uintptr_t)0x008c1658);
@@ -69,6 +69,31 @@ u32 __fastcall SpriteFrame_DrawLightQuads(u8 *frame, void *) {
         if (!g_env->drawQuad(global<u8 *>(0x00879ab0), nullptr, spec, 0xffffffff))
             return 0;
         light = g_env->next(kLights);
+    }
+    return 1;
+}
+
+u32 __fastcall SpriteFrame_DrawLightQuadsInPlace(u8 *frame, void *, const u8 *texture) {
+    if (!(at<u32>(frame, 0x10) & 0x200) || !(at<u32>(frame, 0x10) & 0x10000000))
+        return 1;
+    u8 spec[0x6c] = {};
+    u8 *const points = spec + 0x2c;
+    at<u8 *>(spec, 4) = points;
+    TextureInto(spec, texture ? texture : at<const u8 *>(at<u8 *>(frame, 0x28), 0));
+    at<u32>(spec, 0xc) |= 0x800;
+    if (at<u32>(frame, 0x10) & 0x20000)
+        at<u32>(spec, 0xc) |= 0x20000;
+    for (u8 *light = g_env->first(kLights); light; light = g_env->next(kLights)) {
+        const u32 colour = g_env->groundQuad(frame, nullptr, reinterpret_cast<float *>(points), (u32)(uintptr_t)light, 1.0f, 1.0f);
+        if (global<u32>(0x008bcbc8) & 0x40000) {
+            at<u32>(spec, 0xc) = (at<u32>(spec, 0xc) & ~0xffu) | 0x13;
+            at<u32>(spec, 8) = (0xffffffffu - (u32)((s32)colour >> 24) * 0x10101u) | 0xff000000;
+        } else {
+            at<u32>(spec, 8) = colour;
+        }
+        at<u32>(spec, 0xc) &= ~0x200u;
+        if (!g_env->drawInPlace(global<u8 *>(0x00879ab0), nullptr, spec, 0xffffffff))
+            return 0;
     }
     return 1;
 }

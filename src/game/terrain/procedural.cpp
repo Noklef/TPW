@@ -28,6 +28,8 @@ const u8 *pointer(u32 address) { return *reinterpret_cast<const u8 *const *>(add
 u32 &render_flags() { return global(0x008bd550); }
 u32 &terrain_flags() { return global(0x007a1a8c); }
 
+AddrCalls g_calls;
+
 }  // namespace
 
 extern "C" {
@@ -325,4 +327,124 @@ void __fastcall TerrainTex_LightGrid(u8 *tex) {
     }
     at<u32>(tex, 0x12968) = global(0x008bd50c);
 }
+
+static void drop_cache(u8 *tex) {
+    if (u8 *const cache = at<u8 *>(tex, 0x230)) {
+        g_calls.Th(0x00572100, (u32)(uintptr_t)cache);
+        GameHeap_Free(cache);
+        at<u32>(tex, 0x230) = 0;
+    }
 }
+
+u32 __fastcall TerrainTex_Init(u8 *tex, void *, const char *name, u32 size) {
+    if (global(0x008bd524) != 1)
+        return 1;
+    if (global(0x008bd508) & 0x2000000)
+        g_calls.Cd(0x005645e0, "Attempting to initialize procedural textures");
+    if (!name)
+        return 1;
+    drop_cache(tex);
+    // (The original tests +0x230 again here: always clear by now.)
+    void *const block = GameHeap_Alloc(0x10014);
+    u8 *const cache = block ? TerrainTexCache_Ctor(static_cast<u8 *>(block)) : nullptr;
+    at<u8 *>(tex, 0x230) = cache;
+    if (!cache) {
+        g_calls.Th(0x0056af20, 0x00879ad0, 2u, 0xb0754000u);
+        return 0;
+    }
+    if (!g_calls.Th(0x00572110, (u32)(uintptr_t)cache, global(0x008c162c), size))
+        return 0;   // sic: the cache is kept
+    if (g_calls.Th(0x005723f0, (u32)(uintptr_t)at<u8 *>(tex, 0x230), name))
+        return 1;
+    drop_cache(tex);
+    return 0;
+}
+
+static s32 ftol(const X87Reg &x) { return (s32)(long long)x.v; }
+
+static s32 keep_within(s32 value, s32 low, s32 high) { return value < low ? low : value > high ? high : value; }
+
+u32 __fastcall TerrainTex_CullView(u8 *self) {
+    const u32 far_bits = global(0x008bcbc8) & 0x2000 ? global(0x008bd4c0) : 0x43e60000;   // 460.0
+    const float distance = *reinterpret_cast<const float *>(&far_bits);
+    g_calls.Th(0x00578ca0, 0x0087b110, 0x447a0000u);   // 1000.0
+    g_calls.Cd(0x005783b0);
+    at<u32>(self, 0x1c) = global(0x007014c0);
+    at<u32>(self, 0x20) = 0x7f;
+    at<u32>(self, 0x24) = 0xffffffff;
+    u8 *const lows = self + 0x28, *const highs = self + 0xa8;
+    for (u32 i = 0; i < 0x80; ++i) {
+        lows[i] = 0x7f;
+        highs[i] = 0xff;
+    }
+    if (*reinterpret_cast<const u8 *>(0x008bcbc8) & 0x20) {
+        const u8 *const tex = at<const u8 *>(self, 0);
+        TerrainTex_CullRect(self, nullptr, 0, 0, at<s32>(tex, 0x18), at<s32>(tex, 0x1c));
+    } else {
+        const u8 *view = pointer(0x0087afe8);
+        const float fx = at<float>(view, 0x30), fz = at<float>(view, 0x38);
+        const X87Reg half = X87Reg(distance) * 0.5f;
+        s32 x0 = ftol((X87Reg(fx) - half) * at<float>(self, 0x10));
+        const float less = (float)(X87Reg(distance) * -0.5f);
+        s32 x1 = ftol((X87Reg(fx) - less - -0.999f) * at<float>(self, 0x10));
+        s32 y0 = ftol((X87Reg(fz) - half) * at<float>(self, 0x14));
+        s32 y1 = ftol((X87Reg(fz) - less - -0.999f) * at<float>(self, 0x14));
+        const u8 *tex = at<const u8 *>(self, 0);
+        const s32 w = at<s32>(tex, 0x18), h = at<s32>(tex, 0x1c);
+        if (x0 >= w || y0 >= h || x1 < 0 || y1 < 0)
+            return 1;   // sic: the far distance left at 1000
+        if (x0 < 0) x0 = 0;
+        if (y0 < 0) y0 = 0;
+        if (x1 >= w) x1 = w;
+        if (y1 >= h) y1 = h;
+        TerrainTex_CullRect(self, nullptr, x0, y0, x1, y1);
+        tex = at<const u8 *>(self, 0);
+        view = pointer(0x0087afe8);
+        const X87Reg across = X87Reg(at<float>(view, 8)) * 5.0f + (X87Reg(fx) / at<float>(tex, 0x10));
+        const float down = (float)(X87Reg(at<float>(view, 0x28)) * 5.0f);
+        s32 a0 = ftol(across - 5.0f), a1 = ftol(across - -5.0f);
+        s32 d0 = ftol((X87Reg(fz) / at<float>(tex, 0x14)) + down - 5.0f);
+        s32 d1 = ftol((X87Reg(fz) / at<float>(tex, 0x10)) + down - -5.0f);   // sic: +0x10
+        const u32 columns = at<u32>(tex, 0x18), rows = at<u32>(tex, 0x1c);
+        if (a0 < 0) a0 = 0; else if ((u32)a0 >= columns) a0 = (s32)(columns - 1);
+        if (a1 < 0) a1 = 0; else if ((u32)a1 >= columns) a1 = (s32)(columns - 1);
+        if (d0 < 0) d0 = 0; else if ((u32)d0 >= rows) d0 = (s32)(rows - 1);
+        if (d1 < 0) d1 = 0; else if ((u32)d1 >= rows) d1 = (s32)(rows - 1);
+        Extents_Include(self, nullptr, a0, d0, a1 + 1, d1 + 1);
+    }
+    at<u32>(self, 0x128) = at<u32>(self, 0x20);
+    at<u32>(self, 0x12c) = at<u32>(self, 0x24);
+    for (s32 i = at<s32>(self, 0x128); i <= at<s32>(self, 0x24); ++i) {
+        if (lows[i] == 0x7f)
+            lows[i] = lows[i - 1];
+        if (highs[i] == 0xff)
+            highs[i] = highs[i - 1];
+    }
+    u8 *const widest_low = self + 0x130, *const widest_high = self + 0x1b0;
+    for (s32 i = at<s32>(self, 0x128); i <= at<s32>(self, 0x12c); ++i) {
+        widest_low[i] = lows[i];
+        if ((s8)lows[i] < (s8)lows[i + 1])
+            widest_low[i] = lows[i + 1];
+        widest_high[i] = highs[i];
+        if ((s8)highs[i] > (s8)highs[i + 1])
+            widest_high[i] = highs[i + 1];
+    }
+    g_calls.Th(0x00578ca0, 0x0087b110, at<u32>(self, 0x1c));
+    const u8 *const view = pointer(0x0087afe8), *const tex = at<const u8 *>(self, 0);
+    const float ox = at<float>(tex, 8), oz = at<float>(tex, 0xc);
+    const X87Reg half = X87Reg(distance) * 0.5f;
+    const s32 left = ftol((X87Reg(at<float>(view, 0x30)) - half - ox) * at<float>(self, 0x10));
+    const float less = (float)(X87Reg(distance) * -0.5f);
+    const s32 right = ftol((X87Reg(at<float>(view, 0x30)) - less - ox) * at<float>(self, 0x10));
+    const s32 top = ftol((X87Reg(at<float>(view, 0x38)) - half - oz) * at<float>(self, 0x14));
+    const s32 bottom = ftol((X87Reg(at<float>(view, 0x38)) - less - oz) * at<float>(self, 0x14));
+    u8 *const box = reinterpret_cast<u8 *>(0x008bd4e8);
+    box[0] = (u8)keep_within(left, -0x80, 0x7f);
+    box[1] = (u8)keep_within(top, -0x80, 0x7f);
+    box[2] = (u8)keep_within(right, -0x80, 0x7f);
+    box[3] = (u8)keep_within(bottom, -0x80, 0x7f);
+    return 1;
+}
+}
+
+void TerrainTex_SetCalls(const AddrCall *table, u32 count) { g_calls.Set(table, count); }

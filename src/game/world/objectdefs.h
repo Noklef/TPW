@@ -6,10 +6,31 @@
 #pragma once
 
 #include "../../../re/types.h"
+#include "../core/addrcalls.h"
 
 struct Stream;
 
+// ObjectDefs_Load's and ObjectDef_LoadTrackTypes' calls by address (the bench's recorders).
+void ObjectDefs_SetLoadCalls(const AddrCall *table, u32 count);
+
 extern "C" {
+// 0x413c10 (thiscall; entry, opener, source, pops 0xc; 1 or 0): one definition loaded. The folder source +0x18 taken into a local String, its end cut when it ends with the String 0x7898c8 (Names_Equal gives 1; then a
+// backslash ensured). At the count +0x528 = 0x14a nothing more, 0. A new definition (Mem_Alloc 0x50c, ObjectDef_Ctor; none: a null entry, written through, sic) goes on the list; +0x28c the folder's text, +0x390 source +0xc's name
+// widened (L"%S"). The .sam files read into its balance file (+4; each opened by a Class6fdaa4 open into the stream, named "<the handle's folder>\\<name>"; a failed read after its open: GameError_Set (3, 0, the name) and 0, sic but the
+// first: no error): the entry's own (keep 0), in mode 1 the entry's online one, the source's own, in mode 1 its Online_ one or in mode 2 its Easy_ one. All parts there (Class6fdaa4_HasAllParts): +0x4f0 = Sound_Query (the folder, 0x74787c).
+// A .emt: ObjectDef_LoadTrackTypes. ObjectDef_FindMarkedCells. The language's text: +0x504 bit 0, ObjectDef_LoadText. The stream closed. +0x410 the full name (0x40). Ride_LoadResource by +0x38 (flags 0x50c00, with +0x84 0x450c00; +0x28 and +0x2c
+// its size) or without (0xb24a9 / 0x4b24a9; none); +0x490 its result. On one without +0x38 with a result and kind (+0x9c) 3: a balance file (vtable 0x6fd8b0) on the stack read from the source's coaster .sam (a failed read: GameError_Set, 0), CoasterType_Load
+// (+0x490, the folder, it). +0x508 = no result; with a result +0x4b8 = +0x264 and that many of the layers loaded (the name at +0x244 + 4 i, flags 0xc0, id + i + 1, one) into +0x4bc + 4 i.
+u32 __fastcall ObjectDefs_Load(u8 *defs, void *, u8 *entry, u8 *opener, u8 *source);
+// 0x413930 (thiscall (folders), pops 4; name invented, unconfirmed): each source of the list at folders+0x2c searched for the wild card at 0x78a2f0 (slots 4, 8): a real directory or a wad (DirEntry_IsRealDir, DirEntry_IsWad) makes the path folders+0x18 + its name and a 0x38 byte
+// object (0x41dc80). No object or a failed load ends the search, 0. The object must open its own file (0x41f170) and, in mode 2, its easy file (0x41f190), else it is deleted (slot 0 with 1). A name there already (0x41ede0) deletes it too, but not in mode 2 (sic: kept, not added).
+// Added (0x41eaa0) and loaded (ObjectDefs_Load). No list: 0.
+u32 __fastcall ObjectDefs_LoadFolders(u8 *defs, void *, u8 *folders);
+
+// 0x414420 (thiscall on a definition; handle, pops 4; name invented, unconfirmed): the handle's files of the pattern 0x788f40 (slot 1 first, slot 2 next, a result >= 0 going on; the record's name its +0x20): each opened (slot 3) and, opened, its name
+// less the suffix String 0x789010 (String_StripSuffix) gives its last character's number (atol) i: +0x4dc + 4 i = TrackTypeSlot_ReadIntoFree (the stream). The stream closed after each.
+void __fastcall ObjectDef_LoadTrackTypes(u8 *def, void *, u8 *handle);
+
 
 // 0x413600 (thiscall; stream, pops 4; name unconfirmed): a definition's text file (UTF-16, a BOM skipped): its four text fields +0x4f4
 // first point at L"MISSING" (0x6fd880). The stream's size (vtable +0x14) must be even (else nothing more, after a debug print, compiled

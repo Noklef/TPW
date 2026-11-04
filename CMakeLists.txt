@@ -433,6 +433,7 @@ add_library(tpw_game STATIC
     src/game/coaster/arreplayaction.cpp
     src/game/coaster/coastersload.cpp
     src/game/coaster/coastersupdate.cpp
+    src/game/coaster/startcars.cpp
     src/game/terrain/terrain_blend.cpp
     src/game/terrain/land.cpp
     src/game/terrain/procedural.cpp
@@ -471,6 +472,7 @@ add_library(tpw_game STATIC
     src/game/model/ridebase.cpp
     src/game/model/rideresource.cpp
     src/game/model/aimsprites.cpp
+    src/game/model/signapply.cpp
     src/game/render/mode.cpp
     src/game/render/frame.cpp
     src/game/render/screen.cpp
@@ -637,6 +639,13 @@ add_library(tpw_game STATIC
     src/game/render/pointsprites.cpp
     src/game/render/d3dviewport.cpp
     src/game/render/d3dsetup.cpp
+    src/game/render/enginestart.cpp
+    src/game/render/uvprobe.cpp
+    src/game/render/devicecreate.cpp
+    src/game/render/imagebuffer.cpp
+    src/game/render/scrolllayers.cpp
+    src/game/render/settingslog.cpp
+    src/game/render/meshtextures.cpp
     src/game/ui/quitconfirm.cpp
     src/game/world/mapsweep.cpp
     src/game/ui/imehostattach.cpp
@@ -681,6 +690,7 @@ add_library(tpw_game STATIC
     src/game/world/gamefile.cpp
     src/game/world/mousemodeclick.cpp
     src/game/world/savegamefile.cpp
+    src/game/world/advisorsend.cpp
     src/game/ui/staffrename.cpp
     src/game/ui/window7cc8bc.cpp
     src/game/ui/dialog7cb2b8.cpp

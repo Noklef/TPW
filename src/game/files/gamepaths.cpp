@@ -2,6 +2,7 @@
 #include "gamepaths.h"
 
 #include <cstdint>
+#include <cstring>
 
 #include "../core/app.h"
 #include "../core/crt.h"
@@ -189,3 +190,27 @@ u32 *__cdecl GamePaths_SetRoots(u32 *result) {
     return result;
 }
 }  // extern "C"
+
+extern "C" bool __cdecl GamePaths_CheckDisc() {
+    u8 *const statics = reinterpret_cast<u8 *>(static_cast<std::uintptr_t>(0x00fb34e0));
+    u8 &guard = *reinterpret_cast<u8 *>(static_cast<std::uintptr_t>(0x00fb34ca));
+    u32 *const list = reinterpret_cast<u32 *>(statics);
+    if (!(guard & 1)) {
+        list[1] = list[2] = list[3] = 0;
+        guard |= 1;
+        list[0] = 0x006fe67c;
+        g_calls.Th(0x005f8790, 0x00fb34f0u);   // SystemInfo_Ctor
+        g_calls.Cd(0x0067a7d0, 0x0045d810u);   // atexit: the list's destructor
+    }
+    u32 copy[0xe];
+    copy[0] = 0x006fe67c;
+    std::memcpy(copy + 1, statics + 4, 0x31);
+    const bool found = g_calls.Th(0x005aa500, static_cast<u32>(reinterpret_cast<std::uintptr_t>(copy))) == 1;   // GamePaths_FindDisc
+    for (u32 node = copy[1]; node;) {
+        const u32 next = *reinterpret_cast<const u32 *>(static_cast<std::uintptr_t>(node + 0x14));
+        g_calls.Th(0x005f61e0, node);   // String_Dtor
+        g_calls.Cd(0x0067acb0, node);   // Mem_Free
+        node = next;
+    }
+    return found;
+}

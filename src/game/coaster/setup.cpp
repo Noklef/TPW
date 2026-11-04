@@ -4,6 +4,7 @@
 #include <initializer_list>
 
 #include "../core/balancefile.h"
+#include "../core/crt.h"
 #include "../core/globalmem.h"
 #include "../math/x87.h"
 #include "../model/holder.h"
@@ -19,6 +20,8 @@ template <typename T> T &at(const void *p, u32 off) {
 }
 
 template <typename T = u32> T &global(u32 address) { return *reinterpret_cast<T *>(address); }
+
+AddrCalls g_loadCalls;
 
 // A GlobalMem block at p + off freed and its pointer cleared.
 void releaseBlock(u8 *p, u32 off) {
@@ -413,5 +416,70 @@ u8 *__cdecl CoasterType_Create(u32 holder, u32, u32 id, const u8 *source) {
     at<u32>(balance, 0) = 0x006fd8b0;
     BalanceFile_Release(balance);
     return t;
+}
+}
+
+void CoasterType_SetLoadCalls(const AddrCall *table, u32 count) { g_loadCalls.Set(table, count); }
+
+namespace {
+
+// An optional part (+0x10 its model's name, +0xc its id, +0xb4 and +0xb8 what Ride_LoadResource's cells read): loaded and read, its flag set in the type; none: its +0x14 cleared.
+void loadOptionalPart(u8 *type, u8 *part, const char *folder, u8 *cells, u32 name, u32 flag) {
+    if (!name) {
+        at<u32>(part, 0x14) = 0;
+        return;
+    }
+    at<u32>(cells, 0) = at<u32>(part, 0xb4);
+    at<u32>(cells, 4) = at<u32>(part, 0xb8);
+    const u32 model = g_pieceLoad(folder, reinterpret_cast<const char *>((uintptr_t)name), cells, nullptr, 0x1013405, at<u32>(part, 0xc), 5, nullptr, 0, 0, 0);
+    at<u32>(part, 0x14) = model;
+    if (model) g_loadCalls.Cd(0x00430590, static_cast<u32>((uintptr_t)type), static_cast<u32>((uintptr_t)part), model);
+    at<u32>(part, 0) |= 1;
+    at<u32>(type, 0) |= flag;
+}
+
+}  // namespace
+
+extern "C" {
+void __cdecl CoasterType_Load(u32 slot, const char *folder, const u8 *source) {
+    u8 frame[0xd8c];   // (the path's text from +0, the cells of the optional parts from +0x104)
+    char *const path = reinterpret_cast<char *>(frame);
+    Crt().sprintf(path, reinterpret_cast<const char *>((uintptr_t)0x0074cb8c), folder);
+    u8 *const type = reinterpret_cast<u8 *>((uintptr_t)g_loadCalls.Cd(0x0042fd90, slot, static_cast<u32>((uintptr_t)folder), static_cast<u32>((uintptr_t)path), static_cast<u32>((uintptr_t)source)));
+    at<u32>(global<u8 *>(0x007ae6a8 + slot * 4), 4) |= 0x40000;
+    const s32 most = at<s32>(type, 0x3c);
+    if (most > global<s32>(0x00790fd0)) global<s32>(0x00790fd0) = most;
+    const u32 words = at<u16>(at<u8 *>(type, 0x1c), 4);
+    if (words > global<u32>(0x00791cfc)) global<u32>(0x00791cfc) = words;
+    u8 *const holder = at<u8 *>(type, 0x14);
+    u8 *const animator = at<u8 *>(type, 0x18);
+    u8 *const record = at<u8 *>(type, 0x1c);
+    at<u16>(holder, 4) = at<u16>(type, 0x3c);
+    at<u16>(holder, 6) = at<u16>(type, 0x30);
+    at<u16>(holder, 8) = at<u16>(type, 0x34);
+    at<u16>(holder, 0xa) = at<u16>(record, 4);
+    at<u16>(holder, 0xc) = at<u16>(type, 0x38);
+    for (u32 off = 0x10; off < 0x1c; off += 4) at<u32>(holder, off) = 0;
+    for (u32 off = 0x1c; off < 0x28; off += 4) at<u32>(holder, off) = 0x44480000;
+    if (!g_loadCalls.Cd(0x00424ef0, static_cast<u32>((uintptr_t)animator), static_cast<u32>((uintptr_t)record), 0x0074cb80u, 1u)) g_loadCalls.Cd(0x00424ed0, static_cast<u32>((uintptr_t)record));
+    g_loadCalls.Cd(0x0046f150, at<u32>(holder, 0x28));
+    u8 *const middle = at<u8 *>(type, 0x300);
+    u8 *const first = at<u8 *>(type, 0x2fc);
+    u8 *const last = at<u8 *>(type, 0x304);
+    const u32 text = static_cast<u32>((uintptr_t)folder);
+    g_loadCalls.Cd(0x00430130, static_cast<u32>((uintptr_t)middle), text);
+    if (first != middle) g_loadCalls.Cd(0x00430130, static_cast<u32>((uintptr_t)first), text);
+    if (last != middle) g_loadCalls.Cd(0x00430130, static_cast<u32>((uintptr_t)last), text);
+    at<float>(type, 0x30c) = (float)(X87Reg(at<float>(first, 0x28)) + at<float>(middle, 0x24));
+    const u32 sections = at<u32>(type, 0x2f4);
+    at<float>(type, 0x310) = (float)(X87Reg(at<float>(middle, 0x28)) + at<float>(middle, 0x24));
+    at<u32>(type, 0x2f8) = 0;
+    at<float>(type, 0x314) = (float)(X87Reg(at<float>(last, 0x24)) + at<float>(middle, 0x28));
+    for (u32 i = 0; i < sections; ++i)
+        at<u32>(type, 0x2f8) += at<u32>(i == 0 ? first : i == sections - 1 ? last : middle, 0x30);
+    u8 *const cells = frame + 0x104;
+    loadOptionalPart(type, type + 0xa8, folder, cells, at<u32>(type, 0xb8), 1);
+    loadOptionalPart(type, type + 0x1c8, folder, cells, at<u32>(type, 0x1d8), 2);
+    at<u32>(type, 0x318) = at<u32>(type, 0x2f8) * at<u32>(type, 0x2e8);
 }
 }

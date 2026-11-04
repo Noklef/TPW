@@ -16,7 +16,7 @@ struct RideResourceEnv {
     void(__cdecl *heightMap)(u8 *model, u32 width, u32 height, const char *name, const u8 *cells, u32 flag800); // HeightMap_LoadOrBuild (0x451640, unported)
     u32(__cdecl *fontsFolder)(char *out);                                                                       // GamePaths_FontsFolder (0x468250)
     u8 *(__fastcall *findDef)(u8 *defs, void *, u16 id);                                                        // ObjectDefs_FindAt410 (0x412f50)
-    void(__cdecl *sign)(u8 *model, const char *folder, const char *name, const char *fonts, const u8 *def, u32 signArg);  // Sign_Apply (0x467a80, unported)
+    void(__cdecl *sign)(u8 *model, const char *folder, const char *name, const char *fonts, const u8 *def, u32 signArg);  // 0x467a80, Sign_Apply
 };
 void RideResource_SetEnv(const RideResourceEnv *env);
 
@@ -26,7 +26,7 @@ void RideResource_SetEnv(const RideResourceEnv *env);
 // (sic: a failed load's pointer is the stack's). With flag 0x20000, "p<name>" loaded the same way into its +0xd0. Anything but 1: 0.
 // Width and height: their arguments, else the cells' first two dwords, else 0; kept with id at +0xf0, +0xf4, +0xf8. Flag 1 RideBase_Prepare; 0x2000 Face_MarkTextures on both models; the largest
 // part count ever goes to 0x79f7d0 (+8's +0x2c's +0x58, plus each marked part's), and each extra (+8's +0x28's +4) of a part with flags 0x580f00, or under flag 0x400000, gets bit 3; flag 8 with a grid HoardingMesh_Build;
-// 0x80 Model_MarkFlag80Faces; 0x400 HeightMap_LoadOrBuild of the name RideModel_Load gave, its extension ".hmp". With the fonts folder, Sign_Apply (def, signArg when def is given; else the def of id, 0).
+// 0x80 Model_MarkFlag80Faces; 0x400 HeightMap_LoadOrBuild of the name RideModel_Load gave, its extension ".hmp". With the fonts folder, Sign_Apply of def, signArg when def is given; else of the def of id, 0.
 // Then each part: flag 0x200 sets 0x80000010, 0x20040 sets the model's 0x80, without 0x200 its textures of bit 7 get bit 1; a chain of all flag 0x200 and +0xc zero sets 0x20. Each of its entries by +0x36.
 // Returns the new count at 0x7a439c, the model in the table at 0x7ae6a8.
 extern "C" {

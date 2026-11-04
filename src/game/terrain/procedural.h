@@ -10,6 +10,10 @@
 #pragma once
 
 #include "../../../re/types.h"
+#include "../core/addrcalls.h"
+
+// (Test seam: the fncmp driver's table replaces TerrainTex_Init's and TerrainTex_CullView's calls by address.)
+void TerrainTex_SetCalls(const AddrCall *table, u32 count);
 
 extern "C" {
 
@@ -105,4 +109,14 @@ void __fastcall Extents_Include(u8 *extents, void *, s32 low, s32 first, s32 hig
 // its box (heights +0x20, +0x24 of the header) goes through the transform object's slot 1 and the clip codes. All out: nothing. Some out,
 // area not 1: its quarters in turn. Else its columns' extents, and +0x1c raised to the corners' farthest depth.
 void __fastcall TerrainTex_CullRect(u8 *self, void *, s32 x0, s32 y0, s32 x1, s32 y1);
+
+// 0x56e550 (thiscall (name, size), pops 8): with the driver kind [0x8bd524] 1 and a name, the tile cache +0x230 made anew (the old one destroyed and freed): 0x10014 bytes (none: the error (2, 0xb0754000), 0), set up
+// with [0x8c162c] tiles of the size (0: 0, the cache kept (sic)) and the name's .lnd read (0: the cache destroyed and freed, 0). Else 1. Logged when [0x8bd508] has 0x2000000.
+u32 __fastcall TerrainTex_Init(u8 *tex, void *, const char *name, u32 size);
+
+// 0x56ea90 (thiscall; invented name, unconfirmed): each frame, the columns of the land in view. The perspective's far distance 1000 (Mat4_SetFar on 0x87b110) and Matrices_Update; +0x1c = [0x7014c0]; the extents reset; TerrainTex_CullRect on the whole land
+// (flag 0x20 of 0x8bcbc8) or on the view's square, of a side the far distance ([0x8bd4c0] with flag 0x2000, else 460), about the view [0x87afe8] +0x30, +0x38, scaled by +0x10, +0x14 (no land in it: returns here, the far distance left at 1000 (sic)), with the
+// camera's own cells (Extents_Include: +8 and +0x28 of the view, 5 cells about them; the last row by the header's +0x10 (sic)). The gaps in the columns filled from the one before, +0x128 / +0x12c the range, +0x130 / +0x1b0 each column widened to the next;
+// the far distance back from +0x1c; the view's square less the land's origin into the bytes 0x8bd4e8-0x8bd4eb (-0x80 to 0x7f). Returns 1.
+u32 __fastcall TerrainTex_CullView(u8 *self);
 }

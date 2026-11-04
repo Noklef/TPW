@@ -24,6 +24,12 @@ const BatchEnv *g_env = &kPortEnv;
 
 void Batch_SetEnv(const BatchEnv *env) { g_env = env ? env : &kPortEnv; }
 
+namespace {
+AddrCalls g_treeCalls;
+}
+
+void Batch_SetTreeCalls(const AddrCall *table, u32 count) { g_treeCalls.Set(table, count); }
+
 extern "C" {
 
 u8 *__fastcall Model_BeginBatch(u8 *model, void *, u32 index, u32 *size) {
@@ -248,4 +254,30 @@ u32 __fastcall Model_AddTriangles(u8 *model, void *, u8 *batch, const void *matr
     }
     return 1;
 }
+}
+
+u32 __fastcall Model_AddTree(void *self, void *, u8 *model, const u32 *matrix, u8 *batch, const u8 *vertices) {
+    u32 local[16];
+    for (u32 i = 0; i < 16; ++i)
+        local[i] = matrix[i];
+    u8 *&part = *reinterpret_cast<u8 **>(model + 4);
+    if (!part)
+        return 1;
+    do {
+        u8 *const transformer = *reinterpret_cast<u8 **>((uintptr_t)0x0087b1d8);
+        const u32 slot = (*reinterpret_cast<u32 **>(transformer))[6];
+        reinterpret_cast<void(__cdecl *)(u8 *, u8 *, const u32 *, u32 *)>((uintptr_t)slot)(transformer, part + 0x10, matrix, local);
+        if (!(*reinterpret_cast<u32 *>(part) & 0x8210) && !g_treeCalls.Th(0x00581a00, (u32)(uintptr_t)model, batch, local, vertices))
+            return 0;
+        u8 *const held = part;
+        u8 *const child = *reinterpret_cast<u8 **>(held + 0xc);
+        if (!(*held & 0x20) && child) {
+            part = child;
+            if (!Model_AddTree(self, nullptr, model, local, batch, vertices))
+                return 0;
+            part = held;
+        }
+        part = *reinterpret_cast<u8 **>(part + 8);
+    } while (part);
+    return 1;
 }

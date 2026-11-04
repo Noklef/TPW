@@ -48,3 +48,9 @@ void __cdecl Contacts_UpdateBounds(u8 *owner);
 void __cdecl Contacts_SegmentsInBox(const u8 *owner, const u8 *node, const u8 *next, const float *box, u8 *out,
                                     u32 *count);
 }
+
+// 0x439ab0 (cdecl; name invented, unconfirmed): all the coaster's pairs tested, at x87 rounding toward zero (the control word kept and put back). The four arrays made for this: 0x792238, 0x792230 of +0xa0 * 0x1c bytes, 0x7922e8, 0x7922e4 of +0xa0 * 0x78, zeroed, freed at the end, in the other order. Each node of +0x54's chain by +0x64,
+// the last not, with flag 0x200000 at +8: Contacts_Clear; without flag 0x10000 too, both flags 0x600000 go off and Contacts_TestPair with each node after the next that has its own next, and each of the chain +0x68 from its partner's +0x68.
+extern "C" {
+void __cdecl Contacts_TestAll(u8 *owner);
+}

@@ -348,6 +348,7 @@
 #include "../game/world/advisor.h"
 #include "../game/world/advisorrecords.h"
 #include "../game/world/advisorscore.h"
+#include "../game/world/advisorsend.h"
 #include "../game/world/advisorspeech.h"
 #include "../game/world/advisortable.h"
 #include "../game/world/analyser.h"
@@ -471,6 +472,7 @@
 #include "../game/coaster/arreplayaction.h"
 #include "../game/coaster/coastersload.h"
 #include "../game/coaster/coastersupdate.h"
+#include "../game/coaster/startcars.h"
 #include "../game/coaster/typemodel.h"
 #include "../game/model/parts.h"
 #include "../game/model/highlight.h"
@@ -496,6 +498,7 @@
 #include "../game/model/ridebase.h"
 #include "../game/model/rideresource.h"
 #include "../game/model/aimsprites.h"
+#include "../game/model/signapply.h"
 #include "../game/model/worldverts.h"
 #include "../game/render/frame.h"
 #include "../game/render/lightlist.h"
@@ -530,13 +533,17 @@
 #include "../game/render/ddopen.h"
 #include "../game/render/depthsort.h"
 #include "../game/render/device.h"
+#include "../game/render/devicecreate.h"
 #include "../game/render/enginedebug.h"
 #include "../game/render/engineerrors.h"
+#include "../game/render/enginestart.h"
 #include "../game/render/fixedverts.h"
 #include "../game/render/texcoords.h"
 #include "../game/render/graphicssettings.h"
 #include "../game/render/groundshadow.h"
+#include "../game/render/imagebuffer.h"
 #include "../game/render/meshdraws.h"
+#include "../game/render/meshtextures.h"
 #include "../game/render/modelgroup.h"
 #include "../game/render/modellist.h"
 #include "../game/render/randomsegments.h"
@@ -545,10 +552,13 @@
 #include "../game/render/passwordpart.h"
 #include "../game/render/pointsprites.h"
 #include "../game/render/rasterformat.h"
+#include "../game/render/scrolllayers.h"
+#include "../game/render/settingslog.h"
 #include "../game/render/textparts.h"
 #include "../game/render/tiledpanel.h"
 #include "../game/render/tilegrid.h"
 #include "../game/render/transformer.h"
+#include "../game/render/uvprobe.h"
 #include "../game/render/vertexblock.h"
 #include "../game/render/viewquad.h"
 #include "../game/render/weatherfx.h"
@@ -952,6 +962,7 @@ const Hook kHooks[] = {
     {"Sprites_UseGroundFrames",   0x00542420, (void *)&Sprites_UseGroundFrames, {0x6a, 0xff, 0x68, 0x0b, 0xec}},
     {"Sprites_UseParkFrames",     0x00542640, (void *)&Sprites_UseParkFrames, {0x6a, 0xff, 0x68, 0x3b, 0xec}},
     {"Sprites_LoadFolder",        0x00541310, (void *)&Sprites_LoadFolder, {0x6a, 0xff, 0x68, 0xc4, 0xeb}},
+    {"Sprites_LoadAll",           0x00541d90, (void *)&Sprites_LoadAll, {0x6a, 0xff, 0x68, 0xe0, 0xeb}},
     {"World_Rand",               0x00516330, (void *)&World_Rand, {0x55, 0x8b, 0xec, 0x51, 0x8b}},
     {"World_SetSeed",            0x00516370, (void *)&World_SetSeed, {0x8b, 0x44, 0x24, 0x04, 0x89}},
     {"Things_InitTable",         0x00515f30, (void *)&Things_InitTable, {0x33, 0xd2, 0x56, 0x89, 0x15}},
@@ -1951,6 +1962,7 @@ const Hook kHooks[] = {
     {"GamePaths_SetRoots",        0x005c0c10, (void *)&GamePaths_SetRoots, {0x6a, 0xff, 0x68, 0x60, 0x02}},
     {"GamePaths_ShareTexFolder",  0x0046e650, (void *)&GamePaths_ShareTexFolder, {0x68, 0x20, 0xf7, 0x7a, 0x00}},
     {"GamePaths_Base",            0x0040ef40, (void *)&GamePaths_Base, {0x8a, 0x0d, 0xe4, 0x87, 0x78}},
+    {"GamePaths_CheckDisc",       0x0045f7a0, (void *)&GamePaths_CheckDisc, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"DirEntry_IsWad",            0x005c53c0, (void *)&DirEntry_IsWad, {0x6a, 0xff, 0x68, 0x10, 0x04}},
     {"RegKey_Open",               0x005f8ae0, (void *)&RegKey_Open, {0x51, 0x56, 0x57, 0x8b, 0xf9}},
     {"RegKey_Dtor",               0x005f8b70, (void *)&RegKey_Dtor, {0x51, 0x8d, 0x44, 0x24, 0x00}},
@@ -2153,6 +2165,7 @@ const Hook kHooks[] = {
     {"Contacts_UpdateBounds",     0x00439920, (void *)&Contacts_UpdateBounds, {0x83, 0xec, 0x0c, 0x8b, 0x44}},
     {"Contacts_SegmentsInBox",    0x0043a060, (void *)&Contacts_SegmentsInBox, {0x83, 0xec, 0x18, 0x8b, 0x4c}},
     {"Contacts_TestPair",         0x00439c40, (void *)&Contacts_TestPair, {0x8b, 0x44, 0x24, 0x08, 0x83}},
+    {"Contacts_TestAll",          0x00439ab0, (void *)&Contacts_TestAll, {0x55, 0x8b, 0xec, 0x83, 0xec}},
     {"Train_SetCouplings",        0x00432d50, (void *)&Train_SetCouplings, {0xa1, 0xfc, 0x0a, 0x79, 0x00}},
     {"Car_TrainLength",           0x00433280, (void *)&Car_TrainLength, {0x57, 0x8b, 0x7c, 0x24, 0x08}},
     {"Car_PickCoupling",          0x00436750, (void *)&Car_PickCoupling, {0x8b, 0x44, 0x24, 0x04, 0x8b}},
@@ -2512,6 +2525,18 @@ const Hook kHooks[] = {
     {"TexCache_PackItems",        0x0058eca0, (void *)&TexCache_PackItems, {0x81, 0xec, 0x48, 0x0a, 0x00}},
     {"TexCache_CreateSurfaces",   0x0058d670, (void *)&TexCache_CreateSurfaces, {0x83, 0xec, 0x7c, 0x53, 0x55}},
     {"TexCache_ChooseBudget",     0x0058d400, (void *)&TexCache_ChooseBudget, {0x83, 0xec, 0x6c, 0x53, 0x55}},
+    {"TexCache_SortEntriesByKept", 0x0058cba0, (void *)&TexCache_SortEntriesByKept, {0x51, 0x8b, 0x44, 0x24, 0x10}},
+    {"TexCache_SortEntriesByScore", 0x0058cc30, (void *)&TexCache_SortEntriesByScore, {0x51, 0x8b, 0x44, 0x24, 0x10}},
+    {"TexCache_SortItemsByKey",   0x0058e1a0, (void *)&TexCache_SortItemsByKey, {0x8b, 0x44, 0x24, 0x08, 0x8b}},
+    {"TexCache_SortListByKey",    0x0058e790, (void *)&TexCache_SortListByKey, {0xb8, 0x00, 0x40, 0x00, 0x00}},
+    {"TexCache_SortListByAddress", 0x0058e820, (void *)&TexCache_SortListByAddress, {0xb8, 0x04, 0x40, 0x00, 0x00}},
+    {"TexCache_RankEntries",      0x0058ccc0, (void *)&TexCache_RankEntries, {0x83, 0xec, 0x0c, 0x53, 0x55}},
+    {"TexCache_Update",           0x0058cf40, (void *)&TexCache_Update, {0xa0, 0x50, 0xd5, 0x8b, 0x00}},
+    {"TexCache_TraceUpdate",      0x0058e110, (void *)&TexCache_TraceUpdate, {0x51, 0x56, 0x68, 0x44, 0x63}},
+    {"TexCache_ArrangePending",   0x0058e390, (void *)&TexCache_ArrangePending, {0xb8, 0x10, 0x40, 0x00, 0x00}},
+    {"TexCache_PlaceNext",        0x0058f190, (void *)&TexCache_PlaceNext, {0xb8, 0x44, 0x54, 0x00, 0x00}},
+    {"TexCache_PlacePending",     0x0058f940, (void *)&TexCache_PlacePending, {0x83, 0xec, 0x0c, 0x53, 0x55}},
+    {"TexCache_Rebalance",        0x0058fcf0, (void *)&TexCache_Rebalance, {0x81, 0xec, 0xdc, 0x00, 0x00}},
     {"TexSet_Ctor",               0x00575bd0, (void *)&TexSet_Ctor, {0x8b, 0xc1, 0x33, 0xc9, 0x89}},
     {"TexSet_Texture",            0x00575f90, (void *)&TexSet_Texture, {0x8b, 0x41, 0x08, 0x8b, 0x4c}},
     {"TexSet_TextureSlot",        0x00575fa0, (void *)&TexSet_TextureSlot, {0x8b, 0x41, 0x08, 0x8b, 0x4c}},
@@ -2526,6 +2551,7 @@ const Hook kHooks[] = {
     {"TexManager_ReleaseTexture", 0x00575ad0, (void *)&TexManager_ReleaseTexture, {0x53, 0x56, 0x57, 0x8b, 0xf9}},
     {"TexManager_Load",           0x005755f0, (void *)&TexManager_Load, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"TexManager_Acquire",        0x00575870, (void *)&TexManager_Acquire, {0x81, 0xec, 0x04, 0x01, 0x00}},
+    {"TexManager_Create",         0x00574a20, (void *)&TexManager_Create, {0xa1, 0x68, 0xa2, 0x87, 0x00}},
     {"Texture_UpdateWrapMask",    0x00590cb0, (void *)&Texture_UpdateWrapMask, {0x0f, 0xbf, 0x51, 0x14, 0x85}},
     {"Texture_Level",             0x00590cf0, (void *)&Texture_Level, {0x8b, 0x41, 0x08, 0x8b, 0xd0}},
     {"Texture_ClearCacheFlags",   0x00590f80, (void *)&Texture_ClearCacheFlags, {0x8b, 0x41, 0x08, 0x80, 0xe4}},
@@ -2838,6 +2864,7 @@ const Hook kHooks[] = {
     {"GlobalSave_MarkExtra",      0x005afb00, (void *)&GlobalSave_MarkExtra, {0x8b, 0x44, 0x24, 0x04, 0x53}},
     {"GlobalSave_MarkScore",      0x005af940, (void *)&GlobalSave_MarkScore, {0x53, 0x55, 0x56, 0x57, 0x8b}},
     {"GlobalSave_Serialize",      0x005aff50, (void *)&GlobalSave_Serialize, {0x6a, 0xff, 0x68, 0xd6, 0xf8}},
+    {"GlobalSave_WriteFile",      0x005afc60, (void *)&GlobalSave_WriteFile, {0x83, 0xec, 0x0c, 0x8d, 0x44}},
     {"LiveObjects_Add",           0x005775d0, (void *)&LiveObjects_Add, {0xa1, 0xd8, 0xae, 0x87, 0x00}},
     {"LiveObjects_Remove",        0x00577600, (void *)&LiveObjects_Remove, {0xa1, 0xd8, 0xae, 0x87, 0x00}},
     {"LiveObject7019f8_Construct", 0x00579cd0, (void *)&LiveObject7019f8_Construct, {0x6a, 0xff, 0x68, 0xad, 0xf2}},
@@ -4411,6 +4438,7 @@ const Hook kHooks[] = {
     {"CoasterTypes_FreeAll",      0x00430ad0, (void *)&CoasterTypes_FreeAll, {0x83, 0xec, 0x0c, 0xa1, 0xe8}},
     {"CoasterType_Create",        0x0042fd90, (void *)&CoasterType_Create, {0x6a, 0xff, 0x64, 0xa1, 0x00}},
     {"CoasterPiece_Load",         0x00430130, (void *)&CoasterPiece_Load, {0x83, 0xec, 0x2c, 0x8b, 0x54}},
+    {"CoasterType_Load",          0x0042fad0, (void *)&CoasterType_Load, {0x81, 0xec, 0x8c, 0x0d, 0x00}},
     {"Class6fd9d8_Dtor",          0x0041c8b0, (void *)&Class6fd9d8_Dtor, {0x6a, 0xff, 0x68, 0x56, 0x80}},
     {"Wstreambuf_Read",           0x004f0700, (void *)&Wstreambuf_Read, {0x51, 0x53, 0x8b, 0x5c, 0x24}},
     {"Wstreambuf_Write",          0x004f07c0, (void *)&Wstreambuf_Write, {0x51, 0x53, 0x8b, 0x5c, 0x24}},
@@ -4572,6 +4600,9 @@ const Hook kHooks[] = {
     {"ObjectDefs_Free",           0x00412d50, (void *)&ObjectDefs_Free, {0x51, 0x53, 0x55, 0x56, 0x57}},
     {"ObjectDefs_FreeAll",        0x00412a90, (void *)&ObjectDefs_FreeAll, {0x53, 0x55, 0x56, 0x57, 0x8b}},
     {"ObjectDefs_ListBuiltNumbers", 0x0051ac20, (void *)&ObjectDefs_ListBuiltNumbers, {0x83, 0xec, 0x10, 0x53, 0x55}},
+    {"ObjectDef_LoadTrackTypes",  0x00414420, (void *)&ObjectDef_LoadTrackTypes, {0x6a, 0xff, 0x68, 0x31, 0x7f}},
+    {"ObjectDefs_Load",           0x00413c10, (void *)&ObjectDefs_Load, {0x6a, 0xff, 0x64, 0xa1, 0x00}},
+    {"ObjectDefs_LoadFolders",    0x00413930, (void *)&ObjectDefs_LoadFolders, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"IntArray_SetSize",          0x00598630, (void *)&IntArray_SetSize, {0x8b, 0x44, 0x24, 0x08, 0x53}},
     {"CountedPair_Clear",         0x004e51a0, (void *)&CountedPair_Clear, {0x53, 0x56, 0x8b, 0xf1, 0x33}},
     {"CountedPair_ClearRange",    0x004f36f0, (void *)&CountedPair_ClearRange, {0x56, 0x8b, 0x74, 0x24, 0x08}},
@@ -4868,6 +4899,7 @@ const Hook kHooks[] = {
     {"ArReplay_TextAction",       0x00404f70, (void *)&ArReplay_TextAction, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"Coasters_Load",             0x00437b60, (void *)&Coasters_Load, {0x81, 0xec, 0xcc, 0x00, 0x00}},
     {"Coasters_Update",           0x00435a30, (void *)&Coasters_Update, {0x55, 0x8b, 0xec, 0x83, 0xe4}},
+    {"Coaster_AddStartCars",      0x00435570, (void *)&Coaster_AddStartCars, {0xa1, 0xec, 0x0f, 0x79, 0x00}},
     {"Thing_SpriteChoice",        0x004fcac0, (void *)&Thing_SpriteChoice, {0x51, 0x56, 0x8b, 0xf1, 0x6a}},
     {"Thing_IngredientRecord",    0x004e2200, (void *)&Thing_IngredientRecord, {0x51, 0x66, 0x8b, 0x41, 0x0e}},
     {"Class701378_Ctor",          0x005667d0, (void *)&Class701378_Ctor, {0x51, 0x8b, 0x44, 0x24, 0x08}},
@@ -4893,6 +4925,7 @@ const Hook kHooks[] = {
     {"Object_ReleaseSavedPairs130", 0x0057b2e0, (void *)&Object_ReleaseSavedPairs130, {0x56, 0x8b, 0xf1, 0xf7, 0x46}},
     {"Object_RenderToBlock13c",   0x0057b6e0, (void *)&Object_RenderToBlock13c, {0x83, 0xec, 0x30, 0x53, 0x55}},
     {"Object_MakeSavedPairs130",  0x0057b120, (void *)&Object_MakeSavedPairs130, {0x6a, 0xff, 0x68, 0x0b, 0xf3}},
+    {"Object_UpdateShadow",       0x0057b8a0, (void *)&Object_UpdateShadow, {0x81, 0xec, 0x30, 0x01, 0x00}},
     {"Class702bc8_Ctor",          0x005dc580, (void *)&Class702bc8_Ctor, {0x6a, 0xff, 0x68, 0x58, 0x14}},
     {"Class702920_DeletingDtor",  0x005be9b0, (void *)&Class702920_DeletingDtor, {0x53, 0x55, 0x8b, 0xe9, 0x56}},
     {"Class702af0_Dtor",          0x005d9f50, (void *)&Class702af0_Dtor, {0x6a, 0xff, 0x68, 0xe6, 0x13}},
@@ -5690,6 +5723,7 @@ const Hook kHooks[] = {
     {"AdvisorScoring_RidesRatedAbove", 0x0059f4f0, (void *)&AdvisorScoring_RidesRatedAbove, {0xa1, 0xec, 0xf6, 0x7c, 0x00}},
     {"AdvisorScoring_RingRatio",  0x0059eb80, (void *)&AdvisorScoring_RingRatio, {0x83, 0xec, 0x14, 0x55, 0x56}},
     {"AdvisorScoring_PickNext",   0x0059c680, (void *)&AdvisorScoring_PickNext, {0x83, 0xec, 0x08, 0x8b, 0x44}},
+    {"AdvisorScoring_RingDrop",   0x0059f220, (void *)&AdvisorScoring_RingDrop, {0x83, 0xec, 0x08, 0x8d, 0x44}},
     {"ParkInfo_Serialize",        0x00418da0, (void *)&ParkInfo_Serialize, {0x51, 0x8b, 0x44, 0x24, 0x0c}},
     {"AuthStamp_Text",           0x005d55a0, (void *)&AuthStamp_Text, {0x53, 0x56, 0x57, 0xbe, 0xd8}},
     {"Mp2Decoder_ParseHeader",   0x006cc7b0, (void *)&Mp2Decoder_ParseHeader, {0x83, 0xec, 0x0c, 0x53, 0x56}},
@@ -6120,6 +6154,12 @@ const Hook kHooks[] = {
     {"SoundRandom_Seed",          0x006bb940, (void *)&SoundRandom_Seed, {0xe8, 0x5b, 0xa6, 0xf3, 0xff}},
     {"RecordSort_Range",          0x0057ced0, (void *)&RecordSort_Range, {0x83, 0xec, 0x0c, 0x53, 0x55}},
     {"RecordSort_Run",            0x0057d090, (void *)&RecordSort_Run, {0x8b, 0x44, 0x24, 0x0c, 0x8b}},
+    {"RecordSort_PointersUp",     0x0057cbc0, (void *)&RecordSort_PointersUp, {0x83, 0xec, 0x0c, 0x8b, 0x44}},
+    {"RecordSort_PointersByFloat", 0x0057ccb0, (void *)&RecordSort_PointersByFloat, {0x83, 0xec, 0x08, 0x53, 0x8b}},
+    {"RecordSort_RangeUp",        0x0057cda0, (void *)&RecordSort_RangeUp, {0x83, 0xec, 0x0c, 0x53, 0x55}},
+    {"RecordSort_RunPointersUp",  0x0057d000, (void *)&RecordSort_RunPointersUp, {0x8b, 0x44, 0x24, 0x0c, 0x8b}},
+    {"RecordSort_RunPointersByFloat", 0x0057d030, (void *)&RecordSort_RunPointersByFloat, {0x8b, 0x44, 0x24, 0x0c, 0x8b}},
+    {"RecordSort_RunUp",          0x0057d060, (void *)&RecordSort_RunUp, {0x8b, 0x44, 0x24, 0x0c, 0x8b}},
     {"Std_Xlen",                  0x006918f0, (void *)&Std_Xlen, {0x6a, 0xff, 0x68, 0xc0, 0x39}},
     {"Std_Xran",                  0x00691ba0, (void *)&Std_Xran, {0x6a, 0xff, 0x68, 0x00, 0x3a}},
     {"IosBase_Clear",             0x00693340, (void *)&IosBase_Clear, {0x64, 0xa1, 0x00, 0x00, 0x00}},
@@ -6614,6 +6654,8 @@ const Hook kHooks[] = {
     {"SaveGame_AfterLoad",        0x00415140, (void *)&SaveGame_AfterLoad, {0x51, 0x53, 0x56, 0x57, 0xe8}},
     {"SaveGame_WriteHeader",      0x00415f50, (void *)&SaveGame_WriteHeader, {0x6a, 0xff, 0x68, 0xab, 0x7f}},
     {"SaveGame_ReadHeader",       0x00416240, (void *)&SaveGame_ReadHeader, {0x81, 0xec, 0xe8, 0x09, 0x00}},
+    {"AdvisorMsg_SendScored",     0x0059b620, (void *)&AdvisorMsg_SendScored, {0x64, 0xa1, 0x00, 0x00, 0x00}},
+    {"AdvisorMsg_Send",           0x0059b870, (void *)&AdvisorMsg_Send, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"Holder_Destroy",            0x0045bc60, (void *)&Holder_Destroy, {0x56, 0x8b, 0x74, 0x24, 0x08}},
     {"Mouse_HandleButton",        0x0046c210, (void *)&Mouse_HandleButton, {0x8b, 0x44, 0x24, 0x04, 0x56}},
     {"Mouse_Moved",               0x0046c2a0, (void *)&Mouse_Moved, {0xa1, 0xd4, 0x05, 0x7b, 0x00}},
@@ -6657,6 +6699,7 @@ const Hook kHooks[] = {
     {"LoadScreen_Tick",           0x00587c80, (void *)&LoadScreen_Tick, {0x56, 0x8b, 0xf1, 0x57, 0x8b}},
     {"SurfacePool_SideIndex",     0x005848b0, (void *)&SurfacePool_SideIndex, {0x8b, 0x44, 0x24, 0x04, 0x83}},
     {"SurfacePool_Next",          0x0058b1f0, (void *)&SurfacePool_Next, {0x8b, 0x44, 0x24, 0x04, 0x56}},
+    {"SurfacePool_MakeSurfaces",  0x0058b0b0, (void *)&SurfacePool_MakeSurfaces, {0x81, 0xec, 0x84, 0x00, 0x00}},
     {"TextStyle_Ctor",            0x006ad5d0, (void *)&TextStyle_Ctor, {0x53, 0x56, 0x8b, 0xf1, 0x33}},
     {"TextStyle_Dtor",            0x006ad640, (void *)&TextStyle_Dtor, {0x56, 0x8b, 0xf1, 0xc7, 0x06}},
     {"TextStyle_DeletingDtor",    0x006ad620, (void *)&TextStyle_DeletingDtor, {0x56, 0x8b, 0xf1, 0xe8, 0x18}},
@@ -6818,6 +6861,7 @@ const Hook kHooks[] = {
     {"TqiVideo_DecodeFrame32",    0x006718a0, (void *)&TqiVideo_DecodeFrame32, {0x51, 0x56, 0x57, 0x8b, 0x7c}},
     {"DctVideo_DecodeMacroblock", 0x00676e40, (void *)&DctVideo_DecodeMacroblock, {0x51, 0xa1, 0x60, 0xac, 0xfa}},
     {"SpriteFrame_DrawLightQuads", 0x00589770, (void *)&SpriteFrame_DrawLightQuads, {0x83, 0xec, 0x6c, 0x53, 0x55}},
+    {"SpriteFrame_DrawLightQuadsInPlace", 0x00589990, (void *)&SpriteFrame_DrawLightQuadsInPlace, {0x83, 0xec, 0x6c, 0x56, 0x8b}},
     {"MovieFrame_Allocate",       0x006777d0, (void *)&MovieFrame_Allocate, {0x83, 0xec, 0x08, 0x53, 0x56}},
     {"MovieFrame_Decode",         0x00677310, (void *)&MovieFrame_Decode, {0x55, 0x8b, 0xec, 0x83, 0xec}},
     {"Movie_Start",               0x0051b010, (void *)&Movie_Start, {0x83, 0xec, 0x70, 0x53, 0x55}},
@@ -6930,6 +6974,8 @@ const Hook kHooks[] = {
     {"WeatherFx_DrawDrops",       0x0057f490, (void *)&WeatherFx_DrawDrops, {0xb8, 0xc0, 0x33, 0x00, 0x00}},
     {"WeatherFx_DrawStreaks",     0x0057efd0, (void *)&WeatherFx_DrawStreaks, {0xb8, 0xbc, 0x62, 0x00, 0x00}},
     {"WeatherFx_ReloadEffects",   0x00550950, (void *)&WeatherFx_ReloadEffects, {0x6a, 0xff, 0x68, 0xa6, 0xee}},
+    {"WeatherFx_DrawBolts",       0x0057ee30, (void *)&WeatherFx_DrawBolts, {0x51, 0x53, 0x8b, 0xd9, 0x55}},
+    {"WeatherFx_AddBolt",         0x00580320, (void *)&WeatherFx_AddBolt, {0x53, 0x8b, 0xd9, 0x8b, 0x83}},
     {"Renderer_SetRestoreCallback", 0x00576260, (void *)&Renderer_SetRestoreCallback, {0x8b, 0x44, 0x24, 0x04, 0x89}},
     {"Renderer_SetStateFlags",    0x005763f0, (void *)&Renderer_SetStateFlags, {0x8b, 0x44, 0x24, 0x04, 0x89}},
     {"Renderer_StateFlags",       0x00576400, (void *)&Renderer_StateFlags, {0x8b, 0x41, 0x48, 0xc3, 0x90}},
@@ -7011,8 +7057,10 @@ const Hook kHooks[] = {
     {"Batch_TransformVertices",   0x00565f50, (void *)&Batch_TransformVertices, {0x8b, 0x41, 0x20, 0x8b, 0x50}},
     {"Batch_Flush",               0x00565590, (void *)&Batch_Flush, {0x55, 0x8b, 0xec, 0x83, 0xec}},
     {"Batch_Close",               0x005658c0, (void *)&Batch_Close, {0x56, 0x8b, 0xf1, 0x8b, 0x4e}},
+    {"Model_AddTree",             0x0057b610, (void *)&Model_AddTree, {0x83, 0xec, 0x44, 0x53, 0x55}},
     {"Rasteriser_ChooseSpan",     0x00569f60, (void *)&Rasteriser_ChooseSpan, {0x8b, 0x44, 0x24, 0x04, 0xf6}},
     {"Rasteriser_ClearMmx",       0x00569f20, (void *)&Rasteriser_ClearMmx, {0x0f, 0x77, 0xb8, 0x01, 0x00}},
+    {"Rasteriser_SpeedTest",      0x0056a450, (void *)&Rasteriser_SpeedTest, {0x55, 0x8b, 0xec, 0x83, 0xec}},
     {"DynFaces_AddSquare",        0x0053c8d0, (void *)&DynFaces_AddSquare, {0x56, 0x8b, 0x35, 0xe0, 0x1e}},
     {"DynFaces_AddPoly",          0x0053c9c0, (void *)&DynFaces_AddPoly, {0xa1, 0xe0, 0x1e, 0x87, 0x00}},
     {"DynFaces_SortTags",         0x0053c1f0, (void *)&DynFaces_SortTags, {0x81, 0xec, 0xdc, 0x00, 0x00}},
@@ -7035,6 +7083,7 @@ const Hook kHooks[] = {
     {"ClipCodes_Compute",         0x00561bc0, (void *)&ClipCodes_Compute, {0x55, 0x8b, 0xec, 0x51, 0x53}},
     {"ClipCodes_Run",             0x00570d60, (void *)&ClipCodes_Run, {0x8b, 0x44, 0x24, 0x18, 0x8b}},
     {"ClipCodes_InitTable",       0x00561840, (void *)&ClipCodes_InitTable, {0xa1, 0x20, 0x9a, 0x87, 0x00}},
+    {"ClipCodes_Box",             0x00561a30, (void *)&ClipCodes_Box, {0x55, 0x8b, 0xec, 0x81, 0xec}},
     {"DxResult_Message",          0x0056a770, (void *)&DxResult_Message, {0x8b, 0x44, 0x24, 0x04, 0x3d}},
     {"View_SetScreen",            0x00582eb0, (void *)&View_SetScreen, {0x51, 0xdb, 0x44, 0x24, 0x08}},
     {"View_SetWindow",            0x00582f70, (void *)&View_SetWindow, {0x51, 0x56, 0x8b, 0xf1, 0x57}},
@@ -7176,6 +7225,26 @@ const Hook kHooks[] = {
     {"D3dSetup_PickFormat",       0x00572f70, (void *)&D3dSetup_PickFormat, {0x83, 0xec, 0x6c, 0x53, 0x55}},
     {"D3dSetup_OnFormat",         0x00573060, (void *)&D3dSetup_OnFormat, {0x8b, 0x44, 0x24, 0x04, 0x8b}},
     {"D3dSetup_OnZFormat",        0x00573660, (void *)&D3dSetup_OnZFormat, {0x8b, 0x44, 0x24, 0x04, 0x56}},
+    {"Engine_Init",               0x00572780, (void *)&Engine_Init, {0xa1, 0x08, 0xd5, 0x8b, 0x00}},
+    {"Engine_OpenDirectDraw",     0x005632b0, (void *)&Engine_OpenDirectDraw, {0xa1, 0x24, 0x9a, 0x87, 0x00}},
+    {"Engine_CreateDevice",       0x005836d0, (void *)&Engine_CreateDevice, {0xa1, 0x24, 0xd5, 0x8b, 0x00}},
+    {"Engine_DestroyDevice",      0x00583700, (void *)&Engine_DestroyDevice, {0xa1, 0x24, 0xd5, 0x8b, 0x00}},
+    {"Engine_Start",              0x0044df20, (void *)&Engine_Start, {0xa1, 0x24, 0xd5, 0x8b, 0x00}},
+    {"UvProbe_Down",              0x00583e90, (void *)&UvProbe_Down, {0x6a, 0xff, 0x68, 0xae, 0xf3}},
+    {"UvProbe_Across",            0x00584310, (void *)&UvProbe_Across, {0x6a, 0xff, 0x68, 0xce, 0xf3}},
+    {"UvProbe_Detect",            0x00583cc0, (void *)&UvProbe_Detect, {0x81, 0xec, 0xf8, 0x01, 0x00}},
+    {"SoftSetup_Create",          0x00573960, (void *)&SoftSetup_Create, {0xa1, 0xac, 0x9d, 0x87, 0x00}},
+    {"D3dSetup_Create",           0x00572c40, (void *)&D3dSetup_Create, {0xa1, 0xa8, 0x9d, 0x87, 0x00}},
+    {"SoftSetup_CreateSquare",    0x00573a30, (void *)&SoftSetup_CreateSquare, {0x51, 0xa1, 0xac, 0x9d, 0x87}},
+    {"SoftSetup_Destroy",         0x00573b30, (void *)&SoftSetup_Destroy, {0x56, 0x8b, 0x35, 0xac, 0x9d}},
+    {"SoftSetup_Open",            0x00573b90, (void *)&SoftSetup_Open, {0x51, 0xa1, 0x08, 0xd5, 0x8b}},
+    {"ImageBuffer_Load",          0x00586e40, (void *)&ImageBuffer_Load, {0xb8, 0x20, 0x10, 0x00, 0x00}},
+    {"ImageBuffer_Stamp",         0x00586f40, (void *)&ImageBuffer_Stamp, {0xb8, 0x34, 0x10, 0x00, 0x00}},
+    {"ScrollLayers_Update",       0x00585f10, (void *)&ScrollLayers_Update, {0x83, 0xec, 0x08, 0x53, 0x56}},
+    {"Settings_LogDisplay",       0x005833c0, (void *)&Settings_LogDisplay, {0x81, 0xec, 0x00, 0x01, 0x00}},
+    {"Settings_LogSystem",        0x005835c0, (void *)&Settings_LogSystem, {0x83, 0xec, 0x64, 0x8d, 0x44}},
+    {"Settings_LogTexturing",     0x00584790, (void *)&Settings_LogTexturing, {0x83, 0xec, 0x64, 0x8d, 0x44}},
+    {"Mesh_TouchTextures",        0x0057a420, (void *)&Mesh_TouchTextures, {0x8b, 0x0d, 0x20, 0x9a, 0x87}},
     {"Model_MarkFacesByMask",     0x0044b140, (void *)&Model_MarkFacesByMask, {0x53, 0x8b, 0x5c, 0x24, 0x08}},
     {"Model_MarkFacesNotValue",    0x0044b1b0, (void *)&Model_MarkFacesNotValue, {0x53, 0x8b, 0x5c, 0x24, 0x08}},
     {"Model_FindPartByKey4",      0x0044b220, (void *)&Model_FindPartByKey4, {0x56, 0x57, 0x8b, 0x7c, 0x24}},
@@ -7307,6 +7376,8 @@ const Hook kHooks[] = {
     {"RideBase_Prepare",          0x0046a5a0, (void *)&RideBase_Prepare, {0x81, 0xec, 0x70, 0x02, 0x00}},
     {"Ride_LoadResource",         0x004629d0, (void *)&Ride_LoadResource, {0x81, 0xec, 0x24, 0x04, 0x00}},
     {"AimSprites_Update",         0x0044b510, (void *)&AimSprites_Update, {0x55, 0x8b, 0xec, 0x81, 0xec}},
+    {"Sign_Apply",                0x00467a80, (void *)&Sign_Apply, {0x6a, 0xff, 0x68, 0xbb, 0x89}},
+    {"Sign_ApplyObject",          0x004682b0, (void *)&Sign_ApplyObject, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"Terrain_IsParkLand",        0x00450420, (void *)&Terrain_IsParkLand, {0xa1, 0x54, 0x08, 0x7a, 0x00}},
     {"Terrain_CopyAttrs",         0x00450a30, (void *)&Terrain_CopyAttrs, {0x8b, 0x44, 0x24, 0x04, 0x56}},
     {"Terrain_GridSize",          0x00450b00, (void *)&Terrain_GridSize, {0xa1, 0x54, 0x08, 0x7a, 0x00}},
@@ -7349,6 +7420,8 @@ const Hook kHooks[] = {
     {"TerrainTex_SetView",        0x0056e6c0, (void *)&TerrainTex_SetView, {0x83, 0xec, 0x0c, 0x56, 0x8b}},
     {"TerrainTex_LightGrid",      0x0056ef10, (void *)&TerrainTex_LightGrid, {0x81, 0xec, 0x10, 0x0e, 0x00}},
     {"TerrainTex_CullRect",       0x0056e7e0, (void *)&TerrainTex_CullRect, {0x81, 0xec, 0xf0, 0x00, 0x00}},
+    {"TerrainTex_Init",           0x0056e550, (void *)&TerrainTex_Init, {0x64, 0xa1, 0x00, 0x00, 0x00}},
+    {"TerrainTex_CullView",       0x0056ea90, (void *)&TerrainTex_CullView, {0xa1, 0xc8, 0xcb, 0x8b, 0x00}},
     {"Landscape_SetPoint",        0x005856e0, (void *)&Landscape_SetPoint, {0x8b, 0x44, 0x24, 0x04, 0x8b}},
     {"Landscape_SetDetail",       0x00585710, (void *)&Landscape_SetDetail, {0x8b, 0x44, 0x24, 0x04, 0x89}},
     {"Landscape_List",            0x00585ef0, (void *)&Landscape_List, {0x8b, 0x81, 0xd0, 0x1f, 0x00}},

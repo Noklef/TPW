@@ -3,6 +3,10 @@
 #pragma once
 
 #include "../../../re/types.h"
+#include "../core/addrcalls.h"
+
+// Rasteriser_SpeedTest's calls, by the game's addresses (the driver's: recorders). nullptr restores the game's.
+void Rasteriser_SetSpeedCalls(const AddrCall *table, u32 count);
 
 extern "C" {
 
@@ -22,4 +26,8 @@ u32 __stdcall Setting569f30_Set(u32 unused, u32 value);
 // 0x56a510 (stdcall; x, y, out, pops 12): *out = the dword at (y * width + x) in the software
 // renderer's buffer (0x879dac: +8 the buffer; width 0x8bcbd0); returns 1.
 u32 __stdcall SoftRenderer_PixelAt(s32 x, s32 y, u32 *out);
+
+// 0x56a450 (cdecl; name invented): 0xfbe044 = the dword at 0x6f1a10, then the whole screen ([0x8bcbd0], [0x8bcbd4], 4 bits of fraction) drawn as two triangles (0x6ef7f0) 50 times, timed by Cpu_Ticks16. Left in st0, so double:
+// pixels drawn (width * height * 50, an int) over the ticks passed (<< 4, an int).
+double __cdecl Rasteriser_SpeedTest();
 }

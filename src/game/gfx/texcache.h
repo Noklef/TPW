@@ -178,6 +178,50 @@ s32 __fastcall TexCacheEntry_Score(u8 *entry, void *, u32);
 // +0xc = [0x8bcc40]. Returns 1.
 u32 __fastcall TexCache_PlaceTexture(u8 *cache, void *, u8 *entry, const s32 *place, u8 *texture);
 
+// 0x58cba0 / 0x58cc30 (thiscall on the cache, not used; entries, first, last; pops 0xc; names invented, unconfirmed): the entries' pointers first to last sorted by their signed +0xc / +0x10, the smallest first. The ends walk in
+// unbounded: the middle's key the pivot, swapped when they have not crossed; the left part recursed into, the right part looped on.
+void __fastcall TexCache_SortEntriesByKept(u8 *cache, void *, u8 **entries, s32 first, s32 last);
+void __fastcall TexCache_SortEntriesByScore(u8 *cache, void *, u8 **entries, s32 first, s32 last);
+
+// 0x58e1a0 (thiscall on the cache, not used; items, first, last; pops 0xc; name invented, unconfirmed): first below last: RecordSort_RunPointersUp at 0x8bcb98 by the items' key +0x38 (stride 0x60; its temp the address of the stack's first).
+void __fastcall TexCache_SortItemsByKey(u8 *cache, void *, u8 **items, s32 first, s32 last);
+
+// 0x58e790 (thiscall on the cache; list head pointer; pops 4; name invented, unconfirmed): the first 0x1000 items of the chain (next +4) sorted by key (TexCache_SortItemsByKey) and chained again, the greatest key the head.
+// Items past those lose flags 0xf030 (+8) and drop out (sic).
+void __fastcall TexCache_SortListByKey(u8 *cache, void *, u8 **list);
+
+// 0x58e820 (thiscall on the cache, not used; list head pointer; pops 4; name invented, unconfirmed): likewise by the items' addresses (RecordSort_RunUp of the array's dwords, more than one), the lowest address the head.
+void __fastcall TexCache_SortListByAddress(u8 *cache, void *, u8 **list);
+
+// 0x58e110 (thiscall, the cache not used; name invented, unconfirmed): a byte 0x10 appended to "c:\\tcache.log" (no file: nothing).
+void __fastcall TexCache_TraceUpdate(u8 *cache);
+
+// 0x58ccc0 (thiscall; name invented, unconfirmed): each size's entries scored (cache flag 1, or the surface without its flag 1) and ordered. Cache flag 1: all by kept (+0xc). Else those
+// without the surface's flag 1 partitioned first (the ends walk in, swapped, sic: a lone middle swaps with itself and the last index can pass it), sorted by kept. +0x1818 then the last entry
+// from the top whose twice kept is at most its surface's slot 3, those up to it sorted by score (+0x10). Then scored again with the totals +0x18d0 (+8), +0x18d4 (kept), +0x18d8 (slot 3).
+void __fastcall TexCache_RankEntries(u8 *cache);
+
+// 0x58e390 (thiscall; name invented, unconfirmed): the pending list (+0x18c4) ordered: its first 0x1000 items; those past them reset to their wanted size and dropped. The bands +0x1904-0x1914 from the highest
+// +0x30; sorted by +0x30; +0x18dc their wanted area; every tier (+0x18f8) shrunk with no limit; over 2/3 of the room (+0x18d8 less +0x18d4) or, flag 4, over +0x18fc: on through the tiers to 0xc, limit the room, until it fits;
+// flag 4 and still over: from the last item, flag 0x8000 and its area off (flag 0x80000 kept). Sorted by key, the list rebuilt (the last the head), the items with flag 0x8000 reset instead.
+void __fastcall TexCache_ArrangePending(u8 *cache);
+
+// 0x58fcf0 (thiscall; returns 1; name invented, unconfirmed): only with [0x8bd524] 1. Each size's share (+0x1818 over its count) below 0.67: with 1.5 times it below the next larger's share, that many spare entries by
+// wanted items (a short list; its forward move smears, sic) released, the fewest wanted last; below the next smaller's, entries by key released with their items halved. Anything released: TexCache_RankEntries and
+// TexCache_ArrangePending again.
+u32 __fastcall TexCache_Rebalance(u8 *cache);
+
+// 0x58f190 (thiscall (list head pointer), pops 4; name invented, unconfirmed): the list's first item onto the next entry of the first size with room (-1: none or too wide; the item stays). Driver filter: the item alone, halved to the surface's
+// width, or one size down when that size has at least the share free; PlaceTexture, the surface's flags 2 or 3 and 4 when it can not be halved. Else merged with the entry's items and packed, on to smaller sizes while all fit; TexCache_ChooseSize picks
+// between the first and the last; the rows sorted by item, placed in address order. Slot 4 of the surface 0: returns 0; a failed placement also calls its slot 5. Returns Texture_Reload's answer (the entry).
+s32 __fastcall TexCache_PlaceNext(u8 *cache, void *, u8 **list);
+
+// 0x58f940 (thiscall; name invented, unconfirmed): +0x1830's six dwords zeroed; TexCache_PlaceNext for the pending list until empty or 0; -1: the head reset and dropped, going on. Items left reset, the list emptied. Returns the last answer.
+s32 __fastcall TexCache_PlacePending(u8 *cache);
+
+// 0x58cf40 (thiscall; name invented, unconfirmed): the frame's work. [0x8bd550] bit 7: the trace. No pending items: 1. [0x8bd508] & 0xc0000000: TexCache_Evict. Rank, arrange, rebalance, place; a 0 from the placing: EngineErrors_Push (2, 0xb0754011), 0.
+u32 __fastcall TexCache_Update(u8 *cache);
+
 // 0x58e010 (thiscall, pops 4; name unconfirmed): the trace of a touched item: "c:\\tcache.log" appended to or, the first time (the
 // cache's flag 0x40000000 not set, then set), created with [0x8bd550]'s 0x40f0 bytes, [0x8bd508] and [0x8bcbc8] first; then a byte 1
 // and the record {item, its flags +8, words +0x10 and +0x12, float +0x30 (through the x87)}; flushed and closed. No file: nothing.

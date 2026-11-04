@@ -2,6 +2,7 @@
 
 #include <cstdint>
 #include <cstdlib>
+#include <cstring>
 
 #include "../core/crt.h"
 #include "../core/gameheap.h"
@@ -605,4 +606,79 @@ extern "C" void __cdecl WeatherFx_ReloadEffects() {
     }
     g_reload->setRamps();
     g_reload->dtor(h);
+}
+
+namespace {
+AddrCalls g_boltCalls;
+}  // namespace
+
+void WeatherFx_SetBoltCalls(const AddrCall *table, u32 count) { g_boltCalls.Set(table, count); }
+
+extern "C" {
+
+u32 __fastcall WeatherFx_DrawBolts(u8 *fx) {
+    if (at<u32>(fx, 4) && !g_boltCalls.Cd(0x0057ed50))
+        return 0;
+    u32 i = at<u32>(fx, 0x3308);
+    while (i--) {
+        u8 *const bolt = fx + 0x3008 + i * 0x30;
+        const s32 left = (s32)(at<u32>(bolt, 0x24) - at<u32>(fx, 0x9d9c));
+        at<s32>(bolt, 0x24) = left;
+        if (left <= 0) {
+            const u32 last = --at<u32>(fx, 0x3308);
+            if (i != last)
+                std::memcpy(bolt, fx + 0x3008 + last * 0x30, 0x30);
+            continue;
+        }
+        at<u32>(fx, 0x9da0) = i;
+        const u32 ticks = at<u32>(bolt, 0x2c);
+        if (ticks) {
+            at<u32>(fx, 0xa198) = ticks;
+            const X87Reg t = X87Reg((double)(left % 500)) * 0.002f;   // 0x701cd8
+            s32 shade = t.v < 0.9f ? 0xff - (s32)(long long)((X87Reg(0.9f) - t) * 1.11f * 64.0f).v    // 0x701cdc, 0x701ce0, 0x701ce4
+                                   : 0xc0 - (s32)(long long)((X87Reg(1.0f) - t) * 10.0f * -64.0f).v;  // 0x701c68, 0x701ce8, 0x701cec
+            shade += (s32)(g_boltCalls.Cd(0x0067b5c0) & 0x3f);
+            at<u32>(fx, 0xa1a0) = 4;
+            at<u32>(fx, 0xa19c) = (((u32)shade | 0xffffff00u) << 8 | (u32)shade) << 8 | (u32)shade;
+        } else {
+            at<u32>(fx, 0xa198) = g_boltCalls.Cd(0x00591210);
+            at<u32>(fx, 0xa19c) = 0xffffffffu;
+            at<u32>(fx, 0xa1a0) = 0;
+        }
+        if (!g_boltCalls.Th(0x0057ec50, (u32)(uintptr_t)fx, bolt + 0xc, bolt))
+            return 0;
+    }
+    return 1;
+}
+
+u32 __fastcall WeatherFx_AddBolt(u8 *fx, void *, u32 ax, u32 ay, u32 az, u32 bx, u32 by, u32 bz, u32 life, u32 flash) {
+    const s32 count = at<s32>(fx, 0x3308);
+    if (count >= 0x10)
+        return 1;
+    u8 *const bolt = fx + 0x3008 + count * 0x30;
+    at<u32>(bolt, 0) = ax;
+    at<u32>(bolt, 4) = ay;
+    at<u32>(bolt, 8) = az;
+    at<u32>(bolt, 0xc) = bx;
+    at<u32>(bolt, 0x10) = by;
+    at<u32>(bolt, 0x14) = bz;
+    at<u32>(bolt, 0x24) = life;
+    at<u32>(bolt, 0x2c) = flash ? g_boltCalls.Cd(0x00591210) | 1 : 0;
+    const float x = (float)(X87Reg(at<float>(bolt, 0)) - at<float>(bolt, 0xc));
+    const float y = (float)(X87Reg(at<float>(bolt, 4)) - at<float>(bolt, 0x10));
+    const float z = (float)(X87Reg(at<float>(bolt, 8)) - at<float>(bolt, 0x14));
+    u32 out[3] = {Bits(x), Bits(y), Bits(z)};
+    const X87Reg length = X87_Sqrt(X87Reg(x) * x + X87Reg(y) * y + X87Reg(z) * z);
+    if (length.v != 0.0 && length.v == length.v) {   // 0x701ca0
+        const X87Reg scale = X87Reg(1.0f) / length;   // 0x701c68
+        out[0] = Bits((float)(scale * x));
+        out[1] = Bits((float)(scale * y));
+        out[2] = Bits((float)(scale * z));
+    }
+    at<u32>(bolt, 0x18) = out[0];
+    at<u32>(bolt, 0x1c) = out[1];
+    at<u32>(bolt, 0x20) = out[2];
+    at<s32>(fx, 0x3308) = count + 1;
+    return 1;
+}
 }

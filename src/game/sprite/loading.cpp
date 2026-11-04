@@ -269,3 +269,20 @@ u8 __cdecl Sprites_UseParkFrames() { return use_frames(1, 0x00876270, 0x008757a8
 }
 
 void SpriteLoading_SetEnv(const SpriteLoadingEnv *env) { g_env = env ? env : &kGameEnv; }
+
+extern "C" bool __cdecl Sprites_LoadAll(u8 onlyLast) {
+    u32 folder = 0;
+    global<u32>(0x0087626c) = 0;
+    if (g_calls.Th(0x00421770, global<u32>(0x00786b9c), 0x00876960u, &folder) != 1)   // NamedList_Find
+        return false;
+    for (u32 entry = onlyLast ? 0x00764024 : 0x00763f88; entry < 0x00764030; entry += 0xc) {
+        u32 *const fields = reinterpret_cast<u32 *>((uintptr_t)entry);
+        fields[1] = global<u32>(0x0087626c);
+        String name;
+        String_CtorStr(&name, nullptr, reinterpret_cast<const char *>((uintptr_t)fields[0]));
+        fields[2] = g_calls.Cd(0x00541310, folder, &name);   // Sprites_LoadFolder
+        String_Dtor(&name);
+    }
+    global<u32>(0x00876b28) = global<u32>(0x0087626c);
+    return true;
+}

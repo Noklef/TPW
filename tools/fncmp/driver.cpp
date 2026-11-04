@@ -268,6 +268,20 @@
 #include "../../src/game/world/savegamefile.h"
 #include "../../src/game/ui/windowgroup.h"
 #include "../../src/game/world/gamefile.h"
+#include "../../src/game/world/objectdefs.h"
+#include "../../src/game/model/signapply.h"
+#include "../../src/game/render/enginestart.h"
+#include "../../src/game/coaster/startcars.h"
+#include "../../src/game/render/meshtextures.h"
+#include "../../src/game/gfx/surfacepool.h"
+#include "../../src/game/world/advisorsend.h"
+#include "../../src/game/render/scrolllayers.h"
+#include "../../src/game/render/imagebuffer.h"
+#include "../../src/game/render/devicecreate.h"
+#include "../../src/game/terrain/procedural.h"
+#include "../../src/game/render/uvprobe.h"
+#include "../../src/game/render/rasteriser.h"
+#include "../../src/game/gfx/texman.h"
 #include "../../src/game/core/globalsave.h"
 #include "../../src/game/coaster/rebuild.h"
 #include "../../src/game/coaster/setup.h"
@@ -911,7 +925,7 @@ const TileGridEnv kTileGridEnv = {Rec{recorder(1, 2)}};
 const SpriteGroupsEnv kSpriteGroupsEnv = {Rec{recorder(1, 2)}};
 const TiledPanelEnv kTiledPanelEnv = {Rec{recorder(1, 2)}};
 const GroundShadowEnv kGroundShadowEnv = {Rec{recorder(1, 2)}, Rec{recorder(2, 0)}};
-const SpriteFrameLightsEnv kSpriteFrameLightsEnv = {Rec{recorder(2, 0)}, Rec{recorder(3, 0)}, Rec{recorder(4, 4)}, Rec{recorder(1, 2)}};
+const SpriteFrameLightsEnv kSpriteFrameLightsEnv = {Rec{recorder(2, 0)}, Rec{recorder(3, 0)}, Rec{recorder(4, 4)}, Rec{recorder(1, 2)}, Rec{recorder(5, 2)}};
 // RideBase_Prepare's fit has 28 stack dwords, past a recorder's 15: the cdecl recorder 1 of 13, the matrix by address (tests/fncmp/ridebase.py's hook does the same).
 void __cdecl ride_base_fit(const u8 *node, u8 *frame, u16 **cursor, GridFitMatrix matrix, const u8 *grid, u32 place, s32 *hits, float lift, u8 **best, s32 *bestCount, u32 flags,
                            const u8 *only, u32 fine) {
@@ -1105,11 +1119,19 @@ const AddrCall kGlobalSaveCalls[] = {  // tests/fncmp/globalsaveio.py --table
     {0x423e90, recorder(4, 3)},
     {0x5b0d70, recorder(5, 3)},
     {0x5b1620, recorder(6, 2)},
-    {0x5b1650, recorder(7, 2)},
+    {0x5b1650, recorder(7, 2)}, {0x5aff50, recorder(8, 3)}, {0x5f5ad0, jpeg_recorder(1, 4)}, {0x5f5e50, jpeg_recorder(2, 5)}, {0x5f5b80, jpeg_recorder(3, 2)},  // (the last four: tests/fncmp/globalsavewrite.py)
 };
+// GamePaths_FindDisc's recorder (tests/fncmp/gamepathscheckdisc.py's _find, the same): the copy kept first.
+u32 __fastcall findDiscStandIn(u32 self, u32) {
+    const u8 *const from = reinterpret_cast<const u8 *>((uintptr_t)self);
+    u8 *const to = reinterpret_cast<u8 *>((uintptr_t)0x30000800);
+    for (u32 i = 0; i < 0x35; ++i) to[i] = from[i];
+    return reinterpret_cast<u32(__fastcall *)(u32, u32)>((uintptr_t)recorder(4, 0))(self, 0);
+}
 const AddrCall kShareTexCalls[] = {  // tests/fncmp/sharetexpath.py --table
     {0x40ef40, jpeg_recorder(1, 0)},
     {0x67a7d0, jpeg_recorder(2, 1)},   // (tests/fncmp/gamebase.py)
+    {0x5f8790, recorder(3, 0)}, {0x5aa500, (u32)(uintptr_t)&findDiscStandIn}, {0x5f61e0, recorder(5, 0)}, {0x67acb0, jpeg_recorder(6, 1)},   // (tests/fncmp/gamepathscheckdisc.py)
 };
 const AddrCall kLobbyScriptCalls[] = {  // tests/fncmp/lobbyscript.py --table
     {0x5c4d50, jpeg_recorder(1, 2)},
@@ -1150,9 +1172,17 @@ const AddrCall kHeightMapCalls[] = {  // tests/fncmp/heightmapbuild.py --table
     {0x473e30, jpeg_recorder(2, 4)},
     {0x451e20, (u32)(uintptr_t)&heightmap_rasterize_recorder},
 };
-const AddrCall kContactsCalls[] = {  // tests/fncmp/contactspair.py
+// The frees of tests/fncmp/contactstestall.py (its _free, the same): the control word kept first.
+u32 __cdecl contactsFreeStandIn(u32 block) {
+    u16 control;
+    __asm fnstcw control;
+    *reinterpret_cast<u32 *>((uintptr_t)0x30000800) = control;
+    return reinterpret_cast<u32(__cdecl *)(u32)>((uintptr_t)jpeg_recorder(6, 1))(block);
+}
+const AddrCall kContactsCalls[] = {  // tests/fncmp/contactspair.py, contactstestall.py
     {0x43a060, jpeg_recorder(1, 6)},
     {0x43a2b0, jpeg_recorder(2, 2)},
+    {0x43ad50, jpeg_recorder(3, 2)}, {0x439c40, jpeg_recorder(4, 6)}, {0x45b9d0, jpeg_recorder(5, 2)}, {0x45ba00, (u32)(uintptr_t)&contactsFreeStandIn},
 };
 const AddrCall kAimSpritesCalls[] = {{0x475590, jpeg_recorder(13, 3)}, {0x475480, jpeg_recorder(14, 5)}, {0x4755d0, jpeg_recorder(15, 3)}};
 const BumpLightEnv kBumpLightEnv = {Rec{jpeg_recorder(12, 4)}};
@@ -1183,12 +1213,74 @@ const AddrCall kGameFileCalls[] = {  // tests/fncmp/gamefile.py
     {0x403780, recorder(29, 4)}, {0x4053b0, recorder(30, 0)}, {0x59bea0, recorder(31, 0)},  // (thiscall slots below 32: those of the cdecl calls the other function makes)
     {0x5179c0, recorder(16, 1)}, {0x40fd60, recorder(17, 1)}, {0x402e30, recorder(18, 1)}, {0x403260, recorder(19, 1)}, {0x405570, recorder(20, 1)}, {0x59c860, recorder(21, 1)}, {0x481680, recorder(22, 1)},
     {0x516c80, recorder(1, 1)}, {0x40fc80, recorder(4, 1)}, {0x402e00, recorder(7, 1)}, {0x403220, recorder(8, 1)}, {0x4055d0, recorder(9, 1)}, {0x59c890, recorder(10, 1)}, {0x4816a0, recorder(11, 1)}};
+const AddrCall kObjectDefsLoadCalls[] = {  // tests/fncmp/objectdefsload.py
+    {0x401700, recorder(7, 3)}, {0x405710, recorder(8, 3)}, {0x412c20, recorder(9, 0)}, {0x401030, recorder(10, 0)}, {0x401250, recorder(11, 0)}, {0x41e660, recorder(26, 2)}, {0x41e720, recorder(13, 2)}, {0x41f170, recorder(14, 1)}, {0x41f190, recorder(15, 1)}, {0x41f260, recorder(16, 1)}, {0x41f330, recorder(17, 1)}, {0x41f350, recorder(18, 1)},
+    {0x41f420, recorder(19, 0)}, {0x41f630, recorder(20, 0)}, {0x414420, recorder(21, 1)}, {0x413410, recorder(22, 1)}, {0x413600, recorder(23, 1)}, {0x412fb0, recorder(24, 3)}, {0x550ca0, recorder(25, 0)},
+    {0x41dc80, recorder(3, 2)}, {0x41ede0, recorder(4, 1)}, {0x41eaa0, recorder(5, 1)}, {0x413c10, recorder(6, 3)},
+    {0x4629d0, jpeg_recorder(12, 11)}, {0x42fad0, jpeg_recorder(27, 3)}, {0x51b4f0, jpeg_recorder(28, 2)}, {0x67a7d0, jpeg_recorder(29, 1)}, {0x51fa20, jpeg_recorder(31, 1)}};
+const AddrCall kCoasterTypeLoadCalls[] = {{0x42fd90, jpeg_recorder(1, 4)}, {0x424ef0, jpeg_recorder(2, 4)}, {0x424ed0, jpeg_recorder(3, 1)}, {0x46f150, jpeg_recorder(4, 1)}, {0x430130, jpeg_recorder(5, 2)}, {0x430590, jpeg_recorder(6, 3)}};  // tests/fncmp/objectdefsload.py
+// SignStyle_Render's recorder that first copies the two wide lines off the stack (tests/fncmp/signapply.py: its _render, the same).
+u32 __fastcall signRenderStandIn(u32 self, u32, u32 dc, const u32 *params) {
+    for (u32 i = 0; i < 2; ++i) {
+        const u16 *from = reinterpret_cast<const u16 *>((uintptr_t)params[i]);
+        u16 *to = reinterpret_cast<u16 *>((uintptr_t)0x30007000 + 0x200 * i);
+        for (u32 n = 0; n < 0x100 && (to[n] = from[n]) != 0; ++n) {}
+    }
+    return reinterpret_cast<u32(__fastcall *)(u32, u32, u32, const u32 *)>((uintptr_t)recorder(5, 2))(self, 0, dc, params);
+}
+const AddrCall kSignApplyCalls[] = {  // tests/fncmp/signapply.py
+    {0x5ebfc0, recorder(1, 0)}, {0x5ec220, recorder(2, 0)}, {0x5ec3a0, recorder(3, 1)}, {0x5ec680, recorder(4, 1)}, {0x5ecb40, (u32)(uintptr_t)&signRenderStandIn}, {0x57b120, recorder(6, 2)}, {0x41a820, recorder(7, 0)},
+    {0x467310, jpeg_recorder(8, 6)}, {0x46f120, jpeg_recorder(9, 1)}, {0x45b9d0, jpeg_recorder(10, 2)}, {0x45ba00, jpeg_recorder(11, 1)},
+    {0x4dd4e0, recorder(14, 0)}, {0x5f6980, recorder(15, 1)}, {0x5f61a0, recorder(16, 0)}, {0x424db0, jpeg_recorder(17, 2)}, {0x467a80, jpeg_recorder(18, 6)}, {0x5f61e0, recorder(19, 0)}, {0x5f6a60, recorder(20, 0)}};  // (the last seven: tests/fncmp/signobject.py)
+const AddrCall kEngineStartCalls[] = {  // tests/fncmp/engineinit.py, enginestart.py
+    {0x5913f0, jpeg_recorder(0, 0)}, {0x56b6c0, jpeg_recorder(1, 0)}, {0x5781d0, jpeg_recorder(2, 0)}, {0x569e10, jpeg_recorder(3, 0)}, {0x5666f0, jpeg_recorder(4, 0)}, {0x573a30, jpeg_recorder(5, 0)}, {0x5821e0, jpeg_recorder(6, 0)}, {0x573fd0, jpeg_recorder(7, 0)}, {0x5804b0, jpeg_recorder(8, 0)},
+    {0x56ddf0, jpeg_recorder(9, 0)}, {0x5760a0, jpeg_recorder(10, 0)}, {0x58aff0, jpeg_recorder(11, 0)}, {0x561840, jpeg_recorder(12, 0)}, {0x58a430, jpeg_recorder(13, 0)}, {0x57c360, jpeg_recorder(14, 0)}, {0x574a20, jpeg_recorder(15, 0)}, {0x57d100, jpeg_recorder(16, 0)}, {0x564b20, jpeg_recorder(17, 0)},
+    {0x564b60, jpeg_recorder(20, 0)}, {0x57c4a0, jpeg_recorder(21, 0)}, {0x57d1a0, jpeg_recorder(22, 0)}, {0x58a490, jpeg_recorder(23, 0)}, {0x561a00, jpeg_recorder(24, 0)}, {0x58b040, jpeg_recorder(25, 0)}, {0x574b10, jpeg_recorder(26, 0)}, {0x5761b0, jpeg_recorder(27, 0)}, {0x56de90, jpeg_recorder(28, 0)},
+    {0x58d090, jpeg_recorder(29, 0)}, {0x580500, jpeg_recorder(30, 0)}, {0x5740e0, jpeg_recorder(31, 0)}, {0x582280, jpeg_recorder(6, 0)}, {0x5667a0, jpeg_recorder(4, 0)}, {0x569ef0, jpeg_recorder(3, 0)}, {0x573b30, jpeg_recorder(5, 0)}, {0x578390, jpeg_recorder(2, 0)}, {0x56b760, jpeg_recorder(1, 0)},
+    {0x5645e0, jpeg_recorder(18, 1)}, {0x58cff0, jpeg_recorder(19, 1)}, {0x5839f0, recorder(20, 0)}, {0x5839a0, recorder(21, 0)}, {0x56e550, recorder(22, 2)}, {0x585720, recorder(23, 0)}, {0x57d920, recorder(24, 2)}, {0x583cc0, recorder(25, 0)}, {0x5835c0, recorder(26, 0)},
+    {0x5833c0, recorder(27, 0)}, {0x584790, recorder(28, 0)}, {0x563460, recorder(0, 6)}, {0x5640a0, recorder(1, 0)}, {0x572c40, jpeg_recorder(20, 1)}, {0x573960, jpeg_recorder(21, 1)}, {0x572d50, jpeg_recorder(7, 0)}, {0x5632b0, jpeg_recorder(0, 6)}, {0x5836d0, jpeg_recorder(1, 1)},
+    {0x572780, jpeg_recorder(2, 3)}, {0x583700, jpeg_recorder(3, 0)}, {0x5633a0, jpeg_recorder(4, 0)}};
+const AddrCall kModelTreeCalls[] = {{0x581a00, recorder(7, 3)}};  // tests/fncmp/modeltree.py
+// The triangle routine's recorder that first copies the three corners off the stack (tests/fncmp/rasterspeed.py: its _span, the same).
+void __cdecl rasterSpanStandIn(const u32 *a, const u32 *b, const u32 *c) {
+    u32 *const out = reinterpret_cast<u32 *>((uintptr_t)0x30001000);
+    const u32 n = out[0]++;
+    const u32 *const corners[3] = {a, b, c};
+    for (u32 i = 0; i < 9; ++i)
+        out[1 + 9 * n + i] = corners[i / 3][i % 3];
+    reinterpret_cast<void(__cdecl *)(const u32 *, const u32 *, const u32 *)>((uintptr_t)jpeg_recorder(2, 3))(a, b, c);
+}
+const AddrCall kRasterSpeedCalls[] = {{0x57cb90, jpeg_recorder(1, 0)}, {0x6ef7f0, (u32)(uintptr_t)&rasterSpanStandIn}};  // tests/fncmp/rasterspeed.py
+const AddrCall kTexManagerCreateCalls[] = {{0x44a280, jpeg_recorder(1, 3)}, {0x5755f0, recorder(2, 1)}};  // tests/fncmp/texmancreate.py
+// TexFormat_Classify's stand-in: each try's lines kept, its answer from the table (tests/fncmp/uvprobe.py: its _classify, the same), its recorder.
+u32 __fastcall uvClassifyStandIn(u32 self, u32, const u32 *lines) {
+    u32 *const table = reinterpret_cast<u32 *>((uintptr_t)0x30000000);
+    const u32 n = table[0x20]++;
+    for (u32 i = 0; i < 0x3c; ++i)
+        reinterpret_cast<u32 *>((uintptr_t)0x30000100 + 0xf0 * n)[i] = lines[i];
+    u32 *const override = reinterpret_cast<u32 *>((uintptr_t)(0x2f100000 + 0x800 + 8 * 26));
+    override[0] = 1;
+    override[1] = table[n];
+    return reinterpret_cast<u32(__fastcall *)(u32, u32, const u32 *)>((uintptr_t)recorder(26, 1))(self, 0, lines);
+}
+const AddrCall kUvProbeCalls[] = {  // tests/fncmp/uvprobe.py, uvdetect.py
+    {0x58dd60, recorder(20, 1)}, {0x583720, jpeg_recorder(21, 0)}, {0x590a80, recorder(22, 2)}, {0x590d40, recorder(23, 0)}, {0x58c9f0, recorder(24, 2)}, {0x58cf40, recorder(25, 0)}, {0x583ba0, (u32)(uintptr_t)&uvClassifyStandIn}, {0x590a70, recorder(27, 0)},
+    {0x5645e0, jpeg_recorder(1, 1)}, {0x56a770, jpeg_recorder(2, 1)}, {0x564650, jpeg_recorder(4, 1)}, {0x584310, recorder(28, 0)}, {0x583e90, recorder(29, 0)}};
+const AddrCall kTerrainTexCalls[] = {{0x578ca0, recorder(2, 1)}, {0x5783b0, jpeg_recorder(3, 0)}, {0x5645e0, jpeg_recorder(4, 1)}, {0x572100, recorder(5, 0)}, {0x572110, recorder(6, 2)}, {0x5723f0, recorder(7, 1)}, {0x56af20, recorder(8, 2)}};  // tests/fncmp/terraintexinit.py, terraintexview.py
+const AddrCall kDeviceCreateCalls[] = {{0x573080, recorder(20, 1)}, {0x573b90, recorder(21, 1)}, {0x678e70, jpeg_recorder(22, 4)}, {0x579b80, jpeg_recorder(23, 1)}, {0x679270, jpeg_recorder(24, 0)}, {0x56af20, recorder(25, 2)}, {0x5645e0, jpeg_recorder(26, 1)}};  // tests/fncmp/devicecreate.py, softcreate.py
+const AddrCall kImageBufferCalls[] = {{0x56a770, jpeg_recorder(1, 1)}, {0x564650, jpeg_recorder(2, 1)}, {0x56af20, recorder(3, 2)}, {0x591270, jpeg_recorder(4, 9)}, {0x574bd0, jpeg_recorder(5, 6)}, {0x579b80, jpeg_recorder(6, 1)}};  // tests/fncmp/imagebuffer.py
+const AddrCall kScrollLayersCalls[] = {{0x590f90, recorder(1, 0)}, {0x58c9f0, recorder(2, 2)}};  // tests/fncmp/scrolllayers.py
+const AddrCall kAdvisorSendCalls[] = {{0x59bea0, recorder(1, 0)}, {0x67a7d0, jpeg_recorder(2, 1)}, {0x59c0a0, recorder(3, 3)}, {0x59c2b0, recorder(4, 1)}, {0x59c240, recorder(5, 1)}, {0x599050, jpeg_recorder(6, 1)}, {0x5997b0, jpeg_recorder(7, 1)}, {0x40fb10, recorder(8, 1)}};  // tests/fncmp/advisorsend.py
+const AddrCall kWeatherBoltCalls[] = {{0x57ec50, recorder(1, 2)}, {0x57ed50, jpeg_recorder(2, 0)}, {0x591210, jpeg_recorder(3, 0)}, {0x67b5c0, jpeg_recorder(4, 0)}};  // tests/fncmp/weatherbolts.py
+const AddrCall kSurfacePoolCalls[] = {{0x573820, recorder(1, 2)}, {0x56af20, recorder(2, 2)}, {0x564650, jpeg_recorder(3, 1)}, {0x56a770, jpeg_recorder(4, 1)}};  // tests/fncmp/surfacemake.py
+const AddrCall kMeshTexturesCalls[] = {{0x575f90, recorder(1, 1)}, {0x590f90, recorder(2, 0)}, {0x58dc50, recorder(3, 1)}, {0x58c9f0, recorder(4, 2)}};  // tests/fncmp/meshtextures.py
+const AddrCall kStartCarsCalls[] = {{0x435710, jpeg_recorder(1, 2)}, {0x44b220, jpeg_recorder(2, 3)}, {0x432c10, jpeg_recorder(3, 6)}, {0x434060, jpeg_recorder(4, 9)}, {0x442880, jpeg_recorder(5, 1)}, {0x498780, jpeg_recorder(6, 0)}, {0x435730, jpeg_recorder(7, 2)}};  // tests/fncmp/coasterstartcars.py
 const AddrCall kWindowGroupCalls[] = {{0x65c707, recorder(1, 0)}};  // tests/fncmp/windowgroup.py
 const AddrCall kWindowProcCalls[] = {{0x6590d0, jpeg_recorder(1, 2)}, {0x6588ef, jpeg_recorder(2, 2)}, {0x658af1, jpeg_recorder(3, 3)}, {0x658b5b, jpeg_recorder(4, 3)}, {0x658bcb, jpeg_recorder(5, 4)}, {0x658c38, jpeg_recorder(6, 2)}, {0x658c67, jpeg_recorder(7, 2)}, {0x658c96, jpeg_recorder(8, 2)}, {0x659333, jpeg_recorder(9, 0)}, {0x51bd30, jpeg_recorder(10, 0)}, {0x51b350, jpeg_recorder(11, 0)}, {0x6593c5, jpeg_recorder(12, 0)}, {0x51bcf0, jpeg_recorder(13, 0)}, {0x47e9d0, jpeg_recorder(14, 1)}, {0x46b460, jpeg_recorder(15, 1)}, {0x58dd60, recorder(16, 1)}, {0x40c900, recorder(17, 2)}, {0x40c990, recorder(18, 2)}, {0x4092a0, recorder(19, 2)}, {0x41a850, recorder(20, 0)}};
 const AddrCall kLanguageLoadCalls[] = {{0x6ad1b0, recorder(1, 2)}, {0x6ad230, recorder(2, 2)}, {0x6ad4b0, recorder(3, 3)}, {0x6ad460, recorder(4, 3)}, {0x6ad510, recorder(5, 3)}, {0x6ad570, recorder(6, 3)}, {0x405710, recorder(7, 3)}, {0x6ad790, recorder(8, 1)}, {0x67a650, jpeg_recorder(9, 4)}};
 const AddrCall kMatricesUpdateCalls[] = {{0x67a7d0, jpeg_recorder(1, 1)}};
-const AddrCall kSavedPairsMakeCalls[] = {{0x575ee0, recorder(1, 1)}, {0x575f90, recorder(2, 1)}, {0x590d40, recorder(3, 0)}, {0x57b2e0, recorder(4, 0)}, {0x579b80, jpeg_recorder(5, 1)}};
-const AddrCall kSpriteFolderCalls[] = {{0x41a9d0, recorder(1, 0)}, {0x41aa40, recorder(2, 0)}, {0x41d570, recorder(3, 2)}, {0x41d710, recorder(4, 1)}, {0x5f8240, recorder(5, 0)}, {0x5f82b0, recorder(6, 1)}, {0x540d90, recorder(7, 2)}};  // tests/fncmp/spritefolder.py
+const AddrCall kSavedPairsMakeCalls[] = {{0x575ee0, recorder(1, 1)}, {0x575f90, recorder(2, 1)}, {0x590d40, recorder(3, 0)}, {0x57b2e0, recorder(4, 0)}, {0x579b80, jpeg_recorder(5, 1)}, {0x57b610, recorder(7, 4)}, {0x57b6e0, recorder(8, 1)}, {0x58dc50, recorder(9, 1)}, {0x565240, recorder(10, 5)}, {0x582640, recorder(11, 1)}, {0x67a7d0, jpeg_recorder(12, 1)}, {0x57b490, recorder(13, 0)}};
+const AddrCall kSpriteFolderCalls[] = {{0x41a9d0, recorder(1, 0)}, {0x41aa40, recorder(2, 0)}, {0x41d570, recorder(3, 2)}, {0x41d710, recorder(4, 1)}, {0x5f8240, recorder(5, 0)}, {0x5f82b0, recorder(6, 1)}, {0x540d90, recorder(7, 2)}, {0x541310, jpeg_recorder(8, 2)}, {0x421770, recorder(9, 2)}};  // tests/fncmp/spritefolder.py
 const AddrCall kThemeTextCalls[] = {{0x413020, recorder(1, 3)}, {0x4130b0, recorder(2, 3)}};  // tests/fncmp/themetexts.py
 const AddrCall kPointerMakeCalls[] = {  // tests/fncmp/pointermake.py
     {0x5fbf80, recorder(1, 2)}, {0x47e460, recorder(2, 0)}, {0x5fb8e0, recorder(3, 1)}, {0x5fbbd0, recorder(4, 2)}, {0x5fbc80, recorder(5, 2)}, {0x5fb7b0, recorder(6, 1)},
@@ -2581,6 +2673,23 @@ int main(int argc, char **argv) {
     NamedObjects_SetCalls(kThemeTextCalls, sizeof(kThemeTextCalls) / sizeof(kThemeTextCalls[0]));
     AsyncPointer_SetCalls(kPointerMakeCalls, sizeof(kPointerMakeCalls) / sizeof(kPointerMakeCalls[0]));
     GameFile_SetCalls(kGameFileCalls, sizeof(kGameFileCalls) / sizeof(kGameFileCalls[0]));
+    ObjectDefs_SetLoadCalls(kObjectDefsLoadCalls, sizeof(kObjectDefsLoadCalls) / sizeof(kObjectDefsLoadCalls[0]));
+    Sign_SetApplyCalls(kSignApplyCalls, sizeof(kSignApplyCalls) / sizeof(kSignApplyCalls[0]));
+    EngineStart_SetCalls(kEngineStartCalls, sizeof(kEngineStartCalls) / sizeof(kEngineStartCalls[0]));
+    Batch_SetTreeCalls(kModelTreeCalls, 1);
+    Rasteriser_SetSpeedCalls(kRasterSpeedCalls, 2);
+    TexManager_SetCreateCalls(kTexManagerCreateCalls, 2);
+    UvProbe_SetCalls(kUvProbeCalls, sizeof(kUvProbeCalls) / sizeof(kUvProbeCalls[0]));
+    TerrainTex_SetCalls(kTerrainTexCalls, sizeof(kTerrainTexCalls) / sizeof(kTerrainTexCalls[0]));
+    DeviceCreate_SetCalls(kDeviceCreateCalls, sizeof(kDeviceCreateCalls) / sizeof(kDeviceCreateCalls[0]));
+    ImageBuffer_SetCalls(kImageBufferCalls, sizeof(kImageBufferCalls) / sizeof(kImageBufferCalls[0]));
+    ScrollLayers_SetCalls(kScrollLayersCalls, sizeof(kScrollLayersCalls) / sizeof(kScrollLayersCalls[0]));
+    AdvisorSend_SetCalls(kAdvisorSendCalls, sizeof(kAdvisorSendCalls) / sizeof(kAdvisorSendCalls[0]));
+    WeatherFx_SetBoltCalls(kWeatherBoltCalls, sizeof(kWeatherBoltCalls) / sizeof(kWeatherBoltCalls[0]));
+    SurfacePool_SetCalls(kSurfacePoolCalls, sizeof(kSurfacePoolCalls) / sizeof(kSurfacePoolCalls[0]));
+    Mesh_SetTextureCalls(kMeshTexturesCalls, sizeof(kMeshTexturesCalls) / sizeof(kMeshTexturesCalls[0]));
+    StartCars_SetCalls(kStartCarsCalls, sizeof(kStartCarsCalls) / sizeof(kStartCarsCalls[0]));
+    CoasterType_SetLoadCalls(kCoasterTypeLoadCalls, sizeof(kCoasterTypeLoadCalls) / sizeof(kCoasterTypeLoadCalls[0]));
     Dialog_SetCalls(kDialogBoxCalls, sizeof(kDialogBoxCalls) / sizeof(kDialogBoxCalls[0]));
     ArReplay_SetCalls(kArReplayCalls, sizeof(kArReplayCalls) / sizeof(kArReplayCalls[0]));
     Contacts_SetCalls(kContactsCalls, sizeof(kContactsCalls) / sizeof(kContactsCalls[0]));

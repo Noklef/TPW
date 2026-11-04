@@ -68,3 +68,8 @@ extern "C" {
 u8 __cdecl Sprites_UseGroundFrames();
 u8 __cdecl Sprites_UseParkFrames();
 }
+
+// 0x541d90 (cdecl; name invented, unconfirmed): the sprites' count [0x87626c] 0, the folder 0x876960 found in [0x786b9c]'s list (not exactly 1: false). Each of the 14 sets of 0x763f88 (only the last, with the flag), 0xc bytes each: its +4 the count so far and its +8 Sprites_LoadFolder(the folder, its name +0). [0x876b28] the count. True.
+extern "C" {
+bool __cdecl Sprites_LoadAll(u8 onlyLast);
+}
