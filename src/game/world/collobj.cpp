@@ -2,6 +2,8 @@
 
 #include <cstdint>
 
+#include "../core/crt.h"
+#include "../math/intsin.h"
 #include "../math/vec2.h"
 #include "../math/x87.h"
 
@@ -68,6 +70,18 @@ void __cdecl CollPool_Reset() {
         next = object;
     }
     global<u8 *>(0x00877b8c) = global<u8 *>(0x00877b88);
+}
+
+u32 __cdecl CollPool_Startup() {
+    IntSin_BuildTable();
+    void *(__stdcall *const allocate)(u32, u32) = global<void *(__stdcall *)(u32, u32)>(0x006fd1cc);
+    for (u32 i = 0; i < 0xf; i++) global<u32>(0x00877b58 + i * 4) = 0;
+    global<u32>(0x00877b58) = 0x4a454647;
+    static const struct { u32 address, size; } kPools[] = {{0x00877b60, 0x3400}, {0x00877b68, 0xac00}, {0x00877b70, 0x10000}, {0x00877b78, 0x7000}, {0x00877b80, 0xa000}, {0x00877b88, 0x5000}};
+    for (const auto &pool : kPools) global<void *>(pool.address) = allocate(0x40, pool.size);
+    CollPool_Reset();
+    global<s32>(0x00877b90) = Crt().rand();
+    return global<u32>(0x00877b90);
 }
 
 void __cdecl Collider_ReleaseC0(u8 *collider) {
