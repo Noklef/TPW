@@ -49,7 +49,7 @@ def frames_file(r):
         data += r.bytes(0x400)
     for _ in range(count):
         data += spritesload.rle(r) if kind == 3 else spritesload.wct(r) if kind == 2 else b''
-    return data
+    return data, kind
 
 
 def case(r):
@@ -74,7 +74,7 @@ def case(r):
     answers(log, OPEN, ANSWERS)
     regions[YES] = struct.pack('<ii', r.choice([0, 1, 0x7fffffff]), r.choice([-1, -0x80000000]))
     fill(log, OPEN, 1, struct.pack('<4I', 0x703100, SOURCE1, 0x703100, SOURCE2), records=2)
-    esp, frames = esp_file(r), frames_file(r)
+    esp, (frames, kind) = esp_file(r), frames_file(r)
     regions[DATA1], regions[DATA2] = esp + r.bytes(4), frames + r.bytes(4)
     regions[SOURCE1] = source(SOURCE1, DATA1, len(esp))
     regions[SOURCE2] = source(SOURCE2, DATA2, len(frames))
@@ -91,7 +91,7 @@ def case(r):
     settings = bytearray(r.bytes(0x4088))
     put(settings, 4, 'I', r.choice([2, 2, 2, 0, 1, 3]))
     regions.update({0x8bd550: settings, 0x8bd508: r.bytes(4), 0x879ad0: put(bytearray(r.bytes(0x204)), 0x200, 'i', r.choice([r.randrange(0x40), 0, 0x3f, 0x40])), 0x8798c8: bytes(4), 0x879a38: bytearray(r.bytes(0x2c)),
-                    spritesload.TABLE: bytearray(8 * 8), spritesload.COUNT: bytes(4), 0x763f28: r.choice([b'\0', b'\1']), 0x8768fc: struct.pack('<I', r.choice([0, 1])), 0x877354: r.choice([b'\0', b'\1']), 0x87626c: r.bytes(4)})
+                    spritesload.TABLE: bytearray(8 * 8), spritesload.COUNT: bytes(4), 0x763f28: r.choice([b'\0', b'\1']), 0x8768fc: struct.pack('<I', r.choice([0, 1])), 0x877354: r.choice([b'\0', b'\1'] if kind in (2, 3) else [b'\0'] * 15 + [b'\1']), 0x87626c: r.bytes(4)})   # (marking a set that failed to load faults in both)
     return Call(0x540d90, [SPRITE, ENTRY, FILES], regions, conv='t', ret='b')
 
 
