@@ -6002,6 +6002,18 @@ address,name,kind,confidence,notes
 0x00694e60,NumPut_DoPutPointer,function,low,reimplemented (src/game/core/numput); num_put<char>::do_put of a pointer (MSVC6)
 0x0069bb70,NumPutW_DoPutPointer,function,low,reimplemented (src/game/core/numput); num_put<wchar_t>::do_put of a pointer
 0x0069ffe0,CollateW_DoTransform,function,low,reimplemented (src/game/core/wcollate); collate<wchar_t>::do_transform (name unconfirmed)
+0x00694ac0,Streambuf_Sputc,function,low,reimplemented (src/game/core/moneyput); streambuf::sputc
+0x00694b10,OstreamIter_Put,function,low,reimplemented (src/game/core/moneyput); the output iterator's put
+0x0069c660,MoneyPunct_Grouping,function,low,reimplemented (src/game/core/moneyput); moneypunct::grouping
+0x006a1880,MoneyPunct_PositiveSign,function,low,reimplemented (src/game/core/moneyput); moneypunct::positive_sign
+0x006a87f0,MoneyPunct_CurrSymbol,function,low,reimplemented (src/game/core/moneyput); moneypunct::curr_symbol
+0x006a8810,MoneyPunct_NegativeSign,function,low,reimplemented (src/game/core/moneyput); moneypunct::negative_sign
+0x006a8f00,MoneyPunct_MakePattern,function,low,reimplemented (src/game/core/moneyput); moneypunct::_Makpat
+0x006a8cf0,MoneyPunctIntl_Ctor,function,low,"reimplemented (src/game/core/moneyput); moneypunct<char, true>'s constructor on a ""C"" _Locinfo"
+0x006a8f70,MoneyPunctLocal_Ctor,function,low,"reimplemented (src/game/core/moneyput); moneypunct<char, false>'s constructor on a ""C"" _Locinfo"
+0x006a9260,MoneyPut_DoPutNumber,function,low,reimplemented (src/game/core/moneyput); money_put<char>::do_put of a number
+0x006a9480,MoneyPut_DoPutString,function,low,reimplemented (src/game/core/moneyput); money_put<char>::do_put of a string
+0x006a9700,MoneyPut_Putmfld,function,low,reimplemented (src/game/core/moneyput); money_put<char>::_Putmfld
 0x0050ffe0,Nav_Ctor,function,high,reimplemented (src/game/world/nav); constants constructor with five integer pairs
 0x0050f200,Nav_Dtor,function,high,reimplemented (src/game/world/nav); thiscall: the five IntPairs at +0x64 destroyed with Stub_Ret (CRT_VectorDtorIterator); also via 0x4f7c30 (+0xd4) and 0x4f8ad0
 0x004f7c30,Nav_DtorAtD4,function,low,reimplemented (src/game/world/nav); thiscall adjustor: Nav_Dtor on this + 0xd4

@@ -225,6 +225,7 @@
 #include "../game/core/loopstream.h"
 #include "../game/core/mixerthread.h"
 #include "../game/core/moneypunct.h"
+#include "../game/core/moneyput.h"
 #include "../game/core/mp2decoder.h"
 #include "../game/core/mp2frame.h"
 #include "../game/core/mp2layer1.h"
@@ -6314,6 +6315,18 @@ const Hook kHooks[] = {
     {"NumPut_DoPutPointer",       0x00694e60, (void *)&NumPut_DoPutPointer, {0x8b, 0x44, 0x24, 0x18, 0x83}},
     {"NumPutW_DoPutPointer",      0x0069bb70, (void *)&NumPutW_DoPutPointer, {0x83, 0xec, 0x4c, 0x8b, 0x44}},
     {"CollateW_DoTransform",      0x0069ffe0, (void *)&CollateW_DoTransform, {0x6a, 0xff, 0x68, 0x88, 0x46}},
+    {"Streambuf_Sputc",           0x00694ac0, (void *)&Streambuf_Sputc, {0x8b, 0x41, 0x20, 0x56, 0x57}},
+    {"OstreamIter_Put",           0x00694b10, (void *)&OstreamIter_Put, {0x53, 0x56, 0x57, 0x8b, 0xf9}},
+    {"MoneyPunct_Grouping",       0x0069c660, (void *)&MoneyPunct_Grouping, {0x51, 0x8b, 0x01, 0x56, 0x8b}},
+    {"MoneyPunct_PositiveSign",   0x006a1880, (void *)&MoneyPunct_PositiveSign, {0x51, 0x8b, 0x01, 0x56, 0x8b}},
+    {"MoneyPunct_CurrSymbol",     0x006a87f0, (void *)&MoneyPunct_CurrSymbol, {0x51, 0x8b, 0x01, 0x56, 0x8b}},
+    {"MoneyPunct_NegativeSign",   0x006a8810, (void *)&MoneyPunct_NegativeSign, {0x51, 0x8b, 0x01, 0x56, 0x8b}},
+    {"MoneyPunct_MakePattern",    0x006a8f00, (void *)&MoneyPunct_MakePattern, {0x8a, 0x41, 0x28, 0x84, 0xc0}},
+    {"MoneyPunctIntl_Ctor",       0x006a8cf0, (void *)&MoneyPunctIntl_Ctor, {0x6a, 0xff, 0x68, 0x90, 0x50}},
+    {"MoneyPunctLocal_Ctor",      0x006a8f70, (void *)&MoneyPunctLocal_Ctor, {0x6a, 0xff, 0x68, 0xb0, 0x50}},
+    {"MoneyPut_DoPutNumber",      0x006a9260, (void *)&MoneyPut_DoPutNumber, {0x6a, 0xff, 0x68, 0xe8, 0x50}},
+    {"MoneyPut_DoPutString",      0x006a9480, (void *)&MoneyPut_DoPutString, {0x6a, 0xff, 0x68, 0x23, 0x51}},
+    {"MoneyPut_Putmfld",          0x006a9700, (void *)&MoneyPut_Putmfld, {0x6a, 0xff, 0x68, 0xb9, 0x51}},
     {"Nav_Ctor",          0x0050ffe0, (void *)&Nav_Ctor, {0x6a, 0xff, 0x68, 0x2d, 0xe6}},
     {"Nav_Dtor",                  0x0050f200, (void *)&Nav_Dtor, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"Nav_DtorAtD4",              0x004f7c30, (void *)&Nav_DtorAtD4, {0x81, 0xc1, 0xd4, 0x00, 0x00}},
