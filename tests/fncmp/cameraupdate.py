@@ -67,12 +67,13 @@ def case(r):
     s(0x790ae4, 'I', fb(r.uniform(-5, 50)))
     mouse = r.uniform(-3, 3), r.uniform(-3, 3)
     mx, my = r.deal(OFFSET), r.deal(OFFSET)
-    s(0x790ac8, '2I', f(r, nan, mouse[0] + mx, mouse[0] + mx), f(r, nan, mouse[1] - my, mouse[1] - my))
+    half = r.choice([1.0, 320.0, 400.0, 512.0, 0.5]), r.choice([1.0, 240.0, 300.0, 384.0, 0.5])   # (the screen's half size: the game sets it with the window)
+    s(0x790ac8, '2I', f(r, nan, mouse[0] + mx * half[0], mouse[0] + mx * half[0]), f(r, nan, mouse[1] - my * half[1], mouse[1] - my * half[1]))
     extent = bytearray(r.bytes(0x40))
     put(extent, 0x10, '2I', fb(10.0), fb(r.choice([10.0, 10.0, 5.0])))
     put(extent, 0x18, '2I', r.choice([128, 128, 64]), r.choice([128, 128, 64, 0x10080]))   # (the last: the high word the definition's id keeps)
     put(extent, 0x28, '2I', r.deal([0, 1, 1, 1]), r.deal([0, 1, 1, 1]))
-    regions = {G: g, 0x78d910: bytes([r.deal([0, 0, 1]), 0, r.deal([0, 0, 1]), 0]), 0x7a1a14: bytes([r.deal([0, 8, 8]), 0, 0, 0]), 0x7a1c54: struct.pack('<2I', fb(mouse[0]), fb(mouse[1])),
+    regions = {G: g, 0x78d910: bytes([r.deal([0, 0, 1]), 0, r.deal([0, 0, 1]), 0]), 0x7a1a14: bytes([r.deal([0, 8, 8]), 0, 0, 0]), 0x7a1c54: struct.pack('<2I', fb(mouse[0]), fb(mouse[1])), 0x74d104: struct.pack('<2I', fb(half[0]), fb(half[1])),
                0x7a0854: struct.pack('<I', VIEW), 0x787c14: struct.pack('<I', MAP), 0x87afe8: struct.pack('<I', TARGET), 0x7a0314: struct.pack('<I', r.choice([128, 64])), 0x7a0374: struct.pack('<I', r.choice([128, 64])),
                0xfb1330: b'\1\0\0\0', VIEW: put(bytearray(r.bytes(0x70)), 0x6c, 'I', EXTENT), EXTENT: extent, TARGET: r.bytes(0x40), PART: struct.pack('<16I', *(f(r, nan, -2, 2) for _ in range(16))), MAP: r.bytes(8),
                OBJECT: r.bytes(0x20), HELD: table(r, [0, 0, 0, 0, 0, 1, 0x10000]), BLOCKED: table(r, [0, 0, 0, 1, 0x100]), RIDES: table(r, [0] * 30 + [OBJECT]), LOG: log}

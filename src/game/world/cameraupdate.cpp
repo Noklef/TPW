@@ -272,8 +272,8 @@ void __cdecl Camera_Update() {
             keys = k;
             flagsNow = flags;
         }
-        float mx = (float)((X87Reg(global<float>(0x00790ac8)) - global<float>(0x007a1c54)) / kOne);    // (0x74d104, 1)
-        float my = (float)X87Reg(-((X87Reg(global<float>(0x00790acc)) - global<float>(0x007a1c58)) / kOne).v);   // (0x74d108, 1)
+        float mx = (float)((X87Reg(global<float>(0x00790ac8)) - global<float>(0x007a1c54)) / global<float>(0x0074d104));   // (the screen's half size, set with the window)
+        float my = (float)X87Reg(-((X87Reg(global<float>(0x00790acc)) - global<float>(0x007a1c58)) / global<float>(0x0074d108)).v);
         global<u32>(0x007909d0) = k;
         u32 pressing = 0, moved = 0;
         if (flags & 0x16) {
