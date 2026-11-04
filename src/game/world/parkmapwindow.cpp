@@ -6,15 +6,27 @@
 
 #include "../core/accessors.h"
 #include "../core/gameheap.h"
+#include "../core/gameowner.h"
+#include "../core/language.h"
 #include "../core/stdlist.h"
 #include "../core/string.h"
 #include "../core/vcall.h"
 #include "../files/charsets.h"
+#include "../frontend/helpbg.h"
 #include "../gfx/surface.h"
+#include "../gfx/texcache.h"
 #include "../math/x87.h"
 #include "../render/backdrop.h"
+#include "../render/renderer.h"
+#include "../render/textparts.h"
+#include "../terrain/land.h"
+#include "../ui/focus.h"
+#include "../ui/radiogroup.h"
 #include "../ui/thingpanel.h"
 #include "../ui/window.h"
+#include "../ui/window705a50.h"
+#include "../ui/windowscript.h"
+#include "advisor.h"
 #include "parkmap.h"
 #include "signtext.h"
 #include "staff.h"
@@ -246,6 +258,27 @@ const ParkMapSpritesEnv *g_sprites = &kSpritePorts;
 
 void ParkMapSprites_SetEnv(const ParkMapSpritesEnv *env) { g_sprites = env ? env : &kSpritePorts; }
 
+namespace {
+const ParkMapOpenEnv kOpenPorts = {&Global7c2534_HasSource, &GameOwner_Pause, &Fn_662411, Game{0x005996d0}, &Renderer_StateFlags, &Renderer_SetStateFlags, &TexCache_ReleaseItems,
+                                   &Window7c24c8_Close, &Window_SendMessage, &WindowScript_Build, &Window7c24c8_Set, &Window_SetFocus, &Window_FindChild, &TextPart_Ctor, &Window_SetImpl,
+                                   &Window_NotifyC00, &Window_Notify3000, &Language_Font, &Window_Set4c, &Window_Notify40000, &Window_NotifyImpl100, &Window_SetDepth,
+                                   &Window705a50_SetState, &RadioGroup_Select, &Window705a50_SetPair, &Window_SetHandler, &Terrain_GridSize, &ParkMap_Classify,
+                                   &ParkMap_PrepareSprites, &ParkMap_LoadPicture, &Backdrop_Create, &Backdrop_Clear5c, &ParkMap_Draw, &Backdrop_UncacheRect,
+                                   &Advisor_PostId, &HelpBg_Place, &ParkMap_HandleWindow, &ParkMap_HandleMouse};
+const ParkMapOpenEnv *g_open = &kOpenPorts;
+
+const u32 kOpenMap = 0x00f86db8;
+
+// One coordinate of the origin as ParkMap_Open keeps it: below the floor [0x703010] the floor, past limit (compared exactly) the limit rounded to a float.
+float open_origin(float v, s32 limit) {
+    const float floor = global<float>(0x00703010);
+    if (v < floor) return X87_Through(floor);
+    return (double)v <= (double)limit ? v : (float)limit;
+}
+}  // namespace
+
+void ParkMapOpen_SetEnv(const ParkMapOpenEnv *env) { g_open = env ? env : &kOpenPorts; }
+
 extern "C" {
 
 s32 __fastcall ParkMap_HandleMouse(u8 *map, void *, u8 *window, u32 message, u32 a, u32 b) {
@@ -456,6 +489,99 @@ void __fastcall ParkMap_PrepareSprites(u8 *map) {
     }
     at<u32 *>(map, 0x20080) = list;
     g_sprites->addSprites(map);
+}
+
+s32 __cdecl ParkMap_WindowHandler(u8 *window, u32 message, u32 a, u32 b) {
+    return g_open->handleWindow(reinterpret_cast<u8 *>((uintptr_t)kOpenMap), nullptr, window, message, a, b);
+}
+
+s32 __cdecl ParkMap_MouseHandler(u8 *window, u32 message, u32 a, u32 b) {
+    return g_open->handleMouse(reinterpret_cast<u8 *>((uintptr_t)kOpenMap), nullptr, window, message, a, b);
+}
+
+void __fastcall ParkMap_Open(u8 *map) {
+    const ParkMapOpenEnv *const env = g_open;
+    if (env->hasSource() != 0 || at<u32>(map, 4) != 0) return;
+    env->pause(reinterpret_cast<u8 *>((uintptr_t)0x00786b68), nullptr, 0, 0);
+    global<u32>(0x00786ba4) = 0;
+    env->setFlag662411();
+    env->f5996d0(1);
+    at<u32>(map, 8) = global<u32>(0x008bd47c);
+    global<u32>(0x008bd47c) = 0;
+    at<u32>(map, 0xc) = env->stateFlags(global<u8 *>(0x0087a6d0));
+    env->setFlags(global<u8 *>(0x0087a6d0), nullptr, 0x2821);
+    env->releaseItems(global<u8 *>(0x008c4b44), nullptr, 0);
+    env->focusClose();
+    env->send(global<u8 *>(0x007cb2ac), 6, 0, 0);
+    u8 *const window = env->build(global<u8 *>(0x00faa5d8), nullptr, reinterpret_cast<u8 *>((uintptr_t)0x00774da0), 0x005f0b00);
+    env->focusSet(window);
+    at<u8 *>(map, 4) = window;
+    env->setFocus(window, nullptr, 0);
+
+    u8 *const label = env->findChild(window, nullptr, 0x991);
+    u8 *const memory = static_cast<u8 *>(GameHeap_Alloc(0x1a4));
+    env->setImpl(label, nullptr, memory ? env->textPart(memory, nullptr, 0) : nullptr);
+    env->notifyC00(label, nullptr, 1, 1);
+    env->notify3000(label, nullptr, 1, 1);
+    env->set4c(label, nullptr, env->font(4));
+    env->notify40000(label, nullptr, 0xff, 0xff, 0, 0xff);
+    env->notifyImpl100(label, nullptr, 0);
+    vcall<void>(env->findChild(window, nullptr, 0x990), 0x14, 0u);
+    vcall<void>(env->findChild(window, nullptr, 0x995), 0x14, 0u);
+
+    const u32 depth = (u32)(s32)at<s16>(env->findChild(window, nullptr, 0x990), 0xe0) + 2;
+    static const struct { u32 id; u8 bit; } kFilters[] = {{0x982, 8}, {0x987, 1}, {0x989, 0x10}, {0x993, 2}, {0x994, 4}, {0x983, 0x20}};
+    for (const auto &filter : kFilters) {
+        u8 *const child = env->findChild(window, nullptr, filter.id);
+        env->setDepth(child, nullptr, depth);
+        if (at<u8>(map, 0x18) & filter.bit) env->setState(child, nullptr, 1, 1);
+    }
+
+    u8 *const views = env->findChild(window, nullptr, 0x98b);
+    switch (at<u32>(map, 0x1c)) {
+    case 1: env->select(views, nullptr, 0x98e); break;
+    case 2: env->select(views, nullptr, 0x98f); break;
+    case 3: env->select(views, nullptr, 0x98c); break;
+    case 4: env->select(views, nullptr, 0x98d); break;
+    default: break;
+    }
+    u8 *const modes = env->findChild(window, nullptr, 0x996);
+    switch (at<u32>(map, 0x20)) {
+    case 1: env->select(modes, nullptr, 0x998); break;
+    case 2: env->select(modes, nullptr, 0x997); break;
+    case 3: env->select(modes, nullptr, 0x999); break;
+    default: break;
+    }
+    static const u32 kPairs[] = {0x98a, 0x984, 0x981, 0x988};
+    for (const u32 id : kPairs) env->setPair(env->findChild(window, nullptr, id), nullptr, 0, 10);
+    env->setHandler(env->findChild(window, nullptr, 0x992), nullptr, 0x005f0b20);
+
+    at<u32>(map, 0x20060) = 0;
+    at<u16>(map, 0x20064) = 0;
+    at<u32>(map, 0x20084) = 0;
+    env->gridSize(&at<u32>(map, 0x24), &at<u32>(map, 0x28));
+
+    const float scale = global<float>(0x0070300c);
+    s32 x = Ftol((X87Reg(global<float>(0x00790ab8)) * scale).v);  // __ftol
+    s32 y = Ftol((X87Reg(global<float>(0x00790ac0)) * scale).v);
+    if (x < 0) x = 0;
+    if (y < 0) y = 0;
+    if (x >= global<s32>(0x007a0314)) x = global<s32>(0x007a0314) - 1;
+    if (y >= global<s32>(0x007a0374)) y = global<s32>(0x007a0374) - 1;
+    at<float>(map, 0x54) = open_origin((float)x, at<s32>(map, 0x24));
+    at<float>(map, 0x58) = open_origin((float)y, at<s32>(map, 0x28));
+
+    env->classify(map);
+    env->prepare(map);
+    env->loadPicture(map, nullptr, 0);
+    u8 *const backdrop = reinterpret_cast<u8 *>((uintptr_t)kBackdrop);
+    env->backdropCreate(backdrop, nullptr, at<u8 *>(map, 0x44), at<s32>(map, 0x48), at<s32>(map, 0x4c), at<s32>(map, 0x50));
+    env->backdropClear(backdrop);
+    env->loadPicture(map, nullptr, 1);
+    env->draw(map);
+    env->uncacheRect(backdrop, nullptr, 0, 0, at<s32>(map, 0x48) - 1, at<s32>(map, 0x4c) - 1);
+    env->advisor(0x130);
+    env->helpPlace(0xffffffff, 10);
 }
 
 }  // extern "C"

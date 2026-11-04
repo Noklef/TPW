@@ -6426,6 +6426,9 @@ address,name,kind,confidence,notes
 0x005f18d0,ParkMap_HandleMouse,function,low,"reimplemented (src/game/world/parkmapwindow); The park map's mouse: the item and the square under it, its name shown; dragging scrolls; a click moves the view and shows the thing."
 0x005f1130,ParkMap_HandleWindow,function,low,"reimplemented (src/game/world/parkmapwindow); The park map's window: closing, framing, edge scrolling, its keys and buttons."
 0x005f3710,ParkMap_PrepareSprites,function,low,"reimplemented (src/game/world/parkmapwindow); The park map's sprites counted and made ready: the array, the six images, the list, then the sprites added."
+0x005f0b00,ParkMap_WindowHandler,function,low,"reimplemented (src/game/world/parkmapwindow); cdecl (window, message, a, b): ParkMap_HandleWindow on the map at 0xf86db8"
+0x005f0b20,ParkMap_MouseHandler,function,low,"reimplemented (src/game/world/parkmapwindow); cdecl (window, message, a, b): ParkMap_HandleMouse on the map at 0xf86db8"
+0x005f0b40,ParkMap_Open,function,low,"reimplemented (src/game/world/parkmapwindow); thiscall on the map: the game held, the map's window built and dressed, the view put on the camera, the picture loaded and drawn, the backdrop made"
 0x0045bc60,Holder_Destroy,function,high,"reimplemented (src/game/model/holder); a holder's part sleeps, its owner's count drops and the part is deleted"
 0x0046c210,Mouse_HandleButton,function,high,reimplemented (src/game/input/mouse); the left and right mouse buttons go down or up
 0x0046c2a0,Mouse_Moved,function,high,reimplemented (src/game/input/mouse); the mouse moved
