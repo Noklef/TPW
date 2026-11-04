@@ -9,7 +9,8 @@
 # +0x16dc id or not; the game clock paused at a time (as vlist.py's) about +0xd8 + +0xdc (wrapping now and then), +0x16ec id, another or
 # 0x160; Stop's world besides. Pause / Resume (0x598960 Advisor_PauseSpeech / 0x598990 Advisor_ResumeSpeech): Stop's world (the
 # functors' senders 0x51c060 / 0x51c0a0 on its object).
-# usage: advisorspeech.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Stop,Cancel,Pause,Resume)
+# Clear (0x598ad0 Advisor_ClearSpeechText) and End (0x5996d0 Advisor_EndSpeech, stop 0 or not; the object's slot 8 Sound_Stop's recorder, 10): Stop's world.
+# usage: advisorspeech.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Stop,Cancel,Pause,Resume,Clear,End)
 import os
 import struct
 import sys
@@ -36,7 +37,7 @@ def merged(ranges):   # (overlapping ranges joined: a listing line must not come
     return out
 
 
-B = Bench(merged(soundset.RANGES + advisor.RANGES + [(0x5994e0, 0x5996c9), (0x59aa70, 0x59ab4c), (0x402d80, 0x403220), (0x429d60, 0x429e00),
+B = Bench(merged(soundset.RANGES + advisor.RANGES + [(0x5994e0, 0x5996c9), (0x5996d0, 0x5997a6), (0x598ad0, 0x598b13), (0x51c2c0, 0x51c34d), (0x59aa70, 0x59ab4c), (0x402d80, 0x403220), (0x429d60, 0x429e00),
                                                      (0x5ed5a0, 0x5ed670), (0x51bfc0, 0x51c048), (0x598960, 0x5989bf)]),
           hooks={0x67a7d0: _cdecl_log, 0x67ad90: _free})
 PVT, TEXT = RAM + 0x9000, RAM + 0x9100   # (the manager's vtable: slot 2 Sound_PlayAt's recorder; a freed text)
@@ -77,6 +78,15 @@ def case(r):
     op = r.deal(OPS)
     if op == 'Stop':
         return Call(0x5994e0, [], stop_world(r), ret='v')
+    if op == 'Clear':
+        return Call(0x598ad0, [], stop_world(r), ret='v')
+    if op == 'End':
+        regions = stop_world(r)
+        ovt = bytearray(regions[so.OVT])
+        put(ovt, 4 * 8, 'I', recorder(10, 2))   # (the object's own slot 8: Sound_Stop's command, (out, value))
+        regions[so.OVT] = ovt
+        strings(regions[LOG], 10, 0, out=1)
+        return Call(0x5996d0, [r.choice([0, 0, 1, r.getrandbits(32)])], regions, ret='v')
     if op in ('Pause', 'Resume'):
         return Call(0x598960 if op == 'Pause' else 0x598990, [], stop_world(r), ret='v')
     c = advisor.queue(r, 'MayPost')
@@ -99,7 +109,7 @@ def case(r):
     return Call(0x59aa70, [advisor.ADVISOR, id], regions, conv='t', ret='b')
 
 
-OPS = [k for k in os.environ.get('OPS', 'Stop,Cancel,Pause,Resume').split(',') if k]
+OPS = [k for k in os.environ.get('OPS', 'Stop,Cancel,Pause,Resume,Clear,End').split(',') if k]
 
 if __name__ == '__main__':
     B.main(case)

@@ -2,6 +2,7 @@
 
 #include <cstdint>
 
+#include "../core/addrcalls.h"
 #include "../core/crt.h"
 #include "../core/gameclock.h"
 #include "../core/indexed.h"
@@ -44,7 +45,61 @@ u32 event_code(u8 *event) {
     return reinterpret_cast<Code>((uintptr_t)at<u32>(at<u8 *>(event, 0), 0))(event, nullptr);
 }
 
+AddrCalls g_calls;
+
+// The speech's model, particles and text ended, and the voice's pause undone: the part Advisor_StopSpeech and Advisor_EndSpeech share.
+void end_speech_parts() {
+    Sound_SetVoicePending(global<u32>(0x00f79680), 0);
+    if (global<u32>(0x00f797c4) && global<u8>(0x0078d90c) && global<u32>(0x00f79680)) {
+        Sound_VoiceFunctor3(global<u32>(0x00f79680));
+        global<u32>(0x00f797c4) = 0;
+    }
+    global<u32>(0x00f7966c) = 0;
+    Sound_Set803acc(0);
+    ParticlePool_Resize(0, 0, 0);
+    ModelSlot_KillAdvisor(global<u32>(0x00f79674));
+    if (u8 *const text = global<u8 *>(0x00f797a0)) {
+        if (text != reinterpret_cast<u8 *>(0x00f797d0))
+            Crt().free(text);
+        else
+            global<u32>(0x00f79bb8) = 0;
+        global<u32>(0x00f797a0) = 0;
+        global<u32>(0x00f79794) = 0;
+        global<u32>(0x00f7979c) = 0;
+    }
+}
+
+// The next line of a slot's message when the slot names none: by the definition's kind (DefField2c), from the last line played
+// (+0xe4 of the id's history record), n lines (DefField28) in all. Kind 0 wraps, 1 stays on the last, 2 just counts on, 3 is random (n 0 divides by zero, sic).
+// A kind above 3, and kind 0 at the last line, leave the original with its uninitialised local (the slot of the out dword): 0 here, which the later bound check gives for nearly every value it can hold.
+s32 next_line(const u8 *self, u32 scoring, u32 id) {
+    const u32 n = g_calls.Th(0x0059c2b0, scoring, id);
+    const u32 kind = g_calls.Th(0x0059c490, scoring, id);
+    const s32 &last = at<s32>(self, 0xe4 + (id << 4));
+    s32 next = 0;
+    switch (kind) {
+    case 0:
+        if (last != (s32)(n - 1)) next = last + 1;
+        break;
+    case 1:
+        next = last >= (s32)(n - 1) ? last : last + 1;
+        break;
+    case 2:
+        next = last + 1;
+        break;
+    case 3:
+        next = (s32)(g_calls.Th(0x00516330, global<u32>(0x0080239c)) % n);
+        break;
+    default:
+        break;
+    }
+    if (next < 0) return 0;
+    return next < (s32)g_calls.Th(0x0059c2b0, scoring, id) ? next : 0;
+}
+
 }  // namespace
+
+void Advisor_SetCalls(const AddrCall *table, u32 count) { g_calls.Set(table, count); }
 
 extern "C" {
 
@@ -282,27 +337,84 @@ void __cdecl Advisor_ResumeSpeech() {
     global<u32>(0x00f797c4) = 0;
 }
 
+void __cdecl Advisor_ClearSpeechText() {
+    global<u32>(0x00f7966c) = 0;
+    u8 *const text = global<u8 *>(0x00f797a0);
+    if (!text) return;
+    if (text != reinterpret_cast<u8 *>(0x00f797d0))
+        Crt().free(text);
+    else
+        global<u32>(0x00f79bb8) = 0;
+    global<u32>(0x00f797a0) = 0;
+}
+
+void __cdecl Advisor_EndSpeech(u32 stop) {
+    if (!global<u32>(0x00f7966c)) return;
+    end_speech_parts();
+    if (!global<u32>(0x00f79680)) return;
+    if (stop)
+        Sound_Stop(global<u32>(0x00f79680));
+    else
+        Sound_Forward6(global<u32>(0x00f79680));
+    global<u32>(0x00f79680) = 0;
+}
+
+void __fastcall Advisor_Update(u8 *self) {
+    const u32 scoring = (u32)(uintptr_t)AdvisorScoring_Instance();
+    const s32 floor = at<s32>(reinterpret_cast<void *>((uintptr_t)scoring), 0x20);
+    const u32 me = (u32)(uintptr_t)self;
+    const u32 picked = g_calls.Th(0x0059c680, scoring, 1u);
+    if ((s32)g_calls.Th(0x0059bf20, scoring, picked) > floor) {
+        u8 message[0x18];
+        g_calls.Th(0x0059a940, me, g_calls.Th(0x0059b590, (u32)(uintptr_t)message, picked, 0u, 0u, 0xffffffffu, 0u, 0xffffffffu));
+    }
+    if (g_calls.Th(0x00402d80, 0x00785970u) < at<u32>(self, 0xd8) + at<u32>(self, 0xdc)) return;
+    if (at<u8>(self, 0x16e8) == 1) {
+        at<u8>(self, 0x16e8) = 0;
+        return;
+    }
+    s32 index = -1, best = 0;
+    for (s32 k = 0; k < 8; ++k) {
+        const u8 *const slot = self + 0x14 + 0x18 * k;
+        if (at<u8>(slot, 0x14) && (index < 0 || at<s32>(slot, 0x10) > best)) {
+            index = k;
+            best = at<s32>(slot, 0x10);
+        }
+    }
+    if (index < 0 || best <= at<s32>(reinterpret_cast<void *>((uintptr_t)scoring), 0x20)) {
+        g_calls.Th(0x0041a990, me + 0xc);
+        return;
+    }
+    u8 *const slot = self + 0x14 + 0x18 * index;
+    s32 next = at<s32>(slot, 8);
+    if (next < 0) next = next_line(self, scoring, at<u32>(slot, 0xc));
+    u32 out;
+    if (!g_calls.Th(at<u8>(slot, 0x16) ? 0x0059b870 : 0x0059b620, (u32)(uintptr_t)slot, &out, next)) return;
+    const u32 length = out + 1000;
+    at<u32>(self, 0xd8) = g_calls.Th(0x00402d80, 0x00785970u);
+    at<u32>(self, 0xdc) = length;
+    const u32 id = at<u32>(slot, 0xc);
+    g_calls.Th(0x0041a960, me + 0xe0 + (id << 4));
+    at<s32>(self, 0xe4 + (id << 4)) = next;
+    at<u8>(self, 0xe8 + (id << 4)) = 1;
+    at<u32>(self, 0x16ec) = id;
+}
+
+u8 __fastcall Advisor_PostHeld(u8 *self) {
+    if (!at<u8>(self, 0x16e4)) return 0;
+    const u8 *const scoring = AdvisorScoring_Instance();
+    u8 *const held = self + 0x16d0;
+    at<u32>(held, 0x10) = at<u32>(scoring, 0x32c);
+    at<u8>(held, 0x16) = 1;
+    at<u8>(self, 0x16e5) = 1;
+    g_calls.Th(0x0059a940, (u32)(uintptr_t)self, (u32)(uintptr_t)held);
+    return 1;
+}
+
 void __cdecl Advisor_StopSpeech() {
     if (!global<u32>(0x00f7966c)) return;
     const u32 had = global<u32>(0x00f79680);
-    Sound_SetVoicePending(had, 0);
-    if (global<u32>(0x00f797c4) && global<u8>(0x0078d90c) && global<u32>(0x00f79680)) {
-        Sound_VoiceFunctor3(global<u32>(0x00f79680));
-        global<u32>(0x00f797c4) = 0;
-    }
-    global<u32>(0x00f7966c) = 0;
-    Sound_Set803acc(0);
-    ParticlePool_Resize(0, 0, 0);
-    ModelSlot_KillAdvisor(global<u32>(0x00f79674));
-    if (u8 *const text = global<u8 *>(0x00f797a0)) {
-        if (text != reinterpret_cast<u8 *>(0x00f797d0))
-            Crt().free(text);
-        else
-            global<u32>(0x00f79bb8) = 0;
-        global<u32>(0x00f797a0) = 0;
-        global<u32>(0x00f79794) = 0;
-        global<u32>(0x00f7979c) = 0;
-    }
+    end_speech_parts();
     if (global<u32>(0x00f79680)) {
         Sound_Forward6(global<u32>(0x00f79680));
         global<u32>(0x00f79680) = 0;
