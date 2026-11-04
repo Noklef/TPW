@@ -167,7 +167,8 @@ def quit_case(r):
 
 
 def retrieve_lines(r):
-    return setup(r) + [code(r, 125, 150), code(r, 226, 250)] + setup(r) + [code(r, 150, 125), code(r, 226, 250)]
+    second = code(r, 226, 250)   # (226 sets the data channel up again, 250 goes on to the file)
+    return setup(r) + [code(r, 125, 150), second] + (setup(r) if second.startswith(b'226') else []) + [code(r, 150, 125), code(r, 226, 250)]
 
 
 def retrieve_case(r):

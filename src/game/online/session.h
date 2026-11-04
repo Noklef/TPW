@@ -9,6 +9,8 @@
 
 #include "../../../re/types.h"
 
+struct WString;
+
 // Online_Instance's call: Online_Construct; the bench's recorder.
 struct OnlineInstanceEnv {
     u8 *(__fastcall *ctor)(u8 *memory);
@@ -106,6 +108,23 @@ struct OnlineNextEnv {
     void(__fastcall *finish)(void *ftp);           // 0x5d2180
 };
 void Online_SetNextEnv(const OnlineNextEnv *env);
+
+// Online_DownloadStart's calls (the bench's recorders; each has a bench of its own, 0x67dda0 is still the game's).
+struct OnlineDownloadStartEnv {
+    u8 *(__fastcall *assign)(u8 *item, void *, const u8 *other);        // Class70293c_Assign (0x5bdfd0)
+    u8 *(__fastcall *findByPair)(u8 *owner, void *, u32 a, u32 b);      // Owner2c_FindByPair (0x5bd9d0)
+    void(__cdecl *splitPath)(const u16 *path, u16 *drive, u16 *folder, u16 *name, u16 *extension);  // _wsplitpath (0x67dda0)
+    u8 *(__fastcall *slotsCtor)(u8 *self);                              // UserSlots_Ctor (0x5c7420)
+    WString *(__stdcall *folder)(WString *out);                         // GamePaths_OnlineFolder (0x5c8980)
+    u32(__cdecl *exists)(const char *path);                             // File_Exists (0x5f5cd0)
+    u32 *(__fastcall *ftpCtor)(u32 *self, void *, void *callback, u8 threaded);  // FtpClient_Ctor (0x5d1760)
+    s32(__fastcall *ftpConnect)(void *self, void *, const char *host, const char *user, const char *password, const char *bind);  // Ftp_Connect (0x5d1ac0)
+    void(__fastcall *downloadEnd)(u8 *session, void *, u32 failed);     // Online_DownloadEnd (0x5b90e0)
+    u8 *(__fastcall *openCity)(u8 *session);                            // Online_OpenCity (0x5b72f0)
+    u8 *(__fastcall *findKind1)(u8 *owner);                             // Owner2c_FindKind1 (0x5bd670)
+    u8 *(__cdecl *pick)();                                              // Global7cc53c_Pick7cc4f0 (0x4bae30)
+};
+void Online_SetDownloadStartEnv(const OnlineDownloadStartEnv *env);
 
 extern "C" {
 
@@ -210,6 +229,13 @@ void __fastcall Online_Dtor(u8 *session);
 // 0x5b90e0 (thiscall; failed; pops 4): +0x398 (set) posted and cleared. Not failed and nothing posted: the City opened and its 0x6fd52c(0, the block's size, +0x34), +0x3f0 = 1. Otherwise with +0x388:
 // the login dropped and everything reset. The callback +0x3c0 (failed, +0x3c4), the Download's object and block dropped, +0x384 = 0.
 void __fastcall Online_DownloadEnd(u8 *session, void *, u32 failed);
+
+// 0x5b8910 (thiscall; item, pops 4; name unconfirmed): a non-null item assigned to the download's item +0x3a4. The old client +0x3a0 deleted, the listener +0x39c freed. Bit 2 (the
+// item's +0x78 set) or bit 3 (clear) of +0x58 clear: error 0x4e, Online_DownloadEnd(1). Else the queue +0x3cc emptied and rebuilt: for each of the 0x100 bits of the item's +0x58, the
+// file of Owner2c_FindByPair(item's +0x4c, bit - 8 * byte + 0xf9) (sic), by _wsplitpath, when in the download folder neither its name nor the name with the prefix at 0x773ab4 exists.
+// The user slots made if none (0xf81ebc), the last file's path +0x3dc (online folder, 0xf7d740, item's +0x84, 0xf7d1e8) and +0x3d8 = it does not exist. Nothing to fetch: the
+// callback +0x3c0 (0, +0x3c4), the City started when open, +0x3f0 = 1. Else the listener (vtable 0x7028a4) and the client made, threaded, and connected. Stack as the original's: four wide buffers of 0x20 and 0x200.
+void __fastcall Online_DownloadStart(u8 *session, void *, const u8 *item);
 
 // 0x5b8490 (thiscall): with an Upload and +0x324. +0x328 clear: the progress shown (text 0x101). Set: ok = +0x32c clear, +0x324 = 0, +0x37c / +0x380 posted; ok or posted, with +0x320: the login dropped
 // and everything reset. The callback +0x374 (ok, +0x378) as read before the reset; the Upload released.

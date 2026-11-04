@@ -1134,6 +1134,8 @@ const SpriteLoadingEnv kSpriteLoadingEnv = {Rec{recorder(1, 2)}, Rec{recorder(2,
 const ThingPatrolEnv kThingPatrolEnv = {Rec{jpeg_recorder(20, 1)}, Rec{jpeg_recorder(21, 5)}};
 // ObjectUnlock_CheckScores's calls: stdcall ones through the COM-style recorders (tools/fncmp.py recorder(k, n, com=True): this logged as 0; tests/fncmp/objectunlockscores.py).
 constexpr u32 stdcall_recorder(u32 k, u32 n) { return kStubs + 0x1000 + 0x4000 + 0x800 * n + 0x20 * k; }
+const OnlineDownloadStartEnv kOnlineDownloadStartEnv = {Rec{recorder(4, 1)}, Rec{recorder(5, 2)}, Rec{jpeg_recorder(6, 5)}, Rec{recorder(7, 0)}, Rec{stdcall_recorder(8, 1)}, Rec{jpeg_recorder(9, 1)}, Rec{recorder(10, 2)}, Rec{recorder(11, 4)},
+                                                        Rec{recorder(12, 1)}, Rec{recorder(13, 0)}, Rec{recorder(14, 0)}, Rec{jpeg_recorder(15, 0)}};
 const AddrCall kArReplayActionCalls[] = {  // tests/fncmp/arreplayaction.py --table
     {0x447ae0, jpeg_recorder(7, 1)},
     {0x447b20, jpeg_recorder(8, 1)},
@@ -2921,6 +2923,7 @@ int main(int argc, char **argv) {
     Frame_SetStartEnv(&kFrameStartEnv);
     SignRender_SetEnv(&kSignRenderEnv);
     Online_SetNextEnv(&kOnlineNextEnv);
+    Online_SetDownloadStartEnv(&kOnlineDownloadStartEnv);
     Online_SetPollEnv(&kOnlinePollEnv);
     SignFonts_SetEnv(&kSignFontsEnv);
     Online_SetEndEnv(&kOnlineEndEnv);
