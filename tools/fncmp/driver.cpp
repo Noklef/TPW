@@ -1115,6 +1115,7 @@ const AddrCall kGlobalSaveCalls[] = {  // tests/fncmp/globalsaveio.py --table
     {0x5b0d70, recorder(5, 3)},
     {0x5b1620, recorder(6, 2)},
     {0x5b1650, recorder(7, 2)},
+    {0x5b11c0, recorder(8, 0)},  // tests/fncmp/thememap.py
 };
 const AddrCall kShareTexCalls[] = {  // tests/fncmp/sharetexpath.py --table
     {0x40ef40, jpeg_recorder(1, 0)},
