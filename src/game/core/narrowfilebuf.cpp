@@ -60,6 +60,8 @@ void point_at_file(u8 *buf, u8 *file) {
     Fn_5d0e00(buf, nullptr, base + 8, base, base + 4, base + 8, base, base + 4);
 }
 
+void set_ios_vtable(u8 *stream, u32 vtable) { at<u32>(stream, at<u32>(at<u8 *>(stream, 0), 4)) = vtable; }
+
 void keep_file(u8 *buf, u8 *file) {
     at<u8 *>(buf, 0x50) = file;
     at<u32>(buf, 0x40) = global<u32>(0x00fb2760);
@@ -136,6 +138,20 @@ void __fastcall NFileBuf_Dtor(u8 *buf) {
     lose_use(at<u8 *>(buf, 0x4c));
     at<u32>(buf, 0) = 0x00709914;
     lose_use(at<u8 *>(buf, 0x34));
+}
+
+void __fastcall NIfstream_DtorOnIos(u8 *ios) {
+    u8 *const stream = ios - 0x5c;
+    set_ios_vtable(stream, 0x00702960);
+    NFileBuf_Dtor(stream + 8);
+    set_ios_vtable(stream, 0x0070994c);
+}
+
+void __fastcall NOfstream_DtorOnIos(u8 *ios) {
+    u8 *const stream = ios - 0x58;
+    set_ios_vtable(stream, 0x00702970);
+    NFileBuf_Dtor(stream + 4);
+    set_ios_vtable(stream, 0x0070995c);
 }
 
 s32 __fastcall NFileBuf_PutBack(u8 *buf, void *, s32 c) {

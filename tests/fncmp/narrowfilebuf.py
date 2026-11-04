@@ -1,6 +1,6 @@
-# A narrow file buffer's constructor, destructor, pbackfail, uflow, close, _Init and deleting destructor (src/game/core/narrowfilebuf: 0x5d06c0, 0x5cec80, 0x5cefe0, 0x5cf200, 0x5d09b0, 0x5d0a90, 0x5cf890) against the originals: fclose, ungetc and fgetc cdecl recorders 18, 23 and 24, the conversion's slot 4 a recorder of
+# A narrow file buffer's constructor, destructor, pbackfail, uflow, close, _Init and deleting destructor, and the destructors of the narrow streams holding one (src/game/core/narrowfilebuf: 0x5d06c0, 0x5cec80, 0x5cefe0, 0x5cf200, 0x5d09b0, 0x5d0a90, 0x5cf890, 0x5ce920, 0x5cf630) against the originals: fclose, ungetc and fgetc cdecl recorders 18, 23 and 24, the conversion's slot 4 a recorder of
 # 7 arguments whose stack ones are logged as 0 (it writes its local byte); the locale references' deletes slot 0 of a vtable of recorders. The string +0x44 real, in the heap.
-# usage: narrowfilebuf.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=ctor,dtor,putback,uflow,close,init,delete)
+# usage: narrowfilebuf.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=ctor,dtor,putback,uflow,close,init,delete,ifstream,ofstream)
 import os
 import struct
 import sys
@@ -10,11 +10,12 @@ from fncmp import HEAP, LOG, RAM, Bench, Call, _recorder, answers, fill, heap, l
 
 FCLOSE, UNGETC, FGETC = 18, 23, 24
 IN = 4   # (the conversion's slot)
-B = Bench([(0x5cf890, 0x5cf8ae), (0x5d09b0, 0x5d0a4c),(0x5d0a90, 0x5d0b72), (0x4f5a50, 0x4f5ad0),(0x5d06c0, 0x5d08e0),(0x5d0e00, 0x5d0e70), (0x5cec80, 0x5cedd0), (0x5cefe0, 0x5cf1c0), (0x5cf200, 0x5cf410), (0x45b340, 0x45b9a0), (0x47b280, 0x47b300), (0x4f6020, 0x4f6080), (0x4ef7b0, 0x4ef800), (0x67acb0, 0x67acb1), (0x67acc0, 0x67acc1)],
+B = Bench([(0x5ce920, 0x5cea27), (0x5cf630, 0x5cf737), (0x5cf890, 0x5cf8ae), (0x5d09b0, 0x5d0a4c),(0x5d0a90, 0x5d0b72), (0x4f5a50, 0x4f5ad0),(0x5d06c0, 0x5d08e0),(0x5d0e00, 0x5d0e70), (0x5cec80, 0x5cedd0), (0x5cefe0, 0x5cf1c0), (0x5cf200, 0x5cf410), (0x45b340, 0x45b9a0), (0x47b280, 0x47b300), (0x4f6020, 0x4f6080), (0x4ef7b0, 0x4ef800), (0x67acb0, 0x67acb1), (0x67acc0, 0x67acc1)],
           hooks={0x699da0: _recorder(15, 0, cdecl=True), 0x691de0: lambda e: e.r.__setitem__('EAX', e.r['ECX']), 0x691ea0: lambda e: None, 0x67b620: _recorder(FCLOSE, 1, cdecl=True), 0x67cbe0: _recorder(UNGETC, 2, cdecl=True), 0x67cb90: _recorder(FGETC, 1, cdecl=True)})
 BUF, GET, GETN, GETB, CONVERT, CONVERT_VT, STRING, TABLE, TABLE2, LOCALE, LOCALE2, LOCALE_VT = (RAM + 0x100 * i for i in range(12))
 FILE = 0x12345678
-OPS = [n for n in ('ctor', 'dtor', 'putback', 'uflow', 'close', 'init', 'delete') if not os.environ.get('OPS') or n in os.environ['OPS'].split(',')]
+VBTABLE, STREAM = RAM + 0x1f00, RAM + 0x2000
+OPS = [n for n in ('ctor', 'dtor', 'putback', 'uflow', 'close', 'init', 'delete', 'ifstream', 'ofstream') if not os.environ.get('OPS') or n in os.environ['OPS'].split(',')]
 
 
 def string_regions(r, regions, length=None):
@@ -53,7 +54,7 @@ def case(r):
         regions[0xfb1dd0] = struct.pack('<I', LOCALE)
         regions[0xfb2760] = r.bytes(4)
         return Call(0x5d06c0, [BUF, r.choice([0, r.getrandbits(32) | 1, RAM + 0x1000])], regions, conv='t', ret='a')
-    if name in ('dtor', 'delete'):
+    if name in ('dtor', 'delete', 'ifstream', 'ofstream'):
         buf[0x48] = r.choice([0, 1, 1, 1])
         put(buf, 0x44, 'I', r.choice([STRING, STRING, 0]))
         put(buf, 0x4c, 'I', r.choice([LOCALE, LOCALE, 0]))
@@ -63,6 +64,15 @@ def case(r):
         regions[LOCALE_VT] = vtable({0: 1})
         regions[0xfb2760] = r.bytes(4)
         set_return(log, FCLOSE, r.choice([0, 0, 1, 0xffffffff]))
+        if name in ('ifstream', 'ofstream'):   # (a stream holding the buffer, called on its ios: its table gives where its ios is)
+            ios, head = (0x5c, 8) if name == 'ifstream' else (0x58, 4)
+            stream = bytearray(r.bytes(ios + 0x10))
+            stream[head:head + 0x54] = buf[:0x54]
+            put(stream, 0, 'I', VBTABLE)
+            del regions[BUF]
+            regions[STREAM] = stream
+            regions[VBTABLE] = struct.pack('<2I', r.getrandbits(32), r.choice([ios, ios, ios + 8]))
+            return Call(0x5ce920 if name == 'ifstream' else 0x5cf630, [STREAM + ios], regions, conv='t', ret='v')
         if name == 'delete':
             return Call(0x5cf890, [BUF, r.choice([0, 1, 2, 3, r.getrandbits(32)])], regions, conv='t', ret='a')
         return Call(0x5cec80, [BUF], regions, conv='t', ret='v')
