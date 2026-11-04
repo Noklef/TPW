@@ -34,6 +34,12 @@ def number(r, fmt):
         high, low, first = 0xffffffff, 0xffffffff, 0xffff    # (rounds up over the top)
     base = 0x3fff
     exponent = r.choice([0, 1, 0x7fff, 0x7ffe, base, base - 1, base + 1, base + fmt[0] + r.randrange(-3, 4), base + fmt[1] + r.randrange(-3, 4), base + fmt[1] - fmt[2] + r.randrange(-3, 4), base + r.randrange(fmt[1], fmt[0]), r.getrandbits(15)])
+    if r.random() < 0.1:     # (a denormal's exact half after the shift, the last word's top bit keeping it from exact)
+        shift = r.randrange(16, 20)
+        bit = fmt[2] - shift
+        words = [0x80000000, 0]
+        words[bit // 32] |= 1 << (31 - bit % 32)
+        high, low, first, exponent = words[0], words[1], r.choice([0x8000, 0, 0x4000]), base + fmt[1] - shift
     return struct.pack('<HIIH', first, low, high, exponent | r.choice([0, 0x8000])) + r.bytes(2)
 
 

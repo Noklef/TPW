@@ -1282,17 +1282,17 @@ address,name,kind,confidence,notes
 0x0067ae00,CRT_strncpy,function,high,"MSVC6 strncpy: a byte at a time to align the source, then a dword at a time (read before written)"
 0x0067b8c0,CRT_strncat,function,high,reimplemented (src/game/core/crt); strncat
 0x0067c250,CRT_strncmp,function,high,MSVC6 strncmp (unsigned)
-0x0067c080,CRT_strstr,function,high,"MSVC6 strstr; one-char needles go to strchr (0x67bfc6)"
-0x0067bfc0,CRT_strchr,function,high,MSVC6 strchr
+0x0067c080,CRT_strstr,function,high,reimplemented (src/game/core/crt); strstr
+0x0067bfc0,CRT_strchr,function,high,reimplemented (src/game/core/crt); strchr
 0x0067a520,CRT_atoi,function,high,MSVC6 atoi
 0x0067f330,CRT_iswctype,function,high,MSVC6 iswctype (wint_t is 16 bits; the upper half of the argument is ignored)
 0x0067c1e0,CRT_vsprintf,function,high,MSVC6 vsprintf
 0x0067acd0,CRT_wcslen,function,high,reimplemented (src/game/online/chatlists); wcslen
-0x0067bf10,CRT_wcscpy,function,high,MSVC6 wcscpy
-0x0067bed0,CRT_wcscat,function,high,MSVC6 wcscat
-0x0067b0d0,CRT_wcsncpy,function,high,MSVC6 wcsncpy
-0x0067f450,CRT_wcsncat,function,high,MSVC6 wcsncat
-0x0067f410,CRT_wcsncmp,function,high,MSVC6 wcsncmp
+0x0067bf10,CRT_wcscpy,function,high,reimplemented (src/game/core/crt); wcscpy
+0x0067bed0,CRT_wcscat,function,high,reimplemented (src/game/core/crt); wcscat
+0x0067b0d0,CRT_wcsncpy,function,high,reimplemented (src/game/core/crt); wcsncpy
+0x0067f450,CRT_wcsncat,function,high,reimplemented (src/game/core/crt); wcsncat
+0x0067f410,CRT_wcsncmp,function,high,reimplemented (src/game/core/crt); wcsncmp
 0x0067f4a0,CRT__wtoi,function,high,MSVC6 _wtoi
 0x0067f4d0,CRT_vswprintf,function,high,MSVC6 vswprintf
 0x005f5660,Mem_GlobalAlloc,function,high,"reimplemented (src/game/files/file); GlobalAlloc(GMEM_FIXED, size); 0 for size 0"
@@ -1953,6 +1953,16 @@ address,name,kind,confidence,notes
 0x0067bb90,CRT_memmove,function,low,reimplemented (src/game/core/crt); memmove
 0x0067c4e0,CRT_strtok,function,low,reimplemented (src/game/core/crt); strtok
 0x00688770,CRT_xtoa,function,low,reimplemented (src/game/core/crt); xtoa
+0x0067ff70,CRT_strlen,function,low,reimplemented (src/game/core/crt); strlen
+0x0067fff0,CRT_memset,function,low,reimplemented (src/game/core/crt); memset
+0x00680060,CRT_strcmp,function,low,reimplemented (src/game/core/crt); strcmp
+0x0067f570,CRT_memchr,function,low,reimplemented (src/game/core/crt); memchr
+0x0067a480,CRT_atol,function,low,reimplemented (src/game/core/crt); atol
+0x00688730,CRT_itoa,function,low,reimplemented (src/game/core/crt); _itoa
+0x0067c290,CRT_wcscmp,function,low,reimplemented (src/game/core/crt); wcscmp
+0x0067c2f0,CRT_wcschr,function,low,reimplemented (src/game/core/crt); wcschr
+0x0067c3d0,CRT_wcsstr,function,low,reimplemented (src/game/core/crt); wcsstr
+0x0067c430,CRT_wcstok,function,low,reimplemented (src/game/core/crt); wcstok
 0x00f7a7d0,gCdVolumeLabel,data,medium,"const char *: the CD's volume label, looked for on the CD-ROM drives by the CD check (0x5aa585)"
 0x005f8ae0,RegKey_Open,function,high,"reimplemented (src/game/core/regkey); thiscall (&out, subkey or null, nonzero: HKCU else HKLM); the company key (0x775748) made, then the subkey in it; a held key closed first"
 0x005f8b70,RegKey_Dtor,function,high,reimplemented (src/game/core/regkey); thiscall; RegKey_Close

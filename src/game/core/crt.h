@@ -254,4 +254,31 @@ char *__cdecl CRT_strtok(char *text, const char *separators);
 // 0x688770: xtoa: the digits (a-z above 9) with a minus for is_negative, which also negates; the end after them.
 void __cdecl CRT_xtoa(u32 value, char *out, u32 radix, s32 is_negative);
 
+// 0x67ff70: strlen. 0x67fff0: memset. 0x680060: strcmp (-1, 0 or 1, the bytes unsigned). 0x67f570: memchr. 0x67bfc0: strchr (the end too for 0). 0x67c080: strstr (the text itself for an empty one).
+u32 __cdecl CRT_strlen(const char *text);
+void *__cdecl CRT_memset(void *dest, s32 value, u32 size);
+s32 __cdecl CRT_strcmp(const char *a, const char *b);
+void *__cdecl CRT_memchr(const void *block, s32 value, u32 size);
+char *__cdecl CRT_strchr(const char *text, s32 value);
+char *__cdecl CRT_strstr(const char *text, const char *wanted);
+
+// 0x67a480: atol: white space, a sign, digits, with no check for overflow. 0x688730: _itoa: a minus only in radix 10.
+s32 __cdecl CRT_atol(const char *text);
+char *__cdecl CRT_itoa(s32 value, char *out, s32 radix);
+
+// 0x67b0d0: wcsncpy. 0x67bf10: wcscpy. 0x67bed0: wcscat. 0x67f450: wcsncat (always an end). 0x67c290: wcscmp (-1, 0 or 1). 0x67f410: wcsncmp (the difference of the last units). 0x67c2f0: wcschr (the end too for 0).
+u16 *__cdecl CRT_wcsncpy(u16 *dest, const u16 *from, u32 count);
+u16 *__cdecl CRT_wcscpy(u16 *dest, const u16 *from);
+u16 *__cdecl CRT_wcscat(u16 *dest, const u16 *from);
+u16 *__cdecl CRT_wcsncat(u16 *dest, const u16 *from, u32 count);
+s32 __cdecl CRT_wcscmp(const u16 *a, const u16 *b);
+s32 __cdecl CRT_wcsncmp(const u16 *a, const u16 *b, u32 count);
+u16 *__cdecl CRT_wcschr(const u16 *text, u32 value);
+
+// 0x67c3d0: wcsstr: unlike strstr, an empty text gives null even for an empty one wanted.
+u16 *__cdecl CRT_wcsstr(const u16 *text, const u16 *wanted);
+
+// 0x67c430: wcstok: the thread's data + 0x1c keeps the place. An empty token: null.
+u16 *__cdecl CRT_wcstok(u16 *text, const u16 *separators);
+
 }  // extern "C"

@@ -907,4 +907,166 @@ void __cdecl CRT_xtoa(u32 value, char *out, u32 radix, s32 is_negative) {
 
 u32 __cdecl CRT_strtoul(const char *text, const char **end, s32 base) { return CRT_strtoxl(text, end, base, 1); }
 
+u32 __cdecl CRT_strlen(const char *text) {
+    const char *at = text;
+    while (*at) ++at;
+    return static_cast<u32>(at - text);
+}
+
+void *__cdecl CRT_memset(void *dest, s32 value, u32 size) {
+    u8 *const to = static_cast<u8 *>(dest);
+    for (u32 i = 0; i < size; ++i) to[i] = static_cast<u8>(value);
+    return dest;
+}
+
+s32 __cdecl CRT_strcmp(const char *a, const char *b) {
+    const u8 *x = reinterpret_cast<const u8 *>(a);
+    const u8 *y = reinterpret_cast<const u8 *>(b);
+    for (;; ++x, ++y) {
+        if (*x != *y) return *x < *y ? -1 : 1;
+        if (!*x) return 0;
+    }
+}
+
+void *__cdecl CRT_memchr(const void *block, s32 value, u32 size) {
+    const u8 *at = static_cast<const u8 *>(block);
+    for (; size; --size, ++at)
+        if (*at == static_cast<u8>(value)) return const_cast<u8 *>(at);
+    return nullptr;
+}
+
+char *__cdecl CRT_strchr(const char *text, s32 value) {
+    for (;; ++text) {
+        if (*text == static_cast<char>(value)) return const_cast<char *>(text);
+        if (!*text) return nullptr;
+    }
+}
+
+char *__cdecl CRT_strstr(const char *text, const char *wanted) {
+    if (!*wanted) return const_cast<char *>(text);
+    for (; *text; ++text) {
+        u32 i = 0;
+        while (wanted[i] && text[i] == wanted[i]) ++i;
+        if (!wanted[i]) return const_cast<char *>(text);
+    }
+    return nullptr;
+}
+
+s32 __cdecl CRT_atol(const char *text) {
+    const u8 *at = reinterpret_cast<const u8 *>(text);
+    const auto is = [](u32 c, s32 mask) -> s32 {
+        if (static_cast<s32>(global_u32(0x0077e7dc)) > 1) return CRT_isctype(static_cast<s32>(c), mask);
+        return *reinterpret_cast<const u8 *>(static_cast<uintptr_t>(global_u32(0x0077ea90)) + c * 2) & mask;
+    };
+    while (is(*at, 8)) ++at;
+    const u32 sign = *at++;
+    u32 c = sign;
+    if (sign == 0x2d || sign == 0x2b) c = *at++;
+    u32 number = 0;
+    while (is(c, 4)) {
+        number = number * 10 + c - 0x30;
+        c = *at++;
+    }
+    return static_cast<s32>(sign == 0x2d ? 0u - number : number);
+}
+
+char *__cdecl CRT_itoa(s32 value, char *out, s32 radix) {
+    CRT_xtoa(static_cast<u32>(value), out, static_cast<u32>(radix), radix == 10 && value < 0);
+    return out;
+}
+
+u16 *__cdecl CRT_wcsncpy(u16 *dest, const u16 *from, u32 count) {
+    u16 *to = dest;
+    while (count) {
+        const u16 unit = *from++;
+        *to++ = unit;
+        if (!unit) {
+            --count;
+            while (count--) *to++ = 0;
+            return dest;
+        }
+        --count;
+    }
+    return dest;
+}
+
+u16 *__cdecl CRT_wcscpy(u16 *dest, const u16 *from) {
+    u16 *to = dest;
+    while ((*to++ = *from++)) {
+    }
+    return dest;
+}
+
+u16 *__cdecl CRT_wcscat(u16 *dest, const u16 *from) {
+    u16 *to = dest;
+    while (*to) ++to;
+    while ((*to++ = *from++)) {
+    }
+    return dest;
+}
+
+u16 *__cdecl CRT_wcsncat(u16 *dest, const u16 *from, u32 count) {
+    u16 *to = dest;
+    while (*to) ++to;
+    while (count--) {
+        const u16 unit = *from++;
+        *to++ = unit;
+        if (!unit) return dest;
+    }
+    *to = 0;
+    return dest;
+}
+
+s32 __cdecl CRT_wcscmp(const u16 *a, const u16 *b) {
+    for (;; ++a, ++b) {
+        if (*a != *b) return *a < *b ? -1 : 1;
+        if (!*b) return 0;
+    }
+}
+
+s32 __cdecl CRT_wcsncmp(const u16 *a, const u16 *b, u32 count) {
+    if (!count) return 0;
+    while (--count && *a && *a == *b) {
+        ++a;
+        ++b;
+    }
+    return static_cast<s32>(*a) - static_cast<s32>(*b);
+}
+
+u16 *__cdecl CRT_wcschr(const u16 *text, u32 value) {
+    const u16 unit = static_cast<u16>(value);
+    while (*text && *text != unit) ++text;
+    return *text == unit ? const_cast<u16 *>(text) : nullptr;
+}
+
+u16 *__cdecl CRT_wcsstr(const u16 *text, const u16 *wanted) {
+    for (; *text; ++text) {
+        u32 i = 0;
+        while (wanted[i] && text[i] == wanted[i]) ++i;
+        if (!wanted[i]) return const_cast<u16 *>(text);
+    }
+    return nullptr;
+}
+
+u16 *__cdecl CRT_wcstok(u16 *text, const u16 *separators) {
+    u8 *const thread = g_inner->getptd();
+    u16 *&place = *reinterpret_cast<u16 **>(thread + 0x1c);
+    const auto is_separator = [&](u16 unit) {
+        for (const u16 *at = separators; *at; ++at)
+            if (*at == unit) return true;
+        return false;
+    };
+    u16 *from = text ? text : place;
+    while (*from && is_separator(*from)) ++from;
+    u16 *const start = from;
+    for (; *from; ++from) {
+        if (is_separator(*from)) {
+            *from++ = 0;
+            break;
+        }
+    }
+    place = from;
+    return start == from ? nullptr : start;
+}
+
 }  // extern "C"
