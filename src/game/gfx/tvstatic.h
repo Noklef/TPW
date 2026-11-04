@@ -22,4 +22,9 @@ void __cdecl TvStatic_Init();
 // 0x53e930 (cdecl): the DirectDraw surface of the Surface at 0x874fd0 (Surface_GetSurface with addRef 1) released (COM slot 2), then the
 // Surface freed (GameHeap_Free); 0x874fd0 keeps its value.
 void __cdecl TvStatic_Free();
+
+// 0x53e760 (cdecl): screen, an IDirectDrawSurface, wrapped in the Surface at 0x874fd8 (Surface_Attach); the static's Surface locked and drawn on; each of its 320 x 240
+// pixels (x the outer loop) black on three rand() draws of four, else white or grey (150) on a second draw's low bit, each with the game palette's nearest entry; then
+// unlocked and blitted, all of it, over (0, 0, [0x7a1968], [0x7a1930]) of the wrapper. The results are not looked at.
+void __cdecl TvStatic_Draw(void *screen);
 }
