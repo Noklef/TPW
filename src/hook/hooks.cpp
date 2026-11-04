@@ -233,6 +233,7 @@
 #include "../game/core/mp2sample.h"
 #include "../game/core/mp2synth.h"
 #include "../game/core/narrowwriter.h"
+#include "../game/core/numput.h"
 #include "../game/core/refcounted.h"
 #include "../game/core/parkinfo.h"
 #include "../game/core/recordsort.h"
@@ -6309,6 +6310,8 @@ const Hook kHooks[] = {
     {"CRT_mbctolower",            0x006895b0, (void *)&CRT_mbctolower, {0x83, 0xec, 0x08, 0x53, 0x8b}},
     {"CRT_mbspbrk",               0x00689650, (void *)&CRT_mbspbrk, {0xa1, 0x70, 0x18, 0xfb, 0x00}},
     {"CRT_mbsrchr",               0x00689400, (void *)&CRT_mbsrchr, {0xa1, 0x70, 0x18, 0xfb, 0x00}},
+    {"NumPut_DoPutPointer",       0x00694e60, (void *)&NumPut_DoPutPointer, {0x8b, 0x44, 0x24, 0x18, 0x83}},
+    {"NumPutW_DoPutPointer",      0x0069bb70, (void *)&NumPutW_DoPutPointer, {0x83, 0xec, 0x4c, 0x8b, 0x44}},
     {"Nav_Ctor",          0x0050ffe0, (void *)&Nav_Ctor, {0x6a, 0xff, 0x68, 0x2d, 0xe6}},
     {"Nav_Dtor",                  0x0050f200, (void *)&Nav_Dtor, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"Nav_DtorAtD4",              0x004f7c30, (void *)&Nav_DtorAtD4, {0x81, 0xc1, 0xd4, 0x00, 0x00}},
