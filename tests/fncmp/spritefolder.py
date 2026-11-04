@@ -51,11 +51,11 @@ def case(r):
     put(found, 0x20, 'I', 0x87505c + r.choice([0, 0, 0, 0, 1, 4]))
     found[0x24:0x34] = r.choice(FILES).ljust(0x10, b'\0')
     table = {}
-    regions = {LOG: log, HEAP: heap(0x20000 if many else 0x4000, fail=r.choice([0] * 26 + [9, 10, 11, 12, 13, 14, 15])), FOLDER: r.bytes(0x40), FOUND: found,
+    regions = {LOG: log, HEAP: heap(0x20000 if many else 0x4000, fail=r.choice([0] * 93 + [9, 10, 11, 12, 13, 14, 15])), FOLDER: r.bytes(0x40), FOUND: found,
                FINDS: struct.pack('<40I', *finds), NEXTS: struct.pack('<40I', *(nexts + [0] * (40 - len(nexts)))), LOADS: struct.pack('<40I', *loads),
                HANDLE_OBJECT: struct.pack('<I', HANDLE_OBJECT + 0x40) + bytes(0x3c) + vtable({DELETE: 1}),
                0x875430: r.bytes(4), 0x875970: r.bytes(0x604), 0x876668: r.bytes(0x100),
-               0x87626c: struct.pack('<I', 0x1ff if many else r.choice([0, 0, 1, 5, 0x1fe, 0x1ff, 0x200])), 0x876b48: r.bytes(0x810)}
+               0x87626c: struct.pack('<I', 0x1ff if many else r.choice([0, 0, 1, 5, 0x1fe, 0x1ff, 0x200, 0x200, 0x200])), 0x876b48: r.bytes(0x810)}
     gamestring.string(r, 0, NAME, NAME_TEXT, regions, name)
     gamestring.string(r, 0, 0x8757f0, TAIL_TEXT, regions, r.choice([b'sprites', b'', b'a\\b']))
     gamestring.string(r, 0, 0xf80be0, SLASH_TEXT, regions, b'\\')
