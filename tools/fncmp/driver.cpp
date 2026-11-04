@@ -218,6 +218,7 @@
 #include "../../src/game/world/advisorspeech.h"
 #include "../../src/game/gfx/bumplight.h"
 #include "../../src/game/gfx/imageops.h"
+#include "../../src/game/render/dynfaces.h"
 #include "../../src/game/coaster/coastersupdate.h"
 #include "../../src/game/render/pointsprites.h"
 #include "../../src/game/frontend/lobbyflight.h"
@@ -1111,6 +1112,7 @@ const AddrCall kWScannerCalls[] = {{0x5e7200, recorder(1, 2)}};
 const AddrCall kMMPlaceStaffCalls[] ={{0x4d6b60, recorder(1, 4)}, {0x4d4340, recorder(2, 4)}, {0x4d5d40, recorder(3, 4)}, {0x4d9eb0, recorder(4, 4)}, {0x502600, recorder(5, 4)}};
 const AddrCall kTexSurfaceCalls[] ={{0x573820, recorder(1, 2)}, {0x56af20, recorder(2, 2)}, {0x56a770, jpeg_recorder(3, 1)}, {0x564650, jpeg_recorder(4, 1)}, {0x5645a0, recorder(5, 0)}, {0x58b1f0, recorder(6, 2)}, {0x58b890, recorder(7, 2)}};
 const AddrCall kAdvisorRingCalls[] ={{0x4f8800, recorder(1, 1)}};
+const AddrCall kDynFacesCalls[] ={{0x53d790, recorder(1, 11)}, {0x424ec0, jpeg_recorder(2, 1)}, {0x424ed0, jpeg_recorder(3, 1)}};
 const AddrCall kImageLoadCalls[] ={{0x5fa8a0, recorder(1, 4)}, {0x5faa00, recorder(2, 5)}, {0x5fa6f0, recorder(3, 1)}, {0x5fa740, recorder(4, 0)}};
 const AddrCall kLobbyFlightCalls[] ={{0x5d8870, recorder(4, 6)}, {0x5d83f0, recorder(5, 2)}, {0x5d8190, recorder(6, 1)}};
 const AddrCall kPointSpritesCalls[] ={{0x67a7d0, jpeg_recorder(1, 1)}, {0x590c40, recorder(2, 0)}, {0x565240, recorder(3, 5)}, {0x565bb0, recorder(4, 5)}, {0x5658c0, recorder(5, 1)}};
@@ -2417,6 +2419,7 @@ int main(int argc, char **argv) {
     TexSurface_SetCalls(kTexSurfaceCalls, sizeof(kTexSurfaceCalls) / sizeof(kTexSurfaceCalls[0]));
     AdvisorScoring_SetCalls(kAdvisorRingCalls, 1);
     Image_SetCalls(kImageLoadCalls, 4);
+    DynFaces_SetCalls(kDynFacesCalls, 3);
     WScanner_SetCalls(kWScannerCalls, 1);
     MMPlaceStaff_SetCalls(kMMPlaceStaffCalls, sizeof(kMMPlaceStaffCalls) / sizeof(kMMPlaceStaffCalls[0]));
     AdvisorSpeech_SetCalls(kAdvisorSpeechCalls, sizeof(kAdvisorSpeechCalls) / sizeof(kAdvisorSpeechCalls[0]));
