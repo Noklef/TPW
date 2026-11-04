@@ -551,6 +551,7 @@
 #include "../game/render/tiledpanel.h"
 #include "../game/render/tilegrid.h"
 #include "../game/render/transformer.h"
+#include "../game/render/uvprobe.h"
 #include "../game/render/vertexblock.h"
 #include "../game/render/viewquad.h"
 #include "../game/render/weatherfx.h"
@@ -7207,6 +7208,8 @@ const Hook kHooks[] = {
     {"Engine_CreateDevice",       0x005836d0, (void *)&Engine_CreateDevice, {0xa1, 0x24, 0xd5, 0x8b, 0x00}},
     {"Engine_DestroyDevice",      0x00583700, (void *)&Engine_DestroyDevice, {0xa1, 0x24, 0xd5, 0x8b, 0x00}},
     {"Engine_Start",              0x0044df20, (void *)&Engine_Start, {0xa1, 0x24, 0xd5, 0x8b, 0x00}},
+    {"UvProbe_Down",              0x00583e90, (void *)&UvProbe_Down, {0x6a, 0xff, 0x68, 0xae, 0xf3}},
+    {"UvProbe_Across",            0x00584310, (void *)&UvProbe_Across, {0x6a, 0xff, 0x68, 0xce, 0xf3}},
     {"Model_MarkFacesByMask",     0x0044b140, (void *)&Model_MarkFacesByMask, {0x53, 0x8b, 0x5c, 0x24, 0x08}},
     {"Model_MarkFacesNotValue",    0x0044b1b0, (void *)&Model_MarkFacesNotValue, {0x53, 0x8b, 0x5c, 0x24, 0x08}},
     {"Model_FindPartByKey4",      0x0044b220, (void *)&Model_FindPartByKey4, {0x56, 0x57, 0x8b, 0x7c, 0x24}},

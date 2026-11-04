@@ -271,6 +271,7 @@
 #include "../../src/game/world/objectdefs.h"
 #include "../../src/game/model/signapply.h"
 #include "../../src/game/render/enginestart.h"
+#include "../../src/game/render/uvprobe.h"
 #include "../../src/game/render/rasteriser.h"
 #include "../../src/game/gfx/texman.h"
 #include "../../src/game/core/globalsave.h"
@@ -1225,6 +1226,20 @@ void __cdecl rasterSpanStandIn(const u32 *a, const u32 *b, const u32 *c) {
 }
 const AddrCall kRasterSpeedCalls[] = {{0x57cb90, jpeg_recorder(1, 0)}, {0x6ef7f0, (u32)(uintptr_t)&rasterSpanStandIn}};  // tests/fncmp/rasterspeed.py
 const AddrCall kTexManagerCreateCalls[] = {{0x44a280, jpeg_recorder(1, 3)}, {0x5755f0, recorder(2, 1)}};  // tests/fncmp/texmancreate.py
+// TexFormat_Classify's stand-in: each try's lines kept, its answer from the table (tests/fncmp/uvprobe.py: its _classify, the same), its recorder.
+u32 __fastcall uvClassifyStandIn(u32 self, u32, const u32 *lines) {
+    u32 *const table = reinterpret_cast<u32 *>((uintptr_t)0x30000000);
+    const u32 n = table[0x20]++;
+    for (u32 i = 0; i < 0x3c; ++i)
+        reinterpret_cast<u32 *>((uintptr_t)0x30000100 + 0xf0 * n)[i] = lines[i];
+    u32 *const override = reinterpret_cast<u32 *>((uintptr_t)(0x2f100000 + 0x800 + 8 * 26));
+    override[0] = 1;
+    override[1] = table[n];
+    return reinterpret_cast<u32(__fastcall *)(u32, u32, const u32 *)>((uintptr_t)recorder(26, 1))(self, 0, lines);
+}
+const AddrCall kUvProbeCalls[] = {  // tests/fncmp/uvprobe.py, uvdetect.py
+    {0x58dd60, recorder(20, 1)}, {0x583720, jpeg_recorder(21, 0)}, {0x590a80, recorder(22, 2)}, {0x590d40, recorder(23, 0)}, {0x58c9f0, recorder(24, 2)}, {0x58cf40, recorder(25, 0)}, {0x583ba0, (u32)(uintptr_t)&uvClassifyStandIn}, {0x590a70, recorder(27, 0)},
+    {0x5645e0, jpeg_recorder(1, 1)}, {0x56a770, jpeg_recorder(2, 1)}, {0x564650, jpeg_recorder(4, 1)}, {0x584310, recorder(28, 0)}, {0x583e90, recorder(29, 0)}};
 const AddrCall kWindowGroupCalls[] = {{0x65c707, recorder(1, 0)}};  // tests/fncmp/windowgroup.py
 const AddrCall kWindowProcCalls[] = {{0x6590d0, jpeg_recorder(1, 2)}, {0x6588ef, jpeg_recorder(2, 2)}, {0x658af1, jpeg_recorder(3, 3)}, {0x658b5b, jpeg_recorder(4, 3)}, {0x658bcb, jpeg_recorder(5, 4)}, {0x658c38, jpeg_recorder(6, 2)}, {0x658c67, jpeg_recorder(7, 2)}, {0x658c96, jpeg_recorder(8, 2)}, {0x659333, jpeg_recorder(9, 0)}, {0x51bd30, jpeg_recorder(10, 0)}, {0x51b350, jpeg_recorder(11, 0)}, {0x6593c5, jpeg_recorder(12, 0)}, {0x51bcf0, jpeg_recorder(13, 0)}, {0x47e9d0, jpeg_recorder(14, 1)}, {0x46b460, jpeg_recorder(15, 1)}, {0x58dd60, recorder(16, 1)}, {0x40c900, recorder(17, 2)}, {0x40c990, recorder(18, 2)}, {0x4092a0, recorder(19, 2)}, {0x41a850, recorder(20, 0)}};
 const AddrCall kLanguageLoadCalls[] = {{0x6ad1b0, recorder(1, 2)}, {0x6ad230, recorder(2, 2)}, {0x6ad4b0, recorder(3, 3)}, {0x6ad460, recorder(4, 3)}, {0x6ad510, recorder(5, 3)}, {0x6ad570, recorder(6, 3)}, {0x405710, recorder(7, 3)}, {0x6ad790, recorder(8, 1)}, {0x67a650, jpeg_recorder(9, 4)}};
@@ -2629,6 +2644,7 @@ int main(int argc, char **argv) {
     Batch_SetTreeCalls(kModelTreeCalls, 1);
     Rasteriser_SetSpeedCalls(kRasterSpeedCalls, 2);
     TexManager_SetCreateCalls(kTexManagerCreateCalls, 2);
+    UvProbe_SetCalls(kUvProbeCalls, sizeof(kUvProbeCalls) / sizeof(kUvProbeCalls[0]));
     CoasterType_SetLoadCalls(kCoasterTypeLoadCalls, sizeof(kCoasterTypeLoadCalls) / sizeof(kCoasterTypeLoadCalls[0]));
     Dialog_SetCalls(kDialogBoxCalls, sizeof(kDialogBoxCalls) / sizeof(kDialogBoxCalls[0]));
     ArReplay_SetCalls(kArReplayCalls, sizeof(kArReplayCalls) / sizeof(kArReplayCalls[0]));
