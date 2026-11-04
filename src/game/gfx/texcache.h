@@ -253,6 +253,8 @@ extern "C" {
 // 0x58da40 (thiscall; name invented, unconfirmed): the debug log's two lines; bit 1 of 0x8bd550 sets +0x18e8 to 4 and bit 1 of +0x18cc. Format 3 with
 // mode 4 at 0x8bd524; otherwise `format`, its surface levels made. TexCache_ChooseBudget and TexCache_CreateSurfaces, then bit 29 of +0x18cc. 0 on a failure.
 u32 __fastcall TexCache_Setup(u8 *self, void *, u32 format);
+// 0x58cff0 (name invented, unconfirmed): with no cache at 0x8c4b44 yet, one made and set up (its result returned); it not made: the error pushed. Else 0.
+u32 __cdecl TexCache_Create(u32 format);
 // 0x58db90 (thiscall; name invented, unconfirmed): with bit 29 of +0x18cc, all released and the bit cleared. A format other than -1 is stored, and in
 // mode 1 its levels made (0 on failure). Returns TexCache_CreateSurfaces.
 u32 __fastcall TexCache_ChangeFormat(u8 *self, void *, u32 format);

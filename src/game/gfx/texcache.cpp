@@ -1536,6 +1536,17 @@ extern "C" u32 __fastcall TexCache_Setup(u8 *self, void *, u32 format) {
     return 1;
 }
 
+extern "C" u32 __cdecl TexCache_Create(u32 format) {
+    g_setupCalls.Cd(0x0056b630);   // Table879d08_Fill
+    if (global<u32>(0x8c4b44)) return 0;
+    void *const block = GameHeap_Alloc(0x1928);
+    const u32 cache = block ? g_setupCalls.Th(0x0058d0f0, (u32)(uintptr_t)block) : 0;   // TexCache_InitDefaults
+    global<u32>(0x8c4b44) = cache;
+    if (cache) return TexCache_Setup(reinterpret_cast<u8 *>((uintptr_t)cache), nullptr, format);
+    g_setupCalls.Th(0x0056af20, 0x00879ad0u, 3u, 0xb0754000u);   // EngineErrors_Push
+    return 0;
+}
+
 extern "C" u32 __fastcall TexCache_ChangeFormat(u8 *self, void *, u32 format) {
     if (at<u32>(self, 0x18cc) & 0x20000000) {
         g_setupCalls.Th(0x0058dd60, global<u32>(0x8c4b44), 1u);   // TexCache_ReleaseItems
