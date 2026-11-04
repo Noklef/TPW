@@ -143,6 +143,7 @@
 #include "../../src/game/ui/chatnamemenu.h"
 #include "../../src/game/ui/dialog7cc984open.h"
 #include "../../src/game/ui/dialog7cb2fcopen.h"
+#include "../../src/game/ui/window.h"
 #include "../../src/game/ui/mouseclick.h"
 #include "../../src/game/ui/dialog7cca70list.h"
 #include "../../src/game/ui/dialog7cb2b8tabs.h"
@@ -998,6 +999,12 @@ const ParkMapWindowEnv kParkMapWindowEnv = {Rec{recorder(8, 2)}, Rec{recorder(10
                                             Rec{recorder(20, 0)}, Rec{recorder(21, 1)}, Rec{recorder(22, 0)}, Rec{recorder(23, 0)}, Rec{recorder(24, 0)}, Rec{recorder(25, 1)}, Rec{recorder(26, 0)},
                                             Rec{jpeg_recorder(27, 0)}, Rec{jpeg_recorder(28, 4)}, Rec{jpeg_recorder(29, 1)}, Rec{jpeg_recorder(30, 1)}, Rec{jpeg_recorder(31, 0)}, Rec{jpeg_recorder(7, 2)}};
 const ParkMapSpritesEnv kParkMapSpritesEnv = {Rec{recorder(8, 1)}, Rec{recorder(9, 2)}, Rec{recorder(10, 2)}, Rec{recorder(11, 0)}, Rec{recorder(12, 1)}, Rec{recorder(13, 0)}};
+const ParkMapOpenEnv kParkMapOpenEnv = {Rec{jpeg_recorder(31, 0)}, Rec{recorder(8, 2)}, Rec{jpeg_recorder(21, 0)}, Rec{jpeg_recorder(22, 1)}, Rec{recorder(9, 0)}, Rec{recorder(10, 1)}, Rec{recorder(11, 1)},
+                                        Rec{jpeg_recorder(23, 0)}, Rec{jpeg_recorder(24, 4)}, Rec{recorder(12, 2)}, Rec{jpeg_recorder(25, 1)}, Rec{recorder(13, 1)}, &Window_FindChild, Rec{recorder(14, 1)}, Rec{recorder(15, 1)},
+                                        Rec{recorder(16, 2)}, Rec{recorder(17, 2)}, Rec{jpeg_recorder(26, 1)}, Rec{recorder(18, 1)}, Rec{recorder(19, 4)}, Rec{recorder(6, 1)}, Rec{recorder(7, 1)},
+                                        Rec{recorder(4, 2)}, Rec{recorder(3, 1)}, Rec{recorder(2, 2)}, Rec{recorder(1, 1)}, Rec{jpeg_recorder(30, 2)}, Rec{recorder(0, 0)},
+                                        Rec{recorder(20, 0)}, Rec{recorder(21, 1)}, Rec{recorder(22, 4)}, Rec{recorder(23, 0)}, Rec{recorder(24, 0)}, Rec{recorder(25, 4)},
+                                        Rec{jpeg_recorder(28, 1)}, Rec{jpeg_recorder(29, 2)}, Rec{recorder(26, 4)}, Rec{recorder(27, 4)}};
 const CoasterPlaceCarEnv kCoasterPlaceCarEnv = {Rec{jpeg_recorder(1, 6)}, Rec{jpeg_recorder(2, 9)}, Rec{jpeg_recorder(3, 7)}, Rec{jpeg_recorder(4, 5)}, Rec{jpeg_recorder(5, 2)}, Rec{jpeg_recorder(6, 7)},
                                                  Rec{jpeg_recorder(7, 1)}, Rec{jpeg_recorder(8, 1)}, Rec{jpeg_recorder(9, 0)}, Rec{jpeg_recorder(10, 0)}, Rec{jpeg_recorder(11, 0)}, Rec{jpeg_recorder(12, 0)},
                                                  Rec{recorder(13, 0)}, Rec{recorder(14, 0)}, Rec{recorder(15, 1)}};  // tests/fncmp/coasterplacecar.py
@@ -2904,6 +2911,7 @@ int main(int argc, char **argv) {
     BankAccountCtor_SetEnv(&kBankAccountCtorEnv);
     NarrowFileBuf_SetEnv(&kNarrowFileBufEnv);
         ParkMapSprites_SetEnv(&kParkMapSpritesEnv);
+    ParkMapOpen_SetEnv(&kParkMapOpenEnv);
         ParkMapWindow_SetEnv(&kParkMapWindowEnv);
         ParkMap_SetPictureEnv(&kParkMapPictureEnv);
     ThemeMenu_SetEnv(&kThemeMenuEnv);
