@@ -123,7 +123,7 @@ def case(r):
             put(s, at, 'I', v)
         set_return(log, GET_ACTIVE, r.choice([0, 0x111, 0x222, 0x333, 0x444]))
         fill(log, GET_PROGRESS, 1, struct.pack('<i', r.choice([0, 1, 50, 99, -3, r.getrandbits(31)])))
-        fill(log, GET_PROGRESS, 2, struct.pack('<i', r.choice([0, 0, 100, 7, -1, r.getrandbits(31)])), which=1)
+        fill(log, GET_PROGRESS, 2, struct.pack('<i', r.choice([0, 0, 1, 100, 7, -1, r.getrandbits(31)])), which=1)
     return Call(address, [SESSION], regions, conv='t', ret='v')
 
 
