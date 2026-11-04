@@ -8,6 +8,9 @@
 
 #include "../../../re/types.h"
 
+struct AddrCall;
+void CommandQueue_SetCalls(const AddrCall *table, u32 count);   // CommandQueue_OpenBox's Gui_TopDepth, Dialog_Box and Window_SetHandler (the bench's recorders)
+
 extern "C" {
 
 // 0x632200 (thiscall; cur, node, pops 8): the block *node, position cur. Returns the iterator.
@@ -35,6 +38,10 @@ u8 *__fastcall Class703c14_Ctor(u8 *object);
 // (Language_Widen, core/language) to the object at [0x7b4ba0]'s slot 9 (thiscall, one argument); then the cursor moves 8 on and the count falls,
 // and at the block's end or the last element the block is released as Deque8_Clear does. 1 when the queue was empty (nothing done), else 0.
 u32 __cdecl CommandQueue_ShowNext();
+
+// 0x47f620 (cdecl; name invented, unconfirmed): within the section, with an element queued, no box yet ([0x7b4ba0] 0) and Gui_TopDepth (0, 0) below 0x23: the first element taken (as CommandQueue_ShowNext), its text widened into a
+// record (text; bytes 0xff x 3, the fourth not written; 4; 0) for Dialog_Box (record, 2, 0x47f7d0, 0 x 5), whose window goes to [0x7b4ba0] and takes the handler 0x47f7a0 (Window_SetHandler).
+void __cdecl CommandQueue_OpenBox();
 
 // 0x47f340 (thiscall; name unconfirmed): empties a deque of 8-byte elements in blocks of 0x1000 bytes (the begin iterator at +4 {first, end, cursor, map slot}, the end iterator at +0x14, the
 // map at +0x24, the count at +0x2c): while the count is not 0 the cursor (+0xc) moves on by 8 and the count falls; at the end of a block, or the last element, the block (the map slot's, which moves

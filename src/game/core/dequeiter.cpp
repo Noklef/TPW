@@ -2,6 +2,7 @@
 
 #include <cstdint>
 #include <initializer_list>
+#include "addrcalls.h"
 #include "gameheap.h"
 #include "methods.h"
 #include "seqs.h"
@@ -31,7 +32,34 @@ u32 Distance(const DequeIt &a, const DequeIt &b) {
            static_cast<u32>(static_cast<s32>(a.cur - a.first) >> 2);
 }
 
+// The queue's first element taken: the cursor moves on, and at the block's end or the last element the block is released.
+void TakeFirst(u8 *q) {
+    const u32 cursor = at<u32>(q, 0xc) + 8;
+    const u32 count = at<u32>(q, 0x2c) - 1;
+    at<u32>(q, 0xc) = cursor;
+    at<u32>(q, 0x2c) = count;
+    if (count == 0 || cursor == at<u32>(q, 8)) {
+        u32 *const slot = at<u32 *>(q, 0x10);
+        at<u32 *>(q, 0x10) = slot + 1;
+        GameHeap_Free(reinterpret_cast<void *>((uintptr_t)*slot));
+        if (at<u32>(q, 0x2c) == 0) {
+            for (u32 offset = 4; offset < 0x24; offset += 4)
+                at<u32>(q, offset) = 0;
+            GameHeap_Free(at<void *>(q, 0x24));
+        } else {
+            const u32 first = *at<u32 *>(q, 0x10);
+            at<u32>(q, 4) = first;
+            at<u32>(q, 0xc) = first;
+            at<u32>(q, 8) = first + 0x1000;
+        }
+    }
+}
+
+AddrCalls g_calls;
+
 }  // namespace
+
+void CommandQueue_SetCalls(const AddrCall *table, u32 count) { g_calls.Set(table, count); }
 
 extern "C" {
 
@@ -101,27 +129,36 @@ u32 __cdecl CommandQueue_ShowNext() {
     const u32 *const element = at<const u32 *>(q, 0xc);
     const u8 *const text = Records_DataIfTerminated(reinterpret_cast<const u8 *>((uintptr_t)element[0]), nullptr, element[1]);
     vcall<void>(*reinterpret_cast<u8 **>(0x007b4ba0), 0x24, Language_Widen(text));
-    const u32 cursor = at<u32>(q, 0xc) + 8;
-    const u32 count = at<u32>(q, 0x2c) - 1;
-    at<u32>(q, 0xc) = cursor;
-    at<u32>(q, 0x2c) = count;
-    if (count == 0 || cursor == at<u32>(q, 8)) {
-        u32 *const slot = at<u32 *>(q, 0x10);
-        at<u32 *>(q, 0x10) = slot + 1;
-        GameHeap_Free(reinterpret_cast<void *>((uintptr_t)*slot));
-        if (at<u32>(q, 0x2c) == 0) {
-            for (u32 offset = 4; offset < 0x24; offset += 4)
-                at<u32>(q, offset) = 0;
-            GameHeap_Free(at<void *>(q, 0x24));
-        } else {
-            const u32 first = *at<u32 *>(q, 0x10);
-            at<u32>(q, 4) = first;
-            at<u32>(q, 0xc) = first;
-            at<u32>(q, 8) = first + 0x1000;
-        }
-    }
+    TakeFirst(q);
     CritSec_Leave(lock);
     return 0;
+}
+
+void __cdecl CommandQueue_OpenBox() {
+    u8 *const q = reinterpret_cast<u8 *>(0x007b4ba8);
+    u8 *const lock = reinterpret_cast<u8 *>(0x007b4bd8);
+    CritSec_Enter(lock);
+    if (at<u32>(q, 0x2c) != 0 && Dword(0x007b4ba0) == 0 && (s32)g_calls.Cd(0x00659409, 0u, 0u) < 0x23) {
+        const u32 *const element = at<const u32 *>(q, 0xc);
+        const u8 *const table = reinterpret_cast<const u8 *>((uintptr_t)element[0]);
+        const u32 index = element[1];
+        TakeFirst(q);
+        struct {
+            u16 *text;
+            u8 fill[4];
+            u32 kind, zero;
+        } box;
+        box.text = Language_Widen(Records_DataIfTerminated(table, nullptr, index));
+        box.fill[0] = 0xff;
+        box.fill[1] = 0xff;
+        box.fill[2] = 0xff;
+        box.kind = 4;
+        box.zero = 0;
+        const u32 window = g_calls.Cd(0x0047f020, &box, 2u, 0x0047f7d0u, 0u, 0u, 0u, 0u, 0u);
+        Dword(0x007b4ba0) = window;
+        g_calls.Th(0x0065e526, window, 0x0047f7a0u);
+    }
+    CritSec_Leave(lock);
 }
 
 void __fastcall Deque8_Clear(u8 *deque) {
