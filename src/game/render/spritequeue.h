@@ -10,8 +10,16 @@
 
 struct AddrCall;
 void SpriteQueue_SetCalls(const AddrCall *table, u32 count);   // tests/fncmp/texturetouches.py
+void SpriteQueue_SetDrawCalls(const AddrCall *table, u32 count);   // tests/fncmp/spritequeuedraw.py
 
 extern "C" {
+
+// 0x58a770 (thiscall; name invented, unconfirmed): the first list drawn; 0x8bd4fc cleared. Render flag 0x80: from the last frame, SpriteFrame_DrawQuad, and without 0x20000 SpriteFrame_DrawLightQuads; a 0 answer 0. Else sorted, from the last frame: a key,
+// set by a frame with flag 4 to 0x200522 (0x200552 with flag 0x2000) and else kept from the frame before (sic; before the first, unset stack in the original, 0 here), with flag 0x200000, 0x20000, 0x4000, 0x10000 adding 0x200000, 0x20000, 0x800, 0x8000000. Texture_FormatBits' answer of a frame without flag 4 is
+// dropped by the original: left out. With the texture's value (its +0x1c with flag 0x1000, else 0) a node in a tree (unsigned value, then signed key; more goes to its second link), the frames on it (next at +0x40) by depth (+8), further first; NaN counts as further on. In the order the nodes were made, each's frames
+// SpriteFrame_DrawQuadInPlace and Batch_Close(-1). Then render flag (read again) 0x20000: 1. 0x40000: with a texture at +0x2400 (none: 1), SpriteFrame_DrawLightQuadsInPlace(it) of all, one Batch_Close at the end, its answer 0 or 1. Else SpriteFrame_DrawLightQuadsInPlace(0), Batch_Close after the last of the same texture value. A 0 answer: 0.
+u32 __fastcall SpriteQueue_Draw(u8 *queue);
+
 
 // 0x58a630 (thiscall; name invented, unconfirmed): the three counts 0; TexCache_TouchItem of [0x8c4b44] (+0x2400, 0), its answer returned.
 u32 __fastcall SpriteQueue_Clear(u8 *queue);

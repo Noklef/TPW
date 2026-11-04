@@ -1291,6 +1291,7 @@ const AddrCall kScrollLayersCalls[] = {{0x590f90, recorder(1, 0)}, {0x58c9f0, re
 const AddrCall kVWrapCalls[] = {{0x58c9f0, recorder(5, 2)}, {0x561a30, recorder(6, 2)}};  // tests/fncmp/vwrapclip.py
 const AddrCall kSignRideCalls[] = {{0x467a80, jpeg_recorder(1, 6)}, {0x4e2860, recorder(2, 2)}, {0x4e2920, recorder(3, 2)}, {0x4682b0, jpeg_recorder(4, 3)}};  // tests/fncmp/signrides.py
 const AddrCall kPtrImageCalls[] = {{0x588820, recorder(1, 1)}, {0x588350, recorder(2, 0)}};  // tests/fncmp/ptrarray_addimage.py
+const AddrCall kSpriteQueueDrawCalls[] = {{0x589f90, recorder(1, 0)}, {0x589770, recorder(2, 0)}, {0x589fd0, recorder(3, 0)}, {0x589990, recorder(4, 1)}, {0x5658c0, recorder(5, 1)}};  // tests/fncmp/spritequeuedraw.py
 const AddrCall kKeyActionCalls[] = {{0x409350, recorder(1, 1)}, {0x4819e0, recorder(2, 0)}, {0x519ef0, recorder(3, 2)}, {0x5194d0, recorder(4, 0)}, {0x59ab50, recorder(5, 0)}};  // tests/fncmp/keyactioncalls.py
 const AddrCall kRideAnimateCalls[] = {{0x473c70, jpeg_recorder(1, 3)}, {0x44b510, jpeg_recorder(2, 1)}, {0x4548f0, jpeg_recorder(3, 2)}, {0x4726d0, jpeg_recorder(4, 1)}};  // tests/fncmp/rideanimate.py
 const AddrCall kAdvisorSendCalls[] = {{0x59bea0, recorder(1, 0)}, {0x67a7d0, jpeg_recorder(2, 1)}, {0x59c0a0, recorder(3, 3)}, {0x59c2b0, recorder(4, 1)}, {0x59c240, recorder(5, 1)}, {0x599050, jpeg_recorder(6, 1)}, {0x5997b0, jpeg_recorder(7, 1)}, {0x40fb10, recorder(8, 1)}};  // tests/fncmp/advisorsend.py
@@ -2581,6 +2582,7 @@ int main(int argc, char **argv) {
     Sign_SetRideCalls(kSignRideCalls, sizeof(kSignRideCalls) / sizeof(kSignRideCalls[0]));
     TileGrid_SetCalls(kTextureTouchCalls, sizeof(kTextureTouchCalls) / sizeof(kTextureTouchCalls[0]));
     SpriteQueue_SetCalls(kTextureTouchCalls, sizeof(kTextureTouchCalls) / sizeof(kTextureTouchCalls[0]));
+    SpriteQueue_SetDrawCalls(kSpriteQueueDrawCalls, sizeof(kSpriteQueueDrawCalls) / sizeof(kSpriteQueueDrawCalls[0]));
     KeyActions_SetCalls(kKeyActionCalls, sizeof(kKeyActionCalls) / sizeof(kKeyActionCalls[0]));
     SharedGlobals_SetEnv(&kSharedGlobalsEnv);
     ReleaseList_SetEnv(&kReleaseListEnv);
