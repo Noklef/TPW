@@ -6,15 +6,15 @@ import os
 import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
-from fncmp import LOG, Bench, Call, RAM, _recorder, blob, fill, put, set_return  # noqa: E402
+from fncmp import IMPORT_TABLE, LOG, Bench, Call, RAM, _recorder, blob, fill, put, recorder, set_return, strings  # noqa: E402
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import gamepaths  # noqa: E402
 import gamestring  # noqa: E402
 
-CTOR, ITOW = 27, 28
-B = Bench([(0x5b8160, 0x5b8260), (0x5c7d30, 0x5c7e90), (0x5c8870, 0x5c8980), (0x5c7c70, 0x5c7cfd), (0x5c7bd0, 0x5c7c64), (0x424e10, 0x424e6e), (0x5c5520, 0x5c5530), (0x5f5660, 0x5f5690), (0x5f56f0, 0x5f5710)] + gamestring.B_RANGES,
-          hooks={0x5c7420: _recorder(CTOR, 0), 0x67e010: _recorder(ITOW, 3, cdecl=True)})
-OPS = [k for k in os.environ.get('OPS', 'Name,Folder,Chosen,Theme,Path').split(',') if k]
+CTOR, ITOW, W2M, REMOVE = 27, 28, 29, 30
+B = Bench([(0x5b8160, 0x5b8260), (0x5c7d30, 0x5c7f46), (0x424dc0, 0x424e10), (0x5c8870, 0x5c8980), (0x5c7c70, 0x5c7cfd), (0x5c7bd0, 0x5c7c64), (0x424e10, 0x424e6e), (0x5c5520, 0x5c5530), (0x5f5660, 0x5f5690), (0x5f56f0, 0x5f5710)] + gamestring.B_RANGES,
+          hooks={0x5c7420: _recorder(CTOR, 0), 0x67e010: _recorder(ITOW, 3, cdecl=True), 0x5c5250: _recorder(REMOVE, 1, cdecl=True)})
+OPS = [k for k in os.environ.get('OPS', 'Name,Folder,Chosen,Theme,Path,Clear').split(',') if k]
 BEFORE = RAM + 0x6000
 SLOTS = BEFORE + 0x18
 LETTERS = 'abZ_1 '
@@ -51,6 +51,15 @@ def case(r):
     regions, slot = world(r)
     op = r.deal(OPS)
     out = gamepaths.OUT_W
+    if op == 'Clear':   # 0x5c7e90: WideCharToMultiByte a recorder answering a path or nothing (the path's and the local's addresses not compared), GamePaths_RemoveTree a recorder
+        log = regions[LOG]
+        put(regions[IMPORT_TABLE], 0x6fd1dc - IMPORT_TABLE, 'I', recorder(W2M, 8, True))
+        strings(log, W2M, 0, 0b10100)
+        strings(log, REMOVE, 0, 1)
+        path = r.choice([b'p\0', b'ab\\c\0'])
+        set_return(log, W2M, len(path) if r.random() < 0.9 else 0)
+        fill(log, W2M, 4, path, 2)
+        return Call(0x5c7e90, [SLOTS, slot], regions, conv='t', ret='v')
     if op == 'Name':
         return Call(0x5c7d30, [SLOTS, out, slot], regions, conv='t', ret='a')
     if op == 'Folder':

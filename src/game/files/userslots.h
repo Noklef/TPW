@@ -6,11 +6,13 @@
 
 #include "../../../re/types.h"
 
+struct String;
 struct WString;
 
 struct UserSlotsEnv {
     u8 *(__fastcall *ctor)(u8 *slots);                     // UserSlots_Ctor
     u16 *(__cdecl *itow)(s32 value, u16 *out, s32 radix);  // 0x67e010: _itow, unported
+    void(__cdecl *removeTree)(const String *path);         // GamePaths_RemoveTree
 };
 void UserSlots_SetEnv(const UserSlotsEnv *env);  // nullptr: the game's
 
@@ -25,6 +27,10 @@ WString *__fastcall UserSlots_SlotName(const u8 *self, void *, WString *out, s32
 
 // 0x5c7de0 (thiscall (out, i), pops 8; name invented, unconfirmed): out = GamePaths_UsersFolder, the global "\" (0xf82508) and UserSlots_SlotName. Returns out.
 WString *__fastcall UserSlots_SlotFolder(const u8 *self, void *, WString *out, s32 i);
+
+// 0x5c7e90 (thiscall (i), pops 4; the SEH frame left out; name invented, unconfirmed): the slot's folder removed (GamePaths_RemoveTree, the path in ANSI), the slot's name
+// assigned the global at 0x78a374 through its vtable (+0x14), its dword at +0x14 cleared.
+void __fastcall UserSlots_ClearSlot(u8 *self, void *, s32 i);
 
 // 0x5c8870 (thiscall (out), pops 4; name invented, unconfirmed): UserSlots_SlotFolder of the slot chosen (+0x60). Returns out.
 WString *__fastcall UserSlots_ChosenFolder(const u8 *self, void *, WString *out);

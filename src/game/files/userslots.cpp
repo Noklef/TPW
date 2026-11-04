@@ -22,7 +22,7 @@ const WString *wide(u32 address) { return reinterpret_cast<const WString *>((uin
 // Appended through the wide string's vtable (WString_Append).
 void append(WString *s, const WString *tail) { vcall<void>(s, 0x28, tail); }
 
-const UserSlotsEnv kGameEnv = {&UserSlots_Ctor, reinterpret_cast<u16 *(__cdecl *)(s32, u16 *, s32)>((uintptr_t)0x0067e010)};
+const UserSlotsEnv kGameEnv = {&UserSlots_Ctor, reinterpret_cast<u16 *(__cdecl *)(s32, u16 *, s32)>((uintptr_t)0x0067e010), &GamePaths_RemoveTree};
 const UserSlotsEnv *g_env = &kGameEnv;
 
 }  // namespace
@@ -61,6 +61,20 @@ WString *__fastcall UserSlots_SlotFolder(const u8 *self, void *, WString *out, s
     WString_CtorCopy(out, nullptr, &path);
     WString_Dtor(&path);
     return out;
+}
+
+void __fastcall UserSlots_ClearSlot(u8 *self, void *, s32 i) {
+    WString folder;
+    UserSlots_SlotFolder(self, nullptr, &folder, i);
+    String path;
+    String_Ctor(&path);
+    String_AssignFromWide(&path, &folder);
+    g_env->removeTree(&path);
+    u8 *const slot = self + 0x18 * i;
+    vcall<void>(slot, 0x14, reinterpret_cast<const void *>((uintptr_t)0x0078a374));
+    at<u32>(slot, 0x14) = 0;
+    String_Dtor(&path);
+    WString_Dtor(&folder);
 }
 
 WString *__fastcall UserSlots_ChosenFolder(const u8 *self, void *, WString *out) { return UserSlots_SlotFolder(self, nullptr, out, at<s32>(self, 0x60)); }
