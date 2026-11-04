@@ -1121,9 +1121,17 @@ const AddrCall kGlobalSaveCalls[] = {  // tests/fncmp/globalsaveio.py --table
     {0x5b1620, recorder(6, 2)},
     {0x5b1650, recorder(7, 2)}, {0x5aff50, recorder(8, 3)}, {0x5f5ad0, jpeg_recorder(1, 4)}, {0x5f5e50, jpeg_recorder(2, 5)}, {0x5f5b80, jpeg_recorder(3, 2)},  // (the last four: tests/fncmp/globalsavewrite.py)
 };
+// GamePaths_FindDisc's recorder (tests/fncmp/gamepathscheckdisc.py's _find, the same): the copy kept first.
+u32 __fastcall findDiscStandIn(u32 self, u32) {
+    const u8 *const from = reinterpret_cast<const u8 *>((uintptr_t)self);
+    u8 *const to = reinterpret_cast<u8 *>((uintptr_t)0x30000800);
+    for (u32 i = 0; i < 0x35; ++i) to[i] = from[i];
+    return reinterpret_cast<u32(__fastcall *)(u32, u32)>((uintptr_t)recorder(4, 0))(self, 0);
+}
 const AddrCall kShareTexCalls[] = {  // tests/fncmp/sharetexpath.py --table
     {0x40ef40, jpeg_recorder(1, 0)},
     {0x67a7d0, jpeg_recorder(2, 1)},   // (tests/fncmp/gamebase.py)
+    {0x5f8790, recorder(3, 0)}, {0x5aa500, (u32)(uintptr_t)&findDiscStandIn}, {0x5f61e0, recorder(5, 0)}, {0x67acb0, jpeg_recorder(6, 1)},   // (tests/fncmp/gamepathscheckdisc.py)
 };
 const AddrCall kLobbyScriptCalls[] = {  // tests/fncmp/lobbyscript.py --table
     {0x5c4d50, jpeg_recorder(1, 2)},

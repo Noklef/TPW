@@ -68,3 +68,8 @@ const char *__cdecl GamePaths_Base();
 // 0x46e650 (cdecl; out; name invented, unconfirmed): sprintf(out, "%s\\%s", 0x40ef40's text, the text at 0x7af720). Returns sprintf's result.
 s32 __cdecl GamePaths_ShareTexFolder(char *out);
 }  // extern "C"
+
+// 0x45f7a0 (cdecl; name invented, unconfirmed): the disc looked for. The statics at 0xfb34e0 (a string list, 0xfb34f0 the system's information) made the first time (guard bit 0 of [0xfb34ca]; its end with atexit). GamePaths_FindDisc on a copy of them (0x35 bytes); the copy's list freed, node by node (+0x14 the next). True when it answered exactly 1.
+extern "C" {
+bool __cdecl GamePaths_CheckDisc();
+}
