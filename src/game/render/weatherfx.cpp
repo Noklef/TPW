@@ -446,7 +446,7 @@ u32 __fastcall WeatherFx_DrawDrops(u8 *fx, void *, float x, float y, float z) {
         const float nearer = (float)(X87Reg(p.z) - K(0x00701d10)), further = (float)(X87Reg(p.z) - K(0x00701d24));
         const float lower = (float)X87Reg(-(X87Reg(p.y) - high).v);
         // (The second dword of each vertex's colour stays unset, sic.)
-        u32 vertices[24];
+        u32 vertices[20 * 8];   // (room for clipping, which swaps its output with this buffer)
         vertices[0] = Bits(p.x);
         vertices[1] = Bits((float)X87Reg(-(X87Reg(high) + p.y).v));
         vertices[2] = Bits(nearer);
@@ -524,7 +524,7 @@ u32 __fastcall WeatherFx_DrawStreaks(u8 *fx, void *, float x, float y, float z) 
         const u32 uFar = Bits((float)(X87Reg(u) + uSize)), vFar = Bits((float)(X87Reg(v) + vSize));
         const u32 uNear = X87_FloatThrough(at<u32>(sizes, 8)), vNear = X87_FloatThrough(at<u32>(sizes, 0xc));
         // (The second dword of each vertex's colour stays unset, sic.)
-        u32 vertices[32];
+        u32 vertices[20 * 8];   // (room for clipping, which swaps its output with this buffer)
         vertices[0] = Bits((float)(X87Reg(s->from.x) + acrossX));
         vertices[1] = Bits((float)(X87Reg(s->from.y) - acrossY));
         vertices[2] = nearer;

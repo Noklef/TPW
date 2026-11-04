@@ -139,7 +139,7 @@ u32 __fastcall Ribbon_AddPoint(u8 *object, void *, const float *from, const floa
     if (!(from ? extend(object, ribbon, place, left, right) : loose(object, ribbon, place, left, right))) return 1;
 
     const u32 colour = at<u32>(object, 0xa19c);
-    u8 vertices[4 * kStride];
+    u8 vertices[20 * kStride];   // (room as in the original: clipping swaps its output with this buffer)
     vertex(vertices, oldLeft, colour, 0xa170, 0xa174, object);
     vertex(vertices + kStride, oldRight, colour, 0xa178, 0xa174, object);
     vertex(vertices + 2 * kStride, right, colour, 0xa178, 0xa17c, object);

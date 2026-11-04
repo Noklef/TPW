@@ -107,7 +107,7 @@ u32 __fastcall Batch_DrawQuad(u8 *object, void *, u8 *spec, u32 mask) {
     at<u32>(spec, 8) = colour;
     const u32 *const points = at<const u32 *>(spec, 4);
     static const u8 kUs[4] = {0x18, 0x20, 0x20, 0x18}, kVs[4] = {0x1c, 0x1c, 0x24, 0x24};
-    u32 vertices[4][8] = {};
+    u32 vertices[20][8] = {};   // (room as in the original's 0x290: clipping swaps its output with this buffer)
     for (u32 i = 0; i < 4; i++) {
         for (u32 j = 0; j < 4; j++) vertices[i][j] = points[i * 4 + j];
         vertices[i][4] = colour;
