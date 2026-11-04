@@ -7604,6 +7604,21 @@ address,name,kind,confidence,notes
 0x005d3750,FtpSocket_Dtor,function,low,"reimplemented (src/game/online/ftp); thiscall: vtable 0x702994, then Ftp_Close's body"
 0x005d36d0,FtpSocket_DeletingDtor,function,low,"reimplemented (src/game/online/ftp); thiscall (flags; pops 4): FtpSocket_Dtor's body, GameHeap_Free with bit 0"
 0x005c9090,FtpBase_Dtor,function,low,"reimplemented (src/game/online/ftp); thiscall: vtable 0x70295c, then FtpSocket_Dtor"
+0x005d1980,Ftp_Receive,function,low,"reimplemented (src/game/online/ftp); thiscall (toFile, count; pops 8): accept if needed, recv to +0x424, to the local file or to a line end"
+0x005d1c70,Ftp_DataSetup,function,low,"reimplemented (src/game/online/ftp); thiscall: PASV's address, or a listen socket and its PORT line"
+0x005d2350,Ftp_DataConnect,function,low,reimplemented (src/game/online/ftp); thiscall: the data socket connected to the PASV address; 0x40 on failure
+0x005d1f10,Ftp_Login,function,low,"reimplemented (src/game/online/ftp); thiscall: the control socket connected, USER and PASS, the type line; failure codes close both sockets"
+0x005d2180,Ftp_Quit,function,low,reimplemented (src/game/online/ftp); thiscall: threaded posts command 2; else the quit line and both sockets closed
+0x005d2400,Ftp_Retrieve,function,low,"reimplemented (src/game/online/ftp); thiscall: the LIST line's size, then the RETR line to the local file"
+0x005d22a0,Ftp_RetrieveNamed,function,low,"reimplemented (src/game/online/ftp); thiscall (remote, local; pops 8): the names, then command 3 or Ftp_Retrieve"
+0x005d1ac0,Ftp_Connect,function,low,"reimplemented (src/game/online/ftp); thiscall (host, user, password, bind; pops 0x10): the names, the bind string, then command 1 or Ftp_Login"
+0x005d2850,Ftp_ThreadProc,function,low,"reimplemented (src/game/online/ftp); cdecl (the object): the thread: the commands, the callback, the end event"
+0x005d1760,FtpClient_Ctor,function,low,"reimplemented (src/game/online/ftp); thiscall (callback, threaded; pops 8): the object of 0x2780 bytes, vtable 0x702990, WSAStartup"
+0x005d1880,FtpClient_Dtor,function,low,"reimplemented (src/game/online/ftp); thiscall: command 0, the thread's end, WSACleanup, the events and the string"
+0x005d1860,FtpClient_DeletingDtor,function,low,"reimplemented (src/game/online/ftp); thiscall (flags; pops 4): FtpClient_Dtor, GameHeap_Free with bit 0"
+0x005d29d0,Ftp_WsaErrorBox,function,low,"reimplemented (src/game/online/ftp); thiscall, this unused: WSAGetLastError's text in a message box"
+0x005d2a20,Ftp_WsaStartup,function,low,"reimplemented (src/game/online/ftp); thiscall, this unused: WSAStartup; a failure the error box and 1"
+0x005d2a60,Ftp_WsaCleanup,function,low,"reimplemented (src/game/online/ftp); thiscall, this unused: WSACleanup; a failure the error box and 1"
 0x004e6130,OnlineChat_Set29And2a,function,low,reimplemented (src/game/online/chat); the online chat's bytes +0x29 and +0x2a set under its lock (name unconfirmed)
 0x004e6150,OnlineChat_Get2a,function,low,reimplemented (src/game/online/chat); the online chat's byte +0x2a read under its lock (name unconfirmed)
 0x004e5260,OnlineChat_Ctor,function,low,"reimplemented (src/game/online/chat); thiscall: the online chat's constructor: its two counted buffers, two critical sections, string-maps record and 0x5ec210 member made; the name (+8) L""%08x"" of rand(); +0x18 assigned the global string 0x7a1500 (assign inlined: shared when whole and its count under 0xfe, else copied); returns chat (name invented)"

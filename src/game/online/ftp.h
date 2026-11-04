@@ -4,6 +4,21 @@
 #pragma once
 
 #include "../../../re/types.h"
+#include "../core/semaphore.h"
+
+// The client's calls outside Winsock (the bench's recorders; each has a bench of its own).
+struct FtpEnv {
+    void *(__cdecl *fopen)(const char *name, const char *mode);                 // CRT_fopen (0x67b8a0)
+    u32(__cdecl *fwrite)(const void *data, u32 size, u32 count, void *file);    // CRT_fwrite (0x67b6d0)
+    s32(__cdecl *fclose)(void *file);                                           // CRT_fclose (0x67b620)
+    u32(__cdecl *threadBegin)(void *proc, void *arg);                           // Thread_Begin (0x5c8b70)
+    u32(__fastcall *eventSet)(const u32 *event);                                // SyncEvent_Set (0x5c8c20)
+    bool(__fastcall *eventWait)(const u32 *event, void *, s32 timeout);         // SyncEvent_Wait (0x5c8bf0)
+    u32 *(__fastcall *eventCtor)(u32 *event);                                   // SyncEvent_Ctor (0x5c8bd0)
+    s32(__fastcall *semaphoreDtor)(Semaphore *semaphore);                       // Semaphore_Dtor (0x6307e0)
+    u8 *(__fastcall *baseCtor)(u8 *object);                                     // Class702958_Ctor (0x5c8d80)
+};
+void Ftp_SetEnv(const FtpEnv *env);
 
 extern "C" {
 
@@ -43,4 +58,59 @@ u32 *__fastcall FtpSocket_DeletingDtor(u32 *self, void *, u8 flags);
 
 // 0x5c9090 (thiscall): the vtable pointer = 0x70295c, then FtpSocket_Dtor.
 void __fastcall FtpBase_Dtor(u32 *self);
+
+// 0x5d1980 (thiscall; toFile, count, pops 8): accepts on the listen socket +0x2428 when it is open and +0x2424 is not (a failure returns 3), then
+// reads the data socket +0x2424 to the buffer at +0x424, at most 0x1fff at a time, until count bytes came (+0x1c counts them). toFile 1 opens the
+// local name +0x255c (mode at 0x74cfb4; a failure is result 1, and the reading goes on) and writes each piece at the buffer's start (sic: any piece); toFile
+// 0 appends and ends the reading at a '\n'. A recv that gives none is result 2. Returns the result.
+s32 __fastcall Ftp_Receive(void *self, void *, u8 toFile, u32 count);
+
+// 0x5d1c70 (thiscall): sends "PASV" (0x77412c). A reply 227 gives the address and port of its "(a,b,c,d,e,f)" (no '(' : 0x43; a missing comma crashes (sic)). Else
+// it opens the listen socket +0x2428 (the bind string +0x2764 or Ftp_LocalAddress), binds, listens (a failure: 0x34), and sends its PORT line (0x774110): a reply of 200 only. No reply: 0x38.
+s32 __fastcall Ftp_DataSetup(void *self);
+
+// 0x5d2350 (thiscall): opens the data socket +0x2424 (bound to the bind string, if any, unchecked) and connects it to +0x2430 and +0x242e. Returns 0x40 on failure, else 0.
+s32 __fastcall Ftp_DataConnect(void *self);
+
+// 0x5d1f10 (thiscall): opens the control socket +4 and connects to the host +0x243c (inet_addr; if none and not the text at 0x773ce0, gethostbyname), port 21, then
+// logs in with the user +0x249c and the password +0x24fc (asked by 331 or 332) and sends the type line (0x774134). Failures close both sockets and return 0x34 (socket),
+// 0x40 (connect), 0x38 (no reply), 0x41 (no 220), 0x42 (no 230 to the password) or 0x43 (no 200).
+s32 __fastcall Ftp_Login(void *self);
+
+// 0x5d2180 (thiscall): threaded (+0x277e), posts command 2 and returns 0. Else no socket: 0x38; sends the quit line (0x774158); a reply neither none nor 221: 0x43; else closes both sockets, 0.
+s32 __fastcall Ftp_Quit(void *self);
+
+// 0x5d2400 (thiscall): no socket: 0x38. Data setup and connect; asks the remote name's size with the LIST line (0x77416c) and reads it (Ftp_ListLineSize of the first line); a 226 after it sets the data
+// channel up again, 250 does not; then the RETR line (0x774160) and the file (Ftp_Receive to the local name). Closes the data socket at the end, except after a final 250 (sic). Returns 0 or the failure.
+s32 __fastcall Ftp_Retrieve(void *self);
+
+// 0x5d22a0 (thiscall; remote, local, pops 8): strncpy both names (0x100 each); threaded, posts command 3 and returns 0, else Ftp_Retrieve.
+s32 __fastcall Ftp_RetrieveNamed(void *self, void *, const char *remote, const char *local);
+
+// 0x5d1ac0 (thiscall; host, user, password, bind, pops 0x10): strncpy (0x60 each), the user and the password cut at the first CR or LF, a non-null bind assigned to the string at +0x2760;
+// threaded, posts command 1 and returns 0, else Ftp_Login.
+s32 __fastcall Ftp_Connect(void *self, void *, const char *host, const char *user, const char *password, const char *bind);
+
+// 0x5d2850 (cdecl; the object): the thread: waits for the event +0x2770, sets ready, runs the command +0x2778 (0 the end, 1 login, 2 quit, 3 retrieve, others nothing: the result stays) and
+// calls the callback +0x275c slot 0 (command, result; the first result before any is the object's address (sic)); after the end, sets the event +0x2774.
+void __cdecl Ftp_ThreadProc(void *self);
+
+// 0x5d1760 (thiscall; callback, threaded, pops 8): the base's constructor, both data sockets -1, the callback, the string empty (its allocator byte is stack garbage in the original), the two events, ready 1,
+// vtable 0x702990, WSAStartup (1.1, unchecked). Returns the object.
+u32 *__fastcall FtpClient_Ctor(u32 *self, void *, void *callback, u8 threaded);
+
+// 0x5d1880 (thiscall): waits for ready with Sleep(1), posts command 0, waits for the thread's end if it was started, WSACleanup, the events' destructors, the string's, FtpBase_Dtor.
+void __fastcall FtpClient_Dtor(u32 *self);
+
+// 0x5d1860 (thiscall; flags, pops 4): FtpClient_Dtor, then GameHeap_Free with flag bit 0. Returns the object.
+u32 *__fastcall FtpClient_DeletingDtor(u32 *self, void *, u8 flags);
+
+// 0x5d29d0 (thiscall, this unused): WSAGetLastError's index in the 0-ended s16 table [0xf827ec] picks the text of [0xf827f0]: a message box of it, caption at 0x774810.
+void __fastcall Ftp_WsaErrorBox(void *self);
+
+// 0x5d2a20 (thiscall, this unused): WSAStartup (1.1); a failure: the error box and 1. Else 0.
+s32 __fastcall Ftp_WsaStartup(void *self);
+
+// 0x5d2a60 (thiscall, this unused): WSACleanup; a failure: the error box and 1. Else 0.
+s32 __fastcall Ftp_WsaCleanup(void *self);
 }
