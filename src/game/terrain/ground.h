@@ -2,6 +2,7 @@
 #pragma once
 
 #include "../../../re/types.h"
+#include "../core/addrcalls.h"
 
 // Its calls (a bench's recorders in their place).
 struct TerrainGroundEnv {
@@ -19,8 +20,14 @@ struct TerrainGroundEnv {
     u32(__fastcall *close)(u8 *object, void *, float depth);                                              // Batch_Close (0x5658c0)
 };
 void TerrainGround_SetEnv(const TerrainGroundEnv *env);
+void TerrainGround_SetPrepareCalls(const AddrCall *table, u32 count);
 
 extern "C" {
+// 0x56f090 (thiscall on the bands object, returns 1; name invented, unconfirmed). Does nothing without a bit of 0xc0000000 in 0x8bd508. Without 0x100
+// there, the view's rows (+0x128, 0x108 bytes) and +0x20 are copied from the block at 0x879d54. Each visible cell's texture is kept and touched; with
+// bit 2 of 0x8bd550, those in the box +0x234 to +0x240 go, at most 2500, into records for TerrainTexCache_Update; +0x1296c is how many.
+u32 __fastcall TerrainGround_PrepareTextures(u8 *self);
+
 // 0x56f670 (thiscall, no arguments; name invented, unconfirmed). Returns 1 at once with the rows +0x128 past +0x12c or the settings' top bits (0x8bd508) clear. 0x879dec = 0; the node at [[0x87a6d0] + 0x2c]
 // drained, the view set (0x87b090), the grid's colours lit, the texture ids and textures collected. A batch (mode 1, 4, kind 0x1c4; flags 0x1256, with fog 0x101256; the first id; none: 1). Rows +0x128 to
 // +0x12c as the water's: each row's points, columns byte +0x28 + row to byte +0xa8 + row (first 0x7f or over: none, the last row's stay), x and z from the grid at +0, y its heights' dwords, transformed and

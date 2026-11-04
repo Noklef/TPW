@@ -4536,6 +4536,7 @@ address,name,kind,confidence,notes
 0x00427ad0,TerrainSets_LoadLevel,function,low,"reimplemented (src/game/terrain/tct); The level's .tct file read into the sets 0x74c8a8, its folder's sets added to the model."
 0x00570d90,TerrainWater_Draw,function,low,"reimplemented (src/game/terrain/water); The water surface drawn into a batch (name invented, unconfirmed)."
 0x0056f670,TerrainGround_Draw,function,low,"reimplemented (src/game/terrain/ground); the landscape's ground drawn into batches, one for each run of a texture id (name invented, unconfirmed)"
+0x0056f090,TerrainGround_PrepareTextures,function,low,"reimplemented (src/game/terrain/ground); thiscall on the bands object: the view's rows copied in, visible cells' textures kept and touched; inside the override box numbered into records for the tile cache (name invented)"
 0x0045d090,RayPick_Node,function,low,"reimplemented (src/game/terrain/raypick); the ray against a model node's faces and those under it (name invented, unconfirmed)"
 0x0045cdc0,RayPick_Column,function,low,"reimplemented (src/game/terrain/raypick); the ray against what stands on a map cell (name invented, unconfirmed)"
 0x0045bf90,RayPick_World,function,low,"reimplemented (src/game/terrain/raypick); the ray from the camera through the mouse against the ground and what stands on it (name invented, unconfirmed)"
