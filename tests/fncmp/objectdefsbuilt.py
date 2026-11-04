@@ -37,7 +37,7 @@ def case(r):
         elif kind < 0.06:
             name = b'c:\\7\\none.wad'      # (no digit after the last: it faults too)
         else:
-            name = b'c:\\7\\' + r.choice([b'ride', b'a b', b'']) + r.choice([b'12', b'0', b'7000', b'65535', b'65536', b'70000', b'99999999999', b'007a', b'9 1']) + r.choice([b'.wad', b'', b'z'])
+            name = b'c:\\7\\' + r.choice([b'ride', b'a b', b'']) + r.choice([b'12', b'0', b'7000', b'65535', b'65536', b'70000', b'99999999999', b'007a', b'010', b'9 1']) + r.choice([b'.wad', b'', b'z'])
         body[0x28c:0x28c + len(name) + 1] = name + b'\0'
         regions[at] = body
     if not n:

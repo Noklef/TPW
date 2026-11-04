@@ -139,6 +139,8 @@ bool locale_set() { return *reinterpret_cast<u32 *>((uintptr_t)0x00fb1440) != 0;
 
 void CrtInner_SetEnv(const CrtInnerEnv *env) { g_inner = env ? env : &kGameInner; }
 
+const CrtInnerEnv &CrtInner() { return *g_inner; }
+
 extern "C" {
 
 s32 __cdecl CRT_isnan(u32 low, u32 high) {

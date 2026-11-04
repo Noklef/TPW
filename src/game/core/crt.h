@@ -79,6 +79,8 @@ struct CrtInnerEnv {
 
 void CrtInner_SetEnv(const CrtInnerEnv *env);
 
+const CrtInnerEnv &CrtInner();
+
 extern "C" {
 
 // 0x67b410: _isnan, of the double's bits: all exponent bits set and any mantissa bit.

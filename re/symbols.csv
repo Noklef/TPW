@@ -5774,6 +5774,21 @@ address,name,kind,confidence,notes
 0x004f1ed0,WIstream_Ipfx,function,low,reimplemented (src/game/core/wstream); basic_istream<wchar_t>::ipfx by its shape
 0x004f1ca0,WIstream_Getline,function,low,reimplemented (src/game/core/wstream); basic_istream<wchar_t>::getline by its shape
 0x004f6be0,WOstream_PutText,function,low,"reimplemented (src/game/core/wstream); operator<<(wostream, const wchar_t *) by its shape"
+0x00686a10,CRT_doserrno,function,low,reimplemented (src/game/core/crtfile); __doserrno
+0x00686980,CRT_dosmaperr,function,low,reimplemented (src/game/core/crtfile); _dosmaperr
+0x0068ead0,CRT_get_osfhandle,function,low,reimplemented (src/game/core/crtfile); _get_osfhandle
+0x0068eb20,CRT_lock_fhandle,function,low,reimplemented (src/game/core/crtfile); _lock_fhandle
+0x0068eb90,CRT_unlock_fhandle,function,low,reimplemented (src/game/core/crtfile); _unlock_fhandle
+0x00686aa0,CRT_lseek_lk,function,low,reimplemented (src/game/core/crtfile); _lseek_lk
+0x00686a20,CRT_lseek,function,low,reimplemented (src/game/core/crtfile); _lseek
+0x0068c320,CRT_isatty,function,low,reimplemented (src/game/core/crtfile); _isatty
+0x006864c0,CRT_write_lk,function,low,reimplemented (src/game/core/crtfile); _write_lk
+0x00686440,CRT_write,function,low,reimplemented (src/game/core/crtfile); _write
+0x00687530,CRT_getbuf,function,low,reimplemented (src/game/core/crtfile); _getbuf
+0x0067d0f0,CRT_flush,function,low,reimplemented (src/game/core/crtfile); _flush
+0x00680ad0,CRT_flsbuf,function,low,reimplemented (src/game/core/crtfile); _flsbuf
+0x0067b710,CRT_fwrite_lk,function,low,reimplemented (src/game/core/crtfile); _fwrite_lk
+0x0067b6d0,CRT_fwrite,function,low,reimplemented (src/game/core/crtfile); fwrite
 0x0050ffe0,Nav_Ctor,function,high,reimplemented (src/game/world/nav); constants constructor with five integer pairs
 0x0050f200,Nav_Dtor,function,high,reimplemented (src/game/world/nav); thiscall: the five IntPairs at +0x64 destroyed with Stub_Ret (CRT_VectorDtorIterator); also via 0x4f7c30 (+0xd4) and 0x4f8ad0
 0x004f7c30,Nav_DtorAtD4,function,low,reimplemented (src/game/world/nav); thiscall adjustor: Nav_Dtor on this + 0xd4
