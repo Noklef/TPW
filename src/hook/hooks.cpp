@@ -537,6 +537,7 @@
 #include "../game/frontend/postcard.h"
 #include "../game/frontend/scenequeue.h"
 #include "../game/frontend/frame.h"
+#include "../game/frontend/helpbgstart.h"
 #include "../game/frontend/lobbymake.h"
 #include "../game/frontend/sceneleave.h"
 #include "../game/frontend/viewcontrols.h"
@@ -7284,6 +7285,7 @@ const Hook kHooks[] = {
     {"LobbyResource_Ctor",        0x005d7fd0, (void *)&LobbyResource_Ctor, {0x6a, 0xff, 0x68, 0xd6, 0x12}},
     {"LobbyScene_MakeModel",      0x005d8870, (void *)&LobbyScene_MakeModel, {0x6a, 0xff, 0x68, 0x7c, 0x13}},
     {"Class702ca8_Ctor",          0x005dfa60, (void *)&Class702ca8_Ctor, {0x6a, 0xff, 0x68, 0xf6, 0x14}},
+    {"HelpBg_Start",              0x00492470, (void *)&HelpBg_Start, {0xb9, 0xc0, 0xa0, 0x7c, 0x00}},
     {"RSSE_Init",                 0x00551600, (void *)&RSSE_Init, {0xa1, 0xa0, 0x91, 0x87, 0x00}},
     {"RsseScript_EventName",      0x00468600, (void *)&RsseScript_EventName, {0x53, 0x55, 0x56, 0x8b, 0x74}},
     {"RSSE_StartTimer",           0x00557160, (void *)&RSSE_StartTimer, {0xb9, 0x70, 0x59, 0x78, 0x00}},
