@@ -7142,6 +7142,9 @@ address,name,kind,confidence,notes
 0x00586e40,ImageBuffer_Load,function,low,"reimplemented (src/game/render/imagebuffer); thiscall (name), pops 4: an image file loaded in the screen's pixel format; name invented"
 0x00586f40,ImageBuffer_Stamp,function,low,"reimplemented (src/game/render/imagebuffer); thiscall (name, unused, y), pops 0xc: a second file copied over its rows; name invented"
 0x00585f10,ScrollLayers_Update,function,low,"reimplemented (src/game/render/scrolllayers); thiscall: each frame the scrolling layers moved and wrapped, their textures touched; name invented"
+0x005833c0,Settings_LogDisplay,function,low,reimplemented (src/game/render/settingslog); thiscall: the display settings' lines in the debug log; name invented
+0x005835c0,Settings_LogSystem,function,low,reimplemented (src/game/render/settingslog); thiscall: the system settings' lines in the debug log; name invented
+0x00584790,Settings_LogTexturing,function,low,reimplemented (src/game/render/settingslog); thiscall: the texturing settings' lines in the debug log; name invented
 0x0044b140,Model_MarkFacesByMask,function,high,"reimplemented (src/game/model/parts); cdecl (holder**, mask): face flags 0x80000010 for parts whose +8 has any mask bit"
 0x0044b1b0,Model_MarkFacesNotValue,function,high,"reimplemented (src/game/model/parts); cdecl (holder**, value): face flags 0x80000010 for parts whose +8 is not value"
 0x0044b220,Model_FindPartByKey4,function,high,"reimplemented (src/game/model/parts); cdecl u32 (holder, mask, key): first part with +4 == key and flags & mask (mask defaults 0x3da1f82), or -1"

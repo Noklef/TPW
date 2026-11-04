@@ -25,8 +25,8 @@ def case(r):
         at = 0x1fa0 + 0xc * i
         put(self, at - 0x30, 'f', r.uniform(-1, 1))
         put(self, at - 0x28, 'f', r.uniform(-1, 1))
-        put(self, at, 'f', r.choice([r.uniform(-1.2, 1.2), r.uniform(-30, 30), 1.0, -1.0, 0.0]))
-        put(self, at + 8, 'f', r.choice([r.uniform(-1.2, 1.2), r.uniform(-30, 30), 1.0, -1.0, 0.0]))
+        put(self, at, 'f', r.choice([r.uniform(-1.2, 1.2), r.uniform(-30, 30), 1.0, -1.0, 0.0, float('nan')]))
+        put(self, at + 8, 'f', r.choice([r.uniform(-1.2, 1.2), r.uniform(-30, 30), 1.0, -1.0, 0.0, float('nan')]))
     step = r.uniform(-1.5, 1.5) if op == 'edge' else r.uniform(0, 0.5)
     if op == 'edge':
         step = r.choice([step, 1.0, -1.0, 1.0000001, -1.0000001, float('nan'), float('inf')])

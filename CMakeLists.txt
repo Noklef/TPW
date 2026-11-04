@@ -643,6 +643,7 @@ add_library(tpw_game STATIC
     src/game/render/devicecreate.cpp
     src/game/render/imagebuffer.cpp
     src/game/render/scrolllayers.cpp
+    src/game/render/settingslog.cpp
     src/game/ui/quitconfirm.cpp
     src/game/world/mapsweep.cpp
     src/game/ui/imehostattach.cpp

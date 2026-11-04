@@ -550,6 +550,7 @@
 #include "../game/render/pointsprites.h"
 #include "../game/render/rasterformat.h"
 #include "../game/render/scrolllayers.h"
+#include "../game/render/settingslog.h"
 #include "../game/render/textparts.h"
 #include "../game/render/tiledpanel.h"
 #include "../game/render/tilegrid.h"
@@ -7222,6 +7223,9 @@ const Hook kHooks[] = {
     {"ImageBuffer_Load",          0x00586e40, (void *)&ImageBuffer_Load, {0xb8, 0x20, 0x10, 0x00, 0x00}},
     {"ImageBuffer_Stamp",         0x00586f40, (void *)&ImageBuffer_Stamp, {0xb8, 0x34, 0x10, 0x00, 0x00}},
     {"ScrollLayers_Update",       0x00585f10, (void *)&ScrollLayers_Update, {0x83, 0xec, 0x08, 0x53, 0x56}},
+    {"Settings_LogDisplay",       0x005833c0, (void *)&Settings_LogDisplay, {0x81, 0xec, 0x00, 0x01, 0x00}},
+    {"Settings_LogSystem",        0x005835c0, (void *)&Settings_LogSystem, {0x83, 0xec, 0x64, 0x8d, 0x44}},
+    {"Settings_LogTexturing",     0x00584790, (void *)&Settings_LogTexturing, {0x83, 0xec, 0x64, 0x8d, 0x44}},
     {"Model_MarkFacesByMask",     0x0044b140, (void *)&Model_MarkFacesByMask, {0x53, 0x8b, 0x5c, 0x24, 0x08}},
     {"Model_MarkFacesNotValue",    0x0044b1b0, (void *)&Model_MarkFacesNotValue, {0x53, 0x8b, 0x5c, 0x24, 0x08}},
     {"Model_FindPartByKey4",      0x0044b220, (void *)&Model_FindPartByKey4, {0x56, 0x57, 0x8b, 0x7c, 0x24}},
