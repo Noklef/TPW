@@ -21,6 +21,11 @@ AddrCalls g_calls;
 
 void VWrap_SetCalls(const AddrCall *table, u32 count) { g_calls.Set(table, count); }
 
+extern "C" void __cdecl Pointer_BeginFlip() {
+    const u32 pointer = global<u32>(0x007b4b84);
+    if (pointer) g_calls.Th(0x005fbd40, pointer);   // AsyncPointer_BeginFlip
+}
+
 extern "C" {
 
 u32 __fastcall Global8bba48_ClipAndTouch(u8 *self, void *) {

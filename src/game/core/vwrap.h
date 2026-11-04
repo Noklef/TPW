@@ -128,4 +128,6 @@ u32 __fastcall Obj_KeyMessageToSlots(u8 *object, void *, u32 message, u32 key, u
 // 0x7cc218 with the handle.
 void __fastcall Obj7b51f0_PassThingTo7cc218(u8 *object, void *, u32 handle);
 
+// 0x47e9b0 (cdecl; name invented, unconfirmed): AsyncPointer_BeginFlip of the pointer [0x7b4b84], if any.
+void __cdecl Pointer_BeginFlip();
 }  // extern "C"
