@@ -61,7 +61,7 @@ def case(r):
         id = r.randrange(0x160)
         put(self, slot + 0xc, 'I', id)
         self[slot + 0x16] = r.choice([0, 1, 0x80])
-        put(self, 0xe4 + (id << 4), 'I', r.choice([0, n - 1, n - 1, n - 2, n, n + 1, 0xffffffff, r.randrange(8)]) & 0xffffffff)
+        put(self, 0xe4 + (id << 4), 'I', r.choice([0, n - 1, n - 1, n - 2, n, n + 1, 0xffffffff, 0xfffffffe, r.randrange(8)]) & 0xffffffff)
     return Call(0x59a550, [SELF], regions, conv='t', ret='v')
 
 
