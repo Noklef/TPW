@@ -81,6 +81,7 @@ add_library(tpw_game STATIC
     src/game/files/resindex.cpp
     src/game/files/charsets.cpp
     src/game/files/fontloaders.cpp
+    src/game/files/signfonts.cpp
     src/game/core/regkey.cpp
     src/game/core/stdstring.cpp
     src/game/core/globalmem.cpp
