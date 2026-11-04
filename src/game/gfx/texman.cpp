@@ -6,6 +6,7 @@
 #include "texture.h"
 #include "../core/crt.h"
 #include "../core/gameheap.h"
+#include "../render/engineerrors.h"
 
 namespace {
 
@@ -36,7 +37,39 @@ void append(char *to, const char *from) {
 
 }  // namespace
 
+static AddrCalls g_createCalls;
+
+void TexManager_SetCreateCalls(const AddrCall *table, u32 count) { g_createCalls.Set(table, count); }
+
 extern "C" {
+
+u32 __cdecl TexManager_Create() {
+    if (global<u8 *>(0x0087a268))
+        return 0;
+    u8 *const manager = static_cast<u8 *>(GameHeap_Alloc(0x1000c));
+    if (manager) {
+        for (u32 i = 0; i < 0x1000 * 4; ++i)
+            at<u32>(manager, 4 * i) = 0;
+        at<u32>(manager, 0x10000) = 0;
+        at<u32>(manager, 0x10004) = 0xffffffff;
+        at<u32>(manager, 0x10008) = 0;
+    }
+    global<u8 *>(0x0087a268) = manager;
+    if (!manager) {
+        EngineErrors_Push(reinterpret_cast<u8 *>((uintptr_t)0x00879ad0), nullptr, 3, 0xb0754000);
+        return 0;
+    }
+    const u32 path = g_createCalls.Cd(0x0044a280, (u32)(uintptr_t)"Data\\Generic\\defaulttexture\\notfound.tga", 1u, 0u);
+    at<u32>(manager, at<u32>(manager, 0x10000) << 4) = global<u32>(0x00768a48);
+    at<u32>(manager, (at<u32>(manager, 0x10000) << 4) + 4) = global<u32>(0x00768a4c);
+    const u32 textures = g_createCalls.Th(0x005755f0, (u32)(uintptr_t)manager, path);
+    at<u32>(manager, (at<u32>(manager, 0x10000) << 4) + 8) = textures;
+    at<u32>(manager, (at<u32>(manager, 0x10000) << 4) + 0xc) = 1;
+    const u32 count = at<u32>(manager, 0x10000);
+    at<u32>(manager, 0x10004) = count;
+    at<u32>(manager, 0x10000) = count + 1;
+    return 1;
+}
 
 u32 __cdecl TexManager_Destroy() {
     u8 *const manager = global<u8 *>(0x0087a268);

@@ -3,6 +3,7 @@
 #pragma once
 
 #include "../../../re/types.h"
+#include "../core/addrcalls.h"
 
 // What Batch_Flush and Batch_Close call (the port by default; their bench runs them as recorders).
 struct BatchEnv {
@@ -11,6 +12,8 @@ struct BatchEnv {
 };
 // The calls go to env (nullptr: the port).
 void Batch_SetEnv(const BatchEnv *env);
+// Model_AddTree's call of Model_AddTriangles, by the game's address (the driver's: a recorder). nullptr restores the game's.
+void Batch_SetTreeCalls(const AddrCall *table, u32 count);
 
 extern "C" {
 
@@ -67,4 +70,9 @@ u32 __fastcall Batch_Close(u8 *object, void *, float depth);
 // its count +0x24, which grows by 3) plus the vertex count the entry's vertices started at. The settings and the batch's vertices are
 // read again for each face.
 u32 __fastcall Model_AddTriangles(u8 *model, void *, u8 *batch, const void *matrix, const u8 *vertices);
+
+// 0x57b610 (thiscall, self only passed on; pops 16; name invented): the model's parts from its current one (+4) along their +8 links: the part's matrix made into a local one from `matrix` (slot 6 of the transformer at [0x87b1d8], cdecl: transformer, part + 0x10, matrix,
+// local; local a copy of `matrix` to begin with), the triangles added (Model_AddTriangles) unless flags 0x8210, the children (+0xc, unless flag 0x20) gone through the same way with the local matrix. +4 ends at 0 when all is well. 0 as soon as the triangles fail, +4 left on the part
+// (or child) that did. 1 else, or with no current part.
+u32 __fastcall Model_AddTree(void *self, void *, u8 *model, const u32 *matrix, u8 *batch, const u8 *vertices);
 }

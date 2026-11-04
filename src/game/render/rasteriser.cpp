@@ -3,12 +3,18 @@
 #include <cstdint>
 #include <mmintrin.h>
 
+#include "../math/x87.h"
+
 namespace {
 
 template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cast<T *>((uintptr_t)p + offset); }
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
 
 }  // namespace
+
+static AddrCalls g_speedCalls;
+
+void Rasteriser_SetSpeedCalls(const AddrCall *table, u32 count) { g_speedCalls.Set(table, count); }
 
 extern "C" {
 
@@ -53,4 +59,20 @@ u32 __stdcall SoftRenderer_PixelAt(s32 x, s32 y, u32 *out) {
     *out = buffer[(u32)y * global<u32>(0x008bcbd0) + (u32)x];
     return 1;
 }
+}
+
+double __cdecl Rasteriser_SpeedTest() {
+    const u32 width = global<u32>(0x008bcbd0), height = global<u32>(0x008bcbd4);
+    const s32 pixels = (s32)(height * width * 50);
+    const u32 right = width << 4, bottom = height << 4;
+    global<u32>(0x00fbe044) = global<u32>(0x006f1a10);
+    u32 corners[4][3] = {{0, 0, 0}, {right, 0, 0}, {right, bottom, 0}, {0, bottom, 0}};
+    const u32 start = g_speedCalls.Cd(0x0057cb90);
+    for (u32 i = 0; i < 50; ++i) {
+        g_speedCalls.Cd(0x006ef7f0, (u32)(uintptr_t)corners[0], (u32)(uintptr_t)corners[1], (u32)(uintptr_t)corners[2]);
+        g_speedCalls.Cd(0x006ef7f0, (u32)(uintptr_t)corners[0], (u32)(uintptr_t)corners[2], (u32)(uintptr_t)corners[3]);
+    }
+    _mm_empty();
+    const s32 ticks = (s32)((g_speedCalls.Cd(0x0057cb90) - start) << 4);
+    return (X87Reg((double)pixels) / X87Reg((double)ticks)).v;
 }

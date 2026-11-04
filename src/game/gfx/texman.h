@@ -8,6 +8,10 @@
 #pragma once
 
 #include "../../../re/types.h"
+#include "../core/addrcalls.h"
+
+// TexManager_Create's calls of Quickload_Locate and TexManager_Load, by the game's addresses (the driver's: recorders). nullptr restores the game's.
+void TexManager_SetCreateCalls(const AddrCall *table, u32 count);
 
 extern "C" {
 
@@ -16,6 +20,10 @@ extern "C" {
 // first texture, gfx/texture), then destroyed (Texture_DestroyArray: released again, sic) and cleared, and +4 cleared; the count is
 // cleared, the manager freed (GameHeap_Free) and [0x87a268] cleared. Returns 1.
 u32 __cdecl TexManager_Destroy();
+
+// 0x574a20 (cdecl; name invented): 0 with a texture manager at [0x87a268]. A new one (0x1000c bytes: 0x1000 slots cleared, count 0, the slot found -1, load flags 0; none: the error (3, 0xb0754000) pushed, 0) with the default texture loaded
+// (Data\\Generic\\defaulttexture\\notfound.tga, through Quickload_Locate) into its first slot: the pointers at 0x768a48, 0x768a4c (folder and name), the array, 1 user; the slot found 0, the count 1. Returns 1.
+u32 __cdecl TexManager_Create();
 
 // 0x575ad0 (thiscall; textures; pops 4; name unconfirmed): the slots (0x10 bytes from +0: +8 a texture array, +0xc its users) are
 // searched from the last (count at +0x10000, signed) for this array: none, 0. Found, its users are decremented: still some, 0. Else
