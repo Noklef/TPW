@@ -1,4 +1,4 @@
-// Two thiscall methods of a class with a list of windows that nothing in the exe names (no call, no vtable holds them): reimplementation of 0x47de00 and 0x47e250. Names invented, unconfirmed; the class may be two.
+// Two thiscall virtual methods of classes with a list of windows (no direct call; vtables hold them: 0x47de00 in eight from 0x705990 to 0x705c68, 0x47e250 in the one at 0x705a00): reimplementation of 0x47de00 and 0x47e250. Names invented, unconfirmed.
 #pragma once
 
 #include "../../../re/types.h"
