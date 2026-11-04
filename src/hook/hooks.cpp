@@ -6847,6 +6847,7 @@ const Hook kHooks[] = {
     {"TqiVideo_DecodeFrame32",    0x006718a0, (void *)&TqiVideo_DecodeFrame32, {0x51, 0x56, 0x57, 0x8b, 0x7c}},
     {"DctVideo_DecodeMacroblock", 0x00676e40, (void *)&DctVideo_DecodeMacroblock, {0x51, 0xa1, 0x60, 0xac, 0xfa}},
     {"SpriteFrame_DrawLightQuads", 0x00589770, (void *)&SpriteFrame_DrawLightQuads, {0x83, 0xec, 0x6c, 0x53, 0x55}},
+    {"SpriteFrame_DrawLightQuadsInPlace", 0x00589990, (void *)&SpriteFrame_DrawLightQuadsInPlace, {0x83, 0xec, 0x6c, 0x56, 0x8b}},
     {"MovieFrame_Allocate",       0x006777d0, (void *)&MovieFrame_Allocate, {0x83, 0xec, 0x08, 0x53, 0x56}},
     {"MovieFrame_Decode",         0x00677310, (void *)&MovieFrame_Decode, {0x55, 0x8b, 0xec, 0x83, 0xec}},
     {"Movie_Start",               0x0051b010, (void *)&Movie_Start, {0x83, 0xec, 0x70, 0x53, 0x55}},

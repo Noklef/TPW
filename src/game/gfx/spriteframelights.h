@@ -9,11 +9,16 @@ struct SpriteFrameLightsEnv {
     u8 *(__fastcall *next)(u8 *list);                                                          // LightList_Next (0x584e50)
     u32(__fastcall *groundQuad)(u8 *frame, void *, float *quad, u32 matrix, float width, float height);  // SpriteFrame_GroundQuad (0x589410)
     u32(__fastcall *drawQuad)(u8 *object, void *, u8 *spec, u32 mask);                         // Batch_DrawQuad (0x565f90)
+    u32(__fastcall *drawInPlace)(u8 *object, void *, u8 *spec, u32 mask);                      // Batch_DrawQuadInPlace (0x566220)
 };
 // The calls go to env (nullptr: the ports).
 void SpriteFrameLights_SetEnv(const SpriteFrameLightsEnv *env);
 
 extern "C" {
+
+// 0x589990 (thiscall (texture or 0), pops 4; name invented, unconfirmed): as SpriteFrame_DrawLightQuads with the texture given, or the panel's first, and Batch_DrawQuadInPlace. With render flag 0x40000 the batch flags' low byte is 0x13 from the first light on and the
+// colour white less the ground quad's answer's top byte (signed) in each channel, alpha 0xff.
+u32 __fastcall SpriteFrame_DrawLightQuadsInPlace(u8 *frame, void *, const u8 *texture);
 
 // 0x589770 (thiscall; name invented, unconfirmed). A frame with flags 0x200 and 0x10000000 (else returns 1): the light list at 0x8c1658, a ground quad at each light of size 1 by 1 (its answer the colour), a Batch_DrawQuad
 // with mask -1 (answer 0 returns 0; else 1). The texture is the panel's first (+0x28) with batch flags 0x800 and the frame's 0x20000, or with render flag 0x100000 by light: the table at [[+0x34] + 4], 0x18 bytes each, at

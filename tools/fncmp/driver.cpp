@@ -921,7 +921,7 @@ const TileGridEnv kTileGridEnv = {Rec{recorder(1, 2)}};
 const SpriteGroupsEnv kSpriteGroupsEnv = {Rec{recorder(1, 2)}};
 const TiledPanelEnv kTiledPanelEnv = {Rec{recorder(1, 2)}};
 const GroundShadowEnv kGroundShadowEnv = {Rec{recorder(1, 2)}, Rec{recorder(2, 0)}};
-const SpriteFrameLightsEnv kSpriteFrameLightsEnv = {Rec{recorder(2, 0)}, Rec{recorder(3, 0)}, Rec{recorder(4, 4)}, Rec{recorder(1, 2)}};
+const SpriteFrameLightsEnv kSpriteFrameLightsEnv = {Rec{recorder(2, 0)}, Rec{recorder(3, 0)}, Rec{recorder(4, 4)}, Rec{recorder(1, 2)}, Rec{recorder(5, 2)}};
 // RideBase_Prepare's fit has 28 stack dwords, past a recorder's 15: the cdecl recorder 1 of 13, the matrix by address (tests/fncmp/ridebase.py's hook does the same).
 void __cdecl ride_base_fit(const u8 *node, u8 *frame, u16 **cursor, GridFitMatrix matrix, const u8 *grid, u32 place, s32 *hits, float lift, u8 **best, s32 *bestCount, u32 flags,
                            const u8 *only, u32 fine) {

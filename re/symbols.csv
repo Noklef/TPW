@@ -6584,6 +6584,7 @@ address,name,kind,confidence,notes
 0x006718a0,TqiVideo_DecodeFrame32,function,low,"reimplemented (src/game/gfx/tqiframe); the second DCT video's 32-bit frame: name invented, unconfirmed"
 0x00676e40,DctVideo_DecodeMacroblock,function,low,"reimplemented (src/game/gfx/dctmacroblock); fastcall (reference, out; pitch), pops 4; name invented, unconfirmed: the DCT video's macroblock: six blocks decoded or copied from the last frame"
 0x00589770,SpriteFrame_DrawLightQuads,function,low,"reimplemented (src/game/gfx/spriteframelights); a sprite frame's ground quad for each light (name invented, unconfirmed)"
+0x00589990,SpriteFrame_DrawLightQuadsInPlace,function,low,"reimplemented (src/game/gfx/spriteframelights); thiscall (texture or 0), pops 4: a frame's quads at the lights drawn in place; name invented"
 0x006777d0,MovieFrame_Allocate,function,low,"reimplemented (src/game/gfx/movieframe); the video library's frame and table buffers made again and the first frame unpacked: name invented, unconfirmed"
 0x00677310,MovieFrame_Decode,function,low,"reimplemented (src/game/gfx/movieframe); one block frame of the video library: name invented, unconfirmed"
 0x0051b010,Movie_Start,function,low,reimplemented (src/game/gfx/moviestart); A movie's start on the video library
