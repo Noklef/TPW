@@ -9,6 +9,7 @@
 #pragma once
 
 #include "../../../re/types.h"
+#include "../core/addrcalls.h"
 
 extern "C" {
 
@@ -136,6 +137,12 @@ u32 __fastcall SpriteFrame_FillItem(u8 *frame, void *, u8 *item);
 // the transformer ([0x87b1d8]) slot 1 (cdecl: it, matrix, the quad twice, 0x10, 0x10, 4, 0); then vertices 3, 2, 1, 0 raised by the
 // ground under their x, z (as SpriteFrame_FillItem's) plus +0x20 (flag 0x800) or 0, plus [0x8bd4ec]; the transformer's slot 1 again
 // with [0x87b088] for the matrix. Returns the dword at 0x8c1808 + 4 * [0x8c181c] (read again).
+// 0x588ef0 (thiscall; name invented, unconfirmed): flag 1: flag 0x10000000 cleared. No image at +0x28: nothing. An image of frames (its +4 set): its textures freed when the sizes +0x10, +0x12
+// differ from the frame's +0x30, +0x32 (sic: unsigned against signed), the sizes taken, its textures made when none (+0x34, +0x36), each frame's item touched (0.1), SpriteQueue_Add2. Else flag 0x40000:
+// flag 0x10000000 set, touched (0.5), SpriteQueue_Add. Else the point +0x14 through the matrix [0x87b088] into +0, and inside the view by the radius +0x2c * 20: queued, flag set, touched by its +8;
+// outside: flag cleared. Returns 1.
+u32 __fastcall SpriteFrame_Show(u8 *frame);
+
 u32 __fastcall SpriteFrame_GroundQuad(u8 *frame, void *, float *quad, u32 matrix, float width, float height);
 }
 
@@ -144,3 +151,4 @@ struct SpriteFramesEnv {
     u32(__fastcall *tick)(u8 *screen);
 };
 void SpriteFrames_SetEnv(const SpriteFramesEnv *e);
+void SpriteFrame_SetCalls(const AddrCall *table, u32 count);
