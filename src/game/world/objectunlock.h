@@ -16,6 +16,20 @@ struct ObjectUnlockScoresEnv {
 };
 void ObjectUnlock_SetScoresEnv(const ObjectUnlockScoresEnv *env);
 
+// The step's calls (the ports by default; the bench's recorders).
+struct ObjectUnlockStepEnv {
+    u8 *(__fastcall *readMode)(u8 *object);                         // Setting_ReadMode
+    s32(__cdecl *atExit)(void(__cdecl *f)());                       // the CRT's atexit
+    void(__fastcall *checkThemes)(u8 *self);                        // ObjectUnlock_CheckThemes
+    void(__fastcall *checkScores)(u8 *self);                        // ObjectUnlock_CheckScores
+    u32(__fastcall *store)(u8 *game);                               // GameTable7cfb90_Get1da720_519510
+    u8(__fastcall *byte26)(const u8 *info, void *, u32 i);          // GlobalSave_Byte26
+    s32(__cdecl *percent)();                                        // Map_PercentWithRE
+    u32(__fastcall *markExtra)(u8 *info, void *, u32 i);            // GlobalSave_MarkExtra
+    void(__fastcall *advise)(u8 *self, void *, u32 group, s32 level);   // ObjectUnlock_AdviseExtraLevel
+};
+void ObjectUnlock_SetStepEnv(const ObjectUnlockStepEnv *env);
+
 struct FileTime;
 
 // ObjectUnlock_CheckThemes's calls (the ports by default; the bench's recorders: their own benches have them).
@@ -77,4 +91,11 @@ void __fastcall ObjectUnlock_AdviseScore(u8 *self, void *, u32 group, s32 level)
 // 0x4d5870 (thiscall (group, level), pops 8; called from 0x4d4a92 with the group 0 and GlobalSave_MarkExtra's level): as
 // ObjectUnlock_AdviseLevel with the advisor messages 0xe1, 0xe2 and 0xe3.
 void __fastcall ObjectUnlock_AdviseExtraLevel(u8 *self, void *, u32 group, s32 level);
+
+// 0x4d4a00 (thiscall; name invented, unconfirmed): with the setting's mode (guard bit 0 of 0xfb34ba: Setting_ReadMode of 0xfb3b7c, atexit 0x5d1750) 0: the theme and score checks, the store's getter; with the byte 26 of the info 0 clear and
+// Map_PercentWithRE at 100: GlobalSave_MarkExtra (0), its level, when not 0, advised (ObjectUnlock_AdviseExtraLevel with the group 0). The original's debug print (the info's count, the empty 0x5da3c0) left out.
+void __fastcall ObjectUnlock_Step(u8 *self);
+
+// 0x4d4ac0 (cdecl; name invented, unconfirmed): GlobalSave_CountSet4 of the instance.
+s32 __cdecl ObjectUnlock_ExtraCount();
 }

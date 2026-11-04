@@ -137,15 +137,15 @@ class Gen:
         w.append(r.choice([5] * 8 + [0x13, 0xffff, 0x7fff]))
 
 
-def run_case(r, op):
-    log = log_region()
+def window_env(r, log, kinds, failures):
+    """the regions of windowfactory.py's set-up and WINDOW2 (a recorder vtable, its slot 3 one of kinds), the heap failing after one of failures"""
     regions = {LOG: log, VTABLE: vtable({5: 1})}
     args = ctor_args(r, regions)
     timer_env(r, regions, log)
-    regions[HEAP] = heap(0x3000, r.choice([0] * 30 + [1, 2, 3, 5]))
+    regions[HEAP] = heap(0x3000, r.choice(failures))
     regions[0xfaa5ec] = struct.pack('<I', r.choice([args[0], 0, 0]))
     win = regions[WINDOW2] = bytearray(regions[WINDOW2])
-    kind = r.choice([4, 4, 7, 7, 1, 2, 11])
+    kind = r.choice(kinds)
     set_return(log, 3, kind)
     put(win, 0, 'I', VTABLE)
     put(win, 8, 'I', 0x705920)
@@ -159,6 +159,13 @@ def run_case(r, op):
     if win[0x5c:0x60] == struct.pack('<I', TREE):
         put(regions[TREE], 0x54, 'I', 0)
         put(regions[TREE], 0x8c, 'I', r.choice([1, 2, r.getrandbits(32)]))
+    return regions, kind
+
+
+def run_case(r, op):
+    log = log_region()
+    regions, kind = window_env(r, log, [4, 4, 7, 7, 1, 2, 11], [0] * 30 + [1, 2, 3, 5])
+    win = regions[WINDOW2]
     reg_hash = r.getrandbits(32)
     if r.random() < 0.6:
         regions[REG] = struct.pack('<I12sII', REGWIN, b'name', reg_hash, 0)

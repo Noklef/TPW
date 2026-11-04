@@ -8,6 +8,10 @@ struct Dialog7ca210Env {
     s32(__cdecl *atExit)(void(__cdecl *f)());                    // 0x67a7d0
     void(__cdecl *attach)(u8 *parent, u32 id, u32 text);         // HoverLabel_Attach
     void(__fastcall *copyName)(u8 *thing, void *, u8 *buffer, u32 size);   // 0x4e2780 (agent A's)
+    void(__cdecl *openName)();                                             // SignNameDialog7ca214_Open
+    void(__cdecl *yellow)(u8 *window);                                     // HoverLabel_SetYellow
+    void(__fastcall *notify)(u8 *window, void *, u32 a, u32 b, u32 c, u32 d);   // Window_Notify40000
+    s32(__fastcall *callDefault)(u8 *window, void *, u32 message, u32 a, u32 b);   // Window_CallDefault
 };
 void Dialog7ca210_SetEnv(const Dialog7ca210Env *env);
 
@@ -20,4 +24,8 @@ u8 *__cdecl Thing_NameBuffer7ba058(u8 *thing);
 // (Thing_NameBuffer7ba058) of the table 0x7cfb90's entry of the game's word +0x1da732; 0x4f3b0 a heading: the bytes 1, 1, font 6, black, the text 0xa0; 0x4f3ae panelparts::rangedNumber (0..10000, step 1), slot 7 [0x7ca1e8] = the money's +0x118;
 // 0x4f3b1 Window705a50_SetState (not 0 / 0: [0x7ca208] = Get1da710_51a280, 1). The mode setting 0xfb3b7c, read the first time (the guard 0xfb34c5 & 1), 2: the child 0x4f3ac's slot 5 (0). Advisor_PostId (0x12f).
 void __cdecl Dialog7ca210_Open();
+
+// 0x499060 (cdecl; name invented, unconfirmed): the handler of the child 0x4f3af. Message 0x10001: Window_Notify40000 (0xff four times); 0x10002: HoverLabel_SetYellow; 0x10006 with a 0: SignNameDialog7ca214_Open. Every message then goes to
+// Window_CallDefault, its answer returned.
+s32 __cdecl Dialog7ca210_NameHandler(u8 *window, u32 message, u32 a, u32 b);
 }

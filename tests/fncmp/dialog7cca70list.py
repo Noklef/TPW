@@ -20,6 +20,7 @@ B = Bench([(0x4c1e40, 0x4c20b8), (0x4c20c0, 0x4c2106), (0x405280, 0x405390), (0x
                  0x48b390: _recorder(19, 0, cdecl=True), 0x5b6070: _recorder(20, 0), 0x5d6060: _recorder(21, 0), 0x658d9f: _recorder(22, 4, cdecl=True)})
 WINDOW, LIST, ANSWER, NODES, ITEMS, TEXTS, THEME, HOLDER, SCENE = (RAM + 0x20000 + 0x400 * k for k in range(9))
 HOLDER_NEW = RAM + 0x24000
+FROZEN = RAM + 0x25000
 
 
 def case(r):
@@ -54,6 +55,10 @@ def case(r):
     regions[SCENE] = r.bytes(0x20)
     strings(log, 15, 0, 0b01)
     blob(log, 15, 0, 0b1110)
+    regions[FROZEN] = bytes(0x100)
+    if r.deal([False, False, True]):  # (the censor leaves a frozen string: count 0xff)
+        regions[FROZEN] = b'\0\xff' + bytes(0xfe)
+        fill(log, 15, 0, struct.pack('<I', FROZEN + 2), which=2, offset=4)
     strings(log, 18, 0, 0b11)
     if r.deal([0, 1]):
         fill(log, 18, 1, struct.pack('<I', r.getrandbits(32)), offset=8)

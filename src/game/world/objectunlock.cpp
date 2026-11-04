@@ -5,6 +5,7 @@
 #include "../core/filetime.h"
 #include "../core/funnytime.h"
 #include "../core/globalsave.h"
+#include "../core/options.h"
 #include "../core/stdtree.h"
 #include "advisorscore.h"
 #include "analyser.h"
@@ -44,6 +45,14 @@ void check_score(u8 *self, u32 group, s32 value, u32 limit) {
 }  // namespace
 
 void ObjectUnlock_SetScoresEnv(const ObjectUnlockScoresEnv *env) { g_scores = env ? env : &kScoresGameEnv; }
+
+namespace {
+const ObjectUnlockStepEnv kStepGameEnv = {&Setting_ReadMode, reinterpret_cast<s32(__cdecl *)(void(__cdecl *)())>((uintptr_t)0x0067a7d0), &ObjectUnlock_CheckThemes, &ObjectUnlock_CheckScores, &GameTable7cfb90_Get1da720_519510,
+                                          &GlobalSave_Byte26, &Map_PercentWithRE, &GlobalSave_MarkExtra, &ObjectUnlock_AdviseExtraLevel};
+const ObjectUnlockStepEnv *g_step = &kStepGameEnv;
+}  // namespace
+
+void ObjectUnlock_SetStepEnv(const ObjectUnlockStepEnv *env) { g_step = env ? env : &kStepGameEnv; }
 
 namespace {
 
@@ -126,4 +135,23 @@ void __fastcall ObjectUnlock_AdviseExtraLevel(u8 *self, void *, u32 group, s32 l
     if (level >= 1 && level <= 3) post_advice(0xe0 + (u32)level, group);   // (other levels: a debug print)
     ObjectUnlock_FirstAdvice(self);
 }
+
+void __fastcall ObjectUnlock_Step(u8 *self) {
+    u8 &guard = *reinterpret_cast<u8 *>((uintptr_t)0x00fb34ba);
+    if (!(guard & 1)) {
+        guard |= 1;
+        g_step->readMode(reinterpret_cast<u8 *>((uintptr_t)0x00fb3b7c));
+        g_step->atExit(reinterpret_cast<void(__cdecl *)()>((uintptr_t)0x005d1750));
+    }
+    if (*reinterpret_cast<const u32 *>((uintptr_t)0x00fb3b7c) != 0) return;
+    g_step->checkThemes(self);
+    g_step->checkScores(self);
+    g_step->store(*reinterpret_cast<u8 **>((uintptr_t)0x0080239c));
+    if (g_step->byte26(GlobalSave_Instance(), nullptr, 0)) return;
+    if (g_step->percent() != 100) return;
+    const u32 level = g_step->markExtra(GlobalSave_Instance(), nullptr, 0);
+    if (level) g_step->advise(self, nullptr, 0, static_cast<s32>(level));
+}
+
+s32 __cdecl ObjectUnlock_ExtraCount() { return GlobalSave_CountSet4(GlobalSave_Instance()); }
 }

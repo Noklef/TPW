@@ -6,7 +6,7 @@ import struct
 import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
-from fncmp import HEAP, LOG, RAM, Bench, Call, _recorder, blob, blob_bytes, heap, log_fold, log_region, put, set_return, strings, vtable  # noqa: E402
+from fncmp import HEAP, LOG, RAM, Bench, Call, _recorder, blob, blob_bytes, fill, heap, log_fold, log_region, put, set_return, strings, vtable  # noqa: E402
 
 CLEAR, WIDE, ADD, SAVECTOR, BYTE25, FILTER, ONLINECTOR, VALUE, LABEL, FIND, STATE = range(10, 21)
 C = lambda k, n: _recorder(k, n, cdecl=True)  # noqa: E731
@@ -15,6 +15,7 @@ B = Bench([(0x4bfc70, 0x4bff6a), (0x65d7bc, 0x65d832), (0x4051d0, 0x405280), (0x
                  0x5b50b0: _recorder(ONLINECTOR, 0), 0x5bd270: _recorder(VALUE, 1), 0x4099b0: _recorder(LABEL, 2), 0x5bc9c0: _recorder(FIND, 1), 0x668bec: _recorder(STATE, 2)})
 KVTABLE, DIALOG, LISTW, STATEW, REPLY, NODES, RECORDS, TEXTS, THEME, ENTRY, ONLINE, SAVE = RAM + 0x1000, RAM + 0x1100, RAM + 0x1300, RAM + 0x1500, RAM + 0x1700, RAM + 0x1800, RAM + 0x2000, RAM + 0x3000, RAM + 0x3800, RAM + 0x3900, RAM + 0x4000, RAM + 0x4400
 NODE = 0x180
+FROZEN = RAM + 0x5000
 
 
 def node(r, ident, nxt, child=0):
@@ -67,6 +68,10 @@ def case(r):
     set_return(log, FIND, ENTRY)
     blob(log, ADD, 0, 0x3f)
     strings(log, FILTER, 0, out=1)
+    regions[FROZEN] = bytes(0x100)
+    if r.choice([False, False, True]):  # (the filter leaves a frozen string: count 0xff)
+        regions[FROZEN] = b'\0\xff' + bytes(0xfe)
+        fill(log, FILTER, 0, struct.pack('<I', FROZEN + 2), offset=4)
     strings(log, LABEL, 0, out=2)
     blob_bytes(log, LABEL, 0, 0, (8, 0xffff))
     return Call(0x4bfc70, [REPLY], regions, ret='v')

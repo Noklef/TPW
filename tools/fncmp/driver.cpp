@@ -71,6 +71,21 @@
 #include "../../src/game/ui/window7cb2cc.h"
 #include "../../src/game/ui/window7cc8bcmenu.h"
 #include "../../src/game/ui/window7cc8c0handler.h"
+#include "../../src/game/ui/dialog7cc654handler.h"
+#include "../../src/game/ui/dialog7cc188handler.h"
+#include "../../src/game/ui/dialog7cc184handler.h"
+#include "../../src/game/online/postcardsend.h"
+#include "../../src/game/world/challengestep.h"
+#include "../../src/game/ui/dialog7cb3f8.h"
+#include "../../src/game/ui/guitoken.h"
+#include "../../src/game/gfx/moviecontrol.h"
+#include "../../src/game/gfx/moviechunks.h"
+#include "../../src/game/ui/guimessagefx.h"
+#include "../../src/game/world/worldpeople.h"
+#include "../../src/game/world/objectunlock.h"
+#include "../../src/game/ui/window705a50handler.h"
+#include "../../src/game/ui/window705a20handler.h"
+#include "../../src/game/world/parkgates.h"
 #include "../../src/game/ui/dialog7ca1e0.h"
 #include "../../src/game/ui/moneydisplayhandler.h"
 #include "../../src/game/ui/window7cc8bchandler.h"
@@ -986,7 +1001,7 @@ const Dialog7cc1f8OpenEnv kDialog7cc1f8OpenEnv = {Rec{jpeg_recorder(17, 2)}, Rec
 // Dialog7cb25c_Open's calls (tests/fncmp/dialog7cb25copen.py).
 const Dialog7cb25cOpenEnv kDialog7cb25cOpenEnv = {reinterpret_cast<s32(__cdecl *)(void(__cdecl *)())>((uintptr_t)(kStubs + 0x50)), Rec{jpeg_recorder(21, 3)}, Rec{recorder(22, 2)}, Rec{recorder(27, 2)}, Rec{jpeg_recorder(17, 1)}, Rec{recorder(19, 1)}, Rec{jpeg_recorder(20, 0)}};
 // Dialog7ca210_Open's calls (tests/fncmp/dialog7ca210open.py).
-const Dialog7ca210Env kDialog7ca210Env = {reinterpret_cast<s32(__cdecl *)(void(__cdecl *)())>((uintptr_t)(kStubs + 0x50)), Rec{jpeg_recorder(21, 3)}, Rec{recorder(22, 2)}};
+const Dialog7ca210Env kDialog7ca210Env = {reinterpret_cast<s32(__cdecl *)(void(__cdecl *)())>((uintptr_t)(kStubs + 0x50)), Rec{jpeg_recorder(21, 3)}, Rec{recorder(22, 2)}, Rec{jpeg_recorder(10, 0)}, Rec{jpeg_recorder(11, 1)}, Rec{recorder(12, 4)}, Rec{recorder(13, 3)}};
 // Dialog7cc2ec_Open's calls (tests/fncmp/dialog7cc2ecopen.py).
 const Dialog7cc2ecEnv kDialog7cc2ecEnv = {reinterpret_cast<s32(__cdecl *)(void(__cdecl *)())>((uintptr_t)(kStubs + 0x50)), Rec{jpeg_recorder(21, 3)}, Rec{stdcall_recorder(22, 1)}};
 // ResearchPanel_Open's calls (tests/fncmp/researchopen.py).
@@ -1095,6 +1110,21 @@ const Window7cb2b0HandlerEnv kWindow7cb2b0HandlerEnv = {Rec{jpeg_recorder(10, 0)
 const Window7cc8bcHandlerEnv kWindow7cc8bcHandlerEnv = {Rec{jpeg_recorder(10, 0)}, Rec{jpeg_recorder(11, 0)}, Rec{recorder(12, 0)}, Rec{recorder(13, 0)}, Rec{recorder(14, 0)}, Rec{recorder(15, 0)}, Rec{recorder(16, 0)}, Rec{recorder(17, 0)}, Rec{recorder(18, 3)}};
 const MoneyDisplayHandlerEnv kMoneyDisplayHandlerEnv = {Rec{jpeg_recorder(10, 1)}, Rec{jpeg_recorder(11, 1)}, Rec{recorder(12, 3)}};
 const Dialog7ca1e0Env kDialog7ca1e0Env = {Rec{jpeg_recorder(10, 0)}, Rec{jpeg_recorder(11, 0)}, Rec{jpeg_recorder(12, 1)}, Rec{jpeg_recorder(13, 1)}, Rec{recorder(14, 3)}};
+const ParkGatesEnv kParkGatesEnv = {Rec{recorder(10, 0)}, Rec{recorder(11, 0)}, Rec{recorder(12, 0)}, Rec{recorder(13, 0)}, Rec{recorder(14, 0)}, Rec{recorder(15, 0)}, Rec{recorder(16, 2)}, Rec{recorder(17, 0)}, Rec{recorder(18, 2)}, Rec{recorder(19, 1)}, Rec{recorder(20, 1)}, Rec{recorder(21, 0)}, Rec{recorder(22, 0)}, Rec{jpeg_recorder(23, 1)}};
+const Window705a20HandlerEnv kWindow705a20HandlerEnv = {Rec{recorder(16, 2)}, Rec{recorder(17, 1)}, Rec{recorder(18, 0)}, Rec{recorder(19, 0)}, Rec{recorder(20, 1)}, Rec{recorder(21, 0)}, Rec{recorder(22, 0)}, Rec{recorder(23, 2)}, Rec{recorder(24, 2)}, Rec{recorder(25, 1)}, Rec{recorder(26, 3)}, Rec{jpeg_recorder(27, 4)}, Rec{recorder(28, 3)}};
+const Window705a50HandlerEnv kWindow705a50HandlerEnv = {Rec{recorder(10, 0)}, Rec{recorder(11, 0)}, Rec{jpeg_recorder(12, 0)}, Rec{recorder(13, 2)}, Rec{recorder(14, 2)}, Rec{recorder(15, 0)}, Rec{recorder(16, 0)}, Rec{jpeg_recorder(17, 4)}, Rec{recorder(18, 0)}, Rec{jpeg_recorder(19, 4)}};
+const ObjectUnlockStepEnv kObjectUnlockStepEnv = {Rec{recorder(10, 0)}, Rec{jpeg_recorder(11, 1)}, Rec{recorder(12, 0)}, Rec{recorder(13, 0)}, Rec{recorder(14, 0)}, Rec{recorder(15, 1)}, Rec{jpeg_recorder(16, 0)}, Rec{recorder(17, 1)}, Rec{recorder(18, 2)}};
+const WorldPeopleEnv kWorldPeopleEnv = {Rec{recorder(10, 0)}, Rec{recorder(11, 0)}, Rec{recorder(12, 0)}, Rec{recorder(13, 0)}, Rec{recorder(14, 0)}, Rec{recorder(15, 0)}};
+const GuiMessageFxEnv kGuiMessageFxEnv = {Rec{jpeg_recorder(10, 6)}, Rec{recorder(11, 1)}, Rec{recorder(12, 0)}, Rec{recorder(13, 1)}, Rec{recorder(14, 1)}, Rec{recorder(15, 2)}, Rec{jpeg_recorder(16, 0)}, Rec{jpeg_recorder(17, 0)}, Rec{jpeg_recorder(18, 2)}, Rec{jpeg_recorder(19, 4)}};
+const MovieChunksEnv kMovieChunksEnv = {Rec{jpeg_recorder(10, 6)}, Rec{jpeg_recorder(11, 8)}, Rec{jpeg_recorder(12, 5)}};
+const MovieControlEnv kMovieControlEnv = {Rec{recorder(10, 0)}, Rec{jpeg_recorder(11, 3)}};
+const GuiTokenEnv kGuiTokenEnv = {Rec{jpeg_recorder(10, 6)}, Rec{jpeg_recorder(10, 6)}};
+const Dialog7cb3f8Env kDialog7cb3f8Env = {Rec{jpeg_recorder(10, 0)}, Rec{recorder(11, 1)}, Rec{recorder(12, 2)}, Rec{recorder(13, 1)}, Rec{recorder(14, 1)}, Rec{jpeg_recorder(15, 1)}, Rec{recorder(16, 1)}, Rec{recorder(17, 1)}, Rec{jpeg_recorder(18, 1)}, Rec{recorder(19, 1)}, Rec{recorder(20, 2)}, Rec{jpeg_recorder(21, 1)}, Rec{recorder(22, 4)}, Rec{recorder(23, 2)}, Rec{recorder(24, 1)}, Rec{jpeg_recorder(25, 1)}, Rec{jpeg_recorder(26, 0)}, Rec{recorder(27, 0)}, Rec{recorder(28, 0)}, Rec{recorder(29, 2)}, Rec{recorder(30, 0)}, Rec{recorder(10, 3)}, Rec{recorder(11, 1)}, Rec{jpeg_recorder(12, 0)}, Rec{recorder(13, 1)}, Rec{jpeg_recorder(14, 5)}, Rec{jpeg_recorder(15, 8)}, Rec{jpeg_recorder(16, 1)}, Rec{recorder(17, 1)}, Rec{jpeg_recorder(18, 0)}, Rec{jpeg_recorder(19, 0)}, Rec{recorder(20, 1)}, Rec{jpeg_recorder(21, 0)}, Rec{jpeg_recorder(23, 1)}};
+const ChallengeStepEnv kChallengeStepEnv = {Rec{jpeg_recorder(10, 1)}, Rec{recorder(11, 2)}, Rec{recorder(12, 0)}, Rec{recorder(13, 0)}, Rec{recorder(14, 1)}, Rec{recorder(21, 1)}};
+const PostcardSendEnv kPostcardSendEnv = {Rec{recorder(11, 1)}, Rec{recorder(12, 0)}, Rec{recorder(13, 2)}, Rec{jpeg_recorder(14, 2)}, Rec{recorder(15, 1)}, Rec{recorder(16, 1)}, Rec{recorder(17, 0)}, Rec{recorder(18, 1)}, Rec{recorder(21, 1)}, Rec{recorder(19, 2)}, Rec{recorder(20, 4)}, Rec{jpeg_recorder(22, 2)}};
+const Dialog7cc184HandlerEnv kDialog7cc184HandlerEnv = {Rec{jpeg_recorder(10, 4)}, Rec{recorder(11, 0)}, Rec{jpeg_recorder(12, 1)}, Rec{jpeg_recorder(13, 0)}, Rec{jpeg_recorder(14, 1)}, Rec{jpeg_recorder(15, 0)}, Rec{jpeg_recorder(16, 0)}, Rec{jpeg_recorder(17, 0)}, Rec{jpeg_recorder(18, 0)}, Rec{recorder(19, 1)}, Rec{jpeg_recorder(20, 4)}, Rec{jpeg_recorder(21, 1)}, Rec{jpeg_recorder(22, 2)}, Rec{jpeg_recorder(23, 1)}, Rec{jpeg_recorder(24, 8)}, Rec{jpeg_recorder(25, 0)}, Rec{jpeg_recorder(26, 4)}, Rec{recorder(27, 3)}, Rec{recorder(28, 0)}, Rec{recorder(29, 0)}};
+const Dialog7cc188HandlerEnv kDialog7cc188HandlerEnv = {Rec{jpeg_recorder(10, 0)}, Rec{recorder(11, 2)}, Rec{jpeg_recorder(12, 4)}, Rec{jpeg_recorder(13, 1)}, Rec{jpeg_recorder(14, 1)}, Rec{jpeg_recorder(15, 5)}, Rec{jpeg_recorder(16, 8)}, Rec{recorder(17, 3)}, Rec{recorder(18, 1)}, Rec{jpeg_recorder(19, 1)}};
+const Dialog7cc654HandlerEnv kDialog7cc654HandlerEnv = {Rec{jpeg_recorder(10, 0)}, Rec{recorder(11, 0)}, Rec{jpeg_recorder(12, 2)}, Rec{jpeg_recorder(13, 4)}, Rec{jpeg_recorder(14, 1)}, Rec{recorder(15, 0)}, Rec{recorder(16, 2)}, Rec{recorder(17, 5)}, Rec{recorder(18, 2)}, Rec{recorder(19, 0)}, Rec{recorder(20, 0)}, Rec{jpeg_recorder(21, 0)}, Rec{jpeg_recorder(22, 0)}, Rec{recorder(23, 0)}, Rec{recorder(24, 0)}, Rec{jpeg_recorder(25, 3)}, Rec{jpeg_recorder(26, 0)}, Rec{jpeg_recorder(27, 0)}, Rec{jpeg_recorder(28, 4)}};
 const Window7cc8c0HandlerEnv kWindow7cc8c0HandlerEnv = {Rec{recorder(12, 2)}, Rec{jpeg_recorder(15, 2)}, Rec{jpeg_recorder(20, 4)}, Rec{jpeg_recorder(25, 4)}, Rec{recorder(13, 0)}, Rec{recorder(14, 0)}, Rec{jpeg_recorder(28, 3)}, Rec{recorder(15, 0)}, Rec{recorder(16, 0)}, Rec{jpeg_recorder(31, 0)}, Rec{recorder(17, 2)}, Rec{recorder(18, 2)}, Rec{jpeg_recorder(29, 3)}, Rec{recorder(19, 1)}, Rec{recorder(20, 0)}, Rec{recorder(21, 1)}, Rec{jpeg_recorder(27, 1)}, Rec{jpeg_recorder(30, 5)}, Rec{jpeg_recorder(13, 1)}, Rec{jpeg_recorder(12, 0)}, Rec{jpeg_recorder(19, 0)}, Rec{jpeg_recorder(14, 0)}, Rec{recorder(23, 2)}, Rec{recorder(24, 2)}, Rec{recorder(25, 1)}, Rec{recorder(26, 1)}, Rec{recorder(27, 2)}, Rec{jpeg_recorder(16, 5)}, Rec{jpeg_recorder(17, 0)}, Rec{jpeg_recorder(18, 1)}, Rec{recorder(28, 3)}};
 const Window7cc8bcMenuEnv kWindow7cc8bcMenuEnv = {Rec{recorder(10, 2)}, Rec{recorder(11, 3)}, Rec{jpeg_recorder(12, 0)}, Rec{recorder(13, 1)}, Rec{jpeg_recorder(14, 2)}, Rec{recorder(15, 2)}, Rec{recorder(16, 2)}, Rec{recorder(17, 3)}};
 const Dialog7cb2b8TabsEnv kDialog7cb2b8TabsEnv = {Rec{jpeg_recorder(10, 1)}, Rec{jpeg_recorder(11, 0)}, Rec{jpeg_recorder(12, 0)}, Rec{recorder(13, 0)}, Rec{jpeg_recorder(14, 0)}, Rec{recorder(15, 3)}};
@@ -2122,6 +2152,21 @@ int main(int argc, char **argv) {
     Window7cb2cc_SetEnv(&kWindow7cb2ccEnv);
     Window7cc8bc_SetMenuEnv(&kWindow7cc8bcMenuEnv);
     Window7cc8c0Handler_SetEnv(&kWindow7cc8c0HandlerEnv);
+    Dialog7cc654Handler_SetEnv(&kDialog7cc654HandlerEnv);
+    Dialog7cc188Handler_SetEnv(&kDialog7cc188HandlerEnv);
+    Dialog7cc184Handler_SetEnv(&kDialog7cc184HandlerEnv);
+    PostcardSend_SetEnv(&kPostcardSendEnv);
+    ChallengeStep_SetEnv(&kChallengeStepEnv);
+    Dialog7cb3f8_SetEnv(&kDialog7cb3f8Env);
+    GuiToken_SetEnv(&kGuiTokenEnv);
+    MovieControl_SetEnv(&kMovieControlEnv);
+    MovieChunks_SetEnv(&kMovieChunksEnv);
+    GuiMessageFx_SetEnv(&kGuiMessageFxEnv);
+    WorldPeople_SetEnv(&kWorldPeopleEnv);
+    ObjectUnlock_SetStepEnv(&kObjectUnlockStepEnv);
+    Window705a50Handler_SetEnv(&kWindow705a50HandlerEnv);
+    Window705a20Handler_SetEnv(&kWindow705a20HandlerEnv);
+    ParkGates_SetEnv(&kParkGatesEnv);
     Dialog7ca1e0_SetEnv(&kDialog7ca1e0Env);
     MoneyDisplayHandler_SetEnv(&kMoneyDisplayHandlerEnv);
     Window7cc8bcHandler_SetEnv(&kWindow7cc8bcHandlerEnv);

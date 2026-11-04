@@ -14,7 +14,7 @@ sys.path.insert(0, HERE)
 import messagecentre  # noqa: E402
 import stdtree  # noqa: E402
 import things_methods  # noqa: E402
-from fncmp import Bench, Call, RAM  # noqa: E402
+from fncmp import HEAP, Bench, Call, Mask, RAM  # noqa: E402
 
 CENTRE_RANGES = [(0x409250, 0x409260), (0x40f970, 0x40f9e0), (0x40f950, 0x40f961), (0x410ac0, 0x410b11), (0x50b350, 0x50b35d), (0x67acb0, 0x67acb1),
                  (0x67afa0, 0x67b0d0), (0x40f9e0, 0x40fa40), (0x40fe60, 0x40ff80), (0x4107b0, 0x410ac0), (0x410b20, 0x410bf0), (0x5e7720, 0x5e7750),
@@ -29,6 +29,13 @@ SPRITE_CELLS = RAM + 0x80000   # (Sprite's map cells, 0x100 of them)
 CENTRE = RAM + 0x20000   # the message centre's slots, then the maps' heads, nil node and nodes
 # name: (address, object size)
 MODELS = {'MechanicHQ': (0x4da920, 0x10), 'StaffHQ': (0x5089c0, 0x68), 'TagSystem': (0x509b40, 0x40), 'UIMsgReceiver': (0x50c9b0, 0x40), 'Advisor': (0x599e70, 0x16e8)}
+
+
+def centre_masks(regions, block):
+    """For a case whose calls leave the stack dirty before centre() makes the message centre (not made: the heap block at offset `block`): each slot's +4, +5."""
+    if regions[messagecentre.CENTRE] != bytes(4):
+        return []
+    return [Mask(HEAP, [block + 0x14 * k + b for k in range(messagecentre.SLOT_COUNT) for b in (4, 5)], "the slot constructor 0x405460's uninitialised stack bytes (its allocators), written at +4, +5; nothing reads them")]
 
 
 def centre(r, regions, empty=False):

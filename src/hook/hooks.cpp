@@ -146,6 +146,8 @@
 #include "../game/gfx/glyphrender.h"
 #include "../game/gfx/guitext.h"
 #include "../game/gfx/mmxblit.h"
+#include "../game/gfx/moviechunks.h"
+#include "../game/gfx/moviecontrol.h"
 #include "../game/gfx/movieframe.h"
 #include "../game/gfx/movieidct.h"
 #include "../game/gfx/moviepixels.h"
@@ -373,6 +375,7 @@
 #include "../game/world/trackpools.h"
 #include "../game/world/wallfollow.h"
 #include "../game/world/cellmodel.h"
+#include "../game/world/challengestep.h"
 #include "../game/world/lineends.h"
 #include "../game/world/demolish.h"
 #include "../game/world/endthing.h"
@@ -428,6 +431,7 @@
 #include "../game/world/visitorsteps.h"
 #include "../game/world/weather.h"
 #include "../game/world/world.h"
+#include "../game/world/worldpeople.h"
 #include "../game/world/worldsave.h"
 #include "../game/world/worldstart.h"
 #include "../game/world/worldupdate.h"
@@ -540,6 +544,7 @@
 #include "../game/online/chatcursor.h"
 #include "../game/online/postcardmail.h"
 #include "../game/online/chatlists.h"
+#include "../game/online/postcardsend.h"
 #include "../game/online/roomcounts.h"
 #include "../game/online/session.h"
 #include "../game/ui/dialog7ca1c8.h"
@@ -602,12 +607,15 @@
 #include "../game/ui/dialog7cb2b8build.h"
 #include "../game/ui/dialog7cb2b8tabs.h"
 #include "../game/ui/dialog7cb2fcopen.h"
+#include "../game/ui/dialog7cb3f8.h"
 #include "../game/ui/dialog7cb3f8slots.h"
 #include "../game/ui/dialog7cb400.h"
 #include "../game/ui/dialog7cb400close.h"
 #include "../game/ui/dialog7cc184.h"
+#include "../game/ui/dialog7cc184handler.h"
 #include "../game/ui/dialog7cc188.h"
 #include "../game/ui/dialog7cc188address.h"
+#include "../game/ui/dialog7cc188handler.h"
 #include "../game/ui/dialog7cc1f8.h"
 #include "../game/ui/dialog7cc1f8preview.h"
 #include "../game/ui/dialog7cc1f8stats.h"
@@ -621,6 +629,7 @@
 #include "../game/ui/dialog7cc5f4.h"
 #include "../game/ui/dialog7cc5f4handler.h"
 #include "../game/ui/dialog7cc654.h"
+#include "../game/ui/dialog7cc654handler.h"
 #include "../game/ui/dialog7cc944.h"
 #include "../game/ui/dialog7cc944list.h"
 #include "../game/ui/dialog7cc984.h"
@@ -637,6 +646,7 @@
 #include "../game/ui/gamewindowinput.h"
 #include "../game/ui/guifont.h"
 #include "../game/ui/guiframe.h"
+#include "../game/ui/guimessagefx.h"
 #include "../game/ui/guinamed.h"
 #include "../game/ui/guisettings.h"
 #include "../game/ui/guistartup.h"
@@ -686,6 +696,8 @@
 #include "../game/ui/window705950nodes.h"
 #include "../game/ui/window7059f0texts.h"
 #include "../game/ui/window705a20char.h"
+#include "../game/ui/window705a20handler.h"
+#include "../game/ui/window705a50handler.h"
 #include "../game/ui/window705b20thumb.h"
 #include "../game/ui/window7cb2a4.h"
 #include "../game/ui/window7cb2b0handler.h"
@@ -695,6 +707,7 @@
 #include "../game/ui/window7cc8bcmenu.h"
 #include "../game/ui/window7cc8c0handler.h"
 #include "../game/ui/windowarea.h"
+#include "../game/ui/windowscripttext.h"
 #include "../game/ui/windowtick.h"
 #include "../game/ui/windowtimers.h"
 #include "../game/lib/jpeg6b.h"
@@ -6143,6 +6156,9 @@ const Hook kHooks[] = {
     {"BankAccount_Serialize",     0x004cf920, (void *)&BankAccount_Serialize, {0x8b, 0x44, 0x24, 0x10, 0x83}},
     {"BankAccount_Ctor",          0x004cf7c0, (void *)&BankAccount_Ctor, {0x55, 0x8b, 0xec, 0x83, 0xe4}},
     {"ParkGates_Serialize",       0x004cf050, (void *)&ParkGates_Serialize, {0x8b, 0x44, 0x24, 0x08, 0x53}},
+    {"ParkGates_Step",            0x004cf3e0, (void *)&ParkGates_Step, {0x83, 0xec, 0x08, 0x56, 0x8b}},
+    {"ParkGates_ArrivalSize",     0x004cf5b0, (void *)&ParkGates_ArrivalSize, {0x51, 0x8b, 0x0d, 0x9c, 0x23}},
+    {"ParkGates_SpawnVisitor",    0x004cf720, (void *)&ParkGates_SpawnVisitor, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"MapCell_CanBuild",          0x00535670, (void *)&MapCell_CanBuild, {0x53, 0x55, 0x56, 0x57, 0x8b}},
     {"MapCell_CanBuildTrack",     0x00539760, (void *)&MapCell_CanBuildTrack, {0x83, 0xec, 0x1c, 0x53, 0x55}},
     {"GameMode_MapClick",         0x00524960, (void *)&GameMode_MapClick, {0x8b, 0x44, 0x24, 0x04, 0x83}},
@@ -6154,6 +6170,8 @@ const Hook kHooks[] = {
     {"ObjectUnlock_AdviseScore",  0x004d5270, (void *)&ObjectUnlock_AdviseScore, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"ObjectUnlock_CheckScores",  0x004d4e50, (void *)&ObjectUnlock_CheckScores, {0x51, 0x56, 0x8b, 0xf1, 0x8b}},
     {"ObjectUnlock_CheckThemes",  0x004d4bc0, (void *)&ObjectUnlock_CheckThemes, {0x83, 0xec, 0x08, 0x56, 0x8b}},
+    {"ObjectUnlock_Step",         0x004d4a00, (void *)&ObjectUnlock_Step, {0x56, 0x8b, 0xf1, 0x8a, 0x0d}},
+    {"ObjectUnlock_ExtraCount",   0x004d4ac0, (void *)&ObjectUnlock_ExtraCount, {0xe8, 0x4b, 0x49, 0xf3, 0xff}},
     {"QueuePiece_Place",          0x005229e0, (void *)&QueuePiece_Place, {0x8b, 0x54, 0x24, 0x14, 0xb8}},
     {"QueuePiece_Remove",         0x00522a90, (void *)&QueuePiece_Remove, {0x8b, 0x44, 0x24, 0x04, 0x50}},
     {"TrackQueuePiece_Place",     0x00522b90, (void *)&TrackQueuePiece_Place, {0x8b, 0x54, 0x24, 0x14, 0xb8}},
@@ -6311,6 +6329,9 @@ const Hook kHooks[] = {
     {"SignText_Format",           0x004e2780, (void *)&SignText_Format, {0x53, 0x56, 0x8b, 0xf1, 0x57}},
     {"SignText_SetFirst",         0x004e2950, (void *)&SignText_SetFirst, {0x53, 0x8b, 0x5c, 0x24, 0x08}},
     {"SignText_SetSecond",        0x004e2a50, (void *)&SignText_SetSecond, {0x53, 0x8b, 0x5c, 0x24, 0x08}},
+    {"WorldPeople_Start",         0x004d7af0, (void *)&WorldPeople_Start, {0x56, 0x8b, 0xf1, 0x8d, 0x8e}},
+    {"WorldPeople_Step",          0x004d7b20, (void *)&WorldPeople_Step, {0x56, 0x8b, 0xf1, 0x8d, 0x8e}},
+    {"Challenges_Step",           0x004d1e90, (void *)&Challenges_Step, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"Holder_Destroy",            0x0045bc60, (void *)&Holder_Destroy, {0x56, 0x8b, 0x74, 0x24, 0x08}},
     {"Mouse_HandleButton",        0x0046c210, (void *)&Mouse_HandleButton, {0x8b, 0x44, 0x24, 0x04, 0x56}},
     {"Mouse_Moved",               0x0046c2a0, (void *)&Mouse_Moved, {0xa1, 0xd4, 0x05, 0x7b, 0x00}},
@@ -6495,6 +6516,7 @@ const Hook kHooks[] = {
     {"MovieSurface_CreateFlipOverlay", 0x00671cb0, (void *)&MovieSurface_CreateFlipOverlay, {0x81, 0xec, 0xec, 0x00, 0x00}},
     {"MovieSurface_CreateOffscreen", 0x00671ea0, (void *)&MovieSurface_CreateOffscreen, {0x81, 0xec, 0xd8, 0x00, 0x00}},
     {"MovieSurface_UpdateOverlay", 0x0066fa70, (void *)&MovieSurface_UpdateOverlay, {0x83, 0xec, 0x58, 0x53, 0x55}},
+    {"MovieSurface_Present",      0x0066f600, (void *)&MovieSurface_Present, {0x81, 0xec, 0xa0, 0x00, 0x00}},
     {"MovieSound_BufferBytes",    0x00672950, (void *)&MovieSound_BufferBytes, {0x83, 0xec, 0x14, 0x33, 0xc0}},
     {"MovieSound_Release",        0x006729e0, (void *)&MovieSound_Release, {0x56, 0x8b, 0xf1, 0x8b, 0x06}},
     {"MovieSound_ReleaseStream",  0x00672bf0, (void *)&MovieSound_ReleaseStream, {0x56, 0x8b, 0xf1, 0x8b, 0x06}},
@@ -6518,6 +6540,17 @@ const Hook kHooks[] = {
     {"Movie_Finished",            0x0051b300, (void *)&Movie_Finished, {0x8b, 0x0d, 0xbc, 0x2b, 0x80}},
     {"Movie_Stop",                0x0051b350, (void *)&Movie_Stop, {0xa1, 0xbc, 0x2b, 0x80, 0x00}},
     {"Movie_Forbid",              0x0051b3e0, (void *)&Movie_Forbid, {0xa1, 0xbc, 0x2b, 0x80, 0x00}},
+    {"MovieChunks_Next",          0x0066e410, (void *)&MovieChunks_Next, {0x83, 0xec, 0x0c, 0x8d, 0x44}},
+    {"MovieChunks_ReadFrame",     0x0066e840, (void *)&MovieChunks_ReadFrame, {0x51, 0x53, 0x55, 0x56, 0x8b}},
+    {"MovieChunks_ReadStart",     0x0066e920, (void *)&MovieChunks_ReadStart, {0xb8, 0x00, 0xc0, 0x00, 0x00}},
+    {"MovieChunks_ReadSound",     0x0066e9a0, (void *)&MovieChunks_ReadSound, {0xb8, 0x08, 0xc0, 0x00, 0x00}},
+    {"MovieChunks_ReadHeader",    0x0066ed60, (void *)&MovieChunks_ReadHeader, {0xb8, 0x04, 0xc0, 0x00, 0x00}},
+    {"MovieControl_ReadAhead",    0x0066f380, (void *)&MovieControl_ReadAhead, {0x56, 0x8b, 0xf1, 0x57, 0x83}},
+    {"MovieControl_Rewind",       0x0066f480, (void *)&MovieControl_Rewind, {0x56, 0x8b, 0xf1, 0x8b, 0x06}},
+    {"MovieControl_SetVolume",    0x0066f520, (void *)&MovieControl_SetVolume, {0x8b, 0x44, 0x24, 0x04, 0x8b}},
+    {"MovieControl_Stop",         0x0066f580, (void *)&MovieControl_Stop, {0x8b, 0x4c, 0x24, 0x04, 0x56}},
+    {"MovieControl_StartThread",  0x006727c0, (void *)&MovieControl_StartThread, {0x56, 0x8b, 0xf1, 0x6a, 0x01}},
+    {"MovieControl_StopThread",   0x00672800, (void *)&MovieControl_StopThread, {0x8b, 0x81, 0xc4, 0x03, 0x00}},
     {"RenderMode_Size",           0x0044a590, (void *)&RenderMode_Size, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_Depth",          0x0044a5d0, (void *)&RenderMode_Depth, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_ResetScale",     0x0044a600, (void *)&RenderMode_ResetScale, {0x51, 0xc7, 0x44, 0x24, 0x00}},
@@ -7146,6 +7179,7 @@ const Hook kHooks[] = {
     {"ChatClient_Dtor",           0x004e5950, (void *)&ChatClient_Dtor, {0x6a, 0xff, 0x68, 0x02, 0xc6}},
     {"ChatClient_Connect",        0x004e5be0, (void *)&ChatClient_Connect, {0x6a, 0xff, 0x68, 0x5f, 0xc6}},
     {"ChatClient_EnterWorld",     0x004e5ef0, (void *)&ChatClient_EnterWorld, {0x6a, 0xff, 0x68, 0xa7, 0xc6}},
+    {"Postcard_Send",             0x004a8600, (void *)&Postcard_Send, {0x6a, 0xff, 0x68, 0xb9, 0xa8}},
     {"LobbyModel_SetPosition",    0x005d8190, (void *)&LobbyModel_SetPosition, {0x8b, 0x41, 0x04, 0x8b, 0x54}},
     {"LobbyModel_TurnY",          0x005d8380, (void *)&LobbyModel_TurnY, {0x8b, 0x49, 0x04, 0x8d, 0x44}},
     {"LobbyModel_SetScale",       0x005d83b0, (void *)&LobbyModel_SetScale, {0x83, 0xec, 0x0c, 0x8b, 0x44}},
@@ -7997,6 +8031,9 @@ const Hook kHooks[] = {
     {"GuiToken_ReadDword",        0x0066dd68, (void *)&GuiToken_ReadDword, {0x55, 0x8b, 0xec, 0x83, 0xec}},
     {"GuiToken_ReadString",       0x0066ddd8, (void *)&GuiToken_ReadString, {0x55, 0x8b, 0xec, 0x83, 0xec}},
     {"GuiToken_ReadKind",         0x0066dc2c, (void *)&GuiToken_ReadKind, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"GuiToken_ReadCommand",      0x0066db20, (void *)&GuiToken_ReadCommand, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"GuiToken_ReadRect",         0x0066ded6, (void *)&GuiToken_ReadRect, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"GuiToken_ReadPoint",        0x0066df68, (void *)&GuiToken_ReadPoint, {0x55, 0x8b, 0xec, 0x83, 0xec}},
     {"LevelMeter_SetLevel",       0x004a95b0, (void *)&LevelMeter_SetLevel, {0x8b, 0x44, 0x24, 0x08, 0x56}},
     {"LevelMeter_OnMessage",      0x004a9fc0, (void *)&LevelMeter_OnMessage, {0x53, 0x55, 0x8b, 0x6c, 0x24}},
     {"ResearchMeters_Update",     0x004a9c70, (void *)&ResearchMeters_Update, {0x83, 0xec, 0x0c, 0x8b, 0x0d}},
@@ -8110,6 +8147,7 @@ const Hook kHooks[] = {
     {"Dialog7ca098_Handler",      0x0048e2f0, (void *)&Dialog7ca098_Handler, {0x53, 0x55, 0x8b, 0x6c, 0x24}},
     {"Dialog7ca210_Open",         0x00498d80, (void *)&Dialog7ca210_Open, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"Thing_NameBuffer7ba058",    0x00486280, (void *)&Thing_NameBuffer7ba058, {0x8b, 0x4c, 0x24, 0x04, 0x68}},
+    {"Dialog7ca210_NameHandler",  0x00499060, (void *)&Dialog7ca210_NameHandler, {0x53, 0x8b, 0x5c, 0x24, 0x10}},
     {"Dialog7cc2ec_Open",         0x004b2750, (void *)&Dialog7cc2ec_Open, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"Sign_PlaceOverRect",        0x00486410, (void *)&Sign_PlaceOverRect, {0x83, 0xec, 0x0c, 0x8b, 0x44}},
     {"Sign_Swing",                0x004864f0, (void *)&Sign_Swing, {0xa1, 0x4c, 0x9f, 0x7b, 0x00}},
@@ -8275,6 +8313,27 @@ const Hook kHooks[] = {
     {"Window7cb2b0_Handler",      0x00488a00, (void *)&Window7cb2b0_Handler, {0x53, 0x8b, 0x5c, 0x24, 0x0c}},
     {"Window7cc8bc_Handler",      0x004be820, (void *)&Window7cc8bc_Handler, {0x53, 0x8b, 0x5c, 0x24, 0x08}},
     {"MoneyDisplay_Handler",      0x004a0db0, (void *)&MoneyDisplay_Handler, {0x53, 0x8b, 0x5c, 0x24, 0x08}},
+    {"Window705a20_NearestPlace", 0x006681ac, (void *)&Window705a20_NearestPlace, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"Window705a20_MouseDown",    0x006680b7, (void *)&Window705a20_MouseDown, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"Window705a20_MouseMove",    0x00668269, (void *)&Window705a20_MouseMove, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"Window705a20_Handler",      0x0066857d, (void *)&Window705a20_Handler, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"Window705a50_StateWord",    0x00668abd, (void *)&Window705a50_StateWord, {0x55, 0x8b, 0xec, 0x51, 0x89}},
+    {"Window705a50_Handler",      0x00668f9c, (void *)&Window705a50_Handler, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"GuiMessageFx_Handler",      0x00485780, (void *)&GuiMessageFx_Handler, {0x6a, 0xff, 0x68, 0x78, 0x91}},
+    {"WindowScriptText_Line",     0x0066080d, (void *)&WindowScriptText_Line, {0x55, 0x8b, 0xec, 0x6a, 0xff}},
+    {"WindowScriptText_Lines",    0x0066149c, (void *)&WindowScriptText_Lines, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"WindowScriptText_Build",    0x006607ca, (void *)&WindowScriptText_Build, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"Dialog7cb3f8_Handler",      0x004a5fc0, (void *)&Dialog7cb3f8_Handler, {0x8b, 0x44, 0x24, 0x08, 0x83}},
+    {"Dialog7cb3f8_SlotHandler",  0x004a6000, (void *)&Dialog7cb3f8_SlotHandler, {0x83, 0xec, 0x20, 0x56, 0x8b}},
+    {"Dialog7cb3f8_ClearConfirmed", 0x004a61b0, (void *)&Dialog7cb3f8_ClearConfirmed, {0x8b, 0x44, 0x24, 0x04, 0x50}},
+    {"Dialog7cb3f8_DoneHandler",  0x004a61d0, (void *)&Dialog7cb3f8_DoneHandler, {0x83, 0xec, 0x10, 0x56, 0x8b}},
+    {"Dialog7cb3f8_DoneConfirmed", 0x004a6290, (void *)&Dialog7cb3f8_DoneConfirmed, {0x8b, 0x0d, 0x84, 0x28, 0xf8}},
+    {"Dialog7cb3f8_Open",         0x004a6580, (void *)&Dialog7cb3f8_Open, {0x6a, 0xff, 0x68, 0x02, 0xa7}},
+    {"Dialog7cc184_Handler",      0x004a7d70, (void *)&Dialog7cc184_Handler, {0x81, 0xec, 0x14, 0x04, 0x00}},
+    {"Dialog7cc184_PictureHandler", 0x004a7c50, (void *)&Dialog7cc184_PictureHandler, {0x8b, 0x44, 0x24, 0x08, 0x53}},
+    {"Dialog7cc188_Handler",      0x004a73d0, (void *)&Dialog7cc188_Handler, {0x8b, 0x44, 0x24, 0x08, 0x81}},
+    {"Dialog7cc188_EraseName",    0x004a7bc0, (void *)&Dialog7cc188_EraseName, {0xe8, 0x0b, 0x41, 0xfe, 0xff}},
+    {"Dialog7cc654_Handler",      0x004bbc20, (void *)&Dialog7cc654_Handler, {0x83, 0xec, 0x10, 0x53, 0x8b}},
     {"jdmarker_examine_app14",    0x0063bf50, (void *)&jdmarker_examine_app14, {0x8b, 0x4c, 0x24, 0x0c, 0x53}},
     {"jdmarker_examine_app0",     0x0063bcc0, (void *)&jdmarker_examine_app0, {0x8b, 0x44, 0x24, 0x0c, 0x8b}},
     {"jdmarker_get_interesting_appn", 0x0063bb80, (void *)&jdmarker_get_interesting_appn, {0x8b, 0x44, 0x24, 0x04, 0x83}},

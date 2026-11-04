@@ -11,6 +11,7 @@
 #include "focus.h"
 #include "hoverlabel.h"
 #include "panelparts.h"
+#include "signnamedialog.h"
 #include "window.h"
 #include "window705a50.h"
 #include "windowscript.h"
@@ -22,7 +23,8 @@ template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((ui
 u8 *dialog() { return global<u8 *>(0x007ca210); }
 
 const Dialog7ca210Env kGameEnv = {reinterpret_cast<s32(__cdecl *)(void(__cdecl *)())>((uintptr_t)0x0067a7d0), &HoverLabel_Attach,
-                                  reinterpret_cast<void(__fastcall *)(u8 *, void *, u8 *, u32)>((uintptr_t)0x004e2780)};
+                                  reinterpret_cast<void(__fastcall *)(u8 *, void *, u8 *, u32)>((uintptr_t)0x004e2780),
+                                  &SignNameDialog7ca214_Open, &HoverLabel_SetYellow, &Window_Notify40000, &Window_CallDefault};
 const Dialog7ca210Env *g_env = &kGameEnv;
 
 }  // namespace
@@ -68,4 +70,15 @@ void __cdecl Dialog7ca210_Open() {
     }
     if (global<u32>(0x00fb3b7c) == 2) vcall<void>(Window_FindChild(dialog(), nullptr, 0x4f3ac), 0x14, 0u);
     Advisor_PostId(0x12f);
+}
+
+s32 __cdecl Dialog7ca210_NameHandler(u8 *window, u32 message, u32 a, u32 b) {
+    if (message == 0x10001) {
+        g_env->notify(window, nullptr, 0xff, 0xff, 0xff, 0xff);
+    } else if (message == 0x10002) {
+        g_env->yellow(window);
+    } else if (message == 0x10006 && a == 0) {
+        g_env->openName();
+    }
+    return g_env->callDefault(window, nullptr, message, a, b);
 }

@@ -520,6 +520,7 @@ add_library(tpw_game STATIC
     src/game/online/postcardmail.cpp
     src/game/online/chatlists.cpp
     src/game/online/chatclient.cpp
+    src/game/online/postcardsend.cpp
     src/game/frontend/lobbymodel.cpp
     src/game/frontend/helpbg.cpp
     src/game/frontend/islandcamera.cpp
@@ -621,6 +622,8 @@ add_library(tpw_game STATIC
     src/game/ui/window705950nodes.cpp
     src/game/gfx/movieframe.cpp
     src/game/gfx/moviestart.cpp
+    src/game/gfx/moviechunks.cpp
+    src/game/gfx/moviecontrol.cpp
     src/game/ui/panel7cc3b0handler.cpp
     src/game/world/rideupkeep.cpp
     src/game/world/objectwear.cpp
@@ -640,6 +643,8 @@ add_library(tpw_game STATIC
     src/game/world/worldupdate.cpp
     src/game/world/tracktextures.cpp
     src/game/world/signtext.cpp
+    src/game/world/worldpeople.cpp
+    src/game/world/challengestep.cpp
     src/game/ui/staffrename.cpp
     src/game/ui/window7cc8bc.cpp
     src/game/ui/dialog7cb2b8.cpp
@@ -717,6 +722,14 @@ add_library(tpw_game STATIC
     src/game/ui/window7cb2b0handler.cpp
     src/game/ui/window7cc8bchandler.cpp
     src/game/ui/moneydisplayhandler.cpp
+    src/game/ui/window705a20handler.cpp
+    src/game/ui/window705a50handler.cpp
+    src/game/ui/guimessagefx.cpp
+    src/game/ui/windowscripttext.cpp
+    src/game/ui/dialog7cb3f8.cpp
+    src/game/ui/dialog7cc184handler.cpp
+    src/game/ui/dialog7cc188handler.cpp
+    src/game/ui/dialog7cc654handler.cpp
 )
 # The libraries whose functions replace the exe's copies (src/game/lib); their headers stay private to those units.
 target_link_libraries(tpw_game PRIVATE tpw_zlib tpw_jpeg6b tpw_jpeg6a)
