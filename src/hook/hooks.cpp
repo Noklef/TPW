@@ -590,6 +590,7 @@
 #include "../game/render/pointsprites.h"
 #include "../game/render/present.h"
 #include "../game/render/rasterformat.h"
+#include "../game/render/rendererframe.h"
 #include "../game/render/scrolllayers.h"
 #include "../game/render/settingslog.h"
 #include "../game/render/textparts.h"
@@ -7680,6 +7681,9 @@ const Hook kHooks[] = {
     {"WeatherFx_FillTables",      0x0057d300, (void *)&WeatherFx_FillTables, {0x81, 0xec, 0x5c, 0x06, 0x00}},
     {"Polygon_ScanRows",          0x0056d600, (void *)&Polygon_ScanRows, {0x55, 0x8b, 0xec, 0x81, 0xec}},
     {"WorldView_UpdateFootprint", 0x0056bb00, (void *)&WorldView_UpdateFootprint, {0x81, 0xec, 0x08, 0x01, 0x00}},
+    {"Renderer_DrawView",         0x00576a00, (void *)&Renderer_DrawView, {0x83, 0xec, 0x40, 0x53, 0x55}},
+    {"Renderer_DrawFrame",        0x00576ec0, (void *)&Renderer_DrawFrame, {0xa0, 0x08, 0xd5, 0x8b, 0x00}},
+    {"Engine_DrawFrame",          0x0044e540, (void *)&Engine_DrawFrame, {0x8b, 0x0d, 0xd0, 0xa6, 0x87}},
     {"Model_MarkFacesByMask",     0x0044b140, (void *)&Model_MarkFacesByMask, {0x53, 0x8b, 0x5c, 0x24, 0x08}},
     {"Model_MarkFacesNotValue",    0x0044b1b0, (void *)&Model_MarkFacesNotValue, {0x53, 0x8b, 0x5c, 0x24, 0x08}},
     {"Model_FindPartByKey4",      0x0044b220, (void *)&Model_FindPartByKey4, {0x56, 0x57, 0x8b, 0x7c, 0x24}},

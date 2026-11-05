@@ -7551,6 +7551,9 @@ address,name,kind,confidence,notes
 0x0057d300,WeatherFx_FillTables,function,low,"reimplemented (src/game/render/weathertables); thiscall: the renderer's random tables from rand, x87 at 24 bits; name invented"
 0x0056d600,Polygon_ScanRows,function,low,"reimplemented (src/game/render/viewfootprint); thiscall(scan, out, unused, limit): the polygon's edges walked into each row's first and last cell, the rows widened into out; name invented"
 0x0056bb00,WorldView_UpdateFootprint,function,low,"reimplemented (src/game/render/viewfootprint); thiscall: the ground the world view sees: the eye and corner rays as a polygon, clipped, scaled to cells, scanned; the far distance set; returns 1; name invented"
+0x00576a00,Renderer_DrawView,function,low,"reimplemented (src/game/render/rendererframe); thiscall(view): one view drawn, step by step, its camera for the time; 1 or 0; name invented"
+0x00576ec0,Renderer_DrawFrame,function,low,"reimplemented (src/game/render/rendererframe); thiscall: the frame: its views in the window or, moved, full screen in stereo or side by side; the precision and flags set back; name invented"
+0x0044e540,Engine_DrawFrame,function,low,reimplemented (src/game/render/rendererframe); cdecl: Renderer_DrawFrame of the renderer [0x87a6d0]; name invented
 0x0044b140,Model_MarkFacesByMask,function,high,"reimplemented (src/game/model/parts); cdecl (holder**, mask): face flags 0x80000010 for parts whose +8 has any mask bit"
 0x0044b1b0,Model_MarkFacesNotValue,function,high,"reimplemented (src/game/model/parts); cdecl (holder**, value): face flags 0x80000010 for parts whose +8 is not value"
 0x0044b220,Model_FindPartByKey4,function,high,"reimplemented (src/game/model/parts); cdecl u32 (holder, mask, key): first part with +4 == key and flags & mask (mask defaults 0x3da1f82), or -1"
