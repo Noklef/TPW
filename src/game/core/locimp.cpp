@@ -99,6 +99,12 @@ void __fastcall BadAlloc_Dtor(u32 *self) {
     CRT_exception_Dtor(self);
 }
 
+Locimp *__fastcall Locimp_DeletingDtor(Locimp *self, void *, u32 flags) {
+    Locimp_Dtor(self, nullptr);
+    if (flags & 1) IosBase_Env().memFree(self);
+    return self;
+}
+
 u32 *__fastcall BadAlloc_DeletingDtor(u32 *self, void *, u32 flags) {
     BadAlloc_Dtor(self);
     if (flags & 1) IosBase_Env().memFree(self);

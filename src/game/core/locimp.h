@@ -41,6 +41,7 @@ void __fastcall Locimp_Addfac(Locimp *self, void *, LocaleFacet *facet, u32 id);
 Locimp *__fastcall Locimp_Ctor(Locimp *self, void *, u32 xparse);
 // 0x69a080: _Locimp's destructor body: under the lock each facet from the last, a count dropped, and deleted when none are left; the array freed; the name released; the base vtable 0x709b44.
 void __fastcall Locimp_Dtor(Locimp *self, void *);
+Locimp *__fastcall Locimp_DeletingDtor(Locimp *self, void *, u32 flags);   // 0x698e80 (name invented, unconfirmed)
 // 0x699ee0 (atexit; name invented, unconfirmed): under the lock the facet at [0xfb1dd0], a count dropped, and deleted when none are left. The global is left as it is.
 void __cdecl Locimp_TidyAtExit();
 
