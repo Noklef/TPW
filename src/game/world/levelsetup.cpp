@@ -2,6 +2,7 @@
 
 #include <cstdint>
 
+#include "../core/crt.h"
 #include "../math/x87.h"
 
 namespace {
@@ -14,11 +15,40 @@ template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((ui
 
 u32 rectObject() { return *global<const u32 *>(0x7cf6ec); }
 
+const char *GamePath() { return reinterpret_cast<const char *>((uintptr_t)g_calls.Cd(0x0040ef40)); }   // GamePaths_Base
+
 }  // namespace
 
 void LevelSetup_SetCalls(const AddrCall *table, u32 count) { g_calls.Set(table, count); }
 
 extern "C" {
+
+u32 __cdecl Level_LoadTerrainAndAdvisor() {
+    char first[0x104], second[0x104], language[0x104];   // the original's frame, 0x30c
+    const CrtEnv &crt = Crt();
+    const char *const advisorName = reinterpret_cast<const char *>((uintptr_t)0x007af650);
+    global<u32>(0x7b0958) = crt.rand();
+    g_calls.Cd(0x004740d0, 0u);   // Motion_SetFlags
+    g_calls.Cd(0x0042a990);   // Camera_Reset
+    GamePath();   // the original looks for its last backslash and does not use the result
+    const u32 flags = global<u32>(0x79d86c);
+    const u32 texture = flags & 4 ? 0x10u : flags & 2 ? 0x20u : flags & 1 ? 0x40u : 0x20u;
+    g_calls.Cd(0x00462870, 1u);   // WorldVerts_Alloc
+    g_calls.Cd(0x004504c0, 0u, texture);   // Terrain_Load
+    crt.sprintf(first, "%s\\Global\\Advisor", global<const char *>(0xf816f0));   // MemorySource_GetLock inlined: 0xf816c0 + 0x28, its +8
+    crt.sprintf(second, "%s\\Advisor\\%s", GamePath(), advisorName);
+    g_calls.Cd(0x00429ba0, first, second, 0u, 0u);   // ModelSlot_LoadAdvisor
+    language[0] = '_';
+    language[1] = 0;
+    CRT_strncat(language, global<const char *>(0x786b70), 3);   // Obj_Self inlined: 0x786b68, its +8
+    crt.sprintf(first, "%s\\Advisor", GamePath());
+    crt.sprintf(second, "%s\\Global\\Advisor\\%s", global<const char *>(0xf816f0), advisorName);
+    g_calls.Cd(0x00429ba0, first, second, language, 1u);
+    g_calls.Cd(0x005989c0);   // Advisor_Init
+    g_calls.Cd(0x004584d0);   // LightSource_CreateMain
+    g_calls.Cd(0x00469350);   // Highlight_ResetTints
+    return 1;
+}
 
 u32 __cdecl Level_SetupAfterTerrain() {
     g_calls.Cd(0x00450900);   // TerrainAttrMap_Load

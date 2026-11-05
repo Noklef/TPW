@@ -6275,6 +6275,7 @@ address,name,kind,confidence,notes
 0x0059b870,AdvisorMsg_Send,function,low,"reimplemented (src/game/world/advisorsend); thiscall (out, offset), pops 8: an advisor message said and posted; name invented"
 0x00457d50,Level_FreeAll,function,low,reimplemented (src/game/world/levelfree); A level's loaded things freed; with keep some of them stay.
 0x00457c30,Level_SetupAfterTerrain,function,low,"reimplemented (src/game/world/levelsetup); the map's rectangle from four getters, the world size from the grid's cell size, the texture rectangle, then the buffers' setup (name invented)"
+0x00457a90,Level_LoadTerrainAndAdvisor,function,low,"reimplemented (src/game/world/levelsetup); cdecl, returns 1: the seed drawn, the terrain loaded with a texture argument from the detail flags, both advisors loaded and set up (name invented)"
 0x0045bc60,Holder_Destroy,function,high,"reimplemented (src/game/model/holder); a holder's part sleeps, its owner's count drops and the part is deleted"
 0x0046c210,Mouse_HandleButton,function,high,reimplemented (src/game/input/mouse); the left and right mouse buttons go down or up
 0x0046c2a0,Mouse_Moved,function,high,reimplemented (src/game/input/mouse); the mouse moved
