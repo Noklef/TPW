@@ -6251,6 +6251,8 @@ address,name,kind,confidence,notes
 0x005d5350,GuardFile_Write,function,low,"reimplemented (src/game/core/guardfile); gwrite: bytes through the file's buffer; the name from its messages, the rest invented, unconfirmed"
 0x005cedd0,FileBuf_Overflow,function,low,"reimplemented (src/game/core/filebuf); The narrow file stream buffer's overflow; name invented, unconfirmed"
 0x005cf490,FileBuf_SeekPos,function,low,"reimplemented (src/game/core/filebuf); The narrow file stream buffer's seek to a position; name invented, unconfirmed"
+0x005cf410,FileBuf_SeekOff,function,low,reimplemented (src/game/core/filebuf); the narrow file stream buffer's seek by an offset
+0x005cf600,FileBuf_SetBuf,function,low,reimplemented (src/game/core/filebuf); the narrow file stream buffer's setbuf
 0x00617610,InputSystem_DeletingDtor,function,low,reimplemented (src/game/core/inputsystem); the input system's deleting destructor (name invented)
 0x00617630,InputSystem_Dtor,function,low,reimplemented (src/game/core/inputsystem); the input system's destructor (name invented)
 0x006176e0,InputSystem_Update,function,low,reimplemented (src/game/core/inputsystem); the input queue read out (name invented)

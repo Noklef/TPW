@@ -16,7 +16,7 @@ T &at(const void *p, u32 offset) {
 
 const FileBufEnv kGameEnv = {reinterpret_cast<s32(__cdecl *)(s32, void *)>((uintptr_t)0x0067e570), reinterpret_cast<u32(__cdecl *)(const void *, u32, u32, void *)>((uintptr_t)0x0067b6d0),
                              reinterpret_cast<s32(__cdecl *)(void *, const void *)>((uintptr_t)0x0067cf70), reinterpret_cast<s32(__cdecl *)(void *, s32, s32)>((uintptr_t)0x0067c100),
-                             reinterpret_cast<s32(__cdecl *)(void *, void *)>((uintptr_t)0x0067cf40)};
+                             reinterpret_cast<s32(__cdecl *)(void *, void *)>((uintptr_t)0x0067cf40), reinterpret_cast<s32(__cdecl *)(void *, char *, u32, u32)>((uintptr_t)0x0067cf90)};
 const FileBufEnv *g_env = &kGameEnv;
 
 u32 &NoPos() { return at<u32>(nullptr, 0x006fe5ac); }
@@ -112,4 +112,23 @@ u32 *__fastcall FileBuf_SeekPos(u8 *self, void *, u32 *out, s32 offset, u32, u32
     out[3] = position[1];
     out[4] = at<u32>(self, 0x40);
     return out;
+}
+
+u32 *__fastcall FileBuf_SeekOff(u8 *self, void *, u32 *out, s32 offset, s32 origin, u32) {
+    u32 position[2];
+    void *const file = at<void *>(self, 0x50);
+    if (!file || g_env->fseek(file, offset, origin) != 0 || g_env->fgetpos(at<void *>(self, 0x50), position) != 0) {
+        Obj_Init4f1520(reinterpret_cast<u8 *>(out), nullptr, 0xffffffff);
+        return out;
+    }
+    out[2] = position[0];
+    out[0] = 0;
+    out[3] = position[1];
+    out[4] = at<u32>(self, 0x40);
+    return out;
+}
+
+u8 *__fastcall FileBuf_SetBuf(u8 *self, void *, char *buffer, u32 size) {
+    void *const file = at<void *>(self, 0x50);
+    return file && g_env->setvbuf(file, buffer, 0, size) == 0 ? self : nullptr;
 }

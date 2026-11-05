@@ -10,9 +10,9 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import gamestring  # noqa: E402
 from fncmp import HEAP, IMPORT_TABLE, LOG, RAM, Bench, Call, _recorder, blob, echo, fill, global_heap, heap, log_fold, log_region, put, set_return, strings, vtable  # noqa: E402
 
-FPUTC, FWRITE, FSETPOS, FSEEK, FGETPOS, OUT = range(6)   # (OUT is the converter's slot)
-B = Bench([(0x5cedd0, 0x5cefd9), (0x5cf490, 0x5cf5fd), (0x45b340, 0x45b9a0), (0x47b280, 0x47b340), (0x4f1520, 0x4f1560)] + gamestring.B_RANGES,
-          hooks={0x691de0: lambda e: e.r.__setitem__('EAX', e.r['ECX']), 0x691ea0: lambda e: None, 0x67e570: _recorder(FPUTC, 2, cdecl=True), 0x67b6d0: _recorder(FWRITE, 4, cdecl=True), 0x67cf70: _recorder(FSETPOS, 2, cdecl=True), 0x67c100: _recorder(FSEEK, 3, cdecl=True), 0x67cf40: _recorder(FGETPOS, 2, cdecl=True)})
+FPUTC, FWRITE, FSETPOS, FSEEK, FGETPOS, OUT, SETVBUF = range(7)   # (OUT is the converter's slot)
+B = Bench([(0x5cedd0, 0x5cefd9), (0x5cf490, 0x5cf5fd), (0x5cf410, 0x5cf484), (0x5cf600, 0x5cf62f), (0x45b340, 0x45b9a0), (0x47b280, 0x47b340), (0x4f1520, 0x4f1560)] + gamestring.B_RANGES,
+          hooks={0x691de0: lambda e: e.r.__setitem__('EAX', e.r['ECX']), 0x691ea0: lambda e: None, 0x67e570: _recorder(FPUTC, 2, cdecl=True), 0x67b6d0: _recorder(FWRITE, 4, cdecl=True), 0x67cf70: _recorder(FSETPOS, 2, cdecl=True), 0x67c100: _recorder(FSEEK, 3, cdecl=True), 0x67cf40: _recorder(FGETPOS, 2, cdecl=True), 0x67cf90: _recorder(SETVBUF, 4, cdecl=True)})
 SELF, PUT, ROOM, CONV, VT, TEXT, STR, FILE, OUTPUT, TO = RAM, RAM + 0x80, RAM + 0x84, RAM + 0x90, RAM + 0xa0, RAM + 0x140, RAM + 0x180, RAM + 0x1a0, RAM + 0x1c0, RAM + 0x200
 
 
@@ -73,11 +73,27 @@ def seek(r):
     return Call(0x5cf490, [SELF, RAM + 0x300, r.choice([0, 0, 5, 0xffffffff]), r.getrandbits(32), r.getrandbits(32), r.getrandbits(32), r.getrandbits(32), r.getrandbits(32), r.getrandbits(32)], regions, conv='t', ret='a')
 
 
-OPS = {'Overflow': overflow, 'Seek': seek}
+def seekoff(r):
+    log, regions, self = base(r)
+    regions[RAM + 0x300] = r.bytes(0x18)
+    set_return(log, FSEEK, r.choice([0, 0, 0, 0, 1]))
+    set_return(log, FGETPOS, r.choice([0, 0, 0, 0, 1]))
+    strings(log, FGETPOS, 0, 0b10)
+    fill(log, FGETPOS, 1, r.bytes(8))
+    return Call(0x5cf410, [SELF, RAM + 0x300, r.getrandbits(32), r.choice([0, 1, 2]), r.getrandbits(32)], regions, conv='t', ret='a')
+
+
+def setbuf(r):
+    log, regions, self = base(r)
+    set_return(log, SETVBUF, r.choice([0, 0, 1, 0xffffffff]))
+    return Call(0x5cf600, [SELF, r.getrandbits(32), r.getrandbits(32)], regions, conv='t', ret='a')
+
+
+OPS = {'Overflow': overflow, 'Seek': seek, 'SeekOff': seekoff, 'SetBuf': setbuf}
 
 
 def case(r):
-    return OPS[r.choice(os.environ.get('OPS', 'Overflow,Seek').split(','))](r)
+    return OPS[r.deal(os.environ.get('OPS', 'Overflow,Seek,SeekOff,SetBuf').split(','))](r)
 
 
 if __name__ == '__main__':
