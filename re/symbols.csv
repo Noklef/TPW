@@ -6227,6 +6227,19 @@ address,name,kind,confidence,notes
 0x005cfe40,NIstream_Getline,function,low,"reimplemented (src/game/core/nstream); basic_istream<char>::getline, by its shape"
 0x005d3530,NIstream_Read,function,low,"reimplemented (src/game/core/nstream); basic_istream<char>::read, by its shape"
 0x005d0e70,NOstream_PutText,function,low,"reimplemented (src/game/core/nstream); operator<<(ostream &, const char *), by its shape"
+0x005cf740,NOstream_DeletingDtorOnIos,function,low,reimplemented (src/game/core/nstream); basic_ostream<char>'s deleting destructor from its ios
+0x005cf770,NIos_DeletingDtor,function,low,reimplemented (src/game/core/nstream); basic_ios<char>'s deleting destructor
+0x005cf790,NIstream_DeletingDtorOnIos,function,low,reimplemented (src/game/core/nstream); basic_istream<char>'s deleting destructor from its ios
+0x005cf840,NIfstream_DeletingDtorOnIos,function,low,reimplemented (src/game/core/nstream); basic_ifstream<char>'s deleting destructor from its ios
+0x005cf8b0,NOfstream_DeletingDtorOnIos,function,low,reimplemented (src/game/core/nstream); basic_ofstream<char>'s deleting destructor from its ios
+0x005cf870,NIstream_DtorVb,function,low,reimplemented (src/game/core/nstream); basic_istream<char>'s destructor with its virtual base
+0x005cf8e0,NOstream_DtorVb,function,low,reimplemented (src/game/core/nstream); basic_ostream<char>'s destructor with its virtual base
+0x005cb700,NIfstream_DtorVb,function,low,reimplemented (src/game/core/nstream); basic_ifstream<char>'s destructor with its virtual base
+0x005cba50,NOfstream_DtorVb,function,low,reimplemented (src/game/core/nstream); basic_ofstream<char>'s destructor with its virtual base
+0x005cfc90,NCtype_ToLower,function,low,reimplemented (src/game/core/nstream); ctype<char>::tolower of one
+0x005cfcb0,NCtype_ToLowerRange,function,low,reimplemented (src/game/core/nstream); ctype<char>::tolower of a range
+0x005cfce0,NCtype_ToUpper,function,low,reimplemented (src/game/core/nstream); ctype<char>::toupper of one
+0x005cfd00,NCtype_ToUpperRange,function,low,reimplemented (src/game/core/nstream); ctype<char>::toupper of a range
 0x005b12e0,ThemeRecord_FullName,function,low,reimplemented (src/game/core/themenames); a theme record's full name
 0x005b1410,ThemeRecord_Name,function,low,reimplemented (src/game/core/themenames); a theme record's name
 0x005b1520,ThemeRecord_Suffix,function,low,reimplemented (src/game/core/themenames); a theme record's suffix

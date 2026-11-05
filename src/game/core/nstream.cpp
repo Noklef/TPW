@@ -26,7 +26,12 @@ const NStreamEnv kGameEnv = {reinterpret_cast<void(__stdcall *)(void *, const vo
                              reinterpret_cast<const u32 *(__cdecl *)(u32 *)>((uintptr_t)0x00699bd0),
                              &CRT_atexit,
                              &IosBase_Init,
-                             &IosBase_Addstd};
+                             &IosBase_Addstd,
+                             reinterpret_cast<void(__fastcall *)(u8 *)>((uintptr_t)0x005cde40),
+                             reinterpret_cast<void(__fastcall *)(u8 *)>((uintptr_t)0x005ce920),
+                             reinterpret_cast<void(__fastcall *)(u8 *)>((uintptr_t)0x005cf630),
+                             &CRT_TolowerLocking,
+                             &CRT_ToupperLocking};
 const NStreamEnv *g_env = &kGameEnv;
 
 u32 base_of(const u8 *stream) { return at<u32>(at<u8 *>(stream, 0), 4); }
@@ -154,6 +159,78 @@ u8 *__fastcall NCtype_DeletingDtor(u8 *self, void *, u32 flags) {
 }
 
 void __cdecl NCtype_FreeTable() { Crt().free(global<void *>(0x00fb1dd8)); }
+
+s32 __fastcall NCtype_ToLower(u8 *self, void *, u32 c) { return g_env->tolower(c & 0xff, reinterpret_cast<const u32 *>(self + 8)); }
+
+char *__fastcall NCtype_ToLowerRange(u8 *self, void *, char *first, char *last) {
+    for (; first != last; ++first) *first = static_cast<char>(g_env->tolower(*first, reinterpret_cast<const u32 *>(self + 8)));
+    return first;
+}
+
+s32 __fastcall NCtype_ToUpper(u8 *self, void *, u32 c) { return g_env->toupper(c & 0xff, reinterpret_cast<const u32 *>(self + 8)); }
+
+char *__fastcall NCtype_ToUpperRange(u8 *self, void *, char *first, char *last) {
+    for (; first != last; ++first) *first = static_cast<char>(g_env->toupper(*first, reinterpret_cast<const u32 *>(self + 8)));
+    return first;
+}
+
+void __fastcall NIstream_DtorVb(u8 *self) {
+    *reinterpret_cast<u32 *>(self + base_of(self)) = 0x0070994c;
+    g_env->iosDtor(self + 8);
+}
+
+void __fastcall NOstream_DtorVb(u8 *self) {
+    *reinterpret_cast<u32 *>(self + base_of(self)) = 0x0070995c;
+    g_env->iosDtor(self + 4);
+}
+
+void __fastcall NIfstream_DtorVb(u8 *self) {
+    g_env->ifstreamDtor(self + 0x5c);
+    g_env->iosDtor(self + 0x5c);
+}
+
+void __fastcall NOfstream_DtorVb(u8 *self) {
+    g_env->ofstreamDtor(self + 0x58);
+    g_env->iosDtor(self + 0x58);
+}
+
+u8 *__fastcall NIos_DeletingDtor(u8 *self, void *, u32 flags) {
+    g_env->iosDtor(self);
+    if (flags & 1) GameHeap_Free(self);
+    return self;
+}
+
+u8 *__fastcall NOstream_DeletingDtorOnIos(u8 *ios, void *, u32 flags) {
+    u8 *const self = ios - 4;
+    *reinterpret_cast<u32 *>(self + base_of(self)) = 0x0070995c;
+    g_env->iosDtor(ios);
+    if (flags & 1) GameHeap_Free(self);
+    return self;
+}
+
+u8 *__fastcall NIstream_DeletingDtorOnIos(u8 *ios, void *, u32 flags) {
+    u8 *const self = ios - 8;
+    *reinterpret_cast<u32 *>(self + base_of(self)) = 0x0070994c;
+    g_env->iosDtor(ios);
+    if (flags & 1) GameHeap_Free(self);
+    return self;
+}
+
+u8 *__fastcall NIfstream_DeletingDtorOnIos(u8 *ios, void *, u32 flags) {
+    g_env->ifstreamDtor(ios);
+    g_env->iosDtor(ios);
+    u8 *const self = ios - 0x5c;
+    if (flags & 1) GameHeap_Free(self);
+    return self;
+}
+
+u8 *__fastcall NOfstream_DeletingDtorOnIos(u8 *ios, void *, u32 flags) {
+    g_env->ofstreamDtor(ios);
+    g_env->iosDtor(ios);
+    u8 *const self = ios - 0x58;
+    if (flags & 1) GameHeap_Free(self);
+    return self;
+}
 
 u8 __fastcall NIos_Widen(u8 *ios, void *, u32 c) {
     u8 *held;

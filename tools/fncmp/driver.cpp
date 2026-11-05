@@ -1006,11 +1006,11 @@ const InputSystemEnv kInputSystemEnv = {Rec{recorder(10, 0)}, Rec{recorder(15, 0
                                         Rec{recorder(3, 1)}, Rec{recorder(25, 1)}, Rec{recorder(13, 1)}, Rec{recorder(5, 1)}, Rec{recorder(9, 1)}, Rec{recorder(23, 1)},
                                         Rec{recorder(17, 2)}, Rec{recorder(29, 2)}, Rec{recorder(27, 2)}, Rec{recorder(28, 2)}, Rec{recorder(26, 2)}, Rec{recorder(31, 2)},
                                         Rec{recorder(12, 2)}, Rec{recorder(3, 2)}, Rec{jpeg_recorder(6, 0)}};
-const NStreamEnv kNStreamEnv = {Rec{kStubs + 0x5000 + 0x800 * 2 + 0x20 * 14}, Rec{recorder(26, 1)}, Rec{recorder(27, 0)}, Rec{jpeg_recorder(28, 1)}, reinterpret_cast<s32(__cdecl *)(void *)>((uintptr_t)(kStubs + 0x50)), Rec{recorder(20, 0)}, Rec{recorder(21, 0)}};
+const NStreamEnv kNStreamEnv = {Rec{kStubs + 0x5000 + 0x800 * 2 + 0x20 * 14}, Rec{recorder(26, 1)}, Rec{recorder(27, 0)}, Rec{jpeg_recorder(28, 1)}, reinterpret_cast<s32(__cdecl *)(void *)>((uintptr_t)(kStubs + 0x50)), Rec{recorder(20, 0)}, Rec{recorder(21, 0)}, Rec{recorder(0, 0)}, Rec{recorder(1, 0)}, Rec{recorder(2, 0)}, Rec{jpeg_recorder(3, 2)}, Rec{jpeg_recorder(4, 2)}};
 const ThemeNamesEnv kThemeNamesEnv = {Rec{jpeg_recorder(1, 5)}, Rec{jpeg_recorder(2, 2)}, Rec{recorder(3, 3)}, Rec{recorder(4, 3)}, Rec{recorder(5, 3)}};
 const GuardHeapEnv kGuardHeapEnv = {Rec{jpeg_recorder(1, 1)}, Rec{jpeg_recorder(2, 1)}};
 const LobbySkyEnv kLobbySkyEnv = {Rec{recorder(0, 1)}, Rec{recorder(1, 3)}, Rec{recorder(2, 4)}, Rec{recorder(3, 0)}};
-const FileBufEnv kFileBufEnv = {Rec{jpeg_recorder(0, 2)}, Rec{jpeg_recorder(1, 4)}, Rec{jpeg_recorder(2, 2)}, Rec{jpeg_recorder(3, 3)}, Rec{jpeg_recorder(4, 2)}};
+const FileBufEnv kFileBufEnv = {Rec{jpeg_recorder(0, 2)}, Rec{jpeg_recorder(1, 4)}, Rec{jpeg_recorder(2, 2)}, Rec{jpeg_recorder(3, 3)}, Rec{jpeg_recorder(4, 2)}, Rec{jpeg_recorder(6, 4)}};
 const GuardFileEnv kGuardFileEnv = {Rec{jpeg_recorder(4, 2)}, Rec{jpeg_recorder(5, 2)}, Rec{jpeg_recorder(6, 3)}, Rec{jpeg_recorder(7, 4)}, Rec{jpeg_recorder(8, 4)}, Rec{jpeg_recorder(9, 1)}, Rec{jpeg_recorder(10, 1)}, Rec{jpeg_recorder(11, 1)}, Rec{jpeg_recorder(12, 2)}};
 const Blocks7LoadEnv kBlocks7LoadEnv = {Rec{jpeg_recorder(1, 3)}, Rec{recorder(2, 2)}};
 const FrameEnv kFrameEnv = {Rec{jpeg_recorder(7, 0)}, Rec{recorder(6, 3)}};
