@@ -1178,6 +1178,7 @@ const MailboxEnv kMailboxEnv = {Rec{recorder(0, 0)}, Rec{recorder(1, 4)}, Rec{re
                                 Rec{jpeg_recorder(10, 2)}, Rec{jpeg_recorder(11, 1)}, Rec{recorder(12, 2)}, Rec{recorder(13, 0)}, Rec{recorder(14, 0)}, Rec{recorder(15, 0)}, Rec{jpeg_recorder(16, 1)}, Rec{recorder(17, 2)}, Rec{recorder(18, 3)},
                                 Rec{recorder(19, 2)}, Rec{recorder(20, 3)}, Rec{recorder(22, 2)}, Rec{recorder(23, 0)}, Rec{recorder(24, 1)}, Rec{recorder(25, 0)}, Rec{recorder(26, 0)}, Rec{recorder(27, 1)}, Rec{recorder(28, 1)}, Rec{recorder(29, 0)},
                                 Rec{jpeg_recorder(30, 1)}, Rec{jpeg_recorder(31, 1)}};
+const PanelSaveEnv kPanelSaveEnv = {Rec{stdcall_recorder(5, 1)}, Rec{stdcall_recorder(6, 1)}, Rec{stdcall_recorder(7, 4)}, Rec{stdcall_recorder(8, 4)}, Rec{stdcall_recorder(9, 1)}};  // tests/fncmp/panelsave.py
 const UserSlotsScanEnv kUserSlotsScanEnv = {Rec{stdcall_recorder(0, 1)}, Rec{stdcall_recorder(1, 1)}, Rec{stdcall_recorder(2, 1)}, Rec{recorder(3, 2)}, Rec{recorder(4, 3)}, Rec{recorder(5, 2)}, Rec{jpeg_recorder(6, 2)}, Rec{jpeg_recorder(7, 1)},
                                             Rec{jpeg_recorder(8, 1)}, Rec{jpeg_recorder(9, 1)}, Rec{recorder(10, 2)}, Rec{recorder(11, 0)}, Rec{recorder(12, 0)}, Rec{recorder(13, 1)}, Rec{recorder(14, 0)}, Rec{recorder(15, 1)}};
 const OnlineDownloadStartEnv kOnlineDownloadStartEnv = {Rec{recorder(4, 1)}, Rec{recorder(5, 2)}, Rec{jpeg_recorder(6, 5)}, Rec{recorder(7, 0)}, Rec{stdcall_recorder(8, 1)}, Rec{jpeg_recorder(9, 1)}, Rec{recorder(10, 2)}, Rec{recorder(11, 4)},
@@ -3069,6 +3070,7 @@ int main(int argc, char **argv) {
     Online_SetStartEnv(&kOnlineStartEnv);
     Online_SetCityPollEnv(&kOnlineCityPollEnv);
     PanelKeys_SetEnv(&kPanelKeysEnv);
+    PanelSave_SetEnv(&kPanelSaveEnv);
     SceneQueue_SetEnv(&kSceneQueueEnv);
     Frame_SetEnv(&kFrameEnv);
     Blocks7_SetLoadEnv(&kBlocks7LoadEnv);

@@ -4,7 +4,21 @@
 #include "../../../re/types.h"
 #include "../core/addrcalls.h"
 
+// Panel_SavePicture's calls: the guarded file, and three stdcall routines of a library at 0x64c202 (unported, not ours: no source to name them by).
+struct PanelSaveEnv {
+    u8 *(__stdcall *open)(const char *name);                                  // GuardFile_Open
+    u32(__stdcall *close)(u8 *file);                                          // GuardFile_Close
+    void(__stdcall *start)(u32 *handle, u8 *file, const char *text, u32 one);  // 0x64c202
+    void(__stdcall *write)(u32 handle, const u32 *info, u8 *pixels, u32 pitch);  // 0x64c258
+    void(__stdcall *finish)(u32 handle);                                      // 0x64c5c4
+};
+void PanelSave_SetEnv(const PanelSaveEnv *env);  // nullptr: the game's
+
 extern "C" {
+
+// 0x5d4a30 (thiscall (name), pops 4; called from 0x4a8646; name invented, unconfirmed): the panel's image at +0x50 ({width, height, ?, pixels}) has each pixel's four bytes reversed in place (the count re-read each pixel, and left
+// reversed even when the file fails, sic), then is written to the guarded file `name` through the library, with a description of 0x363 dwords. Returns 1, or 0 when the file does not open.
+u8 __fastcall Panel_SavePicture(u8 *panel, void *, const char *name);
 
 // 0x5d4170 (thiscall on the source image {width +0, height +4, ?, bytes +0xc}; dest, x, y, pops 12): the source's pixels of four bytes (alpha, then three
 // channels) are blended onto the destination image ({width +0, height +4, bytes per pixel +8, bytes +0xc}) at column x and row y: the first byte of
