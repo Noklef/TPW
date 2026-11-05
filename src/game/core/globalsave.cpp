@@ -36,6 +36,27 @@ void tree_ctor(u8 *tree, u32 nilAt, u32 usersAt, u8 *(__stdcall *make)(u32, u32)
     at<u8 *>(at<u8 *>(tree, 4), 8) = at<u8 *>(tree, 4);
 }
 
+// A tree's destructor's end: the head freed, it and the size cleared, the users lowered, the last freeing the nil.
+void tree_finish(u8 *tree, u32 nilAt, u32 usersAt) {
+    GameHeap_Free(at<u8 *>(tree, 4));
+    at<u8 *>(tree, 4) = nullptr;
+    at<u32>(tree, 0xc) = 0;
+    if (--global<u32>(usersAt) == 0) {
+        GameHeap_Free(global<u8 *>(nilAt));
+        global<u8 *>(nilAt) = nullptr;
+    }
+}
+
+// A counted list's destructor as inlined: its nodes erased, the head freed, it and the count cleared.
+void list_dtor(u8 *list) {
+    u8 *const head = at<u8 *>(list, 4);
+    u32 out;
+    List_EraseRangeCounted(list, nullptr, &out, at<u8 *>(head, 0), head);
+    GameHeap_Free(at<u8 *>(list, 4));
+    at<u8 *>(list, 4) = nullptr;
+    at<u32>(list, 8) = 0;
+}
+
 // One field written or read whole (Stream_Write / Stream_Read; a negative result or fewer bytes: false).
 bool Field(Stream *stream, u8 *at, s32 count, bool save) {
     s32 result, done = 0;
@@ -227,6 +248,28 @@ void __fastcall GlobalSave_ClearThemes(u8 *info) {
     u8 *const head = at<u8 *>(info, 0x3c);
     u8 *out;
     StdTree_EraseRangeF(info + 0x38, nullptr, &out, *reinterpret_cast<u8 **>(head), head);
+}
+
+void __fastcall GlobalSaveThemes_Dtor(u8 *tree) {
+    u8 *const head = at<u8 *>(tree, 4);
+    u8 *out;
+    StdTree_EraseRangeF(tree, nullptr, &out, *reinterpret_cast<u8 **>(head), head);
+    tree_finish(tree, 0x00f7c968, 0x00f7c964);
+}
+
+void __fastcall GlobalSaveRides_Dtor(u8 *tree) {
+    u8 *const head = at<u8 *>(tree, 4);
+    u8 *out;
+    StdTree_EraseRangeG(tree, nullptr, &out, *reinterpret_cast<u8 **>(head), head);
+    tree_finish(tree, 0x00f7c970, 0x00f7c96c);
+}
+
+void __fastcall GlobalSave_Dtor(u8 *info) {
+    GlobalSave_ClearThemes(info);
+    GlobalSaveThemes_Dtor(info + 0x38);
+    GlobalSaveRides_Dtor(info + 0x28);
+    list_dtor(info + 0xc);
+    list_dtor(info);
 }
 
 u32 __fastcall GlobalSave_Serialize(u8 *info, void *, Stream *stream, u32 saving, u32 third) {
