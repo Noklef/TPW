@@ -7320,6 +7320,8 @@ address,name,kind,confidence,notes
 0x00584b10,LightList_Clear,function,high,reimplemented (src/game/render/lightlist); count and cursor = 0
 0x00584e30,LightList_First,function,high,reimplemented (src/game/render/lightlist); cursor = 0; the first entry or null
 0x00584e50,LightList_Next,function,high,reimplemented (src/game/render/lightlist); the next entry or null
+0x00584b20,LightList_Angle,function,low,"reimplemented (src/game/render/lightlist); cdecl: the angle between two 2D vectors, 0 to 2 pi; name invented"
+0x00584be0,LightList_Add,function,low,reimplemented (src/game/render/lightlist); thiscall: adds a light by its direction; name invented
 0x00573ca0,SoftRenderer_ClearBuffer,function,high,reimplemented (src/game/render/softrender); the w*h*4-byte buffer zeroed; returns 1
 0x00573e30,SoftRenderer_TextureMemory,function,high,"reimplemented (src/game/render/softrender); the texture memory: the option, else a quarter of RAM within 8-24 MB"
 0x005744d0,Meshes_Ready,function,high,reimplemented (src/game/render/meshlist); a zero-ended array of meshes readied (flag 0x20: object +0x30; no 0x10000000: pushed on 0x879dec)
