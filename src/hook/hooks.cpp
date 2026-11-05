@@ -416,6 +416,7 @@
 #include "../game/world/money.h"
 #include "../game/world/objectmsg.h"
 #include "../game/world/parkmap.h"
+#include "../game/input/devicefilter.h"
 #include "../game/input/mouse.h"
 #include "../game/world/personscripts.h"
 #include "../game/world/ridelist.h"
@@ -7077,6 +7078,30 @@ const Hook kHooks[] = {
     {"Mouse_HandleButton",        0x0046c210, (void *)&Mouse_HandleButton, {0x8b, 0x44, 0x24, 0x04, 0x56}},
     {"Mouse_Moved",               0x0046c2a0, (void *)&Mouse_Moved, {0xa1, 0xd4, 0x05, 0x7b, 0x00}},
     {"Mouse_HandleGuiButton",     0x00486c70, (void *)&Mouse_HandleGuiButton, {0x8b, 0x44, 0x24, 0x10, 0x56}},
+    {"InputFilter_SetNext",       0x00632350, (void *)&InputFilter_SetNext, {0x56, 0x57, 0x8b, 0xf9, 0x8b}},
+    {"InputFilter_CloseHandle",   0x00633200, (void *)&InputFilter_CloseHandle, {0x56, 0x8b, 0xf1, 0x8b, 0x46}},
+    {"InputFilter_SetSink",       0x00633250, (void *)&InputFilter_SetSink, {0x56, 0x8b, 0xf1, 0x57, 0x8b}},
+    {"KeyFilter_OnMessage",       0x00633510, (void *)&KeyFilter_OnMessage, {0x8b, 0x44, 0x24, 0x04, 0x53}},
+    {"InputSubs_Dispatch",        0x006336d0, (void *)&InputSubs_Dispatch, {0x8b, 0x54, 0x24, 0x08, 0x8b}},
+    {"InputSubs_Dtor",            0x006336f0, (void *)&InputSubs_Dtor, {0xc7, 0x01, 0x44, 0x37, 0x70}},
+    {"InputSubs_Subscribe",       0x00633700, (void *)&InputSubs_Subscribe, {0x56, 0x57, 0x8b, 0xf9, 0xe8}},
+    {"InputSubs_Unsubscribe",     0x00633750, (void *)&InputSubs_Unsubscribe, {0x56, 0x8b, 0xf1, 0x8b, 0x46}},
+    {"HandlerFilter_OnMouse",     0x006337a0, (void *)&HandlerFilter_OnMouse, {0x53, 0x55, 0x8b, 0x6c, 0x24}},
+    {"HandlerFilter_OnChar",      0x00633860, (void *)&HandlerFilter_OnChar, {0x56, 0x8b, 0xf1, 0x57, 0x8b}},
+    {"DeviceHolder_Dtor",         0x00633a50, (void *)&DeviceHolder_Dtor, {0xc7, 0x01, 0x80, 0x3c, 0x70}},
+    {"DeviceHolder_GetDevice",    0x00633a70, (void *)&DeviceHolder_GetDevice, {0x8b, 0x54, 0x24, 0x08, 0x85}},
+    {"DeviceHolder_SetLevel",     0x00633aa0, (void *)&DeviceHolder_SetLevel, {0x56, 0x8b, 0xf1, 0x33, 0xc0}},
+    {"DeviceHolder_Apply",        0x00633b90, (void *)&DeviceHolder_Apply, {0x51, 0x56, 0x8b, 0xf1, 0x33}},
+    {"ComHolder_Release",         0x00633db0, (void *)&ComHolder_Release, {0x8b, 0x01, 0x85, 0xc0, 0x74}},
+    {"KeyFilter_ReadModifiers",   0x00634130, (void *)&KeyFilter_ReadModifiers, {0x81, 0xec, 0x08, 0x01, 0x00}},
+    {"MouseFilter_Ctor",          0x00634220, (void *)&MouseFilter_Ctor, {0x6a, 0xff, 0x68, 0x48, 0x2e}},
+    {"MouseFilter_OnMessage",     0x00634420, (void *)&MouseFilter_OnMessage, {0x8b, 0x44, 0x24, 0x04, 0x8a}},
+    {"MouseFilter_ClampPosition", 0x006344f0, (void *)&MouseFilter_ClampPosition, {0x56, 0x8b, 0xf1, 0xdb, 0x46}},
+    {"MouseFilter_OnBounds",      0x00634560, (void *)&MouseFilter_OnBounds, {0x8b, 0x44, 0x24, 0x08, 0x83}},
+    {"ChainFilter_Attach",        0x00634720, (void *)&ChainFilter_Attach, {0x8b, 0xc1, 0x8b, 0x4c, 0x24}},
+    {"ChainFilter_Detach",        0x00634730, (void *)&ChainFilter_Detach, {0x8b, 0xc1, 0x8b, 0x4c, 0x24}},
+    {"MouseFilter_Constant1",     0x006348e0, (void *)&MouseFilter_Constant1, {0xb8, 0x40, 0x7c, 0x70, 0x00}},
+    {"MouseFilter_Constant2",     0x006348f0, (void *)&MouseFilter_Constant2, {0xb8, 0x40, 0x94, 0x67, 0x00}},
     {"ScreenSurfaces_Dtor",       0x0047e3e0, (void *)&ScreenSurfaces_Dtor, {0x6a, 0xff, 0x68, 0xa8, 0x8f}},
     {"ScreenSurfaces_ScalarDtor", 0x0047e3c0, (void *)&ScreenSurfaces_ScalarDtor, {0x56, 0x8b, 0xf1, 0xe8, 0x18}},
     {"ScreenSurfaces_Surface10",  0x0047e4b0, (void *)&ScreenSurfaces_Surface10, {0x51, 0x57, 0x8b, 0xf9, 0x8b}},

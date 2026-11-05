@@ -592,6 +592,7 @@ add_library(tpw_game STATIC
     src/game/frontend/thememenu.cpp
     src/game/frontend/lobbysky.cpp
     src/game/input/mouse.cpp
+    src/game/input/devicefilter.cpp
     src/game/ui/dialog7ca1c8.cpp
     src/game/ui/window.cpp
     src/game/ui/dialogs.cpp

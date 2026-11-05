@@ -103,7 +103,7 @@ def case(r):
         return Call(address, [CINFO], regions, ret=ret)
     # The whole image.
     width, height = r.randrange(0, 7), r.randrange(0, 5)
-    bits = r.choice([0x20, 8, 8, 0x18, 0x10])
+    bits = r.choice([0x20, 8, 8, 0x18, 0x10, 4, 0])
     info = info_block(r, width, height, bits)
     pitch = r.choice([width * 4, width, width * 4 + 4, -(width * 4)])
     pixels = bytearray(0x400)

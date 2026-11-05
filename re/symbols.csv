@@ -6563,6 +6563,30 @@ address,name,kind,confidence,notes
 0x0046c210,Mouse_HandleButton,function,high,reimplemented (src/game/input/mouse); the left and right mouse buttons go down or up
 0x0046c2a0,Mouse_Moved,function,high,reimplemented (src/game/input/mouse); the mouse moved
 0x00486c70,Mouse_HandleGuiButton,function,low,"reimplemented (src/game/input/mouse); cdecl (event, state, unused, x, y): the point scaled to the GUI, buttons 0-2 down or up through Gui_MouseDown / Gui_MouseUp with their held flags"
+0x00632350,InputFilter_SetNext,function,low,"reimplemented (src/game/input/devicefilter); thiscall (object): the next filter at +8 replaced, released and referenced; name invented"
+0x00633200,InputFilter_CloseHandle,function,low,reimplemented (src/game/input/devicefilter); thiscall: the handle at +8 closed and cleared; name invented
+0x00633250,InputFilter_SetSink,function,low,"reimplemented (src/game/input/devicefilter); thiscall (object): the object at +0xc replaced, released and referenced; name invented"
+0x00633510,KeyFilter_OnMessage,function,low,"reimplemented (src/game/input/devicefilter); thiscall (message): the key's byte kept, the message passed on; name invented"
+0x006336d0,InputSubs_Dispatch,function,low,"reimplemented (src/game/input/devicefilter); stdcall (a, b, object): the event queue's callback to the object's slot 0; name invented"
+0x006336f0,InputSubs_Dtor,function,low,"reimplemented (src/game/input/devicefilter); thiscall: vtable 0x703744, then Unsubscribe; name invented"
+0x00633700,InputSubs_Subscribe,function,low,"reimplemented (src/game/input/devicefilter); thiscall (list, object): the object listens on the list's channels; name invented"
+0x00633750,InputSubs_Unsubscribe,function,low,reimplemented (src/game/input/devicefilter); thiscall: the object stops listening on the channels; name invented
+0x006337a0,HandlerFilter_OnMouse,function,low,"reimplemented (src/game/input/devicefilter); thiscall (message): the handler table told of a mouse or other message, passed on; name invented"
+0x00633860,HandlerFilter_OnChar,function,low,"reimplemented (src/game/input/devicefilter); thiscall (message): the handler table's slot 8, passed on; name invented"
+0x00633a50,DeviceHolder_Dtor,function,low,"reimplemented (src/game/input/devicefilter); thiscall: vtable 0x703c80, the device released; name invented"
+0x00633a70,DeviceHolder_GetDevice,function,low,"reimplemented (src/game/input/devicefilter); thiscall (result out, device out): the device with a reference; name invented"
+0x00633aa0,DeviceHolder_SetLevel,function,low,reimplemented (src/game/input/devicefilter); thiscall (result out): the DirectInput cooperative level for the window; name invented
+0x00633b90,DeviceHolder_Apply,function,low,"reimplemented (src/game/input/devicefilter); thiscall (result out): SetLevel, then Acquire; name invented"
+0x00633db0,ComHolder_Release,function,low,reimplemented (src/game/input/devicefilter); thiscall: the COM object at the pointer released; name invented
+0x00634130,KeyFilter_ReadModifiers,function,low,"reimplemented (src/game/input/devicefilter); thiscall (holder + 0x10): alt, control and shift read from the keyboard's state; name invented"
+0x00634220,MouseFilter_Ctor,function,low,"reimplemented (src/game/input/devicefilter); thiscall: the mouse filter's constructor, the system's mouse settings read; name invented"
+0x00634420,MouseFilter_OnMessage,function,low,"reimplemented (src/game/input/devicefilter); thiscall (message): swapped buttons, double click flag, the position; passed on; name invented"
+0x006344f0,MouseFilter_ClampPosition,function,low,"reimplemented (src/game/input/devicefilter); thiscall: the float position clamped to the bounds, truncated; name invented"
+0x00634560,MouseFilter_OnBounds,function,low,"reimplemented (src/game/input/devicefilter); thiscall (unused, message): a type 7 message's bounds; name invented"
+0x00634720,ChainFilter_Attach,function,low,reimplemented (src/game/input/devicefilter); thiscall (object): the object's slot 0x14 with this filter; name invented
+0x00634730,ChainFilter_Detach,function,low,reimplemented (src/game/input/devicefilter); thiscall (object): the object's slot 0x18 with this filter; name invented
+0x006348e0,MouseFilter_Constant1,function,low,reimplemented (src/game/input/devicefilter); returns 0x707c40; name invented
+0x006348f0,MouseFilter_Constant2,function,low,reimplemented (src/game/input/devicefilter); returns 0x679440; name invented
 0x0047e3e0,ScreenSurfaces_Dtor,function,high,reimplemented (src/game/gfx/screensurfaces); an object releases its two COM objects
 0x00fa76b0,gSurfaceDirectDraw,data,high,IDirectDraw that Surface_Create makes surfaces with (Surface_SetDirectDraw)
 0x00fa76b4,gSurfaceNoSysLock,data,high,byte; non-zero: Surface_Lock adds DDLOCK_NOSYSLOCK
