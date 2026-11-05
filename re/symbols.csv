@@ -6213,6 +6213,18 @@ address,name,kind,confidence,notes
 0x00689400,CRT_mbsrchr,function,low,reimplemented (src/game/core/crtmbstring); _mbsrchr
 0x00694e60,NumPut_DoPutPointer,function,low,reimplemented (src/game/core/numput); num_put<char>::do_put of a pointer (MSVC6)
 0x0069bb70,NumPutW_DoPutPointer,function,low,reimplemented (src/game/core/numput); num_put<wchar_t>::do_put of a pointer
+0x00695030,NumPut_Fput,function,low,reimplemented (src/game/core/numput); num_put<char>::_Fput
+0x00695450,NumPut_Iput,function,low,reimplemented (src/game/core/numput); num_put<char>::_Iput
+0x0069bd30,NumPutW_Fput,function,low,reimplemented (src/game/core/numput); num_put<wchar_t>::_Fput
+0x0069c190,NumPutW_Iput,function,low,reimplemented (src/game/core/numput); num_put<wchar_t>::_Iput
+0x00694b80,NumPut_DoPutLong,function,low,reimplemented (src/game/core/numput); num_put<char>::do_put of a long
+0x00694c20,NumPut_DoPutUlong,function,low,reimplemented (src/game/core/numput); num_put<char>::do_put of an unsigned long
+0x00694cc0,NumPut_DoPutDouble,function,low,reimplemented (src/game/core/numput); num_put<char>::do_put of a double
+0x00694d90,NumPut_DoPutLongDouble,function,low,reimplemented (src/game/core/numput); num_put<char>::do_put of a long double
+0x0069b890,NumPutW_DoPutLong,function,low,reimplemented (src/game/core/numput); num_put<wchar_t>::do_put of a long
+0x0069b930,NumPutW_DoPutUlong,function,low,reimplemented (src/game/core/numput); num_put<wchar_t>::do_put of an unsigned long
+0x0069b9d0,NumPutW_DoPutDouble,function,low,reimplemented (src/game/core/numput); num_put<wchar_t>::do_put of a double
+0x0069baa0,NumPutW_DoPutLongDouble,function,low,reimplemented (src/game/core/numput); num_put<wchar_t>::do_put of a long double
 0x0069ffe0,CollateW_DoTransform,function,low,reimplemented (src/game/core/wcollate); collate<wchar_t>::do_transform (name unconfirmed)
 0x00694ac0,Streambuf_Sputc,function,low,reimplemented (src/game/core/moneyput); streambuf::sputc
 0x00694b10,OstreamIter_Put,function,low,reimplemented (src/game/core/moneyput); the output iterator's put

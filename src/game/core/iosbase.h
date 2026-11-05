@@ -19,6 +19,8 @@ struct IosBaseEnv {
     void *(__fastcall *ctypeCtor)(void *self, void *edx, u32 table, u32 owned, u32 refs);   // 0x5cfb60: ctype<char>'s constructor
     void(__cdecl *makexloc)(void *info, u32 categories, void *imp, void *loc);   // 0x6a67f0: _Locimp::_Makexloc
     void(__cdecl *makewloc)(void *info, u32 categories, void *imp, void *loc);   // 0x69a7a0: _Locimp::_Makewloc
+    void *(__fastcall *numpunctCtor)(void *self, void *edx, u32 refs);    // 0x695910: numpunct<char>'s constructor
+    void *(__fastcall *wnumpunctCtor)(void *self, void *edx, u32 refs);   // 0x69c680: numpunct<wchar_t>'s constructor
 };
 
 void IosBase_SetEnv(const IosBaseEnv *env);
