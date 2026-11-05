@@ -6234,6 +6234,10 @@ address,name,kind,confidence,notes
 0x005d4ba0,GuardHeap_Alloc,function,low,reimplemented (src/game/core/guardheap); a block with guard words
 0x005d4c20,GuardHeap_Free,function,low,reimplemented (src/game/core/guardheap); a block with guard words checked and freed
 0x00409150,GameOwner_ShutdownAll,function,low,"reimplemented (src/game/core/gameowner); Game owner shut down, then the mouse mode at 0x7b05e8 cleared and freed (name invented, unconfirmed)"
+0x005503f0,Game_Shutdown,function,low,"reimplemented (src/game/core/gameshutdown); cdecl: with the game started, one more frame at state 0xa, the modules let go, the temp folder removed; name invented"
+0x00550aa0,Game_RemoveTempFolder,function,low,"reimplemented (src/game/core/gameshutdown); cdecl: the memory source's path, ended in a backslash with 0x878eb8's name, removed; name invented"
+0x0040f230,Game_ShutdownOwner,function,low,reimplemented (src/game/core/gameshutdown); cdecl: GameOwner_ShutdownAll of 0x786b68; name invented
+0x0044e560,Game_ShutdownEngine,function,low,"reimplemented (src/game/core/gameshutdown); cdecl: Engine_ShutdownAll, Engine_DestroyDevice, Global879a24_Free; name invented"
 0x0050ffe0,Nav_Ctor,function,high,reimplemented (src/game/world/nav); constants constructor with five integer pairs
 0x0050f200,Nav_Dtor,function,high,reimplemented (src/game/world/nav); thiscall: the five IntPairs at +0x64 destroyed with Stub_Ret (CRT_VectorDtorIterator); also via 0x4f7c30 (+0xd4) and 0x4f8ad0
 0x004f7c30,Nav_DtorAtD4,function,low,reimplemented (src/game/world/nav); thiscall adjustor: Nav_Dtor on this + 0xd4

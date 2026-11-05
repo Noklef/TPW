@@ -305,6 +305,7 @@
 #include "../../src/game/world/levelfree.h"
 #include "../../src/game/world/levelsetup.h"
 #include "../../src/game/files/usersaves.h"
+#include "../../src/game/core/gameshutdown.h"
 #include "../../src/game/render/present.h"
 #include "../../src/game/core/gameerror.h"
 #include "../../src/game/core/cmdline.h"
@@ -1328,6 +1329,9 @@ u32 __fastcall saveSearchNext(u32 self, u32, u32 result, char *entry) {
     saveSearchEntry(entry);
     return reinterpret_cast<u32(__fastcall *)(u32, u32, u32, char *)>((uintptr_t)recorder(4, 2))(self, 0, result, entry);
 }
+const AddrCall kGameShutdownCalls[] = {{0x54e360, jpeg_recorder(1, 0)}, {0x40d070, jpeg_recorder(2, 0)}, {0x51b3e0, jpeg_recorder(3, 0)}, {0x51bc70, jpeg_recorder(4, 0)}, {0x51eda0, jpeg_recorder(5, 0)}, {0x51ee40, jpeg_recorder(6, 0)},  // tests/fncmp/gameshutdown.py
+    {0x51b7c0, jpeg_recorder(7, 0)}, {0x53e930, jpeg_recorder(8, 0)}, {0x51fd20, jpeg_recorder(9, 0)}, {0x5584b0, jpeg_recorder(10, 0)}, {0x55d4d0, jpeg_recorder(11, 0)}, {0x598ad0, jpeg_recorder(12, 0)},
+    {0x572b60, jpeg_recorder(13, 0)}, {0x583700, jpeg_recorder(14, 0)}, {0x5633a0, jpeg_recorder(15, 0)}, {0x5c5250, jpeg_recorder(16, 1)}, {0x409150, recorder(17, 0)}, {0x4813d0, recorder(18, 0)}};
 const AddrCall kPresentCalls[] = {{0x56a770, jpeg_recorder(1, 1)}, {0x564650, jpeg_recorder(2, 1)}, {0x56af20, recorder(3, 2)}};  // tests/fncmp/devicepresent.py
 const AddrCall kGameErrorCalls[] = {{0x6acd60, jpeg_recorder(1, 4)}};  // tests/fncmp/gameerrorshow.py
 const AddrCall kCommandLineCalls[] = {{0x68b5f0, jpeg_recorder(1, 1)}};  // tests/fncmp/cmdlinesplit.py
@@ -2717,6 +2721,7 @@ int main(int argc, char **argv) {
     TexCache_SetSetupCalls(kTexCacheSetupCalls, sizeof(kTexCacheSetupCalls) / sizeof(kTexCacheSetupCalls[0]));
     LevelSetup_SetCalls(kLevelSetupCalls, sizeof(kLevelSetupCalls) / sizeof(kLevelSetupCalls[0]));
     UserSaves_SetCalls(kUserSavesCalls, sizeof(kUserSavesCalls) / sizeof(kUserSavesCalls[0]));
+    GameShutdown_SetCalls(kGameShutdownCalls, sizeof(kGameShutdownCalls) / sizeof(kGameShutdownCalls[0]));
     Present_SetCalls(kPresentCalls, sizeof(kPresentCalls) / sizeof(kPresentCalls[0]));
     GameError_SetCalls(kGameErrorCalls, sizeof(kGameErrorCalls) / sizeof(kGameErrorCalls[0]));
     CommandLine_SetCalls(kCommandLineCalls, sizeof(kCommandLineCalls) / sizeof(kCommandLineCalls[0]));

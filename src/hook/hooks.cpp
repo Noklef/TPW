@@ -228,6 +228,7 @@
 #include "../game/core/dsoundsource.h"
 #include "../game/core/gameframe.h"
 #include "../game/core/gameowner.h"
+#include "../game/core/gameshutdown.h"
 #include "../game/core/guardheap.h"
 #include "../game/core/imaadpcm.h"
 #include "../game/core/iosbase.h"
@@ -6661,6 +6662,10 @@ const Hook kHooks[] = {
     {"GuardHeap_Alloc",           0x005d4ba0, (void *)&GuardHeap_Alloc, {0x56, 0x8b, 0x74, 0x24, 0x08}},
     {"GuardHeap_Free",            0x005d4c20, (void *)&GuardHeap_Free, {0x51, 0x8b, 0x44, 0x24, 0x08}},
     {"GameOwner_ShutdownAll",     0x00409150, (void *)&GameOwner_ShutdownAll, {0x56, 0xe8, 0x2a, 0x00, 0x00}},
+    {"Game_Shutdown",             0x005503f0, (void *)&Game_Shutdown, {0xa1, 0x68, 0x90, 0x87, 0x00}},
+    {"Game_RemoveTempFolder",     0x00550aa0, (void *)&Game_RemoveTempFolder, {0x6a, 0xff, 0x68, 0xb8, 0xee}},
+    {"Game_ShutdownOwner",        0x0040f230, (void *)&Game_ShutdownOwner, {0xb9, 0x68, 0x6b, 0x78, 0x00}},
+    {"Game_ShutdownEngine",       0x0044e560, (void *)&Game_ShutdownEngine, {0xe8, 0xfb, 0x45, 0x12, 0x00}},
     {"Nav_Ctor",          0x0050ffe0, (void *)&Nav_Ctor, {0x6a, 0xff, 0x68, 0x2d, 0xe6}},
     {"Nav_Dtor",                  0x0050f200, (void *)&Nav_Dtor, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"Nav_DtorAtD4",              0x004f7c30, (void *)&Nav_DtorAtD4, {0x81, 0xc1, 0xd4, 0x00, 0x00}},
