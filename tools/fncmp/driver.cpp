@@ -305,6 +305,8 @@
 #include "../../src/game/world/levelfree.h"
 #include "../../src/game/world/levelsetup.h"
 #include "../../src/game/files/usersaves.h"
+#include "../../src/game/core/gameerror.h"
+#include "../../src/game/core/cmdline.h"
 #include "../../src/game/gfx/texcache.h"
 #include "../../src/game/frontend/lobbymake.h"
 #include "../../src/game/core/gameframe.h"
@@ -1323,6 +1325,8 @@ u32 __fastcall saveSearchNext(u32 self, u32, u32 result, char *entry) {
     saveSearchEntry(entry);
     return reinterpret_cast<u32(__fastcall *)(u32, u32, u32, char *)>((uintptr_t)recorder(4, 2))(self, 0, result, entry);
 }
+const AddrCall kGameErrorCalls[] = {{0x6acd60, jpeg_recorder(1, 4)}};  // tests/fncmp/gameerrorshow.py
+const AddrCall kCommandLineCalls[] = {{0x68b5f0, jpeg_recorder(1, 1)}};  // tests/fncmp/cmdlinesplit.py
 const AddrCall kUserSavesCalls[] = {{0x5f8240, recorder(1, 0)}, {0x5f8510, recorder(2, 2)}, {0x5f8370, (u32)(uintptr_t)&saveSearchFirst}, {0x5f83a0, (u32)(uintptr_t)&saveSearchNext}, {0x5f82a0, recorder(5, 0)},
                                     {0x5c8890, recorder(6, 1)}, {0x5c8a10, recorder(7, 0)}, {0x414d40, recorder(8, 3)}, {0x414920, recorder(9, 3)}};
 // SignStyle_Render's recorder that first copies the two wide lines off the stack (tests/fncmp/signapply.py: its _render, the same).
@@ -2708,6 +2712,8 @@ int main(int argc, char **argv) {
     TexCache_SetSetupCalls(kTexCacheSetupCalls, sizeof(kTexCacheSetupCalls) / sizeof(kTexCacheSetupCalls[0]));
     LevelSetup_SetCalls(kLevelSetupCalls, sizeof(kLevelSetupCalls) / sizeof(kLevelSetupCalls[0]));
     UserSaves_SetCalls(kUserSavesCalls, sizeof(kUserSavesCalls) / sizeof(kUserSavesCalls[0]));
+    GameError_SetCalls(kGameErrorCalls, sizeof(kGameErrorCalls) / sizeof(kGameErrorCalls[0]));
+    CommandLine_SetCalls(kCommandLineCalls, sizeof(kCommandLineCalls) / sizeof(kCommandLineCalls[0]));
     Renderer_SetDrawCalls(kRendererDrawCalls, sizeof(kRendererDrawCalls) / sizeof(kRendererDrawCalls[0]));
     DeviceReset_SetCalls(kDeviceResetCalls,sizeof(kDeviceResetCalls) / sizeof(kDeviceResetCalls[0]));
     EngineShutdown_SetCalls(kEngineShutdownCalls,sizeof(kEngineShutdownCalls) / sizeof(kEngineShutdownCalls[0]));

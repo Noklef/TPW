@@ -23,9 +23,29 @@ bool is_switch(const char *arg, uintptr_t name) {
 
 u32 no_error() { return global<u32>(0x00785de8) == 0 ? 1 : 0; }
 
+AddrCalls g_calls;
+
 }  // namespace
 
+void CommandLine_SetCalls(const AddrCall *table, u32 count) { g_calls.Set(table, count); }
+
 extern "C" {
+
+u8 *__fastcall CommandLine_Split(u8 *self) {
+    using GetLine = const char *(__stdcall *)();
+    u32 &count = *reinterpret_cast<u32 *>(self);
+    char **const parts = reinterpret_cast<char **>(self + 4);
+    char *p = reinterpret_cast<char *>((uintptr_t)g_calls.Cd(0x0068b5f0, global<GetLine>(0x006fd1e4)()));
+    *reinterpret_cast<char **>(self + 0x204) = p;
+    count = 0;
+    while (*p) {
+        parts[count] = p;
+        while (*p && !(*p == ' ' && p[1] == '/')) ++p;
+        if (*p) *p++ = 0;
+        if (++count >= 0x80) break;
+    }
+    return self;
+}
 
 u32 __cdecl CommandLine_Parse(s32 argc, char **argv) {
     for (s32 i = 1; i < argc; ++i) {
