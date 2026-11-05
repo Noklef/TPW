@@ -91,6 +91,7 @@ def case(r):
         fill_this(log, OPEN, struct.pack('<I', DATA), 0x14, 1)
         fill_this(log, OPEN, struct.pack('<I', len(get)), 0x24, 2)
         fill_this(log, OPEN, struct.pack('<I', FILE), 0x50, 3)
+        fill_this(log, OPEN, b'\1', 0x48, 4)   # (the mark that the destructor is to close it too)
     set_return(log, OPEN, 1 if has_file else 0)   # (the real one answers 0 just when it leaves no file. Failbit with a file would read on forever, in both)
     set_return(log, FCLOSE, r.choice([0, 0, 0, 1, 0xffffffff]))
     flag = r.choice([1, 1, 1, 1, 0xffffff01, 0, 0x100])
