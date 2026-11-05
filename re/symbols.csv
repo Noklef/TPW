@@ -7554,6 +7554,11 @@ address,name,kind,confidence,notes
 0x00576a00,Renderer_DrawView,function,low,"reimplemented (src/game/render/rendererframe); thiscall(view): one view drawn, step by step, its camera for the time; 1 or 0; name invented"
 0x00576ec0,Renderer_DrawFrame,function,low,"reimplemented (src/game/render/rendererframe); thiscall: the frame: its views in the window or, moved, full screen in stereo or side by side; the precision and flags set back; name invented"
 0x0044e540,Engine_DrawFrame,function,low,reimplemented (src/game/render/rendererframe); cdecl: Renderer_DrawFrame of the renderer [0x87a6d0]; name invented
+0x0056a030,RasterDraw_Primitive,function,low,reimplemented (src/game/render/rasterdraw); a primitive's triangles
+0x0056a180,RasterDraw_Outlined,function,low,reimplemented (src/game/render/rasterdraw); a primitive's triangles and its fan
+0x0056a230,RasterDraw_TestQuad,function,low,reimplemented (src/game/render/rasterdraw); the fixed quad of four colours
+0x0056a2f0,RasterDraw_Rect,function,low,"reimplemented (src/game/render/rasterdraw); a rectangle, plain or mapped"
+0x0056a540,RasterDraw_MappedTriangle,function,low,reimplemented (src/game/render/rasterdraw); a mapped triangle over the screen
 0x0044b140,Model_MarkFacesByMask,function,high,"reimplemented (src/game/model/parts); cdecl (holder**, mask): face flags 0x80000010 for parts whose +8 has any mask bit"
 0x0044b1b0,Model_MarkFacesNotValue,function,high,"reimplemented (src/game/model/parts); cdecl (holder**, value): face flags 0x80000010 for parts whose +8 is not value"
 0x0044b220,Model_FindPartByKey4,function,high,"reimplemented (src/game/model/parts); cdecl u32 (holder, mask, key): first part with +4 == key and flags & mask (mask defaults 0x3da1f82), or -1"

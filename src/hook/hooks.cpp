@@ -589,6 +589,7 @@
 #include "../game/render/passwordpart.h"
 #include "../game/render/pointsprites.h"
 #include "../game/render/present.h"
+#include "../game/render/rasterdraw.h"
 #include "../game/render/rasterformat.h"
 #include "../game/render/rendererframe.h"
 #include "../game/render/scrolllayers.h"
@@ -7684,6 +7685,11 @@ const Hook kHooks[] = {
     {"Renderer_DrawView",         0x00576a00, (void *)&Renderer_DrawView, {0x83, 0xec, 0x40, 0x53, 0x55}},
     {"Renderer_DrawFrame",        0x00576ec0, (void *)&Renderer_DrawFrame, {0xa0, 0x08, 0xd5, 0x8b, 0x00}},
     {"Engine_DrawFrame",          0x0044e540, (void *)&Engine_DrawFrame, {0x8b, 0x0d, 0xd0, 0xa6, 0x87}},
+    {"RasterDraw_Primitive",      0x0056a030, (void *)&RasterDraw_Primitive, {0x55, 0x8b, 0xec, 0x56, 0x57}},
+    {"RasterDraw_Outlined",       0x0056a180, (void *)&RasterDraw_Outlined, {0x55, 0x8b, 0xec, 0xa1, 0xcc}},
+    {"RasterDraw_TestQuad",       0x0056a230, (void *)&RasterDraw_TestQuad, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"RasterDraw_Rect",           0x0056a2f0, (void *)&RasterDraw_Rect, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"RasterDraw_MappedTriangle", 0x0056a540, (void *)&RasterDraw_MappedTriangle, {0x55, 0x8b, 0xec, 0x83, 0xec}},
     {"Model_MarkFacesByMask",     0x0044b140, (void *)&Model_MarkFacesByMask, {0x53, 0x8b, 0x5c, 0x24, 0x08}},
     {"Model_MarkFacesNotValue",    0x0044b1b0, (void *)&Model_MarkFacesNotValue, {0x53, 0x8b, 0x5c, 0x24, 0x08}},
     {"Model_FindPartByKey4",      0x0044b220, (void *)&Model_FindPartByKey4, {0x56, 0x57, 0x8b, 0x7c, 0x24}},

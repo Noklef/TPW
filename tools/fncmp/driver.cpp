@@ -311,6 +311,7 @@
 #include "../../src/game/core/actionrec.h"
 #include "../../src/game/core/gamestart.h"
 #include "../../src/game/core/imeinput.h"
+#include "../../src/game/render/rasterdraw.h"
 #include "../../src/game/render/rendererframe.h"
 #include "../../src/game/render/viewfootprint.h"
 #include "../../src/game/core/gamewindow.h"
@@ -1217,6 +1218,7 @@ const AddrCall kGameMainCalls[] = {{0x45f640, jpeg_recorder(1, 0)}, {0x5f86b0, j
 const AddrCall kActionRecCalls[] = {{0x5d3230, recorder(1, 2)}};  // tests/fncmp/actionrectext.py
 const AddrCall kImeInputCalls[] = {{0x67a7d0, jpeg_recorder(1, 1)}};
 const AddrCall kViewFootprintCalls[] = {{0x578ca0, recorder(1, 1)}, {0x564650, jpeg_recorder(2, 1)}};
+const AddrCall kRasterDrawCalls[] = {{0x6ef7f0, jpeg_recorder(1, 3)}, {0x6f02e0, jpeg_recorder(2, 3)}, {0x6f0a50, jpeg_recorder(3, 3)}, {0x6792f0, jpeg_recorder(4, 7)}, {0x679350, jpeg_recorder(5, 7)}};
 const AddrCall kRendererFrameCalls[] = {{0x582f70, recorder(3, 4)}, {0x56dd60, recorder(6, 0)}, {0x582390, recorder(4, 1)}, {0x584be0, recorder(5, 3)}, {0x576a00, recorder(20, 1)}, {0x56af20, recorder(25, 2)}, {0x56afc0, recorder(27, 0)},
                                         {0x576910, recorder(1, 0)}, {0x58cf40, recorder(1, 0)}, {0x5863c0, recorder(1, 0)}, {0x56f670, recorder(1, 0)}, {0x570d90, recorder(1, 0)}, {0x57c620, recorder(1, 0)}, {0x577ae0, recorder(1, 0)}, {0x58ac90, recorder(1, 0)}, {0x58a660, recorder(1, 0)}, {0x57c2a0, recorder(1, 0)}, {0x57ff60, recorder(1, 0)},
                                         {0x575fb0, recorder(2, 0)}, {0x56ea90, recorder(2, 0)}, {0x56bb00, recorder(2, 0)}, {0x58d8e0, recorder(2, 0)}, {0x581da0, recorder(2, 0)}, {0x58a630, recorder(2, 0)}, {0x579c70, recorder(2, 0)}, {0x57dc80, recorder(2, 0)}, {0x585f10, recorder(2, 0)}, {0x577a30, recorder(2, 0)}, {0x58ac70, recorder(2, 0)}, {0x58a720, recorder(2, 0)}, {0x579c80, recorder(2, 0)}, {0x584b10, recorder(2, 0)}, {0x583080, recorder(2, 0)}, {0x5836b0, recorder(2, 0)}, {0x561760, recorder(2, 0)}, {0x5879c0, recorder(2, 0)},
@@ -2770,6 +2772,7 @@ int main(int argc, char **argv) {
     ImeInput_SetCalls(kImeInputCalls, sizeof(kImeInputCalls) / sizeof(kImeInputCalls[0]));
     ViewFootprint_SetCalls(kViewFootprintCalls, sizeof(kViewFootprintCalls) / sizeof(kViewFootprintCalls[0]));
     RendererFrame_SetCalls(kRendererFrameCalls, sizeof(kRendererFrameCalls) / sizeof(kRendererFrameCalls[0]));
+    RasterDraw_SetCalls(kRasterDrawCalls, sizeof(kRasterDrawCalls) / sizeof(kRasterDrawCalls[0]));
     GameWindow_SetCalls(kGameWindowCalls, sizeof(kGameWindowCalls) / sizeof(kGameWindowCalls[0]));
     GameMain_SetCalls(kGameMainCalls, sizeof(kGameMainCalls) / sizeof(kGameMainCalls[0]));
     ActionRec_SetCalls(kActionRecCalls, sizeof(kActionRecCalls) / sizeof(kActionRecCalls[0]));
