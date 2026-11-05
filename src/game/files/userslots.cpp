@@ -193,6 +193,8 @@ static void WriteSaveFile(u8 *self, s32 i) {
 
 void __fastcall UserSlots_WriteSave(u8 *self, void *, s32 i) { WriteSaveFile(self, i); }
 
+void __fastcall UserSlots_WriteCurrentSave(u8 *self) { WriteSaveFile(self, at<s32>(self, 0x60)); }
+
 void __fastcall UserSlots_Create(u8 *self, void *, s32 i, const WString *name, u32 flag) {
     u8 *const record = self + i * 0x18;
     if (at<u32>(record, 4)) {

@@ -11,7 +11,7 @@ import gamestring  # noqa: E402
 from fncmp import HEAP, IMPORT_TABLE, LOG, RAM, Bench, Call, _recorder, blob, echo, fill, global_heap, heap, log_fold, log_region, put, recorder, set_return, strings  # noqa: E402
 
 SAVE_FOLDER, OPEN, BOOK_LOAD, BOOK_SAVE, OUTBOX, WRITE, INSTANCE, THEME, READ, SET, SLOT, CTOR, DTOR, LOAD, BYTE, ATEXIT, W2M, M2W, OPTIONS = range(19)   # (those of UserSlotsScanEnv as in userslotsscan.py)
-B = Bench([(0x5c83b0, 0x5c8650), (0x5c8650, 0x5c8870), (0x5c8a20, 0x5c8b16), (0x5c7f40, 0x5c8190), (0x5c74b0, 0x5c7590), (0x5c74a0, 0x5c74b0), (0x67afa0, 0x67b0d0), (0x45b340, 0x45b9a0), (0x424db0, 0x424e6e), (0x5f5660, 0x5f5690), (0x5f56f0, 0x5f5710)] + gamestring.B_RANGES,
+B = Bench([(0x5c8a10, 0x5c8a1a), (0x5c83b0, 0x5c8650), (0x5c8650, 0x5c8870), (0x5c8a20, 0x5c8b16), (0x5c7f40, 0x5c8190), (0x5c74b0, 0x5c7590), (0x5c74a0, 0x5c74b0), (0x67afa0, 0x67b0d0), (0x45b340, 0x45b9a0), (0x424db0, 0x424e6e), (0x5f5660, 0x5f5690), (0x5f56f0, 0x5f5710)] + gamestring.B_RANGES,
           hooks={0x5c7de0: _recorder(SLOT, 2), 0x5c7bd0: _recorder(SAVE_FOLDER, 1, com=True), 0x5cb230: _recorder(OPEN, 1), 0x5cd9c0: _recorder(BOOK_LOAD, 1), 0x5cd710: _recorder(BOOK_SAVE, 1), 0x5cb720: _recorder(OUTBOX, 0),
                  0x5aef50: _recorder(CTOR, 0), 0x5af250: _recorder(DTOR, 0), 0x5afd70: _recorder(LOAD, 1), 0x5afc40: _recorder(BYTE, 0), 0x5afc60: _recorder(WRITE, 1), 0x409410: _recorder(INSTANCE, 0, cdecl=True), 0x5b09c0: _recorder(THEME, 1),
                  0x550ca0: _recorder(READ, 0), 0x550d80: _recorder(SET, 1), 0x67a7d0: _recorder(ATEXIT, 1, cdecl=True), 0x424820: _recorder(OPTIONS, 1),
@@ -88,6 +88,14 @@ def write_save(r):
     return Call(0x5c8a20, [SLOTS, r.choice([0, 1, 3])], regions, conv='t', ret='v')
 
 
+def write_current(r):
+    log, regions = base(r)
+    slots = bytearray(regions[SLOTS])
+    put(slots, 0x60, 'I', r.choice([0, 1, 2, 3]))
+    regions[SLOTS] = slots
+    return Call(0x5c8a10, [SLOTS], regions, conv='t', ret='v')
+
+
 def records(r, regions):
     """The four records: strings with a text of their own, some empty, their dwords set."""
     slots = bytearray(r.bytes(0x180))
@@ -125,11 +133,11 @@ def dtor(r):
     return Call(0x5c74b0, [SLOTS], regions, conv='t', ret='v')
 
 
-OPS = {'Choose': choose, 'Close': close, 'WriteSave': write_save, 'Create': create, 'Dtor': dtor}
+OPS = {'Choose': choose, 'Close': close, 'WriteSave': write_save, 'WriteCurrent': write_current, 'Create': create, 'Dtor': dtor}
 
 
 def case(r):
-    return OPS[r.choice(os.environ.get('OPS', 'Choose,Close,WriteSave,Create,Dtor').split(','))](r)
+    return OPS[r.deal(os.environ.get('OPS', 'Choose,Close,WriteSave,WriteCurrent,Create,Dtor').split(','))](r)
 
 
 if __name__ == '__main__':

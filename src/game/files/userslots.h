@@ -68,6 +68,8 @@ void __fastcall UserSlots_Close(u8 *self);
 
 // 0x5c8a20 (thiscall (i), pops 4; name invented, unconfirmed): the global save info, made when there is none, written to the slot's folder, "\" (0xf82508) and the name at 0xf818a8.
 void __fastcall UserSlots_WriteSave(u8 *self, void *, s32 i);
+// 0x5c8a10 (thiscall; name invented, unconfirmed): that, for the slot chosen (+0x60).
+void __fastcall UserSlots_WriteCurrentSave(u8 *self);
 
 // 0x5c7f40 (thiscall (i, name, flag), pops 0xc; name invented, unconfirmed): a slot in use has its folder removed and is cleared; it gets the wide name (the vtable's +0x18) and the flag, 0x5c8190 fills its folder, the global save info is made new with its byte
 // +0x24 from the flag and written (as UserSlots_WriteSave). No block: 0 asked to set the byte.
