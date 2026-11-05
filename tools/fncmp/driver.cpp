@@ -45,6 +45,7 @@
 #include "../../src/game/core/cpuinfo.h"
 #include "../../src/game/core/events.h"
 #include "../../src/game/gfx/cursor.h"
+#include "../../src/game/gfx/jpegwrite.h"
 #include "../../src/game/gfx/pointer.h"
 #include "../../src/game/gfx/screen.h"
 #include "../../src/game/gfx/statsgraph.h"
@@ -1410,6 +1411,8 @@ const AddrCall kGameStartCalls[] = {{0x67d8e0, jpeg_recorder(0, 1)}, {0x402ea0, 
 const AddrCall kPresentCalls[] = {{0x56a770, jpeg_recorder(1, 1)}, {0x564650, jpeg_recorder(2, 1)}, {0x56af20, recorder(3, 2)},  // tests/fncmp/devicepresent.py
     {0x564210, recorder(4, 0)}, {0x678790, jpeg_recorder(5, 6)}, {0x678d70, jpeg_recorder(6, 6)}, {0x678c20, jpeg_recorder(7, 10)}, {0x6787f0, jpeg_recorder(8, 10)}};  // tests/fncmp/presentpicture.py
 const AddrCall kGameErrorCalls[] = {{0x6acd60, jpeg_recorder(1, 4)}};  // tests/fncmp/gameerrorshow.py
+const AddrCall kJpegWriteCalls[] = {{0x5d4ba0, recorder(1, 1)}, {0x5d4c20, recorder(2, 1)}, {0x5d5350, recorder(3, 3)}, {0x64dd60, jpeg_recorder(4, 1)}, {0x64c5f0, jpeg_recorder(5, 3)}, {0x64cf20, jpeg_recorder(6, 1)},
+    {0x64cef8, jpeg_recorder(7, 3)}, {0x64ca90, jpeg_recorder(8, 2)}, {0x64c982, jpeg_recorder(9, 4)}, {0x64cb3c, jpeg_recorder(10, 3)}, {0x64c7fd, jpeg_recorder(11, 1)}, {0x64c740, jpeg_recorder(12, 1)}};  // tests/fncmp/jpegwrite.py
 const AddrCall kCommandLineCalls[] = {{0x68b5f0, jpeg_recorder(1, 1)}};  // tests/fncmp/cmdlinesplit.py
 const AddrCall kUserSavesCalls[] = {{0x5f8240, recorder(1, 0)}, {0x5f8510, recorder(2, 2)}, {0x5f8370, (u32)(uintptr_t)&saveSearchFirst}, {0x5f83a0, (u32)(uintptr_t)&saveSearchNext}, {0x5f82a0, recorder(5, 0)},
                                     {0x5c8890, recorder(6, 1)}, {0x5c8a10, recorder(7, 0)}, {0x414d40, recorder(8, 3)}, {0x414920, recorder(9, 3)}};
@@ -2801,6 +2804,7 @@ int main(int argc, char **argv) {
     TexCache_SetSetupCalls(kTexCacheSetupCalls, sizeof(kTexCacheSetupCalls) / sizeof(kTexCacheSetupCalls[0]));
     LevelSetup_SetCalls(kLevelSetupCalls, sizeof(kLevelSetupCalls) / sizeof(kLevelSetupCalls[0]));
     UserSaves_SetCalls(kUserSavesCalls, sizeof(kUserSavesCalls) / sizeof(kUserSavesCalls[0]));
+    JpegWrite_SetCalls(kJpegWriteCalls, sizeof(kJpegWriteCalls) / sizeof(kJpegWriteCalls[0]));
     GameShutdown_SetCalls(kGameShutdownCalls, sizeof(kGameShutdownCalls) / sizeof(kGameShutdownCalls[0]));
     OptionsChanges_SetCalls(kOptionsChangesCalls, sizeof(kOptionsChangesCalls) / sizeof(kOptionsChangesCalls[0]));
     WeatherTables_SetCalls(kWeatherTablesCalls, sizeof(kWeatherTablesCalls) / sizeof(kWeatherTablesCalls[0]));

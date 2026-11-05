@@ -148,6 +148,7 @@
 #include "../game/gfx/dderrors.h"
 #include "../game/gfx/glyphrender.h"
 #include "../game/gfx/guitext.h"
+#include "../game/gfx/jpegwrite.h"
 #include "../game/gfx/madvideo.h"
 #include "../game/gfx/mmxblit.h"
 #include "../game/gfx/moviechunks.h"
@@ -7326,6 +7327,15 @@ const Hook kHooks[] = {
     {"Bump_FilterInto",           0x005ebf10, (void *)&Bump_FilterInto, {0x83, 0xec, 0x08, 0x53, 0x56}},
     {"SignRender_Text",           0x005eab70, (void *)&SignRender_Text, {0x83, 0xec, 0x38, 0x8b, 0x44}},
     {"SignRender_Draw",           0x005ecb40, (void *)&SignRender_Draw, {0x64, 0xa1, 0x00, 0x00, 0x00}},
+    {"JpegWrite_ConvertRow",      0x0064bf90, (void *)&JpegWrite_ConvertRow, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"JpegWrite_Open",            0x0064c202, (void *)&JpegWrite_Open, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"JpegWrite_Image",           0x0064c258, (void *)&JpegWrite_Image, {0x55, 0x8b, 0xec, 0x81, 0xec}},
+    {"JpegWrite_IsGrey",          0x0064c552, (void *)&JpegWrite_IsGrey, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"JpegWrite_Close",           0x0064c5c4, (void *)&JpegWrite_Close, {0x55, 0x8b, 0xec, 0x51, 0xc7}},
+    {"JpegWrite_SetDest",         0x0064dc00, (void *)&JpegWrite_SetDest, {0x55, 0x8b, 0xec, 0x51, 0x8b}},
+    {"JpegDest_Init",             0x0064dc5a, (void *)&JpegDest_Init, {0x55, 0x8b, 0xec, 0x51, 0x8b}},
+    {"JpegDest_Empty",            0x0064dc9c, (void *)&JpegDest_Empty, {0x55, 0x8b, 0xec, 0x51, 0x8b}},
+    {"JpegDest_Term",             0x0064dd00, (void *)&JpegDest_Term, {0x55, 0x8b, 0xec, 0x83, 0xec}},
     {"RenderMode_Size",           0x0044a590, (void *)&RenderMode_Size, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_Depth",          0x0044a5d0, (void *)&RenderMode_Depth, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_ResetScale",     0x0044a600, (void *)&RenderMode_ResetScale, {0x51, 0xc7, 0x44, 0x24, 0x00}},

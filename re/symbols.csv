@@ -7001,6 +7001,15 @@ address,name,kind,confidence,notes
 0x005eb820,Bump_Build,function,low,"reimplemented (src/game/gfx/bumplight); Sizes the output arrays, runs the erosion ramp, the blur and the render. Name invented, unconfirmed."
 0x005ebf10,Bump_FilterInto,function,low,"reimplemented (src/game/gfx/bumplight); Crops a source image into an array, erodes or dilates it, blurs it. Name invented, unconfirmed."
 0x005eab70,SignRender_Text,function,low,"reimplemented (src/game/gfx/signrender); A sign's text drawn by GDI and Uniscribe into an image: the font fitted to the width, the section's bytes averaged, the text's rows found."
+0x0064bf90,JpegWrite_ConvertRow,function,low,"reimplemented (src/game/gfx/jpegwrite); cdecl: one row of pixels to the compressor's components, by mode; name invented"
+0x0064c202,JpegWrite_Open,function,low,"reimplemented (src/game/gfx/jpegwrite); stdcall (out, file, ...): a handle block on the guarded heap; name invented"
+0x0064c258,JpegWrite_Image,function,low,"reimplemented (src/game/gfx/jpegwrite); stdcall (handle, info, pixels, pitch): an image compressed with libjpeg 6a to the handle's file; name invented"
+0x0064c552,JpegWrite_IsGrey,function,low,"reimplemented (src/game/gfx/jpegwrite); cdecl: 1 when each 4-byte entry's bytes 0, 1, 2 agree; name invented"
+0x0064c5c4,JpegWrite_Close,function,low,reimplemented (src/game/gfx/jpegwrite); stdcall (handle): the handle freed; name invented
+0x0064dc00,JpegWrite_SetDest,function,low,"reimplemented (src/game/gfx/jpegwrite); cdecl (cinfo, file): the game's destination manager (jpeg_stdio_dest's shape); name invented"
+0x0064dc5a,JpegDest_Init,function,low,reimplemented (src/game/gfx/jpegwrite); cdecl: init_destination: a 0x1000-byte buffer; name invented
+0x0064dc9c,JpegDest_Empty,function,low,reimplemented (src/game/gfx/jpegwrite); cdecl: empty_output_buffer: the buffer written to the guarded file; name invented
+0x0064dd00,JpegDest_Term,function,low,reimplemented (src/game/gfx/jpegwrite); cdecl: term_destination: the rest written; name invented
 0x00fa9f3c,gScreenOpen,data,high,Screen_Open has run (Screen_Close clears it)
 0x00fa77d0,gScreenModes,data,high,List of ScreenMode (width, height, bit count) from EnumDisplayModes
 0x006fefa8,TgaCodec_vtable,data,high,"TgaCodec (ImageCodec: vtable, SurfaceInfo): 0x47e750 deleting dtor, GetInfo, Load, IsTga; the work is done by a stack TgaReader (0x44, vtable 0x703630)"
