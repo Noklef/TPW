@@ -598,6 +598,7 @@
 #include "../game/render/transformer.h"
 #include "../game/render/uvprobe.h"
 #include "../game/render/vertexblock.h"
+#include "../game/render/viewfootprint.h"
 #include "../game/render/viewquad.h"
 #include "../game/render/weatherfx.h"
 #include "../game/render/weathertables.h"
@@ -7677,6 +7678,8 @@ const Hook kHooks[] = {
     {"Present_Picture",           0x00573cc0, (void *)&Present_Picture, {0x83, 0xec, 0x7c, 0xa1, 0x24}},
     {"WeatherFx_Create",          0x0057d100, (void *)&WeatherFx_Create, {0x6a, 0xff, 0x68, 0x8b, 0xf3}},
     {"WeatherFx_FillTables",      0x0057d300, (void *)&WeatherFx_FillTables, {0x81, 0xec, 0x5c, 0x06, 0x00}},
+    {"Polygon_ScanRows",          0x0056d600, (void *)&Polygon_ScanRows, {0x55, 0x8b, 0xec, 0x81, 0xec}},
+    {"WorldView_UpdateFootprint", 0x0056bb00, (void *)&WorldView_UpdateFootprint, {0x81, 0xec, 0x08, 0x01, 0x00}},
     {"Model_MarkFacesByMask",     0x0044b140, (void *)&Model_MarkFacesByMask, {0x53, 0x8b, 0x5c, 0x24, 0x08}},
     {"Model_MarkFacesNotValue",    0x0044b1b0, (void *)&Model_MarkFacesNotValue, {0x53, 0x8b, 0x5c, 0x24, 0x08}},
     {"Model_FindPartByKey4",      0x0044b220, (void *)&Model_FindPartByKey4, {0x56, 0x57, 0x8b, 0x7c, 0x24}},
