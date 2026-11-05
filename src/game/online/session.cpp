@@ -390,6 +390,8 @@ void __cdecl Online_StartListAnswered(u32 error, u32, const u8 *answer) {
         g_start->downloadEnd(instance, nullptr, 1);
 }
 
+void __stdcall Online_DownloadCallback(u32 kind, u32 value) { Online_DownloadEvent(g_start->instance(), nullptr, kind, value); }
+
 void __fastcall Online_DownloadEvent(u8 *session, void *, u32 kind, u32 value) {
     if (!at<u32>(session, 0x3a0) || kind == 0)
         return;

@@ -7741,6 +7741,7 @@ address,name,kind,confidence,notes
 0x005b87a0,Online_StartLoggedIn,function,low,reimplemented (src/game/online/session); Online_Start's login callback (name invented)
 0x005b88e0,Online_StartListAnswered,function,low,reimplemented (src/game/online/session); the start's list callback (name invented)
 0x005b92d0,Online_DownloadEvent,function,low,reimplemented (src/game/online/session); the download's FTP event (name invented)
+0x005b96c0,Online_DownloadCallback,function,low,reimplemented (src/game/online/session); the download's FTP event on the instance
 0x005bc9c0,Owner2c_FindByKey,function,high,reimplemented (src/game/online/itemlist); the last item of the owner's list whose +8 is the key
 0x005bcb60,Owner2c_At,function,high,reimplemented (src/game/online/itemlist); the index'th item of the owner's list
 0x005bd270,Owner2c_ValueByKey,function,high,reimplemented (src/game/online/itemlist); the +0x14 of the last item whose +8 is the key

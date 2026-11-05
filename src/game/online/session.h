@@ -281,6 +281,8 @@ void __cdecl Online_StartListAnswered(u32 error, u32, const u8 *answer);
 // 0x5b92d0 (thiscall (kind, value), pops 8; name invented, unconfirmed): the download's FTP event, with the client +0x3a0 there. Kind 0: nothing. Kinds 1 and 3 with no value: said (0x773ae0, 0x773ab8) and Online_DownloadNext. Kind 2: a value
 // to +0x398, +0x390 = 1 (+0x394 as it was). Otherwise a value to +0x398, +0x394 = 0, +0x390 = 1.
 void __fastcall Online_DownloadEvent(u8 *session, void *, u32 kind, u32 value);
+// 0x5b96c0 (stdcall (kind, value); name invented, unconfirmed): that on Online_Instance.
+void __stdcall Online_DownloadCallback(u32 kind, u32 value);
 
 // 0x5b50b0 (thiscall; name invented): the session's constructor. Its strings made and emptied, its members as the resets leave them, the nine
 // lists made (+0xe0 to +0x100: none when a block is not had), Online_ResetCity on them, the download object +0x3a4 (Class70293c_Ctor).
