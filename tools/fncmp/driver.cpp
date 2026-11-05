@@ -311,6 +311,7 @@
 #include "../../src/game/core/actionrec.h"
 #include "../../src/game/core/gamestart.h"
 #include "../../src/game/core/gamewindow.h"
+#include "../../src/game/core/gamemain.h"
 #include "../../src/game/core/optionschanges.h"
 #include "../../src/game/render/weathertables.h"
 #include "../../src/game/render/present.h"
@@ -1204,6 +1205,12 @@ const AddrCall kCoastersLoadCalls[] = {  // tests/fncmp/coastersload.py --table
     {0x468760, jpeg_recorder(24, 7)},
     {0x472f40, jpeg_recorder(18, 1)},
 };
+const AddrCall kGameMainCalls[] = {{0x45f640, jpeg_recorder(1, 0)}, {0x5f86b0, jpeg_recorder(2, 1)}, {0x5f5690, jpeg_recorder(2, 1)}, {0x67b9f0, jpeg_recorder(3, 2)}, {0x5c0c10, jpeg_recorder(4, 1)}, {0x5c0d00, jpeg_recorder(4, 1)},
+                                   {0x5c2ce0, jpeg_recorder(5, 2)}, {0x45b1f0, jpeg_recorder(6, 0)}, {0x45ba20, jpeg_recorder(6, 0)}, {0x449df0, jpeg_recorder(7, 0)}, {0x45f7a0, jpeg_recorder(8, 0)}, {0x449eb0, jpeg_recorder(9, 0)},
+                                   {0x449ec0, jpeg_recorder(9, 0)}, {0x44e080, jpeg_recorder(10, 0)}, {0x54dcf0, jpeg_recorder(11, 0)}, {0x5b5bf0, jpeg_recorder(12, 0)}, {0x54e360, jpeg_recorder(13, 0)}, {0x51af90, jpeg_recorder(14, 0)},
+                                   {0x44a1d0, jpeg_recorder(14, 0)}, {0x5503f0, jpeg_recorder(15, 0)}, {0x44e560, jpeg_recorder(15, 0)}, {0x5c74b0, recorder(16, 0)}, {0x5c7420, recorder(17, 0)}, {0x5c7590, recorder(18, 0)},
+                                   {0x5b5920, recorder(19, 0)}, {0x424930, recorder(20, 1)}, {0x419710, recorder(21, 0)}, {0x408470, recorder(22, 0)}, {0x41a5a0, recorder(23, 1)}, {0x5b50b0, recorder(24, 0)}, {0x5c8650, recorder(25, 0)},
+                                   {0x4e5950, recorder(26, 0)}, {0x405750, recorder(27, 0)}, {0x41a5f0, recorder(28, 0)}, {0x5c5520, recorder(29, 0)}};  // tests/fncmp/gamemain.py
 const AddrCall kActionRecCalls[] = {{0x5d3230, recorder(1, 2)}};  // tests/fncmp/actionrectext.py
 const AddrCall kGameWindowCalls[] = {{0x44dd50, jpeg_recorder(1, 0)}, {0x44dc60, jpeg_recorder(2, 1)}, {0x44de20, jpeg_recorder(3, 0)}, {0x44df20, jpeg_recorder(4, 4)},
                                      {0x405710, recorder(5, 3)}, {0x578be0, recorder(6, 3)}, {0x423b50, recorder(7, 1)}, {0x423b80, recorder(8, 1)}};  // tests/fncmp/gamewindow.py
@@ -2752,6 +2759,7 @@ int main(int argc, char **argv) {
     WeatherTables_SetCalls(kWeatherTablesCalls, sizeof(kWeatherTablesCalls) / sizeof(kWeatherTablesCalls[0]));
     GameStart_SetCalls(kGameStartCalls, sizeof(kGameStartCalls) / sizeof(kGameStartCalls[0]));
     GameWindow_SetCalls(kGameWindowCalls, sizeof(kGameWindowCalls) / sizeof(kGameWindowCalls[0]));
+    GameMain_SetCalls(kGameMainCalls, sizeof(kGameMainCalls) / sizeof(kGameMainCalls[0]));
     ActionRec_SetCalls(kActionRecCalls, sizeof(kActionRecCalls) / sizeof(kActionRecCalls[0]));
     ThemeSaves_SetCalls(kThemeSavesCalls, sizeof(kThemeSavesCalls) / sizeof(kThemeSavesCalls[0]));
     ScreenGrab_SetCalls(kScreenGrabCalls, sizeof(kScreenGrabCalls) / sizeof(kScreenGrabCalls[0]));

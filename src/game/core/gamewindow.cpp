@@ -8,7 +8,7 @@ AddrCalls g_calls;
 
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
 
-const u32 kWindowName = 0x0074c350, kOptions = 0x0078d8d8;   // ("ThemePark": the class's name and the window's; the options object)
+const u32 kWindowName = 0x0074c350, kOptions = 0x0078d8d8;   // (the class's name and the window's, "Theme Park W..."; the options object)
 
 u32 Fail(u32 code) {
     g_calls.Th(0x00405710, 0x00785de8u, code, 0u, 0u);   // GameError_Set

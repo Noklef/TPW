@@ -254,6 +254,7 @@ add_library(tpw_game STATIC
     src/game/core/optionschanges.cpp
     src/game/core/gamestart.cpp
     src/game/core/gamewindow.cpp
+    src/game/core/gamemain.cpp
     src/game/gfx/text.cpp
     src/game/gfx/canvas.cpp
     src/game/gfx/canvasdraw.cpp

@@ -227,6 +227,7 @@
 #include "../game/core/crttime.h"
 #include "../game/core/dsoundsource.h"
 #include "../game/core/gameframe.h"
+#include "../game/core/gamemain.h"
 #include "../game/core/gameowner.h"
 #include "../game/core/gameshutdown.h"
 #include "../game/core/gamestart.h"
@@ -6685,6 +6686,7 @@ const Hook kHooks[] = {
     {"Game_PlayLogoMovie",        0x0054df20, (void *)&Game_PlayLogoMovie, {0x6a, 0xff, 0x68, 0x60, 0xec}},
     {"Game_PlayDayMovie",         0x0054e070, (void *)&Game_PlayDayMovie, {0x6a, 0xff, 0x68, 0x80, 0xec}},
     {"GameWindow_Create",         0x0044e080, (void *)&GameWindow_Create, {0x83, 0xec, 0x38, 0xa1, 0x44}},
+    {"Game_WinMain",              0x0045a960, (void *)&Game_WinMain, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"Nav_Ctor",          0x0050ffe0, (void *)&Nav_Ctor, {0x6a, 0xff, 0x68, 0x2d, 0xe6}},
     {"Nav_Dtor",                  0x0050f200, (void *)&Nav_Dtor, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"Nav_DtorAtD4",              0x004f7c30, (void *)&Nav_DtorAtD4, {0x81, 0xc1, 0xd4, 0x00, 0x00}},
