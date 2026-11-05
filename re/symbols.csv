@@ -6225,6 +6225,8 @@ address,name,kind,confidence,notes
 0x0069b930,NumPutW_DoPutUlong,function,low,reimplemented (src/game/core/numput); num_put<wchar_t>::do_put of an unsigned long
 0x0069b9d0,NumPutW_DoPutDouble,function,low,reimplemented (src/game/core/numput); num_put<wchar_t>::do_put of a double
 0x0069baa0,NumPutW_DoPutLongDouble,function,low,reimplemented (src/game/core/numput); num_put<wchar_t>::do_put of a long double
+0x006947e0,NumPut_DoPutBool,function,low,reimplemented (src/game/core/numput); num_put::do_put (bool)
+0x0069b4f0,NumPutW_DoPutBool,function,low,"reimplemented (src/game/core/numput); num_put::do_put (bool, wchar_t)"
 0x0069ffe0,CollateW_DoTransform,function,low,reimplemented (src/game/core/wcollate); collate<wchar_t>::do_transform (name unconfirmed)
 0x00694ac0,Streambuf_Sputc,function,low,reimplemented (src/game/core/moneyput); streambuf::sputc
 0x00694b10,OstreamIter_Put,function,low,reimplemented (src/game/core/moneyput); the output iterator's put

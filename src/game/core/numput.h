@@ -20,6 +20,10 @@ u32 *__cdecl NumPutW_Fput(u32 *out, u32 failed, u8 *buffer, u8 *ios, u32 fill, c
 u32 *__cdecl NumPut_Iput(u32 *out, u32 failed, u8 *buffer, u8 *ios, u32 fill, char *text, u32 count);
 u32 *__cdecl NumPutW_Iput(u32 *out, u32 failed, u8 *buffer, u8 *ios, u32 fill, char *text, u32 count);
 
+// 0x6947e0 / 0x69b4f0 (pops 0x18; this not read): do_put of a bool: '0' or '1' (the value's low byte), or under boolalpha (flags & 0x4000) the facet's name (slot 0x14 true, 0x10 false), padded with fill to the width as above. Wide: the first character to overflow carries failed's high word.
+u32 *__fastcall NumPut_DoPutBool(void *self, void *, u32 *out, u32 failed, u8 *buffer, u8 *ios, u32 fill, u32 value);
+u32 *__fastcall NumPutW_DoPutBool(void *self, void *, u32 *out, u32 failed, u8 *buffer, u8 *ios, u32 fill, u32 value);
+
 // 0x694b80, 0x694c20 / 0x69b890, 0x69b930 (pops 0x18; this not read): do_put of a long, of an unsigned long: sprintf by the stream's flags ("%[+][#]l" and d or u, o, x or X), then _Iput.
 u32 *__fastcall NumPut_DoPutLong(void *self, void *, u32 *out, u32 failed, u8 *buffer, u8 *ios, u32 fill, u32 value);
 u32 *__fastcall NumPut_DoPutUlong(void *self, void *, u32 *out, u32 failed, u8 *buffer, u8 *ios, u32 fill, u32 value);
