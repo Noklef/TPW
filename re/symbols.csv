@@ -6390,6 +6390,20 @@ address,name,kind,confidence,notes
 0x00689700,CRT_ismbblead,function,low,reimplemented (src/game/core/crtmbstring); _ismbblead
 0x00694e60,NumPut_DoPutPointer,function,low,reimplemented (src/game/core/numput); num_put<char>::do_put of a pointer (MSVC6)
 0x0069bb70,NumPutW_DoPutPointer,function,low,reimplemented (src/game/core/numput); num_put<wchar_t>::do_put of a pointer
+0x00695030,NumPut_Fput,function,low,reimplemented (src/game/core/numput); num_put<char>::_Fput
+0x00695450,NumPut_Iput,function,low,reimplemented (src/game/core/numput); num_put<char>::_Iput
+0x0069bd30,NumPutW_Fput,function,low,reimplemented (src/game/core/numput); num_put<wchar_t>::_Fput
+0x0069c190,NumPutW_Iput,function,low,reimplemented (src/game/core/numput); num_put<wchar_t>::_Iput
+0x00694b80,NumPut_DoPutLong,function,low,reimplemented (src/game/core/numput); num_put<char>::do_put of a long
+0x00694c20,NumPut_DoPutUlong,function,low,reimplemented (src/game/core/numput); num_put<char>::do_put of an unsigned long
+0x00694cc0,NumPut_DoPutDouble,function,low,reimplemented (src/game/core/numput); num_put<char>::do_put of a double
+0x00694d90,NumPut_DoPutLongDouble,function,low,reimplemented (src/game/core/numput); num_put<char>::do_put of a long double
+0x0069b890,NumPutW_DoPutLong,function,low,reimplemented (src/game/core/numput); num_put<wchar_t>::do_put of a long
+0x0069b930,NumPutW_DoPutUlong,function,low,reimplemented (src/game/core/numput); num_put<wchar_t>::do_put of an unsigned long
+0x0069b9d0,NumPutW_DoPutDouble,function,low,reimplemented (src/game/core/numput); num_put<wchar_t>::do_put of a double
+0x0069baa0,NumPutW_DoPutLongDouble,function,low,reimplemented (src/game/core/numput); num_put<wchar_t>::do_put of a long double
+0x006947e0,NumPut_DoPutBool,function,low,reimplemented (src/game/core/numput); num_put::do_put (bool)
+0x0069b4f0,NumPutW_DoPutBool,function,low,"reimplemented (src/game/core/numput); num_put::do_put (bool, wchar_t)"
 0x0069ffe0,CollateW_DoTransform,function,low,reimplemented (src/game/core/wcollate); collate<wchar_t>::do_transform (name unconfirmed)
 0x00694ac0,Streambuf_Sputc,function,low,reimplemented (src/game/core/moneyput); streambuf::sputc
 0x00694b10,OstreamIter_Put,function,low,reimplemented (src/game/core/moneyput); the output iterator's put
@@ -6536,6 +6550,16 @@ address,name,kind,confidence,notes
 0x0069c5e0,WNumPut_Rep,function,low,reimplemented (src/game/core/streambufiter); num_put<wchar_t>::_Rep
 0x0069fea0,WStreambufIter_Peek,function,low,reimplemented (src/game/core/streambufiter); wide _Peek
 0x0069f870,WStreambuf_Sbumpc,function,low,reimplemented (src/game/core/streambufiter); wide sbumpc
+0x00691680,CRT_GetLocaleInfoW,function,low,reimplemented (src/game/core/crtlocaleinfo); __crtGetLocaleInfoW
+0x006917b0,CRT_GetLocaleInfoA,function,low,reimplemented (src/game/core/crtlocaleinfo); __crtGetLocaleInfoA
+0x00691380,CRT_Getlocaleinfo,function,low,reimplemented (src/game/core/crtlocaleinfo); __getlocaleinfo
+0x00698640,NumGet_Getifld,function,low,reimplemented (src/game/core/numget); num_get::_Getifld
+0x00695ca0,NumGet_DoGetBool,function,low,reimplemented (src/game/core/numget); num_get::do_get (bool)
+0x00696450,NumGet_DoGetUshort,function,low,reimplemented (src/game/core/numget); num_get::do_get (unsigned short)
+0x006968a0,NumGet_DoGetUint,function,low,reimplemented (src/game/core/numget); num_get::do_get (unsigned int)
+0x00696ce0,NumGet_DoGetLong,function,low,reimplemented (src/game/core/numget); num_get::do_get (long)
+0x006970e0,NumGet_DoGetUlong,function,low,reimplemented (src/game/core/numget); num_get::do_get (unsigned long)
+0x006981f0,NumGet_DoGetPointer,function,low,reimplemented (src/game/core/numget); num_get::do_get (void *)
 0x0050ffe0,Nav_Ctor,function,high,reimplemented (src/game/world/nav); constants constructor with five integer pairs
 0x0050f200,Nav_Dtor,function,high,reimplemented (src/game/world/nav); thiscall: the five IntPairs at +0x64 destroyed with Stub_Ret (CRT_VectorDtorIterator); also via 0x4f7c30 (+0xd4) and 0x4f8ad0
 0x004f7c30,Nav_DtorAtD4,function,low,reimplemented (src/game/world/nav); thiscall adjustor: Nav_Dtor on this + 0xd4

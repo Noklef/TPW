@@ -216,6 +216,7 @@
 #include "../game/core/crtfile.h"
 #include "../game/core/crtfloat.h"
 #include "../game/core/crtlocale.h"
+#include "../game/core/crtlocaleinfo.h"
 #include "../game/core/crtlock.h"
 #include "../game/core/crtmbstring.h"
 #include "../game/core/crtmessage.h"
@@ -259,6 +260,7 @@
 #include "../game/core/narrowwriter.h"
 #include "../game/core/numput.h"
 #include "../game/core/nstream.h"
+#include "../game/core/numget.h"
 #include "../game/core/optionschanges.h"
 #include "../game/core/refcounted.h"
 #include "../game/core/parkinfo.h"
@@ -6838,6 +6840,20 @@ const Hook kHooks[] = {
     {"CRT_ismbblead",             0x00689700, (void *)&CRT_ismbblead, {0x8b, 0x44, 0x24, 0x04, 0x6a}},
     {"NumPut_DoPutPointer",       0x00694e60, (void *)&NumPut_DoPutPointer, {0x8b, 0x44, 0x24, 0x18, 0x83}},
     {"NumPutW_DoPutPointer",      0x0069bb70, (void *)&NumPutW_DoPutPointer, {0x83, 0xec, 0x4c, 0x8b, 0x44}},
+    {"NumPut_Fput",               0x00695030, (void *)&NumPut_Fput, {0x64, 0xa1, 0x00, 0x00, 0x00}},
+    {"NumPut_Iput",               0x00695450, (void *)&NumPut_Iput, {0x64, 0xa1, 0x00, 0x00, 0x00}},
+    {"NumPutW_Fput",              0x0069bd30, (void *)&NumPutW_Fput, {0x64, 0xa1, 0x00, 0x00, 0x00}},
+    {"NumPutW_Iput",              0x0069c190, (void *)&NumPutW_Iput, {0x64, 0xa1, 0x00, 0x00, 0x00}},
+    {"NumPut_DoPutLong",          0x00694b80, (void *)&NumPut_DoPutLong, {0x83, 0xec, 0x48, 0x56, 0x8b}},
+    {"NumPut_DoPutUlong",         0x00694c20, (void *)&NumPut_DoPutUlong, {0x83, 0xec, 0x48, 0x56, 0x8b}},
+    {"NumPut_DoPutDouble",        0x00694cc0, (void *)&NumPut_DoPutDouble, {0x83, 0xec, 0x44, 0x53, 0x8b}},
+    {"NumPut_DoPutLongDouble",    0x00694d90, (void *)&NumPut_DoPutLongDouble, {0x83, 0xec, 0x44, 0x53, 0x8b}},
+    {"NumPutW_DoPutLong",         0x0069b890, (void *)&NumPutW_DoPutLong, {0x83, 0xec, 0x48, 0x56, 0x8b}},
+    {"NumPutW_DoPutUlong",        0x0069b930, (void *)&NumPutW_DoPutUlong, {0x83, 0xec, 0x48, 0x56, 0x8b}},
+    {"NumPutW_DoPutDouble",       0x0069b9d0, (void *)&NumPutW_DoPutDouble, {0x83, 0xec, 0x44, 0x53, 0x8b}},
+    {"NumPutW_DoPutLongDouble",   0x0069baa0, (void *)&NumPutW_DoPutLongDouble, {0x83, 0xec, 0x44, 0x53, 0x8b}},
+    {"NumPut_DoPutBool",          0x006947e0, (void *)&NumPut_DoPutBool, {0x6a, 0xff, 0x68, 0xb3, 0x3d}},
+    {"NumPutW_DoPutBool",         0x0069b4f0, (void *)&NumPutW_DoPutBool, {0x6a, 0xff, 0x68, 0xe3, 0x43}},
     {"CollateW_DoTransform",      0x0069ffe0, (void *)&CollateW_DoTransform, {0x6a, 0xff, 0x68, 0x88, 0x46}},
     {"Streambuf_Sputc",           0x00694ac0, (void *)&Streambuf_Sputc, {0x8b, 0x41, 0x20, 0x56, 0x57}},
     {"OstreamIter_Put",           0x00694b10, (void *)&OstreamIter_Put, {0x53, 0x56, 0x57, 0x8b, 0xf9}},
@@ -6984,6 +7000,16 @@ const Hook kHooks[] = {
     {"WNumPut_Rep",               0x0069c5e0, (void *)&WNumPut_Rep, {0x8b, 0x44, 0x24, 0x14, 0x56}},
     {"WStreambufIter_Peek",       0x0069fea0, (void *)&WStreambufIter_Peek, {0x56, 0x8b, 0xf1, 0x8b, 0x0e}},
     {"WStreambuf_Sbumpc",         0x0069f870, (void *)&WStreambuf_Sbumpc, {0x8b, 0x41, 0x1c, 0x56, 0x57}},
+    {"CRT_GetLocaleInfoW",        0x00691680, (void *)&CRT_GetLocaleInfoW, {0xa1, 0x44, 0x19, 0xfb, 0x00}},
+    {"CRT_GetLocaleInfoA",        0x006917b0, (void *)&CRT_GetLocaleInfoA, {0xa1, 0x48, 0x19, 0xfb, 0x00}},
+    {"CRT_Getlocaleinfo",         0x00691380, (void *)&CRT_Getlocaleinfo, {0x8b, 0x44, 0x24, 0x04, 0x81}},
+    {"NumGet_Getifld",            0x00698640, (void *)&NumGet_Getifld, {0x6a, 0xff, 0x68, 0x23, 0x40}},
+    {"NumGet_DoGetBool",          0x00695ca0, (void *)&NumGet_DoGetBool, {0x64, 0xa1, 0x00, 0x00, 0x00}},
+    {"NumGet_DoGetUshort",        0x00696450, (void *)&NumGet_DoGetUshort, {0x6a, 0xff, 0x68, 0xc8, 0x3e}},
+    {"NumGet_DoGetUint",          0x006968a0, (void *)&NumGet_DoGetUint, {0x6a, 0xff, 0x68, 0xf8, 0x3e}},
+    {"NumGet_DoGetLong",          0x00696ce0, (void *)&NumGet_DoGetLong, {0x6a, 0xff, 0x68, 0x28, 0x3f}},
+    {"NumGet_DoGetUlong",         0x006970e0, (void *)&NumGet_DoGetUlong, {0x6a, 0xff, 0x68, 0x58, 0x3f}},
+    {"NumGet_DoGetPointer",       0x006981f0, (void *)&NumGet_DoGetPointer, {0x6a, 0xff, 0x68, 0xe8, 0x3f}},
     {"Nav_Ctor",          0x0050ffe0, (void *)&Nav_Ctor, {0x6a, 0xff, 0x68, 0x2d, 0xe6}},
     {"Nav_Dtor",                  0x0050f200, (void *)&Nav_Dtor, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"Nav_DtorAtD4",              0x004f7c30, (void *)&Nav_DtorAtD4, {0x81, 0xc1, 0xd4, 0x00, 0x00}},

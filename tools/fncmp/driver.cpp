@@ -2686,6 +2686,12 @@ int invoke(void *fn, const u32 *regs, const u32 *stack, u32 count, int wantSt0, 
     return 0;
 }
 
+// A bench's FNCMP_PAINT_STACK: the stack the call will use, nonzero first, so that a slot of a stack object the port leaves unwritten shows (the emulator's stack starts at 0).
+__declspec(noinline) void paint_stack() {
+    volatile u32 below[0x400];
+    for (u32 i = 0; i < 0x400; ++i) below[i] = 0xa5a5a5a5;
+}
+
 void *hooked(u32 address) {
     void *const fn = find(address);
     if (!fn) fail("not hooked", address);
@@ -3553,7 +3559,7 @@ int main(int argc, char **argv) {
     CrtInner_SetEnv(&crtInner);
     // The C++ library's: the locks do nothing (the bench's hooks of 0x691de0 / 0x691ea0), the rest recorders (tests/fncmp/iosbase.py).
     static const IosBaseEnv iosBase = {[](void *lock) -> void * { return lock; }, [](void *) {}, &heap_free, Rec{kStubs + 0x5000 + 0x800 * 2 + 0x20 * 14}, Rec{jpeg_recorder(16, 2)}, Rec{jpeg_recorder(17, 3)},
-                                       Rec{jpeg_recorder(18, 1)}, &heap_alloc, Rec{recorder(19, 1)}, Rec{jpeg_recorder(20, 1)}, Rec{jpeg_recorder(21, 4)}, Rec{recorder(18, 3)}, Rec{jpeg_recorder(0, 4)}, Rec{jpeg_recorder(1, 4)}};
+                                       Rec{jpeg_recorder(18, 1)}, &heap_alloc, Rec{recorder(19, 1)}, Rec{jpeg_recorder(20, 1)}, Rec{jpeg_recorder(21, 4)}, Rec{recorder(18, 3)}, Rec{jpeg_recorder(0, 4)}, Rec{jpeg_recorder(1, 4)}, Rec{recorder(28, 1)}, Rec{recorder(29, 1)}};
     IosBase_SetEnv(&iosBase);
     Libc_SetEnv(&kDriverLibc);
     static FpuEnv fpu = *Fpu_GetEnv();  // (the guard's deleting destructors free with the stand-in heap)
@@ -3731,6 +3737,8 @@ int main(int argc, char **argv) {
                     for (int k = 0; k < 7; ++k)
                         if (std::strncmp(c, kNames[k], 3) == 0) regs[k] = step.args[skip++];
             }
+            static const bool paint = std::getenv("FNCMP_PAINT_STACK") != nullptr;
+            if (paint) paint_stack();
             code = invoke(step.fn, regs, step.args.data() + skip, n - skip, ret[0] == 'd', &eax, &edxOut, &st0, &ediOut);
             if (code) break;
         }

@@ -2,8 +2,19 @@
 
 #include <cstdint>
 
+#include "buffers.h"
 #include "crt.h"
+#include "crtlocale.h"
 #include "crtoutput.h"
+#include "globals.h"
+#include "iosbase.h"
+#include "moneyput.h"
+#include "sharedglobals.h"
+#include "stdlocale.h"
+#include "stdstring.h"
+#include "stdwstring.h"
+#include "vobj3.h"
+#include "wtraits.h"
 
 namespace {
 
@@ -79,9 +90,291 @@ template <typename Pad, typename Digit> u32 *do_put(u32 *out, u32 failed, u8 *bu
     return out;
 }
 
+template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
+
+struct NarrowChars {
+    static const u32 kId = 0x00fb1da8, kCache = 0x00fb1db8;
+    static void put(u32 *it, u32 c) { put_narrow(it[0], reinterpret_cast<u8 *>((uintptr_t)it[1]), c); }
+    static u32 widen(char c) { return static_cast<u8>(c); }
+    static bool any(u32 c) { return static_cast<u8>(c) != 0; }
+    static u8 *make(void *object) { return Globalfb1dbc_Set(object ? static_cast<u8 *>(IosBase_Env().numpunctCtor(object, nullptr, 0)) : nullptr); }
+    using String = StdString;
+    static void tidy(String &s, u32 release) { StdString_Tidy(&s, nullptr, release); }
+    static void assign(String &s, String *x) { StdString_AssignSub(&s, nullptr, x, 0, global<u32>(0x006fe5ac)); }
+    static String *name(u8 *facet, bool truth, String &out) { return truth ? MoneyPunct_PositiveSign(facet, nullptr, &out) : MoneyPunct_CurrSymbol(facet, nullptr, &out); }
+    static void append(String &s, char c) {
+        if (global<u32>(0x006fe5ac) - s.len <= 1) Std_Xlen();
+        const u32 total = s.len + 1;
+        if (StdString_Grow(&s, nullptr, total, 0)) {
+            s.ptr[s.len] = c;
+            s.len = total;
+            s.ptr[total] = 0;
+        }
+    }
+    static void put_all(u32 *it, const String &s) {
+        const char *p = s.ptr;
+        for (u32 n = s.len; n; --n) put(it, static_cast<u8>(*p++));
+    }
+};
+
+struct WideChars {
+    static const u32 kId = 0x00fb1ddc, kCache = 0x00fb1e1c;
+    static void put(u32 *it, u32 c) { put_wide(it[0], reinterpret_cast<u8 *>((uintptr_t)it[1]), c); }
+    static u32 widen(char c) { return CRT_btowc(static_cast<u32>(static_cast<s32>(c))); }
+    static bool any(u32 c) { return static_cast<u16>(c) != 0; }
+    static u8 *make(void *object) { return Globalfb1e30_Set(object ? static_cast<u8 *>(IosBase_Env().wnumpunctCtor(object, nullptr, 0)) : nullptr); }
+    using String = StdWString;
+    static void tidy(String &s, u32 release) { CountedBuf_Reset(reinterpret_cast<u8 *>(&s), nullptr, release); }
+    static void assign(String &s, String *x) { StdWString_AssignSub(&s, nullptr, x, 0, global<u32>(0x006fef00)); }
+    static String *name(u8 *facet, bool truth, String &out) {
+        StdString *const narrow = reinterpret_cast<StdString *>(&out);
+        return reinterpret_cast<String *>(truth ? MoneyPunct_PositiveSign(facet, nullptr, narrow) : MoneyPunct_CurrSymbol(facet, nullptr, narrow));
+    }
+    static void append(String &s, char c) {
+        const u32 wide = widen(c);
+        if (global<u32>(0x006fef00) - s.len <= 1) Std_Xlen();
+        const u32 total = s.len + 1;
+        if (StdWString_Grow(&s, nullptr, total, 0)) {
+            WTraits_Assign(s.ptr + s.len, wide, 1);
+            ImeWString_SetLength(reinterpret_cast<u8 *>(&s), nullptr, total);
+        }
+    }
+    // The first character is pushed in a register that still holds the iterator's first dword: its high word goes with it to overflow. The put leaves that register clear of it.
+    static void put_all(u32 *it, const String &s) {
+        const u16 *p = s.ptr;
+        u32 high = it[0] & 0xffff0000;
+        for (u32 n = s.len; n; --n) {
+            put(it, high | *p++);
+            high = 0;
+        }
+    }
+};
+
+// use_facet<numpunct>. A missing one comes from the classic locale, made once; other locales throw.
+template <typename C> u8 *numpunct_of(u8 **locale) {
+    u32 lock[2];
+    IosBase_Env().lockit(lock);
+    u8 *facet = Locale_Getfacet(locale, nullptr, Id_Get(&global<u32>(C::kId)), 1);
+    if (!facet) {
+        if (Locale_Iscloc(locale)) {
+            facet = global<u8 *>(C::kCache);
+            if (!facet) {
+                facet = C::make(IosBase_Env().memAlloc(0x18));
+                global<u8 *>(C::kCache) = facet;
+            }
+        } else {
+            u32 bad[3];
+            BadCast_Ctor(bad, nullptr, reinterpret_cast<const char *>((uintptr_t)0x0075c734));
+            IosBase_Env().cxxThrow(bad, reinterpret_cast<const void *>((uintptr_t)0x007193a8));
+        }
+    }
+    IosBase_Env().unlockit(lock);
+    return facet;
+}
+
+template <typename C> u8 *numpunct_facet(u8 *ios) {
+    u8 *locale;
+    Obj_ShareMember20(ios, nullptr, &locale);
+    u8 *const facet = numpunct_of<C>(&locale);
+    CountedRef_Release(&locale);
+    return facet;
+}
+
+u32 facet_slot(u8 *facet, u32 offset) {
+    using Slot = u32(__fastcall *)(u8 *);
+    return reinterpret_cast<const Slot *>((uintptr_t)at<u32>(facet, 0))[offset / 4](facet);
+}
+
+template <typename C> void put_times(u32 *it, u32 c, u32 count) {
+    for (; count; --count) C::put(it, c);
+}
+
+template <typename C> void put_text(u32 *it, const char *text, u32 count) {
+    for (; count; --count) C::put(it, C::widen(*text++));
+}
+
+template <typename C> u32 *finish(u32 *out, u32 *it, u8 *ios, u32 fill, u32 padding) {
+    at<u32>(ios, 0x14) = 0;
+    put_times<C>(it, fill, padding);
+    out[0] = it[0];
+    out[1] = it[1];
+    return out;
+}
+
+template <typename C> u32 *fput(u32 *out, u32 failed, u8 *buffer, u8 *ios, u32 fill, const char *text, u32 zeros, u32 count) {
+    u32 it[2] = {failed, static_cast<u32>(reinterpret_cast<uintptr_t>(buffer))};
+    const s32 width = at<s32>(ios, 0x14);
+    u32 padding = width > 0 && static_cast<u32>(width) > zeros + count ? static_cast<u32>(width) - count - zeros : 0;
+    const u32 adjust = at<u32>(ios, 0xc) & 0x1c0;
+    if (adjust != 0x40) {
+        if (adjust == 0x100 && count && (*text == '+' || *text == '-')) {
+            C::put(it, C::widen(*text));
+            ++text;
+            --count;
+        }
+        put_times<C>(it, fill, padding);
+        padding = 0;
+    }
+    const char *const point = static_cast<const char *>(CRT_memchr(text, **reinterpret_cast<const signed char **>((uintptr_t)Global781fc8_Get_691530()), count));
+    if (point) {
+        u8 *const facet = numpunct_facet<C>(ios);
+        const u32 length = static_cast<u32>(point - text) + 1;
+        put_text<C>(it, text, length - 1);
+        C::put(it, facet_slot(facet, 4));
+        text += length;
+        count -= length;
+    }
+    const char *const exponent = static_cast<const char *>(CRT_memchr(text, 'e', count));
+    if (exponent) {
+        const u32 length = static_cast<u32>(exponent - text) + 1;
+        put_text<C>(it, text, length - 1);
+        put_times<C>(it, C::widen('0'), zeros);
+        zeros = 0;
+        C::put(it, C::widen(at<u32>(ios, 0xc) & 4 ? 'E' : 'e'));
+        text += length;
+        count -= length;
+    }
+    put_text<C>(it, text, count);
+    put_times<C>(it, C::widen('0'), zeros);
+    return finish<C>(out, it, ios, fill, padding);
+}
+
+template <typename C> u32 *iput(u32 *out, u32 failed, u8 *buffer, u8 *ios, u32 fill, char *text, u32 count) {
+    u32 it[2] = {failed, static_cast<u32>(reinterpret_cast<uintptr_t>(buffer))};
+    const u32 prefix = text[0] == '+' || text[0] == '-' ? 1 : text[0] == '0' && (text[1] == 'x' || text[1] == 'X') ? 2 : 0;
+    u8 *const facet = numpunct_facet<C>(ios);
+    StdString groups;
+    MoneyPunct_Grouping(facet, nullptr, &groups);
+    const u32 separator = facet_slot(facet, 8);
+    const signed char *group = reinterpret_cast<const signed char *>(groups.ptr ? groups.ptr : reinterpret_cast<const char *>((uintptr_t)0x006fe5b0));
+    bool commas = false;
+    if (*group > 0) {
+        u32 place = count;
+        while (*group != 0x7f && *group > 0 && static_cast<u32>(*group) < place - prefix) {
+            place -= static_cast<u32>(*group);
+            CRT_memmove(text + place + 1, text + place, count - place + 1);
+            text[place] = ',';
+            ++count;
+            if (group[1] > 0) ++group;
+            commas = true;
+        }
+    }
+    const s32 width = at<s32>(ios, 0x14);
+    u32 padding = width > 0 && static_cast<u32>(width) > count ? static_cast<u32>(width) - count : 0;
+    const u32 adjust = at<u32>(ios, 0xc) & 0x1c0;
+    if (adjust != 0x40) {
+        if (adjust == 0x100) {
+            put_text<C>(it, text, prefix);
+            text += prefix;
+            count -= prefix;
+        }
+        put_times<C>(it, fill, padding);
+        padding = 0;
+    }
+    if (commas) {
+        for (;;) {
+            const u32 length = CRT_strcspn(text, ",");
+            put_text<C>(it, text, length);
+            text += length;
+            count -= length;
+            if (!count) break;
+            if (C::any(separator)) C::put(it, separator);
+            ++text;
+            --count;
+        }
+    } else {
+        put_text<C>(it, text, count);
+    }
+    finish<C>(out, it, ios, fill, padding);
+    StdString_Tidy(&groups, nullptr, 1);
+    return out;
+}
+
+template <typename C> u32 *put_integer(u32 *out, u32 failed, u8 *buffer, u8 *ios, u32 fill, u32 value, char decimal) {
+    char format[8];
+    char text[0x40];
+    const u32 flags = at<u32>(ios, 0xc);
+    char *f = format;
+    *f++ = '%';
+    if (flags & 0x20) *f++ = '+';
+    if (flags & 8) *f++ = '#';
+    *f++ = 'l';
+    const u32 base = flags & 0xe00;
+    *f++ = base == 0x400 ? 'o' : base != 0x800 ? decimal : flags & 4 ? 'X' : 'x';
+    *f = 0;
+    const s32 length = CRT_sprintf(text, format, value);
+    return iput<C>(out, failed, buffer, ios, fill, text, static_cast<u32>(length));
+}
+
+template <typename C> u32 *put_float(u32 *out, u32 failed, u8 *buffer, u8 *ios, u32 fill, u32 low, u32 high, bool isLong) {
+    char format[8];
+    char text[0x3c];   // (the original's room: %f of a large value overruns it there too)
+    const u32 flags = at<u32>(ios, 0xc);
+    s32 precision = at<s32>(ios, 0x10);
+    if (precision <= 0 && !(flags & 0x2000)) precision = 6;
+    const s32 used = precision > 0x24 ? 0x24 : precision;
+    char *f = format;
+    *f++ = '%';
+    if (flags & 0x20) *f++ = '+';
+    if (flags & 0x10) *f++ = '#';
+    *f++ = '.';
+    *f++ = '*';
+    if (isLong) *f++ = 'L';
+    const u32 notation = flags & 0x3000;
+    *f++ = notation == 0x2000 ? 'f' : notation == 0x1000 ? 'e' : 'g';
+    *f = 0;
+    const s32 length = CRT_sprintf(text, format, used, low, high);
+    return fput<C>(out, failed, buffer, ios, fill, text, static_cast<u32>(precision - used), static_cast<u32>(length));
+}
+
+template <typename C> u32 *put_bool(u32 *out, u32 failed, u8 *buffer, u8 *ios, u32 fill, u32 value) {
+    u8 *const facet = numpunct_facet<C>(ios);
+    const bool truth = static_cast<u8>(value) != 0;
+    typename C::String text;
+    C::tidy(text, 0);
+    if (at<u32>(ios, 0xc) & 0x4000) {
+        typename C::String name;
+        C::assign(text, C::name(facet, truth, name));
+        C::tidy(name, 1);
+    } else {
+        C::append(text, truth ? '1' : '0');
+    }
+    const s32 width = at<s32>(ios, 0x14);
+    u32 padding = width > 0 && static_cast<u32>(width) > text.len ? static_cast<u32>(width) - text.len : 0;
+    u32 it[2] = {failed, static_cast<u32>(reinterpret_cast<uintptr_t>(buffer))};
+    if ((at<u32>(ios, 0xc) & 0x1c0) != 0x40) {
+        put_times<C>(it, fill, padding);
+        padding = 0;
+    }
+    C::put_all(it, text);
+    finish<C>(out, it, ios, fill, padding);
+    C::tidy(text, 1);
+    return out;
+}
+
 }  // namespace
 
+u8 *NumPut_NumpunctOf(u8 **locale) { return numpunct_of<NarrowChars>(locale); }
+
 extern "C" {
+
+u32 *__cdecl NumPut_Fput(u32 *out, u32 failed, u8 *buffer, u8 *ios, u32 fill, const char *text, u32 zeros, u32 count) { return fput<NarrowChars>(out, failed, buffer, ios, fill, text, zeros, count); }
+u32 *__cdecl NumPutW_Fput(u32 *out, u32 failed, u8 *buffer, u8 *ios, u32 fill, const char *text, u32 zeros, u32 count) { return fput<WideChars>(out, failed, buffer, ios, fill, text, zeros, count); }
+u32 *__cdecl NumPut_Iput(u32 *out, u32 failed, u8 *buffer, u8 *ios, u32 fill, char *text, u32 count) { return iput<NarrowChars>(out, failed, buffer, ios, fill, text, count); }
+u32 *__cdecl NumPutW_Iput(u32 *out, u32 failed, u8 *buffer, u8 *ios, u32 fill, char *text, u32 count) { return iput<WideChars>(out, failed, buffer, ios, fill, text, count); }
+
+u32 *__fastcall NumPut_DoPutLong(void *, void *, u32 *out, u32 failed, u8 *buffer, u8 *ios, u32 fill, u32 value) { return put_integer<NarrowChars>(out, failed, buffer, ios, fill, value, 'd'); }
+u32 *__fastcall NumPut_DoPutUlong(void *, void *, u32 *out, u32 failed, u8 *buffer, u8 *ios, u32 fill, u32 value) { return put_integer<NarrowChars>(out, failed, buffer, ios, fill, value, 'u'); }
+u32 *__fastcall NumPutW_DoPutLong(void *, void *, u32 *out, u32 failed, u8 *buffer, u8 *ios, u32 fill, u32 value) { return put_integer<WideChars>(out, failed, buffer, ios, fill, value, 'd'); }
+u32 *__fastcall NumPutW_DoPutUlong(void *, void *, u32 *out, u32 failed, u8 *buffer, u8 *ios, u32 fill, u32 value) { return put_integer<WideChars>(out, failed, buffer, ios, fill, value, 'u'); }
+
+u32 *__fastcall NumPut_DoPutDouble(void *, void *, u32 *out, u32 failed, u8 *buffer, u8 *ios, u32 fill, u32 low, u32 high) { return put_float<NarrowChars>(out, failed, buffer, ios, fill, low, high, false); }
+u32 *__fastcall NumPut_DoPutLongDouble(void *, void *, u32 *out, u32 failed, u8 *buffer, u8 *ios, u32 fill, u32 low, u32 high) { return put_float<NarrowChars>(out, failed, buffer, ios, fill, low, high, true); }
+u32 *__fastcall NumPutW_DoPutDouble(void *, void *, u32 *out, u32 failed, u8 *buffer, u8 *ios, u32 fill, u32 low, u32 high) { return put_float<WideChars>(out, failed, buffer, ios, fill, low, high, false); }
+u32 *__fastcall NumPutW_DoPutLongDouble(void *, void *, u32 *out, u32 failed, u8 *buffer, u8 *ios, u32 fill, u32 low, u32 high) { return put_float<WideChars>(out, failed, buffer, ios, fill, low, high, true); }
+
+u32 *__fastcall NumPut_DoPutBool(void *, void *, u32 *out, u32 failed, u8 *buffer, u8 *ios, u32 fill, u32 value) { return put_bool<NarrowChars>(out, failed, buffer, ios, fill, value); }
+u32 *__fastcall NumPutW_DoPutBool(void *, void *, u32 *out, u32 failed, u8 *buffer, u8 *ios, u32 fill, u32 value) { return put_bool<WideChars>(out, failed, buffer, ios, fill, value); }
 
 u32 *__fastcall NumPut_DoPutPointer(void *, void *, u32 *out, u32 failed, u8 *buffer, u8 *ios, u32 fill, u32 value) {
     return do_put(out, failed, buffer, ios, value, [fill](u32 &f, u8 *b) { put_narrow(f, b, fill); }, [](u32 &f, u8 *b, char c) { put_narrow(f, b, static_cast<u8>(c)); });
