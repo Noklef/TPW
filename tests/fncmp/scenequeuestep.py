@@ -29,7 +29,7 @@ def case(r):
     put(this, 0x10, 'I', NODE if r.randrange(20) else 0)
     put(this, 0x14, 'I', r.choice([1, 2, r.getrandbits(32)]) if path == 'pop' else 0)
     put(this, 0x18, 'I', 0 if path == 'off' else r.choice([1, r.getrandbits(32) | 1]))
-    put(this, 0x28, 'I', r.choice([1, r.getrandbits(32) | 1]) if path == 'arm' else 0)
+    put(this, 0x28, 'I', r.choice([1, r.getrandbits(32) | 1]) if path == 'arm' else r.choice([0, 1]) if path == 'off' else 0)
     node = bytearray(r.bytes(0xc))
     put(node, 0, 'I', ITEM)
     put(node, 8, 'I', r.choice([0, PREVIOUS]))
