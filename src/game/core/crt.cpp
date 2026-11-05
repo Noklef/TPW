@@ -1209,4 +1209,45 @@ u16 *__cdecl CRT_wcstok(u16 *text, const u16 *separators) {
     return start == from ? nullptr : start;
 }
 
+void __fastcall CRT_type_info_Dtor(u32 *self, void *) {
+    self[0] = 0x007089e4;
+    g_inner->lock(0x1b);
+    void *const name = reinterpret_cast<void *>((uintptr_t)self[1]);
+    if (name) CRT_free(name);
+    g_inner->unlock(0x1b);
+}
+
+u8 *__cdecl CRT_AdjustPointer(u8 *object, const s32 *displacement) {
+    u8 *result = object + displacement[0];
+    const s32 pdisp = displacement[1];
+    if (pdisp >= 0) result += *reinterpret_cast<s32 *>(*reinterpret_cast<u8 **>(object + pdisp) + displacement[2]) + pdisp;
+    return result;
+}
+
+u32 *__cdecl CRT_siglookup(u32 signal, u32 *table) {
+    const u32 count = *reinterpret_cast<u32 *>((uintptr_t)0x00781514);
+    const u32 first = static_cast<u32>(reinterpret_cast<uintptr_t>(table));
+    const u32 end = first + count * 0xc;
+    u32 at = first;
+    if (table[1] != signal) {
+        do {
+            at += 0xc;
+            if (at >= end) break;
+        } while (reinterpret_cast<u32 *>((uintptr_t)at)[1] != signal);
+    }
+    if (at < end && reinterpret_cast<u32 *>((uintptr_t)at)[1] == signal) return reinterpret_cast<u32 *>((uintptr_t)at);
+    return nullptr;
+}
+
+void __cdecl CRT_initterm(void(__cdecl **begin)(), void(__cdecl **end)()) {
+    for (; begin < end; ++begin) {
+        if (*begin) (*begin)();
+    }
+}
+
+char *__cdecl CRT_ultoa(u32 value, char *out, u32 radix) {
+    CRT_xtoa(value, out, radix, 0);
+    return out;
+}
+
 }  // extern "C"

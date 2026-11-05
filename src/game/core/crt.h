@@ -306,4 +306,16 @@ u16 *__cdecl CRT_wcsstr(const u16 *text, const u16 *wanted);
 // 0x67c430: wcstok: the thread's data + 0x1c keeps the place. An empty token: null.
 u16 *__cdecl CRT_wcstok(u16 *text, const u16 *separators);
 
+// 0x67d350 (thiscall): type_info's destructor: the vtable 0x7089e4 set, under lock 0x1b the undecorated name +4 freed if there is one.
+void __fastcall CRT_type_info_Dtor(u32 *self, void *);
+// 0x682360: __AdjustPointer: object + mdisp ([0]); with a pdisp ([1]) not negative also the vbtable's entry [2] and pdisp.
+u8 *__cdecl CRT_AdjustPointer(u8 *object, const s32 *displacement);
+// 0x68f990: siglookup: the entry of the table of [0x781514] entries of 12 bytes with this signal at +4, or 0. The first entry's signal is read whatever the count.
+u32 *__cdecl CRT_siglookup(u32 signal, u32 *table);
+// 0x67fa40: _initterm: each function not null in [begin, end).
+void __cdecl CRT_initterm(void(__cdecl **begin)(), void(__cdecl **end)());
+
+// 0x6887e0: _ultoa: xtoa, never negative; returns out.
+char *__cdecl CRT_ultoa(u32 value, char *out, u32 radix);
+
 }  // extern "C"
