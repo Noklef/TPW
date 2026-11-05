@@ -309,6 +309,7 @@
 #include "../../src/game/gfx/screengrab.h"
 #include "../../src/game/core/themesaves.h"
 #include "../../src/game/core/optionschanges.h"
+#include "../../src/game/render/weathertables.h"
 #include "../../src/game/render/present.h"
 #include "../../src/game/core/gameerror.h"
 #include "../../src/game/core/cmdline.h"
@@ -1340,6 +1341,7 @@ const AddrCall kScreenGrabCalls[] = {{0x67b8a0, jpeg_recorder(1, 2)}, {0x67b6d0,
 const AddrCall kOptionsChangesCalls[] = {{0x423740, recorder(1, 0)}, {0x5ac630, recorder(2, 1)}, {0x51bc70, jpeg_recorder(3, 0)}, {0x51b920, jpeg_recorder(4, 1)}, {0x5ac5f0, recorder(5, 1)}, {0x6acd60, jpeg_recorder(6, 4)}, {0x47f020, jpeg_recorder(7, 8)},  // tests/fncmp/optionschanges.py
     {0x423dd0, recorder(8, 0)}, {0x5c7bd0, recorder(9, 1)}, {0x5f5ad0, jpeg_recorder(10, 4)}, {0x5f5e50, jpeg_recorder(11, 5)}, {0x5f5b80, jpeg_recorder(12, 2)}, {0x4242c0, recorder(13, 3)}, {0x42aff0, jpeg_recorder(14, 0)}, {0x51bd70, jpeg_recorder(15, 0)},
     {0x4a4580, jpeg_recorder(16, 0)}, {0x5508b0, jpeg_recorder(17, 1)}, {0x5ac610, recorder(18, 1)}, {0x424a60, recorder(19, 1)}, {0x409790, jpeg_recorder(20, 1)}};
+const AddrCall kWeatherTablesCalls[] = {{0x57d1d0, recorder(1, 0)}, {0x56af20, recorder(2, 2)}};  // tests/fncmp/weathertables.py
 const AddrCall kPresentCalls[] = {{0x56a770, jpeg_recorder(1, 1)}, {0x564650, jpeg_recorder(2, 1)}, {0x56af20, recorder(3, 2)}};  // tests/fncmp/devicepresent.py
 const AddrCall kGameErrorCalls[] = {{0x6acd60, jpeg_recorder(1, 4)}};  // tests/fncmp/gameerrorshow.py
 const AddrCall kCommandLineCalls[] = {{0x68b5f0, jpeg_recorder(1, 1)}};  // tests/fncmp/cmdlinesplit.py
@@ -2734,6 +2736,7 @@ int main(int argc, char **argv) {
     UserSaves_SetCalls(kUserSavesCalls, sizeof(kUserSavesCalls) / sizeof(kUserSavesCalls[0]));
     GameShutdown_SetCalls(kGameShutdownCalls, sizeof(kGameShutdownCalls) / sizeof(kGameShutdownCalls[0]));
     OptionsChanges_SetCalls(kOptionsChangesCalls, sizeof(kOptionsChangesCalls) / sizeof(kOptionsChangesCalls[0]));
+    WeatherTables_SetCalls(kWeatherTablesCalls, sizeof(kWeatherTablesCalls) / sizeof(kWeatherTablesCalls[0]));
     ThemeSaves_SetCalls(kThemeSavesCalls, sizeof(kThemeSavesCalls) / sizeof(kThemeSavesCalls[0]));
     ScreenGrab_SetCalls(kScreenGrabCalls, sizeof(kScreenGrabCalls) / sizeof(kScreenGrabCalls[0]));
     Present_SetCalls(kPresentCalls, sizeof(kPresentCalls) / sizeof(kPresentCalls[0]));

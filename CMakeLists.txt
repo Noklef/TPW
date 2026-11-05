@@ -681,6 +681,7 @@ add_library(tpw_game STATIC
     src/game/render/engineshutdown.cpp
     src/game/render/devicereset.cpp
     src/game/render/present.cpp
+    src/game/render/weathertables.cpp
     src/game/ui/quitconfirm.cpp
     src/game/world/mapsweep.cpp
     src/game/ui/imehostattach.cpp

@@ -34,6 +34,7 @@ def case(r):
         table[at - IMPORT_TABLE:at - IMPORT_TABLE + 4] = stub
     regions = {LOG: log, IMPORT_TABLE: table, HEAP: heap(0x4000, r.choice([0] * 9 + [r.randrange(1, 4)])), gamestring.LOCALE: bytes(4), 0xf82884: struct.pack('<I', r.choice([0, 0, SESSION])), SESSION: r.bytes(0x20)}
     if op == 'Confirm':
+        regions[0x786b80] = r.bytes(4)
         return Call(0x424bb0, [], regions, ret='a')
     if op == 'Startup':
         regions[0x78d950] = struct.pack('<6I', *[r.getrandbits(32) for _ in range(6)])

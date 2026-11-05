@@ -7523,6 +7523,8 @@ address,name,kind,confidence,notes
 0x00572b60,Engine_ShutdownAll,function,low,"reimplemented (src/game/render/engineshutdown); cdecl, returns 1: the engine's objects destroyed in order; render mode 1 and 4 have their own (name invented)"
 0x005774c0,Engine_ResetDevice,function,low,reimplemented (src/game/render/devicereset); cdecl: surfaces and display restored in order; mode 1 also releases and remakes the texture cache; a failure destroys the device and pushes an error (name invented)
 0x00564210,Device_Present,function,low,"reimplemented (src/game/render/present); thiscall: the back surface shown: Blt or Flip by the flags, or Blt to the window; the answer kept in 0x879cd4; returns whether it is 0; name invented"
+0x0057d100,WeatherFx_Create,function,low,"reimplemented (src/game/render/weathertables); cdecl: the renderer made and its tables filled, or the engine's error; name invented"
+0x0057d300,WeatherFx_FillTables,function,low,"reimplemented (src/game/render/weathertables); thiscall: the renderer's random tables from rand, x87 at 24 bits; name invented"
 0x0044b140,Model_MarkFacesByMask,function,high,"reimplemented (src/game/model/parts); cdecl (holder**, mask): face flags 0x80000010 for parts whose +8 has any mask bit"
 0x0044b1b0,Model_MarkFacesNotValue,function,high,"reimplemented (src/game/model/parts); cdecl (holder**, value): face flags 0x80000010 for parts whose +8 is not value"
 0x0044b220,Model_FindPartByKey4,function,high,"reimplemented (src/game/model/parts); cdecl u32 (holder, mask, key): first part with +4 == key and flags & mask (mask defaults 0x3da1f82), or -1"

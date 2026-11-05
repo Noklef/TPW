@@ -596,6 +596,7 @@
 #include "../game/render/vertexblock.h"
 #include "../game/render/viewquad.h"
 #include "../game/render/weatherfx.h"
+#include "../game/render/weathertables.h"
 #include "../game/render/worldview.h"
 #include "../game/online/servers.h"
 #include "../game/frontend/helpbg.h"
@@ -7646,6 +7647,8 @@ const Hook kHooks[] = {
     {"Engine_ShutdownAll",        0x00572b60, (void *)&Engine_ShutdownAll, {0xe8, 0xfb, 0x1f, 0xff, 0xff}},
     {"Engine_ResetDevice",        0x005774c0, (void *)&Engine_ResetDevice, {0x83, 0x3d, 0x24, 0xd5, 0x8b}},
     {"Device_Present",            0x00564210, (void *)&Device_Present, {0xa1, 0x10, 0xd5, 0x8b, 0x00}},
+    {"WeatherFx_Create",          0x0057d100, (void *)&WeatherFx_Create, {0x6a, 0xff, 0x68, 0x8b, 0xf3}},
+    {"WeatherFx_FillTables",      0x0057d300, (void *)&WeatherFx_FillTables, {0x81, 0xec, 0x5c, 0x06, 0x00}},
     {"Model_MarkFacesByMask",     0x0044b140, (void *)&Model_MarkFacesByMask, {0x53, 0x8b, 0x5c, 0x24, 0x08}},
     {"Model_MarkFacesNotValue",    0x0044b1b0, (void *)&Model_MarkFacesNotValue, {0x53, 0x8b, 0x5c, 0x24, 0x08}},
     {"Model_FindPartByKey4",      0x0044b220, (void *)&Model_FindPartByKey4, {0x56, 0x57, 0x8b, 0x7c, 0x24}},
