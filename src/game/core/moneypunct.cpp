@@ -6,6 +6,7 @@
 #include "crt.h"
 #include "gameheap.h"
 #include "globals.h"
+#include "iosbase.h"
 
 namespace {
 
@@ -62,9 +63,31 @@ template <typename Copy> void init_rest(u8 *facet, const u8 *lconv, Copy copy) {
 
 const u8 *lconv_now() { return reinterpret_cast<const u8 *>((uintptr_t)Global781fc8_Get_691530()); }
 
+void tidy(u32 *self, u32 vtable) {
+    self[0] = vtable;
+    const u32 slots[] = {2, 4, 5, 6};
+    for (const u32 slot : slots) IosBase_Env().memFree(reinterpret_cast<void *>((uintptr_t)self[slot]));
+    self[0] = 0x00709b44;
+}
+
 }  // namespace
 
 extern "C" {
+
+u32 *__fastcall Moneypunct_Makepat(u8 *facet, void *, u32 *out, u32 space, u32 precedes, u32 position) {
+    const u8 spaced = static_cast<u8>(space);
+    const u8 before = static_cast<u8>(precedes);
+    const s8 at = static_cast<s8>(position);
+    if (facet[0x28] || spaced & 0xfe || before & 0xfe || at < 0 || at > 4)
+        *out = dword_at(0x00709d10);
+    else
+        *out = dword_at(0x00709d18 + (before == 1 ? 0x14 : 0) + (spaced == 1 ? 0x28 : 0) + at);
+    return out;
+}
+
+void __fastcall MoneypunctW_Tidy(u32 *self, void *) { tidy(self, 0x00709d74); }
+
+void __fastcall MoneypunctC_Tidy(u32 *self, void *) { tidy(self, 0x00709fdc); }
 
 void __fastcall MoneypunctC_Init(u8 *facet, void *, const void *) {
     const u8 *const lconv = lconv_now();

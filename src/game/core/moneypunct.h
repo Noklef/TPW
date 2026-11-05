@@ -16,4 +16,10 @@ void *__fastcall MoneypunctW_Ctor(u8 *facet, void *, const void *locinfo, u32 re
 void __fastcall MoneypunctC_Init(u8 *facet, void *, const void *locinfo);
 void __fastcall MoneypunctW_Init(u8 *facet, void *, const void *locinfo);
 
+// 0x6a1e70 (thiscall (out, space, precedes, position), pops 16; name invented, unconfirmed): *out the pattern from 0x709d18, or the default at 0x709d10 for an international facet or a flag or position out of range. Returns out.
+u32 *__fastcall Moneypunct_Makepat(u8 *facet, void *, u32 *out, u32 space, u32 precedes, u32 position);
+// 0x6a2400 / 0x6a91b0: wchar_t's / char's destructor bodies: the vtable (0x709d74 / 0x709fdc), the four texts freed, the base vtable 0x709b44.
+void __fastcall MoneypunctW_Tidy(u32 *self, void *);
+void __fastcall MoneypunctC_Tidy(u32 *self, void *);
+
 }  // extern "C"

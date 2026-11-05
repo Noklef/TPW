@@ -6039,6 +6039,8 @@ address,name,kind,confidence,notes
 0x006a4f20,MoneypunctW_Init,function,low,reimplemented (src/game/core/moneypunct); moneypunct<wchar_t>::_Init
 0x006a8830,MoneypunctC_Ctor,function,low,reimplemented (src/game/core/moneypunct); moneypunct<char>'s constructor
 0x006a18a0,MoneypunctW_Ctor,function,low,reimplemented (src/game/core/moneypunct); moneypunct<wchar_t>'s constructor
+0x006a2400,MoneypunctW_Tidy,function,low,reimplemented (src/game/core/moneypunct); moneypunct<wchar_t>'s destructor body
+0x006a91b0,MoneypunctC_Tidy,function,low,reimplemented (src/game/core/moneypunct); moneypunct<char>'s destructor body
 0x0068bad0,CRT_abstract_cw,function,low,reimplemented (src/game/core/crtfloat); _abstract_cw
 0x0068bb70,CRT_hw_cw,function,low,reimplemented (src/game/core/crtfloat); _hw_cw
 0x0068f9d0,CRT_addl,function,low,reimplemented (src/game/core/crtfloat); __addl
@@ -6181,6 +6183,11 @@ address,name,kind,confidence,notes
 0x006a02d0,WFacet709c0c_Init,function,low,reimplemented (src/game/core/localefacet); wide facet of vtable 0x709c0c: _Init
 0x006a0480,WFacet709c0c_Tidy,function,low,reimplemented (src/game/core/localefacet); wide facet of vtable 0x709c0c: destructor body
 0x006a04b0,WFacet709bfc_Ctor,function,low,reimplemented (src/game/core/localefacet); wide facet of vtable 0x709bfc: constructor
+0x006a7290,Facet709fac_Ctor,function,low,reimplemented (src/game/core/localefacet); narrow facet of vtable 0x709fac: constructor
+0x006a7370,Facet709fac_Init,function,low,reimplemented (src/game/core/localefacet); narrow facet of vtable 0x709fac: _Init
+0x006a74f0,Facet709f9c_Ctor,function,low,reimplemented (src/game/core/localefacet); facet of vtable 0x709f9c: constructor
+0x006a9200,Facet709f8c_Ctor,function,low,reimplemented (src/game/core/localefacet); facet of vtable 0x709f8c: constructor
+0x006a49e0,Facet_WidenedCopy,function,low,reimplemented (src/game/core/localefacet); wide copy of a text
 0x006895b0,CRT_mbctolower,function,low,reimplemented (src/game/core/crtmbstring); _mbctolower
 0x00689650,CRT_mbspbrk,function,low,reimplemented (src/game/core/crtmbstring); _mbspbrk
 0x00689400,CRT_mbsrchr,function,low,reimplemented (src/game/core/crtmbstring); _mbsrchr
