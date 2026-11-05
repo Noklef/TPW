@@ -7,7 +7,7 @@
 
 struct StdString;
 
-// The calls of the functions below (the bench's recorders; 0x5d08e0, 0x5d0e70, 0x5cfe40 and 0x67a520 are still the game's).
+// The calls of the functions below (the bench's recorders; 0x67a520 is still the game's).
 struct MailboxEnv {
     u8 *(__fastcall *iosInit)(u8 *ios);                                                    // Init_5cfd80
     u8 *(__fastcall *ostreamCtor)(u8 *self, void *, u8 *buffer, u32 addstd, u32 init, u32 derived);  // NOstream_Ctor

@@ -30,9 +30,9 @@ namespace {
 
 template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cast<T *>((uintptr_t)p + offset); }
 
-const MailboxEnv kGameEnv = {&Init_5cfd80, &NOstream_Ctor, &NIstream_Ctor, &NFileBuf_Ctor, reinterpret_cast<u8 *(__fastcall *)(u8 *, void *, const char *, u32)>((uintptr_t)0x005d08e0), &BasicIosW_SetState,
-                             &NOfstream_DtorOnIos, &NIfstream_DtorOnIos, &NIos_Widen, reinterpret_cast<u8 *(__fastcall *)(u8 *, void *, char *, u32, u32)>((uintptr_t)0x005cfe40),
-                             reinterpret_cast<u8 *(__cdecl *)(u8 *, const char *)>((uintptr_t)0x005d0e70), &CRT_fclose, &NFileBuf_Init, &NFileBuf_Close, &NFileBuf_Dtor, &IosBase_Dtor,
+const MailboxEnv kGameEnv = {&Init_5cfd80, &NOstream_Ctor, &NIstream_Ctor, &NFileBuf_Ctor, &NFileBuf_Open, &BasicIosW_SetState,
+                             &NOfstream_DtorOnIos, &NIfstream_DtorOnIos, &NIos_Widen, &NIstream_Getline,
+                             &NOstream_PutText, &CRT_fclose, &NFileBuf_Init, &NFileBuf_Close, &NFileBuf_Dtor, &IosBase_Dtor,
                              reinterpret_cast<s32(__cdecl *)(const char *)>((uintptr_t)0x0067a520), &List_EraseNodeCounted, &StdListString_Insert,
                              &NumberList_Erase, reinterpret_cast<u32 *(__fastcall *)(u8 *, void *, u32 *, u32, const s32 *)>((uintptr_t)0x00634c60), &BasicIosW_Clear,
                              &Language_Id, &StdListString_PushBack, &StdListString_Sort, &StdListString_Unique, &StdListString_AddSorted, &ByteString_Compare, reinterpret_cast<void(__fastcall *)(void *)>((uintptr_t)0x00634bf0),

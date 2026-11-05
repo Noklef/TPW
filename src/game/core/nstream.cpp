@@ -1,6 +1,7 @@
 #include "nstream.h"
 
 #include <cstdint>
+#include <cstring>
 
 #include "accessors.h"
 #include "buffers.h"
@@ -84,6 +85,27 @@ void flush_stream(u8 *stream) {
     u32 next = at<u32>(after, 4) | state;
     if (!at<u32>(after, 0x28)) next |= 4;
     IosBase_Clear(after, nullptr, next, 0);
+}
+
+// sputc of the ios's fill: at the put position, which moves on, or slot 4.
+u32 put_fill(u8 *stream) {
+    u8 *const ios = ios_of(stream);
+    u8 *const buffer = at<u8 *>(ios, 0x28);
+    const u8 fill = at<u8>(ios, 0x30);
+    const u32 position = *at<u32 *>(buffer, 0x20);
+    if (position) {
+        u32 *const left = at<u32 *>(buffer, 0x30);
+        const u32 count = *left;
+        if (position < position + count) {
+            *left = count - 1;
+            u32 *const cursor = at<u32 *>(buffer, 0x20);
+            const u32 now = *cursor;
+            *cursor = now + 1;
+            *reinterpret_cast<u8 *>((uintptr_t)now) = fill;
+            return fill;
+        }
+    }
+    return vcall<u32>(buffer, 4, static_cast<u32>(fill));
 }
 
 }  // namespace
@@ -205,5 +227,83 @@ u8 __fastcall NIstream_Ipfx(u8 *self, void *, u32 noskip) {
     }
     BasicIosW_SetState(ios_of(self), nullptr, 2, 0);
     return 0;
+}
+
+u8 *__fastcall NIstream_Getline(u8 *self, void *, char *text, u32 count, u32 delimiter) {
+    u32 state = 0;
+    s32 left = static_cast<s32>(count);
+    at<u32>(self, 4) = 0;
+    if (NIstream_Ipfx(self, nullptr, 1) && left > 0) {
+        const u32 wanted = delimiter & 0xff;
+        u32 unit = Buf_Peek(buffer_of(self));
+        for (;;) {
+            if (unit == 0xffffffffu) {
+                state |= 1;
+                break;
+            }
+            if (unit == wanted) {
+                ++at<u32>(self, 4);
+                u8 *const buffer = buffer_of(self);
+                if (take_unit(buffer) != 0xffffffffu) Buf_Peek(buffer);
+                break;
+            }
+            if (--left <= 0) {
+                state |= 2;
+                break;
+            }
+            ++at<u32>(self, 4);
+            *text++ = static_cast<char>(unit);
+            u8 *const buffer = buffer_of(self);
+            unit = take_unit(buffer) == 0xffffffffu ? 0xffffffffu : Buf_Peek(buffer);
+        }
+    }
+    *text = 0;
+    if (at<u32>(self, 4) == 0) state |= 2;
+    BasicIosW_SetState(ios_of(self), nullptr, state, 0);
+    return self;
+}
+
+u8 *__fastcall NIstream_Read(u8 *self, void *, char *text, u32 count) {
+    u32 state = 0;
+    at<u32>(self, 4) = 0;
+    if (NIstream_Ipfx(self, nullptr, 1)) {
+        const u32 got = vcall<u32>(buffer_of(self), 0x18, text, count);
+        at<u32>(self, 4) += got;
+        if (got != count) state = 3;
+    }
+    BasicIosW_SetState(ios_of(self), nullptr, state, 0);
+    return self;
+}
+
+u8 *__cdecl NOstream_PutText(u8 *stream, const char *text) {
+    u32 state = 0;
+    const u32 length = static_cast<u32>(std::strlen(text));
+    const s32 width = at<s32>(ios_of(stream), 0x14);
+    u32 pad = width > 0 && static_cast<u32>(width) > length ? static_cast<u32>(width) - length : 0;
+    if (!NOstream_Opfx(stream)) {
+        state = 4;
+    } else {
+        if ((at<u32>(ios_of(stream), 0xc) & 0x1c0) != 0x40) {
+            for (; pad; --pad) {
+                if (put_fill(stream) == 0xffffffffu) {
+                    state = 4;
+                    break;
+                }
+            }
+        }
+        if (!state && vcall<u32>(buffer_of(stream), 0x1c, text, length) != length) state = 4;
+        if (!state) {
+            for (; pad; --pad) {
+                if (put_fill(stream) == 0xffffffffu) {
+                    state = 4;
+                    break;
+                }
+            }
+        }
+        at<u32>(ios_of(stream), 0x14) = 0;
+    }
+    BasicIosW_SetState(ios_of(stream), nullptr, state, 0);
+    if (!Fn_6a65e0() && (at<u8>(ios_of(stream), 0xc) & 2)) flush_stream(stream);
+    return stream;
 }
 }

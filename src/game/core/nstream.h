@@ -46,4 +46,12 @@ u8 *__fastcall NCtype_Ctor(u8 *self, void *, u8 *table, u32 del, u32 refs);
 // bit 0) skips the units the ctype facet (the id 0xfb1da4; on the classic locale the one kept at 0xf827e0, made with a use on the first use; else bad_cast thrown) marks 0x48 in its table +0x10. Answers
 // 1 with the state good, else 0 with failbit set.
 u8 __fastcall NIstream_Ipfx(u8 *self, void *, u32 noskip);
+// 0x5cfe40 (thiscall (text, count, delimiter), pops 12; basic_istream<char>::getline, by its shape; name invented, unconfirmed): the twin of WIstream_Getline: gcount +4 from 0, NIstream_Ipfx (1); with a positive count, units up to the
+// delimiter's low byte (counted, not stored) or count less one; an end of file sets eofbit, a full text failbit, nothing read failbit. The text always ended. Returns self.
+u8 *__fastcall NIstream_Getline(u8 *self, void *, char *text, u32 count, u32 delimiter);
+// 0x5d3530 (thiscall (text, count), pops 8; basic_istream<char>::read, by its shape; name invented, unconfirmed): gcount +4 from 0, NIstream_Ipfx (1); then the buffer's slot 0x18 (text, count) adds to gcount, and less than count sets eofbit and failbit. Returns self.
+u8 *__fastcall NIstream_Read(u8 *self, void *, char *text, u32 count);
+// 0x5d0e70 (cdecl (stream, text); operator<<(ostream &, const char *), by its shape; name invented, unconfirmed): the twin of WOstream_PutText: pads with the ios's fill up to its width +0x14 (before the text unless adjusted left, 0x40 of
+// the flags' 0x1c0; after it otherwise), the buffer's slot 0x1c writes the text, the width cleared; any failure badbit; a failed NOstream_Opfx badbit alone. Then with no exception uncaught (Fn_6a65e0) and unitbuf (2) the stream is flushed. Returns the stream.
+u8 *__cdecl NOstream_PutText(u8 *stream, const char *text);
 }
