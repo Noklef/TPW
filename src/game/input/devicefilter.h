@@ -91,6 +91,34 @@ u8 *__fastcall DeviceFilter_Ctor(u8 *self);
 void __fastcall DeviceFilter_Dtor(u8 *self);
 u8 *__fastcall DeviceFilter_DeletingDtor(u8 *self, void *, u32 flags);
 
+// 0x633ed0 (thiscall; message, pops 4): a key's press (flag 8 of +0x20) or release kept in the flags at +0x20 (alt 4, control 2, shift 1), the flags into the message's +0x20; passed on
+// (slot 0x18). Tab (0xf) pressed with alt held: the message marked handled-elsewhere (+8 = 0), not passed on.
+void __fastcall ModifierFilter_OnKey(u8 *self, void *, u8 *message);
+// 0x633470 / 0x633e20 (thiscall): the destructors: the holders +0x120, +0x11c released (0x633470) or the vtables 0x703ca0, 0x703c98 set (0x633e20); InputSubs_Dtor at +0x10, +0xc = 0x703748,
+// Class703780_DtorF.
+void __fastcall KeyFilter_Dtor(u8 *self);
+void __fastcall CharFilter_Dtor(u8 *self);
+// 0x6331c0 (thiscall; result out, pops 4): the handle closed, a new event at +8. A failure: the last error. Returns out.
+u32 *__fastcall InputFilter_OpenEvent(u8 *self, void *, u32 *result);
+// 0x634360 (thiscall; message, pops 4): a motion on axis 0 or 4 (+0xc; other axes: only the clamp): with +0x5c set, doubled past the thresholds +0x50 (level +0x58 >= 1) and +0x54 (level 2),
+// scaled by +0x30, added to the position and the wanted position; clamped; the pointer at +0xc ticked with the message's time; passed on (slot 0x14).
+void __fastcall MouseFilter_OnMove(u8 *self, void *, u8 *message);
+// 0x633280 (thiscall): under the lock at +0x34, the pending values of the vector at +0x28 given to the sink (+0xc, slot 0x10) and dropped; the event +8 reset.
+void __fastcall InputFilter_DrainValues(u8 *self);
+// 0x63e970 (thiscall): up to 0x20 records of 0x10 bytes read from the device (+0x1c, COM slot 0x28) into +0x30: the device lost: Apply; else any read go on through slot 0x14.
+void __fastcall DeviceFilter_Poll(u8 *self);
+// 0x6342f0 (thiscall (flags), pops 4): Class703780_DtorF; with bit 0, freed. Returns self.
+u8 *__fastcall BaseFilter_DeletingDtor(u8 *self, void *, u32 flags);
+// 0x633540 (thiscall on +0xc; unused, message, pops 8): ReadState with the message's +4. 0x633560 / 0x6335b0 (thiscall; result out, holder, pops 8): the holder kept at +0x11c / +0x120 (slot 4),
+// the old one released (slot 0), the state read from it. 0: returned.
+void __fastcall KeyFilter_OnDeviceEvent(u8 *self, void *, u32 unused, const u32 *message);
+u32 *__fastcall KeyFilter_SetKeyboard(u8 *self, void *, u32 *result, u8 *holder);
+u32 *__fastcall KeyFilter_SetMouse(u8 *self, void *, u32 *result, u8 *holder);
+
+// 0x6350d0 / 0x6350e0: the constants 0x707c50 and 0x67a460.
+u32 __cdecl MessageSource_Constant1();
+u32 __cdecl MessageSource_Constant2();
+
 // 0x6348e0 / 0x6348f0: the constants 0x707c40 and 0x679440.
 u32 __cdecl MouseFilter_Constant1();
 u32 __cdecl MouseFilter_Constant2();

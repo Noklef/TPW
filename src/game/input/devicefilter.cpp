@@ -6,8 +6,12 @@
 #include "../core/accessors.h"
 #include "../core/gameheap.h"
 #include "../core/misc.h"
+#include "../core/result.h"
+#include "../core/sectionlock.h"
 #include "../core/selectors.h"
 #include "../core/vcall.h"
+#include "../core/vdtor.h"
+#include "../math/x87.h"
 
 namespace {
 
@@ -30,6 +34,14 @@ s32 Ftol(float v) { return (s32)(u32)(long long)v; }
 void passOn(u8 *self, u8 *message, u32 slot) {
     if (u8 *const next = at<u8 *>(self, 8)) vcall<void>(next, slot, message);
     else at<u32>(message, 8) = 0;
+}
+
+// The holder at the slot replaced (the new one kept, the old released), the state read from it.
+void setHolder(u8 *self, u32 slot, u8 *holder) {
+    if (holder) vcall<void>(holder, 4);
+    if (u8 *const old = at<u8 *>(self, slot)) vcall<void>(old, 0);
+    at<u8 *>(self, slot) = holder;
+    KeyFilter_ReadState(self, nullptr, holder ? static_cast<u32>(reinterpret_cast<uintptr_t>(holder + 0x10)) : 0);
 }
 
 template <typename... A> void handler(u32 function, A... args) { reinterpret_cast<void(__cdecl *)(A...)>(static_cast<uintptr_t>(function))(args...); }
@@ -361,6 +373,125 @@ void __fastcall DeviceFilter_Dtor(u8 *self) {
     DeviceHolder_Dtor(self + 0x10);
     InputFilter_Dtor(self);
 }
+
+void __fastcall ModifierFilter_OnKey(u8 *self, void *, u8 *message) {
+    const u32 key = at<u32>(message, 0x10);
+    u32 &flags = at<u32>(self, 0x20);
+    if (at<u32>(message, 0x20) & 8) {
+        switch (key) {
+        case 0x1d: case 0x9d: flags |= 2; break;
+        case 0x2a: case 0x36: flags |= 1; break;
+        case 0x38: case 0xb8: flags |= 4; break;
+        case 0xf:
+            if (flags & 4) {
+                at<u32>(message, 8) = 0;
+                return;
+            }
+            break;
+        default: break;
+        }
+    } else {
+        switch (key) {
+        case 0x1d: case 0x9d: flags &= ~2u; break;
+        case 0x2a: case 0x36: flags &= ~1u; break;
+        case 0x38: case 0xb8: flags &= ~4u; break;
+        default: break;
+        }
+    }
+    at<u32>(message, 0x20) = flags | (at<u32>(message, 0x20) & ~7u);
+    passOn(self, message, 0x18);
+}
+
+void __fastcall KeyFilter_Dtor(u8 *self) {
+    if (u8 *const holder = at<u8 *>(self, 0x120)) vcall<void>(holder, 0);
+    if (u8 *const holder = at<u8 *>(self, 0x11c)) vcall<void>(holder, 0);
+    InputSubs_Dtor(self + 0x10);
+    at<u32>(self, 0xc) = 0x00703748;
+    Class703780_DtorF(self);
+}
+
+void __fastcall CharFilter_Dtor(u8 *self) {
+    at<u32>(self, 0) = 0x00703ca0;
+    at<u32>(self, 0xc) = 0x00703c98;
+    InputSubs_Dtor(self + 0x10);
+    at<u32>(self, 0xc) = 0x00703748;
+    Class703780_DtorF(self);
+}
+
+u32 *__fastcall InputFilter_OpenEvent(u8 *self, void *, u32 *result) {
+    InputFilter_CloseHandle(self);
+    at<u32>(self, 8) = import<u32(__stdcall *)(u32, u32, u32, u32)>(0x006fd0d4)(0, 0, 0, 0);
+    if (!at<u32>(self, 8)) return reinterpret_cast<u32 *>(Result_FromLastError(reinterpret_cast<s32 *>(result)));
+    *result = 0;
+    return result;
+}
+
+void __fastcall MouseFilter_OnMove(u8 *self, void *, u8 *message) {
+    s32 delta = at<s32>(message, 0x10);
+    const u32 axis = at<u32>(message, 0xc);
+    if (at<u32>(self, 0x5c) && (axis == 0 || axis == 4)) {
+        const s32 level = at<s32>(self, 0x58);
+        if (level >= 1 && delta > at<s32>(self, 0x50)) delta *= 2;
+        if (level == 2 && delta > at<s32>(self, 0x54)) delta *= 2;
+    }
+    const X87Reg scaled = X87_MulIntDouble(delta, at<float>(self, 0x30));
+    if (axis == 0) {
+        at<float>(self, 0x20) = static_cast<float>(scaled + at<float>(self, 0x20));
+        at<float>(self, 0x28) = static_cast<float>(scaled + at<float>(self, 0x28));
+    } else if (axis == 4) {
+        at<float>(self, 0x24) = static_cast<float>(scaled + at<float>(self, 0x24));
+        at<float>(self, 0x2c) = static_cast<float>(scaled + at<float>(self, 0x2c));
+    }
+    MouseFilter_ClampPosition(self);
+    if (at<u32>(self, 0xc)) g_calls.Th(0x005fba10, at<u32>(self, 0xc), at<u32>(message, 4));
+    passOn(self, message, 0x14);
+}
+
+void __fastcall InputFilter_DrainValues(u8 *self) {
+    u32 guard[3] = {at<u32>(self, 0x34), 0, 0};
+    SectionGuard_Enter(guard);
+    u32 *from = at<u32 *>(self, 0x28);
+    for (u32 count = from ? static_cast<u32>(static_cast<s32>(at<u32>(self, 0x2c) - at<u32>(self, 0x28)) >> 2) : 0; count; --count, ++from) vcall<void>(at<u8 *>(self, 0xc), 0x10, *from);
+    u32 *to = at<u32 *>(self, 0x28);
+    u32 *const end = at<u32 *>(self, 0x2c);
+    while (from != end) *to++ = *from++;
+    at<u32 *>(self, 0x2c) = to;
+    import<s32(__stdcall *)(u32)>(0x006fd168)(at<u32>(self, 8));   // ResetEvent
+    SectionGuard_Dtor(guard);
+}
+
+void __fastcall DeviceFilter_Poll(u8 *self) {
+    u32 count = 0x20;
+    if (com(at<u8 *>(self, 0x1c), 0x28, 0x10u, at<u32>(self, 0x30), &count, 0u) == 0x8007001e) {
+        u32 result;
+        DeviceHolder_Apply(self + 0x10, nullptr, &result);
+        return;
+    }
+    if (count) vcall<void>(self, 0x14, count);
+}
+
+u8 *__fastcall BaseFilter_DeletingDtor(u8 *self, void *, u32 flags) {
+    Class703780_DtorF(self);
+    if (flags & 1) GameHeap_Free(self);
+    return self;
+}
+
+void __fastcall KeyFilter_OnDeviceEvent(u8 *self, void *, u32, const u32 *message) { KeyFilter_ReadState(self - 0xc, nullptr, message[1]); }
+
+u32 *__fastcall KeyFilter_SetKeyboard(u8 *self, void *, u32 *result, u8 *holder) {
+    setHolder(self, 0x11c, holder);
+    *result = 0;
+    return result;
+}
+
+u32 *__fastcall KeyFilter_SetMouse(u8 *self, void *, u32 *result, u8 *holder) {
+    setHolder(self, 0x120, holder);
+    *result = 0;
+    return result;
+}
+
+u32 __cdecl MessageSource_Constant1() { return 0x00707c50; }
+u32 __cdecl MessageSource_Constant2() { return 0x0067a460; }
 
 void __fastcall ChainFilter_Attach(u8 *self, void *, u8 *object) { vcall<void>(object, 0x14, self); }
 void __fastcall ChainFilter_Detach(u8 *self, void *, u8 *object) { vcall<void>(object, 0x18, self); }
