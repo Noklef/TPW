@@ -6064,6 +6064,10 @@ address,name,kind,confidence,notes
 0x006a8b20,MoneypunctC_PositiveSign,function,low,reimplemented (src/game/core/moneypunct); do_positive_sign
 0x006a8bf0,MoneypunctC_NegativeSign,function,low,reimplemented (src/game/core/moneypunct); do_negative_sign
 0x006a73f0,Facet709fac_Get,function,low,reimplemented (src/game/core/moneypunct); the facet's do_get
+0x0069c900,MoneypunctW_CurrSymbol,function,low,reimplemented (src/game/core/moneypunct); do_curr_symbol
+0x0069c9d0,MoneypunctW_PositiveSign,function,low,reimplemented (src/game/core/moneypunct); do_positive_sign
+0x006a1b20,MoneypunctW_NegativeSign,function,low,reimplemented (src/game/core/moneypunct); do_negative_sign
+0x006a0370,WFacet709c0c_Get,function,low,reimplemented (src/game/core/moneypunct); the facet's do_get
 0x0068bad0,CRT_abstract_cw,function,low,reimplemented (src/game/core/crtfloat); _abstract_cw
 0x0068bb70,CRT_hw_cw,function,low,reimplemented (src/game/core/crtfloat); _hw_cw
 0x0068f9d0,CRT_addl,function,low,reimplemented (src/game/core/crtfloat); __addl

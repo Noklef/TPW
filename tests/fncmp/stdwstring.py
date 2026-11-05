@@ -8,13 +8,14 @@ sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'
 from fncmp import Bench, Call, HEAP, RAM, heap, put  # noqa: E402
 
 # (with the wide string's helpers: the traits' move, the counted buffer reset, max_size and wcslen)
-B = Bench([(0x6a1750, 0x6a1880), (0x69cf70, 0x69d034), (0x4051d0, 0x405272), (0x405280, 0x405390), (0x479150, 0x4791b0), (0x47b750, 0x47bcf0), (0x4f23f0, 0x4f2450), (0x4f6080, 0x4f60a0),
+B = Bench([(0x69c900, 0x69c9c8), (0x69c9d0, 0x69ca98), (0x6a1b20, 0x6a1be8), (0x6a0370, 0x6a045d), (0x6a1750, 0x6a1880), (0x69cf70, 0x69d034), (0x4051d0, 0x405272), (0x405280, 0x405390), (0x479150, 0x4791b0), (0x47b750, 0x47bcf0), (0x4f23f0, 0x4f2450), (0x4f6080, 0x4f60a0),
            (0x67acd0, 0x67ad00), (0x4ea740, 0x4ea7e0), (0x47ae60, 0x47b060), (0x47b600, 0x47b750), (0x479230, 0x479256),
            (0x47cc10, 0x47cd00), (0x47b460, 0x47b5b0), (0x47d9d0, 0x47db00), (0x47d620, 0x47d780), (0x47b320, 0x47b460),
            (0x4f0170, 0x4f0237)])
 STRS, BLOCKS = RAM, RAM + 0x1000
 S, X = STRS, STRS + 0x10  # the string under test and a second one
 DEST = RAM + 0x800  # (UninitCopy's)
+TEXT, FACET = RAM + 0x2000, RAM + 0x2400
 SLOT = 0x100  # a block per string in BLOCKS: a pad byte, the count byte, then up to 0x7e characters + NUL
 
 
@@ -53,6 +54,16 @@ def case(r):
     put(strs, 0x14, '3I', *x)
     regions = {STRS: strs, BLOCKS: blocks, HEAP: heap()}
     small = r.choice([0, 1, r.randrange(40), r.randrange(30, 0x90), s[1], s[2], s[2] + 1])
+    if op in ('FacetText', 'FacetGet'):   # (out the string under test: its old contents never read but for the bytes of the allocator)
+        n = r.choice([0, 1, 5, 0x1f, 0x20, 0x60])
+        text = b''.join(struct.pack('<H', r.randrange(1, 0x10000)) for _ in range(n)) + bytes(2)
+        other = b''.join(struct.pack('<H', r.randrange(1, 0x10000)) for _ in range(r.choice([0, 3, 0x40]))) + bytes(2)
+        regions[FACET] = struct.pack('<7I', r.getrandbits(32), r.getrandbits(32), TEXT, TEXT + 0x100, TEXT, TEXT, TEXT + 0x100)
+        regions[TEXT] = text
+        regions[TEXT + 0x100] = other
+        if op == 'FacetText':
+            return Call(r.choice([0x69c900, 0x69c9d0, 0x6a1b20]), [FACET, S], regions, conv='t', ret='a')
+        return Call(0x6a0370, [FACET, S, r.getrandbits(32), r.getrandbits(32), r.choice([0, 0, 1, 1, 2, 3, 0xffffffff]), X], regions, conv='t', ret='a')
     if op == 'Grow':
         return Call(0x47bad0, [S, small, r.choice([0, 1, 0x100, r.getrandbits(32)])], regions, conv='t', ret='b')
     if op == 'Copy':
@@ -127,7 +138,7 @@ def case(r):
     return Call(0x47cc10 if op == 'Append' else 0x47b750, [S, src, pos, count], regions, conv='t', ret='a')
 
 
-KINDS = ['InsertFill', 'InsertFill', 'AppendFill', 'AppendFill', 'Grow', 'Copy', 'Split', 'Freeze', 'Fill', 'AssignSub', 'AssignSub', 'AssignSub', 'Entry', 'CtorCopy', 'CtorFill', 'UninitCopy',
+KINDS = ['FacetText', 'FacetText', 'FacetText', 'FacetGet', 'FacetGet', 'InsertFill', 'InsertFill', 'AppendFill', 'AppendFill', 'Grow', 'Copy', 'Split', 'Freeze', 'Fill', 'AssignSub', 'AssignSub', 'AssignSub', 'Entry', 'CtorCopy', 'CtorFill', 'UninitCopy',
          'Append', 'Append', 'Erase', 'Construct', 'CopyRange', 'VecErase', 'CtorChars', 'AssignChars']
 OPS = [k for k in os.environ.get('OPS', ','.join(KINDS)).split(',') if k]
 
