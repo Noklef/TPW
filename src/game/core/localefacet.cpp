@@ -503,4 +503,29 @@ Locimp *__cdecl Locimp_Makeloc(void *info, u32 cats, Locimp *imp, u8 **loc) {
     return imp;
 }
 
+u32 *__fastcall Locinfo_Gettnames(const void *, void *, u32 *out) {
+    *out = static_cast<u32>(reinterpret_cast<uintptr_t>(CRT_Gettnames()));
+    return out;
+}
+
+static void facet_dtor_two(u32 *self, u32 table) {
+    self[0] = table;
+    IosBase_Env().memFree(reinterpret_cast<void *>((uintptr_t)self[2]));
+    IosBase_Env().memFree(reinterpret_cast<void *>((uintptr_t)self[3]));
+    self[0] = 0x00709b44;
+}
+
+static void facet_dtor_one(u32 *self, u32 table) {
+    self[0] = table;
+    Crt().free(reinterpret_cast<void *>((uintptr_t)self[2]));
+    self[0] = 0x00709b44;
+}
+
+void __fastcall Facet709ed4_Dtor(u32 *self, void *) { facet_dtor_two(self, 0x00709ed4); }
+void __fastcall Facet709fac_Dtor(u32 *self, void *) { facet_dtor_two(self, 0x00709fac); }
+void __fastcall Facet70a024_Dtor(u32 *self, void *) { facet_dtor_two(self, 0x0070a024); }
+void __fastcall Facet709ef4_Dtor(u32 *self, void *) { facet_dtor_one(self, 0x00709ef4); }
+void __fastcall Facet70a044_Dtor(u32 *self, void *) { facet_dtor_one(self, 0x0070a044); }
+void __fastcall Timevec_Dtor(void **self, void *) { Crt().free(*self); }
+
 }  // extern "C"

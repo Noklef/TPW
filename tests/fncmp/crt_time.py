@@ -9,11 +9,11 @@ sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'
 from fncmp import IMPORT_TABLE, LOG, RAM, Bench, Call, _recorder, import_table, log_region, set_return  # noqa: E402
 
 GETPTD, LOCK, UNLOCK, NHMALLOC, TZSET, INC, DEC = 2, 7, 8, 28, 29, 14, 15
-B = Bench([(0x6902b0, 0x690394), (0x6903a0, 0x69048a), (0x690490, 0x6907f2), (0x690800, 0x690941), (0x690950, 0x690eee), (0x690ef0, 0x690f1d), (0x690f20, 0x690fb3), (0x690fc0, 0x691025), (0x691030, 0x6912dc), (0x687d40, 0x687d72),
+B = Bench([(0x688060, 0x688088), (0x6a4520, 0x6a453a), (0x6902b0, 0x690394), (0x6903a0, 0x69048a), (0x690490, 0x6907f2), (0x690800, 0x690941), (0x690950, 0x690eee), (0x690ef0, 0x690f1d), (0x690f20, 0x690fb3), (0x690fc0, 0x691025), (0x691030, 0x6912dc), (0x687d40, 0x687d72),
            (0x688090, 0x6882f9), (0x688300, 0x68849c), (0x6884a0, 0x688608), (0x67df40, 0x67e010), (0x67dcd0, 0x67dcf0)],
           hooks={0x682720: _recorder(LOCK, 1, cdecl=True), 0x6827a0: _recorder(UNLOCK, 1, cdecl=True), 0x67dcf0: _recorder(NHMALLOC, 2, cdecl=True), 0x687d80: _recorder(TZSET, 0, cdecl=True), 0x682460: _recorder(GETPTD, 0, cdecl=True)})
 WHEN, PTD, OUTVARS, OUT, FORMAT, NAMES, TZ, PCTYPE, STRINGS, BLOCK = RAM, RAM + 0x40, RAM + 0x90, RAM + 0x100, RAM + 0x400, RAM + 0x600, RAM + 0x700, RAM + 0x800, RAM + 0xc00, RAM + 0x3000
-OPS = [n for n in ('strftime', 'strftime', 'strftime', 'expandtime', 'store_winword', 'store_str', 'store_num', 'store_number', 'gettnames', 'getdays', 'getmonths', 'tzset', 'cvtdate', 'gmtime', 'isindst', 'isindst') if not os.environ.get('OPS') or n in os.environ['OPS'].split(',')]
+OPS = [n for n in ('isindstlock', 'locinfo', 'strftime', 'strftime', 'strftime', 'expandtime', 'store_winword', 'store_str', 'store_num', 'store_number', 'gettnames', 'getdays', 'getmonths', 'tzset', 'cvtdate', 'gmtime', 'isindst', 'isindst') if not os.environ.get('OPS') or n in os.environ['OPS'].split(',')]
 PICTURES = [b'd', b'dd', b'ddd', b'dddd', b'ddddd', b'M', b'MM', b'MMM', b'MMMM', b'MMMMM', b'y', b'yy', b'yyy', b'yyyy', b'H', b'HH', b'HHH', b'h', b'hh', b'hhh', b'm', b'mm', b'mmm', b's', b'ss', b'sss', b't', b'tt', b'AM/PM', b'am/pm',
             b'A/P', b'a/p', b'A', b'a', b'aXm', b"'", b"''", b"'''", b"'te", b"xt'", b' ', b'/', b':', b'\x81x', b'\x81d', b"'\x81x'"]
 SPECS = b'aAbBcdHIjmMpSUwWxXyYzZ%q'
@@ -49,6 +49,9 @@ def case(r):
     regions[TZ] = b'PST\0'.ljust(0x10, b'\0') + b'PDT and more\0'
     set_return(log, NHMALLOC, r.choice([BLOCK, BLOCK, BLOCK, 0]))
     regions[BLOCK] = bytes(0x800)
+    if name == 'locinfo':
+        regions[OUTVARS] = r.bytes(4)
+        return Call(0x6a4520, [WHEN, OUTVARS], regions, conv='t', ret='a')
     if name in ('gettnames', 'getdays', 'getmonths'):
         return Call({'gettnames': 0x690490, 'getdays': 0x6902b0, 'getmonths': 0x6903a0}[name], [], regions, conv='c', ret='a')
     if name == 'tzset':
@@ -60,7 +63,7 @@ def case(r):
         year = r.choice([70, 71, 72, 99, 100, 101, 104, 199, 200, r.randrange(70, 300)])
         return Call(0x688300, [r.choice([0, 1, 1, 2]), r.choice([0, 1, 1, 1, 2]), year, r.randrange(12), r.choice([1, 2, 3, 4, 5, 5]), r.randrange(7), r.choice([0, 1, 15, 31, 366]),
                                r.choice([0, 1, 2, 23, 24, 0xffffffff]), r.choice([0, 30, 59]), r.choice([0, 59, 86399]), r.choice([0, 1, 999])], regions, conv='c')
-    if name == 'isindst':
+    if name in ('isindst', 'isindstlock'):
         year = r.choice([71, 72, 99, 100, r.randrange(70, 200)])
         start, end = r.randrange(366), r.randrange(366)
         if r.random() < 0.5:
@@ -81,7 +84,7 @@ def case(r):
             struct.pack_into('<i', block, 0x18, seconds * 1000)
             regions[0x781470] = block
             regions[WHEN] = struct.pack('<9i', seconds % 60, seconds // 60 % 60, seconds // 3600, 1, 0, year, 0, yearday, 0)
-        return Call(0x688090, [WHEN], regions, conv='c', ret='a')
+        return Call(0x688090 if name == 'isindst' else 0x688060, [WHEN], regions, conv='c', ret='a')
     if name == 'gmtime':
         regions[PTD] = struct.pack('<I', r.choice([0, 0, BLOCK + 0x100])).rjust(0x44, b'\0')
         set_return(log, GETPTD, PTD)

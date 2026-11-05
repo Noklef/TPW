@@ -44,4 +44,7 @@ void __cdecl CRT_store_number(s32 number, char **out, u32 *left);
 // 0x691030: _store_winword: a Windows date or time picture (dd, MMMM, hh, 'text' and so on) through _expandtime. The picture's one-letter forms ask for no leading zeros, but _expandtime sets that again from the alternate form.
 void __cdecl CRT_store_winword(const char *format, const s32 *when, char **out, u32 *left, char *const *names);
 
+// 0x688060: _isindst: _isindst_lk under lock 0xb.
+s32 __cdecl CRT_isindst(const s32 *when);
+
 }  // extern "C"

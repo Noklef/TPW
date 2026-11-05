@@ -75,4 +75,17 @@ StdString *__fastcall Locinfo_GetName(const u8 *self, void *, StdString *out);
 
 // 0x694120: _Locimp::_Makeloc: for the categories in cats (2: ctype and codecvt, 8: numeric), each facet new from the _Locinfo when loc is null, else loc's own or the classic one; then _Makexloc and _Makewloc, the categories added, the name from _Locinfo. Returns imp.
 Locimp *__cdecl Locimp_Makeloc(void *info, u32 cats, Locimp *imp, u8 **loc);
+// 0x6a4520 (thiscall, pops 4): _Locinfo::_Gettnames: the block of _Gettnames in the _Timevec out, which is returned.
+u32 *__fastcall Locinfo_Gettnames(const void *self, void *, u32 *out);
+
+// Destructor bodies of the facets of these vtables (names invented, by the table, unconfirmed; thiscall): the vtable set, the blocks +8 and +0xc freed by Mem_Free, then the locale facet's vtable 0x709b44: 0x6a4460, 0x6a74c0, 0x6ab0b0.
+void __fastcall Facet709ed4_Dtor(u32 *self, void *);
+void __fastcall Facet709fac_Dtor(u32 *self, void *);
+void __fastcall Facet70a024_Dtor(u32 *self, void *);
+// The same with the block +8 alone, by free: 0x6a4770, 0x6ab390.
+void __fastcall Facet709ef4_Dtor(u32 *self, void *);
+void __fastcall Facet70a044_Dtor(u32 *self, void *);
+// 0x6a4510 (thiscall): _Timevec's destructor: free of its block.
+void __fastcall Timevec_Dtor(void **self, void *);
+
 }

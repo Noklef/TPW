@@ -463,4 +463,11 @@ u32 __cdecl CRT_Strftime(char *out, u32 size, const char *format, const s32 *whe
     return size - left;
 }
 
+s32 __cdecl CRT_isindst(const s32 *when) {
+    CrtInner().lock(0xb);
+    const s32 result = CRT_isindst_lk(when);
+    CrtInner().unlock(0xb);
+    return result;
+}
+
 }  // extern "C"

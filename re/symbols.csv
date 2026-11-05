@@ -6050,6 +6050,7 @@ address,name,kind,confidence,notes
 0x00688300,CRT_cvtdate,function,low,reimplemented (src/game/core/crttime); cvtdate
 0x006884a0,CRT_gmtime,function,low,reimplemented (src/game/core/crttime); gmtime
 0x00688090,CRT_isindst_lk,function,low,reimplemented (src/game/core/crttime); _isindst_lk
+0x00688060,CRT_isindst,function,low,reimplemented (src/game/core/crttime); _isindst
 0x006ab880,MoneypunctC_Init,function,low,reimplemented (src/game/core/moneypunct); moneypunct<char>::_Init
 0x006a4f20,MoneypunctW_Init,function,low,reimplemented (src/game/core/moneypunct); moneypunct<wchar_t>::_Init
 0x006a8830,MoneypunctC_Ctor,function,low,reimplemented (src/game/core/moneypunct); moneypunct<char>'s constructor
@@ -6208,6 +6209,7 @@ address,name,kind,confidence,notes
 0x006a74f0,Facet709f9c_Ctor,function,low,reimplemented (src/game/core/localefacet); facet of vtable 0x709f9c: constructor
 0x006a9200,Facet709f8c_Ctor,function,low,reimplemented (src/game/core/localefacet); facet of vtable 0x709f8c: constructor
 0x006a49e0,Facet_WidenedCopy,function,low,reimplemented (src/game/core/localefacet); wide copy of a text
+0x006a4520,Locinfo_Gettnames,function,low,reimplemented (src/game/core/localefacet); _Locinfo::_Gettnames
 0x006895b0,CRT_mbctolower,function,low,reimplemented (src/game/core/crtmbstring); _mbctolower
 0x00689650,CRT_mbspbrk,function,low,reimplemented (src/game/core/crtmbstring); _mbspbrk
 0x00689400,CRT_mbsrchr,function,low,reimplemented (src/game/core/crtmbstring); _mbsrchr
