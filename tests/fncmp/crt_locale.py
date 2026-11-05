@@ -10,7 +10,7 @@ from fncmp import HEAP, IMPORT_TABLE, LOG, RAM, Bench, Call, _free, _recorder, a
 
 LOCK, UNLOCK, NHMALLOC, INIT = 7, 8, 28, 9
 LCID, VERSION, VALIDCP, VALIDLOCALE, ENUM, INFO = 14, 15, 16, 17, 18, 19
-B = Bench([(0x68d800, 0x68d833), (0x68d840, 0x68d8a6), (0x68e680, 0x68e6be), (0x683ac0, 0x683d88), (0x683d90, 0x683ee5), (0x683ef0, 0x68400b), (0x684010, 0x684202), (0x684210, 0x684254), (0x684260, 0x684367), (0x684370, 0x6843da), (0x68db70, 0x68dbae), (0x67c250, 0x67c288), (0x68dbb0, 0x68dd41),
+B = Bench([(0x68e450, 0x68e471), (0x68d800, 0x68d833), (0x68d840, 0x68d8a6), (0x68e680, 0x68e6be), (0x683ac0, 0x683d88), (0x683d90, 0x683ee5), (0x683ef0, 0x68400b), (0x684010, 0x684202), (0x684210, 0x684254), (0x684260, 0x684367), (0x684370, 0x6843da), (0x68db70, 0x68dbae), (0x67c250, 0x67c288), (0x68dbb0, 0x68dd41),
            (0x68dd50, 0x68ddad), (0x68ddb0, 0x68de3a), (0x68e120, 0x68e17e), (0x68e260, 0x68e29e), (0x68e340, 0x68e35b), (0x68e360, 0x68e443), (0x68e510, 0x68e549), (0x68e6c0, 0x68e6e1),
            (0x67d7f0, 0x67d82a), (0x67dcd0, 0x67dcf0), (0x67df40, 0x67e010), (0x67a480, 0x67a519), (0x688730, 0x68876d), (0x688770, 0x6887d1), (0x67ae00, 0x67aefe), (0x689180, 0x6891af), (0x686a00, 0x686a19)],
           hooks={0x682720: _recorder(LOCK, 1, cdecl=True), 0x6827a0: _recorder(UNLOCK, 1, cdecl=True), 0x67dcf0: _recorder(NHMALLOC, 2, cdecl=True), 0x67ad90: _free})
@@ -31,7 +31,7 @@ PLAIN = [b'', b'a', b'abc', b'ABC', b'ab1', b'@', b'[', b'`', b'{', b'Z', b'z', 
 KEY_LIST = [b'america', b'canadian', b'english', b'french', b'german', b'usa']
 QUERIES = KEY_LIST + [b'ENGLISH', b'aaa', b'zzz', b'french2', b'', b'b', b'f', b'german ']
 CODE_PAGES = [None, b'', b'ACP', b'OCP', b'1252', b'abc', b'acp', b'ACP2', b'932x', b'0', b'-1', b'  7']
-OPS = [n for n in ('fixgrouping', 'fixgrouping', 'freemon', 'freemon', 'hex', 'strncmp', 'strcspn', 'strcats', 'strtolc', 'strtolc', 'lctostr', 'primary', 'isnt', 'translate', 'translate', 'langcountry', 'language', 'country', 'default', 'codepage', 'qualified', 'qualified', 'qualified', 'expand', 'expand', 'expand',
+OPS = [n for n in ('testcountry', 'fixgrouping', 'fixgrouping', 'freemon', 'freemon', 'hex', 'strncmp', 'strcspn', 'strcats', 'strtolc', 'strtolc', 'lctostr', 'primary', 'isnt', 'translate', 'translate', 'langcountry', 'language', 'country', 'default', 'codepage', 'qualified', 'qualified', 'qualified', 'expand', 'expand', 'expand',
                        'getall', 'getall', 'setcat', 'setcat', 'setcat', 'setlocale', 'setlocale', 'setlocale', 'setlocale', 'setlocale') if not os.environ.get('OPS') or n in os.environ['OPS'].split(',')]
 
 
@@ -45,6 +45,9 @@ def names(r):
 
 def case(r):
     name = r.deal(OPS)
+    if name == 'testcountry':   # (the table read where it lies)
+        languages = [r.choice([0xc0c, 0xc1a, 0x1007, 0x436, r.getrandbits(16)]) for _ in range(11)]
+        return Call(0x68e450, [r.choice(languages + [0x409, 0x10c0c, r.getrandbits(32)])], {0x781a20: struct.pack('<11H', *languages)}, conv='c', ret='a')
     log = log_region()
     regions = {LOG: log, HEAP: heap(0x4000),
                IMPORT_TABLE: import_table(log, {'lcid': (LCID, 0x6fd260, 0, 0, 0), 'version': (VERSION, 0x6fd264, 1, 0, 1), 'validcp': (VALIDCP, 0x6fd288, 1, 0, 0), 'validlocale': (VALIDLOCALE, 0x6fd284, 2, 0, 0), 'enum': (ENUM, 0x6fd1f8, 2, 0, 0), 'info': (INFO, 0x6fd28c, 4, 0, 0b100)})}

@@ -61,4 +61,7 @@ char *__cdecl CRT_setlocale_set_cat(s32 category, const char *locale);
 
 // 0x683ac0: setlocale, under lock 0x13 with [0xfb3ca4] counted, waiting for [0xfb3ca8] to be 0.
 char *__cdecl CRT_setlocale(s32 category, const char *locale);
+// 0x68e450: TestDefaultCountry: 0 for a language id (the low word) in the ten of [0x781a20], else 1.
+u32 __cdecl CRT_TestDefaultCountry(u32 lcid);
+
 }

@@ -390,3 +390,11 @@ char *__cdecl CRT_setlocale(s32 category, const char *locale) {
     --global<s32>(0x00fb3ca4);
     return result;
 }
+
+u32 __cdecl CRT_TestDefaultCountry(u32 lcid) {
+    const u16 *const languages = reinterpret_cast<const u16 *>((uintptr_t)0x00781a20);
+    for (u32 i = 0; i < 10; ++i) {
+        if (languages[i] == static_cast<u16>(lcid)) return 0;
+    }
+    return 1;
+}
