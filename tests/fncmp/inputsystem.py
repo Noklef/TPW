@@ -7,7 +7,7 @@ import struct
 import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
-from fncmp import HEAP, IMPORT_TABLE, LOG, RAM, Bench, Call, Mask, _recorder, blob, echo, fill, fill_this, heap, log_fold, log_region, put, recorder, set_return, strings, vtable  # noqa: E402
+from fncmp import HEAP, IMPORT_TABLE, LOG, RAM, Bench, Call, Mask, _fill_at, _recorder, blob, echo, fill, fill_this, heap, log_fold, log_region, put, recorder, set_return, strings, vtable  # noqa: E402
 
 C631870, C633360, C633900, C634220, C6345D0, C634EE0, CLASSCA0 = 10, 15, 14, 6, 22, 24, 4
 F631FC0, F632020, F6323E0, F6336F0, F633160, F633920, F634310 = 29, 30, 30, 20, 19, 18, 21
@@ -38,16 +38,17 @@ def result(r):
 
 
 def setup(r, log, regions):
-    """The answers common to all: out arguments masked and filled, the ctors' answers, the fake objects."""
+    """The answers common to all: out arguments masked and filled, the ctors' answers, the fake objects. Half the cases seldom fail, so that the long chains get to their ends."""
     log_fold(log)
     for k in (F6326E0, F633B90, F633340, F633EA0, F6345A0, F634A30, F6328B0, F6328D0, F6335B0, F633560, F6341D0, F633D10, 8):
         strings(log, k, 0, 1)
+    pool = RESULTS if r.randrange(2) else [0] * 24 + [1, 0x4ffe0002, 0x80004005]
     for which, k in enumerate((F6326E0, F633B90, F633340, F633EA0, F6345A0, F634A30, F6328B0)):
-        fill(log, k, 0, struct.pack('<3I', result(r), result(r), result(r)), which=which, records=3)
+        fill(log, k, 0, struct.pack('<3I', r.choice(pool), r.choice(pool), r.choice(pool)), which=which, records=3)
     echo(log, F6326E0, 0)
     echo(log, F6328B0, 0)
     for i, k in enumerate((C631870, C633360, C6345D0, C634EE0, CLASSCA0)):
-        set_return(log, k, r.choice([fake(i), fake(i), fake(i), fake(i), fake(i), fake(i), fake(i), 0]))
+        set_return(log, k, 0 if pool is RESULTS and not r.randrange(8) or not r.randrange(24) else fake(i))
     regions[VT] = vtable({1: 1, 2: 1, 8: 2})
     for i in range(10):
         regions[fake(i)] = struct.pack('<I', VT) + r.bytes(0xfc)
@@ -162,7 +163,9 @@ def init(r, log, regions):
 
 
 def posting(log):
+    """Slot 3 is EventQueue_Post here: no out argument, and the fill of 0x6326e0, whose slot it shares, must go (it would write through the channel)."""
     strings(log, POST, 0, 0)
+    log[_fill_at(0) - LOG:_fill_at(0) - LOG + 0x10] = bytes(0x10)
     blob(log, POST, 1, 0b11)
 
 
@@ -223,12 +226,13 @@ CASES = {'update': update, 'wupdate': wrapper_update, 'init': init, 'baseinit': 
          'd74': device74_dtor(0x617e00, False), 'del74': device74_dtor(0x617de0, True), 'thunk74': device74_dtor(0x6181b0, True, 0x10),
          'd64': chain64_dtor(0x6189d0, False), 'del64': chain64_dtor(0x6189b0, True), 'thunk64': chain64_dtor(0x618c80, True, 0x64)}
 OPS = [n for n in CASES if not os.environ.get('OPS') or n in os.environ['OPS'].split(',')]
+OPS += [n for n in ('init', 'event') if n in OPS] * 6   # (the two with the most paths)
 
 
 def case(r):
     name = r.deal(OPS)
     log = log_region()
-    regions = {LOG: log, HEAP: heap(0x1000, fail=r.choice([0] * 12 + [1, 2, 3, 4, 5, 6])), OUT: r.bytes(4)}
+    regions = {LOG: log, HEAP: heap(0x1000, fail=r.choice([0] * 24 + [1, 2, 3, 4, 5, 6])), OUT: r.bytes(4)}
     setup(r, log, regions)
     return CASES[name](r, log, regions)
 
