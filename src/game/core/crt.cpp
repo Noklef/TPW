@@ -244,6 +244,12 @@ void __fastcall CRT_exception_Dtor(u32 *self) {
     if (owned) g_inner->memFree(reinterpret_cast<void *>((uintptr_t)self[1]));
 }
 
+u32 *__fastcall CRT_exception_DeletingDtor(u32 *self, void *, u32 flags) {
+    CRT_exception_Dtor(self);
+    if (flags & 1) g_inner->memFree(self);
+    return self;
+}
+
 u32 *__fastcall CRT_exception_Ctor(u32 *self, void *, const char *const *text) {
     self[0] = 0x007089c4;
     const u32 size = (u32)strlen(*text) + 1;
@@ -781,6 +787,14 @@ s32 __cdecl CRT_toupper(s32 c) {
     if (!locale_set()) return c >= 0x61 && c <= 0x7a ? c - 0x20 : c;
     const bool locked = locale_enter();
     const s32 result = CRT_toupperLocked(c);
+    locale_leave(locked);
+    return result;
+}
+
+s32 __cdecl CRT_tolower(s32 c) {
+    if (!locale_set()) return c >= 0x41 && c <= 0x5a ? c + 0x20 : c;
+    const bool locked = locale_enter();
+    const s32 result = CRT_tolowerLocked(c);
     locale_leave(locked);
     return result;
 }

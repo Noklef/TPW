@@ -113,6 +113,7 @@ s32 __cdecl CRT_fclose(void *file);
 
 // 0x67d320 (thiscall): exception's destructor: the vtable 0x7089c4 set, the text +4 freed if it is owned (+8).
 void __fastcall CRT_exception_Dtor(u32 *self);
+u32 *__fastcall CRT_exception_DeletingDtor(u32 *self, void *, u32 flags);  // 0x67d230
 
 // 0x67d250 (thiscall (&text), pops 4): exception(const char *const &): the vtable, a copy of the text +4 (0 if the allocation fails), owned +8. Returns self.
 u32 *__fastcall CRT_exception_Ctor(u32 *self, void *edx, const char *const *text);
@@ -245,6 +246,7 @@ u32 __cdecl CRT_strtoul(const char *text, const char **end, s32 base);
 
 // 0x67faf0: _tolower_lk: the same as _toupper_lk for the upper case.
 s32 __cdecl CRT_tolowerLocked(s32 c);
+s32 __cdecl CRT_tolower(s32 c);  // 0x67fa60
 
 // 0x67f670: _strnicmp: -1, 0, 1 over at most n bytes. No locale: through A-Z, the bytes as they are when one ends. Else through _tolower_lk under the locale's count or lock 0x13; both
 // words keep what the map left above their bytes (sic), so that an end is not seen under a two-byte answer.
