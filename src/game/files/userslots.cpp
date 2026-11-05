@@ -5,13 +5,17 @@
 
 #include "../core/crt.h"
 #include "../core/gameheap.h"
+#include "../core/globalsave.h"
 #include "../core/stdlist.h"
 #include "../core/stdstring.h"
 #include "../core/string.h"
 #include "../core/thunks.h"
 #include "../core/trivial.h"
 #include "../core/vcall.h"
+#include "direntry.h"
+#include "file.h"
 #include "gamepaths.h"
+#include "handles.h"
 
 namespace {
 
@@ -28,6 +32,117 @@ const UserSlotsEnv *g_env = &kGameEnv;
 }  // namespace
 
 void UserSlots_SetEnv(const UserSlotsEnv *env) { g_env = env ? env : &kGameEnv; }
+
+namespace {
+const UserSlotsScanEnv kScanGameEnv = {&GamePaths_SaveFolder, &GamePaths_UsersFolder, &GamePaths_OnlineFolder, &Handle_Open28, &Handle_Vfn1, &Handle_Vfn2, &Dir_Create, &DirEntry_IsRealDir,
+                                       reinterpret_cast<s32(__cdecl *)(s32)>((uintptr_t)0x0067a560), reinterpret_cast<s32(__cdecl *)(const char *)>((uintptr_t)0x0067a520), &UserSlots_SlotFolder, &GlobalSave_Construct,
+                                       reinterpret_cast<void(__fastcall *)(u8 *)>((uintptr_t)0x005af250), reinterpret_cast<void(__fastcall *)(u8 *, void *, const char *)>((uintptr_t)0x005afd70), &GlobalSave_Byte24, &GamePaths_MakeFolders};
+const UserSlotsScanEnv *g_scan = &kScanGameEnv;
+
+void DeleteGlobalSave() {
+    if (u8 *const info = at<u8 *>(nullptr, 0x00f7c58c)) {
+        g_scan->saveDtor(info);
+        GameHeap_Free(info);
+    }
+    at<u8 *>(nullptr, 0x00f7c58c) = nullptr;
+}
+
+void NewGlobalSave() {
+    void *const block = GameHeap_Alloc(0x50);
+    at<u8 *>(nullptr, 0x00f7c58c) = block ? g_scan->saveCtor(static_cast<u8 *>(block)) : nullptr;
+}
+
+// A folder of users named "<slot + 1><name>".
+void TakeSlot(u8 *self, const char *folderName, s32 slot) {
+    String name;
+    String_CtorStr(&name, nullptr, folderName);
+    StringView rest;
+    vcall<void>(&name, 0x1c, String_Right(&name, nullptr, &rest, name.length - 1));
+    u8 *const record = self + slot * 24;
+    WString_AssignFromAnsi(reinterpret_cast<WString *>(record), &name);
+    WString folder;
+    g_scan->slotFolder(self, nullptr, &folder, slot);
+    WString path;
+    WString_CtorCopy(&path, nullptr, &folder);
+    append(&path, wide(0x00f82508));
+    append(&path, wide(0x00f818a8));
+    String pathText;
+    String_Ctor(&pathText);
+    String_AssignFromWide(&pathText, &path);
+    DeleteGlobalSave();
+    const char *const text = pathText.data;
+    NewGlobalSave();
+    g_scan->saveLoad(at<u8 *>(nullptr, 0x00f7c58c), nullptr, text);
+    if (!at<u8 *>(nullptr, 0x00f7c58c)) NewGlobalSave();
+    at<u32>(record, 0x14) = g_scan->saveByte24(at<u8 *>(nullptr, 0x00f7c58c));
+    DeleteGlobalSave();
+    g_scan->makeFolders(self, nullptr, &folder);
+    String_Dtor(&pathText);
+    WString_Dtor(&path);
+    WString_Dtor(&folder);
+    String_Dtor(&name);
+}
+
+void WalkUsers(u8 *self, Handle *handle) {
+    u8 entry[0x118];   // (a DirEntry: +0x20 its name pointer, +0x24 the path buffer; the original's frame has this much)
+    at<u8 *>(entry, 0x20) = entry + 0x24;
+    entry[0x24] = 0;
+    s32 status;
+    const u32 address = static_cast<u32>(reinterpret_cast<uintptr_t>(entry));
+    if (*g_scan->first(handle, nullptr, &status, at<u32>(nullptr, 0x00f825d0), address) < 0) return;
+    do {
+        const char *const name = at<const char *>(entry, 0x20);
+        if (CRT_strlen(name) > 1 && g_scan->isRealDir(entry) && g_scan->isDigit(name[0])) {
+            const char digit[2] = {name[0], 0};
+            const s32 number = g_scan->atoi(digit);
+            if (number >= 1 && number <= 4) TakeSlot(self, name, number - 1);
+        }
+    } while (*g_scan->next(handle, nullptr, &status, address) >= 0);
+}
+}  // namespace
+
+void UserSlots_SetScanEnv(const UserSlotsScanEnv *env) { g_scan = env ? env : &kScanGameEnv; }
+
+void __fastcall UserSlots_Scan(u8 *self) {
+    for (u32 i = 0; i < 4; i++) {
+        vcall<void>(self + 24 * i, 0x14, 0x0078a374u);
+        at<u32>(self + 24 * i, 0x14) = 0;
+    }
+    WString saveWide, usersWide, onlineWide;
+    String save, users, online;
+    g_scan->saveFolder(&saveWide);
+    String_Ctor(&save);
+    String_AssignFromWide(&save, &saveWide);
+    g_scan->usersFolder(&usersWide);
+    String_Ctor(&users);
+    String_AssignFromWide(&users, &usersWide);
+    g_scan->onlineFolder(&onlineWide);
+    String_Ctor(&online);
+    String_AssignFromWide(&online, &onlineWide);
+    Handle handle;
+    Handle_Ctor(&handle);
+    handle.vtable = reinterpret_cast<void *const *>(0x006fd9e8);
+    s32 status;
+    const auto path = [](const String &s) { return static_cast<u32>(reinterpret_cast<uintptr_t>(s.data)); };
+    if (*g_scan->open(&handle, nullptr, &status, path(save)) < 0) {
+        g_scan->create(&status, save.data);
+        g_scan->create(&status, users.data);
+        g_scan->create(&status, online.data);
+    } else {
+        if (*g_scan->open(&handle, nullptr, &status, path(users)) < 0)
+            g_scan->create(&status, users.data);
+        else
+            WalkUsers(self, &handle);
+        if (*g_scan->open(&handle, nullptr, &status, path(online)) < 0) g_scan->create(&status, online.data);
+    }
+    Handle_Dtor(&handle);
+    String_Dtor(&online);
+    WString_Dtor(&onlineWide);
+    String_Dtor(&users);
+    WString_Dtor(&usersWide);
+    String_Dtor(&save);
+    WString_Dtor(&saveWide);
+}
 
 extern "C" {
 
