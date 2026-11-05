@@ -47,9 +47,15 @@ void __fastcall ViewCtl_UseFirstVector(u8 *self);
 // 0x5dd7a0 (Class702e70 slot 17; thiscall, self unused; name unconfirmed): the dialogs [0x7cdb0c] and [0x7cc4c4] sent message 6 (1, 0), then
 // the first's child 0x16007 (Dialog7cdb0c_Message6On, Dialog7cc4c4_Message6On, Dialog7cdb0c_Child16007Message6On, whose result is returned).
 s32 __fastcall ViewCtl702e70_ShowDialogs(u8 *self);
+// 0x5dd7b0 (thiscall, self unused; name invented, unconfirmed): the message 6 off to the dialog [0x7cdb0c], to [0x7cc4c4], then to the first's child 0x16007 with its answer.
+s32 __fastcall ViewCtl702e70_HideDialogs(u8 *self);
+// 0x5dd830 (thiscall; slot of the class 0x702e70; name invented, unconfirmed): ViewCtl702bc8_Update.
+void __fastcall ViewCtl702e70_Update(u8 *self);
 
 // 0x5dda70 (Class702e20 slot 17; thiscall, self unused; name unconfirmed): the same without the child (the second send's result).
 s32 __fastcall ViewCtl702e20_ShowDialogs(u8 *self);
+// 0x5dda80 (thiscall, self unused; name invented, unconfirmed): the message 6 off to the dialogs [0x7cdb0c] and [0x7cc4c4].
+void __fastcall ViewCtl702e20_HideDialogs(u8 *self);
 
 // 0x5e2620 (Class702dd0 slot 10; thiscall; name unconfirmed): the dialog [0x7cc47c] sent message 6 (1, 0) (Dialog7cc47c_Message6On; its
 // result returned), then +0xe8 = 1.

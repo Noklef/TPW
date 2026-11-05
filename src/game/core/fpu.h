@@ -29,6 +29,7 @@ FpuControl *__fastcall FpuControl_BaseDeletingDtor(FpuControl *f, void *edx, u32
 // +0 and the words at +8, +0xa, +0xc (saved, changed) cleared. Returns the object. 0x5f9f70 (cdecl): that for the global object at
 // 0xfa78e8 (its static initialiser; the byte is the screen's lock flag, gfx/screen).
 u8 *__fastcall Class7035d8_Ctor(u8 *object);
+void __fastcall Class7035d8_Dtor(u8 *object);  // 0x5fa020: the guard at +4 gets the vtable 0x7035dc and is restored
 u8 *__cdecl Class7035d8_InitGlobal();
 }
 

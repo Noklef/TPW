@@ -7,6 +7,10 @@ struct NarrowFileBufEnv {
     s32(__cdecl *fclose)(void *file);       // CRT_fclose (0x67b620)
     s32(__cdecl *ungetc)(u32 c, u32 file);  // 0x67cbe0
     s32(__cdecl *fgetc)(u32 file);          // 0x67cb90
+    void(__stdcall *cxxThrow)(void *object, const void *info);   // _CxxThrowException 0x67d3a0
+    void *(__fastcall *locinfoCtor)(void *self, void *, const char *name);   // _Locinfo's constructor 0x698fc0
+    void *(__fastcall *locinfoDtor)(void *self);   // _Locinfo's destructor 0x699100
+    u8 **(__fastcall *addfac)(u8 **self, void *, u8 *facet, u32 id, u32 category);   // locale::_Addfac 0x693f50
 };
 void NarrowFileBuf_SetEnv(const NarrowFileBufEnv *env);
 
@@ -34,4 +38,14 @@ s32 __fastcall NFileBuf_PutBack(u8 *buf, void *, s32 c);
 // 0x5cf200 uflow (name invented, unconfirmed): a char in the get area taken. No file: eof. No conversion: fgetc. Otherwise +0x3c = +0x40, the string emptied, bytes from fgetc appended one at a time, each followed by the
 // conversion's slot 4 (the string as from, a local byte as to) from the state +0x40 = +0x3c: 0 answers the local; 1 reads on; 3 with a byte or more answers the string's first, with none reads on; others, or no byte, eof.
 s32 __fastcall NFileBuf_Uflow(u8 *buf);
+// The narrow twins of core/wfilebuf's CodecvtW_Ctor, Locale_WithCodecvt, WFileBuf_InitConversion and WFileBuf_Open (names invented, unconfirmed).
+// 0x5d1390 (thiscall (refs), pops 4; an SEH frame, dropped): codecvt<char, char, mbstate_t>'s constructor, by its shape: +4 = refs, vtable 0x709b8c, a _Locinfo ("C") on the stack (frame 0x44 B) around CRT_Getcvt, whose answer is +8, +0xc.
+u8 *__fastcall NCodecvt_Ctor(u8 *self, void *, u32 refs);
+// 0x5d1220 (cdecl (&out, locale by value, facet)): the id 0xfb275c given out on the first use; locale::_Addfac (facet, id, 2) on the argument; out = what that answers, with a use; the argument's use lost.
+u8 **__cdecl Locale_WithNCodecvt(u8 **out, u8 *locale, u8 *facet);
+// 0x5d0b80 (an SEH frame, dropped; basic_filebuf<char>'s _Initcvt, by its shape): +0x38 = the conversion facet of the stream's locale +0x34 (not in it: the classic locale's kept at 0xf827e4; else bad_cast thrown); the reference +0x4c gets
+// Locale_WithNCodecvt of itself and it when that differs; +0x38 cleared when the facet's slot 1 (always_noconv) says so; a new empty string +0x44 when none.
+void __fastcall NFileBuf_InitConversion(u8 *buf);
+// 0x5d08e0 (thiscall (name, mode), pops 8; basic_filebuf<char>::open, by its shape): 0 with a file already, or when Std_Fiopen fails. Otherwise NFileBuf_Init (file, 1) (inline in the original), NFileBuf_InitConversion. Returns the buffer.
+u8 *__fastcall NFileBuf_Open(u8 *buf, void *, const char *name, u32 mode);
 }

@@ -442,6 +442,7 @@
 #include "../../src/game/core/thunks.h"
 #include "../../src/game/ui/panelkeys.h"
 #include "../../src/game/frontend/frame.h"
+#include "../../src/game/frontend/scenequeue.h"
 #include "../../src/game/core/buffers.h"
 #include "../../src/game/core/guardheap.h"
 #include "../../src/game/core/guardfile.h"
@@ -450,6 +451,7 @@
 #include "../../src/game/core/themenames.h"
 #include "../../src/game/core/nstream.h"
 #include "../../src/game/core/swearfilter.h"
+#include "../../src/game/core/inputsystem.h"
 #include "../../src/game/core/wfilebuf.h"
 #include "../../src/game/core/wstream.h"
 #include "../../src/game/core/channelvoice.h"
@@ -1003,7 +1005,7 @@ const SceneEnterEnv kSceneEnterEnv = {Rec{recorder(16, 1)}, Rec{recorder(17, 0)}
                                      Rec{jpeg_recorder(14, 1)}, Rec{jpeg_recorder(15, 0)}};  // tests/fncmp/sceneenter.py
 const SceneStepsEnv kSceneStepsEnv = {Rec{recorder(16, 2)}, Rec{jpeg_recorder(17, 0)}, Rec{jpeg_recorder(18, 0)}, Rec{recorder(19, 0)}, Rec{jpeg_recorder(20, 1)}, Rec{recorder(21, 0)}, Rec{recorder(22, 0)},
                                      Rec{recorder(23, 0)}, Rec{jpeg_recorder(24, 0)}, Rec{jpeg_recorder(25, 0)}, Rec{jpeg_recorder(26, 5)}, Rec{recorder(27, 1)}, Rec{recorder(28, 0)}, Rec{jpeg_recorder(29, 1)}, Rec{jpeg_recorder(30, 0)}, Rec{recorder(31, 2)}, Rec{recorder(12, 2)}, Rec{recorder(13, 2)},
-                                     Rec{recorder(1, 1)}, Rec{recorder(2, 1)}, Rec{recorder(3, 0)}, Rec{recorder(4, 0)}, Rec{recorder(5, 0)}, Rec{recorder(6, 0)}};  // tests/fncmp/scenesteps.py, themecheck.py
+                                     Rec{recorder(1, 1)}, Rec{recorder(2, 1)}, Rec{recorder(3, 0)}, Rec{recorder(4, 0)}, Rec{recorder(5, 0)}, Rec{recorder(6, 0)}, Rec{recorder(0, 1)}, Rec{jpeg_recorder(14, 0)}, Rec{jpeg_recorder(15, 0)}, Rec{recorder(9, 1)}};  // tests/fncmp/scenesteps.py, themecheck.py
 const SceneLeaveEnv kSceneLeaveEnv = {Rec{jpeg_recorder(20, 1)}, Rec{jpeg_recorder(21, 6)}, Rec{jpeg_recorder(22, 0)}, Rec{recorder(23, 0)}, Rec{recorder(24, 0)}, Rec{recorder(25, 0)},
                                        Rec{jpeg_recorder(26, 0)}, Rec{jpeg_recorder(27, 0)}, Rec{jpeg_recorder(28, 0)}, Rec{jpeg_recorder(29, 0)}, Rec{recorder(30, 3)}};
 const AdvisorCriteriaEnv kAdvisorCriteriaEnv = {Rec{recorder(1, 1)}, Rec{jpeg_recorder(2, 0)}, Rec{recorder(3, 1)}, Rec{recorder(4, 0)}, Rec{recorder(5, 0)}, Rec{recorder(6, 2)}};
@@ -1015,19 +1017,26 @@ const ParkMapEnv kParkMapEnv = {Rec{recorder(10, 1)}, Rec{recorder(11, 0)}, Rec{
 const LobbyMakeEnv kLobbyMakeEnv = {Rec{jpeg_recorder(20, 11)}, Rec{jpeg_recorder(21, 10)}, Rec{jpeg_recorder(22, 1)}, Rec{jpeg_recorder(23, 3)}, Rec{recorder(24, 1)}, Rec{recorder(25, 1)}, Rec{jpeg_recorder(26, 1)},
                                     Rec{recorder(28, 0)}, Rec{recorder(29, 1)}, Rec{recorder(30, 3)}};
 u32 __cdecl SwearLowerC(u32 c) { return (c & 0xffff) >= 0x41 && (c & 0xffff) <= 0x5a ? (c & 0xffff) + 0x20 : c & 0xffff; }   // towlower in the C locale, tests/fncmp/swearfilter.py
-const SwearFilterEnv kSwearFilterEnv = {&SwearLowerC};
-const NStreamEnv kNStreamEnv = {Rec{kStubs + 0x5000 + 0x800 * 2 + 0x20 * 14}, Rec{recorder(26, 1)}, Rec{recorder(27, 0)}, Rec{jpeg_recorder(28, 1)}, reinterpret_cast<s32(__cdecl *)(void *)>((uintptr_t)(kStubs + 0x50)), Rec{recorder(20, 0)}, Rec{recorder(21, 0)}};
+const SwearFilterEnv kSwearFilterEnv = {&SwearLowerC, Rec{recorder(9, 2)}, Rec{jpeg_recorder(18, 1)}};
+const InputSystemEnv kInputSystemEnv = {Rec{recorder(10, 0)}, Rec{recorder(15, 0)}, Rec{recorder(14, 0)}, Rec{recorder(6, 0)}, Rec{recorder(22, 0)}, Rec{recorder(24, 0)}, Rec{recorder(4, 0)},
+                                        Rec{recorder(29, 0)}, Rec{recorder(30, 0)}, Rec{recorder(30, 0)}, Rec{recorder(20, 0)}, Rec{recorder(19, 0)}, Rec{recorder(18, 0)}, Rec{recorder(21, 0)},
+                                        Rec{recorder(16, 1)}, Rec{recorder(11, 1)},
+                                        Rec{recorder(3, 1)}, Rec{recorder(25, 1)}, Rec{recorder(13, 1)}, Rec{recorder(5, 1)}, Rec{recorder(9, 1)}, Rec{recorder(23, 1)},
+                                        Rec{recorder(17, 2)}, Rec{recorder(29, 2)}, Rec{recorder(27, 2)}, Rec{recorder(28, 2)}, Rec{recorder(26, 2)}, Rec{recorder(31, 2)},
+                                        Rec{recorder(12, 2)}, Rec{recorder(3, 2)}, Rec{jpeg_recorder(6, 0)}};
+const NStreamEnv kNStreamEnv = {Rec{kStubs + 0x5000 + 0x800 * 2 + 0x20 * 14}, Rec{recorder(26, 1)}, Rec{recorder(27, 0)}, Rec{jpeg_recorder(28, 1)}, reinterpret_cast<s32(__cdecl *)(void *)>((uintptr_t)(kStubs + 0x50)), Rec{recorder(20, 0)}, Rec{recorder(21, 0)}, Rec{recorder(0, 0)}, Rec{recorder(1, 0)}, Rec{recorder(2, 0)}, Rec{jpeg_recorder(3, 2)}, Rec{jpeg_recorder(4, 2)}};
 const ThemeNamesEnv kThemeNamesEnv = {Rec{jpeg_recorder(1, 5)}, Rec{jpeg_recorder(2, 2)}, Rec{recorder(3, 3)}, Rec{recorder(4, 3)}, Rec{recorder(5, 3)}};
 const GuardHeapEnv kGuardHeapEnv = {Rec{jpeg_recorder(1, 1)}, Rec{jpeg_recorder(2, 1)}};
-const LobbySkyEnv kLobbySkyEnv = {Rec{recorder(0, 1)}, Rec{recorder(1, 3)}, Rec{recorder(2, 4)}, Rec{recorder(3, 0)}};
-const FileBufEnv kFileBufEnv = {Rec{jpeg_recorder(0, 2)}, Rec{jpeg_recorder(1, 4)}, Rec{jpeg_recorder(2, 2)}, Rec{jpeg_recorder(3, 3)}, Rec{jpeg_recorder(4, 2)}};
+const LobbySkyEnv kLobbySkyEnv = {Rec{recorder(0, 1)}, Rec{recorder(1, 3)}, Rec{recorder(2, 4)}, Rec{recorder(3, 0)}, Rec{recorder(4, 0)}};
+const FileBufEnv kFileBufEnv = {Rec{jpeg_recorder(0, 2)}, Rec{jpeg_recorder(1, 4)}, Rec{jpeg_recorder(2, 2)}, Rec{jpeg_recorder(3, 3)}, Rec{jpeg_recorder(4, 2)}, Rec{jpeg_recorder(6, 4)}};
 const GuardFileEnv kGuardFileEnv = {Rec{jpeg_recorder(4, 2)}, Rec{jpeg_recorder(5, 2)}, Rec{jpeg_recorder(6, 3)}, Rec{jpeg_recorder(7, 4)}, Rec{jpeg_recorder(8, 4)}, Rec{jpeg_recorder(9, 1)}, Rec{jpeg_recorder(10, 1)}, Rec{jpeg_recorder(11, 1)}, Rec{jpeg_recorder(12, 2)}};
 const Blocks7LoadEnv kBlocks7LoadEnv = {Rec{jpeg_recorder(1, 3)}, Rec{recorder(2, 2)}};
-const FrameEnv kFrameEnv = {Rec{jpeg_recorder(7, 0)}, Rec{recorder(6, 3)}};
+const SceneQueueEnv kSceneQueueEnv = {Rec{jpeg_recorder(5, 1)}, Rec{jpeg_recorder(6, 0)}, Rec{recorder(7, 1)}};  // tests/fncmp/scenequeuestep.py
+const FrameEnv kFrameEnv = {Rec{jpeg_recorder(7, 0)}, Rec{recorder(6, 3)}, Rec{jpeg_recorder(8, 0)}, Rec{recorder(9, 0)}, Rec{jpeg_recorder(10, 0)}, Rec{jpeg_recorder(11, 1)}, Rec{jpeg_recorder(12, 8)}};
 const PanelKeysEnv kPanelKeysEnv = {Rec{jpeg_recorder(1, 1)}};
 const OnlineCityPollEnv kOnlineCityPollEnv = {Rec{recorder(8, 0)}, Rec{recorder(9, 0)}, Rec{recorder(10, 0)}, Rec{recorder(11, 3)}, Rec{recorder(12, 1)}, Rec{recorder(13, 1)}, Rec{recorder(14, 1)}, Rec{recorder(15, 1)}, Rec{recorder(16, 1)},
                                               Rec{jpeg_recorder(17, 0)}, Rec{jpeg_recorder(18, 1)}, Rec{jpeg_recorder(19, 0)}, Rec{jpeg_recorder(20, 1)}, Rec{jpeg_recorder(21, 1)}};
-const OnlineStartEnv kOnlineStartEnv = {Rec{recorder(21, 0)}, Rec{recorder(22, 0)}, Rec{recorder(23, 0)}, Rec{recorder(24, 0)}, Rec{jpeg_recorder(25, 0)}, Rec{jpeg_recorder(26, 0)}, Rec{recorder(27, 3)}, Rec{jpeg_recorder(28, 1)}, Rec{recorder(29, 0)}, Rec{recorder(17, 0)}, Rec{jpeg_recorder(18, 2)}, Rec{recorder(19, 1)}, Rec{jpeg_recorder(23, 1)}};
+const OnlineStartEnv kOnlineStartEnv = {Rec{recorder(21, 0)}, Rec{recorder(22, 0)}, Rec{recorder(23, 0)}, Rec{recorder(24, 0)}, Rec{jpeg_recorder(25, 0)}, Rec{jpeg_recorder(26, 0)}, Rec{recorder(27, 3)}, Rec{jpeg_recorder(28, 1)}, Rec{recorder(29, 0)}, Rec{recorder(17, 0)}, Rec{jpeg_recorder(18, 2)}, Rec{recorder(19, 1)}, Rec{jpeg_recorder(23, 1)}, Rec{recorder(10, 1)}, Rec{recorder(11, 1)}, Rec{recorder(12, 1)}, Rec{recorder(13, 0)}};
 const BumpStepsEnv kBumpStepsEnv = {Rec{recorder(1, 3)}, Rec{recorder(2, 3)}, Rec{recorder(3, 3)}, Rec{recorder(4, 1)}, Rec{jpeg_recorder(5, 4)}, Rec{jpeg_recorder(6, 2)}, Rec{jpeg_recorder(7, 2)}, Rec{jpeg_recorder(8, 3)}, Rec{recorder(9, 0)}};
 const ThunksEnv kThunksEnv = {reinterpret_cast<s32(__cdecl *)(void *)>((uintptr_t)(kStubs + 0x50)), Rec{jpeg_recorder(7, 3)}};  // tests/fncmp/thunks_static.py
 const StdListEnv kStdListEnv = {Rec{recorder(3, 0)}};  // tests/fncmp/std_lists.py
@@ -1075,7 +1084,7 @@ const CameraUpdateEnv kCameraUpdateEnv = {Rec{recorder(1, 0)}, Rec{recorder(2, 1
                                           Rec{jpeg_recorder(7, 3)}, Rec{jpeg_recorder(8, 2)}};  // tests/fncmp/cameraupdate.py
 const LobbySceneEnv kLobbySceneEnv = {Rec{jpeg_recorder(1, 1)}, Rec{recorder(2, 0)}, Rec{recorder(3, 2)}, Rec{recorder(4, 0)}, Rec{jpeg_recorder(6, 6)}, Rec{jpeg_recorder(7, 0)}, Rec{recorder(5, 8)}, Rec{recorder(13, 7)}, Rec{recorder(14, 0)}, Rec{recorder(15, 0)},
                                      Rec{recorder(16, 3)}, Rec{recorder(17, 1)}, Rec{recorder(18, 0)}, Rec{jpeg_recorder(19, 0)}, Rec{recorder(20, 0)},
-                                     Rec{recorder(8, 0)}, Rec{recorder(9, 1)}, Rec{recorder(10, 1)}, Rec{jpeg_recorder(11, 2)}, Rec{jpeg_recorder(12, 3)}, Rec{jpeg_recorder(21, 1)}};
+                                     Rec{recorder(8, 0)}, Rec{recorder(9, 1)}, Rec{recorder(10, 1)}, Rec{jpeg_recorder(11, 2)}, Rec{jpeg_recorder(12, 3)}, Rec{jpeg_recorder(21, 1)}, Rec{jpeg_recorder(22, 5)}, Rec{jpeg_recorder(23, 0)}, Rec{recorder(24, 0)}, Rec{recorder(25, 0)}};
 const ChatCursorEnv kChatCursorEnv = {Rec{jpeg_recorder(1, 0)}, Rec{jpeg_recorder(2, 4)}, Rec{jpeg_recorder(3, 0)}, Rec{recorder(4, 1)}, Rec{recorder(5, 1)}};
 // tests/fncmp/d3dprobe.py: the clock a recorder.
 const SpriteFramesEnv kSpriteFramesEnv = {reinterpret_cast<u32(__fastcall *)(u8 *)>((uintptr_t)(kStubs + 0x1000 + 0x20 * 20))};   // (slot 20's thiscall recorder of no arguments)
@@ -1095,7 +1104,7 @@ const TexCacheTraceEnv kTexCacheTraceEnv = {reinterpret_cast<void *(__cdecl *)(c
                                             reinterpret_cast<s32(__cdecl *)(void *)>((uintptr_t)jpeg_recorder(13, 1)),
                                             reinterpret_cast<s32(__cdecl *)(void *)>((uintptr_t)jpeg_recorder(14, 1))};  // tests/fncmp/texcachetouch.py
 u32 __cdecl WScannerUpperC(u32 c) { return (c & 0xffff) >= 0x61 && (c & 0xffff) <= 0x7a ? (c & 0xffff) - 0x20 : c & 0xffff; }   // towupper in the C locale, tests/fncmp/wscanner.py
-const WKeywordsEnv kWKeywordsEnv = {reinterpret_cast<s32(__cdecl *)(u8 *, u16 *, u32, u32, ...)>((uintptr_t)jpeg_recorder(12, 4)), &WScannerUpperC};  // tests/fncmp/wkeywords.py
+const WKeywordsEnv kWKeywordsEnv = {reinterpret_cast<s32(__cdecl *)(u8 *, u16 *, u32, u32, ...)>((uintptr_t)jpeg_recorder(12, 4)), &WScannerUpperC, Rec{recorder(13, 0)}};  // tests/fncmp/wkeywords.py
 
 const KeyCancelEnv kKeyCancelEnv = {Rec{recorder(20, 0)}, Rec{jpeg_recorder(21, 2)}, Rec{jpeg_recorder(22, 6)}, Rec{jpeg_recorder(23, 4)}, Rec{jpeg_recorder(24, 2)}};
 const SceneViewsEnv kSceneViewsEnv = {Rec{recorder(20, 0)}, Rec{recorder(21, 0)}};
@@ -1186,6 +1195,7 @@ const MailboxEnv kMailboxEnv = {Rec{recorder(0, 0)}, Rec{recorder(1, 4)}, Rec{re
                                 Rec{jpeg_recorder(10, 2)}, Rec{jpeg_recorder(11, 1)}, Rec{recorder(12, 2)}, Rec{recorder(13, 0)}, Rec{recorder(14, 0)}, Rec{recorder(15, 0)}, Rec{jpeg_recorder(16, 1)}, Rec{recorder(17, 2)}, Rec{recorder(18, 3)},
                                 Rec{recorder(19, 2)}, Rec{recorder(20, 3)}, Rec{recorder(22, 2)}, Rec{recorder(23, 0)}, Rec{recorder(24, 1)}, Rec{recorder(25, 0)}, Rec{recorder(26, 0)}, Rec{recorder(27, 1)}, Rec{recorder(28, 1)}, Rec{recorder(29, 0)},
                                 Rec{jpeg_recorder(30, 1)}, Rec{jpeg_recorder(31, 1)}};
+const PanelSaveEnv kPanelSaveEnv = {Rec{stdcall_recorder(5, 1)}, Rec{stdcall_recorder(6, 1)}, Rec{stdcall_recorder(7, 4)}, Rec{stdcall_recorder(8, 4)}, Rec{stdcall_recorder(9, 1)}};  // tests/fncmp/panelsave.py
 const UserSlotsScanEnv kUserSlotsScanEnv = {Rec{stdcall_recorder(0, 1)}, Rec{stdcall_recorder(1, 1)}, Rec{stdcall_recorder(2, 1)}, Rec{recorder(3, 2)}, Rec{recorder(4, 3)}, Rec{recorder(5, 2)}, Rec{jpeg_recorder(6, 2)}, Rec{jpeg_recorder(7, 1)},
                                             Rec{jpeg_recorder(8, 1)}, Rec{jpeg_recorder(9, 1)}, Rec{recorder(10, 2)}, Rec{recorder(11, 0)}, Rec{recorder(12, 0)}, Rec{recorder(13, 1)}, Rec{recorder(14, 0)}, Rec{recorder(15, 1)}};
 const OnlineDownloadStartEnv kOnlineDownloadStartEnv = {Rec{recorder(4, 1)}, Rec{recorder(5, 2)}, Rec{jpeg_recorder(6, 5)}, Rec{recorder(7, 0)}, Rec{stdcall_recorder(8, 1)}, Rec{jpeg_recorder(9, 1)}, Rec{recorder(10, 2)}, Rec{recorder(11, 4)},
@@ -1898,7 +1908,7 @@ const Dialog7cc188AddressEnv kDialog7cc188AddressEnv = {Rec{recorder(10, 1)}, Re
 const UserSlotsEnv kUserSlotsEnv = {Rec{recorder(27, 0)}, Rec{jpeg_recorder(28, 3)}, Rec{jpeg_recorder(30, 1)}};
 const UserSlotsChoiceEnv kUserSlotsChoiceEnv = {Rec{recorder(1, 1)}, Rec{recorder(2, 1)}, Rec{recorder(3, 1)}, Rec{recorder(4, 0)}, Rec{recorder(5, 1)}, Rec{jpeg_recorder(6, 0)}, Rec{recorder(7, 1)}, Rec{recorder(8, 0)}, Rec{recorder(9, 1)}, Rec{jpeg_recorder(15, 1)}, Rec{recorder(18, 1)}, Rec{recorder(19, 2)}, Rec{recorder(20, 1)}, Rec{recorder(21, 0)}};
 const BankAccountCtorEnv kBankAccountCtorEnv = {Rec{jpeg_recorder(10, 4)}};
-const NarrowFileBufEnv kNarrowFileBufEnv = {Rec{jpeg_recorder(18, 1)}, Rec{jpeg_recorder(23, 2)}, Rec{jpeg_recorder(24, 1)}};  // tests/fncmp/narrowfilebuf.py
+const NarrowFileBufEnv kNarrowFileBufEnv = {Rec{jpeg_recorder(18, 1)}, Rec{jpeg_recorder(23, 2)}, Rec{jpeg_recorder(24, 1)}, Rec{kStubs + 0x5000 + 0x800 * 2 + 0x20 * 14}, Rec{recorder(26, 1)}, Rec{recorder(27, 0)}, Rec{recorder(28, 3)}};  // tests/fncmp/narrowfilebuf.py
 const Dialog7ca150ListEnv kDialog7ca150ListEnv = {Rec{recorder(10, 2)}, Rec{recorder(11, 1)}, Rec{recorder(12, 2)}, Rec{recorder(13, 5)}, Rec{recorder(14, 1)}, Rec{recorder(15, 1)}, Rec{recorder(16, 0)}, Rec{recorder(17, 0)}, Rec{recorder(18, 0)}, Rec{recorder(19, 0)}, Rec{recorder(20, 3)}};
 const Dialog7cb3f8SlotsEnv kDialog7cb3f8SlotsEnv = {Rec{jpeg_recorder(10, 0)}, Rec{recorder(11, 1)}, Rec{recorder(12, 1)}, Rec{jpeg_recorder(13, 1)}, Rec{recorder(14, 1)}};
 const Panel7cc328HandlerEnv kPanel7cc328HandlerEnv = {Rec{recorder(10, 0)}, Rec{recorder(11, 2)}, Rec{recorder(12, 5)}, Rec{recorder(13, 2)}, Rec{recorder(14, 1)}, Rec{jpeg_recorder(15, 1)}, Rec{recorder(16, 0)}, Rec{recorder(17, 0)}, Rec{recorder(18, 0)}, Rec{jpeg_recorder(19, 2)}, Rec{jpeg_recorder(20, 2)},
@@ -2388,7 +2398,9 @@ void jump(u8 *at, const void *to) {
 // Game vtables whose slots point at the replacements in the driver's copy of the game's data, as the hooked game resolves them (its originals jump to the
 // replacements): code that constructs one of these objects itself then calls through the real vtable. (address, slots; a slot not hooked is left as it is,
 // and a case that calls it crashes natively)
-const u32 kResolvedVtables[][2] = {{0x00703090, 11},  // String_vtable
+const u32 kResolvedVtables[][2] = {{0x007037a0, 4},   // inputsystem's object at +0x74
+                                   {0x00703810, 4},   // inputsystem's object at +0x64
+                                   {0x00703090, 11},  // String_vtable
                                    {0x007030c8, 11},  // WString_vtable
                                    {0x00703e08, 9},   // TextWriter_vtable
                                    {0x00703908, 13},  // WadSource_vtable
@@ -2528,6 +2540,7 @@ const u32 kResolvedVtables[][2] = {{0x00703090, 11},  // String_vtable
                                    {0x006fea70, 12},   // MMStaffDrop's (slots 9, 10 AssignDrop: MouseMode_Set's on the mode 0x5054d0 makes)
                                    {0x006feaa0, 12},   // the 0x6feaa0 mode's (slots 9, 10 the empty 0x5da3c0: MouseMode_Set's on the mode 0x497bc0 makes)
                                    {0x006fead0, 12},   // the 0x6fead0 mode's (slots 9, 10: MouseMode_Set's on the mode 0x481a10 makes)
+                                   {0x007098dc, 13},   // basic_filebuf<char>'s (core/narrowfilebuf; the swear filter's load reads through it)
                                    {0x007058d8, 4},    // the GUI font's (slot 3 GuiFont_CharWidth: Window7cc8bc_ChatAdd's measure)
                                    {0x006fe9e0, 12}};  // MouseModeTile's (slots 9 Const3_6b71c0, 10 MouseModeTile_Assign: MouseMode_Set's on the
                                                        // mode MouseMode_EnterTile15 / 16 make)
@@ -3147,12 +3160,15 @@ int main(int argc, char **argv) {
     Online_SetStartEnv(&kOnlineStartEnv);
     Online_SetCityPollEnv(&kOnlineCityPollEnv);
     PanelKeys_SetEnv(&kPanelKeysEnv);
+    PanelSave_SetEnv(&kPanelSaveEnv);
+    SceneQueue_SetEnv(&kSceneQueueEnv);
     Frame_SetEnv(&kFrameEnv);
     Blocks7_SetLoadEnv(&kBlocks7LoadEnv);
     GuardHeap_SetEnv(&kGuardHeapEnv);
     GuardFile_SetEnv(&kGuardFileEnv);
     FileBuf_SetEnv(&kFileBufEnv);
     LobbySky_SetEnv(&kLobbySkyEnv);
+    InputSystem_SetEnv(&kInputSystemEnv);
     ThemeNames_SetEnv(&kThemeNamesEnv);
     NStream_SetEnv(&kNStreamEnv);
     SwearFilter_SetEnv(&kSwearFilterEnv);

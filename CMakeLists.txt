@@ -258,6 +258,7 @@ add_library(tpw_game STATIC
     src/game/core/gamewindow.cpp
     src/game/core/gamemain.cpp
     src/game/core/imeinput.cpp
+    src/game/core/inputsystem.cpp
     src/game/gfx/text.cpp
     src/game/gfx/canvas.cpp
     src/game/gfx/canvasdraw.cpp
@@ -321,6 +322,7 @@ add_library(tpw_game STATIC
     src/game/math/transform.cpp
     src/game/math/rectclip.cpp
     src/game/math/convexhull.cpp
+    src/game/math/ssemath.cpp
     src/game/motion/curve.cpp
     src/game/motion/keys.cpp
     src/game/motion/quat.cpp

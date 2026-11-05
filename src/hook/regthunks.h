@@ -7,6 +7,7 @@
 
 extern "C" {
 
+void RegThunk_SseMath_ExpandMatrix(); // 0x5f4eab: source in EDX, dest in EDI
 void RegThunk_DctIdct_Column();     // 0x6780c1: block in ESI
 void RegThunk_DctIdct_Row();        // 0x678224: block in ESI
 void RegThunk_MovieIdct_Column();   // 0x67673c: block in ESI, out in EDI

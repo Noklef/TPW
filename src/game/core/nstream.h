@@ -11,6 +11,11 @@ struct NStreamEnv {
     s32(__cdecl *atExit)(void *fn);                                         // CRT_atexit 0x67a7d0
     void(__fastcall *iosInit)(u8 *ios);                                     // IosBase_Init 0x693960
     void(__fastcall *iosAddstd)(u8 *ios);                                   // IosBase_Addstd 0x693910
+    void(__fastcall *iosDtor)(u8 *ios);                                     // NIos_Dtor 0x5cde40
+    void(__fastcall *ifstreamDtor)(u8 *ios);                                // NIfstream_DtorOnIos 0x5ce920
+    void(__fastcall *ofstreamDtor)(u8 *ios);                                // NOfstream_DtorOnIos 0x5cf630
+    s32(__cdecl *tolower)(s32 c, const u32 *locale);                        // CRT_TolowerLocking 0x699a20
+    s32(__cdecl *toupper)(s32 c, const u32 *locale);                        // CRT_ToupperLocking 0x69a2b0
 };
 
 void NStream_SetEnv(const NStreamEnv *env);
@@ -25,6 +30,28 @@ void __fastcall NCtype_Dtor(u8 *self);
 u8 *__fastcall NCtype_DeletingDtor(u8 *self, void *, u32 flags);
 void __cdecl NCtype_FreeTable();
 u8 __fastcall NIos_Widen(u8 *ios, void *, u32 c);
+
+// 0x5cfc90, 0x5cfce0 (thiscall (c), pop 4): ctype<char>::tolower, toupper of one: the low byte of c, with the locale at +8. 0x5cfcb0, 0x5cfd00 (thiscall (first, last), pop 8): of a range, in place, each char
+// sign-extended, while first is not last; answer the end. Names invented, unconfirmed.
+s32 __fastcall NCtype_ToLower(u8 *self, void *, u32 c);
+char *__fastcall NCtype_ToLowerRange(u8 *self, void *, char *first, char *last);
+s32 __fastcall NCtype_ToUpper(u8 *self, void *, u32 c);
+char *__fastcall NCtype_ToUpperRange(u8 *self, void *, char *first, char *last);
+
+// The virtual bases' destructors (names invented, unconfirmed). 0x5cf870 (thiscall): the ios (found by self's vbtable) gets vtable 0x70994c, then NIos_Dtor(self + 8). 0x5cf8e0: 0x70995c, self + 4.
+// 0x5cb700: NIfstream_DtorOnIos and NIos_Dtor of self + 0x5c. 0x5cba50: NOfstream_DtorOnIos and NIos_Dtor of self + 0x58.
+void __fastcall NIstream_DtorVb(u8 *self);
+void __fastcall NOstream_DtorVb(u8 *self);
+void __fastcall NIfstream_DtorVb(u8 *self);
+void __fastcall NOfstream_DtorVb(u8 *self);
+
+// The deleting destructors, each thiscall on the ios (flags), pops 4, freed with bit 0, answers the object freed (names invented, unconfirmed). 0x5cf770: the ios alone. 0x5cf740: the object at ios - 4, vtable 0x70995c set through
+// its vbtable. 0x5cf790: ios - 8, 0x70994c. 0x5cf840: ios - 0x5c, NIfstream_DtorOnIos first. 0x5cf8b0: ios - 0x58, NOfstream_DtorOnIos first.
+u8 *__fastcall NIos_DeletingDtor(u8 *self, void *, u32 flags);
+u8 *__fastcall NOstream_DeletingDtorOnIos(u8 *ios, void *, u32 flags);
+u8 *__fastcall NIstream_DeletingDtorOnIos(u8 *ios, void *, u32 flags);
+u8 *__fastcall NIfstream_DeletingDtorOnIos(u8 *ios, void *, u32 flags);
+u8 *__fastcall NOfstream_DeletingDtorOnIos(u8 *ios, void *, u32 flags);
 
 // 0x5cf900 (thiscall (buffer, addstd, init, most derived), pops 16): basic_ostream<char>'s constructor. Most derived: the vbtable 0x702980, +0x28 0 and the ios vtable at +4 0x709954.
 // The ios (through the vbtable) gets vtable 0x70995c and, with init, its buffer, tie 0 and fill ' ', IosBase_Init, IosBase_Clear with badbit when the buffer is null, and with
@@ -46,4 +73,12 @@ u8 *__fastcall NCtype_Ctor(u8 *self, void *, u8 *table, u32 del, u32 refs);
 // bit 0) skips the units the ctype facet (the id 0xfb1da4; on the classic locale the one kept at 0xf827e0, made with a use on the first use; else bad_cast thrown) marks 0x48 in its table +0x10. Answers
 // 1 with the state good, else 0 with failbit set.
 u8 __fastcall NIstream_Ipfx(u8 *self, void *, u32 noskip);
+// 0x5cfe40 (thiscall (text, count, delimiter), pops 12; basic_istream<char>::getline, by its shape; name invented, unconfirmed): the twin of WIstream_Getline: gcount +4 from 0, NIstream_Ipfx (1); with a positive count, units up to the
+// delimiter's low byte (counted, not stored) or count less one; an end of file sets eofbit, a full text failbit, nothing read failbit. The text always ended. Returns self.
+u8 *__fastcall NIstream_Getline(u8 *self, void *, char *text, u32 count, u32 delimiter);
+// 0x5d3530 (thiscall (text, count), pops 8; basic_istream<char>::read, by its shape; name invented, unconfirmed): gcount +4 from 0, NIstream_Ipfx (1); then the buffer's slot 0x18 (text, count) adds to gcount, and less than count sets eofbit and failbit. Returns self.
+u8 *__fastcall NIstream_Read(u8 *self, void *, char *text, u32 count);
+// 0x5d0e70 (cdecl (stream, text); operator<<(ostream &, const char *), by its shape; name invented, unconfirmed): the twin of WOstream_PutText: pads with the ios's fill up to its width +0x14 (before the text unless adjusted left, 0x40 of
+// the flags' 0x1c0; after it otherwise), the buffer's slot 0x1c writes the text, the width cleared; any failure badbit; a failed NOstream_Opfx badbit alone. Then with no exception uncaught (Fn_6a65e0) and unitbuf (2) the stream is flushed. Returns the stream.
+u8 *__cdecl NOstream_PutText(u8 *stream, const char *text);
 }

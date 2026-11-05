@@ -4,6 +4,7 @@
 
 #include "../core/gameclock.h"
 #include "../core/gameheap.h"
+#include "../core/language.h"
 #include "../core/soundset.h"
 #include "../core/vcall.h"
 #include "../core/vdel.h"
@@ -11,6 +12,8 @@
 #include "../files/userslots.h"
 #include "../online/session.h"
 #include "../ui/dialog7cb3f8.h"
+#include "../ui/dialog7cc654open.h"
+#include "../ui/dialogbase.h"
 #include "../ui/dialogf82884child.h"
 #include "../ui/panelparts.h"
 #include "../ui/versionlabel.h"
@@ -29,7 +32,7 @@ void Delete(u8 *&object) {
     object = nullptr;
 }
 
-const FrameEnv kGameEnv = {&DialogF82884_ShowChild, &Window_CallDefault};
+const FrameEnv kGameEnv = {&DialogF82884_ShowChild, &Window_CallDefault, &Online_Instance, &Online_LoggedIn, &Dialog7cc654_Open, &Language_WideText, &Dialog_Box};
 const FrameEnv *g_env = &kGameEnv;
 
 const FrameStartEnv kGameStartEnv = {&WindowScript_Build, &Window_SetFocus, &Window_FindChild, &Window_SetHandler, &UserSlots_Ctor, &Window_SendMessage, &VersionLabel_Create, &Clocks_Now,
@@ -137,6 +140,23 @@ s32 __fastcall Frame_HandleMessage(u8 *frame, void *, u8 *window, u32 message, u
 s32 __cdecl Frame_WindowProc(u8 *window, u32 message, u32 wparam, u32 lparam) {
     u8 *const frame = global<u8 *>(0x00f82884);
     return frame ? Frame_HandleMessage(frame, nullptr, window, message, wparam, lparam) : 0;
+}
+
+s32 __cdecl Frame_OnlineButtonProc(u8 *window, u32 message, u32 wparam, u32 lparam) {
+    if (message == 0x10006) {
+        if (g_env->loggedIn(g_env->instance())) {
+            g_env->openLists();
+        } else {
+            u32 record[4];   // (byte 7 unwritten, sic)
+            record[0] = static_cast<u32>(reinterpret_cast<uintptr_t>(g_env->wideText(0x1d9)));
+            u8 *const colour = reinterpret_cast<u8 *>(record) + 4;
+            colour[0] = colour[1] = colour[2] = 0xff;
+            record[2] = 4;
+            record[3] = 0;
+            g_env->box(reinterpret_cast<const u8 *>(record), 2, 0, 0, 0, 0, 0, 0);
+        }
+    }
+    return g_env->callDefault(window, nullptr, message, wparam, lparam);
 }
 
 u32 __fastcall Class7029f0_Close(u8 *frame) {

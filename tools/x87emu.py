@@ -31,7 +31,7 @@ REGS = ('EAX', 'ECX', 'EDX', 'EBX', 'ESP', 'EBP', 'ESI', 'EDI')
 LOW8 = {'AL': 'EAX', 'CL': 'ECX', 'DL': 'EDX', 'BL': 'EBX'}
 HIGH8 = {'AH': 'EAX', 'CH': 'ECX', 'DH': 'EDX', 'BH': 'EBX'}
 LOW16 = {'AX': 'EAX', 'CX': 'ECX', 'DX': 'EDX', 'BX': 'EBX', 'SI': 'ESI', 'DI': 'EDI', 'BP': 'EBP'}
-SIZES = {'byte': 1, 'word': 2, 'dword': 4, 'float': 4, 'qword': 8, 'double': 8, 'extended double': 10}
+SIZES = {'byte': 1, 'word': 2, 'dword': 4, 'float': 4, 'qword': 8, 'double': 8, 'extended double': 10, 'xmmword': 16}
 
 
 # The NaN an invalid operation (0/0, inf - inf, sqrt(-1)) makes on x86: sign set.
@@ -195,6 +195,7 @@ class Emu:
         self.r['ESP'] = 0x10000000
         self.st = []
         self.mm = [0] * 8  # the MMX registers, kept apart from the x87 stack (the code they run in ends with EMMS)
+        self.xmm = [0] * 8  # the XMM registers, 128-bit integers (only the moves and packed singles of SSE, in SSE below)
         self.c0 = self.c2 = self.c3 = False
         self.cw = 0x007f  # the game's (single precision); FLDCW keeps it, arithmetic stays at 24 bits
         self.zf = self.sf = self.cf = self.of = self.pf = False
@@ -261,7 +262,7 @@ class Emu:
         return total & 0xffffffff
 
     def mem_operand(self, op):
-        m = re.fullmatch(r'(?:(byte|word|dword|float|qword|double|extended double|tword) ptr )?(?:(\w+):)?\[(.*)\]', op)
+        m = re.fullmatch(r'(?:(byte|word|dword|float|qword|double|extended double|tword|xmmword) ptr )?(?:(\w+):)?\[(.*)\]', op)
         if not m:
             return None
         base = FS_BASE if m.group(2) == 'FS' else 0  # the thread block (FS:[0], the SEH chain)
@@ -416,6 +417,54 @@ class Emu:
         else:
             a, kind = self.mem_operand(o[0])
             self.write(a, v.to_bytes(8, 'little')[:SIZES.get(kind, 4)])
+
+    # SSE: a register or memory; MOVAPS, MOVNTPS and memory sources of the packed sums fault off a 16-byte boundary, as the hardware does
+    def xmm_operand(self, op, size=16, aligned=True):
+        m = re.fullmatch(r'XMM([0-7])', op)
+        if m:
+            return self.xmm[int(m.group(1))]
+        a = self.mem_operand(op)[0]
+        if aligned and a % 16:
+            raise MemFault('unaligned access at %08x' % a)
+        return int.from_bytes(self.read(a, size), 'little')
+
+    def sse(self, mn, o):
+        m = re.fullmatch(r'XMM([0-7])', o[0])
+        if not m:   # a store
+            v, a = self.xmm[int(o[1][3:])], self.mem_operand(o[0])[0]
+            if mn in ('MOVAPS', 'MOVNTPS') and a % 16:
+                raise MemFault('unaligned access at %08x' % a)
+            data = v.to_bytes(16, 'little')
+            self.write(a, data[:4] if mn == 'MOVSS' else data[:8] if mn == 'MOVLPS' else data[8:] if mn == 'MOVHPS' else data)
+            return
+        i, low = int(m.group(1)), (1 << 64) - 1
+        d = self.xmm[i]
+        if mn == 'MOVSS':   # a register's low lane leaves the rest alone; a load clears it
+            v = self.xmm_operand(o[1], 4, False)
+            if o[1].startswith('XMM'):
+                v = d & ~0xffffffff | v & 0xffffffff
+        elif mn == 'MOVLPS':
+            v = d & ~low | self.xmm_operand(o[1], 8, False)
+        elif mn == 'MOVHPS':
+            v = d & low | self.xmm_operand(o[1], 8, False) << 64
+        elif mn == 'MOVUPS':
+            v = self.xmm_operand(o[1], 16, False)
+        else:
+            s = _lanes128(self.xmm_operand(o[1]))
+            a = _lanes128(d)
+            if mn == 'MOVAPS':
+                lanes = s
+            elif mn == 'UNPCKLPS':
+                lanes = [a[0], s[0], a[1], s[1]]
+            elif mn == 'UNPCKHPS':
+                lanes = [a[2], s[2], a[3], s[3]]
+            elif mn == 'SHUFPS':
+                n = int(o[2], 16)
+                lanes = [a[n & 3], a[n >> 2 & 3], s[n >> 4 & 3], s[n >> 6 & 3]]
+            else:
+                lanes = [_sse_single(mn, x, y) for x, y in zip(a, s)]
+            v = sum(x << (32 * k) for k, x in enumerate(lanes))
+        self.xmm[i] = v
 
     def step(self, pc):
         if pc in self.hooks:  # a tail call (jmp), into the listing or not: the hook sees the return address at [ESP]
@@ -782,6 +831,8 @@ class Emu:
             self.st = []
         elif mn in MMX:
             self.mmx(mn, o)
+        elif mn in SSE:
+            self.sse(mn, o)
         elif mn == 'RET':
             ret = self.pop()
             self.r['ESP'] = (self.r['ESP'] + (int(o[0], 16) if o else 0)) & 0xffffffff
@@ -789,6 +840,29 @@ class Emu:
         else:
             raise ValueError('%08x: unhandled %s %s' % (pc, mn, ops))
         return nxt
+
+
+SSE = ('MOVAPS', 'MOVUPS', 'MOVNTPS', 'MOVSS', 'MOVLPS', 'MOVHPS', 'UNPCKLPS', 'UNPCKHPS', 'SHUFPS', 'MULPS', 'ADDPS')
+
+
+def _lanes128(v):
+    return [v >> (32 * i) & 0xffffffff for i in range(4)]
+
+
+def _sse_single(mn, a, b):
+    """One lane of ADDPS or MULPS, as bits, exceptions masked: a NaN source wins, the first over the second, made quiet; an invalid operation gives the sign-set default. The double's sum or product
+    rounds to the single's correctly (53 bits, at least 2 * 24 + 2)."""
+    for x in (a, b):
+        if x & 0x7f800000 == 0x7f800000 and x & 0x7fffff:
+            return x | 0x400000
+    x, y = struct.unpack('<2f', struct.pack('<2I', a, b))
+    r = x * y if mn == 'MULPS' else x + y
+    if r != r:
+        return 0xffc00000
+    try:
+        return struct.unpack('<I', struct.pack('<f', r))[0]
+    except OverflowError:
+        return 0xff800000 if r < 0 else 0x7f800000
 
 
 def _lanes(v, bits):

@@ -7,14 +7,17 @@ import struct
 import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
-from fncmp import HEAP, LOG, RAM, RAND_SEED, Bench, Call, _recorder, answers, heap, log_region, put, set_return, vtable  # noqa: E402
+from fncmp import HEAP, LOG, RAM, RAND_SEED, Bench, Call, _recorder, answers, heap, log_region, mask_this, put, set_return, strings, vtable  # noqa: E402
 
 CALLS = {'End': (0x5e1890, 'a'), 'Next': (0x5e1ee0, 'v'), 'Previous': (0x5e1f40, 'v'), 'End2': (0x5e2360, 'a'), 'Open': (0x5e26a0, 'v'), 'Mode': (0x5e2700, 'v'), 'Next2': (0x5e2770, 'v'), 'Previous2': (0x5e2790, 'v'), 'Step2': (0x5e22d0, 'v'), 'Step1': (0x5e1830, 'v'),
-         'Back': (0x5dd610, 'a'), 'Done': (0x5dcfc0, 'a'), 'Take': (0x5dd400, 'v'), 'Take2': (0x5dd7c0, 'v'), 'Take3': (0x5dda90, 'v')}
-B = Bench([(0x5e1890, 0x5e18d0), (0x5e1ee0, 0x5e1fa0), (0x5e2360, 0x5e23c0), (0x5e26a0, 0x5e26f0), (0x5e2700, 0x5e2750), (0x5e2770, 0x5e27b0), (0x5e22d0, 0x5e2310), (0x5e1830, 0x5e1890), (0x5dd610, 0x5dd650), (0x5dcfc0, 0x5dcfe0), (0x5dd400, 0x5dd490), (0x5dd7c0, 0x5dd7e0), (0x5dda90, 0x5ddaa0), (0x48b390, 0x48b410)],
+         'Back': (0x5dd610, 'a'), 'Done': (0x5dcfc0, 'a'), 'Take': (0x5dd400, 'v'), 'Take2': (0x5dd7c0, 'v'), 'Take3': (0x5dda90, 'v'),
+         'Choose': (0x5e1e50, 'v'), 'ThemeClose': (0x5e1e30, 'a'), 'ThemeShow': (0x5e1ca0, 'a'), 'ThemeHide': (0x5e1cb0, 'a'), 'Answered': (0x5e23c0, 'v')}
+STRING_CTOR, STRING_DTOR, CHOOSE, SPARKLE, OFF, LOAD = 1, 3, 0, 14, 15, 9
+B = Bench([(0x5e1e50, 0x5e1ed8), (0x5e1e30, 0x5e1e41), (0x5e1ca0, 0x5e1ca5), (0x5e1cb0, 0x5e1cb5), (0x5e23c0, 0x5e23ec), (0x5e1890, 0x5e18d0), (0x5e1ee0, 0x5e1fa0), (0x5e2360, 0x5e23c0), (0x5e26a0, 0x5e26f0), (0x5e2700, 0x5e2750), (0x5e2770, 0x5e27b0), (0x5e22d0, 0x5e2310), (0x5e1830, 0x5e1890), (0x5dd610, 0x5dd650), (0x5dcfc0, 0x5dcfe0), (0x5dd400, 0x5dd490), (0x5dd7c0, 0x5dd7e0), (0x5dda90, 0x5ddaa0), (0x48b390, 0x48b410)],
           hooks={0x5d83f0: _recorder(16, 2), 0x4b8ea0: _recorder(17, 0, cdecl=True), 0x4b90f0: _recorder(18, 0, cdecl=True), 0x550ca0: _recorder(19, 0), 0x67a7d0: _recorder(20, 1, cdecl=True),
                  0x5e1640: _recorder(21, 0), 0x5e1730: _recorder(22, 0), 0x5b6070: _recorder(23, 0), 0x4b8810: _recorder(24, 0, cdecl=True), 0x4b8830: _recorder(25, 0, cdecl=True),
-                 0x4c0ae0: _recorder(26, 5, cdecl=True), 0x550d80: _recorder(27, 1), 0x5e0470: _recorder(28, 0), 0x4b8850: _recorder(29, 1, cdecl=True), 0x48bcd0: _recorder(30, 0, cdecl=True), 0x5d61a0: _recorder(31, 2), 0x5b50b0: _recorder(10, 0), 0x5dc3e0: _recorder(12, 2), 0x5d6110: _recorder(13, 2)})
+                 0x4c0ae0: _recorder(26, 5, cdecl=True), 0x550d80: _recorder(27, 1), 0x5e0470: _recorder(28, 0), 0x4b8850: _recorder(29, 1, cdecl=True), 0x48bcd0: _recorder(30, 0, cdecl=True), 0x5d61a0: _recorder(31, 2), 0x5b50b0: _recorder(10, 0), 0x5dc3e0: _recorder(12, 2), 0x5d6110: _recorder(13, 2),
+                 0x5f60b0: _recorder(STRING_CTOR, 1), 0x5f61e0: _recorder(STRING_DTOR, 0), 0x409480: _recorder(CHOOSE, 1), 0x4b8fd0: _recorder(SPARKLE, 0, cdecl=True), 0x4b8ec0: _recorder(OFF, 0, cdecl=True), 0x5e27b0: _recorder(LOAD, 1)})
 OPS = [k for k in os.environ.get('OPS', ','.join(CALLS)).split(',') if k]
 THIS, HOLDER, INST, GAME, VT, USERS, QUEUE = RAM, RAM + 0x100, RAM + 0x200, RAM + 0x800, RAM + 0x900, RAM + 0xa00, RAM + 0xb00
 LIST, ANSWERS = RAM + 0xe00, RAM + 0xf00
@@ -40,6 +43,23 @@ def case(r):
                0xf85614: struct.pack('<I', RAM + 0xc00), RAM + 0xc00: put(bytearray(r.bytes(0x20)), 0x14, 'I', QUEUE), RAND_SEED: r.bytes(4), 0xf82884: struct.pack('<I', GAME), 0xf7d88c: struct.pack('<I', r.choice([0, INST, INST])),
                0xfb2758: bytes([r.choice([0, 1, 1, r.getrandbits(8)])]), 0xfb3b7c: struct.pack('<I', r.choice([0, 1, 2, 2, r.getrandbits(32)]))}
     address, ret = CALLS[op]
+    if op == 'Choose':   # (the string's constructor and destructor on a local object; the object 0xf85480's slot 5; 0x409480 given the local's address)
+        put(this, 0xc, 'I', r.choice([HOLDER, HOLDER, HOLDER, 0]))
+        put(holder, 0x30, 'I', r.getrandbits(32))
+        mask_this(log, STRING_CTOR)
+        mask_this(log, STRING_DTOR)
+        strings(log, CHOOSE, 0, out=1)
+        regions.update({0xf85480: struct.pack('<I', RAM + 0xd00), RAM + 0xd00: vtable({5: 1}), 0xf82884: struct.pack('<I', r.choice([GAME, GAME, RAM + 0x820]))})
+        regions[RAM + 0x820] = r.bytes(0x20)
+        return Call(address, [THIS], regions, conv='t', ret=ret)
+    if op == 'Answered':
+        for k in (7, 8):
+            set_return(log, k, r.getrandbits(32))
+        regions.update({VT: vtable({7: 0, 8: 0}), RAM + 0xc00: put(bytearray(r.bytes(0x20)), 0xc, 'I', RAM + 0xd80), RAM + 0xd80: struct.pack('<I', VT)})
+        return Call(address, [r.choice([0, 0, 1, r.getrandbits(32)]), THIS, r.getrandbits(32)], regions, ret=ret)
+    if op in ('ThemeShow', 'ThemeHide', 'ThemeClose'):
+        for k in (17, 15):
+            set_return(log, k, r.getrandbits(32))
     if op in ('Take', 'Take2', 'Take3'):
         count = r.randrange(6)
         nodes = bytearray(0x60)

@@ -309,6 +309,20 @@ void __fastcall FtpBase_Dtor(u32 *self) {
     FtpSocket_Dtor(self);
 }
 
+u32 *__fastcall FtpBase_DeletingDtor(u32 *self, void *, u8 flags) {
+    FtpBase_Dtor(self);
+    if (flags & 1) GameHeap_Free(self);
+    return self;
+}
+
+void __fastcall FtpMid_Dtor(u32 *self) { FtpBase_Dtor(self); }
+
+u32 *__fastcall FtpMid_DeletingDtor(u32 *self, void *, u8 flags) {
+    FtpMid_Dtor(self);
+    if (flags & 1) GameHeap_Free(self);
+    return self;
+}
+
 s32 __fastcall Ftp_Receive(void *self, void *, u8 toFile, u32 count) {
     SockAddrIn address;
     u32 addressSize = 0x10;

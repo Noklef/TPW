@@ -13,6 +13,7 @@
 struct WKeywordsEnv {
     s32(__cdecl *format)(u8 *charset, u16 *dest, u32 size, u32 entry, ...);   // Charset_FormatWide (0x6acd60)
     u32(__cdecl *upper)(u32 c);   // towupper (0x67ed00, unported)
+    void(__fastcall *baseDtor)(u8 *scanner);   // 0x4ea7e0 (A's, unported)
 };
 void WKeywords_SetEnv(const WKeywordsEnv *env);
 void WScanner_SetCalls(const AddrCall *table, u32 count);   // (WScanner_Keyword06's TakeRest: its default word's case throws in it)
@@ -56,6 +57,8 @@ u8 __fastcall WScanner_NextChar(u8 *scanner, void *, u16 *out);
 // allocator from the stack's argument), its list's sentinel of 0x28 bytes linked to itself at +0x48 with +0x4c = 0, +0x50 / +0x54 the two, vtable 0x702f14. The vector of tokens
 // emptied (each destroyed, the end at the start), the string assigned the text at 0x78a374 (StdWString_AssignChars), the keywords added (WKeywords_AddAll). Returns the scanner.
 u8 *__fastcall WScanner_Construct(u8 *scanner, void *, u8 *tokens, StdWString *out);
+// 0x5e45b0 (thiscall (flags), pops 4; name invented, unconfirmed): the destructor 0x4ea7e0, the block freed with flags' bit 0. Returns the scanner.
+u8 *__fastcall WScanner_DeletingDtor(u8 *scanner, void *, u32 flags);
 
 // 0x5e45d0 (thiscall (text by value), pops 0x10; name invented, unconfirmed): a copy of the text set (WScanner_SetText: the list at +0x44, flags 0, 1, 1), past the set +0x14.
 // The next character a '/': WScanner_ReadKeywords, and when that called none a token of kind 0x18. Else the string [+0x54] assigned the text, a token of kind 0 and one of the

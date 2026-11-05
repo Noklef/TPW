@@ -7,7 +7,7 @@
 
 struct StdString;
 
-// The calls of the functions below (the bench's recorders; 0x5d08e0, 0x5d0e70, 0x5cfe40 and 0x67a520 are still the game's).
+// The calls of the functions below (the bench's recorders; 0x67a520 is still the game's).
 struct MailboxEnv {
     u8 *(__fastcall *iosInit)(u8 *ios);                                                    // Init_5cfd80
     u8 *(__fastcall *ostreamCtor)(u8 *self, void *, u8 *buffer, u32 addstd, u32 init, u32 derived);  // NOstream_Ctor
@@ -125,6 +125,11 @@ u8 __fastcall Mailbox_SaveOutbox(u8 *self);
 // 0x5cba70 (thiscall (number), pops 4): "<folder>/%08x.dat" read: lines of at most 0x100: numbers into +0x4c, +0x50, +0x54, texts into +0x10 and +0x20, the rest into the emptied list +0x30 until the stream fails. +0x3c = "<folder>/%08x.jpg".
 // Answers 0 when the file does not open, else 1.
 u8 __fastcall Mailbox_LoadMessage(u8 *self, void *, u32 number);
+
+// 0x5cc5e0 (thiscall; name invented, unconfirmed): the cursor +0x7c to the first message of the list +0x5c; with messages (+0x60) it is loaded. Answers its load, or 0.
+u8 __fastcall Mailbox_FirstMessage(u8 *self);
+// 0x5cc600 (thiscall; name invented, unconfirmed): with messages, the cursor +0x7c moves on and that one is loaded; past the last the cursor goes to the first and the answer is 0.
+u8 __fastcall Mailbox_NextMessage(u8 *self);
 
 // 0x5cb230 (thiscall (folder), pops 4): the folder kept at +0 and "/outbox" added; the number lists +0x58, +0x64 and +0x70 emptied. "<that>/outbox.dat" read: lines of at most 0x80 into +0x58, then +0x70, then +0x64, each ended by a failed
 // read or an empty line. When the file does not open, the folder made (0x6fd120, the import read live) and the answer whether that worked; else 1.

@@ -11,7 +11,7 @@ import gamestring  # noqa: E402
 from fncmp import HEAP, IMPORT_TABLE, LOG, RAM, Bench, Call, _recorder, global_heap, heap, log_fold, log_region, put, set_return, strings  # noqa: E402
 
 ERASE, REMOVE, SAVE, LOAD, INSTANCE, USER, GET34, GET38, STRING14, STRING28, PUSH, WIDE, CTOR = range(13)
-B = Bench([(0x5ccda0, 0x5cd091), (0x5cd0a0, 0x5cd217), (0x5cd220, 0x5cd3fb), (0x5c99f0, 0x5c9a51), (0x45b340, 0x45b9a0), (0x4f1340, 0x4f1420), (0x5ce530, 0x5ce53e), (0x5ce910, 0x5ce920), (0x67acd0, 0x67acf0)] + gamestring.B_RANGES,
+B = Bench([(0x5cc5e0, 0x5cc5fc), (0x5cc600, 0x5cc638), (0x5ccda0, 0x5cd091), (0x5cd0a0, 0x5cd217), (0x5cd220, 0x5cd3fb), (0x5c99f0, 0x5c9a51), (0x45b340, 0x45b9a0), (0x4f1340, 0x4f1420), (0x5ce530, 0x5ce53e), (0x5ce910, 0x5ce920), (0x67acd0, 0x67acf0)] + gamestring.B_RANGES,
           hooks={0x634cc0: _recorder(ERASE, 2), 0x67e560: _recorder(REMOVE, 1, cdecl=True), 0x5cb720: _recorder(SAVE, 0), 0x5cba70: _recorder(LOAD, 1), 0x48b390: _recorder(INSTANCE, 0, cdecl=True),
                  0x5b64a0: _recorder(USER, 0), 0x41ce80: _recorder(GET34, 0), 0x41ce90: _recorder(GET38, 0), 0x5b6480: _recorder(STRING14, 0), 0x5b6490: _recorder(STRING28, 0), 0x4a8ad0: _recorder(PUSH, 1),
                  0x4051d0: _recorder(WIDE, 2), 0x5c9720: _recorder(CTOR, 1)})
@@ -145,12 +145,30 @@ def delete_sent(r):
     return Call(0x5cd0a0, [SELF], regions, conv='t', ret='b')
 
 
-OPS = {'Drop': drop, 'Delete': delete, 'Attach': attach, 'DeleteSent': delete_sent}
+def cursor(address):
+    def case(r):
+        log, regions = base(r)
+        self = bytearray(r.bytes(0x80))
+        count = r.choice([1, 2, 3])
+        nodes = bytearray(0x10 * (count + 1))
+        for i in range(count + 1):
+            put(nodes, 0x10 * i, 'I', LISTS + 0x10 * ((i + 1) % (count + 1)))
+            put(nodes, 0x10 * i + 8, 'I', r.getrandbits(32))
+        regions[LISTS] = nodes
+        put(self, 0x5c, '2I', LISTS, r.choice([0, 1, count, r.getrandbits(32)]))
+        put(self, 0x7c, 'I', LISTS + 0x10 * r.randrange(count + 1))
+        regions[SELF] = self
+        set_return(log, LOAD, r.choice([1, 0, 0x101, r.getrandbits(32)]))
+        return Call(address, [SELF], regions, conv='t', ret='b')
+    return case
+
+
+OPS = {'Drop': drop, 'Delete': delete, 'Attach': attach, 'DeleteSent': delete_sent, 'First': cursor(0x5cc5e0), 'Next': cursor(0x5cc600)}
 
 
 def case(r):
-    names = os.environ.get('OPS', 'Drop,Drop,Drop,Delete,Attach,DeleteSent').split(',')
-    return OPS[r.choice(names)](r)
+    names = os.environ.get('OPS', 'Drop,Drop,Drop,Delete,Attach,DeleteSent,First,Next').split(',')
+    return OPS[r.deal(names)](r)
 
 
 if __name__ == '__main__':

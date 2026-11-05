@@ -32,6 +32,10 @@ struct OnlineStartEnv {
     u32(__cdecl *post)(u32 code, u32 param);       // CommandQueue_Post (0x47f410)
     u32(__fastcall *findLast)(u8 *object, void *, const char *name);  // Names_FindLastValue (0x5bd230)
     void(__cdecl *crtFree)(void *block);           // CRT_free (0x67ad90)
+    u8 *(__fastcall *assign)(u8 *item, void *, const u8 *other);        // Class70293c_Assign (0x5bdfd0)
+    void(__fastcall *downloadStart)(u8 *session, void *, const u8 *item);  // Online_DownloadStart (0x5b8910)
+    void(__fastcall *downloadEnd)(u8 *session, void *, u32 failed);     // Online_DownloadEnd (0x5b90e0)
+    void(__fastcall *downloadNext)(u8 *session);   // Online_DownloadNext (0x5b9380)
 };
 void Online_SetStartEnv(const OnlineStartEnv *env);
 
@@ -260,6 +264,25 @@ void __fastcall Online_DownloadNext(u8 *session);
 // assigned by slot 5; the city, upload and download reset; the dialog's message. +0x3a8 = a, +0x3c0 = b, +0x3c4 = c. Logged in (+0x60): the instance's list +0xf0 starts on its +0x3a8 with the callback 0x5b88e0. Otherwise
 // +4 = 0x5b87a0, +8 = 0 and Dialog7cc530_Open (0x5b5cb0).
 void __fastcall Online_Start(u8 *session, void *, u32 a, u32 b, u32 c);
+
+// 0x5b86a0 (thiscall (item, b, c), pops 12; name invented, unconfirmed): as Online_Start up to the dialog's message; +0x384 = 1, the item assigned to the download object +0x3a4, +0x3c0 = b, +0x3c4 = c. Logged in (+0x60): the
+// instance's Online_DownloadStart (0). Otherwise +0x388 = 1, +4 = 0x5b8680, +8 = 0 and Dialog7cc530_Open (0x5b5cb0).
+void __fastcall Online_StartItem(u8 *session, void *, const u8 *item, u32 b, u32 c);
+
+// 0x5b8680 (cdecl (failed); name invented, unconfirmed): Online_StartItem's login callback: failed, the instance's Online_DownloadEnd (1); else its Online_DownloadStart (0).
+void __cdecl Online_StartItemLoggedIn(u32 failed);
+
+// 0x5b87a0 (cdecl (failed); name invented, unconfirmed): Online_Start's login callback: failed, the instance's Online_DownloadEnd (1); else its list +0xf0 starts on its +0x3a8 with the callback 0x5b88e0.
+void __cdecl Online_StartLoggedIn(u32 failed);
+
+// 0x5b88e0 (cdecl (error, unused, answer); name invented, unconfirmed): the list's callback. No error and an item [[answer + 4]]: the instance's Online_DownloadStart (the item); else its Online_DownloadEnd (1).
+void __cdecl Online_StartListAnswered(u32 error, u32, const u8 *answer);
+
+// 0x5b92d0 (thiscall (kind, value), pops 8; name invented, unconfirmed): the download's FTP event, with the client +0x3a0 there. Kind 0: nothing. Kinds 1 and 3 with no value: said (0x773ae0, 0x773ab8) and Online_DownloadNext. Kind 2: a value
+// to +0x398, +0x390 = 1 (+0x394 as it was). Otherwise a value to +0x398, +0x394 = 0, +0x390 = 1.
+void __fastcall Online_DownloadEvent(u8 *session, void *, u32 kind, u32 value);
+// 0x5b96c0 (stdcall (kind, value); name invented, unconfirmed): that on Online_Instance.
+void __stdcall Online_DownloadCallback(u32 kind, u32 value);
 
 // 0x5b50b0 (thiscall; name invented): the session's constructor. Its strings made and emptied, its members as the resets leave them, the nine
 // lists made (+0xe0 to +0x100: none when a block is not had), Online_ResetCity on them, the download object +0x3a4 (Class70293c_Ctor).

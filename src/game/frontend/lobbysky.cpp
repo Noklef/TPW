@@ -3,6 +3,7 @@
 #include <cstdint>
 
 #include "../core/string.h"
+#include "../terrain/landscape.h"
 
 namespace {
 
@@ -19,7 +20,7 @@ T &global(uintptr_t address) {
 constexpr u32 kFloat500 = 0x43fa0000, kFloat100 = 0x42c80000, kFloat180 = 0x43340000, kFloat115 = 0x42e60000, kFloat50 = 0x42480000, kFloat300 = 0x43960000, kFloat1 = 0x3f800000;
 
 const LobbySkyEnv kGameEnv = {reinterpret_cast<void(__fastcall *)(void *, void *, const char *)>((uintptr_t)0x005852b0), reinterpret_cast<void(__fastcall *)(void *, void *, u32, u32, u32)>((uintptr_t)0x00585690),
-                              reinterpret_cast<void(__fastcall *)(u8 *, void *, u32, const u32 *, const u32 *, u32)>((uintptr_t)0x005d92e0), reinterpret_cast<void(__fastcall *)(u8 *)>((uintptr_t)0x005d8de0)};
+                              reinterpret_cast<void(__fastcall *)(u8 *, void *, u32, const u32 *, const u32 *, u32)>((uintptr_t)0x005d92e0), reinterpret_cast<void(__fastcall *)(u8 *)>((uintptr_t)0x005d8de0), &Landscape_ResetDomeCentre};
 const LobbySkyEnv *g_env = &kGameEnv;
 
 }  // namespace
@@ -58,4 +59,17 @@ void __fastcall LobbySky_Enter(u8 *self) {
     g_env->lookAt(self);
     for (u32 offset = 0x44; offset <= 0x60; offset += 4) at<u32>(self, offset) = 0;
     String_Dtor(&folder);
+}
+
+u32 __fastcall LobbySky_Leave(u8 *self) {
+    global<u32>(0x00879dd8) = kFloat1;
+    global<u32>(0x00879ddc) = 0;
+    global<u32>(0x00879de0) = 0;
+    global<u32>(0x00879de4) = 0;
+    g_env->light(self, nullptr, 0, nullptr, nullptr, 0);
+    global<u32>(0x008bcbc8) = at<u32>(self, 0x34);
+    global<u32>(0x008bd47c) = at<u32>(self, 0x38);
+    global<u32>(0x008bd490) = at<u32>(self, 0x3c);
+    global<u32>(0x008bd494) = at<u32>(self, 0x40);
+    return g_env->resetDome(reinterpret_cast<u8 *>((uintptr_t)0x008c1828));
 }

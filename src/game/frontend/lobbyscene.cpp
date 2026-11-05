@@ -6,6 +6,8 @@
 #include "../core/accessors.h"
 #include "../core/gameheap.h"
 #include "../core/soundplay.h"
+#include "../core/soundset.h"
+#include "../model/signapply.h"
 #include "../core/string.h"
 #include "../core/vdtor.h"
 #include "../core/vcall.h"
@@ -48,7 +50,11 @@ const LobbySceneEnv kPorts = {&Ride_Destroy,
                               &Strings5_JoinPath,
                               reinterpret_cast<decltype(LobbySceneEnv::terrainLoad)>((uintptr_t)0x004504c0),
                               &Obj_RemoveFromRect,
-                              &Holder_Sleep};
+                              &Holder_Sleep,
+                              &Ride_ApplySign,
+                              &Sound_ReleaseLobbyCategories,
+                              &WeatherFx_FreeTextures,
+                              &WeatherFx_ReloadTextures};
 const LobbySceneEnv *g_env = &kPorts;
 
 // A block of 16 bytes with the vtable and the rest zero; null when it fails.
@@ -315,6 +321,15 @@ void Ambience(u8 *object) {
 }  // namespace
 
 void LobbyScene_SetEnv(const LobbySceneEnv *env) { g_env = env ? env : &kPorts; }
+
+u32 __fastcall RideUser_ApplySign(u8 *self, void *, u32 a, u32 b) { return g_env->applySign(at<u32>(self, 4), at<u32>(self, 0x14), at<u32>(self, 0x28), a, b); }
+
+u32 __fastcall Class702cb0_FreeWeather(u8 *) {
+    g_env->releaseCategories();
+    return g_env->freeTextures(*reinterpret_cast<u8 **>((uintptr_t)0x008bcbac));
+}
+
+u32 __fastcall Class702cb0_ReloadWeather(u8 *) { return g_env->reloadTextures(*reinterpret_cast<u8 **>((uintptr_t)0x008bcbac)); }
 
 extern "C" {
 

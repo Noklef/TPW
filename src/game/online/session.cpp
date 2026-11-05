@@ -318,7 +318,7 @@ void __fastcall Online_ResetConnections(u8 *session) {
 }
 
 namespace {
-const OnlineStartEnv kStartGameEnv = {&Online_ReleaseNews, &Online_ResetCity, &Online_ResetUpload, &Online_ResetDownload, &Dialog7cca94_Message4IfUp, &Online_Instance, &ListRequest_Start66, &Dialog7cc530_Open, &Owner2c_FindKind100, &Online_UploadConnect, &CommandQueue_Post, &Names_FindLastValue, &CRT_free};
+const OnlineStartEnv kStartGameEnv = {&Online_ReleaseNews, &Online_ResetCity, &Online_ResetUpload, &Online_ResetDownload, &Dialog7cca94_Message4IfUp, &Online_Instance, &ListRequest_Start66, &Dialog7cc530_Open, &Owner2c_FindKind100, &Online_UploadConnect, &CommandQueue_Post, &Names_FindLastValue, &CRT_free, &Class70293c_Assign, &Online_DownloadStart, &Online_DownloadEnd, &Online_DownloadNext};
 const OnlineStartEnv *g_start = &kStartGameEnv;
 }  // namespace
 
@@ -342,6 +342,69 @@ void __fastcall Online_Start(u8 *session, void *, u32 a, u32 b, u32 c) {
         at<u32>(session, 8) = 0;
         g_start->openDialog(0x005b5cb0);
     }
+}
+
+void __fastcall Online_StartItem(u8 *session, void *, const u8 *item, u32 b, u32 c) {
+    g_start->releaseNews(session);
+    ClearNews(session);
+    g_start->resetCity(session);
+    g_start->resetUpload(session);
+    g_start->resetDownload(session);
+    g_start->message4();
+    at<u32>(session, 0x384) = 1;
+    g_start->assign(at<u8 *>(session, 0x3a4), nullptr, item);
+    at<u32>(session, 0x3c4) = c;
+    at<u32>(session, 0x3c0) = b;
+    if (at<u32>(session, 0x60)) {
+        g_start->downloadStart(g_start->instance(), nullptr, nullptr);
+    } else {
+        at<u32>(session, 0x388) = 1;
+        at<u32>(session, 4) = 0x005b8680;
+        at<u32>(session, 8) = 0;
+        g_start->openDialog(0x005b5cb0);
+    }
+}
+
+void __cdecl Online_StartItemLoggedIn(u32 failed) {
+    u8 *const instance = g_start->instance();
+    if (failed)
+        g_start->downloadEnd(instance, nullptr, 1);
+    else
+        g_start->downloadStart(instance, nullptr, nullptr);
+}
+
+void __cdecl Online_StartLoggedIn(u32 failed) {
+    u8 *const instance = g_start->instance();
+    if (failed)
+        g_start->downloadEnd(instance, nullptr, 1);
+    else
+        g_start->listStart(at<u8 *>(instance, 0xf0), nullptr, at<u32>(instance, 0x3a8), 0x005b88e0, 0);
+}
+
+void __cdecl Online_StartListAnswered(u32 error, u32, const u8 *answer) {
+    const u8 *const item = at<const u8 *>(at<const u8 *>(answer, 4), 0);
+    u8 *const instance = g_start->instance();
+    if (!error && item)
+        g_start->downloadStart(instance, nullptr, item);
+    else
+        g_start->downloadEnd(instance, nullptr, 1);
+}
+
+void __stdcall Online_DownloadCallback(u32 kind, u32 value) { Online_DownloadEvent(g_start->instance(), nullptr, kind, value); }
+
+void __fastcall Online_DownloadEvent(u8 *session, void *, u32 kind, u32 value) {
+    if (!at<u32>(session, 0x3a0) || kind == 0)
+        return;
+    if ((kind == 1 || kind == 3) && !value) {
+        Say(kind == 1 ? 0x00773ae0 : 0x00773ab8);
+        g_start->downloadNext(session);
+        return;
+    }
+    if (value)
+        at<u32>(session, 0x398) = value;
+    if (kind != 2)
+        at<u32>(session, 0x394) = 0;
+    at<u32>(session, 0x390) = 1;
 }
 
 void __fastcall Online_ResetAll(u8 *session) {

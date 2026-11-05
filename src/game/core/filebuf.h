@@ -11,6 +11,7 @@ struct FileBufEnv {
     s32(__cdecl *fsetpos)(void *file, const void *position);                  // 0x67cf70
     s32(__cdecl *fseek)(void *file, s32 offset, s32 origin);                  // CRT_fseek
     s32(__cdecl *fgetpos)(void *file, void *position);                        // 0x67cf40
+    s32(__cdecl *setvbuf)(void *file, char *buffer, u32 type, u32 size);      // CRT_setvbuf
 };
 void FileBuf_SetEnv(const FileBufEnv *env);  // nullptr: the game's
 
@@ -24,4 +25,9 @@ s32 __fastcall FileBuf_Overflow(u8 *self, void *, s32 c);
 // 0x5cf490 (thiscall (out, offset, 1 dword, position's two dwords, state, 2 dwords), pops 0x20; name invented, unconfirmed): fsetpos to the position, fseek by a non-zero offset from the current, fgetpos back. The string,
 // when there is one: +0x40 = state, its shared block made its own, its first [0x6fe5ac] characters erased. out = {0, (not written), position, +0x40}; any failure, or no file: Obj_Init4f1520(out, -1). Returns out.
 u32 *__fastcall FileBuf_SeekPos(u8 *self, void *, u32 *out, s32 offset, u32 unused2, u32 low, u32 high, u32 state, u32 unused6, u32 unused7);
+
+// 0x5cf410 (thiscall (out, offset, origin, 1 dword), pops 0x10; name invented, unconfirmed): fseek, fgetpos back. out = {0, (not written), position, +0x40}; any failure, or no file: Obj_Init4f1520(out, -1). Returns out.
+u32 *__fastcall FileBuf_SeekOff(u8 *self, void *, u32 *out, s32 offset, s32 origin, u32 unused);
+// 0x5cf600 (thiscall (buffer, size), pops 8; name invented, unconfirmed): setvbuf(file, buffer, 0, size). Answers self, or 0 with no file or a failure.
+u8 *__fastcall FileBuf_SetBuf(u8 *self, void *, char *buffer, u32 size);
 }

@@ -35,8 +35,22 @@ struct LobbySceneEnv {
     void(__cdecl *terrainLoad)(u32 a, u32 b);                            // Terrain_Load (0x4504c0, the game's)
     u32(__cdecl *removeFromRect)(u8 *object, u32 from, u32 to);          // Obj_RemoveFromRect (0x45be80)
     void(__cdecl *holderSleep)(u8 *holder);                              // Holder_Sleep (0x45bdd0)
+    // The slots below.
+    u32(__cdecl *applySign)(u32 id, u32 a1, u32 a2, u32 a3, u32 a4);     // Ride_ApplySign (0x468420)
+    void(__cdecl *releaseCategories)();                                  // Sound_ReleaseLobbyCategories (0x51ea70)
+    u32(__fastcall *freeTextures)(u8 *fx);                               // WeatherFx_FreeTextures (0x57d720)
+    u32(__fastcall *reloadTextures)(u8 *fx);                             // WeatherFx_ReloadTextures (0x57d850)
 };
 void LobbyScene_SetEnv(const LobbySceneEnv *env);
+
+extern "C" {
+// 0x5d8470 (thiscall (a, b), pops 8; name invented, unconfirmed): Ride_ApplySign(+4, +0x14, +0x28, a, b), its answer.
+u32 __fastcall RideUser_ApplySign(u8 *self, void *, u32 a, u32 b);
+// 0x5e1340 (thiscall, self unused; name invented, unconfirmed): Sound_ReleaseLobbyCategories, then WeatherFx_FreeTextures of [0x8bcbac], its answer.
+u32 __fastcall Class702cb0_FreeWeather(u8 *self);
+// 0x5e0460 (thiscall, self unused; name invented, unconfirmed): WeatherFx_ReloadTextures of [0x8bcbac], its answer.
+u32 __fastcall Class702cb0_ReloadWeather(u8 *self);
+}
 
 extern "C" {
 

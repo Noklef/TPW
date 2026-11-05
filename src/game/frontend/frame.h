@@ -7,6 +7,11 @@
 struct FrameEnv {
     u32(__cdecl *showChild)();                                                      // DialogF82884_ShowChild
     s32(__fastcall *callDefault)(u8 *window, void *, u32 message, u32 a, u32 b);    // Window_CallDefault
+    u8 *(__cdecl *instance)();                                                      // Online_Instance
+    u32(__fastcall *loggedIn)(const u8 *session);                                   // Online_LoggedIn
+    s32(__cdecl *openLists)();                                                      // Dialog7cc654_Open
+    u16 *(__cdecl *wideText)(u32 index);                                            // Language_WideText
+    u8 *(__cdecl *box)(const u8 *record, u32 kind0, u32 callback0, u32 kind1, u32 callback1, u32 kind2, u32 callback2, u8 keysKept);  // Dialog_Box
 };
 
 void Frame_SetEnv(const FrameEnv *env);
@@ -40,6 +45,8 @@ extern "C" {
 s32 __fastcall Frame_HandleMessage(u8 *frame, void *, u8 *window, u32 message, u32 wparam, u32 lparam);
 // 0x5d58b0 (cdecl; name invented, unconfirmed): that on the frame at [0xf82884]; with none 0.
 s32 __cdecl Frame_WindowProc(u8 *window, u32 message, u32 wparam, u32 lparam);
+// 0x5d58e0 (cdecl; the frame's child 0xbf432's handler; name invented, unconfirmed): on 0x10006 logged in: Dialog7cc654_Open; not: a message box with the text 0x1d9, colour bytes 0xff, kind 2. Always Window_CallDefault's answer.
+s32 __cdecl Frame_OnlineButtonProc(u8 *window, u32 message, u32 wparam, u32 lparam);
 
 // 0x5d5cf0 (thiscall; called from 0x54e7c0 on [0xf82884]; name invented, unconfirmed): over the list whose sentinel is at +0x18 (the first
 // node at its +4; nodes {object, next}, the next read first) each object's slot 4 is called; then the objects [0xf83784], [0xf83778],

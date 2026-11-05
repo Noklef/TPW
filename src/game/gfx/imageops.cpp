@@ -5,6 +5,7 @@
 #include <cstring>
 
 #include "../core/gameheap.h"
+#include "../core/guardfile.h"
 #include "array3d.h"
 #include "imagecodec.h"
 #include "../math/x87.h"
@@ -12,6 +13,10 @@
 namespace {
 
 template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cast<T *>((uintptr_t)p + offset); }
+
+const PanelSaveEnv kSaveEnv = {&GuardFile_Open, &GuardFile_Close, reinterpret_cast<void(__stdcall *)(u32 *, u8 *, const char *, u32)>((uintptr_t)0x0064c202),
+                               reinterpret_cast<void(__stdcall *)(u32, const u32 *, u8 *, u32)>((uintptr_t)0x0064c258), reinterpret_cast<void(__stdcall *)(u32)>((uintptr_t)0x0064c5c4)};
+const PanelSaveEnv *g_save = &kSaveEnv;
 
 // The window of the radius around i inside [0, size): the maximum (start 0) or minimum (start 0xff) of the bytes in it; for the minimum, 0 within the radius of the ends.
 template <bool Max> u8 Window(const u8 *line, s32 i, s32 radius, s32 size) {
@@ -94,6 +99,8 @@ u32 ShrinkBandDown(const u8 *rows, u32 yc, u8 *&out) {
 }
 
 }  // namespace
+
+void PanelSave_SetEnv(const PanelSaveEnv *env) { g_save = env ? env : &kSaveEnv; }
 
 extern "C" {
 
@@ -187,6 +194,38 @@ u8 __fastcall Image_ShrinkInto(const u8 *image, void *, u8 *dest, s32 width, s32
     GameHeap_Free(ycounts);
     GameHeap_Free(xcounts);
     GameHeap_Free(rows);
+    return 1;
+}
+
+u8 __fastcall Panel_SavePicture(u8 *panel, void *, const char *name) {
+    u8 *pixel = at<u8 *>(panel, 0x5c);
+    for (u32 i = 0; i < at<u32>(panel, 0x50) * at<u32>(panel, 0x54); ++i) {
+        const u8 first = pixel[0], second = pixel[1], third = pixel[2];
+        pixel[0] = pixel[3];
+        pixel[1] = third;
+        pixel[2] = second;
+        pixel[3] = first;
+        pixel += 4;
+    }
+    u32 handle = 0;
+    u8 *const file = g_save->open(name);
+    if (!file) return 0;
+    g_save->start(&handle, file, reinterpret_cast<const char *>((uintptr_t)0x00786de4), 1);
+    u32 info[0x363] = {};
+    info[1] = 0xd8c;
+    info[2] = 0xc8;
+    info[4] = at<u32>(panel, 0x50);
+    info[5] = at<u32>(panel, 0x54);
+    info[6] = 0x20;
+    info[7] = 0x18;
+    info[0x42c / 4] = 1;
+    info[0x430 / 4] = 0x32;
+    info[0x43c / 4] = 8;
+    info[0x440 / 4] = 8;
+    info[0x444 / 4] = 8;
+    g_save->write(handle, info, at<u8 *>(panel, 0x5c), at<u32>(panel, 0x50) << 2);
+    g_save->finish(handle);
+    g_save->close(file);
     return 1;
 }
 
