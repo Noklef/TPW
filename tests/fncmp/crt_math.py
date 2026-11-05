@@ -7,7 +7,7 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
 from fncmp import Bench, Call  # noqa: E402
 
-B = Bench([(0x67b410, 0x67b440), (0x67c320, 0x67c3cd)])
+B = Bench([(0x67c7f0, 0x67c824), (0x67b410, 0x67b440), (0x67c320, 0x67c3cd)])
 U = 1 << 64
 
 
@@ -32,7 +32,15 @@ def alldiv(r):
     return Call(0x67c320, [a & 0xffffffff, a >> 32, b & 0xffffffff, b >> 32], {}, conv='s', ret='i')
 
 
-KINDS = {'isnan': isnan, 'alldiv': alldiv}
+def allmul(r):
+    a, b = wide(r), wide(r)
+    if r.random() < 0.3:
+        a &= 0xffffffff
+        b &= 0xffffffff
+    return Call(0x67c7f0, [a & 0xffffffff, a >> 32, b & 0xffffffff, b >> 32], {}, conv='s', ret='i')
+
+
+KINDS = {'isnan': isnan, 'alldiv': alldiv, 'allmul': allmul}
 OPS = [k for k in os.environ.get('OPS', ','.join(KINDS)).split(',') if k]
 
 

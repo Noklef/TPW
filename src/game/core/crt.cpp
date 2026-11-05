@@ -172,6 +172,10 @@ long long __stdcall CRT_alldiv(u32 aLow, u32 aHigh, u32 bLow, u32 bHigh) {
     return (long long)((unsigned long long)aHigh << 32 | aLow) / (long long)((unsigned long long)bHigh << 32 | bLow);
 }
 
+long long __stdcall CRT_allmul(u32 aLow, u32 aHigh, u32 bLow, u32 bHigh) {
+    return (long long)(((unsigned long long)aHigh << 32 | aLow) * ((unsigned long long)bHigh << 32 | bLow));
+}
+
 s32 __cdecl CRT_rand() {
     u8 *const data = g_inner->getptd();
     u32 &seed = *reinterpret_cast<u32 *>(data + 0x14);

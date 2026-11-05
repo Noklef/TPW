@@ -92,6 +92,8 @@ s32 __cdecl CRT_isnan(u32 low, u32 high);
 
 // 0x67c320 (__alldiv; stdcall, pops 16): the signed 64-bit quotient (a zero divisor faults).
 long long __stdcall CRT_alldiv(u32 aLow, u32 aHigh, u32 bLow, u32 bHigh);
+// 0x67c7f0 (__allmul; stdcall, pops 16): the low 64 bits of the product.
+long long __stdcall CRT_allmul(u32 aLow, u32 aHigh, u32 bLow, u32 bHigh);
 
 // 0x67b5c0: rand: the thread's seed (getptd +0x14) * 214013 + 2531011 stored, bits 16-30 of it.
 s32 __cdecl CRT_rand();
