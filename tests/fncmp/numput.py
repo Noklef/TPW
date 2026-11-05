@@ -133,6 +133,10 @@ def case(r):
         text = r.choice(FLOAT_TEXTS)
         regions[TEXT] = text + b'\0' + r.bytes(0x40 - len(text) - 1)
         count = len(text) if r.random() < 0.9 else r.randrange(0, len(text) + 1)
+        if r.random() < 0.1:   # (internal, a sign in the text and a count of 0: the sign stays where it is)
+            regions[TEXT] = r.choice([b'+', b'-']) + r.bytes(0x3f)
+            regions[IOS] = bytes(0xc) + struct.pack('<3I', 0x100, precision, width & 0xffffffff) + bytes(8) + struct.pack('<I', IMP) + bytes(0x1c)
+            count = 0
         return Call(FPUTS[name], common + [IOS, fill_char, TEXT, r.choice([0, 0, 1, 3, 8]), count], regions, conv='c', ret='a')
     text = r.choice(INT_TEXTS)
     regions[TEXT] = text + b'\0' + r.bytes(0x40 - len(text) - 1)
