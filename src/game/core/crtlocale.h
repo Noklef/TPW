@@ -8,6 +8,13 @@ extern "C" {
 // 0x67c250: strncmp: up to n bytes, to the first's end: -1, 0 or 1 (the bytes unsigned).
 s32 __cdecl CRT_strncmp(const char *a, const char *b, u32 n);
 
+// 0x68d800: __fix_grouping: "3;2" to its numbers: the digits less '0', the semicolons taken out, others stepped over (bytes signed).
+void __cdecl CRT_fix_grouping(char *text);
+// 0x68d840: __free_lconv_mon: with lconv not null and its first text (+0xc) not the "C" locale's own 0xfb1940, the seven texts +0xc to +0x24 freed.
+void __cdecl CRT_free_lconv_mon(u32 *lconv);
+// 0x68e680: LcidFromHexString: base 16, without a check of the digits.
+u32 __cdecl CRT_LcidFromHexString(const char *text);
+
 // 0x68db70: strcspn.
 u32 __cdecl CRT_strcspn(const char *text, const char *set);
 

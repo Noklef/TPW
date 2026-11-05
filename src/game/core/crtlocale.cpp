@@ -105,6 +105,38 @@ s32 __cdecl CRT_strncmp(const char *a, const char *b, u32 n) {
     return 0;
 }
 
+void __cdecl CRT_fix_grouping(char *text) {
+    while (*text) {
+        const s8 c = static_cast<s8>(*text);
+        if (c >= 0x30 && c <= 0x39) {
+            *text = static_cast<char>(c - 0x30);
+            ++text;
+        } else if (c == 0x3b) {
+            for (char *at = text; (*at = at[1]) != 0;) ++at;
+        } else {
+            ++text;
+        }
+    }
+}
+
+void __cdecl CRT_free_lconv_mon(u32 *lconv) {
+    if (!lconv || lconv[3] == 0x00fb1940) return;
+    for (u32 slot = 3; slot < 10; ++slot) Crt().free(reinterpret_cast<void *>((uintptr_t)lconv[slot]));
+}
+
+u32 __cdecl CRT_LcidFromHexString(const char *text) {
+    u32 value = 0;
+    for (; *text; ++text) {
+        s8 c = static_cast<s8>(*text);
+        if (c >= 0x61 && c <= 0x66)
+            c = static_cast<s8>(c - 0x27);
+        else if (c >= 0x41 && c <= 0x46)
+            c = static_cast<s8>(c - 7);
+        value = value * 16 + static_cast<u32>(static_cast<s32>(c)) - 0x30;
+    }
+    return value;
+}
+
 u32 __cdecl CRT_strcspn(const char *text, const char *set) {
     bool in_set[0x100] = {};
     for (; *set; ++set) in_set[static_cast<u8>(*set)] = true;

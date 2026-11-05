@@ -1313,6 +1313,9 @@ address,name,kind,confidence,notes
 0x00683ef0,CRT_setlocale_get_all,function,low,reimplemented (src/game/core/crtlocale); MSVC6 _setlocale_get_all
 0x00683d90,CRT_setlocale_set_cat,function,low,reimplemented (src/game/core/crtlocale); MSVC6 _setlocale_set_cat
 0x00683ac0,CRT_setlocale,function,low,reimplemented (src/game/core/crtlocale); MSVC6 setlocale
+0x0068d800,CRT_fix_grouping,function,low,reimplemented (src/game/core/crtlocale); __fix_grouping
+0x0068d840,CRT_free_lconv_mon,function,low,reimplemented (src/game/core/crtlocale); __free_lconv_mon
+0x0068e680,CRT_LcidFromHexString,function,low,reimplemented (src/game/core/crtlocale); LcidFromHexString
 0x0067c080,CRT_strstr,function,high,reimplemented (src/game/core/crt); strstr
 0x0067bfc0,CRT_strchr,function,high,reimplemented (src/game/core/crt); strchr
 0x0067a520,CRT_atoi,function,high,MSVC6 atoi
