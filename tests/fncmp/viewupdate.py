@@ -11,7 +11,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'
 from fncmp import LOG, RAM, Bench, Call, _recorder, log_region, put  # noqa: E402
 
 SHOW = 15
-B = Bench([(0x5dc860, 0x5dced0), (0x578d20, 0x578fea + 0x10), (0x5d5ee0, 0x5d5ef0)], hooks={0x4b9980: _recorder(SHOW, 1, cdecl=True)})
+B = Bench([(0x5dd830, 0x5dd835), (0x5dc860, 0x5dced0), (0x578d20, 0x578fea + 0x10), (0x5d5ee0, 0x5d5ef0)], hooks={0x4b9980: _recorder(SHOW, 1, cdecl=True)})
 SELF, INPUT, TARGETS, CAMERA, MATRIX, LIST, NODES, VALUES, THINGS = RAM, RAM + 0x100, RAM + 0x200, RAM + 0x300, RAM + 0x400, RAM + 0x500, RAM + 0x600, RAM + 0x800, RAM + 0x1000
 
 
@@ -76,7 +76,7 @@ def case(r):
     put(targets, 0x14, 'II', r.f(100), r.f(100))
     regions = {LOG: log, SELF: obj, INPUT: inp, TARGETS: targets, 0xf82884: struct.pack('<I', INPUT), 0x78d910: bytes([r.choice([0, 0, 1, r.getrandbits(8)])]), 0x8bcbcc: struct.pack('<f', aspect)}
     world(r, x, y, aspect, regions, grazing)
-    return Call(0x5dc860, [SELF], regions, conv='t', ret='v')
+    return Call(r.deal([0x5dc860, 0x5dd830]), [SELF], regions, conv='t', ret='v')
 
 
 if __name__ == '__main__':
