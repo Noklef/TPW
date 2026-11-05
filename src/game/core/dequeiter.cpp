@@ -7,6 +7,7 @@
 #include "methods.h"
 #include "seqs.h"
 #include "sync.h"
+#include "vcall.h"
 #include "language.h"
 #include "methods.h"
 #include "vcall.h"
@@ -298,6 +299,21 @@ void __fastcall Deque32_PopFront(u8 *deque) {
     at<u32>(deque, 0x2c) = count;
     if (count == 0 || cur == at<u32>(deque, 8))
         Deque32_FreeFront(deque);
+}
+
+void __fastcall Deque32_Clear(u8 *deque) {
+    while (at<u32>(deque, 0x2c)) Deque32_PopFront(deque);
+}
+
+u32 *__fastcall DequeOwner_Pop(u8 *owner, void *, u32 *out, u32 value) {
+    if (vcall<u32>(owner, 0x1c)) {
+        u8 *const front = *reinterpret_cast<u8 **>(static_cast<uintptr_t>(at<u32>(owner, 0x1c)));
+        if (value) vcall<void>(front, 0, value);
+        at<u32>(front, 8) = 0;
+        Deque32_PopFront(owner + 0x10);
+    }
+    *out = 0;
+    return out;
 }
 
 void __fastcall Deque32_PopBack(u8 *deque) {

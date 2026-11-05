@@ -9,13 +9,14 @@ import struct
 import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
-from fncmp import HEAP, RAM, Bench, Call, heap  # noqa: E402
+from fncmp import HEAP, LOG, RAM, Bench, Call, heap, log_region, set_return, vtable  # noqa: E402
 
 CALLS = {'allocmap': 0x6c2990, 'freefront': 0x6c2910, 'freeback': 0x6c2ca0, 'popfront': 0x6c1550, 'growback': 0x6c1940, 'copy': 0x6c3010,
-         'copyback': 0x6c2f80, 'erase': 0x6c15f0, 'popback': 0x632150}
+         'copyback': 0x6c2f80, 'erase': 0x6c15f0, 'popback': 0x632150, 'clear': 0x632080, 'ownerpop': 0x631ec0}
 B = Bench([(0x6c2990, 0x6c29ab), (0x6c2910, 0x6c298a), (0x6c2ca0, 0x6c2d20), (0x6c1550, 0x6c15ef), (0x6c1940, 0x6c1a87), (0x6c3010, 0x6c309c),
-           (0x6c2f80, 0x6c300b), (0x6c15f0, 0x6c1932), (0x632310, 0x632343), (0x6c31a0, 0x6c31d3), (0x632150, 0x632200), (0x67a400, 0x690000)])
-DEQ, OUT, MAP, BLOCKS = RAM, RAM + 0x100, RAM + 0x200, RAM + 0x10000
+           (0x6c2f80, 0x6c300b), (0x6c15f0, 0x6c1932), (0x632310, 0x632343), (0x6c31a0, 0x6c31d3), (0x632150, 0x632200), (0x632080, 0x632142), (0x631ec0, 0x631fbc), (0x67a400, 0x690000)])
+OWNER, DEQ, OUT, MAP, BLOCKS = RAM, RAM + 0x10, RAM + 0x100, RAM + 0x200, RAM + 0x10000
+OWNER_VT, FRONT = RAM + 0x8000, RAM + 0x8100
 OPS = [n for n in CALLS if not os.environ.get('OPS') or n in os.environ['OPS'].split(',')]
 
 
@@ -57,6 +58,19 @@ def case(r):
         if name not in ('popfront', 'popback') and r.random() < 0.4:
             struct.pack_into('<I', regions[DEQ], 0x2c, 0)
         return Call(CALLS[name], [DEQ], regions, conv='t', ret='v')
+    if name == 'clear':
+        regions, it, n = build(r, r.choice([0, 1, 2, 10, 0x3ff, 0x400, 0x401, 0x900]))
+        return Call(CALLS[name], [DEQ], regions, conv='t', ret='v')
+    if name == 'ownerpop':
+        # The owner: the vtable at the deque's -0x10, a recorder's answer; the front dword an object with slot 0 a recorder.
+        regions, it, n = build(r, r.choice([1, 2, 3, 0x3ff, 0x400, 0x401]))
+        log = log_region()
+        set_return(log, 7, r.choice([0, 1, 1, 1, 0x80000000]))
+        regions.update({LOG: log, OWNER: struct.pack('<I', OWNER_VT) + r.bytes(0xc), OWNER_VT: vtable({0: 1, 7: 0}), FRONT: struct.pack('<I', OWNER_VT) + r.bytes(0xc)})
+        blocks = bytearray(regions[BLOCKS])
+        struct.pack_into('<I', blocks, it(0)[2] - BLOCKS, FRONT)
+        regions[BLOCKS] = blocks
+        return Call(CALLS[name], [OWNER, OUT, r.choice([0, r.getrandbits(32)])], regions, conv='t', ret='a')
     if name == 'growback':
         regions, it, n = build(r, room=r.choice([0, 0, 1, 2]))
         if r.random() < 0.25:

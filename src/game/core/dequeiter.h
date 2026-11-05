@@ -74,6 +74,11 @@ void __fastcall Deque32_FreeFront(u8 *deque);
 void __fastcall Deque32_FreeBack(u8 *deque);
 // 0x6c1550 (thiscall): pop_front: the begin position one dword on, the count lowered; at 0, or at the block's end, Deque32_FreeFront.
 void __fastcall Deque32_PopFront(u8 *deque);
+// 0x632080 (thiscall): pop_front until the count is 0 (inline in the original).
+void __fastcall Deque32_Clear(u8 *deque);
+// 0x631ec0 (thiscall on the owner, the deque at +0x10; out, value, pops 8): when the owner's slot 0x1c answers, the object at the deque's front told of the value (its slot 0, unless 0), its +8
+// cleared, pop_front (inline). out = 0; returns out. Name invented.
+u32 *__fastcall DequeOwner_Pop(u8 *owner, void *, u32 *out, u32 value);
 // 0x632150 (thiscall): pop_back: the end position one dword back, the count lowered; at 0, or at the block's start, the back block freed as
 // Deque32_FreeBack (inline in the original).
 void __fastcall Deque32_PopBack(u8 *deque);
