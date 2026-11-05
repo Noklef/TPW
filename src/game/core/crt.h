@@ -319,5 +319,6 @@ void __cdecl CRT_initterm(void(__cdecl **begin)(), void(__cdecl **end)());
 
 // 0x6887e0: _ultoa: xtoa, never negative; returns out.
 char *__cdecl CRT_ultoa(u32 value, char *out, u32 radix);
+s32 __cdecl CRT_genfname(char *name);  // 0x67ff00: tmpfile's genfname, the next name in base 32
 
 }  // extern "C"

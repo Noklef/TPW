@@ -1,4 +1,5 @@
 #include "crt.h"
+#include "crtmbstring.h"
 
 #include <intrin.h>
 
@@ -789,6 +790,15 @@ s32 __cdecl CRT_toupper(s32 c) {
     const s32 result = CRT_toupperLocked(c);
     locale_leave(locked);
     return result;
+}
+
+s32 __cdecl CRT_genfname(char *name) {
+    char *const tail = CRT_mbsrchr(name, 0x2e) + 1;
+    const u32 next = CRT_strtoul(tail, nullptr, 0x20) + 1;
+    if (next >= 0x7fff) return -1;
+    char digits[4];   // (the original's: its own argument's slot; three digits at most)
+    std::strcpy(tail, CRT_ultoa(next, digits, 0x20));
+    return 0;
 }
 
 s32 __cdecl CRT_tolower(s32 c) {
