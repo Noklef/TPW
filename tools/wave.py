@@ -142,7 +142,9 @@ def cmd_list(lo, hi, unlock=False):
                 0x4e7b80, 0x4e81b0, 0x4e8d30, 0x4e93f0, 0x5232d0,             # A r56: inside 0x4e6e80 and 0x523230
                 # B r53, tails after a mis-decode (owner): 43eb70, 4704c0, 470d10, 42b070, 4628b0, 412fb0, 47fe90, 405280 (two), 45b7d0 (two), 597100 (two), 539760, 570d90, 593ab0, 56c5a0 (two), 5311c0, 579330 (two), 592150, 583280, 568f50, 56d600
                 0x43ee20, 0x470520, 0x470dd0, 0x42b130, 0x462960, 0x412fc0, 0x47fff0, 0x4052d9, 0x405303, 0x45b82a, 0x45b851, 0x597b60, 0x598460, 0x539c60, 0x571d40, 0x595670,
-                0x56d1e0, 0x56cbd0, 0x531410, 0x5795d0, 0x579540, 0x5921d0, 0x5832b0, 0x568fd0, 0x56daf0}
+                0x56d1e0, 0x56cbd0, 0x531410, 0x5795d0, 0x579540, 0x5921d0, 0x5832b0, 0x568fd0, 0x56daf0,
+                0x660980, 0x65fd8f, 0x65fe30, 0x663430, 0x65c0a0, 0x65c0d0, 0x65c170, 0x65c200, 0x65c2a0, 0x66b050, 0x66b350, 0x622000, 0x5d9c10, 0x5cfff9, 0x5d35c2, 0x5d106f,
+                0x5d1077, 0x5d1036, 0x5d3596, 0x5cffcf, 0x5d02a5, 0x49b790, 0x4d1a30, 0x4ae8e5}
     hooked = hooked | missplit
     # Not port targets though unhooked: MSVC's __CxxFrameHandler 0x67a910 (every EH-framed function's handler stub jumps to it; the
     # ports' exception handling is the compiler's: A r34 saw it 'unlock' 1120), and TgqVideo_DecodeMacroblock32 / 16 0x67380f / 0x673fee
