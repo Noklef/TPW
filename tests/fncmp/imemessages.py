@@ -81,8 +81,17 @@ def case(r):
         else:
             imeattach.lists(r, ime, regions)
             lparam = r.choice([0, 1, 3, 5, r.getrandbits(32)])
+    if message == 0x101:
+        ime[0x60 + wparam] = r.choice([0, 1])
     put(ime, 0x50, 'I', r.choice([0, recorder(HANDLER, 4, True)]))
     put(ime, 0x54, 'i', r.choice([-1, 0, 1, 2]))
+    if message == 0x282 and wparam == 4 and r.random() < 0.3:
+        # (20 lists of no strings: the mask's high bits)
+        regions[LISTS] = bytes(0x24 * 20)
+        put(ime, 0x3c, '3I', LISTS, LISTS + 0x24 * 20, LISTS + 0x24 * 20)
+        at = r.randrange(16, 20)
+        lparam = 1 << r.randrange(16, 20)
+        put(ime, 0x54, 'i', at)
     regions[IME] = ime
     if which < 0.3:
         keys = imeattach.map_regions(r, regions, r.choice([0, IME, IME, IME]))
