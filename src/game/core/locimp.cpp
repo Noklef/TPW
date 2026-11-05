@@ -99,6 +99,18 @@ void __fastcall BadAlloc_Dtor(u32 *self) {
     CRT_exception_Dtor(self);
 }
 
+u32 *__fastcall BadAlloc_DeletingDtor(u32 *self, void *, u32 flags) {
+    BadAlloc_Dtor(self);
+    if (flags & 1) IosBase_Env().memFree(self);
+    return self;
+}
+
+void __fastcall BadAlloc_Doraise(const u32 *self) {
+    u32 copy[3];
+    BadAlloc_Copy(copy, nullptr, self);
+    IosBase_Env().cxxThrow(copy, reinterpret_cast<const void *>((uintptr_t)0x00721c88));
+}
+
 void __cdecl Nomemory() {
     u32 *const made = &global<u32>(0x00fb1e70);
     u8 &flag = global<u8>(0x00fb1e68);

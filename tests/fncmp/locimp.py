@@ -18,7 +18,7 @@ def lock(e):
     e.r['EAX'] = e.r['ECX']
 
 
-B = Bench([(0x699f70, 0x69a079), (0x69a080, 0x69a179), (0x699ee0, 0x699f70), (0x6a65f0, 0x6a6644), (0x6a6650, 0x6a6669), (0x6a66c0, 0x6a66d9), (0x6a6670, 0x6a667c), (0x698ea0, 0x698fc0), (0x698c70, 0x698e7e), (0x693f50, 0x69409a), (0x67d250, 0x67d340), (0x45b340, 0x45b9a0), (0x4f1400, 0x4f1511),
+B = Bench([(0x6a6680, 0x6a66a0), (0x6a66a0, 0x6a66be), (0x699f70, 0x69a079), (0x69a080, 0x69a179), (0x699ee0, 0x699f70), (0x6a65f0, 0x6a6644), (0x6a6650, 0x6a6669), (0x6a66c0, 0x6a66d9), (0x6a6670, 0x6a667c), (0x698ea0, 0x698fc0), (0x698c70, 0x698e7e), (0x693f50, 0x69409a), (0x67d250, 0x67d340), (0x45b340, 0x45b9a0), (0x4f1400, 0x4f1511),
            (0x698fc0, 0x6990fa), (0x699100, 0x6991e2), (0x683ac0, 0x683d88), (0x683d90, 0x683ee5), (0x683ef0, 0x68400b), (0x684010, 0x684202), (0x684210, 0x684254), (0x684260, 0x684367), (0x684370, 0x6843da), (0x68db70, 0x68dbae),
            (0x67c250, 0x67c288), (0x68dbb0, 0x68dd41), (0x68dd50, 0x68ddad), (0x68ddb0, 0x68de3a), (0x68e120, 0x68e17e), (0x68e260, 0x68e29e), (0x68e340, 0x68e35b), (0x68e360, 0x68e443), (0x68e510, 0x68e549), (0x68e6c0, 0x68e6e1),
            (0x67d7f0, 0x67d82a), (0x67dcd0, 0x67dcf0), (0x67df40, 0x67e010), (0x67a480, 0x67a519), (0x688730, 0x68876d), (0x688770, 0x6887d1), (0x67ae00, 0x67aefe)],
@@ -28,7 +28,7 @@ OBJECT, FROM, FACETS, VTABLE, A_MALLOC, A_REALLOC, HANDLE = (RAM + 0x1000 + 0x10
 SELF, SOURCE, FACET = RAM + 0x1800, RAM + 0x1900, RAM + 0x1a00
 TEXT = HEAP + 0x800
 BLOCKS = [HEAP + 0x5000 + 0x100 * i for i in range(40)]
-OPS = [n for n in ('ctor', 'dtor', 'dtor', 'tidyatexit', 'badctor', 'badcopy', 'baddtor', 'nomemory', 'nomemory', 'addfac', 'addfac', 'addfac', 'addfac', 'copy', 'copy', 'copy', 'copy', 'copy', 'localeadd', 'localeadd', 'localeadd', 'localeadd')
+OPS = [n for n in ('ctor', 'dtor', 'dtor', 'tidyatexit', 'badctor', 'badcopy', 'baddtor', 'baddelete', 'badraise', 'nomemory', 'nomemory', 'addfac', 'addfac', 'addfac', 'addfac', 'copy', 'copy', 'copy', 'copy', 'copy', 'localeadd', 'localeadd', 'localeadd', 'localeadd')
        if not os.environ.get('OPS') or n in os.environ['OPS'].split(',')]
 
 
@@ -80,7 +80,7 @@ def case(r):
     strings(log, MAKELOC, 0, 1)
     regions[0x709f08] = b'bad allocation\0\0'
     regions[0xfb1e68] = bytes(0x18)
-    if name in ('badctor', 'badcopy', 'baddtor', 'nomemory'):
+    if name in ('badctor', 'badcopy', 'baddtor', 'baddelete', 'badraise', 'nomemory'):
         answers(log, NHMALLOC, A_MALLOC)
         regions[A_MALLOC] = struct.pack('<40I', *[BLOCKS[i] if r.random() < 0.9 else 0 for i in range(40)])
         regions[HEAP][0x800:0x803] = b'ab\0'
@@ -91,6 +91,10 @@ def case(r):
             return Call(0x6a6650, [OBJECT, r.choice([0x709f08, TEXT])], regions, conv='t', ret='a')
         if name == 'badcopy':
             return Call(0x6a66c0, [OBJECT, FROM], regions, conv='t', ret='a')
+        if name == 'baddelete':
+            return Call(0x6a66a0, [OBJECT, r.choice([0, 1, 2, 3, r.getrandbits(32)])], regions, conv='t', ret='a')
+        if name == 'badraise':
+            return Call(0x6a6680, [FROM], regions, conv='t')
         if name == 'baddtor':
             return Call(0x6a6670, [OBJECT], regions, conv='t')
         if r.random() < 0.5:

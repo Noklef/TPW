@@ -28,6 +28,8 @@ extern "C" {
 u32 *__fastcall BadAlloc_Ctor(u32 *self, void *, const char *text);
 u32 *__fastcall BadAlloc_Copy(u32 *self, void *, const u32 *from);
 void __fastcall BadAlloc_Dtor(u32 *self);
+u32 *__fastcall BadAlloc_DeletingDtor(u32 *self, void *, u32 flags);  // 0x6a66a0
+void __fastcall BadAlloc_Doraise(const u32 *self);                    // 0x6a6680
 
 // 0x6a65f0: _Nomemory: a copy of the one bad_alloc ([0xfb1e70], made once: flag bit 0 of [0xfb1e68]; atexit 0x6a66e0) thrown with info 0x721c88.
 void __cdecl Nomemory();
