@@ -3192,6 +3192,7 @@ address,name,kind,confidence,notes
 0x00598ad0,Advisor_ClearSpeechText,function,low,reimplemented (src/game/world/advisor); the speech's text freed and its pointer cleared
 0x005996d0,Advisor_EndSpeech,function,low,reimplemented (src/game/world/advisor); the speech stopped without a closing sound; the voice by Sound_Stop or Sound_Forward6
 0x0059ab50,Advisor_PostHeld,function,low,reimplemented (src/game/world/advisor); the held message posted with the scoring's +0x32c as its score
+0x00599800,Advisor_FrameTick,function,low,"reimplemented (src/game/world/advisor); cdecl: the advisor's highlight on its flags, then the particle pools; name invented"
 0x00486610,Global7c24d8_CopyScript,function,high,reimplemented (src/game/ui/thingpreview); a sprite script slot made a copy of another
 0x00557110,Rsse_TakeFinished,function,high,"reimplemented (src/game/rsse/rsse_vm); the value of the first finished entry, which is cleared"
 0x0054dcc0,Flag54dcc0_Test,function,high,reimplemented (src/game/render/mode); a flag test on two settings

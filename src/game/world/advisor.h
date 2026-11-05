@@ -119,4 +119,9 @@ u8 __fastcall Advisor_Cancel(u8 *self, void *, u32 id);
 // 0xf79698 marked as well. Then its bits 0x3e0000, when 0xf7966c is on, set particle pool 0 by the one set, with the time at 0xf796c8 by 0xf7976c: 0x20000 one of effect 0x2c if one
 // started; 0x40000 sound 0xc5 and two of 0x31; 0x80000 three of 0x31; 0x100000 emptied, then two of 0x2c; 0x200000 emptied. With 0xf7966c off, only 0x200000's.
 void __cdecl Advisor_UpdateHighlight();
+
+// 0x599800 (cdecl; name invented, unconfirmed): with the pending flag 0xf7968c set and the advisor's model's holder (ModelSlot_Holder of 0xf79674) queueing bank 0xc
+// (Layer_GetQueued's first out): the highlight updated and the flags 0xf7968c and 0xf79690 cleared. Then with 0xf79690 set: the highlight updated, that flag cleared.
+// Last ParticlePools_Update.
+void __cdecl Advisor_FrameTick();
 }

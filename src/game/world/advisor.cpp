@@ -510,4 +510,22 @@ void __cdecl Advisor_UpdateHighlight() {
         break;
     }
 }
+
+void __cdecl Advisor_FrameTick() {
+    const u32 holder = g_calls.Cd(0x00429fe0, global<u32>(0x00f79674));   // ModelSlot_Holder
+    if (global<u32>(0x00f7968c)) {
+        s32 bank = 0, entry;
+        g_calls.Cd(0x00473ff0, holder, &bank, &entry, 0u);   // Layer_GetQueued
+        if (bank == 0xc) {
+            g_calls.Cd(0x00598dc0);   // Advisor_UpdateHighlight
+            global<u32>(0x00f7968c) = 0;
+            global<u32>(0x00f79690) = 0;
+        }
+    }
+    if (global<u32>(0x00f79690)) {
+        g_calls.Cd(0x00598dc0);
+        global<u32>(0x00f79690) = 0;
+    }
+    g_calls.Cd(0x005ed770);   // ParticlePools_Update
+}
 }
