@@ -538,7 +538,8 @@ def answer(flag, value, raw, n, h, earlier, read=None):
 
 def answers(log, k, table):
     """Makes slot k's recorder answer its calls in turn from the dwords at `table` (an address the case maps, 40 dwords or more): its first
-    call table[0], the next table[1] and so on (its calls counted as fail_after() counts them: those in the log, which keeps 40)."""
+    call table[0], the next table[1] and so on (its calls counted as fail_after() counts them: those in the log, which keeps 40). Past 40
+    logged calls the answers stop moving, so code that loops until an answer changes must end within 40 calls, or the driver hangs to its 600 s timeout."""
     struct.pack_into('<II', log, LOG_RETURNS + 8 * k, 7, table)
 
 

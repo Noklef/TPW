@@ -139,7 +139,10 @@ def cmd_list(lo, hi, unlock=False):
                 0x4d5020, 0x4d58f0,                                           # C r42: chunks of 0x4d4fa0 / 0x4d5870
                 0x5230f0, 0x523140, 0x523190, 0x5231e0, 0x520000, 0x4e1850, 0x503ca0,  # A's reports
                 0x534be0, 0x5349d0, 0x534d30, 0x534d70, 0x531510, 0x538ba0,   # B r39: not starts
-                0x4e7b80, 0x4e81b0, 0x4e8d30, 0x4e93f0, 0x5232d0}             # A r56: inside 0x4e6e80 and 0x523230
+                0x4e7b80, 0x4e81b0, 0x4e8d30, 0x4e93f0, 0x5232d0,             # A r56: inside 0x4e6e80 and 0x523230
+                # B r53, tails after a mis-decode (owner): 43eb70, 4704c0, 470d10, 42b070, 4628b0, 412fb0, 47fe90, 405280 (two), 45b7d0 (two), 597100 (two), 539760, 570d90, 593ab0, 56c5a0 (two), 5311c0, 579330 (two), 592150, 583280, 568f50, 56d600
+                0x43ee20, 0x470520, 0x470dd0, 0x42b130, 0x462960, 0x412fc0, 0x47fff0, 0x4052d9, 0x405303, 0x45b82a, 0x45b851, 0x597b60, 0x598460, 0x539c60, 0x571d40, 0x595670,
+                0x56d1e0, 0x56cbd0, 0x531410, 0x5795d0, 0x579540, 0x5921d0, 0x5832b0, 0x568fd0, 0x56daf0}
     hooked = hooked | missplit
     # Not port targets though unhooked: MSVC's __CxxFrameHandler 0x67a910 (every EH-framed function's handler stub jumps to it; the
     # ports' exception handling is the compiler's: A r34 saw it 'unlock' 1120), and TgqVideo_DecodeMacroblock32 / 16 0x67380f / 0x673fee
@@ -204,7 +207,7 @@ def cmd_list(lo, hi, unlock=False):
         b = body(a, info[a]['size'], idx)
         text_of = ' '.join(b)
         if b and (b[0].startswith('SUB ECX,dword ptr [ECX + -0x4]') or (len(b) <= 3 and b[-1].startswith('JMP')) or ('[EBP' in text_of and 'PUSH EBP' not in text_of)
-                  or text_of.startswith('INC EBP') or re.search(r'CALL dword ptr \[0x006f[de]', text_of)):  # (imports: Win32 calls the driver does not serve)  # thunks, tail jumps and the pieces of exception handlers
+                  or text_of.startswith('INC EBP')):  # thunks, tail jumps and the pieces of exception handlers
             continue
         print('%x(%d)' % (a, info[a]['size']), end=' ')
         shown += 1

@@ -96,6 +96,8 @@ def gate_cover(suite):
 
 
 def main():
+    if os.path.isdir(os.path.join(ROOT, '.git')):   # (a worktree's .git is a file. B r53 ran this in the main tree by a missing Set-Location: it edited the tables there and tried a build)
+        sys.exit('port.py: %s is the main tree; run the worktree\'s own tools/port.py' % ROOT)
     sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
     import lowprio
     lowprio.below_normal()   # (the builds and benches it starts inherit it)
