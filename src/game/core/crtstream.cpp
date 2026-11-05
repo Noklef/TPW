@@ -460,4 +460,12 @@ u16 __cdecl CRT_ungetwc(u32 c, CrtFile *file) {
     return result;
 }
 
+void __cdecl CRT_woutput_write_char(u32 c, CrtFile *file, s32 *count) {
+    if (CRT_fputwc_lk(c, file) == 0xffff) {
+        *count = -1;
+        return;
+    }
+    ++*count;
+}
+
 }  // extern "C"

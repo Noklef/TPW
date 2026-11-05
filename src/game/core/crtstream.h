@@ -62,4 +62,7 @@ s32 __cdecl CRT_stbuf(CrtFile *file);
 // 0x6886d0: _ftbuf: a flag and a file with a temporary buffer (0x1000): flushed and given up.
 void __cdecl CRT_ftbuf(s32 flag, CrtFile *file);
 
+// 0x6839f0: _woutput's write_char: _fputwc_lk; *count -1 if it could not go, else one more.
+void __cdecl CRT_woutput_write_char(u32 c, CrtFile *file, s32 *count);
+
 }  // extern "C"

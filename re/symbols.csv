@@ -6036,6 +6036,7 @@ address,name,kind,confidence,notes
 0x0068b490,CRT_input_inc,function,low,reimplemented (src/game/core/crtstream); _input's _inc
 0x0068b4c0,CRT_input_un_inc,function,low,reimplemented (src/game/core/crtstream); _input's _un_inc
 0x0067dad0,CRT_fprintf,function,low,reimplemented (src/game/core/crtstream); fprintf
+0x006839f0,CRT_woutput_write_char,function,low,reimplemented (src/game/core/crtstream); _woutput's write_char
 0x006898f0,CRT_parse_cmdline,function,low,reimplemented (src/game/core/crtstartup); parse_cmdline
 0x00690ef0,CRT_store_str,function,low,reimplemented (src/game/core/crttime); _store_str
 0x00690fc0,CRT_store_number,function,low,reimplemented (src/game/core/crttime); _store_number
