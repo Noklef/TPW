@@ -148,7 +148,8 @@ def cmd_list(lo, hi, unlock=False):
     hooked = hooked | {0x67a910, 0x67380f, 0x673fee, 0x67b110}
     # Nor are _CIpow 0x67c5d0 and _CIacos 0x67b4e0 (arguments in x87 registers): ports call the original through a shim or an env (world/bankaccount.cpp) or a replica (motion/quat.cpp);
     # nor _CxxThrowException 0x67d3a0: ports throw through an env (core/iosbase.cpp), A r59.
-    hooked = hooked | {0x67c5d0, 0x67b4e0, 0x67d3a0}
+    # Nor is _CIasin 0x67db20, _CIacos's sibling (its two call sites, 0x57875d and 0x584b9f, take a replica; A r62).
+    hooked = hooked | {0x67c5d0, 0x67b4e0, 0x67d3a0, 0x67db20}
     for f in glob.glob(os.path.join(ROOT, '_re', 'decomp-typed', 'decomp_*.c')):
         for m in re.finditer(r'^// ==== (\S+) @ ([0-9a-f]{8}) ====', open(f, errors='replace').read(), re.M):
             starts.add(int(m.group(2), 16))

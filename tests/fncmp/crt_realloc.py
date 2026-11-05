@@ -107,6 +107,9 @@ def case(r):
         holder, at, pos = a_block()
         block = at + 0x100 + pos * 0x10
         block = r.choice([block, block, block, block + 1, block + 8, at, at + 0xf0, at + 0xff0, PAGES, PAGES + 0x400000, PAGES + 0x3fffff, PAGES - 1, 0x1000, 0xfffffff0, PAGES2])
+        if r.random() < 0.2:   # (a block exactly at a region's end, an end not on a page: not in that region)
+            block = at + 0x100 + pos * 0x10
+            struct.pack_into('<I', static if holder == STATIC else other, 0x14, block)
         regions[STATIC] = static
         return Call(0x682b40, [block, OUT, OUT + 4], regions, conv='c', ret='a')
     if name == 'release':
@@ -143,6 +146,11 @@ def case(r):
             if r.random() < 0.6:
                 size = bytes(regions[PAGES if holder == STATIC else PAGES2])[at - (PAGES if holder == STATIC else PAGES2) + 8 + pos]
                 struct.pack_into('<I', region_bytes, group, 0xf0 - size)
+                if r.random() < 0.3:   # (the free that brings the count to 0x20, with more pages to give back than its 0x10)
+                    regions[0xfb1428] = struct.pack('<I', 0x1f)
+                    regions[FREES] = struct.pack('<40I', *[1] * 40)
+                    for i in range(0x400 - 0x14, 0x400):
+                        struct.pack_into('<I', region_bytes, 0x18 + i * 8, 0xf0)
             return Call(0x682ba0, [holder, at, entry], regions, conv='c')
         block_pages = regions[PAGES if holder == STATIC else PAGES2] = bytearray(regions[PAGES if holder == STATIC else PAGES2])
         offset = at - (PAGES if holder == STATIC else PAGES2)
