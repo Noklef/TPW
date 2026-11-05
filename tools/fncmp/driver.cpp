@@ -1239,7 +1239,7 @@ const AddrCall kCoastersLoadCalls[] = {  // tests/fncmp/coastersload.py --table
 };
 const AddrCall kGameMainCalls[] = {{0x45f640, jpeg_recorder(1, 0)}, {0x5f86b0, jpeg_recorder(2, 1)}, {0x5f5690, jpeg_recorder(2, 1)}, {0x67b9f0, jpeg_recorder(3, 2)}, {0x5c0c10, jpeg_recorder(4, 1)}, {0x5c0d00, jpeg_recorder(4, 1)},
                                    {0x5c2ce0, jpeg_recorder(5, 2)}, {0x45b1f0, jpeg_recorder(6, 0)}, {0x45ba20, jpeg_recorder(6, 0)}, {0x449df0, jpeg_recorder(7, 0)}, {0x45f7a0, jpeg_recorder(8, 0)}, {0x449eb0, jpeg_recorder(9, 0)},
-                                   {0x449ec0, jpeg_recorder(9, 0)}, {0x44e080, jpeg_recorder(10, 0)}, {0x54dcf0, jpeg_recorder(11, 0)}, {0x5b5bf0, jpeg_recorder(12, 0)}, {0x54e360, jpeg_recorder(13, 0)}, {0x51af90, jpeg_recorder(14, 0)},
+                                   {0x449ec0, jpeg_recorder(9, 0)}, {0x44e080, jpeg_recorder(10, 0)}, {0x54dcf0, jpeg_recorder(11, 0)}, {0x5b5bf0, recorder(12, 0)}, {0x54e360, jpeg_recorder(13, 0)}, {0x51af90, jpeg_recorder(14, 0)},
                                    {0x44a1d0, jpeg_recorder(14, 0)}, {0x5503f0, jpeg_recorder(15, 0)}, {0x44e560, jpeg_recorder(15, 0)}, {0x5c74b0, recorder(16, 0)}, {0x5c7420, recorder(17, 0)}, {0x5c7590, recorder(18, 0)},
                                    {0x5b5920, recorder(19, 0)}, {0x424930, recorder(20, 1)}, {0x419710, recorder(21, 0)}, {0x408470, recorder(22, 0)}, {0x41a5a0, recorder(23, 1)}, {0x5b50b0, recorder(24, 0)}, {0x5c8650, recorder(25, 0)},
                                    {0x4e5950, recorder(26, 0)}, {0x405750, recorder(27, 0)}, {0x41a5f0, recorder(28, 0)}, {0x5c5520, recorder(29, 0)}};  // tests/fncmp/gamemain.py

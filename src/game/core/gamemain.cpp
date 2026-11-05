@@ -48,7 +48,7 @@ void Frame() {
         void *const block = GameHeap_Alloc(0x404);
         global<u32>(0x00f7d88c) = block ? g_calls.Th(0x005b50b0, (u32)(uintptr_t)block) : 0;   // Online_Construct
     }
-    g_calls.Cd(0x005b5bf0);   // Online_Poll
+    g_calls.Th(0x005b5bf0, global<u32>(0x00f7d88c));   // Online_Poll (the session in ECX)
     Flags() |= g_calls.Cd(0x0054e360);   // Game_RunFrame
 }
 
