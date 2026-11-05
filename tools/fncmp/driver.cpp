@@ -2686,6 +2686,12 @@ int invoke(void *fn, const u32 *regs, const u32 *stack, u32 count, int wantSt0, 
     return 0;
 }
 
+// A bench's FNCMP_PAINT_STACK: the stack the call will use, nonzero first, so that a slot of a stack object the port leaves unwritten shows (the emulator's stack starts at 0).
+__declspec(noinline) void paint_stack() {
+    volatile u32 below[0x400];
+    for (u32 i = 0; i < 0x400; ++i) below[i] = 0xa5a5a5a5;
+}
+
 void *hooked(u32 address) {
     void *const fn = find(address);
     if (!fn) fail("not hooked", address);
@@ -3731,6 +3737,8 @@ int main(int argc, char **argv) {
                     for (int k = 0; k < 7; ++k)
                         if (std::strncmp(c, kNames[k], 3) == 0) regs[k] = step.args[skip++];
             }
+            static const bool paint = std::getenv("FNCMP_PAINT_STACK") != nullptr;
+            if (paint) paint_stack();
             code = invoke(step.fn, regs, step.args.data() + skip, n - skip, ret[0] == 'd', &eax, &edxOut, &st0, &ediOut);
             if (code) break;
         }

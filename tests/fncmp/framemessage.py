@@ -9,6 +9,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'
 from fncmp import LOG, RAM, Bench, Call, _recorder, blob_bytes, log_region, put, set_return, vtable  # noqa: E402
 
 SLOT, DEFAULT, SHOW, INSTANCE, LOGGED_IN, OPEN, WIDE, BOX = 5, 6, 7, 8, 9, 10, 11, 12
+os.environ['FNCMP_PAINT_STACK'] = '1'   # (the driver's: the online button's record is a stack object, each of its slots must be written)
 B = Bench([(0x5d58b0, 0x5d58d7), (0x5d5dd0, 0x5d5ed5), (0x5d58e0, 0x5d596a)],
           hooks={0x4bbbd0: _recorder(SHOW, 0, cdecl=True), 0x65f66e: _recorder(DEFAULT, 3), 0x48b390: _recorder(INSTANCE, 0, cdecl=True), 0x5b6450: _recorder(LOGGED_IN, 0), 0x4bc710: _recorder(OPEN, 0, cdecl=True),
                  0x485b00: _recorder(WIDE, 1, cdecl=True), 0x47f020: _recorder(BOX, 8, cdecl=True)})
