@@ -47,7 +47,7 @@ def case(r):
         dest = r.choice([DEST, DEST + 4, DEST + 8, source, source])
         return Call(0x5f50c5, [this, matrix, dest, source, r.choice([0x10, 0xc, 8, 0x14, 0x20, 0]), stride, r.randrange(1, 7), mode], regions, ret='v')
     a, b = SOURCE + r.choice([0, 4, 0x40]), SOURCE + 0x100 + r.choice([0, 8])
-    return Call(0x5f5433, [this, a, b, r.choice([DEST, DEST + 4, a, b, a + 0x10, a + 0x10, a + 0x10, b + 0x20])], regions, ret='v')
+    return Call(0x5f5433, [this, a, b, r.choice([DEST, DEST + 4, a, b, a + 8, a + 8, a + 0x10, a + 0x10, a + 0x10, b + 0x20])], regions, ret='v')
 
 
 if __name__ == '__main__':
