@@ -2017,6 +2017,7 @@ address,name,kind,confidence,notes
 0x0068f990,CRT_siglookup,function,low,reimplemented (src/game/core/crt); siglookup
 0x0067fa40,CRT_initterm,function,low,reimplemented (src/game/core/crt); _initterm
 0x006887e0,CRT_ultoa,function,low,reimplemented (src/game/core/crt); _ultoa
+0x0067d230,CRT_exception_DeletingDtor,function,low,reimplemented (src/game/core/crt); exception's deleting destructor
 0x00f7a7d0,gCdVolumeLabel,data,medium,"const char *: the CD's volume label, looked for on the CD-ROM drives by the CD check (0x5aa585)"
 0x005f8ae0,RegKey_Open,function,high,"reimplemented (src/game/core/regkey); thiscall (&out, subkey or null, nonzero: HKCU else HKLM); the company key (0x775748) made, then the subkey in it; a held key closed first"
 0x005f8b70,RegKey_Dtor,function,high,reimplemented (src/game/core/regkey); thiscall; RegKey_Close

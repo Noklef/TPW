@@ -11,7 +11,7 @@ from fncmp import HEAP, LOG, RAM, Bench, Call, _recorder, fill, heap, log_region
 
 GETPTD, LOCKEXIT, UNLOCKEXIT, MSIZE, REALLOC, LOCK, UNLOCK, FIND, FREEBLOCK, LOCKFILE, UNLOCKFILE, FCLOSE = range(2, 14)
 HEAPFREE = 20
-B = Bench([(0x67d350, 0x67d37f), (0x682360, 0x682385), (0x68f990, 0x68f9cf), (0x67fa40, 0x67fa60), (0x686a00, 0x686a10), (0x67b5c0, 0x67b5f0), (0x67a740, 0x67a7f0), (0x67ad90, 0x67ae00), (0x67b620, 0x67b660), (0x67d320, 0x67d340)],
+B = Bench([(0x67d230, 0x67d24e), (0x67d350, 0x67d37f), (0x682360, 0x682385), (0x68f990, 0x68f9cf), (0x67fa40, 0x67fa60), (0x686a00, 0x686a10), (0x67b5c0, 0x67b5f0), (0x67a740, 0x67a7f0), (0x67ad90, 0x67ae00), (0x67b620, 0x67b660), (0x67d320, 0x67d340)],
           hooks={0x682460: _recorder(GETPTD, 0, cdecl=True), 0x67fa20: _recorder(LOCKEXIT, 0, cdecl=True), 0x67fa30: _recorder(UNLOCKEXIT, 0, cdecl=True),
                  0x6818f0: _recorder(MSIZE, 1, cdecl=True), 0x681740: _recorder(REALLOC, 2, cdecl=True), 0x682720: _recorder(LOCK, 1, cdecl=True),
                  0x6827a0: _recorder(UNLOCK, 1, cdecl=True), 0x682b40: _recorder(FIND, 3, cdecl=True), 0x682ba0: _recorder(FREEBLOCK, 3, cdecl=True),
@@ -114,7 +114,13 @@ def initterm(r):
     return Call(0x67fa40, [begin, end], {LOG: log, TABLE: struct.pack('<8I', *calls)}, conv='c', ret='v')
 
 
-KINDS = {'typeinfo': type_info_dtor, 'adjust': adjust_pointer, 'siglookup': siglookup, 'initterm': initterm, 'errno': errno, 'rand': rand,'onexit': onexit, 'atexit': atexit, 'free': free, 'fclose': fclose, 'exception_dtor': exception_dtor}
+def exception_delete(r):
+    h = heap()
+    h[0x200:0x20c] = struct.pack('<3I', r.getrandbits(32), HEAP + 0x100, r.choice([0, 1, r.getrandbits(32)]))
+    return Call(0x67d230, [HEAP + 0x200, r.choice([0, 1, 2, 3, r.getrandbits(32)])], {HEAP: h}, conv='t', ret='a')
+
+
+KINDS = {'excdelete': exception_delete, 'typeinfo': type_info_dtor, 'adjust': adjust_pointer, 'siglookup': siglookup, 'initterm': initterm, 'errno': errno, 'rand': rand,'onexit': onexit, 'atexit': atexit, 'free': free, 'fclose': fclose, 'exception_dtor': exception_dtor}
 OPS = [k for k in os.environ.get('OPS', ','.join(KINDS)).split(',') if k]
 
 
