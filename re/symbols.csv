@@ -6129,6 +6129,8 @@ address,name,kind,confidence,notes
 0x0068ed80,CRT_wcstombs_lk,function,low,reimplemented (src/game/core/crtenv); MSVC6 _wcstombs_lk
 0x0068ed00,CRT_wcstombs,function,low,reimplemented (src/game/core/crtenv); MSVC6 wcstombs
 0x00687d80,CRT_tzset,function,low,reimplemented (src/game/core/crtenv); MSVC6 _tzset
+0x00688f10,CRT_wcsnlen,function,low,reimplemented (src/game/core/crtenv); LCMapStringW's count
+0x00689760,CRT_setenvp,function,low,reimplemented (src/game/core/crtenv); _setenvp
 0x00682b40,CRT_sbh_find_block,function,low,reimplemented (src/game/core/crtrealloc); MSVC6 __sbh_find_block
 0x00682a10,CRT_sbh_release_region,function,low,reimplemented (src/game/core/crtrealloc); MSVC6 __sbh_release_region
 0x00682a70,CRT_sbh_decommit_pages,function,low,reimplemented (src/game/core/crtrealloc); MSVC6 __sbh_decommit_pages
