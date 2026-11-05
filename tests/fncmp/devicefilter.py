@@ -249,7 +249,7 @@ def case(r):
         fill(log, DINPUT, 2, struct.pack('<I', r.choice([0, NEXT]) if failed else NEXT))
         set_return(log, 3, r.choice([0, 0, 0, 1, 0x80070005]))
         strings(log, 3, 0, out=0b100)
-        fill(log, 3, 2, struct.pack('<I', DEV))
+        fill(log, 3, 2, struct.pack('<I', DEV), which=1)
         set_return(log, 11, r.choice([0, 0, 0, 0x80070057]))
         set_return(log, 12, r.choice([0, 0, 0, 0x80070006]))
         set_return(log, 6, r.choice([0, 1, 0x80070005]))
