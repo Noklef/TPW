@@ -91,6 +91,12 @@ StdString *__fastcall StdString_CopyInto(const StdString *x, void *edx, StdStrin
 // a shared s gets its own copy (_Split inlined: of the old block's characters to their first NUL); the characters after
 // pos + n (n cut to what is left) moved down over them (memmove), then _Grow(length - n, false) and _Eos inlined. Returns s.
 StdString *__fastcall StdString_Erase(StdString *s, void *edx, u32 pos, u32 n);
+// 0x696090 (n, ch, allocator; pops 12): basic_string(n, ch, allocator): the allocator's byte copied, s emptied, then assign(n, ch) inlined. Returns s.
+StdString *__fastcall StdString_CtorFill(StdString *s, void *edx, u32 n, u32 ch, const u8 *allocator);
+// 0x696160 (n, ch; pops 8): append(n, ch): npos (0x6fe5ac) less the length not above n _Xlen; no n, nothing; _Grow(total, false) inlined, then n copies of ch and the end. Returns s.
+StdString *__fastcall StdString_AppendFill(StdString *s, void *edx, u32 n, u32 ch);
+// 0x696230 (pos; pops 4): operator[](pos), not const: pos past the length or no block: the empty text 0x6fe5b0, s left alone; else _Freeze inlined, and the character's address.
+char *__fastcall StdString_At(StdString *s, void *edx, u32 pos);
 // 0x5c8c30 (x, pos, n; pops 12): append(x, pos, n): pos past x's length _Xran; n cut to what x has left; npos less the length not above n _Xlen; _Grow inlined, then x's text (read after it; null: the empty text) copied.
 StdString *__fastcall StdString_AppendSub(StdString *s, void *edx, const StdString *x, u32 pos, u32 n);
 // 0x5d1560 (pos, n, chars, count; pops 16): compare(pos, n, chars, count): pos past the length _Xran; n cut to what is left; the bytes over the shorter (unsigned), then the lengths: -1, 0 or 1.

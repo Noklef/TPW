@@ -2620,6 +2620,9 @@ address,name,kind,confidence,notes
 0x004f1340,StdString_AppendChars,function,high,"reimplemented (src/game/core/stdstring); append(chars, n)"
 0x005c8c30,StdString_AppendSub,function,low,"reimplemented (src/game/core/stdstring); std::string::append(x, pos, n)"
 0x005d1560,StdString_CompareSub,function,low,"reimplemented (src/game/core/stdstring); std::string::compare(pos, n, chars, count)"
+0x00696090,StdString_CtorFill,function,low,"reimplemented (src/game/core/stdstring); basic_string(n, ch, allocator)"
+0x00696160,StdString_AppendFill,function,low,"reimplemented (src/game/core/stdstring); append(n, ch)"
+0x00696230,StdString_At,function,low,"reimplemented (src/game/core/stdstring); operator[], not const"
 0x0045b9d0,GlobalMem_Alloc,function,high,"reimplemented (src/game/core/globalmem); GlobalAlloc(GMEM_ZEROINIT or GMEM_FIXED, size) through the import slot; null for 0"
 0x0045ba00,GlobalMem_Free,function,high,reimplemented (src/game/core/globalmem); GlobalFree through the import slot; null for null
 0x0045ba70,GlobalMem_AllocCounted,function,high,reimplemented (src/game/core/globalmem); a zeroed 0x40-byte block with count at +4; null for 0
