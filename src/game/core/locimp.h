@@ -35,6 +35,13 @@ void __cdecl Nomemory();
 // 0x698ea0: _Locimp::_Addfac (pops 8): the array grown to hold id (at least 0x20, the new slots null), the facet counted in, the one it replaces counted out and deleted at 0.
 void __fastcall Locimp_Addfac(Locimp *self, void *, LocaleFacet *facet, u32 id);
 
+// 0x699f70 (pops 4): _Locimp's constructor: count 1, no facets, the byte at +0x14 and the name's allocator from the argument, the name the text at 0x747828 (assign inlined); the vtable 0x709b44, then 0x709bac.
+Locimp *__fastcall Locimp_Ctor(Locimp *self, void *, u32 xparse);
+// 0x69a080: _Locimp's destructor body: under the lock each facet from the last, a count dropped, and deleted when none are left; the array freed; the name released; the base vtable 0x709b44.
+void __fastcall Locimp_Dtor(Locimp *self, void *);
+// 0x699ee0 (atexit; name invented, unconfirmed): under the lock the facet at [0xfb1dd0], a count dropped, and deleted when none are left. The global is left as it is.
+void __cdecl Locimp_TidyAtExit();
+
 // 0x698c70: _Locimp's copy (pops 4): count 1; the classic one ([0xfb1dcc]) gives all categories' facets by _Makeloc, any other its facets counted in.
 Locimp *__fastcall Locimp_Copy(Locimp *self, void *, const Locimp *from);
 

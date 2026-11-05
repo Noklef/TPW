@@ -6143,6 +6143,9 @@ address,name,kind,confidence,notes
 0x00698ea0,Locimp_Addfac,function,low,reimplemented (src/game/core/locimp); locale::_Locimp::_Addfac
 0x00698c70,Locimp_Copy,function,low,reimplemented (src/game/core/locimp); locale::_Locimp's copy constructor
 0x00693f50,Locale_Addfac,function,low,reimplemented (src/game/core/locimp); locale::_Addfac
+0x00699f70,Locimp_Ctor,function,low,reimplemented (src/game/core/locimp); _Locimp's constructor
+0x0069a080,Locimp_Dtor,function,low,reimplemented (src/game/core/locimp); _Locimp's destructor body
+0x00699ee0,Locimp_TidyAtExit,function,low,reimplemented (src/game/core/locimp); atexit: the facet at 0xfb1dd0 released
 0x00694710,CtypeChar_Init,function,low,reimplemented (src/game/core/localefacet); ctype<char>::_Init (MSVC6)
 0x00694780,NumPut_Ctor,function,low,reimplemented (src/game/core/localefacet); num_put<char>'s constructor
 0x00695c40,NumGet_Ctor,function,low,reimplemented (src/game/core/localefacet); num_get<char>'s constructor
