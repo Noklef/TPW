@@ -5,6 +5,7 @@
 
 #include "../core/gameheap.h"
 #include "../core/vcall.h"
+#include "devicefilter.h"
 
 namespace {
 
@@ -63,6 +64,18 @@ u8 *newMouseMessage() {
     return message;
 }
 
+void addLast(u8 *self, u8 *message) {
+    Node *const sentinel = at<Node *>(self, 8);
+    Node *const last = sentinel->prev;
+    Node *const node = static_cast<Node *>(GameHeap_Alloc(0xc));
+    node->next = sentinel ? sentinel : node;
+    node->prev = last ? last : node;
+    sentinel->prev = node;
+    node->prev->next = node;
+    node->message = message;
+    ++at<u32>(self, 0xc);
+}
+
 u32 next(u8 *self, u8 *(*make)()) {
     Node *const start = at<Node *>(self, 0x10);
     while (at<u32>(at<Node *>(self, 0x10)->message, 8)) {
@@ -70,18 +83,23 @@ u32 next(u8 *self, u8 *(*make)()) {
         if (at<Node *>(self, 0x10) == at<Node *>(self, 8)) at<Node *>(self, 0x10) = at<Node *>(self, 8)->next;
         if (at<Node *>(self, 0x10) != start) continue;
         u8 *const message = make();
-        Node *const sentinel = at<Node *>(self, 8);
-        Node *const last = sentinel->prev;
-        Node *const node = static_cast<Node *>(GameHeap_Alloc(0xc));
-        node->next = sentinel ? sentinel : node;
-        node->prev = last ? last : node;
-        sentinel->prev = node;
-        node->prev->next = node;
-        node->message = message;
-        ++at<u32>(self, 0xc);
+        addLast(self, message);
         at<Node *>(self, 0x10) = at<Node *>(self, 8)->prev;
     }
     return static_cast<u32>(reinterpret_cast<uintptr_t>(at<Node *>(self, 0x10)->message));
+}
+
+// A pool's constructor, as the sources' constructors have it inline: the empty list, one message, the cursor on it. (The list's allocator byte at +4 is stack garbage in the
+// originals, which nothing reads: not written.)
+void initPool(u8 *self, u32 vtable, u8 *(*make)()) {
+    Node *const sentinel = static_cast<Node *>(GameHeap_Alloc(0xc));
+    sentinel->next = sentinel;
+    sentinel->prev = sentinel;
+    at<Node *>(self, 8) = sentinel;
+    at<u32>(self, 0xc) = 0;
+    at<u32>(self, 0) = vtable;
+    addLast(self, make());
+    at<Node *>(self, 0x10) = at<Node *>(self, 8)->next;
 }
 
 }  // namespace
@@ -98,6 +116,54 @@ u8 *__fastcall KeyPool_DeletingDtor(u8 *self, void *, u32 flags) {
 
 u8 *__fastcall MousePool_DeletingDtor(u8 *self, void *, u32 flags) {
     MousePool_Dtor(self);
+    if (flags & 1) GameHeap_Free(self);
+    return self;
+}
+
+u8 *__fastcall MessageSource_Ctor(u8 *self) {
+    DeviceFilter_Ctor(self);
+    initPool(self + 0x34, 0x00703d1c, newKeyMessage);
+    initPool(self + 0x48, 0x00703d14, newMouseMessage);
+    at<u32>(self, 0) = 0x00703cf8;
+    at<u32>(self, 0x10) = 0x00703ce8;
+    return self;
+}
+
+void __fastcall MessageSource_Dtor(u8 *self) {
+    at<u32>(self, 0) = 0x00703cf8;
+    at<u32>(self, 0x10) = 0x00703ce8;
+    MousePool_Dtor(self + 0x48);
+    KeyPool_Dtor(self + 0x34);
+    DeviceFilter_Dtor(self);
+}
+
+u8 *__fastcall MessageSource_DeletingDtor(u8 *self, void *, u32 flags) {
+    MessageSource_Dtor(self);
+    if (flags & 1) GameHeap_Free(self);
+    return self;
+}
+
+u8 *__fastcall KeySource_Ctor(u8 *self) {
+    DeviceFilter_Ctor(self);
+    initPool(self + 0x34, 0x00703d14, newMouseMessage);
+    at<u32>(self, 0x18) = 6;
+    at<u32>(self, 0x14) = 6;
+    at<u32>(self, 0) = 0x00703d38;
+    at<u32>(self, 0x10) = 0x00703d28;
+    at<u32>(self, 0x34) = 0x00703d20;
+    return self;
+}
+
+void __fastcall KeySource_Dtor(u8 *self) {
+    at<u32>(self, 0) = 0x00703d38;
+    at<u32>(self, 0x10) = 0x00703d28;
+    at<u32>(self, 0x34) = 0x00703d20;
+    MousePool_Dtor(self + 0x34);
+    DeviceFilter_Dtor(self);
+}
+
+u8 *__fastcall KeySource_DeletingDtor(u8 *self, void *, u32 flags) {
+    KeySource_Dtor(self);
     if (flags & 1) GameHeap_Free(self);
     return self;
 }

@@ -8,9 +8,12 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
 from fncmp import HEAP, LOG, RAM, Bench, Call, heap, log_region, put, vtable  # noqa: E402
 
-ADDRESS = {'KeyDtor': 0x634a50, 'MouseDtor': 0x634b40, 'Clear': 0x634bf0, 'Insert': 0x634c60, 'KeyNext': 0x634d00, 'MouseNext': 0x634de0, 'KeyDel': 0x634b00, 'MouseDel': 0x634b20, 'Deliver': 0x634900, 'Keys': 0x6350f0}
+ADDRESS = {'KeyDtor': 0x634a50, 'MouseDtor': 0x634b40, 'Clear': 0x634bf0, 'Insert': 0x634c60, 'KeyNext': 0x634d00, 'MouseNext': 0x634de0, 'KeyDel': 0x634b00, 'MouseDel': 0x634b20, 'Deliver': 0x634900, 'Keys': 0x6350f0,
+           'Ctor2': 0x6345d0, 'Dtor2': 0x634760, 'Del2': 0x634740, 'Ctor1': 0x634ee0, 'Dtor1': 0x635000, 'Del1': 0x634fe0}
 OPS = [n for n in ADDRESS if not os.environ.get('OPS') or n in os.environ['OPS'].split(',')]
-B = Bench([(0x634a50, 0x634af1), (0x634b40, 0x634be1), (0x634bf0, 0x634c55), (0x634c60, 0x634cb7), (0x634d00, 0x634ddb), (0x634de0, 0x634ec1), (0x47db00, 0x47db20), (0x67a400, 0x690000), (0x634b00, 0x634b1f), (0x634b20, 0x634b3f), (0x634900, 0x6349f8), (0x6350f0, 0x635174), (0x67acb0, 0x67acb1)])
+B = Bench([(0x634a50, 0x634af1), (0x634b40, 0x634be1), (0x634bf0, 0x634c55), (0x634c60, 0x634cb7), (0x634d00, 0x634ddb), (0x634de0, 0x634ec1), (0x47db00, 0x47db20), (0x67a400, 0x690000), (0x634b00, 0x634b1f), (0x634b20, 0x634b3f), (0x634900, 0x6349f8), (0x6350f0, 0x635174), (0x67acb0, 0x67acb1),
+           (0x6345d0, 0x63471e), (0x634740, 0x63475f), (0x634760, 0x6348d3), (0x634ee0, 0x634fdf), (0x634fe0, 0x634fff), (0x635000, 0x6350ca), (0x634cc0, 0x634cf7), (0x5d0690, 0x5d06c0),
+           (0x63e7c0, 0x63e815), (0x63e840, 0x63e8b9), (0x633120, 0x633140), (0x633160, 0x6331c0), (0x633200, 0x63321a), (0x633a50, 0x633a64), (0x633a00, 0x633a30), (0x6338b0, 0x6338c0)])
 SELF, OUT, VALUE, LIST, MESSAGES = RAM, RAM + 0x80, RAM + 0x90, RAM + 0x100, RAM + 0x400
 LIST2, MESSAGES2, RECORDS, SINK, VT = RAM + 0x200, RAM + 0x600, RAM + 0x800, RAM + 0x900, RAM + 0x980
 SLOT_KEY, SLOT_MOUSE = 5, 6
@@ -49,6 +52,19 @@ def case(r):
         regions[LIST2], regions[MESSAGES2] = nodes2, messages2
         put(self_, 0x50, 'III', sentinel2, (len(nodes2) >> 4) - 1, r.choice(others2) if others2 else sentinel2)
         return Call(ADDRESS[op], [SELF, r.choice([0, 1, 2, 3, 6])], regions, conv='t', ret='v')
+    if op in ('Ctor2', 'Ctor1'):
+        regions[HEAP] = heap(0x1000, r.choice([0, 0, 0, 2, 5]))
+        return Call(ADDRESS[op], [SELF], regions, conv='t', ret='a', ignore=[(SELF + 0x38, 1), (SELF + 0x4c, 1)])
+    if op in ('Dtor2', 'Del2', 'Dtor1', 'Del1'):
+        for at, value in ((8, 0), (0xc, 0), (0x1c, 0), (0x30, r.choice([0, RAM + 0xf00]))):
+            put(self_, at, 'I', value)
+        put(self_, 0x3c, 'II', sentinel, count)
+        nodes2, messages2, sentinel2, others2 = ring(r, r.choice([0, 1, 2, 3]), LIST2, MESSAGES2)
+        regions[LIST2], regions[MESSAGES2] = nodes2, messages2
+        put(self_, 0x50, 'II', sentinel2, len(others2))
+        if op in ('Del2', 'Del1'):
+            return Call(ADDRESS[op], [SELF, r.choice([0, 1, 2, 3, 0xfffffffe])], regions, conv='t', ret='a')
+        return Call(ADDRESS[op], [SELF], regions, conv='t', ret='v')
     if op in ('KeyDel', 'MouseDel'):
         put(self_, 8, 'I', sentinel)
         put(self_, 0xc, 'I', count)

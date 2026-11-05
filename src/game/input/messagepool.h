@@ -13,6 +13,17 @@ void __fastcall MousePool_Dtor(u8 *self);
 u8 *__fastcall KeyPool_DeletingDtor(u8 *self, void *, u32 flags);
 u8 *__fastcall MousePool_DeletingDtor(u8 *self, void *, u32 flags);
 
+// 0x6345d0 (thiscall): a device filter with a key pool at +0x34 and a mouse pool at +0x48, one message in each; vtables 0x703cf8, 0x703ce8 (+0x10). 0x634760 (thiscall): undone, the
+// mouse pool first. 0x634740 (thiscall (flags), pops 4): with bit 0, freed. Returns self.
+u8 *__fastcall MessageSource_Ctor(u8 *self);
+void __fastcall MessageSource_Dtor(u8 *self);
+u8 *__fastcall MessageSource_DeletingDtor(u8 *self, void *, u32 flags);
+// 0x634ee0 (thiscall): a device filter with a mouse-sized pool at +0x34 (vtable 0x703d20), +0x14 = +0x18 = 6; vtables 0x703d38, 0x703d28 (+0x10). 0x635000 (thiscall): undone.
+// 0x634fe0 (thiscall (flags), pops 4): with bit 0, freed. Returns self.
+u8 *__fastcall KeySource_Ctor(u8 *self);
+void __fastcall KeySource_Dtor(u8 *self);
+u8 *__fastcall KeySource_DeletingDtor(u8 *self, void *, u32 flags);
+
 // 0x634900 (thiscall (count), pops 4): count records of 0x10 bytes from the block at +0x30 (type, value, time) sent to the object at +0xc: types 0, 4, 8 as a key message from the pool
 // at +0x34 (slot 0x14), 0xc-0xf as a mouse message from the pool at +0x48 with the button 0xf0-0xf3 and the value's low byte and bit 7 (as 8) (slot 0x18). Other types: nothing.
 void __fastcall MessageSource_Deliver(u8 *self, void *, u32 count);

@@ -6637,6 +6637,12 @@ address,name,kind,confidence,notes
 0x00634b20,MousePool_DeletingDtor,function,low,"reimplemented (src/game/input/messagepool); thiscall (flags): the destructor, bit 0 frees; name invented"
 0x00634900,MessageSource_Deliver,function,low,reimplemented (src/game/input/messagepool); thiscall (count): records sent on as key and mouse messages; name invented
 0x006350f0,MessageSource_DeliverKeys,function,low,reimplemented (src/game/input/messagepool); thiscall (count): records sent on as messages of the low byte of their type; name invented
+0x006345d0,MessageSource_Ctor,function,low,"reimplemented (src/game/input/messagepool); thiscall: a device filter with a key pool and a mouse pool, one message in each; name invented"
+0x00634740,MessageSource_DeletingDtor,function,low,"reimplemented (src/game/input/messagepool); thiscall (flags): the destructor, bit 0 frees; name invented"
+0x00634760,MessageSource_Dtor,function,low,"reimplemented (src/game/input/messagepool); thiscall: the pools destroyed, the device filter's destructor; name invented"
+0x00634ee0,KeySource_Ctor,function,low,reimplemented (src/game/input/messagepool); thiscall: a device filter with one mouse-sized pool; name invented
+0x00634fe0,KeySource_DeletingDtor,function,low,"reimplemented (src/game/input/messagepool); thiscall (flags): the destructor, bit 0 frees; name invented"
+0x00635000,KeySource_Dtor,function,low,"reimplemented (src/game/input/messagepool); thiscall: the pool destroyed, the device filter's destructor; name invented"
 0x0047e3e0,ScreenSurfaces_Dtor,function,high,reimplemented (src/game/gfx/screensurfaces); an object releases its two COM objects
 0x00fa76b0,gSurfaceDirectDraw,data,high,IDirectDraw that Surface_Create makes surfaces with (Surface_SetDirectDraw)
 0x00fa76b4,gSurfaceNoSysLock,data,high,byte; non-zero: Surface_Lock adds DDLOCK_NOSYSLOCK
