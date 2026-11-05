@@ -10,7 +10,7 @@ from fncmp import HEAP, IMPORT_TABLE, LOG, RAM, Bench, Call, _free, _recorder, a
 
 GETPTD, REALLOC, LOCK, UNLOCK, AMSG, NHMALLOC = 2, 6, 7, 8, 26, 28
 CMPA, CMPW, TOWIDE, TONARROW, CPINFO, SETENV, ERROR, INCR, DECR, TZI = 14, 15, 16, 17, 18, 19, 20, 21, 22, 23
-B = Bench([(0x688f10, 0x688f45), (0x689760, 0x68984e), (0x68f060, 0x68f325), (0x68b530, 0x68b56b), (0x691540, 0x691602), (0x68b5f0, 0x68b640), (0x68f540, 0x68f5b4), (0x68f5c0, 0x68f62f), (0x68f330, 0x68f534), (0x68b570, 0x68b5ea), (0x67fc20, 0x67fcae),
+B = Bench([(0x67fbf0, 0x67fc18), (0x688f10, 0x688f45), (0x689760, 0x68984e), (0x68f060, 0x68f325), (0x68b530, 0x68b56b), (0x691540, 0x691602), (0x68b5f0, 0x68b640), (0x68f540, 0x68f5b4), (0x68f5c0, 0x68f62f), (0x68f330, 0x68f534), (0x68b570, 0x68b5ea), (0x67fc20, 0x67fcae),
            (0x68ef70, 0x68efa2), (0x68ed80, 0x68ef6a), (0x68ed00, 0x68ed71), (0x687d80, 0x688058),
            (0x689180, 0x6891af), (0x67dcd0, 0x67dcf0), (0x67bfb0, 0x67c07c), (0x67acd0, 0x67acee), (0x67ae00, 0x67aefe), (0x67a480, 0x67a519), (0x686a00, 0x686a19)],
           hooks={0x682720: _recorder(LOCK, 1, cdecl=True), 0x6827a0: _recorder(UNLOCK, 1, cdecl=True), 0x682460: _recorder(GETPTD, 0, cdecl=True), 0x67dcf0: _recorder(NHMALLOC, 2, cdecl=True),
@@ -21,8 +21,10 @@ BLOCKS = [HEAP + 0x100 + 0x80 * i for i in range(40)]   # (each once: a block wr
 TEXTS = [b'PATH=c:\\x', b'TZ=EST5EDT', b'tz', b'A=1', b'AB=2', b'ab=', b'=C:=x', b'NOEQ', b'']
 ZONES = [b'', b'EST5EDT', b'PST8', b'CET-1CEST', b'XYZ+5:30', b'XYZ-5:30:15QQQ', b'ABC12:', b'ABC:1', b'AB', b'ABC+', b'ABC1:2:3:4', b'ABC 7', b'ABC-', b'SAME']
 OPTIONS = [b'A=1', b'TZ=X', b'A=', b'TZ=', b'NEW=v', b'NEW=', b'=x', b'noeq', b'']
-OPS = [n for n in ('compare', 'compare', 'coll', 'mbschr', 'strdup', 'findenv', 'copyenv', 'setenv', 'setenv', 'wtomb', 'getenv', 'wcsnlen', 'setenvp', 'setenvp', 'wcsncnt', 'wcslk', 'wcslk', 'wcslk', 'wcs', 'tzset', 'tzset')
+OPS = [n for n in ('getenvlock', 'compare', 'compare', 'coll', 'mbschr', 'strdup', 'findenv', 'copyenv', 'setenv', 'setenv', 'wtomb', 'getenv', 'wcsnlen', 'setenvp', 'setenvp', 'wcsncnt', 'wcslk', 'wcslk', 'wcslk', 'wcs', 'tzset', 'tzset')
        if not os.environ.get('OPS') or n in os.environ['OPS'].split(',')]
+
+GETENV = {'getenv': 0x67fc20, 'getenvlock': 0x67fbf0}
 
 
 def wide(text):
@@ -114,7 +116,7 @@ def case(r):
     if name == 'wtomb':
         regions[0xfb1380] = struct.pack('<3I', env, 0, WIDE_ENV)
         return Call(0x68b570, [], regions, conv='c', ret='a')
-    if name == 'getenv':
+    if name in GETENV:
         if r.random() < 0.3:   # (the wide environment's second entry fails, with the first already in the narrow one)
             regions[0xfb1380] = struct.pack('<3I', 0, 0, WIDE_ENV)
             regions[WIDE_ENV] = struct.pack('<8I', STRINGS + 0x100, STRINGS + 0x100, 0, 0, 0, 0, 0, 0)
@@ -125,15 +127,15 @@ def case(r):
             regions[0xfb1910] = struct.pack('<I', 2)
             fill(log, TONARROW, 4, b'A=1\0', which=0)
             strings[0x20:0x22] = b'A\0'
-            return Call(0x67fc20, [STRINGS + 0x20], regions, conv='c', ret='a')
+            return Call(GETENV[name], [STRINGS + 0x20], regions, conv='c', ret='a')
         if r.random() < 0.3:   # (a shorter entry, with its "=" past the end)
             regions[ENV] = struct.pack('<4I', STRINGS + 0x40, 0, 0, 0)
             regions[0xfb1380] = struct.pack('<3I', ENV, 0, 0)
             regions[A_CMP] = struct.pack('<40I', *[2] * 40)
             strings[0x20:0x24] = b'xyz\0'
             strings[0x40:0x46] = b'AB\0=z\0'
-            return Call(0x67fc20, [STRINGS + 0x20], regions, conv='c', ret='a')
-        return Call(0x67fc20, [r.choice([STRINGS + 0x20, STRINGS + 0x20, STRINGS + 0x40, 0])], regions, conv='c', ret='a')
+            return Call(GETENV[name], [STRINGS + 0x20], regions, conv='c', ret='a')
+        return Call(GETENV[name], [r.choice([STRINGS + 0x20, STRINGS + 0x20, STRINGS + 0x40, 0])], regions, conv='c', ret='a')
     if name == 'wcsnlen':
         return Call(0x688f10, [ZONE, r.choice([0, 1, 2, 3, 0x20])], regions, conv='c', ret='a')
     if name == 'setenvp':   # (a failed malloc goes on through a null pointer, in both)

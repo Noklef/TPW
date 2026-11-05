@@ -48,4 +48,7 @@ u32 __cdecl CRT_wcstombs(char *to, const u16 *from, u32 n);
 // 0x687d80: _tzset: from "TZ" (3 letters, hours[:minutes[:seconds]], 3 letters; only when it changed), without one from GetTimeZoneInformation.
 void __cdecl CRT_tzset();
 
+// 0x67fbf0: getenv: _getenv_lk (CRT_getenv) under lock 0xc.
+char *__cdecl CRT_getenv_locked(const char *name);
+
 }

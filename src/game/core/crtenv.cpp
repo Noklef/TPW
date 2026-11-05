@@ -419,4 +419,11 @@ void __cdecl CRT_tzset() {
     }
 }
 
+char *__cdecl CRT_getenv_locked(const char *name) {
+    CrtInner().lock(0xc);
+    char *const value = CRT_getenv(name);
+    CrtInner().unlock(0xc);
+    return value;
+}
+
 }
