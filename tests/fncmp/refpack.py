@@ -14,7 +14,7 @@ from fncmp import Bench, Call, RAM  # noqa: E402
 B = Bench([(0x641f10, 0x642100), (0x642110, 0x642147), (0x6419b0, 0x6419d4), (0x67850c, 0x67862f)])
 SRC, BEFORE, SLACK = RAM, RAM + 0x2000, 0x100
 DST = BEFORE + SLACK
-CALLS = {'Decode': 0x641f10, 'Size': 0x642110, 'Chunk': 0x67850c}
+CALLS = {'Decode': 0x641f10, 'Size': 0x642110, 'Chunk': 0x67850c, 'Read': 0x6419b0}
 
 
 def stream(r):
@@ -59,6 +59,8 @@ def header(r, size):
 
 def case(r):
     op = r.deal(OPS)
+    if op == 'Read':
+        return Call(0x6419b0, [SRC, r.choice([0, 1, 2, 3, 4, 5, 8])], {SRC: r.bytes(8)}, ret='a')
     if op == 'Size':
         k = r.random()
         src = header(r, r.getrandbits(24)) if k < 0.6 else bytes([0x10, 0xfb]) + r.bytes(6) if k < 0.8 else r.bytes(8)

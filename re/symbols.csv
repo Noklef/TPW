@@ -632,7 +632,7 @@ address,name,kind,confidence,notes
 0x00474ea0,Path_PercentAt,function,high,"reimplemented (src/game/motion); (table, count, t, out, closed): lerps the per-frame percent table; t == count gives the last value; neighbours > 50 apart wrap through 100 (fmod)"
 0x00641f10,RefPack_Decode,function,high,"reimplemented (src/game/files); (dst, src, unused) -> decoded size, ret 0xc; codec vtable 0x703f00 slot 2; no bounds checks, ignores the 0x80 4-byte-size flag"
 0x00642110,RefPack_DecodedSize,function,high,"reimplemented; (src) -> 3-byte BE size after the magic (0x10FB) or after 5 bytes, ret 4; vtable slot 5"
-0x006419b0,ReadBigEndian,function,high,"(p, n) -> n-byte big-endian integer"
+0x006419b0,ReadBigEndian,function,high,"reimplemented (src/game/files/refpack); cdecl (p, n): the n bytes at p as a big-endian number"
 0x00642100,Const_C0000,function,high,reimplemented (src/game/core/trivial); 0xc0000
 0x00638be0,BufferSource_AttachRefPack,function,high,reimplemented (src/game/files/wrapsources); thiscall (source); reads the whole entry and RefPack_Decodes it into the data
 0x00703f00,RefPackCodec_vtable,data,medium,"slots 0x638c70 (dtor), RefPack_Encode, RefPack_Decode, RefPack_WorkspaceSize, 0x5d60c0, RefPack_DecodedSize, 0x638860, 0x638b60"

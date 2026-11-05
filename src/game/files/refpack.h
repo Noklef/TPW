@@ -20,6 +20,9 @@ s32 __stdcall RefPack_Decode(u8 *dst, const u8 *src, s32 unused);
 // else after 5 bytes.
 u32 __stdcall RefPack_DecodedSize(const u8 *src);
 
+// 0x6419b0 (cdecl (p, n)): the n bytes at p as a big-endian number.
+u32 __cdecl ReadBigEndian(const u8 *p, u32 n);
+
 // 0x67850c (cdecl (src, dst, decode); the video library's own copy, in hand-written assembly; name unconfirmed): src decoded into
 // dst when src is not null and decode is nonzero. It returns nothing: it reads the header's decoded size into EAX but its POPAD then
 // restores the caller's EAX (and the one caller, 0x677914, ignores it).
