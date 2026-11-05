@@ -1,6 +1,6 @@
-# The online mail's first message dropped (src/game/online/mailbox) against the original: 0x5ccda0 (the number out of three lists, the next message read into a target), 0x5cd220 (two files removed), 0x5c99f0 (the attachment made).
+# The online mail's first message dropped (src/game/online/mailbox) against the original: 0x5ccda0 (the number out of three lists, the next message read into a target), 0x5cd220 (two files removed), 0x5c99f0 (the attachment made), 0x5cd0a0 (the sent ones deleted).
 # The lists' erase, the removal, the session's accessors, the wide assign and the attachment's constructor recorders; the strings, the sprintf, the wcslen and the cursor real.
-# usage: mailboxdrop.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Drop,Delete,Attach)
+# usage: mailboxdrop.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Drop,Delete,Attach,DeleteSent)
 import os
 import struct
 import sys
@@ -11,7 +11,7 @@ import gamestring  # noqa: E402
 from fncmp import HEAP, IMPORT_TABLE, LOG, RAM, Bench, Call, _recorder, global_heap, heap, log_fold, log_region, put, set_return, strings  # noqa: E402
 
 ERASE, REMOVE, SAVE, LOAD, INSTANCE, USER, GET34, GET38, STRING14, STRING28, PUSH, WIDE, CTOR = range(13)
-B = Bench([(0x5ccda0, 0x5cd091), (0x5cd220, 0x5cd3fb), (0x5c99f0, 0x5c9a51), (0x45b340, 0x45b9a0), (0x4f1340, 0x4f1420), (0x5ce530, 0x5ce53e), (0x5ce910, 0x5ce920), (0x67acd0, 0x67acf0)] + gamestring.B_RANGES,
+B = Bench([(0x5ccda0, 0x5cd091), (0x5cd0a0, 0x5cd217), (0x5cd220, 0x5cd3fb), (0x5c99f0, 0x5c9a51), (0x45b340, 0x45b9a0), (0x4f1340, 0x4f1420), (0x5ce530, 0x5ce53e), (0x5ce910, 0x5ce920), (0x67acd0, 0x67acf0)] + gamestring.B_RANGES,
           hooks={0x634cc0: _recorder(ERASE, 2), 0x67e560: _recorder(REMOVE, 1, cdecl=True), 0x5cb720: _recorder(SAVE, 0), 0x5cba70: _recorder(LOAD, 1), 0x48b390: _recorder(INSTANCE, 0, cdecl=True),
                  0x5b64a0: _recorder(USER, 0), 0x41ce80: _recorder(GET34, 0), 0x41ce90: _recorder(GET38, 0), 0x5b6480: _recorder(STRING14, 0), 0x5b6490: _recorder(STRING28, 0), 0x4a8ad0: _recorder(PUSH, 1),
                  0x4051d0: _recorder(WIDE, 2), 0x5c9720: _recorder(CTOR, 1)})
@@ -125,11 +125,31 @@ def drop(r):
     return Call(0x5ccda0, [SELF, TARGET], regions, conv='t', ret='b')
 
 
-OPS = {'Drop': drop, 'Delete': delete, 'Attach': attach}
+def delete_sent(r):
+    log, regions = base(r)
+    self = bytearray(r.bytes(0x80))
+    folder(r, self, regions)
+    for which, offset in enumerate((0x70, 0x64, 0x58)):
+        head = LISTS + 0x100 * which
+        count = r.choice([0, 1, 2, 3, 4])
+        nodes = bytearray(0xc0)
+        for i in range(count + 1):
+            put(nodes, 0x10 * i, 'II', head + 0x10 * ((i + 1) % (count + 1)), head + 0x10 * ((i + count) % (count + 1)))
+            put(nodes, 0x10 * i + 8, 'I', r.choice([1, 2, 3]))
+        regions[head] = nodes
+        put(self, offset + 4, 'II', head, r.choice([count, count, count, 0]))
+    regions[SELF] = self
+    set_return(log, LOAD, r.choice([1, 0]))
+    strings(log, REMOVE, 1)
+    strings(log, ERASE, 0, out=1)
+    return Call(0x5cd0a0, [SELF], regions, conv='t', ret='b')
+
+
+OPS = {'Drop': drop, 'Delete': delete, 'Attach': attach, 'DeleteSent': delete_sent}
 
 
 def case(r):
-    names = os.environ.get('OPS', 'Drop,Drop,Drop,Delete,Attach').split(',')
+    names = os.environ.get('OPS', 'Drop,Drop,Drop,Delete,Attach,DeleteSent').split(',')
     return OPS[r.choice(names)](r)
 
 

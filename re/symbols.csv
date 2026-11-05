@@ -7716,6 +7716,7 @@ address,name,kind,confidence,notes
 0x005c9a60,MailClient_Callback,function,low,"reimplemented (src/game/online/mailbox); The mail library's callback; name invented, unconfirmed"
 0x005c9570,MailClient_Dtor,function,low,"reimplemented (src/game/online/mailbox); The mail client's destructor: its attachment, its strings and winsock's end; name invented, unconfirmed"
 0x005cb030,Mailbox_Dtor,function,low,"reimplemented (src/game/online/mailbox); The mailbox's destructor: its client, its lists and its strings; name invented, unconfirmed"
+0x005cd0a0,Mailbox_DeleteSent,function,low,"reimplemented (src/game/online/mailbox); A sent message's file removed and its number taken off; name invented, unconfirmed"
 0x005d8190,LobbyModel_SetPosition,function,high,"reimplemented (src/game/frontend/lobbymodel); thiscall (v): the lobby model's (+4: 0x7a4610 index) matrix (+8 -> +4 -> +0x78, +0x10) translation = v[0..2] (x87 loads, all read first)"
 0x005d8380,LobbyModel_TurnY,function,high,"reimplemented (src/game/frontend/lobbymodel); thiscall (angle): Matrix_RotateEulerFast(the lobby model's matrix, 2 ""Y"", &angle)"
 0x005d83b0,LobbyModel_SetScale,function,high,"reimplemented (src/game/frontend/lobbymodel); thiscall (x, y, z): Holder_SetScale(the lobby model's entry +8, (x, y, z))"
