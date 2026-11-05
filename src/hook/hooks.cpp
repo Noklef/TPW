@@ -227,6 +227,7 @@
 #include "../game/core/dsoundsource.h"
 #include "../game/core/gameframe.h"
 #include "../game/core/gameowner.h"
+#include "../game/core/guardfile.h"
 #include "../game/core/guardheap.h"
 #include "../game/core/imaadpcm.h"
 #include "../game/core/iosbase.h"
@@ -6564,6 +6565,9 @@ const Hook kHooks[] = {
     {"ThemeRecord_Suffix",        0x005b1520, (void *)&ThemeRecord_Suffix, {0x56, 0x8b, 0xf1, 0x8a, 0x86}},
     {"GuardHeap_Alloc",           0x005d4ba0, (void *)&GuardHeap_Alloc, {0x56, 0x8b, 0x74, 0x24, 0x08}},
     {"GuardHeap_Free",            0x005d4c20, (void *)&GuardHeap_Free, {0x51, 0x8b, 0x44, 0x24, 0x08}},
+    {"GuardFile_Open",            0x005d4d10, (void *)&GuardFile_Open, {0x81, 0xec, 0x28, 0x02, 0x00}},
+    {"GuardFile_Close",           0x005d4fd0, (void *)&GuardFile_Close, {0x81, 0xec, 0x08, 0x04, 0x00}},
+    {"GuardFile_Write",           0x005d5350, (void *)&GuardFile_Write, {0x51, 0x53, 0x8b, 0x5c, 0x24}},
     {"Nav_Ctor",          0x0050ffe0, (void *)&Nav_Ctor, {0x6a, 0xff, 0x68, 0x2d, 0xe6}},
     {"Nav_Dtor",                  0x0050f200, (void *)&Nav_Dtor, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"Nav_DtorAtD4",              0x004f7c30, (void *)&Nav_DtorAtD4, {0x81, 0xc1, 0xd4, 0x00, 0x00}},
