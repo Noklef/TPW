@@ -13,7 +13,7 @@ namespace {
 template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cast<T *>((uintptr_t)p + offset); }
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
 
-const BatchQuadEnv kPortEnv = {&Batch_Begin, &DrawBatch_AddPolygon, &DrawBuffer_End, &Batch_Flush, &Batch_DrawQuad, &SpriteFrame_FillItem};
+const BatchQuadEnv kPortEnv = {&Batch_Begin, &DrawBatch_AddPolygon, &DrawBuffer_End, &Batch_Flush, &Batch_DrawQuad, &SpriteFrame_FillItem, &Batch_DrawQuadInPlace};
 const BatchQuadEnv *g_env = &kPortEnv;
 
 }  // namespace
@@ -39,6 +39,13 @@ u32 __fastcall SpriteFrame_DrawQuad(u8 *frame) {
     spec[1] = static_cast<u32>(reinterpret_cast<uintptr_t>(&spec[11]));
     if (g_env->fillItem(frame, nullptr, reinterpret_cast<u8 *>(spec)) == 0) return 0;
     return g_env->drawQuad(global<u8 *>(0x00879ab0), nullptr, reinterpret_cast<u8 *>(spec), 0xffffffff);
+}
+
+u32 __fastcall SpriteFrame_DrawQuadInPlace(u8 *frame) {
+    u32 spec[27] = {0};
+    spec[1] = static_cast<u32>(reinterpret_cast<uintptr_t>(&spec[11]));
+    if (g_env->fillItem(frame, nullptr, reinterpret_cast<u8 *>(spec)) == 0) return 0;
+    return g_env->drawInPlace(global<u8 *>(0x00879ab0), nullptr, reinterpret_cast<u8 *>(spec), 0xffffffff);
 }
 
 u32 __fastcall Batch_DrawQuadInPlace(u8 *object, void *, u8 *spec, u32 mask) {

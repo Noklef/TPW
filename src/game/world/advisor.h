@@ -5,7 +5,25 @@
 #include "../../../re/types.h"
 #include "../files/file.h"
 
+struct AddrCall;
+void Advisor_SetCalls(const AddrCall *table, u32 count);   // Advisor_Update's and Advisor_PostHeld's callees (the bench's recorders)
+
 extern "C" {
+
+// 0x598ad0 (cdecl; name invented, unconfirmed): 0xf7966c = 0; the speech's text 0xf797a0, when there is one: freed, or 0xf79bb8 = 0 for the static 0xf797d0; then 0xf797a0 = 0.
+void __cdecl Advisor_ClearSpeechText();
+
+// 0x5996d0 (cdecl (stop); name invented, unconfirmed): while speaking (0xf7966c), as Advisor_StopSpeech up to the voice, which goes by Sound_Stop when stop is set, else Sound_Forward6; no sound follows.
+void __cdecl Advisor_EndSpeech(u32 stop);
+
+// 0x59a550 (thiscall; name invented, unconfirmed): the advisor's update. gAdvisorScoring's next pick (0x59c680 (1)) with a score (0x59bf20) above its floor +0x20 is posted (0x59b590 builds the message, 0x59a940 posts).
+// Then, when the real time (0x402d80 of 0x785970) has reached +0xd8 + +0xdc (unsigned, wrapping) and the byte +0x16e8 is not 1 (when 1: cleared, and done): the set slot (eight of 0x18 bytes from +0x14: score +0x10, set +0x14; the first of the highest)
+// with a score above the floor is said (line +8, or when that is negative next_line's): 0x59b870 with the byte +0x16 set, else 0x59b620, (&length, line). When they answer: +0xd8 = the time, +0xdc = length + 1000, and the id's (+0xc) history record at +0xe0 + 0x10 id
+// stamped (0x41a960), its last line +4 and byte +8 = 1, +0x16ec = id. No such slot: 0x41a990 on +0xc.
+void __fastcall Advisor_Update(u8 *self);
+
+// 0x59ab50 (thiscall; AL; name invented, unconfirmed): with the byte +0x16e4 set, the held message +0x16d0: score +0x10 = gAdvisorScoring's +0x32c, byte +0x16 = 1, the byte +0x16e5 = 1, posted (0x59a940); 1. Else 0.
+u8 __fastcall Advisor_PostHeld(u8 *self);
 
 // 0x5997b0 (cdecl; id): the table of 0x20-byte entries at 0x768fb8, ended by an id of 0x270f, searched
 // for the id; the dword at +0x1c of the entry found, or 0x17f for none.

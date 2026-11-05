@@ -245,3 +245,21 @@ struct TexCacheTraceEnv {
     s32(__cdecl *fclose)(void *file);                                           // 0x67b620
 };
 void TexCache_SetTraceEnv(const TexCacheTraceEnv *e);
+
+struct AddrCall;
+void TexCache_SetDestroyCalls(const AddrCall *table, u32 count);   // tests/fncmp/texcachedestroy.py
+void TexCache_SetSetupCalls(const AddrCall *table, u32 count);   // tests/fncmp/texcachesetup.py
+extern "C" {
+// 0x58da40 (thiscall; name invented, unconfirmed): the debug log's two lines; bit 1 of 0x8bd550 sets +0x18e8 to 4 and bit 1 of +0x18cc. Format 3 with
+// mode 4 at 0x8bd524; otherwise `format`, its surface levels made. TexCache_ChooseBudget and TexCache_CreateSurfaces, then bit 29 of +0x18cc. 0 on a failure.
+u32 __fastcall TexCache_Setup(u8 *self, void *, u32 format);
+// 0x58cff0 (name invented, unconfirmed): with no cache at 0x8c4b44 yet, one made and set up (its result returned); it not made: the error pushed. Else 0.
+u32 __cdecl TexCache_Create(u32 format);
+// 0x58db90 (thiscall; name invented, unconfirmed): with bit 29 of +0x18cc, all released and the bit cleared. A format other than -1 is stored, and in
+// mode 1 its levels made (0 on failure). Returns TexCache_CreateSurfaces.
+u32 __fastcall TexCache_ChangeFormat(u8 *self, void *, u32 format);
+// 0x58d090 (cdecl; name invented, unconfirmed): no cache at 0x8c4b44: 0. Else TexCache_ReleaseGraphics of it, the cache freed and the global cleared: 1.
+u32 __cdecl TexCache_Destroy();
+// 0x58dc10 (thiscall; name invented, unconfirmed): TexCache_ReleaseItems of [0x8c4b44] with 1, this one's six arrays freed (Object_FreeSixPointerArrays), the pool 0x8c47d8's surfaces released, this one's 0x20000000 at +0x18cc off. Returns 1.
+u32 __fastcall TexCache_ReleaseGraphics(u8 *self);
+}

@@ -4,7 +4,9 @@
 #include <cstdint>
 #include <cstring>
 
+#include "../core/addrcalls.h"
 #include "../core/crt.h"
+#include "../core/vcall.h"
 #include "../core/vobj3.h"
 #include "../gfx/surface.h"
 #include "../math/bits.h"
@@ -204,6 +206,28 @@ bool OpenWindowed(u8 *object, s32 width, s32 height, u32 *desc) {
 }
 
 }  // namespace
+
+namespace {
+AddrCalls g_restoreCalls;
+
+// A surface's Restore (slot 0x6c): the answer kept at [0x879cd4], a failure's text logged (DxResult_Message, EngineDebug_Log).
+u32 RestoreOne(u8 *surface) {
+    const u32 answer = comcall<u32>(surface, 0x6c);
+    global<u32>(0x00879cd4) = answer;
+    if ((s32)answer < 0) g_restoreCalls.Cd(0x00564650, g_restoreCalls.Cd(0x0056a770, answer));
+    return global<u32>(0x00879cd4);
+}
+}  // namespace
+
+void Display_SetRestoreCalls(const AddrCall *table, u32 count) { g_restoreCalls.Set(table, count); }
+
+extern "C" u32 __fastcall Display_RestoreOrOpen(u8 *self) {
+    if (global<u32>(0x008bd524) == 1)
+        return g_restoreCalls.Th(0x00563460, (u32)(uintptr_t)self, global<u32>(0x008bcbd0), global<u32>(0x008bcbd4),
+                                 global<u32>(0x008bcbe4), at<u32>(self, 0x78c), at<u32>(self, 0x780) & 1, 1u);
+    if (RestoreOne(at<u8 *>(self, 0x10))) return 0;
+    return RestoreOne(at<u8 *>(self, 0x14)) == 0;
+}
 
 extern "C" u32 __fastcall DirectDraw_Open(u8 *object, void *, s32 width, s32 height, u32 depth, u32 driver, u32 fullScreen, u32 videoMemory) {
     if (Flags() & kTextLog) LogText(0x00766310);

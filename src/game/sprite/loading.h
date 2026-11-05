@@ -72,4 +72,9 @@ u8 __cdecl Sprites_UseParkFrames();
 // 0x541d90 (cdecl; name invented, unconfirmed): the sprites' count [0x87626c] 0, the folder 0x876960 found in [0x786b9c]'s list (not exactly 1: false). Each of the 14 sets of 0x763f88 (only the last, with the flag), 0xc bytes each: its +4 the count so far and its +8 Sprites_LoadFolder(the folder, its name +0). [0x876b28] the count. True.
 extern "C" {
 bool __cdecl Sprites_LoadAll(u8 onlyLast);
+
+// 0x540900 (cdecl (mode, onlyLast); name invented, unconfirmed): 0x8bcbc8 gets 0x1000000; [0x763f84] 1, [0x877350], [0x876b24], [0x8bd4f0], [0x8bd4f4] 0, [0x8768fc] the mode's byte, [0x763f80] whether it is 0. Sprites_LoadAll(onlyLast). [0x87734c] 0; the map [[0x7a0854]+0x6c]: its size (+0x18, +0x1c)
+// into [0x876898], [0x876894] and a quarter of each (truncated) plus 1 into [0x8762b4], [0x87614c]. For each row y and column x of 4 by 4: the 0x24-byte cell 0x8751f0 + (x + 4 y) * 0x24 gets TrackedArray_Alloc(0x800) into the table 0x875528 and +4 0; Grid_AddObject [0x87a6d0] of its rectangle (y, x times a
+// quarter; the last row and column end at the map's size less 1) and the cell plus its vtable's +4, 0. The same array of 0x20 at 0x876420 into [0x87692c], +4 0, Renderer_Add of it plus its offset, 0x20. Returns 1 in AL.
+bool __cdecl Sprites_Setup(u32 mode, u32 onlyLast);
 }

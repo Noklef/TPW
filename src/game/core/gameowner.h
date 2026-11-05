@@ -19,4 +19,6 @@ void __fastcall GameOwner_TogglePause(u8 *self, void *, u32 flag);
 // 0x409180 (thiscall; returns 1): the level at [0x7cf83c] cleared, destroyed and freed; the object definitions and the landscape's textures let go; with flag 0x400000 of 0x8bcbc8 the
 // texture list at +0x38 emptied and freed; the message centre at [0x788d3c] destroyed and freed; the named globals removed.
 u32 __fastcall GameOwner_Shutdown(u8 *self);
+// 0x409150 (thiscall; name invented, unconfirmed): GameOwner_Shutdown; the mouse mode at [0x7b05e8], if any, set to 0 (MouseMode_Set) and freed; the global cleared.
+void __fastcall GameOwner_ShutdownAll(u8 *self);
 }

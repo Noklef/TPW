@@ -3,6 +3,7 @@
 #include <cstdint>
 #include <cstring>
 
+#include "../core/addrcalls.h"
 #include "../core/crt.h"
 #include "../core/globalmem.h"
 #include "../core/vwrap.h"
@@ -12,6 +13,9 @@
 namespace {
 
 template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cast<T *>((uintptr_t)p + offset); }
+
+AddrCalls g_levelCalls;
+u32 address(const void *p) { return (u32)(uintptr_t)p; }
 
 bool digit(char c) { return (s8)c >= '0' && (s8)c <= '9'; }
 bool letter(char c) { return ((s8)c >= 'A' && (s8)c <= 'Z') || ((s8)c >= 'a' && (s8)c <= 'z'); }
@@ -169,5 +173,24 @@ extern "C" u32 __cdecl TerrainSets_Load(const char *name, u8 *sets) {
         }
         GlobalMem_Free(text);
     }
+    return 1;
+}
+
+void TerrainSets_SetLevelCalls(const AddrCall *table, u32 count) { g_levelCalls.Set(table, count); }
+
+extern "C" u32 __cdecl TerrainSets_LoadLevel(u32 model) {
+    const CrtEnv &crt = Crt();
+    char path[0x104];
+    const char *const name = *reinterpret_cast<const char **>((uintptr_t)0x00786b70);
+    const char *const base = reinterpret_cast<const char *>((uintptr_t)g_levelCalls.Cd(0x0040ef40));
+    crt.sprintf(path, "%s\\Terrain\\%s.tct", base, name);
+    const u32 found = g_levelCalls.Cd(0x0044a280, address(path), 1u, 0u);
+    if (found) g_levelCalls.Cd(0x00427620, found, 0x0074c8a8u);
+    const u32 folder = g_levelCalls.Cd(0x0044a280, address(path), 0u, 0u);
+    if (!folder) return 1;
+    const char *const text = reinterpret_cast<const char *>((uintptr_t)folder);
+    const char *const format = text[std::strlen(text) - 1] == '\\' ? "%s%s%s%s" : "%s\\%s%s%s";
+    crt.sprintf(path, format, text, "data\\levels\\", name, "\\Terrain\\");
+    g_levelCalls.Cd(0x0046e130, model, 0x0074c8a8u, address(path));
     return 1;
 }

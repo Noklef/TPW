@@ -178,3 +178,7 @@ s32 __fastcall Language_Load(u8 *lang) {
 }
 
 void Language_SetCalls(const AddrCall *table, u32 count) { g_calls.Set(table, count); }
+
+extern "C" u32 __fastcall Language_CtorValue0(u8 *self) {
+    return g_calls.Th(0x0047f940, (u32)(uintptr_t)self, 0u);   // Obj_CtorValue
+}

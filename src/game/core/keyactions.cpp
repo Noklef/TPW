@@ -15,6 +15,7 @@
 #include "../world/research.h"
 #include "../world/world.h"
 #include "actionrec.h"
+#include "addrcalls.h"
 #include "gameclock.h"
 #include "gameheap.h"
 #include "soundplay.h"
@@ -26,6 +27,8 @@
 namespace {
 
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
+
+AddrCalls g_calls;
 
 u8 *gameClock() { return reinterpret_cast<u8 *>((uintptr_t)0x00785970); }
 
@@ -45,6 +48,7 @@ u32 currentModeKind() {
 }  // namespace
 
 void KeyCancel_SetEnv(const KeyCancelEnv *env) { g_cancelEnv = env ? env : &kCancelPorts; }
+void KeyActions_SetCalls(const AddrCall *table, u32 count) { g_calls.Set(table, count); }
 
 extern "C" {
 
@@ -119,6 +123,36 @@ u32 __cdecl KeyAction_ViewFillStep() {
     case 0xc: flags = (flags & ~8u) | 4; break;
     default: flags |= 0xc; break;
     }
+    return 1;
+}
+
+u32 __cdecl KeyAction_TogglePause() {
+    g_calls.Th(0x409350, 0x786b68u, 1u);
+    return 1;
+}
+
+u32 __cdecl KeyAction_HideFrontEnd() {
+    g_calls.Th(0x4819e0, 0x7b51f0u);
+    return 1;
+}
+
+u32 __cdecl KeyAction_OpenParkNew() {
+    g_calls.Th(0x519ef0, global<u32>(0x007cf83c), 1u, 0u);
+    return 1;
+}
+
+u32 __cdecl KeyAction_OpenParkLast() {
+    g_calls.Th(0x519ef0, global<u32>(0x007cf83c), 0u, 0u);
+    return 1;
+}
+
+u32 __cdecl KeyAction_AdvisorPostHeld() {
+    g_calls.Th(0x59ab50, g_calls.Th(0x5194d0, global<u32>(0x007cf83c)));
+    return 1;
+}
+
+u32 __cdecl KeyAction_Clear78d96c() {
+    global<u32>(0x0078d96c) = 0;
     return 1;
 }
 

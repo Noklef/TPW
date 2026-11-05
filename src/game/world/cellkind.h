@@ -96,4 +96,8 @@ void __fastcall MapCell_Reset(u8 *cell, void *, u32 models);
 // cell is not of a line kind is dropped (a model); left with one neighbour it loses its direction bits and faces those that join (in
 // models' slot's low byte). A cell of a kind not 0 without a ride (+4) gets its model.
 void __fastcall TrackCell_Remove(u8 *cell, void *, s32 a, s32 b, u32 models);
+// 0x536780 (thiscall; name invented, unconfirmed): the queue piece at +4, if any, removed (QueuePiece_Remove) and cleared.
+void __fastcall CellObject_RemovePiece(u8 *self);
+struct AddrCall;
+void CellKind_SetRemoveCalls(const AddrCall *table, u32 count);   // tests/fncmp/cellkindremove.py
 }

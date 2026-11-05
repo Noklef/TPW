@@ -50,4 +50,6 @@ u8 *__cdecl Dialog_Box(const u8 *record, u32 kind0, u32 callback0, u32 kind1, u3
 // message 4 (0, 0) and returns 0. 0x14: slot 4 unless -1 gives the keys back (true: KeyMaps_ResetAllAndSetFlag, else KeyMaps_EnableAllAndClearFlag); slot 5 true, [0x786ba4] and [0xf82884] 0: the flag set,
 // the game owner resumed, 0x662420 called; then the parent posted message 4 and the focus given back. The rest, and 0x14 after that, Window_CallDefault, whose answer is returned.
 s32 __cdecl Dialog_BoxHandler(u8 *window, u32 message, u32 a, u32 b);
+// 0x47f7a0 (cdecl; name invented, unconfirmed): message 0x14 clears [0x7b4ba0]; then Dialog_BoxHandler and its answer.
+s32 __cdecl Dialog_BoxOuterHandler(u8 *window, u32 message, u32 a, u32 b);
 }

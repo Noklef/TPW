@@ -136,6 +136,12 @@ void WeatherFx_SetReloadEnv(const WeatherFxReloadEnv *env);
 void WeatherFx_SetBoltCalls(const AddrCall *table, u32 count);
 
 extern "C" {
+// 0x550930 (cdecl; name invented, unconfirmed): SpriteQueue_LoadTexture of "data\generic\shadow\alphkid.tga" (0x765238) on the queue [0x8c47a0], if any.
+void __cdecl KidShadow_LoadTexture();
+
+// 0x57dc80 (thiscall; name invented, unconfirmed): the bolt's texture (+0x334c, with bolts +0x3308) touched in the cache [0x8c4b44] at 0.5. With drops (+0x3318): kind (+0) 1: +0x3350 at 0.5; 2: +0x3348 at 0.1.
+// Returns 1.
+u32 __fastcall WeatherFx_TouchTextures(u8 *fx);
 
 // 0x57ee30 (thiscall; name invented, unconfirmed; x87 in the original's order): with +4 set Batch_DrawScreenQuad first; its 0 gives 0. The bolts of the list at +0x3008 (0x30 bytes each, the count at +0x3308), last first: +0x24 less +0x9d9c. At 0 or below the
 // bolt goes, the last one copied over it. Else +0x9da0 its index. With its +0x2c set: +0xa198 that, +0xa1a0 4, and +0xa19c a shade that fades over each 500 of +0x24, plus rand() & 0x3f, in each channel (sic: a shade over 0xff runs into the next channel). Without: +0xa198 Cpu_Ticks, +0xa19c white, +0xa1a0 0.
@@ -145,4 +151,9 @@ u32 __fastcall WeatherFx_DrawBolts(u8 *fx);
 // 0x580320 (thiscall (start, end by value, life, flash), pops 0x20; name invented, unconfirmed; x87 in the original's order): with fewer than 16 bolts a new one: +0 the start, +0xc the end, +0x18 start less end at unit length (not when its length is 0 or a NaN),
 // +0x24 the life, +0x2c 0 or, with flash, Cpu_Ticks | 1. Returns 1 either way.
 u32 __fastcall WeatherFx_AddBolt(u8 *fx, void *, u32 ax, u32 ay, u32 az, u32 bx, u32 by, u32 bz, u32 life, u32 flash);
+
+// 0x57ff60 (thiscall; name invented, unconfirmed; x87 in the original's order): the clock's time into +0x3344, the time since the last (at most 500, signed) into +0x9d9c, times 0.001 (0 with the pause bit 4 of [0x8bd508]) into +0x9d98; +0x330c 2;
+// WeatherFx_DrawBolts: 0 gives 0. With drops (+0x3318): the view's offset from the camera at [0x87afe8] (+0x30.. times +0x3340, or 0.3 with [0x790ab0] & 0x16; y negated) in fixed point; +0x9d58 the matrix at [0x87b154], its translation cleared; the
+// place +0x3328.. moved by the wind +0x331c.. times the speed (+0x3338 with +0 bit 0, else +0x333c) and the time, wrapped into -4..4; +0xa1bc.. the camera's +0x20..; +0xa1c8 0; DrawStreaks with bit 0, else DrawDrops with bit 1 (offset plus place): 0 gives 0. Returns 1.
+u32 __fastcall WeatherFx_Frame(u8 *fx);
 }

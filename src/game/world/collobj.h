@@ -13,6 +13,10 @@ extern "C" {
 // first.
 void __cdecl CollPool_Reset();
 
+// 0x544360 (name invented, unconfirmed): the sine table (IntSin_BuildTable, inlined there), the block 0x877b58 of 0xf dwords cleared with its
+// tag 0x4a454647, six zeroed blocks by GlobalAlloc, the pool's free list (CollPool_Reset, inlined there), rand kept at [0x877b90] and returned.
+u32 __cdecl CollPool_Startup();
+
 // 0x5457e0 (collider): each node of the list at +0xc0 cleared (+0 = 0) and taken off the count
 // [0x877b74]; the list itself is left as it is.
 void __cdecl Collider_ReleaseC0(u8 *collider);

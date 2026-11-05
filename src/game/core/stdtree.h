@@ -36,6 +36,10 @@ void __fastcall StdTree_DecG(u8 **it);
 // parent 0, black) and the head node (red, parent the nil node, left and right itself) are allocated (node sizes 0x1c, 0x24, 0x20, 0x20, 0x14), the head is the object's +4 and
 // its size +0xc is 0; the dword counting the maps (0x7b4a50, 0x7ced30, 0x7ced28, 0x7ced38, 0xf7c96c) is raised.
 void __fastcall StdTree_CtorA(u8 *tree);
+// 0x478720 (thiscall; name invented, unconfirmed): +8 = 0 and the tree as StdTree_CtorA makes it; returns the tree. Its bytes +0 and +1 take stack garbage in the original (no arguments given), left as they are here.
+u8 *__fastcall StdTree_CtorFullA(u8 *tree);
+// 0x47cde0 (thiscall on tree A, the tree unused; a node, pops 4): _Erase, as StdTree_EraseSubtreeB.
+void __fastcall StdTree_EraseSubtreeA(u8 *tree, void *, u8 *node);
 void __fastcall StdTree_CtorC(u8 *tree);
 void __fastcall StdTree_CtorD(u8 *tree);
 void __fastcall StdTree_CtorE(u8 *tree);
@@ -63,6 +67,10 @@ void __fastcall StdTree_EraseSubtreeE(u8 *tree, void *, u8 *node);
 // (_Erase from the root; the head's parent the nil node, its left and right itself, the size 0); otherwise the range is erased node by node (StdTree_IncB, StdTree_EraseB).
 // *out = last; returns out.
 u8 **__fastcall StdTree_EraseRangeB(u8 *tree, void *, u8 **out, u8 *first, u8 *last);
+// 0x47c540 (name invented, unconfirmed): the same for tree A.
+u8 **__fastcall StdTree_EraseRangeA(u8 *tree, void *, u8 **out, u8 *first, u8 *last);
+// 0x4787f0 (thiscall): tree A's destructor (map counter 0x7b4a50, nil node 0x7b4a54), as StdTree_DtorC.
+void __fastcall StdTree_DtorA(u8 *tree);
 // 0x4f2590 / 0x4f2960 / 0x4f3290: the same erase(first, last) for trees C, D and E (the whole tree cleared by their _Erase, whose root loop releases each string with
 // CountedBuf_Reset; node by node with their increment and erase).
 u8 **__fastcall StdTree_EraseRangeC(u8 *tree, void *, u8 **out, u8 *first, u8 *last);

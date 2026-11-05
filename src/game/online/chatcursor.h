@@ -4,6 +4,9 @@
 
 #include "../../../re/types.h"
 
+struct AddrCall;
+void ChatCursor_SetCalls(const AddrCall *table, u32 count);   // tests/fncmp/chatcursorcalls.py
+
 // Their calls (the ports by default; the bench runs them as recorders).
 struct ChatCursorEnv {
     u32(__cdecl *modifiers)();                                 // Wrap_KeyMap_AsyncModifiers_4815c0
@@ -23,4 +26,11 @@ void __fastcall ChatCursor_Click(void *, void *, u32, u32);
 // and so here. Those callees read the word only.
 u32 __fastcall ChatCursor_GoTo(void *ecx, void *, u32, u32);
 u32 __fastcall ChatCursor_MoveTo(void *ecx, void *, u32, u32);
+
+// 0x46c5d0 (thiscall, pops 8; name invented, unconfirmed): GameMode_MapPress (0x524790) of the cell, the async modifiers and 1; its answer.
+u32 __fastcall ChatCursor_Press(void *, void *, u32, u32);
+// 0x46c660 (thiscall, pops 16; name invented, unconfirmed): 0x5234d0 of the cell and 0; its answer.
+u32 __fastcall ChatCursor_Preview(void *, void *, u32, u32, u32, u32);
+// 0x46c6b0 (name invented, unconfirmed): 0x4814f0 on 0x7b51f0 with 1.
+void __cdecl ChatCursor_ShowHelp();
 }

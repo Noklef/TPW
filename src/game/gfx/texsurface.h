@@ -110,4 +110,7 @@ u32 __fastcall TexSurfaceA_Blit(u8 *sub, void *, u8 *texture, s32 x, s32 y);
 
 // 0x58baf0 (thiscall on class A's sub-object; name invented, unconfirmed): each mip level past the first: a surface of half the side from the pool (0x8c47d8, 0x58b1f0), locked (slot 0x19), the level above halved into it (0x58b890, its last description 0x8c48a8), the one held at ECX - 0x18 unlocked and loaded into the level's array entry (ECX - 0x28, slot 5), the new one then held; the last the same way. A failure goes to the list (kind 2), the surfaces in hand unlocked, 0. Returns 1.
 u32 __fastcall TexSurfaceA_BuildMips(u8 *sub);
+// 0x58b810 (thiscall on class A's sub-object; name invented, unconfirmed): the shared description 0x8c48a8 cleared (0x7c bytes) and sized; SurfacePool_Next (the virtual base's -0x34, -0xc) kept at -0x18 and locked
+// (slot 0x64 (0, the description, 1, 0)); 1 when that gave 0.
+u32 __fastcall TexSurfaceA_LockNext(u8 *sub);
 }

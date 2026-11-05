@@ -4,7 +4,13 @@
 
 #include "../../../re/types.h"
 
+struct AddrCall;
+void Vtables_SetDtorCalls(const AddrCall *table, u32 count);   // tests/fncmp/vtbl6fefb8del.py
+
 extern "C" {
+
+// 0x47e750 (thiscall (flags), pops 4; name invented, unconfirmed): the vtable 0x6fefb8 set; bit 0 of the flags frees it (Mem_Free). Returns it.
+u8 *__fastcall Vtbl6fefb8_Delete(u8 *object, void *, u32 flags);
 
 // 0x617920 / 0x617ad0 / 0x6338b0 (thiscall): the vtable pointer +0 = 0x703748 / 0x703770 / 0x703770;
 // the last also sets +4 = 1 and returns the object.
@@ -25,6 +31,8 @@ u32 __fastcall Vtbl7099ec_SetVirtual(u8 *sub);
 
 // 0x504740 / 0x429b80 (thiscall): the vtable pointer at +0 / +0x60 = 0x6fd800 / 0x6fdce8. Undefined return.
 void __fastcall Vtbl6fd800_Set(u8 *object);
+// 0x429b90 (thiscall; name invented, unconfirmed): the vtable pointer at +0x50 = 0x6fdce8. Undefined return.
+void __fastcall Vtbl6fdce8_At50_Set(u8 *object);
 
 void __fastcall Vtbl6fdce8_At60_Set(u8 *object);
 

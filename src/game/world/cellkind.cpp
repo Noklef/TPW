@@ -3,6 +3,7 @@
 #include <cstdint>
 
 #include "../core/accessors.h"
+#include "../core/addrcalls.h"
 #include "../core/globals.h"
 #include "../files/wrapsources.h"
 #include "../terrain/land.h"
@@ -371,6 +372,19 @@ void __fastcall TrackCell_Remove(u8 *cell, void *, s32 a, s32 b, u32 models) {
 }
 
 void CellKind_SetEnv(const CellKindEnv *env) { g_env = env ? env : &kGameEnv; }
+
+namespace {
+AddrCalls g_removeCalls;
+}  // namespace
+
+extern "C" void __fastcall CellObject_RemovePiece(u8 *self) {
+    const u32 piece = at<u32>(self, 4);
+    if (!piece) return;
+    g_removeCalls.Cd(0x00522a90, piece);   // QueuePiece_Remove
+    at<u32>(self, 4) = 0;
+}
+
+void CellKind_SetRemoveCalls(const AddrCall *table, u32 count) { g_removeCalls.Set(table, count); }
 
 u32 __fastcall MapCell_SetKind(u8 *cell, void *, u32 kind) {
     u32 slot = kind;   // (the argument's stack slot, reused)

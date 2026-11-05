@@ -156,6 +156,12 @@ StreamBase *__fastcall StreamBase_Ctor(StreamBase *s) {
     return s;
 }
 
+StreamBase *__fastcall Stream6fd930_Ctor(StreamBase *s) {
+    StreamBase_Ctor(s);
+    reinterpret_cast<u32 *>(s)[0] = 0x006fd930;
+    return s;
+}
+
 StreamBase *__fastcall StreamBase_CopyCtor(StreamBase *s, void *, const StreamBase *other) {
     s->source = other->source;
     s->vtable = kStreamVtable;

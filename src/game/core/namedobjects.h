@@ -99,4 +99,8 @@ void __fastcall NamedObjects_AddFixedFolders(u8 *self);
 // a 0x1da748-byte block (Mem_Alloc) constructed (World_Ctor; none when the allocation fails) and stored at 0x7cf83c; 0 without a world,
 // otherwise 1 when World_Attach answers non-zero.
 u32 __fastcall NamedObjects_CreateWorld(u8 *self);
+
+// 0x407f20 (thiscall, plain RET; name invented, unconfirmed): a local String: the base folder (0x40ef40) and the text 0x747ee8, its Quickload_Locate (1, 0) to Scape_LoadObjects (0x550e00); Landscape_LoadSky (0x5852b0 on 0x8c1828) of the base folder. With 0x8bcbc8's 0x400000, [0x785724] above 0
+// (signed) and no +0x38: a block of 0x10 at +0x38 (none when the allocation fails), Landscape_AddTextureList on it. Then the balance files 0x784e30 and 0x784c20 (BalanceFile_Load, keep 0): the path made of the base folder, a backslash and the String 0x786bd8 / 0x7868c8. Either's failure gives 0; else 1.
+u32 __fastcall NamedObjects_LoadData(u8 *self);
 }

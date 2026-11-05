@@ -9,6 +9,8 @@
 #include "../world/money.h"
 #include "../world/object.h"
 #include "../world/objectdefs.h"
+#include "../world/objectmsg.h"
+#include "../world/objectunlock.h"
 #include "../world/research.h"
 #include "../world/staff.h"
 #include "../world/thingscan.h"
@@ -806,4 +808,188 @@ extern "C" s32 __fastcall AdvisorScoring_RingDrop(const u8 *scoring) {
     if (!before || latest >= before) return 0;
     const s32 drop = 100 - (s32)((u32)latest * 100u) / before;
     return drop > at<s32>(scoring, 0x3cc) ? at<s32>(scoring, 0x3d0) : 0;
+}
+
+namespace {
+
+// The game table entries of the two game pointers, for the calls through g_calls.
+u8 *game2() { return *reinterpret_cast<u8 **>((uintptr_t)0x007cf83c); }
+u32 park() { return (u32)(uintptr_t)table(); }
+u32 park2() { return (u32)GameTable7cfb90_Get1da720_519510(game2()); }
+u32 funds() { return (u32)GameTable7cfb90_Get1da726_5195d0(game()); }
+u32 funds2() { return (u32)GameTable7cfb90_Get1da726_5195d0(game2()); }
+s32 staff_count(u32 kind) { return (s32)g_calls.Th(0x004c9960, park(), kind); }   // Things_CountStaffOfKind
+s32 busy() { return (s32)g_calls.Th(0x004c81b0, park(), 0u); }   // ParkAnalyser_CountBusy
+s32 with_patrol(u32 kind) { return (s32)g_calls.Th(0x004c9b40, park(), kind); }   // Things_CountStaffWithPatrol
+s32 coverage(u32 kind, u32 part) { return (s32)g_calls.Th(0x004cd500, park2(), kind, part); }   // PatrolCoverage_Percent, of [0x7cf83c]'s
+s32 days_21c38() { return (s32)g_calls.Th(0x004c90d0, park()); }   // ParkAnalyser_DaysSince21c38
+s32 days_21c30() { return (s32)g_calls.Th(0x004c9070, park()); }   // ParkAnalyser_DaysSince21c30
+s32 by_def(u32 kind) { return (s32)g_calls.Th(0x004ca8e0, park(), kind, 0u); }   // Things_CountByDef4ac
+u32 with_controls(u32 kind, u32 second = 0) { return g_calls.Th(0x004ca7b0, park(), kind, second); }   // ObjectDefs_CountKindWithControls
+
+// The park's age (FunnyTime_Elapsed of the game's +0x2a0) over one unit of it, signed and truncated.
+s32 age_in(long long unit) {
+    FileTime out;
+    const FileTime *const elapsed = reinterpret_cast<const FileTime *>((uintptr_t)g_calls.Th(0x004f8800, (u32)(uintptr_t)(game() + 0x2a0), &out));
+    return (s32)((long long)(((unsigned long long)elapsed->high << 32) | elapsed->low) / unit);
+}
+constexpr long long kMonth = 0x1792f8648000LL, kDay = 0xc92a69c000LL;
+
+// From the month +months with +atLeast staff of the kind: (100 - the share with a patrol, per cent, signed) * +weight, unless the share is over +atMost.
+s32 patrol_share(const u8 *scoring, u32 kind, u32 months, u32 atLeast, u32 atMost, u32 weight) {
+    if (age_in(kMonth) < at<s32>(scoring, months)) return 0;
+    const s32 staff = staff_count(kind);
+    if (staff < at<s32>(scoring, atLeast)) return 0;
+    const s32 share = (s32)((u32)with_patrol(kind) * 100u) / staff;
+    if (share > at<s32>(scoring, atMost)) return 0;
+    return (s32)((u32)(100 - share) * at<u32>(scoring, weight));
+}
+
+// (100 - the coverage) * +weight, or 0 under +floor (signed).
+s32 uncovered(const u8 *scoring, u32 kind, u32 part, u32 floor, u32 weight) {
+    const s32 score = (s32)((u32)(100 - coverage(kind, part)) * at<u32>(scoring, weight));
+    return score < at<s32>(scoring, floor) ? 0 : score;
+}
+
+// From the month +months with staff of the kind: uncovered().
+s32 patrol_cover(const u8 *scoring, u32 kind, u32 part, u32 months, u32 floor, u32 weight) {
+    if (age_in(kMonth) < at<s32>(scoring, months)) return 0;
+    if (!staff_count(kind)) return 0;
+    return uncovered(scoring, kind, part, floor, weight);
+}
+
+// With definitions of the research (count: its call) and +0x634 days since 0x21c30, +atLeast things of the kind: +result when the share of its definitions with controls is under +below.
+s32 research_share(const u8 *scoring, u32 count, u32 kind, u32 below, u32 atLeast, u32 result) {
+    const u32 all = g_calls.Th(count, park(), 0u);
+    if (!all || days_21c30() < at<s32>(scoring, 0x634) || by_def(kind) < at<s32>(scoring, atLeast)) return 0;
+    return with_controls(kind) * 100u / all < at<u32>(scoring, below) ? at<s32>(scoring, result) : 0;
+}
+
+// With definitions of the kind with controls and none of the next kind's, +0x634 days since 0x21c30: the park's age in days * +rate + +base.
+s32 research_waiting(const u8 *scoring, u32 kind, u32 base, u32 rate) {
+    if (!with_controls(kind) || days_21c30() < at<s32>(scoring, 0x634) || with_controls(kind + 1)) return 0;
+    return (s32)((u32)age_in(kDay) * at<u32>(scoring, rate) + at<u32>(scoring, base));
+}
+
+// In the red (Source_Field0c negative) with no loan offer: the months of it (Money_TimeInRed of [0x7cf83c]'s money), signed and truncated, in `months`.
+bool months_in_red(s32 &months) {
+    if ((s32)g_calls.Th(0x006ad810, funds()) >= 0) return false;
+    if (g_calls.Th(0x004d0810, funds2())) return false;
+    FileTime out;
+    const FileTime *const time = reinterpret_cast<const FileTime *>((uintptr_t)g_calls.Th(0x004d0260, funds2(), &out));
+    months = (s32)((long long)(((unsigned long long)time->high << 32) | time->low) / kMonth);
+    return true;
+}
+
+}  // namespace
+
+extern "C" {
+
+s32 __fastcall AdvisorScoring_ObjectsOverStaff4(const u8 *scoring) {
+    if (days_21c38() < at<s32>(scoring, 0x630)) return 0;
+    const u32 covered = (u32)staff_count(4) * at<u32>(scoring, 0xc8);
+    const s32 over = (s32)((u32)by_def(0) - covered);
+    return over > 0 ? (s32)(at<u32>(scoring, 0xcc) * (u32)over) : 0;
+}
+
+s32 __fastcall AdvisorScoring_BusyOverStaff5(const u8 *scoring) {
+    if (flagged() || !staff_count(5)) return 0;
+    const s32 people = busy();
+    if (people < at<s32>(scoring, 0xec)) return 0;
+    const s32 over = (s32)((u32)people - (u32)staff_count(5) * at<u32>(scoring, 0xe4));
+    return over > 0 ? (s32)(at<u32>(scoring, 0xe8) * (u32)over) : 0;
+}
+
+s32 __fastcall AdvisorScoring_BusyOverStaff7(const u8 *scoring) {
+    if (flagged() || days_21c38() < at<s32>(scoring, 0x630)) return 0;
+    const s32 people = busy();
+    if (people < at<s32>(scoring, 0x108)) return 0;
+    const s32 over = (s32)((u32)people - (u32)staff_count(7) * at<u32>(scoring, 0x100));
+    return over > 0 ? (s32)(at<u32>(scoring, 0x104) * (u32)over) : 0;
+}
+
+s32 __fastcall AdvisorScoring_ChainShareStaff8(const u8 *scoring) {
+    if (flagged()) return 0;
+    const u32 scale = g_calls.Th(0x004c9ed0, park());   // Global7852f8_Times78548c
+    if (!scale || age_in(kMonth) < at<s32>(scoring, 0x120) || !staff_count(8)) return 0;
+    if (!g_calls.Th(0x004c9e40, park(), 4u)) return 0;   // World_StaffCountOfType_4c9e40
+    const u32 share = g_calls.Th(0x004c9e60, park()) * 100u / scale;   // Things_SumChain
+    return share < at<u32>(scoring, 0x124) ? at<s32>(scoring, 0x128) : 0;
+}
+
+s32 __fastcall AdvisorScoring_PatrolCover4(const u8 *scoring) {
+    if (age_in(kMonth) < at<s32>(scoring, 0x138) || staff_count(4) < at<s32>(scoring, 0x12c) || !with_patrol(4)) return 0;
+    return uncovered(scoring, 4, 2, 0x13c, 0x140);
+}
+
+s32 __fastcall AdvisorScoring_PatrolShare5(const u8 *scoring) { return patrol_share(scoring, 5, 0x150, 0x144, 0x148, 0x14c); }
+s32 __fastcall AdvisorScoring_PatrolCover5(const u8 *scoring) { return patrol_cover(scoring, 5, 3, 0x150, 0x154, 0x158); }
+s32 __fastcall AdvisorScoring_PatrolShare7(const u8 *scoring) { return patrol_share(scoring, 7, 0x170, 0x164, 0x168, 0x16c); }
+s32 __fastcall AdvisorScoring_PatrolShare6(const u8 *scoring) { return patrol_share(scoring, 6, 0x188, 0x17c, 0x180, 0x184); }
+s32 __fastcall AdvisorScoring_PatrolCover6(const u8 *scoring) { return patrol_cover(scoring, 6, 1, 0x188, 0x18c, 0x190); }
+
+s32 __fastcall AdvisorScoring_ResearchShare0(const u8 *scoring) { return research_share(scoring, 0x004ca450, 0, 0x220, 0x224, 0x228); }
+
+s32 __fastcall AdvisorScoring_ResearchNone0(const u8 *scoring) {
+    if (with_controls(0, 1)) return 0;
+    return (s32)((u32)age_in(kDay) * at<u32>(scoring, 0x234) + at<u32>(scoring, 0x230));
+}
+
+s32 __fastcall AdvisorScoring_ResearchIdleStaff8(const u8 *scoring) {
+    if (age_in(kMonth) < at<s32>(scoring, 0x238) || !staff_count(8)) return 0;
+    if ((s32)g_calls.Th(0x004ca4c0, park(), 0u) > 0) return 0;   // ObjectDefs_CountKind0WithControls14
+    if (g_calls.Th(0x00503980, (u32)(uintptr_t)lab(), 4u)) return 0;   // Table_ScaledBySum
+    return at<s32>(scoring, 0x23c);
+}
+
+s32 __fastcall AdvisorScoring_ResearchShare1(const u8 *scoring) { return research_share(scoring, 0x004ca510, 1, 0x258, 0x25c, 0x260); }
+s32 __fastcall AdvisorScoring_ResearchWaiting0(const u8 *scoring) { return research_waiting(scoring, 0, 0x268, 0x26c); }
+s32 __fastcall AdvisorScoring_ResearchShare2(const u8 *scoring) { return research_share(scoring, 0x004ca570, 2, 0x27c, 0x280, 0x284); }
+s32 __fastcall AdvisorScoring_ResearchWaiting1(const u8 *scoring) { return research_waiting(scoring, 1, 0x28c, 0x290); }
+s32 __fastcall AdvisorScoring_ResearchShare3(const u8 *scoring) { return research_share(scoring, 0x004ca5d0, 3, 0x2a0, 0x2a4, 0x2a8); }
+s32 __fastcall AdvisorScoring_ResearchWaiting2(const u8 *scoring) { return research_waiting(scoring, 2, 0x2b0, 0x2b4); }
+
+s32 __fastcall AdvisorScoring_MoneyOverLoanless(const u8 *scoring) {
+    if ((s32)g_calls.Th(0x006ad810, funds()) <= at<s32>(scoring, 0x330)) return 0;
+    return g_calls.Th(0x004d0690, funds2()) ? 0 : at<s32>(scoring, 0x334);   // Obj_Count28s_4d0690
+}
+
+s32 __fastcall AdvisorScoring_RedUnder3(const u8 *scoring) {
+    s32 months;
+    return months_in_red(months) && months < 3 ? at<s32>(scoring, 0x344) : 0;
+}
+
+s32 __fastcall AdvisorScoring_Red3To4(const u8 *scoring) {
+    s32 months;
+    return months_in_red(months) && months >= 3 && months < 5 ? at<s32>(scoring, 0x348) : 0;
+}
+
+s32 __fastcall AdvisorScoring_Red5(const u8 *scoring) {
+    s32 months;
+    return months_in_red(months) && months == 5 ? at<s32>(scoring, 0x34c) : 0;
+}
+
+s32 __fastcall AdvisorScoring_DaysBetween1(const u8 *scoring) {
+    const s32 days = age_in(kDay);
+    return days > at<s32>(scoring, 0x5dc) && days < at<s32>(scoring, 0x5e0) ? at<s32>(scoring, 0x5e4) : 0;
+}
+
+s32 __fastcall AdvisorScoring_DaysBetween2(const u8 *scoring) {
+    const s32 days = age_in(kDay);
+    return days > at<s32>(scoring, 0x5e8) && days < at<s32>(scoring, 0x5ec) ? at<s32>(scoring, 0x5f0) : 0;
+}
+
+s32 __fastcall AdvisorScoring_TotalNoExtra(const u8 *scoring) {
+    if (ObjectUnlock_ExtraCount() > 0) return 0;
+    const s32 total = (s32)ParkAnalyser_Total(table());
+    return total > scaled(0x00785790, at<float>(scoring, 0x5b8)) ? at<s32>(scoring, 0x5bc) : 0;
+}
+
+s32 __fastcall AdvisorScoring_MeanQueueUnused(const u8 *) {
+    if (!flagged()) {
+        (void)table();
+        (void)Objects_MeanQueuePosition();
+    }
+    return 0;
+}
 }

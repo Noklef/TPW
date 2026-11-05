@@ -8,6 +8,9 @@
 
 #include "../../../re/types.h"
 
+struct AddrCall;
+void LoadScreen_SetCalls(const AddrCall *table, u32 count);   // LoadScreen_Show's callees (the bench's recorders)
+
 extern "C" {
 
 // 0x587130 (thiscall on an image: +0 its pixels, +4 width, +8 height, +0xc bytes a pixel; name unconfirmed; 0x587380 and 0x587d00 show
@@ -46,4 +49,10 @@ u32 __fastcall LoadScreen_DrawBar(u8 *screen);
 // showing one, bit 0x8000000 of 0x8bd508 is set and +0x2c bumped. +0 is bumped; without +0x14 the bar is drawn (LoadScreen_DrawBar),
 // returning 0 when it fails. Returns Display_RestoreIfFocused() != 0.
 u32 __fastcall LoadScreen_Tick(u8 *screen);
+
+// 0x587380 (thiscall (name, folder, ms), pops 0xc; name unconfirmed): any block held: as LoadScreen_Close. Bit 0 of 0x8bd508; +0 = 0, +8 = ms (0: 500), +0x18 = the float 0x701fd4 / ms.
+// The folder (null: 0x768de0; a backslash added when it has none) + the width of 0x8bcbd0 when it is 400, 512, 640, 800 or 1024 (text 0x768dd4), else the text 0x768dd8. For the first show of all ([0x8c4788] 0) a splash image from there (0x768dcc + name (null: 0x768dec) + 0x747990) on a local (ImageBuffer_Load):
+// when it loads, shown (LoadScreen_ShowImage) and freed, bit 0x8000000 of 0x8bd508, Display_RestoreIfFocused, and the time taken. A new block for the screen's image (0x768dac) in +0x14 at the first show ([0x8c478c] 0), else in +0x10; a null one crashes on its width, and the load's answer is not looked at. The stamp (ImageBuffer_Stamp; 0x768dc4 / 0x768db8 + name + 0x747990, x 0)
+// at a row by the image's width (400, 512, 800, 1024, others 0xff, 0x145, 0x1fe, 0x28c, 0x198; later 0x8c, 0xb3, 0x118, 0x166, 0xe0). Both counts bumped, bit 0x40000000 of 0x8bcbc8, +4 = -1, +0xc = 0. When 0x8c4788 is now 1, timeGetTime is asked until 2500 ms past the time taken; when no splash loaded the "time" is ms (sic). Returns 1.
+u32 __fastcall LoadScreen_Show(u8 *self, void *, const char *name, const char *folder, s32 ms);
 }

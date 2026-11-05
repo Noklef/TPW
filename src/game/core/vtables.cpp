@@ -2,11 +2,17 @@
 
 #include <cstdint>
 
+#include "addrcalls.h"
+
 namespace {
 
 template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cast<T *>((uintptr_t)p + offset); }
 
+AddrCalls g_dtorCalls;
+
 }  // namespace
+
+void Vtables_SetDtorCalls(const AddrCall *table, u32 count) { g_dtorCalls.Set(table, count); }
 
 extern "C" {
 
@@ -36,6 +42,8 @@ void __fastcall Vtbl6fd800_Set(u8 *object) { at<u32>(object, 0) = 0x006fd800; }
 
 void __fastcall Vtbl6fdce8_At60_Set(u8 *object) { at<u32>(object, 0x60) = 0x006fdce8; }
 
+void __fastcall Vtbl6fdce8_At50_Set(u8 *object) { at<u32>(object, 0x50) = 0x006fdce8; }
+
 u32 __fastcall VirtualBase_SetVtbl70994c(u8 *object) {
     const u32 vtable = at<u32>(object, (u32)-8);
     at<u32>(object, at<u32>(reinterpret_cast<const u8 *>(vtable), 4) - 8) = 0x0070994c;
@@ -56,6 +64,12 @@ void __fastcall Vtbl6fd810_Set_4a8bf0(u8 *o) {
 
 void __fastcall Vtbl6fefb8_Set_4bc420(u8 *o) {
     at<u32>(o, 0) = 0x006fefb8;
+}
+
+u8 *__fastcall Vtbl6fefb8_Delete(u8 *object, void *, u32 flags) {
+    Vtbl6fefb8_Set_4bc420(object);
+    if (flags & 1) g_dtorCalls.Cd(0x0067acb0, (u32)(uintptr_t)object);
+    return object;
 }
 
 void __fastcall Vtbl6fd838_Set_4c75f0(u8 *o) {

@@ -55,4 +55,10 @@ u32 __fastcall TexSet_Init(u8 *set, void *, const u8 *def, const u8 *info);
 
 // 0x575ee0 (thiscall; pair; pops 4; name unconfirmed): TexSet_Init with the pair's two dwords.
 u32 __fastcall TexSet_InitFromPair(u8 *set, void *, const u32 *pair);
+
+// 0x575fb0 (thiscall; name invented, unconfirmed): Blt (slot 0x14) on the surface at [[0x879a24] + 0x14] from the set's surface at +0, flags 0x1000000. The answer kept at [0x879cd4], a negative one logged; not 0 pushed on the engine's list (kind 2) and 0. Else 1.
+u32 __fastcall TexSet_BltToBack(u8 *self);
 }
+
+struct AddrCall;
+void TexSet_SetBltCalls(const AddrCall *table, u32 count);   // tests/fncmp/texsetblt.py

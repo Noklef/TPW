@@ -610,11 +610,44 @@ extern "C" void __cdecl WeatherFx_ReloadEffects() {
 
 namespace {
 AddrCalls g_boltCalls;
+
+template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
+
+// A coordinate of the view's offset: the 14 bits of the fixed-point place, over the wrap's 8 units.
+X87Reg fixed_place(X87Reg place) {
+    const u32 bits = (u32)(long long)((place - (-4.0f)) * 16384.0f).v & 0x1ffff;   // 0x701cf8, 0x701d2c
+    return X87Reg((double)bits) * 6.103515625e-05f - 4.0f;                         // 0x701c60, 0x701cf0
+}
+
+// One of the place's three: stored, then wrapped into -4..4; below -4 or a NaN gets 8 more, above 4 gets 8 less. (The original's X compares its stored float above -4: it differs from the register only past the range of a float, with the same outcome.)
+void wrap_place(float &out, X87Reg v) {
+    out = (float)v;
+    if (!(v.v >= -4.0)) out = (float)(v - (-8.0f));   // 0x701cf8, 0x701cfc
+    else if (v.v > 4.0) out = (float)(v - 8.0f);      // 0x701cf0, 0x701cf4
+}
 }  // namespace
 
 void WeatherFx_SetBoltCalls(const AddrCall *table, u32 count) { g_boltCalls.Set(table, count); }
 
+extern "C" void __cdecl KidShadow_LoadTexture() {
+    const u32 queue = global<u32>(0x008c47a0);
+    if (queue) g_boltCalls.Th(0x0058a5c0, queue, 0x00765238u);
+}
+
 extern "C" {
+
+u32 __fastcall WeatherFx_TouchTextures(u8 *fx) {
+    if (at<u32>(fx, 0x3308) && at<u32>(fx, 0x334c)) g_boltCalls.Th(0x58c9f0, global<u32>(0x008c4b44), at<u32>(fx, 0x334c), 0x3f000000u);
+    if (at<u32>(fx, 0x3318)) {
+        const u32 kind = at<u32>(fx, 0);
+        if (kind == 1) {
+            if (at<u32>(fx, 0x3350)) g_boltCalls.Th(0x58c9f0, global<u32>(0x008c4b44), at<u32>(fx, 0x3350), 0x3f000000u);
+        } else if (kind == 2) {
+            if (at<u32>(fx, 0x3348)) g_boltCalls.Th(0x58c9f0, global<u32>(0x008c4b44), at<u32>(fx, 0x3348), 0x3dcccccdu);
+        }
+    }
+    return 1;
+}
 
 u32 __fastcall WeatherFx_DrawBolts(u8 *fx) {
     if (at<u32>(fx, 4) && !g_boltCalls.Th(0x0057ed50, (u32)(uintptr_t)fx))   // (Batch_DrawScreenQuad: ECX still fx)
@@ -680,5 +713,49 @@ u32 __fastcall WeatherFx_AddBolt(u8 *fx, void *, u32 ax, u32 ay, u32 az, u32 bx,
     at<u32>(bolt, 0x20) = out[2];
     at<s32>(fx, 0x3308) = count + 1;
     return 1;
+}
+
+u32 __fastcall WeatherFx_Frame(u8 *fx) {
+    u32 old = at<u32>(fx, 0x3344);
+    const u32 now = g_boltCalls.Th(0x00402d70, 0x00785970);
+    at<u32>(fx, 0x3344) = now;
+    if ((s32)(now - old) > 500) old = now - 500;
+    const s32 gap = (s32)(now - old);
+    at<s32>(fx, 0x9d9c) = gap;
+    at<float>(fx, 0x9d98) = (float)(X87Reg((double)gap) * 0.001f);   // 0x701c88
+    if (global<u8>(0x008bd508) & 4) at<u32>(fx, 0x9d98) = 0;
+    at<u32>(fx, 0x330c) = 2;
+    if (!g_boltCalls.Th(0x0057ee30, (u32)(uintptr_t)fx)) return 0;
+    if (!at<u32>(fx, 0x3318)) return 1;
+
+    const float scale = global<u8>(0x00790ab0) & 0x16 ? 0.3f : at<float>(fx, 0x3340);   // 0x3e99999a
+    const u8 *const cam = global<u8 *>(0x0087afe8);
+    const X87Reg x = fixed_place(X87Reg(at<float>(cam, 0x30)) * scale);
+    const X87Reg y = fixed_place(X87Reg(-(X87Reg(at<float>(cam, 0x34)) * scale).v));
+    const float z = (float)fixed_place(X87Reg((float)(X87Reg(at<float>(cam, 0x38)) * scale)));
+    std::memcpy(fx + 0x9d58, global<u8 *>(0x0087b154), 0x40);
+    at<u32>(fx, 0x9d88) = 0;
+    at<u32>(fx, 0x9d8c) = 0;
+    at<u32>(fx, 0x9d90) = 0;
+
+    const u32 mask = at<u32>(fx, 0);
+    const float step = (float)(X87Reg(at<float>(fx, mask & 1 ? 0x3338 : 0x333c)) * at<float>(fx, 0x9d98));
+    const X87Reg south = X87Reg(at<float>(fx, 0x3320)) * step;
+    const float west = (float)(X87Reg(at<float>(fx, 0x3324)) * step);
+    wrap_place(at<float>(fx, 0x3328), X87_SubR(X87Reg(at<float>(fx, 0x331c)) * step, at<float>(fx, 0x3328)));
+    wrap_place(at<float>(fx, 0x332c), south + at<float>(fx, 0x332c));
+    wrap_place(at<float>(fx, 0x3330), X87Reg(at<float>(fx, 0x3330)) - west);
+
+    at<float>(fx, 0xa1bc) = (float)X87Reg(at<float>(cam, 0x20));
+    at<float>(fx, 0xa1c0) = (float)X87Reg(at<float>(cam, 0x24));
+    at<float>(fx, 0xa1c4) = (float)X87Reg(at<float>(cam, 0x28));
+    at<u32>(fx, 0xa1c8) = 0;   // (the original's negated dot product of the camera's direction and this goes first, overwritten by +0x9d90, 0)
+
+    const u32 ax = Bits((float)(x + at<float>(fx, 0x3328)));
+    const u32 ay = Bits((float)(y + at<float>(fx, 0x332c)));
+    const u32 az = Bits((float)(X87Reg(z) + at<float>(fx, 0x3330)));
+    if (mask & 1) return g_boltCalls.Th(0x0057efd0, (u32)(uintptr_t)fx, ax, ay, az) ? 1 : 0;
+    if (!(mask & 2)) return 1;
+    return g_boltCalls.Th(0x0057f490, (u32)(uintptr_t)fx, ax, ay, az) ? 1 : 0;
 }
 }

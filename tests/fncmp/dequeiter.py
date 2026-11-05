@@ -3,17 +3,20 @@
 # map, iterators anywhere in them, steps that stay inside, cross one block or several, either way. The command queue's post (0x47f410): the global deque
 # (0x7b4ba8) empty, or its last block with room, full, or full at the map's end (the map grown), its critical section's calls recorded. Its
 # show-next (0x47f7d0): the first element's text (a record table of 0-4 text records, some not terminated, the index about them) to a
-# recorder's slot 9, the cursor anywhere in its block or at its last element (the map's blocks out of order), the count 0-3 or more.
+# recorder's slot 9, the cursor anywhere in its block or at its last element (the map's blocks out of order), the count 0-3 or more. Its message box (0x47f620): the same queue, a box
+# there or not, Gui_TopDepth, Dialog_Box and Window_SetHandler recorders.
 # usage: dequeiter.py [CASES [SEED]] [--wild|--both] [--show N]
 import os
 import struct
 import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
-from fncmp import IMPORT_TABLE, LOG, Bench, Call, HEAP, RAM, heap, import_table, log_region, put, set_return, vtable  # noqa: E402
+from fncmp import IMPORT_TABLE, LOG, Bench, Call, HEAP, RAM, _recorder, blob_bytes, heap, import_table, log_region, put, set_return, vtable  # noqa: E402
 
-B = Bench([(0x632200, 0x632222), (0x632230, 0x632290), (0x632290, 0x6322dc), (0x632310, 0x632343), (0x632380, 0x6323bd), (0x47f340, 0x47f420), (0x67acb0, 0x67acb1), (0x47f410, 0x47f61e), (0x5c8bb0, 0x5c8bd0), (0x6322e0, 0x632310), (0x47f7d0, 0x47f903), (0x6ace60, 0x6acea0), (0x485ac0, 0x485af4)])
-CALLS = ['Set', 'Plus', 'Diff', 'Prev', 'Ctor', 'Clear', 'Post', 'ShowNext']
+DEPTH, DIALOG, SETHANDLER = 3, 4, 5
+B = Bench([(0x632200, 0x632222), (0x632230, 0x632290), (0x632290, 0x6322dc), (0x632310, 0x632343), (0x632380, 0x6323bd), (0x47f340, 0x47f420), (0x67acb0, 0x67acb1), (0x47f410, 0x47f61e), (0x5c8bb0, 0x5c8bd0), (0x6322e0, 0x632310), (0x47f7d0, 0x47f903), (0x6ace60, 0x6acea0), (0x485ac0, 0x485af4), (0x47f620, 0x47f798)],
+          hooks={0x659409: _recorder(DEPTH, 2, cdecl=True), 0x47f020: _recorder(DIALOG, 8, cdecl=True), 0x65e526: _recorder(SETHANDLER, 1)})
+CALLS = ['Set', 'Plus', 'Diff', 'Prev', 'Ctor', 'Clear', 'Post', 'ShowNext', 'ShowBox']
 IMPORTS = {'EnterCriticalSection': (1, 0x6fd140, 1, 0, 0), 'LeaveCriticalSection': (2, 0x6fd130, 1, 0, 0)}
 QUEUE = 0x7b4ba8
 IT, IT2, OUT, MAP, BLOCKS = RAM, RAM + 0x20, RAM + 0x40, RAM + 0x100, RAM + 0x2000
@@ -45,8 +48,8 @@ def queue(r, regions):
 TABLE, RECORDS, TARGET = RAM + 0x8000, RAM + 0x8100, RAM + 0x9000
 
 
-def show_next(r):
-    """0x47f7d0 on the queue: the begin iterator in one of the five blocks, its element (the table, an index) at the cursor."""
+def show_next(r, box=False):
+    """0x47f7d0 on the queue: the begin iterator in one of the five blocks, its element (the table, an index) at the cursor. box: 0x47f620 on the same."""
     log = log_region()
     table = import_table(log, IMPORTS)
     set_return(log, 1, r.getrandbits(32))
@@ -76,13 +79,19 @@ def show_next(r):
     regions = {QUEUE: q, LOG: log, IMPORT_TABLE: table, HEAP: heap(), MAP: struct.pack('<5I', *[BLOCKS + 0x1000 * i for i in order]),
                BLOCKS: blocks, TABLE: tab, RECORDS: struct.pack('<5I', *[RECORDS + 0x100 + 0x40 * i for i in range(5)]) + bytes(0xec) + bytes(pool),
                TARGET: target, 0x7b4ba0: struct.pack('<I', TARGET), 0x78ba80: bytes(4), 0x7ba058: bytes(0x10)}
+    if box:
+        set_return(log, DEPTH, r.choice([0, 1, 0x22, 0x23, 0x24, 0xffffffff, r.getrandbits(32)]))
+        set_return(log, DIALOG, r.getrandbits(32))
+        blob_bytes(log, DIALOG, 0, 0xff7f)   # (the record's byte 7 is the stack's)
+        regions[0x7b4ba0] = struct.pack('<I', r.choice([0, 0, 0, 0, 0, TARGET]))
+        return Call(0x47f620, [], regions, conv='c', ret='v')
     return Call(0x47f7d0, [], regions, conv='c', ret='a')
 
 
 def case(r):
     op = r.deal(OPS)
-    if op == 'ShowNext':
-        return show_next(r)
+    if op in ('ShowNext', 'ShowBox'):
+        return show_next(r, op == 'ShowBox')
     kb, off = r.randrange(5), r.choice([0, 1, 1023, r.randrange(1024)])
     regions = {RAM: bytearray(r.bytes(0x90)), MAP: struct.pack('<5I', *[BLOCKS + 0x1000 * i for i in range(5)]),
                BLOCKS: r.bytes(0x5000), OUT: r.bytes(0x10)}

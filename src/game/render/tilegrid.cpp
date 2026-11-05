@@ -2,6 +2,7 @@
 
 #include <cstdint>
 
+#include "../core/addrcalls.h"
 #include "batchquad.h"
 #include "../math/x87.h"
 
@@ -40,9 +41,23 @@ void Axis(const u8 *object, u32 low, u32 high, u32 lowScreen, s32 first, s32 las
     }
 }
 
+AddrCalls g_touchCalls;
+
 }  // namespace
 
 void TileGrid_SetEnv(const TileGridEnv *env) { g_env = env ? env : &kPortEnv; }
+void TileGrid_SetCalls(const AddrCall *table, u32 count) { g_touchCalls.Set(table, count); }
+
+u32 __fastcall TileGrid_TouchVisible(u8 *grid) {
+    if (!at<u32>(grid, 0x1c)) return 0;
+    const s32 left = Cell(at<float>(grid, 0x20));
+    const s32 right = Cell(at<float>(grid, 0x28));
+    const s32 last = Cell(at<float>(grid, 0x2c));
+    for (s32 y = Cell(at<float>(grid, 0x24)); y <= last; y++)
+        for (s32 x = left; x <= right; x++)
+            g_touchCalls.Th(0x58c9f0, global<u32>(0x008c4b44), ((u32)y * at<u32>(grid, 0x10) + (u32)x + at<u32>(grid, 0x48)) * 0x60u + at<u32>(grid, 0x1c), 0u);
+    return 1;
+}
 
 u32 __fastcall TileGrid_Draw(u8 *object, void *) {
     if (!at<u8 *>(object, 0x1c))

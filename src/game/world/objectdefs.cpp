@@ -695,6 +695,11 @@ u32 loadDefinition(u8 *defs, u8 *entry, u8 *opener, u8 *source, String *path, St
     return 1;
 }
 
+// One named folder: found in the list [0x786b9c] (1 exactly), its definitions loaded. 0 for a load that failed.
+bool load_named(u8 *defs, u32 key, s32 *folder) {
+    return g_loadCalls.Th(0x00421770, global<u32>(0x00786b9c), key, folder) != 1 || g_loadCalls.Th(0x00413930, (u32)(uintptr_t)defs, *folder) != 0;
+}
+
 }  // namespace
 
 void ObjectDefs_SetLoadCalls(const AddrCall *table, u32 count) { g_loadCalls.Set(table, count); }
@@ -829,5 +834,37 @@ u32 __fastcall ObjectDefs_LoadFolders(u8 *defs, void *, u8 *folders) {
     String_Dtor(&unused);
     StreamBase_Dtor(&stream);
     return result;
+}
+
+u32 __fastcall ObjectDefs_ReloadAll(u8 *defs, void *, u32) {
+    s32 folder = 0;
+    g_loadCalls.Th(0x004145f0, (u32)(uintptr_t)defs);
+    for (s32 i = 0; i < at<s32>(defs, 0x528); ++i) {
+        u8 *const def = at<u8 *>(defs, 4 * i);
+        g_loadCalls.Th(0x00413340, (u32)(uintptr_t)def);
+        if (def) {
+            g_loadCalls.Th(0x00412cb0, (u32)(uintptr_t)def);
+            g_loadCalls.Cd(0x0067acb0, def);
+        }
+        at<u32>(defs, 4 * i) = 0;
+    }
+    at<u32>(defs, 0x528) = 0;
+    at<u16>(defs, 0x730) = 0;
+    at<u32>(defs, 0x734) = 0;
+    if (!load_named(defs, 0x007898e0, &folder) || !load_named(defs, 0x00788e60, &folder))
+        return 0;
+
+    const u8 *const end = global<u8 *>(0x00789c20);
+    u8 *const begin = global<u8 *>(0x00789c1c);
+    for (u8 *font = begin; font != end; font += 0x14) {
+        reinterpret_cast<s32(__stdcall *)(u32)>((uintptr_t)global<u32>(0x006fd058))(at<u32>(font, 8));   // RemoveFontResourceA
+        s32 result;
+        g_loadCalls.Cd(0x005f5d60, &result, at<u32>(font, 8));
+    }
+    for (u8 *font = begin; font != end; font += 0x14)
+        g_loadCalls.Th(at<u32>(at<u8 *>(font, 0), 0xc), (u32)(uintptr_t)font, 0u);
+    global<u8 *>(0x00789c20) = begin;
+
+    return load_named(defs, 0x0078a2a0, &folder) && load_named(defs, 0x00789d00, &folder) && load_named(defs, 0x00789910, &folder) ? 1 : 0;
 }
 }

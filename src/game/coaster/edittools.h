@@ -226,4 +226,11 @@ u32 __cdecl CoasterEdit_PlaceSelected(s32 x, s32 y);
 // 1, 0), PathDrag_Finish, Highlight_SetShown (0), 0x79c6a4 and 0x79c660 cleared; with 0x785a2c set, CoasterEdit_EndTool's work inlined
 // (CoasterEdit_ToggleAdjust and TrackSelection_End inlined).
 void __cdecl CoasterEdit_CancelSelected();
+// 0x447d30 (cdecl; name invented, unconfirmed): the coaster at [0x790fec] (not tested for null) with its bit 0 at +0: [0x792218] = it, [0x790fe4] = it + 0x3c, Coaster_Rebuild.
+void __cdecl EditTools_RebuildCurrent();
+// 0x447d60 (cdecl; name invented, unconfirmed): the same for the table 0x790bd0's entry, if set.
+void __cdecl EditTools_RebuildIndexed(u32 index);
 }
+
+struct AddrCall;
+void EditTools_SetRebuildCalls(const AddrCall *table, u32 count);   // tests/fncmp/edittoolsrebuild.py

@@ -82,6 +82,8 @@ const char *__fastcall RefObject2_Path(RefObject2 *o);
 // StreamBase (__thiscall). 0x5f7180 / 0x5f71b0 (other): constructors, the copy adding a
 // reference. 0x5f71e0: destructor. 0x5f7190 (flags; vtable +0): deleting destructor.
 StreamBase *__fastcall StreamBase_Ctor(StreamBase *s);
+// 0x532670 (thiscall; name invented, unconfirmed): StreamBase_Ctor, then the vtable 0x6fd930.
+StreamBase *__fastcall Stream6fd930_Ctor(StreamBase *s);
 StreamBase *__fastcall StreamBase_CopyCtor(StreamBase *s, void *edx, const StreamBase *other);
 void __fastcall StreamBase_Dtor(StreamBase *s);
 StreamBase *__fastcall StreamBase_DeletingDtor(StreamBase *s, void *edx, u32 flags);

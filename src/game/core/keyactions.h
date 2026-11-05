@@ -5,7 +5,19 @@
 
 #include "../../../re/types.h"
 
+struct AddrCall;
+void KeyActions_SetCalls(const AddrCall *table, u32 count);   // tests/fncmp/keyactioncalls.py
+
 extern "C" {
+
+// 0x40bf70: GameOwner_TogglePause (1) on 0x786b68. 0x40c3a0: FrontEnd_Hide7ca1c8 on 0x7b51f0. 0x40c3f0 / 0x40c410: Game_OpenPark (1, 0) / (0, 0) on the game [0x7cf83c]. 0x40c800: Advisor_PostHeld on
+// the game's 0x5194d0 object. 0x424c10: the dword 0x78d96c = 0. Names invented, unconfirmed.
+u32 __cdecl KeyAction_TogglePause();
+u32 __cdecl KeyAction_HideFrontEnd();
+u32 __cdecl KeyAction_OpenParkNew();
+u32 __cdecl KeyAction_OpenParkLast();
+u32 __cdecl KeyAction_AdvisorPostHeld();
+u32 __cdecl KeyAction_Clear78d96c();
 
 // 0x40c120 / 0x40c150 (',' / '.'): the dword 0x81d7a4 (Global81d7a4_Get_52f1f0) plus 90 / 270, signed remainder by 360 (idiv), set
 // through Global81d7a4_SetRecorded with force 1.

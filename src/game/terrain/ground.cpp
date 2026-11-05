@@ -4,6 +4,8 @@
 #include <cstring>
 
 #include "../core/seqs.h"
+#include "../gfx/texset.h"
+#include "../gfx/texture.h"
 #include "../core/vwrap.h"
 #include "procedural.h"
 #include "../math/x87.h"
@@ -92,9 +94,61 @@ u32 DrawRuns(u8 *self, u8 *batch, Run *runs, s32 records, s32 vertices, u32 flag
     return 1;
 }
 
+const u8 *CellSet(const u8 *self, const u8 *cell) { return at<const u8 *>(at<const u8 *>(self, 4), 8 * (u32)at<u16>(cell, 2) + 4); }
+
+AddrCalls g_prepareCalls;
+
 }  // namespace
 
 void TerrainGround_SetEnv(const TerrainGroundEnv *env) { g_env = env ? env : &kPortEnv; }
+void TerrainGround_SetPrepareCalls(const AddrCall *table, u32 count) { g_prepareCalls.Set(table, count); }
+
+extern "C" u32 __fastcall TerrainGround_PrepareTextures(u8 *self) {
+    const u32 flags = global<u32>(0x8bd508);
+    if (!(flags & 0xc0000000)) return 1;
+    if (!(flags & 0x100)) {
+        const u8 *const block = global<const u8 *>(0x879d54);
+        memcpy(self + 0x128, block + 0xc4, 0x108);
+        memcpy(self + 0x20, block + 0x1cc, 0x108);
+    }
+    const u32 format = at<u32>(reinterpret_cast<const void *>((uintptr_t)0x7014c8), global<u32>(0x8bd554) * 4);
+    if (at<s32>(self, 0x128) > at<s32>(self, 0x12c)) return 1;
+    if ((global<u8>(0x8bd550) & 4) && !at<u32>(self, 0x230)) global<u32>(0x8bd550) &= ~4u;
+
+    u32 records[0x9c4][5];   // the original's frame. Each: texture, its width and height, format, the cell's first word (only the first and last without a texture)
+    s32 taken = 0;
+    for (s32 y = at<s32>(self, 0x128); y < at<s32>(self, 0x12c); ++y) {
+        for (s32 x = at<s8>(self, 0x130 + y); x < at<s8>(self, 0x1b0 + y); ++x) {
+            const u8 *const map = at<const u8 *>(self, 0);
+            u8 *const cell = at<u8 *>(map, 0x2c) + 4 * (u32)(at<s32>(map, 0x18) * y + x);
+            if (at<u8>(cell, 0) & 1) continue;
+            if ((global<u8>(0x8bd550) & 4) && x >= at<s32>(self, 0x234) && x <= at<s32>(self, 0x23c) && y >= at<s32>(self, 0x238) && y <= at<s32>(self, 0x240)) {
+                if (taken >= 0x9c4) continue;
+                at<u32>(self, 0x248 + taken * 4) = ((y - at<s32>(self, 0x238)) << 8) + x - at<s32>(self, 0x234);
+                u32 *const record = records[taken];
+                record[4] = at<u16>(cell, 0);
+                at<u16>(cell, 0) &= 0xfeff;
+                if (at<u8>(cell, 0) & 0x80) {
+                    const u8 *const texture = reinterpret_cast<const u8 *>((uintptr_t)TexSet_Texture(CellSet(self, cell), nullptr, 0));
+                    record[0] = (u32)(uintptr_t)texture;
+                    record[1] = at<s16>(texture, 0x10);
+                    record[2] = at<s16>(texture, 0x12);
+                    record[3] = format;
+                } else {
+                    record[0] = 0;
+                }
+                ++taken;
+            } else if (const u8 *const set = CellSet(self, cell)) {
+                u8 *const kept = reinterpret_cast<u8 *>((uintptr_t)TexSet_Texture(set, nullptr, 0));
+                if (kept) Texture_SetKeep(kept);
+                g_prepareCalls.Th(0x0058c9f0, global<u32>(0x8c4b44), kept, 0x3f000000u);   // TexCache_TouchItem
+            }
+        }
+    }
+    if ((global<u8>(0x8bd550) & 4) && taken > 0) g_prepareCalls.Th(0x00572440, at<u32>(self, 0x230), self + 0x248, records, taken);   // TerrainTexCache_Update
+    at<u32>(self, 0x1296c) = taken;
+    return 1;
+}
 
 extern "C" u32 __fastcall TerrainGround_Draw(u8 *self) {
     if (at<s32>(self, 0x128) > at<s32>(self, 0x12c) || !(global<u32>(0x008bd508) & 0xc0000000)) return 1;

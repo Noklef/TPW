@@ -1,11 +1,14 @@
 #include "screengrab.h"
 
 #include <cstdint>
+#include <cstring>
 
 #include "../core/crt.h"
 #include "../core/gameheap.h"
+#include "../core/vcall.h"
 #include "../files/filestream.h"
 #include "../files/handles.h"
+#include "../render/d3dresult.h"
 #include "../render/engineerrors.h"
 
 namespace {
@@ -54,6 +57,32 @@ u32 __fastcall ScreenGrab_ToRgb24(u8 *grab, void *) {
     at<u32>(grab, 0) = 0;
     at<u32>(grab, 4) = pixels;
     return 1;
+}
+
+u32 __fastcall ScreenGrab_TakeFront(u8 *grab, void *) {
+    const u32 count = global<u32>(0x008bcbd0) * global<u32>(0x008bcbd4);
+    at<u32>(grab, 8) = count;
+    const u32 pixels = TrackedGlobal_Alloc(global<u32>(0x008bcbe4) * count);   // (the depth in bits: eight times the room, sic)
+    at<u32>(grab, 0) = pixels;
+    if (!pixels) {
+        EngineErrors_Push(reinterpret_cast<u8 *>((uintptr_t)0x00879ad0), nullptr, 2, 0xb0754000);
+        return 0;
+    }
+    u8 *const front = at<u8 *>(global<u8 *>(0x00879a24), 0x14);
+    u32 desc[0x1f] = {0x7c};
+    d3dresult::keep(comcall<u32>(front, 0x64, nullptr, desc, 1u, nullptr));
+    if (d3dresult::result()) return 0;
+    const u32 bytes = (u32)(global<s32>(0x008bcbe4) >> 3);
+    const u8 *from = reinterpret_cast<const u8 *>((uintptr_t)desc[9]);
+    u8 *to = reinterpret_cast<u8 *>((uintptr_t)pixels);
+    for (s32 y = 0; y < global<s32>(0x008bcbd4); ++y) {
+        const u32 row = bytes * global<u32>(0x008bcbd0);
+        memcpy(to, from, row);
+        from += (s32)desc[4];
+        to += row;
+    }
+    d3dresult::keep(comcall<u32>(front, 0x80, nullptr));
+    return d3dresult::result() == 0;
 }
 
 u32 __fastcall ScreenGrab_SetName(u8 *grab, void *, const char *name) {

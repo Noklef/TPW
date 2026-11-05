@@ -1,7 +1,10 @@
 #include "loadscreen.h"
 
 #include <cstdint>
+#include <cstring>
 
+#include "../core/addrcalls.h"
+#include "../core/crt.h"
 #include "../core/gameheap.h"
 #include "../core/vcall.h"
 #include "../math/x87.h"
@@ -35,6 +38,18 @@ void close(u8 *screen) {
     global<u32>(0x008bcbc8) &= ~0x40000000u;
 }
 
+const char *text(u32 address) { return reinterpret_cast<const char *>((uintptr_t)address); }
+
+// out = path + the game's text at middle + name + the game's extension 0x747990.
+void file_in(char *out, const char *path, u32 middle, const char *name) {
+    std::strcpy(out, path);
+    std::strcat(out, text(middle));
+    std::strcat(out, name);
+    std::strcat(out, text(0x00747990));
+}
+
+AddrCalls g_calls;
+
 // The scaled, upside-down copy of the image's pixels (T: u16 or u32) into a locked surface's rows (pitch in bytes).
 template <typename T> void copyRows(const u8 *image, const T *pixels, u8 *row, const u32 *desc) {
     for (s32 y = 0; y < static_cast<s32>(desc[2]); ++y) {
@@ -49,6 +64,8 @@ template <typename T> void copyRows(const u8 *image, const T *pixels, u8 *row, c
 }
 
 }  // namespace
+
+void LoadScreen_SetCalls(const AddrCall *table, u32 count) { g_calls.Set(table, count); }
 
 extern "C" {
 
@@ -80,6 +97,74 @@ u32 __fastcall LoadScreen_ShowImage(u8 *image) {
                 const s32 from = (rows - y - 1) * *reinterpret_cast<const s32 *>(image + 8) / rows;
                 *out++ = reinterpret_cast<const u32 *>(pixels)[from * width + x * width / global<s32>(0x008bcbd0)];
             }
+        }
+    }
+    return 1;
+}
+
+u32 __fastcall LoadScreen_Show(u8 *self, void *, const char *name, const char *folder, s32 ms) {
+    if (at<u32>(self, 0x10) || at<u32>(self, 0x14))
+        close(self);
+    if (!name) name = text(0x00768dec);
+    if (!folder) folder = text(0x00768de0);
+    global<u32>(0x008bd508) |= 1;
+    at<u32>(self, 0) = 0;
+    if (!ms) ms = 500;
+    at<s32>(self, 8) = ms;
+    at<float>(self, 0x18) = (float)(X87Reg(global<float>(0x00701fd4)) / X87Reg((double)ms));
+    u32 shown = (u32)ms;
+
+    char size[0x14], path[0x80], splash[0x80], stampFirst[0x80], stampLater[0x80];
+    const s32 width = global<s32>(0x008bcbd0);
+    if (width == 400 || width == 512 || width == 640 || width == 800 || width == 1024)
+        Crt().sprintf(size, text(0x00768dd4), width);
+    else
+        Crt().sprintf(size, text(0x00768dd8));
+    std::strcpy(path, folder);
+    if (path[0] && path[std::strlen(path) - 1] != '\\')
+        std::strcat(path, text(0x007477fc));
+    std::strcat(path, size);
+    file_in(splash, path, 0x00768dcc, name);
+    file_in(stampFirst, path, 0x00768dc4, name);
+    file_in(stampLater, path, 0x00768db8, name);
+    std::strcat(path, text(0x00768dac));
+
+    u32(__stdcall *const timeGetTime)() = *reinterpret_cast<u32(__stdcall *const *)()>((uintptr_t)0x006fd3ec);
+    if (global<u32>(0x008c4788) == 0) {
+        u32 image[4];
+        image[0] = 0;
+        if (g_calls.Th(0x00586e40, (u32)(uintptr_t)image, splash)) {
+            g_calls.Th(0x00587130, (u32)(uintptr_t)image);
+            if (image[0]) {
+                TrackedGlobal_Free(image[0]);
+                image[0] = 0;
+            }
+            global<u32>(0x008bd508) |= 0x8000000;
+            g_calls.Cd(0x00583730);
+            shown = timeGetTime();
+        }
+        if (image[0]) TrackedGlobal_Free(image[0]);
+    }
+
+    const bool first = global<u32>(0x008c478c) == 0;
+    u32 *const block = static_cast<u32 *>(GameHeap_Alloc(0x10));
+    if (block) block[0] = 0;
+    *reinterpret_cast<u32 **>(self + (first ? 0x14 : 0x10)) = block;
+    g_calls.Th(0x00586e40, (u32)(uintptr_t)block, path);
+    const s32 wide = (s32)block[1];
+    s32 y = first ? 0x198 : 0xe0;
+    if (wide == 400) y = first ? 0xff : 0x8c;
+    else if (wide == 512) y = first ? 0x145 : 0xb3;
+    else if (wide == 800) y = first ? 0x1fe : 0x118;
+    else if (wide == 1024) y = first ? 0x28c : 0x166;
+    g_calls.Th(0x00586f40, (u32)(uintptr_t)block, first ? stampFirst : stampLater, 0u, y);
+    ++global<u32>(0x008c4788);
+    ++global<u32>(0x008c478c);
+    global<u32>(0x008bcbc8) |= 0x40000000;
+    at<s32>(self, 4) = -1;
+    at<u32>(self, 0xc) = 0;
+    if (global<u32>(0x008c4788) == 1) {
+        while (timeGetTime() - shown < 0x9c4) {
         }
     }
     return 1;

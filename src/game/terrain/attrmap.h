@@ -19,4 +19,10 @@ void __fastcall AttrMap_ReadMapChunk(u8 *handler, void *, const u8 *chunk, u32 u
 // list (List_PushHeadForward), then ChunkFile_Open of the name; the file destroyed (its vtable 0x700aa0, the list's nodes freed).
 // Returns Open's answer.
 u32 __fastcall TP2M_ReadChunks(u8 *cells, void *, const char *name);
+
+// 0x450900 (cdecl; name invented, unconfirmed): "<base>\Terrain\Base.map" located (Quickload_Locate, 1, 0) and read into the cells at [0x7cf83c] + 0x2d8 (TP2M_ReadChunks). Returns 1 if it read, else 0.
+u32 __cdecl TerrainAttrMap_Load();
 }
+
+struct AddrCall;
+void AttrMap_SetCalls(const AddrCall *table, u32 count);   // tests/fncmp/attrmapload.py

@@ -31,6 +31,8 @@ struct PtrListEnv {
 };
 // The list's allocation goes through env (nullptr: the game's).
 void PtrList_SetEnv(const PtrListEnv *env);
+struct AddrCall;
+void PtrArray_SetImageCalls(const AddrCall *table, u32 count);   // tests/fncmp/ptrarray_addimage.py
 
 extern "C" {
 
@@ -51,6 +53,9 @@ u32 __fastcall PtrArray_RemoveAndFree(u8 *object, void *, u32 item);
 // (+0x10) 0x58000, +0x2c 10.0f and the image (+0x28) appended to the same array (the decoded textures' 0x879ce0, 0x5f3f4c); the count is stored at
 // +0x1c and at +4 of what +4 points to. Returns the frame; 0 when the allocation failed (the error (2, 0xb0754000) pushed).
 u8 *__fastcall PtrArray_AddSpriteFrame(u8 *object, void *, u32 image);
+
+// 0x56b380 (thiscall (name), pops 4; name invented, unconfirmed): the array's +0x18 images at +0x14: null. Else a new sprite image (0x18 bytes; none: 0xb0754000 pushed on the engine's errors, null) loaded from the file (SpriteImage_LoadFile, 0x588820): failing, destroyed and freed, null. Stored at +0xc, +0x18 counts it; the image.
+u8 *__fastcall PtrArray_AddImage(u8 *object, void *, const char *name);
 
 // 0x5d8a80: removes the first node with a value from the linked list at +0xc (unlinks it, counts it off, frees it).
 void __fastcall ListRemovec_5d8a80(u8 *o, void *, u32 v0);

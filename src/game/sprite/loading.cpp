@@ -286,3 +286,37 @@ extern "C" bool __cdecl Sprites_LoadAll(u8 onlyLast) {
     global<u32>(0x00876b28) = global<u32>(0x0087626c);
     return true;
 }
+
+extern "C" bool __cdecl Sprites_Setup(u32 mode, u32 onlyLast) {
+    const u32 map = global<u32>(global<u32>(0x007a0854) + 0x6c);
+    global<u32>(0x008bcbc8) |= 0x1000000;
+    global<u8>(0x00763f84) = 1;
+    global<u32>(0x00877350) = 0;
+    global<u32>(0x00876b24) = 0;
+    global<u32>(0x008bd4f0) = 0;
+    global<u32>(0x008bd4f4) = 0;
+    global<u32>(0x008768fc) = mode & 0xff;
+    global<u32>(0x00763f80) = (mode & 0xff) == 0;
+    g_calls.Cd(0x00541d90, onlyLast);
+    global<u32>(0x0087734c) = 0;
+    const s32 width = global<s32>(map + 0x18), height = global<s32>(map + 0x1c);
+    global<s32>(0x00876898) = width;
+    global<s32>(0x00876894) = height;
+    const u32 across = (u32)(width / 4 + 1), down = (u32)(height / 4 + 1);
+    global<u32>(0x008762b4) = across;
+    global<u32>(0x0087614c) = down;
+    for (u32 y = 0; y < 4; ++y) {
+        for (u32 x = 0; x < 4; ++x) {
+            const u32 index = x + 4 * y, cell = 0x008751f0 + index * 0x24;
+            global<u32>(0x00875528 + index * 4) = g_calls.Th(0x0058a4f0, cell, 0x800u);
+            global<u32>(cell + 4) = 0;
+            const u32 right = y == 3 ? (u32)width - 1 : y * across + across - 1;
+            const u32 bottom = x == 3 ? (u32)height - 1 : x * down + down - 1;
+            g_calls.Th(0x00576620, global<u32>(0x0087a6d0), y * across, x * down, right, bottom, cell + global<u32>(global<u32>(cell) + 4), 0u);
+        }
+    }
+    global<u32>(0x0087692c) = g_calls.Th(0x0058a4f0, 0x00876420u, 0x20u);
+    global<u32>(0x00876424) = 0;
+    g_calls.Th(0x00576410, global<u32>(0x0087a6d0), 0x00876420u + global<u32>(global<u32>(0x00876420) + 4), 0x20u);
+    return true;
+}

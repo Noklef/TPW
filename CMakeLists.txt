@@ -455,6 +455,7 @@ add_library(tpw_game STATIC
     src/game/coaster/coastersload.cpp
     src/game/coaster/coastersupdate.cpp
     src/game/coaster/startcars.cpp
+    src/game/coaster/rideanimate.cpp
     src/game/terrain/terrain_blend.cpp
     src/game/terrain/land.cpp
     src/game/terrain/procedural.cpp
@@ -467,6 +468,7 @@ add_library(tpw_game STATIC
     src/game/terrain/water.cpp
     src/game/terrain/ground.cpp
     src/game/terrain/raypick.cpp
+    src/game/terrain/baseload.cpp
     src/game/model/parts.cpp
     src/game/model/holder.cpp
     src/game/model/remap.cpp
@@ -672,6 +674,8 @@ add_library(tpw_game STATIC
     src/game/render/scrolllayers.cpp
     src/game/render/settingslog.cpp
     src/game/render/meshtextures.cpp
+    src/game/render/engineshutdown.cpp
+    src/game/render/devicereset.cpp
     src/game/ui/quitconfirm.cpp
     src/game/world/mapsweep.cpp
     src/game/ui/imehostattach.cpp
@@ -719,6 +723,8 @@ add_library(tpw_game STATIC
     src/game/world/savegamefile.cpp
     src/game/world/advisorsend.cpp
     src/game/world/parkmapwindow.cpp
+    src/game/world/levelfree.cpp
+    src/game/world/levelsetup.cpp
     src/game/ui/staffrename.cpp
     src/game/ui/window7cc8bc.cpp
     src/game/ui/dialog7cb2b8.cpp
@@ -887,6 +893,7 @@ add_executable(tpw_tests
 target_link_libraries(tpw_tests PRIVATE tpw_game)
 
 # Comparison driver for tools/fncmp.py: calls hooked functions by their original address. Fixed at 0x10000, below the game's image
+# Comparison driver for tools/fncmp.py: calls hooked functions by their original address. Fixed at 0x10000 (the lowest base; 0x100000 until its code outgrew the 3 MB below the game), below the game's image
 # base, so its code ends below 0x400000 and its g_game section (the next one) covers the game's whole image, 0x400000-0xfc5200, where
 # absolute game addresses work as they do in tp.exe (tools/fncmp/driver.cpp's header; it checks the layout at start-up).
 add_executable(tpw_fncmp

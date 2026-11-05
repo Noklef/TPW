@@ -29,3 +29,12 @@ u32 __cdecl Sign_Apply(u8 *object, const char *folder, const char *style, const 
 extern "C" {
 u32 __cdecl Sign_ApplyObject(u8 *object, const u16 *text, const u16 *text2);
 }
+
+void Sign_SetRideCalls(const AddrCall *table, u32 count);   // tests/fncmp/signrides.py
+
+extern "C" {
+// 0x468420 (cdecl; name invented, unconfirmed): as Sign_ApplyObject, for the ride of the id (0 or no folder: 0): Sign_Apply(ride, a1, a2, the fonts, a3, a4) with signs on, else 1. A ride without bit 0 at +4 gets bit 0x8000000.
+u32 __cdecl Ride_ApplySign(u32 id, u32 a1, u32 a2, u32 a3, u32 a4);
+// 0x468500 (cdecl; name invented, unconfirmed): the world's things (list from the world's word +0x1da746, next at word +0xc) whose holder has bit 0x8000000: their two names (Thing_NameA, Thing_NameB: 0x100 wide chars) and Sign_ApplyObject. The Debug_Printf is left out.
+void __cdecl Rides_ReapplySigns();
+}

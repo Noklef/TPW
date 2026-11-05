@@ -4,6 +4,9 @@
 
 #include "../../../re/types.h"
 
+struct AddrCall;
+void VWrap_SetCalls(const AddrCall *table, u32 count);  // (the comparison driver's seam)
+
 extern "C" {
 
 // 0x5c5510 (thiscall; a, pops 4): the object's slot 0x18 called with a. Returns what it returns.
@@ -88,6 +91,8 @@ void __cdecl Table7c26b0_ReleaseIdle();
 // 0x51f2f0 / 0x51f240 at +0x84 to +0x9c, and the virtual base added to the live objects (LiveObjects_Add). 1; 0 when there was one, or when
 // the allocation failed (the error (3, 0xb0754000) pushed onto the engine's list, EngineErrors_Push).
 u32 __cdecl Global8bba48_Create();
+// 0x57c4d0 (name invented): self is the object's virtual base, +0xa4 of 0x8bba48.
+u32 __fastcall Global8bba48_ClipAndTouch(u8 *self, void *);
 
 // 0x57c4a0 (cdecl): when the dword at 0x8bba48 is not 0 the virtual base of the object it points to (the offset in dword +4 of its vtable) is deleted (its slot 0
 // with 1) and the dword cleared. Returns 1 when there was one, otherwise 0.
@@ -123,4 +128,6 @@ u32 __fastcall Obj_KeyMessageToSlots(u8 *object, void *, u32 message, u32 key, u
 // 0x7cc218 with the handle.
 void __fastcall Obj7b51f0_PassThingTo7cc218(u8 *object, void *, u32 handle);
 
+// 0x47e9b0 (cdecl; name invented, unconfirmed): AsyncPointer_BeginFlip of the pointer [0x7b4b84], if any.
+void __cdecl Pointer_BeginFlip();
 }  // extern "C"

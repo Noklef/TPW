@@ -202,3 +202,37 @@ extern "C" u32 __cdecl Sign_ApplyObject(u8 *object, const u16 *text, const u16 *
         at<u32>(holder, 4) |= 0x8000000;
     return result;
 }
+
+namespace {
+AddrCalls g_rideCalls;
+}  // namespace
+
+void Sign_SetRideCalls(const AddrCall *table, u32 count) { g_rideCalls.Set(table, count); }
+
+extern "C" u32 __cdecl Ride_ApplySign(u32 id, u32 a1, u32 a2, u32 a3, u32 a4) {
+    if (!id) return 0;
+    const char *const folder = at<const char *>(reinterpret_cast<const void *>((uintptr_t)0x00f816c0), 8);
+    if (!folder) return 0;
+    char fonts[0x104];
+    Crt().sprintf(fonts, folder[std::strlen(folder) - 1] == '\\' ? "%s%s" : "%s\\%s", folder, "Data\\Fonts");   // (an empty folder reads the byte before it, sic)
+    const u32 ride = global<u32>(0x007a4610 + 4 * id);
+    u32 result = 1;
+    if (global<u32>(0x0078d8d8)) result = g_rideCalls.Cd(0x467a80, ride, a1, a2, address(fonts), a3, a4);
+    if (ride && !(at<u32>((void *)(uintptr_t)ride, 4) & 1)) at<u32>((void *)(uintptr_t)ride, 4) |= 0x8000000;
+    return result;
+}
+
+extern "C" void __cdecl Rides_ReapplySigns() {
+    u32 index = at<u16>(global<u8 *>(0x007cf83c), 0x1da746);
+    while (index) {
+        u8 *const thing = global<u8 *>(0x007cfb90 + index * 0x14);
+        u8 *const holder = global<u8 *>(0x007a4610 + 4 * at<u32>(thing, 0x20));
+        if (holder && (at<u32>(holder, 4) & 0x8000000)) {
+            u16 first[0x100], second[0x100];
+            g_rideCalls.Th(0x4e2860, address(thing), address(first), 0x100u);
+            g_rideCalls.Th(0x4e2920, address(thing), address(second), 0x100u);
+            g_rideCalls.Cd(0x4682b0, address(thing), address(first), address(second));
+        }
+        index = at<u16>(thing, 0xc);
+    }
+}

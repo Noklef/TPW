@@ -1,7 +1,9 @@
 #include "spritequeue.h"
 
 #include <cstdint>
+#include <cstring>
 
+#include "../core/addrcalls.h"
 #include "../core/gameheap.h"
 #include "../core/liveobjects.h"
 #include "../render/engineerrors.h"
@@ -11,10 +13,113 @@
 namespace {
 
 template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cast<T *>((uintptr_t)p + offset); }
+template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
+u32 address(const void *p) { return (u32)(uintptr_t)p; }
+
+AddrCalls g_calls;
+AddrCalls g_drawCalls;
+
+// SpriteQueue_Draw's sort: the frames of one texture and key in a list, the nodes a tree by those two, drawn in the order they were made.
+struct SortNode {
+    SortNode *lower, *higher;
+    u32 texture;   // 0xffffffff: not filled yet
+    u8 *frames;    // by depth, far first, on through the frames' +0x40
+    s32 key;
+};
+
+u32 CloseBatch() { return g_drawCalls.Th(0x005658c0, global<u32>(0x00879ab0), 0xbf800000u); }   // -1.0f
+
+void SortFrame(SortNode *nodes, SortNode *&next, u8 *frame, u32 texture, s32 key) {
+    at<u32>(frame, 0x40) = 0;
+    SortNode *node = nodes;
+    if (next == nodes) ++next;
+    else while (node->texture != 0xffffffff) {
+        if (node->texture == texture && node->key == key) {
+            u8 *before = nullptr, *cur = node->frames;
+            while (cur && !(at<float>(frame, 8) >= at<float>(cur, 8))) {
+                before = cur;
+                cur = at<u8 *>(cur, 0x40);
+            }
+            at<u8 *>(frame, 0x40) = cur;
+            if (before) at<u8 *>(before, 0x40) = frame;
+            else node->frames = frame;
+            return;
+        }
+        SortNode *&link = node->texture > texture || (node->texture == texture && node->key > key) ? node->higher : node->lower;
+        if (link == reinterpret_cast<SortNode *>((uintptr_t)0xffffffff)) link = next++;
+        node = link;
+    }
+    node->frames = frame;
+    node->texture = texture;
+    node->key = key;
+}
 
 }  // namespace
 
+void SpriteQueue_SetCalls(const AddrCall *table, u32 count) { g_calls.Set(table, count); }
+
+extern "C" u32 __fastcall SpriteQueue_DrawWithPanels(u8 *self) {
+    if (!g_drawCalls.Th(0x0058a770, (u32)(uintptr_t)self)) return 0;   // SpriteQueue_Draw
+    for (u32 i = at<u32>(self, 0x2408); i > 0; --i)
+        if (!g_drawCalls.Th(0x0058a010, at<u32>(self, 0x2000 + (i - 1) * 4))) return 0;   // TiledPanel_Draw
+    return 1;
+}
+void SpriteQueue_SetDrawCalls(const AddrCall *table, u32 count) { g_drawCalls.Set(table, count); }
+
 extern "C" {
+
+u32 __fastcall SpriteQueue_Draw(u8 *queue) {
+    const u32 render = global<u32>(0x008bcbc8);
+    global<u32>(0x008bd4fc) = 0;
+    if (render & 0x80) {
+        for (u32 i = at<u32>(queue, 0x2404); i--;) {
+            if (!g_drawCalls.Th(0x00589f90, at<u32>(queue, i * 4))) return 0;
+            if (!(render & 0x20000) && !g_drawCalls.Th(0x00589770, at<u32>(queue, i * 4))) return 0;
+        }
+        return 1;
+    }
+
+    SortNode nodes[0x800];
+    std::memset(nodes, 0xff, sizeof(nodes));
+    SortNode *next = nodes;
+    s32 key = 0;   // (sic: unset stack in the original until a frame with flag 4)
+    for (u32 i = at<u32>(queue, 0x2404); i--;) {
+        u8 *const frame = at<u8 *>(queue, i * 4);
+        const u32 flags = at<u32>(frame, 0x10);
+        if (flags & 4) key = (flags & 0x2000 ? 0x30 : 0) + 0x200522;
+        if (flags & 0x200000) key |= 0x200000;
+        if (flags & 0x20000) key |= 0x20000;
+        if (flags & 0x4000) key |= 0x800;
+        if (flags & 0x10000) key |= 0x8000000;
+        const u8 *const texture = at<const u8 *>(at<const u8 *>(frame, 0x28), 0);
+        SortFrame(nodes, next, frame, at<u32>(texture, 8) & 0x1000 ? at<u32>(texture, 0x1c) : 0, key);
+    }
+
+    at<u32>(global<u8 *>(0x00879ab0), 0x20) = 0;
+    for (SortNode *node = nodes; node < next; ++node) {
+        if (!node->frames) continue;
+        for (u8 *frame = node->frames; frame; frame = at<u8 *>(frame, 0x40))
+            if (!g_drawCalls.Th(0x00589fd0, address(frame))) return 0;
+        if (!CloseBatch()) return 0;
+    }
+
+    const u32 after = global<u32>(0x008bcbc8);
+    if (after & 0x20000) return 1;
+    if (after & 0x40000) {
+        if (!at<u32>(queue, 0x2400)) return 1;
+        for (SortNode *node = nodes; node < next; ++node)
+            for (u8 *frame = node->frames; frame; frame = at<u8 *>(frame, 0x40))
+                if (!g_drawCalls.Th(0x00589990, address(frame), at<u32>(queue, 0x2400))) return 0;
+        return CloseBatch() != 0;
+    }
+    for (SortNode *node = nodes; node < next; ++node) {
+        if (!node->frames) continue;
+        for (u8 *frame = node->frames; frame; frame = at<u8 *>(frame, 0x40))
+            if (!g_drawCalls.Th(0x00589990, address(frame), 0u)) return 0;
+        if ((node + 1 == next || node->texture != node[1].texture) && !CloseBatch()) return 0;
+    }
+    return 1;
+}
 
 u32 __fastcall SpriteQueue_Ready(u8 *setPlus20) {
     u8 *set = setPlus20 - 0x20;
@@ -118,6 +223,27 @@ u32 __fastcall SpriteQueue_LoadTexture(u8 *queue, void *, const char *name) {
     if (*slot != nullptr)
         *reinterpret_cast<u32 *>(*slot + 8) = (*reinterpret_cast<u32 *>(*slot + 8) & ~0x80u) | 0x40040;
     return *slot != nullptr;
+}
+
+u32 __fastcall SpriteQueue_Clear(u8 *queue) {
+    at<u32>(queue, 0x2404) = 0;
+    at<u32>(queue, 0x2408) = 0;
+    at<u32>(queue, 0x240c) = 0;
+    return g_calls.Th(0x58c9f0, global<u32>(0x008c4b44), at<u32>(queue, 0x2400), 0u);
+}
+
+u32 __fastcall SpriteQueue_ShowAll(u8 *queue) {
+    for (u32 l = at<u32>(queue, 0x240c); l != 0; l--) {
+        const u8 *const list = at<const u8 *>(queue, 0x2200 + (l - 1) * 4);
+        for (u32 f = at<u32>(list, 4); f != 0; f--)
+            g_calls.Th(0x588ef0, at<const u32 *>(list, 0x14)[f - 1]);
+    }
+    return 1;
+}
+
+u32 __fastcall Global8c47b0_Touch(u8 *object) {
+    g_calls.Th(0x58c9f0, global<u32>(0x008c4b44), at<u32>(object, 8), 0x3f000000u);
+    return 1;
 }
 
 void __cdecl Global8c47b0_Release() {

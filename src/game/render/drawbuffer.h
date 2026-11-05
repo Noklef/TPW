@@ -12,6 +12,9 @@
 
 #include "../../../re/types.h"
 
+struct AddrCall;
+void DrawBuffer_SetDrawAllCalls(const AddrCall *table, u32 count);   // tests/fncmp/drawbufferdraw.py
+
 extern "C" {
 
 // 0x5823f0 (thiscall; name unconfirmed): the draw buffer's blocks made, each a tracked block (TrackedGlobal_Alloc, core/gameheap): stream 2
@@ -85,5 +88,17 @@ s32 __fastcall DrawBatch_AddClippedTriangles(u8 *object, void *, u32 *vertexCoun
 // by 3 (count - 2); then for 3-8 vertices the fan's triangles from its index end, the last first: (first, first + k, first + k + 1), with
 // flag 2 (first, first + k + 1, first + k). Returns 1.
 u32 __fastcall DrawBatch_AddPolygon(u8 *object, void *, u8 *vertices, u32 count, u32 stride, const u8 *codes, u32 flags);
+
+// 0x582810, 0x5828f0, 0x5829e0 (names invented): batch indices order[lo..hi] sorted by the batches' (+0x44, 0x38 bytes each) dword +8,
+// float +0x30 up, float +0x30 down.
+void __fastcall DrawBuffer_SortByDword8(u8 *buffer, void *, u32 *order, s32 lo, s32 hi);
+void __fastcall DrawBuffer_SortByFloat30Up(u8 *buffer, void *, u32 *order, s32 lo, s32 hi);
+void __fastcall DrawBuffer_SortByFloat30Down(u8 *buffer, void *, u32 *order, s32 lo, s32 hi);
+
+// 0x582ad0 (thiscall; name invented, unconfirmed): none to take (+0x50 - +0x54 + +0x48 - 1): 1. An order array (TrackedGlobal_Alloc; none: (3, 0xb0754000) pushed on the engine's errors, 0). The batches (+0x44, 0x38 bytes) without flag 0x10 below +0x50 and from +0x54 + 1 below +0x48, those latter by way of Obj_ApplyIfShared on [0x879ab0], tested again after it.
+// Mode 4 ([0x8bd524]): the order parted, batches with +4's 0x1000 first; those sorted by SortByDword8, the rest by SortByFloat30Down. Else render flags 0xc and 0x20000000: SortByFloat30Up, otherwise Down. Each Obj_CallSlot10IfSized; a 0: freed, 0. Mode 4 with device flags 0x80000020 ([0x8bd508]): the later batches' +0x20 vertices (+0x28, 0x18 bytes) get their first two dwords doubled. Freed, 1.
+u32 __fastcall DrawBuffer_DrawAll(u8 *buffer);
+// 0x582170 (name invented, unconfirmed): ModelList_Draw, then DrawBuffer_DrawAll of the buffer at 0x8bcbc4: 0 when either fails, else 1. Mode 4 ends with EMMS.
+u32 __cdecl DrawBuffer_DrawFrame();
 
 }

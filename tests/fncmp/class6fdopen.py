@@ -1,4 +1,4 @@
-# The folders-and-archives lists' opens and finds (src/game/core/class6fd9d8: 0x41d3d0, 0x41ef40, 0x41d570, 0x41e740) against the originals, old skips: lists of 0-4 objects (or no list, or a list with no nodes), recorders for their slot 1 (find) and slot 3 (open),
+# The folders-and-archives lists' opens and finds (src/game/core/class6fd9d8: 0x41d3d0, 0x41ef40, 0x41d570, 0x41e740, and the two opens of a path under the object's root, 0x41d2c0, 0x41ee30) against the originals, old skips: lists of 0-4 objects (or no list, or a list with no nodes), recorders for their slot 1 (find) and slot 3 (open),
 # each result any sign and logged with the relative path's or the path's text, the status pointers as 0; the root strings narrow or (as the code reads them) with a wide table, the names under them or not, the real strings and Path_StripBase; the found file's member at +0x3c there or not, its
 # new copy's block failing now and then. 0x41d570's record's first 0x20 bytes are the stack's: left out of the comparison; 0x41e740's own record logged by the text its cursor points to.
 # usage: class6fdopen.py [CASES [SEED]] [--wild|--both] [--show N]
@@ -13,7 +13,7 @@ from gamestring import LOCALE, string  # noqa: E402
 import vfs  # noqa: E402
 
 FIND, OPEN, DELETE = 1, 3, 4
-CALLS = {'Open': (0x41d3d0, 0x41d56d), 'OpenInner': (0x41ef40, 0x41f0cd), 'Find': (0x41d570, 0x41d701), 'FindOpen': (0x41e740, 0x41e8dc)}
+CALLS = {'Open': (0x41d3d0, 0x41d56d), 'OpenInner': (0x41ef40, 0x41f0cd), 'Find': (0x41d570, 0x41d701), 'FindOpen': (0x41e740, 0x41e8dc), 'Under': (0x41d2c0, 0x41d3cd), 'Under2': (0x41ee30, 0x41ef3d)}
 B = Bench(vfs.RANGES + list(CALLS.values()))
 OBJECT, LIST, NODES, VT, MEMBER, MEMBERVT, HOLDER, INFO, PATH, PATHDATA, OBJS, ROOTS = (RAM + 0x4000, RAM + 0x4100, RAM + 0x4140, RAM + 0x4200, RAM + 0x4240, RAM + 0x4260, RAM + 0x42a0, RAM + 0x42c0,
                                                                                          RAM + 0x4400, RAM + 0x4440, RAM + 0x4800, RAM + 0x5000)
@@ -74,10 +74,16 @@ def case(r):
         root = root_at(r, me, 0x18, ROOTS, regions)
         put(me, 0x30, 'I', HOLDER)
         regions[HOLDER] = r.bytes(0x10)
+    if op in ('Under', 'Under2'):   # (the object's own root; the path under it gets to FindOpen's lists)
+        root = root_at(r, me, 0x18, ROOTS, regions)
     text = vfs.name_under(r, root) if root else vfs.folder(r) + r.choice([b'', b'.wct'])
     string(r, 0, PATH, PATHDATA, regions, text)
     results(r, log, OPEN, (1 << 2, 1))
     stream = r.getrandbits(32)
+    if op in ('Under', 'Under2'):
+        results(r, log, FIND, (1 << 1, 1 | 1 << 2))
+        blob_bytes(log, FIND, 2, 0, inner=(0x20, 1))
+        return Call(CALLS[op][0], [OBJECT, stream, PATH, r.getrandbits(32), r.getrandbits(32)], regions, conv='t', ret='a')
     if op in ('Open', 'OpenInner'):
         return Call(CALLS[op][0], [OBJECT, stream, PATH, r.getrandbits(32)], regions, conv='t', ret='a')
     if op == 'Find':

@@ -2,6 +2,7 @@
 
 #include <cstdint>
 
+#include "../core/addrcalls.h"
 #include "../core/gameheap.h"
 #include "clipcodes.h"
 #include "clippoly.h"
@@ -11,12 +12,56 @@ namespace {
 
 template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cast<T *>((uintptr_t)p + offset); }
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
+u32 address(const void *p) { return (u32)(uintptr_t)p; }
 
 // Stream n's record: {vertices, used, room, indices, used, room}.
 u32 *stream(const u8 *buffer, u32 n) { return reinterpret_cast<u32 *>((uintptr_t)buffer + n * 24 - 0x10); }
 u32 *current(const u8 *buffer) { return stream(buffer, at<u32>(buffer, 4)); }
 
 void PushError() { EngineErrors_Push(reinterpret_cast<u8 *>((uintptr_t)0x00879ad0), nullptr, 3, 0xb0754000); }
+
+// The three sorts' keys and tests. A NaN passes `!(v >= p)`, so a float's scan runs over it. A NaN pivot recurses for ever, as in the original.
+struct ByDword8 {
+    typedef u32 Key;
+    static Key key(const u8 *batch) { return at<u32>(batch, 8); }
+    static bool before(Key v, Key p) { return v < p; }
+    static bool after(Key v, Key p) { return v > p; }
+};
+struct ByFloat30Up {
+    typedef float Key;
+    static Key key(const u8 *batch) { return at<float>(batch, 0x30); }
+    static bool before(Key v, Key p) { return !(v >= p); }
+    static bool after(Key v, Key p) { return v > p; }
+};
+struct ByFloat30Down {
+    typedef float Key;
+    static Key key(const u8 *batch) { return at<float>(batch, 0x30); }
+    static bool before(Key v, Key p) { return v > p; }
+    static bool after(Key v, Key p) { return !(v >= p); }
+};
+
+// Batch indices order[lo..hi] sorted: Hoare's partition around the middle entry's key, recursing on the left part and looping on the right.
+template <typename By> void SortBatches(const u8 *buffer, u32 *order, s32 lo, s32 hi) {
+    const u8 *batches = reinterpret_cast<const u8 *>((uintptr_t)at<u32>(buffer, 0x44));
+    const auto key = [&](s32 n) { return By::key(batches + order[n] * 0x38); };
+    for (;;) {
+        s32 i = lo, j = hi;
+        const typename By::Key pivot = key((s32)((u32)lo + (u32)hi) >> 1);
+        do {
+            while (i <= hi && By::before(key(i), pivot)) i++;
+            while (j > lo && By::after(key(j), pivot)) j--;
+            if (i > j) break;
+            const u32 swapped = order[i];
+            order[i] = order[j];
+            order[j] = swapped;
+            i++;
+            j--;
+        } while (i <= j);
+        if (lo < j) SortBatches<By>(buffer, order, lo, j);
+        if (hi <= i) return;
+        lo = i;
+    }
+}
 
 // A stream's record made (inlined twice in 0x5823f0): 1 MB of vertices and 0x20000 bytes of indices. On a failure the error is
 // pushed (and what was got freed); the caller pushes it again.
@@ -62,7 +107,20 @@ u32 FreeBlocks(u8 *buffer) {
     return 0;
 }
 
+AddrCalls g_drawAllCalls;
+
+u8 *DrawRecord(const u8 *buffer, u32 index) { return at<u8 *>(buffer, 0x44) + index * 0x38; }
+
 }  // namespace
+
+void DrawBuffer_SetDrawAllCalls(const AddrCall *table, u32 count) { g_drawAllCalls.Set(table, count); }
+
+extern "C" u32 __cdecl DrawBuffer_DrawFrame() {
+    if (!g_drawAllCalls.Cd(0x00581db0)) return 0;   // ModelList_Draw
+    if (!g_drawAllCalls.Th(0x00582ad0, global<u32>(0x8bcbc4))) return 0;   // DrawBuffer_DrawAll
+    if (global<u32>(0x8bd524) == 4) __asm emms   // (the software renderer's MMX code)
+    return 1;
+}
 
 extern "C" {
 
@@ -343,6 +401,70 @@ u32 __fastcall DrawBatch_AddPolygon(u8 *object, void *, u8 *vertices, u32 count,
         *w++ = (u16)(base + (flags & 2 ? k + 1 : k));
         *w++ = (u16)(base + (flags & 2 ? k : k + 1));
     }
+    return 1;
+}
+
+void __fastcall DrawBuffer_SortByDword8(u8 *buffer, void *, u32 *order, s32 lo, s32 hi) { SortBatches<ByDword8>(buffer, order, lo, hi); }
+void __fastcall DrawBuffer_SortByFloat30Up(u8 *buffer, void *, u32 *order, s32 lo, s32 hi) { SortBatches<ByFloat30Up>(buffer, order, lo, hi); }
+void __fastcall DrawBuffer_SortByFloat30Down(u8 *buffer, void *, u32 *order, s32 lo, s32 hi) { SortBatches<ByFloat30Down>(buffer, order, lo, hi); }
+
+u32 __fastcall DrawBuffer_DrawAll(u8 *buffer) {
+    const u32 count = at<u32>(buffer, 0x50) - at<u32>(buffer, 0x54) + at<u32>(buffer, 0x48) - 1;
+    if (!count) return 1;
+    u32 *const order = reinterpret_cast<u32 *>((uintptr_t)g_drawAllCalls.Cd(0x00579b40, count * 4));   // TrackedGlobal_Alloc
+    if (!order) {
+        g_drawAllCalls.Th(0x0056af20, 0x00879ad0u, 3u, 0xb0754000u);
+        return 0;
+    }
+    s32 n = 0;
+    for (s32 i = 0; i < at<s32>(buffer, 0x50); ++i)
+        if (!(at<u8>(DrawRecord(buffer, i), 0) & 0x10)) order[n++] = i;
+    for (s32 j = at<s32>(buffer, 0x54) + 1; j < at<s32>(buffer, 0x48); ++j) {
+        if (at<u8>(DrawRecord(buffer, j), 0) & 0x10) continue;
+        g_drawAllCalls.Th(0x00565930, global<u32>(0x00879ab0), DrawRecord(buffer, j));   // Obj_ApplyIfShared
+        if (!(at<u8>(DrawRecord(buffer, j), 0) & 0x10)) order[n++] = j;
+    }
+
+    if (global<u32>(0x008bd524) == 4) {
+        s32 lo = 0, hi = n - 1;
+        if (hi > 0) {
+            do {
+                while (lo < n && (at<u32>(DrawRecord(buffer, order[lo]), 4) & 0x1000)) ++lo;
+                while (hi > 0 && !(at<u32>(DrawRecord(buffer, order[hi]), 4) & 0x1000)) --hi;
+                if (lo > hi) break;
+                const u32 swap = order[hi];
+                order[hi] = order[lo];
+                order[lo] = swap;
+                ++lo;
+                --hi;
+            } while (lo < hi);
+        }
+        if (lo > 1) g_drawAllCalls.Th(0x00582810, address(buffer), order, 0, lo - 1);   // DrawBuffer_SortByDword8
+        if (n - 1 > lo) g_drawAllCalls.Th(0x005829e0, address(buffer), order, lo, n - 1);   // DrawBuffer_SortByFloat30Down
+    } else if (n > 1) {
+        const u32 render = global<u32>(0x008bcbc8);
+        if ((render & 0xc) == 0xc && (render & 0x20000000)) g_drawAllCalls.Th(0x005828f0, address(buffer), order, 0, n - 1);   // DrawBuffer_SortByFloat30Up
+        else g_drawAllCalls.Th(0x005829e0, address(buffer), order, 0, n - 1);
+    }
+
+    for (s32 i = 0; i < n; ++i) {
+        if (!g_drawAllCalls.Th(0x00565560, global<u32>(0x00879ab0), DrawRecord(buffer, order[i]))) {
+            g_drawAllCalls.Cd(0x00579b80, order);   // TrackedGlobal_Free
+            return 0;
+        }
+    }
+
+    if (global<u32>(0x008bd524) == 4 && (global<u32>(0x008bd508) & 0x80000020) == 0x80000020) {
+        for (s32 j = at<s32>(buffer, 0x54) + 1; j < at<s32>(buffer, 0x48); ++j) {
+            u8 *vertex = at<u8 *>(DrawRecord(buffer, j), 0x28);
+            for (u32 left = at<u32>(DrawRecord(buffer, j), 0x20); left; --left) {
+                at<u32>(vertex, 0) <<= 1;
+                at<u32>(vertex, 4) <<= 1;
+                vertex += 0x18;
+            }
+        }
+    }
+    g_drawAllCalls.Cd(0x00579b80, order);
     return 1;
 }
 
