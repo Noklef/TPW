@@ -29,6 +29,9 @@ u16 __fastcall GuiFont_CharWidth(const u8 *font, void *, u32 character);
 // 0x657d6c (thiscall; name unconfirmed): the vtable set back to 0x7058d8, the glyphs +0xc freed when there are any (+0xc kept).
 void __fastcall GuiFont_Dtor(u8 *font);
 
+// 0x657dff (thiscall; name unconfirmed): the glyphs +0xc freed when there are any, +0xc cleared.
+void __fastcall GuiFont_FreeGlyphs(u8 *font);
+
 // 0x658460 (thiscall (flags), pops 4; name unconfirmed): GuiFont_Dtor, then the font freed with bit 0 of the flags. Returns the font.
 u8 *__fastcall GuiFont_DeletingDtor(u8 *font, void *, u32 flags);
 }
