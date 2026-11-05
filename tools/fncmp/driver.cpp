@@ -304,6 +304,7 @@
 #include "../../src/game/terrain/tct.h"
 #include "../../src/game/world/levelfree.h"
 #include "../../src/game/world/levelsetup.h"
+#include "../../src/game/files/usersaves.h"
 #include "../../src/game/gfx/texcache.h"
 #include "../../src/game/frontend/lobbymake.h"
 #include "../../src/game/core/gameframe.h"
@@ -1309,6 +1310,21 @@ const AddrCall kObjectDefsLoadCalls[] = {  // tests/fncmp/objectdefsload.py
     {0x4629d0, jpeg_recorder(12, 11)}, {0x42fad0, jpeg_recorder(27, 3)}, {0x51b4f0, jpeg_recorder(28, 2)}, {0x67a7d0, jpeg_recorder(29, 1)}, {0x51fa20, jpeg_recorder(31, 1)},
     {0x4145f0, recorder(1, 0)}, {0x413340, recorder(2, 0)}, {0x412cb0, recorder(9, 0)}, {0x421770, recorder(4, 2)}, {0x413930, recorder(5, 1)}, {0x67acb0, jpeg_recorder(6, 1)}, {0x5f5d60, jpeg_recorder(7, 2)}};  // (tests/fncmp/objectdefsreload.py)
 const AddrCall kCoasterTypeLoadCalls[] = {{0x42fd90, jpeg_recorder(1, 4)}, {0x424ef0, jpeg_recorder(2, 4)}, {0x424ed0, jpeg_recorder(3, 1)}, {0x46f150, jpeg_recorder(4, 1)}, {0x430130, jpeg_recorder(5, 2)}, {0x430590, jpeg_recorder(6, 3)}};  // tests/fncmp/objectdefsload.py
+// A folder search's calls: a pattern's folder written before the name, then the recorder (tests/fncmp/usersaves.py: its _search, the same).
+void saveSearchEntry(char *entry) {
+    memcpy(entry + 0x24, "dir\\", 4);
+    *reinterpret_cast<char **>(entry + 0x20) = entry + 0x28;
+}
+u32 __fastcall saveSearchFirst(u32 self, u32, u32 result, u32 filter, char *entry) {
+    saveSearchEntry(entry);
+    return reinterpret_cast<u32(__fastcall *)(u32, u32, u32, u32, char *)>((uintptr_t)recorder(3, 3))(self, 0, result, filter, entry);
+}
+u32 __fastcall saveSearchNext(u32 self, u32, u32 result, char *entry) {
+    saveSearchEntry(entry);
+    return reinterpret_cast<u32(__fastcall *)(u32, u32, u32, char *)>((uintptr_t)recorder(4, 2))(self, 0, result, entry);
+}
+const AddrCall kUserSavesCalls[] = {{0x5f8240, recorder(1, 0)}, {0x5f8510, recorder(2, 2)}, {0x5f8370, (u32)(uintptr_t)&saveSearchFirst}, {0x5f83a0, (u32)(uintptr_t)&saveSearchNext}, {0x5f82a0, recorder(5, 0)},
+                                    {0x5c8890, recorder(6, 1)}, {0x5c8a10, recorder(7, 0)}, {0x414d40, recorder(8, 3)}, {0x414920, recorder(9, 3)}};
 // SignStyle_Render's recorder that first copies the two wide lines off the stack (tests/fncmp/signapply.py: its _render, the same).
 u32 __fastcall signRenderStandIn(u32 self, u32, u32 dc, const u32 *params) {
     for (u32 i = 0; i < 2; ++i) {
@@ -2691,6 +2707,7 @@ int main(int argc, char **argv) {
     TerrainGround_SetPrepareCalls(kGroundPrepareCalls, sizeof(kGroundPrepareCalls) / sizeof(kGroundPrepareCalls[0]));
     TexCache_SetSetupCalls(kTexCacheSetupCalls, sizeof(kTexCacheSetupCalls) / sizeof(kTexCacheSetupCalls[0]));
     LevelSetup_SetCalls(kLevelSetupCalls, sizeof(kLevelSetupCalls) / sizeof(kLevelSetupCalls[0]));
+    UserSaves_SetCalls(kUserSavesCalls, sizeof(kUserSavesCalls) / sizeof(kUserSavesCalls[0]));
     Renderer_SetDrawCalls(kRendererDrawCalls, sizeof(kRendererDrawCalls) / sizeof(kRendererDrawCalls[0]));
     DeviceReset_SetCalls(kDeviceResetCalls,sizeof(kDeviceResetCalls) / sizeof(kDeviceResetCalls[0]));
     EngineShutdown_SetCalls(kEngineShutdownCalls,sizeof(kEngineShutdownCalls) / sizeof(kEngineShutdownCalls[0]));

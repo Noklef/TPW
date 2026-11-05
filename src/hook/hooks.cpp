@@ -46,6 +46,7 @@
 #include "../game/files/signfonts.h"
 #include "../game/files/substream.h"
 #include "../game/files/textscan.h"
+#include "../game/files/usersaves.h"
 #include "../game/files/vfs.h"
 #include "../game/files/wtext.h"
 #include "../game/math/matrix.h"
@@ -3399,6 +3400,14 @@ const Hook kHooks[] = {
     {"Font_Ctor",                 0x006b0480, (void *)&Font_Ctor, {0x6a, 0xff, 0x68, 0x38, 0x57}},
     {"Font_Load",                 0x006b0680, (void *)&Font_Load, {0x53, 0x55, 0x56, 0x57, 0x8b}},
     {"SignFonts_Add",             0x005ec680, (void *)&SignFonts_Add, {0x6a, 0xff, 0x68, 0xd0, 0x1f}},
+    {"UserSaves_Load",            0x005ac650, (void *)&UserSaves_Load, {0x6a, 0xff, 0x68, 0xf3, 0xf6}},
+    {"UserSaves_Save",            0x005ac780, (void *)&UserSaves_Save, {0x64, 0xa1, 0x00, 0x00, 0x00}},
+    {"UserSaves_LoadA",           0x005ac5d0, (void *)&UserSaves_LoadA, {0x8b, 0x44, 0x24, 0x04, 0x68}},
+    {"UserSaves_LoadB",           0x005ac5f0, (void *)&UserSaves_LoadB, {0x8b, 0x44, 0x24, 0x04, 0x68}},
+    {"UserSaves_SaveA",           0x005ac610, (void *)&UserSaves_SaveA, {0x8b, 0x44, 0x24, 0x04, 0x68}},
+    {"UserSaves_SaveB",           0x005ac630, (void *)&UserSaves_SaveB, {0x8b, 0x44, 0x24, 0x04, 0x68}},
+    {"UserSaves_List",            0x005ac8f0, (void *)&UserSaves_List, {0x64, 0xa1, 0x00, 0x00, 0x00}},
+    {"UserSaves_LoadNewest",      0x005accf0, (void *)&UserSaves_LoadNewest, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"Class70295c_Ctor",          0x005c9040, (void *)&Class70295c_Ctor, {0x56, 0x8b, 0xf1, 0xe8, 0x78}},
     {"Obj_SwapPair",              0x005d03b0, (void *)&Obj_SwapPair, {0x8b, 0x44, 0x24, 0x04, 0x8b}},
     {"Obj_ChooseVector",          0x005dd3d0, (void *)&Obj_ChooseVector, {0x8b, 0x41, 0x58, 0x85, 0xc0}},

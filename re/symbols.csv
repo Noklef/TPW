@@ -3277,6 +3277,14 @@ address,name,kind,confidence,notes
 0x006b0480,Font_Ctor,function,low,"reimplemented (src/game/files/fontloaders); thiscall (data, index), pops 8: the font's data pointers, vtable 0x70a158, the index's CodeTable (key 1)"
 0x006b0680,Font_Load,function,low,"reimplemented (src/game/files/fontloaders); kind 4's loader, the ""F4FB"" file: a block of the stream's size + 0x18, a Font on its data"
 0x005ec680,SignFonts_Add,function,low,"reimplemented (src/game/files/signfonts); A sign style's two font files extracted and added to Windows, their paths kept in the font vector."
+0x005ac650,UserSaves_Load,function,low,"reimplemented (src/game/files/usersaves); stdcall (name, extension): a save in the theme folder loaded (name invented)"
+0x005ac780,UserSaves_Save,function,low,"reimplemented (src/game/files/usersaves); stdcall (name, extension): a save in the theme folder written (name invented)"
+0x005ac5d0,UserSaves_LoadA,function,low,reimplemented (src/game/files/usersaves); stdcall (name): UserSaves_Load with the extension 0xf7ad98 (name invented)
+0x005ac5f0,UserSaves_LoadB,function,low,reimplemented (src/game/files/usersaves); stdcall (name): UserSaves_Load with the extension 0xf7adf8 (name invented)
+0x005ac610,UserSaves_SaveA,function,low,reimplemented (src/game/files/usersaves); stdcall (name): UserSaves_Save with the extension 0xf7ad98 (name invented)
+0x005ac630,UserSaves_SaveB,function,low,reimplemented (src/game/files/usersaves); stdcall (name): UserSaves_Save with the extension 0xf7adf8 (name invented)
+0x005ac8f0,UserSaves_List,function,low,"reimplemented (src/game/files/usersaves); thiscall on a list: the theme folder's saves listed, the first returned (name invented)"
+0x005accf0,UserSaves_LoadNewest,function,low,reimplemented (src/game/files/usersaves); cdecl: the theme folder's newest save loaded (name invented)
 0x005c9040,Class70295c_Ctor,function,high,"reimplemented (src/game/core/vdtor); Init_5d36c0, vtable 0x70295c and four zeroed dwords"
 0x005d03b0,Obj_SwapPair,function,high,reimplemented (src/game/core/stdlist); the dwords at +4 and +8 swapped with another object's
 0x005dd3d0,Obj_ChooseVector,function,high,reimplemented (src/game/frontend/viewcontrols); the vector at +0x10 taken from one of two others
