@@ -47,7 +47,7 @@ def overflow(r):
     log, regions, self = base(r)
     # The put area: none, full or with room.
     area = r.choice([0, OUTPUT, OUTPUT])
-    regions[PUT] = struct.pack('<2I', area, r.choice([0, 0, 1, 3, 0xffffffff]))
+    regions[PUT] = struct.pack('<2I', area, r.choice([0, 0, 1, 3, 0xffffffff, 0x80000000]))
     regions[OUTPUT] = bytes(0x10)
     set_return(log, FPUTC, r.choice([0x41, 0, 0xffffffff]))
     if r.choice([0, 1]):
@@ -63,7 +63,7 @@ def overflow(r):
 
 def seek(r):
     log, regions, self = base(r)
-    regions[RAM + 0x300] = bytes(0x18)
+    regions[RAM + 0x300] = r.bytes(0x18)
     set_return(log, FSETPOS, r.choice([0, 0, 0, 0, 1]))
     set_return(log, FSEEK, r.choice([0, 0, 0, 0, 1]))
     set_return(log, FGETPOS, r.choice([0, 0, 0, 0, 1]))

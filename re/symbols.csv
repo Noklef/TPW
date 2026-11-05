@@ -7824,6 +7824,7 @@ address,name,kind,confidence,notes
 0x005e2010,ThemeMenu_Refresh,function,low,reimplemented (src/game/frontend/thememenu); The lobby menu's items given their theme texts; the fonts added for them removed.
 0x005e27b0,ThemeMenu_Load,function,low,reimplemented (src/game/frontend/thememenu); The lobby menu's items loaded from the session's values; the fonts added for them removed.
 0x005e18d0,ThemeMenu_Enter,function,low,"reimplemented (src/game/frontend/thememenu); The lobby entered: its view set up, the scene's scripts loaded, the theme item chosen and its sounds played; name invented, unconfirmed"
+0x005d8b50,LobbySky_Enter,function,low,"reimplemented (src/game/frontend/lobbysky); The lobby's sky, fog and camera set, the renderer's state kept; name invented, unconfirmed"
 0x0065d7d0,Window_FindChild,function,low,"reimplemented (src/game/ui/window); thiscall (id), pops 4: the first child of the window (list +0x5c, next +0x54) whose id (+0x8c) is id, or 0"
 0x0065f697,Window_CallHandler,function,low,"reimplemented (src/game/ui/window); thiscall (message, a, b), pops 12: the cdecl handler at +0x114 called with (window, message, a, b), its result; -1 when none"
 0x00658d9f,Window_SendMessage,function,low,"reimplemented (src/game/ui/window); cdecl (window, message, a, b): -1 for no window or byte +4 set; else the hook [0xfaa5fc] (if set) then Window_CallHandler"
