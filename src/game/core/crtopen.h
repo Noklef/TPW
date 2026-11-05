@@ -48,6 +48,11 @@ s32 __cdecl CRT_setvbuf(CrtFile *file, char *buffer, u32 type, u32 size);
 s32 __cdecl CRT_fflush_lk(CrtFile *file);
 s32 __cdecl CRT_fflush(CrtFile *file);
 
+// 0x67b660: _fclose_lk: a stream in use: _flush (its answer the result), _freebuf, _close, then the temporary file's name freed; a failed close -1, that name kept. The flags cleared in every case; not in use: -1.
+s32 __cdecl CRT_fclose_lk(CrtFile *file);
+// 0x6891b0: _fcloseall: under lock 2, from stream 3 up: those in use closed by fclose and counted when that is not -1; from slot 20 up the slot's section deleted, its block freed and the slot emptied. Returns the count.
+s32 __cdecl CRT_fcloseall();
+
 // 0x67d170, 0x67d160: flsall, _flushall (mode 1): under lock 2 every stream in use, locked. Mode 1: all flushed, the count of them that did; mode 0: those being written, -1 if one failed; any other: none, 0.
 s32 __cdecl CRT_flsall(s32 mode);
 s32 __cdecl CRT_flushall();

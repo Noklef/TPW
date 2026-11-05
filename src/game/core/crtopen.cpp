@@ -474,6 +474,40 @@ s32 __cdecl CRT_flsall(s32 mode) {
 
 s32 __cdecl CRT_flushall() { return CRT_flsall(1); }
 
+s32 __cdecl CRT_fclose_lk(CrtFile *file) {
+    s32 result = -1;
+    if (file->flags & 0x83) {
+        result = CRT_flush(file);
+        CRT_freebuf(file);
+        if (CRT_close(static_cast<u32>(file->fd)) < 0) {
+            file->flags = 0;
+            return -1;
+        }
+        if (file->name) {
+            Crt().free(file->name);
+            file->name = nullptr;
+        }
+    }
+    file->flags = 0;
+    return result;
+}
+
+s32 __cdecl CRT_fcloseall() {
+    s32 count = 0;
+    CrtInner().lock(2);
+    for (s32 i = 3; i < global<s32>(0x00fb4cc0); ++i) {
+        if (!stream(i)) continue;
+        if (stream(i)->flags & 0x83 && CRT_fclose(stream(i)) != -1) ++count;
+        if (i >= 0x14) {
+            import_slot<void(__stdcall *)(void *)>(0x006fd0d0)(reinterpret_cast<u8 *>(stream(i)) + 0x20);
+            Crt().free(stream(i));
+            stream(i) = nullptr;
+        }
+    }
+    CrtInner().unlock(2);
+    return count;
+}
+
 s32 __cdecl CRT_commit(u32 fd) {
     if (crt_handle_open(fd)) {
         CRT_lock_fhandle(static_cast<s32>(fd));

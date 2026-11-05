@@ -6087,6 +6087,7 @@ address,name,kind,confidence,notes
 0x0067d170,CRT_flsall,function,low,reimplemented (src/game/core/crtopen); flsall
 0x0067d160,CRT_flushall,function,low,reimplemented (src/game/core/crtopen); _flushall
 0x00687b20,CRT_commit,function,low,reimplemented (src/game/core/crtopen); _commit
+0x0067b660,CRT_fclose_lk,function,low,reimplemented (src/game/core/crtopen); _fclose_lk
 0x0067efc0,CRT_amsg_exit,function,low,"reimplemented (src/game/core/crtmessage); MSVC6 _amsg_exit: the banner when [0xfb135c] is 1, the message, exit(0xff) by [0x77ea80]"
 0x0067eff0,CRT_fast_error_exit,function,low,"reimplemented (src/game/core/crtmessage); MSVC6 fast_error_exit: as _amsg_exit, ExitProcess(0xff)"
 0x0068a170,CRT_FF_MSGBANNER,function,low,reimplemented (src/game/core/crtmessage); MSVC6 _FF_MSGBANNER
