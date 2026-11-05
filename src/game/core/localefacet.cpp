@@ -538,6 +538,22 @@ s32 __fastcall WideRange_Compare(void *, void *, const u16 *a, const u16 *a_end,
     return b == b_end ? 0 : -1;
 }
 
+static u32 *deleted(u32 *self, u32 flags) {
+    if (flags & 1) Crt().free(self);
+    return self;
+}
+
+u32 *__fastcall Facet709ed4_DeletingDtor(u32 *self, void *, u32 flags) { Facet709ed4_Dtor(self, nullptr); return deleted(self, flags); }
+u32 *__fastcall Facet709fac_DeletingDtor(u32 *self, void *, u32 flags) { Facet709fac_Dtor(self, nullptr); return deleted(self, flags); }
+u32 *__fastcall Facet70a024_DeletingDtor(u32 *self, void *, u32 flags) { Facet70a024_Dtor(self, nullptr); return deleted(self, flags); }
+u32 *__fastcall Facet709ef4_DeletingDtor(u32 *self, void *, u32 flags) { Facet709ef4_Dtor(self, nullptr); return deleted(self, flags); }
+u32 *__fastcall Facet70a044_DeletingDtor(u32 *self, void *, u32 flags) { Facet70a044_Dtor(self, nullptr); return deleted(self, flags); }
+u32 *__fastcall MoneypunctC_DeletingDtor(u32 *self, void *, u32 flags) { MoneypunctC_Tidy(self, nullptr); return deleted(self, flags); }
+u32 *__fastcall MoneypunctW_DeletingDtor(u32 *self, void *, u32 flags) { MoneypunctW_Tidy(self, nullptr); return deleted(self, flags); }
+u32 *__fastcall Numpunct_DeletingDtor(u32 *self, void *, u32 flags) { Numpunct_Tidy(self, nullptr); return deleted(self, flags); }
+u32 *__fastcall WNumpunct_DeletingDtor(u32 *self, void *, u32 flags) { WNumpunct_Tidy(self, nullptr); return deleted(self, flags); }
+u32 *__fastcall WFacet709c0c_DeletingDtor(u32 *self, void *, u32 flags) { WFacet709c0c_Tidy(self, nullptr); return deleted(self, flags); }
+
 u8 *__fastcall Vtbl709b44_DeletingDtor(u8 *self, void *, u32 flags) {
     Vtbl709b44_Set_6a9180(self);
     if (flags & 1) Crt().free(self);

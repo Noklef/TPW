@@ -91,6 +91,17 @@ void __fastcall Timevec_Dtor(void **self, void *);
 s32 __fastcall WideRange_Compare(void *, void *, const u16 *a, const u16 *a_end, const u16 *b, const u16 *b_end);
 // 0x6a7270, 0x6ad010: the vtable set back, freed on flag 1 (names by their tables, invented).
 u8 *__fastcall Vtbl709b44_DeletingDtor(u8 *self, void *, u32 flags);
+// The facets' deleting destructors: the destructor, then freed on flag 1 (names invented, unconfirmed).
+u32 *__fastcall Facet709ed4_DeletingDtor(u32 *self, void *, u32 flags);   // 0x6a4440
+u32 *__fastcall Facet709fac_DeletingDtor(u32 *self, void *, u32 flags);   // 0x6a74a0
+u32 *__fastcall Facet70a024_DeletingDtor(u32 *self, void *, u32 flags);   // 0x6ab090
+u32 *__fastcall Facet709ef4_DeletingDtor(u32 *self, void *, u32 flags);   // 0x6a4750
+u32 *__fastcall Facet70a044_DeletingDtor(u32 *self, void *, u32 flags);   // 0x6ab370
+u32 *__fastcall MoneypunctC_DeletingDtor(u32 *self, void *, u32 flags);   // 0x6a9190
+u32 *__fastcall MoneypunctW_DeletingDtor(u32 *self, void *, u32 flags);   // 0x6a23e0
+u32 *__fastcall Numpunct_DeletingDtor(u32 *self, void *, u32 flags);      // 0x695be0
+u32 *__fastcall WNumpunct_DeletingDtor(u32 *self, void *, u32 flags);     // 0x69caa0
+u32 *__fastcall WFacet709c0c_DeletingDtor(u32 *self, void *, u32 flags);  // 0x6a0460
 u8 *__fastcall Vtbl70a0a8_DeletingDtor(u8 *self, void *, u32 flags);
 
 }
