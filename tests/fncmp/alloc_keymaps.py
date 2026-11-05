@@ -13,7 +13,7 @@ from fncmp import Bench, Call, HEAP, RAM, global_heap, heap, put  # noqa: E402
 # name: (address, convention, returns, size)
 CALLS = {'Pfree': (0x598760, 't', 'v', 0x10), 'Zero': (0x598770, 'c', 'a', 0x10), 'One': (0x5f4ea0, 'c', 'a', 0x10), 'KeyE': (0x486b60, 'c', 'v', 0x10),
          'KeyR': (0x486b70, 'c', 'v', 0x10), 'Salloc': (0x51b4a0, 'c', 'a', 0x30), 'Sfree': (0x51b4d0, 'c', 'a', 0x20), 'Chk': (0x51f630, 'c', 'a', 0x30),
-         'Flog': (0x556ab0, 'c', 'a', 0x40), 'Fchk': (0x51f660, 'c', 'a', 0x20), 'KeyF': (0x40d070, 'c', 'v', 0x6d), 'G3': (0x427bb0, 'c', 'v', 0x4b)}
+         'Flog': (0x556ab0, 'c', 'a', 0x40), 'Fchk': (0x51f660, 'c', 'a', 0x20), 'KeyF': (0x40d070, 'c', 'v', 0x6d), 'G3': (0x427bb0, 'c', 'v', 0x4b), 'ACount': (0x642860, 's', 'a', 0x1a), 'FCount': (0x642880, 's', 'a', 0x24)}
 B = Bench([(a, a + n) for (a, _c, _r, n) in CALLS.values()] + [(0x40c870, 0x40d06a), (0x5f5660, 0x5f5690), (0x5da3c0, 0x5da3c1), (0x67acb0, 0x67acb1), (0x45ba00, 0x45ba1c)])
 
 
@@ -41,6 +41,10 @@ def case(r):
             regions[g] = (RAM + k * 0x2000 + 0x40).to_bytes(4, 'little')
         regions[0x7c24d0] = r.bytes(0x10)
         return Call(address, [], regions, conv=conv, ret=ret)
+    if name in ('ACount', 'FCount'):
+        regions[0xfaa534] = r.bytes(4)
+        regions[HEAP] = heap(fail=1 if r.random() < 0.25 else 0)
+        return Call(address, [r.choice([0, HEAP + 0x40, HEAP + 0x80] if name == 'FCount' else [1, 7, 0x40, 0x100])], regions, conv=conv, ret=ret)
     regions[0x802bd8] = r.bytes(0x10)
     if name in ('Sfree', 'Fchk'):
         return Call(address, [r.choice([0, 0, HEAP + 0x40, HEAP + 0x80])], regions, conv=conv, ret=ret)
