@@ -48,6 +48,7 @@
 #include "../../src/game/gfx/jpegwrite.h"
 #include "../../src/game/input/devicefilter.h"
 #include "../../src/game/gfx/screenview.h"
+#include "../../src/game/core/waitthread.h"
 #include "../../src/game/gfx/pointer.h"
 #include "../../src/game/gfx/screen.h"
 #include "../../src/game/gfx/statsgraph.h"
@@ -1413,6 +1414,7 @@ const AddrCall kGameStartCalls[] = {{0x67d8e0, jpeg_recorder(0, 1)}, {0x402ea0, 
 const AddrCall kPresentCalls[] = {{0x56a770, jpeg_recorder(1, 1)}, {0x564650, jpeg_recorder(2, 1)}, {0x56af20, recorder(3, 2)},  // tests/fncmp/devicepresent.py
     {0x564210, recorder(4, 0)}, {0x678790, jpeg_recorder(5, 6)}, {0x678d70, jpeg_recorder(6, 6)}, {0x678c20, jpeg_recorder(7, 10)}, {0x6787f0, jpeg_recorder(8, 10)}};  // tests/fncmp/presentpicture.py
 const AddrCall kGameErrorCalls[] = {{0x6acd60, jpeg_recorder(1, 4)}};  // tests/fncmp/gameerrorshow.py
+const AddrCall kWaitThreadCalls[] = {{0x632a40, recorder(25, 0)}};
 const AddrCall kScreenViewCalls[] = {{0x5fa040, jpeg_recorder(20, 1)}, {0x61b190, recorder(21, 0)}};
 const AddrCall kInputFilterCalls[] = {{0x5fc030, recorder(26, 3)}, {0x5fc100, recorder(27, 3)}};
 const AddrCall kJpegWriteCalls[] = {{0x5d4ba0, recorder(1, 1)}, {0x5d4c20, recorder(2, 1)}, {0x5d5350, recorder(3, 3)}, {0x64dd60, jpeg_recorder(4, 1)}, {0x64c5f0, jpeg_recorder(5, 3)}, {0x64cf20, jpeg_recorder(6, 1)},
@@ -2811,6 +2813,7 @@ int main(int argc, char **argv) {
     JpegWrite_SetCalls(kJpegWriteCalls, sizeof(kJpegWriteCalls) / sizeof(kJpegWriteCalls[0]));
     InputFilter_SetCalls(kInputFilterCalls, sizeof(kInputFilterCalls) / sizeof(kInputFilterCalls[0]));
     ScreenView_SetCalls(kScreenViewCalls, sizeof(kScreenViewCalls) / sizeof(kScreenViewCalls[0]));
+    WaitThread_SetCalls(kWaitThreadCalls, sizeof(kWaitThreadCalls) / sizeof(kWaitThreadCalls[0]));
     GameShutdown_SetCalls(kGameShutdownCalls, sizeof(kGameShutdownCalls) / sizeof(kGameShutdownCalls[0]));
     OptionsChanges_SetCalls(kOptionsChangesCalls, sizeof(kOptionsChangesCalls) / sizeof(kOptionsChangesCalls[0]));
     WeatherTables_SetCalls(kWeatherTablesCalls, sizeof(kWeatherTablesCalls) / sizeof(kWeatherTablesCalls[0]));

@@ -6296,6 +6296,17 @@ address,name,kind,confidence,notes
 0x00633940,SectionGuard_Dtor,function,low,"reimplemented (src/game/core/sectionlock); thiscall: the guard's destructor, Leave; name invented"
 0x00633950,SectionGuard_Enter,function,low,"reimplemented (src/game/core/sectionlock); thiscall: the section entered, +4 = 1; name invented"
 0x00633970,SectionGuard_Leave,function,low,"reimplemented (src/game/core/sectionlock); thiscall: held and not +8: the section left, +4 = 0; name invented"
+0x00632460,WaitThread_Proc,function,low,reimplemented (src/game/core/waitthread); stdcall (self): the thread's procedure; name invented
+0x006324e0,WaitThread_Loop,function,low,"reimplemented (src/game/core/waitthread); thiscall: the waits until told to quit, the objects served in turn; name invented"
+0x00632470,WaitThread_RunCommand,function,low,"reimplemented (src/game/core/waitthread); thiscall: the command run on the thread, the answer event set; name invented"
+0x00632750,WaitThread_OpenEvents,function,low,reimplemented (src/game/core/waitthread); thiscall (out): the two events made when missing; name invented
+0x006327e0,WaitThread_CloseEvents,function,low,"reimplemented (src/game/core/waitthread); thiscall: the events closed, the first handle erased; name invented"
+0x00632840,WaitThread_Send,function,low,"reimplemented (src/game/core/waitthread); thiscall (out): the command sent, the answer waited for; name invented"
+0x006328b0,WaitThread_Add,function,low,"reimplemented (src/game/core/waitthread); thiscall (out, object): command 1 sent; name invented"
+0x006328d0,WaitThread_Remove,function,low,"reimplemented (src/game/core/waitthread); thiscall (out, object): command 2 sent; name invented"
+0x006328f0,WaitThread_DoAdd,function,low,reimplemented (src/game/core/waitthread); thiscall (out): the object and its handle added; name invented
+0x00632960,WaitThread_DoRemove,function,low,reimplemented (src/game/core/waitthread); thiscall (out): the object and its handle erased; name invented
+0x00632ef0,WaitThread_InsertObjects,function,low,"reimplemented (src/game/core/waitthread); thiscall on a vector<u32> (position, count, value): insert, another copy of 0x47cf20's template; name invented"
 0x0050ffe0,Nav_Ctor,function,high,reimplemented (src/game/world/nav); constants constructor with five integer pairs
 0x0050f200,Nav_Dtor,function,high,reimplemented (src/game/world/nav); thiscall: the five IntPairs at +0x64 destroyed with Stub_Ret (CRT_VectorDtorIterator); also via 0x4f7c30 (+0xd4) and 0x4f8ad0
 0x004f7c30,Nav_DtorAtD4,function,low,reimplemented (src/game/world/nav); thiscall adjustor: Nav_Dtor on this + 0xd4

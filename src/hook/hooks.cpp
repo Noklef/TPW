@@ -308,6 +308,7 @@
 #include "../game/core/voicecodec.h"
 #include "../game/core/voiceevents.h"
 #include "../game/core/voicesample.h"
+#include "../game/core/waitthread.h"
 #include "../game/core/waveformat.h"
 #include "../game/core/wcollate.h"
 #include "../game/core/wfilebuf.h"
@@ -6744,6 +6745,17 @@ const Hook kHooks[] = {
     {"SectionGuard_Dtor",         0x00633940, (void *)&SectionGuard_Dtor, {0xe9, 0x2b, 0x00, 0x00, 0x00}},
     {"SectionGuard_Enter",        0x00633950, (void *)&SectionGuard_Enter, {0x56, 0x8b, 0xf1, 0x8b, 0x06}},
     {"SectionGuard_Leave",        0x00633970, (void *)&SectionGuard_Leave, {0x56, 0x8b, 0xf1, 0x8b, 0x46}},
+    {"WaitThread_Proc",           0x00632460, (void *)&WaitThread_Proc, {0x8b, 0x4c, 0x24, 0x04, 0xe8}},
+    {"WaitThread_Loop",           0x006324e0, (void *)&WaitThread_Loop, {0x53, 0x8b, 0xd9, 0x8b, 0x43}},
+    {"WaitThread_RunCommand",     0x00632470, (void *)&WaitThread_RunCommand, {0x83, 0xec, 0x08, 0x33, 0xc0}},
+    {"WaitThread_OpenEvents",     0x00632750, (void *)&WaitThread_OpenEvents, {0x53, 0x56, 0x8b, 0xf1, 0x8b}},
+    {"WaitThread_CloseEvents",    0x006327e0, (void *)&WaitThread_CloseEvents, {0x51, 0x56, 0x8b, 0xf1, 0x57}},
+    {"WaitThread_Send",           0x00632840, (void *)&WaitThread_Send, {0x56, 0x8b, 0xf1, 0x8b, 0x46}},
+    {"WaitThread_Add",            0x006328b0, (void *)&WaitThread_Add, {0x8b, 0x44, 0x24, 0x08, 0x56}},
+    {"WaitThread_Remove",         0x006328d0, (void *)&WaitThread_Remove, {0x8b, 0x44, 0x24, 0x08, 0x56}},
+    {"WaitThread_DoAdd",          0x006328f0, (void *)&WaitThread_DoAdd, {0x83, 0xec, 0x08, 0x56, 0x8b}},
+    {"WaitThread_DoRemove",       0x00632960, (void *)&WaitThread_DoRemove, {0x51, 0x53, 0x55, 0x8b, 0xe9}},
+    {"WaitThread_InsertObjects",  0x00632ef0, (void *)&WaitThread_InsertObjects, {0x83, 0xec, 0x08, 0x53, 0x8b}},
     {"Nav_Ctor",          0x0050ffe0, (void *)&Nav_Ctor, {0x6a, 0xff, 0x68, 0x2d, 0xe6}},
     {"Nav_Dtor",                  0x0050f200, (void *)&Nav_Dtor, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"Nav_DtorAtD4",              0x004f7c30, (void *)&Nav_DtorAtD4, {0x81, 0xc1, 0xd4, 0x00, 0x00}},

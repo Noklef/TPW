@@ -259,6 +259,7 @@ add_library(tpw_game STATIC
     src/game/core/gamemain.cpp
     src/game/core/imeinput.cpp
     src/game/core/sectionlock.cpp
+    src/game/core/waitthread.cpp
     src/game/gfx/text.cpp
     src/game/gfx/canvas.cpp
     src/game/gfx/canvasdraw.cpp
