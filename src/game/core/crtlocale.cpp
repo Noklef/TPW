@@ -391,6 +391,13 @@ char *__cdecl CRT_setlocale(s32 category, const char *locale) {
     return result;
 }
 
+u32 __cdecl CRT_TestDefaultLanguage(u32 lcid, u32 primary) {
+    char info[0x78];
+    if (!locale_info()((lcid & 0x3ff) | 0x400, 1, info, sizeof info)) return 0;
+    if (lcid != CRT_LcidFromHexString(info) && primary && static_cast<u32>(CRT_GetPrimaryLen(language())) == std::strlen(language())) return 0;
+    return 1;
+}
+
 u32 __cdecl CRT_TestDefaultCountry(u32 lcid) {
     const u16 *const languages = reinterpret_cast<const u16 *>((uintptr_t)0x00781a20);
     for (u32 i = 0; i < 10; ++i) {

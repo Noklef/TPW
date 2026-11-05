@@ -1317,6 +1317,7 @@ address,name,kind,confidence,notes
 0x0068d840,CRT_free_lconv_mon,function,low,reimplemented (src/game/core/crtlocale); __free_lconv_mon
 0x0068e680,CRT_LcidFromHexString,function,low,reimplemented (src/game/core/crtlocale); LcidFromHexString
 0x0068e450,CRT_TestDefaultCountry,function,low,reimplemented (src/game/core/crtlocale); TestDefaultCountry
+0x0068e480,CRT_TestDefaultLanguage,function,low,reimplemented (src/game/core/crtlocale); TestDefaultLanguage
 0x0067c080,CRT_strstr,function,high,reimplemented (src/game/core/crt); strstr
 0x0067bfc0,CRT_strchr,function,high,reimplemented (src/game/core/crt); strchr
 0x0067a520,CRT_atoi,function,high,MSVC6 atoi

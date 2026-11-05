@@ -29,6 +29,8 @@ void __cdecl CRT_lc_lctostr(char *out, const char *names);
 
 // 0x68e6c0: GetPrimaryLen: the letters that start the text.
 s32 __cdecl CRT_GetPrimaryLen(const char *text);
+// 0x68e480: TestDefaultLanguage.
+u32 __cdecl CRT_TestDefaultLanguage(u32 lcid, u32 primary);
 
 // 0x68e510: IsThisWindowsNT: 1 when GetVersionExA answers and the platform is 2.
 s32 __cdecl CRT_IsThisWindowsNT();
