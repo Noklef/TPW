@@ -6251,6 +6251,7 @@ address,name,kind,confidence,notes
 0x0054dcf0,Game_Start,function,low,"reimplemented (src/game/core/gamestart); cdecl: the game's start: clock, command line, sound, front end, state; name invented"
 0x0054df20,Game_PlayLogoMovie,function,low,"reimplemented (src/game/core/gamestart); cdecl: the logo movie, when in the archives; name invented"
 0x0054e070,Game_PlayDayMovie,function,low,"reimplemented (src/game/core/gamestart); cdecl: a movie by the day of the month, when in the archives; name invented"
+0x0044e080,GameWindow_Create,function,low,"reimplemented (src/game/core/gamewindow); cdecl: the window made, the options applied, the engine started; name invented"
 0x0050ffe0,Nav_Ctor,function,high,reimplemented (src/game/world/nav); constants constructor with five integer pairs
 0x0050f200,Nav_Dtor,function,high,reimplemented (src/game/world/nav); thiscall: the five IntPairs at +0x64 destroyed with Stub_Ret (CRT_VectorDtorIterator); also via 0x4f7c30 (+0xd4) and 0x4f8ad0
 0x004f7c30,Nav_DtorAtD4,function,low,reimplemented (src/game/world/nav); thiscall adjustor: Nav_Dtor on this + 0xd4

@@ -310,6 +310,7 @@
 #include "../../src/game/core/themesaves.h"
 #include "../../src/game/core/actionrec.h"
 #include "../../src/game/core/gamestart.h"
+#include "../../src/game/core/gamewindow.h"
 #include "../../src/game/core/optionschanges.h"
 #include "../../src/game/render/weathertables.h"
 #include "../../src/game/render/present.h"
@@ -1204,6 +1205,8 @@ const AddrCall kCoastersLoadCalls[] = {  // tests/fncmp/coastersload.py --table
     {0x472f40, jpeg_recorder(18, 1)},
 };
 const AddrCall kActionRecCalls[] = {{0x5d3230, recorder(1, 2)}};  // tests/fncmp/actionrectext.py
+const AddrCall kGameWindowCalls[] = {{0x44dd50, jpeg_recorder(1, 0)}, {0x44dc60, jpeg_recorder(2, 1)}, {0x44de20, jpeg_recorder(3, 0)}, {0x44df20, jpeg_recorder(4, 4)},
+                                     {0x405710, recorder(5, 3)}, {0x578be0, recorder(6, 3)}, {0x423b50, recorder(7, 1)}, {0x423b80, recorder(8, 1)}};  // tests/fncmp/gamewindow.py
 const AddrCall kGlobalSaveCalls[] = {  // tests/fncmp/globalsaveio.py --table
     {0x423e90, recorder(4, 3)},
     {0x5b0d70, recorder(5, 3)},
@@ -2748,6 +2751,7 @@ int main(int argc, char **argv) {
     OptionsChanges_SetCalls(kOptionsChangesCalls, sizeof(kOptionsChangesCalls) / sizeof(kOptionsChangesCalls[0]));
     WeatherTables_SetCalls(kWeatherTablesCalls, sizeof(kWeatherTablesCalls) / sizeof(kWeatherTablesCalls[0]));
     GameStart_SetCalls(kGameStartCalls, sizeof(kGameStartCalls) / sizeof(kGameStartCalls[0]));
+    GameWindow_SetCalls(kGameWindowCalls, sizeof(kGameWindowCalls) / sizeof(kGameWindowCalls[0]));
     ActionRec_SetCalls(kActionRecCalls, sizeof(kActionRecCalls) / sizeof(kActionRecCalls[0]));
     ThemeSaves_SetCalls(kThemeSavesCalls, sizeof(kThemeSavesCalls) / sizeof(kThemeSavesCalls[0]));
     ScreenGrab_SetCalls(kScreenGrabCalls, sizeof(kScreenGrabCalls) / sizeof(kScreenGrabCalls[0]));
