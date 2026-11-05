@@ -26,6 +26,10 @@ def comp(r):
 def case(r):
     regions = {CRT_FLAG: b'\1\0\0\0'}
     if r.random() < 0.25:
+        if r.random() < 0.25:
+            # At right angles: at the game's single precision the sine's quotient can come to just over 1, so asin is a NaN and acos of the zero dot product not.
+            x, y, way = r.uniform(-100.0, 100.0), r.uniform(-100.0, 100.0), r.choice([1, -1])
+            return Call(0x584b20, [fb(x), fb(y), fb(-y * way), fb(x * way)], regions, ret='d')
         return Call(0x584b20, [fb(comp(r)) for _ in range(4)], regions, ret='d')
     mem = bytearray(r.bytes(0x1d0))
     struct.pack_into('<I', mem, 0x1c0, r.choice([0, 0, 1, 2, 3, 3, 4, 5, 0x7fffffff]))

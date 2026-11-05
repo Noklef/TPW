@@ -9,8 +9,18 @@ sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'
 from fncmp import LOG, RAM, Bench, Call, _recorder, fb, log_region, put, strings  # noqa: E402
 
 SETFAR, TEXT = 1, 2
+
+
+def _sprintf(e):
+    """The original's sprintf answered by Python's, which rounds a %f tie as the driver's host sprintf does (25.4453125 to 25.445312); the exe's C library rounds it up. What the code passes is what is compared."""
+    sp = e.r['ESP'] + (4 if e.tail else 0)
+    text = e.read(e.u32(sp + 4), 0x40).split(b'\0')[0] % struct.unpack('<2d', e.read(sp + 8, 16))
+    e.write(e.u32(sp), text + b'\0')
+    e.r['EAX'] = len(text)
+
+
 B = Bench([(0x56bb00, 0x56bd53), (0x56d600, 0x56dd4c), (0x56dd50, 0x56dd58), (0x56b940, 0x56baf3), (0x56bd60, 0x56c5a0), (0x56c5a0, 0x56d600), (0x578d20, 0x579020), (0x67a400, 0x692000)],
-          hooks={0x578ca0: _recorder(SETFAR, 1), 0x564650: _recorder(TEXT, 1, cdecl=True)})
+          hooks={0x578ca0: _recorder(SETFAR, 1), 0x564650: _recorder(TEXT, 1, cdecl=True), 0x67a650: _sprintf})
 VIEW, POLYGON, SCAN, OUT, CAM, GRID, ORIGIN = RAM, RAM + 0x400, RAM + 0x600, RAM + 0x800, RAM + 0xa00, RAM + 0xb00, RAM + 0xc00
 # The C library's float conversions, set at its start (0x67a610): %f traps without them.
 CRT_FLOATS = struct.pack('<5I', 0x680a30, 0x6805d0, 0x680660, 0x680570, 0x680640)
@@ -35,7 +45,7 @@ def polygon(r, logged):
     put(data, 0xd0, 'i', n)
     last = 10.0
     for i in range(n):
-        z = r.choice([r.uniform(0, 126), r.uniform(0, 126), float(r.randrange(127)), last])
+        z = r.choice([r.uniform(0, 126), r.uniform(0, 126), float(r.randrange(127)), last, int(last) + r.random()])   # (the last: an edge within one cell)
         x = r.choice([r.uniform(0, 126), float(r.randrange(127)), r.uniform(-200, 300)])
         last = z
         put(data, i * 12, '3I', fb(x), r.f() if r.random() < 0.1 else fb(r.uniform(-9, 9)), fb(z))

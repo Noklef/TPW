@@ -8,11 +8,11 @@ import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from fncmp import HEAP, IMPORT_TABLE, LOG, RAM, Bench, Call, _recorder, answers, blob_bytes, echo, fill, global_heap, heap, import_table, log_region, mask_this, put, recorder, set_return, strings  # noqa: E402
+from fncmp import HEAP, IMPORT_TABLE, LOG, RAM, Bench, Call, _recorder, answers, blob, blob_bytes, echo, fill, global_heap, heap, import_table, log_region, mask_this, put, recorder, set_return, strings  # noqa: E402
 import gamestring  # noqa: E402
 
 CTOR, OPEN, FIRST, NEXT, DTOR, THEME, BEFORE, LOAD, SAVE = range(1, 10)
-W2M, M2W = 40, 41
+W2M, M2W, COMPARE = 40, 41, 42
 SINGLETON = 27   # (driver.cpp's kUserSlotsEnv)
 
 
@@ -33,6 +33,7 @@ B = Bench([(0x5ac5d0, 0x5ac8ee), (0x5ac8f0, 0x5acca3), (0x5accf0, 0x5ad0c9), (0x
 SLOTS, SELF, STATUS, TABLE, NAME_S, NAME_T, EXT_T, FOLDER_T, ITEMS, ITEM_T = (RAM + a for a in (0, 0x100, 0x200, 0x300, 0x400, 0x480, 0x500, 0x580, 0x600, 0x800))
 FOUND, ENDED, COMPAT = STATUS, STATUS + 4, STATUS + 8
 GLOBALS_T = RAM + 0xc00
+COMPARES = RAM + 0x1000
 OPS_TABLE = {'List': 0x5ac8f0, 'Newest': 0x5accf0, 'Load': 0x5ac650, 'Save': 0x5ac780, 'LoadA': 0x5ac5d0, 'LoadB': 0x5ac5f0, 'SaveA': 0x5ac610, 'SaveB': 0x5ac630}
 OPS = [n for n in OPS_TABLE if not os.environ.get('OPS') or n in os.environ['OPS'].split(',')]
 # The search outcomes dealt, so the short paths come up too.
@@ -48,10 +49,14 @@ def case(r):
     address = OPS_TABLE[op]
     flow = r.deal(FLOWS)
     log = log_region()
-    table = import_table(log, {'WideCharToMultiByte': (W2M, 0x6fd1dc, 8, 0, 0), 'MultiByteToWideChar': (M2W, 0x6fd174, 6, 1 << 2, 0)})
+    table = import_table(log, {'WideCharToMultiByte': (W2M, 0x6fd1dc, 8, 0, 0), 'MultiByteToWideChar': (M2W, 0x6fd174, 6, 1 << 2, 0), 'CompareFileTime': (COMPARE, 0x6fd110, 2, 0, 1)})
+    # CompareFileTime answers from a table, equal times among them: the newest's time logged (its address differs between the sides, as the entry's, which the fill wrote).
+    answers(log, COMPARE, COMPARES)
+    blob(log, COMPARE, 1, 0b11)
+    regions_compares = struct.pack('<40i', *[r.choice([-1, 0, 0, 1]) for _ in range(40)])
     for at, stub in global_heap().items():
         table[at - IMPORT_TABLE:at - IMPORT_TABLE + 4] = stub
-    regions = {LOG: log, IMPORT_TABLE: table, HEAP: heap(0x4000, r.choice([0] * 39 + [r.randrange(1, 12)])), gamestring.LOCALE: bytes(4), STATUS: struct.pack('<iii', r.randrange(0, 5), -r.randrange(1, 5), 0),
+    regions = {LOG: log, IMPORT_TABLE: table, COMPARES: regions_compares, HEAP: heap(0x4000, r.choice([0] * 39 + [r.randrange(1, 12)])), gamestring.LOCALE: bytes(4), STATUS: struct.pack('<iii', r.randrange(0, 5), -r.randrange(1, 5), 0),
                SLOTS: r.bytes(0x10), 0xf81ebc: struct.pack('<I', SLOTS if r.random() < 0.8 else 0)}
     set_return(log, SINGLETON, SLOTS)
     for k in (CTOR, OPEN, FIRST, NEXT, DTOR):
