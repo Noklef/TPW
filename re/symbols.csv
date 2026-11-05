@@ -6268,6 +6268,7 @@ address,name,kind,confidence,notes
 0x00689ee0,CRT_CPtoLCID,function,low,reimplemented (src/game/core/crtmbstring); CPtoLCID
 0x00689f40,CRT_setSBCS,function,low,reimplemented (src/game/core/crtmbstring); setSBCS
 0x00689720,CRT_ismbbtype,function,low,reimplemented (src/game/core/crtmbstring); x_ismbbtype
+0x00689700,CRT_ismbblead,function,low,reimplemented (src/game/core/crtmbstring); _ismbblead
 0x00694e60,NumPut_DoPutPointer,function,low,reimplemented (src/game/core/numput); num_put<char>::do_put of a pointer (MSVC6)
 0x0069bb70,NumPutW_DoPutPointer,function,low,reimplemented (src/game/core/numput); num_put<wchar_t>::do_put of a pointer
 0x0069ffe0,CollateW_DoTransform,function,low,reimplemented (src/game/core/wcollate); collate<wchar_t>::do_transform (name unconfirmed)

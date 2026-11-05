@@ -20,6 +20,7 @@ u32 __cdecl CRT_CPtoLCID(u32 code_page);
 u32 __cdecl CRT_setSBCS();
 // 0x689720: x_ismbbtype: 1 when the byte's entry in 0xfb1669 meets mask, or its _ctype word (0x77ea9a) meets ctype_mask; else 0.
 u32 __cdecl CRT_ismbbtype(u32 c, u32 ctype_mask, u32 mask);
+u32 __cdecl CRT_ismbblead(u32 c);   // 0x689700
 
 // 0x689650: _mbspbrk: no code page: strpbrk. Else, under lock 0x19, the first character of the text in the set. A set that ends in a lead byte stops at the first character looked at (sic).
 char *__cdecl CRT_mbspbrk(const char *text, const char *set);

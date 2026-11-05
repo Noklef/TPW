@@ -68,6 +68,8 @@ u32 __cdecl CRT_setSBCS() {
     return 0;
 }
 
+u32 __cdecl CRT_ismbblead(u32 c) { return CRT_ismbbtype(c, 0, 4); }
+
 u32 __cdecl CRT_ismbbtype(u32 c, u32 ctype_mask, u32 mask) {
     const u32 byte = c & 0xff;
     if (reinterpret_cast<const u8 *>((uintptr_t)0x00fb1669)[byte] & static_cast<u8>(mask)) return 1;

@@ -8,7 +8,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'
 from fncmp import IMPORT_TABLE, LOG, RAM, Bench, Call, _recorder, fill, import_table, log_region, set_return  # noqa: E402
 
 LOCK, UNLOCK, LCA, OEMCP, ACP = 7, 8, 3, 14, 15
-B = Bench([(0x689e90, 0x689edd), (0x689ee0, 0x689f18), (0x689f40, 0x689f72), (0x689720, 0x68975a), (0x67e830, 0x67e8f2), (0x67ec40, 0x67ecbf), (0x689250, 0x6893f5), (0x67df40, 0x67e010), (0x6895b0, 0x68964e), (0x689650, 0x6896fd), (0x689400, 0x689490), (0x688f50, 0x689175), (0x689180, 0x6891af), (0x67d7f0, 0x67d82a), (0x67b5f0, 0x67b61e)],
+B = Bench([(0x689700, 0x689712), (0x689e90, 0x689edd), (0x689ee0, 0x689f18), (0x689f40, 0x689f72), (0x689720, 0x68975a), (0x67e830, 0x67e8f2), (0x67ec40, 0x67ecbf), (0x689250, 0x6893f5), (0x67df40, 0x67e010), (0x6895b0, 0x68964e), (0x689650, 0x6896fd), (0x689400, 0x689490), (0x688f50, 0x689175), (0x689180, 0x6891af), (0x67d7f0, 0x67d82a), (0x67b5f0, 0x67b61e)],
           hooks={0x682720: _recorder(LOCK, 1, cdecl=True), 0x6827a0: _recorder(UNLOCK, 1, cdecl=True)})
 TEXT, SET = RAM, RAM + 0x100
 OPS = [n for n in ('syscp', 'syscp', 'cplcid', 'sbcs', 'ismbb', 'ismbb', 'dtoxmode', 'dtoxmode', 'unc', 'unc', 'icmp', 'icmp', 'icmp', 'lower', 'lower', 'lower', 'pbrk', 'pbrk', 'pbrk', 'rchr', 'rchr', 'rchr') if not os.environ.get('OPS') or n in os.environ['OPS'].split(',')]
@@ -54,6 +54,8 @@ def case(r):
         return Call(0x689f40, [], regions, conv='c', ret='a')
     if name == 'ismbb':
         regions[0x77ea9a] = r.bytes(0x200)
+        if r.random() < 0.3:
+            return Call(0x689700, [r.getrandbits(32)], regions, conv='c', ret='a')
         return Call(0x689720, [r.getrandbits(32), r.choice([0, 0, 1 << r.randrange(16), r.getrandbits(32) & 0xffff0000, r.getrandbits(32)]), r.choice([0, 1 << r.randrange(8), r.getrandbits(32)])], regions, conv='c', ret='a')
     if name == 'unc':
         regions[TEXT] = r.choice([b'', b'\\\\', b'\\\\a', b'\\\\ab', b'\\\\ab\\', b'\\\\ab\\c', b'//ab/c/', b'\\/ab\\c\\', b'\\\\ab\\c\\d', b'\\\\ab\\c/d', b'a\\ab\\c', b'\\a\\b\\c', b'\\\\\\b\\c', b'\\\\a\\\\c\\', b'\\\\abcdef', b'\\\\a\\\\', b'/\\/\\/\\/']) + bytes(4)
