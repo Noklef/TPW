@@ -435,6 +435,13 @@ void __stdcall CRT_VectorDtorIterator(u8 *array, u32 size, s32 count, void(__fas
     }
 }
 
+void __stdcall CRT_ArrayUnwind(u8 *end, u32 size, s32 count, void(__fastcall *dtor)(void *)) {
+    while (--count >= 0) {
+        end -= size;
+        dtor(end);
+    }
+}
+
 u16 *__cdecl CRT_wcsset(u16 *text, u16 unit) {
     for (u16 *p = text; *p; ++p) *p = unit;
     return text;
