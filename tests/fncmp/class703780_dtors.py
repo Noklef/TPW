@@ -7,7 +7,7 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
 from fncmp import Bench, Call, LOG, RAM, log_region, put, vtable  # noqa: E402
 
-CALLS = {'A': 0x617a80, 'B': 0x617b80, 'C': 0x6180c0}
+CALLS = {'A': 0x617a80, 'B': 0x617b80, 'C': 0x6180c0, 'D': 0x631900, 'E': 0x633420, 'F': 0x634310}
 B = Bench([(a, a + 0x50) for a in CALLS.values()])
 VT = RAM + 0x1000
 

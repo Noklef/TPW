@@ -392,6 +392,12 @@ void __fastcall Class703780_DtorB(u8 *object) { Dtor(object); }
 
 void __fastcall Class703780_DtorC(u8 *object) { Dtor(object); }
 
+void __fastcall Class703780_DtorD(u8 *object) { Dtor(object); }
+
+void __fastcall Class703780_DtorE(u8 *object) { Dtor(object); }
+
+void __fastcall Class703780_DtorF(u8 *object) { Dtor(object); }
+
 u8 *__fastcall Class702b08_Ctor(u8 *object) {
     Class7029d0_Ctor(object);
     at<u32>(object, 0) = 0x00702b08;

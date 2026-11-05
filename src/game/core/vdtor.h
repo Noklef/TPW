@@ -91,6 +91,11 @@ void __fastcall Class703780_DtorB(u8 *object);
 
 void __fastcall Class703780_DtorC(u8 *object);
 
+// 0x631900 / 0x633420 / 0x634310: the same again.
+void __fastcall Class703780_DtorD(u8 *object);
+void __fastcall Class703780_DtorE(u8 *object);
+void __fastcall Class703780_DtorF(u8 *object);
+
 u8 *__fastcall Class702b08_Ctor(u8 *object);
 
 u8 *__fastcall Class702d78_Ctor(u8 *object);
