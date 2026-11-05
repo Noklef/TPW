@@ -154,6 +154,7 @@
 #include "../../src/game/ui/dialog7cc188address.h"
 #include "../../src/game/ui/versionlabel.h"
 #include "../../src/game/files/userslots.h"
+#include "../../src/game/online/mailbox.h"
 #include "../../src/game/ui/quitconfirm.h"
 #include "../../src/game/world/mapsweep.h"
 #include "../../src/game/ui/imehostattach.h"
@@ -1134,6 +1135,8 @@ const SpriteLoadingEnv kSpriteLoadingEnv = {Rec{recorder(1, 2)}, Rec{recorder(2,
 const ThingPatrolEnv kThingPatrolEnv = {Rec{jpeg_recorder(20, 1)}, Rec{jpeg_recorder(21, 5)}};
 // ObjectUnlock_CheckScores's calls: stdcall ones through the COM-style recorders (tools/fncmp.py recorder(k, n, com=True): this logged as 0; tests/fncmp/objectunlockscores.py).
 constexpr u32 stdcall_recorder(u32 k, u32 n) { return kStubs + 0x1000 + 0x4000 + 0x800 * n + 0x20 * k; }
+const MailboxEnv kMailboxEnv = {Rec{recorder(0, 0)}, Rec{recorder(1, 4)}, Rec{recorder(2, 3)}, Rec{recorder(3, 1)}, Rec{recorder(4, 2)}, Rec{recorder(5, 2)}, Rec{recorder(6, 0)}, Rec{recorder(7, 0)}, Rec{recorder(8, 1)}, Rec{recorder(9, 3)},
+                                Rec{jpeg_recorder(10, 2)}, Rec{jpeg_recorder(11, 1)}, Rec{recorder(12, 2)}, Rec{recorder(13, 0)}, Rec{recorder(14, 0)}, Rec{recorder(15, 0)}, Rec{jpeg_recorder(16, 1)}, Rec{recorder(17, 2)}, Rec{recorder(18, 3)}};
 const UserSlotsScanEnv kUserSlotsScanEnv = {Rec{stdcall_recorder(0, 1)}, Rec{stdcall_recorder(1, 1)}, Rec{stdcall_recorder(2, 1)}, Rec{recorder(3, 2)}, Rec{recorder(4, 3)}, Rec{recorder(5, 2)}, Rec{jpeg_recorder(6, 2)}, Rec{jpeg_recorder(7, 1)},
                                             Rec{jpeg_recorder(8, 1)}, Rec{jpeg_recorder(9, 1)}, Rec{recorder(10, 2)}, Rec{recorder(11, 0)}, Rec{recorder(12, 0)}, Rec{recorder(13, 1)}, Rec{recorder(14, 0)}, Rec{recorder(15, 1)}};
 const OnlineDownloadStartEnv kOnlineDownloadStartEnv = {Rec{recorder(4, 1)}, Rec{recorder(5, 2)}, Rec{jpeg_recorder(6, 5)}, Rec{recorder(7, 0)}, Rec{stdcall_recorder(8, 1)}, Rec{jpeg_recorder(9, 1)}, Rec{recorder(10, 2)}, Rec{recorder(11, 4)},
@@ -2927,6 +2930,7 @@ int main(int argc, char **argv) {
     Online_SetNextEnv(&kOnlineNextEnv);
     Online_SetDownloadStartEnv(&kOnlineDownloadStartEnv);
     UserSlots_SetScanEnv(&kUserSlotsScanEnv);
+    Mailbox_SetEnv(&kMailboxEnv);
     Online_SetPollEnv(&kOnlinePollEnv);
     SignFonts_SetEnv(&kSignFontsEnv);
     Online_SetEndEnv(&kOnlineEndEnv);

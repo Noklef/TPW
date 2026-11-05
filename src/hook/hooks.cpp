@@ -616,6 +616,7 @@
 #include "../game/online/postcardmail.h"
 #include "../game/online/chatlists.h"
 #include "../game/online/listrequest.h"
+#include "../game/online/mailbox.h"
 #include "../game/online/postcardsend.h"
 #include "../game/online/roomcounts.h"
 #include "../game/online/roomtexthandler.h"
@@ -7906,6 +7907,9 @@ const Hook kHooks[] = {
     {"ListRequest_Login34",       0x005bd800, (void *)&ListRequest_Login34, {0x53, 0x56, 0x57, 0xe8, 0x88}},
     {"Online_Has108NoFlag10",     0x005bc8e0, (void *)&Online_Has108NoFlag10, {0x56, 0xbe, 0x01, 0x00, 0x00}},
     {"Online_OpenListItem",       0x005b7910, (void *)&Online_OpenListItem, {0x8b, 0x89, 0xf4, 0x00, 0x00}},
+    {"NIos_Dtor",                 0x005cde40, (void *)&NIos_Dtor, {0xc7, 0x01, 0x54, 0x99, 0x70}},
+    {"Mailbox_SaveOutbox",        0x005cb720, (void *)&Mailbox_SaveOutbox, {0x6a, 0xff, 0x68, 0x3c, 0x0b}},
+    {"Mailbox_LoadMessage",       0x005cba70, (void *)&Mailbox_LoadMessage, {0x6a, 0xff, 0x68, 0xa4, 0x0b}},
     {"LobbyModel_SetPosition",    0x005d8190, (void *)&LobbyModel_SetPosition, {0x8b, 0x41, 0x04, 0x8b, 0x54}},
     {"LobbyModel_TurnY",          0x005d8380, (void *)&LobbyModel_TurnY, {0x8b, 0x49, 0x04, 0x8d, 0x44}},
     {"LobbyModel_SetScale",       0x005d83b0, (void *)&LobbyModel_SetScale, {0x83, 0xec, 0x0c, 0x8b, 0x44}},
