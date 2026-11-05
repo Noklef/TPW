@@ -6134,6 +6134,8 @@ address,name,kind,confidence,notes
 0x0068a1b0,CRT_NMSG_WRITE,function,low,reimplemented (src/game/core/crtmessage); MSVC6 _NMSG_WRITE: the runtime error text to stderr or a message box
 0x0068efb0,CRT_crtMessageBoxA,function,low,reimplemented (src/game/core/crtmessage); MSVC6 __crtMessageBoxA: user32 loaded on first use
 0x0068a390,CRT_mbsnbcpy,function,low,reimplemented (src/game/core/crtmessage); MSVC6 _mbsnbcpy
+0x0067b0c0,CRT_purecall,function,low,reimplemented (src/game/core/crtmessage); _purecall
+0x0068c310,CRT_fptrap,function,low,reimplemented (src/game/core/crtmessage); _fptrap
 0x006828a0,CRT_sbh_alloc_new_region,function,low,reimplemented (src/game/core/crtsbh); MSVC6 __sbh_alloc_new_region
 0x00682c00,CRT_sbh_alloc_block,function,low,reimplemented (src/game/core/crtsbh); MSVC6 __sbh_alloc_block
 0x00682e40,CRT_sbh_alloc_block_from_page,function,low,reimplemented (src/game/core/crtsbh); MSVC6 __sbh_alloc_block_from_page

@@ -10,7 +10,7 @@ from fncmp import IMPORT_TABLE, LOG, RAM, Bench, Call, _recorder, answers, fill,
 
 LOCK, UNLOCK, EXIT, HOOK = 7, 8, 9, 10
 WRITE, STD, MODULE, EXITP, LOAD, FIND, BOX, ACTIVE, POPUP = 14, 15, 16, 17, 18, 19, 20, 21, 22
-B = Bench([(0x67efc0, 0x67efea), (0x67eff0, 0x67f018), (0x68a170, 0x68a1ad), (0x68a1b0, 0x68a386), (0x68efb0, 0x68f03f), (0x67ae00, 0x67aefe), (0x68a390, 0x68a437), (0x67f020, 0x67f191)],
+B = Bench([(0x67b0c0, 0x67b0cb), (0x68c310, 0x68c31b), (0x67efc0, 0x67efea), (0x67eff0, 0x67f018), (0x68a170, 0x68a1ad), (0x68a1b0, 0x68a386), (0x68efb0, 0x68f03f), (0x67ae00, 0x67aefe), (0x68a390, 0x68a437), (0x67f020, 0x67f191)],
           hooks={0x682720: _recorder(LOCK, 1, cdecl=True), 0x6827a0: _recorder(UNLOCK, 1, cdecl=True)})
 # The listing stops at the calls that never return in the game; the exe's bytes after them (83 c4 04 c3, c3) end the run here, where the exit recorders return.
 B.emu.code.update({0x67efe6: ('ADD', 'ESP,0x4'), 0x67efe9: ('RET', ''), 0x67f016: ('RET', '')})
@@ -18,7 +18,7 @@ B.emu.order = sorted(set(B.emu.order) | {0x67efe6, 0x67efe9, 0x67f016})
 B.emu.next = dict(zip(B.emu.order, B.emu.order[1:]))
 TEXTS, BLOCK, PATH, OUT, ANSWERS = RAM, RAM + 0x400, RAM + 0x500, RAM + 0x800, RAM + 0x1000
 CODES = [2, 8, 9, 0x10, 0x12, 0x1e, 0xfc, 0xff, 0xfc, 0xff, 0, 1, 0x100]
-OPS = [n for n in ('amsg', 'fast', 'banner', 'nmsg', 'nmsg', 'box', 'mbsnbcpy', 'mbsnbcpy', 'splitpath', 'splitpath') if not os.environ.get('OPS') or n in os.environ['OPS'].split(',')]
+OPS = [n for n in ('amsg', 'fast', 'purecall', 'fptrap', 'banner', 'nmsg', 'nmsg', 'box', 'mbsnbcpy', 'mbsnbcpy', 'splitpath', 'splitpath') if not os.environ.get('OPS') or n in os.environ['OPS'].split(',')]
 PATHS = [b'', b'\0:x', b'a', b'C:', b'C:\\', b'C:\\dir\\name.ext', b'C:/dir/sub\\name', b'name.ext', b'.ext', b'dir.d/name', b'dir.d\\', b'a:b:c', b'C:name.tar.gz', b'\x81\\dir\\n\x81.x', b'\\\x81', b'd\\' + b'n' * 0x120 + b'.' + b'e' * 0x120, b'd' * 0x120 + b'\\x']
 
 
@@ -56,6 +56,8 @@ def case(r):
     loaded = r.random() < 0.3
     regions[0xfb1900] = struct.pack('<3I', recorder(BOX, 4, True) if loaded else 0, r.choice([recorder(ACTIVE, 0, True), 0]) if loaded else r.getrandbits(32), r.choice([recorder(POPUP, 1, True), 0]) if loaded else r.getrandbits(32))
     code = 0x100 if beyond and r.random() < 0.7 else r.choice(CODES)
+    if name in ('purecall', 'fptrap'):
+        return Call(0x67b0c0 if name == 'purecall' else 0x68c310, [], regions, conv='c')
     if name in ('amsg', 'fast'):
         return Call(0x67efc0 if name == 'amsg' else 0x67eff0, [code], regions, conv='c')
     if name == 'banner':
