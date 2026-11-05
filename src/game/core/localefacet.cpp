@@ -154,7 +154,7 @@ u32 *refs_facet(u32 *self, u32 refs, u32 vtable) {
     self[1] = refs;
     self[0] = vtable;
     u32 info[0x10];
-    Locinfo_Ctor(info, nullptr, "C");
+    Locinfo_Ctor(info, nullptr, reinterpret_cast<const char *>((uintptr_t)0x0075c74c));
     Locinfo_Dtor(info);
     return self;
 }
@@ -218,6 +218,71 @@ void __fastcall Numpunct_Init(u32 *self, void *, const void *) {
     self[4] = static_cast<u32>(reinterpret_cast<uintptr_t>(Numpunct_Copy("false")));
     self[5] = static_cast<u32>(reinterpret_cast<uintptr_t>(Numpunct_Copy("true")));
 }
+
+static u16 *widened_copy(const char *text) {
+    u32 size = 0;
+    while (text[size]) ++size;
+    ++size;
+    u16 *const copy = static_cast<u16 *>(IosBase_Env().memAlloc(size * 2));
+    for (u32 i = 0; i < size; ++i) copy[i] = static_cast<u16>(CRT_btowc(static_cast<u32>(static_cast<s32>(text[i]))));
+    return copy;
+}
+
+void __fastcall WNumpunct_Init(u32 *self, void *, const void *) {
+    char *const *const lconv = reinterpret_cast<char *const *>((uintptr_t)Global781fc8_Get_691530());
+    u16 *const marks = reinterpret_cast<u16 *>(self + 3);
+    marks[0] = static_cast<u16>(CRT_btowc(static_cast<u32>(static_cast<s32>(*lconv[0]))));
+    marks[1] = static_cast<u16>(CRT_btowc(static_cast<u32>(static_cast<s32>(*lconv[1]))));
+    const char *const grouping = lconv[2];
+    self[2] = static_cast<u32>(reinterpret_cast<uintptr_t>(Numpunct_Copy(grouping)));
+    self[4] = static_cast<u32>(reinterpret_cast<uintptr_t>(widened_copy(reinterpret_cast<const char *>((uintptr_t)0x00709b68))));
+    self[5] = static_cast<u32>(reinterpret_cast<uintptr_t>(widened_copy(reinterpret_cast<const char *>((uintptr_t)0x00709b60))));
+}
+
+u32 *__fastcall WNumGet_Ctor(u32 *self, void *, u32 refs) { return refs_facet(self, refs, 0x00709c5c); }
+
+u32 *__fastcall WNumPut_Ctor(u32 *self, void *, u32 refs) { return refs_facet(self, refs, 0x00709c7c); }
+
+u32 *__fastcall WCodecvt_Ctor(u32 *self, void *, const void *, u32 refs) {
+    self[1] = refs;
+    self[0] = 0x00709ce4;
+    const unsigned long long conversion = CRT_Getcvt();
+    self[2] = static_cast<u32>(conversion);
+    self[3] = static_cast<u32>(conversion >> 32);
+    return self;
+}
+
+u32 *__fastcall Numpunct_Ctor(u32 *self, void *, u32 refs) {
+    self[1] = refs;
+    self[0] = kNumpunctVtable;
+    u32 info[0x10];
+    Locinfo_Ctor(info, nullptr, reinterpret_cast<const char *>((uintptr_t)0x0075c74c));
+    Numpunct_Init(self, nullptr, info);
+    Locinfo_Dtor(info);
+    return self;
+}
+
+u32 *__fastcall WNumpunct_Ctor(u32 *self, void *, u32 refs) {
+    self[1] = refs;
+    self[0] = 0x00709c3c;
+    u32 info[0x10];
+    Locinfo_Ctor(info, nullptr, reinterpret_cast<const char *>((uintptr_t)0x0075c74c));
+    WNumpunct_Init(self, nullptr, info);
+    Locinfo_Dtor(info);
+    return self;
+}
+
+static void numpunct_tidy(u32 *self, u32 vtable) {
+    self[0] = vtable;
+    IosBase_Env().memFree(reinterpret_cast<void *>((uintptr_t)self[2]));
+    IosBase_Env().memFree(reinterpret_cast<void *>((uintptr_t)self[4]));
+    IosBase_Env().memFree(reinterpret_cast<void *>((uintptr_t)self[5]));
+    self[0] = 0x00709b44;
+}
+
+void __fastcall Numpunct_Tidy(u32 *self, void *) { numpunct_tidy(self, kNumpunctVtable); }
+
+void __fastcall WNumpunct_Tidy(u32 *self, void *) { numpunct_tidy(self, 0x00709c3c); }
 
 u32 *__fastcall Codecvt_Ctor(u32 *self, void *, const void *, u32 refs) {
     self[1] = refs;

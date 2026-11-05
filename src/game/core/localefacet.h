@@ -13,6 +13,20 @@ void __fastcall CtypeChar_Init(u32 *self, void *, const void *info);
 u32 *__fastcall NumPut_Ctor(u32 *self, void *, u32 refs);
 u32 *__fastcall NumGet_Ctor(u32 *self, void *, u32 refs);
 
+// 0x69b490 / 0x69cb00 (pops 4): num_get's / num_put's constructors of wchar_t: as those of char. 0x69b460 (pops 8, the first not read): codecvt<wchar_t, char, int>'s constructor: refs, the vtable 0x709ce4, _Getcvt at +8.
+u32 *__fastcall WNumGet_Ctor(u32 *self, void *, u32 refs);
+u32 *__fastcall WNumPut_Ctor(u32 *self, void *, u32 refs);
+u32 *__fastcall WCodecvt_Ctor(u32 *self, void *, const void *, u32 refs);
+
+// 0x695910 / 0x69c680 (pops 4): numpunct<char> / <wchar_t>'s constructor: refs, the vtable, then _Init (inlined) under a _Locinfo of the name at 0x75c74c.
+u32 *__fastcall Numpunct_Ctor(u32 *self, void *, u32 refs);
+u32 *__fastcall WNumpunct_Ctor(u32 *self, void *, u32 refs);
+// 0x69c7e0 (pops 4, the _Locinfo not read): numpunct<wchar_t>::_Init: the decimal point and the separator (words at +0xc, +0xe) through btowc, signed; the grouping as bytes; "false" and "true" as words, each through btowc.
+void __fastcall WNumpunct_Init(u32 *self, void *, const void *info);
+// 0x695c00 / 0x69cac0: numpunct's destructor bodies: the vtable, the three texts freed, the base vtable 0x709b44.
+void __fastcall Numpunct_Tidy(u32 *self, void *);
+void __fastcall WNumpunct_Tidy(u32 *self, void *);
+
 // 0x695a30 (pops 4, the _Locinfo not read): numpunct<char>::_Init: the decimal point and the separator (bytes +0xc, +0xd) from the current lconv, its grouping (+8) and "false", "true" (+0x10, +0x14) copied.
 void __fastcall Numpunct_Init(u32 *self, void *, const void *info);
 

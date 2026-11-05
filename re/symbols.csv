@@ -6162,6 +6162,14 @@ address,name,kind,confidence,notes
 0x006abc20,UseFacet_TimeC,function,low,reimplemented (src/game/core/localefacet); use_facet of the time facet of vtable 0x70a024
 0x006aa200,TimeC_Ctor,function,low,reimplemented (src/game/core/localefacet); the time facet's constructor of vtable 0x70a024
 0x006a3470,TimeW_Ctor,function,low,reimplemented (src/game/core/localefacet); the time facet's constructor of vtable 0x709ed4
+0x00695910,Numpunct_Ctor,function,low,reimplemented (src/game/core/localefacet); numpunct<char>'s constructor
+0x0069c680,WNumpunct_Ctor,function,low,reimplemented (src/game/core/localefacet); numpunct<wchar_t>'s constructor
+0x0069c7e0,WNumpunct_Init,function,low,reimplemented (src/game/core/localefacet); numpunct<wchar_t>::_Init
+0x0069b490,WNumGet_Ctor,function,low,reimplemented (src/game/core/localefacet); num_get<wchar_t>'s constructor
+0x0069cb00,WNumPut_Ctor,function,low,reimplemented (src/game/core/localefacet); num_put<wchar_t>'s constructor
+0x0069b460,WCodecvt_Ctor,function,low,"reimplemented (src/game/core/localefacet); codecvt<wchar_t, char, int>'s constructor"
+0x00695c00,Numpunct_Tidy,function,low,reimplemented (src/game/core/localefacet); numpunct<char>'s destructor body
+0x0069cac0,WNumpunct_Tidy,function,low,reimplemented (src/game/core/localefacet); numpunct<wchar_t>'s destructor body
 0x006895b0,CRT_mbctolower,function,low,reimplemented (src/game/core/crtmbstring); _mbctolower
 0x00689650,CRT_mbspbrk,function,low,reimplemented (src/game/core/crtmbstring); _mbspbrk
 0x00689400,CRT_mbsrchr,function,low,reimplemented (src/game/core/crtmbstring); _mbsrchr
