@@ -76,6 +76,7 @@ const CrtInnerEnv kGameInner = {
     game<void(__cdecl *)()>(0x00687d80),
     game<void(__cdecl *)(s32, void *)>(0x00682800),
     game<void(__cdecl *)(s32, void *)>(0x00682870),
+    game<s32(__cdecl *)(void *, const char *, void *)>(0x00680c00),
 };
 const CrtInnerEnv *g_inner = &kGameInner;
 
@@ -116,6 +117,19 @@ s32 format_wide(u16 *to, s32 size, const u16 *format, void *args) {
     file.flags = 0x42;
     const s32 written = g_inner->woutput(&file, format, args);
     put_end(file);
+    return written;
+}
+
+s32 format_narrow(char *to, s32 size, const char *format, void *args) {
+    StringFile file;
+    file.ptr = file.base = to;
+    file.count = size;
+    file.flags = 0x42;
+    const s32 written = g_inner->output(&file, format, args);
+    if (--file.count < 0)
+        g_inner->flsbuf(0, &file);
+    else
+        *file.ptr = 0;
     return written;
 }
 
@@ -293,6 +307,12 @@ u32 __cdecl CRT_beginthread(void *proc, u32 stack, void *arg) {
 }
 
 s32 __cdecl CRT_swprintf(u16 *to, const u16 *format, ...) { return format_wide(to, 0x7fffffff, format, &format + 1); }
+
+s32 __cdecl CRT_snprintf(char *to, u32 count, const char *format, ...) { return format_narrow(to, static_cast<s32>(count), format, &format + 1); }
+
+s32 __cdecl CRT_vsprintf(char *to, const char *format, void *args) { return format_narrow(to, 0x7fffffff, format, args); }
+
+s32 __cdecl CRT_vsnprintf(char *to, u32 count, const char *format, void *args) { return format_narrow(to, static_cast<s32>(count), format, args); }
 
 s32 __cdecl CRT_snwprintf(u16 *to, u32 count, const u16 *format, ...) { return format_wide(to, (s32)(count * 2), format, &format + 1); }
 

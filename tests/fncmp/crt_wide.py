@@ -1,4 +1,4 @@
-# The C library's wide string routines (src/game/core/crt) against the originals: swprintf and _snwprintf's string file, as _woutput (a recorder, which moves the file's pointer and
+# The C library's wide string routines (src/game/core/crt) against the originals: swprintf and _snwprintf's string file (and _snprintf, vsprintf, _vsnprintf's over _output, with their one zero byte), as _woutput (a recorder, which moves the file's pointer and
 # count) leaves it, then one or two characters through _flsbuf (a recorder) when it has no room; _wcsicmp and _wcsnicmp in the "C" locale (A-Z folded down) and with a
 # locale (the lock's Interlocked imports, or lock 0x13 when the locale is being set; _towlower_lk a stand-in on both sides that looks only at the low 16 bits); btowc over
 # _Mbrtowc (a recorder that fills the answer through its stack pointers).
@@ -10,7 +10,7 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
 from fncmp import LOG, RAM, Bench, Call, _recorder, blob, fill, log_region, recorder, set_return, strings  # noqa: E402
 
-LOCK, UNLOCK, WOUTPUT, FLSBUF, MBRTOWC = 7, 8, 21, 22, 23
+LOCK, UNLOCK, WOUTPUT, FLSBUF, MBRTOWC, OUTPUT = 7, 8, 21, 22, 23, 1
 INC, DEC = 30, 31
 
 
@@ -20,8 +20,8 @@ def towlower(e):
     e.r['EAX'] = c ^ 0x20 if 0x41 <= c <= 0x5a or 0x100 <= c < 0x180 else c
 
 
-B = Bench([(0x67af00, 0x67afa0), (0x67c830, 0x67c8d0), (0x67b140, 0x67b240), (0x67c8d0, 0x67c9f0), (0x693dc0, 0x693e20), (0x67dda0, 0x67df3e), (0x67acd0, 0x67acee), (0x67b0d0, 0x67b10f)],
-          hooks={0x682720: _recorder(LOCK, 1, cdecl=True), 0x6827a0: _recorder(UNLOCK, 1, cdecl=True), 0x683090: _recorder(WOUTPUT, 3, cdecl=True), 0x680ad0: _recorder(FLSBUF, 2, cdecl=True),
+B = Bench([(0x67bf40, 0x67bfa8), (0x67c1e0, 0x67c248), (0x67f3a0, 0x67f408), (0x67af00, 0x67afa0), (0x67c830, 0x67c8d0), (0x67b140, 0x67b240), (0x67c8d0, 0x67c9f0), (0x693dc0, 0x693e20), (0x67dda0, 0x67df3e), (0x67acd0, 0x67acee), (0x67b0d0, 0x67b10f)],
+          hooks={0x682720: _recorder(LOCK, 1, cdecl=True), 0x6827a0: _recorder(UNLOCK, 1, cdecl=True), 0x683090: _recorder(WOUTPUT, 3, cdecl=True), 0x680c00: _recorder(OUTPUT, 3, cdecl=True), 0x680ad0: _recorder(FLSBUF, 2, cdecl=True),
                  0x693bc0: _recorder(MBRTOWC, 5, cdecl=True), 0x67e670: towlower})
 TO, FMT, A, Z = RAM, RAM + 0x100, RAM + 0x200, RAM + 0x300
 PATH = RAM + 0x1000
@@ -70,25 +70,40 @@ def wcsnicmp(r):
     return Call(0x67c8d0, [A, Z, r.choice([0, 1, 2, 3, 8, 0x7fffffff])], regions, conv='c', ret='a')
 
 
-def printing(r, address, head):
+def printing(r, address, head, k=WOUTPUT, args=None):
     log = log_region()
     if r.random() < 0.5:   # (one blob a slot: the file's pointer, count, base and flags, its other four dwords never set; or the arguments)
-        blob(log, WOUTPUT, 0, 0xf)
-        strings(log, WOUTPUT, 0, out=4)
+        blob(log, k, 0, 0xf)
+        strings(log, k, 0, out=4)
     else:
-        blob(log, WOUTPUT, 2, 3)
-        strings(log, WOUTPUT, 0, out=1)
+        blob(log, k, 2, 3)
+        strings(log, k, 0, out=1)
     blob(log, FLSBUF, 1, 0xf)
     n = r.choice([0, 1, 7, 40])
     if r.random() < 0.8:
-        fill(log, WOUTPUT, 0, struct.pack('<Ii', TO + n, r.choice([5, 2, 1, 0, 0x7fffffff - n])))
-    set_return(log, WOUTPUT, r.getrandbits(32))
+        fill(log, k, 0, struct.pack('<Ii', TO + n, r.choice([5, 2, 1, 0, 0x7fffffff - n])))
+    set_return(log, k, r.getrandbits(32))
     regions = {LOG: log, TO: r.bytes(0x60), FMT: b'%d\0\0'}
+    if args:   # (a va_list: the pointer itself is the last argument)
+        regions[args] = r.bytes(0x10)
+        return Call(address, [TO] + head + [FMT, args], regions, conv='c', ret='a')
     return Call(address, [TO] + head + [FMT, r.getrandbits(32), r.getrandbits(32)], regions, conv='c', ret='a')
 
 
 def swprintf(r):
     return printing(r, 0x67af00, [])
+
+
+def snprintf(r):
+    return printing(r, 0x67bf40, [r.choice([0, 1, 2, 0x10, 0x40000000, 0x80000000])], OUTPUT)
+
+
+def vsprintf(r):
+    return printing(r, 0x67c1e0, [], OUTPUT, A)
+
+
+def vsnprintf(r):
+    return printing(r, 0x67f3a0, [r.choice([0, 1, 2, 0x10, 0x40000000, 0x80000000])], OUTPUT, A)
 
 
 def snwprintf(r):
@@ -124,7 +139,7 @@ def splitpath(r):
     return Call(0x67dda0, [PATH, *outs], regions, conv='c', ret='v')
 
 
-KINDS = {'splitpath': splitpath, 'wcsicmp': wcsicmp, 'wcsnicmp': wcsnicmp, 'swprintf': swprintf, 'snwprintf': snwprintf, 'btowc': btowc}
+KINDS = {'splitpath': splitpath, 'wcsicmp': wcsicmp, 'wcsnicmp': wcsnicmp, 'swprintf': swprintf, 'snwprintf': snwprintf, 'snprintf': snprintf, 'vsprintf': vsprintf, 'vsnprintf': vsnprintf, 'btowc': btowc}
 OPS = [k for k in os.environ.get('OPS', ','.join(KINDS)).split(',') if k]
 
 

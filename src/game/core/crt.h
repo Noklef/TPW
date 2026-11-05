@@ -78,6 +78,7 @@ struct CrtInnerEnv {
     void(__cdecl *tzset)();                                      // 0x687d80
     void(__cdecl *lockFile2)(s32 index, void *file);             // 0x682800
     void(__cdecl *unlockFile2)(s32 index, void *file);           // 0x682870
+    s32(__cdecl *output)(void *file, const char *format, void *args);   // 0x680c00
 };
 
 void CrtInner_SetEnv(const CrtInnerEnv *env);
@@ -133,6 +134,11 @@ u32 __cdecl CRT_beginthread(void *proc, u32 stack, void *arg);
 
 // 0x67af00: swprintf: _woutput on a string file (0x7fffffff bytes), then two zero bytes put (_flsbuf where the count has run out). Returns _woutput's answer.
 s32 __cdecl CRT_swprintf(u16 *to, const u16 *format, ...);
+
+// 0x67bf40: _snprintf; 0x67c1e0: vsprintf (room of 0x7fffffff); 0x67f3a0: _vsnprintf: a string file (flags 0x42) through _output, then one zero byte, through _flsbuf when no room is left.
+s32 __cdecl CRT_snprintf(char *to, u32 count, const char *format, ...);
+s32 __cdecl CRT_vsprintf(char *to, const char *format, void *args);
+s32 __cdecl CRT_vsnprintf(char *to, u32 count, const char *format, void *args);
 
 // 0x67c830: _snwprintf: the same in count * 2 bytes.
 s32 __cdecl CRT_snwprintf(u16 *to, u32 count, const u16 *format, ...);

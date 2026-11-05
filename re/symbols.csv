@@ -1317,7 +1317,7 @@ address,name,kind,confidence,notes
 0x0067bfc0,CRT_strchr,function,high,reimplemented (src/game/core/crt); strchr
 0x0067a520,CRT_atoi,function,high,MSVC6 atoi
 0x0067f330,CRT_iswctype,function,high,MSVC6 iswctype (wint_t is 16 bits; the upper half of the argument is ignored)
-0x0067c1e0,CRT_vsprintf,function,high,MSVC6 vsprintf
+0x0067c1e0,CRT_vsprintf,function,high,reimplemented (src/game/core/crt); vsprintf
 0x0067acd0,CRT_wcslen,function,high,reimplemented (src/game/online/chatlists); wcslen
 0x0067bf10,CRT_wcscpy,function,high,reimplemented (src/game/core/crt); wcscpy
 0x0067bed0,CRT_wcscat,function,high,reimplemented (src/game/core/crt); wcscat
@@ -1422,7 +1422,7 @@ address,name,kind,confidence,notes
 0x005f7890,Lib_WtoI,function,high,reimplemented (src/game/core/libc); stdcall; CRT__wtoi
 0x005f78a0,Lib_IsDigitW,function,high,"reimplemented (src/game/core/libc); stdcall (wchar_t); CRT_iswctype(c, _DIGIT)"
 0x005f78c0,Lib_VSWPrintf,function,high,reimplemented (src/game/core/libc); stdcall; CRT_vswprintf
-0x0067f3a0,CRT__vsnprintf,function,high,MSVC6 _vsnprintf
+0x0067f3a0,CRT_vsnprintf,function,low,reimplemented (src/game/core/crt); _vsnprintf
 0x00618cd0,RefObject_Ctor,function,high,"reimplemented (src/game/files/handles); thiscall; vtable 0x703838, link and refs 0"
 0x00618cf0,RefObject_DeletingDtor,function,high,"reimplemented (src/game/files/handles); thiscall (flags); RefObject_Dtor, free when flags & 1"
 0x00618d10,RefObject_Dtor,function,high,reimplemented (src/game/files/handles); thiscall; the vtable back to 0x703838
@@ -2005,6 +2005,7 @@ address,name,kind,confidence,notes
 0x0069a5d0,CRT_Wctob,function,low,reimplemented (src/game/core/crt); _Wctob
 0x0067dda0,CRT_wsplitpath,function,low,reimplemented (src/game/core/crt); _wsplitpath
 0x0067f670,CRT_strnicmp,function,low,reimplemented (src/game/core/crt); _strnicmp
+0x0067bf40,CRT_snprintf,function,low,reimplemented (src/game/core/crt); _snprintf
 0x00f7a7d0,gCdVolumeLabel,data,medium,"const char *: the CD's volume label, looked for on the CD-ROM drives by the CD check (0x5aa585)"
 0x005f8ae0,RegKey_Open,function,high,"reimplemented (src/game/core/regkey); thiscall (&out, subkey or null, nonzero: HKCU else HKLM); the company key (0x775748) made, then the subkey in it; a held key closed first"
 0x005f8b70,RegKey_Dtor,function,high,reimplemented (src/game/core/regkey); thiscall; RegKey_Close
