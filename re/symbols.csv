@@ -7458,6 +7458,14 @@ address,name,kind,confidence,notes
 0x004901d0,PasswordPart_SetLayout,function,low,"reimplemented (src/game/render/passwordpart); a password text part's layout: the text as stars: name invented, unconfirmed"
 0x0057c2a0,GroundShadows_DrawAll,function,low,"reimplemented (src/game/render/groundshadow); a list of ground shadows drawn, the count cleared (name invented, unconfirmed)"
 0x00678e70,RasterFormat_Init,function,low,"reimplemented (src/game/render/rasterformat); cdecl (surface, z buffer out, width, height); name invented, unconfirmed; the software rasteriser's pixel format from the surface's and its buffers"
+0x00679150,RasterFormat_BitCount,function,low,reimplemented (src/game/render/rasterformat); bits set in bits 0-30
+0x00679170,RasterFormat_LowBit,function,low,reimplemented (src/game/render/rasterformat); lowest set bit
+0x00679190,RasterFormat_BlendTables,function,low,reimplemented (src/game/render/rasterformat); blend tables
+0x006791f0,RasterFormat_FrameBuffer,function,low,reimplemented (src/game/render/rasterformat); frame buffer once
+0x00679230,RasterFormat_ZBuffer,function,low,reimplemented (src/game/render/rasterformat); z buffer once
+0x00679270,RasterFormat_FreeBuffers,function,low,"reimplemented (src/game/render/rasterformat); both freed, count down"
+0x00679290,RasterFormat_FreeFrameBuffer,function,low,reimplemented (src/game/render/rasterformat); frame buffer freed
+0x006792c0,RasterFormat_FreeZBuffer,function,low,reimplemented (src/game/render/rasterformat); z buffer freed
 0x00564650,EngineDebug_Log,function,low,"reimplemented (src/game/render/enginedebug); cdecl (text); name invented: enginedebug.txt opened by the C library, made anew on the first write; the text written, flushed and the file closed"
 0x005645e0,EngineDebug_LogFallback,function,low,"reimplemented (src/game/render/enginedebug); cdecl (text): as EngineDebug_Log, to the file named at 0x766334, its count 0x879a28. Name invented, unconfirmed."
 0x00563460,DirectDraw_Open,function,low,"reimplemented (src/game/render/ddopen); the view's screen set and DirectDraw brought up, full screen or in a window"

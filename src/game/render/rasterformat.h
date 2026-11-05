@@ -17,6 +17,20 @@ void RasterFormat_SetEnv(const RasterFormatEnv *env);  // nullptr: the game's
 
 extern "C" {
 
+// 0x679150: the bits set in bits 0-30 of the mask. 0x679170: the position of the lowest set bit, by signed shifts (no bit at all never ends, sic).
+u32 __cdecl RasterFormat_BitCount(u32 mask);
+u32 __cdecl RasterFormat_LowBit(u32 mask);
+// 0x679190: two tables of 0x40 eight-byte rows, the four words of each the same: at 0xfbe2e0 i * 0x10000 / 255, at 0xfbe4e0 0x4000 less the sum of those so far.
+void __cdecl RasterFormat_BlendTables();
+// 0x6791f0: with no block yet ([0xfac52c]) one of width * height * 4 + 0x6423 bytes, its address kept, and the address 0x3220 on rounded down to 0x20 kept at 0xfac530 and answered (a failed malloc too); else 0.
+// 0x679230: likewise: width * height * 2 + 0x3223 bytes, 0xfac534, 0x1920 on, 0xfac538.
+u32 __cdecl RasterFormat_FrameBuffer(u32 width, u32 height);
+u32 __cdecl RasterFormat_ZBuffer(u32 width, u32 height);
+// 0x679290, 0x6792c0: the block, if any, freed and both its globals cleared. 0x679270: the z buffer's, the frame buffer's, and the count 0xfac514 down.
+void __cdecl RasterFormat_FreeFrameBuffer();
+void __cdecl RasterFormat_FreeZBuffer();
+void __cdecl RasterFormat_FreeBuffers();
+
 // 0x678e70 (cdecl (surface, z buffer out, width, height); name invented, unconfirmed). With a surface whose pixel format (DDPIXELFORMAT, 0x20
 // bytes, its size set; IDirectDrawSurface slot 21) is not 8 bits: the channels' bit counts into 0xfbe054 / 58 / 5c, their sum 0xfbe060, the masks'
 // lowest bits 0xfbe048 / 4c / 50; the masks and their complements 0xfbe064-0xfbe078, all three in both halves 0xfbe07c and its complement
