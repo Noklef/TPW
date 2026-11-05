@@ -6245,6 +6245,9 @@ address,name,kind,confidence,notes
 0x004237f0,Options_ApplyChanges,function,low,"reimplemented (src/game/core/optionschanges); thiscall: the level's sound or dialog, then the settings' file written, the window closed; name invented"
 0x00424bb0,Options_ConfirmSave,function,low,"reimplemented (src/game/core/optionschanges); cdecl: the dialog's button: the state set, the session told or the theme saved, the window closed; 1; name invented"
 0x00449df0,Options_LoadStartup,function,low,reimplemented (src/game/core/optionschanges); cdecl: the first settings loaded and applied; name invented
+0x0054dcf0,Game_Start,function,low,"reimplemented (src/game/core/gamestart); cdecl: the game's start: clock, command line, sound, front end, state; name invented"
+0x0054df20,Game_PlayLogoMovie,function,low,"reimplemented (src/game/core/gamestart); cdecl: the logo movie, when in the archives; name invented"
+0x0054e070,Game_PlayDayMovie,function,low,"reimplemented (src/game/core/gamestart); cdecl: a movie by the day of the month, when in the archives; name invented"
 0x0050ffe0,Nav_Ctor,function,high,reimplemented (src/game/world/nav); constants constructor with five integer pairs
 0x0050f200,Nav_Dtor,function,high,reimplemented (src/game/world/nav); thiscall: the five IntPairs at +0x64 destroyed with Stub_Ret (CRT_VectorDtorIterator); also via 0x4f7c30 (+0xd4) and 0x4f8ad0
 0x004f7c30,Nav_DtorAtD4,function,low,reimplemented (src/game/world/nav); thiscall adjustor: Nav_Dtor on this + 0xd4

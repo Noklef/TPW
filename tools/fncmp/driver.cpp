@@ -308,6 +308,7 @@
 #include "../../src/game/core/gameshutdown.h"
 #include "../../src/game/gfx/screengrab.h"
 #include "../../src/game/core/themesaves.h"
+#include "../../src/game/core/gamestart.h"
 #include "../../src/game/core/optionschanges.h"
 #include "../../src/game/render/weathertables.h"
 #include "../../src/game/render/present.h"
@@ -1342,6 +1343,10 @@ const AddrCall kOptionsChangesCalls[] = {{0x423740, recorder(1, 0)}, {0x5ac630, 
     {0x423dd0, recorder(8, 0)}, {0x5c7bd0, recorder(9, 1)}, {0x5f5ad0, jpeg_recorder(10, 4)}, {0x5f5e50, jpeg_recorder(11, 5)}, {0x5f5b80, jpeg_recorder(12, 2)}, {0x4242c0, recorder(13, 3)}, {0x42aff0, jpeg_recorder(14, 0)}, {0x51bd70, jpeg_recorder(15, 0)},
     {0x4a4580, jpeg_recorder(16, 0)}, {0x5508b0, jpeg_recorder(17, 1)}, {0x5ac610, recorder(18, 1)}, {0x424a60, recorder(19, 1)}, {0x409790, jpeg_recorder(20, 1)}};
 const AddrCall kWeatherTablesCalls[] = {{0x57d1d0, recorder(1, 0)}, {0x56af20, recorder(2, 2)}};  // tests/fncmp/weathertables.py
+const AddrCall kGameStartCalls[] = {{0x67d8e0, jpeg_recorder(0, 1)}, {0x402ea0, recorder(1, 1)}, {0x4688b0, jpeg_recorder(2, 1)}, {0x5d55a0, jpeg_recorder(3, 0)}, {0x4056f0, recorder(4, 0)}, {0x4056e0, recorder(5, 0)}, {0x40f000, jpeg_recorder(6, 2)}, {0x405750, recorder(7, 0)},  // tests/fncmp/gamestart.py
+    {0x40cb80, jpeg_recorder(8, 0)}, {0x67d3f0, jpeg_recorder(9, 1)}, {0x67a650, jpeg_recorder(10, 5)}, {0x67b5b0, jpeg_recorder(11, 1)}, {0x51b660, jpeg_recorder(12, 2)}, {0x51b920, jpeg_recorder(13, 1)}, {0x51b3d0, jpeg_recorder(14, 0)}, {0x51bb60, jpeg_recorder(15, 1)},
+    {0x51bb80, jpeg_recorder(16, 1)}, {0x51bbc0, jpeg_recorder(17, 1)}, {0x51bba0, jpeg_recorder(18, 1)}, {0x51eae0, jpeg_recorder(19, 0)}, {0x51bfc0, jpeg_recorder(20, 6)}, {0x51bd70, jpeg_recorder(21, 0)}, {0x53e920, jpeg_recorder(22, 0)}, {0x41a820, recorder(23, 2)},
+    {0x587380, recorder(24, 1)}, {0x4813c0, recorder(25, 0)}, {0x5879c0, recorder(26, 0)}, {0x402d70, recorder(27, 0)}, {0x5989c0, jpeg_recorder(28, 0)}, {0x583790, jpeg_recorder(29, 0)}, {0x5c5110, jpeg_recorder(30, 2)}, {0x51b010, jpeg_recorder(31, 5)}};
 const AddrCall kPresentCalls[] = {{0x56a770, jpeg_recorder(1, 1)}, {0x564650, jpeg_recorder(2, 1)}, {0x56af20, recorder(3, 2)},  // tests/fncmp/devicepresent.py
     {0x564210, recorder(4, 0)}, {0x678790, jpeg_recorder(5, 6)}, {0x678d70, jpeg_recorder(6, 6)}, {0x678c20, jpeg_recorder(7, 10)}, {0x6787f0, jpeg_recorder(8, 10)}};  // tests/fncmp/presentpicture.py
 const AddrCall kGameErrorCalls[] = {{0x6acd60, jpeg_recorder(1, 4)}};  // tests/fncmp/gameerrorshow.py
@@ -2738,6 +2743,7 @@ int main(int argc, char **argv) {
     GameShutdown_SetCalls(kGameShutdownCalls, sizeof(kGameShutdownCalls) / sizeof(kGameShutdownCalls[0]));
     OptionsChanges_SetCalls(kOptionsChangesCalls, sizeof(kOptionsChangesCalls) / sizeof(kOptionsChangesCalls[0]));
     WeatherTables_SetCalls(kWeatherTablesCalls, sizeof(kWeatherTablesCalls) / sizeof(kWeatherTablesCalls[0]));
+    GameStart_SetCalls(kGameStartCalls, sizeof(kGameStartCalls) / sizeof(kGameStartCalls[0]));
     ThemeSaves_SetCalls(kThemeSavesCalls, sizeof(kThemeSavesCalls) / sizeof(kThemeSavesCalls[0]));
     ScreenGrab_SetCalls(kScreenGrabCalls, sizeof(kScreenGrabCalls) / sizeof(kScreenGrabCalls[0]));
     Present_SetCalls(kPresentCalls, sizeof(kPresentCalls) / sizeof(kPresentCalls[0]));

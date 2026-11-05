@@ -1,0 +1,114 @@
+#include "gamestart.h"
+
+#include <cstdint>
+
+#include "string.h"
+
+namespace {
+
+AddrCalls g_calls;
+
+template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
+template <typename T> T ptr(u32 address) { return reinterpret_cast<T>((uintptr_t)address); }
+
+constexpr u32 kClock = 0x00785970, kArgs = 0x008787a0, kLoadScreen = 0x008c4748;
+const u32 kDayMovies[8] = {0x007650a0, 0x0076508c, 0x00765074, 0x00765060, 0x0076504c, 0x00765034, 0x00765020, 0x00765008};
+
+char *const kPath = reinterpret_cast<char *>((uintptr_t)0x008782d0);
+
+void setPath(u32 text) {
+    const char *from = ptr<const char *>(text);
+    char *to = kPath;
+    while ((*to++ = *from++) != 0) {
+    }
+}
+
+bool lookUp(String *found) {
+    String path;
+    String_CtorStr(&path, nullptr, kPath);
+    const bool ok = (u8)g_calls.Cd(0x005c5110, &path, found) == 1;
+    String_Dtor(&path);
+    return ok;
+}
+
+void play(const String *movie) {
+    const u32 height = (u32)(((unsigned long long)(global<u32>(0x007a1930) << 6) * 0x88888889ull) >> 40);
+    if (global<u8>(0x007a1a8c) & 1) {
+        g_calls.Cd(0x0051b010, movie->data, global<u32>(0x007a130c), 0u, height, 0u);
+        return;
+    }
+    s32 origin[2] = {0, 0};
+    global<s32(__stdcall *)(u32, s32 *)>(0x006fd318)(global<u32>(0x007a130c), origin);
+    const u32 lowered = (u32)(((unsigned long long)(global<u32>(0x007a1930) << 6) * 0x88888889ull) >> 40);
+    g_calls.Cd(0x0051b010, movie->data, global<u32>(0x007a130c), 0 - origin[0], lowered - origin[1], 0u);
+}
+
+}  // namespace
+
+void GameStart_SetCalls(const AddrCall *table, u32 count) { g_calls.Set(table, count); }
+
+void __cdecl Game_Start() {
+    g_calls.Th(0x00402ea0, kClock, 0x20u);
+    u32 folders;
+    if (global<u32>(0x0078d968))
+        folders = global<u32>(0x0079d86c) & 0x800 ? 1 : 0;
+    else
+        folders = global<u32>(0x00785874) <= 1 ? 1 : 0;
+    g_calls.Cd(0x004688b0, folders);
+    g_calls.Cd(0x005d55a0);
+    const u32 count = g_calls.Th(0x004056f0, kArgs);
+    if (!g_calls.Cd(0x0040f000, g_calls.Th(0x004056e0, kArgs), count)) {
+        g_calls.Th(0x00405750, 0x00785de8u);
+        return;
+    }
+    g_calls.Cd(0x0040cb80);
+    if (global<u8>(0x00790ab0) & 0x16) global<u8>(0x00878e84) = 1;
+    u32 now;
+    g_calls.Cd(0x0067d3f0, &now);
+    char line[0x100];
+    g_calls.Cd(0x0067a650, line, 0x00764facu, 0x00764fccu, 0x00764fd8u, now);
+    global<u32>(0x00879068) = 1;
+    g_calls.Cd(0x0067b5b0, global<u32(__stdcall *)()>(0x006fd1d0)());
+    g_calls.Cd(0x0051b660, 0x00786de4u, global<u32>(0x007a1a8c) & 0x400);
+    g_calls.Cd(0x0051b920, global<u32>(0x0078d8e0) ? global<s32>(0x0078591c) : global<s32>(0x0078591c) / 2);
+    g_calls.Cd(0x0051b3d0);
+    g_calls.Cd(0x0051bb60, 0x64u);
+    g_calls.Cd(0x0051bb80, global<u32>(0x0078592c));
+    g_calls.Cd(0x0051bbc0, global<u32>(0x00785930));
+    g_calls.Cd(0x0051bba0, global<u32>(0x00785928));
+    g_calls.Cd(0x0051eae0);
+    g_calls.Cd(0x0051bfc0, 0u, global<u32>(0x00803a2c), 0xd2u, 0u, 0u, 0u);
+    g_calls.Cd(0x0051bd70);
+    g_calls.Cd(0x0053e920);
+    g_calls.Th(0x00587380, kLoadScreen, g_calls.Th(0x0041a820, 0x0078b530u, 0x00764fe4u, 0x1f4u));
+    g_calls.Th(0x004813c0, 0x007b51f0u);
+    g_calls.Th(0x005879c0, kLoadScreen);
+    global<u32>(0x00875030) = 0;
+    global<u32>(0x0087906c) = global<u32>(0x007a1a8c) & 0x200 ? 4 : 9;
+    global<u32>(0x00875034) = g_calls.Th(0x00402d70, kClock);
+    g_calls.Cd(0x005989c0);
+    global<u32>(0x00878128) = 0;
+    global<u32>(0x00878d64) = 1;
+}
+
+void __cdecl Game_PlayLogoMovie() {
+    String movie;
+    String_Ctor(&movie);
+    setPath(0x00764ff4);
+    if (lookUp(&movie)) {
+        g_calls.Cd(0x00583790);
+        play(&movie);
+    }
+    String_Dtor(&movie);
+}
+
+void __cdecl Game_PlayDayMovie() {
+    String movie;
+    String_Ctor(&movie);
+    u32 now;
+    g_calls.Cd(0x0067d3f0, &now);
+    const s32 day = ptr<const s32 *>(g_calls.Cd(0x0067d8e0, &now))[3] % 8;
+    if ((u32)day < 8) setPath(kDayMovies[day]);
+    if (lookUp(&movie)) play(&movie);
+    String_Dtor(&movie);
+}
