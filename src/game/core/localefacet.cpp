@@ -284,6 +284,30 @@ void __fastcall Numpunct_Tidy(u32 *self, void *) { numpunct_tidy(self, kNumpunct
 
 void __fastcall WNumpunct_Tidy(u32 *self, void *) { numpunct_tidy(self, 0x00709c3c); }
 
+void __fastcall WFacet709c0c_Init(u32 *self, void *, const void *) {
+    self[2] = static_cast<u32>(reinterpret_cast<uintptr_t>(widened_copy(reinterpret_cast<const char *>((uintptr_t)0x00709d0c))));
+    self[3] = static_cast<u32>(reinterpret_cast<uintptr_t>(widened_copy(reinterpret_cast<const char *>((uintptr_t)0x00709d08))));
+}
+
+u32 *__fastcall WFacet709c0c_Ctor(u32 *self, void *, u32 refs) {
+    self[1] = refs;
+    self[0] = 0x00709c0c;
+    u32 info[0x10];
+    Locinfo_Ctor(info, nullptr, reinterpret_cast<const char *>((uintptr_t)0x0075c74c));
+    WFacet709c0c_Init(self, nullptr, info);
+    Locinfo_Dtor(info);
+    return self;
+}
+
+void __fastcall WFacet709c0c_Tidy(u32 *self, void *) {
+    self[0] = 0x00709c0c;
+    IosBase_Env().memFree(reinterpret_cast<void *>((uintptr_t)self[2]));
+    IosBase_Env().memFree(reinterpret_cast<void *>((uintptr_t)self[3]));
+    self[0] = 0x00709b44;
+}
+
+u32 *__fastcall WFacet709bfc_Ctor(u32 *self, void *, u32 refs) { return refs_facet(self, refs, 0x00709bfc); }
+
 u32 *__fastcall Codecvt_Ctor(u32 *self, void *, const void *, u32 refs) {
     self[1] = refs;
     self[0] = kCodecvtVtable;

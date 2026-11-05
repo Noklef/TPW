@@ -6173,6 +6173,10 @@ address,name,kind,confidence,notes
 0x0069b460,WCodecvt_Ctor,function,low,"reimplemented (src/game/core/localefacet); codecvt<wchar_t, char, int>'s constructor"
 0x00695c00,Numpunct_Tidy,function,low,reimplemented (src/game/core/localefacet); numpunct<char>'s destructor body
 0x0069cac0,WNumpunct_Tidy,function,low,reimplemented (src/game/core/localefacet); numpunct<wchar_t>'s destructor body
+0x006a01d0,WFacet709c0c_Ctor,function,low,reimplemented (src/game/core/localefacet); wide facet of vtable 0x709c0c: constructor
+0x006a02d0,WFacet709c0c_Init,function,low,reimplemented (src/game/core/localefacet); wide facet of vtable 0x709c0c: _Init
+0x006a0480,WFacet709c0c_Tidy,function,low,reimplemented (src/game/core/localefacet); wide facet of vtable 0x709c0c: destructor body
+0x006a04b0,WFacet709bfc_Ctor,function,low,reimplemented (src/game/core/localefacet); wide facet of vtable 0x709bfc: constructor
 0x006895b0,CRT_mbctolower,function,low,reimplemented (src/game/core/crtmbstring); _mbctolower
 0x00689650,CRT_mbspbrk,function,low,reimplemented (src/game/core/crtmbstring); _mbspbrk
 0x00689400,CRT_mbsrchr,function,low,reimplemented (src/game/core/crtmbstring); _mbsrchr

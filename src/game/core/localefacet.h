@@ -23,6 +23,12 @@ u32 *__fastcall Numpunct_Ctor(u32 *self, void *, u32 refs);
 u32 *__fastcall WNumpunct_Ctor(u32 *self, void *, u32 refs);
 // 0x69c7e0 (pops 4, the _Locinfo not read): numpunct<wchar_t>::_Init: the decimal point and the separator (words at +0xc, +0xe) through btowc, signed; the grouping as bytes; "false" and "true" as words, each through btowc.
 void __fastcall WNumpunct_Init(u32 *self, void *, const void *info);
+// The wide facet of vtable 0x709c0c (names invented, by the table, unconfirmed): 0x6a01d0 (pops 4) its constructor: refs, the vtable, _Init under a _Locinfo; 0x6a02d0 (pops 4, the _Locinfo not read) _Init: +8 the text at 0x709d0c, +0xc that at 0x709d08, as words through btowc; 0x6a0480 its destructor body. 0x6a04b0 (pops 4): the constructor of vtable 0x709bfc: refs, the vtable, a _Locinfo.
+u32 *__fastcall WFacet709c0c_Ctor(u32 *self, void *, u32 refs);
+void __fastcall WFacet709c0c_Init(u32 *self, void *, const void *info);
+void __fastcall WFacet709c0c_Tidy(u32 *self, void *);
+u32 *__fastcall WFacet709bfc_Ctor(u32 *self, void *, u32 refs);
+
 // 0x695c00 / 0x69cac0: numpunct's destructor bodies: the vtable, the three texts freed, the base vtable 0x709b44.
 void __fastcall Numpunct_Tidy(u32 *self, void *);
 void __fastcall WNumpunct_Tidy(u32 *self, void *);
