@@ -11,7 +11,7 @@ from fncmp import HEAP, LOG, RAM, Bench, Call, _recorder, fill, heap, log_region
 
 GETPTD, LOCKEXIT, UNLOCKEXIT, MSIZE, REALLOC, LOCK, UNLOCK, FIND, FREEBLOCK, LOCKFILE, UNLOCKFILE, FCLOSE = range(2, 14)
 HEAPFREE = 20
-B = Bench([(0x686a00, 0x686a10), (0x67b5c0, 0x67b5f0), (0x67a740, 0x67a7f0), (0x67ad90, 0x67ae00), (0x67b620, 0x67b660), (0x67d320, 0x67d340)],
+B = Bench([(0x67d380, 0x67d39e), (0x67d230, 0x67d24e), (0x67d350, 0x67d37f), (0x682360, 0x682385), (0x68f990, 0x68f9cf), (0x67fa40, 0x67fa60), (0x686a00, 0x686a10), (0x67b5c0, 0x67b5f0), (0x67a740, 0x67a7f0), (0x67ad90, 0x67ae00), (0x67b620, 0x67b660), (0x67d320, 0x67d340)],
           hooks={0x682460: _recorder(GETPTD, 0, cdecl=True), 0x67fa20: _recorder(LOCKEXIT, 0, cdecl=True), 0x67fa30: _recorder(UNLOCKEXIT, 0, cdecl=True),
                  0x6818f0: _recorder(MSIZE, 1, cdecl=True), 0x681740: _recorder(REALLOC, 2, cdecl=True), 0x682720: _recorder(LOCK, 1, cdecl=True),
                  0x6827a0: _recorder(UNLOCK, 1, cdecl=True), 0x682b40: _recorder(FIND, 3, cdecl=True), 0x682ba0: _recorder(FREEBLOCK, 3, cdecl=True),
@@ -79,7 +79,50 @@ def errno(r):
     return Call(0x686a00, [], {LOG: log}, conv='c', ret='a')
 
 
-KINDS = {'errno': errno, 'rand': rand,'onexit': onexit, 'atexit': atexit, 'free': free, 'fclose': fclose, 'exception_dtor': exception_dtor}
+def type_info_dtor(r):
+    log = log_region()
+    strings(log, FIND, 0, out=6)
+    set_return(log, FIND, r.choice([0, r.getrandbits(32) | 1]))
+    fill(log, FIND, 1, r.bytes(4), which=0)
+    fill(log, FIND, 2, r.bytes(4), which=1)
+    regions = {LOG: log, 0xfb3cac: r.bytes(4), 0x6fd210: struct.pack('<I', recorder(HEAPFREE, 3, True)), DATA: struct.pack('<2I', r.getrandbits(32), r.choice([0, r.getrandbits(32) | 1, r.getrandbits(32) | 1]))}
+    if r.random() < 0.4:
+        return Call(0x67d380, [DATA, r.choice([0, 1, 2, 3, r.getrandbits(32)])], regions, conv='t', ret='a')
+    return Call(0x67d350, [DATA], regions, conv='t', ret='v')
+
+
+def adjust_pointer(r):
+    pdisp = r.choice([-1, -2, -0x80000000, 0, 4, 8, 0x10, 0x20])
+    vdisp = r.choice([0, 4, 8, 0x10])
+    obj = bytearray(r.bytes(0x40))
+    if pdisp >= 0:
+        struct.pack_into('<I', obj, pdisp, NEW)
+    return Call(0x682360, [DATA, TABLE], {DATA: obj, NEW: r.bytes(0x20), TABLE: struct.pack('<iii', r.choice([0, 4, 8, -4, r.getrandbits(31)]), pdisp, vdisp)}, conv='c', ret='a')
+
+
+def siglookup(r):
+    signals = [r.choice([2, 4, 8, 0xb, 0x16, r.getrandbits(32)]) for _ in range(0x20)]
+    table = b''.join(struct.pack('<3I', r.getrandbits(32), s, r.getrandbits(32)) for s in signals)
+    signal = r.choice([2, 4, 8, 0xb, 0x16, 3, signals[0], signals[1], signals[2]])
+    count = r.choice([0, 1, 2, 3, 0xa, 0x20, 0x15555556, 0x15555555])   # (the last two: the table's size wraps at 32 bits)
+    return Call(0x68f990, [signal, TABLE], {TABLE: table, 0x781514: struct.pack('<I', count)}, conv='c', ret='a')
+
+
+def initterm(r):
+    log = log_region()
+    calls = [r.choice([0, recorder(21, 0, True), recorder(22, 0, True)]) for _ in range(8)]
+    begin = TABLE + 4 * r.choice([0, 0, 1])
+    end = TABLE + 4 * r.choice([0, 1, 2, 5, 8])
+    return Call(0x67fa40, [begin, end], {LOG: log, TABLE: struct.pack('<8I', *calls)}, conv='c', ret='v')
+
+
+def exception_delete(r):
+    h = heap()
+    h[0x200:0x20c] = struct.pack('<3I', r.getrandbits(32), HEAP + 0x100, r.choice([0, 1, r.getrandbits(32)]))
+    return Call(0x67d230, [HEAP + 0x200, r.choice([0, 1, 2, 3, r.getrandbits(32)])], {HEAP: h}, conv='t', ret='a')
+
+
+KINDS = {'excdelete': exception_delete, 'typeinfo': type_info_dtor, 'adjust': adjust_pointer, 'siglookup': siglookup, 'initterm': initterm, 'errno': errno, 'rand': rand,'onexit': onexit, 'atexit': atexit, 'free': free, 'fclose': fclose, 'exception_dtor': exception_dtor}
 OPS = [k for k in os.environ.get('OPS', ','.join(KINDS)).split(',') if k]
 
 

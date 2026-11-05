@@ -34,6 +34,10 @@ char *__cdecl CRT_getenv(const char *name);
 
 // 0x68ef70: wcsncnt: the units to and with the end, within n; n when it is not there.
 u32 __cdecl CRT_wcsncnt(const u16 *text, u32 n);
+// 0x688f10 (name invented, unconfirmed; LCMapStringW's): the units before the end, at most n. Past n units the next is read, and either way n is the answer.
+u32 __cdecl CRT_wcsnlen(const u16 *text, u32 n);
+// 0x689760: _setenvp: the block at [0xfb1354] made into the table of copies at [0xfb1380], without the names that start with '='. Each failed malloc _amsg_exit(9). The block freed and [0xfb1354] cleared.
+void __cdecl CRT_setenvp();
 
 // 0x68ed80: _wcstombs_lk: without a locale ([0xfb1440] 0) the units up to 0xff; otherwise WideCharToMultiByte, by characters when the first try does not fit. A character that cannot convert: errno 0x2a, -1.
 u32 __cdecl CRT_wcstombs_lk(char *to, const u16 *from, u32 n);
@@ -43,5 +47,8 @@ u32 __cdecl CRT_wcstombs(char *to, const u16 *from, u32 n);
 
 // 0x687d80: _tzset: from "TZ" (3 letters, hours[:minutes[:seconds]], 3 letters; only when it changed), without one from GetTimeZoneInformation.
 void __cdecl CRT_tzset();
+
+// 0x67fbf0: getenv: _getenv_lk (CRT_getenv) under lock 0xc.
+char *__cdecl CRT_getenv_locked(const char *name);
 
 }

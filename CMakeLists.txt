@@ -259,6 +259,7 @@ add_library(tpw_game STATIC
     src/game/core/gamemain.cpp
     src/game/core/imeinput.cpp
     src/game/core/inputsystem.cpp
+    src/game/core/streambufiter.cpp
     src/game/gfx/text.cpp
     src/game/gfx/canvas.cpp
     src/game/gfx/canvasdraw.cpp

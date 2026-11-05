@@ -226,6 +226,46 @@ void __fastcall StdString_Freeze(StdString *s, void *) {
     if (s->ptr) refs(s->ptr) = kFrozen;
 }
 
+StdString *__fastcall StdString_CtorFill(StdString *s, void *, u32 n, u32 ch, const u8 *allocator) {
+    *reinterpret_cast<u8 *>(s) = *allocator;
+    s->ptr = nullptr;
+    s->len = 0;
+    s->res = 0;
+    return StdString_AssignFill(s, nullptr, n, ch);
+}
+
+StdString *__fastcall StdString_InsertFill(StdString *s, void *, u32 pos, u32 n, u32 ch) {
+    if (s->len < pos) g_env->xran();
+    if (*reinterpret_cast<u32 *>((uintptr_t)0x006fe5ac) - s->len <= n) g_env->xlen();
+    if (!n) return s;
+    const u32 total = s->len + n;
+    if (StdString_Grow(s, nullptr, total, 0)) {   // (inlined; memmove's)
+        for (u32 i = s->len - pos; i--;) s->ptr[pos + n + i] = s->ptr[pos + i];
+        for (u32 i = 0; i < n; ++i) s->ptr[pos + i] = (char)ch;
+        s->len = total;
+        s->ptr[total] = 0;
+    }
+    return s;
+}
+
+StdString *__fastcall StdString_AppendFill(StdString *s, void *, u32 n, u32 ch) {
+    if (*reinterpret_cast<u32 *>((uintptr_t)0x006fe5ac) - s->len <= n) g_env->xlen();
+    if (!n) return s;
+    const u32 total = s->len + n;
+    if (StdString_Grow(s, nullptr, total, 0)) {   // (inlined)
+        for (u32 i = 0; i < n; ++i) s->ptr[s->len + i] = (char)ch;
+        s->len = total;
+        s->ptr[total] = 0;
+    }
+    return s;
+}
+
+char *__fastcall StdString_At(StdString *s, void *, u32 pos) {
+    if (s->len < pos || !s->ptr) return const_cast<char *>(kNullStr);
+    StdString_Freeze(s, nullptr);
+    return s->ptr + pos;
+}
+
 StdString *__fastcall StdString_AppendSub(StdString *s, void *, const StdString *x, u32 pos, u32 n) {
     if (x->len < pos) g_env->xran();
     const u32 rest = x->len - pos;

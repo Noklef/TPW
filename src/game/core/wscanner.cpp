@@ -107,6 +107,11 @@ u8 *__fastcall WScanner_ConstructBase(u8 *scanner) {
     return scanner;
 }
 
+void __fastcall WScanner_Destruct(u8 *scanner) {
+    CountedList_ClearRelease(scanner + 0x44);
+    WScanner_DestructBase(scanner);
+}
+
 void __fastcall WScanner_DestructBase(u8 *scanner) {
     at<u32>(scanner, 0) = 0x702f18;
     StdTree_DtorG(scanner + 0x24);

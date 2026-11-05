@@ -28,12 +28,22 @@ extern "C" {
 u32 *__fastcall BadAlloc_Ctor(u32 *self, void *, const char *text);
 u32 *__fastcall BadAlloc_Copy(u32 *self, void *, const u32 *from);
 void __fastcall BadAlloc_Dtor(u32 *self);
+u32 *__fastcall BadAlloc_DeletingDtor(u32 *self, void *, u32 flags);  // 0x6a66a0
+void __fastcall BadAlloc_Doraise(const u32 *self);                    // 0x6a6680
 
 // 0x6a65f0: _Nomemory: a copy of the one bad_alloc ([0xfb1e70], made once: flag bit 0 of [0xfb1e68]; atexit 0x6a66e0) thrown with info 0x721c88.
 void __cdecl Nomemory();
 
 // 0x698ea0: _Locimp::_Addfac (pops 8): the array grown to hold id (at least 0x20, the new slots null), the facet counted in, the one it replaces counted out and deleted at 0.
 void __fastcall Locimp_Addfac(Locimp *self, void *, LocaleFacet *facet, u32 id);
+
+// 0x699f70 (pops 4): _Locimp's constructor: count 1, no facets, the byte at +0x14 and the name's allocator from the argument, the name the text at 0x747828 (assign inlined); the vtable 0x709b44, then 0x709bac.
+Locimp *__fastcall Locimp_Ctor(Locimp *self, void *, u32 xparse);
+// 0x69a080: _Locimp's destructor body: under the lock each facet from the last, a count dropped, and deleted when none are left; the array freed; the name released; the base vtable 0x709b44.
+void __fastcall Locimp_Dtor(Locimp *self, void *);
+Locimp *__fastcall Locimp_DeletingDtor(Locimp *self, void *, u32 flags);   // 0x698e80 (name invented, unconfirmed)
+// 0x699ee0 (atexit; name invented, unconfirmed): under the lock the facet at [0xfb1dd0], a count dropped, and deleted when none are left. The global is left as it is.
+void __cdecl Locimp_TidyAtExit();
 
 // 0x698c70: _Locimp's copy (pops 4): count 1; the classic one ([0xfb1dcc]) gives all categories' facets by _Makeloc, any other its facets counted in.
 Locimp *__fastcall Locimp_Copy(Locimp *self, void *, const Locimp *from);

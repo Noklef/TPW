@@ -105,6 +105,38 @@ s32 __cdecl CRT_strncmp(const char *a, const char *b, u32 n) {
     return 0;
 }
 
+void __cdecl CRT_fix_grouping(char *text) {
+    while (*text) {
+        const s8 c = static_cast<s8>(*text);
+        if (c >= 0x30 && c <= 0x39) {
+            *text = static_cast<char>(c - 0x30);
+            ++text;
+        } else if (c == 0x3b) {
+            for (char *at = text; (*at = at[1]) != 0;) ++at;
+        } else {
+            ++text;
+        }
+    }
+}
+
+void __cdecl CRT_free_lconv_mon(u32 *lconv) {
+    if (!lconv || lconv[3] == 0x00fb1940) return;
+    for (u32 slot = 3; slot < 10; ++slot) Crt().free(reinterpret_cast<void *>((uintptr_t)lconv[slot]));
+}
+
+u32 __cdecl CRT_LcidFromHexString(const char *text) {
+    u32 value = 0;
+    for (; *text; ++text) {
+        s8 c = static_cast<s8>(*text);
+        if (c >= 0x61 && c <= 0x66)
+            c = static_cast<s8>(c - 0x27);
+        else if (c >= 0x41 && c <= 0x46)
+            c = static_cast<s8>(c - 7);
+        value = value * 16 + static_cast<u32>(static_cast<s32>(c)) - 0x30;
+    }
+    return value;
+}
+
 u32 __cdecl CRT_strcspn(const char *text, const char *set) {
     bool in_set[0x100] = {};
     for (; *set; ++set) in_set[static_cast<u8>(*set)] = true;
@@ -357,4 +389,34 @@ char *__cdecl CRT_setlocale(s32 category, const char *locale) {
     CrtInner().unlock(0x13);
     --global<s32>(0x00fb3ca4);
     return result;
+}
+
+u32 __cdecl CRT_TestDefaultLanguage(u32 lcid, u32 primary) {
+    char info[0x78];
+    if (!locale_info()((lcid & 0x3ff) | 0x400, 1, info, sizeof info)) return 0;
+    if (lcid != CRT_LcidFromHexString(info) && primary && static_cast<u32>(CRT_GetPrimaryLen(language())) == std::strlen(language())) return 0;
+    return 1;
+}
+
+u32 __cdecl CRT_TestDefaultCountry(u32 lcid) {
+    const u16 *const languages = reinterpret_cast<const u16 *>((uintptr_t)0x00781a20);
+    for (u32 i = 0; i < 10; ++i) {
+        if (languages[i] == static_cast<u16>(lcid)) return 0;
+    }
+    return 1;
+}
+
+s32 __stdcall CRT_CountryEnumProc(const char *hex) {
+    const u32 lcid = CRT_LcidFromHexString(hex);
+    char name[0x78];
+    if (!locale_info()(lcid, global<u32>(0x00fb18e0) ? 7 : 0x1002, name, sizeof name)) {
+        global<u32>(0x00fb18f4) = 0;
+        return 1;
+    }
+    if (!CRT_stricmp(global<const char *>(0x00fb18f0), name) && CRT_TestDefaultCountry(lcid)) {
+        global<u32>(0x00fb18f8) = lcid;
+        global<u32>(0x00fb18dc) = lcid;
+        global<u32>(0x00fb18f4) |= 4;
+    }
+    return ~global<u32>(0x00fb18f4) >> 2 & 1;
 }

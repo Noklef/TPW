@@ -48,6 +48,16 @@ s32 __cdecl CRT_setvbuf(CrtFile *file, char *buffer, u32 type, u32 size);
 s32 __cdecl CRT_fflush_lk(CrtFile *file);
 s32 __cdecl CRT_fflush(CrtFile *file);
 
+// 0x67e830: _dtoxmode: a file's mode from its attributes and path: a path of a root slash, an empty one past any drive, or attribute 0x10: a directory (0x4040), else 0x8000; read 0x100, write 0x80 unless attribute 1; execute 0x40 for .exe, .cmd, .bat, .com by _mbsicmp; each right copied down to group and other.
+u32 __cdecl CRT_dtoxmode(u32 attributes, const char *path);
+// 0x67ec40: IsRootUNCName: at least 5 bytes, two slashes, then from the fourth byte a name, a slash, a second name that is not empty, and at most one slash that ends the text.
+u32 __cdecl CRT_IsRootUNCName(const char *path);
+
+// 0x67b660: _fclose_lk: a stream in use: _flush (its answer the result), _freebuf, _close, then the temporary file's name freed; a failed close -1, that name kept. The flags cleared in every case; not in use: -1.
+s32 __cdecl CRT_fclose_lk(CrtFile *file);
+// 0x6891b0: _fcloseall: under lock 2, from stream 3 up: those in use closed by fclose and counted when that is not -1; from slot 20 up the slot's section deleted, its block freed and the slot emptied. Returns the count.
+s32 __cdecl CRT_fcloseall();
+
 // 0x67d170, 0x67d160: flsall, _flushall (mode 1): under lock 2 every stream in use, locked. Mode 1: all flushed, the count of them that did; mode 0: those being written, -1 if one failed; any other: none, 0.
 s32 __cdecl CRT_flsall(s32 mode);
 s32 __cdecl CRT_flushall();

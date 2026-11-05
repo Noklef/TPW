@@ -27,6 +27,9 @@ void part(char *out, const char *from, u32 n) {
 
 extern "C" {
 
+void __cdecl CRT_purecall() { CRT_amsg_exit(0x19); }
+void __cdecl CRT_fptrap() { CRT_amsg_exit(2); }
+
 void __cdecl CRT_amsg_exit(s32 code) {
     if (global<u32>(0x00fb135c) == 1) CRT_FF_MSGBANNER();
     CRT_NMSG_WRITE(code);

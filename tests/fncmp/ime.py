@@ -19,7 +19,7 @@ B = Bench([(0x478b60, 0x478bc0), (0x47c910, 0x47c93e), (0x47c940, 0x47c963), (0x
            (0x47c720, 0x47c733), (0x47c700, 0x47c713), (0x47ae40, 0x47ae53), (0x47b300, 0x47b313),
            (0x47a960, 0x47a975), (0x47a980, 0x47a99f), (0x47ba30, 0x47ba43), (0x480e70, 0x480eb8),
            (0x480f90, 0x480fce), (0x66852b, 0x668564), (0x67acd0, 0x67ad00), (0x479260, 0x47937b),
-           (0x4791a0, 0x4791b8), (0x478d20, 0x478d31), (0x6b559a, 0x6b55ac), (0x478bc0, 0x478bde), (0x478be0, 0x478cea), (0x480960, 0x4809e5), (0x4f23f0, 0x4f2450),
+           (0x4791a0, 0x4791b8), (0x478d20, 0x478d31), (0x6b559a, 0x6b55ac), (0x6b5576, 0x6b557c), (0x6b5594, 0x6b559a), (0x478bc0, 0x478bde), (0x478be0, 0x478cea), (0x480960, 0x4809e5), (0x4f23f0, 0x4f2450),
            (0x47aba0, 0x47ac01)])
 CONTEXT_IMPORTS = {'ImmGetContext': (0, 0x6fd084, 1, 0, 0), 'ImmReleaseContext': (1, 0x6fd080, 2, 0, 0),
                    'ImmDestroyContext': (2, 0x6fd07c, 1, 0, 0)}
@@ -66,6 +66,12 @@ def case(r):
         regions[RAM] = ime
         character = r.choice([r.getrandbits(32), r.getrandbits(8), 0x81, 0xe0, 0])
         return Call(0x479260, [RAM, r.getrandbits(32), character, r.getrandbits(32)], regions, conv='t', ret='a')
+    if op in ('SetCompositionString', 'GetCandidateList'):   # the IMM32 thunks 0x6b5576 / 0x6b5594: the imports as recorders
+        log = log_region()
+        regions = {LOG: log, IMPORT_TABLE: import_table(log, {'ImmSetCompositionStringA': (0, 0x6fd094, 6, 0, 0), 'ImmGetCandidateListA': (1, 0x6fd078, 4, 0, 0)})}
+        set_return(log, 0 if op == 'SetCompositionString' else 1, r.getrandbits(32))
+        args = [r.getrandbits(32) for _ in range(6 if op == 'SetCompositionString' else 4)]
+        return Call(0x6b5576 if op == 'SetCompositionString' else 0x6b5594, args, regions, conv='s', ret='a')
     if op in ('GetContext', 'ReleaseContext'):   # 0x4791a0 / 0x478d20 through the IMM32 thunks: the imports as recorders
         log = log_region()
         regions = {LOG: log, IMPORT_TABLE: import_table(log, CONTEXT_IMPORTS), RAM: mem}
@@ -140,7 +146,7 @@ def case(r):
     return Call(0x47c940, [r.getrandbits(32), dst, n, value], {RAM: mem}, conv='t')
 
 
-OPS_ALL = ['Ctor', 'Copy', 'Fill', 'Size', 'Current', 'Limit', 'Construct', 'SetLength', 'Host', 'TextLength', 'OnWindow', 'Char', 'GetContext', 'ReleaseContext', 'Dtor', 'DelDtor', 'HostDtor']
+OPS_ALL = ['Ctor', 'Copy', 'Fill', 'Size', 'Current', 'Limit', 'Construct', 'SetLength', 'Host', 'TextLength', 'OnWindow', 'Char', 'GetContext', 'ReleaseContext', 'Dtor', 'DelDtor', 'HostDtor', 'SetCompositionString', 'GetCandidateList']
 OPS = [k for k in os.environ.get('OPS', ','.join(OPS_ALL)).split(',') if k]
 
 

@@ -9,9 +9,9 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
 from locimp import A_REALLOC, FACET, FACETS, HANDLE, SELF, SOURCE, facets, imp_bytes, locale_state  # noqa: E402
 from locinfo import A_MALLOC, BLOCKS, LOCK, NHMALLOC, REALLOC, UNLOCK  # noqa: E402
-from fncmp import HEAP, IMPORT_TABLE, LOG, RAM, Bench, Call, _cdecl_log, _free, _recorder, answers, blob, heap, import_table, log_region, set_return  # noqa: E402
+from fncmp import HEAP, IMPORT_TABLE, LOG, RAM, Bench, Call, _cdecl_log, _free, _recorder, answers, blob, fill, heap, import_table, log_region, set_return, strings  # noqa: E402
 
-MAKEXLOC, MAKEWLOC, CTYPE, THROW, ATEXIT = 0, 1, 18, 14, 20
+MAKEXLOC, MAKEWLOC, CTYPE, THROW, ATEXIT, MBRTOWC = 0, 1, 18, 14, 20, 23
 LCID, VERSION, VALIDCP, VALIDLOCALE, ENUM, INFO, INC, DEC = 22, 23, 24, 25, 26, 27, 2, 3
 SET_RELEASES = (0x5d15d0, 0x699650, 0x699890)
 _at_exit = _recorder(ATEXIT, 1, cdecl=True)
@@ -26,17 +26,18 @@ def lock(e):
     e.r['EAX'] = e.r['ECX']
 
 
-B = Bench([(0x694710, 0x69477b), (0x694780, 0x6947df), (0x695c40, 0x695c9f), (0x695a30, 0x695ae6), (0x699410, 0x699440), (0x698c40, 0x698c61), (0x6991f0, 0x699408), (0x699440, 0x6995ca), (0x693e20, 0x693f4b), (0x694120, 0x69470a),
+RANGES = [(0x6a4440, 0x6a445e), (0x6a4750, 0x6a476e), (0x6a74a0, 0x6a74be), (0x6ab090, 0x6ab0ae), (0x6ab370, 0x6ab38e), (0x6a9190, 0x6a91ae), (0x6a23e0, 0x6a23fe), (0x695be0, 0x695bfe), (0x69caa0, 0x69cabe), (0x6a0460, 0x6a047e), (0x69ff80, 0x69ffd7), (0x6a7270, 0x6a728e), (0x6a9180, 0x6a9190), (0x6ad010, 0x6ad030), (0x6a4460, 0x6a4489), (0x6a74c0, 0x6a74e9), (0x6ab0b0, 0x6ab0d9), (0x6a4770, 0x6a478d), (0x6ab390, 0x6ab3ad), (0x6a4510, 0x6a451c), (0x67acb0, 0x67acbe), (0x6a7290, 0x6a7367), (0x6a7370, 0x6a73e1), (0x6a74f0, 0x6a754f), (0x6a9200, 0x6a925f), (0x6a49e0, 0x6a4a28), (0x6a2400, 0x6a2441), (0x6a91b0, 0x6a91f1), (0x6a01d0, 0x6a02cf), (0x6a02d0, 0x6a036b), (0x6a0480, 0x6a04a9), (0x6a04b0, 0x6a050f), (0x69b460, 0x69b481), (0x69b490, 0x69b4ef), (0x69cb00, 0x69cb5f), (0x695910, 0x695a2d), (0x69c680, 0x69c7db), (0x69c7e0, 0x69c8d8), (0x695c00, 0x695c35), (0x69cac0, 0x69caf5), (0x693dc0, 0x693e20), (0x694710, 0x69477b), (0x694780, 0x6947df), (0x695c40, 0x695c9f), (0x695a30, 0x695ae6), (0x699410, 0x699440), (0x698c40, 0x698c61), (0x6991f0, 0x699408), (0x699440, 0x6995ca), (0x693e20, 0x693f4b), (0x694120, 0x69470a),
            (0x699bd0, 0x699c89), (0x69a560, 0x69a5c8), (0x699ce0, 0x699d47), (0x699d50, 0x699d9b), (0x4f21a0, 0x4f21cf), (0x4f1890, 0x4f18a2), (0x4f2180, 0x4f2199), (0x691530, 0x691536), (0x5d1460, 0x5d14e0), (0x6995d0, 0x699650), (0x699810, 0x699890),
            (0x698ea0, 0x698fc0), (0x6a65f0, 0x6a6644), (0x6a6650, 0x6a6669), (0x6a66c0, 0x6a66d9), (0x6a6670, 0x6a667c), (0x67d250, 0x67d340), (0x45b340, 0x45b9a0), (0x4f1400, 0x4f1511),
            (0x698fc0, 0x6990fa), (0x699100, 0x6991e2), (0x683ac0, 0x683d88), (0x683d90, 0x683ee5), (0x683ef0, 0x68400b), (0x684010, 0x684202), (0x684210, 0x684254), (0x684260, 0x684367), (0x684370, 0x6843da), (0x68db70, 0x68dbae),
            (0x67c250, 0x67c288), (0x68dbb0, 0x68dd41), (0x68dd50, 0x68ddad), (0x68ddb0, 0x68de3a), (0x68e120, 0x68e17e), (0x68e260, 0x68e29e), (0x68e340, 0x68e35b), (0x68e360, 0x68e443), (0x68e510, 0x68e549), (0x68e6c0, 0x68e6e1),
-           (0x67d7f0, 0x67d82a), (0x67dcd0, 0x67dcf0), (0x67df40, 0x67e010), (0x67a480, 0x67a519), (0x688730, 0x68876d), (0x688770, 0x6887d1), (0x67ae00, 0x67aefe)],
-          hooks={0x67ad90: _free, 0x691de0: lock, 0x691ea0: lambda e: None, 0x67d3a0: _recorder(THROW, 2, com=True), 0x67a7d0: at_exit, 0x6a67f0: _recorder(MAKEXLOC, 4, cdecl=True), 0x69a7a0: _recorder(MAKEWLOC, 4, cdecl=True), 0x5cfb60: _recorder(CTYPE, 3),
-                 0x681740: _recorder(REALLOC, 2, cdecl=True), 0x67dcf0: _recorder(NHMALLOC, 2, cdecl=True), 0x682720: _recorder(LOCK, 1, cdecl=True), 0x6827a0: _recorder(UNLOCK, 1, cdecl=True)})
+           (0x67d7f0, 0x67d82a), (0x67dcd0, 0x67dcf0), (0x67df40, 0x67e010), (0x67a480, 0x67a519), (0x688730, 0x68876d), (0x688770, 0x6887d1), (0x67ae00, 0x67aefe)]
+HOOKS = {0x693bc0: _recorder(MBRTOWC, 5, cdecl=True), 0x67ad90: _free, 0x691de0: lock, 0x691ea0: lambda e: None, 0x67d3a0: _recorder(THROW, 2, com=True), 0x67a7d0: at_exit, 0x6a67f0: _recorder(MAKEXLOC, 4, cdecl=True), 0x69a7a0: _recorder(MAKEWLOC, 4, cdecl=True), 0x5cfb60: _recorder(CTYPE, 3),
+                 0x681740: _recorder(REALLOC, 2, cdecl=True), 0x67dcf0: _recorder(NHMALLOC, 2, cdecl=True), 0x682720: _recorder(LOCK, 1, cdecl=True), 0x6827a0: _recorder(UNLOCK, 1, cdecl=True)}
+B = Bench(RANGES, hooks=HOOKS)
 OTHER_FACETS, LCONV, PCTYPE, LOCINFO, OUT, DEC_TEXT = RAM + 0x2000, RAM + 0x2200, RAM + 0x2400, RAM + 0x2800, RAM + 0x2900, RAM + 0x2a00
 NAME = HEAP + 0xa00
-OPS = [n for n in ('ctypeinit', 'numput', 'numget', 'numpunctinit', 'numpunctcopy', 'codecvt', 'usenumpunct', 'usenumpunct', 'usecodecvt', 'usecodecvt', 'getname', 'getname', 'makeloc', 'makeloc', 'makeloc', 'makeloc', 'makeloc')
+OPS = [n for n in ('widecmp', 'widecmp', 'del709b44', 'del70a0a8', 'fdtor2', 'fdtor2', 'fdtor2', 'fdtor1', 'fdtor1', 'timevec', 'f7fac', 'f7facinit', 'f79c', 'f78c', 'widecopy', 'mptidyw', 'mptidyc', 'pairctor', 'pairinit', 'pairtidy', 'wbfc', 'numpunct', 'wnumpunct', 'wnumpunctinit', 'wnumget', 'wnumput', 'wcodecvt', 'tidy', 'wtidy', 'ctypeinit', 'numput', 'numget', 'numpunctinit', 'numpunctcopy', 'codecvt', 'usenumpunct', 'usenumpunct', 'usecodecvt', 'usecodecvt', 'getname', 'getname', 'makeloc', 'makeloc', 'makeloc', 'makeloc', 'makeloc')
        if not os.environ.get('OPS') or n in os.environ['OPS'].split(',')]
 
 
@@ -107,6 +108,66 @@ def case(r):
                                                 'inc': (INC, 0x6fd0c0, 1, 0, 0), 'dec': (DEC, 0x6fd12c, 1, 0, 0)})}
     state(r, regions, log)
     regions[OUT] = r.bytes(0x20)
+    if name in ('numput', 'numget', 'wnumget', 'wnumput', 'numpunct', 'wnumpunct', 'pairctor', 'wbfc', 'f7fac', 'f79c', 'f78c'):   # (the name read where it lies)
+        regions[0x75c74c] = r.choice([b'C\0', b'C\0', b'C\0', b'x\0'])
+    if name in ('wnumpunct', 'wnumpunctinit', 'pairctor', 'pairinit', 'widecopy'):   # (the character fetched or not; the slots out of the recorder's log, as in crt_wide.py: they are stack addresses)
+        strings(log, MBRTOWC, 0, out=9)
+        blob(log, MBRTOWC, 1, 1)
+        set_return(log, MBRTOWC, r.choice([0, 1, 1, 0xffffffff]))
+        fill(log, MBRTOWC, 0, r.bytes(4))
+    if name in ('f7fac', 'f7facinit', 'widecopy'):
+        regions[0x709d08] = r.choice([b'ab\0\0cd\0\0', b'\0\0\0\0abc\0', b'a\0\0\0\0\0\0\0'])
+        if name == 'widecopy':
+            return Call(0x6a49e0, [r.choice([0x709d08, 0x709d0c])], regions, conv='c', ret='a')
+        if name == 'f7facinit':
+            return Call(0x6a7370, [OUT, 0], regions, conv='t')
+        return Call(0x6a7290, [OUT, r.choice([0, 1, 0xffffffff])], regions, conv='t', ret='a')
+    if name in ('f79c', 'f78c'):
+        return Call(0x6a74f0 if name == 'f79c' else 0x6a9200, [OUT, r.choice([0, 1, 0xffffffff])], regions, conv='t', ret='a')
+    if name == 'widecmp':
+        a = [r.choice([0x41, 0x42, 0x8000, 0xffff]) for _ in range(r.randrange(6))]
+        b = a[:r.randrange(len(a) + 1)] + [r.choice([0x41, 0x42, 0x8000, 0xffff]) for _ in range(r.randrange(3))]
+        regions[OUT] = struct.pack('<%dH' % len(a), *a) + bytes(2)
+        regions[OUT + 0x40] = struct.pack('<%dH' % len(b), *b) + bytes(2)
+        return Call(0x69ff80, [r.getrandbits(32), OUT, OUT + 2 * len(a), OUT + 0x40, OUT + 0x40 + 2 * len(b)], regions, conv='t', ret='a')
+    if name in ('del709b44', 'del70a0a8'):
+        regions[OUT] = r.bytes(8)
+        return Call(0x6a7270 if name == 'del709b44' else 0x6ad010, [OUT, r.choice([0, 1, 2, 3, r.getrandbits(32)])], regions, conv='t', ret='a')
+    if name in ('fdtor2', 'fdtor1', 'timevec'):
+        regions[OUT] = struct.pack('<4I', r.choice([0, HEAP + 0x100]), r.getrandbits(32), r.choice([0, HEAP + 0x200]), r.choice([0, HEAP + 0x300]))
+        if name != 'timevec' and r.random() < 0.4:
+            return Call(r.choice({'fdtor2': [0x6a4440, 0x6a74a0, 0x6ab090], 'fdtor1': [0x6a4750, 0x6ab370]}[name]), [OUT, r.choice([0, 1, 2, 3, r.getrandbits(32)])], regions, conv='t', ret='a')
+        return Call(r.choice({'fdtor2': [0x6a4460, 0x6a74c0, 0x6ab0b0], 'fdtor1': [0x6a4770, 0x6ab390], 'timevec': [0x6a4510]}[name]), [OUT], regions, conv='t')
+    if name in ('mptidyw', 'mptidyc'):
+        regions[OUT] = struct.pack('<8I', *[r.getrandbits(32) if i not in (2, 4, 5, 6) else r.choice([0, HEAP + 0x100 * i]) for i in range(8)])
+        if r.random() < 0.4:
+            return Call(0x6a23e0 if name == 'mptidyw' else 0x6a9190, [OUT, r.choice([0, 1, 2, 3, r.getrandbits(32)])], regions, conv='t', ret='a')
+        return Call(0x6a2400 if name == 'mptidyw' else 0x6a91b0, [OUT], regions, conv='t')
+    if name in ('pairctor', 'pairinit'):
+        regions[0x709d08] = r.choice([b'ab\0\0cd\0\0', b'\0\0\0\0abc\0', b'a\0\0\0\0\0\0\0'])
+        if name == 'pairinit':
+            return Call(0x6a02d0, [OUT, 0], regions, conv='t')
+        return Call(0x6a01d0, [OUT, r.choice([0, 1, 0xffffffff])], regions, conv='t', ret='a')
+    if name == 'pairtidy':
+        regions[OUT] = struct.pack('<8I', *[r.getrandbits(32) if i not in (2, 3) else r.choice([0, HEAP + 0x100 * i]) for i in range(8)])
+        if r.random() < 0.4:
+            return Call(0x6a0460, [OUT, r.choice([0, 1, 2, 3, r.getrandbits(32)])], regions, conv='t', ret='a')
+        return Call(0x6a0480, [OUT], regions, conv='t')
+    if name == 'wbfc':
+        return Call(0x6a04b0, [OUT, r.choice([0, 1, 0xffffffff])], regions, conv='t', ret='a')
+    if name in ('numpunct', 'wnumpunct'):
+        return Call(0x695910 if name == 'numpunct' else 0x69c680, [OUT, r.choice([0, 1, 0xffffffff])], regions, conv='t', ret='a')
+    if name == 'wnumpunctinit':
+        return Call(0x69c7e0, [OUT, 0], regions, conv='t')
+    if name in ('wnumget', 'wnumput'):
+        return Call(0x69b490 if name == 'wnumget' else 0x69cb00, [OUT, r.choice([0, 1, 0xffffffff])], regions, conv='t', ret='a')
+    if name == 'wcodecvt':
+        return Call(0x69b460, [OUT, 0, r.choice([0, 1, 0xffffffff])], regions, conv='t', ret='a')
+    if name in ('tidy', 'wtidy'):
+        regions[OUT] = struct.pack('<8I', *[r.getrandbits(32) if i not in (2, 4, 5) else r.choice([0, HEAP + 0x100 * i]) for i in range(8)])
+        if r.random() < 0.4:
+            return Call(0x695be0 if name == 'tidy' else 0x69caa0, [OUT, r.choice([0, 1, 2, 3, r.getrandbits(32)])], regions, conv='t', ret='a')
+        return Call(0x695c00 if name == 'tidy' else 0x69cac0, [OUT], regions, conv='t')
     if name == 'ctypeinit':
         return Call(0x694710, [OUT, 0], regions, conv='t')
     if name in ('numput', 'numget'):

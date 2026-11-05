@@ -7,6 +7,8 @@ extern "C" {
 
 // 0x67efc0, 0x67eff0: _amsg_exit, _fast_error_exit: with [0xfb135c] 1 the banner, the message, then exit(0xff) by [0x77ea80] or ExitProcess(0xff).
 void __cdecl CRT_amsg_exit(s32 code);
+void __cdecl CRT_purecall();  // 0x67b0c0
+void __cdecl CRT_fptrap();    // 0x68c310
 void __cdecl CRT_fast_error_exit(s32 code);
 
 // 0x68a170: _FF_MSGBANNER: on a console (see _NMSG_WRITE) message 0xfc, the hook [0xfb1888] when set, message 0xff.

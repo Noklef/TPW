@@ -34,6 +34,11 @@ static_assert(sizeof(StdWString) == 16, "MSVC6 basic_string is 16 bytes");
 // All __thiscall (self in ECX), written as __fastcall with an unused EDX.
 extern "C" {
 
+// 0x6a1750 (pos, n, ch; pops 12): insert(pos, n, ch): pos past the length _Xran; npos (0x6fef00) less the length not above n _Xlen; no n, nothing; _Grow(total, false) inlined, the tail moved up, n copies of ch and the end. Returns s.
+StdWString *__fastcall StdWString_InsertFill(StdWString *s, void *edx, u32 pos, u32 n, u32 ch);
+// 0x69cf70 (n, ch; pops 8): append(n, ch): npos (0x6fef00) less the length not above n _Xlen; no n, nothing; _Grow(total, false) inlined, then n copies of ch and the end. Returns s.
+StdWString *__fastcall StdWString_AppendFill(StdWString *s, void *edx, u32 n, u32 ch);
+
 // 0x405280: _Copy(n): a new block for n characters (n | 31 of capacity), keeping the old ones;
 // the old block released (freed if s was its only owner or it was frozen, else a count dropped).
 void __fastcall StdWString_Copy(StdWString *s, void *edx, u32 n);

@@ -13,6 +13,7 @@
 #include "../core/textarg.h"
 #include "../core/trivial.h"
 #include "../core/wstringmap.h"
+#include "../core/wscanner.h"
 #include "../core/wtraits.h"
 #include "../files/charsets.h"
 #include "../ui/dialogs.h"
@@ -354,6 +355,57 @@ void __fastcall ChatAvatar_Notice(u8 *, void *, StdWString text, u32 color) {
     if (GlobalSave_Byte25(GlobalSave_Instance()))
         g_env->censor(GlobalSave_Instance(), nullptr, &text, 1);
     g_env->chatAdd(const_cast<u16 *>(text.ptr ? text.ptr : kNullStr), color);
+    if (text.ptr) {  // _Tidy(true), inlined
+        u8 &refs = *reinterpret_cast<u8 *>(reinterpret_cast<uintptr_t>(text.ptr) - 1);
+        if (refs != 0 && refs != 0xff)
+            --refs;
+        else
+            GameHeap_Free(reinterpret_cast<u8 *>(text.ptr) - 2);
+    }
+}
+
+void __fastcall ChatAvatar_ParseCommand(u8 *avatar, void *, StdWString text) {
+    if (!text.len) {
+        reset(&text, 1);
+        return;
+    }
+    alignas(4) u8 tokens[16] = {};               // a vector of CountedPairs: the allocator byte, first, last, end
+    StdWString out;
+    out.allocator = 0;
+    reset(&out, 0);
+    alignas(4) u8 scanner[0x58];
+    WScanner_Construct(scanner, nullptr, tokens, &out);
+    StdWString line;
+    line.allocator = text.allocator;
+    reset(&line, 0);
+    StdWString_AssignSub(&line, nullptr, &text, 0, npos());
+    WScanner_Parse(scanner, nullptr, line);
+    const u8 *const first = at<const u8 *>(tokens, 4);
+    if (!first || (at<const u8 *>(tokens, 8) - first) / 0x24 == 0) {
+        CountedPair t;
+        t.narrow.allocator = 0;
+        StdString_Tidy(&t.narrow, nullptr, 0);
+        t.wide.allocator = 0;
+        reset(&t.wide, 0);
+        t.value = 0x17;
+        CountedPairVector_InsertN(tokens, nullptr, at<u32>(tokens, 8), 1, &t);
+        reset(&t.wide, 1);
+        StdString_Tidy(&t.narrow, nullptr, 1);
+        StdWString copy;
+        copy.allocator = out.allocator;
+        reset(&copy, 0);
+        StdWString_AssignSub(&copy, nullptr, &out, 0, npos());
+        CountedPair_CtorWide(&t, nullptr, copy);
+        CountedPairVector_InsertN(tokens, nullptr, at<u32>(tokens, 8), 1, &t);
+        reset(&t.wide, 1);
+        StdString_Tidy(&t.narrow, nullptr, 1);
+    }
+    ChatAvatar_RunCommand(avatar, nullptr, tokens);
+    WScanner_Destruct(scanner);   // (the original: 0x4f04d0 on +0x44, then 0x5e6a00)
+    reset(&out, 1);
+    for (u8 *e = at<u8 *>(tokens, 4); e != at<u8 *>(tokens, 8); e += 0x24)
+        CountedPair_Clear(e);
+    GameHeap_Free(at<u8 *>(tokens, 4));
     if (text.ptr) {  // _Tidy(true), inlined
         u8 &refs = *reinterpret_cast<u8 *>(reinterpret_cast<uintptr_t>(text.ptr) - 1);
         if (refs != 0 && refs != 0xff)

@@ -66,6 +66,63 @@ void setFormat(u32 red, u32 green, u32 blue) {
 
 void RasterFormat_SetEnv(const RasterFormatEnv *env) { g_env = env ? env : &kGameEnv; }
 
+u32 __cdecl RasterFormat_BitCount(u32 mask) {
+    u32 count = 0;
+    for (u32 bit = 0; bit < 0x1f; ++bit) {
+        if (mask & 1u << bit) ++count;
+    }
+    return count;
+}
+
+u32 __cdecl RasterFormat_LowBit(u32 mask) {
+    u32 position = 0;
+    while (!(mask & 1)) {
+        mask = static_cast<u32>(static_cast<s32>(mask) >> 1);
+        ++position;
+    }
+    return position;
+}
+
+void __cdecl RasterFormat_BlendTables() {
+    u32 *const shares = reinterpret_cast<u32 *>((uintptr_t)0x00fbe2e0);
+    u32 *const rests = reinterpret_cast<u32 *>((uintptr_t)0x00fbe4e0);
+    for (s32 i = 0; i < 0x40; ++i) {
+        const s32 share = i * 0x10000 / 255;
+        const s32 rest = 0x4000 - share;
+        shares[i * 2] = shares[i * 2 + 1] = static_cast<u32>(share) << 16 | static_cast<u32>(share);
+        rests[i * 2] = rests[i * 2 + 1] = static_cast<u32>(rest) << 16 | static_cast<u32>(rest);
+    }
+}
+
+static u32 alloc_once(u32 *block, u32 size, u32 margin) {
+    if (*block) return 0;
+    *block = static_cast<u32>(reinterpret_cast<uintptr_t>(CRT_malloc(size)));
+    const u32 aligned = (*block + margin) & ~0x1fu;
+    block[1] = aligned;
+    return aligned;
+}
+
+u32 __cdecl RasterFormat_FrameBuffer(u32 width, u32 height) { return alloc_once(reinterpret_cast<u32 *>((uintptr_t)0x00fac52c), width * height * 4 + 0x6423, 0x3220); }
+
+u32 __cdecl RasterFormat_ZBuffer(u32 width, u32 height) { return alloc_once(reinterpret_cast<u32 *>((uintptr_t)0x00fac534), width * height * 2 + 0x3223, 0x1920); }
+
+static void free_once(u32 *block) {
+    if (!*block) return;
+    Crt().free(reinterpret_cast<void *>((uintptr_t)*block));
+    block[0] = 0;
+    block[1] = 0;
+}
+
+void __cdecl RasterFormat_FreeFrameBuffer() { free_once(reinterpret_cast<u32 *>((uintptr_t)0x00fac52c)); }
+
+void __cdecl RasterFormat_FreeZBuffer() { free_once(reinterpret_cast<u32 *>((uintptr_t)0x00fac534)); }
+
+void __cdecl RasterFormat_FreeBuffers() {
+    RasterFormat_FreeZBuffer();
+    RasterFormat_FreeFrameBuffer();
+    --*reinterpret_cast<s32 *>((uintptr_t)0x00fac514);
+}
+
 extern "C" u32 __cdecl RasterFormat_Init(u8 *surface, u32 *zBufferOut, u32 width, u32 height) {
     if (surface) {
         u32 format[8] = {0x20, 0, 0, 0, 0, 0, 0, 0};

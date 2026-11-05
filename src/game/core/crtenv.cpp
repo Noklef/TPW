@@ -257,6 +257,35 @@ u32 __cdecl CRT_wcsncnt(const u16 *text, u32 n) {
     return n;
 }
 
+u32 __cdecl CRT_wcsnlen(const u16 *text, u32 n) {
+    for (u32 i = 0; i < n; ++i) {
+        if (!text[i]) return i;
+    }
+    return n;
+}
+
+void __cdecl CRT_setenvp() {
+    char *&block = *reinterpret_cast<char **>((uintptr_t)0x00fb1354);
+    u32 names = 0;
+    for (const char *at = block; *at; at += std::strlen(at) + 1) {
+        if (*at != '=') ++names;
+    }
+    char **next = static_cast<char **>(CRT_malloc(names * 4 + 4));
+    *reinterpret_cast<char ***>((uintptr_t)0x00fb1380) = next;
+    if (!next) CrtInner().amsgExit(9);
+    for (const char *at = block; *at; at += std::strlen(at) + 1) {
+        if (*at == '=') continue;
+        const u32 size = static_cast<u32>(std::strlen(at)) + 1;
+        *next = static_cast<char *>(CRT_malloc(size));
+        if (!*next) CrtInner().amsgExit(9);
+        std::memcpy(*next, at, size);
+        ++next;
+    }
+    Crt().free(block);
+    block = nullptr;
+    *next = nullptr;
+}
+
 u32 __cdecl CRT_wcstombs_lk(char *to, const u16 *from, u32 n) {
     s32 lossy = 0;
     const u32 code_page = global<u32>(0x00fb1450);
@@ -388,6 +417,13 @@ void __cdecl CRT_tzset() {
     } else {
         daylight[0] = 0;
     }
+}
+
+char *__cdecl CRT_getenv_locked(const char *name) {
+    CrtInner().lock(0xc);
+    char *const value = CRT_getenv(name);
+    CrtInner().unlock(0xc);
+    return value;
 }
 
 }

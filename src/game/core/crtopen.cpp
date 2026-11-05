@@ -3,6 +3,7 @@
 #include <cstdint>
 
 #include "crt.h"
+#include "crtmbstring.h"
 #include "crtstream.h"
 
 namespace {
@@ -473,6 +474,74 @@ s32 __cdecl CRT_flsall(s32 mode) {
 }
 
 s32 __cdecl CRT_flushall() { return CRT_flsall(1); }
+
+u32 __cdecl CRT_dtoxmode(u32 attributes, const char *path) {
+    const char *const root = path[1] == ':' ? path + 2 : path;
+    const bool slash = root[0] == '\\' || root[0] == '/';
+    u32 mode = (slash && !root[1]) || attributes & 0x10 || !root[0] ? 0x4040 : 0x8000;
+    mode |= (2 | (~attributes & 1)) << 7;
+    const char *const extension = CRT_mbsrchr(path, 0x2e);
+    if (extension) {
+        const u32 texts[] = {0x00708a3c, 0x00708a34, 0x00708a2c, 0x00708a24};
+        for (const u32 text : texts) {
+            if (!CRT_mbsicmp(extension, reinterpret_cast<const char *>((uintptr_t)text))) {
+                mode |= 0x40;
+                break;
+            }
+        }
+    }
+    mode |= (mode >> 3) & 0x38;
+    return (mode >> 6) & 7 | mode;
+}
+
+u32 __cdecl CRT_IsRootUNCName(const char *path) {
+    const auto is_slash = [](char c) { return c == '\\' || c == '/'; };
+    const auto past_name = [&](const char *at) {
+        while (*at && !is_slash(*at)) ++at;
+        return at;
+    };
+    u32 length = 0;
+    while (path[length]) ++length;
+    if (length < 5 || !is_slash(path[0]) || !is_slash(path[1])) return 0;
+    const char *at = past_name(path + 3);
+    if (!*at || !at[1]) return 0;
+    at = past_name(at + 1);
+    return *at && at[1] ? 0 : 1;
+}
+
+s32 __cdecl CRT_fclose_lk(CrtFile *file) {
+    s32 result = -1;
+    if (file->flags & 0x83) {
+        result = CRT_flush(file);
+        CRT_freebuf(file);
+        if (CRT_close(static_cast<u32>(file->fd)) < 0) {
+            file->flags = 0;
+            return -1;
+        }
+        if (file->name) {
+            Crt().free(file->name);
+            file->name = nullptr;
+        }
+    }
+    file->flags = 0;
+    return result;
+}
+
+s32 __cdecl CRT_fcloseall() {
+    s32 count = 0;
+    CrtInner().lock(2);
+    for (s32 i = 3; i < global<s32>(0x00fb4cc0); ++i) {
+        if (!stream(i)) continue;
+        if (stream(i)->flags & 0x83 && CRT_fclose(stream(i)) != -1) ++count;
+        if (i >= 0x14) {
+            import_slot<void(__stdcall *)(void *)>(0x006fd0d0)(reinterpret_cast<u8 *>(stream(i)) + 0x20);
+            Crt().free(stream(i));
+            stream(i) = nullptr;
+        }
+    }
+    CrtInner().unlock(2);
+    return count;
+}
 
 s32 __cdecl CRT_commit(u32 fd) {
     if (crt_handle_open(fd)) {

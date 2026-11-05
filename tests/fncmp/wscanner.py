@@ -10,7 +10,7 @@
 # Compare (0x5e6750): two strings of letters, the second made from the first (same, other case, cut, longer, one changed), towupper the original's C-locale branch against the
 # driver's. Char (0x5e7320): Span's scanner. Find (0x5e6e50): a list of 0-6 keywords, the text one of them (other case, cut, longer) or none. Read (0x5e6c90): Rest's scanner, its
 # words the keys, the handlers recorders answering mostly 1. Parse (0x5e45d0): Rest's scanner with its vector of tokens [+0x50] (0-2 random-byte tokens, room for 4 more) and its out string [+0x54], the list inside it, a text with or without its '/' and words.
-# usage: wscanner.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=SetText,Pair,Token,Span,Next,Rest,Substr,Base,Destruct,Compare,Char,Find,Read,Parse)
+# usage: wscanner.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=SetText,Pair,Token,Span,Next,Rest,Substr,Base,Destruct,Full,Compare,Char,Find,Read,Parse)
 import os
 import struct
 import sys
@@ -23,15 +23,16 @@ import stdtree  # noqa: E402
 import stdwstring  # noqa: E402
 
 # (with stdwstring.py's helpers: _Grow, erase, the counted buffer reset, the traits' copy, the length setter)
-B = Bench([(0x4051d0, 0x405390), (0x45b380, 0x45b5f0), (0x45b680, 0x45b9b0), (0x479150, 0x4791b0), (0x479230, 0x479270), (0x47ae60, 0x47b060),
+RANGES = [(0x4051d0, 0x405390), (0x45b380, 0x45b5f0), (0x45b680, 0x45b9b0), (0x479150, 0x4791b0), (0x479230, 0x479270), (0x47ae60, 0x47b060),
            (0x47b320, 0x47b5b0), (0x47b600, 0x47bcf0), (0x47cc10, 0x47cd00), (0x47d620, 0x47d780), (0x47d9d0, 0x47db00), (0x4e51a0, 0x4e5220),
-           (0x4e6410, 0x4e6570), (0x4ea740, 0x4ea7f0), (0x4f0150, 0x4f0180), (0x4f23f0, 0x4f2450), (0x4f34a0, 0x4f3730), (0x4f5560, 0x4f59a0),
+           (0x4e6410, 0x4e6570), (0x4ea740, 0x4ea88a), (0x4f0150, 0x4f0180), (0x4f23f0, 0x4f2450), (0x4f34a0, 0x4f3730), (0x4f5560, 0x4f59a0),
            (0x4f6080, 0x4f60a0), (0x4f67b0, 0x4f6830), (0x4f6ef0, 0x4f7180), (0x4f7410, 0x4f7440), (0x4f7870, 0x4f7970), (0x5b1650, 0x5b1680), (0x5b1930, 0x5b1b80), (0x5b2530, 0x5b2f40), (0x5e6a00, 0x5e6b2b), (0x5b30b0, 0x5b31f0), (0x5b3210, 0x5b3230), (0x5e45d0, 0x5e47f0), (0x5e4b20, 0x5e6730), (0x5e6750, 0x5e6a00),
            (0x5e6b30, 0x5e7518), (0x5e7520, 0x5e7740), (0x67c8d0, 0x67c9f0), (0x67ed00, 0x67ed90), (0x67acd0, 0x67ad00), (0x6918f0, 0x691a30),
-           (0x691ba0, 0x691ce0)],
-          hooks={0x691de0: lambda e: e.r.__setitem__('EAX', e.r['ECX']), 0x691ea0: lambda e: None})   # (_Lockit's constructor and destructor)
+           (0x691ba0, 0x691ce0)]
+B = Bench(RANGES, hooks={0x691de0: lambda e: e.r.__setitem__('EAX', e.r['ECX']), 0x691ea0: lambda e: None})   # (_Lockit's constructor and destructor)
 SCANNER, FLAGS = RAM + 0x800, RAM + 0x900
-OPS = [k for k in os.environ.get('OPS', 'SetText,Pair,Token,Span,Next,Rest,Substr,Base,Destruct,Compare,Char,Find,Read,Parse').split(',') if k]
+LIST = RAM + 0x5000
+OPS = [k for k in os.environ.get('OPS', 'SetText,Pair,Token,Span,Next,Rest,Substr,Base,Destruct,Full,Compare,Char,Find,Read,Parse').split(',') if k]
 TOKENS = [0x5e57c0, 0x5e6070, 0x5e6540, 0x5e6630]
 OUT, HEAD2, NODES2 = RAM + 0x980, RAM + 0xa00, RAM + 0x2000
 VECTOR, TOKEN_ARRAY = RAM + 0xb00, RAM + 0xc00
@@ -61,6 +62,23 @@ def destruct(r):
     regions = {SCANNER: scanner, stdwstring.BLOCKS: blocks, HEAP: heap(), stdtree.HEAD: head, HEAD2: head2, stdtree.NODES: blob, NODES2: blob2,
                stdtree.NIL: put(bytearray(0x40), 0x10, 'I', stdtree.BLACK), 0xf7c96c: struct.pack('<2I', r.choice([1, 2, 2, 5]), stdtree.NIL)}
     return Call(0x5e6a00, [SCANNER], regions, conv='t', ret='v')
+
+
+def full(r):
+    """The whole destructor (0x4ea7e0): as Base's destructor, with the list at +0x44: its sentinel and 0-3 nodes of a counted string each (slots 1-3)."""
+    call = destruct(r)
+    n = r.choice([0, 1, 2, 3])
+    links = [LIST + 0x40 * i for i in range(n + 1)]
+    blocks = call.regions[stdwstring.BLOCKS]
+    nodes = bytearray(r.bytes(0x40 * (n + 1)))
+    for i, node in enumerate(links):
+        put(nodes, 0x40 * i, '2I', links[(i + 1) % (n + 1)], links[i - 1])
+        if i:
+            put(nodes, 0x40 * i + 0xc, '3I', *stdwstring.string(r, blocks, i))
+    call.regions[LIST] = nodes
+    call.regions[SCANNER] = put(call.regions[SCANNER] + r.bytes(8), 0x48, '2I', LIST, r.choice([n, r.getrandbits(32)]))
+    call.address = 0x4ea7e0
+    return call
 
 
 def wide(chars):
@@ -279,6 +297,8 @@ def case(r):
         return base(r)
     if op == 'Destruct':
         return destruct(r)
+    if op == 'Full':
+        return full(r)
     if op == 'Compare':
         return compare(r)
     if op == 'Char':

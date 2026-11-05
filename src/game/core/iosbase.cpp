@@ -4,6 +4,8 @@
 #include <cstring>
 
 #include "crt.h"
+#include "initializers.h"
+#include "narrowfilebuf.h"
 #include "stdstring.h"
 #include "vcall.h"
 #include "wfilebuf.h"
@@ -105,6 +107,219 @@ void __fastcall IosBase_Clear(u8 *self, void *, u32 state, u32 reraise) {
     const u32 text = cause & 4 ? 0x00709a2c : cause & 2 ? 0x00709a18 : 0x00709a08;
     throw_error(reinterpret_cast<const char *>((uintptr_t)text), 0x007099fc, 0x00720720);
 }
+
+static u32 *error_copy(u32 *self, const u32 *from, u32 vtable) {
+    CRT_exception_Copy(self, nullptr, from);
+    StdString_CopyCtor(reinterpret_cast<StdString *>(self + 3), nullptr, reinterpret_cast<const StdString *>(from + 3));
+    self[0] = vtable;
+    return self;
+}
+
+static void error_raise(const u32 *from, u32 vtable, u32 info) {
+    u32 copy[7];
+    error_copy(copy, from, vtable);
+    g_env->cxxThrow(copy, reinterpret_cast<const void *>((uintptr_t)info));
+}
+
+u32 *__fastcall LengthError_Copy(u32 *self, void *, const u32 *from) { return error_copy(self, from, 0x00709884); }
+u32 *__fastcall Failure_Copy(u32 *self, void *, const u32 *from) { return error_copy(self, from, 0x007099fc); }
+u32 *__fastcall Error709a44_Copy(u32 *self, void *, const u32 *from) { return error_copy(self, from, 0x00709a44); }
+
+void __fastcall LengthError_Raise(const u32 *from) { error_raise(from, 0x00709884, 0x00720468); }
+void __fastcall Failure_Raise(const u32 *from) { error_raise(from, 0x007099fc, 0x00720720); }
+void __fastcall Error709a44_Raise(const u32 *from) { error_raise(from, 0x00709a44, 0x00720798); }
+
+void __fastcall Error709a44_Dtor(u32 *self) {
+    self[0] = 0x00709a44;
+    StdString_Tidy(reinterpret_cast<StdString *>(self + 3), nullptr, 1);
+    CRT_exception_Dtor(self);
+}
+
+u32 *__fastcall Error709a44_DeletingDtor(u32 *self, void *, u32 flags) {
+    Error709a44_Dtor(self);
+    if (flags & 1) g_env->memFree(self);
+    return self;
+}
+
+static u8 *streambuf_ctor(u8 *self, u32 vtable) {
+    LocaleRef_Ctor(reinterpret_cast<u32 *>(self + 0x34));
+    at<u32>(self, 0) = vtable;
+    at<u8 *>(self, 0xc) = self + 4;
+    at<u8 *>(self, 0x10) = self + 8;
+    at<u8 *>(self, 0x1c) = self + 0x14;
+    at<u8 *>(self, 0x20) = self + 0x18;
+    at<u8 *>(self, 0x2c) = self + 0x24;
+    at<u8 *>(self, 0x30) = self + 0x28;
+    at<u32>(self, 8) = 0;
+    at<u32>(self, 0x18) = 0;
+    at<u32>(self, 0x28) = 0;
+    at<u32>(self, 4) = 0;
+    at<u32>(self, 0x14) = 0;
+    at<u32>(self, 0x24) = 0;
+    return self;
+}
+
+u8 *__fastcall Streambuf_Ctor(u8 *self) { return streambuf_ctor(self, 0x00709914); }
+u8 *__fastcall StreambufW_Ctor(u8 *self) { return streambuf_ctor(self, 0x007099a4); }
+
+static void ios_init_rest(u8 *self, u32 isstd) {
+    IosBase_Init(self);
+    if (!at<u32>(self, 0x28)) IosBase_Clear(self, nullptr, at<u32>(self, 4) | 4, 0);
+    if (static_cast<u8>(isstd)) IosBase_Addstd(self);
+}
+
+void __fastcall Ios_Init(u8 *self, void *, void *buffer, u32 isstd) {
+    at<void *>(self, 0x28) = buffer;
+    at<u32>(self, 0x2c) = 0;
+    at<u8>(self, 0x30) = 0x20;
+    ios_init_rest(self, isstd);
+}
+
+void __fastcall IosW_Init(u8 *self, void *, void *buffer, u32 isstd) {
+    at<void *>(self, 0x28) = buffer;
+    at<u32>(self, 0x2c) = 0;
+    at<u16>(self, 0x30) = static_cast<u16>(CRT_btowc(0x20));
+    ios_init_rest(self, isstd);
+}
+
+// (vbtable, the slot of the zeroed field, the slot of the buffer's vtable, its value, the ios's vtable)
+static u8 *stream_uninit(u8 *self, u32 derived, u32 vbtable, u32 zero_at, u32 slot_at, u32 slot, u32 ios_vtable) {
+    if (derived) {
+        at<u32>(self, 0) = vbtable;
+        at<u32>(self, zero_at) = 0;
+        at<u32>(self, slot_at) = slot;
+    }
+    set_stream_vtable(self, ios_vtable);
+    IosBase_Addstd(self + at<u32>(at<u8 *>(self, 0), 4));
+    return self;
+}
+
+u8 *__fastcall Istream_CtorUninit(u8 *self, void *, u32, u32 derived) { return stream_uninit(self, derived, 0x00702988, 0x2c, 8, 0x00709954, 0x0070994c); }
+u8 *__fastcall Ostream_CtorUninit(u8 *self, void *, u32, u32 derived) { return stream_uninit(self, derived, 0x00702980, 0x28, 4, 0x00709954, 0x0070995c); }
+u8 *__fastcall IstreamW_CtorUninit(u8 *self, void *, u32, u32 derived) { return stream_uninit(self, derived, 0x00700650, 0x2c, 8, 0x007099e4, 0x007099dc); }
+u8 *__fastcall OstreamW_CtorUninit(u8 *self, void *, u32, u32 derived) { return stream_uninit(self, derived, 0x00700648, 0x28, 4, 0x007099e4, 0x007099ec); }
+
+static bool init_first(u32 counter) {
+    u32 lock;
+    g_env->lockit(&lock);
+    s32 &count = global<s32>(counter);
+    const bool first = count < 0;
+    count = first ? 1 : count + 1;
+    g_env->unlockit(&lock);
+    return first;
+}
+
+static u8 *std_address(u32 address) { return reinterpret_cast<u8 *>((uintptr_t)address); }
+static u8 *std_ios(u8 *stream) { return stream + at<u32>(at<u8 *>(stream, 0), 4); }
+
+static void std_tie(u8 *stream, u32 to) { at<u32>(std_ios(stream), 0x2c) = to; }
+
+static u8 *std_stream(u32 address, u32 vbtable) {
+    u8 *const stream = std_address(address);
+    at<u32>(stream, 0) = vbtable;
+    return stream;
+}
+
+static void narrow_filebuf(u32 address, u32 file) {
+    u8 *const buf = std_address(address);
+    Streambuf_Ctor(buf);
+    LocaleRef_Ctor(reinterpret_cast<u32 *>(buf + 0x4c));
+    at<u32>(buf, 0) = 0x007098dc;
+    NFileBuf_Init(buf, nullptr, std_address(file), 0);
+}
+
+static void wide_filebuf(u32 address, u32 file) {
+    u8 *const buf = std_address(address);
+    StreambufW_Ctor(buf);
+    LocaleRef_Ctor(reinterpret_cast<u32 *>(buf + 0x4c));
+    at<u32>(buf, 0) = 0x0070996c;
+    WFileBuf_Init(buf, nullptr, file, 0);
+}
+
+static void narrow_finish(u8 *stream, u32 vtable, u32 buffer) {
+    set_stream_vtable(stream, vtable);
+    Ios_Init(std_ios(stream), nullptr, std_address(buffer), 1);
+}
+
+static void wide_finish(u8 *stream, u32 vtable, u32 buffer) {
+    set_stream_vtable(stream, vtable);
+    IosW_Init(std_ios(stream), nullptr, std_address(buffer), 1);
+}
+
+u8 *__fastcall Ios_InitCtor(u8 *self) {
+    if (!init_first(0x007822b0)) return self;
+    narrow_filebuf(0x00fb1ad0, 0x0077e800);
+    narrow_filebuf(0x00fb19a8, 0x0077e820);
+    u8 *const cin = std_stream(0x00fb1a90, 0x00702988);
+    Init_5cfd80(cin + 8);
+    at<u32>(cin, 4) = 0;
+    narrow_finish(cin, 0x0070994c, 0x00fb1ad0);
+    u8 *const cout = std_stream(0x00fb1a00, 0x00702980);
+    Init_5cfd80(cout + 4);
+    narrow_finish(cout, 0x0070995c, 0x00fb19a8);
+    std_tie(cin, 0x00fb1a00);
+    narrow_filebuf(0x00fb1a38, 0x0077e840);
+    u8 *const cerr = std_stream(0x00fb1b28, 0x00702980);
+    Init_4ef830(cerr + 4);
+    at<u32>(cerr, 4) = 0x00709954;
+    narrow_finish(cerr, 0x0070995c, 0x00fb1a38);
+    std_tie(cerr, 0x00fb1a00);
+    at<u32>(std_ios(cerr), 0xc) |= 2;
+    u8 *const clog = std_stream(0x00fb1970, 0x00702980);
+    Init_4ef830(clog + 4);
+    at<u32>(clog, 4) = 0x00709954;
+    narrow_finish(clog, 0x0070995c, 0x00fb1a38);
+    std_tie(clog, 0x00fb1a00);
+    return self;
+}
+
+u8 *__fastcall Ios_WinitCtor(u8 *self) {
+    if (!init_first(0x0078240c)) return self;
+    wide_filebuf(0x00fb1c70, 0x0077e800);
+    wide_filebuf(0x00fb1c18, 0x0077e820);
+    wide_filebuf(0x00fb1d00, 0x0077e840);
+    u8 *const cin = std_stream(0x00fb1bd8, 0x00700650);
+    Init_4f1bd0(cin + 8);
+    at<u32>(cin, 4) = 0;
+    wide_finish(cin, 0x007099dc, 0x00fb1c70);
+    u8 *const cout = std_stream(0x00fb1cc8, 0x00700648);
+    Init_4f1bd0(cout + 4);
+    wide_finish(cout, 0x007099ec, 0x00fb1c18);
+    std_tie(cin, 0x00fb1cc8);
+    u8 *const cerr = std_stream(0x00fb1b60, 0x00700648);
+    Init_4ef830(cerr + 4);
+    at<u32>(cerr, 4) = 0x007099e4;
+    wide_finish(cerr, 0x007099ec, 0x00fb1d00);
+    std_tie(cerr, 0x00fb1cc8);
+    at<u32>(std_ios(cerr), 0xc) |= 2;
+    u8 *const clog = std_stream(0x00fb1ba0, 0x00700648);
+    Init_4ef830(clog + 4);
+    at<u32>(clog, 4) = 0x007099e4;
+    wide_finish(clog, 0x007099ec, 0x00fb1d00);
+    std_tie(clog, 0x00fb1cc8);
+    return self;
+}
+
+static void flush_streams(u32 counter, u32 a, u32 b, u32 c) {
+    u32 lock;
+    g_env->lockit(&lock);
+    const bool last = --*reinterpret_cast<u32 *>((uintptr_t)counter) == 0;
+    g_env->unlockit(&lock);
+    if (!last) return;
+    const u32 streams[] = {a, b, c};
+    for (const u32 address : streams) {
+        u8 *const stream = reinterpret_cast<u8 *>((uintptr_t)address);
+        const auto ios = [stream] { return stream + at<u32>(at<u8 *>(stream, 0), 4); };
+        if (at<u8>(ios(), 4) & 6) continue;
+        u8 *const buffer = at<u8 *>(ios(), 0x28);
+        if (at<s32(__fastcall *)(u8 *)>(at<u8 *>(buffer, 0), 0x2c)(buffer) == -1)
+            IosBase_Clear(ios(), nullptr, at<u32>(ios(), 4) | 4, 0);
+    }
+}
+
+void __fastcall Ios_InitDtor(void *) { flush_streams(0x007822b0, 0x00fb1a00, 0x00fb1b28, 0x00fb1970); }
+
+void __fastcall Ios_WinitDtor(void *) { flush_streams(0x0078240c, 0x00fb1cc8, 0x00fb1b60, 0x00fb1ba0); }
 
 void __fastcall IosBase_Callfns(u8 *self, void *, u32 event) {
     for (u8 *node = at<u8 *>(self, 0x1c); node; node = at<u8 *>(node, 0))

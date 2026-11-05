@@ -387,6 +387,42 @@ u16 __cdecl CRT_fputwc_lk(u32 c, CrtFile *file) {
     return static_cast<u16>(c);
 }
 
+s32 __cdecl CRT_fputc(s32 c, CrtFile *file) {
+    CrtInner().lockFile(file);
+    s32 result;
+    if (--file->count < 0) {
+        result = CRT_flsbuf(c, file);
+    } else {
+        *file->ptr++ = static_cast<char>(c);
+        result = c & 0xff;
+    }
+    CrtInner().unlockFile(file);
+    return result;
+}
+
+s32 __cdecl CRT_input_inc(CrtFile *file) { return next_byte(file); }
+
+s32 __cdecl CRT_input_un_inc(s32 c, CrtFile *file) { return c == -1 ? c : CRT_ungetc_lk(c, file); }
+
+s32 __cdecl CRT_fprintf(CrtFile *file, const char *format, ...) {
+    CrtInner().lockFile(file);
+    const s32 flag = CRT_stbuf(file);
+    const s32 written = CrtInner().output(file, format, &format + 1);
+    CRT_ftbuf(flag, file);
+    CrtInner().unlockFile(file);
+    return written;
+}
+
+s32 __cdecl CRT_printf(const char *format, ...) {
+    CrtFile *const file = reinterpret_cast<CrtFile *>(static_cast<uintptr_t>(0x0077e820));
+    CrtInner().lockFile2(1, file);
+    const s32 flag = CRT_stbuf(file);
+    const s32 written = CrtInner().output(file, format, &format + 1);
+    CRT_ftbuf(flag, file);
+    CrtInner().unlockFile2(1, file);
+    return written;
+}
+
 u16 __cdecl CRT_fputwc(u32 c, CrtFile *file) {
     CrtInner().lockFile(file);
     const u16 result = CRT_fputwc_lk(c, file);
@@ -432,6 +468,37 @@ u16 __cdecl CRT_ungetwc(u32 c, CrtFile *file) {
     const u16 result = CRT_ungetwc_lk(c, file);
     CrtInner().unlockFile(file);
     return result;
+}
+
+void __cdecl CRT_woutput_write_char(u32 c, CrtFile *file, s32 *count) {
+    if (CRT_fputwc_lk(c, file) == 0xffff) {
+        *count = -1;
+        return;
+    }
+    ++*count;
+}
+
+void __cdecl CRT_woutput_write_multi(u32 c, s32 n, CrtFile *file, s32 *count) {
+    while (n-- > 0) {
+        CRT_woutput_write_char(c, file, count);
+        if (*count == -1) return;
+    }
+}
+
+void __cdecl CRT_woutput_write_string(const u16 *text, s32 n, CrtFile *file, s32 *count) {
+    while (n-- > 0) {
+        CRT_woutput_write_char(*text++, file, count);
+        if (*count == -1) return;
+    }
+}
+
+s32 __cdecl CRT_whiteout(s32 *counter, CrtFile *file) {
+    s32 c;
+    do {
+        ++*counter;
+        c = CRT_input_inc(file);
+    } while (Crt().isspace(c));
+    return c;
 }
 
 }  // extern "C"

@@ -19,4 +19,7 @@ void __cdecl CRT_unlock_file(void *file);
 void __cdecl CRT_lock_file2(s32 index, void *file);
 void __cdecl CRT_unlock_file2(s32 index, void *file);
 
+// 0x6826f0: _mtinitlocks: InitializeCriticalSection of locks 0x11, 0xd, 9 and 1.
+void __cdecl CRT_mtinitlocks();
+
 }

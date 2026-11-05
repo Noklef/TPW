@@ -44,6 +44,12 @@ void __fastcall ChatAvatar_Notice(u8 *avatar, void *, StdWString text, u32 color
 //   0x72 (0xe: 0x69). The strings' allocator bytes are uninitialised stack bytes in the original (0 here).
 void __fastcall ChatAvatar_RunCommand(u8 *avatar, void *, const u8 *tokens);
 
+// 0x4ea490 (thiscall on the avatar; the typed line by value, pops 0x10; SEH frame; name invented, unconfirmed): an empty line destroyed. Else
+// a scanner on the stack (core/wscanner, 0x58 bytes) parses a copy into a vector of tokens and a string; with no token at all, a token of
+// kind 0x17 and one of a copy of the string go in. ChatAvatar_RunCommand on the vector, then all of it destroyed. The allocator bytes are
+// one uninitialised stack byte in the original (0 here).
+void __fastcall ChatAvatar_ParseCommand(u8 *avatar, void *, StdWString text);
+
 // 0x4ead00 / 0x4eae80 / 0x4eb000 / 0x4eb180 / 0x4eb450 (thiscall on the avatar; a name (a const std::wstring *), pops 4; SEH frames):
 // the command 0xe (Blackmark) / 0x11 (Page) / 0x14 (Locate) / 0x13 (Goto) / 0xd (UnIgnore / Ignore) run on the name. A vector of tokens
 // (countedpair.h's CountedPairs) gets the command's token (both strings empty) and the name's (CountedPair_CtorWide of a copy of the name:

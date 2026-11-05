@@ -78,6 +78,7 @@ struct CrtInnerEnv {
     void(__cdecl *tzset)();                                      // 0x687d80
     void(__cdecl *lockFile2)(s32 index, void *file);             // 0x682800
     void(__cdecl *unlockFile2)(s32 index, void *file);           // 0x682870
+    s32(__cdecl *output)(void *file, const char *format, void *args);   // 0x680c00
 };
 
 void CrtInner_SetEnv(const CrtInnerEnv *env);
@@ -91,6 +92,8 @@ s32 __cdecl CRT_isnan(u32 low, u32 high);
 
 // 0x67c320 (__alldiv; stdcall, pops 16): the signed 64-bit quotient (a zero divisor faults).
 long long __stdcall CRT_alldiv(u32 aLow, u32 aHigh, u32 bLow, u32 bHigh);
+// 0x67c7f0 (__allmul; stdcall, pops 16): the low 64 bits of the product.
+long long __stdcall CRT_allmul(u32 aLow, u32 aHigh, u32 bLow, u32 bHigh);
 
 // 0x67b5c0: rand: the thread's seed (getptd +0x14) * 214013 + 2531011 stored, bits 16-30 of it.
 s32 __cdecl CRT_rand();
@@ -110,6 +113,7 @@ s32 __cdecl CRT_fclose(void *file);
 
 // 0x67d320 (thiscall): exception's destructor: the vtable 0x7089c4 set, the text +4 freed if it is owned (+8).
 void __fastcall CRT_exception_Dtor(u32 *self);
+u32 *__fastcall CRT_exception_DeletingDtor(u32 *self, void *, u32 flags);  // 0x67d230
 
 // 0x67d250 (thiscall (&text), pops 4): exception(const char *const &): the vtable, a copy of the text +4 (0 if the allocation fails), owned +8. Returns self.
 u32 *__fastcall CRT_exception_Ctor(u32 *self, void *edx, const char *const *text);
@@ -133,6 +137,11 @@ u32 __cdecl CRT_beginthread(void *proc, u32 stack, void *arg);
 
 // 0x67af00: swprintf: _woutput on a string file (0x7fffffff bytes), then two zero bytes put (_flsbuf where the count has run out). Returns _woutput's answer.
 s32 __cdecl CRT_swprintf(u16 *to, const u16 *format, ...);
+
+// 0x67bf40: _snprintf; 0x67c1e0: vsprintf (room of 0x7fffffff); 0x67f3a0: _vsnprintf: a string file (flags 0x42) through _output, then one zero byte, through _flsbuf when no room is left.
+s32 __cdecl CRT_snprintf(char *to, u32 count, const char *format, ...);
+s32 __cdecl CRT_vsprintf(char *to, const char *format, void *args);
+s32 __cdecl CRT_vsnprintf(char *to, u32 count, const char *format, void *args);
 
 // 0x67c830: _snwprintf: the same in count * 2 bytes.
 s32 __cdecl CRT_snwprintf(u16 *to, u32 count, const u16 *format, ...);
@@ -161,6 +170,8 @@ void __stdcall CRT_VectorVbaseCtorIterator(u8 *array, u32 size, s32 count, void(
 
 // 0x67afa0 (stdcall; array, size, count, dtor, pops 16): dtor (thiscall) for each of the count elements, the last first.
 void __stdcall CRT_VectorDtorIterator(u8 *array, u32 size, s32 count, void(__fastcall *dtor)(void *));
+// 0x67b050: __ArrayUnwind: from the array's end, count elements back, each destroyed. Its handler (an exception from a destructor: terminate) is left out.
+void __stdcall CRT_ArrayUnwind(u8 *end, u32 size, s32 count, void(__fastcall *dtor)(void *));
 
 // 0x6d76f0 (cdecl; called from 0x4901ff): every unit of the wide string before its terminator set to the unit. Returns the string.
 u16 *__cdecl CRT_wcsset(u16 *text, u16 unit);
@@ -235,6 +246,11 @@ u32 __cdecl CRT_strtoul(const char *text, const char **end, s32 base);
 
 // 0x67faf0: _tolower_lk: the same as _toupper_lk for the upper case.
 s32 __cdecl CRT_tolowerLocked(s32 c);
+s32 __cdecl CRT_tolower(s32 c);  // 0x67fa60
+
+// 0x67f670: _strnicmp: -1, 0, 1 over at most n bytes. No locale: through A-Z, the bytes as they are when one ends. Else through _tolower_lk under the locale's count or lock 0x13; both
+// words keep what the map left above their bytes (sic), so that an end is not seen under a two-byte answer.
+s32 __cdecl CRT_strnicmp(const char *a, const char *b, u32 n);
 
 // 0x67df40: _stricmp: -1, 0, 1. No locale: through A-Z. Else through _tolower_lk under the locale's count (not the Interlocked imports: its own LOCK INC) or lock 0x13; two ends at once answer the last character's _tolower_lk.
 s32 __cdecl CRT_stricmp(const char *a, const char *b);
@@ -251,6 +267,8 @@ s32 __cdecl CRT_Toupper(s32 c, const u32 *locale);
 
 // 0x67bb90: memmove: returns dest.
 void *__cdecl CRT_memmove(void *dest, const void *from, u32 size);
+// 0x6800f0: memcpy: memmove's code again, overlap included.
+void *__cdecl CRT_memcpy(void *dest, const void *from, u32 size);
 
 // 0x67b8c0: strncat: at most `size` characters and an end; size 0: not even the end. Returns dest.
 char *__cdecl CRT_strncat(char *dest, const char *from, u32 size);
@@ -275,6 +293,10 @@ char *__cdecl CRT_itoa(s32 value, char *out, s32 radix);
 
 // 0x67b0d0: wcsncpy. 0x67bf10: wcscpy. 0x67bed0: wcscat. 0x67f450: wcsncat (always an end). 0x67c290: wcscmp (-1, 0 or 1). 0x67f410: wcsncmp (the difference of the last units). 0x67c2f0: wcschr (the end too for 0).
 u16 *__cdecl CRT_wcsncpy(u16 *dest, const u16 *from, u32 count);
+
+// 0x67dda0: _wsplitpath: the outputs may be null. A second character ':' makes the drive; the directory ends at the last '/' or '\\', the extension starts at the last '.'
+// (after the directory, or there is none), each output cut to 0xff characters.
+void __cdecl CRT_wsplitpath(const u16 *path, u16 *drive, u16 *dir, u16 *name, u16 *ext);
 u16 *__cdecl CRT_wcscpy(u16 *dest, const u16 *from);
 u16 *__cdecl CRT_wcscat(u16 *dest, const u16 *from);
 u16 *__cdecl CRT_wcsncat(u16 *dest, const u16 *from, u32 count);
@@ -287,5 +309,19 @@ u16 *__cdecl CRT_wcsstr(const u16 *text, const u16 *wanted);
 
 // 0x67c430: wcstok: the thread's data + 0x1c keeps the place. An empty token: null.
 u16 *__cdecl CRT_wcstok(u16 *text, const u16 *separators);
+
+// 0x67d350 (thiscall): type_info's destructor: the vtable 0x7089e4 set, under lock 0x1b the undecorated name +4 freed if there is one.
+void __fastcall CRT_type_info_Dtor(u32 *self, void *);
+u32 *__fastcall CRT_type_info_DeletingDtor(u32 *self, void *, u32 flags);  // 0x67d380
+// 0x682360: __AdjustPointer: object + mdisp ([0]); with a pdisp ([1]) not negative also the vbtable's entry [2] and pdisp.
+u8 *__cdecl CRT_AdjustPointer(u8 *object, const s32 *displacement);
+// 0x68f990: siglookup: the entry of the table of [0x781514] entries of 12 bytes with this signal at +4, or 0. The first entry's signal is read whatever the count.
+u32 *__cdecl CRT_siglookup(u32 signal, u32 *table);
+// 0x67fa40: _initterm: each function not null in [begin, end).
+void __cdecl CRT_initterm(void(__cdecl **begin)(), void(__cdecl **end)());
+
+// 0x6887e0: _ultoa: xtoa, never negative; returns out.
+char *__cdecl CRT_ultoa(u32 value, char *out, u32 radix);
+s32 __cdecl CRT_genfname(char *name);  // 0x67ff00: tmpfile's genfname, the next name in base 32
 
 }  // extern "C"

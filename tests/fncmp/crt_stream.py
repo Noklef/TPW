@@ -6,21 +6,21 @@ import struct
 import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
-from fncmp import IMPORT_TABLE, LOG, RAM, Bench, Call, _recorder, answers, blob_array, fill, fill_arg, import_table, log_region, set_return  # noqa: E402
+from fncmp import IMPORT_TABLE, LOG, RAM, Bench, Call, _recorder, answers, blob, blob_array, fill, fill_arg, import_table, log_region, set_return, strings  # noqa: E402
 
-M2W, GETPTD, LOCK, UNLOCK, LOCKFILE, UNLOCKFILE, NHMALLOC = 3, 2, 7, 8, 11, 12, 28
+M2W, GETPTD, LOCK, UNLOCK, LOCKFILE, UNLOCKFILE, NHMALLOC, OUTPUT = 3, 2, 7, 8, 11, 12, 28, 1
 CSINIT, CSENTER, CSLEAVE, WRITE, SEEK, ERROR, READ, INC, DEC, W2M = 14, 15, 16, 17, 18, 19, 20, 29, 30, 31
-B = Bench([(0x686a00, 0x686a19), (0x686980, 0x6869f3), (0x68ead0, 0x68eb19), (0x68eb20, 0x68eb85), (0x68eb90, 0x68ebb2), (0x686440, 0x6864b2), (0x6864c0, 0x6866ca), (0x686a20, 0x686a92), (0x686aa0, 0x686b20),
+B = Bench([(0x683a20, 0x683a59), (0x683a60, 0x683a9f), (0x68b4e0, 0x68b528), (0x67a590, 0x67a5ba), (0x67e6f0, 0x67e74b), (0x6839f0, 0x683a1a), (0x67e570, 0x67e5c8), (0x68b490, 0x68b4b1), (0x68b4c0, 0x68b4d8), (0x67dad0, 0x67db19), (0x686a00, 0x686a19), (0x686980, 0x6869f3), (0x68ead0, 0x68eb19), (0x68eb20, 0x68eb85), (0x68eb90, 0x68ebb2), (0x686440, 0x6864b2), (0x6864c0, 0x6866ca), (0x686a20, 0x686a92), (0x686aa0, 0x686b20),
            (0x68c320, 0x68c34b), (0x687530, 0x68758d), (0x680ad0, 0x680c00), (0x67dcd0, 0x67dcf0),
            (0x686ff0, 0x687137), (0x687140, 0x6871ac), (0x6871b0, 0x687222), (0x687690, 0x687701), (0x687710, 0x68780e), (0x67c9f0, 0x67ca1e), (0x67ca20, 0x67cb85), (0x67cb90, 0x67cbda), (0x687440, 0x68752f),
            (0x687590, 0x68768d), (0x688a50, 0x688ac2), (0x688ad0, 0x688cf5), (0x67cbe0, 0x67cc0d), (0x67cc10, 0x67cc93), (0x67cca0, 0x67ccce), (0x67ccd0, 0x67cded), (0x67cdf0, 0x67ce19), (0x67ce20, 0x67cf40),
            (0x67e1d0, 0x67e207), (0x67e210, 0x67e34c), (0x67e350, 0x67e378), (0x67e380, 0x67e524), (0x67d0f0, 0x67d15e), (0x67c100, 0x67c132), (0x67c140, 0x67c1d7), (0x688610, 0x6886c8), (0x6886d0, 0x68870d)],
-          hooks={0x682720: _recorder(LOCK, 1, cdecl=True), 0x6827a0: _recorder(UNLOCK, 1, cdecl=True), 0x682460: _recorder(GETPTD, 0, cdecl=True), 0x6827c0: _recorder(LOCKFILE, 1, cdecl=True),
+          hooks={0x682800: _recorder(30, 2, cdecl=True), 0x682870: _recorder(31, 2, cdecl=True), 0x680c00: _recorder(OUTPUT, 3, cdecl=True), 0x682720: _recorder(LOCK, 1, cdecl=True), 0x6827a0: _recorder(UNLOCK, 1, cdecl=True), 0x682460: _recorder(GETPTD, 0, cdecl=True), 0x6827c0: _recorder(LOCKFILE, 1, cdecl=True),
                  0x682830: _recorder(UNLOCKFILE, 1, cdecl=True), 0x67dcf0: _recorder(NHMALLOC, 2, cdecl=True)})
 PTD, FILE, ANSWERS, SEEKS, OUT = (RAM + 0x100 * i for i in range(5))
 INFO0, INFO1, PCTYPE, BUFFER, BLOCK = RAM + 0x1000, RAM + 0x1800, RAM + 0x2000, RAM + 0x3000, RAM + 0x5000
 TEXT = RAM + 0x6000
-OPS = [n for n in ('flswbuf', 'fputwc', 'fputwc_lk', 'wctomb', 'wctomb_lk', 'mbtowc', 'mbtowc_lk', 'fgetc', 'filbuf', 'filwbuf', 'read', 'read_lk', 'ungetc', 'ungetc_lk', 'ungetwc', 'ungetwc_lk', 'fgetwc', 'fgetwc_lk', 'fread', 'fread_lk', 'ftell', 'ftell_lk', 'fseek', 'fseek_lk', 'stbuf', 'ftbuf')
+OPS = [n for n in ('wmulti', 'wstring', 'whiteout', 'whiteout', 'wwrite', 'wwrite', 'fputc', 'fputc', 'inc', 'uninc', 'fprintf', 'fprintf', 'printf', 'printf', 'flswbuf', 'fputwc', 'fputwc_lk', 'wctomb', 'wctomb_lk', 'mbtowc', 'mbtowc_lk', 'fgetc', 'filbuf', 'filwbuf', 'read', 'read_lk', 'ungetc', 'ungetc_lk', 'ungetwc', 'ungetwc_lk', 'fgetwc', 'fgetwc_lk', 'fread', 'fread_lk', 'ftell', 'ftell_lk', 'fseek', 'fseek_lk', 'stbuf', 'ftbuf')
        if not os.environ.get('OPS') or n in os.environ['OPS'].split(',')]
 FDS = [0, 1, 2, 5, 0x1f, 0x20, 0x21, 0x3f]
 
@@ -94,6 +94,25 @@ def case(r):
     fd = r.choice(FDS + [-1, 0x40])
     base = r.choice([BUFFER, BUFFER, BUFFER, BUFFER, 0])
     regions[file] = struct.pack('<6Ii', (BUFFER + r.choice([0, 0, 1, 2, 8, 0x40, 0xffffffff])) & 0xffffffff, r.choice([0xffffffff, 0, 0, 1, 2, 3, 5, 0x20]), base, flags, fd & 0xffffffff, r.getrandbits(32), size) + bytes(4)
+    if name == 'fputc':
+        return Call(0x67e570, [r.choice([0x41, 0xd, 0xa, 0xe9, 0x141, 0xffffffff, r.getrandbits(32)]), file], regions, conv='c', ret='a')
+    if name == 'inc':
+        return Call(0x68b490, [file], regions, conv='c', ret='a')
+    if name == 'uninc':
+        return Call(0x68b4c0, [r.choice([0x41, 0xd, 0xa, 0xe9, 0xffffffff, 0xffffffff]), file], regions, conv='c', ret='a')
+    if name in ('fprintf', 'printf'):   # (a standard file makes its buffer at times; _output's arguments as dwords, not its stack address)
+        if name == 'printf' or r.random() < 0.5:
+            file = 0x77e820 if name == 'printf' else r.choice([0x77e820, 0x77e840])
+            regions[file] = struct.pack('<6Ii', 0, 0, 0, r.choice([1, 2, 0x82]), r.choice(FDS), r.getrandbits(32), size) + bytes(4)
+            set_return(log, NHMALLOC, r.choice([BLOCK, 0]))
+        regions[0xfb1540] = struct.pack('<2I', r.choice([0, BLOCK + 0x100]), r.choice([0, BLOCK + 0x200]))
+        strings(log, OUTPUT, 0, out=4)
+        blob(log, OUTPUT, 2, 3)
+        set_return(log, OUTPUT, r.getrandbits(32))
+        regions[TEXT] = b'%d %d\0\0'
+        if name == 'printf':
+            return Call(0x67e6f0, [TEXT, r.getrandbits(32), r.getrandbits(32), r.getrandbits(32)], regions, conv='c', ret='a')
+        return Call(0x67dad0, [file, TEXT, r.getrandbits(32), r.getrandbits(32), r.getrandbits(32)], regions, conv='c', ret='a')
     if name in ('fgetc', 'filbuf', 'filwbuf', 'fgetwc', 'fgetwc_lk'):
         at = {'fgetc': 0x67cb90, 'filbuf': 0x687440, 'filwbuf': 0x687590, 'fgetwc': 0x67cdf0, 'fgetwc_lk': 0x67ce20}[name]
         return Call(at, [file], regions, conv='c', ret='w' if name in ('fgetwc', 'fgetwc_lk') else 'a')
@@ -121,6 +140,22 @@ def case(r):
         return Call(0x67cbe0 if name == 'ungetc' else 0x67cc10, [r.choice([0x41, 0xd, 0xa, 0xe9, 0x141, 0xffffffff]), file], regions, conv='c', ret='a')
     if name == 'flswbuf':
         return Call(0x686ff0, [c & 0xffff, file], regions, conv='c', ret='a')
+    if name in ('wmulti', 'wstring'):
+        regions[OUT] = struct.pack('<I', r.choice([0, 5, 0xffffffff, r.getrandbits(32)]))
+        n = r.choice([0, 1, 2, 3, 0xffffffff])
+        if name == 'wmulti':
+            return Call(0x683a20, [c, n, file, OUT], regions, conv='c', ret='v')
+        regions[TEXT] = struct.pack('<4H', *[r.choice([0x41, 0xe9, 0x8140, 0xffff, 0xa, 0x100]) for _ in range(4)])
+        return Call(0x683a60, [TEXT, n, file, OUT], regions, conv='c', ret='v')
+    if name == 'whiteout':   # (bench limit: MB_CUR_MAX 1 at most: above it isspace goes to _isctype, 0x680430, out of the ranges)
+        regions[OUT] = struct.pack('<I', r.getrandbits(32))
+        regions[0x77e7dc] = struct.pack('<i', r.choice([1, 1, 0]))
+        del regions[PCTYPE]
+        regions[PCTYPE - 2] = struct.pack('<257H', 0, *[(0x8000 if i >= 0x81 else 0x20) | (8 if i in (0x1a, 0x81) else 0) for i in range(256)])   # (spaces the read's answers do not hold, so the loop ends)
+        return Call(0x68b4e0, [OUT, file], regions, conv='c', ret='a')
+    if name == 'wwrite':
+        regions[OUT] = struct.pack('<I', r.choice([0, 5, 0xffffffff, r.getrandbits(32)]))
+        return Call(0x6839f0, [c, file, OUT], regions, conv='c', ret='v')
     at = {'fputwc': 0x67c9f0, 'fputwc_lk': 0x67ca20, 'ungetwc': 0x67cca0, 'ungetwc_lk': 0x67ccd0}[name]
     return Call(at, [c, file], regions, conv='c', ret='w')
 

@@ -1,4 +1,5 @@
 #include "crt.h"
+#include "crtmbstring.h"
 
 #include <intrin.h>
 
@@ -76,6 +77,7 @@ const CrtInnerEnv kGameInner = {
     game<void(__cdecl *)()>(0x00687d80),
     game<void(__cdecl *)(s32, void *)>(0x00682800),
     game<void(__cdecl *)(s32, void *)>(0x00682870),
+    game<s32(__cdecl *)(void *, const char *, void *)>(0x00680c00),
 };
 const CrtInnerEnv *g_inner = &kGameInner;
 
@@ -119,6 +121,19 @@ s32 format_wide(u16 *to, s32 size, const u16 *format, void *args) {
     return written;
 }
 
+s32 format_narrow(char *to, s32 size, const char *format, void *args) {
+    StringFile file;
+    file.ptr = file.base = to;
+    file.count = size;
+    file.flags = 0x42;
+    const s32 written = g_inner->output(&file, format, args);
+    if (--file.count < 0)
+        g_inner->flsbuf(0, &file);
+    else
+        *file.ptr = 0;
+    return written;
+}
+
 u16 fold_c(u16 unit) { return unit >= 0x41 && unit <= 0x5a ? (u16)(unit + 0x20) : unit; }
 
 // The locale's lock for a reader: true when it took lock 0x13 instead of the count.
@@ -156,6 +171,10 @@ s32 __cdecl CRT_isnan(u32 low, u32 high) {
 
 long long __stdcall CRT_alldiv(u32 aLow, u32 aHigh, u32 bLow, u32 bHigh) {
     return (long long)((unsigned long long)aHigh << 32 | aLow) / (long long)((unsigned long long)bHigh << 32 | bLow);
+}
+
+long long __stdcall CRT_allmul(u32 aLow, u32 aHigh, u32 bLow, u32 bHigh) {
+    return (long long)(((unsigned long long)aHigh << 32 | aLow) * ((unsigned long long)bHigh << 32 | bLow));
 }
 
 s32 __cdecl CRT_rand() {
@@ -226,6 +245,18 @@ void __fastcall CRT_exception_Dtor(u32 *self) {
     if (owned) g_inner->memFree(reinterpret_cast<void *>((uintptr_t)self[1]));
 }
 
+u32 *__fastcall CRT_type_info_DeletingDtor(u32 *self, void *, u32 flags) {
+    CRT_type_info_Dtor(self, nullptr);
+    if (flags & 1) g_inner->memFree(self);
+    return self;
+}
+
+u32 *__fastcall CRT_exception_DeletingDtor(u32 *self, void *, u32 flags) {
+    CRT_exception_Dtor(self);
+    if (flags & 1) g_inner->memFree(self);
+    return self;
+}
+
 u32 *__fastcall CRT_exception_Ctor(u32 *self, void *, const char *const *text) {
     self[0] = 0x007089c4;
     const u32 size = (u32)strlen(*text) + 1;
@@ -294,6 +325,12 @@ u32 __cdecl CRT_beginthread(void *proc, u32 stack, void *arg) {
 
 s32 __cdecl CRT_swprintf(u16 *to, const u16 *format, ...) { return format_wide(to, 0x7fffffff, format, &format + 1); }
 
+s32 __cdecl CRT_snprintf(char *to, u32 count, const char *format, ...) { return format_narrow(to, static_cast<s32>(count), format, &format + 1); }
+
+s32 __cdecl CRT_vsprintf(char *to, const char *format, void *args) { return format_narrow(to, 0x7fffffff, format, args); }
+
+s32 __cdecl CRT_vsnprintf(char *to, u32 count, const char *format, void *args) { return format_narrow(to, static_cast<s32>(count), format, args); }
+
 s32 __cdecl CRT_snwprintf(u16 *to, u32 count, const u16 *format, ...) { return format_wide(to, (s32)(count * 2), format, &format + 1); }
 
 s32 __cdecl CRT_wcsicmp(const u16 *a, const u16 *b) {
@@ -312,6 +349,47 @@ s32 __cdecl CRT_wcsicmp(const u16 *a, const u16 *b) {
         locale_leave(locked);
     }
     return (s32)x - (s32)y;
+}
+
+void __cdecl CRT_wsplitpath(const u16 *path, u16 *drive, u16 *dir, u16 *name, u16 *ext) {
+    // One part, its end given: at most 0xff characters (the original's test on the bytes between).
+    const auto copy = [](u16 *to, const u16 *from, const u16 *end) {
+        const u32 bytes = static_cast<u32>(reinterpret_cast<uintptr_t>(end) - reinterpret_cast<uintptr_t>(from));
+        const u32 count = (bytes & ~1u) < 0x1fe ? bytes >> 1 : 0xff;
+        CRT_wcsncpy(to, from, count);
+        to[count] = 0;
+    };
+    if (*path && path[1] == ':') {
+        if (drive) {
+            CRT_wcsncpy(drive, path, 2);
+            drive[2] = 0;
+        }
+        path += 2;
+    } else if (drive) {
+        *drive = 0;
+    }
+    const u16 *last = nullptr;
+    const u16 *dot = nullptr;
+    const u16 *end = path;
+    for (; *end; ++end) {
+        if (*end == '/' || *end == '\\')
+            last = end + 1;
+        else if (*end == '.')
+            dot = end;
+    }
+    if (last) {
+        if (dir) copy(dir, path, last);
+        path = last;
+    } else if (dir) {
+        *dir = 0;
+    }
+    if (dot && dot >= path) {
+        if (name) copy(name, path, dot);
+        if (ext) copy(ext, dot, end);
+    } else {
+        if (name) copy(name, path, end);
+        if (ext) *ext = 0;
+    }
 }
 
 s32 __cdecl CRT_wcsnicmp(const u16 *a, const u16 *b, u32 n) {
@@ -371,6 +449,13 @@ void __stdcall CRT_VectorDtorIterator(u8 *array, u32 size, s32 count, void(__fas
     for (s32 remaining = count - 1; remaining >= 0; --remaining) {
         element -= size;
         dtor(element);
+    }
+}
+
+void __stdcall CRT_ArrayUnwind(u8 *end, u32 size, s32 count, void(__fastcall *dtor)(void *)) {
+    while (--count >= 0) {
+        end -= size;
+        dtor(end);
     }
 }
 
@@ -713,6 +798,23 @@ s32 __cdecl CRT_toupper(s32 c) {
     return result;
 }
 
+s32 __cdecl CRT_genfname(char *name) {
+    char *const tail = CRT_mbsrchr(name, 0x2e) + 1;
+    const u32 next = CRT_strtoul(tail, nullptr, 0x20) + 1;
+    if (next >= 0x7fff) return -1;
+    char digits[4];   // (the original's: its own argument's slot; three digits at most)
+    std::strcpy(tail, CRT_ultoa(next, digits, 0x20));
+    return 0;
+}
+
+s32 __cdecl CRT_tolower(s32 c) {
+    if (!locale_set()) return c >= 0x41 && c <= 0x5a ? c + 0x20 : c;
+    const bool locked = locale_enter();
+    const s32 result = CRT_tolowerLocked(c);
+    locale_leave(locked);
+    return result;
+}
+
 // A byte's class for strtoxl: _isctype under a multibyte locale, else the table.
 static bool byte_is(u8 c, u32 mask) {
     if (static_cast<s32>(global_u32(0x0077e7dc)) > 1) return CRT_isctype(c, static_cast<s32>(mask)) != 0;
@@ -817,6 +919,50 @@ s32 __cdecl CRT_stricmp(const char *a, const char *b) {
     return result;
 }
 
+s32 __cdecl CRT_strnicmp(const char *a, const char *b, u32 n) {
+    if (!n) return 0;
+    if (!locale_set()) {
+        const auto low = [](u8 c) -> u8 { return c >= 0x41 && c <= 0x5a ? c + 0x20 : c; };
+        u8 x, y;
+        do {
+            x = static_cast<u8>(*a);
+            y = static_cast<u8>(*b);
+            if (!x || !y) break;
+            ++a;
+            ++b;
+            x = low(x);
+            y = low(y);
+            if (x != y) break;
+        } while (--n);
+        return x == y ? 0 : x < y ? -1 : 1;
+    }
+    long *const readers = reinterpret_cast<long *>((uintptr_t)0x00fb3ca8);
+    _InterlockedIncrement(readers);
+    const bool locked = *reinterpret_cast<const s32 *>((uintptr_t)0x00fb3ca4) > 0;
+    if (locked) {
+        _InterlockedDecrement(readers);
+        g_inner->lock(0x13);
+    }
+    u32 x = 0;
+    u32 y = 0;
+    do {
+        x = (x & 0xffffff00u) | static_cast<u8>(*a);
+        y = (y & 0xffffff00u) | static_cast<u8>(*b);
+        if (!x || !y) break;
+        ++a;
+        ++b;
+        y = static_cast<u32>(CRT_tolowerLocked(static_cast<s32>(y)));
+        x = static_cast<u32>(CRT_tolowerLocked(static_cast<s32>(x)));
+        if (x != y) break;
+    } while (--n);
+    const s32 result = x == y ? 0 : x < y ? -1 : 1;
+    if (locked)
+        g_inner->unlock(0x13);
+    else
+        _InterlockedDecrement(readers);
+    return result;
+}
+
 static s32 __cdecl tolower_with(s32 c, const u32 *locale, u32 strict) {
     const u32 id = locale ? locale[0] : global_u32(0x00fb1440);
     const u32 page = locale ? locale[1] : global_u32(0x00fb1450);
@@ -867,6 +1013,11 @@ __declspec(naked) s32 __cdecl CRT_Toupper(s32, const u32 *) {
         add esp, 0xc
         ret
     }
+}
+
+void *__cdecl CRT_memcpy(void *dest, const void *from, u32 size) {
+    std::memmove(dest, from, size);
+    return dest;
 }
 
 void *__cdecl CRT_memmove(void *dest, const void *from, u32 size) {
@@ -1091,6 +1242,47 @@ u16 *__cdecl CRT_wcstok(u16 *text, const u16 *separators) {
     }
     place = from;
     return start == from ? nullptr : start;
+}
+
+void __fastcall CRT_type_info_Dtor(u32 *self, void *) {
+    self[0] = 0x007089e4;
+    g_inner->lock(0x1b);
+    void *const name = reinterpret_cast<void *>((uintptr_t)self[1]);
+    if (name) CRT_free(name);
+    g_inner->unlock(0x1b);
+}
+
+u8 *__cdecl CRT_AdjustPointer(u8 *object, const s32 *displacement) {
+    u8 *result = object + displacement[0];
+    const s32 pdisp = displacement[1];
+    if (pdisp >= 0) result += *reinterpret_cast<s32 *>(*reinterpret_cast<u8 **>(object + pdisp) + displacement[2]) + pdisp;
+    return result;
+}
+
+u32 *__cdecl CRT_siglookup(u32 signal, u32 *table) {
+    const u32 count = *reinterpret_cast<u32 *>((uintptr_t)0x00781514);
+    const u32 first = static_cast<u32>(reinterpret_cast<uintptr_t>(table));
+    const u32 end = first + count * 0xc;
+    u32 at = first;
+    if (table[1] != signal) {
+        do {
+            at += 0xc;
+            if (at >= end) break;
+        } while (reinterpret_cast<u32 *>((uintptr_t)at)[1] != signal);
+    }
+    if (at < end && reinterpret_cast<u32 *>((uintptr_t)at)[1] == signal) return reinterpret_cast<u32 *>((uintptr_t)at);
+    return nullptr;
+}
+
+void __cdecl CRT_initterm(void(__cdecl **begin)(), void(__cdecl **end)()) {
+    for (; begin < end; ++begin) {
+        if (*begin) (*begin)();
+    }
+}
+
+char *__cdecl CRT_ultoa(u32 value, char *out, u32 radix) {
+    CRT_xtoa(value, out, radix, 0);
+    return out;
 }
 
 }  // extern "C"

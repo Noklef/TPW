@@ -35,6 +35,49 @@ void __cdecl Std_Xran();
 // ios_base::failure (vtable 0x7099fc, info 0x720720) naming the worst (bad, fail, eof).
 void __fastcall IosBase_Clear(u8 *self, void *edx, u32 state, u32 reraise);
 
+// The standard errors' copy constructors (thiscall (from), pops 4): exception's, the string at +0xc copied, the vtable. Returns self. 0x691a40 length_error (0x709884), 0x6936d0
+// ios_base::failure (0x7099fc), 0x6934c0 one more of the shape (0x709a44; unconfirmed).
+u32 *__fastcall LengthError_Copy(u32 *self, void *edx, const u32 *from);
+u32 *__fastcall Failure_Copy(u32 *self, void *edx, const u32 *from);
+u32 *__fastcall Error709a44_Copy(u32 *self, void *edx, const u32 *from);
+// Their _Doraise (thiscall, reached from the vtables): a copy thrown. 0x691a20 (info 0x720468), 0x6936b0 (0x720720), 0x693620 (0x720798).
+void __fastcall LengthError_Raise(const u32 *from);
+void __fastcall Failure_Raise(const u32 *from);
+void __fastcall Error709a44_Raise(const u32 *from);
+// 0x693660 (thiscall): the vtable 0x709a44, the string let go, exception's destructor. 0x693640 (thiscall (flags), pops 4): the same, the object freed for flags bit 0. Returns it.
+void __fastcall Error709a44_Dtor(u32 *self);
+u32 *__fastcall Error709a44_DeletingDtor(u32 *self, void *edx, u32 flags);
+
+// 0x692570 / 0x693000 (thiscall): basic_streambuf<char> and <wchar_t>'s constructor: the locale reference +0x34 (LocaleRef_Ctor), the vtable 0x709914 / 0x7099a4, the pointers +0xc, +0x10,
+// +0x1c, +0x20, +0x2c and +0x30 to their cells +4, +8, +0x14, +0x18, +0x24 and +0x28, all cleared. Returns self.
+u8 *__fastcall Streambuf_Ctor(u8 *self);
+u8 *__fastcall StreambufW_Ctor(u8 *self);
+
+// 0x692520 / 0x692fa0 (thiscall (buffer, isstd), pops 8): basic_ios<char> and <wchar_t>'s init: +0x28 the buffer, +0x2c 0, +0x30 ' ' (the wide one widened), IosBase_Init, without a buffer the bad
+// bit (the original's OR twice), with isstd's low byte IosBase_Addstd.
+void __fastcall Ios_Init(u8 *self, void *edx, void *buffer, u32 isstd);
+void __fastcall IosW_Init(u8 *self, void *edx, void *buffer, u32 isstd);
+
+// The streams' uninitialized constructors (thiscall (unused, most derived), pops 8): most derived: the vbtable, the buffer's slot 0 and its virtual base's vtable; always the ios's vtable by the vbtable,
+// then IosBase_Addstd. Returns self. 0x691f70 istream (0x702988; 0x709954 at +8, +0x2c 0; ios 0x70994c), 0x692040 ostream (0x702980; at +4, +0x28; 0x70995c), 0x692a40 wistream (0x700650; 0x7099e4;
+// 0x7099dc), 0x692b10 wostream (0x700648; 0x7099e4; 0x7099ec).
+u8 *__fastcall Istream_CtorUninit(u8 *self, void *edx, u32 unused, u32 derived);
+u8 *__fastcall Ostream_CtorUninit(u8 *self, void *edx, u32 unused, u32 derived);
+u8 *__fastcall IstreamW_CtorUninit(u8 *self, void *edx, u32 unused, u32 derived);
+u8 *__fastcall OstreamW_CtorUninit(u8 *self, void *edx, u32 unused, u32 derived);
+
+// 0x6921d0 / 0x692c60 (thiscall; names by their shape, unconfirmed): ios_base::Init's constructors, narrow and wide: under the lock the counter 0x7822b0 / 0x78240c goes up (below 0: it becomes 1, and the
+// first one builds the standard streams): the file buffers over the FILEs 0x77e800, 0x77e820 and 0x77e840; cin (0xfb1a90 / 0xfb1bd8) tied to cout (0xfb1a00 / 0xfb1cc8); cerr (0xfb1b28 / 0xfb1b60) tied to cout with
+// unitbuf (+0xc bit 1); clog (0xfb1970 / 0xfb1ba0) tied to cout. Returns self.
+u8 *__fastcall Ios_InitCtor(u8 *self);
+u8 *__fastcall Ios_WinitCtor(u8 *self);
+
+// 0x692650 / 0x6930e0 (thiscall, this not read; names by their shape, unconfirmed): ios_base::Init's destructors, narrow and wide: under the lock the counter 0x7822b0 / 0x78240c
+// goes down, and at 0 three streams (0xfb1a00, 0xfb1b28, 0xfb1970 / 0xfb1cc8, 0xfb1b60, 0xfb1ba0) are flushed: a good stream's rdbuf synced (vtable +0x2c), an answer of -1 the bad
+// bit by IosBase_Clear (the original's test of a null rdbuf only sets the same bit again).
+void __fastcall Ios_InitDtor(void *self);
+void __fastcall Ios_WinitDtor(void *self);
+
 // 0x6938e0 (thiscall (event), pops 4): _Callfns: each registered callback of the list +0x1c: fn +8 (event, self, its index +4).
 void __fastcall IosBase_Callfns(u8 *self, void *edx, u32 event);
 

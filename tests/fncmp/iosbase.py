@@ -12,13 +12,15 @@ from fncmp import HEAP, LOG, RAM, Bench, Call, _free, _recorder, blob, fill, hea
 THROW, FOPEN, FSEEK, FCLOSE, LOCALE = 14, 16, 17, 18, 15
 CALLBACK = 21
 MBRTOWC = 23
+SYNC = (21, 22, 24)
 
 
 def lock(e):
     e.r['EAX'] = e.r['ECX']
 
 
-B = Bench([(0x693340, 0x6934c0), (0x693830, 0x693a90), (0x6918f0, 0x691a20), (0x691ba0, 0x691cc4), (0x67d250, 0x67d340), (0x45b340, 0x45b9a0), (0x4f5a50, 0x4f5acc),
+B = Bench([(0x691a20, 0x691a40), (0x691a40, 0x691b91), (0x6934c0, 0x69361b), (0x693620, 0x693640), (0x693640, 0x69365e), (0x693660, 0x6936ab), (0x6936b0, 0x6936d0), (0x6936d0, 0x693821), (0x692570, 0x69264a), (0x693000, 0x6930da),
+           (0x692520, 0x692565), (0x692fa0, 0x692ff1), (0x691f70, 0x691fe5), (0x692040, 0x6920b5), (0x692a40, 0x692ab5), (0x692b10, 0x692b85), (0x692650, 0x692797), (0x6930e0, 0x693227), (0x693340, 0x6934c0), (0x693830, 0x693a90), (0x6918f0, 0x691a20), (0x691ba0, 0x691cc4), (0x67d250, 0x67d340), (0x45b340, 0x45b9a0), (0x4f5a50, 0x4f5acc),
            (0x4f0100, 0x4f0138), (0x4f1620, 0x4f1640), (0x4f1820, 0x4f1830), (0x4f1870, 0x4f1890), (0x4f2180, 0x4f21a0), (0x4ef840, 0x4ef860), (0x4f1ad0, 0x4f1b30), (0x4f1ba0, 0x4f1bd0),
            (0x4f1560, 0x4f1620), (0x4f1be0, 0x4f1ca0), (0x693dc0, 0x693e20), (0x4f11e0, 0x4f1260), (0x4f12b0, 0x4f12c5), (0x4f1320, 0x4f1335), (0x4f1850, 0x4f186e), (0x4f1b80, 0x4f1b9e), (0x4f1830, 0x4f1850)],
           hooks={0x67ad90: _free, 0x693bc0: _recorder(MBRTOWC, 5, cdecl=True), 0x691de0: lock, 0x691ea0: lambda e: None, 0x67d3a0: _recorder(THROW, 2, com=True), 0x67b8a0: _recorder(FOPEN, 2, cdecl=True), 0x67c100: _recorder(FSEEK, 3, cdecl=True),
@@ -45,6 +47,90 @@ def clear(r):
     state = r.choice([0, 1, 2, 3, 4, 5, 6, 7, r.getrandbits(32)])
     reraise = r.choice([0, 0, 0, 1, 0x100, 0x101])
     return Call(0x693340, [OBJ, state, reraise], {LOG: log, OBJ: obj, HEAP: heap(0x400)}, conv='t', ret='v')
+
+
+def error_regions(r):
+    """A standard error at NODES (exception's three words, the string at +0xc), its block at STREAM with a count by the case."""
+    n = r.choice([0, 0, 1, 3, 15, 31, 40])
+    text = b'y' * r.choice([0, 1, 3, 30]) + b'\0'
+    ptr = r.choice([STREAM + 1, STREAM + 1, 0]) if n else r.choice([0, STREAM + 1])
+    regions = {HEAP: heap(0x200), OBJ: r.bytes(0x20), LOC: text, STREAM: bytes([r.choice([0, 1, 7, 0xfc, 0xfd, 0xfe, 0xff])]) + r.bytes(n) + b'\0' + r.bytes(4),
+               NODES: struct.pack('<IIIIIII', r.getrandbits(32), LOC, r.choice([0, 1, r.getrandbits(32)]), r.getrandbits(32), ptr, n, n + r.choice([0, 0, 5]))}
+    return regions
+
+
+def error_copy(r):
+    regions = error_regions(r)
+    address = r.deal([0x691a40, 0x6936d0, 0x6934c0])
+    if r.random() < 0.08:    # (from itself: the string emptied before it is read)
+        regions[OBJ] = regions.pop(NODES)
+        return Call(address, [OBJ, OBJ], regions, conv='t', ret='a')
+    return Call(address, [OBJ, NODES], regions, conv='t', ret='a')
+
+
+def error_raise(r):
+    log = log_region()
+    throw_log(log)
+    regions = error_regions(r)
+    regions[LOG] = log
+    return Call(r.deal([0x691a20, 0x6936b0, 0x693620]), [NODES], regions, conv='t', ret='v')
+
+
+def error_dtor(r):
+    regions = error_regions(r)
+    if r.random() < 0.5:
+        return Call(0x693660, [NODES], regions, conv='t', ret='v')
+    return Call(0x693640, [NODES, r.choice([0, 1, 2, 3, 0x100, 0x101, r.getrandbits(32)])], regions, conv='t', ret='a')
+
+
+def streambuf(r):
+    log = log_region()
+    set_return(log, LOCALE, r.getrandbits(32))
+    loc = struct.pack('<II', r.getrandbits(32), r.choice([0, 1, 0xfffffffe, 0xffffffff])) + r.bytes(8)
+    return Call(r.deal([0x692570, 0x693000]), [OBJ], {LOG: log, OBJ: r.bytes(0x40), LOC: loc, 0xfb1dd0: struct.pack('<I', LOC)}, conv='t', ret='a')
+
+
+def ios_init(r):
+    log = log_region()
+    throw_log(log)
+    widen_setup(r, log)
+    set_return(log, LOCALE, LOC)
+    obj = stream(r)
+    regions = {LOG: log, OBJ: obj, LOC: r.bytes(8), 0xfb1dd0: struct.pack('<I', LOC), HEAP: heap(0x400), STD: r.bytes(0x28), 0xfb1d88: r.bytes(0x10)}
+    return Call(r.deal([0x692520, 0x692fa0]), [OBJ, r.choice([0, 0, 1, r.getrandbits(32)]), r.choice([0, 1, 0x100, 0x101])], regions, conv='t', ret='v')
+
+
+def uninit(r):
+    obj = bytearray(r.bytes(0x60))
+    struct.pack_into('<I', obj, 0, VT)
+    table = struct.pack('<II', r.getrandbits(32), r.choice([4, 8, 0xc]))
+    regions = {OBJ: obj, VT: table, STD: r.bytes(0x28), 0xfb1d88: r.bytes(0x10), HEAP: heap(0x400)}
+    return Call(r.deal([0x691f70, 0x692040, 0x692a40, 0x692b10]), [OBJ, r.getrandbits(32), r.choice([0, 0, 1, 0x100, r.getrandbits(32)])], regions, conv='t', ret='a')
+
+
+def init_dtor(r):
+    """ios_base::Init's destructors: the counter at 1 mostly; three streams with their ios at +8 or +0xc, in one region (some only 0x38 apart); each sync its recorder's answer by the case."""
+    log = log_region()
+    throw_log(log)
+    address, counter, streams = r.choice([(0x692650, 0x7822b0, (0xfb1a00, 0xfb1b28, 0xfb1970)), (0x6930e0, 0x78240c, (0xfb1cc8, 0xfb1b60, 0xfb1ba0))])
+    area = bytearray(r.bytes(0x3c0))
+    table = bytearray(0x200)
+    for i, s in enumerate(streams):
+        vb = r.choice([8, 0xc])
+        at = s - 0xfb1970
+        struct.pack_into('<I', area, at, VBT + 8 * i)
+        struct.pack_into('<I', table, 8 * i + 4, vb)
+        struct.pack_into('<I', area, at + vb + 4, r.choice([0, 0, 0, 1, 2, 4, 6, 0x100]))
+        struct.pack_into('<I', area, at + vb + 8, r.choice([0, 0, 0, 4, 7]))
+        struct.pack_into('<I', area, at + vb + 0x28, OBJ + 0x10 * i)
+    buffers = bytearray(r.bytes(0x30))
+    methods = bytearray(0x30 * 3)
+    for i in range(3):
+        struct.pack_into('<I', buffers, 0x10 * i, VT + 0x30 * i)
+        struct.pack_into('<I', methods, 0x30 * i + 0x2c, recorder(SYNC[i], 0))
+        set_return(log, SYNC[i], r.choice([0, -1 & 0xffffffff, -1 & 0xffffffff, 1]))
+    regions = {LOG: log, 0xfb1970: area, VBT: table, OBJ: buffers, VT: methods, HEAP: heap(0x400), counter: struct.pack('<I', r.choice([1, 1, 1, 1, 0, 2, 5]))}
+    return Call(address, [r.getrandbits(32)], regions, conv='t', ret='v')
 
 
 def xlen(r):
@@ -239,7 +325,7 @@ def ctype_dtor(r):
     return Call(0x4f1ba0, [OBJ], {OBJ: obj, HEAP: heap(0x40)}, conv='t', ret='v')
 
 
-KINDS = {'clear': clear, 'xlen': xlen, 'callfns': callfns, 'addstd': addstd, 'init': init, 'tidy': tidy, 'dtor': dtor, 'fiopen': fiopen, 'exception_ctor': exception_ctor,
+KINDS = {'error_copy': error_copy, 'error_raise': error_raise, 'error_dtor': error_dtor, 'streambuf': streambuf, 'ios_init': ios_init, 'uninit': uninit, 'init_dtor': init_dtor, 'clear': clear, 'xlen': xlen, 'callfns': callfns, 'addstd': addstd, 'init': init, 'tidy': tidy, 'dtor': dtor, 'fiopen': fiopen, 'exception_ctor': exception_ctor,
          'exception_copy': exception_copy, 'ios_clears': ios_clears, 'ios_dtors': ios_dtors, 'streams': streams, 'bad_cast': bad_cast, 'widen': widen, 'ctype_dtor': ctype_dtor, 'deleting': deleting}
 OPS = [k for k in os.environ.get('OPS', ','.join(KINDS)).split(',') if k]
 

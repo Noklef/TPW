@@ -26,7 +26,61 @@ void count_out(LocaleFacet *facet) {
     if (facet->refs > 0 && facet->refs < none) --facet->refs;
 }
 
+// Under its own lock a count dropped; deleted, past the lock, when none are left.
+void release(LocaleFacet *facet) {
+    u32 lock[2];
+    IosBase_Env().lockit(lock);
+    count_out(facet);
+    LocaleFacet *const dead = facet->refs ? nullptr : facet;
+    IosBase_Env().unlockit(lock);
+    if (dead) dead->vtable[0](dead, nullptr, 1);
+}
+
+void set_vtable(Locimp *imp, u32 vtable) { imp->facet.vtable = reinterpret_cast<decltype(imp->facet.vtable)>((uintptr_t)vtable); }
+
 }  // namespace
+
+Locimp *__fastcall Locimp_Ctor(Locimp *self, void *, u32 xparse) {
+    self->facet.refs = 1;
+    set_vtable(self, 0x00709b44);
+    self->facets = nullptr;
+    self->count = 0;
+    self->categories = 0;
+    self->xparse = static_cast<u8>(xparse);
+    *reinterpret_cast<u8 *>(&self->name) = static_cast<u8>(xparse);
+    self->name.ptr = nullptr;
+    self->name.len = 0;
+    self->name.res = 0;
+    const char *const text = reinterpret_cast<const char *>((uintptr_t)0x00747828);
+    u32 length = 0;
+    while (text[length]) ++length;
+    StdString_AssignChars(&self->name, nullptr, text, length);
+    set_vtable(self, 0x00709bac);
+    return self;
+}
+
+void __fastcall Locimp_Dtor(Locimp *self, void *) {
+    set_vtable(self, 0x00709bac);
+    u32 lock[2];
+    IosBase_Env().lockit(lock);
+    for (u32 i = self->count; i;) {
+        --i;
+        LocaleFacet *const facet = self->facets[i];
+        if (facet) release(facet);
+    }
+    Crt().free(self->facets);
+    IosBase_Env().unlockit(lock);
+    StdString_Tidy(&self->name, nullptr, 1);
+    set_vtable(self, 0x00709b44);
+}
+
+void __cdecl Locimp_TidyAtExit() {
+    u32 lock[2];
+    IosBase_Env().lockit(lock);
+    LocaleFacet *const facet = global<LocaleFacet *>(0x00fb1dd0);
+    if (facet) release(facet);
+    IosBase_Env().unlockit(lock);
+}
 
 u32 *__fastcall BadAlloc_Ctor(u32 *self, void *, const char *text) {
     CRT_exception_Ctor(self, nullptr, &text);
@@ -43,6 +97,24 @@ u32 *__fastcall BadAlloc_Copy(u32 *self, void *, const u32 *from) {
 void __fastcall BadAlloc_Dtor(u32 *self) {
     self[0] = bad_alloc_vtable;
     CRT_exception_Dtor(self);
+}
+
+Locimp *__fastcall Locimp_DeletingDtor(Locimp *self, void *, u32 flags) {
+    Locimp_Dtor(self, nullptr);
+    if (flags & 1) IosBase_Env().memFree(self);
+    return self;
+}
+
+u32 *__fastcall BadAlloc_DeletingDtor(u32 *self, void *, u32 flags) {
+    BadAlloc_Dtor(self);
+    if (flags & 1) IosBase_Env().memFree(self);
+    return self;
+}
+
+void __fastcall BadAlloc_Doraise(const u32 *self) {
+    u32 copy[3];
+    BadAlloc_Copy(copy, nullptr, self);
+    IosBase_Env().cxxThrow(copy, reinterpret_cast<const void *>((uintptr_t)0x00721c88));
 }
 
 void __cdecl Nomemory() {

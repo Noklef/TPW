@@ -70,7 +70,10 @@ def build_format(r, args):
     out = bytearray()
     for _ in range(r.choice([1, 2, 3, 5, 8, 12])):
         kind = r.random()
-        if kind < 0.6:
+        if kind < 0.03:   # (%#.0o of 0: no digits, the force's zero alone)
+            out += b'%#.0o'
+            args.append(bytes(4))
+        elif kind < 0.6:
             out += conversion(r, args).encode()
         elif kind < 0.8:
             out += r.choice([b'plain', b' ', b'!', b'\x81A', b'\x81\x82', b'\xe4z', b'x=', b'\x7f', b'\x1f', b'y'])
@@ -144,6 +147,7 @@ def case(r):
         if name == 'format':
             regions[ARGS] = b''.join(args) + bytes(0x100)
             return Call(0x680c00, [FILE, FORMAT, ARGS], regions, conv='c', ret='a')
+        regions[OUT] = b'\xaa' * 0x4000   # (the terminator shows)
         words = struct.unpack('<%dI' % (sum(map(len, args)) // 4), b''.join(args))
         return Call(0x67a650, [OUT, FORMAT, *words, 0, 0, 0, 0], regions, conv='c', ret='a')
     if name == 'write_char':

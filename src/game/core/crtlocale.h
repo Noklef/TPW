@@ -8,6 +8,13 @@ extern "C" {
 // 0x67c250: strncmp: up to n bytes, to the first's end: -1, 0 or 1 (the bytes unsigned).
 s32 __cdecl CRT_strncmp(const char *a, const char *b, u32 n);
 
+// 0x68d800: __fix_grouping: "3;2" to its numbers: the digits less '0', the semicolons taken out, others stepped over (bytes signed).
+void __cdecl CRT_fix_grouping(char *text);
+// 0x68d840: __free_lconv_mon: with lconv not null and its first text (+0xc) not the "C" locale's own 0xfb1940, the seven texts +0xc to +0x24 freed.
+void __cdecl CRT_free_lconv_mon(u32 *lconv);
+// 0x68e680: LcidFromHexString: base 16, without a check of the digits.
+u32 __cdecl CRT_LcidFromHexString(const char *text);
+
 // 0x68db70: strcspn.
 u32 __cdecl CRT_strcspn(const char *text, const char *set);
 
@@ -22,6 +29,8 @@ void __cdecl CRT_lc_lctostr(char *out, const char *names);
 
 // 0x68e6c0: GetPrimaryLen: the letters that start the text.
 s32 __cdecl CRT_GetPrimaryLen(const char *text);
+// 0x68e480: TestDefaultLanguage.
+u32 __cdecl CRT_TestDefaultLanguage(u32 lcid, u32 primary);
 
 // 0x68e510: IsThisWindowsNT: 1 when GetVersionExA answers and the platform is 2.
 s32 __cdecl CRT_IsThisWindowsNT();
@@ -54,4 +63,9 @@ char *__cdecl CRT_setlocale_set_cat(s32 category, const char *locale);
 
 // 0x683ac0: setlocale, under lock 0x13 with [0xfb3ca4] counted, waiting for [0xfb3ca8] to be 0.
 char *__cdecl CRT_setlocale(s32 category, const char *locale);
+// 0x68e450: TestDefaultCountry: 0 for a language id (the low word) in the ten of [0x781a20], else 1.
+u32 __cdecl CRT_TestDefaultCountry(u32 lcid);
+// 0x68e2a0: CountryEnumProc: the search's country against this locale's name; 1 goes on with the enumeration.
+s32 __stdcall CRT_CountryEnumProc(const char *hex);
+
 }
