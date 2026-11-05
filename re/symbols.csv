@@ -6090,6 +6090,7 @@ address,name,kind,confidence,notes
 0x00682800,CRT_lock_file2,function,low,reimplemented (src/game/core/crtlock); _lock_file2
 0x00682830,CRT_unlock_file,function,low,reimplemented (src/game/core/crtlock); _unlock_file
 0x00682870,CRT_unlock_file2,function,low,reimplemented (src/game/core/crtlock); _unlock_file2
+0x006826f0,CRT_mtinitlocks,function,low,reimplemented (src/game/core/crtlock); _mtinitlocks
 0x006868a0,CRT_getstream,function,low,reimplemented (src/game/core/crtopen); _getstream
 0x006866d0,CRT_openfile,function,low,reimplemented (src/game/core/crtopen); _openfile
 0x0067b860,CRT_fsopen,function,low,reimplemented (src/game/core/crtopen); _fsopen

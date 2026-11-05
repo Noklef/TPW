@@ -10,11 +10,11 @@ sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'
 from fncmp import HEAP, IMPORT_TABLE, LOG, RAM, Bench, Call, _free, _recorder, fill, heap, import_table, log_region, set_return  # noqa: E402
 
 INIT, ENTER, LEAVE, AMSG, NHMALLOC = 14, 15, 16, 26, 28
-B = Bench([(0x682720, 0x682796), (0x6827a0, 0x6827b6), (0x6827c0, 0x6827f6), (0x682800, 0x682828), (0x682830, 0x682866), (0x682870, 0x682898), (0x67dcd0, 0x67dcf0)],
+B = Bench([(0x6826f0, 0x68271b), (0x682720, 0x682796), (0x6827a0, 0x6827b6), (0x6827c0, 0x6827f6), (0x682800, 0x682828), (0x682830, 0x682866), (0x682870, 0x682898), (0x67dcd0, 0x67dcf0)],
           hooks={0x67dcf0: _recorder(NHMALLOC, 2, cdecl=True), 0x67efc0: _recorder(AMSG, 1, cdecl=True), 0x67ad90: _free})
 SECTIONS, FRESH = RAM, RAM + 0x1000
 TABLE = 0x77ece0
-OPS = [n for n in ('lock', 'unlock', 'lock_file', 'unlock_file', 'lock_file2', 'unlock_file2') if not os.environ.get('OPS') or n in os.environ['OPS'].split(',')]
+OPS = [n for n in ('initlocks', 'lock', 'unlock', 'lock_file', 'unlock_file', 'lock_file2', 'unlock_file2') if not os.environ.get('OPS') or n in os.environ['OPS'].split(',')]
 
 
 def case(r):
@@ -32,6 +32,8 @@ def case(r):
         fill(log, ENTER, 0, struct.pack('<I', SECTIONS))
     regions[TABLE] = struct.pack('<48I', *table)
     regions[SECTIONS] = bytes(0x500)
+    if name == 'initlocks':
+        return Call(0x6826f0, [], regions, conv='c', ret='v')
     if name == 'lock':
         return Call(0x682720, [which], regions, conv='c', ret='v')
     if name == 'unlock':

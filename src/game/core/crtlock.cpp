@@ -73,4 +73,11 @@ void __cdecl CRT_unlock_file2(s32 index, void *file) {
         leave_section(section_of(file));
 }
 
+void __cdecl CRT_mtinitlocks() {
+    init_section(section(0x11));
+    init_section(section(0xd));
+    init_section(section(9));
+    init_section(section(1));
+}
+
 }
