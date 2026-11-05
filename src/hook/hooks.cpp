@@ -286,6 +286,7 @@
 #include "../game/core/soundworker.h"
 #include "../game/core/startcheck.h"
 #include "../game/core/stdlocale.h"
+#include "../game/core/streambufiter.h"
 #include "../game/core/streamfilter.h"
 #include "../game/core/streampool.h"
 #include "../game/core/stringmapsrecord.h"
@@ -6619,6 +6620,12 @@ const Hook kHooks[] = {
     {"ThemeRecord_Suffix",        0x005b1520, (void *)&ThemeRecord_Suffix, {0x56, 0x8b, 0xf1, 0x8a, 0x86}},
     {"GuardHeap_Alloc",           0x005d4ba0, (void *)&GuardHeap_Alloc, {0x56, 0x8b, 0x74, 0x24, 0x08}},
     {"GuardHeap_Free",            0x005d4c20, (void *)&GuardHeap_Free, {0x51, 0x8b, 0x44, 0x24, 0x08}},
+    {"StreambufIter_Deref",       0x006962d0, (void *)&StreambufIter_Deref, {0x56, 0x8b, 0xf1, 0x8a, 0x46}},
+    {"StreambufIter_Equal",       0x00696330, (void *)&StreambufIter_Equal, {0x56, 0x57, 0x8b, 0xf9, 0x8a}},
+    {"StreambufIter_Inc",         0x006963f0, (void *)&StreambufIter_Inc, {0x53, 0x56, 0x57, 0x8b, 0xf9}},
+    {"WStreambufIter_Deref",      0x0069d040, (void *)&WStreambufIter_Deref, {0x56, 0x8b, 0xf1, 0x8a, 0x46}},
+    {"WStreambufIter_Equal",      0x0069d0a0, (void *)&WStreambufIter_Equal, {0x56, 0x57, 0x8b, 0xf9, 0x8a}},
+    {"WStreambufIter_Inc",        0x0069d160, (void *)&WStreambufIter_Inc, {0x53, 0x56, 0x57, 0x8b, 0xf9}},
     {"Nav_Ctor",          0x0050ffe0, (void *)&Nav_Ctor, {0x6a, 0xff, 0x68, 0x2d, 0xe6}},
     {"Nav_Dtor",                  0x0050f200, (void *)&Nav_Dtor, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"Nav_DtorAtD4",              0x004f7c30, (void *)&Nav_DtorAtD4, {0x81, 0xc1, 0xd4, 0x00, 0x00}},

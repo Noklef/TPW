@@ -6207,6 +6207,12 @@ address,name,kind,confidence,notes
 0x005b1520,ThemeRecord_Suffix,function,low,reimplemented (src/game/core/themenames); a theme record's suffix
 0x005d4ba0,GuardHeap_Alloc,function,low,reimplemented (src/game/core/guardheap); a block with guard words
 0x005d4c20,GuardHeap_Free,function,low,reimplemented (src/game/core/guardheap); a block with guard words checked and freed
+0x006962d0,StreambufIter_Deref,function,low,reimplemented (src/game/core/streambufiter); istreambuf_iterator<char>::operator*
+0x00696330,StreambufIter_Equal,function,low,reimplemented (src/game/core/streambufiter); istreambuf_iterator<char>::equal
+0x006963f0,StreambufIter_Inc,function,low,reimplemented (src/game/core/streambufiter); istreambuf_iterator<char>::_Inc
+0x0069d040,WStreambufIter_Deref,function,low,reimplemented (src/game/core/streambufiter); istreambuf_iterator<wchar_t>::operator*
+0x0069d0a0,WStreambufIter_Equal,function,low,reimplemented (src/game/core/streambufiter); istreambuf_iterator<wchar_t>::equal
+0x0069d160,WStreambufIter_Inc,function,low,reimplemented (src/game/core/streambufiter); istreambuf_iterator<wchar_t>::_Inc
 0x0050ffe0,Nav_Ctor,function,high,reimplemented (src/game/world/nav); constants constructor with five integer pairs
 0x0050f200,Nav_Dtor,function,high,reimplemented (src/game/world/nav); thiscall: the five IntPairs at +0x64 destroyed with Stub_Ret (CRT_VectorDtorIterator); also via 0x4f7c30 (+0xd4) and 0x4f8ad0
 0x004f7c30,Nav_DtorAtD4,function,low,reimplemented (src/game/world/nav); thiscall adjustor: Nav_Dtor on this + 0xd4
