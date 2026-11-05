@@ -32,6 +32,53 @@ u32 __cdecl CRT_mbctolower(u32 c) {
     return (&global<u8>(0x00fb1770))[c];
 }
 
+s32 __cdecl CRT_mbsicmp(const char *a, const char *b) {
+    if (!code_page()) return CRT_stricmp(a, b);
+    // One character, lower; false for a map of the wrong length.
+    const auto next = [](const u8 *&at, u16 &out) {
+        const u8 c = *at++;
+        if (is_lead(c)) {
+            if (!*at) {
+                out = 0;
+                return true;
+            }
+            u8 to[4];
+            const s32 length = CRT_LCMapStringA(global<u32>(0x00fb1874), 0x200, reinterpret_cast<const char *>(at - 1), 2, reinterpret_cast<char *>(to), 2, code_page(), 1);
+            if (length == 1)
+                out = to[0];
+            else if (length == 2)
+                out = static_cast<u16>(to[0] << 8 | to[1]);
+            else
+                return false;
+            ++at;
+            return true;
+        }
+        out = (type_of(c) & 0x10) == 0x10 ? (&global<u8>(0x00fb1770))[c] : c;
+        return true;
+    };
+    CrtInner().lock(kMbcsLock);
+    const u8 *x = reinterpret_cast<const u8 *>(a);
+    const u8 *y = reinterpret_cast<const u8 *>(b);
+    s32 result;
+    for (;;) {
+        u16 first, second;
+        if (!next(x, first) || !next(y, second)) {
+            result = 0x7fffffff;
+            break;
+        }
+        if (first != second) {
+            result = second < first ? 1 : -1;
+            break;
+        }
+        if (!first) {
+            result = 0;
+            break;
+        }
+    }
+    CrtInner().unlock(kMbcsLock);
+    return result;
+}
+
 char *__cdecl CRT_mbspbrk(const char *text, const char *set) {
     if (!code_page()) return CRT_strpbrk(text, set);
     CrtInner().lock(kMbcsLock);

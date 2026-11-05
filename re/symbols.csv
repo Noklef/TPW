@@ -6157,6 +6157,7 @@ address,name,kind,confidence,notes
 0x006895b0,CRT_mbctolower,function,low,reimplemented (src/game/core/crtmbstring); _mbctolower
 0x00689650,CRT_mbspbrk,function,low,reimplemented (src/game/core/crtmbstring); _mbspbrk
 0x00689400,CRT_mbsrchr,function,low,reimplemented (src/game/core/crtmbstring); _mbsrchr
+0x00689250,CRT_mbsicmp,function,low,reimplemented (src/game/core/crtmbstring); _mbsicmp
 0x00694e60,NumPut_DoPutPointer,function,low,reimplemented (src/game/core/numput); num_put<char>::do_put of a pointer (MSVC6)
 0x0069bb70,NumPutW_DoPutPointer,function,low,reimplemented (src/game/core/numput); num_put<wchar_t>::do_put of a pointer
 0x0069ffe0,CollateW_DoTransform,function,low,reimplemented (src/game/core/wcollate); collate<wchar_t>::do_transform (name unconfirmed)
