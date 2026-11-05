@@ -260,6 +260,7 @@
 #include "../game/core/narrowwriter.h"
 #include "../game/core/numput.h"
 #include "../game/core/nstream.h"
+#include "../game/core/numget.h"
 #include "../game/core/optionschanges.h"
 #include "../game/core/refcounted.h"
 #include "../game/core/parkinfo.h"
@@ -6805,6 +6806,13 @@ const Hook kHooks[] = {
     {"CRT_GetLocaleInfoW",        0x00691680, (void *)&CRT_GetLocaleInfoW, {0xa1, 0x44, 0x19, 0xfb, 0x00}},
     {"CRT_GetLocaleInfoA",        0x006917b0, (void *)&CRT_GetLocaleInfoA, {0xa1, 0x48, 0x19, 0xfb, 0x00}},
     {"CRT_Getlocaleinfo",         0x00691380, (void *)&CRT_Getlocaleinfo, {0x8b, 0x44, 0x24, 0x04, 0x81}},
+    {"NumGet_Getifld",            0x00698640, (void *)&NumGet_Getifld, {0x6a, 0xff, 0x68, 0x23, 0x40}},
+    {"NumGet_DoGetBool",          0x00695ca0, (void *)&NumGet_DoGetBool, {0x64, 0xa1, 0x00, 0x00, 0x00}},
+    {"NumGet_DoGetUshort",        0x00696450, (void *)&NumGet_DoGetUshort, {0x6a, 0xff, 0x68, 0xc8, 0x3e}},
+    {"NumGet_DoGetUint",          0x006968a0, (void *)&NumGet_DoGetUint, {0x6a, 0xff, 0x68, 0xf8, 0x3e}},
+    {"NumGet_DoGetLong",          0x00696ce0, (void *)&NumGet_DoGetLong, {0x6a, 0xff, 0x68, 0x28, 0x3f}},
+    {"NumGet_DoGetUlong",         0x006970e0, (void *)&NumGet_DoGetUlong, {0x6a, 0xff, 0x68, 0x58, 0x3f}},
+    {"NumGet_DoGetPointer",       0x006981f0, (void *)&NumGet_DoGetPointer, {0x6a, 0xff, 0x68, 0xe8, 0x3f}},
     {"Nav_Ctor",          0x0050ffe0, (void *)&Nav_Ctor, {0x6a, 0xff, 0x68, 0x2d, 0xe6}},
     {"Nav_Dtor",                  0x0050f200, (void *)&Nav_Dtor, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"Nav_DtorAtD4",              0x004f7c30, (void *)&Nav_DtorAtD4, {0x81, 0xc1, 0xd4, 0x00, 0x00}},

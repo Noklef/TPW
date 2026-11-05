@@ -6360,6 +6360,13 @@ address,name,kind,confidence,notes
 0x00691680,CRT_GetLocaleInfoW,function,low,reimplemented (src/game/core/crtlocaleinfo); __crtGetLocaleInfoW
 0x006917b0,CRT_GetLocaleInfoA,function,low,reimplemented (src/game/core/crtlocaleinfo); __crtGetLocaleInfoA
 0x00691380,CRT_Getlocaleinfo,function,low,reimplemented (src/game/core/crtlocaleinfo); __getlocaleinfo
+0x00698640,NumGet_Getifld,function,low,reimplemented (src/game/core/numget); num_get::_Getifld
+0x00695ca0,NumGet_DoGetBool,function,low,reimplemented (src/game/core/numget); num_get::do_get (bool)
+0x00696450,NumGet_DoGetUshort,function,low,reimplemented (src/game/core/numget); num_get::do_get (unsigned short)
+0x006968a0,NumGet_DoGetUint,function,low,reimplemented (src/game/core/numget); num_get::do_get (unsigned int)
+0x00696ce0,NumGet_DoGetLong,function,low,reimplemented (src/game/core/numget); num_get::do_get (long)
+0x006970e0,NumGet_DoGetUlong,function,low,reimplemented (src/game/core/numget); num_get::do_get (unsigned long)
+0x006981f0,NumGet_DoGetPointer,function,low,reimplemented (src/game/core/numget); num_get::do_get (void *)
 0x0050ffe0,Nav_Ctor,function,high,reimplemented (src/game/world/nav); constants constructor with five integer pairs
 0x0050f200,Nav_Dtor,function,high,reimplemented (src/game/world/nav); thiscall: the five IntPairs at +0x64 destroyed with Stub_Ret (CRT_VectorDtorIterator); also via 0x4f7c30 (+0xd4) and 0x4f8ad0
 0x004f7c30,Nav_DtorAtD4,function,low,reimplemented (src/game/world/nav); thiscall adjustor: Nav_Dtor on this + 0xd4

@@ -106,15 +106,13 @@ struct WideChars {
     static u8 *make(void *object) { return Globalfb1e30_Set(object ? static_cast<u8 *>(IosBase_Env().wnumpunctCtor(object, nullptr, 0)) : nullptr); }
 };
 
-// use_facet<numpunct> on the stream's locale. A missing one comes from the classic locale, made once; other locales throw.
-template <typename C> u8 *numpunct_facet(u8 *ios) {
-    u8 *locale;
-    Obj_ShareMember20(ios, nullptr, &locale);
+// use_facet<numpunct>. A missing one comes from the classic locale, made once; other locales throw.
+template <typename C> u8 *numpunct_of(u8 **locale) {
     u32 lock[2];
     IosBase_Env().lockit(lock);
-    u8 *facet = Locale_Getfacet(&locale, nullptr, Id_Get(&global<u32>(C::kId)), 1);
+    u8 *facet = Locale_Getfacet(locale, nullptr, Id_Get(&global<u32>(C::kId)), 1);
     if (!facet) {
-        if (Locale_Iscloc(&locale)) {
+        if (Locale_Iscloc(locale)) {
             facet = global<u8 *>(C::kCache);
             if (!facet) {
                 facet = C::make(IosBase_Env().memAlloc(0x18));
@@ -127,6 +125,13 @@ template <typename C> u8 *numpunct_facet(u8 *ios) {
         }
     }
     IosBase_Env().unlockit(lock);
+    return facet;
+}
+
+template <typename C> u8 *numpunct_facet(u8 *ios) {
+    u8 *locale;
+    Obj_ShareMember20(ios, nullptr, &locale);
+    u8 *const facet = numpunct_of<C>(&locale);
     CountedRef_Release(&locale);
     return facet;
 }
@@ -279,6 +284,8 @@ template <typename C> u32 *put_float(u32 *out, u32 failed, u8 *buffer, u8 *ios, 
 }
 
 }  // namespace
+
+u8 *NumPut_NumpunctOf(u8 **locale) { return numpunct_of<NarrowChars>(locale); }
 
 extern "C" {
 
