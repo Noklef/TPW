@@ -2864,6 +2864,14 @@ address,name,kind,confidence,notes
 0x0047f620,CommandQueue_OpenBox,function,low,reimplemented (src/game/core/dequeiter); the command queue's first element's text opened in a message box
 0x00632080,Deque32_Clear,function,low,reimplemented (src/game/core/dequeiter); thiscall: every entry popped from the front; name invented
 0x00631ec0,DequeOwner_Pop,function,low,"reimplemented (src/game/core/dequeiter); thiscall (out, value): the front object told the value, its +8 cleared, popped; 0 written to out; name invented"
+0x00631870,LockedQueue_Ctor,function,low,"reimplemented (src/game/core/dequeiter); thiscall: a queue under a lock: the base's parts, the fields cleared, the section made; name invented"
+0x00631fc0,LockedQueue_Lock,function,low,reimplemented (src/game/core/dequeiter); thiscall: the section entered through a guard; name invented
+0x00632020,LockedQueue_Unlock,function,low,reimplemented (src/game/core/dequeiter); thiscall: the section left through a guard; name invented
+0x00631d10,LockedQueue_Push,function,low,"reimplemented (src/game/core/dequeiter); thiscall (value): under the lock, push_back of a deque of dwords; name invented"
+0x00631d00,LockedQueue_PushThunk,function,low,reimplemented (src/game/core/dequeiter); thiscall (value): LockedQueue_Push; name invented
+0x006319a0,LockedQueue_Dtor,function,low,"reimplemented (src/game/core/dequeiter); thiscall: the deque erased, the section deleted, the base's destructor; name invented"
+0x00631980,LockedQueue_DeletingDtor,function,low,"reimplemented (src/game/core/dequeiter); thiscall (flags): the destructor, bit 0 frees; name invented"
+0x00631950,LockedQueueBase_DeletingDtor,function,low,"reimplemented (src/game/core/dequeiter); thiscall (flags): Class703780_DtorD, bit 0 frees; name invented"
 0x00423720,Obj_Get24,function,high,reimplemented (src/game/core/accessors); the dword at +0x24
 0x00423730,Obj_Get2c,function,high,reimplemented (src/game/core/accessors); the dword at +0x2c
 0x004030c0,Obj_Get30,function,high,reimplemented (src/game/core/accessors); the dword at +0x30
