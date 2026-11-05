@@ -775,6 +775,10 @@ double __cdecl CRT_Stod(const char *text, const char **end, s32 power) {
     return value;
 }
 
+double __cdecl CRT_Stold(const char *text, const char **end, s32 power) { return CRT_Stod(text, end, power); }
+
+u32 __cdecl CRT_controlfp(u32 value, u32 mask) { return CRT_control87(value, mask & 0xfff7ffff); }
+
 double __cdecl CRT_strtod(const char *text, const char **end) {
     const char *from = text;
     while (is_space(static_cast<u8>(*from))) ++from;

@@ -6120,6 +6120,8 @@ address,name,kind,confidence,notes
 0x00680660,CRT_fassign,function,low,reimplemented (src/game/core/crtfloat); _fassign
 0x00680740,CRT_cftoe2,function,low,reimplemented (src/game/core/crtfloat); _cftoe2
 0x006808b0,CRT_cftof2,function,low,reimplemented (src/game/core/crtfloat); _cftof2
+0x0068bab0,CRT_controlfp,function,low,reimplemented (src/game/core/crtfloat); _controlfp
+0x006ac980,CRT_Stold,function,low,reimplemented (src/game/core/crtfloat); Stod's wrapper
 0x004092a0,GameOwner_Pause,function,low,"reimplemented (src/game/core/gameowner); thiscall (mode, flag), pops 8: the game held: the front end, the clocks, the sounds or the advisor's speech"
 0x00409300,GameOwner_Resume,function,low,reimplemented (src/game/core/gameowner); thiscall: the game let go
 0x00409350,GameOwner_TogglePause,function,low,"reimplemented (src/game/core/gameowner); thiscall (flag), pops 4: paused or not, by +0x1c"
