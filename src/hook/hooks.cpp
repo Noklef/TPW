@@ -266,6 +266,7 @@
 #include "../game/core/recordsort.h"
 #include "../game/core/qsoundmixer.h"
 #include "../game/core/releaselist.h"
+#include "../game/core/sectionlock.h"
 #include "../game/core/sfbank.h"
 #include "../game/core/sfman.h"
 #include "../game/core/sharedglobals.h"
@@ -6730,6 +6731,11 @@ const Hook kHooks[] = {
     {"Ime_PickLayout",            0x004796b0, (void *)&Ime_PickLayout, {0x6a, 0xff, 0x68, 0xc0, 0x8d}},
     {"Ime_OnMessage",             0x004798e0, (void *)&Ime_OnMessage, {0x83, 0xec, 0x24, 0x53, 0x8b}},
     {"Ime_WindowProc",            0x0047a880, (void *)&Ime_WindowProc, {0x8a, 0x0d, 0x38, 0x4a, 0x7b}},
+    {"OwnedSection_Ctor",         0x00633900, (void *)&OwnedSection_Ctor, {0x56, 0x8b, 0xf1, 0x6a, 0x18}},
+    {"OwnedSection_Dtor",         0x00633920, (void *)&OwnedSection_Dtor, {0x56, 0x8b, 0xf1, 0x8b, 0x06}},
+    {"SectionGuard_Dtor",         0x00633940, (void *)&SectionGuard_Dtor, {0xe9, 0x2b, 0x00, 0x00, 0x00}},
+    {"SectionGuard_Enter",        0x00633950, (void *)&SectionGuard_Enter, {0x56, 0x8b, 0xf1, 0x8b, 0x06}},
+    {"SectionGuard_Leave",        0x00633970, (void *)&SectionGuard_Leave, {0x56, 0x8b, 0xf1, 0x8b, 0x46}},
     {"Nav_Ctor",          0x0050ffe0, (void *)&Nav_Ctor, {0x6a, 0xff, 0x68, 0x2d, 0xe6}},
     {"Nav_Dtor",                  0x0050f200, (void *)&Nav_Dtor, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"Nav_DtorAtD4",              0x004f7c30, (void *)&Nav_DtorAtD4, {0x81, 0xc1, 0xd4, 0x00, 0x00}},

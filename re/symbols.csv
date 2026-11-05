@@ -6283,6 +6283,11 @@ address,name,kind,confidence,notes
 0x004796b0,Ime_PickLayout,function,low,"reimplemented (src/game/core/imeinput); cdecl(layout): the layout list's next one after the given, in turn, whose property shows no IME UI; or 0; name invented"
 0x004798e0,Ime_OnMessage,function,low,"reimplemented (src/game/core/imeinput); thiscall(window, message, wparam, lparam): the IME's window messages; name invented"
 0x0047a880,Ime_WindowProc,function,low,"reimplemented (src/game/core/imeinput); stdcall(window, message, wparam, lparam): the IME's window procedure: the window's IME from the map, or the default procedure; name invented"
+0x00633900,OwnedSection_Ctor,function,low,reimplemented (src/game/core/sectionlock); thiscall: a block of 0x18 made a critical section at *self; name invented
+0x00633920,OwnedSection_Dtor,function,low,"reimplemented (src/game/core/sectionlock); thiscall: the section deleted, its block freed; name invented"
+0x00633940,SectionGuard_Dtor,function,low,"reimplemented (src/game/core/sectionlock); thiscall: the guard's destructor, Leave; name invented"
+0x00633950,SectionGuard_Enter,function,low,"reimplemented (src/game/core/sectionlock); thiscall: the section entered, +4 = 1; name invented"
+0x00633970,SectionGuard_Leave,function,low,"reimplemented (src/game/core/sectionlock); thiscall: held and not +8: the section left, +4 = 0; name invented"
 0x0050ffe0,Nav_Ctor,function,high,reimplemented (src/game/world/nav); constants constructor with five integer pairs
 0x0050f200,Nav_Dtor,function,high,reimplemented (src/game/world/nav); thiscall: the five IntPairs at +0x64 destroyed with Stub_Ret (CRT_VectorDtorIterator); also via 0x4f7c30 (+0xd4) and 0x4f8ad0
 0x004f7c30,Nav_DtorAtD4,function,low,reimplemented (src/game/world/nav); thiscall adjustor: Nav_Dtor on this + 0xd4
