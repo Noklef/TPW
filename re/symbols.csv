@@ -6213,6 +6213,12 @@ address,name,kind,confidence,notes
 0x0069d040,WStreambufIter_Deref,function,low,reimplemented (src/game/core/streambufiter); istreambuf_iterator<wchar_t>::operator*
 0x0069d0a0,WStreambufIter_Equal,function,low,reimplemented (src/game/core/streambufiter); istreambuf_iterator<wchar_t>::equal
 0x0069d160,WStreambufIter_Inc,function,low,reimplemented (src/game/core/streambufiter); istreambuf_iterator<wchar_t>::_Inc
+0x00698bf0,StreambufIter_Peek,function,low,reimplemented (src/game/core/streambufiter); istreambuf_iterator<char>::_Peek
+0x00698600,Streambuf_Sbumpc,function,low,reimplemented (src/game/core/streambufiter); basic_streambuf<char>::sbumpc
+0x0069b7f0,WStreambuf_Sputc,function,low,reimplemented (src/game/core/streambufiter); basic_streambuf<wchar_t>::sputc
+0x0069b830,WOstreambufIter_Assign,function,low,reimplemented (src/game/core/streambufiter); ostreambuf_iterator<wchar_t>::operator=
+0x00695890,NumPut_Rep,function,low,reimplemented (src/game/core/streambufiter); num_put<char>::_Rep
+0x0069c5e0,WNumPut_Rep,function,low,reimplemented (src/game/core/streambufiter); num_put<wchar_t>::_Rep
 0x0050ffe0,Nav_Ctor,function,high,reimplemented (src/game/world/nav); constants constructor with five integer pairs
 0x0050f200,Nav_Dtor,function,high,reimplemented (src/game/world/nav); thiscall: the five IntPairs at +0x64 destroyed with Stub_Ret (CRT_VectorDtorIterator); also via 0x4f7c30 (+0xd4) and 0x4f8ad0
 0x004f7c30,Nav_DtorAtD4,function,low,reimplemented (src/game/world/nav); thiscall adjustor: Nav_Dtor on this + 0xd4
