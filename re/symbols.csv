@@ -6059,6 +6059,11 @@ address,name,kind,confidence,notes
 0x006a2400,MoneypunctW_Tidy,function,low,reimplemented (src/game/core/moneypunct); moneypunct<wchar_t>'s destructor body
 0x006a91b0,MoneypunctC_Tidy,function,low,reimplemented (src/game/core/moneypunct); moneypunct<char>'s destructor body
 0x006a1e70,Moneypunct_Makepat,function,low,reimplemented (src/game/core/moneypunct); the pattern from 0x709d18
+0x00695b10,Facet_Grouping,function,low,reimplemented (src/game/core/moneypunct); do_grouping
+0x006a8a50,MoneypunctC_CurrSymbol,function,low,reimplemented (src/game/core/moneypunct); do_curr_symbol
+0x006a8b20,MoneypunctC_PositiveSign,function,low,reimplemented (src/game/core/moneypunct); do_positive_sign
+0x006a8bf0,MoneypunctC_NegativeSign,function,low,reimplemented (src/game/core/moneypunct); do_negative_sign
+0x006a73f0,Facet709fac_Get,function,low,reimplemented (src/game/core/moneypunct); the facet's do_get
 0x0068bad0,CRT_abstract_cw,function,low,reimplemented (src/game/core/crtfloat); _abstract_cw
 0x0068bb70,CRT_hw_cw,function,low,reimplemented (src/game/core/crtfloat); _hw_cw
 0x0068f9d0,CRT_addl,function,low,reimplemented (src/game/core/crtfloat); __addl

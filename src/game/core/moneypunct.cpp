@@ -3,10 +3,12 @@
 #include <cstdint>
 #include <cstring>
 
+#include "buffers.h"
 #include "crt.h"
 #include "gameheap.h"
 #include "globals.h"
 #include "iosbase.h"
+#include "wtraits.h"
 
 namespace {
 
@@ -72,6 +74,47 @@ void tidy(u32 *self, u32 vtable) {
 
 }  // namespace
 
+extern "C" u32 __cdecl CRT_wcslen(const u16 *text);   // (online/chatlists)
+
+static const char *text_at(const u8 *self, u32 at) { return *reinterpret_cast<const char *const *>(self + at); }
+
+static const u16 *wide_at(const u8 *self, u32 at) { return *reinterpret_cast<const u16 *const *>(self + at); }
+
+template <typename String> static void blank(String *out, u8 allocator) {
+    *reinterpret_cast<u8 *>(out) = allocator;
+    out->ptr = nullptr;
+    out->len = 0;
+    out->res = 0;
+}
+
+template <typename String> static u8 low_byte(const String *pointer) { return static_cast<u8>(reinterpret_cast<uintptr_t>(pointer)); }
+
+static StdString *narrow_string(StdString *out, const char *text) {
+    blank(out, low_byte(out));
+    const u32 n = static_cast<u32>(strlen(text));
+    if (n > 0xfffffffdu) StdStrings_Xlen();
+    StdString_Tidy(out, nullptr, 1);
+    if (!n) return out;
+    StdString_Copy(out, nullptr, n);
+    memcpy(out->ptr, text, n);
+    out->len = n;
+    out->ptr[n] = 0;
+    return out;
+}
+
+static StdWString *wide_string(StdWString *out, const u16 *text) {
+    blank(out, low_byte(out));
+    const u32 n = static_cast<u32>(CRT_wcslen(text));
+    if (n > 0x7ffffffdu) StdStrings_Xlen();
+    CountedBuf_Reset(reinterpret_cast<u8 *>(out), nullptr, 1);
+    if (!n) return out;
+    StdWString_Copy(out, nullptr, n);
+    for (u32 i = 0; i < n; ++i) out->ptr[i] = text[i];
+    out->len = n;
+    out->ptr[n] = 0;
+    return out;
+}
+
 extern "C" {
 
 u32 *__fastcall Moneypunct_Makepat(u8 *facet, void *, u32 *out, u32 space, u32 precedes, u32 position) {
@@ -117,6 +160,48 @@ void *__fastcall MoneypunctW_Ctor(u8 *facet, void *, const void *locinfo, u32 re
     *reinterpret_cast<u32 *>(facet) = 0x00709d74;
     MoneypunctW_Init(facet, nullptr, locinfo);
     return facet;
+}
+
+StdString *__fastcall Facet_Grouping(const u8 *self, void *, StdString *out) { return narrow_string(out, text_at(self, 8)); }
+StdString *__fastcall MoneypunctC_CurrSymbol(const u8 *self, void *, StdString *out) { return narrow_string(out, text_at(self, 0x10)); }
+StdString *__fastcall MoneypunctC_PositiveSign(const u8 *self, void *, StdString *out) { return narrow_string(out, text_at(self, 0x14)); }
+StdString *__fastcall MoneypunctC_NegativeSign(const u8 *self, void *, StdString *out) { return narrow_string(out, text_at(self, 0x18)); }
+StdWString *__fastcall MoneypunctW_CurrSymbol(const u8 *self, void *, StdWString *out) { return wide_string(out, wide_at(self, 0x10)); }
+StdWString *__fastcall MoneypunctW_PositiveSign(const u8 *self, void *, StdWString *out) { return wide_string(out, wide_at(self, 0x14)); }
+StdWString *__fastcall MoneypunctW_NegativeSign(const u8 *self, void *, StdWString *out) { return wide_string(out, wide_at(self, 0x18)); }
+
+StdString *__fastcall Facet709fac_Get(const u8 *self, void *, StdString *out, u32, u32, u32 which, const StdString *fallback) {
+    if (which > 1) {
+        blank(out, *reinterpret_cast<const u8 *>(fallback));
+        StdString_AssignSub(out, nullptr, fallback, 0, *reinterpret_cast<u32 *>((uintptr_t)0x006fe5ac));
+        return out;
+    }
+    const char *const text = text_at(self, which ? 0xc : 8);
+    blank(out, low_byte(out));
+    const u32 n = static_cast<u32>(strlen(text));
+    if (StdString_Grow(out, nullptr, n, 1)) {
+        memcpy(out->ptr, text, n);
+        out->len = n;
+        out->ptr[n] = 0;
+    }
+    return out;
+}
+
+StdWString *__fastcall WFacet709c0c_Get(const u8 *self, void *, StdWString *out, u32, u32, u32 which, const StdWString *fallback) {
+    if (which > 1) {
+        blank(out, *reinterpret_cast<const u8 *>(fallback));
+        StdWString_AssignSub(out, nullptr, fallback, 0, *reinterpret_cast<u32 *>((uintptr_t)0x006fef00));
+        return out;
+    }
+    const u16 *const text = wide_at(self, which ? 0xc : 8);
+    blank(out, low_byte(out));
+    const u32 n = static_cast<u32>(CRT_wcslen(text));
+    if (StdWString_Grow(out, nullptr, n, 1)) {
+        WTraits_Copy(out->ptr, text, n);
+        out->len = n;
+        out->ptr[n] = 0;
+    }
+    return out;
 }
 
 }  // extern "C"
