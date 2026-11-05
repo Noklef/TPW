@@ -1342,7 +1342,8 @@ const AddrCall kOptionsChangesCalls[] = {{0x423740, recorder(1, 0)}, {0x5ac630, 
     {0x423dd0, recorder(8, 0)}, {0x5c7bd0, recorder(9, 1)}, {0x5f5ad0, jpeg_recorder(10, 4)}, {0x5f5e50, jpeg_recorder(11, 5)}, {0x5f5b80, jpeg_recorder(12, 2)}, {0x4242c0, recorder(13, 3)}, {0x42aff0, jpeg_recorder(14, 0)}, {0x51bd70, jpeg_recorder(15, 0)},
     {0x4a4580, jpeg_recorder(16, 0)}, {0x5508b0, jpeg_recorder(17, 1)}, {0x5ac610, recorder(18, 1)}, {0x424a60, recorder(19, 1)}, {0x409790, jpeg_recorder(20, 1)}};
 const AddrCall kWeatherTablesCalls[] = {{0x57d1d0, recorder(1, 0)}, {0x56af20, recorder(2, 2)}};  // tests/fncmp/weathertables.py
-const AddrCall kPresentCalls[] = {{0x56a770, jpeg_recorder(1, 1)}, {0x564650, jpeg_recorder(2, 1)}, {0x56af20, recorder(3, 2)}};  // tests/fncmp/devicepresent.py
+const AddrCall kPresentCalls[] = {{0x56a770, jpeg_recorder(1, 1)}, {0x564650, jpeg_recorder(2, 1)}, {0x56af20, recorder(3, 2)},  // tests/fncmp/devicepresent.py
+    {0x564210, recorder(4, 0)}, {0x678790, jpeg_recorder(5, 6)}, {0x678d70, jpeg_recorder(6, 6)}, {0x678c20, jpeg_recorder(7, 10)}, {0x6787f0, jpeg_recorder(8, 10)}};  // tests/fncmp/presentpicture.py
 const AddrCall kGameErrorCalls[] = {{0x6acd60, jpeg_recorder(1, 4)}};  // tests/fncmp/gameerrorshow.py
 const AddrCall kCommandLineCalls[] = {{0x68b5f0, jpeg_recorder(1, 1)}};  // tests/fncmp/cmdlinesplit.py
 const AddrCall kUserSavesCalls[] = {{0x5f8240, recorder(1, 0)}, {0x5f8510, recorder(2, 2)}, {0x5f8370, (u32)(uintptr_t)&saveSearchFirst}, {0x5f83a0, (u32)(uintptr_t)&saveSearchNext}, {0x5f82a0, recorder(5, 0)},
