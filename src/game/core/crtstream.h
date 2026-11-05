@@ -64,6 +64,11 @@ void __cdecl CRT_ftbuf(s32 flag, CrtFile *file);
 
 // 0x6839f0: _woutput's write_char: _fputwc_lk; *count -1 if it could not go, else one more.
 void __cdecl CRT_woutput_write_char(u32 c, CrtFile *file, s32 *count);
+// 0x683a20, 0x683a60: write_char n times, or over a text; stopped by a count of -1.
+void __cdecl CRT_woutput_write_multi(u32 c, s32 n, CrtFile *file, s32 *count);
+void __cdecl CRT_woutput_write_string(const u16 *text, s32 n, CrtFile *file, s32 *count);
+// 0x68b4e0: _whiteout: the next character that is no space; the counter goes up by one for each read.
+s32 __cdecl CRT_whiteout(s32 *counter, CrtFile *file);
 s32 __cdecl CRT_printf(const char *format, ...);  // 0x67e6f0
 
 }  // extern "C"

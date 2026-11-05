@@ -478,4 +478,27 @@ void __cdecl CRT_woutput_write_char(u32 c, CrtFile *file, s32 *count) {
     ++*count;
 }
 
+void __cdecl CRT_woutput_write_multi(u32 c, s32 n, CrtFile *file, s32 *count) {
+    while (n-- > 0) {
+        CRT_woutput_write_char(c, file, count);
+        if (*count == -1) return;
+    }
+}
+
+void __cdecl CRT_woutput_write_string(const u16 *text, s32 n, CrtFile *file, s32 *count) {
+    while (n-- > 0) {
+        CRT_woutput_write_char(*text++, file, count);
+        if (*count == -1) return;
+    }
+}
+
+s32 __cdecl CRT_whiteout(s32 *counter, CrtFile *file) {
+    s32 c;
+    do {
+        ++*counter;
+        c = CRT_input_inc(file);
+    } while (Crt().isspace(c));
+    return c;
+}
+
 }  // extern "C"

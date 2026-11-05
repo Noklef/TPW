@@ -6044,6 +6044,9 @@ address,name,kind,confidence,notes
 0x0067dad0,CRT_fprintf,function,low,reimplemented (src/game/core/crtstream); fprintf
 0x006839f0,CRT_woutput_write_char,function,low,reimplemented (src/game/core/crtstream); _woutput's write_char
 0x0067e6f0,CRT_printf,function,low,reimplemented (src/game/core/crtstream); printf
+0x00683a20,CRT_woutput_write_multi,function,low,reimplemented (src/game/core/crtstream); wide write_multi
+0x00683a60,CRT_woutput_write_string,function,low,reimplemented (src/game/core/crtstream); wide write_string
+0x0068b4e0,CRT_whiteout,function,low,reimplemented (src/game/core/crtstream); _whiteout
 0x006898f0,CRT_parse_cmdline,function,low,reimplemented (src/game/core/crtstartup); parse_cmdline
 0x00690ef0,CRT_store_str,function,low,reimplemented (src/game/core/crttime); _store_str
 0x00690fc0,CRT_store_number,function,low,reimplemented (src/game/core/crttime); _store_number
