@@ -6211,6 +6211,12 @@ address,name,kind,confidence,notes
 0x006a9200,Facet709f8c_Ctor,function,low,reimplemented (src/game/core/localefacet); facet of vtable 0x709f8c: constructor
 0x006a49e0,Facet_WidenedCopy,function,low,reimplemented (src/game/core/localefacet); wide copy of a text
 0x006a4520,Locinfo_Gettnames,function,low,reimplemented (src/game/core/localefacet); _Locinfo::_Gettnames
+0x006a4460,Facet709ed4_Dtor,function,low,reimplemented (src/game/core/localefacet); the facet's destructor body
+0x006a74c0,Facet709fac_Dtor,function,low,reimplemented (src/game/core/localefacet); the facet's destructor body
+0x006ab0b0,Facet70a024_Dtor,function,low,reimplemented (src/game/core/localefacet); the facet's destructor body
+0x006a4770,Facet709ef4_Dtor,function,low,reimplemented (src/game/core/localefacet); the facet's destructor body
+0x006ab390,Facet70a044_Dtor,function,low,reimplemented (src/game/core/localefacet); the facet's destructor body
+0x006a4510,Timevec_Dtor,function,low,reimplemented (src/game/core/localefacet); _Timevec's destructor
 0x006895b0,CRT_mbctolower,function,low,reimplemented (src/game/core/crtmbstring); _mbctolower
 0x00689650,CRT_mbspbrk,function,low,reimplemented (src/game/core/crtmbstring); _mbspbrk
 0x00689400,CRT_mbsrchr,function,low,reimplemented (src/game/core/crtmbstring); _mbsrchr
