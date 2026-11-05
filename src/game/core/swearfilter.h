@@ -6,6 +6,8 @@
 
 struct SwearFilterEnv {
     u32(__cdecl *lower)(u32 c);   // towlower (0x67e5d0, C library, agent A's)
+    u8 *(__fastcall *open)(u8 *buf, void *, const char *path, u32 mode);   // NFileBuf_Open (a recorder in the bench, which fills the buffer's get area)
+    s32(__cdecl *fclose)(void *file);   // CRT_fclose
 };
 void SwearFilter_SetEnv(const SwearFilterEnv *env);  // nullptr: the game's
 
@@ -21,4 +23,14 @@ u16 *__cdecl SwearFilter_Find(u16 *text, const u16 *word);
 // passes it over. Otherwise the place starred when the flag's byte is set: the '*' word's characters; the others' from their start through the word and on to the next space or the end. The search goes on past it.
 // Returns 1 when anything was to be starred, else 0.
 u8 __fastcall SwearFilter_Apply(const u8 *self, void *, StdWString *text, u32 flag);
+
+// 0x5d2de0 (thiscall, this unused (path, list, flag), pops 12; SEH frame dropped; name invented, unconfirmed): an ifstream<char> on the stack (the stack object is the original's: 0x210 bytes). A flag byte of 0 destroys it and answers 0. Opened with mode 0x21;
+// no file (failbit set when the open answered 0): destroyed, answers 0. Otherwise, until eofbit: 2 bytes read at the line's next place (after end of file they stay what they were); a unit 10 ends the line. A line whose first low byte is '#' is
+// skipped, and the place not put back (sic: every later line then counts as that line, on towards the end of the frame). Otherwise it is copied to the second buffer, 0x80 bytes on (sic: lines of 64 units or more overrun: their end is overwritten before it is
+// reached), up to unit 13 or 10; each unit of it complemented up to the first that is 0; a std::wstring of it put at the list's end. Then fclose: unless that answers 0 (then _Init (0, 2)) failbit set. Destroyed, answers 1.
+u8 __fastcall SwearFilter_LoadFile(u8 *self, void *, const char *path, u8 *list, u32 flag);
+
+// 0x5d3140 (thiscall on the global save info (swears, allowed, flag), pops 12; name invented, unconfirmed): both lists (+0, sentinel +4, count +8; +0xc, +0x10, +0x14) emptied node by node (the first with CountedBuf_Deleter (0), the second with CountedBuf_Reset (1)), then
+// SwearFilter_LoadFile (swears, self, flag); when that answers 0 so does this. Otherwise SwearFilter_LoadFile (allowed, self + 0xc, flag), whatever it answers, and 1.
+u8 __fastcall SwearFilter_Load(u8 *self, void *, const char *swears, const char *allowed, u32 flag);
 }

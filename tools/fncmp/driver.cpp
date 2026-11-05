@@ -998,7 +998,7 @@ const ParkMapEnv kParkMapEnv = {Rec{recorder(10, 1)}, Rec{recorder(11, 0)}, Rec{
 const LobbyMakeEnv kLobbyMakeEnv = {Rec{jpeg_recorder(20, 11)}, Rec{jpeg_recorder(21, 10)}, Rec{jpeg_recorder(22, 1)}, Rec{jpeg_recorder(23, 3)}, Rec{recorder(24, 1)}, Rec{recorder(25, 1)}, Rec{jpeg_recorder(26, 1)},
                                     Rec{recorder(28, 0)}, Rec{recorder(29, 1)}, Rec{recorder(30, 3)}};
 u32 __cdecl SwearLowerC(u32 c) { return (c & 0xffff) >= 0x41 && (c & 0xffff) <= 0x5a ? (c & 0xffff) + 0x20 : c & 0xffff; }   // towlower in the C locale, tests/fncmp/swearfilter.py
-const SwearFilterEnv kSwearFilterEnv = {&SwearLowerC};
+const SwearFilterEnv kSwearFilterEnv = {&SwearLowerC, Rec{recorder(9, 2)}, Rec{jpeg_recorder(18, 1)}};
 const NStreamEnv kNStreamEnv = {Rec{kStubs + 0x5000 + 0x800 * 2 + 0x20 * 14}, Rec{recorder(26, 1)}, Rec{recorder(27, 0)}, Rec{jpeg_recorder(28, 1)}, reinterpret_cast<s32(__cdecl *)(void *)>((uintptr_t)(kStubs + 0x50)), Rec{recorder(20, 0)}, Rec{recorder(21, 0)}};
 const ThemeNamesEnv kThemeNamesEnv = {Rec{jpeg_recorder(1, 5)}, Rec{jpeg_recorder(2, 2)}, Rec{recorder(3, 3)}, Rec{recorder(4, 3)}, Rec{recorder(5, 3)}};
 const GuardHeapEnv kGuardHeapEnv = {Rec{jpeg_recorder(1, 1)}, Rec{jpeg_recorder(2, 1)}};
@@ -2455,6 +2455,7 @@ const u32 kResolvedVtables[][2] = {{0x00703090, 11},  // String_vtable
                                    {0x006fea70, 12},   // MMStaffDrop's (slots 9, 10 AssignDrop: MouseMode_Set's on the mode 0x5054d0 makes)
                                    {0x006feaa0, 12},   // the 0x6feaa0 mode's (slots 9, 10 the empty 0x5da3c0: MouseMode_Set's on the mode 0x497bc0 makes)
                                    {0x006fead0, 12},   // the 0x6fead0 mode's (slots 9, 10: MouseMode_Set's on the mode 0x481a10 makes)
+                                   {0x007098dc, 13},   // basic_filebuf<char>'s (core/narrowfilebuf; the swear filter's load reads through it)
                                    {0x007058d8, 4},    // the GUI font's (slot 3 GuiFont_CharWidth: Window7cc8bc_ChatAdd's measure)
                                    {0x006fe9e0, 12}};  // MouseModeTile's (slots 9 Const3_6b71c0, 10 MouseModeTile_Assign: MouseMode_Set's on the
                                                        // mode MouseMode_EnterTile15 / 16 make)
