@@ -6026,6 +6026,10 @@ address,name,kind,confidence,notes
 0x0067c100,CRT_fseek,function,low,reimplemented (src/game/core/crtstream); fseek
 0x00688610,CRT_stbuf,function,low,reimplemented (src/game/core/crtstream); _stbuf
 0x006886d0,CRT_ftbuf,function,low,reimplemented (src/game/core/crtstream); _ftbuf
+0x0067e570,CRT_fputc,function,low,reimplemented (src/game/core/crtstream); fputc
+0x0068b490,CRT_input_inc,function,low,reimplemented (src/game/core/crtstream); _input's _inc
+0x0068b4c0,CRT_input_un_inc,function,low,reimplemented (src/game/core/crtstream); _input's _un_inc
+0x0067dad0,CRT_fprintf,function,low,reimplemented (src/game/core/crtstream); fprintf
 0x006898f0,CRT_parse_cmdline,function,low,reimplemented (src/game/core/crtstartup); parse_cmdline
 0x00690ef0,CRT_store_str,function,low,reimplemented (src/game/core/crttime); _store_str
 0x00690fc0,CRT_store_number,function,low,reimplemented (src/game/core/crttime); _store_number

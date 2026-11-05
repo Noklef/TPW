@@ -21,6 +21,14 @@ s32 __cdecl CRT_fgetc(CrtFile *file);
 
 // 0x67cc10 / 0x67cbe0: _ungetc_lk / ungetc: the byte back in the buffer, or checked against it for a string (flag 0x40). Returns it as unsigned, -1 if it cannot go back.
 s32 __cdecl CRT_ungetc_lk(s32 c, CrtFile *file);
+
+// 0x67e570: fputc: under the file's lock the byte put, or _flsbuf when the count has run out.
+s32 __cdecl CRT_fputc(s32 c, CrtFile *file);
+// 0x68b490: _input's _inc: the next byte, by _filbuf at the buffer's end. 0x68b4c0: _un_inc: back by _ungetc_lk, unless -1.
+s32 __cdecl CRT_input_inc(CrtFile *file);
+s32 __cdecl CRT_input_un_inc(s32 c, CrtFile *file);
+// 0x67dad0: fprintf: under the file's lock _output between _stbuf and _ftbuf.
+s32 __cdecl CRT_fprintf(CrtFile *file, const char *format, ...);
 s32 __cdecl CRT_ungetc(s32 c, CrtFile *file);
 
 // 0x67ce20 / 0x67cdf0: _getwc_lk / fgetwc: a text file's one or two bytes through mbtowc, or a binary file's word; 0xffff at the end. A read lost after a lead byte puts that back.

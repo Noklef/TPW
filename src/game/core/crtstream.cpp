@@ -387,6 +387,32 @@ u16 __cdecl CRT_fputwc_lk(u32 c, CrtFile *file) {
     return static_cast<u16>(c);
 }
 
+s32 __cdecl CRT_fputc(s32 c, CrtFile *file) {
+    CrtInner().lockFile(file);
+    s32 result;
+    if (--file->count < 0) {
+        result = CRT_flsbuf(c, file);
+    } else {
+        *file->ptr++ = static_cast<char>(c);
+        result = c & 0xff;
+    }
+    CrtInner().unlockFile(file);
+    return result;
+}
+
+s32 __cdecl CRT_input_inc(CrtFile *file) { return next_byte(file); }
+
+s32 __cdecl CRT_input_un_inc(s32 c, CrtFile *file) { return c == -1 ? c : CRT_ungetc_lk(c, file); }
+
+s32 __cdecl CRT_fprintf(CrtFile *file, const char *format, ...) {
+    CrtInner().lockFile(file);
+    const s32 flag = CRT_stbuf(file);
+    const s32 written = CrtInner().output(file, format, &format + 1);
+    CRT_ftbuf(flag, file);
+    CrtInner().unlockFile(file);
+    return written;
+}
+
 u16 __cdecl CRT_fputwc(u32 c, CrtFile *file) {
     CrtInner().lockFile(file);
     const u16 result = CRT_fputwc_lk(c, file);
