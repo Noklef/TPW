@@ -14,11 +14,14 @@
 #include "../core/vcall.h"
 #include "../core/vdtor.h"
 #include "../files/file.h"
+#include "../files/gamepaths.h"
+#include "../files/userslots.h"
 #include "../ui/dialog7cc530open.h"
 #include "../ui/dialog7cc944row.h"
 #include "../ui/dialog7cca94.h"
 #include "../ui/dialogs.h"
 #include "../ui/dialuphangup.h"
+#include "ftp.h"
 #include "itemlist.h"
 #include "items.h"
 #include "listrequest.h"
@@ -713,6 +716,174 @@ void ServerFolder(u8 *session, WString *url) {
 }  // namespace
 
 void Online_SetNextEnv(const OnlineNextEnv *env) { g_next = env ? env : &kNextGameEnv; }
+
+namespace {
+const OnlineDownloadStartEnv kDownloadStartGameEnv = {&Class70293c_Assign, &Owner2c_FindByPair, reinterpret_cast<void(__cdecl *)(const u16 *, u16 *, u16 *, u16 *, u16 *)>((uintptr_t)0x0067dda0),
+                                                      &UserSlots_Ctor, &GamePaths_OnlineFolder, &File_Exists, &FtpClient_Ctor, &Ftp_Connect, &Online_DownloadEnd, &Online_OpenCity, &Owner2c_FindKind1,
+                                                      &Global7cc53c_Pick7cc4f0};
+const OnlineDownloadStartEnv *g_fetch = &kDownloadStartGameEnv;
+
+// The queue's front dropped, its string deleted.
+void DropQueued(u8 *session) {
+    u8 *object = nullptr;
+    if (u8 *const node = at<u8 *>(session, 0x3cc)) {
+        u8 *const next = at<u8 *>(node, 4);
+        at<u8 *>(session, 0x3cc) = next;
+        if (next)
+            at<u32>(next, 8) = 0;
+        else
+            at<u32>(session, 0x3d0) = 0;
+        at<u32>(session, 0x3d4) -= 1;
+        object = at<u8 *>(node, 0);
+        GameHeap_Free(node);
+    }
+    if (object) vcall<void>(object, 0xc, 1u);
+}
+
+void QueueBack(u8 *session, void *object) {
+    u8 *const node = static_cast<u8 *>(GameHeap_Alloc(0xc));
+    if (node) {
+        at<void *>(node, 0) = object;
+        at<u32>(node, 4) = 0;
+        at<u32>(node, 8) = 0;
+    }
+    u8 *const tail = at<u8 *>(session, 0x3d0);
+    at<u8 *>(node, 8) = tail;
+    if (tail)
+        at<u8 *>(tail, 4) = node;
+    else
+        at<u8 *>(session, 0x3cc) = node;
+    at<u8 *>(session, 0x3d0) = node;
+    at<u32>(session, 0x3d4) += 1;
+}
+
+// One bit of the item's: its file queued unless it is there.
+void QueueMissing(u8 *session, u32 number) {
+    WString path;
+    u8 *const found = g_fetch->findByPair(at<u8 *>(session, 0x100), nullptr, at<u32>(at<u8 *>(session, 0x3a4), 0x4c), number);
+    Obj_NameToWString(found, nullptr, reinterpret_cast<u8 *>(&path));
+    u16 extension[0x10], drive[0x10], name[0x100], folder[0x100];
+    g_fetch->splitPath(path.data, drive, folder, name, extension);
+    String root;
+    String_CtorCopy(&root, nullptr, reinterpret_cast<const StringView *>((uintptr_t)0x00f816c0));
+    String_EnsureTrailingBackslash(&root);
+    vcall<void>(&root, 0x28, 0x00f7ccd8u);
+    String_EnsureTrailingBackslash(&root);
+    WString plain;
+    WString_Ctor(&plain);
+    WString_AssignFromAnsi(&plain, &root);
+    vcall<void>(&plain, 0x20, folder);
+    WString prefixed;
+    WString_CtorCopy(&prefixed, nullptr, &plain);
+    vcall<void>(&plain, 0x20, name);
+    vcall<void>(&plain, 0x20, extension);
+    vcall<void>(&prefixed, 0x20, 0x00773ab4u);
+    vcall<void>(&prefixed, 0x20, name);
+    vcall<void>(&prefixed, 0x20, extension);
+    String plainText;
+    String_Ctor(&plainText);
+    String_AssignFromWide(&plainText, &plain);
+    String prefixedText;
+    String_Ctor(&prefixedText);
+    String_AssignFromWide(&prefixedText, &prefixed);
+    if (!g_fetch->exists(plainText.data) && !g_fetch->exists(prefixedText.data)) {
+        void *const memory = GameHeap_Alloc(0x14);
+        WString *const entry = memory ? WString_Ctor(static_cast<WString *>(memory)) : nullptr;
+        vcall<void>(entry, 0x14, folder);
+        vcall<void>(entry, 0x20, 0x00773ab4u);
+        vcall<void>(entry, 0x20, name);
+        vcall<void>(entry, 0x20, extension);
+        QueueBack(session, entry);
+    }
+    String_Dtor(&prefixedText);
+    String_Dtor(&plainText);
+    WString_Dtor(&prefixed);
+    WString_Dtor(&plain);
+    String_Dtor(&root);
+    WString_Dtor(&path);
+}
+
+// The client made and connected: the server of the item of kind 1, the fixed user at 0x773a80, the password at +0x44.
+void ConnectClient(u8 *session) {
+    u32 *const listener = static_cast<u32 *>(GameHeap_Alloc(4));
+    if (listener) *listener = 0x007028a4;
+    at<u32 *>(session, 0x39c) = listener;
+    void *const memory = GameHeap_Alloc(0x2780);
+    at<u32 *>(session, 0x3a0) = memory ? g_fetch->ftpCtor(static_cast<u32 *>(memory), nullptr, at<void *>(session, 0x39c), 1) : nullptr;
+    Say(0x00773a8c);
+    const u8 *const kind = g_fetch->findKind1(at<u8 *>(session, 0xfc));
+    WString wideHost;
+    WString_CtorStr(&wideHost, nullptr, at<const u16 *>(kind, 0x2c));
+    String host;
+    String_Ctor(&host);
+    String_AssignFromWide(&host, &wideHost);
+    WString widePassword;
+    WString_CtorStr(&widePassword, nullptr, at<const u16 *>(session, 0x44));
+    String password;
+    String_Ctor(&password);
+    String_AssignFromWide(&password, &widePassword);
+    at<u32>(session, 0x38c) = 1;
+    const char *const bind = reinterpret_cast<const char *>(g_fetch->pick());
+    g_fetch->ftpConnect(at<void *>(session, 0x3a0), nullptr, host.data, reinterpret_cast<const char *>((uintptr_t)0x00773a80), password.data, bind);
+    String_Dtor(&password);
+    WString_Dtor(&widePassword);
+    String_Dtor(&host);
+    WString_Dtor(&wideHost);
+}
+}  // namespace
+
+void Online_SetDownloadStartEnv(const OnlineDownloadStartEnv *env) { g_fetch = env ? env : &kDownloadStartGameEnv; }
+
+void __fastcall Online_DownloadStart(u8 *session, void *, const u8 *item) {
+    if (item) g_fetch->assign(at<u8 *>(session, 0x3a4), nullptr, item);
+    Say(0x007733d0);
+    if (void *const client = at<void *>(session, 0x3a0)) {
+        at<u32>(session, 0x3a0) = 0;
+        vcall<void>(client, 0, 1u);
+    }
+    if (void *const listener = at<void *>(session, 0x39c)) {
+        GameHeap_Free(listener);
+        at<u32>(session, 0x39c) = 0;
+    }
+    const u8 flags = at<u8>(session, 0x58);
+    if (!(at<u32>(at<u8 *>(session, 0x3a4), 0x78) ? flags & 4 : flags & 8)) {
+        Say(0x00773a40);
+        at<u32>(session, 0x398) = 0x4e;
+        g_fetch->downloadEnd(session, nullptr, 1);
+        return;
+    }
+    while (at<u32>(session, 0x3d4))
+        DropQueued(session);
+    const u8 *const bits = at<u8 *>(session, 0x3a4) + 0x58;
+    for (u32 byte = 0; byte < 0x20; byte++) {
+        for (u32 bit = 0; bit < 8; bit++) {
+            if (bits[byte] & 1 << bit) QueueMissing(session, bit - 8 * byte + 0xf9);
+        }
+    }
+    if (!at<u32>(0, 0x00f81ebc)) {
+        void *const memory = GameHeap_Alloc(0x110);
+        at<u8 *>(0, 0x00f81ebc) = memory ? g_fetch->slotsCtor(static_cast<u8 *>(memory)) : nullptr;
+    }
+    WString folder;
+    g_fetch->folder(&folder);
+    vcall<void>(&folder, 0x28, 0x00f7d740u);
+    String_AssignFromWide(reinterpret_cast<String *>(session + 0x3dc), &folder);
+    vcall<void>(session + 0x3dc, 0x20, at<u32>(at<u8 *>(session, 0x3a4), 0x84));
+    vcall<void>(session + 0x3dc, 0x28, 0x00f7d1e8u);
+    at<u32>(session, 0x3d8) = g_fetch->exists(at<const char *>(session, 0x3e4)) ? 0 : 1;
+    if (!at<u32>(session, 0x3d8) && !at<u32>(session, 0x3d4)) {
+        if (const TransferCallback callback = at<TransferCallback>(session, 0x3c0)) callback(0, at<u32>(session, 0x3c4));
+        const u32 size = at<u32>(at<u8 *>(session, 0x3a4), 8);
+        if (g_fetch->openCity(session)) {
+            using Start = void(__fastcall *)(void *, void *, u32, u32, u32);
+            (*reinterpret_cast<const Start *>((uintptr_t)0x006fd52c))(at<void *>(session, 0xd4), nullptr, 0, size, at<u32>(session, 0x34));
+        }
+        at<u32>(session, 0x3f0) = 1;
+    } else {
+        ConnectClient(session);
+    }
+    WString_Dtor(&folder);
+}
 
 void __fastcall Online_DownloadNext(u8 *session) {
     if (at<u32>(session, 0x3d4)) {

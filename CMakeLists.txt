@@ -248,6 +248,8 @@ add_library(tpw_game STATIC
     src/game/core/nstream.cpp
     src/game/core/themenames.cpp
     src/game/core/guardheap.cpp
+    src/game/core/guardfile.cpp
+    src/game/core/filebuf.cpp
     src/game/gfx/text.cpp
     src/game/gfx/canvas.cpp
     src/game/gfx/canvasdraw.cpp
@@ -563,6 +565,7 @@ add_library(tpw_game STATIC
     src/game/online/roomtexthandler.cpp
     src/game/online/sessionlogin.cpp
     src/game/online/listrequest.cpp
+    src/game/online/mailbox.cpp
     src/game/frontend/lobbymodel.cpp
     src/game/frontend/helpbg.cpp
     src/game/frontend/islandcamera.cpp
@@ -579,6 +582,7 @@ add_library(tpw_game STATIC
     src/game/frontend/scenesteps.cpp
     src/game/frontend/lobbyflight.cpp
     src/game/frontend/thememenu.cpp
+    src/game/frontend/lobbysky.cpp
     src/game/input/mouse.cpp
     src/game/ui/dialog7ca1c8.cpp
     src/game/ui/window.cpp

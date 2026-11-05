@@ -3211,6 +3211,12 @@ address,name,kind,confidence,notes
 0x005c8890,UserSlots_ThemeFolder,function,low,reimplemented (src/game/files/userslots); the chosen slot's folder of the theme
 0x005b8160,UserSlots_ThemePath,function,low,reimplemented (src/game/files/userslots); the theme's path in the chosen slot's folder
 0x005c7e90,UserSlots_ClearSlot,function,low,"reimplemented (src/game/files/userslots); The slot's folder removed, its name and dword cleared."
+0x005c7590,UserSlots_Scan,function,low,"reimplemented (src/game/files/userslots); thiscall: the records cleared, the save, users and online folders opened or made, each ""<slot><name>"" subfolder of users taken into its record with the global save's byte +0x24"
+0x005c83b0,UserSlots_Choose,function,low,"reimplemented (src/game/files/userslots); A user slot chosen: its mailbox, address book and global save loaded; name invented, unconfirmed"
+0x005c8650,UserSlots_Close,function,low,"reimplemented (src/game/files/userslots); The chosen slot closed: its address book, outbox and global save written, the options saved; name invented, unconfirmed"
+0x005c8a20,UserSlots_WriteSave,function,low,"reimplemented (src/game/files/userslots); The global save written to the slot's file; name invented, unconfirmed"
+0x005c7f40,UserSlots_Create,function,low,"reimplemented (src/game/files/userslots); A slot made anew: its name and flag, its folder filled, the global save made and written; name invented, unconfirmed"
+0x005c74b0,UserSlots_Dtor,function,low,"reimplemented (src/game/files/userslots); The user slots' destructor; name invented, unconfirmed"
 0x005b0d40,Table73f8a8_At,function,high,reimplemented (src/game/core/balancefile); the address of a 60-byte record of the table at 0x73f8a8
 0x005b11c0,ThemeRecord_LoadGlobalSam,function,low,reimplemented (src/game/core/balancefile); a theme's global.sam loaded
 0x005b11a0,ThemeRecord_GlobalSamField14,function,low,"reimplemented (src/game/core/balancefile); thiscall: the theme record's global.sam loaded when missing; its dword +0x14, else -1 (name unconfirmed)"
@@ -6218,6 +6224,11 @@ address,name,kind,confidence,notes
 0x005d4ba0,GuardHeap_Alloc,function,low,reimplemented (src/game/core/guardheap); a block with guard words
 0x005d4c20,GuardHeap_Free,function,low,reimplemented (src/game/core/guardheap); a block with guard words checked and freed
 0x00409150,GameOwner_ShutdownAll,function,low,"reimplemented (src/game/core/gameowner); Game owner shut down, then the mouse mode at 0x7b05e8 cleared and freed (name invented, unconfirmed)"
+0x005d4d10,GuardFile_Open,function,low,"reimplemented (src/game/core/guardfile); gwopen: the guarded write file opened; the name from its messages, the rest invented, unconfirmed"
+0x005d4fd0,GuardFile_Close,function,low,"reimplemented (src/game/core/guardfile); The guarded write file flushed, closed and its names changed over; name invented, unconfirmed"
+0x005d5350,GuardFile_Write,function,low,"reimplemented (src/game/core/guardfile); gwrite: bytes through the file's buffer; the name from its messages, the rest invented, unconfirmed"
+0x005cedd0,FileBuf_Overflow,function,low,"reimplemented (src/game/core/filebuf); The narrow file stream buffer's overflow; name invented, unconfirmed"
+0x005cf490,FileBuf_SeekPos,function,low,"reimplemented (src/game/core/filebuf); The narrow file stream buffer's seek to a position; name invented, unconfirmed"
 0x0050ffe0,Nav_Ctor,function,high,reimplemented (src/game/world/nav); constants constructor with five integer pairs
 0x0050f200,Nav_Dtor,function,high,reimplemented (src/game/world/nav); thiscall: the five IntPairs at +0x64 destroyed with Stub_Ret (CRT_VectorDtorIterator); also via 0x4f7c30 (+0xd4) and 0x4f8ad0
 0x004f7c30,Nav_DtorAtD4,function,low,reimplemented (src/game/world/nav); thiscall adjustor: Nav_Dtor on this + 0xd4
@@ -6496,6 +6507,9 @@ address,name,kind,confidence,notes
 0x00457d50,Level_FreeAll,function,low,reimplemented (src/game/world/levelfree); A level's loaded things freed; with keep some of them stay.
 0x00457c30,Level_SetupAfterTerrain,function,low,"reimplemented (src/game/world/levelsetup); the map's rectangle from four getters, the world size from the grid's cell size, the texture rectangle, then the buffers' setup (name invented)"
 0x00457a90,Level_LoadTerrainAndAdvisor,function,low,"reimplemented (src/game/world/levelsetup); cdecl, returns 1: the seed drawn, the terrain loaded with a texture argument from the detail flags, both advisors loaded and set up (name invented)"
+0x005f0b00,ParkMap_WindowHandler,function,low,"reimplemented (src/game/world/parkmapwindow); cdecl (window, message, a, b): ParkMap_HandleWindow on the map at 0xf86db8"
+0x005f0b20,ParkMap_MouseHandler,function,low,"reimplemented (src/game/world/parkmapwindow); cdecl (window, message, a, b): ParkMap_HandleMouse on the map at 0xf86db8"
+0x005f0b40,ParkMap_Open,function,low,"reimplemented (src/game/world/parkmapwindow); thiscall on the map: the game held, the map's window built and dressed, the view put on the camera, the picture loaded and drawn, the backdrop made"
 0x0045bc60,Holder_Destroy,function,high,"reimplemented (src/game/model/holder); a holder's part sleeps, its owner's count drops and the part is deleted"
 0x0046c210,Mouse_HandleButton,function,high,reimplemented (src/game/input/mouse); the left and right mouse buttons go down or up
 0x0046c2a0,Mouse_Moved,function,high,reimplemented (src/game/input/mouse); the mouse moved
@@ -7660,6 +7674,7 @@ address,name,kind,confidence,notes
 0x005b7ba0,Online_UploadBegin,function,low,"reimplemented (src/game/online/session); The upload's start: the Upload reset, its arguments kept, started or the login dialog opened."
 0x005b5bf0,Online_Poll,function,low,"reimplemented (src/game/online/session); The session's frame poll: the login, news, city and upload polled, the download's end or progress."
 0x005b9380,Online_DownloadNext,function,low,"reimplemented (src/game/online/session); The download's next step: the next queued file, the theme's own file, or the FTP finished."
+0x005b8910,Online_DownloadStart,function,low,"reimplemented (src/game/online/session); thiscall (item; pops 4): the old client dropped, the queue of missing files rebuilt from the item's bits, then the end or the FTP client made and connected"
 0x005bc9c0,Owner2c_FindByKey,function,high,reimplemented (src/game/online/itemlist); the last item of the owner's list whose +8 is the key
 0x005bcb60,Owner2c_At,function,high,reimplemented (src/game/online/itemlist); the index'th item of the owner's list
 0x005bd270,Owner2c_ValueByKey,function,high,reimplemented (src/game/online/itemlist); the +0x14 of the last item whose +8 is the key
@@ -7704,6 +7719,29 @@ address,name,kind,confidence,notes
 0x004f7b20,ChatPlayer_Ctor,function,low,reimplemented (src/game/online/chatavatar); a chat player's constructor
 0x004ea9a0,ChatAvatar_NameEquals,function,low,"reimplemented (src/game/online/chatavatar); whether a text is the avatar's name, in any case"
 0x005d2720,Ftp_ListLineSize,function,low,"reimplemented (src/game/online/ftp); thiscall, this unused (line; pops 4): atoi of a directory listing line's fifth field (its size), past four runs of non-spaces and spaces (isspace; a NUL is not one, sic)"
+0x005c90a0,Ftp_Send,function,low,"reimplemented (src/game/online/ftp); thiscall (buffer, length; pops 8): send in pieces of at most 0x2000; 1 for a null buffer or a negative send"
+0x005c8de0,Ftp_SendLine,function,low,"reimplemented (src/game/online/ftp); thiscall (text; pops 4): its length added to +0x18, then Ftp_Send"
+0x005c8e20,Ftp_ReadReply,function,low,"reimplemented (src/game/online/ftp); thiscall (out, size, wanted; pops 0xc): one reply from the buffer at +0x20, recv for more; the code, or 0 when the socket ends"
+0x005c8f50,Ftp_LocalAddress,function,low,"reimplemented (src/game/online/ftp); this machine's address: gethostname's gethostbyname, else a connected UDP socket's getsockname"
+0x005d37c0,Ftp_Close,function,low,"reimplemented (src/game/online/ftp); thiscall: shutdown, recv until no more, closesocket, +4 = -1, unless +4 is -1"
+0x005d3750,FtpSocket_Dtor,function,low,"reimplemented (src/game/online/ftp); thiscall: vtable 0x702994, then Ftp_Close's body"
+0x005d36d0,FtpSocket_DeletingDtor,function,low,"reimplemented (src/game/online/ftp); thiscall (flags; pops 4): FtpSocket_Dtor's body, GameHeap_Free with bit 0"
+0x005c9090,FtpBase_Dtor,function,low,"reimplemented (src/game/online/ftp); thiscall: vtable 0x70295c, then FtpSocket_Dtor"
+0x005d1980,Ftp_Receive,function,low,"reimplemented (src/game/online/ftp); thiscall (toFile, count; pops 8): accept if needed, recv to +0x424, to the local file or to a line end"
+0x005d1c70,Ftp_DataSetup,function,low,"reimplemented (src/game/online/ftp); thiscall: PASV's address, or a listen socket and its PORT line"
+0x005d2350,Ftp_DataConnect,function,low,reimplemented (src/game/online/ftp); thiscall: the data socket connected to the PASV address; 0x40 on failure
+0x005d1f10,Ftp_Login,function,low,"reimplemented (src/game/online/ftp); thiscall: the control socket connected, USER and PASS, the type line; failure codes close both sockets"
+0x005d2180,Ftp_Quit,function,low,reimplemented (src/game/online/ftp); thiscall: threaded posts command 2; else the quit line and both sockets closed
+0x005d2400,Ftp_Retrieve,function,low,"reimplemented (src/game/online/ftp); thiscall: the LIST line's size, then the RETR line to the local file"
+0x005d22a0,Ftp_RetrieveNamed,function,low,"reimplemented (src/game/online/ftp); thiscall (remote, local; pops 8): the names, then command 3 or Ftp_Retrieve"
+0x005d1ac0,Ftp_Connect,function,low,"reimplemented (src/game/online/ftp); thiscall (host, user, password, bind; pops 0x10): the names, the bind string, then command 1 or Ftp_Login"
+0x005d2850,Ftp_ThreadProc,function,low,"reimplemented (src/game/online/ftp); cdecl (the object): the thread: the commands, the callback, the end event"
+0x005d1760,FtpClient_Ctor,function,low,"reimplemented (src/game/online/ftp); thiscall (callback, threaded; pops 8): the object of 0x2780 bytes, vtable 0x702990, WSAStartup"
+0x005d1880,FtpClient_Dtor,function,low,"reimplemented (src/game/online/ftp); thiscall: command 0, the thread's end, WSACleanup, the events and the string"
+0x005d1860,FtpClient_DeletingDtor,function,low,"reimplemented (src/game/online/ftp); thiscall (flags; pops 4): FtpClient_Dtor, GameHeap_Free with bit 0"
+0x005d29d0,Ftp_WsaErrorBox,function,low,"reimplemented (src/game/online/ftp); thiscall, this unused: WSAGetLastError's text in a message box"
+0x005d2a20,Ftp_WsaStartup,function,low,"reimplemented (src/game/online/ftp); thiscall, this unused: WSAStartup; a failure the error box and 1"
+0x005d2a60,Ftp_WsaCleanup,function,low,"reimplemented (src/game/online/ftp); thiscall, this unused: WSACleanup; a failure the error box and 1"
 0x004e6130,OnlineChat_Set29And2a,function,low,reimplemented (src/game/online/chat); the online chat's bytes +0x29 and +0x2a set under its lock (name unconfirmed)
 0x004e6150,OnlineChat_Get2a,function,low,reimplemented (src/game/online/chat); the online chat's byte +0x2a read under its lock (name unconfirmed)
 0x004e5260,OnlineChat_Ctor,function,low,"reimplemented (src/game/online/chat); thiscall: the online chat's constructor: its two counted buffers, two critical sections, string-maps record and 0x5ec210 member made; the name (+8) L""%08x"" of rand(); +0x18 assigned the global string 0x7a1500 (assign inlined: shared when whole and its count under 0xfe, else copied); returns chat (name invented)"
@@ -7783,6 +7821,27 @@ address,name,kind,confidence,notes
 0x005bd800,ListRequest_Login34,function,low,"reimplemented (src/game/online/listrequest); the same, the session's +0x100"
 0x005bc8e0,Online_Has108NoFlag10,function,low,reimplemented (src/game/online/listrequest); +0x108 set and no flag 0x10
 0x005b7910,Online_OpenListItem,function,low,reimplemented (src/game/online/listrequest); a list item's dialog opened by index
+0x005cde40,NIos_Dtor,function,low,reimplemented (src/game/online/mailbox); thiscall: basic_ios<char>'s destructor
+0x005cb720,Mailbox_SaveOutbox,function,low,reimplemented (src/game/online/mailbox); thiscall: <folder>/outbox.dat written from the three lists of numbers
+0x005cba70,Mailbox_LoadMessage,function,low,"reimplemented (src/game/online/mailbox); thiscall (number): <folder>/%08x.dat read: three numbers, two texts and the list of lines"
+0x005cd220,Mailbox_DeleteMessage,function,low,"reimplemented (src/game/online/mailbox); Both files of a message removed; name invented, unconfirmed"
+0x005c99f0,Mailbox_NewAttachment,function,low,"reimplemented (src/game/online/mailbox); An attachment made from a path at +0x68; name invented, unconfirmed"
+0x005ccda0,Mailbox_DropFirst,function,low,"reimplemented (src/game/online/mailbox); The first message dropped and the next read into a target; name invented, unconfirmed"
+0x005cb230,Mailbox_Open,function,low,"reimplemented (src/game/online/mailbox); The outbox read from its folder, the folder made when there is no file; name invented, unconfirmed"
+0x005cd9c0,AddressBook_Load,function,low,"reimplemented (src/game/online/mailbox); The address book read, its default added; name invented, unconfirmed"
+0x005cd710,AddressBook_Save,function,low,"reimplemented (src/game/online/mailbox); The address book written; name invented, unconfirmed"
+0x005cbf40,Mailbox_SaveMessage,function,low,"reimplemented (src/game/online/mailbox); A new message saved: its file, its picture moved, its number in the lists; name invented, unconfirmed"
+0x00634cc0,NumberList_Erase,function,low,"reimplemented (src/game/online/mailbox); A node of a list of dwords erased; name invented, unconfirmed"
+0x005c9720,MailAttachment_Ctor,function,low,"reimplemented (src/game/online/mailbox); An attachment: a file read and encoded in base64; name invented, unconfirmed"
+0x005c93c0,MailClient_Ctor,function,low,"reimplemented (src/game/online/mailbox); The mail client built; name invented, unconfirmed"
+0x005c9f10,MailClient_Connect,function,low,"reimplemented (src/game/online/mailbox); The mail client's library object made and connected; name invented, unconfirmed"
+0x005cc8a0,Mailbox_Send,function,low,"reimplemented (src/game/online/mailbox); The first message put in the mail client and connected; name invented, unconfirmed"
+0x005c9a80,MailClient_OnEvent,function,low,"reimplemented (src/game/online/mailbox); The mail library's event: the sending's next step, the callback told; name invented, unconfirmed"
+0x005c9a60,MailClient_Callback,function,low,"reimplemented (src/game/online/mailbox); The mail library's callback; name invented, unconfirmed"
+0x005c9570,MailClient_Dtor,function,low,"reimplemented (src/game/online/mailbox); The mail client's destructor: its attachment, its strings and winsock's end; name invented, unconfirmed"
+0x005cb030,Mailbox_Dtor,function,low,"reimplemented (src/game/online/mailbox); The mailbox's destructor: its client, its lists and its strings; name invented, unconfirmed"
+0x005cd0a0,Mailbox_DeleteSent,function,low,"reimplemented (src/game/online/mailbox); A sent message's file removed and its number taken off; name invented, unconfirmed"
+0x005ca010,Mailbox_StoreFromClient,function,low,"reimplemented (src/game/online/mailbox); The client's message copied in the mailbox and saved; name invented, unconfirmed"
 0x005d8190,LobbyModel_SetPosition,function,high,"reimplemented (src/game/frontend/lobbymodel); thiscall (v): the lobby model's (+4: 0x7a4610 index) matrix (+8 -> +4 -> +0x78, +0x10) translation = v[0..2] (x87 loads, all read first)"
 0x005d8380,LobbyModel_TurnY,function,high,"reimplemented (src/game/frontend/lobbymodel); thiscall (angle): Matrix_RotateEulerFast(the lobby model's matrix, 2 ""Y"", &angle)"
 0x005d83b0,LobbyModel_SetScale,function,high,"reimplemented (src/game/frontend/lobbymodel); thiscall (x, y, z): Holder_SetScale(the lobby model's entry +8, (x, y, z))"
@@ -7878,6 +7937,8 @@ address,name,kind,confidence,notes
 0x005dda90,ViewCtl702bc8_TakeListForward,function,low,"reimplemented (src/game/frontend/scenesteps); Only ViewCtl702bc8_TakeList. Name invented, unconfirmed."
 0x005e2010,ThemeMenu_Refresh,function,low,reimplemented (src/game/frontend/thememenu); The lobby menu's items given their theme texts; the fonts added for them removed.
 0x005e27b0,ThemeMenu_Load,function,low,reimplemented (src/game/frontend/thememenu); The lobby menu's items loaded from the session's values; the fonts added for them removed.
+0x005e18d0,ThemeMenu_Enter,function,low,"reimplemented (src/game/frontend/thememenu); The lobby entered: its view set up, the scene's scripts loaded, the theme item chosen and its sounds played; name invented, unconfirmed"
+0x005d8b50,LobbySky_Enter,function,low,"reimplemented (src/game/frontend/lobbysky); The lobby's sky, fog and camera set, the renderer's state kept; name invented, unconfirmed"
 0x0065d7d0,Window_FindChild,function,low,"reimplemented (src/game/ui/window); thiscall (id), pops 4: the first child of the window (list +0x5c, next +0x54) whose id (+0x8c) is id, or 0"
 0x0065f697,Window_CallHandler,function,low,"reimplemented (src/game/ui/window); thiscall (message, a, b), pops 12: the cdecl handler at +0x114 called with (window, message, a, b), its result; -1 when none"
 0x00658d9f,Window_SendMessage,function,low,"reimplemented (src/game/ui/window); cdecl (window, message, a, b): -1 for no window or byte +4 set; else the hook [0xfaa5fc] (if set) then Window_CallHandler"

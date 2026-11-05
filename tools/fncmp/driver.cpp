@@ -143,6 +143,7 @@
 #include "../../src/game/ui/chatnamemenu.h"
 #include "../../src/game/ui/dialog7cc984open.h"
 #include "../../src/game/ui/dialog7cb2fcopen.h"
+#include "../../src/game/ui/window.h"
 #include "../../src/game/ui/mouseclick.h"
 #include "../../src/game/ui/dialog7cca70list.h"
 #include "../../src/game/ui/dialog7cb2b8tabs.h"
@@ -153,6 +154,7 @@
 #include "../../src/game/ui/dialog7cc188address.h"
 #include "../../src/game/ui/versionlabel.h"
 #include "../../src/game/files/userslots.h"
+#include "../../src/game/online/mailbox.h"
 #include "../../src/game/ui/quitconfirm.h"
 #include "../../src/game/world/mapsweep.h"
 #include "../../src/game/ui/imehostattach.h"
@@ -309,6 +311,7 @@
 #include "../../src/game/core/gameframe.h"
 #include "../../src/game/render/engineerrors.h"
 #include "../../src/game/online/chatavatar.h"
+#include "../../src/game/online/ftp.h"
 #include "../../src/game/online/chatcommand.h"
 #include "../../src/game/online/listrequest.h"
 #include "../../src/game/online/session.h"
@@ -424,6 +427,9 @@
 #include "../../src/game/frontend/frame.h"
 #include "../../src/game/core/buffers.h"
 #include "../../src/game/core/guardheap.h"
+#include "../../src/game/core/guardfile.h"
+#include "../../src/game/core/filebuf.h"
+#include "../../src/game/frontend/lobbysky.h"
 #include "../../src/game/core/themenames.h"
 #include "../../src/game/core/nstream.h"
 #include "../../src/game/core/swearfilter.h"
@@ -996,6 +1002,9 @@ const SwearFilterEnv kSwearFilterEnv = {&SwearLowerC};
 const NStreamEnv kNStreamEnv = {Rec{kStubs + 0x5000 + 0x800 * 2 + 0x20 * 14}, Rec{recorder(26, 1)}, Rec{recorder(27, 0)}, Rec{jpeg_recorder(28, 1)}, reinterpret_cast<s32(__cdecl *)(void *)>((uintptr_t)(kStubs + 0x50)), Rec{recorder(20, 0)}, Rec{recorder(21, 0)}};
 const ThemeNamesEnv kThemeNamesEnv = {Rec{jpeg_recorder(1, 5)}, Rec{jpeg_recorder(2, 2)}, Rec{recorder(3, 3)}, Rec{recorder(4, 3)}, Rec{recorder(5, 3)}};
 const GuardHeapEnv kGuardHeapEnv = {Rec{jpeg_recorder(1, 1)}, Rec{jpeg_recorder(2, 1)}};
+const LobbySkyEnv kLobbySkyEnv = {Rec{recorder(0, 1)}, Rec{recorder(1, 3)}, Rec{recorder(2, 4)}, Rec{recorder(3, 0)}};
+const FileBufEnv kFileBufEnv = {Rec{jpeg_recorder(0, 2)}, Rec{jpeg_recorder(1, 4)}, Rec{jpeg_recorder(2, 2)}, Rec{jpeg_recorder(3, 3)}, Rec{jpeg_recorder(4, 2)}};
+const GuardFileEnv kGuardFileEnv = {Rec{jpeg_recorder(4, 2)}, Rec{jpeg_recorder(5, 2)}, Rec{jpeg_recorder(6, 3)}, Rec{jpeg_recorder(7, 4)}, Rec{jpeg_recorder(8, 4)}, Rec{jpeg_recorder(9, 1)}, Rec{jpeg_recorder(10, 1)}, Rec{jpeg_recorder(11, 1)}, Rec{jpeg_recorder(12, 2)}};
 const Blocks7LoadEnv kBlocks7LoadEnv = {Rec{jpeg_recorder(1, 3)}, Rec{recorder(2, 2)}};
 const FrameEnv kFrameEnv = {Rec{jpeg_recorder(7, 0)}, Rec{recorder(6, 3)}};
 const PanelKeysEnv kPanelKeysEnv = {Rec{jpeg_recorder(1, 1)}};
@@ -1012,12 +1021,20 @@ const OnlinePollEnv kOnlinePollEnv = {Rec{recorder(8, 1)}, Rec{recorder(9, 0)}, 
 const OnlineNextEnv kOnlineNextEnv = {Rec{recorder(8, 0)}, Rec{recorder(9, 1)}, Rec{recorder(10, 2)}, Rec{recorder(11, 0)}};
 const SignRenderEnv kSignRenderEnv = {Rec{recorder(8, 3)}, Rec{recorder(9, 2)}, Rec{recorder(10, 0)}};
 const FrameStartEnv kFrameStartEnv = {Rec{recorder(8, 2)}, Rec{recorder(9, 1)}, Rec{recorder(10, 1)}, Rec{recorder(11, 1)}, Rec{recorder(12, 0)}, Rec{jpeg_recorder(13, 4)}, Rec{jpeg_recorder(14, 1)}, Rec{recorder(15, 0)}, Rec{jpeg_recorder(16, 0)}, Rec{recorder(17, 0)}, Rec{recorder(18, 0)}, Rec{recorder(19, 0)}, Rec{recorder(20, 0)}, Rec{recorder(21, 0)}, Rec{recorder(22, 0)}, Rec{jpeg_recorder(23, 0)}};
-const ThemeMenuEnv kThemeMenuEnv = {Rec{recorder(8, 0)}, Rec{recorder(9, 0)}, Rec{recorder(10, 1)}, Rec{recorder(11, 2)}, Rec{recorder(12, 2)}, Rec{recorder(13, 3)}, Rec{recorder(14, 2)}, Rec{jpeg_recorder(15, 2)}, Rec{recorder(16, 0)}, Rec{recorder(17, 1)}, Rec{recorder(18, 5)}};
+const ThemeMenuEnv kThemeMenuEnv = {Rec{recorder(8, 0)}, Rec{recorder(9, 0)}, Rec{recorder(10, 1)}, Rec{recorder(11, 2)}, Rec{recorder(12, 2)}, Rec{recorder(13, 3)}, Rec{recorder(14, 2)}, Rec{jpeg_recorder(15, 2)}, Rec{recorder(16, 0)}, Rec{recorder(17, 1)}, Rec{recorder(18, 5)},
+                                      Rec{recorder(19, 0)}, Rec{recorder(20, 2)}, Rec{recorder(21, 4)}, Rec{jpeg_recorder(22, 0)}, Rec{recorder(23, 0)}, Rec{jpeg_recorder(24, 0)}, Rec{jpeg_recorder(25, 0)}, Rec{jpeg_recorder(26, 0)}, Rec{recorder(27, 0)}, Rec{jpeg_recorder(28, 6)}, Rec{jpeg_recorder(29, 0)}};
 const ParkMapPictureEnv kParkMapPictureEnv = {Rec{jpeg_recorder(8, 0)}, Rec{recorder(9, 4)}, Rec{recorder(10, 1)}, Rec{recorder(11, 5)}, Rec{recorder(12, 4)}, Rec{recorder(13, 0)}};
 const ParkMapWindowEnv kParkMapWindowEnv = {Rec{recorder(8, 2)}, Rec{recorder(10, 1)}, Rec{recorder(11, 0)}, Rec{recorder(12, 4)}, Rec{recorder(13, 0)}, Rec{jpeg_recorder(14, 5)}, Rec{recorder(15, 2)}, Rec{recorder(16, 1)}, Rec{recorder(17, 0)}, Rec{jpeg_recorder(18, 1)}, Rec{recorder(19, 3)},
                                             Rec{recorder(20, 0)}, Rec{recorder(21, 1)}, Rec{recorder(22, 0)}, Rec{recorder(23, 0)}, Rec{recorder(24, 0)}, Rec{recorder(25, 1)}, Rec{recorder(26, 0)},
                                             Rec{jpeg_recorder(27, 0)}, Rec{jpeg_recorder(28, 4)}, Rec{jpeg_recorder(29, 1)}, Rec{jpeg_recorder(30, 1)}, Rec{jpeg_recorder(31, 0)}, Rec{jpeg_recorder(7, 2)}};
 const ParkMapSpritesEnv kParkMapSpritesEnv = {Rec{recorder(8, 1)}, Rec{recorder(9, 2)}, Rec{recorder(10, 2)}, Rec{recorder(11, 0)}, Rec{recorder(12, 1)}, Rec{recorder(13, 0)}};
+const FtpEnv kFtpEnv = {Rec{jpeg_recorder(20, 2)}, Rec{jpeg_recorder(21, 4)}, Rec{jpeg_recorder(22, 1)}, Rec{jpeg_recorder(23, 2)}, Rec{recorder(24, 0)}, Rec{recorder(25, 1)}, Rec{recorder(26, 0)}, Rec{recorder(27, 0)}, Rec{recorder(28, 0)}};
+const ParkMapOpenEnv kParkMapOpenEnv = {Rec{jpeg_recorder(31, 0)}, Rec{recorder(8, 2)}, Rec{jpeg_recorder(21, 0)}, Rec{jpeg_recorder(22, 1)}, Rec{recorder(9, 0)}, Rec{recorder(10, 1)}, Rec{recorder(11, 1)},
+                                        Rec{jpeg_recorder(23, 0)}, Rec{jpeg_recorder(24, 4)}, Rec{recorder(12, 2)}, Rec{jpeg_recorder(25, 1)}, Rec{recorder(13, 1)}, &Window_FindChild, Rec{recorder(14, 1)}, Rec{recorder(15, 1)},
+                                        Rec{recorder(16, 2)}, Rec{recorder(17, 2)}, Rec{jpeg_recorder(26, 1)}, Rec{recorder(18, 1)}, Rec{recorder(19, 4)}, Rec{recorder(6, 1)}, Rec{recorder(7, 1)},
+                                        Rec{recorder(4, 2)}, Rec{recorder(3, 1)}, Rec{recorder(2, 2)}, Rec{recorder(1, 1)}, Rec{jpeg_recorder(30, 2)}, Rec{recorder(0, 0)},
+                                        Rec{recorder(20, 0)}, Rec{recorder(21, 1)}, Rec{recorder(22, 4)}, Rec{recorder(23, 0)}, Rec{recorder(24, 0)}, Rec{recorder(25, 4)},
+                                        Rec{jpeg_recorder(28, 1)}, Rec{jpeg_recorder(29, 2)}, Rec{recorder(26, 4)}, Rec{recorder(27, 4)}};
 const CoasterPlaceCarEnv kCoasterPlaceCarEnv = {Rec{jpeg_recorder(1, 6)}, Rec{jpeg_recorder(2, 9)}, Rec{jpeg_recorder(3, 7)}, Rec{jpeg_recorder(4, 5)}, Rec{jpeg_recorder(5, 2)}, Rec{jpeg_recorder(6, 7)},
                                                  Rec{jpeg_recorder(7, 1)}, Rec{jpeg_recorder(8, 1)}, Rec{jpeg_recorder(9, 0)}, Rec{jpeg_recorder(10, 0)}, Rec{jpeg_recorder(11, 0)}, Rec{jpeg_recorder(12, 0)},
                                                  Rec{recorder(13, 0)}, Rec{recorder(14, 0)}, Rec{recorder(15, 1)}};  // tests/fncmp/coasterplacecar.py
@@ -1145,6 +1162,17 @@ const SpriteLoadingEnv kSpriteLoadingEnv = {Rec{recorder(1, 2)}, Rec{recorder(2,
 const ThingPatrolEnv kThingPatrolEnv = {Rec{jpeg_recorder(20, 1)}, Rec{jpeg_recorder(21, 5)}};
 // ObjectUnlock_CheckScores's calls: stdcall ones through the COM-style recorders (tools/fncmp.py recorder(k, n, com=True): this logged as 0; tests/fncmp/objectunlockscores.py).
 constexpr u32 stdcall_recorder(u32 k, u32 n) { return kStubs + 0x1000 + 0x4000 + 0x800 * n + 0x20 * k; }
+const MailboxDropEnv kMailboxDropEnv = {Rec{recorder(0, 2)}, Rec{jpeg_recorder(1, 1)}, Rec{recorder(2, 0)}, Rec{recorder(3, 1)}, &Mailbox_DeleteMessage, Rec{jpeg_recorder(4, 0)}, Rec{recorder(5, 0)}, Rec{recorder(6, 0)}, Rec{recorder(7, 0)},
+                                        Rec{recorder(8, 0)}, Rec{recorder(9, 0)}, Rec{recorder(10, 1)}, Rec{recorder(11, 2)}, &Mailbox_NewAttachment, Rec{recorder(12, 1)}};
+const MailClientEnv kMailClientEnv = {Rec{jpeg_recorder(15, 2)}, Rec{jpeg_recorder(16, 3)}, Rec{jpeg_recorder(17, 1)}, Rec{jpeg_recorder(18, 4)}, Rec{jpeg_recorder(20, 3)}, Rec{recorder(13, 0)}, Rec{recorder(14, 4)}, Rec{recorder(21, 0)}, Rec{recorder(22, 1)}, Rec{recorder(23, 0)}};
+const MailboxEnv kMailboxEnv = {Rec{recorder(0, 0)}, Rec{recorder(1, 4)}, Rec{recorder(2, 3)}, Rec{recorder(3, 1)}, Rec{recorder(4, 2)}, Rec{recorder(5, 2)}, Rec{recorder(6, 0)}, Rec{recorder(7, 0)}, Rec{recorder(8, 1)}, Rec{recorder(9, 3)},
+                                Rec{jpeg_recorder(10, 2)}, Rec{jpeg_recorder(11, 1)}, Rec{recorder(12, 2)}, Rec{recorder(13, 0)}, Rec{recorder(14, 0)}, Rec{recorder(15, 0)}, Rec{jpeg_recorder(16, 1)}, Rec{recorder(17, 2)}, Rec{recorder(18, 3)},
+                                Rec{recorder(19, 2)}, Rec{recorder(20, 3)}, Rec{recorder(22, 2)}, Rec{recorder(23, 0)}, Rec{recorder(24, 1)}, Rec{recorder(25, 0)}, Rec{recorder(26, 0)}, Rec{recorder(27, 1)}, Rec{recorder(28, 1)}, Rec{recorder(29, 0)},
+                                Rec{jpeg_recorder(30, 1)}, Rec{jpeg_recorder(31, 1)}};
+const UserSlotsScanEnv kUserSlotsScanEnv = {Rec{stdcall_recorder(0, 1)}, Rec{stdcall_recorder(1, 1)}, Rec{stdcall_recorder(2, 1)}, Rec{recorder(3, 2)}, Rec{recorder(4, 3)}, Rec{recorder(5, 2)}, Rec{jpeg_recorder(6, 2)}, Rec{jpeg_recorder(7, 1)},
+                                            Rec{jpeg_recorder(8, 1)}, Rec{jpeg_recorder(9, 1)}, Rec{recorder(10, 2)}, Rec{recorder(11, 0)}, Rec{recorder(12, 0)}, Rec{recorder(13, 1)}, Rec{recorder(14, 0)}, Rec{recorder(15, 1)}};
+const OnlineDownloadStartEnv kOnlineDownloadStartEnv = {Rec{recorder(4, 1)}, Rec{recorder(5, 2)}, Rec{jpeg_recorder(6, 5)}, Rec{recorder(7, 0)}, Rec{stdcall_recorder(8, 1)}, Rec{jpeg_recorder(9, 1)}, Rec{recorder(10, 2)}, Rec{recorder(11, 4)},
+                                                        Rec{recorder(12, 1)}, Rec{recorder(13, 0)}, Rec{recorder(14, 0)}, Rec{jpeg_recorder(15, 0)}};
 const AddrCall kArReplayActionCalls[] = {  // tests/fncmp/arreplayaction.py --table
     {0x447ae0, jpeg_recorder(7, 1)},
     {0x447b20, jpeg_recorder(8, 1)},
@@ -1795,6 +1823,7 @@ const Dialog7cb400CloseEnv kDialog7cb400CloseEnv = {Rec{jpeg_recorder(10, 4)}, R
                                                     Rec{recorder(18, 0)}, Rec{recorder(19, 0)}, Rec{recorder(20, 2)}, Rec{recorder(21, 1)}, Rec{recorder(22, 0)}, Rec{jpeg_recorder(23, 0)}, Rec{jpeg_recorder(24, 4)}, Rec{recorder(25, 3)}, Rec{recorder(26, 1)}};
 const Dialog7cc188AddressEnv kDialog7cc188AddressEnv = {Rec{recorder(10, 1)}, Rec{jpeg_recorder(11, 1)}, Rec{recorder(12, 1)}, Rec{jpeg_recorder(13, 1)}, Rec{jpeg_recorder(14, 5)}, Rec{jpeg_recorder(15, 8)}, Rec{recorder(16, 3)}};
 const UserSlotsEnv kUserSlotsEnv = {Rec{recorder(27, 0)}, Rec{jpeg_recorder(28, 3)}, Rec{jpeg_recorder(30, 1)}};
+const UserSlotsChoiceEnv kUserSlotsChoiceEnv = {Rec{recorder(1, 1)}, Rec{recorder(2, 1)}, Rec{recorder(3, 1)}, Rec{recorder(4, 0)}, Rec{recorder(5, 1)}, Rec{jpeg_recorder(6, 0)}, Rec{recorder(7, 1)}, Rec{recorder(8, 0)}, Rec{recorder(9, 1)}, Rec{jpeg_recorder(15, 1)}, Rec{recorder(18, 1)}, Rec{recorder(19, 2)}, Rec{recorder(20, 1)}, Rec{recorder(21, 0)}};
 const BankAccountCtorEnv kBankAccountCtorEnv = {Rec{jpeg_recorder(10, 4)}};
 const NarrowFileBufEnv kNarrowFileBufEnv = {Rec{jpeg_recorder(18, 1)}, Rec{jpeg_recorder(23, 2)}, Rec{jpeg_recorder(24, 1)}};  // tests/fncmp/narrowfilebuf.py
 const Dialog7ca150ListEnv kDialog7ca150ListEnv = {Rec{recorder(10, 2)}, Rec{recorder(11, 1)}, Rec{recorder(12, 2)}, Rec{recorder(13, 5)}, Rec{recorder(14, 1)}, Rec{recorder(15, 1)}, Rec{recorder(16, 0)}, Rec{recorder(17, 0)}, Rec{recorder(18, 0)}, Rec{recorder(19, 0)}, Rec{recorder(20, 3)}};
@@ -2999,17 +3028,25 @@ int main(int argc, char **argv) {
     RasterFormat_SetEnv(&kRasterFormatEnv);
     Dialog7cb400Close_SetEnv(&kDialog7cb400CloseEnv);
     UserSlots_SetEnv(&kUserSlotsEnv);
+    UserSlots_SetChoiceEnv(&kUserSlotsChoiceEnv);
     Dialog7cc188Address_SetEnv(&kDialog7cc188AddressEnv);
     VersionLabel_SetEnv(&kVersionLabelEnv);
     BankAccountCtor_SetEnv(&kBankAccountCtorEnv);
     NarrowFileBuf_SetEnv(&kNarrowFileBufEnv);
         ParkMapSprites_SetEnv(&kParkMapSpritesEnv);
+    Ftp_SetEnv(&kFtpEnv);
+    ParkMapOpen_SetEnv(&kParkMapOpenEnv);
         ParkMapWindow_SetEnv(&kParkMapWindowEnv);
         ParkMap_SetPictureEnv(&kParkMapPictureEnv);
     ThemeMenu_SetEnv(&kThemeMenuEnv);
     Frame_SetStartEnv(&kFrameStartEnv);
     SignRender_SetEnv(&kSignRenderEnv);
     Online_SetNextEnv(&kOnlineNextEnv);
+    Online_SetDownloadStartEnv(&kOnlineDownloadStartEnv);
+    UserSlots_SetScanEnv(&kUserSlotsScanEnv);
+    Mailbox_SetEnv(&kMailboxEnv);
+    MailboxDrop_SetEnv(&kMailboxDropEnv);
+    MailClient_SetEnv(&kMailClientEnv);
     Online_SetPollEnv(&kOnlinePollEnv);
     SignFonts_SetEnv(&kSignFontsEnv);
     Online_SetEndEnv(&kOnlineEndEnv);
@@ -3023,6 +3060,9 @@ int main(int argc, char **argv) {
     Frame_SetEnv(&kFrameEnv);
     Blocks7_SetLoadEnv(&kBlocks7LoadEnv);
     GuardHeap_SetEnv(&kGuardHeapEnv);
+    GuardFile_SetEnv(&kGuardFileEnv);
+    FileBuf_SetEnv(&kFileBufEnv);
+    LobbySky_SetEnv(&kLobbySkyEnv);
     ThemeNames_SetEnv(&kThemeNamesEnv);
     NStream_SetEnv(&kNStreamEnv);
     SwearFilter_SetEnv(&kSwearFilterEnv);
