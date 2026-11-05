@@ -139,6 +139,10 @@ u8 __fastcall AddressBook_Save(u8 *self, void *, const char *folder);
 
 // 0x634cc0 (thiscall on a list<u32> (out, node), pops 8): the node unlinked and freed (Mem_Free), the count +8 lowered, the next node in *out. Answers out.
 u32 *__fastcall NumberList_Erase(u8 *list, void *, u32 *out, u32 node);
+// 0x634bf0 (thiscall on a list<u32>): the nodes unlinked and freed, the count +8 lowered each, the sentinel +4 freed; +4 = +8 = 0.
+void __fastcall NumberList_Destroy(u8 *list);
+// 0x634c60 (thiscall on a list<u32> (out, where, value pointer), pops 12): a new node before where (Mem_Alloc), the count +8 raised. The node in out; returns out.
+u32 *__fastcall NumberList_Insert(u8 *list, void *, u32 *out, u32 *where, const u32 *value);
 
 // 0x5cbf40 (thiscall): a new message saved: its number the last of the list +0x58 plus 1 (a count but no node: this pointer as the number, sic; no count: 0). "<folder>/%08x.dat" written: today (0x67d3f0, 0x67d8e0, kept at +0x4c, +0x50 and +0x54) and
 // the texts +0x10 and +0x20 and the lines +0x30, a line each. The picture +0x3c moved (0x6fd11c, the import read live) to "<folder>/%08x.jpg", which it then is. The number added at the head of +0x58 and the end of +0x64, that one sorted (std::list's

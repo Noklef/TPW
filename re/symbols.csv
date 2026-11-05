@@ -6587,6 +6587,10 @@ address,name,kind,confidence,notes
 0x00634730,ChainFilter_Detach,function,low,reimplemented (src/game/input/devicefilter); thiscall (object): the object's slot 0x18 with this filter; name invented
 0x006348e0,MouseFilter_Constant1,function,low,reimplemented (src/game/input/devicefilter); returns 0x707c40; name invented
 0x006348f0,MouseFilter_Constant2,function,low,reimplemented (src/game/input/devicefilter); returns 0x679440; name invented
+0x00634a50,KeyPool_Dtor,function,low,reimplemented (src/game/input/messagepool); thiscall: the pool's destructor (vtable 0x703d1c): the messages and nodes freed; name invented
+0x00634b40,MousePool_Dtor,function,low,reimplemented (src/game/input/messagepool); thiscall: the pool's destructor (vtable 0x703d14); name invented
+0x00634d00,KeyPool_Next,function,low,"reimplemented (src/game/input/messagepool); thiscall: the next free message round the list, a new one when none; name invented"
+0x00634de0,MousePool_Next,function,low,reimplemented (src/game/input/messagepool); thiscall: the same for 0x24-byte messages (vtable 0x703d10); name invented
 0x0047e3e0,ScreenSurfaces_Dtor,function,high,reimplemented (src/game/gfx/screensurfaces); an object releases its two COM objects
 0x00fa76b0,gSurfaceDirectDraw,data,high,IDirectDraw that Surface_Create makes surfaces with (Surface_SetDirectDraw)
 0x00fa76b4,gSurfaceNoSysLock,data,high,byte; non-zero: Surface_Lock adds DDLOCK_NOSYSLOCK
@@ -7947,6 +7951,8 @@ address,name,kind,confidence,notes
 0x005cb030,Mailbox_Dtor,function,low,"reimplemented (src/game/online/mailbox); The mailbox's destructor: its client, its lists and its strings; name invented, unconfirmed"
 0x005cd0a0,Mailbox_DeleteSent,function,low,"reimplemented (src/game/online/mailbox); A sent message's file removed and its number taken off; name invented, unconfirmed"
 0x005ca010,Mailbox_StoreFromClient,function,low,"reimplemented (src/game/online/mailbox); The client's message copied in the mailbox and saved; name invented, unconfirmed"
+0x00634bf0,NumberList_Destroy,function,low,reimplemented (src/game/online/mailbox); thiscall on a list<u32>: the nodes and the sentinel freed; name invented
+0x00634c60,NumberList_Insert,function,low,"reimplemented (src/game/online/mailbox); thiscall on a list<u32> (out, where, value): a new node before where; name invented"
 0x005d8190,LobbyModel_SetPosition,function,high,"reimplemented (src/game/frontend/lobbymodel); thiscall (v): the lobby model's (+4: 0x7a4610 index) matrix (+8 -> +4 -> +0x78, +0x10) translation = v[0..2] (x87 loads, all read first)"
 0x005d8380,LobbyModel_TurnY,function,high,"reimplemented (src/game/frontend/lobbymodel); thiscall (angle): Matrix_RotateEulerFast(the lobby model's matrix, 2 ""Y"", &angle)"
 0x005d83b0,LobbyModel_SetScale,function,high,"reimplemented (src/game/frontend/lobbymodel); thiscall (x, y, z): Holder_SetScale(the lobby model's entry +8, (x, y, z))"

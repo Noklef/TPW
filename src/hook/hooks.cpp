@@ -418,6 +418,7 @@
 #include "../game/world/objectmsg.h"
 #include "../game/world/parkmap.h"
 #include "../game/input/devicefilter.h"
+#include "../game/input/messagepool.h"
 #include "../game/input/mouse.h"
 #include "../game/world/personscripts.h"
 #include "../game/world/ridelist.h"
@@ -7103,6 +7104,10 @@ const Hook kHooks[] = {
     {"ChainFilter_Detach",        0x00634730, (void *)&ChainFilter_Detach, {0x8b, 0xc1, 0x8b, 0x4c, 0x24}},
     {"MouseFilter_Constant1",     0x006348e0, (void *)&MouseFilter_Constant1, {0xb8, 0x40, 0x7c, 0x70, 0x00}},
     {"MouseFilter_Constant2",     0x006348f0, (void *)&MouseFilter_Constant2, {0xb8, 0x40, 0x94, 0x67, 0x00}},
+    {"KeyPool_Dtor",              0x00634a50, (void *)&KeyPool_Dtor, {0x53, 0x56, 0x57, 0x8b, 0xf9}},
+    {"MousePool_Dtor",            0x00634b40, (void *)&MousePool_Dtor, {0x53, 0x56, 0x57, 0x8b, 0xf9}},
+    {"KeyPool_Next",              0x00634d00, (void *)&KeyPool_Next, {0x83, 0xec, 0x08, 0x55, 0x56}},
+    {"MousePool_Next",            0x00634de0, (void *)&MousePool_Next, {0x83, 0xec, 0x08, 0x55, 0x56}},
     {"ScreenSurfaces_Dtor",       0x0047e3e0, (void *)&ScreenSurfaces_Dtor, {0x6a, 0xff, 0x68, 0xa8, 0x8f}},
     {"ScreenSurfaces_ScalarDtor", 0x0047e3c0, (void *)&ScreenSurfaces_ScalarDtor, {0x56, 0x8b, 0xf1, 0xe8, 0x18}},
     {"ScreenSurfaces_Surface10",  0x0047e4b0, (void *)&ScreenSurfaces_Surface10, {0x51, 0x57, 0x8b, 0xf9, 0x8b}},
@@ -8188,6 +8193,8 @@ const Hook kHooks[] = {
     {"Mailbox_Dtor",              0x005cb030, (void *)&Mailbox_Dtor, {0x6a, 0xff, 0x68, 0x90, 0x0a}},
     {"Mailbox_DeleteSent",        0x005cd0a0, (void *)&Mailbox_DeleteSent, {0x83, 0xec, 0x0c, 0x53, 0x55}},
     {"Mailbox_StoreFromClient",   0x005ca010, (void *)&Mailbox_StoreFromClient, {0x83, 0xec, 0x08, 0x55, 0x8b}},
+    {"NumberList_Destroy",        0x00634bf0, (void *)&NumberList_Destroy, {0x53, 0x56, 0x57, 0x8b, 0xf9}},
+    {"NumberList_Insert",         0x00634c60, (void *)&NumberList_Insert, {0x53, 0x56, 0x8b, 0x74, 0x24}},
     {"LobbyModel_SetPosition",    0x005d8190, (void *)&LobbyModel_SetPosition, {0x8b, 0x41, 0x04, 0x8b, 0x54}},
     {"LobbyModel_TurnY",          0x005d8380, (void *)&LobbyModel_TurnY, {0x8b, 0x49, 0x04, 0x8d, 0x44}},
     {"LobbyModel_SetScale",       0x005d83b0, (void *)&LobbyModel_SetScale, {0x83, 0xec, 0x0c, 0x8b, 0x44}},

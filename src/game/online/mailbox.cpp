@@ -646,6 +646,34 @@ u32 *__fastcall NumberList_Erase(u8 *list, void *, u32 *out, u32 node) {
     return out;
 }
 
+void __fastcall NumberList_Destroy(u8 *list) {
+    u8 *const sentinel = at<u8 *>(list, 4);
+    for (u8 *node = at<u8 *>(sentinel, 0); node != sentinel;) {
+        u8 *const gone = node;
+        node = at<u8 *>(gone, 0);
+        at<u32>(at<u8 *>(gone, 4), 0) = at<u32>(gone, 0);
+        at<u32>(at<u8 *>(gone, 0), 4) = at<u32>(gone, 4);
+        GameHeap_Free(gone);
+        --at<u32>(list, 8);
+    }
+    GameHeap_Free(at<u8 *>(list, 4));
+    at<u32>(list, 4) = 0;
+    at<u32>(list, 8) = 0;
+}
+
+u32 *__fastcall NumberList_Insert(u8 *list, void *, u32 *out, u32 *where, const u32 *value) {
+    const u32 before = where[1];
+    u32 *const node = static_cast<u32 *>(GameHeap_Alloc(0xc));
+    node[0] = where ? static_cast<u32>(reinterpret_cast<uintptr_t>(where)) : static_cast<u32>(reinterpret_cast<uintptr_t>(node));
+    node[1] = before ? before : static_cast<u32>(reinterpret_cast<uintptr_t>(node));
+    where[1] = static_cast<u32>(reinterpret_cast<uintptr_t>(node));
+    *reinterpret_cast<u32 *>(static_cast<uintptr_t>(node[1])) = static_cast<u32>(reinterpret_cast<uintptr_t>(node));
+    node[2] = *value;
+    ++at<u32>(list, 8);
+    *out = static_cast<u32>(reinterpret_cast<uintptr_t>(node));
+    return out;
+}
+
 u8 __fastcall Mailbox_SaveMessage(u8 *self) {
     StdString path;
     StdString_Tidy(&path, nullptr, 0);
