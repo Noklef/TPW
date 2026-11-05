@@ -251,6 +251,7 @@
 #include "../game/core/narrowwriter.h"
 #include "../game/core/numput.h"
 #include "../game/core/nstream.h"
+#include "../game/core/optionschanges.h"
 #include "../game/core/refcounted.h"
 #include "../game/core/parkinfo.h"
 #include "../game/core/recordsort.h"
@@ -6671,6 +6672,9 @@ const Hook kHooks[] = {
     {"ThemeSaves_Save",           0x0040bf90, (void *)&ThemeSaves_Save, {0x6a, 0xff, 0x68, 0x80, 0x7c}},
     {"ThemeSaves_Load",           0x0040c040, (void *)&ThemeSaves_Load, {0x6a, 0xff, 0x68, 0xa0, 0x7c}},
     {"ThemeSaves_EnsureFile",     0x00550b30, (void *)&ThemeSaves_EnsureFile, {0x6a, 0xff, 0x68, 0xf3, 0xee}},
+    {"Options_ApplyChanges",      0x004237f0, (void *)&Options_ApplyChanges, {0x6a, 0xff, 0x68, 0xcf, 0x86}},
+    {"Options_ConfirmSave",       0x00424bb0, (void *)&Options_ConfirmSave, {0x6a, 0x02, 0xe8, 0xf9, 0xbc}},
+    {"Options_LoadStartup",       0x00449df0, (void *)&Options_LoadStartup, {0x6a, 0xff, 0x68, 0x68, 0x87}},
     {"Nav_Ctor",          0x0050ffe0, (void *)&Nav_Ctor, {0x6a, 0xff, 0x68, 0x2d, 0xe6}},
     {"Nav_Dtor",                  0x0050f200, (void *)&Nav_Dtor, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"Nav_DtorAtD4",              0x004f7c30, (void *)&Nav_DtorAtD4, {0x81, 0xc1, 0xd4, 0x00, 0x00}},
