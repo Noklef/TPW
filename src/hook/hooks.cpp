@@ -169,6 +169,7 @@
 #include "../game/gfx/overlayload.h"
 #include "../game/gfx/overlayloadall.h"
 #include "../game/gfx/refblock.h"
+#include "../game/gfx/screenview.h"
 #include "../game/gfx/signrender.h"
 #include "../game/gfx/signstyle.h"
 #include "../game/gfx/spriteframelights.h"
@@ -7371,6 +7372,14 @@ const Hook kHooks[] = {
     {"JpegSource_Init",           0x006311b0, (void *)&JpegSource_Init, {0x8b, 0x44, 0x24, 0x04, 0x8b}},
     {"JpegSource_Fill",           0x006311c0, (void *)&JpegSource_Fill, {0x56, 0x57, 0x8b, 0x7c, 0x24}},
     {"JpegSource_Skip",           0x00631230, (void *)&JpegSource_Skip, {0x53, 0x8b, 0x5c, 0x24, 0x08}},
+    {"PixelFormats_InitPal8",     0x006316c0, (void *)&PixelFormats_InitPal8, {0x33, 0xc0, 0xc7, 0x05, 0xa8}},
+    {"PixelFormats_Init555",      0x00631700, (void *)&PixelFormats_Init555, {0x33, 0xc0, 0xc7, 0x05, 0xb0}},
+    {"PixelFormats_Init888",      0x00631750, (void *)&PixelFormats_Init888, {0x33, 0xc0, 0xc7, 0x05, 0x68}},
+    {"PixelFormats_Init8888",     0x006317a0, (void *)&PixelFormats_Init8888, {0xc7, 0x05, 0x80, 0xa2, 0xfa}},
+    {"ScreenView_Surface",        0x006317e0, (void *)&ScreenView_Surface, {0xb8, 0x80, 0x77, 0xfa, 0x00}},
+    {"ScreenView_Field164",       0x006317f0, (void *)&ScreenView_Field164, {0xa1, 0xe4, 0x78, 0xfa, 0x00}},
+    {"ScreenView_Rect",           0x00631800, (void *)&ScreenView_Rect, {0x56, 0x57, 0x33, 0xff, 0x8b}},
+    {"ScreenView_Flag1",          0x00631860, (void *)&ScreenView_Flag1, {0xa1, 0x9c, 0x77, 0xfa, 0x00}},
     {"RenderMode_Size",           0x0044a590, (void *)&RenderMode_Size, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_Depth",          0x0044a5d0, (void *)&RenderMode_Depth, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_ResetScale",     0x0044a600, (void *)&RenderMode_ResetScale, {0x51, 0xc7, 0x44, 0x24, 0x00}},

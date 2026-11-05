@@ -7042,6 +7042,14 @@ address,name,kind,confidence,notes
 0x006311b0,JpegSource_Init,function,low,reimplemented (src/game/gfx/jpegsource); cdecl: init_source: start of file; name invented
 0x006311c0,JpegSource_Fill,function,low,"reimplemented (src/game/gfx/jpegsource); cdecl: fill_input_buffer: from the stream, a fake EOI at its end; name invented"
 0x00631230,JpegSource_Skip,function,low,"reimplemented (src/game/gfx/jpegsource); cdecl (cinfo, count): skip_input_data; name invented"
+0x006316c0,PixelFormats_InitPal8,function,low,reimplemented (src/game/gfx/screenview); the 8-bit paletted format's table 0xfaa298; name invented
+0x00631700,PixelFormats_Init555,function,low,reimplemented (src/game/gfx/screenview); the 555 format's table 0xfaa2b0; name invented
+0x00631750,PixelFormats_Init888,function,low,reimplemented (src/game/gfx/screenview); the 888 format's table 0xfaa268; name invented
+0x006317a0,PixelFormats_Init8888,function,low,reimplemented (src/game/gfx/screenview); the 8888 format's table 0xfaa280; name invented
+0x006317e0,ScreenView_Surface,function,low,reimplemented (src/game/gfx/screenview); returns the screen's surface 0xfa7780; name invented
+0x006317f0,ScreenView_Field164,function,low,reimplemented (src/game/gfx/screenview); the dword at 0xfa78e4; name invented
+0x00631800,ScreenView_Rect,function,low,reimplemented (src/game/gfx/screenview); thiscall (out): the rect of the surface from the object's slot 8; name invented
+0x00631860,ScreenView_Flag1,function,low,reimplemented (src/game/gfx/screenview); bit 1 of the dword at 0xfa779c; name invented
 0x00fa9f3c,gScreenOpen,data,high,Screen_Open has run (Screen_Close clears it)
 0x00fa77d0,gScreenModes,data,high,List of ScreenMode (width, height, bit count) from EnumDisplayModes
 0x006fefa8,TgaCodec_vtable,data,high,"TgaCodec (ImageCodec: vtable, SurfaceInfo): 0x47e750 deleting dtor, GetInfo, Load, IsTga; the work is done by a stack TgaReader (0x44, vtable 0x703630)"
