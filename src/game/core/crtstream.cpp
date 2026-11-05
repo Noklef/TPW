@@ -413,6 +413,16 @@ s32 __cdecl CRT_fprintf(CrtFile *file, const char *format, ...) {
     return written;
 }
 
+s32 __cdecl CRT_printf(const char *format, ...) {
+    CrtFile *const file = reinterpret_cast<CrtFile *>(static_cast<uintptr_t>(0x0077e820));
+    CrtInner().lockFile2(1, file);
+    const s32 flag = CRT_stbuf(file);
+    const s32 written = CrtInner().output(file, format, &format + 1);
+    CRT_ftbuf(flag, file);
+    CrtInner().unlockFile2(1, file);
+    return written;
+}
+
 u16 __cdecl CRT_fputwc(u32 c, CrtFile *file) {
     CrtInner().lockFile(file);
     const u16 result = CRT_fputwc_lk(c, file);

@@ -64,5 +64,6 @@ void __cdecl CRT_ftbuf(s32 flag, CrtFile *file);
 
 // 0x6839f0: _woutput's write_char: _fputwc_lk; *count -1 if it could not go, else one more.
 void __cdecl CRT_woutput_write_char(u32 c, CrtFile *file, s32 *count);
+s32 __cdecl CRT_printf(const char *format, ...);  // 0x67e6f0
 
 }  // extern "C"
