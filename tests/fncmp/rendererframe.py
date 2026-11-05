@@ -128,14 +128,24 @@ def case(r):
     views = bytearray()
     for i in range(4):
         views += struct.pack('<6I', view_flags(r), fb(r.uniform(-1, 1)), fb(r.uniform(-1, 1)), fb(r.uniform(0, 2)), fb(r.uniform(0, 2)), CAM2)
+    mode = r.choice([0, 0, 4, 4, 4 | 8, 4 | 8])
+    regions[0x768aac] = word(r.choice([1, 1, 2, 3, 0]))
+    if r.random() < 0.4:
+        # A global seen live at each view: its address in the view's first window float, which these two ways pass on as it is.
+        mode = r.choice([0, 4 | 8])
+        for i in range(4):
+            put(views, i * 0x18 + 4, 'I', 0x8bd508 if mode == 0 else 0x8bcbc8)
+        blob_bytes(log, VIEW, 0, 0xfffff, inner=(4, 0xf))
+        if mode == 0 and r.random() < 0.6:
+            put(data, 0x70, 'i', 1)
+            regions[0x768aac] = word(1)
     regions[VIEWS] = views
     regions[CAM2] = matrix(r)
     regions[SELF] = data
-    regions[0x768aac] = word(r.choice([1, 1, 2, 3, 0]))
     regions[0x87a680] = r.choice([bytes(regions[CAMERA]), r.bytes(0x40)]) + bytes([r.choice([0, 1, 1, 1]) | 0x80]) + r.bytes(3)
     regions[0x8bd518] = word(0x777)
     flags = struct.unpack('<I', regions[0x8bcbc8])[0]
-    regions[0x8bcbc8] = word(flags & ~0xc | r.choice([0, 0, 4, 4, 4 | 8, 4 | 8]))
+    regions[0x8bcbc8] = word(flags & ~0xc | mode)
     regions[0x8bd550] = r.bytes(4)
     imports = import_table(log, {'GetForegroundWindow': (FOCUS, 0x6fd328, 0, 0, 0)})
     regions[IMPORT_TABLE] = imports
