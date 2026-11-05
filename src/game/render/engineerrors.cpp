@@ -28,7 +28,7 @@ void __fastcall EngineErrors_Push(u8 *list, void *, u32 kind, u32 code) {
         char text[100];
         const char *message = DxResult_Message(code);
         u32 i = 0;
-        do text[i] = message[i];  // (sprintf "%s": no bound, sic; the messages are shorter)
+        do text[i] = message[i];  // (sprintf "%s": no bound, sic. The original's frame is 100 bytes too, and DDERR_SURFACELOST's text is 166: both overrun)
         while (message[i++]);
         g_env->log(text);
     }
