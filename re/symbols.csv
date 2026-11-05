@@ -6253,6 +6253,9 @@ address,name,kind,confidence,notes
 0x0054e070,Game_PlayDayMovie,function,low,"reimplemented (src/game/core/gamestart); cdecl: a movie by the day of the month, when in the archives; name invented"
 0x0044e080,GameWindow_Create,function,low,"reimplemented (src/game/core/gamewindow); cdecl: the window made, the options applied, the engine started; name invented"
 0x0045a960,Game_WinMain,function,low,"reimplemented (src/game/core/gamemain); stdcall: the game's WinMain: start, message loop, frames, shutdown; name invented"
+0x00478860,ImeContext_ReadComposition,function,low,"reimplemented (src/game/core/imeinput); thiscall(kind, out, size): the context's composition string of the kind read narrow into 0x40 bytes and widened; the count or the negative answer; name invented"
+0x004788c0,ImeContext_SetComposition,function,low,"reimplemented (src/game/core/imeinput); thiscall(index, text, _, reading, _): the two wide texts narrowed and set as the composition; the first negative answer or the set's; name invented"
+0x00478d40,Ime_OnComposition,function,low,"reimplemented (src/game/core/imeinput); thiscall(window, _, flags): WM_IME_COMPOSITION: the composition strings read, the composition cut to the limit (+0x58); name invented"
 0x0050ffe0,Nav_Ctor,function,high,reimplemented (src/game/world/nav); constants constructor with five integer pairs
 0x0050f200,Nav_Dtor,function,high,reimplemented (src/game/world/nav); thiscall: the five IntPairs at +0x64 destroyed with Stub_Ret (CRT_VectorDtorIterator); also via 0x4f7c30 (+0xd4) and 0x4f8ad0
 0x004f7c30,Nav_DtorAtD4,function,low,reimplemented (src/game/world/nav); thiscall adjustor: Nav_Dtor on this + 0xd4

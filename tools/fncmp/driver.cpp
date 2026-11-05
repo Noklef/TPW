@@ -310,6 +310,7 @@
 #include "../../src/game/core/themesaves.h"
 #include "../../src/game/core/actionrec.h"
 #include "../../src/game/core/gamestart.h"
+#include "../../src/game/core/imeinput.h"
 #include "../../src/game/core/gamewindow.h"
 #include "../../src/game/core/gamemain.h"
 #include "../../src/game/core/optionschanges.h"
@@ -1212,6 +1213,7 @@ const AddrCall kGameMainCalls[] = {{0x45f640, jpeg_recorder(1, 0)}, {0x5f86b0, j
                                    {0x5b5920, recorder(19, 0)}, {0x424930, recorder(20, 1)}, {0x419710, recorder(21, 0)}, {0x408470, recorder(22, 0)}, {0x41a5a0, recorder(23, 1)}, {0x5b50b0, recorder(24, 0)}, {0x5c8650, recorder(25, 0)},
                                    {0x4e5950, recorder(26, 0)}, {0x405750, recorder(27, 0)}, {0x41a5f0, recorder(28, 0)}, {0x5c5520, recorder(29, 0)}};  // tests/fncmp/gamemain.py
 const AddrCall kActionRecCalls[] = {{0x5d3230, recorder(1, 2)}};  // tests/fncmp/actionrectext.py
+const AddrCall kImeInputCalls[] = {{0x67a7d0, jpeg_recorder(1, 1)}};  // tests/fncmp/imeattach.py, imemessages.py
 const AddrCall kGameWindowCalls[] = {{0x44dd50, jpeg_recorder(1, 0)}, {0x44dc60, jpeg_recorder(2, 1)}, {0x44de20, jpeg_recorder(3, 0)}, {0x44df20, jpeg_recorder(4, 4)},
                                      {0x405710, recorder(5, 3)}, {0x578be0, recorder(6, 3)}, {0x423b50, recorder(7, 1)}, {0x423b80, recorder(8, 1)}};  // tests/fncmp/gamewindow.py
 const AddrCall kGlobalSaveCalls[] = {  // tests/fncmp/globalsaveio.py --table
@@ -2758,6 +2760,7 @@ int main(int argc, char **argv) {
     OptionsChanges_SetCalls(kOptionsChangesCalls, sizeof(kOptionsChangesCalls) / sizeof(kOptionsChangesCalls[0]));
     WeatherTables_SetCalls(kWeatherTablesCalls, sizeof(kWeatherTablesCalls) / sizeof(kWeatherTablesCalls[0]));
     GameStart_SetCalls(kGameStartCalls, sizeof(kGameStartCalls) / sizeof(kGameStartCalls[0]));
+    ImeInput_SetCalls(kImeInputCalls, sizeof(kImeInputCalls) / sizeof(kImeInputCalls[0]));
     GameWindow_SetCalls(kGameWindowCalls, sizeof(kGameWindowCalls) / sizeof(kGameWindowCalls[0]));
     GameMain_SetCalls(kGameMainCalls, sizeof(kGameMainCalls) / sizeof(kGameMainCalls[0]));
     ActionRec_SetCalls(kActionRecCalls, sizeof(kActionRecCalls) / sizeof(kActionRecCalls[0]));
