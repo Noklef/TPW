@@ -102,7 +102,7 @@ bool DrawViewSteps(u8 *renderer, const u32 *view) {
     if (!g_calls.Th(0x0058a660, global<u32>(0x008c47a0))) return false;   // SpriteQueue_DrawWithPanels
     if ((global<u32>(kViewFlags) & 0x200000) && !g_calls.Th(0x0057c2a0, 0x008bb638u)) return false;   // GroundShadows_DrawAll
     if ((view[0] & 0x100) && !g_calls.Th(0x0057ff60, global<u32>(0x008bcbac))) return false;   // WeatherFx_Frame
-    if (!g_calls.Cd(0x00582170)) return false;   // DrawBuffer_DrawFrame
+    if (!g_calls.Th(0x00582170, global<u32>(0x008bcbb8))) return false;   // DrawBuffer_DrawFrame
     if (global<u32>(kMode) == 1 && !(global<u32>(kViewFlags) & 0x18000000) && !(global<u32>(kViewFlags) & 2)) Slot(Device(), 0x30);
     g_calls.Cd(0x00590750);   // AnimTextures_DrawSheet
     if (!Slot(Device(), 0x20)) return false;

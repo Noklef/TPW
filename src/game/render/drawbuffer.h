@@ -98,7 +98,7 @@ void __fastcall DrawBuffer_SortByFloat30Down(u8 *buffer, void *, u32 *order, s32
 // 0x582ad0 (thiscall; name invented, unconfirmed): none to take (+0x50 - +0x54 + +0x48 - 1): 1. An order array (TrackedGlobal_Alloc; none: (3, 0xb0754000) pushed on the engine's errors, 0). The batches (+0x44, 0x38 bytes) without flag 0x10 below +0x50 and from +0x54 + 1 below +0x48, those latter by way of Obj_ApplyIfShared on [0x879ab0], tested again after it.
 // Mode 4 ([0x8bd524]): the order parted, batches with +4's 0x1000 first; those sorted by SortByDword8, the rest by SortByFloat30Down. Else render flags 0xc and 0x20000000: SortByFloat30Up, otherwise Down. Each Obj_CallSlot10IfSized; a 0: freed, 0. Mode 4 with device flags 0x80000020 ([0x8bd508]): the later batches' +0x20 vertices (+0x28, 0x18 bytes) get their first two dwords doubled. Freed, 1.
 u32 __fastcall DrawBuffer_DrawAll(u8 *buffer);
-// 0x582170 (name invented, unconfirmed): ModelList_Draw, then DrawBuffer_DrawAll of the buffer at 0x8bcbc4: 0 when either fails, else 1. Mode 4 ends with EMMS.
-u32 __cdecl DrawBuffer_DrawFrame();
+// 0x582170 (name invented, unconfirmed): ModelList_Draw of the list in ECX (the original never touches ECX, it passes on its caller's), then DrawBuffer_DrawAll of the buffer at 0x8bcbc4: 0 when either fails, else 1. Mode 4 ends with EMMS.
+u32 __fastcall DrawBuffer_DrawFrame(u32 list);
 
 }

@@ -14,7 +14,8 @@ for a in (0x576910, 0x58cf40, 0x5863c0, 0x56f670, 0x570d90, 0x57c620, 0x577ae0, 
     THIS[a] = (CHECKED, 0)
 for a in (0x575fb0, 0x56ea90, 0x56bb00, 0x58d8e0, 0x581da0, 0x58a630, 0x579c70, 0x57dc80, 0x585f10, 0x577a30, 0x58ac70, 0x58a720, 0x579c80, 0x584b10, 0x583080, 0x5836b0, 0x561760, 0x5879c0):
     THIS[a] = (PLAIN, 0)
-CDECL = {0x582170: (CHECKED, 0), 0x5783b0: (PLAIN, 0), 0x590750: (PLAIN, 0), 0x583790: (PLAIN, 0), 0x591220: (CONTROL, 0), 0x591240: (LOAD, 1), 0x591250: (FULL, 1), 0x5774c0: (DEVRESET, 0), 0x67a7d0: (ATEXIT, 1)}
+THIS[0x582170] = (CHECKED, 0)   # (it passes ECX on to ModelList_Draw)
+CDECL = {0x5783b0: (PLAIN, 0), 0x590750: (PLAIN, 0), 0x583790: (PLAIN, 0), 0x591220: (CONTROL, 0), 0x591240: (LOAD, 1), 0x591250: (FULL, 1), 0x5774c0: (DEVRESET, 0), 0x67a7d0: (ATEXIT, 1)}
 HOOKS = {a: _recorder(k, n) for a, (k, n) in THIS.items()}
 HOOKS.update({a: _recorder(k, n, cdecl=True) for a, (k, n) in CDECL.items()})
 
