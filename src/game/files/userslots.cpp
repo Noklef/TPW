@@ -114,7 +114,10 @@ const UserSlotsChoiceEnv kChoiceGameEnv = {reinterpret_cast<void(__fastcall *)(u
                                            reinterpret_cast<void(__fastcall *)(void *)>((uintptr_t)0x00550ca0),
                                            reinterpret_cast<void(__fastcall *)(void *, void *, u32)>((uintptr_t)0x00550d80),
                                            reinterpret_cast<s32(__cdecl *)(u32)>((uintptr_t)0x0067a7d0),
-                                           reinterpret_cast<void(__fastcall *)(void *, void *, const String *)>((uintptr_t)0x00424820)};
+                                           reinterpret_cast<void(__fastcall *)(void *, void *, const String *)>((uintptr_t)0x00424820),
+                                           reinterpret_cast<void(__fastcall *)(u8 *, void *, const WString *, u32)>((uintptr_t)0x005c8190),
+                                           reinterpret_cast<void(__fastcall *)(u8 *, void *, u32)>((uintptr_t)0x005afc50),
+                                           reinterpret_cast<void(__fastcall *)(u8 *)>((uintptr_t)0x005cb030)};
 const UserSlotsChoiceEnv *g_choice = &kChoiceGameEnv;
 
 // The global save info, made when there is none.
@@ -172,6 +175,70 @@ void __fastcall UserSlots_Choose(u8 *self, void *, s32 index) {
     String_Dtor(&path);
     String_Dtor(&narrow);
     WString_Dtor(&folder);
+}
+
+// The global save written to the slot's file.
+static void WriteSaveFile(u8 *self, s32 i) {
+    WString file;
+    g_scan->slotFolder(self, nullptr, &file, i);
+    append(&file, wide(0x00f82508));
+    append(&file, wide(0x00f818a8));
+    String path;
+    String_Ctor(&path);
+    String_AssignFromWide(&path, &file);
+    g_choice->saveWrite(SaveInfo(), nullptr, path.data);
+    String_Dtor(&path);
+    WString_Dtor(&file);
+}
+
+void __fastcall UserSlots_WriteSave(u8 *self, void *, s32 i) { WriteSaveFile(self, i); }
+
+void __fastcall UserSlots_Create(u8 *self, void *, s32 i, const WString *name, u32 flag) {
+    u8 *const record = self + i * 0x18;
+    if (at<u32>(record, 4)) {
+        WString folder;
+        g_scan->slotFolder(self, nullptr, &folder, i);
+        String narrow;
+        String_Ctor(&narrow);
+        String_AssignFromWide(&narrow, &folder);
+        g_env->removeTree(&narrow);
+        vcall<void>(record, 0x14, reinterpret_cast<const u16 *>((uintptr_t)0x0078a374));
+        at<u32>(record, 0x14) = 0;
+        String_Dtor(&narrow);
+        WString_Dtor(&folder);
+    }
+    vcall<void>(record, 0x18, name);
+    at<u32>(record, 0x14) = flag;
+    {
+        WString folder;
+        g_scan->slotFolder(self, nullptr, &folder, i);
+        g_choice->copyThemes(self, nullptr, &folder, flag);
+        DeleteGlobalSave();
+        void *const block = GameHeap_Alloc(0x50);
+        u8 *const info = block ? g_scan->saveCtor(static_cast<u8 *>(block)) : nullptr;
+        at<u8 *>(nullptr, 0x00f7c58c) = info;
+        g_choice->setByte24(info, nullptr, at<u32>(record, 0x14) ? 1 : 0);
+        WriteSaveFile(self, i);
+        WString_Dtor(&folder);
+    }
+}
+
+void __fastcall UserSlots_Dtor(u8 *self) {
+    u8 *const head = at<u8 *>(self, 0x104);
+    for (u8 *node = at<u8 *>(head, 0); node != head;) {
+        u8 *const next = at<u8 *>(node, 0);
+        at<u8 *>(at<u8 *>(node, 4), 0) = next;
+        at<u8 *>(next, 4) = at<u8 *>(node, 4);
+        StdString_Tidy(reinterpret_cast<StdString *>(node + 8), nullptr, 1);
+        GameHeap_Free(node);
+        --at<u32>(self, 0x108);
+        node = next;
+    }
+    GameHeap_Free(head);
+    at<u32>(self, 0x104) = 0;
+    at<u32>(self, 0x108) = 0;
+    g_choice->mailboxDtor(self + 0x64);
+    CRT_VectorDtorIterator(self, 0x18, 4, reinterpret_cast<void(__fastcall *)(void *)>(&Wrap_WString_Dtor_5c74a0));
 }
 
 void __fastcall UserSlots_Close(u8 *self) {

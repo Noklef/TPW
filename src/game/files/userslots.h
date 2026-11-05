@@ -51,6 +51,9 @@ struct UserSlotsChoiceEnv {
     void(__fastcall *settingSet)(void *setting, void *, u32 mode);           // Setting_SetMode
     s32(__cdecl *atexit)(u32 function);                                      // CRT_atexit
     void(__fastcall *optionsSave)(void *options, void *, const String *path);  // Options_SaveFile
+    void(__fastcall *copyThemes)(u8 *self, void *, const WString *folder, u32 flag);  // 0x5c8190
+    void(__fastcall *setByte24)(u8 *info, void *, u32 value);                // GlobalSave_SetByte24
+    void(__fastcall *mailboxDtor)(u8 *mailbox);                              // Mailbox_Dtor
 };
 void UserSlots_SetChoiceEnv(const UserSlotsChoiceEnv *env);  // nullptr: the game's
 
@@ -62,6 +65,16 @@ void __fastcall UserSlots_Choose(u8 *self, void *, s32 index);
 
 // 0x5c8650 (thiscall; name invented, unconfirmed): the address book and the outbox saved, the global save written to the slot's file and deleted; the options saved in the save folder's file ("\" and 0xf82028); +0x60 = -1.
 void __fastcall UserSlots_Close(u8 *self);
+
+// 0x5c8a20 (thiscall (i), pops 4; name invented, unconfirmed): the global save info, made when there is none, written to the slot's folder, "\" (0xf82508) and the name at 0xf818a8.
+void __fastcall UserSlots_WriteSave(u8 *self, void *, s32 i);
+
+// 0x5c7f40 (thiscall (i, name, flag), pops 0xc; name invented, unconfirmed): a slot in use has its folder removed and is cleared; it gets the wide name (the vtable's +0x18) and the flag, 0x5c8190 fills its folder, the global save info is made new with its byte
+// +0x24 from the flag and written (as UserSlots_WriteSave). No block: 0 asked to set the byte.
+void __fastcall UserSlots_Create(u8 *self, void *, s32 i, const WString *name, u32 flag);
+
+// 0x5c74b0 (thiscall; name invented, unconfirmed): the strings' list at +0x104 erased and its head freed, the mailbox at +0x64 destroyed, the four records' strings destroyed (CRT_VectorDtorIterator with 0x5c74a0).
+void __fastcall UserSlots_Dtor(u8 *self);
 
 // 0x5c7420 (thiscall; name invented, unconfirmed): the four records' empty wide strings (CRT_VectorCtorIterator with WString_CtorReturning, Wrap_WString_Dtor_5c74a0), the part at +0x64
 // (UserSlotsPart_Ctor), the list head at +0x100 (ListHead_Ctor), +0x60 = -1. Returns the object.
