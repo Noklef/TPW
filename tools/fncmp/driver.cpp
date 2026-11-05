@@ -1755,6 +1755,7 @@ const Dialog7cb400CloseEnv kDialog7cb400CloseEnv = {Rec{jpeg_recorder(10, 4)}, R
                                                     Rec{recorder(18, 0)}, Rec{recorder(19, 0)}, Rec{recorder(20, 2)}, Rec{recorder(21, 1)}, Rec{recorder(22, 0)}, Rec{jpeg_recorder(23, 0)}, Rec{jpeg_recorder(24, 4)}, Rec{recorder(25, 3)}, Rec{recorder(26, 1)}};
 const Dialog7cc188AddressEnv kDialog7cc188AddressEnv = {Rec{recorder(10, 1)}, Rec{jpeg_recorder(11, 1)}, Rec{recorder(12, 1)}, Rec{jpeg_recorder(13, 1)}, Rec{jpeg_recorder(14, 5)}, Rec{jpeg_recorder(15, 8)}, Rec{recorder(16, 3)}};
 const UserSlotsEnv kUserSlotsEnv = {Rec{recorder(27, 0)}, Rec{jpeg_recorder(28, 3)}, Rec{jpeg_recorder(30, 1)}};
+const UserSlotsChoiceEnv kUserSlotsChoiceEnv = {Rec{recorder(1, 1)}, Rec{recorder(2, 1)}, Rec{recorder(3, 1)}, Rec{recorder(4, 0)}, Rec{recorder(5, 1)}, Rec{jpeg_recorder(6, 0)}, Rec{recorder(7, 1)}, Rec{recorder(8, 0)}, Rec{recorder(9, 1)}, Rec{jpeg_recorder(15, 1)}, Rec{recorder(18, 1)}};
 const BankAccountCtorEnv kBankAccountCtorEnv = {Rec{jpeg_recorder(10, 4)}};
 const NarrowFileBufEnv kNarrowFileBufEnv = {Rec{jpeg_recorder(18, 1)}, Rec{jpeg_recorder(23, 2)}, Rec{jpeg_recorder(24, 1)}};  // tests/fncmp/narrowfilebuf.py
 const Dialog7ca150ListEnv kDialog7ca150ListEnv = {Rec{recorder(10, 2)}, Rec{recorder(11, 1)}, Rec{recorder(12, 2)}, Rec{recorder(13, 5)}, Rec{recorder(14, 1)}, Rec{recorder(15, 1)}, Rec{recorder(16, 0)}, Rec{recorder(17, 0)}, Rec{recorder(18, 0)}, Rec{recorder(19, 0)}, Rec{recorder(20, 3)}};
@@ -2923,6 +2924,7 @@ int main(int argc, char **argv) {
     RasterFormat_SetEnv(&kRasterFormatEnv);
     Dialog7cb400Close_SetEnv(&kDialog7cb400CloseEnv);
     UserSlots_SetEnv(&kUserSlotsEnv);
+    UserSlots_SetChoiceEnv(&kUserSlotsChoiceEnv);
     Dialog7cc188Address_SetEnv(&kDialog7cc188AddressEnv);
     VersionLabel_SetEnv(&kVersionLabelEnv);
     BankAccountCtor_SetEnv(&kBankAccountCtorEnv);

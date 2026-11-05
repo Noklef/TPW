@@ -37,7 +37,6 @@ def case(r):
     strings(log, DELETE, 2, 1)
     strings(log, LOCALISE, 0, 0b110)
     blob(log, LOCALISE, 0, 0xf)
-    strings(log, LIGHT, 0, 0b10)
     blob(log, LIGHT, 1, 1)
     # The texts.
     regions[TEXT] = b''.join(name + bytes(0x40 - len(name)) for name in NAMES) + b'font\0' + bytes(0x3b)

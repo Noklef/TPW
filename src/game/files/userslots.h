@@ -38,7 +38,30 @@ struct UserSlotsScanEnv {
 };
 void UserSlots_SetScanEnv(const UserSlotsScanEnv *env);  // nullptr: the game's
 
+// UserSlots_Choose's and UserSlots_Close's other calls (the bench's recorders).
+struct UserSlotsChoiceEnv {
+    void(__fastcall *mailboxOpen)(u8 *mailbox, void *, const char *path);    // Mailbox_Open
+    void(__fastcall *bookLoad)(u8 *book, void *, const char *path);          // AddressBook_Load
+    void(__fastcall *bookSave)(u8 *book, void *, const char *path);          // AddressBook_Save
+    void(__fastcall *outboxSave)(u8 *mailbox);                               // Mailbox_SaveOutbox
+    void(__fastcall *saveWrite)(u8 *info, void *, const char *path);         // GlobalSave_WriteFile
+    u8 *(__cdecl *saveInstance)();                                           // GlobalSave_Instance
+    u8 *(__fastcall *themeGet)(u8 *info, void *, const u8 *name);            // GlobalSave_ThemeGet
+    void(__fastcall *settingRead)(void *setting);                            // Setting_ReadMode
+    void(__fastcall *settingSet)(void *setting, void *, u32 mode);           // Setting_SetMode
+    s32(__cdecl *atexit)(u32 function);                                      // CRT_atexit
+    void(__fastcall *optionsSave)(void *options, void *, const String *path);  // Options_SaveFile
+};
+void UserSlots_SetChoiceEnv(const UserSlotsChoiceEnv *env);  // nullptr: the game's
+
 extern "C" {
+
+// 0x5c83b0 (thiscall (index), pops 4; name invented, unconfirmed): +0x60 = the slot; the slot's folder gives the mailbox at +0x64 and the address book at +0x100 their files; the global save info replaced and loaded from the folder, "\" (0xf82508) and the name at
+// 0xf818a8. The mode setting 0xfb3b7c not 1: set to 2 or 0 by the save's byte +0x24. Each name of the list [0x786b90] has its theme got.
+void __fastcall UserSlots_Choose(u8 *self, void *, s32 index);
+
+// 0x5c8650 (thiscall; name invented, unconfirmed): the address book and the outbox saved, the global save written to the slot's file and deleted; the options saved in the save folder's file ("\" and 0xf82028); +0x60 = -1.
+void __fastcall UserSlots_Close(u8 *self);
 
 // 0x5c7420 (thiscall; name invented, unconfirmed): the four records' empty wide strings (CRT_VectorCtorIterator with WString_CtorReturning, Wrap_WString_Dtor_5c74a0), the part at +0x64
 // (UserSlotsPart_Ctor), the list head at +0x100 (ListHead_Ctor), +0x60 = -1. Returns the object.

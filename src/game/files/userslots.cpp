@@ -103,6 +103,116 @@ void WalkUsers(u8 *self, Handle *handle) {
 
 void UserSlots_SetScanEnv(const UserSlotsScanEnv *env) { g_scan = env ? env : &kScanGameEnv; }
 
+namespace {
+const UserSlotsChoiceEnv kChoiceGameEnv = {reinterpret_cast<void(__fastcall *)(u8 *, void *, const char *)>((uintptr_t)0x005cb230),
+                                           reinterpret_cast<void(__fastcall *)(u8 *, void *, const char *)>((uintptr_t)0x005cd9c0),
+                                           reinterpret_cast<void(__fastcall *)(u8 *, void *, const char *)>((uintptr_t)0x005cd710),
+                                           reinterpret_cast<void(__fastcall *)(u8 *)>((uintptr_t)0x005cb720),
+                                           reinterpret_cast<void(__fastcall *)(u8 *, void *, const char *)>((uintptr_t)0x005afc60),
+                                           &GlobalSave_Instance,
+                                           &GlobalSave_ThemeGet,
+                                           reinterpret_cast<void(__fastcall *)(void *)>((uintptr_t)0x00550ca0),
+                                           reinterpret_cast<void(__fastcall *)(void *, void *, u32)>((uintptr_t)0x00550d80),
+                                           reinterpret_cast<s32(__cdecl *)(u32)>((uintptr_t)0x0067a7d0),
+                                           reinterpret_cast<void(__fastcall *)(void *, void *, const String *)>((uintptr_t)0x00424820)};
+const UserSlotsChoiceEnv *g_choice = &kChoiceGameEnv;
+
+// The global save info, made when there is none.
+u8 *SaveInfo() {
+    u8 *&info = at<u8 *>(nullptr, 0x00f7c58c);
+    if (!info) {
+        void *const block = GameHeap_Alloc(0x50);
+        info = block ? g_scan->saveCtor(static_cast<u8 *>(block)) : nullptr;
+    }
+    return info;
+}
+
+// The mode setting's static (0xfb3b7c), read and its destructor registered on the first use.
+void *ModeSetting() {
+    void *const setting = reinterpret_cast<void *>((uintptr_t)0x00fb3b7c);
+    u8 &guard = at<u8>(nullptr, 0x00fb2764);
+    if (!(guard & 1)) {
+        guard |= 1;
+        g_choice->settingRead(setting);
+        g_choice->atexit(0x005d1750);
+    }
+    return setting;
+}
+}  // namespace
+
+void UserSlots_SetChoiceEnv(const UserSlotsChoiceEnv *env) { g_choice = env ? env : &kChoiceGameEnv; }
+
+void __fastcall UserSlots_Choose(u8 *self, void *, s32 index) {
+    at<s32>(self, 0x60) = index;
+    WString folder;
+    g_scan->slotFolder(self, nullptr, &folder, index);
+    String narrow;
+    String_Ctor(&narrow);
+    String_AssignFromWide(&narrow, &folder);
+    g_choice->mailboxOpen(self + 0x64, nullptr, narrow.data);
+    g_choice->bookLoad(self + 0x100, nullptr, narrow.data);
+    DeleteGlobalSave();
+    append(&folder, wide(0x00f82508));
+    append(&folder, wide(0x00f818a8));
+    String path;
+    String_Ctor(&path);
+    String_AssignFromWide(&path, &folder);
+    g_scan->saveLoad(SaveInfo(), nullptr, path.data);
+    ModeSetting();
+    if (at<u32>(nullptr, 0x00fb3b7c) != 1) {
+        const bool online = g_scan->saveByte24(SaveInfo()) != 0;
+        g_choice->settingSet(ModeSetting(), nullptr, online ? 2 : 0);
+    }
+    u8 *node = at<u8 *>(nullptr, 0x00786b90);
+    while (node) {
+        const u8 *const name = at<const u8 *>(node, 0);
+        node = at<u8 *>(node, 4);
+        g_choice->themeGet(SaveInfo(), nullptr, name);
+    }
+    String_Dtor(&path);
+    String_Dtor(&narrow);
+    WString_Dtor(&folder);
+}
+
+void __fastcall UserSlots_Close(u8 *self) {
+    WString folder;
+    g_scan->slotFolder(self, nullptr, &folder, at<s32>(self, 0x60));
+    String narrow;
+    String_Ctor(&narrow);
+    String_AssignFromWide(&narrow, &folder);
+    g_choice->bookSave(self + 0x100, nullptr, narrow.data);
+    g_choice->outboxSave(self + 0x64);
+    {
+        WString saveFile;
+        g_scan->slotFolder(self, nullptr, &saveFile, at<s32>(self, 0x60));
+        append(&saveFile, wide(0x00f82508));
+        append(&saveFile, wide(0x00f818a8));
+        String path;
+        String_Ctor(&path);
+        String_AssignFromWide(&path, &saveFile);
+        g_choice->saveWrite(g_choice->saveInstance(), nullptr, path.data);
+        String_Dtor(&path);
+        WString_Dtor(&saveFile);
+    }
+    DeleteGlobalSave();
+    WString optionsFile;
+    WString_Ctor(&optionsFile);
+    String options;
+    String_Ctor(&options);
+    WString root;
+    vcall<void>(&optionsFile, 0x18, g_scan->saveFolder(&root));
+    WString_Dtor(&root);
+    append(&optionsFile, wide(0x00f82508));
+    append(&optionsFile, wide(0x00f82028));
+    String_AssignFromWide(&options, &optionsFile);
+    g_choice->optionsSave(reinterpret_cast<void *>((uintptr_t)0x0078d8d8), nullptr, &options);
+    at<s32>(self, 0x60) = -1;
+    String_Dtor(&options);
+    WString_Dtor(&optionsFile);
+    String_Dtor(&narrow);
+    WString_Dtor(&folder);
+}
+
 void __fastcall UserSlots_Scan(u8 *self) {
     for (u32 i = 0; i < 4; i++) {
         vcall<void>(self + 24 * i, 0x14, 0x0078a374u);
