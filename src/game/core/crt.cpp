@@ -245,6 +245,12 @@ void __fastcall CRT_exception_Dtor(u32 *self) {
     if (owned) g_inner->memFree(reinterpret_cast<void *>((uintptr_t)self[1]));
 }
 
+u32 *__fastcall CRT_type_info_DeletingDtor(u32 *self, void *, u32 flags) {
+    CRT_type_info_Dtor(self, nullptr);
+    if (flags & 1) g_inner->memFree(self);
+    return self;
+}
+
 u32 *__fastcall CRT_exception_DeletingDtor(u32 *self, void *, u32 flags) {
     CRT_exception_Dtor(self);
     if (flags & 1) g_inner->memFree(self);
@@ -1007,6 +1013,11 @@ __declspec(naked) s32 __cdecl CRT_Toupper(s32, const u32 *) {
         add esp, 0xc
         ret
     }
+}
+
+void *__cdecl CRT_memcpy(void *dest, const void *from, u32 size) {
+    std::memmove(dest, from, size);
+    return dest;
 }
 
 void *__cdecl CRT_memmove(void *dest, const void *from, u32 size) {

@@ -267,6 +267,8 @@ s32 __cdecl CRT_Toupper(s32 c, const u32 *locale);
 
 // 0x67bb90: memmove: returns dest.
 void *__cdecl CRT_memmove(void *dest, const void *from, u32 size);
+// 0x6800f0: memcpy: memmove's code again, overlap included.
+void *__cdecl CRT_memcpy(void *dest, const void *from, u32 size);
 
 // 0x67b8c0: strncat: at most `size` characters and an end; size 0: not even the end. Returns dest.
 char *__cdecl CRT_strncat(char *dest, const char *from, u32 size);
@@ -310,6 +312,7 @@ u16 *__cdecl CRT_wcstok(u16 *text, const u16 *separators);
 
 // 0x67d350 (thiscall): type_info's destructor: the vtable 0x7089e4 set, under lock 0x1b the undecorated name +4 freed if there is one.
 void __fastcall CRT_type_info_Dtor(u32 *self, void *);
+u32 *__fastcall CRT_type_info_DeletingDtor(u32 *self, void *, u32 flags);  // 0x67d380
 // 0x682360: __AdjustPointer: object + mdisp ([0]); with a pdisp ([1]) not negative also the vbtable's entry [2] and pdisp.
 u8 *__cdecl CRT_AdjustPointer(u8 *object, const s32 *displacement);
 // 0x68f990: siglookup: the entry of the table of [0x781514] entries of 12 bytes with this signal at +4, or 0. The first entry's signal is read whatever the count.

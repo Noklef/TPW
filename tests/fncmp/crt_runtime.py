@@ -11,7 +11,7 @@ from fncmp import HEAP, LOG, RAM, Bench, Call, _recorder, fill, heap, log_region
 
 GETPTD, LOCKEXIT, UNLOCKEXIT, MSIZE, REALLOC, LOCK, UNLOCK, FIND, FREEBLOCK, LOCKFILE, UNLOCKFILE, FCLOSE = range(2, 14)
 HEAPFREE = 20
-B = Bench([(0x67d230, 0x67d24e), (0x67d350, 0x67d37f), (0x682360, 0x682385), (0x68f990, 0x68f9cf), (0x67fa40, 0x67fa60), (0x686a00, 0x686a10), (0x67b5c0, 0x67b5f0), (0x67a740, 0x67a7f0), (0x67ad90, 0x67ae00), (0x67b620, 0x67b660), (0x67d320, 0x67d340)],
+B = Bench([(0x67d380, 0x67d39e), (0x67d230, 0x67d24e), (0x67d350, 0x67d37f), (0x682360, 0x682385), (0x68f990, 0x68f9cf), (0x67fa40, 0x67fa60), (0x686a00, 0x686a10), (0x67b5c0, 0x67b5f0), (0x67a740, 0x67a7f0), (0x67ad90, 0x67ae00), (0x67b620, 0x67b660), (0x67d320, 0x67d340)],
           hooks={0x682460: _recorder(GETPTD, 0, cdecl=True), 0x67fa20: _recorder(LOCKEXIT, 0, cdecl=True), 0x67fa30: _recorder(UNLOCKEXIT, 0, cdecl=True),
                  0x6818f0: _recorder(MSIZE, 1, cdecl=True), 0x681740: _recorder(REALLOC, 2, cdecl=True), 0x682720: _recorder(LOCK, 1, cdecl=True),
                  0x6827a0: _recorder(UNLOCK, 1, cdecl=True), 0x682b40: _recorder(FIND, 3, cdecl=True), 0x682ba0: _recorder(FREEBLOCK, 3, cdecl=True),
@@ -86,6 +86,8 @@ def type_info_dtor(r):
     fill(log, FIND, 1, r.bytes(4), which=0)
     fill(log, FIND, 2, r.bytes(4), which=1)
     regions = {LOG: log, 0xfb3cac: r.bytes(4), 0x6fd210: struct.pack('<I', recorder(HEAPFREE, 3, True)), DATA: struct.pack('<2I', r.getrandbits(32), r.choice([0, r.getrandbits(32) | 1, r.getrandbits(32) | 1]))}
+    if r.random() < 0.4:
+        return Call(0x67d380, [DATA, r.choice([0, 1, 2, 3, r.getrandbits(32)])], regions, conv='t', ret='a')
     return Call(0x67d350, [DATA], regions, conv='t', ret='v')
 
 
