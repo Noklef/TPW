@@ -7974,6 +7974,7 @@ address,name,kind,confidence,notes
 0x005d5dd0,Frame_HandleMessage,function,low,reimplemented (src/game/frontend/frame); the front-end frame's message handler
 0x005d58b0,Frame_WindowProc,function,low,reimplemented (src/game/frontend/frame); the message handler on the frame at 0xf82884
 0x005d5970,Frame_Start,function,low,"reimplemented (src/game/frontend/frame); The front-end frame's start: its window, the singletons made and the first panels shown."
+0x005d58e0,Frame_OnlineButtonProc,function,low,"reimplemented (src/game/frontend/frame); the frame's online button: the lists if logged in, else a message box"
 0x005dd220,ViewCtl702bc8_Leave,function,low,"reimplemented (src/game/frontend/sceneleave); slot 8 of the vtable 0x702bc8: the view's dialog sent message 4, its lists drained, its two sounds stopped (name unconfirmed)"
 0x005dd690,ViewCtl702e70_Leave,function,low,"reimplemented (src/game/frontend/sceneleave); slot 8 of the vtable 0x702e70: as 0x5dd220, then the dialog [0x7cc4c4] sent message 4 (name unconfirmed)"
 0x005e1450,Class702cb0_Leave,function,low,"reimplemented (src/game/frontend/sceneleave); slot 8 of the vtable 0x702cb0: +4 cleared, the current item's sounds stopped (name unconfirmed)"

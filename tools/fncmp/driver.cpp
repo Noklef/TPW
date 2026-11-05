@@ -1015,7 +1015,7 @@ const FileBufEnv kFileBufEnv = {Rec{jpeg_recorder(0, 2)}, Rec{jpeg_recorder(1, 4
 const GuardFileEnv kGuardFileEnv = {Rec{jpeg_recorder(4, 2)}, Rec{jpeg_recorder(5, 2)}, Rec{jpeg_recorder(6, 3)}, Rec{jpeg_recorder(7, 4)}, Rec{jpeg_recorder(8, 4)}, Rec{jpeg_recorder(9, 1)}, Rec{jpeg_recorder(10, 1)}, Rec{jpeg_recorder(11, 1)}, Rec{jpeg_recorder(12, 2)}};
 const Blocks7LoadEnv kBlocks7LoadEnv = {Rec{jpeg_recorder(1, 3)}, Rec{recorder(2, 2)}};
 const SceneQueueEnv kSceneQueueEnv = {Rec{jpeg_recorder(5, 1)}, Rec{jpeg_recorder(6, 0)}, Rec{recorder(7, 1)}};  // tests/fncmp/scenequeuestep.py
-const FrameEnv kFrameEnv = {Rec{jpeg_recorder(7, 0)}, Rec{recorder(6, 3)}};
+const FrameEnv kFrameEnv = {Rec{jpeg_recorder(7, 0)}, Rec{recorder(6, 3)}, Rec{jpeg_recorder(8, 0)}, Rec{recorder(9, 0)}, Rec{jpeg_recorder(10, 0)}, Rec{jpeg_recorder(11, 1)}, Rec{jpeg_recorder(12, 8)}};
 const PanelKeysEnv kPanelKeysEnv = {Rec{jpeg_recorder(1, 1)}};
 const OnlineCityPollEnv kOnlineCityPollEnv = {Rec{recorder(8, 0)}, Rec{recorder(9, 0)}, Rec{recorder(10, 0)}, Rec{recorder(11, 3)}, Rec{recorder(12, 1)}, Rec{recorder(13, 1)}, Rec{recorder(14, 1)}, Rec{recorder(15, 1)}, Rec{recorder(16, 1)},
                                               Rec{jpeg_recorder(17, 0)}, Rec{jpeg_recorder(18, 1)}, Rec{jpeg_recorder(19, 0)}, Rec{jpeg_recorder(20, 1)}, Rec{jpeg_recorder(21, 1)}};
