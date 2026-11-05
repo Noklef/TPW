@@ -433,6 +433,7 @@
 #include "../../src/game/core/themenames.h"
 #include "../../src/game/core/nstream.h"
 #include "../../src/game/core/swearfilter.h"
+#include "../../src/game/core/inputsystem.h"
 #include "../../src/game/core/wfilebuf.h"
 #include "../../src/game/core/wstream.h"
 #include "../../src/game/core/channelvoice.h"
@@ -999,6 +1000,12 @@ const LobbyMakeEnv kLobbyMakeEnv = {Rec{jpeg_recorder(20, 11)}, Rec{jpeg_recorde
                                     Rec{recorder(28, 0)}, Rec{recorder(29, 1)}, Rec{recorder(30, 3)}};
 u32 __cdecl SwearLowerC(u32 c) { return (c & 0xffff) >= 0x41 && (c & 0xffff) <= 0x5a ? (c & 0xffff) + 0x20 : c & 0xffff; }   // towlower in the C locale, tests/fncmp/swearfilter.py
 const SwearFilterEnv kSwearFilterEnv = {&SwearLowerC, Rec{recorder(9, 2)}, Rec{jpeg_recorder(18, 1)}};
+const InputSystemEnv kInputSystemEnv = {Rec{recorder(10, 0)}, Rec{recorder(15, 0)}, Rec{recorder(14, 0)}, Rec{recorder(6, 0)}, Rec{recorder(22, 0)}, Rec{recorder(24, 0)}, Rec{recorder(4, 0)},
+                                        Rec{recorder(29, 0)}, Rec{recorder(30, 0)}, Rec{recorder(30, 0)}, Rec{recorder(20, 0)}, Rec{recorder(19, 0)}, Rec{recorder(18, 0)}, Rec{recorder(21, 0)},
+                                        Rec{recorder(16, 1)}, Rec{recorder(11, 1)},
+                                        Rec{recorder(3, 1)}, Rec{recorder(25, 1)}, Rec{recorder(13, 1)}, Rec{recorder(5, 1)}, Rec{recorder(9, 1)}, Rec{recorder(23, 1)},
+                                        Rec{recorder(17, 2)}, Rec{recorder(29, 2)}, Rec{recorder(27, 2)}, Rec{recorder(28, 2)}, Rec{recorder(26, 2)}, Rec{recorder(31, 2)},
+                                        Rec{recorder(12, 2)}, Rec{recorder(3, 2)}, Rec{jpeg_recorder(6, 0)}};
 const NStreamEnv kNStreamEnv = {Rec{kStubs + 0x5000 + 0x800 * 2 + 0x20 * 14}, Rec{recorder(26, 1)}, Rec{recorder(27, 0)}, Rec{jpeg_recorder(28, 1)}, reinterpret_cast<s32(__cdecl *)(void *)>((uintptr_t)(kStubs + 0x50)), Rec{recorder(20, 0)}, Rec{recorder(21, 0)}};
 const ThemeNamesEnv kThemeNamesEnv = {Rec{jpeg_recorder(1, 5)}, Rec{jpeg_recorder(2, 2)}, Rec{recorder(3, 3)}, Rec{recorder(4, 3)}, Rec{recorder(5, 3)}};
 const GuardHeapEnv kGuardHeapEnv = {Rec{jpeg_recorder(1, 1)}, Rec{jpeg_recorder(2, 1)}};
@@ -2315,7 +2322,9 @@ void jump(u8 *at, const void *to) {
 // Game vtables whose slots point at the replacements in the driver's copy of the game's data, as the hooked game resolves them (its originals jump to the
 // replacements): code that constructs one of these objects itself then calls through the real vtable. (address, slots; a slot not hooked is left as it is,
 // and a case that calls it crashes natively)
-const u32 kResolvedVtables[][2] = {{0x00703090, 11},  // String_vtable
+const u32 kResolvedVtables[][2] = {{0x007037a0, 4},   // inputsystem's object at +0x74
+                                   {0x00703810, 4},   // inputsystem's object at +0x64
+                                   {0x00703090, 11},  // String_vtable
                                    {0x007030c8, 11},  // WString_vtable
                                    {0x00703e08, 9},   // TextWriter_vtable
                                    {0x00703908, 13},  // WadSource_vtable
@@ -3064,6 +3073,7 @@ int main(int argc, char **argv) {
     GuardFile_SetEnv(&kGuardFileEnv);
     FileBuf_SetEnv(&kFileBufEnv);
     LobbySky_SetEnv(&kLobbySkyEnv);
+    InputSystem_SetEnv(&kInputSystemEnv);
     ThemeNames_SetEnv(&kThemeNamesEnv);
     NStream_SetEnv(&kNStreamEnv);
     SwearFilter_SetEnv(&kSwearFilterEnv);

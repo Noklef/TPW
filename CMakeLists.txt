@@ -250,6 +250,7 @@ add_library(tpw_game STATIC
     src/game/core/guardheap.cpp
     src/game/core/guardfile.cpp
     src/game/core/filebuf.cpp
+    src/game/core/inputsystem.cpp
     src/game/gfx/text.cpp
     src/game/gfx/canvas.cpp
     src/game/gfx/canvasdraw.cpp

@@ -6238,6 +6238,42 @@ address,name,kind,confidence,notes
 0x005d5350,GuardFile_Write,function,low,"reimplemented (src/game/core/guardfile); gwrite: bytes through the file's buffer; the name from its messages, the rest invented, unconfirmed"
 0x005cedd0,FileBuf_Overflow,function,low,"reimplemented (src/game/core/filebuf); The narrow file stream buffer's overflow; name invented, unconfirmed"
 0x005cf490,FileBuf_SeekPos,function,low,"reimplemented (src/game/core/filebuf); The narrow file stream buffer's seek to a position; name invented, unconfirmed"
+0x00617610,InputSystem_DeletingDtor,function,low,reimplemented (src/game/core/inputsystem); the input system's deleting destructor (name invented)
+0x00617630,InputSystem_Dtor,function,low,reimplemented (src/game/core/inputsystem); the input system's destructor (name invented)
+0x006176e0,InputSystem_Update,function,low,reimplemented (src/game/core/inputsystem); the input queue read out (name invented)
+0x00617760,InputSystem_Init,function,low,reimplemented (src/game/core/inputsystem); the input system's init (name invented)
+0x00617860,InputSystem_OpenDevice5c,function,low,"reimplemented (src/game/core/inputsystem); the device at +0x5c opened, the system inited first (name invented)"
+0x006178c0,InputSystem_OpenDevice58,function,low,"reimplemented (src/game/core/inputsystem); the device at +0x58 opened, the system inited first (name invented)"
+0x00617950,Class703744_DeletingDtor,function,low,reimplemented (src/game/core/inputsystem); 0x6336f0 and freed (name invented)
+0x00617bd0,InputSystem_CreateDevice70,function,low,reimplemented (src/game/core/inputsystem); the object at +0x70 made (name invented)
+0x00617c70,InputSystem_CreateDevice74,function,low,reimplemented (src/game/core/inputsystem); the object at +0x74 made (name invented)
+0x00617de0,InputDevice74_DeletingDtor,function,low,reimplemented (src/game/core/inputsystem); that object's deleting destructor (name invented)
+0x00617e00,InputDevice74_Dtor,function,low,reimplemented (src/game/core/inputsystem); that object's destructor (name invented)
+0x006181b0,InputDevice74_DeletingDtorThunk,function,low,reimplemented (src/game/core/inputsystem); its thunk from +0x10 (name invented)
+0x00618240,InputBase_DeletingDtor,function,low,reimplemented (src/game/core/inputsystem); the base's deleting destructor (name invented)
+0x00618260,InputBase_Dtor,function,low,reimplemented (src/game/core/inputsystem); the base's destructor (name invented)
+0x00618330,InputBase_Init,function,low,reimplemented (src/game/core/inputsystem); the base's init (name invented)
+0x00618400,InputBase_OpenDevice5c,function,low,reimplemented (src/game/core/inputsystem); the base's device at +0x5c opened (name invented)
+0x00618490,InputBase_CloseDevice5c,function,low,reimplemented (src/game/core/inputsystem); the device at +0x5c closed (name invented)
+0x006184d0,InputBase_CloseDevice58,function,low,reimplemented (src/game/core/inputsystem); the device at +0x58 closed (name invented)
+0x00618510,InputBase_OpenDevice58,function,low,reimplemented (src/game/core/inputsystem); the base's device at +0x58 opened (name invented)
+0x006185b0,InputBase_SetDeviceValue,function,low,reimplemented (src/game/core/inputsystem); a value given to both devices (name invented)
+0x00618610,InputBase_OnEvent,function,low,reimplemented (src/game/core/inputsystem); the window event's answer (name invented)
+0x00618730,InputBase_PollAll,function,low,reimplemented (src/game/core/inputsystem); both devices polled (name invented)
+0x00618780,InputBase_Poll,function,low,"reimplemented (src/game/core/inputsystem); a device polled, an event posted (name invented)"
+0x006187f0,InputBase_CreateDevice60,function,low,reimplemented (src/game/core/inputsystem); the object at +0x60 made (name invented)
+0x006188c0,InputBase_CreateDevice64,function,low,reimplemented (src/game/core/inputsystem); the object at +0x64 made (name invented)
+0x006189b0,InputChain64_DeletingDtor,function,low,reimplemented (src/game/core/inputsystem); its deleting destructor (name invented)
+0x006189d0,InputChain64_Dtor,function,low,reimplemented (src/game/core/inputsystem); its destructor (name invented)
+0x00618c80,InputChain64_DeletingDtorThunk,function,low,reimplemented (src/game/core/inputsystem); its thunk from +0x64 (name invented)
+0x00618a40,InputBase_CreateChain68,function,low,reimplemented (src/game/core/inputsystem); the object at +0x68 made (name invented)
+0x00618ae0,InputBase_CreateDevice5c,function,low,reimplemented (src/game/core/inputsystem); the device at +0x5c made (name invented)
+0x00618bb0,InputBase_CreateDevice58,function,low,reimplemented (src/game/core/inputsystem); the device at +0x58 made (name invented)
+0x005f5590,Input_Update,function,low,"reimplemented (src/game/core/inputsystem); the system's update, the messages pumped first (name invented)"
+0x005f55c0,Input_OpenDevice58,function,low,reimplemented (src/game/core/inputsystem); wrapper on the system (name invented)
+0x005f55e0,Input_CloseDevice58,function,low,reimplemented (src/game/core/inputsystem); wrapper on the system (name invented)
+0x005f5600,Input_OpenDevice5c,function,low,reimplemented (src/game/core/inputsystem); wrapper on the system (name invented)
+0x005f5620,Input_CloseDevice5c,function,low,reimplemented (src/game/core/inputsystem); wrapper on the system (name invented)
 0x0050ffe0,Nav_Ctor,function,high,reimplemented (src/game/world/nav); constants constructor with five integer pairs
 0x0050f200,Nav_Dtor,function,high,reimplemented (src/game/world/nav); thiscall: the five IntPairs at +0x64 destroyed with Stub_Ret (CRT_VectorDtorIterator); also via 0x4f7c30 (+0xd4) and 0x4f8ad0
 0x004f7c30,Nav_DtorAtD4,function,low,reimplemented (src/game/world/nav); thiscall adjustor: Nav_Dtor on this + 0xd4
