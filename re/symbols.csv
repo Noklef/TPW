@@ -6206,6 +6206,10 @@ address,name,kind,confidence,notes
 0x005cf890,NFileBuf_DeletingDtor,function,low,reimplemented (src/game/core/narrowfilebuf); a narrow file buffer destroyed and freed
 0x005ce920,NIfstream_DtorOnIos,function,low,"reimplemented (src/game/core/narrowfilebuf); basic_ifstream<char>'s destructor, on its ios"
 0x005cf630,NOfstream_DtorOnIos,function,low,"reimplemented (src/game/core/narrowfilebuf); basic_ofstream<char>'s destructor, on its ios"
+0x005d1390,NCodecvt_Ctor,function,low,"reimplemented (src/game/core/narrowfilebuf); codecvt<char, char, mbstate_t>'s constructor, by its shape"
+0x005d1220,Locale_WithNCodecvt,function,low,reimplemented (src/game/core/narrowfilebuf); the locale with the narrow conversion facet added
+0x005d0b80,NFileBuf_InitConversion,function,low,"reimplemented (src/game/core/narrowfilebuf); basic_filebuf<char>'s _Initcvt, by its shape"
+0x005d08e0,NFileBuf_Open,function,low,"reimplemented (src/game/core/narrowfilebuf); basic_filebuf<char>::open, by its shape"
 0x005d2d40,SwearFilter_Find,function,low,reimplemented (src/game/core/swearfilter); wcsistr for the swear filter
 0x005d3230,SwearFilter_Apply,function,low,reimplemented (src/game/core/swearfilter); the swear filter over a wide string
 0x005cfb60,NCtype_Ctor,function,low,reimplemented (src/game/core/nstream); ctype<char>'s constructor

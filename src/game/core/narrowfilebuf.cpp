@@ -11,6 +11,7 @@
 #include "globals.h"
 #include "iosbase.h"
 #include "sharedglobals.h"
+#include "stdlocale.h"
 #include "stdstring.h"
 #include "streambuf.h"
 #include "vcall.h"
@@ -19,7 +20,11 @@
 
 namespace {
 
-const NarrowFileBufEnv kGameEnv = {reinterpret_cast<s32(__cdecl *)(void *)>((uintptr_t)0x0067b620), reinterpret_cast<s32(__cdecl *)(u32, u32)>((uintptr_t)0x0067cbe0), reinterpret_cast<s32(__cdecl *)(u32)>((uintptr_t)0x0067cb90)};
+const NarrowFileBufEnv kGameEnv = {reinterpret_cast<s32(__cdecl *)(void *)>((uintptr_t)0x0067b620), reinterpret_cast<s32(__cdecl *)(u32, u32)>((uintptr_t)0x0067cbe0), reinterpret_cast<s32(__cdecl *)(u32)>((uintptr_t)0x0067cb90),
+                                   reinterpret_cast<void(__stdcall *)(void *, const void *)>((uintptr_t)0x0067d3a0),
+                                   reinterpret_cast<void *(__fastcall *)(void *, void *, const char *)>((uintptr_t)0x00698fc0),
+                                   reinterpret_cast<void *(__fastcall *)(void *)>((uintptr_t)0x00699100),
+                                   reinterpret_cast<u8 **(__fastcall *)(u8 **, void *, u8 *, u32, u32)>((uintptr_t)0x00693f50)};
 const NarrowFileBufEnv *g_env = &kGameEnv;
 
 template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cast<T *>((uintptr_t)p + offset); }
@@ -67,6 +72,26 @@ void keep_file(u8 *buf, u8 *file) {
     at<u32>(buf, 0x40) = global<u32>(0x00fb2760);
     at<u32>(buf, 0x3c) = global<u32>(0x00fb2760);
     at<u32>(buf, 0x38) = 0;
+}
+
+// The conversion facet of the locale (use_facet<codecvt<char, char, mbstate_t>>, inline at 0x5d0b80): the id 0xfb275c given out on the first use. Not in it: the classic locale has the one kept at 0xf827e4; else bad_cast thrown.
+u8 *use_codecvt(u8 **locale) {
+    const u32 id = Id_Get(reinterpret_cast<u32 *>((uintptr_t)0x00fb275c));
+    u8 *const facet = Locale_Getfacet(locale, nullptr, id, 1);
+    if (facet) return facet;
+    if (Locale_Iscloc(locale)) {
+        u8 *&kept = global<u8 *>(0x00f827e4);
+        if (kept) return kept;
+        u8 *const block = static_cast<u8 *>(GameHeap_Alloc(0x10));
+        if (block) NCodecvt_Ctor(block, nullptr, 0);
+        Globalf827e8_Set(block);
+        kept = block;
+        return block;
+    }
+    u32 bad_cast[3];
+    BadCast_Ctor(bad_cast, nullptr, reinterpret_cast<const char *>((uintptr_t)0x0075c734));
+    g_env->cxxThrow(bad_cast, reinterpret_cast<const void *>((uintptr_t)0x007193a8));
+    return nullptr;
 }
 
 }  // namespace
@@ -238,6 +263,65 @@ s32 __fastcall NFileBuf_Uflow(u8 *buf) {
         got = g_env->fgetc(at<u32>(buf, 0x50));
     }
     return -1;
+}
+
+u8 *__fastcall NCodecvt_Ctor(u8 *self, void *, u32 refs) {
+    at<u32>(self, 4) = refs;
+    at<u32>(self, 0) = 0x00709b8c;
+    u8 info[0x48];
+    g_env->locinfoCtor(info, nullptr, reinterpret_cast<const char *>((uintptr_t)0x0075c74c));
+    const unsigned long long conversion = CRT_Getcvt();
+    at<u32>(self, 8) = static_cast<u32>(conversion);
+    at<u32>(self, 0xc) = static_cast<u32>(conversion >> 32);
+    g_env->locinfoDtor(info);
+    return self;
+}
+
+u8 **__cdecl Locale_WithNCodecvt(u8 **out, u8 *locale, u8 *facet) {
+    const u32 id = Id_Get(reinterpret_cast<u32 *>((uintptr_t)0x00fb275c));
+    u8 *const made = *g_env->addfac(&locale, nullptr, facet, id, 2);
+    *out = made;
+    Counted_AddRef(made);
+    lose_use(locale);
+    return out;
+}
+
+void __fastcall NFileBuf_InitConversion(u8 *buf) {
+    u8 *held;
+    u8 **const locale = Obj_ShareMember34(buf, nullptr, &held);
+    at<u8 *>(buf, 0x38) = use_codecvt(locale);
+    lose_use(held);
+    u8 *by_value;
+    Counted_CopyCtor(reinterpret_cast<u8 *>(&by_value), nullptr, buf + 0x4c);
+    u8 *made;
+    Locale_WithNCodecvt(&made, by_value, at<u8 *>(buf, 0x38));
+    u8 *const before = at<u8 *>(buf, 0x4c);
+    if (before != made) {
+        if (u8 *const dead = Counted_Release(before)) vcall<void>(dead, 0, (u32)1);
+        at<u8 *>(buf, 0x4c) = made;
+        Counted_AddRef(made);
+    }
+    lose_use(made);
+    if (static_cast<u8>(vcall<u32>(at<u8 *>(buf, 0x38), 4))) at<u32>(buf, 0x38) = 0;
+    if (!at<u32>(buf, 0x44)) {
+        u8 *const text = static_cast<u8 *>(GameHeap_Alloc(0x10));
+        if (text) {
+            text[0] = 0;   // (the allocator's byte: stack garbage in the original, read by nothing)
+            at<u32>(text, 4) = 0;
+            at<u32>(text, 8) = 0;
+            at<u32>(text, 0xc) = 0;
+        }
+        at<u8 *>(buf, 0x44) = text;
+    }
+}
+
+u8 *__fastcall NFileBuf_Open(u8 *buf, void *, const char *name, u32 mode) {
+    if (at<u32>(buf, 0x50)) return nullptr;
+    void *const file = Std_Fiopen(name, mode);
+    if (!file) return nullptr;
+    NFileBuf_Init(buf, nullptr, static_cast<u8 *>(file), 1);
+    NFileBuf_InitConversion(buf);
+    return buf;
 }
 
 }  // extern "C"
