@@ -405,3 +405,18 @@ u32 __cdecl CRT_TestDefaultCountry(u32 lcid) {
     }
     return 1;
 }
+
+s32 __stdcall CRT_CountryEnumProc(const char *hex) {
+    const u32 lcid = CRT_LcidFromHexString(hex);
+    char name[0x78];
+    if (!locale_info()(lcid, global<u32>(0x00fb18e0) ? 7 : 0x1002, name, sizeof name)) {
+        global<u32>(0x00fb18f4) = 0;
+        return 1;
+    }
+    if (!CRT_stricmp(global<const char *>(0x00fb18f0), name) && CRT_TestDefaultCountry(lcid)) {
+        global<u32>(0x00fb18f8) = lcid;
+        global<u32>(0x00fb18dc) = lcid;
+        global<u32>(0x00fb18f4) |= 4;
+    }
+    return ~global<u32>(0x00fb18f4) >> 2 & 1;
+}

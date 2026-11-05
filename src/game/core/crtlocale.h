@@ -65,5 +65,7 @@ char *__cdecl CRT_setlocale_set_cat(s32 category, const char *locale);
 char *__cdecl CRT_setlocale(s32 category, const char *locale);
 // 0x68e450: TestDefaultCountry: 0 for a language id (the low word) in the ten of [0x781a20], else 1.
 u32 __cdecl CRT_TestDefaultCountry(u32 lcid);
+// 0x68e2a0: CountryEnumProc: the search's country against this locale's name; 1 goes on with the enumeration.
+s32 __stdcall CRT_CountryEnumProc(const char *hex);
 
 }
