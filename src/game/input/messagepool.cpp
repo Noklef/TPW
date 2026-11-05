@@ -4,6 +4,7 @@
 #include <cstdint>
 
 #include "../core/gameheap.h"
+#include "../core/vcall.h"
 
 namespace {
 
@@ -13,6 +14,17 @@ struct Node {
 };
 
 template <typename T> T &at(u8 *base, u32 offset) { return *reinterpret_cast<T *>(base + offset); }
+
+// A mouse message's fields from a record (type, value, time).
+void fillMouse(u8 *message, u32 code, const u32 *record) {
+    at<u32>(message, 0x10) = code;
+    at<u32>(message, 0x20) = record[1] >> 4 & 8;
+    at<u32>(message, 0x14) = 0;
+    at<u32>(message, 0x18) = 0;
+    at<u8>(message, 0x1c) = static_cast<u8>(record[1]);
+    at<u32>(message, 4) = record[2];
+    at<u32>(message, 8) = 1;
+}
 
 void destroy(u8 *self, u32 vtable) {
     at<u32>(self, 0) = vtable;
@@ -78,6 +90,47 @@ extern "C" {
 
 void __fastcall KeyPool_Dtor(u8 *self) { destroy(self, 0x00703d1c); }
 void __fastcall MousePool_Dtor(u8 *self) { destroy(self, 0x00703d14); }
+u8 *__fastcall KeyPool_DeletingDtor(u8 *self, void *, u32 flags) {
+    KeyPool_Dtor(self);
+    if (flags & 1) GameHeap_Free(self);
+    return self;
+}
+
+u8 *__fastcall MousePool_DeletingDtor(u8 *self, void *, u32 flags) {
+    MousePool_Dtor(self);
+    if (flags & 1) GameHeap_Free(self);
+    return self;
+}
+
+void __fastcall MessageSource_Deliver(u8 *self, void *, u32 count) {
+    const u32 *record = at<const u32 *>(self, 0x30);
+    for (; count; --count, record += 4) {
+        const u32 type = record[0];
+        if (type > 0xf) continue;
+        if (type == 0 || type == 4 || type == 8) {
+            u8 *const message = reinterpret_cast<u8 *>(static_cast<uintptr_t>(KeyPool_Next(self + 0x34)));
+            at<u32>(message, 0x10) = record[1];
+            at<u32>(message, 0xc) = type;
+            at<u32>(message, 4) = record[2];
+            at<u32>(message, 8) = 1;
+            vcall<void>(at<u8 *>(self, 0xc), 0x14, message);
+        } else if (type >= 0xc) {
+            u8 *const message = reinterpret_cast<u8 *>(static_cast<uintptr_t>(MousePool_Next(self + 0x48)));
+            fillMouse(message, 0xf0 + type - 0xc, record);
+            vcall<void>(at<u8 *>(self, 0xc), 0x18, message);
+        }
+    }
+}
+
+void __fastcall MessageSource_DeliverKeys(u8 *self, void *, u32 count) {
+    const u32 *record = at<const u32 *>(self, 0x30);
+    for (; count; --count, record += 4) {
+        u8 *const message = reinterpret_cast<u8 *>(static_cast<uintptr_t>(MousePool_Next(self + 0x34)));
+        fillMouse(message, record[0] & 0xff, record);
+        vcall<void>(at<u8 *>(self, 0xc), 0x18, message);
+    }
+}
+
 u32 __fastcall KeyPool_Next(u8 *self) { return next(self, &newKeyMessage); }
 u32 __fastcall MousePool_Next(u8 *self) { return next(self, &newMouseMessage); }
 

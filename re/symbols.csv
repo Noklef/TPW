@@ -6632,6 +6632,10 @@ address,name,kind,confidence,notes
 0x00634b40,MousePool_Dtor,function,low,reimplemented (src/game/input/messagepool); thiscall: the pool's destructor (vtable 0x703d14); name invented
 0x00634d00,KeyPool_Next,function,low,"reimplemented (src/game/input/messagepool); thiscall: the next free message round the list, a new one when none; name invented"
 0x00634de0,MousePool_Next,function,low,reimplemented (src/game/input/messagepool); thiscall: the same for 0x24-byte messages (vtable 0x703d10); name invented
+0x00634b00,KeyPool_DeletingDtor,function,low,"reimplemented (src/game/input/messagepool); thiscall (flags): the destructor, bit 0 frees; name invented"
+0x00634b20,MousePool_DeletingDtor,function,low,"reimplemented (src/game/input/messagepool); thiscall (flags): the destructor, bit 0 frees; name invented"
+0x00634900,MessageSource_Deliver,function,low,reimplemented (src/game/input/messagepool); thiscall (count): records sent on as key and mouse messages; name invented
+0x006350f0,MessageSource_DeliverKeys,function,low,reimplemented (src/game/input/messagepool); thiscall (count): records sent on as messages of the low byte of their type; name invented
 0x0047e3e0,ScreenSurfaces_Dtor,function,high,reimplemented (src/game/gfx/screensurfaces); an object releases its two COM objects
 0x00fa76b0,gSurfaceDirectDraw,data,high,IDirectDraw that Surface_Create makes surfaces with (Surface_SetDirectDraw)
 0x00fa76b4,gSurfaceNoSysLock,data,high,byte; non-zero: Surface_Lock adds DDLOCK_NOSYSLOCK

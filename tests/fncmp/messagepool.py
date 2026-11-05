@@ -6,23 +6,25 @@ import struct
 import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
-from fncmp import HEAP, RAM, Bench, Call, heap, put  # noqa: E402
+from fncmp import HEAP, LOG, RAM, Bench, Call, heap, log_region, put, vtable  # noqa: E402
 
-ADDRESS = {'KeyDtor': 0x634a50, 'MouseDtor': 0x634b40, 'Clear': 0x634bf0, 'Insert': 0x634c60, 'KeyNext': 0x634d00, 'MouseNext': 0x634de0}
+ADDRESS = {'KeyDtor': 0x634a50, 'MouseDtor': 0x634b40, 'Clear': 0x634bf0, 'Insert': 0x634c60, 'KeyNext': 0x634d00, 'MouseNext': 0x634de0, 'KeyDel': 0x634b00, 'MouseDel': 0x634b20, 'Deliver': 0x634900, 'Keys': 0x6350f0}
 OPS = [n for n in ADDRESS if not os.environ.get('OPS') or n in os.environ['OPS'].split(',')]
-B = Bench([(0x634a50, 0x634af1), (0x634b40, 0x634be1), (0x634bf0, 0x634c55), (0x634c60, 0x634cb7), (0x634d00, 0x634ddb), (0x634de0, 0x634ec1), (0x47db00, 0x47db20), (0x67a400, 0x690000)])
-SELF, OUT, VALUE, LIST, MESSAGES = RAM, RAM + 0x40, RAM + 0x50, RAM + 0x100, RAM + 0x400
+B = Bench([(0x634a50, 0x634af1), (0x634b40, 0x634be1), (0x634bf0, 0x634c55), (0x634c60, 0x634cb7), (0x634d00, 0x634ddb), (0x634de0, 0x634ec1), (0x47db00, 0x47db20), (0x67a400, 0x690000), (0x634b00, 0x634b1f), (0x634b20, 0x634b3f), (0x634900, 0x6349f8), (0x6350f0, 0x635174), (0x67acb0, 0x67acb1)])
+SELF, OUT, VALUE, LIST, MESSAGES = RAM, RAM + 0x80, RAM + 0x90, RAM + 0x100, RAM + 0x400
+LIST2, MESSAGES2, RECORDS, SINK, VT = RAM + 0x200, RAM + 0x600, RAM + 0x800, RAM + 0x900, RAM + 0x980
+SLOT_KEY, SLOT_MOUSE = 5, 6
 
 
-def ring(r, count):
+def ring(r, count, list_=LIST, block=MESSAGES):
     """A circular list: the sentinel, then count nodes in any order, each with its message. Returns (nodes' bytes, messages' bytes, the sentinel's address, the nodes' addresses)."""
     nodes = bytearray(r.bytes(0x10 * (count + 1)))
     messages = bytearray(r.bytes(0x20 * (count + 1)))
     order = r.sample(range(1, count + 1), count)
     ring_ = [0] + order
-    at = [LIST + 0x10 * i for i in ring_]
+    at = [list_ + 0x10 * i for i in ring_]
     for i, slot in enumerate(ring_):
-        put(nodes, 0x10 * slot, 'III', at[(i + 1) % len(at)], at[i - 1], MESSAGES + 0x20 * slot)
+        put(nodes, 0x10 * slot, 'III', at[(i + 1) % len(at)], at[i - 1], block + 0x20 * slot)
         put(messages, 0x20 * slot + 8, 'I', r.choice([0, 1, 1, 0x80000000]))
     return nodes, messages, at[0], at[1:]
 
@@ -31,8 +33,26 @@ def case(r):
     op = r.deal(OPS)
     count = r.choice([0, 1, 2, 3, 5])
     nodes, messages, sentinel, others = ring(r, count)
-    self_ = bytearray(r.bytes(0x20))
+    self_ = bytearray(r.bytes(0x70))
     regions = {SELF: self_, LIST: nodes, MESSAGES: messages, OUT: r.bytes(8), VALUE: r.bytes(4), HEAP: heap(0x1000)}
+    if op in ('Deliver', 'Keys'):
+        log = log_region()
+        regions[LOG] = log
+        records = bytearray(r.bytes(0x60))
+        for i in range(6):
+            put(records, 0x10 * i, 'I', r.choice([0, 4, 8, 0xc, 0xd, 0xe, 0xf, 1, 5, 7, 9, 0xb, 0x10, 0x1ff, 0xffffffff]))
+        regions[RECORDS], regions[SINK], regions[VT] = records, struct.pack('<I', VT), vtable({SLOT_KEY: 1, SLOT_MOUSE: 1})
+        put(self_, 0xc, 'I', SINK)
+        put(self_, 0x30, 'I', RECORDS)
+        put(self_, 0x3c, 'III', sentinel, count, r.choice(others) if others else sentinel)
+        nodes2, messages2, sentinel2, others2 = ring(r, r.choice([0, 1, 2, 3]), LIST2, MESSAGES2)
+        regions[LIST2], regions[MESSAGES2] = nodes2, messages2
+        put(self_, 0x50, 'III', sentinel2, (len(nodes2) >> 4) - 1, r.choice(others2) if others2 else sentinel2)
+        return Call(ADDRESS[op], [SELF, r.choice([0, 1, 2, 3, 6])], regions, conv='t', ret='v')
+    if op in ('KeyDel', 'MouseDel'):
+        put(self_, 8, 'I', sentinel)
+        put(self_, 0xc, 'I', count)
+        return Call(ADDRESS[op], [SELF, r.choice([0, 1, 2, 3, 0xfffffffe])], regions, conv='t', ret='a')
     if op == 'KeyNext' or op == 'MouseNext':
         put(self_, 8, 'I', sentinel)
         put(self_, 0xc, 'I', count)
