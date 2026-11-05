@@ -2,14 +2,23 @@
 
 #include <cstdint>
 
+#include "../core/crt.h"
 #include "../core/gameheap.h"
 #include "../core/globalsave.h"
+#include "../core/initializers.h"
+#include "../core/soundplay.h"
+#include "../core/soundset.h"
 #include "../core/themenames.h"
 #include "../core/vcall.h"
 #include "../files/file.h"
 #include "../files/userslots.h"
+#include "../model/holder.h"
 #include "../online/itemlist.h"
 #include "../online/session.h"
+#include "../render/lightsource.h"
+#include "../render/state.h"
+#include "../ui/dialog7cc4b4open.h"
+#include "../ui/dialog7cc4b4update.h"
 #include "lobbyscript.h"
 
 namespace {
@@ -21,7 +30,8 @@ const ThemeMenuEnv kGameEnv = {&UserSlots_Ctor, &GlobalSave_Construct, &GlobalSa
                                reinterpret_cast<void(__fastcall *)(u8 *, void *, WString *, WString *, WString *)>((uintptr_t)0x00409b10),
                                reinterpret_cast<void(__fastcall *)(u8 *, void *, const u16 *, const u16 *)>((uintptr_t)0x005d8470),
                                &File_Delete, &Online_Construct, &Owner2c_ValueByKey,
-                               reinterpret_cast<void(__fastcall *)(u8 *, void *, const char *, u32, s32, u32, u32)>(&LobbyScript_Load)};
+                               reinterpret_cast<void(__fastcall *)(u8 *, void *, const char *, u32, s32, u32, u32)>(&LobbyScript_Load),
+                               &HolderUser_Acquire, &Render_SetAmbient, &LightSlot_Set, &Online_Instance, &Online_ResetConnections, &Dialog7cc4b4_Open, &Dialog7cc4b4_ShowTheme, &Time_GetMs, &ThemeMenu_Refresh, &Sound_PlayAt, &Sound_ApplySettings};
 const ThemeMenuEnv *g_env = &kGameEnv;
 
 u8 *const kNames = reinterpret_cast<u8 *>((uintptr_t)0x00786b68);
@@ -129,5 +139,58 @@ void __fastcall ThemeMenu_Load(u8 *self, void *, u8 *list) {
     at<u32>(self, 0xe4) = 1;
     at<u32>(self, 0xc) = at<u32>(at<u8 *>(at<u8 *>(self, 8), 4), 0);
     ClearFonts();
+}
+
+void __fastcall ThemeMenu_Enter(u8 *self) {
+    if (vcall<s32>(self, 0x24)) return;
+    if (!vcall<s32>(self, 0x24)) {
+        at<u32>(self, 4) = 1;
+        g_env->holder(global<u8 *>(0x00f83774));
+        g_env->ambient(global<u8 *>(0x00f83778), nullptr, 1, 0x444444);
+        const u32 colour = 0xeeeeee;
+        g_env->light(global<u8 *>(0x00f83778), nullptr, 1, &colour, nullptr, 1);
+        Fn_5e1bb0(global<u8 *>(0x00f83778), nullptr, 0x40000000, 0x41000000, 1);
+        at<float>(global<u8 *>(0x00f83778), 4) = at<float>(at<u8 *>(global<u8 *>(0x00f82884), 0x10), 4);
+        Render_FogOn(global<u8 *>(0x00f83778));
+        Render_SetFog(global<u8 *>(0x00f83778), nullptr, 0xff44ddff, 0x42480000, 0x437a0000);
+        at<u32>(self, 0x14) = 0;
+        at<u32>(self, 0xc) = 0;
+        at<u32>(self, 0x10) = 0;
+        g_env->reset(g_env->instance());
+    }
+    g_env->dialogOpen();
+    vcall<void>(self, 0x28);
+    u8 *node = global<u8 *>(0x00786b90);
+    while (node) {
+        u8 *const name = at<u8 *>(node, 0);
+        node = at<u8 *>(node, 4);
+        WString key, a, b;
+        WString_Ctor(&key);
+        WString_AssignFromAnsi(&key, reinterpret_cast<const String *>(name));
+        WString_Ctor(&a);
+        WString_Ctor(&b);
+        g_env->localise(kNames, nullptr, &key, &a, &b);
+        g_env->load(self, nullptr, reinterpret_cast<const String *>(name)->data, 0, -1, static_cast<u32>(reinterpret_cast<uintptr_t>(a.data)), static_cast<u32>(reinterpret_cast<uintptr_t>(b.data)));
+        WString_Dtor(&b);
+        WString_Dtor(&a);
+        WString_Dtor(&key);
+    }
+    ClearFonts();
+    at<u32>(self, 0xc) = at<u32>(at<u8 *>(at<u8 *>(self, 8), 4), 0);
+    node = at<u8 *>(at<u8 *>(self, 8), 4);
+    while (node) {
+        u8 *const item = at<u8 *>(node, 0);
+        node = at<u8 *>(node, 4);
+        if (!CRT_stricmp(at<const char *>(item, 0x30), global<const char *>(0x00f85488))) at<u8 *>(self, 0xc) = item;
+    }
+    g_env->dialogShow();
+    at<u32>(self, 0xe4) = g_env->time();
+    g_env->refresh(self);
+    u8 *const chosen = at<u8 *>(self, 0xc);
+    if (chosen) {
+        at<u32>(chosen, 0x1c) = g_env->play(at<u32>(chosen, 0x1c), at<u32>(global<u8 *>(0x00803a4c), at<u32>(chosen, 0x18) * 8 + 4), 1, 0, 0, 0);
+        at<u32>(chosen, 0x20) = g_env->play(at<u32>(chosen, 0x20), at<u32>(global<u8 *>(0x00803a4c), at<u32>(chosen, 0x18) * 8), 2, 0, 0, 0);
+        g_env->applySound();
+    }
 }
 }

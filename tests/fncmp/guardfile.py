@@ -14,7 +14,7 @@ B = Bench([(0x5d4d10, 0x5d4fcf), (0x5d4fd0, 0x5d534b), (0x5d5350, 0x5d5597), (0x
                  0x67e1d0: _recorder(FREAD, 4, cdecl=True), 0x67d070: _recorder(FFLUSH, 1, cdecl=True), 0x67b620: _recorder(FCLOSE, 1, cdecl=True), 0x67e530: _recorder(REMOVE, 1, cdecl=True), 0x67ecc0: _recorder(RENAME, 2, cdecl=True)})
 HANDLE, TEXT, TABLE, BASE, DATA = RAM + 0x100, RAM + 0x200, RAM + 0x300, RAM + 0x1000, RAM + 0x4000
 BLOCK = BASE + 8
-NAMES = [b'a.dat', b'dir/b.c.dat', b'c:\\x\\d', b'noext', b'e.', b'f.g/h', b'a:b', b'.hidden']
+NAMES = [b'a.dat', b'dir/b.c.dat', b'c:\\x\\d', b'noext', b'e.', b'f.g/h', b'a:b', b'.hidden', b'x.y:z', b'x.y\\z']
 
 
 def tags(r):
