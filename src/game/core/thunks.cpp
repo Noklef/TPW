@@ -525,6 +525,10 @@ void __cdecl Wrap_Array7ced88_Dtor_4fa750() {
     CRT_VectorDtorIterator(reinterpret_cast<u8 *>((uintptr_t)0x007ced88), 8, 9, reinterpret_cast<void(__fastcall *)(void *)>((uintptr_t)0x005d1750));
 }
 
+void __cdecl Wrap_Array81ed40_Dtor_532bb0() {
+    CRT_VectorDtorIterator(reinterpret_cast<u8 *>((uintptr_t)0x0081ed40), 8, 9, reinterpret_cast<void(__fastcall *)(void *)>((uintptr_t)0x005d1750));
+}
+
 void __cdecl Wrap_PixelFormat_InitArgb8888Unused_5fcce0() {
     PixelFormat_InitArgb8888Unused();
 }
