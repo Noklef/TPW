@@ -45,6 +45,17 @@ struct ThrownError {   // exception's vtable, text and owned flag, then the mess
 // (A stream's first word is its vbtable, whose +4 is the offset of the virtual base's word.)
 void set_stream_vtable(u8 *stream, u32 vtable) { at<u32>(stream + at<s32>(at<u8 *>(stream, 0), 4), 0) = vtable; }
 
+// A string's block let go: freed at its last reference (0xff: not counted), else its count lowered.
+void release_text(char *p) {
+    if (!p) return;
+    const u8 refs = (u8)p[-1];
+    if (refs == 0 || refs == 0xff) {
+        g_env->memFree(p - 1);
+        return;
+    }
+    p[-1] = (char)(refs - 1);
+}
+
 void throw_error(const char *text, u32 vtable, u32 info) {
     StdString s;
     const u32 n = (u32)strlen(text);
@@ -63,14 +74,20 @@ void throw_error(const char *text, u32 vtable, u32 info) {
     StdString_AssignSub(&error.what, nullptr, &s, 0, global<u32>(0x006fe5ac));
     error.vtable = vtable;
     g_env->cxxThrow(&error, reinterpret_cast<const void *>((uintptr_t)info));
-    char *const p = s.ptr;
-    if (!p) return;
-    const u8 refs = (u8)p[-1];
-    if (refs == 0 || refs == 0xff) {
-        g_env->memFree(p - 1);
-        return;
-    }
-    p[-1] = (char)(refs - 1);
+    release_text(s.ptr);
+}
+
+u32 *copy_error(u32 *self, const u32 *from, u32 vtable) {
+    CRT_exception_Copy(self, nullptr, from);
+    StdString &to = reinterpret_cast<ThrownError *>(self)->what;
+    const StdString &source = reinterpret_cast<const ThrownError *>(from)->what;
+    at<u8>(self, 0xc) = at<u8>(const_cast<u32 *>(from), 0xc);
+    to.ptr = nullptr;
+    to.len = 0;
+    to.res = 0;
+    StdString_AssignSub(&to, nullptr, &source, 0, global<u32>(0x006fe5ac));
+    *self = vtable;
+    return self;
 }
 
 void free_list(u8 *head) {
@@ -92,6 +109,44 @@ extern "C" {
 void __cdecl Std_Xlen() { throw_error(reinterpret_cast<const char *>((uintptr_t)0x00709890), 0x00709884, 0x00720468); }
 
 void __cdecl Std_Xran() { throw_error(reinterpret_cast<const char *>((uintptr_t)0x007098c0), 0x007098b4, 0x0071f298); }
+
+void __cdecl Vector_Xran() { throw_error(reinterpret_cast<const char *>((uintptr_t)0x00779a68), 0x007098b4, 0x0071f298); }
+
+const char *__fastcall LogicError_What(u8 *self) {
+    const char *const text = at<const char *>(self, 0x10);
+    return text ? text : reinterpret_cast<const char *>((uintptr_t)0x006fe5b0);
+}
+
+u32 *__fastcall LogicError_Copy(u32 *self, void *, const u32 *from) { return copy_error(self, from, 0x007098a4); }
+
+u32 *__fastcall OutOfRange_Copy(u32 *self, void *, const u32 *from) { return copy_error(self, from, 0x007098b4); }
+
+void __fastcall LogicError_Raise(const u32 *self) {
+    u32 local[7];
+    LogicError_Copy(local, nullptr, self);
+    g_env->cxxThrow(local, reinterpret_cast<const void *>((uintptr_t)0x0071f310));
+}
+
+void __fastcall OutOfRange_Raise(const u32 *self) {
+    u32 local[7];
+    OutOfRange_Copy(local, nullptr, self);
+    g_env->cxxThrow(local, reinterpret_cast<const void *>((uintptr_t)0x0071f298));
+}
+
+void __fastcall LogicError_Dtor(u32 *self) {
+    at<u32>(self, 0) = 0x007098a4;
+    release_text(at<char *>(self, 0x10));
+    at<u32>(self, 0x10) = 0;
+    at<u32>(self, 0x14) = 0;
+    at<u32>(self, 0x18) = 0;
+    CRT_exception_Dtor(self);
+}
+
+u32 *__fastcall LogicError_DeletingDtor(u32 *self, void *, u32 flags) {
+    LogicError_Dtor(self);
+    if (flags & 1) g_env->memFree(self);
+    return self;
+}
 
 void __fastcall IosBase_Clear(u8 *self, void *, u32 state, u32 reraise) {
     state &= 7;

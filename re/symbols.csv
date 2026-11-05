@@ -5996,6 +5996,14 @@ address,name,kind,confidence,notes
 0x004f1a90,CtypeW_ToUpperRange,function,low,reimplemented (src/game/core/iosbase); ctype<wchar_t>::do_toupper over a range
 0x004f1b30,CtypeW_Narrow,function,low,reimplemented (src/game/core/iosbase); ctype<wchar_t>::do_narrow by its shape
 0x004f1b40,CtypeW_NarrowRange,function,low,reimplemented (src/game/core/iosbase); ctype<wchar_t>::do_narrow over a range
+0x00632a40,Vector_Xran,function,low,reimplemented (src/game/core/iosbase); the vector's range error: out_of_range thrown with the text at 0x779a68; name invented
+0x00632b70,LogicError_What,function,low,"reimplemented (src/game/core/iosbase); thiscall: what(): the string's text, or the empty one; name invented"
+0x00632b80,LogicError_Copy,function,low,reimplemented (src/game/core/iosbase); thiscall (from): logic_error's copy constructor; name invented
+0x00632ce0,LogicError_Raise,function,low,reimplemented (src/game/core/iosbase); thiscall: a copy thrown (info 0x71f310); name invented
+0x00632d00,LogicError_Dtor,function,low,reimplemented (src/game/core/iosbase); thiscall: logic_error's destructor; name invented
+0x00632d50,OutOfRange_Raise,function,low,reimplemented (src/game/core/iosbase); thiscall: a copy thrown (info 0x71f298); name invented
+0x00632d70,LogicError_DeletingDtor,function,low,"reimplemented (src/game/core/iosbase); thiscall (flags): the destructor, bit 0 frees; name invented"
+0x00632d90,OutOfRange_Copy,function,low,reimplemented (src/game/core/iosbase); thiscall (from): out_of_range's copy constructor; name invented
 0x006d2110,SoundSource711920_Open,function,low,reimplemented (src/game/core/qsoundmixer); The QSound session opened on the source's config
 0x006d2220,SoundSource711920_SetOptions,function,low,reimplemented (src/game/core/qsoundmixer); The library's options from the flags
 0x006d2260,SoundSource711920_GetBuffer,function,low,reimplemented (src/game/core/qsoundmixer); The channel's DirectSound buffer
