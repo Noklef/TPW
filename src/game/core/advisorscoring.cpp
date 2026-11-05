@@ -722,6 +722,18 @@ s32 __fastcall AdvisorScoring_RingRatio(const u8 *scoring) {
     return !(scaled.v >= (double)first) ? at<s32>(scoring, 0x35c) : 0;   // (FCOMPP's C0: below or unordered)
 }
 
+s32 __fastcall AdvisorScoring_AgedPerStaff(const u8 *scoring) {
+    u8 *const game = **reinterpret_cast<u8 ***>((uintptr_t)0x007cf6ec);
+    FileTime out;
+    const FileTime *const elapsed = reinterpret_cast<const FileTime *>((uintptr_t)g_calls.Th(0x004f8800, (u32)(uintptr_t)(game + 0x2a0), &out));   // FunnyTime_Elapsed
+    const long long time = (long long)(((unsigned long long)elapsed->high << 32) | elapsed->low);
+    if ((s32)(time / 0x1792f8648000LL) < 3) return 0;
+    const u32 count = g_calls.Th(0x004c9aa0, GameTable7cfb90_Get1da720_519510(game));
+    const s32 staff = (s32)g_calls.Th(0x004c9a10, GameTable7cfb90_Get1da720_519510(game));   // Things_CountStaff
+    if (!staff) return 0;
+    return (s32)(count * 100) / staff > at<s32>(scoring, 0x4b8) ? at<s32>(scoring, 0x4bc) : 0;
+}
+
 namespace {
 
 u8 *criterion(s32 index) { return reinterpret_cast<u8 *>((uintptr_t)0x0076e300 + (u32)index * 0x38); }
