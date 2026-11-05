@@ -20,8 +20,9 @@ from fncmp import CDECL_LOG4, LOG, Bench, Call, RAM, _recorder, log_region, put,
 
 CALLS = {'Lower48': 0x5dd310, 'Raise48': 0x5dd320, 'Raise50': 0x5dd330, 'Lower50': 0x5dd340, 'UseSecond': 0x5dd350, 'UseFirst': 0x5dd390,
          'Show70': 0x5dd7a0, 'Show20': 0x5dda70, 'Show8': 0x5e2620, 'Hide8': 0x5e2640, 'Callback': 0x5e2650, 'Done': 0x5e2660,
-         'Choose': 0x5dd3d0, 'Positive40': 0x5dd810, 'Pending': 0x5ddac0, 'SetOrKeep': 0x5e2750, 'Msg2bc8': 0x5dced0, 'Msg2e70': 0x5dd530, 'Msg2e20': 0x5dd840}
-B = Bench([(0x5dd310, 0x5dd3fd), (0x4c57e0, 0x4c5830), (0x658d9f, 0x658e04), (0x659710, 0x659740), (0x65d7bc, 0x65d832), (0x65f697, 0x65f6e1),
+         'Choose': 0x5dd3d0, 'Positive40': 0x5dd810, 'Pending': 0x5ddac0, 'SetOrKeep': 0x5e2750, 'Msg2bc8': 0x5dced0, 'Msg2e70': 0x5dd530, 'Msg2e20': 0x5dd840, 'Hide70': 0x5dd7b0, 'Hide20': 0x5dda80}
+SEVENTY = ('Show70', 'Hide70')
+B = Bench([(0x4c57c0, 0x4c57d5), (0x4b9c40, 0x4b9c55), (0x5dd310, 0x5dd3fd),(0x4c57e0, 0x4c5830), (0x658d9f, 0x658e04), (0x659710, 0x659740), (0x65d7bc, 0x65d832), (0x65f697, 0x65f6e1),
            (0x5dd7a0, 0x5dd7c0), (0x5dda70, 0x5dda90), (0x5e2620, 0x5e26a0), (0x4b8810, 0x4b8850), (0x4b9c20, 0x4b9c40), (0x4c57a0, 0x4c57c0),
            (0x5d83f0, 0x5d8431), (0x5dd810, 0x5dd822), (0x5ddac0, 0x5ddae0), (0x5e2750, 0x5e2763), (0x5dced0, 0x5dcfbb), (0x5dd530, 0x5dd60e),
            (0x4c5830, 0x4c584b), (0x668bec, 0x668c89), (0x5dd840, 0x5dd910)], hooks={0x4c4670: _recorder(30, 0, cdecl=True)})
@@ -58,10 +59,10 @@ def case(r):
         return Call(CALLS[op], [RAM], regions, conv='s', ret='a')
     if op == 'SetOrKeep':
         return Call(CALLS[op], [RAM, r.choice([0, 0, 1, r.getrandbits(32)])], regions, conv='t')
-    if op.startswith('Use') or op == 'Show70' or op.startswith('Msg'):
+    if op.startswith('Use') or op in SEVENTY or op.startswith('Msg'):
         put(obj, 0x58, 'I', r.choice([0, 1, 2, r.getrandbits(32)]))
         regions[LOG] = log = log_region()
-        win = window(r) if op == 'Show70' else bytearray(r.bytes(0x90))
+        win = window(r) if op in SEVENTY else bytearray(r.bytes(0x90))
         ids = [r.choice([0x16006, 0x16008, 1]) for _ in range(r.choice([0, 1, 2]))]
         if r.random() < 0.85:
             ids.insert(r.randrange(len(ids) + 1), 0x16007)
@@ -80,7 +81,7 @@ def case(r):
         regions[WINDOW] = win
         regions[0x7cdb0c] = struct.pack('<I', WINDOW)
         regions[0xfaa5fc] = struct.pack('<I', r.choice([0, 0, CDECL_LOG4]))
-        if op == 'Show70':
+        if op in SEVENTY:
             regions[WIN2] = window(r)
             regions[0x7cc4c4] = struct.pack('<I', r.choice([WIN2, WIN2, WIN2, 0]))
             if r.random() < 0.5:
@@ -99,7 +100,7 @@ def case(r):
             regions[OVT] = vtable({})
             regions[0xf82888] = r.bytes(4)
             return Call(CALLS[op], [RAM, message, key, r.getrandbits(32)], regions, conv='t')
-    elif op in ('Show20', 'Show8', 'Hide8', 'Callback', 'Done'):
+    elif op in ('Show20', 'Hide20', 'Show8', 'Hide8', 'Callback', 'Done'):
         regions[LOG] = log = log_region()
         if r.random() < 0.5:
             set_return(log, 0x3d, r.choice([0, 1, -1, r.getrandbits(32)]))
@@ -121,7 +122,7 @@ def case(r):
             put(holder, 0x84, 'I', 0)
             regions[HOLDER] = holder
             return Call(CALLS[op], [r.choice([0, 0, 1, r.getrandbits(32)]), RAM], regions, ret='a')
-        return Call(CALLS[op], [RAM], regions, conv='t', ret='a')
+        return Call(CALLS[op], [RAM], regions, conv='t', ret='v' if op == 'Hide20' else 'a')
     return Call(CALLS[op], [RAM], regions, conv='t')
 
 

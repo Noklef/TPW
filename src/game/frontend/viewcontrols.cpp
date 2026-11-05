@@ -11,6 +11,7 @@
 #include "../render/randomsegments.h"
 #include "../ui/dialog7cdac4.h"
 #include "../ui/dialogs.h"
+#include "../ui/window.h"
 #include "lobbymodel.h"
 
 namespace {
@@ -246,6 +247,22 @@ s32 __fastcall ViewCtl702e70_ShowDialogs(u8 *) {
 s32 __fastcall ViewCtl702e20_ShowDialogs(u8 *) {
     Dialog7cdb0c_Message6On();
     return Dialog7cc4c4_Message6On();
+}
+
+// (0x4b9c40, Window7cc4c4_Send6_4b9c40's work: that port's env is its own bench's recorder under the driver.)
+static void Send6To7cc4c4() { Window_SendMessage(*reinterpret_cast<u8 **>((uintptr_t)0x007cc4c4), 6, 0, 0); }
+
+s32 __fastcall ViewCtl702e70_HideDialogs(u8 *) {
+    Dialog7cdb0c_Message6Off();
+    Send6To7cc4c4();
+    return Dialog7cdb0c_Child16007Message6Off();
+}
+
+void __fastcall ViewCtl702e70_Update(u8 *self) { ViewCtl702bc8_Update(self); }
+
+void __fastcall ViewCtl702e20_HideDialogs(u8 *) {
+    Dialog7cdb0c_Message6Off();
+    Send6To7cc4c4();
 }
 
 s32 __fastcall Scene702dd0_ShowDialog(u8 *self) {
