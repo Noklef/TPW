@@ -6099,6 +6099,27 @@ address,name,kind,confidence,notes
 0x0068c250,CRT_dtold,function,low,reimplemented (src/game/core/crtfloat); __dtold
 0x0068c1c0,CRT_fltout2,function,low,reimplemented (src/game/core/crtfloat); _fltout2
 0x0068c120,CRT_fptostr,function,low,reimplemented (src/game/core/crtfloat); _fptostr
+0x00685ee0,CRT_sptype,function,low,reimplemented (src/game/core/crtfloat); _sptype
+0x00685e60,CRT_errcode,function,low,reimplemented (src/game/core/crtfloat); _errcode
+0x00685ea0,CRT_set_exp,function,low,reimplemented (src/game/core/crtfloat); _set_exp
+0x0068c0a0,CRT_atodbl,function,low,reimplemented (src/game/core/crtfloat); _atodbl
+0x0068c0e0,CRT_atoflt,function,low,reimplemented (src/game/core/crtfloat); _atoflt
+0x0068b450,CRT_hextodec,function,low,reimplemented (src/game/core/crtfloat); _hextodec
+0x006ac940,CRT_Stod,function,low,reimplemented (src/game/core/crtfloat); strtod times a power
+0x00680aa0,CRT_shift,function,low,reimplemented (src/game/core/crtfloat); _cftoe's shift
+0x00685e00,CRT_set_errno_from_matherr,function,low,reimplemented (src/game/core/crtfloat); _set_errno_from_matherr
+0x00685e30,CRT_get_fname,function,low,reimplemented (src/game/core/crtfloat); _get_fname
+0x00686080,CRT_ctrlfp,function,low,reimplemented (src/game/core/crtfloat); _ctrlfp
+0x0068ba70,CRT_control87,function,low,reimplemented (src/game/core/crtfloat); _control87
+0x0067b3e0,CRT_copysign,function,low,reimplemented (src/game/core/crtfloat); _copysign
+0x00680570,CRT_forcdecpt,function,low,reimplemented (src/game/core/crtfloat); _forcdecpt
+0x006805d0,CRT_cropzeros,function,low,reimplemented (src/game/core/crtfloat); _cropzeros
+0x00680640,CRT_positive,function,low,reimplemented (src/game/core/crtfloat); _positive
+0x00685f40,CRT_frexp,function,low,reimplemented (src/game/core/crtfloat); frexp
+0x0067b440,CRT_fpclass,function,low,reimplemented (src/game/core/crtfloat); _fpclass
+0x00680660,CRT_fassign,function,low,reimplemented (src/game/core/crtfloat); _fassign
+0x00680740,CRT_cftoe2,function,low,reimplemented (src/game/core/crtfloat); _cftoe2
+0x006808b0,CRT_cftof2,function,low,reimplemented (src/game/core/crtfloat); _cftof2
 0x004092a0,GameOwner_Pause,function,low,"reimplemented (src/game/core/gameowner); thiscall (mode, flag), pops 8: the game held: the front end, the clocks, the sounds or the advisor's speech"
 0x00409300,GameOwner_Resume,function,low,reimplemented (src/game/core/gameowner); thiscall: the game let go
 0x00409350,GameOwner_TogglePause,function,low,"reimplemented (src/game/core/gameowner); thiscall (flag), pops 4: paused or not, by +0x1c"
