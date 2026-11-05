@@ -9,7 +9,9 @@
 #include "stdtree.h"
 #include "string.h"
 #include "vcall.h"
+#include "language.h"
 #include "../files/file.h"
+#include "../files/memsource.h"
 
 namespace {
 
@@ -459,6 +461,41 @@ u32 __fastcall GlobalSave_MarkScore(u8 *info, void *, u32 i, s32 score) {
     at<s32>(theme, 0xc + 4 * i) = score;
     return LevelReached(info, GlobalSave_CountSet(info));
 }
+}
+
+extern "C" u32 __fastcall GlobalSave_ReadFile(u8 *info, void *, const char *path) {
+    const auto status = [](u32 result) { return *reinterpret_cast<const s32 *>((uintptr_t)result); };
+    at<u32>(info, 0x18) = 0;
+    at<u16>(info, 0x26) = 0;
+    at<u32>(info, 0x1c) = 0;
+    at<u32>(info, 0x20) = 0;
+    at<u8>(info, 0x24) = 0;
+    at<u8>(info, 0x25) = 1;
+    at<u8>(info, 0x4c) = 1;
+    GlobalSave_ClearThemes(info);
+    u32 stream = 0;
+    s32 result;
+    if (status(g_calls.Cd(0x005f5ad0, &result, &stream, path, 0x80000000u)) < 0)   // FileStream_Open
+        return 0;
+    u32 version, done = 0;
+    if (status(g_calls.Cd(0x005f5e20, &result, stream, &version, 4u, &done)) < 0 || done != 4   // Stream_Read
+        || version < 0xc || g_calls.Th(0x005aff50, (u32)(uintptr_t)info, stream, 0u, version) != 0) {   // GlobalSave_Serialize
+        g_calls.Cd(0x005f5b80, &result, stream);   // Stream_Close
+        return 0;
+    }
+    g_calls.Cd(0x005f5b80, &result, stream);
+    if (at<u8>(GlobalSave_Instance(), 0x25) != 0) {
+        char swears[0x104], alloweds[0x104];
+        const auto format = [](char *to, u32 pattern) {
+            const char *const root = at<const char *>(MemorySource_GetLock(reinterpret_cast<MemorySource *>((uintptr_t)0x00f816c0)), 8);
+            g_calls.Cd(0x0067a650, to, pattern, root, Language_Buffer(reinterpret_cast<const u8 *>((uintptr_t)0x0078b530)));   // CRT_sprintf
+        };
+        format(swears, 0x0077318c);   // "%s\Language\%s\swears.txt"
+        format(alloweds, 0x00773170);   // "%s\Language\%s\alloweds.txt"
+        if ((u8)g_calls.Th(0x005d3140, (u32)(uintptr_t)info, swears, alloweds, 1u) == 0)
+            at<u8>(GlobalSave_Instance(), 0x25) = 0;
+    }
+    return 1;
 }
 
 extern "C" u32 __fastcall GlobalSave_WriteFile(u8 *info, void *, const char *path) {

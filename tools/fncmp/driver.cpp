@@ -1208,6 +1208,7 @@ const AddrCall kGlobalSaveCalls[] = {  // tests/fncmp/globalsaveio.py --table
     {0x5b1620, recorder(6, 2)},
     {0x5b1650, recorder(7, 2)}, {0x5aff50, recorder(8, 3)}, {0x5f5ad0, jpeg_recorder(1, 4)}, {0x5f5e50, jpeg_recorder(2, 5)}, {0x5f5b80, jpeg_recorder(3, 2)},  // (the last four: tests/fncmp/globalsavewrite.py)
     {0x5b11c0, recorder(8, 0)},  // tests/fncmp/thememap.py
+    {0x5f5e20, jpeg_recorder(9, 5)}, {0x67a650, jpeg_recorder(10, 4)}, {0x5d3140, recorder(11, 3)},  // tests/fncmp/globalsaveread.py
 };
 // GamePaths_FindDisc's recorder (tests/fncmp/gamepathscheckdisc.py's _find, the same): the copy kept first.
 u32 __fastcall findDiscStandIn(u32 self, u32) {

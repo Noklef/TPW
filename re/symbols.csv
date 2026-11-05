@@ -2805,6 +2805,7 @@ address,name,kind,confidence,notes
 0x005af250,GlobalSave_Dtor,function,low,"reimplemented (src/game/core/globalsave); thiscall: the info destroyed: theme records, theme map, map +0x28, counted lists +0xc and +0; name invented"
 0x005af430,GlobalSaveThemes_Dtor,function,low,"reimplemented (src/game/core/globalsave); thiscall: the theme map destroyed, the nil freed with the last user; name invented"
 0x005af1e0,GlobalSaveRides_Dtor,function,low,"reimplemented (src/game/core/globalsave); thiscall: the map +0x28 destroyed, the nil freed with the last user; name invented"
+0x005afd70,GlobalSave_ReadFile,function,low,"reimplemented (src/game/core/globalsave); thiscall: the global save's file read, then the swear lists loaded; name invented"
 0x005775d0,LiveObjects_Add,function,high,"reimplemented (src/game/core/liveobjects); cdecl (object): appended to the live objects list (0x87a6d8, count 0x87aed8, room for 0x200; the rest dropped); 1 either way"
 0x00577600,LiveObjects_Remove,function,high,"reimplemented (src/game/core/liveobjects); cdecl (object): the last match is replaced by the last entry and the count drops; 1, or 0 when not there"
 0x00579cd0,LiveObject7019f8_Construct,function,low,"reimplemented (src/game/core/liveobjects); thiscall (most derived): two identity matrices, fields cleared, the virtual base's vtable 0x7019f8 set and the base added to the live objects"

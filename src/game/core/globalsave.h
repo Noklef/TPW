@@ -122,4 +122,9 @@ void __fastcall GlobalSaveRides_Dtor(u8 *tree);
 // 0x5afc60 (thiscall (path), pops 4; name invented, unconfirmed): the file opened (flags 0x40000010; failing: 0), the version 0xc written (4 bytes), the info serialised to it (saving, third the version) and closed: 1 when all went well, else 0.
 extern "C" {
 u32 __fastcall GlobalSave_WriteFile(u8 *info, void *, const char *path);
+
+// 0x5afd70 (thiscall (path), pops 4; name invented, unconfirmed): the fields reset (+0x18, +0x1c, +0x20, +0x24, +0x26 to 0, +0x25 and +0x4c to 1) and the themes
+// cleared; the file opened (flags 0x80000000; failing: 0), its version read (failing, not 4 bytes or below 0xc: 0), the info serialised from it (nonzero: 0), the file
+// closed. With the instance's +0x25 set, the swear lists loaded by 0x5d3140 (the root's Language\<language>\swears.txt, alloweds.txt, 1): AL clear clears that byte. 1.
+u32 __fastcall GlobalSave_ReadFile(u8 *info, void *, const char *path);
 }
