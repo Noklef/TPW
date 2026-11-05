@@ -240,6 +240,57 @@ void PlayBlock(u8 *clone, const u8 *model, u8 *map, u32 i, u32 *clipped) {
 
 void HeightMap_SetCalls(const AddrCall *table, u32 count) { g_calls.Set(table, count); }
 
+static void copy_grid(u8 *to, const u8 *from, u32 bytes) {
+    if (from)
+        for (u32 i = 0; i < bytes; ++i) to[i] = from[i];
+}
+
+void __cdecl HeightMap_ReadOrBuild(u8 *instance, u32 width, u32 height, const char *path, const u8 *flags, u32 useScale) {
+    u32 got = 0;
+    u8 *map = nullptr;
+    if (const u32 stream = g_calls.Cd(0x005c4d50, path, 0x0074cfb8u)) {
+        const u32 size = g_calls.Cd(0x005c5000, stream);
+        map = reinterpret_cast<u8 *>((uintptr_t)g_calls.Cd(0x0045b9d0, size, 1u));
+        if (map) got = g_calls.Cd(0x005c4f60, map, size, 1u, stream);
+        g_calls.Cd(0x005c4f80, stream);
+    }
+    if (!got) {
+        g_calls.Cd(0x0045ba00, map);
+        map = nullptr;
+    }
+    if (map) {
+        if (at<u32>(map, 0) == 0xab1e0003 && at<u32>(map, 4) == 0x640005) {
+            for (u32 offset = 0xc; offset <= 0x14; offset += 4) at<u32>(map, offset) += (u32)(uintptr_t)map;
+        } else {
+            g_calls.Cd(0x0045ba00, map);
+            map = nullptr;
+        }
+    }
+    if (!map || width != at<u16>(map, 8) || height != at<u16>(map, 0xa)) {
+        map = reinterpret_cast<u8 *>((uintptr_t)g_calls.Cd(0x00451880, instance, width, height, flags, useScale));
+        if (map) {
+            const u32 cells = static_cast<u32>(at<u16>(map, 0xa)) * at<u16>(map, 8);
+            const u32 total = cells * 25 + cells * 2 + 0x30;
+            u8 *const block = reinterpret_cast<u8 *>((uintptr_t)g_calls.Cd(0x0045b9d0, total, 0u));
+            for (u32 offset = 0; offset < 0x30; offset += 4) at<u32>(block, offset) = at<u32>(map, offset);
+            copy_grid(block + 0x30, at<const u8 *>(map, 0xc), cells * 25);
+            copy_grid(block + 0x30 + cells * 25, at<const u8 *>(map, 0x10), cells);
+            copy_grid(block + 0x30 + cells * 26, at<const u8 *>(map, 0x14), cells);
+            at<u32>(block, 0xc) = 0x30;
+            at<u32>(block, 0x10) = 0x30 + cells * 25;
+            at<u32>(block, 0x14) = 0x30 + cells * 26;
+            if (const u32 file = g_calls.Cd(0x0067b8a0, path, 0x0074cfb4u)) {
+                g_calls.Cd(0x0067b6d0, block, total, 1u, file);
+                g_calls.Cd(0x0067b620, file);
+            }
+            g_calls.Cd(0x0045ba00, block);
+        }
+    }
+    u8 *const to = at<u8 *>(at<u8 *>(instance, 8), 4) + 0x80;
+    for (u32 i = 0; i < 6; ++i) at<u32>(to, 4 * i) = at<u32>(map, 0x18 + 4 * i);
+    at<u8 *>(instance, 0xcc) = map;
+}
+
 u8 *__cdecl HeightMap_Build(u8 *instance, u32 width, u32 height, const u8 *flags, u32 useScale) {
     u8 *clone;
     if (!g_calls.Cd(0x004557c0, instance, 0u, 0x211fu, &clone, 0u))   // Instance_Clone

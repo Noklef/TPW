@@ -1252,6 +1252,8 @@ const AddrCall kHeightMapCalls[] = {  // tests/fncmp/heightmapbuild.py --table
     {0x472f60, jpeg_recorder(8, 6)},
     {0x473e30, jpeg_recorder(2, 4)},
     {0x451e20, (u32)(uintptr_t)&heightmap_rasterize_recorder},
+    {0x5c4d50, jpeg_recorder(16, 2)}, {0x5c5000, jpeg_recorder(17, 1)}, {0x5c4f60, jpeg_recorder(18, 4)}, {0x5c4f80, jpeg_recorder(19, 1)}, {0x45ba00, jpeg_recorder(20, 1)},   // tests/fncmp/heightmapfile.py
+    {0x451880, jpeg_recorder(21, 5)}, {0x67b8a0, jpeg_recorder(22, 2)}, {0x67b6d0, jpeg_recorder(23, 4)}, {0x67b620, jpeg_recorder(24, 1)},
 };
 // The frees of tests/fncmp/contactstestall.py (its _free, the same): the control word kept first.
 u32 __cdecl contactsFreeStandIn(u32 block) {
