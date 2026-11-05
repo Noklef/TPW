@@ -17,8 +17,16 @@
 #pragma once
 
 #include "../../../re/types.h"
+#include "../core/addrcalls.h"
+
+void Renderer_SetDrawCalls(const AddrCall *table, u32 count);
 
 extern "C" {
+
+// 0x576910 (thiscall; name invented, unconfirmed): [0x8bb624] = 0x1000000; the list at +0x2c, when not empty, put in the renderer's +0x30 and drawn (slot 1 of each node's object); the
+// ground's textures prepared (TerrainGround_PrepareTextures on [0x879d60]); [0x8bb624] = 0. Then for the view at +0x44, when set, rows {+0} up to {+4} (signed): cells from the s8 at +8 + row
+// up to the s8 at +0x88 + row in the grid at +0x10, +0x38 wide, each cell's list put in +0x30 and drawn. A 0 from any ends it with 0, else 1.
+u32 __fastcall Renderer_DrawCellLists(u8 *renderer);
 
 // 0x5761b0 (cdecl; name unconfirmed): 0 without a renderer ([0x87a6d0]). Else its frame buffer (+0x10), when set, freed
 // (TrackedGlobal_Free, core/gameheap) and cleared; then, [0x87a6d0] read again, its pool (+0), when set, freed with +8 and +0xc

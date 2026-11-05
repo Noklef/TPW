@@ -298,6 +298,7 @@
 #include "../../src/game/render/ddopen.h"
 #include "../../src/game/render/engineshutdown.h"
 #include "../../src/game/render/devicereset.h"
+#include "../../src/game/render/renderer.h"
 #include "../../src/game/terrain/attrmap.h"
 #include "../../src/game/terrain/baseload.h"
 #include "../../src/game/terrain/tct.h"
@@ -1326,7 +1327,8 @@ const AddrCall kTerrainBaseCalls[] = {{0x40ef40, jpeg_recorder(1, 0)}, {0x46e650
 const AddrCall kGroundPrepareCalls[] = {{0x58c9f0, recorder(1, 2)}, {0x572440, recorder(2, 3)}};  // tests/fncmp/groundprepare.py
 const AddrCall kTexCacheSetupCalls[] = {{0x58d400, recorder(2, 0)}, {0x58d670, recorder(3, 0)}, {0x58b220, recorder(4, 3)}, {0x58dd60, recorder(5, 1)}, {0x58d380, recorder(6, 0)}, {0x58b280, recorder(7, 0)}, {0x56b630, jpeg_recorder(8, 0)}, {0x58d0f0, recorder(9, 0)}, {0x56af20, recorder(10, 2)}};  // tests/fncmp/texcachesetup.py
 const AddrCall kLevelSetupCalls[] = {{0x519440, recorder(1, 0)}, {0x519430, recorder(2, 0)}, {0x519420, recorder(3, 0)}, {0x519410, recorder(4, 0)}, {0x450900, jpeg_recorder(5, 0)}, {0x53bfe0, jpeg_recorder(6, 0)}, {0x450e60, jpeg_recorder(7, 0)}, {0x469550, jpeg_recorder(8, 0)}, {0x4628a0, jpeg_recorder(9, 0)}, {0x469510, jpeg_recorder(10, 0)}, {0x452e10, jpeg_recorder(11, 0)}, {0x435500, jpeg_recorder(12, 0)}, {0x475290, jpeg_recorder(13, 0)}, {0x462870, jpeg_recorder(14, 1)}, {0x56df70, jpeg_recorder(15, 4)}, {0x52f050, jpeg_recorder(16, 2)}};  // tests/fncmp/levelsetup.py
-const AddrCall kDeviceResetCalls[] = {{0x58dc10, recorder(2, 0)}, {0x564140, recorder(3, 0)}, {0x564160, recorder(4, 0)}, {0x58db90, recorder(7, 1)}, {0x47ea00, jpeg_recorder(8, 0)}, {0x583700, jpeg_recorder(9, 0)}, {0x5640a0, recorder(10, 0)}, {0x56af20, recorder(11, 2)}};  // tests/fncmp/enginereset.py
+const AddrCall kRendererDrawCalls[] = {{0x56f090, recorder(2, 0)}};  // tests/fncmp/rendererdraw.py
+const AddrCall kDeviceResetCalls[] ={{0x58dc10, recorder(2, 0)}, {0x564140, recorder(3, 0)}, {0x564160, recorder(4, 0)}, {0x58db90, recorder(7, 1)}, {0x47ea00, jpeg_recorder(8, 0)}, {0x583700, jpeg_recorder(9, 0)}, {0x5640a0, recorder(10, 0)}, {0x56af20, recorder(11, 2)}};  // tests/fncmp/enginereset.py
 const AddrCall kEngineShutdownCalls[] ={{0x564b60, jpeg_recorder(1, 0)}, {0x57c4a0, jpeg_recorder(2, 0)}, {0x57d1a0, jpeg_recorder(3, 0)}, {0x58a490, jpeg_recorder(4, 0)}, {0x561a00, jpeg_recorder(5, 0)}, {0x58b040, jpeg_recorder(6, 0)}, {0x574b10, jpeg_recorder(7, 0)}, {0x5761b0, jpeg_recorder(8, 0)}, {0x56de90, jpeg_recorder(9, 0)}, {0x58d090, jpeg_recorder(10, 0)}, {0x580500, jpeg_recorder(11, 0)}, {0x5740e0, jpeg_recorder(12, 0)}, {0x582280, jpeg_recorder(13, 0)}, {0x5667a0, jpeg_recorder(14, 0)}, {0x569ef0, jpeg_recorder(15, 0)}, {0x573b30, jpeg_recorder(16, 0)}, {0x578390, jpeg_recorder(17, 0)}, {0x56b760, jpeg_recorder(18, 0)}};  // tests/fncmp/engineshutdown.py
 const AddrCall kObjModelTreeCalls[] = {{0x56ee90, recorder(9, 1)}, {0x561a30, recorder(10, 2)}, {0x57aa10, recorder(11, 4)}, {0x581cd0, recorder(12, 5)}, {0x57a420, recorder(13, 1)}};  // tests/fncmp/objmodeltree.py
 const AddrCall kTextureTouchCalls[] = {{0x58c9f0, recorder(14, 2)}, {0x588ef0, recorder(15, 0)}};  // tests/fncmp/texturetouches.py
@@ -2625,7 +2627,8 @@ int main(int argc, char **argv) {
     TerrainGround_SetPrepareCalls(kGroundPrepareCalls, sizeof(kGroundPrepareCalls) / sizeof(kGroundPrepareCalls[0]));
     TexCache_SetSetupCalls(kTexCacheSetupCalls, sizeof(kTexCacheSetupCalls) / sizeof(kTexCacheSetupCalls[0]));
     LevelSetup_SetCalls(kLevelSetupCalls, sizeof(kLevelSetupCalls) / sizeof(kLevelSetupCalls[0]));
-    DeviceReset_SetCalls(kDeviceResetCalls, sizeof(kDeviceResetCalls) / sizeof(kDeviceResetCalls[0]));
+    Renderer_SetDrawCalls(kRendererDrawCalls, sizeof(kRendererDrawCalls) / sizeof(kRendererDrawCalls[0]));
+    DeviceReset_SetCalls(kDeviceResetCalls,sizeof(kDeviceResetCalls) / sizeof(kDeviceResetCalls[0]));
     EngineShutdown_SetCalls(kEngineShutdownCalls,sizeof(kEngineShutdownCalls) / sizeof(kEngineShutdownCalls[0]));
     TexCache_SetDestroyCalls(kTexCacheDestroyCalls, sizeof(kTexCacheDestroyCalls) / sizeof(kTexCacheDestroyCalls[0]));
     SurfacePool_SetLevelsCalls(kSurfaceLevelsCalls, sizeof(kSurfaceLevelsCalls) / sizeof(kSurfaceLevelsCalls[0]));

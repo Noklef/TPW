@@ -86,9 +86,41 @@ void ClearGroup(u8 *base) {
 
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
 
+AddrCalls g_drawCalls;
+
+bool DrawList(const u8 *head) {
+    for (const u8 *node = head; node; node = at<const u8 *>(node, 4))
+        if (!vcall<u32>(at<u8 *>(node, 0), 4)) return false;
+    return true;
+}
+
 }  // namespace
 
+void Renderer_SetDrawCalls(const AddrCall *table, u32 count) { g_drawCalls.Set(table, count); }
+
 extern "C" {
+
+u32 __fastcall Renderer_DrawCellLists(u8 *renderer) {
+    global<u32>(0x8bb624) = 0x1000000;
+    const u8 *const head = at<const u8 *>(renderer, 0x2c);
+    if (head) at<const u8 *>(global<u8 *>(0x87a6d0), 0x30) = head;
+    if (!DrawList(head)) return 0;
+    if (!g_drawCalls.Th(0x0056f090, global<u32>(0x879d60))) return 0;   // TerrainGround_PrepareTextures
+    global<u32>(0x8bb624) = 0;
+    const u8 *view = at<const u8 *>(renderer, 0x44);
+    if (!view) return 1;
+    for (s32 y = at<s32>(view, 0); y < at<s32>(view, 4); ++y) {
+        const s32 start = at<s8>(view, 8 + y);
+        const u8 *const *row = at<const u8 *const *>(renderer, 0x10) + y * at<s32>(renderer, 0x38) + start;
+        for (s32 i = at<s8>(view, 0x88 + y) - start; i > 0; --i, ++row) {
+            const u8 *cell = *row;
+            at<const u8 *>(global<u8 *>(0x87a6d0), 0x30) = cell;
+            if (!DrawList(cell)) return 0;
+        }
+        view = at<const u8 *>(renderer, 0x44);
+    }
+    return 1;
+}
 
 u32 __cdecl Renderer_Create() {
     if (global<u32>(0x0087a6d0))
