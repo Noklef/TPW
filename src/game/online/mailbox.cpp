@@ -2,15 +2,20 @@
 
 #include <cstdint>
 
+#include "../core/accessors.h"
 #include "../core/crt.h"
 #include "../core/crtoutput.h"
 #include "../core/initializers.h"
+#include "../core/gameheap.h"
 #include "../core/iosbase.h"
 #include "../core/narrowfilebuf.h"
 #include "../core/nstream.h"
 #include "../core/ptrlist.h"
 #include "../core/stdlist.h"
 #include "../core/stdstring.h"
+#include "../core/stdwstring.h"
+#include "chatlists.h"
+#include "session.h"
 
 namespace {
 
@@ -21,6 +26,12 @@ const MailboxEnv kGameEnv = {&Init_5cfd80, &NOstream_Ctor, &NIstream_Ctor, &NFil
                              reinterpret_cast<u8 *(__cdecl *)(u8 *, const char *)>((uintptr_t)0x005d0e70), &CRT_fclose, &NFileBuf_Init, &NFileBuf_Close, &NFileBuf_Dtor, &IosBase_Dtor,
                              reinterpret_cast<s32(__cdecl *)(const char *)>((uintptr_t)0x0067a520), &List_EraseNodeCounted, &StdListString_Insert};
 const MailboxEnv *g_env = &kGameEnv;
+
+const MailboxDropEnv kGameDropEnv = {reinterpret_cast<u32 *(__fastcall *)(u8 *, void *, u32 *, u32)>((uintptr_t)0x00634cc0), reinterpret_cast<s32(__cdecl *)(const char *)>((uintptr_t)0x0067e560), &Mailbox_SaveOutbox, &Mailbox_LoadMessage,
+                                     &Mailbox_DeleteMessage, &Online_Instance, &Online_UserName, &Get34_41ce80, &Get38_41ce90, &Online_String14, &Online_String28, &TokenList_PushChars,
+                                     reinterpret_cast<void *(__fastcall *)(void *, void *, const u16 *, u32)>(&StdWString_AssignChars), &Mailbox_NewAttachment,
+                                     reinterpret_cast<u8 *(__fastcall *)(void *, void *, const char *)>((uintptr_t)0x005c9720)};
+const MailboxDropEnv *g_drop = &kGameDropEnv;
 
 // The ios of a stream, by the offset in its vbtable.
 u8 *IosOf(u8 *stream) { return stream + at<u32>(at<u8 *>(stream, 0), 4); }
@@ -39,9 +50,84 @@ void WriteNumbers(u8 *self, u32 listAt, u8 *stream) {
 
 u8 *ReadLine(u8 *stream, char *line) { return g_env->getline(stream, nullptr, line, 0x100, g_env->widen(IosOf(stream), nullptr, 10)); }
 
+// Every node of a list of numbers that holds the number erased. The end is read once.
+void RemoveNumber(u8 *list, u32 number) {
+    const u32 end = at<u32>(list, 4);
+    u32 cursor = at<u32>(at<u8 *>(list, 4), 0);
+    while (cursor != end) {
+        if (at<u32>(reinterpret_cast<void *>((uintptr_t)cursor), 8) == number) {
+            u32 old, out;
+            g_drop->eraseNumber(list, nullptr, &out, *ListCursor_Next(&cursor, nullptr, &old, 0));
+        } else {
+            cursor = at<u32>(reinterpret_cast<void *>((uintptr_t)cursor), 0);
+        }
+    }
+}
+
+// The file of a message removed: the folder and the name made by the format.
+void RemoveFile(u8 *self, StdString *path, u32 format, u32 number) {
+    StdString_AssignSub(path, nullptr, reinterpret_cast<const StdString *>(self), 0, npos());
+    char line[0x80];
+    CRT_sprintf(line, reinterpret_cast<const char *>((uintptr_t)format), number);
+    StdString_AppendChars(path, nullptr, line, CRT_strlen(line));
+    g_drop->remove(TextOf(*path));
+}
+
 }  // namespace
 
 void Mailbox_SetEnv(const MailboxEnv *env) { g_env = env ? env : &kGameEnv; }
+
+void MailboxDrop_SetEnv(const MailboxDropEnv *env) { g_drop = env ? env : &kGameDropEnv; }
+
+void __fastcall Mailbox_DeleteMessage(u8 *self, void *, u32 number) {
+    StdString path;
+    StdString_Tidy(&path, nullptr, 0);
+    RemoveFile(self, &path, 0x007740d8, number);
+    RemoveFile(self, &path, 0x007740cc, number);
+    StdString_Tidy(&path, nullptr, 1);
+}
+
+u32 __fastcall Mailbox_NewAttachment(u8 *target, void *, const char *path) {
+    void *const block = GameHeap_Alloc(0x24);
+    u8 *const made = block ? g_drop->attachmentCtor(block, nullptr, path) : nullptr;
+    at<u8 *>(target, 0x68) = made;
+    return made == nullptr;
+}
+
+u8 __fastcall Mailbox_DropFirst(u8 *self, void *, u8 *target) {
+    const u32 number = at<u32>(at<u8 *>(at<u8 *>(self, 0x68), 0), 8);
+    RemoveNumber(self + 0x70, number);
+    RemoveNumber(self + 0x64, number);
+    RemoveNumber(self + 0x58, number);
+    g_drop->deleteMessage(self, nullptr, number);
+    g_drop->saveOutbox(self);
+    if (!at<u32>(self, 0x6c)) return 0;
+    if (!g_drop->loadMessage(self, nullptr, at<u32>(at<u8 *>(at<u8 *>(self, 0x68), 0), 8))) return 0;
+    char name[0x80];   // (the original's frame has this much: a longer name overruns it there too)
+    const u8 *const wide = reinterpret_cast<const u8 *>(g_drop->userName(g_drop->instance()));
+    for (u32 i = 0;; ++i) {
+        name[i] = static_cast<char>(wide[i * 2]);
+        if (!name[i]) break;
+    }
+    StdString_AssignChars(reinterpret_cast<StdString *>(target), nullptr, name, CRT_strlen(name));
+    at<u32>(target, 0x3c) = g_drop->get34(g_drop->instance());
+    at<u32>(target, 0x40) = g_drop->get38(g_drop->instance());
+    const u16 *text = reinterpret_cast<const u16 *>(g_drop->string14(g_drop->instance()));
+    g_drop->assignWide(target + 0x44, nullptr, text, CRT_wcslen(text));
+    text = reinterpret_cast<const u16 *>(g_drop->string28(g_drop->instance()));
+    g_drop->assignWide(target + 0x54, nullptr, text, CRT_wcslen(text));
+    at<u32>(target, 0x64) = 9;
+    for (u8 *node = at<u8 *>(at<u8 *>(self, 0x34), 0); node != at<u8 *>(self, 0x34); node = at<u8 *>(node, 0)) g_drop->pushChars(target, nullptr, TextOf(at<StdString>(node, 8)));
+    const char *const second = TextOf(at<StdString>(self, 0x20));
+    StdString &to = at<StdString>(target, 0x1c);
+    const u32 length = CRT_strlen(second);
+    if (StdString_Grow(&to, nullptr, length, 1)) {
+        for (u32 i = 0; i < length; ++i) to.ptr[i] = second[i];
+        to.len = length;
+        to.ptr[length] = 0;
+    }
+    return g_drop->attach(target, nullptr, TextOf(at<StdString>(self, 0x3c))) == 0;
+}
 
 void __fastcall NIos_Dtor(u8 *self) {
     at<u32>(self, 0) = 0x00709954;

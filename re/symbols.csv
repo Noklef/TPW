@@ -7700,6 +7700,9 @@ address,name,kind,confidence,notes
 0x005cde40,NIos_Dtor,function,low,reimplemented (src/game/online/mailbox); thiscall: basic_ios<char>'s destructor
 0x005cb720,Mailbox_SaveOutbox,function,low,reimplemented (src/game/online/mailbox); thiscall: <folder>/outbox.dat written from the three lists of numbers
 0x005cba70,Mailbox_LoadMessage,function,low,"reimplemented (src/game/online/mailbox); thiscall (number): <folder>/%08x.dat read: three numbers, two texts and the list of lines"
+0x005cd220,Mailbox_DeleteMessage,function,low,"reimplemented (src/game/online/mailbox); Both files of a message removed; name invented, unconfirmed"
+0x005c99f0,Mailbox_NewAttachment,function,low,"reimplemented (src/game/online/mailbox); An attachment made from a path at +0x68; name invented, unconfirmed"
+0x005ccda0,Mailbox_DropFirst,function,low,"reimplemented (src/game/online/mailbox); The first message dropped and the next read into a target; name invented, unconfirmed"
 0x005d8190,LobbyModel_SetPosition,function,high,"reimplemented (src/game/frontend/lobbymodel); thiscall (v): the lobby model's (+4: 0x7a4610 index) matrix (+8 -> +4 -> +0x78, +0x10) translation = v[0..2] (x87 loads, all read first)"
 0x005d8380,LobbyModel_TurnY,function,high,"reimplemented (src/game/frontend/lobbymodel); thiscall (angle): Matrix_RotateEulerFast(the lobby model's matrix, 2 ""Y"", &angle)"
 0x005d83b0,LobbyModel_SetScale,function,high,"reimplemented (src/game/frontend/lobbymodel); thiscall (x, y, z): Holder_SetScale(the lobby model's entry +8, (x, y, z))"

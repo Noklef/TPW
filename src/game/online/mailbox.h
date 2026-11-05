@@ -31,6 +31,26 @@ struct MailboxEnv {
 };
 void Mailbox_SetEnv(const MailboxEnv *env);  // nullptr: the game's
 
+// The calls of 0x5cd220, 0x5ccda0 and 0x5c99f0 (0x634cc0, 0x67e560 and 0x5c9720 are still the game's).
+struct MailboxDropEnv {
+    u32 *(__fastcall *eraseNumber)(u8 *list, void *, u32 *out, u32 node);  // 0x634cc0
+    s32(__cdecl *remove)(const char *path);                                // 0x67e560
+    u8(__fastcall *saveOutbox)(u8 *self);                                  // Mailbox_SaveOutbox
+    u8(__fastcall *loadMessage)(u8 *self, void *, u32 number);             // Mailbox_LoadMessage
+    void(__fastcall *deleteMessage)(u8 *self, void *, u32 number);         // Mailbox_DeleteMessage
+    u8 *(__cdecl *instance)();                                             // Online_Instance
+    const u16 *(__fastcall *userName)(const u8 *session);                  // Online_UserName
+    u32(__fastcall *get34)(const u8 *o);                                   // Get34_41ce80
+    u32(__fastcall *get38)(const u8 *o);                                   // Get38_41ce90
+    const char *(__fastcall *string14)(const u8 *session);                 // Online_String14
+    const char *(__fastcall *string28)(const u8 *session);                 // Online_String28
+    void(__fastcall *pushChars)(u8 *owner, void *, const char *chars);     // TokenList_PushChars
+    void *(__fastcall *assignWide)(void *s, void *, const u16 *chars, u32 n);  // StdWString_AssignChars
+    u32(__fastcall *attach)(u8 *target, void *, const char *path);         // Mailbox_NewAttachment
+    u8 *(__fastcall *attachmentCtor)(void *self, void *, const char *path);  // 0x5c9720
+};
+void MailboxDrop_SetEnv(const MailboxDropEnv *env);  // nullptr: the game's
+
 extern "C" {
 // 0x5cde40 (thiscall): basic_ios<char>'s destructor: the vtable 0x709954, IosBase_Dtor.
 void __fastcall NIos_Dtor(u8 *self);
@@ -41,4 +61,15 @@ u8 __fastcall Mailbox_SaveOutbox(u8 *self);
 // 0x5cba70 (thiscall (number), pops 4): "<folder>/%08x.dat" read: lines of at most 0x100: numbers into +0x4c, +0x50, +0x54, texts into +0x10 and +0x20, the rest into the emptied list +0x30 until the stream fails. +0x3c = "<folder>/%08x.jpg".
 // Answers 0 when the file does not open, else 1.
 u8 __fastcall Mailbox_LoadMessage(u8 *self, void *, u32 number);
+
+// 0x5cd220 (thiscall (number), pops 4): the files "<folder>/%08x.dat" and "<folder>/%08x.jpg" removed.
+void __fastcall Mailbox_DeleteMessage(u8 *self, void *, u32 number);
+
+// 0x5c99f0 (thiscall (path), pops 4): a block of 0x24 (Mem_Alloc; none: 0) built by 0x5c9720 from the path, kept at +0x68. Answers 1 when there is none, else 0.
+u32 __fastcall Mailbox_NewAttachment(u8 *target, void *, const char *path);
+
+// 0x5ccda0 (thiscall (target), pops 4): the number at the head of the list +0x64 taken out of the lists +0x70, +0x64 and +0x58, its files removed, the outbox saved. With another left, that message read (none: 0) and the target filled: its text +0
+// the session's user name (the low byte of each wide character, in a buffer of 0x80), +0x3c and +0x40 from the session, wide +0x44 and +0x54 its two strings, +0x64 = 9, the message's lines pushed, +0x1c its second text, the attachment made from
+// the picture's path. Answers 1 when the attachment was made, else 0.
+u8 __fastcall Mailbox_DropFirst(u8 *self, void *, u8 *target);
 }
