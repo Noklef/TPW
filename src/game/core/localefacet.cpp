@@ -12,6 +12,7 @@
 #include "sharedglobals.h"
 #include "stdlocale.h"
 #include "stdstring.h"
+#include "vtables.h"
 
 namespace {
 
@@ -527,5 +528,26 @@ void __fastcall Facet70a024_Dtor(u32 *self, void *) { facet_dtor_two(self, 0x007
 void __fastcall Facet709ef4_Dtor(u32 *self, void *) { facet_dtor_one(self, 0x00709ef4); }
 void __fastcall Facet70a044_Dtor(u32 *self, void *) { facet_dtor_one(self, 0x0070a044); }
 void __fastcall Timevec_Dtor(void **self, void *) { Crt().free(*self); }
+
+s32 __fastcall WideRange_Compare(void *, void *, const u16 *a, const u16 *a_end, const u16 *b, const u16 *b_end) {
+    for (; a != a_end; ++a, ++b) {
+        if (b == b_end) return 1;
+        if (*b > *a) return -1;
+        if (*b < *a) return 1;
+    }
+    return b == b_end ? 0 : -1;
+}
+
+u8 *__fastcall Vtbl709b44_DeletingDtor(u8 *self, void *, u32 flags) {
+    Vtbl709b44_Set_6a9180(self);
+    if (flags & 1) Crt().free(self);
+    return self;
+}
+
+u8 *__fastcall Vtbl70a0a8_DeletingDtor(u8 *self, void *, u32 flags) {
+    *reinterpret_cast<u32 *>(self) = 0x0070a0a8;
+    if (flags & 1) Crt().free(self);
+    return self;
+}
 
 }  // extern "C"

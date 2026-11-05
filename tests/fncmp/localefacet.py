@@ -26,7 +26,7 @@ def lock(e):
     e.r['EAX'] = e.r['ECX']
 
 
-RANGES = [(0x6a4460, 0x6a4489), (0x6a74c0, 0x6a74e9), (0x6ab0b0, 0x6ab0d9), (0x6a4770, 0x6a478d), (0x6ab390, 0x6ab3ad), (0x6a4510, 0x6a451c), (0x67acb0, 0x67acbe), (0x6a7290, 0x6a7367), (0x6a7370, 0x6a73e1), (0x6a74f0, 0x6a754f), (0x6a9200, 0x6a925f), (0x6a49e0, 0x6a4a28), (0x6a2400, 0x6a2441), (0x6a91b0, 0x6a91f1), (0x6a01d0, 0x6a02cf), (0x6a02d0, 0x6a036b), (0x6a0480, 0x6a04a9), (0x6a04b0, 0x6a050f), (0x69b460, 0x69b481), (0x69b490, 0x69b4ef), (0x69cb00, 0x69cb5f), (0x695910, 0x695a2d), (0x69c680, 0x69c7db), (0x69c7e0, 0x69c8d8), (0x695c00, 0x695c35), (0x69cac0, 0x69caf5), (0x693dc0, 0x693e20), (0x694710, 0x69477b), (0x694780, 0x6947df), (0x695c40, 0x695c9f), (0x695a30, 0x695ae6), (0x699410, 0x699440), (0x698c40, 0x698c61), (0x6991f0, 0x699408), (0x699440, 0x6995ca), (0x693e20, 0x693f4b), (0x694120, 0x69470a),
+RANGES = [(0x69ff80, 0x69ffd7), (0x6a7270, 0x6a728e), (0x6a9180, 0x6a9190), (0x6ad010, 0x6ad030), (0x6a4460, 0x6a4489), (0x6a74c0, 0x6a74e9), (0x6ab0b0, 0x6ab0d9), (0x6a4770, 0x6a478d), (0x6ab390, 0x6ab3ad), (0x6a4510, 0x6a451c), (0x67acb0, 0x67acbe), (0x6a7290, 0x6a7367), (0x6a7370, 0x6a73e1), (0x6a74f0, 0x6a754f), (0x6a9200, 0x6a925f), (0x6a49e0, 0x6a4a28), (0x6a2400, 0x6a2441), (0x6a91b0, 0x6a91f1), (0x6a01d0, 0x6a02cf), (0x6a02d0, 0x6a036b), (0x6a0480, 0x6a04a9), (0x6a04b0, 0x6a050f), (0x69b460, 0x69b481), (0x69b490, 0x69b4ef), (0x69cb00, 0x69cb5f), (0x695910, 0x695a2d), (0x69c680, 0x69c7db), (0x69c7e0, 0x69c8d8), (0x695c00, 0x695c35), (0x69cac0, 0x69caf5), (0x693dc0, 0x693e20), (0x694710, 0x69477b), (0x694780, 0x6947df), (0x695c40, 0x695c9f), (0x695a30, 0x695ae6), (0x699410, 0x699440), (0x698c40, 0x698c61), (0x6991f0, 0x699408), (0x699440, 0x6995ca), (0x693e20, 0x693f4b), (0x694120, 0x69470a),
            (0x699bd0, 0x699c89), (0x69a560, 0x69a5c8), (0x699ce0, 0x699d47), (0x699d50, 0x699d9b), (0x4f21a0, 0x4f21cf), (0x4f1890, 0x4f18a2), (0x4f2180, 0x4f2199), (0x691530, 0x691536), (0x5d1460, 0x5d14e0), (0x6995d0, 0x699650), (0x699810, 0x699890),
            (0x698ea0, 0x698fc0), (0x6a65f0, 0x6a6644), (0x6a6650, 0x6a6669), (0x6a66c0, 0x6a66d9), (0x6a6670, 0x6a667c), (0x67d250, 0x67d340), (0x45b340, 0x45b9a0), (0x4f1400, 0x4f1511),
            (0x698fc0, 0x6990fa), (0x699100, 0x6991e2), (0x683ac0, 0x683d88), (0x683d90, 0x683ee5), (0x683ef0, 0x68400b), (0x684010, 0x684202), (0x684210, 0x684254), (0x684260, 0x684367), (0x684370, 0x6843da), (0x68db70, 0x68dbae),
@@ -37,7 +37,7 @@ HOOKS = {0x693bc0: _recorder(MBRTOWC, 5, cdecl=True), 0x67ad90: _free, 0x691de0:
 B = Bench(RANGES, hooks=HOOKS)
 OTHER_FACETS, LCONV, PCTYPE, LOCINFO, OUT, DEC_TEXT = RAM + 0x2000, RAM + 0x2200, RAM + 0x2400, RAM + 0x2800, RAM + 0x2900, RAM + 0x2a00
 NAME = HEAP + 0xa00
-OPS = [n for n in ('fdtor2', 'fdtor2', 'fdtor2', 'fdtor1', 'fdtor1', 'timevec', 'f7fac', 'f7facinit', 'f79c', 'f78c', 'widecopy', 'mptidyw', 'mptidyc', 'pairctor', 'pairinit', 'pairtidy', 'wbfc', 'numpunct', 'wnumpunct', 'wnumpunctinit', 'wnumget', 'wnumput', 'wcodecvt', 'tidy', 'wtidy', 'ctypeinit', 'numput', 'numget', 'numpunctinit', 'numpunctcopy', 'codecvt', 'usenumpunct', 'usenumpunct', 'usecodecvt', 'usecodecvt', 'getname', 'getname', 'makeloc', 'makeloc', 'makeloc', 'makeloc', 'makeloc')
+OPS = [n for n in ('widecmp', 'widecmp', 'del709b44', 'del70a0a8', 'fdtor2', 'fdtor2', 'fdtor2', 'fdtor1', 'fdtor1', 'timevec', 'f7fac', 'f7facinit', 'f79c', 'f78c', 'widecopy', 'mptidyw', 'mptidyc', 'pairctor', 'pairinit', 'pairtidy', 'wbfc', 'numpunct', 'wnumpunct', 'wnumpunctinit', 'wnumget', 'wnumput', 'wcodecvt', 'tidy', 'wtidy', 'ctypeinit', 'numput', 'numget', 'numpunctinit', 'numpunctcopy', 'codecvt', 'usenumpunct', 'usenumpunct', 'usecodecvt', 'usecodecvt', 'getname', 'getname', 'makeloc', 'makeloc', 'makeloc', 'makeloc', 'makeloc')
        if not os.environ.get('OPS') or n in os.environ['OPS'].split(',')]
 
 
@@ -124,6 +124,15 @@ def case(r):
         return Call(0x6a7290, [OUT, r.choice([0, 1, 0xffffffff])], regions, conv='t', ret='a')
     if name in ('f79c', 'f78c'):
         return Call(0x6a74f0 if name == 'f79c' else 0x6a9200, [OUT, r.choice([0, 1, 0xffffffff])], regions, conv='t', ret='a')
+    if name == 'widecmp':
+        a = [r.choice([0x41, 0x42, 0x8000, 0xffff]) for _ in range(r.randrange(6))]
+        b = a[:r.randrange(len(a) + 1)] + [r.choice([0x41, 0x42, 0x8000, 0xffff]) for _ in range(r.randrange(3))]
+        regions[OUT] = struct.pack('<%dH' % len(a), *a) + bytes(2)
+        regions[OUT + 0x40] = struct.pack('<%dH' % len(b), *b) + bytes(2)
+        return Call(0x69ff80, [r.getrandbits(32), OUT, OUT + 2 * len(a), OUT + 0x40, OUT + 0x40 + 2 * len(b)], regions, conv='t', ret='a')
+    if name in ('del709b44', 'del70a0a8'):
+        regions[OUT] = r.bytes(8)
+        return Call(0x6a7270 if name == 'del709b44' else 0x6ad010, [OUT, r.choice([0, 1, 2, 3, r.getrandbits(32)])], regions, conv='t', ret='a')
     if name in ('fdtor2', 'fdtor1', 'timevec'):
         regions[OUT] = struct.pack('<4I', r.choice([0, HEAP + 0x100]), r.getrandbits(32), r.choice([0, HEAP + 0x200]), r.choice([0, HEAP + 0x300]))
         return Call(r.choice({'fdtor2': [0x6a4460, 0x6a74c0, 0x6ab0b0], 'fdtor1': [0x6a4770, 0x6ab390], 'timevec': [0x6a4510]}[name]), [OUT], regions, conv='t')

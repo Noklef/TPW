@@ -6231,6 +6231,9 @@ address,name,kind,confidence,notes
 0x006a4770,Facet709ef4_Dtor,function,low,reimplemented (src/game/core/localefacet); the facet's destructor body
 0x006ab390,Facet70a044_Dtor,function,low,reimplemented (src/game/core/localefacet); the facet's destructor body
 0x006a4510,Timevec_Dtor,function,low,reimplemented (src/game/core/localefacet); _Timevec's destructor
+0x0069ff80,WideRange_Compare,function,low,reimplemented (src/game/core/localefacet); two wide ranges compared
+0x006a7270,Vtbl709b44_DeletingDtor,function,low,reimplemented (src/game/core/localefacet); deleting destructor
+0x006ad010,Vtbl70a0a8_DeletingDtor,function,low,reimplemented (src/game/core/localefacet); deleting destructor
 0x006895b0,CRT_mbctolower,function,low,reimplemented (src/game/core/crtmbstring); _mbctolower
 0x00689650,CRT_mbspbrk,function,low,reimplemented (src/game/core/crtmbstring); _mbspbrk
 0x00689400,CRT_mbsrchr,function,low,reimplemented (src/game/core/crtmbstring); _mbsrchr

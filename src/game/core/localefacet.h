@@ -87,5 +87,10 @@ void __fastcall Facet709ef4_Dtor(u32 *self, void *);
 void __fastcall Facet70a044_Dtor(u32 *self, void *);
 // 0x6a4510 (thiscall): _Timevec's destructor: free of its block.
 void __fastcall Timevec_Dtor(void **self, void *);
+// 0x69ff80: two wide ranges compared by value; a short range that matches is the lesser (name invented, unconfirmed).
+s32 __fastcall WideRange_Compare(void *, void *, const u16 *a, const u16 *a_end, const u16 *b, const u16 *b_end);
+// 0x6a7270, 0x6ad010: the vtable set back, freed on flag 1 (names by their tables, invented).
+u8 *__fastcall Vtbl709b44_DeletingDtor(u8 *self, void *, u32 flags);
+u8 *__fastcall Vtbl70a0a8_DeletingDtor(u8 *self, void *, u32 flags);
 
 }
