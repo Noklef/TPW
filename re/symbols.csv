@@ -6616,6 +6616,18 @@ address,name,kind,confidence,notes
 0x00634730,ChainFilter_Detach,function,low,reimplemented (src/game/input/devicefilter); thiscall (object): the object's slot 0x18 with this filter; name invented
 0x006348e0,MouseFilter_Constant1,function,low,reimplemented (src/game/input/devicefilter); returns 0x707c40; name invented
 0x006348f0,MouseFilter_Constant2,function,low,reimplemented (src/game/input/devicefilter); returns 0x679440; name invented
+0x00633160,InputFilter_Dtor,function,low,"reimplemented (src/game/input/devicefilter); thiscall: vtable 0x703c18, the sink released, the handle closed, vtable 0x703770; name invented"
+0x00633140,InputFilter_DeletingDtor,function,low,"reimplemented (src/game/input/devicefilter); thiscall (flags): the destructor, bit 0 frees; name invented"
+0x00633360,KeyFilter_Ctor,function,low,"reimplemented (src/game/input/devicefilter); thiscall: the key filter's constructor, subscribed on the list at 0x703c30; name invented"
+0x00633600,KeyFilter_ReadState,function,low,reimplemented (src/game/input/devicefilter); thiscall (holder): the keys (0xf0 bytes) or a mouse word read from the holder's device; name invented
+0x00633a30,DeviceHolder_DeletingDtor,function,low,"reimplemented (src/game/input/devicefilter); thiscall (flags): the destructor, bit 0 frees; name invented"
+0x00633d10,DeviceHolder_SetMode,function,low,"reimplemented (src/game/input/devicefilter); thiscall (result out, flags): the mode bits at +4 set (one of 1 / 2, one of 4 / 8), then Apply; name invented"
+0x00633ea0,InputFilter_SubscribeC90,function,low,reimplemented (src/game/input/devicefilter); thiscall (result out): subscribed on the list at 0x703c90; name invented
+0x006341d0,KeyFilter_SetHolder,function,low,"reimplemented (src/game/input/devicefilter); thiscall (result out, holder): the holder kept, the modifiers read; name invented"
+0x006345a0,MouseFilter_Subscribe,function,low,reimplemented (src/game/input/devicefilter); thiscall (result out): subscribed on the list at 0x703cc0; name invented
+0x0063e7c0,DeviceFilter_Ctor,function,low,reimplemented (src/game/input/devicefilter); thiscall: an input filter with a device holder at +0x10; name invented
+0x0063e820,DeviceFilter_DeletingDtor,function,low,"reimplemented (src/game/input/devicefilter); thiscall (flags): the destructor, bit 0 frees; name invented"
+0x0063e840,DeviceFilter_Dtor,function,low,"reimplemented (src/game/input/devicefilter); thiscall: the block at +0x30 freed, the holder's and the filter's destructors; name invented"
 0x00634a50,KeyPool_Dtor,function,low,reimplemented (src/game/input/messagepool); thiscall: the pool's destructor (vtable 0x703d1c): the messages and nodes freed; name invented
 0x00634b40,MousePool_Dtor,function,low,reimplemented (src/game/input/messagepool); thiscall: the pool's destructor (vtable 0x703d14); name invented
 0x00634d00,KeyPool_Next,function,low,"reimplemented (src/game/input/messagepool); thiscall: the next free message round the list, a new one when none; name invented"

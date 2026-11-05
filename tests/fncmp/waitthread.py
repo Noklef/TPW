@@ -38,7 +38,7 @@ def case(r):
     log = log_region()
     obj = bytearray(r.bytes(0x48))
     count = r.choice([0, 1, 2, 3, 4])
-    handles = vector(r, obj, 0x24, HANDLES, count + 1 if r.random() < 0.9 else count, r.choice([0, 0, 1, 4]))
+    handles = vector(r, obj, 0x24, HANDLES, count + 1 if r.random() < 0.7 else count, r.choice([0, 0, 1, 4]))
     objects = vector(r, obj, 0x34, OBJECTS, count, r.choice([0, 0, 1, 4]))
     item = bytearray(r.bytes(0x10))
     regions = {LOG: log, OBJ: obj, OUT: r.bytes(8), ITEM: item, HANDLES: handles, OBJECTS: objects, IMPORT_TABLE: imports(log), HEAP: heap()}
@@ -50,7 +50,7 @@ def case(r):
     put(obj, 8, 'I', r.choice([0, ITEM, ITEM, ITEM]))
     if op in ('Run', 'DoRemove'):
         if count and r.random() < 0.8:   # (in the list)
-            put(objects, 4 * r.randrange(count), 'I', ITEM)
+            put(objects, 4 * (count - 1 if r.random() < 0.5 else r.randrange(count)), 'I', ITEM)   # (the last: one past the handles when they lack the command's)
     if op == 'Run':
         put(obj, 4, 'I', r.choice([1, 2, 3, 0, 4]))
     if op in ('Proc', 'Loop'):

@@ -6,16 +6,17 @@ import struct
 import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
-from fncmp import IMPORT_TABLE, LOG, RAM, Bench, Call, _recorder, answers, fill, import_table, log_region, put, recorder, set_return, strings, vtable  # noqa: E402
+from fncmp import HEAP, IMPORT_TABLE, LOG, RAM, Bench, Call, _recorder, answers, fill, heap, import_table, log_region, put, recorder, set_return, strings, vtable  # noqa: E402
 
 ADDRESS = {'SetNext': (0x632350, 38), 'Close': (0x633200, 26), 'SetSink': (0x633250, 45), 'Key': (0x633510, 43), 'Dispatch': (0x6336d0, 21), 'ListDtor': (0x6336f0, 12), 'Subscribe': (0x633700, 66), 'Unsubscribe': (0x633750, 78),
            'Mouse': (0x6337a0, 180), 'Char': (0x633860, 68), 'HolderDtor': (0x633a50, 20), 'GetDevice': (0x633a70, 45), 'SetLevel': (0x633aa0, 185), 'Apply': (0x633b90, 92), 'ComRelease': (0x633db0, 13),
            'Modifiers': (0x634130, 160), 'Ctor': (0x634220, 197), 'MouseMsg': (0x634420, 159), 'Clamp': (0x6344f0, 107), 'Bounds': (0x634560, 55), 'Attach': (0x634720, 15), 'Detach': (0x634730, 15),
-           'Const1': (0x6348e0, 6), 'Const2': (0x6348f0, 6)}
+           'Const1': (0x6348e0, 6), 'Const2': (0x6348f0, 6), 'FilterDtor': (0x633160, 0x60), 'FilterDel': (0x633140, 30), 'HolderDel': (0x633a30, 30), 'KeyCtor': (0x633360, 149), 'SetMode': (0x633d10, 150),
+           'SubC90': (0x633ea0, 38), 'SubCC0': (0x6345a0, 38), 'SetHolder': (0x6341d0, 54), 'ReadState': (0x633600, 191), 'DevCtor': (0x63e7c0, 84), 'DevDtor': (0x63e840, 121), 'DevDel': (0x63e820, 30)}
 OPS = [n for n in ADDRESS if not os.environ.get('OPS') or n in os.environ['OPS'].split(',')]
 LISTEN, UNLISTEN = 26, 27
 HOOKS = {0x5fc030: _recorder(LISTEN, 3), 0x5fc100: _recorder(UNLISTEN, 3)}
-B = Bench([(a, a + n) for a, n in ADDRESS.values()] + [(0x6338b0, 0x6338c0), (0x633b80, 0x633b90), (0x6344c0, 0x6344f0), (0x5f86c0, 0x5f86c6), (0x67a830, 0x67a860)], hooks=HOOKS)
+B = Bench([(a, a + n) for a, n in ADDRESS.values()] + [(0x6338b0, 0x6338c0), (0x633b80, 0x633b90), (0x6344c0, 0x6344f0), (0x5f86c0, 0x5f86c6), (0x67a830, 0x67a860), (0x67acb0, 0x67acb1), (0x67a400, 0x690000), (0x633120, 0x633140), (0x633a00, 0x633a30)], hooks=HOOKS)
 OBJ, NEXT, VT, DEV, VTC, TABLE, MSG, LIST, OUT, ANSWERS = RAM, RAM + 0x200, RAM + 0x300, RAM + 0x400, RAM + 0x500, RAM + 0x600, RAM + 0x700, RAM + 0x800, RAM + 0x900, RAM + 0xa00
 CLOSE, SPI, CLICK, SWAP = 30, 31, 32, 33
 WINDOW = 0xfa7610
@@ -167,6 +168,57 @@ def case(r):
     if op == 'Bounds':
         put(message, 0, 'I', r.choice([7, 7, 6, 8, 0]))
         return Call(address, [OBJ + 0x64, r.getrandbits(32), MSG], regions, conv='t', ret='v')
+    if op in ('FilterDtor', 'FilterDel', 'DevDtor', 'DevDel', 'HolderDel'):
+        regions[HEAP] = heap(0x40)
+        put(obj, 8, 'I', r.choice([0, r.getrandbits(32) | 1]))
+        put(obj, 0xc, 'I', r.choice([0, DEV]))
+        put(obj, 0x1c, 'I', r.choice([0, DEV]))
+        put(obj, 0x30, 'I', r.choice([0, HEAP + 0x40, RAM + 0x7f0]))
+        regions[DEV] = struct.pack('<I', VTC) + r.bytes(0x20)
+        regions[VTC] = vtable({}, com={2: 1})
+        set_return(log, CLOSE, r.getrandbits(32))
+        if op in ('FilterDel', 'DevDel', 'HolderDel'):
+            return Call(address, [OBJ, r.choice([0, 1, 2, 3, r.getrandbits(32)])], regions, conv='t', ret='a')
+        return Call(address, [OBJ], regions, conv='t', ret='v')
+    if op in ('KeyCtor', 'DevCtor'):
+        regions[OBJ] = r.bytes(0x130)
+        return Call(address, [OBJ], regions, conv='t', ret='a')
+    if op in ('SubC90', 'SubCC0'):
+        put(obj, 0x14, 'I', r.choice([0, LIST]))   # (the old list, its channels unsubscribed: at +0x10 + 4)
+        put(obj, 0x6c, 'I', r.choice([0, LIST]))
+        regions[LIST] = channels(r)
+        regions[OUT] = r.bytes(0x10)
+        return Call(address, [OBJ, OUT], regions, conv='t', ret='a')
+    if op == 'SetMode':
+        holder(r, obj, regions, log)
+        regions[OUT] = r.bytes(0x10)
+        return Call(address, [OBJ, OUT, r.choice([0, 1, 2, 3, 4, 5, 6, 8, 9, 0xa, 0xc, 0xd, 0xf, r.getrandbits(32)])], regions, conv='t', ret='a')
+    if op == 'SetHolder':
+        put(obj, 0x1c, 'I', r.choice([0, NEXT]))
+        regions[NEXT - 0x10] = put(bytearray(r.bytes(0x30)), 0x1c, 'I', DEV)
+        device(r, regions)
+        set_return(log, STATE, r.choice([0, 0, 1, 0x80070005]))
+        strings(log, STATE, 0, out=0b100)
+        fill(log, STATE, 2, bytes(r.choice([0, 0, 0, 0x80, 0x7f, 0xff]) for _ in range(0x26)), which=0, offset=0x1d)
+        fill(log, STATE, 2, bytes(r.choice([0, 0, 0, 0x80, 0x7f, 0xff]) for _ in range(0x1c)), which=1, offset=0x9d)
+        regions[OUT] = r.bytes(0x10)
+        return Call(address, [OBJ, OUT, r.choice([NEXT - 0x10, NEXT - 0x10, 0])], regions, conv='t', ret='a')
+    if op == 'ReadState':
+        # (One recorder for both reads and the fill does not know which: the keyboard's 0x100 bytes filled alone, the mouse's 0x10 alone, or both asked with the first failing.)
+        obj = bytearray(r.bytes(0x130))
+        regions[OBJ] = obj
+        kind = r.deal(['keys', 'mouse', 'both', 'other'])
+        put(obj, 0x11c, 'II', NEXT - 0x10 if kind in ('keys', 'both') else r.choice([0, NEXT + 0x40]), NEXT - 0x10 if kind in ('mouse', 'both') else r.choice([0, NEXT + 0x40]))
+        regions[NEXT] = put(bytearray(r.bytes(0x20)), 0xc, 'I', DEV)
+        device(r, regions)
+        regions[ANSWERS] = struct.pack('<40I', *[0x80070005 if kind == 'both' and i == 0 else r.choice([0, 0, 1, 0x80070005]) for i in range(40)])
+        answers(log, STATE, ANSWERS)
+        strings(log, STATE, 0, out=0b100)
+        fill(log, STATE, 2, r.bytes(0x10))
+        if kind == 'keys':
+            fill(log, STATE, 2, r.bytes(0x70), which=1, offset=0x10)
+            fill(log, STATE, 2, r.bytes(0x70), which=2, offset=0x80)
+        return Call(address, [OBJ, NEXT], regions, conv='t', ret='v')
     if op in ('Attach', 'Detach'):
         regions[DEV] = struct.pack('<I', VT)
         regions[VT] = vtable({5: 1, 6: 1})

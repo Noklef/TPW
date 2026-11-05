@@ -67,6 +67,30 @@ void __fastcall MouseFilter_OnBounds(u8 *self, void *, u32 unused, const u32 *me
 void __fastcall ChainFilter_Attach(u8 *self, void *, u8 *object);
 void __fastcall ChainFilter_Detach(u8 *self, void *, u8 *object);
 
+// 0x633160 (thiscall): vtable 0x703c18, the sink at +0xc released (slot 0), the handle closed, vtable 0x703770. 0x633140 (thiscall (flags), pops 4): with bit 0, freed. Returns self.
+void __fastcall InputFilter_Dtor(u8 *self);
+u8 *__fastcall InputFilter_DeletingDtor(u8 *self, void *, u32 flags);
+// 0x633360 (thiscall): the key filter's constructor: vtable 0x703c40, 0x703c38 at +0xc, the table at +0x1c cleared, listening on the channels at 0x703c30.
+u8 *__fastcall KeyFilter_Ctor(u8 *self);
+// 0x633600 (thiscall; holder + 0x10 as a number, pops 4): the holder when it is this object's +0x11c: the keys, 0xf0 bytes of a 0x100 read, into +0x1c; its +0x120: the fourth dword of a
+// 0x10 read into +0x10c. The device's references: GetDevice's each, one released at the end (sic).
+void __fastcall KeyFilter_ReadState(u8 *self, void *, u32 holder);
+// 0x633a30 (thiscall (flags), pops 4): DeviceHolder_Dtor; with bit 0, freed. Returns self.
+u8 *__fastcall DeviceHolder_DeletingDtor(u8 *self, void *, u32 flags);
+// 0x633d10 (thiscall; result out, flags, pops 8): exactly one of 1 / 2 and one of 4 / 8, or -1: those bits of +4 set, the other of each pair cleared, then Apply.
+u32 *__fastcall DeviceHolder_SetMode(u8 *self, void *, u32 *result, u32 flags);
+// 0x633ea0 (thiscall; result out, pops 4): listening at +0x10 on the channels at 0x703c90 with +0xc (null for no object). 0: returned.
+u32 *__fastcall InputFilter_SubscribeC90(u8 *self, void *, u32 *result);
+// 0x6341d0 (thiscall; result out, holder, pops 8): the holder at +0x1c, the modifiers read from it. 0: returned.
+u32 *__fastcall KeyFilter_SetHolder(u8 *self, void *, u32 *result, u8 *holder);
+// 0x6345a0 (thiscall; result out, pops 4): listening at +0x68 on the channels at 0x703cc0 with +0x64 (null for no object). 0: returned.
+u32 *__fastcall MouseFilter_Subscribe(u8 *self, void *, u32 *result);
+// 0x63e7c0 (thiscall): an input filter (vtable 0x703fd8) with a device holder at +0x10 (vtable 0x703ff0). Returns self.
+u8 *__fastcall DeviceFilter_Ctor(u8 *self);
+// 0x63e840 (thiscall): the block at +0x30 freed, the holder's and the filter's destructors. 0x63e820 (thiscall (flags), pops 4): with bit 0, freed. Returns self.
+void __fastcall DeviceFilter_Dtor(u8 *self);
+u8 *__fastcall DeviceFilter_DeletingDtor(u8 *self, void *, u32 flags);
+
 // 0x6348e0 / 0x6348f0: the constants 0x707c40 and 0x679440.
 u32 __cdecl MouseFilter_Constant1();
 u32 __cdecl MouseFilter_Constant2();
