@@ -58,6 +58,11 @@ u32 *__fastcall FtpSocket_DeletingDtor(u32 *self, void *, u8 flags);
 
 // 0x5c9090 (thiscall): the vtable pointer = 0x70295c, then FtpSocket_Dtor.
 void __fastcall FtpBase_Dtor(u32 *self);
+// 0x5c9070 (thiscall; flags, pops 4; name invented, unconfirmed): FtpBase_Dtor, then GameHeap_Free with flag bit 0. Returns the object.
+u32 *__fastcall FtpBase_DeletingDtor(u32 *self, void *, u8 flags);
+// 0x5c8dd0 (thiscall; names invented, unconfirmed): a class between the base and the client, whose destructor is only FtpBase_Dtor. 0x5c8db0 (flags, pops 4): that, then freed with bit 0. Returns the object.
+void __fastcall FtpMid_Dtor(u32 *self);
+u32 *__fastcall FtpMid_DeletingDtor(u32 *self, void *, u8 flags);
 
 // 0x5d1980 (thiscall; toFile, count, pops 8): accepts on the listen socket +0x2428 when it is open and +0x2424 is not (a failure returns 3), then
 // reads the data socket +0x2424 to the buffer at +0x424, at most 0x1fff at a time, until count bytes came (+0x1c counts them). toFile 1 opens the

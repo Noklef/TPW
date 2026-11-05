@@ -11,7 +11,7 @@ from fncmp import HEAP, IMPORT_TABLE, LOG, LOG_BYTES, RAM, Bench, Call, _recorde
 
 CALLBACK, HTONS, GETHOST, INETADDR, SOCKET, RECV, CLOSE, SOCKNAME, HOSTNAME, SEND, SHUTDOWN, BIND, LISTEN, ACCEPT, NTOHS, WSASTART, WSACLEAN, WSAERR, MSGBOX, SLEEP = range(20)
 FOPEN, FWRITE, FCLOSE, THREAD, EVENTSET, EVENTWAIT, EVENTCTOR, SEMDTOR, BASECTOR, CONNECT = range(20, 30)
-B = Bench([(0x5c8de0, 0x5c9001), (0x5c9090, 0x5c9102), (0x5d3750, 0x5d3823), (0x5d1760, 0x5d2714), (0x5d2720, 0x5d2842), (0x5d2850, 0x5d296c), (0x5d29d0, 0x5d2a7e),
+B = Bench([(0x5c8db0, 0x5c8dd5), (0x5c9070, 0x5c908e), (0x5c8de0, 0x5c9001), (0x5c9090, 0x5c9102), (0x5d3750, 0x5d3823), (0x5d1760, 0x5d2714), (0x5d2720, 0x5d2842), (0x5d2850, 0x5d296c), (0x5d29d0, 0x5d2a7e),
            (0x657cc0, 0x657d2c), (0x45b340, 0x45b9a0), (0x67a400, 0x6902c0)],
           hooks={0x67b8a0: _recorder(FOPEN, 2, cdecl=True), 0x67b6d0: _recorder(FWRITE, 4, cdecl=True), 0x67b620: _recorder(FCLOSE, 1, cdecl=True), 0x5c8b70: _recorder(THREAD, 2, cdecl=True),
                  0x5c8c20: _recorder(EVENTSET, 0), 0x5c8bf0: _recorder(EVENTWAIT, 1), 0x5c8bd0: _recorder(EVENTCTOR, 0), 0x6307e0: _recorder(SEMDTOR, 0), 0x5c8d80: _recorder(BASECTOR, 0)})
@@ -252,6 +252,12 @@ def deleting_case(r):
     return Call(0x5d1860, [OBJECT, r.getrandbits(32)], regions, conv='t', ret='a')
 
 
+def base_dtors(r):
+    log, regions = dtor_setup(r)
+    address, args = r.choice([(0x5c9070, [r.getrandbits(32)]), (0x5c8db0, [r.getrandbits(32)]), (0x5c8dd0, [])])
+    return Call(address, [OBJECT] + args, regions, conv='t', ret='a' if args else 'v')
+
+
 def box_world(r):
     log, regions = world(r)
     set_return(log, WSAERR, r.choice([10061, 11001, 5, 0, 0xffff8000, 0x12345]))
@@ -283,7 +289,7 @@ def clean_case(r):
 
 
 CASES = {'Receive': receive_case, 'Setup': setup_case, 'Data': data_case, 'Login': login_case, 'Quit': quit_case, 'Retrieve': retrieve_case, 'Names': names_case, 'Connect': connect_case,
-         'Thread': thread_case, 'Ctor': ctor_case, 'Dtor': dtor_case, 'Deleting': deleting_case, 'Box': box_case, 'Start': start_case, 'Clean': clean_case}
+         'Thread': thread_case, 'Ctor': ctor_case, 'Dtor': dtor_case, 'Deleting': deleting_case, 'BaseDtors': base_dtors, 'Box': box_case, 'Start': start_case, 'Clean': clean_case}
 OPS = os.environ.get('OPS', '').split(',') if os.environ.get('OPS') else list(CASES)
 
 
