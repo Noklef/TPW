@@ -374,6 +374,24 @@ u8 __fastcall Mailbox_DeleteSent(u8 *self) {
     return at<u32>(self, 0x60) ? g_drop->loadMessage(self, nullptr, at<u32>(first, 8)) : 0;
 }
 
+u8 __fastcall Mailbox_FirstMessage(u8 *self) {
+    u8 *const first = at<u8 *>(at<u8 *>(self, 0x5c), 0);
+    at<u8 *>(self, 0x7c) = first;
+    return at<u32>(self, 0x60) ? g_drop->loadMessage(self, nullptr, at<u32>(first, 8)) : 0;
+}
+
+u8 __fastcall Mailbox_NextMessage(u8 *self) {
+    if (!at<u32>(self, 0x60)) return 0;
+    u8 *const next = at<u8 *>(at<u8 *>(self, 0x7c), 0);
+    at<u8 *>(self, 0x7c) = next;
+    u8 *const head = at<u8 *>(self, 0x5c);
+    if (next == head) {
+        at<u8 *>(self, 0x7c) = at<u8 *>(head, 0);
+        return 0;
+    }
+    return g_drop->loadMessage(self, nullptr, at<u32>(next, 8));
+}
+
 u8 __fastcall Mailbox_StoreFromClient(u8 *client, void *, u8 *mailbox) {
     if (!mailbox) return 0;
     EraseStrings(mailbox + 0x30);

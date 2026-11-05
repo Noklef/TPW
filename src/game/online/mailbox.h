@@ -126,6 +126,11 @@ u8 __fastcall Mailbox_SaveOutbox(u8 *self);
 // Answers 0 when the file does not open, else 1.
 u8 __fastcall Mailbox_LoadMessage(u8 *self, void *, u32 number);
 
+// 0x5cc5e0 (thiscall; name invented, unconfirmed): the cursor +0x7c to the first message of the list +0x5c; with messages (+0x60) it is loaded. Answers its load, or 0.
+u8 __fastcall Mailbox_FirstMessage(u8 *self);
+// 0x5cc600 (thiscall; name invented, unconfirmed): with messages, the cursor +0x7c moves on and that one is loaded; past the last the cursor goes to the first and the answer is 0.
+u8 __fastcall Mailbox_NextMessage(u8 *self);
+
 // 0x5cb230 (thiscall (folder), pops 4): the folder kept at +0 and "/outbox" added; the number lists +0x58, +0x64 and +0x70 emptied. "<that>/outbox.dat" read: lines of at most 0x80 into +0x58, then +0x70, then +0x64, each ended by a failed
 // read or an empty line. When the file does not open, the folder made (0x6fd120, the import read live) and the answer whether that worked; else 1.
 u8 __fastcall Mailbox_Open(u8 *self, void *, const char *folder);
