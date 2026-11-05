@@ -95,6 +95,8 @@ StdString *__fastcall StdString_Erase(StdString *s, void *edx, u32 pos, u32 n);
 StdString *__fastcall StdString_CtorFill(StdString *s, void *edx, u32 n, u32 ch, const u8 *allocator);
 // 0x696160 (n, ch; pops 8): append(n, ch): npos (0x6fe5ac) less the length not above n _Xlen; no n, nothing; _Grow(total, false) inlined, then n copies of ch and the end. Returns s.
 StdString *__fastcall StdString_AppendFill(StdString *s, void *edx, u32 n, u32 ch);
+// 0x6a8700 (pos, n, ch; pops 12): insert(pos, n, ch): pos past the length _Xran; npos (0x6fe5ac) less the length not above n _Xlen; no n, nothing; _Grow(total, false) inlined, the tail moved up, n copies of ch and the end. Returns s.
+StdString *__fastcall StdString_InsertFill(StdString *s, void *edx, u32 pos, u32 n, u32 ch);
 // 0x696230 (pos; pops 4): operator[](pos), not const: pos past the length or no block: the empty text 0x6fe5b0, s left alone; else _Freeze inlined, and the character's address.
 char *__fastcall StdString_At(StdString *s, void *edx, u32 pos);
 // 0x5c8c30 (x, pos, n; pops 12): append(x, pos, n): pos past x's length _Xran; n cut to what x has left; npos less the length not above n _Xlen; _Grow inlined, then x's text (read after it; null: the empty text) copied.

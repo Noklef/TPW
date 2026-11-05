@@ -234,6 +234,20 @@ StdString *__fastcall StdString_CtorFill(StdString *s, void *, u32 n, u32 ch, co
     return StdString_AssignFill(s, nullptr, n, ch);
 }
 
+StdString *__fastcall StdString_InsertFill(StdString *s, void *, u32 pos, u32 n, u32 ch) {
+    if (s->len < pos) g_env->xran();
+    if (*reinterpret_cast<u32 *>((uintptr_t)0x006fe5ac) - s->len <= n) g_env->xlen();
+    if (!n) return s;
+    const u32 total = s->len + n;
+    if (StdString_Grow(s, nullptr, total, 0)) {   // (inlined; memmove's)
+        for (u32 i = s->len - pos; i--;) s->ptr[pos + n + i] = s->ptr[pos + i];
+        for (u32 i = 0; i < n; ++i) s->ptr[pos + i] = (char)ch;
+        s->len = total;
+        s->ptr[total] = 0;
+    }
+    return s;
+}
+
 StdString *__fastcall StdString_AppendFill(StdString *s, void *, u32 n, u32 ch) {
     if (*reinterpret_cast<u32 *>((uintptr_t)0x006fe5ac) - s->len <= n) g_env->xlen();
     if (!n) return s;

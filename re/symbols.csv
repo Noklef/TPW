@@ -2628,6 +2628,7 @@ address,name,kind,confidence,notes
 0x00696090,StdString_CtorFill,function,low,"reimplemented (src/game/core/stdstring); basic_string(n, ch, allocator)"
 0x00696160,StdString_AppendFill,function,low,"reimplemented (src/game/core/stdstring); append(n, ch)"
 0x00696230,StdString_At,function,low,"reimplemented (src/game/core/stdstring); operator[], not const"
+0x006a8700,StdString_InsertFill,function,low,"reimplemented (src/game/core/stdstring); insert(pos, n, ch)"
 0x0045b9d0,GlobalMem_Alloc,function,high,"reimplemented (src/game/core/globalmem); GlobalAlloc(GMEM_ZEROINIT or GMEM_FIXED, size) through the import slot; null for 0"
 0x0045ba00,GlobalMem_Free,function,high,reimplemented (src/game/core/globalmem); GlobalFree through the import slot; null for null
 0x0045ba70,GlobalMem_AllocCounted,function,high,reimplemented (src/game/core/globalmem); a zeroed 0x40-byte block with count at +4; null for 0

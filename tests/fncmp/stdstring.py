@@ -8,7 +8,7 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
 from fncmp import Bench, Call, HEAP, RAM, heap, put  # noqa: E402
 
-B = Bench([(0x696090, 0x69615c), (0x696160, 0x696226), (0x696230, 0x6962c6), (0x5c8c30, 0x5c8d12), (0x5d1560, 0x5d15c9), (0x45b340, 0x45b9a0), (0x45aee0, 0x45b1e4), (0x47b1c0, 0x47b2f6), (0x4a9420, 0x4a953c), (0x5d2a80, 0x5d2d0f), (0x45ad90, 0x45aedc), (0x4f1340, 0x4f1510), (0x4c4a80, 0x4c4ba8)])
+B = Bench([(0x6a8700, 0x6a87e9), (0x67bb90, 0x67bed0), (0x696090, 0x69615c), (0x696160, 0x696226), (0x696230, 0x6962c6), (0x5c8c30, 0x5c8d12), (0x5d1560, 0x5d15c9), (0x45b340, 0x45b9a0), (0x45aee0, 0x45b1e4), (0x47b1c0, 0x47b2f6), (0x4a9420, 0x4a953c), (0x5d2a80, 0x5d2d0f), (0x45ad90, 0x45aedc), (0x4f1340, 0x4f1510), (0x4c4a80, 0x4c4ba8)])
 STRS, BLOCKS, CHARS = RAM, RAM + 0x1000, RAM + 0x2000
 S, X = STRS, STRS + 0x10  # the string under test and a second one
 SLOT = 0x80  # a block per string in BLOCKS: count byte, then up to 0x7e characters + NUL
@@ -123,6 +123,12 @@ def case(r):
         return Call(0x47b1c0, [S, small, r.choice([0, r.getrandbits(8), r.getrandbits(32)])], regions, conv='t', ret='a')
     if op == 'CtorFill':   # (the allocator's byte from anywhere)
         return Call(0x696090, [S, small, r.choice([0, r.getrandbits(8), r.getrandbits(32)]), r.choice([X, CHARS + 1])], regions, conv='t', ret='a')
+    if op == 'InsertFill':   # (not past the length: _Xran ends the case)
+        count = r.choice([0, 1, r.randrange(4, 12), r.randrange(40), r.randrange(30, 0x90), max(s[2] - s[1], 0), max(s[2] - s[1] + 1, 0)])   # (no throw: it ends the case)
+        if s[1] >= 2 and r.random() < 0.15:   # (npos below the length: the count that wraps the total to 0 gets through)
+            regions[0x6fe5ac] = put(bytearray(4), 0, 'I', 1)
+            count = 0 - s[1] & 0xffffffff
+        return Call(0x6a8700, [S, r.choice([0, s[1], r.randrange(s[1] + 1), r.randrange(s[1] + 1)]), count, r.choice([0, r.getrandbits(8), r.getrandbits(32)])], regions, conv='t', ret='a')
     if op == 'AppendFill':
         count = r.choice([0, 1, r.randrange(4, 12), r.randrange(40), r.randrange(30, 0x90), max(s[2] - s[1], 0), max(s[2] - s[1] + 1, 0)])   # (no throw: it ends the case)
         if s[1] >= 2 and r.random() < 0.15:   # (npos below the length: the count that wraps the total to 0 gets through)
@@ -181,7 +187,7 @@ def case(r):
     return Call(0x45b380, [S, src, pos, count], regions, conv='t', ret='a')
 
 
-KINDS = ['CtorFill', 'AppendFill', 'AppendFill', 'At', 'Dtor', 'Tidy', 'AssignChars', 'Eos', 'Grow', 'MaxSize', 'Copy', 'Split', 'AssignSub', 'AssignSub', 'Online', 'Fill', 'Freeze', 'CopyCtor', 'CopyInto', 'ServersCtor', 'ServersDtor', 'Erase', 'Append', 'Append', 'CompareSub', 'AppendSub', 'AppendSub']
+KINDS = ['InsertFill', 'InsertFill', 'CtorFill', 'AppendFill', 'AppendFill', 'At', 'Dtor', 'Tidy', 'AssignChars', 'Eos', 'Grow', 'MaxSize', 'Copy', 'Split', 'AssignSub', 'AssignSub', 'Online', 'Fill', 'Freeze', 'CopyCtor', 'CopyInto', 'ServersCtor', 'ServersDtor', 'Erase', 'Append', 'Append', 'CompareSub', 'AppendSub', 'AppendSub']
 OPS = [k for k in os.environ.get('OPS', ','.join(KINDS)).split(',') if k]
 
 if __name__ == '__main__':
