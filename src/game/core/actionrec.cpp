@@ -5,8 +5,12 @@
 #include "../files/file.h"
 #include "../files/handles.h"
 #include "../world/world.h"
+#include "addrcalls.h"
+#include "buffers.h"
 #include "gameheap.h"
+#include "globalsave.h"
 #include "savegame.h"
+#include "stdwstring.h"
 #include "vcall.h"
 
 namespace {
@@ -14,6 +18,8 @@ namespace {
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
 
 ActionRec *gActionRec() { return reinterpret_cast<ActionRec *>((uintptr_t)0x00785a08); }
+
+AddrCalls g_calls;
 
 bool writing(const ActionRec *r) { return r->playback == 0 && r->recording != 0; }
 
@@ -53,6 +59,8 @@ void set(ActionRec *r, u32 offset, u32 value) { *reinterpret_cast<u32 *>(reinter
 void *const *const kStreamVtable = reinterpret_cast<void *const *>(0x6fd6a0);
 
 }  // namespace
+
+void ActionRec_SetCalls(const AddrCall *table, u32 count) { g_calls.Set(table, count); }
 
 extern "C" {
 
@@ -203,6 +211,20 @@ void __fastcall ActionRec_WriteFW(ActionRec *r, void *, u32 code, u32 a, u32 b) 
     put8(r, code);
     put(r, &a, 4);
     put16(r, b);
+}
+
+void __fastcall ActionRec_WriteText(ActionRec *r, void *, u32 code, u32 a, u32 b, const u16 *text) {
+    if (!writing(r)) return;
+    StdWString s = {b, nullptr, 0, 0};
+    u32 length = 0;
+    while (text[length]) ++length;
+    StdWString_AssignChars(&s, nullptr, text, length);
+    g_calls.Th(0x005d3230, (u32)(uintptr_t)GlobalSave_Instance(), &s, 1u);   // SwearFilter_Apply
+    put8(r, code);
+    put16(r, a);
+    put8(r, b);
+    put(r, s.ptr ? s.ptr : reinterpret_cast<const u16 *>((uintptr_t)0x006fd6c4), s.len * 2);
+    CountedBuf_Reset(reinterpret_cast<u8 *>(&s), nullptr, 1);
 }
 
 void __fastcall ActionRec_WriteFFW(ActionRec *r, void *, u32 code, u32 a, u32 b, u32 c) {

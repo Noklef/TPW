@@ -82,6 +82,7 @@ add_library(tpw_game STATIC
     src/game/files/charsets.cpp
     src/game/files/fontloaders.cpp
     src/game/files/signfonts.cpp
+    src/game/files/usersaves.cpp
     src/game/core/regkey.cpp
     src/game/core/stdstring.cpp
     src/game/core/globalmem.cpp
@@ -250,6 +251,13 @@ add_library(tpw_game STATIC
     src/game/core/guardheap.cpp
     src/game/core/guardfile.cpp
     src/game/core/filebuf.cpp
+    src/game/core/gameshutdown.cpp
+    src/game/core/themesaves.cpp
+    src/game/core/optionschanges.cpp
+    src/game/core/gamestart.cpp
+    src/game/core/gamewindow.cpp
+    src/game/core/gamemain.cpp
+    src/game/core/imeinput.cpp
     src/game/gfx/text.cpp
     src/game/gfx/canvas.cpp
     src/game/gfx/canvasdraw.cpp
@@ -680,6 +688,11 @@ add_library(tpw_game STATIC
     src/game/render/meshtextures.cpp
     src/game/render/engineshutdown.cpp
     src/game/render/devicereset.cpp
+    src/game/render/present.cpp
+    src/game/render/weathertables.cpp
+    src/game/render/viewfootprint.cpp
+    src/game/render/rendererframe.cpp
+    src/game/render/rasterdraw.cpp
     src/game/ui/quitconfirm.cpp
     src/game/world/mapsweep.cpp
     src/game/ui/imehostattach.cpp

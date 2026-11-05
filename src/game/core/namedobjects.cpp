@@ -3,8 +3,10 @@
 #include <cstdint>
 
 #include "class6fd9d8.h"
+#include "crt.h"
 #include "gameclock.h"
 #include "gameheap.h"
+#include "globalsave.h"
 #include "stdlist.h"
 #include "initializers.h"
 #include "language.h"
@@ -386,5 +388,60 @@ u32 __fastcall NamedObjects_LoadData(u8 *self) {
     }
     String_Dtor(&path);
     return result;
+}
+
+// A new index: its node's value passed to the vtable's +0x18.
+static void set_index(u8 *self, s32 index) {
+    if (at<s32>(self, 0x14) == index) return;
+    at<s32>(self, 0x14) = index;
+    u8 *node = at<u8 *>(self, 0x28);
+    for (s32 i = 0; i < index; ++i) node = at<u8 *>(node, 4);
+    using Slot = void(__fastcall *)(u8 *, void *, u32);
+    (*reinterpret_cast<const Slot *>(at<const u8 *>(self, 0) + 0x18))(self, nullptr, at<u32>(node, 0));
+}
+
+static u32 select_theme(u8 *self) { return g_calls.Th(0x005b08a0, (u32)(uintptr_t)GlobalSave_Instance(), self); }
+
+u32 __fastcall NamedObjects_SelectIndex(u8 *self, void *, s32 index) {
+    set_index(self, index);
+    return select_theme(self);
+}
+
+void __fastcall NamedObjects_SelectByName(u8 *self, void *, const String *name) {
+    const s32 first = at<s32>(self, 0x14);
+    for (u32 i = 0; i < at<u32>(self, 0x30); ++i) {
+        set_index(self, static_cast<s32>(i));
+        select_theme(self);
+        String copy;
+        String_CtorCopy(&copy, nullptr, reinterpret_cast<const StringView *>(self));
+        const bool same = Crt().stricmp(copy.data, name->data) == 0;
+        String_Dtor(&copy);
+        if (same) return;
+    }
+    set_index(self, first);
+    select_theme(self);
+}
+
+u32 __cdecl GameOwner_SelectMode(u32 which) {
+    u8 *const owner = reinterpret_cast<u8 *>((uintptr_t)0x00786b68);
+    set_index(owner, which == 2 ? 1 : which == 3 ? 0 : which == 4 ? 3 : 2);
+    return select_theme(owner);
+}
+
+u32 __fastcall NamedObjects_StartLevel(u8 *self, void *, u32 level) {
+    if (!g_calls.Th(0x00413140, 0x007890a0u, level)) return 0;
+    if (!g_calls.Th(0x005156a0, *reinterpret_cast<const u32 *>((uintptr_t)0x007cf83c), level)) return 0;
+    if (*reinterpret_cast<const u32 *>((uintptr_t)0x00788160)) {
+        String name;
+        String_CtorStr(&name, nullptr, reinterpret_cast<const char *>((uintptr_t)0x00788164));
+        WString wide;
+        WString_Ctor(&wide);
+        WString_AssignFromAnsi(&wide, &name);
+        g_calls.Th(0x005ac5d0, 0x00f7b560u, &wide);
+        WString_Dtor(&wide);
+        String_Dtor(&name);
+    }
+    const u32 me = (u32)(uintptr_t)self;
+    return g_calls.Th(0x00407f20, me) && g_calls.Th(0x004080e0, me) ? 1 : 0;
 }
 }

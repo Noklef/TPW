@@ -9,6 +9,10 @@
 #pragma once
 
 #include "../../../re/types.h"
+#include "addrcalls.h"
+
+// Calls by the game's address (the bench's recorder): the swear filter.
+void ActionRec_SetCalls(const AddrCall *table, u32 count);
 
 struct ActionRec {
     u32 recording;
@@ -60,6 +64,9 @@ void __fastcall ActionRec_WriteWB(ActionRec *r, void *, u32 code, u32 a, u32 b);
 void __fastcall ActionRec_WriteFW(ActionRec *r, void *, u32 code, u32 a, u32 b);
 // 0x403f40 (thiscall; code, a, b, c; pops 0x10): the code byte, the floats a and b (their bits), the word c. (The debug output left out.)
 void __fastcall ActionRec_WriteFFW(ActionRec *r, void *, u32 code, u32 a, u32 b, u32 c);
+// 0x403fd0 (thiscall; code, a, b, text; pops 0x10; name invented, unconfirmed): the wide text copied and passed through the swear filter, then the code byte, the word a,
+// the byte b, the text's characters. (The debug output left out.)
+void __fastcall ActionRec_WriteText(ActionRec *r, void *, u32 code, u32 a, u32 b, const u16 *text);
 
 // Recorded actions: each writes its record to the global recorder 0x785a08, then (most) applies it.
 // 0x447e10 (cdecl; coaster, value): the record 0x45 (the coaster's word +0x14, the word value); nothing else.

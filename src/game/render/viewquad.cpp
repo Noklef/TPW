@@ -16,7 +16,10 @@ double tangent_of(double x) { return std::tan(x); }
 
 extern "C" {
 
-void __fastcall ViewQuad_SetFov(float *quad, void *, float fov) {
+void __fastcall ViewQuad_SetFov(float *quad, void *, float fov) { ViewQuad_SetScaled(quad, fov, 0.5f); }
+}
+
+void ViewQuad_SetScaled(float *quad, float fov, float scale) {
     const X87Reg angle = X87Reg(fov) * 3.14159274f * 0.00277777785f;
     const X87Reg one = X87Reg(0.0f) - -1.0f;
     // fptan: from 2^63 on it pushes nothing, so the fxch after it meets an empty register (the indefinite) and the indefinite is what
@@ -26,7 +29,7 @@ void __fastcall ViewQuad_SetFov(float *quad, void *, float fov) {
         const unsigned long long indefinite = 0xfff8000000000000ull;
         std::memcpy(&tangent, &indefinite, 8);
     }
-    const X87Reg h = X87Reg(tangent) * one * 0.5f;
+    const X87Reg h = X87Reg(tangent) * one * scale;
     const float hf = static_cast<float>(h);
     const X87Reg w = h / *reinterpret_cast<const float *>((uintptr_t)0x008bcbcc);
     const float wf = static_cast<float>(w);
@@ -39,5 +42,4 @@ void __fastcall ViewQuad_SetFov(float *quad, void *, float fov) {
     quad[7] = -hf;
     quad[9] = -wf;
     quad[10] = -hf;
-}
 }

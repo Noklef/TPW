@@ -108,9 +108,23 @@ u8 *__fastcall GlobalSave_ThemeGet(u8 *info, void *, const u8 *name);
 // 0x5b08a0 (thiscall (name), pops 4; name invented, unconfirmed): the same record kept at +0x48; returns what ThemeRecord_LoadGlobalSam answers (all of EAX). The Debug_Printf on a new one is left out.
 u32 __fastcall GlobalSave_ThemeSelect(u8 *info, void *, const u8 *name);
 void __fastcall GlobalSave_ClearThemes(u8 *info);
+
+// 0x5af250 (thiscall; name invented, unconfirmed): the info destroyed: its theme records (GlobalSave_ClearThemes), the theme map (+0x38, GlobalSaveThemes_Dtor), the map at +0x28 (GlobalSaveRides_Dtor), then the
+// counted lists at +0xc and +0 emptied (List_EraseRangeCounted), each head freed and cleared with its count.
+void __fastcall GlobalSave_Dtor(u8 *info);
+
+// 0x5af430 / 0x5af1e0 (thiscall; names invented, unconfirmed; the constructor's unwind handlers, inlined in 0x5af250): a map's nodes erased (StdTree_EraseRangeF / G), the head freed, it and the size cleared; the
+// maps' count (0xf7c964 / 0xf7c96c) lowered, the last freeing the nil node (0xf7c968 / 0xf7c970) and clearing its pointer. The STL lock around that left out.
+void __fastcall GlobalSaveThemes_Dtor(u8 *tree);
+void __fastcall GlobalSaveRides_Dtor(u8 *tree);
 }
 
 // 0x5afc60 (thiscall (path), pops 4; name invented, unconfirmed): the file opened (flags 0x40000010; failing: 0), the version 0xc written (4 bytes), the info serialised to it (saving, third the version) and closed: 1 when all went well, else 0.
 extern "C" {
 u32 __fastcall GlobalSave_WriteFile(u8 *info, void *, const char *path);
+
+// 0x5afd70 (thiscall (path), pops 4; name invented, unconfirmed): the fields reset (+0x18, +0x1c, +0x20, +0x24, +0x26 to 0, +0x25 and +0x4c to 1) and the themes
+// cleared; the file opened (flags 0x80000000; failing: 0), its version read (failing, not 4 bytes or below 0xc: 0), the info serialised from it (nonzero: 0), the file
+// closed. With the instance's +0x25 set, the swear lists loaded by 0x5d3140 (the root's Language\<language>\swears.txt, alloweds.txt, 1): AL clear clears that byte. 1.
+u32 __fastcall GlobalSave_ReadFile(u8 *info, void *, const char *path);
 }

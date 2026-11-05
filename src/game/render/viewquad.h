@@ -11,3 +11,6 @@ extern "C" {
 // from an angle of 2^63 on fptan pushes nothing, the fxch after it meets an empty register, and h is the indefinite.
 void __fastcall ViewQuad_SetFov(float *quad, void *, float fov);
 }
+
+// The same with h = tan(fov pi / 360) * scale: 0x56b790 has 0.5, 0x56bb00 the same code inlined with 1.
+void ViewQuad_SetScaled(float *quad, float fov, float scale);

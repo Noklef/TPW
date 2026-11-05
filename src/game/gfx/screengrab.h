@@ -30,4 +30,16 @@ u32 __fastcall ScreenGrab_SetName(u8 *grab, void *, const char *name);
 // (FileStream_OpenPath, mode 0x80000001), again while that succeeds (its result not negative); then the stream closed, the name
 // given to the grab at 0x8798d0 (ScreenGrab_SetName) and the stream destroyed (StreamBase_Dtor).
 void __cdecl ScreenGrab_NextName();
+
+// 0x561370 (thiscall (path), pops 4; name invented, unconfirmed): the 24-bit pixels at +4 written as a .tga (CRT_fopen with 0x766128): an 18-byte header (type 2, the display's [0x8bcbd0] x [0x8bcbd4], 24 bits), then the rows
+// from the last to the first. Returns 1; no file: 0 with kind 2, code 0xb0754002 on the engine's errors.
+u32 __fastcall ScreenGrab_WriteTga(u8 *grab, void *, const char *path);
+
+// 0x561760 (thiscall; name invented, unconfirmed): with a name set (+0x8c): the front surface's pixels taken (ScreenGrab_TakeFront), made 24-bit (ScreenGrab_ToRgb24) and written (ScreenGrab_WriteTga), a failure returning 0 at
+// that step; then the block +4 freed (TrackedGlobal_Free), it and the name cleared. Else, and then, 1.
+u32 __fastcall ScreenGrab_Save(u8 *grab);
 }
+
+// Calls by the game's address (the bench's recorders): the C library's files, the engine's errors, the grab's steps and the free.
+#include "../core/addrcalls.h"
+void ScreenGrab_SetCalls(const AddrCall *table, u32 count);

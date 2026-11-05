@@ -9,7 +9,9 @@
 #include "stdtree.h"
 #include "string.h"
 #include "vcall.h"
+#include "language.h"
 #include "../files/file.h"
+#include "../files/memsource.h"
 
 namespace {
 
@@ -34,6 +36,27 @@ void tree_ctor(u8 *tree, u32 nilAt, u32 usersAt, u8 *(__stdcall *make)(u32, u32)
     at<u32>(tree, 0xc) = 0;
     at<u8 *>(head, 0) = head;
     at<u8 *>(at<u8 *>(tree, 4), 8) = at<u8 *>(tree, 4);
+}
+
+// A tree's destructor's end: the head freed, it and the size cleared, the users lowered, the last freeing the nil.
+void tree_finish(u8 *tree, u32 nilAt, u32 usersAt) {
+    GameHeap_Free(at<u8 *>(tree, 4));
+    at<u8 *>(tree, 4) = nullptr;
+    at<u32>(tree, 0xc) = 0;
+    if (--global<u32>(usersAt) == 0) {
+        GameHeap_Free(global<u8 *>(nilAt));
+        global<u8 *>(nilAt) = nullptr;
+    }
+}
+
+// A counted list's destructor as inlined: its nodes erased, the head freed, it and the count cleared.
+void list_dtor(u8 *list) {
+    u8 *const head = at<u8 *>(list, 4);
+    u32 out;
+    List_EraseRangeCounted(list, nullptr, &out, at<u8 *>(head, 0), head);
+    GameHeap_Free(at<u8 *>(list, 4));
+    at<u8 *>(list, 4) = nullptr;
+    at<u32>(list, 8) = 0;
 }
 
 // One field written or read whole (Stream_Write / Stream_Read; a negative result or fewer bytes: false).
@@ -229,6 +252,28 @@ void __fastcall GlobalSave_ClearThemes(u8 *info) {
     StdTree_EraseRangeF(info + 0x38, nullptr, &out, *reinterpret_cast<u8 **>(head), head);
 }
 
+void __fastcall GlobalSaveThemes_Dtor(u8 *tree) {
+    u8 *const head = at<u8 *>(tree, 4);
+    u8 *out;
+    StdTree_EraseRangeF(tree, nullptr, &out, *reinterpret_cast<u8 **>(head), head);
+    tree_finish(tree, 0x00f7c968, 0x00f7c964);
+}
+
+void __fastcall GlobalSaveRides_Dtor(u8 *tree) {
+    u8 *const head = at<u8 *>(tree, 4);
+    u8 *out;
+    StdTree_EraseRangeG(tree, nullptr, &out, *reinterpret_cast<u8 **>(head), head);
+    tree_finish(tree, 0x00f7c970, 0x00f7c96c);
+}
+
+void __fastcall GlobalSave_Dtor(u8 *info) {
+    GlobalSave_ClearThemes(info);
+    GlobalSaveThemes_Dtor(info + 0x38);
+    GlobalSaveRides_Dtor(info + 0x28);
+    list_dtor(info + 0xc);
+    list_dtor(info);
+}
+
 u32 __fastcall GlobalSave_Serialize(u8 *info, void *, Stream *stream, u32 saving, u32 third) {
     const bool save = saving != 0;
     const u32 streamAt = (u32)(uintptr_t)stream;
@@ -416,6 +461,41 @@ u32 __fastcall GlobalSave_MarkScore(u8 *info, void *, u32 i, s32 score) {
     at<s32>(theme, 0xc + 4 * i) = score;
     return LevelReached(info, GlobalSave_CountSet(info));
 }
+}
+
+extern "C" u32 __fastcall GlobalSave_ReadFile(u8 *info, void *, const char *path) {
+    const auto status = [](u32 result) { return *reinterpret_cast<const s32 *>((uintptr_t)result); };
+    at<u32>(info, 0x18) = 0;
+    at<u16>(info, 0x26) = 0;
+    at<u32>(info, 0x1c) = 0;
+    at<u32>(info, 0x20) = 0;
+    at<u8>(info, 0x24) = 0;
+    at<u8>(info, 0x25) = 1;
+    at<u8>(info, 0x4c) = 1;
+    GlobalSave_ClearThemes(info);
+    u32 stream = 0;
+    s32 result;
+    if (status(g_calls.Cd(0x005f5ad0, &result, &stream, path, 0x80000000u)) < 0)   // FileStream_Open
+        return 0;
+    u32 version, done = 0;
+    if (status(g_calls.Cd(0x005f5e20, &result, stream, &version, 4u, &done)) < 0 || done != 4   // Stream_Read
+        || version < 0xc || g_calls.Th(0x005aff50, (u32)(uintptr_t)info, stream, 0u, version) != 0) {   // GlobalSave_Serialize
+        g_calls.Cd(0x005f5b80, &result, stream);   // Stream_Close
+        return 0;
+    }
+    g_calls.Cd(0x005f5b80, &result, stream);
+    if (at<u8>(GlobalSave_Instance(), 0x25) != 0) {
+        char swears[0x104], alloweds[0x104];
+        const auto format = [](char *to, u32 pattern) {
+            const char *const root = at<const char *>(MemorySource_GetLock(reinterpret_cast<MemorySource *>((uintptr_t)0x00f816c0)), 8);
+            g_calls.Cd(0x0067a650, to, pattern, root, Language_Buffer(reinterpret_cast<const u8 *>((uintptr_t)0x0078b530)));   // CRT_sprintf
+        };
+        format(swears, 0x0077318c);   // "%s\Language\%s\swears.txt"
+        format(alloweds, 0x00773170);   // "%s\Language\%s\alloweds.txt"
+        if ((u8)g_calls.Th(0x005d3140, (u32)(uintptr_t)info, swears, alloweds, 1u) == 0)
+            at<u8>(GlobalSave_Instance(), 0x25) = 0;
+    }
+    return 1;
 }
 
 extern "C" u32 __fastcall GlobalSave_WriteFile(u8 *info, void *, const char *path) {

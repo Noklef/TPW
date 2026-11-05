@@ -7,6 +7,8 @@
 #include "../../../re/types.h"
 #include "addrcalls.h"
 
+struct String;
+
 // The calls of NamedObjects_SetThemeTexts go to these (the game's own by default; the bench points them at recorders).
 void NamedObjects_SetCalls(const AddrCall *table, u32 count);
 
@@ -103,4 +105,19 @@ u32 __fastcall NamedObjects_CreateWorld(u8 *self);
 // 0x407f20 (thiscall, plain RET; name invented, unconfirmed): a local String: the base folder (0x40ef40) and the text 0x747ee8, its Quickload_Locate (1, 0) to Scape_LoadObjects (0x550e00); Landscape_LoadSky (0x5852b0 on 0x8c1828) of the base folder. With 0x8bcbc8's 0x400000, [0x785724] above 0
 // (signed) and no +0x38: a block of 0x10 at +0x38 (none when the allocation fails), Landscape_AddTextureList on it. Then the balance files 0x784e30 and 0x784c20 (BalanceFile_Load, keep 0): the path made of the base folder, a backslash and the String 0x786bd8 / 0x7868c8. Either's failure gives 0; else 1.
 u32 __fastcall NamedObjects_LoadData(u8 *self);
+
+// 0x4093d0 (thiscall (index), pops 4; name invented, unconfirmed): a new index (+0x14): the list's (head +0x28, next at +4) node of that index found and its value passed to the object's vtable +0x18. Then the
+// global save info (GlobalSave_Instance) selects the object's theme (GlobalSave_ThemeSelect); returns its answer.
+u32 __fastcall NamedObjects_SelectIndex(u8 *self, void *, s32 index);
+
+// 0x409480 (thiscall (name), pops 4; name invented, unconfirmed): each index below the count +0x30 in turn selected as 0x4093d0 does until the object's name (a copy, String_CtorCopy) is name (any case); none:
+// the first index selected again, as far as it differs.
+void __fastcall NamedObjects_SelectByName(u8 *self, void *, const String *name);
+
+// 0x409790 (cdecl (which); name invented, unconfirmed): the owner 0x786b68's index by which: 1 or other: 2, 2: 1, 3: 0, 4: 3 (0x4093d0's work inlined). Returns GlobalSave_ThemeSelect's answer.
+u32 __cdecl GameOwner_SelectMode(u32 which);
+
+// 0x407e00 (thiscall (level), pops 4; name invented, unconfirmed): the definitions (0x7890a0) reloaded with the level (ObjectDefs_ReloadAll), the world started (World_Start on [0x7cf83c]): either's 0 returned.
+// With the dword 0x788160 the save named by the text 0x788164 loaded (UserSaves_LoadA, widened). Then NamedObjects_LoadData and, after a nonzero, Environment_Apply: 1 when both answered nonzero, else 0.
+u32 __fastcall NamedObjects_StartLevel(u8 *self, void *, u32 level);
 }

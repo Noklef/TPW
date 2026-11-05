@@ -297,6 +297,8 @@ s32 __fastcall AdvisorScoring_RingAverageBelow(const u8 *scoring);
 s32 __fastcall AdvisorScoring_RingAverageAbove(const u8 *scoring);
 // 0x59eb80 (name invented, unconfirmed): from the park's third month (FunnyTime_Elapsed), +0x35c when the average of the table's ring +0x1fc90 over the last +0x358 values, times +0x354, is below that of the ring +0x1f7f0; else or a ring empty 0.
 s32 __fastcall AdvisorScoring_RingRatio(const u8 *scoring);
+// 0x59f9c0: the park at least 3 months old (FunnyTime_Elapsed), staff at all, and 0x4c9aa0's count * 100 / the staff (signed) above +0x4b8: +0x4bc. Name invented.
+s32 __fastcall AdvisorScoring_AgedPerStaff(const u8 *scoring);
 // 0x59c680 (thiscall (steps), pops 4; name invented, unconfirmed): that many criteria of the table 0x76e300 (0x38 bytes each, wrapping at 0x15f; the cursor at +0 left past the last) tried: the skipped ones (+0) not counted; its id's entry (sic: by the id's place, when any entry holds the id) of kind (+0xc) 2, or 0 with the state 0xfb3b7c 0, or 1 with it 2, the score of its method (+0x10, on this + its +0x14); over the best so far (signed, from 0) and the id's game table entry (0x5194d0, then 0x59abc0) allowing, the new best. Returns its id, or 0x160.
 s32 __fastcall AdvisorScoring_PickNext(s32 *cursor, void *, s32 steps);
 }

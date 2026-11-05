@@ -29,4 +29,10 @@ void HeightMap_SetCalls(const AddrCall *table, u32 count);
 // not on the slots 0 and 1 played from its start, 30 ms a step, and rasterized at each step until its time left is below 0x6fe3dc (or a NaN). Else the bounds the instance's model's +0x80 and the clone rasterized once. The clone disposed. Then each square's top height (+0x10; with
 // useScale the model's float +0x90 * 2.55 instead) and, with flags, 0 at +0x14 when flags[1 + x + 20 * y] (8 bytes each) is 0, else 1. Returns the header.
 u8 *__cdecl HeightMap_Build(u8 *instance, u32 width, u32 height, const u8 *flags, u32 useScale);
+
+// 0x451640 (cdecl; name invented, unconfirmed): the instance's height map: read whole from the file path (VFS_Open "rb" etc.; magic 0xab1e0003, version 0x640005; its offsets +0xc, +0x10, +0x14 made pointers); a file
+// not read or of other magic is freed. A file of other size is kept (never freed, sic). None of the size width x height: HeightMap_Build and, when that makes one, a copy with its three grids (25 n, n and n bytes,
+// the pointers as offsets) written to path (CRT_fopen; none opened: nothing). Then the map's six dwords +0x18 copied to [[instance+8]+4]+0x80, and it set at instance +0xcc. A failed Build faults reading +0x18 (sic).
+// Debug_Printf left out.
+void __cdecl HeightMap_ReadOrBuild(u8 *instance, u32 width, u32 height, const char *path, const u8 *flags, u32 useScale);
 }

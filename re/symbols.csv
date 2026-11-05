@@ -375,7 +375,7 @@ address,name,kind,confidence,notes
 0x00402cf0,BalanceSound_StaticDtor,function,low,"reimplemented (src/game/core/balancefile); cdecl, at exit: gBalanceSound (0x7858f0) gets vtable 0x6fd640 back and is released"
 0x00412d40,ObjectDefBalance_Dtor,function,low,"reimplemented (src/game/core/balancefile); thiscall: vtable 0x6fd8a8 back, then BalanceFile_Release"
 0x005b0d60,BalanceFile_GetValues,function,high,reimplemented (src/game/core/accessors); the address of the part at 0x8
-0x00451640,HeightMap_LoadOrBuild,function,high,"loads <model>.hmp (magic 0xab1e0003, 0x00640005), rebuilds and rewrites it when missing or the footprint differs; result at model+0xcc"
+0x00451640,HeightMap_ReadOrBuild,function,low,"reimplemented (src/game/model/heightmap); cdecl: the instance's height map read from its file, or built and written; six dwords copied, set at +0xcc; name invented"
 0x00451880,HeightMap_Build,function,high,"reimplemented (src/game/model/heightmap); An instance's height grid built: rasterized once, or for each block's frames (name invented, unconfirmed)"
 0x00451e20,HeightMap_Rasterize,function,medium,"reimplemented (src/game/model/heightmap); cdecl (node, unused, matrix by value, grid, hit, unused, unused, clipped): the model tree's vertices clamped into the grid and its faces rasterised as heights (y*2.55) into the grid's cells; 1 when nothing went past the grid"
 0x00550e00,Scape_LoadObjects,function,high,"reimplemented (src/game/world/scapeobjects); cdecl (path): reads Scape.omp's OBJ_ records: 1 a point sound, 2 a particle effect, 3 an area sound; coordinates / 1024"
@@ -2802,6 +2802,10 @@ address,name,kind,confidence,notes
 0x005b09c0,GlobalSave_ThemeGet,function,low,"reimplemented (src/game/core/globalsave); a theme's record, found or made, when its global.sam loads"
 0x005b0bc0,GlobalSave_ClearThemes,function,low,reimplemented (src/game/core/globalsave); the theme map's records destroyed and its nodes erased
 0x005b08a0,GlobalSave_ThemeSelect,function,low,"reimplemented (src/game/core/globalsave); a theme's record found or made, kept at +0x48"
+0x005af250,GlobalSave_Dtor,function,low,"reimplemented (src/game/core/globalsave); thiscall: the info destroyed: theme records, theme map, map +0x28, counted lists +0xc and +0; name invented"
+0x005af430,GlobalSaveThemes_Dtor,function,low,"reimplemented (src/game/core/globalsave); thiscall: the theme map destroyed, the nil freed with the last user; name invented"
+0x005af1e0,GlobalSaveRides_Dtor,function,low,"reimplemented (src/game/core/globalsave); thiscall: the map +0x28 destroyed, the nil freed with the last user; name invented"
+0x005afd70,GlobalSave_ReadFile,function,low,"reimplemented (src/game/core/globalsave); thiscall: the global save's file read, then the swear lists loaded; name invented"
 0x005775d0,LiveObjects_Add,function,high,"reimplemented (src/game/core/liveobjects); cdecl (object): appended to the live objects list (0x87a6d8, count 0x87aed8, room for 0x200; the rest dropped); 1 either way"
 0x00577600,LiveObjects_Remove,function,high,"reimplemented (src/game/core/liveobjects); cdecl (object): the last match is replaced by the last entry and the count drops; 1, or 0 when not there"
 0x00579cd0,LiveObject7019f8_Construct,function,low,"reimplemented (src/game/core/liveobjects); thiscall (most derived): two identity matrices, fields cleared, the virtual base's vtable 0x7019f8 set and the base added to the live objects"
@@ -3188,6 +3192,7 @@ address,name,kind,confidence,notes
 0x00598ad0,Advisor_ClearSpeechText,function,low,reimplemented (src/game/world/advisor); the speech's text freed and its pointer cleared
 0x005996d0,Advisor_EndSpeech,function,low,reimplemented (src/game/world/advisor); the speech stopped without a closing sound; the voice by Sound_Stop or Sound_Forward6
 0x0059ab50,Advisor_PostHeld,function,low,reimplemented (src/game/world/advisor); the held message posted with the scoring's +0x32c as its score
+0x00599800,Advisor_FrameTick,function,low,"reimplemented (src/game/world/advisor); cdecl: the advisor's highlight on its flags, then the particle pools; name invented"
 0x00486610,Global7c24d8_CopyScript,function,high,reimplemented (src/game/ui/thingpreview); a sprite script slot made a copy of another
 0x00557110,Rsse_TakeFinished,function,high,"reimplemented (src/game/rsse/rsse_vm); the value of the first finished entry, which is cleared"
 0x0054dcc0,Flag54dcc0_Test,function,high,reimplemented (src/game/render/mode); a flag test on two settings
@@ -3283,6 +3288,14 @@ address,name,kind,confidence,notes
 0x006b0480,Font_Ctor,function,low,"reimplemented (src/game/files/fontloaders); thiscall (data, index), pops 8: the font's data pointers, vtable 0x70a158, the index's CodeTable (key 1)"
 0x006b0680,Font_Load,function,low,"reimplemented (src/game/files/fontloaders); kind 4's loader, the ""F4FB"" file: a block of the stream's size + 0x18, a Font on its data"
 0x005ec680,SignFonts_Add,function,low,"reimplemented (src/game/files/signfonts); A sign style's two font files extracted and added to Windows, their paths kept in the font vector."
+0x005ac650,UserSaves_Load,function,low,"reimplemented (src/game/files/usersaves); stdcall (name, extension): a save in the theme folder loaded (name invented)"
+0x005ac780,UserSaves_Save,function,low,"reimplemented (src/game/files/usersaves); stdcall (name, extension): a save in the theme folder written (name invented)"
+0x005ac5d0,UserSaves_LoadA,function,low,reimplemented (src/game/files/usersaves); stdcall (name): UserSaves_Load with the extension 0xf7ad98 (name invented)
+0x005ac5f0,UserSaves_LoadB,function,low,reimplemented (src/game/files/usersaves); stdcall (name): UserSaves_Load with the extension 0xf7adf8 (name invented)
+0x005ac610,UserSaves_SaveA,function,low,reimplemented (src/game/files/usersaves); stdcall (name): UserSaves_Save with the extension 0xf7ad98 (name invented)
+0x005ac630,UserSaves_SaveB,function,low,reimplemented (src/game/files/usersaves); stdcall (name): UserSaves_Save with the extension 0xf7adf8 (name invented)
+0x005ac8f0,UserSaves_List,function,low,"reimplemented (src/game/files/usersaves); thiscall on a list: the theme folder's saves listed, the first returned (name invented)"
+0x005accf0,UserSaves_LoadNewest,function,low,reimplemented (src/game/files/usersaves); cdecl: the theme folder's newest save loaded (name invented)
 0x005c9040,Class70295c_Ctor,function,high,"reimplemented (src/game/core/vdtor); Init_5d36c0, vtable 0x70295c and four zeroed dwords"
 0x005d03b0,Obj_SwapPair,function,high,reimplemented (src/game/core/stdlist); the dwords at +4 and +8 swapped with another object's
 0x005dd3d0,Obj_ChooseVector,function,high,reimplemented (src/game/frontend/viewcontrols); the vector at +0x10 taken from one of two others
@@ -4763,6 +4776,7 @@ address,name,kind,confidence,notes
 0x0052f880,Global8186e0_SetRecorded,function,low,"reimplemented (src/game/core/actionrec); cdecl (&id, flag): the record 5 (word id, byte flag), World_MarkRideBuilt; 0x8186ec = old 0x8186e0, 0x8187f8 = flag, 0x8186e0 = id"
 0x00403ed0,ActionRec_WriteFW,function,low,"reimplemented (src/game/core/actionrec); The action record of a code byte, a float and a word"
 0x00403f40,ActionRec_WriteFFW,function,low,"reimplemented (src/game/core/actionrec); The action record of a code byte, two floats and a word"
+0x00403fd0,ActionRec_WriteText,function,low,reimplemented (src/game/core/actionrec); thiscall: a record with a wide text passed through the swear filter; name invented
 0x00408f00,NamedObjects_RemoveGlobals,function,low,reimplemented (src/game/core/namedobjects); the 14 named globals removed from the named objects registry at [0x786b9c] and deleted
 0x00407b90,NamedObjects_Ctor,function,low,"reimplemented (src/game/core/namedobjects); thiscall: the registry owner built: String name from the WString 0x7861c0, empty owned list (vtable 0x6fd704), a new registry at +0x34"
 0x00407c90,NamedObjects_Dtor,function,low,"reimplemented (src/game/core/namedobjects); thiscall: owned objects deleted (slot 3), registry drained and freed, +0x38 freed, list vtable 0x6fd708 and nodes freed, String_Dtor"
@@ -4777,6 +4791,10 @@ address,name,kind,confidence,notes
 0x00407d80,NamedObjects_CreateWorld,function,low,"reimplemented (src/game/core/namedobjects); The world block allocated, constructed and attached; stored at 0x7cf83c"
 0x00409b10,NamedObjects_SetThemeTexts,function,low,"reimplemented (src/game/core/namedobjects); thiscall (theme, first, second): a theme's two texts shown on two labels"
 0x00407f20,NamedObjects_LoadData,function,low,"reimplemented (src/game/core/namedobjects); the scape's objects, the sky, the texture list and the two balance files loaded"
+0x004093d0,NamedObjects_SelectIndex,function,low,"reimplemented (src/game/core/namedobjects); thiscall (index): a new index's node value to the vtable +0x18, then the save info selects this theme; name invented"
+0x00409480,NamedObjects_SelectByName,function,low,reimplemented (src/game/core/namedobjects); thiscall (name): each index selected until the object's name is name (any case); none: the first index again; name invented
+0x00409790,GameOwner_SelectMode,function,low,reimplemented (src/game/core/namedobjects); cdecl (which): the owner 0x786b68's index by which; name invented
+0x00407e00,NamedObjects_StartLevel,function,low,"reimplemented (src/game/core/namedobjects); thiscall (level): definitions, world, the save named, data and environment; name invented"
 0x00407b20,FloatConsts_InitOne_407b20,function,low,reimplemented (src/game/core/floatconsts); cdecl static initialiser: unused 0x78639c = 1.0f (unit unknown)
 0x00407b40,FloatConsts_InitEpsilon_407b40,function,low,reimplemented (src/game/core/floatconsts); cdecl static initialiser: unused 0x786aec = 1 / 2^23 (unit unknown)
 0x00409f60,FloatConsts_InitOne_409f60,function,low,reimplemented (src/game/core/floatconsts); cdecl static initialiser: unused 0x78736c = 1.0f (unit unknown)
@@ -4884,6 +4902,7 @@ address,name,kind,confidence,notes
 0x004051d0,StdWString_AssignChars,function,low,"reimplemented (src/game/core/stdwstring); The game's MSVC6 std::wstring's assign(chars, n)"
 0x00405b90,GameError_IndexOfCode,function,low,reimplemented (src/game/core/gameerror); the error index of a library code
 0x00405710,GameError_Set,function,low,"reimplemented (src/game/core/gameerror); thiscall (index, arg, text), pops 12: +4 index, +8 arg, text strncpy into +0xc (0x50), +0 = 1"
+0x00405750,GameError_Show,function,low,"reimplemented (src/game/core/gameerror); thiscall (report): with the report and [0x78b530] set, its message in a message box; the engine's errors popped for index 0xc; name invented"
 0x004ea740,CountedPair_CtorWide,function,low,"reimplemented (src/game/core/countedpair); thiscall (std::wstring by value, pops 16): the 0x24-byte pair of a narrow and a wide string and a dword: the narrow one empty, the wide one assigned the string, the dword 0; the string destroyed"
 0x004e6410,CountedPair_CopyCtor,function,low,"reimplemented (src/game/core/countedpair); thiscall (x, pops 4): the copy constructor: both strings empty (allocator byte = the low byte of x's address, sic), assigned x's characters as C strings; value = x's"
 0x004f5860,CountedPair_Assign,function,low,"reimplemented (src/game/core/countedpair); thiscall (x, pops 4): the assignment: each string assigned x's characters as a C string (the wide _Grow inlined); value = x's"
@@ -4898,6 +4917,7 @@ address,name,kind,confidence,notes
 0x004e54c0,StringMapsRecord_Dtor,function,high,"reimplemented (src/game/core/stringmapsrecord); thiscall: the string maps record's destructor: the list at +0x54 erased and its sentinel freed, the maps at +0x40 / +0x30 / +0x20 (kinds E, C, D) destroyed, the wide strings at +0x10 and +0 tidied"
 0x004f0010,StringMapsRecord_Ctor,function,low,"reimplemented (src/game/core/stringmapsrecord); thiscall: the record constructor: two empty strings, maps D, C, E, the list sentinel; the allocator bytes from uninitialised stack (sic) written 0"
 0x0040f000,CommandLine_Parse,function,low,"reimplemented (src/game/core/cmdline); cdecl (argc, argv): the switches v/version (0), flmouse, bwcursor and the skipped ones; the park file with the extension into 0x788164, else GameError_Set(2); 1 without an error"
+0x00405630,CommandLine_Split,function,low,"reimplemented (src/game/core/cmdline); thiscall: a copy of GetCommandLineA at +0x204, cut at each "" /"", a pointer to each part from +4, their count at +0, 0x80 parts at most; returns this; name invented"
 0x005e6b30,WScanner_SetText,function,low,"reimplemented (src/game/core/wscanner); thiscall (text by value, context, flags; pops 0x18): flag bytes +0x3d-+0x3f and +0x40 set, the wstring at +4 assigned the text and frozen, +0x34/+0x38 its characters and 0, the text destroyed"
 0x005e73f0,WKeywordPair_Ctor,function,low,"reimplemented (src/game/core/wscanner); thiscall (key by value, 16-byte value by value; pops 0x20): the wstring at +0 made empty and assigned the key, +0x10..+0x1c the value, the key destroyed; returns the pair"
 0x005e57c0,WScanner_PushToken0c,function,low,"reimplemented (src/game/core/wscanner); thiscall: a pair {"""", L"""", 0xc} pushed on the vector at +0x50, then the position set to the text's end (name unconfirmed)"
@@ -5488,6 +5508,7 @@ address,name,kind,confidence,notes
 0x005a0720,AdvisorScoring_DaysBetween2,function,low,reimplemented (src/game/core/advisorscoring); days elapsed strictly between +0x5e8 and +0x5ec: +0x5f0
 0x005a0530,AdvisorScoring_TotalNoExtra,function,low,reimplemented (src/game/core/advisorscoring); no extras and the analyser's total above a scaled bound: +0x5bc
 0x0059e420,AdvisorScoring_MeanQueueUnused,function,low,reimplemented (src/game/core/advisorscoring); always 0; with the flag clear takes the mean queue position and drops it
+0x0059f9c0,AdvisorScoring_AgedPerStaff,function,low,"reimplemented (src/game/core/advisorscoring); thiscall: a park at least 3 months old, 0x4c9aa0's count * 100 / the staff above +0x4b8: +0x4bc; name invented"
 0x00418da0,ParkInfo_Serialize,function,low,"reimplemented (src/game/core/parkinfo); thiscall (stream, save, version, unused), pops 0x10: the save's park information (strings, three dwords, the author's name and e-mail, the description, the publishing date) written or read field by field (name unconfirmed)"
 0x005d55a0,AuthStamp_Text,function,low,"reimplemented (src/game/core/authstamp); cdecl: ""No Authorization Stamp"" (0x774bc0) while the phrase at 0x763f3d is the plain one at 0x774bd8; else the phrase's bytes less the key's (0x774b78) written to 0xf827f8 until they meet, and 0xf827f8"
 0x006cc7b0,Mp2Decoder_ParseHeader,function,low,"reimplemented (src/game/core/mp2frame); parses an MPEG audio frame header into the decoder's fields, rate, bitrate and frame length; -1 without sync or bitrate"
@@ -6229,6 +6250,33 @@ address,name,kind,confidence,notes
 0x005d5350,GuardFile_Write,function,low,"reimplemented (src/game/core/guardfile); gwrite: bytes through the file's buffer; the name from its messages, the rest invented, unconfirmed"
 0x005cedd0,FileBuf_Overflow,function,low,"reimplemented (src/game/core/filebuf); The narrow file stream buffer's overflow; name invented, unconfirmed"
 0x005cf490,FileBuf_SeekPos,function,low,"reimplemented (src/game/core/filebuf); The narrow file stream buffer's seek to a position; name invented, unconfirmed"
+0x005503f0,Game_Shutdown,function,low,"reimplemented (src/game/core/gameshutdown); cdecl: with the game started, one more frame at state 0xa, the modules let go, the temp folder removed; name invented"
+0x00550aa0,Game_RemoveTempFolder,function,low,"reimplemented (src/game/core/gameshutdown); cdecl: the memory source's path, ended in a backslash with 0x878eb8's name, removed; name invented"
+0x0040f230,Game_ShutdownOwner,function,low,reimplemented (src/game/core/gameshutdown); cdecl: GameOwner_ShutdownAll of 0x786b68; name invented
+0x0044e560,Game_ShutdownEngine,function,low,"reimplemented (src/game/core/gameshutdown); cdecl: Engine_ShutdownAll, Engine_DestroyDevice, Global879a24_Free; name invented"
+0x0040bf90,ThemeSaves_Save,function,low,"reimplemented (src/game/core/themesaves); cdecl: the theme's label copied, widened and saved; 1; name invented"
+0x0040c040,ThemeSaves_Load,function,low,"reimplemented (src/game/core/themesaves); cdecl: the theme's label copied, widened and loaded; 1; name invented"
+0x00550b30,ThemeSaves_EnsureFile,function,low,reimplemented (src/game/core/themesaves); cdecl: the theme's save opened; no file: saved; name invented
+0x004237f0,Options_ApplyChanges,function,low,"reimplemented (src/game/core/optionschanges); thiscall: the level's sound or dialog, then the settings' file written, the window closed; name invented"
+0x00424bb0,Options_ConfirmSave,function,low,"reimplemented (src/game/core/optionschanges); cdecl: the dialog's button: the state set, the session told or the theme saved, the window closed; 1; name invented"
+0x00449df0,Options_LoadStartup,function,low,reimplemented (src/game/core/optionschanges); cdecl: the first settings loaded and applied; name invented
+0x0054dcf0,Game_Start,function,low,"reimplemented (src/game/core/gamestart); cdecl: the game's start: clock, command line, sound, front end, state; name invented"
+0x0054df20,Game_PlayLogoMovie,function,low,"reimplemented (src/game/core/gamestart); cdecl: the logo movie, when in the archives; name invented"
+0x0054e070,Game_PlayDayMovie,function,low,"reimplemented (src/game/core/gamestart); cdecl: a movie by the day of the month, when in the archives; name invented"
+0x0044e080,GameWindow_Create,function,low,"reimplemented (src/game/core/gamewindow); cdecl: the window made, the options applied, the engine started; name invented"
+0x0045a960,Game_WinMain,function,low,"reimplemented (src/game/core/gamemain); stdcall: the game's WinMain: start, message loop, frames, shutdown; name invented"
+0x00478860,ImeContext_ReadComposition,function,low,"reimplemented (src/game/core/imeinput); thiscall(kind, out, size): the context's composition string of the kind read narrow into 0x40 bytes and widened; the count or the negative answer; name invented"
+0x004788c0,ImeContext_SetComposition,function,low,"reimplemented (src/game/core/imeinput); thiscall(index, text, _, reading, _): the two wide texts narrowed and set as the composition; the first negative answer or the set's; name invented"
+0x00478d40,Ime_OnComposition,function,low,"reimplemented (src/game/core/imeinput); thiscall(window, _, flags): WM_IME_COMPOSITION: the composition strings read, the composition cut to the limit (+0x58); name invented"
+0x00479380,Ime_ResetIfClosed,function,low,"reimplemented (src/game/core/imeinput); thiscall(window): IMN_SETCOMPOSITIONWINDOW: a closed IME's lists and composition cleared, the composition window put at the origin; name invented"
+0x0047a570,Ime_Detach,function,low,"reimplemented (src/game/core/imeinput); thiscall: the IME taken off its window: closed, the old procedure back, the map's entry erased; name invented"
+0x0047a3a0,Ime_Attach,function,low,"reimplemented (src/game/core/imeinput); thiscall(out, window): the IME put on a window: its context made, the map's entry added, the procedure 0x47a880 set; *out 0 or -1, returns out; name invented"
+0x0047a0c0,Ime_ReadCandidates,function,low,"reimplemented (src/game/core/imeinput); thiscall(context, index): one candidate list read into the list at index, widened, hashed; 1 or 0; name invented"
+0x00479d80,Ime_OpenCandidates,function,low,"reimplemented (src/game/core/imeinput); thiscall(window, mask): IMN_OPENCANDIDATE: the lists brought to 32, each one of the mask read; name invented"
+0x00479f10,Ime_ChangeCandidates,function,low,"reimplemented (src/game/core/imeinput); thiscall(window, mask): IMN_CHANGECANDIDATE: the lists brought to 32, the first of the mask that reads kept; name invented"
+0x004796b0,Ime_PickLayout,function,low,"reimplemented (src/game/core/imeinput); cdecl(layout): the layout list's next one after the given, in turn, whose property shows no IME UI; or 0; name invented"
+0x004798e0,Ime_OnMessage,function,low,"reimplemented (src/game/core/imeinput); thiscall(window, message, wparam, lparam): the IME's window messages; name invented"
+0x0047a880,Ime_WindowProc,function,low,"reimplemented (src/game/core/imeinput); stdcall(window, message, wparam, lparam): the IME's window procedure: the window's IME from the map, or the default procedure; name invented"
 0x0050ffe0,Nav_Ctor,function,high,reimplemented (src/game/world/nav); constants constructor with five integer pairs
 0x0050f200,Nav_Dtor,function,high,reimplemented (src/game/world/nav); thiscall: the five IntPairs at +0x64 destroyed with Stub_Ret (CRT_VectorDtorIterator); also via 0x4f7c30 (+0xd4) and 0x4f8ad0
 0x004f7c30,Nav_DtorAtD4,function,low,reimplemented (src/game/world/nav); thiscall adjustor: Nav_Dtor on this + 0xd4
@@ -6732,6 +6780,8 @@ address,name,kind,confidence,notes
 0x005617c0,ScreenGrab_SetName,function,low,reimplemented (src/game/gfx/screengrab); thiscall (name): the name copied to +0xc and +0x8c pointed at it; a null name leaves them; returns 1
 0x00550460,ScreenGrab_NextName,function,low,"reimplemented (src/game/gfx/screengrab); cdecl: the next free grab name: Scr%05ld.tga of the raised counter at 0x879084 opened as a FileStream until that fails, then given to the grab at 0x8798d0"
 0x00561610,ScreenGrab_TakeFront,function,low,reimplemented (src/game/gfx/screengrab); the front surface's pixels copied to a tracked block
+0x00561370,ScreenGrab_WriteTga,function,low,"reimplemented (src/game/gfx/screengrab); thiscall (path): the 24-bit pixels written as a .tga, rows from the last; no file: 0 with the engine's error; name invented"
+0x00561760,ScreenGrab_Save,function,low,"reimplemented (src/game/gfx/screengrab); thiscall: with a name: pixels taken, made 24-bit, written and freed, the name cleared; a failed step returns 0; name invented"
 0x0053e650,TvStatic_CreateSurface,function,low,"reimplemented (src/game/gfx/tvstatic); cdecl (SEH frame left out): a new Surface (0x50 bytes, key/+0x20/+0x24 cleared, info constructed) and a 320x240 off-screen system memory DirectDraw surface for it (CreateSurface, slot 6 of [[0x879a24]]), attached (Surface_Attach); on a failure the Surface is freed and 0 returned (name unconfirmed)"
 0x0053e920,TvStatic_Init,function,low,reimplemented (src/game/gfx/tvstatic); cdecl: 0x874fd0 = TvStatic_CreateSurface() (name unconfirmed)
 0x0053e930,TvStatic_Free,function,low,"reimplemented (src/game/gfx/tvstatic); cdecl: the DirectDraw surface of the Surface at 0x874fd0 (Surface_GetSurface, addRef 1) released, the Surface freed (name unconfirmed)"
@@ -7302,6 +7352,8 @@ address,name,kind,confidence,notes
 0x00584b10,LightList_Clear,function,high,reimplemented (src/game/render/lightlist); count and cursor = 0
 0x00584e30,LightList_First,function,high,reimplemented (src/game/render/lightlist); cursor = 0; the first entry or null
 0x00584e50,LightList_Next,function,high,reimplemented (src/game/render/lightlist); the next entry or null
+0x00584b20,LightList_Angle,function,low,"reimplemented (src/game/render/lightlist); cdecl: the angle between two 2D vectors, 0 to 2 pi; name invented"
+0x00584be0,LightList_Add,function,low,reimplemented (src/game/render/lightlist); thiscall: adds a light by its direction; name invented
 0x00573ca0,SoftRenderer_ClearBuffer,function,high,reimplemented (src/game/render/softrender); the w*h*4-byte buffer zeroed; returns 1
 0x00573e30,SoftRenderer_TextureMemory,function,high,"reimplemented (src/game/render/softrender); the texture memory: the option, else a quarter of RAM within 8-24 MB"
 0x005744d0,Meshes_Ready,function,high,reimplemented (src/game/render/meshlist); a zero-ended array of meshes readied (flag 0x20: object +0x30; no 0x10000000: pushed on 0x879dec)
@@ -7507,6 +7559,21 @@ address,name,kind,confidence,notes
 0x0057a420,Mesh_TouchTextures,function,low,"reimplemented (src/game/render/meshtextures); stdcall (mesh), pops 4: a mesh's textures told to the texture cache; name invented"
 0x00572b60,Engine_ShutdownAll,function,low,"reimplemented (src/game/render/engineshutdown); cdecl, returns 1: the engine's objects destroyed in order; render mode 1 and 4 have their own (name invented)"
 0x005774c0,Engine_ResetDevice,function,low,reimplemented (src/game/render/devicereset); cdecl: surfaces and display restored in order; mode 1 also releases and remakes the texture cache; a failure destroys the device and pushes an error (name invented)
+0x00564210,Device_Present,function,low,"reimplemented (src/game/render/present); thiscall: the back surface shown: Blt or Flip by the flags, or Blt to the window; the answer kept in 0x879cd4; returns whether it is 0; name invented"
+0x00573890,Present_Engine,function,low,reimplemented (src/game/render/present); cdecl: Device_Present of the engine; name invented
+0x00573cc0,Present_Picture,function,low,"reimplemented (src/game/render/present); thiscall: the picture copied to the locked back surface by the display mode, shown; name invented"
+0x0057d100,WeatherFx_Create,function,low,"reimplemented (src/game/render/weathertables); cdecl: the renderer made and its tables filled, or the engine's error; name invented"
+0x0057d300,WeatherFx_FillTables,function,low,"reimplemented (src/game/render/weathertables); thiscall: the renderer's random tables from rand, x87 at 24 bits; name invented"
+0x0056d600,Polygon_ScanRows,function,low,"reimplemented (src/game/render/viewfootprint); thiscall(scan, out, unused, limit): the polygon's edges walked into each row's first and last cell, the rows widened into out; name invented"
+0x0056bb00,WorldView_UpdateFootprint,function,low,"reimplemented (src/game/render/viewfootprint); thiscall: the ground the world view sees: the eye and corner rays as a polygon, clipped, scaled to cells, scanned; the far distance set; returns 1; name invented"
+0x00576a00,Renderer_DrawView,function,low,"reimplemented (src/game/render/rendererframe); thiscall(view): one view drawn, step by step, its camera for the time; 1 or 0; name invented"
+0x00576ec0,Renderer_DrawFrame,function,low,"reimplemented (src/game/render/rendererframe); thiscall: the frame: its views in the window or, moved, full screen in stereo or side by side; the precision and flags set back; name invented"
+0x0044e540,Engine_DrawFrame,function,low,reimplemented (src/game/render/rendererframe); cdecl: Renderer_DrawFrame of the renderer [0x87a6d0]; name invented
+0x0056a030,RasterDraw_Primitive,function,low,reimplemented (src/game/render/rasterdraw); a primitive's triangles
+0x0056a180,RasterDraw_Outlined,function,low,reimplemented (src/game/render/rasterdraw); a primitive's triangles and its fan
+0x0056a230,RasterDraw_TestQuad,function,low,reimplemented (src/game/render/rasterdraw); the fixed quad of four colours
+0x0056a2f0,RasterDraw_Rect,function,low,"reimplemented (src/game/render/rasterdraw); a rectangle, plain or mapped"
+0x0056a540,RasterDraw_MappedTriangle,function,low,reimplemented (src/game/render/rasterdraw); a mapped triangle over the screen
 0x0044b140,Model_MarkFacesByMask,function,high,"reimplemented (src/game/model/parts); cdecl (holder**, mask): face flags 0x80000010 for parts whose +8 has any mask bit"
 0x0044b1b0,Model_MarkFacesNotValue,function,high,"reimplemented (src/game/model/parts); cdecl (holder**, value): face flags 0x80000010 for parts whose +8 is not value"
 0x0044b220,Model_FindPartByKey4,function,high,"reimplemented (src/game/model/parts); cdecl u32 (holder, mask, key): first part with +4 == key and flags & mask (mask defaults 0x3da1f82), or -1"
