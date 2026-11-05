@@ -6738,6 +6738,8 @@ address,name,kind,confidence,notes
 0x005617c0,ScreenGrab_SetName,function,low,reimplemented (src/game/gfx/screengrab); thiscall (name): the name copied to +0xc and +0x8c pointed at it; a null name leaves them; returns 1
 0x00550460,ScreenGrab_NextName,function,low,"reimplemented (src/game/gfx/screengrab); cdecl: the next free grab name: Scr%05ld.tga of the raised counter at 0x879084 opened as a FileStream until that fails, then given to the grab at 0x8798d0"
 0x00561610,ScreenGrab_TakeFront,function,low,reimplemented (src/game/gfx/screengrab); the front surface's pixels copied to a tracked block
+0x00561370,ScreenGrab_WriteTga,function,low,"reimplemented (src/game/gfx/screengrab); thiscall (path): the 24-bit pixels written as a .tga, rows from the last; no file: 0 with the engine's error; name invented"
+0x00561760,ScreenGrab_Save,function,low,"reimplemented (src/game/gfx/screengrab); thiscall: with a name: pixels taken, made 24-bit, written and freed, the name cleared; a failed step returns 0; name invented"
 0x0053e650,TvStatic_CreateSurface,function,low,"reimplemented (src/game/gfx/tvstatic); cdecl (SEH frame left out): a new Surface (0x50 bytes, key/+0x20/+0x24 cleared, info constructed) and a 320x240 off-screen system memory DirectDraw surface for it (CreateSurface, slot 6 of [[0x879a24]]), attached (Surface_Attach); on a failure the Surface is freed and 0 returned (name unconfirmed)"
 0x0053e920,TvStatic_Init,function,low,reimplemented (src/game/gfx/tvstatic); cdecl: 0x874fd0 = TvStatic_CreateSurface() (name unconfirmed)
 0x0053e930,TvStatic_Free,function,low,"reimplemented (src/game/gfx/tvstatic); cdecl: the DirectDraw surface of the Surface at 0x874fd0 (Surface_GetSurface, addRef 1) released, the Surface freed (name unconfirmed)"
