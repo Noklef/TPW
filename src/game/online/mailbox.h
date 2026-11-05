@@ -63,7 +63,36 @@ struct MailboxDropEnv {
 };
 void MailboxDrop_SetEnv(const MailboxDropEnv *env);  // nullptr: the game's
 
+// The calls of 0x5c9720 and 0x5cc8a0 (0x5c92f0 is the game's encode, ported).
+struct MailClientEnv {
+    void *(__cdecl *fopen)(const char *name, const char *mode);                     // CRT_fopen
+    s32(__cdecl *fseek)(void *file, s32 offset, s32 origin);                        // CRT_fseek
+    s32(__cdecl *ftell)(void *file);                                                // CRT_ftell
+    u32(__cdecl *fread)(char *data, u32 size, u32 count, void *file);               // CRT_fread
+    void(__cdecl *encode)(char *dst, const u8 *src, s32 length);                    // Base64_Encode
+    u8 *(__fastcall *ctor)(void *block);                                            // MailClient_Ctor
+    u32(__fastcall *connect)(u8 *self, void *, const char *host, u32 port, u32 arg3, u8 *owner);  // MailClient_Connect
+};
+void MailClient_SetEnv(const MailClientEnv *env);  // nullptr: the game's
+
 extern "C" {
+// 0x5c9720 (thiscall (path), pops 4): an attachment of 0x24: +0 the text 0x75447c, +0x10 the text 0x773dd4. The file read whole; none: the path's own address taken as the length and no data (sic). +0x20 the data in base64, its block sized for the line
+// breaks of each 76; no block: the data freed, unencoded. Answers self.
+u8 *__fastcall MailAttachment_Ctor(u8 *self, void *, const char *path);
+
+// 0x5c93c0 (thiscall): a client of 0x94: its strings empty, an empty list of strings at +0x10 (its head +0x14), +0x64 = 9, WSAStartup(0x101) (0x6fd42c, the import read live; its data on this frame, 0x190 as in the original), +0 the text 0x773dc0. The
+// allocator bytes the original copies from its stack's garbage are not written. Answers self.
+u8 *__fastcall MailClient_Ctor(u8 *self);
+
+// 0x5c9f10 (thiscall (host, port, arg3, owner), pops 0x10): no owner: +0x85 = 1, else 0; +0x8c the owner. An empty list +0x10: the callback +0x90, when set, told (1, 8), and 1. The library's object +0x70 made if there is none (0x6fd57c; none: 1); +0x6c = 0;
+// its connect (0x6fd574) with the callback 0x5c9a60 and self. Answers whether that gave 0.
+u32 __fastcall MailClient_Connect(u8 *self, void *, const char *host, u32 port, u32 arg3, u8 *owner);
+
+// 0x5cc8a0 (thiscall (host, port, arg3), pops 0xc): nothing in +0x6c: 0. The client +0x98 made, or emptied (+0 the text 0x773dc0, its list, its attachment, +0x74 the text 0x786de4). The host kept at +0x80, the port's low word at +0x90; the client's +0x90
+// is this +0x94. The first message of +0x64 read (none: 0) and put in the client as Mailbox_DropFirst does; connected with self as the owner. Answers whether that gave 0. The port's high word in the original is what EDX held; here 0.
+u8 __fastcall Mailbox_Send(u8 *self, void *, const char *host, u32 port, u32 arg3);
+
+
 // 0x5cde40 (thiscall): basic_ios<char>'s destructor: the vtable 0x709954, IosBase_Dtor.
 void __fastcall NIos_Dtor(u8 *self);
 
