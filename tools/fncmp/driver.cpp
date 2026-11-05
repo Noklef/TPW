@@ -307,6 +307,7 @@
 #include "../../src/game/files/usersaves.h"
 #include "../../src/game/core/gameshutdown.h"
 #include "../../src/game/gfx/screengrab.h"
+#include "../../src/game/core/themesaves.h"
 #include "../../src/game/render/present.h"
 #include "../../src/game/core/gameerror.h"
 #include "../../src/game/core/cmdline.h"
@@ -1434,7 +1435,10 @@ const AddrCall kSpriteFolderCalls[] = {{0x41a9d0, recorder(1, 0)}, {0x41aa40, re
     {0x541d90, jpeg_recorder(10, 1)}, {0x58a4f0, recorder(11, 1)}, {0x576620, recorder(12, 6)}, {0x576410, recorder(13, 2)}};  // tests/fncmp/spritesinit.py
 const AddrCall kThemeTextCalls[] = {{0x413020, recorder(1, 3)}, {0x4130b0, recorder(2, 3)},  // tests/fncmp/themetexts.py
     {0x40ef40, jpeg_recorder(3, 0)}, {0x44a280, jpeg_recorder(4, 3)}, {0x550e00, jpeg_recorder(5, 1)}, {0x5852b0, recorder(6, 1)}, {0x418c30, recorder(7, 0)}, {0x401650, recorder(8, 2)},  // tests/fncmp/namedobjectsload.py
-    {0x5b08a0, recorder(9, 1)}};  // tests/fncmp/namedobjectsselect.py
+    {0x5b08a0, recorder(9, 1)},  // tests/fncmp/namedobjectsselect.py
+    {0x413140, recorder(10, 1)}, {0x5156a0, recorder(11, 1)}, {0x5ac5d0, recorder(12, 1)}, {0x407f20, recorder(13, 0)}, {0x4080e0, recorder(14, 0)}};  // tests/fncmp/themesaves.py
+const AddrCall kThemeSavesCalls[] = {{0x5ac5d0, recorder(12, 1)}, {0x5ac610, recorder(15, 1)}, {0x5ac630, recorder(16, 1)}, {0x5c8890, recorder(17, 1)}, {0x5f7180, recorder(18, 0)}, {0x5f71e0, recorder(19, 0)},  // tests/fncmp/themesaves.py
+    {0x5f71f0, recorder(20, 0)}, {0x5f7ed0, recorder(21, 3)}};
 const AddrCall kPointerMakeCalls[] = {  // tests/fncmp/pointermake.py
     {0x5fbf80, recorder(1, 2)}, {0x47e460, recorder(2, 0)}, {0x5fb8e0, recorder(3, 1)}, {0x5fbbd0, recorder(4, 2)}, {0x5fbc80, recorder(5, 2)}, {0x5fb7b0, recorder(6, 1)},
     {0x5f73a0, jpeg_recorder(7, 4)}, {0x5f5650, jpeg_recorder(8, 1)}, {0x5f5640, jpeg_recorder(9, 0)}, {0x67acc0, jpeg_recorder(10, 1)}};
@@ -2725,6 +2729,7 @@ int main(int argc, char **argv) {
     LevelSetup_SetCalls(kLevelSetupCalls, sizeof(kLevelSetupCalls) / sizeof(kLevelSetupCalls[0]));
     UserSaves_SetCalls(kUserSavesCalls, sizeof(kUserSavesCalls) / sizeof(kUserSavesCalls[0]));
     GameShutdown_SetCalls(kGameShutdownCalls, sizeof(kGameShutdownCalls) / sizeof(kGameShutdownCalls[0]));
+    ThemeSaves_SetCalls(kThemeSavesCalls, sizeof(kThemeSavesCalls) / sizeof(kThemeSavesCalls[0]));
     ScreenGrab_SetCalls(kScreenGrabCalls, sizeof(kScreenGrabCalls) / sizeof(kScreenGrabCalls[0]));
     Present_SetCalls(kPresentCalls, sizeof(kPresentCalls) / sizeof(kPresentCalls[0]));
     GameError_SetCalls(kGameErrorCalls, sizeof(kGameErrorCalls) / sizeof(kGameErrorCalls[0]));

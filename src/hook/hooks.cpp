@@ -293,6 +293,7 @@
 #include "../game/core/stringmapsrecord.h"
 #include "../game/core/swearfilter.h"
 #include "../game/core/themenames.h"
+#include "../game/core/themesaves.h"
 #include "../game/core/voicecodec.h"
 #include "../game/core/voiceevents.h"
 #include "../game/core/voicesample.h"
@@ -5116,6 +5117,7 @@ const Hook kHooks[] = {
     {"NamedObjects_SelectIndex",  0x004093d0, (void *)&NamedObjects_SelectIndex, {0x56, 0x8b, 0xf1, 0x8b, 0x4c}},
     {"NamedObjects_SelectByName", 0x00409480, (void *)&NamedObjects_SelectByName, {0x6a, 0xff, 0x68, 0xbe, 0x7b}},
     {"GameOwner_SelectMode",      0x00409790, (void *)&GameOwner_SelectMode, {0x8b, 0x44, 0x24, 0x04, 0xb9}},
+    {"NamedObjects_StartLevel",   0x00407e00, (void *)&NamedObjects_StartLevel, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"Save_FieldName",            0x00416e10, (void *)&Save_FieldName, {0x33, 0xc0, 0xc2, 0x0c, 0x00}},
     {"Save_InitUnusedOne",        0x00416e20, (void *)&Save_InitUnusedOne, {0x51, 0xc7, 0x44, 0x24, 0x00}},
     {"Save_InitUnusedEpsilon",    0x00416e40, (void *)&Save_InitUnusedEpsilon, {0xd9, 0x05, 0x8c, 0xd9, 0x6f}},
@@ -6666,6 +6668,9 @@ const Hook kHooks[] = {
     {"Game_RemoveTempFolder",     0x00550aa0, (void *)&Game_RemoveTempFolder, {0x6a, 0xff, 0x68, 0xb8, 0xee}},
     {"Game_ShutdownOwner",        0x0040f230, (void *)&Game_ShutdownOwner, {0xb9, 0x68, 0x6b, 0x78, 0x00}},
     {"Game_ShutdownEngine",       0x0044e560, (void *)&Game_ShutdownEngine, {0xe8, 0xfb, 0x45, 0x12, 0x00}},
+    {"ThemeSaves_Save",           0x0040bf90, (void *)&ThemeSaves_Save, {0x6a, 0xff, 0x68, 0x80, 0x7c}},
+    {"ThemeSaves_Load",           0x0040c040, (void *)&ThemeSaves_Load, {0x6a, 0xff, 0x68, 0xa0, 0x7c}},
+    {"ThemeSaves_EnsureFile",     0x00550b30, (void *)&ThemeSaves_EnsureFile, {0x6a, 0xff, 0x68, 0xf3, 0xee}},
     {"Nav_Ctor",          0x0050ffe0, (void *)&Nav_Ctor, {0x6a, 0xff, 0x68, 0x2d, 0xe6}},
     {"Nav_Dtor",                  0x0050f200, (void *)&Nav_Dtor, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"Nav_DtorAtD4",              0x004f7c30, (void *)&Nav_DtorAtD4, {0x81, 0xc1, 0xd4, 0x00, 0x00}},

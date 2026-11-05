@@ -116,4 +116,8 @@ void __fastcall NamedObjects_SelectByName(u8 *self, void *, const String *name);
 
 // 0x409790 (cdecl (which); name invented, unconfirmed): the owner 0x786b68's index by which: 1 or other: 2, 2: 1, 3: 0, 4: 3 (0x4093d0's work inlined). Returns GlobalSave_ThemeSelect's answer.
 u32 __cdecl GameOwner_SelectMode(u32 which);
+
+// 0x407e00 (thiscall (level), pops 4; name invented, unconfirmed): the definitions (0x7890a0) reloaded with the level (ObjectDefs_ReloadAll), the world started (World_Start on [0x7cf83c]): either's 0 returned.
+// With the dword 0x788160 the save named by the text 0x788164 loaded (UserSaves_LoadA, widened). Then NamedObjects_LoadData and, after a nonzero, Environment_Apply: 1 when both answered nonzero, else 0.
+u32 __fastcall NamedObjects_StartLevel(u8 *self, void *, u32 level);
 }

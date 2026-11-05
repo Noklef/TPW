@@ -427,4 +427,21 @@ u32 __cdecl GameOwner_SelectMode(u32 which) {
     set_index(owner, which == 2 ? 1 : which == 3 ? 0 : which == 4 ? 3 : 2);
     return select_theme(owner);
 }
+
+u32 __fastcall NamedObjects_StartLevel(u8 *self, void *, u32 level) {
+    if (!g_calls.Th(0x00413140, 0x007890a0u, level)) return 0;
+    if (!g_calls.Th(0x005156a0, *reinterpret_cast<const u32 *>((uintptr_t)0x007cf83c), level)) return 0;
+    if (*reinterpret_cast<const u32 *>((uintptr_t)0x00788160)) {
+        String name;
+        String_CtorStr(&name, nullptr, reinterpret_cast<const char *>((uintptr_t)0x00788164));
+        WString wide;
+        WString_Ctor(&wide);
+        WString_AssignFromAnsi(&wide, &name);
+        g_calls.Th(0x005ac5d0, 0x00f7b560u, &wide);
+        WString_Dtor(&wide);
+        String_Dtor(&name);
+    }
+    const u32 me = (u32)(uintptr_t)self;
+    return g_calls.Th(0x00407f20, me) && g_calls.Th(0x004080e0, me) ? 1 : 0;
+}
 }
