@@ -6212,6 +6212,8 @@ address,name,kind,confidence,notes
 0x005d08e0,NFileBuf_Open,function,low,"reimplemented (src/game/core/narrowfilebuf); basic_filebuf<char>::open, by its shape"
 0x005d2d40,SwearFilter_Find,function,low,reimplemented (src/game/core/swearfilter); wcsistr for the swear filter
 0x005d3230,SwearFilter_Apply,function,low,reimplemented (src/game/core/swearfilter); the swear filter over a wide string
+0x005d2de0,SwearFilter_LoadFile,function,low,reimplemented (src/game/core/swearfilter); the swear filter's list file loaded (name invented)
+0x005d3140,SwearFilter_Load,function,low,reimplemented (src/game/core/swearfilter); both word lists emptied and loaded (name invented)
 0x005cfb60,NCtype_Ctor,function,low,reimplemented (src/game/core/nstream); ctype<char>'s constructor
 0x005d0080,NIstream_Ipfx,function,low,reimplemented (src/game/core/nstream); basic_istream<char>::ipfx
 0x005cfd50,NCtype_Dtor,function,low,reimplemented (src/game/core/nstream); ctype<char>'s destructor

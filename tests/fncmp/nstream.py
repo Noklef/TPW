@@ -98,6 +98,7 @@ def case(r):
         regions[w.TEXT] = bytes(r.randrange(1, 256) for _ in range(length)) + b'\0'
         regions[w.TABLE3] = struct.pack('<40I', *[r.choice([length, length, length, 0, length + 1]) for _ in range(40)])
         answers(log, w.XSPUTN, w.TABLE3)
+        regions[w.PUTN] = struct.pack('<I', r.choice([0, 1, 3, 8, 0x80000000, 0xffffffff]))   # (the last: the position plus the room wraps)
         return Call(0x5d0e70, [w.STREAM, w.TEXT], regions, conv='c', ret='a')
     if name == 'opfx':
         return Call(0x5d1190, [w.STREAM], regions, conv='t', ret='b')

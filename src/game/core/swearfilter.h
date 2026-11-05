@@ -31,6 +31,7 @@ u8 __fastcall SwearFilter_Apply(const u8 *self, void *, StdWString *text, u32 fl
 u8 __fastcall SwearFilter_LoadFile(u8 *self, void *, const char *path, u8 *list, u32 flag);
 
 // 0x5d3140 (thiscall on the global save info (swears, allowed, flag), pops 12; name invented, unconfirmed): both lists (+0, sentinel +4, count +8; +0xc, +0x10, +0x14) emptied node by node (the first with CountedBuf_Deleter (0), the second with CountedBuf_Reset (1)), then
-// SwearFilter_LoadFile (swears, self, flag); when that answers 0 so does this. Otherwise SwearFilter_LoadFile (allowed, self + 0xc, flag), whatever it answers, and 1.
+// SwearFilter_LoadFile (swears, self, flag); when that answers 0 so does this. Otherwise SwearFilter_LoadFile (allowed, self + 0xc, flag), whatever it answers, and 1. Both calls have the same stack place, so a read past the second file's end
+// sees the first's units there (sic: a last line without its end, on a place where the first file had a 10, counts as ended). The first file's sees what the stack held: here 0.
 u8 __fastcall SwearFilter_Load(u8 *self, void *, const char *swears, const char *allowed, u32 flag);
 }
