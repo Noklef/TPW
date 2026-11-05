@@ -31,6 +31,10 @@ struct SceneStepsEnv {
     u8 *(__fastcall *saveCtor)(u8 *info);                                 // GlobalSave_Construct (0x5aef50)
     s32(__fastcall *countLevel)(const u8 *info);                          // GlobalSave_CountSetLevel (0x5af680)
     u32(__fastcall *samField)(u8 *record);                                // ThemeRecord_GlobalSamField14 (0x5b11a0)
+    void(__fastcall *chooseTheme)(void *object, void *, String *name);    // 0x409480 on 0x786b68 (B's, unported)
+    void(__cdecl *sparkle)();                                             // Dialog7cc4b4_Sparkle (0x4b8fd0)
+    s32(__cdecl *message6Off)();                                          // Dialog7cc4b4_Message6Off (0x4b8ec0)
+    void(__fastcall *themeLoad)(u8 *self, void *, u8 *list);              // ThemeMenu_Load (0x5e27b0)
 };
 void SceneSteps_SetEnv(const SceneStepsEnv *env);
 
@@ -38,6 +42,15 @@ extern "C" {
 // 0x5e1cc0 (thiscall; name invented, unconfirmed): nothing unless idle with a holder at +0xc. In the mode setting 2 slot 0x44; else the theme named by the holder's text at +0x30 looked up in the
 // global save info (0xf7c58c, made the first time, each time as GlobalSave_Instance does; none: 0): found, and its GlobalSamField14 at most (signed) the info's CountSetLevel: slot 0x44.
 void __fastcall Scene_CheckThemeLevel(u8 *self);
+// 0x5e1e50 (thiscall; name invented, unconfirmed): with a holder at +0xc: its text +0x30 to slot 5 of the object 0xf85480, and as a string to 0x409480 on 0x786b68; the frame [0xf82884]'s +0x14 = 2.
+void __fastcall Scene_ChooseTheme(u8 *self);
+// 0x5e1e30 (thiscall; name invented, unconfirmed): +0x14 = 1, Dialog7cc4b4_Sparkle, then Dialog7cc4b4_Message6Off and its answer.
+s32 __fastcall Scene_CloseThemeDialog(u8 *self);
+// 0x5e1ca0, 0x5e1cb0 (thiscall, self unused; names invented, unconfirmed): FrontEnd_Dialog7cc4b4Child, Dialog7cc4b4_Message6Off and their answers.
+u32 __fastcall Scene_ShowThemeDialog(u8 *self);
+s32 __fastcall Scene_HideThemeDialog(u8 *self);
+// 0x5e23c0 (cdecl (error, menu, list); name invented, unconfirmed): a callback. No error: ThemeMenu_Load(menu, list). Else the menu's slot 8, then slot 7 of [[0xf85614] + 0xc].
+void __cdecl ThemeMenu_LoadAnswered(u32 error, u8 *menu, u8 *list);
 
 
 // 0x5e1890 (0x702ec0 slot 6): a state not 0 ended (2: the model played (1, 0)), +0x14 = 0; then the dialog 0x7cc4b4's child and theme shown. 1 when a state ended, else 0.

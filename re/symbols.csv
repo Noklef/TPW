@@ -8010,6 +8010,11 @@ address,name,kind,confidence,notes
 0x005dd7c0,ViewCtl702e70_TakeList,function,low,"reimplemented (src/game/frontend/scenesteps); the list taken, then the queue's push"
 0x005e1cc0,Scene_CheckThemeLevel,function,low,"reimplemented (src/game/frontend/scenesteps); A scene's check of its theme's level in the global save info: slot 0x44 when reached, or in mode 2. Name invented, unconfirmed."
 0x005dda90,ViewCtl702bc8_TakeListForward,function,low,"reimplemented (src/game/frontend/scenesteps); Only ViewCtl702bc8_TakeList. Name invented, unconfirmed."
+0x005e1e50,Scene_ChooseTheme,function,low,reimplemented (src/game/frontend/scenesteps); the holder's theme chosen and the frame moved on
+0x005e1e30,Scene_CloseThemeDialog,function,low,reimplemented (src/game/frontend/scenesteps); the theme dialog closed with its sparkle
+0x005e1ca0,Scene_ShowThemeDialog,function,low,reimplemented (src/game/frontend/scenesteps); the theme dialog's child shown
+0x005e1cb0,Scene_HideThemeDialog,function,low,reimplemented (src/game/frontend/scenesteps); the theme dialog hidden
+0x005e23c0,ThemeMenu_LoadAnswered,function,low,reimplemented (src/game/frontend/scenesteps); the callback that loads the theme menu or closes it
 0x005e2010,ThemeMenu_Refresh,function,low,reimplemented (src/game/frontend/thememenu); The lobby menu's items given their theme texts; the fonts added for them removed.
 0x005e27b0,ThemeMenu_Load,function,low,reimplemented (src/game/frontend/thememenu); The lobby menu's items loaded from the session's values; the fonts added for them removed.
 0x005e18d0,ThemeMenu_Enter,function,low,"reimplemented (src/game/frontend/thememenu); The lobby entered: its view set up, the scene's scripts loaded, the theme item chosen and its sounds played; name invented, unconfirmed"
