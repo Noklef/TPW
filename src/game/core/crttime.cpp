@@ -470,4 +470,79 @@ s32 __cdecl CRT_isindst(const s32 *when) {
     return result;
 }
 
+static s32 global(u32 address) { return *reinterpret_cast<const s32 *>((uintptr_t)address); }
+
+s32 *__cdecl CRT_localtime(const s32 *timer) {
+    if (*timer < 0) return nullptr;
+    CRT_tzset_once();
+    s32 when = *timer;
+    if (when > 0x3f480 && when < 0x7ffc0b7f) {
+        when -= global(0x007813d8);
+        s32 *got = CRT_gmtime(&when);
+        if (!global(0x007813dc) || !CRT_isindst(got)) return got;
+        when -= global(0x007813e0);
+        got = CRT_gmtime(&when);
+        got[kDaylight] = 1;
+        return got;
+    }
+    s32 *const got = CRT_gmtime(timer);
+    s32 left = got[kSecond];
+    if (CRT_isindst(got)) left -= global(0x007813e0);
+    left -= global(0x007813d8);
+    got[kSecond] = left % 60;
+    if (got[kSecond] < 0) {
+        got[kSecond] += 60;
+        left -= 60;
+    }
+    left = left / 60 + got[kMinute];
+    got[kMinute] = left % 60;
+    if (got[kMinute] < 0) {
+        got[kMinute] += 60;
+        left -= 60;
+    }
+    left = left / 60 + got[kHour];
+    got[kHour] = left % 24;
+    if (got[kHour] < 0) {
+        got[kHour] += 24;
+        left -= 24;
+    }
+    const s32 days = left / 24;
+    if (days > 0) {
+        got[kWeekday] = (days + got[kWeekday]) % 7;
+        got[kDay] += days;
+        got[kYearday] += days;
+    } else if (days < 0) {
+        got[kWeekday] = (days + got[kWeekday] + 7) % 7;
+        got[kDay] += days;
+        if (got[kDay] <= 0) {
+            got[kDay] += 0x1f;
+            got[kYearday] = 0x16c;
+            got[kMonth] = 0xb;
+            --got[kYear];
+        } else {
+            got[kYearday] += days;
+        }
+    }
+    return got;
+}
+
+u32 __cdecl CRT_loctotime_t(s32 year, s32 month, s32 day, s32 hour, s32 minute, s32 second, s32 dst) {
+    const s32 years = year - 0x76c;
+    if (years < 0x46 || years > 0x8a) return 0xffffffff;
+    s32 yearday = reinterpret_cast<const s32 *>((uintptr_t)0x0078154c)[month] + day;
+    if (!(years & 3) && month > 2) ++yearday;
+    CRT_tzset_once();
+    s32 when[9];   // (sic: _isindst reads tm_min and tm_sec, left unset, on a change day)
+    when[kYearday] = yearday;
+    when[kYear] = years;
+    when[kHour] = hour;
+    when[kMonth] = month - 1;
+    const u32 days = static_cast<u32>(yearday) + 365u * static_cast<u32>(years) + static_cast<u32>((years - 1) >> 2);
+    const u32 hours = days * 24 + static_cast<u32>(hour);
+    const u32 minutes = hours * 60 + static_cast<u32>(minute);
+    u32 total = minutes * 60 + static_cast<u32>(second) + static_cast<u32>(global(0x007813d8)) + 0x7c558180u;
+    if (dst == 1 || (dst == -1 && global(0x007813dc) && CRT_isindst(when))) total += static_cast<u32>(global(0x007813e0));
+    return total;
+}
+
 }  // extern "C"

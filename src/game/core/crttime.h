@@ -46,5 +46,9 @@ void __cdecl CRT_store_winword(const char *format, const s32 *when, char **out, 
 
 // 0x688060: _isindst: _isindst_lk under lock 0xb.
 s32 __cdecl CRT_isindst(const s32 *when);
+// 0x67d8e0: localtime.
+s32 *__cdecl CRT_localtime(const s32 *timer);
+// 0x687c50: __loctotime_t.
+u32 __cdecl CRT_loctotime_t(s32 year, s32 month, s32 day, s32 hour, s32 minute, s32 second, s32 dst);
 
 }  // extern "C"

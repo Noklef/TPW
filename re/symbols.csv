@@ -6054,6 +6054,8 @@ address,name,kind,confidence,notes
 0x006884a0,CRT_gmtime,function,low,reimplemented (src/game/core/crttime); gmtime
 0x00688090,CRT_isindst_lk,function,low,reimplemented (src/game/core/crttime); _isindst_lk
 0x00688060,CRT_isindst,function,low,reimplemented (src/game/core/crttime); _isindst
+0x0067d8e0,CRT_localtime,function,low,reimplemented (src/game/core/crttime); localtime
+0x00687c50,CRT_loctotime_t,function,low,reimplemented (src/game/core/crttime); __loctotime_t
 0x006ab880,MoneypunctC_Init,function,low,reimplemented (src/game/core/moneypunct); moneypunct<char>::_Init
 0x006a4f20,MoneypunctW_Init,function,low,reimplemented (src/game/core/moneypunct); moneypunct<wchar_t>::_Init
 0x006a8830,MoneypunctC_Ctor,function,low,reimplemented (src/game/core/moneypunct); moneypunct<char>'s constructor
