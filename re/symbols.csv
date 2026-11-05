@@ -6357,6 +6357,9 @@ address,name,kind,confidence,notes
 0x005f55e0,Input_CloseDevice58,function,low,reimplemented (src/game/core/inputsystem); wrapper on the system (name invented)
 0x005f5600,Input_OpenDevice5c,function,low,reimplemented (src/game/core/inputsystem); wrapper on the system (name invented)
 0x005f5620,Input_CloseDevice5c,function,low,reimplemented (src/game/core/inputsystem); wrapper on the system (name invented)
+0x00691680,CRT_GetLocaleInfoW,function,low,reimplemented (src/game/core/crtlocaleinfo); __crtGetLocaleInfoW
+0x006917b0,CRT_GetLocaleInfoA,function,low,reimplemented (src/game/core/crtlocaleinfo); __crtGetLocaleInfoA
+0x00691380,CRT_Getlocaleinfo,function,low,reimplemented (src/game/core/crtlocaleinfo); __getlocaleinfo
 0x0050ffe0,Nav_Ctor,function,high,reimplemented (src/game/world/nav); constants constructor with five integer pairs
 0x0050f200,Nav_Dtor,function,high,reimplemented (src/game/world/nav); thiscall: the five IntPairs at +0x64 destroyed with Stub_Ret (CRT_VectorDtorIterator); also via 0x4f7c30 (+0xd4) and 0x4f8ad0
 0x004f7c30,Nav_DtorAtD4,function,low,reimplemented (src/game/world/nav); thiscall adjustor: Nav_Dtor on this + 0xd4

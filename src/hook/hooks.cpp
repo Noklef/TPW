@@ -216,6 +216,7 @@
 #include "../game/core/crtfile.h"
 #include "../game/core/crtfloat.h"
 #include "../game/core/crtlocale.h"
+#include "../game/core/crtlocaleinfo.h"
 #include "../game/core/crtlock.h"
 #include "../game/core/crtmbstring.h"
 #include "../game/core/crtmessage.h"
@@ -6801,6 +6802,9 @@ const Hook kHooks[] = {
     {"Input_CloseDevice58",       0x005f55e0, (void *)&Input_CloseDevice58, {0x51, 0x8d, 0x44, 0x24, 0x00}},
     {"Input_OpenDevice5c",        0x005f5600, (void *)&Input_OpenDevice5c, {0x56, 0x8b, 0x74, 0x24, 0x08}},
     {"Input_CloseDevice5c",       0x005f5620, (void *)&Input_CloseDevice5c, {0x51, 0x8d, 0x44, 0x24, 0x00}},
+    {"CRT_GetLocaleInfoW",        0x00691680, (void *)&CRT_GetLocaleInfoW, {0xa1, 0x44, 0x19, 0xfb, 0x00}},
+    {"CRT_GetLocaleInfoA",        0x006917b0, (void *)&CRT_GetLocaleInfoA, {0xa1, 0x48, 0x19, 0xfb, 0x00}},
+    {"CRT_Getlocaleinfo",         0x00691380, (void *)&CRT_Getlocaleinfo, {0x8b, 0x44, 0x24, 0x04, 0x81}},
     {"Nav_Ctor",          0x0050ffe0, (void *)&Nav_Ctor, {0x6a, 0xff, 0x68, 0x2d, 0xe6}},
     {"Nav_Dtor",                  0x0050f200, (void *)&Nav_Dtor, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"Nav_DtorAtD4",              0x004f7c30, (void *)&Nav_DtorAtD4, {0x81, 0xc1, 0xd4, 0x00, 0x00}},
