@@ -7,6 +7,7 @@
 #include "../core/crtoutput.h"
 #include "../core/initializers.h"
 #include "../core/gameheap.h"
+#include "../core/ime.h"
 #include "../core/iosbase.h"
 #include "../core/language.h"
 #include "../core/string.h"
@@ -27,12 +28,12 @@ const MailboxEnv kGameEnv = {&Init_5cfd80, &NOstream_Ctor, &NIstream_Ctor, &NFil
                              &NOfstream_DtorOnIos, &NIfstream_DtorOnIos, &NIos_Widen, reinterpret_cast<u8 *(__fastcall *)(u8 *, void *, char *, u32, u32)>((uintptr_t)0x005cfe40),
                              reinterpret_cast<u8 *(__cdecl *)(u8 *, const char *)>((uintptr_t)0x005d0e70), &CRT_fclose, &NFileBuf_Init, &NFileBuf_Close, &NFileBuf_Dtor, &IosBase_Dtor,
                              reinterpret_cast<s32(__cdecl *)(const char *)>((uintptr_t)0x0067a520), &List_EraseNodeCounted, &StdListString_Insert,
-                             reinterpret_cast<u32 *(__fastcall *)(u8 *, void *, u32 *, u32)>((uintptr_t)0x00634cc0), reinterpret_cast<u32 *(__fastcall *)(u8 *, void *, u32 *, u32, const s32 *)>((uintptr_t)0x00634c60), &BasicIosW_Clear,
+                             &NumberList_Erase, reinterpret_cast<u32 *(__fastcall *)(u8 *, void *, u32 *, u32, const s32 *)>((uintptr_t)0x00634c60), &BasicIosW_Clear,
                              &Language_Id, &StdListString_PushBack, &StdListString_Sort, &StdListString_Unique, &StdListString_AddSorted, &ByteString_Compare, reinterpret_cast<void(__fastcall *)(void *)>((uintptr_t)0x00634bf0),
                              reinterpret_cast<u32(__cdecl *)(u32 *)>((uintptr_t)0x0067d3f0), reinterpret_cast<u8 *(__cdecl *)(const u32 *)>((uintptr_t)0x0067d8e0)};
 const MailboxEnv *g_env = &kGameEnv;
 
-const MailboxDropEnv kGameDropEnv = {reinterpret_cast<u32 *(__fastcall *)(u8 *, void *, u32 *, u32)>((uintptr_t)0x00634cc0), reinterpret_cast<s32(__cdecl *)(const char *)>((uintptr_t)0x0067e560), &Mailbox_SaveOutbox, &Mailbox_LoadMessage,
+const MailboxDropEnv kGameDropEnv = {&NumberList_Erase, reinterpret_cast<s32(__cdecl *)(const char *)>((uintptr_t)0x0067e560), &Mailbox_SaveOutbox, &Mailbox_LoadMessage,
                                      &Mailbox_DeleteMessage, &Online_Instance, &Online_UserName, &Get34_41ce80, &Get38_41ce90, &Online_String14, &Online_String28, &TokenList_PushChars,
                                      reinterpret_cast<void *(__fastcall *)(void *, void *, const u16 *, u32)>(&StdWString_AssignChars), &Mailbox_NewAttachment,
                                      reinterpret_cast<u8 *(__fastcall *)(void *, void *, const char *)>((uintptr_t)0x005c9720)};
@@ -94,6 +95,34 @@ void AddDefault(u8 *list, const StdString *key) {
         u32 old;
         ListCursor_Next(&cursor, nullptr, &old, 0);
     }
+}
+
+// std::list<u32>::sort as 0x5cbf40 has it inlined: 16 lists, each merged up, one node a time; a list {allocator byte, head, count}.
+void SortNumbers(u8 *list) {
+    u8 carry[0xc];
+    at<u8>(carry, 0) = at<u8>(list, 0);
+    at<u8 *>(carry, 4) = Node0c_New(0, 0);
+    at<u32>(carry, 8) = 0;
+    u8 lists[0xc * 0x10];
+    u32 count = 0;
+    CRT_VectorCtorIterator(lists, 0xc, 0x10, reinterpret_cast<void(__fastcall *)(void *)>(&ListHead_Init0c), reinterpret_cast<void *>(g_env->numbersDtor));
+    while (at<u32>(list, 8)) {
+        List_SpliceOne(carry, nullptr, at<u8 *>(at<u8 *>(carry, 4), 0), list, at<u8 *>(at<u8 *>(list, 4), 0));
+        u32 i = 0;
+        for (; i < count && at<u32>(lists + 0xc * i, 8); ++i) {
+            StdListDword_Merge(lists + 0xc * i, nullptr, carry);
+            Obj_SwapPair(lists + 0xc * i, nullptr, carry);
+        }
+        if (i == 0xf) {
+            StdListDword_Merge(lists + 0xc * 14, nullptr, carry);
+        } else {
+            Obj_SwapPair(lists + 0xc * i, nullptr, carry);
+            if (i == count) ++count;
+        }
+    }
+    for (; count; --count) StdListDword_Merge(list, nullptr, lists + 0xc * (count - 1));
+    CRT_VectorDtorIterator(lists, 0xc, 0x10, g_env->numbersDtor);
+    g_env->numbersDtor(carry);
 }
 
 const u8 *const kLanguage = reinterpret_cast<const u8 *>((uintptr_t)0x0078b530);
@@ -264,6 +293,105 @@ u8 __fastcall AddressBook_Save(u8 *self, void *, const char *folder) {
     g_env->fileDtor(buffer);
     at<u32>(IosOf(stream), 0) = 0x0070995c;
     NIos_Dtor(ios);
+    return 1;
+}
+
+u32 *__fastcall NumberList_Erase(u8 *list, void *, u32 *out, u32 node) {
+    u8 *const at_node = reinterpret_cast<u8 *>((uintptr_t)node);
+    const u32 next = at<u32>(at_node, 0);
+    at<u32>(at<u8 *>(at_node, 4), 0) = next;
+    at<u32>(at<u8 *>(at_node, 0), 4) = at<u32>(at_node, 4);
+    GameHeap_Free(at_node);
+    --at<u32>(list, 8);
+    *out = next;
+    return out;
+}
+
+u8 __fastcall Mailbox_SaveMessage(u8 *self) {
+    StdString path;
+    StdString_Tidy(&path, nullptr, 0);
+    StdString picture;
+    StdString_Tidy(&picture, nullptr, 0);
+    u8 stream[0x8c];   // (+0 the vbtable, +4 the file buffer, its file at +0x54, +0x58 the ios)
+    u8 *const buffer = stream + 4;
+    u8 *const ios = stream + 0x58;
+    at<u32>(stream, 0) = 0x00702978;
+    g_env->iosInit(ios);
+    g_env->ostreamCtor(stream, nullptr, buffer, 0, 1, 0);
+    g_env->fileCtor(buffer, nullptr, nullptr);
+    at<u32>(IosOf(stream), 0) = 0x00702970;
+    u32 number = 0;
+    if (at<u32>(self, 0x60)) {
+        u8 *const head = at<u8 *>(self, 0x5c);
+        number = static_cast<u32>(reinterpret_cast<uintptr_t>(self));
+        for (u8 *node = at<u8 *>(head, 0); node != head; node = at<u8 *>(node, 0)) number = at<u32>(node, 8) + 1;
+    }
+    const StdString *const own = reinterpret_cast<const StdString *>(self);
+    StdString_AssignSub(&path, nullptr, own, 0, npos());
+    char line[0x80];
+    CRT_sprintf(line, reinterpret_cast<const char *>((uintptr_t)0x007740d8), number);
+    StdString_AppendChars(&path, nullptr, line, CRT_strlen(line));
+    if (!g_env->open(buffer, nullptr, TextOf(path), 0x12)) g_env->setState(IosOf(stream), nullptr, 2, 0);
+    if (!at<void *>(stream, 0x54)) {
+        g_env->ofstreamDtor(ios);
+        at<u32>(ios, 0) = 0x00709954;
+        g_env->iosDtor(ios);
+        StdString_Tidy(&picture, nullptr, 1);
+        StdString_Tidy(&path, nullptr, 1);
+        return 0;
+    }
+    const u32 now = g_env->time(nullptr);
+    const u8 *const date = g_env->localtime(&now);
+    at<u32>(self, 0x4c) = at<u32>(date, 0xc);
+    at<u32>(self, 0x50) = at<u32>(date, 0x10) + 1;
+    at<u32>(self, 0x54) = at<u32>(date, 0x14) + 0x76c;
+    const char *const lineEnd = reinterpret_cast<const char *>((uintptr_t)0x0074da30);
+    const char *const decimal = reinterpret_cast<const char *>((uintptr_t)0x00759920);
+    for (u32 offset = 0x4c; offset <= 0x54; offset += 4) {
+        CRT_sprintf(line, decimal, at<u32>(self, offset));
+        g_env->write(g_env->write(stream, line), lineEnd);
+    }
+    g_env->write(g_env->write(stream, TextOf(at<StdString>(self, 0x10))), lineEnd);
+    g_env->write(g_env->write(stream, TextOf(at<StdString>(self, 0x20))), lineEnd);
+    for (u8 *node = at<u8 *>(at<u8 *>(self, 0x34), 0); node != at<u8 *>(self, 0x34); node = at<u8 *>(node, 0)) g_env->write(g_env->write(stream, TextOf(at<StdString>(node, 8))), lineEnd);
+    void *const file = at<void *>(stream, 0x54);
+    if (file && g_env->fclose(file) == 0)
+        g_env->fileInit(buffer, nullptr, nullptr, 2);
+    else
+        g_env->setState(IosOf(stream), nullptr, 2, 0);
+    StdString_AssignSub(&picture, nullptr, own, 0, npos());
+    CRT_sprintf(line, reinterpret_cast<const char *>((uintptr_t)0x007740cc), number);
+    StdString_AppendChars(&picture, nullptr, line, CRT_strlen(line));
+    StdString *const pictureAt = reinterpret_cast<StdString *>(self + 0x3c);
+    at<s32(__stdcall *)(const char *, const char *)>(nullptr, 0x006fd11c)(TextOf(*pictureAt), TextOf(picture));
+    StdString_AssignSub(pictureAt, nullptr, &picture, 0, npos());
+    u32 value = number;
+    u32 out;
+    g_env->insertNumber(self + 0x58, nullptr, &out, at<u32>(self, 0x5c), reinterpret_cast<const s32 *>(&value));
+    u8 *const list = self + 0x64;
+    {
+        u8 *const head = at<u8 *>(list, 4);
+        u8 *const node = Node0c_New(static_cast<u32>(reinterpret_cast<uintptr_t>(head)), at<u32>(head, 4));
+        at<u8 *>(head, 4) = node;
+        at<u8 *>(at<u8 *>(node, 4), 0) = node;
+        ImeVector_Construct(reinterpret_cast<u32 *>(node + 8), &value);
+    }
+    if (++at<u32>(list, 8) >= 2) SortNumbers(list);
+    u8 *const end = at<u8 *>(list, 4);
+    u8 *kept = at<u8 *>(end, 0);
+    if (kept != end) {
+        for (u8 *next = at<u8 *>(kept, 0); next != end; next = at<u8 *>(kept, 0)) {
+            if (at<u32>(kept, 8) == at<u32>(next, 8))
+                NumberList_Erase(list, nullptr, &out, static_cast<u32>(reinterpret_cast<uintptr_t>(next)));
+            else
+                kept = next;
+        }
+    }
+    g_drop->saveOutbox(self);
+    g_env->ofstreamDtor(ios);
+    NIos_Dtor(ios);
+    StdString_Tidy(&picture, nullptr, 1);
+    StdString_Tidy(&path, nullptr, 1);
     return 1;
 }
 

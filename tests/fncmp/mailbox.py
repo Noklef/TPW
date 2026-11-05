@@ -203,10 +203,10 @@ def book_load(r):
     set_return(log, FILECLOSE, r.choice([1, 1, 0]))
     strings(log, INSERT, 0, out=0b001)
     blob(log, INSERT, 2, 0b100)
-    # (a local string by its text, the global by its own)
-    strings(log, PUSHBACK, 0, out=1)
-    strings(log, ADDSORTED, 0, out=1)
-    strings(log, COMPARE, 0, out=1)
+    # (the string by its length: a local's pointer is the stack's)
+    blob(log, PUSHBACK, 0, 0b100)
+    blob(log, ADDSORTED, 0, 0b100)
+    blob(log, COMPARE, 0, 0b100)
     return Call(0x5cd9c0, [SELF, TEXTS], regions, conv='t', ret='b')
 
 

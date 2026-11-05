@@ -28,7 +28,7 @@ struct MailboxEnv {
     s32(__cdecl *atoi)(const char *text);                                                  // 0x67a520
     u32 *(__fastcall *erase)(u8 *list, void *, u32 *out, u8 *node);                        // List_EraseNodeCounted
     void(__fastcall *insert)(u8 *list, void *, u8 **out, u8 *before, const StdString *x);  // StdListString_Insert
-    u32 *(__fastcall *eraseNumber)(u8 *list, void *, u32 *out, u32 node);                  // 0x634cc0
+    u32 *(__fastcall *eraseNumber)(u8 *list, void *, u32 *out, u32 node);                  // NumberList_Erase
     u32 *(__fastcall *insertNumber)(u8 *list, void *, u32 *out, u32 before, const s32 *value);  // 0x634c60
     void(__fastcall *clear)(u8 *ios, void *, u32 state, u32 reraise);                      // BasicIosW_Clear
     u32(__fastcall *languageId)(const u8 *language);                                       // Language_Id
@@ -45,7 +45,7 @@ void Mailbox_SetEnv(const MailboxEnv *env);  // nullptr: the game's
 
 // The calls of 0x5cd220, 0x5ccda0 and 0x5c99f0 (0x634cc0, 0x67e560 and 0x5c9720 are still the game's).
 struct MailboxDropEnv {
-    u32 *(__fastcall *eraseNumber)(u8 *list, void *, u32 *out, u32 node);  // 0x634cc0
+    u32 *(__fastcall *eraseNumber)(u8 *list, void *, u32 *out, u32 node);  // NumberList_Erase
     s32(__cdecl *remove)(const char *path);                                // 0x67e560
     u8(__fastcall *saveOutbox)(u8 *self);                                  // Mailbox_SaveOutbox
     u8(__fastcall *loadMessage)(u8 *self, void *, u32 number);             // Mailbox_LoadMessage
@@ -84,6 +84,14 @@ u8 __fastcall AddressBook_Load(u8 *self, void *, const char *folder);
 
 // 0x5cd710 (thiscall on a list<string> (folder), pops 4): "<folder>/addrbook.dat" written: the strings, one per line. Answers 0 when the file does not open, else 1.
 u8 __fastcall AddressBook_Save(u8 *self, void *, const char *folder);
+
+// 0x634cc0 (thiscall on a list<u32> (out, node), pops 8): the node unlinked and freed (Mem_Free), the count +8 lowered, the next node in *out. Answers out.
+u32 *__fastcall NumberList_Erase(u8 *list, void *, u32 *out, u32 node);
+
+// 0x5cbf40 (thiscall): a new message saved: its number the last of the list +0x58 plus 1 (a count but no node: this pointer as the number, sic; no count: 0). "<folder>/%08x.dat" written: today (0x67d3f0, 0x67d8e0, kept at +0x4c, +0x50 and +0x54) and
+// the texts +0x10 and +0x20 and the lines +0x30, a line each. The picture +0x3c moved (0x6fd11c, the import read live) to "<folder>/%08x.jpg", which it then is. The number added at the head of +0x58 and the end of +0x64, that one sorted (std::list's
+// sort, inlined) when it has two, and adjacent equal numbers erased; the outbox saved. Answers 0 when the file does not open, else 1.
+u8 __fastcall Mailbox_SaveMessage(u8 *self);
 
 // 0x5cd220 (thiscall (number), pops 4): the files "<folder>/%08x.dat" and "<folder>/%08x.jpg" removed.
 void __fastcall Mailbox_DeleteMessage(u8 *self, void *, u32 number);
