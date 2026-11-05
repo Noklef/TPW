@@ -12,7 +12,7 @@ FORMAT, BOX = 1, 44
 RET4 = 0x6702c6
 B = Bench([(0x405750, 0x405cb0), (0x56afa0, 0x56afc0), (RET4, RET4 + 3), (0x67a400, 0x690000)], hooks={0x6acd60: _recorder(FORMAT, 4, cdecl=True)})
 REPORT = RAM
-INDEXES = list(range(0x2b)) + [0x2b, 0x40]
+INDEXES = list(range(0x2b)) + [0x2b, 0x40] + [0xc] * 8
 
 
 def case(r):
