@@ -6161,6 +6161,8 @@ address,name,kind,confidence,notes
 0x005d4d10,GuardFile_Open,function,low,"reimplemented (src/game/core/guardfile); gwopen: the guarded write file opened; the name from its messages, the rest invented, unconfirmed"
 0x005d4fd0,GuardFile_Close,function,low,"reimplemented (src/game/core/guardfile); The guarded write file flushed, closed and its names changed over; name invented, unconfirmed"
 0x005d5350,GuardFile_Write,function,low,"reimplemented (src/game/core/guardfile); gwrite: bytes through the file's buffer; the name from its messages, the rest invented, unconfirmed"
+0x005cedd0,FileBuf_Overflow,function,low,"reimplemented (src/game/core/filebuf); The narrow file stream buffer's overflow; name invented, unconfirmed"
+0x005cf490,FileBuf_SeekPos,function,low,"reimplemented (src/game/core/filebuf); The narrow file stream buffer's seek to a position; name invented, unconfirmed"
 0x0050ffe0,Nav_Ctor,function,high,reimplemented (src/game/world/nav); constants constructor with five integer pairs
 0x0050f200,Nav_Dtor,function,high,reimplemented (src/game/world/nav); thiscall: the five IntPairs at +0x64 destroyed with Stub_Ret (CRT_VectorDtorIterator); also via 0x4f7c30 (+0xd4) and 0x4f8ad0
 0x004f7c30,Nav_DtorAtD4,function,low,reimplemented (src/game/world/nav); thiscall adjustor: Nav_Dtor on this + 0xd4

@@ -412,6 +412,7 @@
 #include "../../src/game/core/buffers.h"
 #include "../../src/game/core/guardheap.h"
 #include "../../src/game/core/guardfile.h"
+#include "../../src/game/core/filebuf.h"
 #include "../../src/game/core/themenames.h"
 #include "../../src/game/core/nstream.h"
 #include "../../src/game/core/swearfilter.h"
@@ -980,6 +981,7 @@ const SwearFilterEnv kSwearFilterEnv = {&SwearLowerC};
 const NStreamEnv kNStreamEnv = {Rec{kStubs + 0x5000 + 0x800 * 2 + 0x20 * 14}, Rec{recorder(26, 1)}, Rec{recorder(27, 0)}, Rec{jpeg_recorder(28, 1)}, reinterpret_cast<s32(__cdecl *)(void *)>((uintptr_t)(kStubs + 0x50)), Rec{recorder(20, 0)}, Rec{recorder(21, 0)}};
 const ThemeNamesEnv kThemeNamesEnv = {Rec{jpeg_recorder(1, 5)}, Rec{jpeg_recorder(2, 2)}, Rec{recorder(3, 3)}, Rec{recorder(4, 3)}, Rec{recorder(5, 3)}};
 const GuardHeapEnv kGuardHeapEnv = {Rec{jpeg_recorder(1, 1)}, Rec{jpeg_recorder(2, 1)}};
+const FileBufEnv kFileBufEnv = {Rec{jpeg_recorder(0, 2)}, Rec{jpeg_recorder(1, 4)}, Rec{jpeg_recorder(2, 2)}, Rec{jpeg_recorder(3, 3)}, Rec{jpeg_recorder(4, 2)}};
 const GuardFileEnv kGuardFileEnv = {Rec{jpeg_recorder(4, 2)}, Rec{jpeg_recorder(5, 2)}, Rec{jpeg_recorder(6, 3)}, Rec{jpeg_recorder(7, 4)}, Rec{jpeg_recorder(8, 4)}, Rec{jpeg_recorder(9, 1)}, Rec{jpeg_recorder(10, 1)}, Rec{jpeg_recorder(11, 1)}, Rec{jpeg_recorder(12, 2)}};
 const Blocks7LoadEnv kBlocks7LoadEnv = {Rec{jpeg_recorder(1, 3)}, Rec{recorder(2, 2)}};
 const FrameEnv kFrameEnv = {Rec{jpeg_recorder(7, 0)}, Rec{recorder(6, 3)}};
@@ -2957,6 +2959,7 @@ int main(int argc, char **argv) {
     Blocks7_SetLoadEnv(&kBlocks7LoadEnv);
     GuardHeap_SetEnv(&kGuardHeapEnv);
     GuardFile_SetEnv(&kGuardFileEnv);
+    FileBuf_SetEnv(&kFileBufEnv);
     ThemeNames_SetEnv(&kThemeNamesEnv);
     NStream_SetEnv(&kNStreamEnv);
     SwearFilter_SetEnv(&kSwearFilterEnv);

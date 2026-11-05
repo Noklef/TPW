@@ -225,6 +225,7 @@
 #include "../game/core/crtstream.h"
 #include "../game/core/crttime.h"
 #include "../game/core/dsoundsource.h"
+#include "../game/core/filebuf.h"
 #include "../game/core/gameframe.h"
 #include "../game/core/gameowner.h"
 #include "../game/core/guardfile.h"
@@ -6573,6 +6574,8 @@ const Hook kHooks[] = {
     {"GuardFile_Open",            0x005d4d10, (void *)&GuardFile_Open, {0x81, 0xec, 0x28, 0x02, 0x00}},
     {"GuardFile_Close",           0x005d4fd0, (void *)&GuardFile_Close, {0x81, 0xec, 0x08, 0x04, 0x00}},
     {"GuardFile_Write",           0x005d5350, (void *)&GuardFile_Write, {0x51, 0x53, 0x8b, 0x5c, 0x24}},
+    {"FileBuf_Overflow",          0x005cedd0, (void *)&FileBuf_Overflow, {0x83, 0xec, 0x0c, 0x33, 0xc0}},
+    {"FileBuf_SeekPos",           0x005cf490, (void *)&FileBuf_SeekPos, {0x83, 0xec, 0x0c, 0x8b, 0x44}},
     {"Nav_Ctor",          0x0050ffe0, (void *)&Nav_Ctor, {0x6a, 0xff, 0x68, 0x2d, 0xe6}},
     {"Nav_Dtor",                  0x0050f200, (void *)&Nav_Dtor, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"Nav_DtorAtD4",              0x004f7c30, (void *)&Nav_DtorAtD4, {0x81, 0xc1, 0xd4, 0x00, 0x00}},
