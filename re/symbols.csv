@@ -6655,6 +6655,11 @@ address,name,kind,confidence,notes
 0x006335b0,KeyFilter_SetMouse,function,low,"reimplemented (src/game/input/devicefilter); thiscall (result out, holder): the holder at +0x120 replaced, the state read; name invented"
 0x006350d0,MessageSource_Constant1,function,low,reimplemented (src/game/input/devicefilter); the constant 0x707c50; name invented
 0x006350e0,MessageSource_Constant2,function,low,reimplemented (src/game/input/devicefilter); the constant 0x67a460; name invented
+0x00633220,InputFilter_Reopen,function,low,"reimplemented (src/game/input/devicefilter); thiscall (result out): OpenEvent; out the failure, or 0; name invented"
+0x00633bf0,DeviceHolder_Open,function,low,"reimplemented (src/game/input/devicefilter); thiscall (result out): DirectInputCreateA, the device created and its data format set, the input object released; name invented"
+0x0063e8c0,DeviceFilter_Open,function,low,"reimplemented (src/game/input/devicefilter); thiscall (result out): event, holder, notification, a record buffer of 0x200, the device's buffer size; name invented"
+0x00633400,KeyFilter_DeletingDtor,function,low,"reimplemented (src/game/input/devicefilter); thiscall (flags): KeyFilter_Dtor, bit 0 frees; name invented"
+0x00633e00,CharFilter_DeletingDtor,function,low,"reimplemented (src/game/input/devicefilter); thiscall (flags): CharFilter_Dtor, bit 0 frees; name invented"
 0x00634a50,KeyPool_Dtor,function,low,reimplemented (src/game/input/messagepool); thiscall: the pool's destructor (vtable 0x703d1c): the messages and nodes freed; name invented
 0x00634b40,MousePool_Dtor,function,low,reimplemented (src/game/input/messagepool); thiscall: the pool's destructor (vtable 0x703d14); name invented
 0x00634d00,KeyPool_Next,function,low,"reimplemented (src/game/input/messagepool); thiscall: the next free message round the list, a new one when none; name invented"

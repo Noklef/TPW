@@ -490,6 +490,65 @@ u32 *__fastcall KeyFilter_SetMouse(u8 *self, void *, u32 *result, u8 *holder) {
     return result;
 }
 
+u32 *__fastcall InputFilter_Reopen(u8 *self, void *, u32 *result) {
+    u32 local;
+    const u32 status = *InputFilter_OpenEvent(self, nullptr, &local);
+    *result = static_cast<s32>(status) < 0 ? status : 0;
+    return result;
+}
+
+u32 *__fastcall DeviceHolder_Open(u8 *self, void *, u32 *result) {
+    u8 *input = nullptr;
+    const s32 created = import<s32(__stdcall *)(u32, u32, u8 **, u32)>(0x006fd020)(Obj_Get14OrInstance(self), 0x500, &input, 0);   // DirectInputCreateA
+    if (created < 0) {
+        *result = static_cast<u32>(created);
+        if (input) com(input, 8);
+        return result;
+    }
+    u32 status = com(input, 0xc, vcall<u32>(self, 4), &at<u32>(self, 0xc), 0u);
+    if (static_cast<s32>(status) >= 0) status = com(at<u8 *>(self, 0xc), 0x2c, vcall<u32>(self, 8));
+    com(input, 8);
+    if (static_cast<s32>(status) < 0) {
+        if (u8 *const device = at<u8 *>(self, 0xc)) {
+            at<u32>(self, 0xc) = 0;
+            com(device, 8);
+        }
+    }
+    *result = status;
+    return result;
+}
+
+u32 *__fastcall DeviceFilter_Open(u8 *self, void *, u32 *result) {
+    u32 local;
+    u32 status = *InputFilter_Reopen(self, nullptr, &local);
+    if (static_cast<s32>(status) >= 0) status = *DeviceHolder_Open(self + 0x10, nullptr, &local);
+    if (static_cast<s32>(status) >= 0) status = com(at<u8 *>(self, 0x1c), 0x30, at<u32>(self, 8));
+    if (static_cast<s32>(status) < 0) {
+        *result = status;
+        return result;
+    }
+    at<void *>(self, 0x30) = GameHeap_Alloc(0x200);
+    if (!at<void *>(self, 0x30)) {
+        *result = 0xcffe0100;
+        return result;
+    }
+    u32 property[5] = {0x14, 0x10, 0, 0, 0x20};   // DIPROPDWORD
+    *result = com(at<u8 *>(self, 0x1c), 0x18, 1u, property);
+    return result;
+}
+
+u8 *__fastcall KeyFilter_DeletingDtor(u8 *self, void *, u32 flags) {
+    KeyFilter_Dtor(self);
+    if (flags & 1) GameHeap_Free(self);
+    return self;
+}
+
+u8 *__fastcall CharFilter_DeletingDtor(u8 *self, void *, u32 flags) {
+    CharFilter_Dtor(self);
+    if (flags & 1) GameHeap_Free(self);
+    return self;
+}
+
 u32 __cdecl MessageSource_Constant1() { return 0x00707c50; }
 u32 __cdecl MessageSource_Constant2() { return 0x0067a460; }
 

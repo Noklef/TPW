@@ -14,11 +14,13 @@ ADDRESS = {'SetNext': (0x632350, 38), 'Close': (0x633200, 26), 'SetSink': (0x633
            'Const1': (0x6348e0, 6), 'Const2': (0x6348f0, 6), 'FilterDtor': (0x633160, 0x60), 'FilterDel': (0x633140, 30), 'HolderDel': (0x633a30, 30), 'KeyCtor': (0x633360, 149), 'SetMode': (0x633d10, 150),
            'SubC90': (0x633ea0, 38), 'SubCC0': (0x6345a0, 38), 'SetHolder': (0x6341d0, 54), 'ReadState': (0x633600, 191), 'DevCtor': (0x63e7c0, 84), 'DevDtor': (0x63e840, 121), 'DevDel': (0x63e820, 30),
            'ModKey': (0x633ed0, 174), 'KeyDtor': (0x633470, 147), 'CharDtor': (0x633e20, 123), 'OpenEvent': (0x6331c0, 62), 'Move': (0x634360, 190), 'Drain': (0x633280, 189), 'Poll': (0x63e970, 82),
-           'BaseDel': (0x6342f0, 30), 'DevEvent': (0x633540, 19), 'SetKeys': (0x633560, 75), 'SetMice': (0x6335b0, 75), 'Const3': (0x6350d0, 6), 'Const4': (0x6350e0, 6)}
+           'BaseDel': (0x6342f0, 30), 'DevEvent': (0x633540, 19), 'SetKeys': (0x633560, 75), 'SetMice': (0x6335b0, 75), 'Const3': (0x6350d0, 6), 'Const4': (0x6350e0, 6),
+           'Reopen': (0x633220, 43), 'HolderOpen': (0x633bf0, 285), 'DevOpen': (0x63e8c0, 170), 'KeyDel': (0x633400, 30), 'CharDel': (0x633e00, 30)}
 OPS = [n for n in ADDRESS if not os.environ.get('OPS') or n in os.environ['OPS'].split(',')]
 LISTEN, UNLISTEN, TICK = 26, 27, 28
 HOOKS = {0x5fc030: _recorder(LISTEN, 3), 0x5fc100: _recorder(UNLISTEN, 3), 0x5fba10: _recorder(TICK, 1)}
-B = Bench([(a, a + n) for a, n in ADDRESS.values()] + [(0x6338b0, 0x6338c0), (0x633b80, 0x633b90), (0x6344c0, 0x6344f0), (0x5f86c0, 0x5f86c6), (0x67a830, 0x67a860), (0x67acb0, 0x67acb1), (0x67a400, 0x690000), (0x633120, 0x633140), (0x633a00, 0x633a30), (0x5fa650, 0x5fa678), (0x633940, 0x633994), (0x634310, 0x634360)], hooks=HOOKS)
+B = Bench([(a, a + n) for a, n in ADDRESS.values()] + [(0x6338b0, 0x6338c0), (0x633b80, 0x633b90), (0x6344c0, 0x6344f0), (0x5f86c0, 0x5f86c6), (0x67a830, 0x67a860), (0x67acb0, 0x67acb1), (0x67a400, 0x690000), (0x633120, 0x633140), (0x633a00, 0x633a30), (0x5fa650, 0x5fa678), (0x633940, 0x633994), (0x634310, 0x634360), (0x633b70, 0x633b80), (0x5f86a0, 0x5f86a6), (0x6793bc, 0x6793c2)], hooks=HOOKS)
+DINPUT = 39
 OBJ, NEXT, VT, DEV, VTC, TABLE, MSG, LIST, OUT, ANSWERS = RAM, RAM + 0x200, RAM + 0x300, RAM + 0x400, RAM + 0x500, RAM + 0x600, RAM + 0x700, RAM + 0x800, RAM + 0x900, RAM + 0xa00
 CLOSE, SPI, CLICK, SWAP, CREATE, LASTERROR, RESET, ENTER, LEAVE = 30, 31, 32, 33, 34, 35, 36, 37, 38
 POLL = 10   # (the device's slot 0x28)
@@ -30,7 +32,7 @@ H0, H4, H8, HC, H10 = 20, 21, 22, 23, 24
 def imports(log):
     return import_table(log, {'CloseHandle': (CLOSE, 0x6fd13c, 1, 0, 0), 'SystemParametersInfoA': (SPI, 0x6fd374, 4, 0, 0b100), 'GetDoubleClickTime': (CLICK, 0x6fd32c, 0, 0, 0), 'SwapMouseButton': (SWAP, 0x6fd330, 1, 0, 0),
                               'CreateEventA': (CREATE, 0x6fd0d4, 4, 0, 0), 'GetLastError': (LASTERROR, 0x6fd138, 0, 0, 0), 'ResetEvent': (RESET, 0x6fd168, 1, 0, 0),
-                              'EnterCriticalSection': (ENTER, 0x6fd140, 1, 0, 0), 'LeaveCriticalSection': (LEAVE, 0x6fd130, 1, 0, 0)})
+                              'EnterCriticalSection': (ENTER, 0x6fd140, 1, 0, 0), 'LeaveCriticalSection': (LEAVE, 0x6fd130, 1, 0, 0), 'DirectInputCreateA': (DINPUT, 0x6fd020, 4, 0, 0b100)})
 
 
 def chain(r, obj, regions, slots):
@@ -230,7 +232,35 @@ def case(r):
         put(obj, 0x20, 'I', r.getrandbits(32))
         chain(r, obj, regions, {6: 1})
         return Call(address, [OBJ, MSG], regions, conv='t', ret='v')
-    if op in ('KeyDtor', 'CharDtor', 'BaseDel'):
+    if op in ('HolderOpen', 'DevOpen'):
+        base = 0 if op == 'HolderOpen' else 0x10
+        put(obj, base, 'I', VT)
+        put(obj, base + 0xc, 'I', r.choice([0, 0x9999]))
+        put(obj, base + 0x14, 'I', r.choice([0x5000, 0x5000, 0xffffffff]))
+        put(obj, 8, 'I', r.choice([0, 0x1234]))
+        regions[VT] = vtable({1: 0, 2: 0})
+        set_return(log, 1, 0x7777)
+        set_return(log, 2, 0x6666)
+        regions[NEXT] = struct.pack('<I', VTC) + r.bytes(0x20)
+        regions[DEV] = struct.pack('<I', VTC) + r.bytes(0x20)
+        regions[VTC] = vtable({}, com={2: 1, 3: 4, 6: 3, 11: 2, 12: 2})
+        failed = r.random() < 0.2
+        set_return(log, DINPUT, 0x80004005 if failed else r.choice([0, 1]))
+        fill(log, DINPUT, 2, struct.pack('<I', r.choice([0, NEXT]) if failed else NEXT))
+        set_return(log, 3, r.choice([0, 0, 0, 1, 0x80070005]))
+        strings(log, 3, 0, out=0b100)
+        fill(log, 3, 2, struct.pack('<I', DEV))
+        set_return(log, 11, r.choice([0, 0, 0, 0x80070057]))
+        set_return(log, 12, r.choice([0, 0, 0, 0x80070006]))
+        set_return(log, 6, r.choice([0, 1, 0x80070005]))
+        strings(log, 6, 0b100)   # (of the property's dwords, as a C string only the first)
+        set_return(log, CREATE, r.choice([0, 0x5678, 0x5678, 0x5678]))
+        set_return(log, LASTERROR, r.choice([0, 5, 0x12345]))
+        set_return(log, CLOSE, 1)
+        regions[OUT] = r.bytes(0x10)
+        regions[HEAP] = heap(0x400, fail=r.choice([0, 0, 0, 1]))
+        return Call(address, [OBJ, OUT], regions, conv='t', ret='a')
+    if op in ('KeyDtor', 'CharDtor', 'BaseDel', 'KeyDel', 'CharDel'):
         obj = bytearray(r.bytes(0x130))
         regions[OBJ] = obj
         regions[NEXT] = struct.pack('<I', VT)
@@ -240,10 +270,10 @@ def case(r):
         put(obj, 8, 'I', r.choice([0, NEXT]))
         put(obj, 0x14, 'I', r.choice([0, LIST]))
         put(obj, 0x11c, 'II', r.choice([0, NEXT]), r.choice([0, NEXT]))
-        if op == 'BaseDel':
+        if op in ('BaseDel', 'KeyDel', 'CharDel'):
             return Call(address, [OBJ, r.choice([0, 1, 2, 3, r.getrandbits(32)])], regions, conv='t', ret='a')
         return Call(address, [OBJ], regions, conv='t', ret='v')
-    if op == 'OpenEvent':
+    if op in ('OpenEvent', 'Reopen'):
         put(obj, 8, 'I', r.choice([0, 0x1234]))
         regions[OUT] = r.bytes(0x10)
         set_return(log, CREATE, r.choice([0, 0x5678, 0x5678]))

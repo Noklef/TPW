@@ -119,6 +119,18 @@ u32 *__fastcall KeyFilter_SetMouse(u8 *self, void *, u32 *result, u8 *holder);
 u32 __cdecl MessageSource_Constant1();
 u32 __cdecl MessageSource_Constant2();
 
+// 0x633220 (thiscall; result out, pops 4): OpenEvent; out the failure, or 0.
+u32 *__fastcall InputFilter_Reopen(u8 *self, void *, u32 *result);
+// 0x633bf0 (thiscall; result out, pops 4): DirectInputCreateA (the object's instance, version 0x500) made and released; its CreateDevice (the object's slot 4 the GUID) to +0xc, its data format (slot 8);
+// a failure releases the device. Names invented.
+u32 *__fastcall DeviceHolder_Open(u8 *self, void *, u32 *result);
+// 0x63e8c0 (thiscall; result out, pops 4): Reopen, the holder at +0x10 opened, the event given to the device (slot 0x30), a buffer of 0x200 at +0x30 (none: 0xcffe0100), the device's buffer size set to
+// 0x20 records (slot 0x18). The first failure is the result.
+u32 *__fastcall DeviceFilter_Open(u8 *self, void *, u32 *result);
+// 0x633400 / 0x633e00 (thiscall; flags, pops 4): KeyFilter_Dtor / CharFilter_Dtor; with bit 0, freed. Returns self.
+u8 *__fastcall KeyFilter_DeletingDtor(u8 *self, void *, u32 flags);
+u8 *__fastcall CharFilter_DeletingDtor(u8 *self, void *, u32 flags);
+
 // 0x6348e0 / 0x6348f0: the constants 0x707c40 and 0x679440.
 u32 __cdecl MouseFilter_Constant1();
 u32 __cdecl MouseFilter_Constant2();
