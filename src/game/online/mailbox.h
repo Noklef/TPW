@@ -28,6 +28,18 @@ struct MailboxEnv {
     s32(__cdecl *atoi)(const char *text);                                                  // 0x67a520
     u32 *(__fastcall *erase)(u8 *list, void *, u32 *out, u8 *node);                        // List_EraseNodeCounted
     void(__fastcall *insert)(u8 *list, void *, u8 **out, u8 *before, const StdString *x);  // StdListString_Insert
+    u32 *(__fastcall *eraseNumber)(u8 *list, void *, u32 *out, u32 node);                  // 0x634cc0
+    u32 *(__fastcall *insertNumber)(u8 *list, void *, u32 *out, u32 before, const s32 *value);  // 0x634c60
+    void(__fastcall *clear)(u8 *ios, void *, u32 state, u32 reraise);                      // BasicIosW_Clear
+    u32(__fastcall *languageId)(const u8 *language);                                       // Language_Id
+    void(__fastcall *pushBack)(u8 *list, void *, const StdString *x);                      // StdListString_PushBack
+    void(__fastcall *sort)(u8 *list);                                                      // StdListString_Sort
+    void(__fastcall *unique)(u8 *list);                                                    // StdListString_Unique
+    s32(__fastcall *addSorted)(u8 *list, void *, const StdString *x);                      // StdListString_AddSorted
+    s32(__fastcall *compare)(const u8 *object, void *, const u8 *other);                   // ByteString_Compare
+    void(__fastcall *numbersDtor)(void *list);                                             // 0x634bf0
+    u32(__cdecl *time)(u32 *to);                                                           // 0x67d3f0
+    u8 *(__cdecl *localtime)(const u32 *time);                                             // 0x67d8e0
 };
 void Mailbox_SetEnv(const MailboxEnv *env);  // nullptr: the game's
 
@@ -61,6 +73,17 @@ u8 __fastcall Mailbox_SaveOutbox(u8 *self);
 // 0x5cba70 (thiscall (number), pops 4): "<folder>/%08x.dat" read: lines of at most 0x100: numbers into +0x4c, +0x50, +0x54, texts into +0x10 and +0x20, the rest into the emptied list +0x30 until the stream fails. +0x3c = "<folder>/%08x.jpg".
 // Answers 0 when the file does not open, else 1.
 u8 __fastcall Mailbox_LoadMessage(u8 *self, void *, u32 number);
+
+// 0x5cb230 (thiscall (folder), pops 4): the folder kept at +0 and "/outbox" added; the number lists +0x58, +0x64 and +0x70 emptied. "<that>/outbox.dat" read: lines of at most 0x80 into +0x58, then +0x70, then +0x64, each ended by a failed
+// read or an empty line. When the file does not open, the folder made (0x6fd120, the import read live) and the answer whether that worked; else 1.
+u8 __fastcall Mailbox_Open(u8 *self, void *, const char *folder);
+
+// 0x5cd9c0 (thiscall on a list<string> (folder), pops 4): "<folder>/addrbook.dat" read: lines of at most 0x80 at the end of the list, then the default address added sorted (language 0x409 (Language_Id on 0x78b530): the text 0x7740f4, else the string
+// 0x7a155c), and 1. When the file does not open, that default pushed, the list sorted and made unique and walked until the default is found (no use is made of it), and 0.
+u8 __fastcall AddressBook_Load(u8 *self, void *, const char *folder);
+
+// 0x5cd710 (thiscall on a list<string> (folder), pops 4): "<folder>/addrbook.dat" written: the strings, one per line. Answers 0 when the file does not open, else 1.
+u8 __fastcall AddressBook_Save(u8 *self, void *, const char *folder);
 
 // 0x5cd220 (thiscall (number), pops 4): the files "<folder>/%08x.dat" and "<folder>/%08x.jpg" removed.
 void __fastcall Mailbox_DeleteMessage(u8 *self, void *, u32 number);

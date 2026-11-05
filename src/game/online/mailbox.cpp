@@ -8,6 +8,8 @@
 #include "../core/initializers.h"
 #include "../core/gameheap.h"
 #include "../core/iosbase.h"
+#include "../core/language.h"
+#include "../core/string.h"
 #include "../core/narrowfilebuf.h"
 #include "../core/nstream.h"
 #include "../core/ptrlist.h"
@@ -24,7 +26,10 @@ template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cas
 const MailboxEnv kGameEnv = {&Init_5cfd80, &NOstream_Ctor, &NIstream_Ctor, &NFileBuf_Ctor, reinterpret_cast<u8 *(__fastcall *)(u8 *, void *, const char *, u32)>((uintptr_t)0x005d08e0), &BasicIosW_SetState,
                              &NOfstream_DtorOnIos, &NIfstream_DtorOnIos, &NIos_Widen, reinterpret_cast<u8 *(__fastcall *)(u8 *, void *, char *, u32, u32)>((uintptr_t)0x005cfe40),
                              reinterpret_cast<u8 *(__cdecl *)(u8 *, const char *)>((uintptr_t)0x005d0e70), &CRT_fclose, &NFileBuf_Init, &NFileBuf_Close, &NFileBuf_Dtor, &IosBase_Dtor,
-                             reinterpret_cast<s32(__cdecl *)(const char *)>((uintptr_t)0x0067a520), &List_EraseNodeCounted, &StdListString_Insert};
+                             reinterpret_cast<s32(__cdecl *)(const char *)>((uintptr_t)0x0067a520), &List_EraseNodeCounted, &StdListString_Insert,
+                             reinterpret_cast<u32 *(__fastcall *)(u8 *, void *, u32 *, u32)>((uintptr_t)0x00634cc0), reinterpret_cast<u32 *(__fastcall *)(u8 *, void *, u32 *, u32, const s32 *)>((uintptr_t)0x00634c60), &BasicIosW_Clear,
+                             &Language_Id, &StdListString_PushBack, &StdListString_Sort, &StdListString_Unique, &StdListString_AddSorted, &ByteString_Compare, reinterpret_cast<void(__fastcall *)(void *)>((uintptr_t)0x00634bf0),
+                             reinterpret_cast<u32(__cdecl *)(u32 *)>((uintptr_t)0x0067d3f0), reinterpret_cast<u8 *(__cdecl *)(const u32 *)>((uintptr_t)0x0067d8e0)};
 const MailboxEnv *g_env = &kGameEnv;
 
 const MailboxDropEnv kGameDropEnv = {reinterpret_cast<u32 *(__fastcall *)(u8 *, void *, u32 *, u32)>((uintptr_t)0x00634cc0), reinterpret_cast<s32(__cdecl *)(const char *)>((uintptr_t)0x0067e560), &Mailbox_SaveOutbox, &Mailbox_LoadMessage,
@@ -48,7 +53,53 @@ void WriteNumbers(u8 *self, u32 listAt, u8 *stream) {
     }
 }
 
-u8 *ReadLine(u8 *stream, char *line) { return g_env->getline(stream, nullptr, line, 0x100, g_env->widen(IosOf(stream), nullptr, 10)); }
+u8 *ReadLine(u8 *stream, char *line, u32 size = 0x100) { return g_env->getline(stream, nullptr, line, size, g_env->widen(IosOf(stream), nullptr, 10)); }
+
+// A read's end, by the state of the ios of the stream it answered (a null stream: the state read at 4, a fault, as in the original).
+bool ReadFailed(u8 *got) {
+    const u8 *const state = got ? IosOf(got) : nullptr;
+    return (at<u8>(state, 4) & 6) != 0;
+}
+
+// All nodes of a list of numbers erased, by a cursor up to the head as it was.
+void ClearNumbers(u8 *list) {
+    const u32 head = at<u32>(list, 4);
+    u32 cursor = at<u32>(reinterpret_cast<void *>((uintptr_t)head), 0);
+    while (cursor != head) {
+        u32 old, out;
+        g_env->eraseNumber(list, nullptr, &out, *ListCursor_Next(&cursor, nullptr, &old, 0));
+    }
+}
+
+// Lines of numbers into a list, until a read fails or a line is empty.
+void ReadNumbers(u8 *stream, u8 *list) {
+    char line[0x80];
+    for (;;) {
+        u8 *const got = ReadLine(stream, line, 0x80);
+        if (ReadFailed(got) || !line[0]) break;
+        const s32 value = g_env->atoi(line);
+        u32 out;
+        g_env->insertNumber(list, nullptr, &out, at<u32>(list, 4), &value);
+    }
+}
+
+// The default address pushed, the list sorted and made unique, and walked until it is found.
+void AddDefault(u8 *list, const StdString *key) {
+    g_env->pushBack(list, nullptr, key);
+    g_env->sort(list);
+    g_env->unique(list);
+    u32 cursor = at<u32>(at<u8 *>(list, 4), 0);
+    while (cursor != at<u32>(list, 4)) {
+        if (g_env->compare(reinterpret_cast<const u8 *>((uintptr_t)cursor + 8), nullptr, reinterpret_cast<const u8 *>(key)) == 0) break;
+        u32 old;
+        ListCursor_Next(&cursor, nullptr, &old, 0);
+    }
+}
+
+const u8 *const kLanguage = reinterpret_cast<const u8 *>((uintptr_t)0x0078b530);
+const StdString *const kOtherAddress = reinterpret_cast<const StdString *>((uintptr_t)0x007a155c);
+const char *const kEnglishAddress = reinterpret_cast<const char *>((uintptr_t)0x007740f4);
+const char *const kAddressBookName = reinterpret_cast<const char *>((uintptr_t)0x007740e4);
 
 // Every node of a list of numbers that holds the number erased. The end is read once.
 void RemoveNumber(u8 *list, u32 number) {
@@ -78,6 +129,143 @@ void RemoveFile(u8 *self, StdString *path, u32 format, u32 number) {
 void Mailbox_SetEnv(const MailboxEnv *env) { g_env = env ? env : &kGameEnv; }
 
 void MailboxDrop_SetEnv(const MailboxDropEnv *env) { g_drop = env ? env : &kGameDropEnv; }
+
+u8 __fastcall Mailbox_Open(u8 *self, void *, const char *folder) {
+    StdString path;
+    StdString_Tidy(&path, nullptr, 0);
+    u8 stream[0x90];   // (+0 the vbtable, +8 the file buffer, its file at +0x58, +0x5c the ios)
+    u8 *const buffer = stream + 8;
+    u8 *const ios = stream + 0x5c;
+    at<u32>(stream, 0) = 0x00702968;
+    g_env->iosInit(ios);
+    g_env->istreamCtor(stream, nullptr, buffer, 0, 0);
+    g_env->fileCtor(buffer, nullptr, nullptr);
+    at<u32>(IosOf(stream), 0) = 0x00702960;
+    ClearNumbers(self + 0x58);
+    ClearNumbers(self + 0x64);
+    ClearNumbers(self + 0x70);
+    StdString *const own = reinterpret_cast<StdString *>(self);
+    StdString_AssignChars(own, nullptr, folder, CRT_strlen(folder));
+    const char *const outbox = reinterpret_cast<const char *>((uintptr_t)0x007740c0);
+    StdString_AppendChars(own, nullptr, outbox, CRT_strlen(outbox));
+    StdString_AssignSub(&path, nullptr, own, 0, npos());
+    const char *const name = reinterpret_cast<const char *>((uintptr_t)0x007740b4);
+    StdString_AppendChars(&path, nullptr, name, CRT_strlen(name));
+    if (!g_env->open(buffer, nullptr, TextOf(path), 1)) g_env->setState(IosOf(stream), nullptr, 2, 0);
+    if (!at<void *>(stream, 0x58)) {
+        const s32 made = at<s32(__stdcall *)(const char *, void *)>(nullptr, 0x006fd120)(TextOf(*own), nullptr);
+        g_env->ifstreamDtor(ios);
+        NIos_Dtor(ios);
+        StdString_Tidy(&path, nullptr, 1);
+        return made != 0;
+    }
+    ReadNumbers(stream, self + 0x58);
+    ReadNumbers(stream, self + 0x70);
+    ReadNumbers(stream, self + 0x64);
+    void *const file = at<void *>(stream, 0x58);
+    if (file && g_env->fclose(file) == 0)
+        g_env->fileInit(buffer, nullptr, nullptr, 2);
+    else
+        g_env->setState(IosOf(stream), nullptr, 2, 0);
+    g_env->ifstreamDtor(ios);
+    NIos_Dtor(ios);
+    StdString_Tidy(&path, nullptr, 1);
+    return 1;
+}
+
+u8 __fastcall AddressBook_Load(u8 *self, void *, const char *folder) {
+    u8 stream[0x90];   // (+0 the vbtable, +8 the file buffer, its file at +0x58, +0x5c the ios)
+    u8 *const buffer = stream + 8;
+    u8 *const ios = stream + 0x5c;
+    at<u32>(stream, 0) = 0x00702968;
+    g_env->iosInit(ios);
+    g_env->istreamCtor(stream, nullptr, buffer, 0, 0);
+    g_env->fileCtor(buffer, nullptr, nullptr);
+    at<u32>(IosOf(stream), 0) = 0x00702960;
+    StdString path;
+    StdString_Tidy(&path, nullptr, 0);
+    StdString_AssignChars(&path, nullptr, folder, CRT_strlen(folder));
+    StdString_AppendChars(&path, nullptr, kAddressBookName, CRT_strlen(kAddressBookName));
+    if (!g_env->open(buffer, nullptr, TextOf(path), 1)) g_env->setState(IosOf(stream), nullptr, 2, 0);
+    if (!at<void *>(stream, 0x58)) {
+        if (g_env->languageId(kLanguage) == 0x409) {
+            StdString text;
+            StdString_Tidy(&text, nullptr, 0);
+            StdString_AssignChars(&text, nullptr, kEnglishAddress, CRT_strlen(kEnglishAddress));
+            AddDefault(self, &text);
+            StdString_Tidy(&text, nullptr, 1);
+        } else {
+            AddDefault(self, kOtherAddress);
+        }
+        StdString_Tidy(&path, nullptr, 1);
+        g_env->ifstreamDtor(ios);
+        NIos_Dtor(ios);
+        return 0;
+    }
+    char line[0x80];
+    while (!ReadFailed(ReadLine(stream, line, 0x80))) {
+        StdString text;
+        StdString_Tidy(&text, nullptr, 0);
+        StdString_AssignChars(&text, nullptr, line, CRT_strlen(line));
+        u8 *out;
+        g_env->insert(self, nullptr, &out, at<u8 *>(self, 4), &text);
+        StdString_Tidy(&text, nullptr, 1);
+    }
+    if (!g_env->fileClose(buffer)) g_env->setState(IosOf(stream), nullptr, 2, 0);
+    if (g_env->languageId(kLanguage) == 0x409) {
+        StdString text;
+        StdString_Tidy(&text, nullptr, 0);
+        StdString_AssignChars(&text, nullptr, kEnglishAddress, CRT_strlen(kEnglishAddress));
+        g_env->addSorted(self, nullptr, &text);
+        StdString_Tidy(&text, nullptr, 1);
+    } else {
+        g_env->addSorted(self, nullptr, kOtherAddress);
+    }
+    StdString_Tidy(&path, nullptr, 1);
+    g_env->ifstreamDtor(ios);
+    NIos_Dtor(ios);
+    return 1;
+}
+
+u8 __fastcall AddressBook_Save(u8 *self, void *, const char *folder) {
+    u8 stream[0x8c];   // (+0 the vbtable, +4 the file buffer, its file at +0x54, +0x58 the ios)
+    u8 *const buffer = stream + 4;
+    u8 *const ios = stream + 0x58;
+    at<u32>(stream, 0) = 0x00702978;
+    g_env->iosInit(ios);
+    g_env->ostreamCtor(stream, nullptr, buffer, 0, 1, 0);
+    g_env->fileCtor(buffer, nullptr, nullptr);
+    at<u32>(IosOf(stream), 0) = 0x00702970;
+    StdString path;
+    StdString_Tidy(&path, nullptr, 0);
+    StdString_AssignChars(&path, nullptr, folder, CRT_strlen(folder));
+    StdString_AppendChars(&path, nullptr, kAddressBookName, CRT_strlen(kAddressBookName));
+    if (!g_env->open(buffer, nullptr, TextOf(path), 0x12)) g_env->setState(IosOf(stream), nullptr, 2, 0);
+    if (!at<void *>(stream, 0x54)) {
+        StdString_Tidy(&path, nullptr, 1);
+        g_env->ofstreamDtor(ios);
+        NIos_Dtor(ios);
+        return 0;
+    }
+    char line[0x80];
+    for (u8 *node = at<u8 *>(at<u8 *>(self, 4), 0); node != at<u8 *>(self, 4); node = at<u8 *>(node, 0)) {
+        CRT_sprintf(line, reinterpret_cast<const char *>((uintptr_t)0x00764ff0), TextOf(at<StdString>(node, 8)));
+        g_env->write(stream, line);
+    }
+    void *const file = at<void *>(stream, 0x54);
+    if (file && g_env->fclose(file) == 0) {
+        g_env->fileInit(buffer, nullptr, nullptr, 2);
+    } else {
+        u8 *const state = IosOf(stream);
+        g_env->clear(state, nullptr, at<u32>(state, 4) | 2, 0);
+    }
+    StdString_Tidy(&path, nullptr, 1);
+    at<u32>(IosOf(stream), 0) = 0x00702970;
+    g_env->fileDtor(buffer);
+    at<u32>(IosOf(stream), 0) = 0x0070995c;
+    NIos_Dtor(ios);
+    return 1;
+}
 
 void __fastcall Mailbox_DeleteMessage(u8 *self, void *, u32 number) {
     StdString path;
