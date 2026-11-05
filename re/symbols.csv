@@ -6259,6 +6259,9 @@ address,name,kind,confidence,notes
 0x00479380,Ime_ResetIfClosed,function,low,"reimplemented (src/game/core/imeinput); thiscall(window): IMN_SETCOMPOSITIONWINDOW: a closed IME's lists and composition cleared, the composition window put at the origin; name invented"
 0x0047a570,Ime_Detach,function,low,"reimplemented (src/game/core/imeinput); thiscall: the IME taken off its window: closed, the old procedure back, the map's entry erased; name invented"
 0x0047a3a0,Ime_Attach,function,low,"reimplemented (src/game/core/imeinput); thiscall(out, window): the IME put on a window: its context made, the map's entry added, the procedure 0x47a880 set; *out 0 or -1, returns out; name invented"
+0x0047a0c0,Ime_ReadCandidates,function,low,"reimplemented (src/game/core/imeinput); thiscall(context, index): one candidate list read into the list at index, widened, hashed; 1 or 0; name invented"
+0x00479d80,Ime_OpenCandidates,function,low,"reimplemented (src/game/core/imeinput); thiscall(window, mask): IMN_OPENCANDIDATE: the lists brought to 32, each one of the mask read; name invented"
+0x00479f10,Ime_ChangeCandidates,function,low,"reimplemented (src/game/core/imeinput); thiscall(window, mask): IMN_CHANGECANDIDATE: the lists brought to 32, the first of the mask that reads kept; name invented"
 0x0050ffe0,Nav_Ctor,function,high,reimplemented (src/game/world/nav); constants constructor with five integer pairs
 0x0050f200,Nav_Dtor,function,high,reimplemented (src/game/world/nav); thiscall: the five IntPairs at +0x64 destroyed with Stub_Ret (CRT_VectorDtorIterator); also via 0x4f7c30 (+0xd4) and 0x4f8ad0
 0x004f7c30,Nav_DtorAtD4,function,low,reimplemented (src/game/world/nav); thiscall adjustor: Nav_Dtor on this + 0xd4
