@@ -1414,7 +1414,7 @@ const AddrCall kGameStartCalls[] = {{0x67d8e0, jpeg_recorder(0, 1)}, {0x402ea0, 
 const AddrCall kPresentCalls[] = {{0x56a770, jpeg_recorder(1, 1)}, {0x564650, jpeg_recorder(2, 1)}, {0x56af20, recorder(3, 2)},  // tests/fncmp/devicepresent.py
     {0x564210, recorder(4, 0)}, {0x678790, jpeg_recorder(5, 6)}, {0x678d70, jpeg_recorder(6, 6)}, {0x678c20, jpeg_recorder(7, 10)}, {0x6787f0, jpeg_recorder(8, 10)}};  // tests/fncmp/presentpicture.py
 const AddrCall kGameErrorCalls[] = {{0x6acd60, jpeg_recorder(1, 4)}};  // tests/fncmp/gameerrorshow.py
-const AddrCall kWaitThreadCalls[] = {{0x632a40, recorder(25, 0)}};
+const AddrCall kWaitThreadCalls[] = {{0x632a40, recorder(25, 0)}, {0x67f780, jpeg_recorder(24, 6)}};
 const AddrCall kScreenViewCalls[] = {{0x5fa040, jpeg_recorder(20, 1)}, {0x61b190, recorder(21, 0)}};
 const AddrCall kInputFilterCalls[] = {{0x5fc030, recorder(26, 3)}, {0x5fc100, recorder(27, 3)}, {0x5fba10, recorder(28, 1)}};
 const AddrCall kJpegWriteCalls[] = {{0x5d4ba0, recorder(1, 1)}, {0x5d4c20, recorder(2, 1)}, {0x5d5350, recorder(3, 3)}, {0x64dd60, jpeg_recorder(4, 1)}, {0x64c5f0, jpeg_recorder(5, 3)}, {0x64cf20, jpeg_recorder(6, 1)},

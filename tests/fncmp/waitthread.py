@@ -6,21 +6,22 @@ import struct
 import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
-from fncmp import HEAP, IMPORT_TABLE, LOG, RAM, Bench, Call, _recorder, answers, heap, import_table, log_region, put, set_return, vtable  # noqa: E402
+from fncmp import HEAP, IMPORT_TABLE, LOG, RAM, Bench, Call, _recorder, answers, fill, heap, import_table, log_region, put, set_return, strings, vtable  # noqa: E402
 
-ADDRESS = {'Proc': (0x632460, 13), 'Loop': (0x6324e0, 0x116), 'Run': (0x632470, 109), 'Open': (0x632750, 134), 'Close': (0x6327e0, 89), 'Send': (0x632840, 105), 'Add': (0x6328b0, 31), 'Remove': (0x6328d0, 31), 'DoAdd': (0x6328f0, 100), 'DoRemove': (0x632960, 216), 'Insert': (0x632ef0, 0x223)}
+ADDRESS = {'Proc': (0x632460, 13), 'Loop': (0x6324e0, 0x116), 'Run': (0x632470, 109), 'Open': (0x632750, 134), 'Close': (0x6327e0, 89), 'Send': (0x632840, 105), 'Add': (0x6328b0, 31), 'Remove': (0x6328d0, 31), 'DoAdd': (0x6328f0, 100), 'DoRemove': (0x632960, 216), 'Insert': (0x632ef0, 0x223), 'Start': (0x632600, 107), 'Stop': (0x632670, 102), 'Shutdown': (0x632730, 17), 'Dtor': (0x6323e0, 118), 'Del': (0x6323c0, 30)}
 OPS = [n for n in ADDRESS if not os.environ.get('OPS') or n in os.environ['OPS'].split(',')]
 SET, WAIT, CREATE, CLOSE, ERROR = 30, 31, 32, 33, 34
 RANGE = 25
 B = Bench([(a, a + n) for a, n in ADDRESS.values()] + [(0x6322e0, 0x632310),(0x47cf20, 0x47d140), (0x47db00, 0x47db20), (0x5fa650, 0x5fa678), (0x6b70d0, 0x6b70e0), (0x67acb0, 0x67acb1), (0x67a400, 0x690000)],
-          hooks={0x632a40: _recorder(RANGE, 0)})
+          hooks={0x632a40: _recorder(RANGE, 0), 0x67f780: _recorder(24, 6, cdecl=True)})
+START, SLEEP, EXITCODE = 24, 35, 36
 OBJ, OUT, ITEM, HANDLES, OBJECTS, ANSWERS, ELEMENT, VT = RAM, RAM + 0x80, RAM + 0x90, RAM + 0x100, RAM + 0x200, RAM + 0x300, RAM + 0x400, RAM + 0x500
 FORWAIT = 26
 
 
 def imports(log):
     return import_table(log, {'SetEvent': (SET, 0x6fd124, 1, 0, 0), 'WaitForSingleObject': (WAIT, 0x6fd128, 2, 0, 0), 'CreateEventA': (CREATE, 0x6fd0d4, 4, 0, 0), 'CloseHandle': (CLOSE, 0x6fd13c, 1, 0, 0),
-                              'GetLastError': (ERROR, 0x6fd138, 0, 0, 0), 'WaitForMultipleObjects': (FORWAIT, 0x6fd160, 4, 0, 0)})
+                              'GetLastError': (ERROR, 0x6fd138, 0, 0, 0), 'WaitForMultipleObjects': (FORWAIT, 0x6fd160, 4, 0, 0), 'Sleep': (SLEEP, 0x6fd1d4, 1, 0, 0), 'GetExitCodeThread': (EXITCODE, 0x6fd0b8, 2, 0, 0b10)})
 
 
 def vector(r, obj, offset, at, count, spare):
@@ -67,6 +68,21 @@ def case(r):
         if op == 'Proc':
             return Call(address, [OBJ], regions, conv='s', ret='a')
         return Call(address, [OBJ], regions, conv='t', ret='a')
+    if op in ('Start', 'Stop', 'Shutdown', 'Dtor', 'Del'):
+        put(obj, 0x14, 'I', r.choice([0, 0x777, 0x777, 0x777]))
+        put(obj, 0x18, 'II', r.choice([0, 0x1000]), r.choice([0, 0x2000]))
+        put(obj, 0xc, 'I', r.choice([0, 0, 0, 1, 0x80000000]))
+        put(obj, 4, 'I', r.getrandbits(32))
+        set_return(log, EXITCODE, r.choice([0, 1, 1, 1]))
+        fill(log, EXITCODE, 1, struct.pack('<I', r.choice([0x103, 0x103, 0, 1])))
+        set_return(log, START, r.choice([0, 0x888, 0x888]))
+        strings(log, START, 0, out=0b100000)
+        regions[HEAP] = heap(0x100)
+        if op == 'Start':
+            return Call(address, [OBJ, OUT], regions, conv='t', ret='a')
+        if op == 'Del':
+            return Call(address, [OBJ, r.choice([0, 1, 2, 3])], regions, conv='t', ret='a')
+        return Call(address, [OBJ], regions, conv='t', ret='v')
     if op == 'Insert':
         where = struct.unpack_from('<I', obj, 0x38)[0] + 4 * r.randint(0, count) if struct.unpack_from('<I', obj, 0x38)[0] else 0
         return Call(address, [OBJ + 0x34, where, r.choice([0, 1, 1, 2, 3, 6]), ITEM], regions, conv='t', ret='v')

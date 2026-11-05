@@ -6308,6 +6308,11 @@ address,name,kind,confidence,notes
 0x006328f0,WaitThread_DoAdd,function,low,reimplemented (src/game/core/waitthread); thiscall (out): the object and its handle added; name invented
 0x00632960,WaitThread_DoRemove,function,low,reimplemented (src/game/core/waitthread); thiscall (out): the object and its handle erased; name invented
 0x00632ef0,WaitThread_InsertObjects,function,low,"reimplemented (src/game/core/waitthread); thiscall on a vector<u32> (position, count, value): insert, another copy of 0x47cf20's template; name invented"
+0x00632600,WaitThread_Start,function,low,reimplemented (src/game/core/waitthread); thiscall (result out): the thread started by _beginthreadex; one there: 0xcffe0102; a failure: the last error; name invented
+0x00632670,WaitThread_Stop,function,low,"reimplemented (src/game/core/waitthread); thiscall: the quit command sent, the thread waited for and its handle closed; a failed send leaves the handle open; name invented"
+0x00632730,WaitThread_Shutdown,function,low,"reimplemented (src/game/core/waitthread); thiscall: Stop, then CloseEvents; name invented"
+0x006323e0,WaitThread_Dtor,function,low,"reimplemented (src/game/core/waitthread); thiscall: vtable 0x703c14, Shutdown, the two vectors freed and cleared; name invented"
+0x006323c0,WaitThread_DeletingDtor,function,low,"reimplemented (src/game/core/waitthread); thiscall (flags): the destructor, bit 0 frees; name invented"
 0x0050ffe0,Nav_Ctor,function,high,reimplemented (src/game/world/nav); constants constructor with five integer pairs
 0x0050f200,Nav_Dtor,function,high,reimplemented (src/game/world/nav); thiscall: the five IntPairs at +0x64 destroyed with Stub_Ret (CRT_VectorDtorIterator); also via 0x4f7c30 (+0xd4) and 0x4f8ad0
 0x004f7c30,Nav_DtorAtD4,function,low,reimplemented (src/game/world/nav); thiscall adjustor: Nav_Dtor on this + 0xd4

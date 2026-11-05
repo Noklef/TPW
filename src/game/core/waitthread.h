@@ -32,6 +32,16 @@ u32 *__fastcall WaitThread_DoAdd(u8 *self, void *, u32 *out);
 u32 *__fastcall WaitThread_DoRemove(u8 *self, void *, u32 *out);
 // 0x632ef0 (thiscall on a vector<u32>; position, count, pointer to the value, pops 12): ImeVector_InsertN's code again, another copy of the template.
 void __fastcall WaitThread_InsertObjects(u8 *vector, void *, u32 *position, u32 count, const u32 *value);
+// 0x632600 (thiscall; result out, pops 4): the thread started (_beginthreadex of 0x632460, +0x14 its handle); one there already: 0xcffe0102; a failure: the last error.
+u32 *__fastcall WaitThread_Start(u8 *self, void *, u32 *out);
+// 0x632670 (thiscall): with a thread, the quit command sent; sent well, the thread waited for (while its exit code is STILL_ACTIVE) and its handle closed; a failed send leaves the handle open (sic). +0x14 = 0.
+void __fastcall WaitThread_Stop(u8 *self);
+// 0x632730 (thiscall): Stop, then CloseEvents.
+void __fastcall WaitThread_Shutdown(u8 *self);
+// 0x6323e0 (thiscall): vtable 0x703c14, Shutdown, the two vectors freed and cleared.
+void __fastcall WaitThread_Dtor(u8 *self);
+// 0x6323c0 (thiscall; flags, pops 4): the destructor; with bit 0, freed. Returns self.
+u8 *__fastcall WaitThread_DeletingDtor(u8 *self, void *, u32 flags);
 
 }  // extern "C"
 

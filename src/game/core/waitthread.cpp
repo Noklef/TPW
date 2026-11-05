@@ -3,6 +3,7 @@
 
 #include <cstdint>
 
+#include "gameheap.h"
 #include "ime.h"
 #include "result.h"
 #include "seqs.h"
@@ -181,5 +182,55 @@ u32 *__fastcall WaitThread_DoRemove(u8 *self, void *, u32 *out) {
 }
 
 void __fastcall WaitThread_InsertObjects(u8 *vector, void *, u32 *position, u32 count, const u32 *value) { ImeVector_InsertN(vector, nullptr, position, count, value); }
+
+u32 *__fastcall WaitThread_Start(u8 *self, void *, u32 *out) {
+    if (at<u32>(self, 0x14)) {
+        *out = 0xcffe0102;
+        return out;
+    }
+    at<u32>(self, 0x20) = 0;
+    at<u32>(self, 0x10) = 0;
+    u32 id;
+    at<u32>(self, 0x14) = g_calls.Cd(0x0067f780, 0u, 0u, 0x00632460u, self, 0u, &id);   // _beginthreadex
+    if (!at<u32>(self, 0x14)) return lastError(out);
+    *out = 0;
+    return out;
+}
+
+void __fastcall WaitThread_Stop(u8 *self) {
+    if (!at<u32>(self, 0x14)) return;
+    at<u32>(self, 4) = 3;
+    u32 local;
+    if (static_cast<s32>(*WaitThread_Send(self, nullptr, &local)) >= 0) {
+        import<void(__stdcall *)(u32)>(0x006fd1d4)(0);   // Sleep
+        if (import<s32(__stdcall *)(u32, u32 *)>(0x006fd0b8)(at<u32>(self, 0x14), &local) && local == 0x103) import<u32(__stdcall *)(u32, u32)>(0x006fd128)(at<u32>(self, 0x14), 0xffffffff);   // GetExitCodeThread, WaitForSingleObject
+        import<s32(__stdcall *)(u32)>(0x006fd13c)(at<u32>(self, 0x14));   // CloseHandle
+    }
+    at<u32>(self, 0x14) = 0;
+}
+
+void __fastcall WaitThread_Shutdown(u8 *self) {
+    WaitThread_Stop(self);
+    WaitThread_CloseEvents(self);
+}
+
+void __fastcall WaitThread_Dtor(u8 *self) {
+    at<u32>(self, 0) = 0x00703c14;
+    WaitThread_Shutdown(self);
+    GameHeap_Free(at<void *>(self, 0x38));
+    at<u32>(self, 0x38) = 0;
+    at<u32>(self, 0x3c) = 0;
+    at<u32>(self, 0x40) = 0;
+    GameHeap_Free(at<void *>(self, 0x28));
+    at<u32>(self, 0x28) = 0;
+    at<u32>(self, 0x2c) = 0;
+    at<u32>(self, 0x30) = 0;
+}
+
+u8 *__fastcall WaitThread_DeletingDtor(u8 *self, void *, u32 flags) {
+    WaitThread_Dtor(self);
+    if (flags & 1) GameHeap_Free(self);
+    return self;
+}
 
 }  // extern "C"
