@@ -7,8 +7,8 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
 from fncmp import Bench, Call, HEAP, RAM, heap, put  # noqa: E402
 
-CALLS = {'One': 0x47c740, 'Many': 0x47cf20}
-B = Bench([(0x47c740, 0x47c910), (0x47cf20, 0x47d140), (0x47c910, 0x47c980), (0x47db00, 0x47db20), (0x47c720, 0x47c740), (0x6b70d0, 0x6b70e0), (0x67acb0, 0x67acb1), (0x67a400, 0x690000)])
+CALLS = {'One': 0x47c740, 'Many': 0x47cf20, 'ManyB': 0x632ef0}   # (ManyB: the same template's copy for src/game/core/waitthread)
+B = Bench([(0x47c740, 0x47c910), (0x47cf20, 0x47d140), (0x632ef0, 0x633113),(0x47c910, 0x47c980), (0x47db00, 0x47db20), (0x47c720, 0x47c740), (0x6b70d0, 0x6b70e0), (0x67acb0, 0x67acb1), (0x67a400, 0x690000)])
 VEC, BUF, VAL = RAM, RAM + 0x400, RAM + 0x200
 
 

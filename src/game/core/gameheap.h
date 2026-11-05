@@ -27,6 +27,11 @@ u32 __cdecl Sound_Alloc(u32 size);
 
 u32 __cdecl Sound_Free(void *block);
 
+// 0x642860 (stdcall (size), pops 4): Mem_GlobalAlloc; a block got raises the dword at 0xfaa534. 0x642880 (stdcall (block), pops 4): Mem_GlobalFree unless null; the dword lowered
+// even for null (sic). Returns 1.
+void *__stdcall Mem_AllocCounted(u32 size);
+u32 __stdcall Mem_FreeCounted(void *block);
+
 // 0x51f630 / 0x556ab0 / 0x51f660 (cdecl; size / size / block): Mem_GlobalAlloc / Mem_GlobalAlloc / Mem_GlobalFree when the argument is not 0 (the debug output of the
 // others is gone), otherwise 0.
 u32 __cdecl Mem_AllocChecked(u32 size);

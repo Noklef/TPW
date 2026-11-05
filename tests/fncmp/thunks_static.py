@@ -32,6 +32,7 @@ FUNCS = [
     (0x5c74a0, 'self', None, 'v'),
     (0x5f5560, 'global', 0xfa6e40, 'a'),
     (0x4fa750, 'cdecl', None, 'v'),
+    (0x532bb0, 'cdecl', None, 'v'),
     (0x5fcce0, 'cdecl', None, 'v'),
     (0x5fcd30, 'cdecl', None, 'v'),
     (0x5fcd80, 'cdecl', None, 'v'),
@@ -81,7 +82,7 @@ FUNCS = [
     (0x5c8b70, 'thread', None, 'a'),
 ]
 B = Bench([
-    (0x4fa750, 0x4fa764), (0x5d1750, 0x5d1751),
+    (0x4fa750, 0x4fa764), (0x532bb0, 0x532bc4), (0x5d1750, 0x5d1751),
     (0x5da3c0, 0x5da3c1), (0x507080, 0x5070c0), (0x67acf0, 0x67ada0), (0x67afa0, 0x67b0d0), (0x67b050, 0x67b0d0),
     (0x5f5e80, 0x5f5f20),
     (0x618d30, 0x618d90),
@@ -222,7 +223,7 @@ def clock(r, regions, ms):
 
 
 def case(r):
-    address, form, imm, ret = r.choice(PICK)
+    address, form, imm, ret = r.deal(PICK)
     # POINTEE's words are 0 or have the top bit set: a pointer read through it faults in both (a raw random word can land on memory the driver has mapped,
     # and words pointing back into it make cycles a native list walk never leaves)
     regions = {HEAP: heap(), POINTEE: b''.join((0 if r.random() < 0.33 else r.getrandbits(32) | 0x80000000).to_bytes(4, 'little') for _ in range(0x100))}

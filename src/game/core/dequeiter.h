@@ -74,6 +74,26 @@ void __fastcall Deque32_FreeFront(u8 *deque);
 void __fastcall Deque32_FreeBack(u8 *deque);
 // 0x6c1550 (thiscall): pop_front: the begin position one dword on, the count lowered; at 0, or at the block's end, Deque32_FreeFront.
 void __fastcall Deque32_PopFront(u8 *deque);
+// 0x632080 (thiscall): pop_front until the count is 0 (inline in the original).
+void __fastcall Deque32_Clear(u8 *deque);
+// 0x631ec0 (thiscall on the owner, the deque at +0x10; out, value, pops 8): when the owner's slot 0x1c answers, the object at the deque's front told of the value (its slot 0, unless 0), its +8
+// cleared, pop_front (inline). out = 0; returns out. Name invented.
+u32 *__fastcall DequeOwner_Pop(u8 *owner, void *, u32 *out, u32 value);
+// The same owner: a queue under a lock (vtable 0x703bc8, its base's 0x703bf0; the deque at +0x10, the section at +0x40). Names invented.
+// 0x631870 (thiscall): Class703770_Ctor, +8, +0xc and +0x14-+0x3c = 0, the section made. The deque's allocator byte at +0x10 is stack garbage in the original and not written (nothing reads it). Returns self.
+u8 *__fastcall LockedQueue_Ctor(u8 *self);
+// 0x631fc0 / 0x632020 (thiscall): the section entered / left, through a guard on the stack.
+void __fastcall LockedQueue_Lock(u8 *self);
+void __fastcall LockedQueue_Unlock(u8 *self);
+// 0x631d10 (thiscall; value, pops 4): under the lock, push_back (with no elements or the last block full, Deque32_GrowBack, inline in the original). 0x631d00: the same, one call more.
+void __fastcall LockedQueue_Push(u8 *self, void *, u32 value);
+void __fastcall LockedQueue_PushThunk(u8 *self, void *, u32 value);
+// 0x6319a0 (thiscall): erase(begin, end) inline: nothing before or after the stretch, so only its pop_backs do anything; the section deleted; pop_front while the count (it can only be one the iterators
+// disagree with) is not 0; Class703780_DtorD's code. 0x631980 (flags, pops 4): that; with bit 0, freed. Returns self.
+void __fastcall LockedQueue_Dtor(u8 *self);
+u8 *__fastcall LockedQueue_DeletingDtor(u8 *self, void *, u32 flags);
+// 0x631950 (thiscall; flags, pops 4): the base's: Class703780_DtorD; with bit 0, freed. Returns self.
+u8 *__fastcall LockedQueueBase_DeletingDtor(u8 *self, void *, u32 flags);
 // 0x632150 (thiscall): pop_back: the end position one dword back, the count lowered; at 0, or at the block's start, the back block freed as
 // Deque32_FreeBack (inline in the original).
 void __fastcall Deque32_PopBack(u8 *deque);

@@ -56,6 +56,12 @@ extern "C" void __cdecl RefPack_DecodeIf(const u8 *src, u8 *dst, s32 decode) {
     if (src && decode) RefPack_Decode(dst, src, 0);
 }
 
+extern "C" u32 __cdecl ReadBigEndian(const u8 *p, u32 n) {
+    u32 value = 0;
+    while (n--) value = value << 8 | *p++;
+    return value;
+}
+
 extern "C" u32 __stdcall RefPack_DecodedSize(const u8 *src) {
     return be24(src + (((u32)src[0] << 8 | src[1]) == 0x10fb ? 2 : 5));
 }

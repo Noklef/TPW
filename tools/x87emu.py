@@ -188,6 +188,7 @@ class Emu:
         # give a fake CPU (tools/fncmp.py's, the same as its driver's); unset, CPUID and a POPFD that sets ID raise.
         self.cpuid = None
         self.id_writable = None
+        self.rdtsc = None   # RDTSC likewise: rdtsc(emu) -> (EAX, EDX) (tools/fncmp.py's fake CPU); unset, it raises
         self.reset()
 
     def reset(self):
@@ -746,6 +747,10 @@ class Emu:
             if self.cpuid is None:
                 raise RuntimeError('CPUID: no fake CPU (cpuid)')
             self.r['EAX'], self.r['EBX'], self.r['ECX'], self.r['EDX'] = (x & 0xffffffff for x in self.cpuid(self, self.r['EAX']))
+        elif mn == 'RDTSC':
+            if self.rdtsc is None:
+                raise RuntimeError('RDTSC: no fake CPU (rdtsc)')
+            self.r['EAX'], self.r['EDX'] = self.rdtsc(self)
         elif mn == 'STOSB.REP':
             while self.r['ECX']:
                 self.write(self.r['EDI'], bytes([self.r['EAX'] & 0xff]))

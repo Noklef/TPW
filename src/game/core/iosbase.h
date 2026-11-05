@@ -33,6 +33,22 @@ extern "C" {
 void __cdecl Std_Xlen();
 void __cdecl Std_Xran();
 
+// 0x632a40 (name invented): _Xran's body with the vector's text at 0x779a68: out_of_range thrown (vtable 0x7098b4, info 0x71f298).
+void __cdecl Vector_Xran();
+
+// logic_error (vtable 0x7098a4) and out_of_range (0x7098b4): exception, then its message, a string at +0xc. 0x632b70 (thiscall; what()): the message's text, or the empty 0x6fe5b0.
+const char *__fastcall LogicError_What(u8 *self);
+// 0x632b80 / 0x632d90 (thiscall (from), pops 4): the copy constructors: exception's, the string's allocator byte, the string assigned whole (sharing when it can). Returns self.
+u32 *__fastcall LogicError_Copy(u32 *self, void *edx, const u32 *from);
+u32 *__fastcall OutOfRange_Copy(u32 *self, void *edx, const u32 *from);
+// 0x632ce0 / 0x632d50 (thiscall): _Doraise: a local copy thrown (info 0x71f310 / 0x71f298).
+void __fastcall LogicError_Raise(const u32 *self);
+void __fastcall OutOfRange_Raise(const u32 *self);
+// 0x632d00 (thiscall): vtable 0x7098a4; the string let go (the block freed or its count lowered), its three dwords 0; exception's destructor.
+void __fastcall LogicError_Dtor(u32 *self);
+// 0x632d70 (thiscall (flags), pops 4): the destructor; bit 0 frees. Returns self.
+u32 *__fastcall LogicError_DeletingDtor(u32 *self, void *edx, u32 flags);
+
 // 0x693340 (thiscall (state, reraise), pops 8): ios_base::clear: state & 7 kept at +4; bits the exception mask +8 also has: a rethrow when reraise's low byte is set, else
 // ios_base::failure (vtable 0x7099fc, info 0x720720) naming the worst (bad, fail, eof).
 void __fastcall IosBase_Clear(u8 *self, void *edx, u32 state, u32 reraise);

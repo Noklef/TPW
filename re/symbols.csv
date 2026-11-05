@@ -632,7 +632,7 @@ address,name,kind,confidence,notes
 0x00474ea0,Path_PercentAt,function,high,"reimplemented (src/game/motion); (table, count, t, out, closed): lerps the per-frame percent table; t == count gives the last value; neighbours > 50 apart wrap through 100 (fmod)"
 0x00641f10,RefPack_Decode,function,high,"reimplemented (src/game/files); (dst, src, unused) -> decoded size, ret 0xc; codec vtable 0x703f00 slot 2; no bounds checks, ignores the 0x80 4-byte-size flag"
 0x00642110,RefPack_DecodedSize,function,high,"reimplemented; (src) -> 3-byte BE size after the magic (0x10FB) or after 5 bytes, ret 4; vtable slot 5"
-0x006419b0,ReadBigEndian,function,high,"(p, n) -> n-byte big-endian integer"
+0x006419b0,ReadBigEndian,function,high,"reimplemented (src/game/files/refpack); cdecl (p, n): the n bytes at p as a big-endian number"
 0x00642100,Const_C0000,function,high,reimplemented (src/game/core/trivial); 0xc0000
 0x00638be0,BufferSource_AttachRefPack,function,high,reimplemented (src/game/files/wrapsources); thiscall (source); reads the whole entry and RefPack_Decodes it into the data
 0x00703f00,RefPackCodec_vtable,data,medium,"slots 0x638c70 (dtor), RefPack_Encode, RefPack_Decode, RefPack_WorkspaceSize, 0x5d60c0, RefPack_DecodedSize, 0x638860, 0x638b60"
@@ -1755,8 +1755,8 @@ address,name,kind,confidence,notes
 0x0063ae60,Rgb16Converter_DeletingDtor,function,high,"reimplemented (src/game/gfx/pixconv); thiscall (flags)"
 0x0063ae80,Rgb16Converter_Dtor,function,high,"reimplemented (src/game/gfx/pixconv); thiscall; base vtable 0x7039c0"
 0x0063ae10,Rgb16Converter_Ctor,function,high,"reimplemented (src/game/gfx/pixconv); thiscall (&source, &target format); 0x2c bytes, vtable 0x703fb8"
-0x00642860,Mem_AllocCounted,function,high,"stdcall (size); Mem_Alloc 0x5f5660, counts in 0xfaa534"
-0x00642880,Mem_FreeCounted,function,high,"stdcall (block); Mem_Free 0x5f5680, returns 1"
+0x00642860,Mem_AllocCounted,function,high,"reimplemented (src/game/core/gameheap); stdcall (size): Mem_Alloc, counts in 0xfaa534"
+0x00642880,Mem_FreeCounted,function,high,"reimplemented (src/game/core/gameheap); stdcall (block): Mem_Free, the count lowered even for null, returns 1"
 0x00642150,InverseMap_Ctor,function,high,"reimplemented (src/game/gfx/invmap); thiscall; 0x58-byte inverse-colormap builder, vtable 0x704ac0"
 0x00642180,InverseMap_Dtor,function,high,"reimplemented (src/game/gfx/invmap); thiscall"
 0x00642190,InverseMap_Build,function,high,"reimplemented (src/game/gfx/invmap); thiscall (first, count, palette, bits, dist, map); Thomas inv_cmap"
@@ -1999,6 +1999,7 @@ address,name,kind,confidence,notes
 0x0055e470,CpuInfo_Ctor,function,high,"reimplemented (src/game/core/cpuinfo); thiscall; CPUID probe (EFLAGS.ID test, then the vendor string and features); SystemInfo's base"
 0x00591210,Cpu_Ticks,function,low,reimplemented (src/game/core/cpuinfo); cdecl: the low dword of the time-stamp counter (rdtsc)
 0x0057cb90,Cpu_Ticks16,function,low,"reimplemented (src/game/core/cpuinfo); cdecl: the time-stamp counter's bits 4..35 (rdtsc; shrd eax, edx, 4)"
+0x0055e570,CpuInfo_TicksPerMs,function,low,reimplemented (src/game/core/cpuinfo); thiscall (ms): the time-stamp counter's ticks per millisecond over a busy wait of ms; 0 without a TSC; name invented
 0x0067df40,CRT_stricmp,function,high,reimplemented (src/game/core/crt); _stricmp
 0x00699ab0,CRT_Tolower,function,low,reimplemented (src/game/core/crt); _Tolower
 0x0069a340,CRT_Toupper,function,low,reimplemented (src/game/core/crt); _Toupper
@@ -2885,6 +2886,16 @@ address,name,kind,confidence,notes
 0x00632150,Deque32_PopBack,function,low,"reimplemented (src/game/core/dequeiter); thiscall: pop_back of a deque of dwords: the end position back, the count lowered; at 0 or the block's start the back block freed"
 0x0047f7d0,CommandQueue_ShowNext,function,low,"reimplemented (src/game/core/dequeiter); cdecl: the command queue's first element's text widened to [0x7b4ba0]'s slot 9 and the element taken off (its block released at its end or the last), inside the queue's critical section; 1 when empty, else 0 (name unconfirmed)"
 0x0047f620,CommandQueue_OpenBox,function,low,reimplemented (src/game/core/dequeiter); the command queue's first element's text opened in a message box
+0x00632080,Deque32_Clear,function,low,reimplemented (src/game/core/dequeiter); thiscall: every entry popped from the front; name invented
+0x00631ec0,DequeOwner_Pop,function,low,"reimplemented (src/game/core/dequeiter); thiscall (out, value): the front object told the value, its +8 cleared, popped; 0 written to out; name invented"
+0x00631870,LockedQueue_Ctor,function,low,"reimplemented (src/game/core/dequeiter); thiscall: a queue under a lock: the base's parts, the fields cleared, the section made; name invented"
+0x00631fc0,LockedQueue_Lock,function,low,reimplemented (src/game/core/dequeiter); thiscall: the section entered through a guard; name invented
+0x00632020,LockedQueue_Unlock,function,low,reimplemented (src/game/core/dequeiter); thiscall: the section left through a guard; name invented
+0x00631d10,LockedQueue_Push,function,low,"reimplemented (src/game/core/dequeiter); thiscall (value): under the lock, push_back of a deque of dwords; name invented"
+0x00631d00,LockedQueue_PushThunk,function,low,reimplemented (src/game/core/dequeiter); thiscall (value): LockedQueue_Push; name invented
+0x006319a0,LockedQueue_Dtor,function,low,"reimplemented (src/game/core/dequeiter); thiscall: the deque erased, the section deleted, the base's destructor; name invented"
+0x00631980,LockedQueue_DeletingDtor,function,low,"reimplemented (src/game/core/dequeiter); thiscall (flags): the destructor, bit 0 frees; name invented"
+0x00631950,LockedQueueBase_DeletingDtor,function,low,"reimplemented (src/game/core/dequeiter); thiscall (flags): Class703780_DtorD, bit 0 frees; name invented"
 0x00423720,Obj_Get24,function,high,reimplemented (src/game/core/accessors); the dword at +0x24
 0x00423730,Obj_Get2c,function,high,reimplemented (src/game/core/accessors); the dword at +0x2c
 0x004030c0,Obj_Get30,function,high,reimplemented (src/game/core/accessors); the dword at +0x30
@@ -3714,6 +3725,7 @@ address,name,kind,confidence,notes
 0x005fa000,AtExit_5fa010,function,low,"reimplemented (src/game/core/thunks); atexit of 0x5fa010. Name invented, unconfirmed."
 0x00618cb0,AtExit_618cc0,function,low,"reimplemented (src/game/core/thunks); atexit of 0x618cc0. Name invented, unconfirmed."
 0x005c8b70,Thread_Begin,function,low,"reimplemented (src/game/core/thunks); CRT_beginthread(proc, 0, arg). Name invented, unconfirmed."
+0x00532bb0,Wrap_Array81ed40_Dtor_532bb0,function,low,reimplemented (src/game/core/thunks); the atexit at 0x532b3a: the destructor iterator over 9 elements of 8 bytes at 0x81ed40
 0x006b0620,Table_AddressPlus18,function,high,reimplemented (src/game/core/cursors); an address from a table of offsets plus the base plus 0x18
 0x006b0650,Table_Address,function,high,reimplemented (src/game/core/cursors); an address from a table of offsets plus the base
 0x006b0510,Packed_Read,function,high,reimplemented (src/game/core/cursors); reads a one- or two-byte packed value
@@ -4789,6 +4801,9 @@ address,name,kind,confidence,notes
 0x005d85b0,Class702a60_DeletingDtor,function,low,"reimplemented (src/game/core/vdtor); thiscall (flags; pops 4): Class702a60_Dtor, then frees the object when bit 0 is set; returns it"
 0x005d5840,Class7029f0_Dtor,function,low,"reimplemented (src/game/core/vdtor); vtable 0x7029f0, then the list at +0x18 drained (nodes freed from the front, objects deleted through slot 0) and deleted; no base"
 0x005d5770,Class7029f0_Ctor,function,low,"reimplemented (src/game/core/vdtor); the constructor of Class7029f0 (0x5d5840 its destructor): +0x20 / +0x24 cleared, the vtable 0x7029f0, +0x14 cleared, the list at +0x18 a new {vtable 0x7029e8, three zero dwords} (0 when the allocation fails), +4 / +0xc / +0x10 / +0x2c / +0x28 / +0x30 / +0x1c cleared, 0x400 / 0x300 at +0x20 / +0x24, time(0) at +0x34"
+0x00631900,Class703780_DtorD,function,low,reimplemented (src/game/core/vdtor); destructor releasing a member; name invented
+0x00633420,Class703780_DtorE,function,low,reimplemented (src/game/core/vdtor); destructor releasing a member; name invented
+0x00634310,Class703780_DtorF,function,low,reimplemented (src/game/core/vdtor); destructor releasing a member; name invented
 0x00617ff0,Class7037c0_Create,function,high,reimplemented (src/game/core/factories); object factory with a result code
 0x00617970,Class703750_Create,function,high,reimplemented (src/game/core/factories); Allocates and constructs the 0x703750 class object
 0x00403be0,ActionRec_Write,function,low,"reimplemented (src/game/core/actionrec); thiscall (code): the action recorder's code byte, while recording and not playing back"
@@ -6047,6 +6062,14 @@ address,name,kind,confidence,notes
 0x00692b10,OstreamW_CtorUninit,function,low,reimplemented (src/game/core/iosbase); basic_ostream<wchar_t>'s uninitialized constructor
 0x006921d0,Ios_InitCtor,function,low,reimplemented (src/game/core/iosbase); ios_base::Init's constructor (shape; unconfirmed): the first one builds the narrow standard streams
 0x00692c60,Ios_WinitCtor,function,low,reimplemented (src/game/core/iosbase); the wide side's constructor
+0x00632a40,Vector_Xran,function,low,reimplemented (src/game/core/iosbase); the vector's range error: out_of_range thrown with the text at 0x779a68; name invented
+0x00632b70,LogicError_What,function,low,"reimplemented (src/game/core/iosbase); thiscall: what(): the string's text, or the empty one; name invented"
+0x00632b80,LogicError_Copy,function,low,reimplemented (src/game/core/iosbase); thiscall (from): logic_error's copy constructor; name invented
+0x00632ce0,LogicError_Raise,function,low,reimplemented (src/game/core/iosbase); thiscall: a copy thrown (info 0x71f310); name invented
+0x00632d00,LogicError_Dtor,function,low,reimplemented (src/game/core/iosbase); thiscall: logic_error's destructor; name invented
+0x00632d50,OutOfRange_Raise,function,low,reimplemented (src/game/core/iosbase); thiscall: a copy thrown (info 0x71f298); name invented
+0x00632d70,LogicError_DeletingDtor,function,low,"reimplemented (src/game/core/iosbase); thiscall (flags): the destructor, bit 0 frees; name invented"
+0x00632d90,OutOfRange_Copy,function,low,reimplemented (src/game/core/iosbase); thiscall (from): out_of_range's copy constructor; name invented
 0x006d2110,SoundSource711920_Open,function,low,reimplemented (src/game/core/qsoundmixer); The QSound session opened on the source's config
 0x006d2220,SoundSource711920_SetOptions,function,low,reimplemented (src/game/core/qsoundmixer); The library's options from the flags
 0x006d2260,SoundSource711920_GetBuffer,function,low,reimplemented (src/game/core/qsoundmixer); The channel's DirectSound buffer
@@ -6560,6 +6583,28 @@ address,name,kind,confidence,notes
 0x00696ce0,NumGet_DoGetLong,function,low,reimplemented (src/game/core/numget); num_get::do_get (long)
 0x006970e0,NumGet_DoGetUlong,function,low,reimplemented (src/game/core/numget); num_get::do_get (unsigned long)
 0x006981f0,NumGet_DoGetPointer,function,low,reimplemented (src/game/core/numget); num_get::do_get (void *)
+0x00633900,OwnedSection_Ctor,function,low,reimplemented (src/game/core/sectionlock); thiscall: a block of 0x18 made a critical section at *self; name invented
+0x00633920,OwnedSection_Dtor,function,low,"reimplemented (src/game/core/sectionlock); thiscall: the section deleted, its block freed; name invented"
+0x00633940,SectionGuard_Dtor,function,low,"reimplemented (src/game/core/sectionlock); thiscall: the guard's destructor, Leave; name invented"
+0x00633950,SectionGuard_Enter,function,low,"reimplemented (src/game/core/sectionlock); thiscall: the section entered, +4 = 1; name invented"
+0x00633970,SectionGuard_Leave,function,low,"reimplemented (src/game/core/sectionlock); thiscall: held and not +8: the section left, +4 = 0; name invented"
+0x00632460,WaitThread_Proc,function,low,reimplemented (src/game/core/waitthread); stdcall (self): the thread's procedure; name invented
+0x006324e0,WaitThread_Loop,function,low,"reimplemented (src/game/core/waitthread); thiscall: the waits until told to quit, the objects served in turn; name invented"
+0x00632470,WaitThread_RunCommand,function,low,"reimplemented (src/game/core/waitthread); thiscall: the command run on the thread, the answer event set; name invented"
+0x00632750,WaitThread_OpenEvents,function,low,reimplemented (src/game/core/waitthread); thiscall (out): the two events made when missing; name invented
+0x006327e0,WaitThread_CloseEvents,function,low,"reimplemented (src/game/core/waitthread); thiscall: the events closed, the first handle erased; name invented"
+0x00632840,WaitThread_Send,function,low,"reimplemented (src/game/core/waitthread); thiscall (out): the command sent, the answer waited for; name invented"
+0x006328b0,WaitThread_Add,function,low,"reimplemented (src/game/core/waitthread); thiscall (out, object): command 1 sent; name invented"
+0x006328d0,WaitThread_Remove,function,low,"reimplemented (src/game/core/waitthread); thiscall (out, object): command 2 sent; name invented"
+0x006328f0,WaitThread_DoAdd,function,low,reimplemented (src/game/core/waitthread); thiscall (out): the object and its handle added; name invented
+0x00632960,WaitThread_DoRemove,function,low,reimplemented (src/game/core/waitthread); thiscall (out): the object and its handle erased; name invented
+0x00632ef0,WaitThread_InsertObjects,function,low,"reimplemented (src/game/core/waitthread); thiscall on a vector<u32> (position, count, value): insert, another copy of 0x47cf20's template; name invented"
+0x00632600,WaitThread_Start,function,low,reimplemented (src/game/core/waitthread); thiscall (result out): the thread started by _beginthreadex; one there: 0xcffe0102; a failure: the last error; name invented
+0x00632670,WaitThread_Stop,function,low,"reimplemented (src/game/core/waitthread); thiscall: the quit command sent, the thread waited for and its handle closed; a failed send leaves the handle open; name invented"
+0x00632730,WaitThread_Shutdown,function,low,"reimplemented (src/game/core/waitthread); thiscall: Stop, then CloseEvents; name invented"
+0x006323e0,WaitThread_Dtor,function,low,"reimplemented (src/game/core/waitthread); thiscall: vtable 0x703c14, Shutdown, the two vectors freed and cleared; name invented"
+0x006323c0,WaitThread_DeletingDtor,function,low,"reimplemented (src/game/core/waitthread); thiscall (flags): the destructor, bit 0 frees; name invented"
+0x006a7920,MoneyGet_Getmfld,function,low,reimplemented (src/game/core/moneyget); money_get<char>::_Getmfld: a money field read off a stream by the facet's negative pattern
 0x0050ffe0,Nav_Ctor,function,high,reimplemented (src/game/world/nav); constants constructor with five integer pairs
 0x0050f200,Nav_Dtor,function,high,reimplemented (src/game/world/nav); thiscall: the five IntPairs at +0x64 destroyed with Stub_Ret (CRT_VectorDtorIterator); also via 0x4f7c30 (+0xd4) and 0x4f8ad0
 0x004f7c30,Nav_DtorAtD4,function,low,reimplemented (src/game/world/nav); thiscall adjustor: Nav_Dtor on this + 0xd4
@@ -6845,6 +6890,74 @@ address,name,kind,confidence,notes
 0x0046c210,Mouse_HandleButton,function,high,reimplemented (src/game/input/mouse); the left and right mouse buttons go down or up
 0x0046c2a0,Mouse_Moved,function,high,reimplemented (src/game/input/mouse); the mouse moved
 0x00486c70,Mouse_HandleGuiButton,function,low,"reimplemented (src/game/input/mouse); cdecl (event, state, unused, x, y): the point scaled to the GUI, buttons 0-2 down or up through Gui_MouseDown / Gui_MouseUp with their held flags"
+0x00632350,InputFilter_SetNext,function,low,"reimplemented (src/game/input/devicefilter); thiscall (object): the next filter at +8 replaced, released and referenced; name invented"
+0x00633200,InputFilter_CloseHandle,function,low,reimplemented (src/game/input/devicefilter); thiscall: the handle at +8 closed and cleared; name invented
+0x00633250,InputFilter_SetSink,function,low,"reimplemented (src/game/input/devicefilter); thiscall (object): the object at +0xc replaced, released and referenced; name invented"
+0x00633510,KeyFilter_OnMessage,function,low,"reimplemented (src/game/input/devicefilter); thiscall (message): the key's byte kept, the message passed on; name invented"
+0x006336d0,InputSubs_Dispatch,function,low,"reimplemented (src/game/input/devicefilter); stdcall (a, b, object): the event queue's callback to the object's slot 0; name invented"
+0x006336f0,InputSubs_Dtor,function,low,"reimplemented (src/game/input/devicefilter); thiscall: vtable 0x703744, then Unsubscribe; name invented"
+0x00633700,InputSubs_Subscribe,function,low,"reimplemented (src/game/input/devicefilter); thiscall (list, object): the object listens on the list's channels; name invented"
+0x00633750,InputSubs_Unsubscribe,function,low,reimplemented (src/game/input/devicefilter); thiscall: the object stops listening on the channels; name invented
+0x006337a0,HandlerFilter_OnMouse,function,low,"reimplemented (src/game/input/devicefilter); thiscall (message): the handler table told of a mouse or other message, passed on; name invented"
+0x00633860,HandlerFilter_OnChar,function,low,"reimplemented (src/game/input/devicefilter); thiscall (message): the handler table's slot 8, passed on; name invented"
+0x00633a50,DeviceHolder_Dtor,function,low,"reimplemented (src/game/input/devicefilter); thiscall: vtable 0x703c80, the device released; name invented"
+0x00633a70,DeviceHolder_GetDevice,function,low,"reimplemented (src/game/input/devicefilter); thiscall (result out, device out): the device with a reference; name invented"
+0x00633aa0,DeviceHolder_SetLevel,function,low,reimplemented (src/game/input/devicefilter); thiscall (result out): the DirectInput cooperative level for the window; name invented
+0x00633b90,DeviceHolder_Apply,function,low,"reimplemented (src/game/input/devicefilter); thiscall (result out): SetLevel, then Acquire; name invented"
+0x00633db0,ComHolder_Release,function,low,reimplemented (src/game/input/devicefilter); thiscall: the COM object at the pointer released; name invented
+0x00634130,KeyFilter_ReadModifiers,function,low,"reimplemented (src/game/input/devicefilter); thiscall (holder + 0x10): alt, control and shift read from the keyboard's state; name invented"
+0x00634220,MouseFilter_Ctor,function,low,"reimplemented (src/game/input/devicefilter); thiscall: the mouse filter's constructor, the system's mouse settings read; name invented"
+0x00634420,MouseFilter_OnMessage,function,low,"reimplemented (src/game/input/devicefilter); thiscall (message): swapped buttons, double click flag, the position; passed on; name invented"
+0x006344f0,MouseFilter_ClampPosition,function,low,"reimplemented (src/game/input/devicefilter); thiscall: the float position clamped to the bounds, truncated; name invented"
+0x00634560,MouseFilter_OnBounds,function,low,"reimplemented (src/game/input/devicefilter); thiscall (unused, message): a type 7 message's bounds; name invented"
+0x00634720,ChainFilter_Attach,function,low,reimplemented (src/game/input/devicefilter); thiscall (object): the object's slot 0x14 with this filter; name invented
+0x00634730,ChainFilter_Detach,function,low,reimplemented (src/game/input/devicefilter); thiscall (object): the object's slot 0x18 with this filter; name invented
+0x006348e0,MouseFilter_Constant1,function,low,reimplemented (src/game/input/devicefilter); returns 0x707c40; name invented
+0x006348f0,MouseFilter_Constant2,function,low,reimplemented (src/game/input/devicefilter); returns 0x679440; name invented
+0x00633160,InputFilter_Dtor,function,low,"reimplemented (src/game/input/devicefilter); thiscall: vtable 0x703c18, the sink released, the handle closed, vtable 0x703770; name invented"
+0x00633140,InputFilter_DeletingDtor,function,low,"reimplemented (src/game/input/devicefilter); thiscall (flags): the destructor, bit 0 frees; name invented"
+0x00633360,KeyFilter_Ctor,function,low,"reimplemented (src/game/input/devicefilter); thiscall: the key filter's constructor, subscribed on the list at 0x703c30; name invented"
+0x00633600,KeyFilter_ReadState,function,low,reimplemented (src/game/input/devicefilter); thiscall (holder): the keys (0xf0 bytes) or a mouse word read from the holder's device; name invented
+0x00633a30,DeviceHolder_DeletingDtor,function,low,"reimplemented (src/game/input/devicefilter); thiscall (flags): the destructor, bit 0 frees; name invented"
+0x00633d10,DeviceHolder_SetMode,function,low,"reimplemented (src/game/input/devicefilter); thiscall (result out, flags): the mode bits at +4 set (one of 1 / 2, one of 4 / 8), then Apply; name invented"
+0x00633ea0,InputFilter_SubscribeC90,function,low,reimplemented (src/game/input/devicefilter); thiscall (result out): subscribed on the list at 0x703c90; name invented
+0x006341d0,KeyFilter_SetHolder,function,low,"reimplemented (src/game/input/devicefilter); thiscall (result out, holder): the holder kept, the modifiers read; name invented"
+0x006345a0,MouseFilter_Subscribe,function,low,reimplemented (src/game/input/devicefilter); thiscall (result out): subscribed on the list at 0x703cc0; name invented
+0x0063e7c0,DeviceFilter_Ctor,function,low,reimplemented (src/game/input/devicefilter); thiscall: an input filter with a device holder at +0x10; name invented
+0x0063e820,DeviceFilter_DeletingDtor,function,low,"reimplemented (src/game/input/devicefilter); thiscall (flags): the destructor, bit 0 frees; name invented"
+0x0063e840,DeviceFilter_Dtor,function,low,"reimplemented (src/game/input/devicefilter); thiscall: the block at +0x30 freed, the holder's and the filter's destructors; name invented"
+0x00633ed0,ModifierFilter_OnKey,function,low,"reimplemented (src/game/input/devicefilter); thiscall (message): the modifiers' flags kept from the keys, copied into the message, passed on; name invented"
+0x00633470,KeyFilter_Dtor,function,low,"reimplemented (src/game/input/devicefilter); thiscall: the two holders released, unsubscribed, the base's parts; name invented"
+0x00633e20,CharFilter_Dtor,function,low,"reimplemented (src/game/input/devicefilter); thiscall: unsubscribed, the base's parts; name invented"
+0x006331c0,InputFilter_OpenEvent,function,low,reimplemented (src/game/input/devicefilter); thiscall (result out): the handle closed and a new event made; name invented
+0x00634360,MouseFilter_OnMove,function,low,"reimplemented (src/game/input/devicefilter); thiscall (message): the motion accelerated and added to the position, clamped, the pointer ticked; name invented"
+0x00633280,InputFilter_DrainValues,function,low,"reimplemented (src/game/input/devicefilter); thiscall: under the lock the pending values given to the sink, the list emptied, the event reset; name invented"
+0x0063e970,DeviceFilter_Poll,function,low,reimplemented (src/game/input/devicefilter); thiscall: the device's buffered records read and delivered through slot 0x14; name invented
+0x006342f0,BaseFilter_DeletingDtor,function,low,"reimplemented (src/game/input/devicefilter); thiscall (flags): Class703780_DtorF, bit 0 frees; name invented"
+0x00633540,KeyFilter_OnDeviceEvent,function,low,"reimplemented (src/game/input/devicefilter); thiscall on +0xc (unused, message): ReadState with the message's +4; name invented"
+0x00633560,KeyFilter_SetKeyboard,function,low,"reimplemented (src/game/input/devicefilter); thiscall (result out, holder): the holder at +0x11c replaced, the state read; name invented"
+0x006335b0,KeyFilter_SetMouse,function,low,"reimplemented (src/game/input/devicefilter); thiscall (result out, holder): the holder at +0x120 replaced, the state read; name invented"
+0x006350d0,MessageSource_Constant1,function,low,reimplemented (src/game/input/devicefilter); the constant 0x707c50; name invented
+0x006350e0,MessageSource_Constant2,function,low,reimplemented (src/game/input/devicefilter); the constant 0x67a460; name invented
+0x00633220,InputFilter_Reopen,function,low,"reimplemented (src/game/input/devicefilter); thiscall (result out): OpenEvent; out the failure, or 0; name invented"
+0x00633bf0,DeviceHolder_Open,function,low,"reimplemented (src/game/input/devicefilter); thiscall (result out): DirectInputCreateA, the device created and its data format set, the input object released; name invented"
+0x0063e8c0,DeviceFilter_Open,function,low,"reimplemented (src/game/input/devicefilter); thiscall (result out): event, holder, notification, a record buffer of 0x200, the device's buffer size; name invented"
+0x00633400,KeyFilter_DeletingDtor,function,low,"reimplemented (src/game/input/devicefilter); thiscall (flags): KeyFilter_Dtor, bit 0 frees; name invented"
+0x00633e00,CharFilter_DeletingDtor,function,low,"reimplemented (src/game/input/devicefilter); thiscall (flags): CharFilter_Dtor, bit 0 frees; name invented"
+0x00634a50,KeyPool_Dtor,function,low,reimplemented (src/game/input/messagepool); thiscall: the pool's destructor (vtable 0x703d1c): the messages and nodes freed; name invented
+0x00634b40,MousePool_Dtor,function,low,reimplemented (src/game/input/messagepool); thiscall: the pool's destructor (vtable 0x703d14); name invented
+0x00634d00,KeyPool_Next,function,low,"reimplemented (src/game/input/messagepool); thiscall: the next free message round the list, a new one when none; name invented"
+0x00634de0,MousePool_Next,function,low,reimplemented (src/game/input/messagepool); thiscall: the same for 0x24-byte messages (vtable 0x703d10); name invented
+0x00634b00,KeyPool_DeletingDtor,function,low,"reimplemented (src/game/input/messagepool); thiscall (flags): the destructor, bit 0 frees; name invented"
+0x00634b20,MousePool_DeletingDtor,function,low,"reimplemented (src/game/input/messagepool); thiscall (flags): the destructor, bit 0 frees; name invented"
+0x00634900,MessageSource_Deliver,function,low,reimplemented (src/game/input/messagepool); thiscall (count): records sent on as key and mouse messages; name invented
+0x006350f0,MessageSource_DeliverKeys,function,low,reimplemented (src/game/input/messagepool); thiscall (count): records sent on as messages of the low byte of their type; name invented
+0x006345d0,MessageSource_Ctor,function,low,"reimplemented (src/game/input/messagepool); thiscall: a device filter with a key pool and a mouse pool, one message in each; name invented"
+0x00634740,MessageSource_DeletingDtor,function,low,"reimplemented (src/game/input/messagepool); thiscall (flags): the destructor, bit 0 frees; name invented"
+0x00634760,MessageSource_Dtor,function,low,"reimplemented (src/game/input/messagepool); thiscall: the pools destroyed, the device filter's destructor; name invented"
+0x00634ee0,KeySource_Ctor,function,low,reimplemented (src/game/input/messagepool); thiscall: a device filter with one mouse-sized pool; name invented
+0x00634fe0,KeySource_DeletingDtor,function,low,"reimplemented (src/game/input/messagepool); thiscall (flags): the destructor, bit 0 frees; name invented"
+0x00635000,KeySource_Dtor,function,low,"reimplemented (src/game/input/messagepool); thiscall: the pool destroyed, the device filter's destructor; name invented"
 0x0047e3e0,ScreenSurfaces_Dtor,function,high,reimplemented (src/game/gfx/screensurfaces); an object releases its two COM objects
 0x00fa76b0,gSurfaceDirectDraw,data,high,IDirectDraw that Surface_Create makes surfaces with (Surface_SetDirectDraw)
 0x00fa76b4,gSurfaceNoSysLock,data,high,byte; non-zero: Surface_Lock adds DDLOCK_NOSYSLOCK
@@ -7283,6 +7396,27 @@ address,name,kind,confidence,notes
 0x005eb820,Bump_Build,function,low,"reimplemented (src/game/gfx/bumplight); Sizes the output arrays, runs the erosion ramp, the blur and the render. Name invented, unconfirmed."
 0x005ebf10,Bump_FilterInto,function,low,"reimplemented (src/game/gfx/bumplight); Crops a source image into an array, erodes or dilates it, blurs it. Name invented, unconfirmed."
 0x005eab70,SignRender_Text,function,low,"reimplemented (src/game/gfx/signrender); A sign's text drawn by GDI and Uniscribe into an image: the font fitted to the width, the section's bytes averaged, the text's rows found."
+0x0064bf90,JpegWrite_ConvertRow,function,low,"reimplemented (src/game/gfx/jpegwrite); cdecl: one row of pixels to the compressor's components, by mode; name invented"
+0x0064c202,JpegWrite_Open,function,low,"reimplemented (src/game/gfx/jpegwrite); stdcall (out, file, ...): a handle block on the guarded heap; name invented"
+0x0064c258,JpegWrite_Image,function,low,"reimplemented (src/game/gfx/jpegwrite); stdcall (handle, info, pixels, pitch): an image compressed with libjpeg 6a to the handle's file; name invented"
+0x0064c552,JpegWrite_IsGrey,function,low,"reimplemented (src/game/gfx/jpegwrite); cdecl: 1 when each 4-byte entry's bytes 0, 1, 2 agree; name invented"
+0x0064c5c4,JpegWrite_Close,function,low,reimplemented (src/game/gfx/jpegwrite); stdcall (handle): the handle freed; name invented
+0x0064dc00,JpegWrite_SetDest,function,low,"reimplemented (src/game/gfx/jpegwrite); cdecl (cinfo, file): the game's destination manager (jpeg_stdio_dest's shape); name invented"
+0x0064dc5a,JpegDest_Init,function,low,reimplemented (src/game/gfx/jpegwrite); cdecl: init_destination: a 0x1000-byte buffer; name invented
+0x0064dc9c,JpegDest_Empty,function,low,reimplemented (src/game/gfx/jpegwrite); cdecl: empty_output_buffer: the buffer written to the guarded file; name invented
+0x0064dd00,JpegDest_Term,function,low,reimplemented (src/game/gfx/jpegwrite); cdecl: term_destination: the rest written; name invented
+0x00631140,JpegSource_Set,function,low,"reimplemented (src/game/gfx/jpegsource); cdecl (cinfo, stream): the game's stream as libjpeg's source (jpeg_stdio_src's shape); name invented"
+0x006311b0,JpegSource_Init,function,low,reimplemented (src/game/gfx/jpegsource); cdecl: init_source: start of file; name invented
+0x006311c0,JpegSource_Fill,function,low,"reimplemented (src/game/gfx/jpegsource); cdecl: fill_input_buffer: from the stream, a fake EOI at its end; name invented"
+0x00631230,JpegSource_Skip,function,low,"reimplemented (src/game/gfx/jpegsource); cdecl (cinfo, count): skip_input_data; name invented"
+0x006316c0,PixelFormats_InitPal8,function,low,reimplemented (src/game/gfx/screenview); the 8-bit paletted format's table 0xfaa298; name invented
+0x00631700,PixelFormats_Init555,function,low,reimplemented (src/game/gfx/screenview); the 555 format's table 0xfaa2b0; name invented
+0x00631750,PixelFormats_Init888,function,low,reimplemented (src/game/gfx/screenview); the 888 format's table 0xfaa268; name invented
+0x006317a0,PixelFormats_Init8888,function,low,reimplemented (src/game/gfx/screenview); the 8888 format's table 0xfaa280; name invented
+0x006317e0,ScreenView_Surface,function,low,reimplemented (src/game/gfx/screenview); returns the screen's surface 0xfa7780; name invented
+0x006317f0,ScreenView_Field164,function,low,reimplemented (src/game/gfx/screenview); the dword at 0xfa78e4; name invented
+0x00631800,ScreenView_Rect,function,low,reimplemented (src/game/gfx/screenview); thiscall (out): the rect of the surface from the object's slot 8; name invented
+0x00631860,ScreenView_Flag1,function,low,reimplemented (src/game/gfx/screenview); bit 1 of the dword at 0xfa779c; name invented
 0x00fa9f3c,gScreenOpen,data,high,Screen_Open has run (Screen_Close clears it)
 0x00fa77d0,gScreenModes,data,high,List of ScreenMode (width, height, bit count) from EnumDisplayModes
 0x006fefa8,TgaCodec_vtable,data,high,"TgaCodec (ImageCodec: vtable, SurfaceInfo): 0x47e750 deleting dtor, GetInfo, Load, IsTga; the work is done by a stack TgaReader (0x44, vtable 0x703630)"
@@ -8212,6 +8346,8 @@ address,name,kind,confidence,notes
 0x005ca010,Mailbox_StoreFromClient,function,low,"reimplemented (src/game/online/mailbox); The client's message copied in the mailbox and saved; name invented, unconfirmed"
 0x005cc5e0,Mailbox_FirstMessage,function,low,"reimplemented (src/game/online/mailbox); the message cursor to the first message, loaded"
 0x005cc600,Mailbox_NextMessage,function,low,"reimplemented (src/game/online/mailbox); the message cursor on to the next message, loaded"
+0x00634bf0,NumberList_Destroy,function,low,reimplemented (src/game/online/mailbox); thiscall on a list<u32>: the nodes and the sentinel freed; name invented
+0x00634c60,NumberList_Insert,function,low,"reimplemented (src/game/online/mailbox); thiscall on a list<u32> (out, where, value): a new node before where; name invented"
 0x005d8190,LobbyModel_SetPosition,function,high,"reimplemented (src/game/frontend/lobbymodel); thiscall (v): the lobby model's (+4: 0x7a4610 index) matrix (+8 -> +4 -> +0x78, +0x10) translation = v[0..2] (x87 loads, all read first)"
 0x005d8380,LobbyModel_TurnY,function,high,"reimplemented (src/game/frontend/lobbymodel); thiscall (angle): Matrix_RotateEulerFast(the lobby model's matrix, 2 ""Y"", &angle)"
 0x005d83b0,LobbyModel_SetScale,function,high,"reimplemented (src/game/frontend/lobbymodel); thiscall (x, y, z): Holder_SetScale(the lobby model's entry +8, (x, y, z))"
@@ -9089,6 +9225,7 @@ address,name,kind,confidence,notes
 0x006582ec,GuiFont_SetGlyph,function,low,"reimplemented (src/game/ui/guifont); thiscall (index word, width, b bytes), pops 12: with glyphs and the index (signed) below the count, the glyph's two bytes set"
 0x00657d6c,GuiFont_Dtor,function,low,reimplemented (src/game/ui/guifont); the GUI font's destructor: name unconfirmed
 0x00658460,GuiFont_DeletingDtor,function,low,reimplemented (src/game/ui/guifont); the GUI font's deleting destructor: name unconfirmed
+0x00657dff,GuiFont_FreeGlyphs,function,low,reimplemented (src/game/ui/guifont); thiscall: the glyphs +0xc freed and cleared; name invented
 0x004b6540,Panel7cc3e0_Dress,function,low,"reimplemented (src/game/ui/panel7cc3e0); thiscall, slot 3 of 0x6ffec8: with the window +0x14, its children 0x5211-0x520e found dressed (texts 0x37 / 0x38, 0x6ff350 / 0x6ff3b0 parts with 0)"
 0x004b67a0,Panel7cc3e0_Open,function,low,"reimplemented (src/game/ui/panel7cc3e0); thiscall, slot 0 of the vtable 0x6ffec8: the children 0x520a / 0x520b hidden when the group counts under 2, the hover label 0x5212 bound"
 0x004b6ae0,Panel7cc3e0_Show,function,low,"reimplemented (src/game/ui/panel7cc3e0); thiscall (thing), slot 10 of the vtable 0x6ffec8: the selected thing set, the window built (script 0x7573c8, handler 0x4b67f0, children 0x520c / 0x520d), the advisor posted 0x12d"

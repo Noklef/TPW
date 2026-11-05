@@ -350,6 +350,9 @@ u8 *__cdecl Wrap_SystemInfo_Ctor_5f8a40();
 // 0x4fa750 (the atexit pushed at 0x4fa6da): CRT_VectorDtorIterator over the 9 elements of 8 bytes at 0x7ced88, with Stub_Ret 0x5d1750 (so nothing happens to them).
 void __cdecl Wrap_Array7ced88_Dtor_4fa750();
 
+// 0x532bb0 (the atexit pushed at 0x532b3a): the same over the 9 elements of 8 bytes at 0x81ed40.
+void __cdecl Wrap_Array81ed40_Dtor_532bb0();
+
 // 0x5fcce0: calls PixelFormat_InitArgb8888Unused.
 void __cdecl Wrap_PixelFormat_InitArgb8888Unused_5fcce0();
 

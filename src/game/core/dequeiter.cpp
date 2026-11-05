@@ -5,8 +5,12 @@
 #include "addrcalls.h"
 #include "gameheap.h"
 #include "methods.h"
+#include "misc.h"
+#include "sectionlock.h"
 #include "seqs.h"
 #include "sync.h"
+#include "vcall.h"
+#include "vdtor.h"
 #include "language.h"
 #include "methods.h"
 #include "vcall.h"
@@ -298,6 +302,77 @@ void __fastcall Deque32_PopFront(u8 *deque) {
     at<u32>(deque, 0x2c) = count;
     if (count == 0 || cur == at<u32>(deque, 8))
         Deque32_FreeFront(deque);
+}
+
+void __fastcall Deque32_Clear(u8 *deque) {
+    while (at<u32>(deque, 0x2c)) Deque32_PopFront(deque);
+}
+
+u8 *__fastcall LockedQueue_Ctor(u8 *self) {
+    Class703770_Ctor(self);
+    at<u32>(self, 0) = 0x00703bf0;
+    at<u32>(self, 8) = 0;
+    at<u32>(self, 0xc) = 0;
+    for (u32 offset = 0x14; offset <= 0x3c; offset += 4) at<u32>(self, offset) = 0;
+    OwnedSection_Ctor(&at<u32>(self, 0x40));
+    at<u32>(self, 0) = 0x00703bc8;
+    return self;
+}
+
+void __fastcall LockedQueue_Lock(u8 *self) {
+    u32 guard[3] = {at<u32>(self, 0x40), 0, 0};
+    SectionGuard_Enter(guard);
+    guard[2] = 1;   // (the guard's destructor then leaves it entered)
+    SectionGuard_Dtor(guard);
+}
+
+void __fastcall LockedQueue_Unlock(u8 *self) {
+    u32 guard[3] = {at<u32>(self, 0x40), 1, 0};
+    SectionGuard_Leave(guard);
+    SectionGuard_Dtor(guard);
+}
+
+void __fastcall LockedQueue_Push(u8 *self, void *, u32 value) {
+    LockedQueue_Lock(self);
+    if (!at<u32>(self, 0x3c) || at<u32>(self, 0x2c) == at<u32>(self, 0x28)) Deque32_GrowBack(self + 0x10);
+    u32 *const position = at<u32 *>(self, 0x2c);
+    at<u32>(self, 0x2c) = at<u32>(self, 0x2c) + 4;
+    if (position) *position = value;
+    ++at<u32>(self, 0x3c);
+    LockedQueue_Unlock(self);
+}
+
+void __fastcall LockedQueue_PushThunk(u8 *self, void *, u32 value) { LockedQueue_Push(self, nullptr, value); }
+
+void __fastcall LockedQueue_Dtor(u8 *self) {
+    at<u32>(self, 0) = 0x00703bc8;
+    for (u32 count = static_cast<u32>(DequeIter_Diff(&at<u32>(self, 0x24), nullptr, &at<u32>(self, 0x14))); count; --count) Deque32_PopBack(self + 0x10);
+    OwnedSection_Dtor(&at<u32>(self, 0x40));
+    Deque32_Clear(self + 0x10);
+    Class703780_DtorD(self);
+}
+
+u8 *__fastcall LockedQueue_DeletingDtor(u8 *self, void *, u32 flags) {
+    LockedQueue_Dtor(self);
+    if (flags & 1) GameHeap_Free(self);
+    return self;
+}
+
+u8 *__fastcall LockedQueueBase_DeletingDtor(u8 *self, void *, u32 flags) {
+    Class703780_DtorD(self);
+    if (flags & 1) GameHeap_Free(self);
+    return self;
+}
+
+u32 *__fastcall DequeOwner_Pop(u8 *owner, void *, u32 *out, u32 value) {
+    if (vcall<u32>(owner, 0x1c)) {
+        u8 *const front = *reinterpret_cast<u8 **>(static_cast<uintptr_t>(at<u32>(owner, 0x1c)));
+        if (value) vcall<void>(front, 0, value);
+        at<u32>(front, 8) = 0;
+        Deque32_PopFront(owner + 0x10);
+    }
+    *out = 0;
+    return out;
 }
 
 void __fastcall Deque32_PopBack(u8 *deque) {

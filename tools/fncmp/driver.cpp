@@ -45,6 +45,10 @@
 #include "../../src/game/core/cpuinfo.h"
 #include "../../src/game/core/events.h"
 #include "../../src/game/gfx/cursor.h"
+#include "../../src/game/gfx/jpegwrite.h"
+#include "../../src/game/input/devicefilter.h"
+#include "../../src/game/gfx/screenview.h"
+#include "../../src/game/core/waitthread.h"
 #include "../../src/game/gfx/pointer.h"
 #include "../../src/game/gfx/screen.h"
 #include "../../src/game/gfx/statsgraph.h"
@@ -677,6 +681,13 @@ u32 __cdecl stub_has_cpuid() { return *reinterpret_cast<const u32 *>((uintptr_t)
 void __cdecl stub_cpuid(u32 leaf, u32 *regs) {
     const u32 i = leaf == 0 ? 0 : leaf == 1 ? 1 : leaf == 0x80000001 ? 2 : 3;
     std::memcpy(regs, reinterpret_cast<const void *>((uintptr_t)(kCpu + 0x10 + 0x10 * i)), 16);
+}
+
+u32 __cdecl stub_ticks() {
+    u32 *const fake = reinterpret_cast<u32 *>((uintptr_t)kCpu);
+    const u32 ticks = fake[1];
+    fake[1] = ticks + fake[2];
+    return ticks;
 }
 
 // A constructor / destructor for code that calls one through a pointer (kStubs + 0x40, tools/fncmp.py STUBS + 0x40): thiscall, no other arguments;
@@ -1413,6 +1424,11 @@ const AddrCall kGameStartCalls[] = {{0x67d8e0, jpeg_recorder(0, 1)}, {0x402ea0, 
 const AddrCall kPresentCalls[] = {{0x56a770, jpeg_recorder(1, 1)}, {0x564650, jpeg_recorder(2, 1)}, {0x56af20, recorder(3, 2)},  // tests/fncmp/devicepresent.py
     {0x564210, recorder(4, 0)}, {0x678790, jpeg_recorder(5, 6)}, {0x678d70, jpeg_recorder(6, 6)}, {0x678c20, jpeg_recorder(7, 10)}, {0x6787f0, jpeg_recorder(8, 10)}};  // tests/fncmp/presentpicture.py
 const AddrCall kGameErrorCalls[] = {{0x6acd60, jpeg_recorder(1, 4)}};  // tests/fncmp/gameerrorshow.py
+const AddrCall kWaitThreadCalls[] = {{0x632a40, recorder(25, 0)}, {0x67f780, jpeg_recorder(24, 6)}};
+const AddrCall kScreenViewCalls[] = {{0x5fa040, jpeg_recorder(20, 1)}, {0x61b190, recorder(21, 0)}};
+const AddrCall kInputFilterCalls[] = {{0x5fc030, recorder(26, 3)}, {0x5fc100, recorder(27, 3)}, {0x5fba10, recorder(28, 1)}};
+const AddrCall kJpegWriteCalls[] = {{0x5d4ba0, recorder(1, 1)}, {0x5d4c20, recorder(2, 1)}, {0x5d5350, recorder(3, 3)}, {0x64dd60, jpeg_recorder(4, 1)}, {0x64c5f0, jpeg_recorder(5, 3)}, {0x64cf20, jpeg_recorder(6, 1)},
+    {0x64cef8, jpeg_recorder(7, 3)}, {0x64ca90, jpeg_recorder(8, 2)}, {0x64c982, jpeg_recorder(9, 4)}, {0x64cb3c, jpeg_recorder(10, 3)}, {0x64c7fd, jpeg_recorder(11, 1)}, {0x64c740, jpeg_recorder(12, 1)}};  // tests/fncmp/jpegwrite.py
 const AddrCall kCommandLineCalls[] = {{0x68b5f0, jpeg_recorder(1, 1)}};  // tests/fncmp/cmdlinesplit.py
 const AddrCall kUserSavesCalls[] = {{0x5f8240, recorder(1, 0)}, {0x5f8510, recorder(2, 2)}, {0x5f8370, (u32)(uintptr_t)&saveSearchFirst}, {0x5f83a0, (u32)(uintptr_t)&saveSearchNext}, {0x5f82a0, recorder(5, 0)},
                                     {0x5c8890, recorder(6, 1)}, {0x5c8a10, recorder(7, 0)}, {0x414d40, recorder(8, 3)}, {0x414920, recorder(9, 3)}};
@@ -2813,6 +2829,10 @@ int main(int argc, char **argv) {
     TexCache_SetSetupCalls(kTexCacheSetupCalls, sizeof(kTexCacheSetupCalls) / sizeof(kTexCacheSetupCalls[0]));
     LevelSetup_SetCalls(kLevelSetupCalls, sizeof(kLevelSetupCalls) / sizeof(kLevelSetupCalls[0]));
     UserSaves_SetCalls(kUserSavesCalls, sizeof(kUserSavesCalls) / sizeof(kUserSavesCalls[0]));
+    JpegWrite_SetCalls(kJpegWriteCalls, sizeof(kJpegWriteCalls) / sizeof(kJpegWriteCalls[0]));
+    InputFilter_SetCalls(kInputFilterCalls, sizeof(kInputFilterCalls) / sizeof(kInputFilterCalls[0]));
+    ScreenView_SetCalls(kScreenViewCalls, sizeof(kScreenViewCalls) / sizeof(kScreenViewCalls[0]));
+    WaitThread_SetCalls(kWaitThreadCalls, sizeof(kWaitThreadCalls) / sizeof(kWaitThreadCalls[0]));
     GameShutdown_SetCalls(kGameShutdownCalls, sizeof(kGameShutdownCalls) / sizeof(kGameShutdownCalls[0]));
     OptionsChanges_SetCalls(kOptionsChangesCalls, sizeof(kOptionsChangesCalls) / sizeof(kOptionsChangesCalls[0]));
     WeatherTables_SetCalls(kWeatherTablesCalls, sizeof(kWeatherTablesCalls) / sizeof(kWeatherTablesCalls[0]));
@@ -3405,7 +3425,7 @@ int main(int argc, char **argv) {
     drives.nodeCtor = reinterpret_cast<StringListNode *(__fastcall *)(StringListNode *, void *, String)>(hooked(0x005f8a50));
     drives.stricmp = reinterpret_cast<s32(__cdecl *)(const char *, const char *)>(hooked(0x0067df40));
     Drives_SetEnv(&drives);
-    static const CpuInfoEnv cpu = {&stub_has_cpuid, &stub_cpuid};  // the case's fake CPU, as the emulator's
+    static const CpuInfoEnv cpu = {&stub_has_cpuid, &stub_cpuid, &stub_ticks};  // the case's fake CPU, as the emulator's
     CpuInfo_SetEnv(&cpu);
     // The registry key's constructor (0x581da0) resolved to its hook; the registry imports stay the import table's slots, which a case maps
     // (import_table(): recorders).

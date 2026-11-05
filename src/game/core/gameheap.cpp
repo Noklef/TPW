@@ -41,6 +41,18 @@ u32 __cdecl Sound_Free(void *block) {
     return (u32)(uintptr_t)Mem_GlobalFree(block);
 }
 
+void *__stdcall Mem_AllocCounted(u32 size) {
+    void *const block = Mem_GlobalAlloc(size);
+    if (block) global<u32>(0x00faa534) += 1;
+    return block;
+}
+
+u32 __stdcall Mem_FreeCounted(void *block) {
+    if (block) Mem_GlobalFree(block);
+    global<u32>(0x00faa534) -= 1;
+    return 1;
+}
+
 u32 __cdecl Mem_AllocChecked(u32 size) { return size ? (u32)(uintptr_t)Mem_GlobalAlloc(size) : 0; }
 
 u32 __cdecl Mem_FreeChecked(void *block) { return block ? (u32)(uintptr_t)Mem_GlobalFree(block) : 0; }

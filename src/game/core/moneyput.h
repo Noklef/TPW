@@ -5,6 +5,10 @@
 #include "../../../re/types.h"
 #include "stdstring.h"
 
+// The stream's moneypunct<char, international> and ctype<char> facets (use_facet, inline at each use in the exe): for money_get too.
+u8 *MoneyPut_Facet(u8 *ios, u8 international);
+u8 *MoneyPut_Ctype(u8 *ios);
+
 extern "C" {
 
 // 0x694ac0 (pops 4): sputc: the byte stored at the put pointer (the pointer behind +0x20, the count behind +0x30) when there is room, answering c & 0xff; otherwise slot 1 (overflow) with c & 0xff.

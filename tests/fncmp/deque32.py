@@ -9,13 +9,19 @@ import struct
 import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
-from fncmp import HEAP, RAM, Bench, Call, heap  # noqa: E402
+from fncmp import HEAP, IMPORT_TABLE, LOG, RAM, Bench, Call, heap, import_table, log_region, set_return, vtable  # noqa: E402
 
 CALLS = {'allocmap': 0x6c2990, 'freefront': 0x6c2910, 'freeback': 0x6c2ca0, 'popfront': 0x6c1550, 'growback': 0x6c1940, 'copy': 0x6c3010,
-         'copyback': 0x6c2f80, 'erase': 0x6c15f0, 'popback': 0x632150}
+         'copyback': 0x6c2f80, 'erase': 0x6c15f0, 'popback': 0x632150, 'clear': 0x632080, 'ownerpop': 0x631ec0,
+         'qctor': 0x631870, 'qlock': 0x631fc0, 'qunlock': 0x632020, 'qpush': 0x631d10, 'qthunk': 0x631d00, 'qdtor': 0x6319a0, 'qdel': 0x631980, 'qbasedel': 0x631950}
 B = Bench([(0x6c2990, 0x6c29ab), (0x6c2910, 0x6c298a), (0x6c2ca0, 0x6c2d20), (0x6c1550, 0x6c15ef), (0x6c1940, 0x6c1a87), (0x6c3010, 0x6c309c),
-           (0x6c2f80, 0x6c300b), (0x6c15f0, 0x6c1932), (0x632310, 0x632343), (0x6c31a0, 0x6c31d3), (0x632150, 0x632200), (0x67a400, 0x690000)])
-DEQ, OUT, MAP, BLOCKS = RAM, RAM + 0x100, RAM + 0x200, RAM + 0x10000
+           (0x6c2f80, 0x6c300b), (0x6c15f0, 0x6c1932), (0x632310, 0x632343), (0x6c31a0, 0x6c31d3), (0x632150, 0x632200), (0x632080, 0x632142), (0x631ec0, 0x631fbc), (0x67a400, 0x690000),
+           (0x631870, 0x6318f3), (0x631900, 0x63196e), (0x631980, 0x63199e), (0x6319a0, 0x631cfa), (0x631d00, 0x631d0c), (0x631d10, 0x631eb6), (0x631fc0, 0x63201e), (0x632020, 0x63207a),
+           (0x6338b0, 0x6338c0), (0x633900, 0x633994), (0x632200, 0x632222), (0x632230, 0x632290), (0x632290, 0x6322dc), (0x6322e0, 0x632310)])
+OWNER, DEQ, OUT, MAP, BLOCKS = RAM, RAM + 0x10, RAM + 0x100, RAM + 0x200, RAM + 0x10000
+OWNER_VT, FRONT = RAM + 0x8000, RAM + 0x8100
+LOCK, SECTION = RAM + 0x40, RAM + 0x8200
+SECTIONS = {'Init': (1, 0x6fd144, 1, 0, 0), 'Delete': (2, 0x6fd0d0, 1, 0, 0), 'Enter': (3, 0x6fd140, 1, 0, 0), 'Leave': (4, 0x6fd130, 1, 0, 0)}
 OPS = [n for n in CALLS if not os.environ.get('OPS') or n in os.environ['OPS'].split(',')]
 
 
@@ -57,6 +63,44 @@ def case(r):
         if name not in ('popfront', 'popback') and r.random() < 0.4:
             struct.pack_into('<I', regions[DEQ], 0x2c, 0)
         return Call(CALLS[name], [DEQ], regions, conv='t', ret='v')
+    if name == 'clear':
+        regions, it, n = build(r, r.choice([0, 1, 2, 10, 0x3ff, 0x400, 0x401, 0x900]))
+        return Call(CALLS[name], [DEQ], regions, conv='t', ret='v')
+    if name == 'ownerpop':
+        # The owner: the vtable at the deque's -0x10, a recorder's answer; the front dword an object with slot 0 a recorder.
+        regions, it, n = build(r, r.choice([1, 2, 3, 0x3ff, 0x400, 0x401]))
+        log = log_region()
+        set_return(log, 7, r.choice([0, 1, 1, 1, 0x80000000]))
+        regions.update({LOG: log, OWNER: struct.pack('<I', OWNER_VT) + r.bytes(0xc), OWNER_VT: vtable({0: 1, 7: 0}), FRONT: struct.pack('<I', OWNER_VT) + r.bytes(0xc)})
+        blocks = bytearray(regions[BLOCKS])
+        struct.pack_into('<I', blocks, it(0)[2] - BLOCKS, FRONT)
+        regions[BLOCKS] = blocks
+        return Call(CALLS[name], [OWNER, OUT, r.choice([0, r.getrandbits(32)])], regions, conv='t', ret='a')
+    if name == 'qctor':
+        log = log_region()
+        return Call(CALLS[name], [OWNER], {LOG: log, IMPORT_TABLE: import_table(log, SECTIONS), OWNER: r.bytes(0x48), HEAP: heap(0x100)}, conv='t', ret='a', ignore=[(OWNER + 0x10, 1)])
+    if name[0] == 'q':
+        # The queue: the deque as above, the object at +8 or none, the section's calls recorded.
+        count = r.choice([0, 1, 2, 3, 0x3ff, 0x400, 0x401, 0x900])
+        regions, it, n = build(r, count)
+        deq = regions[DEQ]
+        if not count and r.random() < 0.5:   # (as the constructor leaves it)
+            struct.pack_into('<8I', deq, 4, *[0] * 8)
+        if name in ('qpush', 'qthunk') and count and r.random() < 0.6:   # (the last block full)
+            struct.pack_into('<I', deq, 0x1c, struct.unpack_from('<I', deq, 0x18)[0])
+        if name in ('qdtor', 'qdel') and r.random() < 0.2:   # (a count the iterators disagree with)
+            struct.pack_into('<I', deq, 0x2c, count + r.choice([1, 2, 5]))
+        log = log_region()
+        lock = bytearray(r.bytes(8))
+        struct.pack_into('<I', lock, 0, SECTION)
+        owner = bytearray(struct.pack('<I', OWNER_VT) + r.bytes(0xc))
+        struct.pack_into('<I', owner, 8, r.choice([0, FRONT]))
+        regions.update({LOG: log, IMPORT_TABLE: import_table(log, SECTIONS), OWNER: owner, LOCK: lock, SECTION: r.bytes(0x18), OWNER_VT: vtable({0: 0}), FRONT: struct.pack('<I', OWNER_VT) + r.bytes(0xc)})
+        if name in ('qpush', 'qthunk'):
+            return Call(CALLS[name], [OWNER, r.getrandbits(32)], regions, conv='t', ret='v')
+        if name in ('qdel', 'qbasedel'):
+            return Call(CALLS[name], [OWNER, r.choice([0, 1, 2, 3])], regions, conv='t', ret='a')
+        return Call(CALLS[name], [OWNER], regions, conv='t', ret='v')
     if name == 'growback':
         regions, it, n = build(r, room=r.choice([0, 0, 1, 2]))
         if r.random() < 0.25:

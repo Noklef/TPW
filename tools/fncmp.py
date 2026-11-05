@@ -1083,11 +1083,11 @@ def _cdecl_log4(e):  # (driver.cpp stub_cdecl_log4)
 CPU = 0x2d000000  # the fake CPU a case maps (cpu_region()): CPUID and EFLAGS.ID in the emulator, driver.cpp's stub_cpuid / stub_has_cpuid natively
 
 
-def cpu_region(id_writable, leaves):
-    """The fake CPU's region (at CPU): +0 1 when EFLAGS.ID can be toggled, then from +0x10 the (EAX, EBX, ECX, EDX) CPUID answers for leaf 0, 1,
-    0x80000001 and any other leaf, 16 bytes each (leaves: up to four tuples, the rest zero)."""
+def cpu_region(id_writable, leaves, ticks=0, tick_step=0):
+    """The fake CPU's region (at CPU): +0 1 when EFLAGS.ID can be toggled, +4 RDTSC's next low dword and +8 what each RDTSC adds to it (its high dword 0), then from +0x10 the
+    (EAX, EBX, ECX, EDX) CPUID answers for leaf 0, 1, 0x80000001 and any other leaf, 16 bytes each (leaves: up to four tuples, the rest zero)."""
     b = bytearray(0x50)
-    struct.pack_into('<I', b, 0, 1 if id_writable else 0)
+    struct.pack_into('<III', b, 0, 1 if id_writable else 0, ticks & 0xffffffff, tick_step & 0xffffffff)
     for i, regs in enumerate(leaves[:4]):
         struct.pack_into('<4I', b, 0x10 + 0x10 * i, *(x & 0xffffffff for x in regs))
     return b
@@ -1100,6 +1100,12 @@ def _cpuid(e, leaf):
 
 def _id_writable(e):
     return e.u32(CPU) != 0
+
+
+def _rdtsc(e):
+    ticks, step = struct.unpack('<2I', e.read(CPU + 4, 8))
+    e.write(CPU + 4, struct.pack('<I', (ticks + step) & 0xffffffff))
+    return ticks, 0
 
 
 COUNTER = STUBS + 0x60  # QueryPerformanceFrequency / QueryPerformanceCounter for an import slot (driver.cpp stub_counter); counter(log, ...) sets it up
@@ -1207,7 +1213,7 @@ class Bench:
         self.emu.hooks.update({recorder(k, n, True): _recorder(k, n, True) for k in range(64) for n in range(16)})
         self.emu.hooks.update({recorder(k, n, cdecl=True): _recorder(k, n, cdecl=True) for k in range(32) for n in range(16)})
         self.emu.hooks.update(hooks or {})
-        self.emu.cpuid, self.emu.id_writable = _cpuid, _id_writable
+        self.emu.cpuid, self.emu.id_writable, self.emu.rdtsc = _cpuid, _id_writable, _rdtsc
         self.extra = {0x7b095c: sine_table(sines)} if sines else {}
         self.driver = DRIVER
         # strict: the original faults, as the driver would, outside the case's regions, the

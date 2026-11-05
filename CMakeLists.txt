@@ -262,6 +262,9 @@ add_library(tpw_game STATIC
     src/game/core/streambufiter.cpp
     src/game/core/crtlocaleinfo.cpp
     src/game/core/numget.cpp
+    src/game/core/sectionlock.cpp
+    src/game/core/waitthread.cpp
+    src/game/core/moneyget.cpp
     src/game/gfx/text.cpp
     src/game/gfx/canvas.cpp
     src/game/gfx/canvasdraw.cpp
@@ -597,6 +600,8 @@ add_library(tpw_game STATIC
     src/game/frontend/thememenu.cpp
     src/game/frontend/lobbysky.cpp
     src/game/input/mouse.cpp
+    src/game/input/devicefilter.cpp
+    src/game/input/messagepool.cpp
     src/game/ui/dialog7ca1c8.cpp
     src/game/ui/window.cpp
     src/game/ui/dialogs.cpp
@@ -716,6 +721,9 @@ add_library(tpw_game STATIC
     src/game/gfx/moviedisplay.cpp
     src/game/gfx/bumplight.cpp
     src/game/gfx/signrender.cpp
+    src/game/gfx/jpegwrite.cpp
+    src/game/gfx/jpegsource.cpp
+    src/game/gfx/screenview.cpp
     src/game/ui/panel7cc3b0handler.cpp
     src/game/world/rideupkeep.cpp
     src/game/world/objectwear.cpp

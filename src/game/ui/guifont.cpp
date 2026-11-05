@@ -19,6 +19,13 @@ void __fastcall GuiFont_Dtor(u8 *font) {
     if (glyphs) GameHeap_Free(glyphs);
 }
 
+void __fastcall GuiFont_FreeGlyphs(u8 *font) {
+    u8 *&glyphs = *reinterpret_cast<u8 **>(font + 0xc);
+    if (!glyphs) return;
+    GameHeap_Free(glyphs);
+    glyphs = nullptr;
+}
+
 u8 *__fastcall GuiFont_DeletingDtor(u8 *font, void *, u32 flags) {
     GuiFont_Dtor(font);
     if (flags & 1) GameHeap_Free(font);
