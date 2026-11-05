@@ -21,9 +21,13 @@ u32 __fastcall WStreambufIter_Equal(WStreambufIter *it, void *edx, WStreambufIte
 
 // 0x698bf0: _Peek: fetches whether or not got is set; got set; at the end the streambuf dropped. Returns the character: at the end the old val.
 u8 __fastcall StreambufIter_Peek(StreambufIter *it, void *edx);
+// 0x69fea0: the same for wchar_t.
+u16 __fastcall WStreambufIter_Peek(WStreambufIter *it, void *edx);
 
 // 0x698600 (self the streambuf): sbumpc: the waiting character (as unsigned) and past it, or uflow's answer.
 u32 __fastcall Streambuf_Sbumpc(u8 *buffer, void *edx);
+// 0x69f870: the same for wchar_t.
+u16 __fastcall WStreambuf_Sbumpc(u8 *buffer, void *edx);
 
 // 0x69b7f0 (self the streambuf, ch; pops 4): basic_streambuf<wchar_t>::sputc: at +0x20 and +0x30 the pointer and count to write by: ch put and returned as given, or overflow's answer.
 u32 __fastcall WStreambuf_Sputc(u8 *buffer, void *edx, u32 ch);

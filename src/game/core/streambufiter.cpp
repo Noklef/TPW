@@ -97,6 +97,30 @@ template <typename Unit> u32 *rep(u32 *out, u32 failed, u8 *buffer, u32 ch, u32 
 Iter<u8> *narrow(StreambufIter *it) { return reinterpret_cast<Iter<u8> *>(it); }
 Iter<u16> *wide(WStreambufIter *it) { return reinterpret_cast<Iter<u16> *>(it); }
 
+template <typename T> T peek(Iter<T> *it) {
+    if (it->buffer) {
+        const u32 c = waiting<T>(it->buffer) ? *next_of<T>(it->buffer) : virtual_call(it->buffer, 0x10);
+        if (!is_end<T>(c)) {
+            it->value = static_cast<T>(c);
+            it->got = 1;
+            return static_cast<T>(c);
+        }
+    }
+    const T old = it->value;
+    it->buffer = nullptr;
+    it->got = 1;
+    return old;
+}
+
+template <typename T> u32 sbumpc(u8 *buffer) {
+    if (!waiting<T>(buffer)) return virtual_call(buffer, 0x14);
+    --left_of(buffer);
+    T *&next = next_of<T>(buffer);
+    const T *const at = next;
+    next = next + 1;
+    return *at;
+}
+
 }  // namespace
 
 extern "C" {
@@ -119,30 +143,13 @@ void __fastcall StreambufIter_Inc(StreambufIter *it, void *) { inc(narrow(it)); 
 
 void __fastcall WStreambufIter_Inc(WStreambufIter *it, void *) { inc(wide(it)); }
 
-u8 __fastcall StreambufIter_Peek(StreambufIter *self, void *) {
-    Iter<u8> *const it = narrow(self);
-    if (it->buffer) {
-        const u32 c = waiting<u8>(it->buffer) ? *next_of<u8>(it->buffer) : virtual_call(it->buffer, 0x10);
-        if (!is_end<u8>(c)) {
-            it->value = static_cast<u8>(c);
-            it->got = 1;
-            return static_cast<u8>(c);
-        }
-    }
-    const u8 old = it->value;
-    it->buffer = nullptr;
-    it->got = 1;
-    return old;
-}
+u8 __fastcall StreambufIter_Peek(StreambufIter *self, void *) { return peek(narrow(self)); }
 
-u32 __fastcall Streambuf_Sbumpc(u8 *buffer, void *) {
-    if (!waiting<u8>(buffer)) return virtual_call(buffer, 0x14);
-    --left_of(buffer);
-    u8 *&next = next_of<u8>(buffer);
-    const u8 *const at = next;
-    next = next + 1;
-    return *at;
-}
+u16 __fastcall WStreambufIter_Peek(WStreambufIter *self, void *) { return peek(wide(self)); }
+
+u32 __fastcall Streambuf_Sbumpc(u8 *buffer, void *) { return sbumpc<u8>(buffer); }
+
+u16 __fastcall WStreambuf_Sbumpc(u8 *buffer, void *) { return static_cast<u16>(sbumpc<u16>(buffer)); }
 
 u32 __fastcall WStreambuf_Sputc(u8 *buffer, void *, u32 ch) { return put<u16>(buffer, ch); }
 

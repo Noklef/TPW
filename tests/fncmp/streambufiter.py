@@ -8,11 +8,11 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
 from fncmp import LOG, RAM, Bench, Call, answers, log_region, vtable  # noqa: E402
 
-B = Bench([(0x6962d0, 0x696326), (0x696330, 0x6963eb), (0x6963f0, 0x69644b), (0x69d040, 0x69d098), (0x69d0a0, 0x69d15f), (0x69d160, 0x69d1b9), (0x698bf0, 0x698c3c), (0x698600, 0x698633), (0x69b7f0, 0x69b82f), (0x69b830, 0x69b88b), (0x695890, 0x69590d), (0x69c5e0, 0x69c652)])
+B = Bench([(0x6962d0, 0x696326), (0x696330, 0x6963eb), (0x6963f0, 0x69644b), (0x69d040, 0x69d098), (0x69d0a0, 0x69d15f), (0x69d160, 0x69d1b9), (0x698bf0, 0x698c3c), (0x698600, 0x698633), (0x69b7f0, 0x69b82f), (0x69b830, 0x69b88b), (0x695890, 0x69590d), (0x69c5e0, 0x69c652), (0x69fea0, 0x69feef), (0x69f870, 0x69f8a2)])
 IT, X, SB, VT, NEXT, LEFT, ANSWERS, BUF, OUT = RAM, RAM + 8, RAM + 0x100, RAM + 0x200, RAM + 0x300, RAM + 0x304, RAM + 0x400, RAM + 0x600, RAM + 0x800
 OVERFLOW, UNDERFLOW, UFLOW = 1, 4, 5
 KINDS = ['deref', 'equal', 'inc']
-ALONE = ['peek', 'sbumpc', 'wsputc', 'wassign', 'rep', 'wrep', 'peek', 'sbumpc', 'wsputc', 'wassign', 'rep', 'wrep']
+ALONE = ['wpeek', 'wsbumpc', 'wpeek', 'wsbumpc', 'peek', 'sbumpc', 'wsputc', 'wassign', 'rep', 'wrep', 'peek', 'sbumpc', 'wsputc', 'wassign', 'rep', 'wrep']
 
 
 def iterator(r):
@@ -39,6 +39,10 @@ def case(r):
     ch = r.choice([0x41, 0xff, 0xffff, 0x1ffff, 0xffffffff, r.getrandbits(32)])
     if kind == 'peek':
         return Call(0x698bf0, [IT], regions, conv='t', ret='b')
+    if kind == 'wpeek':
+        return Call(0x69fea0, [IT], regions, conv='t', ret='w')
+    if kind == 'wsbumpc':
+        return Call(0x69f870, [SB], regions, conv='t', ret='w')
     if kind == 'sbumpc':
         return Call(0x698600, [SB], regions, conv='t', ret='a')
     if kind == 'wsputc':
