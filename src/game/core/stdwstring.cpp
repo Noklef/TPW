@@ -209,6 +209,18 @@ StdWString *__fastcall StdWString_CtorCopy(StdWString *s, void *, const StdWStri
     return StdWString_AssignSub(s, nullptr, x, 0, kNpos);
 }
 
+StdWString *__fastcall StdWString_AppendFill(StdWString *s, void *, u32 n, u32 ch) {
+    if (*reinterpret_cast<const u32 *>((uintptr_t)0x006fef00) - s->len <= n) StdStrings_Xlen();
+    if (!n) return s;
+    const u32 total = s->len + n;
+    if (StdWString_Grow(s, nullptr, total, 0)) {   // (inlined)
+        for (u32 i = 0; i < n; ++i) s->ptr[s->len + i] = (u16)ch;
+        s->len = total;
+        s->ptr[total] = 0;
+    }
+    return s;
+}
+
 StdWString *__fastcall StdWString_CtorFill(StdWString *s, void *, u32 n, u32 ch, const u8 *allocator) {
     *bytes(s) = *allocator;
     s->ptr = nullptr;

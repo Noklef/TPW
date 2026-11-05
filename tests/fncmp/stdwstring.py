@@ -8,7 +8,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'
 from fncmp import Bench, Call, HEAP, RAM, heap, put  # noqa: E402
 
 # (with the wide string's helpers: the traits' move, the counted buffer reset, max_size and wcslen)
-B = Bench([(0x4051d0, 0x405272), (0x405280, 0x405390), (0x479150, 0x4791b0), (0x47b750, 0x47bcf0), (0x4f23f0, 0x4f2450), (0x4f6080, 0x4f60a0),
+B = Bench([(0x69cf70, 0x69d034), (0x4051d0, 0x405272), (0x405280, 0x405390), (0x479150, 0x4791b0), (0x47b750, 0x47bcf0), (0x4f23f0, 0x4f2450), (0x4f6080, 0x4f60a0),
            (0x67acd0, 0x67ad00), (0x4ea740, 0x4ea7e0), (0x47ae60, 0x47b060), (0x47b600, 0x47b750), (0x479230, 0x479256),
            (0x47cc10, 0x47cd00), (0x47b460, 0x47b5b0), (0x47d9d0, 0x47db00), (0x47d620, 0x47d780), (0x47b320, 0x47b460),
            (0x4f0170, 0x4f0237)])
@@ -79,6 +79,12 @@ def case(r):
         n = r.choice([0, 0, 1, r.randrange(31), 31, 32, r.randrange(0x7e)])
         put(blocks, 2 * SLOT, '%dH' % (n + 1), *[r.randrange(1, 0x10000) for _ in range(n)], 0)
         return Call(0x4f0170, [S, BLOCKS + 2 * SLOT, r.choice([X, STRS + 0x31])], regions, conv='t', ret='a')
+    if op == 'AppendFill':
+        count = r.choice([0, 1, r.randrange(4, 12), r.randrange(40), r.randrange(30, 0x70), max(s[2] - s[1], 0), max(s[2] - s[1] + 1, 0)])   # (no throw: it ends the case)
+        if s[1] >= 2 and r.random() < 0.15:   # (npos below the length: the count that wraps the total to 0 gets through)
+            regions[0x6fef00] = put(bytearray(4), 0, 'I', 1)
+            count = 0 - s[1] & 0xffffffff
+        return Call(0x69cf70, [S, count, r.choice([0, r.getrandbits(16), r.getrandbits(32)])], regions, conv='t', ret='a')
     if op == 'CtorFill':   # (the allocator's byte from anywhere)
         return Call(0x47af80, [S, small, r.choice([0, r.getrandbits(16), r.getrandbits(32)]), r.choice([X, STRS + 0x31])], regions, conv='t', ret='a')
     if op == 'UninitCopy':   # 0-3 strings from x on copied to DEST (or onto themselves); a null dest only for none or one (skipped)
@@ -115,7 +121,7 @@ def case(r):
     return Call(0x47cc10 if op == 'Append' else 0x47b750, [S, src, pos, count], regions, conv='t', ret='a')
 
 
-KINDS = ['Grow', 'Copy', 'Split', 'Freeze', 'Fill', 'AssignSub', 'AssignSub', 'AssignSub', 'Entry', 'CtorCopy', 'CtorFill', 'UninitCopy',
+KINDS = ['AppendFill', 'AppendFill', 'Grow', 'Copy', 'Split', 'Freeze', 'Fill', 'AssignSub', 'AssignSub', 'AssignSub', 'Entry', 'CtorCopy', 'CtorFill', 'UninitCopy',
          'Append', 'Append', 'Erase', 'Construct', 'CopyRange', 'VecErase', 'CtorChars', 'AssignChars']
 OPS = [k for k in os.environ.get('OPS', ','.join(KINDS)).split(',') if k]
 
