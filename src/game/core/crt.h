@@ -236,6 +236,10 @@ u32 __cdecl CRT_strtoul(const char *text, const char **end, s32 base);
 // 0x67faf0: _tolower_lk: the same as _toupper_lk for the upper case.
 s32 __cdecl CRT_tolowerLocked(s32 c);
 
+// 0x67f670: _strnicmp: -1, 0, 1 over at most n bytes. No locale: through A-Z, the bytes as they are when one ends. Else through _tolower_lk under the locale's count or lock 0x13; both
+// words keep what the map left above their bytes (sic), so that an end is not seen under a two-byte answer.
+s32 __cdecl CRT_strnicmp(const char *a, const char *b, u32 n);
+
 // 0x67df40: _stricmp: -1, 0, 1. No locale: through A-Z. Else through _tolower_lk under the locale's count (not the Interlocked imports: its own LOCK INC) or lock 0x13; two ends at once answer the last character's _tolower_lk.
 s32 __cdecl CRT_stricmp(const char *a, const char *b);
 

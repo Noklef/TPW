@@ -13,7 +13,7 @@ GETPTD, LOCK, UNLOCK, CALLOC, NHMALLOC = 2, 7, 8, 24, 28
 INC, DEC, M2W, W2M, LCW, LCA, GSW, GSA, RAISE = 14, 15, 16, 17, 18, 19, 20, 29, 30
 B = Bench([(0x67b5f0, 0x67b617), (0x67d3a0, 0x67d3e7), (0x67d520, 0x67d53a), (0x67d540, 0x67d7c1), (0x67d7d0, 0x67d7ea), (0x67d7f0, 0x67d82a), (0x67dcd0, 0x67dcf0), (0x67f1a0, 0x67f222), (0x67f230, 0x67f32e),
            (0x680430, 0x6804c5), (0x686a00, 0x686a10), (0x688f50, 0x689175), (0x689180, 0x6891af), (0x68a5d0, 0x68a708),
-           (0x67b8c0, 0x67b9e3), (0x67bb90, 0x67bed0),(0x67c4e0, 0x67c5c8), (0x67df40, 0x67e010), (0x67faf0, 0x67fbee), (0x688770, 0x6887d1), (0x699ab0, 0x699bc8), (0x69a340, 0x69a458),
+           (0x67b8c0, 0x67b9e3), (0x67bb90, 0x67bed0),(0x67c4e0, 0x67c5c8), (0x67df40, 0x67e010), (0x67f670, 0x67f771), (0x67faf0, 0x67fbee), (0x688770, 0x6887d1), (0x699ab0, 0x699bc8), (0x69a340, 0x69a458),
            (0x67ff70, 0x67ffeb), (0x67fff0, 0x680048), (0x680060, 0x6800e4), (0x67f570, 0x67f615), (0x67bfb0, 0x67c07c), (0x67c080, 0x67c100), (0x67a480, 0x67a519), (0x688730, 0x68876d),
            (0x67b0d0, 0x67b10f), (0x67bed0, 0x67bf0f), (0x67bf10, 0x67bf3d), (0x67c290, 0x67c2e2), (0x67c2f0, 0x67c31e), (0x67c3d0, 0x67c428), (0x67c430, 0x67c4de), (0x67f410, 0x67f44c), (0x67f450, 0x67f4a0),
            (0x699a20, 0x699ab0), (0x69a2b0, 0x69a340), (0x4f19d0, 0x4f1a05), (0x4f1a10, 0x4f1a43), (0x4f1a50, 0x4f1a85), (0x4f1a90, 0x4f1ac3)],
@@ -24,7 +24,7 @@ PTD, TEXT, SET, END, TO, OUT, ANSWERS, BLOCKS, BLOCK1, BLOCK2 =(RAM + 0x100 * i 
 PCTYPE = RAM + 0x1200
 CTYPE, CTYPEVT = RAM + 0x2000, RAM + 0x2100
 WIDE = ('wcsncpy', 'wcscpy', 'wcscat', 'wcsncat', 'wcscmp', 'wcsncmp', 'wcsstr', 'wcschr', 'wcstok')
-OPS = [n for n in ('strrchr', 'strpbrk', 'throw', 'strncnt', 'types', 'map', 'isctype', 'toupper', 'toupper_lk', 'strtoxl', 'strtol', 'strtoul', 'stricmp', 'memmove', 'xtoa', 'strncat', 'strtok', 'tolower_lk', 'tolower_ctype', 'toupper_ctype', 'tolower_lock', 'toupper_lock', 'ctype_lower', 'ctype_upper', 'ctype_lower_range', 'ctype_upper_range',
+OPS = [n for n in ('strrchr', 'strpbrk', 'throw', 'strncnt', 'types', 'map', 'isctype', 'toupper', 'toupper_lk', 'strtoxl', 'strtol', 'strtoul', 'stricmp', 'strnicmp', 'strnicmp', 'memmove', 'xtoa', 'strncat', 'strtok', 'tolower_lk', 'tolower_ctype', 'toupper_ctype', 'tolower_lock', 'toupper_lock', 'ctype_lower', 'ctype_upper', 'ctype_lower_range', 'ctype_upper_range',
                    'strlen', 'memset', 'strcmp', 'strstr', 'memchr', 'strchr', 'atol', 'itoa') + WIDE if not os.environ.get('OPS') or n in os.environ['OPS'].split(',')]
 NUMBERS = [b'0', b'7', b'123', b'777', b'0x1aF', b'0X1g', b'0x', b'0', b'zZ', b'', b'-', b'+', b'4294967295', b'4294967296', b'2147483647', b'2147483648', b'2147483649', b'99999999999', b'FFFFFFFF', b'100000000',
            b'\xe9', b'12\xe9', b'9a', b'g', b'Z', b'08', b'1z2']
@@ -115,6 +115,20 @@ def case(r):
             regions[0xfb1554] = struct.pack('<I', 2)
             regions[ANSWERS] = struct.pack('<40I', *[2] * 40)
         return Call(0x67df40, [TEXT, SET], regions, conv='c', ret='a')
+    if name == 'strnicmp':
+        words = [b'', b'a', b'A', b'abc', b'ABC', b'abd', b'ABE', b'Zz', b'zZ', b'[', b'_', b'`', b'\xe9', b'\xc9', b'abcdef', b'ABCDEG']
+        regions[TEXT] = r.choice(words) + b'\0'
+        regions[SET] = r.choice(words) + b'\0'
+        most = r.choice([0, 1, 2, 3, 5, 8, 0x7fffffff])
+        if r.random() < 0.3:   # (Two capitals that map to one same pair of bytes: their words keep the map's high byte, over the ends too, so only n stops the walk.)
+            same = r.choice([b'', b'A', b'a/p'])
+            regions[TEXT] = r.choice([b'B', b'XA']) + same + b'\0'
+            regions[SET] = r.choice([b'C', b'YB']) + same + b'\0'
+            regions[0xfb1440] = struct.pack('<5I', r.choice([0x409, 0x411]), 0, 0, 0, r.choice([932, 1252]))
+            regions[0xfb1554] = struct.pack('<I', 2)
+            regions[ANSWERS] = struct.pack('<40I', *[2] * 40)
+            most = r.choice([1, 2, 3, 5, 8])
+        return Call(0x67f670, [TEXT, SET, most], regions, conv='c', ret='a')
     if name == 'memmove':
         regions[TEXT] = r.bytes(0x100)
         return Call(0x67bb90, [TEXT + r.randrange(0x60), TEXT + r.randrange(0x60), r.choice([0, 1, 2, 3, 4, 7, 8, 0x1f, 0x20, 0x21, 0x40, r.randrange(0x60)])], regions, conv='c', ret='a')

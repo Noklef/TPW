@@ -858,6 +858,50 @@ s32 __cdecl CRT_stricmp(const char *a, const char *b) {
     return result;
 }
 
+s32 __cdecl CRT_strnicmp(const char *a, const char *b, u32 n) {
+    if (!n) return 0;
+    if (!locale_set()) {
+        const auto low = [](u8 c) -> u8 { return c >= 0x41 && c <= 0x5a ? c + 0x20 : c; };
+        u8 x, y;
+        do {
+            x = static_cast<u8>(*a);
+            y = static_cast<u8>(*b);
+            if (!x || !y) break;
+            ++a;
+            ++b;
+            x = low(x);
+            y = low(y);
+            if (x != y) break;
+        } while (--n);
+        return x == y ? 0 : x < y ? -1 : 1;
+    }
+    long *const readers = reinterpret_cast<long *>((uintptr_t)0x00fb3ca8);
+    _InterlockedIncrement(readers);
+    const bool locked = *reinterpret_cast<const s32 *>((uintptr_t)0x00fb3ca4) > 0;
+    if (locked) {
+        _InterlockedDecrement(readers);
+        g_inner->lock(0x13);
+    }
+    u32 x = 0;
+    u32 y = 0;
+    do {
+        x = (x & 0xffffff00u) | static_cast<u8>(*a);
+        y = (y & 0xffffff00u) | static_cast<u8>(*b);
+        if (!x || !y) break;
+        ++a;
+        ++b;
+        y = static_cast<u32>(CRT_tolowerLocked(static_cast<s32>(y)));
+        x = static_cast<u32>(CRT_tolowerLocked(static_cast<s32>(x)));
+        if (x != y) break;
+    } while (--n);
+    const s32 result = x == y ? 0 : x < y ? -1 : 1;
+    if (locked)
+        g_inner->unlock(0x13);
+    else
+        _InterlockedDecrement(readers);
+    return result;
+}
+
 static s32 __cdecl tolower_with(s32 c, const u32 *locale, u32 strict) {
     const u32 id = locale ? locale[0] : global_u32(0x00fb1440);
     const u32 page = locale ? locale[1] : global_u32(0x00fb1450);
