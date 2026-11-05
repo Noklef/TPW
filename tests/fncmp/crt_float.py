@@ -103,6 +103,18 @@ def twelve(r, name, regions):
         return Call(0x68fad0, [TEXT2, length, OUT], regions, conv='c')
     if name == 'ld12mul':
         regions[OUT], regions[MAN] = twelve_bytes(r) + r.bytes(4), twelve_bytes(r) + r.bytes(8)
+        kind = r.random()
+        if kind < 0.1:   # (the exponents' sum at the overflow's edge)
+            high = r.randrange(0x4000, 0x7ffe)
+            sum_ = r.choice([0xbffd, 0xbffe, 0xbfff])
+            regions[OUT] = regions[OUT][:10] + struct.pack('<H', high) + regions[OUT][12:]
+            regions[MAN] = regions[MAN][:10] + struct.pack('<H', sum_ - high) + regions[MAN][12:]
+        elif kind < 0.2:   # (all ones times one: the round's carry out of the top word)
+            regions[OUT] = struct.pack('<HIIH', 0xffff, 0xffffffff, 0xffffffff, 0x3fff) + r.bytes(4)
+            regions[MAN] = struct.pack('<HIIH', 0, 0, 0x80000000, 0x3fff) + r.bytes(8)
+        elif kind < 0.3:   # (a product under the smallest: bits shifted out and lost)
+            regions[OUT] = regions[OUT][:10] + struct.pack('<H', 0x2000) + regions[OUT][12:]
+            regions[MAN] = regions[MAN][:10] + struct.pack('<H', r.randrange(0x1fe0, 0x2000)) + regions[MAN][12:]
         return Call(0x68ff60, [OUT, r.choice([MAN, MAN, MAN, MAN, OUT])], regions, conv='c')
     if name == 'multtenpow':
         regions[OUT] = twelve_bytes(r) + r.bytes(4)

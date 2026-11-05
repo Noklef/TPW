@@ -66,6 +66,8 @@ def string(r, held, k):
     """A std::string of the _Locinfo: unset, or a counted block in the heap."""
     if r.random() < 0.4:
         return (r.getrandbits(32), 0, 0, 0)
+    if r.random() < 0.2:   # (counted but null: _Nullstr's)
+        return (r.getrandbits(32), 0, 5, 0x1f)
     at = 0xc00 + 0x40 * k
     text = r.choice([b'', b'x', b'old text'])
     held[at - 1] = r.choice([0, 0, 1, 2, 0xfd, 0xfe, 0xff])
@@ -76,7 +78,7 @@ def string(r, held, k):
 def case(r):
     name = r.deal(OPS)
     log = log_region()
-    regions = {LOG: log, HEAP: heap(0x8000, fail=r.choice([0] * 30 + [1, 2, 3, 5])),
+    regions = {LOG: log, HEAP: heap(0x8000, fail=r.choice([0, 0, 1, 1, 2, 3] if name in ('ctorc', 'ctorw') else [0] * 30 + [1, 2, 3, 5])),
                IMPORT_TABLE: import_table(log, {'lcid': (lf.LCID, 0x6fd260, 0, 0, 0), 'version': (VERSION, 0x6fd264, 1, 0, 1), 'validcp': (lf.VALIDCP, 0x6fd288, 1, 0, 0), 'validlocale': (lf.VALIDLOCALE, 0x6fd284, 2, 0, 0),
                                                 'enum': (lf.ENUM, 0x6fd1f8, 2, 0, 0), 'info': (lf.INFO, 0x6fd28c, 4, 0, 0b100), 'inc': (lf.INC, 0x6fd0c0, 1, 0, 0), 'dec': (lf.DEC, 0x6fd12c, 1, 0, 0)})}
     lf.state(r, regions, log)

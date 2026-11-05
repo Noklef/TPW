@@ -28,6 +28,8 @@ def double_bits(r):
 
 def extended(r):
     """The ten bytes as _dtold leaves them (a double's value), or bits of no double."""
+    if r.random() < 0.1:   # (exponent 0 with low bits alone; an infinity's high word with low bits)
+        return r.choice([(1, 0, 0), (0xffffffff, 0, 0x8000), (1, 0x80000000, 0x7fff), (0xffffffff, 0x80000000, 0xffff)])
     if r.random() < 0.7:
         bits = double_bits(r)
         exponent, fraction = bits >> 52 & 0x7ff, bits & 0xfffffffffffff
