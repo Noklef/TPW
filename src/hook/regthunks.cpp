@@ -3,6 +3,7 @@
 #include "../game/gfx/movieidct.h"
 #include "../game/gfx/tgqvideo.h"
 #include "../game/gfx/tqivideo.h"
+#include "../game/math/ssemath.h"
 
 extern "C" {
 
@@ -26,6 +27,16 @@ __declspec(naked) void RegThunk_DctIdct_Row() {
 }
 
 // Block in ESI, out in EDI.
+__declspec(naked) void RegThunk_SseMath_ExpandMatrix() {
+    __asm {
+        push edi
+        push edx
+        call SseMath_ExpandMatrix
+        add esp, 8
+        ret
+    }
+}
+
 __declspec(naked) void RegThunk_MovieIdct_Column() {
     __asm {
         push edi
