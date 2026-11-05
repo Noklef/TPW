@@ -157,7 +157,7 @@ u8 *__fastcall WKeywordPair_Ctor(u8 *pair, void *, StdWString key, u32 v0, u32 v
 }  // extern "C"
 
 namespace {
-const WKeywordsEnv kKeywordsPorts = {Charset_FormatWide, reinterpret_cast<u32(__cdecl *)(u32)>((uintptr_t)0x0067ed00)};
+const WKeywordsEnv kKeywordsPorts = {Charset_FormatWide, reinterpret_cast<u32(__cdecl *)(u32)>((uintptr_t)0x0067ed00), reinterpret_cast<void(__fastcall *)(u8 *)>((uintptr_t)0x004ea7e0)};
 const WKeywordsEnv *g_keywords = &kKeywordsPorts;
 }  // namespace
 
@@ -342,6 +342,12 @@ u8 __fastcall WScanner_NextChar(u8 *scanner, void *, u16 *out) {
     at<u32>(scanner, 0x38) = position + 1;
     *out = *charAt(scanner, position);
     return 1;
+}
+
+u8 *__fastcall WScanner_DeletingDtor(u8 *scanner, void *, u32 flags) {
+    g_keywords->baseDtor(scanner);
+    if (flags & 1) GameHeap_Free(scanner);
+    return scanner;
 }
 
 u8 *__fastcall WScanner_Construct(u8 *scanner, void *, u8 *tokens, StdWString *out) {
