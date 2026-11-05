@@ -70,7 +70,7 @@ def case(r):
                     nodes[node] = struct.pack('<IIII', chain[(i + 1) % len(chain)], chain[i - 1], r.getrandbits(32), block + 2 if block else 0)
                     if block:
                         nodes[block] = bytes([0, r.choice([0, 1, 2, 0xff])]) + b'ab\0'
-                struct.pack_into('<III', info, at, r.getrandbits(32), head, count)
+                struct.pack_into('<III', info, at, r.getrandbits(32), head, count + r.choice([0, 0, 3]))
             ones = r.random() < 0.5   # (the map at +0x28 empty, or with a node)
             struct.pack_into('<IIII', info, 0x28, r.getrandbits(32), HEAD_G, r.getrandbits(32), 1 if ones else 0)
             regions.update(nodes)

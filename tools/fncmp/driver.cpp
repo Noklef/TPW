@@ -1422,7 +1422,8 @@ const AddrCall kSavedPairsMakeCalls[] = {{0x575ee0, recorder(1, 1)}, {0x575f90, 
 const AddrCall kSpriteFolderCalls[] = {{0x41a9d0, recorder(1, 0)}, {0x41aa40, recorder(2, 0)}, {0x41d570, recorder(3, 2)}, {0x41d710, recorder(4, 1)}, {0x5f8240, recorder(5, 0)}, {0x5f82b0, recorder(6, 1)}, {0x540d90, recorder(7, 2)}, {0x541310, jpeg_recorder(8, 2)}, {0x421770, recorder(9, 2)},  // tests/fncmp/spritefolder.py
     {0x541d90, jpeg_recorder(10, 1)}, {0x58a4f0, recorder(11, 1)}, {0x576620, recorder(12, 6)}, {0x576410, recorder(13, 2)}};  // tests/fncmp/spritesinit.py
 const AddrCall kThemeTextCalls[] = {{0x413020, recorder(1, 3)}, {0x4130b0, recorder(2, 3)},  // tests/fncmp/themetexts.py
-    {0x40ef40, jpeg_recorder(3, 0)}, {0x44a280, jpeg_recorder(4, 3)}, {0x550e00, jpeg_recorder(5, 1)}, {0x5852b0, recorder(6, 1)}, {0x418c30, recorder(7, 0)}, {0x401650, recorder(8, 2)}};  // tests/fncmp/namedobjectsload.py
+    {0x40ef40, jpeg_recorder(3, 0)}, {0x44a280, jpeg_recorder(4, 3)}, {0x550e00, jpeg_recorder(5, 1)}, {0x5852b0, recorder(6, 1)}, {0x418c30, recorder(7, 0)}, {0x401650, recorder(8, 2)},  // tests/fncmp/namedobjectsload.py
+    {0x5b08a0, recorder(9, 1)}};  // tests/fncmp/namedobjectsselect.py
 const AddrCall kPointerMakeCalls[] = {  // tests/fncmp/pointermake.py
     {0x5fbf80, recorder(1, 2)}, {0x47e460, recorder(2, 0)}, {0x5fb8e0, recorder(3, 1)}, {0x5fbbd0, recorder(4, 2)}, {0x5fbc80, recorder(5, 2)}, {0x5fb7b0, recorder(6, 1)},
     {0x5f73a0, jpeg_recorder(7, 4)}, {0x5f5650, jpeg_recorder(8, 1)}, {0x5f5640, jpeg_recorder(9, 0)}, {0x67acc0, jpeg_recorder(10, 1)}};
