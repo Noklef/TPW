@@ -6,6 +6,14 @@
 
 #include "../../../re/types.h"
 
+// Class702da0_Step's callees (tests/fncmp/scenequeuestep.py gives them recorders).
+struct SceneQueueEnv {
+    u32(__cdecl *say)(s32 id);                            // Advisor_Say
+    u32(__cdecl *now)();                                  // Time_GetMs
+    u32(__fastcall *pushHead)(u8 *list, void *, u32 item);  // List_PushHead
+};
+void SceneQueue_SetEnv(const SceneQueueEnv *env);
+
 extern "C" {
 
 // 0x5d6060 (slot 4 of the vtable 0x702da0; name invented, unconfirmed): while the advisor speaks ([0xf7966c]) Advisor_StopSpeech; then
@@ -19,4 +27,9 @@ void __fastcall Class702da0_Push(u8 *object, void *, u32 id, u32 clear);
 
 // 0x5d61a0 (thiscall (id, time), pops 8; name invented, unconfirmed): +0x18 = 1, +0x1c = time, +0x24 = id.
 void __fastcall Class702da0_Show(u8 *object, void *, u32 id, u32 time);
+
+// 0x5d5f80 (thiscall; name invented, unconfirmed): while the advisor speaks ([0xf7966c]) only +0x28 = 1. With a count (+0x14) the tail node is taken off (the tail +0x10 its back link +8, whose next +4 is
+// cleared, or the head +0xc cleared), its item spoken (Advisor_Say; no tail node faults, sic) and freed, +0x28 = 1. Else with +0x18 set: with +0x28 set the time (+0x20) taken and +0x28 cleared; once
+// the time is past +0x20 + +0x1c (unsigned, wrapping) +0x20 = now and the id +0x24 is pushed on the queue of [[0xf85614] + 0x14], which need not be this one (a failed allocation faults, sic). Last +0x28 = 0.
+void __fastcall Class702da0_Step(u8 *object);
 }

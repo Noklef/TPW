@@ -7969,6 +7969,7 @@ address,name,kind,confidence,notes
 0x005d6060,Class702da0_Clear,function,low,reimplemented (src/game/frontend/scenequeue); the advisor stopped and every queued id freed
 0x005d6110,Class702da0_Push,function,low,"reimplemented (src/game/frontend/scenequeue); an id pushed at the head, the queue cleared first on request"
 0x005d61a0,Class702da0_Show,function,low,reimplemented (src/game/frontend/scenequeue); a text shown for a time
+0x005d5f80,Class702da0_Step,function,low,"reimplemented (src/game/frontend/scenequeue); the queue's step: speak the tail id, or push the shown id when its time is past"
 0x005d5cf0,Class7029f0_Close,function,low,"reimplemented (src/game/frontend/frame); the front-end frame's objects closed and deleted, the lobby sfx released, the window told"
 0x005d5dd0,Frame_HandleMessage,function,low,reimplemented (src/game/frontend/frame); the front-end frame's message handler
 0x005d58b0,Frame_WindowProc,function,low,reimplemented (src/game/frontend/frame); the message handler on the frame at 0xf82884
