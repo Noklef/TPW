@@ -25,6 +25,7 @@ struct CpuInfo {
 struct CpuInfoEnv {
     u32(__cdecl *hasCpuid)();                  // EFLAGS.ID can be toggled
     void(__cdecl *cpuid)(u32 leaf, u32 *regs);  // EAX EBX ECX EDX
+    u32(__cdecl *ticks)();                      // the time-stamp counter's low dword (rdtsc)
 };
 // nullptr restores the host's (the instructions themselves).
 void CpuInfo_SetEnv(const CpuInfoEnv *e);
@@ -33,6 +34,10 @@ const CpuInfoEnv *CpuInfo_GetEnv();
 extern "C" {
 // 0x55e470 (thiscall, no return value).
 void __fastcall CpuInfo_Ctor(CpuInfo *c);
+
+// 0x55e570 (thiscall (ms), pops 4; name unconfirmed): without a TSC 0; else the ticks of the time-stamp counter's low dword per millisecond of a busy wait of ms by timeGetTime (the import at
+// 0x6fd3ec). hasTsc is read before each rdtsc, a 0 there counting as 0 ticks. A wait that sees no millisecond pass divides by zero, as the original.
+u32 __fastcall CpuInfo_TicksPerMs(CpuInfo *c, void *, u32 ms);
 
 // 0x591210 (cdecl; name unconfirmed): the low dword of the time-stamp counter (rdtsc).
 u32 __cdecl Cpu_Ticks();

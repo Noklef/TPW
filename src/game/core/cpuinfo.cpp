@@ -29,7 +29,9 @@ void __cdecl hostCpuid(u32 leaf, u32 *regs) {
     for (int i = 0; i < 4; ++i) regs[i] = static_cast<u32>(r[i]);
 }
 
-const CpuInfoEnv kHostEnv = {&hostHasCpuid, &hostCpuid};
+u32 __cdecl hostTicks() { return static_cast<u32>(__rdtsc()); }
+
+const CpuInfoEnv kHostEnv = {&hostHasCpuid, &hostCpuid, &hostTicks};
 const CpuInfoEnv *g_env = &kHostEnv;
 
 const char kAnonymous[0xd] = "AnonymousCPU";  // 0x7010d8
@@ -59,6 +61,21 @@ void __fastcall CpuInfo_Ctor(CpuInfo *c) {
     c->has3dNow = r[3] >> 31;
     const s32 family = c->signature == 0 ? 4 : (static_cast<s32>(c->signature) >> 8) & 0xf;
     if (family >= 5 && c->features & 0x10) c->hasTsc = 1;
+}
+
+u32 __fastcall CpuInfo_TicksPerMs(CpuInfo *c, void *, u32 ms) {
+    const volatile u32 &hasTsc = c->hasTsc;
+    if (!hasTsc) return 0;
+    u32(__stdcall *const timeGetTime)() = *reinterpret_cast<u32(__stdcall *const *)()>((uintptr_t)0x006fd3ec);
+    const u32 begin = timeGetTime();
+    const u32 first = hasTsc ? g_env->ticks() : 0;
+    const u32 end = begin + ms;
+    u32 now, last;
+    do {
+        now = timeGetTime();
+        last = hasTsc ? g_env->ticks() : 0;
+    } while (now < end);
+    return (last - first) / (now - begin);
 }
 
 u32 __cdecl Cpu_Ticks() { return static_cast<u32>(__rdtsc()); }

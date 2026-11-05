@@ -1993,6 +1993,7 @@ address,name,kind,confidence,notes
 0x0055e470,CpuInfo_Ctor,function,high,"reimplemented (src/game/core/cpuinfo); thiscall; CPUID probe (EFLAGS.ID test, then the vendor string and features); SystemInfo's base"
 0x00591210,Cpu_Ticks,function,low,reimplemented (src/game/core/cpuinfo); cdecl: the low dword of the time-stamp counter (rdtsc)
 0x0057cb90,Cpu_Ticks16,function,low,"reimplemented (src/game/core/cpuinfo); cdecl: the time-stamp counter's bits 4..35 (rdtsc; shrd eax, edx, 4)"
+0x0055e570,CpuInfo_TicksPerMs,function,low,reimplemented (src/game/core/cpuinfo); thiscall (ms): the time-stamp counter's ticks per millisecond over a busy wait of ms; 0 without a TSC; name invented
 0x0067df40,CRT_stricmp,function,high,reimplemented (src/game/core/crt); _stricmp
 0x00699ab0,CRT_Tolower,function,low,reimplemented (src/game/core/crt); _Tolower
 0x0069a340,CRT_Toupper,function,low,reimplemented (src/game/core/crt); _Toupper

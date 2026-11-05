@@ -677,6 +677,13 @@ void __cdecl stub_cpuid(u32 leaf, u32 *regs) {
     std::memcpy(regs, reinterpret_cast<const void *>((uintptr_t)(kCpu + 0x10 + 0x10 * i)), 16);
 }
 
+u32 __cdecl stub_ticks() {
+    u32 *const fake = reinterpret_cast<u32 *>((uintptr_t)kCpu);
+    const u32 ticks = fake[1];
+    fake[1] = ticks + fake[2];
+    return ticks;
+}
+
 // A constructor / destructor for code that calls one through a pointer (kStubs + 0x40, tools/fncmp.py STUBS + 0x40): thiscall, no other arguments;
 // puts a vtable pointer (0x6fd800) in the first dword of the object.
 void __fastcall stub_mark(u32 *self) { *self = 0x006fd800; }
@@ -3383,7 +3390,7 @@ int main(int argc, char **argv) {
     drives.nodeCtor = reinterpret_cast<StringListNode *(__fastcall *)(StringListNode *, void *, String)>(hooked(0x005f8a50));
     drives.stricmp = reinterpret_cast<s32(__cdecl *)(const char *, const char *)>(hooked(0x0067df40));
     Drives_SetEnv(&drives);
-    static const CpuInfoEnv cpu = {&stub_has_cpuid, &stub_cpuid};  // the case's fake CPU, as the emulator's
+    static const CpuInfoEnv cpu = {&stub_has_cpuid, &stub_cpuid, &stub_ticks};  // the case's fake CPU, as the emulator's
     CpuInfo_SetEnv(&cpu);
     // The registry key's constructor (0x581da0) resolved to its hook; the registry imports stay the import table's slots, which a case maps
     // (import_table(): recorders).
