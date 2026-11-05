@@ -2,6 +2,7 @@
 
 #include "data_dump.h"
 #include "fpu_watch.h"
+#include "load_timer.h"
 #include "log.h"
 #include "pool_watch.h"
 #include "profiler.h"
@@ -36,6 +37,7 @@ void after_hooks(const char *ini) {
     if (GetPrivateProfileIntA("tpw", "poolwatch", 1, ini)) start_pool_watch(g_dll);
     start_shadow(ini);
     start_data_dump(ini);
+    start_load_timer();
 }
 
 void stop() {

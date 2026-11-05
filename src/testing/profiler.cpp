@@ -116,4 +116,12 @@ void log_profile() {
     log_top("dll ", g_dll, kDllBuckets, 0, total);
 }
 
+void reset_profile() {
+    g_samples = 0;
+    g_unknown = 0;
+    memset(g_game, 0, sizeof g_game);
+    memset(g_dll, 0, sizeof g_dll);
+    for (Module &m : g_modules) m.count = 0;
+}
+
 }  // namespace tpw::testing

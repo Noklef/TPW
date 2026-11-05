@@ -13,5 +13,7 @@ namespace tpw::testing {
 void start_profiler(HINSTANCE dll);
 // Logs the profile (at exit).
 void log_profile();
+// Clears the counts, so that the next profile covers one stretch of the run. (A sample landing mid-clear does not matter here.)
+void reset_profile();
 
 }  // namespace tpw::testing

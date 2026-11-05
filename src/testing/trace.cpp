@@ -8,6 +8,7 @@
 #include <intrin.h>
 #include <windows.h>
 
+#include "load_timer.h"
 #include "log.h"
 #include "../hook/patch.h"
 
@@ -103,6 +104,10 @@ HANDLE WINAPI t_CreateFileA(LPCSTR name, DWORD access, DWORD share, LPSECURITY_A
             log_line("[%6.1fs] CreateFileA(\"%s\", access %X, disposition %u) from %08X FAILED (error %u)%s",
                      log_seconds(), str(name), access, disposition, CALLER, e,
                      n == 300 ? " -- no more file failures logged" : "");
+        SetLastError(e);
+    } else if (!(access & GENERIC_WRITE)) {
+        const DWORD e = GetLastError();
+        load_timer_file_opened(name);
         SetLastError(e);
     }
     return r;
