@@ -43,7 +43,7 @@ UNDERFLOW, UFLOW = 4, 5   # (the input stream's slots)
 INPUT = RAM + 0x6000
 SOURCE_VTABLE, NEXT, LEFT, ANSWER_UNDER, ANSWER_U, FIRST, LAST, IN_BUFFER, IN_TEXT = (INPUT + i for i in (0, 0x20, 0x30, 0x40, 0x100, 0x1c0, 0x1d0, 0x1e0, 0x240))
 CHOSEN = {}   # (what facet_state dealt: the input is built from it)
-GROUPS = [b'', b'\x03', b'\x03\x02', b'\x01', b'\x7f', b'\x03\x7f', b'\xff', b'\x03\xff', b'\x02\x00\x03']
+GROUPS = [b'', b'\x03', b'\x03\x02', b'\x01', b'\x7f', b'\x03\x7f', b'\xff', b'\x03\xff', b'\x02\x00\x03', b'\x03\x03\x7f', b'\x03\x03\x7f']
 SIGNS = [b'', b'-', b'+', b'()', b'-x', b'CR ', b'a longer sign text']
 SYMBOLS = [b'', b'$', b'USD ', b'\xa3', b'a currency symbol longer than the small size']
 NUMBERS = [b'', b'0', b'5', b'12', b'123', b'1234', b'1234567', b'12345678901234567890', b'x' * 0x28]
@@ -147,7 +147,10 @@ def digit_groups(r):
     """Digits with separators: by the grouping dealt, or off it."""
     sizes = [c if c < 0x80 else 0 for c in CHOSEN[GROUPING]] or [3]
     sep = bytes([CHOSEN[SEPARATOR]])
-    groups = [b'7' * r.choice([1, 2, 3, 4, sizes[0] or 1])]
+    if r.random() < 0.4:   # (every group as the grouping wants it but the leftmost: the original's test reaches that one only past a 0x7f)
+        groups = [b'5' * (sizes[min(i, len(sizes) - 1)] or sizes[0] or 3) for i in range(r.choice([1, 1, 2, 2, 3]))] + [b'7' * r.choice([1, 2, 3, 4])]
+        return sep.join(reversed(groups))
+    groups = [b'7' * r.choice([1, 2, 3, 4, sizes[0] or 1, 0x81])]
     for i in range(r.choice([0, 0, 1, 2, 3])):
         size = sizes[min(i, len(sizes) - 1)]
         groups.append(b'5' * (size if r.random() < 0.85 else r.choice([0, 1, 2, 4])))
@@ -201,7 +204,7 @@ def stream(r, regions, log):
     both = r.random() < 0.06
     first, last = r.choice([IN_BUFFER] * 12 + [0]), 0
     regions[FIRST] = struct.pack('<IBB', IN_BUFFER if both else first, 1 if both else r.choice([0, 0, 0, 1]), r.getrandbits(8)) + bytes(10)
-    regions[LAST] = struct.pack('<IBB', IN_BUFFER if both else last, 1 if both else r.choice([1, 1, 0]), r.getrandbits(8)) + bytes(10)
+    regions[LAST] = struct.pack('<IBB', r.choice([IN_BUFFER, IN_TEXT]) if both else last, 1 if both else r.choice([1, 1, 0]), r.getrandbits(8)) + bytes(10)
 
 
 def case(r):
