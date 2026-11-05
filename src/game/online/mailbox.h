@@ -63,7 +63,7 @@ struct MailboxDropEnv {
 };
 void MailboxDrop_SetEnv(const MailboxDropEnv *env);  // nullptr: the game's
 
-// The calls of 0x5c9720 and 0x5cc8a0 (0x5c92f0 is the game's encode, ported).
+// The calls of 0x5c9720, 0x5cc8a0, 0x5c9a80 and 0x5ca010.
 struct MailClientEnv {
     void *(__cdecl *fopen)(const char *name, const char *mode);                     // CRT_fopen
     s32(__cdecl *fseek)(void *file, s32 offset, s32 origin);                        // CRT_fseek
@@ -72,6 +72,9 @@ struct MailClientEnv {
     void(__cdecl *encode)(char *dst, const u8 *src, s32 length);                    // Base64_Encode
     u8 *(__fastcall *ctor)(void *block);                                            // MailClient_Ctor
     u32(__fastcall *connect)(u8 *self, void *, const char *host, u32 port, u32 arg3, u8 *owner);  // MailClient_Connect
+    void(__fastcall *build)(u8 *mail);                                              // PostcardMail_Build
+    u8(__fastcall *dropFirst)(u8 *self, void *, u8 *target);                        // Mailbox_DropFirst
+    u8(__fastcall *saveMessage)(u8 *self);                                          // Mailbox_SaveMessage
 };
 void MailClient_SetEnv(const MailClientEnv *env);  // nullptr: the game's
 
@@ -87,6 +90,26 @@ u8 *__fastcall MailClient_Ctor(u8 *self);
 // 0x5c9f10 (thiscall (host, port, arg3, owner), pops 0x10): no owner: +0x85 = 1, else 0; +0x8c the owner. An empty list +0x10: the callback +0x90, when set, told (1, 8), and 1. The library's object +0x70 made if there is none (0x6fd57c; none: 1); +0x6c = 0;
 // its connect (0x6fd574) with the callback 0x5c9a60 and self. Answers whether that gave 0.
 u32 __fastcall MailClient_Connect(u8 *self, void *, const char *host, u32 port, u32 arg3, u8 *owner);
+
+// 0x5c9a80 (thiscall (kind, code, unused), pops 0xc): the mail library's event. Kind 0x78: code 0xfa: the next step by the state +0x6c: 0: the sender +0 given (0x6fd578), the cursor +0x88 at the list's first; 1: the next string of the list given (0x6fd570),
+// its last: the next state; 2: the body built (PostcardMail_Build), +0x74 given (0x6fd56c), the next state; 3: without +0x85, the client emptied and the owner's next message (Mailbox_DropFirst): got: state 0, the library's 0x6fd564; else, or with +0x85:
+// +0x84 = 1, the library's 0x6fd568. Other codes tell the callback +0x90: 0x1a5: (1, 2); 0x1c2, 0x226: (1, 7); 0x228: (1, 6), in state 1 after the next string; 0xdd nothing; the rest (1, 5). Kind -5: (1, -1). Kind -4: (+0x84 is 0, -1).
+void __fastcall MailClient_OnEvent(u8 *self, void *, s32 kind, s32 code, u32 unused);
+
+// 0x5c9a60 (stdcall, pops 0x10): the library's callback: 0x5c9a80 on the object it was given.
+void __stdcall MailClient_Callback(s32 kind, s32 code, u32 unused, u8 *self);
+
+// 0x5c9570 (thiscall): the client's destructor: emptied as for a new message (the texts 0x773dc0 and 0x786de4), WSACleanup (0x6fd430, the import read live), its strings, its list and its head freed.
+void __fastcall MailClient_Dtor(u8 *self);
+
+// 0x5cb030 (thiscall): the mailbox's destructor: the client +0x98 destroyed and freed, then the string +0x80, the number lists +0x70, +0x64 and +0x58 with their heads, the message's strings and lines, the folder.
+void __fastcall Mailbox_Dtor(u8 *self);
+
+// 0x5cd0a0 (thiscall): each message of the list +0x70 deleted, its number out of +0x64 and +0x58; the list +0x70 emptied; the outbox saved. +0x7c the first of +0x58. Answers that one's message read, when the list has any, else 0.
+u8 __fastcall Mailbox_DeleteSent(u8 *self);
+
+// 0x5ca010 (thiscall on a client (mailbox), pops 4): no mailbox: 0. The client's message made the mailbox's: its lines emptied, +0x10 from +0, +0x20 from +0x1c, the list's strings pushed, +0x3c from +0x2c; answers Mailbox_SaveMessage's.
+u8 __fastcall Mailbox_StoreFromClient(u8 *client, void *, u8 *mailbox);
 
 // 0x5cc8a0 (thiscall (host, port, arg3), pops 0xc): nothing in +0x6c: 0. The client +0x98 made, or emptied (+0 the text 0x773dc0, its list, its attachment, +0x74 the text 0x786de4). The host kept at +0x80, the port's low word at +0x90; the client's +0x90
 // is this +0x94. The first message of +0x64 read (none: 0) and put in the client as Mailbox_DropFirst does; connected with self as the owner. Answers whether that gave 0. The port's high word in the original is what EDX held; here 0.

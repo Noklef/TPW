@@ -23,6 +23,7 @@
 #include "../core/stdstring.h"
 #include "../core/stdwstring.h"
 #include "chatlists.h"
+#include "postcardmail.h"
 #include "session.h"
 
 namespace {
@@ -45,7 +46,8 @@ const MailboxDropEnv kGameDropEnv = {&NumberList_Erase, reinterpret_cast<s32(__c
 const MailboxDropEnv *g_drop = &kGameDropEnv;
 
 const MailClientEnv kGameClientEnv = {reinterpret_cast<void *(__cdecl *)(const char *, const char *)>(&CRT_fopen), reinterpret_cast<s32(__cdecl *)(void *, s32, s32)>(&CRT_fseek), reinterpret_cast<s32(__cdecl *)(void *)>(&CRT_ftell),
-                                      reinterpret_cast<u32(__cdecl *)(char *, u32, u32, void *)>(&CRT_fread), &Base64_Encode, reinterpret_cast<u8 *(__fastcall *)(void *)>(&MailClient_Ctor), &MailClient_Connect};
+                                      reinterpret_cast<u32(__cdecl *)(char *, u32, u32, void *)>(&CRT_fread), &Base64_Encode, reinterpret_cast<u8 *(__fastcall *)(void *)>(&MailClient_Ctor), &MailClient_Connect,
+                                      &PostcardMail_Build, &Mailbox_DropFirst, &Mailbox_SaveMessage};
 const MailClientEnv *g_client = &kGameClientEnv;
 
 // The ios of a stream, by the offset in its vbtable.
@@ -176,6 +178,51 @@ void FillFromSession(u8 *target, u8 *(__cdecl *instance)()) {
     at<u32>(target, 0x64) = 9;
 }
 
+// A text to the mail library's object +0x70, by its import read live.
+void LibraryText(u8 *self, u32 import, const char *text) { at<void(__fastcall *)(u8 *, void *, const char *)>(nullptr, import)(at<u8 *>(self, 0x70), nullptr, text); }
+
+// The callback +0x90 told, when there is one.
+void Notify(u8 *self, u32 a, u32 b) {
+    void(__cdecl *const callback)(u32, u32) = at<void(__cdecl *)(u32, u32)>(self, 0x90);
+    if (callback) callback(a, b);
+}
+
+// The list's string at the cursor +0x88 given to the library; the cursor moved on, and past the last: the next state.
+void SendNextString(u8 *self) {
+    u8 *const node = at<u8 *>(self, 0x88);
+    at<u8 *>(self, 0x88) = at<u8 *>(node, 0);
+    StdString line;
+    StdString_Tidy(&line, nullptr, 0);
+    StdString_AssignSub(&line, nullptr, &at<StdString>(node, 8), 0, npos());
+    if (at<u8 *>(self, 0x88) == at<u8 *>(self, 0x14)) ++at<u32>(self, 0x6c);
+    LibraryText(self, 0x006fd570, TextOf(line));
+    StdString_Tidy(&line, nullptr, 1);
+}
+
+// Each node of a list of strings {?, head +4, count +8} erased.
+void EraseStrings(u8 *list) {
+    u8 *const head = at<u8 *>(list, 4);
+    for (u8 *node = at<u8 *>(head, 0); node != head;) {
+        u8 *const next = at<u8 *>(node, 0);
+        u32 out;
+        List_EraseNodeCounted(list, nullptr, &out, node);
+        node = next;
+    }
+}
+
+// A list of numbers destroyed: each node erased, its head freed, head and count cleared.
+void FreeNumbers(u8 *list) {
+    u8 *const head = at<u8 *>(list, 4);
+    u32 cursor = at<u32>(head, 0);
+    while (cursor != reinterpret_cast<uintptr_t>(head)) {
+        u32 old, out;
+        NumberList_Erase(list, nullptr, &out, *ListCursor_Next(&cursor, nullptr, &old, 0));
+    }
+    GameHeap_Free(at<u8 *>(list, 4));
+    at<u32>(list, 4) = 0;
+    at<u32>(list, 8) = 0;
+}
+
 void RemoveNumber(u8 *list, u32 number) {
     const u32 end = at<u32>(list, 4);
     u32 cursor = at<u32>(at<u8 *>(list, 4), 0);
@@ -205,6 +252,137 @@ void Mailbox_SetEnv(const MailboxEnv *env) { g_env = env ? env : &kGameEnv; }
 void MailboxDrop_SetEnv(const MailboxDropEnv *env) { g_drop = env ? env : &kGameDropEnv; }
 
 void MailClient_SetEnv(const MailClientEnv *env) { g_client = env ? env : &kGameClientEnv; }
+
+void __fastcall MailClient_OnEvent(u8 *self, void *, s32 kind, s32 code, u32) {
+    if (kind == -5) return Notify(self, 1, 0xffffffff);
+    if (kind == -4) return Notify(self, at<u8>(self, 0x84) == 0, 0xffffffff);
+    if (kind != 0x78) return;
+    switch (code) {
+    case 0xdd:
+        return;
+    case 0x1a5:
+        return Notify(self, 1, 2);
+    case 0x1c2:
+    case 0x226:
+        return Notify(self, 1, 7);
+    case 0x228:
+        if (at<u32>(self, 0x6c) == 1) SendNextString(self);
+        return Notify(self, 1, 6);
+    case 0xfa:
+        break;
+    default:
+        return Notify(self, 1, 5);
+    }
+    switch (at<u32>(self, 0x6c)) {
+    case 0:
+        at<u32>(self, 0x6c) = 1;
+        LibraryText(self, 0x006fd578, TextOf(at<StdString>(self, 0)));
+        at<u8 *>(self, 0x88) = at<u8 *>(at<u8 *>(self, 0x14), 0);
+        return;
+    case 1:
+        return SendNextString(self);
+    case 2:
+        g_client->build(self);
+        ++at<u32>(self, 0x6c);
+        return LibraryText(self, 0x006fd56c, TextOf(at<StdString>(self, 0x74)));
+    case 3:
+        if (!at<u8>(self, 0x85)) {
+            AssignText(at<StdString>(self, 0), reinterpret_cast<const char *>((uintptr_t)0x00773dc0));
+            EraseStrings(self + 0x10);
+            if (at<u8 *>(self, 0x68)) {
+                Counted2_ScalarDtor(at<u8 *>(self, 0x68), nullptr, 1);
+                at<u8 *>(self, 0x68) = nullptr;
+            }
+            AssignText(at<StdString>(self, 0x74), reinterpret_cast<const char *>((uintptr_t)0x00786de4));
+            if (g_client->dropFirst(at<u8 *>(self, 0x8c), nullptr, self)) {
+                at<u32>(self, 0x6c) = 0;
+                at<void(__fastcall *)(u8 *)>(nullptr, 0x006fd564)(at<u8 *>(self, 0x70));
+                return;
+            }
+        }
+        at<u8>(self, 0x84) = 1;
+        at<void(__fastcall *)(u8 *)>(nullptr, 0x006fd568)(at<u8 *>(self, 0x70));
+        return;
+    default:
+        return;
+    }
+}
+
+void __stdcall MailClient_Callback(s32 kind, s32 code, u32 unused, u8 *self) { MailClient_OnEvent(self, nullptr, kind, code, unused); }
+
+void __fastcall MailClient_Dtor(u8 *self) {
+    AssignChars(at<StdString>(self, 0), reinterpret_cast<const char *>((uintptr_t)0x00773dc0));
+    u32 out;
+    List_EraseRangeCounted1(self + 0x10, nullptr, &out, at<u8 *>(at<u8 *>(self, 0x14), 0), at<u8 *>(self, 0x14));
+    if (at<u8 *>(self, 0x68)) {
+        Counted2_ScalarDtor(at<u8 *>(self, 0x68), nullptr, 1);
+        at<u8 *>(self, 0x68) = nullptr;
+    }
+    AssignChars(at<StdString>(self, 0x74), reinterpret_cast<const char *>((uintptr_t)0x00786de4));
+    at<s32(__stdcall *)()>(nullptr, 0x006fd430)();
+    StdString_Tidy(&at<StdString>(self, 0x74), nullptr, 1);
+    CountedBuf_Reset(self + 0x54, nullptr, 1);
+    CountedBuf_Reset(self + 0x44, nullptr, 1);
+    StdString_Tidy(&at<StdString>(self, 0x2c), nullptr, 1);
+    StdString_Tidy(&at<StdString>(self, 0x1c), nullptr, 1);
+    List_EraseRangeCounted1(self + 0x10, nullptr, &out, at<u8 *>(at<u8 *>(self, 0x14), 0), at<u8 *>(self, 0x14));
+    GameHeap_Free(at<u8 *>(self, 0x14));
+    at<u32>(self, 0x14) = 0;
+    at<u32>(self, 0x18) = 0;
+    StdString_Tidy(&at<StdString>(self, 0), nullptr, 1);
+}
+
+void __fastcall Mailbox_Dtor(u8 *self) {
+    if (u8 *const client = at<u8 *>(self, 0x98)) {
+        MailClient_Dtor(client);
+        GameHeap_Free(client);
+        at<u32>(self, 0x98) = 0;
+    }
+    StdString_Tidy(&at<StdString>(self, 0x80), nullptr, 1);
+    FreeNumbers(self + 0x70);
+    FreeNumbers(self + 0x64);
+    u32 out;
+    List_EraseRange(self + 0x58, nullptr, &out, at<u8 *>(at<u8 *>(self, 0x5c), 0), at<u8 *>(self, 0x5c));
+    GameHeap_Free(at<u8 *>(self, 0x5c));
+    at<u32>(self, 0x5c) = 0;
+    at<u32>(self, 0x60) = 0;
+    StdString_Tidy(&at<StdString>(self, 0x3c), nullptr, 1);
+    StdListString_Clear(self + 0x30);
+    StdString_Tidy(&at<StdString>(self, 0x20), nullptr, 1);
+    StdString_Tidy(&at<StdString>(self, 0x10), nullptr, 1);
+    StdString_Tidy(&at<StdString>(self, 0), nullptr, 1);
+}
+
+u8 __fastcall Mailbox_DeleteSent(u8 *self) {
+    for (u8 *node = at<u8 *>(at<u8 *>(self, 0x74), 0); node != at<u8 *>(self, 0x74); node = at<u8 *>(node, 0)) {
+        g_drop->deleteMessage(self, nullptr, at<u32>(node, 8));
+        RemoveNumber(self + 0x64, at<u32>(node, 8));
+        RemoveNumber(self + 0x58, at<u32>(node, 8));
+    }
+    u8 *const head = at<u8 *>(self, 0x74);
+    for (u8 *node = at<u8 *>(head, 0); node != head;) {
+        u8 *const next = at<u8 *>(node, 0);
+        at<u8 *>(at<u8 *>(node, 4), 0) = next;
+        at<u8 *>(next, 4) = at<u8 *>(node, 4);
+        GameHeap_Free(node);
+        --at<u32>(self, 0x78);
+        node = next;
+    }
+    g_drop->saveOutbox(self);
+    u8 *const first = at<u8 *>(at<u8 *>(self, 0x5c), 0);
+    at<u8 *>(self, 0x7c) = first;
+    return at<u32>(self, 0x60) ? g_drop->loadMessage(self, nullptr, at<u32>(first, 8)) : 0;
+}
+
+u8 __fastcall Mailbox_StoreFromClient(u8 *client, void *, u8 *mailbox) {
+    if (!mailbox) return 0;
+    EraseStrings(mailbox + 0x30);
+    AssignText(at<StdString>(mailbox, 0x10), TextOf(at<StdString>(client, 0)));
+    AssignText(at<StdString>(mailbox, 0x20), TextOf(at<StdString>(client, 0x1c)));
+    for (u8 *node = at<u8 *>(at<u8 *>(client, 0x14), 0); node != at<u8 *>(client, 0x14); node = at<u8 *>(node, 0)) StringList34_PushChars(mailbox, nullptr, TextOf(at<StdString>(node, 8)));
+    AssignText(at<StdString>(mailbox, 0x3c), TextOf(at<StdString>(client, 0x2c)));
+    return g_client->saveMessage(mailbox);
+}
 
 u8 *__fastcall MailAttachment_Ctor(u8 *self, void *, const char *path) {
     StdString_Zero(self);

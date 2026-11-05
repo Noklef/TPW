@@ -7712,6 +7712,8 @@ address,name,kind,confidence,notes
 0x005c93c0,MailClient_Ctor,function,low,"reimplemented (src/game/online/mailbox); The mail client built; name invented, unconfirmed"
 0x005c9f10,MailClient_Connect,function,low,"reimplemented (src/game/online/mailbox); The mail client's library object made and connected; name invented, unconfirmed"
 0x005cc8a0,Mailbox_Send,function,low,"reimplemented (src/game/online/mailbox); The first message put in the mail client and connected; name invented, unconfirmed"
+0x005c9a80,MailClient_OnEvent,function,low,"reimplemented (src/game/online/mailbox); The mail library's event: the sending's next step, the callback told; name invented, unconfirmed"
+0x005c9a60,MailClient_Callback,function,low,"reimplemented (src/game/online/mailbox); The mail library's callback; name invented, unconfirmed"
 0x005d8190,LobbyModel_SetPosition,function,high,"reimplemented (src/game/frontend/lobbymodel); thiscall (v): the lobby model's (+4: 0x7a4610 index) matrix (+8 -> +4 -> +0x78, +0x10) translation = v[0..2] (x87 loads, all read first)"
 0x005d8380,LobbyModel_TurnY,function,high,"reimplemented (src/game/frontend/lobbymodel); thiscall (angle): Matrix_RotateEulerFast(the lobby model's matrix, 2 ""Y"", &angle)"
 0x005d83b0,LobbyModel_SetScale,function,high,"reimplemented (src/game/frontend/lobbymodel); thiscall (x, y, z): Holder_SetScale(the lobby model's entry +8, (x, y, z))"

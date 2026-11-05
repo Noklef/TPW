@@ -48,7 +48,7 @@ def case(r):
     imports = bytearray(0x600)
     for at, stub in global_heap().items():
         imports[at - IMPORT_TABLE:at - IMPORT_TABLE + 4] = stub
-    regions = {LOG: log, IMPORT_TABLE: imports, HEAP: heap(0x4000, r.choice([0] * 49 + [2]))}
+    regions = {LOG: log, IMPORT_TABLE: imports, HEAP: heap(0x4000, r.choice([0] * 36 + [1, 2, 3, 4]))}
     regions[0x6fe5ac] = struct.pack('<I', r.choice([0xffffffff, 0xffffffff, 0xfffffffe]))
     self = bytearray(r.bytes(0xa0))
     # The list +0x64 (its head +0x68, its count +0x6c): the first node's number is the message's.
