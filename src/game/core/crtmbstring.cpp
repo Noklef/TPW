@@ -32,6 +32,48 @@ u32 __cdecl CRT_mbctolower(u32 c) {
     return (&global<u8>(0x00fb1770))[c];
 }
 
+u32 __cdecl CRT_getSystemCP(u32 code_page) {
+    u32 &from_system = *reinterpret_cast<u32 *>((uintptr_t)0x00fb1884);
+    from_system = 0;
+    if (code_page == 0xfffffffe) {
+        from_system = 1;
+        return (*reinterpret_cast<u32(__stdcall *const *)()>((uintptr_t)0x006fd1f4))();
+    }
+    if (code_page == 0xfffffffd) {
+        from_system = 1;
+        return (*reinterpret_cast<u32(__stdcall *const *)()>((uintptr_t)0x006fd17c))();
+    }
+    if (code_page == 0xfffffffc) {
+        from_system = 1;
+        return *reinterpret_cast<const u32 *>((uintptr_t)0x00fb1450);
+    }
+    return code_page;
+}
+
+u32 __cdecl CRT_CPtoLCID(u32 code_page) {
+    switch (code_page) {
+    case 932: return 0x411;
+    case 936: return 0x804;
+    case 949: return 0x412;
+    case 950: return 0x404;
+    default: return 0;
+    }
+}
+
+u32 __cdecl CRT_setSBCS() {
+    u8 *const table = reinterpret_cast<u8 *>((uintptr_t)0x00fb1668);
+    for (u32 i = 0; i < 0x101; ++i) table[i] = 0;
+    const u32 globals[] = {0x00fb1870, 0x00fb3b84, 0x00fb1874, 0x00fb1878, 0x00fb187c, 0x00fb1880};
+    for (const u32 global : globals) *reinterpret_cast<u32 *>((uintptr_t)global) = 0;
+    return 0;
+}
+
+u32 __cdecl CRT_ismbbtype(u32 c, u32 ctype_mask, u32 mask) {
+    const u32 byte = c & 0xff;
+    if (reinterpret_cast<const u8 *>((uintptr_t)0x00fb1669)[byte] & static_cast<u8>(mask)) return 1;
+    return ctype_mask && reinterpret_cast<const u16 *>((uintptr_t)0x0077ea9a)[byte] & ctype_mask ? 1 : 0;
+}
+
 s32 __cdecl CRT_mbsicmp(const char *a, const char *b) {
     if (!code_page()) return CRT_stricmp(a, b);
     // One character, lower; false for a map of the wrong length.
