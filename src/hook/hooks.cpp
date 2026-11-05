@@ -247,6 +247,7 @@
 #include "../game/core/locinfo.h"
 #include "../game/core/loopstream.h"
 #include "../game/core/mixerthread.h"
+#include "../game/core/moneyget.h"
 #include "../game/core/moneypunct.h"
 #include "../game/core/moneyput.h"
 #include "../game/core/mp2decoder.h"
@@ -6773,6 +6774,7 @@ const Hook kHooks[] = {
     {"WaitThread_Shutdown",       0x00632730, (void *)&WaitThread_Shutdown, {0x56, 0x8b, 0xf1, 0xe8, 0x38}},
     {"WaitThread_Dtor",           0x006323e0, (void *)&WaitThread_Dtor, {0x6a, 0xff, 0x68, 0x66, 0x2c}},
     {"WaitThread_DeletingDtor",   0x006323c0, (void *)&WaitThread_DeletingDtor, {0x56, 0x8b, 0xf1, 0xe8, 0x18}},
+    {"MoneyGet_Getmfld",          0x006a7920, (void *)&MoneyGet_Getmfld, {0x6a, 0xff, 0x68, 0x4d, 0x50}},
     {"Nav_Ctor",          0x0050ffe0, (void *)&Nav_Ctor, {0x6a, 0xff, 0x68, 0x2d, 0xe6}},
     {"Nav_Dtor",                  0x0050f200, (void *)&Nav_Dtor, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"Nav_DtorAtD4",              0x004f7c30, (void *)&Nav_DtorAtD4, {0x81, 0xc1, 0xd4, 0x00, 0x00}},

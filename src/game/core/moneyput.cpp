@@ -93,6 +93,13 @@ u8 *money_facet(u8 *ios, u8 international) {
     });
 }
 
+u8 *ctype_facet(u8 *ios) {
+    return use_facet(ios, kCtypeId, kCtypeCache, [] {
+        void *const object = IosBase_Env().memAlloc(0x18);
+        return Globalf827dc_Set(object ? static_cast<u8 *>(IosBase_Env().ctypeCtor(object, nullptr, 0, 0, 0)) : nullptr);
+    });
+}
+
 void put_times(u32 *it, u32 c, u32 count) {
     for (; count; --count) OstreamIter_Put(it, nullptr, c);
 }
@@ -196,6 +203,10 @@ u32 scale_value(double *value, u8 *negative) {
 
 }  // namespace
 
+u8 *MoneyPut_Facet(u8 *ios, u8 international) { return money_facet(ios, international); }
+
+u8 *MoneyPut_Ctype(u8 *ios) { return ctype_facet(ios); }
+
 extern "C" {
 
 u32 __fastcall Streambuf_Sputc(u8 *buffer, void *, u32 c) {
@@ -284,10 +295,7 @@ u32 *__fastcall MoneyPut_DoPutNumber(void *self, void *, u32 *out, u32 failed, u
 }
 
 u32 *__fastcall MoneyPut_DoPutString(void *self, void *, u32 *out, u32 failed, u8 *buffer, u8 international, u8 *ios, u32 fill, const StdString *text) {
-    u8 *const facet = use_facet(ios, kCtypeId, kCtypeCache, [] {
-        void *const object = IosBase_Env().memAlloc(0x18);
-        return Globalf827dc_Set(object ? static_cast<u8 *>(IosBase_Env().ctypeCtor(object, nullptr, 0, 0, 0)) : nullptr);
-    });
+    u8 *const facet = ctype_facet(ios);
     const char *from = text_or_null_string(text->ptr);
     u8 negative = 0;
     if (*from == '-') {
