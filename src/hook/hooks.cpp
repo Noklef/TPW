@@ -148,6 +148,7 @@
 #include "../game/gfx/dderrors.h"
 #include "../game/gfx/glyphrender.h"
 #include "../game/gfx/guitext.h"
+#include "../game/gfx/jpegsource.h"
 #include "../game/gfx/jpegwrite.h"
 #include "../game/gfx/madvideo.h"
 #include "../game/gfx/mmxblit.h"
@@ -7361,6 +7362,10 @@ const Hook kHooks[] = {
     {"JpegDest_Init",             0x0064dc5a, (void *)&JpegDest_Init, {0x55, 0x8b, 0xec, 0x51, 0x8b}},
     {"JpegDest_Empty",            0x0064dc9c, (void *)&JpegDest_Empty, {0x55, 0x8b, 0xec, 0x51, 0x8b}},
     {"JpegDest_Term",             0x0064dd00, (void *)&JpegDest_Term, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"JpegSource_Set",            0x00631140, (void *)&JpegSource_Set, {0x56, 0x8b, 0x74, 0x24, 0x08}},
+    {"JpegSource_Init",           0x006311b0, (void *)&JpegSource_Init, {0x8b, 0x44, 0x24, 0x04, 0x8b}},
+    {"JpegSource_Fill",           0x006311c0, (void *)&JpegSource_Fill, {0x56, 0x57, 0x8b, 0x7c, 0x24}},
+    {"JpegSource_Skip",           0x00631230, (void *)&JpegSource_Skip, {0x53, 0x8b, 0x5c, 0x24, 0x08}},
     {"RenderMode_Size",           0x0044a590, (void *)&RenderMode_Size, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_Depth",          0x0044a5d0, (void *)&RenderMode_Depth, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_ResetScale",     0x0044a600, (void *)&RenderMode_ResetScale, {0x51, 0xc7, 0x44, 0x24, 0x00}},

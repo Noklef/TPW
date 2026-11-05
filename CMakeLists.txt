@@ -713,6 +713,7 @@ add_library(tpw_game STATIC
     src/game/gfx/bumplight.cpp
     src/game/gfx/signrender.cpp
     src/game/gfx/jpegwrite.cpp
+    src/game/gfx/jpegsource.cpp
     src/game/ui/panel7cc3b0handler.cpp
     src/game/world/rideupkeep.cpp
     src/game/world/objectwear.cpp

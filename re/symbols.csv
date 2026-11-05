@@ -7034,6 +7034,10 @@ address,name,kind,confidence,notes
 0x0064dc5a,JpegDest_Init,function,low,reimplemented (src/game/gfx/jpegwrite); cdecl: init_destination: a 0x1000-byte buffer; name invented
 0x0064dc9c,JpegDest_Empty,function,low,reimplemented (src/game/gfx/jpegwrite); cdecl: empty_output_buffer: the buffer written to the guarded file; name invented
 0x0064dd00,JpegDest_Term,function,low,reimplemented (src/game/gfx/jpegwrite); cdecl: term_destination: the rest written; name invented
+0x00631140,JpegSource_Set,function,low,"reimplemented (src/game/gfx/jpegsource); cdecl (cinfo, stream): the game's stream as libjpeg's source (jpeg_stdio_src's shape); name invented"
+0x006311b0,JpegSource_Init,function,low,reimplemented (src/game/gfx/jpegsource); cdecl: init_source: start of file; name invented
+0x006311c0,JpegSource_Fill,function,low,"reimplemented (src/game/gfx/jpegsource); cdecl: fill_input_buffer: from the stream, a fake EOI at its end; name invented"
+0x00631230,JpegSource_Skip,function,low,"reimplemented (src/game/gfx/jpegsource); cdecl (cinfo, count): skip_input_data; name invented"
 0x00fa9f3c,gScreenOpen,data,high,Screen_Open has run (Screen_Close clears it)
 0x00fa77d0,gScreenModes,data,high,List of ScreenMode (width, height, bit count) from EnumDisplayModes
 0x006fefa8,TgaCodec_vtable,data,high,"TgaCodec (ImageCodec: vtable, SurfaceInfo): 0x47e750 deleting dtor, GetInfo, Load, IsTga; the work is done by a stack TgaReader (0x44, vtable 0x703630)"
