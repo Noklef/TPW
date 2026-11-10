@@ -15,7 +15,7 @@ void SinTable_Fill(float *values, u32 n, u32 *mask, float *scale) {
 }
 
 SinTable SinTable_Game() {
-    return {reinterpret_cast<const float *>(0x007b0968), gSinTableMask,
+    return {gSinTable, gSinTableMask,
             gSinTableScale};
 }
 
@@ -30,7 +30,7 @@ void __cdecl SinTable_Build(u32 n) {
     u16 cw;
     __asm fnstcw cw
     const bool single = (cw & 0x300) == 0;  // (24-bit precision; else 53, as double arithmetic rounds)
-    float *const values = reinterpret_cast<float *>(0x007b0968);
+    float *const values = gSinTable;
     gSinTableMask = n - 1;
     gSinTableSize = n;
     const float nf = (float)(double)n;  // (fild qword n, exact; fst float)

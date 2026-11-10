@@ -24,7 +24,7 @@ const u32 kNode = 0x38;
 
 u32 Ftol(X87Reg x) { return (u32)(s32)(long long)x.v; }
 s32 Fistp(float x) { return _mm_cvtss_si32(_mm_set_ss(x)); }
-float Table(s32 i) { return global<float>(0x007b0968 + 4 * (gSinTableMask & (u32)i)); }
+float Table(s32 i) { return gSinTable[gSinTableMask & (u32)i]; }
 
 // The table entries of -angle: its sine's and its cosine's (a quarter turn on).
 void Lookup(double angle, float &sine, float &cosine) {

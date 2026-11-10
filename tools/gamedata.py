@@ -106,9 +106,19 @@ def address(out):
     write(out, lines)
 
 
-TEXT = {}       # slot: why, for a dword of text whose bytes read as a pointer into a converted range (left as it is)
+TEXT = {        # slot: why, for a dword of text whose bytes read as a pointer into a converted range (left as it is)
+    0x74a418: 'a code page table\'s u16 pairs (0x2013, 0x7b), not a pointer into gSinTable',
+}
 POINTERS = {}   # slot: why, for a pointer whose bytes read as text
-
+NEXT = {        # slot: why, for a dword at a converted object's end that points at what follows it (left as it is), not an end pointer
+    0x7061c4: 'the text "DDERR_UN..." at 0x77dd30, after gImaAdpcmState',
+    0x751a38: 'its wide text at 0x751a3c, after the pointer itself',
+    0x763750: 'gPieceTables\' last row\'s name, the text "ho_fob4..." after the tables',
+    0x7655c8: 'RSSE_OpcodeNameTable\'s last name, the text after the table',
+    0x779a84: 'gZlibVersion\'s text "1.1.3" at 0x7780f0',
+    0x781704: 'the text "\\r\\n" at 0x773cdc',
+    0x78259c: 'the text "a" at 0x766344',
+}
 
 def printable(b):
     return 0x20 <= b < 0x7f
@@ -120,8 +130,10 @@ def pointers(pe, decls, code_slots):
     the copy's code slots (code_slots: tools/gen_loader_slots.py's, a hooked function, an adjustor thunk to one, Debug_Printf) inside a
     converted object. Also the problems the fixups cannot express: such a dword across an object's edge, an object over the import address
     table (the loader fills that in the copy), and a pointer that reads as the end of a text (three printable bytes and a zero, after a
-    printable one: settle it in TEXT or POINTERS). Any other dword that holds the value of a pointer is taken for one."""
+    printable one: settle it in TEXT or POINTERS), and a dword at an object's end (outside every object), which the fixups leave as it
+    is: right for what follows the object (settle it in NEXT), wrong for a loop's end pointer. Any other dword that holds the value of a pointer is taken for one."""
     inside = finder(decls)
+    ends = {a + n: name for _, name, a, n, _ in decls if not inside(a + n)}
     found, errors = [], []
     d = struct.unpack_from('<I', pe.d, 0x3c)[0] + 24 + 96 + 12 * 8   # (IMAGE_DIRECTORY_ENTRY_IAT of the optional header)
     iat, iat_size = struct.unpack_from('<II', pe.d, d)
@@ -134,6 +146,9 @@ def pointers(pe, decls, code_slots):
         raw = pe.d[ro:ro + rs]
         for o in range(0, len(raw) - 3, 4):
             slot, v = va + o, struct.unpack_from('<I', raw, o)[0]
+            if v in ends and slot not in NEXT:
+                errors.append('%#x holds %#x, the end of %s: an end pointer (the fixups cannot express it) or the next global\'s address '
+                              '(settle it in NEXT)' % (slot, v, ends[v]))
             into = DATA_LO <= v < DATA_HI and inside(v)
             if not (into or slot in code_slots and (inside(slot) or inside(slot + 3))) or slot in TEXT:
                 continue
@@ -157,12 +172,14 @@ def self_check():
     struct.pack_into('<I', pe.d, 0x3c, 0x80)
     struct.pack_into('<II', pe.d, 0x80 + 24 + 96 + 96, 0x400008, 8)
     struct.pack_into('<4I', pe.d, 0x400, *[0x700010] * 4)
-    # the copy: a code slot (the table's), B+4, B's end (kept), A+4; A: a code slot, B, the copy (kept), a code address that is no code
+    # the copy: a code slot (the table's), B+4, B's end (an error, then settled in NEXT: kept), A+4; A: a code slot, B, the copy (kept), a code address that is no code
     # slot (kept); B: A, then a pointer across B's end; the copy: text "aaaa", then "bap" (0x706162, inside C)
     struct.pack_into('<12I', pe.d, 0x410, 0x401000, 0x700024, 0x700026, 0x700014, 0x401008, 0x700020, 0x700008, 0x401004, 0x700010,
                      0x700010, 0x61616161, 0x706162)
     struct.pack_into('<I', pe.d, 0x440, 0x700010)
     decls = [('u8[16]', 'A', 0x700010, 0x10, ''), ('u8[6]', 'B', 0x700020, 6, ''), ('u8[4]', 'C', 0x706160, 4, '')]
+    assert 'the end of B' in pointers(pe, decls, {0x700000, 0x700010})[1][0]
+    NEXT[0x700008] = 'self_check'
     found, errors = pointers(pe, decls, {0x700000, 0x700010})
     assert found == [(0x700004, 0x700024), (0x70000c, 0x700014), (0x700010, 0x401008), (0x700014, 0x700020), (0x700020, 0x700010),
                      (0x800000, 0x700010)], found
@@ -174,6 +191,7 @@ def self_check():
     assert pointers(pe, decls, set())[0][-2] == (0x70002c, 0x706162)
     del POINTERS[0x70002c]
     assert len(pointers(pe, decls + [('u32[2]', 'I', 0x800008, 8, '')], set())[1]) == 3   # + an object on the IAT
+    del NEXT[0x700008]
 
 
 def initial(pe, a, n):

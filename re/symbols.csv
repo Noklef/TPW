@@ -11847,3 +11847,4 @@ address,name,kind,confidence,notes
 0x00702cb0,Class702cb0_vtable,data,low,"GAME_DATA (render/randomsegments): the vtable (20 slots, all ported); name invented"
 0x00703080,Class703080_vtable,data,low,"GAME_DATA (world/parkmapwindow): the vtable (1 slots, all ported); name invented"
 0x00703088,Class703088_vtable,data,low,"GAME_DATA (world/parkmap): the vtable (1 slots, all ported); name invented"
+0x00763388,gPieceTables,data,low,"GAME_DATA (world/queuepieces): u8[0x3d0], the four piece tables (12-byte rows) at +0, +0x60, +0x150, +0x280; name invented"
