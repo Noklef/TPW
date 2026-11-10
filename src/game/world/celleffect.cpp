@@ -20,12 +20,12 @@ const CellEffectEnv kGameEnv = {Setting_ReadMode, reinterpret_cast<s32(__cdecl *
 const CellEffectEnv *g_env = &kGameEnv;
 
 u32 scriptOf(u32 kind, u32 word) {
-    if (kind >= 1 && kind <= 5) return 0x0074f050 + 0x28 * (kind - 1);
+    if (kind >= 1 && kind <= 5) return SpriteCode(0x1598) + 0x28 * (kind - 1);
     if (kind == 7 || kind == 8) {
         g_env->spread(global<u8 *>(0x008023a0), nullptr, kind == 7 ? 2 : 5, word);
-        return kind == 7 ? 0x0074f140 : 0x0074f168;
+        return kind == 7 ? SpriteCode(0x1688) : SpriteCode(0x16b0);
     }
-    return 0x0074f118;
+    return SpriteCode(0x1660);
 }
 
 // (fild of the rand % 9, fsub -1, fild of the cell's coordinate, fmul 10, faddp, fstp float.)

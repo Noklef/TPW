@@ -161,7 +161,7 @@ void __cdecl Dialog7ca308_ShowStaff(u32 index) {
             std::memcpy(&bits[0], &x, 4);
             std::memcpy(&bits[1], &y, 4);
             std::memcpy(&bits[2], &z, 4);
-            gDialog7ca308_7ca310 = SpriteScript_Start(0x0074f758, folder, sprite, 1, bits[0], bits[1], bits[2]);
+            gDialog7ca308_7ca310 = SpriteScript_Start(SpriteCode(0x1ca0), folder, sprite, 1, bits[0], bits[1], bits[2]);
             SpriteScript_SetRegF(gDialog7ca308_7ca310, 8, 0x41000000);
         }
     }

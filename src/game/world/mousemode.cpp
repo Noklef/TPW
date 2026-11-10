@@ -285,7 +285,7 @@ void __fastcall MouseMode6fead0_Assign(u8 *) { Obj7b51f0_SetCursor(reinterpret_c
 
 // The sprite script of the staff being placed: started for the folder and sprite, the one at +8 before it killed.
 static void start_staff_script(u8 *self, u32 folder, u8 sprite) {
-    const s32 slot = SpriteScript_Start(0x0074ed98, folder, sprite, 0, 0, 0, 0);
+    const s32 slot = SpriteScript_Start(SpriteCode(0x12e0), folder, sprite, 0, 0, 0, 0);
     if (const s32 old = at<s32>(self, 8))
         SpriteScript_Kill(old);
     at<s32>(self, 8) = slot;
