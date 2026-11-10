@@ -86,8 +86,9 @@ methods in the cinfo structs (src->fill_input_buffer, the memory manager's alloc
 everything else that stores methods, come exact only through the method-address shim below. All of 6b in the exe is the library's
 now (src/game/lib/jpeg6b.h lists it with the addresses) but what "What stays the exe's" below lists: jdapimin.c, jdapistd.c,
 jdmaster.c, jdinput.c, jdmarker.c, jdhuff.c, jdphuff.c, jdcoefct.c, jdmainct.c, jdpostct.c, jddctmgr.c, the integer IDCTs, jdsample.c,
-jdmerge.c, jdcolor.c, jquant1.c, jquant2.c, jcomapi.c, jutils.c, jmemmgr.c, jerror.c's emit_message / format_message /
-reset_error_mgr, and jmemansi.c's jpeg_get_small / large, jpeg_free_small / large and jpeg_mem_available. tpw_jpeg6b is built with jmemansi.c, as the exe is (jpeg_mem_init answers 1000000 at
+jdmerge.c, jdcolor.c, jquant1.c, jquant2.c, jcomapi.c, jutils.c, jmemmgr.c, jerror.c's error_exit / emit_message / output_message /
+format_message / reset_error_mgr, and jmemansi.c's jpeg_get_small / large, jpeg_free_small / large, jpeg_mem_available and the
+backing store (jpeg_open_backing_store and its read / write / close methods). tpw_jpeg6b is built with jmemansi.c, as the exe is (jpeg_mem_init answers 1000000 at
 0x642b20, jpeg_mem_available is max_memory_to_use - already_allocated at 0x6429a0, jpeg_open_backing_store a tmpfile() at 0x6429c0).
 - **Wrapper units.** libjpeg has no `-Dlocal=`: jmorecfg.h defines METHODDEF and LOCAL as `static` unconditionally, and the modules reuse
   static names (build_ycc_rgb_table is in jdcolor.c and jdmerge.c), so a module's statics are reached through
@@ -126,9 +127,15 @@ reset_error_mgr, and jmemansi.c's jpeg_get_small / large, jpeg_free_small / larg
   GameHeap's Mem_Alloc / Mem_Free), so blocks from either side free on either side. jpeg_mem_available is the library's as it is.
 - **The rest of the exe's CRT** goes through the same env (Jpeg6bCrtEnv; the bench driver's kJpeg6bCrtEnv gives recorders 24..28,
   the emulator hooks the exe's addresses): jmemmgr.c's getenv("JPEGMEM") and sscanf (0x67fbf0, 0x67f620), jpeg_open_backing_store
-  (0x6429c0, the exe's: see below) and jerror.c's sprintf (0x67a650). format_message calls sprintf with either msg_parm.s or the
+  (0x6429c0: jmemmgr.c calls the exe's address, hooked to the library's, so its benches give a recorder) and jerror.c's sprintf
+  (0x67a650). format_message calls sprintf with either msg_parm.s or the
   eight ints; wrap/jpeg-6b/jerror.c `#define`s sprintf to jpeg6b_exe_sprintf, which tells the two apart as format_message does (the
   text's first % followed by an s) and passes sprintf_string or sprintf_ints, so the benches log each call with what it passed.
+  error_exit's exit (0x67f920) and output_message's fprintf(stderr, "%s\n", buffer) (0x67dad0) are the exe's too: the wrapper
+  `#define`s exit to jpeg6b_exe_exit and fprintf to jpeg6b_exe_print, which passes the exe's stderr (0x77e840) and its "%s\n"
+  (0x764ff0). The bench driver's exit is exit_case (fncmp's _exit_case on the emulator's side): the case ends there, as the game's.
+  jmemansi.c's backing store calls the exe's tmpfile, fseek, fread, fwrite and fclose (0x67fd60, 0x67c100, 0x67e1d0, 0x67b6d0,
+  0x67b620), so its FILE is the exe's C runtime's (wrap/jpeg-6b/jmemansi.c), and its ERREXITS "" is the exe's (a .bss byte, 0x786de4).
 - **Native methods in the bench driver.** jpeg_CreateDecompress and jpeg_start_decompress call methods the inits they ran just stored,
   and the shims store the exe's addresses, which the driver cannot call (its own code lies at the exe's code addresses). With
   FNCMP_JPEG6B_NATIVE set (jpeg6b_api.py sets it) the driver calls Jpeg6b_SetNativeMethods(true): the shims keep the library's
@@ -175,8 +182,7 @@ reset_error_mgr, and jmemansi.c's jpeg_get_small / large, jpeg_free_small / larg
 - jmemansi.c's backing store: jpeg_open_backing_store (0x6429c0) and its read / write / close methods (0x642a20, 0x642a90, 0x642b00).
   The library's tmpfile() would be a FILE of the DLL's CRT, which the exe's fread / fwrite / fclose cannot take; they stay together
   (as jmemmgr.c's realize_virt_arrays opens one only past max_memory_to_use).
-- jerror.c's error_exit (0x6312d0) and output_message (0x631300): they call the exe's CRT exit (0x67f920) and fprintf(stderr) (0x67dad0,
-  0x77e840), the DLL's are a different exit and stderr. jpeg_std_error (0x631280) is Codec631280_Init, a hand port already exact: the
+- jerror.c's jpeg_std_error (0x631280) is Codec631280_Init, a hand port already exact: the
   library's would need a shim mapping all five methods (0x6312d0, 0x631340, 0x631300, 0x631380, 0x631440) and the message table
   (the exe's 0x7039d0, last code 0x7b) back, for nothing gained.
 - jpeg_mem_term is the exe's empty Debug_Printf (0x5da3c0, game code), not hooked; the library's own empty one runs from the library.

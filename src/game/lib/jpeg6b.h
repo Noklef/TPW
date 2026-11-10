@@ -480,6 +480,11 @@ void __cdecl jerror_emit_message(jpeg_common_struct *cinfo, int msg_level);
 void __cdecl jerror_format_message(jpeg_common_struct *cinfo, char *buffer);
 // 0x631440: num_warnings and msg_code 0.
 void __cdecl jerror_reset_error_mgr(jpeg_common_struct *cinfo);
+// 0x6312d0: output_message (+8), jpeg_destroy, then the exe's exit(1) (Jpeg6bCrtEnv), which does not come back.
+void __cdecl jerror_error_exit(jpeg_common_struct *cinfo);
+// 0x631300: format_message (+0xc) into a buffer of JMSG_LENGTH_MAX (200), then the exe's fprintf of it to its stderr with its "%s\n"
+// (jpeg6b_exe_print).
+void __cdecl jerror_output_message(jpeg_common_struct *cinfo);
 
 // jdmaster.c, the decompression master, through third_party/wrap/jpeg-6b/jdmaster.c: cinfo->master (my_decomp_master, 0x1c bytes:
 // prepare_for_output_pass +0, finish_output_pass +4, is_dummy_pass +8, pass_number +0xc, using_merged_upsample +0x10,
