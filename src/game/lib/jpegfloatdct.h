@@ -16,4 +16,9 @@ void __cdecl Jpeg6a_FdctFloat(float *data);
 void __cdecl Jpeg6a_ForwardDctFloat(u8 *cinfo, u8 *compptr, u8 **sample_data, s16 *coef_blocks, u32 start_row, u32 start_col,
                                     u32 num_blocks);
 
+// 0x64b040 jpeg_idct_float (jpeg-6b jidctflt.c, cdecl (cinfo, compptr, coef_block, output_buf, output_col)): the coefficients
+// times the component's multipliers (dct_table +0x50) through the AA&N inverse DCT, columns (a column with no AC terms its DC) into a
+// float workspace, then rows, each output __ftol'd, descaled by 3 and through the range limit (sample_range_limit +0x120, + 128).
+void __cdecl Jpeg6b_IdctFloat(u8 *cinfo, u8 *compptr, const s16 *coef_block, u8 **output_buf, u32 output_col);
+
 }  // extern "C"
