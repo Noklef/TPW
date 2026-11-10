@@ -20,6 +20,10 @@ public:
         return reinterpret_cast<u32(__cdecl *)(A...)>((uintptr_t)Target(address))(args...);
     }
     template <typename... A>
+    u32 St(u32 address, A... args) const {   // stdcall
+        return reinterpret_cast<u32(__stdcall *)(A...)>((uintptr_t)Target(address))(args...);
+    }
+    template <typename... A>
     u32 Th(u32 address, u32 self, A... args) const {   // thiscall (fastcall with an unused EDX pops the same)
         return reinterpret_cast<u32(__fastcall *)(u32, u32, A...)>((uintptr_t)Target(address))(self, 0, args...);
     }

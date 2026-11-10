@@ -132,6 +132,8 @@ add_library(tpw_game STATIC
     src/game/core/framestubs.cpp
     src/game/core/globals.cpp
     src/game/core/initializers.cpp
+    src/game/core/staticinit.cpp
+    src/game/core/staticinitmanual.cpp
     src/game/core/observers.cpp
     src/game/core/rings.cpp
     src/game/core/streambuf.cpp
