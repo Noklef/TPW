@@ -3,107 +3,33 @@
 #include <cstdint>
 
 #include "moneyput.h"
+#include "streambufiter.h"
 
 namespace {
 
-// istreambuf_iterator<char>'s members and string's fills, each its own function in the exe (0x696330, 0x6963f0, 0x698bf0, 0x696160, 0x6a8700): agent A's streambufiter and stdstring port them too.
-struct Iter {
-    u8 *buffer;
-    u8 got;
-    u8 value;
-};
+// istreambuf_iterator<char>'s members and string's fills: the exe's own functions (streambufiter, stdstring).
+using Iter = StreambufIter;
 
 u32 npos() { return *reinterpret_cast<const u32 *>((uintptr_t)0x006fe5ac); }
 
 char *null_string() { return reinterpret_cast<char *>((uintptr_t)0x006fe5b0); }
-
-u8 *&next_of(u8 *buffer) { return **reinterpret_cast<u8 ***>(buffer + 0x1c); }
-
-u32 &left_of(u8 *buffer) { return **reinterpret_cast<u32 **>(buffer + 0x2c); }
-
-bool waiting(u8 *buffer) {
-    const u32 next = static_cast<u32>(reinterpret_cast<uintptr_t>(next_of(buffer)));
-    return next && next < next + left_of(buffer);
-}
 
 u32 slot(u8 *object, u32 offset) {
     const u32 *const vtable = reinterpret_cast<const u32 *>((uintptr_t)*reinterpret_cast<const u32 *>(object));
     return reinterpret_cast<u32(__fastcall *)(u8 *)>((uintptr_t)vtable[offset / 4])(object);
 }
 
-void peek(Iter *it) {
-    if (it->buffer) {
-        const u32 c = waiting(it->buffer) ? *next_of(it->buffer) : slot(it->buffer, 0x10);
-        if (c != 0xffffffffu) {
-            it->value = static_cast<u8>(c);
-            it->got = 1;
-            return;
-        }
-    }
-    it->buffer = nullptr;
-    it->got = 1;
-}
+u8 value_of(Iter *it) { return *StreambufIter_Deref(it, nullptr); }
 
-u8 value_of(Iter *it) {
-    if (!it->got) peek(it);
-    return it->value;
-}
+bool more(Iter *first, Iter *last) { return !StreambufIter_Equal(first, nullptr, last); }
 
-bool more(Iter *first, Iter *last) {
-    if (!first->got) peek(first);
-    if (!last->got) peek(last);
-    return !first->buffer != !last->buffer;
-}
+void advance(Iter *it) { StreambufIter_Inc(it, nullptr); }
 
-void advance(Iter *it) {
-    u8 *const buffer = it->buffer;
-    if (buffer) {
-        u32 c;
-        if (waiting(buffer)) {
-            --left_of(buffer);
-            u8 *&next = next_of(buffer);
-            c = *next;
-            ++next;
-        } else {
-            c = slot(buffer, 0x14);
-        }
-        if (c != 0xffffffffu) {
-            it->got = 0;
-            return;
-        }
-    }
-    it->buffer = nullptr;
-    it->got = 1;
-}
+void append(StdString *s, u32 n, char c) { StdString_AppendFill(s, nullptr, n, static_cast<u32>(c)); }
 
-void append(StdString *s, u32 n, char c) {
-    if (npos() - s->len <= n) StdStrings_Xlen();
-    if (!n) return;
-    const u32 total = s->len + n;
-    if (StdString_Grow(s, nullptr, total, 0)) {
-        for (u32 i = 0; i < n; ++i) s->ptr[s->len + i] = c;
-        s->len = total;
-        s->ptr[total] = 0;
-    }
-}
+void insert_minus(StdString *s) { StdString_InsertFill(s, nullptr, 0, 1, '-'); }
 
-void insert_minus(StdString *s) {
-    if (npos() - s->len <= 1) StdStrings_Xlen();
-    const u32 total = s->len + 1;
-    if (StdString_Grow(s, nullptr, total, 0)) {
-        for (u32 i = s->len; i--;) s->ptr[i + 1] = s->ptr[i];
-        s->ptr[0] = '-';
-        s->len = total;
-        s->ptr[total] = 0;
-    }
-}
-
-// operator[]: past the end, or no text, the shared empty text.
-char *char_at(StdString *s, u32 at) {
-    if (s->len < at || !s->ptr) return null_string();
-    StdString_Freeze(s, nullptr);
-    return s->ptr + at;
-}
+char *char_at(StdString *s, u32 at) { return StdString_At(s, nullptr, at); }
 
 bool is(u8 *ctype, u8 c, u8 mask) { return (*reinterpret_cast<const u8 *const *>(ctype + 0x10))[static_cast<u32>(c) * 2] & mask; }
 
