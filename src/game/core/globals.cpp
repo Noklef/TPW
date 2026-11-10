@@ -94,8 +94,8 @@ u32 __cdecl Global879a24_Free() {
 void __cdecl Globals816d40_Free() {
     if (!gParticles_816d40)
         return;
-    global<u32>(0x0080ced0) = 0;
-    Mem_FreeChecked(global<void *>(0x0080cef8));
+    global<u32>((u32)(uintptr_t)&gParticleState) = 0;
+    Mem_FreeChecked(global<void *>(((u32)(uintptr_t)&gParticleState + 0x28)));
     const u32 other = gParticles_816d38;
     gParticles_816d40 = 0;
     Mem_FreeChecked((void *)(uintptr_t)other);

@@ -13,6 +13,7 @@
 #include "collobj.h"
 #include "rides.h"
 #include "world.h"
+#include "../math/intsin.h"
 
 namespace {
 
@@ -214,7 +215,7 @@ constexpr u32 kCarSize = 0xac;
 
 s32 cars_ftol(X87Reg x) { return (s32)(long long)x.v; }
 s32 times(s32 a, s32 b) { return (s32)((u32)a * (u32)b); }
-s32 sine(s32 index) { return reinterpret_cast<const s32 *>(0x00877358)[index & 0x1ff]; }
+s32 sine(s32 index) { return reinterpret_cast<const s32 *>((uintptr_t)gIntSinTable)[index & 0x1ff]; }
 
 // A's and B's speeds changed and the bounce's state set, c their angle, a the bearing.
 void cars_bounce(u8 *a, u8 *b, s32 c, s32 bearing, s32 vx, s32 vy) {

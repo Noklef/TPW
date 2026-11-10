@@ -14,6 +14,7 @@
 #include "trackrides.h"
 #include "collobj.h"
 #include "world.h"
+#include "../math/intsin.h"
 
 namespace {
 
@@ -59,7 +60,7 @@ bool clash(const u8 *car) {
 
 // Up to 100 tries at a free place in the ride's area.
 void place(const u8 *ride, u8 *car) {
-    const s32 *const sines = reinterpret_cast<const s32 *>(0x00877358);
+    const s32 *const sines = reinterpret_cast<const s32 *>((uintptr_t)gIntSinTable);
     for (s32 tries = 100;;) {
         const u32 radius = Rand() % at<u32>(at<const u8 *>(ride, 0xc0), 0xc);
         const u32 angle = Rand() & 0x1ff;

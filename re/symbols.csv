@@ -10091,7 +10091,6 @@ address,name,kind,confidence,notes
 0x008bcb8c,gGlobals8bcb80_SetOne_8bcb8c,data,low,"GAME_DATA (src/game/core/globals): u32, named for its use in Globals8bcb80_SetOne (tools/gamedata_codemod.py)"
 0x00802bc8,gSoundset_802bc8,data,low,"GAME_DATA (src/game/core/soundset): u32, named for its use in soundset.cpp (tools/gamedata_codemod.py)"
 0x00802bd4,gSoundset_802bd4,data,low,"GAME_DATA (src/game/core/soundset): u32, named for its use in soundset.cpp (tools/gamedata_codemod.py)"
-0x0080cee4,gEmitters_Reset_80cee4,data,low,"GAME_DATA (src/game/core/voices): u32, named for its use in Emitters_Reset (tools/gamedata_codemod.py)"
 0x006855b0,CRT_frnd,function,low,"reimplemented (src/game/core/crtpow); _frnd: x rounded to an integer by FRNDINT, through a double"
 0x00686f60,CRT_d_inttype,function,low,"reimplemented (src/game/core/crtpow); _d_inttype: 0 not an integer (or a denormal), 1 odd, 2 even; the half at the caller's precision"
 0x00686d30,CRT_powhlp,function,low,reimplemented (src/game/core/crtpow); _powhlp: pow's infinite x or y; 1 for |x| 1 to an infinite power
@@ -10139,7 +10138,6 @@ address,name,kind,confidence,notes
 0x007b0468,gRelease_InitUnusedOne_7b0468,data,low,"GAME_DATA (src/game/model/release): float, named for its use in Release_InitUnusedOne (tools/gamedata_codemod.py)"
 0x007b046c,gRelease_InitUnusedEpsilon_7b046c,data,low,"GAME_DATA (src/game/model/release): float, named for its use in Release_InitUnusedEpsilon (tools/gamedata_codemod.py)"
 0x0080436c,gParticles_Tick_80436c,data,low,"GAME_DATA (src/game/render/particles): u32, named for its use in Particles_Tick (tools/gamedata_codemod.py)"
-0x0080ced8,gParticles_80ced8,data,low,"GAME_DATA (src/game/render/particles): u32, named for its use in particles.cpp (tools/gamedata_codemod.py)"
 0x00877348,gSpriteDraw_877348,data,low,"GAME_DATA (src/game/sprite/draw): u32, named for its use in SpriteDraw_Begin, SpriteDraw_End (tools/gamedata_codemod.py)"
 0x007508b8,gDialog7ca13c_Open_7508b8,data,low,"GAME_DATA (src/game/ui/dialog7ca13c): u32, named for its use in Dialog7ca13c_Open (tools/gamedata_codemod.py)"
 0x00754bc8,gResearchPanel_Open_754bc8,data,low,"GAME_DATA (src/game/ui/levelmeter): u32, named for its use in ResearchPanel_Open (tools/gamedata_codemod.py)"
@@ -10160,9 +10158,6 @@ address,name,kind,confidence,notes
 0x0075d0f0,gVisitor_UseObject_75d0f0,data,low,"GAME_DATA (src/game/world/person): u32, named for its use in Visitor_UseObject (tools/gamedata_codemod.py)"
 0x0075d0f4,gVisitor_UseObject_75d0f4,data,low,"GAME_DATA (src/game/world/person): u32, named for its use in Visitor_UseObject (tools/gamedata_codemod.py)"
 0x00818c18,gPlaceObject_Footprint_818c18,data,low,"GAME_DATA (src/game/world/placeobject): const s32 *, named for its use in PlaceObject_Footprint (tools/gamedata_codemod.py)"
-0x00877458,gTrakRide_Create_877458,data,low,"GAME_DATA (src/game/world/trackrides): s32, named for its use in TrakRide_Create (tools/gamedata_codemod.py)"
-0x00877658,gTrakRide_Create_877658,data,low,"GAME_DATA (src/game/world/trackrides): s32, named for its use in TrakRide_Create (tools/gamedata_codemod.py)"
-0x00877a58,gTrakRide_Create_877a58,data,low,"GAME_DATA (src/game/world/trackrides): s32, named for its use in TrakRide_Create (tools/gamedata_codemod.py)"
 0x00764cd8,gTrakcarpose_764cd8,data,low,"GAME_DATA (src/game/world/trakcarpose): float, named for its use in trakcarpose.cpp (tools/gamedata_codemod.py)"
 0x00702b8c,gViewcontrols_702b8c,data,low,"GAME_DATA (src/game/frontend/viewcontrols): const float, named for its use in viewcontrols.cpp"
 0x00702b90,gViewcontrols_702b90,data,low,"GAME_DATA (src/game/frontend/viewcontrols): const float, named for its use in viewcontrols.cpp"
@@ -11276,9 +11271,6 @@ address,name,kind,confidence,notes
 0x0076830c,gText_Polygon_ScanRows_76830c,data,low,"GAME_DATA (render/viewfootprint): char[12], named for its use in Polygon_ScanRows, the text '%f --- %f'"
 0x00774d8c,gParticlePool2_Setup_774d8c,data,low,"GAME_DATA (render/particles): float, named for its use in ParticlePool2_Setup"
 0x00774d90,gParticlePool2_Setup_774d90,data,low,"GAME_DATA (render/particles): float, named for its use in ParticlePool2_Setup"
-0x00816d1e,gParticles_816d1e,data,low,"GAME_DATA (render/particles): s16, named for its use in Emitters_Reset, ParticleEffectors_Update, Particles_EndAll, Voice_Start"
-0x00816d20,gParticles_816d20,data,low,"GAME_DATA (render/particles): s16, named for its use in particles.cpp"
-0x00816d22,gParticles_816d22,data,low,"GAME_DATA (render/particles): s16, named for its use in Emitters_Reset, ParticleEffectors_Update, Voice_Start"
 0x00816d38,gParticles_816d38,data,low,"GAME_DATA (render/particles): u32, named for its use in Globals816d40_Free, ParticleSystem_DrawList, ParticleSystem_FreeDrawList, Particles_Init"
 0x00816d3c,gParticles_816d3c,data,low,"GAME_DATA (render/particles): u32, named for its use in Emitters_Reset, ParticleSystem_DrawList, ParticleSystem_FreeDrawList, Particles_Init"
 0x00871ed8,gDynFaces_871ed8,data,low,"GAME_DATA (render/dynfaces): u8 *, named for its use in DynFaces_Frame, DynFaces_InitModels, DynFaces_ReleaseModels"
@@ -12945,3 +12937,5 @@ address,name,kind,confidence,notes
 0x00700a5c,gWeather_SetIntensity_700a5c,data,low,"GAME_DATA (src/game/world/weather): const float, named for its use in Weather_SetIntensity (tools/gamedata_codemod.py)"
 0x00700a60,gWeather_SetIntensity_700a60,data,low,"GAME_DATA (src/game/world/weather): const float, named for its use in Weather_SetIntensity (tools/gamedata_codemod.py)"
 0x00700a64,gWeather_SetIntensity_700a64,data,low,"GAME_DATA (src/game/world/weather): const float, named for its use in Weather_SetIntensity (tools/gamedata_codemod.py)"
+0x00877358,gIntSinTable,data,low,GAME_DATA (src/game/math/intsin): u32[0x200], the sine table IntSin_BuildTable fills (entry i = sin(2*pi*i/0x200) * 256)
+0x0080ced0,gParticleState,data,low,GAME_DATA (src/game/render/particles): ParticleState (0x9e68 bytes), the particle library's live state, saved whole by SaveMods

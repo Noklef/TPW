@@ -194,7 +194,7 @@ void __cdecl Collider_BounceOffBlockers(u8 *car) {
     u32 left = (u32)gTrackPools.nodeCount;
     if (!node || !left)
         return;
-    const s32 *const sine = reinterpret_cast<const s32 *>((uintptr_t)0x00877358);
+    const s32 *const sine = reinterpret_cast<const s32 *>(gIntSinTable);
     do {
         const u32 flags = at<u32>(node, 0);
         if (flags & 1) {
@@ -282,7 +282,7 @@ void __cdecl Collider_KeepInArea(u8 *car) {
         const s32 away = (s32)(long long)X87_Add(down, -RideAtan(dx, (s32)(0u - (u32)dy), down));
         const u32 mirror = (0xffffff80u - (u32)away) & 0x1ff, back = ((u32)heading - 0x100) & 0x1ff;
         const u32 turn = (mirror * 2 - 0x100 - back - (u32)heading) & 0x1ff;
-        const s32 *const sine = reinterpret_cast<const s32 *>((uintptr_t)0x00877358);
+        const s32 *const sine = reinterpret_cast<const s32 *>(gIntSinTable);
         const u32 k = at<u32>(kind, 0x2c);
         const s32 vy = (s32)(k * at<u32>(car, 0x40)) / 1024, vx = (s32)(k * at<u32>(car, 0x3c)) / 1024;
         const u32 s = (u32)sine[turn], c = (u32)sine[(turn + 0x80) & 0x1ff];
@@ -369,7 +369,7 @@ s32 __cdecl Collider_SteerTo(u8 *car, s32 x, s32 y) {
         if ((at<u32>(at<const u8 *>(car, 0x98), 0) & 0x1e) != 0x1e)
             speed = (s32)((u32)speed * 3) / 4;
         const u32 heading = at<u32>(car, 0x50);
-        const s32 *const sine = reinterpret_cast<const s32 *>((uintptr_t)0x00877358);
+        const s32 *const sine = reinterpret_cast<const s32 *>(gIntSinTable);
         const s32 vy = (s32)((u32)sine[(heading + 0x80) & 0x1ff] * (u32)speed << 2) / 1024;
         const s32 vx = (s32)((u32)sine[heading & 0x1ff] * (u32)speed << 2) / 1024;
         at<u32>(car, 0x3c) += (u32)vx;
