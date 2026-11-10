@@ -149,6 +149,19 @@ s32 *__cdecl CRT_errno();
 // no thread or no resume: the block freed (a null too), the Win32 error mapped when there is one, -1.
 u32 __cdecl CRT_beginthread(void *proc, u32 stack, void *arg);
 
+// 0x67f780: _beginthreadex: the same with +4 -1 and CreateThread's own security, flags and id (entry 0x67f800); no resume. Returns the handle, or 0.
+u32 __cdecl CRT_beginthreadex(void *security, u32 stack, void *proc, void *arg, u32 flags, u32 *id);
+
+// 0x67e0d0 / 0x67f800 (stdcall (data)): _threadstart / _threadstartex: the data to the TLS slot (_amsg_exit(0x10) when that fails; ex: +0 the thread's id), the
+// floating point set-up [0x77e71c]; then under __try the proc (cdecl / stdcall) with +0x4c, and _endthread / _endthreadex (with its answer); __except (_XcptFilter, 0x688800) _exit(code).
+u32 __stdcall CRT_threadstart(u32 *data);
+u32 __stdcall CRT_threadstartex(u32 *data);
+
+// 0x67e180 / 0x67f8b0: _endthread / _endthreadex(code): [0x77e720] when set; the thread's data (none: _amsg_exit(0x10)); its handle +4 closed unless -1 (not ex);
+// _freeptd; ExitThread(0 / code).
+void __cdecl CRT_endthread();
+void __cdecl CRT_endthreadex(u32 code);
+
 // 0x67af00: swprintf: _woutput on a string file (0x7fffffff bytes), then two zero bytes put (_flsbuf where the count has run out). Returns _woutput's answer.
 s32 __cdecl CRT_swprintf(u16 *to, const u16 *format, ...);
 

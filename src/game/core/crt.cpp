@@ -1,6 +1,9 @@
 #include "crt.h"
 #include "crtlock.h"
 #include "crtmbstring.h"
+#include "crtstartup.h"
+
+#include <excpt.h>
 
 #include <intrin.h>
 
@@ -366,6 +369,77 @@ u32 __cdecl CRT_beginthread(void *proc, u32 stack, void *arg) {
     Crt().free(data);
     if (error) g_inner->dosmaperr(error);
     return 0xffffffffu;
+}
+
+void __cdecl CRT_endthread() {
+    if (const auto term = *reinterpret_cast<void(__cdecl *const *)()>((uintptr_t)0x0077e720)) term();
+    u32 *const data = reinterpret_cast<u32 *>(g_inner->getptd());
+    if (!data) g_inner->amsgExit(0x10);
+    if (data[1] != 0xffffffffu) import_slot<s32(__stdcall *)(u32)>(0x006fd13c)(data[1]);    // CloseHandle
+    CRT_freeptd(data);
+    import_slot<void(__stdcall *)(u32)>(0x006fd234)(0);    // ExitThread
+}
+
+void __cdecl CRT_endthreadex(u32 code) {
+    if (const auto term = *reinterpret_cast<void(__cdecl *const *)()>((uintptr_t)0x0077e720)) term();
+    u32 *const data = reinterpret_cast<u32 *>(g_inner->getptd());
+    if (!data) g_inner->amsgExit(0x10);
+    CRT_freeptd(data);
+    import_slot<void(__stdcall *)(u32)>(0x006fd234)(code);    // ExitThread
+}
+
+// The threads' entries share their start: the data to the TLS slot (_amsg_exit(0x10) when that fails), and the floating point set-up [0x77e71c] when there is one.
+static void thread_data(u32 *data) {
+    if (!import_slot<s32(__stdcall *)(u32, void *)>(0x006fd230)(*reinterpret_cast<u32 *>((uintptr_t)0x0077ecd0), data)) g_inner->amsgExit(0x10);    // TlsSetValue
+}
+
+static void thread_fpinit() {
+    if (const auto init = *reinterpret_cast<void(__cdecl *const *)()>((uintptr_t)0x0077e71c)) init();
+}
+
+static s32 thread_filter(u32 code, void *pointers) { return reinterpret_cast<s32(__cdecl *)(u32, void *)>((uintptr_t)0x00688800)(code, pointers); }   // _XcptFilter (the SEH runtime)
+
+u32 __stdcall CRT_threadstart(u32 *data) {
+    thread_data(data);
+    thread_fpinit();
+    u32 code = 0;
+    __try {
+        reinterpret_cast<void(__cdecl *)(u32)>((uintptr_t)data[0x48 / 4])(data[0x4c / 4]);
+        CRT_endthread();
+    } __except (code = GetExceptionCode(), thread_filter(code, GetExceptionInformation())) {
+        CRT__exit(static_cast<s32>(code));
+    }
+    return 0;
+}
+
+u32 __stdcall CRT_threadstartex(u32 *data) {
+    thread_data(data);
+    data[0] = import_slot<u32(__stdcall *)()>(0x006fd248)();    // GetCurrentThreadId (ex only)
+    thread_fpinit();
+    u32 code = 0;
+    __try {
+        CRT_endthreadex(reinterpret_cast<u32(__stdcall *)(u32)>((uintptr_t)data[0x48 / 4])(data[0x4c / 4]));
+    } __except (code = GetExceptionCode(), thread_filter(code, GetExceptionInformation())) {
+        CRT__exit(static_cast<s32>(code));
+    }
+    return 0;
+}
+
+u32 __cdecl CRT_beginthreadex(void *security, u32 stack, void *proc, void *arg, u32 flags, u32 *id) {
+    u32 error = 0;
+    u32 *const data = static_cast<u32 *>(g_inner->calloc(1, 0x74));
+    if (data) {
+        g_inner->initptd(data);
+        data[0x48 / 4] = (u32)(uintptr_t)proc;
+        data[0x4c / 4] = (u32)(uintptr_t)arg;
+        data[1] = 0xffffffffu;
+        const u32 handle = import_slot<u32(__stdcall *)(void *, u32, void *, void *, u32, u32 *)>(0x006fd22c)(security, stack, reinterpret_cast<void *>((uintptr_t)0x0067f800), data, flags, id);    // CreateThread
+        if (handle) return handle;
+        error = last_error();
+    }
+    Crt().free(data);
+    if (error) g_inner->dosmaperr(error);
+    return 0;
 }
 
 s32 __cdecl CRT_swprintf(u16 *to, const u16 *format, ...) { return format_wide(to, 0x7fffffff, format, &format + 1); }
