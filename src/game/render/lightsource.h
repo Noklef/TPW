@@ -79,3 +79,7 @@ void __fastcall LightSlot_Set(u8 *slot, void *, u32 on, const u32 *colour, const
 // Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
 GAME_DATA(const float, gLightSource_6fe50c, 0x006fe50c, 0x4);
 GAME_DATA(const float, gLightSource_6fe53c, 0x006fe53c, 0x4);
+
+// The vtables hold only ports: tpw.exe's loader points their slots at them (.docs/09-globals.md).
+GAME_DATA(void *[4], Class6fdcd8_vtable, 0x006fdcd8, 0x10);
+GAME_DATA(void *[4], Class6fe548_vtable, 0x006fe548, 0x10);

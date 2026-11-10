@@ -174,7 +174,7 @@ u32 __cdecl SpriteQueue_Free() {
 u8 *__fastcall SpriteSet_DeletingDtor(u8 *plus20, void *, u32 flags) {
     u8 *const set = plus20 - 0x20;
     const s32 base = at<s32>(at<u8 *>(set, 0), 4);
-    at<u32>(set, base) = 0x006ff308;
+    at<u32>(set, base) = (u32)(uintptr_t)Class6ff308_vtable;
     const s32 again = at<s32>(at<u8 *>(set, 0), 4);
     at<s32>(set, again - 4) = again - 0x20;
     TrackedArray_Free(set);
@@ -187,7 +187,7 @@ u8 *__fastcall SpriteSet_DeletingDtor(u8 *plus20, void *, u32 flags) {
 
 void __fastcall SpriteSet_Dtor(u8 *set) {
     const s32 base = at<s32>(at<u8 *>(set, 0), 4);
-    at<u32>(set, base) = 0x006ff308;
+    at<u32>(set, base) = (u32)(uintptr_t)Class6ff308_vtable;
     const s32 again = at<s32>(at<u8 *>(set, 0), 4);
     at<s32>(set, again - 4) = again - 0x20;
     TrackedArray_Free(set);

@@ -90,7 +90,7 @@ float scaled(u32 address) { return static_cast<float>(X87Reg(global<s32>(address
 // TexSprite_Ctor inlined, its shown flag set and then cleared (Obj_SetShown 0); size the float stored at +0x24. Faults without the block (sic).
 u8 *new_inline_sprite(u32 image, u32 a, u32 c, float size) {
     u8 *const sprite = static_cast<u8 *>(GameHeap_Alloc(0x30));
-    at<u32>(sprite, 0) = 0x00703088;
+    at<u32>(sprite, 0) = (u32)(uintptr_t)Class703088_vtable;
     at<u8 *>(sprite, 0x28) = PtrArray_AddSpriteFrame(reinterpret_cast<u8 *>((uintptr_t)0x00879ce0), nullptr, image);
     at<u32>(sprite, 0x1c) = 2;
     at<u32>(sprite, 0x14) = a;

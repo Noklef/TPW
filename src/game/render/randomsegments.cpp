@@ -51,10 +51,10 @@ extern "C" {
 
 u8 *__fastcall RandomSegments_Ctor(u8 *object) {
     Class702d48_Ctor(object);
-    at<u32>(object, 0) = 0x00702cb0;
+    at<u32>(object, 0) = (u32)(uintptr_t)Class702cb0_vtable;
     u8 *const block = static_cast<u8 *>(GameHeap_Alloc(0x10));
     if (block) {
-        at<u32>(block, 0) = 0x00702cac;
+        at<u32>(block, 0) = (u32)(uintptr_t)Class702cac_vtable;
         at<u32>(block, 4) = 0;
         at<u32>(block, 8) = 0;
         at<u32>(block, 0xc) = 0;

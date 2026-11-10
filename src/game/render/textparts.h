@@ -133,3 +133,18 @@ void __fastcall TextPart6ff500_SetLayout(u8 *part, void *, u32 flags, const u8 *
 // Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
 GAME_DATA(u16[2], gText_TextPart6ff500_SetLayout_7506b8, 0x007506b8, 0x4);
 GAME_DATA(u16[2], gText_TextPart6ff350_SetLayout_7506a8, 0x007506a8, 0x4);
+
+// The vtables hold only ports: tpw.exe's loader points their slots at them (.docs/09-globals.md).
+GAME_DATA(void *[11], RendererPart_vtable, 0x006ff2d8, 0x2c);
+GAME_DATA(void *[11], TextPart_vtable, 0x006ff320, 0x2c);
+GAME_DATA(void *[11], TextPart6ff350_vtable, 0x006ff350, 0x2c);
+GAME_DATA(void *[11], TextPart6ff380_vtable, 0x006ff380, 0x2c);
+GAME_DATA(void *[11], TextPart6ff3b0_vtable, 0x006ff3b0, 0x2c);
+GAME_DATA(void *[11], TextPart6ff3e0_vtable, 0x006ff3e0, 0x2c);
+GAME_DATA(void *[11], TextPart6ff410_vtable, 0x006ff410, 0x2c);
+GAME_DATA(void *[11], TextPart6ff440_vtable, 0x006ff440, 0x2c);
+GAME_DATA(void *[11], TextPart6ff470_vtable, 0x006ff470, 0x2c);
+GAME_DATA(void *[11], TextPart6ff4a0_vtable, 0x006ff4a0, 0x2c);
+GAME_DATA(void *[11], TextPart6ff4d0_vtable, 0x006ff4d0, 0x2c);
+GAME_DATA(void *[11], TextPart6ff500_vtable, 0x006ff500, 0x2c);
+GAME_DATA(void *[11], TextPart6ff530_vtable, 0x006ff530, 0x2c);

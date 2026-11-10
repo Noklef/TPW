@@ -23,6 +23,8 @@
 #include "window7cc8bc.h"
 #include "windowfactory.h"
 #include "windowscript.h"
+#include "../model/slots.h"
+#include "../render/lightsource.h"
 
 namespace {
 
@@ -54,12 +56,12 @@ u8 *__fastcall Panel7b9940_Ctor(u8 *self, void *, u32 complete) {
         at<u32>(self, 0) = 0x6fdd00;
         at<u32>(self, 0xc) = 0x6fdcf8;
         at<u32>(self, 8) = 0x6fdce8;
-        at<u32>(self, vbase(self, 0xc, 4) + 0xc) = 0x6fdcd8;
+        at<u32>(self, vbase(self, 0xc, 4) + 0xc) = (u32)(uintptr_t)Class6fdcd8_vtable;
         const u32 d = vbase(self, 0xc, 4);
         at<u32>(self, d + 8) = d - 0x60;
         at<u32>(self, 0x5c) = 0;
     }
-    at<u32>(self, vbase(self, 0, 4)) = 0x6fdcc8;
+    at<u32>(self, vbase(self, 0, 4)) = (u32)(uintptr_t)Class6fdcc8_vtable;
     const u32 d = vbase(self, 0, 4);
     at<u32>(self, d - 4) = d - 8;
     at<u32>(self, vbase(self, 0, 8) + 0x50) = 2;

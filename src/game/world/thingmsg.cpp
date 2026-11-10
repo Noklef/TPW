@@ -20,12 +20,12 @@ u8 *init(u8 *msg, u32 vtable) {
 extern "C" {
 
 u8 *__fastcall ThingMsg01_Ctor(u8 *msg, void *, u32 a) {
-    at<u32>(init(msg, 0x006fd7a8), 8) = a;
+    at<u32>(init(msg, (u32)(uintptr_t)ThingMsg01_vtable), 8) = a;
     return msg;
 }
 
 u8 *__fastcall ThingMsg02_Ctor(u8 *msg, void *, u32 c, u32 b) {
-    init(msg, 0x006fd7a0);
+    init(msg, (u32)(uintptr_t)ThingMsg02_vtable);
     at<u32>(msg, 8) = b;
     at<u32>(msg, 0xc) = c;
     return msg;
@@ -36,34 +36,34 @@ u8 *__fastcall ThingMsg02_Ctor(u8 *msg, void *, u32 c, u32 b) {
         at<u16>(init(msg, vtable), 8) = a;                    \
         return msg;                                           \
     }
-THINGMSG_U16(06, 0x006fd7c0)
-THINGMSG_U16(07, 0x006fd7c8)
-THINGMSG_U16(08, 0x006fd7d0)
-THINGMSG_U16(09, 0x006fd7d8)
-THINGMSG_U16(0a, 0x006fd7e0)
-THINGMSG_U16(14, 0x006fd818)
-THINGMSG_U16(1b, 0x006fd848)
-THINGMSG_U16(1c, 0x006fd840)
+THINGMSG_U16(06, (u32)(uintptr_t)ThingMsg06_vtable)
+THINGMSG_U16(07, (u32)(uintptr_t)ThingMsg07_vtable)
+THINGMSG_U16(08, (u32)(uintptr_t)ThingMsg08_vtable)
+THINGMSG_U16(09, (u32)(uintptr_t)ThingMsg09_vtable)
+THINGMSG_U16(0a, (u32)(uintptr_t)ThingMsg0a_vtable)
+THINGMSG_U16(14, (u32)(uintptr_t)ThingMsg14_vtable)
+THINGMSG_U16(1b, (u32)(uintptr_t)ThingMsg1b_vtable)
+THINGMSG_U16(1c, (u32)(uintptr_t)ThingMsg1c_vtable)
 #undef THINGMSG_U16
 
-u8 *__fastcall ThingMsg0b_Ctor(u8 *msg) { return init(msg, 0x006fd7e8); }
-u8 *__fastcall ThingMsg0c_Ctor(u8 *msg) { return init(msg, 0x006fd7f0); }
-u8 *__fastcall ThingMsg0d_Ctor(u8 *msg) { return init(msg, 0x006fd7f8); }
+u8 *__fastcall ThingMsg0b_Ctor(u8 *msg) { return init(msg, (u32)(uintptr_t)ThingMsg0b_vtable); }
+u8 *__fastcall ThingMsg0c_Ctor(u8 *msg) { return init(msg, (u32)(uintptr_t)ThingMsg0c_vtable); }
+u8 *__fastcall ThingMsg0d_Ctor(u8 *msg) { return init(msg, (u32)(uintptr_t)ThingMsg0d_vtable); }
 
 u8 *__fastcall ThingMsg11_Ctor(u8 *msg, void *, u16 a, u32 b) {
-    init(msg, 0x006fd800);
+    init(msg, (u32)(uintptr_t)ThingMsg11_vtable);
     at<u16>(msg, 8) = a;
     at<u32>(msg, 0xc) = b;
     return msg;
 }
 
 u8 *__fastcall ThingMsg12_Ctor(u8 *msg, void *, u32 a) {
-    at<u32>(init(msg, 0x006fd808), 8) = a;
+    at<u32>(init(msg, (u32)(uintptr_t)ThingMsg12_vtable), 8) = a;
     return msg;
 }
 
 u8 *__fastcall ThingMsg13_Ctor(u8 *msg, void *, u32 a) {
-    at<u32>(init(msg, 0x006fd810), 8) = a;
+    at<u32>(init(msg, (u32)(uintptr_t)ThingMsg13_vtable), 8) = a;
     return msg;
 }
 
@@ -73,14 +73,14 @@ u8 *__fastcall ThingMsg15_Ctor(u8 *msg, void *, u8 a) {
 }
 
 u8 *__fastcall ThingMsg17_Ctor(u8 *msg, void *, u32 a, u32 b) {
-    init(msg, 0x006fd820);
+    init(msg, (u32)(uintptr_t)ThingMsg17_vtable);
     at<u32>(msg, 8) = a;
     at<u32>(msg, 0xc) = b;
     return msg;
 }
 
 u8 *__fastcall ThingMsg18_Ctor(u8 *msg, void *, u32 a, u16 b, u32 c, u32 d) {
-    init(msg, 0x006fd828);
+    init(msg, (u32)(uintptr_t)ThingMsg18_vtable);
     at<u32>(msg, 8) = a;
     at<u16>(msg, 0xc) = b;
     at<u32>(msg, 0x10) = d;
@@ -90,7 +90,7 @@ u8 *__fastcall ThingMsg18_Ctor(u8 *msg, void *, u32 a, u16 b, u32 c, u32 d) {
 
 u8 *__fastcall ThingMsg19_Ctor(u8 *msg, void *, u32 a, u32 b, u8 c, u32 d, u32 e, u32 f, u32 g, u32 h, u16 i,
                                u16 j, u32 k) {
-    init(msg, 0x006fd830);
+    init(msg, (u32)(uintptr_t)ThingMsg19_vtable);
     at<u32>(msg, 8) = a;
     at<u32>(msg, 0xc) = b;
     at<u8>(msg, 0x10) = c;
@@ -106,7 +106,7 @@ u8 *__fastcall ThingMsg19_Ctor(u8 *msg, void *, u32 a, u32 b, u8 c, u32 d, u32 e
 }
 
 u8 *__fastcall ThingMsg1a_Ctor(u8 *msg, void *, u32 a, u32 b, u16 c, u16 d) {
-    init(msg, 0x006fd838);
+    init(msg, (u32)(uintptr_t)ThingMsg1a_vtable);
     at<u32>(msg, 8) = a;
     at<u32>(msg, 0xc) = b;
     at<u16>(msg, 0x10) = c;
@@ -147,9 +147,9 @@ u8 *__fastcall ThingMsg15_DeletingDtor(u8 *msg, void *, u8 flags) {
 
 u8 *__fastcall Obj_CtorPart8(u8 *object, void *, u32 value) {
     at<u32>(object, 4) = 0;
-    at<u32>(object, 0) = 0x006fd7b8;
+    at<u32>(object, 0) = (u32)(uintptr_t)Class6fd7b8_vtable;
     Fn_59b550(object + 8, nullptr, value);
-    at<u32>(object, 0) = 0x006fd7b0;
+    at<u32>(object, 0) = (u32)(uintptr_t)Class6fd7b0_vtable;
     return object;
 }
 }

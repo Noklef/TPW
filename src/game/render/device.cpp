@@ -15,7 +15,7 @@ template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((ui
 extern "C" {
 
 u8 *__fastcall Class701260_Ctor(u8 *object) {
-    at<u32>(object, 0) = 0x00701260;
+    at<u32>(object, 0) = (u32)(uintptr_t)Class701260_vtable;
     at<u32>(object, 4) = 0;
     at<u32>(object, 0x14) = 0xffffffff;
     at<u32>(object, 0x18) = 0;
@@ -33,7 +33,7 @@ u8 *__fastcall Class701378_Ctor(u8 *object, void *, u32 mostDerived) {
         at<u32>(object, 0) = 0x00701378;
         Class701260_Ctor(object + 0x2c);
     }
-    at<u32>(object, BaseOffset(object)) = 0x00701330;
+    at<u32>(object, BaseOffset(object)) = (u32)(uintptr_t)Class701330_vtable;
     const s32 offset = BaseOffset(object);
     at<s32>(object, offset - 4) = offset - 0x2c;
     const u8 *vtable = at<const u8 *>(object, 0);

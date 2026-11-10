@@ -13,6 +13,7 @@
 #include "../model/holder.h"
 #include "../terrain/land.h"
 #include "../frontend/frame.h"
+#include "../render/randomsegments.h"
 
 namespace {
 
@@ -420,7 +421,7 @@ void __fastcall Class702b08_Dtor(u8 *object) {
 }
 
 void __fastcall Class702cb0_Dtor(u8 *object) {
-    at<u32>(object, 0) = 0x00702cb0;
+    at<u32>(object, 0) = (u32)(uintptr_t)Class702cb0_vtable;
     DrainList(object, 8);
     Class702d48_Release(object);
 }

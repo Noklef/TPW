@@ -492,7 +492,7 @@ void __fastcall ParkMap_PrepareSprites(u8 *map) {
         list[1] = 0;
         list[2] = 0;
         list[3] = 0;
-        list[0] = 0x00703080;
+        list[0] = (u32)(uintptr_t)Class703080_vtable;
     }
     at<u32 *>(map, 0x20080) = list;
     g_sprites->addSprites(map);

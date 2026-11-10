@@ -40,7 +40,7 @@ void scheduleIn(u8 *challenges, s32 days) {
 extern "C" {
 
 void __fastcall BalanceChallenges_Dtor(u8 *file) {
-    at<u32>(file, 0) = 0x00700398;
+    at<u32>(file, 0) = (u32)(uintptr_t)BalanceChallenges_vtable;
     BalanceFile_Release(file);
 }
 
@@ -48,7 +48,7 @@ void __fastcall Challenges_LoadSam(u8 *challenges) {
     u8 *const list = challenges + 0xc;
     for (s32 i = 0; i < 0x14; ++i) at<u32>(list, i * 0x30) = 0;
     u8 file[0x970];
-    at<u32>(file, 0) = 0x00700398;
+    at<u32>(file, 0) = (u32)(uintptr_t)BalanceChallenges_vtable;
     BalanceFile_Init(file);
     BalanceFile_Load(file, nullptr, gText_Challenges_LoadSam_75a1f4, 0);  // "data/challenges.sam" (a failure only asserts)
     for (const s32 *index = reinterpret_cast<const s32 *>(0x007857d4); index < reinterpret_cast<const s32 *>(0x00785824); ++index) {

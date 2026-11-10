@@ -11,6 +11,8 @@
 #include "vobj2.h"
 #include "vtables.h"
 #include "../world/parkmap.h"
+#include "../render/device.h"
+#include "../world/thingmsg.h"
 
 namespace {
 
@@ -205,7 +207,7 @@ u8 *__fastcall Deleter_Minus2c_569c80(u8 *object, void *, u32 flags) {
 }
 
 u8 *__fastcall Class703088_ScalarDtor(u8 *object, void *, u32 flags) {
-    at<u32>(object, 0) = 0x00703088;
+    at<u32>(object, 0) = (u32)(uintptr_t)Class703088_vtable;
     u8 *const list = reinterpret_cast<u8 * &>(gParkmap_fa6e38);
     u8 *node = at<u8 *>(list, 4);
     while (node && at<u8 *>(node, 0) != object)
@@ -263,87 +265,87 @@ u8 *__fastcall VBase_Deleter_701920(u8 *object, void *, u32 flags) { return VBas
 u8 *__fastcall VBase_Deleter_7018f8(u8 *object, void *, u32 flags) { return VBase_Deleter(object, flags, 0x007018f8); }
 
 u8 * __fastcall ScalarDelete6fd7a0_40f270(u8 *o, void *, u32 v0) {
-    at<u32>(o, 0x0) = 0x006fd7a0; if (v0 & 1) GameHeap_Free(o); return o;
+    at<u32>(o, 0x0) = (u32)(uintptr_t)ThingMsg02_vtable; if (v0 & 1) GameHeap_Free(o); return o;
 }
 
 u8 * __fastcall ScalarDelete6fd7a8_40f2b0(u8 *o, void *, u32 v0) {
-    at<u32>(o, 0x0) = 0x006fd7a8; if (v0 & 1) GameHeap_Free(o); return o;
+    at<u32>(o, 0x0) = (u32)(uintptr_t)ThingMsg01_vtable; if (v0 & 1) GameHeap_Free(o); return o;
 }
 
 u8 * __fastcall ScalarDelete6fd7b0_40f2e0(u8 *o, void *, u32 v0) {
-    at<u32>(o, 0x0) = 0x006fd7b0; if (v0 & 1) GameHeap_Free(o); return o;
+    at<u32>(o, 0x0) = (u32)(uintptr_t)Class6fd7b0_vtable; if (v0 & 1) GameHeap_Free(o); return o;
 }
 
 u8 * __fastcall ScalarDelete6fd7c0_40f360(u8 *o, void *, u32 v0) {
-    at<u32>(o, 0x0) = 0x006fd7c0; if (v0 & 1) GameHeap_Free(o); return o;
+    at<u32>(o, 0x0) = (u32)(uintptr_t)ThingMsg06_vtable; if (v0 & 1) GameHeap_Free(o); return o;
 }
 
 u8 * __fastcall ScalarDelete6fd7c8_40f3b0(u8 *o, void *, u32 v0) {
-    at<u32>(o, 0x0) = 0x006fd7c8; if (v0 & 1) GameHeap_Free(o); return o;
+    at<u32>(o, 0x0) = (u32)(uintptr_t)ThingMsg07_vtable; if (v0 & 1) GameHeap_Free(o); return o;
 }
 
 u8 * __fastcall ScalarDelete6fd7d0_40f400(u8 *o, void *, u32 v0) {
-    at<u32>(o, 0x0) = 0x006fd7d0; if (v0 & 1) GameHeap_Free(o); return o;
+    at<u32>(o, 0x0) = (u32)(uintptr_t)ThingMsg08_vtable; if (v0 & 1) GameHeap_Free(o); return o;
 }
 
 u8 * __fastcall ScalarDelete6fd7d8_40f450(u8 *o, void *, u32 v0) {
-    at<u32>(o, 0x0) = 0x006fd7d8; if (v0 & 1) GameHeap_Free(o); return o;
+    at<u32>(o, 0x0) = (u32)(uintptr_t)ThingMsg09_vtable; if (v0 & 1) GameHeap_Free(o); return o;
 }
 
 u8 * __fastcall ScalarDelete6fd7e0_40f4a0(u8 *o, void *, u32 v0) {
-    at<u32>(o, 0x0) = 0x006fd7e0; if (v0 & 1) GameHeap_Free(o); return o;
+    at<u32>(o, 0x0) = (u32)(uintptr_t)ThingMsg0a_vtable; if (v0 & 1) GameHeap_Free(o); return o;
 }
 
 u8 * __fastcall ScalarDelete6fd7e8_40f4e0(u8 *o, void *, u32 v0) {
-    at<u32>(o, 0x0) = 0x006fd7e8; if (v0 & 1) GameHeap_Free(o); return o;
+    at<u32>(o, 0x0) = (u32)(uintptr_t)ThingMsg0b_vtable; if (v0 & 1) GameHeap_Free(o); return o;
 }
 
 u8 * __fastcall ScalarDelete6fd7f0_40f520(u8 *o, void *, u32 v0) {
-    at<u32>(o, 0x0) = 0x006fd7f0; if (v0 & 1) GameHeap_Free(o); return o;
+    at<u32>(o, 0x0) = (u32)(uintptr_t)ThingMsg0c_vtable; if (v0 & 1) GameHeap_Free(o); return o;
 }
 
 u8 * __fastcall ScalarDelete6fd7f8_40f560(u8 *o, void *, u32 v0) {
-    at<u32>(o, 0x0) = 0x006fd7f8; if (v0 & 1) GameHeap_Free(o); return o;
+    at<u32>(o, 0x0) = (u32)(uintptr_t)ThingMsg0d_vtable; if (v0 & 1) GameHeap_Free(o); return o;
 }
 
 u8 * __fastcall ScalarDelete6fd800_40f5c0(u8 *o, void *, u32 v0) {
-    at<u32>(o, 0x0) = 0x006fd800; if (v0 & 1) GameHeap_Free(o); return o;
+    at<u32>(o, 0x0) = (u32)(uintptr_t)ThingMsg11_vtable; if (v0 & 1) GameHeap_Free(o); return o;
 }
 
 u8 * __fastcall ScalarDelete6fd808_40f610(u8 *o, void *, u32 v0) {
-    at<u32>(o, 0x0) = 0x006fd808; if (v0 & 1) GameHeap_Free(o); return o;
+    at<u32>(o, 0x0) = (u32)(uintptr_t)ThingMsg12_vtable; if (v0 & 1) GameHeap_Free(o); return o;
 }
 
 u8 * __fastcall ScalarDelete6fd810_40f660(u8 *o, void *, u32 v0) {
-    at<u32>(o, 0x0) = 0x006fd810; if (v0 & 1) GameHeap_Free(o); return o;
+    at<u32>(o, 0x0) = (u32)(uintptr_t)ThingMsg13_vtable; if (v0 & 1) GameHeap_Free(o); return o;
 }
 
 u8 * __fastcall ScalarDelete6fd818_40f6b0(u8 *o, void *, u32 v0) {
-    at<u32>(o, 0x0) = 0x006fd818; if (v0 & 1) GameHeap_Free(o); return o;
+    at<u32>(o, 0x0) = (u32)(uintptr_t)ThingMsg14_vtable; if (v0 & 1) GameHeap_Free(o); return o;
 }
 
 u8 * __fastcall ScalarDelete6fd820_40f720(u8 *o, void *, u32 v0) {
-    at<u32>(o, 0x0) = 0x006fd820; if (v0 & 1) GameHeap_Free(o); return o;
+    at<u32>(o, 0x0) = (u32)(uintptr_t)ThingMsg17_vtable; if (v0 & 1) GameHeap_Free(o); return o;
 }
 
 u8 * __fastcall ScalarDelete6fd828_40f780(u8 *o, void *, u32 v0) {
-    at<u32>(o, 0x0) = 0x006fd828; if (v0 & 1) GameHeap_Free(o); return o;
+    at<u32>(o, 0x0) = (u32)(uintptr_t)ThingMsg18_vtable; if (v0 & 1) GameHeap_Free(o); return o;
 }
 
 u8 * __fastcall ScalarDelete6fd830_40f820(u8 *o, void *, u32 v0) {
-    at<u32>(o, 0x0) = 0x006fd830; if (v0 & 1) GameHeap_Free(o); return o;
+    at<u32>(o, 0x0) = (u32)(uintptr_t)ThingMsg19_vtable; if (v0 & 1) GameHeap_Free(o); return o;
 }
 
 u8 * __fastcall ScalarDelete6fd838_40f890(u8 *o, void *, u32 v0) {
-    at<u32>(o, 0x0) = 0x006fd838; if (v0 & 1) GameHeap_Free(o); return o;
+    at<u32>(o, 0x0) = (u32)(uintptr_t)ThingMsg1a_vtable; if (v0 & 1) GameHeap_Free(o); return o;
 }
 
 u8 * __fastcall ScalarDelete6fd840_40f8e0(u8 *o, void *, u32 v0) {
-    at<u32>(o, 0x0) = 0x006fd840; if (v0 & 1) GameHeap_Free(o); return o;
+    at<u32>(o, 0x0) = (u32)(uintptr_t)ThingMsg1c_vtable; if (v0 & 1) GameHeap_Free(o); return o;
 }
 
 u8 * __fastcall ScalarDelete6fd848_40f930(u8 *o, void *, u32 v0) {
-    at<u32>(o, 0x0) = 0x006fd848; if (v0 & 1) GameHeap_Free(o); return o;
+    at<u32>(o, 0x0) = (u32)(uintptr_t)ThingMsg1b_vtable; if (v0 & 1) GameHeap_Free(o); return o;
 }
 
 u8 * __fastcall ScalarDelete6fdce8_429b60(u8 *o, void *, u32 v0) {
@@ -375,7 +377,7 @@ u8 * __fastcall ScalarDelete701178_564710(u8 *o, void *, u32 v0) {
 }
 
 u8 * __fastcall ScalarDelete701260_565210(u8 *o, void *, u32 v0) {
-    at<u32>(o, 0x0) = 0x00701260; if (v0 & 1) GameHeap_Free(o); return o;
+    at<u32>(o, 0x0) = (u32)(uintptr_t)Class701260_vtable; if (v0 & 1) GameHeap_Free(o); return o;
 }
 
 u8 * __fastcall ScalarDelete702198_58b310(u8 *o, void *, u32 v0) {
