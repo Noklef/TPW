@@ -6,11 +6,11 @@ import struct
 import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
-from fncmp import IMPORT_TABLE, LOG, RAM, Bench, Call, _recorder, answers, import_table, log_region, recorder  # noqa: E402
+from fncmp import IMPORT_TABLE, LOG, RAM, Bench, Call, _recorder, answers, import_table, log_region, recorder, set_return  # noqa: E402
 
 LOCK, UNLOCK, NEWH = 7, 8, 9
-VALLOC, VFREE, HALLOC, HFREE = 14, 15, 16, 17
-B = Bench([(0x67fcb0, 0x67fd5b), (0x688710, 0x688730), (0x6828a0, 0x682a02), (0x682c00, 0x682e33), (0x682e40, 0x682fb2)],
+VALLOC, VFREE, HALLOC, HFREE, HCREATE, HDESTROY = 14, 15, 16, 17, 20, 21
+B = Bench([(0x6826b0, 0x6826e7), (0x67fcb0, 0x67fd5b), (0x688710, 0x688730), (0x6828a0, 0x682a02), (0x682c00, 0x682e33), (0x682e40, 0x682fb2)],
           hooks={0x682720: _recorder(LOCK, 1, cdecl=True), 0x6827a0: _recorder(UNLOCK, 1, cdecl=True)})
 STATIC, R2, R3 = 0x77eda0, RAM + 0x1000, RAM + 0x4000
 VAS, HEAPS, NEWHS = RAM, RAM + 0x100, RAM + 0x200
@@ -18,7 +18,7 @@ PAGES, PAGES2, FRESH = RAM + 0x10000, RAM + 0x30000, RAM + 0x50000
 LIMIT = 0xf0
 PARAS = [1, 1, 1, 2, 3, 4, 8, 0x10, 0x20, 0x40, 0x80, 0xf0, 0xf1]
 BYTES = [0, 1, 2, 0xf, 0x10, 0x11, 0x20, 0x100, 0x1e0, 0x1e1, 0x3f0, 0x1000, 0xffffffe0, 0xffffffe1, 0xfffffff0]
-OPS = [n for n in ('page', 'page', 'block', 'block', 'block', 'new', 'calloc', 'calloc', 'newh') if not os.environ.get('OPS') or n in os.environ['OPS'].split(',')]
+OPS = [n for n in ('page', 'page', 'block', 'block', 'block', 'new', 'calloc', 'calloc', 'newh', 'heap_init') if not os.environ.get('OPS') or n in os.environ['OPS'].split(',')]
 
 
 def page(r, at):
@@ -79,7 +79,8 @@ def region(r, regions, at, memory, committed, uncommitted):
 def case(r):
     name = r.deal(OPS)
     log = log_region()
-    regions = {LOG: log, IMPORT_TABLE: import_table(log, {'valloc': (VALLOC, 0x6fd1b4, 4, 0, 0), 'vfree': (VFREE, 0x6fd1b8, 3, 0, 0), 'halloc': (HALLOC, 0x6fd224, 3, 0, 0), 'hfree': (HFREE, 0x6fd210, 3, 0, 0)})}
+    regions = {LOG: log, IMPORT_TABLE: import_table(log, {'valloc': (VALLOC, 0x6fd1b4, 4, 0, 0), 'vfree': (VFREE, 0x6fd1b8, 3, 0, 0), 'halloc': (HALLOC, 0x6fd224, 3, 0, 0), 'hfree': (HFREE, 0x6fd210, 3, 0, 0),
+                                                         'hcreate': (HCREATE, 0x6fd1bc, 3, 0, 0), 'hdestroy': (HDESTROY, 0x6fd1c0, 1, 0, 0)})}
     answers(log, VALLOC, VAS)
     answers(log, HALLOC, HEAPS)
     answers(log, NEWH, NEWHS)
@@ -89,7 +90,7 @@ def case(r):
     regions[NEWHS] = struct.pack('<40I', *([r.choice([1, 2])] * r.choice([0, 1, 2]) + [0] * 40)[:40])
     if name == 'newh':
         return Call(0x688710, [r.getrandbits(32)], regions, conv='c', ret='a')
-    scene = 'fresh' if name == 'new' else 'plain' if name == 'page' else r.choice(['plain', 'plain', 'plain', 'commit', 'commit', 'fresh', 'deep'])
+    scene = 'fresh' if name in ('new', 'heap_init') else 'plain' if name == 'page' else r.choice(['plain', 'plain', 'plain', 'commit', 'commit', 'fresh', 'deep'])
     committed = 1 if scene == 'deep' else r.randrange(1, 4)
     uncommitted = 17 if scene == 'deep' else r.randrange(1, 4) if scene == 'commit' else 0
     static = region(r, regions, STATIC, PAGES, committed, uncommitted)
@@ -134,6 +135,10 @@ def case(r):
         return Call(0x682c00, [r.choice(PARAS)], regions, conv='c', ret='a')
     if name == 'new':
         return Call(0x6828a0, [], regions, conv='c', ret='a')
+    if name == 'heap_init':   # (HeapCreate's heap, or none; then the new region as 'new' has it)
+        set_return(log, HCREATE, r.choice([0x5000, 0x5000, 0x5000, 0]))
+        regions[0xfb3cac] = r.bytes(4)
+        return Call(0x6826b0, [], regions, conv='c', ret='a')
     return Call(0x67fcb0, [r.choice(BYTES), 1] if r.random() < 0.7 else [r.choice([2, 3, 0x10, 0x10000]), r.choice([1, 0x10, 0x18, 0x10000])], regions, conv='c', ret='a')
 
 
