@@ -146,3 +146,12 @@ u8 *__fastcall DeviceFilter_DeletingDtorThunk(u8 *self, void *, u32 flags);
 }  // extern "C"
 
 void InputFilter_SetCalls(const AddrCall *table, u32 count);
+
+#include "../core/gamedata.h"
+
+// Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(const s32[2], gKeyFilter_Ctor_703c30, 0x00703c30, 0x8);
+GAME_DATA(const s32[2], gInputFilter_SubscribeC90_703c90, 0x00703c90, 0x8);
+GAME_DATA(const s32[2], gMouseFilter_Subscribe_703cc0, 0x00703cc0, 0x8);
+GAME_DATA(const u32[4], gGuidSysMouse_707c40, 0x00707c40, 0x10);
+GAME_DATA(const u32[192], gGuidTable_707c50, 0x00707c50, 0x300);

@@ -613,7 +613,7 @@ void __cdecl CoasterEdit_EditRide(const u8 *object, u32 on) {
 void __cdecl CoasterEdit_SetEditingById(u32 id) { CoasterEdit_SetEditing(CoasterLink_ById(id), id != 0); }
 
 void __cdecl CoasterEdit_SetEditingAt(u32 index) {
-    CoasterEdit_SetEditing(index ? reinterpret_cast<u8 **>(0x00790bd0)[index] : nullptr, index != 0);
+    CoasterEdit_SetEditing(index ? gCoasters_790bd0[index] : nullptr, index != 0);
 }
 
 // The pieces from the lower handle (+0) of a and b up to the other (by +0x64, the other left out): flag 0x1000000 set, or 0x1004000 cleared.
@@ -1041,6 +1041,6 @@ extern "C" void __cdecl EditTools_RebuildCurrent() {
 }
 
 extern "C" void __cdecl EditTools_RebuildIndexed(u32 index) {
-    u8 *const coaster = g<u8 *>(0x00790bd0 + index * 4);
+    u8 *const coaster = gCoasters_790bd0[index];
     if (coaster && (coaster[0] & 1)) RebuildOne(coaster);
 }

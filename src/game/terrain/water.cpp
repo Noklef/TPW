@@ -12,6 +12,7 @@
 #include "gridquad.h"
 #include "landscape.h"
 #include "../render/rendererframe.h"
+#include "ground.h"
 
 using gridquad::FacingClipped;
 using gridquad::FacingOpen;
@@ -40,7 +41,7 @@ void KeepPoint(u8 *self, const u8 *point) {
 // A batch kept from before: its vertices moved by the point's change.
 void MoveKept(u8 *self) {
     const u8 *const batch = at<u8 *>(self, 0x2958);
-    const u32 stride = global<u32>(0x007014b4);
+    const u32 stride = gGround_7014b4;
     const u32 count = at<u32>(batch, 0x20);
     u8 *vertex = at<u8 *>(batch, 0x28);
     const u8 *const point = Landscape_Point(LandscapeObject());
@@ -88,7 +89,7 @@ extern "C" u32 __fastcall TerrainWater_Draw(u8 *self) {
     }
     const u8 *const texture = reinterpret_cast<const u8 *>((uintptr_t)Landscape_List(LandscapeObject()));
     if (texture == nullptr) return 1;
-    const u32 stride = global<u32>(0x007014b4);
+    const u32 stride = gGround_7014b4;
     const u32 batchFlags = global<u32>(0x008bcbc8) & 0x2000 ? 0x60 : 0x20;
     u32 flags = (Texture_FormatBits(texture) | 0x800) & ~0x400u;
     if (global<u32>(0x008bcbc8) & 0x2000) flags |= 0x100000;
@@ -129,13 +130,13 @@ extern "C" u32 __fastcall TerrainWater_Draw(u8 *self) {
             const u8 a = lastCodes[column], b = lastCodes[column + 1], c = codes[column], d = codes[column + 1];
             if (a & b & c & d) continue;
 
-            const float wrapped = (float)(X87Reg((double)column) * global<float>(0x0070153c));
-            const X87Reg across = X87Reg((double)row) * global<float>(0x00701540);
-            const X87Reg u0 = (X87Reg(at<float>(point, 0)) - wrapped) * global<float>(0x00768318);
-            const float u1 = (float)(((X87Reg(at<float>(point, 0)) - global<float>(0x0070153c)) - wrapped) * global<float>(0x00768318));
-            const float v0 = (float)((X87Reg(at<float>(point, 8)) - across) * global<float>(0x0076831c));
-            const float v1 = (float)(((X87Reg(at<float>(point, 8)) - global<float>(0x0070153c)) - across) * global<float>(0x0076831c));
-            const u32 colour = global<u32>(0x008bd4bc);
+            const float wrapped = (float)(X87Reg((double)column) * gTerrainWater_Draw_70153c);
+            const X87Reg across = X87Reg((double)row) * gTerrainWater_Draw_701540;
+            const X87Reg u0 = (X87Reg(at<float>(point, 0)) - wrapped) * gTerrainWater_Draw_768318;
+            const float u1 = (float)(((X87Reg(at<float>(point, 0)) - gTerrainWater_Draw_70153c) - wrapped) * gTerrainWater_Draw_768318);
+            const float v0 = (float)((X87Reg(at<float>(point, 8)) - across) * gTerrainWater_Draw_76831c);
+            const float v1 = (float)(((X87Reg(at<float>(point, 8)) - gTerrainWater_Draw_70153c) - across) * gTerrainWater_Draw_76831c);
+            const u32 colour = gTerrainWater_Draw_8bd4bc;
             const u32 lastColour = row ? colour : colour & 0xffffff, nextColour = next ? colour : colour & 0xffffff;
 
             struct Corner {

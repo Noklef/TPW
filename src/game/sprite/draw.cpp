@@ -11,19 +11,20 @@
 #include "script.h"
 #include "../world/things.h"
 #include "../render/spritequeue.h"
+#include "loading.h"
 
 namespace {
 
 template <typename T> T &at(void *p, u32 offset) { return *reinterpret_cast<T *>(static_cast<u8 *>(p) + offset); }
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>(address); }
 
-s32 *counts() { return reinterpret_cast<s32 *>(0x00876490); }  // per cell
-u32 **lists() { return reinterpret_cast<u32 **>(0x00875528); }  // per cell
-s32 &overlayCount() { return global<s32>(0x00875864); }
-u32 *&overlayList() { return global<u32 *>(0x0087692c); }
-float &heading() { return global<float>(0x00876b24); }
-u8 *sprite(u32 index) { return reinterpret_cast<u8 **>(0x00876b48)[index]; }  // gSprites
-u32 folderFirst(u32 folder) { return global<u32>(0x00763f8c + 12u * folder); }
+s32 *counts() { return gSpriteDrawCounts; }  // per cell
+u32 **lists() { return gSpriteDrawLists; }  // per cell
+s32 &overlayCount() { return gDraw_875864; }
+u32 *&overlayList() { return gSpriteDrawOverlay; }
+float &heading() { return gSpriteHeading; }
+u8 *sprite(u32 index) { return gSprites[index]; }
+u32 folderFirst(u32 folder) { return gSpriteFolders[folder].first; }
 
 constexpr double kTwoPi = 6.2831854820251465;  // 0x700e68, double
 constexpr float kNegTwoPi = -6.2831854820251465f, kHeadingBias = -0.39269909262657166f,
@@ -89,7 +90,7 @@ extern "C" void __cdecl SpriteDraw_End() {
 extern "C" void __cdecl Sprite_DrawScript(u8 *s) {
     if (!at<u32>(s, 0x114)) return;
     const u32 frame = at<u32>(s, 0xb8);  // r13
-    if (frame == 0xffffffffu || !global<u8>(0x00763f84)) return;
+    if (frame == 0xffffffffu || !gSpriteDrawOn) return;
     const u32 folder = at<u32>(s, 0xac);  // r10
     u32 index = folderFirst(folder) + at<u32>(s, 0xb0);
     const s32 turn = at<s32>(s, 0xc0);  // r15
@@ -108,7 +109,7 @@ extern "C" void __cdecl Sprite_DrawScript(u8 *s) {
         height = bits_of((float)X87_Add(env().height(x, z), (double)as_float(y)));
     }
 
-    const u32 bucket = (u32)cell(z, global<s32>(0x0087614c)) + 4u * (u32)cell(x, global<s32>(0x008762b4));
+    const u32 bucket = (u32)cell(z, gSpriteCellDepth) + 4u * (u32)cell(x, gSpriteCellWidth);
     if (counts()[bucket] >= 0x800) return;
 
     index += (u32)(anim / 16);
@@ -121,7 +122,7 @@ extern "C" void __cdecl Sprite_DrawScript(u8 *s) {
             X87_Round(X87_Round((double)heading() - (double)kHeadingBias) * kInvTwoPi) * kEighths);
         offset = 8 - (ftol(eighths) & 7);
     }
-    global<u32>(0x0087734c) = offset;
+    gDraw_87734c = offset;
 
     const u8 dirs = sprite(index)[0x223 + 4 * slot];
     u32 dir = 0;
@@ -168,8 +169,8 @@ extern "C" u32 __cdecl SpriteDraw_Pick() {
     const u32 row = tile >> 7, column = tile & 0x7f;
     u16 x, y;
     Gui_GetMousePos(&x, &y);
-    global<float>(0x008bd4f0) = (float)(X87Reg((double)(s16)x) * global<float>(0x00700d18) - global<float>(0x00700d10));
-    global<float>(0x008bd4f4) = (float)(X87Reg((double)(s16)y) * global<float>(0x00700d1c) - global<float>(0x00700d10));
+    gDraw_8bd4f0 = (float)(X87Reg((double)(s16)x) * gSpriteDraw_Pick_700d18 - global<float>(0x00700d10));
+    gDraw_8bd4f4 = (float)(X87Reg((double)(s16)y) * gSpriteDraw_Pick_700d1c - global<float>(0x00700d10));
     u8 *const picked = gSpritequeue_8bd4fc;
     if (!picked)
         return 0;
@@ -193,5 +194,5 @@ extern "C" u32 __cdecl SpriteDraw_Pick() {
     return 0;
 }
 
-extern "C" void __cdecl SpriteDraw_Enable() { global<u8>(0x00763f84) = 1; }
-extern "C" void __cdecl SpriteDraw_Disable() { global<u8>(0x00763f84) = 0; }
+extern "C" void __cdecl SpriteDraw_Enable() { gSpriteDrawOn = 1; }
+extern "C" void __cdecl SpriteDraw_Disable() { gSpriteDrawOn = 0; }

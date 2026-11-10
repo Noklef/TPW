@@ -32,7 +32,7 @@ void __cdecl SinTable_Build(u32 n) {
     const bool single = (cw & 0x300) == 0;  // (24-bit precision; else 53, as double arithmetic rounds)
     float *const values = reinterpret_cast<float *>(0x007b0968);
     gSinTableMask = n - 1;
-    *reinterpret_cast<u32 *>(0x007b4968) = n;
+    gSinTableSize = n;
     const float nf = (float)(double)n;  // (fild qword n, exact; fst float)
     gSinTableScale = single ? (float)X87_MulInt(n, 0.159154937f) : (float)((double)n * (double)0.159154937f);
     for (u32 i = 0; i < n; ++i)

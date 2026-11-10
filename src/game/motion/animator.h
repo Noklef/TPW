@@ -217,3 +217,10 @@ void __cdecl Animator_CountLayers(u8 *animator);
 // 0x472f40: one layer playing (+0x14 = 1), and the model's flag 0x80000 set.
 void __cdecl Animator_SetPlaying(u8 *animator);
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(u32, gMotionTime, 0x007b496c, 0x4);
+GAME_DATA(u32, gMotionRealTime, 0x007b4974, 0x4);
+GAME_DATA(u32, gMotionFlags, 0x007b4980, 0x4);

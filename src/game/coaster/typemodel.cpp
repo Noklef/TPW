@@ -6,6 +6,7 @@
 #include "../model/parts.h"
 #include "../motion/animator.h"
 #include "../world/rides.h"
+#include "train.h"
 
 namespace {
 
@@ -117,13 +118,13 @@ void __cdecl CoasterType_ReadModel(u32, u8 *block, u32 type) {
     if (Animator_HasMotion(&holder, 10, 1)) at<u32>(block, 0) |= 0x200;
     parts(holder, block);
 
-    global<u32>(0x00791054) = at<u32>(block, 0xb8);
-    global<u32>(0x00791050) = at<u32>(block, 0xb4);
-    global<u32>(0x00791ce8) = 0;
-    global<u32>(0x00791cec) = 0;
-    global<u32>(0x00791cf0) = 0;
-    global<u32>(0x00791cf4) = 0x00791050;
-    const u32 ride = g_env->createRide(type, 0x3fa, reinterpret_cast<const u32 *>(0x00791ce8), 0, 0, 0, 0, 0, -1, 0);
+    gCoasterRidePair_791050[1] = at<u32>(block, 0xb8);
+    gCoasterRidePair_791050[0] = at<u32>(block, 0xb4);
+    gCoasterRideDesc_791ce8[0] = 0;
+    gCoasterRideDesc_791ce8[1] = 0;
+    gCoasterRideDesc_791ce8[2] = 0;
+    gCoasterRideDesc_791ce8[3] = (u32)(uintptr_t)gCoasterRidePair_791050;
+    const u32 ride = g_env->createRide(type, 0x3fa, gCoasterRideDesc_791ce8, 0, 0, 0, 0, 0, -1, 0);
 
     u8 *const instance = Instance(ride);
     u8 *layer = at<u8 *>(instance, 0x10);

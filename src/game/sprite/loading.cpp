@@ -11,6 +11,7 @@
 #include "../core/vcall.h"
 #include "../gfx/spriteframe.h"
 #include "../world/things.h"
+#include "draw.h"
 
 namespace {
 
@@ -28,14 +29,14 @@ u8 use_frames(u32 kind, u32 suffixOn, u32 suffixOff) {
     String_Ctor(&suffix);
     u8 *folder = nullptr;
     u8 result = 0;
-    if (*reinterpret_cast<u32 *>((uintptr_t)0x00763f80) != kind) {
-        const u32 wide = *reinterpret_cast<u8 *>((uintptr_t)0x00763f28) ? suffixOn : suffixOff;
-        *reinterpret_cast<u32 *>((uintptr_t)0x00763f80) = kind;
+    if (gLoading_763f80 != kind) {
+        const u32 wide = gLoading_763f28 ? suffixOn : suffixOff;
+        gLoading_763f80 = kind;
         String_AssignWide(&suffix, nullptr, reinterpret_cast<const WString *>((uintptr_t)wide));
         if (g_env->find(*reinterpret_cast<u8 ***>((uintptr_t)0x00786b9c), nullptr, reinterpret_cast<const u8 *>((uintptr_t)0x00876960),
                         &folder) == 1) {
-            u8 **sprites = reinterpret_cast<u8 **>((uintptr_t)0x00876b48);
-            for (s32 i = 0; i < *reinterpret_cast<s32 *>((uintptr_t)0x00876b28); ++i) {
+            u8 **sprites = gSprites;
+            for (s32 i = 0; i < (s32)gLoading_876b28; ++i) {
                 if (!sprites[i][0x205]) continue;
                 String_AssignStr(&name, nullptr, reinterpret_cast<const char *>(sprites[i] + 4));
                 String_Append(&name, nullptr, reinterpret_cast<const StringView *>(&suffix));
@@ -72,16 +73,10 @@ u8 use_frames(u32 kind, u32 suffixOn, u32 suffixOff) {
 
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
 
-struct FileEntry {
-    u8 *file;  // the name at +0x20
-    u32 value;
-    u8 flag;
-    u8 pad[3];
-};
-static_assert(sizeof(FileEntry) == 12, "the table's entries are 12 bytes");
+using FileEntry = SpriteFileEntry;
 
-FileEntry *entries() { return reinterpret_cast<FileEntry *>((uintptr_t)0x00875970); }
-s32 count() { return global<s32>(0x00875430); }
+FileEntry *entries() { return gSpriteFiles_875970; }
+s32 count() { return gSpriteFileCount_875430; }
 
 const char *name(const FileEntry &e) { return *reinterpret_cast<const char *const *>(e.file + 0x20); }
 
@@ -106,11 +101,11 @@ void list_files(u8 *folder, String *path, const String *folderName) {
     vcall<void>(path, 0x28, folderName);
     String_EnsureTrailingBackslash(path);
     vcall<void>(path, 0x28, reinterpret_cast<const String *>((uintptr_t)0x008757f0));
-    if (g_calls.Th(0x0041d570, (u32)(uintptr_t)folder, path, 0x00875038u) != 1) return;
+    if (g_calls.Th(0x0041d570, (u32)(uintptr_t)folder, path, (u32)&gSpriteFindRecord_875038) != 1) return;
     do {
         const u32 current = Get34_41ce80(folder);
-        if (global<s32>(0x00875430) < 0x80) {
-            FileEntry &e = entries()[global<s32>(0x00875430)];
+        if (gSpriteFileCount_875430 < 0x80) {
+            FileEntry &e = entries()[gSpriteFileCount_875430];
             u8 *const file = static_cast<u8 *>(GameHeap_Alloc(0x128));
             if (file) {
                 *reinterpret_cast<u8 **>(file + 0x20) = file + 0x24;
@@ -119,23 +114,23 @@ void list_files(u8 *folder, String *path, const String *folderName) {
             e.file = file;
             void *const block = GameHeap_Alloc(8);
             e.value = block ? g_calls.Th(0x005f8240, (u32)(uintptr_t)block) : 0;
-            std::memcpy(file, reinterpret_cast<const void *>((uintptr_t)0x00875038), 0x20);
+            std::memcpy(file, gSpriteFindRecord_875038, 0x20);
             std::strcpy(reinterpret_cast<char *>(file + 0x24), reinterpret_cast<const char *>((uintptr_t)0x0087505c));
             *reinterpret_cast<u32 *>(file + 0x20) = (u32)(uintptr_t)file + global<u32>(0x00875058) - 0x0087505c + 0x24;
             g_calls.Th(0x005f82b0, e.value, current);
-            global<s32>(0x00875430)++;
+            gSpriteFileCount_875430++;
         }
-    } while (g_calls.Th(0x0041d710, (u32)(uintptr_t)folder, 0x00875038u));
+    } while (g_calls.Th(0x0041d710, (u32)(uintptr_t)folder, (u32)&gSpriteFindRecord_875038));
 }
 
 // One entry's sprite made and loaded; when that fails the sprite in that place freed.
 bool load_sprite(const FileEntry &e) {
-    u8 **const sprites = reinterpret_cast<u8 **>((uintptr_t)0x00876b48);
+    u8 **const sprites = gSprites;
     void *const block = GameHeap_Alloc(0x260);
     u8 *const sprite = block ? Sprite_Ctor(static_cast<u8 *>(block)) : nullptr;
-    sprites[global<s32>(0x0087626c)] = sprite;
+    sprites[gLoading_87626c] = sprite;
     if (static_cast<u8>(g_calls.Th(0x00540d90, (u32)(uintptr_t)sprite, e.file, e.value))) return true;
-    if (u8 *const now = sprites[global<s32>(0x0087626c)]) GameHeap_Free(now);
+    if (u8 *const now = sprites[gLoading_87626c]) GameHeap_Free(now);
     return false;
 }
 
@@ -150,26 +145,26 @@ u32 __cdecl Sprites_LoadFolder(u8 *folder, const String *folderName) {
     String_Ctor(&path);
     s32 loaded = 0, avatarLimit = 0, staffLimit = 0;
     bool avatars = false, staff = false;
-    global<u8>(0x00877354) = 1;
+    gLoading_877354 = 1;
     static constexpr u32 kKidsHeads[] = {0x00764100};
     if (name_among(folderName, 0x0076410c, kKidsHeads, 1)) {
         avatars = true;
-        avatarLimit = static_cast<s32>(g_calls.Th(0x0041a9d0, 0x0078baecu));
+        avatarLimit = static_cast<s32>(g_calls.Th(0x0041a9d0, (u32)&gSprites_LoadFolder_78baec));
     }
     static constexpr u32 kStaff[] = {0x007640bc, 0x007640b4, 0x007640a8};
     if (name_among(folderName, 0x007640c8, kStaff, 3)) {
         staff = true;
-        staffLimit = static_cast<s32>(g_calls.Th(0x0041aa40, 0x0078baecu));
+        staffLimit = static_cast<s32>(g_calls.Th(0x0041aa40, (u32)&gSprites_LoadFolder_78baec));
     }
-    global<s32>(0x00875430) = 0;
+    gSpriteFileCount_875430 = 0;
     for (u32 i = 0; i < 0x80; i++) {
         entries()[i].file = nullptr;
         entries()[i].value = 0;
         entries()[i].flag = 0;
     }
-    char *const buffer = reinterpret_cast<char *>((uintptr_t)0x00876668);
+    char *const buffer = gSprites_LoadFolder_876668;
     const char *const backslash = reinterpret_cast<const char *>((uintptr_t)0x007477fc);
-    std::strcpy(buffer, reinterpret_cast<const char *>((uintptr_t)0x00764168));
+    std::strcpy(buffer, gSprites_LoadFolder_764168);
     std::strcat(buffer, folderName->data);
     std::strcat(buffer, backslash);
     vcall<void>(&path, 0x14, reinterpret_cast<const char *>((uintptr_t)0x00764160));
@@ -184,7 +179,7 @@ u32 __cdecl Sprites_LoadFolder(u8 *folder, const String *folderName) {
     SpriteFiles_Sort();
     if (avatars) {
         for (u32 at = 0x00764030; at < 0x00764040; at += 4) {
-            for (s32 i = 0; i < global<s32>(0x00875430); i++) {
+            for (s32 i = 0; i < gSpriteFileCount_875430; i++) {
                 FileEntry &e = entries()[i];
                 String wanted, have;
                 String_CtorStr(&wanted, nullptr, *reinterpret_cast<const char *const *>((uintptr_t)at));
@@ -195,19 +190,19 @@ u32 __cdecl Sprites_LoadFolder(u8 *folder, const String *folderName) {
                 if (!same || e.flag || !load_sprite(e)) continue;
                 loaded++;
                 e.flag = 1;
-                if (global<s32>(0x0087626c) >= 0x200 || loaded >= avatarLimit) goto done;
+                if (gLoading_87626c >= 0x200 || loaded >= avatarLimit) goto done;
             }
         }
     }
-    for (s32 i = 0; i < global<s32>(0x00875430); i++) {
+    for (s32 i = 0; i < gSpriteFileCount_875430; i++) {
         FileEntry &e = entries()[i];
         if (e.flag || !load_sprite(e)) continue;
         loaded++;
         e.flag = 1;
-        if (global<s32>(0x0087626c) >= 0x200 || (avatars && loaded >= avatarLimit) || (staff && loaded >= staffLimit)) break;
+        if (gLoading_87626c >= 0x200 || (avatars && loaded >= avatarLimit) || (staff && loaded >= staffLimit)) break;
     }
 done:
-    for (s32 i = 0; i < global<s32>(0x00875430); i++) {
+    for (s32 i = 0; i < gSpriteFileCount_875430; i++) {
         FileEntry &e = entries()[i];
         if (e.file) GameHeap_Free(e.file);
         if (e.value) vcall<void>(reinterpret_cast<u8 *>((uintptr_t)e.value), 0x2c, 1u);
@@ -244,8 +239,8 @@ void __cdecl SpriteFiles_Sort() {
 }
 
 void __cdecl Sprites_FreeAll() {
-    u8 **sprites = reinterpret_cast<u8 **>((uintptr_t)0x00876b48);
-    for (s32 i = 0; i < global<s32>(0x0087626c); ++i) {
+    u8 **sprites = gSprites;
+    for (s32 i = 0; i < gLoading_87626c; ++i) {
         u8 *sprite = sprites[i];
         if (sprite[0x204]) {
             SpriteFrames_Free(*reinterpret_cast<u8 **>(sprite));
@@ -273,50 +268,49 @@ void SpriteLoading_SetEnv(const SpriteLoadingEnv *env) { g_env = env ? env : &kG
 
 extern "C" bool __cdecl Sprites_LoadAll(u8 onlyLast) {
     u32 folder = 0;
-    global<u32>(0x0087626c) = 0;
+    gLoading_87626c = 0;
     if (g_calls.Th(0x00421770, global<u32>(0x00786b9c), 0x00876960u, &folder) != 1)   // NamedList_Find
         return false;
-    for (u32 entry = onlyLast ? 0x00764024 : 0x00763f88; entry < 0x00764030; entry += 0xc) {
-        u32 *const fields = reinterpret_cast<u32 *>((uintptr_t)entry);
-        fields[1] = global<u32>(0x0087626c);
+    for (SpriteFolder *entry = &gSpriteFolders[onlyLast ? 13 : 0]; entry < gSpriteFolders + 14; ++entry) {
+        entry->first = (u32)gLoading_87626c;
         String name;
-        String_CtorStr(&name, nullptr, reinterpret_cast<const char *>((uintptr_t)fields[0]));
-        fields[2] = g_calls.Cd(0x00541310, folder, &name);   // Sprites_LoadFolder
+        String_CtorStr(&name, nullptr, entry->name);
+        entry->count = (s32)g_calls.Cd(0x00541310, folder, &name);   // Sprites_LoadFolder
         String_Dtor(&name);
     }
-    global<u32>(0x00876b28) = global<u32>(0x0087626c);
+    gLoading_876b28 = (u32)gLoading_87626c;
     return true;
 }
 
 extern "C" bool __cdecl Sprites_Setup(u32 mode, u32 onlyLast) {
     const u32 map = global<u32>(global<u32>(0x007a0854) + 0x6c);
     global<u32>(0x008bcbc8) |= 0x1000000;
-    global<u8>(0x00763f84) = 1;
+    gSpriteDrawOn = 1;
     gThings_877350 = 0;
-    global<u32>(0x00876b24) = 0;
-    global<u32>(0x008bd4f0) = 0;
-    global<u32>(0x008bd4f4) = 0;
-    global<u32>(0x008768fc) = mode & 0xff;
-    global<u32>(0x00763f80) = (mode & 0xff) == 0;
+    reinterpret_cast<u32 &>(gSpriteHeading) = 0;
+    reinterpret_cast<u32 &>(gDraw_8bd4f0) = 0;
+    reinterpret_cast<u32 &>(gDraw_8bd4f4) = 0;
+    gLoading_8768fc = mode & 0xff;
+    gLoading_763f80 = (mode & 0xff) == 0;
     g_calls.Cd(0x00541d90, onlyLast);
-    global<u32>(0x0087734c) = 0;
+    gDraw_87734c = 0;
     const s32 width = global<s32>(map + 0x18), height = global<s32>(map + 0x1c);
-    global<s32>(0x00876898) = width;
-    global<s32>(0x00876894) = height;
+    gSprites_Setup_876898 = width;
+    gSprites_Setup_876894 = height;
     const u32 across = (u32)(width / 4 + 1), down = (u32)(height / 4 + 1);
-    global<u32>(0x008762b4) = across;
-    global<u32>(0x0087614c) = down;
+    reinterpret_cast<u32 &>(gSpriteCellWidth) = across;
+    reinterpret_cast<u32 &>(gSpriteCellDepth) = down;
     for (u32 y = 0; y < 4; ++y) {
         for (u32 x = 0; x < 4; ++x) {
             const u32 index = x + 4 * y, cell = 0x008751f0 + index * 0x24;
-            global<u32>(0x00875528 + index * 4) = g_calls.Th(0x0058a4f0, cell, 0x800u);
+            gSpriteDrawLists[index] = reinterpret_cast<u32 *>((uintptr_t)g_calls.Th(0x0058a4f0, cell, 0x800u));
             global<u32>(cell + 4) = 0;
             const u32 right = y == 3 ? (u32)width - 1 : y * across + across - 1;
             const u32 bottom = x == 3 ? (u32)height - 1 : x * down + down - 1;
             g_calls.Th(0x00576620, global<u32>(0x0087a6d0), y * across, x * down, right, bottom, cell + global<u32>(global<u32>(cell) + 4), 0u);
         }
     }
-    global<u32>(0x0087692c) = g_calls.Th(0x0058a4f0, 0x00876420u, 0x20u);
+    reinterpret_cast<u32 &>(gSpriteDrawOverlay) = g_calls.Th(0x0058a4f0, 0x00876420u, 0x20u);
     global<u32>(0x00876424) = 0;
     g_calls.Th(0x00576410, global<u32>(0x0087a6d0), 0x00876420u + global<u32>(global<u32>(0x00876420) + 4), 0x20u);
     return true;

@@ -7,6 +7,7 @@
 #include "../world/ridelist.h"
 #include "../world/things.h"
 #include "../world/thingscan.h"
+#include "registry.h"
 #include "../world/ridelist.h"
 
 namespace {
@@ -15,7 +16,7 @@ template <typename T> T &at(const void *p, u32 offset) {
     return *reinterpret_cast<T *>((uintptr_t)p + offset);
 }
 
-u8 *coaster_at(u32 index) { return reinterpret_cast<u8 **>(0x00790bd0)[index]; }
+u8 *coaster_at(u32 index) { return gCoasters_790bd0[index]; }
 u8 *queue(u8 *coaster) { return coaster + 0xb0; }
 u8 *boarding(u8 *coaster) { return coaster + 0xd0; }
 

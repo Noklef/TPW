@@ -93,3 +93,8 @@ struct ZlibEnv {
 };
 // The calls go through env (nullptr: the game's).
 void ZlibCodec_SetEnv(const ZlibEnv *env);
+
+#include "../core/gamedata.h"
+
+// Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(u32, gZlibInputLimit, 0x007780ec, 0x4);

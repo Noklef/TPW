@@ -160,3 +160,23 @@ namespace zlibshim {
 // The call stored a message in z->msg (it is no longer `before`): the exe's copy of the same text instead of the library's.
 void exe_message(z_stream_s *z, const char *before);
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(char[24], gText_Zlib_779a98, 0x00779a98, 0x18);
+GAME_DATA(char[24], gText_Zlib_779ab0, 0x00779ab0, 0x18);
+GAME_DATA(char[28], gText_Zlib_779adc, 0x00779adc, 0x1c);
+GAME_DATA(unsigned[6], gZlibStaticLDesc_779ba8, 0x00779ba8, 0x18);
+GAME_DATA(unsigned[6], gZlibStaticDDesc_779bc0, 0x00779bc0, 0x18);
+GAME_DATA(unsigned[5], gZlibStaticBlDesc_779bd8, 0x00779bd8, 0x14);
+GAME_DATA(char[28], gText_Zlib_779bec, 0x00779bec, 0x1c);
+GAME_DATA(char[36], gText_Zlib_779c08, 0x00779c08, 0x24);
+GAME_DATA(char[32], gText_Zlib_779c2c, 0x00779c2c, 0x20);
+GAME_DATA(char[20], gText_Zlib_779c4c, 0x00779c4c, 0x14);
+GAME_DATA(char[24], gText_Zlib_77a060, 0x0077a060, 0x18);
+GAME_DATA(char[32], gText_Zlib_77b1ec, 0x0077b1ec, 0x20);
+GAME_DATA(char[36], gText_Zlib_77b20c, 0x0077b20c, 0x24);
+GAME_DATA(char[36], gText_Zlib_77b230, 0x0077b230, 0x24);
+GAME_DATA(char[28], gText_Zlib_77b254, 0x0077b254, 0x1c);
+GAME_DATA(char[32], gText_Zlib_77b270, 0x0077b270, 0x20);

@@ -97,3 +97,9 @@ s32 *__fastcall ResFolder_GetRangeTable(u8 *folder, void *, s32 *result, u8 **ob
 s32 *__fastcall ResFolder_GetCharset(u8 *folder, void *, s32 *result, u8 **object, u32 key);
 s32 *__fastcall ResFolder_GetFont(u8 *folder, void *, s32 *result, u8 **object, u32 key);
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(char[12], gText_ResFolder_LoadIndex_782d14, 0x00782d14, 0xc);
+GAME_DATA(u32[6], gResIndex_Load_782d20, 0x00782d20, 0x18);

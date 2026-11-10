@@ -46,8 +46,8 @@ void __cdecl SseMath_ExpandMatrix(const float *source, float *dest) {
 }
 
 void __cdecl SseMath_TransformBatch(void *, const float *matrix, u8 *dest, const u8 *source, u32 destStride, u32 start, u32 count) {
-    const float *const table = reinterpret_cast<const float *>((uintptr_t)0x007753d0);
-    SseMath_ExpandMatrix(matrix, reinterpret_cast<float *>((uintptr_t)0x007753d0));
+    const float *const table = gSseMath_TransformBatch_7753d0;
+    SseMath_ExpandMatrix(matrix, gSseMath_TransformBatch_7753d0);
     u32 batches = (count + 3) >> 2;
     if (!batches) return;
     source += (start & 0xfffffffc) << 2;
@@ -166,7 +166,7 @@ double __cdecl SseMath_ProjectToScreen(void *, u8 *v, s32 stride, u32 count, u32
             v += stride;
         } while (--count);
     }
-    _mm_store_ss(reinterpret_cast<float *>((uintptr_t)0x007754f0), _mm_shuffle_ps(sum, sum, 0xaa));
-    return *Float(0x007754f0);
+    _mm_store_ss(&gSseMath_ProjectToScreen_7754f0, _mm_shuffle_ps(sum, sum, 0xaa));
+    return gSseMath_ProjectToScreen_7754f0;
 }
 }

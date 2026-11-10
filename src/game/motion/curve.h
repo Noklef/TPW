@@ -36,3 +36,8 @@ void __cdecl Curve_CatmullRom(const void *curve, const Vec3 *points, s32 base, f
 // and neighbours more than 50 apart are taken to cross 100 -> 0 (lerped modulo 100).
 void __cdecl Path_PercentAt(const float *table, u32 count, float t, float *out, s32 closed);
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(u32, gCurvePointCount, 0x007b49e8, 0x4);

@@ -19,20 +19,20 @@ u32 __cdecl Mouse_HandleButton(u32 event, u32 state, u32 a, u32 b) {
     if (event == 0xf0) {
         if (state == 1) {
             vcall<u32>(Mouse(), 4, a, b);
-            global<u32>(0x007b05e4) = 1;
+            gMouse_7b05e4 = 1;
         } else {
             vcall<u32>(Mouse(), 8, a, b);
-            global<u32>(0x007b05e4) = 0;
+            gMouse_7b05e4 = 0;
         }
         return 1;
     }
     if (event == 0xf1) {
         if (state == 1) {
             vcall<u32>(Mouse(), 0xc, a, b);
-            global<u32>(0x007b05f0) = 1;
+            gMouse_7b05f0 = 1;
         } else {
             vcall<u32>(Mouse(), 0x10, a, b);
-            global<u32>(0x007b05f0) = 0;
+            gMouse_7b05f0 = 0;
         }
     }
     return 1;
@@ -40,10 +40,10 @@ u32 __cdecl Mouse_HandleButton(u32 event, u32 state, u32 a, u32 b) {
 
 void __stdcall Mouse_Moved(s32 x, s32 y) {
     if (x != global<s32>(0x007b05d4) || y != global<s32>(0x007b05e0))
-        vcall<u32>(Mouse(), 0x18, (u32)x, (u32)y, global<u32>(0x007b05e4), global<u32>(0x007b05f0));
-    if (global<u32>(0x007b05e4) != 0)
+        vcall<u32>(Mouse(), 0x18, (u32)x, (u32)y, gMouse_7b05e4, gMouse_7b05f0);
+    if (gMouse_7b05e4 != 0)
         vcall<u32>(Mouse(), 0x1c, (u32)x, (u32)y);
-    else if (global<u32>(0x007b05f0) != 0)
+    else if (gMouse_7b05f0 != 0)
         vcall<u32>(Mouse(), 0x20, (u32)x, (u32)y);
     global<s32>(0x007b05d4) = x;
     global<s32>(0x007b05e0) = x;  // (sic)
@@ -54,7 +54,7 @@ u32 __cdecl Mouse_HandleGuiButton(u32 event, u32 state, u32, s32 x, s32 y) {
     const s32 gy = (s32)((u32)y * 0x600u) / (s32)global<s16>(0x00faa5c0);
     if (event < 0xf0 || event > 0xf2) return 1;
     const u32 button = event - 0xf0;
-    u32 &held = global<u32>(0x007c24dc + 4 * button);
+    u32 &held = gMouse_HeldButtons_7c24dc[button];
     if (state != 0) {
         if (held != 0) return 1;
         held = 1;

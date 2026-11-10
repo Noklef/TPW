@@ -6,6 +6,7 @@
 #include "../core/globalmem.h"
 #include "../math/matrix.h"
 #include "../math/x87.h"
+#include "ridemodel.h"
 
 namespace {
 
@@ -20,7 +21,7 @@ float *&block() { return *reinterpret_cast<float **>(0x007aecd4); }
 extern "C" {
 
 void __cdecl WorldVerts_Alloc(u32 large) {
-    const u32 entries = large ? 0x400 : *reinterpret_cast<const u32 *>(0x007a42ac);
+    const u32 entries = large ? 0x400 : gRidemodel_7a42ac;
     block() = static_cast<float *>(GlobalMem_Alloc(entries * 12, 1));
 }
 

@@ -19,8 +19,8 @@ const WrapSourcesEnv kGameEnv = {
     at<void(__cdecl *)(void *)>(0x0067acb0),
     at<s32(__cdecl *)(void(__cdecl *)())>(0x0067a7d0),
     at<void(__cdecl *)()>(0x005f80c0),
-    at<u8 *>(0x00fa75f8),
-    at<ZlibCodec *>(0x00fa75fc),
+    at<u8 *>((u32)&gWrapsources_fa75f8),
+    at<ZlibCodec *>((u32)&g_Compressor),
 };
 const WrapSourcesEnv *g_env = &kGameEnv;
 

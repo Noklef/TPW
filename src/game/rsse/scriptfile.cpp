@@ -13,6 +13,7 @@
 #include "../render/particles.h"
 #include "../world/objectdefs.h"
 #include "../world/ridelist.h"
+#include "rsse.h"
 
 namespace {
 
@@ -88,8 +89,8 @@ u32 __cdecl RSSE_LoadScriptFile(const char *name, u32 handle, u32 quiet) {
         read(data, 1, at<u32>(vm, 0x90), stream);
     }
     at<u32>(vm, 0x40) = at<u32>(vm, 0x54) - 1;
-    at<u32>(vm, 8) = global<u32>(0x008791a8);
-    ++global<u32>(0x008791a8);
+    at<u32>(vm, 8) = gRSSE_8791a8;
+    ++gRSSE_8791a8;
     at<u16>(vm, 0x88) = 1000;
     at<u16>(vm, 0x8a) = 1000;
     at<u16>(vm, 0xe4) = 1000;

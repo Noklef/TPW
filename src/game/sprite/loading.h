@@ -10,6 +10,23 @@
 
 struct String;
 
+// 0x875970: the folder's files, 0x80 entries (count 0x875430).
+struct SpriteFileEntry {
+    u8 *file;  // the name at +0x20
+    u32 value;
+    u8 flag;
+    u8 pad[3];
+};
+static_assert(sizeof(SpriteFileEntry) == 12, "the table's entries are 12 bytes");
+
+// 0x763f88: the sprite folders Sprites_LoadAll loads, 14 entries.
+struct SpriteFolder {
+    const char *name;
+    u32 first;  // the first sprite's index
+    s32 count;
+};
+static_assert(sizeof(SpriteFolder) == 12, "the folders' entries are 12 bytes");
+
 extern "C" {
 
 // 0x541310 (cdecl; folder, name; name from the table in symbols.csv): the sprites of a folder loaded. The byte 0x877354 set. A name "kids" or
@@ -82,3 +99,26 @@ bool __cdecl Sprites_LoadAll(u8 onlyLast);
 // quarter; the last row and column end at the map's size less 1) and the cell plus its vtable's +4, 0. The same array of 0x20 at 0x876420 into [0x87692c], +4 0, Renderer_Add of it plus its offset, 0x20. Returns 1 in AL.
 bool __cdecl Sprites_Setup(u32 mode, u32 onlyLast);
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(u8, gLoading_763f28, 0x00763f28, 0x1);
+GAME_DATA(u32, gLoading_763f80, 0x00763f80, 0x4);
+GAME_DATA(SpriteFolder[14], gSpriteFolders, 0x00763f88, 0xa8);
+GAME_DATA(char[16], gSprites_LoadFolder_764168, 0x00764168, 0x10);
+GAME_DATA(u32, gSprites_LoadFolder_78baec, 0x0078baec, 0x4);
+GAME_DATA(u8[32], gSpriteFindRecord_875038, 0x00875038, 0x20);
+GAME_DATA(s32, gSpriteFileCount_875430, 0x00875430, 0x4);
+GAME_DATA(SpriteFileEntry[128], gSpriteFiles_875970, 0x00875970, 0x600);
+GAME_DATA(s32, gSpriteCellDepth, 0x0087614c, 0x4);
+GAME_DATA(s32, gLoading_87626c, 0x0087626c, 0x4);
+GAME_DATA(s32, gSpriteCellWidth, 0x008762b4, 0x4);
+GAME_DATA(char[512], gSprites_LoadFolder_876668, 0x00876668, 0x200);
+GAME_DATA(s32, gSprites_Setup_876894, 0x00876894, 0x4);
+GAME_DATA(s32, gSprites_Setup_876898, 0x00876898, 0x4);
+GAME_DATA(u32, gLoading_8768fc, 0x008768fc, 0x4);
+GAME_DATA(u32 *, gSpriteDrawOverlay, 0x0087692c, 0x4);
+GAME_DATA(float, gSpriteHeading, 0x00876b24, 0x4);
+GAME_DATA(u32, gLoading_876b28, 0x00876b28, 0x4);
+GAME_DATA(u8, gLoading_877354, 0x00877354, 0x1);

@@ -1,5 +1,6 @@
 #include "floatconsts.h"
 #include "../coaster/rating.h"
+#include "../sprite/script.h"
 
 extern "C" {
 
@@ -115,9 +116,9 @@ void __cdecl FloatConsts_InitOne_468910() { *reinterpret_cast<float *>(0x007afd9
 
 void __cdecl FloatConsts_InitEpsilon_468930() { *reinterpret_cast<float *>(0x007afda8) = 1.0f / 8388608.0f; }
 
-void __cdecl FloatConsts_InitOne_474fd0() { *reinterpret_cast<float *>(0x007b4a04) = 1.0f; }
+void __cdecl FloatConsts_InitOne_474fd0() { gSpriteScripts.one = 1.0f; }
 
-void __cdecl FloatConsts_InitEpsilon_474ff0() { *reinterpret_cast<float *>(0x007b4a0c) = 1.0f / 8388608.0f; }
+void __cdecl FloatConsts_InitEpsilon_474ff0() { gSpriteScripts.epsilon = 1.0f / 8388608.0f; }
 
 void __cdecl FloatConsts_InitOne_47dd80() { *reinterpret_cast<float *>(0x007b4a58) = 1.0f; }
 

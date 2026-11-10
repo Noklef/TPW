@@ -50,3 +50,9 @@ u32 __fastcall TerrainTexCache_Update(u8 *cache, void *, u32 *keys, u8 *records,
 }
 
 void TerrainTexCache_SetCalls(const AddrCall *table, u32 count);
+
+#include "../core/gamedata.h"
+
+// Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(const s32[10], gTexcache_701548, 0x00701548, 0x28);
+GAME_DATA(s32, gTexcache_8c1624, 0x008c1624, 0x4);

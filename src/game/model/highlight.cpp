@@ -15,11 +15,11 @@ template <typename T> T &at(const void *p, u32 offset) {
 
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>(address); }
 
-u8 *&current() { return global<u8 *>(0x007a1ce0); }
+u8 *&current() { return gHighlight_7a1ce0; }
 u8 *&target() { return global<u8 *>(0x007afda0); }
-u32 *saved() { return global<u32 *>(0x007afd94); }
+u32 *saved() { return reinterpret_cast<u32 * &>(gHighlight_7afd94); }
 u8 *model(const u8 *holder) { return at<u8 *>(at<const u8 *>(holder, 8), 4); }
-u8 *&flashing() { return global<u8 *>(0x007afe14); }
+u8 *&flashing() { return gHighlight_7afe14; }
 
 // The release both 0x469180 and 0x469470 inline, for the current holder h.
 void release(u8 *h) {
@@ -45,9 +45,9 @@ void __cdecl Highlight_Update() {
     u8 *h = current();
     if (h && target() && h != target() && (at<u32>(h, 4) & 0x20000)) release(h);
     u8 *t = target();
-    if (!t || (at<u32>(t, 4) & 0x20000) || global<u32>(0x007afda4)) return;
+    if (!t || (at<u32>(t, 4) & 0x20000) || gHighlight_7afda4) return;
     const u8 *m = model(t);
-    u8 *buffer = global<u8 *>(0x007afd00);
+    u8 *buffer = reinterpret_cast<u8 * &>(gHighlight_7afd00);
     u8 *mesh = at<u8 *>(m, 0x70);
     for (u32 i = 0; i < at<u16>(m, 0x44); ++i, mesh += 0xa0) {
         const u32 flags = at<u32>(mesh, 0);
@@ -70,7 +70,7 @@ void __cdecl Highlight_SetTarget(u8 *holder) { target() = holder; }
 
 void __cdecl Highlight_ResetTints() {
     for (u32 i = 0; i < 6; ++i)
-        for (u32 c = 0; c < 3; ++c) global<u32>(0x007afdb0 + 0x10 * i + 4 * c) = 0x3f800000;  // 1.0f
+        for (u32 c = 0; c < 3; ++c) gHighlightTints_7afdb0[4 * i + c] = 1.0f;
 }
 
 void __cdecl Highlight_Clear() {
@@ -80,29 +80,29 @@ void __cdecl Highlight_Clear() {
 
 u8 *__cdecl Highlight_Current() { return current(); }
 
-float *__cdecl Highlight_Point() { return reinterpret_cast<float *>(0x007a1c90); }
+float *__cdecl Highlight_Point() { return gHighlight_Point_7a1c90; }
 
 void __cdecl Highlight_SetShown(u32 shown) { global<u32>(0x007a1c7c) = shown && current() ? 1 : 0; }
 
 void __cdecl Highlight_Suspend(u32 suspend) {
     if (suspend) {
         if (current()) Highlight_Clear();
-        global<u32>(0x007afda4) = 1;
+        gHighlight_7afda4 = 1;
     } else {
-        global<u32>(0x007afda4) = 0;
+        gHighlight_7afda4 = 0;
     }
 }
 
 void __cdecl Highlight_AllocBuffers() {
-    global<void *>(0x007afd00) = GlobalMem_Alloc((global<u32>(0x007afd90) + global<u32>(0x007afd9c)) * 12, 1);
-    global<void *>(0x007afd94) = GlobalMem_Alloc(global<u32>(0x007afe10) * 4, 1);
+    gHighlight_7afd00 = GlobalMem_Alloc((gHighlight_7afd90 + gHighlight_7afd9c) * 12, 1);
+    gHighlight_7afd94 = GlobalMem_Alloc(gHighlight_7afe10 * 4, 1);
 }
 
 void __cdecl Highlight_FreeBuffers() {
-    GlobalMem_Free(global<void *>(0x007afd00));
-    GlobalMem_Free(global<void *>(0x007afd94));
-    global<void *>(0x007afd00) = nullptr;
-    global<void *>(0x007afd94) = nullptr;
+    GlobalMem_Free(gHighlight_7afd00);
+    GlobalMem_Free(gHighlight_7afd94);
+    gHighlight_7afd00 = nullptr;
+    gHighlight_7afd94 = nullptr;
 }
 
 void __cdecl Highlight_Flash(u8 *holder) {
@@ -167,12 +167,12 @@ void __cdecl Highlight_Unflash(u8 *holder) {
 }
 
 void __cdecl Highlight_PulseFlashing() {
-    const float phase = global<float>(0x007afd04);
+    const float phase = gHighlight_PulseFlashing_7afd04;
     const X87Reg level = phase > 1.0f ? X87Reg(2.0f) - phase : X87Reg(phase);
     const u32 v = (u32)(long long)(level * 255.0f).v;  // __ftol
     const u32 colour = v | (v | 0xffffff00) << 8;
     const X87Reg step = X87Reg(gMotionTimeStep) * -2.0f;  // gMotionTimeStep
-    global<float>(0x007afd04) = (float)std::fmod((X87Reg(phase) - step).v, 2.0);  // _CIfmod (0x67b24a)
+    gHighlight_PulseFlashing_7afd04 = (float)std::fmod((X87Reg(phase) - step).v, 2.0);  // _CIfmod (0x67b24a)
     for (const u8 *h = flashing(); h; h = at<const u8 *>(h, 0xd0)) {
         const u8 *m = model(h);
         const u8 *mesh = at<const u8 *>(m, 0x70);
@@ -196,7 +196,7 @@ void __cdecl Highlight_WhitenCurrent() {
     }
 }
 
-void __cdecl Highlight_InitUnusedOne() { *reinterpret_cast<float *>(0x007afe1c) = 1.0f; }
+void __cdecl Highlight_InitUnusedOne() { gHighlight_InitUnusedOne_7afe1c = 1.0f; }
 
-void __cdecl Highlight_InitUnusedEpsilon() { *reinterpret_cast<float *>(0x007b0464) = 1.0f / 8388608.0f; }
+void __cdecl Highlight_InitUnusedEpsilon() { gHighlight_InitUnusedEpsilon_7b0464 = 1.0f / 8388608.0f; }
 }

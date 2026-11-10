@@ -109,3 +109,15 @@ u32 __fastcall Landscape_SetDomeCentre(u8 *landscape, void *, u32 a, u32 b, u32 
 // 0x5856c0 (thiscall; name invented, unconfirmed): the centre (0, 300.0, 0), then Landscape_BuildDome and its answer.
 u32 __fastcall Landscape_ResetDomeCentre(u8 *landscape);
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(const u32, gLandscape_Draw_701ed4, 0x00701ed4, 0x4);
+GAME_DATA(const float, gLandscape_DrawSprites_701f50, 0x00701f50, 0x4);
+GAME_DATA(const float, gLandscape_701f60, 0x00701f60, 0x4);
+GAME_DATA(const float, gLandscape_701f78, 0x00701f78, 0x4);
+GAME_DATA(const float, gLandscape_701f88, 0x00701f88, 0x4);
+GAME_DATA(const float, gLandscape_701f94, 0x00701f94, 0x4);
+GAME_DATA(u32, gLandscapeMatrixGuard_fb3440, 0x00fb3440, 0x4);
+GAME_DATA(float[16], gLandscapeMatrix_fb3460, 0x00fb3460, 0x40);

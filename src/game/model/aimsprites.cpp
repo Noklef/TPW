@@ -139,7 +139,7 @@ void __cdecl AimSprites_Update(const u8 *instance) {
         g_calls.Cd(0x00475590, slot, 0xdu, (u32)(turn + tilt * 8));   // SpriteScript_SetReg
         const float scaled = (float)(X87Reg(roll) * kOverTwoPi);
         g_calls.Cd(0x004755d0, slot, 9u, at<u32>(&scaled, 0));   // SpriteScript_SetRegF
-        g_calls.Cd(0x004755d0, slot, 8u, global<u32>(0x0074ced0));
+        g_calls.Cd(0x004755d0, slot, 8u, gAimSprites_Update_74ced0);
     }
 }
 }

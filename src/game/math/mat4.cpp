@@ -9,6 +9,7 @@
 #include "vec2.h"
 #include "../render/viewport.h"
 #include "../render/pointsprites.h"
+#include "../terrain/landscape.h"
 
 namespace {
 
@@ -79,9 +80,9 @@ void inverse_through(u32 from, u32 inverse, u32 result) {
     static_matrix((u32)&gPointsprites_fb33e0, 0x00fb3400);
     transform(inverse, 0x0087b110, 0x00fb3400);
     copy16(result, 0x00fb3400);
-    static_matrix(0x00fb3440, 0x00fb3460);
-    transform(result, 0x0087b0d0, 0x00fb3460);
-    copy16(result, 0x00fb3460);
+    static_matrix((u32)&gLandscapeMatrixGuard_fb3440, (u32)&gLandscapeMatrix_fb3460);
+    transform(result, 0x0087b0d0, (u32)&gLandscapeMatrix_fb3460);
+    copy16(result, (u32)&gLandscapeMatrix_fb3460);
 }
 
 }  // namespace
@@ -196,7 +197,7 @@ void __cdecl Mat4_LuDecompose(float *a, s32 *index, float *sign) {
 
 u32 __cdecl Matrices_Update() {
     inverse_through(0x0087aff0, 0x0087af68, 0x0087b158);
-    const float one = global<float>(0x00701890), zero = global<float>(0x0070189c);
+    const float one = global<float>(0x00701890), zero = gMatrices_Update_70189c;
     const float a = global<float>(0x0087af70), b = global<float>(0x0087af90);
     X87Reg s = (X87Reg(b) * b) + (X87Reg(a) * a);
     if (s.v == zero || s.v != s.v) s = X87Reg(one);
@@ -215,11 +216,11 @@ u32 __cdecl Matrices_Update() {
     float y = m[5], c = 1.0f;
     const X87Reg length = (X87Reg(x) * x) + (X87Reg(y) * y);
     if (length.v == zero || length.v != length.v) y = 1.0f;
-    else c = (float)(X87Reg(global<double>(0x007018a0)) / X87_Sqrt(length));
+    else c = (float)(X87Reg(gMatrices_Update_7018a0) / X87_Sqrt(length));
     const float side = (float)crt_asin(X87Reg(-(X87Reg(c) * x).v));
     double turn = crt_acos(X87Reg(c) * y);
     if (!(side > zero)) turn = -turn;
-    const float pi = global<float>(0x00701888);
+    const float pi = gMatrices_Update_701888;
     global<float>(0x0087af60) = (float)(X87Reg(turn) / (X87Reg(pi) + X87Reg(pi)));
     return 1;
 }
@@ -258,7 +259,7 @@ void __fastcall Mat4_Perspective(float *m, void *, float near_, float far_, floa
     else
         m[11] = (float)s;
     std::memcpy(&global<u32>(0x0087b1dc), &near_, 4);
-    std::memcpy(&global<u32>(0x00768acc), &far_, 4);
+    std::memcpy(&gMat4_Perspective_768acc, &far_, 4);
     std::memcpy(&global<u32>(0x0087af58), &fov, 4);
 }
 

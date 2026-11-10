@@ -21,3 +21,10 @@ void __cdecl Sprite_ScreenMatrix(float *out, s16 x, s16 y, s16 w, s16 h, float l
 // 0x476a70: 1 - y / [0x74f898] (in ST0), a frame row as a height up from the bottom.
 double __cdecl Sprite_FlipY(s32 y);
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(float, gSprite_ScreenMatrix_74f888, 0x0074f888, 0x4);
+GAME_DATA(float, gSprite_ScreenMatrix_74f88c, 0x0074f88c, 0x4);
+GAME_DATA(float, gSprite_FlipY_74f898, 0x0074f898, 0x4);

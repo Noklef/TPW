@@ -5,26 +5,14 @@
 #include <cstring>
 
 #include "../math/x87.h"
+#include "draw.h"
+#include "loading.h"
 
 namespace {
 
 template <typename T> T &at(void *p, u32 offset) { return *reinterpret_cast<T *>(static_cast<u8 *>(p) + offset); }
 
-// The VM's globals, 0x7b49f0-0x7b4a1b.
-struct Globals {
-    u8 **scripts;     // 0x7b49f0 slot table
-    s32 slots;        // 0x7b49f4
-    u8 *regs;         // 0x7b49f8 the current script's registers (+0x84)
-    u32 now;          // 0x7b49fc
-    u32 code;         // 0x7b4a00 the current script's code base
-    u32 unknown04;    // 0x7b4a04
-    u32 steps;        // 0x7b4a08
-    u32 unknown0c;    // 0x7b4a0c
-    u32 stepLimit;    // 0x7b4a10
-    s32 ready;        // 0x7b4a14
-    u8 *current;      // 0x7b4a18
-};
-Globals &g() { return *reinterpret_cast<Globals *>(0x007b49f0); }
+SpriteScriptGlobals &g() { return gSpriteScripts; }
 
 constexpr u32 kOpIf = 0x00476050, kOpEndIf = 0x004762f0, kOpElse = 0x00476320, kOpEnd = 0x005da3c0;
 constexpr s32 kCodeEnd = 0x0074f7c0;
@@ -320,7 +308,7 @@ extern "C" void __fastcall Sprite_GetAction(const u8 *sprite, void *, u32 action
 }
 
 extern "C" s32 __cdecl SpriteFolder_Count(u32 folder) {
-    return *reinterpret_cast<const s32 *>(0x00763f90 + 12u * folder);
+    return gSpriteFolders[folder].count;
 }
 
 // ---- the script list ----------------------------------------------------------------
@@ -389,10 +377,9 @@ s32 insert(u8 *script) {
 
 // The sprite a script draws: gSprites (0x876b48)[the folder's first index + sprite].
 const u8 *sprite_of(u32 folder, u32 sprite) {
-    const u32 first = *reinterpret_cast<const u32 *>(0x00763f8c + 12u * folder);
-    return *reinterpret_cast<const u8 *const *>(0x00876b48 + 4u * (first + sprite));
+    return gSprites[gSpriteFolders[folder].first + sprite];
 }
-u32 action_code(u32 index) { return *reinterpret_cast<const u32 *>(0x0074f7c8 + 4u * index); }
+u32 action_code(u32 index) { return gSpriteScriptActions[index]; }
 bool is_action(u32 code) { return (s32)code >= 0 && (s32)code <= 3; }
 
 }  // namespace
@@ -623,6 +610,6 @@ extern "C" void __cdecl SpriteScripts_WrapSprites() {
     }
 }
 
-extern "C" void __cdecl SpriteScripts_InitUnusedOne() { *reinterpret_cast<float *>(0x007b4a1c) = 1.0f; }
+extern "C" void __cdecl SpriteScripts_InitUnusedOne() { gSpriteScripts_InitUnusedOne_7b4a1c = 1.0f; }
 
-extern "C" void __cdecl SpriteScripts_InitUnusedEpsilon() { *reinterpret_cast<float *>(0x007b4a20) = 1.0f / 8388608.0f; }
+extern "C" void __cdecl SpriteScripts_InitUnusedEpsilon() { gSpriteScripts_InitUnusedEpsilon_7b4a20 = 1.0f / 8388608.0f; }

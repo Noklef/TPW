@@ -13,6 +13,7 @@
 #include "../world/messagecentre.h"
 #include "../world/thingmsg.h"
 #include "session.h"
+#include "../files/gamepaths.h"
 
 namespace {
 
@@ -42,7 +43,7 @@ void PostcardSend_SetEnv(const PostcardSendEnv *env) { g_env = env ? env : &kGam
 extern "C" {
 
 void __cdecl Postcard_Send() {
-    Crt().sprintf(buffer(0x007cbcb0), text(0x0074d320), text(0x007cb958), text(0x0075447c));
+    Crt().sprintf(buffer(0x007cbcb0), text((u32)&gText_Gamepaths_74d320), text(0x007cb958), text(0x0075447c));
     g_env->savePicture(global<u8 *>(0x007cc18c), nullptr, text(0x007cbcb0));
     char local[0x100];
     Crt().sprintf(local, text(0x00754470), text(0x007cb958), global<u32>(0x007cbf38)++);

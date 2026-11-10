@@ -115,7 +115,7 @@ void __cdecl ModelSlot_LoadAdvisor(const char *folder, const char *c, const char
     at<u32>(s, 0x40) = 0x3e4ccccd;   // 0.2f
     u32 *const sceneFlags = reinterpret_cast<u32 *>((uintptr_t)0x008bd508);
     u8 *base = part + at<u32>(at<u8 *>(part, 0), 8);
-    const u32 one = global<u32>(0x006fdcb0);   // 1.0f
+    const u32 one = gModelSlot_LoadAdvisor_6fdcb0;   // 1.0f
     SceneFlags_Touch(sceneFlags);
     at<u32>(base, 0x54) = 0xffffffff;
     for (u32 offset = 4; offset <= 0x10; offset += 4)
@@ -127,9 +127,9 @@ void __cdecl ModelSlot_LoadAdvisor(const char *folder, const char *c, const char
     at<u32>(base, 0x34) = 0x44480000;   // 800.0f
     char name[0x104];
     if (suffix)
-        Crt().sprintf(name, reinterpret_cast<const char *>((uintptr_t)0x0074c944), suffix);   // "Advisor%s.md2"
+        Crt().sprintf(name, gText_ModelSlot_LoadAdvisor_74c944, suffix);   // "Advisor%s.md2"
     else
-        Crt().sprintf(name, reinterpret_cast<const char *>((uintptr_t)0x0074c938));   // "Advisor.md2"
+        Crt().sprintf(name, gText_ModelSlot_LoadAdvisor_74c938);   // "Advisor.md2"
     Quickload_LoadRide(name, folder, c);
     RideModel_Load(name, 0x50120, reinterpret_cast<u8 **>(s), nullptr, 1);
     u8 **const instance = reinterpret_cast<u8 **>(s + 4);

@@ -5,6 +5,7 @@
 
 #include "../core/crt.h"
 #include "../core/globalmem.h"
+#include "../files/gamepaths.h"
 
 namespace {
 
@@ -102,7 +103,7 @@ u32 __cdecl Model_AddTerrainSets(u8 *model, u8 *sets, const char *dir) {
     group = at<const u8 *>(sets, 4);
     for (s32 g = 0; g < at<s32>(sets, 0); ++g, group += 0xc) {
         u8 *const tiles = at<u8 *>(group, 8);
-        Crt().sprintf(pool, reinterpret_cast<const char *>(0x0074d320), dir, at<const char *>(group, 0));   // "%s%s"
+        Crt().sprintf(pool, gText_Gamepaths_74d320, dir, at<const char *>(group, 0));   // "%s%s"
         for (s32 j = 0; j < at<s32>(group, 4); ++j) {
             u8 *const tile = tiles + 0xc * j;
             at<u8 *>(texture, 0xc) = names;

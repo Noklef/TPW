@@ -127,3 +127,42 @@ void __cdecl Rsse_UpdateAll();
 
 // Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
 GAME_DATA(u32, RSSE_ScriptVersion, 0x00879190, 4);
+
+// Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(const float, gRsse_MoveWalker_700fcc, 0x00700fcc, 0x4);
+GAME_DATA(const float, gRsseVm_700fd4, 0x00700fd4, 0x4);
+GAME_DATA(const double, gRsseVm_700fe8, 0x00700fe8, 0x8);
+GAME_DATA(const double, gRsseVm_700ff0, 0x00700ff0, 0x8);
+GAME_DATA(const double, gRsseVm_700ff8, 0x00700ff8, 0x8);
+GAME_DATA(const double, gRsseVm_701000, 0x00701000, 0x8);
+GAME_DATA(const float, gRsse_UpdateAll_701008, 0x00701008, 0x4);
+GAME_DATA(const double, gRsse_UpdateAll_701010, 0x00701010, 0x8);
+GAME_DATA(const float, gRsse_UpdateAll_701018, 0x00701018, 0x4);
+GAME_DATA(const float, gRsse_UpdateAll_70101c, 0x0070101c, 0x4);
+GAME_DATA(const float, gRsse_MoveWalker_701020, 0x00701020, 0x4);
+GAME_DATA(const float, gRsse_MoveWalker_701024, 0x00701024, 0x4);
+GAME_DATA(const float, gRsse_MoveWalker_701028, 0x00701028, 0x4);
+GAME_DATA(const float, gRsse_MoveWalker_70102c, 0x0070102c, 0x4);
+GAME_DATA(const float, gRsse_MoveWalker_701030, 0x00701030, 0x4);
+GAME_DATA(const float, gRsse_MoveWalker_701034, 0x00701034, 0x4);
+GAME_DATA(const float, gRsse_MoveWalker_701038, 0x00701038, 0x4);
+GAME_DATA(const float, gRsse_MoveWalker_70103c, 0x0070103c, 0x4);
+GAME_DATA(const float, gRsse_MoveWalker_701040, 0x00701040, 0x4);
+GAME_DATA(const float, gRsse_MoveWalker_701044, 0x00701044, 0x4);
+GAME_DATA(const float, gRsse_MoveWalker_701048, 0x00701048, 0x4);
+GAME_DATA(const float, gRsse_MoveWalker_70104c, 0x0070104c, 0x4);
+GAME_DATA(char[8], gText_RsseScript_EventName_74d148, 0x0074d148, 0x8);
+GAME_DATA(char[8], gText_RsseScript_EventName_74d150, 0x0074d150, 0x8);
+GAME_DATA(char[8], gText_RsseScript_EventName_74d158, 0x0074d158, 0x8);
+GAME_DATA(char[8], gText_RsseScript_EventName_74d160, 0x0074d160, 0x8);
+GAME_DATA(char[8], gText_RsseScript_EventName_74d168, 0x0074d168, 0x8);
+GAME_DATA(char[8], gText_RsseScript_EventName_74d174, 0x0074d174, 0x8);
+GAME_DATA(char[8], gText_RsseScript_EventName_74d17c, 0x0074d17c, 0x8);
+GAME_DATA(char[8], gText_RsseScript_EventName_74d184, 0x0074d184, 0x8);
+GAME_DATA(char[8], gText_RsseScript_EventName_74d18c, 0x0074d18c, 0x8);
+GAME_DATA(char[8], gText_RsseScript_EventName_74d194, 0x0074d194, 0x8);
+GAME_DATA(char[8], gText_RsseScript_EventName_74d19c, 0x0074d19c, 0x8);
+GAME_DATA(u32[214], RSSE_OpcodeNameTable, 0x00765280, 0x358);
+GAME_DATA(u32, RSSE_CritLock, 0x0087919c, 0x4);
+GAME_DATA(u32, RSSE_TickCounter, 0x008791a4, 0x4);
+GAME_DATA(u32, gRSSE_8791a8, 0x008791a8, 0x4);

@@ -42,7 +42,7 @@ void Mark(s32 *row, s32 x, s32 y) {
 
 // The grid's cell (x, z) raised to y.
 void Raise(const u8 *grid, s32 x, s32 z, s32 y) {
-    u8 *const cell = at<u8 *>(grid, 0xc) + g<s32>(0x0079f7d4) * z + x;
+    u8 *const cell = at<u8 *>(grid, 0xc) + gHeightmap_79f7d4 * z + x;
     if (y > (s32)*cell)
         *cell = (u8)y;
 }
@@ -83,12 +83,12 @@ u32 __cdecl HeightMap_Rasterize(u8 *node, u32 unused, Matrix44 m, u8 *grid, u8 *
                         ok = 0;
                     }
                     x = 0.0f;
-                } else if (!(p[0] < g<float>(0x0079fb20))) {
-                    if (X87Reg(p[0]).v > (X87Reg(g<float>(0x0079fb20)) - kMinusOne).v) {
+                } else if (!(p[0] < gHeightmap_79fb20)) {
+                    if (X87Reg(p[0]).v > (X87Reg(gHeightmap_79fb20) - kMinusOne).v) {
                         Hit(node, hit, clipped);
                         ok = 0;
                     }
-                    x = (float)(X87Reg(g<float>(0x0079fb20)) - kInset);
+                    x = (float)(X87Reg(gHeightmap_79fb20) - kInset);
                 }
                 if (!(p[2] >= 0.0f)) {
                     if (!(p[2] >= kMinusOne)) {
@@ -142,7 +142,7 @@ u32 __cdecl HeightMap_Rasterize(u8 *node, u32 unused, Matrix44 m, u8 *grid, u8 *
                 if (z[2] > high)
                     high = z[2];
                 const s32 rows = high - low + 1;
-                s32 *const table = &g<s32>(0x0079f7e8);
+                s32 *const table = gHeightMap_Rasterize_79f7e8;
                 for (u32 r = (u32)rows, *e = (u32 *)table; r; --r, e += 4) {
                     e[0] = 1000000;
                     e[1] = (u32)-1000000;
@@ -198,9 +198,9 @@ namespace {
 void RasterizeClone(u8 *clone, u8 *map, u32 block, u32 time, u32 *clipped) {
     u8 *const held = at<u8 *>(clone, 8);
     const u32 width = at<u16>(map, 8), height = at<u16>(map, 0xa);
-    g<float>(0x0079fb20) = (float)X87_MulInt(width, g<const float>(0x006fe3e4));
-    gHeightmap_79fb08 = (float)X87_MulInt(height, g<const float>(0x006fe3e4));
-    g<u32>(0x0079f7d4) = width * 5;
+    gHeightmap_79fb20 = (float)X87_MulInt(width, gHeightmap_6fe3e4);
+    gHeightmap_79fb08 = (float)X87_MulInt(height, gHeightmap_6fe3e4);
+    reinterpret_cast<u32 &>(gHeightmap_79f7d4) = width * 5;
     gHeightmap_79fb0c = height * 5;
     Matrix44 matrix;
     g_calls.Cd(0x0046f150, &matrix);   // Matrix_Identity

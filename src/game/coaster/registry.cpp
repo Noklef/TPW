@@ -42,7 +42,7 @@ const CoasterLinksEnv kGameEnv = {&Ride_Create, &Model_FindPartByKey4, &CoasterL
                                   &CoasterLink_AddFixedPieces};
 const CoasterLinksEnv *g_env = &kGameEnv;
 
-const u8 *coaster_at(u32 index) { return reinterpret_cast<u8 *const *>(0x00790bd0)[index]; }
+const u8 *coaster_at(u32 index) { return gCoasters_790bd0[index]; }
 const u8 *first_link() { return *reinterpret_cast<u8 *const *>(&gRidelist_790fe0); }
 
 }  // namespace
@@ -211,8 +211,8 @@ u32 __cdecl Object_LinkBare(const u8 *object) {
 void __cdecl Coasters_GetState(u32 *a, u32 *b, u32 *c, u32 *d) {
     *a = gRegistry_79221c;
     *b = gRegistry_790fd8;
-    *c = *reinterpret_cast<const u32 *>(0x0079104c);
-    *d = *reinterpret_cast<const u32 *>(0x00791cf8);
+    *c = (u32)gCoasterXHigh_79104c;
+    *d = (u32)gCoasterZHigh_791cf8;
 }
 
 void __cdecl CoasterEdit_SetBounds() {
@@ -245,8 +245,8 @@ void __cdecl CoasterEdit_SetBounds() {
     if (xHigh >= xEnd) xHigh = (s32)((u32)xEnd - 1);
     const s32 zEnd = (s32)(*reinterpret_cast<const u32 *>(0x007a029c) + *reinterpret_cast<const u32 *>(0x007a0374));
     if (zHigh >= zEnd) zHigh = (s32)((u32)zEnd - 1);
-    *reinterpret_cast<s32 *>(0x00791cf8) = zHigh;
-    *reinterpret_cast<s32 *>(0x0079104c) = xHigh;
+    gCoasterZHigh_791cf8 = zHigh;
+    gCoasterXHigh_79104c = xHigh;
     *reinterpret_cast<s32 *>(&gRegistry_79221c) = xLow;
     *reinterpret_cast<s32 *>(&gRegistry_790fd8) = zLow;
 }
@@ -340,9 +340,9 @@ void __cdecl Coasters_AllocTables(u32 nodes, u32 links) {
 }
 
 void __cdecl Coasters_InitTables() {
-    Coasters_AllocTables(*reinterpret_cast<const u32 *>(&gSetup_790fd0), *reinterpret_cast<const u32 *>(0x00791cfc));
-    IdTable_Init(reinterpret_cast<u32 *>(0x00790b04), reinterpret_cast<u32 *>(0x00790b00),
-                 reinterpret_cast<u32 *>(0x00791ce0));
+    Coasters_AllocTables(*reinterpret_cast<const u32 *>(&gSetup_790fd0), gCoasterLinkWordsMax_791cfc);
+    IdTable_Init(&gCoasterIdUsed_790b04, &gCoasterIdHoles_790b00,
+                 &gCoasterIdNext_791ce0);
 }
 
 void __cdecl Coaster_FlashCar(u8 *coaster, u32 which) {
@@ -544,8 +544,8 @@ void __cdecl CoasterLink_SetUpCars(const u8 *train, u8 *link, u32 quiet) {
 // A link destroyed (CoasterLink_Destroy's and CoasterLinks_DestroyAll's, inlined in both originals).
 static void DestroyLink(u8 *link) {
     u8 **const head = &gRidelist_790fe0;
-    IdTable_Remove(reinterpret_cast<u32 *>(0x00790b04), reinterpret_cast<u32 *>(0x00790b00), reinterpret_cast<u32 *>(0x00791ce0),
-                   reinterpret_cast<u32 *>(0x00790bd0), at<u32>(link, 0x14));
+    IdTable_Remove(&gCoasterIdUsed_790b04, &gCoasterIdHoles_790b00, &gCoasterIdNext_791ce0,
+                   reinterpret_cast<u32 *>(gCoasters_790bd0), at<u32>(link, 0x14));
     --gRegistry_792214;
     const u8 *const train = at<const u8 *>(link, 4);
     u8 *car = at<u8 *>(link, 0x128);   // (read before the slots are freed)
@@ -646,13 +646,13 @@ u8 *__cdecl CoasterLink_AddCar(u8 *train, u32 a, u32 b, float height, u32 flags,
         at<u8 *>(at<u8 *>(at<u8 *>(piece, 0x90), 8), 0x10) = piece;
     } else {
         at<u32>(piece, 0xf8) = wide && half ? 0x3f000000u : 0;   // 0.5f
-        *reinterpret_cast<u32 *>(0x00791cec) = at<u32>(train, 0x10);
-        *reinterpret_cast<u32 *>(0x00791050) = at<u32>(desc, 0xb4);
-        *reinterpret_cast<u32 *>(0x00791054) = at<u32>(desc, 0xb8);
-        *reinterpret_cast<u32 *>(0x00791ce8) = at<u32>(train, 0xc);
-        *reinterpret_cast<u32 *>(0x00791cf0) = 0;
-        *reinterpret_cast<u32 *>(0x00791cf4) = 0x00791050;
-        const u32 *const key = reinterpret_cast<const u32 *>(0x00791ce8);
+        gCoasterRideDesc_791ce8[1] = at<u32>(train, 0x10);
+        gCoasterRidePair_791050[0] = at<u32>(desc, 0xb4);
+        gCoasterRidePair_791050[1] = at<u32>(desc, 0xb8);
+        gCoasterRideDesc_791ce8[0] = at<u32>(train, 0xc);
+        gCoasterRideDesc_791ce8[2] = 0;
+        gCoasterRideDesc_791ce8[3] = (u32)(uintptr_t)gCoasterRidePair_791050;
+        const u32 *const key = gCoasterRideDesc_791ce8;
         at<u32>(piece, 0x70) = (flags & 1) ? Ride_Claim(claim, at<u32>(desc, 0x14), 0x3fa, key, 0, 0, 0, 0)
                                            : g_env->createRide(at<u32>(desc, 0x14), 0x3fa, key, 0, 0, 0, 0, 0, -1, 0);
         u8 *const *const rides = reinterpret_cast<u8 *const *>(0x007a4610);
@@ -755,8 +755,8 @@ u32 __cdecl CoasterLink_Create(u32 typeId, u32 ride, u32 height, u32 a3, u32 loa
     u8 *const link = static_cast<u8 *>(env->alloc(0x14c, 1));
     u32 id = 0;   // (loaded: the original's is the caller's ECX, sic)
     if (!loaded) {
-        id = env->idAdd(reinterpret_cast<u32 *>(0x00790b04), reinterpret_cast<u32 *>(0x00790b00), reinterpret_cast<u32 *>(0x00791ce0), 0xff,
-                        reinterpret_cast<u32 *>(0x00790bd0), (u32)(uintptr_t)link, -1);
+        id = env->idAdd(&gCoasterIdUsed_790b04, &gCoasterIdHoles_790b00, &gCoasterIdNext_791ce0, 0xff,
+                        reinterpret_cast<u32 *>(gCoasters_790bd0), (u32)(uintptr_t)link, -1);
         if (!id) {
             env->freeBlock(link);
             return 0;
@@ -769,7 +769,7 @@ u32 __cdecl CoasterLink_Create(u32 typeId, u32 ride, u32 height, u32 a3, u32 loa
     const u8 *type = nullptr;   // (none: the reads below fault, sic)
     const u32 n = gSetup_790fe8;
     for (u32 i = 0; i < n; ++i) {
-        const u8 *const t = reinterpret_cast<const u8 *const *>(0x00790b08)[i];
+        const u8 *const t = gCoasterTypes_790b08[i];
         if (at<u32>(t, 4) == typeId) {
             type = t;
             break;

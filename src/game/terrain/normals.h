@@ -28,3 +28,9 @@ void __cdecl Terrain_ScaleNormals(u8 *node, TerrainMatrix m);
 // scene's flags touched (SceneFlags_Touch on 0x8bd508) and 0x79f7cc = 0.
 void __cdecl Terrain_ShadeNormals();
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(float, gTerrain_ScaleNormals_74cf30, 0x0074cf30, 0x4);
+GAME_DATA(u32, gTerrain_ShadeNormals_79f7cc, 0x0079f7cc, 0x4);
