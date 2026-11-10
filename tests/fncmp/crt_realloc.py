@@ -6,11 +6,11 @@ import struct
 import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
-from fncmp import HEAP, IMPORT_TABLE, LOG, RAM, Bench, Call, _free, _recorder, answers, heap, import_table, log_region, recorder  # noqa: E402
+from fncmp import HEAP, IMPORT_TABLE, LOG, RAM, Bench, Call, _free, _recorder, answers, heap, import_table, log_region, recorder, set_return  # noqa: E402
 
 LOCK, UNLOCK, NEWH, NHMALLOC = 7, 8, 9, 28
-VALLOC, VFREE, HALLOC, HFREE, HREALLOC = 14, 15, 16, 17, 18
-B = Bench([(0x682b40, 0x682b99), (0x682a10, 0x682a6b), (0x682a70, 0x682b3d), (0x682ba0, 0x682bf3), (0x682fc0, 0x683084), (0x681740, 0x6818f0),
+VALLOC, VFREE, HALLOC, HFREE, HREALLOC, HSIZE = 14, 15, 16, 17, 18, 19
+B = Bench([(0x6818f0, 0x681953),(0x682b40, 0x682b99), (0x682a10, 0x682a6b), (0x682a70, 0x682b3d), (0x682ba0, 0x682bf3), (0x682fc0, 0x683084), (0x681740, 0x6818f0),
            (0x688710, 0x688730), (0x6828a0, 0x682a02), (0x682c00, 0x682e33), (0x682e40, 0x682fb2), (0x67dcd0, 0x67dcf0)],
           hooks={0x682720: _recorder(LOCK, 1, cdecl=True), 0x6827a0: _recorder(UNLOCK, 1, cdecl=True), 0x67dcf0: _recorder(NHMALLOC, 2, cdecl=True), 0x67ad90: _free})
 STATIC, R2 = 0x77eda0, RAM + 0x1000
@@ -18,7 +18,7 @@ VAS, HEAPS, NEWHS, FREES, OUT = RAM, RAM + 0x100, RAM + 0x200, RAM + 0x300, RAM 
 PAGES, PAGES2 = RAM + 0x10000, RAM + 0x20000
 BIG = HEAP + 0x100
 LIMIT = 0xf0
-OPS = [n for n in ('find', 'find', 'release', 'decommit', 'decommit', 'decommit', 'free', 'free', 'free', 'resize', 'resize', 'resize', 'resize', 'realloc', 'realloc', 'realloc', 'realloc', 'realloc')
+OPS = [n for n in ('find', 'find', 'release', 'decommit', 'decommit', 'decommit', 'free', 'free', 'free', 'resize', 'resize', 'resize', 'resize', 'realloc', 'realloc', 'realloc', 'realloc', 'realloc', 'msize', 'msize')
        if not os.environ.get('OPS') or n in os.environ['OPS'].split(',')]
 
 
@@ -65,7 +65,9 @@ def case(r):
     name = r.deal(OPS)
     log = log_region()
     regions = {LOG: log, HEAP: heap(0x8000),
-               IMPORT_TABLE: import_table(log, {'valloc': (VALLOC, 0x6fd1b4, 4, 0, 0), 'vfree': (VFREE, 0x6fd1b8, 3, 0, 0), 'halloc': (HALLOC, 0x6fd224, 3, 0, 0), 'hfree': (HFREE, 0x6fd210, 3, 0, 0), 'hrealloc': (HREALLOC, 0x6fd258, 4, 0, 0)})}
+               IMPORT_TABLE: import_table(log, {'valloc': (VALLOC, 0x6fd1b4, 4, 0, 0), 'vfree': (VFREE, 0x6fd1b8, 3, 0, 0), 'halloc': (HALLOC, 0x6fd224, 3, 0, 0), 'hfree': (HFREE, 0x6fd210, 3, 0, 0), 'hrealloc': (HREALLOC, 0x6fd258, 4, 0, 0),
+                                                         'hsize': (HSIZE, 0x6fd208, 3, 0, 0)})}
+    set_return(log, HSIZE, r.getrandbits(32))
     answers(log, VALLOC, VAS)
     answers(log, HALLOC, HEAPS)
     answers(log, HREALLOC, HEAPS)
@@ -103,7 +105,7 @@ def case(r):
         pos = r.choice(list_[i][2])
         return holder, memory + i * 0x1000, pos
 
-    if name == 'find':
+    if name in ('find', 'msize'):
         holder, at, pos = a_block()
         block = at + 0x100 + pos * 0x10
         block = r.choice([block, block, block, block + 1, block + 8, at, at + 0xf0, at + 0xff0, PAGES, PAGES + 0x400000, PAGES + 0x3fffff, PAGES - 1, 0x1000, 0xfffffff0, PAGES2])
@@ -111,6 +113,8 @@ def case(r):
             block = at + 0x100 + pos * 0x10
             struct.pack_into('<I', static if holder == STATIC else other, 0x14, block)
         regions[STATIC] = static
+        if name == 'msize':
+            return Call(0x6818f0, [block], regions, conv='c', ret='a')
         return Call(0x682b40, [block, OUT, OUT + 4], regions, conv='c', ret='a')
     if name == 'release':
         if r.random() < 0.5:

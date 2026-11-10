@@ -286,6 +286,60 @@ void __cdecl CRT_setenvp() {
     *next = nullptr;
 }
 
+char *__cdecl CRT_crtGetEnvironmentStringsA() {
+    using GetW = u16 *(__stdcall *)();
+    using GetA = char *(__stdcall *)();
+    using Release = s32(__stdcall *)(void *);
+    u32 &mode = global<u32>(0x00fb1660);
+    u16 *wide = nullptr;
+    char *narrow = nullptr;
+    if (!mode) {
+        if ((wide = import_slot<GetW>(0x006fd184)()) != nullptr)    // GetEnvironmentStringsW
+            mode = 1;
+        else if ((narrow = import_slot<GetA>(0x006fd188)()) != nullptr)    // GetEnvironmentStrings
+            mode = 2;
+        else
+            return nullptr;
+    }
+    if (mode == 1) {
+        if (!wide && !(wide = import_slot<GetW>(0x006fd184)())) return nullptr;
+        const u16 *end = wide;
+        if (*end) {
+            do {
+                do ++end;
+                while (*end);
+                ++end;
+            } while (*end);
+        }
+        const s32 units = static_cast<s32>(end - wide) + 1;
+        char *copy = nullptr;
+        const s32 size = to_narrow(0, 0, wide, units, nullptr, 0, nullptr, nullptr);
+        if (size && (copy = static_cast<char *>(CRT_malloc(static_cast<u32>(size)))) != nullptr) {
+            if (!to_narrow(0, 0, wide, units, copy, size, nullptr, nullptr)) {
+                Crt().free(copy);
+                copy = nullptr;
+            }
+        }
+        import_slot<Release>(0x006fd18c)(wide);    // FreeEnvironmentStringsW
+        return copy;
+    }
+    if (mode != 2) return nullptr;
+    if (!narrow && !(narrow = import_slot<GetA>(0x006fd188)())) return nullptr;
+    const char *end = narrow;
+    if (*end) {
+        do {
+            do ++end;
+            while (*end);
+            ++end;
+        } while (*end);
+    }
+    const u32 size = static_cast<u32>(end - narrow) + 1;
+    char *const copy = static_cast<char *>(CRT_malloc(size));
+    if (copy) std::memcpy(copy, narrow, size);
+    import_slot<Release>(0x006fd190)(narrow);    // FreeEnvironmentStringsA
+    return copy;
+}
+
 u32 __cdecl CRT_wcstombs_lk(char *to, const u16 *from, u32 n) {
     s32 lossy = 0;
     const u32 code_page = global<u32>(0x00fb1450);

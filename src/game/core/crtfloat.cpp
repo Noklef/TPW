@@ -2,6 +2,7 @@
 
 #include "../math/x87.h"
 #include "crt.h"
+#include "initializers.h"
 
 #include <cstdint>
 #include <cstring>
@@ -778,6 +779,38 @@ double __cdecl CRT_Stod(const char *text, const char **end, s32 power) {
 double __cdecl CRT_Stold(const char *text, const char **end, s32 power) { return CRT_Stod(text, end, power); }
 
 u32 __cdecl CRT_controlfp(u32 value, u32 mask) { return CRT_control87(value, mask & 0xfff7ffff); }
+
+void __cdecl CRT_setdefaultprecision() { CRT_controlfp(0x10000, 0x30000); }
+
+s32 __cdecl CRT_ms_p5_test_fdiv() {
+    const double x = 4195835.0, y = 3145727.0;
+    double rest;
+    __asm {   // (on the x87 at its precision, as the original)
+        fld x
+        fdiv y
+        fmul y
+        fsubr x
+        fstp rest
+    }
+    return rest > global<const double>(0x00708a70) ? 1 : 0;
+}
+
+s32 __cdecl CRT_ms_p5_mp_test_fdiv() {
+    const u32 kernel = (*reinterpret_cast<u32(__stdcall *const *)(const char *)>((uintptr_t)0x006fd238))(reinterpret_cast<const char *>((uintptr_t)0x00708a94));    // GetModuleHandleA("KERNEL32")
+    if (kernel) {
+        using Present = s32(__stdcall *)(u32);
+        const Present present = (*reinterpret_cast<Present(__stdcall *const *)(u32, const char *)>((uintptr_t)0x006fd0b0))(kernel, reinterpret_cast<const char *>((uintptr_t)0x00708a78));    // GetProcAddress
+        if (present) return present(0);    // IsProcessorFeaturePresent(PF_FLOATING_POINT_PRECISION_ERRATA)
+    }
+    return CRT_ms_p5_test_fdiv();
+}
+
+void __cdecl CRT_FPinit() {
+    Fn_67a610();
+    global<s32>(0x00fb1334) = CRT_ms_p5_mp_test_fdiv();
+    CRT_setdefaultprecision();
+    __asm fnclex
+}
 
 double __cdecl CRT_strtod(const char *text, const char **end) {
     const char *from = text;

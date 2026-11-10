@@ -10,16 +10,17 @@ from fncmp import HEAP, IMPORT_TABLE, LOG, RAM, Bench, Call, _free, _recorder, a
 
 GETPTD, LOCK, UNLOCK, LOCKFILE, UNLOCKFILE, NHMALLOC, LOCKFILE2, UNLOCKFILE2 = 2, 7, 8, 11, 12, 28, 30, 31
 CSINIT, CSENTER, CSLEAVE, WRITE, SEEK, ERROR, READ, CREATE, TYPE, CLOSE, SETSTD, SEOF, FLUSHFB = 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26
+DELETE, MOVE = 32, 33   # (DeleteFileA, MoveFileA)
 B = Bench([(0x67b660, 0x67b6c5), (0x4f1070, 0x4f10a2), (0x4f10b0, 0x4f10cb), (0x686a00, 0x686a19), (0x686980, 0x6869f3), (0x68ead0, 0x68eb19), (0x68eb20, 0x68eb85), (0x68eb90, 0x68ebb2), (0x686440, 0x6864b2), (0x6864c0, 0x6866ca), (0x686aa0, 0x686b20), (0x67d0f0, 0x67d15e), (0x67dcd0, 0x67dcf0),
            (0x688ad0, 0x688cf5), (0x67b110, 0x67b13f), (0x67b860, 0x67b897), (0x67b8a0, 0x67b8b5), (0x6868a0, 0x686979), (0x6866d0, 0x68682b), (0x68b640, 0x68b991), (0x68e810, 0x68e978), (0x68e980, 0x68ea21), (0x68ea30, 0x68eac3),
            (0x686300, 0x686368), (0x686370, 0x686400), (0x686400, 0x686433), (0x68f630, 0x68f77e), (0x691610, 0x691674), (0x67cf90, 0x67d067), (0x67d070, 0x67d0a7), (0x67d0b0, 0x67d0e5), (0x67d160, 0x67d16b), (0x67d170, 0x67d22b),
-           (0x687b20, 0x687bbe)],
+           (0x687b20, 0x687bbe), (0x67e530, 0x67e55d), (0x67e560, 0x67e56e), (0x67ecc0, 0x67ecf2)],
           hooks={0x682720: _recorder(LOCK, 1, cdecl=True), 0x6827a0: _recorder(UNLOCK, 1, cdecl=True), 0x682460: _recorder(GETPTD, 0, cdecl=True), 0x6827c0: _recorder(LOCKFILE, 1, cdecl=True), 0x682830: _recorder(UNLOCKFILE, 1, cdecl=True),
                  0x67dcf0: _recorder(NHMALLOC, 2, cdecl=True), 0x682800: _recorder(LOCKFILE2, 2, cdecl=True), 0x682870: _recorder(UNLOCKFILE2, 2, cdecl=True), 0x67ad90: _free})
 PTD, ANSWERS, SEEKS, READS = (RAM + 0x100 * i for i in range(4))
 INFO0, INFO1, TEXT, STREAMS, FILES, GIVEN, BLOCK = RAM + 0x1000, RAM + 0x1800, RAM + 0x2000, RAM + 0x2100, RAM + 0x2200, RAM + 0x2800, RAM + 0x3000
 BUFFER, MODE, WBUF = HEAP + 0x100, RAM + 0x2f00, RAM + 0x2e00
-OPS = [n for n in ('fopen', 'fsopen', 'getstream', 'openfile', 'sopen', 'sopen', 'alloc', 'set', 'free', 'close', 'close_lk', 'chsize', 'setmode', 'freebuf', 'fclose_lk', 'setvbuf', 'fflush', 'fflush_lk', 'flsall', 'flushall', 'commit', 'wsetbuf', 'wsync')
+OPS = [n for n in ('fopen', 'fsopen', 'getstream', 'openfile', 'sopen', 'sopen', 'alloc', 'set', 'free', 'close', 'close_lk', 'chsize', 'setmode', 'freebuf', 'fclose_lk', 'setvbuf', 'fflush', 'fflush_lk', 'flsall', 'flushall', 'commit', 'wsetbuf', 'wsync', 'remove', 'unlink', 'rename')
        if not os.environ.get('OPS') or n in os.environ['OPS'].split(',')]
 FDS = [0, 1, 2, 5, 0x1f, 0x20, 0x21, 0x3f, 0x40, 0x50]
 MODES = ['r', 'w', 'a', 'x', '', 'r+', 'w+', 'a+', 'rb', 'rt', 'wb', 'r+b', 'rb+', 'rbt', 'rtb', 'rc', 'rn', 'rcn', 'wc', 'rbc', 'rS', 'rR', 'rSR', 'rT', 'rTT', 'rD', 'rDD', 'r++', 'rz', 'rzb', 'r+D', 'r bS', 'wcbSTD', 'a+tnRTD', 'r\xff', 'rb\x2a', 'r,', 'ru']
@@ -45,7 +46,8 @@ def case(r):
     regions = {LOG: log, PTD: bytearray(0x20), INFO0: table(r), INFO1: table(r), HEAP: heap(0x1000),
                IMPORT_TABLE: import_table(log, {'init': (CSINIT, 0x6fd144, 1, 0, 0), 'enter': (CSENTER, 0x6fd140, 1, 0, 0), 'leave': (CSLEAVE, 0x6fd130, 1, 0, 0), 'write': (WRITE, 0x6fd0e0, 5, 0, 0b1000),
                                                 'seek': (SEEK, 0x6fd0e4, 4, 0, 0), 'error': (ERROR, 0x6fd138, 0, 0, 0), 'read': (READ, 0x6fd0dc, 5, 0, 0b1010), 'create': (CREATE, 0x6fd0d8, 7, 1, 0),
-                                                'type': (TYPE, 0x6fd1a8, 1, 0, 0), 'close': (CLOSE, 0x6fd13c, 1, 0, 0), 'setstd': (SETSTD, 0x6fd268, 2, 0, 0), 'seof': (SEOF, 0x6fd27c, 1, 0, 0), 'flush': (FLUSHFB, 0x6fd0fc, 1, 0, 0)})}
+                                                'type': (TYPE, 0x6fd1a8, 1, 0, 0), 'close': (CLOSE, 0x6fd13c, 1, 0, 0), 'setstd': (SETSTD, 0x6fd268, 2, 0, 0), 'seof': (SEOF, 0x6fd27c, 1, 0, 0), 'flush': (FLUSHFB, 0x6fd0fc, 1, 0, 0),
+                                                'delete': (DELETE, 0x6fd0c4, 1, 1, 0), 'move': (MOVE, 0x6fd11c, 2, 0b11, 0)})}
     set_return(log, GETPTD, PTD)
     regions[0xfb3ba0] = struct.pack('<64I', *[INFO1 if i == 1 else INFO0 for i in range(64)])
     regions[0xfb3ca0] = struct.pack('<I', 0x40)
@@ -76,6 +78,12 @@ def case(r):
     set_return(log, ERROR, 0x83 if name == 'sopen' and r.random() < 0.5 else r.choice([5, 2, 6, 0x83, 0x83, 0x13, 0x24, 0xbc, 0x57, 1, 0]))   # (0x83: a seek before the start, which _sopen lets pass)
     if name == 'getstream' and r.random() < 0.4:   # (the stream taken by another thread while its lock was awaited)
         fill(log, LOCKFILE2, 1, struct.pack('<4I', 0, 0, 0, 0x83))
+    if name in ('remove', 'unlink', 'rename'):   # (DeleteFileA / MoveFileA failing or not; GetLastError's 0 as no failure)
+        set_return(log, DELETE, r.choice([1, 0, 0]))
+        set_return(log, MOVE, r.choice([1, 0, 0]))
+        if name == 'rename':
+            return Call(0x67ecc0, [TEXT, TEXT + 0x40], regions, conv='c', ret='a')
+        return Call(0x67e530 if name == 'remove' else 0x67e560, [TEXT], regions, conv='c', ret='a')
     set_return(log, NHMALLOC, r.choice([BLOCK, BLOCK, BLOCK, 0]))
     set_return(log, CREATE, r.choice([0x2222, 0x2222, 0x2222, 0x2222, 0xffffffff]))
     set_return(log, TYPE, r.choice([1, 1, 1, 1, 0, 2, 3, 4]))

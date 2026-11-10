@@ -614,6 +614,8 @@ class Emu:
             self.cw = self.get(o[0]) & 0x1f3f | 0x40   # (as an x87 reads it back: bit 6 set, the top three clear)
         elif mn in ('FNSTSW', 'FSTSW'):
             self.put(o[0], (self.c0 << 8) | (self.c2 << 10) | (self.c3 << 14))
+        elif mn in ('FNCLEX', 'FCLEX'):
+            pass   # (no exception flags kept: the status word is C0, C2 and C3 only)
         elif mn in ('MOV', 'MOVZX'):  # get() is already zero-extended
             self.put(o[0], self.get(o[1]))
         elif mn == 'BSWAP':

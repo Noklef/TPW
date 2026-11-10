@@ -501,6 +501,7 @@
 #include "../../src/game/sprite/loading.h"
 #include "../../src/game/core/namedobjects.h"
 #include "../../src/game/core/staticinit.h"
+#include "../../src/game/core/crtstartup.h"
 #include "../../src/game/world/object.h"
 #include "crt.h"
 #include "../../src/hook/hooks.h"
@@ -1538,6 +1539,12 @@ const AddrCall kDisplayRestoreCalls[] = {{0x563460, recorder(1, 6)}, {0x56a770, 
 const AddrCall kTexSetBltCalls[] = {{0x56a770, jpeg_recorder(2, 1)}, {0x564650, jpeg_recorder(3, 1)}, {0x56af20, recorder(4, 2)}};  // tests/fncmp/texsetblt.py
 const AddrCall kAccessorsFreeCalls[] = {{0x67ad90, jpeg_recorder(3, 1)}};  // tests/fncmp/objfree204.py
 const AddrCall kVtablesDtorCalls[] = {{0x67acb0, jpeg_recorder(2, 1)}};  // tests/fncmp/vtbl6fefb8del.py
+// (the entry point's __except filter: exit_case's exception passes on to the main loop)
+s32 __cdecl pass_filter(u32, void *) { return EXCEPTION_CONTINUE_SEARCH; }
+const AddrCall kCrtStartupCalls[] = {{0x6826b0, jpeg_recorder(1, 0)}, {0x6823e0, jpeg_recorder(2, 0)}, {0x67eff0, (u32)(uintptr_t)&exit_case}, {0x687230, jpeg_recorder(4, 0)},
+                                     {0x68a160, jpeg_recorder(5, 0)}, {0x689b00, jpeg_recorder(6, 0)}, {0x689850, jpeg_recorder(7, 0)}, {0x689760, jpeg_recorder(8, 0)},
+                                     {0x67f8f0, jpeg_recorder(9, 0)}, {0x689700, jpeg_recorder(10, 1)}, {0x67f920, (u32)(uintptr_t)&exit_case},
+                                     {0x45a960, kStubs + 0x1000 + 0x4000 + 0x800 * 4 + 0x20 * 12}, {0x688800, (u32)(uintptr_t)&pass_filter}};  // tests/fncmp/crt_entry.py
 const AddrCall kTerrainBaseCalls[] = {{0x40ef40, jpeg_recorder(1, 0)}, {0x46e650, jpeg_recorder(2, 1)}, {0x461a60, jpeg_recorder(3, 3)}, {0x461f10, jpeg_recorder(4, 5)}, {0x427ad0, jpeg_recorder(5, 1)}, {0x46f0c0, jpeg_recorder(6, 1)}, {0x450950, jpeg_recorder(7, 2)}, {0x46e610, jpeg_recorder(8, 0)}, {0x56dfe0, jpeg_recorder(9, 2)}, {0x46ded0, jpeg_recorder(10, 1)}, {0x56dfd0, jpeg_recorder(11, 0)}, {0x46dd50, jpeg_recorder(12, 1)}, {0x45bbc0, jpeg_recorder(13, 1)}, {0x45bcb0, jpeg_recorder(14, 3)}, {0x45bd00, jpeg_recorder(15, 1)}};  // tests/fncmp/terrainbase.py
 const AddrCall kGroundPrepareCalls[] = {{0x58c9f0, recorder(1, 2)}, {0x572440, recorder(2, 3)}};  // tests/fncmp/groundprepare.py
 const AddrCall kTexCacheSetupCalls[] = {{0x58d400, recorder(2, 0)}, {0x58d670, recorder(3, 0)}, {0x58b220, recorder(4, 3)}, {0x58dd60, recorder(5, 1)}, {0x58d380, recorder(6, 0)}, {0x58b280, recorder(7, 0)}, {0x56b630, jpeg_recorder(8, 0)}, {0x58d0f0, recorder(9, 0)}, {0x56af20, recorder(10, 2)}};  // tests/fncmp/texcachesetup.py
@@ -2904,6 +2911,7 @@ int main(int argc, char **argv) {
     TexSet_SetBltCalls(kTexSetBltCalls, sizeof(kTexSetBltCalls) / sizeof(kTexSetBltCalls[0]));
     Accessors_SetFreeCalls(kAccessorsFreeCalls, sizeof(kAccessorsFreeCalls) / sizeof(kAccessorsFreeCalls[0]));
     Vtables_SetDtorCalls(kVtablesDtorCalls, sizeof(kVtablesDtorCalls) / sizeof(kVtablesDtorCalls[0]));
+    CRT_SetStartupCalls(kCrtStartupCalls, sizeof(kCrtStartupCalls) / sizeof(kCrtStartupCalls[0]));
     TerrainBase_SetCalls(kTerrainBaseCalls, sizeof(kTerrainBaseCalls) / sizeof(kTerrainBaseCalls[0]));
     TerrainGround_SetPrepareCalls(kGroundPrepareCalls, sizeof(kGroundPrepareCalls) / sizeof(kGroundPrepareCalls[0]));
     TexCache_SetSetupCalls(kTexCacheSetupCalls, sizeof(kTexCacheSetupCalls) / sizeof(kTexCacheSetupCalls[0]));

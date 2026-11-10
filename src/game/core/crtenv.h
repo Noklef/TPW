@@ -39,6 +39,10 @@ u32 __cdecl CRT_wcsnlen(const u16 *text, u32 n);
 // 0x689760: _setenvp: the block at [0xfb1354] made into the table of copies at [0xfb1380], without the names that start with '='. Each failed malloc _amsg_exit(9). The block freed and [0xfb1354] cleared.
 void __cdecl CRT_setenvp();
 
+// 0x689b00: __crtGetEnvironmentStringsA: a malloc'd copy of the process's environment block, from the W strings through WideCharToMultiByte (code page 0) or the
+// A ones; [0xfb1660] keeps which (0: found on first use, 1 W, 2 A). The system's block freed. Nothing, no memory or a failed conversion: 0.
+char *__cdecl CRT_crtGetEnvironmentStringsA();
+
 // 0x68ed80: _wcstombs_lk: without a locale ([0xfb1440] 0) the units up to 0xff; otherwise WideCharToMultiByte, by characters when the first try does not fit. A character that cannot convert: errno 0x2a, -1.
 u32 __cdecl CRT_wcstombs_lk(char *to, const u16 *from, u32 n);
 

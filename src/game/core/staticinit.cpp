@@ -19,6 +19,596 @@ u32 Fn(void(__cdecl *fn)()) { return (u32)(uintptr_t)fn; }
 // MOV ECX,Object ; JMP Dtor (a thiscall of no stack arguments).
 template <u32 Object, u32 Dtor> void __cdecl ExitThunk() { g_calls.Th(Dtor, Object); }
 
+// The C library's callees of the initialisers (no arguments; called directly).
+void __cdecl Sub_691d70();
+void __cdecl Sub_691d80();
+void __cdecl Sub_691d90();
+void __cdecl Sub_691da0();
+void __cdecl Sub_691db0();
+void __cdecl Sub_691dc0();
+void __cdecl Sub_691dd0();
+void __cdecl Sub_691f60();
+void __cdecl Sub_692030();
+void __cdecl Sub_692140();
+void __cdecl Sub_692190();
+void __cdecl Sub_692850();
+void __cdecl Sub_692860();
+void __cdecl Sub_692870();
+void __cdecl Sub_692880();
+void __cdecl Sub_692890();
+void __cdecl Sub_6928a0();
+void __cdecl Sub_6928b0();
+void __cdecl Sub_6928c0();
+void __cdecl Sub_6928e0();
+void __cdecl Sub_692920();
+void __cdecl Sub_692a30();
+void __cdecl Sub_692b00();
+void __cdecl Sub_692bd0();
+void __cdecl Sub_692c20();
+void __cdecl Sub_6932d0();
+void __cdecl Sub_6932e0();
+void __cdecl Sub_6932f0();
+void __cdecl Sub_693300();
+void __cdecl Sub_693310();
+void __cdecl Sub_693320();
+void __cdecl Sub_693330();
+void __cdecl Sub_693b40();
+void __cdecl Sub_693b50();
+void __cdecl Sub_693b60();
+void __cdecl Sub_693b70();
+void __cdecl Sub_693b80();
+void __cdecl Sub_693b90();
+void __cdecl Sub_693ba0();
+void __cdecl Sub_693bb0();
+void __cdecl Sub_6999d0();
+void __cdecl Sub_6999e0();
+void __cdecl Sub_6999f0();
+void __cdecl Sub_699a00();
+void __cdecl Sub_699a10();
+void __cdecl Sub_69a230();
+void __cdecl Sub_69a240();
+void __cdecl Sub_69a250();
+void __cdecl Sub_69a260();
+void __cdecl Sub_69a270();
+void __cdecl Sub_69a280();
+void __cdecl Sub_69a290();
+void __cdecl Sub_69a2a0();
+void __cdecl Sub_6a65a0();
+void __cdecl Sub_6a65b0();
+void __cdecl Sub_6a65c0();
+void __cdecl Sub_6a65d0();
+void __cdecl Sub_6ac8d0();
+void __cdecl Sub_6ac8e0();
+void __cdecl Sub_6ac8f0();
+void __cdecl Sub_6ac900();
+void __cdecl Sub_6ac910();
+void __cdecl Sub_6ac920();
+void __cdecl Sub_6ac930();
+
+void __cdecl Sub_691d70() {   // 0x691d70
+    u32 eax = 0;
+    alignas(4) u8 frame[0x4];
+    const u32 sp = (u32)(uintptr_t)(frame + sizeof frame);
+    M<u32>(sp - 0x4) = 0x5d1750u;
+    eax = g_calls.Cd(0x0067a7d0, M<u32>(sp - 0x4));   // CRT_atexit
+    return;
+}
+void __cdecl Sub_691d80() {   // 0x691d80
+    u32 eax = 0;
+    alignas(4) u8 frame[0x4];
+    const u32 sp = (u32)(uintptr_t)(frame + sizeof frame);
+    M<u32>(sp - 0x4) = 0x5d1750u;
+    eax = g_calls.Cd(0x0067a7d0, M<u32>(sp - 0x4));   // CRT_atexit
+    return;
+}
+void __cdecl Sub_691d90() {   // 0x691d90
+    u32 eax = 0;
+    alignas(4) u8 frame[0x4];
+    const u32 sp = (u32)(uintptr_t)(frame + sizeof frame);
+    M<u32>(sp - 0x4) = 0x5d1750u;
+    eax = g_calls.Cd(0x0067a7d0, M<u32>(sp - 0x4));   // CRT_atexit
+    return;
+}
+void __cdecl Sub_691da0() {   // 0x691da0
+    u32 eax = 0;
+    alignas(4) u8 frame[0x4];
+    const u32 sp = (u32)(uintptr_t)(frame + sizeof frame);
+    M<u32>(sp - 0x4) = 0x5d1750u;
+    eax = g_calls.Cd(0x0067a7d0, M<u32>(sp - 0x4));   // CRT_atexit
+    return;
+}
+void __cdecl Sub_691db0() {   // 0x691db0
+    u32 eax = 0;
+    alignas(4) u8 frame[0x4];
+    const u32 sp = (u32)(uintptr_t)(frame + sizeof frame);
+    M<u32>(sp - 0x4) = 0x5d1750u;
+    eax = g_calls.Cd(0x0067a7d0, M<u32>(sp - 0x4));   // CRT_atexit
+    return;
+}
+void __cdecl Sub_691dc0() {   // 0x691dc0
+    u32 eax = 0;
+    alignas(4) u8 frame[0x4];
+    const u32 sp = (u32)(uintptr_t)(frame + sizeof frame);
+    M<u32>(sp - 0x4) = 0x5d1750u;
+    eax = g_calls.Cd(0x0067a7d0, M<u32>(sp - 0x4));   // CRT_atexit
+    return;
+}
+void __cdecl Sub_691dd0() {   // 0x691dd0
+    u32 eax = 0;
+    alignas(4) u8 frame[0x4];
+    const u32 sp = (u32)(uintptr_t)(frame + sizeof frame);
+    M<u32>(sp - 0x4) = 0x5d1750u;
+    eax = g_calls.Cd(0x0067a7d0, M<u32>(sp - 0x4));   // CRT_atexit
+    return;
+}
+void __cdecl Sub_691f60() {   // 0x691f60
+    u32 eax = 0, ecx = 0;
+    alignas(4) u8 frame[0x8];
+    const u32 sp = (u32)(uintptr_t)(frame + sizeof frame);
+    M<u32>(sp - 0x4) = 0x1u;
+    M<u32>(sp - 0x8) = 0x0u;
+    ecx = 0xfb1a90u;
+    eax = g_calls.Th(0x00691f70, ecx, M<u32>(sp - 0x8), M<u32>(sp - 0x4));   // Istream_CtorUninit
+    return;
+}
+void __cdecl Sub_692030() {   // 0x692030
+    u32 eax = 0, ecx = 0;
+    alignas(4) u8 frame[0x8];
+    const u32 sp = (u32)(uintptr_t)(frame + sizeof frame);
+    M<u32>(sp - 0x4) = 0x1u;
+    M<u32>(sp - 0x8) = 0x0u;
+    ecx = 0xfb1a00u;
+    eax = g_calls.Th(0x00692040, ecx, M<u32>(sp - 0x8), M<u32>(sp - 0x4));   // Ostream_CtorUninit
+    return;
+}
+void __cdecl Sub_692140() {   // 0x692140
+    u32 eax = 0, ecx = 0;
+    alignas(4) u8 frame[0x8];
+    const u32 sp = (u32)(uintptr_t)(frame + sizeof frame);
+    M<u32>(sp - 0x4) = 0x1u;
+    M<u32>(sp - 0x8) = 0x0u;
+    ecx = 0xfb1b28u;
+    eax = g_calls.Th(0x00692040, ecx, M<u32>(sp - 0x8), M<u32>(sp - 0x4));   // Ostream_CtorUninit
+    return;
+}
+void __cdecl Sub_692190() {   // 0x692190
+    u32 eax = 0, ecx = 0;
+    alignas(4) u8 frame[0x8];
+    const u32 sp = (u32)(uintptr_t)(frame + sizeof frame);
+    M<u32>(sp - 0x4) = 0x1u;
+    M<u32>(sp - 0x8) = 0x0u;
+    ecx = 0xfb1970u;
+    eax = g_calls.Th(0x00692040, ecx, M<u32>(sp - 0x8), M<u32>(sp - 0x4));   // Ostream_CtorUninit
+    return;
+}
+void __cdecl Sub_692850() {   // 0x692850
+    u32 eax = 0;
+    alignas(4) u8 frame[0x4];
+    const u32 sp = (u32)(uintptr_t)(frame + sizeof frame);
+    M<u32>(sp - 0x4) = 0x5d1750u;
+    eax = g_calls.Cd(0x0067a7d0, M<u32>(sp - 0x4));   // CRT_atexit
+    return;
+}
+void __cdecl Sub_692860() {   // 0x692860
+    u32 eax = 0;
+    alignas(4) u8 frame[0x4];
+    const u32 sp = (u32)(uintptr_t)(frame + sizeof frame);
+    M<u32>(sp - 0x4) = 0x5d1750u;
+    eax = g_calls.Cd(0x0067a7d0, M<u32>(sp - 0x4));   // CRT_atexit
+    return;
+}
+void __cdecl Sub_692870() {   // 0x692870
+    u32 eax = 0;
+    alignas(4) u8 frame[0x4];
+    const u32 sp = (u32)(uintptr_t)(frame + sizeof frame);
+    M<u32>(sp - 0x4) = 0x5d1750u;
+    eax = g_calls.Cd(0x0067a7d0, M<u32>(sp - 0x4));   // CRT_atexit
+    return;
+}
+void __cdecl Sub_692880() {   // 0x692880
+    u32 eax = 0;
+    alignas(4) u8 frame[0x4];
+    const u32 sp = (u32)(uintptr_t)(frame + sizeof frame);
+    M<u32>(sp - 0x4) = 0x5d1750u;
+    eax = g_calls.Cd(0x0067a7d0, M<u32>(sp - 0x4));   // CRT_atexit
+    return;
+}
+void __cdecl Sub_692890() {   // 0x692890
+    u32 eax = 0;
+    alignas(4) u8 frame[0x4];
+    const u32 sp = (u32)(uintptr_t)(frame + sizeof frame);
+    M<u32>(sp - 0x4) = 0x5d1750u;
+    eax = g_calls.Cd(0x0067a7d0, M<u32>(sp - 0x4));   // CRT_atexit
+    return;
+}
+void __cdecl Sub_6928a0() {   // 0x6928a0
+    u32 eax = 0;
+    alignas(4) u8 frame[0x4];
+    const u32 sp = (u32)(uintptr_t)(frame + sizeof frame);
+    M<u32>(sp - 0x4) = 0x5d1750u;
+    eax = g_calls.Cd(0x0067a7d0, M<u32>(sp - 0x4));   // CRT_atexit
+    return;
+}
+void __cdecl Sub_6928b0() {   // 0x6928b0
+    u32 eax = 0;
+    alignas(4) u8 frame[0x4];
+    const u32 sp = (u32)(uintptr_t)(frame + sizeof frame);
+    M<u32>(sp - 0x4) = 0x5d1750u;
+    eax = g_calls.Cd(0x0067a7d0, M<u32>(sp - 0x4));   // CRT_atexit
+    return;
+}
+void __cdecl Sub_6928c0() {   // 0x6928c0
+    u32 eax = 0;
+    alignas(4) u8 frame[0x4];
+    const u32 sp = (u32)(uintptr_t)(frame + sizeof frame);
+    M<u32>(sp - 0x4) = 0x5d1750u;
+    eax = g_calls.Cd(0x0067a7d0, M<u32>(sp - 0x4));   // CRT_atexit
+    return;
+}
+void __cdecl Sub_6928e0() {   // 0x6928e0
+    u32 ecx = 0;
+    ecx = 0xfb1b9cu;
+    g_calls.Th(0x006921d0, ecx);   // Ios_InitCtor (tail)
+    return;
+}
+void __cdecl Sub_692920() {   // 0x692920
+    u32 ecx = 0;
+    ecx = 0xfb1b98u;
+    g_calls.Th(0x00692c60, ecx);   // Ios_WinitCtor (tail)
+    return;
+}
+void __cdecl Sub_692a30() {   // 0x692a30
+    u32 eax = 0, ecx = 0;
+    alignas(4) u8 frame[0x8];
+    const u32 sp = (u32)(uintptr_t)(frame + sizeof frame);
+    M<u32>(sp - 0x4) = 0x1u;
+    M<u32>(sp - 0x8) = 0x0u;
+    ecx = 0xfb1bd8u;
+    eax = g_calls.Th(0x00692a40, ecx, M<u32>(sp - 0x8), M<u32>(sp - 0x4));   // IstreamW_CtorUninit
+    return;
+}
+void __cdecl Sub_692b00() {   // 0x692b00
+    u32 eax = 0, ecx = 0;
+    alignas(4) u8 frame[0x8];
+    const u32 sp = (u32)(uintptr_t)(frame + sizeof frame);
+    M<u32>(sp - 0x4) = 0x1u;
+    M<u32>(sp - 0x8) = 0x0u;
+    ecx = 0xfb1cc8u;
+    eax = g_calls.Th(0x00692b10, ecx, M<u32>(sp - 0x8), M<u32>(sp - 0x4));   // OstreamW_CtorUninit
+    return;
+}
+void __cdecl Sub_692bd0() {   // 0x692bd0
+    u32 eax = 0, ecx = 0;
+    alignas(4) u8 frame[0x8];
+    const u32 sp = (u32)(uintptr_t)(frame + sizeof frame);
+    M<u32>(sp - 0x4) = 0x1u;
+    M<u32>(sp - 0x8) = 0x0u;
+    ecx = 0xfb1b60u;
+    eax = g_calls.Th(0x00692b10, ecx, M<u32>(sp - 0x8), M<u32>(sp - 0x4));   // OstreamW_CtorUninit
+    return;
+}
+void __cdecl Sub_692c20() {   // 0x692c20
+    u32 eax = 0, ecx = 0;
+    alignas(4) u8 frame[0x8];
+    const u32 sp = (u32)(uintptr_t)(frame + sizeof frame);
+    M<u32>(sp - 0x4) = 0x1u;
+    M<u32>(sp - 0x8) = 0x0u;
+    ecx = 0xfb1ba0u;
+    eax = g_calls.Th(0x00692b10, ecx, M<u32>(sp - 0x8), M<u32>(sp - 0x4));   // OstreamW_CtorUninit
+    return;
+}
+void __cdecl Sub_6932d0() {   // 0x6932d0
+    u32 eax = 0;
+    alignas(4) u8 frame[0x4];
+    const u32 sp = (u32)(uintptr_t)(frame + sizeof frame);
+    M<u32>(sp - 0x4) = 0x5d1750u;
+    eax = g_calls.Cd(0x0067a7d0, M<u32>(sp - 0x4));   // CRT_atexit
+    return;
+}
+void __cdecl Sub_6932e0() {   // 0x6932e0
+    u32 eax = 0;
+    alignas(4) u8 frame[0x4];
+    const u32 sp = (u32)(uintptr_t)(frame + sizeof frame);
+    M<u32>(sp - 0x4) = 0x5d1750u;
+    eax = g_calls.Cd(0x0067a7d0, M<u32>(sp - 0x4));   // CRT_atexit
+    return;
+}
+void __cdecl Sub_6932f0() {   // 0x6932f0
+    u32 eax = 0;
+    alignas(4) u8 frame[0x4];
+    const u32 sp = (u32)(uintptr_t)(frame + sizeof frame);
+    M<u32>(sp - 0x4) = 0x5d1750u;
+    eax = g_calls.Cd(0x0067a7d0, M<u32>(sp - 0x4));   // CRT_atexit
+    return;
+}
+void __cdecl Sub_693300() {   // 0x693300
+    u32 eax = 0;
+    alignas(4) u8 frame[0x4];
+    const u32 sp = (u32)(uintptr_t)(frame + sizeof frame);
+    M<u32>(sp - 0x4) = 0x5d1750u;
+    eax = g_calls.Cd(0x0067a7d0, M<u32>(sp - 0x4));   // CRT_atexit
+    return;
+}
+void __cdecl Sub_693310() {   // 0x693310
+    u32 eax = 0;
+    alignas(4) u8 frame[0x4];
+    const u32 sp = (u32)(uintptr_t)(frame + sizeof frame);
+    M<u32>(sp - 0x4) = 0x5d1750u;
+    eax = g_calls.Cd(0x0067a7d0, M<u32>(sp - 0x4));   // CRT_atexit
+    return;
+}
+void __cdecl Sub_693320() {   // 0x693320
+    u32 eax = 0;
+    alignas(4) u8 frame[0x4];
+    const u32 sp = (u32)(uintptr_t)(frame + sizeof frame);
+    M<u32>(sp - 0x4) = 0x5d1750u;
+    eax = g_calls.Cd(0x0067a7d0, M<u32>(sp - 0x4));   // CRT_atexit
+    return;
+}
+void __cdecl Sub_693330() {   // 0x693330
+    u32 eax = 0;
+    alignas(4) u8 frame[0x4];
+    const u32 sp = (u32)(uintptr_t)(frame + sizeof frame);
+    M<u32>(sp - 0x4) = 0x5d1750u;
+    eax = g_calls.Cd(0x0067a7d0, M<u32>(sp - 0x4));   // CRT_atexit
+    return;
+}
+void __cdecl Sub_693b40() {   // 0x693b40
+    u32 eax = 0;
+    alignas(4) u8 frame[0x4];
+    const u32 sp = (u32)(uintptr_t)(frame + sizeof frame);
+    M<u32>(sp - 0x4) = 0x5d1750u;
+    eax = g_calls.Cd(0x0067a7d0, M<u32>(sp - 0x4));   // CRT_atexit
+    return;
+}
+void __cdecl Sub_693b50() {   // 0x693b50
+    u32 eax = 0;
+    alignas(4) u8 frame[0x4];
+    const u32 sp = (u32)(uintptr_t)(frame + sizeof frame);
+    M<u32>(sp - 0x4) = 0x5d1750u;
+    eax = g_calls.Cd(0x0067a7d0, M<u32>(sp - 0x4));   // CRT_atexit
+    return;
+}
+void __cdecl Sub_693b60() {   // 0x693b60
+    u32 eax = 0;
+    alignas(4) u8 frame[0x4];
+    const u32 sp = (u32)(uintptr_t)(frame + sizeof frame);
+    M<u32>(sp - 0x4) = 0x5d1750u;
+    eax = g_calls.Cd(0x0067a7d0, M<u32>(sp - 0x4));   // CRT_atexit
+    return;
+}
+void __cdecl Sub_693b70() {   // 0x693b70
+    u32 eax = 0;
+    alignas(4) u8 frame[0x4];
+    const u32 sp = (u32)(uintptr_t)(frame + sizeof frame);
+    M<u32>(sp - 0x4) = 0x5d1750u;
+    eax = g_calls.Cd(0x0067a7d0, M<u32>(sp - 0x4));   // CRT_atexit
+    return;
+}
+void __cdecl Sub_693b80() {   // 0x693b80
+    u32 eax = 0;
+    alignas(4) u8 frame[0x4];
+    const u32 sp = (u32)(uintptr_t)(frame + sizeof frame);
+    M<u32>(sp - 0x4) = 0x5d1750u;
+    eax = g_calls.Cd(0x0067a7d0, M<u32>(sp - 0x4));   // CRT_atexit
+    return;
+}
+void __cdecl Sub_693b90() {   // 0x693b90
+    u32 eax = 0;
+    alignas(4) u8 frame[0x4];
+    const u32 sp = (u32)(uintptr_t)(frame + sizeof frame);
+    M<u32>(sp - 0x4) = 0x5d1750u;
+    eax = g_calls.Cd(0x0067a7d0, M<u32>(sp - 0x4));   // CRT_atexit
+    return;
+}
+void __cdecl Sub_693ba0() {   // 0x693ba0
+    u32 eax = 0;
+    alignas(4) u8 frame[0x4];
+    const u32 sp = (u32)(uintptr_t)(frame + sizeof frame);
+    M<u32>(sp - 0x4) = 0x5d1750u;
+    eax = g_calls.Cd(0x0067a7d0, M<u32>(sp - 0x4));   // CRT_atexit
+    return;
+}
+void __cdecl Sub_693bb0() {   // 0x693bb0
+    u32 eax = 0;
+    alignas(4) u8 frame[0x4];
+    const u32 sp = (u32)(uintptr_t)(frame + sizeof frame);
+    M<u32>(sp - 0x4) = 0x5d1750u;
+    eax = g_calls.Cd(0x0067a7d0, M<u32>(sp - 0x4));   // CRT_atexit
+    return;
+}
+void __cdecl Sub_6999d0() {   // 0x6999d0
+    u32 eax = 0;
+    alignas(4) u8 frame[0x4];
+    const u32 sp = (u32)(uintptr_t)(frame + sizeof frame);
+    M<u32>(sp - 0x4) = 0x5d1750u;
+    eax = g_calls.Cd(0x0067a7d0, M<u32>(sp - 0x4));   // CRT_atexit
+    return;
+}
+void __cdecl Sub_6999e0() {   // 0x6999e0
+    u32 eax = 0;
+    alignas(4) u8 frame[0x4];
+    const u32 sp = (u32)(uintptr_t)(frame + sizeof frame);
+    M<u32>(sp - 0x4) = 0x5d1750u;
+    eax = g_calls.Cd(0x0067a7d0, M<u32>(sp - 0x4));   // CRT_atexit
+    return;
+}
+void __cdecl Sub_6999f0() {   // 0x6999f0
+    u32 eax = 0;
+    alignas(4) u8 frame[0x4];
+    const u32 sp = (u32)(uintptr_t)(frame + sizeof frame);
+    M<u32>(sp - 0x4) = 0x5d1750u;
+    eax = g_calls.Cd(0x0067a7d0, M<u32>(sp - 0x4));   // CRT_atexit
+    return;
+}
+void __cdecl Sub_699a00() {   // 0x699a00
+    u32 eax = 0;
+    alignas(4) u8 frame[0x4];
+    const u32 sp = (u32)(uintptr_t)(frame + sizeof frame);
+    M<u32>(sp - 0x4) = 0x5d1750u;
+    eax = g_calls.Cd(0x0067a7d0, M<u32>(sp - 0x4));   // CRT_atexit
+    return;
+}
+void __cdecl Sub_699a10() {   // 0x699a10
+    u32 eax = 0;
+    alignas(4) u8 frame[0x4];
+    const u32 sp = (u32)(uintptr_t)(frame + sizeof frame);
+    M<u32>(sp - 0x4) = 0x5d1750u;
+    eax = g_calls.Cd(0x0067a7d0, M<u32>(sp - 0x4));   // CRT_atexit
+    return;
+}
+void __cdecl Sub_69a230() {   // 0x69a230
+    u32 eax = 0;
+    alignas(4) u8 frame[0x4];
+    const u32 sp = (u32)(uintptr_t)(frame + sizeof frame);
+    M<u32>(sp - 0x4) = 0x5d1750u;
+    eax = g_calls.Cd(0x0067a7d0, M<u32>(sp - 0x4));   // CRT_atexit
+    return;
+}
+void __cdecl Sub_69a240() {   // 0x69a240
+    u32 eax = 0;
+    alignas(4) u8 frame[0x4];
+    const u32 sp = (u32)(uintptr_t)(frame + sizeof frame);
+    M<u32>(sp - 0x4) = 0x5d1750u;
+    eax = g_calls.Cd(0x0067a7d0, M<u32>(sp - 0x4));   // CRT_atexit
+    return;
+}
+void __cdecl Sub_69a250() {   // 0x69a250
+    u32 eax = 0;
+    alignas(4) u8 frame[0x4];
+    const u32 sp = (u32)(uintptr_t)(frame + sizeof frame);
+    M<u32>(sp - 0x4) = 0x5d1750u;
+    eax = g_calls.Cd(0x0067a7d0, M<u32>(sp - 0x4));   // CRT_atexit
+    return;
+}
+void __cdecl Sub_69a260() {   // 0x69a260
+    u32 eax = 0;
+    alignas(4) u8 frame[0x4];
+    const u32 sp = (u32)(uintptr_t)(frame + sizeof frame);
+    M<u32>(sp - 0x4) = 0x5d1750u;
+    eax = g_calls.Cd(0x0067a7d0, M<u32>(sp - 0x4));   // CRT_atexit
+    return;
+}
+void __cdecl Sub_69a270() {   // 0x69a270
+    u32 eax = 0;
+    alignas(4) u8 frame[0x4];
+    const u32 sp = (u32)(uintptr_t)(frame + sizeof frame);
+    M<u32>(sp - 0x4) = 0x5d1750u;
+    eax = g_calls.Cd(0x0067a7d0, M<u32>(sp - 0x4));   // CRT_atexit
+    return;
+}
+void __cdecl Sub_69a280() {   // 0x69a280
+    u32 eax = 0;
+    alignas(4) u8 frame[0x4];
+    const u32 sp = (u32)(uintptr_t)(frame + sizeof frame);
+    M<u32>(sp - 0x4) = 0x5d1750u;
+    eax = g_calls.Cd(0x0067a7d0, M<u32>(sp - 0x4));   // CRT_atexit
+    return;
+}
+void __cdecl Sub_69a290() {   // 0x69a290
+    u32 eax = 0;
+    alignas(4) u8 frame[0x4];
+    const u32 sp = (u32)(uintptr_t)(frame + sizeof frame);
+    M<u32>(sp - 0x4) = 0x5d1750u;
+    eax = g_calls.Cd(0x0067a7d0, M<u32>(sp - 0x4));   // CRT_atexit
+    return;
+}
+void __cdecl Sub_69a2a0() {   // 0x69a2a0
+    u32 eax = 0;
+    alignas(4) u8 frame[0x4];
+    const u32 sp = (u32)(uintptr_t)(frame + sizeof frame);
+    M<u32>(sp - 0x4) = 0x5d1750u;
+    eax = g_calls.Cd(0x0067a7d0, M<u32>(sp - 0x4));   // CRT_atexit
+    return;
+}
+void __cdecl Sub_6a65a0() {   // 0x6a65a0
+    u32 eax = 0;
+    alignas(4) u8 frame[0x4];
+    const u32 sp = (u32)(uintptr_t)(frame + sizeof frame);
+    M<u32>(sp - 0x4) = 0x5d1750u;
+    eax = g_calls.Cd(0x0067a7d0, M<u32>(sp - 0x4));   // CRT_atexit
+    return;
+}
+void __cdecl Sub_6a65b0() {   // 0x6a65b0
+    u32 eax = 0;
+    alignas(4) u8 frame[0x4];
+    const u32 sp = (u32)(uintptr_t)(frame + sizeof frame);
+    M<u32>(sp - 0x4) = 0x5d1750u;
+    eax = g_calls.Cd(0x0067a7d0, M<u32>(sp - 0x4));   // CRT_atexit
+    return;
+}
+void __cdecl Sub_6a65c0() {   // 0x6a65c0
+    u32 eax = 0;
+    alignas(4) u8 frame[0x4];
+    const u32 sp = (u32)(uintptr_t)(frame + sizeof frame);
+    M<u32>(sp - 0x4) = 0x5d1750u;
+    eax = g_calls.Cd(0x0067a7d0, M<u32>(sp - 0x4));   // CRT_atexit
+    return;
+}
+void __cdecl Sub_6a65d0() {   // 0x6a65d0
+    u32 eax = 0;
+    alignas(4) u8 frame[0x4];
+    const u32 sp = (u32)(uintptr_t)(frame + sizeof frame);
+    M<u32>(sp - 0x4) = 0x5d1750u;
+    eax = g_calls.Cd(0x0067a7d0, M<u32>(sp - 0x4));   // CRT_atexit
+    return;
+}
+void __cdecl Sub_6ac8d0() {   // 0x6ac8d0
+    u32 eax = 0;
+    alignas(4) u8 frame[0x4];
+    const u32 sp = (u32)(uintptr_t)(frame + sizeof frame);
+    M<u32>(sp - 0x4) = 0x5d1750u;
+    eax = g_calls.Cd(0x0067a7d0, M<u32>(sp - 0x4));   // CRT_atexit
+    return;
+}
+void __cdecl Sub_6ac8e0() {   // 0x6ac8e0
+    u32 eax = 0;
+    alignas(4) u8 frame[0x4];
+    const u32 sp = (u32)(uintptr_t)(frame + sizeof frame);
+    M<u32>(sp - 0x4) = 0x5d1750u;
+    eax = g_calls.Cd(0x0067a7d0, M<u32>(sp - 0x4));   // CRT_atexit
+    return;
+}
+void __cdecl Sub_6ac8f0() {   // 0x6ac8f0
+    u32 eax = 0;
+    alignas(4) u8 frame[0x4];
+    const u32 sp = (u32)(uintptr_t)(frame + sizeof frame);
+    M<u32>(sp - 0x4) = 0x5d1750u;
+    eax = g_calls.Cd(0x0067a7d0, M<u32>(sp - 0x4));   // CRT_atexit
+    return;
+}
+void __cdecl Sub_6ac900() {   // 0x6ac900
+    u32 eax = 0;
+    alignas(4) u8 frame[0x4];
+    const u32 sp = (u32)(uintptr_t)(frame + sizeof frame);
+    M<u32>(sp - 0x4) = 0x5d1750u;
+    eax = g_calls.Cd(0x0067a7d0, M<u32>(sp - 0x4));   // CRT_atexit
+    return;
+}
+void __cdecl Sub_6ac910() {   // 0x6ac910
+    u32 eax = 0;
+    alignas(4) u8 frame[0x4];
+    const u32 sp = (u32)(uintptr_t)(frame + sizeof frame);
+    M<u32>(sp - 0x4) = 0x5d1750u;
+    eax = g_calls.Cd(0x0067a7d0, M<u32>(sp - 0x4));   // CRT_atexit
+    return;
+}
+void __cdecl Sub_6ac920() {   // 0x6ac920
+    u32 eax = 0;
+    alignas(4) u8 frame[0x4];
+    const u32 sp = (u32)(uintptr_t)(frame + sizeof frame);
+    M<u32>(sp - 0x4) = 0x5d1750u;
+    eax = g_calls.Cd(0x0067a7d0, M<u32>(sp - 0x4));   // CRT_atexit
+    return;
+}
+void __cdecl Sub_6ac930() {   // 0x6ac930
+    u32 eax = 0;
+    alignas(4) u8 frame[0x4];
+    const u32 sp = (u32)(uintptr_t)(frame + sizeof frame);
+    M<u32>(sp - 0x4) = 0x5d1750u;
+    eax = g_calls.Cd(0x0067a7d0, M<u32>(sp - 0x4));   // CRT_atexit
+    return;
+}
 void __cdecl Exit_409d90() {   // 0x409d90
     u32 eax = 0, ecx = 0;
     bool zf = false;
@@ -270,6 +860,78 @@ void __cdecl Exit_5f36f0() {   // 0x5f36f0
     M<u32>(sp - 0xc) = 0x14u;
     M<u32>(sp - 0x10) = 0xf86d40u;
     eax = g_calls.St(0x0067afa0, M<u32>(sp - 0x10), M<u32>(sp - 0xc), M<u32>(sp - 0x8), M<u32>(sp - 0x4));   // CRT_VectorDtorIterator
+    return;
+}
+void __cdecl Exit_692000() {   // 0x692000
+    u32 eax = 0, ecx = 0;
+    eax = M<u32>(0xfb1a90u);
+    ecx = M<u32>(eax + 0x4u);
+    M<u32>(ecx + 0xfb1a90u) = 0x70994cu;
+    ecx = 0xfb1a98u;
+    g_calls.Th(0x005cde40, ecx);   // NIos_Dtor (tail)
+    return;
+}
+void __cdecl Exit_6920d0() {   // 0x6920d0
+    u32 eax = 0, ecx = 0;
+    eax = M<u32>(0xfb1a00u);
+    ecx = M<u32>(eax + 0x4u);
+    M<u32>(ecx + 0xfb1a00u) = 0x70995cu;
+    ecx = 0xfb1a04u;
+    g_calls.Th(0x005cde40, ecx);   // NIos_Dtor (tail)
+    return;
+}
+void __cdecl Exit_692160() {   // 0x692160
+    u32 eax = 0, ecx = 0;
+    eax = M<u32>(0xfb1b28u);
+    ecx = M<u32>(eax + 0x4u);
+    M<u32>(ecx + 0xfb1b28u) = 0x70995cu;
+    ecx = 0xfb1b2cu;
+    g_calls.Th(0x005cde40, ecx);   // NIos_Dtor (tail)
+    return;
+}
+void __cdecl Exit_6921b0() {   // 0x6921b0
+    u32 eax = 0, ecx = 0;
+    eax = M<u32>(0xfb1970u);
+    ecx = M<u32>(eax + 0x4u);
+    M<u32>(ecx + 0xfb1970u) = 0x70995cu;
+    ecx = 0xfb1974u;
+    g_calls.Th(0x005cde40, ecx);   // NIos_Dtor (tail)
+    return;
+}
+void __cdecl Exit_692ad0() {   // 0x692ad0
+    u32 eax = 0, ecx = 0;
+    eax = M<u32>(0xfb1bd8u);
+    ecx = M<u32>(eax + 0x4u);
+    M<u32>(ecx + 0xfb1bd8u) = 0x7099dcu;
+    ecx = 0xfb1be0u;
+    g_calls.Th(0x004f0100, ecx);   // BasicIosW_Dtor (tail)
+    return;
+}
+void __cdecl Exit_692ba0() {   // 0x692ba0
+    u32 eax = 0, ecx = 0;
+    eax = M<u32>(0xfb1cc8u);
+    ecx = M<u32>(eax + 0x4u);
+    M<u32>(ecx + 0xfb1cc8u) = 0x7099ecu;
+    ecx = 0xfb1cccu;
+    g_calls.Th(0x004f0100, ecx);   // BasicIosW_Dtor (tail)
+    return;
+}
+void __cdecl Exit_692bf0() {   // 0x692bf0
+    u32 eax = 0, ecx = 0;
+    eax = M<u32>(0xfb1b60u);
+    ecx = M<u32>(eax + 0x4u);
+    M<u32>(ecx + 0xfb1b60u) = 0x7099ecu;
+    ecx = 0xfb1b64u;
+    g_calls.Th(0x004f0100, ecx);   // BasicIosW_Dtor (tail)
+    return;
+}
+void __cdecl Exit_692c40() {   // 0x692c40
+    u32 eax = 0, ecx = 0;
+    eax = M<u32>(0xfb1ba0u);
+    ecx = M<u32>(eax + 0x4u);
+    M<u32>(ecx + 0xfb1ba0u) = 0x7099ecu;
+    ecx = 0xfb1ba4u;
+    g_calls.Th(0x004f0100, ecx);   // BasicIosW_Dtor (tail)
     return;
 }
 void __cdecl Exit_6c5b00() {   // 0x6c5b00
@@ -6843,8 +7505,6 @@ void __cdecl Init_402ca0() {   // 0x402ca0
 }
 void __cdecl Init_402d10() {   // 0x402d10
     u32 eax = 0, ecx = 0, esi = 0;
-    alignas(4) u8 frame[0x4];
-    const u32 sp = (u32)(uintptr_t)(frame + sizeof frame);
     ecx = 0x785970u;
     eax = g_calls.Th(0x004032b0, ecx);   // Obj_CtorOne
     esi = 0;
@@ -10846,8 +11506,6 @@ void __cdecl Init_573f30() {   // 0x573f30
 }
 void __cdecl Init_573f50() {   // 0x573f50
     u32 eax = 0, ecx = 0, edi = 0;
-    alignas(4) u8 frame[0x4];
-    const u32 sp = (u32)(uintptr_t)(frame + sizeof frame);
     ecx = 0x10u;
     eax = 0;
     edi = 0x879df0u;
@@ -11007,8 +11665,6 @@ void __cdecl Init_578080() {   // 0x578080
 }
 void __cdecl Init_578190() {   // 0x578190
     u32 eax = 0, ecx = 0, edi = 0;
-    alignas(4) u8 frame[0x4];
-    const u32 sp = (u32)(uintptr_t)(frame + sizeof frame);
     ecx = 0x10u;
     eax = 0;
     edi = 0x87b0d0u;
@@ -12747,6 +13403,800 @@ void __cdecl Init_631790() {   // 0x631790
     g_calls.Cd(0x006317a0);   // PixelFormats_Init8888 (tail)
     return;
 }
+void __cdecl Init_691cd0() {   // 0x691cd0
+    u32 eax = 0, ebx = 0;
+    bool zf = false;
+    eax = (eax & 0xffffff00u) | (u8)(M<u8>(0xfb4cc5u));
+    ebx = (ebx & 0xffffff00u) | (u8)(0x1u);
+    zf = ((u8)ebx & (u8)eax) == 0;
+    if (!zf) goto L_691ce3;
+    eax = (eax & 0xffffff00u) | (u8)((u8)eax | (u8)ebx);
+    M<u8>(0xfb4cc5u) = (u8)eax;
+L_691ce3:
+    Sub_691d70();
+    eax = (eax & 0xffffff00u) | (u8)(M<u8>(0xfb4cc6u));
+    zf = ((u8)ebx & (u8)eax) == 0;
+    if (!zf) goto L_691cf8;
+    eax = (eax & 0xffffff00u) | (u8)((u8)eax | (u8)ebx);
+    M<u8>(0xfb4cc6u) = (u8)eax;
+L_691cf8:
+    Sub_691d80();
+    eax = (eax & 0xffffff00u) | (u8)(M<u8>(0xfb3b80u));
+    zf = ((u8)ebx & (u8)eax) == 0;
+    if (!zf) goto L_691d0d;
+    eax = (eax & 0xffffff00u) | (u8)((u8)eax | (u8)ebx);
+    M<u8>(0xfb3b80u) = (u8)eax;
+L_691d0d:
+    Sub_691d90();
+    eax = (eax & 0xffffff00u) | (u8)(M<u8>(0xfb4cc7u));
+    zf = ((u8)ebx & (u8)eax) == 0;
+    if (!zf) goto L_691d22;
+    eax = (eax & 0xffffff00u) | (u8)((u8)eax | (u8)ebx);
+    M<u8>(0xfb4cc7u) = (u8)eax;
+L_691d22:
+    Sub_691da0();
+    eax = (eax & 0xffffff00u) | (u8)(M<u8>(0xfb4cc8u));
+    zf = ((u8)ebx & (u8)eax) == 0;
+    if (!zf) goto L_691d37;
+    eax = (eax & 0xffffff00u) | (u8)((u8)eax | (u8)ebx);
+    M<u8>(0xfb4cc8u) = (u8)eax;
+L_691d37:
+    Sub_691db0();
+    eax = (eax & 0xffffff00u) | (u8)(M<u8>(0xfb4cc9u));
+    zf = ((u8)ebx & (u8)eax) == 0;
+    if (!zf) goto L_691d4c;
+    eax = (eax & 0xffffff00u) | (u8)((u8)eax | (u8)ebx);
+    M<u8>(0xfb4cc9u) = (u8)eax;
+L_691d4c:
+    Sub_691dc0();
+    eax = (eax & 0xffffff00u) | (u8)(M<u8>(0xfb4ccau));
+    zf = ((u8)ebx & (u8)eax) == 0;
+    if (!zf) goto L_691d61;
+    eax = (eax & 0xffffff00u) | (u8)((u8)eax | (u8)ebx);
+    M<u8>(0xfb4ccau) = (u8)eax;
+L_691d61:
+    Sub_691dd0();
+    ebx = 0;
+    return;
+}
+void __cdecl Init_691ec0() {   // 0x691ec0
+    u32 eax = 0;
+    alignas(4) u8 frame[0x4];
+    const u32 sp = (u32)(uintptr_t)(frame + sizeof frame);
+    eax = g_calls.Cd(0x00691ed0);   // Wrap_Init_691ee0_691ed0
+    goto L_691ef0;
+L_691ef0:
+    M<u32>(sp - 0x4) = Fn(ExitThunk<0xfb1ad0, 0x5cec80>);
+    eax = g_calls.Cd(0x0067a7d0, M<u32>(sp - 0x4));   // CRT_atexit
+    return;
+}
+void __cdecl Init_691f10() {   // 0x691f10
+    u32 eax = 0;
+    alignas(4) u8 frame[0x4];
+    const u32 sp = (u32)(uintptr_t)(frame + sizeof frame);
+    eax = g_calls.Cd(0x00691f20);   // Wrap_Init_691ee0_691f20
+    goto L_691f30;
+L_691f30:
+    M<u32>(sp - 0x4) = Fn(ExitThunk<0xfb19a8, 0x5cec80>);
+    eax = g_calls.Cd(0x0067a7d0, M<u32>(sp - 0x4));   // CRT_atexit
+    return;
+}
+void __cdecl Init_691f50() {   // 0x691f50
+    u32 eax = 0;
+    alignas(4) u8 frame[0x4];
+    const u32 sp = (u32)(uintptr_t)(frame + sizeof frame);
+    Sub_691f60();
+    goto L_691ff0;
+L_691ff0:
+    M<u32>(sp - 0x4) = Fn(Exit_692000);
+    eax = g_calls.Cd(0x0067a7d0, M<u32>(sp - 0x4));   // CRT_atexit
+    return;
+}
+void __cdecl Init_692020() {   // 0x692020
+    u32 eax = 0;
+    alignas(4) u8 frame[0x4];
+    const u32 sp = (u32)(uintptr_t)(frame + sizeof frame);
+    Sub_692030();
+    goto L_6920c0;
+L_6920c0:
+    M<u32>(sp - 0x4) = Fn(Exit_6920d0);
+    eax = g_calls.Cd(0x0067a7d0, M<u32>(sp - 0x4));   // CRT_atexit
+    return;
+}
+void __cdecl Init_6920f0() {   // 0x6920f0
+    u32 eax = 0;
+    alignas(4) u8 frame[0x4];
+    const u32 sp = (u32)(uintptr_t)(frame + sizeof frame);
+    eax = g_calls.Cd(0x00692100);   // Wrap_Init_691ee0_692100
+    goto L_692110;
+L_692110:
+    M<u32>(sp - 0x4) = Fn(ExitThunk<0xfb1a38, 0x5cec80>);
+    eax = g_calls.Cd(0x0067a7d0, M<u32>(sp - 0x4));   // CRT_atexit
+    return;
+}
+void __cdecl Init_692130() {   // 0x692130
+    u32 eax = 0;
+    alignas(4) u8 frame[0x4];
+    const u32 sp = (u32)(uintptr_t)(frame + sizeof frame);
+    Sub_692140();
+    goto L_692150;
+L_692150:
+    M<u32>(sp - 0x4) = Fn(Exit_692160);
+    eax = g_calls.Cd(0x0067a7d0, M<u32>(sp - 0x4));   // CRT_atexit
+    return;
+}
+void __cdecl Init_692180() {   // 0x692180
+    u32 eax = 0;
+    alignas(4) u8 frame[0x4];
+    const u32 sp = (u32)(uintptr_t)(frame + sizeof frame);
+    Sub_692190();
+    goto L_6921a0;
+L_6921a0:
+    M<u32>(sp - 0x4) = Fn(Exit_6921b0);
+    eax = g_calls.Cd(0x0067a7d0, M<u32>(sp - 0x4));   // CRT_atexit
+    return;
+}
+void __cdecl Init_6927a0() {   // 0x6927a0
+    u32 eax = 0, ebx = 0;
+    bool zf = false;
+    eax = (eax & 0xffffff00u) | (u8)(M<u8>(0xfb4cc5u));
+    ebx = (ebx & 0xffffff00u) | (u8)(0x1u);
+    zf = ((u8)ebx & (u8)eax) == 0;
+    if (!zf) goto L_6927b3;
+    eax = (eax & 0xffffff00u) | (u8)((u8)eax | (u8)ebx);
+    M<u8>(0xfb4cc5u) = (u8)eax;
+L_6927b3:
+    Sub_692850();
+    eax = (eax & 0xffffff00u) | (u8)(M<u8>(0xfb4cc6u));
+    zf = ((u8)ebx & (u8)eax) == 0;
+    if (!zf) goto L_6927c8;
+    eax = (eax & 0xffffff00u) | (u8)((u8)eax | (u8)ebx);
+    M<u8>(0xfb4cc6u) = (u8)eax;
+L_6927c8:
+    Sub_692860();
+    eax = (eax & 0xffffff00u) | (u8)(M<u8>(0xfb3b80u));
+    zf = ((u8)ebx & (u8)eax) == 0;
+    if (!zf) goto L_6927dd;
+    eax = (eax & 0xffffff00u) | (u8)((u8)eax | (u8)ebx);
+    M<u8>(0xfb3b80u) = (u8)eax;
+L_6927dd:
+    Sub_692870();
+    eax = (eax & 0xffffff00u) | (u8)(M<u8>(0xfb4cc7u));
+    zf = ((u8)ebx & (u8)eax) == 0;
+    if (!zf) goto L_6927f2;
+    eax = (eax & 0xffffff00u) | (u8)((u8)eax | (u8)ebx);
+    M<u8>(0xfb4cc7u) = (u8)eax;
+L_6927f2:
+    Sub_692880();
+    eax = (eax & 0xffffff00u) | (u8)(M<u8>(0xfb4cc8u));
+    zf = ((u8)ebx & (u8)eax) == 0;
+    if (!zf) goto L_692807;
+    eax = (eax & 0xffffff00u) | (u8)((u8)eax | (u8)ebx);
+    M<u8>(0xfb4cc8u) = (u8)eax;
+L_692807:
+    Sub_692890();
+    eax = (eax & 0xffffff00u) | (u8)(M<u8>(0xfb4cc9u));
+    zf = ((u8)ebx & (u8)eax) == 0;
+    if (!zf) goto L_69281c;
+    eax = (eax & 0xffffff00u) | (u8)((u8)eax | (u8)ebx);
+    M<u8>(0xfb4cc9u) = (u8)eax;
+L_69281c:
+    Sub_6928a0();
+    eax = (eax & 0xffffff00u) | (u8)(M<u8>(0xfb4ccau));
+    zf = ((u8)ebx & (u8)eax) == 0;
+    if (!zf) goto L_692831;
+    eax = (eax & 0xffffff00u) | (u8)((u8)eax | (u8)ebx);
+    M<u8>(0xfb4ccau) = (u8)eax;
+L_692831:
+    Sub_6928b0();
+    eax = (eax & 0xffffff00u) | (u8)(M<u8>(0xfb2759u));
+    zf = ((u8)ebx & (u8)eax) == 0;
+    if (!zf) goto L_692846;
+    eax = (eax & 0xffffff00u) | (u8)((u8)eax | (u8)ebx);
+    M<u8>(0xfb2759u) = (u8)eax;
+L_692846:
+    Sub_6928c0();
+    ebx = 0;
+    return;
+}
+void __cdecl Init_6928d0() {   // 0x6928d0
+    u32 eax = 0;
+    alignas(4) u8 frame[0x4];
+    const u32 sp = (u32)(uintptr_t)(frame + sizeof frame);
+    Sub_6928e0();
+    goto L_6928f0;
+L_6928f0:
+    M<u32>(sp - 0x4) = Fn(ExitThunk<0xfb1b9c, 0x692650>);
+    eax = g_calls.Cd(0x0067a7d0, M<u32>(sp - 0x4));   // CRT_atexit
+    return;
+}
+void __cdecl Init_692910() {   // 0x692910
+    u32 eax = 0;
+    alignas(4) u8 frame[0x4];
+    const u32 sp = (u32)(uintptr_t)(frame + sizeof frame);
+    Sub_692920();
+    goto L_692930;
+L_692930:
+    M<u32>(sp - 0x4) = Fn(ExitThunk<0xfb1b98, 0x6930e0>);
+    eax = g_calls.Cd(0x0067a7d0, M<u32>(sp - 0x4));   // CRT_atexit
+    return;
+}
+void __cdecl Init_692950() {   // 0x692950
+    u32 eax = 0;
+    alignas(4) u8 frame[0x4];
+    const u32 sp = (u32)(uintptr_t)(frame + sizeof frame);
+    eax = g_calls.Cd(0x00692960);   // Wrap_Init_692970_692960
+    goto L_692980;
+L_692980:
+    M<u32>(sp - 0x4) = Fn(ExitThunk<0xfb1c70, 0x4f08c0>);
+    eax = g_calls.Cd(0x0067a7d0, M<u32>(sp - 0x4));   // CRT_atexit
+    return;
+}
+void __cdecl Init_6929a0() {   // 0x6929a0
+    u32 eax = 0;
+    alignas(4) u8 frame[0x4];
+    const u32 sp = (u32)(uintptr_t)(frame + sizeof frame);
+    eax = g_calls.Cd(0x006929b0);   // Wrap_Init_692970_6929b0
+    goto L_6929c0;
+L_6929c0:
+    M<u32>(sp - 0x4) = Fn(ExitThunk<0xfb1c18, 0x4f08c0>);
+    eax = g_calls.Cd(0x0067a7d0, M<u32>(sp - 0x4));   // CRT_atexit
+    return;
+}
+void __cdecl Init_6929e0() {   // 0x6929e0
+    u32 eax = 0;
+    alignas(4) u8 frame[0x4];
+    const u32 sp = (u32)(uintptr_t)(frame + sizeof frame);
+    eax = g_calls.Cd(0x006929f0);   // Wrap_Init_692970_6929f0
+    goto L_692a00;
+L_692a00:
+    M<u32>(sp - 0x4) = Fn(ExitThunk<0xfb1d00, 0x4f08c0>);
+    eax = g_calls.Cd(0x0067a7d0, M<u32>(sp - 0x4));   // CRT_atexit
+    return;
+}
+void __cdecl Init_692a20() {   // 0x692a20
+    u32 eax = 0;
+    alignas(4) u8 frame[0x4];
+    const u32 sp = (u32)(uintptr_t)(frame + sizeof frame);
+    Sub_692a30();
+    goto L_692ac0;
+L_692ac0:
+    M<u32>(sp - 0x4) = Fn(Exit_692ad0);
+    eax = g_calls.Cd(0x0067a7d0, M<u32>(sp - 0x4));   // CRT_atexit
+    return;
+}
+void __cdecl Init_692af0() {   // 0x692af0
+    u32 eax = 0;
+    alignas(4) u8 frame[0x4];
+    const u32 sp = (u32)(uintptr_t)(frame + sizeof frame);
+    Sub_692b00();
+    goto L_692b90;
+L_692b90:
+    M<u32>(sp - 0x4) = Fn(Exit_692ba0);
+    eax = g_calls.Cd(0x0067a7d0, M<u32>(sp - 0x4));   // CRT_atexit
+    return;
+}
+void __cdecl Init_692bc0() {   // 0x692bc0
+    u32 eax = 0;
+    alignas(4) u8 frame[0x4];
+    const u32 sp = (u32)(uintptr_t)(frame + sizeof frame);
+    Sub_692bd0();
+    goto L_692be0;
+L_692be0:
+    M<u32>(sp - 0x4) = Fn(Exit_692bf0);
+    eax = g_calls.Cd(0x0067a7d0, M<u32>(sp - 0x4));   // CRT_atexit
+    return;
+}
+void __cdecl Init_692c10() {   // 0x692c10
+    u32 eax = 0;
+    alignas(4) u8 frame[0x4];
+    const u32 sp = (u32)(uintptr_t)(frame + sizeof frame);
+    Sub_692c20();
+    goto L_692c30;
+L_692c30:
+    M<u32>(sp - 0x4) = Fn(Exit_692c40);
+    eax = g_calls.Cd(0x0067a7d0, M<u32>(sp - 0x4));   // CRT_atexit
+    return;
+}
+void __cdecl Init_693230() {   // 0x693230
+    u32 eax = 0, ebx = 0;
+    bool zf = false;
+    eax = (eax & 0xffffff00u) | (u8)(M<u8>(0xfb4cc5u));
+    ebx = (ebx & 0xffffff00u) | (u8)(0x1u);
+    zf = ((u8)ebx & (u8)eax) == 0;
+    if (!zf) goto L_693243;
+    eax = (eax & 0xffffff00u) | (u8)((u8)eax | (u8)ebx);
+    M<u8>(0xfb4cc5u) = (u8)eax;
+L_693243:
+    Sub_6932d0();
+    eax = (eax & 0xffffff00u) | (u8)(M<u8>(0xfb4cc6u));
+    zf = ((u8)ebx & (u8)eax) == 0;
+    if (!zf) goto L_693258;
+    eax = (eax & 0xffffff00u) | (u8)((u8)eax | (u8)ebx);
+    M<u8>(0xfb4cc6u) = (u8)eax;
+L_693258:
+    Sub_6932e0();
+    eax = (eax & 0xffffff00u) | (u8)(M<u8>(0xfb3b80u));
+    zf = ((u8)ebx & (u8)eax) == 0;
+    if (!zf) goto L_69326d;
+    eax = (eax & 0xffffff00u) | (u8)((u8)eax | (u8)ebx);
+    M<u8>(0xfb3b80u) = (u8)eax;
+L_69326d:
+    Sub_6932f0();
+    eax = (eax & 0xffffff00u) | (u8)(M<u8>(0xfb4cc7u));
+    zf = ((u8)ebx & (u8)eax) == 0;
+    if (!zf) goto L_693282;
+    eax = (eax & 0xffffff00u) | (u8)((u8)eax | (u8)ebx);
+    M<u8>(0xfb4cc7u) = (u8)eax;
+L_693282:
+    Sub_693300();
+    eax = (eax & 0xffffff00u) | (u8)(M<u8>(0xfb4cc8u));
+    zf = ((u8)ebx & (u8)eax) == 0;
+    if (!zf) goto L_693297;
+    eax = (eax & 0xffffff00u) | (u8)((u8)eax | (u8)ebx);
+    M<u8>(0xfb4cc8u) = (u8)eax;
+L_693297:
+    Sub_693310();
+    eax = (eax & 0xffffff00u) | (u8)(M<u8>(0xfb4cc9u));
+    zf = ((u8)ebx & (u8)eax) == 0;
+    if (!zf) goto L_6932ac;
+    eax = (eax & 0xffffff00u) | (u8)((u8)eax | (u8)ebx);
+    M<u8>(0xfb4cc9u) = (u8)eax;
+L_6932ac:
+    Sub_693320();
+    eax = (eax & 0xffffff00u) | (u8)(M<u8>(0xfb4ccau));
+    zf = ((u8)ebx & (u8)eax) == 0;
+    if (!zf) goto L_6932c1;
+    eax = (eax & 0xffffff00u) | (u8)((u8)eax | (u8)ebx);
+    M<u8>(0xfb4ccau) = (u8)eax;
+L_6932c1:
+    Sub_693330();
+    ebx = 0;
+    return;
+}
+void __cdecl Init_693a90() {   // 0x693a90
+    u32 eax = 0, ebx = 0;
+    bool zf = false;
+    eax = (eax & 0xffffff00u) | (u8)(M<u8>(0xfb4cc5u));
+    ebx = (ebx & 0xffffff00u) | (u8)(0x1u);
+    zf = ((u8)ebx & (u8)eax) == 0;
+    if (!zf) goto L_693aa3;
+    eax = (eax & 0xffffff00u) | (u8)((u8)eax | (u8)ebx);
+    M<u8>(0xfb4cc5u) = (u8)eax;
+L_693aa3:
+    Sub_693b40();
+    eax = (eax & 0xffffff00u) | (u8)(M<u8>(0xfb4cc6u));
+    zf = ((u8)ebx & (u8)eax) == 0;
+    if (!zf) goto L_693ab8;
+    eax = (eax & 0xffffff00u) | (u8)((u8)eax | (u8)ebx);
+    M<u8>(0xfb4cc6u) = (u8)eax;
+L_693ab8:
+    Sub_693b50();
+    eax = (eax & 0xffffff00u) | (u8)(M<u8>(0xfb3b80u));
+    zf = ((u8)ebx & (u8)eax) == 0;
+    if (!zf) goto L_693acd;
+    eax = (eax & 0xffffff00u) | (u8)((u8)eax | (u8)ebx);
+    M<u8>(0xfb3b80u) = (u8)eax;
+L_693acd:
+    Sub_693b60();
+    eax = (eax & 0xffffff00u) | (u8)(M<u8>(0xfb4cc7u));
+    zf = ((u8)ebx & (u8)eax) == 0;
+    if (!zf) goto L_693ae2;
+    eax = (eax & 0xffffff00u) | (u8)((u8)eax | (u8)ebx);
+    M<u8>(0xfb4cc7u) = (u8)eax;
+L_693ae2:
+    Sub_693b70();
+    eax = (eax & 0xffffff00u) | (u8)(M<u8>(0xfb4cc8u));
+    zf = ((u8)ebx & (u8)eax) == 0;
+    if (!zf) goto L_693af7;
+    eax = (eax & 0xffffff00u) | (u8)((u8)eax | (u8)ebx);
+    M<u8>(0xfb4cc8u) = (u8)eax;
+L_693af7:
+    Sub_693b80();
+    eax = (eax & 0xffffff00u) | (u8)(M<u8>(0xfb4cc9u));
+    zf = ((u8)ebx & (u8)eax) == 0;
+    if (!zf) goto L_693b0c;
+    eax = (eax & 0xffffff00u) | (u8)((u8)eax | (u8)ebx);
+    M<u8>(0xfb4cc9u) = (u8)eax;
+L_693b0c:
+    Sub_693b90();
+    eax = (eax & 0xffffff00u) | (u8)(M<u8>(0xfb4ccau));
+    zf = ((u8)ebx & (u8)eax) == 0;
+    if (!zf) goto L_693b21;
+    eax = (eax & 0xffffff00u) | (u8)((u8)eax | (u8)ebx);
+    M<u8>(0xfb4ccau) = (u8)eax;
+L_693b21:
+    Sub_693ba0();
+    eax = (eax & 0xffffff00u) | (u8)(M<u8>(0xfb2759u));
+    zf = ((u8)ebx & (u8)eax) == 0;
+    if (!zf) goto L_693b36;
+    eax = (eax & 0xffffff00u) | (u8)((u8)eax | (u8)ebx);
+    M<u8>(0xfb2759u) = (u8)eax;
+L_693b36:
+    Sub_693bb0();
+    ebx = 0;
+    return;
+}
+void __cdecl Init_6940a0() {   // 0x6940a0
+    goto L_6940b0;
+L_6940b0:
+    return;
+}
+void __cdecl Init_6940c0() {   // 0x6940c0
+    goto L_6940d0;
+L_6940d0:
+    return;
+}
+void __cdecl Init_6940e0() {   // 0x6940e0
+    goto L_6940f0;
+L_6940f0:
+    return;
+}
+void __cdecl Init_694100() {   // 0x694100
+    goto L_694110;
+L_694110:
+    return;
+}
+void __cdecl Init_699930() {   // 0x699930
+    u32 eax = 0, ecx = 0;
+    bool zf = false;
+    alignas(4) u8 frame[0x4];
+    const u32 sp = (u32)(uintptr_t)(frame + sizeof frame);
+    ecx = (ecx & 0xffffff00u) | (u8)(M<u8>(0xfb2759u));
+    eax = (eax & 0xffffff00u) | (u8)(0x1u);
+    zf = ((u8)eax & (u8)ecx) == 0;
+    if (!zf) goto L_699944;
+    ecx = (ecx & 0xffffff00u) | (u8)((u8)ecx | (u8)eax);
+    M<u8>(0xfb2759u) = (u8)ecx;
+L_699944:
+    goto L_699950;
+L_699950:
+    M<u32>(sp - 0x4) = 0x5d1750u;
+    eax = g_calls.Cd(0x0067a7d0, M<u32>(sp - 0x4));   // CRT_atexit
+    return;
+}
+void __cdecl Init_699960() {   // 0x699960
+    u32 eax = 0, ebx = 0;
+    bool zf = false;
+    eax = (eax & 0xffffff00u) | (u8)(M<u8>(0xfb3b80u));
+    ebx = (ebx & 0xffffff00u) | (u8)(0x1u);
+    zf = ((u8)ebx & (u8)eax) == 0;
+    if (!zf) goto L_699973;
+    eax = (eax & 0xffffff00u) | (u8)((u8)eax | (u8)ebx);
+    M<u8>(0xfb3b80u) = (u8)eax;
+L_699973:
+    Sub_6999d0();
+    eax = (eax & 0xffffff00u) | (u8)(M<u8>(0xfb4cc7u));
+    zf = ((u8)ebx & (u8)eax) == 0;
+    if (!zf) goto L_699988;
+    eax = (eax & 0xffffff00u) | (u8)((u8)eax | (u8)ebx);
+    M<u8>(0xfb4cc7u) = (u8)eax;
+L_699988:
+    Sub_6999e0();
+    eax = (eax & 0xffffff00u) | (u8)(M<u8>(0xfb4cc8u));
+    zf = ((u8)ebx & (u8)eax) == 0;
+    if (!zf) goto L_69999d;
+    eax = (eax & 0xffffff00u) | (u8)((u8)eax | (u8)ebx);
+    M<u8>(0xfb4cc8u) = (u8)eax;
+L_69999d:
+    Sub_6999f0();
+    eax = (eax & 0xffffff00u) | (u8)(M<u8>(0xfb4ccau));
+    zf = ((u8)ebx & (u8)eax) == 0;
+    if (!zf) goto L_6999b2;
+    eax = (eax & 0xffffff00u) | (u8)((u8)eax | (u8)ebx);
+    M<u8>(0xfb4ccau) = (u8)eax;
+L_6999b2:
+    Sub_699a00();
+    eax = (eax & 0xffffff00u) | (u8)(M<u8>(0xfb4cc4u));
+    zf = ((u8)ebx & (u8)eax) == 0;
+    if (!zf) goto L_6999c7;
+    eax = (eax & 0xffffff00u) | (u8)((u8)eax | (u8)ebx);
+    M<u8>(0xfb4cc4u) = (u8)eax;
+L_6999c7:
+    Sub_699a10();
+    ebx = 0;
+    return;
+}
+void __cdecl Init_699c90() {   // 0x699c90
+    u32 eax = 0;
+    alignas(4) u8 frame[0x4];
+    const u32 sp = (u32)(uintptr_t)(frame + sizeof frame);
+    eax = g_calls.Cd(0x00699ca0);   // Stub_699ca0
+    goto L_699cb0;
+L_699cb0:
+    M<u32>(sp - 0x4) = Fn(StaticInit_699cc0);
+    eax = g_calls.Cd(0x0067a7d0, M<u32>(sp - 0x4));   // CRT_atexit
+    return;
+}
+void __cdecl Init_69a180() {   // 0x69a180
+    u32 eax = 0, ebx = 0;
+    bool zf = false;
+    eax = (eax & 0xffffff00u) | (u8)(M<u8>(0xfb4cc5u));
+    ebx = (ebx & 0xffffff00u) | (u8)(0x1u);
+    zf = ((u8)ebx & (u8)eax) == 0;
+    if (!zf) goto L_69a193;
+    eax = (eax & 0xffffff00u) | (u8)((u8)eax | (u8)ebx);
+    M<u8>(0xfb4cc5u) = (u8)eax;
+L_69a193:
+    Sub_69a230();
+    eax = (eax & 0xffffff00u) | (u8)(M<u8>(0xfb4cc6u));
+    zf = ((u8)ebx & (u8)eax) == 0;
+    if (!zf) goto L_69a1a8;
+    eax = (eax & 0xffffff00u) | (u8)((u8)eax | (u8)ebx);
+    M<u8>(0xfb4cc6u) = (u8)eax;
+L_69a1a8:
+    Sub_69a240();
+    eax = (eax & 0xffffff00u) | (u8)(M<u8>(0xfb3b80u));
+    zf = ((u8)ebx & (u8)eax) == 0;
+    if (!zf) goto L_69a1bd;
+    eax = (eax & 0xffffff00u) | (u8)((u8)eax | (u8)ebx);
+    M<u8>(0xfb3b80u) = (u8)eax;
+L_69a1bd:
+    Sub_69a250();
+    eax = (eax & 0xffffff00u) | (u8)(M<u8>(0xfb4cc7u));
+    zf = ((u8)ebx & (u8)eax) == 0;
+    if (!zf) goto L_69a1d2;
+    eax = (eax & 0xffffff00u) | (u8)((u8)eax | (u8)ebx);
+    M<u8>(0xfb4cc7u) = (u8)eax;
+L_69a1d2:
+    Sub_69a260();
+    eax = (eax & 0xffffff00u) | (u8)(M<u8>(0xfb4cc8u));
+    zf = ((u8)ebx & (u8)eax) == 0;
+    if (!zf) goto L_69a1e7;
+    eax = (eax & 0xffffff00u) | (u8)((u8)eax | (u8)ebx);
+    M<u8>(0xfb4cc8u) = (u8)eax;
+L_69a1e7:
+    Sub_69a270();
+    eax = (eax & 0xffffff00u) | (u8)(M<u8>(0xfb4cc9u));
+    zf = ((u8)ebx & (u8)eax) == 0;
+    if (!zf) goto L_69a1fc;
+    eax = (eax & 0xffffff00u) | (u8)((u8)eax | (u8)ebx);
+    M<u8>(0xfb4cc9u) = (u8)eax;
+L_69a1fc:
+    Sub_69a280();
+    eax = (eax & 0xffffff00u) | (u8)(M<u8>(0xfb4ccau));
+    zf = ((u8)ebx & (u8)eax) == 0;
+    if (!zf) goto L_69a211;
+    eax = (eax & 0xffffff00u) | (u8)((u8)eax | (u8)ebx);
+    M<u8>(0xfb4ccau) = (u8)eax;
+L_69a211:
+    Sub_69a290();
+    eax = (eax & 0xffffff00u) | (u8)(M<u8>(0xfb4cc4u));
+    zf = ((u8)ebx & (u8)eax) == 0;
+    if (!zf) goto L_69a226;
+    eax = (eax & 0xffffff00u) | (u8)((u8)eax | (u8)ebx);
+    M<u8>(0xfb4cc4u) = (u8)eax;
+L_69a226:
+    Sub_69a2a0();
+    ebx = 0;
+    return;
+}
+void __cdecl Init_69a600() {   // 0x69a600
+    goto L_69a610;
+L_69a610:
+    return;
+}
+void __cdecl Init_69a620() {   // 0x69a620
+    goto L_69a630;
+L_69a630:
+    return;
+}
+void __cdecl Init_69a640() {   // 0x69a640
+    goto L_69a650;
+L_69a650:
+    return;
+}
+void __cdecl Init_69a660() {   // 0x69a660
+    goto L_69a670;
+L_69a670:
+    return;
+}
+void __cdecl Init_69a680() {   // 0x69a680
+    goto L_69a690;
+L_69a690:
+    return;
+}
+void __cdecl Init_69a6a0() {   // 0x69a6a0
+    goto L_69a6b0;
+L_69a6b0:
+    return;
+}
+void __cdecl Init_69a6c0() {   // 0x69a6c0
+    goto L_69a6d0;
+L_69a6d0:
+    return;
+}
+void __cdecl Init_69a6e0() {   // 0x69a6e0
+    goto L_69a6f0;
+L_69a6f0:
+    return;
+}
+void __cdecl Init_69a700() {   // 0x69a700
+    goto L_69a710;
+L_69a710:
+    return;
+}
+void __cdecl Init_69a720() {   // 0x69a720
+    goto L_69a730;
+L_69a730:
+    return;
+}
+void __cdecl Init_69a740() {   // 0x69a740
+    goto L_69a750;
+L_69a750:
+    return;
+}
+void __cdecl Init_69a760() {   // 0x69a760
+    goto L_69a770;
+L_69a770:
+    return;
+}
+void __cdecl Init_69a780() {   // 0x69a780
+    goto L_69a790;
+L_69a790:
+    return;
+}
+void __cdecl Init_6a6540() {   // 0x6a6540
+    u32 eax = 0, ebx = 0;
+    bool zf = false;
+    eax = (eax & 0xffffff00u) | (u8)(M<u8>(0xfb4cc5u));
+    ebx = (ebx & 0xffffff00u) | (u8)(0x1u);
+    zf = ((u8)ebx & (u8)eax) == 0;
+    if (!zf) goto L_6a6553;
+    eax = (eax & 0xffffff00u) | (u8)((u8)eax | (u8)ebx);
+    M<u8>(0xfb4cc5u) = (u8)eax;
+L_6a6553:
+    Sub_6a65a0();
+    eax = (eax & 0xffffff00u) | (u8)(M<u8>(0xfb4cc6u));
+    zf = ((u8)ebx & (u8)eax) == 0;
+    if (!zf) goto L_6a6568;
+    eax = (eax & 0xffffff00u) | (u8)((u8)eax | (u8)ebx);
+    M<u8>(0xfb4cc6u) = (u8)eax;
+L_6a6568:
+    Sub_6a65b0();
+    eax = (eax & 0xffffff00u) | (u8)(M<u8>(0xfb4cc9u));
+    zf = ((u8)ebx & (u8)eax) == 0;
+    if (!zf) goto L_6a657d;
+    eax = (eax & 0xffffff00u) | (u8)((u8)eax | (u8)ebx);
+    M<u8>(0xfb4cc9u) = (u8)eax;
+L_6a657d:
+    Sub_6a65c0();
+    eax = (eax & 0xffffff00u) | (u8)(M<u8>(0xfb4cc4u));
+    zf = ((u8)ebx & (u8)eax) == 0;
+    if (!zf) goto L_6a6592;
+    eax = (eax & 0xffffff00u) | (u8)((u8)eax | (u8)ebx);
+    M<u8>(0xfb4cc4u) = (u8)eax;
+L_6a6592:
+    Sub_6a65d0();
+    ebx = 0;
+    return;
+}
+void __cdecl Init_6a66f0() {   // 0x6a66f0
+    goto L_6a6700;
+L_6a6700:
+    return;
+}
+void __cdecl Init_6a6710() {   // 0x6a6710
+    goto L_6a6720;
+L_6a6720:
+    return;
+}
+void __cdecl Init_6a6730() {   // 0x6a6730
+    goto L_6a6740;
+L_6a6740:
+    return;
+}
+void __cdecl Init_6a6750() {   // 0x6a6750
+    goto L_6a6760;
+L_6a6760:
+    return;
+}
+void __cdecl Init_6a6770() {   // 0x6a6770
+    goto L_6a6780;
+L_6a6780:
+    return;
+}
+void __cdecl Init_6a6790() {   // 0x6a6790
+    goto L_6a67a0;
+L_6a67a0:
+    return;
+}
+void __cdecl Init_6a67b0() {   // 0x6a67b0
+    goto L_6a67c0;
+L_6a67c0:
+    return;
+}
+void __cdecl Init_6a67d0() {   // 0x6a67d0
+    goto L_6a67e0;
+L_6a67e0:
+    return;
+}
+void __cdecl Init_6ac830() {   // 0x6ac830
+    u32 eax = 0, ebx = 0;
+    bool zf = false;
+    eax = (eax & 0xffffff00u) | (u8)(M<u8>(0xfb4cc5u));
+    ebx = (ebx & 0xffffff00u) | (u8)(0x1u);
+    zf = ((u8)ebx & (u8)eax) == 0;
+    if (!zf) goto L_6ac843;
+    eax = (eax & 0xffffff00u) | (u8)((u8)eax | (u8)ebx);
+    M<u8>(0xfb4cc5u) = (u8)eax;
+L_6ac843:
+    Sub_6ac8d0();
+    eax = (eax & 0xffffff00u) | (u8)(M<u8>(0xfb4cc6u));
+    zf = ((u8)ebx & (u8)eax) == 0;
+    if (!zf) goto L_6ac858;
+    eax = (eax & 0xffffff00u) | (u8)((u8)eax | (u8)ebx);
+    M<u8>(0xfb4cc6u) = (u8)eax;
+L_6ac858:
+    Sub_6ac8e0();
+    eax = (eax & 0xffffff00u) | (u8)(M<u8>(0xfb3b80u));
+    zf = ((u8)ebx & (u8)eax) == 0;
+    if (!zf) goto L_6ac86d;
+    eax = (eax & 0xffffff00u) | (u8)((u8)eax | (u8)ebx);
+    M<u8>(0xfb3b80u) = (u8)eax;
+L_6ac86d:
+    Sub_6ac8f0();
+    eax = (eax & 0xffffff00u) | (u8)(M<u8>(0xfb4cc7u));
+    zf = ((u8)ebx & (u8)eax) == 0;
+    if (!zf) goto L_6ac882;
+    eax = (eax & 0xffffff00u) | (u8)((u8)eax | (u8)ebx);
+    M<u8>(0xfb4cc7u) = (u8)eax;
+L_6ac882:
+    Sub_6ac900();
+    eax = (eax & 0xffffff00u) | (u8)(M<u8>(0xfb4cc8u));
+    zf = ((u8)ebx & (u8)eax) == 0;
+    if (!zf) goto L_6ac897;
+    eax = (eax & 0xffffff00u) | (u8)((u8)eax | (u8)ebx);
+    M<u8>(0xfb4cc8u) = (u8)eax;
+L_6ac897:
+    Sub_6ac910();
+    eax = (eax & 0xffffff00u) | (u8)(M<u8>(0xfb4cc9u));
+    zf = ((u8)ebx & (u8)eax) == 0;
+    if (!zf) goto L_6ac8ac;
+    eax = (eax & 0xffffff00u) | (u8)((u8)eax | (u8)ebx);
+    M<u8>(0xfb4cc9u) = (u8)eax;
+L_6ac8ac:
+    Sub_6ac920();
+    eax = (eax & 0xffffff00u) | (u8)(M<u8>(0xfb4ccau));
+    zf = ((u8)ebx & (u8)eax) == 0;
+    if (!zf) goto L_6ac8c1;
+    eax = (eax & 0xffffff00u) | (u8)((u8)eax | (u8)ebx);
+    M<u8>(0xfb4ccau) = (u8)eax;
+L_6ac8c1:
+    Sub_6ac930();
+    ebx = 0;
+    return;
+}
+void __cdecl Init_6af770() {   // 0x6af770
+    goto L_6af780;
+L_6af780:
+    M<u32>(0xfb1ee8u) = 0x70a110u;
+    return;
+}
+void __cdecl Init_6af790() {   // 0x6af790
+    goto L_6af7a0;
+L_6af7a0:
+    M<u32>(0xfb1edcu) = 0x70a114u;
+    return;
+}
+void __cdecl Init_6af7b0() {   // 0x6af7b0
+    goto L_6af7c0;
+L_6af7c0:
+    M<u32>(0xfb1eecu) = 0x70a118u;
+    return;
+}
+void __cdecl Init_6af7d0() {   // 0x6af7d0
+    goto L_6af7e0;
+L_6af7e0:
+    M<u32>(0xfb1ee4u) = 0x70a11cu;
+    return;
+}
+void __cdecl Init_6af7f0() {   // 0x6af7f0
+    goto L_6af800;
+L_6af800:
+    M<u32>(0xfb1ee0u) = 0x70a120u;
+    return;
+}
 void __cdecl Init_6b0130() {   // 0x6b0130
     u32 eax = 0;
     alignas(4) u8 frame[0x4];
@@ -13529,6 +14979,62 @@ const Fn0 kLifted[] = {   // (and the ones by hand)
     {0x6316f0, &Init_6316f0},
     {0x631740, &Init_631740},
     {0x631790, &Init_631790},
+    {0x691cd0, &Init_691cd0},
+    {0x691ec0, &Init_691ec0},
+    {0x691f10, &Init_691f10},
+    {0x691f50, &Init_691f50},
+    {0x692020, &Init_692020},
+    {0x6920f0, &Init_6920f0},
+    {0x692130, &Init_692130},
+    {0x692180, &Init_692180},
+    {0x6927a0, &Init_6927a0},
+    {0x6928d0, &Init_6928d0},
+    {0x692910, &Init_692910},
+    {0x692950, &Init_692950},
+    {0x6929a0, &Init_6929a0},
+    {0x6929e0, &Init_6929e0},
+    {0x692a20, &Init_692a20},
+    {0x692af0, &Init_692af0},
+    {0x692bc0, &Init_692bc0},
+    {0x692c10, &Init_692c10},
+    {0x693230, &Init_693230},
+    {0x693a90, &Init_693a90},
+    {0x6940a0, &Init_6940a0},
+    {0x6940c0, &Init_6940c0},
+    {0x6940e0, &Init_6940e0},
+    {0x694100, &Init_694100},
+    {0x699930, &Init_699930},
+    {0x699960, &Init_699960},
+    {0x699c90, &Init_699c90},
+    {0x69a180, &Init_69a180},
+    {0x69a600, &Init_69a600},
+    {0x69a620, &Init_69a620},
+    {0x69a640, &Init_69a640},
+    {0x69a660, &Init_69a660},
+    {0x69a680, &Init_69a680},
+    {0x69a6a0, &Init_69a6a0},
+    {0x69a6c0, &Init_69a6c0},
+    {0x69a6e0, &Init_69a6e0},
+    {0x69a700, &Init_69a700},
+    {0x69a720, &Init_69a720},
+    {0x69a740, &Init_69a740},
+    {0x69a760, &Init_69a760},
+    {0x69a780, &Init_69a780},
+    {0x6a6540, &Init_6a6540},
+    {0x6a66f0, &Init_6a66f0},
+    {0x6a6710, &Init_6a6710},
+    {0x6a6730, &Init_6a6730},
+    {0x6a6750, &Init_6a6750},
+    {0x6a6770, &Init_6a6770},
+    {0x6a6790, &Init_6a6790},
+    {0x6a67b0, &Init_6a67b0},
+    {0x6a67d0, &Init_6a67d0},
+    {0x6ac830, &Init_6ac830},
+    {0x6af770, &Init_6af770},
+    {0x6af790, &Init_6af790},
+    {0x6af7b0, &Init_6af7b0},
+    {0x6af7d0, &Init_6af7d0},
+    {0x6af7f0, &Init_6af7f0},
     {0x6b0130, &Init_6b0130},
     {0x6b0170, &Init_6b0170},
     {0x6b01b0, &Init_6b01b0},
@@ -20048,6 +21554,23 @@ const Fn0 kExits[] = {
     {0x5ea1e0, &ExitThunk<0xf865b8, 0x5f61e0>},
     {0x5f0af0, &ExitThunk<0xf86d20, 0x5f61e0>},
     {0x5f36f0, &Exit_5f36f0},
+    {0x691f00, &ExitThunk<0xfb1ad0, 0x5cec80>},
+    {0x691f40, &ExitThunk<0xfb19a8, 0x5cec80>},
+    {0x692000, &Exit_692000},
+    {0x6920d0, &Exit_6920d0},
+    {0x692120, &ExitThunk<0xfb1a38, 0x5cec80>},
+    {0x692160, &Exit_692160},
+    {0x6921b0, &Exit_6921b0},
+    {0x692900, &ExitThunk<0xfb1b9c, 0x692650>},
+    {0x692940, &ExitThunk<0xfb1b98, 0x6930e0>},
+    {0x692990, &ExitThunk<0xfb1c70, 0x4f08c0>},
+    {0x6929d0, &ExitThunk<0xfb1c18, 0x4f08c0>},
+    {0x692a10, &ExitThunk<0xfb1d00, 0x4f08c0>},
+    {0x692ad0, &Exit_692ad0},
+    {0x692ba0, &Exit_692ba0},
+    {0x692bf0, &Exit_692bf0},
+    {0x692c40, &Exit_692c40},
+    {0x699cc0, &StaticInit_699cc0},
     {0x6c5b00, &Exit_6c5b00},
 };
 

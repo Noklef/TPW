@@ -68,6 +68,15 @@ bool from_groups(u32 region, u32 from, u32 end, u32 pages, u32 para, u32 *block)
 
 extern "C" {
 
+s32 __cdecl CRT_heap_init() {
+    const u32 heap = import_slot<u32(__stdcall *)(u32, u32, u32)>(0x006fd1bc)(0, 0x1000, 0);   // HeapCreate
+    word(0x00fb3cac) = heap;
+    if (!heap) return 0;
+    if (CRT_sbh_alloc_new_region()) return 1;
+    import_slot<s32(__stdcall *)(u32)>(0x006fd1c0)(word(0x00fb3cac));   // HeapDestroy
+    return 0;
+}
+
 void *__cdecl CRT_sbh_alloc_new_region() {
     u32 region = kStatic;
     if (global<u32>(kStatic + 0x10) != 0xffffffff) {
@@ -242,6 +251,27 @@ void *__cdecl CRT_calloc(u32 count, u32 size) {
         if (block) return reinterpret_cast<void *>((uintptr_t)block);
         if (!global<u32>(0x00fb1548)) return nullptr;
         if (!CRT_callnewh(bytes)) return nullptr;
+    }
+}
+
+void *__cdecl CRT_heap_alloc(u32 size) {
+    const u32 bytes = (size + 0xf) & 0xfffffff0;
+    if (bytes <= global<u32>(0x00780dc4)) {
+        CrtInner().lock(9);
+        void *const block = CRT_sbh_alloc_block(bytes >> 4);
+        CrtInner().unlock(9);
+        if (block) return block;
+    }
+    return reinterpret_cast<void *>((uintptr_t)heap_alloc(0, bytes));
+}
+
+void *__cdecl CRT_nh_malloc(u32 size, s32 mode) {
+    if (size > 0xffffffe0) return nullptr;
+    if (!size) size = 1;
+    for (;;) {
+        void *const block = size <= 0xffffffe0 ? CRT_heap_alloc(size) : nullptr;
+        if (block || !mode) return block;
+        if (!CRT_callnewh(size)) return nullptr;
     }
 }
 

@@ -97,10 +97,17 @@ long long __stdcall CRT_allmul(u32 aLow, u32 aHigh, u32 bLow, u32 bHigh);
 
 // 0x67b5c0: rand: the thread's seed (getptd +0x14) * 214013 + 2531011 stored, bits 16-30 of it.
 s32 __cdecl CRT_rand();
+// 0x67b5b0: srand: the thread's seed (getptd +0x14) set.
+void __cdecl CRT_srand(u32 seed);
 
 // 0x67a740: _onexit, under the exit lock: fn appended to the table [0xfb3cb4] up to its end [0xfb3cb0] (the block grown by 0x10 bytes when msize has
 // no room for one more). Returns fn; 0 when the growth fails.
 void *__cdecl CRT_onexit(void *fn);
+// 0x67a7f0: _onexitinit: the exit table [0xfb3cb4] a malloc of 0x80 (none: _amsg_exit(0x18), and on past it, sic), its first entry 0, the end [0xfb3cb0] its start.
+void __cdecl CRT_onexitinit();
+// 0x687c20: __CxxSetUnhandledExceptionFilter: SetUnhandledExceptionFilter(0x687bc0, the C++ one), the filter before it to [0xfb1454]; 0x687c40: put that one back.
+void __cdecl CRT_CxxSetUnhandledExceptionFilter();
+void __cdecl CRT_CxxRestoreUnhandledExceptionFilter();
 
 // 0x67a7d0: atexit: 0 when _onexit took fn, else -1.
 s32 __cdecl CRT_atexit(void *fn);
@@ -127,6 +134,13 @@ void *__cdecl CRT_malloc(u32 size);
 // 0x682460: _getptd: the thread's data in its TLS slot [0x77ecd0], or a block of 0x74 made, set and _initptd'd (+0 the thread's id, +4 -1); no block or
 // no slot: _amsg_exit(0x10), and past it (when it returns) the block as it is. GetLastError's value is kept across it.
 void *__cdecl CRT_getptd();
+
+// 0x6823e0: _mtinit: the locks initialised, a TLS slot to [0x77ecd0], the first thread's block of 0x74 set in it and _initptd'd (+0 the thread's id, +4 -1).
+// Returns 1; 0 when there is no slot, no block or no TlsSetValue (the block kept).
+s32 __cdecl CRT_mtinit();
+// 0x6824e0: _freeptd: with a TLS slot, data (or the thread's when null) freed with its buffers (+0x24, +0x28, +0x30, +0x38, +0x40, +0x44 when set, +0x50 unless
+// it is 0x781490), then the slot's value cleared.
+void __cdecl CRT_freeptd(void *data);
 
 // 0x686a00: _errno: the thread's data + 8.
 s32 *__cdecl CRT_errno();

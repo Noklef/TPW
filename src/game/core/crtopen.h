@@ -65,4 +65,9 @@ s32 __cdecl CRT_flushall();
 // 0x687b20: _commit: FlushFileBuffers under the slot's lock; its failure in __doserrno. A failure or bad slot: errno 9, -1.
 s32 __cdecl CRT_commit(u32 fd);
 
+// 0x67e530, 0x67e560: remove, _unlink: DeleteFileA; 0x67ecc0: rename: MoveFileA. A failure with a Win32 error: _dosmaperr, -1; otherwise 0 (a failure with error 0 too).
+s32 __cdecl CRT_remove(const char *path);
+s32 __cdecl CRT_unlink(const char *path);
+s32 __cdecl CRT_rename(const char *from, const char *to);
+
 }
