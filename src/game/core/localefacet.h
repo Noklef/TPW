@@ -230,3 +230,7 @@ GAME_DATA(void *[3], Facet709f8c_vtable, 0x00709f8c, 0xc);
 GAME_DATA(void *[3], Facet709f9c_vtable, 0x00709f9c, 0xc);
 GAME_DATA(void *[4], Facet709fac_vtable, 0x00709fac, 0x10);
 GAME_DATA(void *[4], CollateC_vtable, 0x00709fc4, 0x10);
+GAME_DATA(void *[7], WTimeGet_vtable, 0x00709ed4, 0x1c);
+GAME_DATA(void *[2], WTimePut_vtable, 0x00709ef4, 0x8);
+GAME_DATA(void *[7], TimeGet_vtable, 0x0070a024, 0x1c);
+GAME_DATA(void *[2], TimePut_vtable, 0x0070a044, 0x8);

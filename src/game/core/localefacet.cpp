@@ -491,7 +491,7 @@ u32 *__cdecl UseFacet_CodecvtW(u8 **loc, u32, u32 flag) {
 u32 *__cdecl UseFacet_TimeC(u8 **loc, u32, u32 flag) {
     return use_facet(loc, flag, (u32)(uintptr_t)&gLocalefacet_fb1e84, (u32)(uintptr_t)&gLocalefacet_fb1ec0, (u32)(uintptr_t)&gLocalefacet_fb1ebc, 0x10, 0x006ac6f0, [](u32 *facet) {
         u32 info[0x10];
-        facet[0] = 0x0070a024;
+        facet[0] = (u32)(uintptr_t)TimeGet_vtable;
         Locinfo_Ctor(info, nullptr, "C");
         u8 *const held = reinterpret_cast<u8 *>(info);
         facet[2] = static_cast<u32>(reinterpret_cast<uintptr_t>(Numpunct_Copy(days_of(held))));
@@ -502,7 +502,7 @@ u32 *__cdecl UseFacet_TimeC(u8 **loc, u32, u32 flag) {
 
 u32 *__fastcall TimeC_Ctor(u32 *self, void *, u8 *info, u32 refs) {
     self[1] = refs;
-    self[0] = 0x0070a024;
+    self[0] = (u32)(uintptr_t)TimeGet_vtable;
     self[2] = static_cast<u32>(reinterpret_cast<uintptr_t>(Numpunct_Copy(days_of(info))));
     self[3] = static_cast<u32>(reinterpret_cast<uintptr_t>(Numpunct_Copy(months_of(info))));
     return self;
@@ -510,7 +510,7 @@ u32 *__fastcall TimeC_Ctor(u32 *self, void *, u8 *info, u32 refs) {
 
 u32 *__fastcall TimeW_Ctor(u32 *self, void *, u8 *info, u32 refs) {
     self[1] = refs;
-    self[0] = 0x00709ed4;
+    self[0] = (u32)(uintptr_t)WTimeGet_vtable;
     self[2] = static_cast<u32>(reinterpret_cast<uintptr_t>(wide_copy(days_of(info))));
     self[3] = static_cast<u32>(reinterpret_cast<uintptr_t>(wide_copy(months_of(info))));
     return self;
@@ -614,11 +614,11 @@ static void facet_dtor_one(u32 *self, u32 table) {
     self[0] = (u32)(uintptr_t)LocaleFacet_vtable;
 }
 
-void __fastcall Facet709ed4_Dtor(u32 *self, void *) { facet_dtor_two(self, 0x00709ed4); }
+void __fastcall Facet709ed4_Dtor(u32 *self, void *) { facet_dtor_two(self, (u32)(uintptr_t)WTimeGet_vtable); }
 void __fastcall Facet709fac_Dtor(u32 *self, void *) { facet_dtor_two(self, (u32)(uintptr_t)Facet709fac_vtable); }
-void __fastcall Facet70a024_Dtor(u32 *self, void *) { facet_dtor_two(self, 0x0070a024); }
-void __fastcall Facet709ef4_Dtor(u32 *self, void *) { facet_dtor_one(self, 0x00709ef4); }
-void __fastcall Facet70a044_Dtor(u32 *self, void *) { facet_dtor_one(self, 0x0070a044); }
+void __fastcall Facet70a024_Dtor(u32 *self, void *) { facet_dtor_two(self, (u32)(uintptr_t)TimeGet_vtable); }
+void __fastcall Facet709ef4_Dtor(u32 *self, void *) { facet_dtor_one(self, (u32)(uintptr_t)WTimePut_vtable); }
+void __fastcall Facet70a044_Dtor(u32 *self, void *) { facet_dtor_one(self, (u32)(uintptr_t)TimePut_vtable); }
 void __fastcall Timevec_Dtor(void **self, void *) { Crt().free(*self); }
 
 s32 __fastcall WideRange_Compare(void *, void *, const u16 *a, const u16 *a_end, const u16 *b, const u16 *b_end) {
@@ -660,21 +660,21 @@ u8 *__fastcall Vtbl70a0a8_DeletingDtor(u8 *self, void *, u32 flags) {
 
 u32 *__fastcall CollateC_Ctor(u32 *self, void *, u32 refs) { return collate_ctor(self, refs, (u32)(uintptr_t)CollateC_vtable); }
 u32 *__fastcall CollateW_Ctor(u32 *self, void *, u32 refs) { return collate_ctor(self, refs, (u32)(uintptr_t)CollateW_vtable); }
-u32 *__fastcall Facet70a044_Ctor(u32 *self, void *, const void *info, u32 refs) { return tnames_ctor(self, info, refs, 0x0070a044); }
-u32 *__fastcall Facet709ef4_Ctor(u32 *self, void *, const void *info, u32 refs) { return tnames_ctor(self, info, refs, 0x00709ef4); }
+u32 *__fastcall Facet70a044_Ctor(u32 *self, void *, const void *info, u32 refs) { return tnames_ctor(self, info, refs, (u32)(uintptr_t)TimePut_vtable); }
+u32 *__fastcall Facet709ef4_Ctor(u32 *self, void *, const void *info, u32 refs) { return tnames_ctor(self, info, refs, (u32)(uintptr_t)WTimePut_vtable); }
 
 u32 *__cdecl UseFacet_70a044(u8 **loc, u32, u32 flag) {
-    return use_facet(loc, flag, (u32)(uintptr_t)&gLocalefacet_fb1e88, (u32)(uintptr_t)&gLocalefacet_fb1ec8, (u32)(uintptr_t)&gLocalefacet_fb1ec4, 0xc, 0x006ac790, [](u32 *facet) { fill_tnames(facet, 0x0070a044); });
+    return use_facet(loc, flag, (u32)(uintptr_t)&gLocalefacet_fb1e88, (u32)(uintptr_t)&gLocalefacet_fb1ec8, (u32)(uintptr_t)&gLocalefacet_fb1ec4, 0xc, 0x006ac790, [](u32 *facet) { fill_tnames(facet, (u32)(uintptr_t)TimePut_vtable); });
 }
 
 u32 *__cdecl UseFacet_709ef4(u8 **loc, u32, u32 flag) {
-    return use_facet(loc, flag, (u32)(uintptr_t)&gLocalefacet_fb1e04, (u32)(uintptr_t)&gLocalefacet_fb1e50, (u32)(uintptr_t)&gLocalefacet_fb1e4c, 0xc, 0x006a64a0, [](u32 *facet) { fill_tnames(facet, 0x00709ef4); });
+    return use_facet(loc, flag, (u32)(uintptr_t)&gLocalefacet_fb1e04, (u32)(uintptr_t)&gLocalefacet_fb1e50, (u32)(uintptr_t)&gLocalefacet_fb1e4c, 0xc, 0x006a64a0, [](u32 *facet) { fill_tnames(facet, (u32)(uintptr_t)WTimePut_vtable); });
 }
 
 u32 *__cdecl UseFacet_TimeW(u8 **loc, u32, u32 flag) {
     return use_facet(loc, flag, (u32)(uintptr_t)&gLocalefacet_fb1df4, (u32)(uintptr_t)&gLocalefacet_fb1e48, (u32)(uintptr_t)&gLocalefacet_fb1e44, 0x10, 0x006a6400, [](u32 *facet) {
         u32 info[0x10];
-        facet[0] = 0x00709ed4;
+        facet[0] = (u32)(uintptr_t)WTimeGet_vtable;
         Locinfo_Ctor(info, nullptr, gLocalefacet_C_75c74c);
         u8 *const held = reinterpret_cast<u8 *>(info);
         facet[2] = static_cast<u32>(reinterpret_cast<uintptr_t>(wide_copy(days_of(held))));
