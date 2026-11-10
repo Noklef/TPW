@@ -1,13 +1,14 @@
 # zlib 1.1.3 (src/game/lib/zlib: the library built from third_party/zlib-1.1.3) against the exe's copies of it. A deflate_state at S
 # (0x16b8 bytes, random except the fields a function reads as sizes or pointers), its pending buffer at PEND, input bytes at BUF; for
 # the deflate.c functions the whole state as deflateInit2_ lays it out at small sizes (deflating()), its stream at STRM.
+# zcalloc (0x63e9e0) is the hand port Zlib_Calloc: the exe's calloc (0x67fcb0) a recorder answering a block, null or anything.
 # usage: zlib.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=adler32,...)
 import os
 import struct
 import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
-from fncmp import CPU, EXE, RAM, ZALLOC, ZFREE, Bench, Call, cpu_region, heap  # noqa: E402
+from fncmp import CPU, EXE, LOG, RAM, ZALLOC, ZFREE, Bench, Call, _recorder, cpu_region, heap, log_region, set_return  # noqa: E402
 from fncmp import HEAP as ZHEAP  # noqa: E402
 from pe_read import PE  # noqa: E402
 
@@ -22,9 +23,11 @@ FUNCS = {
     'putShortMSB': (0x635710, 0x635740), 'flush_pending': (0x635740, 0x6357c0), 'lm_init': (0x635870, 0x635910), 'deflate_stored': (0x635910, 0x635a70),
     'fill_window': (0x635a70, 0x635ba0), 'read_buf': (0x635ba0, 0x635c20), 'deflate_fast': (0x635c20, 0x635f80), 'longest_match': (0x635f80, 0x636100),
     'deflate_slow': (0x636100, 0x636560), 'deflateInit2_': (0x6351a0, 0x6353d0), 'deflateReset': (0x6353d0, 0x635450),
-    'deflate': (0x635450, 0x635710), 'deflateEnd': (0x6357c0, 0x635870), '_tr_init': (0x63eb30, 0x63eba0),
+    'deflate': (0x635450, 0x635710), 'deflateEnd': (0x6357c0, 0x635870), '_tr_init': (0x63eb30, 0x63eba0), 'zcalloc': (0x63e9e0, 0x63e9f3),
 }
-B = Bench(sorted(list(FUNCS.values()) + [(0x631270, 0x631290)]))  # (and the bare RET _tr_init calls for tr_static_init)
+K_CALLOC = 24  # (the exe's calloc 0x67fcb0, CrtInner's: the driver's cdecl recorder 24 of 2)
+B = Bench(sorted(list(FUNCS.values()) + [(0x631270, 0x631290)]),  # (and the bare RET _tr_init calls for tr_static_init)
+          hooks={0x67fcb0: _recorder(K_CALLOC, 2, cdecl=True)})
 for a in (0x6351a0, 0x635450, 0x6357c0):  # (fncmp's zlib stand-ins for the codec's benches: here the exe's own)
     del B.emu.hooks[a]
 S, PEND, BUF, LBUF, DBUF, BIG = RAM, RAM + 0x2000, RAM + 0x3000, RAM + 0x4000, RAM + 0x4800, RAM + 0x10000
@@ -598,11 +601,17 @@ def tr_init(r):
     return Call(0x63eb30, [S], regions(r, s))
 
 
+def zcalloc(r):
+    log = log_region()
+    set_return(log, K_CALLOC, r.choice([0, BUF, r.getrandbits(32)]))
+    return Call(0x63e9e0, [r.choice([0, S, r.getrandbits(32)]), r.choice([0, 1, 0x10, r.getrandbits(32)]), r.choice([0, 1, 8, r.getrandbits(32)])],
+                {LOG: log}, ret='a')
+
 
 OPS = [f for f in (adler32, init_block, set_data_type, bi_flush, bi_windup, copy_block, build_tree, pqdownheap, gen_bitlen, gen_codes, scan_tree,
                    send_tree, build_bl_tree, send_all_trees, compress_block, tr_stored_block, tr_align, tr_flush_block, put_short_msb,
                    flush_pending, read_buf, lm_init, longest_match, fill_window, deflate_stored, deflate_fast, deflate_slow, deflate_call,
-                   deflate_reset, deflate_end, deflate_init, tr_init)
+                   deflate_reset, deflate_end, deflate_init, tr_init, zcalloc)
        if not os.environ.get('OPS') or f.__name__ in os.environ['OPS'].split(',')]
 
 

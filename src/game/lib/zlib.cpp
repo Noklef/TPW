@@ -8,6 +8,8 @@
 #include <cstdint>
 #include <cstring>
 
+#include "../core/crt.h"
+
 extern "C" {
 #include "zlib_shims.h"  // (the shimmed functions as the library builds them: zlib_<name>)
 #include "deflate.h"
@@ -100,4 +102,6 @@ int __cdecl deflate(z_stream_s *strm, int flush) {
     zlibshim::exe_message(strm, before);
     return r;
 }
+
+void *__cdecl Zlib_Calloc(void *, unsigned items, unsigned size) { return CrtInner().calloc(items, size); }
 }

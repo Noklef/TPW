@@ -55,8 +55,9 @@ inflate_codes / inflate_fast read exop, bits and base only. Every bench that bui
 dynamic, inflate_blocks, inflate).
 
 **What stays the exe's, and why:**
-- zcalloc (0x63e9e0): the library's alone would hand the exe's free a block from the DLL's heap. With deflateInit2_ and inflateInit2_
-  the library's it is unreachable from zlib. zcfree is folded into 0x642990 with libjpeg's jpeg_free_small / large: that copy is now
+- zcalloc (0x63e9e0) is Zlib_Calloc (src/game/lib/zlib.cpp), a hand port calling the exe's calloc (0x67fcb0, CrtInner's): the
+  library's would hand the exe's free a block from the DLL's heap. With deflateInit2_ and inflateInit2_ the library's it is
+  unreachable from zlib. zcfree is folded into 0x642990 with libjpeg's jpeg_free_small / large: that copy is now
   jmemansi.c's, through the exe's free (see libjpeg 6b below), the same code.
 - inflate_trees_fixed (0x64a450): Fn_64a450, a hand port already exact (it hands out the exe's fixed tables).
 - bi_reverse (0x6404d0): Bits_Reverse, a hand port.
