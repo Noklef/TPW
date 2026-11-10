@@ -3594,7 +3594,7 @@ int main(int argc, char **argv) {
     static const TextFormatEnv textFormat = {reinterpret_cast<u32(__cdecl *)(void *, u16 *, u32, u32, ...)>(&stub_cdecl_log4),
                                              reinterpret_cast<u32(__cdecl *)(void *, u8 *, u32, u32, ...)>(&stub_cdecl_log4)};
     TextFormat_SetEnv(&textFormat);
-    // The 8-bit sprite's hand-written blitter (0x6e73c0, cseg: not in the listing): stub_cdecl_log4, as tests/fncmp/draw8.py hooks it; the rest the game's.
+    // The 8-bit sprite's hand-written blitter (0x6e73c0, cseg's Sprite_DrawRle, its own bench spriterle.py): stub_cdecl_log4, as tests/fncmp/draw8.py hooks it; the rest the game's.
     static const DrawEnv draw = {reinterpret_cast<DrawContext *>((uintptr_t)0x00fa76b8), reinterpret_cast<const u8 *>((uintptr_t)0x00778108),
                                  reinterpret_cast<SpriteDrawParams *>((uintptr_t)0x00faa4d8),
                                  reinterpret_cast<void(__cdecl *)(s32, s32, const RleSprite *)>(&stub_cdecl_log4), reinterpret_cast<const u8 *>((uintptr_t)0x00fa71f8)};
