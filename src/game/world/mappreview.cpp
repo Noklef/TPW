@@ -16,6 +16,7 @@
 #include "mapcell.h"
 #include "mapline.h"
 #include "objectdefs.h"
+#include "../core/actionrec.h"
 
 namespace {
 
@@ -55,11 +56,11 @@ u8 *Cell44(u32 id) { return World() + 0x294 + (id & 0xffff) * 0x44; }
 s32 &StartX() { return global<s32>(0x0081ede4); }
 s32 &StartY() { return global<s32>(0x0081ede8); }
 bool HasStart() { return StartX() != -1 && StartY() != -1; }
-s32 &PieceX() { return global<s32>(0x008186a4); }
-s32 &PieceY() { return global<s32>(0x008186a8); }
+s32 &PieceX() { return gMappreview_8186a4; }
+s32 &PieceY() { return gMappreview_8186a8; }
 
 // The definition of the piece [0x8186e0] (ObjectDefs_Find on 0x7890a0).
-u8 *Def(const MapPreviewEnv *E) { return E->findDef(reinterpret_cast<u8 *>((uintptr_t)0x007890a0), nullptr, global<u16>(0x008186e0)); }
+u8 *Def(const MapPreviewEnv *E) { return E->findDef(reinterpret_cast<u8 *>((uintptr_t)0x007890a0), nullptr, gActionrec_8186e0); }
 
 u32 Mode() { return Global81ae2c_Get_52f840() | 0x100; }
 
@@ -145,7 +146,7 @@ void Footprint(const MapPreviewEnv *E) {
 // Mode 4: a path or queue piece.
 void Piece(const MapPreviewEnv *E, s32 &x, s32 &y) {
     global<u8>(0x008186d4) = 1;
-    if (at<s32>(Def(E), 0xc4) > 0 && (u8)E->hasKey(World() + 0x2c0, nullptr, global<u16>(0x008186e0)) == 0) {
+    if (at<s32>(Def(E), 0xc4) > 0 && (u8)E->hasKey(World() + 0x2c0, nullptr, gActionrec_8186e0) == 0) {
         Global81af4c_Set_52fb90(0);
     } else {
         Global81af4c_Set_52fb90(at<u32>(Def(E), 0x1b8));
@@ -160,7 +161,7 @@ void Piece(const MapPreviewEnv *E, s32 &x, s32 &y) {
     PieceX() = x;
     PieceY() = y;
     global<u32>(0x0081b604) = 0;
-    if (global<u16>(0x008186e0) != 0) {
+    if (gActionrec_8186e0 != 0) {
         global<u32>(0x00818c10) = at<u32>(Def(E), 0x54);
         if (global<u32>(0x008187f8) != 0 && Map_InBounds(x, y)) {
             const u8 *def = Def(E);
@@ -347,5 +348,5 @@ extern "C" void __cdecl GameMode_MapPreview(s32 x, s32 y, u32 flags) {
         }
     }
     E->cursorUpdate();
-    global<u32>(0x00818688) = StartX() == x && StartY() == y;
+    gMappreview_818688 = StartX() == x && StartY() == y;
 }

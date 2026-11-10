@@ -717,7 +717,7 @@ u32 __cdecl TrakRide_Create(s32 kind, s32 x, s32 y, u32 orientation, u32 handle,
         for (int n = 8; n != 0; --n) {
             if (u8 *piece = Buoy_Alloc(px + x, d + y))
                 AppendPiece(ride, piece);
-            const s32 cosine = global<s32>(0x00877458), sine = global<s32>(0x00877658);
+            const s32 cosine = gTrakRide_Create_877458, sine = gTrakRide_Create_877658;
             const s32 oldx = px;
             px = ShiftDown8((s32)((u32)sine * (u32)px + (u32)cosine * (u32)d));
             d = ShiftDown8((s32)((u32)sine * (u32)d - (u32)oldx * (u32)cosine));
@@ -782,7 +782,7 @@ u32 __cdecl TrakRide_Create(s32 kind, s32 x, s32 y, u32 orientation, u32 handle,
             for (int n = 7; n != 0; --n) {
                 if (u8 *piece = Buoy_Alloc(px + starts[group][0], py + starts[group][1]))
                     AppendPiece(ride, piece);
-                const s32 cosine = global<s32>(0x00877458), sine = global<s32>(0x00877a58);
+                const s32 cosine = gTrakRide_Create_877458, sine = gTrakRide_Create_877a58;
                 const s32 oldx = px;
                 px = ShiftDown8((s32)((u32)sine * (u32)py + (u32)cosine * (u32)px));
                 py = ShiftDown8((s32)((u32)cosine * (u32)py - (u32)oldx * (u32)sine));

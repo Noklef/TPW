@@ -172,3 +172,9 @@ void __cdecl Sound_SetEaxRecord(u32 index);
 // position (x, y, z; y the float [0x700b28] when the word 0x803ad2 is set; through the x87), the direction and the value triples.
 void __cdecl Sound_SetPlacement(u32 x, u32 y, u32 z, u32 dx, u32 dy, u32 dz, u32 vx, u32 vy, u32 vz);
 }
+
+#include "gamedata.h"
+
+// Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(u32, gSoundset_802bc8, 0x00802bc8, 4);
+GAME_DATA(u32, gSoundset_802bd4, 0x00802bd4, 4);

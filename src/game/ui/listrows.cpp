@@ -142,7 +142,7 @@ void __cdecl List7cc530_InitRow(u8 *row) {
 }
 
 u8 *__cdecl List7ca140_NewRow() {
-    if (global<u32>(0x007ca140) == 0) fontHeight(global<u32>(0x007508b4));   // (sic: the font's height asked for and dropped)
+    if (global<u32>(0x007ca140) == 0) fontHeight(gList7ca140_7508b4);   // (sic: the font's height asked for and dropped)
     global<u32>(0x007ca140) = 0x38;
     u8 *const window = newRow(0, 0, global<u16>(0x007ca140));
     if (window) {
@@ -393,20 +393,20 @@ void __cdecl List7ca158_InitRow(u8 *row) {
 
 void __cdecl List7ca140_InitRow(u8 *row) {   // (sic: the original builds a GuiRect on its stack and destroys it, unused)
     setPart(row, TextPart6ff470_Ctor);
-    Window_Set4c(row, nullptr, Language_Font(global<u32>(0x007508b4)));
+    Window_Set4c(row, nullptr, Language_Font(gList7ca140_7508b4));
     Window_NotifyC00(row, nullptr, 1, 1);
     u8 *window = firstChild(row);
     setPart(window, TextPart6ff3b0_Ctor);
-    Window_Set4c(window, nullptr, Language_Font(global<u32>(0x007508b4)));
+    Window_Set4c(window, nullptr, Language_Font(gList7ca140_7508b4));
     vcall<void>(window, 0x1c, 0u);
     Window_NotifyC00(window, nullptr, 2, 1);
     window = nextSibling(window);
     setPart(window, TextPart6ff4a0_Ctor);
-    Window_Set4c(window, nullptr, Language_Font(global<u32>(0x007508b4)));
+    Window_Set4c(window, nullptr, Language_Font(gList7ca140_7508b4));
     Window_NotifyC00(window, nullptr, 1, 1);
     window = nextSibling(window);
     setPart(window, TextPart6ff350_Ctor);
-    Window_Set4c(window, nullptr, Language_Font(global<u32>(0x007508b4)));
+    Window_Set4c(window, nullptr, Language_Font(gList7ca140_7508b4));
     vcall<void>(window, 0x1c, 0u);
     window = nextSibling(window);
     Window_SaveInsetRect(window, 4, 0);

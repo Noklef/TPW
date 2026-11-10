@@ -299,3 +299,9 @@ struct PersonEnv {
 };
 void Person_SetEnv(const PersonEnv *env);
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(u32, gVisitor_UseObject_75d0f0, 0x0075d0f0, 4);
+GAME_DATA(u32, gVisitor_UseObject_75d0f4, 0x0075d0f4, 4);

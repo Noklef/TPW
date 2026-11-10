@@ -27,8 +27,8 @@ u32 widthOf(u8 *player) { return at<u32>(settingsOf(player), 0x64); }
 void MadVideo_SetEnv(const MadVideoEnv *env) { g_env = env ? env : &kGameEnv; }
 
 extern "C" u32 __fastcall MadVideo_DecodeFrame(u8 *player, const u8 *data, u8 *out, u32 pitch, u32 kind) {
-    if (!global<u32>(0x00faac64)) {
-        global<u32>(0x00faac64) = 1;
+    if (!gMadVideo_DecodeFrame_faac64) {
+        gMadVideo_DecodeFrame_faac64 = 1;
         for (u32 offset : {0x664u, 0x668u, 0x66cu}) at<void *>(player, offset) = g_env->calloc(1, widthOf(player) * heightOf(player) * 4);
     }
     g_env->beginFrame(data + 0x10, kind != 5, static_cast<s8>(data[0xd]));

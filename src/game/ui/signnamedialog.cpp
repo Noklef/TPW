@@ -184,7 +184,7 @@ s32 __cdecl SignNameDialog7ca214_Handler(u8 *window, u32 message, u32 a, u32 b) 
         g_handler->saveNameB(g_handler->save(), nullptr, kNameB);
         scramble(kNameA);
         scramble(kNameB);
-        if (!Crt().wcscmp(global<const u16 *>(0x00751a34), kNameA) && !Crt().wcscmp(global<const u16 *>(0x00751a38), kNameB)) {
+        if (!Crt().wcscmp(gSignNameDialog7ca214_Handler_751a34, kNameA) && !Crt().wcscmp(gSignNameDialog7ca214_Handler_751a38, kNameB)) {
             u8 &guard = global<u8>(0x00fb34c4);
             u8 *const cheats = reinterpret_cast<u8 *>((uintptr_t)0x00fb3520);
             if (!(guard & 1)) {

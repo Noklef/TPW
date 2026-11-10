@@ -58,7 +58,7 @@ u32 __cdecl CommandLine_Parse(s32 argc, char **argv) {
             continue;
         }
         if (is_switch(arg, 0x00748708)) {   // "bwcursor"
-            global<u32>(0x00788270) = 1;
+            gCmdline_788270 = 1;
             continue;
         }
         bool named = false;

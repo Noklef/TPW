@@ -42,3 +42,8 @@ void __fastcall DctVlc_FillDc(s32 *out, s32 pitch);
 // quality << 12) (16.16, rounded by bit 15 as the IMUL / SHL / SHR / ADC idiom; the products wrapping).
 void __fastcall DctVlc_BeginFrame(const u16 *data, s32 *out, s32 quality);
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(u32, gDctVlc_faac68, 0x00faac68, 4);

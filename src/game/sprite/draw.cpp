@@ -65,7 +65,7 @@ void SpriteDraw_SetEnv(const SpriteDrawEnv *e) { g_env = e ? e : &kGameEnv; }
 extern "C" void __cdecl SpriteDraw_Begin() {
     for (u32 i = 0; i < 16; ++i) counts()[i] = 0;
     overlayCount() = 0;
-    global<u32>(0x00877348) = 1;
+    gSpriteDraw_877348 = 1;
     if (global<u8>(0x00790ab0) & 0x16) {
         heading() = (float)Matrix_Heading(global<const float *>(0x00790a98));
         return;
@@ -75,7 +75,7 @@ extern "C" void __cdecl SpriteDraw_Begin() {
 }
 
 extern "C" void __cdecl SpriteDraw_End() {
-    if (global<u32>(0x00877348)) {
+    if (gSpriteDraw_877348) {
         for (u32 i = 0; i < 16; ++i) global<s32>(0x008751f4 + 0x24 * i) = counts()[i];
         global<s32>(0x00876424) = overlayCount();
     }

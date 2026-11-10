@@ -41,7 +41,7 @@ void __cdecl Instance_FreeHolderBlock(const u8 *instance) {
 
 s32 __cdecl Int_Add(s32 a, s32 b) { return a + b; }
 
-void __cdecl Release_InitUnusedOne() { global<float>(0x007b0468) = 1.0f; }
+void __cdecl Release_InitUnusedOne() { gRelease_InitUnusedOne_7b0468 = 1.0f; }
 
-void __cdecl Release_InitUnusedEpsilon() { global<float>(0x007b046c) = 1.0f / 8388608.0f; }
+void __cdecl Release_InitUnusedEpsilon() { gRelease_InitUnusedEpsilon_7b046c = 1.0f / 8388608.0f; }
 }

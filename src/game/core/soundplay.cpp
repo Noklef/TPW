@@ -28,7 +28,7 @@ u32 post(u32 owner, u32 category, u32 sound, s32 x, s32 y, s32 z, float range) {
     return vcall<u32>(global<void *>(0x00802bcc), 8, owner, &cmd);
 }
 
-bool started() { return global<u32>(0x00802bc8) && global<u32>(0x00802bd4); }
+bool started() { return gSoundset_802bc8 && gSoundset_802bd4; }
 
 }  // namespace
 

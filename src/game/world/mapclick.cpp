@@ -799,10 +799,10 @@ drag: {   // modes 1 and 3
         Fn_52fbd0();
         PairTable_Add((u32)x, (u32)y);
         if (Global81ae2c_Equals(1) != 0) E->advise(0xb8);
-        global<u32>(0x008186dc) = 0;
+        gGameMode_MapClick_8186dc = 0;
         goto end;
     }
-    if (++global<u32>(0x008186dc) == 3) {
+    if (++gGameMode_MapClick_8186dc == 3) {
         E->advise(0xd6);
         sy = StartY();
     }
@@ -832,7 +832,7 @@ drag: {   // modes 1 and 3
         StartY() = y;
         goto end;
     }
-    global<u32>(0x008186d0) = 0;
+    gMapclick_8186d0 = 0;
     StartX() = -1;
     StartY() = -1;
     global<u32>(0x00763ac0) = 0x80;

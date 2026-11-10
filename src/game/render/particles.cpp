@@ -55,7 +55,7 @@ u32 __cdecl ParticleEffector_IsAlive(u32 handle) {
     return global<u16>(0x00816504 + (u16)handle * 0x68) == (u16)(handle >> 16) ? 1 : 0;
 }
 
-void __cdecl Particles_SetReduced(u32 reduced) { global<u32>(0x0080ced8) = reduced; }
+void __cdecl Particles_SetReduced(u32 reduced) { gParticles_80ced8 = reduced; }
 
 void __cdecl ParticleEffect_Clear118(u32 effect) {
     if (global<u32>(0x00816d40) != 0 && effect < 0x69) global<u8>(0x00804370 + effect * 0x140 + 0x118) = 0;
@@ -291,7 +291,7 @@ static s32 StartSystem(s32 effect, s32 x, s32 y, s32 z, const s32 *velocity) {
     if (global<u32>(0x00816d40) == 0 || effect < 0 || effect >= 0x69)
         return -1;
     u8 *const def = reinterpret_cast<u8 *>(0x00804370 + effect * 0x140);
-    if (global<u32>(0x0080ced8) != 0 && def[0xc1] != 0)
+    if (gParticles_80ced8 != 0 && def[0xc1] != 0)
         return 0;
 
     // A system off the free list (head 0x816d20) to the head of the live list (0x816d1c)
@@ -716,9 +716,9 @@ void __cdecl Particles_Update() {
 
 u32 __cdecl Particles_Tick() {
     if (global<u32>(0x00816d40) == 0)
-        return global<u32>(0x0080436c);
+        return gParticles_Tick_80436c;
     if (++global<s32>(0x0080ced4) <= 1)
-        return global<u32>(0x0080436c);
+        return gParticles_Tick_80436c;
     for (s32 slot = global<s16>(0x00816d1c), next; slot >= 0; slot = next) {
         u8 *const s = system((u32)slot);
         next = field<s16>(s, 0xd0);
@@ -786,7 +786,7 @@ u32 __cdecl Particles_Tick() {
     }
     ParticleEffectors_Update();
     Particles_Update();
-    return global<u32>(0x0080436c);
+    return gParticles_Tick_80436c;
 }
 
 u32 __cdecl ParticleLib_Load(const char *name) {
@@ -911,7 +911,7 @@ void __cdecl Particles_Init(u32 callback, u32 flag, s32 count) {
     global<u32>(0x0080cee0) = 1;
     global<u32>(0x0080ceec) = (u32)(uintptr_t)ParticleSines_Build();
     global<s32>(0x0080cedc) = count;
-    global<u32>(0x0080ced8) = 0;
+    gParticles_80ced8 = 0;
     global<u32>(0x0080cef4) = callback ? callback : 0x005d60c0;
     global<u32>(0x0080cef8) = Mem_AllocChecked((u32)count * 0x34);
     global<u32>(0x00816d40) = 1;

@@ -245,3 +245,10 @@ void __cdecl TrakRides_DestroyAll();
 // 15 words from 0x877b58 cleared.
 void __cdecl TrakRides_Shutdown();
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(s32, gTrakRide_Create_877458, 0x00877458, 4);
+GAME_DATA(s32, gTrakRide_Create_877658, 0x00877658, 4);
+GAME_DATA(s32, gTrakRide_Create_877a58, 0x00877a58, 4);

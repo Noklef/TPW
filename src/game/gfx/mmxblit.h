@@ -41,3 +41,12 @@ void __cdecl MmxBlit_Dither16(const u8 *source, u8 *out, u32 width, u32 rows, s3
 void __cdecl MmxBlit_Convert16(u8 *source, u8 *out, u32 width, u32 rows, s32 sourcePitch, s32 outPitch, u8 *depth, u32 depthPitch,
                                u32 clear, u32 fill);
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(u32, gMmxBlit_Copy32_fab484, 0x00fab484, 4);
+GAME_DATA(u32, gMmxBlit_Copy32_fab4a0, 0x00fab4a0, 4);
+GAME_DATA(u32, gMmxBlit_Copy32_fab4b0, 0x00fab4b0, 4);
+GAME_DATA(u32, gMmxBlit_Convert16_fab4b4, 0x00fab4b4, 4);
+GAME_DATA(u32, gMmxBlit_Convert16_fab4d8, 0x00fab4d8, 4);

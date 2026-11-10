@@ -115,3 +115,8 @@ s32 __cdecl ResearchPanel_Handler(u8 *window, u32 message, u32 a, u32 b);
 // of 0xd2d10's child 0xd2d12 given it and 0xd2d10's given (the lab's +0x1460 - 0x46) * limit / 30 (all signed); ShowName then ShowProgress of 0, 4, 1, 2, 3; the sliders' slot 7 their groups' ResearchLab_GroupEffort; [0x7cc1bc] = 0; ResearchMeters_Update (-1); Advisor_PostId (0xc8).
 void __cdecl ResearchPanel_Open();
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(u32, gResearchPanel_Open_754bc8, 0x00754bc8, 4);

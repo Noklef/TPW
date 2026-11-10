@@ -296,3 +296,11 @@ u32 __cdecl MapCell_StepBlocked(u32 x, u32 y, u32 dir, s32 mode);
 // or, failing that, the other.
 u32 __cdecl MapCell_StepOpen(u32 from, u32 to, s32 mode);
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(s32, gMapGrid_MarkEdges_8187f0, 0x008187f0, 4);
+GAME_DATA(s32, gMapGrid_MarkEdges_8187f4, 0x008187f4, 4);
+GAME_DATA(s32, gMapGrid_ClassifyTypes_818c00, 0x00818c00, 4);
+GAME_DATA(s32, gMapGrid_ClassifyTypes_818c04, 0x00818c04, 4);

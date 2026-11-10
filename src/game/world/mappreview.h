@@ -79,3 +79,10 @@ extern "C" {
 // 0x5234d0: see above.
 void __cdecl GameMode_MapPreview(s32 x, s32 y, u32 flags);
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(u32, gMappreview_818688, 0x00818688, 4);
+GAME_DATA(s32, gMappreview_8186a4, 0x008186a4, 4);
+GAME_DATA(s32, gMappreview_8186a8, 0x008186a8, 4);

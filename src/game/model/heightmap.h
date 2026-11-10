@@ -36,3 +36,9 @@ u8 *__cdecl HeightMap_Build(u8 *instance, u32 width, u32 height, const u8 *flags
 // Debug_Printf left out.
 void __cdecl HeightMap_ReadOrBuild(u8 *instance, u32 width, u32 height, const char *path, const u8 *flags, u32 useScale);
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(float, gHeightmap_79fb08, 0x0079fb08, 4);
+GAME_DATA(u32, gHeightmap_79fb0c, 0x0079fb0c, 4);

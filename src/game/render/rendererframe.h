@@ -24,3 +24,8 @@ u32 __cdecl Engine_DrawFrame();
 // bit 0 of 0x87a6c0): nothing.
 void __cdecl RendererFrame_MatrixAtExit();
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(float, gRenderer_DrawFrame_8bd478, 0x008bd478, 4);

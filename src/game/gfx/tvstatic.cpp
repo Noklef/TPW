@@ -46,12 +46,12 @@ Surface *__cdecl TvStatic_CreateSurface() {
     return s;
 }
 
-void __cdecl TvStatic_Init() { global<Surface *>(0x00874fd0) = TvStatic_CreateSurface(); }
+void __cdecl TvStatic_Init() { gTvStatic_874fd0 = TvStatic_CreateSurface(); }
 
 void __cdecl TvStatic_Free() {
-    void *surface = Surface_GetSurface(global<Surface *>(0x00874fd0), 1);
+    void *surface = Surface_GetSurface(gTvStatic_874fd0, 1);
     comcall<u32>(surface, 8);
-    GameHeap_Free(global<Surface *>(0x00874fd0));
+    GameHeap_Free(gTvStatic_874fd0);
 }
 
 void __cdecl TvStatic_Draw(void *screen) {
@@ -66,8 +66,8 @@ void __cdecl TvStatic_Draw(void *screen) {
     Surface *target = reinterpret_cast<Surface *>((uintptr_t)0x00874fd8);
     s32 out;
     Surface_Attach(&out, screen, target);
-    Surface_Lock(&out, global<Surface *>(0x00874fd0), nullptr);
-    Display_SetSurface(global<Surface *>(0x00874fd0));
+    Surface_Lock(&out, gTvStatic_874fd0, nullptr);
+    Display_SetSurface(gTvStatic_874fd0);
     for (u32 x = 0; x < 0x140; ++x)
         for (u32 y = 0; y < 0xf0; ++y) {
             if (Crt().rand() & 3)
@@ -77,9 +77,9 @@ void __cdecl TvStatic_Draw(void *screen) {
             else
                 Display_Pixel(x, y, grey);
         }
-    Surface_Unlock(global<Surface *>(0x00874fd0));
+    Surface_Unlock(gTvStatic_874fd0);
     const Rect to = {0, 0, global<s32>(0x007a1968), global<s32>(0x007a1930)};
     const Rect from = {0, 0, 0x140, 0xf0};
-    Surface_Blt(&out, target, &to, global<Surface *>(0x00874fd0), &from, 0);
+    Surface_Blt(&out, target, &to, gTvStatic_874fd0, &from, 0);
 }
 }

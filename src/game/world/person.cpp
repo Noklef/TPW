@@ -635,12 +635,12 @@ void __fastcall Visitor_UseObject(u8 *visitor, void *, u8 *object) {
         const u32 sprite = SpriteFolder_RandomSprite(10);
         const u32 anim = Sprite_RandomAnim(10, sprite);
         at<s32>(visitor, 0x210) = SpriteScript_Start(0x0074f480, 10, sprite, anim, 0, 0, 0);
-        u32 life = (u32)Obj_GetByte18c(object) * global<u32>(0x0075d0f4) / 100;   // (the product wraps)
+        u32 life = (u32)Obj_GetByte18c(object) * gVisitor_UseObject_75d0f4 / 100;   // (the product wraps)
         at<u32>(visitor, 0x214) = life;
-        if (life < global<u32>(0x0075d0f0))
-            life = global<u32>(0x0075d0f0);
-        else if (life > global<u32>(0x0075d0f4))
-            life = global<u32>(0x0075d0f4);
+        if (life < gVisitor_UseObject_75d0f0)
+            life = gVisitor_UseObject_75d0f0;
+        else if (life > gVisitor_UseObject_75d0f4)
+            life = gVisitor_UseObject_75d0f4;
         at<u32>(visitor, 0x214) = life;
         Ring_PushUnique(ring, nullptr, 0xc, *Thing_GetHandle(object, nullptr, &handle));
     } else if (appearance == 2) {   // a costume: put on, or returned

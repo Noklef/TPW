@@ -30,3 +30,8 @@ void __cdecl ParkEntrance_Lay();
 // mode 0, cursor 1; [0x7639c0] = CellRun_Lay of the four dwords at 0x7639f0 with direction 4; the run marked, the track line pruned, the run unmarked; the terrain shaded.
 void __cdecl ParkEntrance_LayOutline(s32 x1, s32 y1, s32 x2, s32 y2);
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(s32, gParkEntrance_Lay_78503c, 0x0078503c, 4);

@@ -20,3 +20,9 @@ void __cdecl Model_TexCoords(u8 *out, const u8 *settings, s32 index, const u8 *t
 // stage, u, v; pops 12; name unconfirmed): the stage's (u, v) at +0x18 + 8 * stage, through the x87 (no bound on stage).
 void __fastcall Vertex_SetTexCoords(u8 *vertex, void *, s32 stage, float u, float v);
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(float, gModel_TexCoords_8c1618, 0x008c1618, 4);
+GAME_DATA(float, gModel_TexCoords_8c161c, 0x008c161c, 4);

@@ -58,3 +58,8 @@ struct SpriteDrawEnv {
 };
 // The draw path's calls go to env (nullptr: the game's).
 void SpriteDraw_SetEnv(const SpriteDrawEnv *env);
+
+#include "../core/gamedata.h"
+
+// Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(u32, gSpriteDraw_877348, 0x00877348, 4);

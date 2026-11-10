@@ -96,12 +96,12 @@ u32 __cdecl HeightMap_Rasterize(u8 *node, u32 unused, Matrix44 m, u8 *grid, u8 *
                         ok = 0;
                     }
                     p[2] = 0.0f;
-                } else if (!(p[2] < g<float>(0x0079fb08))) {
-                    if (!((X87Reg(g<float>(0x0079fb08)) - kMinusOne).v >= p[2])) {
+                } else if (!(p[2] < gHeightmap_79fb08)) {
+                    if (!((X87Reg(gHeightmap_79fb08) - kMinusOne).v >= p[2])) {
                         Hit(node, hit, clipped);
                         ok = 0;
                     }
-                    p[2] = (float)(X87Reg(g<float>(0x0079fb08)) - kInset);
+                    p[2] = (float)(X87Reg(gHeightmap_79fb08) - kInset);
                 }
                 if (!(p[1] >= 0.0f))
                     p[1] = 0.0f;
@@ -199,9 +199,9 @@ void RasterizeClone(u8 *clone, u8 *map, u32 block, u32 time, u32 *clipped) {
     u8 *const held = at<u8 *>(clone, 8);
     const u32 width = at<u16>(map, 8), height = at<u16>(map, 0xa);
     g<float>(0x0079fb20) = (float)X87_MulInt(width, g<const float>(0x006fe3e4));
-    g<float>(0x0079fb08) = (float)X87_MulInt(height, g<const float>(0x006fe3e4));
+    gHeightmap_79fb08 = (float)X87_MulInt(height, g<const float>(0x006fe3e4));
     g<u32>(0x0079f7d4) = width * 5;
-    g<u32>(0x0079fb0c) = height * 5;
+    gHeightmap_79fb0c = height * 5;
     Matrix44 matrix;
     g_calls.Cd(0x0046f150, &matrix);   // Matrix_Identity
     u8 *const model = at<u8 *>(held, 4);

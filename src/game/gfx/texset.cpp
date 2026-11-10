@@ -20,7 +20,7 @@ u8 *manager() { return global<u8 *>(0x0087a268); }
 
 AddrCalls g_bltCalls;
 
-s32 &deferred() { return global<s32>(0x0087a670); }
+s32 &deferred() { return gTexset_87a670; }
 
 u8 **deferredSets() { return reinterpret_cast<u8 **>((uintptr_t)0x0087a270); }
 

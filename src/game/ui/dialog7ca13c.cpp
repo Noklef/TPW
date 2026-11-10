@@ -53,7 +53,7 @@ void __cdecl Dialog7ca13c_Open(u32 selected) {
         }
         for (u32 i = 0; i < 6; ++i) {   // (the header buttons: the list's children 0x10-0x15)
             u8 *const button = Window_FindChild(list, nullptr, 0x10 + i);
-            const u32 font = global<u32>(0x007508b8);
+            const u32 font = gDialog7ca13c_Open_7508b8;
             u16 *const text = Language_WideText(0x71 + i);
             ButtonText_Init(button, (u32)(uintptr_t)text, font, 0xff, 0xef, 0, 0x81 + i);
         }

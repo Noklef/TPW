@@ -97,7 +97,7 @@ void __cdecl RSSE_Init() {
     global<u32>(0x008791b0) = 0;
     global<u32>(0x008791ac) = 0;
     global<u32>(0x008791a4) = 0;
-    global<u32>(0x00879190) = 0;
+    RSSE_ScriptVersion = 0;
     global<u32>(0x0087919c) = 0;
     // The checksum runs over the names in the opcode table one pointer at a time (the table holds a mnemonic and an
     // operand string per opcode: every pointer is read, sic) and stops at the first pointer to an empty string.
@@ -107,7 +107,7 @@ void __cdecl RSSE_Init() {
     do {
         const char *const name = reinterpret_cast<const char *>(*entry);
         for (u32 i = 0; i < strlen(name); i++)
-            global<u32>(0x00879190) += static_cast<s8>(name[i]);
+            RSSE_ScriptVersion += static_cast<s8>(name[i]);
         entry++;
     } while (*reinterpret_cast<const char *>(*entry));
 }

@@ -40,3 +40,8 @@ void __cdecl Dialog7ca13c_AddGuest(u8 *guest);
 // thing (0x7cfb90's entry for its low word).
 void __fastcall Obj7b51f0_OnGuestAdded(void *, void *, u32 handle);
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(u32, gDialog7ca13c_Open_7508b8, 0x007508b8, 4);

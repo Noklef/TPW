@@ -59,3 +59,8 @@ void PlaceFootprint_SetEnv(const PlaceFootprintEnv *env);
 // with no columns and no placing, unset in the original: the port passes 0 there.)
 s32 *__cdecl PlaceObject_Footprint(s32 x, s32 y, u32 unused, s32 angle, u32 place, u32 check);
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(const s32 *, gPlaceObject_Footprint_818c18, 0x00818c18, 4);

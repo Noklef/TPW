@@ -62,3 +62,8 @@ u32 __fastcall TexSet_BltToBack(u8 *self);
 
 struct AddrCall;
 void TexSet_SetBltCalls(const AddrCall *table, u32 count);   // tests/fncmp/texsetblt.py
+
+#include "../core/gamedata.h"
+
+// Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(s32, gTexset_87a670, 0x0087a670, 4);

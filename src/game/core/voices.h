@@ -39,3 +39,8 @@ void __cdecl Emitter_Spawn(s32 index, u32 reset);
 // first and last are set before the middle, which [0x80cedc] bounds again each step). 0x816d3c = 0.
 void __cdecl Emitters_Reset();
 }  // extern "C"
+
+#include "gamedata.h"
+
+// Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(u32, gEmitters_Reset_80cee4, 0x0080cee4, 4);

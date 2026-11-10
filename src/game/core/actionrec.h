@@ -81,3 +81,8 @@ void __cdecl Global81d7a4_SetRecorded(u32 value, u32 force);
 // World_MarkRideBuilt); then the word 0x8186ec = the word 0x8186e0, the dword 0x8187f8 = flag and 0x8186e0 = id.
 void __cdecl Global8186e0_SetRecorded(const u16 *id, u32 flag);
 }
+
+#include "gamedata.h"
+
+// Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(u16, gActionrec_8186e0, 0x008186e0, 2);

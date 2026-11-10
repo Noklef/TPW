@@ -5,6 +5,7 @@
 #include <cstring>
 
 #include "../core/vcall.h"
+#include "../core/accessors.h"
 
 namespace {
 
@@ -24,9 +25,9 @@ const MovieStartEnv kGameEnv = {
 };
 const MovieStartEnv *g_env = &kGameEnv;
 
-u32 &allowed() { return global<u32>(0x00802bc0); }
-u32 &on() { return global<u32>(0x00802bbc); }
-u8 *&player() { return global<u8 *>(0x00802bb4); }
+u32 &allowed() { return gAccessors_802bc0; }
+u32 &on() { return gMoviestart_802bbc; }
+u8 *&player() { return gMoviestart_802bb4; }
 u8 *&front() { return global<u8 *>(0x00802404); }
 u8 *&back() { return global<u8 *>(0x00802408); }
 u32 &flags() { return global<u32>(0x008023f4); }
@@ -62,7 +63,7 @@ extern "C" {
 u32 __cdecl Movie_Start(u32 file, u32 mode, s32 x, s32 y, u32 overlay) {
     const u32 sound = g_env->soundWord();
     if (!allowed() || !file || on()) return 0;
-    global<u32>(0x00802bb0) = 0;
+    gMovie_Start_802bb0 = 0;
     memset(address(0x008023f0), 0, 0x1ee * 4);
     global<u32>(0x008023e8) = 0;
     u8 *const renderer = global<u8 *>(0x00879a24);
@@ -110,7 +111,7 @@ u32 __cdecl Movie_Start(u32 file, u32 mode, s32 x, s32 y, u32 overlay) {
         release_interfaces();
     }
     on() = 1;
-    if (player()) g_env->setVolume(player(), (s32)(global<u32>(0x00802ba8) * 10000u) / 1023 - 10000);
+    if (player()) g_env->setVolume(player(), (s32)(gAccessors_802ba8 * 10000u) / 1023 - 10000);
     return result;
 }
 

@@ -159,7 +159,7 @@ void __cdecl Train_RestoreSaved(const u8 *owner, u8 *train) {
         Car_SetChannelRates(at<u32>(owner, 4), car);
     }
     for (; i < 5; ++i) at<u32>(train, 0x34 + 4 * i) = 0;
-    global<u32>(0x00791cd8) = 0;
+    gTrain_791cd8 = 0;
 }
 
 void __cdecl Train_RemoveCar(const u8 *owner, const u8 *car) {
@@ -821,7 +821,7 @@ void __cdecl Train_PlaceCarAtBrace(u8 *coaster, u8 *car, u8 *train, u32, u32 sav
             if (c) std::memcpy(reinterpret_cast<void *>(0x00791d00 + 0x104 * k), c, 0x104);
             reinterpret_cast<u32 *>(0x00791038)[k] = at<u32>(c, 0x50);   // (an empty slot faults, sic)
         }
-        global<u32>(0x00791cd8) = 1;
+        gTrain_791cd8 = 1;
         type = at<u32>(train, 0x18);
     } else {
         type = at<u32>(coaster, 4) + (marks ? 0x1c8 : 0xa8);
