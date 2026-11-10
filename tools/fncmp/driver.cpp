@@ -500,6 +500,7 @@
 #include "../../src/game/render/spritequeue.h"
 #include "../../src/game/sprite/loading.h"
 #include "../../src/game/core/namedobjects.h"
+#include "../../src/game/core/staticinit.h"
 #include "../../src/game/world/object.h"
 #include "crt.h"
 #include "../../src/hook/hooks.h"
@@ -811,6 +812,16 @@ const GameHeapEnv kGameHeapEnv = {&heap_alloc, &heap_free};
 // tmpfile, fseek, fread, fwrite and fclose recorders 19 (0), 20 (3), 21 (4), 22 (4) and 23 (1) (0x67fd60, 0x67c100, 0x67e1d0, 0x67b6d0,
 // 0x67b620: jpeg6b_memansi.py), jerror.c's exit exit_case and fprintf recorder 30 (3) (0x67f920, 0x67dad0: jpeg6b_error.py).
 constexpr u32 jpeg_recorder(u32 k, u32 n) { return kStubs + 0x1000 + 0xa000 + 0x400 * n + 0x20 * k; }
+// The static initialisers' CRT_atexit (src/game/core/staticinit; kStubs + 0xe0, tests/fncmp/staticinit.py's ATEXIT_STUB): the C++ exit thunk
+// it is given turned back into the original's address (a port's address as it is), then the cdecl recorder 31 of 1 argument, as the
+// emulator's 0x67a7d0 logs the original's. Their calls by address go through the table the case maps at kStaticInitCalls (64 entries).
+u32 __cdecl stub_static_init_atexit(u32 fn) {
+    const u32 original = StaticInit_ExitAddress(reinterpret_cast<void(__cdecl *)()>((uintptr_t)fn));
+    return reinterpret_cast<u32(__cdecl *)(u32)>((uintptr_t)jpeg_recorder(31, 1))(original ? original : fn);
+}
+const u32 kStaticInitCalls = 0x2c000000;
+u32 g_static_init;   // the generated initialiser find() last gave static_init_one for
+void __cdecl static_init_one() { StaticInit_RunAt(g_static_init); }
 // The C runtime's exit (0x67f920), which never comes back in the game: the cdecl recorder 29 of 1 argument, then kCaseExit, which the
 // main loop reports as the case's return, its memory as it is then (tools/fncmp.py's _exit_case(29)).
 constexpr DWORD kCaseExit = 0xe0000e17;
@@ -2635,7 +2646,7 @@ void map_stubs() {
     const void *stubs[] = {(const void *)&stub_read, (const void *)&stub_write, (const void *)&stub_global_alloc,
                            (const void *)&stub_global_free, (const void *)&stub_mark, (const void *)&stub_cdecl_log, (const void *)&stub_counter,
                            (const void *)&stub_seek, (const void *)&stub_cdecl_log2, (const void *)&stub_cdecl_log4, (const void *)&stub_zalloc,
-                           (const void *)&stub_zfree, (const void *)&stub_stream_size, (const void *)&stub_tell};
+                           (const void *)&stub_zfree, (const void *)&stub_stream_size, (const void *)&stub_tell, (const void *)&stub_static_init_atexit};
     for (u32 i = 0; i < sizeof stubs / sizeof stubs[0]; ++i) jump(p + 0x10 * i, stubs[i]);
     map_recorders(p);
 }
@@ -2649,6 +2660,14 @@ void *find(u32 address) {
         if (tpw::hook::kHooks[i].address == address) return tpw::hook::kHooks[i].replacement;
     for (u32 i = 0; i < kCrtStandInCount; ++i)
         if (kCrtStandIns[i].address == address) return kCrtStandIns[i].fn;
+    // The static initialisers (not hooked: tests/fncmp/staticinit.py): 0x67f90d (CRT_initterm over __xc_a..__xc_z) StaticInit_Run, an exit
+    // thunk its C++, a generated initialiser static_init_one for it.
+    if (address == 0x0067f90d) return reinterpret_cast<void *>(&StaticInit_Run);
+    if (void(__cdecl *const exit)() = StaticInit_Exit(address)) return reinterpret_cast<void *>(exit);
+    if (StaticInit_Has(address)) {
+        g_static_init = address;
+        return reinterpret_cast<void *>(&static_init_one);
+    }
     return nullptr;
 }
 
@@ -2871,6 +2890,7 @@ int main(int argc, char **argv) {
     WeatherTables_SetCalls(kWeatherTablesCalls, sizeof(kWeatherTablesCalls) / sizeof(kWeatherTablesCalls[0]));
     GameStart_SetCalls(kGameStartCalls, sizeof(kGameStartCalls) / sizeof(kGameStartCalls[0]));
     ImeInput_SetCalls(kImeInputCalls, sizeof(kImeInputCalls) / sizeof(kImeInputCalls[0]));
+    StaticInit_SetCalls(reinterpret_cast<const AddrCall *>((uintptr_t)kStaticInitCalls), 64);
     ViewFootprint_SetCalls(kViewFootprintCalls, sizeof(kViewFootprintCalls) / sizeof(kViewFootprintCalls[0]));
     RendererFrame_SetCalls(kRendererFrameCalls, sizeof(kRendererFrameCalls) / sizeof(kRendererFrameCalls[0]));
     RasterDraw_SetCalls(kRasterDrawCalls, sizeof(kRasterDrawCalls) / sizeof(kRasterDrawCalls[0]));
