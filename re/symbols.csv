@@ -6002,6 +6002,7 @@ address,name,kind,confidence,notes
 0x006bafd0,SoundGuard_DeleteArray,function,low,"reimplemented (src/game/core/soundguard); the held object's slot 0 (3), unless null"
 0x006bafe0,SoundGuard_Delete,function,low,"reimplemented (src/game/core/soundguard); the held object's slot 0 (1), unless null"
 0x006bb210,SoundGuard_Release,function,low,reimplemented (src/game/core/soundguard); with byte +4 the held object's slot 3
+0x006bb0c0,SoundGuard_CloseHandle,function,low,"reimplemented (src/game/core/soundguard); thiscall on a handle holder (the voice's +0x6c in the unwind funclets): CloseHandle of it, its answer"
 0x006bb940,SoundRandom_Seed,function,low,reimplemented (src/game/core/soundseed); the random number 0xfb1f20 seeded from the time
 0x0057ced0,RecordSort_Range,function,low,"reimplemented (src/game/core/recordsort); a quicksort of records by a dword key, the largest first, through a temporary record"
 0x0057d090,RecordSort_Run,function,low,"reimplemented (src/game/core/recordsort); the sort's fields set, then RecordSort_Range"

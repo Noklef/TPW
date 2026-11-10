@@ -1,14 +1,15 @@
-# The sound cleanups' holders (src/game/core/soundguard) against the originals: the held object a recorder vtable (slots 0, 2 of one argument, slot 3 of none) or null; the freed block one of the heap's or null.
+# The sound cleanups' holders (src/game/core/soundguard) against the originals: the held object a recorder vtable (slots 0, 2 of one argument, slot 3 of none) or null; the freed block one of the heap's or null; the closed handle (0x6bb0c0) any, CloseHandle a recorder.
 # usage: soundguard.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=name,name to pick)
 import os
 import struct
 import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
-from fncmp import HEAP, LOG, RAM, Bench, Call, heap, log_region, vtable  # noqa: E402
+from fncmp import HEAP, IMPORT_TABLE, LOG, RAM, Bench, Call, heap, import_table, log_region, set_return, vtable  # noqa: E402
 
-CALLS = {'slot2': 0x6b70b0, 'free': 0x6b70c0, 'array': 0x6bafd0, 'one': 0x6bafe0, 'release': 0x6bb210}
-B = Bench([(0x6b70b0, 0x6b70be), (0x6b70c0, 0x6b70cc), (0x6bafd0, 0x6bafdd), (0x6bafe0, 0x6bafed), (0x6bb210, 0x6bb21f)])
+CALLS = {'slot2': 0x6b70b0, 'free': 0x6b70c0, 'array': 0x6bafd0, 'one': 0x6bafe0, 'release': 0x6bb210, 'close': 0x6bb0c0}
+B = Bench([(0x6b70b0, 0x6b70be), (0x6b70c0, 0x6b70cc), (0x6bafd0, 0x6bafdd), (0x6bafe0, 0x6bafed), (0x6bb210, 0x6bb21f), (0x6bb0c0, 0x6bb0ca)])
+CLOSE_K = 10
 OPS = [k for k in os.environ.get('OPS', ','.join(CALLS)).split(',') if k]
 HOLDER, OBJ, VT = RAM, RAM + 0x100, RAM + 0x200
 
@@ -19,6 +20,12 @@ def case(r):
     if name == 'free':
         regions[HEAP] = heap(0x40)
         held = r.choice([0, HEAP + 0x10, HEAP + 0x10])
+    elif name == 'close':   # (the held handle any: CloseHandle a recorder answering any)
+        log = regions[LOG]
+        regions[IMPORT_TABLE] = import_table(log, {'CloseHandle': (CLOSE_K, 0x6fd13c, 1, 0, 0)})
+        set_return(log, CLOSE_K, r.getrandbits(32))
+        regions[HOLDER] = r.bytes(8)
+        return Call(CALLS[name], [HOLDER], regions, conv='t', ret='a')
     elif name == 'release':   # (the flag says the object is there: null only when it is clear)
         flag = r.choice([0, 1, 0x80, r.getrandbits(8)])
         held = OBJ if flag or r.random() < 0.5 else 0
