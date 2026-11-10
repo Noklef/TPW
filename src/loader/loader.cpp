@@ -192,23 +192,21 @@ void MapPorts() {
 
     g_thunkCode = static_cast<u8 *>(VirtualAlloc(nullptr, 0x1000, MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE));
     if (!g_thunkCode) Fail("tpw: out of memory");
-    for (const u32 slot : kCodeSlots) {
+    auto toPort = [](u32 slot) {
         u32 &value = G<u32>(slot);
         u32 target = Resolve(value);
         if (!target) target = MakeThunk(value);
         if (!target) Fail("tpw: the code-slot table is stale (rebuild tpw): %08X holds %08X, which has no port", slot, value);
         value = target;
-    }
-    for (u32 i = 0; i < kGameDataFixupCount; ++i) {   // pointers into tpw.exe's own globals, and their code addresses (gamedata.h)
+    };
+    for (const u32 slot : kCodeSlots) toPort(slot);
+    for (u32 i = 0; i < kGameDataFixupCount; ++i) {   // pointers into tpw.exe's own globals, and the code slots in them (gamedata.h)
         const GameDataFixup &f = kGameDataFixups[i];
-        u32 &value = G<u32>(f.object ? (u32)(uintptr_t)f.object + f.offset : f.offset);
-        if (f.target) {
-            value = (u32)(uintptr_t)f.target;
-        } else if (const u32 target = Resolve(value)) {
-            value = target;
-        } else if (const u32 thunk = MakeThunk(value)) {
-            value = thunk;
-        }   // (else the original's: a call through it traps, as in the copy)
+        const u32 slot = f.object ? (u32)(uintptr_t)f.object + f.offset : f.offset;
+        if (f.target)
+            G<u32>(slot) = (u32)(uintptr_t)f.target;
+        else
+            toPort(slot);
     }
     Protect((u32)(uintptr_t)g_thunkCode, 0x1000, PAGE_EXECUTE_READ);
 }

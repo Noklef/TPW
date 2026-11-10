@@ -106,12 +106,21 @@ def address(out):
     write(out, lines)
 
 
-def pointers(pe, decls):
+TEXT = {}       # slot: why, for a dword of text whose bytes read as a pointer into a converted range (left as it is)
+POINTERS = {}   # slot: why, for a pointer whose bytes read as text
+
+
+def printable(b):
+    return 0x20 <= b < 0x7f
+
+
+def pointers(pe, decls, code_slots):
     """The exe's pointers that tpw.exe relocates at start-up, from every 4-aligned dword of a data section (not .text, cseg, .rsrc):
-    (slot, value) where the value lies inside a converted range (the slot in the copy or in a converted object), or the slot lies inside
-    a converted object and the value is a code address. Also the problems the fixups cannot express: such a dword across an object's
-    edge, and an object over the import address table (the loader fills that in the copy). A dword that only looks like a pointer (an
-    integer of the same value) is taken for one, as the code-slot table does."""
+    (slot, value) where the value lies inside a converted range (the slot in the copy or in a converted object), or the slot is one of
+    the copy's code slots (code_slots: tools/gen_loader_slots.py's, a hooked function, an adjustor thunk to one, Debug_Printf) inside a
+    converted object. Also the problems the fixups cannot express: such a dword across an object's edge, an object over the import address
+    table (the loader fills that in the copy), and a pointer that reads as the end of a text (three printable bytes and a zero, after a
+    printable one: settle it in TEXT or POINTERS). Any other dword that holds the value of a pointer is taken for one."""
     inside = finder(decls)
     found, errors = [], []
     d = struct.unpack_from('<I', pe.d, 0x3c)[0] + 24 + 96 + 12 * 8   # (IMAGE_DIRECTORY_ENTRY_IAT of the optional header)
@@ -126,10 +135,12 @@ def pointers(pe, decls):
         for o in range(0, len(raw) - 3, 4):
             slot, v = va + o, struct.unpack_from('<I', raw, o)[0]
             into = DATA_LO <= v < DATA_HI and inside(v)
-            if not (into or any(lo <= v < hi for lo, hi in CODE) and (inside(slot) or inside(slot + 3))):
+            if not (into or slot in code_slots and (inside(slot) or inside(slot + 3))) or slot in TEXT:
                 continue
             if inside(slot) != inside(slot + 3):
                 errors.append('%#x holds %#x across the edge of %s' % (slot, v, inside(slot) or inside(slot + 3)))
+            elif into and o and all(map(printable, raw[o - 1:o + 3])) and slot not in POINTERS:
+                errors.append('%#x holds %#x (%s), which reads as text %r: settle it in TEXT or POINTERS' % (slot, v, into, bytes(raw[o - 1:o + 3])))
             else:
                 found.append((slot, v))
     return found, errors
@@ -146,15 +157,23 @@ def self_check():
     struct.pack_into('<I', pe.d, 0x3c, 0x80)
     struct.pack_into('<II', pe.d, 0x80 + 24 + 96 + 96, 0x400008, 8)
     struct.pack_into('<4I', pe.d, 0x400, *[0x700010] * 4)
-    # the copy: code (kept), B+4, B's end (kept), A+4; A: code, B, the copy (kept), 0; B: A, then a pointer across B's end; the copy
-    struct.pack_into('<12I', pe.d, 0x410, 0x401000, 0x700024, 0x700026, 0x700014, 0x401008, 0x700020, 0x700008, 0, 0x700010, 0x700010, 0, 0)
+    # the copy: a code slot (the table's), B+4, B's end (kept), A+4; A: a code slot, B, the copy (kept), a code address that is no code
+    # slot (kept); B: A, then a pointer across B's end; the copy: text "aaaa", then "bap" (0x706162, inside C)
+    struct.pack_into('<12I', pe.d, 0x410, 0x401000, 0x700024, 0x700026, 0x700014, 0x401008, 0x700020, 0x700008, 0x401004, 0x700010,
+                     0x700010, 0x61616161, 0x706162)
     struct.pack_into('<I', pe.d, 0x440, 0x700010)
-    decls = [('u8[16]', 'A', 0x700010, 0x10, ''), ('u8[6]', 'B', 0x700020, 6, '')]
-    found, errors = pointers(pe, decls)
+    decls = [('u8[16]', 'A', 0x700010, 0x10, ''), ('u8[6]', 'B', 0x700020, 6, ''), ('u8[4]', 'C', 0x706160, 4, '')]
+    found, errors = pointers(pe, decls, {0x700000, 0x700010})
     assert found == [(0x700004, 0x700024), (0x70000c, 0x700014), (0x700010, 0x401008), (0x700014, 0x700020), (0x700020, 0x700010),
                      (0x800000, 0x700010)], found
-    assert len(errors) == 1 and 'across the edge of B' in errors[0], errors
-    assert len(pointers(pe, decls + [('u32[2]', 'I', 0x800008, 8, '')])[1]) == 2   # + an object on the IAT
+    assert len(errors) == 2 and 'across the edge of B' in errors[0] and 'reads as text' in errors[1], errors
+    TEXT[0x70002c] = 'self_check'
+    assert pointers(pe, decls, set())[1] == errors[:1]
+    del TEXT[0x70002c]
+    POINTERS[0x70002c] = 'self_check'
+    assert pointers(pe, decls, set())[0][-2] == (0x70002c, 0x706162)
+    del POINTERS[0x70002c]
+    assert len(pointers(pe, decls + [('u32[2]', 'I', 0x800008, 8, '')], set())[1]) == 3   # + an object on the IAT
 
 
 def initial(pe, a, n):
@@ -166,13 +185,14 @@ def initial(pe, a, n):
 
 def obj(exe, out, fixups_h):
     """tpw.exe's objects and the start-up fixups (kGameDataFixups, src/loader/loader.cpp): a slot in an object is the object and the
-    offset, one in the copy its address; the target is the converted object's own address and offset, or null for a code address
-    (the loader points it at the port). fixups_h: the same in original addresses, for tpw_tests (test_gamedata_fixups)."""
+    offset, one in the copy its address; the target is the converted object's own address and offset, or null for a code slot (the
+    loader points it at the port). fixups_h: the same in original addresses, for tpw_tests (test_gamedata_fixups)."""
     from pe_read import PE
     pe = PE(exe)
     decls = declarations()
     errors = check(decls)
-    found, problems = pointers(pe, decls)
+    from gen_loader_slots import hooked_addresses, slots
+    found, problems = pointers(pe, decls, set(slots(pe, hooked_addresses())))
     errors += problems
     if errors:
         sys.exit('gamedata.py: %d problems:\n  ' % len(errors) + '\n  '.join(errors[:40]))
@@ -203,7 +223,9 @@ def obj(exe, out, fixups_h):
                      '#pragma once', '#include <cstdint>',
                      'const std::uint32_t kFixupRanges[][2] = {%s};' % ranges, 'const unsigned kFixupRangeCount = %d;' % len(decls),
                      'const std::uint32_t kFixups[][2] = {%s};' % (', '.join('{%#010x, %#010x}' % f for f in found) or '{0, 0}'),
-                     'const unsigned kFixupCount = %d;' % len(found)])
+                     'const unsigned kFixupCount = %d;' % len(found),
+                     'const std::uint32_t kFixupText[] = {%s};' % (', '.join('%#010x' % t for t in sorted(TEXT)) or '0'),
+                     'const unsigned kFixupTextCount = %d;' % len(TEXT)])
 
 
 def main():

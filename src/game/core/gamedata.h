@@ -12,8 +12,8 @@ template <typename T> using GameData = T;
     static_assert(sizeof(GameData<type>) == (size), #name ": its size differs from the original's")
 
 // tpw.exe's start-up fixups (tools/gamedata.py object, src/loader/loader.cpp): the dword at object + offset (object null: at the address
-// offset in the copy) that points into a converted global gets target, that global's own address; target null: the dword is in an
-// object and holds a code address, which the loader points at its port.
+// offset in the copy) that points into a converted global gets target, that global's own address; target null: the dword is a code slot
+// (tools/gen_loader_slots.py) in an object, which the loader points at its port.
 struct GameDataFixup {
     unsigned char *object;
     unsigned offset;

@@ -45,10 +45,10 @@ Reads past an object's end reach the original's neighbours in the hook DLL, as b
 - **In code:** `&name` replaces a literal address that is passed as a pointer. Every literal must go, so a caller and a callee cannot disagree about where the global is.
 - **The fixup table (2026-11-11):** `gamedata.py object` scans every 4-aligned dword of the exe's data sections (`pointers()`) and emits `kGameDataFixups` (`GameDataFixup` in `gamedata.h`). The loader applies it at start-up, in `MapPorts` after `kCodeSlots`, and then zeroes the converted ranges:
   - **Exe data that points into a converted range** (in the copy or in a converted object): the dword gets the object's own address plus the offset.
-  - **A converted object that holds a code address:** the loader resolves it as a code slot (`Resolve()`, else an adjustor thunk). With no port, it keeps the original address, and a call through it traps as in the copy.
+  - **A converted object that holds a code address:** a code slot of the copy's table (`gen_loader_slots.py`: a hooked function, an adjustor thunk to one, `Debug_Printf`) inside the object is resolved as the copy's are. Any other code address keeps the original, and a call through it traps as in the copy.
   - **A converted object that points into unconverted data:** the dword keeps the original address. That address stays valid while the loader copies that range.
-  - **Rejected:** such a dword across an object's edge, and an object over the import address table (the loader fills it in the copy).
-  - **Not seen:** a pointer to just past an object (`end`) stays the copy's. It cannot be told from a pointer to the next global. Declare both as one object when the code walks to it. A dword that only looks like a pointer is taken for one, as the code-slot table does.
+  - **Rejected:** such a dword across an object's edge, an object over the import address table (the loader fills it in the copy), and a pointer whose bytes read as the end of a text (three printable bytes and a zero, after a printable one). Settle that one in `gamedata.py`'s `TEXT` (left as it is) or `POINTERS`.
+  - **Not seen:** a pointer to just past an object (`end`) stays the copy's. It cannot be told from a pointer to the next global. Declare both as one object when the code walks to it. Any other dword with a pointer's value is taken for one, as the code-slot table does.
   - **Check:** `gamedata.py`'s `self_check()` (made-up exe) at each `object` run, and `tpw_tests`' `test_gamedata_fixups` (a rescan of the exe against `build/gamedata_fixups.h`, the table in original addresses).
 
 ## Initial values

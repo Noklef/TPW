@@ -1339,7 +1339,8 @@ static void test_code_slots(const char *exe_path) {
 #include "gamedata_fixups.h"
 
 // tpw.exe's start-up fixups (tools/gamedata.py pointers()) against a rescan of the exe here: every 4-aligned dword of a data section whose
-// value lies inside a converted global (0x6fd000-0xfc1000), or that lies inside one and holds a .text / cseg address.
+// value lies inside a converted global (0x6fd000-0xfc1000), and every code slot (test_code_slots) inside one. (Settled text and the
+// errors are gamedata.py's own: it fails the build on them; kFixupText lists the first.)
 static void test_gamedata_fixups(const char *exe_path) {
     std::ifstream f(exe_path, std::ios::binary);
     if (!f) { ++g_failures; return; }
@@ -1361,8 +1362,9 @@ static void test_gamedata_fixups(const char *exe_path) {
         const std::uint32_t va = base + u32(s + 12), rs = u32(s + 16), raw = u32(s + 20);
         for (std::uint32_t o = 0; o + 4 <= rs; o += 4) {
             const std::uint32_t v = u32(raw + o);
-            const bool into = v >= 0x6fd000 && v < 0xfc1000 && converted(v);
-            const bool code_in = v >= 0x401000 && v < 0x6fc800 && converted(va + o);
+            const bool into = v >= 0x6fd000 && v < 0xfc1000 && converted(v) &&
+                              std::find(kFixupText, kFixupText + kFixupTextCount, va + o) == kFixupText + kFixupTextCount;
+            const bool code_in = converted(va + o) && std::binary_search(std::begin(kCodeSlots), std::end(kCodeSlots), va + o);
             if (into || code_in) found.push_back({va + o, v});
             code += code_in;
         }
