@@ -18,6 +18,16 @@ u32 __cdecl CRT_getSystemCP(u32 code_page);
 u32 __cdecl CRT_CPtoLCID(u32 code_page);
 // 0x689f40: setSBCS: the table 0xfb1668 (0x101 bytes) and six globals cleared. Answers 0.
 u32 __cdecl CRT_setSBCS();
+// 0x689f80: setSBUpLow: with GetCPInfo of the code page [0xfb1870] (1): the bytes (lead byte ranges as blanks, 0 as a blank) through __crtGetStringTypeA and __crtLCMapStringA
+// (lower 0x100, upper 0x200; locale [0xfb1874]): an upper case byte gets bit 0x10 and its lower case in _mbcasemap 0xfb1770, a lower case one 0x20 and its upper case, others 0.
+// Without: the same for A-Z and a-z.
+void __cdecl CRT_setSBUpLow();
+// 0x689c60: _setmbcp: under lock 0x19 the code page getSystemCP gives: the one in use: 0; 0: setSBCS. One of the five in the table 0x781590 (0x30 bytes each): its four
+// lists of ranges given the bits 0x781588, its three words; else GetCPInfo's lead byte ranges (4) and, with them, 8 for bytes 1-0xfe; no info: setSBCS when [0xfb1884], else -1.
+// Then setSBUpLow, 0.
+s32 __cdecl CRT_setmbcp(s32 page);
+// 0x68a160: __initmbctable: _setmbcp(-3) (the ANSI code page), its answer.
+s32 __cdecl CRT_initmbctable();
 // 0x689720: x_ismbbtype: 1 when the byte's entry in 0xfb1669 meets mask, or its _ctype word (0x77ea9a) meets ctype_mask; else 0.
 u32 __cdecl CRT_ismbbtype(u32 c, u32 ctype_mask, u32 mask);
 u32 __cdecl CRT_ismbblead(u32 c);   // 0x689700
