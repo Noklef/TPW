@@ -19,18 +19,18 @@ INF, DBL_MAX, MATHERR_OFF = 0x781198, 0x7811a8, 0x781edc
 
 def value(r):
     """A double's bits: as an overflow or underflow leaves them (scaled by 2^-+1536: exponents about the denormal range's), zeros, NaNs, random."""
-    pick = r.randrange(6)
-    if pick < 3:
-        bits = struct.unpack('<Q', struct.pack('<d', r.uniform(1, 2) * 2.0 ** r.randrange(430, 530)))[0] | r.choice([0, r.getrandbits(20)])
-    elif pick == 3:
-        bits = r.choice([0, 0x7ff0000000000000, 0x7ff8000000000000, 0x7fefffffffffffff, 1, 0x0010000000000000, 0x3ff0000000000000])
+    pick = r.randrange(7)
+    if pick < 3:   # (2^460 is the last that underflows to zero)
+        bits = struct.unpack('<Q', struct.pack('<d', r.uniform(1, 2) * 2.0 ** r.choice([r.randrange(455, 470), r.randrange(430, 530)])))[0] | r.choice([0, r.getrandbits(20)])
+    elif pick < 5:
+        bits = r.choice([0, 0, 0x7ff0000000000000, 0x7ff8000000000000, 0x7fefffffffffffff, 1, 0x0010000000000000, 0x3ff0000000000000])
     else:
         bits = r.getrandbits(63)
     return bits | (1 << 63 if r.random() < 0.4 else 0)
 
 
 def flags(r):
-    return r.choice([1, 2, 4, 8, 0x10, 0x11, 0x12, 0x18, 0x14, 0, 0x1f, r.getrandbits(5), r.getrandbits(32)])
+    return r.choice([1, 1, 2, 2, 4, 8, 0x10, 0x11, 0x11, 0x12, 0x12, 0x18, 0x14, 0, 0x1f, r.getrandbits(5), r.getrandbits(32)])
 
 
 def word(r):
