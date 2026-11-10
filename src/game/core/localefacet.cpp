@@ -429,6 +429,16 @@ u32 *__cdecl UseFacet_Numpunct(u8 **loc, u32, u32 flag) {
     });
 }
 
+u32 *__cdecl UseFacet_WNumpunct(u8 **loc, u32, u32 flag) {
+    return use_facet(loc, flag, (u32)(uintptr_t)&gLocalefacet_fb1ddc, (u32)(uintptr_t)&gLocalefacet_fb1e1c, (u32)(uintptr_t)&gLocalefacet_fb1e30, 0x18, 0x006a5c00, [](u32 *facet) {
+        u32 info[0x10];
+        Locinfo_Ctor(info, nullptr, gLocalefacet_C_75c74c);
+        facet[0] = (u32)(uintptr_t)WNumpunct_vtable;
+        WNumpunct_Init(facet, nullptr, info);
+        Locinfo_Dtor(info);
+    });
+}
+
 u32 *__cdecl UseFacet_Codecvt(u8 **loc, u32, u32 flag) {
     return use_facet(loc, flag, kCodecvtId, (u32)(uintptr_t)&gLocalefacet_f827e4, (u32)(uintptr_t)&gLocalefacet_f827e8, 0x10, 0x005d1670, [](u32 *facet) {
         u32 info[0x10];

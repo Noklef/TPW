@@ -6533,6 +6533,7 @@ address,name,kind,confidence,notes
 0x006abe80,UseFacet_70a044,function,low,"reimplemented (src/game/core/localefacet); use_facet of the facet of the vtable 0x70a044: the locale's, else the classic one made once and held to exit"
 0x006a5720,UseFacet_709ef4,function,low,reimplemented (src/game/core/localefacet); use_facet of the facet of the vtable 0x709ef4: the same
 0x006a54a0,UseFacet_TimeW,function,low,"reimplemented (src/game/core/localefacet); use_facet of the wchar_t time facet (vtable 0x709ed4): the same, the day and month names widened"
+0x006a4790,UseFacet_WNumpunct,function,low,"reimplemented (src/game/core/localefacet); use_facet of numpunct<wchar_t>: the locale's, else the classic one made once (WNumpunct_Init under the ""C"" _Locinfo) and held to exit"
 0x006895b0,CRT_mbctolower,function,low,reimplemented (src/game/core/crtmbstring); _mbctolower
 0x00689650,CRT_mbspbrk,function,low,reimplemented (src/game/core/crtmbstring); _mbspbrk
 0x00689400,CRT_mbsrchr,function,low,reimplemented (src/game/core/crtmbstring); _mbsrchr
