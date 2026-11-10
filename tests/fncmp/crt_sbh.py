@@ -10,7 +10,7 @@ from fncmp import IMPORT_TABLE, LOG, RAM, Bench, Call, _recorder, answers, impor
 
 LOCK, UNLOCK, NEWH = 7, 8, 9
 VALLOC, VFREE, HALLOC, HFREE, HCREATE, HDESTROY = 14, 15, 16, 17, 20, 21
-B = Bench([(0x6826b0, 0x6826e7), (0x67fcb0, 0x67fd5b), (0x688710, 0x688730), (0x6828a0, 0x682a02), (0x682c00, 0x682e33), (0x682e40, 0x682fb2)],
+B = Bench([(0x67dcf0, 0x67dd34), (0x67dd40, 0x67dd95), (0x6826b0, 0x6826e7),(0x67fcb0, 0x67fd5b), (0x688710, 0x688730), (0x6828a0, 0x682a02), (0x682c00, 0x682e33), (0x682e40, 0x682fb2)],
           hooks={0x682720: _recorder(LOCK, 1, cdecl=True), 0x6827a0: _recorder(UNLOCK, 1, cdecl=True)})
 STATIC, R2, R3 = 0x77eda0, RAM + 0x1000, RAM + 0x4000
 VAS, HEAPS, NEWHS = RAM, RAM + 0x100, RAM + 0x200
@@ -18,7 +18,7 @@ PAGES, PAGES2, FRESH = RAM + 0x10000, RAM + 0x30000, RAM + 0x50000
 LIMIT = 0xf0
 PARAS = [1, 1, 1, 2, 3, 4, 8, 0x10, 0x20, 0x40, 0x80, 0xf0, 0xf1]
 BYTES = [0, 1, 2, 0xf, 0x10, 0x11, 0x20, 0x100, 0x1e0, 0x1e1, 0x3f0, 0x1000, 0xffffffe0, 0xffffffe1, 0xfffffff0]
-OPS = [n for n in ('page', 'page', 'block', 'block', 'block', 'new', 'calloc', 'calloc', 'newh', 'heap_init') if not os.environ.get('OPS') or n in os.environ['OPS'].split(',')]
+OPS = [n for n in ('page', 'page', 'block', 'block', 'block', 'new', 'calloc', 'calloc', 'newh', 'heap_init', 'heapalloc', 'heapalloc', 'nhmalloc', 'nhmalloc') if not os.environ.get('OPS') or n in os.environ['OPS'].split(',')]
 
 
 def page(r, at):
@@ -135,6 +135,10 @@ def case(r):
         return Call(0x682c00, [r.choice(PARAS)], regions, conv='c', ret='a')
     if name == 'new':
         return Call(0x6828a0, [], regions, conv='c', ret='a')
+    if name == 'heapalloc':
+        return Call(0x67dd40, [r.choice(BYTES)], regions, conv='c', ret='a')
+    if name == 'nhmalloc':   # (with the mode, _callnewh's answers end the retries)
+        return Call(0x67dcf0, [r.choice(BYTES), r.choice([0, 1, 1, 2])], regions, conv='c', ret='a')
     if name == 'heap_init':   # (HeapCreate's heap, or none; then the new region as 'new' has it)
         set_return(log, HCREATE, r.choice([0x5000, 0x5000, 0x5000, 0]))
         regions[0xfb3cac] = r.bytes(4)

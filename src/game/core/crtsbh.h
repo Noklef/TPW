@@ -27,4 +27,9 @@ s32 __cdecl CRT_callnewh(u32 size);
 // 0x67fcb0: calloc: size rounded up to 16 (0: 16); to [0x780dc4] from the small block heap, zeroed, under lock 9; otherwise or when it fails HeapAlloc(HEAP_ZERO_MEMORY); with [0xfb1548], _callnewh and again.
 void *__cdecl CRT_calloc(u32 count, u32 size);
 
+// 0x67dd40: _heap_alloc: size rounded up to 16; to [0x780dc4] from the small block heap under lock 9; otherwise or when it fails HeapAlloc([0xfb3cac], 0, rounded).
+void *__cdecl CRT_heap_alloc(u32 size);
+// 0x67dcf0: _nh_malloc: past 0xffffffe0 0; 0 as 1; _heap_alloc, and while it fails with mode set and _callnewh answers, again.
+void *__cdecl CRT_nh_malloc(u32 size, s32 mode);
+
 }
