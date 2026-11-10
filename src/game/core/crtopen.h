@@ -3,6 +3,17 @@
 
 #include "crtfile.h"
 
+// MSVC6's struct _stat.
+struct CrtStat {
+    u32 dev;
+    u16 ino, mode;
+    s16 nlink, uid, gid;
+    u32 rdev;
+    s32 size;
+    u32 atime, mtime, ctime;
+};
+static_assert(sizeof(CrtStat) == 0x24, "struct _stat");
+
 extern "C" {
 
 // 0x6868a0: _getstream: under lock 2 the first stream of the table [0xfb3cbc] (of [0xfb4cc0]) not in use, locked (one that a thread took meanwhile is passed by); an empty
@@ -69,5 +80,43 @@ s32 __cdecl CRT_commit(u32 fd);
 s32 __cdecl CRT_remove(const char *path);
 s32 __cdecl CRT_unlink(const char *path);
 s32 __cdecl CRT_rename(const char *from, const char *to);
+
+// 0x687230: _ioinit: the first block of the handle table (0x480 bytes, 0x20 slots: handle -1, flags 0, 0xa at +5; none: _amsg_exit(0x1b), and on past it, sic); the handles
+// GetStartupInfoA passes (a count up to 0x800, its flags, its handles; more blocks while they are made) for those open (flag 1) and not -1 (and, without flag 8, of a type);
+// then slots 0-2 still -1 from GetStdHandle (flags 0x81, the type's 0x40 for 2, 8 for 3; none: 0x40), the others 0x80 added. SetHandleCount of the table's count.
+void __cdecl CRT_ioinit();
+
+// 0x67e750: _initstdio: [0xfb4cc0] streams (0: 0x200, under 0x14: 0x14), the table [0xfb3cbc] from calloc (none: 0x14 again, then _amsg_exit(0x1a)); its first 20 the
+// _iob entries 0x77e800-0x77ea80; stdin, stdout, stderr get fd -1 where their handle is -1 or 0.
+void __cdecl CRT_initstdio();
+
+// 0x67e810: _endstdio: _flushall, then with [0xfb1398] set _fcloseall.
+void __cdecl CRT_endstdio();
+
+// 0x68b9f0: _rmtmp: under lock 2 each stream, locked, in use with a temporary file (+0x1c) by _fclose_lk; the count of them.
+s32 __cdecl CRT_rmtmp();
+
+// 0x67bb50: _validdrive: 1 for drive 0 or a root ("X:\") GetDriveTypeA knows (not 0 or 1), else 0.
+s32 __cdecl CRT_validdrive(u32 drive);
+
+// 0x67ba20: _getdcwd_lk: drive 0 by GetCurrentDirectoryA, else (an invalid drive: __doserrno 0xf, errno 0xd, 0) by GetFullPathNameA of "X:."; none or over 0x103: 0. No buffer:
+// malloc of the larger of the length (with its 0) and size (errno 0xc on a failure); a buffer with a smaller size: errno 0x22, 0. The path copied, the buffer returned.
+char *__cdecl CRT_getdcwd_lk(u32 drive, char *buffer, s32 size);
+
+// 0x67b9f0: _getcwd: _getdcwd_lk(0, ...) under lock 0xc.
+char *__cdecl CRT_getcwd(char *buffer, s32 size);
+
+// 0x689490: _fullpath: no path or an empty one: _getcwd. No buffer: a malloc of 0x104 (none: errno 0xc), that size. GetFullPathNameA: as long as the room or longer: errno 0x22;
+// 0: _dosmaperr(GetLastError()); either way the block freed when it was made here, 0. Else the buffer.
+char *__cdecl CRT_fullpath(char *buffer, const char *path, u32 size);
+
+// 0x689560: _getdrive: GetCurrentDirectoryA into 0x104 bytes; "X:...": toupper(X) - 0x40, else 0.
+s32 __cdecl CRT_getdrive();
+
+// 0x67e900: _stat: a wildcard ([0x708a48] by _mbspbrk) or a bare "X:": errno and __doserrno 2, -1. The drive: _mbctolower(the letter, a signed char) - 0x60 for "X:...", else _getdrive.
+// FindFirstFileA; none: a path of the characters [0x708a44], its _fullpath 3 long or IsRootUNCName, GetDriveTypeA above 1: a directory of size 0, all times
+// _loctotime_t(1980, 1, 1, ...), else ENOENT. Found: the write time by local and system time and _loctotime_t, the access and creation times the same way or the
+// write time when zero; a failed conversion: _dosmaperr(GetLastError()), FindClose, -1. Then mode (_dtoxmode), nlink 1, dev and rdev the drive - 1, the low size word.
+s32 __cdecl CRT_stat(const char *path, CrtStat *out);
 
 }

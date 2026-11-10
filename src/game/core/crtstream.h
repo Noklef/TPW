@@ -56,6 +56,17 @@ s32 __cdecl CRT_ftell(CrtFile *file);
 s32 __cdecl CRT_fseek_lk(CrtFile *file, s32 offset, s32 origin);
 s32 __cdecl CRT_fseek(CrtFile *file, s32 offset, s32 origin);
 
+// 0x687840 / 0x687810: _ftelli64_lk / _ftelli64: _ftell_lk with a 64-bit place (by _lseeki64); a negative place's high word gives -1 without errno. The buffer's offset is
+// added zero-extended (sic). 0x687a70 / 0x687a30: _fseeki64_lk / _fseeki64: _fseek_lk the same way.
+int64_t __cdecl CRT_ftelli64_lk(CrtFile *file);
+int64_t __cdecl CRT_ftelli64(CrtFile *file);
+s32 __cdecl CRT_fseeki64_lk(CrtFile *file, int64_t offset, s32 origin);
+s32 __cdecl CRT_fseeki64(CrtFile *file, int64_t offset, s32 origin);
+
+// 0x67cf40: fgetpos: _ftelli64 into the position; -1 when that is -1, else 0. 0x67cf70: fsetpos: _fseeki64 to the position from the start.
+s32 __cdecl CRT_fgetpos(CrtFile *file, int64_t *position);
+s32 __cdecl CRT_fsetpos(CrtFile *file, const int64_t *position);
+
 // 0x688610: _stbuf: stdout (0x77e820) or stderr (0x77e840) on a device gets a temporary buffer: its slot at 0xfb1540's block of 0x1000 from malloc, kept there, or 2 bytes in the file itself. 1 if given. [0xfb1350] counts the tries.
 s32 __cdecl CRT_stbuf(CrtFile *file);
 

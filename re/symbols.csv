@@ -1224,6 +1224,7 @@ address,name,kind,confidence,notes
 0x004ccd10,Things_BestRatedDef4ac0,function,low,"reimplemented (src/game/world/thingscan); stdcall (&handle), ECX unused: of the rides the first with the highest Object_Rating(0), its handle out (0 for none); that rating returned (0 for none)"
 0x004c9d80,Things_AverageStaffStat1f8Int,function,low,"reimplemented (src/game/world/thingscan); no arguments: over all the staff (kind byte +2 4 to 8), the average (signed) of the low bytes of their float +0x1f8 cut to an integer, 0 when there are none"
 0x004c9290,Things_CountPeopleStat1acAbove,function,low,"reimplemented (src/game/world/thingscan); thiscall, the analyser unused (least), pops 4: how many things of kind 1 on a plain analyser cell have the low byte of their float +0x1ac cut to an integer above least low byte (unsigned)"
+0x004c9aa0,Things_CountTiredStaff,function,low,reimplemented (src/game/world/thingscan); the staff (things of kind 4 to 8) too tired (Staff_IsTooTired)
 0x0054b130,Buoy_FindFree,function,high,"reimplemented (src/game/world/trackpools); the first free buoy record, its index stored in it"
 0x0054b170,Buoy_Alloc,function,high,reimplemented (src/game/world/trackpools); takes the first free buoy record
 0x0054b1e0,CollNode_FindFree,function,high,reimplemented (src/game/world/trackpools); the first free collision node
@@ -1332,7 +1333,7 @@ address,name,kind,confidence,notes
 0x0067c080,CRT_strstr,function,high,reimplemented (src/game/core/crt); strstr
 0x0067bfc0,CRT_strchr,function,high,reimplemented (src/game/core/crt); strchr
 0x0067a520,CRT_atoi,function,high,MSVC6 atoi
-0x0067f330,CRT_iswctype,function,high,MSVC6 iswctype (wint_t is 16 bits; the upper half of the argument is ignored)
+0x0067f330,CRT_iswctype,function,high,reimplemented (src/game/core/crt); iswctype: a wide character's class
 0x0067c1e0,CRT_vsprintf,function,high,reimplemented (src/game/core/crt); vsprintf
 0x0067acd0,CRT_wcslen,function,high,reimplemented (src/game/online/chatlists); wcslen
 0x0067bf10,CRT_wcscpy,function,high,reimplemented (src/game/core/crt); wcscpy
@@ -1340,8 +1341,8 @@ address,name,kind,confidence,notes
 0x0067b0d0,CRT_wcsncpy,function,high,reimplemented (src/game/core/crt); wcsncpy
 0x0067f450,CRT_wcsncat,function,high,reimplemented (src/game/core/crt); wcsncat
 0x0067f410,CRT_wcsncmp,function,high,reimplemented (src/game/core/crt); wcsncmp
-0x0067f4a0,CRT__wtoi,function,high,MSVC6 _wtoi
-0x0067f4d0,CRT_vswprintf,function,high,MSVC6 vswprintf
+0x0067f4a0,CRT_wtoi,function,high,"reimplemented (src/game/core/crt); _wtoi: narrowed, then atol"
+0x0067f4d0,CRT_vswprintf,function,high,reimplemented (src/game/core/crt); vswprintf: swprintf with a va_list
 0x005f5660,Mem_GlobalAlloc,function,high,"reimplemented (src/game/files/file); GlobalAlloc(GMEM_FIXED, size); 0 for size 0"
 0x005f5680,Mem_GlobalFree,function,high,reimplemented (src/game/files/file); GlobalFree
 0x005f5690,Dir_SetBase,function,high,"reimplemented (src/game/files/file); sets gBaseDir, a backslash added unless it ends in a slash; nothing past MAX_PATH; reads the char before an empty path"
@@ -2042,6 +2043,22 @@ address,name,kind,confidence,notes
 0x0067a7f0,CRT_onexitinit,function,high,reimplemented (src/game/core/crt); _onexitinit: the exit table made
 0x00687c20,CRT_CxxSetUnhandledExceptionFilter,function,high,reimplemented (src/game/core/crt); __CxxSetUnhandledExceptionFilter: the C++ unhandled exception filter set
 0x00687c40,CRT_CxxRestoreUnhandledExceptionFilter,function,high,reimplemented (src/game/core/crt); __CxxRestoreUnhandledExceptionFilter: the filter before it set back
+0x0067e180,CRT_endthread,function,high,"reimplemented (src/game/core/crt); _endthread: the thread's data freed, ExitThread(0)"
+0x0067f8b0,CRT_endthreadex,function,high,"reimplemented (src/game/core/crt); _endthreadex: the thread's data freed, ExitThread(code)"
+0x0067e0d0,CRT_threadstart,function,high,reimplemented (src/game/core/crt); _threadstart: _beginthread's entry
+0x0067f800,CRT_threadstartex,function,high,reimplemented (src/game/core/crt); _threadstartex: _beginthreadex's entry
+0x0067f780,CRT_beginthreadex,function,high,reimplemented (src/game/core/crt); _beginthreadex: a thread with its own data
+0x00688d00,CRT_LCMapStringW,function,high,"reimplemented (src/game/core/crt); __crtLCMapStringW: LCMapStringW, or through LCMapStringA"
+0x0068a440,CRT_GetStringTypeW,function,high,"reimplemented (src/game/core/crt); __crtGetStringTypeW: GetStringTypeW, or through GetStringTypeA"
+0x0067e670,CRT_towlowerLocked,function,high,reimplemented (src/game/core/crt); _towlower_lk: a wide character in lower case
+0x0067ed90,CRT_towupperLocked,function,high,reimplemented (src/game/core/crt); _towupper_lk: a wide character in upper case
+0x0067e5d0,CRT_towlower,function,high,reimplemented (src/game/core/crt); towlower: _towlower_lk under the locale's lock
+0x0067ed00,CRT_towupper,function,high,reimplemented (src/game/core/crt); towupper: _towupper_lk under the locale's lock
+0x0067e010,CRT_itow,function,high,reimplemented (src/game/core/crt); _itow: _itoa widened
+0x0068cbd0,CRT_ValidateRead,function,high,reimplemented (src/game/core/crt); _ValidateRead: !IsBadReadPtr
+0x0068cbf0,CRT_ValidateWrite,function,high,reimplemented (src/game/core/crt); _ValidateWrite: !IsBadWritePtr
+0x0068cc10,CRT_ValidateExecute,function,high,reimplemented (src/game/core/crt); _ValidateExecute: !IsBadCodePtr
+0x00687bc0,CRT_CxxUnhandledExceptionFilter,function,high,"reimplemented (src/game/core/crt); __CxxUnhandledExceptionFilter: terminate for a C++ exception, else the filter before it"
 0x00f7a7d0,gCdVolumeLabel,data,medium,"const char *: the CD's volume label, looked for on the CD-ROM drives by the CD check (0x5aa585)"
 0x005f8ae0,RegKey_Open,function,high,"reimplemented (src/game/core/regkey); thiscall (&out, subkey or null, nonzero: HKCU else HKLM); the company key (0x775748) made, then the subkey in it; a held key closed first"
 0x005f8b70,RegKey_Dtor,function,high,reimplemented (src/game/core/regkey); thiscall; RegKey_Close
@@ -6169,6 +6186,8 @@ address,name,kind,confidence,notes
 0x0067b710,CRT_fwrite_lk,function,low,reimplemented (src/game/core/crtfile); _fwrite_lk
 0x0067b6d0,CRT_fwrite,function,low,reimplemented (src/game/core/crtfile); fwrite
 0x00686ff0,CRT_flswbuf,function,low,reimplemented (src/game/core/crtfile); _flswbuf
+0x0068ec50,CRT_lseeki64_lk,function,high,reimplemented (src/game/core/crtfile); _lseeki64_lk: SetFilePointer with a 64-bit place
+0x0068ebc0,CRT_lseeki64,function,high,reimplemented (src/game/core/crtfile); _lseeki64: _lseeki64_lk under the handle's lock
 0x00688ad0,CRT_read_lk,function,low,reimplemented (src/game/core/crtstream); _read_lk
 0x00688a50,CRT_read,function,low,reimplemented (src/game/core/crtstream); _read
 0x00687440,CRT_filbuf,function,low,reimplemented (src/game/core/crtstream); _filbuf
@@ -6199,6 +6218,12 @@ address,name,kind,confidence,notes
 0x00683a20,CRT_woutput_write_multi,function,low,reimplemented (src/game/core/crtstream); wide write_multi
 0x00683a60,CRT_woutput_write_string,function,low,reimplemented (src/game/core/crtstream); wide write_string
 0x0068b4e0,CRT_whiteout,function,low,reimplemented (src/game/core/crtstream); _whiteout
+0x00687840,CRT_ftelli64_lk,function,high,reimplemented (src/game/core/crtstream); _ftelli64_lk: the stream's 64-bit place
+0x00687810,CRT_ftelli64,function,high,reimplemented (src/game/core/crtstream); _ftelli64: _ftelli64_lk under the file's lock
+0x00687a70,CRT_fseeki64_lk,function,high,reimplemented (src/game/core/crtstream); _fseeki64_lk: the stream to a 64-bit place
+0x00687a30,CRT_fseeki64,function,high,reimplemented (src/game/core/crtstream); _fseeki64: _fseeki64_lk under the file's lock
+0x0067cf40,CRT_fgetpos,function,high,reimplemented (src/game/core/crtstream); fgetpos: the stream's place into a position
+0x0067cf70,CRT_fsetpos,function,high,reimplemented (src/game/core/crtstream); fsetpos: the stream to a position
 0x006898f0,CRT_parse_cmdline,function,low,reimplemented (src/game/core/crtstartup); parse_cmdline
 0x0067f8f0,CRT_cinit,function,high,"reimplemented (src/game/core/crtstartup); _cinit: the floating point set-up pointer 0x77e718, then the C and C++ initialisers"
 0x0067f920,CRT_exit,function,high,"reimplemented (src/game/core/crtstartup); exit: doexit(code, 0, 0)"
@@ -6224,6 +6249,7 @@ address,name,kind,confidence,notes
 0x00688060,CRT_isindst,function,low,reimplemented (src/game/core/crttime); _isindst
 0x0067d8e0,CRT_localtime,function,low,reimplemented (src/game/core/crttime); localtime
 0x00687c50,CRT_loctotime_t,function,low,reimplemented (src/game/core/crttime); __loctotime_t
+0x0067d3f0,CRT_time,function,high,reimplemented (src/game/core/crttime); time: the local time in seconds since 1970
 0x006ab880,MoneypunctC_Init,function,low,reimplemented (src/game/core/moneypunct); moneypunct<char>::_Init
 0x006a4f20,MoneypunctW_Init,function,low,reimplemented (src/game/core/moneypunct); moneypunct<wchar_t>::_Init
 0x006a8830,MoneypunctC_Ctor,function,low,reimplemented (src/game/core/moneypunct); moneypunct<char>'s constructor
@@ -6292,6 +6318,10 @@ address,name,kind,confidence,notes
 0x006804f0,CRT_ms_p5_test_fdiv,function,high,reimplemented (src/game/core/crtfloat); _ms_p5_test_fdiv: the Pentium FDIV test
 0x00680540,CRT_ms_p5_mp_test_fdiv,function,high,reimplemented (src/game/core/crtfloat); _ms_p5_mp_test_fdiv: IsProcessorFeaturePresent or the test
 0x0067a5f0,CRT_FPinit,function,high,reimplemented (src/game/core/crtfloat); _FPinit: the floating point start-up
+0x006806c0,CRT_cftoe,function,high,"reimplemented (src/game/core/crtfloat); _cftoe: a double in e format by _fltout2, _fptostr and _cftoe2"
+0x00680840,CRT_cftof,function,high,"reimplemented (src/game/core/crtfloat); _cftof: a double in f format by _fltout2, _fptostr and _cftof2"
+0x00680970,CRT_cftog,function,high,reimplemented (src/game/core/crtfloat); _cftog: a double in g format: e or f by the rounded power
+0x00680a30,CRT_cfltcvt,function,high,"reimplemented (src/game/core/crtfloat); _cfltcvt: e, f or g by the format letter"
 0x004092a0,GameOwner_Pause,function,low,"reimplemented (src/game/core/gameowner); thiscall (mode, flag), pops 8: the game held: the front end, the clocks, the sounds or the advisor's speech"
 0x00409300,GameOwner_Resume,function,low,reimplemented (src/game/core/gameowner); thiscall: the game let go
 0x00409350,GameOwner_TogglePause,function,low,"reimplemented (src/game/core/gameowner); thiscall (flag), pops 4: paused or not, by +0x1c"
@@ -6329,6 +6359,16 @@ address,name,kind,confidence,notes
 0x0067e530,CRT_remove,function,high,reimplemented (src/game/core/crtopen); remove: DeleteFileA
 0x0067e560,CRT_unlink,function,high,reimplemented (src/game/core/crtopen); _unlink: remove
 0x0067ecc0,CRT_rename,function,high,reimplemented (src/game/core/crtopen); rename: MoveFileA
+0x00687230,CRT_ioinit,function,high,"reimplemented (src/game/core/crtopen); _ioinit: the handle table made, the inherited and standard handles"
+0x0067e750,CRT_initstdio,function,high,reimplemented (src/game/core/crtopen); _initstdio: the stream table made
+0x0067e810,CRT_endstdio,function,high,"reimplemented (src/game/core/crtopen); _endstdio: the streams flushed, closed with the exit flag"
+0x0068b9f0,CRT_rmtmp,function,high,reimplemented (src/game/core/crtopen); _rmtmp: the temporary files closed
+0x0067bb50,CRT_validdrive,function,high,reimplemented (src/game/core/crtopen); _validdrive: a drive GetDriveTypeA knows
+0x0067ba20,CRT_getdcwd_lk,function,high,reimplemented (src/game/core/crtopen); _getdcwd_lk: a drive's current directory
+0x0067b9f0,CRT_getcwd,function,high,reimplemented (src/game/core/crtopen); _getcwd: the current directory
+0x00689490,CRT_fullpath,function,high,reimplemented (src/game/core/crtopen); _fullpath: GetFullPathNameA into the buffer or a block of its own
+0x00689560,CRT_getdrive,function,high,"reimplemented (src/game/core/crtopen); _getdrive: the current directory's drive, 1 for A"
+0x0067e900,CRT_stat,function,low,"reimplemented (src/game/core/crtopen); _stat: a path's drive, mode, size and times by FindFirstFileA, a root by its checks"
 0x0067efc0,CRT_amsg_exit,function,low,"reimplemented (src/game/core/crtmessage); MSVC6 _amsg_exit: the banner when [0xfb135c] is 1, the message, exit(0xff) by [0x77ea80]"
 0x0067eff0,CRT_fast_error_exit,function,low,"reimplemented (src/game/core/crtmessage); MSVC6 fast_error_exit: as _amsg_exit, ExitProcess(0xff)"
 0x0068a170,CRT_FF_MSGBANNER,function,low,reimplemented (src/game/core/crtmessage); MSVC6 _FF_MSGBANNER
@@ -6373,6 +6413,7 @@ address,name,kind,confidence,notes
 0x00691ea0,Lockit_Dtor,function,low,reimplemented (src/game/core/locinfo); MSVC6 std::_Lockit::~_Lockit
 0x00698fc0,Locinfo_Ctor,function,low,reimplemented (src/game/core/locinfo); MSVC6 std::_Locinfo::_Locinfo
 0x00699100,Locinfo_Dtor,function,low,reimplemented (src/game/core/locinfo); MSVC6 std::_Locinfo::~_Locinfo
+0x00691e70,Lockit_Term,function,high,reimplemented (src/game/core/locinfo); _Lockit's exit routine: the critical section deleted
 0x00681590,CRT_output_write_char,function,low,reimplemented (src/game/core/crtoutput); MSVC6 write_char (output.c)
 0x006815e0,CRT_output_write_multi_char,function,low,reimplemented (src/game/core/crtoutput); MSVC6 write_multi_char (output.c)
 0x00681620,CRT_output_write_string,function,low,reimplemented (src/game/core/crtoutput); MSVC6 write_string (output.c)
@@ -6460,6 +6501,9 @@ address,name,kind,confidence,notes
 0x00689f40,CRT_setSBCS,function,low,reimplemented (src/game/core/crtmbstring); setSBCS
 0x00689720,CRT_ismbbtype,function,low,reimplemented (src/game/core/crtmbstring); x_ismbbtype
 0x00689700,CRT_ismbblead,function,low,reimplemented (src/game/core/crtmbstring); _ismbblead
+0x00689f80,CRT_setSBUpLow,function,high,reimplemented (src/game/core/crtmbstring); setSBUpLow: the code page's case table
+0x00689c60,CRT_setmbcp,function,high,reimplemented (src/game/core/crtmbstring); _setmbcp: the multibyte code page set
+0x0068a160,CRT_initmbctable,function,high,reimplemented (src/game/core/crtmbstring); __initmbctable: the ANSI code page set
 0x00694e60,NumPut_DoPutPointer,function,low,reimplemented (src/game/core/numput); num_put<char>::do_put of a pointer (MSVC6)
 0x0069bb70,NumPutW_DoPutPointer,function,low,reimplemented (src/game/core/numput); num_put<wchar_t>::do_put of a pointer
 0x00695030,NumPut_Fput,function,low,reimplemented (src/game/core/numput); num_put<char>::_Fput
@@ -8060,6 +8104,8 @@ address,name,kind,confidence,notes
 0x0056a230,RasterDraw_TestQuad,function,low,reimplemented (src/game/render/rasterdraw); the fixed quad of four colours
 0x0056a2f0,RasterDraw_Rect,function,low,"reimplemented (src/game/render/rasterdraw); a rectangle, plain or mapped"
 0x0056a540,RasterDraw_MappedTriangle,function,low,reimplemented (src/game/render/rasterdraw); a mapped triangle over the screen
+0x006792f0,RasterDraw_TriangleList,function,low,"reimplemented (src/game/render/rasterdraw); an indexed triangle list, each triangle by 0x6ef7f0"
+0x00679350,RasterDraw_TriangleListNoZ,function,low,"reimplemented (src/game/render/rasterdraw); an indexed triangle list, each triangle by 0x6f0a50 (no depth)"
 0x006f1d70,RasterSpan_TexShadeZ,function,low,"reimplemented (src/game/render/rasterspans); jumped to (row pointer in EBP, six registers on the stack): the rasteriser's default cseg span routine (table 0x6f19f0): shaded 32-bit texels, depth-tested"
 0x006f2140,RasterSpan_TexBlend,function,low,"reimplemented (src/game/render/rasterspans); jumped to (row pointer in EBP, six registers on the stack): cseg span routine (table 0x6f19f4): shaded texels blended with the pixel under them by the texel's alpha tables, depth kept"
 0x006f2570,RasterSpan_TexBlendAlphaZ,function,low,"reimplemented (src/game/render/rasterspans); jumped to (row pointer in EBP, six registers on the stack): cseg span routine (table 0x6f1a20): the blend, kept with the depth above the alpha threshold [0xfbe010]"

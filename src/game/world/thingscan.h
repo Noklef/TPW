@@ -12,6 +12,8 @@ s32 __cdecl Things_CountKind3Flag1();
 
 // 0x4c9a10 (cdecl): the things of kind 4 to 8 (the staff).
 s32 __cdecl Things_CountStaff();
+// 0x4c9aa0 (cdecl; name invented): the staff (kind 4 to 8) that Staff_IsTooTired accepts.
+s32 __cdecl Things_CountTiredStaff();
 
 // 0x4c8430 (stdcall; three byte outputs): over the things of kind 1 whose analyser cell is plain (AnalyserCell_TypePlain), the three values of the dword at +0x30
 // (0 to 22; not checked) that occur most, counting from value 3 up and starting from {0, 1, 2} (the count of 0 forced to 0): a later value replaces the entry it beats by the

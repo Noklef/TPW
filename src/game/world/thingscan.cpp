@@ -227,6 +227,19 @@ s32 __cdecl Things_CountKind3Flag1() { return CountKind3(1); }
 
 s32 __cdecl Things_CountStaff() { return CountKinds4To8(); }
 
+s32 __cdecl Things_CountTiredStaff() {
+    s32 count = 0;
+    u16 handle;
+    World_FirstThing(world(), nullptr, &handle);
+    while (handle) {
+        const u8 *thing = thing_of(handle);
+        const u8 kind = at<u8>(thing, 2);
+        if ((kind == 4 || kind == 5 || kind == 6 || kind == 8 || kind == 7) && Staff_IsTooTired(thing)) ++count;
+        World_NextThing(world(), nullptr, &handle, thing);
+    }
+    return count;
+}
+
 void __stdcall Things_TopThreeValues(u8 *first, u8 *second, u8 *third) {
     s32 counts[23] = {};
     u16 handle;

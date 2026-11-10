@@ -51,4 +51,8 @@ s32 *__cdecl CRT_localtime(const s32 *timer);
 // 0x687c50: __loctotime_t.
 u32 __cdecl CRT_loctotime_t(s32 year, s32 month, s32 day, s32 hour, s32 minute, s32 second, s32 dst);
 
+// 0x67d3f0: time: the local time by __loctotime_t, its daylight flag kept from GetTimeZoneInformation (-1 when it fails; 1 for 2 with a daylight date and bias) while the
+// system time's year, month, day, hour and minute are those of the last ask ([0xfb1340], the flag [0xfb1338]). Into *out when given.
+u32 __cdecl CRT_time(u32 *out);
+
 }  // extern "C"

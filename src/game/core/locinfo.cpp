@@ -81,6 +81,10 @@ void __fastcall Lockit_Dtor(void *) {
     if (word(lock_state) == 2) import_slot<void(__stdcall *)(u32)>(0x006fd130)(lock_section);
 }
 
+void __cdecl Lockit_Term() {
+    if (import_slot<u32(__stdcall *)(u32, u32)>(0x006fd200)(lock_state, 3) == 2) import_slot<void(__stdcall *)(u32)>(0x006fd0d0)(lock_section);   // DeleteCriticalSection
+}
+
 void *__fastcall Locinfo_Ctor(void *self, void *, const char *name) {
     StdString *const strings = static_cast<StdString *>(self);
     const u8 low = static_cast<u8>(reinterpret_cast<uintptr_t>(name));

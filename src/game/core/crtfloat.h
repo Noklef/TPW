@@ -123,5 +123,12 @@ void __cdecl CRT_fassign(s32 is_double, u32 *out, const char *text);  // 0x68066
 // 0x680740, 0x6808b0: _cftoe2, _cftof2; number: a STRFLT (sign, decpt, flag, mantissa).
 char *__cdecl CRT_cftoe2(char *buffer, s32 decimals, s32 caps, const s32 *number, u8 g_format);
 char *__cdecl CRT_cftof2(char *buffer, s32 decimals, const s32 *number, u8 g_format);
+// 0x6806c0, 0x680840, 0x680970: _cftoe, _cftof, _cftog: the double at `value` by _fltout2 and _fptostr (after any '-': e with `decimals` + 1 digits past a point's room, f with
+// decpt + decimals, g with decimals), then _cftoe2/_cftof2. g: e when the rounded power is under -4 or at least `decimals`, else f; a carry in rounding cuts the last digit.
+char *__cdecl CRT_cftoe(const u32 *value, char *buffer, s32 decimals, s32 caps);
+char *__cdecl CRT_cftof(const u32 *value, char *buffer, s32 decimals);
+char *__cdecl CRT_cftog(const u32 *value, char *buffer, s32 decimals, s32 caps);
+// 0x680a30: _cfltcvt: 'e' or 'E': _cftoe; 'f': _cftof; any other: _cftog.
+char *__cdecl CRT_cfltcvt(const u32 *value, char *buffer, s32 format, s32 decimals, s32 caps);
 
 }  // extern "C"

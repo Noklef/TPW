@@ -1,4 +1,4 @@
-// The software rasteriser device's drawing methods (with render/rasteriser): a primitive's triangles, the test quad, a filled rectangle and a mapped triangle, through the hand-written MMX routines 0x6ef7f0, 0x6f02e0, 0x6f0a50 and the fans 0x6792f0, 0x679350. Reimplementation of 0x56a030-0x56a641; the names are invented (unconfirmed).
+// The software rasteriser device's drawing methods (with render/rasteriser): a primitive's triangles, the test quad, a filled rectangle and a mapped triangle, through the hand-written MMX routines 0x6ef7f0, 0x6f02e0, 0x6f0a50 and the triangle lists 0x6792f0, 0x679350. Reimplementation of 0x56a030-0x56a641 and 0x6792f0-0x6793ad; the names are invented (unconfirmed).
 //   A primitive: +4 its flags, +8 its span setting, +0x18 its kind, +0x20 its vertices' count, +0x24 its indices' count (3 a triangle), +0x28 the vertices (0x18 bytes each), +0x2c the indices (u16), +0x34 the colour.
 #pragma once
 
@@ -24,4 +24,9 @@ u32 __fastcall RasterDraw_Rect(u8 *self, void *, float x0, float y0, float x1, f
 
 // 0x56a540 (stdcall (scale, colour, specular, u0, v0, u1, v1), pops 0x1c): a triangle over the screen from the origin to scale - [0x7013b4], at depth 50 and 1/z 0.02, its mapping the three points (u0, v0), then u1 and v1 stretched by (u1 - u0) / scale, all * [0x7013c4]; 0xfbe008 = 0x7f7f; FixedVerts_PackRounded; by 0x6f0a50; EMMS. Returns 1.
 u32 __stdcall RasterDraw_MappedTriangle(float scale, u32 colour, u32 specular, float u0, float v0, float u1, float v1);
+
+// 0x6792f0, 0x679350 (cdecl (?, ?, vertices, ?, indices, count, ?); the others unused): an indexed triangle list, (count + 2) / 3 triangles by 0x6ef7f0 / 0x6f0a50 (no depth),
+// each vertex at vertices + index * 0x18. None for count 0. Returns 0.
+u32 __cdecl RasterDraw_TriangleList(u32, u32, const u8 *vertices, u32, const u16 *indices, u32 count, u32);
+u32 __cdecl RasterDraw_TriangleListNoZ(u32, u32, const u8 *vertices, u32, const u16 *indices, u32 count, u32);
 }
