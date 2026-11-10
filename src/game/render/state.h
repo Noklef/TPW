@@ -62,8 +62,3 @@ void __fastcall Render_SetAmbient(void *, void *, u32 on, u32 colour);
 // colour, which is returned.
 u32 __fastcall Render_FadeFog(u8 *fade);
 }
-
-#include "../core/gamedata.h"
-
-// Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
-GAME_DATA(u32, gState_8c1620, 0x008c1620, 0x4);

@@ -45,3 +45,9 @@ u8 *__fastcall Class702bb8_Ctor(u8 *self, void *, u8 *owner, const u8 *record);
 // 0x5dfa60 (thiscall, pops 0x30) as above.
 u8 *__fastcall Class702ca8_Ctor(u8 *self, void *, u8 *owner, u32 a1, const char *title_, const char *name, const char *pack, const char *pack2, float degrees, const u32 *point, const u16 *text, u32 a9, u32 b, u32 c);
 }
+
+#include "../core/gamedata.h"
+
+// The vtables hold only ports: tpw.exe's loader points their slots at them (.docs/09-globals.md).
+GAME_DATA(void *[1], Class702bb8_vtable, 0x00702bb8, 0x4);
+GAME_DATA(void *[1], Class702ca8_vtable, 0x00702ca8, 0x4);

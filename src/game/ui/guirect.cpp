@@ -26,20 +26,20 @@ extern "C" {
 
 u8 *__fastcall GuiRect_Ctor(u8 *rect) {
     Fn_65a9d0(rect);
-    at<u32>(rect, 0) = 0x705920;
+    at<u32>(rect, 0) = (u32)(uintptr_t)GuiRect_vtable;
     set(rect, 0, 0, 0, 0);
     return rect;
 }
 
 u8 *__fastcall GuiRect_CtorWith(u8 *rect, void *, u32 left, u32 top, u32 right, u32 bottom) {
     Fn_65a9d0(rect);
-    at<u32>(rect, 0) = 0x705920;
+    at<u32>(rect, 0) = (u32)(uintptr_t)GuiRect_vtable;
     set(rect, (u16)left, (u16)top, (u16)right, (u16)bottom);
     return rect;
 }
 
 u32 __fastcall GuiRect_Dtor(u8 *rect) {
-    at<u32>(rect, 0) = 0x705920;
+    at<u32>(rect, 0) = (u32)(uintptr_t)GuiRect_vtable;
     return Fn_66bff7(rect);
 }
 
@@ -71,7 +71,7 @@ u8 *__fastcall GuiRect_CopyCtor(u8 *rect, void *, const u8 *source) {
     Fn_6617d0(rect, nullptr, (u32)(uintptr_t)source);
     for (u32 off = 4; off < 0xc; off += 2)
         at<u16>(rect, off) = at<u16>(const_cast<u8 *>(source), off);
-    at<u32>(rect, 0) = 0x705920;
+    at<u32>(rect, 0) = (u32)(uintptr_t)GuiRect_vtable;
     return rect;
 }
 

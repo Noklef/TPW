@@ -14,3 +14,9 @@ extern "C" {
 // end - start, normalised, (1, 0, 0) when it is zero (fcomp's C3, so with NaN too).
 u8 *__fastcall RandomSegments_Ctor(u8 *object);
 }
+
+#include "../core/gamedata.h"
+
+// The vtables hold only ports: tpw.exe's loader points their slots at them (.docs/09-globals.md).
+GAME_DATA(void *[1], Class702cac_vtable, 0x00702cac, 0x4);
+GAME_DATA(void *[20], Class702cb0_vtable, 0x00702cb0, 0x50);

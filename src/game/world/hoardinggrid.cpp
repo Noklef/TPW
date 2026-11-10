@@ -7,7 +7,6 @@
 #include "world.h"
 #include "../ui/dialog7cc1f8.h"
 #include "tracktextures.h"
-#include "balancelevel.h"
 #include "cellbuild.h"
 #include "focuscell.h"
 
@@ -221,7 +220,7 @@ s32 __cdecl HoardingGrid_CheckArea(s32 x1, s32 y1, s32 x2, s32 y2, u8 charge) {
     for (s32 y = minY + 2; y < maxY; ++y) {
         for (s32 x = minX + 2; x < maxX; ++x) {
             if (!MapCell_HasFlags(cell44(((u32)(y << 7) + 1 + x) & 0xffff), nullptr, 0x40)) continue;
-            const u32 total = global<u32>(0x0081af4c) += gBalanceLevel.mMapCell;
+            const u32 total = global<u32>(0x0081af4c) += global<u32>(0x0078560c);
             if (global<u32>(0x00785a2c)) {
                 over = 0;
                 continue;

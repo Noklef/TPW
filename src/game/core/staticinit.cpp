@@ -8,13 +8,14 @@
 
 #include "addrcalls.h"
 #include "../math/x87.h"
-#include "../world/balancelevel.h"
 #include "../world/placeobject.h"
 #include "../world/steering.h"
 #include "../math/intpair.h"
 #include "../world/object.h"
 #include "../world/world.h"
-#include "../world/parkmap.h"
+#include "../ui/panel7ca178.h"
+#include "../ui/panel7cc298.h"
+#include "../render/spritequeue.h"
 
 namespace {
 
@@ -799,7 +800,7 @@ void __cdecl Exit_540880() {   // 0x540880
     esi = 0x876420u;
     eax = M<u32>(esi);
     ecx = M<u32>(eax + 0x4u);
-    M<u32>(ecx + 0x876420u) = 0x6ff308u;
+    M<u32>(ecx + 0x876420u) = (u32)(uintptr_t)Class6ff308_vtable;
     edx = M<u32>(esi);
     eax = M<u32>(edx + 0x4u);
     ecx = eax + 0xffffffe0u;
@@ -7459,8 +7460,8 @@ void __cdecl Init_402ae0() {   // 0x402ae0
     u32 eax = 0, ecx = 0;
     alignas(4) u8 frame[0x4];
     const u32 sp = (u32)(uintptr_t)(frame + sizeof frame);
-    ecx = (u32)&gBalanceLevel;
-    M<u32>((u32)&gBalanceLevel) = 0x6fd620u;
+    ecx = 0x785040u;
+    M<u32>(0x785040u) = 0x6fd620u;
     eax = g_calls.Th(0x00401030, ecx);   // BalanceFile_Init
     M<u32>(sp - 0x4) = 0x402b30u;
     eax = g_calls.Cd(0x0067a7d0, M<u32>(sp - 0x4));   // CRT_atexit
@@ -8712,7 +8713,7 @@ void __cdecl Init_496f70() {   // 0x496f70
     u32 eax = 0, ecx = 0;
     ecx = 0x7ca178u;
     eax = g_calls.Th(0x0048c9e0, ecx);   // Fn_48c9e0
-    M<u32>(0x7ca178u) = 0x6ff740u;
+    M<u32>(0x7ca178u) = (u32)(uintptr_t)Panel7ca178_vtable;
     M<u32>(0x7ca17cu) = 0x3eau;
     return;
 }
@@ -9329,7 +9330,7 @@ void __cdecl Init_4b0eb0() {   // 0x4b0eb0
     u32 eax = 0, ecx = 0;
     ecx = 0x7cc298u;
     eax = g_calls.Th(0x0048c9e0, ecx);   // Fn_48c9e0
-    M<u32>(0x7cc298u) = 0x6ffce8u;
+    M<u32>(0x7cc298u) = (u32)(uintptr_t)Panel7cc298_vtable;
     M<u32>(0x7cc29cu) = 0x2u;
     return;
 }
@@ -13164,17 +13165,17 @@ void __cdecl Init_5f0700() {   // 0x5f0700
     M<u8>(0xf86a06u) = (u8)ebx;
     M<u8>(0xf86a07u) = (u8)ebx;
     eax = g_calls.Th(0x005ec210, ecx);   // Init_5ec210
-    ecx = (u32)gParkMap_Colour_f86a28.body;
-    M<u8>((u32)&gParkMap_Colour_f86a28) = 0x0u;
-    M<u8>((u32)&gParkMap_Colour_f86a28.rgba[1]) = 0x0u;
-    M<u8>((u32)&gParkMap_Colour_f86a28.rgba[2]) = 0x0u;
-    M<u8>((u32)&gParkMap_Colour_f86a28.rgba[3]) = (u8)ebx;
+    ecx = 0xf86a2cu;
+    M<u8>(0xf86a28u) = 0x0u;
+    M<u8>(0xf86a29u) = 0x0u;
+    M<u8>(0xf86a2au) = 0x0u;
+    M<u8>(0xf86a2bu) = (u8)ebx;
     eax = g_calls.Th(0x005ec210, ecx);   // Init_5ec210
-    ecx = (u32)gParkMap_Colour_f86a4c.body;
-    M<u8>((u32)&gParkMap_Colour_f86a4c) = 0x0u;
-    M<u8>((u32)&gParkMap_Colour_f86a4c.rgba[1]) = (u8)ebx;
-    M<u8>((u32)&gParkMap_Colour_f86a4c.rgba[2]) = 0x0u;
-    M<u8>((u32)&gParkMap_Colour_f86a4c.rgba[3]) = (u8)ebx;
+    ecx = 0xf86a50u;
+    M<u8>(0xf86a4cu) = 0x0u;
+    M<u8>(0xf86a4du) = (u8)ebx;
+    M<u8>(0xf86a4eu) = 0x0u;
+    M<u8>(0xf86a4fu) = (u8)ebx;
     eax = g_calls.Th(0x005ec210, ecx);   // Init_5ec210
     ecx = 0xf86a74u;
     M<u8>(0xf86a70u) = (u8)ebx;
@@ -13204,55 +13205,55 @@ void __cdecl Init_5f0700() {   // 0x5f0700
     M<u32>(sp - 0xc) = 0x1fu;
     M<u32>(sp - 0x10) = 0xa6u;
     M<u32>(sp - 0x14) = 0x1fu;
-    ecx = (u32)&gParkMap_Colour_f86b00;
+    ecx = 0xf86b00u;
     eax = g_calls.Th(0x005f0970, ecx, M<u32>(sp - 0x14), M<u32>(sp - 0x10), M<u32>(sp - 0xc), M<u32>(sp - 0x8));   // Fn_5f0970
     M<u32>(sp - 0x8) = ebx;
     M<u32>(sp - 0xc) = 0x25u;
     M<u32>(sp - 0x10) = 0xc6u;
     M<u32>(sp - 0x14) = 0x25u;
-    ecx = (u32)&gParkMap_Colour_f86b24;
+    ecx = 0xf86b24u;
     eax = g_calls.Th(0x005f0970, ecx, M<u32>(sp - 0x14), M<u32>(sp - 0x10), M<u32>(sp - 0xc), M<u32>(sp - 0x8));   // Fn_5f0970
     M<u32>(sp - 0x8) = ebx;
     M<u32>(sp - 0xc) = 0x0u;
     M<u32>(sp - 0x10) = 0x17u;
     M<u32>(sp - 0x14) = 0x0u;
-    ecx = (u32)&gParkMap_Colour_f86b48;
+    ecx = 0xf86b48u;
     eax = g_calls.Th(0x005f0970, ecx, M<u32>(sp - 0x14), M<u32>(sp - 0x10), M<u32>(sp - 0xc), M<u32>(sp - 0x8));   // Fn_5f0970
     M<u32>(sp - 0x8) = 0x80u;
     M<u32>(sp - 0xc) = 0x0u;
     M<u32>(sp - 0x10) = 0x17u;
     M<u32>(sp - 0x14) = 0x0u;
-    ecx = (u32)&gParkMap_Colour_f86b6c;
+    ecx = 0xf86b6cu;
     eax = g_calls.Th(0x005f0970, ecx, M<u32>(sp - 0x14), M<u32>(sp - 0x10), M<u32>(sp - 0xc), M<u32>(sp - 0x8));   // Fn_5f0970
     M<u32>(sp - 0x8) = 0xc8u;
     M<u32>(sp - 0xc) = 0x96u;
     M<u32>(sp - 0x10) = 0x19u;
     M<u32>(sp - 0x14) = 0x19u;
-    ecx = (u32)&gParkMap_Colour_f86b90;
+    ecx = 0xf86b90u;
     eax = g_calls.Th(0x005f0970, ecx, M<u32>(sp - 0x14), M<u32>(sp - 0x10), M<u32>(sp - 0xc), M<u32>(sp - 0x8));   // Fn_5f0970
     M<u32>(sp - 0x8) = 0xc8u;
     M<u32>(sp - 0xc) = 0xfau;
     M<u32>(sp - 0x10) = 0x19u;
     M<u32>(sp - 0x14) = 0x19u;
-    ecx = (u32)&gParkMap_Colour_f86bb4;
+    ecx = 0xf86bb4u;
     eax = g_calls.Th(0x005f0970, ecx, M<u32>(sp - 0x14), M<u32>(sp - 0x10), M<u32>(sp - 0xc), M<u32>(sp - 0x8));   // Fn_5f0970
     M<u32>(sp - 0x8) = ebx;
     M<u32>(sp - 0xc) = 0x0u;
     M<u32>(sp - 0x10) = 0x0u;
     M<u32>(sp - 0x14) = 0xf8u;
-    ecx = (u32)&gParkMap_Colour_f86bd8;
+    ecx = 0xf86bd8u;
     eax = g_calls.Th(0x005f0970, ecx, M<u32>(sp - 0x14), M<u32>(sp - 0x10), M<u32>(sp - 0xc), M<u32>(sp - 0x8));   // Fn_5f0970
     M<u32>(sp - 0x8) = ebx;
     M<u32>(sp - 0xc) = 0x0u;
     M<u32>(sp - 0x10) = 0xc8u;
     M<u32>(sp - 0x14) = 0xf8u;
-    ecx = (u32)&gParkMap_Colour_f86bfc;
+    ecx = 0xf86bfcu;
     eax = g_calls.Th(0x005f0970, ecx, M<u32>(sp - 0x14), M<u32>(sp - 0x10), M<u32>(sp - 0xc), M<u32>(sp - 0x8));   // Fn_5f0970
     M<u32>(sp - 0x8) = ebx;
     M<u32>(sp - 0xc) = 0x0u;
     M<u32>(sp - 0x10) = 0xfcu;
     M<u32>(sp - 0x14) = 0x30u;
-    ecx = (u32)&gParkMap_Colour_f86c20;
+    ecx = 0xf86c20u;
     eax = g_calls.Th(0x005f0970, ecx, M<u32>(sp - 0x14), M<u32>(sp - 0x10), M<u32>(sp - 0xc), M<u32>(sp - 0x8));   // Fn_5f0970
     M<u32>(sp - 0x8) = ebx;
     M<u32>(sp - 0xc) = 0xf8u;

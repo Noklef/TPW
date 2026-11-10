@@ -167,3 +167,6 @@ GAME_DATA(void *[9], StreamBase_vtable, 0x00703100, 0x24);
 GAME_DATA(void *[12], Handle_vtable, 0x00703180, 0x30);
 GAME_DATA(void *[12], RefObject_vtable, 0x00703838, 0x30);
 GAME_DATA(void *[13], RefObject2_vtable, 0x00703898, 0x34);
+
+// The vtables hold only ports: tpw.exe's loader points their slots at them (.docs/09-globals.md).
+GAME_DATA(void *[10], FileStream_vtable, 0x006fd930, 0x28);

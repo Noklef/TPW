@@ -35,10 +35,10 @@ bool DrawViewSteps(u8 *renderer, const u32 *view) {
         if (!Slot(global<u32>(0x008bd52c), 0)) return false;
     }
     if (global<u32>(kViewFlags) & 0x2000) {
-        reinterpret_cast<u32 &>(gRendererframe_8bd4ec) = 0x3e800000;
+        reinterpret_cast<u32 &>(global<float>(0x008bd4ec)) = 0x3e800000;
     } else {
-        reinterpret_cast<u32 &>(gRendererframe_8bd4ec) = 0x3f19999a;
-        if (global<u32>(kMode) == 4) reinterpret_cast<u32 &>(gRendererframe_8bd4ec) = 0x3e800000;
+        reinterpret_cast<u32 &>(global<float>(0x008bd4ec)) = 0x3f19999a;
+        if (global<u32>(kMode) == 4) reinterpret_cast<u32 &>(global<float>(0x008bd4ec)) = 0x3e800000;
     }
     if ((view[0] & 0x1000) && at<u32>(renderer, 0x34)) g_calls.Th(0x00575fb0, at<u32>(renderer, 0x34));   // TexSet_BltToBack
     if (reinterpret_cast<u8 &>(gCameraFlags) & 0x16) global<u32>(kSceneFlags) |= 0x100;
@@ -56,7 +56,7 @@ bool DrawViewSteps(u8 *renderer, const u32 *view) {
     g_calls.Th(0x00582390, global<u32>(0x008bcbc4), (global<u32>(kSceneFlags) & 0xc0000000) ? 3u : 2u);   // DrawBuffer_Reset
     at<u32>(renderer, 0x30) = 0;
     g_calls.Th(0x00579c70, 0x008bb220u);   // MeshQueue_Clear
-    Slot(Device(), 0x18, gLobbysky_8bd490, gLobbysky_8bd494, gLobbysky_8bd47c);
+    Slot(Device(), 0x18, global<u32>(0x008bd490), global<u32>(0x008bd494), global<u32>(0x008bd47c));
     if (!Slot(Device(), 0x1c)) return false;
     if ((view[0] & 0x10) && !g_calls.Th(0x00576910, (u32)(uintptr_t)renderer)) return false;   // Renderer_DrawCellLists
     if (view[0] & 0x20) {
@@ -119,7 +119,7 @@ bool DrawViewSteps(u8 *renderer, const u32 *view) {
         u32 widthBits, heightBits;
         std::memcpy(&widthBits, &width, 4);
         std::memcpy(&heightBits, &height, 4);
-        if (!Slot(Device(), 0x28, 0u, 0u, widthBits, heightBits, gLobbyscene_8bd4e4, 0u)) return false;
+        if (!Slot(Device(), 0x28, 0u, 0u, widthBits, heightBits, global<u32>(0x008bd4e4), 0u)) return false;
         if (!Slot(Device(), 0x20)) return false;
     }
     return true;
@@ -180,7 +180,7 @@ u32 __fastcall Renderer_DrawFrame(u8 *renderer) {
         for (s32 i = 0; drawn && i < at<s32>(renderer, 0x70); ++i) {
             const u32 *&source = at<const u32 *>(renderer, 0x60 + (u32)i * 4);
             u32 left[16], right[16];
-            const float separation = gRenderer_DrawFrame_8bd478;
+            const float separation = global<float>(0x008bd478);
             std::memcpy(right, global<const void *>(0x0087afe8), 0x40);
             std::memcpy(left, global<const void *>(0x0087afe8), 0x40);
             Mat4_MoveAlongX(reinterpret_cast<float *>(left), nullptr, (float)(X87Reg(separation) * gRenderer_DrawFrame_7017f8));

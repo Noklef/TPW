@@ -29,7 +29,7 @@ void __cdecl GuiClock_Make() { GuiClock_Ctor(game<u8 *>(0x00faa580)); }
 
 u8 *__fastcall GuiClock_Ctor(u8 *clock) {
     Fn_659770(clock);
-    *reinterpret_cast<u32 *>(clock) = 0x7058ec;
+    *reinterpret_cast<u32 *>(clock) = (u32)(uintptr_t)GuiClock_vtable;
     return clock;
 }
 }

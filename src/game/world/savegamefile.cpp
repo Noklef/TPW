@@ -6,12 +6,13 @@
 
 #include "../core/vcall.h"
 #include "world.h"
+#include "../files/handles.h"
 
 namespace {
 
 AddrCalls g_calls;
 
-const u32 kFileVtable = 0x006fd930, kMemoryVtable = 0x006fd6a0, kUi = 0x007b51f0, kClock = 0x00785970;
+const u32 kFileVtable = (u32)(uintptr_t)FileStream_vtable, kMemoryVtable = 0x006fd6a0, kUi = 0x007b51f0, kClock = 0x00785970;
 
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
 

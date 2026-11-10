@@ -116,7 +116,7 @@ void PoseOffNode(u8 *piece, const u8 *in, u8 *out) {
         const float b = (float)((X87Reg(angle) - kMinusHalfPi) * gSinTableScale);
         const s32 s = Fistp(a) & reinterpret_cast<s32 &>(gSinTableMask);
         const s32 c = Fistp(b) & reinterpret_cast<s32 &>(gSinTableMask);
-        Vec3_RotateYCS(offset, global<float>(0x007b0968 + c * 4), global<float>(0x007b0968 + s * 4));
+        Vec3_RotateYCS(offset, gSinTable[c], gSinTable[s]);
     }
     at<float>(out, -4) = (float)(X87Reg(offset[0]) + at<float>(in, 0));
     at<float>(out, 0) = (float)(X87Reg(at<float>(in, 4)) + offset[1]);

@@ -5,7 +5,6 @@
 #include "app.h"
 #include "../ui/dialog7cc530handler.h"
 #include "../world/staff.h"
-#include "../world/balancelevel.h"
 
 namespace {
 
@@ -36,7 +35,7 @@ u32 __fastcall Obj_Inc30(u8 *object) { return ++at<u32>(object, 0x30); }
 
 u32 __fastcall Obj_IncBefore4c(u8 *object) { return ++at<u32>(object, (u32)-0x4c); }
 
-s32 __cdecl Global7852f8_Times78548c() { return (s32)((u32)reinterpret_cast<s32 &>(gBalanceLevel.mMaxResearchersInPark) * (u32)(s32)gBalanceLevel.mResearcherConstsPerGrade[4].mResearchAbility); }
+s32 __cdecl Global7852f8_Times78548c() { return (s32)((u32)global<s32>(0x007852f8) * (u32)global<s32>(0x0078548c)); }
 
 u32 __fastcall Obj_Flags28_Bit1IfBit0(const u8 *object) {
     const u32 flags = at<u32>(object, 0x28);

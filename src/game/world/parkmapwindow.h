@@ -147,3 +147,6 @@ GAME_DATA(const float, gParkmapwindow_70302c, 0x0070302c, 0x4);
 GAME_DATA(const float, gParkMap_HandleMouse_703034, 0x00703034, 0x4);
 GAME_DATA(const float, gParkMap_HandleMouse_703038, 0x00703038, 0x4);
 GAME_DATA(const float, gParkmapwindow_703040, 0x00703040, 0x4);
+
+// The vtables hold only ports: tpw.exe's loader points their slots at them (.docs/09-globals.md).
+GAME_DATA(void *[1], Class703080_vtable, 0x00703080, 0x4);

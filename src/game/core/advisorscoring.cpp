@@ -20,7 +20,6 @@
 #include "../ui/dialog74fb20.h"
 #include "../ui/quitconfirm.h"
 #include "../world/staff.h"
-#include "../world/balancelevel.h"
 
 namespace {
 
@@ -234,17 +233,17 @@ s32 __fastcall AdvisorScoring_StaffNoPatrol(const u8 *scoring) {
     return at<s32>(scoring, 0x4cc);
 }
 
-s32 __fastcall AdvisorScoring_StaffAtLimit5(const u8 *scoring) { return at_limit(scoring, (u32)&gBalanceLevel.mMaxHandymenInPark, 0x38c, 5, 0x38c); }
-s32 __fastcall AdvisorScoring_StaffAtLimit6(const u8 *scoring) { return at_limit(scoring, (u32)&gBalanceLevel.mMaxEntertainersInPark, 0x398, 6, 0x398); }
-s32 __fastcall AdvisorScoring_StaffAtLimit4(const u8 *scoring) { return at_limit(scoring, (u32)&gBalanceLevel.mMaxMechanicsInPark, 0x3a4, 4, 0x3a4); }
-s32 __fastcall AdvisorScoring_StaffAtLimit7(const u8 *scoring) { return at_limit(scoring, (u32)&gBalanceLevel.mMaxGuardsInPark, 0x3b0, 7, 0x3b0); }
-s32 __fastcall AdvisorScoring_StaffAtLimit8(const u8 *scoring) { return at_limit(scoring, (u32)&gBalanceLevel.mMaxGuardsInPark, 0x3b0, 8, 0x3bc); }  // sic: kind 7's limit
+s32 __fastcall AdvisorScoring_StaffAtLimit5(const u8 *scoring) { return at_limit(scoring, 0x007852e8, 0x38c, 5, 0x38c); }
+s32 __fastcall AdvisorScoring_StaffAtLimit6(const u8 *scoring) { return at_limit(scoring, 0x007852f0, 0x398, 6, 0x398); }
+s32 __fastcall AdvisorScoring_StaffAtLimit4(const u8 *scoring) { return at_limit(scoring, 0x007852ec, 0x3a4, 4, 0x3a4); }
+s32 __fastcall AdvisorScoring_StaffAtLimit7(const u8 *scoring) { return at_limit(scoring, 0x007852f4, 0x3b0, 7, 0x3b0); }
+s32 __fastcall AdvisorScoring_StaffAtLimit8(const u8 *scoring) { return at_limit(scoring, 0x007852f4, 0x3b0, 8, 0x3bc); }  // sic: kind 7's limit
 
-s32 __fastcall AdvisorScoring_StaffFull5(const u8 *scoring) { return full(scoring, (u32)&gBalanceLevel.mMaxHandymenInPark, 0x38c, 5); }
-s32 __fastcall AdvisorScoring_StaffFull6(const u8 *scoring) { return full(scoring, (u32)&gBalanceLevel.mMaxEntertainersInPark, 0x398, 6); }
-s32 __fastcall AdvisorScoring_StaffFull4(const u8 *scoring) { return full(scoring, (u32)&gBalanceLevel.mMaxMechanicsInPark, 0x3a4, 4); }
-s32 __fastcall AdvisorScoring_StaffFull7(const u8 *scoring) { return full(scoring, (u32)&gBalanceLevel.mMaxGuardsInPark, 0x3b0, 7); }
-s32 __fastcall AdvisorScoring_StaffFull8(const u8 *scoring) { return full(scoring, (u32)&reinterpret_cast<s32 &>(gBalanceLevel.mMaxResearchersInPark), 0x3bc, 8); }
+s32 __fastcall AdvisorScoring_StaffFull5(const u8 *scoring) { return full(scoring, 0x007852e8, 0x38c, 5); }
+s32 __fastcall AdvisorScoring_StaffFull6(const u8 *scoring) { return full(scoring, 0x007852f0, 0x398, 6); }
+s32 __fastcall AdvisorScoring_StaffFull4(const u8 *scoring) { return full(scoring, 0x007852ec, 0x3a4, 4); }
+s32 __fastcall AdvisorScoring_StaffFull7(const u8 *scoring) { return full(scoring, 0x007852f4, 0x3b0, 7); }
+s32 __fastcall AdvisorScoring_StaffFull8(const u8 *scoring) { return full(scoring, 0x007852f8, 0x3bc, 8); }
 
 s32 __fastcall AdvisorScoring_StaffLow4(const u8 *scoring) { return low(scoring, 4, 0x10, 0x194); }
 s32 __fastcall AdvisorScoring_StaffLow5(const u8 *scoring) { return low(scoring, 5, 0xc, 0x19c); }
@@ -531,22 +530,22 @@ s32 __fastcall AdvisorScoring_Tallied0Above(const u8 *scoring) {
 
 s32 __fastcall AdvisorScoring_TotalAboveTheme0(const u8 *scoring) {
     const s32 total = (s32)ParkAnalyser_Total(table());
-    if (total <= scaled((u32)&gBalanceLevel.mVisitors, at<float>(scoring, 0x5c4)) || !theme_clear(0))
+    if (total <= scaled(0x00785790, at<float>(scoring, 0x5c4)) || !theme_clear(0))
         return 0;
     return at<s32>(scoring, 0x5c8);
 }
 
 s32 __fastcall AdvisorScoring_Mood19cTheme2(const u8 *scoring) {
     const double average = Things_AveragePersonStat19c(table(), nullptr, 0);
-    const s32 k = scaled((u32)&gBalanceLevel.mHappiness, at<float>(scoring, 0x5cc));
-    if ((double)k >= average || Things_CountKind1OnPlainCell() <= global_s32((u32)&gBalanceLevel.mAtLeastThisManyHappyPeople) || !theme_clear(2))
+    const s32 k = scaled(0x00785798, at<float>(scoring, 0x5cc));
+    if ((double)k >= average || Things_CountKind1OnPlainCell() <= global_s32(0x0078579c) || !theme_clear(2))
         return 0;
     return at<s32>(scoring, 0x5d0);
 }
 
 s32 __fastcall AdvisorScoring_MoneyAboveTheme4(const u8 *scoring) {
     const s32 money = (s32)Money_Total(reinterpret_cast<const u8 *>((uintptr_t)GameTable7cfb90_Get1da726_5195d0(game())));
-    if (money <= scaled((u32)&gBalanceLevel.mProfitYear, at<float>(scoring, 0x5d4)) || !theme_clear(4))
+    if (money <= scaled(0x007857a0, at<float>(scoring, 0x5d4)) || !theme_clear(4))
         return 0;
     return at<s32>(scoring, 0x5d8);
 }
@@ -567,13 +566,13 @@ s32 __fastcall AdvisorScoring_ControlsPercentHigh(const u8 *scoring) {
 }
 
 s32 __fastcall AdvisorScoring_PeopleShare(const u8 *scoring) {
-    if (Get1da710_51a280(game()) != 0 || global_s32((u32)&gBalanceLevel.mPeopleInPark) == 0)
+    if (Get1da710_51a280(game()) != 0 || global_s32(0x00785794) == 0)
         return 0;
-    s32 p = share(Things_CountKind1OnPlainCell(), global_s32((u32)&gBalanceLevel.mPeopleInPark));
+    s32 p = share(Things_CountKind1OnPlainCell(), global_s32(0x00785794));
     if (p > 100)
         p = 100;
     else
-        p = share(Things_CountKind1OnPlainCell(), global_s32((u32)&gBalanceLevel.mPeopleInPark));
+        p = share(Things_CountKind1OnPlainCell(), global_s32(0x00785794));
     return p > at<s32>(scoring, 0x614) ? at<s32>(scoring, 0x618) : 0;
 }
 
@@ -998,7 +997,7 @@ s32 __fastcall AdvisorScoring_DaysBetween2(const u8 *scoring) {
 s32 __fastcall AdvisorScoring_TotalNoExtra(const u8 *scoring) {
     if (ObjectUnlock_ExtraCount() > 0) return 0;
     const s32 total = (s32)ParkAnalyser_Total(table());
-    return total > scaled((u32)&gBalanceLevel.mVisitors, at<float>(scoring, 0x5b8)) ? at<s32>(scoring, 0x5bc) : 0;
+    return total > scaled(0x00785790, at<float>(scoring, 0x5b8)) ? at<s32>(scoring, 0x5bc) : 0;
 }
 
 s32 __fastcall AdvisorScoring_MeanQueueUnused(const u8 *) {

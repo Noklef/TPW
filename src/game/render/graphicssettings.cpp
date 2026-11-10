@@ -43,7 +43,7 @@ void __cdecl GraphicsSettings_Apply() {
         global(kMode) |= v == 1 ? 4 : v == 2 ? 2 : 1;
     }
     v = setting(2);
-    if (v <= 2) global((u32)&gGraphicssettings_8c162c) = v == 0 ? 1500 : v == 1 ? 2000 : 2500;
+    if (v <= 2) global(0x008c162c) = v == 0 ? 1500 : v == 1 ? 2000 : 2500;
     flag(setting(3), kFlags, 0x40);
     v = setting(4);
     if (v == 0 || v == 1 || v == 2 || v == 4) Landscape_SetDetail(reinterpret_cast<u8 *>(0x008c1828), nullptr, v);
@@ -68,7 +68,7 @@ void __cdecl GraphicsSettings_Apply() {
     if (v <= 3) {
         static const u32 kFog[] = {0x43480000, 0x43a28000, 0x43e10000, 0x442f0000};               // 200, 325, 450, 700
         static const float kNear[] = {50.0f, 100.0f, 135.0f, 230.0f}, kFar[] = {60.0f, 110.0f, 150.0f, 250.0f};
-        global((u32)&gGraphicssettings_8bd4c0) = kFog[v];
+        global(0x008bd4c0) = kFog[v];
         View_SetDepthRange(reinterpret_cast<u8 *>(kView), nullptr, kNear[v], kFar[v]);
     }
     v = setting(16);
@@ -101,7 +101,7 @@ u32 __cdecl GraphicsSettings_Load(u32 flags) {
 u32 __cdecl GraphicsSettings_LoadForOptions() {
     u8 *const options = reinterpret_cast<u8 *>((uintptr_t)0x0078d8d8);
     global(0x0079d86c) &= ~0x400u;
-    global((u32)&gState_8c1620) = 0;
+    global(0x008c1620) = 0;
     gGraphicssettings_7a1a8c |= 0x40604;
     const u32 mode = *reinterpret_cast<u32 *>(options + 8);
     u32 flags = 0;

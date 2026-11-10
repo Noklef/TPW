@@ -50,7 +50,7 @@ u32 __fastcall TerrainTexCache_Dtor(u8 *cache) {
 u32 __fastcall TerrainTexCache_Init(u8 *cache, void *, s32 count, u32 size) {
     if (size == 0) size = at<u32>(cache, 4);
     const s32 video = *reinterpret_cast<const s32 *>((uintptr_t)0x008bd520);
-    const s32 memory = gTexcache_8c1624;
+    const s32 memory = (*reinterpret_cast<s32 *>((uintptr_t)0x008c1624));
     const u32 unit = reinterpret_cast<const u32 *>(&gTexcache_701548)[*reinterpret_cast<const u32 *>((uintptr_t)0x008bd554)] << 20;
     if (video < 0x3000000 || memory < (s32)(unit * 3)) size = 0x10;
     if ((video < 0x4000000 || memory < (s32)(unit * 5)) && size == 0x40) size = 0x20;

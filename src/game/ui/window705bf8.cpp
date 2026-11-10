@@ -43,7 +43,7 @@ extern "C" {
 
 u8 *__fastcall Window705bf8_Ctor(u8 *window, void *, u8 *parent, u32 flags, u32 id, u32 left, u32 top, u32 right, u32 bottom) {
     Window_Ctor(window, nullptr, parent, flags, id, left, top, right, bottom);
-    at<u32>(window, 0) = 0x705bf8;
+    at<u32>(window, 0) = (u32)(uintptr_t)Window705bf8_vtable;
     at<u32>(window, 0x148) = 0;
     at<u32>(window, 0x138) = 0;
     at<u32>(window, 0x13c) = 0;
@@ -104,7 +104,7 @@ void __fastcall Window705bf8_SetAlignY(u8 *window, void *, u32 value) {
 }
 
 u32 __fastcall Window705bf8_Dtor(u8 *window) {
-    at<u32>(window, 0) = 0x705bf8;
+    at<u32>(window, 0) = (u32)(uintptr_t)Window705bf8_vtable;
     if (at<u32>(window, 0x138)) GameHeap_Free(at<void *>(window, 0x138));
     return Window_Dtor(window);
 }

@@ -111,7 +111,7 @@ extern "C" u32 __fastcall Sprite_LoadEsp(u8 *s, void *, const u8 *entry, u8 *fil
         vcall<void>(stream, 4);
         {
             StringView view;
-            String_Left(&path, nullptr, &view, path.length - gSprite_LoadEsp_8757ac);
+            String_Left(&path, nullptr, &view, path.length - (*reinterpret_cast<u32 *>((uintptr_t)0x008757ac)));
             String_Assign(&path, nullptr, &view);
         }
         const bool first = gLoading_8768fc && at<u8>(s, 0x205);

@@ -114,7 +114,7 @@ void __fastcall VoiceSample_Dtor(u8 *sample) { SoundSample_Dtor(sample); }
 
 void __fastcall VoiceStream_Dtor(u8 *sample) {
     u8 *const sub = sample + 0x40;   // (the original tests the sample for null first)
-    at<u32>(sub, 0) = 0x70ad50;
+    at<u32>(sub, 0) = (u32)(uintptr_t)SubStream_vtable;
     Semaphore_Dtor(reinterpret_cast<Semaphore *>(sub + 0x14));
     StreamBase_Dtor(reinterpret_cast<StreamBase *>(sub + 0xc));
     SoundSample_Dtor(sample);

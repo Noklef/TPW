@@ -336,3 +336,6 @@ u32 __cdecl Window7059f0_Proc(u8 *window, u32 message, u32 a, u32 b);
 
 // Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
 GAME_DATA(u8[24], gWindow7059f0_Proc_77c4b8, 0x0077c4b8, 0x18);
+
+// The vtables hold only ports: tpw.exe's loader points their slots at them (.docs/09-globals.md).
+GAME_DATA(void *[12], Window7059f0_vtable, 0x007059f0, 0x30);

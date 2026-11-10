@@ -36,7 +36,7 @@ u8 *__fastcall GuiShape_DeletingDtor(u8 *shape, void *, u32 flags) {
 u8 *__fastcall GuiCircle_Ctor(u8 *circle) { return GuiCircle_CtorWith(circle, nullptr, 0, 0, 0); }
 
 u8 *__fastcall GuiCircle_CtorWith(u8 *circle, void *, u32 x, u32 y, u32 radius) {
-    base(circle, 0x705b50);
+    base(circle, (u32)(uintptr_t)GuiCircle_vtable);
     at<u16>(circle, 4) = (u16)x;
     at<u16>(circle, 6) = (u16)y;
     at<u16>(circle, 8) = (u16)radius;
@@ -59,7 +59,7 @@ void __fastcall GuiEllipse_Offset(u8 *ellipse, void *, u32 dx, u32 dy) { GuiCirc
 u8 *__fastcall GuiEllipse_Ctor(u8 *ellipse) { return GuiEllipse_CtorWith(ellipse, nullptr, 0, 0, 0, 0); }
 
 u8 *__fastcall GuiEllipse_CtorWith(u8 *ellipse, void *, u32 x, u32 y, u32 rx, u32 ry) {
-    base(ellipse, 0x705b68);
+    base(ellipse, (u32)(uintptr_t)GuiEllipse_vtable);
     at<u16>(ellipse, 4) = (u16)x;
     at<u16>(ellipse, 6) = (u16)y;
     at<u16>(ellipse, 8) = (u16)rx;
@@ -82,14 +82,14 @@ u8 *__fastcall GuiCircle_DeletingDtor(u8 *circle, void *, u32 flags) {
 u32 __fastcall GuiCircle_Dtor(u8 *circle) { return Fn_66bff7(circle); }
 
 u8 *__fastcall GuiPolygon_Ctor(u8 *polygon) {
-    base(polygon, 0x705b80);
+    base(polygon, (u32)(uintptr_t)GuiPolygon_vtable);
     at<u16 *>(polygon, 8) = nullptr;
     at<u16>(polygon, 4) = 0;
     return polygon;
 }
 
 u8 *__fastcall GuiPolygon_CtorTriangle(u8 *polygon, void *, u32 x0, u32 y0, u32 x1, u32 y1, u32 x2, u32 y2) {
-    base(polygon, 0x705b80);
+    base(polygon, (u32)(uintptr_t)GuiPolygon_vtable);
     at<u16>(polygon, 4) = 3;
     at<u16 *>(polygon, 8) = static_cast<u16 *>(GameHeap_Alloc(0xc));
     const u32 words[] = {x0, y0, x1, y1, x2, y2};
@@ -98,7 +98,7 @@ u8 *__fastcall GuiPolygon_CtorTriangle(u8 *polygon, void *, u32 x0, u32 y0, u32 
 }
 
 u8 *__fastcall GuiPolygon_CtorQuad(u8 *polygon, void *, u32 x0, u32 y0, u32 x1, u32 y1, u32 x2, u32 y2, u32 x3, u32 y3) {
-    base(polygon, 0x705b80);
+    base(polygon, (u32)(uintptr_t)GuiPolygon_vtable);
     at<u16>(polygon, 4) = 4;
     at<u16 *>(polygon, 8) = static_cast<u16 *>(GameHeap_Alloc(0x10));
     const u32 words[] = {x0, y0, x1, y1, x2, y2, x3, y3};
@@ -107,7 +107,7 @@ u8 *__fastcall GuiPolygon_CtorQuad(u8 *polygon, void *, u32 x0, u32 y0, u32 x1, 
 }
 
 u8 *__fastcall GuiPolygon_CtorPoints(u8 *polygon, void *, u32 count, const u16 *source) {
-    base(polygon, 0x705b80);
+    base(polygon, (u32)(uintptr_t)GuiPolygon_vtable);
     at<u16>(polygon, 4) = (u16)count;
     at<u16 *>(polygon, 8) = static_cast<u16 *>(GameHeap_Alloc((u32)at<s16>(polygon, 4) << 2));
     for (s32 i = 0; i < (s16)count; ++i) {
@@ -118,7 +118,7 @@ u8 *__fastcall GuiPolygon_CtorPoints(u8 *polygon, void *, u32 count, const u16 *
 }
 
 u32 __fastcall GuiPolygon_Dtor(u8 *polygon) {
-    at<u32>(polygon, 0) = 0x705b80;
+    at<u32>(polygon, 0) = (u32)(uintptr_t)GuiPolygon_vtable;
     if (points(polygon)) GameHeap_Free(points(polygon));
     return Fn_66bff7(polygon);
 }

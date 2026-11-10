@@ -8,7 +8,6 @@
 #include "objectdefs.h"
 #include "ridelist.h"
 #include "rides.h"
-#include "balancelevel.h"
 
 namespace {
 
@@ -33,8 +32,8 @@ void __fastcall Object_ClaimRide(u8 *object, void *, u32 claim) {
     desc[3] = at<u32>(def, 0x18);
     const u32 self = (u32)(uintptr_t)object;
     if (at<u32>(def, 0x38)) {
-        desc[0] = at<u32>(def, 0x20) ? at<u32>(def, 0x20) : (u32)gBalanceLevel.mFixedItemOriginX;
-        desc[1] = at<u32>(def, 0x24) ? at<u32>(def, 0x24) : (u32)gBalanceLevel.mFixedItemOriginY;
+        desc[0] = at<u32>(def, 0x20) ? at<u32>(def, 0x20) : global<u32>(0x00785594);
+        desc[1] = at<u32>(def, 0x24) ? at<u32>(def, 0x24) : global<u32>(0x00785598);
         if (claim) {
             g_env->claim(at<u32>(object, 0x20), at<u32>(def, 0x490), 0x361, desc, 0, self, at<u32>(def, 0x28), at<u32>(def, 0x2c), at<u32>(object, 0x24));
             return;

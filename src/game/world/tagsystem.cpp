@@ -12,7 +12,6 @@
 #include "things.h"
 #include "../ui/window7cc8c0handler.h"
 #include "tagsystem.h"
-#include "balancelevel.h"
 
 namespace {
 
@@ -105,16 +104,16 @@ extern "C" u8 __fastcall TagSystem_FormatTag(u8 *self, void *, const u8 *record,
         Crt().swprintf(dest, gText_TagSystem_HandleMessage_75ebe0);
         return 1;
     case 5:
-        format(self, record, number(x, 1, gBalanceLevel.mVisitors));
+        format(self, record, number(x, 1, global<s32>(0x00785790)));
         return 1;
     case 6:
-        format(self, record, number(x, 1, gBalanceLevel.mPeopleInPark));
+        format(self, record, number(x, 1, global<s32>(0x00785794)));
         return 1;
     case 7:
-        format(self, record, number(x, 1, gBalanceLevel.mProfitYear));
+        format(self, record, number(x, 1, global<s32>(0x007857a0)));
         return 1;
     case 8:
-        format(self, record, number(x, 1, gBalanceLevel.mRecentVisitors), number(y, 2, gBalanceLevel.mRecentVisitorMonths));
+        format(self, record, number(x, 1, global<s32>(0x007857a4)), number(y, 2, global<s32>(0x007857a8)));
         return 1;
     case 9:
     case 0xb:

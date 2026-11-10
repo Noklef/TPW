@@ -26,20 +26,20 @@ void __stdcall VertexFog_Colour(u8 *vertices, u32 count, s32 stride) {
     for (u8 *v = vertices; count != 0; --count, v += stride) {
         const float z = *reinterpret_cast<const float *>(v + 8);
         u32 &diffuse = *reinterpret_cast<u32 *>(v + 0x10), &specular = *reinterpret_cast<u32 *>(v + 0x14);
-        if (!(z > reinterpret_cast<float &>(gLobbysky_8bd490))) {
+        if (!(z > reinterpret_cast<float &>(At<u32>(0x008bd490)))) {
             specular = 0;
             continue;
         }
-        if (z >= reinterpret_cast<float &>(gLobbysky_8bd494)) {
+        if (z >= reinterpret_cast<float &>(At<u32>(0x008bd494))) {
             diffuse &= 0xff000000;
-            specular = gLobbysky_8bd47c;
+            specular = At<u32>(0x008bd47c);
             continue;
         }
-        const X87Reg t = (X87Reg(z) - reinterpret_cast<float &>(gLobbysky_8bd490)) * gD3dprobe_8bd498;
+        const X87Reg t = (X87Reg(z) - reinterpret_cast<float &>(At<u32>(0x008bd490))) * At<float>(0x008bd498);
         const float tf = (float)t;
-        const s32 r = Fistp((float)(t * gVertexFog_Colour_8bd484));
-        const s32 g = Fistp((float)(X87Reg(tf) * gVertexFog_Colour_8bd488));
-        const s32 b = Fistp((float)(X87Reg(tf) * gVertexFog_Colour_8bd48c));
+        const s32 r = Fistp((float)(t * At<float>(0x008bd484)));
+        const s32 g = Fistp((float)(X87Reg(tf) * At<float>(0x008bd488)));
+        const s32 b = Fistp((float)(X87Reg(tf) * At<float>(0x008bd48c)));
         specular = ((u32)b & 0xff) | ((u32)r & 0xff0000) | ((u32)g & 0xff00);
         const X87Reg keep = X87Reg(1.0f) - tf;  // 0x7016c0
         const u32 d = diffuse;
@@ -55,12 +55,12 @@ void __stdcall VertexFog_Alpha(u8 *vertices, u32 count, s32 stride) {
     for (u8 *v = vertices; count != 0; --count, v += stride) {
         const float z = *reinterpret_cast<const float *>(v + 8);
         u32 &specular = *reinterpret_cast<u32 *>(v + 0x14);
-        if (!(z > reinterpret_cast<float &>(gLobbysky_8bd490)))
+        if (!(z > reinterpret_cast<float &>(At<u32>(0x008bd490))))
             specular = 0xff000000;
-        else if (z >= reinterpret_cast<float &>(gLobbysky_8bd494))
+        else if (z >= reinterpret_cast<float &>(At<u32>(0x008bd494)))
             specular = 0;
         else
-            specular = (u32)Fistp((float)(((X87Reg(reinterpret_cast<float &>(gLobbysky_8bd494)) - z) * gD3dprobe_8bd498) * 255.0f)) << 24;  // 0x7016e4
+            specular = (u32)Fistp((float)(((X87Reg(reinterpret_cast<float &>(At<u32>(0x008bd494))) - z) * At<float>(0x008bd498)) * 255.0f)) << 24;  // 0x7016e4
     }
 }
 }

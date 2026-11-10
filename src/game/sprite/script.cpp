@@ -4,6 +4,7 @@
 
 #include <cstring>
 
+#include "../core/addrcalls.h"
 #include "../math/x87.h"
 #include "draw.h"
 #include "loading.h"
@@ -15,7 +16,10 @@ template <typename T> T &at(void *p, u32 offset) { return *reinterpret_cast<T *>
 SpriteScriptGlobals &g() { return gSpriteScripts; }
 
 constexpr u32 kOpIf = 0x00476050, kOpEndIf = 0x004762f0, kOpElse = 0x00476320, kOpEnd = 0x005da3c0;
-constexpr s32 kCodeEnd = 0x0074f7c0;
+
+// An opcode's word as the code holds it: in tpw.exe the loader points the code's opcode words at the ports (its code slots), so the
+// port's address; in the hook DLL and the tests the original's.
+u32 opcode(u32 address) { return g_addressTarget ? g_addressTarget(address) : address; }
 
 s32 &pc() { return at<s32>(g().current, 8); }
 u32 word(s32 index) { return *reinterpret_cast<const u32 *>(g().code + 4u * (u32)index); }
@@ -39,7 +43,7 @@ Fcom fcom(double st0, double src) {
 
 // The code word at a pc (word index) of a code base, as the skippers read it: the address
 // compares signed against the end of the code table.
-bool in_code(u32 base, s32 index) { return (s32)(base + 4u * (u32)index) < kCodeEnd; }
+bool in_code(u32 base, s32 index) { return (s32)(base + 4u * (u32)index) < (s32)SpriteCode(sizeof gSpriteScriptCode); }
 u32 code_at(u32 base, s32 index) { return *reinterpret_cast<const u32 *>(base + 4u * (u32)index); }
 
 // pc = the word index of an address in the code (sar: the difference is signed).
@@ -64,11 +68,11 @@ extern "C" u32 __cdecl SpriteScript_Pop() {
 
 extern "C" void __cdecl SpriteScript_SkipBlock() {
     u8 *script = g().current;
-    const u32 base = at<u32>(script, 0x14);
+    const u32 base = at<u32>(script, 0x14), op_if = opcode(kOpIf), op_endif = opcode(kOpEndIf);
     while (in_code(base, at<s32>(script, 8))) {
         const u32 op = code_at(base, at<s32>(script, 8));
-        if (op == kOpEndIf) return;
-        if (op == kOpIf) {
+        if (op == op_endif) return;
+        if (op == op_if) {
             ++at<s32>(script, 8);
             ++at<s32>(g().current, 0x70);
             SpriteScript_SkipBlock();
@@ -82,11 +86,11 @@ extern "C" void __cdecl SpriteScript_SkipBlock() {
 
 extern "C" void __cdecl SpriteScript_SkipToElse() {
     u8 *script = g().current;
-    const u32 base = at<u32>(script, 0x14);
+    const u32 base = at<u32>(script, 0x14), op_if = opcode(kOpIf), op_else = opcode(kOpElse), op_endif = opcode(kOpEndIf);
     while (in_code(base, at<s32>(script, 8))) {
         const u32 op = code_at(base, at<s32>(script, 8));
-        if (op == kOpElse || op == kOpEndIf) break;
-        if (op == kOpIf) {  // a nested block: skipped whole (SkipBlock inlined)
+        if (op == op_else || op == op_endif) break;
+        if (op == op_if) {  // a nested block: skipped whole (SkipBlock inlined)
             ++at<s32>(script, 8);
             ++at<s32>(g().current, 0x70);
             SpriteScript_SkipBlock();
@@ -98,7 +102,7 @@ extern "C" void __cdecl SpriteScript_SkipToElse() {
         script = g().current;
     }
     const s32 index = at<s32>(script, 8);
-    if (in_code(base, index) && code_at(base, index) == kOpElse) at<s32>(script, 8) = index + 1;
+    if (in_code(base, index) && code_at(base, index) == op_else) at<s32>(script, 8) = index + 1;
 }
 
 u32 SpriteScript_RunWith(void(__cdecl *op)(u32 address), u8 *script) {
@@ -107,6 +111,7 @@ u32 SpriteScript_RunWith(void(__cdecl *op)(u32 address), u8 *script) {
     g().regs = script + 0x84;
     if (at<s32>(script, 0x18) == 3) return 0;
     at<s32>(script, 0x18) = 1;
+    const u32 end = opcode(kOpEnd);
     u32 steps = 1;
     s32 index = pc();
     u32 next = word(index);
@@ -114,7 +119,7 @@ u32 SpriteScript_RunWith(void(__cdecl *op)(u32 address), u8 *script) {
     ++pc();
     for (;;) {
         op(next);
-        if (next == kOpEnd) {
+        if (next == end) {
             at<s32>(g().current, 0x18) = 4;
             at<u32>(g().current, 0x114) = 0;
             return steps;
@@ -335,7 +340,7 @@ const SpriteScriptEnv kGameEnv = {
 const SpriteScriptEnv *g_env = &kGameEnv;
 const SpriteScriptEnv &env() { return *g_env; }
 
-constexpr u32 kCodeBase = 0x0074dab8, kMagic = 0x53435054;  // "TPCS"
+constexpr u32 kMagic = 0x53435054;  // "TPCS"
 constexpr u32 kScriptSize = 0x118;
 
 // The script in a slot; null for slot 0 or past the table (empty slots hold null too).
@@ -495,17 +500,17 @@ extern "C" u32 __cdecl SpriteScripts_Load(void *stream) {
         if (!g().scripts[slot]) continue;  // the saved pointers: nonzero where a script follows
         g().scripts[slot] = static_cast<u8 *>(env().alloc(kScriptSize));
         env().read(&result, stream, g().scripts[slot], kScriptSize, 0);
-        at<u32>(g().scripts[slot], 0x14) = kCodeBase;
+        at<u32>(g().scripts[slot], 0x14) = SpriteCode(0);
     }
     return 0;
 }
 
 extern "C" void __cdecl SpriteScript_Init(u8 *script, u32 code, u32 folder, u32 sprite, u32 anim, u32 x, u32 y,
                                           u32 z, u32 r17, u32 r18) {
-    const s32 pc = (s32)(code - kCodeBase) >> 2;
+    const s32 pc = (s32)(code - SpriteCode(0)) >> 2;
     at<s32>(script, 8) = pc;
     at<s32>(script, 0xc) = pc;
-    at<u32>(script, 0x14) = kCodeBase;
+    at<u32>(script, 0x14) = SpriteCode(0);
     at<s32>(script, 0x1c) = 20;
     at<s32>(script, 0x18) = 1;
     at<s32>(script, 0x70) = at<s32>(script, 0x74) = at<s32>(script, 0x78) = 0;
@@ -567,7 +572,7 @@ extern "C" u32 __cdecl SpriteScript_IsAt(s32 slot, u32 code) {
                          &at<u32>(script, 0xb4), &r17, &r18);
         code = action_code(index);
     }
-    return kCodeBase + 4u * at<u32>(script, 0xc) == code ? 1 : 0;
+    return SpriteCode(4u * at<u32>(script, 0xc)) == code ? 1 : 0;
 }
 
 extern "C" s32 __cdecl SpriteScript_Clone(s32 slot, u32 x, u32 y, u32 z, u32 r8) {

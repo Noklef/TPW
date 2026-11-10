@@ -9,8 +9,6 @@
 #include "engineerrors.h"
 #include "../frontend/lobbysky.h"
 #include "graphicssettings.h"
-#include "../world/advisor.h"
-#include "../world/balancelevel.h"
 
 namespace {
 
@@ -58,9 +56,9 @@ void __fastcall Render_FogOff(void *) { global<u32>(0x008bcbc8) &= ~0x2000u; }
 
 // The start and end are floats, moved as dwords.
 void __fastcall Render_SetFog(void *, void *, u32 colour, u32 start, u32 end) {
-    gLobbysky_8bd47c = colour;
-    gLobbysky_8bd490 = start;
-    gLobbysky_8bd494 = end;
+    global<u32>(0x008bd47c) = colour;
+    global<u32>(0x008bd490) = start;
+    global<u32>(0x008bd494) = end;
 }
 
 void __fastcall Render_SetAmbient(void *, void *, u32 on, u32 colour) {
@@ -90,7 +88,7 @@ u32 __cdecl Options_Apply() {
     global<u32>(0x008bd550) = settings;
     const u32 shifted = global<u32>(0x0079d9c8);
     if (shifted)
-        gState_8c1620 = shifted << 20;
+        global<u32>(0x008c1620) = shifted << 20;
     u32 scene = global<u32>(0x008bd508);
     scene = (b & 2) ? scene & 0xffffffbf : scene | 0x40;
     global<u32>(0x008bd508) = scene;
@@ -109,31 +107,31 @@ u32 __cdecl Options_Apply() {
 }
 
 u32 __cdecl Environment_Apply() {
-    gLobbysky_8bd47c = reinterpret_cast<u32 &>(gBalanceLevel.mFogColour);
-    global<u32>(0x007a0b44) = reinterpret_cast<u32 &>(gBalanceLevel.mAmbientLightLevel);
-    global<u32>(0x007a0b3c) = reinterpret_cast<u32 &>(gBalanceLevel.mDirectionalLightLevel);
-    const s32 c = gBalanceLevel.mProceduralTexturingXOffset, e = gBalanceLevel.mProceduralTexturingYOffset;
+    global<u32>(0x008bd47c) = global<u32>(0x007856d4);
+    global<u32>(0x007a0b44) = global<u32>(0x007856d8);
+    global<u32>(0x007a0b3c) = global<u32>(0x007856dc);
+    const s32 c = global<s32>(0x007856e0), e = global<s32>(0x007856e4);
     global<s32>(0x007a006c) = c > 0 ? c : 0;
     global<s32>(0x007a01c0) = e > 0 ? e : 0;
-    global<u32>(0x007a0b30) = reinterpret_cast<u32 &>(gBalanceLevel.mLightNormalX);
-    global<u32>(0x007a0b34) = reinterpret_cast<u32 &>(gBalanceLevel.mLightNormalY);
-    global<u32>(0x007a0b38) = reinterpret_cast<u32 &>(gBalanceLevel.mLightNormalZ);
-    global<u32>(0x00870ec8) = reinterpret_cast<const u32 &>(gBalanceLevel.mWaterStartPosX);
-    global<u32>(0x00870ecc) = reinterpret_cast<const u32 &>(gBalanceLevel.mWaterStartPosY);
-    global<u32>(0x00870ed0) = reinterpret_cast<const u32 &>(gBalanceLevel.mWaterStartPosZ);
+    global<u32>(0x007a0b30) = global<u32>(0x007856e8);
+    global<u32>(0x007a0b34) = global<u32>(0x007856ec);
+    global<u32>(0x007a0b38) = global<u32>(0x007856f0);
+    global<u32>(0x00870ec8) = global<u32>(0x00785718);
+    global<u32>(0x00870ecc) = global<u32>(0x0078571c);
+    global<u32>(0x00870ed0) = global<u32>(0x00785720);
     for (u32 i = 0; i < 4; i++) {
-        gAdvisor_State_f79660.addOns[i] = (u32)gBalanceLevel.mThemeAdvisorCostumes[i].mAddOns;
-        gAdvisor_State_f79660.subOffs[i] = (u32)gBalanceLevel.mThemeAdvisorCostumes[i].mSubOffs;
+        global<u32>(0x00f797a4 + 4 * i) = global<u32>(0x007856f4 + 8 * i);
+        global<u32>(0x00f797b4 + 4 * i) = global<u32>(0x007856f8 + 8 * i);
     }
-    Global81b6dc_Set_52fb10(gBalanceLevel.mPathCell);
-    Global81ea14_Set_52fb30(gBalanceLevel.mQueueCell);
-    Global81aebc_Set_52fb50(gBalanceLevel.mKartTrackCell);
-    Global81b43c_Set_52fb70(gBalanceLevel.mWaterTrackCell);
+    Global81b6dc_Set_52fb10(global<u32>(0x00785600));
+    Global81ea14_Set_52fb30(global<u32>(0x007855fc));
+    Global81aebc_Set_52fb50(global<u32>(0x00785604));
+    Global81b43c_Set_52fb70(global<u32>(0x00785608));
     return 1;
 }
 
 u32 __fastcall Render_FadeFog(u8 *fade) {
-    u32 colour = gLobbysky_8bd47c;
+    u32 colour = global<u32>(0x008bd47c);
     if (global<s32>(0x00785888) > 1 && global<u32>(0x0078d8d8) == 1) {
         const s32 a = at<s32>(fade, 0x44), b = at<s32>(fade, 0x48), c = at<s32>(fade, 0x4c);
         const s32 targetB = at<s32>(fade, 0x54), targetC = at<s32>(fade, 0x58);

@@ -52,3 +52,10 @@ void __cdecl AllPieces_Destroy();
 // +4 = QueuePiece_Place (column, row, 2, +0x18, +0x1c, 1), then Terrain_PaintAt (column, row, {0, 8, 0}). Otherwise Terrain_PaintAt (column, row, +0x14).
 void __fastcall CellPaint_Apply(u8 *record);
 }
+
+#include "../core/gamedata.h"
+
+// The four piece tables (12-byte rows) as one object, since their loaders read across them (the row before a table's first, for a
+// first row without a name; the queue loop's end 0x7633ec): the queue's (8 rows) at +0, the track queues' 0x7633e8 (20) at +0x60,
+// 0x7634d8 (25) at +0x150, a dword, 0x763608 (28) at +0x280 up to +0x3d0, whose end pointer is the name + 0x3d0. Name invented.
+GAME_DATA(u8[0x3d0], gPieceTables, 0x00763388, 0x3d0);

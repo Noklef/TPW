@@ -34,7 +34,6 @@
 #include "world.h"
 #include "object.h"
 #include "person.h"
-#include "balancelevel.h"
 #include "../core/soundset.h"
 #include "../math/intpair.h"
 
@@ -478,7 +477,7 @@ u32 __fastcall Visitor_Serialize(u8 *visitor, void *, Stream *stream, u32 save, 
 
 s32 __fastcall Visitor_RatingGap(const u8 *visitor, void *, u8 *object) {
     if (Object_InPoorCondition(object)) return 100;
-    const u8 wanted = (u8)gBalanceLevel.mPeepTypes[at<u8>(visitor, 0x1f0)].mPreferredExcitement;
+    const u8 wanted = *reinterpret_cast<const u8 *>(0x007850e4 + 12 * (u32)at<u8>(visitor, 0x1f0));
     const s32 gap = (s32)wanted - (s32)Object_Rating(object, nullptr, 0);
     const s32 sign = gap >= 0 ? -1 : 1;
     const s32 size = gap < 0 ? -gap : gap;
@@ -560,14 +559,14 @@ u32 __fastcall Sprite_WalkNav(u8 *sprite) {
     if (Nav_PathProgress(nav) == 0x10000) return 0;   // (through the jump 0x510180)
     at<u32>(sprite, 0x1c) = g_env->angle((s32)(x0 - x1), (s32)(y1 - y0)) & 0xffff;
     const u32 running = at<u16>(sprite, 0xc2) > global<u16>(0x0075c7f0) && (sprite[2] == 1 || sprite[2] == 7) ? 1 : 0;
-    u32 code = 0x0074db60, action = 1;
+    u32 code = SpriteCode(0xa8), action = 1;
     if (sprite[2] == 7 && Guard_IsState12(sprite)) {
-        code = 0x0074ef90;
+        code = SpriteCode(0x14d8);
         action = 0x17;
     }
     u8 *const ref = sprite + 0xc;
     if (!running && !SpriteScript_IsAt(at<s32>(ref, 0), code)) Set4_4217f0(ref, nullptr, action);
-    if (running && !SpriteScript_IsAt(at<s32>(ref, 0), 0x0074dbc0)) Set4_4217f0(ref, nullptr, 2);
+    if (running && !SpriteScript_IsAt(at<s32>(ref, 0), SpriteCode(0x108))) Set4_4217f0(ref, nullptr, 2);
     const u32 dx = x1 - x0, dy = y1 - y0;
     float period = (float)(X87_Sqrt(X87Reg((double)(s32)(dx * dx + dy * dy))) * global<float>(0x007006e8));   // fild; fsqrt; fmul; fstp
     if (!running) period = (float)(X87Reg(period) + X87Reg(period));   // fld; fadd st0, st0; fstp
@@ -577,12 +576,12 @@ u32 __fastcall Sprite_WalkNav(u8 *sprite) {
 
 void __fastcall Visitor_RideFeelings(u8 *visitor, void *, const u8 *object) {
     if (!Object_Rating(object, nullptr, 0)) return;
-    const s32 wanted = (u8)gBalanceLevel.mPeepTypes[visitor[0x1f0]].mPreferredExcitement;
+    const s32 wanted = *reinterpret_cast<const u8 *>(0x7850e4 + 12 * visitor[0x1f0]);
     s32 gap = wanted - Object_Rating(object, nullptr, 0);
     if (gap < 0) gap = -gap;
-    const u32 *const step = gap < 5 ? &gBalanceLevel.mPerfectRide : gap < 15 ? &gBalanceLevel.mGoodRide : gap < 0x28 ? &gBalanceLevel.mOKRide : nullptr;
+    const u32 step = gap < 5 ? 0x785064 : gap < 15 ? 0x785068 : gap < 0x28 ? 0x78506c : 0;
     if (step) set100(visitor + 0x19c, X87Reg((double)*reinterpret_cast<const s32 *>(step)) + at<float>(visitor, 0x19c));   // fild; fadd [mem]
-    const s32 divisor = (s32)gBalanceLevel.mRideVomitDivisor;
+    const s32 divisor = *reinterpret_cast<const s32 *>(0x785070);
     const s32 rating = Object_Rating(object, nullptr, 0);
     const s32 share = rating / divisor;   // (idiv: 0 faults)
     const s32 calm = (100 - static_cast<s32>(static_cast<u8>(static_cast<long long>(at<float>(visitor, 0x1a8))))) / 20;
@@ -615,7 +614,7 @@ void __fastcall Visitor_UseObject(u8 *visitor, void *, u8 *object) {
     // a small happiness drop when the effect plus quality plus a random 0-7 stays below 30 (unsigned): hunger first, then thirst
     const auto drop = [&](u32 offset) {
         if (at<s32>(def, offset) != 0 && ((u32)World_Rand(global<u8 *>(0x0080239c)) & 7) + quality + at<u32>(def, offset) < 0x1e)
-            Stat100_Add(&at<float>(visitor, 0x19c), nullptr, (float)-(double)(u8)gBalanceLevel.mSmallHappinessChange);
+            Stat100_Add(&at<float>(visitor, 0x19c), nullptr, (float)-(double)global<u8>(0x00785058));
     };
     drop(0x148);
     drop(0x144);
@@ -639,7 +638,7 @@ void __fastcall Visitor_UseObject(u8 *visitor, void *, u8 *object) {
         World_SetSeed(global<u8 *>(0x0080239c), nullptr, *Thing_GetHandle(visitor, nullptr, &handle));
         const u32 sprite = SpriteFolder_RandomSprite(10);
         const u32 anim = Sprite_RandomAnim(10, sprite);
-        at<s32>(visitor, 0x210) = SpriteScript_Start(0x0074f480, 10, sprite, anim, 0, 0, 0);
+        at<s32>(visitor, 0x210) = SpriteScript_Start(SpriteCode(0x19c8), 10, sprite, anim, 0, 0, 0);
         u32 life = (u32)Obj_GetByte18c(object) * gVisitor_UseObject_75d0f4 / 100;   // (the product wraps)
         at<u32>(visitor, 0x214) = life;
         if (life < gVisitor_UseObject_75d0f0)
@@ -673,7 +672,7 @@ void __fastcall Visitor_UseObject(u8 *visitor, void *, u8 *object) {
         ++at<u32>(visitor, 0x1d0);
         const s32 prize = (s32)Obj_Get188(object);
         const s32 price = (s32)Obj_Get194(object);
-        const s32 gain = (s32)(long long)sideshow_log2(prize, price, (u8)gBalanceLevel.mMediumHappinessChange);
+        const s32 gain = (s32)(long long)sideshow_log2(prize, price, global<u8>(0x0078505c));
         set100(visitor + 0x19c, X87Reg((double)gain) + at<float>(visitor, 0x19c));
         World_Rand(global<u8 *>(0x0080239c));
     }
@@ -702,7 +701,7 @@ void __fastcall Visitor_VisitObject(u8 *visitor, void *, u8 *object) {
     Stat100_Add(reinterpret_cast<float *>(visitor + 0x1b8), nullptr, (float)-(double)at<s32>(Object_GetDef(object), 0xe8));
     u8 *const defs = reinterpret_cast<u8 *>(0x007890a0);
     if (at<u8>(visitor, 0x1f1) == 0) {
-        set100(visitor + 0x19c, X87Reg(-(double)(u8)gBalanceLevel.mMediumHappinessChange) + at<float>(visitor, 0x19c));
+        set100(visitor + 0x19c, X87Reg(-(double)global<u8>(0x0078505c)) + at<float>(visitor, 0x19c));
         if (at<s32>(ObjectDefs_Find(defs, nullptr, at<u16>(object, 0xe)), 0x4ac) != 2) return;
         Thoughts_Show(visitor + 0x30, nullptr, 6, 0);
         Ring_PushUnique(visitor + 0x30, nullptr, 0x19, *Thing_GetHandle(object, nullptr, &stored));
@@ -960,7 +959,7 @@ void __fastcall Visitor_SetState(u8 *visitor, void *, u32 state) {
         World_SetSeed(world80239c(), nullptr, *Thing_GetHandle(visitor, nullptr, &handle));
         const u32 sprite = SpriteFolder_RandomSprite(10);
         const u32 anim = Sprite_RandomAnim(10, sprite);
-        at<s32>(visitor, 0x210) = SpriteScript_Start(0x0074f480, 10, sprite, anim, 0, 0, 0);
+        at<s32>(visitor, 0x210) = SpriteScript_Start(SpriteCode(0x19c8), 10, sprite, anim, 0, 0, 0);
         return;
     }
     case 16: {

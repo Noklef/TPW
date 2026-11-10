@@ -13,7 +13,6 @@
 #include "staff.h"
 #include "thingscan.h"
 #include "world.h"
-#include "balancelevel.h"
 
 namespace {
 
@@ -45,7 +44,7 @@ void __fastcall Handyman_PickWork(u8 *handyman) {
         const u16 handle = at<u16>(handyman, 0);
         const u32 cell = ((u32)handyman[7] << 7) + handyman[5] + 1;
         u16 out;
-        const u16 target = *g_env->nearestCell(pointerOf(GameTable7cfb90_Get1da720_519510(world)), nullptr, &out, handle, cell, (s32)gBalanceLevel.mHandymanConstsPerGrade[at<u32>(handyman, 0x1e4)].mDetectionRange);
+        const u16 target = *g_env->nearestCell(pointerOf(GameTable7cfb90_Get1da720_519510(world)), nullptr, &out, handle, cell, global<s32>(0x007853f0 + at<u32>(handyman, 0x1e4) * 12));
         at<u16>(handyman, 0x218) = target;
         if (target) {
             World_SetSeed(world, nullptr, target);
@@ -99,7 +98,7 @@ void __fastcall Entertainer_PickWork(u8 *entertainer) {
     u8 *const world = global<u8 *>(0x0080239c);
     if (!g_env->tooTired(entertainer) && static_cast<u32>(World_Rand(world)) % 3 == 0) {
         const u32 cell = ((u32)entertainer[7] << 7) + entertainer[5] + 1;
-        if (g_env->anyAround(1, cell, (s32)gBalanceLevel.mEntertainerConstsPerGrade[at<u32>(entertainer, 0x1e4)].mActivationDistance)) {
+        if (g_env->anyAround(1, cell, global<s32>(0x007853a0 + (at<u32>(entertainer, 0x1e4) << 4)))) {
             const u32 draw = static_cast<u32>(World_Rand(world));
             const u32 actions = g_env->actionCount(at<u32>(entertainer, 0x24), at<u32>(entertainer, 0x20));
             Set4_4217f0(entertainer + 0xc, nullptr, actions == 1 ? 0xd : draw % (actions - 1) + 0xd);

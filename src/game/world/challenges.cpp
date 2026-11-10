@@ -19,7 +19,6 @@
 #include "thingscan.h"
 #include "world.h"
 #include "challenges.h"
-#include "balancelevel.h"
 
 namespace {
 
@@ -41,7 +40,7 @@ void scheduleIn(u8 *challenges, s32 days) {
 extern "C" {
 
 void __fastcall BalanceChallenges_Dtor(u8 *file) {
-    at<u32>(file, 0) = 0x00700398;
+    at<u32>(file, 0) = (u32)(uintptr_t)BalanceChallenges_vtable;
     BalanceFile_Release(file);
 }
 
@@ -49,10 +48,10 @@ void __fastcall Challenges_LoadSam(u8 *challenges) {
     u8 *const list = challenges + 0xc;
     for (s32 i = 0; i < 0x14; ++i) at<u32>(list, i * 0x30) = 0;
     u8 file[0x970];
-    at<u32>(file, 0) = 0x00700398;
+    at<u32>(file, 0) = (u32)(uintptr_t)BalanceChallenges_vtable;
     BalanceFile_Init(file);
     BalanceFile_Load(file, nullptr, gText_Challenges_LoadSam_75a1f4, 0);  // "data/challenges.sam" (a failure only asserts)
-    for (const s32 *index = gBalanceLevel.mChallengesInThisLevelChallengeType; index < reinterpret_cast<const s32 *>(gBalanceLevel.unk_7e4); ++index) {
+    for (const s32 *index = reinterpret_cast<const s32 *>(0x007857d4); index < reinterpret_cast<const s32 *>(0x00785824); ++index) {
         const s32 k = *index;
         if (k <= 0) continue;
         const u8 *const row = file + 0xc + (u32)k * 0x28;
@@ -198,7 +197,7 @@ void __fastcall Challenges_OfferNext(u8 *challenges, void *, u32 offer) {
     if (at<u8>(challenges, 0x3d9) || at<u8>(challenges, 0x3da)) return;
     const s32 current = at<s32>(challenges, 0x3cc);
     at<u32>(challenges, 0x3dc) = 0;
-    const s32 most = gBalanceLevel.mDeclinesToForfeit;
+    const s32 most = global<s32>(0x007857cc);
     // (32-bit wrapping counts, compared signed, as the original's)
     for (u32 i = current >= 0 ? (u32)current + 1 : 0; (s32)i <= (s32)((u32)at<s32>(challenges, 0x3cc) + 0x14); ++i) {
         const s32 k = (s32)i % 0x14;
@@ -216,7 +215,7 @@ u8 __fastcall Challenges_OfferFollowup(u8 *challenges) {
     if (!followup) return 0;
     for (s32 i = 0; i < 0x14; ++i) {
         const u8 *const c = challenges + 0xc + i * 0x30;
-        if (!at<u32>(c, 0) || at<u8>(c, 0x2c) || at<s32>(c, 0x28) >= gBalanceLevel.mDeclinesToForfeit || at<u32>(c, 0) != followup) continue;
+        if (!at<u32>(c, 0) || at<u8>(c, 0x2c) || at<s32>(c, 0x28) >= global<s32>(0x007857cc) || at<u32>(c, 0) != followup) continue;
         at<s32>(challenges, 0x3cc) = i;
         if (Challenges_Announce(challenges, nullptr, Challenges_Current(challenges), 0)) {
             at<u32>(challenges, 0x3dc) = 0;
@@ -246,12 +245,12 @@ void __fastcall Challenges_DeclineOffer(u8 *challenges) {
         Money_Credit(money, nullptr, at<s32>(current, 0x14) / 2);  // half mPrize
         at<u16>(challenges, 0x3e0) = 0;  // mActualThing
     }
-    scheduleIn(challenges, gBalanceLevel.mDaysAfterDeclinedChallenge);  // gBalanceLevel.mDaysAfterDeclinedChallenge
+    scheduleIn(challenges, global<s32>(0x007857c4));  // gBalanceLevel.mDaysAfterDeclinedChallenge
 }
 
 void __fastcall Challenges_Won(u8 *challenges) {
     at<u8>(challenges, 0x3d9) = 0;
-    scheduleIn(challenges, gBalanceLevel.mDaysAfterCompletedChallenge);
+    scheduleIn(challenges, global<s32>(0x007857c0));
     const u8 *const current = Challenges_Current(challenges);
     if (!current) return;
     if (at<u32>(current, 0x18)) {
@@ -267,7 +266,7 @@ void __fastcall Challenges_Won(u8 *challenges) {
 
 void __fastcall Challenges_Lost(u8 *challenges) {
     at<u8>(challenges, 0x3d9) = 0;
-    scheduleIn(challenges, gBalanceLevel.mDaysAfterCompletedChallenge);
+    scheduleIn(challenges, global<s32>(0x007857c0));
     u8 *const current = Challenges_Current(challenges);
     if (current) Challenge_Attempt(current, nullptr, at<u32>(challenges, 0x3dc));
     at<u16>(challenges, 0x3e0) = 0;

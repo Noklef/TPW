@@ -17,6 +17,8 @@
 #include "../core/liveobjects.h"
 #include "../render/spritequeue.h"
 #include "../ui/guidialog.h"
+#include "spritequeue.h"
+#include "textparts.h"
 
 namespace {
 
@@ -487,7 +489,7 @@ u8 *__fastcall RendererPart_Ctor(u8 *object, void *, u32 value) {
     u8 *const set = object + 0xb4;   // (the sprite set's construction, inlined)
     at<u32>(set, 0) = 0x006ff318;
     at<u32>(set, 0x20) = 0x006fdce8;
-    at<u32>(set, at<s32>(at<u8 *>(set, 0), 4)) = 0x006ff308;
+    at<u32>(set, at<s32>(at<u8 *>(set, 0), 4)) = (u32)(uintptr_t)Class6ff308_vtable;
     const s32 base = at<s32>(at<u8 *>(set, 0), 4);
     at<s32>(set, base - 4) = base - 0x20;
     at<u32>(set, 4) = 0;
@@ -497,7 +499,7 @@ u8 *__fastcall RendererPart_Ctor(u8 *object, void *, u32 value) {
     at<u32>(set, 0x14) = 0;
     at<u32>(set, 0x18) = 0;
     LiveObjects_Add(set ? set + at<s32>(at<u8 *>(set, 0), 4) : nullptr);
-    at<u32>(object, 0) = 0x006ff2d8;
+    at<u32>(object, 0) = (u32)(uintptr_t)RendererPart_vtable;
     at<u16>(object, 0x44) = 0;
     at<u32>(object, 0x98) = TrackedArray_Alloc(set, nullptr, 1);
     at<u32>(object, 0x64) = 0x30000;
@@ -512,7 +514,7 @@ u8 *__fastcall RendererPart_Ctor(u8 *object, void *, u32 value) {
 }
 
 void __fastcall RendererPart_Dtor(u8 *object) {
-    at<u32>(object, 0) = 0x006ff2d8;
+    at<u32>(object, 0) = (u32)(uintptr_t)RendererPart_vtable;
     SpriteSet_Dtor(object + 0xb4);
     SpriteImage_Dtor(object + 0x9c);
     GuiDialog_Dtor(object);

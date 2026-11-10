@@ -113,20 +113,6 @@ GAME_DATA(const float, gParkMap_DrawCoasterLines_70304c, 0x0070304c, 0x4);
 GAME_DATA(const float, gParkMap_DrawCoasterLines_703050, 0x00703050, 0x4);
 GAME_DATA(const float, gParkmap_703064, 0x00703064, 0x4);
 GAME_DATA(PtrList *, gParkmap_fa6e38, 0x00fa6e38, 0x4);
-// The map's static colours (0x24 bytes each, 0xf869e0-0xf86d1c; staticinit's Init_5f0700 builds them: the colour's bytes, then
-// Init_5ec210 on +4, or Fn_5f0970 (r, g, b, a) on the whole). Only the ones the map reads are here.
-struct ParkMapColour {
-    u8 rgba[4];
-    u8 body[0x20];
-};
-GAME_DATA(ParkMapColour, gParkMap_Colour_f86a28, 0x00f86a28, 0x24);
-GAME_DATA(ParkMapColour, gParkMap_Colour_f86a4c, 0x00f86a4c, 0x24);
-GAME_DATA(ParkMapColour, gParkMap_Colour_f86b00, 0x00f86b00, 0x24);
-GAME_DATA(ParkMapColour, gParkMap_Colour_f86b24, 0x00f86b24, 0x24);
-GAME_DATA(ParkMapColour, gParkMap_Colour_f86b48, 0x00f86b48, 0x24);
-GAME_DATA(ParkMapColour, gParkMap_Colour_f86b6c, 0x00f86b6c, 0x24);
-GAME_DATA(ParkMapColour, gParkMap_Colour_f86b90, 0x00f86b90, 0x24);
-GAME_DATA(ParkMapColour, gParkMap_Colour_f86bb4, 0x00f86bb4, 0x24);
-GAME_DATA(ParkMapColour, gParkMap_Colour_f86bd8, 0x00f86bd8, 0x24);
-GAME_DATA(ParkMapColour, gParkMap_Colour_f86bfc, 0x00f86bfc, 0x24);
-GAME_DATA(ParkMapColour, gParkMap_Colour_f86c20, 0x00f86c20, 0x24);
+
+// The vtables hold only ports: tpw.exe's loader points their slots at them (.docs/09-globals.md).
+GAME_DATA(void *[1], Class703088_vtable, 0x00703088, 0x4);

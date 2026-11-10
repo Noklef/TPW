@@ -16,3 +16,8 @@ u8 *__fastcall Window705b98_Ctor(u8 *window, void *, u8 *parent, u32 flags, u32 
 // +0x138 = bits and Window_Notify80(bits). 1 (AX).
 u16 __fastcall Window705b98_SetBits(u8 *window, void *, u32 bits);
 }
+
+#include "../core/gamedata.h"
+
+// The vtables hold only ports: tpw.exe's loader points their slots at them (.docs/09-globals.md).
+GAME_DATA(void *[12], Window705b98_vtable, 0x00705b98, 0x30);

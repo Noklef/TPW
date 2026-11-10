@@ -3,7 +3,6 @@
 #include <cstdint>
 
 #include "../files/file.h"
-#include "../world/advisor.h"
 #include "../world/messagecentre.h"
 #include "../world/thingmsg.h"
 
@@ -29,11 +28,11 @@ void __cdecl Advisor_Save(Stream *stream) {
     Stream_Write(&result, stream, &value, 4, nullptr);
     value = 0x168;
     Stream_Write(&result, stream, &value, 4, nullptr);
-    Stream_Write(&result, stream, &gAdvisor_State_f79660, (s32)value, nullptr);
-    const u32 pointer = gAdvisor_State_f79660.lipTimes;
+    Stream_Write(&result, stream, reinterpret_cast<const void *>(0x00f79660), (s32)value, nullptr);
+    const u32 pointer = *reinterpret_cast<const u32 *>(0x00f797a0);
     if (pointer) {
-        Stream_Write(&result, stream, &gAdvisor_State_f79660.lipBytes, 4, nullptr);
-        Stream_Write(&result, stream, reinterpret_cast<const void *>(pointer), (s32)gAdvisor_State_f79660.lipBytes, nullptr);
+        Stream_Write(&result, stream, reinterpret_cast<const void *>(0x00f79794), 4, nullptr);
+        Stream_Write(&result, stream, reinterpret_cast<const void *>(pointer), (s32) * reinterpret_cast<const u32 *>(0x00f79794), nullptr);
     } else {
         value = 0;
         Stream_Write(&result, stream, &value, 4, nullptr);

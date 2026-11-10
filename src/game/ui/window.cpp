@@ -394,7 +394,7 @@ void __fastcall Window_SetImpl(u8 *window, void *, u8 *impl) {
 u8 *__fastcall Window_Ctor(u8 *window, void *, u8 *parent, u32 flags, u32 id, u32 left, u32 top, u32 right, u32 bottom) {
     for (u32 off = 8; off <= 0x38; off += 0xc)
         GuiRect_Ctor(window + off);
-    at<u32>(window, 0) = 0x705980;
+    at<u32>(window, 0) = (u32)(uintptr_t)Window_vtable;
     window[4] = 0;
     at<u32>(window, 0x48) = flags;
     at<u32>(window, 0x114) = 0x65f6d1;
@@ -530,7 +530,7 @@ void __cdecl Gui_ResetQueues() {
 }
 
 u32 __fastcall Window_Dtor(u8 *window) {
-    at<u32>(window, 0) = 0x705980;
+    at<u32>(window, 0) = (u32)(uintptr_t)Window_vtable;
     if (!window[4]) Window_Destroying(window);
     u8 *const manager = *reinterpret_cast<u8 **>((uintptr_t)0x0077c48c);
     reinterpret_cast<void(__fastcall *)(u8 *, void *, u8 *)>(at<void **>(manager, 0)[13])(manager, nullptr, window);

@@ -36,7 +36,7 @@ const float kOverTwoPi = 0.159154937f;    // 0x6fe2cc
 // The table's entry for a scaled angle.
 float Table(float scaled) {
     const s32 i = _mm_cvtss_si32(_mm_set_ss(scaled));
-    return global<float>(0x007b0968 + 4 * (gSinTableMask & (u32)i));
+    return gSinTable[gSinTableMask & (u32)i];
 }
 
 float Scaled(float angle) { return Table((float)(X87Reg(gSinTableScale) * angle)); }

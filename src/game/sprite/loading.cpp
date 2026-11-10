@@ -289,8 +289,8 @@ extern "C" bool __cdecl Sprites_Setup(u32 mode, u32 onlyLast) {
     gSpriteDrawOn = 1;
     gThings_877350 = 0;
     reinterpret_cast<u32 &>(gSpriteHeading) = 0;
-    reinterpret_cast<u32 &>(gDraw_8bd4f0) = 0;
-    reinterpret_cast<u32 &>(gDraw_8bd4f4) = 0;
+    reinterpret_cast<u32 &>(global<float>(0x008bd4f0)) = 0;
+    reinterpret_cast<u32 &>(global<float>(0x008bd4f4)) = 0;
     gLoading_8768fc = mode & 0xff;
     gLoading_763f80 = (mode & 0xff) == 0;
     g_calls.Cd(0x00541d90, onlyLast);

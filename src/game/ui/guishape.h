@@ -68,3 +68,10 @@ void __fastcall GuiPolygon_Offset(u8 *polygon, void *, u32 dx, u32 dy);
 // 0x66c7b0 (thiscall (flags), pops 4; slot 4): GuiPolygon_Dtor, then the polygon freed (Mem_Free) when flags bit 0 is set; returns the polygon.
 u8 *__fastcall GuiPolygon_DeletingDtor(u8 *polygon, void *, u32 flags);
 }
+
+#include "../core/gamedata.h"
+
+// The vtables hold only ports: tpw.exe's loader points their slots at them (.docs/09-globals.md).
+GAME_DATA(void *[6], GuiCircle_vtable, 0x00705b50, 0x18);
+GAME_DATA(void *[6], GuiEllipse_vtable, 0x00705b68, 0x18);
+GAME_DATA(void *[6], GuiPolygon_vtable, 0x00705b80, 0x18);

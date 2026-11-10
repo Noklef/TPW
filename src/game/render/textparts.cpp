@@ -53,14 +53,14 @@ u32 ColourByte(u8 c) {
 }
 
 void Destroy(u8 *part) {
-    at<u32>(part, 0) = 0x006ff320;
+    at<u32>(part, 0) = (u32)(uintptr_t)TextPart_vtable;
     TextLayout_Dtor(part + 0xe4);
     RendererPart_Dtor(part);
 }
 }
 
 extern "C" {
-u8 *__fastcall TextPart_Ctor(u8 *part, void *, u32 value) { return Construct(part, value, 0x006ff320, false); }
+u8 *__fastcall TextPart_Ctor(u8 *part, void *, u32 value) { return Construct(part, value, (u32)(uintptr_t)TextPart_vtable, false); }
 
 void __fastcall TextPart_Dtor(u8 *part) { Destroy(part); }
 
@@ -70,7 +70,7 @@ u8 *__fastcall TextPart_DeletingDtor(u8 *part, void *, u32 flags) {
     return part;
 }
 
-u8 *__fastcall TextPart6ff350_Ctor(u8 *part, void *, u32 value) { return Construct(part, value, 0x006ff350, false); }
+u8 *__fastcall TextPart6ff350_Ctor(u8 *part, void *, u32 value) { return Construct(part, value, (u32)(uintptr_t)TextPart6ff350_vtable, false); }
 
 void __fastcall TextPart6ff350_Dtor(u8 *part) { Destroy(part); }
 
@@ -80,7 +80,7 @@ u8 *__fastcall TextPart6ff350_DeletingDtor(u8 *part, void *, u32 flags) {
     return part;
 }
 
-u8 *__fastcall TextPart6ff380_Ctor(u8 *part, void *, u32 value) { return Construct(part, value, 0x006ff380, true); }
+u8 *__fastcall TextPart6ff380_Ctor(u8 *part, void *, u32 value) { return Construct(part, value, (u32)(uintptr_t)TextPart6ff380_vtable, true); }
 
 void __fastcall TextPart6ff380_Dtor(u8 *part) { Destroy(part); }
 
@@ -90,7 +90,7 @@ u8 *__fastcall TextPart6ff380_DeletingDtor(u8 *part, void *, u32 flags) {
     return part;
 }
 
-u8 *__fastcall TextPart6ff3b0_Ctor(u8 *part, void *, u32 value) { return Construct(part, value, 0x006ff3b0, false); }
+u8 *__fastcall TextPart6ff3b0_Ctor(u8 *part, void *, u32 value) { return Construct(part, value, (u32)(uintptr_t)TextPart6ff3b0_vtable, false); }
 
 void __fastcall TextPart6ff3b0_Dtor(u8 *part) { Destroy(part); }
 
@@ -100,7 +100,7 @@ u8 *__fastcall TextPart6ff3b0_DeletingDtor(u8 *part, void *, u32 flags) {
     return part;
 }
 
-u8 *__fastcall TextPart6ff3e0_Ctor(u8 *part, void *, u32 value) { return Construct(part, value, 0x006ff3e0, false); }
+u8 *__fastcall TextPart6ff3e0_Ctor(u8 *part, void *, u32 value) { return Construct(part, value, (u32)(uintptr_t)TextPart6ff3e0_vtable, false); }
 
 void __fastcall TextPart6ff3e0_Dtor(u8 *part) { Destroy(part); }
 
@@ -110,7 +110,7 @@ u8 *__fastcall TextPart6ff3e0_DeletingDtor(u8 *part, void *, u32 flags) {
     return part;
 }
 
-u8 *__fastcall TextPart6ff410_Ctor(u8 *part, void *, u32 value) { return Construct(part, value, 0x006ff410, false); }
+u8 *__fastcall TextPart6ff410_Ctor(u8 *part, void *, u32 value) { return Construct(part, value, (u32)(uintptr_t)TextPart6ff410_vtable, false); }
 
 void __fastcall TextPart6ff410_Dtor(u8 *part) { Destroy(part); }
 
@@ -120,7 +120,7 @@ u8 *__fastcall TextPart6ff410_DeletingDtor(u8 *part, void *, u32 flags) {
     return part;
 }
 
-u8 *__fastcall TextPart6ff440_Ctor(u8 *part, void *, u32 value) { return Construct(part, value, 0x006ff440, false); }
+u8 *__fastcall TextPart6ff440_Ctor(u8 *part, void *, u32 value) { return Construct(part, value, (u32)(uintptr_t)TextPart6ff440_vtable, false); }
 
 void __fastcall TextPart6ff440_Dtor(u8 *part) { Destroy(part); }
 
@@ -130,7 +130,7 @@ u8 *__fastcall TextPart6ff440_DeletingDtor(u8 *part, void *, u32 flags) {
     return part;
 }
 
-u8 *__fastcall TextPart6ff470_Ctor(u8 *part, void *, u32 value) { return Construct(part, value, 0x006ff470, false); }
+u8 *__fastcall TextPart6ff470_Ctor(u8 *part, void *, u32 value) { return Construct(part, value, (u32)(uintptr_t)TextPart6ff470_vtable, false); }
 
 void __fastcall TextPart6ff470_Dtor(u8 *part) { Destroy(part); }
 
@@ -140,7 +140,7 @@ u8 *__fastcall TextPart6ff470_DeletingDtor(u8 *part, void *, u32 flags) {
     return part;
 }
 
-u8 *__fastcall TextPart6ff4a0_Ctor(u8 *part, void *, u32 value) { return Construct(part, value, 0x006ff4a0, false); }
+u8 *__fastcall TextPart6ff4a0_Ctor(u8 *part, void *, u32 value) { return Construct(part, value, (u32)(uintptr_t)TextPart6ff4a0_vtable, false); }
 
 void __fastcall TextPart6ff4a0_Dtor(u8 *part) { Destroy(part); }
 
@@ -150,7 +150,7 @@ u8 *__fastcall TextPart6ff4a0_DeletingDtor(u8 *part, void *, u32 flags) {
     return part;
 }
 
-u8 *__fastcall TextPart6ff4d0_Ctor(u8 *part, void *, u32 value) { return Construct(part, value, 0x006ff4d0, true); }
+u8 *__fastcall TextPart6ff4d0_Ctor(u8 *part, void *, u32 value) { return Construct(part, value, (u32)(uintptr_t)TextPart6ff4d0_vtable, true); }
 
 void __fastcall TextPart6ff4d0_Dtor(u8 *part) { Destroy(part); }
 
@@ -160,7 +160,7 @@ u8 *__fastcall TextPart6ff4d0_DeletingDtor(u8 *part, void *, u32 flags) {
     return part;
 }
 
-u8 *__fastcall TextPart6ff500_Ctor(u8 *part, void *, u32 value) { return Construct(part, value, 0x006ff500, false); }
+u8 *__fastcall TextPart6ff500_Ctor(u8 *part, void *, u32 value) { return Construct(part, value, (u32)(uintptr_t)TextPart6ff500_vtable, false); }
 
 void __fastcall TextPart6ff500_Dtor(u8 *part) { Destroy(part); }
 
@@ -170,7 +170,7 @@ u8 *__fastcall TextPart6ff500_DeletingDtor(u8 *part, void *, u32 flags) {
     return part;
 }
 
-u8 *__fastcall TextPart6ff530_Ctor(u8 *part, void *, u32 value) { return Construct(part, value, 0x006ff530, false); }
+u8 *__fastcall TextPart6ff530_Ctor(u8 *part, void *, u32 value) { return Construct(part, value, (u32)(uintptr_t)TextPart6ff530_vtable, false); }
 
 void __fastcall TextPart6ff530_Dtor(u8 *part) { Destroy(part); }
 

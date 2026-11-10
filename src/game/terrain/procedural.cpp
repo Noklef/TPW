@@ -353,7 +353,7 @@ u32 __fastcall TerrainTex_Init(u8 *tex, void *, const char *name, u32 size) {
         g_calls.Th(0x0056af20, 0x00879ad0, 2u, 0xb0754000u);
         return 0;
     }
-    if (!g_calls.Th(0x00572110, (u32)(uintptr_t)cache, global((u32)&gGraphicssettings_8c162c), size))
+    if (!g_calls.Th(0x00572110, (u32)(uintptr_t)cache, global(0x008c162c), size))
         return 0;   // sic: the cache is kept
     if (g_calls.Th(0x005723f0, (u32)(uintptr_t)at<u8 *>(tex, 0x230), name))
         return 1;
@@ -366,7 +366,7 @@ static s32 ftol(const X87Reg &x) { return (s32)(long long)x.v; }
 static s32 keep_within(s32 value, s32 low, s32 high) { return value < low ? low : value > high ? high : value; }
 
 u32 __fastcall TerrainTex_CullView(u8 *self) {
-    const u32 far_bits = global(0x008bcbc8) & 0x2000 ? global((u32)&gGraphicssettings_8bd4c0) : 0x43e60000;   // 460.0
+    const u32 far_bits = global(0x008bcbc8) & 0x2000 ? global(0x008bd4c0) : 0x43e60000;   // 460.0
     const float distance = *reinterpret_cast<const float *>(&far_bits);
     g_calls.Th(0x00578ca0, 0x0087b110, 0x447a0000u);   // 1000.0
     g_calls.Cd(0x005783b0);
@@ -439,7 +439,7 @@ u32 __fastcall TerrainTex_CullView(u8 *self) {
     const s32 right = ftol((X87Reg(at<float>(view, 0x30)) - less - ox) * at<float>(self, 0x10));
     const s32 top = ftol((X87Reg(at<float>(view, 0x38)) - half - oz) * at<float>(self, 0x14));
     const s32 bottom = ftol((X87Reg(at<float>(view, 0x38)) - less - oz) * at<float>(self, 0x14));
-    u8 *const box = reinterpret_cast<u8 *>(&gTerrainViewBox_8bd4e8);
+    u8 *const box = reinterpret_cast<u8 *>((uintptr_t)0x008bd4e8);
     box[0] = (u8)keep_within(left, -0x80, 0x7f);
     box[1] = (u8)keep_within(top, -0x80, 0x7f);
     box[2] = (u8)keep_within(right, -0x80, 0x7f);

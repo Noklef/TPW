@@ -15,6 +15,7 @@
 #include "../world/rides.h"
 #include "lobbymodel.h"
 #include "frame.h"
+#include "lobbyscene.h"
 
 namespace {
 
@@ -76,7 +77,7 @@ u8 *__fastcall LobbyScene_MakeModel(u8 *scene, void *, const char *name, const c
     String *const first = StringAt(model, 0xc), *const second = StringAt(model, 0x20);
     String_Ctor(first);
     String_Ctor(second);
-    at<u32>(model, 0) = 0x00702a50;
+    at<u32>(model, 0) = (u32)(uintptr_t)Class702a50_vtable;
     const u32 ride = g_env->create(type, 0x101, nullptr, 0, 0, 0, 0, 0, -1, 0);
     at<u32>(model, 4) = ride;
     u8 *const instance = gRides_7a4610[ride];
@@ -92,7 +93,7 @@ u8 *__fastcall LobbyScene_MakeModel(u8 *scene, void *, const char *name, const c
 }
 
 u8 *__fastcall Class702bb8_Ctor(u8 *self, void *, u8 *owner, const u8 *record) {
-    at<u32>(self, 0) = 0x00702bb8;
+    at<u32>(self, 0) = (u32)(uintptr_t)Class702bb8_vtable;
     at<const u8 *>(self, 0xc) = record;
     const char *const pack = Crt().wcsicmp(at<const u16 *>(record, 0x14), reinterpret_cast<const u16 *>(0x00774ca8)) == 0 ? reinterpret_cast<const char *>(0x00774c9c) : reinterpret_cast<const char *>(0x00774c94);
     u8 *const model = LobbyScene_MakeModel(Scene(), nullptr, reinterpret_cast<const char *>(0x00774c80), pack, 0, 1, 0, 0);
@@ -126,7 +127,7 @@ u8 *__fastcall Class702ca8_Ctor(u8 *self, void *, u8 *owner, u32 a1, const char 
     String_Ctor(title);
     WString *const wide = reinterpret_cast<WString *>(self + 0x48);
     WString_Ctor(wide);
-    at<u32>(self, 0) = 0x00702ca8;
+    at<u32>(self, 0) = (u32)(uintptr_t)Class702ca8_vtable;
     at<u8 *>(self, 4) = LobbyScene_MakeModel(Scene(), nullptr, name, pack, 0, 2, b, c);
     at<u8 *>(self, 8) = LobbyScene_MakeModel(Scene(), nullptr, name, pack2, 0, 1, b, c);
     at<u32>(self, 0x10) = 0;

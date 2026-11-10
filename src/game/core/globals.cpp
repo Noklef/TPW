@@ -16,7 +16,6 @@
 #include "../world/mapclick.h"
 #include "../render/particles.h"
 #include "../render/meshlist.h"
-#include "../world/balancelevel.h"
 #include "../world/cellrun.h"
 #include "gameframe.h"
 #include "localefacet.h"
@@ -140,9 +139,9 @@ u32 __cdecl Global786b80_SetAndMode3() {
 
 u8 __stdcall Bytes785058_Get(u32 index) {
     switch (index) {
-    case 0: return (u8)gBalanceLevel.mSmallHappinessChange;
-    case 1: return (u8)gBalanceLevel.mMediumHappinessChange;
-    case 2: return (u8)gBalanceLevel.mBigHappinessChange;
+    case 0: return *reinterpret_cast<u8 *>(0x00785058);
+    case 1: return *reinterpret_cast<u8 *>(0x0078505c);
+    case 2: return *reinterpret_cast<u8 *>(0x00785060);
     default: return 0;
     }
 }
@@ -154,19 +153,19 @@ u32 __cdecl Global7b4b88_Get_47eaa0() {
 u32 __cdecl Global7cc2f0_Get_4b4480() { return gThingbrowser_7cc2f0; }
 
 u32 __cdecl Global785584_Get_519410() {
-    return (u32)gBalanceLevel.mHeightfieldXStart;
+    return global<u32>(0x00785584);
 }
 
 u32 __cdecl Global785588_Get_519420() {
-    return (u32)gBalanceLevel.mHeightfieldYStart;
+    return global<u32>(0x00785588);
 }
 
 u32 __cdecl Global78558c_Get_519430() {
-    return (u32)gBalanceLevel.mHeightfieldWidth;
+    return global<u32>(0x0078558c);
 }
 
 u32 __cdecl Global785590_Get_519440() {
-    return (u32)gBalanceLevel.mHeightfieldHeight;
+    return global<u32>(0x00785590);
 }
 
 u32 __cdecl Global81d7a4_Get_52f1f0() {

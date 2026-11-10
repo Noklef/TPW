@@ -351,3 +351,12 @@ GAME_DATA(char[32], gOnline_DownloadEvent_773ae0, 0x00773ae0, 0x20);
 GAME_DATA(char[60], gOnline_DownloadNext_773b00, 0x00773b00, 0x3c);
 GAME_DATA(char[40], gOnline_DownloadNext_773b3c, 0x00773b3c, 0x28);
 GAME_DATA(char[44], gOnline_DownloadNext_773b64, 0x00773b64, 0x2c);
+
+// The vtables hold only ports: tpw.exe's loader points their slots at them (.docs/09-globals.md).
+GAME_DATA(void *[4], Class702818_vtable, 0x00702818, 0x10);
+GAME_DATA(void *[4], Class702828_vtable, 0x00702828, 0x10);
+GAME_DATA(void *[4], Class702838_vtable, 0x00702838, 0x10);
+GAME_DATA(void *[4], Class702848_vtable, 0x00702848, 0x10);
+GAME_DATA(void *[4], Class702858_vtable, 0x00702858, 0x10);
+GAME_DATA(void *[5], Class702868_vtable, 0x00702868, 0x14);
+GAME_DATA(void *[1], Class7028a4_vtable, 0x007028a4, 0x4);

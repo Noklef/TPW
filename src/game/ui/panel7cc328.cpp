@@ -64,7 +64,7 @@ void __fastcall Panel7cc328_ShowStaff(u8 *panel, void *, const u8 *staff) {
         std::memcpy(&bits[0], &x, 4);
         std::memcpy(&bits[1], &y, 4);
         std::memcpy(&bits[2], &z, 4);
-        at<s32>(panel, 0x24) = SpriteScript_Start(0x0074f758, folder, sprite, 1, bits[0], bits[1], bits[2]);
+        at<s32>(panel, 0x24) = SpriteScript_Start(SpriteCode(0x1ca0), folder, sprite, 1, bits[0], bits[1], bits[2]);
         SpriteScript_SetRegF(at<s32>(panel, 0x24), 8, 0x41000000);
     }
     GuiRect_Dtor(rect);

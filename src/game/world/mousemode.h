@@ -174,3 +174,13 @@ void __cdecl MouseModeText_AtExit();
 
 // Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
 GAME_DATA(char[12], gText_MouseState_ShowFps_74d85c, 0x0074d85c, 0xc);
+
+// The vtables hold only ports: tpw.exe's loader points their slots at them (.docs/09-globals.md).
+GAME_DATA(void *[12], MMOnline_vtable, 0x006fe980, 0x30);
+GAME_DATA(void *[12], MouseMode_vtable, 0x006fe9b0, 0x30);
+GAME_DATA(void *[12], MouseModeTile_vtable, 0x006fe9e0, 0x30);
+GAME_DATA(void *[12], MouseModeOnlineBase_vtable, 0x006fea10, 0x30);
+GAME_DATA(void *[12], MMPlaceStaff_vtable, 0x006fea40, 0x30);
+GAME_DATA(void *[12], MMStaffDrop_vtable, 0x006fea70, 0x30);
+GAME_DATA(void *[12], MouseMode6feaa0_vtable, 0x006feaa0, 0x30);
+GAME_DATA(void *[12], MouseMode6fead0_vtable, 0x006fead0, 0x30);

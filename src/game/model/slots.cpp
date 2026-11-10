@@ -8,10 +8,10 @@
 #include "../motion/animator.h"
 #include "../render/renderer.h"
 #include "../render/state.h"
-#include "../world/advisor.h"
 #include "holder.h"
 #include "parts.h"
 #include "ridemodel.h"
+#include "../render/lightsource.h"
 
 namespace {
 
@@ -85,11 +85,11 @@ u8 *__fastcall ModelSlot_Ctor(u8 *slot) {
     at<u32>(part, 0xc) = 0x006fdcf8;
     at<u32>(part, 8) = 0x006fdce8;
     // The offsets come through the vbtable pointers just stored, read again for each store as the original does.
-    at<u32>(part, at<u32>(at<u8 *>(part, 0xc), 4) + 0xc) = 0x006fdcd8;
+    at<u32>(part, at<u32>(at<u8 *>(part, 0xc), 4) + 0xc) = (u32)(uintptr_t)Class6fdcd8_vtable;
     const u32 inner = at<u32>(at<u8 *>(part, 0xc), 4);
     at<u32>(part, inner + 8) = inner - 0x60;
     at<u32>(part, 0x5c) = 0;
-    at<u32>(part, at<u32>(at<u8 *>(part, 0), 4)) = 0x006fdcc8;
+    at<u32>(part, at<u32>(at<u8 *>(part, 0), 4)) = (u32)(uintptr_t)Class6fdcc8_vtable;
     const u32 outer = at<u32>(at<u8 *>(part, 0), 4);
     at<u32>(part, outer - 4) = outer - 8;
     at<u32>(part, at<u32>(at<u8 *>(part, 0), 8) + 0x50) = 2;
@@ -147,8 +147,7 @@ void __cdecl ModelSlot_LoadAdvisor(const char *folder, const char *c, const char
 }
 
 void __cdecl ModelSlot_ApplySelection(s32 kind) {
-    AdvisorState &a = gAdvisor_State_f79660;
-    const u32 slot = (u32)a.slot;
+    const u32 slot = global<u32>(0x00f79674);
     // the byte table 0x598da4 sends kinds -1..14 to: loop, clear, set (1, 2, 4, 5, 6, 7, 9, 10, 11, 13), set 0x15 (14) or nothing
     switch (kind) {
     case 0:
@@ -163,19 +162,19 @@ void __cdecl ModelSlot_ApplySelection(s32 kind) {
         ModelSlot_SetPartFlag(0x15, slot);
         break;
     case -1:
-        for (u32 i = 0; i < 4; i++) {
-            const u32 clear = a.addOns[i];
-            if (clear && !(a.flags & 0x10000))
-                ModelSlot_ClearPartFlag(clear, (u32)a.slot);
-            const u32 set = a.subOffs[i];
+        for (u32 address = 0x00f797b4; address < 0x00f797c4; address += 4) {
+            const u32 clear = global<u32>(address - 0x10);
+            if (clear && !(global<u32>(0x00f79660) & 0x10000))
+                ModelSlot_ClearPartFlag(clear, global<u32>(0x00f79674));
+            const u32 set = global<u32>(address);
             if (set)
-                ModelSlot_SetPartFlag(set, (u32)a.slot);
+                ModelSlot_SetPartFlag(set, global<u32>(0x00f79674));
         }
         break;
     default:
         break;
     }
-    if (kind != 0 && !(a.flags & 0x10000))
-        ModelSlot_ClearPartFlag((u32)kind, (u32)a.slot);
+    if (kind != 0 && !(global<u32>(0x00f79660) & 0x10000))
+        ModelSlot_ClearPartFlag((u32)kind, global<u32>(0x00f79674));
 }
 }

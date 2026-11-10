@@ -32,7 +32,12 @@ GAME_DATA(char[44], gText_Ddopen_7662cc, 0x007662cc, 0x2c);
 GAME_DATA(char[24], gText_DirectDraw_Open_7662f8, 0x007662f8, 0x18);
 GAME_DATA(char[36], gText_DirectDraw_Open_766310, 0x00766310, 0x24);
 GAME_DATA(u32, gDdopen_879cd4, 0x00879cd4, 0x4);
-GAME_DATA(u32, gDdopen_8bd4c4, 0x008bd4c4, 0x4);
-GAME_DATA(u32, gDdopen_8bd4cc, 0x008bd4cc, 0x4);
-GAME_DATA(u32, gDdopen_8bd4d4, 0x008bd4d4, 0x4);
-GAME_DATA(u32, gDdopen_8bd4dc, 0x008bd4dc, 0x4);
+
+// Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(char[0x24], gText_DirectDraw_Open_7661a8, 0x007661a8, 0x24);
+GAME_DATA(char[0x28], gText_Ddopen_7661cc, 0x007661cc, 0x28);
+GAME_DATA(char[0x14], gText_Ddopen_7661f4, 0x007661f4, 0x14);
+GAME_DATA(char[0x14], gText_Ddopen_766208, 0x00766208, 0x14);
+GAME_DATA(char[0x2c], gText_Ddopen_76621c, 0x0076621c, 0x2c);
+GAME_DATA(char[0x24], gText_Ddopen_766248, 0x00766248, 0x24);
+GAME_DATA(char[0x20], gText_Ddopen_76626c, 0x0076626c, 0x20);

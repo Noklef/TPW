@@ -12,6 +12,7 @@
 #include "d3dresult.h"
 #include "d3dviewport.h"
 #include "../frontend/lobbysky.h"
+#include "ddopen.h"
 
 using namespace d3dresult;
 
@@ -147,7 +148,7 @@ u32 __fastcall D3dSetup_Open(u8 *self, void *, u32 flags) {
     }
     if (debugFlags() & 0x2000000) {
         char text[0x100];
-        Crt().sprintf(text, reinterpret_cast<const char *>((uintptr_t)0x007661cc), result());
+        Crt().sprintf(text, reinterpret_cast<const char *>((uintptr_t)&gText_Ddopen_7661cc), result());
         EngineDebug_LogFallback(text);
     }
     CloseAll(self);
@@ -173,7 +174,7 @@ u32 __fastcall D3dSetup_Clear(u8 *base) {
     rect[3] = rect[1] + global<s32>(0x008bcbec);
     u32 targets = (caps & 0x80000000u) ? 0 : 1;
     if (at<u32>(base - 8, 0) & 0x10) targets |= 2;
-    const u32 colour = (caps & 0x4002000) ? gLobbysky_8bd47c : 0;
+    const u32 colour = (caps & 0x4002000) ? global<u32>(0x008bd47c) : 0;
     keep(comcall<u32>(at<u8 *>(base - kVirtualBase, 0xc), 0x50, 1u, rect, targets, colour, 0x3f800000u, 0u));
     return pushed(2);
 }

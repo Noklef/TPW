@@ -147,3 +147,11 @@ GAME_DATA(s32, gSteering_NearestHit_7cf32c, 0x007cf32c, 0x4);
 GAME_DATA(u8, gSteering_BehavioursGuard_7cf330, 0x007cf330, 0x1);   // bit 0: the list's exit entry ran
 GAME_DATA(SteerBehaviour, gSteerRepelObstacle_7cf338, 0x007cf338, 0x24);
 GAME_DATA(SteerBehaviour, gSteerAvoidObstacle_7cf360, 0x007cf360, 0x24);
+// The vtables hold only ports: tpw.exe's loader points their slots at them (.docs/09-globals.md).
+GAME_DATA(void *[2], Class7009b8_vtable, 0x007009b8, 0x8);
+GAME_DATA(void *[1], Class7009c0_vtable, 0x007009c0, 0x4);
+GAME_DATA(void *[1], Class7009c4_vtable, 0x007009c4, 0x4);
+GAME_DATA(void *[1], Class7009c8_vtable, 0x007009c8, 0x4);
+GAME_DATA(void *[1], Class7009cc_vtable, 0x007009cc, 0x4);
+GAME_DATA(void *[1], Class7009d0_vtable, 0x007009d0, 0x4);
+GAME_DATA(void *[1], Class7009d4_vtable, 0x007009d4, 0x4);

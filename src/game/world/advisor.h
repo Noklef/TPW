@@ -134,49 +134,6 @@ GAME_DATA(char[20], gText_Advisor_Serialize_76e158, 0x0076e158, 0x14);
 GAME_DATA(char[24], gText_Advisor_Serialize_76e16c, 0x0076e16c, 0x18);
 GAME_DATA(char[12], gText_Advisor_Serialize_76e184, 0x0076e184, 0xc);
 GAME_DATA(char[68], gText_Advisor_HandleCode_76e190, 0x0076e190, 0x44);
-GAME_DATA(u32, gAdvisor_f79bb8, 0x00f79bb8, 0x4);
-// The advisor's 0x168-byte block (Advisor_Init zeroes it; Advisor_Load and the cheat module's save read and write it whole).
-struct AdvisorState {
-    u32 flags;            // +0x00: bit 0x10000 the bug head; bits 0x3e0000 the particle sets
-    s32 startTime;        // +0x04
-    s32 endTime;          // +0x08
-    u32 speaking;         // +0x0c
-    s32 mouthOpen;        // +0x10
-    s32 slot;             // +0x14: the model slot
-    s32 theme;            // +0x18
-    u32 sound;            // +0x1c
-    u32 voice;            // +0x20
-    s32 selection;        // +0x24
-    s32 selection2;       // +0x28
-    u32 pending;          // +0x2c
-    u32 highlight;        // +0x30
-    s32 sampleAt;         // +0x34
-    u32 bugHead[2];       // +0x38: by slot
-    u32 mouthParts[10];   // +0x40: 5 a slot
-    s32 animLengths[20];  // +0x68: motion bank 5's end times
-    u32 queue[20];        // +0xb8
-    u32 queueIndex;       // +0x108
-    u32 anim;             // +0x10c
-    s32 shapeCount;       // +0x110
-    s32 lipAt;            // +0x114
-    s32 endAt;            // +0x118
-    u32 paused;           // +0x11c
-    s32 pauseStart;       // +0x120
-    s32 pausedTotal;      // +0x124
-    s32 shape;            // +0x128
-    s32 shownShape;       // +0x12c
-    s32 shapeAt;          // +0x130
-    u32 lipBytes;         // +0x134
-    u32 lipIndex;         // +0x138
-    u32 lipSync;          // +0x13c
-    u32 lipTimes;         // +0x140: malloc'd, or gAdvisor_LipBuffer_f797d0
-    u32 addOns[4];        // +0x144: the theme costumes' add-on parts (render/state); kind -1 clears them
-    u32 subOffs[4];       // +0x154: and their sub-off parts, which kind -1 sets
-    u32 held;             // +0x164
-};
-GAME_DATA(AdvisorState, gAdvisor_State_f79660, 0x00f79660, 0x168);
-GAME_DATA(u32, gAdvisor_Stream_f797c8, 0x00f797c8, 0x4);
-GAME_DATA(u8[0x3e8], gAdvisor_LipBuffer_f797d0, 0x00f797d0, 0x3e8);
 GAME_DATA(char[16], gText_Advisor_Serialize_76e110, 0x0076e110, 0x10);
 GAME_DATA(char[12], gText_Advisor_Serialize_76e138, 0x0076e138, 0xc);
 GAME_DATA(char[20], gText_Advisor_Serialize_76e144, 0x0076e144, 0x14);

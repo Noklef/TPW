@@ -5,6 +5,7 @@
 #include "../ui/dialog74fb20.h"
 #include "../ui/panel7b9940.h"
 #include "world.h"
+#include "mousemode.h"
 
 namespace {
 
@@ -27,7 +28,7 @@ void placeStaff(u32 id) { g_calls.Th(0x00509af0, placer(), id); }
 u32 plainMode() {
     const u32 mode = alloc(8);
     if (mode) {
-        at<u32>(mode, 0) = 0x006fea10;
+        at<u32>(mode, 0) = (u32)(uintptr_t)MouseModeOnlineBase_vtable;
         at<u32>(mode, 4) = 1;
     }
     return mode;
@@ -37,7 +38,7 @@ u32 onlineMode() {   // (MMOnline_Ctor, inlined)
     const u32 mode = alloc(8);
     if (mode) {
         at<u32>(mode, 4) = 0;
-        at<u32>(mode, 0) = 0x006fe980;
+        at<u32>(mode, 0) = (u32)(uintptr_t)MMOnline_vtable;
         setCursor(0);
     }
     return mode;

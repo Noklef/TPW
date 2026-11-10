@@ -4,7 +4,6 @@
 
 #include "../files/file.h"
 #include "../math/x87.h"
-#include "../world/advisor.h"
 #include "accessors.h"
 #include "initializers.h"
 #include "thunks.h"
@@ -176,9 +175,9 @@ void __cdecl GameClock_InitUnusedEpsilon() { *reinterpret_cast<float *>(0x00785d
 
 u32 __cdecl Clocks_RealNowLessPauses() {
     u8 *const clocks = reinterpret_cast<u8 *>(0x00785970);
-    u32 &paused = gAdvisor_State_f79660.paused;
-    u32 &pauseStart = reinterpret_cast<u32 &>(gAdvisor_State_f79660.pauseStart);
-    u32 &pausedFor = reinterpret_cast<u32 &>(gAdvisor_State_f79660.pausedTotal);
+    u32 &paused = *reinterpret_cast<u32 *>(0x00f7977c);
+    u32 &pauseStart = *reinterpret_cast<u32 *>(0x00f79780);
+    u32 &pausedFor = *reinterpret_cast<u32 *>(0x00f79784);
     const u32 now = Clocks_RealNow(clocks);
     if (Wrap_Obj_Get30_402df0(clocks) != 0) {
         if (paused == 0) {

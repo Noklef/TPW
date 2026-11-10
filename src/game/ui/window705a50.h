@@ -85,3 +85,8 @@ u32 __fastcall Window705a50_StopRepeat(u8 *window);
 // 0x669410 (thiscall; slot 11 of the vtable 0x705a50; name unconfirmed): +0x94 when the state byte +0x138 is 1 (pressed), else +0x90.
 u32 __fastcall Window705a50_StateField(u8 *window);
 }
+
+#include "../core/gamedata.h"
+
+// The vtables hold only ports: tpw.exe's loader points their slots at them (.docs/09-globals.md).
+GAME_DATA(void *[12], Window705a50_vtable, 0x00705a50, 0x30);

@@ -21,6 +21,7 @@
 #include "../coaster/arreplayaction.h"
 #include "../world/camera.h"
 #include "../world/world.h"
+#include "../world/thingmsg.h"
 
 namespace {
 
@@ -118,7 +119,7 @@ void Particles() {
 }
 
 void Post(u32 kind) {   // a ThingMsg13 (0x40f630; vtable 0x6fd810) to the message centre
-    const u32 message[3] = {0x006fd810, 0, kind};
+    const u32 message[3] = {(u32)(uintptr_t)ThingMsg13_vtable, 0, kind};
     Th(0x0040fb10, Centre(), message);
 }
 

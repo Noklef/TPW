@@ -50,3 +50,8 @@ u32 __cdecl Window705af0_Proc(u8 *window, u32 message, u32 a, u32 b);
 // with flag 1 the window freed (Mem_Free). Returns the window.
 u8 *__fastcall Window705af0_DeletingDtor(u8 *window, void *, u32 flags);
 }
+
+#include "../core/gamedata.h"
+
+// The vtables hold only ports: tpw.exe's loader points their slots at them (.docs/09-globals.md).
+GAME_DATA(void *[12], Window705af0_vtable, 0x00705af0, 0x30);

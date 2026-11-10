@@ -2,6 +2,13 @@
 #include "guiclassdtors.h"
 
 #include <cstdint>
+#include "cursor.h"
+#include "radiogroup.h"
+#include "window705950.h"
+#include "window705b20.h"
+#include "window705b98.h"
+#include "window705bc8.h"
+#include "window705c58.h"
 
 namespace {
 
@@ -31,22 +38,22 @@ void GuiClassDtors_SetEnv(const GuiClassDtorsEnv *env) { g_env = env ? env : &kG
 extern "C" {
 
 void __fastcall Window705950_Dtor(u8 *self) {
-    *reinterpret_cast<u32 *>(self) = 0x705950;
+    *reinterpret_cast<u32 *>(self) = (u32)(uintptr_t)Window705950_vtable;
     g_env->clearList(self);
     g_env->rectDtor(self + 0x138);
     g_env->windowDtor(self);
 }
 
 void __fastcall SysCursor_Dtor(u8 *self) {
-    *reinterpret_cast<u32 *>(self) = 0x7059d0;
+    *reinterpret_cast<u32 *>(self) = (u32)(uintptr_t)SysCursor_vtable;
     g_env->cursorDtor(self);
 }
 
-void __fastcall Window705ac0_Dtor(u8 *self) { windowOf(self, 0x705ac0); }
-void __fastcall Window705b20_Dtor(u8 *self) { windowOf(self, 0x705b20); }
-void __fastcall Window705b98_Dtor(u8 *self) { windowOf(self, 0x705b98); }
-void __fastcall Window705bc8_Dtor(u8 *self) { windowOf(self, 0x705bc8); }
-void __fastcall Window705c58_Dtor(u8 *self) { windowOf(self, 0x705c58); }
+void __fastcall Window705ac0_Dtor(u8 *self) { windowOf(self, (u32)(uintptr_t)Window705ac0_vtable); }
+void __fastcall Window705b20_Dtor(u8 *self) { windowOf(self, (u32)(uintptr_t)Window705b20_vtable); }
+void __fastcall Window705b98_Dtor(u8 *self) { windowOf(self, (u32)(uintptr_t)Window705b98_vtable); }
+void __fastcall Window705bc8_Dtor(u8 *self) { windowOf(self, (u32)(uintptr_t)Window705bc8_vtable); }
+void __fastcall Window705c58_Dtor(u8 *self) { windowOf(self, (u32)(uintptr_t)Window705c58_vtable); }
 
 u8 *__fastcall Window705950_Delete(u8 *self, void *, u32 flags) {
     Window705950_Dtor(self);

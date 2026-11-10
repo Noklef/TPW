@@ -61,3 +61,6 @@ void __cdecl ModelSlot_ApplySelection(s32 kind);
 GAME_DATA(const u32, gModelSlot_LoadAdvisor_6fdcb0, 0x006fdcb0, 0x4);
 GAME_DATA(char[12], gText_ModelSlot_LoadAdvisor_74c938, 0x0074c938, 0xc);
 GAME_DATA(char[16], gText_ModelSlot_LoadAdvisor_74c944, 0x0074c944, 0x10);
+
+// The vtables hold only ports: tpw.exe's loader points their slots at them (.docs/09-globals.md).
+GAME_DATA(void *[4], Class6fdcc8_vtable, 0x006fdcc8, 0x10);

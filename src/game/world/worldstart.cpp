@@ -11,7 +11,6 @@
 #include "things.h"
 #include "../ui/dialog74fb20.h"
 #include "worldstart.h"
-#include "balancelevel.h"
 
 namespace {
 
@@ -47,6 +46,7 @@ const struct {
     u32 size, word;
 } kThings[10] = {{0x68, 0x1da718}, {0xe, 0x1da71a}, {0x16f0, 0x1da71c}, {0x80e, 0x1da71e}, {0x21c50, 0x1da720}, {0x146c, 0x1da722}, {0x68, 0x1da724}, {0x128, 0x1da726}, {0xc, 0x1da728}, {0x3e8, 0x1da736}};
 
+const u32 kBalanceFile = 0x00785040;
 
 void read_setting_once() {
     u8 &guard = global<u8>(0x00fb34a9);
@@ -56,7 +56,7 @@ void read_setting_once() {
     g_env->atexit(address(0x005d1750));
 }
 
-u32 load_balance(const char *path, u32 keep) { return g_env->balanceLoad(address(reinterpret_cast<uintptr_t>(&gBalanceLevel)), nullptr, path, keep); }
+u32 load_balance(const char *path, u32 keep) { return g_env->balanceLoad(address(kBalanceFile), nullptr, path, keep); }
 
 // The object of that name among the definitions: its handle, 0 when none is there.
 u16 make_named_object(u32 name_at) {

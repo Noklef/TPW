@@ -3,6 +3,7 @@
 
 #include <cstdint>
 #include "focuscell.h"
+#include "queuepieces.h"
 #include "tracktextures.h"
 #include "cellbuild.h"
 #include "cellrun.h"
@@ -11,6 +12,7 @@
 namespace {
 
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
+u32 pieces(u32 offset) { return (u32)(uintptr_t)gPieceTables + offset; }
 template <typename F> F game(u32 address) { return reinterpret_cast<F>((uintptr_t)address); }
 
 const TrackTexturesEnv kGameEnv = {
@@ -59,7 +61,7 @@ void __cdecl TrackTextures_LoadQueue() {
     g_env->format(folder, 0x0076394c, g_env->basePath());
     u32 open = 0;
     u32 id = 0x4268;
-    for (u32 slot = 0x0076338c; slot < 0x007633ec; slot += 0xc, ++id) {
+    for (u32 slot = pieces(4); slot < pieces(0x64); slot += 0xc, ++id) {
         const u32 name = global<u32>(slot);
         if (!open) open = g_env->openFolder(name, folder, open);
         const u32 flags = global<u8>(slot + 5) ? 0x112423 : 0x12423;
@@ -67,11 +69,11 @@ void __cdecl TrackTextures_LoadQueue() {
     }
 }
 
-void __cdecl TrackTextures_LoadGoKarts() { load_table(0x008179f8, 0x00763958, 0x007633e8, 0x007634d8, 0x42cc, 0x10422, true); }
+void __cdecl TrackTextures_LoadGoKarts() { load_table(0x008179f8, 0x00763958, pieces(0x60), pieces(0x150), 0x42cc, 0x10422, true); }
 
-void __cdecl TrackTextures_LoadWaterRide() { load_table(0x008179f8, 0x0076396c, 0x007634d8, 0x00763604, 0x4330, 0x10422, true); }
+void __cdecl TrackTextures_LoadWaterRide() { load_table(0x008179f8, 0x0076396c, pieces(0x150), pieces(0x27c), 0x4330, 0x10422, true); }
 
-void __cdecl TrackTextures_LoadHoarding() { load_table(0x008179f8, 0x00763980, 0x00763608, 0x00763758, 0x4394, 0x422, false); }
+void __cdecl TrackTextures_LoadHoarding() { load_table(0x008179f8, 0x00763980, pieces(0x280), pieces(0x3d0), 0x4394, 0x422, false); }
 
 void __cdecl Track_ResetMap(s32 columns, s32 rows) {
     global<s32>(0x0081ede4) = -1;

@@ -60,7 +60,7 @@ void FillRow(u8 *self, s32 row, u8 *points, u8 *codes) {
     const s32 last = at<s8>(self, row + 0xa8);
     if (first == 0x7f || last == -1) return;
     const u8 *const heights = at<u32>(self, 0x12970) ? at<u8 *>(self, 0x12970) : at<u8 *>(at<u8 *>(self, 0), 0x28);
-    const float lift = gRendererframe_8bd4ec;
+    const float lift = global<float>(0x008bd4ec);
     const float z = (float)(X87Reg((double)row) * at<float>(at<u8 *>(self, 0), 0x14) + at<float>(at<u8 *>(self, 0), 0xc));
     const u32 base = at<u32>(self, 8) * (u32)row;
     u8 *const start = points + (u32)first * kPoint;
@@ -136,7 +136,7 @@ extern "C" u32 __fastcall TerrainWater_Draw(u8 *self) {
             const float u1 = (float)(((X87Reg(at<float>(point, 0)) - gTerrainWater_Draw_70153c) - wrapped) * gTerrainWater_Draw_768318);
             const float v0 = (float)((X87Reg(at<float>(point, 8)) - across) * gTerrainWater_Draw_76831c);
             const float v1 = (float)(((X87Reg(at<float>(point, 8)) - gTerrainWater_Draw_70153c) - across) * gTerrainWater_Draw_76831c);
-            const u32 colour = gTerrainWater_Draw_8bd4bc;
+            const u32 colour = global<u32>(0x008bd4bc);
             const u32 lastColour = row ? colour : colour & 0xffffff, nextColour = next ? colour : colour & 0xffffff;
 
             struct Corner {

@@ -78,7 +78,7 @@ u32 __fastcall Frame_Start(u8 *frame) {
     at<u32>(frame, 0x1c) = 0;
     g_start->sound();
     u8 *const settings = static_cast<u8 *>(GameHeap_Alloc(0x6c));
-    if (settings) at<u32>(settings, 0) = 0x007029fc;
+    if (settings) at<u32>(settings, 0) = (u32)(uintptr_t)Class7029fc_vtable;
     at<u8 *>(frame, 0x10) = settings;
     g_start->camera(settings);
     gFrame_f83774 = Make(0x10, g_start->make702a60);

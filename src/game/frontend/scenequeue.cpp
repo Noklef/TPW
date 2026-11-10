@@ -23,7 +23,7 @@ void SceneQueue_SetEnv(const SceneQueueEnv *env) { g_env = env ? env : &kGameEnv
 extern "C" {
 
 void __fastcall Class702da0_Step(u8 *object) {
-    if (gAdvisor_State_f79660.speaking) {
+    if (global<u32>(0x00f7966c)) {
         at<u32>(object, 0x28) = 1;
         return;
     }
@@ -66,7 +66,7 @@ void __fastcall Class702da0_Step(u8 *object) {
 }
 
 void __fastcall Class702da0_Clear(u8 *object) {
-    if (gAdvisor_State_f79660.speaking) Advisor_StopSpeech();   // (the advisor's speaking flag)
+    if (global<u32>(0x00f7966c)) Advisor_StopSpeech();   // (the advisor's speaking flag)
     while (at<u32>(object, 0x14)) {
         u8 *const node = at<u8 *>(object, 0xc);
         void *item = nullptr;

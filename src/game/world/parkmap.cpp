@@ -28,7 +28,6 @@
 #include "things.h"
 #include "../render/screen.h"
 #include "parkmap.h"
-#include "balancelevel.h"
 #include "world.h"
 
 namespace {
@@ -92,7 +91,7 @@ float scaled(u32 address) { return static_cast<float>(X87Reg(global<s32>(address
 // TexSprite_Ctor inlined, its shown flag set and then cleared (Obj_SetShown 0); size the float stored at +0x24. Faults without the block (sic).
 u8 *new_inline_sprite(u32 image, u32 a, u32 c, float size) {
     u8 *const sprite = static_cast<u8 *>(GameHeap_Alloc(0x30));
-    at<u32>(sprite, 0) = 0x00703088;
+    at<u32>(sprite, 0) = (u32)(uintptr_t)Class703088_vtable;
     at<u8 *>(sprite, 0x28) = PtrArray_AddSpriteFrame(reinterpret_cast<u8 *>((uintptr_t)0x00879ce0), nullptr, image);
     at<u32>(sprite, 0x1c) = 2;
     at<u32>(sprite, 0x14) = a;
@@ -131,7 +130,7 @@ const u8 *ThingOf(const u8 *square) { return thing(at<u16>(square, 4)); }
 
 const u32 *Record(u32 address) { return reinterpret_cast<const u32 *>((uintptr_t)address); }
 
-const u32 *Blend(u32 *out, s32 position) { return Colour_Blend3(out, position, Record((u32)&gParkMap_Colour_f86bd8), Record((u32)&gParkMap_Colour_f86bfc), Record((u32)&gParkMap_Colour_f86c20)); }
+const u32 *Blend(u32 *out, s32 position) { return Colour_Blend3(out, position, Record(0x00f86bd8), Record(0x00f86bfc), Record(0x00f86c20)); }
 
 // The square's fill (blended into `out`, or a fixed record); null for none.
 const u32 *SquareColour(const u8 *map, const u8 *square, u32 *out) {
@@ -155,10 +154,10 @@ const u32 *SquareColour(const u8 *map, const u8 *square, u32 *out) {
     case 6: shown = view == 3; break;
     case 7: shown = view != 0; break;
     case 8: shown = (flags & 0x10) != 0; break;
-    case 9: return Record((u32)&gParkMap_Colour_f86b48);
-    case 10: return Record((u32)&gParkMap_Colour_f86b00);
-    case 11: return Record((u32)&gParkMap_Colour_f86b24);
-    case 12: return Record((u32)&gParkMap_Colour_f86b6c);
+    case 9: return Record(0x00f86b48);
+    case 10: return Record(0x00f86b00);
+    case 11: return Record(0x00f86b24);
+    case 12: return Record(0x00f86b6c);
     default: break;
     }
     return shown ? Blend(out, Ftol((double)at<float>(ThingOf(square), 0x44)) & 0xff) : nullptr;
@@ -179,7 +178,7 @@ void DrawSpriteBox(const u8 *map, Canvas &canvas, const u8 *sprite, s32 cellW, s
         return;
     const s32 rect[4] = {cellW * (s32)(first & 0x7f) + 0xf, cellH * (s32)(first >> 7) + 0x2a, ((s32)(last & 0x7f) + 1) * cellW + 0xf,
                          ((s32)(last >> 7) + 1) * cellH + 0x2a};
-    const u32 *const record = Record(sprite == at<const u8 *>(map, 0x20060) ? (u32)&gParkMap_Colour_f86bb4 : (u32)&gParkMap_Colour_f86b90);
+    const u32 *const record = Record(sprite == at<const u8 *>(map, 0x20060) ? 0x00f86bb4 : 0x00f86b90);
     if (canvas.driver)   // (the original tests the flags' bit 4: set, slot 7; clear, slot 8 at 0x20. The flags are 0xc here, so slot 8 is never called, and is left out)
         vcall<u32>(canvas.driver, 0x1c, &canvas.format, &canvas.clip, canvas.flags, rect, record);
 }
@@ -263,7 +262,7 @@ void __fastcall ParkMap_Draw(const u8 *map) {
             const u32 kind = at<u32>(square, 0);
             if (kind < 1 || kind > 8)
                 continue;
-            const u32 *const line = Record(kind != 8 && Is68_Zero_4e0440(ThingOf(square)) ? (u32)&gParkMap_Colour_f86a28 : (u32)&gParkMap_Colour_f86a4c);
+            const u32 *const line = Record(kind != 8 && Is68_Zero_4e0440(ThingOf(square)) ? 0x00f86a28 : 0x00f86a4c);
             if (!canvas.driver)
                 continue;
             const auto draw = [&](u32 slot, s32 lineX, s32 lineY) {
@@ -440,13 +439,13 @@ void __fastcall ParkMap_AddSprites(u8 *map) {
         case 5: sprite = new_sprite(at<u32>(map, 0x20070), 2, 2, 1, 0x3f800000); break;
         case 6: {
             place_at_thing(map, new_sprite(at<u32>(map, 0x20070), 2, 2, 4, 0x3f800000), t);
-            const float size = scaled((u32)&gBalanceLevel.mRegionFX[0].mRadius);
+            const float size = scaled(0x00785610);
             sprite = new_sprite(at<u32>(map, 0x20078), 4, 2, 4, bits(size));
             break;
         }
         case 7: {
             place_at_thing(map, new_sprite(at<u32>(map, 0x20070), 2, 2, 3, 0x3f800000), t);
-            const float size = scaled((u32)&gBalanceLevel.mRegionFX[3].mRadius);
+            const float size = scaled(0x00785658);
             sprite = new_sprite(at<u32>(map, 0x2007c), 5, 2, 3, bits(size));
             break;
         }
@@ -467,9 +466,9 @@ void __fastcall ParkMap_AddSprites(u8 *map) {
                 continue;
             float size = 1.0f;
             if (kind == 8)
-                size = static_cast<float>(reinterpret_cast<s32 &>(gBalanceLevel.mRegionFX[5].mRadius));
+                size = static_cast<float>(global<s32>(0x00785688));
             else if (kind == 7)
-                size = static_cast<float>((s32)gBalanceLevel.mRegionFX[2].mRadius);
+                size = static_cast<float>(global<s32>(0x00785640));
             u8 *const sprite = new_inline_sprite(at<u32>(map, 0x20074), 3, 1, static_cast<float>(X87Reg(size) * gParkmap_703030));
             at<u32>(sprite, 0x18) = 0;
             const float c = gParkMap_703028;
@@ -483,7 +482,7 @@ void __fastcall ParkMap_AddSprites(u8 *map) {
     for (u16 h = at<u16>(gWorldPtr, 0x1da746); h; ) {
         const u8 *const t = thing(h);
         if (t[0x32] & 0x10) {
-            u8 *const sprite = new_inline_sprite(at<u32>(map, 0x2007c), 5, 3, scaled((u32)&gBalanceLevel.mRegionFX[4].mRadius));
+            u8 *const sprite = new_inline_sprite(at<u32>(map, 0x2007c), 5, 3, scaled(0x00785670));
             u16 id;
             Thing_MapId(t, nullptr, &id);
             at<u32>(sprite, 0x18) = 0;

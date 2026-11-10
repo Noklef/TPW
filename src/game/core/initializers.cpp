@@ -8,6 +8,8 @@
 #include "../render/particles.h"
 #include "../ui/panel7cc218.h"
 #include "../world/cellrun.h"
+#include "../input/devicefilter.h"
+#include "../online/ftp.h"
 
 namespace {
 
@@ -112,7 +114,7 @@ u8 * __fastcall Init_5cfd80(u8 *o) {
 
 u8 * __fastcall Init_5d36c0(u8 *o) {
     at<u32>(o, 0x4) = 0xffffffff;
-    at<u32>(o, 0x0) = 0x702994;
+    at<u32>(o, 0x0) = (u32)(uintptr_t)FtpSocket_vtable;
     return o;
 }
 
@@ -604,8 +606,8 @@ void __fastcall Class507800_Dtor(u8 *object) {
 }
 
 u8 *__fastcall Class7037e8_Ctor(u8 *object) {
-    at<u32>(object, 0x0) = 0x703748;
-    at<u32>(object, 0x4) = 0x703744;
+    at<u32>(object, 0x0) = (u32)(uintptr_t)KeyFilter_vtable_703748;
+    at<u32>(object, 0x4) = (u32)(uintptr_t)InputSubs_vtable;
     at<u32>(object, 0x8) = 0;
     at<u32>(object, 0xc) = 0;
     Class703c14_Ctor(object + 0x10);

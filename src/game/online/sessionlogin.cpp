@@ -236,7 +236,7 @@ void __fastcall Online_NewsFinish(u8 *session) {
     vcall<void>(&path, 0x28, 0x00f7c9f0u);
     StreamBase stream;
     StreamBase_Ctor(&stream);
-    stream.vtable = reinterpret_cast<void *const *>(0x006fd930);
+    stream.vtable = reinterpret_cast<void *const *>((u32)(uintptr_t)FileStream_vtable);
     s32 result;
     FileStream_OpenPath(&stream, nullptr, &result, path.data, 0xc0000010);
     u8 *const inner = at<u8 *>(&stream, 4);

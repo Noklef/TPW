@@ -66,7 +66,8 @@ Reads past an object's end reach the original's neighbours in the hook DLL, as b
 ## Limits
 
 - **Inline assembly** cannot use a reference as a memory operand (`fmul dword ptr ds:[0x711bec]`). Load the address first (`mov eax, gName` loads the reference's address), into a register that is free at that point.
-- **The literal check** finds only literals inside a converted range. An address computed from a base outside the range (`0x77dcf0 + 0x20`) is not found. Read the uses of the neighbouring addresses when you convert.
+- **The literal check** finds only literals inside a converted range. Since 2026-11-11 `reach_errors()` also finds a literal base outside the range whose constant offset reaches a converted object: `0x77dcf0 + 0x20`, `at<T>(cast(0xBASE), n)`, and a local set to `cast(0xBASE)` then used with a constant offset in its function. An offset from an index or a variable is not found. Read the uses of the neighbouring addresses when you convert.
+- **Static objects (2026-11-11):** `static_errors()` rejects a converted object inside a static object that `staticinit.cpp` / `staticinitmanual.cpp` reach by the literal base (a `kMain` object, an exit thunk's, a `Th` call's `this`, a register or pushed argument). The object's own code writes the original address, while the member's name reads its copy in `tpw.exe`, and no bench sees it, as the hook DLL binds both to the original. The extent is `STATIC`'s size, else the largest `STATIC_FUNCS` size of the functions called on it, else up to the next static base. Convert the object as a whole or leave the member a literal. A static object that only code outside staticinit reaches by its literal base is not seen.
 
 ## The first slice: the IMA ADPCM decoder (`src/game/core/imaadpcm`)
 

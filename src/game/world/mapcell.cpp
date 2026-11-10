@@ -11,7 +11,6 @@
 #include "ridestate.h"
 #include "challenges.h"
 #include "mapcell.h"
-#include "balancelevel.h"
 #include "../math/intpair.h"
 #include "world.h"
 
@@ -102,11 +101,11 @@ u32 __cdecl Map_InBounds(s32 x, s32 y) { return x >= 0 && y >= 0 && x < 0x80 && 
 
 u8 *__fastcall Map_RECell(u8 *map, void *, u32 pos) { return map + 0x1b1104 + ((pos & 0xffff) - 1) * 10; }
 
-u16 *__fastcall Map_TicketBoothPos(const u8 *, void *, u16 *out, u32 b) { return balance_pos(out, b, (u32)&gBalanceLevel.mTicketBoothAPosX); }
-u16 *__fastcall Map_BusStopPos(const u8 *, void *, u16 *out, u32 b) { return balance_pos(out, b, (u32)&gBalanceLevel.mBusStopAPosX); }
-u16 *__fastcall Map_EntrancePos(const u8 *, void *, u16 *out, u32 b) { return balance_pos(out, b, (u32)&gBalanceLevel.mEntranceAPosX); }
-u16 *__fastcall Map_CrossingParkSidePos(const u8 *, void *, u16 *out, u32 b) { return balance_pos_a_y(out, b, (u32)&gBalanceLevel.mCrossingParkSideAPosX); }
-u16 *__fastcall Map_CrossingBSSidePos(const u8 *, void *, u16 *out, u32 b) { return balance_pos_a_y(out, b, (u32)&gBalanceLevel.mCrossingBSSideAPosX); }
+u16 *__fastcall Map_TicketBoothPos(const u8 *, void *, u16 *out, u32 b) { return balance_pos(out, b, 0x0078559c); }
+u16 *__fastcall Map_BusStopPos(const u8 *, void *, u16 *out, u32 b) { return balance_pos(out, b, 0x007855ac); }
+u16 *__fastcall Map_EntrancePos(const u8 *, void *, u16 *out, u32 b) { return balance_pos(out, b, 0x007855bc); }
+u16 *__fastcall Map_CrossingParkSidePos(const u8 *, void *, u16 *out, u32 b) { return balance_pos_a_y(out, b, 0x007855cc); }
+u16 *__fastcall Map_CrossingBSSidePos(const u8 *, void *, u16 *out, u32 b) { return balance_pos_a_y(out, b, 0x007855dc); }
 
 // pos - 1 (y * 128 + x) to its block: (y / 16) * 33 + x / 16 (the column by an arithmetic shift).
 static u32 block_of(u32 pos) {
@@ -329,11 +328,11 @@ void __fastcall World_InitBlock(u8 *world) {
     }
     // (the eight region effects of the level balance: a radius dword and five values, 0x18 bytes each, from 0x785610)
     for (u32 k = 0; k < 8; ++k)
-        world[0x1d910e + 12 * k] = (u8)gBalanceLevel.mRegionFX[k].mRadius;
+        world[0x1d910e + 12 * k] = *reinterpret_cast<const u8 *>(0x00785610 + 0x18 * k);
     for (u32 k = 0; k < 8; ++k) {
         u16 *to = reinterpret_cast<u16 *>(world + 0x1d9104 + 12 * k);
         for (u32 j = 0; j < 5; ++j)
-            to[j] = (u16)(&gBalanceLevel.mRegionFX[k].mHappiness)[j];
+            to[j] = *reinterpret_cast<const u16 *>(0x00785614 + 0x18 * k + 4 * j);
     }
 }
 

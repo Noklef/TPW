@@ -119,7 +119,7 @@ u32 __fastcall Present_Picture(u8 *picture) {
     if (mode & 0x40000000) {
         g_calls.Cd(global<u32>(0x008bcbe4) == 0x20 ? 0x00678790 : 0x00678d70, from, bits, width, rows, width * 4, pitch);
     } else {
-        const u32 mask = mode & 0x4002000 ? gLobbysky_8bd47c : 0;
+        const u32 mask = mode & 0x4002000 ? global<u32>(0x008bd47c) : 0;
         g_calls.Cd(global<u32>(0x008bcbe4) == 0x20 ? 0x00678c20 : 0x006787f0, from, bits, width, rows, width * 4, pitch, at<u32>(picture, (u32)-0x10), width * 2, 1u, mask);
     }
     if (!answered(at<u32(__stdcall *)(u8 *, void *)>(at<const u8 *>(surface, 0), 0x80)(surface, nullptr))) return 0;

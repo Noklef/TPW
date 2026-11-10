@@ -71,3 +71,8 @@ u16 __fastcall Window705950_GetNodeData(u8 *window, void *, s32 n, u32 *out);
 // faults, sic).
 void __fastcall Window705950_SetFont(u8 *window, void *, u8 *font);
 }
+
+#include "../core/gamedata.h"
+
+// The vtables hold only ports: tpw.exe's loader points their slots at them (.docs/09-globals.md).
+GAME_DATA(void *[12], Window705950_vtable, 0x00705950, 0x30);

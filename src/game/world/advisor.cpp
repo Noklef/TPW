@@ -50,24 +50,23 @@ AddrCalls g_calls;
 
 // The speech's model, particles and text ended, and the voice's pause undone: the part Advisor_StopSpeech and Advisor_EndSpeech share.
 void end_speech_parts() {
-    AdvisorState &a = gAdvisor_State_f79660;
-    Sound_SetVoicePending(a.voice, 0);
-    if (a.held && global<u8>(0x0078d90c) && a.voice) {
-        Sound_VoiceFunctor3(a.voice);
-        a.held = 0;
+    Sound_SetVoicePending(global<u32>(0x00f79680), 0);
+    if (global<u32>(0x00f797c4) && global<u8>(0x0078d90c) && global<u32>(0x00f79680)) {
+        Sound_VoiceFunctor3(global<u32>(0x00f79680));
+        global<u32>(0x00f797c4) = 0;
     }
-    a.speaking = 0;
+    global<u32>(0x00f7966c) = 0;
     Sound_Set803acc(0);
     ParticlePool_Resize(0, 0, 0);
-    ModelSlot_KillAdvisor(a.slot);
-    if (u8 *const text = reinterpret_cast<u8 *>((uintptr_t)a.lipTimes)) {
-        if (text != gAdvisor_LipBuffer_f797d0)
+    ModelSlot_KillAdvisor(global<u32>(0x00f79674));
+    if (u8 *const text = global<u8 *>(0x00f797a0)) {
+        if (text != reinterpret_cast<u8 *>(0x00f797d0))
             Crt().free(text);
         else
-            gAdvisor_f79bb8 = 0;
-        a.lipTimes = 0;
-        a.lipBytes = 0;
-        a.lipSync = 0;
+            global<u32>(0x00f79bb8) = 0;
+        global<u32>(0x00f797a0) = 0;
+        global<u32>(0x00f79794) = 0;
+        global<u32>(0x00f7979c) = 0;
     }
 }
 
@@ -114,18 +113,17 @@ u32 __cdecl Table768fb8_Lookup(u32 id) {
 }
 
 void __cdecl Advisor_Init() {
-    AdvisorState &a = gAdvisor_State_f79660;
     for (u32 offset = 0; offset < 0x168; offset += 4)
-        *reinterpret_cast<u32 *>(reinterpret_cast<u8 *>(&a) + offset) = 0;
-    a.shapeCount = 5;
-    a.shownShape = -1;
+        global<u32>(0x00f79660 + offset) = 0;
+    global<s32>(0x00f79770) = 5;
+    global<u32>(0x00f7978c) = 0xffffffff;
     for (u32 slot = 0; slot < 2; slot++) {
         const u8 *holder = ModelSlot_Holder(slot);
         if (!holder)
             continue;
-        for (s32 j = 0; j < a.shapeCount; j++)
-            a.mouthParts[5 * slot + j] = Model_FindMouthPart(holder, 0, j + 1);
-        a.bugHead[slot] = Model_FindMouthPart(holder, 0, -1);
+        for (s32 j = 0; j < global<s32>(0x00f79770); j++)
+            global<u32>(0x00f796a0 + 0x14 * slot + 4 * j) = Model_FindMouthPart(holder, 0, j + 1);
+        global<u32>(0x00f79698 + 4 * slot) = Model_FindMouthPart(holder, 0, -1);
     }
     const u8 *holder = ModelSlot_Holder(1);
     if (!holder)
@@ -133,8 +131,8 @@ void __cdecl Advisor_Init() {
     if (!holder)
         return;
     for (u32 k = 0; k < 20; k++)
-        a.animLengths[k] = (s32)Animator_MotionEndMs(holder, 5, k);
-    a.animLengths[13] = 0;
+        global<u32>(0x00f796c8 + 4 * k) = Animator_MotionEndMs(holder, 5, k);
+    global<u32>(0x00f796fc) = 0;
     ParticlePools_Reset();
 }
 
@@ -329,41 +327,37 @@ u32 __fastcall Advisor_Serialize(u8 *self, void *, Stream *stream, u32 save, s32
 }
 
 void __cdecl Advisor_PauseSpeech() {
-    AdvisorState &a = gAdvisor_State_f79660;
-    if (!a.speaking || !global<u8>(0x0078d90c) || !a.voice) return;
-    Sound_SendVoiceFunctor2(a.voice);
-    a.held = 1;
+    if (!global<u32>(0x00f7966c) || !global<u8>(0x0078d90c) || !global<u32>(0x00f79680)) return;
+    Sound_SendVoiceFunctor2(global<u32>(0x00f79680));
+    global<u32>(0x00f797c4) = 1;
 }
 
 void __cdecl Advisor_ResumeSpeech() {
-    AdvisorState &a = gAdvisor_State_f79660;
-    if (!a.held || !global<u8>(0x0078d90c) || !a.voice) return;
-    Sound_VoiceFunctor3(a.voice);
-    a.held = 0;
+    if (!global<u32>(0x00f797c4) || !global<u8>(0x0078d90c) || !global<u32>(0x00f79680)) return;
+    Sound_VoiceFunctor3(global<u32>(0x00f79680));
+    global<u32>(0x00f797c4) = 0;
 }
 
 void __cdecl Advisor_ClearSpeechText() {
-    AdvisorState &a = gAdvisor_State_f79660;
-    a.speaking = 0;
-    u8 *const text = reinterpret_cast<u8 *>((uintptr_t)a.lipTimes);
+    global<u32>(0x00f7966c) = 0;
+    u8 *const text = global<u8 *>(0x00f797a0);
     if (!text) return;
-    if (text != gAdvisor_LipBuffer_f797d0)
+    if (text != reinterpret_cast<u8 *>(0x00f797d0))
         Crt().free(text);
     else
-        gAdvisor_f79bb8 = 0;
-    a.lipTimes = 0;
+        global<u32>(0x00f79bb8) = 0;
+    global<u32>(0x00f797a0) = 0;
 }
 
 void __cdecl Advisor_EndSpeech(u32 stop) {
-    AdvisorState &a = gAdvisor_State_f79660;
-    if (!a.speaking) return;
+    if (!global<u32>(0x00f7966c)) return;
     end_speech_parts();
-    if (!a.voice) return;
+    if (!global<u32>(0x00f79680)) return;
     if (stop)
-        Sound_Stop(a.voice);
+        Sound_Stop(global<u32>(0x00f79680));
     else
-        Sound_Forward6(a.voice);
-    a.voice = 0;
+        Sound_Forward6(global<u32>(0x00f79680));
+    global<u32>(0x00f79680) = 0;
 }
 
 void __fastcall Advisor_Update(u8 *self) {
@@ -420,19 +414,18 @@ u8 __fastcall Advisor_PostHeld(u8 *self) {
 }
 
 void __cdecl Advisor_StopSpeech() {
-    AdvisorState &a = gAdvisor_State_f79660;
-    if (!a.speaking) return;
-    const u32 had = a.voice;
+    if (!global<u32>(0x00f7966c)) return;
+    const u32 had = global<u32>(0x00f79680);
     end_speech_parts();
-    if (a.voice) {
-        Sound_Forward6(a.voice);
-        a.voice = 0;
+    if (global<u32>(0x00f79680)) {
+        Sound_Forward6(global<u32>(0x00f79680));
+        global<u32>(0x00f79680) = 0;
     }
     if (!had) return;
     const s32 k = Crt().rand() % 3;   // (each tested in turn; the voice re-read, 0 by now)
-    if (k == 0) Sound_PlayAt(a.voice, gSoundCategories.speech, 0x27f, 0, 0, 0);
-    if (k == 1) Sound_PlayAt(a.voice, gSoundCategories.speech, 0x280, 0, 0, 0);
-    if (k == 2) Sound_PlayAt(a.voice, gSoundCategories.speech, 0x281, 0, 0, 0);
+    if (k == 0) Sound_PlayAt(global<u32>(0x00f79680), gSoundCategories.speech, 0x27f, 0, 0, 0);
+    if (k == 1) Sound_PlayAt(global<u32>(0x00f79680), gSoundCategories.speech, 0x280, 0, 0, 0);
+    if (k == 2) Sound_PlayAt(global<u32>(0x00f79680), gSoundCategories.speech, 0x281, 0, 0, 0);
 }
 
 u8 __fastcall Advisor_Cancel(u8 *self, void *, u32 id) {
@@ -462,8 +455,7 @@ u8 __fastcall Advisor_Cancel(u8 *self, void *, u32 id) {
 }
 
 void __cdecl Advisor_UpdateHighlight() {
-    AdvisorState &a = gAdvisor_State_f79660;
-    const u8 *const holder = ModelSlot_Holder((u32)a.slot);
+    const u8 *const holder = ModelSlot_Holder(global<u32>(0x00f79674));
     if (holder == nullptr)
         return;
     const auto mark = [holder](u32 table) {
@@ -471,24 +463,24 @@ void __cdecl Advisor_UpdateHighlight() {
         const u8 *const inner = *reinterpret_cast<u8 *const *>(*reinterpret_cast<const u32 *>(holder + 8) + 4);
         *reinterpret_cast<u32 *>(*reinterpret_cast<const u32 *>(inner + 0x70) + part * 0xa0) |= 0x10;
     };
-    for (s32 i = 0; i < a.shapeCount; i++)
-        mark((u32)a.mouthParts + ((u32)i + (u32)a.slot * 5) * 4);
-    a.shownShape = -1;
-    ModelSlot_ApplySelection(a.selection);
-    if (a.selection2 != 0)
-        ModelSlot_ApplySelection(a.selection2);
-    if (a.flags & 0x10000)
-        mark((u32)a.bugHead + (u32)a.slot * 4);
-    const u32 flags = a.flags;
+    for (s32 i = 0; i < global<s32>(0x00f79770); i++)
+        mark(0x00f796a0 + ((u32)i + global<u32>(0x00f79674) * 5) * 4);
+    global<u32>(0x00f7978c) = 0xffffffff;
+    ModelSlot_ApplySelection(global<s32>(0x00f79684));
+    if (global<s32>(0x00f79688) != 0)
+        ModelSlot_ApplySelection(global<s32>(0x00f79688));
+    if (global<u32>(0x00f79660) & 0x10000)
+        mark(0x00f79698 + global<u32>(0x00f79674) * 4);
+    const u32 flags = global<u32>(0x00f79660);
     const u32 arm = flags & 0x3e0000;
     if (arm == 0)
         return;
-    if (a.speaking == 0) {
+    if (global<u32>(0x00f7966c) == 0) {
         if (flags & 0x200000)
             ParticlePool_Resize(0, 0, 0);
         return;
     }
-    const auto time = []() { return (float)global<s32>((u32)gAdvisor_State_f79660.animLengths + gAdvisor_State_f79660.anim * 4); };
+    const auto time = []() { return (float)global<s32>(0x00f796c8 + global<u32>(0x00f7976c) * 4); };
     const auto bits = [](u32 value) { return *reinterpret_cast<const float *>(&value); };
     switch (arm) {
     case 0x20000:
@@ -521,20 +513,19 @@ void __cdecl Advisor_UpdateHighlight() {
 }
 
 void __cdecl Advisor_FrameTick() {
-    AdvisorState &a = gAdvisor_State_f79660;
-    const u32 holder = g_calls.Cd(0x00429fe0, (u32)a.slot);   // ModelSlot_Holder
-    if (a.pending) {
+    const u32 holder = g_calls.Cd(0x00429fe0, global<u32>(0x00f79674));   // ModelSlot_Holder
+    if (global<u32>(0x00f7968c)) {
         s32 bank = 0, entry;
         g_calls.Cd(0x00473ff0, holder, &bank, &entry, 0u);   // Layer_GetQueued
         if (bank == 0xc) {
             g_calls.Cd(0x00598dc0);   // Advisor_UpdateHighlight
-            a.pending = 0;
-            a.highlight = 0;
+            global<u32>(0x00f7968c) = 0;
+            global<u32>(0x00f79690) = 0;
         }
     }
-    if (a.highlight) {
+    if (global<u32>(0x00f79690)) {
         g_calls.Cd(0x00598dc0);
-        a.highlight = 0;
+        global<u32>(0x00f79690) = 0;
     }
     g_calls.Cd(0x005ed770);   // ParticlePools_Update
 }
