@@ -5,6 +5,7 @@
 
 #include "../core/crt.h"
 #include "rastertriangle.h"
+#include "../core/imports.h"
 
 namespace {
 
@@ -47,7 +48,7 @@ void setFormat(u32 red, u32 green, u32 blue) {
     gRasterformat_fbe098 = ~both;
     gRasterformat_fbe07c[0] = halves;
     gRasterformat_fbe090 = ~halves;
-    const OutputDebugStringFn print = *reinterpret_cast<const OutputDebugStringFn *>((uintptr_t)0x006fd1e0);
+    const OutputDebugStringFn print = *reinterpret_cast<const OutputDebugStringFn *>((uintptr_t)IMPORT(Kernel32_OutputDebugStringA));
     char text[0x74];
     Crt().sprintf(text, reinterpret_cast<const char *>((uintptr_t)0x0077e5ec), redBits, greenBits, blueBits);
     print(text);

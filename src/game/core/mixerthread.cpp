@@ -6,6 +6,7 @@
 #include "../files/file.h"
 #include "soundvoice.h"
 #include "vcall.h"
+#include "imports.h"
 
 namespace {
 
@@ -14,7 +15,7 @@ template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cas
 const MixerThreadEnv kGameEnv = {Time_GetMs, SoundVoice_UpdateAudible};
 const MixerThreadEnv *g_env = &kGameEnv;
 
-u32 take_signal(u8 *mixer) { return (*reinterpret_cast<u32(__stdcall *const *)(u8 *, u32)>((uintptr_t)0x006fd200))(mixer + 0x38, 0); }
+u32 take_signal(u8 *mixer) { return (*reinterpret_cast<u32(__stdcall *const *)(u8 *, u32)>((uintptr_t)IMPORT(Kernel32_InterlockedExchange)))(mixer + 0x38, 0); }
 
 void update_voices(u8 *mixer, u32 now) {
     for (u32 i = 0; i < at<u32>(mixer, 0x4c); ++i) {
@@ -40,7 +41,7 @@ extern "C" {
 void __fastcall SoundMixer_ThreadLoop(u8 *mixer) {
     for (;;) {
         do {
-            (*reinterpret_cast<void(__stdcall *const *)(u32)>((uintptr_t)0x006fd1d4))(0x28);   // Sleep
+            (*reinterpret_cast<void(__stdcall *const *)(u32)>((uintptr_t)IMPORT(Kernel32_Sleep)))(0x28);   // Sleep
         } while (take_signal(mixer) != 1);
         do {
             if (mixer[0x35]) {

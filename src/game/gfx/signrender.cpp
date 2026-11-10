@@ -7,6 +7,7 @@
 #include "array3d.h"
 #include "bumplight.h"
 #include "imageops.h"
+#include "../core/imports.h"
 
 namespace {
 
@@ -17,30 +18,30 @@ template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cas
 
 template <typename F> F Import(u32 slot) { return *reinterpret_cast<F *>((uintptr_t)slot); }
 
-u32 CreateFontFrom(const void *font) { return Import<u32(__stdcall *)(const void *)>(0x006fd048)(font); }
-u32 SelectInto(u32 dc, u32 object) { return Import<u32(__stdcall *)(u32, u32)>(0x006fd044)(dc, object); }
-void DeleteGdi(u32 object) { Import<u32(__stdcall *)(u32)>(0x006fd038)(object); }
+u32 CreateFontFrom(const void *font) { return Import<u32(__stdcall *)(const void *)>(IMPORT(Gdi32_CreateFontIndirectA))(font); }
+u32 SelectInto(u32 dc, u32 object) { return Import<u32(__stdcall *)(u32, u32)>(IMPORT(Gdi32_SelectObject))(dc, object); }
+void DeleteGdi(u32 object) { Import<u32(__stdcall *)(u32)>(IMPORT(Gdi32_DeleteObject))(object); }
 
 // ScriptStringAnalyse's SCRIPT_CONTROL and SCRIPT_STATE are stack bytes the game never sets (sic): so are these.
 void Analyse(u32 dc, const u16 *text, u32 length, s32 *advances, void **analysis) {
     u32 control;
     u16 state;
-    Import<u32(__stdcall *)(u32, const u16 *, u32, u32, s32, u32, u32, void *, void *, s32 *, void *, void *, void **)>(0x006fd3a8)(
+    Import<u32(__stdcall *)(u32, const u16 *, u32, u32, s32, u32, u32, void *, void *, s32 *, void *, void *, void **)>(IMPORT(Usp10_ScriptStringAnalyse))(
         dc, text, length, 0, -1, 0x80, 0, &control, &state, advances, nullptr, nullptr, analysis);
 }
 
-void FreeAnalysis(void **analysis) { Import<u32(__stdcall *)(void **)>(0x006fd3a0)(analysis); }
+void FreeAnalysis(void **analysis) { Import<u32(__stdcall *)(void **)>(IMPORT(Usp10_ScriptStringFree))(analysis); }
 
 // The text's size with the advances scaled by the spacing. The analysis stays with the caller.
 const s32 *Shape(u8 *self, u32 dc, const u16 *text, u32 length, void **analysis) {
     s32 *const advances = reinterpret_cast<s32 *>((uintptr_t)0x00f85f00);
     Analyse(dc, text, length, nullptr, analysis);
-    Import<u32(__stdcall *)(void *, s32 *)>(0x006fd3a4)(*analysis, advances);
+    Import<u32(__stdcall *)(void *, s32 *)>(IMPORT(Usp10_ScriptStringGetLogicalWidths))(*analysis, advances);
     for (u32 i = 0; i < length; ++i)
         advances[i] = static_cast<s32>(at<u32>(self, 8) * static_cast<u32>(advances[i])) / 100;
     FreeAnalysis(analysis);
     Analyse(dc, text, length, advances, analysis);
-    return Import<const s32 *(__stdcall *)(void *)>(0x006fd3b0)(*analysis);
+    return Import<const s32 *(__stdcall *)(void *)>(IMPORT(Usp10_ScriptString_pSize))(*analysis);
 }
 
 void *MakeInfo(const u8 *image) {
@@ -205,13 +206,13 @@ extern "C" u8 __fastcall SignRender_Text(u8 *self, void *, u32 dc, const u16 *te
     }
     void *info = MakeInfo(image);
     u8 *bits;
-    const u32 bitmap = Import<u32(__stdcall *)(u32, void *, u32, u8 **, u32, u32)>(0x006fd04c)(dc, info, 0, &bits, 0, 0);
+    const u32 bitmap = Import<u32(__stdcall *)(u32, void *, u32, u8 **, u32, u32)>(IMPORT(Gdi32_CreateDIBSection))(dc, info, 0, &bits, 0, 0);
     GameHeap_Free(info);
     if (!bitmap)
         return 0;
-    const u32 memory = Import<u32(__stdcall *)(u32)>(0x006fd050)(dc);
+    const u32 memory = Import<u32(__stdcall *)(u32)>(IMPORT(Gdi32_CreateCompatibleDC))(dc);
     const u32 oldBitmap = SelectInto(memory, bitmap);
-    Import<u32(__stdcall *)(u32, u32)>(0x006fd040)(memory, 1);
+    Import<u32(__stdcall *)(u32, u32)>(IMPORT(Gdi32_SetMapMode))(memory, 1);
     const u32 savedWidth = at<u32>(self, 0x14);
     u32 font = CreateFontFrom(self + 0x10);
     u32 oldFont = SelectInto(memory, font);
@@ -241,9 +242,9 @@ extern "C" u8 __fastcall SignRender_Text(u8 *self, void *, u32 dc, const u16 *te
         }
     }
     at<u32>(self, 0x14) = savedWidth;
-    Import<u32(__stdcall *)(u32, u32)>(0x006fd034)(memory, 0);
-    Import<u32(__stdcall *)(u32, u32)>(0x006fd03c)(memory, 0xffffff);
-    Import<u32(__stdcall *)(void *, s32, u32, u32, void *, u32, u32, u32)>(0x006fd3ac)(analysis, 0x100 - size[0] / 2, at<u32>(self, 0xc), 4, nullptr, 0, 0, 0);
+    Import<u32(__stdcall *)(u32, u32)>(IMPORT(Gdi32_SetBkColor))(memory, 0);
+    Import<u32(__stdcall *)(u32, u32)>(IMPORT(Gdi32_SetTextColor))(memory, 0xffffff);
+    Import<u32(__stdcall *)(void *, s32, u32, u32, void *, u32, u32, u32)>(IMPORT(Usp10_ScriptStringOut))(analysis, 0x100 - size[0] / 2, at<u32>(self, 0xc), 4, nullptr, 0, 0, 0);
     FreeAnalysis(&analysis);
     SelectInto(memory, oldFont);
     DeleteGdi(font);
@@ -262,7 +263,7 @@ extern "C" u8 __fastcall SignRender_Text(u8 *self, void *, u32 dc, const u16 *te
     }
     SelectInto(memory, oldBitmap);
     DeleteGdi(bitmap);
-    Import<u32(__stdcall *)(u32)>(0x006fd05c)(memory);
+    Import<u32(__stdcall *)(u32)>(IMPORT(Gdi32_DeleteDC))(memory);
     at<s32>(self, 0) = -1;
     at<s32>(self, 4) = -1;
     const u8 *pixels = at<u8 *>(image, 0xc);

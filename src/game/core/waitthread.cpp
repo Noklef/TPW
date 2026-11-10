@@ -9,6 +9,7 @@
 #include "seqs.h"
 #include "vcall.h"
 #include "dequeiter.h"
+#include "imports.h"
 
 namespace {
 
@@ -20,9 +21,9 @@ template <typename T> T &at(u8 *base, u32 offset) { return *reinterpret_cast<T *
 
 template <typename F> F import(u32 slot) { return *reinterpret_cast<F const *>(static_cast<uintptr_t>(slot)); }
 
-s32 setEvent(u32 event) { return import<s32(__stdcall *)(u32)>(0x006fd124)(event); }
+s32 setEvent(u32 event) { return import<s32(__stdcall *)(u32)>(IMPORT(Kernel32_SetEvent))(event); }
 
-u32 createEvent() { return import<u32(__stdcall *)(u32, u32, u32, u32)>(0x006fd0d4)(0, 0, 0, 0); }
+u32 createEvent() { return import<u32(__stdcall *)(u32, u32, u32, u32)>(IMPORT(Kernel32_CreateEventA))(0, 0, 0, 0); }
 
 // vector::erase of one element: those after it moved down, the end back.
 void eraseAt(u8 *vector, u32 *position) {
@@ -49,7 +50,7 @@ u32 __stdcall WaitThread_Proc(u8 *self) { return WaitThread_Loop(self); }
 
 u32 __fastcall WaitThread_Loop(u8 *self) {
     while (!at<u32>(self, 0x10)) {
-        const s32 which = import<s32(__stdcall *)(s32, u32 *, u32, u32)>(0x006fd160)(handleCount(self), at<u32 *>(self, 0x28), 0, 0xffffffff);   // WaitForMultipleObjects
+        const s32 which = import<s32(__stdcall *)(s32, u32 *, u32, u32)>(IMPORT(Kernel32_WaitForMultipleObjects))(handleCount(self), at<u32 *>(self, 0x28), 0, 0xffffffff);   // WaitForMultipleObjects
         if (which == -1) {
             at<u32 *>(self, 0x3c) = Dwords_Copy(at<u32 *>(self, 0x3c), at<u32 *>(self, 0x3c), at<u32 *>(self, 0x38));
             at<u32 *>(self, 0x2c) = at<u32 *>(self, 0x28) + 1;
@@ -109,7 +110,7 @@ u32 *__fastcall WaitThread_OpenEvents(u8 *self, void *, u32 *out) {
 }
 
 void __fastcall WaitThread_CloseEvents(u8 *self) {
-    const auto close = import<s32(__stdcall *)(u32)>(0x006fd13c);
+    const auto close = import<s32(__stdcall *)(u32)>(IMPORT(Kernel32_CloseHandle));
     if (at<u32>(self, 0x18)) {
         close(at<u32>(self, 0x18));
         at<u32>(self, 0x18) = 0;
@@ -126,7 +127,7 @@ u32 *__fastcall WaitThread_Send(u8 *self, void *, u32 *out) {
         return out;
     }
     if (!setEvent(at<u32>(self, 0x18))) return lastError(out);
-    if (import<u32(__stdcall *)(u32, u32)>(0x006fd128)(at<u32>(self, 0x1c), 0xffffffff)) return lastError(out);
+    if (import<u32(__stdcall *)(u32, u32)>(IMPORT(Kernel32_WaitForSingleObject))(at<u32>(self, 0x1c), 0xffffffff)) return lastError(out);
     *out = at<u32>(self, 0xc);
     return out;
 }
@@ -203,9 +204,9 @@ void __fastcall WaitThread_Stop(u8 *self) {
     at<u32>(self, 4) = 3;
     u32 local;
     if (static_cast<s32>(*WaitThread_Send(self, nullptr, &local)) >= 0) {
-        import<void(__stdcall *)(u32)>(0x006fd1d4)(0);   // Sleep
-        if (import<s32(__stdcall *)(u32, u32 *)>(0x006fd0b8)(at<u32>(self, 0x14), &local) && local == 0x103) import<u32(__stdcall *)(u32, u32)>(0x006fd128)(at<u32>(self, 0x14), 0xffffffff);   // GetExitCodeThread, WaitForSingleObject
-        import<s32(__stdcall *)(u32)>(0x006fd13c)(at<u32>(self, 0x14));   // CloseHandle
+        import<void(__stdcall *)(u32)>(IMPORT(Kernel32_Sleep))(0);   // Sleep
+        if (import<s32(__stdcall *)(u32, u32 *)>(IMPORT(Kernel32_GetExitCodeThread))(at<u32>(self, 0x14), &local) && local == 0x103) import<u32(__stdcall *)(u32, u32)>(IMPORT(Kernel32_WaitForSingleObject))(at<u32>(self, 0x14), 0xffffffff);   // GetExitCodeThread, WaitForSingleObject
+        import<s32(__stdcall *)(u32)>(IMPORT(Kernel32_CloseHandle))(at<u32>(self, 0x14));   // CloseHandle
     }
     at<u32>(self, 0x14) = 0;
 }

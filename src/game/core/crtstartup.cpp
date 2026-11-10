@@ -7,6 +7,7 @@
 #include "addrcalls.h"
 #include "crt.h"
 #include "crtmbstring.h"
+#include "imports.h"
 
 namespace {
 
@@ -124,7 +125,7 @@ void __cdecl CRT_parse_cmdline(const char *command, char **words, char *text, s3
 
 void __cdecl CRT_setargv() {
     char *const name = CRT_pgmname;
-    import_slot<u32(__stdcall *)(void *, char *, u32)>(0x006fd194)(nullptr, name, 0x104);    // GetModuleFileNameA
+    import_slot<u32(__stdcall *)(void *, char *, u32)>(IMPORT(Kernel32_GetModuleFileNameA))(nullptr, name, 0x104);    // GetModuleFileNameA
     CRT_pgmptr = name;
     const char *line = at<const char *>(0x00fb3cb8);
     if (!*line) line = name;
@@ -145,7 +146,7 @@ void __cdecl CRT_cinit() {
 
 void __cdecl CRT_doexit(s32 code, s32 quick, s32 retcaller) {
     CRT_lockexit();
-    if (CRT_C_Exit_Done == 1) import_slot<s32(__stdcall *)(u32, s32)>(0x006fd24c)(import_slot<u32(__stdcall *)()>(0x006fd250)(), code);
+    if (CRT_C_Exit_Done == 1) import_slot<s32(__stdcall *)(u32, s32)>(IMPORT(Kernel32_TerminateProcess))(import_slot<u32(__stdcall *)()>(IMPORT(Kernel32_GetCurrentProcess))(), code);
     CRT_C_Termination_Done = 1;
     CRT_exitflag = static_cast<u8>(retcaller);
     if (!quick) {
@@ -161,7 +162,7 @@ void __cdecl CRT_doexit(s32 code, s32 quick, s32 retcaller) {
         return;
     }
     CRT_C_Exit_Done = 1;
-    import_slot<void(__stdcall *)(s32)>(0x006fd244)(code);   // (ExitProcess: the original returns if it does)
+    import_slot<void(__stdcall *)(s32)>(IMPORT(Kernel32_ExitProcess))(code);   // (ExitProcess: the original returns if it does)
 }
 
 void __cdecl CRT_exit(s32 code) { CRT_doexit(code, 0, 0); }
@@ -170,7 +171,7 @@ void __cdecl CRT_lockexit() { CrtInner().lock(0xd); }
 void __cdecl CRT_unlockexit() { CrtInner().unlock(0xd); }
 
 void __cdecl CRT_WinMainCRTStartup() {
-    const u32 version = import_slot<u32(__stdcall *)()>(0x006fd240)();   // GetVersion
+    const u32 version = import_slot<u32(__stdcall *)()>(IMPORT(Kernel32_GetVersion))();   // GetVersion
     const u32 minor = version >> 8 & 0xff, major = version & 0xff;
     at<u32>(0x00fb1370) = minor;
     at<u32>(0x00fb136c) = major;
@@ -182,7 +183,7 @@ void __cdecl CRT_WinMainCRTStartup() {
     __try {
         g_startCalls.Cd(0x00687230);   // _ioinit
         g_startCalls.Cd(0x0068a160);   // the multibyte table
-        at<u32>(0x00fb3cb8) = import_slot<u32(__stdcall *)()>(0x006fd1e4)();   // GetCommandLineA
+        at<u32>(0x00fb3cb8) = import_slot<u32(__stdcall *)()>(IMPORT(Kernel32_GetCommandLineA))();   // GetCommandLineA
         const u32 environment = g_startCalls.Cd(0x00689b00);
         at<u32>(0x00fb1354) = environment;
         if (!environment || !at<u32>(0x00fb3cb8)) g_startCalls.Cd(0x0067f920, -1);   // exit
@@ -203,9 +204,9 @@ void __cdecl CRT_WinMainCRTStartup() {
         while (*line && *line <= ' ') ++line;
         u8 info[0x44];   // STARTUPINFOA: only its dwFlags cleared
         *reinterpret_cast<u32 *>(info + 0x2c) = 0;
-        import_slot<void(__stdcall *)(u8 *)>(0x006fd23c)(info);   // GetStartupInfoA
+        import_slot<void(__stdcall *)(u8 *)>(IMPORT(Kernel32_GetStartupInfoA))(info);   // GetStartupInfoA
         const u32 show = info[0x2c] & 1 ? *reinterpret_cast<const u16 *>(info + 0x30) : 10u;   // STARTF_USESHOWWINDOW: wShowWindow, else SW_SHOWDEFAULT
-        const u32 module = import_slot<u32(__stdcall *)(u32)>(0x006fd238)(0);   // GetModuleHandleA
+        const u32 module = import_slot<u32(__stdcall *)(u32)>(IMPORT(Kernel32_GetModuleHandleA))(0);   // GetModuleHandleA
         g_startCalls.Cd(0x0067f920, g_startCalls.St(0x0045a960, module, 0u, reinterpret_cast<uintptr_t>(line), show));   // exit(WinMain(...))
     } __except (code = GetExceptionCode(), static_cast<s32>(g_startCalls.Cd(0x00688800, code, GetExceptionInformation()))) {   // _XcptFilter
         g_startCalls.Cd(0x0067f940, code);   // _exit

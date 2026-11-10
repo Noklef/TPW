@@ -11,6 +11,7 @@
 #include "soundslot.h"
 #include "sync.h"
 #include "vcall.h"
+#include "imports.h"
 
 namespace {
 
@@ -120,7 +121,7 @@ void __fastcall SoundSource711b08_CreateEvents(u8 *source) {
     at<u32>(source, 0x30) = count;
     at<void *>(source, 0x2c) = GameHeap_Alloc(count * 4);
     for (u32 i = 0; i < at<u32>(source, 0x30); ++i) {
-        const u32 event = Import<CreateEvent>(0x006fd0d4)(nullptr, 0, 0, nullptr);   // CreateEventA
+        const u32 event = Import<CreateEvent>(IMPORT(Kernel32_CreateEventA))(nullptr, 0, 0, nullptr);   // CreateEventA
         at<u32 *>(source, 0x2c)[i] = event;
     }
 }

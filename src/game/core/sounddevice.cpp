@@ -6,6 +6,7 @@
 #include "methods.h"
 #include "vcall.h"
 #include "waveformat.h"
+#include "imports.h"
 
 namespace {
 
@@ -24,12 +25,12 @@ void SoundDevice_SetEnv(const SoundDeviceEnv *env) { g_env = env ? env : &kGameE
 extern "C" {
 
 u8 *__fastcall ComInit_Ctor(u8 *self) {
-    at<u8>(self, 0) = import<u32(__stdcall *)(void *)>(0x006fd44c)(nullptr) == 0;
+    at<u8>(self, 0) = import<u32(__stdcall *)(void *)>(IMPORT(Ole32_CoInitialize))(nullptr) == 0;
     return self;
 }
 
 void __fastcall ComInit_Dtor(u8 *self) {
-    if (at<u8>(self, 0)) import<u32(__stdcall *)()>(0x006fd450)();
+    if (at<u8>(self, 0)) import<u32(__stdcall *)()>(IMPORT(Ole32_CoUninitialize))();
 }
 
 u8 *__cdecl ComInit_Get() {
@@ -90,7 +91,7 @@ u32 *__fastcall SoundDevice_Open(u8 *device, void *, u32 *out) {
     u32 status;
     if (static_cast<s32>(*SoundDevice_CoCreate(device, nullptr, &status)) >= 0 &&
         static_cast<s32>(comcall<u32>(at<u8 *>(device, 0), 0x28, 0u)) >= 0) {
-        const u32 window = import<u32(__stdcall *)()>(0x006fd370)();
+        const u32 window = import<u32(__stdcall *)()>(IMPORT(User32_GetForegroundWindow))();
         if (static_cast<s32>(comcall<u32>(at<u8 *>(device, 0), 0x18, window, 2u)) >= 0) {
             *out = 0;
             return out;
@@ -114,7 +115,7 @@ void __fastcall SoundDevice_Release(u8 *device) {
 
 u32 *__fastcall SoundDevice_CoCreate(u8 *device, void *, u32 *out) {
     using Create = u32(__stdcall *)(u32, void *, u32, u32, u8 *);
-    const Create create = import<Create>(0x006fd454);
+    const Create create = import<Create>(IMPORT(Ole32_CoCreateInstance));
     if (static_cast<s32>(create(0x0070aa40u, nullptr, 1u, 0x00707f70u, device)) >= 0) {
         *out = 0;
         return out;
@@ -147,7 +148,7 @@ void __fastcall SoundCaps_Dtor(u8 *caps) {
 
 u32 *__fastcall SoundCaps_Query(u8 *caps, void *, u32 *out) {
     if (!at<u8 *>(caps, 0) &&
-        static_cast<s32>(import<u32(__stdcall *)(const void *, void *, void *)>(0x006fd028)(nullptr, caps, nullptr)) < 0) {   // DirectSoundCreate
+        static_cast<s32>(import<u32(__stdcall *)(const void *, void *, void *)>(IMPORT(Dsound_DirectSoundCreate))(nullptr, caps, nullptr)) < 0) {   // DirectSoundCreate
         *out = 0xffffffff;
         return out;
     }

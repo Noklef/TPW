@@ -5,6 +5,7 @@
 
 #include "crt.h"
 #include "crtenv.h"
+#include "imports.h"
 
 namespace {
 
@@ -428,10 +429,10 @@ u32 __cdecl CRT_Strftime(char *out, u32 size, const char *format, const s32 *whe
     if (!names) names = current_names();
     u32 left = size;
     u32 *const readers = &CRT_unguarded_readlc_active;
-    import_slot<s32(__stdcall *)(u32 *)>(0x006fd0c0)(readers);    // InterlockedIncrement
+    import_slot<s32(__stdcall *)(u32 *)>(IMPORT(Kernel32_InterlockedIncrement))(readers);    // InterlockedIncrement
     const bool locked = CRT_setlc_active != 0;
     if (locked) {
-        import_slot<s32(__stdcall *)(u32 *)>(0x006fd12c)(readers);    // InterlockedDecrement
+        import_slot<s32(__stdcall *)(u32 *)>(IMPORT(Kernel32_InterlockedDecrement))(readers);    // InterlockedDecrement
         CrtInner().lock(0x13);
     }
     while (left && *format) {
@@ -456,7 +457,7 @@ u32 __cdecl CRT_Strftime(char *out, u32 size, const char *format, const s32 *whe
     if (locked)
         CrtInner().unlock(0x13);
     else
-        import_slot<s32(__stdcall *)(u32 *)>(0x006fd12c)(readers);
+        import_slot<s32(__stdcall *)(u32 *)>(IMPORT(Kernel32_InterlockedDecrement))(readers);
     if (!left) return 0;
     *out = 0;
     return size - left;
@@ -546,15 +547,15 @@ u32 __cdecl CRT_loctotime_t(s32 year, s32 month, s32 day, s32 hour, s32 minute, 
 
 u32 __cdecl CRT_time(u32 *out) {
     u16 local[8], system[8];   // (SYSTEMTIME: year, month, weekday, day, hour, minute, second, ms)
-    import_slot<void(__stdcall *)(u16 *)>(0x006fd164)(local);    // GetLocalTime
-    import_slot<void(__stdcall *)(u16 *)>(0x006fd220)(system);   // GetSystemTime
+    import_slot<void(__stdcall *)(u16 *)>(IMPORT(Kernel32_GetLocalTime))(local);    // GetLocalTime
+    import_slot<void(__stdcall *)(u16 *)>(IMPORT(Kernel32_GetSystemTime))(system);   // GetSystemTime
     u16 *const last = CRT_time_last_fb1340;   // (the system time the answer below was for)
     s32 dst;
     if (system[5] == last[5] && system[4] == last[4] && system[3] == last[3] && system[1] == last[1] && system[0] == last[0]) {
         dst = CRT_time_dst_fb1338;
     } else {
         u8 zone[0xac];
-        const u32 kind = import_slot<u32(__stdcall *)(u8 *)>(0x006fd21c)(zone);   // GetTimeZoneInformation
+        const u32 kind = import_slot<u32(__stdcall *)(u8 *)>(IMPORT(Kernel32_GetTimeZoneInformation))(zone);   // GetTimeZoneInformation
         if (kind == 0xffffffffu) dst = -1;
         else dst = kind == 2 && *reinterpret_cast<const u16 *>(zone + 0x9a) && *reinterpret_cast<const s32 *>(zone + 0xa8) ? 1 : 0;
         std::memcpy(last, system, 0x10);

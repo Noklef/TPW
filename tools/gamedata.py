@@ -76,6 +76,10 @@ def check(decls):
                 continue
             for m in LITERAL.finditer(line):
                 v = int(m.group(1), 16)
+                # shortcut: staticinit*.cpp (tools/gen_static_init.py's) keep their import slots' literals, which read the copy's table (the
+                # loader fills it too); drop this when the generator writes IMPORT(member)
+                if inside(v) == 'gImports' and os.path.basename(path).startswith('staticinit'):
+                    continue
                 if inside(v):
                     errors.append('%s:%d: %#x is inside %s: use the name' % (os.path.relpath(path, ROOT), line_no, v, inside(v)))
         errors += reach_errors(os.path.relpath(path, ROOT), text, decls)
@@ -256,8 +260,8 @@ def pointers(pe, decls, code_slots):
     """The exe's pointers that tpw.exe relocates at start-up, from every 4-aligned dword of a data section (not .text, cseg, .rsrc):
     (slot, value) where the value lies inside a converted range (the slot in the copy or in a converted object), or the slot is one of
     the copy's code slots (code_slots: tools/gen_loader_slots.py's, a hooked function, an adjustor thunk to one, Debug_Printf) inside a
-    converted object. Also the problems the fixups cannot express: such a dword across an object's edge, an object over the import address
-    table (the loader fills that in the copy), and a pointer that reads as the end of a text (three printable bytes and a zero, after a
+    converted object. Also the problems the fixups cannot express: such a dword across an object's edge, an object over part of the import
+    address table (the loader fills only an object of the whole table, gImports, besides the copy's), and a pointer that reads as the end of a text (three printable bytes and a zero, after a
     printable one: settle it in TEXT or POINTERS), and a dword at an object's end (outside every object), which the fixups leave as it
     is: right for what follows the object (settle it in NEXT), wrong for a loop's end pointer. Any other dword that holds the value of a pointer is taken for one."""
     inside = finder(decls)
@@ -266,8 +270,9 @@ def pointers(pe, decls, code_slots):
     d = struct.unpack_from('<I', pe.d, 0x3c)[0] + 24 + 96 + 12 * 8   # (IMAGE_DIRECTORY_ENTRY_IAT of the optional header)
     iat, iat_size = struct.unpack_from('<II', pe.d, d)
     for _, name, a, n, _ in decls:
-        if iat_size and a < pe.base + iat + iat_size and pe.base + iat < a + n:
-            errors.append('%s %#x+%#x overlaps the import address table: the loader fills it in the copy' % (name, a, n))
+        if iat_size and a < pe.base + iat + iat_size and pe.base + iat < a + n and (a, n) != (pe.base + iat, iat_size):
+            errors.append('%s %#x+%#x overlaps part of the import address table: only an object of the whole table (gImports) is filled by '
+                          'the loader' % (name, a, n))
     for sname, va, _, ro, rs in pe.sections:
         if sname in ('.text', 'cseg', '.rsrc'):
             continue
@@ -318,7 +323,8 @@ def self_check():
     POINTERS[0x70002c] = 'self_check'
     assert pointers(pe, decls, set())[0][-2] == (0x70002c, 0x706162)
     del POINTERS[0x70002c]
-    assert len(pointers(pe, decls + [('u32[2]', 'I', 0x800008, 8, '')], set())[1]) == 3   # + an object on the IAT
+    assert len(pointers(pe, decls + [('u32[2]', 'I', 0x800008, 8, '')], set())[1]) == 2   # an object of the whole IAT: no error
+    assert len(pointers(pe, decls + [('u32', 'I', 0x800008, 4, '')], set())[1]) == 3   # + an object on part of it
     del NEXT[0x700008]
     # staticinit: a String at 0x900000 (0x14), a register base 0x900100 (an unsized function: to the next base), a pushed 0x900200
     # (to the end), the register set again to 0x900400

@@ -7,6 +7,7 @@
 #include "../render/graphicssettings.h"
 #include "gamewindow.h"
 #include "gameframe.h"
+#include "imports.h"
 
 namespace {
 
@@ -42,7 +43,7 @@ void play(const String *movie) {
         return;
     }
     s32 origin[2] = {0, 0};
-    global<s32(__stdcall *)(u32, s32 *)>(0x006fd318)(gGamewindow_7a130c, origin);
+    global<s32(__stdcall *)(u32, s32 *)>(IMPORT(User32_ScreenToClient))(gGamewindow_7a130c, origin);
     const u32 lowered = (u32)(((unsigned long long)(gScreen_7a1930 << 6) * 0x88888889ull) >> 40);
     g_calls.Cd(0x0051b010, movie->data, gGamewindow_7a130c, 0 - origin[0], lowered - origin[1], 0u);
 }
@@ -72,7 +73,7 @@ void __cdecl Game_Start() {
     char line[0x100];
     g_calls.Cd(0x0067a650, line, (u32)(uintptr_t)&gGamestart_764fac, (u32)(uintptr_t)&gGamestart_764fcc, (u32)(uintptr_t)&gGamestart_764fd8, now);
     gGamestart_879068 = 1;
-    g_calls.Cd(0x0067b5b0, global<u32(__stdcall *)()>(0x006fd1d0)());
+    g_calls.Cd(0x0067b5b0, global<u32(__stdcall *)()>(IMPORT(Kernel32_GetTickCount))());
     g_calls.Cd(0x0051b660, 0x00786de4u, gGraphicssettings_7a1a8c & 0x400);
     g_calls.Cd(0x0051b920, global<u32>(0x0078d8e0) ? global<s32>(0x0078591c) : global<s32>(0x0078591c) / 2);
     g_calls.Cd(0x0051b3d0);

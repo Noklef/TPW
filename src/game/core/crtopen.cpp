@@ -10,6 +10,7 @@
 #include "crttime.h"
 #include "crtstartup.h"
 #include "crtmessage.h"
+#include "imports.h"
 
 namespace {
 
@@ -23,15 +24,15 @@ u8 *&handle_block(u32 index) { return CRT_pioinfo[index]; }
 
 u32 &handle_count() { return CRT_nhandle; }
 
-void init_section(void *section) { import_slot<void(__stdcall *)(void *)>(0x006fd144)(section); }
-void enter_section(void *section) { import_slot<void(__stdcall *)(void *)>(0x006fd140)(section); }
-void leave_section(void *section) { import_slot<void(__stdcall *)(void *)>(0x006fd130)(section); }
+void init_section(void *section) { import_slot<void(__stdcall *)(void *)>(IMPORT(Kernel32_InitializeCriticalSection))(section); }
+void enter_section(void *section) { import_slot<void(__stdcall *)(void *)>(IMPORT(Kernel32_EnterCriticalSection))(section); }
+void leave_section(void *section) { import_slot<void(__stdcall *)(void *)>(IMPORT(Kernel32_LeaveCriticalSection))(section); }
 
-u32 last_error() { return import_slot<u32(__stdcall *)()>(0x006fd138)(); }
-s32 close_handle(u32 handle) { return import_slot<s32(__stdcall *)(u32)>(0x006fd13c)(handle); }
+u32 last_error() { return import_slot<u32(__stdcall *)()>(IMPORT(Kernel32_GetLastError))(); }
+s32 close_handle(u32 handle) { return import_slot<s32(__stdcall *)(u32)>(IMPORT(Kernel32_CloseHandle))(handle); }
 
 void set_std_handle(u32 fd, u32 handle) {
-    if (CRT_app_type == 1 && fd <= 2) import_slot<void(__stdcall *)(s32, u32)>(0x006fd268)(-10 - static_cast<s32>(fd), handle);
+    if (CRT_app_type == 1 && fd <= 2) import_slot<void(__stdcall *)(s32, u32)>(IMPORT(Kernel32_SetStdHandle))(-10 - static_cast<s32>(fd), handle);
 }
 
 s32 invalid_open() {
@@ -60,7 +61,7 @@ s32 no_entry() {
 
 s32 failed_find(u32 handle) {
     CRT_dosmaperr(last_error());
-    import_slot<s32(__stdcall *)(u32)>(0x006fd104)(handle);   // FindClose
+    import_slot<s32(__stdcall *)(u32)>(IMPORT(Kernel32_FindClose))(handle);   // FindClose
     return -1;
 }
 
@@ -68,7 +69,7 @@ s32 failed_find(u32 handle) {
 bool file_time(const u32 *time, u32 *out) {
     u32 local[2];
     u16 when[8];
-    if (!import_slot<u32(__stdcall *)(const u32 *, u32 *)>(0x006fd15c)(time, local) || !import_slot<u32(__stdcall *)(const u32 *, u16 *)>(0x006fd0bc)(local, when)) return false;
+    if (!import_slot<u32(__stdcall *)(const u32 *, u32 *)>(IMPORT(Kernel32_FileTimeToLocalFileTime))(time, local) || !import_slot<u32(__stdcall *)(const u32 *, u16 *)>(IMPORT(Kernel32_FileTimeToSystemTime))(local, when)) return false;
     *out = CRT_loctotime_t(when[0], when[1], when[3], when[4], when[5], when[6], -1);
     return true;
 }
@@ -257,9 +258,9 @@ s32 __cdecl CRT_sopen(const char *path, u32 oflag, u32 shflag, u32 pmode) {
         *CRT_doserrno() = 0;
         return -1;
     }
-    const u32 handle = import_slot<u32(__stdcall *)(const char *, u32, u32, Security *, u32, u32, u32)>(0x006fd0d8)(path, desired, sharing, &security, creation, attributes, 0);
+    const u32 handle = import_slot<u32(__stdcall *)(const char *, u32, u32, Security *, u32, u32, u32)>(IMPORT(Kernel32_CreateFileA))(path, desired, sharing, &security, creation, attributes, 0);
     if (handle == 0xffffffff) return failed_open(fd);
-    const u32 type = import_slot<u32(__stdcall *)(u32)>(0x006fd1a8)(handle);
+    const u32 type = import_slot<u32(__stdcall *)(u32)>(IMPORT(Kernel32_GetFileType))(handle);
     if (!type) {
         close_handle(handle);
         return failed_open(fd);
@@ -405,7 +406,7 @@ s32 __cdecl CRT_chsize_lk(s32 fd, s32 size) {
     }
     if (missing < 0) {
         CRT_lseek_lk(file, size, 0);
-        if (!import_slot<s32(__stdcall *)(u32)>(0x006fd27c)(CRT_get_osfhandle(file))) {
+        if (!import_slot<s32(__stdcall *)(u32)>(IMPORT(Kernel32_SetEndOfFile))(CRT_get_osfhandle(file))) {
             result = -1;
             *CRT_errno() = 0xd;
             *CRT_doserrno() = last_error();
@@ -566,7 +567,7 @@ s32 __cdecl CRT_fcloseall() {
         if (!stream(i)) continue;
         if (stream(i)->flags & 0x83 && CRT_fclose(stream(i)) != -1) ++count;
         if (i >= 0x14) {
-            import_slot<void(__stdcall *)(void *)>(0x006fd0d0)(reinterpret_cast<u8 *>(stream(i)) + 0x20);
+            import_slot<void(__stdcall *)(void *)>(IMPORT(Kernel32_DeleteCriticalSection))(reinterpret_cast<u8 *>(stream(i)) + 0x20);
             Crt().free(stream(i));
             stream(i) = nullptr;
         }
@@ -581,7 +582,7 @@ s32 __cdecl CRT_commit(u32 fd) {
         s32 result = -1;
         bool bad = true;
         if (crt_handle(static_cast<s32>(fd))[4] & 1) {
-            const u32 error = import_slot<s32(__stdcall *)(u32)>(0x006fd0fc)(CRT_get_osfhandle(fd)) ? 0 : last_error();
+            const u32 error = import_slot<s32(__stdcall *)(u32)>(IMPORT(Kernel32_FlushFileBuffers))(CRT_get_osfhandle(fd)) ? 0 : last_error();
             if (error) *CRT_doserrno() = error;
             else bad = false;
         }
@@ -595,7 +596,7 @@ s32 __cdecl CRT_commit(u32 fd) {
 }
 
 s32 __cdecl CRT_remove(const char *path) {
-    const u32 error = import_slot<s32(__stdcall *)(const char *)>(0x006fd0c4)(path) ? 0 : last_error();    // DeleteFileA
+    const u32 error = import_slot<s32(__stdcall *)(const char *)>(IMPORT(Kernel32_DeleteFileA))(path) ? 0 : last_error();    // DeleteFileA
     if (!error) return 0;
     CRT_dosmaperr(error);
     return -1;
@@ -604,7 +605,7 @@ s32 __cdecl CRT_remove(const char *path) {
 s32 __cdecl CRT_unlink(const char *path) { return CRT_remove(path); }
 
 s32 __cdecl CRT_rename(const char *from, const char *to) {
-    const u32 error = import_slot<s32(__stdcall *)(const char *, const char *)>(0x006fd11c)(from, to) ? 0 : last_error();    // MoveFileA
+    const u32 error = import_slot<s32(__stdcall *)(const char *, const char *)>(IMPORT(Kernel32_MoveFileA))(from, to) ? 0 : last_error();    // MoveFileA
     if (!error) return 0;
     CRT_dosmaperr(error);
     return -1;
@@ -619,14 +620,14 @@ void __cdecl CRT_ioinit() {
             *reinterpret_cast<u32 *>(slot + 8) = 0;
         }
     };
-    const auto file_type = [](u32 handle) { return import_slot<u32(__stdcall *)(u32)>(0x006fd1a8)(handle); };
+    const auto file_type = [](u32 handle) { return import_slot<u32(__stdcall *)(u32)>(IMPORT(Kernel32_GetFileType))(handle); };
     u8 *const block = static_cast<u8 *>(CRT_malloc(0x480));
     if (!block) CrtInner().amsgExit(0x1b);
     handle_block(0) = block;
     handle_count() = 0x20;
     clear_block(0);
     u8 info[0x44];
-    import_slot<void(__stdcall *)(void *)>(0x006fd23c)(info);    // GetStartupInfoA
+    import_slot<void(__stdcall *)(void *)>(IMPORT(Kernel32_GetStartupInfoA))(info);    // GetStartupInfoA
     const u8 *const passed = *reinterpret_cast<u8 *const *>(info + 0x34);
     if (*reinterpret_cast<const u16 *>(info + 0x32) && passed) {
         s32 count = *reinterpret_cast<const s32 *>(passed);
@@ -661,7 +662,7 @@ void __cdecl CRT_ioinit() {
             continue;
         }
         slot[4] = 0x81;
-        const u32 handle = import_slot<u32(__stdcall *)(s32)>(0x006fd1ac)(i == 0 ? -10 : i == 1 ? -11 : -12);    // GetStdHandle
+        const u32 handle = import_slot<u32(__stdcall *)(s32)>(IMPORT(Kernel32_GetStdHandle))(i == 0 ? -10 : i == 1 ? -11 : -12);    // GetStdHandle
         u32 type;
         if (handle != 0xffffffff && (type = file_type(handle)) != 0) {
             *reinterpret_cast<u32 *>(slot) = handle;
@@ -673,7 +674,7 @@ void __cdecl CRT_ioinit() {
             slot[4] |= 0x40;
         }
     }
-    import_slot<u32(__stdcall *)(u32)>(0x006fd1b0)(handle_count());    // SetHandleCount
+    import_slot<u32(__stdcall *)(u32)>(IMPORT(Kernel32_SetHandleCount))(handle_count());    // SetHandleCount
 }
 
 void __cdecl CRT_initstdio() {
@@ -707,7 +708,7 @@ void __cdecl CRT_init_namebuf(s32 flag) {
     char *at = name + 1;
     if (name[0] != '\\' && name[0] != '/') *at++ = '\\';
     *at++ = flag ? 't' : 's';
-    CRT_ultoa(import_slot<u32(__stdcall *)()>(0x006fd1e8)(), at, 32);   // (_getpid 0x68b9e0: JMP [0x6fd1e8])
+    CRT_ultoa(import_slot<u32(__stdcall *)()>(IMPORT(Kernel32_GetCurrentProcessId))(), at, 32);   // (_getpid 0x68b9e0: JMP [0x6fd1e8])
     std::strcat(name, reinterpret_cast<const char *>((uintptr_t)0x00747800));
 }
 
@@ -767,7 +768,7 @@ s32 __cdecl CRT_rmtmp() {
 s32 __cdecl CRT_validdrive(u32 drive) {
     if (!drive) return 1;
     const char root[4] = {static_cast<char>(drive + 0x40), ':', '\\', 0};
-    const u32 type = import_slot<u32(__stdcall *)(const char *)>(0x006fd09c)(root);
+    const u32 type = import_slot<u32(__stdcall *)(const char *)>(IMPORT(Kernel32_GetDriveTypeA))(root);
     return type != 0 && type != 1;
 }
 
@@ -782,9 +783,9 @@ char *__cdecl CRT_getdcwd_lk(u32 drive, char *buffer, s32 size) {
         }
         const char name[4] = {static_cast<char>(drive + 0x40), ':', '.', 0};
         char *part;
-        length = import_slot<u32(__stdcall *)(const char *, u32, char *, char **)>(0x006fd214)(name, 0x104, path, &part);
+        length = import_slot<u32(__stdcall *)(const char *, u32, char *, char **)>(IMPORT(Kernel32_GetFullPathNameA))(name, 0x104, path, &part);
     } else {
-        length = import_slot<u32(__stdcall *)(u32, char *)>(0x006fd118)(0x104, path);
+        length = import_slot<u32(__stdcall *)(u32, char *)>(IMPORT(Kernel32_GetCurrentDirectoryA))(0x104, path);
     }
     if (!length || ++length > 0x104) return nullptr;
     if (!buffer) {
@@ -819,7 +820,7 @@ char *__cdecl CRT_fullpath(char *buffer, const char *path, u32 size) {
         size = 0x104;
     }
     char *part;   // (the original's: its own size argument's slot)
-    const u32 got = import_slot<u32(__stdcall *)(const char *, u32, char *, char **)>(0x006fd214)(path, size, out, &part);   // GetFullPathNameA
+    const u32 got = import_slot<u32(__stdcall *)(const char *, u32, char *, char **)>(IMPORT(Kernel32_GetFullPathNameA))(path, size, out, &part);   // GetFullPathNameA
     if (got >= size) {
         if (!buffer) Crt().free(out);
         *CRT_errno() = 0x22;
@@ -835,7 +836,7 @@ char *__cdecl CRT_fullpath(char *buffer, const char *path, u32 size) {
 
 s32 __cdecl CRT_getdrive() {
     char path[0x104];
-    if (!import_slot<u32(__stdcall *)(u32, char *)>(0x006fd118)(0x104, path) || path[1] != ':') return 0;   // GetCurrentDirectoryA
+    if (!import_slot<u32(__stdcall *)(u32, char *)>(IMPORT(Kernel32_GetCurrentDirectoryA))(0x104, path) || path[1] != ':') return 0;   // GetCurrentDirectoryA
     return CRT_toupper(static_cast<u8>(path[0])) - 0x40;
 }
 
@@ -849,14 +850,14 @@ s32 __cdecl CRT_stat(const char *path, CrtStat *out) {
         drive = CRT_getdrive();
     }
     FindData found;
-    const u32 handle = import_slot<u32(__stdcall *)(const char *, FindData *)>(0x006fd100)(path, &found);   // FindFirstFileA
+    const u32 handle = import_slot<u32(__stdcall *)(const char *, FindData *)>(IMPORT(Kernel32_FindFirstFileA))(path, &found);   // FindFirstFileA
     if (handle == 0xffffffff) {
         if (!CRT_mbspbrk(path, reinterpret_cast<const char *>((u32)(uintptr_t)&gCrtopen_708a44))) return no_entry();
         char full[0x104];
         const char *const root = CRT_fullpath(full, path, 0x104);
         if (!root) return no_entry();
         if (std::strlen(root) != 3 && !CRT_IsRootUNCName(root)) return no_entry();
-        if (import_slot<u32(__stdcall *)(const char *)>(0x006fd09c)(root) <= 1) return no_entry();   // GetDriveTypeA
+        if (import_slot<u32(__stdcall *)(const char *)>(IMPORT(Kernel32_GetDriveTypeA))(root) <= 1) return no_entry();   // GetDriveTypeA
         found.attributes = 0x10;
         found.size_high = 0;
         found.size_low = 0;
@@ -874,7 +875,7 @@ s32 __cdecl CRT_stat(const char *path, CrtStat *out) {
             if (!file_time(found.created, &time)) return failed_find(handle);
             out->ctime = time;
         }
-        import_slot<s32(__stdcall *)(u32)>(0x006fd104)(handle);   // FindClose
+        import_slot<s32(__stdcall *)(u32)>(IMPORT(Kernel32_FindClose))(handle);   // FindClose
     }
     out->mode = static_cast<u16>(CRT_dtoxmode(found.attributes, path));
     out->nlink = 1;

@@ -18,6 +18,7 @@
 #include "../world/mousemode.h"
 #include "../world/things.h"
 #include "../world/signtext.h"
+#include "../core/imports.h"
 
 namespace {
 
@@ -26,14 +27,14 @@ template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cas
 // Chat::MovePlayer(int x, int y, int mode, void *context) (__thiscall on the Chat) through its import slot.
 u32 movePlayer(u8 *avatar, s32 x, s32 y, s32 mode) {
     using Method = u32(__fastcall *)(void *, void *, s32, s32, s32, void *);
-    return (*reinterpret_cast<const Method *>((uintptr_t)0x006fd4cc))(at<void *>(avatar, 0), nullptr, x, y, mode, avatar);
+    return (*reinterpret_cast<const Method *>((uintptr_t)IMPORT(Weachatr_Chat_MovePlayer)))(at<void *>(avatar, 0), nullptr, x, y, mode, avatar);
 }
 
 // The byte +0xeb1 cleared, then Chat::NotAFK(void *context) (__thiscall on the Chat) through its import slot with the avatar.
 void notAfk(u8 *avatar) {
     at<u8>(avatar, 0xeb1) = 0;
     using Method = u32(__fastcall *)(void *, void *, void *);
-    (*reinterpret_cast<const Method *>((uintptr_t)0x006fd4bc))(at<void *>(avatar, 0), nullptr, avatar);
+    (*reinterpret_cast<const Method *>((uintptr_t)IMPORT(Weachatr_Chat_NotAFK)))(at<void *>(avatar, 0), nullptr, avatar);
 }
 
 // The thing in the thing table's slot (0x7cfb90, 20 bytes each) for the handle's low word. (The debug check of the table left out.)
@@ -171,7 +172,7 @@ void __fastcall ChatAvatar_GotoRoom(u8 *avatar) {
         name.len = n;
     }
     using Method = u32(__fastcall *)(void *, void *, StdWString *, void *);
-    (*reinterpret_cast<const Method *>((uintptr_t)0x006fd490))(at<void *>(avatar, 0), nullptr, &name, avatar);
+    (*reinterpret_cast<const Method *>((uintptr_t)IMPORT(Weachatr_Chat_Goto)))(at<void *>(avatar, 0), nullptr, &name, avatar);
     if (name.ptr) {  // _Tidy(true), inlined
         u8 &refs = *reinterpret_cast<u8 *>(reinterpret_cast<uintptr_t>(name.ptr) - 1);
         if (refs != 0 && refs != 0xff)

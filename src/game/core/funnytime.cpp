@@ -9,6 +9,7 @@
 #include "../world/thingmsg.h"
 #include "filetime.h"
 #include "savegame.h"
+#include "imports.h"
 
 namespace {
 
@@ -113,7 +114,7 @@ u8 *__fastcall FunnyTime_Construct(u8 *clock) {
     at<s32>(clock, 0x14) = -1;
     at<u32>(clock, 0x18) = 0;
     u16 st[8];  // SYSTEMTIME: year, month, day of the week, day, hour, minute, second, ms
-    (*reinterpret_cast<void(__stdcall *const *)(u16 *)>(0x006fd164))(st);  // GetLocalTime
+    (*reinterpret_cast<void(__stdcall *const *)(u16 *)>(IMPORT(Kernel32_GetLocalTime)))(st);  // GetLocalTime
     FileTime_FromSystemTime(session, nullptr, &result, st[0], st[1], st[3], st[4], st[5], st[6], st[7]);
     return clock;
 }

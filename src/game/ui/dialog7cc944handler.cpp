@@ -14,6 +14,7 @@
 #include "window705a50handler.h"
 #include "window7cc8c0handler.h"
 #include "dialog7cc944.h"
+#include "../core/imports.h"
 
 namespace {
 
@@ -62,7 +63,7 @@ extern "C" s32 __cdecl Dialog7cc944_Handler(u8 *window, u32 message, u32 a, u32 
                 if (b == 1)
                     search();
                 else
-                    (*reinterpret_cast<void(__stdcall *const *)(u32)>((uintptr_t)0x006fd1e0))(reinterpret_cast<uintptr_t>(&gDialog7cc944_Handler_75910c));   // OutputDebugStringA
+                    (*reinterpret_cast<void(__stdcall *const *)(u32)>((uintptr_t)IMPORT(Kernel32_OutputDebugStringA)))(reinterpret_cast<uintptr_t>(&gDialog7cc944_Handler_75910c));   // OutputDebugStringA
             }
             break;
         case 0x400:

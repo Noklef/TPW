@@ -3,14 +3,15 @@
 #include <cstdint>
 
 #include "crt.h"
+#include "imports.h"
 
 namespace {
 
 template <typename F> F import_slot(u32 slot) { return *reinterpret_cast<F *>((uintptr_t)slot); }
 
-void init_section(void *section) { import_slot<void(__stdcall *)(void *)>(0x006fd144)(section); }
-void enter_section(void *section) { import_slot<void(__stdcall *)(void *)>(0x006fd140)(section); }
-s32 leave_section(void *section) { return import_slot<s32(__stdcall *)(void *)>(0x006fd130)(section); }
+void init_section(void *section) { import_slot<void(__stdcall *)(void *)>(IMPORT(Kernel32_InitializeCriticalSection))(section); }
+void enter_section(void *section) { import_slot<void(__stdcall *)(void *)>(IMPORT(Kernel32_EnterCriticalSection))(section); }
+s32 leave_section(void *section) { return import_slot<s32(__stdcall *)(void *)>(IMPORT(Kernel32_LeaveCriticalSection))(section); }
 
 void *&section(s32 which) { return reinterpret_cast<void **>((uintptr_t)0x0077ece0)[which]; }
 

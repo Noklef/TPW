@@ -11,6 +11,7 @@
 #include "../gfx/texcache.h"
 #include "meshlist.h"
 #include "../core/vwrap.h"
+#include "../core/imports.h"
 
 namespace {
 
@@ -152,7 +153,7 @@ u32 __fastcall Renderer_DrawFrame(u8 *renderer) {
         global<u32>(kViewFlags) = (savedView & ~0x200000u & ~0x2000u) | 0x20800;
         global<u32>(0x008bd550) &= ~4u;
     }
-    if (global<u32(__stdcall *)()>(0x006fd328)() != global<u32>(0x008bd518)) return 1;
+    if (global<u32(__stdcall *)()>(IMPORT(User32_GetFocus))() != global<u32>(0x008bd518)) return 1;
     if (global<u32>(kSceneFlags) & 1) {
         global<u32>(kSceneFlags) &= ~1u;
         g_calls.Th(0x005879c0, 0x008c4748u);   // LoadScreen_Close

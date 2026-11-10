@@ -10,6 +10,7 @@
 #include "gameheap.h"
 #include "vcall.h"
 #include "initializers.h"
+#include "imports.h"
 
 namespace {
 
@@ -163,7 +164,7 @@ s32 __fastcall Language_Load(u8 *lang) {
         if (failed(g_calls.Th(0x006ad510, folder, out, self + 0x554 + 4 * i, static_cast<u32>(row.key)))) {
             char line[0x100];
             g_calls.Cd(0x0067a650, static_cast<u32>(reinterpret_cast<uintptr_t>(line)), (u32)(uintptr_t)&gLanguage_74c67c, row.second, row.name);
-            global<void(__stdcall *)(const char *)>(0x006fd1e0)(line);
+            global<void(__stdcall *)(const char *)>(IMPORT(Kernel32_OutputDebugStringA))(line);
             return load_error(row.name);
         }
     }

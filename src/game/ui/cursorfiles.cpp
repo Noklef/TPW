@@ -5,6 +5,7 @@
 
 #include "../files/quickload.h"
 #include "cursor.h"
+#include "../core/imports.h"
 
 namespace {
 
@@ -33,7 +34,7 @@ u8 *__cdecl CursorFiles_LoadSystem(const char *name) {
     void *const room = g_env->alloc(0x18);
     u8 *const cursor = room ? g_env->systemCtor(room) : nullptr;
     if (!cursor) return nullptr;
-    const u32 handle = (*reinterpret_cast<u32(__stdcall *const *)(const char *)>((uintptr_t)0x006fd314))(file);
+    const u32 handle = (*reinterpret_cast<u32(__stdcall *const *)(const char *)>((uintptr_t)IMPORT(User32_LoadCursorFromFileA)))(file);
     if (handle) (*reinterpret_cast<void(__fastcall *const *)(u8 *, void *, u32, u32)>(*reinterpret_cast<u8 **>(cursor) + 4))(cursor, nullptr, handle, 0);
     return cursor;
 }

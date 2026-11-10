@@ -21,6 +21,7 @@
 #include "../coaster/arreplayaction.h"
 #include "gamestart.h"
 #include "../world/thingmsg.h"
+#include "imports.h"
 
 namespace {
 
@@ -61,9 +62,9 @@ u32 Ptr(const void *p) { return (u32)reinterpret_cast<uintptr_t>(p); }
 constexpr u32 kClocks = 0x00785970, kPanel = 0x007b51f0, kOwner = 0x00786b68, kLoadScreen = 0x008c4748, kCameraMode = 0x00f7b560, kPaths = 0x00f816c0, kState = 0x0087906c;
 
 u32 Now() { return Th(0x00402d70, kClocks); }            // Clocks_Now
-u32 Ticks() { return G<u32(__stdcall *)()>(0x006fd1d0)(); }   // timeGetTime
-bool Key(s32 key) { return G<u16(__stdcall *)(s32)>(0x006fd320)(key) != 0; }   // GetAsyncKeyState, its word
-void Say(u32 text) { G<void(__stdcall *)(u32)>(0x006fd1e0)(text); }   // OutputDebugStringA
+u32 Ticks() { return G<u32(__stdcall *)()>(IMPORT(Kernel32_GetTickCount))(); }   // timeGetTime
+bool Key(s32 key) { return G<u16(__stdcall *)(s32)>(IMPORT(User32_GetAsyncKeyState))(key) != 0; }   // GetAsyncKeyState, its word
+void Say(u32 text) { G<void(__stdcall *)(u32)>(IMPORT(Kernel32_OutputDebugStringA))(text); }   // OutputDebugStringA
 u32 Bits(float f) {
     u32 b;
     std::memcpy(&b, &f, 4);

@@ -6,6 +6,7 @@
 
 #include "../core/vcall.h"
 #include "../files/handles.h"
+#include "../core/imports.h"
 
 namespace {
 
@@ -68,7 +69,7 @@ bool headerWritten(Stream *stream, u8 *park, u8 *text) {
     u8 id[0x100] = {};
     memcpy(id, reinterpret_cast<const void *>((uintptr_t)kGameId), 0x20);
     if (!put(stream, id, 0x100)) return false;
-    const u32 version = global<u32(__stdcall *)(u32)>(0x006fd3fc)(global<u32>(0x00749870));
+    const u32 version = global<u32(__stdcall *)(u32)>(IMPORT(Wsock32_htonl))(global<u32>(0x00749870));
     if (!put(stream, &version, 4)) return false;
     const u32 hasPark = park ? 1 : 0;
     if (!put(stream, &hasPark, 4)) return false;
@@ -271,7 +272,7 @@ u32 __fastcall SaveGame_ReadHeader(u8 *self, void *, Stream *stream, u32 mode, u
     memcpy(reinterpret_cast<void *>((uintptr_t)kGameId), id, 0x20);
     u32 version = 0;
     if (!get(stream, &version, 4)) return 0;
-    if (global<u32(__stdcall *)(u32)>(0x006fd400)(version) != global<u32>(0x00749870)) {
+    if (global<u32(__stdcall *)(u32)>(IMPORT(Wsock32_ntohl))(version) != global<u32>(0x00749870)) {
         *reinterpret_cast<u32 *>(self + 4) = 6;
         return 0;
     }
@@ -299,7 +300,7 @@ void __fastcall SaveGame_AfterLoad(void *) {
     s32 status;
     for (u32 font = global<u32>(0x00789c1c); font != last; font += 0x14) {
         const char *path = *reinterpret_cast<const char **>((uintptr_t)font + 8);
-        global<s32(__stdcall *)(const char *)>(0x006fd058)(path);
+        global<s32(__stdcall *)(const char *)>(IMPORT(Gdi32_RemoveFontResourceA))(path);
         g_calls.Cd(0x005f5d60, &status, *reinterpret_cast<const char **>((uintptr_t)font + 8));
     }
     const u32 first = global<u32>(0x00789c1c), end = last;

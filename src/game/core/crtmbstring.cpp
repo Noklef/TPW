@@ -4,6 +4,7 @@
 
 #include "crt.h"
 #include "crtlocale.h"
+#include "imports.h"
 
 namespace {
 
@@ -38,11 +39,11 @@ u32 __cdecl CRT_getSystemCP(u32 code_page) {
     from_system = 0;
     if (code_page == 0xfffffffe) {
         from_system = 1;
-        return (*reinterpret_cast<u32(__stdcall *const *)()>((uintptr_t)0x006fd1f4))();
+        return (*reinterpret_cast<u32(__stdcall *const *)()>((uintptr_t)IMPORT(Kernel32_GetOEMCP)))();
     }
     if (code_page == 0xfffffffd) {
         from_system = 1;
-        return (*reinterpret_cast<u32(__stdcall *const *)()>((uintptr_t)0x006fd17c))();
+        return (*reinterpret_cast<u32(__stdcall *const *)()>((uintptr_t)IMPORT(Kernel32_GetACP)))();
     }
     if (code_page == 0xfffffffc) {
         from_system = 1;
@@ -197,7 +198,7 @@ void __cdecl CRT_setSBUpLow() {
     } f;
     u8 *const types = &CRT_mbctype[1];
     u8 *const casemap = &CRT_mbcasemap[0];
-    if (reinterpret_cast<s32(__stdcall *const *)(u32, void *)>((uintptr_t)0x006fd180)[0](code_page(), f.info) == 1) {    // GetCPInfo
+    if (reinterpret_cast<s32(__stdcall *const *)(u32, void *)>((uintptr_t)IMPORT(Kernel32_GetCPInfo))[0](code_page(), f.info) == 1) {    // GetCPInfo
         for (u32 i = 0; i < 0x100; ++i) f.chars[i] = static_cast<u8>(i);
         f.chars[0] = 0x20;
         for (const u8 *lead = f.info + 6; *lead; lead += 2)
@@ -268,7 +269,7 @@ s32 __cdecl CRT_setmbcp(s32 page) {
         return 0;
     }
     u8 info[0x14];
-    if (reinterpret_cast<s32(__stdcall *const *)(u32, void *)>((uintptr_t)0x006fd180)[0](wanted, info) == 1) {    // GetCPInfo
+    if (reinterpret_cast<s32(__stdcall *const *)(u32, void *)>((uintptr_t)IMPORT(Kernel32_GetCPInfo))[0](wanted, info) == 1) {    // GetCPInfo
         clear();
         CRT_mbcodepage = wanted;
         CRT_mblcid = 0;

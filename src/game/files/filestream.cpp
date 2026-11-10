@@ -5,6 +5,7 @@
 
 #include "../core/string.h"
 #include "../core/vdtor.h"
+#include "../core/imports.h"
 
 namespace {
 
@@ -13,7 +14,7 @@ T at(u32 address) {
     return reinterpret_cast<T>(static_cast<std::uintptr_t>(address));
 }
 const FileStreamEnv kGameEnv = {
-    at<s32(__stdcall *const *)(u32)>(0x006fd154),
+    at<s32(__stdcall *const *)(u32)>(IMPORT(Kernel32_IsDBCSLeadByte)),
 };
 const FileStreamEnv *g_env = &kGameEnv;
 

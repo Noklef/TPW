@@ -8,6 +8,7 @@
 #include "../core/accessors.h"
 #include "../render/screen.h"
 #include "../render/graphicssettings.h"
+#include "../core/imports.h"
 
 namespace {
 
@@ -120,7 +121,7 @@ u32 __cdecl Movie_Start(u32 file, u32 mode, s32 x, s32 y, u32 overlay) {
 
 u32 __cdecl Movie_Finished() {
     if (!on() || !allowed()) return 1;
-    game<void(__stdcall *const *)(u32)>(0x006fd1d4)[0](10);
+    game<void(__stdcall *const *)(u32)>(IMPORT(Kernel32_Sleep))[0](10);
     const u32 finished = !player() || g_env->playing(player()) == 0;
     if (finished) on() = 0;
     return finished;

@@ -3,6 +3,7 @@
 #include <cstdint>
 #include "../frontend/lobbysky.h"
 #include "ddopen.h"
+#include "../core/imports.h"
 
 namespace {
 
@@ -63,8 +64,8 @@ void windowed(u8 *engine) {
     global<u32>(0x008bd508) &= ~kInvalidate;
     s32 from[4] = {0, 0, global<s32>(0x008bcbd0), global<s32>(0x008bcbd4)};
     s32 window[4], client[4];
-    global<WindowRect>(0x006fd390)(global<u32>(0x008bd518), window);
-    global<WindowRect>(0x006fd38c)(global<u32>(0x008bd518), client);
+    global<WindowRect>(IMPORT(User32_GetClientRect))(global<u32>(0x008bd518), window);
+    global<WindowRect>(IMPORT(User32_GetWindowRect))(global<u32>(0x008bd518), client);
     const s32 border = (client[2] - window[2] - client[0] + window[0]) >> 1;
     const s32 x = client[0] + border, y = client[3] - window[3] + window[1] - border;
     s32 to[4] = {window[0] + x, window[1] + y, window[2] + x, window[3] + y};

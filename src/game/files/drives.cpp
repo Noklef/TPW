@@ -3,6 +3,7 @@
 
 #include <cstdint>
 #include <cstring>
+#include "../core/imports.h"
 
 namespace {
 
@@ -12,9 +13,9 @@ T at(u32 address) {
 }
 const DrivesEnv kGameEnv = {
     at<void(__fastcall *)(SystemInfo *)>(0x0055e470),
-    at<u32(__stdcall *const *)(u32, char *)>(0x006fd0a0),
-    at<u32(__stdcall *const *)(const char *)>(0x006fd09c),
-    at<s32(__stdcall *const *)(const char *, char *, u32, u32 *, u32 *, u32 *, char *, u32)>(0x006fd0a4),
+    at<u32(__stdcall *const *)(u32, char *)>(IMPORT(Kernel32_GetLogicalDriveStringsA)),
+    at<u32(__stdcall *const *)(const char *)>(IMPORT(Kernel32_GetDriveTypeA)),
+    at<s32(__stdcall *const *)(const char *, char *, u32, u32 *, u32 *, u32 *, char *, u32)>(IMPORT(Kernel32_GetVolumeInformationA)),
     at<String *(__fastcall *)(String *, void *, const char *)>(0x005f60b0),
     at<String *(__fastcall *)(String *, void *, const StringView *)>(0x005f6040),
     at<void(__fastcall *)(String *)>(0x005f61e0),

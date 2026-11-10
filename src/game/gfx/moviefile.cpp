@@ -6,6 +6,7 @@
 
 #include "../core/crt.h"
 #include "moviechunks.h"
+#include "../core/imports.h"
 
 namespace {
 
@@ -13,11 +14,11 @@ template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cas
 
 template <typename F> F import(u32 slot) { return *reinterpret_cast<F const *>((uintptr_t)slot); }
 
-u32 mmioOpen(const char *file) { return import<u32(__stdcall *)(const char *, void *, u32)>(0x006fd3e4)(file, nullptr, 0); }
-s32 mmioSetBuffer(u32 file) { return import<s32(__stdcall *)(u32, void *, u32, u32)>(0x006fd3e8)(file, nullptr, 0x2000, 0); }
-s32 mmioRead(u32 file, void *buffer, u32 size) { return import<s32(__stdcall *)(u32, void *, u32)>(0x006fd3e0)(file, buffer, size); }
-s32 mmioSeek(u32 file, u32 offset, u32 origin) { return import<s32(__stdcall *)(u32, u32, u32)>(0x006fd3d8)(file, offset, origin); }
-void mmioClose(u32 file) { import<s32(__stdcall *)(u32, u32)>(0x006fd3f0)(file, 0); }
+u32 mmioOpen(const char *file) { return import<u32(__stdcall *)(const char *, void *, u32)>(IMPORT(Winmm_mmioOpenA))(file, nullptr, 0); }
+s32 mmioSetBuffer(u32 file) { return import<s32(__stdcall *)(u32, void *, u32, u32)>(IMPORT(Winmm_mmioSetBuffer))(file, nullptr, 0x2000, 0); }
+s32 mmioRead(u32 file, void *buffer, u32 size) { return import<s32(__stdcall *)(u32, void *, u32)>(IMPORT(Winmm_mmioRead))(file, buffer, size); }
+s32 mmioSeek(u32 file, u32 offset, u32 origin) { return import<s32(__stdcall *)(u32, u32, u32)>(IMPORT(Winmm_mmioSeek))(file, offset, origin); }
+void mmioClose(u32 file) { import<s32(__stdcall *)(u32, u32)>(IMPORT(Winmm_mmioClose))(file, 0); }
 
 const MovieFileEnv kGameEnv = {reinterpret_cast<void *(__cdecl *)(u32, u32)>((uintptr_t)0x0067fcb0), &MovieChunks_Next};
 const MovieFileEnv *g_env = &kGameEnv;

@@ -5,6 +5,7 @@
 
 #include "gameheap.h"
 #include "vcall.h"
+#include "imports.h"
 
 extern "C" {
 
@@ -26,6 +27,6 @@ void __fastcall SoundGuard_Release(u8 **holder) {
     if (reinterpret_cast<u8 *>(holder)[4]) vcall<u32>(*holder, 0xc);
 }
 
-u32 __fastcall SoundGuard_CloseHandle(u32 *holder) { return (*reinterpret_cast<u32(__stdcall *const *)(u32)>((uintptr_t)0x006fd13c))(*holder); }
+u32 __fastcall SoundGuard_CloseHandle(u32 *holder) { return (*reinterpret_cast<u32(__stdcall *const *)(u32)>((uintptr_t)IMPORT(Kernel32_CloseHandle)))(*holder); }
 
 }  // extern "C"

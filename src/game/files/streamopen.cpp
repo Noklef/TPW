@@ -3,6 +3,7 @@
 
 #include <cstdint>
 #include "../core/vdtor.h"
+#include "../core/imports.h"
 
 namespace {
 
@@ -12,7 +13,7 @@ T at(u32 address) {
 }
 const StreamOpenEnv kGameEnv = {
     at<s32 *(__cdecl *)(s32 *, char *, u32, const char *)>(0x005f5710),
-    at<u32(__stdcall *const *)(const char *)>(0x006fd10c),
+    at<u32(__stdcall *const *)(const char *)>(IMPORT(Kernel32_GetFileAttributesA)),
     at<Handle *(__fastcall *)(Handle *)>(0x005f8240),
     at<void(__fastcall *)(Handle *)>(0x005f82a0),
     at<s32 *(__fastcall *)(Handle *, void *, s32 *, u32, u32)>(0x005f85d0),

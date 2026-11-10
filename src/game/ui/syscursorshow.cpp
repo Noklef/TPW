@@ -2,11 +2,12 @@
 #include "syscursorshow.h"
 
 #include <cstdint>
+#include "../core/imports.h"
 
 namespace {
 template <typename T> T &at(u8 *p, u32 offset) { return *reinterpret_cast<T *>(p + offset); }
-void setCursor(u32 handle) { (*reinterpret_cast<u32(__stdcall *const *)(u32)>((uintptr_t)0x006fd334))(handle); }
-void showCursor(u32 show) { (*reinterpret_cast<u32(__stdcall *const *)(u32)>((uintptr_t)0x006fd30c))(show); }
+void setCursor(u32 handle) { (*reinterpret_cast<u32(__stdcall *const *)(u32)>((uintptr_t)IMPORT(User32_SetCursor)))(handle); }
+void showCursor(u32 show) { (*reinterpret_cast<u32(__stdcall *const *)(u32)>((uintptr_t)IMPORT(User32_ShowCursor)))(show); }
 }  // namespace
 
 extern "C" {

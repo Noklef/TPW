@@ -7,6 +7,7 @@
 #include "../core/crt.h"
 #include "../core/stdstring.h"
 #include "../files/quickload.h"
+#include "../core/imports.h"
 
 namespace {
 
@@ -77,7 +78,7 @@ void AddAttachment(StdString *to, char *buffer, const char *boundary, const u8 *
 extern "C" void __fastcall PostcardMail_Build(u8 *mail) {
     char frame[0xc0];
     char *const buffer = frame, *const boundary = frame + 0x80;
-    Crt().sprintf(boundary, Text(reinterpret_cast<uintptr_t>(&gPostcardMail_Build_77409c)), (*reinterpret_cast<u32(__stdcall **)()>((uintptr_t)0x006fd1d0))());
+    Crt().sprintf(boundary, Text(reinterpret_cast<uintptr_t>(&gPostcardMail_Build_77409c)), (*reinterpret_cast<u32(__stdcall **)()>((uintptr_t)IMPORT(Kernel32_GetTickCount)))());
     StdString *const to = &at<StdString>(mail, 0x74);
     StdString_AssignChars(to, nullptr, Text(0x00786de4), (u32)std::strlen(Text(0x00786de4)));
     CutLines(OrNull(at<char *>(mail, 4)));

@@ -5,6 +5,7 @@
 #include <cstring>
 
 #include "crt.h"
+#include "imports.h"
 
 namespace {
 
@@ -25,7 +26,7 @@ const char *&country() { return CRT_country; }
 u32 &lcid_state() { return CRT_lcid_state; }
 LocaleInfo &locale_info() { return CRT_pfnGetLocaleInfoA; }
 
-void enum_locales(u32 callback) { import_slot<s32(__stdcall *)(u32, u32)>(0x006fd1f8)(callback, 1); }
+void enum_locales(u32 callback) { import_slot<s32(__stdcall *)(u32, u32)>(IMPORT(Kernel32_EnumSystemLocalesA))(callback, 1); }
 
 // "LC_x=locale;LC_y=locale": each category named; other names skipped. The value's room is not checked (sic).
 char *set_pairs(const char *text) {
@@ -190,7 +191,7 @@ s32 __cdecl CRT_GetPrimaryLen(const char *text) {
 s32 __cdecl CRT_IsThisWindowsNT() {
     u32 info[0x25];
     info[0] = 0x94;
-    if (!import_slot<s32(__stdcall *)(u32 *)>(0x006fd264)(info)) return 0;
+    if (!import_slot<s32(__stdcall *)(u32 *)>(IMPORT(Kernel32_GetVersionExA))(info)) return 0;
     return info[4] == 2 ? 1 : 0;
 }
 
@@ -244,7 +245,7 @@ void __cdecl CRT_GetLcidFromCountry() {
 
 void __cdecl CRT_GetLcidFromDefault() {
     lcid_state() |= 0x104;
-    const u32 locale = import_slot<u32(__stdcall *)()>(0x006fd260)();
+    const u32 locale = import_slot<u32(__stdcall *)()>(IMPORT(Kernel32_GetUserDefaultLCID))();
     CRT_lcid_country = locale;
     CRT_lcid_language = locale;
 }
@@ -263,7 +264,7 @@ u32 __cdecl CRT_ProcessCodePage(const char *name) {
 
 s32 __cdecl CRT_get_qualified_locale(const char *names, u16 *id, char *out) {
     if (!locale_info()) {
-        locale_info() = CRT_IsThisWindowsNT() ? import_slot<LocaleInfo>(0x006fd28c) : reinterpret_cast<LocaleInfo>((uintptr_t)0x0068e550);
+        locale_info() = CRT_IsThisWindowsNT() ? import_slot<LocaleInfo>(IMPORT(Kernel32_GetLocaleInfoA)) : reinterpret_cast<LocaleInfo>((uintptr_t)0x0068e550);
     }
     if (names) {
         language() = names;
@@ -288,8 +289,8 @@ s32 __cdecl CRT_get_qualified_locale(const char *names, u16 *id, char *out) {
     if (!lcid_state()) return 0;
     const u32 code_page = CRT_ProcessCodePage(names + 0x80);
     if (!code_page) return 0;
-    if (!import_slot<s32(__stdcall *)(u32)>(0x006fd288)(code_page & 0xffff)) return 0;
-    if (!import_slot<s32(__stdcall *)(u32, u32)>(0x006fd284)(CRT_lcid_language, 1)) return 0;
+    if (!import_slot<s32(__stdcall *)(u32)>(IMPORT(Kernel32_IsValidCodePage))(code_page & 0xffff)) return 0;
+    if (!import_slot<s32(__stdcall *)(u32, u32)>(IMPORT(Kernel32_IsValidLocale))(CRT_lcid_language, 1)) return 0;
     if (id) {
         id[0] = static_cast<u16>(CRT_lcid_language);
         id[1] = static_cast<u16>(CRT_lcid_country);
@@ -380,7 +381,7 @@ char *__cdecl CRT_setlocale(s32 category, const char *locale) {
     if (category < 0 || category > 5) return nullptr;
     CrtInner().lock(0x13);
     ++CRT_setlc_active;
-    while (CRT_unguarded_readlc_active) import_slot<void(__stdcall *)(u32)>(0x006fd1d4)(1);
+    while (CRT_unguarded_readlc_active) import_slot<void(__stdcall *)(u32)>(IMPORT(Kernel32_Sleep))(1);
     char *const result = setlocale_locked(category, locale);
     CrtInner().unlock(0x13);
     --CRT_setlc_active;
@@ -499,5 +500,5 @@ s32 __stdcall CRT_crtGetLocaleInfoA(u32 lcid, u32 what, char *out, s32 room) {
         if (lcid < key) high = middle - 1;
         else low = middle + 1;
     }
-    return import_slot<LocaleInfo>(0x006fd28c)(lcid, what, out, room);
+    return import_slot<LocaleInfo>(IMPORT(Kernel32_GetLocaleInfoA))(lcid, what, out, room);
 }

@@ -19,7 +19,7 @@
    - the empty `Debug_Printf` `0x5da3c0` (the loader supplies an empty function)
 
    The loader points each slot at the port. With today's hooks: 4,155 hooked slots, 83 `Debug_Printf` slots, 39 thunks, 4,277 in all. That is the survey's 4,262 plus 15 slots whose targets the survey did not list. `tpw_tests.exe tp.exe` checks the table against its own scan of the exe. Every other code address in the data stays the original's. That includes the C runtime's initialiser tables, which `StaticInit_Run` reads by address.
-4. **Imports.** The loader loads each DLL the same way `tp.exe` does: from the exe's folder first, so QMixer, the `wea*.dll` files and a DirectDraw wrapper (dgVoodoo, DDrawCompat) are found, then from the system. A missing DLL or function gets a stub (see "Missing DLLs" below).
+4. **Imports.** The loader loads each DLL the same way `tp.exe` does: from the exe's folder first, so QMixer, the `wea*.dll` files and a DirectDraw wrapper (dgVoodoo, DDrawCompat) are found, then from the system. A missing DLL or function gets a stub (see "Missing DLLs" below). Each address goes to the copy's slot and to the same slot of `gImports`, the ports' table (`09-globals.md`, "Imports").
 5. **WinMain** does the same as the original's `mainCRTStartup` `0x67ee10`, by the game's addresses:
    - FPU control word `0x27f` (PC53, for the initialisers; Direct3D later sets the game's `0x7f`)
    - `GetVersion` into its globals

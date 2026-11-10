@@ -13,6 +13,7 @@
 #include "window7059f0.h"
 #include "../online/postcardsend.h"
 #include "dialog7cc530open.h"
+#include "../core/imports.h"
 
 namespace {
 
@@ -51,7 +52,7 @@ s32 __cdecl Dialog7cc530_Handler(u8 *window, u32 message, u32 a, u32 b) {
             g_env->nth(list, nullptr, *reinterpret_cast<s32 *>(list + 0x14c), &value);
             if (static_cast<s32>(value) < 0) return 0;
             u8 properties[0x830];
-            global<u32(__fastcall *)(void *, void *, u32, void *)>(0x006fd5bc)(reinterpret_cast<void *>((uintptr_t)0x007c24c0), nullptr, value, properties);
+            global<u32(__fastcall *)(void *, void *, u32, void *)>(IMPORT(Wearasr_Dialup_GetDialupProperties))(reinterpret_cast<void *>((uintptr_t)0x007c24c0), nullptr, value, properties);
             if (*reinterpret_cast<u32 *>(properties) == 0) {
                 g_env->send(dialog(), 4, 0, 0);
                 g_env->createFrom(value, properties);

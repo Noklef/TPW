@@ -5,6 +5,7 @@
 
 #include "crt.h"
 #include "crtopen.h"
+#include "imports.h"
 
 namespace {
 
@@ -14,10 +15,10 @@ template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((ui
 
 void *lock_of(s32 fd) { return crt_handle(fd) + 0xc; }
 
-u32 last_error() { return import_slot<u32(__stdcall *)()>(0x006fd138)(); }
+u32 last_error() { return import_slot<u32(__stdcall *)()>(IMPORT(Kernel32_GetLastError))(); }
 
 bool write_file(u32 handle, const void *data, u32 count, u32 *written) {
-    return import_slot<s32(__stdcall *)(u32, const void *, u32, u32 *, void *)>(0x006fd0e0)(handle, data, count, written, nullptr) != 0;
+    return import_slot<s32(__stdcall *)(u32, const void *, u32, u32 *, void *)>(IMPORT(Kernel32_WriteFile))(handle, data, count, written, nullptr) != 0;
 }
 
 // _flsbuf's and _flswbuf's work on a unit of `width` bytes at `unit`: false when it cannot go (flag 0x20).
@@ -99,15 +100,15 @@ void __cdecl CRT_lock_fhandle(s32 fd) {
     if (!*reinterpret_cast<u32 *>(record + 8)) {
         CrtInner().lock(0x11);
         if (!*reinterpret_cast<u32 *>(record + 8)) {
-            import_slot<void(__stdcall *)(void *)>(0x006fd144)(record + 0xc);
+            import_slot<void(__stdcall *)(void *)>(IMPORT(Kernel32_InitializeCriticalSection))(record + 0xc);
             ++*reinterpret_cast<u32 *>(record + 8);
         }
         CrtInner().unlock(0x11);
     }
-    import_slot<void(__stdcall *)(void *)>(0x006fd140)(lock_of(fd));
+    import_slot<void(__stdcall *)(void *)>(IMPORT(Kernel32_EnterCriticalSection))(lock_of(fd));
 }
 
-void __cdecl CRT_unlock_fhandle(s32 fd) { import_slot<void(__stdcall *)(void *)>(0x006fd130)(lock_of(fd)); }
+void __cdecl CRT_unlock_fhandle(s32 fd) { import_slot<void(__stdcall *)(void *)>(IMPORT(Kernel32_LeaveCriticalSection))(lock_of(fd)); }
 
 s32 __cdecl CRT_lseek_lk(u32 fd, s32 offset, u32 origin) {
     const u32 handle = CRT_get_osfhandle(fd);
@@ -115,7 +116,7 @@ s32 __cdecl CRT_lseek_lk(u32 fd, s32 offset, u32 origin) {
         *CRT_errno() = 9;
         return -1;
     }
-    const s32 at = import_slot<s32(__stdcall *)(u32, s32, void *, u32)>(0x006fd0e4)(handle, offset, nullptr, origin);
+    const s32 at = import_slot<s32(__stdcall *)(u32, s32, void *, u32)>(IMPORT(Kernel32_SetFilePointer))(handle, offset, nullptr, origin);
     const u32 error = at == -1 ? last_error() : 0;
     if (error) {
         CRT_dosmaperr(error);
@@ -140,7 +141,7 @@ int64_t __cdecl CRT_lseeki64_lk(u32 fd, int64_t offset, u32 origin) {
         return -1;
     }
     s32 high = static_cast<s32>(offset >> 32);
-    const u32 low = import_slot<u32(__stdcall *)(u32, s32, s32 *, u32)>(0x006fd0e4)(handle, static_cast<s32>(offset), &high, origin);
+    const u32 low = import_slot<u32(__stdcall *)(u32, s32, s32 *, u32)>(IMPORT(Kernel32_SetFilePointer))(handle, static_cast<s32>(offset), &high, origin);
     if (low == 0xffffffffu) {
         const u32 error = last_error();
         if (error) {
