@@ -2,6 +2,8 @@
 
 #include <cstdint>
 
+#include "crt.h"
+#include "crtfloat.h"
 #include "moneyput.h"
 #include "streambufiter.h"
 
@@ -223,6 +225,49 @@ StdString *__fastcall MoneyGet_Getmfld(void *, void *, StdString *out, u8 *first
     StdString_AssignSub(out, nullptr, &value, 0, npos());
     StdString_Tidy(&value, nullptr, 1);
     StdString_Tidy(&sign, nullptr, 1);
+    return out;
+}
+
+u32 *__fastcall MoneyGet_DoGetLongDouble(void *self, void *, u32 *out, MoneyGetIter first, MoneyGetIter last, u8 international, u8 *ios, u32 *state, double *value) {
+    StdString digits;
+    MoneyGet_Getmfld(self, nullptr, &digits, reinterpret_cast<u8 *>(&first), reinterpret_cast<u8 *>(&last), international, ios);
+    if (!more(reinterpret_cast<Iter *>(&first), reinterpret_cast<Iter *>(&last))) *state |= 1;
+    if (!digits.len) {
+        *state |= 2;
+    } else {
+        StdString copy;
+        StdString_Tidy(&copy, nullptr, 0);
+        if (copy.res < digits.len) StdString_Grow(&copy, nullptr, digits.len, 0);
+        for (u32 i = 0; i < digits.len; ++i) append(&copy, 1, *char_at(&digits, i));
+        const char *const text = copy.ptr ? copy.ptr : null_string();
+        *CRT_errno() = 0;
+        const char *end;
+        const double number = CRT_Stold(text, &end, 0);
+        if (end != text && !*CRT_errno()) {
+            *value = number;
+        } else {
+            *state |= 2;
+        }
+        StdString_Tidy(&copy, nullptr, 1);
+    }
+    out[0] = first.word[0];
+    out[1] = first.word[1];
+    StdString_Tidy(&digits, nullptr, 1);
+    return out;
+}
+
+u32 *__fastcall MoneyGet_DoGetString(void *self, void *, u32 *out, MoneyGetIter first, MoneyGetIter last, u8 international, u8 *ios, u32 *state, StdString *value) {
+    StdString digits;
+    MoneyGet_Getmfld(self, nullptr, &digits, reinterpret_cast<u8 *>(&first), reinterpret_cast<u8 *>(&last), international, ios);
+    if (!more(reinterpret_cast<Iter *>(&first), reinterpret_cast<Iter *>(&last))) *state |= 1;
+    if (!digits.len) {
+        *state |= 2;
+    } else {
+        StdString_AssignSub(value, nullptr, &digits, 0, npos());
+    }
+    out[0] = first.word[0];
+    out[1] = first.word[1];
+    StdString_Tidy(&digits, nullptr, 1);
     return out;
 }
 }

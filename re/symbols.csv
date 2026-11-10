@@ -6726,6 +6726,8 @@ address,name,kind,confidence,notes
 0x006323c0,WaitThread_DeletingDtor,function,low,"reimplemented (src/game/core/waitthread); thiscall (flags): the destructor, bit 0 frees; name invented"
 0x006326e0,WaitThread_OpenAndStart,function,low,"reimplemented (src/game/core/waitthread); thiscall (out), pops 4: OpenEvents, then Start when it did not fail; out the first failure (negative), else 0"
 0x006a7920,MoneyGet_Getmfld,function,low,reimplemented (src/game/core/moneyget); money_get<char>::_Getmfld: a money field read off a stream by the facet's negative pattern
+0x006a7550,MoneyGet_DoGetLongDouble,function,low,"reimplemented (src/game/core/moneyget); money_get<char>::do_get of a long double (a double): _Getmfld's digits copied, then _Stold"
+0x006a7760,MoneyGet_DoGetString,function,low,reimplemented (src/game/core/moneyget); money_get<char>::do_get of a string: _Getmfld's digits assigned
 0x0050ffe0,Nav_Ctor,function,high,reimplemented (src/game/world/nav); constants constructor with five integer pairs
 0x0050f200,Nav_Dtor,function,high,reimplemented (src/game/world/nav); thiscall: the five IntPairs at +0x64 destroyed with Stub_Ret (CRT_VectorDtorIterator); also via 0x4f7c30 (+0xd4) and 0x4f8ad0
 0x004f7c30,Nav_DtorAtD4,function,low,reimplemented (src/game/world/nav); thiscall adjustor: Nav_Dtor on this + 0xd4
