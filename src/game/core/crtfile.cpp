@@ -132,6 +132,33 @@ s32 __cdecl CRT_lseek(u32 fd, s32 offset, u32 origin) {
     return at;
 }
 
+int64_t __cdecl CRT_lseeki64_lk(u32 fd, int64_t offset, u32 origin) {
+    const u32 handle = CRT_get_osfhandle(fd);
+    if (handle == 0xffffffffu) {
+        *CRT_errno() = 9;
+        return -1;
+    }
+    s32 high = static_cast<s32>(offset >> 32);
+    const u32 low = import_slot<u32(__stdcall *)(u32, s32, s32 *, u32)>(0x006fd0e4)(handle, static_cast<s32>(offset), &high, origin);
+    if (low == 0xffffffffu) {
+        const u32 error = last_error();
+        if (error) {
+            CRT_dosmaperr(error);
+            return -1;
+        }
+    }
+    crt_handle(static_cast<s32>(fd))[4] &= 0xfd;
+    return static_cast<int64_t>(static_cast<uint64_t>(static_cast<u32>(high)) << 32 | low);
+}
+
+int64_t __cdecl CRT_lseeki64(u32 fd, int64_t offset, u32 origin) {
+    if (!crt_handle_open(fd)) return crt_bad_handle();
+    CRT_lock_fhandle(static_cast<s32>(fd));
+    const int64_t at = CRT_lseeki64_lk(fd, offset, origin);
+    CRT_unlock_fhandle(static_cast<s32>(fd));
+    return at;
+}
+
 s32 __cdecl CRT_isatty(u32 fd) {
     if (fd >= global<u32>(0x00fb3ca0)) return 0;
     return crt_handle(static_cast<s32>(fd))[4] & 0x40;

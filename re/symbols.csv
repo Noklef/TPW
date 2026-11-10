@@ -6169,6 +6169,8 @@ address,name,kind,confidence,notes
 0x0067b710,CRT_fwrite_lk,function,low,reimplemented (src/game/core/crtfile); _fwrite_lk
 0x0067b6d0,CRT_fwrite,function,low,reimplemented (src/game/core/crtfile); fwrite
 0x00686ff0,CRT_flswbuf,function,low,reimplemented (src/game/core/crtfile); _flswbuf
+0x0068ec50,CRT_lseeki64_lk,function,high,reimplemented (src/game/core/crtfile); _lseeki64_lk: SetFilePointer with a 64-bit place
+0x0068ebc0,CRT_lseeki64,function,high,reimplemented (src/game/core/crtfile); _lseeki64: _lseeki64_lk under the handle's lock
 0x00688ad0,CRT_read_lk,function,low,reimplemented (src/game/core/crtstream); _read_lk
 0x00688a50,CRT_read,function,low,reimplemented (src/game/core/crtstream); _read
 0x00687440,CRT_filbuf,function,low,reimplemented (src/game/core/crtstream); _filbuf
@@ -6199,6 +6201,12 @@ address,name,kind,confidence,notes
 0x00683a20,CRT_woutput_write_multi,function,low,reimplemented (src/game/core/crtstream); wide write_multi
 0x00683a60,CRT_woutput_write_string,function,low,reimplemented (src/game/core/crtstream); wide write_string
 0x0068b4e0,CRT_whiteout,function,low,reimplemented (src/game/core/crtstream); _whiteout
+0x00687840,CRT_ftelli64_lk,function,high,reimplemented (src/game/core/crtstream); _ftelli64_lk: the stream's 64-bit place
+0x00687810,CRT_ftelli64,function,high,reimplemented (src/game/core/crtstream); _ftelli64: _ftelli64_lk under the file's lock
+0x00687a70,CRT_fseeki64_lk,function,high,reimplemented (src/game/core/crtstream); _fseeki64_lk: the stream to a 64-bit place
+0x00687a30,CRT_fseeki64,function,high,reimplemented (src/game/core/crtstream); _fseeki64: _fseeki64_lk under the file's lock
+0x0067cf40,CRT_fgetpos,function,high,reimplemented (src/game/core/crtstream); fgetpos: the stream's place into a position
+0x0067cf70,CRT_fsetpos,function,high,reimplemented (src/game/core/crtstream); fsetpos: the stream to a position
 0x006898f0,CRT_parse_cmdline,function,low,reimplemented (src/game/core/crtstartup); parse_cmdline
 0x0067f8f0,CRT_cinit,function,high,"reimplemented (src/game/core/crtstartup); _cinit: the floating point set-up pointer 0x77e718, then the C and C++ initialisers"
 0x0067f920,CRT_exit,function,high,"reimplemented (src/game/core/crtstartup); exit: doexit(code, 0, 0)"
