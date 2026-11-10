@@ -6,10 +6,11 @@
 #include "dxerrors.h"
 #include "enginedebug.h"
 #include "engineerrors.h"
+#include "ddopen.h"
 
 namespace d3dresult {
 
-inline u32 &result() { return *reinterpret_cast<u32 *>((uintptr_t)0x00879cd4); }
+inline u32 &result() { return gDdopen_879cd4; }
 
 // A device call's result kept; a failure's message written to the engine debug log.
 inline void keep(u32 hr) {

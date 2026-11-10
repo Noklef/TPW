@@ -71,7 +71,7 @@ extern "C" {
 
 u32 __fastcall SpriteQueue_Draw(u8 *queue) {
     const u32 render = global<u32>(0x008bcbc8);
-    global<u32>(0x008bd4fc) = 0;
+    reinterpret_cast<u32 &>(gSpritequeue_8bd4fc) = 0;
     if (render & 0x80) {
         for (u32 i = at<u32>(queue, 0x2404); i--;) {
             if (!g_drawCalls.Th(0x00589f90, at<u32>(queue, i * 4))) return 0;
@@ -220,7 +220,7 @@ u32 __fastcall SpriteQueue_LoadTexture(u8 *queue, void *, const char *name) {
         Texture_DestroyArray(*slot);
         *slot = nullptr;
     }
-    *slot = TexManager_Load(*reinterpret_cast<u8 *const *>((uintptr_t)0x0087a268), nullptr, name);
+    *slot = TexManager_Load(*reinterpret_cast<u8 *const *>(&gTexman_87a268), nullptr, name);
     if (*slot != nullptr)
         *reinterpret_cast<u32 *>(*slot + 8) = (*reinterpret_cast<u32 *>(*slot + 8) & ~0x80u) | 0x40040;
     return *slot != nullptr;

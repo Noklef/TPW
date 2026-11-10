@@ -74,7 +74,7 @@ void Meshes_SetPow(double(__cdecl *pow)(double, double)) { g_pow = pow ? pow : &
 extern "C" {
 
 u32 __cdecl Meshes_CreateObject() {
-    if (global<u32>(0x0087a248)) return 0;
+    if (reinterpret_cast<u32 &>(gMeshlist_87a248)) return 0;
     u8 *const block = static_cast<u8 *>(GameHeap_Alloc(0x8244));
     if (block) {
         at<u32>(block, 0) = 0;
@@ -95,7 +95,7 @@ u32 __cdecl Meshes_CreateObject() {
         }
         at<u32>(block, 4) = 0;
     }
-    global<u8 *>(0x0087a248) = block;
+    gMeshlist_87a248 = block;
     if (block) return 1;
     EngineErrors_Push(reinterpret_cast<u8 *>(0x00879ad0), nullptr, 3, 0xb0754000);
     return 0;

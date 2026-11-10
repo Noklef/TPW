@@ -8,6 +8,7 @@
 #include "../gfx/texture.h"
 #include "../math/x87.h"
 #include "../gfx/texcache.h"
+#include "ddopen.h"
 
 namespace {
 
@@ -42,7 +43,7 @@ void fillTexture(u8 *settings, u8 *texture, bool across) {
         u16 *out = reinterpret_cast<u16 *>(pixels);
         for (u32 y = 0; y < 0x80; ++y) {
             for (u32 x = 0; x < 0x80; ++x)
-                *out++ = (u16)stripe(across ? x : y, global<u16>(0x008bd4c4), global<u16>(0x008bd4cc), global<u16>(0x008bd4d4), global<u16>(0x008bd4dc));
+                *out++ = (u16)stripe(across ? x : y, reinterpret_cast<u16 &>(gDdopen_8bd4c4), reinterpret_cast<u16 &>(gDdopen_8bd4cc), reinterpret_cast<u16 &>(gDdopen_8bd4d4), reinterpret_cast<u16 &>(gDdopen_8bd4dc));
         }
         return;
     }
@@ -53,10 +54,10 @@ void fillTexture(u8 *settings, u8 *texture, bool across) {
         even = 0xff;
         odd = 0xffffff;
     } else {
-        edge = global<u32>(0x008bd4c4);
-        frame = global<u32>(0x008bd4cc);
-        even = global<u32>(0x008bd4d4);
-        odd = global<u32>(0x008bd4dc);
+        edge = gDdopen_8bd4c4;
+        frame = gDdopen_8bd4cc;
+        even = gDdopen_8bd4d4;
+        odd = gDdopen_8bd4dc;
     }
     u32 *out = reinterpret_cast<u32 *>(pixels);
     for (u32 y = 0; y < 0x80; ++y) {
@@ -98,7 +99,7 @@ void probe(u8 *settings, bool across, u32 result) {
     const u32 handle = at<u32>(texture, 8) & 0x1000 ? at<u32>(texture, 0x1c) : 0;
     vcall<u32>(device(), 0xc, 0u, handle);
     vcall<u32>(device(), 0x18, 0u, 0u, 0u);
-    global<u32>(0x008c1644) = 0;
+    gUvprobe_8c1644 = 0;
 
     u32 lines[0x3c];
     float place = 0.0f, step = 0.5f;

@@ -53,3 +53,8 @@ u8 *__fastcall TexManager_Load(u8 *manager, void *, const char *name);
 // gets a user more and its textures are returned.
 u8 *__fastcall TexManager_Acquire(u8 *manager, void *, const char *folder, const char *name);
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(u8 *, gTexman_87a268, 0x0087a268, 0x4);

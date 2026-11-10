@@ -271,7 +271,7 @@ void __cdecl CoasterPiece_Load(u8 *piece, const char *folder) {
 }
 
 void __cdecl CoasterTypes_FreeAll() {
-    for (u32 i = 0; i < global(0x00790fe8); ++i) {
+    for (u32 i = 0; i < gSetup_790fe8; ++i) {
         u8 *&slot = global<u8 *>(0x00790b08 + 4 * i);
         u8 *const t = slot;
         u8 *const first = at<u8 *>(t, 0x300), *const last = at<u8 *>(t, 0x304), *const other = at<u8 *>(t, 0x2fc);
@@ -299,7 +299,7 @@ void __cdecl CoasterTypes_FreeAll() {
         releaseBlock(t, 0x78);
         slot = nullptr;
     }
-    global(0x00790fe8) = 0;
+    gSetup_790fe8 = 0;
 }
 
 u8 *__cdecl CoasterType_Create(u32 holder, u32, u32 id, const u8 *source) {
@@ -307,8 +307,8 @@ u8 *__cdecl CoasterType_Create(u32 holder, u32, u32 id, const u8 *source) {
     at<u32>(balance, 0) = 0x006fd8b0;
     BalanceFile_Init(balance);
     u8 *const t = static_cast<u8 *>(GlobalMem_Alloc(0x35c, 1));
-    reinterpret_cast<u8 **>(0x00790b08)[global(0x00790fe8)] = t;
-    ++global(0x00790fe8);
+    reinterpret_cast<u8 **>(0x00790b08)[gSetup_790fe8] = t;
+    ++gSetup_790fe8;
     const u32 one = 0x3f800000, five = 0x40a00000, ten = 0x41200000, half = 0x3f000000, pi = 0x40490fdb;
     at<u32>(t, 4) = holder;
     at<u32>(t, 0) = 0;
@@ -364,7 +364,7 @@ u8 *__cdecl CoasterType_Create(u32 holder, u32, u32 id, const u8 *source) {
             e[3] = 0;
         }
     }
-    const float root1 = (float)X87_Sqrt(X87Reg(global<double>(0x006fde80)));
+    const float root1 = (float)X87_Sqrt(X87Reg(gCoasterType_Create_6fde80));
     at<u32>(t, 0xa8) = 4;
     at<u32>(t, 0x158) = 0xbf7fbe77;
     at<u32>(t, 0x15c) = 1;
@@ -387,7 +387,7 @@ u8 *__cdecl CoasterType_Create(u32 holder, u32, u32 id, const u8 *source) {
     at<u32>(t, 0x140) = 0;
     at<u32>(t, 0x154) = 0;
     at<float>(t, 0x14c) = root1;
-    at<float>(t, 0x150) = (float)X87_Sqrt(X87Reg(global<double>(0x006fde88)));
+    at<float>(t, 0x150) = (float)X87_Sqrt(X87Reg(gCoasterType_Create_6fde88));
     at<u32>(t, 0x230) = ten;
     at<u32>(t, 0x234) = ten;
     at<float>(t, 0x26c) = root1;
@@ -410,7 +410,7 @@ u8 *__cdecl CoasterType_Create(u32 holder, u32, u32 id, const u8 *source) {
     at<u32>(t, 0x25c) = 0x3fc90fdb;   // pi / 2
     at<u32>(t, 0x260) = 0x3fc90fdb;
     at<u32>(t, 0x274) = 0x41c80000;   // 25
-    at<float>(t, 0x270) = (float)X87_Sqrt(X87Reg(global<double>(0x006fde90)));
+    at<float>(t, 0x270) = (float)X87_Sqrt(X87Reg(gCoasterType_Create_6fde90));
     CoasterType_Setup(t, id, source);   // (its result unused: sic)
     at<u32>(at<u8 *>(t, 0x1c), 0xc) = 0x0074cb98;   // "Data\Generic\Dynamic\Textures"
     at<u32>(balance, 0) = 0x006fd8b0;
@@ -448,7 +448,7 @@ void __cdecl CoasterType_Load(u32 slot, const char *folder, const u8 *source) {
     u8 *const type = reinterpret_cast<u8 *>((uintptr_t)g_loadCalls.Cd(0x0042fd90, slot, static_cast<u32>((uintptr_t)folder), static_cast<u32>((uintptr_t)path), static_cast<u32>((uintptr_t)source)));
     at<u32>(global<u8 *>(0x007ae6a8 + slot * 4), 4) |= 0x40000;
     const s32 most = at<s32>(type, 0x3c);
-    if (most > global<s32>(0x00790fd0)) global<s32>(0x00790fd0) = most;
+    if (most > gSetup_790fd0) gSetup_790fd0 = most;
     const u32 words = at<u16>(at<u8 *>(type, 0x1c), 4);
     if (words > global<u32>(0x00791cfc)) global<u32>(0x00791cfc) = words;
     u8 *const holder = at<u8 *>(type, 0x14);

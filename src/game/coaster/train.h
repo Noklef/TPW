@@ -318,3 +318,10 @@ u32 __cdecl Pylon_FindBraceLevel(float wanted, const u8 *train, u32 *level, floa
 
 // Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
 GAME_DATA(u32, gTrain_791cd8, 0x00791cd8, 4);
+
+// Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(const float, gCar_LengthFromNode_6fdea0, 0x006fdea0, 0x4);
+GAME_DATA(const float, gCoaster_DropCar_6fe1e0, 0x006fe1e0, 0x4);
+GAME_DATA(const float, gCoaster_DropCar_6fe1e4, 0x006fe1e4, 0x4);
+GAME_DATA(const float, gCoaster_DropCar_6fe1e8, 0x006fe1e8, 0x4);
+GAME_DATA(u8 *, gTrain_790fd4, 0x00790fd4, 0x4);

@@ -3,6 +3,7 @@
 #include <cstdint>
 
 #include "../math/x87.h"
+#include "rebuild.h"
 
 namespace {
 
@@ -10,7 +11,7 @@ template <typename T> T &at(const void *p, u32 offset) {
     return *reinterpret_cast<T *>((uintptr_t)p + offset);
 }
 
-const float &start() { return *reinterpret_cast<const float *>(0x0079240c); }
+const float &start() { return gRebuild_79240c; }
 
 }  // namespace
 

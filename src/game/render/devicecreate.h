@@ -27,3 +27,14 @@ u32 __cdecl SoftSetup_Destroy();
 // not 0; +8 the raster, +0xc its bytes; the raster globals 0xfbe014-0xfbe034 set. 1.
 u32 __fastcall SoftSetup_Open(u8 *self, void *, u32 kind);
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(u32, gSoftSetup_fbe014, 0x00fbe014, 0x4);
+GAME_DATA(u32, gSoftSetup_fbe018, 0x00fbe018, 0x4);
+GAME_DATA(u32, gSoftSetup_fbe01c, 0x00fbe01c, 0x4);
+GAME_DATA(u32, gSoftSetup_fbe020, 0x00fbe020, 0x4);
+GAME_DATA(u32, gDevicecreate_fbe028, 0x00fbe028, 0x4);
+GAME_DATA(u32, gDevicecreate_fbe030, 0x00fbe030, 0x4);
+GAME_DATA(u32, gDevicecreate_fbe034, 0x00fbe034, 0x4);

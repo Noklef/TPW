@@ -6,6 +6,8 @@
 
 #include "../math/x87.h"
 #include "fixedverts.h"
+#include "rasteriser.h"
+#include "rasterformat.h"
 
 namespace {
 
@@ -14,7 +16,7 @@ AddrCalls g_calls;
 template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cast<T *>((uintptr_t)p + offset); }
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
 
-const u32 kSpanRoutine = 0x00fbe044, kColour = 0x00fbe008;
+const u32 kSpanRoutine = (u32)&gRasteriser_fbe044, kColour = (u32)&gRasterformat_fbe008;
 
 // __ftol's low half.
 s32 Ftol(X87Reg v) { return (s32)(u32)(long long)v.v; }

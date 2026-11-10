@@ -30,3 +30,11 @@ void ModelGroup_SetEnv(const ModelGroupEnv *env);  // nullptr: the port's
 // bit 0x800000 overwrites (0 with the model's flag bit 0x2000000, else count * [0x8bcc14] + 0.01); a texture with +8 bit 0x4000000 sets the batch's +0 bit 0x400.
 u32 __fastcall ModelGroup_AddToBatch(u8 *model, void *, u8 *batch, u32 group, s32 stride);
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(const float, gModelgroup_701d84, 0x00701d84, 0x4);
+GAME_DATA(const float, gModelgroup_701d88, 0x00701d88, 0x4);
+GAME_DATA(const u32, gModelGroup_AddToBatch_701d8c, 0x00701d8c, 0x4);
+GAME_DATA(const float, gModelGroup_AddToBatch_701d90, 0x00701d90, 0x4);

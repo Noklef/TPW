@@ -19,6 +19,8 @@
 #include "../terrain/procedural.h"
 #include "../terrain/texcache.h"
 #include "../gfx/texcache.h"
+#include "../render/renderer.h"
+#include "../render/pointsprites.h"
 
 namespace {
 
@@ -57,7 +59,7 @@ const ObjModelEnv *g_env = &kGameEnv;
 
 // The engine's static matrix (0xfb3400): the identity, built the first time under the guard 0xfb33e0 & 1.
 u32 *static_matrix() {
-    u8 &guard = *reinterpret_cast<u8 *>((uintptr_t)0x00fb33e0);
+    u8 &guard = gPointsprites_fb33e0;
     u32 *const m = reinterpret_cast<u32 *>((uintptr_t)0x00fb3400);
     const u8 bits = guard;
     if (!(bits & 1)) {
@@ -244,7 +246,7 @@ u32 __fastcall ObjModel_LightMesh(u8 *object, void *, u8 *mesh, const u32 *matri
         if (!(flags & 0x3000000))
             ListNodes_Drain(ptr(global<u8 *>(0x0087a6d0), 0x2c));
         if (!(global<u32>(0x008bcbc8) & 0x1000))
-            Meshes_Ready(global<u8 *>(0x0087a248), nullptr, lights);
+            Meshes_Ready(gMeshlist_87a248, nullptr, lights);
         if (global<u32>(0x008bcbc8) & 0x400) {
             // fld cam+0x34; fld cam+0x30; fsubr mesh+0x40; fld cam+0x38; fxch st2; fsubr mesh+0x44; ...; fsubr mesh+0x48
             const u8 *const camera = global<u8 *>(0x0087afe8);
@@ -255,18 +257,18 @@ u32 __fastcall ObjModel_LightMesh(u8 *object, void *, u8 *mesh, const u32 *matri
             std::memcpy(&xb, &x, 4);
             std::memcpy(&yb, &y, 4);
             std::memcpy(&zb, &z, 4);
-            Meshes_SetDirection(global<u8 *>(0x0087a248), nullptr, xb, yb, zb);
+            Meshes_SetDirection(gMeshlist_87a248, nullptr, xb, yb, zb);
         }
-        Meshes_SetView(global<u8 *>(0x0087a248), nullptr, matrix, (u32)(uintptr_t)(mesh + 0x78));
+        Meshes_SetView(gMeshlist_87a248, nullptr, matrix, (u32)(uintptr_t)(mesh + 0x78));
     }
     if ((at<u32>(ptr(object, 8), 0x30) & 0x800000) && global<s32>(0x008bd524) == 4) {
-        const u32 mask = at<u32>(global<u8 *>(0x0087a248), 0x2c);
-        at<u32>(global<u8 *>(0x0087a248), 0x2c) = 0xffff0000;
-        Meshes_LightMesh(global<u8 *>(0x0087a248), nullptr, colours, mesh);
-        at<u32>(global<u8 *>(0x0087a248), 0x2c) = mask;
+        const u32 mask = at<u32>(gMeshlist_87a248, 0x2c);
+        at<u32>(gMeshlist_87a248, 0x2c) = 0xffff0000;
+        Meshes_LightMesh(gMeshlist_87a248, nullptr, colours, mesh);
+        at<u32>(gMeshlist_87a248, 0x2c) = mask;
         return 1;
     }
-    Meshes_LightMesh(global<u8 *>(0x0087a248), nullptr, colours, mesh);
+    Meshes_LightMesh(gMeshlist_87a248, nullptr, colours, mesh);
     return 1;
 }
 
@@ -368,9 +370,9 @@ u32 __fastcall ObjModel_DrawMeshTree(u8 *object, void *, u8 *mesh, const u32 *fi
         if (tree_mesh_wanted(mesh)) {
             const u32 codes = g_treeCalls.Th(0x00561a30, global<u32>(0x00879a20), mesh + 0x78, a);
             if (codes & 0x40) {
-                if (!g_treeCalls.Th(0x0057aa10, (u32)(uintptr_t)object, mesh, b, lights, codes | global<u32>(0x008bb624)))
+                if (!g_treeCalls.Th(0x0057aa10, (u32)(uintptr_t)object, mesh, b, lights, codes | gRenderer_8bb624))
                     return 0;
-                if (!g_treeCalls.Th(0x00581cd0, global<u32>(0x008bcbb8), a, b, lights, mesh, at<u32>(object, 0x14c) | codes | global<u32>(0x008bb624)))
+                if (!g_treeCalls.Th(0x00581cd0, global<u32>(0x008bcbb8), a, b, lights, mesh, at<u32>(object, 0x14c) | codes | gRenderer_8bb624))
                     return 0;
                 g_treeCalls.Th(0x0057a420, (u32)(uintptr_t)object, mesh);
             }
@@ -406,10 +408,10 @@ u32 __fastcall ObjModel_DrawOrQueue(u8 *part) {
     }
     if (at<u8>(object, 4) & 4) return 1;
     if (at<u32>(ptr(object, 8), 0x30) & 0x200) {
-        global<u32>(0x008bb624) |= 0x2000000;
+        gRenderer_8bb624 |= 0x2000000;
         return g_drawCalls.Th(0x0057a530, me, at<u32>(ptr(object, 8), 0x78), object + 0x10, object + 0x50);
     }
-    global<u32>(0x008bb624) &= ~0x2000000u;
+    gRenderer_8bb624 &= ~0x2000000u;
     if (global<u32>(0x008bcbc8) & 0x200000) {
         const u32 flags = at<u32>(ptr(object, 8), 0x30);
         if (!(flags & 2) && (flags & 0x800)) {

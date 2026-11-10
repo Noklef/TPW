@@ -14,3 +14,13 @@ u32 __cdecl CarPrisms_Touch();
 // 0x43aa10 (cdecl; point, t, way): 1 when point + t * way sees the current quad's corners (0x79238c, 0x792384, 0x792388, 0x792380) at angles that come to the full turn or more (a NaN not); else 0.
 u32 __cdecl CarPrisms_InQuad(const float *point, float t, const float *way);
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(float[36], gCarPrisms_792248, 0x00792248, 0x90);
+GAME_DATA(float[36], gCarPrisms_7922f0, 0x007922f0, 0x90);
+GAME_DATA(const float *, gCarPrisms_792380, 0x00792380, 0x4);
+GAME_DATA(const float *, gCarPrisms_792384, 0x00792384, 0x4);
+GAME_DATA(const float *, gCarPrisms_792388, 0x00792388, 0x4);
+GAME_DATA(const float *, gCarPrisms_79238c, 0x0079238c, 0x4);

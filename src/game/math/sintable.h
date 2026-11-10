@@ -39,3 +39,9 @@ extern "C" {
 // 0x5913f0 (Engine_Init): fills it, fild i; fmul pi (a float, 0x702588); fmul 1/128; fsin.
 void __cdecl SinTable256_Build();
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(float, gSinTableScale, 0x007b095c, 0x4);
+GAME_DATA(u32, gSinTableMask, 0x007b0960, 0x4);

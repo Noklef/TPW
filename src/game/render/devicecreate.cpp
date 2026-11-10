@@ -5,6 +5,7 @@
 
 #include "../core/gameheap.h"
 #include "../core/vcall.h"
+#include "batch.h"
 
 namespace {
 
@@ -116,14 +117,14 @@ u32 __cdecl SoftSetup_CreateSquare() {
         return 0;
     }
     const u32 raster = raster_interface();
-    const u32 side = global(0x008bd4ac);
+    const u32 side = global((u32)&gBatch_8bd4ac);
     at<u32>(object, 8) = g_calls.Cd(0x00678e70, raster, 0u, side, side);
-    const u32 now = global(0x008bd4ac);
-    global(0x00fbe014) = 0;
-    global(0x00fbe018) = 0;
-    global(0x00fbe034) = 0;
-    global(0x00fbe01c) = now - 1;
-    global(0x00fbe020) = now - 1;
+    const u32 now = global((u32)&gBatch_8bd4ac);
+    global((u32)&gSoftSetup_fbe014) = 0;
+    global((u32)&gSoftSetup_fbe018) = 0;
+    global((u32)&gDevicecreate_fbe034) = 0;
+    global((u32)&gSoftSetup_fbe01c) = now - 1;
+    global((u32)&gSoftSetup_fbe020) = now - 1;
     global(0x00fbe024) = at<u32>(object, 8);
     global(0x00fbe02c) = now * 4;
     at<u32>(object, 0xc) = (now * now) << 2;
@@ -154,15 +155,15 @@ u32 __fastcall SoftSetup_Open(u8 *self, void *, u32 kind) {
     at<u32>(self, 8) = g_calls.Cd(0x00678e70, raster, kind ? address_of(self + 4) : 0u, width, height);
     at<u32>(self, 0xc) = (global(0x008bcbd0) * global(0x008bcbd4)) << 2;
     const u32 w = global(0x008bcbd0);
-    global(0x00fbe014) = 0;
-    global(0x00fbe01c) = w - 1;
-    global(0x00fbe018) = 0;
-    global(0x00fbe020) = global(0x008bcbd4) - 1;
-    global(0x00fbe034) = 0;
+    global((u32)&gSoftSetup_fbe014) = 0;
+    global((u32)&gSoftSetup_fbe01c) = w - 1;
+    global((u32)&gSoftSetup_fbe018) = 0;
+    global((u32)&gSoftSetup_fbe020) = global(0x008bcbd4) - 1;
+    global((u32)&gDevicecreate_fbe034) = 0;
     global(0x00fbe024) = at<u32>(self, 8);
     global(0x00fbe02c) = w * 4;
-    global(0x00fbe028) = at<u32>(self, 4);
-    global(0x00fbe030) = w * 2;
+    global((u32)&gDevicecreate_fbe028) = at<u32>(self, 4);
+    global((u32)&gDevicecreate_fbe030) = w * 2;
     if (global(0x008bd508) & 0x2000000)
         g_calls.Cd(0x005645e0, "Software renderer initialized succesfully");   // sic
     return 1;

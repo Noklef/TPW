@@ -5,6 +5,7 @@
 #include "../core/globalmem.h"
 #include "../core/movs.h"
 #include "../math/x87.h"
+#include "../coaster/rideanimate.h"
 
 namespace {
 
@@ -170,7 +171,7 @@ void __cdecl Highlight_PulseFlashing() {
     const X87Reg level = phase > 1.0f ? X87Reg(2.0f) - phase : X87Reg(phase);
     const u32 v = (u32)(long long)(level * 255.0f).v;  // __ftol
     const u32 colour = v | (v | 0xffffff00) << 8;
-    const X87Reg step = X87Reg(global<float>(0x007b497c)) * -2.0f;  // gMotionTimeStep
+    const X87Reg step = X87Reg(gMotionTimeStep) * -2.0f;  // gMotionTimeStep
     global<float>(0x007afd04) = (float)std::fmod((X87Reg(phase) - step).v, 2.0);  // _CIfmod (0x67b24a)
     for (const u8 *h = flashing(); h; h = at<const u8 *>(h, 0xd0)) {
         const u8 *m = model(h);

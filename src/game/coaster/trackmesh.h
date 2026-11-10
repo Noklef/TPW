@@ -42,3 +42,10 @@ void __cdecl TrackMesh_EmitPiece(u8 *piece, u8 *next, s32 count, const float *po
 // tracked in a local the original never reads.
 void __cdecl TrackMesh_PlaceSections();
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(u32[4], gTrackMesh_7923f0, 0x007923f0, 0x10);
+GAME_DATA(u32[4], gTrackMesh_7925e8, 0x007925e8, 0x10);
+GAME_DATA(u32[4], gTrackmesh_792600, 0x00792600, 0x10);

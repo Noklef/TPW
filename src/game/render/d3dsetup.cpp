@@ -62,10 +62,10 @@ void ZeroDwords(u32 *to, u32 count) {
 bool Build(u8 *self, u32 flags) {
     u8 *const draw = at<u8 *>(global<u8 *>(0x00879a24), 8);
     if (at<u32>(global<u8 *>(0x00879a24), 0x428) == 0x121a && at<u32>(global<u8 *>(0x00879a24), 0x42c) == 1) {
-        noted(0x007689d0);
+        noted((u32)&gText_D3dsetup_7689d0);
         return false;
     }
-    logged(0x007689b0);
+    logged((u32)&gText_D3dsetup_7689b0);
     noted(0x00768998);
     keep(comcall<u32>(draw, 0, 0x00707520u, self + 4));
     if (result()) return false;
@@ -84,14 +84,14 @@ bool Build(u8 *self, u32 flags) {
         description[3] = global<u32>(0x008bcbd0);
         CopyFormat(description + 0x12, format);
         description[0x1a] = 0x24000;
-        logged(0x0076896c, format[3]);
+        logged((u32)&gText_D3dsetup_76896c, format[3]);
         u32 surface;
         keep(comcall<u32>(draw, 0x18, description, &surface, 0u));
         if (result()) return false;
         Obj_AddAttached(global<u8 *>(0x00879a24), nullptr, surface);
         at<u32>(self, 0x220) |= 0x10;
     } else {
-        logged(0x00768958);
+        logged((u32)&gText_D3dsetup_768958);
         at<u32>(self, 0x220) &= ~0x10u;
     }
     keep(comcall<u32>(at<u8 *>(self, 4), 0x20, self + 0x18, at<u32>(global<u8 *>(0x00879a24), 0x14), self + 8, 0u));
@@ -106,7 +106,7 @@ bool Build(u8 *self, u32 flags) {
     keep(comcall<u32>(at<u8 *>(self, 8), 0x20, 0x00573060u, self));
     if (result()) return false;
     if (!global<u32>(0x008bd598)) {
-        noted(0x00768910);
+        noted((u32)&gText_D3dsetup_768910);
         return false;
     }
     keep(comcall<u32>(at<u8 *>(self, 4), 0x14, self + 0x10, 0u));
@@ -141,7 +141,7 @@ u32 __fastcall D3dSetup_Open(u8 *self, void *, u32 flags) {
             comcall<u32>(device, 0x58, 7u, 0u);
             comcall<u32>(device, 0x58, 0xeu, 0u);
         }
-        noted(0x007688ec);
+        noted((u32)&gText_D3dSetup_Open_7688ec);
         return 1;
     }
     if (debugFlags() & 0x2000000) {
@@ -192,7 +192,7 @@ u32 __stdcall D3dSetup_PickFormat(u32, const u32 *format, u32) {
     for (s32 i = 0; i < 4; ++i, entry += 4) {
         if ((s32)Bits_Count(format[4]) != entry[1] || (s32)Bits_Count(format[5]) != entry[2] || (s32)Bits_Count(format[6]) != entry[3] || (s32)Bits_Count(format[7]) != entry[0]) continue;
         CopyFormat(reinterpret_cast<u32 *>((uintptr_t)0x008bd558) + i * 8, format);
-        logged(0x007688c4, i, (s32)entry[0], (s32)entry[1], (s32)entry[2], (s32)entry[3]);
+        logged((u32)&gText_D3dSetup_PickFormat_7688c4, i, (s32)entry[0], (s32)entry[1], (s32)entry[2], (s32)entry[3]);
     }
     return 1;
 }

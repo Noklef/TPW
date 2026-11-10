@@ -213,3 +213,12 @@ void __cdecl Particles_Init(u32 callback, u32 flag, s32 count);
 // Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
 GAME_DATA(u32, gParticles_Tick_80436c, 0x0080436c, 4);
 GAME_DATA(u32, gParticles_80ced8, 0x0080ced8, 4);
+
+// Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(float, gParticlePool2_Setup_774d8c, 0x00774d8c, 0x4);
+GAME_DATA(float, gParticlePool2_Setup_774d90, 0x00774d90, 0x4);
+GAME_DATA(s16, gParticles_816d1e, 0x00816d1e, 0x2);
+GAME_DATA(s16, gParticles_816d20, 0x00816d20, 0x2);
+GAME_DATA(s16, gParticles_816d22, 0x00816d22, 0x2);
+GAME_DATA(u32, gParticles_816d38, 0x00816d38, 0x4);
+GAME_DATA(u32, gParticles_816d3c, 0x00816d3c, 0x4);

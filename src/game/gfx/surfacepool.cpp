@@ -4,6 +4,7 @@
 #include <cstring>
 
 #include "../core/vcall.h"
+#include "../render/ddopen.h"
 
 namespace {
 
@@ -53,11 +54,11 @@ AddrCalls g_poolCalls;
 
 // The result kept at [0x879cd4]; a failure's text logged (DxResult_Message, EngineDebug_Log).
 u32 kept(u32 result) {
-    global32(0x00879cd4) = result;
+    global32((u32)&gDdopen_879cd4) = result;
     if ((s32)result < 0) {
         g_poolCalls.Cd(0x00564650, g_poolCalls.Cd(0x0056a770, result));
     }
-    return global32(0x00879cd4);
+    return global32((u32)&gDdopen_879cd4);
 }
 }  // namespace
 

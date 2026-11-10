@@ -147,3 +147,8 @@ void __fastcall RendererPart_Dtor(u8 *object);
 // flags bit 0; returns it.
 u8 *__fastcall RendererPart_ScalarDtor(u8 *object, void *, u32 flags);
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(u32, gRenderer_8bb624, 0x008bb624, 0x4);

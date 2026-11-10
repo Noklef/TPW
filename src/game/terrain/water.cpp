@@ -11,6 +11,7 @@
 #include "../render/transformer.h"
 #include "gridquad.h"
 #include "landscape.h"
+#include "../render/rendererframe.h"
 
 using gridquad::FacingClipped;
 using gridquad::FacingOpen;
@@ -58,7 +59,7 @@ void FillRow(u8 *self, s32 row, u8 *points, u8 *codes) {
     const s32 last = at<s8>(self, row + 0xa8);
     if (first == 0x7f || last == -1) return;
     const u8 *const heights = at<u32>(self, 0x12970) ? at<u8 *>(self, 0x12970) : at<u8 *>(at<u8 *>(self, 0), 0x28);
-    const float lift = global<float>(0x008bd4ec);
+    const float lift = gRendererframe_8bd4ec;
     const float z = (float)(X87Reg((double)row) * at<float>(at<u8 *>(self, 0), 0x14) + at<float>(at<u8 *>(self, 0), 0xc));
     const u32 base = at<u32>(self, 8) * (u32)row;
     u8 *const start = points + (u32)first * kPoint;

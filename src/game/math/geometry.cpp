@@ -4,6 +4,7 @@
 #include <cstring>
 
 #include "x87.h"
+#include "../render/batch.h"
 
 namespace {
 
@@ -45,18 +46,18 @@ float *__cdecl Segment_AtZ(float *out, float ax, float ay, float az, float bx, f
 
 u32 __cdecl Tri_WindingTest(const float *a, const float *b, const float *c) {
     const u32 *pa = reinterpret_cast<const u32 *>(a), *pb = reinterpret_cast<const u32 *>(b), *pc = reinterpret_cast<const u32 *>(c);
-    global<u32>(0x008c63bc) = pa[0];
-    global<u32>(0x008c63c8) = pa[1];
-    global<u32>(0x008c63b0) = pa[3];
-    global<u32>(0x008c63c0) = pb[0];
-    global<u32>(0x008c63cc) = pb[1];
-    global<u32>(0x008c63b4) = pb[3];
-    global<u32>(0x008c63c4) = pc[0];
-    global<u32>(0x008c63d0) = pc[1];
-    global<u32>(0x008c63b8) = pc[3];
-    const float xa = global<float>(0x008c63bc), ya = global<float>(0x008c63c8), wa = global<float>(0x008c63b0);
-    const float xb = global<float>(0x008c63c0), yb = global<float>(0x008c63cc), wb = global<float>(0x008c63b4);
-    const float xc = global<float>(0x008c63c4), yc = global<float>(0x008c63d0), wc = global<float>(0x008c63b8);
+    gBatch_8c63bc = pa[0];
+    gBatch_8c63c8 = pa[1];
+    gBatch_8c63b0 = pa[3];
+    gBatch_8c63c0 = pb[0];
+    gBatch_8c63cc = pb[1];
+    gBatch_8c63b4 = pb[3];
+    gBatch_8c63c4 = pc[0];
+    gBatch_8c63d0 = pc[1];
+    gBatch_8c63b8 = pc[3];
+    const float xa = reinterpret_cast<float &>(gBatch_8c63bc), ya = reinterpret_cast<float &>(gBatch_8c63c8), wa = reinterpret_cast<float &>(gBatch_8c63b0);
+    const float xb = reinterpret_cast<float &>(gBatch_8c63c0), yb = reinterpret_cast<float &>(gBatch_8c63cc), wb = reinterpret_cast<float &>(gBatch_8c63b4);
+    const float xc = reinterpret_cast<float &>(gBatch_8c63c4), yc = reinterpret_cast<float &>(gBatch_8c63d0), wc = reinterpret_cast<float &>(gBatch_8c63b8);
     const X87Reg f = (X87Reg(wa) * yb - X87Reg(wb) * ya) * xc - X87Reg(wc) * yb * xa;
     const X87Reg e = (X87Reg(wa) * yc - X87Reg(wc) * ya) * xb - X87Reg(wb) * yc * xa;
     return f.v < e.v || f.v != f.v || e.v != e.v ? 1 : 0;

@@ -5,6 +5,8 @@
 #include "../core/globalmem.h"
 #include "../math/sintable.h"
 #include "../math/x87.h"
+#include "lists.h"
+#include "coastersupdate.h"
 
 namespace {
 
@@ -251,7 +253,7 @@ void __cdecl CrossSection_Emit(float blend, float yaw, float pitch, float roll, 
     const float kQuarter = -1.57079637f;  // -pi / 2 (0x6fe138): sin(a - kQuarter) = cos(a)
     const s32 n = at<s32>(section, 0);
     const u8 *points = at<u8 *>(section, 8);
-    u32 vertex = global(0x0079c600);
+    u32 vertex = gLists_79c600;
     std::vector<float> blended;
     if (const u8 *const second = at<u8 *>(section, 0x10)) {
         X87Reg f = (X87Reg(blend) - key[-3]) / (X87Reg(key[1]) - key[-3]) * key[2];
@@ -319,7 +321,7 @@ void __cdecl CrossSection_Emit(float blend, float yaw, float pitch, float roll, 
             else if (z > max[2]) max[2] = z;
         }
 
-        u8 *const mesh = at<u8 *>(global<u8 *>(0x00792218), 0x38);
+        u8 *const mesh = at<u8 *>(gCoastersupdate_792218, 0x38);
         float *const position = at<float *>(mesh, 0x10) + (vertex >> 2) * 12 + (vertex & 3);
         position[0] = (float)x;
         position[4] = yf;
@@ -330,7 +332,7 @@ void __cdecl CrossSection_Emit(float blend, float yaw, float pitch, float roll, 
         normal[2] = nz;
         float *const uv = at<float *>(mesh, 0x18) + (vertex >> 2) * 8 + (vertex & 3);
         uv[0] = X87_Through(at<float>(points, 8));
-        uv[4] = X87_Through(at<float>(global<u8 *>(0x00792218), 0x74));
+        uv[4] = X87_Through(at<float>(gCoastersupdate_792218, 0x74));
     }
 }
 }

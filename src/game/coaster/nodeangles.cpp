@@ -9,6 +9,7 @@
 #include "../math/matrix.h"
 #include "../math/x87.h"
 #include "helpers.h"
+#include "../math/sintable.h"
 
 namespace {
 
@@ -23,12 +24,12 @@ const u32 kNode = 0x38;
 
 u32 Ftol(X87Reg x) { return (u32)(s32)(long long)x.v; }
 s32 Fistp(float x) { return _mm_cvtss_si32(_mm_set_ss(x)); }
-float Table(s32 i) { return global<float>(0x007b0968 + 4 * (global<u32>(0x007b0960) & (u32)i)); }
+float Table(s32 i) { return global<float>(0x007b0968 + 4 * (gSinTableMask & (u32)i)); }
 
 // The table entries of -angle: its sine's and its cosine's (a quarter turn on).
 void Lookup(double angle, float &sine, float &cosine) {
     const float a = (float)-angle;
-    const float scale = global<float>(0x007b095c);
+    const float scale = gSinTableScale;
     const s32 i = Fistp((float)(X87Reg(scale) * a));
     const s32 j = Fistp((float)((X87Reg(a) - kMinusHalfPi) * scale));
     sine = Table(i);

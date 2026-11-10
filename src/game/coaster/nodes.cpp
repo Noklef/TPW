@@ -13,6 +13,7 @@
 #include "helpers.h"
 #include "orient.h"
 #include "spline.h"
+#include "coastersload.h"
 
 namespace {
 
@@ -35,7 +36,7 @@ u8 *ListNode(u32 piece, u32 index, u32 list = 4) {
 
 // A cursor at the first piece's node 0: its end node 1 when it has more than one, else the next piece's node 0.
 void Begin(u32 *cursor) {
-    u8 *const first = at<u8 *>(*reinterpret_cast<u8 *const *>(0x00790fe4), 0x18);
+    u8 *const first = at<u8 *>(*reinterpret_cast<u8 *const *>(&gCoastersload_790fe4), 0x18);
     cursor[0] = 0;
     cursor[1] = (u32)(uintptr_t)first;
     if (at<u32>(at<u8 *>(first, 0x90), 0) > 1) {
@@ -94,7 +95,7 @@ u32 __cdecl Coaster_FindZone(const u8 *owner, u32, const float *pos, float t) {
 
 void __cdecl Coaster_BuildNodes(u8 *coaster) {
     at<u32>(coaster, 0xa0) = 0;
-    if (!at<u8 *>(*reinterpret_cast<u8 *const *>(0x00790fe4), 0x18))
+    if (!at<u8 *>(*reinterpret_cast<u8 *const *>(&gCoastersload_790fe4), 0x18))
         return;
     u32 cursor[4];
     Begin(cursor);
@@ -273,7 +274,7 @@ void __cdecl Coaster_BuildNodes(u8 *coaster) {
     }
 
     at<u32>(coaster, 0xa0) = 0;
-    u8 *prev = at<u8 *>(*reinterpret_cast<u8 *const *>(0x00790fe4), 0x18);
+    u8 *prev = at<u8 *>(*reinterpret_cast<u8 *const *>(&gCoastersload_790fe4), 0x18);
     for (u8 *p = at<u8 *>(prev, 0x64); p; prev = p, p = at<u8 *>(p, 0x64)) {
         const u32 span = at<u32>(p, 0xfc) - at<u32>(prev, 0xfc) + 1;
         if (span > at<u32>(coaster, 0xa0))

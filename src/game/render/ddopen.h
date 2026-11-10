@@ -22,3 +22,17 @@ u32 __fastcall Display_RestoreOrOpen(u8 *self);
 
 struct AddrCall;
 void Display_SetRestoreCalls(const AddrCall *table, u32 count);   // tests/fncmp/displayrestore.py
+
+#include "../core/gamedata.h"
+
+// Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(char[28], gText_Ddopen_76628c, 0x0076628c, 0x1c);
+GAME_DATA(char[36], gText_Ddopen_7662a8, 0x007662a8, 0x24);
+GAME_DATA(char[44], gText_Ddopen_7662cc, 0x007662cc, 0x2c);
+GAME_DATA(char[24], gText_DirectDraw_Open_7662f8, 0x007662f8, 0x18);
+GAME_DATA(char[36], gText_DirectDraw_Open_766310, 0x00766310, 0x24);
+GAME_DATA(u32, gDdopen_879cd4, 0x00879cd4, 0x4);
+GAME_DATA(u32, gDdopen_8bd4c4, 0x008bd4c4, 0x4);
+GAME_DATA(u32, gDdopen_8bd4cc, 0x008bd4cc, 0x4);
+GAME_DATA(u32, gDdopen_8bd4d4, 0x008bd4d4, 0x4);
+GAME_DATA(u32, gDdopen_8bd4dc, 0x008bd4dc, 0x4);

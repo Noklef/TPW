@@ -5,6 +5,9 @@
 
 #include "../math/x87.h"
 #include "../world/ridelist.h"
+#include "placecar.h"
+#include "edittools.h"
+#include "coastersload.h"
 
 namespace {
 
@@ -23,7 +26,7 @@ double CrtAcos(float x) {
 
 const float kOne = 1.0f;   // 0x6fde70
 
-u32 EditorFlags() { return global<u32>(0x0079c658); }
+u32 EditorFlags() { return gPlacecar_79c658; }
 
 // The angle at the piece's tile (px, pz) between the tile (x, z) and the next tile (nx, nz), within the block's limits for the
 // distance (d2 its square). The registers' order is the original's.
@@ -78,8 +81,8 @@ bool UnderCount(const u8 *node, u32 mask) {
 extern "C" {
 
 s32 __cdecl CoasterPiece_CanPlaceAt(u32 x, u32 z, u8 *piece, u32 px, u32 pz, u32 nx, u32 nz) {
-    u8 *const coaster = global<u8 *>(0x00790fec);
-    u8 *const selected = global<u8 *>(0x0079c6a4);
+    u8 *const coaster = gCoastersload_790fec;
+    u8 *const selected = gEdittools_79c6a4;
     s32 ok = 1;   // [esp+0x10]
     u8 *held = nullptr;   // [esp+0x14]
     u8 *from;   // EBP
@@ -176,7 +179,7 @@ s32 __cdecl CoasterPiece_CanPlaceAt(u32 x, u32 z, u8 *piece, u32 px, u32 pz, u32
             } else if (at<u8>(coaster, 0x3c) & 2) {
                 u8 *const own = Ptr(coaster, 0x64);
                 if (at<u32>(Ptr(own, 0x100), 8) == tile) {
-                    if (global<u32>(0x0079c664) == 1) ok = 0;
+                    if (gEdittools_79c664 == 1) ok = 0;
                     held = own;
                 } else if (Ptr(found, 0x18) != rules || !UnderCount(found, 0x600)) {
                     ok = 0;

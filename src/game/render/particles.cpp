@@ -131,10 +131,10 @@ void __cdecl ParticleSystem_Release(s32 slot) {
     if (next >= 0)
         *reinterpret_cast<s16 *>(system((u32)next) + 0xd2) = *reinterpret_cast<s16 *>(s + 0xd2);
     *reinterpret_cast<u16 *>(s) = 0;
-    *reinterpret_cast<s16 *>(s + 0xd0) = global<s16>(0x00816d20);
+    *reinterpret_cast<s16 *>(s + 0xd0) = gParticles_816d20;
     *reinterpret_cast<u16 *>(s + 0xd2) = 0xffff;
     *reinterpret_cast<u16 *>(s + 0xa) = 0;
-    global<s16>(0x00816d20) = (s16)slot;
+    gParticles_816d20 = (s16)slot;
 }
 
 void __cdecl Particles_EndAll() {
@@ -148,7 +148,7 @@ void __cdecl Particles_EndAll() {
         }
         slot = *reinterpret_cast<s16 *>(s + 0xd0);
     }
-    for (s32 slot = global<s16>(0x00816d1e); slot >= 0;) {
+    for (s32 slot = gParticles_816d1e; slot >= 0;) {
         u8 *e = reinterpret_cast<u8 *>(0x008164fc + (u32)slot * 0x68);
         if (e[0x45])
             *reinterpret_cast<s32 *>(e + 0x4c) = -2;
@@ -296,12 +296,12 @@ static s32 StartSystem(s32 effect, s32 x, s32 y, s32 z, const s32 *velocity) {
 
     // A system off the free list (head 0x816d20) to the head of the live list (0x816d1c)
     s32 slot = -1;
-    const s16 free = global<s16>(0x00816d20);
+    const s16 free = gParticles_816d20;
     if (free >= 0) {
         const u16 live = global<u16>(0x00816d1c);
         global<s16>(0x00816d1c) = free;
         const s16 next = field<s16>(system((u32)(s32)free), 0xd0);
-        global<s16>(0x00816d20) = next;
+        gParticles_816d20 = next;
         if (next >= 0)
             field<u16>(system((u32)(s32)next), 0xd2) = 0xffff;
         field<u16>(system((u32)(s32)global<s16>(0x00816d1c)), 0xd0) = live;
@@ -496,7 +496,7 @@ void __cdecl ParticlePools_Update() {
 
 void __cdecl ParticlePool2_Setup(u32 x, u32 y, float width, float height) {
     const X87Reg size = X87Reg(height) * width;
-    const X87Reg steps = (size - global<float>(0x00774d8c)) / global<float>(0x00774d90) * -3.0f;
+    const X87Reg steps = (size - gParticlePool2_Setup_774d8c) / gParticlePool2_Setup_774d90 * -3.0f;
     s32 count = (s32)(2u - (u32)(s32)(long long)steps.v);  // __ftol
     if (count < 2)
         count = 2;
@@ -518,7 +518,7 @@ void __cdecl ParticlePool2_Setup(u32 x, u32 y, float width, float height) {
 
 void __cdecl ParticleEffectors_Update() {
     u8 *const records = global<u8 *>(0x0080cef8);  // (read once)
-    for (s32 index = global<s16>(0x00816d1e), next; index >= 0; index = next) {
+    for (s32 index = gParticles_816d1e, next; index >= 0; index = next) {
         u8 *const e = effector(index);
         next = field<s16>(e, 0x60);
         if (field<u16>(e, 0x4a) == 0)
@@ -570,16 +570,16 @@ void __cdecl ParticleEffectors_Update() {
                 Particle_Spawn(field<s16>(e, 0x46), x, y, z);
             e[0x49] = 0xff;
             const s16 after = field<s16>(e, 0x60), before = field<s16>(e, 0x62);
-            if (global<s16>(0x00816d1e) == index)
-                global<s16>(0x00816d1e) = after;
+            if (gParticles_816d1e == index)
+                gParticles_816d1e = after;
             if (before >= 0)
                 field<u16>(effector(before), 0x60) = field<u16>(e, 0x60);
             if (after >= 0)
                 field<u16>(effector(after), 0x62) = field<u16>(e, 0x62);
             field<u32>(e, 0) = 0;
-            field<u16>(e, 0x60) = global<u16>(0x00816d22);
+            field<u16>(e, 0x60) = reinterpret_cast<u16 &>(gParticles_816d22);
             field<u16>(e, 0x62) = 0xffff;
-            global<u16>(0x00816d22) = (u16)index;
+            reinterpret_cast<u16 &>(gParticles_816d22) = (u16)index;
             continue;
         }
 
@@ -834,9 +834,9 @@ u8 *__cdecl ParticleSystem_DrawList(u32 slot) {
     const s16 sheet = field<s16>(sys, 0x94);
     const u16 count = field<u16>(sys, 8);
     u8 *buf;
-    if (count <= 100 && !global<u32>(0x00816d3c)) {
-        global<u32>(0x00816d3c) = 1;
-        buf = global<u8 *>(0x00816d38);
+    if (count <= 100 && !gParticles_816d3c) {
+        gParticles_816d3c = 1;
+        buf = reinterpret_cast<u8 * &>(gParticles_816d38);
     } else {
         buf = static_cast<u8 *>(Mem_GlobalAlloc((u32)count * 28));  // (count is never 0: the original's Debug_Printf for a size of 0 never runs)
     }
@@ -898,7 +898,7 @@ void __cdecl ParticleSystem_Bounds(u32 slot, s32 *low, s32 *high) {
 
 void __cdecl ParticleSystem_FreeDrawList(u8 *list) {
     if (!global<u32>(0x00816d40) || !list) return;
-    if (list == global<u8 *>(0x00816d38)) global<u32>(0x00816d3c) = 0;
+    if (list == reinterpret_cast<u8 * &>(gParticles_816d38)) gParticles_816d3c = 0;
     else Mem_GlobalFree(list);
 }
 
@@ -916,8 +916,8 @@ void __cdecl Particles_Init(u32 callback, u32 flag, s32 count) {
     global<u32>(0x0080cef8) = Mem_AllocChecked((u32)count * 0x34);
     global<u32>(0x00816d40) = 1;
     Emitters_Reset();
-    global<u32>(0x00816d38) = Mem_AllocChecked(0xaf0);
-    global<u32>(0x00816d3c) = 0;
+    gParticles_816d38 = Mem_AllocChecked(0xaf0);
+    gParticles_816d3c = 0;
 }
 
 u32 *__cdecl ParticleSines_Build() {

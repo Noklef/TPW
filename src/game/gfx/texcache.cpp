@@ -17,6 +17,8 @@
 #include "../math/x87.h"
 #include "../render/engineerrors.h"
 #include "texcache.h"
+#include "../render/state.h"
+#include "../render/meshlist.h"
 
 namespace {
 
@@ -669,7 +671,7 @@ u32 __fastcall TexCache_ChooseBudget(u8 *cache) {
     u32 added = 1;
     s32 count;
     if (memory == 0) {
-        const s32 budget = at<s32>(nullptr, 0x008c1620);
+        const s32 budget = at<s32>(nullptr, (u32)&gState_8c1620);
         at<s32>(cache, 0x1860) = budget ? budget : 0x2000000;
         added = TexCache_AddSurfaces(cache, nullptr, 0x100, &count, at<u32>(nullptr, 0x008bd554), 0);
         memory = (s32)((u32)sizes[at<u32>(nullptr, 0x008bd554)] * (u32)count << 16);
@@ -783,7 +785,7 @@ u32 __fastcall TexCache_PlaceTexture(u8 *cache, void *, u8 *entry, const s32 *pl
         }
         at<u32>(texture, 8) = flags0 & 0x7fffffff;
     }
-    at<u32>(texture, 0xc) = at<u32>(at<const u8 *>(nullptr, 0x0087a248), 4);
+    at<u32>(texture, 0xc) = at<u32>(at<const u8 *>(nullptr, (u32)&gMeshlist_87a248), 4);
     at<u32>(texture, 8) = (at<u32>(texture, 8) & ~0x2000u) | 0x1000;
     at<u8 *>(texture, 0x18) = entry;
     const u32 flags = at<u32>(texture, 8);
@@ -884,7 +886,7 @@ void __fastcall TexCache_TouchItem(u8 *cache, void *, u8 *item, float weight) {
     if (!item || at<u32>(item, 8) & 0x2000000)
         return;
     const u32 before = at<u32>(item, 8);
-    if (before & 0x400 && at<u32>(item, 0x3c) && at<u32>(global<u8 *>(0x0087a248), 4) != at<u32>(item, 0xc) && before & 0x1000)
+    if (before & 0x400 && at<u32>(item, 0x3c) && at<u32>(gMeshlist_87a248, 4) != at<u32>(item, 0xc) && before & 0x1000)
         TexCache_UnlinkItem(cache, nullptr, item);
     at<u32>(item, 8) |= 0x40000000;
     u8 *const base = item + at<s32>(at<u8 *>(item, 0), 4);

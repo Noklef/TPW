@@ -73,3 +73,9 @@ void __cdecl LightSource_UpdateMain(u32 update);
 // none). In every case +0x24 = value.
 void __fastcall LightSlot_Set(u8 *slot, void *, u32 on, const u32 *colour, const u32 *direction, u32 value);
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(const float, gLightSource_6fe50c, 0x006fe50c, 0x4);
+GAME_DATA(const float, gLightSource_6fe53c, 0x006fe53c, 0x4);

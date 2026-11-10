@@ -404,9 +404,9 @@ void __cdecl CoasterTrain_AtStation(u8 *coaster, u8 *train) {
     at<u32>(train, 0) |= 0x20;
 }
 
-void __cdecl CoasterCars_InitUnusedOne() { *reinterpret_cast<float *>(0x007923a0) = 1.0f; }
+void __cdecl CoasterCars_InitUnusedOne() { gCoasterCars_InitUnusedOne_7923a0 = 1.0f; }
 
-void __cdecl CoasterCars_InitUnusedEpsilon() { *reinterpret_cast<float *>(0x007923a4) = 1.0f / 8388608.0f; }
+void __cdecl CoasterCars_InitUnusedEpsilon() { gCoasterCars_InitUnusedEpsilon_7923a4 = 1.0f / 8388608.0f; }
 
 void __cdecl CoasterCar_PlayClank(const u8 *coaster, const u8 *car) {
     // fld car+0x20; fld coaster+0xa8; _CIfmod; modf(that, &whole); fstp float (the argument's slot); __ftol(whole)

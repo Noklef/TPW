@@ -5,6 +5,7 @@
 #include "../core/crt.h"
 #include "../core/gameheap.h"
 #include "../math/x87.h"
+#include "weatherfx.h"
 
 namespace {
 
@@ -16,10 +17,10 @@ template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((ui
 float sub(float a, float b) { return (float)(X87Reg(a) - b); }
 
 // 0..0x3fff less the constant at 0x701c6c, times the one at 0x701c70.
-float cubeCoord() { return (float)((X87Reg((double)(Crt().rand() & 0x3fff)) - global<float>(0x00701c6c)) * global<float>(0x00701c70)); }
+float cubeCoord() { return (float)((X87Reg((double)(Crt().rand() & 0x3fff)) - gWeathertables_701c6c) * gWeathertables_701c70); }
 
 // -0x400..0x3ff times the constant at 0x701c90.
-float direction() { return (float)(X87Reg((double)((Crt().rand() & 0x7ff) - 0x400)) * global<float>(0x00701c90)); }
+float direction() { return (float)(X87Reg((double)((Crt().rand() & 0x7ff) - 0x400)) * gWeathertables_701c90); }
 
 s32 dropRandom() { return Crt().rand() % 0x126eb + 1; }
 
@@ -44,16 +45,16 @@ u32 __fastcall WeatherFx_FillTables(u8 *fx) {
     for (u32 i = 0; i < 0x400 * 3; ++i) at<float>(fx, 8 + 4 * i) = cubeCoord();
     for (s32 i = 0; i < 0x80; ++i) {
         const X87Reg n((double)i);
-        const X87Reg angle = X87Reg(global<float>(0x00701c10)) * n * global<float>(0x00701c74);
-        const X87Reg fade = global<float>(0x00701c80) - n * global<float>(0x00701c74);
-        const X87Reg wave = X87Reg(X87_Cos(angle.v)) - X87Reg(global<double>(0x00701c78));
-        at<float>(fx, 0x3358 + 4 * i) = (float)(wave * fade * global<float>(0x00701c84));
+        const X87Reg angle = X87Reg(global<float>(0x00701c10)) * n * gWeatherFx_FillTables_701c74;
+        const X87Reg fade = gWeatherFx_FillTables_701c80 - n * gWeatherFx_FillTables_701c74;
+        const X87Reg wave = X87Reg(X87_Cos(angle.v)) - X87Reg(gWeatherFx_FillTables_701c78);
+        at<float>(fx, 0x3358 + 4 * i) = (float)(wave * fade * gWeatherFx_701c84);
     }
     for (s32 i = 0; i < 0x400; ++i) {
-        const X87Reg start = X87Reg((double)dropRandom()) * global<float>(0x00701c88);
-        at<float>(fx, 0x4558 + 4 * i) = (float)X87_DivR(start - global<float>(0x00701c8c), global<float>(0x00701c68));
+        const X87Reg start = X87Reg((double)dropRandom()) * gWeatherFx_FillTables_701c88;
+        at<float>(fx, 0x4558 + 4 * i) = (float)X87_DivR(start - gWeatherFx_FillTables_701c8c, global<float>(0x00701c68));
         for (u32 c = 0; c < 3; ++c) at<float>(fx, 0x5558 + 12 * i + 4 * c) = direction();
-        at<float>(fx, 0x3558 + 4 * i) = (float)((float)i - X87Reg((double)dropRandom()) * global<float>(0x00701c94));
+        at<float>(fx, 0x3558 + 4 * i) = (float)((float)i - X87Reg((double)dropRandom()) * gWeatherFx_FillTables_701c94);
     }
     float ring[0x80][3];
     for (auto &point : ring)

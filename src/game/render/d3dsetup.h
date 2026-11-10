@@ -30,3 +30,14 @@ u32 __stdcall D3dSetup_PickFormat(u32 unused, const u32 *format, u32 unused2);
 // 0x573660 (stdcall (format, wanted)): either null: 0. The dwords +4 differing: 1. Else the format copied (0x20 bytes) to the wanted one, 0 when its +0xc is 0x10, else 1.
 u32 __stdcall D3dSetup_OnZFormat(const u32 *format, u32 *wanted);
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(char[40], gText_D3dSetup_PickFormat_7688c4, 0x007688c4, 0x28);
+GAME_DATA(char[36], gText_D3dSetup_Open_7688ec, 0x007688ec, 0x24);
+GAME_DATA(char[72], gText_D3dsetup_768910, 0x00768910, 0x48);
+GAME_DATA(char[20], gText_D3dsetup_768958, 0x00768958, 0x14);
+GAME_DATA(char[28], gText_D3dsetup_76896c, 0x0076896c, 0x1c);
+GAME_DATA(char[32], gText_D3dsetup_7689b0, 0x007689b0, 0x20);
+GAME_DATA(char[40], gText_D3dsetup_7689d0, 0x007689d0, 0x28);

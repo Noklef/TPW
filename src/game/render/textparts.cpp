@@ -491,7 +491,7 @@ void __fastcall TextPart6ff500_SetLayout(u8 *part, void *, u32 flags, const u8 *
     if (!(flags & 0x80)) return TextPart_SetLayout(part, nullptr, flags, info);
     const s32 value = *reinterpret_cast<const s32 *>(info);
     u16 text[0x40];
-    if (value == 0x7fffffff) Crt().swprintf(text, reinterpret_cast<const u16 *>((uintptr_t)0x007506b8));   // "-"
+    if (value == 0x7fffffff) Crt().swprintf(text, gText_TextPart6ff500_SetLayout_7506b8);   // "-"
     else Crt().swprintf(text, kDecimal, value);
     // sic: the original's buffer is 8 characters with the record that sends it next on the stack, so a longer number runs into the
     // record, whose +0 (the buffer's address) is stored after the formatting: over the characters 8 and 9

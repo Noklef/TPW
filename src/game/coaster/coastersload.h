@@ -22,3 +22,9 @@ void CoastersLoad_SetEnv(const AddrCall *table, u32 count);
 // - Coaster_SetupCars, CoasterEdit_EndAll, Coaster_FlashCar unless +0x3c has only 1 of 1, 2; 0x790fec 0.
 u32 __cdecl Coasters_Load(void *stream);
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(u8 *, gCoastersload_790fe4, 0x00790fe4, 0x4);
+GAME_DATA(u8 *, gCoastersload_790fec, 0x00790fec, 0x4);
