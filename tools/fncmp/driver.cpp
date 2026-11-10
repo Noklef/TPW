@@ -2650,8 +2650,8 @@ u32 g_invokeFrame;
 
 // Pushes the stack arguments right to left, sets the registers (EAX EBX ECX EDX ESI EDI, EBP when nonzero: ECX / EDX for thiscall
 // and fastcall, any of them for a register convention), calls, and restores ESP whatever the convention popped. EAX, EDX and EDI
-// come back (EDI for ret 'edi').
-int invoke(void *fn, const u32 *regs, const u32 *stack, u32 count, int wantSt0, u32 *eax, u32 *edx, double *st0, u32 *edi) {
+// come back (EDI for ret 'edi'), and with stackOut the count stack arguments as the call left them (ret 's').
+int invoke(void *fn, const u32 *regs, const u32 *stack, u32 count, int wantSt0, u32 *eax, u32 *edx, double *st0, u32 *edi, u32 *stackOut) {
     u32 ra = 0, rd = 0, rdi = 0, saved = 0;
     double f = 0;
     __try {
@@ -2685,6 +2685,16 @@ int invoke(void *fn, const u32 *regs, const u32 *stack, u32 count, int wantSt0, 
             mov ra, eax
             mov rd, edx
             mov rdi, edi
+            mov edi, stackOut
+            test edi, edi
+            jz kept
+            mov ecx, count
+            mov esi, saved
+            lea eax, [ecx * 4]
+            sub esi, eax
+            cld
+            rep movsd
+        kept:
             mov esp, saved
             cmp wantSt0, 0
             je done
@@ -3739,6 +3749,8 @@ int main(int argc, char **argv) {
             __asm fldcw cw
         }
         int code = 0;
+        const bool stackOut = std::strchr(ret, 's') != nullptr;  // (fncmp.Call(stack=True): the last call's stack arguments as it left them, after the regions)
+        std::vector<u32> stackWords;
         for (Step &step : steps) {
             if (&step != &steps[0])  // (a first call's arguments are its own: a -5 there is a -5)
                 for (u32 &a : step.args)
@@ -3759,10 +3771,11 @@ int main(int argc, char **argv) {
             }
             static const bool paint = std::getenv("FNCMP_PAINT_STACK") != nullptr;
             if (paint) paint_stack();
-            code = invoke(step.fn, regs, step.args.data() + skip, n - skip, ret[0] == 'd', &eax, &edxOut, &st0, &ediOut);
+            stackWords.assign(n - skip, 0);
+            code = invoke(step.fn, regs, step.args.data() + skip, n - skip, ret[0] == 'd', &eax, &edxOut, &st0, &ediOut, stackOut && n > skip ? stackWords.data() : nullptr);
             if (code) break;
         }
-        if (std::strcmp(ret, "edi") == 0) eax = ediOut;  // (ret 'edi': EDI in EAX's place)
+        if (std::strncmp(ret, "edi", 3) == 0) eax = ediOut;  // (ret 'edi': EDI in EAX's place)
         if (std::strchr(ret, 'c')) {  // the control word the call left, then the driver's back
             u16 cw, ours = 0x7f;
             __asm fnstcw cw
@@ -3783,6 +3796,10 @@ int main(int argc, char **argv) {
             if (jpeg6b_native && s.first == kHeap) jpeg6b_methods_back(s.first, s.second);
             if (jpeg6a_native && s.first == kHeap) jpeg6a_methods_back(s.first, s.second);
             put_hex(p, s.second);
+        }
+        if (stackOut) {
+            std::putchar(' ');
+            put_hex(reinterpret_cast<const u8 *>(stackWords.data()), (u32)stackWords.size() * 4);
         }
         std::putchar('\n');
         std::fflush(stdout);
