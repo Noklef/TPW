@@ -26,3 +26,8 @@ s32 __cdecl CRT_powhlp(double x, double y, double *result);
 void __cdecl CRT_CIpow(double x, double y, u8 *io);
 
 }
+
+#include "gamedata.h"
+
+// Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(u32, CRT_fastflag, 0x00fb1330, 0x4);

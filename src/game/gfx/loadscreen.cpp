@@ -111,7 +111,7 @@ u32 __fastcall LoadScreen_Show(u8 *self, void *, const char *name, const char *f
     at<u32>(self, 0) = 0;
     if (!ms) ms = 500;
     at<s32>(self, 8) = ms;
-    at<float>(self, 0x18) = (float)(X87Reg(global<float>(0x00701fd4)) / X87Reg((double)ms));
+    at<float>(self, 0x18) = (float)(X87Reg(gLoadScreen_Hundred_701fd4) / X87Reg((double)ms));
     u32 shown = (u32)ms;
 
     char size[0x14], path[0x80], splash[0x80], stampFirst[0x80], stampLater[0x80];

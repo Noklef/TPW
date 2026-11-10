@@ -109,7 +109,7 @@ void ImageArray_Destroy(u8 *images) {
 // An image's +8: its width over its height (u16 +0xc / +0xe, as the x87 divides them at 24 bits), or [0x702034] for a height of 0.
 void SetAspect(u8 *image) {
     const u16 height = at<u16>(image, 0xe);
-    at<float>(image, 8) = height ? (float)(X87Reg((double)at<u16>(image, 0xc)) / (double)height) : global<float>(0x00702034);
+    at<float>(image, 8) = height ? (float)(X87Reg((double)at<u16>(image, 0xc)) / (double)height) : gSpriteFrame_Zero_702034;
 }
 
 // The virtual base of an object whose virtual base table (+0) has the base's offset at +4.
@@ -193,12 +193,13 @@ u32 __fastcall SpriteImage_LoadWct(u8 *image, void *, u8 *stream, u8 *texture) {
         return 0;
     }
     WctImage_Read(wct, nullptr, stream);
-    at<u16>(image, 0xc) = global<u16>(0x00879a3c);
-    at<u16>(image, 0xe) = global<u16>(0x00879a3e);
-    at<u16>(image, 0x10) = global<u16>(0x00879a40);
-    at<u16>(image, 0x12) = global<u16>(0x00879a42);
-    at<u16>(image, 0x14) = global<u16>(0x00879a44);
-    at<u16>(image, 0x16) = global<u16>(0x00879a48);
+    const WctReadHeader &header = gWctImage_Header_879a38;
+    at<u16>(image, 0xc) = header.width;
+    at<u16>(image, 0xe) = header.height;
+    at<u16>(image, 0x10) = header.v8;
+    at<u16>(image, 0x12) = header.va;
+    at<u16>(image, 0x14) = header.vc;
+    at<u16>(image, 0x16) = header.v10;
     SetAspect(image);
     return TextureFrom(image, wct, texture);
 }
@@ -526,11 +527,11 @@ u32 __fastcall SpriteFrame_FillItem(u8 *frame, void *, u8 *item) {
         at<u32>(quad, 4) = X87_FloatThrough(at<u32>(quad, 4)) ^ 0x80000000u;
         at<u32>(at<u8 *>(item, 4), 0xc) = 0x3f800000;   // 1.0
         quad = at<u8 *>(item, 4);
-        if (at<float>(quad, 8) > global<float>(0x00702040))
-            at<float>(quad, 8) = (float)(X87Reg(at<float>(quad, 8)) - global<float>(0x00702040));
+        if (at<float>(quad, 8) > gSpriteFrame_Step_702040)
+            at<float>(quad, 8) = (float)(X87Reg(at<float>(quad, 8)) - gSpriteFrame_Step_702040);
         at<u32>(item, 0x28) = 2;
         SpreadVertex(item);
-        const float scale = (float)(X87Reg(at<float>(frame, 0x2c)) * global<float>(0x00702008));
+        const float scale = (float)(X87Reg(at<float>(frame, 0x2c)) * gSpriteFrame_Twentieth_702008);
         const float wide = (float)(X87Reg(global<float>(0x008bcbcc)) * scale);
         placed = SpriteFrame_PlaceQuad(frame, nullptr, at<float *>(item, 4), wide, scale);
     } else {
@@ -553,7 +554,7 @@ u32 __fastcall SpriteFrame_FillItem(u8 *frame, void *, u8 *item) {
             if ((at<u32>(frame, 0x10) & 0x200) && !(global<u32>(0x008bcbc8) & 0x2000)) {
                 u8 *q = at<u8 *>(item, 4);
                 const X87Reg last = at<float>(q, 0x38);
-                at<float>(q, 0x38) = (float)X87_SubR(X87_DivR(last - global<float>(0x00702038), global<float>(0x00702044)), last);
+                at<float>(q, 0x38) = (float)X87_SubR(X87_DivR(last - global<float>(0x00702038), gSpriteFrame_Fifth_702044), last);
                 q = at<u8 *>(item, 4);
                 at<u32>(q, 0x28) = at<u32>(q, 0x38);
                 q = at<u8 *>(item, 4);
@@ -578,7 +579,7 @@ u32 __fastcall SpriteFrame_FillItem(u8 *frame, void *, u8 *item) {
 u32 __fastcall SpriteFrame_GroundQuad(u8 *frame, void *, float *quad, u32 matrix, float width, float height) {
     const float *const axis = reinterpret_cast<const float *>((uintptr_t)(0x008c1798 + 12 * global<u32>(0x008c181c)));
     const u8 *const image = at<u8 *>(frame, 0x28);
-    const X87Reg big = X87Reg(at<float>(frame, 0x2c)) * global<float>(0x0070200c);   // 20
+    const X87Reg big = X87Reg(at<float>(frame, 0x2c)) * gSpriteFrame_Twenty_70200c;   // 20
     const float bigf = (float)big;
     const X87Reg wide = big * global<float>(0x008bcbcc);
     const s32 offX = at<s16>(image, 0x14), offY = at<s16>(image, 0x16);
@@ -629,7 +630,7 @@ u32 __fastcall SpriteFrame_GroundQuad(u8 *frame, void *, float *quad, u32 matrix
         Quad_TurnXY(quad, angle, nullptr);
     }
     TransformQuad(matrix, quad);
-    const X87Reg base = X87Reg((at<u32>(frame, 0x10) & 0x800) ? at<float>(frame, 0x20) : global<float>(0x00702034)) +
+    const X87Reg base = X87Reg((at<u32>(frame, 0x10) & 0x800) ? at<float>(frame, 0x20) : gSpriteFrame_Zero_702034) +
                         gRendererframe_8bd4ec;
     for (s32 k = 3; k >= 0; --k)
         quad[4 * k + 1] = (float)(GroundAt(quad[4 * k], quad[4 * k + 2]) + base + quad[4 * k + 1]);

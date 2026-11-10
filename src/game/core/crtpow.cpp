@@ -310,7 +310,7 @@ void __cdecl CRT_CIpow(double x, double y, u8 *io) {
         const u16 masked = (saved & 0x300) | 0x7f;
         __asm fldcw masked
     }
-    const bool fast = global<u32>(0x00fb1330) != 0;   // (__fastflag: no error handling)
+    const bool fast = CRT_fastflag != 0;   // (__fastflag: no error handling)
     X80 x80 = fload(xw);
     X80 r;
     u32 type = 0;

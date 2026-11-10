@@ -4,6 +4,8 @@
 #include <cstring>
 
 #include "crt.h"
+#include "crtopen.h"
+#include "crtmbstring.h"
 
 namespace {
 
@@ -11,7 +13,7 @@ template <typename F> F import_slot(u32 slot) { return *reinterpret_cast<F *>((u
 
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
 
-bool lead_byte(char c) { return reinterpret_cast<const u8 *>((uintptr_t)0x00fb1669)[static_cast<u8>(c)] & 4; }
+bool lead_byte(char c) { return (&CRT_mbctype[1])[static_cast<u8>(c)] & 4; }
 
 u32 up_to_ff(const char *from, const char *to) {
     const u32 n = static_cast<u32>(to - from);
@@ -31,22 +33,22 @@ void __cdecl CRT_purecall() { CRT_amsg_exit(0x19); }
 void __cdecl CRT_fptrap() { CRT_amsg_exit(2); }
 
 void __cdecl CRT_amsg_exit(s32 code) {
-    if (global<u32>(0x00fb135c) == 1) CRT_FF_MSGBANNER();
+    if (CRT_error_mode_fb135c == 1) CRT_FF_MSGBANNER();
     CRT_NMSG_WRITE(code);
     global<void(__cdecl *)(s32)>(0x0077ea80)(0xff);
 }
 
 void __cdecl CRT_fast_error_exit(s32 code) {
-    if (global<u32>(0x00fb135c) == 1) CRT_FF_MSGBANNER();
+    if (CRT_error_mode_fb135c == 1) CRT_FF_MSGBANNER();
     CRT_NMSG_WRITE(code);
     import_slot<void(__stdcall *)(u32)>(0x006fd244)(0xff);
 }
 
 void __cdecl CRT_FF_MSGBANNER() {
-    const u32 mode = global<u32>(0x00fb135c);
-    if (mode != 1 && (mode != 0 || global<u32>(0x0077ea84) != 1)) return;
+    const u32 mode = CRT_error_mode_fb135c;
+    if (mode != 1 && (mode != 0 || CRT_app_type != 1)) return;
     CRT_NMSG_WRITE(0xfc);
-    if (const auto hook = global<void(__cdecl *)()>(0x00fb1888)) hook();
+    if (const auto hook = CRT_msgbanner_hook_fb1888) hook();
     CRT_NMSG_WRITE(0xff);
 }
 
@@ -56,9 +58,9 @@ void __cdecl CRT_NMSG_WRITE(s32 code) {
     while (entry < 18 && code != table[2 * entry]) ++entry;
     if (code != table[2 * entry]) return;
     const char *const text = reinterpret_cast<const char *>((uintptr_t)static_cast<u32>(table[2 * entry + 1]));
-    const u32 mode = global<u32>(0x00fb135c);
-    if (mode == 1 || (mode == 0 && global<u32>(0x0077ea84) == 1)) {
-        const u8 *const block = global<const u8 *>(0x00fb3ba0);
+    const u32 mode = CRT_error_mode_fb135c;
+    if (mode == 1 || (mode == 0 && CRT_app_type == 1)) {
+        const u8 *const block = CRT_pioinfo[0];
         u32 handle = block ? *reinterpret_cast<const u32 *>(block + 0x48) : 0xffffffff;
         if (handle == 0xffffffff) handle = import_slot<u32(__stdcall *)(s32)>(0x006fd1ac)(-12);
         u32 written;
@@ -78,32 +80,29 @@ void __cdecl CRT_NMSG_WRITE(s32 code) {
     std::strcat(message, name);
     std::strcat(message, "\n\n");
     std::strcat(message, text);
-    CRT_crtMessageBoxA(message, reinterpret_cast<const char *>((uintptr_t)0x00709034), 0x12010);
+    CRT_crtMessageBoxA(message, CRT_text_runtime_library_709034, 0x12010);
 }
 
 s32 __cdecl CRT_crtMessageBoxA(const char *text, const char *title, u32 type) {
-    using Box = s32(__stdcall *)(u32, const char *, const char *, u32);
-    using Active = u32(__stdcall *)();
-    using Popup = u32(__stdcall *)(u32);
-    if (!global<Box>(0x00fb1900)) {
-        const u32 library = import_slot<u32(__stdcall *)(u32)>(0x006fd0b4)(0x00709724);
+    if (!CRT_pfnMessageBox) {
+        const u32 library = import_slot<u32(__stdcall *)(u32)>(0x006fd0b4)((u32)(uintptr_t)CRT_text_user32_709724);
         if (!library) return 0;
         const auto find = import_slot<void *(__stdcall *)(u32, u32)>(0x006fd0b0);
-        global<void *>(0x00fb1900) = find(library, 0x00709718);
-        if (!global<void *>(0x00fb1900)) return 0;
-        global<void *>(0x00fb1904) = find(library, 0x00709708);
-        global<void *>(0x00fb1908) = find(library, 0x007096f4);
+        CRT_pfnMessageBox = reinterpret_cast<CrtMessageBoxFn>(find(library, 0x00709718));
+        if (!CRT_pfnMessageBox) return 0;
+        CRT_pfnGetActiveWindow = reinterpret_cast<CrtGetActiveWindowFn>(find(library, (u32)(uintptr_t)CRT_text_GetActiveWindow_709708));
+        CRT_pfnGetLastActivePopup = reinterpret_cast<CrtGetLastActivePopupFn>(find(library, (u32)(uintptr_t)CRT_text_GetLastActivePopup_7096f4));
     }
     u32 owner = 0;
-    if (const Active active = global<Active>(0x00fb1904)) owner = active();
+    if (const CrtGetActiveWindowFn active = CRT_pfnGetActiveWindow) owner = active();
     if (owner) {
-        if (const Popup popup = global<Popup>(0x00fb1908)) owner = popup(owner);
+        if (const CrtGetLastActivePopupFn popup = CRT_pfnGetLastActivePopup) owner = popup(owner);
     }
-    return global<Box>(0x00fb1900)(owner, text, title, type);
+    return CRT_pfnMessageBox(owner, text, title, type);
 }
 
 char *__cdecl CRT_mbsnbcpy(char *to, const char *from, u32 n) {
-    if (!global<u32>(0x00fb1870)) return Crt().strncpy(to, from, n);
+    if (!CRT_mbcodepage) return Crt().strncpy(to, from, n);
     CrtInner().lock(0x19);
     char *out = to;
     u32 left = n;

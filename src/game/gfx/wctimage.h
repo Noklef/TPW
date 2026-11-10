@@ -46,3 +46,18 @@ u32 __fastcall Texture_DecodeWctInto(const u8 *part, void *, u32 *surface, u32 f
 // 0. Then +7 &= 3, the file closed and 1.
 u32 __fastcall WctImage_Load(u8 *image, void *, const char *name);
 }
+
+// The 0x2c bytes WctImage_Read reads from a file's start (names unconfirmed; not re/types.h's 0x1c-byte WctHeader of a .wct file).
+struct WctReadHeader {
+    u32 unknown0;
+    u16 width;           // +4
+    u16 height;          // +6
+    u16 v8, va, vc, ve, v10, v12;
+    float a, b, c, d;    // +0x14..+0x20: the quantiser's scales
+    u32 v24, v28;
+};
+
+#include "../core/gamedata.h"
+
+// Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(WctReadHeader,gWctImage_Header_879a38, 0x00879a38, 0x2c);

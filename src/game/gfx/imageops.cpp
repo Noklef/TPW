@@ -413,7 +413,7 @@ double *GaussianKernel(s32 size, s32 rows, double sigma) {
     double *const kernel = static_cast<double *>(GameHeap_Alloc(rows * size * 8));
     const s32 half = (size - 1) / 2, rowHalf = (rows - 1) / 2 == 0 && rows == 1 ? 0 : half;
     const X87Reg variance = X87Reg(X87_MulDouble(sigma, sigma));
-    const X87Reg divisor = X87Reg(X87_MulDouble(variance.v, *reinterpret_cast<const double *>((uintptr_t)0x00702f28)));
+    const X87Reg divisor = X87Reg(X87_MulDouble(variance.v, gImageOps_Factor_702f28));
     X87Reg sum = X87Reg(0.0);
     double *cell = kernel;
     for (s32 row = 0; row < rows; row++) {

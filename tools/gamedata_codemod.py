@@ -40,7 +40,7 @@ FUNC = re.compile(r'^(?![ \t#])[^;{}()\n]*?\b([A-Za-z_]\w*(?:::~?[A-Za-z_]\w*)*)
 DEREF = re.compile(r'\*\s*reinterpret_cast\s*<\s*(?:const\s+)?(\w+(?:\s+\w+)?)\s*(?:const\s*)?\*\s*>\s*\(\s*(?:\(\s*(?:std::)?uintptr_t\s*\)\s*)?$')
 WRITE_AFTER =re.compile(r'\s*(?:=(?!=)|\+=|-=|\*=|/=|%=|\|=|&=|\^=|<<=|>>=|\+\+|--)')
 WRITE_BEFORE = re.compile(r'(?:\+\+|--|(?<!&)&)\s*$')
-B_FILES = re.compile(r'^(crt|staticinit)')
+B_FILES = re.compile(r'^staticinit')   # (generated from the exe's initialiser table: names need the generator)
 MARK = '// Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).'
 
 

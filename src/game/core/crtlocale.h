@@ -77,3 +77,32 @@ s32 __stdcall CRT_LanguageEnumProc(const char *hex);
 s32 __stdcall CRT_crtGetLocaleInfoA(u32 lcid, u32 what, char *out, s32 room);
 
 }
+
+// A locale's language, country and code page (LC_ID).
+struct CrtLcId {
+    u16 language;
+    u16 country;
+    u16 code_page;
+};
+
+using LocaleInfo = s32(__stdcall *)(u32 locale, u32 what, char *out, s32 room);
+
+#include "gamedata.h"
+
+// Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(char[0x83], CRT_cachein, 0x00780e18, 0x83);
+GAME_DATA(char[0x83], CRT_cacheout, 0x00780ea0, 0x83);
+GAME_DATA(CrtLcId, CRT_qualified_id_fb142c, 0x00fb142c, 0x6);
+GAME_DATA(u32, CRT_qualified_code_page_fb1434, 0x00fb1434, 0x4);
+GAME_DATA(u32[6], CRT_lc_handle, 0x00fb1438, 0x18);
+GAME_DATA(u32, CRT_lc_codepage, 0x00fb1450, 0x4);
+GAME_DATA(CrtLcId[6], CRT_lc_id, 0x00fb18b8, 0x24);
+GAME_DATA(u32, CRT_lcid_language, 0x00fb18dc, 0x4);
+GAME_DATA(u32, CRT_abbrev_country, 0x00fb18e0, 0x4);
+GAME_DATA(s32, CRT_primary_len, 0x00fb18e4, 0x4);
+GAME_DATA(u32, CRT_abbrev_language, 0x00fb18e8, 0x4);
+GAME_DATA(const char *, CRT_language, 0x00fb18ec, 0x4);
+GAME_DATA(const char *, CRT_country, 0x00fb18f0, 0x4);
+GAME_DATA(u32, CRT_lcid_state, 0x00fb18f4, 0x4);
+GAME_DATA(u32, CRT_lcid_country, 0x00fb18f8, 0x4);
+GAME_DATA(LocaleInfo, CRT_pfnGetLocaleInfoA, 0x00fb18fc, 0x4);

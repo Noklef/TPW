@@ -49,3 +49,12 @@ void __cdecl TextureSet_Load(u8 *set, u32 probe, u32 unused);
 // textures, [[model+0x24]+4], found with probe 1.
 void __cdecl TexDirs_SetForModel(u8 *info, u8 *model);
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(s32[3], gTexDirs_Indices_74d980, 0x0074d980, 0xc);
+GAME_DATA(u32, gTexDirs_Current_7b0620, 0x007b0620, 0x4);
+GAME_DATA(void *, gTexDirs_Chain_7b0628, 0x007b0628, 0x4);
+GAME_DATA(const char **, gTexDirs_Table_7b062c, 0x007b062c, 0x4);
+GAME_DATA(u32, gTexDirs_Count_7b0630, 0x007b0630, 0x4);

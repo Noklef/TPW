@@ -10,11 +10,11 @@
 
 namespace {
 
-void *&chain() { return *reinterpret_cast<void **>(0x007b0628); }
-const char **&table() { return *reinterpret_cast<const char ***>(0x007b062c); }
-u32 &count() { return *reinterpret_cast<u32 *>(0x007b0630); }
-s32 *indices() { return reinterpret_cast<s32 *>(0x0074d980); }
-u32 &current() { return *reinterpret_cast<u32 *>(0x007b0620); }
+void *&chain() { return gTexDirs_Chain_7b0628; }
+const char **&table() { return gTexDirs_Table_7b062c; }
+u32 &count() { return gTexDirs_Count_7b0630; }
+s32 *indices() { return gTexDirs_Indices_74d980; }
+u32 &current() { return gTexDirs_Current_7b0620; }
 template <typename T> T &at(u8 *p, u32 offset) { return *reinterpret_cast<T *>(p + offset); }
 
 // The extension from the last '.' replaced by ext, or ext appended when there is no '.'.
