@@ -106,7 +106,7 @@ u8 save_list(u8 *self, const char *name, u32 tree_offset, void(__fastcall *advan
     StdString narrow;
     char path[kPathSize];
     u16 line[0x20];
-    at<u32>(stream, 0) = 0x00700630;
+    at<u32>(stream, 0) = (u32)(uintptr_t)&Vbtable_700630;
     Init_4f1bd0(ios);
     g_env->ostreamCtor(stream, nullptr, buffer, 0, 1, 0);
     g_env->filebufCtor(buffer, nullptr, 0);
@@ -155,7 +155,7 @@ void make_wide_string(u8 *string, const u16 *line) {
 }
 
 void open_ifstream(u8 *stream, u8 *buffer) {
-    at<u32>(stream, 0) = 0x00700640;
+    at<u32>(stream, 0) = (u32)(uintptr_t)&Vbtable_700640;
     g_env->istreamCtor(stream, nullptr, buffer, 0, 0);
     g_env->filebufCtor(buffer, nullptr, 0);
     set_ios_vtable(stream, (u32)(uintptr_t)Class700638_vtable);

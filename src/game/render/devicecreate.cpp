@@ -30,7 +30,7 @@ void note_virtual_base(u32 object) {
 // A constructor with a virtual base: its tables set through the table's own offset.
 void set_tables(u8 *object, u32 table, u32 baseTable, u32 place) {
     at<u32>(object, 0) = table;
-    at<u32>(object, place) = 0x00701650;
+    at<u32>(object, place) = (u32)(uintptr_t)Class701650_vtable;
     at<u32>(object, base_offset(object)) = baseTable;
     const u32 offset = base_offset(object);
     at<u32>(object, offset - 4) = offset - place;
@@ -39,7 +39,7 @@ void set_tables(u8 *object, u32 table, u32 baseTable, u32 place) {
 u8 *new_soft() {
     u8 *const object = static_cast<u8 *>(GameHeap_Alloc(0x18));
     if (object) {
-        set_tables(object, 0x007016a8, (u32)(uintptr_t)Class701688_vtable, 0x14);
+        set_tables(object, (u32)(uintptr_t)&Vbtable_7016a8,(u32)(uintptr_t)Class701688_vtable, 0x14);
         at<u32>(object, 4) = 0;
         at<u32>(object, 8) = 0;
     }

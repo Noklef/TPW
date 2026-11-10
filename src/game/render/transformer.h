@@ -23,3 +23,11 @@ u32 __fastcall Transformer_Transform(void *object, void *, u32 a, u32 b, u32 c, 
 u32 __cdecl Transformer_Create();
 
 }
+
+#include "../core/gamedata.h"
+
+// The kinds' virtual base tables (0, the virtual base at +8). The 3DNow kind's vtable 0x7018f8 stays a literal: its slot 3
+// (0x5791b0) is no port. The block's second vtable 0x701940 stays a literal too: core/vdel.cpp (agent B's) stores it.
+GAME_DATA(const s32[2], Vbtable_7018f0, 0x007018f0, 0x8);
+GAME_DATA(const s32[2], Vbtable_701918, 0x00701918, 0x8);
+GAME_DATA(const s32[2], Vbtable_701960, 0x00701960, 0x8);
