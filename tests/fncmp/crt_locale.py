@@ -128,6 +128,10 @@ def case(r):
         regions[TEXT2] = r.choice([b'usa', b'USA', b'fra', b'us', b'']) + b'\0'
         regions[0xfb18dc] = struct.pack('<8I', r.choice([0, 0, 0x1234]), r.choice([0, 1]), r.choice([0, 2, 3, len(language), len(language), 7]), r.choice([0, 1]), TEXT, TEXT2,
                                         r.choice([0, 0, 1, 2, 3, 0x100, 0x200, 0x300, 0x102, 0x201, 0x301]), r.choice([0, 0x5678]))
+        if r.random() < 0.1:   # (an empty language that matches, no primary length: the language found without TestDefaultLanguage)
+            fill(log, INFO, 2, b'USA\0\0\0\0\0' + bytes(8) + b'0c0c\0\0\0\0' + bytes(8), records=4)
+            regions[TEXT], regions[TEXT2] = b'\0', b'fra\0'
+            regions[0xfb18dc] = regions[0xfb18dc][:8] + bytes(8) + regions[0xfb18dc][16:24] + bytes(4) + regions[0xfb18dc][28:]
         regions[KEYS] = r.choice([b'0409\0', b'0409\0', b'0c0c\0', b'409\0', b'00000409\0', b'0809\0'])
         regions[0x781a20] = struct.pack('<11H', *[r.choice([0x409, 0xc0c, 0x411, 0x807, 0x1000 + i]) for i in range(11)])
         return Call(0x68de40 if name == 'langcountryenum' else 0x68e180, [KEYS], regions, conv='s', ret='a')
