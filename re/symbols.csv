@@ -6401,6 +6401,7 @@ address,name,kind,confidence,notes
 0x00691ea0,Lockit_Dtor,function,low,reimplemented (src/game/core/locinfo); MSVC6 std::_Lockit::~_Lockit
 0x00698fc0,Locinfo_Ctor,function,low,reimplemented (src/game/core/locinfo); MSVC6 std::_Locinfo::_Locinfo
 0x00699100,Locinfo_Dtor,function,low,reimplemented (src/game/core/locinfo); MSVC6 std::_Locinfo::~_Locinfo
+0x00691e70,Lockit_Term,function,high,reimplemented (src/game/core/locinfo); _Lockit's exit routine: the critical section deleted
 0x00681590,CRT_output_write_char,function,low,reimplemented (src/game/core/crtoutput); MSVC6 write_char (output.c)
 0x006815e0,CRT_output_write_multi_char,function,low,reimplemented (src/game/core/crtoutput); MSVC6 write_multi_char (output.c)
 0x00681620,CRT_output_write_string,function,low,reimplemented (src/game/core/crtoutput); MSVC6 write_string (output.c)
