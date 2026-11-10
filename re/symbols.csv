@@ -6317,6 +6317,10 @@ address,name,kind,confidence,notes
 0x006804f0,CRT_ms_p5_test_fdiv,function,high,reimplemented (src/game/core/crtfloat); _ms_p5_test_fdiv: the Pentium FDIV test
 0x00680540,CRT_ms_p5_mp_test_fdiv,function,high,reimplemented (src/game/core/crtfloat); _ms_p5_mp_test_fdiv: IsProcessorFeaturePresent or the test
 0x0067a5f0,CRT_FPinit,function,high,reimplemented (src/game/core/crtfloat); _FPinit: the floating point start-up
+0x006806c0,CRT_cftoe,function,high,"reimplemented (src/game/core/crtfloat); _cftoe: a double in e format by _fltout2, _fptostr and _cftoe2"
+0x00680840,CRT_cftof,function,high,"reimplemented (src/game/core/crtfloat); _cftof: a double in f format by _fltout2, _fptostr and _cftof2"
+0x00680970,CRT_cftog,function,high,reimplemented (src/game/core/crtfloat); _cftog: a double in g format: e or f by the rounded power
+0x00680a30,CRT_cfltcvt,function,high,"reimplemented (src/game/core/crtfloat); _cfltcvt: e, f or g by the format letter"
 0x004092a0,GameOwner_Pause,function,low,"reimplemented (src/game/core/gameowner); thiscall (mode, flag), pops 8: the game held: the front end, the clocks, the sounds or the advisor's speech"
 0x00409300,GameOwner_Resume,function,low,reimplemented (src/game/core/gameowner); thiscall: the game let go
 0x00409350,GameOwner_TogglePause,function,low,"reimplemented (src/game/core/gameowner); thiscall (flag), pops 4: paused or not, by +0x1c"

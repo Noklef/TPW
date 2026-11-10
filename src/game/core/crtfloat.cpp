@@ -1037,6 +1037,47 @@ char *__cdecl CRT_cftof2(char *buffer, s32 decimals, const s32 *number, u8 g_for
     return buffer;
 }
 
+char *__cdecl CRT_cftoe(const u32 *value, char *buffer, s32 decimals, s32 caps) {
+    u32 number[4];
+    char digits[0x18];
+    CRT_fltout2(value[0], value[1], number, digits);
+    CRT_fptostr(buffer + (number[0] == 0x2d) + (decimals > 0), decimals + 1, number);
+    CRT_cftoe2(buffer, decimals, caps, reinterpret_cast<const s32 *>(number), 0);
+    return buffer;
+}
+
+char *__cdecl CRT_cftof(const u32 *value, char *buffer, s32 decimals) {
+    u32 number[4];
+    char digits[0x18];
+    CRT_fltout2(value[0], value[1], number, digits);
+    CRT_fptostr(buffer + (number[0] == 0x2d), static_cast<s32>(number[1]) + decimals, number);
+    CRT_cftof2(buffer, decimals, reinterpret_cast<const s32 *>(number), 0);
+    return buffer;
+}
+
+char *__cdecl CRT_cftog(const u32 *value, char *buffer, s32 decimals, s32 caps) {
+    u32 number[4];
+    char digits[0x18];
+    CRT_fltout2(value[0], value[1], number, digits);
+    const s32 before = static_cast<s32>(number[1]) - 1;
+    char *const at = buffer + (number[0] == 0x2d);
+    CRT_fptostr(at, decimals, number);
+    const s32 power = static_cast<s32>(number[1]) - 1;
+    if (power < -4 || power >= decimals) return CRT_cftoe2(buffer, decimals, caps, reinterpret_cast<const s32 *>(number), 1);
+    if (before < power) {   // rounding carried a digit in: the last one cut (an empty text would cut the byte before it, sic)
+        char *end = at;
+        while (*end++) {}
+        end[-2] = 0;
+    }
+    return CRT_cftof2(buffer, decimals, reinterpret_cast<const s32 *>(number), 1);
+}
+
+char *__cdecl CRT_cfltcvt(const u32 *value, char *buffer, s32 format, s32 decimals, s32 caps) {
+    if (format == 0x65 || format == 0x45) return CRT_cftoe(value, buffer, decimals, caps);
+    if (format == 0x66) return CRT_cftof(value, buffer, decimals);
+    return CRT_cftog(value, buffer, decimals, caps);
+}
+
 s32 __cdecl CRT_positive(const double *value) { return *value >= global<double>(0x00708aa0); }
 
 }  // extern "C"
