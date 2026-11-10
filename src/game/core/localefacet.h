@@ -229,3 +229,4 @@ GAME_DATA(void *[10], Class709f5c_vtable, 0x00709f5c, 0x28);
 GAME_DATA(void *[3], Facet709f8c_vtable, 0x00709f8c, 0xc);
 GAME_DATA(void *[3], Facet709f9c_vtable, 0x00709f9c, 0xc);
 GAME_DATA(void *[4], Facet709fac_vtable, 0x00709fac, 0x10);
+GAME_DATA(void *[4], CollateC_vtable, 0x00709fc4, 0x10);

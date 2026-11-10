@@ -658,7 +658,7 @@ u8 *__fastcall Vtbl70a0a8_DeletingDtor(u8 *self, void *, u32 flags) {
     return self;
 }
 
-u32 *__fastcall CollateC_Ctor(u32 *self, void *, u32 refs) { return collate_ctor(self, refs, 0x00709fc4); }
+u32 *__fastcall CollateC_Ctor(u32 *self, void *, u32 refs) { return collate_ctor(self, refs, (u32)(uintptr_t)CollateC_vtable); }
 u32 *__fastcall CollateW_Ctor(u32 *self, void *, u32 refs) { return collate_ctor(self, refs, (u32)(uintptr_t)CollateW_vtable); }
 u32 *__fastcall Facet70a044_Ctor(u32 *self, void *, const void *info, u32 refs) { return tnames_ctor(self, info, refs, 0x0070a044); }
 u32 *__fastcall Facet709ef4_Ctor(u32 *self, void *, const void *info, u32 refs) { return tnames_ctor(self, info, refs, 0x00709ef4); }
@@ -687,7 +687,7 @@ void __cdecl Locimp_Makexloc(void *info, u32 cats, Locimp *imp, u8 **loc) {
     u32 lock[2];
     IosBase_Env().lockit(lock);
     if (cats & 1) {
-        add_facet(imp, loc, (u32)(uintptr_t)&gLocalefacet_fb1e98, (u32)(uintptr_t)&gLocalefacet_fb1ea8, []() { return new_collate(0x00709fc4); }, []() {
+        add_facet(imp, loc, (u32)(uintptr_t)&gLocalefacet_fb1e98, (u32)(uintptr_t)&gLocalefacet_fb1ea8, []() { return new_collate((u32)(uintptr_t)CollateC_vtable); }, []() {
             u32 *const object = alloc_facet(0x10);
             return as_facet(Globalfb1ecc_Set(reinterpret_cast<u8 *>(object ? CollateC_Ctor(object, nullptr, 0) : nullptr)));
         });
