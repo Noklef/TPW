@@ -43,7 +43,7 @@ def case(r):
     if name == 'cinit':
         table = bytearray(0x72e0e8 - 0x727000)
         for _ in range(r.choice([0, 1, 3])):
-            struct.pack_into('<I', table, 4 * r.randrange(len(table) // 4), recorder(CXXINIT, 0, cdecl=True))
+            struct.pack_into('<I', table, 4 * r.choice([0, len(table) // 4 - 1, r.randrange(len(table) // 4)]), recorder(CXXINIT, 0, cdecl=True))
         regions[0x727000] = table
     code = r.choice([0, 1, 3, r.getrandbits(32)])
     args = [] if name in ('cinit', 'lockexit', 'unlockexit') else [code] if name in ('exit', '_exit') else \
