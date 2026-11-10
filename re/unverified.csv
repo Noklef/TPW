@@ -10,3 +10,6 @@ address,name,module,reason
 5fc840,JpegCodec_Load,gfx/jpeg,todo
 5fcbc0,JpegCodec_IsJpeg,gfx/jpeg,todo
 6784d0,Palette_SetVgaDac,gfx/palette,"hardware: CLI (0x6784d6) is privileged under Windows NT, both fault there; port I/O to the VGA DAC, nothing to compare"
+686050,CRT_statfp,core/crtfpexcept,x87 status flags: the emulator keeps no exception flags
+686060,CRT_clrfp,core/crtfpexcept,x87 status flags: the emulator keeps no exception flags
+6860b0,CRT_set_statfp,core/crtfpexcept,x87 status flags: the emulator keeps no exception flags
