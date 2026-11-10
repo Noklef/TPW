@@ -19,4 +19,13 @@ void __cdecl SseMath_TransformVectors(void *object, const float *matrix, u8 *des
 
 // 0x5f5433 (cdecl): out = a * b, 4 x 4 of rows. b is read first, a row by row as out's rows are written.
 void __cdecl SseMath_Multiply(void *object, const float *a, const float *b, float *out);
+
+// 0x5f525f (cdecl; the twin of Transform_ProjectToScreen, through the thunk 0x579120): count vertices (0 runs on until a fault, sic), each x, y, z, w, stride bytes
+// apart, put on the screen by the render view's floats (0x8bcbc8: sx, sy +0x38, ox, oy +0x28, read before the loop, as the others). r is RCPPS of w (the CPU's
+// approximation: the port runs the same instruction, so it gives what the original gives on the same machine); r' = 2 r - (w r) r its Newton step.
+// Mode 1: x, y, z, w = (x sx) r' + (ox + 0), (y sy) r' + (oy + 0), 0 + +0x74, r'; returns +0x74 (read again) times the count (fild) in st0.
+// Mode 2: x, y, z, w = (x sx') r + ox, (y sy') r + oy, z (0 + +0x58), r with sx' = sx + 0; returns the sum of the new z's, from 0, through the float 0x7754f0.
+// Others: by z's bits against +0x60 (unsigned): not above, x, y, z, w = (x sx) q + ox, (y sy) q + oy, (z (+0x6c + t0)) q + +0x70, (w (0 + t1)) q2 + 0 with q = r,
+// q2 = r r; above, the same with r' and +0x64, +0x68; t the 16-byte table 0x7754d0 (0, 1, 0, 0), read twice. Returns the z's sum as mode 2 does.
+double __cdecl SseMath_ProjectToScreen(void *object, u8 *vertices, s32 stride, u32 count, u32 mode);
 }

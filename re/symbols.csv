@@ -4439,6 +4439,7 @@ address,name,kind,confidence,notes
 0x005f4f81,SseMath_TransformBatch,function,low,reimplemented (src/game/math/ssemath); batches of four vectors transformed through the expanded table
 0x005f50c5,SseMath_TransformVectors,function,low,"reimplemented (src/game/math/ssemath); vectors transformed by a matrix's rows, four modes"
 0x005f5433,SseMath_Multiply,function,low,reimplemented (src/game/math/ssemath); two 4 x 4 matrices multiplied
+0x005f525f,SseMath_ProjectToScreen,function,low,"reimplemented (src/game/math/ssemath); vertices put on the screen by the render view with RCPPS (and its Newton step), three modes"
 0x005f4730,Amd3DNow_TransformBatch,function,low,reimplemented (src/game/math/amd3dnow); pairs of vectors from batches of four transformed by a matrix (3DNow!)
 0x005f4844,Amd3DNow_TransformVectors,function,low,"reimplemented (src/game/math/amd3dnow); vectors transformed by a matrix's rows, four modes (3DNow!)"
 0x005f4bd0,Amd3DNow_Multiply,function,low,reimplemented (src/game/math/amd3dnow); two 4 x 4 matrices multiplied (3DNow!)
