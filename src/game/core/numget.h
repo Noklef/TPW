@@ -44,6 +44,11 @@ u32 *__fastcall NumGet_DoGetFloat(void *self, void *, u32 *out, NumGetIter first
 u32 *__fastcall NumGet_DoGetDouble(void *self, void *, u32 *out, NumGetIter first, NumGetIter last, u8 *ios, u32 *state, double *value);
 u32 *__fastcall NumGet_DoGetLongDouble(void *self, void *, u32 *out, NumGetIter first, NumGetIter last, u8 *ios, u32 *state, double *value);
 
+// 0x69f8b0 (cdecl), 0x69cb60 (pops 0x20): _Getifld and do_get of a bool of wchar_t: the char ones, numpunct<wchar_t> by use_facet inlined; _Getifld widens '0' before the facet,
+// and '+', '-', 'x', 'X' after the unit is fetched. The names: falsename and truename wide.
+u32 __cdecl NumGetW_Getifld(char *text, WNumGetIter *first, WNumGetIter *last, u32 flags, u8 **locale);
+u32 *__fastcall NumGetW_DoGetBool(void *self, void *, u32 *out, WNumGetIter first, WNumGetIter last, u8 *ios, u32 *state, u8 *value);
+
 // num_get of wchar_t (pops 0x20), the same as the char ones above: each literal widened by btowc when it is compared ('0' once, before the facet), each unit narrowed by wctob into text, the separator and
 // the decimal point 16-bit, numpunct<wchar_t> by UseFacet_WNumpunct. 0x69d1c0 unsigned short, 0x69d6a0 unsigned int, 0x69db70 long, 0x69e030 unsigned long, 0x69f3c0 pointer, 0x69e4f0 float,
 // 0x69e9e0 double, 0x69eed0 long double.

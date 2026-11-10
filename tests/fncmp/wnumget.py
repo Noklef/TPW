@@ -1,4 +1,5 @@
-# The C++ library's num_get of wchar_t (src/game/core/numget) against the originals: do_get of an unsigned short, an unsigned int, a long, an unsigned long, a pointer, a float, a double and a long double, over numget.py's world:
+# The C++ library's num_get of wchar_t (src/game/core/numget) against the originals: do_get of a bool, an unsigned short, an unsigned int, a long, an unsigned long, a pointer, a float, a double and a long double, and
+# _Getifld, over numget.py's world:
 # the stream buffer's underflow and uflow and the facet's slots thiscall recorders, the C library's strtol, strtoul and _Stod. The literals are widened by btowc over _Mbrtowc, a cdecl recorder whose
 # answers come by the call (so '0', '+' or 'x' widen to what the case deals); the stream's units are narrowed by wctob over _Wcrtomb in the C locale, its InterlockedIncrement and
 # InterlockedDecrement COM recorders.
@@ -13,7 +14,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'
 from fncmp import HEAP, IMPORT_TABLE, LOG, RAM, Bench, Call, _cdecl_log, _free, _recorder, answers, blob, fill, heap, import_table, log_fold, log_region, recorder, set_return, strings  # noqa: E402
 import numget  # noqa: E402
 
-LOCK, UNLOCK, GETPTD, DELETE, UNDERFLOW, UFLOW, SEPARATOR, GROUPING, THROW, POINT, INC, DEC, MBRTOWC, NUMPUNCT = 7, 8, 2, 0, 10, 11, 12, 13, 14, 17, 20, 21, 23, 28
+LOCK, UNLOCK, GETPTD, DELETE, UNDERFLOW, UFLOW, SEPARATOR, GROUPING, THROW, POINT, INC, DEC, MBRTOWC, NUMPUNCT, FALSE_NAME, TRUE_NAME = 7, 8, 2, 0, 10, 11, 12, 13, 14, 17, 20, 21, 23, 28, 15, 16
 
 B = Bench([(0x69d1c0, 0x69d693), (0x69d6a0, 0x69db6f), (0x69db70, 0x69e02b), (0x69e030, 0x69e4eb), (0x69e4f0, 0x69e9de), (0x69e9e0, 0x69eec8), (0x69eed0, 0x69f3b8), (0x69f3c0, 0x69f863),
            (0x69d040, 0x69d098), (0x69d0a0, 0x69d15f), (0x69d160, 0x69d1b9), (0x69fea0, 0x69feef), (0x69f870, 0x69f8a2), (0x693dc0, 0x693e15), (0x69a5d0, 0x69a5fb), (0x69a460, 0x69a4d3),
@@ -26,18 +27,30 @@ B = Bench([(0x69d1c0, 0x69d693), (0x69d6a0, 0x69db6f), (0x69db70, 0x69e02b), (0x
            (0x6816a0, 0x68173e), (0x6828a0, 0x682a0a), (0x682c00, 0x682e3b), (0x682e40, 0x682fba), (0x688710, 0x688738), (0x688f50, 0x68917d), (0x689180, 0x6891b7), (0x68a5d0, 0x68a710),
            (0x68bc00, 0x68bc6e), (0x68bc70, 0x68bce1), (0x68bce0, 0x68bd85), (0x68bd80, 0x68bda5), (0x68bda0, 0x68bdb7), (0x68bdb0, 0x68bdd5), (0x68bdd0, 0x68be89), (0x68be90, 0x68c067),
            (0x68c060, 0x68c080), (0x68c440, 0x68caa9), (0x68f9d0, 0x68f9fb), (0x68fa00, 0x68fa70), (0x68fa70, 0x68faa6), (0x68faa0, 0x68fad5), (0x68fad0, 0x68fbc9), (0x68ff60, 0x690220),
-           (0x690220, 0x6902b2), (0x6918f0, 0x691a1a), (0x691ba0, 0x691cca)],
+           (0x690220, 0x6902b2), (0x6918f0, 0x691a1a), (0x691ba0, 0x691cca),
+           (0x69cb60, 0x69cf6c), (0x69f8b0, 0x69fe9c), (0x69cf70, 0x69d03b), (0x47b750, 0x47bcf0), (0x47cc10, 0x47cd60), (0x4f23f0, 0x4f2440),
+           (0x405280, 0x405390), (0x479150, 0x4791b0)],
           hooks={0x682720: _recorder(LOCK, 1, cdecl=True), 0x6827a0: _recorder(UNLOCK, 1, cdecl=True), 0x682460: _recorder(GETPTD, 0, cdecl=True), 0x693bc0: _recorder(MBRTOWC, 5, cdecl=True),
                  0x691de0: numget.lock, 0x691ea0: lambda e: None, 0x67ad90: _free, 0x67a7d0: _cdecl_log, 0x67d3a0: _recorder(THROW, 2, com=True), 0x69c680: _recorder(NUMPUNCT, 1)})
 OUT, BUFFER, NEXT, LEFT, VTABLE, IOS, AREA, A_UNDER, A_UFLOW = RAM, RAM + 0x20, RAM + 0x80, RAM + 0x90, RAM + 0xa0, RAM + 0xc0, RAM + 0x100, RAM + 0x200, RAM + 0x300
-FACET, FACET_VTABLE, IMP, IMP_VTABLE, FACETS, PTD, STATE, VALUE, PCTYPE, LCONV = (RAM + 0xa00 + 0x40 * i for i in range(10))
-GROUP_BLOCK = HEAP + 0x800
+FACET, FACET_VTABLE, IMP, IMP_VTABLE, FACETS, PTD, STATE, VALUE, PCTYPE, LCONV, FIRST, LAST, TEXT, LOCALE = (RAM + 0xa00 + 0x40 * i for i in range(14))
+GROUP_BLOCK, FALSE_BLOCK, TRUE_BLOCK = HEAP + 0x800, HEAP + 0x840, HEAP + 0x880
 GLOBALS = 0xfb1da8
-GETS = {'ushort': 0x69d1c0, 'uint': 0x69d6a0, 'long': 0x69db70, 'ulong': 0x69e030, 'pointer': 0x69f3c0, 'float': 0x69e4f0, 'double': 0x69e9e0, 'ldouble': 0x69eed0}
-OPS = [n for n in GETS if not os.environ.get('OPS') or n in os.environ['OPS'].split(',')]
+GETS = {'bool': 0x69cb60, 'ushort': 0x69d1c0, 'uint': 0x69d6a0, 'long': 0x69db70, 'ulong': 0x69e030, 'pointer': 0x69f3c0, 'float': 0x69e4f0, 'double': 0x69e9e0, 'ldouble': 0x69eed0}
+OPS = [n for n in list(GETS) + ['bool', 'getifld', 'getifld'] if not os.environ.get('OPS') or n in os.environ['OPS'].split(',')]
 # btowc's calls in the order a scan makes them: '0' first, then the sign's (no '-' after a '+'), then the base's or the exponent's
 LITERALS = {'int': ['0+-xX', '0+xX', '0+-x', '0+-xX'], 'float': ['0+-eE+-', '0+eE+-', '0+-e+-', '0+-eE+', '0+-eE-']}
 ODD = [0xff10, 0x3000, 0x100, 0xffff, 0x2b00, 0x30]   # (fullwidth '0', past a byte, WEOF, a high byte with '+' low, a narrow '0')
+
+
+def name_string(r, regions, log, k, at, text, which):
+    """numget.py's name_string with 16-bit units (the count still the byte before them)."""
+    held = regions[HEAP]
+    held[at - HEAP - 1] = r.choice([0, 0, 1, 2, 0xfe, 0xff])
+    data = struct.pack('<%dH' % (len(text) + 1), *text, 0)
+    held[at - HEAP:at - HEAP + len(data)] = data
+    strings(log, k, 0, out=1)
+    fill(log, k, 0, struct.pack('<4I', 0, at if text or r.random() < 0.5 else 0, len(text), max(len(text), 0x1f)), which=which)
 
 
 def case(r):
@@ -64,7 +77,7 @@ def case(r):
     blob(log, MBRTOWC, 1, 1)
     set_return(log, MBRTOWC, r.choice([1, 1, 1, 1, 1, 1, 0, 0xffffffff, 0xfffffffe]))
     # The stream: its units waiting in the buffer, or nothing there and every unit from underflow.
-    text = r.choice(numget.FLOATS if floats and r.random() < 0.8 else numget.NUMBERS)
+    text = r.choice(numget.WORDS if name == 'bool' and r.random() < 0.7 else numget.FLOATS if floats and r.random() < 0.8 else numget.NUMBERS)
     if floats and r.random() < 0.15:
         text = bytes(r.choice(b'0123456789') for _ in range(r.randrange(34, 42))) + r.choice([b'', b'.5', b'e-3'])
     units = [c for c in text]
@@ -101,7 +114,12 @@ def case(r):
     fields = (GROUP_BLOCK + 1, len(groups), max(len(groups), r.choice([1, 0x1f]))) if r.random() < 0.92 else (0, 0, 0)
     strings(log, GROUPING, 0, out=1)
     fill(log, GROUPING, 0, struct.pack('<4I', 0, *fields), which=1)
-    regions[FACET_VTABLE] = struct.pack('<4I', recorder(DELETE, 1), recorder(POINT, 0), recorder(SEPARATOR, 0), recorder(GROUPING, 1))
+    false_name, true_name = r.choice(numget.NAMES)
+    name_string(r, regions, log, FALSE_NAME, FALSE_BLOCK, false_name, 2)
+    name_string(r, regions, log, TRUE_NAME, TRUE_BLOCK, true_name, 3)
+    regions[0x6fd6c4] = bytes(4)   # (the wide empty string, and npos)
+    regions[0x6fef00] = struct.pack('<I', 0xffffffff)
+    regions[FACET_VTABLE] = struct.pack('<6I', recorder(DELETE, 1), recorder(POINT, 0), recorder(SEPARATOR, 0), recorder(GROUPING, 1), recorder(FALSE_NAME, 1), recorder(TRUE_NAME, 1))
     set_return(log, POINT, r.getrandbits(16) << 16 | r.choice([0x2e, 0x2e, 0x2c, 0x65, 0, 0xff0e, 0x12e]))
     regions[LCONV] = struct.pack('<I', LCONV + 4) + r.choice([b'.', b',', b'\0']) + bytes(3)
     regions[0x781fc8] = struct.pack('<I', LCONV)
@@ -112,15 +130,22 @@ def case(r):
     regions[IMP] = struct.pack('<5I', IMP_VTABLE, r.choice([1, 1, 2, 0, 0xffffffff]), FACETS, r.choice([0, 1, 3, 8, 16, 16]), 0) + bytes([r.choice([0, 0, 1])]) + bytes(0xb)
     ids = bytearray(0x90)
     struct.pack_into('<I', ids, 0x34, r.choice([0, r.randrange(1, 16), r.randrange(1, 16), 0x40]))   # (numpunct<wchar_t>'s id 0xfb1ddc, its classic cache 0xfb1e1c and holder 0xfb1e30)
-    struct.pack_into('<I', ids, 0x74, FACET)
+    struct.pack_into('<I', ids, 0x74, FACET)   # (the classic facet's making: usefacet.py's, its atexit by the env natively)
     struct.pack_into('<I', ids, 0x88, r.getrandbits(32))
     struct.pack_into('<3I', ids, 0x24, r.choice([IMP, IMP, IMP, IMP, 0x1234]), IMP, r.randrange(0, 15))
     regions[GLOBALS] = ids
     set_return(log, NUMPUNCT, FACET)
     blob(log, THROW, 0, 0x7)
-    regions[IOS] = bytes(0xc) + struct.pack('<I', r.choice(numget.FLAGS)) + bytes(0x10) + struct.pack('<I', IMP) + bytes(0x1c)
+    flags = r.choice(numget.FLAGS)
+    regions[IOS] = bytes(0xc) + struct.pack('<I', flags) + bytes(0x10) + struct.pack('<I', IMP) + bytes(0x1c)
     first = [BUFFER if r.random() < 0.95 else 0, r.getrandbits(32) & 0xffffff00 | r.choice([0, 0, 0, 0, 0, 1])]
     last = [0 if r.random() < 0.93 or (floats and not first[0]) else BUFFER, r.getrandbits(32) & 0xffffff00 | r.choice([0, 1])]   # (numget.py's: a stale unit with last on a streambuf can loop for ever)
+    if name == 'getifld':
+        regions[TEXT] = r.bytes(0x40)
+        regions[FIRST] = struct.pack('<2I', *first)
+        regions[LAST] = struct.pack('<2I', *last)
+        regions[LOCALE] = struct.pack('<I', IMP)
+        return Call(0x69f8b0, [TEXT, FIRST, LAST, flags, LOCALE], regions, conv='c', ret='a')
     regions[STATE] = struct.pack('<I', r.choice([0, 0, 0, 1, 2, 4, r.getrandbits(32)]))
     regions[VALUE] = r.bytes(8)
     return Call(GETS[name], [r.getrandbits(32), OUT] + first + last + [IOS, STATE, VALUE], regions, conv='t', ret='a')

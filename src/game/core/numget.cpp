@@ -11,6 +11,7 @@
 #include "moneyput.h"
 #include "numput.h"
 #include "stdstring.h"
+#include "stdwstring.h"
 #include "streambufiter.h"
 #include "vobj3.h"
 
@@ -42,8 +43,16 @@ char narrow(u16 unit) { return static_cast<char>(CRT_Wctob(unit)); }
 u8 *numpunct(const NumGetIter &, u8 **locale) { return reinterpret_cast<u8 *>(UseFacet_Numpunct(locale, 0, 1)); }
 u8 *numpunct(const WNumGetIter &, u8 **locale) { return reinterpret_cast<u8 *>(UseFacet_WNumpunct(locale, 0, 1)); }
 
-// Whether the unit at first is the literal c (widened first, as the original does).
-template <typename It> bool is(It &first, char c) {
+// use_facet<numpunct> as bool and _Getifld inline it (numput's copy).
+u8 *numpunct_inline(const NumGetIter &, u8 **locale) { return NumPut_NumpunctOf(locale); }
+u8 *numpunct_inline(const WNumGetIter &, u8 **locale) { return NumPutW_NumpunctOf(locale); }
+
+// Whether the unit at first is the literal c: widened first, as the inlined copies do, or fetched first (wide _Getifld).
+template <bool Fetched = false, typename It> bool is(It &first, char c) {
+    if (Fetched) {
+        const auto got = deref(first);
+        return got == lit(first, c);
+    }
     const auto wanted = lit(first, c);
     return deref(first) == wanted;
 }
@@ -60,27 +69,27 @@ u32 base_of(u32 flags) {
     return field == 0x400 ? 8 : field == 0x800 ? 16 : field ? 10 : 0;
 }
 
-template <typename It> void take_sign(char *&out, It &first, It &last) {
+template <bool Fetched = false, typename It> void take_sign(char *&out, It &first, It &last) {
     if (equal(first, last)) return;
-    if (is(first, '+')) {
+    if (is<Fetched>(first, '+')) {
         *out++ = '+';
         increment(first);
-    } else if (is(first, '-')) {
+    } else if (is<Fetched>(first, '-')) {
         *out++ = '-';
         increment(first);
     }
 }
 
 // _Getifld's body: the sign, a base's prefix, then up to 0x1f characters of digits into text, separators counted in groups and checked against the grouping. Frees the grouping; the answer is the base.
-template <typename It, typename Unit> u32 scan_integer(char *text, It &first, It &last, u32 flags, StdString &grouping, Unit separator, Unit zero) {
+template <bool Fetched, typename It, typename Unit> u32 scan_integer(char *text, It &first, It &last, u32 flags, StdString &grouping, Unit separator, Unit zero) {
     char *out = text;
-    take_sign(out, first, last);
+    take_sign<Fetched>(out, first, last);
     u32 base = base_of(flags);
     bool seen = false;
     if (!equal(first, last) && deref(first) == zero) {
         seen = true;
         increment(first);
-        if (!equal(first, last) && (is(first, 'x') || is(first, 'X')) && (!base || base == 16)) {
+        if (!equal(first, last) && (is<Fetched>(first, 'x') || is<Fetched>(first, 'X')) && (!base || base == 16)) {
             base = 16;
             seen = false;
             increment(first);
@@ -142,16 +151,19 @@ template <typename It, typename Unit> u32 scan_integer(char *text, It &first, It
     return base;
 }
 
-// What each do_get of an integer begins with ('0' widened before the facet), then the scan of the integer.
-template <typename It> u32 scan_with_facet(char *text, It &first, It &last, u32 flags, u8 **locale) {
-    using Unit = decltype(deref(first));
-    const Unit zero = lit(first, '0');
-    u8 *const facet = numpunct(first, locale);
+// _Getifld after the facet: its grouping and separator (slot 2), then the scan of the integer.
+template <bool Fetched, typename It, typename Unit> u32 getifld(char *text, It &first, It &last, u32 flags, u8 *facet, Unit zero) {
     StdString grouping;
     MoneyPunct_Grouping(facet, nullptr, &grouping);
     using Slot = u32(__fastcall *)(u8 *);
     const Unit separator = static_cast<Unit>(reinterpret_cast<const Slot *>((uintptr_t)at<u32>(facet, 0))[2](facet));
-    return scan_integer(text, first, last, flags, grouping, separator, zero);
+    return scan_integer<Fetched>(text, first, last, flags, grouping, separator, zero);
+}
+
+// What each do_get of an integer begins with ('0' widened before the facet), then _Getifld inlined.
+template <typename It> u32 scan_with_facet(char *text, It &first, It &last, u32 flags, u8 **locale) {
+    const auto zero = lit(first, '0');
+    return getifld<false>(text, first, last, flags, numpunct(first, locale), zero);
 }
 
 template <typename It> u32 *result(u32 *out, const It &first) {
@@ -308,9 +320,8 @@ template <typename It> u32 *get_pointer(u32 *out, It &first, It &last, u8 *ios, 
     return result(out, first);
 }
 
-// The alphabetic form: the names side by side, the input matched against them a character at a time. The answer is the index of the name read to its end, negative if none.
-s32 scan_names(NumGetIter &first, NumGetIter &last, u8 *facet) {
-    StdString names;
+// The names side by side: a NUL, falsename (slot +0x10), a NUL, truename (+0x14). wchar_t: string(1, 0) and _Tidy inlined.
+void build_names(StdString &names, u8 *facet) {
     string_fill(names, 1, 0);
     StdString name;
     StdString_AppendSub(&names, nullptr, MoneyPunct_CurrSymbol(facet, nullptr, &name), 0, global<u32>(0x006fe5ac));
@@ -318,10 +329,34 @@ s32 scan_names(NumGetIter &first, NumGetIter &last, u8 *facet) {
     string_append_one(names, 0);
     StdString_AppendSub(&names, nullptr, MoneyPunct_PositiveSign(facet, nullptr, &name), 0, global<u32>(0x006fe5ac));
     StdString_Tidy(&name, nullptr, 1);
-    const char *const list = names.ptr ? names.ptr : &global<char>(0x006fe5b0);
+}
+
+void tidy(StdString &s) { StdString_Tidy(&s, nullptr, 1); }
+void tidy(StdWString &s) { CountedBuf_Reset(reinterpret_cast<u8 *>(&s), nullptr, 1); }
+
+void build_names(StdWString &names, u8 *facet) {
+    CountedBuf_Reset(reinterpret_cast<u8 *>(&names), nullptr, 0);
+    StdWString_AssignFill(&names, nullptr, 1, 0);
+    StdWString name;
+    StdString *const narrow = reinterpret_cast<StdString *>(&name);   // (the getters are the char ones: the same code)
+    StdWString_AppendSub(&names, nullptr, reinterpret_cast<StdWString *>(MoneyPunct_CurrSymbol(facet, nullptr, narrow)), 0, global<u32>(0x006fef00));
+    tidy(name);
+    StdWString_AppendFill(&names, nullptr, 1, 0);
+    StdWString_AppendSub(&names, nullptr, reinterpret_cast<StdWString *>(MoneyPunct_PositiveSign(facet, nullptr, narrow)), 0, global<u32>(0x006fef00));
+    tidy(name);
+}
+
+const char *chars(const StdString &s) { return s.ptr ? s.ptr : &global<char>(0x006fe5b0); }
+const u16 *chars(const StdWString &s) { return s.ptr ? s.ptr : &global<u16>(0x006fd6c4); }
+
+// The alphabetic form: the names side by side, the input matched against them a character at a time. The answer is the index of the name read to its end, negative if none.
+template <typename Names, typename It> s32 scan_names(It &first, It &last, u8 *facet) {
+    Names names;
+    build_names(names, facet);
+    const auto *const list = chars(names);
     u32 count = 2;
     if (*list) {
-        for (const char *p = list; *p; ++p) {
+        for (const auto *p = list; *p; ++p) {
             if (*p == *list) ++count;
         }
     }
@@ -344,7 +379,7 @@ s32 scan_names(NumGetIter &first, NumGetIter &last, u8 *facet) {
                 continue;
             }
             offset += column;
-            const char wanted = list[offset];
+            const auto wanted = list[offset];
             const char clamped = static_cast<char>(column < 0x7f ? column : 0x7f);
             if (wanted == *list || wanted == 0) {
                 string_at(lengths, i) = clamped;
@@ -360,38 +395,29 @@ s32 scan_names(NumGetIter &first, NumGetIter &last, u8 *facet) {
         increment(first);
         found = -1;
     }
-    StdString_Tidy(&lengths, nullptr, 1);
-    StdString_Tidy(&names, nullptr, 1);
+    tidy(lengths);
+    tidy(names);
     return found;
 }
 
-}  // namespace
+u32 call_getifld(char *text, NumGetIter &first, NumGetIter &last, u32 flags, u8 **locale) { return NumGet_Getifld(text, &first, &last, flags, locale); }
+u32 call_getifld(char *text, WNumGetIter &first, WNumGetIter &last, u32 flags, u8 **locale) { return NumGetW_Getifld(text, &first, &last, flags, locale); }
 
-extern "C" {
-
-u32 __cdecl NumGet_Getifld(char *text, NumGetIter *first, NumGetIter *last, u32 flags, u8 **locale) {
-    u8 *const facet = NumPut_NumpunctOf(locale);
-    StdString grouping;
-    MoneyPunct_Grouping(facet, nullptr, &grouping);
-    using Slot = u32(__fastcall *)(u8 *);
-    const char separator = static_cast<char>(reinterpret_cast<const Slot *>((uintptr_t)at<u32>(facet, 0))[2](facet));
-    return scan_integer(text, *first, *last, flags, grouping, separator, '0');
-}
-
-u32 *__fastcall NumGet_DoGetBool(void *, void *, u32 *out, NumGetIter first, NumGetIter last, u8 *ios, u32 *state, u8 *value) {
+// do_get of a bool: the names (ios flags 0x4000), else an integer of 0 or 1 by _Getifld and strtoul.
+template <typename Names, typename It> u32 *get_bool(u32 *out, It &first, It &last, u8 *ios, u32 *state, u8 *value) {
     s32 answer = -1;
     if (at<u32>(ios, 0xc) & 0x4000) {
         u8 *locale;
         Obj_ShareMember20(ios, nullptr, &locale);
-        u8 *const facet = NumPut_NumpunctOf(&locale);
+        u8 *const facet = numpunct_inline(first, &locale);
         CountedRef_Release(&locale);
-        answer = scan_names(first, last, facet);
+        answer = scan_names<Names>(first, last, facet);
     } else {
         *CRT_errno() = 0;
         u8 *locale;
         Obj_ShareMember20(ios, nullptr, &locale);
         char text[0x20];
-        const u32 base = NumGet_Getifld(text, &first, &last, at<u32>(ios, 0xc), &locale);
+        const u32 base = call_getifld(text, first, last, at<u32>(ios, 0xc), &locale);
         const char *end;
         const u32 number = CRT_strtoul(text, &end, static_cast<s32>(base));
         CountedRef_Release(&locale);
@@ -405,6 +431,21 @@ u32 *__fastcall NumGet_DoGetBool(void *, void *, u32 *out, NumGetIter first, Num
     }
     return result(out, first);
 }
+
+}  // namespace
+
+extern "C" {
+
+u32 __cdecl NumGet_Getifld(char *text, NumGetIter *first, NumGetIter *last, u32 flags, u8 **locale) { return getifld<false>(text, *first, *last, flags, NumPut_NumpunctOf(locale), '0'); }
+
+u32 __cdecl NumGetW_Getifld(char *text, WNumGetIter *first, WNumGetIter *last, u32 flags, u8 **locale) {
+    const u16 zero = lit(*first, '0');
+    return getifld<true>(text, *first, *last, flags, NumPutW_NumpunctOf(locale), zero);
+}
+
+u32 *__fastcall NumGet_DoGetBool(void *, void *, u32 *out, NumGetIter first, NumGetIter last, u8 *ios, u32 *state, u8 *value) { return get_bool<StdString>(out, first, last, ios, state, value); }
+
+u32 *__fastcall NumGetW_DoGetBool(void *, void *, u32 *out, WNumGetIter first, WNumGetIter last, u8 *ios, u32 *state, u8 *value) { return get_bool<StdWString>(out, first, last, ios, state, value); }
 
 u32 *__fastcall NumGet_DoGetUshort(void *, void *, u32 *out, NumGetIter first, NumGetIter last, u8 *ios, u32 *state, u16 *value) { return get_unsigned(out, first, last, ios, state, value, 0xffff); }
 
