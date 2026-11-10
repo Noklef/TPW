@@ -36,7 +36,7 @@ s32 __cdecl Dialog7ca1e0_Handler(u8 *window, u32 message, u32 a, u32 b) {
 }
 
 void __cdecl Dialog7ca1e0_Create() {
-    gDialog7ca1e0_7ca1e0 = WindowScript_Build(global<u8 *>(0x00faa5d8), nullptr, reinterpret_cast<u8 *>(0x00751720), 0x00498ad0);
+    gDialog7ca1e0_7ca1e0 = WindowScript_Build(global<u8 *>(0x00faa5d8), nullptr, gDialog7ca1e0_Create_751720, 0x00498ad0);
     Window_Unlink(gDialog7ca1e0_7ca1e0);
     Window_SetDwordA0(gDialog7ca1e0_7ca1e0, nullptr, 0, 1);
     Window_SetShown(gDialog7ca1e0_7ca1e0, nullptr, 0);

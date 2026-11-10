@@ -28,6 +28,7 @@
 #include "sessionlogin.h"
 #include "chatlists.h"
 #include "chatcommand.h"
+#include "../ui/window7cc8c0handler.h"
 
 namespace {
 
@@ -113,11 +114,11 @@ namespace {
 void ClearLogin(u8 *session) {
     for (u32 offset : {0x64u, 0x60u, 0x68u, 4u, 8u})
         at<u32>(session, offset) = 0;
-    vcall<void>(session + 0xc, 0x14, 0x0078a374u);
-    vcall<void>(session + 0x20, 0x14, 0x0078a374u);
+    vcall<void>(session + 0xc, 0x14, reinterpret_cast<uintptr_t>(&gWindow7cc8c0handler_78a374));
+    vcall<void>(session + 0x20, 0x14, reinterpret_cast<uintptr_t>(&gWindow7cc8c0handler_78a374));
     at<u32>(session, 0x34) = 0;
     at<u32>(session, 0x38) = 0;
-    vcall<void>(session + 0x3c, 0x14, 0x0078a374u);
+    vcall<void>(session + 0x3c, 0x14, reinterpret_cast<uintptr_t>(&gWindow7cc8c0handler_78a374));
     at<u32>(session, 0x50) = 0;
 }
 
@@ -130,10 +131,10 @@ void ClearNews(u8 *session) {
     vcall<void>(session + 0x7c, 0x14, 0x00786de4u);
     at<u32>(session, 0x90) = 0xffffffff;
     at<u32>(session, 0x94) = 0;
-    vcall<void>(session + 0x98, 0x14, 0x0078a374u);
+    vcall<void>(session + 0x98, 0x14, reinterpret_cast<uintptr_t>(&gWindow7cc8c0handler_78a374));
     at<u32>(session, 0xac) = 0xffffffff;
     at<u32>(session, 0xb0) = 0;
-    vcall<void>(session + 0xb4, 0x14, 0x0078a374u);
+    vcall<void>(session + 0xb4, 0x14, reinterpret_cast<uintptr_t>(&gWindow7cc8c0handler_78a374));
     at<u32>(session, 0xd0) = 0;
 }
 
@@ -181,8 +182,8 @@ void __fastcall Online_ResetUpload(u8 *session) {
     Online_ReleaseUpload(session);
     for (u32 offset : {0x328u, 0x320u, 0x324u, 0x32cu, 0x344u})
         at<u32>(session, offset) = 0;
-    vcall<void>(session + 0x348, 0x14, 0x0078a374u);
-    vcall<void>(session + 0x35c, 0x14, 0x0078a374u);
+    vcall<void>(session + 0x348, 0x14, reinterpret_cast<uintptr_t>(&gWindow7cc8c0handler_78a374));
+    vcall<void>(session + 0x35c, 0x14, reinterpret_cast<uintptr_t>(&gWindow7cc8c0handler_78a374));
     for (u32 offset = 0x370; offset <= 0x380; offset += 4)
         at<u32>(session, offset) = 0;
 }
@@ -1120,7 +1121,7 @@ u8 *__fastcall Online_Construct(u8 *session) {
         at<u32>(named, 0) = 0x00702838;
         WString_Ctor(reinterpret_cast<WString *>(named + 0x34));
         at<u32>(named, 0) = 0x00702828;
-        vcall<void>(named + 0x34, 0x14, 0x0078a374u);
+        vcall<void>(named + 0x34, 0x14, reinterpret_cast<uintptr_t>(&gWindow7cc8c0handler_78a374));
     }
     at<u8 *>(session, 0xec) = named;
     at<u8 *>(session, 0xf0) = NewList(0x38, 0x00702818);
@@ -1133,8 +1134,8 @@ u8 *__fastcall Online_Construct(u8 *session) {
     at<u32>(session, 0x108) = 0;
     for (u32 offset : {0x328u, 0x320u, 0x324u, 0x32cu, 0x344u})
         at<u32>(session, offset) = 0;
-    vcall<void>(session + 0x348, 0x14, 0x0078a374u);
-    vcall<void>(session + 0x35c, 0x14, 0x0078a374u);
+    vcall<void>(session + 0x348, 0x14, reinterpret_cast<uintptr_t>(&gWindow7cc8c0handler_78a374));
+    vcall<void>(session + 0x35c, 0x14, reinterpret_cast<uintptr_t>(&gWindow7cc8c0handler_78a374));
     for (u32 offset = 0x370; offset <= 0x380; offset += 4)
         at<u32>(session, offset) = 0;
     at<u32>(session, 0x39c) = 0;

@@ -15,6 +15,7 @@
 #include "window.h"
 #include "window7059f0.h"
 #include "window7059f0texts.h"
+#include "window7cc8c0handler.h"
 
 namespace {
 
@@ -70,7 +71,7 @@ void showList(u8 *list, u32 b) {
     g_env->first(lists);
     for (u32 count = data & ~(kMark1 | kMark2); count; --count) g_env->next(lists);
     u8 *node = *at<u8 **>(global<u8 *>(0x007cc660), 0x24);
-    Crt().wcscpy(addresses(), reinterpret_cast<const u16 *>((uintptr_t)0x0078a374));
+    Crt().wcscpy(addresses(), reinterpret_cast<const u16 *>(gWindow7cc8c0handler_78a374));
     while (node != at<u8 *>(global<u8 *>(0x007cc660), 0x24)) {
         const char *const text = at<const char *>(node, 0xc);
         Crt().wcscat(addresses(), g_env->toWide(text ? text : reinterpret_cast<const char *>((uintptr_t)0x006fe5b0), nullptr, 0));

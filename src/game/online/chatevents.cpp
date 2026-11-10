@@ -34,6 +34,7 @@
 #include "chatcommand.h"
 #include "itemlist.h"
 #include "session.h"
+#include "../ui/window7cc8c0handler.h"
 
 namespace {
 
@@ -685,7 +686,7 @@ void joinRoom(u8 *avatar) {
     const u8 *const item = Owner2c_FindByKey(at<u8 *>(ensureSession(), 0xe0), nullptr, key);
     StdWString owner, global78a374, own;
     assignText(&owner, at<const u16 *>(item, 0x14));
-    assignText(&global78a374, reinterpret_cast<const u16 *>((uintptr_t)0x0078a374));
+    assignText(&global78a374, reinterpret_cast<const u16 *>(gWindow7cc8c0handler_78a374));
     assignText(&own, at<const u16 *>(sessionObject(), 0x14));
     tell(0x006fd4c4, avatar, &own, &global78a374, &owner, &name, 0x100u);
     done(&own);

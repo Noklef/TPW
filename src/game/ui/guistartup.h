@@ -62,6 +62,7 @@ u32 __cdecl Gui_Teardown();
 #include "../core/gamedata.h"
 
 // Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(u32, gGui_7b9fe0, 0x007b9fe0, 0x4);
 GAME_DATA(u32, gGui_Teardown_7c231c, 0x007c231c, 0x4);
 GAME_DATA(u32, gGuistartup_7c249c, 0x007c249c, 0x4);
 GAME_DATA(u32, gGuistartup_7c24d4, 0x007c24d4, 0x4);

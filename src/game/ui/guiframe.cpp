@@ -13,6 +13,7 @@
 #include "windowtimers.h"
 #include "guisystem.h"
 #include "cursor.h"
+#include "guistartup.h"
 
 namespace {
 
@@ -78,7 +79,7 @@ void __cdecl Gui_Frame() {
             const s32 scaledX = static_cast<s32>(x << 11) / global<s16>(0x00faa5c4);
             E->mouseMove(static_cast<u32>(scaledX), static_cast<u32>(scaledY));
         }
-        E->update(0x007b9fe0, 0, 0, 0);
+        E->update(reinterpret_cast<uintptr_t>(&gGui_7b9fe0), 0, 0, 0);
     }
     E->pumpSecond(0x1000);
     E->ime(reinterpret_cast<u8 *>((uintptr_t)0x007b4e38));

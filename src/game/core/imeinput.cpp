@@ -10,6 +10,7 @@
 #include "stdstring.h"
 #include "stdtree.h"
 #include "stdwstring.h"
+#include "../ui/window7cc8c0handler.h"
 
 namespace {
 
@@ -25,7 +26,7 @@ s32 Widen(const char *text, s32 count, u16 *out, s32 size) { return global<s32(_
 u32 DefaultProc(u32 window, u32 message, u32 wparam, u32 lparam) { return global<u32(__stdcall *)(u32, u32, u32, u32)>(0x006fd340)(window, message, wparam, lparam); }
 
 const u32 kNarrowNpos = 0x006fe5ac, kWideNpos = 0x006fef00;
-const u16 *EmptyText() { return reinterpret_cast<const u16 *>((uintptr_t)0x0078a374); }
+const u16 *EmptyText() { return reinterpret_cast<const u16 *>(gWindow7cc8c0handler_78a374); }
 u8 *ImeMap() { return reinterpret_cast<u8 *>((uintptr_t)0x007b4a40); }
 u8 *MapHead() { return global<u8 *>(0x007b4a44); }
 

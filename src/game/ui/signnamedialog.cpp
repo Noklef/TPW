@@ -151,7 +151,7 @@ void __cdecl SignNameDialog7ca214_Open() {
     if (gSignNameDialog7ca214_7ca214) return;
     u8 *const parent = gDialog7ca210_7ca210;
     const s32 depth = at<s16>(parent, 0xe0) + 7;
-    u8 *const window = g_open->build(parent, nullptr, reinterpret_cast<u8 *>((uintptr_t)0x00751928), 0x004993e0);
+    u8 *const window = g_open->build(parent, nullptr, gSignNameDialog7ca214_Open_751928, 0x004993e0);
     gSignNameDialog7ca214_7ca214 = window;
     Window_SetDepth(window, nullptr, (u16)depth);
     dressLabel(window);

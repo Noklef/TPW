@@ -25,7 +25,7 @@ const Dialog7cc188AddressEnv kGameEnv = {game<void(__fastcall *)(u8 *, void *, c
                                          game<void(__cdecl *)(const u8 *, u32, u32, u32, u32, u32, u32, u32)>(0x0047f020), &Window_CallDefault};
 const Dialog7cc188AddressEnv *g_env = &kGameEnv;
 
-u16 *address() { return reinterpret_cast<u16 *>((uintptr_t)0x007cb8d8); }
+u16 *address() { return reinterpret_cast<u16 *>(gDialog7cc188_7cb8d8); }
 u16 *recipients() { return reinterpret_cast<u16 *>((uintptr_t)0x007cb4d0); }
 
 // wcschr (0x67c2f0): the terminator counts as found.

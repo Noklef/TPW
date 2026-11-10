@@ -32,6 +32,7 @@
 #include "staff.h"
 #include "../frontend/lobbysky.h"
 #include "../ui/panel7b9940.h"
+#include "../ui/window7cc8c0handler.h"
 
 namespace {
 
@@ -145,7 +146,7 @@ bool ItemIsPerson(const u8 *item) {
 void ShowName(const u8 *map, u8 *window) {
     u16 *const text = reinterpret_cast<u16 *>((uintptr_t)kText);
     WString name;
-    WString_CtorStr(&name, nullptr, reinterpret_cast<const u16 *>((uintptr_t)0x0078a374));
+    WString_CtorStr(&name, nullptr, reinterpret_cast<const u16 *>(gWindow7cc8c0handler_78a374));
     const u8 *item = at<u8 *>(map, 0x20060);
     u8 *thing = item ? at<u8 *>(item, 0x18) : nullptr;
     if (thing) {

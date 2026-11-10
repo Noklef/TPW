@@ -23,3 +23,9 @@ u32 __cdecl Dialog7cc5f4_Finish(u32 value);
 // the owner); the fields' buffers 0x20 bytes, their texts data + 0x234 / data + 0x436, the labels' texts 0xea / 0xeb, 0x4d's 0xe9; then
 // the dialog's dword 0 +0xa0 = value (Window_SetDwordA0) and KeyMaps_ResetAllAndSetFlag.
 void __cdecl Dialog7cc5f4_CreateFrom(u32 value, u8 *data);
+
+#include "../core/gamedata.h"
+
+// Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(u8[324], gDialog7cc5f4_CreateFrom_7583e8, 0x007583e8, 0x144);
+GAME_DATA(u8[328], gDialog7cc5f4_Create_7585a8, 0x007585a8, 0x148);

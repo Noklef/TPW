@@ -222,8 +222,8 @@ void __cdecl Dialog7cc4c4_ShowThing(u8 *thing) {
     if ((u32)(uintptr_t)thing == current) return;
     current = (u32)(uintptr_t)thing;
     if (!thing) {
-        vcall<void>(Window_FindChild(window(reinterpret_cast<uintptr_t>(&gDialogs_7cc4c4)), nullptr, 0x16c11), 0x24, 0x0078a374u);
-        vcall<void>(Window_FindChild(window(reinterpret_cast<uintptr_t>(&gDialogs_7cc4c4)), nullptr, 0x16c12), 0x24, 0x0078a374u);
+        vcall<void>(Window_FindChild(window(reinterpret_cast<uintptr_t>(&gDialogs_7cc4c4)), nullptr, 0x16c11), 0x24, reinterpret_cast<uintptr_t>(&gWindow7cc8c0handler_78a374));
+        vcall<void>(Window_FindChild(window(reinterpret_cast<uintptr_t>(&gDialogs_7cc4c4)), nullptr, 0x16c12), 0x24, reinterpret_cast<uintptr_t>(&gWindow7cc8c0handler_78a374));
         return;
     }
     vcall<void>(Window_FindChild(window(reinterpret_cast<uintptr_t>(&gDialogs_7cc4c4)), nullptr, 0x16c11), 0x24, *reinterpret_cast<u32 *>(thing + 0x14));
@@ -398,7 +398,7 @@ void __cdecl Dialog7cc4c4_Create() {
 void __cdecl Dialog7cdb0c_Create(u32 flag) {
     if (window(0x007cdb0c) || !*reinterpret_cast<u8 **>(window(0x00f82884) + 4)) return;
     *reinterpret_cast<u8 **>(0x007cdb0c) =
-        WindowScript_Build(*reinterpret_cast<u8 **>(window(0x00f82884) + 4), nullptr, reinterpret_cast<u8 *>(0x007596b0), 0x004c53f0);
+        WindowScript_Build(*reinterpret_cast<u8 **>(window(0x00f82884) + 4), nullptr, gDialog7cdb0c_Create_7596b0, 0x004c53f0);
     Window_SetDwordA0(window(0x007cdb0c), nullptr, 0, flag & 0xff);
     if ((u8)flag) {
         Window_SetShown(Window_FindChild(window(0x007cdb0c), nullptr, 0x16007), nullptr, 0);

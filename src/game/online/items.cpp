@@ -8,6 +8,7 @@
 #include "../core/string.h"
 #include "../core/vcall.h"
 #include "../math/x87.h"
+#include "../ui/window7cc8c0handler.h"
 
 namespace {
 
@@ -59,7 +60,7 @@ u8 *__fastcall Class702938_Ctor(u8 *item, void *, const u8 *record, u8 *owner) {
 }
 
 u8 *__fastcall Class70293c_Ctor(u8 *item) {
-    const u16 *const emptyWide = reinterpret_cast<const u16 *>((uintptr_t)0x0078a374);
+    const u16 *const emptyWide = reinterpret_cast<const u16 *>(gWindow7cc8c0handler_78a374);
     WString_Ctor(Wide(item, 0xc));
     WString_Ctor(Wide(item, 0x20));
     WString_Ctor(Wide(item, 0x34));

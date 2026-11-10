@@ -37,3 +37,4 @@ GAME_DATA(char[4], gPostcardsend_74f8c4, 0x0074f8c4, 0x4);
 GAME_DATA(char[20], gPostcardsend_754454, 0x00754454, 0x14);
 GAME_DATA(char[8], gPostcard_Send_754468, 0x00754468, 0x8);
 GAME_DATA(char[12], gPostcard_Send_754470, 0x00754470, 0xc);
+GAME_DATA(u8[512], gPostcard_Send_7cbcb0, 0x007cbcb0, 0x200);

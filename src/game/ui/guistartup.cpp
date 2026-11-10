@@ -88,7 +88,7 @@ void __cdecl Gui_Startup() {
         E->setWindow(global<void *>(0x007a130c));
         E->fn5f55c0(local);
         E->fn5f5600(local);
-        global<u32>(0x007b9fe0) = 0;
+        gGui_7b9fe0 = 0;
         global<u32>(0x007b9fe4) = 0;
         global<u32>(0x007b9fe8) = 0;
         global<u32>(0x007b9fec) = 0;

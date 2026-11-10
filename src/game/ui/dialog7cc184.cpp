@@ -105,7 +105,7 @@ extern "C" void __cdecl Dialog7cc184_Open() {
         g_open->closeModal();
         parent = gPanel7b9940_7cb2ac;
     }
-    if (u8 *const window = g_open->build(parent, nullptr, reinterpret_cast<u8 *>((uintptr_t)0x007540d8), 0x004a7d70)) {
+    if (u8 *const window = g_open->build(parent, nullptr, gDialog7cc184_Open_7540d8, 0x004a7d70)) {
         dialog = window;
         if (!settingIsOne()) g_open->setModal(dialog);
         g_open->attach(dialog, 0x5d9e, (u32)(uintptr_t)g_open->text(0xd0));

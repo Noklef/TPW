@@ -15,6 +15,7 @@
 #include "window7059f0.h"
 #include "window705a50.h"
 #include "../online/chatcommand.h"
+#include "window7cc8c0handler.h"
 
 extern "C" const u16 *__cdecl Language_WideText(u32 id);
 
@@ -67,8 +68,8 @@ void __cdecl Dialog7cc944_FillList(const u8 *reply) {
     u32 row[6];
     if (!count) {
         row[0] = reinterpret_cast<u32>(E->wideText(0x133));
-        row[1] = 0x0078a374;
-        row[2] = 0x0078a374;
+        row[1] = reinterpret_cast<uintptr_t>(&gWindow7cc8c0handler_78a374);
+        row[2] = reinterpret_cast<uintptr_t>(&gWindow7cc8c0handler_78a374);
         row[3] = 0;
         row[4] = 0;
         row[5] = 0;

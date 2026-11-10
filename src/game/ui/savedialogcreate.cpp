@@ -74,7 +74,7 @@ void __cdecl SaveDialog_Create() {
     u8 *const memory = static_cast<u8 *>(GameHeap_Alloc(0x1a4));
     g_env->setImpl(edit, nullptr, memory ? g_env->part(memory, nullptr, 0) : nullptr);
     g_env->set4c(edit, nullptr, g_env->font(7));
-    g_env->setBuffer(edit, nullptr, 0x007ca720, 0xf);
+    g_env->setBuffer(edit, nullptr, reinterpret_cast<uintptr_t>(&gSavedialog_7ca720), 0xf);
     g_env->setCaret(edit, nullptr, reinterpret_cast<u8 *>((uintptr_t)g_env->findByName(hilight())));
     const u32 text = static_cast<u32>(reinterpret_cast<uintptr_t>(g_env->wideText(0xce)));
     vcall<void>(edit, 0x24, text);

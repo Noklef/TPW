@@ -164,7 +164,7 @@ void ShowHelp(u8 *window) {
         u32 cursor = 0;
         switch (state) {
         case 0:
-            g_env->setText(&global<u16>(0x0078a374));
+            g_env->setText(&reinterpret_cast<u16 &>(gWindow7cc8c0handler_78a374));
             break;
         case 1:
             g_env->format(charset, text, 0x3fff, 0x191);

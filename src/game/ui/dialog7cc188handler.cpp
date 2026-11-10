@@ -17,6 +17,7 @@
 #include "window7059f0.h"
 #include "dialog7cc188address.h"
 #include "dialog7cc184handler.h"
+#include "window7cc8c0handler.h"
 
 namespace {
 
@@ -55,7 +56,7 @@ const u16 *nameOf(u8 *list, s32 row, u32 *data) {
     if (count < 0) return at<const u16 *>(reinterpret_cast<const void *>((uintptr_t)Obj_Get3a4(Online_Instance())), 0x9c);
     const char *text = textOf(StdListString_First(strings));
     for (; count; --count) text = textOf(StdListString_Next(strings));
-    u16 *const name = reinterpret_cast<u16 *>((uintptr_t)0x007cbeb8);
+    u16 *const name = reinterpret_cast<u16 *>(gDialog7cc188handler_7cbeb8);
     Crt().swprintf(name, reinterpret_cast<const u16 *>((uintptr_t)0x0075442c), text);
     return name;
 }
@@ -121,7 +122,7 @@ s32 __cdecl Dialog7cc188_Handler(u8 *window, u32 message, u32 a, u32 b) {
         u8 *const list = Window_FindChild(window, nullptr, a);
         if (list) {
             u32 data;
-            const void *const text = b == 0xffffffff ? reinterpret_cast<const void *>((uintptr_t)0x0078a374) : nameOf(list, static_cast<s32>(b), &data);
+            const void *const text = b == 0xffffffff ? reinterpret_cast<const void *>(gWindow7cc8c0handler_78a374) : nameOf(list, static_cast<s32>(b), &data);
             vcall<void>(Window_FindChild(window, nullptr, 0x25), 0x24, text);
         }
     }

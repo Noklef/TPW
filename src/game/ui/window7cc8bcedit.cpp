@@ -48,7 +48,7 @@ u32 mouseMode() {
 }
 
 void say(u8 *window) {
-    const u16 *const chars = reinterpret_cast<const u16 *>((uintptr_t)0x007cc6a8);
+    const u16 *const chars = reinterpret_cast<const u16 *>(gWindow7cc8bc_7cc6a8);
     StdWString text;
     text.allocator = 0;   // (byte 0 the window's low byte, the rest unset: never read)
     text.ptr = nullptr;
@@ -60,7 +60,7 @@ void say(u8 *window) {
         ImeWString_SetLength(reinterpret_cast<u8 *>(&text), nullptr, length);
     }
     g_env->say(g_env->chat(), nullptr, text);
-    slot9(window, static_cast<u32>(0x0078a374));
+    slot9(window, static_cast<u32>(reinterpret_cast<uintptr_t>(&gWindow7cc8c0handler_78a374)));
 }
 
 void toggleEntry() {

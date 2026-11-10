@@ -65,6 +65,8 @@ s32 __cdecl Dialog7ca150_PageHandler(u8 *window, u32 message, u32 a, u32 b);
 #include "../core/gamedata.h"
 
 // Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(u8[232], gDialog7ca150_750ab8, 0x00750ab8, 0xe8);
+GAME_DATA(u8[180], gDialog7ca150_750ca0, 0x00750ca0, 0xb4);
 GAME_DATA(u8 *, gDialog7ca150_7ca14c, 0x007ca14c, 0x4);
 GAME_DATA(u8 *, gDialog7ca150_7ca150, 0x007ca150, 0x4);
 GAME_DATA(u32, gDialog7ca150_7ca154, 0x007ca154, 0x4);

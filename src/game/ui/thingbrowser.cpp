@@ -125,7 +125,7 @@ void __cdecl ThingBrowser_Create() {
     Window_SetHandler(Window_FindChild(gThingbrowser_7cc300, nullptr, 0x95d), nullptr, 0x004b3b90);
     Window_SetShown(gThingbrowser_7cc2fc, nullptr, 0);
     Window_SetShown(gThingbrowser_7cc300, nullptr, 0);
-    u8 *const panel = WindowScript_Build(global<u8 *>(0x00faa5d8), nullptr, reinterpret_cast<u8 *>(0x00756ad8), 0x004b3c10);
+    u8 *const panel = WindowScript_Build(global<u8 *>(0x00faa5d8), nullptr, gThingBrowser_Create_756ad8, 0x004b3c10);
     gThingbrowser_7cc304 = panel;
     Window_SetCursor(panel, nullptr, 2);
     Window_Unlink(gThingbrowser_7cc304);

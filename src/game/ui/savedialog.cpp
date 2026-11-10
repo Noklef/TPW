@@ -24,7 +24,7 @@ const SaveDialogEnv kGameEnv = {game<u8 *(__fastcall *)(u8 *)>(0x005ac8f0), game
 const SaveDialogEnv *g_env = &kGameEnv;
 
 u8 *list() { return reinterpret_cast<u8 *>((uintptr_t)0x00f7b560); }
-u16 *typed() { return reinterpret_cast<u16 *>((uintptr_t)0x007ca720); }
+u16 *typed() { return reinterpret_cast<u16 *>(gSavedialog_7ca720); }
 u8 *next(u8 *item) { return WNamedList_FindAfter(list(), nullptr, item); }
 void close(u32 dialog) { g_env->send(global<u8 *>(dialog), 4, 0, 0); }
 

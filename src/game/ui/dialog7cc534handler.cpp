@@ -8,6 +8,7 @@
 #include "dialog7cc5f4.h"
 #include "window.h"
 #include "../online/postcardsend.h"
+#include "dialog7cc530handler.h"
 
 namespace {
 
@@ -66,7 +67,7 @@ extern "C" s32 __cdecl Dialog7cc534_Handler(u8 *window, u32 message, u32 a, u32 
         g_env->create(global<u32>(0x007cc52c));
         u8 properties[0x830];
         global<u32(__fastcall *)(void *, void *, u32, void *)>(0x006fd5bc)(reinterpret_cast<void *>((uintptr_t)0x007c24c0), nullptr, global<u32>(0x007cc50c), properties);
-        Crt().sprintf(reinterpret_cast<char *>((uintptr_t)0x007cc4f0), gPostcardsend_74f8c4, properties + 0x212);
+        Crt().sprintf(reinterpret_cast<char *>(gDialog7cc530handler_7cc4f0), gPostcardsend_74f8c4, properties + 0x212);
         global<u8>(0x007cc53c) = 1;
     }
     return g_env->base(window, message, a, b);

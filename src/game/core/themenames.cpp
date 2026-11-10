@@ -6,6 +6,7 @@
 #include "crt.h"
 #include "../world/objectdefs.h"
 #include "../online/chatavatar.h"
+#include "../ui/window7cc8c0handler.h"
 
 namespace {
 
@@ -16,7 +17,7 @@ u16 *a_of(u8 *self) { return reinterpret_cast<u16 *>(self + 0x34); }
 u16 *b_of(u8 *self) { return reinterpret_cast<u16 *>(self + 0x76); }
 
 u8 *const kDefs = reinterpret_cast<u8 *>((uintptr_t)0x007890a0);
-u16 *const kNone = text(0x0078a374);   // (the global empty text)
+u16 *const kNone = text(reinterpret_cast<uintptr_t>(&gWindow7cc8c0handler_78a374));   // (the global empty text)
 u16 *const kOne = text(reinterpret_cast<uintptr_t>(&gChatavatar_75c0cc));    // "%s"
 
 const ThemeNamesEnv kGameEnv = {&CRT_snwprintf, &CRT_swprintf, &ObjectDefs_GetFullName, &ObjectDefs_GetName, &ObjectDefs_GetSuffix};

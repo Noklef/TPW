@@ -106,7 +106,7 @@ u32 __cdecl Window7c24c8_Set(u8 *window) {
 }
 
 u8 *__cdecl Window7cb2cc_Open() {
-    if (!gFocus_7cb2cc) gFocus_7cb2cc = Dialog_Create(reinterpret_cast<u8 *>(0x00752e00), 0x004a2680, 1);
+    if (!gFocus_7cb2cc) gFocus_7cb2cc = Dialog_Create(gWindow7cb2cc_Open_752e00, 0x004a2680, 1);
     return gFocus_7cb2cc;
 }
 

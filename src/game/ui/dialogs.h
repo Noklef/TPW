@@ -236,6 +236,7 @@ void __cdecl Dialog7cdb0c_Create(u32 flag);
 #include "../core/gamedata.h"
 
 // Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(u8[624], gDialog7cdb0c_Create_7596b0, 0x007596b0, 0x270);
 GAME_DATA(u8 *, gDialogs_7ca098, 0x007ca098, 0x4);
 GAME_DATA(u8 *, gDialogs_7cc4c4, 0x007cc4c4, 0x4);
 GAME_DATA(u32, gDialog7cc4c4_7cc4e4, 0x007cc4e4, 0x4);

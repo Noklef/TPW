@@ -21,6 +21,7 @@
 #include "../ui/dialogs.h"
 #include "servers.h"
 #include "session.h"
+#include "../ui/window7cc8c0handler.h"
 
 namespace {
 
@@ -30,7 +31,7 @@ const OnlineLoginEnv kGameEnv = {&Dialog7cc530_Open, &Dialog7cc5f4_Finish, &Dial
                                  &Dialog7cca94_SetProgress, &BalanceFile_Load, &Online_ApplyBalance, &Dialog7cc61c_Open, &CommandQueue_Post, &CRT_free};
 const OnlineLoginEnv *g_env = &kGameEnv;
 
-constexpr u32 kEmptyWide = 0x0078a374;
+const u32 kEmptyWide = reinterpret_cast<uintptr_t>(&gWindow7cc8c0handler_78a374);
 
 void Say(u32 text) {
     using Output = void(__stdcall *)(const char *);

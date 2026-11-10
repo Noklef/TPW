@@ -331,3 +331,8 @@ u8 *__fastcall Window7059f0_DeletingDtor(u8 *window, void *, u32 flags);
 // answer it returns.
 u32 __cdecl Window7059f0_Proc(u8 *window, u32 message, u32 a, u32 b);
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(u8[24], gWindow7059f0_Proc_77c4b8, 0x0077c4b8, 0x18);

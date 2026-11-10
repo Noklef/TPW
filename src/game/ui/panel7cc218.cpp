@@ -575,7 +575,7 @@ s32 __cdecl Panel7cc218_LevelBoxHandler(u8 *window, u32 message, u32 a, u32 b) {
 
 void __fastcall Panel7cc218_OpenLevelBox(u8 *self) {
     if (at<u32>(self, 0x24) || at<u32>(self, 0xc)) return;
-    at<u8 *>(self, 0x24) = WindowScript_Build(at<u8 *>(self, 0x10), nullptr, reinterpret_cast<u8 *>((uintptr_t)0x00755750), 0x004ae430);
+    at<u8 *>(self, 0x24) = WindowScript_Build(at<u8 *>(self, 0x10), nullptr, gPanel7cc218_OpenLevelBox_755750, 0x004ae430);
     Obj_CallMember20Slot14(self, nullptr, 0);
     Window_SetDepth(at<u8 *>(self, 0x24), nullptr, (u16)(at<u16>(at<u8 *>(self, 0x10), 0xe0) + 0x11));
     Window_SetDwordA0(at<u8 *>(self, 0x24), nullptr, 0, (u32)(uintptr_t)self);

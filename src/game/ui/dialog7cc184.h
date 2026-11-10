@@ -46,3 +46,8 @@ struct Dialog7cc184OpenEnv {
     u8(__cdecl *advisor)(u32 id);                                            // Advisor_PostId
 };
 void Dialog7cc184_SetOpenEnv(const Dialog7cc184OpenEnv *env);
+
+#include "../core/gamedata.h"
+
+// Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(u8[480], gDialog7cc184_Open_7540d8, 0x007540d8, 0x1e0);

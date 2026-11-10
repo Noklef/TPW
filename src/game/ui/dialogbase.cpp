@@ -88,7 +88,7 @@ s32 __cdecl Dialog_BoxHandler(u8 *window, u32 message, u32 a, u32 b) {
 }
 
 u8 *__cdecl Dialog_Box(const u8 *record, u32 kind0, u32 callback0, u32 kind1, u32 callback1, u32 kind2, u32 callback2, u8 keysKept) {
-    u8 *const window = reinterpret_cast<u8 *>(static_cast<uintptr_t>(g_calls.Cd(0x0047ed80, 0x0074f920u, 0x0047eed0u, 1u)));   // Dialog_Create
+    u8 *const window = reinterpret_cast<u8 *>(static_cast<uintptr_t>(g_calls.Cd(0x0047ed80, reinterpret_cast<uintptr_t>(&gDialog_Box_74f920), 0x0047eed0u, 1u)));   // Dialog_Create
     if (!window) return nullptr;
     const u32 self = (u32)(uintptr_t)window;
     u8 text[0xc];   // (a string: made and destroyed, not otherwise used)

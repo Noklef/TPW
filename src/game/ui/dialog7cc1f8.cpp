@@ -89,7 +89,7 @@ void __cdecl Dialog7cc1f8_Open(u32 kind, u32 selected) {
     Dialog7cb2b8_ResetChild21(1);
     Window7c24c8_Close();
     global<u32>(0x007cc1f0) = 0;
-    global<u16>(0x007cc1e4) = 0;
+    reinterpret_cast<u16 &>(gDialog7cc1f8_Open_7cc1e4) = 0;
     global<u16>(0x007cc1e8) = 0;
     global<u16>(0x007cc1e0) = 0;
     global<u8 *>(0x007cc1f8) = WindowScript_Build(gPanel7b9940_7cb2ac, nullptr, reinterpret_cast<u8 *>((uintptr_t)0x00754cf8), 0x004ac270);

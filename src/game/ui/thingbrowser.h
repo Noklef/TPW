@@ -92,6 +92,7 @@ void __cdecl ThingBrowser_ResetIfThing(u8 *thing);
 #include "../core/gamedata.h"
 
 // Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(u8[192], gThingBrowser_Create_756ad8, 0x00756ad8, 0xc0);
 GAME_DATA(u32, gThingbrowser_7cc2f0, 0x007cc2f0, 0x4);
 GAME_DATA(u8 *, gThingbrowser_7cc2fc, 0x007cc2fc, 0x4);
 GAME_DATA(u8 *, gThingbrowser_7cc300, 0x007cc300, 0x4);

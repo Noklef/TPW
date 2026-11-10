@@ -57,7 +57,7 @@ void refresh(u8 *window) {
     depthUp(0x10d2f);
     depthUp(0x10d2e);
     reinterpret_cast<u32 &>(gDialog7ca098_7ca090) = reinterpret_cast<u32 &>(gDialog7ca098_7ca094);
-    g_env->runScript(gDialog7ca098_7ca094, nullptr, reinterpret_cast<u8 *>((uintptr_t)0x007502b8), 100);
+    g_env->runScript(gDialog7ca098_7ca094, nullptr, gDialog7ca098_7502b8, 100);
 }
 
 // The button's action (its kind the dword kindAt), what the answer asks for.

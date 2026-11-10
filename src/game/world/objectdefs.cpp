@@ -18,6 +18,7 @@
 #include "../render/particles.h"
 #include "../core/textarg.h"
 #include "../ui/dialog74fb20.h"
+#include "../ui/window7cc8c0handler.h"
 
 namespace {
 
@@ -468,7 +469,7 @@ void __fastcall ObjectDef_LoadText(u8 *def, void *, Stream *stream) {
 }
 
 u8 __fastcall ObjectText_FullName(u16 *self, void *, u32 id, u16 *out, s32 size) {
-    const u16 *const none = &global<u16>(0x0078a374);  // (an empty bss string, the format)
+    const u16 *const none = &reinterpret_cast<u16 &>(gWindow7cc8c0handler_78a374);  // (an empty bss string, the format)
     if (const u8 *row = object_text_row(id))
         format_text(self, 0x40, at<u32>(row, 4));
     else

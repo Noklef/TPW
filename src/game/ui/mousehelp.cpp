@@ -18,6 +18,7 @@
 #include "../world/thingscan.h"
 #include "cursor.h"
 #include "mouseclick.h"
+#include "window7cc8c0handler.h"
 
 namespace {
 
@@ -31,7 +32,7 @@ const MouseHelpEnv *g_env = &kGameEnv;
 
 const u32 kTextSize = 0x3fff;
 u16 *const kBuffer = reinterpret_cast<u16 *>((uintptr_t)0x007ba058);
-const u16 *const kClear = reinterpret_cast<const u16 *>((uintptr_t)0x0078a374);
+const u16 *const kClear = reinterpret_cast<const u16 *>(gWindow7cc8c0handler_78a374);
 
 u32 &shown() { return gMouseclick_7c24f4; }
 u8 *&named() { return gMousehelp_7c24f8; }

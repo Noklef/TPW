@@ -20,6 +20,7 @@
 #include "window.h"
 #include "dialog74fb20.h"
 #include "gamepause.h"
+#include "window7cc8c0handler.h"
 
 namespace {
 
@@ -127,7 +128,7 @@ s32 __cdecl Dialog7cc184_Handler(u8 *window, u32 message, u32 a, u32 b) {
         if (a == 0x5da0) {
             g_env->openAddress();
         } else if (a == 0x5da1) {
-            for (u32 id = 0x5da3; id <= 0x5da5; ++id) vcall<void>(g_env->find(window, nullptr, id), 0x24, 0x0078a374);
+            for (u32 id = 0x5da3; id <= 0x5da5; ++id) vcall<void>(g_env->find(window, nullptr, id), 0x24, reinterpret_cast<uintptr_t>(&gWindow7cc8c0handler_78a374));
         } else if (a == 0x5da2) {
             g_env->show(g_env->find(window, nullptr, 0x5d9f));
         } else if (a == 0xfffffffe) {

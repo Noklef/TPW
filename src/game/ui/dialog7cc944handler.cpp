@@ -12,6 +12,8 @@
 #include "window705a20.h"
 #include "window705a50.h"
 #include "window705a50handler.h"
+#include "window7cc8c0handler.h"
+#include "dialog7cc944.h"
 
 namespace {
 
@@ -29,11 +31,11 @@ void close() {
 }
 
 void search() {
-    g_env->search(at<u8 *>(Online_Instance(), 0xec), nullptr, 0x007cc908, 0x004bf9d0, 0);
+    g_env->search(at<u8 *>(Online_Instance(), 0xec), nullptr, reinterpret_cast<uintptr_t>(&gDialog7cc944_7cc908), 0x004bf9d0, 0);
     if (u8 *const dialog = global<u8 *>(0x007cc944)) {
         u8 *const list = Window_FindChild(dialog, nullptr, 0xe05b);
         g_env->clearList(list);
-        const u32 texts[6] = {static_cast<u32>(reinterpret_cast<uintptr_t>(g_env->text(0x134))), reinterpret_cast<uintptr_t>(&gDialog7cc944handler_759158), 0x0078a374, 0, 0, 0};
+        const u32 texts[6] = {static_cast<u32>(reinterpret_cast<uintptr_t>(g_env->text(0x134))), reinterpret_cast<uintptr_t>(&gDialog7cc944handler_759158), reinterpret_cast<uintptr_t>(&gWindow7cc8c0handler_78a374), 0, 0, 0};
         g_env->addItem(list, nullptr, texts, 0xffffffff, -1, 1);
     }
 }

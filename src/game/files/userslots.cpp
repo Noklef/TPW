@@ -18,6 +18,7 @@
 #include "handles.h"
 #include "../online/chatlists.h"
 #include "../ui/dialog74fb20.h"
+#include "../ui/window7cc8c0handler.h"
 
 namespace {
 
@@ -206,7 +207,7 @@ void __fastcall UserSlots_Create(u8 *self, void *, s32 i, const WString *name, u
         String_Ctor(&narrow);
         String_AssignFromWide(&narrow, &folder);
         g_env->removeTree(&narrow);
-        vcall<void>(record, 0x14, reinterpret_cast<const u16 *>((uintptr_t)0x0078a374));
+        vcall<void>(record, 0x14, reinterpret_cast<const u16 *>(gWindow7cc8c0handler_78a374));
         at<u32>(record, 0x14) = 0;
         String_Dtor(&narrow);
         WString_Dtor(&folder);
@@ -286,7 +287,7 @@ void __fastcall UserSlots_Close(u8 *self) {
 
 void __fastcall UserSlots_Scan(u8 *self) {
     for (u32 i = 0; i < 4; i++) {
-        vcall<void>(self + 24 * i, 0x14, 0x0078a374u);
+        vcall<void>(self + 24 * i, 0x14, reinterpret_cast<uintptr_t>(&gWindow7cc8c0handler_78a374));
         at<u32>(self + 24 * i, 0x14) = 0;
     }
     WString saveWide, usersWide, onlineWide;
@@ -367,7 +368,7 @@ void __fastcall UserSlots_ClearSlot(u8 *self, void *, s32 i) {
     String_AssignFromWide(&path, &folder);
     g_env->removeTree(&path);
     u8 *const slot = self + 0x18 * i;
-    vcall<void>(slot, 0x14, reinterpret_cast<const void *>((uintptr_t)0x0078a374));
+    vcall<void>(slot, 0x14, reinterpret_cast<const void *>(gWindow7cc8c0handler_78a374));
     at<u32>(slot, 0x14) = 0;
     String_Dtor(&path);
     WString_Dtor(&folder);

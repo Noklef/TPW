@@ -34,7 +34,7 @@ void __fastcall StaffRename_Open(u8 *self) {
     if (!thing || (u8)(thing[2] - 4) > 4) return;
     u8 *const parent = *reinterpret_cast<u8 **>(self + 0x10);
     const s32 depth = *reinterpret_cast<s16 *>(parent + 0xe0);
-    u8 *const window = g_env->build(parent, nullptr, reinterpret_cast<u8 *>((uintptr_t)0x007572e8), 0x004b6320);
+    u8 *const window = g_env->build(parent, nullptr, gStaffRename_Open_7572e8, 0x004b6320);
     dialog = window;
     g_env->setDepth(window, nullptr, (u32)(depth + 10));
     g_env->setDwordA0(window, nullptr, 0, (u32)(uintptr_t)thing);

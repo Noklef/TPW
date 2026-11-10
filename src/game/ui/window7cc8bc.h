@@ -92,6 +92,10 @@ void __cdecl Window7cc8cc_PlaceAtMouse(u32 unused, u8 *window);
 #include "../core/gamedata.h"
 
 // Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(u8[496], gWindow7cc8bc_Create_758ae8, 0x00758ae8, 0x1f0);
+GAME_DATA(u8[320], gWindow7cc8bc_Create_758cd8, 0x00758cd8, 0x140);
+GAME_DATA(u8[236], gWindow7cc8bc_Create_758e18, 0x00758e18, 0xec);
+GAME_DATA(u8[516], gWindow7cc8bc_7cc6a8, 0x007cc6a8, 0x204);
 GAME_DATA(u32, gWindow7cc8bc_7cc8ac, 0x007cc8ac, 0x4);
 GAME_DATA(u32, gWindow7cc8bc_7cc8b8, 0x007cc8b8, 0x4);
 GAME_DATA(u8 *, gWindow7cc8bc_7cc8bc, 0x007cc8bc, 0x4);

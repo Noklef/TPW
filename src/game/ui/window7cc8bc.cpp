@@ -166,7 +166,7 @@ s32 __cdecl Windows7cc8c4_Handler(u8 *window_, u32 message, u32 a, u32 b) {
 
 void __cdecl Window7cc8bc_Create() {
     gWindow7cc8bc_7cc8d0 = 0;
-    u8 *const page = WindowScript_Build(global<u8 *>(0x00faa5d8), nullptr, reinterpret_cast<u8 *>((uintptr_t)0x00758ae8), 0x004bd4a0);
+    u8 *const page = WindowScript_Build(global<u8 *>(0x00faa5d8), nullptr, gWindow7cc8bc_Create_758ae8, 0x004bd4a0);
     gWindow7cc8bc_7cc8bc = page;
     if (page) {
         u8 *const names = Window_FindChild(page, nullptr, 0xc3123);
@@ -185,9 +185,9 @@ void __cdecl Window7cc8bc_Create() {
         u8 *const memory = static_cast<u8 *>(GameHeap_Alloc(0x1a4));
         Window_SetImpl(edit, nullptr, memory ? TextPart6ff4d0_Ctor(memory, nullptr, 0) : nullptr);
         Window_Set4c(edit, nullptr, Language_Font(global<u32>(0x00758f08)));
-        Window705a20_SetBuffer(edit, nullptr, 0x007cc6a8, 0xff);
+        Window705a20_SetBuffer(edit, nullptr, reinterpret_cast<uintptr_t>(&gWindow7cc8bc_7cc6a8), 0xff);
         Window705a20_SetCaret(edit, nullptr, hilight());
-        vcall<void>(edit, 0x24, 0x0078a374u);
+        vcall<void>(edit, 0x24, reinterpret_cast<uintptr_t>(&gWindow7cc8c0handler_78a374));
         gWindow7cc8c0handler_7cc8b4 = 1;
         u8 rect[12];
         GuiRect_Ctor(rect);
@@ -198,8 +198,8 @@ void __cdecl Window7cc8bc_Create() {
         global<u32>(0x0074d104) = global<u32>(0x007a0c9c);
         GuiRect_Dtor(rect);
     }
-    buildHidden(0x00758cd8, reinterpret_cast<uintptr_t>(&gWindow7cc8bc_7cc8c4), 0x1789);
-    buildHidden(0x00758e18, reinterpret_cast<uintptr_t>(&gWindow7cc8bc_7cc8c8), 0x3003);
+    buildHidden(reinterpret_cast<uintptr_t>(&gWindow7cc8bc_Create_758cd8), reinterpret_cast<uintptr_t>(&gWindow7cc8bc_7cc8c4), 0x1789);
+    buildHidden(reinterpret_cast<uintptr_t>(&gWindow7cc8bc_Create_758e18), reinterpret_cast<uintptr_t>(&gWindow7cc8bc_7cc8c8), 0x3003);
     reinterpret_cast<u32 &>(gWindow7cc8bc_7cc8cc) = 0;
     gWindow7cc8bc_7cc8c0 = Window_CreateChild(global<u8 *>(0x00faa5d8), nullptr, 1, 0, 0xfff04d2a, 0, 0, 0x7ff, 0x5ff);
     Window_SetHandler(gWindow7cc8bc_7cc8c0, nullptr, 0x004bd4a0);

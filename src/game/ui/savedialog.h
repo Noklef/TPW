@@ -41,5 +41,6 @@ void __cdecl SaveDialog_FillList(u8 *window);
 #include "../core/gamedata.h"
 
 // Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(u8[72], gSavedialog_7ca720, 0x007ca720, 0x48);
 GAME_DATA(u32, gSavedialog_7cb244, 0x007cb244, 0x4);
 GAME_DATA(u32, gSavedialog_7cb248, 0x007cb248, 0x4);
