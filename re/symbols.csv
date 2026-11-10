@@ -4439,6 +4439,9 @@ address,name,kind,confidence,notes
 0x005f4f81,SseMath_TransformBatch,function,low,reimplemented (src/game/math/ssemath); batches of four vectors transformed through the expanded table
 0x005f50c5,SseMath_TransformVectors,function,low,"reimplemented (src/game/math/ssemath); vectors transformed by a matrix's rows, four modes"
 0x005f5433,SseMath_Multiply,function,low,reimplemented (src/game/math/ssemath); two 4 x 4 matrices multiplied
+0x005f4730,Amd3DNow_TransformBatch,function,low,reimplemented (src/game/math/amd3dnow); pairs of vectors from batches of four transformed by a matrix (3DNow!)
+0x005f4844,Amd3DNow_TransformVectors,function,low,"reimplemented (src/game/math/amd3dnow); vectors transformed by a matrix's rows, four modes (3DNow!)"
+0x005f4bd0,Amd3DNow_Multiply,function,low,reimplemented (src/game/math/amd3dnow); two 4 x 4 matrices multiplied (3DNow!)
 0x00503980,Table_ScaledBySum,function,high,reimplemented (src/game/world/staff); a table share scaled by the things' sum
 0x00505a10,Staff_Train,function,low,"reimplemented (src/game/world/staff); thiscall (amount): pay for training: debit the money, add to the park's spend, add amount / cost points of progress, raise the grade at 100"
 0x00508000,Staff_CountTypes,function,low,"reimplemented (src/game/world/staff); thiscall: count the world's staff by type, flagging the types that reached their limits"

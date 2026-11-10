@@ -62,6 +62,7 @@
 #include "../game/math/sintable.h"
 #include "../game/math/ssemath.h"
 #include "../game/math/transform.h"
+#include "../game/math/amd3dnow.h"
 #include "../game/math/vec2.h"
 #include "../game/gfx/palette.h"
 #include "../game/gfx/surface.h"
@@ -4673,6 +4674,9 @@ const Hook kHooks[] = {
     {"SseMath_TransformBatch",    0x005f4f81, (void *)&SseMath_TransformBatch, {0x55, 0x57, 0x56, 0x52, 0x51}},
     {"SseMath_TransformVectors",  0x005f50c5, (void *)&SseMath_TransformVectors, {0x55, 0x57, 0x56, 0x52, 0x51}},
     {"SseMath_Multiply",          0x005f5433, (void *)&SseMath_Multiply, {0x8b, 0x54, 0x24, 0x08, 0x8b}},
+    {"Amd3DNow_TransformBatch",   0x005f4730, (void *)&Amd3DNow_TransformBatch, {0x55, 0x57, 0x56, 0x52, 0x51}},
+    {"Amd3DNow_TransformVectors", 0x005f4844, (void *)&Amd3DNow_TransformVectors, {0x55, 0x57, 0x56, 0x52, 0x51}},
+    {"Amd3DNow_Multiply",         0x005f4bd0, (void *)&Amd3DNow_Multiply, {0x0f, 0x0e, 0x8b, 0x4c, 0x24}},
     {"Table_ScaledBySum",         0x00503980, (void *)&Table_ScaledBySum, {0x56, 0x57, 0x8b, 0xf9, 0x8b}},
     {"Staff_Train",               0x00505a10, (void *)&Staff_Train, {0x53, 0x56, 0x8b, 0xf1, 0x57}},
     {"Staff_CountTypes",          0x00508000, (void *)&Staff_CountTypes, {0x83, 0xec, 0x0c, 0x33, 0xc0}},
