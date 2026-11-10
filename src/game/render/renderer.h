@@ -152,3 +152,4 @@ u8 *__fastcall RendererPart_ScalarDtor(u8 *object, void *, u32 flags);
 
 // Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
 GAME_DATA(u32, gRenderer_8bb624, 0x008bb624, 0x4);
+GAME_DATA(char[12], gText_Renderer_DefaultFont_774d80, 0x00774d80, 0xc);

@@ -44,3 +44,16 @@ u8 *__fastcall KeySource_DeletingDtorThunk10(u8 *self, void *, u32 flags);
 u8 *__fastcall KeySource_DeletingDtorThunk34(u8 *self, void *, u32 flags);
 
 }  // extern "C"
+
+#include "../core/gamedata.h"
+
+// Globals by address, by hand (.docs/09-globals.md). The vtables hold only ports: tpw.exe's loader points their slots at them.
+GAME_DATA(void *[3], MessageSource_vtable10, 0x00703ce8, 0xc);
+GAME_DATA(void *[6], MessageSource_vtable, 0x00703cf8, 0x18);
+GAME_DATA(void *[1], MouseMessage_vtable, 0x00703d10, 0x4);
+GAME_DATA(void *[1], MousePool_vtable, 0x00703d14, 0x4);
+GAME_DATA(void *[1], KeyMessage_vtable, 0x00703d18, 0x4);
+GAME_DATA(void *[1], KeyPool_vtable, 0x00703d1c, 0x4);
+GAME_DATA(void *[1], KeySourcePool_vtable, 0x00703d20, 0x4);
+GAME_DATA(void *[3], KeySource_vtable10, 0x00703d28, 0xc);
+GAME_DATA(void *[6], KeySource_vtable, 0x00703d38, 0x18);

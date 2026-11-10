@@ -128,3 +128,6 @@ GAME_DATA(char[20], gText_Challenges_Serialize_75a260, 0x0075a260, 0x14);
 GAME_DATA(char[16], gText_Challenges_Serialize_75a274, 0x0075a274, 0x10);
 GAME_DATA(char[20], gText_Challenges_Serialize_75a284, 0x0075a284, 0x14);
 GAME_DATA(char[20], gText_Challenges_Serialize_75a2b0, 0x0075a2b0, 0x14);
+GAME_DATA(char[24], gText_Challenges_Serialize_75a298, 0x0075a298, 0x18);
+GAME_DATA(char[12], gText_Challenge_Serialize_75a168, 0x0075a168, 0xc);
+GAME_DATA(char[20], gText_Challenges_LoadSam_75a1f4, 0x0075a1f4, 0x14);

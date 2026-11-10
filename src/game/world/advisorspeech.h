@@ -31,3 +31,4 @@ void __cdecl Advisor_Load(Stream *stream);
 
 // Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
 GAME_DATA(char[28], gText_Advisor_Say_76e0d8, 0x0076e0d8, 0x1c);
+GAME_DATA(char[12], gText_Advisor_Say_76e0cc, 0x0076e0cc, 0xc);

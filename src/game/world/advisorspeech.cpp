@@ -248,7 +248,7 @@ u32 __cdecl Advisor_Say(s32 id) {
 
     char file[100], path[240];
     g_calls.Cd(0x0067a650, file, (u32)&gText_Advisor_Say_76e0d8, name);   // sprintf ("\\Speech\\lips\\sp_...")
-    strcpy(path, global<s32>(0x00f79678) ? reinterpret_cast<const char *>((uintptr_t)g_calls.Cd(0x0040ef40)) : reinterpret_cast<const char *>((uintptr_t)0x0076e0cc));
+    strcpy(path, global<s32>(0x00f79678) ? reinterpret_cast<const char *>((uintptr_t)g_calls.Cd(0x0040ef40)) : static_cast<const char *>(gText_Advisor_Say_76e0cc));
     strcat(path, file);
     global<u32>(0x00f79670) = 0;
     global<u32>(0x00f7979c) = 0;

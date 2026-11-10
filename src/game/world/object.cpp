@@ -915,7 +915,7 @@ u32 __fastcall Object_Serialize(u8 *object, void *, Stream *stream, u32 save, s3
         return 1;
     if (version < 0 || version > 1)
         return 0;
-    if (!Save_Field(stream, save, object + 0x10, 4, (u32)&gText_Object_Serialize_75b614) || !Save_Field(stream, save, object + 0xe, 2, 0x0075b610))
+    if (!Save_Field(stream, save, object + 0x10, 4, (u32)&gText_Object_Serialize_75b614) || !Save_Field(stream, save, object + 0xe, 2, (u32)&gText_Object_Serialize_75b610))
         return 1;
     // the date (+0x18) as a SYSTEMTIME's eight fields (year, month, day, day of the week, hour, minute, second, ms) in dwords
     u32 date[8] = {};
@@ -948,7 +948,7 @@ u32 __fastcall Object_Serialize(u8 *object, void *, Stream *stream, u32 save, s3
         CircBufU32_30_Serialize(object + 0x2b8, nullptr, stream, save, version, unused) != 0 ||
         CircBufU32_30_Serialize(object + 0x340, nullptr, stream, save, version, unused) != 0)
         return 1;
-    static const SaveSpec kGoods[] = {{0x5d, 1, (u32)&gText_Object_Serialize_75b4f4},  {0x5c, 1, (u32)&gText_Object_Serialize_75b4e0},  {0x58, 4, 0x0075b4d0},  {0x6c, 2, (u32)&gText_Object_Serialize_75b4bc},
+    static const SaveSpec kGoods[] = {{0x5d, 1, (u32)&gText_Object_Serialize_75b4f4},  {0x5c, 1, (u32)&gText_Object_Serialize_75b4e0},  {0x58, 4, (u32)&gText_Object_Serialize_75b4d0},  {0x6c, 2, (u32)&gText_Object_Serialize_75b4bc},
                                       {0x188, 4, (u32)&gText_Object_Serialize_75b4ac}, {0x18c, 4, (u32)&gText_Object_Serialize_75b49c}, {0x190, 4, (u32)&gText_Object_Serialize_75b488}, {0x194, 4, (u32)&gText_Object_Serialize_75b478}};
     if (!Save_Fields(stream, save, object, kGoods, 8))
         return 1;

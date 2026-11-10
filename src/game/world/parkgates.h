@@ -59,3 +59,4 @@ GAME_DATA(s32, gParkGates_ArrivalSize_785310, 0x00785310, 0x4);
 GAME_DATA(u32, gParkGates_Step_785314, 0x00785314, 0x4);
 GAME_DATA(s32, gParkGates_ArrivalSize_78531c, 0x0078531c, 0x4);
 GAME_DATA(s32, gParkGates_ArrivalSize_785320, 0x00785320, 0x4);
+GAME_DATA(char[12], gText_Parkgates_759b64, 0x00759b64, 0xc);

@@ -40,3 +40,5 @@ u32 __fastcall World_Start(u8 *world, void *, const char *level);
 // Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
 GAME_DATA(char[16], gText_World_Start_76255c, 0x0076255c, 0x10);
 GAME_DATA(char[28], gText_World_Start_76256c, 0x0076256c, 0x1c);
+GAME_DATA(char[20], gText_World_Start_762588, 0x00762588, 0x14);
+GAME_DATA(char[32], gText_World_Start_76259c, 0x0076259c, 0x20);

@@ -317,13 +317,13 @@ u32 __fastcall Advisor_Serialize(u8 *self, void *, Stream *stream, u32 save, s32
         if (AdvisorMsg_Serialize(self + 0x14 + 0x18 * i, nullptr, stream, save, version, unused) != 0) return 1;
     if (!Save_Field(stream, save, self + 0xd4, 4, (u32)&gText_Advisor_Serialize_76e16c)) return 1;   // mNextAvailableQueuePos
     if (!Save_Field(stream, save, self + 0xd8, 4, (u32)&gText_Advisor_Serialize_76e158)) return 1;   // mLastActionStarted
-    if (!Save_Field(stream, save, self + 0xdc, 4, 0x0076e144)) return 1;   // mLastActionDuration
+    if (!Save_Field(stream, save, self + 0xdc, 4, (u32)&gText_Advisor_Serialize_76e144)) return 1;   // mLastActionDuration
     for (u32 i = 0; i < 0x15f; ++i)
-        if (!Save_Field(stream, save, self + 0xe0 + 0x10 * i, 0x10, 0x0076e138)) return 1;   // mHistory[i]
+        if (!Save_Field(stream, save, self + 0xe0 + 0x10 * i, 0x10, (u32)&gText_Advisor_Serialize_76e138)) return 1;   // mHistory[i]
     if (AdvisorMsg_Serialize(self + 0x16d0, nullptr, stream, save, version, unused) != 0) return 1;
     if (!Save_Field(stream, save, self + 0x16e8, 1, (u32)&gText_Advisor_Serialize_76e120)) return 1;   // mRequestedLastTutorial
-    if (save != 0) return Save_Field(stream, save, self + 0x16ec, 4, 0x0076e110) ? 0 : 1;
-    return Save_ReadU32(stream, self + 0x16ec, reinterpret_cast<const char *>((uintptr_t)0x0076e110), 0) != 0 ? 1 : 0;
+    if (save != 0) return Save_Field(stream, save, self + 0x16ec, 4, (u32)&gText_Advisor_Serialize_76e110) ? 0 : 1;
+    return Save_ReadU32(stream, self + 0x16ec, gText_Advisor_Serialize_76e110, 0) != 0 ? 1 : 0;
 }
 
 void __cdecl Advisor_PauseSpeech() {

@@ -214,7 +214,7 @@ u8 *__fastcall MouseFilter_Ctor(u8 *self) {
     at<u32>(self, 0x4c) = 0;
     at<u32>(self, 0x5c) = 0;
     at<u8>(self, 0x60) = 0;
-    at<u32>(self, 0) = 0x00703cc8;
+    at<void *const *>(self, 0) = MouseFilter_vtable;
     u32 mouse[3];
     import<s32(__stdcall *)(u32, u32, u32 *, u32)>(0x006fd374)(3, 0, mouse, 0);   // SystemParametersInfoA(SPI_GETMOUSE)
     at<u32>(self, 0x50) = mouse[0];
@@ -284,8 +284,8 @@ u8 *__fastcall KeyFilter_Ctor(u8 *self) {
     at<u32>(self, 0x10) = 0x00703744;
     at<u32>(self, 0x11c) = 0;
     at<u32>(self, 0x120) = 0;
-    at<u32>(self, 0) = 0x00703c40;
-    at<u32>(self, 0xc) = 0x00703c38;
+    at<void *const *>(self, 0) = KeyFilter_vtable;
+    at<void *const *>(self, 0xc) = KeyFilter_vtableC;
     for (u32 offset = 0x1c; offset < 0x11c; offset += 4) at<u32>(self, offset) = 0;
     InputSubs_Subscribe(self + 0x10, nullptr, gKeyFilter_Ctor_703c30, static_cast<u32>(reinterpret_cast<uintptr_t>(self + 0xc)));
     return self;

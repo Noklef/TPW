@@ -309,12 +309,12 @@ u32 __fastcall Landscape_RemoveTextureList(u8 **list) {
 }
 
 u32 __fastcall Landscape_LoadSky(u8 *landscape, void *, const char *folder) {
-    LoadSky(landscape, 0x1fd0, folder, reinterpret_cast<const char *>((uintptr_t)0x00768da0));   // "sky\sky.tga"
-    if (LoadSky(landscape, 0x1fd4, folder, reinterpret_cast<const char *>((uintptr_t)0x00768d90)) != nullptr) {   // "sky\sky_rgb.tga"
+    LoadSky(landscape, 0x1fd0, folder, gText_Landscape_LoadSky_768da0);   // "sky\sky.tga"
+    if (LoadSky(landscape, 0x1fd4, folder, gText_Landscape_LoadSky_768d90) != nullptr) {   // "sky\sky_rgb.tga"
         Landscape_SampleColours(landscape);
         ReleaseSlot(landscape, 0x1fd4);
     }
-    LoadSky(landscape, 0x1fd8, folder, reinterpret_cast<const char *>((uintptr_t)0x00768d80));   // "sky\sky_cyl.tga"
+    LoadSky(landscape, 0x1fd8, folder, gText_Landscape_LoadSky_768d80);   // "sky\sky_cyl.tga"
     return 1;
 }
 }

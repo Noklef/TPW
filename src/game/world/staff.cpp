@@ -425,7 +425,7 @@ u32 __fastcall Staff_Serialize(u8 *staff, void *, Stream *stream, u32 save, s32 
         return 1;
     if (version < 0 || version > 1)
         return 0;
-    static const SaveSpec kRest[] = {{0x20a, 2, 0x0075e370}, {0x20c, 2, 0x0075e360}, {0x1e8, 1, 0x0075e348}, {0x208, 2, (u32)&gText_Staff_Serialize_75e33c},
+    static const SaveSpec kRest[] = {{0x20a, 2, (u32)&gText_Staff_Serialize_75e370}, {0x20c, 2, (u32)&gText_Staff_Serialize_75e360}, {0x1e8, 1, (u32)&gText_Staff_Serialize_75e348}, {0x208, 2, (u32)&gText_Staff_Serialize_75e33c},
                                      {0x19c, 4, (u32)&gText_Object_75b5b0}, {0x200, 4, 0x0075d1e0}, {0x1f0, 8, (u32)&gText_Staff_Serialize_75e330}};
     if (save != 0) {
         // the two floats are saved as the float of their __ftol's low byte
@@ -464,7 +464,7 @@ u32 __fastcall StaffPool_Serialize(u8 *pool, void *, Stream *stream, u32 save, s
         if (StaffPoolEntry_Serialize(pool + i * 0x14, nullptr, stream, save, version, unused))
             return 1;
     for (u32 i = 0; i < 5; ++i)
-        if (!Save_Field(stream, save, pool + 0x280 + i * 4, 4, 0x0075e7b8) || !Save_Field(stream, save, pool + 0x299 + i, 1, (u32)&gText_StaffPool_Serialize_75e7a4))
+        if (!Save_Field(stream, save, pool + 0x280 + i * 4, 4, (u32)&gText_StaffPool_Serialize_75e7b8) || !Save_Field(stream, save, pool + 0x299 + i, 1, (u32)&gText_StaffPool_Serialize_75e7a4))
             return 1;
     if (TimeSig_Serialize(pool + 0x294, nullptr, stream, save, version, unused))
         return 1;
@@ -540,7 +540,7 @@ u32 __fastcall Entertainer_Serialize(u8 *staff, void *, Stream *stream, u32 save
 }
 
 u32 __fastcall Researcher_Serialize(u8 *staff, void *, Stream *stream, u32 save, s32 version, u32 unused) {
-    static const SaveSpec kFields[] = {{0x214, 4, 0x0075e168}, {0x210, 2, 0x0075a4f4}};
+    static const SaveSpec kFields[] = {{0x214, 4, (u32)&gText_Researcher_Serialize_75e168}, {0x210, 2, 0x0075a4f4}};
     return StaffType_Serialize(staff, stream, save, version, unused, kFields, 2);
 }
 

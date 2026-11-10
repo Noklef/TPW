@@ -456,3 +456,8 @@ GAME_DATA(u32, gStaff_7852f4, 0x007852f4, 0x4);
 GAME_DATA(s32, gStaff_7852f8, 0x007852f8, 0x4);
 GAME_DATA(s32, gStaff_785324, 0x00785324, 0x4);
 GAME_DATA(s32, gStaff_785328, 0x00785328, 0x4);
+GAME_DATA(char[24], gText_Researcher_Serialize_75e168, 0x0075e168, 0x18);
+GAME_DATA(char[24], gText_Staff_Serialize_75e348, 0x0075e348, 0x18);
+GAME_DATA(char[16], gText_Staff_Serialize_75e360, 0x0075e360, 0x10);
+GAME_DATA(char[16], gText_Staff_Serialize_75e370, 0x0075e370, 0x10);
+GAME_DATA(char[16], gText_StaffPool_Serialize_75e7b8, 0x0075e7b8, 0x10);

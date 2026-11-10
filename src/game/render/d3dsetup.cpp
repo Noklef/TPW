@@ -66,11 +66,11 @@ bool Build(u8 *self, u32 flags) {
         return false;
     }
     logged((u32)&gText_D3dsetup_7689b0);
-    noted(0x00768998);
+    noted((u32)&gText_D3dsetup_768998);
     keep(comcall<u32>(draw, 0, 0x00707520u, self + 4));
     if (result()) return false;
     if (flags & 0x10) {
-        logged(0x00768988);
+        logged((u32)&gText_D3dsetup_768988);
         u32 format[8];
         ZeroDwords(format, 8);
         format[1] = 0x400;

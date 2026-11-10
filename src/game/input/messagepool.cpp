@@ -27,8 +27,8 @@ void fillMouse(u8 *message, u32 code, const u32 *record) {
     at<u32>(message, 8) = 1;
 }
 
-void destroy(u8 *self, u32 vtable) {
-    at<u32>(self, 0) = vtable;
+void destroy(u8 *self, void *const *vtable) {
+    at<void *const *>(self, 0) = vtable;
     for (Node *node = at<Node *>(self, 8)->next; node != at<Node *>(self, 8); node = node->next) GameHeap_Free(node->message);
     Node *const sentinel = at<Node *>(self, 8);
     for (Node *node = sentinel->next; node != sentinel;) {
@@ -48,7 +48,7 @@ u8 *newKeyMessage() {
     u8 *const message = static_cast<u8 *>(GameHeap_Alloc(0x14));
     if (message) {
         at<u32>(message, 8) = 0;
-        at<u32>(message, 0) = 0x00703d18;
+        at<void *const *>(message, 0) = KeyMessage_vtable;
     }
     return message;
 }
@@ -59,7 +59,7 @@ u8 *newMouseMessage() {
         at<u32>(message, 8) = 0;
         at<u32>(message, 0x14) = 0;
         at<u32>(message, 0x18) = 0;
-        at<u32>(message, 0) = 0x00703d10;
+        at<void *const *>(message, 0) = MouseMessage_vtable;
     }
     return message;
 }
@@ -91,13 +91,13 @@ u32 next(u8 *self, u8 *(*make)()) {
 
 // A pool's constructor, as the sources' constructors have it inline: the empty list, one message, the cursor on it. (The list's allocator byte at +4 is stack garbage in the
 // originals, which nothing reads: not written.)
-void initPool(u8 *self, u32 vtable, u8 *(*make)()) {
+void initPool(u8 *self, void *const *vtable, u8 *(*make)()) {
     Node *const sentinel = static_cast<Node *>(GameHeap_Alloc(0xc));
     sentinel->next = sentinel;
     sentinel->prev = sentinel;
     at<Node *>(self, 8) = sentinel;
     at<u32>(self, 0xc) = 0;
-    at<u32>(self, 0) = vtable;
+    at<void *const *>(self, 0) = vtable;
     addLast(self, make());
     at<Node *>(self, 0x10) = at<Node *>(self, 8)->next;
 }
@@ -106,8 +106,8 @@ void initPool(u8 *self, u32 vtable, u8 *(*make)()) {
 
 extern "C" {
 
-void __fastcall KeyPool_Dtor(u8 *self) { destroy(self, 0x00703d1c); }
-void __fastcall MousePool_Dtor(u8 *self) { destroy(self, 0x00703d14); }
+void __fastcall KeyPool_Dtor(u8 *self) { destroy(self, KeyPool_vtable); }
+void __fastcall MousePool_Dtor(u8 *self) { destroy(self, MousePool_vtable); }
 u8 *__fastcall KeyPool_DeletingDtor(u8 *self, void *, u32 flags) {
     KeyPool_Dtor(self);
     if (flags & 1) GameHeap_Free(self);
@@ -122,16 +122,16 @@ u8 *__fastcall MousePool_DeletingDtor(u8 *self, void *, u32 flags) {
 
 u8 *__fastcall MessageSource_Ctor(u8 *self) {
     DeviceFilter_Ctor(self);
-    initPool(self + 0x34, 0x00703d1c, newKeyMessage);
-    initPool(self + 0x48, 0x00703d14, newMouseMessage);
-    at<u32>(self, 0) = 0x00703cf8;
-    at<u32>(self, 0x10) = 0x00703ce8;
+    initPool(self + 0x34, KeyPool_vtable, newKeyMessage);
+    initPool(self + 0x48, MousePool_vtable, newMouseMessage);
+    at<void *const *>(self, 0) = MessageSource_vtable;
+    at<void *const *>(self, 0x10) = MessageSource_vtable10;
     return self;
 }
 
 void __fastcall MessageSource_Dtor(u8 *self) {
-    at<u32>(self, 0) = 0x00703cf8;
-    at<u32>(self, 0x10) = 0x00703ce8;
+    at<void *const *>(self, 0) = MessageSource_vtable;
+    at<void *const *>(self, 0x10) = MessageSource_vtable10;
     MousePool_Dtor(self + 0x48);
     KeyPool_Dtor(self + 0x34);
     DeviceFilter_Dtor(self);
@@ -145,19 +145,19 @@ u8 *__fastcall MessageSource_DeletingDtor(u8 *self, void *, u32 flags) {
 
 u8 *__fastcall KeySource_Ctor(u8 *self) {
     DeviceFilter_Ctor(self);
-    initPool(self + 0x34, 0x00703d14, newMouseMessage);
+    initPool(self + 0x34, MousePool_vtable, newMouseMessage);
     at<u32>(self, 0x18) = 6;
     at<u32>(self, 0x14) = 6;
-    at<u32>(self, 0) = 0x00703d38;
-    at<u32>(self, 0x10) = 0x00703d28;
-    at<u32>(self, 0x34) = 0x00703d20;
+    at<void *const *>(self, 0) = KeySource_vtable;
+    at<void *const *>(self, 0x10) = KeySource_vtable10;
+    at<void *const *>(self, 0x34) = KeySourcePool_vtable;
     return self;
 }
 
 void __fastcall KeySource_Dtor(u8 *self) {
-    at<u32>(self, 0) = 0x00703d38;
-    at<u32>(self, 0x10) = 0x00703d28;
-    at<u32>(self, 0x34) = 0x00703d20;
+    at<void *const *>(self, 0) = KeySource_vtable;
+    at<void *const *>(self, 0x10) = KeySource_vtable10;
+    at<void *const *>(self, 0x34) = KeySourcePool_vtable;
     MousePool_Dtor(self + 0x34);
     DeviceFilter_Dtor(self);
 }
