@@ -882,6 +882,16 @@ add_library(tpw_game STATIC
 # The libraries whose functions replace the exe's copies (src/game/lib); their headers stay private to those units.
 target_link_libraries(tpw_game PRIVATE tpw_zlib tpw_jpeg6b tpw_jpeg6a)
 
+# The game's globals by name (src/game/core/gamedata.h, .docs/09-globals.md): each target defines the names in a generated source. The
+# hook DLL, the tests and the driver bind them to the original addresses; tpw.exe gives them objects of its own (below). The generator
+# fails the build when a converted address is still used as a literal anywhere in src.
+find_program(TPW_PYTHON NAMES py python REQUIRED)
+file(GLOB_RECURSE tpw_sources CONFIGURE_DEPENDS src/*.h src/*.cpp)
+add_custom_command(OUTPUT ${CMAKE_BINARY_DIR}/gamedata_address.cpp
+    COMMAND ${TPW_PYTHON} -I ${CMAKE_SOURCE_DIR}/tools/gamedata.py address ${CMAKE_BINARY_DIR}/gamedata_address.cpp
+    DEPENDS ${CMAKE_SOURCE_DIR}/tools/gamedata.py ${tpw_sources}
+    COMMENT "The game's globals at their addresses")
+
 # Proxy dinput.dll that loads into tp.exe and installs the hooks.
 add_library(tpw_hook SHARED
     src/hook/dllmain.cpp
@@ -890,6 +900,7 @@ add_library(tpw_hook SHARED
     src/hook/patch.cpp
     src/hook/regthunks.cpp
     src/hook/dinput.def
+    ${CMAKE_BINARY_DIR}/gamedata_address.cpp
 )
 set_target_properties(tpw_hook PROPERTIES OUTPUT_NAME dinput)
 target_link_libraries(tpw_hook PRIVATE tpw_game)
@@ -928,25 +939,30 @@ add_executable(tpw_tests
     src/hook/hooks.cpp
     src/hook/patch.cpp
     src/hook/regthunks.cpp
+    ${CMAKE_BINARY_DIR}/gamedata_address.cpp
 )
 target_link_libraries(tpw_tests PRIVATE tpw_game)
 
 # tpw.exe: the game without tp.exe's code, which it reads as a file and copies in as data (src/loader/loader.cpp, .docs/08-loader.md).
 # Fixed at 0x10000 like the driver below, so its code ends below 0x400000 and its .game section covers the game's image; its entry point
 # runs before its C runtime. Its code-slot table is generated at build time from the user's exe (tools/gen_loader_slots.py; tpw_tests
-# checks it); without the exe at TPW_EXE (or Python) tpw.exe is left out.
+# checks it), and so are its globals' initial values (tools/gamedata.py); without the exe at TPW_EXE tpw.exe is left out.
 set(TPW_EXE "${CMAKE_SOURCE_DIR}/.data/nocd/tp.exe" CACHE FILEPATH "The user's decrypted tp.exe, read for tpw.exe's code-slot table")
-find_program(TPW_PYTHON NAMES py python)
-if(EXISTS "${TPW_EXE}" AND TPW_PYTHON)
+if(EXISTS "${TPW_EXE}")
     add_custom_command(OUTPUT ${CMAKE_BINARY_DIR}/codeslots.h
         COMMAND ${TPW_PYTHON} -I ${CMAKE_SOURCE_DIR}/tools/gen_loader_slots.py ${TPW_EXE} ${CMAKE_BINARY_DIR}/codeslots.h
         DEPENDS ${CMAKE_SOURCE_DIR}/tools/gen_loader_slots.py ${CMAKE_SOURCE_DIR}/src/hook/hooks.cpp ${TPW_EXE}
         COMMENT "tpw.exe's code-slot table from tp.exe")
+    add_custom_command(OUTPUT ${CMAKE_BINARY_DIR}/gamedata_object.cpp
+        COMMAND ${TPW_PYTHON} -I ${CMAKE_SOURCE_DIR}/tools/gamedata.py object ${TPW_EXE} ${CMAKE_BINARY_DIR}/gamedata_object.cpp
+        DEPENDS ${CMAKE_SOURCE_DIR}/tools/gamedata.py ${tpw_sources} ${TPW_EXE}
+        COMMENT "tpw.exe's globals, their initial values from tp.exe")
     add_executable(tpw WIN32
         src/loader/loader.cpp
         src/hook/hooks.cpp
         src/hook/regthunks.cpp
         ${CMAKE_BINARY_DIR}/codeslots.h
+        ${CMAKE_BINARY_DIR}/gamedata_object.cpp
     )
     target_include_directories(tpw PRIVATE ${CMAKE_BINARY_DIR})
     target_link_libraries(tpw PRIVATE tpw_game)
@@ -955,7 +971,7 @@ if(EXISTS "${TPW_EXE}" AND TPW_PYTHON)
     target_include_directories(tpw_tests PRIVATE ${CMAKE_BINARY_DIR})
     target_compile_definitions(tpw_tests PRIVATE TPW_CODE_SLOTS)
 else()
-    message(STATUS "tpw.exe left out: no exe at TPW_EXE (${TPW_EXE}) or no Python")
+    message(STATUS "tpw.exe left out: no exe at TPW_EXE (${TPW_EXE})")
 endif()
 
 # Comparison driver for tools/fncmp.py: calls hooked functions by their original address. Fixed at 0x10000, below the game's image
@@ -968,6 +984,7 @@ add_executable(tpw_fncmp
     src/hook/hooks.cpp
     src/hook/patch.cpp
     src/hook/regthunks.cpp
+    ${CMAKE_BINARY_DIR}/gamedata_address.cpp
 )
 target_link_libraries(tpw_fncmp PRIVATE tpw_game)
 # Not incremental: an incremental link keeps an old, larger .bss when a static shrinks, and a case's wild pointer reads the driver's own

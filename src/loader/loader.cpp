@@ -24,6 +24,10 @@
 #include "../hook/hooks.h"
 #include "codeslots.h"
 
+// gamedata_object.cpp (tools/gamedata.py): the original's address and size of each global tpw.exe has as an object of its own.
+extern "C" const u32 kGameDataRanges[][2];
+extern "C" const u32 kGameDataRangeCount;
+
 namespace {
 
 const u32 kBase = 0x00400000, kCode = 0x00401000, kCodeEnd = 0x006fc800;   // the game's image base; .text and cseg
@@ -304,6 +308,8 @@ extern "C" __declspec(safebuffers) int __cdecl LoaderEntry(void *peb) {
         if (!SetProcessDEPPolicy(PROCESS_DEP_ENABLE)) Fail("tpw: DEP is off for this process, so the copy's code could run (error %u)", GetLastError());
     FindExe();
     const IMAGE_NT_HEADERS32 &nt = CopyExe();
+    for (u32 i = 0; i < kGameDataRangeCount; ++i)   // the globals tpw.exe has as objects stay zero here: no port uses these addresses
+        std::memset((void *)(uintptr_t)kGameDataRanges[i][0], 0, kGameDataRanges[i][1]);
     MapPorts();
     FillImports(nt);
     // The copy as tp.exe's sections are (read-only or read-write; never executable); no access around it, so a pointer past the game's
