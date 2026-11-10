@@ -60,3 +60,8 @@ void __cdecl CoasterRating_Step(u8 *coaster, u32 node, u32 unused, float speed, 
 // 0x80; +0x10c = +0xac * +0xa8; +0x110 the height, +0x114 the speed.
 void __cdecl CoasterRating_Finish(u8 *coaster, float maxHeight, float topSpeed, float unused);
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(CoasterRatingState, gCoasterRating, 0x007923a8, 0x38);

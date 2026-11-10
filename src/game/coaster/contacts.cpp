@@ -90,7 +90,7 @@ void __cdecl Contacts_TestPair(u8 *owner1, u8 *owner2, u8 *nodeA, const u8 *next
         for (u32 j = count2; j; --j, seg2 += 0x1c) {
             reinterpret_cast<u32 &>(gContacts_79223c) = pointsA + at<u32>(seg1, 0) * 0x38;
             reinterpret_cast<u32 &>(gContacts_792240) = pointsB + at<u32>(seg2, 0) * 0x38;
-            global<u32>(0x007922dc) = at<u32>(owner1, 4) + 0x9c;
+            reinterpret_cast<u32 &>(gContacts_7922dc) = at<u32>(owner1, 4) + 0x9c;
             reinterpret_cast<u32 &>(gContacts_792244) = at<u32>(owner2, 4) + 0x9c;
             if (overlap(&at<const float>(seg1, 4), &at<const float>(seg2, 4)) && g_calls.Cd(0x0043a2b0, seg1, seg2)) {
                 addContact(owner1, nodeA, nodeB);
@@ -211,8 +211,8 @@ extern "C" void __cdecl Contacts_TestAll(u8 *owner) {
     __asm fldcw truncating;
     gContacts_792238 = g_calls.Cd(0x0045b9d0, at<u32>(owner, 0xa0) * 0x1c, 1u);   // GlobalMem_Alloc
     gContacts_792230 = g_calls.Cd(0x0045b9d0, at<u32>(owner, 0xa0) * 0x1c, 1u);
-    global<u32>(0x007922e8) = g_calls.Cd(0x0045b9d0, at<u32>(owner, 0xa0) * 0x78, 1u);
-    global<u32>(0x007922e4) = g_calls.Cd(0x0045b9d0, at<u32>(owner, 0xa0) * 0x78, 1u);
+    gContacts_TestAll_7922e8 = g_calls.Cd(0x0045b9d0, at<u32>(owner, 0xa0) * 0x78, 1u);
+    gContacts_TestAll_7922e4 = g_calls.Cd(0x0045b9d0, at<u32>(owner, 0xa0) * 0x78, 1u);
     for (u8 *node = at<u8 *>(owner, 0x54); node && at<u8 *>(node, 0x64); node = at<u8 *>(node, 0x64)) {
         const u32 flags = at<u32>(node, 8);
         if (!(flags & 0x200000)) continue;
@@ -226,8 +226,8 @@ extern "C" void __cdecl Contacts_TestAll(u8 *owner) {
         for (u8 *other = at<u8 *>(partner, 0x68); other; other = at<u8 *>(other, 0x68))
             g_calls.Cd(0x00439c40, owner, owner, node, at<u8 *>(node, 0x64), other, at<u8 *>(other, 0x64));
     }
-    g_calls.Cd(0x0045ba00, global<u32>(0x007922e4));   // GlobalMem_Free
-    g_calls.Cd(0x0045ba00, global<u32>(0x007922e8));
+    g_calls.Cd(0x0045ba00, gContacts_TestAll_7922e4);   // GlobalMem_Free
+    g_calls.Cd(0x0045ba00, gContacts_TestAll_7922e8);
     g_calls.Cd(0x0045ba00, gContacts_792230);
     g_calls.Cd(0x0045ba00, gContacts_792238);
     __asm fldcw saved;

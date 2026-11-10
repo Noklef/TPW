@@ -68,7 +68,7 @@ void Unit(float *v) {
     v[2] = (float)(X87Reg(v[2]) / length);
 }
 
-float *Corner(u32 base, u32 i) { return reinterpret_cast<float *>((uintptr_t)base + i * 12); }
+float *Corner(float *base, u32 i) { return base + i * 3; }
 
 // The two rows of places for the shape at list and car; the count read for each row from the first shape (a shape of seven points writes over 0x7922dc, sic).
 void PlaceShape(const u8 *list, const u8 *car, float *out) {
@@ -77,7 +77,7 @@ void PlaceShape(const u8 *list, const u8 *car, float *out) {
     for (u32 row = 0; row < 2; ++row) {
         const float *const position = reinterpret_cast<const float *>(car + 4 + row * 0x38);
         const float *point = at<const float *>(list, 0);
-        const u32 count = at<u32>(global<const u8 *>(0x007922dc), 4);
+        const u32 count = at<u32>(gContacts_7922dc, 4);
         for (u32 k = 0; k < count; ++k, point += 2, out += 3) Place(out, point, position, angles, shifted);
     }
 }
@@ -87,7 +87,7 @@ void PlaceShape(const u8 *list, const u8 *car, float *out) {
 extern "C" u32 __cdecl CarPrisms_InQuad(const float *point, float t, const float *way) {
     const X87Reg tx = X87Reg(t) * way[0], ty = X87Reg(way[1]) * t, tz = X87Reg(way[2]) * t;
     const float x = (float)(tx + point[0]), y = (float)(ty + point[1]), z = (float)(tz + point[2]);
-    const float *const c[4] = {global<const float *>(0x0079238c), global<const float *>(0x00792384), global<const float *>(0x00792388), global<const float *>(0x00792380)};
+    const float *const c[4] = {gCarPrisms_79238c, gCarPrisms_792384, gCarPrisms_792388, gCarPrisms_792380};
     float v[4][3];
     float length[4];
     for (int k = 0; k < 4; ++k) {
@@ -108,17 +108,17 @@ extern "C" u32 __cdecl CarPrisms_InQuad(const float *point, float t, const float
 }
 
 extern "C" u32 __cdecl CarPrisms_Touch() {
-    PlaceShape(global<const u8 *>(0x007922dc), gContacts_79223c, Corner(0x007922f0, 0));
-    PlaceShape(gContacts_792244, gContacts_792240, Corner(0x00792248, 0));
+    PlaceShape(gContacts_7922dc, gContacts_79223c, Corner(gCarPrisms_7922f0, 0));
+    PlaceShape(gContacts_792244, gContacts_792240, Corner(gCarPrisms_792248, 0));
 
-    const u32 n = at<u32>(global<const u8 *>(0x007922dc), 4);
+    const u32 n = at<u32>(gContacts_7922dc, 4);
     for (u32 i = 0; i < n; ++i) {
-        const float *const a = Corner(0x007922f0, i), *const b = Corner(0x007922f0, (i + 1) % n);
-        const float *const c = Corner(0x007922f0, n + i), *const d = Corner(0x007922f0, (i + 1) % n + n);
-        global<const float *>(0x0079238c) = a;
-        global<const float *>(0x00792384) = b;
-        global<const float *>(0x00792388) = c;
-        global<const float *>(0x00792380) = d;
+        const float *const a = Corner(gCarPrisms_7922f0, i), *const b = Corner(gCarPrisms_7922f0, (i + 1) % n);
+        const float *const c = Corner(gCarPrisms_7922f0, n + i), *const d = Corner(gCarPrisms_7922f0, (i + 1) % n + n);
+        gCarPrisms_79238c = a;
+        gCarPrisms_792384 = b;
+        gCarPrisms_792388 = c;
+        gCarPrisms_792380 = d;
         const X87Reg e1x = X87Reg(b[0]) - a[0], e1y = X87Reg(b[1]) - a[1], e1z = X87Reg(b[2]) - a[2];
         const float e2x = (float)(X87Reg(b[0]) - c[0]), e2y = (float)(X87Reg(b[1]) - c[1]);
         const X87Reg e2z = X87Reg(b[2]) - c[2];
@@ -134,7 +134,7 @@ extern "C" u32 __cdecl CarPrisms_Touch() {
 
         const u32 m = at<u32>(gContacts_792244, 4);
         for (u32 j = 0; j < m; ++j) {
-            const float *const p = Corner(0x00792248, j), *const q = Corner(0x00792248, (j + 1) % m), *const r = Corner(0x00792248, m + j);
+            const float *const p = Corner(gCarPrisms_792248, j), *const q = Corner(gCarPrisms_792248, (j + 1) % m), *const r = Corner(gCarPrisms_792248, m + j);
             const float along[3] = {(float)(X87Reg(q[0]) - p[0]), (float)(X87Reg(q[1]) - p[1]), (float)(X87Reg(q[2]) - p[2])};
             const float across[3] = {(float)(X87Reg(r[0]) - p[0]), (float)(X87Reg(r[1]) - p[1]), (float)(X87Reg(r[2]) - p[2])};
             const X87Reg height = (((X87Reg(nz) * p[2]) + (X87Reg(ny) * p[1])) + (X87Reg(nx) * p[0])) + d0;
