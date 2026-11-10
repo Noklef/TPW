@@ -107,7 +107,7 @@ s32 __cdecl CRT_Getlocaleinfo(s32 kind, u32 locale, u32 type, void *out) {
     *value = 0;
     for (u32 i = 0; i < 4; ++i) {
         const u8 c = static_cast<u8>(CRT_Getlocaleinfo_buffer_fb1938[i]);
-        const s32 digit = CRT_mb_cur_max > 1 ? CRT_isctype(c, 4) : global<const u8 *>(0x0077ea90)[c * 2] & 4;
+        const s32 digit = CRT_mb_cur_max > 1 ? CRT_isctype(c, 4) : reinterpret_cast<const u8 *>(CRT_pctype)[c * 2] & 4;
         if (!digit) return 0;
         *value = static_cast<u8>(*value * 10 + c - 0x30);
     }

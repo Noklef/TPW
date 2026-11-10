@@ -65,3 +65,8 @@ u32 __fastcall Ime_OnMessage(u8 *ime, void *, u32 window, u32 message, u32 wpara
 // 0x47a880 (stdcall; the window procedure): Ime_OnMessage of the window's IME on the map, or DefWindowProcA.
 u32 __stdcall Ime_WindowProc(u32 window, u32 message, u32 wparam, u32 lparam);
 }
+
+#include "gamedata.h"
+
+// Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(u8, gImeinput_7b4a38, 0x007b4a38, 0x1);

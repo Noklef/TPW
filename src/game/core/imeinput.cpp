@@ -32,8 +32,8 @@ u8 *MapHead() { return global<u8 *>(0x007b4a44); }
 
 // The map's guard: taken by its first user, whose construction differs (the allocator and compare bytes at +0 and +1 are unset locals in the two that write them).
 bool TakeMapGuard() {
-    if (global<u8>(0x007b4a38) & 1) return false;
-    global<u8>(0x007b4a38) |= 1;
+    if (gImeinput_7b4a38 & 1) return false;
+    gImeinput_7b4a38 |= 1;
     return true;
 }
 void MapAtExit() { g_calls.Cd(0x0067a7d0, 0x004787e0u); }

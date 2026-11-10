@@ -30,7 +30,7 @@ u8 *__fastcall RangeTable_Ctor(u8 *table, void *, u8 *data) {
     return table;
 }
 
-void __fastcall RangeTable_Dtor(u8 *table) { at<u32>(table, 0) = 0x70a078; }
+void __fastcall RangeTable_Dtor(u8 *table) { at<u32>(table, 0) = (u32)(uintptr_t)Class70a078_vtable; }
 
 u8 *__fastcall RangeTable_DeletingDtor(u8 *table, void *, u32 flags) {
     RangeTable_Dtor(table);
@@ -65,7 +65,7 @@ u8 *__fastcall CodeTable_Ctor(u8 *table, void *, u32 lead, u32 count, u8 *data) 
     return table;
 }
 
-void __fastcall CodeTable_Dtor(u8 *table) { at<u32>(table, 0) = 0x70a078; }
+void __fastcall CodeTable_Dtor(u8 *table) { at<u32>(table, 0) = (u32)(uintptr_t)Class70a078_vtable; }
 
 u8 *__fastcall CodeTable_DeletingDtor(u8 *table, void *, u32 flags) {
     CodeTable_Dtor(table);
@@ -128,7 +128,7 @@ void __fastcall Charset_Dtor(u8 *charset) {
         vcall<void>(code, 0);
         at<u32>(charset, 0x10) = 0;
     }
-    at<u32>(charset, 0) = 0x70a078;
+    at<u32>(charset, 0) = (u32)(uintptr_t)Class70a078_vtable;
 }
 
 u8 *__fastcall Charset_DeletingDtor(u8 *charset, void *, u32 flags) {

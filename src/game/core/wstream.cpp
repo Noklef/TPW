@@ -13,6 +13,7 @@
 #include "vcall.h"
 #include "vobj3.h"
 #include "vstream.h"
+#include "localefacet.h"
 
 extern "C" u32 __cdecl CRT_wcslen(const u16 *text);   // (online/chatlists)
 
@@ -34,11 +35,11 @@ u8 *buffer_of(u8 *stream) { return at<u8 *>(ios_of(stream), 0x28); }
 
 // The facet (see WCtype_UseFacet).
 u8 *use_ctype(u8 **locale, u8 transparent) {
-    const u32 id = Id_Get(reinterpret_cast<u32 *>((uintptr_t)0x00fb1df8));
+    const u32 id = Id_Get(&gLocalefacet_fb1df8);
     u8 *const facet = Locale_Getfacet(locale, nullptr, id, 1);
     if (facet) return facet;
     if (transparent && Locale_Iscloc(locale)) {
-        u8 *&kept = global<u8 *>(0x007ced3c);
+        u8 *&kept = reinterpret_cast<u8 *&>(gLocalefacet_7ced3c);
         if (kept) return kept;
         u8 *const block = static_cast<u8 *>(GameHeap_Alloc(0x18));
         if (block) WCtype_Ctor(block, nullptr, 0);
@@ -47,7 +48,7 @@ u8 *use_ctype(u8 **locale, u8 transparent) {
         return block;
     }
     u32 bad_cast[3];
-    BadCast_Ctor(bad_cast, nullptr, reinterpret_cast<const char *>((uintptr_t)0x0075c734));
+    BadCast_Ctor(bad_cast, nullptr, gLocalefacet_MissingFacet_75c734);
     g_env->cxxThrow(bad_cast, reinterpret_cast<const void *>((uintptr_t)0x007193a8));
     return nullptr;
 }
@@ -114,7 +115,7 @@ u8 *__fastcall WCtype_Ctor(u8 *self, void *, u32 refs) {
     at<u32>(self, 4) = refs;
     at<u32>(self, 0) = 0x00709cac;
     u8 info[0x48];
-    g_env->locinfoCtor(info, nullptr, reinterpret_cast<const char *>((uintptr_t)0x0075c74c));
+    g_env->locinfoCtor(info, nullptr, gLocalefacet_C_75c74c);
     u32 out[4];
     const u32 *const ctype = g_env->getCtype(out);
     for (u32 i = 0; i < 4; ++i) at<u32>(self, 8 + 4 * i) = ctype[i];

@@ -14,7 +14,7 @@ template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cas
 
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
 
-s32 &levels() { return global<s32>(0x0087a264); }
+s32 &levels() { return gTexfile_87a264; }
 
 // The game's inline strcmp, only ever tested for 0 (a byte at a time).
 bool same(const char *a, const char *b) {
@@ -151,7 +151,7 @@ u8 *__fastcall TexManager_Load(u8 *manager, void *, const char *name) {
         Texture_DestroyArray(textures);
         return nullptr;
     }
-    const u32 state = global<u32>(0x0087a24c);
+    const u32 state = gTexfile_87a24c;
     u32 format = state & 4 ? 0x11000000 : 0x1000000;
     if (state & 8)
         format |= 0x30400;

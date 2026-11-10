@@ -30,12 +30,12 @@ void set_infinity(u32 *x, u32 sign) {
 
 bool is_digit(u8 c) {
     if (CRT_mb_cur_max > 1) return CRT_isctype(c, 4) != 0;
-    return (global<const u8 *>(0x0077ea90)[c * 2u] & 4) != 0;
+    return (reinterpret_cast<const u8 *>(CRT_pctype)[c * 2u] & 4) != 0;
 }
 
 bool is_space(u8 c) {
     if (CRT_mb_cur_max > 1) return CRT_isctype(c, 8) != 0;
-    return (global<const u8 *>(0x0077ea90)[c * 2u] & 8) != 0;
+    return (reinterpret_cast<const u8 *>(CRT_pctype)[c * 2u] & 8) != 0;
 }
 
 bool one_to_nine(char c) { return c >= '1' && c <= '9'; }
@@ -765,7 +765,7 @@ s32 __cdecl CRT_atoflt(u32 *out, const char *text) {
 }
 
 u32 __cdecl CRT_hextodec(u32 c) {
-    const bool digit = CRT_mb_cur_max > 1 ? CRT_isctype(static_cast<s32>(c), 4) != 0 : ((*reinterpret_cast<const u16 *const *>((uintptr_t)0x0077ea90))[c] & 4) != 0;
+    const bool digit = CRT_mb_cur_max > 1 ? CRT_isctype(static_cast<s32>(c), 4) != 0 : (CRT_pctype[c] & 4) != 0;
     return digit ? c : (c & ~0x20u) - 7;
 }
 
@@ -883,7 +883,7 @@ void __cdecl CRT_forcdecpt(char *text) {
         do {
             ++at;
         } while (CRT_mb_cur_max > 1 ? CRT_isctype(static_cast<s8>(*at), 4) != 0
-                                             : (global<const u8 *>(0x0077ea90)[static_cast<s8>(*at) * 2] & 4) != 0);
+                                             : (reinterpret_cast<const u8 *>(CRT_pctype)[static_cast<s8>(*at) * 2] & 4) != 0);
     }
     char held = *at;
     *at = CRT_decimal_point[0];

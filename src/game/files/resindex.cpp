@@ -101,7 +101,7 @@ void __fastcall ResIndex_Dtor(u8 *index) {
     at<u32>(index, 0) = (u32)(uintptr_t)ResIndex_vtable;
     ResIndex_ReleaseAll(index);
     Handle_Dtor(HandleAt(index, 0x10));
-    at<u32>(index, 0) = 0x70a078;
+    at<u32>(index, 0) = (u32)(uintptr_t)Class70a078_vtable;
 }
 
 u8 *__fastcall ResIndex_DeletingDtor(u8 *index, void *, u32 flags) {

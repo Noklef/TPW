@@ -83,8 +83,8 @@ const BlockPlace kBlockPlaces[6] = {{0x00fb7000, 0x40}, {0x00fb7020, 0x40}, {0x0
 
 void decodeBlocks(const u8 *data) {
     global<const u8 *>(0x00fb7920) = data + 1;
-    global<u32>(0x00fb7928) = data[0];
-    global<u32>(0x00fb7924) = 8;
+    gTgqvideo_fb7928 = data[0];
+    gTgqvideo_fb7924 = 8;
     for (const BlockPlace &place : kBlockPlaces) {
         // EDI as the decoder leaves it (the counter): the columns' out, so the first write faults (sic).
         s32 *const edi = reinterpret_cast<s32 *>((uintptr_t)(u32)TgqVideo_DecodeCoefficients());
@@ -230,7 +230,7 @@ void __cdecl TgqVideo_PixelRow32(const u32 *luma, u32 *out, const u32 *chroma) {
 }
 
 s32 __cdecl TgqVideo_DecodeCoefficients() {
-    CoefficientReader in = {global<const u8 *>(0x00fb7920), global<u32>(0x00fb7928), global<u32>(0x00fb7924)};
+    CoefficientReader in = {global<const u8 *>(0x00fb7920), gTgqvideo_fb7928, gTgqvideo_fb7924};
     coefficient(0) = fixmul((s32)(in.bits << 24) >> 8, (s32)dequantiser(0));
     in.Next8();
     s32 at = 0x3f;
@@ -296,8 +296,8 @@ s32 __cdecl TgqVideo_DecodeCoefficients() {
         }
     } while (--at > 0);
     global<const u8 *>(0x00fb7920) = in.source;
-    global<u32>(0x00fb7928) = in.bits;
-    global<u32>(0x00fb7924) = in.count;
+    gTgqvideo_fb7928 = in.bits;
+    gTgqvideo_fb7924 = in.count;
     return at;
 }
 

@@ -196,3 +196,6 @@ struct SoundCategories {
     s32 lobbyPairCount;   // +0x30
 };
 GAME_DATA(SoundCategories, gSoundCategories, 0x00803a20, 0x34);
+
+// Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(u16, gSoundset_803ad2, 0x00803ad2, 0x2);

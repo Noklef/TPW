@@ -161,7 +161,7 @@ u32 __fastcall TexCache_PackItems(u8 *cache, void *, u8 **items, u8 *out, u32 *o
     at<u32>(cache, 0x1924) = 0;
     at<u32>(cache, 0x191c) = 0;
     at<u32>(cache, 0x1918) = 0;
-    global<u32>(0x008c4b6c) = 0;
+    gTexcache_8c4b6c = 0;
     u8 *item = items[0];
     u8 **next = items + 1;
     if (item) {
@@ -258,8 +258,8 @@ u32 __fastcall TexCache_PackItems(u8 *cache, void *, u8 **items, u8 *out, u32 *o
                 }
                 if (count - i > 1)
                     RecordSort_Run(reinterpret_cast<RecordSort *>(0x008bcb98), nullptr, reinterpret_cast<u8 *>(rects), temp, 0x14, 0x10, i, count - 1);
-                global<u32>(0x008c4b6c)++;
-                global<u32>(0x008c4b68)++;
+                gTexcache_8c4b6c++;
+                gTexcache_8c4b68++;
             }
             next++;
             item = next[-1];
@@ -1326,7 +1326,7 @@ s32 __fastcall TexCache_PlaceNext(u8 *cache, void *, u8 **list) {
         const s32 width = at<s32>(surface, 8);
         while (canHalve(head) && width < at<s16>(head, 0x14)) {
             halveItem(head);
-            ++global<u32>(0x008c4b70);
+            ++gTexcache_8c4b70;
         }
         if (width < at<s16>(head, 0x14))
             return -1;
@@ -1371,7 +1371,7 @@ s32 __fastcall TexCache_PlaceNext(u8 *cache, void *, u8 **list) {
         if ((at<s32>(surface, 8) >> 1) < at<s32>(cache, 0x1918) || (at<s32>(surface, 0xc) >> 1) < at<s32>(cache, 0x191c))
             break;
         ++size;
-        ++global<u32>(0x008c4b5c);
+        ++gTexcache_8c4b5c;
         if (used(cache, size) >= split(cache, size)) {
             while (size < 6) {
                 const s32 taken = used(cache, size + 1), last = split(cache, size + 1);
@@ -1385,11 +1385,11 @@ s32 __fastcall TexCache_PlaceNext(u8 *cache, void *, u8 **list) {
         u8 *const smaller = entriesOf(cache, size)[used(cache, size)];
         u8 *const smallerSurface = at<u8 *>(smaller, 0);
         TexCache_MergeItems(reinterpret_cast<u32 *>(merged), head, smaller);
-        const u32 counted = global<u32>(0x008c4b6c);
+        const u32 counted = gTexcache_8c4b6c;
         u32 count;
         whole = TexCache_PackItems(cache, nullptr, merged, reinterpret_cast<u8 *>(spare), &count, reinterpret_cast<const s32 *>(smallerSurface), 0);
         if (!whole) {
-            global<u32>(0x008c4b6c) = counted;
+            gTexcache_8c4b6c = counted;
             break;
         }
         for (u32 i = 0; i != count + 1; ++i)
@@ -1446,7 +1446,7 @@ s32 __fastcall TexCache_PlaceNext(u8 *cache, void *, u8 **list) {
             else
                 at<u8 *>(entry, 4) = item;
             at<u8 *>(item, 4) = nullptr;
-            --global<u32>(0x008c4b6c);
+            --gTexcache_8c4b6c;
             ++row;
             tail = item;
         } else {

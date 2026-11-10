@@ -423,12 +423,12 @@ u32 __fastcall Fn_66bff7(u8 *o) {
 }
 
 u32 __cdecl Fn_67a610() {
-    global<u32>(0x0077eca4) = 0x6805d0;
-    global<u32>(0x0077eca0) = 0x680a30;
-    global<u32>(0x0077eca8) = 0x680660;
-    global<u32>(0x0077ecac) = 0x680570;
-    global<u32>(0x0077ecb0) = 0x680640;
-    global<u32>(0x0077ecb4) = 0x680a30;
+    CRT_cfltcvt_tab[1] = 0x6805d0;
+    CRT_cfltcvt_tab[0] = 0x680a30;
+    CRT_cfltcvt_tab[2] = 0x680660;
+    CRT_cfltcvt_tab[3] = 0x680570;
+    CRT_cfltcvt_tab[4] = 0x680640;
+    CRT_cfltcvt_tab[5] = 0x680a30;
     return 0x680a30;
 }
 

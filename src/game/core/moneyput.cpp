@@ -13,17 +13,18 @@
 #include "sharedglobals.h"
 #include "stdlocale.h"
 #include "vobj3.h"
+#include "localefacet.h"
 
 namespace {
 
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
 
-const u32 kIntlId = 0x00fb1e80;
-const u32 kIntlCache = 0x00fb1eb0;
-const u32 kLocalId = 0x00fb1e90;
-const u32 kLocalCache = 0x00fb1eac;
-const u32 kCtypeId = 0x00fb1da4;
-const u32 kCtypeCache = 0x00f827e0;
+const u32 kIntlId = (u32)(uintptr_t)&gLocalefacet_fb1e80;
+const u32 kIntlCache = (u32)(uintptr_t)&gLocalefacet_fb1eb0;
+const u32 kLocalId = (u32)(uintptr_t)&gLocalefacet_fb1e90;
+const u32 kLocalCache = (u32)(uintptr_t)&gLocalefacet_fb1eac;
+const u32 kCtypeId = (u32)(uintptr_t)&gLocalefacet_fb1da4;
+const u32 kCtypeCache = (u32)(uintptr_t)&gLocalefacet_f827e0;
 
 const unsigned long long kZeroBits = 0;
 const unsigned long long kLimitBits = 0x4733426172c74d82;   // 1e35
@@ -44,7 +45,7 @@ void *moneypunct_ctor(u8 *facet, u32 refs, u8 international, u32 vtable) {
     *reinterpret_cast<u32 *>(facet + 4) = refs;
     facet[0x28] = international;
     *reinterpret_cast<u32 *>(facet) = 0x00709fdc;
-    Locinfo_Ctor(info, nullptr, reinterpret_cast<const char *>((uintptr_t)0x0075c74c));
+    Locinfo_Ctor(info, nullptr, gLocalefacet_C_75c74c);
     MoneypunctC_Init(facet, nullptr, info);
     Locinfo_Dtor(info);
     *reinterpret_cast<u32 *>(facet) = vtable;
@@ -53,7 +54,7 @@ void *moneypunct_ctor(u8 *facet, u32 refs, u8 international, u32 vtable) {
 
 void throw_missing() {
     u32 bad[3];
-    BadCast_Ctor(bad, nullptr, reinterpret_cast<const char *>((uintptr_t)0x0075c734));
+    BadCast_Ctor(bad, nullptr, gLocalefacet_MissingFacet_75c734);
     IosBase_Env().cxxThrow(bad, reinterpret_cast<const void *>((uintptr_t)0x007193a8));
 }
 

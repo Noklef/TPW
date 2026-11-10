@@ -75,6 +75,8 @@ GAME_DATA(const char[4], CRT_text_TZ_708da0, 0x00708da0, 0x4);
 GAME_DATA(s32, CRT_timezone, 0x007813d8, 0x4);
 GAME_DATA(s32, CRT_daylight, 0x007813dc, 0x4);
 GAME_DATA(s32, CRT_dstbias, 0x007813e0, 0x4);
+GAME_DATA(char[2][0x40], CRT_tzname_buffers, 0x007813e8, 0x80);
+GAME_DATA(char *[2], CRT_tzname, 0x00781468, 0x8);
 GAME_DATA(char **, CRT_environ, 0x00fb1380, 0x4);
 GAME_DATA(char **, CRT_initenv, 0x00fb1384, 0x4);
 GAME_DATA(u16 **, CRT_wenviron, 0x00fb1388, 0x4);

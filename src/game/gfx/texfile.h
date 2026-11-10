@@ -36,3 +36,9 @@ extern "C" {
 // 0x87a24c; the file's bytes freed and the pixels returned.
 u8 *__cdecl TexFile_Load(const char *name, u32 *width, u32 *height, u32 flags, const u32 *table, s32 pixelSize);
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(u32, gTexfile_87a24c, 0x0087a24c, 0x4);
+GAME_DATA(s32, gTexfile_87a264, 0x0087a264, 0x4);

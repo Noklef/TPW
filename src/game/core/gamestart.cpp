@@ -8,6 +8,7 @@
 #include "gamewindow.h"
 #include "soundset.h"
 #include "../world/camera.h"
+#include "gameframe.h"
 
 namespace {
 
@@ -92,7 +93,7 @@ void __cdecl Game_Start() {
     global<u32>(0x0087906c) = gGraphicssettings_7a1a8c & 0x200 ? 4 : 9;
     global<u32>(0x00875034) = g_calls.Th(0x00402d70, kClock);
     g_calls.Cd(0x005989c0);
-    global<u32>(0x00878128) = 0;
+    gGameframe_878128 = 0;
     global<u32>(0x00878d64) = 1;
 }
 
