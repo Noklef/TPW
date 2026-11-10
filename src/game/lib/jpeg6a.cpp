@@ -60,6 +60,7 @@ static_assert(offsetof(jpeg_memory_mgr, free_pool) == 0x24 && offsetof(jpeg_memo
 // wrapper unit), and the shim of its name calls it and puts the exe's address of each method in place of the library's, so the exe's
 // code that compares or calls them sees its own (the game's hooks then run the library's anyway).
 extern "C" void __cdecl jpeg6a_jmemmgr_lib_jinit_memory_mgr(jpeg6a_common_struct *cinfo);
+extern "C" void __cdecl jpeg6a_jmemansi_lib_jpeg_open_backing_store(jpeg6a_common_struct *cinfo, void *info, long total_bytes_needed);
 extern "C" void __cdecl jpeg6a_jcmarker_lib_jinit_marker_writer(jpeg6a_compress_struct *cinfo);
 extern "C" void __cdecl jpeg6a_jcmaster_lib_jinit_c_master_control(jpeg6a_compress_struct *cinfo, int transcode_only);
 extern "C" void __cdecl jpeg6a_jcmainct_lib_jinit_c_main_controller(jpeg6a_compress_struct *cinfo, int need_full_buffer);
@@ -97,6 +98,10 @@ const ExeMethod kExeMethods[] = {
     {fn(&jpeg6a_jmemmgr_access_virt_barray), 0x64ee6f},
     {fn(&jpeg6a_jmemmgr_free_pool), 0x64f1aa},
     {fn(&jpeg6a_jmemmgr_self_destruct), 0x64f360},
+    // jmemansi.c's backing store
+    {fn(&jpeg6a_jmemansi_read_backing_store), 0x6502cd},
+    {fn(&jpeg6a_jmemansi_write_backing_store), 0x65033d},
+    {fn(&jpeg6a_jmemansi_close_backing_store), 0x6503ad},
     // jcmarker.c
     {fn(&jpeg6a_jcmarker_write_any_marker), 0x64f520},
     {fn(&jpeg6a_jcmarker_write_file_header), 0x64f644},
@@ -191,6 +196,12 @@ void __cdecl jpeg6a_jinit_memory_mgr(j_common_ptr cinfo) {
     exe_method(mem->access_virt_barray);
     exe_method(mem->free_pool);
     exe_method(mem->self_destruct);
+}
+
+// (backing_store_info: read_backing_store +0, write_backing_store +4, close_backing_store +8, temp_file +0xc)
+void __cdecl jpeg6a_jpeg_open_backing_store(j_common_ptr cinfo, void *info, long total_bytes_needed) {
+    jpeg6a_jmemansi_lib_jpeg_open_backing_store(cinfo, info, total_bytes_needed);
+    for (int slot = 0; slot < 12; slot += 4) exe_method_at(static_cast<char *>(info) + slot);
 }
 
 void __cdecl jpeg6a_jinit_marker_writer(j_compress_ptr cinfo) {
@@ -300,8 +311,9 @@ std::uint32_t Jpeg6a_ExeMethod(std::uint32_t address) {
 }
 
 // What the library calls outside itself (jpeg6a.h's Jpeg6aCrtEnv), as jpeg6b.cpp's: jmemansi.c's malloc and free
-// (third_party/wrap/jpeg-6a/jmemansi.c #defines them to jpeg6a_exe_malloc / free), so the compressor's blocks are the exe's heap's;
-// jmemmgr.c's getenv, sscanf and jpeg_open_backing_store (wrap/jpeg-6a/jmemmgr.c); jerror.c's sprintf (wrap/jpeg-6a/jerror.c).
+// (third_party/wrap/jpeg-6a/jmemansi.c #defines them to jpeg6a_exe_malloc / free), so the compressor's blocks are the exe's heap's,
+// and its backing store's FILE calls; jmemmgr.c's getenv, sscanf and jpeg_open_backing_store (wrap/jpeg-6a/jmemmgr.c); jerror.c's
+// sprintf, exit and fprintf (wrap/jpeg-6a/jerror.c).
 namespace {
 const Jpeg6aCrtEnv kExeCrt = {
     reinterpret_cast<void *(__cdecl *)(size_t)>((uintptr_t)0x0067dcd0),
@@ -310,7 +322,14 @@ const Jpeg6aCrtEnv kExeCrt = {
     reinterpret_cast<int(__cdecl *)(const char *, const char *, long *, char *)>((uintptr_t)0x0067f620),
     reinterpret_cast<void(__cdecl *)(jpeg6a_common_struct *, void *, long)>((uintptr_t)0x00650265),
     reinterpret_cast<int(__cdecl *)(char *, const char *, const char *)>((uintptr_t)0x0067a650),
-    reinterpret_cast<int(__cdecl *)(char *, const char *, int, int, int, int, int, int, int, int)>((uintptr_t)0x0067a650)};
+    reinterpret_cast<int(__cdecl *)(char *, const char *, int, int, int, int, int, int, int, int)>((uintptr_t)0x0067a650),
+    reinterpret_cast<void *(__cdecl *)()>((uintptr_t)0x0067fd60),
+    reinterpret_cast<int(__cdecl *)(void *, long, int)>((uintptr_t)0x0067c100),
+    reinterpret_cast<std::size_t(__cdecl *)(void *, std::size_t, std::size_t, void *)>((uintptr_t)0x0067e1d0),
+    reinterpret_cast<std::size_t(__cdecl *)(const void *, std::size_t, std::size_t, void *)>((uintptr_t)0x0067b6d0),
+    reinterpret_cast<int(__cdecl *)(void *)>((uintptr_t)0x0067b620),
+    reinterpret_cast<void(__cdecl *)(int)>((uintptr_t)0x0067f920),
+    reinterpret_cast<int(__cdecl *)(void *, const char *, const char *)>((uintptr_t)0x0067dad0)};
 const Jpeg6aCrtEnv *g_crt = &kExeCrt;
 }  // namespace
 
@@ -346,4 +365,17 @@ int __cdecl jpeg6a_exe_sprintf(char *buffer, const char *format, ...) {
     va_end(ap);
     return n;
 }
+void *__cdecl jpeg6a_exe_tmpfile() { return g_crt->tmpfile(); }
+int __cdecl jpeg6a_exe_fseek(void *file, long offset, int origin) { return g_crt->fseek(file, offset, origin); }
+std::size_t __cdecl jpeg6a_exe_fread(void *buffer, std::size_t size, std::size_t count, void *file) { return g_crt->fread(buffer, size, count, file); }
+std::size_t __cdecl jpeg6a_exe_fwrite(const void *buffer, std::size_t size, std::size_t count, void *file) {
+    return g_crt->fwrite(buffer, size, count, file);
+}
+int __cdecl jpeg6a_exe_fclose(void *file) { return g_crt->fclose(file); }
+void __cdecl jpeg6a_exe_exit(int status) { g_crt->exit(status); }
+// output_message's fprintf(stderr, "%s\n", buffer): the exe's stderr (0x77e840) and its 6a "%s\n" (0x77c46c, in .data).
+int __cdecl jpeg6a_exe_print(const char *text) { return g_crt->fprintf((void *)0x0077e840, (const char *)0x0077c46c, text); }
+// jmemansi.c's ERREXITS(cinfo, JERR_TFILE_CREATE, ""): the exe's 6a "" is a byte of its .bss (0xfaa538), writable, so the text is
+// read there.
+const char *__cdecl jpeg6a_exe_empty() { return (const char *)0x00faa538; }
 }

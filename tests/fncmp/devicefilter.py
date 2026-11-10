@@ -15,7 +15,10 @@ ADDRESS = {'SetNext': (0x632350, 38), 'Close': (0x633200, 26), 'SetSink': (0x633
            'SubC90': (0x633ea0, 38), 'SubCC0': (0x6345a0, 38), 'SetHolder': (0x6341d0, 54), 'ReadState': (0x633600, 191), 'DevCtor': (0x63e7c0, 84), 'DevDtor': (0x63e840, 121), 'DevDel': (0x63e820, 30),
            'ModKey': (0x633ed0, 174), 'KeyDtor': (0x633470, 147), 'CharDtor': (0x633e20, 123), 'OpenEvent': (0x6331c0, 62), 'Move': (0x634360, 190), 'Drain': (0x633280, 189), 'Poll': (0x63e970, 82),
            'BaseDel': (0x6342f0, 30), 'DevEvent': (0x633540, 19), 'SetKeys': (0x633560, 75), 'SetMice': (0x6335b0, 75), 'Const3': (0x6350d0, 6), 'Const4': (0x6350e0, 6),
-           'Reopen': (0x633220, 43), 'HolderOpen': (0x633bf0, 285), 'DevOpen': (0x63e8c0, 170), 'KeyDel': (0x633400, 30), 'CharDel': (0x633e00, 30)}
+           'Reopen': (0x633220, 43), 'HolderOpen': (0x633bf0, 285), 'DevOpen': (0x63e8c0, 170), 'KeyDel': (0x633400, 30), 'CharDel': (0x633e00, 30),
+           'KeyDelAdj': (0x6336c0, 8), 'CharDelAdj': (0x634210, 8), 'DevDelAdj': (0x63e9d0, 8), 'ReopenOut': (0x633340, 15), 'DevOpenOut': (0x634a30, 23)}
+# the adjustors (this less the offset, then the op's function) and the wrappers returning the result: op -> (the op set up, the offset)
+WRAPS = {'KeyDelAdj': ('KeyDel', 0xc), 'CharDelAdj': ('CharDel', 0xc), 'DevDelAdj': ('DevDel', 0x10), 'ReopenOut': ('Reopen', 0), 'DevOpenOut': ('DevOpen', 0)}
 OPS = [n for n in ADDRESS if not os.environ.get('OPS') or n in os.environ['OPS'].split(',')]
 LISTEN, UNLISTEN, TICK = 26, 27, 28
 HOOKS = {0x5fc030: _recorder(LISTEN, 3), 0x5fc100: _recorder(UNLISTEN, 3), 0x5fba10: _recorder(TICK, 1)}
@@ -82,6 +85,16 @@ def position(r, low, high):
 
 def case(r):
     op = r.deal(OPS)
+    if op in WRAPS:
+        base, offset = WRAPS[op]
+        c = build(r, base)
+        c.address = ADDRESS[op][0]
+        c.args[0] += offset
+        return c
+    return build(r, op)
+
+
+def build(r, op):
     address = ADDRESS[op][0]
     log = log_region()
     obj = bytearray(r.bytes(0x100))

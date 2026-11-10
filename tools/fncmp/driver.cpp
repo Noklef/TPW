@@ -807,22 +807,45 @@ const PtrListEnv kPtrListEnv = {&heap_alloc};
 const GameHeapEnv kGameHeapEnv = {&heap_alloc, &heap_free};
 // libjpeg 6b's calls outside itself (src/game/lib/jpeg6b.h): jmemansi.c's malloc / free the heap; jmemmgr.c's getenv, sscanf and
 // jpeg_open_backing_store and jerror.c's two sprintf calls cdecl recorders 24 (1 argument), 25 (4), 26 (3), 27 (3) and 28 (10), which the
-// benches hook the exe's 0x67fbf0, 0x67f620, 0x6429c0 and 0x67a650 with (tests/fncmp/jpeg6b_memmgr.py, jpeg6b_error.py).
+// benches hook the exe's 0x67fbf0, 0x67f620, 0x6429c0 and 0x67a650 with (tests/fncmp/jpeg6b_memmgr.py, jpeg6b_error.py); jmemansi.c's
+// tmpfile, fseek, fread, fwrite and fclose recorders 19 (0), 20 (3), 21 (4), 22 (4) and 23 (1) (0x67fd60, 0x67c100, 0x67e1d0, 0x67b6d0,
+// 0x67b620: jpeg6b_memansi.py), jerror.c's exit exit_case and fprintf recorder 30 (3) (0x67f920, 0x67dad0: jpeg6b_error.py).
 constexpr u32 jpeg_recorder(u32 k, u32 n) { return kStubs + 0x1000 + 0xa000 + 0x400 * n + 0x20 * k; }
+// The C runtime's exit (0x67f920), which never comes back in the game: the cdecl recorder 29 of 1 argument, then kCaseExit, which the
+// main loop reports as the case's return, its memory as it is then (tools/fncmp.py's _exit_case(29)).
+constexpr DWORD kCaseExit = 0xe0000e17;
+void __cdecl exit_case(int status) {
+    reinterpret_cast<void(__cdecl *)(int)>((uintptr_t)jpeg_recorder(29, 1))(status);
+    RaiseException(kCaseExit, 0, 0, nullptr);
+}
 const Jpeg6bCrtEnv kJpeg6bCrtEnv = {&heap_alloc, &heap_free, reinterpret_cast<char *(__cdecl *)(const char *)>((uintptr_t)jpeg_recorder(24, 1)),
                                     reinterpret_cast<int(__cdecl *)(const char *, const char *, long *, char *)>((uintptr_t)jpeg_recorder(25, 4)),
                                     reinterpret_cast<void(__cdecl *)(jpeg_common_struct *, void *, long)>((uintptr_t)jpeg_recorder(26, 3)),
                                     reinterpret_cast<int(__cdecl *)(char *, const char *, const char *)>((uintptr_t)jpeg_recorder(27, 3)),
                                     reinterpret_cast<int(__cdecl *)(char *, const char *, int, int, int, int, int, int, int, int)>(
-                                        (uintptr_t)jpeg_recorder(28, 10))};
+                                        (uintptr_t)jpeg_recorder(28, 10)),
+                                    reinterpret_cast<void *(__cdecl *)()>((uintptr_t)jpeg_recorder(19, 0)),
+                                    reinterpret_cast<int(__cdecl *)(void *, long, int)>((uintptr_t)jpeg_recorder(20, 3)),
+                                    reinterpret_cast<size_t(__cdecl *)(void *, size_t, size_t, void *)>((uintptr_t)jpeg_recorder(21, 4)),
+                                    reinterpret_cast<size_t(__cdecl *)(const void *, size_t, size_t, void *)>((uintptr_t)jpeg_recorder(22, 4)),
+                                    reinterpret_cast<int(__cdecl *)(void *)>((uintptr_t)jpeg_recorder(23, 1)),
+                                    &exit_case,
+                                    reinterpret_cast<int(__cdecl *)(void *, const char *, const char *)>((uintptr_t)jpeg_recorder(30, 3))};
 // libjpeg 6a's (src/game/lib/jpeg6a.h), the same: the heap and the same recorders (the benches hook the exe's 6a
-// jpeg_open_backing_store, 0x650265, with recorder 26: tests/fncmp/jpeg6a_memmgr.py, jpeg6a_error.py).
+// jpeg_open_backing_store, 0x650265, with recorder 26: tests/fncmp/jpeg6a_memmgr.py, jpeg6a_error.py, jpeg6a_memansi.py).
 const Jpeg6aCrtEnv kJpeg6aCrtEnv = {&heap_alloc, &heap_free, reinterpret_cast<char *(__cdecl *)(const char *)>((uintptr_t)jpeg_recorder(24, 1)),
                                     reinterpret_cast<int(__cdecl *)(const char *, const char *, long *, char *)>((uintptr_t)jpeg_recorder(25, 4)),
                                     reinterpret_cast<void(__cdecl *)(jpeg6a_common_struct *, void *, long)>((uintptr_t)jpeg_recorder(26, 3)),
                                     reinterpret_cast<int(__cdecl *)(char *, const char *, const char *)>((uintptr_t)jpeg_recorder(27, 3)),
                                     reinterpret_cast<int(__cdecl *)(char *, const char *, int, int, int, int, int, int, int, int)>(
-                                        (uintptr_t)jpeg_recorder(28, 10))};
+                                        (uintptr_t)jpeg_recorder(28, 10)),
+                                    reinterpret_cast<void *(__cdecl *)()>((uintptr_t)jpeg_recorder(19, 0)),
+                                    reinterpret_cast<int(__cdecl *)(void *, long, int)>((uintptr_t)jpeg_recorder(20, 3)),
+                                    reinterpret_cast<size_t(__cdecl *)(void *, size_t, size_t, void *)>((uintptr_t)jpeg_recorder(21, 4)),
+                                    reinterpret_cast<size_t(__cdecl *)(const void *, size_t, size_t, void *)>((uintptr_t)jpeg_recorder(22, 4)),
+                                    reinterpret_cast<int(__cdecl *)(void *)>((uintptr_t)jpeg_recorder(23, 1)),
+                                    &exit_case,
+                                    reinterpret_cast<int(__cdecl *)(void *, const char *, const char *)>((uintptr_t)jpeg_recorder(30, 3))};
 const WadSourceEnv kWadSourceEnv = {&heap_alloc, &heap_free};
 const BufferedSourceEnv kBufferedSourceEnv = {&heap_alloc, &heap_free};
 const SurfaceBufferEnv kSurfaceBufferEnv = {0x00703998, &heap_free};
@@ -3775,6 +3798,7 @@ int main(int argc, char **argv) {
             code = invoke(step.fn, regs, step.args.data() + skip, n - skip, ret[0] == 'd', &eax, &edxOut, &st0, &ediOut, stackOut && n > skip ? stackWords.data() : nullptr);
             if (code) break;
         }
+        if ((DWORD)code == kCaseExit) code = 0, eax = edxOut = ediOut = 0, st0 = 0;  // (exit_case: the case ended there)
         if (std::strncmp(ret, "edi", 3) == 0) eax = ediOut;  // (ret 'edi': EDI in EAX's place)
         if (std::strchr(ret, 'c')) {  // the control word the call left, then the driver's back
             u16 cw, ours = 0x7f;

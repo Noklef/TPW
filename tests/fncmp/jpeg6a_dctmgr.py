@@ -3,7 +3,11 @@
 # at CINFO (6a's jpeg_compress_struct: err +0 at ERR, error_exit a cdecl recorder that returns; mem +4 at MEM, alloc_small fncmp's
 # ZALLOC over the case heap; num_components +0x34, comp_info +0x3c at COMPS (quant_tbl_no +0x10), quant_tbl_ptrs[4] +0x40 into QT
 # (quantval[64], u16), dct_method +0xbc; fdct +0x160 at FD (my_fdct_controller, 0x30 bytes: start_pass, forward_DCT, do_dct +8,
-# divisors[4] +0xc, do_float_dct +0x1c, float_divisors[4] +0x20)). forward_DCT_float stays the exe's (see jpeg6a.h).
+# divisors[4] +0xc, do_float_dct +0x1c, float_divisors[4] +0x20)). forward_DCT_float (0x653d32) is a hand port
+# (src/game/lib/jpegfloatdct: Jpeg6a_ForwardDctFloat, x87 in the listing's order): op dct_float, its do_float_dct a cdecl recorder
+# logging the workspace as 0 and filling its first 56 floats one case in two (large values, and random bits when wild: __ftol's low
+# half past 2^31), the float divisors start_pass_fdctmgr's 1 / (quantval * aanscalefactor[row] * aanscalefactor[col] * 8) or,
+# when wild, random bits now and then.
 # start_pass_fdctmgr's cases keep quant_tbl_no in 0..3 (outside it the source, its ERREXIT returning, reads quant_tbl_ptrs[-1] and
 # writes a table through fdct's do_dct or do_float_dct) and leave a table pointer null in one case in twenty (a read of null in
 # both); its JDCT_FLOAT divisors are x87 code in the exe, run at the game's single precision (cw 0x7f) and at double (0x27f).
@@ -16,11 +20,11 @@ import struct
 import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
-from fncmp import HEAP, LOG, RAM, ZALLOC, Bench, Call, fill, heap, log_region, recorder, strings  # noqa: E402
+from fncmp import HEAP, LOG, RAM, ZALLOC, Bench, Call, fb, fill, heap, log_region, recorder, strings  # noqa: E402
 
 # the exe's copies (re/libmap.csv): name -> (address, end)
 FUNCS = {'jinit_forward_dct': (0x653610, 0x6536f7), 'start_pass_fdctmgr': (0x6536f7, 0x65398f),
-         'forward_DCT': (0x65398f, 0x653d32)}
+         'forward_DCT': (0x65398f, 0x653d32), 'forward_DCT_float': (0x653d32, 0x654084)}
 B = Bench(sorted(FUNCS.values()))
 
 CINFO, ERR, MEM, FD, COMPS, QT, DIV, FDIV, SPTRS, SROWS, BLOCKS = (
@@ -86,7 +90,30 @@ def dct(r):
     return Call(0x65398f, [CINFO, COMPS + 0x54 * r.randrange(4), SPTRS, BLOCKS, r.randrange(9), col, nb], regs)
 
 
-OPS = [f for f in (jinit, start, dct) if not os.environ.get('OPS') or f.__name__ in os.environ['OPS'].split(',')]
+AAN = [1.0, 1.387039845, 1.306562965, 1.175875602, 1.0, 0.785694958, 0.541196100, 0.275899379]
+
+
+def dct_float(r):
+    regs = common(r)
+    for q in range(4):
+        struct.pack_into('<I', regs[FD], 0x20 + 4 * q, FDIV + 0x100 * q)
+    fdiv = [fb(1.0 / (r.choice([1, r.randrange(1, 256), r.randrange(1, 0x8000)]) * AAN[i // 8 % 8] * AAN[i % 8] * 8.0))
+            for i in range(0x100)]
+    if r.wild and r.random() < 0.5:
+        fdiv = [r.f() if r.random() < 0.3 else b for b in fdiv]
+    regs[FDIV] = struct.pack('<256I', *fdiv)
+    strings(regs[LOG], K_FLOAT, 0, out=1)
+    if r.random() < 0.5:
+        for which in range(2):
+            vals = [r.f() if r.wild and r.random() < 0.3 else fb(r.uniform(-1, 1) * r.choice([200, 3e4, 1e7, 1e12]))
+                    for _ in range(28)]
+            fill(regs[LOG], K_FLOAT, 0, struct.pack('<28I', *vals), which=which, offset=0x70 * which)
+    nb = r.choice([1, 1, 2, 3, 4])
+    col = r.randrange(W - 8 * nb + 1)
+    return Call(0x653d32, [CINFO, COMPS + 0x54 * r.randrange(4), SPTRS, BLOCKS, r.randrange(9), col, nb], regs)
+
+
+OPS = [f for f in (jinit, start, dct, dct_float) if not os.environ.get('OPS') or f.__name__ in os.environ['OPS'].split(',')]
 
 
 def case(r):

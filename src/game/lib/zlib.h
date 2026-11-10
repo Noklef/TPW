@@ -149,6 +149,10 @@ int __cdecl inflate_blocks(inflate_blocks_state *s, z_stream_s *z, int r);
 int __cdecl inflate_codes(inflate_blocks_state *s, z_stream_s *z, int r);
 // 0x64bbd0: inflate_codes' fast loop while 258 bytes of window room and 10 of input remain; z->msg on a bad code (the exe's string).
 int __cdecl inflate_fast(unsigned bl, unsigned bd, inflate_huft_s *tl, inflate_huft_s *td, inflate_blocks_state *s, z_stream_s *z);
+
+// zutil.c
+// 0x63e9e0: zcalloc, a hand port: the exe's calloc (0x67fcb0) of items * size, opaque unused (the library's would be the DLL's heap).
+void *__cdecl Zlib_Calloc(void *opaque, unsigned items, unsigned size);
 }
 
 // What the shims share (src/game/lib/zlib.cpp).

@@ -646,6 +646,7 @@ add_library(tpw_game STATIC
     src/game/lib/zlib_inflate.cpp
     src/game/lib/jpeg6b.cpp
     src/game/lib/jpeg6a.cpp
+    src/game/lib/jpegfloatdct.cpp
     src/game/ui/guidepth.cpp
     src/game/ui/buttontext.cpp
     src/game/ui/msgtags.cpp

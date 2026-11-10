@@ -42,6 +42,8 @@ void __fastcall WaitThread_Shutdown(u8 *self);
 void __fastcall WaitThread_Dtor(u8 *self);
 // 0x6323c0 (thiscall; flags, pops 4): the destructor; with bit 0, freed. Returns self.
 u8 *__fastcall WaitThread_DeletingDtor(u8 *self, void *, u32 flags);
+// 0x6326e0 (thiscall; result out, pops 4): OpenEvents, then (not failed) Start; out the failure or 0.
+u32 *__fastcall WaitThread_OpenAndStart(u8 *self, void *, u32 *out);
 
 }  // extern "C"
 

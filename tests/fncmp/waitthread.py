@@ -8,7 +8,8 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
 from fncmp import HEAP, IMPORT_TABLE, LOG, RAM, Bench, Call, _recorder, answers, fill, heap, import_table, log_region, put, set_return, strings, vtable  # noqa: E402
 
-ADDRESS = {'Proc': (0x632460, 13), 'Loop': (0x6324e0, 0x116), 'Run': (0x632470, 109), 'Open': (0x632750, 134), 'Close': (0x6327e0, 89), 'Send': (0x632840, 105), 'Add': (0x6328b0, 31), 'Remove': (0x6328d0, 31), 'DoAdd': (0x6328f0, 100), 'DoRemove': (0x632960, 216), 'Insert': (0x632ef0, 0x223), 'Start': (0x632600, 107), 'Stop': (0x632670, 102), 'Shutdown': (0x632730, 17), 'Dtor': (0x6323e0, 118), 'Del': (0x6323c0, 30)}
+ADDRESS = {'Proc': (0x632460, 13), 'Loop': (0x6324e0, 0x116), 'Run': (0x632470, 109), 'Open': (0x632750, 134), 'Close': (0x6327e0, 89), 'Send': (0x632840, 105), 'Add': (0x6328b0, 31), 'Remove': (0x6328d0, 31), 'DoAdd': (0x6328f0, 100), 'DoRemove': (0x632960, 216), 'Insert': (0x632ef0, 0x223), 'Start': (0x632600, 107), 'Stop': (0x632670, 102), 'Shutdown': (0x632730, 17), 'Dtor': (0x6323e0, 118), 'Del': (0x6323c0, 30),
+           'Init': (0x6326e0, 77)}
 OPS = [n for n in ADDRESS if not os.environ.get('OPS') or n in os.environ['OPS'].split(',')]
 SET, WAIT, CREATE, CLOSE, ERROR = 30, 31, 32, 33, 34
 RANGE = 25
@@ -68,7 +69,10 @@ def case(r):
         if op == 'Proc':
             return Call(address, [OBJ], regions, conv='s', ret='a')
         return Call(address, [OBJ], regions, conv='t', ret='a')
-    if op in ('Start', 'Stop', 'Shutdown', 'Dtor', 'Del'):
+    if op == 'Init':   # (Open, then Start when Open did not fail: the two setups)
+        regions[ANSWERS] = struct.pack('<40I', *[r.choice([0, 0x3000, 0x3000, 0x4000]) for _ in range(40)])
+        answers(log, CREATE, ANSWERS)
+    if op in ('Start', 'Stop', 'Shutdown', 'Dtor', 'Del', 'Init'):
         put(obj, 0x14, 'I', r.choice([0, 0x777, 0x777, 0x777]))
         put(obj, 0x18, 'II', r.choice([0, 0x1000]), r.choice([0, 0x2000]))
         put(obj, 0xc, 'I', r.choice([0, 0, 0, 1, 0x80000000]))
@@ -78,7 +82,7 @@ def case(r):
         set_return(log, START, r.choice([0, 0x888, 0x888]))
         strings(log, START, 0, out=0b100000)
         regions[HEAP] = heap(0x100)
-        if op == 'Start':
+        if op in ('Start', 'Init'):
             return Call(address, [OBJ, OUT], regions, conv='t', ret='a')
         if op == 'Del':
             return Call(address, [OBJ, r.choice([0, 1, 2, 3])], regions, conv='t', ret='a')

@@ -9,11 +9,15 @@ sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'
 from fncmp import HEAP, LOG, RAM, Bench, Call, heap, log_region, put, vtable  # noqa: E402
 
 ADDRESS = {'KeyDtor': 0x634a50, 'MouseDtor': 0x634b40, 'Clear': 0x634bf0, 'Insert': 0x634c60, 'KeyNext': 0x634d00, 'MouseNext': 0x634de0, 'KeyDel': 0x634b00, 'MouseDel': 0x634b20, 'Deliver': 0x634900, 'Keys': 0x6350f0,
-           'Ctor2': 0x6345d0, 'Dtor2': 0x634760, 'Del2': 0x634740, 'Ctor1': 0x634ee0, 'Dtor1': 0x635000, 'Del1': 0x634fe0}
+           'Ctor2': 0x6345d0, 'Dtor2': 0x634760, 'Del2': 0x634740, 'Ctor1': 0x634ee0, 'Dtor1': 0x635000, 'Del1': 0x634fe0,
+           'Del2Adj': 0x634ed0, 'Del1Adj10': 0x635180, 'Del1Adj34': 0x635190}
+# the adjustors (this less the offset, then the op's function): op -> (the op set up, the offset)
+ADJUSTS = {'Del2Adj': ('Del2', 0x10), 'Del1Adj10': ('Del1', 0x10), 'Del1Adj34': ('Del1', 0x34)}
 OPS = [n for n in ADDRESS if not os.environ.get('OPS') or n in os.environ['OPS'].split(',')]
 B = Bench([(0x634a50, 0x634af1), (0x634b40, 0x634be1), (0x634bf0, 0x634c55), (0x634c60, 0x634cb7), (0x634d00, 0x634ddb), (0x634de0, 0x634ec1), (0x47db00, 0x47db20), (0x67a400, 0x690000), (0x634b00, 0x634b1f), (0x634b20, 0x634b3f), (0x634900, 0x6349f8), (0x6350f0, 0x635174), (0x67acb0, 0x67acb1),
            (0x6345d0, 0x63471e), (0x634740, 0x63475f), (0x634760, 0x6348d3), (0x634ee0, 0x634fdf), (0x634fe0, 0x634fff), (0x635000, 0x6350ca), (0x634cc0, 0x634cf7), (0x5d0690, 0x5d06c0),
-           (0x63e7c0, 0x63e815), (0x63e840, 0x63e8b9), (0x633120, 0x633140), (0x633160, 0x6331c0), (0x633200, 0x63321a), (0x633a50, 0x633a64), (0x633a00, 0x633a30), (0x6338b0, 0x6338c0)])
+           (0x63e7c0, 0x63e815), (0x63e840, 0x63e8b9), (0x633120, 0x633140), (0x633160, 0x6331c0), (0x633200, 0x63321a), (0x633a50, 0x633a64), (0x633a00, 0x633a30), (0x6338b0, 0x6338c0),
+           (0x634ed0, 0x634ed8), (0x635180, 0x635188), (0x635190, 0x635198)])
 SELF, OUT, VALUE, LIST, MESSAGES = RAM, RAM + 0x80, RAM + 0x90, RAM + 0x100, RAM + 0x400
 LIST2, MESSAGES2, RECORDS, SINK, VT = RAM + 0x200, RAM + 0x600, RAM + 0x800, RAM + 0x900, RAM + 0x980
 SLOT_KEY, SLOT_MOUSE = 5, 6
@@ -34,7 +38,17 @@ def ring(r, count, list_=LIST, block=MESSAGES):
 
 def case(r):
     op = r.deal(OPS)
-    count = r.choice([0, 1, 2, 3, 5])
+    if op in ADJUSTS:
+        base, offset = ADJUSTS[op]
+        c = build(r, base)
+        c.address = ADDRESS[op]
+        c.args[0] += offset
+        return c
+    return build(r, op)
+
+
+def build(r, op):
+    count =r.choice([0, 1, 2, 3, 5])
     nodes, messages, sentinel, others = ring(r, count)
     self_ = bytearray(r.bytes(0x70))
     regions = {SELF: self_, LIST: nodes, MESSAGES: messages, OUT: r.bytes(8), VALUE: r.bytes(4), HEAP: heap(0x1000)}

@@ -636,9 +636,9 @@ address,name,kind,confidence,notes
 0x00642100,Const_C0000,function,high,reimplemented (src/game/core/trivial); 0xc0000
 0x00638be0,BufferSource_AttachRefPack,function,high,reimplemented (src/game/files/wrapsources); thiscall (source); reads the whole entry and RefPack_Decodes it into the data
 0x00703f00,RefPackCodec_vtable,data,medium,"slots 0x638c70 (dtor), RefPack_Encode, RefPack_Decode, RefPack_WorkspaceSize, 0x5d60c0, RefPack_DecodedSize, 0x638860, 0x638b60"
-0x00641a50,RefPack_Encode,function,high,"reimplemented, not hooked (unreachable: the only codec object only decodes); thiscall (dst, src, len, workspace) ret 0x10, returns encoded size + 5; greedy LZ over a 128 KB window with CRC-16 hash chains; C++ port reproduces all 6804 shipped .wad blobs"
-0x00641a20,RefPack_MatchLength,function,high,"(a, b, max) -> number of equal leading bytes"
-0x006419e0,WriteBigEndian,function,high,"(dst, value, n): n-byte big-endian store"
+0x00641a50,RefPack_Encode,function,high,"reimplemented (src/game/files/refpack); thiscall (dst, src, len, workspace), pops 16: greedy LZ with CRC-16 hash chains; no workspace: Mem_Alloc of slot 3's size; returns the encoded size + 5"
+0x00641a20,RefPack_MatchLength,function,high,"reimplemented (src/game/files/refpack); cdecl (a, b, max): the count of equal leading bytes, at most max"
+0x006419e0,WriteBigEndian,function,high,"reimplemented (src/game/files/refpack); cdecl (dst, value, n): value's low n bytes, most significant first (the CPU's shift: n above 4 wraps)"
 0x00779c60,gCrc16Table,data,high,"CRC-16 (reflected poly 0xA001) table, u32 entries; the RefPack encoder's 3-byte hash"
 0x00474a20,Curve_BezierTangent,function,high,"reimplemented; derivative of Curve_Bezier"
 0x00474c70,Curve_LinearTangent,function,high,"reimplemented; points[base+i+1] - points[base+i], always from curve+8 (ignores the points argument)"
@@ -6626,6 +6626,7 @@ address,name,kind,confidence,notes
 0x00632730,WaitThread_Shutdown,function,low,"reimplemented (src/game/core/waitthread); thiscall: Stop, then CloseEvents; name invented"
 0x006323e0,WaitThread_Dtor,function,low,"reimplemented (src/game/core/waitthread); thiscall: vtable 0x703c14, Shutdown, the two vectors freed and cleared; name invented"
 0x006323c0,WaitThread_DeletingDtor,function,low,"reimplemented (src/game/core/waitthread); thiscall (flags): the destructor, bit 0 frees; name invented"
+0x006326e0,WaitThread_OpenAndStart,function,low,"reimplemented (src/game/core/waitthread); thiscall (out), pops 4: OpenEvents, then Start when it did not fail; out the first failure (negative), else 0"
 0x006a7920,MoneyGet_Getmfld,function,low,reimplemented (src/game/core/moneyget); money_get<char>::_Getmfld: a money field read off a stream by the facet's negative pattern
 0x0050ffe0,Nav_Ctor,function,high,reimplemented (src/game/world/nav); constants constructor with five integer pairs
 0x0050f200,Nav_Dtor,function,high,reimplemented (src/game/world/nav); thiscall: the five IntPairs at +0x64 destroyed with Stub_Ret (CRT_VectorDtorIterator); also via 0x4f7c30 (+0xd4) and 0x4f8ad0
@@ -6966,6 +6967,10 @@ address,name,kind,confidence,notes
 0x0063e8c0,DeviceFilter_Open,function,low,"reimplemented (src/game/input/devicefilter); thiscall (result out): event, holder, notification, a record buffer of 0x200, the device's buffer size; name invented"
 0x00633400,KeyFilter_DeletingDtor,function,low,"reimplemented (src/game/input/devicefilter); thiscall (flags): KeyFilter_Dtor, bit 0 frees; name invented"
 0x00633e00,CharFilter_DeletingDtor,function,low,"reimplemented (src/game/input/devicefilter); thiscall (flags): CharFilter_Dtor, bit 0 frees; name invented"
+0x00633340,KeyFilter_Open,function,low,"reimplemented (src/game/input/devicefilter); thiscall (result out), pops 4: InputFilter_Reopen into out; returns out"
+0x006336c0,KeyFilter_DeletingDtorThunk,function,low,"reimplemented (src/game/input/devicefilter); thiscall (flags), pops 4: this less 0xc, then KeyFilter_DeletingDtor (an adjustor)"
+0x00634210,CharFilter_DeletingDtorThunk,function,low,"reimplemented (src/game/input/devicefilter); thiscall (flags), pops 4: this less 0xc, then CharFilter_DeletingDtor (an adjustor)"
+0x0063e9d0,DeviceFilter_DeletingDtorThunk,function,low,"reimplemented (src/game/input/devicefilter); thiscall (flags), pops 4: this less 0x10, then DeviceFilter_DeletingDtor (an adjustor)"
 0x00634a50,KeyPool_Dtor,function,low,reimplemented (src/game/input/messagepool); thiscall: the pool's destructor (vtable 0x703d1c): the messages and nodes freed; name invented
 0x00634b40,MousePool_Dtor,function,low,reimplemented (src/game/input/messagepool); thiscall: the pool's destructor (vtable 0x703d14); name invented
 0x00634d00,KeyPool_Next,function,low,"reimplemented (src/game/input/messagepool); thiscall: the next free message round the list, a new one when none; name invented"
@@ -6980,6 +6985,10 @@ address,name,kind,confidence,notes
 0x00634ee0,KeySource_Ctor,function,low,reimplemented (src/game/input/messagepool); thiscall: a device filter with one mouse-sized pool; name invented
 0x00634fe0,KeySource_DeletingDtor,function,low,"reimplemented (src/game/input/messagepool); thiscall (flags): the destructor, bit 0 frees; name invented"
 0x00635000,KeySource_Dtor,function,low,"reimplemented (src/game/input/messagepool); thiscall: the pool destroyed, the device filter's destructor; name invented"
+0x00634a30,MessageSource_Open,function,low,"reimplemented (src/game/input/messagepool); thiscall (result out), pops 4: DeviceFilter_Open into a local, copied to out; returns out"
+0x00634ed0,MessageSource_DeletingDtorThunk,function,low,"reimplemented (src/game/input/messagepool); thiscall (flags), pops 4: this less 0x10, then MessageSource_DeletingDtor (an adjustor)"
+0x00635180,KeySource_DeletingDtorThunk10,function,low,"reimplemented (src/game/input/messagepool); thiscall (flags), pops 4: this less 0x10, then KeySource_DeletingDtor (an adjustor)"
+0x00635190,KeySource_DeletingDtorThunk34,function,low,"reimplemented (src/game/input/messagepool); thiscall (flags), pops 4: this less 0x34, then KeySource_DeletingDtor (an adjustor)"
 0x0047e3e0,ScreenSurfaces_Dtor,function,high,reimplemented (src/game/gfx/screensurfaces); an object releases its two COM objects
 0x00fa76b0,gSurfaceDirectDraw,data,high,IDirectDraw that Surface_Create makes surfaces with (Surface_SetDirectDraw)
 0x00fa76b4,gSurfaceNoSysLock,data,high,byte; non-zero: Surface_Lock adds DDLOCK_NOSYSLOCK
@@ -9082,6 +9091,7 @@ address,name,kind,confidence,notes
 0x0066c7b0,GuiPolygon_DeletingDtor,function,low,reimplemented (src/game/ui/guishape); thiscall (flags): the polygon's scalar deleting destructor
 0x0063eb30,_tr_init,function,high,reimplemented (src/game/lib/zlib); zlib 1.1.3 trees.c: a new stream's trees (shim: the exe's static descriptors)
 0x006353d0,deflateReset,function,high,reimplemented (src/game/lib/zlib); zlib 1.1.3 deflate.c: a stream back to its start (shim: the exe's static descriptors)
+0x0063e9e0,Zlib_Calloc,function,low,"reimplemented (src/game/lib/zlib); zlib 1.1.3 zutil.c zcalloc, cdecl (opaque, items, size): the exe's calloc (0x67fcb0) of items, size"
 0x00649e10,huft_build,function,high,"reimplemented (src/game/lib/zlib_inflate); zlib 1.1.3 inftrees.c: the decoding tables for a set of code lengths (the library's, tpw_zlib)"
 0x00649d60,inflate_trees_bits,function,high,reimplemented (src/game/lib/zlib_inflate); zlib 1.1.3 inftrees.c: the bit length codes' table (shim: the exe's z->msg strings)
 0x0064a2c0,inflate_trees_dynamic,function,high,reimplemented (src/game/lib/zlib_inflate); zlib 1.1.3 inftrees.c: a dynamic block's literal/length and distance tables (shim: the exe's z->msg strings)
@@ -9251,6 +9261,9 @@ address,name,kind,confidence,notes
 0x00657d6c,GuiFont_Dtor,function,low,reimplemented (src/game/ui/guifont); the GUI font's destructor: name unconfirmed
 0x00658460,GuiFont_DeletingDtor,function,low,reimplemented (src/game/ui/guifont); the GUI font's deleting destructor: name unconfirmed
 0x00657dff,GuiFont_FreeGlyphs,function,low,reimplemented (src/game/ui/guifont); thiscall: the glyphs +0xc freed and cleared; name invented
+0x00657da0,GuiFont_SetSpacing,function,low,"reimplemented (src/game/ui/guifont); thiscall (across, down: words), pops 8: the spacing words +6 / +8"
+0x00657e34,GuiFont_DrawText,function,low,"reimplemented (src/game/ui/guifont); thiscall (x, y, text, unused), pops 16: with glyphs, each character below the count drawn through the folded stub 0x416e10 (Save_FieldName); returns the pen (x high, y low)"
+0x00657ee0,GuiFont_DrawTextClipped,function,low,"reimplemented (src/game/ui/guifont); thiscall (x, y, text, clip, flag), pops 20: as DrawText with the clip's slot 0 testing each glyph's corners; flagged: only the run from the first character shown; returns the pen"
 0x004b6540,Panel7cc3e0_Dress,function,low,"reimplemented (src/game/ui/panel7cc3e0); thiscall, slot 3 of 0x6ffec8: with the window +0x14, its children 0x5211-0x520e found dressed (texts 0x37 / 0x38, 0x6ff350 / 0x6ff3b0 parts with 0)"
 0x004b67a0,Panel7cc3e0_Open,function,low,"reimplemented (src/game/ui/panel7cc3e0); thiscall, slot 0 of the vtable 0x6ffec8: the children 0x520a / 0x520b hidden when the group counts under 2, the hover label 0x5212 bound"
 0x004b6ae0,Panel7cc3e0_Show,function,low,"reimplemented (src/game/ui/panel7cc3e0); thiscall (thing), slot 10 of the vtable 0x6ffec8: the selected thing set, the window built (script 0x7573c8, handler 0x4b67f0, children 0x520c / 0x520d), the advisor posted 0x12d"
@@ -9753,6 +9766,12 @@ address,name,kind,confidence,notes
 0x00631460,jpeg_start_decompress,function,high,"reimplemented (src/game/lib/jpeg6b); libjpeg 6b jdapistd.c jpeg_start_decompress: the master started, multi-scan input absorbed, the first output pass set up (the library's)"
 0x00631540,jdapistd_output_pass_setup,function,high,"reimplemented (src/game/lib/jpeg6b); libjpeg 6b jdapistd.c output_pass_setup: the output pass prepared, the dummy passes of two-pass quantizing run (the library's)"
 0x00631610,jpeg_read_scanlines,function,high,"reimplemented (src/game/lib/jpeg6b); libjpeg 6b jdapistd.c jpeg_read_scanlines: the state and row checks, the progress hook, a call to the main controller (the library's)"
+0x006312d0,jerror_error_exit,function,low,"reimplemented (src/game/lib/jpeg6b); libjpeg 6b jerror.c error_exit (the library's): output_message, jpeg_destroy, then the exe's exit(1) through Jpeg6bCrtEnv"
+0x00631300,jerror_output_message,function,low,"reimplemented (src/game/lib/jpeg6b); libjpeg 6b jerror.c output_message (the library's): format_message into 200 bytes, then the exe's fprintf to its stderr with its ""%s\n"" through Jpeg6bCrtEnv"
+0x006429c0,jpeg_open_backing_store,function,low,"reimplemented (src/game/lib/jpeg6b); libjpeg 6b jmemansi.c jpeg_open_backing_store (the library's, through the method shim): the exe's tmpfile, ERREXITS with the exe's """" on null, the three methods (the exe's addresses)"
+0x00642a20,jmemansi_read_backing_store,function,low,"reimplemented (src/game/lib/jpeg6b); libjpeg 6b jmemansi.c read_backing_store (the library's): the exe's fseek and fread, JERR_TFILE_SEEK / JERR_TFILE_READ"
+0x00642a90,jmemansi_write_backing_store,function,low,"reimplemented (src/game/lib/jpeg6b); libjpeg 6b jmemansi.c write_backing_store (the library's): the exe's fseek and fwrite, JERR_TFILE_SEEK / JERR_TFILE_WRITE"
+0x00642b00,jmemansi_close_backing_store,function,low,reimplemented (src/game/lib/jpeg6b); libjpeg 6b jmemansi.c close_backing_store (the library's): the exe's fclose
 0x006503d0,jpeg6a_jdiv_round_up,function,high,reimplemented (src/game/lib/jpeg6a); libjpeg 6a jutils.c jdiv_round_up: a / b rounded up (the library's)
 0x006503e3,jpeg6a_jround_up,function,high,reimplemented (src/game/lib/jpeg6a); libjpeg 6a jutils.c jround_up: a rounded up to a multiple of b (the library's)
 0x00650401,jpeg6a_jcopy_sample_rows,function,high,reimplemented (src/game/lib/jpeg6a); libjpeg 6a jutils.c jcopy_sample_rows: rows of samples copied between row arrays (the library's)
@@ -9899,3 +9918,12 @@ address,name,kind,confidence,notes
 0x006534fe,jpeg6a_jcphuff_finish_pass_gather_phuff,function,high,reimplemented (src/game/lib/jpeg6a); libjpeg 6a jcphuff.c finish_pass_gather_phuff: each table the scan uses made optimal for its counts (the library's)
 0x0064ca90,jpeg6a_jpeg_start_compress,function,high,"reimplemented (src/game/lib/jpeg6a); libjpeg 6a jcapistd.c jpeg_start_compress: a compression started, the modules chosen and the first pass set up (the library's)"
 0x006500f0,jpeg6a_jinit_compress_master,function,high,"reimplemented (src/game/lib/jpeg6a); libjpeg 6a jcinit.c jinit_compress_master: every compression module's init, the virtual arrays realized, SOI written (the library's)"
+0x0064ddec,jpeg6a_jerror_error_exit,function,low,"reimplemented (src/game/lib/jpeg6a); libjpeg 6a jerror.c error_exit (the library's): output_message, jpeg_destroy, then the exe's exit(1) through Jpeg6aCrtEnv"
+0x0064de13,jpeg6a_jerror_output_message,function,low,"reimplemented (src/game/lib/jpeg6a); libjpeg 6a jerror.c output_message (the library's): format_message into 200 bytes, then the exe's fprintf to its stderr with its 6a ""%s\n"" through Jpeg6aCrtEnv"
+0x00650265,jpeg6a_jpeg_open_backing_store,function,low,"reimplemented (src/game/lib/jpeg6a); libjpeg 6a jmemansi.c jpeg_open_backing_store (the library's, through the method shim): the exe's tmpfile, ERREXITS with the exe's 6a """" on null, the three methods (the exe's addresses)"
+0x006502cd,jpeg6a_jmemansi_read_backing_store,function,low,"reimplemented (src/game/lib/jpeg6a); libjpeg 6a jmemansi.c read_backing_store (the library's): the exe's fseek and fread, JERR_TFILE_SEEK / JERR_TFILE_READ"
+0x0065033d,jpeg6a_jmemansi_write_backing_store,function,low,"reimplemented (src/game/lib/jpeg6a); libjpeg 6a jmemansi.c write_backing_store (the library's): the exe's fseek and fwrite, JERR_TFILE_SEEK / JERR_TFILE_WRITE"
+0x006503ad,jpeg6a_jmemansi_close_backing_store,function,low,reimplemented (src/game/lib/jpeg6a); libjpeg 6a jmemansi.c close_backing_store (the library's): the exe's fclose
+0x00657110,Jpeg6a_FdctFloat,function,low,"reimplemented (src/game/lib/jpegfloatdct); jpeg-6a jfdctflt.c jpeg_fdct_float, cdecl (data): the AA&N forward DCT of 64 floats in place, x87 in the unoptimised build's order"
+0x00653d32,Jpeg6a_ForwardDctFloat,function,low,"reimplemented (src/game/lib/jpegfloatdct); jpeg-6a jcdctmgr.c forward_DCT_float, cdecl (cinfo, compptr, sample_data, coef_blocks, start_row, start_col, num_blocks): samples less 128, do_float_dct, times the float divisors plus 16384.5, __ftol less 16384"
+0x0064b040,Jpeg6b_IdctFloat,function,low,"reimplemented (src/game/lib/jpegfloatdct); jpeg-6b jidctflt.c jpeg_idct_float, cdecl (cinfo, compptr, coef_block, output_buf, output_col): the AA&N inverse DCT through the multipliers, x87 in the optimised build's order, __ftol descaled by 3 through the range limit"

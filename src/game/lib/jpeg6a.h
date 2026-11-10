@@ -393,7 +393,7 @@ jpeg6a_scan_info *__cdecl jpeg6a_jcparam_fill_scans(jpeg6a_scan_info *scanptr, i
 jpeg6a_scan_info *__cdecl jpeg6a_jcparam_fill_dc_scans(jpeg6a_scan_info *scanptr, int ncomps, int Ah, int Al);
 
 // jmemansi.c, the memory manager's system-dependent part, through third_party/wrap/jpeg-6a/jmemansi.c: its malloc and free are the
-// exe's C runtime's (Jpeg6a_SetCrtEnv below), so every block stays on the exe's heap.
+// exe's C runtime's (Jpeg6a_SetCrtEnv below), so every block stays on the exe's heap, and so are its backing store's FILE calls.
 // 0x650210, 0x650232: malloc(sizeofobject).
 void *__cdecl jpeg6a_jpeg_get_small(jpeg6a_common_struct *cinfo, std::size_t sizeofobject);
 void *__cdecl jpeg6a_jpeg_get_large(jpeg6a_common_struct *cinfo, std::size_t sizeofobject);
@@ -402,12 +402,24 @@ void __cdecl jpeg6a_jpeg_free_small(jpeg6a_common_struct *cinfo, void *object, s
 void __cdecl jpeg6a_jpeg_free_large(jpeg6a_common_struct *cinfo, void *object, std::size_t sizeofobject);
 // 0x650254: mem->max_memory_to_use (+0x2c) - already_allocated.
 long __cdecl jpeg6a_jpeg_mem_available(jpeg6a_common_struct *cinfo, long min_bytes_needed, long max_bytes_needed, long already_allocated);
+// The backing store, as 6b's: info is a backing_store_info (read_backing_store +0, write_backing_store +4, close_backing_store +8,
+// temp_file +0xc). 0x650265: tmpfile into temp_file (null: ERREXITS JERR_TFILE_CREATE 0x3e with the exe's ""), then the three methods.
+// Through the method shim (the exe's addresses stored).
+void __cdecl jpeg6a_jpeg_open_backing_store(jpeg6a_common_struct *cinfo, void *info, long total_bytes_needed);
+// 0x6502cd / 0x65033d: fseek to file_offset (failed: ERREXIT JERR_TFILE_SEEK 0x40), then fread / fwrite of byte_count bytes (short:
+// JERR_TFILE_READ 0x3f / JERR_TFILE_WRITE 0x41).
+void __cdecl jpeg6a_jmemansi_read_backing_store(jpeg6a_common_struct *cinfo, void *info, void *buffer_address, long file_offset,
+                                                long byte_count);
+void __cdecl jpeg6a_jmemansi_write_backing_store(jpeg6a_common_struct *cinfo, void *info, void *buffer_address, long file_offset,
+                                                 long byte_count);
+// 0x6503ad: fclose of temp_file.
+void __cdecl jpeg6a_jmemansi_close_backing_store(jpeg6a_common_struct *cinfo, void *info);
 
 // jmemmgr.c, the memory manager, through third_party/wrap/jpeg-6a/jmemmgr.c: cinfo->mem (my_memory_mgr, 0x50 bytes: the public
 // jpeg_memory_mgr 0x30 (no max_alloc_chunk in 6a), small_list[2] +0x30, large_list[2] +0x38, virt_sarray_list +0x40,
 // virt_barray_list +0x44, total_space_allocated +0x48, last_rowsperchunk +0x4c); pools 0 (JPOOL_PERMANENT) and 1 (JPOOL_IMAGE); a
-// pool's blocks start with a 16-byte header (next, bytes_used, bytes_left). Its getenv / sscanf and jpeg_open_backing_store are the
-// exe's (Jpeg6aCrtEnv below).
+// pool's blocks start with a 16-byte header (next, bytes_used, bytes_left). Its getenv / sscanf are the exe's and
+// jpeg_open_backing_store the exe's address (hooked to the library's above), through Jpeg6aCrtEnv below.
 struct jpeg6a_jvirt_sarray_control;  // 0x80 bytes (int booleans pre_zero +0x20, dirty +0x24, b_s_open +0x28; the backing store +0x30)
 struct jpeg6a_jvirt_barray_control;  // 0x80 bytes
 typedef short jpeg6a_block[64];      // JBLOCK
@@ -452,7 +464,12 @@ void __cdecl jpeg6a_jmemmgr_self_destruct(jpeg6a_common_struct *cinfo);
 // jerror.c's methods, through third_party/wrap/jpeg-6a/jerror.c: cinfo->err (jpeg_error_mgr, 0x84 bytes, 6b's layout: the five
 // methods +0, msg_code +0x14, msg_parm +0x18 (eight ints or an 80-character string), trace_level +0x68, num_warnings +0x6c,
 // jpeg_message_table +0x70, last_jpeg_message +0x74, addon_message_table +0x78, first_addon_message +0x7c, last_addon_message +0x80).
-// error_exit (0x64ddec), output_message (0x64de13) and jpeg_std_error (the hand port Fn_64dd60) stay the exe's.
+// jpeg_std_error (the hand port Fn_64dd60) stays the exe's.
+// 0x64ddec: output_message (+8), jpeg_destroy, then the exe's exit(1) (Jpeg6aCrtEnv), which does not come back.
+void __cdecl jpeg6a_jerror_error_exit(jpeg6a_common_struct *cinfo);
+// 0x64de13: format_message (+0xc) into a buffer of JMSG_LENGTH_MAX (200), then the exe's fprintf of it to its stderr with its 6a
+// "%s\n" (jpeg6a_exe_print).
+void __cdecl jpeg6a_jerror_output_message(jpeg6a_common_struct *cinfo);
 // 0x64de4f: a warning (msg_level < 0) is output when it is the first or trace_level >= 3, and counted; a trace when trace_level >=
 // msg_level.
 void __cdecl jpeg6a_jerror_emit_message(jpeg6a_common_struct *cinfo, int msg_level);
@@ -487,12 +504,21 @@ char *__cdecl jpeg6a_exe_getenv(const char *name);
 int __cdecl jpeg6a_exe_sscanf(const char *s, const char *format, long *value, char *ch);
 void __cdecl jpeg6a_exe_open_backing_store(jpeg6a_common_struct *cinfo, void *info, long total_bytes_needed);
 int __cdecl jpeg6a_exe_sprintf(char *buffer, const char *format, ...);
+void *__cdecl jpeg6a_exe_tmpfile();
+int __cdecl jpeg6a_exe_fseek(void *file, long offset, int origin);
+std::size_t __cdecl jpeg6a_exe_fread(void *buffer, std::size_t size, std::size_t count, void *file);
+std::size_t __cdecl jpeg6a_exe_fwrite(const void *buffer, std::size_t size, std::size_t count, void *file);
+int __cdecl jpeg6a_exe_fclose(void *file);
+void __cdecl jpeg6a_exe_exit(int status);
+int __cdecl jpeg6a_exe_print(const char *text);
+const char *__cdecl jpeg6a_exe_empty();
 
 }  // extern "C"
 
-// What the library calls outside itself, the exe's, as 6b's (jpeg6b.h's Jpeg6bCrtEnv): its C runtime's malloc / free (jmemansi.c),
-// getenv / sscanf of JPEGMEM and the backing store (jmemmgr.c: jpeg_open_backing_store stays the exe's 6a one, 0x650265), and
-// format_message's two sprintf calls (jerror.c), told apart by the message text as format_message does. The tests give it stand-ins.
+// What the library calls outside itself, the exe's, as 6b's (jpeg6b.h's Jpeg6bCrtEnv): its C runtime's malloc / free and the backing
+// store's tmpfile, fseek, fread, fwrite and fclose (jmemansi.c), getenv / sscanf of JPEGMEM and jmemmgr.c's jpeg_open_backing_store
+// at the exe's 6a address (0x650265, hooked to the library's), and format_message's two sprintf calls (jerror.c), told apart by the message
+// text as format_message does, error_exit's exit and output_message's fprintf. The tests give it stand-ins.
 struct Jpeg6aCrtEnv {
     void *(__cdecl *alloc)(std::size_t size);  // malloc (0x67dcd0)
     void(__cdecl *free)(void *block);          // free (0x67ad90)
@@ -502,6 +528,13 @@ struct Jpeg6aCrtEnv {
     int(__cdecl *sprintf_string)(char *buffer, const char *format, const char *s);  // sprintf (0x67a650), format_message's %s call
     int(__cdecl *sprintf_ints)(char *buffer, const char *format, int i0, int i1, int i2, int i3, int i4, int i5, int i6,
                                int i7);  // sprintf (0x67a650), its other call
+    void *(__cdecl *tmpfile)();                                                                  // tmpfile (0x67fd60)
+    int(__cdecl *fseek)(void *file, long offset, int origin);                                     // fseek (0x67c100)
+    std::size_t(__cdecl *fread)(void *buffer, std::size_t size, std::size_t count, void *file);         // fread (0x67e1d0)
+    std::size_t(__cdecl *fwrite)(const void *buffer, std::size_t size, std::size_t count, void *file);  // fwrite (0x67b6d0)
+    int(__cdecl *fclose)(void *file);                                                            // fclose (0x67b620)
+    void(__cdecl *exit)(int status);                                                             // exit (0x67f920)
+    int(__cdecl *fprintf)(void *file, const char *format, const char *text);  // fprintf (0x67dad0), output_message's
 };
 
 // The library's calls go through env (nullptr: the exe's).

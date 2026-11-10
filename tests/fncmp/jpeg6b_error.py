@@ -5,20 +5,27 @@
 # Jpeg6b_SetCrtEnv gives it two recorders, one for each of format_message's calls (the string: buffer, text, msg_parm.s; the ints:
 # buffer, text and the eight), and the emulator's hook on 0x67a650 tells the calls apart the way format_message does (the text's
 # first % followed by an s), so each side logs the call it made with the arguments it passed. The texts are the exe's own table
-# (0x7039d0, 0x7b codes) or a small one of formats in STR, with an add-on table or none. error_exit, output_message and jpeg_std_error
-# stay the exe's (docs/porting-libraries.md).
-# usage: jpeg6b_error.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=emit,format,reset)
+# (0x7039d0, 0x7b codes) or a small one of formats in STR, with an add-on table or none.
+# error_exit (0x6312d0): output_message a recorder, jpeg_destroy (the library's, jcomapi.c's 0x63e040 in the exe) with cinfo->mem at
+# MEM (self_destruct +0x28 a recorder) or none, then the exe's exit (0x67f920), which ends the case where it is called (fncmp's
+# _exit_case, the driver's exit_case through Jpeg6b_SetCrtEnv: the regions are compared as they are then). output_message (0x631300):
+# format_message (+0xc) a recorder logging the buffer (on the stack) as 0 and writing a string of up to 0x6f bytes into it, then the
+# exe's fprintf (0x67dad0) a recorder of the exe's stderr (0x77e840), its "%s\n" (0x764ff0, .data: varied here) and the buffer, the
+# last two as strings. jpeg_std_error stays the exe's (docs/porting-libraries.md).
+# usage: jpeg6b_error.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=emit,format,reset,exit,output)
 import os
 import struct
 import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
-from fncmp import LOG, RAM, Bench, Call, _recorder, log_region, recorder  # noqa: E402
+from fncmp import LOG, RAM, Bench, Call, _exit_case, _recorder, fill, log_region, recorder, strings  # noqa: E402
 
 # the exe's copies (re/libmap.csv): name -> (address, end)
-FUNCS = {'emit_message': (0x631340, 0x631380), 'format_message': (0x631380, 0x631440), 'reset_error_mgr': (0x631440, 0x631460)}
-K_OUTPUT = 1
-K_SPRINTF_S, K_SPRINTF_I = 27, 28  # (driver.cpp's kJpeg6bCrtEnv)
+FUNCS = {'emit_message': (0x631340, 0x631380), 'format_message': (0x631380, 0x631440), 'reset_error_mgr': (0x631440, 0x631460),
+         'error_exit': (0x6312d0, 0x6312f3), 'output_message': (0x631300, 0x631336), 'jpeg_destroy': (0x63e040, 0x63e063)}
+K_OUTPUT, K_FORMAT, K_DESTRUCT = 1, 2, 3
+K_SPRINTF_S, K_SPRINTF_I, K_EXIT, K_FPRINTF = 27, 28, 29, 30  # (driver.cpp's kJpeg6bCrtEnv)
+STDERR, NEWLINE = 0x77e840, 0x764ff0  # (the exe's stderr, its "%s\n")
 EXE_TABLE, EXE_LAST = 0x7039d0, 0x7b
 _sprintf_s, _sprintf_i = _recorder(K_SPRINTF_S, 3, cdecl=True), _recorder(K_SPRINTF_I, 10, cdecl=True)
 
@@ -38,9 +45,9 @@ def _sprintf(e):
     (_sprintf_s if isstring else _sprintf_i)(e)
 
 
-B = Bench(sorted(FUNCS.values()), hooks={0x67a650: _sprintf})
+B = Bench(sorted(FUNCS.values()), hooks={0x67a650: _sprintf, 0x67f920: _exit_case(K_EXIT), 0x67dad0: _recorder(K_FPRINTF, 3, cdecl=True)})
 
-CINFO, ERR, TABLE, ADDON, STR, BUF = RAM, RAM + 0x100, RAM + 0x200, RAM + 0x300, RAM + 0x400, RAM + 0x800
+CINFO, ERR, TABLE, ADDON, STR, BUF, MEM = RAM, RAM + 0x100, RAM + 0x200, RAM + 0x300, RAM + 0x400, RAM + 0x800, RAM + 0x900
 TEXTS = [b'plain', b'', b'%d and %d', b'%s', b'file %s here', b'100%', b'%%s', b'%x%s', b'a%sb%d', b'%u %u %u %u %u %u %u %u', b'%c']
 
 
@@ -95,7 +102,26 @@ def reset(r):
     return Call(0x631440, [CINFO], common(r))
 
 
-OPS = [f for f in (emit, format_, reset) if not os.environ.get('OPS') or f.__name__.rstrip('_') in os.environ['OPS'].split(',')]
+def exit_(r):
+    regs = common(r)
+    regs[CINFO] = bytearray(r.bytes(0x18))
+    struct.pack_into('<II', regs[CINFO], 0, ERR, MEM if r.random() < 0.8 else 0)
+    regs[MEM] = r.bytes(0x28) + struct.pack('<I', recorder(K_DESTRUCT, 1, cdecl=True)) + r.bytes(0x24)
+    return Call(0x6312d0, [CINFO], regs, ret='v')
+
+
+def output(r):
+    regs = common(r)
+    struct.pack_into('<I', regs[ERR], 0xc, recorder(K_FORMAT, 2, cdecl=True))
+    strings(regs[LOG], K_FORMAT, 0, out=0b10)
+    strings(regs[LOG], K_FPRINTF, 0b110)
+    text = bytes(r.choice([0x41, 0x7a, 0x25, 0x20, r.randrange(1, 256)]) for _ in range(r.choice([0, 1, 5, 0x40, 0x6f])))
+    fill(regs[LOG], K_FORMAT, 1, text + b'\0')
+    regs[NEWLINE] = r.choice([b'%s\n\0', b'%s\n\0', b'x%sy\0', bytes(r.randrange(1, 256) for _ in range(3)) + b'\0'])
+    return Call(0x631300, [CINFO], regs, ret='v')
+
+
+OPS = [f for f in (emit, format_, reset, exit_, output) if not os.environ.get('OPS') or f.__name__.rstrip('_') in os.environ['OPS'].split(',')]
 
 
 def case(r):

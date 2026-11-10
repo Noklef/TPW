@@ -853,6 +853,7 @@
 #include "../game/ui/windowtimersrestart.h"
 #include "../game/lib/jpeg6b.h"
 #include "../game/lib/jpeg6a.h"
+#include "../game/lib/jpegfloatdct.h"
 #include "../game/lib/zlib.h"
 
 namespace tpw::hook {
@@ -3410,6 +3411,9 @@ const Hook kHooks[] = {
     {"VFS_ArchiveName",           0x005c5110, (void *)&VFS_ArchiveName, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"RefPack_DecodeIf",          0x0067850c, (void *)&RefPack_DecodeIf, {0x55, 0x8b, 0xec, 0x83, 0xc4}},
     {"ReadBigEndian",             0x006419b0, (void *)&ReadBigEndian, {0x8b, 0x54, 0x24, 0x08, 0x8b}},
+    {"WriteBigEndian",            0x006419e0, (void *)&WriteBigEndian, {0x8b, 0x44, 0x24, 0x0c, 0x56}},
+    {"RefPack_MatchLength",       0x00641a20, (void *)&RefPack_MatchLength, {0x55, 0x8b, 0x6c, 0x24, 0x10}},
+    {"RefPack_Encode",            0x00641a50, (void *)&RefPack_Encode, {0x83, 0xec, 0x34, 0x53, 0x8b}},
     {"SubStream_Ctor",            0x006d4d10, (void *)&SubStream_Ctor, {0x6a, 0xff, 0x68, 0x7b, 0x69}},
     {"SubStream_CtorAt",          0x006d4d80, (void *)&SubStream_CtorAt, {0x6a, 0xff, 0x68, 0x9b, 0x69}},
     {"SubStream_Read",            0x006d4df0, (void *)&SubStream_Read, {0x6a, 0xff, 0x68, 0xb8, 0x69}},
@@ -7088,6 +7092,7 @@ const Hook kHooks[] = {
     {"WaitThread_Shutdown",       0x00632730, (void *)&WaitThread_Shutdown, {0x56, 0x8b, 0xf1, 0xe8, 0x38}},
     {"WaitThread_Dtor",           0x006323e0, (void *)&WaitThread_Dtor, {0x6a, 0xff, 0x68, 0x66, 0x2c}},
     {"WaitThread_DeletingDtor",   0x006323c0, (void *)&WaitThread_DeletingDtor, {0x56, 0x8b, 0xf1, 0xe8, 0x18}},
+    {"WaitThread_OpenAndStart",   0x006326e0, (void *)&WaitThread_OpenAndStart, {0x51, 0x8d, 0x44, 0x24, 0x00}},
     {"MoneyGet_Getmfld",          0x006a7920, (void *)&MoneyGet_Getmfld, {0x6a, 0xff, 0x68, 0x4d, 0x50}},
     {"Nav_Ctor",          0x0050ffe0, (void *)&Nav_Ctor, {0x6a, 0xff, 0x68, 0x2d, 0xe6}},
     {"Nav_Dtor",                  0x0050f200, (void *)&Nav_Dtor, {0x64, 0xa1, 0x00, 0x00, 0x00}},
@@ -7499,6 +7504,10 @@ const Hook kHooks[] = {
     {"DeviceFilter_Open",         0x0063e8c0, (void *)&DeviceFilter_Open, {0x83, 0xec, 0x18, 0x8d, 0x44}},
     {"KeyFilter_DeletingDtor",    0x00633400, (void *)&KeyFilter_DeletingDtor, {0x56, 0x8b, 0xf1, 0xe8, 0x68}},
     {"CharFilter_DeletingDtor",   0x00633e00, (void *)&CharFilter_DeletingDtor, {0x56, 0x8b, 0xf1, 0xe8, 0x18}},
+    {"KeyFilter_Open",            0x00633340, (void *)&KeyFilter_Open, {0x56, 0x8b, 0x74, 0x24, 0x08}},
+    {"KeyFilter_DeletingDtorThunk", 0x006336c0, (void *)&KeyFilter_DeletingDtorThunk, {0x83, 0xe9, 0x0c, 0xe9, 0x38}},
+    {"CharFilter_DeletingDtorThunk", 0x00634210, (void *)&CharFilter_DeletingDtorThunk, {0x83, 0xe9, 0x0c, 0xe9, 0xe8}},
+    {"DeviceFilter_DeletingDtorThunk", 0x0063e9d0, (void *)&DeviceFilter_DeletingDtorThunk, {0x83, 0xe9, 0x10, 0xe9, 0x48}},
     {"KeyPool_Dtor",              0x00634a50, (void *)&KeyPool_Dtor, {0x53, 0x56, 0x57, 0x8b, 0xf9}},
     {"MousePool_Dtor",            0x00634b40, (void *)&MousePool_Dtor, {0x53, 0x56, 0x57, 0x8b, 0xf9}},
     {"KeyPool_Next",              0x00634d00, (void *)&KeyPool_Next, {0x83, 0xec, 0x08, 0x55, 0x56}},
@@ -7513,6 +7522,10 @@ const Hook kHooks[] = {
     {"KeySource_Ctor",            0x00634ee0, (void *)&KeySource_Ctor, {0x6a, 0xff, 0x68, 0xf3, 0x2e}},
     {"KeySource_DeletingDtor",    0x00634fe0, (void *)&KeySource_DeletingDtor, {0x56, 0x8b, 0xf1, 0xe8, 0x18}},
     {"KeySource_Dtor",            0x00635000, (void *)&KeySource_Dtor, {0x53, 0x55, 0x8b, 0xe9, 0x56}},
+    {"MessageSource_Open",        0x00634a30, (void *)&MessageSource_Open, {0x51, 0x8d, 0x44, 0x24, 0x00}},
+    {"MessageSource_DeletingDtorThunk", 0x00634ed0, (void *)&MessageSource_DeletingDtorThunk, {0x83, 0xe9, 0x10, 0xe9, 0x68}},
+    {"KeySource_DeletingDtorThunk10", 0x00635180, (void *)&KeySource_DeletingDtorThunk10, {0x83, 0xe9, 0x10, 0xe9, 0x58}},
+    {"KeySource_DeletingDtorThunk34", 0x00635190, (void *)&KeySource_DeletingDtorThunk34, {0x83, 0xe9, 0x34, 0xe9, 0x48}},
     {"ScreenSurfaces_Dtor",       0x0047e3e0, (void *)&ScreenSurfaces_Dtor, {0x6a, 0xff, 0x68, 0xa8, 0x8f}},
     {"ScreenSurfaces_ScalarDtor", 0x0047e3c0, (void *)&ScreenSurfaces_ScalarDtor, {0x56, 0x8b, 0xf1, 0xe8, 0x18}},
     {"ScreenSurfaces_Surface10",  0x0047e4b0, (void *)&ScreenSurfaces_Surface10, {0x51, 0x57, 0x8b, 0xf9, 0x8b}},
@@ -9363,6 +9376,7 @@ const Hook kHooks[] = {
     {"deflateInit2_",             0x006351a0, (void *)&deflateInit2_, {0x8b, 0x44, 0x24, 0x1c, 0x53}},
     {"deflate",                   0x00635450, (void *)&deflate, {0x53, 0x8b, 0x5c, 0x24, 0x08}},
     {"deflateEnd",                0x006357c0, (void *)&deflateEnd, {0x56, 0x8b, 0x74, 0x24, 0x08}},
+    {"Zlib_Calloc",               0x0063e9e0, (void *)&Zlib_Calloc, {0x8b, 0x44, 0x24, 0x0c, 0x8b}},
     {"inflate_trees_dynamic",     0x0064a2c0, (void *)&inflate_trees_dynamic, {0x51, 0x53, 0x55, 0x56, 0x57}},
     {"inflate_trees_bits",        0x00649d60, (void *)&inflate_trees_bits, {0x51, 0x53, 0x57, 0x8b, 0x7c}},
     {"huft_build",                0x00649e10, (void *)&huft_build, {0x81, 0xec, 0xf0, 0x00, 0x00}},
@@ -9536,6 +9550,9 @@ const Hook kHooks[] = {
     {"GuiFont_Dtor",              0x00657d6c, (void *)&GuiFont_Dtor, {0x55, 0x8b, 0xec, 0x83, 0xec}},
     {"GuiFont_DeletingDtor",      0x00658460, (void *)&GuiFont_DeletingDtor, {0x55, 0x8b, 0xec, 0x51, 0x89}},
     {"GuiFont_FreeGlyphs",        0x00657dff, (void *)&GuiFont_FreeGlyphs, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"GuiFont_SetSpacing",        0x00657da0, (void *)&GuiFont_SetSpacing, {0x55, 0x8b, 0xec, 0x51, 0x89}},
+    {"GuiFont_DrawText",          0x00657e34, (void *)&GuiFont_DrawText, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"GuiFont_DrawTextClipped",   0x00657ee0, (void *)&GuiFont_DrawTextClipped, {0x55, 0x8b, 0xec, 0x83, 0xec}},
     {"Panel7cc3e0_Dress",         0x004b6540, (void *)&Panel7cc3e0_Dress, {0x6a, 0xff, 0x68, 0xac, 0xb3}},
     {"Panel7cc3e0_Open",          0x004b67a0, (void *)&Panel7cc3e0_Open, {0xa1, 0xd8, 0xc3, 0x7c, 0x00}},
     {"Panel7cc3e0_Show",          0x004b6ae0, (void *)&Panel7cc3e0_Show, {0x8b, 0x44, 0x24, 0x04, 0x6a}},
@@ -10040,6 +10057,12 @@ const Hook kHooks[] = {
     {"jpeg_read_header",          0x00630d90, (void *)&jpeg_read_header, {0x56, 0x8b, 0x74, 0x24, 0x08}},
     {"jpeg_destroy_decompress",   0x00630d80, (void *)&jpeg_destroy_decompress, {0x8b, 0x44, 0x24, 0x04, 0x50}},
     {"jpeg_CreateDecompress",     0x00630ca0, (void *)&jpeg_CreateDecompress, {0x8b, 0x44, 0x24, 0x08, 0x53}},
+    {"jerror_error_exit",         0x006312d0, (void *)&jerror_error_exit, {0x56, 0x8b, 0x74, 0x24, 0x08}},
+    {"jerror_output_message",     0x00631300, (void *)&jerror_output_message, {0x8b, 0x44, 0x24, 0x04, 0x81}},
+    {"jpeg_open_backing_store",   0x006429c0, (void *)&jpeg_open_backing_store, {0x56, 0xe8, 0x9a, 0xd3, 0x03}},
+    {"jmemansi_read_backing_store", 0x00642a20, (void *)&jmemansi_read_backing_store, {0x8b, 0x44, 0x24, 0x10, 0x56}},
+    {"jmemansi_write_backing_store", 0x00642a90, (void *)&jmemansi_write_backing_store, {0x8b, 0x44, 0x24, 0x10, 0x56}},
+    {"jmemansi_close_backing_store", 0x00642b00, (void *)&jmemansi_close_backing_store, {0x8b, 0x44, 0x24, 0x08, 0x8b}},
     {"jpeg6a_jzero_far",          0x006504a2, (void *)&jpeg6a_jzero_far, {0x55, 0x8b, 0xec, 0x57, 0x8b}},
     {"jpeg6a_jcopy_block_row",    0x0065047f, (void *)&jpeg6a_jcopy_block_row, {0x55, 0x8b, 0xec, 0x56, 0x57}},
     {"jpeg6a_jcopy_sample_rows",  0x00650401, (void *)&jpeg6a_jcopy_sample_rows, {0x55, 0x8b, 0xec, 0x83, 0xec}},
@@ -10186,6 +10209,15 @@ const Hook kHooks[] = {
     {"jpeg6a_jinit_phuff_encoder", 0x00652480, (void *)&jpeg6a_jinit_phuff_encoder, {0x55, 0x8b, 0xec, 0x83, 0xec}},
     {"jpeg6a_jinit_compress_master", 0x006500f0, (void *)&jpeg6a_jinit_compress_master, {0x55, 0x8b, 0xec, 0x51, 0x6a}},
     {"jpeg6a_jpeg_start_compress", 0x0064ca90, (void *)&jpeg6a_jpeg_start_compress, {0x55, 0x8b, 0xec, 0x8b, 0x45}},
+    {"jpeg6a_jerror_error_exit",  0x0064ddec, (void *)&jpeg6a_jerror_error_exit, {0x55, 0x8b, 0xec, 0x8b, 0x45}},
+    {"jpeg6a_jerror_output_message", 0x0064de13, (void *)&jpeg6a_jerror_output_message, {0x55, 0x8b, 0xec, 0x81, 0xec}},
+    {"jpeg6a_jpeg_open_backing_store", 0x00650265, (void *)&jpeg6a_jpeg_open_backing_store, {0x55, 0x8b, 0xec, 0xe8, 0xf3}},
+    {"jpeg6a_jmemansi_read_backing_store", 0x006502cd, (void *)&jpeg6a_jmemansi_read_backing_store, {0x55, 0x8b, 0xec, 0x6a, 0x00}},
+    {"jpeg6a_jmemansi_write_backing_store", 0x0065033d, (void *)&jpeg6a_jmemansi_write_backing_store, {0x55, 0x8b, 0xec, 0x6a, 0x00}},
+    {"jpeg6a_jmemansi_close_backing_store", 0x006503ad, (void *)&jpeg6a_jmemansi_close_backing_store, {0x55, 0x8b, 0xec, 0x8b, 0x45}},
+    {"Jpeg6a_FdctFloat",          0x00657110, (void *)&Jpeg6a_FdctFloat, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"Jpeg6a_ForwardDctFloat",    0x00653d32, (void *)&Jpeg6a_ForwardDctFloat, {0x55, 0x8b, 0xec, 0x81, 0xec}},
+    {"Jpeg6b_IdctFloat",          0x0064b040, (void *)&Jpeg6b_IdctFloat, {0x81, 0xec, 0x28, 0x01, 0x00}},
 };
 const std::size_t kHookCount = sizeof(kHooks) / sizeof(kHooks[0]);
 

@@ -3,21 +3,24 @@
 # (compptr->dct_table, +0x50) at QUANT; cinfo at CINFO with sample_range_limit (+0x120) pointing into a random range-limit table at
 # RANGE (the IDCTs index it from +CENTERJSAMPLE with RANGE_MASK, so any index they compute reads a byte both sides have); the output
 # rows an array of row pointers at ROWS into OUTPUT, at output_col.
-# jidctflt.c's jpeg_idct_float (0x64b040) stays the exe's: its (INT32) casts are __ftol in the exe, the low half of a 64-bit FISTP,
-# and cvttss2si in the library (__ftol2_sse when built as x87 code), which differ past +-2^31 (16-bit quantizers reach it); the game
-# never selects JDCT_FLOAT (its codec leaves dct_method, +0x44, at default_decompress_parms' JDCT_ISLOW).
+# jidctflt.c's jpeg_idct_float (0x64b040) is a hand port (src/game/lib/jpegfloatdct: Jpeg6b_IdctFloat, x87 in the listing's order):
+# its (INT32) casts are __ftol in the exe, the low half of a 64-bit FISTP, where the library's build differs past +-2^31. Its
+# multipliers are floats (jddctmgr.c's quantval * aanscalefactor[row] * aanscalefactor[col]); the wild cases add random float bits
+# (NaNs, infinities, values past the float range in the registers) and 16-bit coefficients.
 # usage: jpeg6b_idct.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=islow,...)
 import os
 import struct
 import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
-from fncmp import RAM, Bench, Call  # noqa: E402
+from fncmp import RAM, Bench, Call, fb  # noqa: E402
 
 # the exe's copies (re/libmap.csv): name -> (address, end)
 FUNCS = {
     'jpeg_idct_islow': (0x64a5c0, 0x64abb0), 'jpeg_idct_ifast': (0x64abb0, 0x64b040), 'jpeg_idct_4x4': (0x64b5b0, 0x64b970), 'jpeg_idct_2x2': (0x64b970, 0x64bb90), 'jpeg_idct_1x1': (0x64bb90, 0x64bbd0),
+    'jpeg_idct_float': (0x64b040, 0x64b5a1),
 }
+AAN = [1.0, 1.387039845, 1.306562965, 1.175875602, 1.0, 0.785694958, 0.541196100, 0.275899379]
 B = Bench(sorted(FUNCS.values()))
 
 CINFO, COMP, COEF, QUANT, ROWS, RANGE, OUTPUT = RAM, RAM + 0x200, RAM + 0x300, RAM + 0x400, RAM + 0x600, RAM + 0x1000, RAM + 0x2000
@@ -62,6 +65,14 @@ def quant_ints(r, fast):
     return struct.pack('<64i', *q)
 
 
+def quant_floats(r):
+    q = struct.unpack('<64i', quant_ints(r, False))
+    bits = [fb(v * AAN[i // 8] * AAN[i % 8]) for i, v in enumerate(q)]
+    if r.wild and r.random() < 0.5:
+        bits = [r.f() if r.random() < 0.3 else b for b in bits]
+    return struct.pack('<64I', *bits)
+
+
 def idct(address, size, fast=False):
     def op(r):
         cinfo = bytearray(r.bytes(0x1b0))
@@ -74,14 +85,14 @@ def idct(address, size, fast=False):
         if r.random() < 0.3:
             r.shuffle(order)
         rows = struct.pack('<%dI' % size, *(OUTPUT + i * stride for i in order))
-        regions = {CINFO: cinfo, COMP: comp, COEF: coefficients(r), QUANT: quant_ints(r, fast),
+        regions = {CINFO: cinfo, COMP: comp, COEF: coefficients(r), QUANT: quant_floats(r) if address == 0x64b040 else quant_ints(r, fast),
                    ROWS: rows, RANGE: r.bytes(RANGE_SIZE), OUTPUT: r.bytes(size * stride)}
         return Call(address, [CINFO, COMP, COEF, ROWS, col], regions)
-    op.__name__ = {0x64a5c0: 'islow', 0x64abb0: 'ifast', 0x64b5b0: 'idct4x4', 0x64b970: 'idct2x2', 0x64bb90: 'idct1x1'}[address]
+    op.__name__ = {0x64a5c0: 'islow', 0x64abb0: 'ifast', 0x64b5b0: 'idct4x4', 0x64b970: 'idct2x2', 0x64bb90: 'idct1x1', 0x64b040: 'float'}[address]
     return op
 
 
-OPS = [f for f in (idct(0x64a5c0, 8), idct(0x64abb0, 8, fast=True), idct(0x64b5b0, 4), idct(0x64b970, 2), idct(0x64bb90, 1))
+OPS = [f for f in (idct(0x64a5c0, 8), idct(0x64abb0, 8, fast=True), idct(0x64b5b0, 4), idct(0x64b970, 2), idct(0x64bb90, 1), idct(0x64b040, 8))
        if not os.environ.get('OPS') or f.__name__ in os.environ['OPS'].split(',')]
 
 

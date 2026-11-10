@@ -2,16 +2,19 @@
 # exe's 6a copies: jpeg_fdct_islow (jfdctint.c, 0x657810) and jpeg_fdct_ifast (jfdctfst.c, 0x657480), each one block of 64 DCTELEMs
 # (ints) in place at DATA. jcdctmgr.c's forward_DCT hands them samples less CENTERJSAMPLE (-128..127); the cases are those, flat and
 # edge blocks, and wider values (the wild ones the whole int range: both wrap the same).
-# usage: jpeg6a_fdct.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=islow,ifast)
+# jpeg_fdct_float (jfdctflt.c, 0x657110) is a hand port (src/game/lib/jpegfloatdct: Jpeg6a_FdctFloat, x87 in the listing's order):
+# 64 floats in place, the same blocks as floats, and when wild random float bits among them (NaNs, infinities, sums past the float
+# range).
+# usage: jpeg6a_fdct.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=islow,ifast,fdct_float)
 import os
 import struct
 import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
-from fncmp import RAM, Bench, Call  # noqa: E402
+from fncmp import RAM, Bench, Call, fb  # noqa: E402
 
 # the exe's copies (re/libmap.csv): name -> (address, end)
-FUNCS = {'jpeg_fdct_ifast': (0x657480, 0x657802), 'jpeg_fdct_islow': (0x657810, 0x657cb3)}
+FUNCS = {'jpeg_fdct_ifast': (0x657480, 0x657802), 'jpeg_fdct_islow': (0x657810, 0x657cb3), 'jpeg_fdct_float': (0x657110, 0x657474)}
 B = Bench(sorted(FUNCS.values()))
 
 DATA = RAM
@@ -46,7 +49,17 @@ def ifast(r):
     return Call(0x657480, [DATA], {DATA: block(r)})
 
 
-OPS = [f for f in (islow, ifast) if not os.environ.get('OPS') or f.__name__ in os.environ['OPS'].split(',')]
+def fdct_float(r):
+    vals = struct.unpack('<64i', block(r))
+    bits = [fb(float(v)) for v in vals]
+    if r.random() < 0.3:
+        bits = [fb(r.uniform(-1, 1) * r.choice([1, 128, 1e6, 1e30, 3e38])) for _ in range(64)]
+    if r.wild:
+        bits = [r.f() if r.random() < 0.3 else b for b in bits]
+    return Call(0x657110, [DATA], {DATA: struct.pack('<64I', *bits)})
+
+
+OPS = [f for f in (islow, ifast, fdct_float) if not os.environ.get('OPS') or f.__name__ in os.environ['OPS'].split(',')]
 
 
 def case(r):
