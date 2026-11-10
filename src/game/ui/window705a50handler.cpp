@@ -8,6 +8,7 @@
 #include "guimanager.h"
 #include "window.h"
 #include "window705a50.h"
+#include "guisettings.h"
 
 namespace {
 
@@ -19,7 +20,7 @@ const Window705a50HandlerEnv kGameEnv = {&Window705a50_Repeat,  &Window_Activate
                                          &Window_ApplyCursor,   &Window_DefaultProc};
 const Window705a50HandlerEnv *g_env = &kGameEnv;
 
-u8 *Mouse() { return global<u8 *>(0x0077c48c); }
+u8 *Mouse() { return global<u8 *>((u32)(uintptr_t)&gGuisettings_77c48c); }
 s16 &ButtonState(s32 i) { return global<s16>(0x00faa598 + i * 12); }
 
 }  // namespace

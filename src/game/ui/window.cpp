@@ -15,6 +15,7 @@
 #include "windowtimers.h"
 #include "guisystem.h"
 #include "guisettings.h"
+#include "windowbroadcast.h"
 
 namespace {
 
@@ -137,7 +138,7 @@ u32 __fastcall Window_SetShown(u8 *window, void *, u32 shown) {
         Window_NotifyShown(window, reinterpret_cast<void *>(((uintptr_t)window & 0xffff0000u) | s), s);
     Window_UpdateHover();
     if (s != 0) return 1;
-    u8 *const manager = *reinterpret_cast<u8 **>((uintptr_t)0x0077c48c);
+    u8 *const manager = *reinterpret_cast<u8 **>((uintptr_t)&gGuisettings_77c48c);
     return (vcall<u32>(manager, 0x34, window) & 0xffff0000u) | 1;
 }
 
@@ -532,7 +533,7 @@ void __cdecl Gui_ResetQueues() {
 u32 __fastcall Window_Dtor(u8 *window) {
     at<u32>(window, 0) = (u32)(uintptr_t)Window_vtable;
     if (!window[4]) Window_Destroying(window);
-    u8 *const manager = *reinterpret_cast<u8 **>((uintptr_t)0x0077c48c);
+    u8 *const manager = *reinterpret_cast<u8 **>((uintptr_t)&gGuisettings_77c48c);
     reinterpret_cast<void(__fastcall *)(u8 *, void *, u8 *)>(at<void **>(manager, 0)[13])(manager, nullptr, window);
     for (const u32 off : {0x98u, 0x9cu}) {
         if (!at<u8 *>(window, off) || (s16)WindowImpl_Release(at<u8 *>(window, off)) != -1) continue;
@@ -662,7 +663,7 @@ u32 __fastcall Window_KillFocus(u8 *window, void *, u32 a) {
 }
 
 u32 __cdecl Gui_MouseDown(u32 button, u32 x, u32 y) {
-    if (*reinterpret_cast<const u32 *>((uintptr_t)0x0077c488) == 0) return 0;  // only AX is set
+    if (gWindowbroadcast_77c488 == 0) return 0;  // only AX is set
     const s32 b = (s16)button;
     u8 *const *const hovered = reinterpret_cast<u8 *const *>((uintptr_t)0x00faa5e0);
     Window_PostMessage(*hovered, 0x10005, (u32)b, ((u32)(s32)(s16)x << 16) | (u32)(s32)(s16)y);
@@ -673,7 +674,7 @@ u32 __cdecl Gui_MouseDown(u32 button, u32 x, u32 y) {
 }
 
 u32 __cdecl Gui_MouseUp(u32 button, u32 x, u32 y) {
-    if (*reinterpret_cast<const u32 *>((uintptr_t)0x0077c488) == 0) return 0;  // only AX is set
+    if (gWindowbroadcast_77c488 == 0) return 0;  // only AX is set
     const s32 b = (s16)button;
     u8 **const windows = reinterpret_cast<u8 **>((uintptr_t)0x00faa588);
     Window_PostMessage(windows[b], 0x10004, (u32)b, ((u32)(s32)(s16)x << 16) | (u32)(s32)(s16)y);
@@ -684,7 +685,7 @@ u32 __cdecl Gui_MouseUp(u32 button, u32 x, u32 y) {
 }
 
 u32 __cdecl Gui_MouseWheel(u32 delta, u32 x, u32 y) {
-    if (*reinterpret_cast<const u32 *>((uintptr_t)0x0077c488) == 0) return 0;  // only AX is set
+    if (gWindowbroadcast_77c488 == 0) return 0;  // only AX is set
     u8 *const capture = *reinterpret_cast<u8 **>((uintptr_t)0x00faa5e8);
     u8 *const target = capture ? capture : *reinterpret_cast<u8 **>((uintptr_t)0x00faa5e0);
     Window_PostMessage(target, 0x1000d, delta, ((u32)(s32)(s16)x << 16) | (u32)(s32)(s16)y);
@@ -692,14 +693,14 @@ u32 __cdecl Gui_MouseWheel(u32 delta, u32 x, u32 y) {
 }
 
 u32 __cdecl Gui_MouseDouble(u32 button, u32 x, u32 y) {
-    if (*reinterpret_cast<const u32 *>((uintptr_t)0x0077c488) == 0) return 0;  // only AX is set
+    if (gWindowbroadcast_77c488 == 0) return 0;  // only AX is set
     Window_PostMessage(*reinterpret_cast<u8 *const *>((uintptr_t)0x00faa5e0), 0x10007, (u32)(s32)(s16)button,
                        ((u32)(s32)(s16)x << 16) | (u32)(s32)(s16)y);
     return 1;
 }
 
 static u32 Gui_PostKey(u32 message, u32 key, u32 b) {
-    if (*reinterpret_cast<const u32 *>((uintptr_t)0x0077c488) == 0) return 0;  // only AX is set
+    if (gWindowbroadcast_77c488 == 0) return 0;  // only AX is set
     Window_PostMessage(reinterpret_cast<u8 *>((uintptr_t)1), message, (u32)(s32)(s16)key, b);
     return 1;
 }
@@ -709,7 +710,7 @@ u32 __cdecl Gui_KeyUp(u32 key, u32 b) { return Gui_PostKey(0x1000b, key, b); }
 u32 __cdecl Gui_KeyChar(u32 key, u32 b) { return Gui_PostKey(0x1000c, key, b); }
 
 u32 __cdecl Gui_MouseMove(u32 x, u32 y) {
-    if (*reinterpret_cast<const u32 *>((uintptr_t)0x0077c488) == 0) return 0;  // only AX is set
+    if (gWindowbroadcast_77c488 == 0) return 0;  // only AX is set
     gGuisettings_faa540 = (u16)x;
     gGuisettings_faa544 = (u16)y;
     u8 *const root = *reinterpret_cast<u8 **>((uintptr_t)0x00faa5d8);
@@ -1097,7 +1098,7 @@ u32 __fastcall Window_SlideTo(u8 *window, void *, const u8 *target, s32 time, s3
 }
 
 u32 __fastcall Window_ScriptTick(u8 *window) {
-    u8 *const manager = *reinterpret_cast<u8 **>((uintptr_t)0x0077c48c);
+    u8 *const manager = *reinterpret_cast<u8 **>((uintptr_t)&gGuisettings_77c48c);
     if (at<u8 *>(manager, 0x14) == window) vcall<void>(manager, 0x30);
     return Window_ScriptStep(window);
 }
@@ -1175,8 +1176,8 @@ s32 iabs(s32 v) { return v < 0 ? -v : v; }
 
 u32 __cdecl Window_DefaultProc(u8 *window, u32 message, u32 a, u32 b) {
     if (message & 0x80000000u) return 0;
-    u8 *const manager = *reinterpret_cast<u8 **>((uintptr_t)0x0077c48c);
-    const s32 doubleTime = *reinterpret_cast<const s32 *>((uintptr_t)0x0077c480);
+    u8 *const manager = *reinterpret_cast<u8 **>((uintptr_t)&gGuisettings_77c48c);
+    const s32 doubleTime = gWindow_DefaultProc_77c480;
     switch (message) {
     case 1: Window_OpenTree(window); break;
     case 2: Window_CloseTree(window); break;

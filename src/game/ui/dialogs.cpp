@@ -308,7 +308,7 @@ void __cdecl Windows7cc8bc_SelectFirst() {
 }
 
 void __cdecl Windows7c26b0_Message5() {
-    for (u32 entry = 0x007c26b0; entry < reinterpret_cast<uintptr_t>(&gMsgtags_7c3b00); entry += 0x208)
+    for (u32 entry = (u32)(uintptr_t)&gMsgtags_7c26b0; entry < reinterpret_cast<uintptr_t>(&gMsgtags_7c3b00); entry += 0x208)
         if (*reinterpret_cast<u16 *>((uintptr_t)entry + 4)) Window_SendMessage(*reinterpret_cast<u8 **>((uintptr_t)entry), 5, 0, 0);
 }
 

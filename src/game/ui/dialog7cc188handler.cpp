@@ -58,7 +58,7 @@ const u16 *nameOf(u8 *list, s32 row, u32 *data) {
     const char *text = textOf(StdListString_First(strings));
     for (; count; --count) text = textOf(StdListString_Next(strings));
     u16 *const name = reinterpret_cast<u16 *>(gDialog7cc188handler_7cbeb8);
-    Crt().swprintf(name, reinterpret_cast<const u16 *>((uintptr_t)0x0075442c), text);
+    Crt().swprintf(name, reinterpret_cast<const u16 *>((uintptr_t)&gDialog7cc188handler_75442c), text);
     return name;
 }
 

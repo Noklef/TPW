@@ -51,3 +51,8 @@ void __fastcall Panel7cc258_Show(u8 *self, void *, u8 *thing);
 // panel's +8 set to Object_Status(thing, 2) and its slot 9 called when that changes it.
 void __fastcall Panel7cc258_ShowStats(u8 *self);
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(u8[0x578], gPanel7cc258_Show_755908, 0x00755908, 0x578);

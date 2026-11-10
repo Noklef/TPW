@@ -15,6 +15,7 @@
 #include "windowscript.h"
 #include "dialog74fb20.h"
 #include "panel7b9940.h"
+#include "window7cb2a4.h"
 
 namespace {
 
@@ -173,7 +174,7 @@ void __cdecl Dialog7cb2b8_Build() {
         g_env->setHandler(graph, nullptr, 0x004a0a90);
         if (u8 *const bars = Window_FindChild(graph, nullptr, 0x1f)) {
             u8 *const memory = static_cast<u8 *>(GameHeap_Alloc(0x124));
-            g_env->setObject(bars, nullptr, memory ? g_env->barMesh(memory, nullptr, reinterpret_cast<const char *>((uintptr_t)0x00752f04)) : nullptr);
+            g_env->setObject(bars, nullptr, memory ? g_env->barMesh(memory, nullptr, reinterpret_cast<const char *>((uintptr_t)&gWindow7cb2a4_752ef8 + 0xc)) : nullptr);
             g_env->setHandler(bars, nullptr, 0x004a1cd0);
             vcall<void>(bars, 0x14, 0u);
         }

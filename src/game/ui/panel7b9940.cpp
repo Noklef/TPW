@@ -103,7 +103,7 @@ void __cdecl Panel7b9940_Open() {
         }
     }
     if (u8 *const object = global<u8 *>(0x007b05d8)) (*reinterpret_cast<void(__fastcall *const *const *)(u8 *)>(object))[9](object);
-    const u32 one = global<u32>(0x006ff148);
+    const u32 one = gPanel7b9940_6ff148;
     u8 *base = self + vbase(self, 0, 8);
     SceneFlags_Touch(kSceneFlags);
     at<u32>(base, 0x54) = 0xffffffff;
@@ -173,7 +173,7 @@ void __cdecl Panel7b9940_Close() {
 u32 __cdecl Panel7b9940_Show() {
     u8 *const self = reinterpret_cast<u8 *>((uintptr_t)0x007b9940);
     Gui_ResetQueues();
-    const u32 one = global<u32>(0x006ff148);
+    const u32 one = gPanel7b9940_6ff148;
     u8 *base = self + vbase(self, 0, 8);
     SceneFlags_Touch(kSceneFlags);
     at<u32>(base, 0x54) = 0xffffffff;
@@ -190,7 +190,7 @@ u32 __cdecl Panel7b9940_Show() {
 u32 __cdecl Panel7b9940_ShowWindow() {
     u8 *const self = reinterpret_cast<u8 *>((uintptr_t)0x007b9940);
     g_open->resetQueues();
-    const u32 one = global<u32>(0x006ff148);
+    const u32 one = gPanel7b9940_6ff148;
     u8 *base = self + vbase(self, 0, 8);
     SceneFlags_Touch(kSceneFlags);
     at<u32>(base, 0x54) = 0xffffffff;

@@ -26,6 +26,7 @@
 #include "gamepause.h"
 #include "window7cc8bc.h"
 #include "panel7b9940.h"
+#include "dialog7cc188.h"
 
 namespace {
 
@@ -61,7 +62,7 @@ void dressEdit(u8 *edit, u32 buffer, u32 dwords, u32 capacity, u32 a, u32 text, 
     g_open->notify40000(edit, nullptr, 0xff, 0xff, 0xff, 0xff);
     g_open->notify3000(edit, nullptr, a, 0);
     g_open->notifyC00(edit, nullptr, 0, 0);
-    g_open->setCaret(edit, nullptr, reinterpret_cast<u8 *>((uintptr_t)g_open->findByName(reinterpret_cast<const char *>((uintptr_t)0x0074fa84))));
+    g_open->setCaret(edit, nullptr, reinterpret_cast<u8 *>((uintptr_t)g_open->findByName(reinterpret_cast<const char *>((uintptr_t)&gText_Dialog7cc188_74fa84))));
     vcall<void>(edit, 0x24, g_open->text(text));
 }
 

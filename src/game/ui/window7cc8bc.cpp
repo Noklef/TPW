@@ -26,6 +26,7 @@
 #include "../render/screen.h"
 #include "../world/camera.h"
 #include "../world/cameraupdate.h"
+#include "dialog7cc188.h"
 
 namespace {
 
@@ -33,7 +34,7 @@ u8 *window(uintptr_t global) { return *reinterpret_cast<u8 **>(global); }
 
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
 
-u8 *hilight() { return reinterpret_cast<u8 *>((uintptr_t)GuiWindows_FindByName(reinterpret_cast<const char *>(0x0074fa84))); }
+u8 *hilight() { return reinterpret_cast<u8 *>((uintptr_t)GuiWindows_FindByName(reinterpret_cast<const char *>((u32)(uintptr_t)&gText_Dialog7cc188_74fa84))); }
 
 // [slot] built hidden on the GUI root from script with the handler 0x4bed60, unlinked, its child id the handler 0x4bede0.
 void buildHidden(u32 script, u32 slot, u32 id) {

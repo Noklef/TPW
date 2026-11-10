@@ -8,6 +8,7 @@
 #include "window.h"
 #include "window705a50.h"
 #include "windowarea.h"
+#include "guisettings.h"
 
 namespace {
 
@@ -19,7 +20,7 @@ const Window705b20ThumbEnv kGameEnv = {&Window_SendMessage,     &Window_PostMess
 const Window705b20ThumbEnv *g_env = &kGameEnv;
 
 // The mouse object.
-u8 *Mouse() { return *reinterpret_cast<u8 **>((uintptr_t)0x0077c48c); }
+u8 *Mouse() { return *reinterpret_cast<u8 **>((uintptr_t)&gGuisettings_77c48c); }
 
 // A button's entry: held, then its press's x and y.
 s16 &Button(u32 button, u32 offset) { return *reinterpret_cast<s16 *>((uintptr_t)(0x00faa598 + button * 12 + offset)); }

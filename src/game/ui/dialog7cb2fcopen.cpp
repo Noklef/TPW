@@ -73,7 +73,7 @@ void valueRow(u32 id, u32 label, s32 value) {
     u8 *const row = child(id);
     u16 state[10];
     if (value < 0) Crt().swprintf(state, reinterpret_cast<const u16 *>(gDialog7cb2fc_7537c8), g_env->text(0x14e));
-    else Crt().swprintf(state, reinterpret_cast<const u16 *>((uintptr_t)0x007537b8), value);
+    else Crt().swprintf(state, reinterpret_cast<const u16 *>((uintptr_t)&gDialog7cb2fcopen_7537b8), value);
     g_env->text(label);
     Crt().wcscat(kBuffer, state);
     vcall<void>(Window_FindChild(row, nullptr, 0x1d4c9), 0x24, kBuffer);

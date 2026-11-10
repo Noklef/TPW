@@ -131,7 +131,7 @@ void __fastcall Panel7cc298_Open(u8 *self) {
 
 void __fastcall Panel7cc298_Show(u8 *self, void *, u8 *thing) {
     *reinterpret_cast<u8 **>((uintptr_t)0x007cc2c8) = thing;
-    WindowAt10_Create(self, nullptr, reinterpret_cast<u8 *>((uintptr_t)0x00755e80), 0x004b2150, 0xa0a2, 0xa091, 0xa0a3);
+    WindowAt10_Create(self, nullptr, reinterpret_cast<u8 *>((uintptr_t)&gPanel7cc298_Show_755e80), 0x004b2150, 0xa0a2, 0xa091, 0xa0a3);
     Advisor_PostId(0xd0);
 }
 

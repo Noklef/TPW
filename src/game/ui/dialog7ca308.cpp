@@ -34,6 +34,7 @@
 #include "windowtimers.h"
 #include "panel7b9940.h"
 #include "../core/textarg.h"
+#include "dialog7cc188.h"
 
 namespace {
 
@@ -201,7 +202,7 @@ void __cdecl Dialog7ca308_Open(u32 kind) {
         Window7059f0_BuildRows(list, nullptr, &List7ca314_NewRowJump, &List7ca314_InitRow);
         Window7059f0_SetColumnBottom(list, nullptr, 0, 0);
         Window7059f0_SetColumnBottom(list, nullptr, 1, 1);
-        Window7059f0_SetHighlight(list, nullptr, reinterpret_cast<u8 *>((uintptr_t)GuiWindows_FindByName(reinterpret_cast<const char *>(0x0074fa84))));
+        Window7059f0_SetHighlight(list, nullptr, reinterpret_cast<u8 *>((uintptr_t)GuiWindows_FindByName(reinterpret_cast<const char *>((u32)(uintptr_t)&gText_Dialog7cc188_74fa84))));
         Window_SetHandler(list, nullptr, 0x0049bc80);
         Window7059f0_SortBy(list, nullptr, gDialog7ca308_7523e4, 0);
         child = Window_FindChild(list, nullptr, 0x10);

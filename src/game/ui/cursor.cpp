@@ -122,24 +122,24 @@ void __cdecl Gui_SetCursorTable(u8 *table) {
     if (!table || table == gGui_faa604) return;
     if (gCursor_faa608) vcall<void>(gCursor_faa608, 0x10, 0u);
     gGui_faa604 = table;
-    u8 *const cursor = CursorTable_Get(gGui_faa604, nullptr, global<u16>(0x0077c484));
+    u8 *const cursor = CursorTable_Get(gGui_faa604, nullptr, global<u16>((u32)(uintptr_t)&gGui_77c484));
     if (cursor) vcall<void>(cursor, 0x10, 1u);
     gCursor_faa608 = cursor;
 }
 
 void __cdecl Gui_SetCursor(u32 id) {
     if (!gGui_faa604) return;
-    if ((s16)id == global<s16>(0x0077c484)) return;
+    if ((s16)id == global<s16>((u32)(uintptr_t)&gGui_77c484)) return;
     if ((s16)id == -1) id = gGui_faa600;
     u8 had = 0;
-    if (u8 *const old = CursorTable_Get(gGui_faa604, nullptr, global<u16>(0x0077c484))) {
+    if (u8 *const old = CursorTable_Get(gGui_faa604, nullptr, global<u16>((u32)(uintptr_t)&gGui_77c484))) {
         vcall<void>(old, 0x10, 0u);
         had = Fn_66190a(old);
     }
     u8 *c = CursorTable_Get(gGui_faa604, nullptr, (u16)id);
     if (!c) c = CursorTable_Get(gGui_faa604, nullptr, gGui_faa600);
     gCursor_faa608 = c;
-    global<u16>(0x0077c484) = (u16)id;
+    global<u16>((u32)(uintptr_t)&gGui_77c484) = (u16)id;
     if (!c) return;
     vcall<void>(c, 0x10, 1u);
     if (had) vcall<void>(c, 0x8);

@@ -20,3 +20,8 @@ void __cdecl Gui_TellActive();
 // 0x6593c5 (cdecl): with a root and [0x77c488] set: the tree told off, [0x77c488] 0. In any case the word [0xfaa5bc] 0.
 void __cdecl Gui_TellInactive();
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(u32, gWindowbroadcast_77c488, 0x0077c488, 0x4);

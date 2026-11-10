@@ -14,6 +14,7 @@
 #include "windowreg.h"
 #include "windowscript.h"
 #include "../core/textarg.h"
+#include "dialog7cc188.h"
 
 namespace {
 
@@ -37,7 +38,7 @@ void __cdecl Dialog7cca70_Open(u32 value) {
     u8 *const list = Window_FindChild(built, nullptr, 0x14beb);
     g_env->buildRows(list, nullptr, reinterpret_cast<u8 *(__cdecl *)()>((uintptr_t)0x004c1b30), reinterpret_cast<void(__cdecl *)(u8 *)>((uintptr_t)0x004c1c30));
     for (u32 column = 0; column < 5; ++column) g_env->setColumn(list, nullptr, column, column >= 2);
-    g_env->setHighlight(list, nullptr, reinterpret_cast<u8 *>((uintptr_t)GuiWindows_FindByName(reinterpret_cast<const char *>(0x0074fa84))));
+    g_env->setHighlight(list, nullptr, reinterpret_cast<u8 *>((uintptr_t)GuiWindows_FindByName(reinterpret_cast<const char *>((u32)(uintptr_t)&gText_Dialog7cc188_74fa84))));
     for (u32 i = 0; i < 5; ++i) {
         const u16 *const text = Language_WideText(0x126 + i);
         g_env->buttonText(Window_FindChild(list, nullptr, 0x10 + i), (u32)(uintptr_t)text, 8, 0xff, 0xef, 0, 0x177 + i);

@@ -15,6 +15,7 @@
 #include "../world/cellrun.h"
 #include "../world/thingmsg.h"
 #include "../world/objectstatus.h"
+#include "../ui/windowbroadcast.h"
 
 namespace {
 
@@ -484,7 +485,7 @@ u32 __cdecl Fn_6590ea(u32 v0) {
 }
 
 u32 __cdecl Fn_6593ff() {
-    return global<u32>(0x0077c488);
+    return gWindowbroadcast_77c488;
 }
 
 u16 __cdecl Fn_6595a8() {

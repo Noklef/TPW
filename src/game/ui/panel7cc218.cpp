@@ -53,6 +53,7 @@
 #include "dialog7cc654handler.h"
 #include "dialog74fb20.h"
 #include "panel7b9940.h"
+#include "dialog7cc188.h"
 
 using namespace panelparts;
 
@@ -274,7 +275,7 @@ void __fastcall Panel7cc218_SetUpGauges(u8 *self) {
 
 void __fastcall Panel7cc218_Show(u8 *self, void *, u8 *thing) {
     *reinterpret_cast<u8 **>((uintptr_t)0x007cc208) = thing;
-    WindowAt10_Create(self, nullptr, reinterpret_cast<u8 *>((uintptr_t)0x00755150), 0x004af600, 0x3e24, 0x3e15, 0x3e25);
+    WindowAt10_Create(self, nullptr, reinterpret_cast<u8 *>((uintptr_t)&gPanel7cc218_Show_755150), 0x004af600, 0x3e24, 0x3e15, 0x3e25);
     at<u32>(self, 0x24) = 0;
     const u8 value = (u8)(u32)(long long)at<float>(thing, 0x44);   // (__ftol's low byte)
     Advisor_PostId(value <= 0x14 && value != 0 ? 0x129 : 0xcf);
@@ -591,7 +592,7 @@ void __fastcall Panel7cc218_OpenLevelBox(u8 *self) {
     g_levelBox->buildRows(list, nullptr, reinterpret_cast<u8 *(__cdecl *)()>((uintptr_t)0x004ae700), reinterpret_cast<void(__cdecl *)(u8 *)>((uintptr_t)0x004ae7d0));
     Window7059f0_SetColumnBottom(list, nullptr, 0, 0);
     Window7059f0_SetColumnBottom(list, nullptr, 1, 1);
-    Window7059f0_SetHighlight(list, nullptr, reinterpret_cast<u8 *>((uintptr_t)GuiWindows_FindByName(reinterpret_cast<const char *>(0x0074fa84))));
+    Window7059f0_SetHighlight(list, nullptr, reinterpret_cast<u8 *>((uintptr_t)GuiWindows_FindByName(reinterpret_cast<const char *>((u32)(uintptr_t)&gText_Dialog7cc188_74fa84))));
     u8 *const thing = gPanel7cc218_7c2658;
     g_levelBox->levels(at<u16>(thing, 0xe), list, 0, thing);
 }

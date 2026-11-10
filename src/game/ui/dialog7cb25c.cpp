@@ -30,6 +30,7 @@
 #include "dialog74fb20.h"
 #include "panel7b9940.h"
 #include "../core/textarg.h"
+#include "dialog7cc188.h"
 
 namespace {
 
@@ -177,7 +178,7 @@ void __cdecl Dialog7cb25c_Open() {
     g_open->buildRows(list, nullptr, reinterpret_cast<u8 *(__cdecl *)()>((uintptr_t)0x004a02b0), reinterpret_cast<void(__cdecl *)(u8 *)>((uintptr_t)0x004a03d0));   // (List7cb264_NewRow, List7cb264_InitRow, by the original's addresses: the hooks)
     Window7059f0_SetColumnBottom(list, nullptr, 0, 0);
     for (u32 column = 1; column < 6; ++column) Window7059f0_SetColumnBottom(list, nullptr, column, 1);
-    Window7059f0_SetHighlight(list, nullptr, reinterpret_cast<u8 *>((uintptr_t)GuiWindows_FindByName(reinterpret_cast<const char *>(0x0074fa84))));
+    Window7059f0_SetHighlight(list, nullptr, reinterpret_cast<u8 *>((uintptr_t)GuiWindows_FindByName(reinterpret_cast<const char *>((u32)(uintptr_t)&gText_Dialog7cc188_74fa84))));
     Window_SetHandler(list, nullptr, 0x004a06b0);
     g_open->fillList(list);
     static const struct {

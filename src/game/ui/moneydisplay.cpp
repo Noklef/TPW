@@ -99,7 +99,7 @@ void __cdecl MoneyDisplay_Update(u8 *window) {
     const u32 kind = mode ? vcall<u32>(mode, 0x24) : 0;
     if (kind == 3 || kind == 4 || (kind == 8 && E->editFlag())) {
         const s32 cost = static_cast<s32>(E->cost());
-        if (cost == global<s32>(0x00752ec0)) return;
+        if (cost == gMoneyDisplay_Update_752ec0) return;
         u8 *const child = Window_FindChild(window, nullptr, 0x30);
         if (!child) return;
         if (cost != kNoCost) E->setShown(child, nullptr, 1);
@@ -108,11 +108,11 @@ void __cdecl MoneyDisplay_Update(u8 *window) {
             return;
         }
         vcall<void>(child, 0x1c, static_cast<u32>(cost));
-        global<s32>(0x00752ec0) = cost;
+        gMoneyDisplay_Update_752ec0 = cost;
         return;
     }
-    if (global<s32>(0x00752ec0) == kNoCost) return;
+    if (gMoneyDisplay_Update_752ec0 == kNoCost) return;
     if (u8 *const child = Window_FindChild(window, nullptr, 0x30)) E->setShown(child, nullptr, 0);
-    global<s32>(0x00752ec0) = kNoCost;
+    gMoneyDisplay_Update_752ec0 = kNoCost;
 }
 }

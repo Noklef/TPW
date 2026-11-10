@@ -37,4 +37,5 @@ void __fastcall Panel7ca228_ShowValues(u8 *self);
 #include "../core/gamedata.h"
 
 // Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(u8[0x240], gPanel7ca228_Show_751a68, 0x00751a68, 0x240);
 GAME_DATA(u32, gPanel7ca228_7ca218, 0x007ca218, 0x4);

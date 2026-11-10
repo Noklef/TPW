@@ -28,6 +28,7 @@
 #include "windowscript.h"
 #include "dialog7cb2b8build.h"
 #include "panel7cc218.h"
+#include "dialog7cc188.h"
 
 namespace {
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
@@ -138,7 +139,7 @@ void __cdecl ThingBrowser_Create() {
     vcall<void>(name, 0x14, 0u);
     vcall<void>(Window_FindChild(gThingbrowser_7cc304, nullptr, 0x148), 0x14, 0u);
     u8 *const hilight = Window_FindChild(gThingbrowser_7cc304, nullptr, 0x149);
-    Window_SetObject98(hilight, nullptr, reinterpret_cast<u8 *>((uintptr_t)GuiWindows_FindByName(reinterpret_cast<const char *>(0x0074fa84))));   // "hilight"
+    Window_SetObject98(hilight, nullptr, reinterpret_cast<u8 *>((uintptr_t)GuiWindows_FindByName(reinterpret_cast<const char *>((u32)(uintptr_t)&gText_Dialog7cc188_74fa84))));   // "hilight"
     vcall<void>(hilight, 0x14, 0u);
     Window_SetShown(hilight, nullptr, 0);
     Window_SetShown(gThingbrowser_7cc304, nullptr, 0);

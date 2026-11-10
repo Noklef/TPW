@@ -22,6 +22,7 @@
 #include "dialog7ca13chandler.h"
 #include "panel7b9940.h"
 #include "../world/world.h"
+#include "dialog7cc188.h"
 
 namespace {
 
@@ -43,7 +44,7 @@ void __cdecl Dialog7ca13c_Open(u32 selected) {
     if (u8 *const list = Window_FindChild(gDialog7ca13c_7ca13c, nullptr, 0x1e497)) {
         Window7059f0_BuildRows(list, nullptr, &List7ca140_NewRow, &List7ca140_InitRow);   // (0x4938c0, 0x4939d0: only called, not stored)
         for (u32 i = 0; i < 6; ++i) Window7059f0_SetColumnBottom(list, nullptr, i, 1);
-        Window7059f0_SetHighlight(list, nullptr, reinterpret_cast<u8 *>((uintptr_t)GuiWindows_FindByName(reinterpret_cast<const char *>(0x0074fa84))));
+        Window7059f0_SetHighlight(list, nullptr, reinterpret_cast<u8 *>((uintptr_t)GuiWindows_FindByName(reinterpret_cast<const char *>((u32)(uintptr_t)&gText_Dialog7cc188_74fa84))));
         Window7059f0_SortBy(list, nullptr, gDialog7ca13c_7508bc, 0);
         u8 *const again = Window_FindChild(gDialog7ca13c_7ca13c, nullptr, 0x1e497);
         gDialog7ca13c_7ca138 = again;

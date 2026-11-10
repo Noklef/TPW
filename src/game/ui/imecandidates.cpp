@@ -13,6 +13,7 @@
 #include "window7059f0.h"
 #include "windowreg.h"
 #include "windowscript.h"
+#include "dialog7cc188.h"
 
 namespace {
 
@@ -47,7 +48,7 @@ void __fastcall ImeHost_OpenCandidates(u8 *host, void *, u8 *parent, u32 second)
     u8 *const list = Window_FindChild(at<u8 *>(host, 0), nullptr, 0x7b79e3);
     Window7059f0_BuildRows(list, nullptr, &HilightList_NewRow, &HilightList_InitRow);   // (0x480d30, 0x480dd0: only called, not stored)
     Window7059f0_SetColumnBottom(list, nullptr, 0, 0);
-    Window7059f0_SetHighlight(list, nullptr, reinterpret_cast<u8 *>((uintptr_t)GuiWindows_FindByName(reinterpret_cast<const char *>(0x0074fa84))));
+    Window7059f0_SetHighlight(list, nullptr, reinterpret_cast<u8 *>((uintptr_t)GuiWindows_FindByName(reinterpret_cast<const char *>((u32)(uintptr_t)&gText_Dialog7cc188_74fa84))));
     at<u8 *>(host, 8) = list;
     at<u32>(host, 0x10) = 0;
     at<u32>(host, 0x14) = 0;

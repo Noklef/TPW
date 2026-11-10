@@ -13,6 +13,7 @@
 #include "window705a20.h"
 #include "windowreg.h"
 #include "window7cc8c0handler.h"
+#include "dialog7cc188.h"
 
 namespace {
 
@@ -34,7 +35,7 @@ void field(u8 *entry, u32 buffer, u32 size, Ctor ctor, u32 text, u32 label, u32 
     Window_Notify40000(entry, nullptr, 0xff, 0xff, 0xff, 0xff);
     Window_NotifyC00(entry, nullptr, 0, 0);
     Window705a20_SetCaret(entry, nullptr,
-                          reinterpret_cast<u8 *>((uintptr_t)GuiWindows_FindByName(reinterpret_cast<const char *>((uintptr_t)0x0074fa84))));
+                          reinterpret_cast<u8 *>((uintptr_t)GuiWindows_FindByName(reinterpret_cast<const char *>((uintptr_t)&gText_Dialog7cc188_74fa84))));
     vcall<void>(entry, 0x24, text);
     u8 *const impl = part(TextPart_Ctor);
     Window_SetImpl(Window_FindChild(entry, nullptr, label), nullptr, impl);

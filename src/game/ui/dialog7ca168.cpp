@@ -25,6 +25,7 @@
 #include "windowtimers.h"
 #include "dialog7ca168handler.h"
 #include "panel7b9940.h"
+#include "dialog7cc188.h"
 
 namespace {
 
@@ -56,7 +57,7 @@ void __cdecl Dialog7ca168_Open(u32 tab, u32 selected) {
         Window7059f0_SetColumnBottom(list, nullptr, 2, 1);
         Window7059f0_SetColumnBottom(list, nullptr, 3, 1);
         Window7059f0_SetColumnBottom(list, nullptr, 4, 1);
-        Window7059f0_SetHighlight(list, nullptr, reinterpret_cast<u8 *>((uintptr_t)GuiWindows_FindByName(reinterpret_cast<const char *>(0x0074fa84))));
+        Window7059f0_SetHighlight(list, nullptr, reinterpret_cast<u8 *>((uintptr_t)GuiWindows_FindByName(reinterpret_cast<const char *>((u32)(uintptr_t)&gText_Dialog7cc188_74fa84))));
         Window_SetHandler(list, nullptr, 0x004960a0);
         Window7059f0_SortBy(list, nullptr, gDialog7ca168_75118c, 0);
         for (u32 i = 0; i < 5; ++i) {

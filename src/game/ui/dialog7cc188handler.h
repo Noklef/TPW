@@ -36,5 +36,6 @@ u32 __cdecl Dialog7cc188_EraseName(u32 index);
 #include "../core/gamedata.h"
 
 // Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(u8[0xc], gDialog7cc188handler_75442c, 0x0075442c, 0xc);
 GAME_DATA(u8[128], gDialog7cc188handler_7cbeb8, 0x007cbeb8, 0x80);
 GAME_DATA(u8 *, gDialog7cc188handler_7cc188, 0x007cc188, 0x4);

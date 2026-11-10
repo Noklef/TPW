@@ -24,6 +24,7 @@
 #include "windowreg.h"
 #include "windowscript.h"
 #include "panel7b9940.h"
+#include "dialog7cc188.h"
 
 namespace {
 
@@ -64,7 +65,7 @@ void show_tab(u32 selected, const Tab &tab) {
     Window_SetHandler(list, nullptr, 0x004955e0);
     Window7059f0_BuildRows(list, nullptr, &List7ca158_NewRow, &List7ca158_InitRow);   // (0x4944d0, 0x494690: only called, not stored)
     for (s32 i = 0; i < tab.columns; ++i) Window7059f0_SetColumnBottom(list, nullptr, (u32)i, i ? 1u : 0u);
-    Window7059f0_SetHighlight(list, nullptr, reinterpret_cast<u8 *>((uintptr_t)GuiWindows_FindByName(reinterpret_cast<const char *>(0x0074fa84))));
+    Window7059f0_SetHighlight(list, nullptr, reinterpret_cast<u8 *>((uintptr_t)GuiWindows_FindByName(reinterpret_cast<const char *>((u32)(uintptr_t)&gText_Dialog7cc188_74fa84))));
     Window7059f0_SortBy(list, nullptr, global<s32>(tab.sort), 0);
     gDialog7ca150_7ca14c = list;
     for (s32 i = 0; i < 2 && tab.masks[i]; ++i) Things_ForEachSelected(tab.masks[i], reinterpret_cast<ObjectCallback>((uintptr_t)tab.callbacks[i]));

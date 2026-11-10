@@ -53,7 +53,7 @@ bool modeOne() {
 // All addresses good: each with an '@' past its start and a '.' more than one place past that.
 bool addressesGood(u16 *text) {
     if (!*text) return false;
-    const u16 *const separators = reinterpret_cast<const u16 *>((uintptr_t)0x00754448);
+    const u16 *const separators = reinterpret_cast<const u16 *>((uintptr_t)&gDialog7cc184handler_754448);
     for (u16 *token = g_env->token(text, separators); token; token = g_env->token(nullptr, separators)) {
         u16 *const at = find(token, 0x40);
         if (at <= token) return false;

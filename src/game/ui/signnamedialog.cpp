@@ -21,6 +21,7 @@
 #include "windowscript.h"
 #include "panel7cc218.h"
 #include "../world/world.h"
+#include "dialog7cc188.h"
 
 namespace {
 
@@ -54,7 +55,7 @@ void dressEdit(u8 *edit, u16 *buffer, u8 *thing, NameFn name) {
     g_open->set4c(edit, nullptr, g_open->font(7));
     g_open->notify40000(edit, nullptr, 0xff, 0xff, 0xff, 0xff);
     g_open->setBuffer(edit, nullptr, (u32)(uintptr_t)buffer, 0xe);
-    g_open->setCaret(edit, nullptr, reinterpret_cast<u8 *>((uintptr_t)g_open->findByName(reinterpret_cast<const char *>((uintptr_t)0x0074fa84))));
+    g_open->setCaret(edit, nullptr, reinterpret_cast<u8 *>((uintptr_t)g_open->findByName(reinterpret_cast<const char *>((uintptr_t)&gText_Dialog7cc188_74fa84))));
     name(thing, nullptr, kNameBuffer, 0x3fff);
     vcall<void>(edit, 0x24, kNameBuffer);
 }
