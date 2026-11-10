@@ -147,7 +147,7 @@ def case(r):
         regions[HEAP][0x1560:0x1560 + len(wblock)] = wblock
         set_return(log, GETW, r.choice([HEAP + 0x1560, HEAP + 0x1560, 0]))
         set_return(log, GETA, r.choice([HEAP + 0x1500, HEAP + 0x1500, 0]))
-        regions[0xfb1660] = struct.pack('<I', r.choice([0, 0, 1, 2, 3]))
+        regions[0xfb1660] = struct.pack('<I', r.choice([0, 0, 1, 2, 3, 0xffffffff]))
         return Call(0x689b00, [], regions, conv='c', ret='a')
     if name == 'setenvp':   # (a failed malloc goes on through a null pointer, in both)
         block = r.choice([b'\0', b'A=1\0\0', b'=C:=x\0\0', b'A=1\0=C:=x\0BB=22\0\0', b'=x\0=y\0\0', b'long name=a longer text than the first\0B=\0\0'])
