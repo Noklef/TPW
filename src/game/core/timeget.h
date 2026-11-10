@@ -29,4 +29,11 @@ u32 __cdecl TimeGet_Getint(NumGetIter *first, NumGetIter *last, s32 lo, s32 hi, 
 u32 *__fastcall TimeGet_DoGetTime(u8 *self, void *, u32 *out, NumGetIter first, NumGetIter last, u8 *ios, u32 *state, u8 *tm);
 u32 *__fastcall TimeGet_DoGetDate(u8 *self, void *, u32 *out, NumGetIter first, NumGetIter last, u8 *ios, u32 *state, u8 *tm);
 u32 *__fastcall TimeGet_DoGetYear(u8 *self, void *, u32 *out, NumGetIter first, NumGetIter last, u8 *ios, u32 *state, u8 *tm);
+
+// 0x6a4160 (cdecl); 0x6a3600, 0x6a3a30, 0x6a3ea0 (pops 0x20): the same of wchar_t: each literal widened by btowc after the unit is fetched (':' once, first),
+// the digits narrowed by _Wctob.
+u32 __cdecl WTimeGet_Getint(NumGetIter *first, NumGetIter *last, s32 lo, s32 hi, s32 *field);
+u32 *__fastcall WTimeGet_DoGetTime(u8 *self, void *, u32 *out, NumGetIter first, NumGetIter last, u8 *ios, u32 *state, u8 *tm);
+u32 *__fastcall WTimeGet_DoGetDate(u8 *self, void *, u32 *out, NumGetIter first, NumGetIter last, u8 *ios, u32 *state, u8 *tm);
+u32 *__fastcall WTimeGet_DoGetYear(u8 *self, void *, u32 *out, NumGetIter first, NumGetIter last, u8 *ios, u32 *state, u8 *tm);
 }

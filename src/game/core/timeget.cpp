@@ -205,4 +205,12 @@ u32 *__fastcall TimeGet_DoGetDate(u8 *self, void *, u32 *out, NumGetIter first, 
 
 u32 *__fastcall TimeGet_DoGetYear(u8 *, void *, u32 *out, NumGetIter first, NumGetIter last, u8 *, u32 *state, u8 *tm) { return get_year<char>(out, first, last, state, tm); }
 
+u32 __cdecl WTimeGet_Getint(NumGetIter *first, NumGetIter *last, s32 lo, s32 hi, s32 *field) { return getint<u16>(*first, *last, lo, hi, *field); }
+
+u32 *__fastcall WTimeGet_DoGetTime(u8 *, void *, u32 *out, NumGetIter first, NumGetIter last, u8 *, u32 *state, u8 *tm) { return get_time<u16>(out, first, last, state, tm); }
+
+u32 *__fastcall WTimeGet_DoGetDate(u8 *self, void *, u32 *out, NumGetIter first, NumGetIter last, u8 *ios, u32 *state, u8 *tm) { return get_date<u16>(self, out, first, last, ios, state, tm); }
+
+u32 *__fastcall WTimeGet_DoGetYear(u8 *, void *, u32 *out, NumGetIter first, NumGetIter last, u8 *, u32 *state, u8 *tm) { return get_year<u16>(out, first, last, state, tm); }
+
 }  // extern "C"

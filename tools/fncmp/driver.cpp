@@ -2622,7 +2622,9 @@ const u32 kRawCalled[] = {0x0065f6d1,   // Window_DefaultProc (src/game/ui/windo
                           0x004be730,   // List758f04_RowProcA and RowProcB, the name lists' row handlers (ui/listrows' List758f04_NewRowA /
                           0x004be7c0,   // NewRowB; the kept rows sent 0x12)
                           0x006aaaf0,   // TimeGet_DoGetMonthname and DoGetYear, the slots 5 and 6 time_get<char>'s do_get_date calls
-                          0x006aab50};  // (tests/fncmp/timeget.py's date: the facet's vtable made there)
+                          0x006aab50,   // (tests/fncmp/timeget.py's date: the facet's vtable made there)
+                          0x006a3e40,   // WTimeGet_DoGetMonthname and DoGetYear, the same of time_get<wchar_t>'s do_get_date (wdate)
+                          0x006a3ea0};
 
 void map_raw_called() {
     for (u32 a : kRawCalled) {
