@@ -38,3 +38,14 @@ char *__cdecl CRT_mbspbrk(const char *text, const char *set);
 // 0x689400: _mbsrchr: no code page: strrchr. Else, under lock 0x19, the last character c of the text. A lead byte before the end counts as found at the end, when nothing else was (sic).
 char *__cdecl CRT_mbsrchr(const char *text, u32 c);
 }
+
+#include "gamedata.h"
+
+// Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(u8[0x101], CRT_mbctype, 0x00fb1668, 0x101);
+GAME_DATA(u8[0x100], CRT_mbcasemap, 0x00fb1770, 0x100);
+GAME_DATA(u32, CRT_mbcodepage, 0x00fb1870, 0x4);
+GAME_DATA(u32, CRT_mblcid, 0x00fb1874, 0x4);
+GAME_DATA(u32[3], CRT_mbulinfo, 0x00fb1878, 0xc);
+GAME_DATA(u32, CRT_mb_system_set_fb1884, 0x00fb1884, 0x4);
+GAME_DATA(u32, CRT_ismbcodepage, 0x00fb3b84, 0x4);

@@ -13,3 +13,13 @@ s32 __cdecl CRT_raise(s32 sig);
 // 0x68cc30: abort: message 10, raise(SIGABRT), _exit(3).
 void __cdecl CRT_abort();
 }
+
+#include "gamedata.h"
+
+// Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(s32, CRT_First_FPE_Indx, 0x00781508, 0x4);
+GAME_DATA(s32, CRT_Num_FPE, 0x0078150c, 0x4);
+GAME_DATA(u32, CRT_ctrlc_action, 0x00fb1918, 0x4);
+GAME_DATA(u32, CRT_ctrlbreak_action, 0x00fb191c, 0x4);
+GAME_DATA(u32, CRT_abort_action, 0x00fb1920, 0x4);
+GAME_DATA(u32, CRT_term_action, 0x00fb1924, 0x4);

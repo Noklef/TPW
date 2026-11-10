@@ -4,13 +4,14 @@
 #include <cstring>
 
 #include "crt.h"
+#include "crtenv.h"
 
 namespace {
 
 template <typename F> F import_slot(u32 slot) { return *reinterpret_cast<F *>((uintptr_t)slot); }
 
-u32 &alternate_form() { return *reinterpret_cast<u32 *>((uintptr_t)0x00fb192c); }
-u32 &no_lead_zeros() { return *reinterpret_cast<u32 *>((uintptr_t)0x00fb1930); }
+u32 &alternate_form() { return CRT_alternate_form; }
+u32 &no_lead_zeros() { return CRT_no_lead_zeros; }
 
 // The struct tm's fields, in dwords.
 enum { kSecond, kMinute, kHour, kDay, kMonth, kYear, kWeekday, kYearday, kDaylight };
@@ -291,43 +292,41 @@ void __cdecl CRT_cvtdate(s32 transition, s32 type, s32 year, s32 month, s32 week
         yearday = firsts[month] + day;
     }
     const s32 seconds = (hour * 60 + minute) * 60 + second;
-    u32 *const globals = reinterpret_cast<u32 *>((uintptr_t)0x00781470);
     if (transition == 1) {
-        globals[1] = static_cast<u32>(yearday);
-        globals[0] = static_cast<u32>(year);
-        globals[2] = static_cast<u32>(seconds * 1000 + millisecond);
+        CRT_dststart.yearday = yearday;
+        CRT_dststart.year = year;
+        CRT_dststart.ms = seconds * 1000 + millisecond;
         return;
     }
-    globals[5] = static_cast<u32>(yearday);
-    s32 time = (seconds + *reinterpret_cast<const s32 *>((uintptr_t)0x007813e0)) * 1000 + millisecond;
+    CRT_dstend.yearday = yearday;
+    s32 time = (seconds + CRT_dstbias) * 1000 + millisecond;
     if (time < 0)
         time += 0x5265bff;
     else if (time >= 0x5265c00)
         time -= 0x5265bff;
-    globals[6] = static_cast<u32>(time);
-    globals[4] = static_cast<u32>(year);
+    CRT_dstend.ms = time;
+    CRT_dstend.year = year;
 }
 
 s32 __cdecl CRT_isindst_lk(const s32 *when) {
     enum { kSecond, kMinute, kHour, kYear = 5, kYearday = 7 };
     const auto global = [](u32 address) { return *reinterpret_cast<const s32 *>((uintptr_t)address); };
-    if (!global(0x007813dc)) return 0;
-    if (when[kYear] != global(0x00781470) || when[kYear] != global(0x00781480)) {
-        if (global(0x00fb1458)) {
-            const auto transition = [&](s32 first, u32 date) {
-                const u16 *const d = reinterpret_cast<const u16 *>((uintptr_t)date);   // (a SYSTEMTIME)
+    if (!CRT_daylight) return 0;
+    if (when[kYear] != CRT_dststart.year || when[kYear] != CRT_dstend.year) {
+        if (static_cast<s32>(CRT_tzapiused)) {
+            const auto transition = [&](s32 first, const u16 *d) {   // (a SYSTEMTIME)
                 if (d[0]) CRT_cvtdate(first, 0, when[kYear], d[1], 0, 0, d[3], d[4], d[5], d[6], d[7]);
                 else CRT_cvtdate(first, 1, when[kYear], d[1], d[3], d[2], 0, d[4], d[5], d[6], d[7]);
             };
-            transition(1, 0x00fb14f8);
-            transition(0, 0x00fb14a4);
+            transition(1, CRT_tzinfo.daylight_date);
+            transition(0, CRT_tzinfo.standard_date);
         } else {
             CRT_cvtdate(1, 1, when[kYear], 4, 1, 0, 0, 2, 0, 0, 0);
             CRT_cvtdate(0, 1, when[kYear], 10, 5, 0, 0, 2, 0, 0, 0);
         }
     }
-    const s32 start = global(0x00781474);
-    const s32 end = global(0x00781484);
+    const s32 start = CRT_dststart.yearday;
+    const s32 end = CRT_dstend.yearday;
     const s32 day = when[kYearday];
     if (start < end) {
         if (day < start || day > end) return 0;
@@ -337,8 +336,8 @@ s32 __cdecl CRT_isindst_lk(const s32 *when) {
         if (day > end && day < start) return 0;
     }
     const s32 ms = ((when[kHour] * 60 + when[kMinute]) * 60 + when[kSecond]) * 1000;
-    if (day == start) return ms >= global(0x00781478);
-    return ms < global(0x00781488);
+    if (day == start) return ms >= CRT_dststart.ms;
+    return ms < CRT_dstend.ms;
 }
 
 s32 *__cdecl CRT_gmtime(const s32 *when) {
@@ -348,7 +347,7 @@ s32 *__cdecl CRT_gmtime(const s32 *when) {
     if (left < 0) return nullptr;
     s32 *&own = *reinterpret_cast<s32 **>(thread + 0x40);
     if (!own) own = static_cast<s32 *>(CRT_malloc(0x24));
-    s32 *const out = own ? own : reinterpret_cast<s32 *>((uintptr_t)0x00fb1518);
+    s32 *const out = own ? own : CRT_tm_buffer;
     const s32 fours = left / kFourYears;
     left -= fours * kFourYears;
     s32 year = fours * 4 + 70;
@@ -415,7 +414,7 @@ char **__cdecl CRT_Gettnames() {
 }
 
 void __cdecl CRT_tzset_once() {
-    u32 &done = *reinterpret_cast<u32 *>((uintptr_t)0x00fb1510);
+    u32 &done = CRT_tzset_done_fb1510;
     if (done) return;
     CrtInner().lock(0xb);
     if (!done) {
@@ -428,9 +427,9 @@ void __cdecl CRT_tzset_once() {
 u32 __cdecl CRT_Strftime(char *out, u32 size, const char *format, const s32 *when, char *const *names) {
     if (!names) names = current_names();
     u32 left = size;
-    u32 *const readers = reinterpret_cast<u32 *>((uintptr_t)0x00fb3ca8);
+    u32 *const readers = &CRT_unguarded_readlc_active;
     import_slot<s32(__stdcall *)(u32 *)>(0x006fd0c0)(readers);    // InterlockedIncrement
-    const bool locked = *reinterpret_cast<u32 *>((uintptr_t)0x00fb3ca4) != 0;
+    const bool locked = CRT_setlc_active != 0;
     if (locked) {
         import_slot<s32(__stdcall *)(u32 *)>(0x006fd12c)(readers);    // InterlockedDecrement
         CrtInner().lock(0x13);
@@ -477,18 +476,18 @@ s32 *__cdecl CRT_localtime(const s32 *timer) {
     CRT_tzset_once();
     s32 when = *timer;
     if (when > 0x3f480 && when < 0x7ffc0b7f) {
-        when -= global(0x007813d8);
+        when -= CRT_timezone;
         s32 *got = CRT_gmtime(&when);
-        if (!global(0x007813dc) || !CRT_isindst(got)) return got;
-        when -= global(0x007813e0);
+        if (!CRT_daylight || !CRT_isindst(got)) return got;
+        when -= CRT_dstbias;
         got = CRT_gmtime(&when);
         got[kDaylight] = 1;
         return got;
     }
     s32 *const got = CRT_gmtime(timer);
     s32 left = got[kSecond];
-    if (CRT_isindst(got)) left -= global(0x007813e0);
-    left -= global(0x007813d8);
+    if (CRT_isindst(got)) left -= CRT_dstbias;
+    left -= CRT_timezone;
     got[kSecond] = left % 60;
     if (got[kSecond] < 0) {
         got[kSecond] += 60;
@@ -540,8 +539,8 @@ u32 __cdecl CRT_loctotime_t(s32 year, s32 month, s32 day, s32 hour, s32 minute, 
     const u32 days = static_cast<u32>(yearday) + 365u * static_cast<u32>(years) + static_cast<u32>((years - 1) >> 2);
     const u32 hours = days * 24 + static_cast<u32>(hour);
     const u32 minutes = hours * 60 + static_cast<u32>(minute);
-    u32 total = minutes * 60 + static_cast<u32>(second) + static_cast<u32>(global(0x007813d8)) + 0x7c558180u;
-    if (dst == 1 || (dst == -1 && global(0x007813dc) && CRT_isindst(when))) total += static_cast<u32>(global(0x007813e0));
+    u32 total = minutes * 60 + static_cast<u32>(second) + static_cast<u32>(CRT_timezone) + 0x7c558180u;
+    if (dst == 1 || (dst == -1 && CRT_daylight && CRT_isindst(when))) total += static_cast<u32>(CRT_dstbias);
     return total;
 }
 
@@ -549,17 +548,17 @@ u32 __cdecl CRT_time(u32 *out) {
     u16 local[8], system[8];   // (SYSTEMTIME: year, month, weekday, day, hour, minute, second, ms)
     import_slot<void(__stdcall *)(u16 *)>(0x006fd164)(local);    // GetLocalTime
     import_slot<void(__stdcall *)(u16 *)>(0x006fd220)(system);   // GetSystemTime
-    u16 *const last = reinterpret_cast<u16 *>((uintptr_t)0x00fb1340);   // (the system time the answer below was for)
+    u16 *const last = CRT_time_last_fb1340;   // (the system time the answer below was for)
     s32 dst;
     if (system[5] == last[5] && system[4] == last[4] && system[3] == last[3] && system[1] == last[1] && system[0] == last[0]) {
-        dst = global(0x00fb1338);
+        dst = CRT_time_dst_fb1338;
     } else {
         u8 zone[0xac];
         const u32 kind = import_slot<u32(__stdcall *)(u8 *)>(0x006fd21c)(zone);   // GetTimeZoneInformation
         if (kind == 0xffffffffu) dst = -1;
         else dst = kind == 2 && *reinterpret_cast<const u16 *>(zone + 0x9a) && *reinterpret_cast<const s32 *>(zone + 0xa8) ? 1 : 0;
         std::memcpy(last, system, 0x10);
-        *reinterpret_cast<s32 *>((uintptr_t)0x00fb1338) = dst;
+        CRT_time_dst_fb1338 = dst;
     }
     const u32 when = CRT_loctotime_t(local[0], local[1], local[3], local[4], local[5], local[6], dst);
     if (out) *out = when;

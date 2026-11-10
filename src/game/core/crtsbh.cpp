@@ -22,7 +22,7 @@ u32 virtual_alloc(u32 at, u32 size, u32 type, u32 protect) {
     return import_slot<u32(__stdcall *)(u32, u32, u32, u32)>(0x006fd1b4)(at, size, type, protect);
 }
 
-u32 heap_alloc(u32 flags, u32 size) { return import_slot<u32(__stdcall *)(u32, u32, u32)>(0x006fd224)(global<u32>(0x00fb3cac), flags, size); }
+u32 heap_alloc(u32 flags, u32 size) { return import_slot<u32(__stdcall *)(u32, u32, u32)>(0x006fd224)(CRT_crtheap, flags, size); }
 
 // The block at a map byte of the page.
 u32 block_of(u32 map, u32 page) { return (map + 8) * 16 - page * 15; }
@@ -70,10 +70,10 @@ extern "C" {
 
 s32 __cdecl CRT_heap_init() {
     const u32 heap = import_slot<u32(__stdcall *)(u32, u32, u32)>(0x006fd1bc)(0, 0x1000, 0);   // HeapCreate
-    word(0x00fb3cac) = heap;
+    CRT_crtheap = heap;
     if (!heap) return 0;
     if (CRT_sbh_alloc_new_region()) return 1;
-    import_slot<s32(__stdcall *)(u32)>(0x006fd1c0)(word(0x00fb3cac));   // HeapDestroy
+    import_slot<s32(__stdcall *)(u32)>(0x006fd1c0)(CRT_crtheap);   // HeapDestroy
     return 0;
 }
 
@@ -113,7 +113,7 @@ void *__cdecl CRT_sbh_alloc_new_region() {
         }
         import_slot<s32(__stdcall *)(u32, u32, u32)>(0x006fd1b8)(memory, 0, 0x8000);
     }
-    if (region != kStatic) import_slot<s32(__stdcall *)(u32, u32, u32)>(0x006fd210)(global<u32>(0x00fb3cac), 0, region);
+    if (region != kStatic) import_slot<s32(__stdcall *)(u32, u32, u32)>(0x006fd210)(CRT_crtheap, 0, region);
     return nullptr;
 }
 
@@ -227,7 +227,7 @@ void *__cdecl CRT_sbh_alloc_block(u32 para) {
 }
 
 s32 __cdecl CRT_callnewh(u32 size) {
-    const auto handler = global<s32(__cdecl *)(u32)>(0x00fb154c);
+    const auto handler = CRT_pnhHeap;
     return handler && handler(size) ? 1 : 0;
 }
 
@@ -237,7 +237,7 @@ void *__cdecl CRT_calloc(u32 count, u32 size) {
     for (;;) {
         u32 block = 0;
         if (bytes <= 0xffffffe0) {
-            if (bytes <= global<u32>(0x00780dc4)) {
+            if (bytes <= CRT_sbh_threshold) {
                 CrtInner().lock(9);
                 block = reinterpret_cast<u32>(CRT_sbh_alloc_block(bytes >> 4));
                 CrtInner().unlock(9);
@@ -249,14 +249,14 @@ void *__cdecl CRT_calloc(u32 count, u32 size) {
             block = heap_alloc(8, bytes);
         }
         if (block) return reinterpret_cast<void *>((uintptr_t)block);
-        if (!global<u32>(0x00fb1548)) return nullptr;
+        if (!CRT_newmode) return nullptr;
         if (!CRT_callnewh(bytes)) return nullptr;
     }
 }
 
 void *__cdecl CRT_heap_alloc(u32 size) {
     const u32 bytes = (size + 0xf) & 0xfffffff0;
-    if (bytes <= global<u32>(0x00780dc4)) {
+    if (bytes <= CRT_sbh_threshold) {
         CrtInner().lock(9);
         void *const block = CRT_sbh_alloc_block(bytes >> 4);
         CrtInner().unlock(9);

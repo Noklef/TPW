@@ -12,22 +12,18 @@ template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((ui
 
 template <typename F> F import_slot(u32 slot) { return *reinterpret_cast<F *>((uintptr_t)slot); }
 
-using LocaleInfo = s32(__stdcall *)(u32 locale, u32 what, char *out, s32 room);
-
 // __lc_category: six entries of 12 bytes: the name, the locale string, the init routine.
 const char *category_name(s32 category) { return global<const char *>(0x00780dd0 + category * 12); }
 char *&category_locale(s32 category) { return global<char *>(0x00780dd4 + category * 12); }
 s32 category_init(s32 category) { return global<s32(__cdecl *)()>(0x00780dd8 + category * 12)(); }
-u32 &category_id(s32 category) { return global<u32>(0x00fb1438 + category * 4); }
+u32 &category_id(s32 category) { return CRT_lc_handle[category]; }
 
 char *const c_locale = reinterpret_cast<char *>((uintptr_t)0x00780dc8);
-char *const cache_name = reinterpret_cast<char *>((uintptr_t)0x00780ea0);
-char *const cache_text = reinterpret_cast<char *>((uintptr_t)0x00780e18);
 
-const char *&language() { return global<const char *>(0x00fb18ec); }
-const char *&country() { return global<const char *>(0x00fb18f0); }
-u32 &lcid_state() { return global<u32>(0x00fb18f4); }
-LocaleInfo &locale_info() { return global<LocaleInfo>(0x00fb18fc); }
+const char *&language() { return CRT_language; }
+const char *&country() { return CRT_country; }
+u32 &lcid_state() { return CRT_lcid_state; }
+LocaleInfo &locale_info() { return CRT_pfnGetLocaleInfoA; }
 
 void enum_locales(u32 callback) { import_slot<s32(__stdcall *)(u32, u32)>(0x006fd1f8)(callback, 1); }
 
@@ -222,10 +218,10 @@ s32 __cdecl CRT_TranslateName(void *table, s32 high, const char **name) {
 void __cdecl CRT_GetLcidFromLangCountry() {
     const char *const lang = language();
     const u32 abbreviated = std::strlen(lang) == 3 ? 1 : 0;
-    global<u32>(0x00fb18e8) = abbreviated;
-    global<u32>(0x00fb18e0) = std::strlen(country()) == 3 ? 1 : 0;
-    global<u32>(0x00fb18dc) = 0;
-    global<s32>(0x00fb18e4) = abbreviated ? 2 : CRT_GetPrimaryLen(lang);
+    CRT_abbrev_language = abbreviated;
+    CRT_abbrev_country = std::strlen(country()) == 3 ? 1 : 0;
+    CRT_lcid_language = 0;
+    CRT_primary_len = abbreviated ? 2 : CRT_GetPrimaryLen(lang);
     enum_locales(0x0068de40);
     const u32 state = lcid_state();
     if (!(state & 0x100) || !(state & 0x200) || !(state & 7)) lcid_state() = 0;
@@ -234,14 +230,14 @@ void __cdecl CRT_GetLcidFromLangCountry() {
 void __cdecl CRT_GetLcidFromLanguage() {
     const char *const lang = language();
     const u32 abbreviated = std::strlen(lang) == 3 ? 1 : 0;
-    global<u32>(0x00fb18e8) = abbreviated;
-    global<s32>(0x00fb18e4) = abbreviated ? 2 : CRT_GetPrimaryLen(lang);
+    CRT_abbrev_language = abbreviated;
+    CRT_primary_len = abbreviated ? 2 : CRT_GetPrimaryLen(lang);
     enum_locales(0x0068e180);
     if (!(lcid_state() & 4)) lcid_state() = 0;
 }
 
 void __cdecl CRT_GetLcidFromCountry() {
-    global<u32>(0x00fb18e0) = std::strlen(country()) == 3 ? 1 : 0;
+    CRT_abbrev_country = std::strlen(country()) == 3 ? 1 : 0;
     enum_locales(0x0068e2a0);
     if (!(lcid_state() & 4)) lcid_state() = 0;
 }
@@ -249,17 +245,17 @@ void __cdecl CRT_GetLcidFromCountry() {
 void __cdecl CRT_GetLcidFromDefault() {
     lcid_state() |= 0x104;
     const u32 locale = import_slot<u32(__stdcall *)()>(0x006fd260)();
-    global<u32>(0x00fb18f8) = locale;
-    global<u32>(0x00fb18dc) = locale;
+    CRT_lcid_country = locale;
+    CRT_lcid_language = locale;
 }
 
 u32 __cdecl CRT_ProcessCodePage(const char *name) {
     char own[8];
     if (!name || !*name || !std::strcmp(name, "ACP")) {
-        if (!locale_info()(global<u32>(0x00fb18f8), 0x1004, own, 8)) return 0;
+        if (!locale_info()(CRT_lcid_country, 0x1004, own, 8)) return 0;
         name = own;
     } else if (!std::strcmp(name, "OCP")) {
-        if (!locale_info()(global<u32>(0x00fb18f8), 0xb, own, 8)) return 0;
+        if (!locale_info()(CRT_lcid_country, 0xb, own, 8)) return 0;
         name = own;
     }
     return static_cast<u32>(CRT_atol(name));
@@ -293,15 +289,15 @@ s32 __cdecl CRT_get_qualified_locale(const char *names, u16 *id, char *out) {
     const u32 code_page = CRT_ProcessCodePage(names + 0x80);
     if (!code_page) return 0;
     if (!import_slot<s32(__stdcall *)(u32)>(0x006fd288)(code_page & 0xffff)) return 0;
-    if (!import_slot<s32(__stdcall *)(u32, u32)>(0x006fd284)(global<u32>(0x00fb18dc), 1)) return 0;
+    if (!import_slot<s32(__stdcall *)(u32, u32)>(0x006fd284)(CRT_lcid_language, 1)) return 0;
     if (id) {
-        id[0] = global<u16>(0x00fb18dc);
-        id[1] = global<u16>(0x00fb18f8);
+        id[0] = static_cast<u16>(CRT_lcid_language);
+        id[1] = static_cast<u16>(CRT_lcid_country);
         id[2] = static_cast<u16>(code_page);
     }
     if (out) {
-        if (!locale_info()(global<u32>(0x00fb18dc), 0x1001, out, 0x40)) return 0;
-        if (!locale_info()(global<u32>(0x00fb18f8), 0x1002, out + 0x40, 0x40)) return 0;
+        if (!locale_info()(CRT_lcid_language, 0x1001, out, 0x40)) return 0;
+        if (!locale_info()(CRT_lcid_country, 0x1002, out + 0x40, 0x40)) return 0;
         CRT_itoa(static_cast<s32>(code_page), out + 0x80, 10);
     }
     return 1;
@@ -320,22 +316,22 @@ char *__cdecl CRT_expandlocale(const char *text, char *out, u16 *id, u32 *code_p
         if (code_page) *code_page = 0;
         return out;
     }
-    if (std::strcmp(cache_name, text) && std::strcmp(cache_text, text)) {
+    if (std::strcmp(CRT_cacheout, text) && std::strcmp(CRT_cachein, text)) {
         char names[0x88];
         if (CRT_lc_strtolc(names, text)) return nullptr;
-        if (!CRT_get_qualified_locale(names, &global<u16>(0x00fb142c), names)) return nullptr;
-        global<u32>(0x00fb1434) = global<u16>(0x00fb1430);
-        CRT_lc_lctostr(cache_name, names);
-        std::strcpy(cache_text, *text ? text : cache_name);
+        if (!CRT_get_qualified_locale(names, &CRT_qualified_id_fb142c.language, names)) return nullptr;
+        CRT_qualified_code_page_fb1434 = CRT_qualified_id_fb142c.code_page;
+        CRT_lc_lctostr(CRT_cacheout, names);
+        std::strcpy(CRT_cachein, *text ? text : CRT_cacheout);
     }
     if (id) {
-        id[0] = global<u16>(0x00fb142c);
-        id[1] = global<u16>(0x00fb142e);
-        id[2] = global<u16>(0x00fb1430);
+        id[0] = CRT_qualified_id_fb142c.language;
+        id[1] = CRT_qualified_id_fb142c.country;
+        id[2] = CRT_qualified_id_fb142c.code_page;
     }
-    if (code_page) *code_page = global<u32>(0x00fb1434);
-    std::strcpy(out, cache_name);
-    return cache_name;
+    if (code_page) *code_page = CRT_qualified_code_page_fb1434;
+    std::strcpy(out, CRT_cacheout);
+    return CRT_cacheout;
 }
 
 char *__cdecl CRT_setlocale_get_all() {
@@ -363,17 +359,17 @@ char *__cdecl CRT_setlocale_set_cat(s32 category, const char *locale) {
     if (!copy) return nullptr;
     const u32 old_id = category_id(category);
     char *const old = category_locale(category);
-    const u32 old_page = global<u32>(0x00fb1450);
+    const u32 old_page = CRT_lc_codepage;
     std::strcpy(copy, name);
     category_locale(category) = copy;
     category_id(category) = id[0];
-    std::memcpy(reinterpret_cast<void *>((uintptr_t)(0x00fb18b8 + category * 6)), id, 6);
-    if (category == 2) global<u32>(0x00fb1450) = code_page;
+    std::memcpy(&CRT_lc_id[category], id, 6);
+    if (category == 2) CRT_lc_codepage = code_page;
     if (category_init(category)) {
         category_locale(category) = old;
         Crt().free(copy);
         category_id(category) = old_id;
-        global<u32>(0x00fb1450) = old_page;
+        CRT_lc_codepage = old_page;
         return nullptr;
     }
     if (old != c_locale) Crt().free(old);
@@ -383,11 +379,11 @@ char *__cdecl CRT_setlocale_set_cat(s32 category, const char *locale) {
 char *__cdecl CRT_setlocale(s32 category, const char *locale) {
     if (category < 0 || category > 5) return nullptr;
     CrtInner().lock(0x13);
-    ++global<s32>(0x00fb3ca4);
-    while (global<u32>(0x00fb3ca8)) import_slot<void(__stdcall *)(u32)>(0x006fd1d4)(1);
+    ++CRT_setlc_active;
+    while (CRT_unguarded_readlc_active) import_slot<void(__stdcall *)(u32)>(0x006fd1d4)(1);
     char *const result = setlocale_locked(category, locale);
     CrtInner().unlock(0x13);
-    --global<s32>(0x00fb3ca4);
+    --CRT_setlc_active;
     return result;
 }
 
@@ -409,24 +405,24 @@ u32 __cdecl CRT_TestDefaultCountry(u32 lcid) {
 s32 __stdcall CRT_CountryEnumProc(const char *hex) {
     const u32 lcid = CRT_LcidFromHexString(hex);
     char name[0x78];
-    if (!locale_info()(lcid, global<u32>(0x00fb18e0) ? 7 : 0x1002, name, sizeof name)) {
-        global<u32>(0x00fb18f4) = 0;
+    if (!locale_info()(lcid, CRT_abbrev_country ? 7 : 0x1002, name, sizeof name)) {
+        CRT_lcid_state = 0;
         return 1;
     }
-    if (!CRT_stricmp(global<const char *>(0x00fb18f0), name) && CRT_TestDefaultCountry(lcid)) {
-        global<u32>(0x00fb18f8) = lcid;
-        global<u32>(0x00fb18dc) = lcid;
-        global<u32>(0x00fb18f4) |= 4;
+    if (!CRT_stricmp(CRT_country, name) && CRT_TestDefaultCountry(lcid)) {
+        CRT_lcid_country = lcid;
+        CRT_lcid_language = lcid;
+        CRT_lcid_state |= 4;
     }
-    return ~global<u32>(0x00fb18f4) >> 2 & 1;
+    return ~CRT_lcid_state >> 2 & 1;
 }
 
 s32 __stdcall CRT_LangCountryEnumProc(const char *hex) {
     const u32 lcid = CRT_LcidFromHexString(hex);
     char name[0x78];
-    const u32 abbreviated = global<u32>(0x00fb18e8), primary_length = global<u32>(0x00fb18e4);
-    u32 &language_lcid = global<u32>(0x00fb18dc), &country_lcid = global<u32>(0x00fb18f8);
-    if (!locale_info()(lcid, global<u32>(0x00fb18e0) ? 7 : 0x1002, name, sizeof name)) return lcid_state() = 0, 1;
+    const u32 abbreviated = CRT_abbrev_language, primary_length = static_cast<u32>(CRT_primary_len);
+    u32 &language_lcid = CRT_lcid_language, &country_lcid = CRT_lcid_country;
+    if (!locale_info()(lcid, CRT_abbrev_country ? 7 : 0x1002, name, sizeof name)) return lcid_state() = 0, 1;
     if (!CRT_stricmp(country(), name)) {
         if (!locale_info()(lcid, abbreviated ? 3 : 0x1001, name, sizeof name)) return lcid_state() = 0, 1;
         if (!CRT_stricmp(language(), name)) {
@@ -464,14 +460,14 @@ s32 __stdcall CRT_LangCountryEnumProc(const char *hex) {
 s32 __stdcall CRT_LanguageEnumProc(const char *hex) {
     const u32 lcid = CRT_LcidFromHexString(hex);
     char name[0x78];
-    const u32 abbreviated = global<u32>(0x00fb18e8), primary_length = global<u32>(0x00fb18e4);
+    const u32 abbreviated = CRT_abbrev_language, primary_length = static_cast<u32>(CRT_primary_len);
     if (!locale_info()(lcid, abbreviated ? 3 : 0x1001, name, sizeof name)) return lcid_state() = 0, 1;
     const bool found = !CRT_stricmp(language(), name) ? abbreviated || CRT_TestDefaultLanguage(lcid, 1)
                                                       : !abbreviated && primary_length && !CRT_strnicmp(language(), name, primary_length) && CRT_TestDefaultLanguage(lcid, 0);
     if (found) {
-        global<u32>(0x00fb18f8) = lcid;
+        CRT_lcid_country = lcid;
         lcid_state() |= 4;
-        global<u32>(0x00fb18dc) = lcid;
+        CRT_lcid_language = lcid;
     }
     return ~lcid_state() >> 2 & 1;
 }

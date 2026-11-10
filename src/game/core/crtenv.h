@@ -56,3 +56,30 @@ void __cdecl CRT_tzset();
 char *__cdecl CRT_getenv_locked(const char *name);
 
 }
+
+// The time zone as GetTimeZoneInformation answers it (TIME_ZONE_INFORMATION).
+struct CrtTimeZone {
+    s32 bias;
+    u16 standard_name[32];
+    u16 standard_date[8];   // a SYSTEMTIME
+    s32 standard_bias;
+    u16 daylight_name[32];
+    u16 daylight_date[8];
+    s32 daylight_bias;
+};
+
+#include "gamedata.h"
+
+// Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(const char[4], CRT_text_TZ_708da0, 0x00708da0, 0x4);
+GAME_DATA(s32, CRT_timezone, 0x007813d8, 0x4);
+GAME_DATA(s32, CRT_daylight, 0x007813dc, 0x4);
+GAME_DATA(s32, CRT_dstbias, 0x007813e0, 0x4);
+GAME_DATA(char **, CRT_environ, 0x00fb1380, 0x4);
+GAME_DATA(char **, CRT_initenv, 0x00fb1384, 0x4);
+GAME_DATA(u16 **, CRT_wenviron, 0x00fb1388, 0x4);
+GAME_DATA(u32, CRT_tzapiused, 0x00fb1458, 0x4);
+GAME_DATA(CrtTimeZone, CRT_tzinfo, 0x00fb1460, 0xac);
+GAME_DATA(char *, CRT_lastTZ, 0x00fb150c, 0x4);
+GAME_DATA(u32, CRT_GetEnvironmentStrings_use_fb1660, 0x00fb1660, 0x4);
+GAME_DATA(u32, CRT_CompareString_use_fb1910, 0x00fb1910, 0x4);

@@ -6,10 +6,11 @@
 
 #include "addrcalls.h"
 #include "crt.h"
+#include "crtmbstring.h"
 
 namespace {
 
-bool lead_byte(char c) { return reinterpret_cast<const u8 *>((uintptr_t)0x00fb1669)[static_cast<u8>(c)] & 4; }
+bool lead_byte(char c) { return (&CRT_mbctype[1])[static_cast<u8>(c)] & 4; }
 
 template <typename T> T &at(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
 template <typename F> F import_slot(u32 slot) { return at<F>(slot); }
@@ -122,9 +123,9 @@ void __cdecl CRT_parse_cmdline(const char *command, char **words, char *text, s3
 }
 
 void __cdecl CRT_setargv() {
-    char *const name = reinterpret_cast<char *>((uintptr_t)0x00fb1558);
+    char *const name = CRT_pgmname;
     import_slot<u32(__stdcall *)(void *, char *, u32)>(0x006fd194)(nullptr, name, 0x104);    // GetModuleFileNameA
-    at<char *>(0x00fb1390) = name;
+    CRT_pgmptr = name;
     const char *line = at<const char *>(0x00fb3cb8);
     if (!*line) line = name;
     s32 count, size;
@@ -132,8 +133,8 @@ void __cdecl CRT_setargv() {
     char **const argv = static_cast<char **>(CRT_malloc(static_cast<u32>(size + count * 4)));
     if (!argv) CrtInner().amsgExit(8);
     CRT_parse_cmdline(line, argv, reinterpret_cast<char *>(argv + count), &count, &size);
-    at<char **>(0x00fb1378) = argv;
-    at<s32>(0x00fb1374) = count - 1;
+    CRT_argv = argv;
+    CRT_argc = count - 1;
 }
 
 void __cdecl CRT_cinit() {
@@ -144,12 +145,12 @@ void __cdecl CRT_cinit() {
 
 void __cdecl CRT_doexit(s32 code, s32 quick, s32 retcaller) {
     CRT_lockexit();
-    if (at<s32>(0x00fb13a0) == 1) import_slot<s32(__stdcall *)(u32, s32)>(0x006fd24c)(import_slot<u32(__stdcall *)()>(0x006fd250)(), code);
-    at<s32>(0x00fb139c) = 1;
-    at<u8>(0x00fb1398) = static_cast<u8>(retcaller);
+    if (CRT_C_Exit_Done == 1) import_slot<s32(__stdcall *)(u32, s32)>(0x006fd24c)(import_slot<u32(__stdcall *)()>(0x006fd250)(), code);
+    CRT_C_Termination_Done = 1;
+    CRT_exitflag = static_cast<u8>(retcaller);
     if (!quick) {
-        if (at<u32>(0x00fb3cb4)) {
-            for (u32 entry = at<u32>(0x00fb3cb0) - 4; entry >= at<u32>(0x00fb3cb4); entry -= 4)   // (unsigned: an end below 4 wraps, as the original's)
+        if (CRT_onexitbegin) {
+            for (u32 entry = CRT_onexitend - 4; entry >= CRT_onexitbegin; entry -= 4)   // (unsigned: an end below 4 wraps, as the original's)
                 if (const Init f = at<Init>(entry)) f();
         }
         initterm(0x0072e100, 0x0072e10c);
@@ -159,7 +160,7 @@ void __cdecl CRT_doexit(s32 code, s32 quick, s32 retcaller) {
         CRT_unlockexit();
         return;
     }
-    at<s32>(0x00fb13a0) = 1;
+    CRT_C_Exit_Done = 1;
     import_slot<void(__stdcall *)(s32)>(0x006fd244)(code);   // (ExitProcess: the original returns if it does)
 }
 

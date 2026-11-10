@@ -26,3 +26,8 @@ void *__cdecl CRT_realloc(void *block, u32 size);
 // 0x6818f0: _msize: under lock 9 a small block's paragraphs * 16; otherwise HeapSize.
 u32 __cdecl CRT_msize(void *block);
 }
+
+#include "gamedata.h"
+
+// Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(u32, CRT_sbh_empty_groups_fb1428, 0x00fb1428, 0x4);
