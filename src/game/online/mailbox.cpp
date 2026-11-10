@@ -288,7 +288,7 @@ void __fastcall MailClient_OnEvent(u8 *self, void *, s32 kind, s32 code, u32) {
         return LibraryText(self, 0x006fd56c, TextOf(at<StdString>(self, 0x74)));
     case 3:
         if (!at<u8>(self, 0x85)) {
-            AssignText(at<StdString>(self, 0), reinterpret_cast<const char *>((uintptr_t)0x00773dc0));
+            AssignText(at<StdString>(self, 0), gPostcardmail_773d80.f40);
             EraseStrings(self + 0x10);
             if (at<u8 *>(self, 0x68)) {
                 Counted2_ScalarDtor(at<u8 *>(self, 0x68), nullptr, 1);
@@ -312,7 +312,7 @@ void __fastcall MailClient_OnEvent(u8 *self, void *, s32 kind, s32 code, u32) {
 void __stdcall MailClient_Callback(s32 kind, s32 code, u32 unused, u8 *self) { MailClient_OnEvent(self, nullptr, kind, code, unused); }
 
 void __fastcall MailClient_Dtor(u8 *self) {
-    AssignChars(at<StdString>(self, 0), reinterpret_cast<const char *>((uintptr_t)0x00773dc0));
+    AssignChars(at<StdString>(self, 0), gPostcardmail_773d80.f40);
     u32 out;
     List_EraseRangeCounted1(self + 0x10, nullptr, &out, at<u8 *>(at<u8 *>(self, 0x14), 0), at<u8 *>(self, 0x14));
     if (at<u8 *>(self, 0x68)) {
@@ -421,7 +421,7 @@ u8 *__fastcall MailAttachment_Ctor(u8 *self, void *, const char *path) {
         g_env->fclose(file);
     }
     AssignText(at<StdString>(self, 0), gMailbox_75447c);
-    AssignText(at<StdString>(self, 0x10), reinterpret_cast<const char *>((uintptr_t)0x00773dd4));
+    AssignText(at<StdString>(self, 0x10), gPostcardmail_773d80.f54);
     s32 whole = size;
     while (whole % 3) ++whole;
     const s32 encoded = static_cast<s32>(static_cast<u32>(whole) << 2) / 3;
@@ -458,7 +458,7 @@ u8 *__fastcall MailClient_Ctor(u8 *self) {
     at<u32>(self, 0x90) = 0;
     u8 startup[0x190];   // (the original's frame has this much)
     at<s32(__stdcall *)(u32, void *)>(nullptr, 0x006fd42c)(0x101, startup);
-    AssignText(at<StdString>(self, 0), reinterpret_cast<const char *>((uintptr_t)0x00773dc0));
+    AssignText(at<StdString>(self, 0), gPostcardmail_773d80.f40);
     return self;
 }
 
@@ -489,7 +489,7 @@ u8 __fastcall Mailbox_Send(u8 *self, void *, const char *host, u32 port, u32 arg
         at<u8 *>(self, 0x98) = client;
         if (!client) return 0;
     } else {
-        AssignChars(at<StdString>(client, 0), reinterpret_cast<const char *>((uintptr_t)0x00773dc0));
+        AssignChars(at<StdString>(client, 0), gPostcardmail_773d80.f40);
         u8 *const head = at<u8 *>(client, 0x14);
         u32 out;
         List_EraseRangeCounted1(client + 0x10, nullptr, &out, at<u8 *>(head, 0), head);

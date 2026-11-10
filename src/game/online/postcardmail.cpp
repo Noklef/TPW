@@ -63,11 +63,11 @@ void AddWideHex(StdString *to, char *buffer, uintptr_t label, const char *wide) 
 
 void AddAttachment(StdString *to, char *buffer, const char *boundary, const u8 *attachment) {
     AddFormat(to, buffer, reinterpret_cast<uintptr_t>(&gPostcardmail_773e98), boundary);
-    AddFormat(to, buffer, 0x00773e78, OrNull(at<char *>(attachment, 0x14)), OrNull(at<char *>(attachment, 4)));
-    Add(to, Text(0x00773e54));
-    AddFormat(to, buffer, 0x00773e3c, OrNull(at<char *>(attachment, 4)));
-    AddFormat(to, buffer, 0x00773e08, OrNull(at<char *>(attachment, 4)));
-    AddFormat(to, buffer, 0x00773df0, OrNull(at<char *>(attachment, 4)));
+    AddFormat(to, buffer, reinterpret_cast<uintptr_t>(gPostcardmail_773d80.ff8), OrNull(at<char *>(attachment, 0x14)), OrNull(at<char *>(attachment, 4)));
+    Add(to, Text(reinterpret_cast<uintptr_t>(gPostcardmail_773d80.fd4)));
+    AddFormat(to, buffer, reinterpret_cast<uintptr_t>(gPostcardmail_773d80.fbc), OrNull(at<char *>(attachment, 4)));
+    AddFormat(to, buffer, reinterpret_cast<uintptr_t>(gPostcardmail_773d80.f88), OrNull(at<char *>(attachment, 4)));
+    AddFormat(to, buffer, reinterpret_cast<uintptr_t>(gPostcardmail_773d80.f70), OrNull(at<char *>(attachment, 4)));
     Add(to, at<char *>(attachment, 0x20));
 }
 
@@ -106,5 +106,5 @@ extern "C" void __fastcall PostcardMail_Build(u8 *mail) {
     Add(to, Text(0x00773d00));
     const u8 *const attachment = at<const u8 *>(mail, 0x68);
     if (attachment && at<char *>(attachment, 0x20)) AddAttachment(to, buffer, boundary, attachment);
-    AddFormat(to, buffer, 0x00773de0, boundary);
+    AddFormat(to, buffer, reinterpret_cast<uintptr_t>(gPostcardmail_773d80.f60), boundary);
 }

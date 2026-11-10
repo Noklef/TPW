@@ -10573,3 +10573,4 @@ address,name,kind,confidence,notes
 0x007cc94c,gList7cc94c_NewRow_7cc94c,data,low,"GAME_DATA (src/game/ui/listrows): u32, named for its use in List7cc94c_NewRow"
 0x007cc984,gDialog7cc984_7cc984,data,low,"GAME_DATA (src/game/ui/dialog7cc984): u8 *, named for its use in dialog7cc984.cpp"
 0x00750d5c,gDialog7ca150_750d5c,data,low,"GAME_DATA (src/game/ui/dialog7ca150): u32[4], named for its use in dialog7ca150.cpp"
+0x00773d80,gPostcardmail_773d80,data,low,"GAME_DATA (src/game/online/postcardmail): Postcardmail_773d80_t, named for its use in postcardmail.cpp"
