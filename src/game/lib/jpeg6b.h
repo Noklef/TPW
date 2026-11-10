@@ -420,18 +420,29 @@ void __cdecl jquant2_compute_color(jpeg_decompress_struct *cinfo, void *boxp, in
 void __cdecl jquant2_new_color_map_2_quant(jpeg_decompress_struct *cinfo);
 
 // jmemansi.c, the memory manager's system-dependent part, through third_party/wrap/jpeg-6b/jmemansi.c: its malloc and free are the
-// exe's C runtime's (Jpeg6b_SetCrtEnv below), so every block stays on the exe's heap.
+// exe's C runtime's (Jpeg6b_SetCrtEnv below), so every block stays on the exe's heap, and so are its backing store's FILE calls.
 // 0x642980 (also jpeg_get_large: one copy): malloc(sizeofobject).
 void *__cdecl jpeg_get_small(jpeg_common_struct *cinfo, size_t sizeofobject);
 // 0x642990 (also jpeg_free_large and zlib's zcfree, whose block is the same second argument): free(object).
 void __cdecl jpeg_free_small(jpeg_common_struct *cinfo, void *object, size_t sizeofobject);
 // 0x6429a0: mem->max_memory_to_use (+0x2c) - already_allocated.
 long __cdecl jpeg_mem_available(jpeg_common_struct *cinfo, long min_bytes_needed, long max_bytes_needed, long already_allocated);
+// The backing store, its FILE the exe's C runtime's: info is a backing_store_info (read_backing_store +0, write_backing_store +4,
+// close_backing_store +8, temp_file +0xc). 0x6429c0: tmpfile into temp_file (null: ERREXITS JERR_TFILE_CREATE 0x3f with the exe's ""),
+// then the three methods. Through the method shim (the exe's addresses stored).
+void __cdecl jpeg_open_backing_store(jpeg_common_struct *cinfo, void *info, long total_bytes_needed);
+// 0x642a20 / 0x642a90: fseek to file_offset (failed: ERREXIT JERR_TFILE_SEEK 0x41), then fread / fwrite of byte_count bytes (short:
+// JERR_TFILE_READ 0x40 / JERR_TFILE_WRITE 0x42).
+void __cdecl jmemansi_read_backing_store(jpeg_common_struct *cinfo, void *info, void *buffer_address, long file_offset, long byte_count);
+void __cdecl jmemansi_write_backing_store(jpeg_common_struct *cinfo, void *info, void *buffer_address, long file_offset, long byte_count);
+// 0x642b00: fclose of temp_file.
+void __cdecl jmemansi_close_backing_store(jpeg_common_struct *cinfo, void *info);
 
 // jmemmgr.c, the memory manager, through third_party/wrap/jpeg-6b/jmemmgr.c: cinfo->mem (my_memory_mgr, 0x54 bytes: the public
 // jpeg_memory_mgr 0x34, small_list[2] +0x34, large_list[2] +0x3c, virt_sarray_list +0x44, virt_barray_list +0x48,
 // total_space_allocated +0x4c, last_rowsperchunk +0x50); pools 0 (JPOOL_PERMANENT) and 1 (JPOOL_IMAGE); a pool's blocks start with a
-// 16-byte header (next, bytes_used, bytes_left). Its getenv / sscanf and jpeg_open_backing_store are the exe's (Jpeg6bCrtEnv below).
+// 16-byte header (next, bytes_used, bytes_left). Its getenv / sscanf are the exe's and jpeg_open_backing_store the exe's address
+// (hooked to the library's above), through Jpeg6bCrtEnv below.
 struct jvirt_sarray_control;  // 0x78 bytes (the backing store's info at +0x28)
 struct jvirt_barray_control;  // 0x78 bytes
 typedef short jpeg6b_block[64];  // JBLOCK
@@ -543,7 +554,7 @@ struct Jpeg6bCrtEnv {
     void(__cdecl *free)(void *block);     // free (0x67ad90)
     char *(__cdecl *getenv)(const char *name);                                // getenv (0x67fbf0)
     int(__cdecl *sscanf)(const char *s, const char *format, long *value, char *ch);  // sscanf (0x67f620): jmemmgr.c's "%ld%c"
-    void(__cdecl *open_backing_store)(jpeg_common_struct *cinfo, void *info, long total_bytes_needed);  // jmemansi.c's, the exe's (0x6429c0)
+    void(__cdecl *open_backing_store)(jpeg_common_struct *cinfo, void *info, long total_bytes_needed);  // the exe's address (0x6429c0, hooked)
     int(__cdecl *sprintf_string)(char *buffer, const char *format, const char *s);  // sprintf (0x67a650), format_message's %s call
     int(__cdecl *sprintf_ints)(char *buffer, const char *format, int i0, int i1, int i2, int i3, int i4, int i5, int i6,
                                int i7);  // sprintf (0x67a650), its other call

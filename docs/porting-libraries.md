@@ -179,9 +179,6 @@ backing store (jpeg_open_backing_store and its read / write / close methods). tp
 - jpeg_idct_float (0x64b040) is Jpeg6b_IdctFloat (src/game/lib/jpegfloatdct), a hand port with X87Reg in the listing's order: the
   library's `(INT32)` casts of out-of-range values differ (the exe's __ftol keeps the low half of a 64-bit FISTP; the library's build
   gives 0x80000000), and /arch:IA32 did not change that. The game selects JDCT_ISLOW / IFAST, never the float IDCT.
-- jmemansi.c's backing store: jpeg_open_backing_store (0x6429c0) and its read / write / close methods (0x642a20, 0x642a90, 0x642b00).
-  The library's tmpfile() would be a FILE of the DLL's CRT, which the exe's fread / fwrite / fclose cannot take; they stay together
-  (as jmemmgr.c's realize_virt_arrays opens one only past max_memory_to_use).
 - jerror.c's jpeg_std_error (0x631280) is Codec631280_Init, a hand port already exact: the
   library's would need a shim mapping all five methods (0x6312d0, 0x631340, 0x631300, 0x631380, 0x631440) and the message table
   (the exe's 0x7039d0, last code 0x7b) back, for nothing gained.

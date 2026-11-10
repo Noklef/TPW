@@ -1,23 +1,36 @@
 # libjpeg 6b's jmemansi.c, the memory manager's system-dependent part (src/game/lib/jpeg6b: the library built from third_party/jpeg-6b,
-# the module through its wrapper unit third_party/wrap/jpeg-6b/jmemansi.c, whose malloc and free are the exe's) against the exe's
+# the module through its wrapper unit third_party/wrap/jpeg-6b/jmemansi.c, whose C runtime calls are the exe's) against the exe's
 # copies. jpeg_get_small (0x642980, also jpeg_get_large: one copy) calls the exe's malloc (0x67dcd0) and jpeg_free_small (0x642990, also
 # jpeg_free_large and zlib's zcfree) its free (0x67ad90): here both sides get fncmp's heap for them (the emulator's hooks on the two
 # addresses, the driver's Jpeg6b_SetCrtEnv), which records the sizes asked for and the blocks freed. jpeg_mem_available (0x6429a0)
-# reads cinfo->mem (+4, at MEM) max_memory_to_use +0x2c. jpeg_open_backing_store and its methods, and jpeg_mem_init (the hand port
-# Const_1000000), stay the exe's.
-# usage: jpeg6b_memansi.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=get,free,available)
+# reads cinfo->mem (+4, at MEM) max_memory_to_use +0x2c. The backing store: jpeg_open_backing_store (0x6429c0) with the exe's tmpfile
+# (0x67fd60) a recorder answering a FILE, null or anything (null: ERREXITS JERR_TFILE_CREATE 0x3f with the exe's "", a .bss byte at
+# EMPTY varied here, through the exe's strncpy, which runs; error_exit a recorder that returns), then the three methods (the exe's
+# addresses, as jpeg6b.cpp's shim stores them); read_backing_store / write_backing_store (0x642a20, 0x642a90) with fseek (0x67c100)
+# and fread / fwrite (0x67e1d0, 0x67b6d0) recorders answering 0 or not, the count or not (JERR_TFILE_SEEK 0x41, READ 0x40, WRITE 0x42);
+# close_backing_store (0x642b00) with fclose (0x67b620) a recorder. jpeg_mem_init (the hand port Const_1000000) stays the exe's.
+# usage: jpeg6b_memansi.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=get,free,available,open,read,write,close)
 import os
 import struct
 import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
-from fncmp import HEAP, RAM, Bench, Call, _alloc, _free, heap  # noqa: E402
+from fncmp import HEAP, LOG, RAM, Bench, Call, _alloc, _free, _recorder, heap, log_region, recorder, set_return  # noqa: E402
 
 # the exe's copies (re/libmap.csv): name -> (address, end)
-FUNCS = {'jpeg_get_small': (0x642980, 0x642990), 'jpeg_free_small': (0x642990, 0x6429a0), 'jpeg_mem_available': (0x6429a0, 0x6429c0)}
-B = Bench(sorted(FUNCS.values()), hooks={0x67dcd0: _alloc, 0x67ad90: _free})  # (the exe's malloc and free: fncmp's heap, as Mem_Alloc's)
+FUNCS = {'jpeg_get_small': (0x642980, 0x642990), 'jpeg_free_small': (0x642990, 0x6429a0), 'jpeg_mem_available': (0x6429a0, 0x6429c0),
+         'jpeg_open_backing_store': (0x6429c0, 0x642a13), 'read_backing_store': (0x642a20, 0x642a82),
+         'write_backing_store': (0x642a90, 0x642af2), 'close_backing_store': (0x642b00, 0x642b11)}
+K_ERROR = 1
+K_TMPFILE, K_FSEEK, K_FREAD, K_FWRITE, K_FCLOSE = 19, 20, 21, 22, 23  # (driver.cpp's kJpeg6bCrtEnv)
+B = Bench(sorted(list(FUNCS.values()) + [(0x67ae00, 0x67aefe)]),  # (and the exe's strncpy)
+          hooks={0x67dcd0: _alloc, 0x67ad90: _free,  # (the exe's malloc and free: fncmp's heap, as Mem_Alloc's)
+                 0x67fd60: _recorder(K_TMPFILE, 0, cdecl=True), 0x67c100: _recorder(K_FSEEK, 3, cdecl=True),
+                 0x67e1d0: _recorder(K_FREAD, 4, cdecl=True), 0x67b6d0: _recorder(K_FWRITE, 4, cdecl=True),
+                 0x67b620: _recorder(K_FCLOSE, 1, cdecl=True)})
 
-CINFO, MEM = RAM, RAM + 0x200
+CINFO, MEM, ERR, INFO, BUF = RAM, RAM + 0x200, RAM + 0x300, RAM + 0x400, RAM + 0x500
+EMPTY = 0x786de4  # (the exe's "", .bss)
 
 
 def common(r):
@@ -39,7 +52,48 @@ def available(r):
     return Call(0x6429a0, [CINFO] + [r.getrandbits(32) for _ in range(3)], common(r), ret='a')
 
 
-OPS = [f for f in (get, free, available) if not os.environ.get('OPS') or f.__name__ in os.environ['OPS'].split(',')]
+def store(r):
+    """cinfo (err at ERR: error_exit a recorder that returns) and a backing_store_info (its FILE at +0xc)."""
+    log = log_region()
+    cinfo = bytearray(r.bytes(0x20))
+    struct.pack_into('<I', cinfo, 0, ERR)
+    err = bytearray(r.bytes(0x84))
+    struct.pack_into('<I', err, 0, recorder(K_ERROR, 1, cdecl=True))
+    return {CINFO: cinfo, ERR: err, INFO: r.bytes(0x90), LOG: log}
+
+
+def open_(r):
+    regs = store(r)
+    set_return(regs[LOG], K_TMPFILE, r.choice([0, 0, BUF, r.getrandbits(32)]))
+    text = bytes(r.randrange(1, 256) for _ in range(r.choice([0, 0, 1, 0x4f, 0x50, 0x60])))
+    regs[EMPTY] = text + b'\0' + r.bytes(r.choice([0, 3]))
+    return Call(0x6429c0, [CINFO, INFO, r.getrandbits(32)], regs, ret='v')
+
+
+def transfer(r, address, k):
+    regs = store(r)
+    count = r.choice([0, 1, 0x80, r.getrandbits(32)])
+    set_return(regs[LOG], K_FSEEK, r.choice([0, 0, 0, 1, r.getrandbits(32)]))
+    set_return(regs[LOG], k, r.choice([count, count, count - 1 & 0xffffffff, 0, r.getrandbits(32)]))
+    return Call(address, [CINFO, INFO, BUF, r.getrandbits(32), count], regs, ret='v')
+
+
+def read(r):
+    return transfer(r, 0x642a20, K_FREAD)
+
+
+def write(r):
+    return transfer(r, 0x642a90, K_FWRITE)
+
+
+def close(r):
+    regs = store(r)
+    set_return(regs[LOG], K_FCLOSE, r.choice([0, r.getrandbits(32)]))
+    return Call(0x642b00, [CINFO, INFO], regs, ret='v')
+
+
+OPS = [f for f in (get, free, available, open_, read, write, close)
+       if not os.environ.get('OPS') or f.__name__.rstrip('_') in os.environ['OPS'].split(',')]
 
 
 def case(r):

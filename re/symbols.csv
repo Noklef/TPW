@@ -9743,6 +9743,10 @@ address,name,kind,confidence,notes
 0x00631610,jpeg_read_scanlines,function,high,"reimplemented (src/game/lib/jpeg6b); libjpeg 6b jdapistd.c jpeg_read_scanlines: the state and row checks, the progress hook, a call to the main controller (the library's)"
 0x006312d0,jerror_error_exit,function,low,"reimplemented (src/game/lib/jpeg6b); libjpeg 6b jerror.c error_exit (the library's): output_message, jpeg_destroy, then the exe's exit(1) through Jpeg6bCrtEnv"
 0x00631300,jerror_output_message,function,low,"reimplemented (src/game/lib/jpeg6b); libjpeg 6b jerror.c output_message (the library's): format_message into 200 bytes, then the exe's fprintf to its stderr with its ""%s\n"" through Jpeg6bCrtEnv"
+0x006429c0,jpeg_open_backing_store,function,low,"reimplemented (src/game/lib/jpeg6b); libjpeg 6b jmemansi.c jpeg_open_backing_store (the library's, through the method shim): the exe's tmpfile, ERREXITS with the exe's """" on null, the three methods (the exe's addresses)"
+0x00642a20,jmemansi_read_backing_store,function,low,"reimplemented (src/game/lib/jpeg6b); libjpeg 6b jmemansi.c read_backing_store (the library's): the exe's fseek and fread, JERR_TFILE_SEEK / JERR_TFILE_READ"
+0x00642a90,jmemansi_write_backing_store,function,low,"reimplemented (src/game/lib/jpeg6b); libjpeg 6b jmemansi.c write_backing_store (the library's): the exe's fseek and fwrite, JERR_TFILE_SEEK / JERR_TFILE_WRITE"
+0x00642b00,jmemansi_close_backing_store,function,low,reimplemented (src/game/lib/jpeg6b); libjpeg 6b jmemansi.c close_backing_store (the library's): the exe's fclose
 0x006503d0,jpeg6a_jdiv_round_up,function,high,reimplemented (src/game/lib/jpeg6a); libjpeg 6a jutils.c jdiv_round_up: a / b rounded up (the library's)
 0x006503e3,jpeg6a_jround_up,function,high,reimplemented (src/game/lib/jpeg6a); libjpeg 6a jutils.c jround_up: a rounded up to a multiple of b (the library's)
 0x00650401,jpeg6a_jcopy_sample_rows,function,high,reimplemented (src/game/lib/jpeg6a); libjpeg 6a jutils.c jcopy_sample_rows: rows of samples copied between row arrays (the library's)
