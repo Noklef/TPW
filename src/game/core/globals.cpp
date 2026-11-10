@@ -19,6 +19,7 @@
 #include "../world/cellrun.h"
 #include "gameframe.h"
 #include "localefacet.h"
+#include "../render/d3dsetup.h"
 
 namespace {
 
@@ -78,16 +79,16 @@ void __cdecl Globalf827dc_Release() {
 }
 
 u32 __cdecl Global879a24_Free() {
-    u8 *object = global<u8 *>(0x00879a24);
+    u8 *object = global<u8 *>((u32)(uintptr_t)&gD3dsetup_879a20 + 0x4);
     if (!object)
         return 0;
     Obj_ReleaseSevenComMembers(object);
-    object = global<u8 *>(0x00879a24);
+    object = global<u8 *>((u32)(uintptr_t)&gD3dsetup_879a20 + 0x4);
     if (object) {
         Obj_ReleaseSevenComMembers(object);
         GameHeap_Free(object);
     }
-    global<u32>(0x00879a24) = 0;
+    global<u32>((u32)(uintptr_t)&gD3dsetup_879a20 + 0x4) = 0;
     return 1;
 }
 
@@ -128,7 +129,7 @@ u32 __cdecl Global81af4c_Add(u32 amount) {
     return amount;
 }
 
-u32 __cdecl Global879a24_Get4c4() { return at<u32>(reinterpret_cast<const u8 *>(global<u32>(0x00879a24)), 0x4c4); }
+u32 __cdecl Global879a24_Get4c4() { return at<u32>(reinterpret_cast<const u8 *>(global<u32>((u32)(uintptr_t)&gD3dsetup_879a20 + 0x4)), 0x4c4); }
 
 u32 __cdecl Global786b80_SetAndMode3() {
     const u32 target = global<u32>(0x00f82884);
@@ -249,7 +250,7 @@ u32 __cdecl Globalfb2708_Set_6d1bc0(u32 v0) {
 }
 
 u32 __cdecl FreeGlobal879a20_561a00() {
-    const u32 p = global<u32>(0x00879a20); if (!p) return 0; GameHeap_Free(reinterpret_cast<void *>(p)); global<u32>(0x00879a20) = 0; return 1;
+    const u32 p = global<u32>((u32)(uintptr_t)&gD3dsetup_879a20); if (!p) return 0; GameHeap_Free(reinterpret_cast<void *>(p)); global<u32>((u32)(uintptr_t)&gD3dsetup_879a20) = 0; return 1;
 }
 
 u32 __cdecl CreateGlobal879d54_56b6c0() {

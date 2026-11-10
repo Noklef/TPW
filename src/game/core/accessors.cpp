@@ -16,6 +16,7 @@
 #include "../world/thingmsg.h"
 #include "../world/objectstatus.h"
 #include "../ui/windowbroadcast.h"
+#include "../render/meshlist.h"
 
 namespace {
 
@@ -135,8 +136,8 @@ u32 __cdecl Byte_ShiftLog2(u32 a, u32 b) {
 
 u32 __fastcall MeshPlus60_Ready(u8 *sub) {
     if (!(at<u32>(sub, (u32)-0x10) & 0x10000000)) {
-        at<u32>(sub, (u32)-8) = global<u32>(0x00879dec);
-        global<u32>(0x00879dec) = (u32)(uintptr_t)(sub - 0x60);
+        at<u32>(sub, (u32)-8) = global<u32>((u32)(uintptr_t)&gMeshlist_879dec);
+        global<u32>((u32)(uintptr_t)&gMeshlist_879dec) = (u32)(uintptr_t)(sub - 0x60);
     }
     return 1;
 }

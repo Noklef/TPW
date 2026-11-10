@@ -43,3 +43,7 @@ GAME_DATA(char[16], gText_D3dsetup_768988, 0x00768988, 0x10);
 GAME_DATA(char[24], gText_D3dsetup_768998, 0x00768998, 0x18);
 GAME_DATA(char[32], gText_D3dsetup_7689b0, 0x007689b0, 0x20);
 GAME_DATA(char[40], gText_D3dsetup_7689d0, 0x007689d0, 0x28);
+
+// Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(const u8[0x38], gD3dSetup_PickFormat_7015f8, 0x007015f8, 0x38);
+GAME_DATA(u8[0x18], gD3dsetup_879a20, 0x00879a20, 0x18);

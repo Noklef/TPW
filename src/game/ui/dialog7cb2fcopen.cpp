@@ -21,6 +21,7 @@
 #include "windowscript.h"
 #include "panel7b9940.h"
 #include "../gfx/texcache.h"
+#include "../render/d3dsetup.h"
 
 namespace {
 
@@ -176,7 +177,7 @@ void __cdecl Dialog7cb2fc_OnButton(u32 id, u32 state) {
     }
     case 0x1d4d3:
         if (option(0xc)) Options_SetC(kOptions, nullptr, 0);
-        else if (global<s32>(global<u32>(0x00879a24) + 0x788) > 1) Options_SetC(kOptions, nullptr, 1);
+        else if (global<s32>(global<u32>((u32)(uintptr_t)&gD3dsetup_879a20 + 0x4) + 0x788) > 1) Options_SetC(kOptions, nullptr, 1);
         textRow(0x1d4ca, 0x15c, 0x15d + (option(0xc) ? 1 : 0));
         return;
     case 0x1d4d7:
@@ -291,7 +292,7 @@ void __cdecl Dialog7cb2fc_Open() {
         g_env->text(option(0) ? 0x13c : 0x13d);
         vcall<void>(item, 0x24, kBuffer);
     }
-    textRow(0x1d4ca, 0x15c, !option(0xc) ? 0x15d : (global<s32>(global<u32>(0x00879a24) + 0x788) > 1 ? 0x15e : 0x15d));
+    textRow(0x1d4ca, 0x15c, !option(0xc) ? 0x15d : (global<s32>(global<u32>((u32)(uintptr_t)&gD3dsetup_879a20 + 0x4) + 0x788) > 1 ? 0x15e : 0x15d));
     Dialog7cb2fc_OnSlider(0x1d4e0, (s32)option(0x30));
 
     static const struct { u32 flag, button; } kVolumes[] = {{0x0078d8e8, 0x1d4d7}, {0x0078d8f0, 0x1d4d9}, {0x0078d8f8, 0x1d4db}, {0x0078d900, 0x1d4dd}};

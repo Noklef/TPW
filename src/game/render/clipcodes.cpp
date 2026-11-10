@@ -5,6 +5,7 @@
 #include "../core/gameheap.h"
 #include "../math/x87.h"
 #include "engineerrors.h"
+#include "d3dsetup.h"
 
 namespace {
 
@@ -44,7 +45,7 @@ u8 *__fastcall ClipCodes_Run(u32 ecx, u32, u8 *out, u8 *codes, const u8 *points,
 }
 
 u32 __cdecl ClipCodes_InitTable() {
-    u8 **const block = reinterpret_cast<u8 **>((uintptr_t)0x00879a20);
+    u8 **const block = reinterpret_cast<u8 **>((uintptr_t)&gD3dsetup_879a20);
     if (*block) return 0;
     u8 *const table = reinterpret_cast<u8 *>((uintptr_t)0x00879970);
     for (s32 i = 0; i < 0x80; ++i) {

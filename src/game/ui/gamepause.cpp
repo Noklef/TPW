@@ -16,6 +16,7 @@
 #include "guisettings.h"
 #include "window.h"
 #include "dialog7cc184handler.h"
+#include "../render/d3dsetup.h"
 
 namespace {
 
@@ -83,9 +84,9 @@ void __cdecl GamePause_RemakePicture() {
     gDialog7cc184handler_7cc18c = made;
     E->fn5d47a0(made);
     u8 desc[0x7c];
-    E->fn564430(global<u8 *>(0x00879a24), nullptr, reinterpret_cast<SurfaceDesc *>(desc));
+    E->fn564430(global<u8 *>((u32)(uintptr_t)&gD3dsetup_879a20 + 0x4), nullptr, reinterpret_cast<SurfaceDesc *>(desc));
     E->shrink(gDialog7cc184handler_7cc18c, nullptr, reinterpret_cast<const SurfaceDesc *>(desc));
-    E->storeCom(global<u8 *>(0x00879a24));
+    E->storeCom(global<u8 *>((u32)(uintptr_t)&gD3dsetup_879a20 + 0x4));
     E->panelReset(gDialog7cc184handler_7cc18c);
 }
 

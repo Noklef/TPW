@@ -171,10 +171,10 @@ u32 __fastcall Renderer_DrawFrame(u8 *renderer) {
     bool drawn = true;
     if (global<u8>(kViewFlags) & 4) {
         if (global<u8>(kViewFlags) & 8) {
-            global<u32>(0x00768aac) = 3;
-        } else if (global<u32>(0x00768aac) != 2) {
+            gRenderer_DrawFrame_768aac = 3;
+        } else if (gRenderer_DrawFrame_768aac != 2) {
             g_calls.Cd(0x00583790);   // Display_Restore
-            global<u32>(0x00768aac) = 2;
+            gRenderer_DrawFrame_768aac = 2;
         }
         g_calls.Th(0x005836b0, kSceneFlags);   // SceneFlags_Touch
         for (s32 i = 0; drawn && i < at<s32>(renderer, 0x70); ++i) {
@@ -230,8 +230,8 @@ u32 __fastcall Renderer_DrawFrame(u8 *renderer) {
             if (drawn) global<u32>(kViewFlags) = savedFlags;
         }
     } else {
-        if (global<u32>(0x00768aac) != 1) {
-            global<u32>(0x00768aac) = 1;
+        if (gRenderer_DrawFrame_768aac != 1) {
+            gRenderer_DrawFrame_768aac = 1;
             g_calls.Th(0x005836b0, kSceneFlags);   // SceneFlags_Touch
         } else if (at<s32>(renderer, 0x70) == 1) {
             u8 *const lastCamera = reinterpret_cast<u8 *>((uintptr_t)0x0087a680);

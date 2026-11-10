@@ -13,6 +13,7 @@
 #include "landscape.h"
 #include "../render/rendererframe.h"
 #include "ground.h"
+#include "../render/d3dsetup.h"
 
 using gridquad::FacingClipped;
 using gridquad::FacingOpen;
@@ -74,7 +75,7 @@ void FillRow(u8 *self, s32 row, u8 *points, u8 *codes) {
     const u32 count = (u32)(last - first + 1);
     g_env->transform(global<void *>(0x0087b088), nullptr, (u32)(uintptr_t)start, (u32)(uintptr_t)start, kPoint, kPoint, 0, count);
     u32 result;
-    ClipCodes_Run(global<u32>(0x00879a20), 0, reinterpret_cast<u8 *>(&result), codes + first, start, count, kPoint, 0xff);
+    ClipCodes_Run(global<u32>((u32)(uintptr_t)&gD3dsetup_879a20), 0, reinterpret_cast<u8 *>(&result), codes + first, start, count, kPoint, 0xff);
 }
 
 } // namespace

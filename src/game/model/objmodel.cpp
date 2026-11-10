@@ -21,6 +21,8 @@
 #include "../render/renderer.h"
 #include "../gfx/texcache.h"
 #include "../render/pointsprites.h"
+#include "../render/dynfaces.h"
+#include "../render/d3dsetup.h"
 
 namespace {
 
@@ -150,7 +152,7 @@ u32 __fastcall ObjModel_Load(u8 *object, void *, u8 *model) {
         }
         TerrainTex_Setup(procedural, nullptr, model);
     }
-    if (model && model + 0x18 && same(reinterpret_cast<const char *>(model + 0x18), reinterpret_cast<const char *>((uintptr_t)0x00763e54))) {
+    if (model && model + 0x18 && same(reinterpret_cast<const char *>(model + 0x18), reinterpret_cast<const char *>((uintptr_t)&gText_Dynfaces_763e54))) {
         for (s32 i = 0; i < (s32)at<u16>(model, 0x3c); ++i)   // ("BlueprintMesh": its parts flagged 2)
             at<u8>(ptr(model, 0x64), 0x10 * i + 0xc) |= 2;
     }
@@ -241,7 +243,7 @@ u32 __fastcall ObjModel_LightMesh(u8 *object, void *, u8 *mesh, const u32 *matri
         return 1;
     *colours++ = frame;
     if (!(at<u32>(mesh, 0) & 0x1000000) && !(global<u32>(0x008bcbc8) & 0x800)) {   // (the flag read again: the stamp may be the mesh's +0)
-        global<u32>(0x00879dec) = 0;
+        global<u32>((u32)(uintptr_t)&gMeshlist_879dec) = 0;
         ListNodes_Drain(ptr(gRenderer_87a6d0, 0x30));
         if (!(flags & 0x3000000))
             ListNodes_Drain(ptr(gRenderer_87a6d0, 0x2c));
@@ -368,7 +370,7 @@ u32 __fastcall ObjModel_DrawMeshTree(u8 *object, void *, u8 *mesh, const u32 *fi
         u8 *const xf2 = global<u8 *>(0x0087b1d8);
         reinterpret_cast<Transform>((uintptr_t)at<u32>(ptr(xf2, 0), 0x18))(xf2, mesh + 0x10, second, b);
         if (tree_mesh_wanted(mesh)) {
-            const u32 codes = g_treeCalls.Th(0x00561a30, global<u32>(0x00879a20), mesh + 0x78, a);
+            const u32 codes = g_treeCalls.Th(0x00561a30, global<u32>((u32)(uintptr_t)&gD3dsetup_879a20), mesh + 0x78, a);
             if (codes & 0x40) {
                 if (!g_treeCalls.Th(0x0057aa10, (u32)(uintptr_t)object, mesh, b, lights, codes | gRenderer_8bb624))
                     return 0;

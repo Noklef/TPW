@@ -23,6 +23,7 @@
 #include "../world/world.h"
 #include "gamestart.h"
 #include "../world/thingmsg.h"
+#include "../render/d3dsetup.h"
 
 namespace {
 
@@ -481,7 +482,7 @@ void Drawing() {   // state 0xa
     const u8 cameraByte = reinterpret_cast<u8 &>(gCameraFlags);
     G<u8>(0x00878e84) = (cameraByte & 0x16) != 0;
     if (G<s32>(0x0087502c) > 0) {
-        const u32 surface = at<u32>(G<u32>(0x00879a24), 0x14);
+        const u32 surface = at<u32>(G<u32>((u32)(uintptr_t)&gD3dsetup_879a20 + 0x4), 0x14);
         u32 out;
         G<u32(__stdcall *)(u32, u32, u32 *)>(G<u32>(surface))(surface, 0x00707210, &out);   // QueryInterface
         Cd(0x0053e760, out);

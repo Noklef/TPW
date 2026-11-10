@@ -2,6 +2,7 @@
 
 #include <cstdint>
 #include "../gfx/texcache.h"
+#include "d3dsetup.h"
 
 namespace {
 
@@ -19,7 +20,7 @@ void touch(u32 texture, u32 level) { g_calls.Th(0x0058c9f0, gTexcache_8c4b44, te
 void Mesh_SetTextureCalls(const AddrCall *table, u32 count) { g_calls.Set(table, count); }
 
 extern "C" void __stdcall Mesh_TouchTextures(const u8 *mesh) {
-    const u8 *const scene = global<const u8 *>(0x00879a20);
+    const u8 *const scene = global<const u8 *>((u32)(uintptr_t)&gD3dsetup_879a20);
     const u32 level = at<float>(scene, 4) > 0.0f ? at<u32>(scene, 4) : 0;   // 0x7019f4
     const u32 records = at<u16>(mesh, 0x5a);
     for (u32 i = 0; i < records; ++i) {

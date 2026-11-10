@@ -204,15 +204,15 @@ void __cdecl DynFaces_AddGrid(float dx, float dy, float dz, s32 rows, s32 cols, 
         if (rows <= 0) continue;
         u32 offset = static_cast<u32>(i + row * 19 + col) * 12;
         for (s32 j = rows; j != 0; j--, offset += 0xe4) {
-            const float *const p0 = reinterpret_cast<const float *>((uintptr_t)(0x00874180 + offset));
+            const float *const p0 = reinterpret_cast<const float *>((uintptr_t)((u32)(uintptr_t)&gDynFaces_874180 + offset));
             const float *const p1 = p0 + 3, *const p2 = p0 + 57, *const p3 = p0 + 60;
             const float corners[12] = {Sum(p0[0], dx), Sum(p0[1], dy), Sum(dz, p0[2]), Sum(p2[0], dx), Sum(p2[1], dy), Sum(p2[2], dz),
                                        Sum(p1[0], dx), Sum(p1[1], dy), Sum(p1[2], dz), Sum(dx, p3[0]), Sum(p3[1], dy), Sum(p3[2], dz)};
-            const u32 *const c0 = reinterpret_cast<const u32 *>((uintptr_t)(0x00870ed8 + offset));
+            const u32 *const c0 = reinterpret_cast<const u32 *>((uintptr_t)((u32)(uintptr_t)&gDynFaces_870ed8 + offset));
             const u32 *const order[4] = {c0, c0 + 57, c0 + 3, c0 + 60};
             u32 colours[12];
             for (int k = 0; k < 12; k++) colours[k] = X87_FloatThrough(order[k / 3][k % 3]);
-            const u32 tag = global<u32>(0x00871d18 + 4 * face++);
+            const u32 tag = global<u32>((u32)(uintptr_t)&gDynFaces_871d18 + 4 * face++);
             DynFaces_AddPoly(reinterpret_cast<const u32 *>(corners), tag, uvs, colours, 1);
         }
     }
@@ -228,8 +228,8 @@ void __cdecl DynFaces_AddTurnedGrid(float dx, float dy, float dz, float xoff, s3
             u32 u = 0;
             u32 offset = static_cast<u32>(i) * 12;
             for (s32 j = rows; j != 0; --j, offset += 0xe4) {
-                const u32 *const p = reinterpret_cast<const u32 *>((uintptr_t)(0x00874180 + offset));
-                const u32 *const n = reinterpret_cast<const u32 *>((uintptr_t)(0x00870ed8 + offset));
+                const u32 *const p = reinterpret_cast<const u32 *>((uintptr_t)((u32)(uintptr_t)&gDynFaces_874180 + offset));
+                const u32 *const n = reinterpret_cast<const u32 *>((uintptr_t)((u32)(uintptr_t)&gDynFaces_870ed8 + offset));
                 // The first face: below, here, below-right, right.
                 const u32 at1[4] = {57, 0, 60, 3};
                 u32 corners[12], colours[12], uvs[12] = {};
@@ -291,8 +291,8 @@ void __cdecl DynFaces_WaveGrid(s32 rows, s32 cols, float step, float phase) {
             const float half = static_cast<float>(X87Reg(phase) * 0.5f);
             u32 offset = column;
             for (s32 r = rows; r != 0; r--, offset += 0xe4) {
-                float *const p = reinterpret_cast<float *>((uintptr_t)(0x00874180 + offset));
-                float *const n = reinterpret_cast<float *>((uintptr_t)(0x00870ed8 + offset));
+                float *const p = reinterpret_cast<float *>((uintptr_t)((u32)(uintptr_t)&gDynFaces_874180 + offset));
+                float *const n = reinterpret_cast<float *>((uintptr_t)((u32)(uintptr_t)&gDynFaces_870ed8 + offset));
                 const float h = static_cast<float>(X87Reg(x) * alongX + base - half);
                 p[0] = x;
                 p[1] = static_cast<float>(X87Reg(SinTable_At(sines, static_cast<float>((X87Reg(h) - -1.57079637f) * sines.scale))) * 1.70000005f);
@@ -329,8 +329,8 @@ void __cdecl DynFaces_RippleGrid(s32 rows, s32 cols, float step, float phase) {
             const float reach = static_cast<float>(X87Reg(X87_MulIntDouble(rows - 4, step)));
             u32 offset = column;
             for (s32 r = rows; r != 0; r--, offset += 0xe4) {
-                float *const p = reinterpret_cast<float *>((uintptr_t)(0x00874180 + offset));
-                float *const n = reinterpret_cast<float *>((uintptr_t)(0x00870ed8 + offset));
+                float *const p = reinterpret_cast<float *>((uintptr_t)((u32)(uintptr_t)&gDynFaces_874180 + offset));
+                float *const n = reinterpret_cast<float *>((uintptr_t)((u32)(uintptr_t)&gDynFaces_870ed8 + offset));
                 const X87Reg d = X87_Sqrt(X87Reg(x) * x + dz2) - lift;
                 const float angle = static_cast<float>(X87Reg(k) * d);
                 const float quarter = static_cast<float>(X87Reg(6.28318501f) * d * 0.25f);
@@ -470,20 +470,20 @@ void __cdecl DynFaces_InitModels() {
     global<u32>(0x00871f60) = 0;
     global<u8>(0x00763c98) = 1;
     reinterpret_cast<u32 &>(gDynFaces_874fc8) = 0;
-    for (u32 address = 0x00871d18; address < 0x00871ed0; address += 4)
+    for (u32 address = (u32)(uintptr_t)&gDynFaces_871d18; address < 0x00871ed0; address += 4)
         global<s32>(address) = Crt().rand() % 3 + 0xf;
     s32 result = 0;   // sic: in the original a stack slot not yet written, read when the first allocation fails
-    global<u32>(0x00871f64) = MakeModel(0x600, &result, 0x00763e54u, 0);
+    global<u32>(0x00871f64) = MakeModel(0x600, &result, (u32)(uintptr_t)&gText_Dynfaces_763e54, 0);
     if (result == 0) {
         g_calls.Cd(0x00424ed0, 0x00763c78u);
         awake = false;
     }
-    reinterpret_cast<u32 &>(gDynFaces_871ee4) = MakeModel(0x86, &result, 0x00763e48u, 1);
+    reinterpret_cast<u32 &>(gDynFaces_871ee4) = MakeModel(0x86, &result, (u32)(uintptr_t)&gText_DynFaces_InitModels_763e48, 1);
     if (awake && result == 0) {
         g_calls.Cd(0x00424ed0, 0x00763c78u);
         awake = false;
     }
-    reinterpret_cast<u32 &>(gDynFaces_871ed8) = MakeModel(0x180, &result, 0x00763e3cu, 3);
+    reinterpret_cast<u32 &>(gDynFaces_871ed8) = MakeModel(0x180, &result, (u32)(uintptr_t)&gText_DynFaces_InitModels_763e3c, 3);
     if (awake && result == 0) g_calls.Cd(0x00424ed0, 0x00763c78u);
     gDynFaces_874fcc = 1;
 }

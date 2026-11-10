@@ -17,6 +17,7 @@
 #include "../core/cmdline.h"
 #include "../render/graphicssettings.h"
 #include "../core/gamewindow.h"
+#include "../render/d3dsetup.h"
 
 namespace {
 
@@ -85,7 +86,7 @@ void __cdecl Gui_Startup() {
     const GuiStartupEnv *const E = g_startup;
     u8 local[0x30];
     E->screenOpen(reinterpret_cast<s32 *>(local), nullptr, 0, nullptr, nullptr);
-    E->setDirectDraw(*global<void **>(0x00879a24));
+    E->setDirectDraw(*global<void **>((u32)(uintptr_t)&gD3dsetup_879a20 + 0x4));
     if (WindowMode()) {
         E->setWindow(reinterpret_cast<void * &>(gGamewindow_7a130c));
         E->fn5f55c0(local);

@@ -12,6 +12,7 @@
 #include "../model/rideresource.h"
 #include "queue.h"
 #include "xsection.h"
+#include "../render/vertexblock.h"
 
 namespace {
 
@@ -412,7 +413,7 @@ u8 *__cdecl CoasterType_Create(u32 holder, u32, u32 id, const u8 *source) {
     at<u32>(t, 0x274) = 0x41c80000;   // 25
     at<float>(t, 0x270) = (float)X87_Sqrt(X87Reg(gCoasterType_Create_6fde90));
     CoasterType_Setup(t, id, source);   // (its result unused: sic)
-    at<u32>(at<u8 *>(t, 0x1c), 0xc) = 0x0074cb98;   // "Data\Generic\Dynamic\Textures"
+    at<u32>(at<u8 *>(t, 0x1c), 0xc) = (u32)(uintptr_t)&gText_Vertexblock_74cb98;   // "Data\Generic\Dynamic\Textures"
     at<u32>(balance, 0) = (u32)(uintptr_t)TrackTypeBalance_vtable;
     BalanceFile_Release(balance);
     return t;

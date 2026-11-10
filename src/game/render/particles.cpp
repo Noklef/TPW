@@ -511,8 +511,8 @@ void __cdecl ParticlePool2_Setup(u32 x, u32 y, float width, float height) {
     reinterpret_cast<u32 &>(p.duration) = 0x43c80000;  // 400.0f
     p.startTime = (float)(s32)Clocks_RealNowLessPauses();  // fild
     reinterpret_cast<u32 &>(p.spin) = 0x3ecccccd;  // 0.4f
-    p.radiusX0 = (float)(X87Reg(width) * global<float>(0x00702f98));
-    p.radiusY0 = (float)(X87Reg(height) * global<float>(0x00702f98));
+    p.radiusX0 = (float)(X87Reg(width) * gParticlePool2_Setup_702f98);
+    p.radiusY0 = (float)(X87Reg(height) * gParticlePool2_Setup_702f98);
     p.radiusX1 = X87_Through(width);
     p.radiusY1 = X87_Through(height);
 }

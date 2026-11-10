@@ -9,6 +9,7 @@
 #include "engineerrors.h"
 #include "../frontend/lobbysky.h"
 #include "graphicssettings.h"
+#include "lightsource.h"
 
 namespace {
 
@@ -108,14 +109,14 @@ u32 __cdecl Options_Apply() {
 
 u32 __cdecl Environment_Apply() {
     global<u32>(0x008bd47c) = global<u32>(0x007856d4);
-    global<u32>(0x007a0b44) = global<u32>(0x007856d8);
-    global<u32>(0x007a0b3c) = global<u32>(0x007856dc);
+    gState_7a0b44 = global<u32>(0x007856d8);
+    gState_7a0b3c = global<u32>(0x007856dc);
     const s32 c = global<s32>(0x007856e0), e = global<s32>(0x007856e4);
     global<s32>(0x007a006c) = c > 0 ? c : 0;
     global<s32>(0x007a01c0) = e > 0 ? e : 0;
-    global<u32>(0x007a0b30) = global<u32>(0x007856e8);
-    global<u32>(0x007a0b34) = global<u32>(0x007856ec);
-    global<u32>(0x007a0b38) = global<u32>(0x007856f0);
+    global<u32>((u32)(uintptr_t)&gLightsource_7a0b30) = global<u32>(0x007856e8);
+    gEnvironment_Apply_7a0b34 = global<u32>(0x007856ec);
+    gEnvironment_Apply_7a0b38 = global<u32>(0x007856f0);
     global<u32>(0x00870ec8) = global<u32>(0x00785718);
     global<u32>(0x00870ecc) = global<u32>(0x0078571c);
     global<u32>(0x00870ed0) = global<u32>(0x00785720);

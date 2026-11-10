@@ -3,6 +3,7 @@
 #include <cstdint>
 #include "../frontend/lobbysky.h"
 #include "ddopen.h"
+#include "d3dsetup.h"
 
 namespace {
 
@@ -93,7 +94,7 @@ u32 __fastcall Device_Present(u8 *engine) {
     return gDdopen_879cd4 == 0;
 }
 
-u32 __cdecl Present_Engine() { return g_calls.Th(0x00564210, global<u32>(0x00879a24)); }
+u32 __cdecl Present_Engine() { return g_calls.Th(0x00564210, global<u32>((u32)(uintptr_t)&gD3dsetup_879a20 + 0x4)); }
 
 namespace {
 
@@ -111,7 +112,7 @@ bool answered(u32 result) {
 }  // namespace
 
 u32 __fastcall Present_Picture(u8 *picture) {
-    u8 *const surface = at<u8 *>(global<u8 *>(0x00879a24), 0x14);
+    u8 *const surface = at<u8 *>(global<u8 *>((u32)(uintptr_t)&gD3dsetup_879a20 + 0x4), 0x14);
     u32 desc[0x1f] = {0x7c};
     const u8 *const vtable = at<const u8 *>(surface, 0);
     if (!answered(at<u32(__stdcall *)(u8 *, void *, void *, u32, void *)>(vtable, 0x64)(surface, nullptr, desc, 1, nullptr))) return 0;
@@ -123,6 +124,6 @@ u32 __fastcall Present_Picture(u8 *picture) {
         g_calls.Cd(global<u32>(0x008bcbe4) == 0x20 ? 0x00678c20 : 0x006787f0, from, bits, width, rows, width * 4, pitch, at<u32>(picture, (u32)-0x10), width * 2, 1u, mask);
     }
     if (!answered(at<u32(__stdcall *)(u8 *, void *)>(at<const u8 *>(surface, 0), 0x80)(surface, nullptr))) return 0;
-    return g_calls.Th(0x00564210, global<u32>(0x00879a24));
+    return g_calls.Th(0x00564210, global<u32>((u32)(uintptr_t)&gD3dsetup_879a20 + 0x4));
 }
 }
