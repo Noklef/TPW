@@ -119,3 +119,6 @@ void Sources_SetEnv(const SourcesEnv *env);
 // Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
 GAME_DATA(char[264], gFileSourcePath, 0x00faa2c8, 0x108);
 GAME_DATA(char[264], gMmioSourcePath, 0x00faa3d0, 0x108);
+// The vtables hold only ports: tpw.exe's loader points their slots at them.
+GAME_DATA(void *[12], FileSource_vtable, 0x00703e30, 0x30);
+GAME_DATA(void *[12], MmioSource_vtable, 0x00703e60, 0x30);

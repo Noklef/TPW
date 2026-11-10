@@ -105,3 +105,6 @@ struct WadSourceEnv {
 };
 // The calls go through env (nullptr: the game's).
 void WadSource_SetEnv(const WadSourceEnv *env);
+
+// Globals by address, by hand (.docs/09-globals.md). The vtable holds only ports: tpw.exe's loader points its slots at them.
+GAME_DATA(void *[13], WadSource_vtable, 0x00703908, 0x34);

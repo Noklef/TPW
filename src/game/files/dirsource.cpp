@@ -21,7 +21,7 @@ const DirSourceEnv kGameEnv = {
 };
 const DirSourceEnv *g_env = &kGameEnv;
 
-void *const *const kDirSourceVtable = reinterpret_cast<void *const *>(0x007038d0);
+void *const *const kDirSourceVtable = DirSource_vtable;
 void *const kNoSearch = reinterpret_cast<void *>(static_cast<std::uintptr_t>(0xffffffff));
 constexpr u32 kMmio = 0x8000;
 
