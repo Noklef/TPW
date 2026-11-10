@@ -29,3 +29,10 @@ u8 __fastcall TagSystem_FormatTag(u8 *self, void *, const u8 *record, u32 a, u32
 // +0x10, +0x14; for 0x18 the message's word +0xc and +0x14 too). Other types: slot 0 asked again (for a debug print, left out).
 void __fastcall TagSystem_HandleMessage(u8 *self, void *, u8 *msg);
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(char[32], gText_TagSystem_HandleMessage_75eb20, 0x0075eb20, 0x20);
+GAME_DATA(char[40], gText_TagSystem_HandleMessage_75eb40, 0x0075eb40, 0x28);
+GAME_DATA(char[36], gText_TagSystem_HandleMessage_75eb68, 0x0075eb68, 0x24);

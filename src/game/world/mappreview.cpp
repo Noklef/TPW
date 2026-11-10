@@ -21,6 +21,7 @@
 #include "mappreview.h"
 #include "mapclick.h"
 #include "focuscell.h"
+#include "tracktextures.h"
 
 namespace {
 
@@ -286,7 +287,7 @@ extern "C" void __cdecl GameMode_MapPreview(s32 x, s32 y, u32 flags) {
             break;
         case 0x39: {
             s32 cx = x > 1 ? x : 1, cy = y > 1 ? y : 1;
-            const s32 w = Sub(global<s32>(0x0081d740), 2), h = Sub(global<s32>(0x0081b1b0), 3);
+            const s32 w = Sub(gTracktextures_81d740, 2), h = Sub(global<s32>(0x0081b1b0), 3);
             if (!(cx < w)) cx = w;
             if (!(cy < h)) cy = h;
             x = Even(cx, global<s32>(0x007639f0));

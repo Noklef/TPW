@@ -37,6 +37,7 @@
 #include "mapclick.h"
 #include "gamemode.h"
 #include "focuscell.h"
+#include "tracktextures.h"
 
 namespace {
 
@@ -440,7 +441,7 @@ void __cdecl GameMode_MapClick(s32 x, s32 y, u32 flags, u32 useStored) {
     if (Global81ae2c_Equals(0x39) != 0) {
         s32 cx = x > 1 ? x : 1;
         s32 cy = y > 1 ? y : 1;
-        const s32 w = (s32)(global<u32>(0x0081d740) - 2);
+        const s32 w = (s32)(reinterpret_cast<u32 &>(gTracktextures_81d740) - 2);
         if (cx >= w) cx = w;
         const s32 h = (s32)(global<u32>(0x0081b1b0) - 3);
         if (cy >= h) cy = h;

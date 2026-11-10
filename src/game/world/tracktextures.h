@@ -31,3 +31,9 @@ void __cdecl TrackTextures_LoadHoarding();
 // 0x52f050: the track state's globals cleared, [0x81d740] and [0x81b1b0] the sizes; every cell in `rows` rows of `columns` reset (its map cell and track cell); the list [0x816d48] cleared, the four tables loaded, the park's entrance laid.
 void __cdecl Track_ResetMap(s32 columns, s32 rows);
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(u16, gTracktextures_8186ec, 0x008186ec, 0x2);
+GAME_DATA(s32, gTracktextures_81d740, 0x0081d740, 0x4);

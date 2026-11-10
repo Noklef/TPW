@@ -42,6 +42,7 @@
 #include "challenges.h"
 #include "advisorscore.h"
 #include "object.h"
+#include "staff.h"
 
 namespace {
 
@@ -74,7 +75,7 @@ extern "C" {
 
 u32 __fastcall Staff_IsTooTired(const u8 *staff) {
     const u32 level = (u32)(long long)at<float>(staff, 0x1fc) & 0xff;  // __ftol
-    return (s32)level < *reinterpret_cast<const s32 *>(0x00785324);
+    return (s32)level < gStaff_785324;
 }
 
 void __fastcall Staff_TireA(u8 *staff) {
@@ -242,7 +243,7 @@ u32 __fastcall StaffTraining_Serialize(u8 *training, void *, Stream *stream, u32
     for (u32 i = 0; i < 5; ++i)
         if (!Save_Field(stream, save, training + i * 4, 4, 0x00761eb0))
             return 1;
-    return Save_Field(stream, save, training + 0x14, 1, 0x00761e9c) ? 0 : 1;
+    return Save_Field(stream, save, training + 0x14, 1, (u32)&gText_StaffTraining_Serialize_761e9c) ? 0 : 1;
 }
 
 u32 __fastcall StaffPool_FirstInvalid(const u8 *pool) {
@@ -349,11 +350,11 @@ void __fastcall Staff_CountTypes(u8 *counts) {
         const u8 *const thing = global<u8 *>(0x007cfb90 + 20 * (u32)handle);
         u32 count = 0, limit = 0, flag = 0;
         switch (at<u8>(thing, 2)) {
-        case 4: count = 0x284; limit = 0x007852ec; flag = 0x29a; break;
-        case 5: count = 0x280; limit = 0x007852e8; flag = 0x299; break;
-        case 6: count = 0x288; limit = 0x007852f0; flag = 0x29b; break;
-        case 7: count = 0x28c; limit = 0x007852f4; flag = 0x29c; break;
-        case 8: count = 0x290; limit = 0x007852f8; flag = 0x29d; break;
+        case 4: count = 0x284; limit = (u32)&gStaff_7852ec; flag = 0x29a; break;
+        case 5: count = 0x280; limit = (u32)&gStaff_7852e8; flag = 0x299; break;
+        case 6: count = 0x288; limit = (u32)&gStaff_7852f0; flag = 0x29b; break;
+        case 7: count = 0x28c; limit = (u32)&gStaff_7852f4; flag = 0x29c; break;
+        case 8: count = 0x290; limit = (u32)&gStaff_7852f8; flag = 0x29d; break;
         }
         if (count != 0) {
             const s32 now = at<s32>(counts, count) + 1;
@@ -410,13 +411,13 @@ u32 __fastcall Table_ScaledBySum(u8 *table, void *, s32 index) {
 }
 
 u32 __fastcall StaffPoolEntry_Serialize(u8 *entry, void *, Stream *stream, u32 save, s32 version, u32 unused) {
-    static const SaveSpec kFields[] = {{0x0, 4, (u32)&gText_Challenges_75a034}, {0x4, 4, 0x0075e6d8}, {0x8, 1, 0x0075e6cc},
-                                       {0x9, 1, 0x0075e6c0}, {0xa, 1, (u32)&gText_Advisorscore_75e6b8}, {0xb, 1, 0x0075e6ac}};
+    static const SaveSpec kFields[] = {{0x0, 4, (u32)&gText_Challenges_75a034}, {0x4, 4, (u32)&gText_StaffPoolEntry_Serialize_75e6d8}, {0x8, 1, (u32)&gText_StaffPoolEntry_Serialize_75e6cc},
+                                       {0x9, 1, (u32)&gText_StaffPoolEntry_Serialize_75e6c0}, {0xa, 1, (u32)&gText_Advisorscore_75e6b8}, {0xb, 1, (u32)&gText_StaffPoolEntry_Serialize_75e6ac}};
     if (version < 0 || version > 1)
         return 0;
     if (!Save_Fields(stream, save, entry, kFields, 6) || TimeSig_Serialize(entry + 0xc, nullptr, stream, save, version, unused))
         return 1;
-    return Save_Field(stream, save, entry + 0x10, 4, 0x0075e69c) ? 0 : 1;
+    return Save_Field(stream, save, entry + 0x10, 4, (u32)&gText_StaffPoolEntry_Serialize_75e69c) ? 0 : 1;
 }
 
 u32 __fastcall Staff_Serialize(u8 *staff, void *, Stream *stream, u32 save, s32 version, u32 unused) {
@@ -424,33 +425,33 @@ u32 __fastcall Staff_Serialize(u8 *staff, void *, Stream *stream, u32 save, s32 
         return 1;
     if (version < 0 || version > 1)
         return 0;
-    static const SaveSpec kRest[] = {{0x20a, 2, 0x0075e370}, {0x20c, 2, 0x0075e360}, {0x1e8, 1, 0x0075e348}, {0x208, 2, 0x0075e33c},
-                                     {0x19c, 4, (u32)&gText_Object_75b5b0}, {0x200, 4, 0x0075d1e0}, {0x1f0, 8, 0x0075e330}};
+    static const SaveSpec kRest[] = {{0x20a, 2, 0x0075e370}, {0x20c, 2, 0x0075e360}, {0x1e8, 1, 0x0075e348}, {0x208, 2, (u32)&gText_Staff_Serialize_75e33c},
+                                     {0x19c, 4, (u32)&gText_Object_75b5b0}, {0x200, 4, 0x0075d1e0}, {0x1f0, 8, (u32)&gText_Staff_Serialize_75e330}};
     if (save != 0) {
         // the two floats are saved as the float of their __ftol's low byte
         float happiness = (float)(u8)(long long)at<float>(staff, 0x1f8);
-        if (!Save_Field(stream, save, staff + 0x1e4, 4, 0x0075e398) || !Save_Field(stream, save, &happiness, 4, 0x0075b444) ||
-            !Save_Field(stream, save, staff + 0x204, 4, 0x0075e38c))
+        if (!Save_Field(stream, save, staff + 0x1e4, 4, (u32)&gText_Staff_Serialize_75e398) || !Save_Field(stream, save, &happiness, 4, kSaveStatName) ||
+            !Save_Field(stream, save, staff + 0x204, 4, (u32)&gText_Staff_Serialize_75e38c))
             return 1;
         for (u32 i = 0; i < 0x21; ++i)
-            if (!Save_Field(stream, save, staff + 0x1a0 + i * 2, 2, 0x0075e380))
+            if (!Save_Field(stream, save, staff + 0x1a0 + i * 2, 2, (u32)&gText_Staff_Serialize_75e380))
                 return 1;
         if (!Save_Fields(stream, save, staff, kRest, 7))
             return 1;
         float energy = (float)(u8)(long long)at<float>(staff, 0x1fc);
-        return Save_Field(stream, save, &energy, 4, 0x0075b444) ? 0 : 1;
+        return Save_Field(stream, save, &energy, 4, kSaveStatName) ? 0 : 1;
     }
     // (the load reads all but the first two fields through the readers, which announce and read the same way; the floats land only when whole)
     u32 value = 0;
-    if (!Save_Field(stream, 0, staff + 0x1e4, 4, 0x0075e398) || !Save_Field(stream, 0, &value, 4, 0x0075b444))
+    if (!Save_Field(stream, 0, staff + 0x1e4, 4, (u32)&gText_Staff_Serialize_75e398) || !Save_Field(stream, 0, &value, 4, kSaveStatName))
         return 1;
     at<u32>(staff, 0x1f8) = value;
-    if (!Save_Field(stream, 0, staff + 0x204, 4, 0x0075e38c))
+    if (!Save_Field(stream, 0, staff + 0x204, 4, (u32)&gText_Staff_Serialize_75e38c))
         return 1;
     for (u32 i = 0; i < 0x21; ++i)
-        if (!Save_Field(stream, 0, staff + 0x1a0 + i * 2, 2, 0x0075e380))
+        if (!Save_Field(stream, 0, staff + 0x1a0 + i * 2, 2, (u32)&gText_Staff_Serialize_75e380))
             return 1;
-    if (!Save_Fields(stream, 0, staff, kRest, 7) || !Save_Field(stream, 0, &value, 4, 0x0075b444))
+    if (!Save_Fields(stream, 0, staff, kRest, 7) || !Save_Field(stream, 0, &value, 4, kSaveStatName))
         return 1;
     at<u32>(staff, 0x1fc) = value;
     return 0;
@@ -463,11 +464,11 @@ u32 __fastcall StaffPool_Serialize(u8 *pool, void *, Stream *stream, u32 save, s
         if (StaffPoolEntry_Serialize(pool + i * 0x14, nullptr, stream, save, version, unused))
             return 1;
     for (u32 i = 0; i < 5; ++i)
-        if (!Save_Field(stream, save, pool + 0x280 + i * 4, 4, 0x0075e7b8) || !Save_Field(stream, save, pool + 0x299 + i, 1, 0x0075e7a4))
+        if (!Save_Field(stream, save, pool + 0x280 + i * 4, 4, 0x0075e7b8) || !Save_Field(stream, save, pool + 0x299 + i, 1, (u32)&gText_StaffPool_Serialize_75e7a4))
             return 1;
     if (TimeSig_Serialize(pool + 0x294, nullptr, stream, save, version, unused))
         return 1;
-    return Save_Field(stream, save, pool + 0x298, 1, 0x0075e788) ? 0 : 1;
+    return Save_Field(stream, save, pool + 0x298, 1, (u32)&gText_StaffPool_Serialize_75e788) ? 0 : 1;
 }
 }
 
@@ -519,17 +520,17 @@ u32 StaffType_Serialize(u8 *staff, Stream *stream, u32 save, s32 version, u32 un
 extern "C" {
 
 u32 __fastcall Handyman_Serialize(u8 *staff, void *, Stream *stream, u32 save, s32 version, u32 unused) {
-    static const SaveSpec kFields[] = {{0x218, 2, 0x0075aabc}, {0x214, 4, 0x0075aaa4}, {0x21a, 2, 0x0075aa94}, {0x210, 2, 0x0075a4f4}};
+    static const SaveSpec kFields[] = {{0x218, 2, (u32)&gText_Handyman_Serialize_75aabc}, {0x214, 4, (u32)&gText_Handyman_Serialize_75aaa4}, {0x21a, 2, (u32)&gText_Handyman_Serialize_75aa94}, {0x210, 2, 0x0075a4f4}};
     return StaffType_Serialize(staff, stream, save, version, unused, kFields, 4);
 }
 
 u32 __fastcall Guard_Serialize(u8 *staff, void *, Stream *stream, u32 save, s32 version, u32 unused) {
-    static const SaveSpec kFields[] = {{0x212, 2, 0x0075a8f0}, {0x214, 4, 0x0075a8d8}, {0x210, 2, 0x0075a4f4}};
+    static const SaveSpec kFields[] = {{0x212, 2, (u32)&gText_Guard_Serialize_75a8f0}, {0x214, 4, (u32)&gText_Guard_Serialize_75a8d8}, {0x210, 2, 0x0075a4f4}};
     return StaffType_Serialize(staff, stream, save, version, unused, kFields, 3);
 }
 
 u32 __fastcall Mechanic_Serialize(u8 *staff, void *, Stream *stream, u32 save, s32 version, u32 unused) {
-    static const SaveSpec kFields[] = {{0x214, 4, 0x0075b168}, {0x218, 2, 0x0075b158}, {0x210, 2, 0x0075a4f4}};
+    static const SaveSpec kFields[] = {{0x214, 4, (u32)&gText_Mechanic_Serialize_75b168}, {0x218, 2, (u32)&gText_Mechanic_Serialize_75b158}, {0x210, 2, 0x0075a4f4}};
     return StaffType_Serialize(staff, stream, save, version, unused, kFields, 3);
 }
 
@@ -789,7 +790,7 @@ void keep_level(float &level, X87Reg sum) {
 // +0x1f8 less the int [0x785328] (x87: fild, fchs, fadd).
 void lower_happiness(u8 *staff) {
     float &happiness = *reinterpret_cast<float *>(staff + 0x1f8);
-    keep_level(happiness, X87Reg(-(double)*reinterpret_cast<const s32 *>((uintptr_t)0x00785328)) + happiness);
+    keep_level(happiness, X87Reg(-(double)gStaff_785328) + happiness);
 }
 }  // namespace
 
@@ -924,7 +925,7 @@ u32 __fastcall Staff_CheckMood(u8 *staff) {
         }
     }
     const u32 rest = (u32)(long long)at<float>(staff, 0x1fc) & 0xff;   // __ftol
-    if ((s32)rest <= global<s32>(0x00785324)) {
+    if ((s32)rest <= gStaff_785324) {
         g_walk->showThought(staff + 0x30, nullptr, 0x14, 0);
         u16 area;
         Things_NearestRestArea(staff, nullptr, &area);

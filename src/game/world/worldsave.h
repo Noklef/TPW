@@ -31,3 +31,32 @@ u32 __fastcall World_Save(u8 *world, void *, Stream *stream);
 // +0 set only then. A kind without a serializer leaves the slot's +0 alone. Then every slot's +0x10 cleared and the empty ones linked as the free
 // list from [0x801bbc]; the world's +0x1da738 == 4 turns the sprites' draw off (SpriteDraw_Disable), anything else on. 1.
 u32 __fastcall World_Load(u8 *world, void *, Stream *stream);
+
+#include "../core/gamedata.h"
+
+// Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(char[12], gText_Worldsave_7627c8, 0x007627c8, 0xc);
+GAME_DATA(char[16], gText_Worldsave_7627d4, 0x007627d4, 0x10);
+GAME_DATA(char[16], gText_Worldsave_76286c, 0x0076286c, 0x10);
+GAME_DATA(char[20], gText_Worldsave_76287c, 0x0076287c, 0x14);
+GAME_DATA(char[20], gText_Worldsave_76289c, 0x0076289c, 0x14);
+GAME_DATA(char[16], gText_Worldsave_7628b0, 0x007628b0, 0x10);
+GAME_DATA(char[16], gText_Worldsave_7628c0, 0x007628c0, 0x10);
+GAME_DATA(char[16], gText_Worldsave_7628d0, 0x007628d0, 0x10);
+GAME_DATA(char[12], gText_Worldsave_7628e0, 0x007628e0, 0xc);
+GAME_DATA(char[16], gText_Worldsave_7628ec, 0x007628ec, 0x10);
+GAME_DATA(char[12], gText_Worldsave_7628fc, 0x007628fc, 0xc);
+GAME_DATA(char[12], gText_Worldsave_762908, 0x00762908, 0xc);
+GAME_DATA(char[16], gText_Worldsave_762914, 0x00762914, 0x10);
+GAME_DATA(char[16], gText_Worldsave_762930, 0x00762930, 0x10);
+GAME_DATA(char[12], gText_Worldsave_762940, 0x00762940, 0xc);
+GAME_DATA(char[28], gText_Worldsave_76294c, 0x0076294c, 0x1c);
+GAME_DATA(char[16], gText_Worldsave_762968, 0x00762968, 0x10);
+GAME_DATA(char[16], gText_Worldsave_762978, 0x00762978, 0x10);
+GAME_DATA(char[16], gText_Worldsave_762988, 0x00762988, 0x10);
+GAME_DATA(char[12], gText_Worldsave_762998, 0x00762998, 0xc);
+GAME_DATA(char[24], gText_Worldsave_7629a4, 0x007629a4, 0x18);
+GAME_DATA(char[16], gText_Worldsave_7629bc, 0x007629bc, 0x10);
+GAME_DATA(char[24], gText_Worldsave_7629cc, 0x007629cc, 0x18);
+GAME_DATA(char[24], gText_Worldsave_7629e4, 0x007629e4, 0x18);
+GAME_DATA(char[24], gText_Worldsave_7629fc, 0x007629fc, 0x18);

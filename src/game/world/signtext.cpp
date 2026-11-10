@@ -4,6 +4,7 @@
 #include <cstdint>
 
 #include "../online/chatlists.h"
+#include "signtext.h"
 
 namespace {
 
@@ -66,13 +67,13 @@ void __fastcall SignText_Format(const u8 *sign, void *, u16 *to, u32 count) {
     } else if (first[length - 1] == '-') {
         u16 *const buffer = reinterpret_cast<u16 *>((uintptr_t)0x007cdc10);
         buffer[0x20] = 0;
-        g_env->format(buffer, 0x20, 0x0075c0cc, first);
+        g_env->format(buffer, 0x20, (u32)&gText_Signtext_75c0cc, first);
         buffer[length - 1] = 0;
         g_env->format2(to, count, 0x00749850, buffer, second);
     } else if (!CRT_wcslen(second)) {
         g_env->copy(to, first, count);
     } else {
-        g_env->format2(to, count, 0x0075c0c0, first, second);
+        g_env->format2(to, count, (u32)&gText_Signtext_75c0c0, first, second);
     }
 }
 

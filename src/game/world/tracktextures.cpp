@@ -3,6 +3,7 @@
 
 #include <cstdint>
 #include "focuscell.h"
+#include "tracktextures.h"
 
 namespace {
 
@@ -74,14 +75,14 @@ void __cdecl Track_ResetMap(s32 columns, s32 rows) {
     global<s32>(0x0081ede8) = -1;
     global<u8>(0x0081b4cc) = 0;
     global<u8>(0x0081af7c) = 0;
-    global<s32>(0x0081d740) = columns;
+    gTracktextures_81d740 = columns;
     global<s32>(0x0081b1b0) = rows;
     global<u32>(0x0081af4c) = 0;
     global<u32>(0x0081d7a4) = 0;
     global<u32>(0x0081b134) = 0;
     global<u32>(0x0081ae2c) = 0;
     global<u32>(0x0081af64) = 0;
-    global<u16>(0x008186ec) = 0;
+    gTracktextures_8186ec = 0;
     for (s32 row = 0; row < rows; ++row) {
         const u32 base = ((u32)row << 7) + 1;
         for (s32 column = 0; column < columns; ++column) {

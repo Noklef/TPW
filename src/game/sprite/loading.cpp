@@ -10,6 +10,7 @@
 #include "../files/handles.h"
 #include "../core/vcall.h"
 #include "../gfx/spriteframe.h"
+#include "../world/things.h"
 
 namespace {
 
@@ -291,7 +292,7 @@ extern "C" bool __cdecl Sprites_Setup(u32 mode, u32 onlyLast) {
     const u32 map = global<u32>(global<u32>(0x007a0854) + 0x6c);
     global<u32>(0x008bcbc8) |= 0x1000000;
     global<u8>(0x00763f84) = 1;
-    global<u32>(0x00877350) = 0;
+    gThings_877350 = 0;
     global<u32>(0x00876b24) = 0;
     global<u32>(0x008bd4f0) = 0;
     global<u32>(0x008bd4f4) = 0;

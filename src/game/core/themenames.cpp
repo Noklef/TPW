@@ -5,6 +5,7 @@
 #include "balancefile.h"
 #include "crt.h"
 #include "../world/objectdefs.h"
+#include "../world/signtext.h"
 
 namespace {
 
@@ -16,7 +17,7 @@ u16 *b_of(u8 *self) { return reinterpret_cast<u16 *>(self + 0x76); }
 
 u8 *const kDefs = reinterpret_cast<u8 *>((uintptr_t)0x007890a0);
 u16 *const kNone = text(0x0078a374);   // (the global empty text)
-u16 *const kOne = text(0x0075c0cc);    // "%s"
+u16 *const kOne = gText_Signtext_75c0cc;    // "%s"
 
 const ThemeNamesEnv kGameEnv = {&CRT_snwprintf, &CRT_swprintf, &ObjectDefs_GetFullName, &ObjectDefs_GetName, &ObjectDefs_GetSuffix};
 const ThemeNamesEnv *g_env = &kGameEnv;
@@ -61,7 +62,7 @@ void __fastcall ThemeRecord_FullName(u8 *self, void *, u16 *to, u32 count) {
         Crt().wcsncpy(to, a, count);
         return;
     }
-    g_env->snwprintf(to, count, text(0x0075c0c0), a, b);
+    g_env->snwprintf(to, count, gText_Signtext_75c0c0, a, b);
 }
 
 void __fastcall ThemeRecord_Name(u8 *self, void *, u16 *to, u32 count) {

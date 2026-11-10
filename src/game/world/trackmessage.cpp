@@ -21,6 +21,7 @@
 #include "cellbuild.h"
 #include "mapclick.h"
 #include "focuscell.h"
+#include "trackmessage.h"
 
 namespace {
 
@@ -51,7 +52,7 @@ float height_of(const u8 *cell, s32 x, s32 y) {
     const u32 type = at<u32>(cell, 8);
     if (type == 0xb || type == 0x10 || type == 0x19 || type == 7 || type == 4 || type == 9 || type == 0xa) {
         const s32 tens = (s32)((u32)ftol(Terrain_SurfaceHeight(x, y, nullptr)) + 9) / 10;
-        h = (float)(X87Reg((double)tens) * global<float>(0x00700d94));
+        h = (float)(X87Reg((double)tens) * gTrackmessage_700d94);
     }
     return Terrain_RoundedCellHeight(MapHandle_Cell44(handle(cell)), h, x, y);
 }
@@ -68,7 +69,7 @@ void sides(const u8 *cell, float top, u32 x10, u32 y10, u32 tag, u32 flag) {
         if (top == h || top != top || h != h) continue;   // (fcomp: equal or unordered)
         const s32 high = ftol(top);
         for (s32 i = ftol(h); i < high; i = (s32)((u32)i + 10)) {
-            const float z = (float)(X87Reg((double)i) - global<float>(0x00700d9c));
+            const float z = (float)(X87Reg((double)i) - gTrackmessage_700d9c);
             g_env->addSquare(x10, bits(z), y10, (u8)side[1], tag, 0, 0, 1, 0, flag, 0);
         }
     }
@@ -90,7 +91,7 @@ u32 walls(u8 *cell, u32 code, u32 a, u32 b) {
     if (b == 0xfffffffeu) direction = 1;
     if (b == 2) direction = 0x10;
     const u32 answer = g_env->canBuild(cell, nullptr, code, 0, direction);
-    const u32 z = bits((float)(X87Reg(top) - global<float>(0x00700d9c)));
+    const u32 z = bits((float)(X87Reg(top) - gTrackmessage_700d9c));
     if (answer == 1) {
         g_env->canBuild(cell, nullptr, code, 1, direction);
         Global816d48_Set(1);

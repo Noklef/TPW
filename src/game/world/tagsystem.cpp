@@ -10,6 +10,7 @@
 #include "messagecentre.h"
 #include "objectdefs.h"
 #include "things.h"
+#include "tagsystem.h"
 
 namespace {
 
@@ -169,9 +170,9 @@ extern "C" void __fastcall TagSystem_HandleMessage(u8 *self, void *, u8 *msg) {
     case 0x13: {
         u32 id;
         switch (at<u32>(msg, 8)) {
-        case 7: Debug_Line(0x0075eb20); id = 0x17b; break;
-        case 8: Debug_Line(0x0075eb40); id = 0x17c; break;
-        case 9: Debug_Line(0x0075eb68); id = 0x17d; break;
+        case 7: Debug_Line((u32)&gText_TagSystem_HandleMessage_75eb20); id = 0x17b; break;
+        case 8: Debug_Line((u32)&gText_TagSystem_HandleMessage_75eb40); id = 0x17c; break;
+        case 9: Debug_Line((u32)&gText_TagSystem_HandleMessage_75eb68); id = 0x17d; break;
         default: return;
         }
         const u32 *const record = TagTable_Find(self + 0x80c, nullptr, id);

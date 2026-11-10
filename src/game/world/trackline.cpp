@@ -6,6 +6,7 @@
 #include "cellkind.h"
 #include "cellmodel.h"
 #include "mapcell.h"
+#include "tracktextures.h"
 
 namespace {
 
@@ -117,7 +118,7 @@ void __cdecl TrackLine_Prune() {
         ++steps;
     } while (!done);
     for (s32 row = 0; row < (s32)global<u32>(0x0081b1b0) - 1; ++row) {
-        for (s32 column = 0; column < (s32)global<u32>(0x0081d740) - 1; ++column) {
+        for (s32 column = 0; column < (s32)reinterpret_cast<u32 &>(gTracktextures_81d740) - 1; ++column) {
             u8 *cell = CellAt(column, row);
             if (MapCell_IsTypeCOr11(cell)) cell = World() + ((u32)at<u16>(cell, 0x10) + 0x6cde) * 0x28;
             if (!MapCell_IsType19(cell) || MapCell_HasFlags(cell, nullptr, 0x20)) continue;
