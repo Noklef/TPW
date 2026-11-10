@@ -610,6 +610,7 @@
 #include "../game/render/rasterdraw.h"
 #include "../game/render/rasterformat.h"
 #include "../game/render/rasterspans.h"
+#include "../game/render/rastertriangle.h"
 #include "../game/render/rendererframe.h"
 #include "../game/render/scrolllayers.h"
 #include "../game/render/settingslog.h"
@@ -8218,6 +8219,9 @@ const Hook kHooks[] = {
     {"RasterSpan_BilinearShadeNoZ", 0x006f5cc0, (void *)&RegThunk_RasterSpan_BilinearShadeNoZ, {0x0f, 0x6f, 0x2d, 0x50, 0xe1}},
     {"RasterSpan_BilinearBlendLitNoZ", 0x006f5e90, (void *)&RegThunk_RasterSpan_BilinearBlendLitNoZ, {0x0f, 0x6f, 0x2d, 0x50, 0xe1}},
     {"RasterSpan_ShadeNoZ",       0x006f6090, (void *)&RegThunk_RasterSpan_ShadeNoZ, {0x0f, 0x6f, 0x2d, 0x50, 0xe1}},
+    {"RasterTriangle_Draw",       0x006ef7f0, (void *)&RasterTriangle_Draw, {0x57, 0x56, 0x52, 0x53, 0x55}},
+    {"RasterTriangle_DrawFlat",   0x006f02e0, (void *)&RasterTriangle_DrawFlat, {0x57, 0x56, 0x52, 0x53, 0x55}},
+    {"RasterTriangle_DrawNoZ",    0x006f0a50, (void *)&RasterTriangle_DrawNoZ, {0x57, 0x56, 0x52, 0x53, 0x55}},
     {"Model_MarkFacesByMask",     0x0044b140, (void *)&Model_MarkFacesByMask, {0x53, 0x8b, 0x5c, 0x24, 0x08}},
     {"Model_MarkFacesNotValue",    0x0044b1b0, (void *)&Model_MarkFacesNotValue, {0x53, 0x8b, 0x5c, 0x24, 0x08}},
     {"Model_FindPartByKey4",      0x0044b220, (void *)&Model_FindPartByKey4, {0x56, 0x57, 0x8b, 0x7c, 0x24}},

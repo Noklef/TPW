@@ -709,6 +709,7 @@ add_library(tpw_game STATIC
     src/game/render/rendererframe.cpp
     src/game/render/rasterdraw.cpp
     src/game/render/rasterspans.cpp
+    src/game/render/rastertriangle.cpp
     src/game/ui/quitconfirm.cpp
     src/game/world/mapsweep.cpp
     src/game/ui/imehostattach.cpp
