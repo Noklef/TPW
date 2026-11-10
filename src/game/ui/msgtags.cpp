@@ -176,7 +176,7 @@ u8 *__cdecl MsgTags_Add(const u8 *message) {
             Window_SendMessage(global<u8 *>(0x007cb2c4), 0x100002, (u32)(uintptr_t)tag, 1);
         }
     }
-    if (!fresh || global<s32>(0x007ca09c) >= global<s32>(0x00750610) || !global<u8 *>(0x007cb2c4)) return nullptr;
+    if (!fresh || global<s32>(0x007ca09c) >= gMsgTags_Add_750610 || !global<u8 *>(0x007cb2c4)) return nullptr;
     s16 width;
     Window_GetSize(global<u8 *>(0x007cb2c4), nullptr, &width, nullptr, 1);
     u8 *tag = nullptr;

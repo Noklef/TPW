@@ -464,3 +464,12 @@ u32 __fastcall Fn_66b523(u8 *o, void *, u32 v0);
 // 0x6d2770: stores +0x0 = 0x0.
 u8 __stdcall Fn_6d2770(u32 v0);
 }
+
+#include "gamedata.h"
+
+// Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(u32, gGlobals7c264c_7c264c, 0x007c264c, 4);
+GAME_DATA(u32, gAccessors_7c2650, 0x007c2650, 4);
+GAME_DATA(u32, gAccessors_7c2654, 0x007c2654, 4);
+GAME_DATA(u32, gAccessors_802ba8, 0x00802ba8, 4);
+GAME_DATA(u32, gAccessors_802bc0, 0x00802bc0, 4);

@@ -116,3 +116,8 @@ struct D3dProbeEnv {
     u32(__cdecl *ticks)();
 };
 void D3dProbe_SetEnv(const D3dProbeEnv *e);
+
+#include "../core/gamedata.h"
+
+// Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(u32, gD3dProbe_BeginScene_8bd4a8, 0x008bd4a8, 4);

@@ -386,10 +386,10 @@ u32 __fastcall ObjModel_DrawOrQueue(u8 *part) {
     const u32 stampA = global<u32>(0x008bcc40), stampB = global<u32>(0x008bcc44);
     if (at<u32>(object, 0x90) == stampA && at<u32>(object, 0x94) == stampB) return 1;
     if ((at<u32>(ptr(object, 8), 0x30) & 0x200000) && !(at<u8>(object, 4) & 0x10)) {
-        const s32 count = global<s32>(0x008bb620);
+        const s32 count = gObjModel_DrawOrQueue_8bb620;
         if (count >= 0x100) return 1;
         global<u32>(0x008bb220 + count * 4) = me;
-        global<s32>(0x008bb620) = count + 1;
+        gObjModel_DrawOrQueue_8bb620 = count + 1;
         return 1;
     }
     at<u32>(object, 4) &= ~0x10u;

@@ -207,3 +207,9 @@ u32 *__cdecl ParticleSines_Build();
 // 0x816d3c = 0.
 void __cdecl Particles_Init(u32 callback, u32 flag, s32 count);
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(u32, gParticles_Tick_80436c, 0x0080436c, 4);
+GAME_DATA(u32, gParticles_80ced8, 0x0080ced8, 4);

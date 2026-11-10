@@ -353,7 +353,7 @@ void __cdecl ResearchPanel_Open() {
         Window_SetImpl(label, nullptr, memory ? TextPart_Ctor(memory, nullptr, 0) : nullptr);
         Window_NotifyC00(label, nullptr, 1, 1);
         Window_Notify3000(label, nullptr, 1, 1);
-        Window_Set4c(label, nullptr, Language_Font(global<u32>(0x00754bc8)));
+        Window_Set4c(label, nullptr, Language_Font(gResearchPanel_Open_754bc8));
         Window_Notify40000(label, nullptr, 0xe0, 0x56, 0x56, 0xff);
         Window_NotifyImpl100(label, nullptr, 0);
     }

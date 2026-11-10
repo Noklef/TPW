@@ -72,7 +72,7 @@ void __cdecl DctVlc_BuildTables() {
     fill(0x00fbd44c, 0x20, 1);
     for (u32 k = 0; k < 0x10; ++k) global<u32>(0x00fbd4cc + k * 4) = (k + 1) << 22 | 6;
     for (u32 k = 0; k < 0x10; ++k) global<u32>(0x00fbd50c + k * 4) = (0xfc000000u + (k << 22)) | 6;
-    global<u32>(0x00faac68) = 1;
+    gDctVlc_faac68 = 1;
 }
 
 s32 __cdecl DctVlc_DecodeBlock() {
@@ -135,7 +135,7 @@ void __fastcall DctVlc_FillDc(s32 *out, s32 pitch) {
 }
 
 void __fastcall DctVlc_BeginFrame(const u16 *data, s32 *out, s32 quality) {
-    if (global<u32>(0x00faac68) == 0) DctVlc_BuildTables();
+    if (gDctVlc_faac68 == 0) DctVlc_BuildTables();
     const u32 dc = global<u32>(0x00706fb8);
     const u32 bits = (u32)data[0] << 16 | data[1];
     global<u32>(0x00fbd654) = 0x20;

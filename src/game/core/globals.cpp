@@ -23,7 +23,7 @@ template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((ui
 extern "C" {
 
 u32 __cdecl Global8bb628_SetOne() {
-    global<u32>(0x008bb628) = 0x3f800000;
+    gGlobal8bb628_SetOne_8bb628 = 0x3f800000;
     return 0x3f800000;
 }
 
@@ -33,10 +33,10 @@ u32 __cdecl Global8bba78_SetOne() {
 }
 
 u32 __cdecl Globals8bcb80_SetOne() {
-    global<u32>(0x008bcb8c) = 0x3f800000;
-    global<u32>(0x008bcb84) = 1;
-    global<u32>(0x008bcb80) = 1;
-    global<u32>(0x008bcb88) = 1;
+    gGlobals8bcb80_SetOne_8bcb8c = 0x3f800000;
+    gGlobals8bcb80_SetOne_8bcb84 = 1;
+    gGlobals8bcb80_SetOne_8bcb80 = 1;
+    gGlobals8bcb80_SetOne_8bcb88 = 1;
     return 1;
 }
 
@@ -106,7 +106,7 @@ void __cdecl Table879ad0_Clear() {
         global<u32>(address) = 0;
         global<u32>(address + 4) = 0;
     }
-    global<u32>(0x00879cd0) = 0;
+    gTable879ad0_Clear_879cd0 = 0;
 }
 
 u32 __cdecl Global81ae2c_Equals(u32 value) { return global<u32>(0x0081ae2c) == value; }

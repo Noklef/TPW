@@ -25,3 +25,9 @@ s32 __cdecl Int_Add(s32 a, s32 b);
 void __cdecl Release_InitUnusedOne();
 void __cdecl Release_InitUnusedEpsilon();
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(float, gRelease_InitUnusedOne_7b0468, 0x007b0468, 4);
+GAME_DATA(float, gRelease_InitUnusedEpsilon_7b046c, 0x007b046c, 4);

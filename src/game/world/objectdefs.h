@@ -211,3 +211,8 @@ void __fastcall ObjectDefs_GetSuffix(u8 *defs, void *, u32 id, u16 *out, u32 siz
 // (+0x28c, from the first digit after the last backslash: a name without either faults, sic) appended as a word. Returns 0. Name invented.
 s32 __stdcall ObjectDefs_ListBuiltNumbers(u16 *out);
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(u8, gObjectdefs_fb3b78, 0x00fb3b78, 1);

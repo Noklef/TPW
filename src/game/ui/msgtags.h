@@ -122,3 +122,8 @@ struct MsgTagHandlerEnv {
     s32(__fastcall *callDefault)(u8 *window, void *, u32 message, u32 a, u32 b);   // Window_CallDefault
 };
 void MsgTag_SetHandlerEnv(const MsgTagHandlerEnv *env);
+
+#include "../core/gamedata.h"
+
+// Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(s32, gMsgTags_Add_750610, 0x00750610, 4);

@@ -587,7 +587,7 @@ const char *handleFolder(u8 *handle) { return vcall<const char *>(handle, 0x18);
 
 // The setting's mode, read at the first use (a static with its destructor registered).
 u32 settingMode() {
-    u8 &made = global<u8>(0x00fb3b78);
+    u8 &made = gObjectdefs_fb3b78;
     if (!(made & 1)) {
         made |= 1;
         g_loadCalls.Th(0x00550ca0, 0x00fb3b7cu);

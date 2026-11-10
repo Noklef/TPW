@@ -88,3 +88,8 @@ u32 __fastcall ObjModel_DrawMeshTree(u8 *object, void *, u8 *mesh, const u32 *fi
 // A matrix copied from [0x87b088]; object flag 1: the transformer's slot 6 (object +0x10, that matrix, the static matrix), and that result the matrix. ObjModel_DrawMeshTree (the model's +0x78, the matrix, 0x87b090); its answer.
 u32 __fastcall ObjModel_DrawOrQueue(u8 *part);
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(s32, gObjModel_DrawOrQueue_8bb620, 0x008bb620, 4);

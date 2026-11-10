@@ -62,17 +62,17 @@ u32 __cdecl Global7ca1cc_Get() { return global<u32>(0x007ca1cc); }
 
 u32 __cdecl Global7cb2e8_Get() { return global<u32>(0x007cb2e8); }
 
-u32 __cdecl Global7c2650_Get() { return global<u32>(0x007c2650); }
+u32 __cdecl Global7c2650_Get() { return gAccessors_7c2650; }
 
-u32 __cdecl Global7c2654_Get() { return global<u32>(0x007c2654); }
+u32 __cdecl Global7c2654_Get() { return gAccessors_7c2654; }
 
 u32 __cdecl Global7c2654_Set(u32 value) {
-    global<u32>(0x007c2654) = value;
+    gAccessors_7c2654 = value;
     return value;
 }
 
 u32 __cdecl Global7c2650_Set(u32 value) {
-    global<u32>(0x007c2650) = value;
+    gAccessors_7c2650 = value;
     return value;
 }
 
@@ -88,11 +88,11 @@ u32 __cdecl Global816d48_Get() { return global<u32>(0x00816d48); }
 u32 __cdecl Global80239c_Get() { return global<u32>(0x0080239c); }
 
 u32 __cdecl Global802ba8_SetMasked(u32 value) {
-    global<u32>(0x00802ba8) = value & 0x3ff;
+    gAccessors_802ba8 = value & 0x3ff;
     return value & 0x3ff;
 }
 
-void __cdecl Global802bc0_Set1() { global<u32>(0x00802bc0) = 1; }
+void __cdecl Global802bc0_Set1() { gAccessors_802bc0 = 1; }
 
 void __cdecl Global871ee0_Clear() { global<u32>(0x00871ee0) = 0; }
 
@@ -135,16 +135,16 @@ u8 *__fastcall Plus28_IfKind2(u8 *sub) {
 }
 
 u32 __cdecl Globals7c264c_Load() {
-    global<u32>(0x007c264c) = global<u32>(0x007b05a8);
-    global<u32>(0x007c2650) = global<u32>(0x007b05ac);
-    global<u32>(0x007c2654) = global<u32>(0x007b05b0);
+    gGlobals7c264c_7c264c = global<u32>(0x007b05a8);
+    gAccessors_7c2650 = global<u32>(0x007b05ac);
+    gAccessors_7c2654 = global<u32>(0x007b05b0);
     return global<u32>(0x007b05b0);
 }
 
 u32 __cdecl Globals7c264c_Clear() {
-    global<u32>(0x007c264c) = 0;
-    global<u32>(0x007c2650) = 0;
-    global<u32>(0x007c2654) = 0;
+    gGlobals7c264c_7c264c = 0;
+    gAccessors_7c2650 = 0;
+    gAccessors_7c2654 = 0;
     return 0;
 }
 

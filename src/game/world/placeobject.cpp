@@ -19,6 +19,7 @@
 #include "things.h"
 #include "trackrides.h"
 #include "tracksquare.h"
+#include "../core/actionrec.h"
 
 namespace {
 
@@ -158,7 +159,7 @@ s32 *__cdecl PlaceObject_Footprint(s32 x, s32 y, u32, s32 angle, u32 place, u32 
     u8 dir = 0;                           // (unset in the original until a pass sets it)
     global<u8>(0x00818c50) = 0;
     global<u8>(0x00818c30) = 0;
-    const u16 id = global<u16>(0x008186e0);
+    const u16 id = gActionrec_8186e0;
     global<u16>(0x00818c38) = id;
     global<s32>(0x007639e0) = -1;
     global<s32>(0x007639e4) = -1;
@@ -169,7 +170,7 @@ s32 *__cdecl PlaceObject_Footprint(s32 x, s32 y, u32, s32 angle, u32 place, u32 
     u8 *const def = ObjectDefs_Find(reinterpret_cast<u8 *>(0x007890a0), nullptr, id);
     global<u8 *>(0x00818c40) = def;
     const s32 *const shape = at<s32 *>(def, 0x18);
-    global<const s32 *>(0x00818c18) = shape;
+    gPlaceObject_Footprint_818c18 = shape;
     const s32 cols = shape[0], rows = shape[1];
     const s32 h = (5 - cols) / 2, v = (5 - rows) / 2;
     Frame f;
@@ -398,7 +399,7 @@ s32 *__cdecl PlaceObject_Footprint(s32 x, s32 y, u32, s32 angle, u32 place, u32 
     }
     const s32 kind = (s32)Global81ecac_IfNoFlag();
     if (kind > 0 && kind <= 2) {
-        const u8 *const d = ObjectDefs_Find(reinterpret_cast<u8 *>(0x007890a0), nullptr, global<u16>(0x008186e0));
+        const u8 *const d = ObjectDefs_Find(reinterpret_cast<u8 *>(0x007890a0), nullptr, gActionrec_8186e0);
         s32 x1, y1, x2, y2;
         switch (angle) {
         case 0x5a: {

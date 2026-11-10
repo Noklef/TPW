@@ -122,3 +122,8 @@ u32 __cdecl Rsse_TriggerNode(u8 *vm, u8 *node, u32 what, u32 extra, u32 value);
 // (Rsse_UpdateWalkers). The original's Debug_Printf (the things' first entry null) is left out.
 void __cdecl Rsse_UpdateAll();
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(u32, RSSE_ScriptVersion, 0x00879190, 4);

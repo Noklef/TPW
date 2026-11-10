@@ -20,3 +20,8 @@ u8 *__fastcall CommandLine_Split(u8 *self);
 // (GameError_Set(0x785de8, 2, 0, it)) that ends it. Returns 1 when there is no error (0x785de8 is 0), else 0.
 u32 __cdecl CommandLine_Parse(s32 argc, char **argv);
 }
+
+#include "gamedata.h"
+
+// Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(u32, gCmdline_788270, 0x00788270, 4);

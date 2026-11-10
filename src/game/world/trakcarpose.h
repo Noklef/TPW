@@ -25,3 +25,8 @@ extern "C" {
 // Sic: the wheels' buffer is 0x2000 bytes with no check: past 64 cars on a ride the original overruns its frame, this its own.
 void __cdecl TrakRide_PoseCars(u32 handle, float a);
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(float, gTrakcarpose_764cd8, 0x00764cd8, 4);

@@ -116,9 +116,9 @@ void __cdecl MmxBlit_Dither16(const u8 *source, u8 *out, u32 width, u32 rows, s3
 
 void __cdecl MmxBlit_Convert16(u8 *source, u8 *out, u32 width, u32 rows, s32 sourcePitch, s32 outPitch, u8 *depth, u32 depthPitch,
                                u32 clear, u32 fill) {
-    global<u32>(0x00fab4d8) = 0u - width;
+    gMmxBlit_Convert16_fab4d8 = 0u - width;
     global<u32>(0x00fab4fc) = rows;
-    global<u32>(0x00fab4b4) = depthPitch;
+    gMmxBlit_Convert16_fab4b4 = depthPitch;
     const bool clearing = (u8)clear != 0;
     if (clearing) {
         global<u32>(0x00fac51c) = fill;
@@ -128,13 +128,13 @@ void __cdecl MmxBlit_Convert16(u8 *source, u8 *out, u32 width, u32 rows, s32 sou
     const uint64_t blank = clearing ? global<uint64_t>(0x00fac518) : 0;
     const uint64_t high = global<uint64_t>(0x00fbe1a0);
     const uint64_t far = clearing ? global<uint64_t>(0x0077e580) : 0;
-    const u32 back = global<u32>(0x00fab4d8);
+    const u32 back = gMmxBlit_Convert16_fab4d8;
     u8 *z = moved(depth, (s32)(0u - back * 2)), *d = moved(out, (s32)(0u - back * 2)), *s = moved(source, (s32)(0u - back * 4));
     const bool packed = global<u32>(0x00fbe058) == 5;
     u32 row = 0;
     do {
         const uint64_t d0 = global<uint64_t>(0x0077e540 + (row & 3) * 16), d1 = global<uint64_t>(0x0077e548 + (row & 3) * 16);
-        s32 c = (s32)global<u32>(0x00fab4d8);
+        s32 c = (s32)gMmxBlit_Convert16_fab4d8;
         uint64_t m0, m1, m2, m3;
         if (!clearing && packed) {
             m0 = paddusb(at64(s, c, 4, 0), d0);
@@ -233,7 +233,7 @@ void __cdecl MmxBlit_Convert16(u8 *source, u8 *out, u32 width, u32 rows, s32 sou
             at64(s, 0, 0, -8) = blank;
             m1 = psrld(m1 | m0, 6);
             m3 = psrld(m3 | m2, 6);
-            const u32 depthStep = global<u32>(0x00fab4b4);
+            const u32 depthStep = gMmxBlit_Convert16_fab4b4;
             m1 = packssdw(m1, m3);
             s = moved(s, sourcePitch);
             z = moved(z, (s32)depthStep);
@@ -270,7 +270,7 @@ void __cdecl MmxBlit_Convert16(u8 *source, u8 *out, u32 width, u32 rows, s32 sou
                 at64(d, c, 2, 0) = m1;
                 m1 = m0;
             } while (next_pass(c));
-            const u32 depthStep = global<u32>(0x00fab4b4);
+            const u32 depthStep = gMmxBlit_Convert16_fab4b4;
             s = moved(s, sourcePitch);
             d = moved(d, outPitch);
             z = moved(z, (s32)depthStep);
@@ -280,15 +280,15 @@ void __cdecl MmxBlit_Convert16(u8 *source, u8 *out, u32 width, u32 rows, s32 sou
 
 void __cdecl MmxBlit_Copy32(u8 *source, u8 *out, u32 width, u32 rows, s32 sourcePitch, s32 outPitch, u8 *depth, u32 depthPitch,
                             u32 clear, u32 fillLow, u32 fillHigh) {
-    global<u32>(0x00fab484) = width;
-    global<u32>(0x00fab4a0) = rows;
-    global<u32>(0x00fab4b0) = depthPitch;
+    gMmxBlit_Copy32_fab484 = width;
+    gMmxBlit_Copy32_fab4a0 = rows;
+    gMmxBlit_Copy32_fab4b0 = depthPitch;
     if ((u8)clear == 0) {
         global<u32>(0x00fac51c) = fillLow;
         global<u32>(0x00fac518) = fillLow;
-        u32 left = global<u32>(0x00fab4a0);
+        u32 left = gMmxBlit_Copy32_fab4a0;
         do {
-            s32 count = (s32)global<u32>(0x00fab484);
+            s32 count = (s32)gMmxBlit_Copy32_fab484;
             u8 *from = source, *to = out;
             do {
                 const uint64_t q0 = qword(from, 0), q1 = qword(from, 8), q2 = qword(from, 0x10), q3 = qword(from, 0x18);
@@ -306,9 +306,9 @@ void __cdecl MmxBlit_Copy32(u8 *source, u8 *out, u32 width, u32 rows, s32 source
         return;
     }
     const uint64_t depthValue = global<uint64_t>(0x0077e580), fill = (uint64_t)fillHigh << 32 | fillLow;
-    u32 left = global<u32>(0x00fab4a0);
+    u32 left = gMmxBlit_Copy32_fab4a0;
     do {
-        s32 count = (s32)global<u32>(0x00fab484);
+        s32 count = (s32)gMmxBlit_Copy32_fab484;
         u8 *from = source, *to = out, *z = depth;
         do {
             const uint64_t q0 = qword(from, 0), q1 = qword(from, 8), q2 = qword(from, 0x10), q3 = qword(from, 0x18);
@@ -329,7 +329,7 @@ void __cdecl MmxBlit_Copy32(u8 *source, u8 *out, u32 width, u32 rows, s32 source
         } while (count > 0);
         source += sourcePitch;
         out += outPitch;
-        depth += global<u32>(0x00fab4b0);
+        depth += gMmxBlit_Copy32_fab4b0;
     } while (--left);
 }
 }

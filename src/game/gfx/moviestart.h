@@ -34,3 +34,10 @@ void __cdecl Movie_Stop();
 // 0x51b3e0 (cdecl): Movie_Stop's work, and movies no longer allowed.
 void __cdecl Movie_Forbid();
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(u32, gMovie_Start_802bb0, 0x00802bb0, 4);
+GAME_DATA(u8 *, gMoviestart_802bb4, 0x00802bb4, 4);
+GAME_DATA(u32, gMoviestart_802bbc, 0x00802bbc, 4);

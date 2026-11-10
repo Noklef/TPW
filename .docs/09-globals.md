@@ -71,6 +71,24 @@ Reads past an object's end reach the original's neighbours in the hook DLL, as b
 - **Hook DLL unchanged:** `imaadpcm.py` 1000 cases `--both` gives 0 differences, and `tpw_tests` passes. Mutants built through the mirrored tree are caught.
 - **tpw.exe:** `tpw.map` puts the three objects in `tpw.exe`'s own `.data` (`0x13cd010` and after). The loader zeroes their old ranges.
 
+## The codemod (`tools/gamedata_codemod.py`, 2026-11-10)
+
+It converts a `.data` scalar that the code reaches only as `global<T>(0xADDRESS)` (any accessor a file defines as `T &name(u32)`, with its default type), with one type. Rerunnable: `list` shows what is left and why, `apply N [DIR...]` converts.
+
+- **Owner:** the one file that uses it (its header); for a shared one, the one file that writes it, and the other users include that header. The declarations go at the end of the header, after a marker comment.
+- **Names:** the `symbols.csv` data row. Otherwise named for the use, unconfirmed: `g`, the ported function that uses it (the common `Prefix_` of several, else the file's name), `_`, the address (`gVertexFog_Colour_8bd484`). A new name gets a `symbols.csv` row, `low`.
+- **Result:** 75 addresses, 166 uses, 38 headers. The scan found 1,407 such scalars (the round 68 estimate of 1,109 used fewer accessor forms). The rest stay for the hand rounds:
+
+| Left alone | Addresses | Why |
+|---|---:|---|
+| Agent B's files (`crt*`, `staticinit*`) | 626 | B changes them this round |
+| A base of unknown extent less than 0x100 below | 678 | a literal used as a pointer, with an offset or in a table: a struct or array that may reach the scalar. In `tpw.exe` the two would split. Each needs a look at the base's uses. |
+| Written by 2-4 files | 19 | no single owner |
+| A type that the owner's header does not know | 7 | |
+| Overlaps a neighbour | 2 | |
+
+- **Pointers:** no candidate holds a code address or is pointed at by exe data, so nothing waits for the fixup round from this codemod.
+
 ## Estimate for the rest
 
 Scan of `src/game` (2026-11-10):
@@ -83,7 +101,7 @@ Scan of `src/game` (2026-11-10):
 
 These uses are spread over 741 files.
 
-1. **Codemod, 1 round.** 1,109 addresses are scalars that the code reaches only as `global<T>(0xADDR)`, with one type. A codemod declares and rewrites them, with names from `symbols.csv` or from the address.
+1. **Codemod, 1 round** (done: 75, see "The codemod" for why not more). 1,109 addresses are scalars that the code reaches only as `global<T>(0xADDR)`, with one type. A codemod declares and rewrites them, with names from `symbols.csv` or from the address.
 2. **By hand, 8-10 rounds of three agents.** About 12,000 uses remain. The estimate assumes 500-700 uses per agent round (the slice: 16 uses in one file, about 30 changed lines). A round converts a group of files that share globals, because the check forces all users of a range to convert together.
 3. **Fixup tables, 1 round, when first needed.** These are the data-to-data and object-to-code pointers from "Pointers".
 4. **Not counted here:** the vtables as C++ tables of ports (3,173 `.rdata` slots), which is a separate step.

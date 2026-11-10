@@ -72,3 +72,9 @@ struct SignNameDialogHandlerEnv {
     u32(__fastcall *setFocus)(u8 *window, void *, u32 a);                    // Window_SetFocus
 };
 void SignNameDialog_SetHandlerEnv(const SignNameDialogHandlerEnv *env);
+
+#include "../core/gamedata.h"
+
+// Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(const u16 *, gSignNameDialog7ca214_Handler_751a34, 0x00751a34, 4);
+GAME_DATA(const u16 *, gSignNameDialog7ca214_Handler_751a38, 0x00751a38, 4);

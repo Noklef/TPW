@@ -127,11 +127,11 @@ u16 Word(u32 zero, s32 index) { return global<u16>(zero + 2 * (u32)index); }
 // 7 of length less one as a copy (byte by byte, so overlapping), until a distance of 0.
 void Unpack(const void *block) {
     global<const void *>(0x00e74a40) = block;
-    global<u32>(0x00d70a28) = 0x00a067f8;
-    global<u32>(0x00be6800) = 0;
-    global<u32>(0x00c67218) = 0;
-    global<u32>(0x00f74a48) = 0;
-    global<u32>(0x00aa67f8) = 0;
+    gWavelet_d70a28 = 0x00a067f8;
+    gWavelet_be6800 = 0;
+    gWavelet_c67218 = 0;
+    gWavelet_f74a48 = 0;
+    gWavelet_aa67f8 = 0;
     u8 *out = kStream;
     for (;;) {
         if (Wavelet_ReadBits(1) == 0) {
@@ -656,19 +656,19 @@ void __stdcall WaveletCodec_PutCoefficient(u32 value, u8 **cursor) {
 }
 
 u32 __cdecl Wavelet_ReadBits(u32 count) {
-    u32 held = global<u32>(0x00aa67f8);
+    u32 held = gWavelet_aa67f8;
     if (held < count) {
-        const u32 position = global<u32>(0x00be6800);
+        const u32 position = gWavelet_be6800;
         const u32 word = at<u32>(reinterpret_cast<const void *>(position), global<u32>(0x00e74a40)) & 0xffffu;
-        global<u32>(0x00be6800) = position + 2;
-        global<u32>(0x00f74a48) |= word << (held & 31);
+        gWavelet_be6800 = position + 2;
+        gWavelet_f74a48 |= word << (held & 31);
         held += 0x10;
     }
     held -= count;
-    global<u32>(0x00aa67f8) = held;
-    const u32 accumulator = global<u32>(0x00f74a48);
+    gWavelet_aa67f8 = held;
+    const u32 accumulator = gWavelet_f74a48;
     const u32 result = ((1u << (count & 31)) - 1u) & accumulator;
-    global<u32>(0x00f74a48) = accumulator >> (count & 31);
+    gWavelet_f74a48 = accumulator >> (count & 31);
     return result;
 }
 
@@ -923,14 +923,14 @@ u32 __fastcall WaveletCodec_Encode(u8 *iface, void *, u32 width, u32 height, u32
 }
 
 void __fastcall WaveletCodec_ReadCoefficients(u8 *, void *, const u8 **cursor, float *dst, u32 count, float q) {
-    if (global<u32>(0x00f75ad4) == 0) {
+    if (gWaveletCodec_ReadCoefficients_f75ad4 == 0) {
         for (u32 i = 0; i < 0x100; ++i) {
             const float s = (float)(s8)i;
             global<float>(0x00fb2be0 + 4 * i) = s;
             global<float>(0x00fb2fe0 + 4 * i) = (float)i;
             global<float>(0x00fb27e0 + 4 * i) = (float)(X87Reg(s) * 256.0f);  // 0x702688
         }
-        global<u32>(0x00f75ad4) = 1;
+        gWaveletCodec_ReadCoefficients_f75ad4 = 1;
     }
     const u8 *p = *cursor;
     do {

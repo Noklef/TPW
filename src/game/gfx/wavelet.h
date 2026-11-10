@@ -175,3 +175,13 @@ void __fastcall WaveletCodec_DecodeV13(u8 *codec, void *, u32 width, u32 height,
 void __fastcall WaveletCodec_DecodeV13Scaled(u8 *codec, void *, u32 width, u32 height, u32 dstWidth, u32 dstHeight, u32 pitch, u32 pixelSize,
                                              const void *main, const void *alpha, u8 *pixels, float qY, float qCb, float qCr, float qA);
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(u32, gWavelet_aa67f8, 0x00aa67f8, 4);
+GAME_DATA(u32, gWavelet_be6800, 0x00be6800, 4);
+GAME_DATA(u32, gWavelet_c67218, 0x00c67218, 4);
+GAME_DATA(u32, gWavelet_d70a28, 0x00d70a28, 4);
+GAME_DATA(u32, gWavelet_f74a48, 0x00f74a48, 4);
+GAME_DATA(u32, gWaveletCodec_ReadCoefficients_f75ad4, 0x00f75ad4, 4);

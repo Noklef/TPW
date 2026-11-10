@@ -149,7 +149,7 @@ void pose_car(Wheel *w, const u8 *ride, float a) {
         u8 *const second = model_of(at<u32>(car, 0xc));
         Matrix_ResetRotation(matrix_of(second));
         const u32 reach = at<u32>(car, 0x4c);
-        const float divisor = global<float>(0x764cd8);
+        const float divisor = gTrakcarpose_764cd8;
         w->x = (float)(w->x - fild((s32)(((u32)sine(w->angle) * reach) << 2)) / divisor);
         w->y = (float)(w->y - fild((s32)(((u32)sine(w->angle + 0x80) * reach) << 2)) / divisor);
         at<float>(second, 0x40) = w->x;

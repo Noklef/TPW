@@ -313,3 +313,8 @@ void __cdecl Coaster_DropCar(u8 *owner, u8 *car, u8 *pylon, s32 x, s32 y, float 
 // The last argument only silences the original's Debug_Printf lines.
 u32 __cdecl Pylon_FindBraceLevel(float wanted, const u8 *train, u32 *level, float *height, u32 quiet);
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(u32, gTrain_791cd8, 0x00791cd8, 4);

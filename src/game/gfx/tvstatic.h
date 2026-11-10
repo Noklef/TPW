@@ -28,3 +28,8 @@ void __cdecl TvStatic_Free();
 // unlocked and blitted, all of it, over (0, 0, [0x7a1968], [0x7a1930]) of the wrapper. The results are not looked at.
 void __cdecl TvStatic_Draw(void *screen);
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(Surface *, gTvStatic_874fd0, 0x00874fd0, 4);

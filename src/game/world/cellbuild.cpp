@@ -10,6 +10,8 @@
 #include "objectdefs.h"
 #include "thingscan.h"
 #include "world.h"
+#include "mappreview.h"
+#include "mapclick.h"
 
 namespace {
 
@@ -192,7 +194,7 @@ u32 __fastcall MapCell_CanBuild(u8 *cell, void *, u32 kind, u32 alone) {
         return owned(cell) ? 0 : 1;
     }
     if (kind == 3 && type(cell) == 3) {
-        if (MapCell_NeighbourCount(cell) == 2 && global<u32>(0x008186d0) == 0) {
+        if (MapCell_NeighbourCount(cell) == 2 && gMapclick_8186d0 == 0) {
             global<u32>(0x00816d50) = 1;
             return 1;
         }
@@ -205,7 +207,7 @@ u32 __fastcall MapCell_CanBuild(u8 *cell, void *, u32 kind, u32 alone) {
         return 0xb;
     }
     u32 t = type(cell);
-    if (kind == t && ((global<u32>(0x00820aa4) != 0 && global<u32>(0x00818688) != 0) || global<u32>(0x00820ab8) != 0)) {
+    if (kind == t && ((global<u32>(0x00820aa4) != 0 && gMappreview_818688 != 0) || global<u32>(0x00820ab8) != 0)) {
         if (t == 3 && MapCell_NeighbourCount(cell) == 2) return 1;
         global<u32>(0x00816d4c) = 1;
         return 0xb;
@@ -339,7 +341,7 @@ u32 __fastcall MapCell_CanBuildTrack(u8 *cell, void *, u32 kind, u32 alone, u32 
     }
     if (kind == t || (kind == 0xb && t == 0xd) || (kind == 0x10 && t == 0x12)) {
         const u32 joined = global<u32>(0x00820ac8);
-        if ((joined != 0 && global<u32>(0x00818688) != 0) || global<u32>(0x00820ad0) != 0) {
+        if ((joined != 0 && gMappreview_818688 != 0) || global<u32>(0x00820ad0) != 0) {
             if (t == 0xb || t == 0x10) {
                 if (dir != cell[0xd] && MapCell_NeighbourCount(cell) == 2) return taken(alone);
                 if (corner(cell)) return taken(alone);
@@ -378,7 +380,7 @@ u32 __fastcall MapCell_CanBuildTrack(u8 *cell, void *, u32 kind, u32 alone, u32 
     }
     if (t == 0xb && (kind == 0xe || kind == 0x13) && owned(cell) && !spread(cell)) return 9;
     if (type(cell) == 0x10 && (kind == 0x13 || kind == 0xe) && owned(cell) && !spread(cell)) return 9;
-    bool refuse = corner(cell) && global<u32>(0x008186d0) == 0;
+    bool refuse = corner(cell) && gMapclick_8186d0 == 0;
     if (!refuse && (cell[0xe] & 0xf)) {
         if (global<u32>(0x00820ac8) == 0)
             refuse = true;

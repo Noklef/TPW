@@ -35,9 +35,9 @@ void __stdcall VertexFog_Colour(u8 *vertices, u32 count, s32 stride) {
         }
         const X87Reg t = (X87Reg(z) - At<float>(0x8bd490)) * At<float>(0x8bd498);
         const float tf = (float)t;
-        const s32 r = Fistp((float)(t * At<float>(0x8bd484)));
-        const s32 g = Fistp((float)(X87Reg(tf) * At<float>(0x8bd488)));
-        const s32 b = Fistp((float)(X87Reg(tf) * At<float>(0x8bd48c)));
+        const s32 r = Fistp((float)(t * gVertexFog_Colour_8bd484));
+        const s32 g = Fistp((float)(X87Reg(tf) * gVertexFog_Colour_8bd488));
+        const s32 b = Fistp((float)(X87Reg(tf) * gVertexFog_Colour_8bd48c));
         specular = ((u32)b & 0xff) | ((u32)r & 0xff0000) | ((u32)g & 0xff00);
         const X87Reg keep = X87Reg(1.0f) - tf;  // 0x7016c0
         const u32 d = diffuse;

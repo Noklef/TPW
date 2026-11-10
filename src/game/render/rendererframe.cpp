@@ -173,7 +173,7 @@ u32 __fastcall Renderer_DrawFrame(u8 *renderer) {
         for (s32 i = 0; drawn && i < at<s32>(renderer, 0x70); ++i) {
             const u32 *&source = at<const u32 *>(renderer, 0x60 + (u32)i * 4);
             u32 left[16], right[16];
-            const float separation = global<float>(0x008bd478);
+            const float separation = gRenderer_DrawFrame_8bd478;
             std::memcpy(right, global<const void *>(0x0087afe8), 0x40);
             std::memcpy(left, global<const void *>(0x0087afe8), 0x40);
             Mat4_MoveAlongX(reinterpret_cast<float *>(left), nullptr, (float)(X87Reg(separation) * global<float>(0x007017f8)));

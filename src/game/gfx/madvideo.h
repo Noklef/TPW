@@ -20,3 +20,8 @@ extern "C" {
 // height - 1 of them (at least once, so a height of 0 runs on), width >> 1 dwords from each, out on by pitch. Unless kind 7, +0x664 and +0x668 swap.
 u32 __fastcall MadVideo_DecodeFrame(u8 *player, const u8 *data, u8 *out, u32 pitch, u32 kind);
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(u32, gMadVideo_DecodeFrame_faac64, 0x00faac64, 4);

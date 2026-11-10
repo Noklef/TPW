@@ -235,7 +235,7 @@ u32 __fastcall D3dProbe_Draw(u8 *self, void *, u32 size, u32 diffuse, u32 specul
 
 u32 __fastcall D3dProbe_BeginScene(u8 *self) {
     u8 *const probe = self - 0x2c;
-    stageState(probe, 0, 0x13, global<u32>(0x008bd4a8));
+    stageState(probe, 0, 0x13, gD3dProbe_BeginScene_8bd4a8);
     keep(comcall<u32>(device(probe), 0x24));
     return pushed(3);
 }

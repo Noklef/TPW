@@ -21,3 +21,10 @@ void __stdcall VertexFog_Colour(u8 *vertices, u32 count, s32 stride);
 // 0xff000000; at or past the end: 0; between: ((end - z) * fraction * 255, as a float) rounded, shifted to the top byte.
 void __stdcall VertexFog_Alpha(u8 *vertices, u32 count, s32 stride);
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(float, gVertexFog_Colour_8bd484, 0x008bd484, 4);
+GAME_DATA(float, gVertexFog_Colour_8bd488, 0x008bd488, 4);
+GAME_DATA(float, gVertexFog_Colour_8bd48c, 0x008bd48c, 4);

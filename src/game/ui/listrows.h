@@ -188,3 +188,8 @@ void __cdecl List758f04_InitRowJumpB(u8 *row);
 u32 __cdecl List758f04_RowProcA(u8 *window, u32 message, u32 a, u32 b);
 u32 __cdecl List758f04_RowProcB(u8 *window, u32 message, u32 a, u32 b);
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(u32, gList7ca140_7508b4, 0x007508b4, 4);

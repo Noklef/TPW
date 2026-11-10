@@ -14,6 +14,7 @@
 #include "guifont.h"
 #include "guisystem.h"
 #include "textpool.h"
+#include "../core/cmdline.h"
 
 namespace {
 
@@ -62,7 +63,7 @@ const GuiTeardownEnv kTeardownEnv = {
 const GuiStartupEnv *g_startup = &kStartupEnv;
 const GuiTeardownEnv *g_teardown = &kTeardownEnv;
 
-bool WindowMode() { return (global<u32>(0x007a1a8c) & 0x800) && !global<u32>(0x00788270); }
+bool WindowMode() { return (global<u32>(0x007a1a8c) & 0x800) && !gCmdline_788270; }
 
 void Delete(u32 holder) {
     u8 *const thing = global<u8 *>(holder);

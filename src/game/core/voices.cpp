@@ -1,6 +1,7 @@
 #include "voices.h"
 
 #include <cstdint>
+#include "../render/particles.h"
 
 namespace {
 
@@ -22,7 +23,7 @@ extern "C" {
 
 u32 __cdecl Voice_Start(s32 voice, s32 x, s32 y, s32 z) {
     if (global<u32>(0x00816d40) == 0 || voice < 0 || voice >= 0x14) return 0xffffffffu;
-    if (global<u32>(0x0080ced8) != 0 && global<u8>(0x0080c6f4 + voice * 0x68) != 0) return 0;
+    if (gParticles_80ced8 != 0 && global<u8>(0x0080c6f4 + voice * 0x68) != 0) return 0;
     if (global<s16>(0x00816d22) < 0) return 0xffffffffu;
     const s16 oldActive = global<s16>(0x00816d1e);
     global<s16>(0x00816d1e) = global<s16>(0x00816d22);
@@ -164,7 +165,7 @@ void __cdecl Emitters_Reset() {
     global<u32>(0x0080ced0) = 0;
     global<u32>(0x0080ced4) = 0;
     global<u32>(0x0080cee0) = 1;
-    global<u32>(0x0080cee4) = 1;
+    gEmitters_Reset_80cee4 = 1;
     global<u16>(0x0080cee8) = 1;
     global<u16>(0x0080ceea) = 1;
     for (u32 i = 0; i < bytes; ++i) records[i] = 0;

@@ -98,3 +98,9 @@ extern "C" {
 // 0x524960 (cdecl; x, y, flags (the low word read), useStored): see above.
 void __cdecl GameMode_MapClick(s32 x, s32 y, u32 flags, u32 useStored);
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(u32, gMapclick_8186d0, 0x008186d0, 4);
+GAME_DATA(u32, gGameMode_MapClick_8186dc, 0x008186dc, 4);
