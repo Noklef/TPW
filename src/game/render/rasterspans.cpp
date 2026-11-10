@@ -107,20 +107,31 @@ u32 Copy(const u32 *uv, const u16 *, const u32 *, u32 &texel) { return texel = T
 // The texel shaded as Shade's by the four words at 0xfbe000 (one shade for the triangle).
 u32 Tint(const u32 *uv, const u16 *, const u32 *dest, u32 &texel) { return Shade<Point<true>>(uv, at<const u16>(0x00fbe000), dest, texel); }
 
-// Shade's pixel added to the pixel under it, each byte saturated (PADDUSB).
-template <Source kSource> u32 Add(const u32 *uv, const u16 *shade, const u32 *dest, u32 &texel) {
-    const u32 lit = Shade<kSource>(uv, shade, dest, texel), under = *dest;
+// a + b, each byte saturated (PADDUSB).
+u32 AddBytes(u32 a, u32 b) {
     u32 out = 0;
     for (int k = 0; k < 4; ++k) {
-        const u32 sum = (u32)Byte(lit, k) + Byte(under, k);
+        const u32 sum = (u32)Byte(a, k) + Byte(b, k);
         out |= (sum > 0xff ? 0xffu : sum) << (8 * k);
     }
     return out;
 }
 
+// The texel doubled.
+u32 Bright(const u32 *uv, const u16 *, const u32 *, u32 &texel) {
+    texel = Texel<true>(uv);
+    return AddBytes(texel, texel);
+}
+
+// Shade's pixel added to the pixel under it.
+template <Source kSource> u32 Add(const u32 *uv, const u16 *shade, const u32 *dest, u32 &texel) {
+    return AddBytes(Shade<kSource>(uv, shade, dest, texel), *dest);
+}
+
 // A row's end: the edges [0xfbe208] (now left) and [0xfbe20c] (now right) step x (both read first), the row pointer -[0xfbe02c],
-// the left edge's u and v (kUv), shade (kShade) and depth their steps, the depth row [0xfbe228] -[0xfbe030]; returns the row pointer.
-template <bool kUv, bool kShade = true> u32 NextRow(Edge *&left, const Edge *&right, u32 row) {
+// the left edge's u and v (kUv), shade (kShade) and depth their steps, and (kZ) the depth row [0xfbe228] -[0xfbe030]; returns the
+// row pointer.
+template <bool kUv, bool kShade = true, bool kZ = true> u32 NextRow(Edge *&left, const Edge *&right, u32 row) {
     left = global<Edge *>(0x00fbe208);
     Edge *const next = global<Edge *>(0x00fbe20c);
     const u32 rightX = next->x + next->dx, leftX = left->x + left->dx;
@@ -131,14 +142,17 @@ template <bool kUv, bool kShade = true> u32 NextRow(Edge *&left, const Edge *&ri
         for (int k = 0; k < 2; ++k) left->uv[k] += left->duv[k];
     if (kShade)
         for (int k = 0; k < 4; ++k) left->shade[k] = (u16)(left->shade[k] + left->dshade[k]);
-    left->z += left->dz;
-    global<u32>(0x00fbe228) -= global<u32>(0x00fbe030);
+    if (kZ) {
+        left->z += left->dz;
+        global<u32>(0x00fbe228) -= global<u32>(0x00fbe030);
+    }
     return row - global<u32>(0x00fbe02c);
 }
 
 // What a drawn pixel writes: the pixel and the next pixel's depth (sic); the pixel and its own depth; the pixel only; both (the
-// next pixel's depth) only above the alpha [0xfbe010] (signed).
-enum Depth { kWriteNext, kWrite, kKeep, kAlphaTest };
+// next pixel's depth) only above the alpha [0xfbe010] (signed); every pixel, no depth read or stepped ([0xfbe1f8] and [0xfbe1fc]
+// not written).
+enum Depth { kWriteNext, kWrite, kKeep, kAlphaTest, kNone };
 
 // One routine's row loop (two each, by the depth test: atLeast where the buffer's is at least the pixel's, else at most, or below
 // with kBelow): rows of the part from the edges left and right (later rows from [0xfbe208] and [0xfbe20c], which it steps); returns
@@ -155,8 +169,10 @@ u32 TexRows(bool atLeast, Edge *left, const Edge *right, s32 rows, u32 row) {
         const u32 start = (left->x + 0x7fff) & 0xffff8000u, end = (right->x + 0x7fff) >> 15;
         const u16 fraction = (u16)(left->x - start);
         const u32 depthRow = global<u32>(0x00fbe228) + end * 2;
-        global<s32>(0x00fbe1f8) = rows;
-        global<u32>(0x00fbe1fc) = row;
+        if (kDepth != kNone) {
+            global<s32>(0x00fbe1f8) = rows;
+            global<u32>(0x00fbe1fc) = row;
+        }
         s32 i = (s32)((start >> 15) - end);
         if (i < 0) {
             const u32 pixels = row + end * 4;
@@ -170,7 +186,7 @@ u32 TexRows(bool atLeast, Edge *left, const Edge *right, s32 rows, u32 row) {
             bool run = false;
             for (; i < 0; ++i) {
                 u16 &depth = *at<u16>(depthRow + (u32)i * 2);
-                const bool drawn = atLeast ? depth >= (u16)z : kBelow ? depth < (u16)z : depth <= (u16)z;
+                const bool drawn = kDepth == kNone || (atLeast ? depth >= (u16)z : kBelow ? depth < (u16)z : depth <= (u16)z);
                 const u32 here = z;
                 z = StepDepth(z, depthStep);
                 if (drawn) {
@@ -178,7 +194,7 @@ u32 TexRows(bool atLeast, Edge *left, const Edge *right, s32 rows, u32 row) {
                     if (!run) held[0] = uv[0], held[1] = uv[1];
                     u32 texel;
                     const u32 colour = Colour(kRunTexel ? held : uv, shade, &out, texel);
-                    if (kDepth == kKeep) {
+                    if (kDepth == kKeep || kDepth == kNone) {
                         out = colour;
                     } else if (kDepth != kAlphaTest || (s32)(texel >> 26) > global<s32>(0x00fbe010)) {
                         depth = (u16)(kDepth == kWrite ? here : z);
@@ -190,7 +206,7 @@ u32 TexRows(bool atLeast, Edge *left, const Edge *right, s32 rows, u32 row) {
                 for (int k = 0; k < 4; ++k) shade[k] = (u16)(shade[k] + shadeStep[k]);
             }
         }
-        row = NextRow<true, kShaded>(left, right, row);
+        row = NextRow<true, kShaded, kDepth != kNone>(left, right, row);
     } while (--rows > 0);
     return row;
 }
@@ -271,4 +287,10 @@ void __cdecl RasterSpan_ShadeZ(u32 row) { Parts<ShadeRows>(row); }
 void __cdecl RasterSpan_TexZ(u32 row) { Parts<TexRows<Copy, kWriteNext, false, false, false, false>>(row); }
 
 void __cdecl RasterSpan_TexTintZ(u32 row) { Parts<TexRows<Tint, kWriteNext, false, false, false, false>>(row); }
+
+void __cdecl RasterSpan_TexBrightZ(u32 row) { Parts<TexRows<Bright, kWriteNext, false, false, false, false>>(row); }
+
+void __cdecl RasterSpan_TexShadeNoZ(u32 row) { Parts<TexRows<Shade<Point<false>>, kNone, false, false>>(row); }
+
+void __cdecl RasterSpan_TexAddNoZ(u32 row) { Parts<TexRows<Add<Point<false>>, kNone, false, false>>(row); }
 }

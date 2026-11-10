@@ -62,4 +62,15 @@ void __cdecl RasterSpan_TexZ(u32 row);
 // 0x6f4d40 (table 0x6f1a18; row loops 0x6f4db0, 0x6f4f70): RasterSpan_TexShadeZ with one shade for the triangle, the four words at
 // 0xfbe000; the edges' shade is not stepped.
 void __cdecl RasterSpan_TexTintZ(u32 row);
+
+// 0x6f50d0 (table 0x6f1a1c; row loops 0x6f5140, 0x6f52f0): as RasterSpan_TexZ, the texel doubled (each byte saturated).
+void __cdecl RasterSpan_TexBrightZ(u32 row);
+
+// 0x6f5590 (table 0x6f19b0; row loop 0x6f55f0): RasterSpan_TexShadeZ's pixel, the texel unmasked, every pixel drawn: no depth
+// read, written or stepped, [0xfbe1f8] and [0xfbe1fc] not written.
+void __cdecl RasterSpan_TexShadeNoZ(u32 row);
+
+// 0x6f5840 (table 0x6f19b8; row loop 0x6f58a0): RasterSpan_TexAdd's pixel, the texel unmasked, every pixel drawn as
+// RasterSpan_TexShadeNoZ's.
+void __cdecl RasterSpan_TexAddNoZ(u32 row);
 }
