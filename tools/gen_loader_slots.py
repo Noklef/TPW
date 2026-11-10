@@ -6,6 +6,8 @@ A slot: a 4-aligned dword of a section other than .text, cseg (code: its tables 
 and .rsrc, whose value is in .text and is
 - a hooked function (hooks.cpp's rows): vtables, handler and callback tables;
 - an adjustor thunk (SUB ECX,[ECX-4] / SUB ECX,n / ADD ECX,n ; JMP hooked): the loader makes an equivalent of it with the port's address;
+- a JMP thunk (JMP rel32, at most three in a row, to a hooked function: the COM AddRef / Release thunks 0x6acea0 / 0x6aceb0): the loader
+  follows the jumps (Resolve), so the slot gets the port itself; an adjustor thunk's JMP may lead through them too;
 - PROVIDED: the empty Debug_Printf (a RET, in many vtables), which the loader gives an empty function for.
 Any other code address in the data stays the original's: a call through it traps (.docs/08-loader.md). The CRT's initialiser tables
 are among those: StaticInit_Run reads them live by the original's addresses.
@@ -41,6 +43,18 @@ def thunk_target(pe, va):
     return None
 
 
+def resolve(pe, va, hooked):
+    """The hooked function (or PROVIDED) that va is or reaches by JMP rel32s, as the loader's Resolve (four looks): else None."""
+    for _ in range(4):
+        if va in hooked or va in PROVIDED:
+            return va
+        b = pe.bytes(va, 5)
+        if not b or len(b) < 5 or b[0] != 0xe9:
+            return None
+        va = (va + 5 + struct.unpack_from('<i', b, 1)[0]) & 0xffffffff
+    return None
+
+
 def scan(pe, hooked):
     """(section, slot, value, kind) for every 4-aligned dword in a data section whose value lies in .text."""
     text = next(s for s in pe.sections if s[0] == '.text')
@@ -54,7 +68,8 @@ def scan(pe, hooked):
             if not t0 <= v < t1:
                 continue
             t = thunk_target(pe, v) if v not in hooked else None
-            kind = ('hooked' if v in hooked else 'provided' if v in PROVIDED else 'thunk' if t in hooked else
+            thunk = v not in hooked and v not in PROVIDED and (resolve(pe, v, hooked) or t is not None and resolve(pe, t, hooked))
+            kind = ('hooked' if v in hooked else 'provided' if v in PROVIDED else 'thunk' if thunk else
                     'crt init' if 0x727000 <= va + o < 0x72e118 else 'C library' if 0x679000 <= v < 0x6b0000 else 'other')
             yield name, va + o, v, kind
 
@@ -118,6 +133,9 @@ def self_check():
     assert thunk_target(Fake(b'\x83\xc1\x0c\xe9\x00\x00\x00\x00'), 0) == 8
     assert thunk_target(Fake(b'\x83\xc0\x0c\xe9\x00\x00\x00\x00'), 0) is None   # ADD EAX: not a thunk
     assert thunk_target(Fake(b'\x2b\x49\xfc\xe8\x00\x00\x00\x00'), 0) is None   # a CALL after it
+    jumps = Fake(b'\xe9\x00\x00\x00\x00' * 4 + b'\xc3')   # JMP, JMP, JMP, JMP, then the function at 0x14
+    assert resolve(jumps, 0x5, {0x14}) == 0x14 and resolve(jumps, 0, {0x14}) is None   # three jumps followed, four not
+    assert resolve(jumps, 0x14, set()) is None
 
 
 if __name__ == '__main__':

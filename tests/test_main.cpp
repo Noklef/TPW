@@ -1293,7 +1293,8 @@ static void test_hook_table(const char *exe_path) {
 #include "codeslots.h"
 
 // tpw.exe's code-slot table (tools/gen_loader_slots.py) against a rescan of the exe here: every dword of a data section whose value is a
-// hooked function, the empty Debug_Printf 0x5da3c0 or an adjustor thunk (SUB ECX,[ECX-4] / SUB ECX,n / ADD ECX,n ; JMP) to a hooked one.
+// hooked function, the empty Debug_Printf 0x5da3c0, a JMP thunk (at most three JMP rel32s) to one, or an adjustor thunk (SUB ECX,[ECX-4] /
+// SUB ECX,n / ADD ECX,n ; JMP) to either.
 static void test_code_slots(const char *exe_path) {
     std::ifstream f(exe_path, std::ios::binary);
     if (!f) { ++g_failures; return; }
@@ -1303,6 +1304,15 @@ static void test_code_slots(const char *exe_path) {
     for (std::size_t i = 0; i < tpw::hook::kHookCount; ++i) hooked.push_back(tpw::hook::kHooks[i].address);
     std::sort(hooked.begin(), hooked.end());
     auto is_hooked = [&](std::uint32_t a) { return std::binary_search(hooked.begin(), hooked.end(), a); };
+    auto resolves = [&](std::uint32_t a) {   // a hooked function or Debug_Printf, or one reached by JMP rel32s (the loader's Resolve: four looks)
+        for (int hop = 0; hop < 4; ++hop) {
+            if (is_hooked(a) || a == 0x5da3c0) return true;
+            std::uint8_t j[5] = {};
+            if (!read_va(pe, a, j, 5) || j[0] != 0xE9) return false;
+            a += 5 + std::uint32_t(j[1] | j[2] << 8 | j[3] << 16 | j[4] << 24);
+        }
+        return false;
+    };
 
     const std::uint32_t nt = u32(0x3C), base = u32(nt + 0x34), nsec = pe[nt + 6] | pe[nt + 7] << 8;
     const std::uint32_t sec0 = nt + 0x18 + (pe[nt + 0x14] | pe[nt + 0x15] << 8);
@@ -1321,9 +1331,9 @@ static void test_code_slots(const char *exe_path) {
             if (v < t0 || v >= t1) continue;
             std::uint8_t b[8] = {};
             int kind = is_hooked(v) ? 0 : v == 0x5da3c0 ? 1 : -1;
-            if (kind < 0 && read_va(pe, v, b, 8) && b[3] == 0xE9 &&
-                ((b[0] == 0x2B && b[1] == 0x49 && b[2] == 0xFC) || (b[0] == 0x83 && (b[1] == 0xE9 || b[1] == 0xC1))) &&
-                is_hooked(v + 8 + std::uint32_t(b[4] | b[5] << 8 | b[6] << 16 | b[7] << 24)))
+            if (kind < 0 && (resolves(v) || (read_va(pe, v, b, 8) && b[3] == 0xE9 &&
+                                             ((b[0] == 0x2B && b[1] == 0x49 && b[2] == 0xFC) || (b[0] == 0x83 && (b[1] == 0xE9 || b[1] == 0xC1))) &&
+                                             resolves(v + 8 + std::uint32_t(b[4] | b[5] << 8 | b[6] << 16 | b[7] << 24)))))
                 kind = 2;
             if (kind < 0) continue;
             ++kinds[kind];
