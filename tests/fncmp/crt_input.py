@@ -11,7 +11,7 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
 from fncmp import IMPORT_TABLE, LOG, RAM, Bench, Call, _recorder, blob_array, fill, import_table, log_region, recorder, set_return, strings  # noqa: E402
 
-GETPTD, LOCK, UNLOCK, M2W, FASSIGN = 2, 7, 8, 3, 9
+GETPTD, LOCK, UNLOCK, M2W, FASSIGN, INC, DEC = 2, 7, 8, 3, 9, 14, 15
 B = Bench([(0x68a710, 0x68b389), (0x67f620, 0x67f662), (0x68b450, 0x68b489), (0x68b490, 0x68b4b1), (0x68b4c0, 0x68b4d8), (0x68b4e0, 0x68b528), (0x67a590, 0x67a5ba),
            (0x680430, 0x6804c5), (0x67c7f0, 0x67c824), (0x68f040, 0x68f05f), (0x687440, 0x68752f), (0x67cc10, 0x67cc93), (0x687690, 0x687701), (0x687710, 0x68780e),
            (0x686a00, 0x686a19)],
@@ -19,12 +19,15 @@ B = Bench([(0x68a710, 0x68b389), (0x67f620, 0x67f662), (0x68b450, 0x68b489), (0x
 FILE, ARGS, PTD, TEXT, FORMAT = RAM, RAM + 0x40, RAM + 0x100, RAM + 0x200, RAM + 0x400
 PCTYPE, OUT = RAM + 0x800, RAM + 0x1000
 SLOTS = 0x18
-OPS = [n for n in ('input', 'input', 'input', 'sscanf', 'sscanf', 'game')
+OPS = [n for n in ('input', 'input', 'input', 'sscanf', 'sscanf', 'game', 'crafted', 'crafted')
        if not os.environ.get('OPS') or n in os.environ['OPS'].split(',')]
 CHARS = b'0123456789' * 3 + b'--++xXabcdefABCDEF' + b'  \t\n,,..eE]^z%\x81\x82y'
 SETS = [b'[abc]', b'[^,]', b'[]a-c]', b'[a-]', b'[z-a]', b'[-a]', b'[^]x]', b'[0-9]', b'[^ \t]', b'[\x81\x82a]', b'[]]']
 GAME = [(b'%d,%d,%d,%d', [b'1,2,3,4', b'10,-20,+30,0x40', b'7,8', b' 5 , 6,7,8', b'', b'a,b']), (b'%d,%d', [b'640,480', b'-1,2', b'3', b'']),
         (b'%ld%c', [b'12k', b'123', b'-7 ', b'x', b''])]
+# Each a way the random formats seldom take: a set with ']', 0X, a negative 64-bit number, %% before the end, %n after it, wide text with lead bytes.
+CRAFTED = [(b'%[]a-c]%s', b']a]bcd e'), (b'%[^]x]', b'ab]c'), (b'%x%i', b'0X1f 0Xff'), (b'%I64d %I64x', b'-12345678901 -ff'), (b'%%%d', b'%'), (b'%%%d', b'%5'),
+           (b'%d%n', b'5'), (b'%d%hn%d', b'7'), (b'%ls', b'\x81\x82ab cd'), (b'%l[a-c\x81\x82]%S', b'ab\x81\x82c dd'), (b'%lc%3C', b'\x81\x82xyz')]
 
 
 def table():
@@ -103,11 +106,16 @@ def state(r, log, regions):
 def case(r):
     name = r.deal(OPS)
     log = log_region()
-    regions = {LOG: log, IMPORT_TABLE: import_table(log, {'m2w': (M2W, 0x6fd174, 6, 0, 0b10100)})}
+    regions = {LOG: log, IMPORT_TABLE: import_table(log, {'m2w': (M2W, 0x6fd174, 6, 0, 0b10100), 'inc': (INC, 0x6fd0c0, 1, 0, 0), 'dec': (DEC, 0x6fd12c, 1, 0, 0)})}
     state(r, log, regions)
     if name == 'game':
         form, texts = r.choice(GAME)
         text = r.choice(texts)
+    elif name == 'crafted':
+        form, text = r.choice(CRAFTED)
+        if r.random() < 0.5:
+            regions[0x77e7dc] = struct.pack('<i', 2)
+            regions[0xfb1440] = struct.pack('<5I', 0x411, 0, 0, 0, 932)
     else:
         form, text = build_format(r), build_text(r)
     regions[FORMAT] = form + bytes(0x10)
