@@ -2716,8 +2716,9 @@ __declspec(naked) void jump_in() {
 // Pushes the stack arguments right to left, sets the registers (EAX EBX ECX EDX ESI EDI, EBP when nonzero: ECX / EDX for thiscall
 // and fastcall, any of them for a register convention), calls (jumped: the return address above the arguments, then jumps), and
 // restores ESP whatever the convention popped. EAX, EDX and EDI come back (EDI for ret 'edi'), and with stackOut the count stack
-// arguments as the call left them (ret 's').
-int invoke(void *fn, const u32 *regs, const u32 *stack, u32 count, int wantSt0, u32 *eax, u32 *edx, double *st0, u32 *edi, u32 *stackOut, int jumped) {
+// arguments as the call left them (ret 's'). x87 register arguments (conv 'st'): the doubles loaded in order, the last in ST0.
+int invoke(void *fn, const u32 *regs, const u32 *stack, u32 count, int wantSt0, u32 *eax, u32 *edx, double *st0, u32 *edi, u32 *stackOut, int jumped,
+           const double *fl = nullptr, u32 flCount = 0) {
     u32 ra = 0, rd = 0, rdi = 0, saved = 0;
     double f = 0;
     g_jumpCount = jumped ? count : 0xffffffff;
@@ -2737,6 +2738,16 @@ int invoke(void *fn, const u32 *regs, const u32 *stack, u32 count, int wantSt0, 
             push dword ptr [esi + ecx * 4]
             jmp next
         pushed:
+            mov esi, fl
+            mov ecx, flCount
+        loads:
+            test ecx, ecx
+            jz loaded
+            fld qword ptr [esi]
+            add esi, 8
+            dec ecx
+            jmp loads
+        loaded:
             mov eax, fn
             mov g_invokeFn, eax
             mov g_invokeFrame, ebp
@@ -3848,11 +3859,17 @@ int main(int argc, char **argv) {
                     for (int k = 0; k < 7; ++k)
                         if (std::strncmp(c, kNames[k], 3) == 0) regs[k] = step.args[skip++];
             }
+            std::vector<double> fl;
+            if (step.conv == "st") {  // (fncmp.Call conv 'st': the arguments are doubles, low dword first, loaded onto the x87 stack)
+                fl.resize(n / 2);
+                std::memcpy(fl.data(), step.args.data(), fl.size() * 8);
+                skip = n;
+            }
             static const bool paint = std::getenv("FNCMP_PAINT_STACK") != nullptr;
             if (paint) paint_stack();
             stackWords.assign(n - skip, 0);
             code = invoke(step.fn, regs, step.args.data() + skip, n - skip, ret[0] == 'd', &eax, &edxOut, &st0, &ediOut, stackOut && n > skip ? stackWords.data() : nullptr,
-                          &step == &steps[0] && std::strchr(ret, 'j') != nullptr);
+                          &step == &steps[0] && std::strchr(ret, 'j') != nullptr, fl.data(), (u32)fl.size());
             if (code) break;
         }
         if ((DWORD)code == kCaseExit) code = 0, eax = edxOut = ediOut = 0, st0 = 0;  // (exit_case: the case ended there)
