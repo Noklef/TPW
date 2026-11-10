@@ -399,8 +399,8 @@ void __cdecl jinit_master_decompress(j_decompress_ptr cinfo) {
 
 // What the library calls outside itself, the exe's (jpeg6b.h's Jpeg6bCrtEnv): jmemansi.c's malloc and free (third_party/wrap/jpeg-6b/
 // jmemansi.c #defines them to jpeg6b_exe_malloc / free), so the blocks the library's jpeg_get_small hands out are the exe's heap's,
-// which the exe's own code (zcfree) frees there; jmemmgr.c's getenv, sscanf and jpeg_open_backing_store (wrap/jpeg-6b/jmemmgr.c);
-// jerror.c's sprintf (wrap/jpeg-6b/jerror.c).
+// which the exe's own code (zcfree) frees there, and its backing store's FILE calls; jmemmgr.c's getenv, sscanf and
+// jpeg_open_backing_store (wrap/jpeg-6b/jmemmgr.c); jerror.c's sprintf, exit and fprintf (wrap/jpeg-6b/jerror.c).
 namespace {
 const Jpeg6bCrtEnv kExeCrt = {
     reinterpret_cast<void *(__cdecl *)(size_t)>((uintptr_t)0x0067dcd0),
@@ -409,7 +409,14 @@ const Jpeg6bCrtEnv kExeCrt = {
     reinterpret_cast<int(__cdecl *)(const char *, const char *, long *, char *)>((uintptr_t)0x0067f620),
     reinterpret_cast<void(__cdecl *)(jpeg_common_struct *, void *, long)>((uintptr_t)0x006429c0),
     reinterpret_cast<int(__cdecl *)(char *, const char *, const char *)>((uintptr_t)0x0067a650),
-    reinterpret_cast<int(__cdecl *)(char *, const char *, int, int, int, int, int, int, int, int)>((uintptr_t)0x0067a650)};
+    reinterpret_cast<int(__cdecl *)(char *, const char *, int, int, int, int, int, int, int, int)>((uintptr_t)0x0067a650),
+    reinterpret_cast<void *(__cdecl *)()>((uintptr_t)0x0067fd60),
+    reinterpret_cast<int(__cdecl *)(void *, long, int)>((uintptr_t)0x0067c100),
+    reinterpret_cast<size_t(__cdecl *)(void *, size_t, size_t, void *)>((uintptr_t)0x0067e1d0),
+    reinterpret_cast<size_t(__cdecl *)(const void *, size_t, size_t, void *)>((uintptr_t)0x0067b6d0),
+    reinterpret_cast<int(__cdecl *)(void *)>((uintptr_t)0x0067b620),
+    reinterpret_cast<void(__cdecl *)(int)>((uintptr_t)0x0067f920),
+    reinterpret_cast<int(__cdecl *)(void *, const char *, const char *)>((uintptr_t)0x0067dad0)};
 const Jpeg6bCrtEnv *g_crt = &kExeCrt;
 }  // namespace
 
@@ -453,4 +460,15 @@ int __cdecl jpeg6b_exe_sprintf(char *buffer, const char *format, ...) {
     va_end(ap);
     return n;
 }
+void *__cdecl jpeg6b_exe_tmpfile() { return g_crt->tmpfile(); }
+int __cdecl jpeg6b_exe_fseek(void *file, long offset, int origin) { return g_crt->fseek(file, offset, origin); }
+size_t __cdecl jpeg6b_exe_fread(void *buffer, size_t size, size_t count, void *file) { return g_crt->fread(buffer, size, count, file); }
+size_t __cdecl jpeg6b_exe_fwrite(const void *buffer, size_t size, size_t count, void *file) { return g_crt->fwrite(buffer, size, count, file); }
+int __cdecl jpeg6b_exe_fclose(void *file) { return g_crt->fclose(file); }
+void __cdecl jpeg6b_exe_exit(int status) { g_crt->exit(status); }
+// output_message's fprintf(stderr, "%s\n", buffer): the exe's stderr (0x77e840) and its "%s\n" (0x764ff0, in .data).
+int __cdecl jpeg6b_exe_print(const char *text) { return g_crt->fprintf((void *)0x0077e840, (const char *)0x00764ff0, text); }
+// jmemansi.c's ERREXITS(cinfo, JERR_TFILE_CREATE, ""): the exe's "" is a byte of its .bss (0x786de4, the "" of much of its code),
+// writable, so the text is read there.
+const char *__cdecl jpeg6b_exe_empty() { return (const char *)0x00786de4; }
 }

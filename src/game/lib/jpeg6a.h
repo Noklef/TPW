@@ -487,12 +487,21 @@ char *__cdecl jpeg6a_exe_getenv(const char *name);
 int __cdecl jpeg6a_exe_sscanf(const char *s, const char *format, long *value, char *ch);
 void __cdecl jpeg6a_exe_open_backing_store(jpeg6a_common_struct *cinfo, void *info, long total_bytes_needed);
 int __cdecl jpeg6a_exe_sprintf(char *buffer, const char *format, ...);
+void *__cdecl jpeg6a_exe_tmpfile();
+int __cdecl jpeg6a_exe_fseek(void *file, long offset, int origin);
+std::size_t __cdecl jpeg6a_exe_fread(void *buffer, std::size_t size, std::size_t count, void *file);
+std::size_t __cdecl jpeg6a_exe_fwrite(const void *buffer, std::size_t size, std::size_t count, void *file);
+int __cdecl jpeg6a_exe_fclose(void *file);
+void __cdecl jpeg6a_exe_exit(int status);
+int __cdecl jpeg6a_exe_print(const char *text);
+const char *__cdecl jpeg6a_exe_empty();
 
 }  // extern "C"
 
-// What the library calls outside itself, the exe's, as 6b's (jpeg6b.h's Jpeg6bCrtEnv): its C runtime's malloc / free (jmemansi.c),
-// getenv / sscanf of JPEGMEM and the backing store (jmemmgr.c: jpeg_open_backing_store stays the exe's 6a one, 0x650265), and
-// format_message's two sprintf calls (jerror.c), told apart by the message text as format_message does. The tests give it stand-ins.
+// What the library calls outside itself, the exe's, as 6b's (jpeg6b.h's Jpeg6bCrtEnv): its C runtime's malloc / free and the backing
+// store's tmpfile, fseek, fread, fwrite and fclose (jmemansi.c), getenv / sscanf of JPEGMEM and jpeg_open_backing_store (jmemmgr.c:
+// the exe's 6a one, 0x650265, hooked to the library's), and format_message's two sprintf calls (jerror.c), told apart by the message
+// text as format_message does, error_exit's exit and output_message's fprintf. The tests give it stand-ins.
 struct Jpeg6aCrtEnv {
     void *(__cdecl *alloc)(std::size_t size);  // malloc (0x67dcd0)
     void(__cdecl *free)(void *block);          // free (0x67ad90)
@@ -502,6 +511,13 @@ struct Jpeg6aCrtEnv {
     int(__cdecl *sprintf_string)(char *buffer, const char *format, const char *s);  // sprintf (0x67a650), format_message's %s call
     int(__cdecl *sprintf_ints)(char *buffer, const char *format, int i0, int i1, int i2, int i3, int i4, int i5, int i6,
                                int i7);  // sprintf (0x67a650), its other call
+    void *(__cdecl *tmpfile)();                                                                  // tmpfile (0x67fd60)
+    int(__cdecl *fseek)(void *file, long offset, int origin);                                     // fseek (0x67c100)
+    std::size_t(__cdecl *fread)(void *buffer, std::size_t size, std::size_t count, void *file);         // fread (0x67e1d0)
+    std::size_t(__cdecl *fwrite)(const void *buffer, std::size_t size, std::size_t count, void *file);  // fwrite (0x67b6d0)
+    int(__cdecl *fclose)(void *file);                                                            // fclose (0x67b620)
+    void(__cdecl *exit)(int status);                                                             // exit (0x67f920)
+    int(__cdecl *fprintf)(void *file, const char *format, const char *text);  // fprintf (0x67dad0), output_message's
 };
 
 // The library's calls go through env (nullptr: the exe's).

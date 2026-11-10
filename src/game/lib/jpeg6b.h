@@ -527,12 +527,12 @@ unsigned char __cdecl jdapistd_output_pass_setup(jpeg_decompress_struct *cinfo);
 unsigned int __cdecl jpeg_read_scanlines(jpeg_decompress_struct *cinfo, unsigned char **scanlines, unsigned int max_lines);
 }
 
-// What the library calls outside itself, the exe's: its C runtime's (a DLL's would be another heap, environment copy and FILE table)
-// and the functions of the exe's that stay its own. jmemansi.c's malloc and free (malloc 0x67dcd0, free 0x67ad90, which are never
-// replaced: they are the front of its heap, as GameHeap's Mem_Alloc / Mem_Free are); jmemmgr.c's getenv / sscanf of JPEGMEM and the
-// backing store it opens (jpeg_open_backing_store stays the exe's, see docs/porting-libraries.md); jerror.c's format_message's sprintf,
-// whose two calls are told apart by the message text as format_message does (its first % a %s: the string, else the eight ints).
-// The tests give it stand-ins.
+// What the library calls outside itself, the exe's: its C runtime's (a DLL's would be another heap, environment copy and FILE table).
+// jmemansi.c's malloc and free (malloc 0x67dcd0, free 0x67ad90, which are never replaced: they are the front of its heap, as
+// GameHeap's Mem_Alloc / Mem_Free are) and its backing store's tmpfile, fseek, fread, fwrite and fclose (the exe's FILEs); jmemmgr.c's
+// getenv / sscanf of JPEGMEM and jpeg_open_backing_store (0x6429c0, hooked to the library's: the tests' stand-in); jerror.c's
+// format_message's sprintf, whose two calls are told apart by the message text as format_message does (its first % a %s: the
+// string, else the eight ints), error_exit's exit and output_message's fprintf. The tests give it stand-ins.
 struct Jpeg6bCrtEnv {
     void *(__cdecl *alloc)(size_t size);  // malloc (0x67dcd0)
     void(__cdecl *free)(void *block);     // free (0x67ad90)
@@ -542,6 +542,13 @@ struct Jpeg6bCrtEnv {
     int(__cdecl *sprintf_string)(char *buffer, const char *format, const char *s);  // sprintf (0x67a650), format_message's %s call
     int(__cdecl *sprintf_ints)(char *buffer, const char *format, int i0, int i1, int i2, int i3, int i4, int i5, int i6,
                                int i7);  // sprintf (0x67a650), its other call
+    void *(__cdecl *tmpfile)();                                                       // tmpfile (0x67fd60)
+    int(__cdecl *fseek)(void *file, long offset, int origin);                          // fseek (0x67c100)
+    size_t(__cdecl *fread)(void *buffer, size_t size, size_t count, void *file);         // fread (0x67e1d0)
+    size_t(__cdecl *fwrite)(const void *buffer, size_t size, size_t count, void *file);  // fwrite (0x67b6d0)
+    int(__cdecl *fclose)(void *file);                                                 // fclose (0x67b620)
+    void(__cdecl *exit)(int status);                                                  // exit (0x67f920)
+    int(__cdecl *fprintf)(void *file, const char *format, const char *text);           // fprintf (0x67dad0), output_message's
 };
 
 // The library's calls go through env (nullptr: the exe's).
