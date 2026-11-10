@@ -1,8 +1,9 @@
 # The rasteriser's cseg span routines (src/game/render/rasterspans) against the original, jumped to (Call(jumped=True)) with the row pointer
 # in EBP and six words for their POPs: the two parts' row counts (-1 to 5) and edges (x 17.15 within a 24-pixel row, any u, v, shade
 # and depth; a third of the cases one depth, step 0, the buffer's within 1 of it), the steps, both depth tests ([0xfbe034]), the texel
-# mask, the alpha threshold [0xfbe010], the row and depth pitches either way. The globals 0xfbe000-0xfbe6e0 (the blend tables
-# 0xfbe2e0 and 0xfbe4e0 too) are the case's own; [0xfbe218] (the original's saved ESP) is left out.
+# mask, the alpha threshold [0xfbe010] (half the cases the texels' top 6 bits within 1 of it), the row and depth pitches either way. The
+# globals 0xfbe000-0xfbe6e0 (the blend tables 0xfbe2e0 and 0xfbe4e0, the filter's 0xfbe0e4 and 0xfbe1b8 too) are the case's own;
+# [0xfbe218] (the original's saved ESP) is left out.
 # usage: rasterspans.py [CASES [SEED]] [--wild|--both] [--show N]
 import os
 import struct
@@ -14,20 +15,26 @@ import x87emu  # noqa: E402
 
 assert x87emu.MMX['PUNPCKHBW'](0x8877665544332211, 0xffeeddccbbaa9988) == 0xff88ee77dd66cc55   # (the high bytes interleaved)
 
-B = Bench([(0x6f1d70, 0x6f29d0)])
-SPANS = [0x6f1d70, 0x6f2140, 0x6f2570]
+B = Bench([(0x6f1d70, 0x6f36d0)])
+SPANS = [0x6f1d70, 0x6f2140, 0x6f2570, 0x6f29d0, 0x6f2de0, 0x6f31c0]
+UNMASKED = 0x6f29d0   # (its texel index is not masked: u and v kept to top bytes below 0xe, the texels 0x1000)
 G, EDGES, TEXELS, PIXELS, DEPTHS = 0xfbe000, RAM, RAM + 0x1000, RAM + 0x20000, RAM + 0x30000
 WIDTH = 24
 
 
-def edge(r, z):
+def edge(r, z, small):
     x = r.randrange(3 << 15, (WIDTH - 3) << 15)
     depth = struct.pack('<II', z, 0) if z is not None else r.bytes(8)
-    return struct.pack('<IiII', x, r.randrange(-0x2000, 0x2000), r.getrandbits(32), r.getrandbits(32)) + r.bytes(0x18) + depth
+    if small:
+        uv = struct.pack('<IIii', r.randrange(0x3000000, 0xb000000), r.randrange(0x3000000, 0xb000000), r.randrange(-0x100000, 0x100000), r.randrange(-0x100000, 0x100000))
+    else:
+        uv = r.bytes(0x10)
+    return struct.pack('<Ii', x, r.randrange(-0x2000, 0x2000)) + uv + r.bytes(0x10) + depth
 
 
 def case(r):
     address = r.deal(SPANS)
+    small = address == UNMASKED
     flat = r.randrange(3) == 0   # (one depth and step 0, the buffer's within 1 of it: the tests' equal case)
     z = r.getrandbits(32) if flat else None
     rows = [r.deal([-1, 0, 1, 2, 3, 5]), r.deal([0, 1, 2, 4])]
@@ -37,10 +44,14 @@ def case(r):
     row = PIXELS + (0 if up else (total - 1) * pitch)
     zrow = DEPTHS + (0 if up else (total - 1) * zpitch)
     mask = r.deal([0x0707, 0x0f0f, 0x1f1f, 0x3f3f, 0x0f3f, 0xffff0f0f])
+    alpha = r.deal([-1, 0, 20, 40, 63])
     g = bytearray(r.bytes(0x6e0))
-    struct.pack_into('<II', g, 0x08, mask, r.deal([-1, 0, 20, 40, 63]) & 0xffffffff)
+    struct.pack_into('<Ii', g, 0x08, mask, alpha)
     if flat:
         struct.pack_into('<I', g, 0x148, 0)
+    if small:
+        struct.pack_into('<ii', g, 0x138, r.randrange(-0x100000, 0x100000), r.randrange(-0x100000, 0x100000))
+        struct.pack_into('<4h', g, 0x160, *[r.randrange(-0x20, 0x20) for _ in range(4)])
     struct.pack_into('<ii', g, 0x2c, -pitch if up else pitch, -zpitch if up else zpitch)
     struct.pack_into('<I', g, 0x34, r.deal([0, 1, 0x80000000]))
     struct.pack_into('<I', g, 0x38, TEXELS)
@@ -49,7 +60,10 @@ def case(r):
     struct.pack_into('<I', g, 0x228, zrow)
     depths = (struct.pack('<%dH' % (total * zpitch // 2 + 1), *[((z >> 16) + r.randrange(-1, 2)) & 0xffff for _ in range(total * zpitch // 2 + 1)])
               if flat else r.randbytes(total * zpitch + 2))
-    regions = {G: bytes(g), EDGES: b''.join(edge(r, z) for _ in range(4)), TEXELS: r.randbytes(((mask & 0xffff) + 1) * 4),
+    texels = bytearray(r.randbytes(0x4000 if small else ((mask & 0xffff) + 1) * 4))
+    if r.randrange(2):   # (the texels' top 6 bits within 1 of the alpha threshold)
+        texels[3::4] = bytes(texels[3::4]).translate(bytes(((alpha + b % 3 - 1) & 63) << 2 | (b & 3) for b in range(256)))
+    regions = {G: bytes(g), EDGES: b''.join(edge(r, z, small) for _ in range(4)), TEXELS: bytes(texels),
                PIXELS: r.randbytes(total * pitch), DEPTHS: depths}
     return Call(address, [row] + [r.getrandbits(32) for _ in range(6)], regions, conv='ebp', jumped=True, ignore=[(0xfbe218, 4)])
 

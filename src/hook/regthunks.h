@@ -24,5 +24,8 @@ void RegThunk_TqiVideo_ReadBlocks(); // 0x6747d0: state in ESI, bits in EBP, pos
 void RegThunk_RasterSpan_TexShadeZ(); // 0x6f1d70: jumped to, row pointer in EBP, ECX EBP EBX EDX ESI EDI on the stack (popped)
 void RegThunk_RasterSpan_TexBlend(); // 0x6f2140: the same
 void RegThunk_RasterSpan_TexBlendAlphaZ(); // 0x6f2570: the same
+void RegThunk_RasterSpan_TexBlendLit(); // 0x6f29d0: the same
+void RegThunk_RasterSpan_TexAdd(); // 0x6f2de0: the same
+void RegThunk_RasterSpan_BilinearShadeZ(); // 0x6f31c0: the same
 void RegThunk_TqiVideo_DecodeBlock(); // 0x674ab9: DC in EAX, dequantiser in ESI, bits in EBP, position in EDI (and out), out in EDX, pitch in ECX (ECX and EDX kept)
 }

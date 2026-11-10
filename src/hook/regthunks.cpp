@@ -197,5 +197,8 @@ __declspec(naked) void RegThunk_TqiVideo_ReadBlocks() {
 SPAN_THUNK(RasterSpan_TexShadeZ)
 SPAN_THUNK(RasterSpan_TexBlend)
 SPAN_THUNK(RasterSpan_TexBlendAlphaZ)
+SPAN_THUNK(RasterSpan_TexBlendLit)
+SPAN_THUNK(RasterSpan_TexAdd)
+SPAN_THUNK(RasterSpan_BilinearShadeZ)
 #undef SPAN_THUNK
 }

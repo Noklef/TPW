@@ -27,8 +27,17 @@ u32 StepDepth(u32 z, u32 step) {
     return sum + (sum < z ? 1u : 0u);
 }
 
+// The texel at the top bytes of u and v, masked by [0xfbe008] (or not).
+template <bool kMasked> u32 Texel(const u32 *uv) {
+    const u32 index = (uv[0] >> 24) | (uv[1] >> 24) << 8;
+    return global<const u32 *>(0x00fbe038)[kMasked ? index & global<u32>(0x00fbe008) : index];
+}
+
+// Each pixel's colour: from u and v, the shade words and the pixel under it; texel the texel read (its top 6 bits the alpha).
+
 // The texel's four bytes times the shade words (PMULHW of 2 * byte).
-u32 Shade(u32 texel, const u16 *shade, const u32 *) {
+u32 Shade(const u32 *uv, const u16 *shade, const u32 *, u32 &texel) {
+    texel = Texel<true>(uv);
     u32 out = 0;
     for (int k = 0; k < 4; ++k) out |= Saturate(MulHigh((u16)(Byte(texel, k) * 2), shade[k]), k);
     return out;
@@ -36,7 +45,8 @@ u32 Shade(u32 texel, const u16 *shade, const u32 *) {
 
 // The shaded texel (8 * byte) and the pixel under it (4 * byte), each times the row of its table (0xfbe2e0, 0xfbe4e0) for the
 // texel's top 6 bits, summed.
-u32 Blend(u32 texel, const u16 *shade, const u32 *dest) {
+u32 Blend(const u32 *uv, const u16 *shade, const u32 *dest, u32 &texel) {
+    texel = Texel<true>(uv);
     const u32 alpha = texel >> 26, under = *dest;
     const u16 *const mine = at<const u16>(0x00fbe2e0 + alpha * 8), *const theirs = at<const u16>(0x00fbe4e0 + alpha * 8);
     u32 out = 0;
@@ -47,17 +57,70 @@ u32 Blend(u32 texel, const u16 *shade, const u32 *dest) {
     return out;
 }
 
-enum Depth { kWrite, kKeep, kAlphaTest };  // the depth written; none; both it and the pixel only above the alpha [0xfbe010]
+// The texel (unmasked) shaded as Shade's, then 4 * each word and 4 * the pixel under it times their tables' rows for the top 6 bits
+// of the first two shaded words (sic: of the second word's top bits, not the texel's), summed.
+u32 BlendLit(const u32 *uv, const u16 *shade, const u32 *dest, u32 &texel) {
+    texel = Texel<false>(uv);
+    u16 lit[4];
+    for (int k = 0; k < 4; ++k) lit[k] = (u16)MulHigh((u16)(Byte(texel, k) * 2), shade[k]);
+    const u32 alpha = ((u32)lit[1] << 16 | lit[0]) >> 26, under = *dest;
+    const u16 *const mine = at<const u16>(0x00fbe2e0 + alpha * 8), *const theirs = at<const u16>(0x00fbe4e0 + alpha * 8);
+    u32 out = 0;
+    for (int k = 0; k < 4; ++k)
+        out |= Saturate((s16)(MulHigh((u16)(lit[k] << 2), mine[k]) + MulHigh((u16)(Byte(under, k) << 2), theirs[k])), k);
+    return out;
+}
 
-// One routine's row loop (two each, by the depth test: atLeast where the buffer's is at least the pixel's): rows of the part from the
-// edges left and right (later rows from [0xfbe208] and [0xfbe20c], which it steps); returns the row pointer after them.
-template <u32 (*Colour)(u32, const u16 *, const u32 *), Depth kDepth>
+// Shade's pixel added to the pixel under it, each byte saturated (PADDUSB).
+u32 Add(const u32 *uv, const u16 *shade, const u32 *dest, u32 &texel) {
+    const u32 lit = Shade(uv, shade, dest, texel), under = *dest;
+    u32 out = 0;
+    for (int k = 0; k < 4; ++k) {
+        const u32 sum = (u32)Byte(lit, k) + Byte(under, k);
+        out |= (sum > 0xff ? 0xffu : sum) << (8 * k);
+    }
+    return out;
+}
+
+// The four texels at (u, v), (u + 1, v), (u, v + 1), (u + 1, v + 1) (the index stepped and masked each time), weighted by u's and v's
+// bits 10-25 masked by [0xfbe1b8] (its two dwords), then shaded as Shade's.
+u32 Bilinear(const u32 *uv, const u16 *shade, const u32 *, u32 &texel) {
+    const u32 mask = global<u32>(0x00fbe008);
+    const u32 *const texels = global<const u32 *>(0x00fbe038);
+    u32 index = ((uv[0] >> 24) | (uv[1] >> 24) << 8) & mask;
+    const u32 t00 = texels[index];
+    index = (index + 1) & mask;
+    const u32 t10 = texels[index];
+    index = (index + 0x100) & mask;
+    const u32 t11 = texels[index];
+    index = (index - 1) & mask;
+    const u32 t01 = texels[index];
+    texel = t00;
+    const u16 fu = (u16)((uv[0] >> 10) & global<u32>(0x00fbe1b8)), fv = (u16)((uv[1] >> 10) & global<u32>(0x00fbe1bc));
+    u32 out = 0;
+    for (int k = 0; k < 4; ++k) {
+        const u16 top = (u16)(Byte(t00, k) + MulHigh((u16)((Byte(t10, k) - Byte(t00, k)) * 4), fu));
+        const u16 bottom = (u16)(Byte(t01, k) + MulHigh((u16)((Byte(t11, k) - Byte(t01, k)) * 4), fu));
+        const u16 mixed = (u16)(top + MulHigh((u16)((u16)(bottom - top) * 4), fv));
+        out |= Saturate(MulHigh((u16)(mixed * 2), shade[k]), k);
+    }
+    return out;
+}
+
+// What a drawn pixel writes: the pixel and the next pixel's depth (sic); the pixel and its own depth; the pixel only; both (the
+// next pixel's depth) only above the alpha [0xfbe010] (signed).
+enum Depth { kWriteNext, kWrite, kKeep, kAlphaTest };
+
+// One routine's row loop (two each, by the depth test: atLeast where the buffer's is at least the pixel's, else at most, or below
+// with kBelow): rows of the part from the edges left and right (later rows from [0xfbe208] and [0xfbe20c], which it steps); returns
+// the row pointer after them. kHalf: u and v less [0xfbe0e4] (two dwords) at each row's start too. kRunTexel: the texel of each run
+// of drawn pixels is its first pixel's (sic: the index is not reloaded in the loop).
+template <u32 (*Colour)(const u32 *, const u16 *, const u32 *, u32 &), Depth kDepth, bool kBelow, bool kHalf, bool kRunTexel = false>
 u32 TexRows(bool atLeast, Edge *left, const Edge *right, s32 rows, u32 row) {
     const u32 uvStep[2] = {global<u32>(0x00fbe138), global<u32>(0x00fbe13c)};
     const u16 *const shadeStep = at<const u16>(0x00fbe150);
     const u16 *const prestep = at<const u16>(0x00fbe160);
-    const u32 *const texels = global<const u32 *>(0x00fbe038);
-    const u32 mask = global<u32>(0x00fbe008), depthStep = global<u32>(0x00fbe148);
+    const u32 depthStep = global<u32>(0x00fbe148);
     do {
         const u32 start = (left->x + 0x7fff) & 0xffff8000u, end = (right->x + 0x7fff) >> 15;
         const u16 fraction = (u16)(left->x - start);
@@ -70,22 +133,29 @@ u32 TexRows(bool atLeast, Edge *left, const Edge *right, s32 rows, u32 row) {
             u32 uv[2], z = left->z << 16 | left->z >> 16;
             u16 shade[4];
             for (int k = 0; k < 2; ++k) uv[k] = left->uv[k] - ((u32)(u16)MulHigh(prestep[2 * k], fraction) << 18);
+            if (kHalf)
+                for (int k = 0; k < 2; ++k) uv[k] -= global<u32>(0x00fbe0e4 + 4 * k);
             for (int k = 0; k < 4; ++k) shade[k] = (u16)(left->shade[k] - 2 * MulHigh(fraction, shadeStep[k]));
+            u32 held[2] = {0, 0};
+            bool run = false;
             for (; i < 0; ++i) {
                 u16 &depth = *at<u16>(depthRow + (u32)i * 2);
-                const bool drawn = atLeast ? depth >= (u16)z : depth <= (u16)z;
+                const bool drawn = atLeast ? depth >= (u16)z : kBelow ? depth < (u16)z : depth <= (u16)z;
+                const u32 here = z;
                 z = StepDepth(z, depthStep);
                 if (drawn) {
-                    const u32 texel = texels[((uv[0] >> 24) | (uv[1] >> 24) << 8) & mask];
                     u32 &out = *at<u32>(pixels + (u32)i * 4);
-                    const u32 colour = Colour(texel, shade, &out);
+                    if (!run) held[0] = uv[0], held[1] = uv[1];
+                    u32 texel;
+                    const u32 colour = Colour(kRunTexel ? held : uv, shade, &out, texel);
                     if (kDepth == kKeep) {
                         out = colour;
-                    } else if (kDepth == kWrite || (s32)(texel >> 26) > global<s32>(0x00fbe010)) {
-                        depth = (u16)z;  // the next pixel's (sic)
+                    } else if (kDepth != kAlphaTest || (s32)(texel >> 26) > global<s32>(0x00fbe010)) {
+                        depth = (u16)(kDepth == kWrite ? here : z);
                         out = colour;
                     }
                 }
+                run = drawn;
                 for (int k = 0; k < 2; ++k) uv[k] += uvStep[k];
                 for (int k = 0; k < 4; ++k) shade[k] = (u16)(shade[k] + shadeStep[k]);
             }
@@ -122,9 +192,15 @@ void Parts(u32 row) {
 
 extern "C" {
 
-void __cdecl RasterSpan_TexShadeZ(u32 row) { Parts<TexRows<Shade, kWrite>>(row); }
+void __cdecl RasterSpan_TexShadeZ(u32 row) { Parts<TexRows<Shade, kWriteNext, false, false>>(row); }
 
-void __cdecl RasterSpan_TexBlend(u32 row) { Parts<TexRows<Blend, kKeep>>(row); }
+void __cdecl RasterSpan_TexBlend(u32 row) { Parts<TexRows<Blend, kKeep, false, false>>(row); }
 
-void __cdecl RasterSpan_TexBlendAlphaZ(u32 row) { Parts<TexRows<Blend, kAlphaTest>>(row); }
+void __cdecl RasterSpan_TexBlendAlphaZ(u32 row) { Parts<TexRows<Blend, kAlphaTest, false, false>>(row); }
+
+void __cdecl RasterSpan_TexBlendLit(u32 row) { Parts<TexRows<BlendLit, kKeep, true, false, true>>(row); }
+
+void __cdecl RasterSpan_TexAdd(u32 row) { Parts<TexRows<Add, kKeep, false, false>>(row); }
+
+void __cdecl RasterSpan_BilinearShadeZ(u32 row) { Parts<TexRows<Bilinear, kWrite, false, true>>(row); }
 }
