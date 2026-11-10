@@ -6964,6 +6964,9 @@ address,name,kind,confidence,notes
 0x00634fe0,KeySource_DeletingDtor,function,low,"reimplemented (src/game/input/messagepool); thiscall (flags): the destructor, bit 0 frees; name invented"
 0x00635000,KeySource_Dtor,function,low,"reimplemented (src/game/input/messagepool); thiscall: the pool destroyed, the device filter's destructor; name invented"
 0x00634a30,MessageSource_Open,function,low,"reimplemented (src/game/input/messagepool); thiscall (result out), pops 4: DeviceFilter_Open into a local, copied to out; returns out"
+0x00634ed0,MessageSource_DeletingDtorThunk,function,low,"reimplemented (src/game/input/messagepool); thiscall (flags), pops 4: this less 0x10, then MessageSource_DeletingDtor (an adjustor)"
+0x00635180,KeySource_DeletingDtorThunk10,function,low,"reimplemented (src/game/input/messagepool); thiscall (flags), pops 4: this less 0x10, then KeySource_DeletingDtor (an adjustor)"
+0x00635190,KeySource_DeletingDtorThunk34,function,low,"reimplemented (src/game/input/messagepool); thiscall (flags), pops 4: this less 0x34, then KeySource_DeletingDtor (an adjustor)"
 0x0047e3e0,ScreenSurfaces_Dtor,function,high,reimplemented (src/game/gfx/screensurfaces); an object releases its two COM objects
 0x00fa76b0,gSurfaceDirectDraw,data,high,IDirectDraw that Surface_Create makes surfaces with (Surface_SetDirectDraw)
 0x00fa76b4,gSurfaceNoSysLock,data,high,byte; non-zero: Surface_Lock adds DDLOCK_NOSYSLOCK

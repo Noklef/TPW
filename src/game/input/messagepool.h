@@ -37,5 +37,10 @@ u32 __fastcall MousePool_Next(u8 *self);
 
 // 0x634a30 (thiscall; result out, pops 4): DeviceFilter_Open into a local, copied to out. Returns out.
 u32 *__fastcall MessageSource_Open(u8 *self, void *, u32 *result);
+// 0x634ed0 / 0x635180 / 0x635190 (thiscall; flags, pops 4): the secondary vtables' adjustor thunks: self - 0x10, then MessageSource_DeletingDtor / self - 0x10 / - 0x34,
+// then KeySource_DeletingDtor.
+u8 *__fastcall MessageSource_DeletingDtorThunk(u8 *self, void *, u32 flags);
+u8 *__fastcall KeySource_DeletingDtorThunk10(u8 *self, void *, u32 flags);
+u8 *__fastcall KeySource_DeletingDtorThunk34(u8 *self, void *, u32 flags);
 
 }  // extern "C"
