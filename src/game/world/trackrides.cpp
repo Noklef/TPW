@@ -22,6 +22,7 @@
 #include "collobj.h"
 #include "trackrides.h"
 #include "rides.h"
+#include "world.h"
 
 namespace {
 
@@ -77,7 +78,7 @@ s32 SoundPlace(const u8 *car, u32 offset) { return Ftol(X87_MulIntDouble(at<s32>
 // The first thing in use (newest first) that is an object (+2 is 3) of the ride (its dword +0x28 the name): its handle, else 0
 // (TrakRide_FindThing's search, inlined, through Thing_ByHandle).
 u16 RideObject(u32 ride) {
-    void *const world = global<void *>(0x007cf83c);
+    void *const world = global<void *>((u32)&gWorldPtr);
     u16 handle;
     World_FirstThing(world, nullptr, &handle);
     while (handle != 0) {
@@ -1023,7 +1024,7 @@ s32 __cdecl TrakRide_AddSection(u32 handle, s32 x, s32 y, u32 piece, u32 a, u32 
 }
 
 u16 *__cdecl TrakRide_FindThing(u16 *out, u32 ride) {
-    void *const world = global<void *>(0x007cf83c);
+    void *const world = global<void *>((u32)&gWorldPtr);
     u16 handle;
     World_FirstThing(world, nullptr, &handle);
     while (handle != 0) {
@@ -1272,7 +1273,7 @@ void SoundAtCar(u8 *car, u32 &slot, bool walk) {
         if (const u16 found = *TrakRide_FindThing(reinterpret_cast<u16 *>(&slot), ride))
             id = at<s32>(global<u8 *>(0x007cfb90 + 20u * found), 0x24);
     } else {
-        void *const world = global<void *>(0x007cf83c);
+        void *const world = global<void *>((u32)&gWorldPtr);
         u16 handle, found = 0;
         World_FirstThing(world, nullptr, &handle);
         while (handle != 0) {

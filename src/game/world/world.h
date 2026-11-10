@@ -83,5 +83,6 @@ u32 __fastcall WorldGlobals_Serialize(u8 *world, void *, Stream *stream, u32 sav
 #include "../core/gamedata.h"
 
 // Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(u8 *, gWorldPtr, 0x007cf83c, 4);   // the world (NamedObjects_CreateWorld's block; 0 after GameOwner_Shutdown)
 GAME_DATA(u8[32], gWorld_7cfb70, 0x007cfb70, 0x20);
 GAME_DATA(u8[32], gWorld_802080, 0x00802080, 0x20);

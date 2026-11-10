@@ -23,6 +23,7 @@
 #include "focuscell.h"
 #include "tracktextures.h"
 #include "pathdrag.h"
+#include "world.h"
 
 namespace {
 
@@ -54,7 +55,7 @@ const MapPreviewEnv *g_env = &kGameEnv;
 
 using Line = u32(__cdecl *)(u32, s32, s32, s32 *, s32 *);
 
-u8 *World() { return global<u8 *>(0x007cf83c); }
+u8 *World() { return gWorldPtr; }
 u32 IdAt(s32 x, s32 y) { return (((u32)y << 7) + (u32)x + 1) & 0xffff; }
 // The 0x28-byte map cell of a cell id: [0x7cf83c] + (id + 0x6cde) * 0x28; the 0x44-byte one: [0x7cf83c] + 0x294 + id * 0x44.
 u8 *Cell28(u32 id) { return World() + ((id & 0xffff) + 0x6cde) * 0x28; }
@@ -172,8 +173,8 @@ void Piece(const MapPreviewEnv *E, s32 &x, s32 &y) {
         if (gMapclick_8187f8 != 0 && Map_InBounds(x, y)) {
             const u8 *def = Def(E);
             const u32 angle = Global81d7a4_Get_52f1f0();
-            x = Even(x, global<s32>(0x007639a4));
-            y = Even(y, global<s32>(0x007639a8));
+            x = Even(x, gFocusCell_X_7639a4);
+            y = Even(y, gFocusCell_Y_7639a8);
             PieceX() = x;
             PieceY() = y;
             if (Map_InBounds(x, y)) {
@@ -217,28 +218,28 @@ void Piece(const MapPreviewEnv *E, s32 &x, s32 &y) {
 // Mode 0x1a: a ride's entrance or exit dragged.
 void EntranceDrag(const MapPreviewEnv *E, s32 &x, s32 &y, u32 flags) {
     if (global<u16>(0x00818698) == 0) return;
-    x = Even(x, global<s32>(0x007639a4));
-    y = Even(y, global<s32>(0x007639a8));
+    x = Even(x, gFocusCell_X_7639a4);
+    y = Even(y, gFocusCell_Y_7639a8);
     gFocuscell_8186b8 = x;
     gFocuscell_8186b4 = y;
-    if (global<u16>(0x007639b0) == 0xffff) E->applyLine(Mode(), x, y, &x, &y);
-    if (global<u32>(0x007639c0) == 0) {
+    if (gMapClick_StartWord_7639b0 == 0xffff) E->applyLine(Mode(), x, y, &x, &y);
+    if (gMapClick_7639c0 == 0) {
         E->corners();
         E->mapClick(StartX(), StartY(), flags, 0);
         if (Global81ae2c_Equals(0x1a)) E->setOnly(0x19, 1);
         return;
     }
-    if (global<u16>(0x007639b0) == 0xffff) return;
+    if (gMapClick_StartWord_7639b0 == 0xffff) return;
     u16 &here = global<u16>(0x00818684);
     here = (u16)IdAt(x, y);
-    global<u16>(0x007639b4) = MapCell_Word24(Cell28(here));
+    gMapClick_EndWord_7639b4 = MapCell_Word24(Cell28(here));
     const u32 kind = E->canBuildTrack(Cell28(here), nullptr, Global81ae2c_Get_52f840(), 0, 0);
-    const u16 end = global<u16>(0x007639b0), other = global<u16>(0x00818694);
+    const u16 end = gMapClick_StartWord_7639b0, other = global<u16>(0x00818694);
     if (kind != 9) {
         here = other;
-        global<u16>(0x007639b4) = end;
+        gMapClick_EndWord_7639b4 = end;
     }
-    if ((s16)end > (s16)global<u16>(0x007639b4)) E->connect(Cell28(here), Cell28(other), 0);
+    if ((s16)end > (s16)gMapClick_EndWord_7639b4) E->connect(Cell28(here), Cell28(other), 0);
     else E->connect(Cell28(other), Cell28(here), 0);
 }
 
@@ -296,8 +297,8 @@ extern "C" void __cdecl GameMode_MapPreview(s32 x, s32 y, u32 flags) {
             const s32 w = Sub(gTracktextures_81d740, 2), h = Sub(global<s32>(0x0081b1b0), 3);
             if (!(cx < w)) cx = w;
             if (!(cy < h)) cy = h;
-            x = Even(cx, global<s32>(0x007639f0));
-            y = Even(cy, global<s32>(0x007639f4));
+            x = Even(cx, gFocusCell_PointAX_7639f0);
+            y = Even(cy, gFocusCell_PointAY_7639f4);
             if (HasStart()) {
                 gCellbuild_816d50 = E->checkArea(StartX(), StartY(), x, y, 1) == 0;
                 Rect(E->applyLine, 0, x, y, 2);
@@ -341,7 +342,7 @@ extern "C" void __cdecl GameMode_MapPreview(s32 x, s32 y, u32 flags) {
         case 0x16:
             gMapclick_818c10 = 3;
             if (gPathdrag_818c54 != 0) gCellbuild_816d50 = E->canPlaceAt((u32)x, (u32)y, nullptr, 0, 0, 0, 0) == 0;
-            if (global<s32>(0x007639a0) == -1) global<s32>(0x007639a0) = (s16)MapCell_Word40(Cell44(IdAt(x, y)));
+            if (gMapClick_Mode_7639a0 == -1) gMapClick_Mode_7639a0 = (s16)MapCell_Word40(Cell44(IdAt(x, y)));
             E->sendLine(0x116, x, y, &x, &y);
             if (gPathdrag_818c54 != 0) CoasterArea(E);
             break;

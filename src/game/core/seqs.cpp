@@ -6,6 +6,7 @@
 #include "../gfx/texset.h"
 #include "gameheap.h"
 #include "movs.h"
+#include "../world/steering.h"
 
 namespace {
 
@@ -159,8 +160,8 @@ u32 *__cdecl Dwords_Copy(const u32 *first, const u32 *last, u32 *dest) {
 }
 
 void __cdecl EntryStack_Clear() {
-    u32 &top = *reinterpret_cast<u32 *>(0x007cf07c);
-    const u32 &base = *reinterpret_cast<u32 *>(0x007cf078);
+    u32 &top = gSteering_Behaviours_7cf078.end;
+    const u32 &base = gSteering_Behaviours_7cf078.begin;
     if (top <= base)
         return;
     do {

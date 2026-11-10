@@ -122,4 +122,28 @@ void __cdecl Steering_SetPathBehaviours();
 GAME_DATA(u8 *[8], gSteering_761ec0, 0x00761ec0, 0x20);
 GAME_DATA(char[12], gText_Steering_761ef0, 0x00761ef0, 0xc);
 GAME_DATA(char[12], gText_Steering_761f1c, 0x00761f1c, 0xc);
+GAME_DATA(char[12], gText_Steering_761f28, 0x00761f28, 0xc);
 GAME_DATA(s32, gSteering_7cf048, 0x007cf048, 0x4);
+
+// A behaviour object (0x24 bytes: avoid_obstacle 0x7cf360 ends at 0x7cf384's float): the vtable, the name copied by the constructor.
+struct SteerBehaviour {
+    u32 vtable;
+    char name[0x20];
+};
+// The nav's behaviour list (Block50_Ctor's begin, end and capacity; 8-byte entries {weight, behaviour}).
+struct SteerList {
+    u32 begin;
+    u32 end;
+    u32 capacity;
+};
+GAME_DATA(SteerBehaviour, gSteerSeek_7cf050, 0x007cf050, 0x24);
+GAME_DATA(SteerList, gSteering_Behaviours_7cf078, 0x007cf078, 0xc);
+GAME_DATA(SteerBehaviour, gSteerAvoidWalls_7cf088, 0x007cf088, 0x24);
+GAME_DATA(SteerBehaviour, gSteerArrival_7cf0b0, 0x007cf0b0, 0x24);
+GAME_DATA(SteerBehaviour, gSteerSeparation_7cf0d8, 0x007cf0d8, 0x24);
+GAME_DATA(s32[2], gSteering_Force_7cf100, 0x007cf100, 0x8);
+GAME_DATA(SteerBehaviour, gSteerFollowPath_7cf308, 0x007cf308, 0x24);
+GAME_DATA(s32, gSteering_NearestHit_7cf32c, 0x007cf32c, 0x4);
+GAME_DATA(u8, gSteering_BehavioursGuard_7cf330, 0x007cf330, 0x1);   // bit 0: the list's exit entry ran
+GAME_DATA(SteerBehaviour, gSteerRepelObstacle_7cf338, 0x007cf338, 0x24);
+GAME_DATA(SteerBehaviour, gSteerAvoidObstacle_7cf360, 0x007cf360, 0x24);

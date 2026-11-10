@@ -4,6 +4,7 @@
 #include <cstdint>
 #include "../ui/dialog74fb20.h"
 #include "../ui/panel7b9940.h"
+#include "world.h"
 
 namespace {
 
@@ -14,7 +15,7 @@ template <typename T> T &at(u32 address, u32 offset) { return *reinterpret_cast<
 
 const u32 kHolder = reinterpret_cast<uintptr_t>(&gPanel7b9940_7b05e8);
 
-u32 level() { return global<u32>(0x007cf83c); }
+u32 level() { return global<u32>((u32)&gWorldPtr); }
 u16 tileId() { return global<u16>(0x007b05cc); }
 u32 tileOf(u16 id) { return level() + 0x294 + (u32)id * 0x44; }
 u32 alloc(u32 size) { return g_calls.Cd(0x0067acc0, size); }

@@ -332,7 +332,7 @@ void __fastcall Panel7cc218_UpdateButtons(u8 *self) {
 
 u32 __fastcall Panel7cc218_Choose(u8 *, void *, s32 index, u8 close) {
     u8 *const thing = gPanel7cc218_7c2658;
-    u8 *const game = *reinterpret_cast<u8 **>(0x007cf83c);
+    u8 *const game = *&gWorldPtr;
     const s32 balance = (s32)Source_Field0c(reinterpret_cast<const TrackedSource *>((uintptr_t)GameTable7cfb90_Get1da726_5195d0(game)));
     if (close == 1) {
         Object_SetOpen(thing, nullptr, 0);
@@ -423,7 +423,7 @@ bool modeIsTwo() {
     return gDialog74fb20_fb3b7c == 2;
 }
 
-u8 *controlsTable() { return global<u8 *>(0x007cf83c) + 0x1d943c; }
+u8 *controlsTable() { return gWorldPtr + 0x1d943c; }
 
 void addRow(u8 *list, u32 first, u32 second, u32 data) {
     const u32 texts[2] = {first, second};

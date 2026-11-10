@@ -11,6 +11,7 @@
 #include "panel7c2534.h"
 #include "../online/chatcommand.h"
 #include "dialog74fb20.h"
+#include "../world/world.h"
 
 extern "C" const u16 *__cdecl Language_WideText(u32 id);
 
@@ -85,7 +86,7 @@ void __cdecl Panel7c2534_BuildMain() {
         Row(top + 5, 8, 0x14, grey);
         return;
     }
-    if (at<u32>(global<u8 *>(0x007cf83c), 0x1da738) == 4) {
+    if (at<u32>(gWorldPtr, 0x1da738) == 4) {
         top = Row(0xa, 3, 0x16, grey);
         top = Row(top + 5, 0xa, 0x17, grey);
         top = Row(top + 5, 7, 0x15, grey);

@@ -16,3 +16,8 @@ void __fastcall Thing_NameA(u8 *thing, void *, u16 *to, u32 count);
 
 // 0x4e2920 (thiscall (to, count), pops 8): the text +0x40a into to, with the format 0x75c0cc.
 void __fastcall Thing_NameB(u8 *thing, void *, u16 *to, u32 count);
+
+#include "../core/gamedata.h"
+
+// Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(u16[0x21], gThingName_Copy_7cdc58, 0x007cdc58, 0x42);   // the text without its "--"

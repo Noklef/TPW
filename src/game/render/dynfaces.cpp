@@ -413,7 +413,7 @@ void __cdecl DynFaces_Frame() {
     DynFaces_RippleGrid(7, 5, of(0x3fe66666), global<float>(0x00871ed0));   // 1.8
     u32 tag = 0x12;
     for (u32 e = 0x00763cf8; e < 0x00763d78; e += 0x10) {
-        const u8 *const record = reinterpret_cast<const u8 *>(GameTable7cfb90_Get1da724_519590(global<u8 *>(0x007cf83c)));
+        const u8 *const record = reinterpret_cast<const u8 *>(GameTable7cfb90_Get1da724_519590(gWorldPtr));
         const float angle = (float)(X87Reg(at<float>(record, 0x5c)) * gDynFaces_Frame_700dd0);
         DynFaces_AddTurnedGrid(global<float>(e - 4), global<float>(e), global<float>(e + 4), 0.5f, 6, 4, tag, angle);
         tag = tag == 0x12 ? 0x13 : 0x12;

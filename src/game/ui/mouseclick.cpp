@@ -32,7 +32,7 @@ const MouseClickEnv kGameEnv = {Global7c2534_HasSource, Map_ObjectOrEntranceAt, 
                                 Panel7cc408_Show, Panel7cc3b0_Show, Dialog7ca210_Open, Dialog7ca1c8_OpenFor, FocusCell_Update, Cell_FirstObject};
 const MouseClickEnv *g_env = &kGameEnv;
 
-u8 *game() { return global<u8 *>(0x007cf83c); }
+u8 *game() { return gWorldPtr; }
 u8 *thingOf(u32 handle) { return global<u8 *>(0x007cfb90 + (handle & 0xffff) * 20); }
 u8 *cellOf(u32 tile) { return game() + tile * 0x44 + 0x294; }
 u8 *recordOf(u32 tile) { return game() + (tile + 0x6cde) * 40; }

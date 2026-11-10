@@ -223,3 +223,16 @@ GAME_DATA(s16, gParticles_816d20, 0x00816d20, 0x2);
 GAME_DATA(s16, gParticles_816d22, 0x00816d22, 0x2);
 GAME_DATA(u32, gParticles_816d38, 0x00816d38, 0x4);
 GAME_DATA(u32, gParticles_816d3c, 0x00816d3c, 0x4);
+// The three particle pools (ParticlePools_Reset zeroes the 0x33 dwords; a pool's handles past the fifth run into the next pool, sic).
+struct ParticlePool {
+    float fromX, fromY;          // +0x00
+    float toX, toY;              // +0x08
+    float startTime;             // +0x10
+    float duration;              // +0x14
+    float spin;                  // +0x18
+    float radiusX0, radiusY0;    // +0x1c
+    float radiusX1, radiusY1;    // +0x24
+    s32 count;                   // +0x2c
+    u32 handles[5];              // +0x30
+};
+GAME_DATA(ParticlePool[3], gParticlePools_f86900, 0x00f86900, 0xcc);

@@ -2,6 +2,7 @@
 #include "gamefile.h"
 
 #include <cstdint>
+#include "world.h"
 
 namespace {
 
@@ -11,7 +12,7 @@ const u32 kActions = 0x00785a08, kClock = 0x00785970, kVanillaTime = 0x007859e8,
 
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
 
-u32 level() { return global<u32>(0x007cf83c); }
+u32 level() { return global<u32>((u32)&gWorldPtr); }
 
 void positions(Stream *stream) {
     Stream_Tell(stream);

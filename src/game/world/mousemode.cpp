@@ -28,6 +28,7 @@
 #include "../ui/dialog74fb20.h"
 #include "../ui/panel7b9940.h"
 #include "mousemode.h"
+#include "world.h"
 
 namespace {
 
@@ -131,7 +132,7 @@ void __fastcall MMPlaceStaff_Hover(u8 *self, void *, u32, u32, u32, u32) {
     if (!at<s32>(self, 8)) return;
     const float *const point = Highlight_Point();
     const float x = point[0], y = point[1], z = point[2];
-    u8 *const cell = *reinterpret_cast<u8 **>(0x007cf83c) + 0x294 + *reinterpret_cast<const u16 *>(0x007b05cc) * 0x44;
+    u8 *const cell = *&gWorldPtr + 0x294 + *reinterpret_cast<const u16 *>(0x007b05cc) * 0x44;
     SpriteScript_SetPosition(at<s32>(self, 8), bits(x), bits(y - -5.0f), bits(z), 4);
     const u16 *const handle = reinterpret_cast<const u16 *>(cell);
     if (!MapHandle_IsTypeBDOr10Or12Or19(handle) && !MapCell_HasFlags(cell, nullptr, 0x40) && !MapHandle_ParentIsType19(handle) &&
@@ -142,7 +143,7 @@ void __fastcall MMPlaceStaff_Hover(u8 *self, void *, u32, u32, u32, u32) {
 
 void __fastcall MMPlaceStaff_Click(u8 *self, void *, u32, u32) {
     const u32 tile = *reinterpret_cast<const u16 *>(0x007b05cc);
-    u8 *const cell = *reinterpret_cast<u8 **>(0x007cf83c) + 0x294 + tile * 0x44;
+    u8 *const cell = *&gWorldPtr + 0x294 + tile * 0x44;
     const u16 *const handle = reinterpret_cast<const u16 *>(cell);
     if (MapHandle_IsTypeBDOr10Or12Or19(handle) || MapCell_HasFlags(cell, nullptr, 0x40) || MapHandle_ParentIsType19(handle) ||
         !(MapCell_IsType0(cell) || MapCell_IsType1(cell) || MapCell_IsType3Or9(cell)))
@@ -352,7 +353,7 @@ void __cdecl MouseMode_EnterTile15() { enter_tile(0x15); }
 void __cdecl MouseMode_EnterTile16() { enter_tile(0x16); }
 
 void __cdecl ChatButtons_Select(u32 leave) {
-    if (*reinterpret_cast<u32 *>(*reinterpret_cast<uintptr_t *>(0x007cf83c) + 0x1da738) == 4 || Word7cf4f4_NonZero()) return;
+    if (*reinterpret_cast<u32 *>(*reinterpret_cast<uintptr_t *>((u32)&gWorldPtr) + 0x1da738) == 4 || Word7cf4f4_NonZero()) return;
     Window_SendMessage(gPanel7b9940_7cb2ac, 6, leave, 0);
     Window_SendMessage(gPanel7b9940_7cb2b0, 6, 1 - leave, 0);
     u8 &guard = gDialog7cb2b8build_fb34c1;   // (the mode setting 0xfb3b7c: this function's own guard of it)
@@ -380,8 +381,8 @@ void __fastcall MouseMode_CancelStaff(u8 *self) {
     const u32 script = at<u32>(self, 8);
     if (script) g_calls.Cd(0x00475550, script);   // SpriteScript_Kill
     at<u32>(self, 8) = 0;
-    g_calls.Th(0x005083b0, *reinterpret_cast<u32 *>((uintptr_t)0x007cf83c), at<u8>(self, 0x18) ? 0u : 1u);   // World_ClearStaffSlots
-    const u32 table = g_calls.Th(0x005194d0, *reinterpret_cast<u32 *>((uintptr_t)0x007cf83c));
+    g_calls.Th(0x005083b0, *reinterpret_cast<u32 *>((uintptr_t)(u32)&gWorldPtr), at<u8>(self, 0x18) ? 0u : 1u);   // World_ClearStaffSlots
+    const u32 table = g_calls.Th(0x005194d0, *reinterpret_cast<u32 *>((uintptr_t)(u32)&gWorldPtr));
     g_calls.Th(0x0059aa70, table, 0x135u);   // Advisor_Cancel
 }
 

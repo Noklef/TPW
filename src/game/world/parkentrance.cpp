@@ -11,6 +11,7 @@
 #include "mapcell.h"
 #include "mapclick.h"
 #include "trackline.h"
+#include "world.h"
 
 namespace {
 
@@ -19,16 +20,16 @@ template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((ui
 const ParkEntranceEnv kPortEnv = {&GameMode_Set, &FocusCell_Update, &GameMode_MapClick, &CellRun_Mark, &TrackLine_Prune, &CellRun_Lay, &MapCell_ApplyPathModel, &Terrain_ShadeNormals, &GameCursor_Set};
 const ParkEntranceEnv *g_env = &kPortEnv;
 
-s32 &EndColumn() { return global<s32>(0x007639f0); }
-s32 &EndRow() { return global<s32>(0x007639f4); }
-s32 &StartColumn() { return global<s32>(0x007639f8); }
-s32 &StartRow() { return global<s32>(0x007639fc); }
+s32 &EndColumn() { return gFocusCell_PointAX_7639f0; }
+s32 &EndRow() { return gFocusCell_PointAY_7639f4; }
+s32 &StartColumn() { return gFocusCell_PointBX_7639f8; }
+s32 &StartRow() { return gFocusCell_PointBY_7639fc; }
 
 void Click(s32 x, s32 y) { g_env->mapClick(x, y, 0, 0); }
 
 void ClearCell(u32 id) {
     const u32 index = id & 0xffff;
-    u8 *const cell = global<u8 *>(0x007cf83c) + index * 0x44 + 0x294;
+    u8 *const cell = gWorldPtr + index * 0x44 + 0x294;
     MapCell_ClearFlags(cell, nullptr, 0x40);
     g_env->pathModel(cell);
 }
@@ -40,8 +41,8 @@ void ParkEntrance_SetEnv(const ParkEntranceEnv *env) { g_env = env ? env : &kPor
 void __cdecl ParkEntrance_Lay() {
     u16 first, second;
     global<u8>(0x0081b4cc) = 1;
-    Map_EntrancePos(global<u8 *>(0x007cf83c) + 0x2d8, nullptr, &first, 0);
-    Map_EntrancePos(global<u8 *>(0x007cf83c) + 0x2d8, nullptr, &second, 1);
+    Map_EntrancePos(gWorldPtr + 0x2d8, nullptr, &first, 0);
+    Map_EntrancePos(gWorldPtr + 0x2d8, nullptr, &second, 1);
 
     gFocuscell_818c50 = 4;
     const u32 start = (u32)first - 1, end = (u32)second - 1;
@@ -94,7 +95,7 @@ void __cdecl ParkEntrance_LayOutline(s32 x1, s32 y1, s32 x2, s32 y2) {
     Click(left, top);
     g_env->setMode(0, 0);
     g_env->cursor(1);
-    global<u32>(0x007639c0) = g_env->lay(EndColumn(), EndRow(), StartColumn(), StartRow(), 4, 1);
+    gMapClick_7639c0 = g_env->lay(EndColumn(), EndRow(), StartColumn(), StartRow(), 4, 1);
     g_env->mark(1);
     g_env->prune();
     g_env->mark(0);

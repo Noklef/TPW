@@ -23,7 +23,7 @@ template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((ui
 const DialogTabHandlersEnv kGameEnv = {&Window_SendMessage, &Dialog_KeyHandler, &Game_CancelAdvisor, &GameTable7cfb90_Get1da726_5195d0, &Obj_Set118, &Game_OpenPark, &Dialog7ca2e8_Open, &Dialog7cb25c_Open, &Dialog7cc2ec_Open, &Dialog7ca210_Open, &Dialog7cb398_Create, &GameTable7cfb90_Get1da718_519450};
 const DialogTabHandlersEnv *g_env = &kGameEnv;
 
-u8 *game() { return global<u8 *>(0x007cf83c); }
+u8 *game() { return gWorldPtr; }
 void close(u32 dialog) { g_env->send(global<u8 *>(dialog), 4, 0, 0); }
 s32 *budget() { return reinterpret_cast<s32 *>((uintptr_t)g_env->money(game()) + 0xc); }
 

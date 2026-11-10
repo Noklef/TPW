@@ -20,6 +20,7 @@
 #include "../gfx/texcache.h"
 #include "../coaster/arreplayaction.h"
 #include "../world/camera.h"
+#include "../world/world.h"
 
 namespace {
 
@@ -381,9 +382,9 @@ void WorldStep() {   // state 0xa: every eighth step
     if (ran < 3) {
         G<u32>(0x00879064) = ran + 1;
         if (Mode() == 0 || Mode() == 2) {
-            Timed(0x00878688, 0x00878088, [] { Th(0x00516380, G<u32>(0x007cf83c)); });   // World_Tick
+            Timed(0x00878688, 0x00878088, [] { Th(0x00516380, G<u32>((u32)&gWorldPtr)); });   // World_Tick
         } else if (Mode() == 1) {
-            Th(0x005166b0, G<u32>(0x007cf83c));
+            Th(0x005166b0, G<u32>((u32)&gWorldPtr));
             Th(0x004e6170, Chat());
         }
     }
@@ -394,13 +395,13 @@ void MusicLevels() {   // state 0xa: every 32nd step
     constexpr u32 kKind = 0x001da738;
     s32 count = (s32)Th(0x004c81e0, Th(0x00519510, G<u32>(G<u32>(0x007cf6ec))));   // ParkAnalyser_Kind1OnPlainHalf of GameTable7cfb90_Get1da720
     if (count > 0x59) count = 0x59;
-    if (at<u32>(G<u32>(0x007cf83c), kKind) == 4) count = 0;
+    if (at<u32>(G<u32>((u32)&gWorldPtr), kKind) == 4) count = 0;
     Cd(0x0051e790, count);   // Sound_SetMusicLevel
     const u32 word = G<u16>(0x007b05cc);   // (pushed over a stale high word)
-    const u32 table = Th(0x00519510, G<u32>(0x007cf83c));
+    const u32 table = Th(0x00519510, G<u32>((u32)&gWorldPtr));
     s32 around = (s32)Th(0x004c8d30, table, 1, word, 4, 0);   // Things_CountOfKindAround
     if (around > 0x64) around = 0x64;
-    if (at<u32>(G<u32>(0x007cf83c), kKind) == 4) around = 0;
+    if (at<u32>(G<u32>((u32)&gWorldPtr), kKind) == 4) around = 0;
     Cd(0x0051e7b0, around);   // Sound_SetKidsLevel
     Cd(0x0055ab50);   // FlyingRide_SetBounds
 }
@@ -457,9 +458,9 @@ void Drawing() {   // state 0xa
     Cd(0x00599880);
     Th(0x004813b0, kPanel);
     Cd(0x00557ab0);   // Rsse_UpdateAll
-    Th(0x00519060, G<u32>(0x007cf83c), ScaledSigned((s32)(G<u32>(0x008786bc) - G<u32>(0x00878c74)), 0x00700f8c));   // Things_PoseRides
+    Th(0x00519060, G<u32>((u32)&gWorldPtr), ScaledSigned((s32)(G<u32>(0x008786bc) - G<u32>(0x00878c74)), 0x00700f8c));   // Things_PoseRides
     Cd(0x0055ce60, ScaledSigned((s32)(G<u32>(0x008786bc) - G<u32>(0x0087879c)), 0x00700f90));   // FlyingRides_LerpSlots
-    Th(0x00518f90, G<u32>(0x007cf83c), ScaledSigned((s32)(G<u32>(0x008786bc) - G<u32>(0x00878a1c)), 0x00700f94));   // World_PlaceSprites
+    Th(0x00518f90, G<u32>((u32)&gWorldPtr), ScaledSigned((s32)(G<u32>(0x008786bc) - G<u32>(0x00878a1c)), 0x00700f94));   // World_PlaceSprites
     Cd(0x00443340);   // CoasterEdit_Update
     Cd(0x00435a30);
     Cd(0x0044e410, 2);

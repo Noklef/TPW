@@ -10,6 +10,8 @@
 #include "placeobject.h"
 #include "focuscell.h"
 #include "cellbuild.h"
+#include "../math/intpair.h"
+#include "world.h"
 
 namespace {
 
@@ -30,7 +32,7 @@ s32 abs32(u32 v) {
 
 u8 *cell(s32 x, s32 y) {
     const u32 id = ((static_cast<u32>(y) << 7) + static_cast<u32>(x) + 1) & 0xffff;
-    return reinterpret_cast<u8 *>((uintptr_t)(global<u32>(0x007cf83c) + (id + 0x6cde) * 0x28));
+    return reinterpret_cast<u8 *>((uintptr_t)(global<u32>((u32)&gWorldPtr) + (id + 0x6cde) * 0x28));
 }
 
 // The end pulled in to an even distance from `from` (written back), and the step toward it: -2, 0 or 2.
@@ -107,10 +109,10 @@ void __fastcall MapLine_LinkCell(u8 *cell, void *, u32 kind, s32 stepX, s32 step
     }
     if (kind == 0xb || kind == 0xd || kind == 0x10 || kind == 0x12 || kind == 0x19) {
         const bool only19 = kind == 0x19;
-        if (sy == 2) link(cell, 0x007cdba0, 0x01, 0x10, only19);
-        if (sx == -2) link(cell, 0x007cdbc8, 0x04, 0x40, only19);
-        if (sy == -2) link(cell, 0x007cdba8, 0x10, 0x01, only19);
-        if (sx == 2) link(cell, 0x007cdbd0, 0x40, 0x04, only19);
+        if (sy == 2) link(cell, (u32)gStepN_7cdba0, 0x01, 0x10, only19);
+        if (sx == -2) link(cell, (u32)gStepE_7cdbc8, 0x04, 0x40, only19);
+        if (sy == -2) link(cell, (u32)gStepS_7cdba8, 0x10, 0x01, only19);
+        if (sx == 2) link(cell, (u32)gStepW_7cdbd0, 0x40, 0x04, only19);
     }
     reinterpret_cast<s32 &>(gGamemode_763b00) = stepX;
     reinterpret_cast<s32 &>(gGamemode_763b04) = stepY;
@@ -118,11 +120,11 @@ void __fastcall MapLine_LinkCell(u8 *cell, void *, u32 kind, s32 stepX, s32 step
 
 u32 __cdecl MapCell_PathLines(s32 x, s32 y) {
     const u32 id = ((u32)y * 0x80 + (u32)x + 1) & 0xffff;
-    const u8 *here = global<u8 *>(0x007cf83c) + id * 0x44 + 0x294;
+    const u8 *here = gWorldPtr + id * 0x44 + 0x294;
     const u8 *entry = MapHandle_Entry28(reinterpret_cast<const u16 *>(here));
     s32 dx = 0, dy = 0;
     if (MapCell_IsTypeCOr11(entry)) {
-        entry = global<u8 *>(0x007cf83c) + ((u32)*reinterpret_cast<const u16 *>(entry + 0x10) + 0x6cde) * 0x28;
+        entry = gWorldPtr + ((u32)*reinterpret_cast<const u16 *>(entry + 0x10) + 0x6cde) * 0x28;
         here = MapHandle_Cell44(reinterpret_cast<const u16 *>(entry));
         const u32 index = (u32)*reinterpret_cast<const u16 *>(here) - 1;
         x = (s32)(index & 0x7f);
@@ -130,7 +132,7 @@ u32 __cdecl MapCell_PathLines(s32 x, s32 y) {
     }
     if (MapCell_HasFlags(entry, nullptr, 0x10)) {
         const u16 group = *reinterpret_cast<const u16 *>(here + 0x10);
-        const u32 pairs[4] = {0x007cdba0, 0x007cdbc8, 0x007cdba8, 0x007cdbd0};
+        const u32 pairs[4] = {(u32)gStepN_7cdba0, (u32)gStepE_7cdbc8, (u32)gStepS_7cdba8, (u32)gStepW_7cdbd0};
         s32 *const sides[4] = {&dy, &dx, &dy, &dx};
         const s32 steps[4] = {-2, 2, 2, -2};
         for (u32 k = 0; k < 4; ++k) {
@@ -188,8 +190,8 @@ u8 *__cdecl Map_ApplyEntranceLines(const u8 *thing, s32 *xOut, s32 *yOut, u32 ki
     Map_ApplyLine(0x82, startX, startY, &endX, &endY);
     Map_ApplyLine(0x83, startX, startY, &endX, &endY);
     if (Map_InBounds(startX, startY)) {
-        global<s32>(0x007639e0) = startX;
-        global<s32>(0x007639e4) = startY;
+        gFocusCell_StartX_7639e0 = startX;
+        gFocusCell_StartY_7639e4 = startY;
     }
     if (!Map_InBounds(x, y)) return nullptr;
     *xOut = x;

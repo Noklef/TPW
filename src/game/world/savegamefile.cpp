@@ -15,7 +15,7 @@ const u32 kFileVtable = 0x006fd930, kMemoryVtable = 0x006fd6a0, kUi = 0x007b51f0
 
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
 
-u32 level() { return global<u32>(0x007cf83c); }
+u32 level() { return global<u32>((u32)&gWorldPtr); }
 u32 alloc(u32 size) { return g_calls.Cd(0x0067acc0, size); }
 void release(u32 block) { g_calls.Cd(0x0067acb0, block); }
 bool failed(u32 status) { return *reinterpret_cast<const s32 *>((uintptr_t)status) < 0; }

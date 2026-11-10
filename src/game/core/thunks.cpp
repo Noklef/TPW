@@ -49,6 +49,7 @@
 #include "crt.h"
 #include "keymap.h"
 #include "../world/nav.h"
+#include "../world/object.h"
 #include "iosbase.h"
 
 namespace {
@@ -550,7 +551,7 @@ u8 *__cdecl Wrap_SystemInfo_Ctor_5f8a40() {
 }
 
 void __cdecl Wrap_Array7ced88_Dtor_4fa750() {
-    CRT_VectorDtorIterator(reinterpret_cast<u8 *>((uintptr_t)0x007ced88), 8, 9, reinterpret_cast<void(__fastcall *)(void *)>((uintptr_t)0x005d1750));
+    CRT_VectorDtorIterator(reinterpret_cast<u8 *>((uintptr_t)(u32)&gObject_Around_7ced88[0][0]), 8, 9, reinterpret_cast<void(__fastcall *)(void *)>((uintptr_t)0x005d1750));
 }
 
 void __cdecl Wrap_Array81ed40_Dtor_532bb0() {

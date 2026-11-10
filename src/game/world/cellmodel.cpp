@@ -11,6 +11,8 @@
 #include "queuepieces.h"
 #include "random.h"
 #include "rides.h"
+#include "world.h"
+#include "focuscell.h"
 
 namespace {
 
@@ -80,7 +82,7 @@ u32 __fastcall MapCell_PickModel(const u8 *cell, void *, s32 *angle) {
         const u32 index = static_cast<u32>(at<u16>(cell, 0)) - 1;
         const s32 x = static_cast<s32>(index & 0x7f), y = static_cast<s32>(index >> 7);
         const s32 turn = turn_of(cell, direction);
-        if ((x == global<s32>(0x007639f0) && y == global<s32>(0x007639f4)) || (x == global<s32>(0x007639f8) && y == global<s32>(0x007639fc)))
+        if ((x == gFocusCell_PointAX_7639f0 && y == gFocusCell_PointAY_7639f4) || (x == gFocusCell_PointBX_7639f8 && y == gFocusCell_PointBY_7639fc))
             bits |= static_cast<u8>(Nibble_Scale(bits));
         model = search(0x00762ff0, global<s32>(0x00700c1c), bits, turn, angle);
         break;
@@ -127,7 +129,7 @@ u32 __fastcall MapCell_PickModel(const u8 *cell, void *, s32 *angle) {
         const u32 variant = counter < 0x12 ? 0 : counter < 0x18 ? 0x14 : counter < 0x1e ? 0x17 : static_cast<u32>(reinterpret_cast<uintptr_t>(angle));
         if (gCellmodel_820af0 != variant) model += variant;
         gCellmodel_820af0 = variant;
-        reinterpret_cast<u32 &>(gCellmodel_820aec) = static_cast<u32>(World_Rand(global<u8 *>(0x007cf83c))) % 30;
+        reinterpret_cast<u32 &>(gCellmodel_820aec) = static_cast<u32>(World_Rand(gWorldPtr)) % 30;
     }
     return (model & 0xffff) | 0x50000;
 }
@@ -167,7 +169,7 @@ u32 __fastcall MapCell_PickPathModel(const u8 *cell, void *, s32 *angle) {
             if (next && at<s32>(next, 8) == 1 && (MapCell_Neighbours(next) & static_cast<u8>(Nibble_Scale(side)))) {
                 const u8 *entry = MapHandle_Entry28(handle);
                 if (MapCell_IsTypeCOr11(entry))
-                    entry = global<u8 *>(0x007cf83c) + (static_cast<u32>(at<u16>(MapHandle_Entry28(handle), 0x10)) + 0x6cde) * 0x28;
+                    entry = gWorldPtr + (static_cast<u32>(at<u16>(MapHandle_Entry28(handle), 0x10)) + 0x6cde) * 0x28;
                 if (!MapCell_HasLowFlags(entry)) model += 3;
             }
         }

@@ -12,6 +12,7 @@
 #include "trackrides.h"
 #include "focuscell.h"
 #include "rides.h"
+#include "world.h"
 
 namespace {
 
@@ -21,7 +22,7 @@ template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((ui
 const TrackCircuitEnv kGameEnv = {&TrakRide_Strip, &TrakRide_AddSection, &MapCell_ApplyModel};
 const TrackCircuitEnv *g_env = &kGameEnv;
 
-u8 *cell28(u32 id) { return global<u8 *>(0x007cf83c) + ((id & 0xffff) + 0x6cde) * 0x28; }
+u8 *cell28(u32 id) { return gWorldPtr + ((id & 0xffff) + 0x6cde) * 0x28; }
 u8 *slot(u32 handle) { return global<u8 *>(0x007cfb90 + 20 * handle); }
 
 // FILD, FMUL 3072.0f (0x700cdc), __ftol: the product is exact, its low dword returned.
@@ -100,8 +101,8 @@ u32 __cdecl TrackCircuit_Walk(u32 check) {
     u8 direction = gFocuscell_818c50;
     s32 upgrades = 0, index = 0;
     u32 mesh = 0, def = 0, result = 1, sides = 0;
-    s32 x0 = global<s32>(0x007639e0), y0 = global<s32>(0x007639e4);
-    switch (global<s32>(0x007639ac)) {
+    s32 x0 = gFocusCell_StartX_7639e0, y0 = gFocusCell_StartY_7639e4;
+    switch (gFocusCell_Facing_7639ac) {
     case 0: x0 -= 4; break;
     case 0x5a: y0 += 4; break;
     case 0xb4: x0 += 4; break;

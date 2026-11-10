@@ -6,6 +6,7 @@
 #include "tracktextures.h"
 #include "cellbuild.h"
 #include "cellrun.h"
+#include "world.h"
 
 namespace {
 
@@ -89,8 +90,8 @@ void __cdecl Track_ResetMap(s32 columns, s32 rows) {
         const u32 base = ((u32)row << 7) + 1;
         for (s32 column = 0; column < columns; ++column) {
             const u32 cell = ((u32)column + base) & 0xffff;
-            g_env->cellReset(global<u8 *>(0x007cf83c) + cell * 0x44 + 0x294, nullptr, 1);
-            g_env->trackReset(global<u8 *>(0x007cf83c) + (cell + 0x6cde) * 0x28);
+            g_env->cellReset(gWorldPtr + cell * 0x44 + 0x294, nullptr, 1);
+            g_env->trackReset(gWorldPtr + (cell + 0x6cde) * 0x28);
         }
     }
     g_env->setList(0);

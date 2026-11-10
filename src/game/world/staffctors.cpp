@@ -91,7 +91,7 @@ u8 *__fastcall Mechanic_Ctor(u8 *mechanic, void *, u32 cell, u32 type, u32 sprit
 
 u8 *__fastcall Mechanic_CtorLoad(u8 *mechanic, void *, u32 cell) {
     g_env->plain(mechanic, nullptr, cell, 4);
-    mechanicRest(mechanic, global<u8>(0x007cdbec));
+    mechanicRest(mechanic, gMechanic_Sprite_7cdbec);
     return mechanic;
 }
 
@@ -104,8 +104,8 @@ u8 *__fastcall Entertainer_Ctor(u8 *entertainer, void *, u32 cell, u32 type, u32
 
 u8 *__fastcall Entertainer_CtorLoad(u8 *entertainer, void *, u32 cell) {
     g_env->plain(entertainer, nullptr, cell, 6);
-    entertainerRest(entertainer, global<u8>(0x007cdb60));
-    global<s32>(0x007cdb60) = (global<s32>(0x007cdb60) + 1) % 3;
+    entertainerRest(entertainer, (u8)gEntertainer_NextSprite_7cdb60);
+    gEntertainer_NextSprite_7cdb60 = (gEntertainer_NextSprite_7cdb60 + 1) % 3;
     return entertainer;
 }
 

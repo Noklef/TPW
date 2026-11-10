@@ -11,6 +11,7 @@
 #include "../math/x87.h"
 #include "mapcell.h"
 #include "route.h"
+#include "steering.h"
 #include "nav.h"
 
 namespace {
@@ -35,8 +36,8 @@ s32 OctDist(const s32 *a, const s32 *b) {
 
 // The centre (16.16) of the k-th cell of the route at 0x7cf108.
 void CellCentre(s32 *out, s32 k) {
-    out[0] = (s32)(((u32)global<u8>(0x007cf10e + k * 2) << 16) + 0x8000);
-    out[1] = (s32)(((u32)global<u8>(0x007cf10f + k * 2) << 16) + 0x8000);
+    out[0] = (s32)(((u32)gNav_Route_7cf108[6 + k * 2] << 16) + 0x8000);
+    out[1] = (s32)(((u32)gNav_Route_7cf108[7 + k * 2] << 16) + 0x8000);
 }
 
 }  // namespace
@@ -162,7 +163,7 @@ void __cdecl Nav_VisitNeighbours(const u8 *nav, s32 radius, void(__cdecl *visit)
 void __fastcall Nav_Update(u8 *nav) {
     typedef s32 *(__fastcall *Steer)(void *behaviour, void *, s32 *out, const u8 *nav);  // a behaviour's slot 0 (thiscall)
     s32 sum[2] = {0, 0};
-    for (u32 entry = *reinterpret_cast<u32 *>(0x007cf078); entry != *reinterpret_cast<u32 *>(0x007cf07c); entry += 8) {
+    for (u32 entry = gSteering_Behaviours_7cf078.begin; entry != gSteering_Behaviours_7cf078.end; entry += 8) {
         u8 *const behaviour = at<u8 *>(reinterpret_cast<void *>(entry), 4);
         s32 force[2], limited[2], weighted[2];
         (*reinterpret_cast<Steer *>(at<u32>(behaviour, 0)))(behaviour, nullptr, force, nav);
@@ -215,11 +216,11 @@ u32 __fastcall Nav_Serialize(u8 *nav, void *, Stream *stream, u32 save, s32 vers
     if (!Save_Fields(stream, save, nav, kFields + 2, 20))
         return 1;
     for (u32 i = 0; i < 5; ++i)
-        if (!Save_Field(stream, save, nav + 0x64 + i * 8, 8, (u32)&gText_Nav_Serialize_761f48) || !Save_Field(stream, save, nav + 0x8c + i * 4, 4, 0x00761f38))
+        if (!Save_Field(stream, save, nav + 0x64 + i * 8, 8, (u32)&gText_Nav_Serialize_761f48) || !Save_Field(stream, save, nav + 0x8c + i * 4, 4, (u32)gText_Nav_Serialize_761f38))
             return 1;
     if (save == 0)
         at<u32>(nav, 0x30) = 0;
-    return Save_Field(stream, save, nav + 0x10, 8, 0x00761f34) ? 0 : 1;
+    return Save_Field(stream, save, nav + 0x10, 8, (u32)gText_Nav_Serialize_761f34) ? 0 : 1;
 }
 
 u32 __fastcall Nav_SerializeFwd(u8 *nav, void *, Stream *stream, u32 save, s32 version, u32 unused) {
@@ -227,7 +228,7 @@ u32 __fastcall Nav_SerializeFwd(u8 *nav, void *, Stream *stream, u32 save, s32 v
 }
 
 u32 __fastcall Nav_PathTo(u8 *nav, void *, const s32 *target, u32 prepend) {
-    u8 *const route = &global<u8>(0x007cf108);
+    u8 *const route = gNav_Route_7cf108;
     route[2] = (u8)(at<s32>(nav, 8) >> 16);
     route[3] = (u8)(at<s32>(nav, 0xc) >> 16);
     route[4] = (u8)(target[0] >> 16);
@@ -242,8 +243,8 @@ u32 __fastcall Nav_PathTo(u8 *nav, void *, const s32 *target, u32 prepend) {
         return 0;
     }
     if (prepend == 1) {  // the nav's own cell put first (the cells moved up one, the last of 0xfc dropped)
-        for (u32 cell = 0x007cf304; (s32)cell > 0x007cf10e; cell -= 2)
-            global<u16>(cell) = global<u16>(cell - 2);
+        for (u32 cell = 0x1fc; cell > 6; cell -= 2)   // (offsets in the route)
+            *reinterpret_cast<u16 *>(route + cell) = *reinterpret_cast<u16 *>(route + cell - 2);
         route[6] = (u8)(at<s32>(nav, 8) >> 16);
         route[7] = (u8)(at<s32>(nav, 0xc) >> 16);
         if (route[0] < 0xfc)

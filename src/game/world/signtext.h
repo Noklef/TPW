@@ -35,3 +35,4 @@ void __fastcall SignText_SetSecond(u8 *sign, void *, const u16 *text);
 // Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
 GAME_DATA(u16[6], gText_Signtext_75c0c0, 0x0075c0c0, 0xc);
 GAME_DATA(u16[4], gText_Signtext_75c0cc, 0x0075c0cc, 0x8);
+GAME_DATA(u16[0x21], gSignText_Buffer_7cdc10, 0x007cdc10, 0x42);   // SignText_Format's first text without its '-'

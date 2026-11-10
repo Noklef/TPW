@@ -24,7 +24,7 @@ namespace {
 
 template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cast<T *>((uintptr_t)p + offset); }
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
-u8 *cellAt(u32 id) { return global<u8 *>(0x007cf83c) + 0x294 + (id & 0xffff) * 0x44; }
+u8 *cellAt(u32 id) { return gWorldPtr + 0x294 + (id & 0xffff) * 0x44; }
 bool lineType(s32 type) { return type == 4 || type == 9 || type == 10; }
 
 const DemolishEnv kGameEnv = {&Path_CheckDeadEnds,
@@ -65,7 +65,7 @@ void unflag(u8 *next, u8 d) {
     if (queues <= 1 && !(next[0x26] & 8)) MapCell_ClearFlags(next, nullptr, 0x20);
 }
 
-u8 *money() { return reinterpret_cast<u8 *>((uintptr_t)GameTable7cfb90_Get1da726_5195d0(global<u8 *>(0x007cf83c))); }
+u8 *money() { return reinterpret_cast<u8 *>((uintptr_t)GameTable7cfb90_Get1da726_5195d0(gWorldPtr)); }
 
 }  // namespace
 

@@ -16,6 +16,7 @@
 #include "windowfactory.h"
 #include "windowscript.h"
 #include "panel7b9940.h"
+#include "../world/world.h"
 
 namespace {
 
@@ -63,7 +64,7 @@ u8 *hide(u8 *thing) {
 // Dialog74faf0's way out: the bars back, and in the mode 2 the box of the text 0x1d7.
 void closingB(u8 *window, u32 bar) {
     g_env->send(window, 4, 0, 0);
-    g_env->tableOp(global<u8 *>(0x007cf83c));
+    g_env->tableOp(gWorldPtr);
     g_env->send(gPanel7b9940_7cb2b0, 6, 0, 0);
     g_env->send(gPanel7b9940_7cb2ac, 6, bar, 0);
     g_env->enableKeys();

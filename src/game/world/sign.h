@@ -32,3 +32,24 @@ extern "C" {
 // and 0x7afd50 taken modulo the double 0x6fe7d8.
 u8 *__cdecl Sign_Create(u32 value, float a, u32 height, float b, float c, u32 type);
 }
+
+#include "../core/gamedata.h"
+
+struct SignRecord {
+    u32 set;            // +0
+    u32 ride;           // +4
+    u32 matrix[16];     // +8: the root's
+    float angle;        // +0x48
+    u32 value;          // +0x4c
+    float a, b, c;      // +0x50
+    float width;        // +0x5c
+    float depth;        // +0x60
+    float ratio;        // +0x64
+    float farthest;     // +0x68
+    float away;         // +0x6c
+    u32 unknown70;      // +0x70
+    u32 own1, own2;     // +0x74: the ride model's entries
+    u32 sign1, sign2;   // +0x7c: the sign type's
+    u32 type;           // +0x84
+};
+GAME_DATA(SignRecord, gSign_Record_7afd08, 0x007afd08, 0x88);

@@ -35,6 +35,7 @@
 #include "itemlist.h"
 #include "session.h"
 #include "../ui/window7cc8c0handler.h"
+#include "../world/world.h"
 
 namespace {
 
@@ -225,7 +226,7 @@ void makePlayer(u32 cell, s32 x, const StdWString *name) {
     if (block) g_env->playerCtor(block, nullptr, cell, x, name, 0);
 }
 u8 *findPlayer(const StdWString *name) {
-    void *const world = global<void *>(0x007cf83c);
+    void *const world = global<void *>((u32)&gWorldPtr);
     u16 handle;
     World_FirstThing(world, nullptr, &handle);
     while (handle) {
@@ -404,7 +405,7 @@ void __fastcall ChatAvatar_HandleEvent(u8 *avatar, void *, const u8 *tokens) {
         StdWString name;
         text(tokens, 1, &name);
         u16 entrance;
-        const u32 cell = *Map_EntrancePos(&at<u8>(global<u8 *>(0x007cf83c), 0x2d8), nullptr, &entrance, 1);
+        const u32 cell = *Map_EntrancePos(&at<u8>(gWorldPtr, 0x2d8), nullptr, &entrance, 1);
         makePlayer(cell, x, &name);
         done(&name);
         addToRoom(avatar, tokens);
@@ -439,7 +440,7 @@ void __fastcall ChatAvatar_HandleEvent(u8 *avatar, void *, const u8 *tokens) {
         text(tokens, 1, &name);
         u32 cell = (u32)y;   // (the word in the stack slot of y; its high half stays)
         u16 made;
-        cell = cell & 0xffff0000u | (z == -1 ? *Map_EntrancePos(&at<u8>(global<u8 *>(0x007cf83c), 0x2d8), nullptr, &made, 1) : *Cell_MakeHandle(&made, y / 256, z / 256));
+        cell = cell & 0xffff0000u | (z == -1 ? *Map_EntrancePos(&at<u8>(gWorldPtr, 0x2d8), nullptr, &made, 1) : *Cell_MakeHandle(&made, y / 256, z / 256));
         makePlayer(cell, x, &name);
         done(&name);
         addToRoom(avatar, tokens);
@@ -716,7 +717,7 @@ void __fastcall ChatAvatar_LobbyEvent(u8 *avatar, void *, const u8 *tokens) {
     case 0x36:
         at<u8>(avatar, 0x28) = 1;
         g_env->addName(avatar, nullptr, &at<StdWString>(avatar, 8), 0);
-        g_env->startCrowd(global<u8 *>(0x007cf83c));
+        g_env->startCrowd(gWorldPtr);
         debugLine(reinterpret_cast<uintptr_t>(&gChatAvatar_LobbyEvent_75c210));
         debugLine(reinterpret_cast<uintptr_t>(&gChatAvatar_LobbyEvent_75c1e0));
         g_env->readBuddies(avatar, nullptr, reinterpret_cast<const char *>((uintptr_t)0x00786de4));

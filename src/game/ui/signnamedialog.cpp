@@ -20,6 +20,7 @@
 #include "windowreg.h"
 #include "windowscript.h"
 #include "panel7cc218.h"
+#include "../world/world.h"
 
 namespace {
 
@@ -45,7 +46,7 @@ const SignNameDialogHandlerEnv kHandlerGameEnv = {KeyMaps_EnableAllAndClearFlag,
                                                   CheatSystem_SetOn, Thing_NameBuffer7ba058, Window_PostMessage, Window_SendMessage, Window_SetFocus};
 const SignNameDialogHandlerEnv *g_handler = &kHandlerGameEnv;
 
-u8 *tableThing() { return reinterpret_cast<u8 **>((uintptr_t)0x007cfb90)[at<u16>(global<u8 *>(0x007cf83c), 0x1da732) * 5]; }
+u8 *tableThing() { return reinterpret_cast<u8 **>((uintptr_t)0x007cfb90)[at<u16>(gWorldPtr, 0x1da732) * 5]; }
 
 void dressEdit(u8 *edit, u16 *buffer, u8 *thing, NameFn name) {
     u8 *const memory = static_cast<u8 *>(g_open->alloc(0x1a4));

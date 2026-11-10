@@ -306,7 +306,7 @@ u32 __cdecl CoasterEdit_ToggleDrag() {
     }
     if (!g<u32>(0x00785a2c)) {
         const s32 steps = Float_RoundUp(static_cast<float>(Car_TravelCost(game, 0, piece, nullptr, nullptr, nullptr, nullptr)));
-        u8 *const money = reinterpret_cast<u8 *>(GameTable7cfb90_Get1da726_5195d0(g<u8 *>(0x007cf83c)));
+        u8 *const money = reinterpret_cast<u8 *>(GameTable7cfb90_Get1da726_5195d0(gWorldPtr));
         Money_Credit(money, nullptr, (s32)(long long)gEdittools_79c698);   // __ftol
         Source_Field0c(reinterpret_cast<const TrackedSource *>(money));   // (its result unused)
         Money_Debit(money, nullptr, steps);
@@ -983,12 +983,12 @@ u32 __cdecl CoasterEdit_PlaceSelected(s32 x, s32 y) {
                 const u8 *const sel = gEdittools_79c6a4;
                 cost = Float_RoundUp(static_cast<float>(env->travelCost(game, 0, sel, &outX, &outY, nullptr, nullptr)));
                 cost += Float_RoundUp(static_cast<float>(env->travelCost(game, 0, at<const u8 *>(sel, 0x64), nullptr, nullptr, &outX, &outY)));
-                money = reinterpret_cast<u8 *>(GameTable7cfb90_Get1da726_5195d0(g<u8 *>(0x007cf83c)));
+                money = reinterpret_cast<u8 *>(GameTable7cfb90_Get1da726_5195d0(gWorldPtr));
                 Money_Credit(money, nullptr, (s32)(long long)gEdittools_79c698);   // __ftol
                 Money_Credit(money, nullptr, (s32)(long long)gEdittools_79c64c);   // (behind a test of its address: always)
             } else {
                 cost = Float_RoundUp(static_cast<float>(env->travelCost(game, 0, gEdittools_79c6a4, &outX, &outY, nullptr, nullptr)));
-                money = reinterpret_cast<u8 *>(GameTable7cfb90_Get1da726_5195d0(g<u8 *>(0x007cf83c)));
+                money = reinterpret_cast<u8 *>(GameTable7cfb90_Get1da726_5195d0(gWorldPtr));
                 Money_Credit(money, nullptr, (s32)(long long)gEdittools_79c698);
             }
             Source_Field0c(reinterpret_cast<const TrackedSource *>(money));   // (its result unused)

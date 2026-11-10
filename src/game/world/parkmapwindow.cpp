@@ -38,6 +38,7 @@
 #include "parkmapwindow.h"
 #include "parkmap.h"
 #include "camera.h"
+#include "world.h"
 
 namespace {
 
@@ -457,7 +458,7 @@ s32 __fastcall ParkMap_HandleWindow(u8 *map, void *, u8 *window, u32 message, u3
 }
 
 void __fastcall ParkMap_PrepareSprites(u8 *map) {
-    u8 *const world = global<u8 *>(0x007cf83c);
+    u8 *const world = gWorldPtr;
     s32 count = 0;
     u16 id;
     g_sprites->firstThing(world, nullptr, &id);

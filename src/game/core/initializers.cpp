@@ -5,6 +5,7 @@
 #include "dequeiter.h"
 #include "gameheap.h"
 #include "../gfx/surface.h"
+#include "../render/particles.h"
 #include "../ui/panel7cc218.h"
 #include "../world/cellrun.h"
 
@@ -312,10 +313,11 @@ u32 __fastcall Fn_5ebef0(u8 *o) {
 }
 
 u32 __cdecl Fn_5eda40(u32 v0, u32 v1) {
-    global<u32>(0x00f86988) = v0;
-    global<u32>(0x00f8698c) = v1;
-    global<u32>(0x00f86990) = v0;
-    global<u32>(0x00f86994) = v1;
+    ParticlePool &p = gParticlePools_f86900[2];
+    reinterpret_cast<u32 &>(p.fromX) = v0;
+    reinterpret_cast<u32 &>(p.fromY) = v1;
+    reinterpret_cast<u32 &>(p.toX) = v0;
+    reinterpret_cast<u32 &>(p.toY) = v1;
     return v1;
 }
 

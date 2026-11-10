@@ -18,6 +18,7 @@
 #include "../world/mousemode.h"
 #include "../world/things.h"
 #include "../world/signtext.h"
+#include "../world/world.h"
 
 namespace {
 
@@ -223,12 +224,12 @@ u8 __fastcall ChatPlayer_NameIs(const u8 *thing, void *, const u8 *name) {
 
 u8 *__stdcall ChatPlayers_FindByName(const u8 *name) {
     u16 out;
-    u16 handle = *World_FirstThing(at<void *>(reinterpret_cast<void *>((uintptr_t)0x007cf83c), 0), nullptr, &out);
+    u16 handle = *World_FirstThing(at<void *>(reinterpret_cast<void *>((uintptr_t)(u32)&gWorldPtr), 0), nullptr, &out);
     while (handle) {
         u8 *const thing = slotThing(handle);
         if (thing[2] == 0x12 && ChatPlayer_NameIs(thing, nullptr, name))
             return thing;
-        handle = *World_NextThing(at<void *>(reinterpret_cast<void *>((uintptr_t)0x007cf83c), 0), nullptr, &out, thing);
+        handle = *World_NextThing(at<void *>(reinterpret_cast<void *>((uintptr_t)(u32)&gWorldPtr), 0), nullptr, &out, thing);
     }
     return nullptr;
 }

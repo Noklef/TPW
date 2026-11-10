@@ -98,7 +98,7 @@ void __cdecl Dialog7cc1f8_Open(u32 kind, u32 selected) {
         Window7c24c8_Set(global<u8 *>(0x007cc1f8));
         // the money line: a number argument 13, its size, in the text 0x1cb when negative (0x1ca else)
         u8 *child = Window_FindChild(global<u8 *>(0x007cc1f8), nullptr, 0x200);
-        const s32 money = (s32)Source_Field0c(reinterpret_cast<const TrackedSource *>((uintptr_t)GameTable7cfb90_Get1da726_5195d0(global<u8 *>(0x007cf83c))));
+        const s32 money = (s32)Source_Field0c(reinterpret_cast<const TrackedSource *>((uintptr_t)GameTable7cfb90_Get1da726_5195d0(gWorldPtr)));
         u32 number[5] = {0x006ff170, 0x5641524d, 0xd, money < 0 ? 0u - (u32)money : (u32)money, 0};
         g_open->format(global<u8 *>(0x0078ba94), reinterpret_cast<u16 *>((uintptr_t)0x007ba058), 0x3fff, money < 0 ? 0x1cbu : 0x1cau, number);
         u8 *memory = static_cast<u8 *>(GameHeap_Alloc(0x1a4));
@@ -158,7 +158,7 @@ u32 __cdecl Dialog7cc1f8_TabHandler(u8 *window, u32 message, u32 a, u32 b) {
 extern "C" {
 
 void __cdecl Dialog7cc1f8_FillList(u32 kind, u32 clear) {
-    u8 *const game = *reinterpret_cast<u8 **>((uintptr_t)0x007cf83c);
+    u8 *const game = *&gWorldPtr;
     u8 *const store = reinterpret_cast<u8 *>((uintptr_t)GameTable7cfb90_Get1da720_519510(game));
     u8 *const dialog = *reinterpret_cast<u8 **>((uintptr_t)0x007cc1f8);
     if (!dialog) return;
@@ -174,7 +174,7 @@ void __cdecl Dialog7cc1f8_FillList(u32 kind, u32 clear) {
     for (; def; def = ObjectDefs_Next(defs)) {
         if (at<u32>(def, 0x508) || at<u32>(def, 0x4ac) != kind || at<u32>(def, 0x284)) continue;
         const u16 id = at<u16>(def, 0);
-        u8 *const control = ObjectControls_Find(*reinterpret_cast<u8 **>((uintptr_t)0x007cf83c) + 0x1d943c, nullptr, id, 0);
+        u8 *const control = ObjectControls_Find(*&gWorldPtr + 0x1d943c, nullptr, id, 0);
         if (!at<u8>(control, 0x10)) continue;
         u16 name[0x42];
         const s32 price = at<s32>(def, 0xc4);
@@ -265,7 +265,7 @@ s32 __cdecl Dialog7cc1f8_RowHandler(u8 *window, u32 message, u32 a, u32 b) {
         if ((s16)b < 0) {
             Window_Notify40000(window, nullptr, 0xe7, 0xef, 0x4b, 0xff);
         } else {
-            u8 *const game = *reinterpret_cast<u8 **>((uintptr_t)0x007cf83c);
+            u8 *const game = *&gWorldPtr;
             u8 *const control = ObjectControls_Find(game + 0x1d943c, nullptr, b, 0);
             const s32 balance = (s32)Source_Field0c(reinterpret_cast<const TrackedSource *>((uintptr_t)GameTable7cfb90_Get1da726_5195d0(game)));
             if (at<u32>(ObjectDefs_Find(reinterpret_cast<u8 *>((uintptr_t)0x007890a0), nullptr, (u16)b), 0xc4) && !(u8)GlobalSave_HasKey(b))
@@ -301,7 +301,7 @@ void __cdecl Dialog7cc1f8_ShowItemTip(const s16 *item) {
             HelpBg_SetText(text);
         }
     } else {
-        u8 *const game = *reinterpret_cast<u8 **>((uintptr_t)0x007cf83c);
+        u8 *const game = *&gWorldPtr;
         const u8 *const control = ObjectControls_Find(game + 0x1d943c, nullptr, (u16)*item, 0);
         const s32 balance = (s32)Source_Field0c(reinterpret_cast<const TrackedSource *>((uintptr_t)GameTable7cfb90_Get1da726_5195d0(game)));
         u8 *const defs = reinterpret_cast<u8 *>((uintptr_t)0x007890a0);

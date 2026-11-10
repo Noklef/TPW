@@ -9,6 +9,7 @@
 #include "flyingrides.h"
 #include "random.h"
 #include "ridelist.h"
+#include "world.h"
 
 namespace {
 
@@ -28,7 +29,7 @@ s32 bound(u32 address) { return global<s32>(address); }
 
 // The magnitude of a World_Rand (wrapping).
 s32 Rand() {
-    const s32 r = World_Rand(global<u8 *>(0x007cf83c));
+    const s32 r = World_Rand(gWorldPtr);
     return r < 0 ? (s32)(0u - (u32)r) : r;
 }
 

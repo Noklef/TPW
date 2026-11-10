@@ -15,6 +15,8 @@
 #include "cellbuild.h"
 #include "mapclick.h"
 #include "cellmessage.h"
+#include "../math/intpair.h"
+#include "focuscell.h"
 
 namespace {
 
@@ -28,12 +30,12 @@ bool footprint(u32 t) { return t == 4 || t == 9 || t == 0xa; }
 bool owned(const u8 *cell) { return at<u16>(cell, 0x10) == global<u16>(0x00818698); }
 
 // The world's 0x28-byte entry of a parent id.
-u8 *parent_entry(u32 id) { return reinterpret_cast<u8 *>(global<u32>(0x007cf83c) + (id + 0x6cde) * 0x28); }
+u8 *parent_entry(u32 id) { return reinterpret_cast<u8 *>(global<u32>((u32)&gWorldPtr) + (id + 0x6cde) * 0x28); }
 
 // A type 4 / 9 / 0xa cell's object: the first thing of the world's cell its +0x10 names; one of kind 3 sets 0x818c14 to its definition's
 // +0x54 (the original's Debug_Printf assert on the thing table is left out; the slot is read whether set or not).
 void object_priority(const u8 *cell) {
-    const u8 *owner = reinterpret_cast<const u8 *>(global<u32>(0x007cf83c) + (u32)at<u16>(cell, 0x10) * 0x44 + 0x294);
+    const u8 *owner = reinterpret_cast<const u8 *>(global<u32>((u32)&gWorldPtr) + (u32)at<u16>(cell, 0x10) * 0x44 + 0x294);
     u16 handle;
     Cell_FirstObject(owner, nullptr, &handle);
     const u8 *thing = global<u8 *>(0x007cfb90 + 20 * (u32)handle);
@@ -43,7 +45,7 @@ void object_priority(const u8 *cell) {
 
 // The money the world's table entry holds (Source_Field0c).
 u32 money() {
-    return Source_Field0c(reinterpret_cast<const TrackedSource *>((uintptr_t)GameTable7cfb90_Get1da726_5195d0(global<u8 *>(0x007cf83c))));
+    return Source_Field0c(reinterpret_cast<const TrackedSource *>((uintptr_t)GameTable7cfb90_Get1da726_5195d0(gWorldPtr)));
 }
 
 // A track entry (type 0xb, 0xd, 0x10, 0x12 or 0x19) for the cell, as the cell's own entry or its parent's names it; a 0xc / 0x11 entry
@@ -277,7 +279,7 @@ u32 __fastcall MapCell_CanBuildTrack(u8 *cell, void *, u32 kind, u32 alone, u32 
     u32 blocked = 0, price = 0;
     if (kind == 0x39) return gCellbuild_816d50 != 0 ? 1 : 0;
     u8 *here = MapHandle_Cell44(reinterpret_cast<const u16 *>(cell));
-    u8 *n1 = step44(here, 0x007cdbc8), *n2 = step44(here, 0x007cdbb8), *n3 = step44(here, 0x007cdba8);
+    u8 *n1 = step44(here, (u32)gStepE_7cdbc8), *n2 = step44(here, (u32)gStepSE_7cdbb8), *n3 = step44(here, (u32)gStepS_7cdba8);
     if (unfit(here) || unfit(n1) || unfit(n2) || unfit(n3)) blocked = 1;
     if (MapCell_HasFlags(here, nullptr, 0x40) || MapCell_HasFlags(n1, nullptr, 0x40) || MapCell_HasFlags(n2, nullptr, 0x40) ||
         MapCell_HasFlags(n3, nullptr, 0x40))
@@ -286,7 +288,7 @@ u32 __fastcall MapCell_CanBuildTrack(u8 *cell, void *, u32 kind, u32 alone, u32 
     if (kind == 0xb) price = Global81aebc_Get_52fb60();
     if (kind == 0x10) price = Global81b43c_Get_52fb80();
     if (kind == 0xb || kind == 0x10) {
-        const u8 *e1 = step28(cell, 0x007cdbc8), *e2 = step28(cell, 0x007cdbb8), *e3 = step28(cell, 0x007cdba8);
+        const u8 *e1 = step28(cell, (u32)gStepE_7cdbc8), *e2 = step28(cell, (u32)gStepSE_7cdbb8), *e3 = step28(cell, (u32)gStepS_7cdba8);
         claim(e1, blocked);
         claim(e2, blocked);
         claim(e3, blocked);
@@ -298,8 +300,8 @@ u32 __fastcall MapCell_CanBuildTrack(u8 *cell, void *, u32 kind, u32 alone, u32 
         if (kind == 0x19) {  // a hoarding on a hoarding: only at either of the two points (0x7639f0, 0x7639f8)
             const u32 index = (u32)at<u16>(cell, 0) - 1;
             const u32 x = index & 0x7f, y = index >> 7;
-            if (x == global<u32>(0x007639f0) && y == global<u32>(0x007639f4)) return 1;
-            if (x == global<u32>(0x007639f8) && y == global<u32>(0x007639fc)) return 1;
+            if (x == reinterpret_cast<u32 &>(gFocusCell_PointAX_7639f0) && y == reinterpret_cast<u32 &>(gFocusCell_PointAY_7639f4)) return 1;
+            if (x == reinterpret_cast<u32 &>(gFocusCell_PointBX_7639f8) && y == reinterpret_cast<u32 &>(gFocusCell_PointBY_7639fc)) return 1;
             return 0;
         }
     } else if (kind == 0x19) {  // (the original's test of a type 0x19 cell's direction here is never reached)

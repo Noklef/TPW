@@ -66,7 +66,7 @@ void __fastcall SignText_Format(const u8 *sign, void *, u16 *to, u32 count) {
     if (!length) {
         g_env->copy(to, second, count);
     } else if (first[length - 1] == '-') {
-        u16 *const buffer = reinterpret_cast<u16 *>((uintptr_t)0x007cdc10);
+        u16 *const buffer = gSignText_Buffer_7cdc10;
         buffer[0x20] = 0;
         g_env->format(buffer, 0x20, (u32)&gText_Signtext_75c0cc, first);
         buffer[length - 1] = 0;

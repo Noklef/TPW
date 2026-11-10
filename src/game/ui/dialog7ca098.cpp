@@ -75,7 +75,7 @@ void Dialog7ca098_SetEnv(const Dialog7ca098Env *env) { g_env = env ? env : &kGam
 
 extern "C" {
 
-void __cdecl Game_CancelAdvisor(u32 id) { g_env->cancelAdvisor(reinterpret_cast<u8 *>((uintptr_t)GameTable7cfb90_Get1da71c_5194d0(global<u8 *>(0x007cf83c))), nullptr, id); }
+void __cdecl Game_CancelAdvisor(u32 id) { g_env->cancelAdvisor(reinterpret_cast<u8 *>((uintptr_t)GameTable7cfb90_Get1da71c_5194d0(gWorldPtr)), nullptr, id); }
 
 u32 __cdecl Dialog7ca098_RunAction(u32 kind, u32 a, u32 b) {
     switch (kind) {
@@ -93,8 +93,8 @@ u32 __cdecl Dialog7ca098_RunAction(u32 kind, u32 a, u32 b) {
     case 0x16: g_env->open4b7b00(); return 2;
     case 0x17: g_env->setFlag64(global<u8 *>(0x007cfb90 + (a & 0xffff) * 20), nullptr, 1); return 1;
     case 0x18: g_env->open498d80(); return 2;
-    case 0x1a: g_env->accept(reinterpret_cast<u8 *>((uintptr_t)GameTable7cfb90_Get1da736_519610(global<u8 *>(0x007cf83c)))); return 2;
-    case 0x1b: g_env->decline(reinterpret_cast<u8 *>((uintptr_t)GameTable7cfb90_Get1da736_519610(global<u8 *>(0x007cf83c)))); return 2;
+    case 0x1a: g_env->accept(reinterpret_cast<u8 *>((uintptr_t)GameTable7cfb90_Get1da736_519610(gWorldPtr))); return 2;
+    case 0x1b: g_env->decline(reinterpret_cast<u8 *>((uintptr_t)GameTable7cfb90_Get1da736_519610(gWorldPtr))); return 2;
     default: return 0;
     }
 }

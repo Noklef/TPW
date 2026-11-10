@@ -33,6 +33,7 @@
 #include "scriptfile.h"
 #include "scriptkill.h"
 #include "../world/rides.h"
+#include "../world/world.h"
 
 namespace {
 
@@ -79,7 +80,7 @@ u32 float_bits(float f) {
 }
 // fild n; fmul 0.01 (0x700fe0); the float stored.
 float hundredths(s32 n) { return (float)X87Reg(X87_MulIntDouble(n, (double)0.01f)); }
-s32 rand_half() { return (s32)((u32)World_Rand(global<u8 *>(0x007cf83c)) >> 1); }
+s32 rand_half() { return (s32)((u32)World_Rand(gWorldPtr) >> 1); }
 
 // Animator_Play with an owner (0 without).
 s32 play(RsseContext *ctx, u32 bank, u32 entry, u32 mode, float speed, u32 index) { return ctx->owner != 0 ? (s32)g_env->play(ride(ctx), bank, entry, mode, speed, index) : 0; }

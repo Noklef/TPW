@@ -12,6 +12,7 @@
 #include "trakcarroute.h"
 #include "collobj.h"
 #include "rides.h"
+#include "world.h"
 
 namespace {
 
@@ -117,7 +118,7 @@ void next_node(u8 *car, const u8 *node) {
     at<u32>(car, 0x7c) = at<u32>(node, 4);
     at<u32>(car, 0x78) = at<u32>(car, 0x74);
     const u32 span = at<u32>(ride, 0x68);
-    at<s32>(car, 0x74) = (s32)((u32)((s32)span / 2) - (u32)World_Rand(global<u8 *>(0x007cf83c)) % span);
+    at<s32>(car, 0x74) = (s32)((u32)((s32)span / 2) - (u32)World_Rand(gWorldPtr) % span);
     at<u32>(car, 0) |= 0x10000;
 }
 
@@ -145,7 +146,7 @@ void follow_nodes(u8 *car) {
         return;
     }
     if (!(now & 8)) {
-        if (now & 0x10) at<u32>(car, 0x7c) = (u32)World_Rand(global<u8 *>(0x007cf83c)) % (u32)gTrackPools.buoyCount;
+        if (now & 0x10) at<u32>(car, 0x7c) = (u32)World_Rand(gWorldPtr) % (u32)gTrackPools.buoyCount;
     } else if (now & 0x40) {
         if (gap <= reach / 4) {
             at<u32>(car, 0x7c) = at<u32>(at<u8 *>(ride, 0xa4), 4);
@@ -282,7 +283,7 @@ void cars_timer(u8 *a) {
         at<u32>(a, 0x7c) = at<u32>(node, 4);
         at<u32>(a, 0x78) = at<u32>(a, 0x74);
         const u32 span = at<u32>(ride, 0x68);
-        at<s32>(a, 0x74) = (s32)((u32)((s32)span / 2) - (u32)World_Rand(global<u8 *>(0x007cf83c)) % span);
+        at<s32>(a, 0x74) = (s32)((u32)((s32)span / 2) - (u32)World_Rand(gWorldPtr) % span);
         at<u32>(a, 0) |= 0x10000;
     }
     at<s32>(a, 0xa4) = 0;

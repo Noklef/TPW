@@ -161,7 +161,7 @@ void __cdecl Dialog7ca168_ShowStaffAverage(u32 tab) {
     u8 *const bar = Window_FindChild(Window_FindChild(window(reinterpret_cast<uintptr_t>(&gDialog7ca168_7ca168)), nullptr, 0x329), nullptr, 0x32d);
     const u32 kind = tab <= 4 ? kKinds[tab] : tab;
     void *const *const table = *reinterpret_cast<void *const *const *>(bar);
-    GameTable7cfb90_Get1da720_519510(*reinterpret_cast<u8 *const *>((uintptr_t)0x007cf83c));   // (its answer only the ECX of the stdcall)
+    GameTable7cfb90_Get1da720_519510(*&gWorldPtr);   // (its answer only the ECX of the stdcall)
     const s32 average = Things_AverageStat1f8OfKind(kind);
     reinterpret_cast<void(__fastcall *)(u8 *, void *, s32)>(table[7])(bar, nullptr, (s32)((u32)average << 10) / 100);
 }

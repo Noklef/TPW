@@ -36,6 +36,7 @@
 #include "person.h"
 #include "balancelevel.h"
 #include "../core/soundset.h"
+#include "../math/intpair.h"
 
 namespace {
 
@@ -66,7 +67,7 @@ void RecordMargin(u32 ring, u32 willing, u32 price) {
     u32 value = (willing + 5) * 10 - price * 10;
     if (value >= 100)
         value = 100;
-    u8 *const analyser = reinterpret_cast<u8 *>((uintptr_t)GameTable7cfb90_Get1da720_519510(*reinterpret_cast<u8 **>(0x007cf83c)));
+    u8 *const analyser = reinterpret_cast<u8 *>((uintptr_t)GameTable7cfb90_Get1da720_519510(*&gWorldPtr));
     ParkAnalyser_Record(analyser, nullptr, ring, value);
 }
 
@@ -314,8 +315,8 @@ u32 __fastcall Person_SetRandomDest(u8 *person) {
             u8 *const cell = cellOf(here);
             const u32 bits = MapCell_Neighbours(cell) & 0x55u;
             s32 count = (s32)MapCell_SideNeighbourCount(cell);
-            u16 next[4] = {(u16)(bits & 0x10 ? step(0x007cdba8) : 0), (u16)(bits & 4 ? step(0x007cdbc8) : 0), (u16)(bits & 1 ? step(0x007cdba0) : 0),
-                           (u16)(bits & 0x40 ? step(0x007cdbd0) : 0)};
+            u16 next[4] = {(u16)(bits & 0x10 ? step((u32)gStepS_7cdba8) : 0), (u16)(bits & 4 ? step((u32)gStepE_7cdbc8) : 0), (u16)(bits & 1 ? step((u32)gStepN_7cdba0) : 0),
+                           (u16)(bits & 0x40 ? step((u32)gStepW_7cdbd0) : 0)};
             if (staff && !outside)
                 for (u16 &n : next)
                     if (n && !Staff_InPatrolRegion(person, nullptr, n)) {
@@ -800,7 +801,7 @@ void __fastcall Person_PlaceSprite(u8 *person, void *, float t) {
     // the row 0x7cedd4, lower the further the person moved (|dx| + |dz| over the 0.35 since the earlier position)
     u16 handle;
     const u32 rows = global<u32>(0x0075c80c);
-    const u32 row = ((u32)*Thing_GetHandle(person, nullptr, &handle) + global<u32>(0x007cedd4)) % rows;
+    const u32 row = ((u32)*Thing_GetHandle(person, nullptr, &handle) + gPerson_BobRow_7cedd4) % rows;
     float h0f;
     std::memcpy(&h0f, &h0, 4);
     const X87Reg moved = (X87Reg(std::fabs((double)(X87Reg(x0) - X87Reg(x1)).v)) + X87Reg(std::fabs((double)(X87Reg(z0) - X87Reg(z1)).v))) / X87Reg(0.5f);
@@ -809,12 +810,12 @@ void __fastcall Person_PlaceSprite(u8 *person, void *, float t) {
     const X87Reg b = X87_SubR(moved, X87Reg(1.0f)) + X87Reg(bob[1]) * X87Reg(1.5f) + X87Reg(h0f);
     const X87Reg a = X87Reg(bob[0]) * X87Reg(1.5f) + X87Reg(x0);
     Person_MoveScript(person, nullptr, bits(a), bits(b), bits(c), 0);
-    float &time = global<float>(0x007cedd8);
+    float &time = gPerson_BobTime_7cedd8;
     if (!((double)X87Reg(time).v >= 1.0)) {   // (fcomp 1.0: below or unordered)
         time = (float)(X87Reg(0.1f) + X87Reg(time)).v;
     } else {
-        global<u32>(0x007cedd4) = (global<u32>(0x007cedd4) + 1) % rows;
-        global<u32>(0x007cedd8) = 0;
+        gPerson_BobRow_7cedd4 = (gPerson_BobRow_7cedd4 + 1) % rows;
+        time = 0.0f;   // (the dword 0)
     }
 }
 

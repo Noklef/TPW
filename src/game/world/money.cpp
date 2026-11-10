@@ -26,14 +26,14 @@ extern "C" {
 
 void __fastcall Money_Credit(u8 *money, void *, s32 amount) {
     at<u32>(money, 0xc) += (u32)amount;
-    u8 *thing = reinterpret_cast<u8 *>(GameTable7cfb90_Get1da720_519510(global<u8 *>(0x007cf83c)));
+    u8 *thing = reinterpret_cast<u8 *>(GameTable7cfb90_Get1da720_519510(gWorldPtr));
     at<u32>(thing, 0x1fc90) += (u32)amount;
     at<u32>(money, 0x124) += (u32)amount;
 }
 
 void __fastcall Money_CreditTakings(u8 *money) {
     Money_Credit(money, nullptr, at<s32>(money, 0x118));   // (inlined in the original)
-    u8 *const record = reinterpret_cast<u8 *>(GameTable7cfb90_Get1da720_519510(global<u8 *>(0x007cf83c)));
+    u8 *const record = reinterpret_cast<u8 *>(GameTable7cfb90_Get1da720_519510(gWorldPtr));
     at<u32>(record, 0x1fee0) += at<u32>(money, 0x118);
     ParkAnalyser_Count(record, nullptr, at<s32>(money, 0x118));
 }
@@ -46,7 +46,7 @@ void __fastcall Money_Debit(u8 *money, void *, s32 amount) {
     if ((s32)balance < 0 && at<s32>(money, 0x11c) >= 0)
         at<u32>(money, 0x120) = at<u32>(global<u8 *>(0x0080239c), 0x1da70c);
     at<u32>(money, 0x11c) = balance;
-    u8 *thing = reinterpret_cast<u8 *>(GameTable7cfb90_Get1da720_519510(global<u8 *>(0x007cf83c)));
+    u8 *thing = reinterpret_cast<u8 *>(GameTable7cfb90_Get1da720_519510(gWorldPtr));
     at<u32>(thing, 0x1f5a0) += (u32)amount;
     at<u32>(money, 0x124) -= (u32)amount;
 }
@@ -57,7 +57,7 @@ u32 __fastcall Money_TakeLoan(u8 *money, void *, u32 index) {
         return 0;
     const u32 amount = at<u32>(loan, 0x18);
     at<u32>(money, 0xc) += amount;
-    u8 *thing = reinterpret_cast<u8 *>(GameTable7cfb90_Get1da720_519510(global<u8 *>(0x007cf83c)));
+    u8 *thing = reinterpret_cast<u8 *>(GameTable7cfb90_Get1da720_519510(gWorldPtr));
     at<u32>(thing, 0x1fc90) += amount;
     u32 total = at<u32>(money, 0x124) + amount;
     at<u32>(money, 0x124) = total - at<u32>(loan, 0x18);
@@ -79,7 +79,7 @@ u32 __fastcall Money_PayOffLoan(u8 *money, void *, u32 index) {
         if ((s32)balance < 0 && at<s32>(money, 0x11c) >= 0)
             at<u32>(money, 0x120) = at<u32>(global<u8 *>(0x0080239c), 0x1da70c);
         at<u32>(money, 0x11c) = balance;
-        u8 *thing = reinterpret_cast<u8 *>(GameTable7cfb90_Get1da720_519510(global<u8 *>(0x007cf83c)));
+        u8 *thing = reinterpret_cast<u8 *>(GameTable7cfb90_Get1da720_519510(gWorldPtr));
         at<u32>(thing, 0x1f5a0) += owed;
         at<u32>(money, 0x124) -= owed;
     }
@@ -143,8 +143,8 @@ void __fastcall BankAccount_HandleMessage(u8 *money, void *, u8 *message) {
         at<u32>(money, 0x124) = 0;
         return;
     case 0x13:
-        if (at<u32>(message, 8) == 2 && at<u32>(global<u8 *>(0x007cf83c), 0x1da738) != 4 && !Word7cf4f4_NonZero()) {
-            g_bank->gameOver(global<u8 *>(0x007cf83c));
+        if (at<u32>(message, 8) == 2 && at<u32>(gWorldPtr, 0x1da738) != 4 && !Word7cf4f4_NonZero()) {
+            g_bank->gameOver(gWorldPtr);
             return;
         }
         if (at<u32>(message, 8) == 0xa) {

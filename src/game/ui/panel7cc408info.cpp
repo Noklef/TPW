@@ -12,6 +12,7 @@
 #include "hoverlabel.h"
 #include "window.h"
 #include "panel7cc218.h"
+#include "../world/world.h"
 
 namespace {
 
@@ -53,7 +54,7 @@ void __fastcall Panel7cc408_ShowVisitor(u8 *self) {
         show(page, 0x3724, at<u32>(visitor, 0x1a0));
         if (u8 *const child = Window_FindChild(page, nullptr, 0x372d)) {
             FileTime span;
-            const FileTime *const s = g_env->spanOf(global<u8 *>(0x007cf83c) + 0x2a0, nullptr, &span, g_env->timeInPark(visitor) << 2);
+            const FileTime *const s = g_env->spanOf(gWorldPtr + 0x2a0, nullptr, &span, g_env->timeInPark(visitor) << 2);
             vcall<void>(child, 0x1c, (u32)((long long)(((unsigned long long)s->high << 32) | s->low) / 36000000000LL));   // (_alldiv: an hour of ticks)
         }
         show(page, 0x372e, at<u32>(visitor, 0x1c4));

@@ -35,7 +35,7 @@ template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((ui
 u8 *dialog() { return global<u8 *>(0x007cb398); }
 
 // The game record's analyser (GameTable7cfb90_Get1da720_519510 of [0x7cf83c]).
-u8 *analyser() { return reinterpret_cast<u8 *>((uintptr_t)GameTable7cfb90_Get1da720_519510(global<u8 *>(0x007cf83c))); }
+u8 *analyser() { return reinterpret_cast<u8 *>((uintptr_t)GameTable7cfb90_Get1da720_519510(gWorldPtr)); }
 
 // A new part of 0x1a4 bytes made by ctor with 0 (none when the allocation fails).
 u8 *part(u8 *(__fastcall *ctor)(u8 *, void *, u32)) {
@@ -94,7 +94,7 @@ void __cdecl Dialog7cb398_ShowTopThree() {
     u8 *const panel = Window_FindChild(global<u8 *>(0x007cb398), nullptr, 0x4a68d1);
     if (!panel) return;
     u8 top[3];
-    GameTable7cfb90_Get1da720_519510(global<u8 *>(0x007cf83c));   // (the original's ECX for the call below, which ignores it)
+    GameTable7cfb90_Get1da720_519510(gWorldPtr);   // (the original's ECX for the call below, which ignores it)
     Things_TopThreeValues(&top[0], &top[1], &top[2]);
     static const u32 kIds[3] = {0x4a68d4, 0x4a68d3, 0x4a68d2};
     for (int k = 0; k < 3; ++k) {
@@ -172,7 +172,7 @@ const Dialog7cb398Env kGameHandlerEnv = {Window_SendMessage, Window_FindChild, G
 const Dialog7cb398Env *g_handler = &kGameHandlerEnv;
 
 u32 &cell(u32 at) { return *reinterpret_cast<u32 *>(static_cast<uintptr_t>(at)); }
-u8 *game() { return reinterpret_cast<u8 *>(static_cast<uintptr_t>(cell(0x007cf83c))); }
+u8 *game() { return reinterpret_cast<u8 *>(static_cast<uintptr_t>(cell((u32)&gWorldPtr))); }
 u8 *gameTable() { return reinterpret_cast<u8 *>(static_cast<uintptr_t>(g_handler->table(game()))); }
 
 void showIfChanged(u8 *group, u32 id, u32 at, u32 value) {

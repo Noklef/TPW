@@ -13,6 +13,7 @@
 #include "things.h"
 #include "trackrides.h"
 #include "collobj.h"
+#include "world.h"
 
 namespace {
 
@@ -25,7 +26,7 @@ const TrakCarRouteEnv *g_env = &kPortEnv;
 const u32 kNew = 0x100000;
 const float kToSound = 0.00330360071f;   // 0x700f20
 
-u32 Rand() { return (u32)World_Rand(global<u8 *>(0x007cf83c)); }
+u32 Rand() { return (u32)World_Rand(gWorldPtr); }
 u8 *Pool() { return gTrackPools.cars; }
 
 void finish(u8 *car) { at<u32>(car, 0) &= ~kNew; }

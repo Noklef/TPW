@@ -26,6 +26,7 @@
 #include "placeobject.h"
 #include "../core/soundset.h"
 #include "cellbuild.h"
+#include "world.h"
 
 namespace {
 
@@ -101,8 +102,8 @@ const PlaceFootprintEnv kFootprintEnv = {&MapCell_HandleMessage,
 const PlaceFootprintEnv *g_fp = &kFootprintEnv;
 
 u32 cellId(s32 x, s32 y) { return (((u32)y << 7) + (u32)x + 1) & 0xffff; }
-u8 *cell44(s32 x, s32 y) { return global<u8 *>(0x007cf83c) + 0x294 + cellId(x, y) * 0x44; }
-u8 *entry28(s32 x, s32 y) { return global<u8 *>(0x007cf83c) + 0x1102b0 + cellId(x, y) * 0x28; }   // ((id + 0x6cde) * 0x28)
+u8 *cell44(s32 x, s32 y) { return gWorldPtr + 0x294 + cellId(x, y) * 0x44; }
+u8 *entry28(s32 x, s32 y) { return gWorldPtr + 0x1102b0 + cellId(x, y) * 0x28; }   // ((id + 0x6cde) * 0x28)
 u32 test(u8 *cell, u32 action, u32 b = 0, u32 c = 0) { return g_fp->test532fc0(cell, nullptr, action, b, c); }
 u8 shift(u32 a, u32 b) { return (u8)Byte_ShiftLog2(a, b); }
 
@@ -167,8 +168,8 @@ s32 *__cdecl PlaceObject_Footprint(s32 x, s32 y, u32, s32 angle, u32 place, u32 
     gPlaceObject_Footprint_818c30 = 0;
     const u16 id = gActionrec_8186e0;
     gPlaceobject_818c38 = id;
-    global<s32>(0x007639e0) = -1;
-    global<s32>(0x007639e4) = -1;
+    gFocusCell_StartX_7639e0 = -1;
+    gFocusCell_StartY_7639e4 = -1;
     gPlaceObject_Footprint_818c28 = -1;
     gPlaceObject_Footprint_818c2c = -1;
     gPlaceObject_Footprint_818c20 = -1;

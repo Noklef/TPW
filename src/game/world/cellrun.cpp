@@ -18,13 +18,15 @@
 #include "cellrun.h"
 #include "focuscell.h"
 #include "rides.h"
+#include "../math/intpair.h"
+#include "world.h"
 
 namespace {
 
 template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cast<T *>((uintptr_t)p + offset); }
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
 
-u8 *cell_at(s32 x, s32 y) { return global<u8 *>(0x007cf83c) + ((((u32)y << 7) + (u32)x + 1) & 0xffff) * 0x28 + 0x6cde * 0x28; }
+u8 *cell_at(s32 x, s32 y) { return gWorldPtr + ((((u32)y << 7) + (u32)x + 1) & 0xffff) * 0x28 + 0x6cde * 0x28; }
 
 // The point list: (x, y) pairs at 0x81b740, the count at 0x820a8c.
 void add_point(s32 x, s32 y) {
@@ -192,7 +194,7 @@ bool end_ahead(const u8 *cell, u8 direction) {
 }
 
 // A cell as CellRun_Connect takes it: one of type 0xc or 0x11 stands for the cell its +0x10 word names.
-u8 *taken(u8 *cell) { return MapCell_IsTypeCOr11(cell) ? global<u8 *>(0x007cf83c) + ((u32)owner(cell) + 0x6cde) * 0x28 : cell; }
+u8 *taken(u8 *cell) { return MapCell_IsTypeCOr11(cell) ? gWorldPtr + ((u32)owner(cell) + 0x6cde) * 0x28 : cell; }
 
 // The cell's (x, y) from its id less 1 (x the low 7 bits, y the rest).
 void cell_xy(const u8 *cell, s32 &x, s32 &y) {
@@ -221,8 +223,8 @@ void __cdecl TrackRun_TraceB(const u8 *thing) {
     u16 saved = 0;
     const u8 direction = static_cast<u8>(Position_StepB(&x, &y, at<s32>(thing, 0x10)));
     gFocuscell_818c50 = direction;
-    if (Map_InBounds(global<s32>(0x007639e0), global<s32>(0x007639e4)))
-        saved = static_cast<u16>((static_cast<u32>(global<s32>(0x007639e4)) << 7) + static_cast<u32>(global<s32>(0x007639e0)) + 1);
+    if (Map_InBounds(gFocusCell_StartX_7639e0, gFocusCell_StartY_7639e4))
+        saved = static_cast<u16>((static_cast<u32>(gFocusCell_StartY_7639e4) << 7) + static_cast<u32>(gFocusCell_StartX_7639e0) + 1);
     gCellrun_820a8c = 0;
     u8 *const cell = cell_at(x, y);
     if (MapCell_IsTypeBOr10(cell)) add_point(x, y);
@@ -230,7 +232,7 @@ void __cdecl TrackRun_TraceB(const u8 *thing) {
 }
 
 void __cdecl CellRun_Mark(u32 set) {
-    s32 x = global<s32>(0x007639f0), y = global<s32>(0x007639f4);
+    s32 x = gFocusCell_PointAX_7639f0, y = gFocusCell_PointAY_7639f4;
     gFocuscell_818c50 = 4;
     run(
         x, y,
@@ -244,7 +246,7 @@ void __cdecl CellRun_Mark(u32 set) {
 }
 
 void __cdecl CellRun_Corners() {
-    s32 x = global<s32>(0x007639f0), y = global<s32>(0x007639f4);
+    s32 x = gFocusCell_PointAX_7639f0, y = gFocusCell_PointAY_7639f4;
     gFocuscell_818c50 = 4;
     global<s32>(0x0081b740) = x;
     global<s32>(0x0081b744) = y;
@@ -413,7 +415,7 @@ void __cdecl TrackRun_UpdateB(u8 *thing, u32 flash, u32 start, u32 bank5) {
 }
 
 void __cdecl TrackCell_Relink(u32 corners) {
-    const s32 x = global<s32>(0x007639e0), y = global<s32>(0x007639e4);
+    const s32 x = gFocusCell_StartX_7639e0, y = gFocusCell_StartY_7639e4;
     if (!Map_InBounds(x, y)) return;
     u8 *const cell = cell_at(x, y);
     if (!is_end(cell)) return;
@@ -502,7 +504,7 @@ u32 __cdecl CellRun_Lay(s32 x, s32 y, s32 endX, s32 endY, u32 direction, u32 set
             MapCell_SetDirection(cell, nullptr, dir);
             g_env->cell5370e0(cell, nullptr, 0x81, 0, 0);
         }
-        static const u32 kPairs[] = {0x007cdba8, 0x007cdbc8, 0x007cdbb8};   // (the pairs of the directions 0x10, 4 and 8)
+        static const u32 kPairs[] = {(u32)gStepS_7cdba8, (u32)gStepE_7cdbc8, (u32)gStepSE_7cdbb8};   // (the pairs of the directions 0x10, 4 and 8)
         for (const u32 pair : kPairs) {
             const s32 *const step = reinterpret_cast<const s32 *>((uintptr_t)pair);
             if (u8 *const next = Map_StepCell28(reinterpret_cast<const u16 *>(cell), nullptr, step[0], step[1], 1)) {

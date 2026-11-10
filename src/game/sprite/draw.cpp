@@ -13,6 +13,7 @@
 #include "../render/spritequeue.h"
 #include "loading.h"
 #include "../world/camera.h"
+#include "../world/world.h"
 
 namespace {
 
@@ -184,7 +185,7 @@ extern "C" u32 __cdecl SpriteDraw_Pick() {
         if (!Map_InBounds(cx, cy))
             continue;
         const u32 cell = ((u32)cy << 7) + (u32)cx + 1;
-        for (u16 thing = at<u16>(global<u8 *>(0x007cf83c), (cell & 0xffff) * 0x44 + 0x2b8); thing;) {
+        for (u16 thing = at<u16>(gWorldPtr, (cell & 0xffff) * 0x44 + 0x2b8); thing;) {
             u8 *const record = global<u8 *>(0x007cfb90 + 0x14 * (u32)thing);
             const u8 kind = record[2];
             if ((kind == 1 || kind == 4 || kind == 5 || kind == 6 || kind == 8 || kind == 7 || kind == 0x12) && at<s32>(record, 0xc) == slot)

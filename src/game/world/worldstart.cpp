@@ -77,7 +77,7 @@ void WorldStart_SetEnv(const WorldStartEnv *env) { g_env = env ? env : &kGameEnv
 extern "C" u32 __fastcall World_Start(u8 *world, void *, const char *level) {
     at<u32>(world, 0x1da738) = 1;
     u32 ok = 1;
-    g_env->objectControlsInit(global<u8 *>(0x007cf83c) + 0x1d943c);
+    g_env->objectControlsInit(gWorldPtr + 0x1d943c);
     g_env->actionRestart(address(0x00785a08));
     for (u8 &b : gWorld_802080) b = 0;
     read_setting_once();

@@ -348,3 +348,5 @@ GAME_DATA(char[20], gText_Thoughts_Serialize_761dd4, 0x00761dd4, 0x14);
 GAME_DATA(char[20], gText_Thoughts_Serialize_761de8, 0x00761de8, 0x14);
 GAME_DATA(char[12], gText_Visitor_Serialize_75d2a8, 0x0075d2a8, 0xc);
 GAME_DATA(char[24], gText_Visitor_Serialize_75d2b4, 0x0075d2b4, 0x18);
+GAME_DATA(u32, gPerson_BobRow_7cedd4, 0x007cedd4, 4);     // the bob table's row, one on each 1.0 of gPerson_BobTime_7cedd8
+GAME_DATA(float, gPerson_BobTime_7cedd8, 0x007cedd8, 4);

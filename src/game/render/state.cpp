@@ -9,6 +9,7 @@
 #include "engineerrors.h"
 #include "../frontend/lobbysky.h"
 #include "graphicssettings.h"
+#include "../world/advisor.h"
 #include "../world/balancelevel.h"
 
 namespace {
@@ -121,8 +122,8 @@ u32 __cdecl Environment_Apply() {
     global<u32>(0x00870ecc) = reinterpret_cast<const u32 &>(gBalanceLevel.mWaterStartPosY);
     global<u32>(0x00870ed0) = reinterpret_cast<const u32 &>(gBalanceLevel.mWaterStartPosZ);
     for (u32 i = 0; i < 4; i++) {
-        global<u32>(0x00f797a4 + 4 * i) = (u32)gBalanceLevel.mThemeAdvisorCostumes[i].mAddOns;
-        global<u32>(0x00f797b4 + 4 * i) = (u32)gBalanceLevel.mThemeAdvisorCostumes[i].mSubOffs;
+        gAdvisor_State_f79660.addOns[i] = (u32)gBalanceLevel.mThemeAdvisorCostumes[i].mAddOns;
+        gAdvisor_State_f79660.subOffs[i] = (u32)gBalanceLevel.mThemeAdvisorCostumes[i].mSubOffs;
     }
     Global81b6dc_Set_52fb10(gBalanceLevel.mPathCell);
     Global81ea14_Set_52fb30(gBalanceLevel.mQueueCell);

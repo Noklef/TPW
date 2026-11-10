@@ -387,21 +387,21 @@ s32 TrainSlot(u8 type) {
 void __fastcall Staff_TrainAll(const s32 *amounts) {
     s32 count[5] = {0, 0, 0, 0, 0};
     u16 handle;
-    World_FirstThing(global<void *>(0x007cf83c), nullptr, &handle);
+    World_FirstThing(global<void *>((u32)&gWorldPtr), nullptr, &handle);
     while (handle != 0) {
         const u8 *const thing = global<u8 *>(0x007cfb90 + 20 * (u32)handle);
         const s32 slot = TrainSlot(at<u8>(thing, 2));
         if (slot >= 0) ++count[slot];
         u16 next;
-        handle = *World_NextThing(global<void *>(0x007cf83c), nullptr, &next, thing);
+        handle = *World_NextThing(global<void *>((u32)&gWorldPtr), nullptr, &next, thing);
     }
-    World_FirstThing(global<void *>(0x007cf83c), nullptr, &handle);
+    World_FirstThing(global<void *>((u32)&gWorldPtr), nullptr, &handle);
     while (handle != 0) {
         u8 *const thing = global<u8 *>(0x007cfb90 + 20 * (u32)handle);
         const s32 slot = TrainSlot(at<u8>(thing, 2));
         if (slot >= 0) Staff_Train(thing, nullptr, amounts[slot] / count[slot]);
         u16 next;
-        handle = *World_NextThing(global<void *>(0x007cf83c), nullptr, &next, thing);
+        handle = *World_NextThing(global<void *>((u32)&gWorldPtr), nullptr, &next, thing);
     }
 }
 

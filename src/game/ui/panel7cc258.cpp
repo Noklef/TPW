@@ -179,7 +179,7 @@ void __fastcall Panel7cc258_ShowStats(u8 *self) {
         u8 *const grad = Window_FindChild(at<u8 *>(self, 0x14), nullptr, 0xc07c);
         // the cell id a word over the slot's upper half (sic: the dword is passed)
         const u32 cell = (slot & 0xffff0000u) | (u16)(((u32)thing[7] << 7) + thing[5] + 1);
-        u8 *const analyser = reinterpret_cast<u8 *>((uintptr_t)GameTable7cfb90_Get1da720_519510(global<u8 *>(0x007cf83c)));
+        u8 *const analyser = reinterpret_cast<u8 *>((uintptr_t)GameTable7cfb90_Get1da720_519510(gWorldPtr));
         const s32 people = ParkAnalyser_AveragePersonStat19c(analyser, nullptr, cell, 1);
         vcall<void>(grad, 0x1c, (u32)((s32)((u32)people << 10) / 100));
     }

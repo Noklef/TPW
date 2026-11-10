@@ -15,6 +15,7 @@
 #include "balancelevel.h"
 #include "../rsse/rsse.h"
 #include "rides.h"
+#include "world.h"
 
 namespace {
 
@@ -189,7 +190,7 @@ u32 __fastcall Obj_RollChance(const u8 *object, void *, u32) {
     // The original finds the object's definition (which makes it the cache's) and reads a dword of it for its debug print.
     const volatile u32 forPrint = at<u32>(ObjectDefs_Find(reinterpret_cast<u8 *>(0x007890a0), nullptr, at<u16>(object, 0xe)), 0x4ac);
     (void)forPrint;
-    const u32 roll = (u32)World_Rand(*reinterpret_cast<u8 **>(0x007cf83c)) % 100;
+    const u32 roll = (u32)World_Rand(*&gWorldPtr) % 100;
     const u32 hit = at<u8>(object, 0x190) >= roll ? 1 : 0;
     Rides_SetElement(Rides_FindById(at<s32>(object, 0x24)), 0xb, hit);
     return hit;

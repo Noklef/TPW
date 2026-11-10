@@ -5,6 +5,8 @@
 #include "cellkind.h"
 #include "cellmessage.h"
 #include "mapcell.h"
+#include "world.h"
+#include "focuscell.h"
 
 namespace {
 
@@ -23,9 +25,9 @@ extern "C" {
 void PathDrag_SetEnv(const PathDragEnv *env) { g_env = env ? env : &kGameEnv; }
 
 void __cdecl PathDrag_Begin(s32 x, s32 y, u32 keep) {
-    global<s32>(0x00763a04) = y;
-    global<s32>(0x00763a00) = x;
-    u8 *const cell = global<u8 *>(0x007cf83c) + ident(x, y) * 0x44 + 0x294;
+    gFocusCell_DragY_763a04 = y;
+    gFocusCell_DragX_763a00 = x;
+    u8 *const cell = gWorldPtr + ident(x, y) * 0x44 + 0x294;
     u8 *const entry = MapHandle_Entry28(reinterpret_cast<const u16 *>(cell));
     gPathdrag_818c58 = at<u32>(entry, 4);
     at<u32>(entry, 4) = 0;
@@ -34,14 +36,14 @@ void __cdecl PathDrag_Begin(s32 x, s32 y, u32 keep) {
 }
 
 void __cdecl PathDrag_Finish() {
-    s32 x = global<s32>(0x00763a00), y = global<s32>(0x00763a04);
+    s32 x = gFocusCell_DragX_763a00, y = gFocusCell_DragY_763a04;
     if (x == -1 || y == -1 || !gPathdrag_818c54) return;
     g_env->step536100(0x15, x, y, &x, &y);
     g_env->step536100(0x83, x, y, &x, &y);
     g_env->step536100(0x81, x, y, &x, &y);
-    at<u32>(global<u8 *>(0x007cf83c), ident(x, y) * 0x28 + 0x1102b4) = gPathdrag_818c58;
+    at<u32>(gWorldPtr, ident(x, y) * 0x28 + 0x1102b4) = gPathdrag_818c58;
     gPathdrag_818c54 = 0;
-    global<s32>(0x00763a00) = -1;
-    global<s32>(0x00763a04) = -1;
+    gFocusCell_DragX_763a00 = -1;
+    gFocusCell_DragY_763a04 = -1;
 }
 }

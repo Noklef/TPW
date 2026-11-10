@@ -20,6 +20,7 @@
 #include "../world/thingscan.h"
 #include "../render/graphicssettings.h"
 #include "../world/rides.h"
+#include "../math/intpair.h"
 
 namespace {
 
@@ -528,7 +529,7 @@ float __cdecl Terrain_RoundedCellHeight(const u8 *cell, float height, s32 x, s32
         return (float)(X87Reg((double)tens) * X87Reg(10.0f));   // 0x700d94
     };
     if (counts(at<u32>(cell, 8))) height = rounded(x, y);
-    const uintptr_t pairs[3] = {0x007cdba8, 0x007cdbc8, 0x007cdbb8};
+    const uintptr_t pairs[3] = {(u32)gStepS_7cdba8, (u32)gStepE_7cdbc8, (u32)gStepSE_7cdbb8};
     for (const uintptr_t pair : pairs) {
         const s32 *const step = reinterpret_cast<const s32 *>(pair);
         const u8 *const next = Map_StepCell(reinterpret_cast<const u16 *>(cell), nullptr, step[0], step[1], 1);

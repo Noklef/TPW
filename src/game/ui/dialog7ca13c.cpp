@@ -21,6 +21,7 @@
 #include "windowtimers.h"
 #include "dialog7ca13chandler.h"
 #include "panel7b9940.h"
+#include "../world/world.h"
 
 namespace {
 
@@ -75,7 +76,7 @@ void __cdecl Dialog7ca13c_RemoveData(u32 data) {
 
 void __cdecl Dialog7ca13c_AddRow(u8 *guest) {
     FileTime span;
-    const FileTime *const s = FunnyTime_SpanOf(global<u8 *>(0x007cf83c) + 0x2a0, nullptr, &span, Visitor_TimeInPark(guest));
+    const FileTime *const s = FunnyTime_SpanOf(gWorldPtr + 0x2a0, nullptr, &span, Visitor_TimeInPark(guest));
     const long long hours = (long long)(((unsigned long long)s->high << 32) | s->low) / 36000000000LL;   // (_alldiv: an hour of ticks)
     const u32 left = field<u32>(guest, 0x30);
     const u32 happy = (u32)(long long)field<float>(guest, 0x19c) & 0xff;   // (FLD, __ftol's low byte)

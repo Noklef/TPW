@@ -28,7 +28,7 @@ void __cdecl WallFollower_Step(u8 *walker) {
     u32 &dir = at<u32>(walker, 0x200);
     if (dir == 0x33)
         return;
-    const u32 mode = global<u32>(0x007cf3c0);
+    const u32 mode = (u32)gRoute_Mode_7cf3c0;
     u8 &x = walker[0x208], &y = walker[0x209];
     if (MapCell_StepBlocked((mode & 0xffffff00) | x, y, dir, (s32)mode)) {  // sic: the mode's upper bytes ride on x
         dir = (dir - at<u32>(walker, 0x204)) & 3;

@@ -21,6 +21,7 @@
 #include "../terrain/land.h"
 #include "flyingrides.h"
 #include "rides.h"
+#include "world.h"
 
 namespace {
 
@@ -345,7 +346,7 @@ void __cdecl FlyingRide_PickWaypoint(u8 *rec) {
     at<s32>(rec, 0x5c) = at<s32>(rec, 0x50);
     at<s32>(rec, 0x60) = z;
     s32 limit = wrap_add(at<s32>(rec, 8), 5000);
-    if (magnitude(World_Rand(*reinterpret_cast<u8 **>(0x007cf83c))) % 4 != 0 && FlyingRides_FloorAt(wrap_add(x, stepX), wrap_add(z, stepZ)) < limit) {
+    if (magnitude(World_Rand(*&gWorldPtr)) % 4 != 0 && FlyingRides_FloorAt(wrap_add(x, stepX), wrap_add(z, stepZ)) < limit) {
         x = wrap_add(square_centre(x), stepX);
         z = wrap_add(square_centre(z), stepZ);
     } else {
@@ -528,7 +529,7 @@ void __cdecl FlyingRide_SetMode(s32 index, s32 mode) {
                          at<s32>(rec, 0x68) / 300);
         }
         if (at<u32>(rec, 0xd8) != 0) {
-            const s32 n = World_Rand(*reinterpret_cast<u8 *const *>(0x007cf83c));
+            const s32 n = World_Rand(*&gWorldPtr);
             const s32 size = n < 0 ? (s32)(0u - (u32)n) : n;
             at<s32>(rec, 0xd8) = size % 100 + at<s32>(rec, 0x28);
         }

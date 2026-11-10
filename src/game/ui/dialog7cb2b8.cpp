@@ -239,7 +239,7 @@ void __fastcall Obj7b51f0_ShowDate(void *, void *, u32, u32, u32, u32 day, u32 m
 
 void __cdecl Obj7b51f0_ShowNow() {
     const auto field = [](uintptr_t address) { return reinterpret_cast<u32 *>(address); };
-    const auto game = [] { return *reinterpret_cast<u8 **>((uintptr_t)0x007cf83c); };
+    const auto game = [] { return *&gWorldPtr; };
     g_nowEnv->clear();
     if (*reinterpret_cast<u32 *>(game() + 0x1da738) == 4) g_nowEnv->open();
     g_nowEnv->enableKeys();

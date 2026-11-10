@@ -43,7 +43,7 @@ const Dialog7cb25cHandlerEnv kHandlerGameEnv = {&Window_SendMessage, &Game_Cance
                                                 reinterpret_cast<void(__cdecl *)(const u8 *, u32, u32, u32, u32, u32, u32, u32)>((uintptr_t)0x0047f020), &Dialog7ca210_Open, &Dialog7ca2e8_Open, &Dialog7cc2ec_Open, &Dialog_KeyHandler};
 const Dialog7cb25cHandlerEnv *g_handler = &kHandlerGameEnv;
 
-u8 *game() { return *reinterpret_cast<u8 **>((uintptr_t)0x007cf83c); }
+u8 *game() { return *&gWorldPtr; }
 
 // The text of the number formatted into text and a box of it (the white record, its last colour byte never written, sic).
 void loanBox(u16 *text, u32 entry, u32 value, u32 buttons, u32 index, u32 callback) {
@@ -144,7 +144,7 @@ void __cdecl Dialog7cb25c_Open() {
     Window7c24c8_Set(built);
     g_open->attach(dialog(), 0x12c4ca, (u32)(uintptr_t)Language_WideText(0xaa));
     if (u8 *const figures = Window_FindChild(dialog(), nullptr, 0x12c4c1)) {
-        u8 *const game = *reinterpret_cast<u8 **>((uintptr_t)0x007cf83c);
+        u8 *const game = *&gWorldPtr;
         const u8 *const rings = reinterpret_cast<const u8 *>((uintptr_t)GameTable7cfb90_Get1da720_519510(game));
         panelparts::text(figures, 0x12c4c4, 0x165);
         panelparts::redText(figures, 0x12c4c9, 0x168);
@@ -156,7 +156,7 @@ void __cdecl Dialog7cb25c_Open() {
         u32 sum = 0;
         for (u32 i = 0; i < 8; ++i) {
             u32 out[8];
-            u8 *const money = reinterpret_cast<u8 *>((uintptr_t)GameTable7cfb90_Get1da726_5195d0(*reinterpret_cast<u8 **>((uintptr_t)0x007cf83c)));
+            u8 *const money = reinterpret_cast<u8 *>((uintptr_t)GameTable7cfb90_Get1da726_5195d0(*&gWorldPtr));
             const u32 *const offer = g_open->loanOffer(money, nullptr, out, i);
             if (offer[5]) sum += offer[4];
         }
@@ -216,7 +216,7 @@ void __cdecl Dialog7cb25c_FillList(u8 *list) {
     for (u32 i = 0; i < 8; i++) {
         u32 offer[8];
         const u32 *const got = Money_LoanOffer(reinterpret_cast<u8 *>((uintptr_t)GameTable7cfb90_Get1da726_5195d0(
-                                                   *reinterpret_cast<u8 **>((uintptr_t)0x007cf83c))), nullptr, offer, i);
+                                                   *&gWorldPtr)), nullptr, offer, i);
         for (u32 k = 0; k < 8; k++) offer[k] = got[k];
         const u32 flag = gDialog7cb25c_7cb260;
         u32 data;
@@ -251,7 +251,7 @@ s32 __cdecl Dialog7cb25c_ListProc(u8 *list, u32 message, u32 a, u32 b) {
 }
 
 static u8 *money() {
-    return reinterpret_cast<u8 *>((uintptr_t)GameTable7cfb90_Get1da726_5195d0(*reinterpret_cast<u8 **>((uintptr_t)0x007cf83c)));
+    return reinterpret_cast<u8 *>((uintptr_t)GameTable7cfb90_Get1da726_5195d0(*&gWorldPtr));
 }
 
 u32 __cdecl Dialog7cb25c_PayOffLoan(u32 index) {

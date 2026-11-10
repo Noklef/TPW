@@ -7,13 +7,15 @@
 #include "cellmodel.h"
 #include "cellrun.h"
 #include "mapcell.h"
+#include "../math/intpair.h"
+#include "world.h"
 
 namespace {
 
 template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cast<T *>((uintptr_t)p + offset); }
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
 
-u8 *map_cell(u32 id) { return global<u8 *>(0x007cf83c) + id * 0x44 + 0x294; }
+u8 *map_cell(u32 id) { return gWorldPtr + id * 0x44 + 0x294; }
 u8 *map_cell(s32 x, s32 y) { return map_cell((((u32)y << 7) + (u32)x + 1) & 0xffff); }
 
 // A step in the direction (1 north, 4 east, 0x10 south, 0x40 west; others stay); back: the other way.
@@ -40,10 +42,10 @@ u8 __cdecl RideQueue_Trace(const u8 *thing) {
     u8 direction = MapCell_Neighbours(cell);
     u32 pair = 0;
     switch (direction) {
-    case 0x01: pair = 0x007cdba0; break;
-    case 0x04: pair = 0x007cdbc8; break;
-    case 0x10: pair = 0x007cdba8; break;
-    case 0x40: pair = 0x007cdbd0; break;
+    case 0x01: pair = (u32)gStepN_7cdba0; break;
+    case 0x04: pair = (u32)gStepE_7cdbc8; break;
+    case 0x10: pair = (u32)gStepS_7cdba8; break;
+    case 0x40: pair = (u32)gStepW_7cdbd0; break;
     default: break;
     }
     if (pair) {

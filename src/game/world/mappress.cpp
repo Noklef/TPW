@@ -13,6 +13,7 @@
 #include "focuscell.h"
 #include "cellbuild.h"
 #include "pathdrag.h"
+#include "world.h"
 
 namespace {
 
@@ -56,7 +57,7 @@ extern "C" void __cdecl GameMode_MapPress(s32 x, s32 y, u32 flags, u32 useStored
     g_env->sendLine(0x81, x, y, &x, &y);
     const u32 cell = (((u32)y << 7) + (u32)x + 1) & 0xffff;
     const u32 placed = g_env->placeSelected(x, y);
-    *reinterpret_cast<u32 *>((uintptr_t)global<u32>(0x007cf83c) + (cell + 0x6cde) * 0x28 + 4) = placed;
-    global<u32>(0x007639a0) = 0xffffffff;
+    *reinterpret_cast<u32 *>((uintptr_t)global<u32>((u32)&gWorldPtr) + (cell + 0x6cde) * 0x28 + 4) = placed;
+    reinterpret_cast<u32 &>(gMapClick_Mode_7639a0) = 0xffffffff;
     gPathdrag_818c54 = 0;
 }

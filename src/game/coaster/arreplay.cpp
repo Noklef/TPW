@@ -10,6 +10,7 @@
 #include "edittools.h"
 #include "registry.h"
 #include "train.h"
+#include "../world/world.h"
 
 namespace {
 
@@ -57,7 +58,7 @@ void Finish(u8 *self) {
     for (u32 i = 0; i < 8; ++i)
         g_calls.Cd(0x005516b0);
     g_calls.Cd(0x00439390);
-    const u32 result = g_calls.Th(0x005195d0, at<u32>(reinterpret_cast<void *>((uintptr_t)0x007cf83c), 0));
+    const u32 result = g_calls.Th(0x005195d0, at<u32>(reinterpret_cast<void *>((uintptr_t)(u32)&gWorldPtr), 0));
     at<u32>(reinterpret_cast<void *>((uintptr_t)result), 0x114) = 1;
 }
 
@@ -69,7 +70,7 @@ extern "C" void __fastcall ArReplay_Begin(u8 *self, void *, u32 mode) {
     if (at<u32>(self, 0x24)) return;
     at<u32>(self, 0x24) = 1;
     at<u32>(self, 0x28) = mode;
-    const u32 result = g_calls.Th(0x005195d0, at<u32>(reinterpret_cast<void *>((uintptr_t)0x007cf83c), 0));
+    const u32 result = g_calls.Th(0x005195d0, at<u32>(reinterpret_cast<void *>((uintptr_t)(u32)&gWorldPtr), 0));
     at<u32>(reinterpret_cast<void *>((uintptr_t)result), 0x114) = 0;
     if (!at<u32>(self, 4) && (at<u32>(self, 0x28) == 2 || at<u32>(self, 0x28) == 1)) {
         vcall<void>(self + 0x14, 0x10, 0u, 0u);

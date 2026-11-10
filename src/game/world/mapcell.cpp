@@ -12,6 +12,8 @@
 #include "challenges.h"
 #include "mapcell.h"
 #include "balancelevel.h"
+#include "../math/intpair.h"
+#include "world.h"
 
 namespace {
 
@@ -29,7 +31,7 @@ u8 &neighbours(const u8 *cell) {
 }
 
 // The world's 0x28-byte cell for a handle (wrapping as the originals' 32-bit sums do).
-const u8 *world_cell(u32 handle) { return reinterpret_cast<const u8 *>(global<u32>(0x007cf83c) + 0x1102b0 + handle * 0x28); }
+const u8 *world_cell(u32 handle) { return reinterpret_cast<const u8 *>(global<u32>((u32)&gWorldPtr) + 0x1102b0 + handle * 0x28); }
 
 u32 type_in(const u8 *cell, u32 a, u32 b) {
     const u32 type = at<u32>(cell, 8);
@@ -66,7 +68,7 @@ namespace {
 
 u8 *CellAt(s32 x, s32 y) {
     const u32 id = (((u32)y << 7) + (u32)x + 1) & 0xffff;
-    return *reinterpret_cast<u8 **>(0x007cf83c) + 0x294 + id * 0x44;
+    return *&gWorldPtr + 0x294 + id * 0x44;
 }
 
 }  // namespace
@@ -85,15 +87,15 @@ void __fastcall MemRanges_Set(u8 *ranges, void *, u32 index, u32 a, u32 b, const
 }
 
 void __cdecl MemRanges_SetCells44(u32 base, u32 stride) {
-    global<u32>(0x007cdb40) = base;
-    global<u32>(0x007cdb50) = stride;
-    global<u32>(0x007cdb44) = (stride << 14) + base;
+    gMemRanges_7cdb30.range[2][0] = base;
+    gMemRanges_7cdb30.cells44Stride = stride;
+    gMemRanges_7cdb30.range[2][1] = (stride << 14) + base;
 }
 
 void __cdecl MemRanges_SetCells28(u32 base, u32 stride) {
-    global<u32>(0x007cdb48) = base;
-    global<u32>(0x007cdb54) = stride;
-    global<u32>(0x007cdb4c) = (stride << 14) + base;
+    gMemRanges_7cdb30.range[3][0] = base;
+    gMemRanges_7cdb30.cells28Stride = stride;
+    gMemRanges_7cdb30.range[3][1] = (stride << 14) + base;
 }
 
 u32 __cdecl Map_InBounds(s32 x, s32 y) { return x >= 0 && y >= 0 && x < 0x80 && y < 0x80; }
@@ -368,14 +370,14 @@ u8 *__fastcall Map_StepCell(const u16 *cell, void *, s32 dx, s32 dy, s32 scale) 
 static u32 DirectionTable(u32 direction) {
     u32 table = 0;
     switch (direction & 0xff) {
-    case 0x01: table = 0x007cdba0; break;
-    case 0x02: table = 0x007cdbd8; break;
-    case 0x04: table = 0x007cdbc8; break;
-    case 0x08: table = 0x007cdbb8; break;
-    case 0x10: table = 0x007cdba8; break;
-    case 0x20: table = 0x007cdbb0; break;
-    case 0x40: table = 0x007cdbd0; break;
-    case 0x80: table = 0x007cdbc0; break;
+    case 0x01: table = (u32)gStepN_7cdba0; break;
+    case 0x02: table = (u32)gStepNE_7cdbd8; break;
+    case 0x04: table = (u32)gStepE_7cdbc8; break;
+    case 0x08: table = (u32)gStepSE_7cdbb8; break;
+    case 0x10: table = (u32)gStepS_7cdba8; break;
+    case 0x20: table = (u32)gStepSW_7cdbb0; break;
+    case 0x40: table = (u32)gStepW_7cdbd0; break;
+    case 0x80: table = (u32)gStepNW_7cdbc0; break;
     default: return 0;  // (the original's Debug_Printf assert is left out)
     }
     return table;
@@ -388,7 +390,7 @@ u8 *__fastcall Map_StepCellInDirection(const u16 *cell, void *, u32 direction) {
 }
 
 u16 *__cdecl Map_FindFacingNeighbour(u16 *out, u32 cell) {
-    const u8 *here = at<u8 *>(reinterpret_cast<const void *>(0x007cf83c), 0) + 0x294 + (cell & 0xffff) * 0x44;
+    const u8 *here = at<u8 *>(reinterpret_cast<const void *>((u32)&gWorldPtr), 0) + 0x294 + (cell & 0xffff) * 0x44;
     // the neighbour in a direction (1, 0x10, 4, 0x40) that is a type 3 cell (not 9) facing the opposite one (0x10, 1, 0x40, 4): its id
     static const u32 directions[4][2] = {{0x01, 0x10}, {0x10, 0x01}, {0x04, 0x40}, {0x40, 0x04}};
     for (const auto &d : directions) {
@@ -634,15 +636,15 @@ u8 *__cdecl Cell_FindRideableObject(s32 x, s32 y) {
 
 void __cdecl MapCell_PathNudge(s32 *x, s32 *y) {
     const u32 id = ((u32)*y * 0x80 + (u32)*x + 1) & 0xffff;
-    const u8 *cell = global<u8 *>(0x007cf83c) + id * 0x44 + 0x294;
+    const u8 *cell = gWorldPtr + id * 0x44 + 0x294;
     const u8 *entry = MapHandle_Entry28(reinterpret_cast<const u16 *>(cell));
     if (MapCell_IsTypeCOr11(entry)) {
-        entry = global<u8 *>(0x007cf83c) + ((u32)at<u16>(entry, 0x10) + 0x6cde) * 0x28;
+        entry = gWorldPtr + ((u32)at<u16>(entry, 0x10) + 0x6cde) * 0x28;
         cell = MapHandle_Cell44(reinterpret_cast<const u16 *>(entry));
     }
     if (!MapCell_HasFlags(entry, nullptr, 0x10)) return;
     const u16 group = at<u16>(cell, 0x10);
-    const u32 pairs[4] = {0x007cdba0, 0x007cdbc8, 0x007cdba8, 0x007cdbd0};
+    const u32 pairs[4] = {(u32)gStepN_7cdba0, (u32)gStepE_7cdbc8, (u32)gStepS_7cdba8, (u32)gStepW_7cdbd0};
     s32 *const coords[4] = {y, x, y, x};
     const s32 steps[4] = {-2, 2, 2, -2};
     for (u32 k = 0; k < 4; ++k) {
@@ -736,14 +738,14 @@ u32 __cdecl MapCell_StepOpen(u32 from, u32 to, s32 mode) {
     const u32 a = (from & 0xffff) - 1, b = (to & 0xffff) - 1;
     const u32 ax = a & 0x7f, ay = a >> 7, bx = b & 0x7f, by = b >> 7;
     if (ay == 0 && by == 0x3ff) {  // (unreachable: by is at most 0x1ff, or 0x1ffffff for cell 0; the print is left out, its once-flag kept)
-        if (global<u32>(0x007cf38c) == 0)
-            global<u32>(0x007cf38c) = 1;
+        if (gMapCell_StepOpenWarned_7cf38c == 0)
+            gMapCell_StepOpenWarned_7cf38c = 1;
         return 0;
     }
     const s32 dx = (s32)(ax - bx), dy = (s32)(ay - by);
     if ((dx < 0 ? -dx : dx) > 1 || (dy < 0 ? -dy : dy) > 1) {  // not neighbours (the print is left out, its once-flag kept)
-        if (global<u32>(0x007cf38c) == 0)
-            global<u32>(0x007cf38c) = 1;
+        if (gMapCell_StepOpenWarned_7cf38c == 0)
+            gMapCell_StepOpenWarned_7cf38c = 1;
         return 0;
     }
     if (to == 0xffffffff)  // sic: the whole argument, after its low word was taken as a cell

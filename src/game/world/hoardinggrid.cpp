@@ -9,13 +9,14 @@
 #include "tracktextures.h"
 #include "balancelevel.h"
 #include "cellbuild.h"
+#include "focuscell.h"
 
 namespace {
 
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
 
 // The world's 0x28-byte cell of an id.
-const u8 *world_cell(u32 id) { return reinterpret_cast<const u8 *>(global<u32>(0x007cf83c) + (id + 0x6cde) * 0x28); }
+const u8 *world_cell(u32 id) { return reinterpret_cast<const u8 *>(global<u32>((u32)&gWorldPtr) + (id + 0x6cde) * 0x28); }
 
 }  // namespace
 
@@ -45,7 +46,7 @@ u32 __cdecl HoardingGrid_AreaBlocked(s32 x1, s32 y1, s32 x2, s32 y2) {
         for (s32 x = x1; x <= x2; x++) {
             if (!Map_InBounds(x, y)) continue;
             const u32 id = (u16)((y << 7) + x + 1);
-            const u8 *const cell44 = reinterpret_cast<const u8 *>(global<u32>(0x007cf83c) + 0x294 + id * 0x44);
+            const u8 *const cell44 = reinterpret_cast<const u8 *>(global<u32>((u32)&gWorldPtr) + 0x294 + id * 0x44);
             const u8 *cell = MapHandle_Entry28(reinterpret_cast<const u16 *>(cell44));
             if (MapCell_IsTypeCOr11(cell))
                 cell = world_cell(*reinterpret_cast<const u16 *>(cell + 0x10));
@@ -70,7 +71,7 @@ void __cdecl HoardingGrid_Flood(s32 row, s32 col, u32 pass, u32 fill) {
 
 namespace {
 
-u32 world() { return global<u32>(0x007cf83c); }
+u32 world() { return global<u32>((u32)&gWorldPtr); }
 u8 *square(u32 id) { return reinterpret_cast<u8 *>(world() + ((id & 0xffff) + 0x6cde) * 0x28); }
 u8 *square_at(s32 x, s32 y) { return square((u32)(y << 7) + x + 1); }
 const u8 *cell44(u32 id) { return reinterpret_cast<const u8 *>(world() + id * 0x44 + 0x294); }
@@ -134,7 +135,7 @@ s32 __cdecl HoardingGrid_CheckArea(s32 x1, s32 y1, s32 x2, s32 y2, u8 charge) {
     s32 runA = 0, runB = 0, ends = 0, ones = 0, zeros = 0;
     s32 straightTop = 0, straightBottom = 0, straightLeft = 0, straightRight = 0, otherTop = 0, otherBottom = 0, otherLeft = 0, otherRight = 0;
     s32 type19Top = 0, type19Bottom = 0, type19Left = 0, type19Right = 0;
-    const s32 ax = global<s32>(0x007639f0), ay = global<s32>(0x007639f4), bx = global<s32>(0x007639f8), by = global<s32>(0x007639fc);
+    const s32 ax = gFocusCell_PointAX_7639f0, ay = gFocusCell_PointAY_7639f4, bx = gFocusCell_PointBX_7639f8, by = gFocusCell_PointBY_7639fc;
     for (s32 x = minX; x <= maxX; x += 2) {
         if (x == ax && (minY == ay || maxY == ay)) return 0;
         if (x == bx && (minY == by || maxY == by)) return 0;

@@ -23,8 +23,8 @@ void __fastcall tellStaffDialog(void *, void *, u32 slot) { Wrap_Dialog7ca308_St
 const StaffCandidateEnv kGame = {&tellStaffDialog};
 const StaffCandidateEnv *g_env = &kGame;
 
-u16 *const kTakenText = reinterpret_cast<u16 *>((uintptr_t)0x007cee18);
-u16 *const kPickedText = reinterpret_cast<u16 *>((uintptr_t)0x007cef20);
+u16 *const kTakenText = gStaffCandidate_TakenText_7cee18;
+u16 *const kPickedText = gStaffCandidate_PickedText_7cef20;
 
 // The grade of the kinds 0-4: a World_Rand wasted, then World_Rand % 3 + the average - 1, in a byte.
 u8 random_grade(u32 averageAddress) {

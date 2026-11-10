@@ -43,11 +43,11 @@ void entries(u8 *model, u32 type) {
     g_env->findEntries(at<u8 *>(at<u8 *>(holder, 8), 4), &sign1, &sign2);
     g_env->findEntries(model, &own1, &own2);
     if (!sign1 || !sign2 || !own1 || !own2) return;
-    global<u32>(0x007afd8c) = type;
-    global<u32>(0x007afd84) = sign1;
-    global<u32>(0x007afd7c) = own1;
-    global<u32>(0x007afd80) = own2;
-    global<u32>(0x007afd88) = sign2;
+    gSign_Record_7afd08.type = type;
+    gSign_Record_7afd08.sign1 = sign1;
+    gSign_Record_7afd08.own1 = own1;
+    gSign_Record_7afd08.own2 = own2;
+    gSign_Record_7afd08.sign2 = sign2;
     replace(model, own1, sign1);
     replace(model, own2, sign2);
 }
@@ -62,7 +62,7 @@ float measure(const u8 *box, float b, float c) {
     centre[0] = (float)((X87Reg(high[0]) + low[0]) * kHalf);
     at<u32>(centre, 4) = 0;
     centre[2] = (float)((X87Reg(high[2]) + low[2]) * kHalf);
-    float &width = global<float>(0x007afd64), &depth = global<float>(0x007afd68), &far = global<float>(0x007afd70), &away = global<float>(0x007afd74);
+    float &width = gSign_Record_7afd08.width, &depth = gSign_Record_7afd08.depth, &far = gSign_Record_7afd08.farthest, &away = gSign_Record_7afd08.away;
     width = (float)(X87Reg(high[0]) - low[0]);
     const X87Reg dz = X87Reg(high[2]) - low[2];
     depth = (float)dz;
@@ -77,7 +77,7 @@ float measure(const u8 *box, float b, float c) {
     float scale = (float)(X87Reg(b) * kTwoThirds / diagonal);
     if (!(byC.v >= (double)scale)) scale = (float)byC;
     const X87Reg t = X87Reg(diagonal) / far, u = X87Reg(fromCentre) / far;
-    global<float>(0x007afd6c) = (float)(u / (u + t));
+    gSign_Record_7afd08.ratio = (float)(u / (u + t));
     return scale;
 }
 
@@ -90,19 +90,20 @@ extern "C" {
 u8 *__cdecl Sign_Create(u32 value, float a, u32 height, float b, float c, u32 type) {
     const u32 made = g_env->createRide(type, 0xc01, nullptr, 0, 0, 0, 0, 0, -1, 0);
     u8 *const instance = Instance(made);
-    global<u32>(0x007afd0c) = made;
+    SignRecord &r = gSign_Record_7afd08;
+    r.ride = made;
     entries(at<u8 *>(at<u8 *>(instance, 8), 4), type);
 
-    global<float>(0x007afd58) = X87_Through(a);
-    global<float>(0x007afd5c) = X87_Through(b);
-    global<float>(0x007afd60) = X87_Through(c);
-    global<u32>(0x007afd54) = value;
+    r.a = X87_Through(a);
+    r.b = X87_Through(b);
+    r.c = X87_Through(c);
+    r.value = value;
     const float scale = measure(at<const u8 *>(instance, 0xcc), b, c);
 
     float axes[3];
     for (float &axis : axes) axis = (float)(X87Reg(scale) * 1.0f);
     g_env->setScale(at<const u8 *>(instance, 8), axes);
-    float &width = global<float>(0x007afd64), &depth = global<float>(0x007afd68), &far = global<float>(0x007afd70), &away = global<float>(0x007afd74);
+    float &width = r.width, &depth = r.depth, &far = r.farthest, &away = r.away;
     width = (float)(X87Reg(scale) * width * kHalf);
     depth = (float)(X87Reg(scale) * depth * kHalf);
     far = (float)(X87Reg(scale) * far);
@@ -112,16 +113,16 @@ u8 *__cdecl Sign_Create(u32 value, float a, u32 height, float b, float c, u32 ty
     Matrix_Identity(matrix);
     at<u32>(matrix, 0x38) = height;
     const u8 *const root = at<const u8 *>(at<const u8 *>(at<const u8 *>(instance, 8), 4), 0x78) + 0x10;
-    for (u32 i = 0; i < 16; ++i) global<u32>(0x007afd10 + i * 4) = at<u32>(root, i * 4);
+    for (u32 i = 0; i < 16; ++i) r.matrix[i] = at<u32>(root, i * 4);
 
-    g_env->markModel(&global<u32>(0x007afd0c));
-    const u32 ride = global<u32>(0x007afd0c);
+    g_env->markModel(&r.ride);
+    const u32 ride = r.ride;
     g_env->flagModel(reinterpret_cast<const u8 *const *>(Instance(ride) + 8));
     at<float *>(Instance(ride), 0xc8) = matrix;   // (sic: dangling)
     g_env->wake(at<u8 *>(Instance(ride), 8), reinterpret_cast<const u32 *>(matrix), 1);
-    if (global<u32>(0x007afd0c) != 0) g_env->play(Instance(global<u32>(0x007afd0c)), 5, 0, 1, 1.0f, 0);
-    global<u32>(0x007afd08) = 1;
-    global<float>(0x007afd50) = (float)X87Reg(std::fmod((double)global<float>(0x007afd50), kAngleWrap));
-    return reinterpret_cast<u8 *>(0x007afd08);
+    if (r.ride != 0) g_env->play(Instance(r.ride), 5, 0, 1, 1.0f, 0);
+    r.set = 1;
+    r.angle = (float)X87Reg(std::fmod((double)r.angle, kAngleWrap));
+    return reinterpret_cast<u8 *>(&r);
 }
 }

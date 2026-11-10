@@ -53,3 +53,10 @@ s32 __cdecl Route_CellDistance(u32 from, u32 to, u32 mode);
 
 // Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
 GAME_DATA(const u8[8], gRoute_7622b0, 0x007622b0, 8);
+GAME_DATA(u8, gRoute_BlockedDir_7cf39c, 0x007cf39c, 1);     // (recorded while gRoute_Record_7cf3c8 is set)
+GAME_DATA(u8, gRoute_BlockedCount_7cf3a0, 0x007cf3a0, 1);
+GAME_DATA(u32, gRoute_Steps_7cf3a4, 0x007cf3a4, 4);
+GAME_DATA(u32, gRoute_BlockedSteps_7cf3b8, 0x007cf3b8, 4);
+GAME_DATA(u8, gRoute_WalkSide_7cf3bc, 0x007cf3bc, 1);
+GAME_DATA(s32, gRoute_Mode_7cf3c0, 0x007cf3c0, 4);
+GAME_DATA(u32, gRoute_Record_7cf3c8, 0x007cf3c8, 4);

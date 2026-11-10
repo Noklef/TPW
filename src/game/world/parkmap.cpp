@@ -29,13 +29,14 @@
 #include "../render/screen.h"
 #include "parkmap.h"
 #include "balancelevel.h"
+#include "world.h"
 
 namespace {
 
 template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cast<T *>((uintptr_t)p + offset); }
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
 
-u8 *cell44(u32 id) { return global<u8 *>(0x007cf83c) + 0x2d8 + (id & 0xffff) * 0x44 - 0x44; }
+u8 *cell44(u32 id) { return gWorldPtr + 0x2d8 + (id & 0xffff) * 0x44 - 0x44; }
 u8 *thing(u32 handle) { return global<u8 *>(0x007cfb90 + (handle & 0xffff) * 20); }
 
 // The owner's things: the first that tells a kind sets the entry; 1 when one did.
@@ -130,7 +131,7 @@ const u8 *ThingOf(const u8 *square) { return thing(at<u16>(square, 4)); }
 
 const u32 *Record(u32 address) { return reinterpret_cast<const u32 *>((uintptr_t)address); }
 
-const u32 *Blend(u32 *out, s32 position) { return Colour_Blend3(out, position, Record(0x00f86bd8), Record(0x00f86bfc), Record(0x00f86c20)); }
+const u32 *Blend(u32 *out, s32 position) { return Colour_Blend3(out, position, Record((u32)&gParkMap_Colour_f86bd8), Record((u32)&gParkMap_Colour_f86bfc), Record((u32)&gParkMap_Colour_f86c20)); }
 
 // The square's fill (blended into `out`, or a fixed record); null for none.
 const u32 *SquareColour(const u8 *map, const u8 *square, u32 *out) {
@@ -154,10 +155,10 @@ const u32 *SquareColour(const u8 *map, const u8 *square, u32 *out) {
     case 6: shown = view == 3; break;
     case 7: shown = view != 0; break;
     case 8: shown = (flags & 0x10) != 0; break;
-    case 9: return Record(0x00f86b48);
-    case 10: return Record(0x00f86b00);
-    case 11: return Record(0x00f86b24);
-    case 12: return Record(0x00f86b6c);
+    case 9: return Record((u32)&gParkMap_Colour_f86b48);
+    case 10: return Record((u32)&gParkMap_Colour_f86b00);
+    case 11: return Record((u32)&gParkMap_Colour_f86b24);
+    case 12: return Record((u32)&gParkMap_Colour_f86b6c);
     default: break;
     }
     return shown ? Blend(out, Ftol((double)at<float>(ThingOf(square), 0x44)) & 0xff) : nullptr;
@@ -178,7 +179,7 @@ void DrawSpriteBox(const u8 *map, Canvas &canvas, const u8 *sprite, s32 cellW, s
         return;
     const s32 rect[4] = {cellW * (s32)(first & 0x7f) + 0xf, cellH * (s32)(first >> 7) + 0x2a, ((s32)(last & 0x7f) + 1) * cellW + 0xf,
                          ((s32)(last >> 7) + 1) * cellH + 0x2a};
-    const u32 *const record = Record(sprite == at<const u8 *>(map, 0x20060) ? 0x00f86bb4 : 0x00f86b90);
+    const u32 *const record = Record(sprite == at<const u8 *>(map, 0x20060) ? (u32)&gParkMap_Colour_f86bb4 : (u32)&gParkMap_Colour_f86b90);
     if (canvas.driver)   // (the original tests the flags' bit 4: set, slot 7; clear, slot 8 at 0x20. The flags are 0xc here, so slot 8 is never called, and is left out)
         vcall<u32>(canvas.driver, 0x1c, &canvas.format, &canvas.clip, canvas.flags, rect, record);
 }
@@ -262,7 +263,7 @@ void __fastcall ParkMap_Draw(const u8 *map) {
             const u32 kind = at<u32>(square, 0);
             if (kind < 1 || kind > 8)
                 continue;
-            const u32 *const line = Record(kind != 8 && Is68_Zero_4e0440(ThingOf(square)) ? 0x00f86a28 : 0x00f86a4c);
+            const u32 *const line = Record(kind != 8 && Is68_Zero_4e0440(ThingOf(square)) ? (u32)&gParkMap_Colour_f86a28 : (u32)&gParkMap_Colour_f86a4c);
             if (!canvas.driver)
                 continue;
             const auto draw = [&](u32 slot, s32 lineX, s32 lineY) {
@@ -306,7 +307,7 @@ void __fastcall ParkMap_Classify(u8 *map) {
                 u16 owner;
                 if (MapHandle_IsTypeBDOr10Or12Or19(handle)) {
                     const u8 *e = MapHandle_Entry28(handle);
-                    if (MapCell_IsTypeCOr11(e)) e = global<u8 *>(0x007cf83c) + (static_cast<u32>(at<u16>(e, 0x10)) + 0x6cde) * 0x28;
+                    if (MapCell_IsTypeCOr11(e)) e = gWorldPtr + (static_cast<u32>(at<u16>(e, 0x10)) + 0x6cde) * 0x28;
                     owner = at<u16>(e, 0x10);
                 } else {
                     owner = at<u16>(cell, 0x10);
@@ -424,7 +425,7 @@ void __fastcall ParkMap_LayOut(const u8 *map) {
 }
 
 void __fastcall ParkMap_AddSprites(u8 *map) {
-    void *const world = global<void *>(0x007cf83c);
+    void *const world = global<void *>((u32)&gWorldPtr);
     u16 handle;
     World_FirstThing(world, nullptr, &handle);
     while (handle) {
@@ -453,11 +454,11 @@ void __fastcall ParkMap_AddSprites(u8 *map) {
         }
         if (t[2] == 1 || (t[2] >= 4 && t[2] <= 7))
             place_at_thing(map, sprite, t);
-        handle = *World_NextThing(global<void *>(0x007cf83c), nullptr, &handle, t);
+        handle = *World_NextThing(global<void *>((u32)&gWorldPtr), nullptr, &handle, t);
     }
 
     // The squares: one for each cell of a kind (+0x2c), its size 1, or 0x785688's int for kind 8, 0x785640's for 7.
-    u8 *const cells = global<u8 *>(0x007cf83c) + 0x2d8;
+    u8 *const cells = gWorldPtr + 0x2d8;
     for (s32 y = 0; y < at<s32>(map, 0x28); ++y) {
         for (s32 x = 0; x < at<s32>(map, 0x24); ++x) {
             const u32 id = ((u32)x + ((u32)y << 7) + 1) & 0xffff;
@@ -479,7 +480,7 @@ void __fastcall ParkMap_AddSprites(u8 *map) {
     }
 
     // The things on the list from the world's +0x1da746 (linked by +0xc) whose flags +0x32 have 0x10: one at their map square.
-    for (u16 h = at<u16>(global<u8 *>(0x007cf83c), 0x1da746); h; ) {
+    for (u16 h = at<u16>(gWorldPtr, 0x1da746); h; ) {
         const u8 *const t = thing(h);
         if (t[0x32] & 0x10) {
             u8 *const sprite = new_inline_sprite(at<u32>(map, 0x2007c), 5, 3, scaled((u32)&gBalanceLevel.mRegionFX[4].mRadius));

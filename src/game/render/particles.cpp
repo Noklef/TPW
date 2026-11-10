@@ -409,7 +409,7 @@ void __cdecl Particle_SpawnAtWindow(s32 effect, u8 *window) {
 }
 
 s32 __cdecl ParticlePool_Resize(s32 pool, s32 count, s32 effect) {
-    s32 *const header = reinterpret_cast<s32 *>((uintptr_t)(0x00f8692c + (u32)pool * 0x44));
+    s32 *const header = reinterpret_cast<s32 *>((uintptr_t)((u32)&gParticlePools_f86900[0].count + (u32)pool * 0x44));
     u32 *const handles = reinterpret_cast<u32 *>(header + 1);
     const s32 old = *header;
     s32 change = 0;
@@ -431,8 +431,8 @@ s32 __cdecl ParticlePool_Resize(s32 pool, s32 count, s32 effect) {
 }
 
 s32 __cdecl ParticlePool2_Finish() {
-    const s32 *const header = reinterpret_cast<const s32 *>((uintptr_t)0x00f869b4);
-    const u32 *const handles = reinterpret_cast<const u32 *>((uintptr_t)0x00f869b8);
+    const s32 *const header = &gParticlePools_f86900[2].count;
+    const u32 *const handles = gParticlePools_f86900[2].handles;
     if (*header != 0) {
         for (s32 i = 0; i < *header; i++) {
             if (handles[i] != 0) ParticleSystem_Set2a(handles[i], 1);
@@ -444,14 +444,14 @@ s32 __cdecl ParticlePool2_Finish() {
 s32 __cdecl ParticlePool2_Empty() { return ParticlePool_Resize(2, 0, 0); }
 
 void __cdecl ParticlePools_Reset() {
-    u32 *const block = reinterpret_cast<u32 *>(0x00f86900);
+    u32 *const block = reinterpret_cast<u32 *>(gParticlePools_f86900);
     for (u32 i = 0; i < 0x33; ++i)  // rep stosd
         block[i] = 0;
     IntSin_BuildTable();
 }
 
 void __cdecl ParticlePool_Move(s32 pool, s32 jump, float x, float y, float t) {
-    u8 *const p = reinterpret_cast<u8 *>(0x00f86900 + pool * 0x44);
+    u8 *const p = reinterpret_cast<u8 *>((u32)gParticlePools_f86900 + pool * 0x44);
     if (jump) {
         field<float>(p, 0) = x;  // (dword moves)
         field<float>(p, 4) = y;
@@ -469,7 +469,7 @@ void __cdecl ParticlePool_Move(s32 pool, s32 jump, float x, float y, float t) {
 
 void __cdecl ParticlePools_Update() {
     const auto ftol = [](X87Reg x) { return (s32)(long long)x.v; };
-    for (u8 *pool = reinterpret_cast<u8 *>(0x00f86900); pool < reinterpret_cast<u8 *>(0x00f869cc); pool += 0x44) {
+    for (u8 *pool = reinterpret_cast<u8 *>(gParticlePools_f86900); pool < reinterpret_cast<u8 *>(gParticlePools_f86900 + 3); pool += 0x44) {
         if (!field<s32>(pool, 0x2c))
             continue;
         const s32 now = (s32)Clocks_RealNowLessPauses();
@@ -503,17 +503,18 @@ void __cdecl ParticlePool2_Setup(u32 x, u32 y, float width, float height) {
     else if (count > 5)
         count = 5;
     ParticlePool_Resize(2, count, 0x23);
-    global<u32>(0x00f86988) = x;
-    global<u32>(0x00f8698c) = y;
-    global<u32>(0x00f86990) = x;
-    global<u32>(0x00f86994) = y;
-    global<u32>(0x00f8699c) = 0x43c80000;  // 400.0f
-    global<float>(0x00f86998) = (float)(s32)Clocks_RealNowLessPauses();  // fild
-    global<u32>(0x00f869a0) = 0x3ecccccd;  // 0.4f
-    global<float>(0x00f869a4) = (float)(X87Reg(width) * global<float>(0x00702f98));
-    global<float>(0x00f869a8) = (float)(X87Reg(height) * global<float>(0x00702f98));
-    global<float>(0x00f869ac) = X87_Through(width);
-    global<float>(0x00f869b0) = X87_Through(height);
+    ParticlePool &p = gParticlePools_f86900[2];
+    reinterpret_cast<u32 &>(p.fromX) = x;
+    reinterpret_cast<u32 &>(p.fromY) = y;
+    reinterpret_cast<u32 &>(p.toX) = x;
+    reinterpret_cast<u32 &>(p.toY) = y;
+    reinterpret_cast<u32 &>(p.duration) = 0x43c80000;  // 400.0f
+    p.startTime = (float)(s32)Clocks_RealNowLessPauses();  // fild
+    reinterpret_cast<u32 &>(p.spin) = 0x3ecccccd;  // 0.4f
+    p.radiusX0 = (float)(X87Reg(width) * global<float>(0x00702f98));
+    p.radiusY0 = (float)(X87Reg(height) * global<float>(0x00702f98));
+    p.radiusX1 = X87_Through(width);
+    p.radiusY1 = X87_Through(height);
 }
 
 void __cdecl ParticleEffectors_Update() {

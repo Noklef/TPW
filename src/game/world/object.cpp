@@ -494,7 +494,7 @@ void __fastcall Object_PathChanged(u8 *object) {
     Object_BackOfQueue(object, nullptr, &back);
     const u32 count = Counter7cdb98_Inc();
     Object_BackOfQueue(object, nullptr, &back);
-    Map_SetBlockValue(global<u8 *>(0x007cf83c) + 0x2d8, nullptr, count, back);
+    Map_SetBlockValue(gWorldPtr + 0x2d8, nullptr, count, back);
     for (u16 person = at<u16>(object, 0x3c); person;) {
         u8 *const thing = global<u8 *>(0x007cfb90 + person * 20u);
         const u16 next = at<u16>(thing, 0x228);
@@ -548,7 +548,7 @@ u32 __cdecl Object_TrackNeighboursOk(const u8 *object) {
     // the cell two or so ahead along the track's direction, then the one beside it (Nibble_Scale of the direction in between has no effect)
     auto cellAt = [](s32 column, s32 row) {
         const u32 id = (u32)(((row << 7) + column + 1) & 0xffff);
-        return global<u8 *>(0x007cf83c) + (id + 0x6cde) * 0x28;
+        return gWorldPtr + (id + 0x6cde) * 0x28;
     };
     s32 dx = 0, dy = 0;
     switch (angle) {
@@ -585,7 +585,7 @@ u32 __fastcall Obj_BlockValuesBelowLimit(const u8 *object) {
     u32 best = 0;
     for (u32 k = 0; k < 9; ++k) {
         if (best > at<u32>(object, 0x198)) break;
-        const u8 *const pair = reinterpret_cast<const u8 *>(0x007ced88 + k * 8);
+        const u8 *const pair = reinterpret_cast<const u8 *>(gObject_Around_7ced88[k]);
         const u16 pos = (u16)((u16)(at<u16>(pair, 4) << 7) + back + at<u16>(pair, 0));
         const u32 value = Map_BlockValue(global<u8 *>(0x0080239c) + 0x2d8, nullptr, pos);
         if (!(best > value)) best = value;
@@ -781,12 +781,12 @@ u32 __fastcall Object_FillRate(const u8 *object) {
     const u32 n = at<u32>(object, 0x58);
     if (n != 0) {
         const u32 row = (u32)at<u8>(object, 0x50) << 6;
-        global<float>(0x007cdc54) = (float)(X87Reg((double)n) / X87Reg((double)at<s32>(ObjectDefs_Find(defs, nullptr, id), row + 0x1a8)));
+        gObject_WearRate_7cdc54 = (float)(X87Reg((double)n) / X87Reg((double)at<s32>(ObjectDefs_Find(defs, nullptr, id), row + 0x1a8)));
     } else {
-        global<float>(0x007cdc54) = 1.0f;
+        gObject_WearRate_7cdc54 = 1.0f;
     }
     const float per = at<float>(ObjectDefs_Find(defs, nullptr, id), ((u32)at<u8>(object, 0x50) << 6) + 0x1b4);  // (its debug check of above 0 is left out)
-    X87Reg rate = X87Reg((double)at<u8>(object, 0x5d)) * X87Reg(per) * X87Reg(global<float>(0x007cdc54)) / X87Reg((double)at<u8>(object, 0x5c));
+    X87Reg rate = X87Reg((double)at<u8>(object, 0x5d)) * X87Reg(per) * X87Reg(gObject_WearRate_7cdc54) / X87Reg((double)at<u8>(object, 0x5c));
     if (!(rate.v > 4.0)) rate = 4.0;  // (a NaN too)
     return (u32)(long long)rate.v;  // __ftol, the low half
 }

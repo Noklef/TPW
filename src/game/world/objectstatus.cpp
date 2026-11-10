@@ -21,7 +21,7 @@ template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cas
 // The waiting statuses: none when the world's word is 0, busy when the game table entry's indexed dword is set, then by the tracked person:
 // none, there, or there in its state.
 u32 WaitStatus(u8 *object, u32 word, u32 index, u32 base) {
-    u8 *const world = *reinterpret_cast<u8 **>(0x007cf83c);
+    u8 *const world = *&gWorldPtr;
     if (at<u16>(world, word) == 0)
         return base;
     if (Obj_GetIndexed28(reinterpret_cast<u8 *>((uintptr_t)GameTable7cfb90_Get1da718_519450(world)), nullptr, index) != 0)

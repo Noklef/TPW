@@ -6,6 +6,7 @@
 #include "../core/crt.h"
 #include "../core/gamewindow.h"
 #include "../world/rides.h"
+#include "../world/world.h"
 
 namespace {
 
@@ -225,7 +226,7 @@ extern "C" u32 __cdecl Ride_ApplySign(u32 id, u32 a1, u32 a2, u32 a3, u32 a4) {
 }
 
 extern "C" void __cdecl Rides_ReapplySigns() {
-    u32 index = at<u16>(global<u8 *>(0x007cf83c), 0x1da746);
+    u32 index = at<u16>(gWorldPtr, 0x1da746);
     while (index) {
         u8 *const thing = global<u8 *>(0x007cfb90 + index * 0x14);
         u8 *const holder = gRides_7a4610[at<u32>(thing, 0x20)];
