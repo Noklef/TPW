@@ -8,6 +8,7 @@
 #include "objectdefs.h"
 #include "thingmsg.h"
 #include "things.h"
+#include "../ui/dialog74fb20.h"
 #include "worldstart.h"
 
 namespace {
@@ -50,7 +51,7 @@ void read_setting_once() {
     u8 &guard = global<u8>(0x00fb34a9);
     if (guard & 1) return;
     guard |= 1;
-    g_env->settingReadMode(address(0x00fb3b7c));
+    g_env->settingReadMode(address(reinterpret_cast<uintptr_t>(&gDialog74fb20_fb3b7c)));
     g_env->atexit(address(0x005d1750));
 }
 
@@ -80,7 +81,7 @@ extern "C" u32 __fastcall World_Start(u8 *world, void *, const char *level) {
     for (u32 i = 0; i < 8; ++i) global<u32>(0x00802080 + 4 * i) = 0;
     read_setting_once();
     char path[260];
-    if (global<u32>(0x00fb3b7c) == 1) {
+    if (gDialog74fb20_fb3b7c == 1) {
         if (!load_balance(reinterpret_cast<const char *>(0x0076259c), 0)) ok = 0;
         Crt().sprintf(path, reinterpret_cast<const char *>(0x007488ac), level, reinterpret_cast<const char *>(0x00762588));
         if (!load_balance(path, 1)) ok = 0;
@@ -89,7 +90,7 @@ extern "C" u32 __fastcall World_Start(u8 *world, void *, const char *level) {
         Crt().sprintf(path, reinterpret_cast<const char *>(0x007488ac), level, gText_World_Start_76255c);
         if (!load_balance(path, 1)) ok = 0;
         read_setting_once();
-        if (global<u32>(0x00fb3b7c) == 2) {
+        if (gDialog74fb20_fb3b7c == 2) {
             Crt().sprintf(path, reinterpret_cast<const char *>(0x007488a4), level, global<const char *>(0x007cf4a0), gText_World_Start_76255c);
             load_balance(path, 1);   // (its failure only printed)
         }

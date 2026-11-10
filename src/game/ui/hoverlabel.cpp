@@ -8,6 +8,7 @@
 #include "../core/vcall.h"
 #include "guirect.h"
 #include "window.h"
+#include "window7cc8c0handler.h"
 
 namespace {
 
@@ -57,6 +58,6 @@ void __fastcall HoverLabel_Bind(u8 *owner, void *, u32 id) {
     *reinterpret_cast<u8 **>(owner + 0x20) = child;
     Window_SetHandler(child, nullptr, 0x0048d2e0);
     Window_SetDwordA0(*reinterpret_cast<u8 **>(owner + 0x20), nullptr, 0, (u32)(uintptr_t)owner);
-    HoverLabel_Attach(*reinterpret_cast<u8 **>(owner + 0x10), id, 0x0078a374);
+    HoverLabel_Attach(*reinterpret_cast<u8 **>(owner + 0x10), id, reinterpret_cast<uintptr_t>(&gWindow7cc8c0handler_78a374));
 }
 }  // extern "C"

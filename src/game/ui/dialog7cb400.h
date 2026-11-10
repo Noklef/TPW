@@ -35,3 +35,8 @@ extern "C" {
 // 0x6ff530 part, font 5, NotifyC00 (1, 1), the text 0xef, HoverLabel_SetYellow.
 void __cdecl Dialog7cb400_Open(u32 value);
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(u8[368], gDialog7cb400_Open_753f50, 0x00753f50, 0x170);

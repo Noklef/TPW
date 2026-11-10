@@ -178,3 +178,5 @@ void __cdecl Sound_SetPlacement(u32 x, u32 y, u32 z, u32 dx, u32 dy, u32 dz, u32
 // Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
 GAME_DATA(u32, gSoundset_802bc8, 0x00802bc8, 4);
 GAME_DATA(u32, gSoundset_802bd4, 0x00802bd4, 4);
+GAME_DATA(u32, gSoundset_803a48, 0x00803a48, 0x4);
+GAME_DATA(u8 *, gSoundset_803a4c, 0x00803a4c, 0x4);

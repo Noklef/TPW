@@ -8,6 +8,8 @@
 #include "../ui/window.h"
 #include "../world/world.h"
 #include "gauge.h"
+#include "../ui/dialog7cb398.h"
+#include "../ui/dialog7ca2e8.h"
 
 namespace {
 
@@ -21,7 +23,7 @@ s32 shown(Scan scan) {
     s32 result = 0;
     const u8 *const record = reinterpret_cast<const u8 *>((uintptr_t)GameTable7cfb90_Get1da720_519510(global<u8 *>(0x007cf83c)));
     for (u32 k = 0; k < 8; ++k)
-        if (global<u8>(0x00751fa0) & (1u << k)) scan(record + kLines[k], &result, global<u32>(0x007ca2ec));
+        if (reinterpret_cast<u8 &>(gDialog7ca2e8_751fa0) & (1u << k)) scan(record + kLines[k], &result, global<u32>(0x007ca2ec));
     return result;
 }
 
@@ -84,14 +86,14 @@ void __cdecl StatsGraph_Lines(u8 *gauge) {
     static const u32 kColours[8] = {0x007ca2b0, 0x007ca2c0, 0x007ca2c8, 0x007ca2d8, 0x007ca2a8, 0x007ca2e0, 0x007ca298, 0x007ca2b8};
     const u8 *const record = reinterpret_cast<const u8 *>((uintptr_t)GameTable7cfb90_Get1da720_519510(global<u8 *>(0x007cf83c)));
     for (u32 k = 0; k < 8; ++k)
-        if (global<u8>(0x00751fa0) & (1u << k)) StatsGraph_PlotU32(gauge, record + kLines[k], reinterpret_cast<const u8 *>((uintptr_t)kColours[k]), 1, global<u32>(0x007ca2ec));
+        if (reinterpret_cast<u8 &>(gDialog7ca2e8_751fa0) & (1u << k)) StatsGraph_PlotU32(gauge, record + kLines[k], reinterpret_cast<const u8 *>((uintptr_t)kColours[k]), 1, global<u32>(0x007ca2ec));
 }
 
 void __cdecl StatsGraph7cb318_Lines(u8 *gauge) {
     static const u32 kOffsets[5] = {0x20cc0, 0x20f10, 0x21160, 0x205d0, 0x213b0}, kColours[5] = {0x007cb368, 0x007cb380, 0x007cb308, 0x007cb390, 0x007cb370};
     const u8 *const record = reinterpret_cast<const u8 *>((uintptr_t)GameTable7cfb90_Get1da720_519510(global<u8 *>(0x007cf83c)));
     for (u32 k = 0; k < 5; ++k)
-        if (global<u8>(0x00753c48) & (1u << k)) (k == 1 ? StatsGraph_PlotFloat : StatsGraph_PlotU32)(gauge, record + kOffsets[k], reinterpret_cast<const u8 *>((uintptr_t)kColours[k]), 1, global<u32>(0x007cb39c));
+        if (reinterpret_cast<u8 &>(gDialog7cb398_753c48) & (1u << k)) (k == 1 ? StatsGraph_PlotFloat : StatsGraph_PlotU32)(gauge, record + kOffsets[k], reinterpret_cast<const u8 *>((uintptr_t)kColours[k]), 1, global<u32>(0x007cb39c));
 }
 }
 
@@ -108,7 +110,7 @@ s32 __cdecl StatsGraph7cb318_ShownMax() {
     s32 result = 0;
     const u8 *const record = reinterpret_cast<const u8 *>((uintptr_t)GameTable7cfb90_Get1da720_519510(global<u8 *>(0x007cf83c)));
     for (u32 k = 0; k < 5; ++k)
-        if (global<u8>(0x00753c48) & (1u << k)) (k == 1 ? &CircBufF32_144_MaxInWindow : &CircBufU32_144_MaxInWindow)(record + kOffsets[k], &result, global<u32>(0x007cb39c));
+        if (reinterpret_cast<u8 &>(gDialog7cb398_753c48) & (1u << k)) (k == 1 ? &CircBufF32_144_MaxInWindow : &CircBufU32_144_MaxInWindow)(record + kOffsets[k], &result, global<u32>(0x007cb39c));
     return result;
 }
 
@@ -147,7 +149,7 @@ u32 __cdecl StatsGraph_Handler(u8 *window, u32 message, u32 a, u32 b) {
         static const u8 kBits[] = {1, 8, 4, 0x40, 2, 0x10, 0x20, 0x80};
         const u32 index = a - 0x12277;
         if (index < 8) {
-            u32 &flags = global<u32>(0x00751fa0);
+            u32 &flags = gDialog7ca2e8_751fa0;
             const u8 bit = kBits[index];
             if (b == 1) {
                 const u8 other = bit <= 2 ? 0xfc : 3;
@@ -189,7 +191,7 @@ u32 __cdecl StatsGraph7cb318_Handler(u8 *window, u32 message, u32 a, u32 b) {
     } else if (message == 0x100) {
         const u32 index = a - 0x4a68bc;
         if (index < 5) {
-            u32 &flags = global<u32>(0x00753c48);
+            u32 &flags = gDialog7cb398_753c48;
             if (b == 1) flags |= 1u << index;
             else flags &= ~(1u << index);
             Gauge_SetMarksY(Graph2(), nullptr, 0, (u32)StatsGraph7cb318_ShownMax(), 10);

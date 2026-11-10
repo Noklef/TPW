@@ -12,6 +12,7 @@
 #include "language.h"
 #include "../files/file.h"
 #include "../files/memsource.h"
+#include "../coaster/arreplayaction.h"
 
 namespace {
 
@@ -401,7 +402,7 @@ u8 *__fastcall GlobalSave_Construct(u8 *info) {
 }
 
 u8 *__cdecl GlobalSave_Instance() {
-    u8 *&info = global<u8 *>(0x00f7c58c);
+    u8 *&info = gArreplayaction_f7c58c;
     if (!info) {
         u8 *const block = static_cast<u8 *>(GameHeap_Alloc(0x50));
         info = block ? GlobalSave_Construct(block) : nullptr;

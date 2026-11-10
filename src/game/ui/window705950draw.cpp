@@ -58,7 +58,7 @@ void __fastcall Window705950_Draw(u8 *window) {
     Display_SetClip(&clip);
     if (node) {
         for (const u8 *p = node; at<const u8 *>(p, 0x4c); p = at<const u8 *>(p, 0x4c))
-            std::strcat(indent, text(0x0074f8d0));   // "    "
+            std::strcat(indent, text(reinterpret_cast<uintptr_t>(&gWindow705950_Draw_74f8d0)));   // "    "
         for (s32 row = 0; row < at<s16>(window, 0x156) && node; ++row) {
             if ((s32)(row + at<u32>(window, 0x150)) == at<s32>(window, 0x148)) {
                 clip.left = scaleX((s16)(at<u16>(window, 0x13c) + 2));
@@ -67,11 +67,11 @@ void __fastcall Window705950_Draw(u8 *window) {
                 clip.bottom = scaleY((s16)(at<u16>(window, 0x154) + y));
                 Display_FillRect(&clip, red);
             }
-            Crt().sprintf(line, text(0x0074f8c8), indent, node);   // "%s%S"
+            Crt().sprintf(line, text(reinterpret_cast<uintptr_t>(&gWindow705950_Draw_74f8c8)), indent, node);   // "%s%S"
             Text_Draw(scaleX(at<s16>(window, 0x13c) + 2), scaleY((s16)y), line, white);
             if (u8 *const child = at<u8 *>(node, 0x48)) {
                 node = child;
-                std::strcat(indent, text(0x0074f8d0));
+                std::strcat(indent, text(reinterpret_cast<uintptr_t>(&gWindow705950_Draw_74f8d0)));
             } else if (u8 *const next = at<u8 *>(node, 0x44)) {
                 node = next;
             } else {

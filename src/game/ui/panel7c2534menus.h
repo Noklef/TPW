@@ -45,3 +45,10 @@ void __cdecl Panel7c2534_BuildOnline();
 // (0x4092a0 of 0x786b68 (0, 0)), 0x786ba4 and the byte 0x7c2518 0 and Fn_662411, shown. Else the byte 1 and shown (WindowAt10_Show(flag)). EAX not kept.
 void __cdecl Panel7c2534_Open(u32 flag);
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(u8, gPanel7c2534menus_7c2518, 0x007c2518, 0x1);
+GAME_DATA(u8 *, gPanel7c2534menus_7c2534, 0x007c2534, 0x4);
+GAME_DATA(u8, gPanel7c2534_BuildMain_fb34c6, 0x00fb34c6, 0x1);

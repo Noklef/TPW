@@ -12,6 +12,8 @@
 #include "window705a20.h"
 #include "window705a50.h"
 #include "window705a50handler.h"
+#include "window7cc8c0handler.h"
+#include "dialog7cc944.h"
 
 namespace {
 
@@ -24,16 +26,16 @@ const Dialog7cc944HandlerEnv *g_env = &kGameEnv;
 
 void close() {
     g_env->clearScenes(at<u8 *>(global<u8 *>(0x00f85614), 0x14));
-    g_env->send(global<u8 *>(0x007cc944), 4, 0, 0);
-    if (void(__cdecl *const done)() = global<void(__cdecl *)()>(0x007cc948)) done();
+    g_env->send(gDialog7cc944_7cc944, 4, 0, 0);
+    if (void(__cdecl *const done)() = global<void(__cdecl *)()>(reinterpret_cast<uintptr_t>(&gDialog7cc944_7cc948))) done();
 }
 
 void search() {
-    g_env->search(at<u8 *>(Online_Instance(), 0xec), nullptr, 0x007cc908, 0x004bf9d0, 0);
-    if (u8 *const dialog = global<u8 *>(0x007cc944)) {
+    g_env->search(at<u8 *>(Online_Instance(), 0xec), nullptr, reinterpret_cast<uintptr_t>(&gDialog7cc944_7cc908), 0x004bf9d0, 0);
+    if (u8 *const dialog = gDialog7cc944_7cc944) {
         u8 *const list = Window_FindChild(dialog, nullptr, 0xe05b);
         g_env->clearList(list);
-        const u32 texts[6] = {static_cast<u32>(reinterpret_cast<uintptr_t>(g_env->text(0x134))), 0x00759158, 0x0078a374, 0, 0, 0};
+        const u32 texts[6] = {static_cast<u32>(reinterpret_cast<uintptr_t>(g_env->text(0x134))), reinterpret_cast<uintptr_t>(&gDialog7cc944handler_759158), reinterpret_cast<uintptr_t>(&gWindow7cc8c0handler_78a374), 0, 0, 0};
         g_env->addItem(list, nullptr, texts, 0xffffffff, -1, 1);
     }
 }
@@ -45,7 +47,7 @@ void Dialog7cc944Handler_SetEnv(const Dialog7cc944HandlerEnv *env) { g_env = env
 extern "C" s32 __cdecl Dialog7cc944_Handler(u8 *window, u32 message, u32 a, u32 b) {
     switch (message) {
         case 0x14:
-            global<u8 *>(0x007cc944) = nullptr;
+            gDialog7cc944_7cc944 = nullptr;
             g_env->focus(at<u8 *>(global<u8 *>(0x00f82884), 4), nullptr, 0);
             break;
         case 0x1f:
@@ -60,7 +62,7 @@ extern "C" s32 __cdecl Dialog7cc944_Handler(u8 *window, u32 message, u32 a, u32 
                 if (b == 1)
                     search();
                 else
-                    (*reinterpret_cast<void(__stdcall *const *)(u32)>((uintptr_t)0x006fd1e0))(0x0075910c);   // OutputDebugStringA
+                    (*reinterpret_cast<void(__stdcall *const *)(u32)>((uintptr_t)0x006fd1e0))(reinterpret_cast<uintptr_t>(&gDialog7cc944_Handler_75910c));   // OutputDebugStringA
             }
             break;
         case 0x400:

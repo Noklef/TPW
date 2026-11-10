@@ -18,6 +18,7 @@
 #include "panelparts.h"
 #include "window.h"
 #include "window7059f0.h"
+#include "panel7cc218.h"
 
 namespace {
 
@@ -30,7 +31,7 @@ template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((ui
 extern "C" {
 
 void __fastcall Panel7cc328_ShowRefund(u8 *self) {
-    u8 *const thing = global<u8 *>(0x007c2658);
+    u8 *const thing = gPanel7cc218_7c2658;
     u8 *const child = Window_FindChild(at<u8 *>(self, 0x14), nullptr, 0x1e8a);
     vcall<void>(child, 0x1c, Object_ScrapRefund(thing));
 }
@@ -70,12 +71,12 @@ void __fastcall Panel7cc328_ShowStaff(u8 *panel, void *, const u8 *staff) {
 }
 
 u32 __cdecl Panel7cc328_AddStaffRow(u8 *staff) {
-    if (!Staff_IsState3At(staff, nullptr, global<u16>(0x007cc310))) return 1;
+    if (!Staff_IsState3At(staff, nullptr, gPanel7cc328_7cc310)) return 1;
     u32 texts[2];
     texts[0] = (u32)(uintptr_t)Staff_GetName(staff);
     const u32 low = (u32)(long long)at<float>(staff, 0x1fc) & 0xff;   // (__ftol's low byte)
     texts[1] = (u32)((s32)(low << 10) / 100);
-    Window7059f0_AddItem(global<u8 *>(0x007cc314), nullptr, texts, (u32)(uintptr_t)staff, -1, 0);
+    Window7059f0_AddItem(gPanel7cc328_7cc314, nullptr, texts, (u32)(uintptr_t)staff, -1, 0);
     return 1;
 }
 
@@ -85,9 +86,9 @@ s32 __cdecl Panel7cc328_OnMessage(u8 *window, u32 message, u32 id, u32 b) {
         const u32 k = id - 0x1e7d;
         u8 *const list = Window_FindChild(global<u8 *>(0x007cc338), nullptr, 0x1e7b);
         Window7059f0_Clear(list);
-        global<u8 *>(0x007cc314) = list;
+        gPanel7cc328_7cc314 = list;
         u16 handle;
-        global<u16>(0x007cc310) = *Thing_GetHandle(global<u8 *>(0x007c2658), nullptr, &handle);
+        gPanel7cc328_7cc310 = *Thing_GetHandle(gPanel7cc218_7c2658, nullptr, &handle);
         global<u32>(0x007cc358) = kTab[k];
         Things_ForEachSelected(kMask[k], reinterpret_cast<ObjectCallback>(&Panel7cc328_AddStaffRow));
         Window7059f0_RefreshRows(list);
@@ -104,9 +105,9 @@ void __fastcall Panel7cc328_Reopen(u8 *self) {
     const u32 tab = global<u32>(0x007cc358);
     u8 *const list = Window_FindChild(at<u8 *>(self, 0x10), nullptr, 0x1e7b);
     Window7059f0_Clear(list);
-    global<u8 *>(0x007cc314) = list;
+    gPanel7cc328_7cc314 = list;
     u16 handle;
-    global<u16>(0x007cc310) = *Thing_GetHandle(global<u8 *>(0x007c2658), nullptr, &handle);
+    gPanel7cc328_7cc310 = *Thing_GetHandle(gPanel7cc218_7c2658, nullptr, &handle);
     global<u32>(0x007cc358) = tab;
     static const u32 kMask[5] = {2, 4, 0x10, 8, 0x20};   // (by the tab)
     if (tab <= 4) Things_ForEachSelected(kMask[tab], reinterpret_cast<ObjectCallback>(&Panel7cc328_AddStaffRow));
@@ -118,7 +119,7 @@ void __fastcall Panel7cc328_Reopen(u8 *self) {
 void __fastcall Panel7cc328_AddStaff(u8 *self, void *, u8 *staff) {
     if (!at<u8 *>(self, 0x10)) return;
     u8 *const list = Window_FindChild(at<u8 *>(self, 0x10), nullptr, 0x1e7b);
-    if (!Staff_IsState3At(staff, nullptr, global<u16>(0x007cc310))) return;
+    if (!Staff_IsState3At(staff, nullptr, gPanel7cc328_7cc310)) return;
     if (Byte2_ToIndex(staff) != global<u32>(0x007cc358)) return;
     u32 texts[2];
     texts[0] = (u32)(uintptr_t)Staff_GetName(staff);
@@ -144,7 +145,7 @@ void __fastcall Panel7cc328_OnStaff(void *, void *, u32 handle, u32 added) {
 }
 
 void __fastcall Panel7cc328_Show(u8 *self, void *, u8 *thing) {
-    *reinterpret_cast<u8 **>((uintptr_t)0x007cc318) = thing;
+    gPanel7cc328_Show_7cc318 = thing;
     WindowAt10_Create(self, nullptr, reinterpret_cast<u8 *>((uintptr_t)0x00756ba0), 0x004b4fc0, 0x1e84, 0x1e89, 0);
     Advisor_PostId(0x12c);
 }

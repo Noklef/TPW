@@ -26,3 +26,9 @@ void __cdecl Dialog7cb2fc_DressRow(u32 row);
 // (Window705b20_SetRange) and its slot 7 the value.
 void __cdecl Dialog7cb2fc_DressSlider(u32 row, u32 value);
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(u32, gDialog7cb2fc_7537b4, 0x007537b4, 0x4);
+GAME_DATA(u32[2], gDialog7cb2fc_7537c8, 0x007537c8, 0x8);

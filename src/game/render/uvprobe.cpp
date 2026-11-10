@@ -7,6 +7,7 @@
 #include "../core/vcall.h"
 #include "../gfx/texture.h"
 #include "../math/x87.h"
+#include "../frontend/lobbysky.h"
 #include "../gfx/texcache.h"
 #include "ddopen.h"
 
@@ -88,7 +89,7 @@ void probe(u8 *settings, bool across, u32 result) {
     u8 *const texture = block ? Texture_Ctor(block, nullptr, 1) : nullptr;
     if (!texture)
         return;
-    const u32 saved = global<u32>(0x008bd47c);
+    const u32 saved = gLobbysky_8bd47c;
     g_calls.Th(0x00590a80, address(texture), 0x80u, 0u);
     at<u32>(texture, 8) = 0x51b0000;
     fillTexture(settings, texture, across);
@@ -147,7 +148,7 @@ void probe(u8 *settings, bool across, u32 result) {
     g_calls.Th(0x0058dd60, gTexcache_8c4b44, 1u);
     g_calls.Th(0x00590a70, address(texture));
     GameHeap_Free(texture);
-    global<u32>(0x008bd47c) = saved;
+    gLobbysky_8bd47c = saved;
 }
 
 void note(const char *text) {

@@ -44,3 +44,8 @@ extern "C" {
 // first on the stack: sic), a 1 and a 0, data the row's index with bit 24. The list refreshed, the window given the focus (0), [[0xf85614] + 0x14] pushed (0x255, 1). Answer 1.
 s32 __cdecl Dialog7cc654_Open();
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(u8[624], gDialog7cc654_Open_758878, 0x00758878, 0x270);

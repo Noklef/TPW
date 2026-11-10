@@ -3,6 +3,7 @@
 #include <cstdint>
 
 #include "../core/accessors.h"
+#include "guisettings.h"
 
 namespace {
 
@@ -37,7 +38,7 @@ u32 __cdecl GuiClock_Now() {
 }
 
 void __cdecl Gui_GetMousePos(u16 *x, u16 *y) {
-    *x = *reinterpret_cast<const u16 *>((uintptr_t)0x00faa540);
-    *y = *reinterpret_cast<const u16 *>((uintptr_t)0x00faa544);
+    *x = gGuisettings_faa540;
+    *y = gGuisettings_faa544;
 }
 }

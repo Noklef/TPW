@@ -119,3 +119,15 @@ s32 __fastcall Ftp_WsaStartup(void *self);
 // 0x5d2a60 (thiscall, this unused): WSACleanup; a failure: the error box and 1. Else 0.
 s32 __fastcall Ftp_WsaCleanup(void *self);
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(char[28], gFtp_DataSetup_774110, 0x00774110, 0x1c);
+GAME_DATA(char[8], gFtp_DataSetup_77412c, 0x0077412c, 0x8);
+GAME_DATA(char[12], gFtp_774134, 0x00774134, 0xc);
+GAME_DATA(char[12], gFtp_774140, 0x00774140, 0xc);
+GAME_DATA(char[12], gFtp_77414c, 0x0077414c, 0xc);
+GAME_DATA(char[8], gFtp_774158, 0x00774158, 0x8);
+GAME_DATA(char[12], gFtp_774160, 0x00774160, 0xc);
+GAME_DATA(char[12], gFtp_77416c, 0x0077416c, 0xc);

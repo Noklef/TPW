@@ -4,6 +4,7 @@
 
 #include "../core/crt.h"
 #include "../math/x87.h"
+#include "../render/graphicssettings.h"
 #include "levelsetup.h"
 
 namespace {
@@ -66,7 +67,7 @@ u32 __cdecl Level_SetupAfterTerrain() {
         global<float>(0x79fe94) = (float)X87_MulInt(a, at<float>(at<const u8 *>(model, 0x6c), 0x10));
         global<float>(0x7a003c) = (float)X87_MulInt(b, at<float>(at<const u8 *>(model, 0x6c), 0x14));
     }
-    if (global<u32>(0x7a1a8c) & 0x2000) g_calls.Cd(0x0056df70, a, b, global<u32>(0x7a006c) + c + a, global<u32>(0x7a01c0) + h + b);   // TerrainTex_SetRect
+    if (gGraphicssettings_7a1a8c & 0x2000) g_calls.Cd(0x0056df70, a, b, global<u32>(0x7a006c) + c + a, global<u32>(0x7a01c0) + h + b);   // TerrainTex_SetRect
     g_calls.Cd(0x0053bfe0);   // DynFaces_InitModels
     g_calls.Cd(0x00450e60);   // Model_AllocVertexScratch
     g_calls.Cd(0x00469550);   // Highlight_FreeBuffers

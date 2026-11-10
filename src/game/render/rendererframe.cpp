@@ -5,6 +5,9 @@
 
 #include "../math/mat4.h"
 #include "../math/x87.h"
+#include "../frontend/lobbysky.h"
+#include "../frontend/lobbyscene.h"
+#include "renderer.h"
 #include "../gfx/texcache.h"
 #include "meshlist.h"
 #include "../core/vwrap.h"
@@ -16,7 +19,7 @@ AddrCalls g_calls;
 template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cast<T *>((uintptr_t)p + offset); }
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
 
-const u32 kViewFlags = 0x008bcbc8, kSceneFlags = 0x008bd508, kMode = 0x008bd524, kDevice = 0x00879ab0, kWorldRender = 0x0087a6d0, kCamera = 0x0087aff0;
+const u32 kViewFlags = 0x008bcbc8, kSceneFlags = 0x008bd508, kMode = 0x008bd524, kDevice = 0x00879ab0, kWorldRender = reinterpret_cast<uintptr_t>(&gRenderer_87a6d0), kCamera = 0x0087aff0;
 
 template <typename... A>
 u32 Slot(u32 object, u32 offset, A... args) {
@@ -52,7 +55,7 @@ bool DrawViewSteps(u8 *renderer, const u32 *view) {
     g_calls.Th(0x00582390, global<u32>(0x008bcbc4), (global<u32>(kSceneFlags) & 0xc0000000) ? 3u : 2u);   // DrawBuffer_Reset
     at<u32>(renderer, 0x30) = 0;
     g_calls.Th(0x00579c70, 0x008bb220u);   // MeshQueue_Clear
-    Slot(Device(), 0x18, global<u32>(0x008bd490), global<u32>(0x008bd494), global<u32>(0x008bd47c));
+    Slot(Device(), 0x18, gLobbysky_8bd490, gLobbysky_8bd494, gLobbysky_8bd47c);
     if (!Slot(Device(), 0x1c)) return false;
     if ((view[0] & 0x10) && !g_calls.Th(0x00576910, (u32)(uintptr_t)renderer)) return false;   // Renderer_DrawCellLists
     if (view[0] & 0x20) {
@@ -115,7 +118,7 @@ bool DrawViewSteps(u8 *renderer, const u32 *view) {
         u32 widthBits, heightBits;
         std::memcpy(&widthBits, &width, 4);
         std::memcpy(&heightBits, &height, 4);
-        if (!Slot(Device(), 0x28, 0u, 0u, widthBits, heightBits, global<u32>(0x008bd4e4), 0u)) return false;
+        if (!Slot(Device(), 0x28, 0u, 0u, widthBits, heightBits, gLobbyscene_8bd4e4, 0u)) return false;
         if (!Slot(Device(), 0x20)) return false;
     }
     return true;

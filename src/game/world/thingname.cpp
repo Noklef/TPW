@@ -4,6 +4,7 @@
 #include <cstdint>
 
 #include "../core/crt.h"
+#include "../ui/window7cc8c0handler.h"
 #include "signtext.h"
 
 namespace {
@@ -23,7 +24,7 @@ void __fastcall Thing_NameA(u8 *thing, void *, u16 *to, u32 count) {
     s32 length = 0;
     while (text[length]) ++length;
     if (length == 0) {
-        g_env->snwprintf(to, count, global_text(0x0078a374));
+        g_env->snwprintf(to, count, global_text(reinterpret_cast<uintptr_t>(&gWindow7cc8c0handler_78a374)));
         return;
     }
     if (length > 1 && text[length - 1] == '-' && text[length - 2] == '-') {

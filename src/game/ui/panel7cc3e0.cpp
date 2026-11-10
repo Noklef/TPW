@@ -11,6 +11,7 @@
 #include "hoverlabel.h"
 #include "panelparts.h"
 #include "window.h"
+#include "panel7cc218.h"
 
 using namespace panelparts;
 
@@ -44,7 +45,7 @@ void __fastcall Panel7cc3e0_Dress(u8 *self) {
 
 void __fastcall Panel7cc3e0_ShowValues(u8 *self) {
     using SetValue = void(__fastcall *)(u8 *, void *, u32);
-    const u8 *const thing = *reinterpret_cast<const u8 *const *>((uintptr_t)0x007c2658);
+    const u8 *const thing = *reinterpret_cast<const u8 *const *>(&gPanel7cc218_7c2658);
     Object_GetDef(thing);
     if (!window(self)) return;
     if (u8 *const child = Window_FindChild(window(self), nullptr, 0x5210)) {

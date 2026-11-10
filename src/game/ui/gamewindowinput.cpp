@@ -47,29 +47,29 @@ s32 __cdecl GameWindow_Input(u8 *window, u32 message, u32 a, u32 b) {
     switch (message) {
         case 0x10004: {
             const u32 held = E->modifiers();
-            E->fireUp(global<u8 *>(0x00787c14), nullptr, a - 0x10, held);
+            E->fireUp(gKeymap_787c14, nullptr, a - 0x10, held);
             break;
         }
         case 0x10005: {
             const u32 held = E->modifiers();
-            E->fireDown(global<u8 *>(0x00787c14), nullptr, a - 0x10, held);
+            E->fireDown(gKeymap_787c14, nullptr, a - 0x10, held);
             break;
         }
         case 0x1000a:
-            E->fireDown(global<u8 *>(0x00787c14), nullptr, a, mods);
+            E->fireDown(gKeymap_787c14, nullptr, a, mods);
             break;
         case 0x1000b: {
-            E->fireUp(global<u8 *>(0x00787c14), nullptr, a, mods);
+            E->fireUp(gKeymap_787c14, nullptr, a, mods);
             const bool plainEscape = a == 0x1b && !(b & 0xff0000);
             if (at<u32>(global<u8 *>(0x007cf83c), 0x1da738) == 4) {
                 if (plainEscape) E->openPanel(0);
                 return 0;
             }
-            if (static_cast<u16>(E->findKey(global<u8 *>(0x00787a60), nullptr, a, mods)) == 4 || plainEscape) {
+            if (static_cast<u16>(E->findKey(gKeymap_787a60, nullptr, a, mods)) == 4 || plainEscape) {
                 E->toggleOverlay();
                 return 0;
             }
-            if (static_cast<u16>(E->findKey(global<u8 *>(0x0078721c), nullptr, a, mods)) == 0xf) E->key15();
+            if (static_cast<u16>(E->findKey(gKeymap_78721c, nullptr, a, mods)) == 0xf) E->key15();
             return 0;
         }
         default:

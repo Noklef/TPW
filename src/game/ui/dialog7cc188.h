@@ -53,3 +53,9 @@ void __cdecl Dialog7cc188_FillList(u32 clear);
 // Window_NotifyC00, the handler 0x4a77c0, the buffer 0x7cb8d8 of 0x3f, the caret of the name 0x74fa84, the text 0x78a374 in slot 9. Last the advisor's post 0x134.
 void __cdecl Dialog7cc188_Open();
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(u8[372], gDialog7cc188_Open_7542b8, 0x007542b8, 0x174);
+GAME_DATA(u8[128], gDialog7cc188_7cb8d8, 0x007cb8d8, 0x80);

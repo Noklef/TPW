@@ -8,6 +8,7 @@
 #include "dialog7cc984open.h"
 #include "window.h"
 #include "window7059f0.h"
+#include "dialog7cca70.h"
 
 namespace {
 
@@ -21,7 +22,7 @@ void close() {
     g_env->leaveSession(Online_Instance());
     g_env->clearScenes(at<u8 *>(global<u8 *>(0x00f85614), 0x14));
     g_env->send(global<u8 *>(0x007cca70), 4, 0, 0);
-    if (void(__cdecl *const done)() = global<void(__cdecl *)()>(0x007cca8c)) done();
+    if (void(__cdecl *const done)() = global<void(__cdecl *)()>(reinterpret_cast<uintptr_t>(&gDialog7cca70_7cca8c))) done();
 }
 
 }  // namespace

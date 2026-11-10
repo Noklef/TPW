@@ -5,6 +5,8 @@
 #include "string.h"
 #include "vcall.h"
 #include "../files/userslots.h"
+#include "../ui/windowproc.h"
+#include "../render/graphicssettings.h"
 
 namespace {
 
@@ -99,15 +101,15 @@ u32 __cdecl Options_ConfirmSave() {
 }
 
 void __cdecl Options_LoadStartup() {
-    global<u32>(0x007a1a14) = 0;
-    global<u32>(0x007a1a8c) = 0x000c0e15;
+    gWindowproc_7a1a14 = 0;
+    gGraphicssettings_7a1a8c = 0x000c0e15;
     String path;
     String_CtorStr(&path, nullptr, ptr<const char *>(0x0074ce84));
     const bool loaded = g_calls.Th(0x00424a60, 0x0078d8d8u, &path) == 1;
     String_Dtor(&path);
     if (loaded) global<u32>(0x0078d968) = 1;
     if (global<u32>(0x0078d968)) {
-        global<u32>(0x007a1a8c) = global<u32>(0x0078d950);
+        gGraphicssettings_7a1a8c = global<u32>(0x0078d950);
         global<u32>(0x0079d86c) = global<u32>(0x0078d954);
         g_calls.Cd(0x00409790, global<u32>(0x0078d95c));
         global<u32>(0x0079d9c8) = global<u32>(0x0078d964);

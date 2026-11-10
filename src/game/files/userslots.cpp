@@ -16,6 +16,10 @@
 #include "file.h"
 #include "gamepaths.h"
 #include "handles.h"
+#include "../online/chatlists.h"
+#include "../ui/dialog74fb20.h"
+#include "../ui/window7cc8c0handler.h"
+#include "../coaster/arreplayaction.h"
 
 namespace {
 
@@ -40,16 +44,16 @@ const UserSlotsScanEnv kScanGameEnv = {&GamePaths_SaveFolder, &GamePaths_UsersFo
 const UserSlotsScanEnv *g_scan = &kScanGameEnv;
 
 void DeleteGlobalSave() {
-    if (u8 *const info = at<u8 *>(nullptr, 0x00f7c58c)) {
+    if (u8 *const info = at<u8 *>(nullptr, reinterpret_cast<uintptr_t>(&gArreplayaction_f7c58c))) {
         g_scan->saveDtor(info);
         GameHeap_Free(info);
     }
-    at<u8 *>(nullptr, 0x00f7c58c) = nullptr;
+    at<u8 *>(nullptr, reinterpret_cast<uintptr_t>(&gArreplayaction_f7c58c)) = nullptr;
 }
 
 void NewGlobalSave() {
     void *const block = GameHeap_Alloc(0x50);
-    at<u8 *>(nullptr, 0x00f7c58c) = block ? g_scan->saveCtor(static_cast<u8 *>(block)) : nullptr;
+    at<u8 *>(nullptr, reinterpret_cast<uintptr_t>(&gArreplayaction_f7c58c)) = block ? g_scan->saveCtor(static_cast<u8 *>(block)) : nullptr;
 }
 
 // A folder of users named "<slot + 1><name>".
@@ -72,9 +76,9 @@ void TakeSlot(u8 *self, const char *folderName, s32 slot) {
     DeleteGlobalSave();
     const char *const text = pathText.data;
     NewGlobalSave();
-    g_scan->saveLoad(at<u8 *>(nullptr, 0x00f7c58c), nullptr, text);
-    if (!at<u8 *>(nullptr, 0x00f7c58c)) NewGlobalSave();
-    at<u32>(record, 0x14) = g_scan->saveByte24(at<u8 *>(nullptr, 0x00f7c58c));
+    g_scan->saveLoad(at<u8 *>(nullptr, reinterpret_cast<uintptr_t>(&gArreplayaction_f7c58c)), nullptr, text);
+    if (!at<u8 *>(nullptr, reinterpret_cast<uintptr_t>(&gArreplayaction_f7c58c))) NewGlobalSave();
+    at<u32>(record, 0x14) = g_scan->saveByte24(at<u8 *>(nullptr, reinterpret_cast<uintptr_t>(&gArreplayaction_f7c58c)));
     DeleteGlobalSave();
     g_scan->makeFolders(self, nullptr, &folder);
     String_Dtor(&pathText);
@@ -122,7 +126,7 @@ const UserSlotsChoiceEnv *g_choice = &kChoiceGameEnv;
 
 // The global save info, made when there is none.
 u8 *SaveInfo() {
-    u8 *&info = at<u8 *>(nullptr, 0x00f7c58c);
+    u8 *&info = at<u8 *>(nullptr, reinterpret_cast<uintptr_t>(&gArreplayaction_f7c58c));
     if (!info) {
         void *const block = GameHeap_Alloc(0x50);
         info = block ? g_scan->saveCtor(static_cast<u8 *>(block)) : nullptr;
@@ -132,7 +136,7 @@ u8 *SaveInfo() {
 
 // The mode setting's static (0xfb3b7c), read and its destructor registered on the first use.
 void *ModeSetting() {
-    void *const setting = reinterpret_cast<void *>((uintptr_t)0x00fb3b7c);
+    void *const setting = reinterpret_cast<void *>(&gDialog74fb20_fb3b7c);
     u8 &guard = at<u8>(nullptr, (u32)&gUserslots_fb2764);
     if (!(guard & 1)) {
         guard |= 1;
@@ -162,7 +166,7 @@ void __fastcall UserSlots_Choose(u8 *self, void *, s32 index) {
     String_AssignFromWide(&path, &folder);
     g_scan->saveLoad(SaveInfo(), nullptr, path.data);
     ModeSetting();
-    if (at<u32>(nullptr, 0x00fb3b7c) != 1) {
+    if (at<u32>(nullptr, reinterpret_cast<uintptr_t>(&gDialog74fb20_fb3b7c)) != 1) {
         const bool online = g_scan->saveByte24(SaveInfo()) != 0;
         g_choice->settingSet(ModeSetting(), nullptr, online ? 2 : 0);
     }
@@ -204,7 +208,7 @@ void __fastcall UserSlots_Create(u8 *self, void *, s32 i, const WString *name, u
         String_Ctor(&narrow);
         String_AssignFromWide(&narrow, &folder);
         g_env->removeTree(&narrow);
-        vcall<void>(record, 0x14, reinterpret_cast<const u16 *>((uintptr_t)0x0078a374));
+        vcall<void>(record, 0x14, reinterpret_cast<const u16 *>(gWindow7cc8c0handler_78a374));
         at<u32>(record, 0x14) = 0;
         String_Dtor(&narrow);
         WString_Dtor(&folder);
@@ -218,7 +222,7 @@ void __fastcall UserSlots_Create(u8 *self, void *, s32 i, const WString *name, u
         DeleteGlobalSave();
         void *const block = GameHeap_Alloc(0x50);
         u8 *const info = block ? g_scan->saveCtor(static_cast<u8 *>(block)) : nullptr;
-        at<u8 *>(nullptr, 0x00f7c58c) = info;
+        at<u8 *>(nullptr, reinterpret_cast<uintptr_t>(&gArreplayaction_f7c58c)) = info;
         g_choice->setByte24(info, nullptr, at<u32>(record, 0x14) ? 1 : 0);
         WriteSaveFile(self, i);
         WString_Dtor(&folder);
@@ -284,7 +288,7 @@ void __fastcall UserSlots_Close(u8 *self) {
 
 void __fastcall UserSlots_Scan(u8 *self) {
     for (u32 i = 0; i < 4; i++) {
-        vcall<void>(self + 24 * i, 0x14, 0x0078a374u);
+        vcall<void>(self + 24 * i, 0x14, reinterpret_cast<uintptr_t>(&gWindow7cc8c0handler_78a374));
         at<u32>(self + 24 * i, 0x14) = 0;
     }
     WString saveWide, usersWide, onlineWide;
@@ -365,7 +369,7 @@ void __fastcall UserSlots_ClearSlot(u8 *self, void *, s32 i) {
     String_AssignFromWide(&path, &folder);
     g_env->removeTree(&path);
     u8 *const slot = self + 0x18 * i;
-    vcall<void>(slot, 0x14, reinterpret_cast<const void *>((uintptr_t)0x0078a374));
+    vcall<void>(slot, 0x14, reinterpret_cast<const void *>(gWindow7cc8c0handler_78a374));
     at<u32>(slot, 0x14) = 0;
     String_Dtor(&path);
     WString_Dtor(&folder);
@@ -427,7 +431,7 @@ u8 *__fastcall UserSlotsPart_Ctor(u8 *self) {
 }
 
 u8 *__cdecl UserSlots_Instance() {
-    u8 *&slots = *reinterpret_cast<u8 **>((uintptr_t)0x00f81ebc);
+    u8 *&slots = gChatlists_f81ebc;
     if (!slots) {
         u8 *const block = static_cast<u8 *>(GameHeap_Alloc(0x110));
         slots = block ? g_env->ctor(block) : nullptr;

@@ -25,3 +25,11 @@ void __cdecl Dialog7cca94_ShowText(u32 index);
 // 0x4c2600 (cdecl (percent); name unconfirmed): with the dialog up, its slot 7 given (percent << 10) / 100 (signed, rounded towards 0).
 void __cdecl Dialog7cca94_SetProgress(u32 percent);
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(u8[88], gDialog7cca94_Show_759548, 0x00759548, 0x58);
+GAME_DATA(char[16], gDialog7cca94_Show_7595a0, 0x007595a0, 0x10);
+GAME_DATA(u8 *, gDialog7cca94_7cca94, 0x007cca94, 0x4);
+GAME_DATA(u32, gDialog7cca94_ShowText_7cca9c, 0x007cca9c, 0x4);

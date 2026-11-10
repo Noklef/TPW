@@ -10,10 +10,11 @@
 #include "window.h"
 #include "window705a50.h"
 #include "window705b20.h"
+#include "dialog7cb2fcopen.h"
 
 namespace {
 
-u8 *dialog() { return *reinterpret_cast<u8 **>((uintptr_t)0x007cb2fc); }
+u8 *dialog() { return gDialog7cb2fcopen_7cb2fc; }
 
 // the row's label 0x1d4c9 dressed (Dialog7cb2fc_DressRow); returns the row
 u8 *dressRow(u32 id) {
@@ -21,7 +22,7 @@ u8 *dressRow(u32 id) {
     u8 *const memory = static_cast<u8 *>(GameHeap_Alloc(0x1a4));
     Window_SetImpl(Window_FindChild(row, nullptr, 0x1d4c9), nullptr, memory ? TextPart_Ctor(memory, nullptr, 0) : nullptr);
     Window_Notify40000(Window_FindChild(row, nullptr, 0x1d4c9), nullptr, 0, 0, 0, 0xff);
-    u8 *const font = Language_Font(*reinterpret_cast<u32 *>((uintptr_t)0x007537b4));
+    u8 *const font = Language_Font(gDialog7cb2fc_7537b4);
     Window_Set4c(Window_FindChild(row, nullptr, 0x1d4c9), nullptr, font);
     Window_NotifyImpl100(Window_FindChild(row, nullptr, 0x1d4c9), nullptr, 0);
     return row;
@@ -46,7 +47,7 @@ void __cdecl Dialog7cb2fc_SetToggle(u32 row, u32 label, u8 on, u8 other, u8 sele
 void __cdecl Dialog7cb2fc_SetValueRow(u32 id, u32 label, s32 value) {
     u8 *const row = Window_FindChild(dialog(), nullptr, id);
     u16 state[10];
-    if (value < 0) Crt().swprintf(state, reinterpret_cast<const u16 *>((uintptr_t)0x007537c8), Language_WideText(0x14e));
+    if (value < 0) Crt().swprintf(state, reinterpret_cast<const u16 *>(gDialog7cb2fc_7537c8), Language_WideText(0x14e));
     else Crt().swprintf(state, reinterpret_cast<const u16 *>((uintptr_t)0x007537b8), value);
     Language_WideText(label);
     u16 *const text = reinterpret_cast<u16 *>((uintptr_t)0x007ba058);

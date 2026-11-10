@@ -15,6 +15,7 @@
 #include "window.h"
 #include "window7059f0.h"
 #include "windowreg.h"
+#include "dialog7cc530handler.h"
 
 namespace {
 
@@ -46,11 +47,11 @@ void header(u8 *list, u32 id, u32 text) {
 void Dialog7cc530_SetOpenEnv(const Dialog7cc530OpenEnv *env) { g_env = env ? env : &kGameEnv; }
 
 void __cdecl Dialog7cc530_Open(u32 value) {
-    global<u32>(0x007cc52c) = value;
+    gDialog7cc530open_7cc52c = value;
     u8 *const built = g_env->create(reinterpret_cast<u8 *>((uintptr_t)0x00758218), 0x004ba530, 0);
-    global<u8 *>(0x007cc530) = built;
-    global<u8>(0x007cc53c) = 0;
-    global<u8>(0x007cc540) = 0;
+    gDialog7cc530open_7cc530 = built;
+    gDialog7cc530handler_7cc53c = 0;
+    gDialog7cc530open_7cc540 = 0;
     u8 *const title = Window_FindChild(built, nullptr, 0xb);
     u8 *const memory = static_cast<u8 *>(GameHeap_Alloc(0x1a4));
     Window_SetImpl(title, nullptr, memory ? TextPart6ff530_Ctor(memory, nullptr, 0) : nullptr);
@@ -58,11 +59,11 @@ void __cdecl Dialog7cc530_Open(u32 value) {
     Window_NotifyC00(title, nullptr, 1, 1);
     vcall<void>(title, 0x24, (u32)(uintptr_t)g_env->wideText(0xe1));
     g_env->yellow(title);
-    u8 *const group = Window_FindChild(global<u8 *>(0x007cc530), nullptr, 0xd);
+    u8 *const group = Window_FindChild(gDialog7cc530open_7cc530, nullptr, 0xd);
     dressButton(group, 0xe, 0xe5);
     dressButton(group, 0xf, 0xe4);
     g_env->select(group, nullptr, 0xe);
-    u8 *const list = Window_FindChild(global<u8 *>(0x007cc530), nullptr, 0xc);
+    u8 *const list = Window_FindChild(gDialog7cc530open_7cc530, nullptr, 0xc);
     g_env->buildRows(list, nullptr, reinterpret_cast<u8 *(__cdecl *)()>((uintptr_t)0x004bacc0), reinterpret_cast<void(__cdecl *)(u8 *)>((uintptr_t)0x004bad70));
     g_env->setColumn(list, nullptr, 0, 0);
     g_env->setColumn(list, nullptr, 1, 1);

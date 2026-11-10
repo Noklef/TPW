@@ -1,7 +1,9 @@
 #include "windowproc.h"
 
 #include <cstdint>
+#include "../render/screen.h"
 #include "../gfx/texcache.h"
+#include "../core/keymap.h"
 
 namespace {
 
@@ -35,7 +37,7 @@ void key_event(u32 wparam, u32 lparam, u32 gui, u32 fire) {
     const u32 held = modifiers();
     g_calls.Cd(gui, key, (repeat << 8 | held) << 16 | (lparam & 0xffff));
     const u32 heldNow = modifiers();
-    g_calls.Th(fire, global<u32>(0x0078718c), key, heldNow);
+    g_calls.Th(fire, reinterpret_cast<u32 &>(gKeymap_78718c), key, heldNow);
 }
 
 void wheel(u32 wparam, u32 lparam) {
@@ -50,7 +52,7 @@ void WindowProc_SetCalls(const AddrCall *table, u32 count) { g_calls.Set(table, 
 extern "C" {
 
 u32 __stdcall GameWindow_Proc(u32 window, u32 message, u32 wparam, u32 lparam) {
-    if (!global<s16>(0x00faa5c4)) g_calls.Cd(0x006590d0, static_cast<u32>(global<u16>(0x007a1968)), static_cast<u32>(global<u16>(0x007a1930)));
+    if (!global<s16>(0x00faa5c4)) g_calls.Cd(0x006590d0, static_cast<u32>(reinterpret_cast<u16 &>(gScreen_7a1968)), static_cast<u32>(reinterpret_cast<u16 &>(gScreen_7a1930)));
     if (!global<u32>(0x007b4b88)) {
         const s32 x = point_x(lparam), y = point_y(lparam);
         switch (message) {
@@ -68,12 +70,12 @@ u32 __stdcall GameWindow_Proc(u32 window, u32 message, u32 wparam, u32 lparam) {
         case 0x1c:
             if (wparam) {
                 if (const u32 cache = gTexcache_8c4b44) g_calls.Th(0x0058dd60, cache, 1u);
-                global<u32>(0x007a1a14) |= 8;
+                gWindowproc_7a1a14 |= 8;
                 g_calls.Cd(0x00659333);
                 if (global<u32>(0x00f82884)) g_calls.Cd(0x0051bd30);
                 if (global<u32>(0x007b4b88)) global<u32(__stdcall *)(u32)>(0x006fd30c)(0);
             } else {
-                global<u32>(0x007a1a14) &= ~8u;
+                gWindowproc_7a1a14 &= ~8u;
                 g_calls.Cd(0x0051b350);
                 g_calls.Cd(0x006593c5);
                 if (global<u32>(0x00f82884)) g_calls.Cd(0x0051bcf0);

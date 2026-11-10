@@ -29,6 +29,8 @@
 #include "window705b20.h"
 #include "windowscript.h"
 #include "windowtimers.h"
+#include "dialog74fb20.h"
+#include "panel7b9940.h"
 
 namespace {
 
@@ -56,7 +58,7 @@ u32 researchLevel(s32 group) {
 constexpr u32 kMeter[5] = {0xd2d01, 0xd2d08, 0xd2d09, 0xd2d0a, 0xd2d07};   // (by group)
 
 void showLevel(s32 group, u32 level) {
-    LevelMeter_SetLevel(Window_FindChild(global<u8 *>(0x007cc1d8), nullptr, kMeter[group]), level);
+    LevelMeter_SetLevel(Window_FindChild(gLevelmeter_7cc1d8, nullptr, kMeter[group]), level);
 }
 
 }  // namespace
@@ -67,7 +69,7 @@ void __cdecl ResearchMeters_ShowProgress(u32 group) {
     const u8 *const lab = reinterpret_cast<u8 *>((uintptr_t)GameTable7cfb90_Get1da722_519550(global<u8 *>(0x007cf83c)));
     const s32 done = 100 - (s32)ResearchLab_LeftPercent(lab, nullptr, group);
     if (group > 4) return;
-    u8 *const meter = Window_FindChild(global<u8 *>(0x007cc1d8), nullptr, kMeter[group]);
+    u8 *const meter = Window_FindChild(gLevelmeter_7cc1d8, nullptr, kMeter[group]);
     u8 *const gauge = Window_FindChild(meter, nullptr, 0xd2d05);
     vcall<u32>(gauge, 0x1c, (u32)((s32)((u32)done << 10) / 100));
 }
@@ -85,7 +87,7 @@ void __cdecl ResearchMeters_Update(s32 group) {
     }
     u32 sum = 0;
     for (const s32 g : kOrder) sum += researchLevel(g);
-    Sound_SetParam(global<u32>(0x007cc1d0), 0x12, (u32)((s32)sum / 5));
+    Sound_SetParam(gLevelmeter_7cc1d0, 0x12, (u32)((s32)sum / 5));
 }
 
 void __cdecl ResearchMeters_ShowName(u32 group) {
@@ -94,7 +96,7 @@ void __cdecl ResearchMeters_ShowName(u32 group) {
     u32 id = 0;   // (the original's dword: its high word not set, and not read)
     ResearchLab_CurrentObjId(lab, nullptr, reinterpret_cast<u16 *>(&id), group);
     u8 *gauge = nullptr;
-    if (group <= 4) gauge = Window_FindChild(Window_FindChild(global<u8 *>(0x007cc1d8), nullptr, kMeter[group]), nullptr, 0xd2d05);
+    if (group <= 4) gauge = Window_FindChild(Window_FindChild(gLevelmeter_7cc1d8, nullptr, kMeter[group]), nullptr, 0xd2d05);
     if (!ObjectDefs_Find(defs, nullptr, (u16)id)) {
         Window_NotifyImpl100(gauge, nullptr, (u32)(uintptr_t)Language_WideText(0xb9));
         ResearchMeters_Update((s32)group);
@@ -119,7 +121,7 @@ void __cdecl ResearchMeters_ShowName(u32 group) {
 void __cdecl ResearchMeters_Refresh(u32 group) {
     u8 *const lab = reinterpret_cast<u8 *>((uintptr_t)GameTable7cfb90_Get1da722_519550(global<u8 *>(0x007cf83c)));
     if (!ResearchLab_CurrentNotDone(lab, nullptr, group)) ResearchLab_NextProject(lab, nullptr, group);
-    if (!global<u8 *>(0x007cc1d8)) return;
+    if (!gLevelmeter_7cc1d8) return;
     ResearchMeters_ShowName(group);
     ResearchMeters_ShowProgress(group);
 }
@@ -208,7 +210,7 @@ const ResearchPanelEnv kGamePanelEnv = {Window_SendMessage, ResearchMeters_ShowP
 const ResearchPanelEnv *g_panel = &kGamePanelEnv;
 
 u32 &word(u32 at) { return *reinterpret_cast<u32 *>(static_cast<uintptr_t>(at)); }
-u8 *panel() { return reinterpret_cast<u8 *>(static_cast<uintptr_t>(word(0x007cc1d8))); }
+u8 *panel() { return reinterpret_cast<u8 *>(static_cast<uintptr_t>(reinterpret_cast<u32 &>(gLevelmeter_7cc1d8))); }
 u8 *gameRecord() { return reinterpret_cast<u8 *>(static_cast<uintptr_t>(word(0x007cf83c))); }
 u8 *panelChild(u32 id) { return g_panel->child(panel(), nullptr, id); }
 
@@ -227,20 +229,20 @@ u32 chainSum() {
 }
 
 void updateUnlessHeld() {
-    if (!*reinterpret_cast<const u8 *>(static_cast<uintptr_t>(0x007cc1bc))) g_panel->update(-1);
+    if (!gLevelmeter_7cc1bc) g_panel->update(-1);
 }
 
 void onChainChanged() {
-    if (chainSum() == word(0x007cc1c8)) return;
-    word(0x007cc1c8) = chainSum();
+    if (chainSum() == gLevelmeter_7cc1c8) return;
+    gLevelmeter_7cc1c8 = chainSum();
     const u8 *const lab = reinterpret_cast<const u8 *>(static_cast<uintptr_t>(g_panel->lab(gameRecord())));
     u8 *const slider = panelChild(0xd2d10);
-    const s32 sum = static_cast<s32>(word(0x007cc1c8));
+    const s32 sum = static_cast<s32>(gLevelmeter_7cc1c8);
     const u32 volume = *reinterpret_cast<const u32 *>(lab + 0x1460) - 0x46;
-    const s32 limit = static_cast<s32>(static_cast<u32>((static_cast<s32>(100u - static_cast<u32>(sum)) / 3) + sum) << 10) / static_cast<s32>(word(0x007cc1b4));
+    const s32 limit = static_cast<s32>(static_cast<u32>((static_cast<s32>(100u - static_cast<u32>(sum)) / 3) + sum) << 10) / static_cast<s32>(reinterpret_cast<u32 &>(gLevelmeter_7cc1b4));
     const s32 level = static_cast<s32>(volume * static_cast<u32>(limit)) / 30;
     vcall<void>(g_panel->child(slider, nullptr, 0xd2d12), 0x1c, limit);
-    word(0x007cc1c0) = static_cast<u32>(limit);
+    gLevelmeter_7cc1c0 = static_cast<u32>(limit);
     vcall<void>(panelChild(0xd2d10), 0x1c, level);
 }
 
@@ -254,25 +256,25 @@ void onSlider(u32 a, u32 b) {
         g_panel->setChannel(lab, nullptr, kChannels[index], b);
         updateUnlessHeld();
     } else if (index == 5) {
-        if (static_cast<s32>(b) > static_cast<s32>(word(0x007cc1c0))) {
-            vcall<void>(slider, 0x1c, word(0x007cc1c0));
-            level = word(0x007cc1c0);
+        if (static_cast<s32>(b) > static_cast<s32>(gLevelmeter_7cc1c0)) {
+            vcall<void>(slider, 0x1c, gLevelmeter_7cc1c0);
+            level = gLevelmeter_7cc1c0;
         }
-        const u32 volume = static_cast<u32>(static_cast<s32>(level * 30) / static_cast<s32>(word(0x007cc1c0))) + 0x46;
+        const u32 volume = static_cast<u32>(static_cast<s32>(level * 30) / static_cast<s32>(gLevelmeter_7cc1c0)) + 0x46;
         g_panel->setMaster(lab, nullptr, volume);
         updateUnlessHeld();
         showAllProgress();
         const s32 note = static_cast<s32>(volume * 2 - 0x8c) / 7;
         g_panel->notify(g_panel->child(panelChild(0xd2d10), nullptr, 0xd2d11), nullptr, static_cast<u32>(note));
         const u32 share = static_cast<u32>(static_cast<s32>(level * 100) / 1024);
-        g_panel->setParam(word(0x007cc1d0), 0xc, share);
-        g_panel->setParam(word(0x007cc1cc), 0xc, share);
-        g_panel->setParam(word(0x007cc1d0), 0xd, share);
-        g_panel->setParam(word(0x007cc1cc), 0xd, share);
+        g_panel->setParam(gLevelmeter_7cc1d0, 0xc, share);
+        g_panel->setParam(gLevelmeter_7cc1cc, 0xc, share);
+        g_panel->setParam(gLevelmeter_7cc1d0, 0xd, share);
+        g_panel->setParam(gLevelmeter_7cc1cc, 0xd, share);
     }
     if (a != 0xd2d10) {
-        g_panel->setParam(word(0x007cc1d4), 0xb, level);
-        g_panel->setParam(word(0x007cc1d4), 0xa, level);
+        g_panel->setParam(gLevelmeter_7cc1d4, 0xb, level);
+        g_panel->setParam(gLevelmeter_7cc1d4, 0xa, level);
     }
 }
 }  // namespace
@@ -299,15 +301,15 @@ void refuse(u32 text) {
 void ResearchPanel_SetOpenEnv(const ResearchOpenEnv *env) { g_open = env ? env : &kOpenGameEnv; }
 
 void __cdecl ResearchPanel_Open() {
-    if (Global7c2534_HasSource() || global<u8 *>(0x007cc1d8)) return;
+    if (Global7c2534_HasSource() || gLevelmeter_7cc1d8) return;
     Window7c24c8_Close();
-    u8 &guard = global<u8>(0x00fb34be);
+    u8 &guard = gResearchPanel_Open_fb34be;
     if (!(guard & 1)) {
         guard |= 1;
-        Setting_ReadMode(reinterpret_cast<u8 *>((uintptr_t)0x00fb3b7c));
+        Setting_ReadMode(reinterpret_cast<u8 *>(&gDialog74fb20_fb3b7c));
         g_open->atExit(reinterpret_cast<void(__cdecl *)()>((uintptr_t)0x005d1750));
     }
-    if (global<u32>(0x00fb3b7c) == 2) {
+    if (gDialog74fb20_fb3b7c == 2) {
         refuse(0x1d4);
         return;
     }
@@ -315,22 +317,22 @@ void __cdecl ResearchPanel_Open() {
         refuse(0x1d3);
         return;
     }
-    u8 *const panel = WindowScript_Build(global<u8 *>(0x007cb2ac), nullptr, reinterpret_cast<u8 *>((uintptr_t)0x00754490), 0x004a96b0);
-    global<u8 *>(0x007cc1d8) = panel;
+    u8 *const panel = WindowScript_Build(gPanel7b9940_7cb2ac, nullptr, reinterpret_cast<u8 *>((uintptr_t)0x00754490), 0x004a96b0);
+    gLevelmeter_7cc1d8 = panel;
     if (!panel) return;
     Window7c24c8_Set(panel);
-    global<u8>(0x007cc1bc) = 1;
-    global<u32>(0x007cc1d0) = g_open->play(0x9a);
-    global<u32>(0x007cc1cc) = g_open->play(0x9b);
+    gLevelmeter_7cc1bc = 1;
+    gLevelmeter_7cc1d0 = g_open->play(0x9a);
+    gLevelmeter_7cc1cc = g_open->play(0x9b);
     u8 *const master = Window_FindChild(panel, nullptr, 0xd2d10);
-    global<u8 *>(0x007cc1dc) = master;
+    gResearchPanel_Open_7cc1dc = master;
     if (master) {
         Window_SetHandler(master, nullptr, 0x004a9f90);
-        Window705b20_SetRange(global<u8 *>(0x007cc1dc), nullptr, 0, 0x3ff);
+        Window705b20_SetRange(gResearchPanel_Open_7cc1dc, nullptr, 0, 0x3ff);
         u8 *const memory = static_cast<u8 *>(GameHeap_Alloc(0x124));
-        u8 *const bar = memory ? BarMesh_Construct(memory, nullptr, reinterpret_cast<const char *>(0x00754ce4)) : nullptr;
-        Window_SetImpl(Window_FindChild(global<u8 *>(0x007cc1dc), nullptr, 0xd2d12), nullptr, bar);
-        vcall<void>(Window_FindChild(global<u8 *>(0x007cc1dc), nullptr, 0xd2d12), 0x1c, 0x1f4u);
+        u8 *const bar = memory ? BarMesh_Construct(memory, nullptr, gResearchPanel_Open_754ce4) : nullptr;
+        Window_SetImpl(Window_FindChild(gResearchPanel_Open_7cc1dc, nullptr, 0xd2d12), nullptr, bar);
+        vcall<void>(Window_FindChild(gResearchPanel_Open_7cc1dc, nullptr, 0xd2d12), 0x1c, 0x1f4u);
     }
     static const u32 kSliders[5] = {0xd2d0e, 0xd2d0f, 0xd2d0d, 0xd2d0c, 0xd2d0b};
     for (u32 id : kSliders) {
@@ -348,7 +350,7 @@ void __cdecl ResearchPanel_Open() {
         Window_Notify1(Window_FindChild(window, nullptr, kLight), nullptr, 0x30);
         u8 *const label = Window_FindChild(window, nullptr, 0xd2d05);
         u8 *memory = static_cast<u8 *>(GameHeap_Alloc(0x124));
-        Window_SetObject98(label, nullptr, memory ? MeshOverlay_Construct(memory, nullptr, reinterpret_cast<const char *>(0x00754cd8)) : nullptr);
+        Window_SetObject98(label, nullptr, memory ? MeshOverlay_Construct(memory, nullptr, gResearchPanel_Open_754cd8) : nullptr);
         memory = static_cast<u8 *>(GameHeap_Alloc(0x1a4));
         Window_SetImpl(label, nullptr, memory ? TextPart_Ctor(memory, nullptr, 0) : nullptr);
         Window_NotifyC00(label, nullptr, 1, 1);
@@ -358,25 +360,25 @@ void __cdecl ResearchPanel_Open() {
         Window_NotifyImpl100(label, nullptr, 0);
     }
     g_open->table(global<u8 *>(0x007cf83c));
-    global<s32>(0x007cc1b4) = g_open->times();
+    gLevelmeter_7cc1b4 = g_open->times();
     g_open->table(global<u8 *>(0x007cf83c));
     const s32 sum = static_cast<s32>(g_open->sum());
-    global<s32>(0x007cc1c8) = sum;
+    reinterpret_cast<s32 &>(gLevelmeter_7cc1c8) = sum;
     const u8 *lab = reinterpret_cast<const u8 *>((uintptr_t)g_open->lab(global<u8 *>(0x007cf83c)));
-    u8 *child = Window_FindChild(global<u8 *>(0x007cc1d8), nullptr, 0xd2d10);
-    const s32 limit = static_cast<s32>(static_cast<u32>((100 - sum) / 3 + sum) << 10) / global<s32>(0x007cc1b4);
+    u8 *child = Window_FindChild(gLevelmeter_7cc1d8, nullptr, 0xd2d10);
+    const s32 limit = static_cast<s32>(static_cast<u32>((100 - sum) / 3 + sum) << 10) / gLevelmeter_7cc1b4;
     const s32 position = static_cast<s32>(static_cast<u32>(*reinterpret_cast<const s32 *>(lab + 0x1460) - 0x46) * static_cast<u32>(limit)) / 30;
     vcall<void>(Window_FindChild(child, nullptr, 0xd2d12), 0x1c, limit);
-    global<s32>(0x007cc1c0) = limit;
-    vcall<void>(Window_FindChild(global<u8 *>(0x007cc1d8), nullptr, 0xd2d10), 0x1c, position);
+    reinterpret_cast<s32 &>(gLevelmeter_7cc1c0) = limit;
+    vcall<void>(Window_FindChild(gLevelmeter_7cc1d8, nullptr, 0xd2d10), 0x1c, position);
     static const u32 kGroups[5] = {0, 4, 1, 2, 3};
     for (u32 group : kGroups) g_open->showName(group);
     for (u32 group : kGroups) g_open->showProgress(group);
     lab = reinterpret_cast<const u8 *>((uintptr_t)g_open->lab(global<u8 *>(0x007cf83c)));
     for (u32 i = 0; i < 5; ++i) {
-        if (u8 *const slider = Window_FindChild(global<u8 *>(0x007cc1d8), nullptr, kSliders[i])) vcall<void>(slider, 0x1c, g_open->effort(lab, nullptr, kGroups[i]));
+        if (u8 *const slider = Window_FindChild(gLevelmeter_7cc1d8, nullptr, kSliders[i])) vcall<void>(slider, 0x1c, g_open->effort(lab, nullptr, kGroups[i]));
     }
-    global<u8>(0x007cc1bc) = 0;
+    gLevelmeter_7cc1bc = 0;
     g_open->update(-1);
     Advisor_PostId(0xc8);
 }
@@ -392,11 +394,11 @@ extern "C" s32 __cdecl ResearchPanel_Handler(u8 *window, u32 message, u32 a, u32
         showAllProgress();
         break;
     case 0x14: {
-        const u32 first = word(0x007cc1d0);
-        word(0x007cc1d8) = 0;
+        const u32 first = gLevelmeter_7cc1d0;
+        reinterpret_cast<u32 &>(gLevelmeter_7cc1d8) = 0;
         g_panel->forward6(first);
-        g_panel->forward6(word(0x007cc1cc));
-        if (word(0x007cc1d4)) g_panel->forward6(word(0x007cc1d4));
+        g_panel->forward6(gLevelmeter_7cc1cc);
+        if (gLevelmeter_7cc1d4) g_panel->forward6(gLevelmeter_7cc1d4);
         g_panel->cancel(0xc8);
         break;
     }
@@ -418,15 +420,15 @@ extern "C" s32 __cdecl ResearchPanel_Handler(u8 *window, u32 message, u32 a, u32
         break;
     case 0x801:
         if (a != 0xd2d10) {
-            word(0x007cc1d4) = g_panel->play(0x9c);
-            g_panel->setParam(word(0x007cc1d4), 0xb, b);
-            g_panel->setParam(word(0x007cc1d4), 0xa, b);
+            gLevelmeter_7cc1d4 = g_panel->play(0x9c);
+            g_panel->setParam(gLevelmeter_7cc1d4, 0xb, b);
+            g_panel->setParam(gLevelmeter_7cc1d4, 0xa, b);
         }
         break;
     case 0x802:
         if (a != 0xd2d10) {
-            g_panel->stop(word(0x007cc1d4));
-            word(0x007cc1d4) = 0;
+            g_panel->stop(gLevelmeter_7cc1d4);
+            gLevelmeter_7cc1d4 = 0;
         }
         break;
     }

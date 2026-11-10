@@ -473,3 +473,4 @@ GAME_DATA(u32, gAccessors_7c2650, 0x007c2650, 4);
 GAME_DATA(u32, gAccessors_7c2654, 0x007c2654, 4);
 GAME_DATA(u32, gAccessors_802ba8, 0x00802ba8, 4);
 GAME_DATA(u32, gAccessors_802bc0, 0x00802bc0, 4);
+GAME_DATA(u32, gAccessors_faa5fc, 0x00faa5fc, 0x4);

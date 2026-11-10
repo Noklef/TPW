@@ -259,13 +259,13 @@ s32 __cdecl Sound_RegisterLobbyCategories(const char *name) {
     const u32 sfx = Sound_QueryFound(text(0x00762c2c), found);     // "cat_locallobbysfx"
     const u32 count = ++global<u32>(0x00803a50);
     u8 *const pairs = reinterpret_cast<u8 *>((uintptr_t)Sound_Alloc(count * 8));
-    if (global<u8 *>(0x00803a4c)) {
-        memcpy(pairs, global<u8 *>(0x00803a4c), global<u32>(0x00803a50) * 8 - 8);   // (rep movsd / movsb)
-        Sound_Free(global<u8 *>(0x00803a4c));
+    if (gSoundset_803a4c) {
+        memcpy(pairs, gSoundset_803a4c, global<u32>(0x00803a50) * 8 - 8);   // (rep movsd / movsb)
+        Sound_Free(gSoundset_803a4c);
     }
-    global<u8 *>(0x00803a4c) = pairs;
+    gSoundset_803a4c = pairs;
     *reinterpret_cast<u32 *>(pairs + global<u32>(0x00803a50) * 8 - 4) = music;
-    *reinterpret_cast<u32 *>(global<u8 *>(0x00803a4c) + global<u32>(0x00803a50) * 8 - 8) = sfx;
+    *reinterpret_cast<u32 *>(gSoundset_803a4c + global<u32>(0x00803a50) * 8 - 8) = sfx;
     const s32 index = global<s32>(0x00803a50) - 1;
     String_Dtor(&key);
     return index;
@@ -287,7 +287,7 @@ void __cdecl Sound_RegisterGlobalCategories() {
 void __cdecl Sound_RegisterGlobalLobbySfx() {
     u8 *found = nullptr;
     if (find_folder(reinterpret_cast<const void *>(0x008030d8), &found))
-        global<u32>(0x00803a48) = Sound_QueryFound(text(0x00762bcc), found);   // "cat_globallobbysfx"
+        gSoundset_803a48 = Sound_QueryFound(text(0x00762bcc), found);   // "cat_globallobbysfx"
 }
 
 void __cdecl Sound_RegisterThemeCategories(const StringView *theme) {
@@ -309,20 +309,20 @@ void __cdecl Sound_RegisterThemeCategories(const StringView *theme) {
 }
 
 void __cdecl Sound_ReleaseLobbySfx() {
-    const u32 sfx = global<u32>(0x00803a48);
+    const u32 sfx = gSoundset_803a48;
     if (!sfx) return;
     SoundCategory_Release(sfx);
-    global<u32>(0x00803a48) = 0;
+    gSoundset_803a48 = 0;
 }
 
 void __cdecl Sound_ReleaseLobbyCategories() {
-    if (!global<u32>(0x00803a4c)) return;
+    if (!reinterpret_cast<u32 &>(gSoundset_803a4c)) return;
     for (s32 i = 0; i < global<s32>(0x00803a50); ++i) {
-        SoundCategory_Release(global<u32 *>(0x00803a4c)[2 * i]);
-        SoundCategory_Release(global<u32 *>(0x00803a4c)[2 * i + 1]);
+        SoundCategory_Release(reinterpret_cast<u32 *>(gSoundset_803a4c)[2 * i]);
+        SoundCategory_Release(reinterpret_cast<u32 *>(gSoundset_803a4c)[2 * i + 1]);
     }
-    Sound_Free(global<void *>(0x00803a4c));
-    global<u32>(0x00803a4c) = 0;
+    Sound_Free(reinterpret_cast<void *>(gSoundset_803a4c));
+    reinterpret_cast<u32 &>(gSoundset_803a4c) = 0;
     global<u32>(0x00803a50) = 0;
 }
 

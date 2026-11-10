@@ -20,3 +20,10 @@ u32 __cdecl Gui_Init(u32 unused, u32 capacity, u8 flag);
 // root and [0xfaa5dc] / [0xfaa5e0] 0; 1 in AX. Only AX is set.
 u32 __cdecl Gui_Shutdown();
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(u8 *, gGuisystem_faa5f0, 0x00faa5f0, 0x4);
+GAME_DATA(u8 *, gGuisystem_faa5f4, 0x00faa5f4, 0x4);
+GAME_DATA(u8 *, gGuisystem_faa5f8, 0x00faa5f8, 0x4);

@@ -6,6 +6,7 @@
 #include "../core/vcall.h"
 #include "../files/file.h"
 #include "imageops.h"
+#include "../render/screen.h"
 
 namespace {
 
@@ -225,7 +226,7 @@ void __fastcall PointerFrames_Hide(u8 *self) {
 
 u32 __cdecl AsyncPointer_Make() {
     u32 &pointer = *reinterpret_cast<u32 *>((uintptr_t)0x007b4b84);
-    const u32 &height = *reinterpret_cast<const u32 *>((uintptr_t)0x007a1968), &width = *reinterpret_cast<const u32 *>((uintptr_t)0x007a1930);
+    const u32 &height = gScreen_7a1968, &width = gScreen_7a1930;
     ScreenEvent event;
     event.kind = 6;
     event.a = 0;

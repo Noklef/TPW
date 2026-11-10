@@ -11,6 +11,7 @@
 #include "window.h"
 #include "windowreg.h"
 #include "windowtimers.h"
+#include "cursor.h"
 
 namespace {
 
@@ -35,19 +36,19 @@ u32 __cdecl Gui_Init(u32, u32 capacity, u8 flag) {
     if (!root) return 0;
     global<u32>(0x00faa568) = 1;
     global<u8 *>(0x00faa5e0) = root;
-    global<u32>(0x00faa608) = 0;
+    reinterpret_cast<u32 &>(gCursor_faa608) = 0;
     global<u32>(0x00faa57c) = 0;
     global<u32>(0x00faa578) = 0;
     global<u16>(0x00faa5bc) = 0;
     global<u8>(0x00faa56c) = flag;
-    global<u8 *>(0x00faa5f0) = new_queue();
-    if (!global<u8 *>(0x00faa5f0) || !(u16)MsgQueue_Init(global<u8 *>(0x00faa5f0), nullptr, capacity)) return 0;
-    global<u8 *>(0x00faa5f4) = new_queue();
-    if (!global<u8 *>(0x00faa5f4) || !(u16)MsgQueue_Init(global<u8 *>(0x00faa5f4), nullptr, capacity)) return 0;
+    gGuisystem_faa5f0 = new_queue();
+    if (!gGuisystem_faa5f0 || !(u16)MsgQueue_Init(gGuisystem_faa5f0, nullptr, capacity)) return 0;
+    gGuisystem_faa5f4 = new_queue();
+    if (!gGuisystem_faa5f4 || !(u16)MsgQueue_Init(gGuisystem_faa5f4, nullptr, capacity)) return 0;
     WindowTimers_Init(0x100);
     u8 *const table = static_cast<u8 *>(GameHeap_Alloc(8));
     if (table) Fn_669c41(table);
-    global<u8 *>(0x00faa5f8) = table;
+    gGuisystem_faa5f8 = table;
     if (!table || !(u16)GuiTimers_Init(table, nullptr, 0x40)) return 0;
     return 1;
 }
@@ -56,12 +57,12 @@ u32 __cdecl Gui_Shutdown() {
     u8 *const root = global<u8 *>(0x00faa5d8);
     if (!root) return 0;
     vcall<u32>(root, 8, 1u);
-    if (u8 *const queue = global<u8 *>(0x00faa5f0)) MsgQueue_Delete(queue, nullptr, 1);
-    if (u8 *const queue = global<u8 *>(0x00faa5f4)) MsgQueue_Delete(queue, nullptr, 1);
-    if (u8 *const table = global<u8 *>(0x00faa5f8)) GuiTimers_Delete(table, nullptr, 1);
-    global<u8 *>(0x00faa5f0) = nullptr;
-    global<u8 *>(0x00faa5f4) = nullptr;
-    global<u8 *>(0x00faa5f8) = nullptr;
+    if (u8 *const queue = gGuisystem_faa5f0) MsgQueue_Delete(queue, nullptr, 1);
+    if (u8 *const queue = gGuisystem_faa5f4) MsgQueue_Delete(queue, nullptr, 1);
+    if (u8 *const table = gGuisystem_faa5f8) GuiTimers_Delete(table, nullptr, 1);
+    gGuisystem_faa5f0 = nullptr;
+    gGuisystem_faa5f4 = nullptr;
+    gGuisystem_faa5f8 = nullptr;
     WindowTimers_Shutdown();
     GuiWindows_Clear(1);
     GuiNamed_FreeAll();

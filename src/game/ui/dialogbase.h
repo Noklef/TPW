@@ -53,3 +53,11 @@ s32 __cdecl Dialog_BoxHandler(u8 *window, u32 message, u32 a, u32 b);
 // 0x47f7a0 (cdecl; name invented, unconfirmed): message 0x14 clears [0x7b4ba0]; then Dialog_BoxHandler and its answer.
 s32 __cdecl Dialog_BoxOuterHandler(u8 *window, u32 message, u32 a, u32 b);
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(u8[156], gDialog_Box_74f920, 0x0074f920, 0x9c);
+GAME_DATA(char[8], gDialogbase_74f9bc, 0x0074f9bc, 0x8);
+GAME_DATA(char[8], gDialogbase_74f9c4, 0x0074f9c4, 0x8);
+GAME_DATA(char[8], gDialogbase_74f9cc, 0x0074f9cc, 0x8);

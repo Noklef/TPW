@@ -5,6 +5,7 @@
 
 #include "ridelist.h"
 #include "things.h"
+#include "../ui/dialog74fb20.h"
 
 namespace {
 
@@ -44,10 +45,10 @@ u32 setting(u32 guard_at) {
     u8 &guard = global<u8>(guard_at);
     if (!(guard & 1)) {
         guard |= 1;
-        g_env->settingReadMode(address(0x00fb3b7c));
+        g_env->settingReadMode(address(reinterpret_cast<uintptr_t>(&gDialog74fb20_fb3b7c)));
         g_env->atexit(address(0x005d1750));
     }
-    return global<u32>(0x00fb3b7c);
+    return gDialog74fb20_fb3b7c;
 }
 
 ThingSlot &slot_of(u16 handle) { return reinterpret_cast<ThingSlot *>((uintptr_t)0x007cfb90)[handle]; }

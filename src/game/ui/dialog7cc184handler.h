@@ -39,3 +39,15 @@ s32 __cdecl Dialog7cc184_PictureHandler(u8 *window, u32 message, u32 a, u32 b);
 // split on 0x754448, each needing an '@' past its start and a '.' more than one place past that: the text not empty and all good: Postcard_Send and the dialog sent (4, 0, 0); else the box 0x47f020 with the text 0xd6. [0x7cc1a0] = 1, 0. 0x801 with a: 0x5da3: [0x7cbf40] = 1; 0x5da4: [0x7cbf3c] = 1. What is not answered above goes on, by the mode setting at 1, to Window_CallDefault, else Dialog_KeyHandler.
 s32 __cdecl Dialog7cc184_Handler(u8 *window, u32 message, u32 a, u32 b);
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(u8 *, gDialog7cc184handler_7cc184, 0x007cc184, 0x4);
+GAME_DATA(u8 *, gDialog7cc184handler_7cc18c, 0x007cc18c, 0x4);
+GAME_DATA(s32, gDialog7cc184_PictureHandler_7cc198, 0x007cc198, 0x4);
+GAME_DATA(s32, gDialog7cc184_PictureHandler_7cc19c, 0x007cc19c, 0x4);
+GAME_DATA(u32, gDialog7cc184handler_7cc1a0, 0x007cc1a0, 0x4);
+GAME_DATA(u32, gDialog7cc184_PictureHandler_7cc1a4, 0x007cc1a4, 0x4);
+GAME_DATA(s32, gDialog7cc184_PictureHandler_7cc1a8, 0x007cc1a8, 0x4);
+GAME_DATA(s32, gDialog7cc184_PictureHandler_7cc1ac, 0x007cc1ac, 0x4);

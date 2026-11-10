@@ -18,6 +18,7 @@
 #include "../render/frame.h"
 #include "../world/mapcell.h"
 #include "../world/thingscan.h"
+#include "../render/graphicssettings.h"
 
 namespace {
 
@@ -78,7 +79,7 @@ void __cdecl Terrain_PaintCell(const u8 *map, const u8 *sets, s32 x, s32 y, s32 
         at<u16>(&flags(), 2) = at<u16>(loaded(), 2);
         flags() = at<u16>(loaded(), 0);
         reinterpret_cast<u8 *>(&flags())[1] |= 1;
-        if (*reinterpret_cast<const u32 *>(0x007a1a8c) & 0x4000) flags() &= 0xff87;
+        if (gGraphicssettings_7a1a8c & 0x4000) flags() &= 0xff87;
         return;
     }
     const u8 *tiles = at<const u8 *>(at<const u8 *>(sets, 4), (u32)set * 12 - 4);

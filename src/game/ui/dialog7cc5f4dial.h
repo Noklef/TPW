@@ -25,3 +25,9 @@ extern "C" {
 // the import [0x6fd5b4] on 0x7c24c0 (id, 0x4b9f60, 0x7cc590, 0x7cc548, id): answered 0: the box's slot 9 given text 0x1d8.
 s32 __cdecl Dialog7cc5f4_DialHandler(u8 *window, u32 message, u32 a, u32 b);
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(s32, gDialog7cc5f4dial_7cc504, 0x007cc504, 0x4);
+GAME_DATA(u32, gDialog7cc5f4dial_7cc50c, 0x007cc50c, 0x4);

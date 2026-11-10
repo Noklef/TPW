@@ -34,3 +34,8 @@ extern "C" {
 // All else: Dialog_KeyHandler's answer.
 s32 __cdecl Dialog7ca168_WindowHandler(u8 *window, u32 message, u32 a, u32 b);
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(s32, gDialog7ca168_75118c, 0x0075118c, 0x4);

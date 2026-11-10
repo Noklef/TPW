@@ -41,6 +41,7 @@
 #include "trackrides.h"
 #include "trakcarpose.h"
 #include "weather.h"
+#include "../ui/panel7b9940.h"
 #include "things.h"
 
 namespace {
@@ -475,11 +476,11 @@ void __fastcall Things_ClaimRides(u8 *) {
 
 void __fastcall World_ClearLevel(u8 *world) {
     at<u32>(world, 0x1da738) = 2;
-    if (u8 *const mode = global<u8 *>(0x007b05e8)) {
+    if (u8 *const mode = gPanel7b9940_7b05e8) {
         g_sweep->mouseMode(nullptr);
         GameHeap_Free(mode);
     }
-    global<u8 *>(0x007b05e8) = nullptr;
+    gPanel7b9940_7b05e8 = nullptr;
     g_sweep->mapReset(global<u8 *>(0x007cf83c) + 0x2d8);
     for (u16 handle = firstHandle(); handle;) {
         u8 *const thing = static_cast<u8 *>(slots()[handle].thing);

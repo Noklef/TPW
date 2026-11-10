@@ -4,6 +4,8 @@
 #include "../files/quickload.h"
 #include "../math/sintable.h"
 #include "frame.h"
+#include "../ui/windowproc.h"
+#include "graphicssettings.h"
 
 namespace {
 
@@ -18,7 +20,7 @@ bool pick(Size &size) {
     const Size k160{0xa0, 0x78}, k320{0x140, 0xf0}, k400{400, 300}, k512{0x200, 0x180}, k640{0x280, 0x1e0},
         k800{800, 600}, k1024{0x400, 0x300}, k1280{0x500, 0x400}, k1600{0x640, 0x4b0}, k2048{0x800, 0x600};
     if (global<s32>(0x0078d968) == 1) {
-        const u32 options = global(0x007a1a8c);
+        const u32 options = gGraphicssettings_7a1a8c;
         if (options & 0x20000000 && !(options & 1)) size = k160;
         else if (options & 0x40000000) size = k320;
         else if (options & 0x80000000) size = k400;
@@ -64,19 +66,19 @@ void __cdecl Screen_Init() {
     char *to = *global<char **>(0x0079cb4c);
     do *to++ = *from; while (*from++);  // sic: the whole string, whatever the block holds
 
-    Size size{global(0x007a1968), global(0x007a1930)};
+    Size size{gScreen_7a1968, gScreen_7a1930};
     if (pick(size)) {
-        global(0x007a1968) = size.width;
-        global(0x007a1930) = size.height;
+        gScreen_7a1968 = size.width;
+        gScreen_7a1930 = size.height;
     }
     const float half = 0.5f;  // 0x6fe230
-    const float cx = static_cast<float>(static_cast<double>(global(0x007a1968)) * half);
-    const float cy = static_cast<float>(static_cast<double>(global(0x007a1930)) * half);
-    global(0x007a1a14) |= 8;
+    const float cx = static_cast<float>(static_cast<double>(gScreen_7a1968) * half);
+    const float cy = static_cast<float>(static_cast<double>(gScreen_7a1930) * half);
+    gWindowproc_7a1a14 |= 8;
     global<float>(0x007a0c9c) = cx;
     global<float>(0x007a162c) = cy;
-    global<float>(0x007a192c) = cx;
-    global<float>(0x007a194c) = cy;
+    gScreen_7a192c = cx;
+    gScreen_7a194c = cy;
     Frame_ResetBounds();
     Quickload_Init();
 }

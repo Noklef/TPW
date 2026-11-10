@@ -14,6 +14,7 @@
 #include "../model/release.h"
 #include "../world/rides.h"
 #include "lobbymodel.h"
+#include "frame.h"
 
 namespace {
 
@@ -33,7 +34,7 @@ const LobbyMakeEnv kPorts = {reinterpret_cast<decltype(LobbyMakeEnv::load)>(Ride
                              &LobbyModel_SetScale};
 const LobbyMakeEnv *g_env = &kPorts;
 
-u8 *Scene() { return global<u8 *>(0x00f83774); }
+u8 *Scene() { return gFrame_f83774; }
 
 String *StringAt(u8 *object, u32 offset) { return reinterpret_cast<String *>(object + offset); }
 

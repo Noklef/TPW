@@ -6,6 +6,7 @@
 #include "../core/accessors.h"
 #include "../core/gameheap.h"
 #include "window.h"
+#include "guisystem.h"
 
 namespace {
 
@@ -52,8 +53,8 @@ u32 __fastcall MsgQueue_DispatchOne(u8 *queue) {
             if (window(0x00faa578) && takes(0x00faa57c) &&
                 WordPairs_Contains(reinterpret_cast<const s16 *>(window(0x00faa578)), (u16)entry[2], (entry[3] >> 16) & 0xff))
                 target = window(0x00faa57c);
-            else if (takes(0x00faa5ec))
-                target = window(0x00faa5ec);
+            else if (takes(reinterpret_cast<uintptr_t>(&gWindow_faa5ec)))
+                target = window(reinterpret_cast<uintptr_t>(&gWindow_faa5ec));
             else if (takes(0x00faa5dc))
                 target = window(0x00faa5dc);
             if (target) Window_CallHandler(target, nullptr, entry[1], entry[2], entry[3]);
@@ -108,7 +109,7 @@ void __fastcall MsgQueue_Clear(u8 *queue) {
 }
 
 s32 __cdecl MsgQueue_PumpSecond(s32 most) {
-    u8 **const queue = reinterpret_cast<u8 **>((uintptr_t)0x00faa5f4);
+    u8 **const queue = &gGuisystem_faa5f4;
     s32 n = 0;
     if (!*queue) return 0;
     while ((s16)MsgQueue_DispatchOne(*queue) && n < most) ++n;
@@ -117,8 +118,8 @@ s32 __cdecl MsgQueue_PumpSecond(s32 most) {
 
 s32 __cdecl MsgQueue_Pump(s32 most) {
     using Hook = void(__cdecl *)(u32, u32, u32, u32);
-    u8 *&queue = *reinterpret_cast<u8 **>((uintptr_t)0x00faa5f0);
-    const Hook &hook = *reinterpret_cast<Hook *>((uintptr_t)0x00faa5fc);
+    u8 *&queue = gGuisystem_faa5f0;
+    const Hook &hook = *reinterpret_cast<Hook *>(&gAccessors_faa5fc);
     s32 done = 0;
     if (!queue) return 0;
     if (!hook) {

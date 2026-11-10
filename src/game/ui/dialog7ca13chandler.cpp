@@ -18,6 +18,7 @@
 #include "window.h"
 #include "window7059f0.h"
 #include "window7059f0texts.h"
+#include "dialog7ca13c.h"
 
 namespace {
 
@@ -28,10 +29,10 @@ const Dialog7ca13cHandlerEnv kGameEnv = {&Window_SendMessage, &Window7059f0_NthI
                                          &Dialog7cb398_Create, &Dialog7ca168_Open, &Dialog7ca150_Open, &Thing_GetHandle, &Camera_CentreOnThing, &Panel7cc408_Show, &Dialog_KeyHandler};
 const Dialog7ca13cHandlerEnv *g_env = &kGameEnv;
 
-void closeDialog() { g_env->send(global<u8 *>(0x007ca13c), 4, 0, 0); }
+void closeDialog() { g_env->send(gDialog7ca13c_7ca13c, 4, 0, 0); }
 
 void updateRows() {
-    u8 *const list = Window_FindChild(global<u8 *>(0x007ca13c), nullptr, 0x1e497);
+    u8 *const list = Window_FindChild(gDialog7ca13c_7ca13c, nullptr, 0x1e497);
     for (s32 row = field<s32>(list, 0x150) - 1; row >= 0; --row) {
         u32 data;
         g_env->nth(list, nullptr, row, &data);
@@ -57,10 +58,10 @@ extern "C" s32 __cdecl Dialog7ca13c_Handler(u8 *window, u32 message, u32 a, u32 
             closeDialog();
             return 1;
         case 0x10:
-            if (a == 0x80083 && global<u8 *>(0x007ca13c)) updateRows();
+            if (a == 0x80083 && gDialog7ca13c_7ca13c) updateRows();
             break;
         case 0x14:
-            global<u8 *>(0x007ca13c) = nullptr;
+            gDialog7ca13c_7ca13c = nullptr;
             g_env->cancelAdvisor(0x11e);
             break;
         case 0x15:
@@ -105,7 +106,7 @@ extern "C" s32 __cdecl Dialog7ca13c_Handler(u8 *window, u32 message, u32 a, u32 
             break;
         }
         case 0x406:
-            global<u32>(0x007508bc) = b;
+            reinterpret_cast<u32 &>(gDialog7ca13c_7508bc) = b;
             break;
     }
     return g_env->keys(window, message, a, b);

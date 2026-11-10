@@ -18,6 +18,7 @@
 #include "hoverlabel.h"
 #include "window.h"
 #include "windowscript.h"
+#include "../online/chatlists.h"
 
 namespace {
 
@@ -92,7 +93,7 @@ void label(u8 *window) {
 
 void finish(u8 *window, u32 slot, u32 handler) {
     g_env->yellow(window);
-    notifyColour(window, 0x007540c0, 0x007540c4, 0x007540c8);
+    notifyColour(window, reinterpret_cast<uintptr_t>(&gDialog7cb3f8_7540c0), reinterpret_cast<uintptr_t>(&gDialog7cb3f8_7540c4), reinterpret_cast<uintptr_t>(&gDialog7cb3f8_7540c8));
     g_env->setDwordA0(window, nullptr, 0, slot);
     g_env->setHandler(window, nullptr, handler);
 }
@@ -144,9 +145,9 @@ s32 __cdecl Dialog7cb3f8_SlotHandler(u8 *window, u32 message, u32 a, u32 b) {
         return 0;
     }
     if (message == 0x10001) {
-        notifyColour(window, 0x007540cc, 0x007540d0, 0x007cb3f4);
+        notifyColour(window, reinterpret_cast<uintptr_t>(&gDialog7cb3f8_SlotHandler_7540cc), reinterpret_cast<uintptr_t>(&gDialog7cb3f8_SlotHandler_7540d0), 0x007cb3f4);
     } else if (message == 0x10002) {
-        notifyColour(window, 0x007540c0, 0x007540c4, 0x007540c8);
+        notifyColour(window, reinterpret_cast<uintptr_t>(&gDialog7cb3f8_7540c0), reinterpret_cast<uintptr_t>(&gDialog7cb3f8_7540c4), reinterpret_cast<uintptr_t>(&gDialog7cb3f8_7540c8));
     }
     return g_env->callDefault(window, nullptr, message, a, b);
 }
@@ -165,7 +166,7 @@ s32 __cdecl Dialog7cb3f8_DoneHandler(u8 *window, u32 message, u32 a, u32 b) {
     if (message == 0x10001) {
         g_env->notify40000(window, nullptr, 0xff, 0, 0, 0xff);
     } else if (message == 0x10002) {
-        notifyColour(window, 0x007540c0, 0x007540c4, 0x007540c8);
+        notifyColour(window, reinterpret_cast<uintptr_t>(&gDialog7cb3f8_7540c0), reinterpret_cast<uintptr_t>(&gDialog7cb3f8_7540c4), reinterpret_cast<uintptr_t>(&gDialog7cb3f8_7540c8));
     }
     return g_env->callDefault(window, nullptr, message, a, b);
 }
@@ -193,11 +194,11 @@ void __cdecl Dialog7cb3f8_Open() {
         finish(done, 3, 0x004a61d0);
         g_env->refresh();
     }
-    u8 *records = global<u8 *>(0x00f81ebc);
+    u8 *records = gChatlists_f81ebc;
     if (!records) {
         u8 *const memory = static_cast<u8 *>(g_env->alloc(0x110));
         records = memory ? g_env->records(memory) : nullptr;
-        global<u8 *>(0x00f81ebc) = records;
+        gChatlists_f81ebc = records;
     }
     if (g_env->countUsed(records)) {
         g_env->push(*reinterpret_cast<u8 **>(global<u8 *>(0x00f85614) + 0x14), nullptr, 0x18e, 1);

@@ -34,3 +34,8 @@ void __cdecl Dialog7cc4b4_Update();
 // its name copied (0x5b12e0) to 0x7ba058, 0x3fff, which is the text; not found the part's +0x50 is. The child 0x1e0ef's slot 9 the text.
 void __cdecl Dialog7cc4b4_ShowTheme();
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(u32, gDialog7cc4b4update_7cc4bc, 0x007cc4bc, 0x4);

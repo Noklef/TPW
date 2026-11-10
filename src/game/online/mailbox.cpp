@@ -25,6 +25,7 @@
 #include "chatlists.h"
 #include "postcardmail.h"
 #include "session.h"
+#include "chatevents.h"
 #include "../render/enginedebug.h"
 
 namespace {
@@ -61,7 +62,7 @@ const char *TextOf(const StdString &s) { return s.ptr ? s.ptr : reinterpret_cast
 void WriteNumbers(u8 *self, u32 listAt, u8 *stream) {
     char line[0x100];
     for (u8 *node = at<u8 *>(at<u8 *>(self, listAt), 0); node != at<u8 *>(self, listAt); node = at<u8 *>(node, 0)) {
-        CRT_sprintf(line, reinterpret_cast<const char *>((uintptr_t)0x007740c8), at<u32>(node, 8));
+        CRT_sprintf(line, gMailbox_7740c8, at<u32>(node, 8));
         g_env->write(stream, line);
     }
 }
@@ -139,8 +140,8 @@ void SortNumbers(u8 *list) {
 
 const u8 *const kLanguage = reinterpret_cast<const u8 *>((uintptr_t)0x0078b530);
 const StdString *const kOtherAddress = reinterpret_cast<const StdString *>((uintptr_t)0x007a155c);
-const char *const kEnglishAddress = reinterpret_cast<const char *>((uintptr_t)0x007740f4);
-const char *const kAddressBookName = reinterpret_cast<const char *>((uintptr_t)0x007740e4);
+const char *const kEnglishAddress = gMailbox_7740f4;
+const char *const kAddressBookName = gMailbox_7740e4;
 
 // Every node of a list of numbers that holds the number erased. The end is read once.
 // A std::string's assign, as the original has it inlined.
@@ -288,7 +289,7 @@ void __fastcall MailClient_OnEvent(u8 *self, void *, s32 kind, s32 code, u32) {
         return LibraryText(self, 0x006fd56c, TextOf(at<StdString>(self, 0x74)));
     case 3:
         if (!at<u8>(self, 0x85)) {
-            AssignText(at<StdString>(self, 0), reinterpret_cast<const char *>((uintptr_t)0x00773dc0));
+            AssignText(at<StdString>(self, 0), gPostcardmail_773d80.f40);
             EraseStrings(self + 0x10);
             if (at<u8 *>(self, 0x68)) {
                 Counted2_ScalarDtor(at<u8 *>(self, 0x68), nullptr, 1);
@@ -312,7 +313,7 @@ void __fastcall MailClient_OnEvent(u8 *self, void *, s32 kind, s32 code, u32) {
 void __stdcall MailClient_Callback(s32 kind, s32 code, u32 unused, u8 *self) { MailClient_OnEvent(self, nullptr, kind, code, unused); }
 
 void __fastcall MailClient_Dtor(u8 *self) {
-    AssignChars(at<StdString>(self, 0), reinterpret_cast<const char *>((uintptr_t)0x00773dc0));
+    AssignChars(at<StdString>(self, 0), gPostcardmail_773d80.f40);
     u32 out;
     List_EraseRangeCounted1(self + 0x10, nullptr, &out, at<u8 *>(at<u8 *>(self, 0x14), 0), at<u8 *>(self, 0x14));
     if (at<u8 *>(self, 0x68)) {
@@ -420,8 +421,8 @@ u8 *__fastcall MailAttachment_Ctor(u8 *self, void *, const char *path) {
         }
         g_env->fclose(file);
     }
-    AssignText(at<StdString>(self, 0), reinterpret_cast<const char *>((uintptr_t)0x0075447c));
-    AssignText(at<StdString>(self, 0x10), reinterpret_cast<const char *>((uintptr_t)0x00773dd4));
+    AssignText(at<StdString>(self, 0), gMailbox_75447c);
+    AssignText(at<StdString>(self, 0x10), gPostcardmail_773d80.f54);
     s32 whole = size;
     while (whole % 3) ++whole;
     const s32 encoded = static_cast<s32>(static_cast<u32>(whole) << 2) / 3;
@@ -458,7 +459,7 @@ u8 *__fastcall MailClient_Ctor(u8 *self) {
     at<u32>(self, 0x90) = 0;
     u8 startup[0x190];   // (the original's frame has this much)
     at<s32(__stdcall *)(u32, void *)>(nullptr, 0x006fd42c)(0x101, startup);
-    AssignText(at<StdString>(self, 0), reinterpret_cast<const char *>((uintptr_t)0x00773dc0));
+    AssignText(at<StdString>(self, 0), gPostcardmail_773d80.f40);
     return self;
 }
 
@@ -489,7 +490,7 @@ u8 __fastcall Mailbox_Send(u8 *self, void *, const char *host, u32 port, u32 arg
         at<u8 *>(self, 0x98) = client;
         if (!client) return 0;
     } else {
-        AssignChars(at<StdString>(client, 0), reinterpret_cast<const char *>((uintptr_t)0x00773dc0));
+        AssignChars(at<StdString>(client, 0), gPostcardmail_773d80.f40);
         u8 *const head = at<u8 *>(client, 0x14);
         u32 out;
         List_EraseRangeCounted1(client + 0x10, nullptr, &out, at<u8 *>(head, 0), head);
@@ -533,10 +534,10 @@ u8 __fastcall Mailbox_Open(u8 *self, void *, const char *folder) {
     ClearNumbers(self + 0x70);
     StdString *const own = reinterpret_cast<StdString *>(self);
     StdString_AssignChars(own, nullptr, folder, CRT_strlen(folder));
-    const char *const outbox = reinterpret_cast<const char *>((uintptr_t)0x007740c0);
+    const char *const outbox = gMailbox_Open_7740c0;
     StdString_AppendChars(own, nullptr, outbox, CRT_strlen(outbox));
     StdString_AssignSub(&path, nullptr, own, 0, npos());
-    const char *const name = reinterpret_cast<const char *>((uintptr_t)0x007740b4);
+    const char *const name = gMailbox_7740b4;
     StdString_AppendChars(&path, nullptr, name, CRT_strlen(name));
     if (!g_env->open(buffer, nullptr, TextOf(path), 1)) g_env->setState(IosOf(stream), nullptr, 2, 0);
     if (!at<void *>(stream, 0x58)) {
@@ -715,7 +716,7 @@ u8 __fastcall Mailbox_SaveMessage(u8 *self) {
     const StdString *const own = reinterpret_cast<const StdString *>(self);
     StdString_AssignSub(&path, nullptr, own, 0, npos());
     char line[0x80];
-    CRT_sprintf(line, reinterpret_cast<const char *>((uintptr_t)0x007740d8), number);
+    CRT_sprintf(line, gMailbox_7740d8, number);
     StdString_AppendChars(&path, nullptr, line, CRT_strlen(line));
     if (!g_env->open(buffer, nullptr, TextOf(path), 0x12)) g_env->setState(IosOf(stream), nullptr, 2, 0);
     if (!at<void *>(stream, 0x54)) {
@@ -732,7 +733,7 @@ u8 __fastcall Mailbox_SaveMessage(u8 *self) {
     at<u32>(self, 0x50) = at<u32>(date, 0x10) + 1;
     at<u32>(self, 0x54) = at<u32>(date, 0x14) + 0x76c;
     const char *const lineEnd = reinterpret_cast<const char *>((uintptr_t)0x0074da30);
-    const char *const decimal = reinterpret_cast<const char *>((uintptr_t)0x00759920);
+    const char *const decimal = gChatevents_759920;
     for (u32 offset = 0x4c; offset <= 0x54; offset += 4) {
         CRT_sprintf(line, decimal, at<u32>(self, offset));
         g_env->write(g_env->write(stream, line), lineEnd);
@@ -746,7 +747,7 @@ u8 __fastcall Mailbox_SaveMessage(u8 *self) {
     else
         g_env->setState(IosOf(stream), nullptr, 2, 0);
     StdString_AssignSub(&picture, nullptr, own, 0, npos());
-    CRT_sprintf(line, reinterpret_cast<const char *>((uintptr_t)0x007740cc), number);
+    CRT_sprintf(line, gMailbox_7740cc, number);
     StdString_AppendChars(&picture, nullptr, line, CRT_strlen(line));
     StdString *const pictureAt = reinterpret_cast<StdString *>(self + 0x3c);
     at<s32(__stdcall *)(const char *, const char *)>(nullptr, 0x006fd11c)(TextOf(*pictureAt), TextOf(picture));
@@ -784,8 +785,8 @@ u8 __fastcall Mailbox_SaveMessage(u8 *self) {
 void __fastcall Mailbox_DeleteMessage(u8 *self, void *, u32 number) {
     StdString path;
     StdString_Tidy(&path, nullptr, 0);
-    RemoveFile(self, &path, 0x007740d8, number);
-    RemoveFile(self, &path, 0x007740cc, number);
+    RemoveFile(self, &path, reinterpret_cast<uintptr_t>(&gMailbox_7740d8), number);
+    RemoveFile(self, &path, reinterpret_cast<uintptr_t>(&gMailbox_7740cc), number);
     StdString_Tidy(&path, nullptr, 1);
 }
 
@@ -828,7 +829,7 @@ u8 __fastcall Mailbox_SaveOutbox(u8 *self) {
     g_env->fileCtor(buffer, nullptr, nullptr);
     at<u32>(IosOf(stream), 0) = 0x00702970;
     StdString_AssignSub(&path, nullptr, reinterpret_cast<const StdString *>(self), 0, npos());
-    const char *const name = reinterpret_cast<const char *>((uintptr_t)0x007740b4);
+    const char *const name = gMailbox_7740b4;
     StdString_AppendChars(&path, nullptr, name, CRT_strlen(name));
     if (!g_env->open(buffer, nullptr, TextOf(path), 0x12)) g_env->setState(IosOf(stream), nullptr, 2, 0);
     if (!at<void *>(stream, 0x54)) {
@@ -872,7 +873,7 @@ u8 __fastcall Mailbox_LoadMessage(u8 *self, void *, u32 number) {
     at<u32>(IosOf(stream), 0) = 0x00702960;
     StdString_AssignSub(&path, nullptr, reinterpret_cast<const StdString *>(self), 0, npos());
     char line[0x100];
-    CRT_sprintf(line, reinterpret_cast<const char *>((uintptr_t)0x007740d8), number);
+    CRT_sprintf(line, gMailbox_7740d8, number);
     StdString_AppendChars(&path, nullptr, line, CRT_strlen(line));
     if (!g_env->open(buffer, nullptr, TextOf(path), 1)) g_env->setState(IosOf(stream), nullptr, 2, 0);
     if (!at<void *>(stream, 0x58)) {
@@ -914,7 +915,7 @@ u8 __fastcall Mailbox_LoadMessage(u8 *self, void *, u32 number) {
     }
     if (!g_env->fileClose(buffer)) g_env->setState(IosOf(stream), nullptr, 2, 0);
     StdString_AssignSub(reinterpret_cast<StdString *>(self + 0x3c), nullptr, reinterpret_cast<const StdString *>(self), 0, npos());
-    CRT_sprintf(line, reinterpret_cast<const char *>((uintptr_t)0x007740cc), number);
+    CRT_sprintf(line, gMailbox_7740cc, number);
     StdString_AppendChars(reinterpret_cast<StdString *>(self + 0x3c), nullptr, line, CRT_strlen(line));
     g_env->ifstreamDtor(ios);
     NIos_Dtor(ios);

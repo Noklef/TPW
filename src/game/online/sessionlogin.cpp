@@ -21,6 +21,7 @@
 #include "../ui/dialogs.h"
 #include "servers.h"
 #include "session.h"
+#include "../ui/window7cc8c0handler.h"
 
 namespace {
 
@@ -30,7 +31,7 @@ const OnlineLoginEnv kGameEnv = {&Dialog7cc530_Open, &Dialog7cc5f4_Finish, &Dial
                                  &Dialog7cca94_SetProgress, &BalanceFile_Load, &Online_ApplyBalance, &Dialog7cc61c_Open, &CommandQueue_Post, &CRT_free};
 const OnlineLoginEnv *g_env = &kGameEnv;
 
-constexpr u32 kEmptyWide = 0x0078a374;
+const u32 kEmptyWide = reinterpret_cast<uintptr_t>(&gWindow7cc8c0handler_78a374);
 
 void Say(u32 text) {
     using Output = void(__stdcall *)(const char *);
@@ -85,13 +86,13 @@ void __fastcall Online_LogIn(u8 *session, void *, const u16 *name, const u16 *pa
     vcall<void>(session + 0x20, 0x14, password);
     Online_ReleaseLogin(session);
     at<u8 *>(session, 0) = NewConnection(0x006fd46c);   // Auth::Auth
-    Say(0x0077343c);
+    Say(reinterpret_cast<uintptr_t>(&gOnline_LogIn_77343c));
     if (Connect(0x006fd464, at<u8 *>(session, 0), 0x007a1514, 0x007a1554, 0x005b5ce0) != 1) {
         at<u32>(session, 0x68) = 0x4f;
         Online_LoginFinish(session, nullptr, 0);
         return;
     }
-    Say(0x00773414);
+    Say(reinterpret_cast<uintptr_t>(&gOnline_LogIn_773414));
     const u32 password28 = at<u32>(session, 0x28), name14 = at<u32>(session, 0x14), language = LanguageId();
     using Login = void(__fastcall *)(u8 *, void *, u32, u32, u32, u32);
     (*reinterpret_cast<const Login *>((uintptr_t)0x006fd468))(at<u8 *>(session, 0), nullptr, language, name14, password28, 0);
@@ -135,15 +136,15 @@ void __stdcall Online_NewsAnswer(s32 status, u32 a, u32 b, u8 *record) { Online_
 void __fastcall Online_OpenNews(u8 *session) {
     Online_ReleaseNews(session);
     at<u8 *>(session, 0x6c) = NewConnection(0x006fd5a0);   // News::News
-    Say(0x007734e8);
+    Say(reinterpret_cast<uintptr_t>(&gOnline_OpenNews_7734e8));
     g_env->showText(0xf4);
     if (Connect(0x006fd59c, at<u8 *>(session, 0x6c), 0x007a1534, 0x007a1558, 0x005b6630) != 1) {
-        Say(0x007734c8);
+        Say(reinterpret_cast<uintptr_t>(&gOnline_OpenNews_7734c8));
         at<u32>(session, 0xd0) = 0x4f;
         Online_NewsFinish(session);
         return;
     }
-    Say(0x007734a0);
+    Say(reinterpret_cast<uintptr_t>(&gOnline_OpenNews_7734a0));
     at<u32>(session, 0x74) = NewsRequest(0x006fd598, at<u8 *>(session, 0x6c));
     at<u32>(session, 0x90) = NewsRequest(0x006fd594, at<u8 *>(session, 0x6c));
     const u32 language = LanguageId();
@@ -159,7 +160,7 @@ void __fastcall Online_NewsResult(u8 *session, void *, s32 status, u32 a, u32, u
     case -2: at<u32>(session, 0xd0) = 0x4b; return;
     case 51:
         if (at<u32>(session, 0x74)) {
-            Say(0x00773508);
+            Say(reinterpret_cast<uintptr_t>(&gOnline_NewsResult_773508));
             vcall<void>(session + 0x7c, 0x14, at<u32>(record, 0));
             at<u32>(session, 0x78) = 1;
         }
@@ -171,15 +172,15 @@ void __fastcall Online_NewsResult(u8 *session, void *, s32 status, u32 a, u32, u
     if (*text == 0xfffe || *text == 0xfeff)
         ++text;
     if (a == at<u32>(session, 0x90)) {
-        Say(0x00773568);
+        Say(reinterpret_cast<uintptr_t>(&gOnline_NewsResult_773568));
         vcall<void>(session + 0x98, 0x14, text);
         at<u32>(session, 0x94) = 1;
     } else if (a == at<u32>(session, 0xac)) {
-        Say(0x00773548);
+        Say(reinterpret_cast<uintptr_t>(&gOnline_NewsResult_773548));
         vcall<void>(session + 0xb4, 0x14, text);
         at<u32>(session, 0xb0) = 1;
     } else {
-        Say(0x0077352c);
+        Say(reinterpret_cast<uintptr_t>(&gOnline_NewsResult_77352c));
     }
     if (--at<s32>(record, 8) == 0 && record) {
         if (at<void *>(record, 0))

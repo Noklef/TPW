@@ -26,3 +26,10 @@ extern "C" {
 // 0x133, 0x78a374 twice and three 0, no data, at the end, refreshed. The charset [0x78ba94]'s entry 0x12b into the buffer 0x7ba058 of 0x3fff, the hover label on 0xe05c with it. [[0xf85614] + 0x14]: Class702da0_Push (0x254, 1).
 void __cdecl Dialog7cc944_Open(u32 value);
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(u8[32], gDialog7cc944_7cc908, 0x007cc908, 0x20);
+GAME_DATA(u8 *, gDialog7cc944_7cc944, 0x007cc944, 0x4);
+GAME_DATA(u32, gDialog7cc944_7cc948, 0x007cc948, 0x4);

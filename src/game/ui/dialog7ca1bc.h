@@ -24,3 +24,8 @@ s32 __cdecl Dialog7ca1bc_Handler(u8 *window, u32 message, u32 a, u32 b);
 // (Window_SetDwordA0) and hidden (Window_SetShown(0)); none of it checked.
 void __cdecl Dialog7ca1bc_Create();
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(u8[112], gDialog7ca1bc_Create_7514c0, 0x007514c0, 0x70);

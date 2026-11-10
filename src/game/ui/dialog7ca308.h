@@ -81,3 +81,14 @@ s32 __cdecl Dialog7ca308_ListHandler(u8 *window, u32 message, u32 id, u32 value)
 // wage (entry looked up again) added to [0x7ca2fc] through slot 7 of 0x2485's child 0x248c and [0x7ca2f0] - wage - [0x7ca2fc] - [0x7ca300] of its child 0x2487, 0x2485 and the entry there; Dialog7ca308_ShowStaff of the data. 0x406: [0x7523e4] b.
 s32 __cdecl Dialog7ca308_Handler(u8 *window, u32 message, u32 a, u32 b);
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(u32, gDialog7ca308_Open_7523e0, 0x007523e0, 0x4);
+GAME_DATA(s32, gDialog7ca308_7523e4, 0x007523e4, 0x4);
+GAME_DATA(u32, gDialog7ca308_7523e8, 0x007523e8, 0x4);
+GAME_DATA(u32, gDialog7ca308_7523ec, 0x007523ec, 0x4);
+GAME_DATA(u8 *, gDialog7ca308_7ca308, 0x007ca308, 0x4);
+GAME_DATA(u32, gDialog7ca308_7ca30c, 0x007ca30c, 0x4);
+GAME_DATA(s32, gDialog7ca308_7ca310, 0x007ca310, 0x4);

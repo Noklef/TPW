@@ -78,7 +78,7 @@ extern "C" {
 s32 __cdecl Dialog7cc654_Open() {
     if (!at<u32>(UserSlots_Instance(), 0xc4)) return 0;
     u8 *&window = global<u8 *>(0x007cc654);
-    window = g_env->create(reinterpret_cast<u8 *>((uintptr_t)0x00758878), 0x004bbc20, 1);
+    window = g_env->create(gDialog7cc654_Open_758878, 0x004bbc20, 1);
 
     u8 *child = Window_FindChild(window, nullptr, 0xee2);
     u8 *memory = static_cast<u8 *>(GameHeap_Alloc(0x1a4));

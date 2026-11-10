@@ -12,3 +12,41 @@ extern "C" {
 // three characters, sic); the MIME header, the HTML part; with an attachment that has text, its part; the last boundary. Each text goes through one 0x80-byte buffer before the boundary, as a stack frame of 0xc0 bytes.
 void __fastcall PostcardMail_Build(u8 *mail);
 }
+
+#include "../core/gamedata.h"
+
+#pragma pack(push, 1)
+struct Postcardmail_773d80_t {   // 0x773d80-0x773e98: the base64 alphabet (indexed from 0x773d80), then the mail's texts
+    char base64[0x40];
+    char f40[0x14];
+    char f54[0xc];
+    char f60[0x10];
+    char f70[0x18];
+    char f88[0x34];
+    char fbc[0x18];
+    char fd4[0x24];
+    char ff8[0x20];
+};
+#pragma pack(pop)
+
+// Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(Postcardmail_773d80_t, gPostcardmail_773d80, 0x00773d80, 0x118);
+GAME_DATA(char[12], gPostcardmail_773e98, 0x00773e98, 0xc);
+GAME_DATA(char[32], gPostcardMail_Build_773ea4, 0x00773ea4, 0x20);
+GAME_DATA(char[48], gPostcardMail_Build_773ec4, 0x00773ec4, 0x30);
+GAME_DATA(char[12], gPostcardMail_Build_773ef4, 0x00773ef4, 0xc);
+GAME_DATA(char[140], gPostcardMail_Build_773f00, 0x00773f00, 0x8c);
+GAME_DATA(char[44], gPostcardMail_Build_773f8c, 0x00773f8c, 0x2c);
+GAME_DATA(char[52], gPostcardMail_Build_773fb8, 0x00773fb8, 0x34);
+GAME_DATA(char[20], gPostcardMail_Build_773fec, 0x00773fec, 0x14);
+GAME_DATA(char[20], gPostcardMail_Build_774000, 0x00774000, 0x14);
+GAME_DATA(char[20], gPostcardMail_Build_774014, 0x00774014, 0x14);
+GAME_DATA(char[8], gPostcardmail_774028, 0x00774028, 0x8);
+GAME_DATA(char[20], gPostcardMail_Build_774030, 0x00774030, 0x14);
+GAME_DATA(char[24], gPostcardMail_Build_774044, 0x00774044, 0x18);
+GAME_DATA(char[24], gPostcardMail_Build_77405c, 0x0077405c, 0x18);
+GAME_DATA(char[16], gPostcardMail_Build_774074, 0x00774074, 0x10);
+GAME_DATA(char[4], gPostcardMail_Build_774084, 0x00774084, 0x4);
+GAME_DATA(char[8], gPostcardMail_Build_774088, 0x00774088, 0x8);
+GAME_DATA(char[12], gPostcardMail_Build_774090, 0x00774090, 0xc);
+GAME_DATA(char[24], gPostcardMail_Build_77409c, 0x0077409c, 0x18);

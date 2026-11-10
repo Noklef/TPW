@@ -7,6 +7,7 @@
 #include "cursor.h"
 #include "gamepause.h"
 #include "window.h"
+#include "panel7b9940.h"
 
 namespace {
 
@@ -26,7 +27,7 @@ const Window7cb2b0HandlerEnv kGameEnv = {
 };
 const Window7cb2b0HandlerEnv *g_env = &kGameEnv;
 
-u8 *Actions() { return global<u8 *>(0x787c14); }
+u8 *Actions() { return gKeymap_787c14; }
 
 void LetCameraGo(u8 *window) {
     const Window7cb2b0HandlerEnv *const E = g_env;
@@ -50,7 +51,7 @@ s32 __cdecl Window7cb2b0_Handler(u8 *window, u32 message, u32 a, u32 b) {
     const Window7cb2b0HandlerEnv *const E = g_env;
     switch (message) {
         case 0x14:
-            global<u8 *>(0x7cb2b0) = nullptr;
+            gPanel7b9940_7cb2b0 = nullptr;
             break;
         case 0x100:
             LetCameraGo(window);
@@ -74,9 +75,9 @@ s32 __cdecl Window7cb2b0_Handler(u8 *window, u32 message, u32 a, u32 b) {
         case 0x1000b: {
             const u32 modifiers = (b >> 16) & 0xff;
             E->fireUp(Actions(), nullptr, a, modifiers);
-            if (a == 0x1b || static_cast<u16>(E->findKey(global<u8 *>(0x78721c), nullptr, a, modifiers)) == 0x10)
+            if (a == 0x1b || static_cast<u16>(E->findKey(gKeymap_78721c, nullptr, a, modifiers)) == 0x10)
                 LetCameraGo(window);
-            else if (static_cast<u16>(E->findKey(global<u8 *>(0x78721c), nullptr, a, modifiers)) == 0xf)
+            else if (static_cast<u16>(E->findKey(gKeymap_78721c, nullptr, a, modifiers)) == 0xf)
                 E->pauseHide();
             break;
         }

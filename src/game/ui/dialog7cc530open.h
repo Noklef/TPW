@@ -26,3 +26,10 @@ extern "C" {
 // address), the columns 0 (0) and 1 (1), the highlight named at 0x74fa84, its headers 0x10 and 0x11 the texts 0xe2 and 0xe3 (font 8, 0xff, 0xef, 0, -1). Then the list filled, not shown.
 void __cdecl Dialog7cc530_Open(u32 value);
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(u32, gDialog7cc530open_7cc52c, 0x007cc52c, 0x4);
+GAME_DATA(u8 *, gDialog7cc530open_7cc530, 0x007cc530, 0x4);
+GAME_DATA(u8, gDialog7cc530open_7cc540, 0x007cc540, 0x1);

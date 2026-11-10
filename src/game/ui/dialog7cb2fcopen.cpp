@@ -19,6 +19,7 @@
 #include "window.h"
 #include "window705a50.h"
 #include "windowscript.h"
+#include "panel7b9940.h"
 #include "../gfx/texcache.h"
 
 namespace {
@@ -38,7 +39,7 @@ const Dialog7cb2fcOpenEnv *g_env = &kGameEnv;
 u8 *const kOptions = reinterpret_cast<u8 *>((uintptr_t)0x0078d8d8);
 u16 *const kBuffer = reinterpret_cast<u16 *>((uintptr_t)0x007ba058);
 
-u8 *dialog() { return global<u8 *>(0x007cb2fc); }
+u8 *dialog() { return gDialog7cb2fcopen_7cb2fc; }
 u8 *child(u32 id) { return Window_FindChild(dialog(), nullptr, id); }
 u8 *rowItem(u32 row) { return Window_FindChild(child(row), nullptr, 0x1d4c9); }
 u32 option(u32 offset) { return global<u32>(0x0078d8d8 + offset); }
@@ -71,7 +72,7 @@ s32 stepPercent(u32 step) { return (s32)(step * 100) / 2; }
 void valueRow(u32 id, u32 label, s32 value) {
     u8 *const row = child(id);
     u16 state[10];
-    if (value < 0) Crt().swprintf(state, reinterpret_cast<const u16 *>((uintptr_t)0x007537c8), g_env->text(0x14e));
+    if (value < 0) Crt().swprintf(state, reinterpret_cast<const u16 *>(gDialog7cb2fc_7537c8), g_env->text(0x14e));
     else Crt().swprintf(state, reinterpret_cast<const u16 *>((uintptr_t)0x007537b8), value);
     g_env->text(label);
     Crt().wcscat(kBuffer, state);
@@ -82,7 +83,7 @@ void valueRow(u32 id, u32 label, s32 value) {
 // The frame's window, or without a frame [0x7cb2ac].
 u8 *frameWindow() {
     u8 *const frame = global<u8 *>(0x00f82884);
-    return frame ? *reinterpret_cast<u8 **>(frame + 4) : global<u8 *>(0x007cb2ac);
+    return frame ? *reinterpret_cast<u8 **>(frame + 4) : gPanel7b9940_7cb2ac;
 }
 
 }  // namespace
@@ -201,9 +202,9 @@ void __cdecl Dialog7cb2fc_OnButton(u32 id, u32 state) {
 s32 __cdecl Dialog7cb2fc_Handler(u8 *window, u32 message, u32 a, s32 b) {
     switch (message) {
     case 0x14:
-        global<u8 *>(0x007cb2fc) = nullptr;
-        g_env->setFlags(global<u8 *>(0x0087a6d0), nullptr, global<u32>(0x007cb2f4));
-        if (!global<u32>(0x00786ba4) && !global<u8>(0x007cb2ec)) {
+        gDialog7cb2fcopen_7cb2fc = nullptr;
+        g_env->setFlags(gRenderer_87a6d0, nullptr, gDialog7cb2fc_7cb2f4);
+        if (!global<u32>(0x00786ba4) && !gDialog7cb2fc_7cb2ec) {
             global<u32>(0x00786ba4) = 1;
             g_env->f409300(reinterpret_cast<u8 *>((uintptr_t)0x00786b68));
             g_env->f662420();
@@ -240,10 +241,10 @@ s32 __cdecl Dialog7cb2fc_Handler(u8 *window, u32 message, u32 a, s32 b) {
             break;
         case 0x1d4de:
         case 0x1d4e0: break;
-        default: global<u32>(0x007cb300) = 0; break;
+        default: gDialog7cb2fc_7cb300 = 0; break;
         }
         break;
-    case 0x802: global<u32>(0x007cb300) = 0; break;
+    case 0x802: gDialog7cb2fc_7cb300 = 0; break;
     default: break;
     }
     return g_env->callDefault(window, nullptr, message, a, (u32)b);
@@ -252,21 +253,21 @@ s32 __cdecl Dialog7cb2fc_Handler(u8 *window, u32 message, u32 a, s32 b) {
 void __cdecl Dialog7cb2fc_Open() {
     if (dialog()) return;
     Options_Keep(kOptions);
-    global<u32>(0x007cb300) = 0;
+    gDialog7cb2fc_7cb300 = 0;
     if (global<u32>(0x00786ba4) == 1) {
         g_env->f4092a0(reinterpret_cast<u8 *>((uintptr_t)0x00786b68), nullptr, 0, 0);
         global<u32>(0x00786ba4) = 0;
         Fn_662411();
-        global<u8>(0x007cb2ec) = 0;
+        gDialog7cb2fc_7cb2ec = 0;
     } else {
-        global<u8>(0x007cb2ec) = 1;
+        gDialog7cb2fc_7cb2ec = 1;
     }
     g_env->f5996d0(1);
-    global<u32>(0x007cb2f4) = g_env->flags(global<u8 *>(0x0087a6d0));
-    g_env->setFlags(global<u8 *>(0x0087a6d0), nullptr, 0x21);
+    gDialog7cb2fc_7cb2f4 = g_env->flags(gRenderer_87a6d0);
+    g_env->setFlags(gRenderer_87a6d0, nullptr, 0x21);
     g_env->release(reinterpret_cast<u8 * &>(gTexcache_8c4b44), nullptr, 0);
     g_env->send(frameWindow(), 6, 0, 0);
-    global<u8 *>(0x007cb2fc) = g_env->build(global<u8 *>(0x00faa5d8), nullptr, reinterpret_cast<u8 *>((uintptr_t)0x00752f30), 0x004a2bf0);
+    gDialog7cb2fcopen_7cb2fc = g_env->build(global<u8 *>(0x00faa5d8), nullptr, reinterpret_cast<u8 *>((uintptr_t)0x00752f30), 0x004a2bf0);
     const u32 title = (u32)(uintptr_t)g_env->text(0x13b);
     g_env->attach(dialog(), 0x1d4d4, title);
 

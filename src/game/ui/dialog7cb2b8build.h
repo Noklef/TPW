@@ -23,3 +23,16 @@ void Dialog7cb2b8_SetBuildEnv(const Dialog7cb2b8BuildEnv *env);
 // its 0x32, its parts 0x30 (hidden) and 0x31 too. Whatever the build answered: child 0x1d (when found) gets its children 0x21 / 0x22 / 0x23
 // (the last kept at [0x7cb2d0]), 0x24, 0x1e / 0x1f (a BarMesh of the name at 0x752f04), 0x20 ([0x7cb2d4] 3) and 0x25 and is kept at [0x7cb2b8].
 void __cdecl Dialog7cb2b8_Build();
+
+#include "../core/gamedata.h"
+
+// Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(u32, gDialog7cb2b8build_7cb28c, 0x007cb28c, 0x4);
+GAME_DATA(u32, gDialog7cb2b8build_7cb290, 0x007cb290, 0x4);
+GAME_DATA(u32, gDialog7cb2b8build_7cb2a0, 0x007cb2a0, 0x4);
+GAME_DATA(u8 *, gDialog7cb2b8_Build_7cb2a4, 0x007cb2a4, 0x4);
+GAME_DATA(u8 *, gDialog7cb2b8build_7cb2b8, 0x007cb2b8, 0x4);
+GAME_DATA(u8 *, gDialog7cb2b8build_7cb2c4, 0x007cb2c4, 0x4);
+GAME_DATA(u8 *, gDialog7cb2b8build_7cb2d0, 0x007cb2d0, 0x4);
+GAME_DATA(u32, gDialog7cb2b8_Build_7cb2d4, 0x007cb2d4, 0x4);
+GAME_DATA(u8, gDialog7cb2b8build_fb34c1, 0x00fb34c1, 0x1);

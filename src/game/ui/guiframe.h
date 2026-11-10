@@ -34,3 +34,11 @@ void GuiFrame_SetEnv(const GuiFrameEnv *env);
 // 0x5f5590(0x7b9fe0, 0, 0, 0). Up to 0x1000 messages of the second queue; ImeHost_Update(0x7b4e38).
 void __cdecl Gui_Frame();
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(u32, gGui_Frame_7b9a4c, 0x007b9a4c, 0x4);
+GAME_DATA(u32, gGui_Frame_7b9d00, 0x007b9d00, 0x4);
+GAME_DATA(u32, gGui_Frame_7b9d04, 0x007b9d04, 0x4);
+GAME_DATA(u8, gGui_Frame_7c20e4, 0x007c20e4, 0x1);

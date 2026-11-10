@@ -27,42 +27,42 @@ u32 CallCity(u32 slot, void *city, u32 a, u32 b, u32 c, u32 d) {
 extern "C" {
 
 u32 __stdcall OnlineList_GetCities(void *city, u32 request) {
-    Say(0x00773b90);
+    Say(reinterpret_cast<uintptr_t>(&gOnlineList_GetCities_773b90));
     return CallCity(0x006fd55c, city, 0, request, 0);
 }
 
 u32 __stdcall OnlineList_GetThemes(void *city, u32 request) {
-    Say(0x00773c6c);
+    Say(reinterpret_cast<uintptr_t>(&gOnlineList_GetThemes_773c6c));
     return CallCity(0x006fd548, city, 0, request, 0);
 }
 
 u32 __stdcall OnlineList_GetRides(void *city, u32 request) {
-    Say(0x00773cb0);
+    Say(reinterpret_cast<uintptr_t>(&gOnlineList_GetRides_773cb0));
     return CallCity(0x006fd544, city, 0, request, 0);
 }
 
 u32 __stdcall OnlineList_GetServers(void *city, u32 request) {
-    Say(0x00773c8c);
+    Say(reinterpret_cast<uintptr_t>(&gOnlineList_GetServers_773c8c));
     return CallCity(0x006fd530, city, 0, 1, request, 0);
 }
 
 u32 __fastcall OnlineList_GetParksInCity(const u8 *list, void *, void *city, u32 request) {
-    Say(0x00773bb0);
+    Say(reinterpret_cast<uintptr_t>(&gOnlineList_GetParksInCity_773bb0));
     return CallCity(0x006fd558, city, 0, at<u32>(list, 0x34), request, 0);
 }
 
 u32 __fastcall OnlineList_GetTop10Parks(const u8 *list, void *, void *city, u32 request) {
-    Say(0x00773bd8);
+    Say(reinterpret_cast<uintptr_t>(&gOnlineList_GetTop10Parks_773bd8));
     return CallCity(0x006fd554, city, 0, at<u32>(list, 0x34), request, 0);
 }
 
 u32 __fastcall OnlineList_GetParkByName(const u8 *list, void *, void *city, u32 request) {
-    Say(0x00773c08);
+    Say(reinterpret_cast<uintptr_t>(&gOnlineList_GetParkByName_773c08));
     return CallCity(0x006fd550, city, 0, at<u32>(list, 0x3c), request, 0);
 }
 
 u32 __fastcall OnlineList_GetParkById(const u8 *list, void *, void *city, u32 request) {
-    Say(0x00773c3c);
+    Say(reinterpret_cast<uintptr_t>(&gOnlineList_GetParkById_773c3c));
     return CallCity(0x006fd54c, city, 0, at<u32>(list, 0x34), request, 0);
 }
 }  // extern "C"

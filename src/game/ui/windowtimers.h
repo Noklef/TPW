@@ -94,3 +94,11 @@ u8 *__cdecl WindowTimers_Find(u32 window, u32 id);
 // unlinked, the block freed) and the list [0xfaa634] emptied ([0xfaa630] left as it was, sic). EAX not kept.
 void __cdecl WindowTimers_Shutdown();
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(s32, gWindowtimers_faa62c, 0x00faa62c, 0x4);
+GAME_DATA(u8 *, gWindowtimers_faa630, 0x00faa630, 0x4);
+GAME_DATA(u8 *, gWindowtimers_faa634, 0x00faa634, 0x4);
+GAME_DATA(u32, gWindowtimers_faa638, 0x00faa638, 0x4);

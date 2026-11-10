@@ -58,3 +58,15 @@ void __cdecl Gui_Startup();
 // (slot 0 (1)) when there; the text pool freed, 0x657dff on the font, Const1_424ec0([0x7c249c]); the import 0x6fd5b0 of 0x7c24c0 tail-called, its EAX.
 u32 __cdecl Gui_Teardown();
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(u32, gGui_7b9fe0, 0x007b9fe0, 0x4);
+GAME_DATA(u32, gGui_Startup_7b9fe4, 0x007b9fe4, 0x4);
+GAME_DATA(u32, gGui_Startup_7b9fe8, 0x007b9fe8, 0x4);
+GAME_DATA(u32, gGui_Startup_7b9fec, 0x007b9fec, 0x4);
+GAME_DATA(u32, gGui_Startup_7b9ff0, 0x007b9ff0, 0x4);
+GAME_DATA(u32, gGui_Teardown_7c231c, 0x007c231c, 0x4);
+GAME_DATA(u32, gGuistartup_7c249c, 0x007c249c, 0x4);
+GAME_DATA(u32, gGuistartup_7c24d4, 0x007c24d4, 0x4);

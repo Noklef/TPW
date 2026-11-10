@@ -10,7 +10,7 @@ namespace {
 
 template <typename T> T &at(void *p, u32 offset) { return *reinterpret_cast<T *>((uintptr_t)p + offset); }
 
-u8 *&Head() { return *reinterpret_cast<u8 **>(0x00faa610); }
+u8 *&Head() { return gWindowreg_faa610; }
 u8 *&Next(u8 *node) { return at<u8 *>(node, 0x14); }
 
 // the window of the first node with the hash asked through its slot 0x20, or 0

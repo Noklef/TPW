@@ -18,6 +18,10 @@
 #include "focus.h"
 #include "textpanel7cc18c.h"
 #include "window.h"
+#include "dialog74fb20.h"
+#include "gamepause.h"
+#include "window7cc8c0handler.h"
+#include "dialog7cc184.h"
 
 namespace {
 
@@ -37,13 +41,13 @@ u16 *find(u16 *text, u16 c) {
 }
 
 bool modeOne() {
-    u8 &guard = global<u8>(0x00fb34bf);
+    u8 &guard = gGamepause_fb34bf;
     if (!(guard & 1)) {
         guard |= 1;
-        Setting_ReadMode(reinterpret_cast<u8 *>((uintptr_t)0x00fb3b7c));
+        Setting_ReadMode(reinterpret_cast<u8 *>(&gDialog74fb20_fb3b7c));
         g_env->atExit(reinterpret_cast<void(__cdecl *)()>((uintptr_t)0x005d1750));
     }
-    return global<u32>(0x00fb3b7c) == 1;
+    return gDialog74fb20_fb3b7c == 1;
 }
 
 // All addresses good: each with an '@' past its start and a '.' more than one place past that.
@@ -74,42 +78,42 @@ extern "C" {
 
 s32 __cdecl Dialog7cc184_PictureHandler(u8 *window, u32 message, u32 a, u32 b) {
     if (message == 0x10005) {
-        global<u32>(0x007cc1a4) = 1;
-        global<u32>(0x007cc1ac) = b & 0xffff;
-        global<s32>(0x007cc1a8) = static_cast<s32>(b) >> 16;
+        gDialog7cc184_PictureHandler_7cc1a4 = 1;
+        reinterpret_cast<u32 &>(gDialog7cc184_PictureHandler_7cc1ac) = b & 0xffff;
+        gDialog7cc184_PictureHandler_7cc1a8 = static_cast<s32>(b) >> 16;
         g_env->capture(window);
     } else if (message == 0x10004) {
-        global<u32>(0x007cc1a4) = 0;
+        gDialog7cc184_PictureHandler_7cc1a4 = 0;
         g_env->release(window);
-    } else if (message == 0x10003 && global<u32>(0x007cc1a4)) {
+    } else if (message == 0x10003 && gDialog7cc184_PictureHandler_7cc1a4) {
         const s32 y = static_cast<s32>(a) >> 16;
         const s32 x = static_cast<s32>(a & 0xffff);
-        const s32 dy = static_cast<s32>(static_cast<u32>(global<s32>(0x007cc1a8) - y) * static_cast<u32>(static_cast<s32>(global<s16>(0x00faa5c4))));
-        global<s32>(0x007cc198) += dy / 2048;
-        const s32 dx = static_cast<s32>(static_cast<u32>(global<s32>(0x007cc1ac) - x) * static_cast<u32>(static_cast<s32>(global<s16>(0x00faa5c0))));
-        global<s32>(0x007cc19c) += dx / 1536;
-        if (global<s32>(0x007cc198) < 0) global<s32>(0x007cc198) = 0;
-        if (global<s32>(0x007cc19c) < 0) global<s32>(0x007cc19c) = 0;
-        global<s32>(0x007cc1a8) = y;
-        global<s32>(0x007cc1ac) = x;
+        const s32 dy = static_cast<s32>(static_cast<u32>(gDialog7cc184_PictureHandler_7cc1a8 - y) * static_cast<u32>(static_cast<s32>(global<s16>(0x00faa5c4))));
+        gDialog7cc184_PictureHandler_7cc198 += dy / 2048;
+        const s32 dx = static_cast<s32>(static_cast<u32>(gDialog7cc184_PictureHandler_7cc1ac - x) * static_cast<u32>(static_cast<s32>(global<s16>(0x00faa5c0))));
+        gDialog7cc184_PictureHandler_7cc19c += dx / 1536;
+        if (gDialog7cc184_PictureHandler_7cc198 < 0) gDialog7cc184_PictureHandler_7cc198 = 0;
+        if (gDialog7cc184_PictureHandler_7cc19c < 0) gDialog7cc184_PictureHandler_7cc19c = 0;
+        gDialog7cc184_PictureHandler_7cc1a8 = y;
+        gDialog7cc184_PictureHandler_7cc1ac = x;
     }
     return g_env->callDefault(window, nullptr, message, a, b);
 }
 
 s32 __cdecl Dialog7cc184_Handler(u8 *window, u32 message, u32 a, u32 b) {
-    u8 *const dialog = global<u8 *>(0x007cc184);
+    u8 *const dialog = gDialog7cc184handler_7cc184;
     switch (message) {
     case 5:
         g_env->send(dialog, 4, 0, 0);
         return 1;
     case 0x14: {
-        u8 *const panel = global<u8 *>(0x007cc18c);
-        global<u32>(0x007cc184) = 0;
+        u8 *const panel = gDialog7cc184handler_7cc18c;
+        reinterpret_cast<u32 &>(gDialog7cc184handler_7cc184) = 0;
         if (panel) {
             g_env->freeParts(panel);
             GameHeap_Free(panel);
         }
-        global<u32>(0x007cc18c) = 0;
+        reinterpret_cast<u32 &>(gDialog7cc184handler_7cc18c) = 0;
         if (modeOne())
             g_env->pair();
         else
@@ -125,21 +129,21 @@ s32 __cdecl Dialog7cc184_Handler(u8 *window, u32 message, u32 a, u32 b) {
         if (a == 0x5da0) {
             g_env->openAddress();
         } else if (a == 0x5da1) {
-            for (u32 id = 0x5da3; id <= 0x5da5; ++id) vcall<void>(g_env->find(window, nullptr, id), 0x24, 0x0078a374);
+            for (u32 id = 0x5da3; id <= 0x5da5; ++id) vcall<void>(g_env->find(window, nullptr, id), 0x24, reinterpret_cast<uintptr_t>(&gWindow7cc8c0handler_78a374));
         } else if (a == 0x5da2) {
             g_env->show(g_env->find(window, nullptr, 0x5d9f));
         } else if (a == 0xfffffffe) {
             g_env->send(dialog, 4, 0, 0);
             return 0;
         } else if (a == 0xffffffff) {
-            if (!global<u8>(0x007cbf40)) g_env->format(global<u8 *>(0x0078ba94), reinterpret_cast<u16 *>((uintptr_t)0x007cbf48), 0x100, 0xd9);
-            if (!global<u8>(0x007cbf3c)) g_env->format(global<u8 *>(0x0078ba94), reinterpret_cast<u16 *>((uintptr_t)0x007cb408), 0x60, 0xd8);
+            if (!gDialog7cc184_7cbf40) g_env->format(global<u8 *>(0x0078ba94), reinterpret_cast<u16 *>((uintptr_t)0x007cbf48), 0x100, 0xd9);
+            if (!gDialog7cc184_7cbf3c) g_env->format(global<u8 *>(0x0078ba94), reinterpret_cast<u16 *>((uintptr_t)0x007cb408), 0x60, 0xd8);
             g_env->show(g_env->find(window, nullptr, 0x5d9f));
             u16 text[0x200];
             Crt().wcscpy(text, reinterpret_cast<const u16 *>((uintptr_t)0x007cb4d0));
             if (addressesGood(text)) {
                 g_env->sendCard();
-                g_env->send(global<u8 *>(0x007cc184), 4, 0, 0);
+                g_env->send(gDialog7cc184handler_7cc184, 4, 0, 0);
             } else {
                 BoxText record;
                 record.text = g_env->wideText(0xd6);
@@ -147,15 +151,15 @@ s32 __cdecl Dialog7cc184_Handler(u8 *window, u32 message, u32 a, u32 b) {
                 record.four = 4;
                 g_env->box(&record, 1, 0, 0, 0, 0, 0, 0);
             }
-            global<u32>(0x007cc1a0) = 1;
+            gDialog7cc184handler_7cc1a0 = 1;
             return 0;
         }
         break;
     case 0x801:
         if (a == 0x5da3)
-            global<u8>(0x007cbf40) = 1;
+            gDialog7cc184_7cbf40 = 1;
         else if (a == 0x5da4)
-            global<u8>(0x007cbf3c) = 1;
+            gDialog7cc184_7cbf3c = 1;
         break;
     default:
         break;

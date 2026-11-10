@@ -13,6 +13,7 @@
 #include "panelparts.h"
 #include "thingpreview.h"
 #include "window.h"
+#include "panel7cc218.h"
 
 using namespace panelparts;
 
@@ -43,12 +44,12 @@ void __fastcall Panel7cc408_Refresh(u8 *self) {
 extern "C" {
 
 void __fastcall Panel7cc408_ShowPreview(u8 *self) {
-    if (!*reinterpret_cast<u8 *const *>((uintptr_t)0x007c2658)) return;
+    if (!*reinterpret_cast<u8 *const *>(&gPanel7cc218_7c2658)) return;
     u8 rect[0xc];
     GuiRect_Ctor(rect);
     u8 *const shown = *reinterpret_cast<u8 **>(self + 0x18);
     Window_GetSavedRect(shown, nullptr, rect);
-    ThingPreview_Show(rect, *reinterpret_cast<u8 *const *>((uintptr_t)0x007c2658), *reinterpret_cast<const s16 *>(shown + 0xe0) + 2, 0x41400000);
+    ThingPreview_Show(rect, *reinterpret_cast<u8 *const *>(&gPanel7cc218_7c2658), *reinterpret_cast<const s16 *>(shown + 0xe0) + 2, 0x41400000);
     GuiRect_Dtor(rect);
 }
 

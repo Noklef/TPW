@@ -10,6 +10,7 @@
 #include "../world/focuscell.h"
 #include "../world/gamemode.h"
 #include "../world/mapclick.h"
+#include "panel7cc218.h"
 
 namespace {
 
@@ -41,11 +42,11 @@ void __fastcall ThingGoto_Start(u8 *panel) {
         question.text = g_env->wideText(0x18c);
         memset(question.colour, 0xff, 3);
         question.kind = 4;
-        question.thing = global<const u8 *>(0x007c2658);
+        question.thing = gPanel7cc218_7c2658;
         g_env->messageBox(reinterpret_cast<const u8 *>(&question), 2, 0, 1, 0x0048cde0, 0, 0, 0);
     } else {
-        go(global<const u8 *>(0x007c2658));
+        go(gPanel7cc218_7c2658);
     }
-    global<const u8 *>(0x007c2658) = nullptr;
+    gPanel7cc218_7c2658 = nullptr;
     vcall<void>(panel, 0x2c);
 }

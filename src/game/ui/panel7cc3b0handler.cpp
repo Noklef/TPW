@@ -18,6 +18,7 @@
 #include "thingpreview.h"
 #include "window.h"
 #include "windowtimers.h"
+#include "panel7cc218.h"
 
 namespace {
 
@@ -25,7 +26,7 @@ u8 *const kPanel = reinterpret_cast<u8 *>((uintptr_t)0x007cc3b0);
 
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
 
-u8 *thing() { return global<u8 *>(0x007c2658); }
+u8 *thing() { return gPanel7cc218_7c2658; }
 
 void closePanel() { reinterpret_cast<void(__fastcall *)(u8 *)>((*reinterpret_cast<uintptr_t **>(kPanel))[11])(kPanel); }
 

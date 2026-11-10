@@ -10,6 +10,7 @@
 #include "../files/handles.h"
 #include "../core/vcall.h"
 #include "../gfx/spriteframe.h"
+#include "../render/renderer.h"
 #include "../world/things.h"
 #include "draw.h"
 
@@ -307,12 +308,12 @@ extern "C" bool __cdecl Sprites_Setup(u32 mode, u32 onlyLast) {
             global<u32>(cell + 4) = 0;
             const u32 right = y == 3 ? (u32)width - 1 : y * across + across - 1;
             const u32 bottom = x == 3 ? (u32)height - 1 : x * down + down - 1;
-            g_calls.Th(0x00576620, global<u32>(0x0087a6d0), y * across, x * down, right, bottom, cell + global<u32>(global<u32>(cell) + 4), 0u);
+            g_calls.Th(0x00576620, reinterpret_cast<u32 &>(gRenderer_87a6d0), y * across, x * down, right, bottom, cell + global<u32>(global<u32>(cell) + 4), 0u);
         }
     }
     reinterpret_cast<u32 &>(gSpriteDrawOverlay) = g_calls.Th(0x0058a4f0, 0x00876420u, 0x20u);
     global<u32>(0x00876424) = 0;
-    g_calls.Th(0x00576410, global<u32>(0x0087a6d0), 0x00876420u + global<u32>(global<u32>(0x00876420) + 4), 0x20u);
+    g_calls.Th(0x00576410, reinterpret_cast<u32 &>(gRenderer_87a6d0), 0x00876420u + global<u32>(global<u32>(0x00876420) + 4), 0x20u);
     return true;
 }
 

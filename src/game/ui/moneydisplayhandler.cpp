@@ -22,14 +22,14 @@ void MoneyDisplayHandler_SetEnv(const MoneyDisplayHandlerEnv *env) { g_env = env
 s32 __cdecl MoneyDisplay_Handler(u8 *window, u32 message, u32 a, u32 b) {
     const MoneyDisplayHandlerEnv *const E = g_env;
     if (message == 0x15) {
-        global<u32>(0x7cb2dc) = 0;
-        global<u32>(0x7cb2e0) = 0;
+        reinterpret_cast<u32 &>(gMoneydisplay_7cb2dc) = 0;
+        gMoneyDisplay_Handler_7cb2e0 = 0;
     } else if (message == 0x1e) {
-        const u32 count = global<u32>(0x7cb2e0);
-        global<u32>(0x7cb2e0) = count + 1;
+        const u32 count = gMoneyDisplay_Handler_7cb2e0;
+        gMoneyDisplay_Handler_7cb2e0 = count + 1;
         if (count & 2) {
             E->update(window);
-            global<u32>(0x7cb2e0) = 0;
+            gMoneyDisplay_Handler_7cb2e0 = 0;
         }
         E->setCost(0);
     }

@@ -46,7 +46,7 @@ void __cdecl Dialog7cb400_Open(u32 value) {
     GuiRect_Ctor(rect);
     if (global<u32>(0x007cb3f8)) {
         g_env->push(*reinterpret_cast<u8 **>(global<u8 *>(0x00f85614) + 0x14), nullptr, 0x23a, 1);
-        u8 *const dialog = g_env->create(reinterpret_cast<u8 *>((uintptr_t)0x00753f50), 0x004a6d00, 1);
+        u8 *const dialog = g_env->create(gDialog7cb400_Open_753f50, 0x004a6d00, 1);
         global<u8 *>(0x007cb400) = dialog;
         Window_GetSavedRect(dialog, nullptr, rect);
         u8 *const edit = Window_FindChild(dialog, nullptr, 0x70a);

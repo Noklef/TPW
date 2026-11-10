@@ -71,3 +71,13 @@ u32 __fastcall Actions_FireUp(u8 *table, void *, u32 a, u32 b);
 u32 __cdecl KeyMap_Modifiers();
 u32 __cdecl KeyMap_AsyncModifiers();
 }
+
+#include "gamedata.h"
+
+// Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(u8 *, gKeymap_78718c, 0x0078718c, 0x4);
+GAME_DATA(u8 *, gKeymap_78721c, 0x0078721c, 0x4);
+GAME_DATA(u8 *, gKeymap_787294, 0x00787294, 0x4);
+GAME_DATA(u8 *, gKeymap_78733c, 0x0078733c, 0x4);
+GAME_DATA(u8 *, gKeymap_787a60, 0x00787a60, 0x4);
+GAME_DATA(u8 *, gKeymap_787c14, 0x00787c14, 0x4);

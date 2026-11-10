@@ -17,6 +17,8 @@
 #include "../world/world.h"
 #include "accessors.h"
 #include "globalsave.h"
+#include "../ui/dialog74fb20.h"
+#include "../ui/quitconfirm.h"
 #include "../world/staff.h"
 
 namespace {
@@ -750,13 +752,13 @@ const u8 *find_criterion(s32 id) {
 
 // The state the game object is in, its function-local static (guard byte 0xfb34bc, bit 0) made at first use.
 s32 game_state() {
-    u8 &guard = *reinterpret_cast<u8 *>((uintptr_t)0x00fb34bc);
+    u8 &guard = gQuitconfirm_fb34bc;
     if (!(guard & 1)) {
         guard |= 1;
-        g_calls.Th(0x00550ca0, 0x00fb3b7cu);
+        g_calls.Th(0x00550ca0, reinterpret_cast<uintptr_t>(&gDialog74fb20_fb3b7c));
         g_calls.Cd(0x0067a7d0, 0x005d1750u);   // atexit
     }
-    return *reinterpret_cast<const s32 *>((uintptr_t)0x00fb3b7c);
+    return *reinterpret_cast<const s32 *>(&gDialog74fb20_fb3b7c);
 }
 
 // Whether a criterion of this kind runs: kind 2 always, 0 with the state 0, 1 with the state 2.

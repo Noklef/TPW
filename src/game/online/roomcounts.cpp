@@ -13,6 +13,7 @@
 #include "../ui/window.h"
 #include "itemlist.h"
 #include "session.h"
+#include "chatevents.h"
 
 namespace {
 
@@ -25,7 +26,7 @@ const T &field(const u8 *object, u32 offset) {
     return *reinterpret_cast<const T *>(object + offset);
 }
 
-s32 *counts() { return &global<s32>(0x007cdac8); }
+s32 *counts() { return &reinterpret_cast<s32 &>(gRoomcounts_7cdac8); }
 s32 *ids() { return &global<s32>(0x007cdae0); }
 u8 *&chat() { return global<u8 *>(0x007cdb14); }
 s32 &answers() { return global<s32>(0x007cdb18); }
@@ -59,7 +60,7 @@ void AskRoom(s32 id) {
     typedef u32(__fastcall * RoomInfo)(u8 *, void *, const StdString *, void *);
     String number;
     String_Ctor(&number);
-    String_Format(&number, reinterpret_cast<const char *>((uintptr_t)0x00759920), id);
+    String_Format(&number, gChatevents_759920, id);
     StdString text;
     text.ptr = nullptr;
     text.len = 0;
@@ -91,7 +92,7 @@ void StartRound() {
     // (the callback by its address in the game, which RoomCounts_ChatEvent's hook answers)
     if (!(*reinterpret_cast<const Connect *>((uintptr_t)0x006fd498))(chat(), nullptr, host, port, 0x004c4920, context)) {
         typedef void(__stdcall * Debug)(const char *);
-        (*reinterpret_cast<const Debug *>((uintptr_t)0x006fd1e0))(reinterpret_cast<const char *>((uintptr_t)0x00759924));
+        (*reinterpret_cast<const Debug *>((uintptr_t)0x006fd1e0))(gRoomcounts_759924);
         return;
     }
     ready() = 0;

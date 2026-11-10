@@ -4,6 +4,7 @@
 #include <cstdint>
 
 #include "vobj2.h"
+#include "../render/screen.h"
 
 namespace {
 
@@ -208,9 +209,9 @@ void __cdecl EventQueue_PostScreenReset() {
     event[0] = 6;
     event[1] = 0;
     EventQueue_Post(g_env->instance, nullptr, 0, event);
-    event[2] = *reinterpret_cast<const u32 *>(0x007a1930);
+    event[2] = gScreen_7a1930;
     event[0] = 7;
-    event[1] = *reinterpret_cast<const u32 *>(0x007a1968);
+    event[1] = gScreen_7a1968;
     reinterpret_cast<u8 *>(event)[0xc] = 0x10;
     event[4] = 0;
     EventQueue_Post(g_env->instance, nullptr, 0, event);

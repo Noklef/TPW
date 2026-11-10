@@ -59,11 +59,11 @@ void __fastcall ArReplay_TextAction(u8 *, void *, u32 action, u32 word, u32 n, c
     StdWString text;
     CountedBuf_Reset(reinterpret_cast<u8 *>(&text), nullptr, 0);
     StdWString_AssignChars(&text, nullptr, words, n & 0xff);
-    u32 saves = G<u32>(0x00f7c58c);
+    u32 saves = reinterpret_cast<u32 &>(gArreplayaction_f7c58c);
     if (!saves) {
         void *block = GameHeap_Alloc(0x50);
         saves = block ? g_calls.Th(0x005aef50, (u32)reinterpret_cast<uintptr_t>(block)) : 0;
-        G<u32>(0x00f7c58c) = saves;
+        reinterpret_cast<u32 &>(gArreplayaction_f7c58c) = saves;
     }
     g_calls.Th(0x005d3230, saves, &text, 1u);
     u32 thing = 0;

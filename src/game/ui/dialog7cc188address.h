@@ -27,3 +27,9 @@ void __cdecl Dialog7cc188_AddAddress();
 // 0x4a77c0 (cdecl (window, message, a, b), a window handler): the message 0x1000b with a 0xd (Enter) adds the address first; the answer is 0x65f66e's (thiscall on the window).
 s32 __cdecl Dialog7cc188_AddressHandler(u8 *window, u32 message, u32 a, u32 b);
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(u32[2], gDialog7cc188address_754438, 0x00754438, 0x8);
+GAME_DATA(char[8], gDialog7cc188_AddAddress_754440, 0x00754440, 0x8);

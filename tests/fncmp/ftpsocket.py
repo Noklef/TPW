@@ -103,7 +103,7 @@ def local_address_case(r):
     set_return(log, CONNECT, r.choice([0, 0, 0, 0xffffffff, 1]))
     strings(log, SOCKNAME, 0, out=2)
     blob(log, SOCKNAME, 2, 1)
-    fill(log, SOCKNAME, 1, r.bytes(0x10))
+    fill(log, SOCKNAME, 1, r.bytes(0x10), which=1)   # (its own: on gethostname's, the host name was never written, the port read stack garbage)
     return Call(0x5c8f50, [], regions, conv='c', ret='a')
 
 

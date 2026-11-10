@@ -8,6 +8,9 @@
 #include "../core/vcall.h"
 #include "../gfx/display.h"
 #include "../gfx/palette.h"
+#include "guisettings.h"
+#include "window7cc8bc.h"
+#include "panel7b9940.h"
 
 namespace {
 
@@ -27,22 +30,22 @@ struct CursorFile {
 };
 
 const CursorFile kAniCursors[] = {
-    {0x0074ff4c, 0x0},   // c_norm.ani
-    {0x0074ff40, 0x1},   // c_busy.ani
-    {0x0074ff34, 0x3},   // c_path.ani
+    {reinterpret_cast<uintptr_t>(&gCursor_74ff4c), 0x0},   // c_norm.ani
+    {reinterpret_cast<uintptr_t>(&gCursor_74ff40), 0x1},   // c_busy.ani
+    {reinterpret_cast<uintptr_t>(&gCursor_74ff34), 0x3},   // c_path.ani
     {0x0074ff28, 0x4},   // c_queue.ani
-    {0x0074ff1c, 0x5},   // c_link.ani
+    {reinterpret_cast<uintptr_t>(&gCursor_74ff1c), 0x5},   // c_link.ani
     {0x0074ff10, 0x7},   // c_place.ani
-    {0x0074ff00, 0x8},   // c_noplace.cur
-    {0x0074fef4, 0x2},   // c_pick.ani
+    {reinterpret_cast<uintptr_t>(&gCursor_74ff00), 0x8},   // c_noplace.cur
+    {reinterpret_cast<uintptr_t>(&gCursor_74fef4), 0x2},   // c_pick.ani
     {0x0074fee8, 0x9},   // c_carry.ani
     {0x0074fedc, 0xa},   // c_erase.ani
     {0x0074fed0, 0xb},   // c_pylon.ani
-    {0x0074fec4, 0x13},   // c_cam.ani
-    {0x0074feb8, 0x14},   // c_cash.ani
+    {reinterpret_cast<uintptr_t>(&gCursor_74fec4), 0x13},   // c_cam.ani
+    {reinterpret_cast<uintptr_t>(&gCursor_74feb8), 0x14},   // c_cash.ani
     {0x0074feac, 0x6},   // c_track.ani
-    {0x0074fe9c, 0xc},   // c_height.ani
-    {0x0074fe8c, 0xd},   // c_rotate.ani
+    {reinterpret_cast<uintptr_t>(&gCursor_74fe9c), 0xc},   // c_height.ani
+    {reinterpret_cast<uintptr_t>(&gCursor_74fe8c), 0xd},   // c_rotate.ani
     {0x0074fe80, 0xe},   // c_pivot.ani
     {0x0074fe70, 0xf},   // c_swapdown.ani
     {0x0074fe60, 0x10},   // c_swapup.ani
@@ -60,20 +63,20 @@ const CursorFile kTgaCursors[] = {
     {0x00750018, 0x7},   // Cpla.tga
     {0x0075000c, 0x8},   // Cnog.tga
     {0x00750000, 0x2},   // Cpic.tga
-    {0x0074fff4, 0x9},   // Ccar.tga
-    {0x0074ffe8, 0xa},   // Cera.tga
-    {0x0074ffdc, 0xb},   // Cpyl.tga
-    {0x0074ffd0, 0x13},   // Ccam.tga
-    {0x0074ffc4, 0x14},   // Cash.tga
-    {0x0074ffb8, 0x6},   // Ctra.tga
-    {0x0074ffac, 0xc},   // Chei.tga
-    {0x0074ffa0, 0xd},   // Crot.tga
-    {0x0074ff94, 0xe},   // Cpiv.tga
-    {0x0074ff88, 0xf},   // Csdn.tga
-    {0x0074ff7c, 0x10},   // Csup.tga
-    {0x0074ff70, 0x12},   // CEnd.tga
-    {0x0074ff64, 0x11},   // CMov.tga
-    {0x0074ff58, 0x15},   // CCro.tga
+    {reinterpret_cast<uintptr_t>(&gCursor_74fff4), 0x9},   // Ccar.tga
+    {reinterpret_cast<uintptr_t>(&gCursor_74ffe8), 0xa},   // Cera.tga
+    {reinterpret_cast<uintptr_t>(&gCursor_74ffdc), 0xb},   // Cpyl.tga
+    {reinterpret_cast<uintptr_t>(&gCursor_74ffd0), 0x13},   // Ccam.tga
+    {reinterpret_cast<uintptr_t>(&gCursor_74ffc4), 0x14},   // Cash.tga
+    {reinterpret_cast<uintptr_t>(&gCursor_74ffb8), 0x6},   // Ctra.tga
+    {reinterpret_cast<uintptr_t>(&gCursor_74ffac), 0xc},   // Chei.tga
+    {reinterpret_cast<uintptr_t>(&gCursor_74ffa0), 0xd},   // Crot.tga
+    {reinterpret_cast<uintptr_t>(&gCursor_74ff94), 0xe},   // Cpiv.tga
+    {reinterpret_cast<uintptr_t>(&gCursor_74ff88), 0xf},   // Csdn.tga
+    {reinterpret_cast<uintptr_t>(&gCursor_74ff7c), 0x10},   // Csup.tga
+    {reinterpret_cast<uintptr_t>(&gCursor_74ff70), 0x12},   // CEnd.tga
+    {reinterpret_cast<uintptr_t>(&gCursor_74ff64), 0x11},   // CMov.tga
+    {reinterpret_cast<uintptr_t>(&gCursor_74ff58), 0x15},   // CCro.tga
 };
 
 }  // namespace
@@ -115,26 +118,26 @@ u16 __fastcall CursorTable_Set(u8 *table, void *, u32 index, u8 *cursor) {
 }
 
 void __cdecl Gui_SetCursorTable(u8 *table) {
-    if (!table || table == global<u8 *>(0x00faa604)) return;
-    if (global<u8 *>(0x00faa608)) vcall<void>(global<u8 *>(0x00faa608), 0x10, 0u);
-    global<u8 *>(0x00faa604) = table;
-    u8 *const cursor = CursorTable_Get(global<u8 *>(0x00faa604), nullptr, global<u16>(0x0077c484));
+    if (!table || table == gGui_faa604) return;
+    if (gCursor_faa608) vcall<void>(gCursor_faa608, 0x10, 0u);
+    gGui_faa604 = table;
+    u8 *const cursor = CursorTable_Get(gGui_faa604, nullptr, global<u16>(0x0077c484));
     if (cursor) vcall<void>(cursor, 0x10, 1u);
-    global<u8 *>(0x00faa608) = cursor;
+    gCursor_faa608 = cursor;
 }
 
 void __cdecl Gui_SetCursor(u32 id) {
-    if (!global<u8 *>(0x00faa604)) return;
+    if (!gGui_faa604) return;
     if ((s16)id == global<s16>(0x0077c484)) return;
-    if ((s16)id == -1) id = global<u16>(0x00faa600);
+    if ((s16)id == -1) id = gGui_faa600;
     u8 had = 0;
-    if (u8 *const old = CursorTable_Get(global<u8 *>(0x00faa604), nullptr, global<u16>(0x0077c484))) {
+    if (u8 *const old = CursorTable_Get(gGui_faa604, nullptr, global<u16>(0x0077c484))) {
         vcall<void>(old, 0x10, 0u);
         had = Fn_66190a(old);
     }
-    u8 *c = CursorTable_Get(global<u8 *>(0x00faa604), nullptr, (u16)id);
-    if (!c) c = CursorTable_Get(global<u8 *>(0x00faa604), nullptr, global<u16>(0x00faa600));
-    global<u8 *>(0x00faa608) = c;
+    u8 *c = CursorTable_Get(gGui_faa604, nullptr, (u16)id);
+    if (!c) c = CursorTable_Get(gGui_faa604, nullptr, gGui_faa600);
+    gCursor_faa608 = c;
     global<u16>(0x0077c484) = (u16)id;
     if (!c) return;
     vcall<void>(c, 0x10, 1u);
@@ -149,19 +152,19 @@ void __fastcall Window_SetCursor(u8 *window, void *, u32 id) {
 void __fastcall Window_ApplyCursor(const u8 *window) { Gui_SetCursor(at<u16>(window, 0x50)); }
 
 void __cdecl GameCursor_Set(u32 id) {
-    u8 *const window = global<u8 *>(0x007cb2ac);
+    u8 *const window = gPanel7b9940_7cb2ac;
     if (!window) return;
     Window_SetCursor(window, nullptr, id);
-    global<s32>(0x007cb2d8) = (s16)id;
+    gGameCursor_Set_7cb2d8 = (s16)id;
 }
 
 void __fastcall Obj7b51f0_SetCursor(void *, void *, u32 id) {
-    if (global<u8 *>(0x007cb2ac)) {
+    if (gPanel7b9940_7cb2ac) {
         GameCursor_Set(id);
         return;
     }
-    if (u8 *const window = global<u8 *>(0x007cc8c0)) Window_SetCursor(window, nullptr, id);
-    if (u8 *const window = global<u8 *>(0x007cc8bc)) Window_SetCursor(window, nullptr, id);
+    if (u8 *const window = gWindow7cc8bc_7cc8c0) Window_SetCursor(window, nullptr, id);
+    if (u8 *const window = gWindow7cc8bc_7cc8bc) Window_SetCursor(window, nullptr, id);
 }
 
 void __cdecl GameCursor_Update() {
@@ -223,7 +226,7 @@ u8 *__fastcall PalColour_Ctor(u8 *colour, void *, u32 red, u32 green, u32 blue) 
 }
 
 void __cdecl Gui_DrawCursor(u32 x, u32 y) {
-    if (u8 *const cursor = global<u8 *>(0x00faa608)) vcall<void>(cursor, 0x14, x & 0xffff, y & 0xffff);
+    if (u8 *const cursor = gCursor_faa608) vcall<void>(cursor, 0x14, x & 0xffff, y & 0xffff);
 }
 
 void __fastcall Cursor_DrawArrow(u8 *cursor, void *, u32 x, u32 y) {

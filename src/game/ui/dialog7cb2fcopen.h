@@ -64,3 +64,11 @@ s32 __cdecl Dialog7cb2fc_Handler(u8 *window, u32 message, u32 a, s32 b);
 // label 0x1d4d4 attached (the text 0x13b); the children's depth set to the first's +0xe0 + 2; the rows and sliders dressed; each shown from the options, as OnSlider / OnButton show them.
 void __cdecl Dialog7cb2fc_Open();
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(u8, gDialog7cb2fc_7cb2ec, 0x007cb2ec, 0x1);
+GAME_DATA(u32, gDialog7cb2fc_7cb2f4, 0x007cb2f4, 0x4);
+GAME_DATA(u8 *, gDialog7cb2fcopen_7cb2fc, 0x007cb2fc, 0x4);
+GAME_DATA(u32, gDialog7cb2fc_7cb300, 0x007cb300, 0x4);

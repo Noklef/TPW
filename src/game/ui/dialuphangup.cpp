@@ -2,6 +2,9 @@
 #include "dialuphangup.h"
 
 #include <cstdint>
+#include "dialog7cc5f4dial.h"
+#include "dialog7cc534handler.h"
+#include "dialog7cc530open.h"
 
 namespace {
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
@@ -11,14 +14,14 @@ void hangUp(u32 handle) { global<u32(__fastcall *)(void *, void *, u32)>(0x006fd
 extern "C" {
 
 u32 __cdecl Dialup_HangUpIfBusy(u32 handle) {
-    const u32 state = global<u32>(0x007cc538);
+    const u32 state = gDialog7cc534handler_7cc538;
     if (state == 1 || state == 2) hangUp(handle);
-    return global<u32>(0x007cc538) == 0;
+    return gDialog7cc534handler_7cc538 == 0;
 }
 
 void __cdecl Dialup_HangUpIfOpen() {
-    if (!global<u8>(0x007cc540)) return;
-    hangUp(global<u32>(0x007cc50c));
-    global<u8>(0x007cc540) = 0;
+    if (!gDialog7cc530open_7cc540) return;
+    hangUp(gDialog7cc5f4dial_7cc50c);
+    gDialog7cc530open_7cc540 = 0;
 }
 }

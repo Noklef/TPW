@@ -34,3 +34,8 @@ void __fastcall Panel7ca178_DressTip(u8 *self);
 // when the low byte of the thing's float +0x44 (__ftol) is under 25, else 0x12b (Advisor_PostId).
 void __fastcall Panel7ca178_Show(u8 *self, void *, u8 *thing);
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(const double, gPanel7ca178_6ff738, 0x006ff738, 0x8);

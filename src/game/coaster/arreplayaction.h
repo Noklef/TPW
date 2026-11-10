@@ -19,3 +19,8 @@ void __fastcall ArReplay_Action(u8 *self, void *, u32 action, u32 word);
 // for 0x55 0x4e2a50, 0x4e2860 and 0x4682b0 (thing, buffer, text). An empty text is 0x6fd6c4.
 void __fastcall ArReplay_TextAction(u8 *self, void *, u32 action, u32 word, u32 n, const u16 *words);
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(u8 *, gArreplayaction_f7c58c, 0x00f7c58c, 0x4);

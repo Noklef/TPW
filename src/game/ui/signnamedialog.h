@@ -76,5 +76,8 @@ void SignNameDialog_SetHandlerEnv(const SignNameDialogHandlerEnv *env);
 #include "../core/gamedata.h"
 
 // Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(u8[268], gSignNameDialog7ca214_Open_751928, 0x00751928, 0x10c);
 GAME_DATA(const u16 *, gSignNameDialog7ca214_Handler_751a34, 0x00751a34, 4);
 GAME_DATA(const u16 *, gSignNameDialog7ca214_Handler_751a38, 0x00751a38, 4);
+GAME_DATA(u8 *, gSignNameDialog7ca214_7ca214, 0x007ca214, 0x4);
+GAME_DATA(u8, gSignNameDialog7ca214_Handler_fb34c4, 0x00fb34c4, 0x1);

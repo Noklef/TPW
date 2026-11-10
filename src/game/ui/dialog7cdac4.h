@@ -55,3 +55,11 @@ void __cdecl Dialog7cdac4_Open();
 // 0x802, a 0x11e4: the child 0x11e3 takes the focus. 0x803: the child 0x11e3 (a 0x11e4) or 0x11e4 takes it. 0x804: the window posted 4 (0, 0). All but those answered 0 go on to Dialog_BaseHandler, whose answer is returned.
 s32 __cdecl Dialog7cdac4_Handler(u8 *window, u32 message, u32 a, u32 b);
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(u8[256], gDialog7cdac4_7cd480, 0x007cd480, 0x100);
+GAME_DATA(u8[32], gDialog7cdac4_7cd850, 0x007cd850, 0x20);
+GAME_DATA(u8 *, gDialog7cdac4_7cdac4, 0x007cdac4, 0x4);
+GAME_DATA(u8, gDialog7cdac4_Handler_fb34bb, 0x00fb34bb, 0x1);

@@ -115,3 +115,19 @@ void __fastcall Class702cb0_Step(u8 *object);
 u8 *__fastcall Class702af0_Ctor(u8 *object, void *, s32 count, const char *name, const char *name2, const u32 *first, const u32 *second, u32 a,
                                 u32 b);
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(const float, gLobbyscene_702c78, 0x00702c78, 0x4);
+GAME_DATA(const float, gLobbyscene_702c7c, 0x00702c7c, 0x4);
+GAME_DATA(const float, gLobbyscene_702c80, 0x00702c80, 0x4);
+GAME_DATA(const float, gLobbyscene_702c84, 0x00702c84, 0x4);
+GAME_DATA(const float, gLobbyscene_702c88, 0x00702c88, 0x4);
+GAME_DATA(const float, gLobbyscene_702c8c, 0x00702c8c, 0x4);
+GAME_DATA(const float, gLobbyscene_702c90, 0x00702c90, 0x4);
+GAME_DATA(const float, gLobbyscene_702c94, 0x00702c94, 0x4);
+GAME_DATA(const float, gLobbyscene_702c98, 0x00702c98, 0x4);
+GAME_DATA(const float, gLobbyscene_702ca0, 0x00702ca0, 0x4);
+GAME_DATA(u32, gClass702af0_Ctor_7858dc, 0x007858dc, 0x4);
+GAME_DATA(u32, gLobbyscene_8bd4e4, 0x008bd4e4, 0x4);
