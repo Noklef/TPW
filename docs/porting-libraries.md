@@ -108,7 +108,7 @@ reset_error_mgr, and jmemansi.c's jpeg_get_small / large, jpeg_free_small / larg
   start_pass_dpost passes through) alone, so the memory is exactly the exe's. Private method fields (jdmerge.c's upmethod, jdsample.c's
   methods[]) go through exe_method_at(slot) by offset. Methods the exe's linker folded map to the shared copy: jdcolor.c's empty
   start_pass_dcolor to the bare RET at 0x631270, jdcoefct.c's dummy_consume_data to the return 0 at 0x66f4d0. In the game every mapped
-  address is hooked, so a call through it still runs the library's method (or the exe's own, where it stays the exe's: jpeg_idct_float).
+  address is hooked, so a call through it still runs the library's method (or a hand port's: jpeg_idct_float).
   Mapped so far: jinit_color_deconverter, jinit_merged_upsampler, jinit_upsampler, jinit_inverse_dct and jddctmgr's start_pass,
   jinit_huff_decoder, jinit_phuff_decoder and start_pass_phuff_decoder, jinit_d_coef_controller and start_output_pass,
   jinit_d_main_controller and start_pass_main, jinit_d_post_controller and start_pass_dpost, jinit_marker_reader (with the private
@@ -168,8 +168,9 @@ reset_error_mgr, and jmemansi.c's jpeg_get_small / large, jpeg_free_small / larg
   find_biggest_color_pop (0x6486e0) is Records32_MaxWeight, also a hand port (the library's median_cut calls its own copy).
 - The empty methods the exe's linker folded into the bare RET 0x631270 (finish_pass_1_quant, finish_pass2, start_pass_dcolor, ...): a
   hook there would replace every function folded into it.
-- jpeg_idct_float (0x64b040): its `(INT32)` casts of out-of-range values differ (the exe's __ftol keeps the low half of a 64-bit FISTP;
-  the library's build gives 0x80000000), and /arch:IA32 did not change that. The game selects JDCT_ISLOW / IFAST, never the float IDCT.
+- jpeg_idct_float (0x64b040) is Jpeg6b_IdctFloat (src/game/lib/jpegfloatdct), a hand port with X87Reg in the listing's order: the
+  library's `(INT32)` casts of out-of-range values differ (the exe's __ftol keeps the low half of a 64-bit FISTP; the library's build
+  gives 0x80000000), and /arch:IA32 did not change that. The game selects JDCT_ISLOW / IFAST, never the float IDCT.
 - jmemansi.c's backing store: jpeg_open_backing_store (0x6429c0) and its read / write / close methods (0x642a20, 0x642a90, 0x642b00).
   The library's tmpfile() would be a FILE of the DLL's CRT, which the exe's fread / fwrite / fclose cannot take; they stay together
   (as jmemmgr.c's realize_virt_arrays opens one only past max_memory_to_use).
@@ -220,7 +221,7 @@ sprintf in wrap/jpeg-6a/jerror.c), and the fncmp driver's kJpeg6aCrtEnv uses the
 (all five), jpeg_fdct_islow and jpeg_fdct_ifast, jcomapi.c (all four), jcparam.c (all thirteen), jmemansi.c's allocation and
 jpeg_mem_available, jmemmgr.c (all fifteen), jerror.c's emit_message / format_message / reset_error_mgr, jcapimin.c, jcapistd.c,
 jcinit.c, jcmarker.c (all but emit_dac), jcmaster.c, jcmainct.c, jcprepct.c, jccoefct.c, jccolor.c (all but
-null_method), jcsample.c (all but start_pass_downsample), jcdctmgr.c (all but forward_DCT_float), jchuff.c and jcphuff.c (benches
+null_method), jcsample.c (all but start_pass_downsample), jcdctmgr.c (forward_DCT_float a hand port, below), jchuff.c and jcphuff.c (benches
 jpeg6a_utils.py, jpeg6a_fdct.py, jpeg6a_comapi.py, jpeg6a_param.py, jpeg6a_memansi.py, jpeg6a_memmgr.py, jpeg6a_error.py,
 jpeg6a_api.py, jpeg6a_marker.py, jpeg6a_master.py, jpeg6a_mainct.py, jpeg6a_prepct.py, jpeg6a_coefct.py, jpeg6a_color.py,
 jpeg6a_sample.py, jpeg6a_dctmgr.py, jpeg6a_huff.py, jpeg6a_phuff.py, jpeg6a_init.py; their benches run ERREXIT as a recorder that returns, so
@@ -229,14 +230,15 @@ huffval past each standard table's symbols: add_huff_table copies 256 bytes from
 each build's neighbouring data, and nothing reads past the count (jpeg_make_c_derived_tbl and emit_dht stop at it,
 jpeg_gen_optimal_table only writes). wrap/jpeg-6a/jcdctmgr.c is compiled /arch:IA32, as 6b's jddctmgr.c: start_pass_fdctmgr's
 JDCT_FLOAT divisors, 1.0 / (quantval * aanscalefactor[row] * aanscalefactor[col] * 8.0) stored to a float, are x87 code in the exe
-at the FPU's precision. Stay the exe's: jpeg_fdct_float and forward_DCT_float (0x653d32) (x87 against SSE rounding, as 6b's float
-IDCT; forward_DCT_float's (int) of an out-of-range product, a zero quantval, is the low half of _ftol's 64-bit FISTP in the exe,
-0x80000000 in the library's build; only JDCT_FLOAT stores them, and the game's writer 0x64c258 never sets dct_method, so JDCT_ISLOW),
-jpeg_open_backing_store and its read / write / close methods (a FILE of the exe's C runtime), error_exit and output_message (the exe's
+at the FPU's precision. jpeg_fdct_float (0x657110) and forward_DCT_float (0x653d32) are hand ports, Jpeg6a_FdctFloat and
+Jpeg6a_ForwardDctFloat (src/game/lib/jpegfloatdct, X87Reg in the listings' order: x87 against the library's SSE rounding, as 6b's
+float IDCT; forward_DCT_float's (int) of an out-of-range product, a zero quantval, is the low half of _ftol's 64-bit FISTP in the exe,
+0x80000000 in the library's build; only JDCT_FLOAT stores them, and the game's writer 0x64c258 never sets dct_method, so JDCT_ISLOW).
+Stay the exe's: jpeg_open_backing_store and its read / write / close methods (a FILE of the exe's C runtime), error_exit and output_message (the exe's
 exit and fprintf(stderr)), and the hand ports jpeg_std_error (0x64dd60, which stores those and the exe's 6a table 0x7054b8), emit_dac,
 jpeg_mem_init / term, start_pass_downsample, null_method (src/game/core/framestubs; the library's copies are mapped to them in
 kExeMethods). That finishes 6a: everything else in 0x64c5f0..0x657cb4 is the library's, and what stays the exe's is the list above,
-for its reasons: the float DCT pair (x87 rounding), the backing store and error_exit / output_message (the exe's C runtime), and the
+for its reasons: the backing store and error_exit / output_message (the exe's C runtime), and the
 hand ports (the exe's tables and stubs the library's copies are mapped to). The two jerror.h lists differ: 6b added JERR_BAD_DCT_COEF (code 8) and
 JERR_BAD_HUFF_TABLE (10), dropped 6a's JERR_DHT_COUNTS (6a's 30) and added three JTRC_THUMB_* traces at the end, so most codes are
 one apart (two between 10 and 30) and a 6a bench takes its numbers from jpeg-6a's.
