@@ -730,4 +730,36 @@ char *__cdecl CRT_getcwd(char *buffer, s32 size) {
     return result;
 }
 
+char *__cdecl CRT_fullpath(char *buffer, const char *path, u32 size) {
+    if (!path || !*path) return CRT_getcwd(buffer, static_cast<s32>(size));
+    char *out = buffer;
+    if (!buffer) {
+        out = static_cast<char *>(CRT_malloc(0x104));
+        if (!out) {
+            *CRT_errno() = 0xc;
+            return nullptr;
+        }
+        size = 0x104;
+    }
+    char *part;   // (the original's: its own size argument's slot)
+    const u32 got = import_slot<u32(__stdcall *)(const char *, u32, char *, char **)>(0x006fd214)(path, size, out, &part);   // GetFullPathNameA
+    if (got >= size) {
+        if (!buffer) Crt().free(out);
+        *CRT_errno() = 0x22;
+        return nullptr;
+    }
+    if (!got) {
+        if (!buffer) Crt().free(out);
+        CRT_dosmaperr(last_error());
+        return nullptr;
+    }
+    return out;
+}
+
+s32 __cdecl CRT_getdrive() {
+    char path[0x104];
+    if (!import_slot<u32(__stdcall *)(u32, char *)>(0x006fd118)(0x104, path) || path[1] != ':') return 0;   // GetCurrentDirectoryA
+    return CRT_toupper(static_cast<u8>(path[0])) - 0x40;
+}
+
 }

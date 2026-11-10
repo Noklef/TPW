@@ -95,4 +95,11 @@ char *__cdecl CRT_getdcwd_lk(u32 drive, char *buffer, s32 size);
 // 0x67b9f0: _getcwd: _getdcwd_lk(0, ...) under lock 0xc.
 char *__cdecl CRT_getcwd(char *buffer, s32 size);
 
+// 0x689490: _fullpath: no path or an empty one: _getcwd. No buffer: a malloc of 0x104 (none: errno 0xc), that size. GetFullPathNameA: as long as the room or longer: errno 0x22;
+// 0: _dosmaperr(GetLastError()); either way the block freed when it was made here, 0. Else the buffer.
+char *__cdecl CRT_fullpath(char *buffer, const char *path, u32 size);
+
+// 0x689560: _getdrive: GetCurrentDirectoryA into 0x104 bytes; "X:...": toupper(X) - 0x40, else 0.
+s32 __cdecl CRT_getdrive();
+
 }
