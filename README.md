@@ -16,7 +16,7 @@ A C++ reimplementation of *Theme Park World* (Bullfrog, 1999), built the way [Op
 | Benches | About 1,480 (`tests/fncmp/`), each comparing ports with the original code |
 | History | Started 2026-10-13, about 4,600 commits |
 
-"Counted code" leaves out the C library and the compiler-generated initialisers.
+"Counted code" is `.text` up to `0x6e7000`, without the C library and the compiler-generated static initialisers (7,034, 224 KB). The hand-written assembly section `cseg` (86 KB: the sprite blitter and the software rasteriser's spans) is outside it and not ported. See [.docs/07-standalone-survey.md](.docs/07-standalone-survey.md).
 
 ## Rules
 
@@ -88,7 +88,7 @@ To run: copy `build\dinput.dll` into the game folder next to `tp.exe`. The hooks
 
 ## Next
 
-1. **Standalone `tpw.exe`** (plan step 4): stop loading the original exe. This needs:
+1. **Standalone `tpw.exe`** (plan step 4): stop loading the original exe. Sized in [.docs/07-standalone-survey.md](.docs/07-standalone-survey.md). This needs:
    - the exe's data sections, or real globals in their place
    - calls to the modern C runtime in place of the exe's C library
    - a new entry point and imports
