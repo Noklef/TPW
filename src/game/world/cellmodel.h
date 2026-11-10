@@ -88,3 +88,7 @@ GAME_DATA(const s32, gMapCell_PickModel_700c18, 0x00700c18, 0x4);
 GAME_DATA(const s32, gMapCell_PickModel_700c1c, 0x00700c1c, 0x4);
 GAME_DATA(const s32, gMapCell_PickPathModel_700c20, 0x00700c20, 0x4);
 GAME_DATA(const s32, gMapCell_700c24, 0x00700c24, 0x4);
+GAME_DATA(u8[0xc0], gMapCell_PickModel_762f30, 0x00762f30, 0xc0);   // 16 rows of 12 ([0x700c18])
+GAME_DATA(u8[0xc0], gMapCell_PickModel_762ff0, 0x00762ff0, 0xc0);   // 16 rows of 12 ([0x700c1c])
+GAME_DATA(u8[0x84], gMapCell_PickPathModel_7630b0, 0x007630b0, 0x84);   // 11 rows of 12 ([0x700c20])
+GAME_DATA(u8[0x24c], gMapCell_763138, 0x00763138, 0x24c);   // 49 rows of 12 ([0x700c24])

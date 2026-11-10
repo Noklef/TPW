@@ -19,6 +19,7 @@
 #include "dialog7cc184handler.h"
 #include "window7cc8c0handler.h"
 #include "../core/textarg.h"
+#include "dialog7cc654.h"
 
 namespace {
 
@@ -31,7 +32,7 @@ const Dialog7cc188HandlerEnv kGameEnv = {&UserSlots_Instance, &Window7059f0_NthI
                                          &List_EraseNthCounted, &Dialog7cc188_FillList};
 const Dialog7cc188HandlerEnv *g_env = &kGameEnv;
 
-u16 *recipients() { return reinterpret_cast<u16 *>((uintptr_t)0x007cb4d0); }
+u16 *recipients() { return reinterpret_cast<u16 *>((uintptr_t)&gDialog7cc654_7cb4d0); }
 
 const char *textOf(const StdString *string) {
     const char *const text = at<const char *>(string, 4);

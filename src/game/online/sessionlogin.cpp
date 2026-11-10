@@ -62,7 +62,7 @@ u32 LanguageId() { return Language_Id(reinterpret_cast<const u8 *>((uintptr_t)0x
 u32 NewsRequest(u32 slot, u8 *news) {
     const u32 language = LanguageId();
     using Method = u32(__fastcall *)(u8 *, void *, u32, u32, u32);
-    return (*reinterpret_cast<const Method *>((uintptr_t)slot))(news, nullptr, language, 0x00702808, 0);
+    return (*reinterpret_cast<const Method *>((uintptr_t)slot))(news, nullptr, language, (u32)(uintptr_t)&gSessionlogin_702808, 0);
 }
 
 }  // namespace

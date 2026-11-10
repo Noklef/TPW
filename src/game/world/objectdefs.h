@@ -226,3 +226,4 @@ GAME_DATA(char[20], gText_ObjectControls_Serialize_75a3a0, 0x0075a3a0, 0x14);
 GAME_DATA(char[20], gText_ObjectControls_Serialize_75a3b4, 0x0075a3b4, 0x14);
 GAME_DATA(char[20], gText_ObjectControls_Serialize_75a3c8, 0x0075a3c8, 0x14);
 GAME_DATA(char[12], gText_ObjectDefs_ListBuiltNumbers_762b18, 0x00762b18, 0xc);
+GAME_DATA(u16[4], gText_Objectdefs_7488b4, 0x007488b4, 0x8);   // L"%S", the swprintf format

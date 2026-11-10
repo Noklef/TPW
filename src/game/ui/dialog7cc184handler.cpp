@@ -22,6 +22,7 @@
 #include "gamepause.h"
 #include "window7cc8c0handler.h"
 #include "dialog7cc184.h"
+#include "dialog7cc654.h"
 
 namespace {
 
@@ -140,7 +141,7 @@ s32 __cdecl Dialog7cc184_Handler(u8 *window, u32 message, u32 a, u32 b) {
             if (!gDialog7cc184_7cbf3c) g_env->format(global<u8 *>(0x0078ba94), reinterpret_cast<u16 *>((uintptr_t)0x007cb408), 0x60, 0xd8);
             g_env->show(g_env->find(window, nullptr, 0x5d9f));
             u16 text[0x200];
-            Crt().wcscpy(text, reinterpret_cast<const u16 *>((uintptr_t)0x007cb4d0));
+            Crt().wcscpy(text, reinterpret_cast<const u16 *>((uintptr_t)&gDialog7cc654_7cb4d0));
             if (addressesGood(text)) {
                 g_env->sendCard();
                 g_env->send(gDialog7cc184handler_7cc184, 4, 0, 0);

@@ -637,7 +637,7 @@ u32 loadDefinition(u8 *defs, u8 *entry, u8 *opener, u8 *source, String *path, St
         const u32 size = static_cast<u32>(std::strlen(from)) + 1;
         std::memcpy(def + 0x28c, from, size);
     }
-    Crt().swprintf(reinterpret_cast<u16 *>(def + 0x390), reinterpret_cast<const u16 *>((uintptr_t)0x007488b4), at<const char *>(source, 0xc));
+    Crt().swprintf(reinterpret_cast<u16 *>(def + 0x390), reinterpret_cast<const u16 *>((uintptr_t)&gText_Objectdefs_7488b4), at<const char *>(source, 0xc));
     DefLoad load = {source, stream, name};
     u8 *const handle = source + 0x2c;
     const u32 streamAt = address(stream);

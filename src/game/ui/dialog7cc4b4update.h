@@ -39,3 +39,6 @@ void __cdecl Dialog7cc4b4_ShowTheme();
 
 // Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
 GAME_DATA(u32, gDialog7cc4b4update_7cc4bc, 0x007cc4bc, 0x4);
+
+// Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(u16[6], gText_Dialog7cc4b4update_758194, 0x00758194, 0xc);   // L"%d x"

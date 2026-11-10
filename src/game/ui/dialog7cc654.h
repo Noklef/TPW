@@ -13,3 +13,8 @@ extern "C" {
 // (Window705b20_SetRange), else hides it. Then, when the bar's slot 7 (given 0) answers 0 in AX, the text window's slot 9 is given the buffer.
 void __cdecl Dialog7cc654_FitText();
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(u16[0x200], gDialog7cc654_7cb4d0, 0x007cb4d0, 0x400);   // the addresses buffer: 0x1ff wide chars and the zero

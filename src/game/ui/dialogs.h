@@ -245,3 +245,4 @@ GAME_DATA(u8, gDialogs_7cc6a0, 0x007cc6a0, 0x1);
 
 // Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
 GAME_DATA(u8[0x118], gDialog7ca098_Create_7501a0, 0x007501a0, 0x118);   // a window script (or a text / table before one): to the next named address
+GAME_DATA(u8[0x78], gDialogs_7581a0, 0x007581a0, 0x78);   // a window script: to the next named address

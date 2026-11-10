@@ -173,7 +173,7 @@ void __cdecl Dialog74faf0_OpenFor(u8 *thing) {
     vcall<void>(dialog, 0x14, 0u);
     u8 rect[12];
     GuiRect_Ctor(rect);
-    place(dialog, rect, 0x0074fcf8);
+    place(dialog, rect, (u32)(uintptr_t)&gDialog74faf0_OpenFor_74fcf8);
     g_env->setHandler(host, nullptr, 0x0048a970);
     g_env->setFocus(host, nullptr, 0);
     GuiRect_Dtor(rect);

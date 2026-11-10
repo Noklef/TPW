@@ -36,7 +36,7 @@ void stage() {
     switch (now) {
         case -4:
             gDialog7cc534handler_7cc538 = 3;
-            if (box()) give(0x0075852c);
+            if (box()) give((u32)(uintptr_t)&gText_Dialog7cc534handler_75852c);
             break;
         case -3: showText(1, 0x108); break;
         case -2: showText(1, 0x10a); break;

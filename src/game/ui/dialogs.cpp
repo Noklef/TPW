@@ -37,6 +37,7 @@
 #include "window7cc8bc.h"
 #include "panel7cc218.h"
 #include "panel7b9940.h"
+#include "dialog7cc654.h"
 
 namespace {
 
@@ -258,7 +259,7 @@ s32 __cdecl Window_DefaultHandler(u8 *window, u32 message, u32 a, u32 b) { retur
 s32 __cdecl WindowText7cb4d0_Handler(u8 *window, u32 message, u32 a, u32 b) {
     if (message == 0x800) {
         Window_NotifyC000(window, nullptr, 0, (u32)-(s32)b);
-        vcall<void>(window, 0x24, 0x007cb4d0u);
+        vcall<void>(window, 0x24, (u32)(uintptr_t)&gDialog7cc654_7cb4d0);
     }
     return Window_CallDefault(window, nullptr, message, a, b);
 }
@@ -388,7 +389,7 @@ void __cdecl Window7ca2e8_ClearButtons(u32 mode) {
 void __cdecl Dialog7cc4c4_Create() {
     if (window(reinterpret_cast<uintptr_t>(&gDialogs_7cc4c4))) return;
     u8 *const frame = window(0x00f82884);
-    u8 *const dialog = WindowScript_Build(*reinterpret_cast<u8 **>(frame + 4), nullptr, reinterpret_cast<u8 *>(0x007581a0), 0x004b9950);
+    u8 *const dialog = WindowScript_Build(*reinterpret_cast<u8 **>(frame + 4), nullptr, gDialogs_7581a0, 0x004b9950);
     gDialogs_7cc4c4 = dialog;
     dressText(Window_FindChild(dialog, nullptr, 0x16c11), 5);
     dressText(Window_FindChild(window(reinterpret_cast<uintptr_t>(&gDialogs_7cc4c4)), nullptr, 0x16c12), 8);

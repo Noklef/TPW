@@ -68,3 +68,4 @@ GAME_DATA(u32, gDialog74fb20_fb3b7c, 0x00fb3b7c, 0x4);
 // Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
 GAME_DATA(u8[0x30], gDialog74faf0_OpenFor_74faf0, 0x0074faf0, 0x30);   // a window script (or a text / table before one): to the next named address
 GAME_DATA(u8[0x30], gDialog74fb20_74fb20, 0x0074fb20, 0x30);   // a window script (or a text / table before one): to the next named address
+GAME_DATA(u8[0xf8], gDialog74faf0_OpenFor_74fcf8, 0x0074fcf8, 0xf8);   // the table passed to place(): to the next named address

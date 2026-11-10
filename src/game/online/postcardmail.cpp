@@ -104,7 +104,7 @@ extern "C" void __fastcall PostcardMail_Build(u8 *mail) {
     AddFormat(to, buffer, reinterpret_cast<uintptr_t>(&gPostcardMail_Build_773ef4), boundary);
     Add(to, Text(reinterpret_cast<uintptr_t>(&gPostcardMail_Build_773ec4)));
     Add(to, Text(reinterpret_cast<uintptr_t>(&gPostcardMail_Build_773ea4)));
-    Add(to, Text(0x00773d00));
+    Add(to, Text((u32)(uintptr_t)&gText_PostcardMail_Build_773d00));
     const u8 *const attachment = at<const u8 *>(mail, 0x68);
     if (attachment && at<char *>(attachment, 0x20)) AddAttachment(to, buffer, boundary, attachment);
     AddFormat(to, buffer, reinterpret_cast<uintptr_t>(gPostcardmail_773d80.f60), boundary);

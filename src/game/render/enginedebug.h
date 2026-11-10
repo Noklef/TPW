@@ -30,3 +30,5 @@ GAME_DATA(char[16], gText_EngineDebug_LogFallback_766334, 0x00766334, 0x10);
 
 // Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
 GAME_DATA(char[0x4], gText_Enginedebug_766128, 0x00766128, 0x4);
+GAME_DATA(char[4], gText_EngineDebug_766344, 0x00766344, 0x4);   // "a", the fopen mode
+GAME_DATA(char[0x10], gText_EngineDebug_766348, 0x00766348, 0x10);   // "enginedebug.txt"

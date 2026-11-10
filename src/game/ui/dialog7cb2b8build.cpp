@@ -75,7 +75,7 @@ void buildMoney(u8 *window) {   // (the child 0x2f)
     u32 align = 0;
     Language_MirrorAlign(&align);
     const s32 bounds[4] = {0, 0, 0xfde8, 0xfde8};
-    g_env->measure(reinterpret_cast<const u16 *>((uintptr_t)0x00752f10), bounds, 1, align, 0, 0, box);
+    g_env->measure(reinterpret_cast<const u16 *>((uintptr_t)&gText_Dialog7cb2b8build_752f10), bounds, 1, align, 0, 0, box);
     const s32 height = box[3] * 0x600 / global<s16>(0x00faa5c0) + 0x10;
     Window_GetRect(window, nullptr, rect, 1);
     Window_GetRect(Window_FindChild(window, nullptr, 0x32), nullptr, slot, 1);

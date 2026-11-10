@@ -51,3 +51,6 @@ GAME_DATA(char[4], gPostcardMail_Build_774084, 0x00774084, 0x4);
 GAME_DATA(char[8], gPostcardMail_Build_774088, 0x00774088, 0x8);
 GAME_DATA(char[12], gPostcardMail_Build_774090, 0x00774090, 0xc);
 GAME_DATA(char[24], gPostcardMail_Build_77409c, 0x0077409c, 0x18);
+
+// Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(char[0x80], gText_PostcardMail_Build_773d00, 0x00773d00, 0x80);   // the mail's HTML head

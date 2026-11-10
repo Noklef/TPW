@@ -172,7 +172,7 @@ u32 __cdecl CRT_wcslen(const u16 *text) {
     return (u32)(p - text);
 }
 
-u8 __fastcall ChatLists_SaveBuddies(u8 *self, void *, const char *name) { return save_list(self, name, 0xe94, &StdTree_IncC, 0x0075c6dc, reinterpret_cast<uintptr_t>(&gChatLists_75c6d0)); }
+u8 __fastcall ChatLists_SaveBuddies(u8 *self, void *, const char *name) { return save_list(self, name, 0xe94, &StdTree_IncC, (u32)(uintptr_t)&gText_ChatLists_75c6dc, reinterpret_cast<uintptr_t>(&gChatLists_75c6d0)); }
 
 u8 __fastcall ChatLists_SaveIgnored(u8 *self, void *, const char *name) { return save_list(self, name, 0xea4, &StdTree_IncE, 0x0075c6f4, reinterpret_cast<uintptr_t>(&gChatLists_75c6e8)); }
 
@@ -188,7 +188,7 @@ u8 __fastcall ChatLists_LoadBuddies(u8 *self, void *, const char *name) {
     at<u32>(ios, 0) = (u32)(uintptr_t)BasicIosW_vtable;
     open_ifstream(stream, buffer);
     StdString_Tidy(&narrow, nullptr, 0);
-    build_path(self, name, folder, &narrow, path, 0x0075c6dc, reinterpret_cast<uintptr_t>(&gChatLists_75c6d0));
+    build_path(self, name, folder, &narrow, path, (u32)(uintptr_t)&gText_ChatLists_75c6dc, reinterpret_cast<uintptr_t>(&gChatLists_75c6d0));
     bool opened = false;
     if (!at<u32>(buffer, kFile)) {
         const u32 file = g_env->fopen(path, 1);

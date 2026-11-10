@@ -24,7 +24,7 @@ extern "C" {
 void __cdecl EngineDebug_LogFallback(const char *text) {
     void *file;
     if (global<u32>((u32)(uintptr_t)&gD3dsetup_879a20 + 0x8) != 0) {
-        file = g_env->fopen(text_at((u32)&gText_EngineDebug_LogFallback_766334), text_at(0x00766344));   // "fallback...", "a"
+        file = g_env->fopen(text_at((u32)&gText_EngineDebug_LogFallback_766334), text_at((u32)(uintptr_t)&gText_EngineDebug_766344));   // "fallback...", "a"
     } else {
         file = g_env->fopen(text_at((u32)&gText_EngineDebug_LogFallback_766334), text_at((u32)(uintptr_t)&gText_Enginedebug_766128));   // "w+b"
         global<u32>((u32)(uintptr_t)&gD3dsetup_879a20 + 0x8)++;
@@ -39,9 +39,9 @@ void __cdecl EngineDebug_LogFallback(const char *text) {
 void __cdecl EngineDebug_Log(const char *text) {
     void *file;
     if (global<u32>((u32)(uintptr_t)&gD3dsetup_879a20 + 0xc) != 0) {
-        file = g_env->fopen(text_at(0x00766348), text_at(0x00766344));   // "enginedebug.txt", "a"
+        file = g_env->fopen(text_at((u32)(uintptr_t)&gText_EngineDebug_766348), text_at((u32)(uintptr_t)&gText_EngineDebug_766344));   // "enginedebug.txt", "a"
     } else {
-        file = g_env->fopen(text_at(0x00766348), text_at((u32)(uintptr_t)&gText_Enginedebug_766128));   // "w+b"
+        file = g_env->fopen(text_at((u32)(uintptr_t)&gText_EngineDebug_766348), text_at((u32)(uintptr_t)&gText_Enginedebug_766128));   // "w+b"
         global<u32>((u32)(uintptr_t)&gD3dsetup_879a20 + 0xc)++;
     }
     if (file != nullptr) {
