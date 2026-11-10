@@ -9978,3 +9978,6 @@ address,name,kind,confidence,notes
 0x00657110,Jpeg6a_FdctFloat,function,low,"reimplemented (src/game/lib/jpegfloatdct); jpeg-6a jfdctflt.c jpeg_fdct_float, cdecl (data): the AA&N forward DCT of 64 floats in place, x87 in the unoptimised build's order"
 0x00653d32,Jpeg6a_ForwardDctFloat,function,low,"reimplemented (src/game/lib/jpegfloatdct); jpeg-6a jcdctmgr.c forward_DCT_float, cdecl (cinfo, compptr, sample_data, coef_blocks, start_row, start_col, num_blocks): samples less 128, do_float_dct, times the float divisors plus 16384.5, __ftol less 16384"
 0x0064b040,Jpeg6b_IdctFloat,function,low,"reimplemented (src/game/lib/jpegfloatdct); jpeg-6b jidctflt.c jpeg_idct_float, cdecl (cinfo, compptr, coef_block, output_buf, output_col): the AA&N inverse DCT through the multipliers, x87 in the optimised build's order, __ftol descaled by 3 through the range limit"
+0x0077c6c0,gImaAdpcmSteps,data,low,"GAME_DATA (src/game/core/imaadpcm): 0x1640 bytes, the IMA ADPCM step dword at a byte index + 4 * nibble, 89 steps of 16"
+0x0077dd00,gImaAdpcmIndexMoves,data,low,"GAME_DATA (src/game/core/imaadpcm): 8 dwords, the index's move (x64) by the nibble's low 3 bits"
+0x0077dd20,gImaAdpcmState,data,low,"GAME_DATA (src/game/core/imaadpcm): ImaAdpcm_DecodeStereo's channels' samples and indices"

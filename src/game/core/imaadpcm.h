@@ -4,6 +4,16 @@
 #pragma once
 
 #include "../../../re/types.h"
+#include "gamedata.h"
+
+struct ImaAdpcmState {   // the stereo decoder's channels, left then right
+    s32 sample[2];
+    s32 index[2];
+};
+
+GAME_DATA(u8[0x1640], gImaAdpcmSteps, 0x0077c6c0, 0x1640);       // the step dword at index + 4 * nibble: 89 steps of 16 (names unconfirmed)
+GAME_DATA(s32[8], gImaAdpcmIndexMoves, 0x0077dd00, 0x20);        // the index's move by the nibble's low 3 bits
+GAME_DATA(ImaAdpcmState, gImaAdpcmState, 0x0077dd20, 0x10);      // ImaAdpcm_DecodeStereo's state as it goes
 
 extern "C" {
 
