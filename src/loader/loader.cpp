@@ -159,7 +159,21 @@ u32 Resolve(u32 address) {
     return 0;
 }
 
+// Test only: with TPW_TRACE=path set, each call by an original address is written there (one hex address a line, unbuffered so an
+// ExitProcess keeps it), to find where a run stops.
+HANDLE g_trace = INVALID_HANDLE_VALUE;
+
+void Trace(u32 address) {
+    char line[12];
+    static const char hex[] = "0123456789abcdef";
+    for (int i = 0; i < 8; ++i) line[i] = hex[address >> (28 - 4 * i) & 0xf];
+    line[8] = '\r', line[9] = '\n';
+    DWORD written;
+    WriteFile(g_trace, line, 10, &written, nullptr);
+}
+
 u32 __cdecl ResolveOrSelf(u32 address) {   // AddrCalls' g_addressTarget: the address itself when there is no port (the call then traps)
+    if (g_trace != INVALID_HANDLE_VALUE) Trace(address);
     const u32 target = Resolve(address);
     return target ? target : address;
 }
@@ -345,6 +359,9 @@ extern "C" __declspec(safebuffers) int __cdecl LoaderEntry(void *peb) {
     }
     Protect(kImageEnd, end - kImageEnd, PAGE_NOACCESS);
     if (!AddVectoredExceptionHandler(1, &OnFault)) Fail("tpw: cannot install the fault handler");
+    char tracePath[MAX_PATH];
+    if (GetEnvironmentVariableA("TPW_TRACE", tracePath, MAX_PATH) - 1u < MAX_PATH - 1u)
+        g_trace = CreateFileA(tracePath, GENERIC_WRITE, FILE_SHARE_READ, nullptr, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr);
     g_addressTarget = &ResolveOrSelf;
     return WinMainCRTStartup(peb);
 }

@@ -1586,7 +1586,7 @@ u8 *__cdecl CRT_AdjustPointer(u8 *object, const s32 *displacement) {
 }
 
 u32 *__cdecl CRT_siglookup(u32 signal, u32 *table) {
-    const u32 count = *reinterpret_cast<u32 *>((uintptr_t)(u32)(uintptr_t)&gCrt_781514);
+    const u32 count = gCrt_781514;
     const u32 first = static_cast<u32>(reinterpret_cast<uintptr_t>(table));
     const u32 end = first + count * 0xc;
     u32 at = first;

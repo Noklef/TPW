@@ -667,7 +667,7 @@ u32 __fastcall TexCache_CreateSurfaces(u8 *cache) {
 
 u32 __fastcall TexCache_ChooseBudget(u8 *cache) {
     const s32 *const sizes = reinterpret_cast<const s32 *>(0x007022d8);
-    const s32 *const limits = reinterpret_cast<const s32 *>((u32)(uintptr_t)&gTexcache_702300);
+    const s32 *const limits = gTexcache_702300;
     s32 memory = (s32)vcall<u32>(at<u8 *>(nullptr, 0x008bd52c), 8);
     u32 added = 1;
     s32 count;

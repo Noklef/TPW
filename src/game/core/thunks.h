@@ -495,6 +495,13 @@ s32 __cdecl AtExit_5f5580();
 s32 __cdecl AtExit_5d1750();
 s32 __cdecl AtExit_5fa010();
 s32 __cdecl AtExit_618cc0();
+// The functions those (and 0x6c4540, from sounddevice) give to atexit: 0x5f5580 InputSystem_Dtor on 0xfa6e40, 0x5fa010
+// Class7035d8_Dtor on 0xfa78e8, 0x618cc0 MOV ECX,0xfa8258 then a bare RET (0x5da3c0), 0x6c4540 a bare RET. tpw.exe's exit
+// calls them by the original address, so each needs a port.
+void __cdecl ExitDtor_5f5580();
+void __cdecl ExitDtor_5fa010();
+void __cdecl ExitDtor_618cc0();
+void __cdecl ExitDtor_6c4540();
 // 0x5c8b70 (cdecl; proc, arg): CRT_beginthread(proc, 0, arg).
 u32 __cdecl Thread_Begin(void *proc, void *arg);
 }  // extern "C"
