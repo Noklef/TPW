@@ -499,8 +499,8 @@ const char *__cdecl jpeg6a_exe_empty();
 }  // extern "C"
 
 // What the library calls outside itself, the exe's, as 6b's (jpeg6b.h's Jpeg6bCrtEnv): its C runtime's malloc / free and the backing
-// store's tmpfile, fseek, fread, fwrite and fclose (jmemansi.c), getenv / sscanf of JPEGMEM and jpeg_open_backing_store (jmemmgr.c:
-// the exe's 6a one, 0x650265, hooked to the library's), and format_message's two sprintf calls (jerror.c), told apart by the message
+// store's tmpfile, fseek, fread, fwrite and fclose (jmemansi.c), getenv / sscanf of JPEGMEM and jmemmgr.c's jpeg_open_backing_store
+// at the exe's 6a address (0x650265, hooked to the library's), and format_message's two sprintf calls (jerror.c), told apart by the message
 // text as format_message does, error_exit's exit and output_message's fprintf. The tests give it stand-ins.
 struct Jpeg6aCrtEnv {
     void *(__cdecl *alloc)(std::size_t size);  // malloc (0x67dcd0)
