@@ -2,6 +2,7 @@
 #include "mousemodeclick.h"
 
 #include <cstdint>
+#include "../ui/dialog74fb20.h"
 
 namespace {
 
@@ -66,10 +67,10 @@ bool onlineGame() {
     u8 &made = global<u8>(0x00fb3518);
     if (!(made & 1)) {
         made |= 1;
-        g_calls.Th(0x00550ca0, 0x00fb3b7cu);
+        g_calls.Th(0x00550ca0, reinterpret_cast<uintptr_t>(&gDialog74fb20_fb3b7c));
         g_calls.Cd(0x0067a7d0, 0x005d1750u);
     }
-    return global<u32>(0x00fb3b7c) == 1;
+    return gDialog74fb20_fb3b7c == 1;
 }
 
 bool tilePasses(u32 tile) {

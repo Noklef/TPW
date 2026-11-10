@@ -24,6 +24,8 @@
 #include "dialogs.h"
 #include "msgtags.h"
 #include "window.h"
+#include "dialog7cb2fcopen.h"
+#include "dialog7ca1e0.h"
 
 namespace {
 
@@ -72,9 +74,9 @@ u16 *__cdecl ShownThing_GetName_4b60f0() { return shownThing() ? g_env->getName(
 u32 __cdecl Game_Part8Slot28_4b8510() { return slot<u32>(at<u8 *>(global<u8 *>(0x00f85614), 8), 0x28); }
 u32 __cdecl Game_Part10Slot2c_4c4470() { return slot<u32>(at<u8 *>(global<u8 *>(0x00f85614), 0x10), 0x2c); }
 
-void __cdecl Window7cb2fc_Close_4a4580() { g_env->send(global<u8 *>(0x007cb2fc), 4, 0, 0); }
+void __cdecl Window7cb2fc_Close_4a4580() { g_env->send(gDialog7cb2fcopen_7cb2fc, 4, 0, 0); }
 void __cdecl Window7cc8bc_Close_4bf8e0() { g_env->send(global<u8 *>(0x007cc8bc), 4, 0, 0); }
-void __cdecl Window7cc4c4_Send6_4b9c40() { g_env->send(global<u8 *>(0x007cc4c4), 6, 0, 0); }
+void __cdecl Window7cc4c4_Send6_4b9c40() { g_env->send(gDialogs_7cc4c4, 6, 0, 0); }
 
 u32 __cdecl Globals7cc684_Set_4bc640(u32 a, u32 b) {
     global<u32>(0x007cc684) = a;
@@ -102,7 +104,7 @@ u32 __fastcall Obj_Count28s_4d0690(const u8 *object) {
 }
 
 void __cdecl Dialog7ca1e0_Post_498bb0() {
-    g_env->child21Post(global<u32>(0x007ca1e0));
+    g_env->child21Post(reinterpret_cast<u32 &>(gDialog7ca1e0_7ca1e0));
     g_env->postId(0x131);
 }
 

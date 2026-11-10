@@ -15,13 +15,14 @@
 #include "../gfx/barmesh.h"
 #include "../render/textparts.h"
 #include "window.h"
+#include "dialog7cc2ec.h"
 
 namespace panelparts {
 
 using PartCtor = u8 *(__fastcall *)(u8 *, void *, u32);
 
 // the bars' texture names in the game's data
-inline const char *const kRideStatBar = reinterpret_cast<const char *>(0x00750e00);   // "ridestatbar.wct"
+inline const char *const kRideStatBar = gDialog7cc2ec_750e00;   // "ridestatbar.wct"
 inline const char *const kHappyGrad = reinterpret_cast<const char *>(0x007508c0);     // "happygrad.wct"
 
 // the child `id` given a part made by ctor and font 6; returns the child

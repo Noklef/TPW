@@ -9,6 +9,7 @@
 #include "dialog7cca70.h"
 #include "dialogs.h"
 #include "window.h"
+#include "dialog7cc4b4open.h"
 
 namespace {
 
@@ -63,7 +64,7 @@ extern "C" s32 __cdecl Dialog7cc4b4_Handler(u8 *window, u32 message, u32 a, u32 
         if (a) g_env->update();
         else g_env->setEffect(nullptr, 0);
     } else if (message == 0x14) {
-        global<u32>(0x007cc4b4) = 0;
+        reinterpret_cast<u32 &>(gDialog7cc4b4open_7cc4b4) = 0;
         g_env->setEffect(nullptr, 0);
     } else if (message == 0x100) {
         switch (a) {

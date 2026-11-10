@@ -50,6 +50,8 @@
 #include "window705a50.h"
 #include "window705b20.h"
 #include "windowreg.h"
+#include "dialog7cc654handler.h"
+#include "dialog74fb20.h"
 
 using namespace panelparts;
 
@@ -410,14 +412,14 @@ constexpr uintptr_t kWideBuffer = 0x007ba058;
 u16 *wideBuffer() { return reinterpret_cast<u16 *>(kWideBuffer); }
 
 bool modeIsTwo() {
-    u8 &guard = *reinterpret_cast<u8 *>((uintptr_t)0x00fb34c5);
+    u8 &guard = gDialog7ca210_fb34c5;
     const u8 bits = guard;
     if (!(bits & 1)) {
         guard = bits | 1;
-        g_levels->readMode(reinterpret_cast<u8 *>((uintptr_t)0x00fb3b7c));
+        g_levels->readMode(reinterpret_cast<u8 *>(&gDialog74fb20_fb3b7c));
         g_levels->atExit(reinterpret_cast<void(__cdecl *)()>((uintptr_t)0x005d1750));
     }
-    return *reinterpret_cast<u32 *>((uintptr_t)0x00fb3b7c) == 2;
+    return gDialog74fb20_fb3b7c == 2;
 }
 
 u8 *controlsTable() { return global<u8 *>(0x007cf83c) + 0x1d943c; }
@@ -508,7 +510,7 @@ extern "C" void __cdecl Panel7cc218_FillLevels(u32 id, u8 *list, u32 clear, u8 *
     }
     if (!rows) {
         g_levels->text(modeIsTwo() ? 0x1b : level == 2 ? 0x1c : 0x1a);
-        const u16 *const separators = reinterpret_cast<const u16 *>((uintptr_t)0x007558f0);
+        const u16 *const separators = reinterpret_cast<const u16 *>(gDialog7cc654handler_7558f0);
         for (u16 *word = g_levels->token(wideBuffer(), separators); word; word = g_levels->token(nullptr, separators))
             addRow(list, static_cast<u32>(reinterpret_cast<uintptr_t>(word)), 0, 0xffffe12eu);
     }

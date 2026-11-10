@@ -46,14 +46,14 @@ const Dialog7ca308Env *g_env = &kGameEnv;
 // The kind's radio button selected (kinds past 4: none).
 void selectKind(u8 *group) {
     static const u32 kButton[5] = {0x2490, 0x2493, 0x2492, 0x2494, 0x2491};
-    const u32 kind = global<u32>(0x007ca30c);
+    const u32 kind = gDialog7ca308_7ca30c;
     if (kind <= 4) g_env->selectRadio(group, nullptr, kButton[kind]);
 }
 
 // The label 0x2480's text set by the kind (kinds past 4: none).
 void labelKind() {
-    const u32 kind = global<u32>(0x007ca30c);
-    if (kind <= 4) g_env->attachLabel(global<u8 *>(0x007ca308), 0x2480, (u32)(uintptr_t)Language_WideText(0x8b + kind));
+    const u32 kind = gDialog7ca308_7ca30c;
+    if (kind <= 4) g_env->attachLabel(gDialog7ca308_7ca308, 0x2480, (u32)(uintptr_t)Language_WideText(0x8b + kind));
 }
 
 using panelparts::numberPart;
@@ -81,21 +81,21 @@ s32 __cdecl Dialog7ca308_ListHandler(u8 *window, u32 message, u32 id, u32 value)
         const u32 kind = kKinds[id - 0x2490];
         g_env->fillList(kind, 1);
         const u32 text = (u32)(uintptr_t)g_env->wideText(0x8b + kind);
-        g_env->attachLabel(global<u8 *>(0x007ca308), 0x2480, text);
-        if (const s32 script = global<s32>(0x007ca310)) g_env->killScript(script);
-        global<u32>(0x007ca310) = 0;
-        global<u32>(0x007523e8) = 0xffffffff;
-        global<u32>(0x007523ec) = 0xffffffff;
+        g_env->attachLabel(gDialog7ca308_7ca308, 0x2480, text);
+        if (const s32 script = gDialog7ca308_7ca310) g_env->killScript(script);
+        reinterpret_cast<u32 &>(gDialog7ca308_7ca310) = 0;
+        gDialog7ca308_7523e8 = 0xffffffff;
+        gDialog7ca308_7523ec = 0xffffffff;
     }
     return Window_CallDefault(window, nullptr, message, id, value);
 }
 
 void __cdecl Dialog7ca308_FillList(u32 kind, u32 clear) {
-    u8 *const window = global<u8 *>(0x007ca308);
+    u8 *const window = gDialog7ca308_7ca308;
     if (!window) return;
     u8 *const list = Window_FindChild(window, nullptr, 0x248e);
     if (!list) return;
-    global<u32>(0x007ca30c) = kind;
+    gDialog7ca308_7ca30c = kind;
     if (clear) g_env->clear(list);
     struct Row {   // (the original's frame: the texts just before the name)
         u32 texts[2];
@@ -113,7 +113,7 @@ void __cdecl Dialog7ca308_FillList(u32 kind, u32 clear) {
 }
 
 void __cdecl Dialog7ca308_StaffChanged(u32 index) {
-    u8 *const window = global<u8 *>(0x007ca308);
+    u8 *const window = gDialog7ca308_7ca308;
     if (!window) return;
     u8 *const list = Window_FindChild(window, nullptr, 0x248e);
     const s32 position = g_env->findItem(list, nullptr, index);
@@ -132,7 +132,7 @@ void __cdecl Dialog7ca308_StaffChanged(u32 index) {
     if (position > -1) {
         g_env->removeItem(list, nullptr, position);
         if (entry) add();
-    } else if (entry && global<u32>(0x007ca30c) == at<u32>(entry, 0)) {
+    } else if (entry && gDialog7ca308_7ca30c == at<u32>(entry, 0)) {
         add();
         g_env->refresh(list);
     }
@@ -141,7 +141,7 @@ void __cdecl Dialog7ca308_StaffChanged(u32 index) {
 void __cdecl Dialog7ca308_ShowStaff(u32 index) {
     u8 rect[0xc];
     GuiRect_Ctor(rect);
-    u8 *const child = Window_FindChild(global<u8 *>(0x007ca308), nullptr, 0x2484);
+    u8 *const child = Window_FindChild(gDialog7ca308_7ca308, nullptr, 0x2484);
     Window_GetSavedRect(child, nullptr, rect);
     const s32 left = at<s16>(rect, 4), top = at<s16>(rect, 6), right = at<s16>(rect, 8), bottom = at<s16>(rect, 0xa);
     const float x = (float)X87_MulIntDouble(((right - left) >> 1) + left - 0x3f8, global<float>(0x006ff984));
@@ -150,18 +150,18 @@ void __cdecl Dialog7ca308_ShowStaff(u32 index) {
     const u8 *const entry = StaffPool_ValidEntry(global<u8 *>(0x007cf83c), nullptr, index);
     if (entry) {
         const u32 type = at<u32>(entry, 0), sprite = entry[9];
-        if (type != global<u32>(0x007523e8) || sprite != global<u32>(0x007523ec)) {
-            global<u32>(0x007523e8) = type;
-            global<u32>(0x007523ec) = sprite;
-            if (global<s32>(0x007ca310)) SpriteScript_Kill(global<s32>(0x007ca310));
+        if (type != gDialog7ca308_7523e8 || sprite != gDialog7ca308_7523ec) {
+            gDialog7ca308_7523e8 = type;
+            gDialog7ca308_7523ec = sprite;
+            if (gDialog7ca308_7ca310) SpriteScript_Kill(gDialog7ca308_7ca310);
             static const u32 kFolder[5] = {5, 6, 4, 7, 8};   // (by the type)
             const u32 folder = type <= 4 ? kFolder[type] : index;   // sic: any other type, the index
             u32 bits[3];
             std::memcpy(&bits[0], &x, 4);
             std::memcpy(&bits[1], &y, 4);
             std::memcpy(&bits[2], &z, 4);
-            global<s32>(0x007ca310) = SpriteScript_Start(0x0074f758, folder, sprite, 1, bits[0], bits[1], bits[2]);
-            SpriteScript_SetRegF(global<s32>(0x007ca310), 8, 0x41000000);
+            gDialog7ca308_7ca310 = SpriteScript_Start(0x0074f758, folder, sprite, 1, bits[0], bits[1], bits[2]);
+            SpriteScript_SetRegF(gDialog7ca308_7ca310, 8, 0x41000000);
         }
     }
     GuiRect_Dtor(rect);
@@ -170,21 +170,21 @@ void __cdecl Dialog7ca308_ShowStaff(u32 index) {
 void __cdecl Dialog7ca308_Open(u32 kind) {
     Window7c24c8_Close();
     Global7cb28c_Select(1, 2);
-    if (global<u8 *>(0x007ca308) && kind != 0xffffffff && kind != global<u32>(0x007ca30c)) {
-        global<u32>(0x007ca30c) = kind;
-        selectKind(Window_FindChild(Window_FindChild(global<u8 *>(0x007ca308), nullptr, 0x248e), nullptr, 0x248f));
+    if (gDialog7ca308_7ca308 && kind != 0xffffffff && kind != gDialog7ca308_7ca30c) {
+        gDialog7ca308_7ca30c = kind;
+        selectKind(Window_FindChild(Window_FindChild(gDialog7ca308_7ca308, nullptr, 0x248e), nullptr, 0x248f));
         labelKind();
-        g_env->fillList(global<u32>(0x007ca30c), 1);
+        g_env->fillList(gDialog7ca308_7ca30c, 1);
         return;
     }
     u8 *const dialog = WindowScript_Build(global<u8 *>(0x007cb2ac), nullptr, reinterpret_cast<u8 *>((uintptr_t)0x00751fa8), 0x0049b650);
     if (!dialog) return;
-    if (kind == 0xffffffff) kind = global<u32>(0x007ca30c);
-    global<u32>(0x007ca30c) = kind;
-    global<u8 *>(0x007ca308) = dialog;
+    if (kind == 0xffffffff) kind = gDialog7ca308_7ca30c;
+    gDialog7ca308_7ca30c = kind;
+    gDialog7ca308_7ca308 = dialog;
     Window7c24c8_Set(dialog);
     // the money line: a number argument 13, its size, in the text 0x1cb when negative (0x1ca else)
-    u8 *child = Window_FindChild(global<u8 *>(0x007ca308), nullptr, 0x2496);
+    u8 *child = Window_FindChild(gDialog7ca308_7ca308, nullptr, 0x2496);
     const s32 money = (s32)Source_Field0c(reinterpret_cast<const TrackedSource *>((uintptr_t)GameTable7cfb90_Get1da726_5195d0(global<u8 *>(0x007cf83c))));
     u32 number[5] = {0x006ff170, 0x5641524d, 0xd, money < 0 ? 0u - (u32)money : (u32)money, 0};
     g_env->format(global<u8 *>(0x0078ba94), reinterpret_cast<u16 *>((uintptr_t)0x007ba058), 0x3fff, money < 0 ? 0x1cbu : 0x1cau, number);
@@ -195,28 +195,28 @@ void __cdecl Dialog7ca308_Open(u32 kind) {
     Window_Notify40000(child, nullptr, 0xff, 0xff, 0xff, 0xff);
     vcall<void>(child, 0x24, 0x007ba058u);
     // the list
-    if (u8 *const list = Window_FindChild(global<u8 *>(0x007ca308), nullptr, 0x248e)) {
+    if (u8 *const list = Window_FindChild(gDialog7ca308_7ca308, nullptr, 0x248e)) {
         Window7059f0_BuildRows(list, nullptr, &List7ca314_NewRowJump, &List7ca314_InitRow);
         Window7059f0_SetColumnBottom(list, nullptr, 0, 0);
         Window7059f0_SetColumnBottom(list, nullptr, 1, 1);
         Window7059f0_SetHighlight(list, nullptr, reinterpret_cast<u8 *>((uintptr_t)GuiWindows_FindByName(reinterpret_cast<const char *>(0x0074fa84))));
         Window_SetHandler(list, nullptr, 0x0049bc80);
-        Window7059f0_SortBy(list, nullptr, global<s32>(0x007523e4), 0);
+        Window7059f0_SortBy(list, nullptr, gDialog7ca308_7523e4, 0);
         child = Window_FindChild(list, nullptr, 0x10);
-        ButtonText_Init(child, (u32)(uintptr_t)Language_WideText(0x90), global<u32>(0x007523e0), 0xff, 0xef, 0, 0x9f);
+        ButtonText_Init(child, (u32)(uintptr_t)Language_WideText(0x90), gDialog7ca308_Open_7523e0, 0xff, 0xef, 0, 0x9f);
         child = Window_FindChild(list, nullptr, 0x11);
-        ButtonText_Init(child, (u32)(uintptr_t)Language_WideText(0x91), global<u32>(0x007523e0), 0xff, 0xef, 0, 0xa0);
+        ButtonText_Init(child, (u32)(uintptr_t)Language_WideText(0x91), gDialog7ca308_Open_7523e0, 0xff, 0xef, 0, 0xa0);
         labelKind();
-        g_env->fillList(global<u32>(0x007ca30c), 0);
+        g_env->fillList(gDialog7ca308_7ca30c, 0);
         if (u8 *const group = Window_FindChild(list, nullptr, 0x248f)) selectKind(group);
     }
     // the bar
-    if (u8 *const bar = Window_FindChild(global<u8 *>(0x007ca308), nullptr, 0x2481)) {
+    if (u8 *const bar = Window_FindChild(gDialog7ca308_7ca308, nullptr, 0x2481)) {
         panelparts::text(bar, 0x2483, 0x92);
         vcall<void>(panelparts::barOf(Window_FindChild(bar, nullptr, 0x2482), panelparts::kRideStatBar), 0x1c, 0u);
     }
     // the figures
-    if (u8 *const figures = Window_FindChild(global<u8 *>(0x007ca308), nullptr, 0x2485)) {
+    if (u8 *const figures = Window_FindChild(gDialog7ca308_7ca308, nullptr, 0x2485)) {
         const u8 *const rings = reinterpret_cast<const u8 *>((uintptr_t)GameTable7cfb90_Get1da720_519510(global<u8 *>(0x007cf83c)));
         panelparts::text(figures, 0x2488, 0x165);
         redText(figures, 0x248d, 0x166);
@@ -264,13 +264,13 @@ void onRowHighlighted(u8 *window, u32 message, u32 a, u32 b) {
     u32 data = message;   // (the original's out is its message argument's slot)
     g_handler->nth(list, nullptr, static_cast<s32>(b), &data);
     u8 *entry = g_handler->entry(addr(0x007cf83c), nullptr, data);
-    u8 *const bar = g_handler->child(addr(0x007ca308), nullptr, 0x2481);
+    u8 *const bar = g_handler->child(addr(reinterpret_cast<uintptr_t>(&gDialog7ca308_7ca308)), nullptr, 0x2481);
     if (bar && entry) {
         const u32 level = entry[8];
         vcall<void>(g_handler->child(bar, nullptr, 0x2482), 0x1c, static_cast<s32>(level << 10) / 5);
     }
     entry = g_handler->entry(addr(0x007cf83c), nullptr, data);
-    u8 *const wages = g_handler->child(addr(0x007ca308), nullptr, 0x2485);
+    u8 *const wages = g_handler->child(addr(reinterpret_cast<uintptr_t>(&gDialog7ca308_7ca308)), nullptr, 0x2485);
     if (wages && entry) {
         const u32 wage = static_cast<u32>(g_handler->wage(entry));
         vcall<void>(g_handler->child(wages, nullptr, 0x248c), 0x1c, word(0x007ca2fc) + wage);
@@ -285,18 +285,18 @@ void Dialog7ca308_SetHandlerEnv(const Dialog7ca308HandlerEnv *env) { g_handler =
 extern "C" s32 __cdecl Dialog7ca308_Handler(u8 *window, u32 message, u32 a, u32 b) {
     switch (message) {
     case 5:
-        g_handler->send(addr(0x007ca308), 4, 0, 0);
+        g_handler->send(addr(reinterpret_cast<uintptr_t>(&gDialog7ca308_7ca308)), 4, 0, 0);
         return 1;
     case 0x10:
         if (a == 0x80080) showMoney(window);
         break;
     case 0x14: {
-        const u32 script = word(0x007ca310);
-        word(0x007ca308) = 0;
+        const u32 script = reinterpret_cast<u32 &>(gDialog7ca308_7ca310);
+        reinterpret_cast<u32 &>(gDialog7ca308_7ca308) = 0;
         if (script) g_handler->kill(static_cast<s32>(script));
-        word(0x007ca310) = 0;
-        word(0x007523e8) = 0xffffffffu;
-        word(0x007523ec) = 0xffffffffu;
+        reinterpret_cast<u32 &>(gDialog7ca308_7ca310) = 0;
+        gDialog7ca308_7523e8 = 0xffffffffu;
+        gDialog7ca308_7523ec = 0xffffffffu;
         g_handler->cancel(0xbd);
         break;
     }
@@ -305,7 +305,7 @@ extern "C" s32 __cdecl Dialog7ca308_Handler(u8 *window, u32 message, u32 a, u32 
         break;
     case 0x100:
         if (a == 0xfffffffeu) {
-            g_handler->send(addr(0x007ca308), 4, 0, 0);
+            g_handler->send(addr(reinterpret_cast<uintptr_t>(&gDialog7ca308_7ca308)), 4, 0, 0);
             return 0;
         }
         if (a == 0x2495) {
@@ -319,7 +319,7 @@ extern "C" s32 __cdecl Dialog7ca308_Handler(u8 *window, u32 message, u32 a, u32 
         u32 data = b;   // (the original's out is its b argument's slot)
         g_handler->nth(list, nullptr, static_cast<s32>(b), &data);
         g_handler->hire(addr(0x007cf83c), nullptr, data);
-        g_handler->send(addr(0x007ca308), 4, 0, 0);
+        g_handler->send(addr(reinterpret_cast<uintptr_t>(&gDialog7ca308_7ca308)), 4, 0, 0);
         g_handler->post(0x135);
         return 0;
     }
@@ -327,7 +327,7 @@ extern "C" s32 __cdecl Dialog7ca308_Handler(u8 *window, u32 message, u32 a, u32 
         onRowHighlighted(window, message, a, b);
         break;
     case 0x406:
-        word(0x007523e4) = b;
+        reinterpret_cast<u32 &>(gDialog7ca308_7523e4) = b;
         break;
     }
     return g_handler->keys(window, message, a, b);

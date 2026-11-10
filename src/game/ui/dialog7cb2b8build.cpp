@@ -13,6 +13,7 @@
 #include "guirect.h"
 #include "window.h"
 #include "windowscript.h"
+#include "dialog74fb20.h"
 
 namespace {
 
@@ -44,7 +45,7 @@ void counter(u8 *child) {
 }
 
 void buildRepair(u8 *bar) {   // (the child 0x2d and its 0x2e)
-    u8 *const panel = global<u8 *>(0x007cb2c4) = bar;
+    u8 *const panel = gDialog7cb2b8build_7cb2c4 = bar;
     if (!panel) return;
     u8 *const inner = Window_FindChild(panel, nullptr, 0x2e);
     if (!inner) return;
@@ -107,7 +108,7 @@ void buildScroller(u8 *strip) {   // (the child 0x21, its 0x22 and that one's 0x
     if (!middle) return;
     u8 *const end = Window_FindChild(middle, nullptr, 0x23);
     if (!end) return;
-    global<u8 *>(0x007cb2d0) = end;
+    gDialog7cb2b8build_7cb2d0 = end;
     g_env->setHandler(strip, nullptr, 0x004a14f0);
     u8 rect[12], own[12];
     GuiRect_Ctor(rect);
@@ -119,7 +120,7 @@ void buildScroller(u8 *strip) {   // (the child 0x21, its 0x22 and that one's 0x
     Window_SetRect14(strip, nullptr, rect);
     Window_SetDepth(strip, nullptr, 4);
     Window_SetDepth(middle, nullptr, 4);
-    Window_SetDepth(global<u8 *>(0x007cb2d0), nullptr, 9);
+    Window_SetDepth(gDialog7cb2b8build_7cb2d0, nullptr, 9);
     if (u8 *const top = Window_FindChild(strip, nullptr, 0x24)) {
         Window_SetDepth(top, nullptr, 7);
         vcall<void>(top, 0x14, 0u);
@@ -133,29 +134,29 @@ void buildScroller(u8 *strip) {   // (the child 0x21, its 0x22 and that one's 0x
 void Dialog7cb2b8_SetBuildEnv(const Dialog7cb2b8BuildEnv *env) { g_env = env ? env : &kGameEnv; }
 
 void __cdecl Dialog7cb2b8_Build() {
-    if (global<u32>(0x007cb2b8)) return;
+    if (reinterpret_cast<u32 &>(gDialog7cb2b8build_7cb2b8)) return;
     u8 frame[12];
     GuiRect_Ctor(frame);
-    global<u32>(0x007cb28c) = 1;
-    global<u32>(0x007cb2a0) = 3;
-    global<u32>(0x007cb290) = 0xa;
+    gDialog7cb2b8build_7cb28c = 1;
+    gDialog7cb2b8build_7cb2a0 = 3;
+    gDialog7cb2b8build_7cb290 = 0xa;
     if (WindowScript_Build(global<u8 *>(0x007cb2ac), nullptr, reinterpret_cast<u8 *>((uintptr_t)0x00752940), 0)) {
-        u8 *const top = global<u8 *>(0x007cb2a4) = Window_FindChild(global<u8 *>(0x007cb2ac), nullptr, 0x33);
+        u8 *const top = gDialog7cb2b8_Build_7cb2a4 = Window_FindChild(global<u8 *>(0x007cb2ac), nullptr, 0x33);
         Window_SetDepth(top, nullptr, 0);
-        vcall<void>(global<u8 *>(0x007cb2a4), 0x14, 0u);
-        g_env->setHandler(global<u8 *>(0x007cb2a4), nullptr, 0x004a0fb0);
-        counter(Window_FindChild(global<u8 *>(0x007cb2a4), nullptr, 0x37));
-        u8 &guard = global<u8>(0x00fb34c1);
+        vcall<void>(gDialog7cb2b8_Build_7cb2a4, 0x14, 0u);
+        g_env->setHandler(gDialog7cb2b8_Build_7cb2a4, nullptr, 0x004a0fb0);
+        counter(Window_FindChild(gDialog7cb2b8_Build_7cb2a4, nullptr, 0x37));
+        u8 &guard = gDialog7cb2b8build_fb34c1;
         if (!(guard & 1)) {
             guard |= 1;
-            Setting_ReadMode(reinterpret_cast<u8 *>((uintptr_t)0x00fb3b7c));
+            Setting_ReadMode(reinterpret_cast<u8 *>(&gDialog74fb20_fb3b7c));
             g_env->atExit(reinterpret_cast<void(__cdecl *)()>((uintptr_t)0x005d1750));
         }
-        if (global<u32>(0x00fb3b7c) != 2) {
-            counter(Window_FindChild(global<u8 *>(0x007cb2a4), nullptr, 0x36));
-            Window_Notify1(Window_FindChild(global<u8 *>(0x007cb2a4), nullptr, 0x34), nullptr, 3);
+        if (gDialog74fb20_fb3b7c != 2) {
+            counter(Window_FindChild(gDialog7cb2b8_Build_7cb2a4, nullptr, 0x36));
+            Window_Notify1(Window_FindChild(gDialog7cb2b8_Build_7cb2a4, nullptr, 0x34), nullptr, 3);
         } else {
-            Window_SetShown(Window_FindChild(global<u8 *>(0x007cb2a4), nullptr, 0x34), nullptr, 0);
+            Window_SetShown(Window_FindChild(gDialog7cb2b8_Build_7cb2a4, nullptr, 0x34), nullptr, 0);
         }
         buildRepair(Window_FindChild(global<u8 *>(0x007cb2ac), nullptr, 0x2d));
         if (u8 *const money = Window_FindChild(global<u8 *>(0x007cb2ac), nullptr, 0x2f)) buildMoney(money);
@@ -179,12 +180,12 @@ void __cdecl Dialog7cb2b8_Build() {
         u8 *const part = newPart(TextPart_Ctor);
         g_env->setHandler(text, nullptr, 0x004a0a90);
         Window_SetImpl(text, nullptr, part);
-        global<u32>(0x007cb2d4) = 3;
+        gDialog7cb2b8_Build_7cb2d4 = 3;
         Window_Set4c(text, nullptr, Language_Font(3));
         Window_Notify40000(text, nullptr, 0, 0, 0, 0xff);
         Window_NotifyC00(text, nullptr, 1, 1);
         g_env->setHandler(Window_FindChild(dialog, nullptr, 0x25), nullptr, 0x004a0840);
-        global<u8 *>(0x007cb2b8) = dialog;
+        gDialog7cb2b8build_7cb2b8 = dialog;
         GuiRect_Dtor(rect);
     }
     GuiRect_Dtor(frame);

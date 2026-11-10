@@ -26,6 +26,7 @@
 #include "window705a50.h"
 #include "windowreg.h"
 #include "windowscript.h"
+#include "dialog7cb2b8build.h"
 
 namespace {
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
@@ -166,7 +167,7 @@ void __cdecl ThingBrowser_Open(u8 *thing) {
         case 8: global<u32>(0x007cc30c) = 5; id = 0x960; break;
         }
         if (id) RadioGroup_Select(group, nullptr, id);
-        Window_AddChild(global<u8 *>(0x007cb2b8), nullptr, global<u8 *>(0x007cc304), 1, 1);
+        Window_AddChild(gDialog7cb2b8build_7cb2b8, nullptr, global<u8 *>(0x007cc304), 1, 1);
         Window_SetShown(global<u8 *>(0x007cc304), nullptr, 1);
         ThingBrowser_ShowName();
         global<u32>(0x00790ab0) |= 0x1000;
@@ -233,7 +234,7 @@ void panelAway() {
 }
 
 void panelAdded() {
-    g_handler->addChild(*reinterpret_cast<u8 **>((uintptr_t)0x007cb2b8), nullptr, panel(), 1, 1);
+    g_handler->addChild(gDialog7cb2b8build_7cb2b8, nullptr, panel(), 1, 1);
     g_handler->setShown(panel(), nullptr, 1);
 }
 

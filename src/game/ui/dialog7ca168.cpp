@@ -23,6 +23,7 @@
 #include "windowreg.h"
 #include "windowscript.h"
 #include "windowtimers.h"
+#include "dialog7ca168handler.h"
 
 namespace {
 
@@ -33,7 +34,7 @@ s32 __cdecl forEachSelected(u32 mask, u32 callback) { return Things_ForEachSelec
 const Dialog7ca168OpenEnv kGameEnv = {&forEachSelected, &Things_AverageStaffStat1f8, &Things_AverageStat1f8OfKind, &Window7059f0_FindItemData, &Window7059f0_ScrollTo};
 const Dialog7ca168OpenEnv *g_env = &kGameEnv;
 
-u8 *dialog() { return global<u8 *>(0x007ca168); }
+u8 *dialog() { return gDialog7ca168_7ca168; }
 }  // namespace
 
 void Dialog7ca168_SetOpenEnv(const Dialog7ca168OpenEnv *env) { g_env = env ? env : &kGameEnv; }
@@ -45,7 +46,7 @@ void __cdecl Dialog7ca168_Open(u32 tab, u32 selected) {
     Global7cb28c_Select(2, 4);
     u8 *const built = WindowScript_Build(global<u8 *>(0x007cb2ac), nullptr, reinterpret_cast<u8 *>((uintptr_t)0x00750e10), 0x00495da0);
     if (!built) return;
-    global<u8 *>(0x007ca168) = built;
+    gDialog7ca168_7ca168 = built;
     Window7c24c8_Set(built);
     if (u8 *const list = Window_FindChild(dialog(), nullptr, 0x321)) {
         Window7059f0_BuildRows(list, nullptr, &List7ca170_NewRow, &List7ca170_InitRow);
@@ -56,15 +57,15 @@ void __cdecl Dialog7ca168_Open(u32 tab, u32 selected) {
         Window7059f0_SetColumnBottom(list, nullptr, 4, 1);
         Window7059f0_SetHighlight(list, nullptr, reinterpret_cast<u8 *>((uintptr_t)GuiWindows_FindByName(reinterpret_cast<const char *>(0x0074fa84))));
         Window_SetHandler(list, nullptr, 0x004960a0);
-        Window7059f0_SortBy(list, nullptr, global<s32>(0x0075118c), 0);
+        Window7059f0_SortBy(list, nullptr, gDialog7ca168_75118c, 0);
         for (u32 i = 0; i < 5; ++i) {
             u8 *const button = Window_FindChild(list, nullptr, 0x10 + i);
-            ButtonText_Init(button, (u32)(uintptr_t)Language_WideText(0x65 + i), global<u32>(0x00751188), 0xff, 0xef, 0, 0x77 + i);
+            ButtonText_Init(button, (u32)(uintptr_t)Language_WideText(0x65 + i), gDialog7ca168_Open_751188, 0xff, 0xef, 0, 0x77 + i);
         }
-        const u32 kind = tab == 0xffffffff ? global<u32>(0x007ca16c) : tab;
-        global<u32>(0x007ca16c) = kind;
+        const u32 kind = tab == 0xffffffff ? gDialog7ca168_7ca16c : tab;
+        gDialog7ca168_7ca16c = kind;
         u8 *const again = Window_FindChild(dialog(), nullptr, 0x321);
-        global<u8 *>(0x007ca164) = again;
+        gDialog7ca168_7ca164 = again;
         static const u32 kMasks[5] = {2, 4, 0x10, 8, 0x20};
         if (kind <= 4) g_env->forEach(kMasks[kind], 0x00496320);
         Window7059f0_RefreshRows(again);
@@ -74,7 +75,7 @@ void __cdecl Dialog7ca168_Open(u32 tab, u32 selected) {
         }
         if (u8 *const group = Window_FindChild(list, nullptr, 0x322)) {
             static const u32 kButtons[5] = {0x323, 0x326, 0x325, 0x327, 0x324};
-            const u32 shown = global<u32>(0x007ca16c);
+            const u32 shown = gDialog7ca168_7ca16c;
             if (shown <= 4) RadioGroup_Select(group, nullptr, kButtons[shown]);
         }
     }
@@ -87,9 +88,9 @@ void __cdecl Dialog7ca168_Open(u32 tab, u32 selected) {
     u8 *const last = static_cast<u8 *>(GameHeap_Alloc(0x124));   // (the argument's slot holds it: the kind past the tabs below)
     Window_SetImpl(bar, nullptr, last ? MeshOverlay_Construct(last, nullptr, panelparts::kHappyGrad) : nullptr);
     void *const stats = reinterpret_cast<void *>((uintptr_t)GameTable7cfb90_Get1da720_519510(global<u8 *>(0x007cf83c)));
-    const double value = X87_MulDouble(g_env->average(stats, nullptr, 0) * global<float>(0x006ff6f4), global<float>(0x006ff6f8));
+    const double value = X87_MulDouble(g_env->average(stats, nullptr, 0) * gDialog7ca168_Open_6ff6f4, gDialog7ca168_Open_6ff6f8);
     vcall<void>(bar, 0x1c, (u32)(long long)value);   // (__ftol's low half)
-    const u32 shown = global<u32>(0x007ca16c);
+    const u32 shown = gDialog7ca168_7ca16c;
     Dialog7ca168_ShowText(shown);
     u8 *const average = Window_FindChild(Window_FindChild(dialog(), nullptr, 0x329), nullptr, 0x32d);
     static const u32 kKinds[5] = {5, 4, 6, 7, 8};

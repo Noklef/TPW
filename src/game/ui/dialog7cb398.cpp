@@ -133,7 +133,7 @@ void __cdecl Dialog7cb398_Create() {
         static const u32 kLabels[5][2] = {{0x4a68bc, 0x98}, {0x4a68bd, 0x99}, {0x4a68be, 0x9a}, {0x4a68bf, 0x97}, {0x4a68c0, 0x9b}};
         for (const auto &l : kLabels) titled(panel, l[0], l[1]);
         for (u32 k = 0; k < 5; ++k)
-            if (global<u8>(0x00753c48) & (1u << k)) Window705a50_SetState(Window_FindChild(panel, nullptr, kLabels[k][0]), nullptr, 1, 1);
+            if (reinterpret_cast<u8 &>(gDialog7cb398_753c48) & (1u << k)) Window705a50_SetState(Window_FindChild(panel, nullptr, kLabels[k][0]), nullptr, 1, 1);
     }
     u8 *const counts = Window_FindChild(dialog(), nullptr, 0x4a68c9);
     Window_NotifyImpl100(plain(counts, 0x4a68cb, TextPart_Ctor), nullptr, (u32)(uintptr_t)Language_WideText(0x97));
@@ -149,10 +149,10 @@ void __cdecl Dialog7cb398_Create() {
     figure(again, 0x4a68cc, 0x007cb360, people);
     figure(again, 0x4a68ca, 0x007cb378, total);
     u8 *const sad = Window_FindChild(dialog(), nullptr, 0x4a68d0);
-    Window_SetImpl(sad, nullptr, mesh(reinterpret_cast<const char *>(0x00753c54)));   // "sad_undec.wct"
+    Window_SetImpl(sad, nullptr, mesh(gDialog7cb398_Create_753c54));   // "sad_undec.wct"
     vcall<void>(sad, 0x1c, 0u);
     u8 *const happy = Window_FindChild(dialog(), nullptr, 0x4a68cf);
-    Window_SetObject98(happy, nullptr, mesh(reinterpret_cast<const char *>(0x00753c4c)));   // "hap.wct"
+    Window_SetObject98(happy, nullptr, mesh(gDialog7cb398_Create_753c4c));   // "hap.wct"
     label(happy);
     Window_NotifyImpl100(happy, nullptr, (u32)(uintptr_t)Language_WideText(0x9d));
     Window_SetDepth(happy, nullptr, (u16)(*reinterpret_cast<const u16 *>(Window_FindChild(dialog(), nullptr, 0x4a68d0) + 0xe0) + 2));

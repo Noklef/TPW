@@ -17,6 +17,7 @@
 #include "gamepaths.h"
 #include "handles.h"
 #include "../online/chatlists.h"
+#include "../ui/dialog74fb20.h"
 
 namespace {
 
@@ -133,7 +134,7 @@ u8 *SaveInfo() {
 
 // The mode setting's static (0xfb3b7c), read and its destructor registered on the first use.
 void *ModeSetting() {
-    void *const setting = reinterpret_cast<void *>((uintptr_t)0x00fb3b7c);
+    void *const setting = reinterpret_cast<void *>(&gDialog74fb20_fb3b7c);
     u8 &guard = at<u8>(nullptr, 0x00fb2764);
     if (!(guard & 1)) {
         guard |= 1;
@@ -163,7 +164,7 @@ void __fastcall UserSlots_Choose(u8 *self, void *, s32 index) {
     String_AssignFromWide(&path, &folder);
     g_scan->saveLoad(SaveInfo(), nullptr, path.data);
     ModeSetting();
-    if (at<u32>(nullptr, 0x00fb3b7c) != 1) {
+    if (at<u32>(nullptr, reinterpret_cast<uintptr_t>(&gDialog74fb20_fb3b7c)) != 1) {
         const bool online = g_scan->saveByte24(SaveInfo()) != 0;
         g_choice->settingSet(ModeSetting(), nullptr, online ? 2 : 0);
     }

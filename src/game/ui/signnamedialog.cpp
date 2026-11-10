@@ -148,7 +148,7 @@ void __fastcall SignNameDialog_Open(u8 *self) {
 
 void __cdecl SignNameDialog7ca214_Open() {
     if (global<u8 *>(0x007ca214)) return;
-    u8 *const parent = global<u8 *>(0x007ca210);
+    u8 *const parent = gDialog7ca210_7ca210;
     const s32 depth = at<s16>(parent, 0xe0) + 7;
     u8 *const window = g_open->build(parent, nullptr, reinterpret_cast<u8 *>((uintptr_t)0x00751928), 0x004993e0);
     global<u8 *>(0x007ca214) = window;
@@ -196,7 +196,7 @@ s32 __cdecl SignNameDialog7ca214_Handler(u8 *window, u32 message, u32 a, u32 b) 
         }
         g_handler->send(window, 4, 0, 0);
         u8 *const thing = tableThing();
-        u8 *const child = Window_FindChild(global<u8 *>(0x007ca210), nullptr, 0x4f3af);
+        u8 *const child = Window_FindChild(gDialog7ca210_7ca210, nullptr, 0x4f3af);
         vcall<void>(child, 0x24, g_handler->thingName(thing));
         return 0;
     } else {

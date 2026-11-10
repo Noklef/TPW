@@ -12,6 +12,7 @@
 #include "cursor.h"
 #include "panel7c2534menus.h"
 #include "window.h"
+#include "dialogs.h"
 
 namespace {
 
@@ -121,7 +122,7 @@ extern "C" s32 __cdecl Window7cc8bc_EditHandler(u8 *window, u32 message, u32 a, 
                 return 1;
             }
         } else if (a == 0x73) {
-            if (!modifiers && !global<u8>(0x007cc6a0)) toggleEntry();
+            if (!modifiers && !gDialogs_7cc6a0) toggleEntry();
         } else if (!static_cast<u16>(g_env->findKey(global<const u8 *>(0x0078721c), nullptr, a, modifiers))) {
             leaveLine(window);
         }

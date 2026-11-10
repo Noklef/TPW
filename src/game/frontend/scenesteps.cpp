@@ -22,6 +22,7 @@
 #include "scenequeue.h"
 #include "thememenu.h"
 #include "sceneleave.h"
+#include "../ui/dialog74fb20.h"
 
 namespace {
 
@@ -38,7 +39,7 @@ const SceneStepsEnv *g_env = &kPorts;
 
 u8 *Setting() {
     u8 &guard = global<u8>(0x00fb2758);
-    u8 *const setting = reinterpret_cast<u8 *>((uintptr_t)0x00fb3b7c);
+    u8 *const setting = reinterpret_cast<u8 *>(&gDialog74fb20_fb3b7c);
     if (!(guard & 1)) {
         guard |= 1;
         g_env->readMode(setting);

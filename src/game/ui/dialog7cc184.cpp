@@ -21,6 +21,8 @@
 #include "windowreg.h"
 #include "windowscript.h"
 #include "../online/chatcommand.h"
+#include "dialog7cc184handler.h"
+#include "dialog74fb20.h"
 
 namespace {
 
@@ -35,10 +37,10 @@ bool settingIsOne() {
     u8 &guard = global<u8>(0x00fb34bf);
     if (!(guard & 1)) {
         guard |= 1;
-        g_open->readMode(reinterpret_cast<u8 *>((uintptr_t)0x00fb3b7c));
+        g_open->readMode(reinterpret_cast<u8 *>(&gDialog74fb20_fb3b7c));
         g_open->atExit(reinterpret_cast<void(__cdecl *)()>((uintptr_t)0x005d1750));
     }
-    return global<u32>(0x00fb3b7c) == 1;
+    return gDialog74fb20_fb3b7c == 1;
 }
 
 u8 *newEditPart() {
@@ -68,10 +70,10 @@ void showPicture(u8 *picture) {
     GuiRect_Ctor(rect);
     s32 width, height;
     u8 *const surface = reinterpret_cast<u8 *>((uintptr_t)g_open->slot7(picture, nullptr, (u32)(uintptr_t)&width, (u32)(uintptr_t)&height));
-    if (surface && global<u8 *>(0x007cc18c)) {
-        g_open->reset(global<u8 *>(0x007cc18c));
+    if (surface && gDialog7cc184handler_7cc18c) {
+        g_open->reset(gDialog7cc184handler_7cc18c);
         const u32 mode = global<u32>(0x008bd554);
-        if (mode == 2 || mode == 3) g_open->shrink(global<u8 *>(0x007cc18c), nullptr, surface, width, height, mode == 2 ? 2 : 1);
+        if (mode == 2 || mode == 3) g_open->shrink(gDialog7cc184handler_7cc18c, nullptr, surface, width, height, mode == 2 ? 2 : 1);
         g_open->slot6(picture);
     }
     GuiRect_Dtor(rect);
@@ -82,7 +84,7 @@ void showPicture(u8 *picture) {
 void Dialog7cc184_SetOpenEnv(const Dialog7cc184OpenEnv *env) { g_open = env ? env : &kGameEnv; }
 
 extern "C" void __cdecl Dialog7cc184_Open() {
-    u8 *&dialog = global<u8 *>(0x007cc184);
+    u8 *&dialog = gDialog7cc184handler_7cc184;
     if (dialog) return;
     u8 *&session = gChatcommand_f7d88c;
     if (!session) {

@@ -8,6 +8,8 @@
 #include "../render/particles.h"
 #include "guirect.h"
 #include "window.h"
+#include "dialog7cc4b4open.h"
+#include "dialog74fb20.h"
 
 namespace {
 
@@ -24,10 +26,10 @@ void Dialog7cc4b4_SetSparkleEnv(const Dialog7cc4b4SparkleEnv *env) { g_env = env
 extern "C" {
 
 void __cdecl Dialog7cc4b4_Sparkle() {
-    u8 *const dialog = global<u8 *>(0x007cc4b4);
+    u8 *const dialog = gDialog7cc4b4open_7cc4b4;
     if (!dialog) return;
-    u8 &guard = global<u8>(0x00fb34bd);
-    u8 *const setting = reinterpret_cast<u8 *>((uintptr_t)0x00fb3b7c);
+    u8 &guard = gDialog7cc4b4sparkle_fb34bd;
+    u8 *const setting = reinterpret_cast<u8 *>(&gDialog74fb20_fb3b7c);
     if (!(guard & 1)) {
         guard |= 1;
         g_env->readMode(setting);

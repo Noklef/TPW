@@ -10,6 +10,7 @@
 #include "dialogs.h"
 #include "panel7c2534.h"
 #include "../online/chatcommand.h"
+#include "dialog74fb20.h"
 
 extern "C" const u16 *__cdecl Language_WideText(u32 id);
 
@@ -73,12 +74,12 @@ void __cdecl Panel7c2534_BuildMain() {
     NewPanel(0x0048b6a0);
     if (!(global<u8>(0x00fb34c6) & 1)) {
         global<u8>(0x00fb34c6) |= 1;
-        g_env->readMode(reinterpret_cast<u8 *>((uintptr_t)0x00fb3b7c));
+        g_env->readMode(reinterpret_cast<u8 *>(&gDialog74fb20_fb3b7c));
         g_env->atExit(0x005d1750);
     }
     const u32 grey = 0x80;
     s32 top;
-    if (global<u32>(0x00fb3b7c) == 1) {
+    if (gDialog74fb20_fb3b7c == 1) {
         top = Row(0xa, 7, 0x10, grey);
         top = Row(top + 5, 0xc, 0x13, grey);
         Row(top + 5, 8, 0x14, grey);

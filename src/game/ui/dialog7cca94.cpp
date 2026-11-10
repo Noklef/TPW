@@ -12,7 +12,7 @@
 
 namespace {
 
-u8 *&dialog() { return *reinterpret_cast<u8 **>((uintptr_t)0x007cca94); }
+u8 *&dialog() { return gDialog7cca94_7cca94; }
 
 u8 *text() { return Window_FindChild(dialog(), nullptr, 0x2241); }
 
@@ -48,8 +48,8 @@ void __cdecl Dialog7cca94_Show(const u16 *string) {
 }
 
 void __cdecl Dialog7cca94_ShowText(u32 index) {
-    if (!dialog() || index != *reinterpret_cast<u32 *>((uintptr_t)0x007cca9c)) Dialog7cca94_Show(Language_WideText(index));
-    *reinterpret_cast<u32 *>((uintptr_t)0x007cca9c) = index;
+    if (!dialog() || index != gDialog7cca94_ShowText_7cca9c) Dialog7cca94_Show(Language_WideText(index));
+    gDialog7cca94_ShowText_7cca9c = index;
 }
 
 void __cdecl Dialog7cca94_SetProgress(u32 percent) {

@@ -17,6 +17,7 @@
 #include "../core/soundset.h"
 #include "../render/particles.h"
 #include "../core/textarg.h"
+#include "../ui/dialog74fb20.h"
 
 namespace {
 
@@ -590,10 +591,10 @@ u32 settingMode() {
     u8 &made = gObjectdefs_fb3b78;
     if (!(made & 1)) {
         made |= 1;
-        g_loadCalls.Th(0x00550ca0, 0x00fb3b7cu);
+        g_loadCalls.Th(0x00550ca0, reinterpret_cast<uintptr_t>(&gDialog74fb20_fb3b7c));
         g_loadCalls.Cd(0x0067a7d0, 0x005d1750u);
     }
-    return global<u32>(0x00fb3b7c);
+    return gDialog74fb20_fb3b7c;
 }
 
 struct DefLoad {

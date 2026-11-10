@@ -23,7 +23,7 @@ void Dialog7ca1e0_SetEnv(const Dialog7ca1e0Env *env) { g_env = env ? env : &kGam
 s32 __cdecl Dialog7ca1e0_Handler(u8 *window, u32 message, u32 a, u32 b) {
     const Dialog7ca1e0Env *const E = g_env;
     if (message == 0x14) {
-        global<u8 *>(0x007ca1e0) = nullptr;
+        gDialog7ca1e0_7ca1e0 = nullptr;
     } else if (message == 0x100) {
         if (a == 0x63)
             E->enterMode();
@@ -36,9 +36,9 @@ s32 __cdecl Dialog7ca1e0_Handler(u8 *window, u32 message, u32 a, u32 b) {
 }
 
 void __cdecl Dialog7ca1e0_Create() {
-    global<u8 *>(0x007ca1e0) = WindowScript_Build(global<u8 *>(0x00faa5d8), nullptr, reinterpret_cast<u8 *>(0x00751720), 0x00498ad0);
-    Window_Unlink(global<u8 *>(0x007ca1e0));
-    Window_SetDwordA0(global<u8 *>(0x007ca1e0), nullptr, 0, 1);
-    Window_SetShown(global<u8 *>(0x007ca1e0), nullptr, 0);
+    gDialog7ca1e0_7ca1e0 = WindowScript_Build(global<u8 *>(0x00faa5d8), nullptr, reinterpret_cast<u8 *>(0x00751720), 0x00498ad0);
+    Window_Unlink(gDialog7ca1e0_7ca1e0);
+    Window_SetDwordA0(gDialog7ca1e0_7ca1e0, nullptr, 0, 1);
+    Window_SetShown(gDialog7ca1e0_7ca1e0, nullptr, 0);
 }
 }

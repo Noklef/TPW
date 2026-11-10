@@ -26,6 +26,12 @@
 #include "window7059f0.h"
 #include "window705a50.h"
 #include "windowscript.h"
+#include "dialog7cca94.h"
+#include "dialog7cc4b4update.h"
+#include "dialog7cc4b4open.h"
+#include "dialog7cb2b8build.h"
+#include "dialog7ca168.h"
+#include "dialog7ca098.h"
 
 namespace {
 
@@ -57,12 +63,12 @@ s32 __cdecl Dialog7cc47c_Message6On() { return Window_SendMessage(window(0x007cc
 
 s32 __cdecl Dialog7cc47c_Message6Off() { return Window_SendMessage(window(0x007cc47c), 6, 0, 0); }
 
-s32 __cdecl Dialog7cc4b4_Message4() { return Window_SendMessage(window(0x007cc4b4), 4, 0, 0); }
+s32 __cdecl Dialog7cc4b4_Message4() { return Window_SendMessage(window(reinterpret_cast<uintptr_t>(&gDialog7cc4b4open_7cc4b4)), 4, 0, 0); }
 
-s32 __cdecl Dialog7cc4b4_Message6Off() { return Window_SendMessage(window(0x007cc4b4), 6, 0, 0); }
+s32 __cdecl Dialog7cc4b4_Message6Off() { return Window_SendMessage(window(reinterpret_cast<uintptr_t>(&gDialog7cc4b4open_7cc4b4)), 6, 0, 0); }
 
 void __cdecl Dialog7cc4b4_SetEffect(u8 *window, u32 on) {
-    u32 &effect = *reinterpret_cast<u32 *>(0x007cc4bc);
+    u32 &effect = gDialog7cc4b4update_7cc4bc;
     if ((u8)on == 0) {
         if (effect != 0) {
             ParticleSystem_End(effect);
@@ -80,9 +86,9 @@ void __cdecl Dialog7cc4b4_SetEffect(u8 *window, u32 on) {
     GuiRect_Dtor(rect);
 }
 
-s32 __cdecl Dialog7cc4c4_Message4() { return Window_SendMessage(window(0x007cc4c4), 4, 0, 0); }
+s32 __cdecl Dialog7cc4c4_Message4() { return Window_SendMessage(window(reinterpret_cast<uintptr_t>(&gDialogs_7cc4c4)), 4, 0, 0); }
 
-s32 __cdecl Dialog7cc4c4_Message6On() { return Window_SendMessage(window(0x007cc4c4), 6, 1, 0); }
+s32 __cdecl Dialog7cc4c4_Message6On() { return Window_SendMessage(window(reinterpret_cast<uintptr_t>(&gDialogs_7cc4c4)), 6, 1, 0); }
 
 s32 __cdecl Dialog7cdb0c_Message4() { return Window_SendMessage(window(0x007cdb0c), 4, 0, 0); }
 
@@ -106,11 +112,11 @@ s32 __cdecl Dialog7cdb0c_Child16007Message6Off() {
 
 void __cdecl Dialog7ca098_Create() {
     const Dialog7ca098CreateEnv *const env = g_createEnv;
-    *reinterpret_cast<u8 **>((uintptr_t)0x007ca098) = env->build(window(0x00faa5d8), nullptr, reinterpret_cast<u8 *>((uintptr_t)0x007501a0), 0x0048e2f0);
-    env->unlink(window(0x007ca098));
-    env->setDwordA0(window(0x007ca098), nullptr, 0, 1);
-    env->setShown(window(0x007ca098), nullptr, 0);
-    u8 *const child = Window_FindChild(window(0x007ca098), nullptr, 0x10d32);
+    gDialogs_7ca098 = env->build(window(0x00faa5d8), nullptr, reinterpret_cast<u8 *>((uintptr_t)0x007501a0), 0x0048e2f0);
+    env->unlink(window(reinterpret_cast<uintptr_t>(&gDialogs_7ca098)));
+    env->setDwordA0(window(reinterpret_cast<uintptr_t>(&gDialogs_7ca098)), nullptr, 0, 1);
+    env->setShown(window(reinterpret_cast<uintptr_t>(&gDialogs_7ca098)), nullptr, 0);
+    u8 *const child = Window_FindChild(window(reinterpret_cast<uintptr_t>(&gDialogs_7ca098)), nullptr, 0x10d32);
     if (!child) return;
     u8 *const memory = static_cast<u8 *>(env->alloc(0x1a4));
     env->setImpl(child, nullptr, memory ? env->textPart(memory, nullptr, 0) : nullptr);
@@ -121,13 +127,13 @@ void __cdecl Dialog7ca098_Create() {
 
 s32 __cdecl Dialog7ca098_Message4IfUp() {
     s32 result = 0;
-    if (u8 *const w = window(0x007ca098)) result = Window_SendMessage(w, 4, 0, 0);
-    *reinterpret_cast<u32 *>((uintptr_t)0x007ca090) = 0;
+    if (u8 *const w = window(reinterpret_cast<uintptr_t>(&gDialogs_7ca098))) result = Window_SendMessage(w, 4, 0, 0);
+    *reinterpret_cast<u32 *>(&gDialog7ca098_7ca090) = 0;
     return result;
 }
 
 s32 __cdecl Dialog7cca94_Message4IfUp() {
-    u8 *const w = window(0x007cca94);
+    u8 *const w = window(reinterpret_cast<uintptr_t>(&gDialog7cca94_7cca94));
     return w ? Window_SendMessage(w, 4, 0, 0) : 0;
 }
 
@@ -140,14 +146,14 @@ s32 __fastcall WindowAt10_Message4IfAny(u8 *object) {
 
 u32 __cdecl Dialog7ca168_ShowText(u32 which) {
     static const u32 kTexts[5] = {0x6b, 0x6c, 0x6e, 0x6d, 0x6f};
-    u8 *const label = Window_FindChild(Window_FindChild(window(0x007ca168), nullptr, 0x329), nullptr, 0x32a);
+    u8 *const label = Window_FindChild(Window_FindChild(window(reinterpret_cast<uintptr_t>(&gDialog7ca168_7ca168)), nullptr, 0x329), nullptr, 0x32a);
     if (which > 4) return which;
     return vcall<u32>(label, 0x24, Language_WideText(kTexts[which]));
 }
 
 void __cdecl Dialog7ca168_ShowStaffAverage(u32 tab) {
     static const u32 kKinds[5] = {5, 4, 6, 7, 8};
-    u8 *const bar = Window_FindChild(Window_FindChild(window(0x007ca168), nullptr, 0x329), nullptr, 0x32d);
+    u8 *const bar = Window_FindChild(Window_FindChild(window(reinterpret_cast<uintptr_t>(&gDialog7ca168_7ca168)), nullptr, 0x329), nullptr, 0x32d);
     const u32 kind = tab <= 4 ? kKinds[tab] : tab;
     void *const *const table = *reinterpret_cast<void *const *const *>(bar);
     GameTable7cfb90_Get1da720_519510(*reinterpret_cast<u8 *const *>((uintptr_t)0x007cf83c));   // (its answer only the ECX of the stdcall)
@@ -161,7 +167,7 @@ u32 __cdecl Dialog7ca168_AddStaffRow(u8 *staff) {
     Mode19c_ToIndex(staff);   // (its answer unused)
     u32 texts[5];
     texts[0] = (u32)(uintptr_t)Staff_GetName(staff);
-    u8 *const list = window(0x007ca164);
+    u8 *const list = window(reinterpret_cast<uintptr_t>(&gDialog7ca168_7ca164));
     u32 mode = Mode19c_ToIndex(staff);
     if (mode == 1 && !Staff_HasPatrolRegion(staff)) mode = 0;
     texts[1] = (u32)(uintptr_t)Language_Widen(Records_DataIfTerminated(window(0x0078baa4), nullptr, mode));
@@ -174,11 +180,11 @@ u32 __cdecl Dialog7ca168_AddStaffRow(u8 *staff) {
 
 void __cdecl Dialog7ca168_FillStaffList(u32 tab, u32 clear) {
     static const u32 kMasks[5] = {2, 4, 0x10, 8, 0x20};
-    u8 *const dialog = window(0x007ca168);
-    *reinterpret_cast<u32 *>((uintptr_t)0x007ca16c) = tab;
+    u8 *const dialog = window(reinterpret_cast<uintptr_t>(&gDialog7ca168_7ca168));
+    gDialog7ca168_7ca16c = tab;
     u8 *const list = Window_FindChild(dialog, nullptr, 0x321);
     if (clear) Window7059f0_Clear(list);
-    *reinterpret_cast<u8 **>((uintptr_t)0x007ca164) = list;
+    gDialog7ca168_7ca164 = list;
     if (tab <= 4) Things_ForEachSelected(kMasks[tab], reinterpret_cast<ObjectCallback>(&Dialog7ca168_AddStaffRow));
     Window7059f0_RefreshRows(list);
 }
@@ -196,26 +202,26 @@ s32 __cdecl Dialog7ca168_Handler(u8 *window, u32 message, u32 a, u32 b) {
 }
 
 s32 __cdecl Dialog7cb2b8_Handler(u8 *window, u32 message, u32 a, u32 b) {
-    if (message == 0x14) *reinterpret_cast<u32 *>(0x007cb2b8) = 0;
+    if (message == 0x14) *reinterpret_cast<u32 *>(&gDialog7cb2b8build_7cb2b8) = 0;
     return Window_CallDefault(window, nullptr, message, a, b);
 }
 
 s32 __cdecl Dialog7cc4c4_Handler(u8 *window, u32 message, u32 a, u32 b) {
-    if (message == 0x14) *reinterpret_cast<u32 *>(0x007cc4c4) = 0;
+    if (message == 0x14) *reinterpret_cast<u32 *>(&gDialogs_7cc4c4) = 0;
     return Window_CallDefault(window, nullptr, message, a, b);
 }
 
 void __cdecl Dialog7cc4c4_ShowThing(u8 *thing) {
-    if (!window(0x007cc4c4)) return;
-    u32 &current = *reinterpret_cast<u32 *>((uintptr_t)0x007cc4e4);
+    if (!window(reinterpret_cast<uintptr_t>(&gDialogs_7cc4c4))) return;
+    u32 &current = gDialog7cc4c4_7cc4e4;
     if ((u32)(uintptr_t)thing == current) return;
     current = (u32)(uintptr_t)thing;
     if (!thing) {
-        vcall<void>(Window_FindChild(window(0x007cc4c4), nullptr, 0x16c11), 0x24, 0x0078a374u);
-        vcall<void>(Window_FindChild(window(0x007cc4c4), nullptr, 0x16c12), 0x24, 0x0078a374u);
+        vcall<void>(Window_FindChild(window(reinterpret_cast<uintptr_t>(&gDialogs_7cc4c4)), nullptr, 0x16c11), 0x24, 0x0078a374u);
+        vcall<void>(Window_FindChild(window(reinterpret_cast<uintptr_t>(&gDialogs_7cc4c4)), nullptr, 0x16c12), 0x24, 0x0078a374u);
         return;
     }
-    vcall<void>(Window_FindChild(window(0x007cc4c4), nullptr, 0x16c11), 0x24, *reinterpret_cast<u32 *>(thing + 0x14));
+    vcall<void>(Window_FindChild(window(reinterpret_cast<uintptr_t>(&gDialogs_7cc4c4)), nullptr, 0x16c11), 0x24, *reinterpret_cast<u32 *>(thing + 0x14));
     u8 arg[0x14];   // (a number argument, as TextArgInt_Ctor builds it inline)
     *reinterpret_cast<u32 *>(arg) = 0x006ff170;
     *reinterpret_cast<u32 *>(arg + 4) = 0x5641524d;
@@ -223,7 +229,7 @@ void __cdecl Dialog7cc4c4_ShowThing(u8 *thing) {
     *reinterpret_cast<u32 *>(arg + 0xc) = *reinterpret_cast<u32 *>(thing + 0x40);
     *reinterpret_cast<u32 *>(arg + 0x10) = 0;
     TextFormat().format(*reinterpret_cast<void **>((uintptr_t)0x0078ba94), reinterpret_cast<u16 *>((uintptr_t)0x007ba058), 0x3fff, 0x1ce, arg);
-    vcall<void>(Window_FindChild(window(0x007cc4c4), nullptr, 0x16c12), 0x24, 0x007ba058u);
+    vcall<void>(Window_FindChild(window(reinterpret_cast<uintptr_t>(&gDialogs_7cc4c4)), nullptr, 0x16c12), 0x24, 0x007ba058u);
 }
 
 namespace {
@@ -234,12 +240,12 @@ const Dialog7cc4b4FlagEnv *g_flagEnv = &kFlagEnv;
 void Dialog7cc4b4_SetFlagEnv(const Dialog7cc4b4FlagEnv *env) { g_flagEnv = env ? env : &kFlagEnv; }
 
 void __cdecl Dialog7cc4b4_SetFlag(u32 flag) {
-    if (!window(0x007cc4b4)) return;
+    if (!window(reinterpret_cast<uintptr_t>(&gDialog7cc4b4open_7cc4b4))) return;
     flag &= 0xff;
-    vcall<void>(Window_FindChild(window(0x007cc4b4), nullptr, 0x1e0f0), 0x14, flag);
-    vcall<void>(Window_FindChild(window(0x007cc4b4), nullptr, 0x1e0f1), 0x14, flag);
-    g_flagEnv->setShown(Window_FindChild(window(0x007cc4b4), nullptr, 0x1e0ea), nullptr, flag);
-    g_flagEnv->setShown(Window_FindChild(window(0x007cc4b4), nullptr, 0x1e0ec), nullptr, flag);
+    vcall<void>(Window_FindChild(window(reinterpret_cast<uintptr_t>(&gDialog7cc4b4open_7cc4b4)), nullptr, 0x1e0f0), 0x14, flag);
+    vcall<void>(Window_FindChild(window(reinterpret_cast<uintptr_t>(&gDialog7cc4b4open_7cc4b4)), nullptr, 0x1e0f1), 0x14, flag);
+    g_flagEnv->setShown(Window_FindChild(window(reinterpret_cast<uintptr_t>(&gDialog7cc4b4open_7cc4b4)), nullptr, 0x1e0ea), nullptr, flag);
+    g_flagEnv->setShown(Window_FindChild(window(reinterpret_cast<uintptr_t>(&gDialog7cc4b4open_7cc4b4)), nullptr, 0x1e0ec), nullptr, flag);
 }
 
 s32 __cdecl Window_DefaultHandler(u8 *window, u32 message, u32 a, u32 b) { return Window_CallDefault(window, nullptr, message, a, b); }
@@ -265,7 +271,7 @@ u8 *__fastcall WindowAt10_ScalarDtor(u8 *object, void *, u32 flags) {
 
 s32 __cdecl Windows7cc8bc_Message6Pair() {
     u8 *const first = window(0x007cc8bc);
-    u32 &chosen = *reinterpret_cast<u32 *>((uintptr_t)0x007cc698);
+    u32 &chosen = gDialogs_7cc698;
     const bool same = chosen == (u32)(uintptr_t)first;
     Window_SendMessage(first, 6, same, 0);
     const s32 result = Window_SendMessage(window(0x007cc8c0), 6, !same, 0);
@@ -276,13 +282,13 @@ s32 __cdecl Windows7cc8bc_Message6Pair() {
 u32 __cdecl Windows7cc8bc_SelectSecond() {
     Window_SendMessage(window(0x007cc8bc), 6, 0, 0);
     Window_SendMessage(window(0x007cc8c0), 6, 1, 0);
-    *reinterpret_cast<u8 *>((uintptr_t)0x007cc6a0) = 1;
+    gDialogs_7cc6a0 = 1;
     return Window_SetFocus(window(0x007cc8c0), nullptr, 0);
 }
 
 void __cdecl Windows7cc8bc_SelectFirst() {
     const u8 shown = *reinterpret_cast<u8 *>((uintptr_t)0x007cc8b4);
-    if (!shown || *reinterpret_cast<u8 *>((uintptr_t)0x007cc6a0)) return;
+    if (!shown || gDialogs_7cc6a0) return;
     Window_SendMessage(window(0x007cc8bc), 6, 0, 0);
     Window_SendMessage(window(0x007cc8c0), 6, shown, 0);
     if (!*reinterpret_cast<u8 *>((uintptr_t)0x007cc8b4)) {   // (read again)
@@ -302,7 +308,7 @@ void __cdecl Windows7c26b0_Message5() {
 }
 
 u32 __cdecl Dialog7cb2b8_Child21Post(u32 value) {
-    u8 *const dialog = window(0x007cb2b8);
+    u8 *const dialog = window(reinterpret_cast<uintptr_t>(&gDialog7cb2b8build_7cb2b8));
     if (!dialog || !value) return value;
     u8 *const child = Window_FindChild(dialog, nullptr, 0x21);
     if (!child) return value;
@@ -313,8 +319,8 @@ u32 __cdecl Dialog7cb2b8_Child21Post(u32 value) {
 }
 
 void __cdecl Dialog7cb2b8_ResetChild21(u32 clear27) {
-    if (!window(0x007cb2ac) || !window(0x007cb2b8)) return;
-    if (u8 *const child = Window_FindChild(window(0x007cb2b8), nullptr, 0x21)) {
+    if (!window(0x007cb2ac) || !window(reinterpret_cast<uintptr_t>(&gDialog7cb2b8build_7cb2b8))) return;
+    if (u8 *const child = Window_FindChild(window(reinterpret_cast<uintptr_t>(&gDialog7cb2b8build_7cb2b8)), nullptr, 0x21)) {
         const u8 kind = child[0x134];
         if (kind == 3 || kind == 4) {
             if (Window_DwordA0(child, nullptr, 2)) Window_SetDwordA0(child, nullptr, 2, 0);
@@ -323,7 +329,7 @@ void __cdecl Dialog7cb2b8_ResetChild21(u32 clear27) {
         }
     }
     if ((u16)clear27) {   // (neither child checked, sic)
-        u8 *const button = Window_FindChild(Window_FindChild(window(0x007cb2b8), nullptr, 0x25), nullptr, 0x27);
+        u8 *const button = Window_FindChild(Window_FindChild(window(reinterpret_cast<uintptr_t>(&gDialog7cb2b8build_7cb2b8)), nullptr, 0x25), nullptr, 0x27);
         Window705a50_SetState(button, nullptr, 0, 1);
     }
 }
@@ -337,7 +343,7 @@ u32 __fastcall Obj7b51f0_ResetDialogChild21(void *) {
 }
 
 u32 __cdecl Global7cc698_Choose() {
-    u32 &chosen = *reinterpret_cast<u32 *>((uintptr_t)0x007cc698);
+    u32 &chosen = gDialogs_7cc698;
     if (*reinterpret_cast<const u32 *>((uintptr_t)0x007cc8b8)) {
         chosen = *reinterpret_cast<const u32 *>((uintptr_t)0x007cc8b8);
         return chosen;
@@ -375,13 +381,13 @@ void __cdecl Window7ca2e8_ClearButtons(u32 mode) {
 }
 
 void __cdecl Dialog7cc4c4_Create() {
-    if (window(0x007cc4c4)) return;
+    if (window(reinterpret_cast<uintptr_t>(&gDialogs_7cc4c4))) return;
     u8 *const frame = window(0x00f82884);
     u8 *const dialog = WindowScript_Build(*reinterpret_cast<u8 **>(frame + 4), nullptr, reinterpret_cast<u8 *>(0x007581a0), 0x004b9950);
-    *reinterpret_cast<u8 **>(0x007cc4c4) = dialog;
+    gDialogs_7cc4c4 = dialog;
     dressText(Window_FindChild(dialog, nullptr, 0x16c11), 5);
-    dressText(Window_FindChild(window(0x007cc4c4), nullptr, 0x16c12), 8);
-    *reinterpret_cast<u32 *>(0x007cc4e4) = 0;
+    dressText(Window_FindChild(window(reinterpret_cast<uintptr_t>(&gDialogs_7cc4c4)), nullptr, 0x16c12), 8);
+    gDialog7cc4c4_7cc4e4 = 0;
 }
 
 void __cdecl Dialog7cdb0c_Create(u32 flag) {

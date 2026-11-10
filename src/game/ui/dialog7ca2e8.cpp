@@ -23,6 +23,7 @@
 #include "window.h"
 #include "window705a50.h"
 #include "windowscript.h"
+#include "dialog74fb20.h"
 
 namespace {
 
@@ -58,14 +59,14 @@ void dressGraph(u8 *graph) {
     static const u32 kButtons[8] = {0x12277, 0x1227b, 0x12279, 0x12278, 0x1227c, 0x1227d, 0x1227a, 0x1227e};
     for (u32 i = 0; i < 8; ++i) button(graph, kButtons[i], 0xa2 + i);
     for (u32 i = 0; i < 8; ++i)
-        if (*reinterpret_cast<u8 *>((uintptr_t)0x00751fa0) & (1u << i)) g_open->setState(Window_FindChild(graph, nullptr, kButtons[i]), nullptr, 1, 1);
-    u8 &guard = *reinterpret_cast<u8 *>((uintptr_t)0x00fb34c3);
+        if (*reinterpret_cast<u8 *>(&gDialog7ca2e8_751fa0) & (1u << i)) g_open->setState(Window_FindChild(graph, nullptr, kButtons[i]), nullptr, 1, 1);
+    u8 &guard = gDialog7ca2e8_fb34c3;
     if (!(guard & 1)) {
         guard |= 1;
-        Setting_ReadMode(reinterpret_cast<u8 *>((uintptr_t)0x00fb3b7c));
+        Setting_ReadMode(reinterpret_cast<u8 *>(&gDialog74fb20_fb3b7c));
         g_open->atExit(reinterpret_cast<void(__cdecl *)()>((uintptr_t)0x005d1750));
     }
-    if (*reinterpret_cast<u32 *>((uintptr_t)0x00fb3b7c) == 2) vcall<void>(Window_FindChild(dialog(), nullptr, 0x1227f), 0x14, 0u);
+    if (gDialog74fb20_fb3b7c == 2) vcall<void>(Window_FindChild(dialog(), nullptr, 0x1227f), 0x14, 0u);
 }
 
 }  // namespace

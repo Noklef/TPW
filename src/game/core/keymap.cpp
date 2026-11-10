@@ -7,6 +7,7 @@
 #include "crt.h"
 #include "gameheap.h"
 #include "textarg.h"
+#include "../ui/dialog74fb20.h"
 
 namespace {
 
@@ -135,12 +136,12 @@ void __cdecl KeyRecord_Push(u32 index, u32 shift, u32 a, u32 b, u32 c) {
 
 void __cdecl KeyMaps_EnableAllAndClearFlag() {
     KeyMaps_EnableAll();
-    global<u8>(0x007c24d0) = 0;
+    gDialog74fb20_7c24d0 = 0;
 }
 
 void __cdecl KeyMaps_ResetAllAndSetFlag() {
     KeyMaps_ResetAll();
-    global<u8>(0x007c24d0) = 1;
+    gDialog74fb20_7c24d0 = 1;
 }
 
 void __cdecl KeyMaps_Init() {

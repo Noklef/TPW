@@ -6,6 +6,7 @@
 #include "../core/language.h"
 #include "window.h"
 #include "window7059f0.h"
+#include "dialog7cc654handler.h"
 
 namespace {
 
@@ -49,7 +50,7 @@ void __cdecl DialupList_Fill(u8 shown) {
     }
     if (message != 0xffffffff) {
         g_env->wideText(message);
-        const u16 *const separators = reinterpret_cast<const u16 *>((uintptr_t)0x007558f0);
+        const u16 *const separators = reinterpret_cast<const u16 *>(gDialog7cc654handler_7558f0);
         u16 *word = g_env->token(reinterpret_cast<u16 *>((uintptr_t)0x007ba058), separators);
         while (word) {
             const u32 texts[2] = {(u32)(uintptr_t)word, 0};

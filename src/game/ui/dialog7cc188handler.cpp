@@ -15,6 +15,8 @@
 #include "dialog7cc188.h"
 #include "window.h"
 #include "window7059f0.h"
+#include "dialog7cc188address.h"
+#include "dialog7cc184handler.h"
 
 namespace {
 
@@ -59,7 +61,7 @@ const u16 *nameOf(u8 *list, s32 row, u32 *data) {
 }
 
 void askDelete() {
-    u8 *const list = Window_FindChild(global<u8 *>(0x007cc188), nullptr, 0x26);
+    u8 *const list = Window_FindChild(gDialog7cc188handler_7cc188, nullptr, 0x26);
     const s32 row = at<s32>(list, 0x14c);
     if (row < 0) return;
     u32 data;
@@ -90,10 +92,10 @@ void addRecipient(u8 *list, u32 row) {
     const u16 *const name = nameOf(list, static_cast<s32>(row), &data);
     if (contains(recipients(), name)) return;
     u16 entry[0x80];
-    Crt().swprintf(entry, reinterpret_cast<const u16 *>((uintptr_t)0x00754438), name);
+    Crt().swprintf(entry, reinterpret_cast<const u16 *>(gDialog7cc188address_754438), name);
     if (Crt().wcscmp(recipients(), g_env->wideText(0xd3)) == 0) Crt().wcscpy(recipients(), entry);
     else Crt().wcscat(recipients(), entry);
-    vcall<void>(Window_FindChild(global<u8 *>(0x007cc184), nullptr, 0x5da5), 0x24, recipients());
+    vcall<void>(Window_FindChild(gDialog7cc184handler_7cc184, nullptr, 0x5da5), 0x24, recipients());
 }
 
 }  // namespace
@@ -104,11 +106,11 @@ extern "C" {
 
 s32 __cdecl Dialog7cc188_Handler(u8 *window, u32 message, u32 a, u32 b) {
     if (message == 0x14) {
-        global<u8 *>(0x007cc188) = nullptr;
+        gDialog7cc188handler_7cc188 = nullptr;
         g_env->cancel(0x134);
     } else if (message == 0x100) {
         if (a == 0xffffffff) {
-            g_env->send(global<u8 *>(0x007cc188), 4, 0, 0);
+            g_env->send(gDialog7cc188handler_7cc188, 4, 0, 0);
             return 0;
         }
         if (a == 0x24) askDelete();

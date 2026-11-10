@@ -5,6 +5,8 @@
 #include "addrcalls.h"
 #include "gameheap.h"
 #include "string.h"
+#include "../ui/dialog7cb2b8build.h"
+#include "../ui/dialog74fb20.h"
 
 namespace {
 
@@ -96,7 +98,7 @@ void __cdecl Global802bc0_Set1() { gAccessors_802bc0 = 1; }
 
 void __cdecl Global871ee0_Clear() { global<u32>(0x00871ee0) = 0; }
 
-u8 __cdecl Global7c24d0_GetByte() { return global<u8>(0x007c24d0); }
+u8 __cdecl Global7c24d0_GetByte() { return gDialog74fb20_7c24d0; }
 
 u32 __cdecl Table74fb50_Get(u32 i) { return reinterpret_cast<u32 *>(0x0074fb50)[i]; }
 
@@ -160,13 +162,13 @@ u8 *__fastcall Class492d80_Ctor(u8 *object) {
 s32 __cdecl Global7cb28c_Select(s32 which, u32 v) {
     switch (which) {
     case 1:
-        global<u32>(0x007cb28c) = v;
+        gDialog7cb2b8build_7cb28c = v;
         return 0;
     case 2:
-        global<u32>(0x007cb2a0) = v;
+        gDialog7cb2b8build_7cb2a0 = v;
         return 0;
     case 3:
-        global<u32>(0x007cb290) = v;
+        gDialog7cb2b8build_7cb290 = v;
         return (s32)v;
     default:
         return which - 3;

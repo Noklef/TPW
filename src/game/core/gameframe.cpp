@@ -12,6 +12,7 @@
 #include "../online/chatlists.h"
 #include "../online/chatcommand.h"
 #include "../online/chat.h"
+#include "../ui/dialog74fb20.h"
 
 namespace {
 
@@ -49,7 +50,7 @@ u32 Sd(u32 address, A... args) {
 }
 u32 Ptr(const void *p) { return (u32)reinterpret_cast<uintptr_t>(p); }
 
-constexpr u32 kClocks = 0x00785970, kPanel = 0x007b51f0, kOwner = 0x00786b68, kLoadScreen = 0x008c4748, kCameraMode = 0x00f7b560, kPaths = 0x00f816c0, kSetting = 0x00fb3b7c, kState = 0x0087906c;
+constexpr u32 kClocks = 0x00785970, kPanel = 0x007b51f0, kOwner = 0x00786b68, kLoadScreen = 0x008c4748, kCameraMode = 0x00f7b560, kPaths = 0x00f816c0, kState = 0x0087906c;
 
 u32 Now() { return Th(0x00402d70, kClocks); }            // Clocks_Now
 u32 Ticks() { return G<u32(__stdcall *)()>(0x006fd1d0)(); }   // timeGetTime
@@ -66,10 +67,10 @@ u32 Mode() {
     u8 &made = G<u8>(0x00fb34a8);
     if (!(made & 1)) {
         made |= 1;
-        Th(0x00550ca0, kSetting);   // Setting_ReadMode
+        Th(0x00550ca0, Ptr(&gDialog74fb20_fb3b7c));   // Setting_ReadMode
         Cd(0x0067a7d0, 0x005d1750);  // atexit
     }
-    return G<u32>(kSetting);
+    return gDialog74fb20_fb3b7c;
 }
 
 // The singletons, made on the first use wherever they are asked for (a failed allocation leaves null, which the next use faults on or asks again for).
@@ -562,7 +563,7 @@ void ParkEnd() {   // state 0xb
     if (at<u32>(Online(), 0x3f0)) return;
     const u32 set = (u8)Th(0x005afc40, Saves()) ? 2 : 0;   // GlobalSave_Byte24
     Mode();
-    Th(0x00550d80, kSetting, set);   // Setting_SetMode
+    Th(0x00550d80, Ptr(&gDialog74fb20_fb3b7c), set);   // Setting_SetMode
 }
 
 void FreeOf(u32 slot, u32 dtor) {

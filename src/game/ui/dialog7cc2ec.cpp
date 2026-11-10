@@ -14,12 +14,13 @@
 #include "panelparts.h"
 #include "window.h"
 #include "windowscript.h"
+#include "dialog74fb20.h"
 
 namespace {
 
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
 
-u8 *dialog() { return global<u8 *>(0x007cc2ec); }
+u8 *dialog() { return gDialog7cc2ec_7cc2ec; }
 
 const Dialog7cc2ecEnv kGameEnv = {reinterpret_cast<s32(__cdecl *)(void(__cdecl *)())>((uintptr_t)0x0067a7d0), &HoverLabel_Attach, &Things_AverageOfKind};
 const Dialog7cc2ecEnv *g_env = &kGameEnv;
@@ -30,7 +31,7 @@ void bar(u32 id, u32 index, u32 kind) {
     const u8 *const table = reinterpret_cast<const u8 *>((uintptr_t)GameTable7cfb90_Get1da718_519450(global<u8 *>(0x007cf83c)));
     vcall<void>(window, 0x1c, *reinterpret_cast<const u32 *>(table + 0xc + index * 4));
     u8 *const memory = static_cast<u8 *>(GameHeap_Alloc(0x124));
-    u8 *const mesh = memory ? MeshOverlay_Construct(memory, nullptr, reinterpret_cast<const char *>(0x00750e00)) : nullptr;
+    u8 *const mesh = memory ? MeshOverlay_Construct(memory, nullptr, gDialog7cc2ec_750e00) : nullptr;
     Window_SetImpl(Window_FindChild(window, nullptr, 0x2e8), nullptr, mesh);
     u8 *const child = Window_FindChild(window, nullptr, 0x2e8);
     vcall<void>(child, 0x1c, static_cast<s32>(static_cast<u32>(g_env->average(kind)) << 10) / 100);
@@ -46,7 +47,7 @@ void __cdecl Dialog7cc2ec_Open() {
     Global7cb28c_Select(3, 9);
     u8 *const built = WindowScript_Build(global<u8 *>(0x007cb2ac), nullptr, reinterpret_cast<u8 *>((uintptr_t)0x00756400), 0x004b24b0);
     if (!built) return;
-    global<u8 *>(0x007cc2ec) = built;
+    gDialog7cc2ec_7cc2ec = built;
     Window7c24c8_Set(built);
     GameTable7cfb90_Get1da720_519510(global<u8 *>(0x007cf83c));
     static const struct {
@@ -76,11 +77,11 @@ void __cdecl Dialog7cc2ec_Open() {
         vcall<void>(panelparts::numberPart(figures, 0x2e4), 0x1c, first - third);
     }
     g_env->attach(dialog(), 0x2da, (u32)(uintptr_t)Language_WideText(0x93));
-    u8 &guard = global<u8>(0x00fb34c9);
+    u8 &guard = gDialog7cc2ec_fb34c9;
     if (!(guard & 1)) {
         guard |= 1;
-        Setting_ReadMode(reinterpret_cast<u8 *>((uintptr_t)0x00fb3b7c));
+        Setting_ReadMode(reinterpret_cast<u8 *>(&gDialog74fb20_fb3b7c));
         g_env->atExit(reinterpret_cast<void(__cdecl *)()>((uintptr_t)0x005d1750));
     }
-    if (global<u32>(0x00fb3b7c) == 2) vcall<void>(Window_FindChild(dialog(), nullptr, 0x2dd), 0x14, 0u);
+    if (gDialog74fb20_fb3b7c == 2) vcall<void>(Window_FindChild(dialog(), nullptr, 0x2dd), 0x14, 0u);
 }

@@ -34,6 +34,7 @@
 #include "trackrides.h"
 #include "visitorsteps.h"
 #include "world.h"
+#include "../ui/dialog74fb20.h"
 
 namespace {
 
@@ -1020,10 +1021,10 @@ void __fastcall Object_Wear(u8 *object, void *, u32 amount) {
     u8 &guard = global<u8>(0x00fb34b8);   // (the mode setting 0xfb3b7c: a function-local static)
     if (!(guard & 1)) {
         guard |= 1;
-        Setting_ReadMode(reinterpret_cast<u8 *>(0x00fb3b7c));
+        Setting_ReadMode(reinterpret_cast<u8 *>(&gDialog74fb20_fb3b7c));
         reinterpret_cast<s32(__cdecl *)(void(__cdecl *)())>(0x0067a7d0)(reinterpret_cast<void(__cdecl *)()>(0x005d1750));
     }
-    if (global<u32>(0x00fb3b7c) == 1) {
+    if (gDialog74fb20_fb3b7c == 1) {
         if (Object_InPoorCondition(object))
             Object_ResetCondition(object);   // (the same steps: the removal's cell from Cell_MakeHandle, the spread's from the map id)
         return;

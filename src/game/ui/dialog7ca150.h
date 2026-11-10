@@ -61,3 +61,10 @@ void __cdecl Dialog7ca150_Open(s32 tab, u32 selected);
 // 0x12c4c1 the guests' list (0), answer 0. 0x14: [0x7ca150] 0, Game_CancelAdvisor (0xbf). The rest ends in Dialog_KeyHandler, whose answer is returned.
 s32 __cdecl Dialog7ca150_PageHandler(u8 *window, u32 message, u32 a, u32 b);
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(u8 *, gDialog7ca150_7ca14c, 0x007ca14c, 0x4);
+GAME_DATA(u8 *, gDialog7ca150_7ca150, 0x007ca150, 0x4);
+GAME_DATA(u32, gDialog7ca150_7ca154, 0x007ca154, 0x4);

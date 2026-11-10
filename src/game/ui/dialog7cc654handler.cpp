@@ -74,7 +74,7 @@ void showList(u8 *list, u32 b) {
     while (node != at<u8 *>(global<u8 *>(0x007cc660), 0x24)) {
         const char *const text = at<const char *>(node, 0xc);
         Crt().wcscat(addresses(), g_env->toWide(text ? text : reinterpret_cast<const char *>((uintptr_t)0x006fe5b0), nullptr, 0));
-        Crt().wcscat(addresses(), reinterpret_cast<const u16 *>((uintptr_t)0x007558f0));
+        Crt().wcscat(addresses(), reinterpret_cast<const u16 *>(gDialog7cc654handler_7558f0));
         node = *reinterpret_cast<u8 **>(node);
     }
     g_env->fit();

@@ -33,7 +33,7 @@ void search() {
     if (u8 *const dialog = global<u8 *>(0x007cc944)) {
         u8 *const list = Window_FindChild(dialog, nullptr, 0xe05b);
         g_env->clearList(list);
-        const u32 texts[6] = {static_cast<u32>(reinterpret_cast<uintptr_t>(g_env->text(0x134))), 0x00759158, 0x0078a374, 0, 0, 0};
+        const u32 texts[6] = {static_cast<u32>(reinterpret_cast<uintptr_t>(g_env->text(0x134))), reinterpret_cast<uintptr_t>(&gDialog7cc944handler_759158), 0x0078a374, 0, 0, 0};
         g_env->addItem(list, nullptr, texts, 0xffffffff, -1, 1);
     }
 }
@@ -60,7 +60,7 @@ extern "C" s32 __cdecl Dialog7cc944_Handler(u8 *window, u32 message, u32 a, u32 
                 if (b == 1)
                     search();
                 else
-                    (*reinterpret_cast<void(__stdcall *const *)(u32)>((uintptr_t)0x006fd1e0))(0x0075910c);   // OutputDebugStringA
+                    (*reinterpret_cast<void(__stdcall *const *)(u32)>((uintptr_t)0x006fd1e0))(reinterpret_cast<uintptr_t>(&gDialog7cc944_Handler_75910c));   // OutputDebugStringA
             }
             break;
         case 0x400:

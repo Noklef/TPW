@@ -9,6 +9,7 @@
 #include "liveobjects.h"
 #include "misc.h"
 #include "vcall.h"
+#include "../ui/dialog7ca1e0.h"
 
 namespace {
 
@@ -76,7 +77,7 @@ u32 __fastcall Obj_ClearIfSlot24Set(u8 *object) {
 u32 __stdcall Global7b05d8_CallSlot14(u32 a, u32 b) { return vcall<u32>(global<u8 *>(0x007b05d8), 0x14, a, b); }
 
 void __cdecl Global7ca1e0_Release() {
-    if (u8 *object = global<u8 *>(0x007ca1e0))
+    if (u8 *object = gDialog7ca1e0_7ca1e0)
         vcall<u32>(object, 8, 1u);
 }
 

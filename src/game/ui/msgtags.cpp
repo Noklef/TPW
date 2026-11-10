@@ -16,6 +16,7 @@
 #include "window.h"
 #include "windowreg.h"
 #include "windowtimers.h"
+#include "dialog7cb2b8build.h"
 
 namespace {
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
@@ -45,7 +46,7 @@ void centre(u8 *window, u8 *rect, s32 &x, s32 &z) {
 }
 
 void resetWhenShown(u8 *window) {
-    u8 *const open = global<u8 *>(0x007ca090);
+    u8 *const open = gDialog7ca098_7ca090;
     if (open == window && open) g_handler->resetChild(0);
 }
 
@@ -64,14 +65,14 @@ s32 closed(u8 *window, u32 message, u32 a) {
     u32 height = message;
     g_handler->getSize(window, nullptr, nullptr, reinterpret_cast<s16 *>(&height), 1);
     height += 10;
-    g_handler->adjustRect(global<u8 *>(0x007cb2c4), nullptr, 0, height, 0, 0);
+    g_handler->adjustRect(gDialog7cb2b8build_7cb2c4, nullptr, 0, height, 0, 0);
     if (window == global<u8 *>(0x007cb2c8)) global<u32>(0x007cb2c8) = Fn_65d56b(window);
     if (a) {
         for (u8 *tag = reinterpret_cast<u8 *>((uintptr_t)Fn_65d56b(window)); tag; tag = reinterpret_cast<u8 *>((uintptr_t)Fn_65d56b(tag))) {
             g_handler->offset(tag, nullptr, 0, height);
             if (!tag[0x135]) g_handler->runScript(tag, nullptr, reinterpret_cast<u8 *>((uintptr_t)0x007502f0), 0x14);
         }
-        if (u8 *const child = Window_FindChild(global<u8 *>(0x007cb2c4), nullptr, 0x2e)) g_handler->runScript(child, nullptr, reinterpret_cast<u8 *>((uintptr_t)0x007502f0), 0x32);
+        if (u8 *const child = Window_FindChild(gDialog7cb2b8build_7cb2c4, nullptr, 0x2e)) g_handler->runScript(child, nullptr, reinterpret_cast<u8 *>((uintptr_t)0x007502f0), 0x32);
     }
     g_handler->unlink(window);
     resetWhenShown(window);
@@ -82,7 +83,7 @@ void timer(u8 *window, u32 a) {
     if (a == 0x80080 && window[0x134]) {
         vcall<void>(window, 0x14, 0u);
         window[0x134] = 0;
-        g_handler->post(global<u8 *>(0x007cb2c4), 0x100002, (u32)(uintptr_t)window, 0);
+        g_handler->post(gDialog7cb2b8build_7cb2c4, 0x100002, (u32)(uintptr_t)window, 0);
     } else if (a == 0x80081) {
         u8 rect[12];
         GuiRect_Ctor(rect);
@@ -101,9 +102,9 @@ void timer(u8 *window, u32 a) {
 void clicked(u8 *window, u32 a) {
     if (a == 0) {
         g_handler->sound(0xc0);
-        if (global<u8 *>(0x007ca090) == window) resetWhenShown(window);
+        if (gDialog7ca098_7ca090 == window) resetWhenShown(window);
         else g_handler->open(window);
-    } else if (a == 1 && window != global<u8 *>(0x007ca094)) {
+    } else if (a == 1 && window != gDialog7ca098_7ca094) {
         vcall<void>(window, 0x14, 0u);
         window[0x134] = 0;
         resetWhenShown(window);
@@ -138,7 +139,7 @@ void __cdecl MsgTags_Create() {
 }
 
 void __cdecl MsgTag_Open(u8 *tag) {
-    if (global<u8 *>(0x007ca090) == tag) return;
+    if (gDialog7ca098_7ca090 == tag) return;
     if (tag[0x134]) {
         const u32 kind = Window_DwordA0(tag, nullptr, 6);
         if (kind != 0x1b) {
@@ -152,10 +153,10 @@ void __cdecl MsgTag_Open(u8 *tag) {
     static const u32 kFrom[5] = {2, 3, 5, 6, 8};
     for (u32 i = 0; i < 5; i++) {
         const u32 value = Window_DwordA0(tag, nullptr, kFrom[i]);
-        Window_SetDwordA0(global<u8 *>(0x007ca098), nullptr, i + 1, value);
+        Window_SetDwordA0(gDialogs_7ca098, nullptr, i + 1, value);
     }
-    Dialog7cb2b8_Child21Post((u32)(uintptr_t)global<u8 *>(0x007ca098));
-    global<u8 *>(0x007ca094) = tag;
+    Dialog7cb2b8_Child21Post((u32)(uintptr_t)gDialogs_7ca098);
+    gDialog7ca098_7ca094 = tag;
     Advisor_PostId(0x11c);
 }
 
@@ -170,15 +171,15 @@ u8 *__cdecl MsgTags_Add(const u8 *message) {
             u16 *const text = reinterpret_cast<u16 *>((uintptr_t)Window_DwordA0(tag, nullptr, 2));
             Crt().wcsncpy(text, at<const u16 *>(message, 8), 0xff);
             text[0xff] = 0;
-            if (tag == global<u8 *>(0x007ca090)) vcall<void>(Window_FindChild(global<u8 *>(0x007ca098), nullptr, 0x10d32), 0x24, text);
+            if (tag == gDialog7ca098_7ca090) vcall<void>(Window_FindChild(gDialogs_7ca098, nullptr, 0x10d32), 0x24, text);
             fresh = false;
         } else {
-            Window_SendMessage(global<u8 *>(0x007cb2c4), 0x100002, (u32)(uintptr_t)tag, 1);
+            Window_SendMessage(gDialog7cb2b8build_7cb2c4, 0x100002, (u32)(uintptr_t)tag, 1);
         }
     }
-    if (!fresh || global<s32>(0x007ca09c) >= gMsgTags_Add_750610 || !global<u8 *>(0x007cb2c4)) return nullptr;
+    if (!fresh || global<s32>(0x007ca09c) >= gMsgTags_Add_750610 || !gDialog7cb2b8build_7cb2c4) return nullptr;
     s16 width;
-    Window_GetSize(global<u8 *>(0x007cb2c4), nullptr, &width, nullptr, 1);
+    Window_GetSize(gDialog7cb2b8build_7cb2c4, nullptr, &width, nullptr, 1);
     u8 *tag = nullptr;
     for (u8 *record = reinterpret_cast<u8 *>((uintptr_t)0x007c26b0); record < reinterpret_cast<u8 *>((uintptr_t)0x007c3b00); record += 0x208) {
         if (*reinterpret_cast<u16 *>(record + 4)) continue;
@@ -210,7 +211,7 @@ u8 *__cdecl MsgTags_Add(const u8 *message) {
     Window_SetDwordA0(tag, nullptr, 7, at<u32>(message, 0xc));
     Window_SetDwordA0(tag, nullptr, 9, 0xffffffff);
     Window_SetDwordA0(tag, nullptr, 10, 0);
-    Window_PostMessage(global<u8 *>(0x007cb2c4), 0x100001, (u32)(uintptr_t)tag, 0);
+    Window_PostMessage(gDialog7cb2b8build_7cb2c4, 0x100001, (u32)(uintptr_t)tag, 0);
     global<s32>(0x007ca09c)++;
     Sound_PlayAt(0, global<u32>(0x00803a2c), 0x1e, 0, 0, 0);
     return tag;
@@ -305,7 +306,7 @@ u32 __stdcall UI_Load(Stream *stream) {
 }
 
 s32 __cdecl MsgTags_ButtonHandler(u8 *window, u32 message, u32 a, u32 b) {
-    if (message == 0x10006 && a == 1) Window_PostMessage(*reinterpret_cast<u8 **>((uintptr_t)0x007cb2c4), 0x100003, 0, 0);
+    if (message == 0x10006 && a == 1) Window_PostMessage(gDialog7cb2b8build_7cb2c4, 0x100003, 0, 0);
     return Window_CallDefault(window, nullptr, message, a, b);
 }
 

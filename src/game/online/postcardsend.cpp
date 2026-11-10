@@ -15,6 +15,7 @@
 #include "session.h"
 #include "mailbox.h"
 #include "chatlists.h"
+#include "../ui/dialog7cc184handler.h"
 
 namespace {
 
@@ -45,7 +46,7 @@ extern "C" {
 
 void __cdecl Postcard_Send() {
     Crt().sprintf(buffer(0x007cbcb0), text(reinterpret_cast<uintptr_t>(&gPostcardsend_74d320)), text(0x007cb958), text(reinterpret_cast<uintptr_t>(&gMailbox_75447c)));
-    g_env->savePicture(global<u8 *>(0x007cc18c), nullptr, text(0x007cbcb0));
+    g_env->savePicture(gDialog7cc184handler_7cc18c, nullptr, text(0x007cbcb0));
     char local[0x100];
     Crt().sprintf(local, text(reinterpret_cast<uintptr_t>(&gPostcard_Send_754470)), text(0x007cb958), global<u32>(0x007cbf38)++);
     (*reinterpret_cast<s32(__stdcall *const *)(const char *, const char *, s32)>((uintptr_t)0x006fd158))(text(0x007cbcb0), local, 0);

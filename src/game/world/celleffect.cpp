@@ -9,6 +9,7 @@
 #include "../sprite/script.h"
 #include "mapcell.h"
 #include "random.h"
+#include "../ui/dialog74fb20.h"
 
 namespace {
 
@@ -41,10 +42,10 @@ extern "C" void __fastcall MapCell_StartEffect(u8 *cell, void *, u32 kind) {
     u8 &guard = global<u8>(0x00fb34b9);
     if (!(guard & 1)) {
         guard |= 1;
-        g_env->readMode(reinterpret_cast<u8 *>((uintptr_t)0x00fb3b7c));
+        g_env->readMode(reinterpret_cast<u8 *>(&gDialog74fb20_fb3b7c));
         g_env->atExit(reinterpret_cast<void(__cdecl *)()>((uintptr_t)0x005d1750));
     }
-    if (global<u32>(0x00fb3b7c) == 1 || at<u32>(cell, 0x2c)) return;
+    if (gDialog74fb20_fb3b7c == 1 || at<u32>(cell, 0x2c)) return;
     const u32 script = scriptOf(kind, at<u16>(cell, 0));
     at<s32>(cell, 0x28) = g_env->start(script, 0xb, 0, 0, 0, 0, 0);
     g_env->setSeed(global<u8 *>(0x0080239c), nullptr, at<u16>(cell, 0));

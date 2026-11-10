@@ -125,11 +125,11 @@ void __cdecl Dialog7cc1f8_Open(u32 kind, u32 selected) {
             Window7059f0_SetColumnBottom(list, nullptr, 1, 1);
             Window7059f0_SetColumnBottom(list, nullptr, 2, 1);
             Window7059f0_SetHighlight(list, nullptr, reinterpret_cast<u8 *>((uintptr_t)GuiWindows_FindByName(reinterpret_cast<const char *>(0x0074fa84))));
-            Window7059f0_SortBy(list, nullptr, global<s32>(0x00755140), 0);
+            Window7059f0_SortBy(list, nullptr, gDialog7cc1f8_Open_755140, 0);
             static const u32 kTexts[3] = {0x7b, 0x7c, 0x8a};
             for (u32 i = 0; i < 3; ++i) {
                 u8 *const button = Window_FindChild(list, nullptr, 0x10 + i);
-                ButtonText_Init(button, (u32)(uintptr_t)Language_WideText(kTexts[i]), global<u32>(0x00755138), 0xff, 0xef, 0, 0x90 + i);
+                ButtonText_Init(button, (u32)(uintptr_t)Language_WideText(kTexts[i]), gDialog7cc1f8_Open_755138, 0xff, 0xef, 0, 0x90 + i);
             }
             if (kind == 0xffffffff) kind = global<u32>(0x007cc1fc);
             selectKind(list, kind);
@@ -197,7 +197,7 @@ void __cdecl Dialog7cc1f8_FillList(u32 kind, u32 clear) {
     }
     if (kind == 3) {
         row.text = (u32)(uintptr_t)g_env->text(0x86);
-        row.value = *reinterpret_cast<u32 *>((uintptr_t)0x0078560c);
+        row.value = gDialog7cc1f8_78560c;
         row.state = 0;
         g_env->addItem(list, nullptr, &row.text, 0xffffffff, -1, 0);
         row.text = (u32)(uintptr_t)g_env->text(0x87);
@@ -284,7 +284,7 @@ void __cdecl Dialog7cc1f8_ShowItemTip(const s16 *item) {
     Window_GetSavedRect(list, nullptr, rect);
     u16 x, y;
     Gui_GetMousePos(&x, &y);
-    s32 &state = *reinterpret_cast<s32 *>((uintptr_t)0x0075513c);
+    s32 &state = gDialog7cc1f8_ShowItemTip_75513c;
     s16 &tipped = *reinterpret_cast<s16 *>((uintptr_t)0x007cc1e0);
     void *const texts = *reinterpret_cast<void **>((uintptr_t)0x0078ba98);
     u16 text[0x80];   // (left as it is for the items -3 and below, sic: the stack's)
@@ -317,7 +317,7 @@ void __cdecl Dialog7cc1f8_ShowItemTip(const s16 *item) {
                 TextFormat().format(texts, text, 0x80, 0x98);
             } else {   // (2: too dear, 3: affordable) the definition's name (+0x90) as the argument 0
                 u16 name[0x40];
-                TextFormat().format(*reinterpret_cast<void **>((uintptr_t)0x0078bad0), name, 0x3f,
+                TextFormat().format(*reinterpret_cast<void * *>(&gDialog7cc1f8_78bad0), name, 0x3f,
                                     *reinterpret_cast<const u32 *>(ObjectDefs_Find(defs, nullptr, (u16)*item) + 0x90));
                 u8 arg[0x14];
                 TextArgString_Ctor(arg, nullptr, 0, (u32)(uintptr_t)name);

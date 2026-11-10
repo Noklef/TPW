@@ -52,20 +52,20 @@ const Tab kTabs[4] = {
 };
 
 void show_tab(u32 selected, const Tab &tab) {
-    u8 *const page = Window_FindChild(global<u8 *>(0x007ca150), nullptr, 0x12c4b8);
+    u8 *const page = Window_FindChild(gDialog7ca150_7ca150, nullptr, 0x12c4b8);
     u8 *child = Window_FindChild(page, nullptr, 400);
     if (!child) child = Window_FindChild(page, nullptr, 400);   // sic: the same search three times
     if (!child) child = Window_FindChild(page, nullptr, 400);
     if (child) Window_SendMessage(child, 4, 0, 0);
     u8 *const list =
-        WindowScript_Build(Window_FindChild(global<u8 *>(0x007ca150), nullptr, 0x12c4b8), nullptr, reinterpret_cast<u8 *>((uintptr_t)tab.script), 0);
-    global<u32>(0x007ca154) = tab.state;
+        WindowScript_Build(Window_FindChild(gDialog7ca150_7ca150, nullptr, 0x12c4b8), nullptr, reinterpret_cast<u8 *>((uintptr_t)tab.script), 0);
+    gDialog7ca150_7ca154 = tab.state;
     Window_SetHandler(list, nullptr, 0x004955e0);
     Window7059f0_BuildRows(list, nullptr, &List7ca158_NewRow, &List7ca158_InitRow);   // (0x4944d0, 0x494690: only called, not stored)
     for (s32 i = 0; i < tab.columns; ++i) Window7059f0_SetColumnBottom(list, nullptr, (u32)i, i ? 1u : 0u);
     Window7059f0_SetHighlight(list, nullptr, reinterpret_cast<u8 *>((uintptr_t)GuiWindows_FindByName(reinterpret_cast<const char *>(0x0074fa84))));
     Window7059f0_SortBy(list, nullptr, global<s32>(tab.sort), 0);
-    global<u8 *>(0x007ca14c) = list;
+    gDialog7ca150_7ca14c = list;
     for (s32 i = 0; i < 2 && tab.masks[i]; ++i) Things_ForEachSelected(tab.masks[i], reinterpret_cast<ObjectCallback>((uintptr_t)tab.callbacks[i]));
     Window7059f0_RefreshRows(list);
     if (selected) {
@@ -95,7 +95,7 @@ u32 __cdecl Dialog7ca150_Handler(u8 *window, u32 message, u32 a, u32 b) {
             const u32 tab = kTabOfRadio[radio];
             g_env->showTab[tab](0);
             const u32 text = (u32)(uintptr_t)g_env->text(0x4e + tab);
-            g_env->attach(global<u8 *>(0x007ca150), 0x12c4be, text);
+            g_env->attach(gDialog7ca150_7ca150, 0x12c4be, text);
         }
         break;
     }
@@ -116,13 +116,13 @@ u32 __cdecl Dialog7ca150_Handler(u8 *window, u32 message, u32 a, u32 b) {
             u16 handle;
             Thing_GetHandle(reinterpret_cast<const u8 *>((uintptr_t)slot), nullptr, &handle);
             Camera_CentreOnThing(handle);
-            Window_SendMessage(global<u8 *>(0x007ca150), 4, 0, 0);
+            Window_SendMessage(gDialog7ca150_7ca150, 4, 0, 0);
             return 0;
         }
         break;
     }
     case 0x406: {
-        const u32 tab = global<u32>(0x007ca154);
+        const u32 tab = gDialog7ca150_7ca154;
         if (tab <= 3) global<u32>(0x00750d5c + 4 * tab) = b;
         break;
     }
@@ -139,12 +139,12 @@ void __cdecl Dialog7ca150_ShowTab2(u32 selected) { show_tab(selected, kTabs[2]);
 void __cdecl Dialog7ca150_ShowTab3(u32 selected) { show_tab(selected, kTabs[3]); }
 
 void __cdecl Dialog7ca150_Open(s32 tab, u32 selected) {
-    if (tab == -1) tab = global<s32>(0x007ca154);
+    if (tab == -1) tab = reinterpret_cast<s32 &>(gDialog7ca150_7ca154);
     Window7c24c8_Close();
     Global7cb28c_Select(2, 5);
-    global<u8 *>(0x007ca150) = WindowScript_Build(global<u8 *>(0x007cb2ac), nullptr, reinterpret_cast<u8 *>((uintptr_t)0x007508e0), 0x00495290);
-    Window7c24c8_Set(global<u8 *>(0x007ca150));
-    u8 *const group = Window_FindChild(Window_FindChild(global<u8 *>(0x007ca150), nullptr, 0x12c4b8), nullptr, 0x12c4b9);
+    gDialog7ca150_7ca150 = WindowScript_Build(global<u8 *>(0x007cb2ac), nullptr, reinterpret_cast<u8 *>((uintptr_t)0x007508e0), 0x00495290);
+    Window7c24c8_Set(gDialog7ca150_7ca150);
+    u8 *const group = Window_FindChild(Window_FindChild(gDialog7ca150_7ca150, nullptr, 0x12c4b8), nullptr, 0x12c4b9);
     switch ((u32)tab) {
     case 0:
         RadioGroup_Select(group, nullptr, 0x12c4ba);
@@ -165,9 +165,9 @@ void __cdecl Dialog7ca150_Open(s32 tab, u32 selected) {
     }
     if ((u32)tab <= 3) {
         const u32 text = (u32)(uintptr_t)Language_WideText(0x4e + (u32)tab);
-        HoverLabel_Attach(global<u8 *>(0x007ca150), 0x12c4be, text);
+        HoverLabel_Attach(gDialog7ca150_7ca150, 0x12c4be, text);
     }
-    Window_SetHandler(Window_FindChild(global<u8 *>(0x007ca150), nullptr, 0x12c4b8), nullptr, 0x00495360);
+    Window_SetHandler(Window_FindChild(gDialog7ca150_7ca150, nullptr, 0x12c4b8), nullptr, 0x00495360);
     Advisor_PostId(0xbf);
 }
 }  // extern "C"
@@ -176,7 +176,7 @@ namespace {
 const Dialog7ca150PageEnv kGamePageEnv = {Window_SendMessage, Dialog7cb398_Create, Dialog7ca168_Open, Dialog7ca13c_Open, Game_CancelAdvisor, Dialog_KeyHandler};
 const Dialog7ca150PageEnv *g_page = &kGamePageEnv;
 
-u8 *&pageDialog() { return *reinterpret_cast<u8 **>(static_cast<uintptr_t>(0x007ca150)); }
+u8 *&pageDialog() { return gDialog7ca150_7ca150; }
 }  // namespace
 
 void Dialog7ca150_SetPageEnv(const Dialog7ca150PageEnv *env) { g_page = env ? env : &kGamePageEnv; }

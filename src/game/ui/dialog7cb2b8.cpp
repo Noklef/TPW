@@ -18,6 +18,7 @@
 #include "guirect.h"
 #include "window.h"
 #include "windowtimers.h"
+#include "dialog7cb2b8build.h"
 
 namespace {
 
@@ -93,7 +94,7 @@ s32 __cdecl Dialog7cb2b8_BoxHandler(u8 *window, u32 message, u32 a, u32 b) {
         at<u32>(window, 0x130) = 0xa;
         if ((u16)Window_AddChild(window, nullptr, tag, 1, 1)) {
             Window_SetDepth(tag, nullptr, (u16)(at<u16>(tag, 0xe0) - 3));
-            Window_GetRect(global<u8 *>(0x007cb2b8), nullptr, dialogRect, 1);
+            Window_GetRect(gDialog7cb2b8build_7cb2b8, nullptr, dialogRect, 1);
             Window_GetRect(tag, nullptr, tagRect, 1);
             Window_GetRect(window, nullptr, rect, 1);
             GuiRect_GetSize(tagRect, nullptr, &width, &height);
@@ -128,7 +129,7 @@ s32 __cdecl Dialog7cb2b8_BoxHandler(u8 *window, u32 message, u32 a, u32 b) {
         GuiRect_Ctor(rect);
         GuiRect_Ctor(target);
         Window_SendMessage(tag, 0x1001d8, 0, 0);
-        Window_GetRect(global<u8 *>(0x007cb2d0), nullptr, target, 1);
+        Window_GetRect(gDialog7cb2b8build_7cb2d0, nullptr, target, 1);
         at<u32>(window, 0x130) = 0xa;
         Window_GetRect(window, nullptr, rect, 1);
         const s32 span = (s32)at<s16>(rect, 4) - (s32)at<s16>(target, 4);
@@ -214,8 +215,8 @@ s32 __cdecl Dialog7cb2b8_BoxHandler(u8 *window, u32 message, u32 a, u32 b) {
 }
 
 void __cdecl Dialog7cb2b8_ShowDate(u32 day, u32 month, u32 year) {
-    if (!global<u8 *>(0x007cb2b8)) return;
-    u8 *const label = Window_FindChild(global<u8 *>(0x007cb2b8), nullptr, 0x20);
+    if (!gDialog7cb2b8build_7cb2b8) return;
+    u8 *const label = Window_FindChild(gDialog7cb2b8build_7cb2b8, nullptr, 0x20);
     // (the three number arguments built inline, unsigned: %16 the day, %17 the month, %18 the year from 1900)
     u32 years[5] = {0x006ff170, 0x5641524d, 0x12, year + 1900, 0};
     u32 months[5] = {0x006ff170, 0x5641524d, 0x11, month, 0};
@@ -254,7 +255,7 @@ s32 __cdecl Dialog7cb2b8_BarHandler(u8 *window, u32 message, u32 a, u32 b) {
         u8 *const thing = ptr(GameTable7cfb90_Get1da720_519510(*global<u8 **>(0x007cf6ec)));
         if (thing && window) {
             const double average = Things_AveragePersonStat19c(thing, nullptr, 4);
-            const double value = X87_MulDouble(average * global<float>(0x006ffa34), global<float>(0x006ffa38));   // (* 1024.0f exact)
+            const double value = X87_MulDouble(average * gDialog7cb2b8_BarHandler_6ffa34, gDialog7cb2b8_BarHandler_6ffa38);   // (* 1024.0f exact)
             vcall<void>(window, 0x1c, (u32)(long long)value);   // (__ftol's low half)
         }
     }

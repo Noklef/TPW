@@ -36,3 +36,9 @@ s32 __cdecl Dialog7ca2e8_Handler(u8 *window, u32 message, u32 a, u32 b);
 // TextPart_Ctor part, the bytes 1, 1, font 0xb, black, no text, slot 9 the text. No child but those two is checked.
 void __cdecl Dialog7ca2e8_Open();
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(u32, gDialog7ca2e8_751fa0, 0x00751fa0, 0x4);
+GAME_DATA(u8, gDialog7ca2e8_fb34c3, 0x00fb34c3, 0x1);

@@ -19,6 +19,7 @@
 #include "windowreg.h"
 #include "windowscript.h"
 #include "windowtimers.h"
+#include "dialog7ca13chandler.h"
 
 namespace {
 
@@ -35,15 +36,15 @@ void __cdecl Dialog7ca13c_Open(u32 selected) {
     Global7cb28c_Select(2, 6);
     u8 *const dialog = WindowScript_Build(global<u8 *>(0x007cb2ac), nullptr, reinterpret_cast<u8 *>((uintptr_t)0x007506c8), 0x00493230);
     if (!dialog) return;
-    global<u8 *>(0x007ca13c) = dialog;
+    gDialog7ca13c_7ca13c = dialog;
     Window7c24c8_Set(dialog);
-    if (u8 *const list = Window_FindChild(global<u8 *>(0x007ca13c), nullptr, 0x1e497)) {
+    if (u8 *const list = Window_FindChild(gDialog7ca13c_7ca13c, nullptr, 0x1e497)) {
         Window7059f0_BuildRows(list, nullptr, &List7ca140_NewRow, &List7ca140_InitRow);   // (0x4938c0, 0x4939d0: only called, not stored)
         for (u32 i = 0; i < 6; ++i) Window7059f0_SetColumnBottom(list, nullptr, i, 1);
         Window7059f0_SetHighlight(list, nullptr, reinterpret_cast<u8 *>((uintptr_t)GuiWindows_FindByName(reinterpret_cast<const char *>(0x0074fa84))));
-        Window7059f0_SortBy(list, nullptr, global<s32>(0x007508bc), 0);
-        u8 *const again = Window_FindChild(global<u8 *>(0x007ca13c), nullptr, 0x1e497);
-        global<u8 *>(0x007ca138) = again;
+        Window7059f0_SortBy(list, nullptr, gDialog7ca13c_7508bc, 0);
+        u8 *const again = Window_FindChild(gDialog7ca13c_7ca13c, nullptr, 0x1e497);
+        gDialog7ca13c_7ca138 = again;
         global<u32>(0x007ca134) = 0;
         Things_ForEachSelected(0x40, reinterpret_cast<ObjectCallback>((uintptr_t)0x004937e0));
         Window7059f0_RefreshRows(again);
@@ -58,13 +59,13 @@ void __cdecl Dialog7ca13c_Open(u32 selected) {
             ButtonText_Init(button, (u32)(uintptr_t)text, font, 0xff, 0xef, 0, 0x81 + i);
         }
     }
-    if ((u16)Window_SetTimer(global<u8 *>(0x007ca13c), nullptr, 0x80083, 2000)) Window_StartTimer(global<u8 *>(0x007ca13c), nullptr, 0x80083);
+    if ((u16)Window_SetTimer(gDialog7ca13c_7ca13c, nullptr, 0x80083, 2000)) Window_StartTimer(gDialog7ca13c_7ca13c, nullptr, 0x80083);
     Advisor_PostId(0x11e);
 }
 
 void __cdecl Dialog7ca13c_RemoveData(u32 data) {
-    if (!global<u8 *>(0x007ca13c)) return;
-    u8 *const list = Window_FindChild(global<u8 *>(0x007ca13c), nullptr, 0x1e497);
+    if (!gDialog7ca13c_7ca13c) return;
+    u8 *const list = Window_FindChild(gDialog7ca13c_7ca13c, nullptr, 0x1e497);
     const s32 position = Window7059f0_FindItemData(list, nullptr, data);
     if (position < 0) return;
     Window7059f0_RemoveItem(list, nullptr, position);
@@ -79,14 +80,14 @@ void __cdecl Dialog7ca13c_AddRow(u8 *guest) {
     const u32 happy = (u32)(long long)field<float>(guest, 0x19c) & 0xff;   // (FLD, __ftol's low byte)
     const u32 texts[6] = {field<u32>(guest, 0x1d8), field<u32>(guest, 0x1a0), (u32)hours, field<u32>(guest, 0x1c4), left ? left - 1 : 999,
                           (u32)((s32)(happy << 10) / 100)};
-    Window7059f0_AddItem(global<u8 *>(0x007ca138), nullptr, texts, (u32)(uintptr_t)guest, -1, 0);
+    Window7059f0_AddItem(gDialog7ca13c_7ca138, nullptr, texts, (u32)(uintptr_t)guest, -1, 0);
 }
 
 void __cdecl Dialog7ca13c_AddGuest(u8 *guest) {
-    if (!global<u8 *>(0x007ca13c)) return;
-    global<u8 *>(0x007ca138) = Window_FindChild(global<u8 *>(0x007ca13c), nullptr, 0x1e497);
+    if (!gDialog7ca13c_7ca13c) return;
+    gDialog7ca13c_7ca138 = Window_FindChild(gDialog7ca13c_7ca13c, nullptr, 0x1e497);
     Dialog7ca13c_AddRow(guest);
-    Window7059f0_RefreshRows(global<u8 *>(0x007ca138));
+    Window7059f0_RefreshRows(gDialog7ca13c_7ca138);
 }
 
 void __fastcall Obj7b51f0_OnGuestAdded(void *, void *, u32 handle) {

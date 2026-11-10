@@ -29,6 +29,7 @@
 #include "window705b20.h"
 #include "windowscript.h"
 #include "windowtimers.h"
+#include "dialog74fb20.h"
 
 namespace {
 
@@ -304,10 +305,10 @@ void __cdecl ResearchPanel_Open() {
     u8 &guard = global<u8>(0x00fb34be);
     if (!(guard & 1)) {
         guard |= 1;
-        Setting_ReadMode(reinterpret_cast<u8 *>((uintptr_t)0x00fb3b7c));
+        Setting_ReadMode(reinterpret_cast<u8 *>(&gDialog74fb20_fb3b7c));
         g_open->atExit(reinterpret_cast<void(__cdecl *)()>((uintptr_t)0x005d1750));
     }
-    if (global<u32>(0x00fb3b7c) == 2) {
+    if (gDialog74fb20_fb3b7c == 2) {
         refuse(0x1d4);
         return;
     }

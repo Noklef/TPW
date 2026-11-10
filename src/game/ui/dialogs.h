@@ -232,3 +232,12 @@ void Dialog7cc4b4_SetFlagEnv(const Dialog7cc4b4FlagEnv *env);
 // Either way the children 0x16002, 0x16004, 0x16005 and 0x16001 get the pair 0, 10 (Window705a50_SetPair). No child is checked.
 void __cdecl Dialog7cdb0c_Create(u32 flag);
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(u8 *, gDialogs_7ca098, 0x007ca098, 0x4);
+GAME_DATA(u8 *, gDialogs_7cc4c4, 0x007cc4c4, 0x4);
+GAME_DATA(u32, gDialog7cc4c4_7cc4e4, 0x007cc4e4, 0x4);
+GAME_DATA(u32, gDialogs_7cc698, 0x007cc698, 0x4);
+GAME_DATA(u8, gDialogs_7cc6a0, 0x007cc6a0, 0x1);

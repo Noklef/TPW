@@ -17,6 +17,7 @@
 #include "things.h"
 #include "thingscan.h"
 #include "world.h"
+#include "../ui/dialog74fb20.h"
 
 namespace {
 
@@ -84,10 +85,10 @@ u32 modeSetting() {
     const u8 bits = guard;
     if (!(bits & 1)) {
         guard = bits | 1;
-        Setting_ReadMode(reinterpret_cast<u8 *>((uintptr_t)0x00fb3b7c));
+        Setting_ReadMode(reinterpret_cast<u8 *>(&gDialog74fb20_fb3b7c));
         g_env->atExit(reinterpret_cast<void(__cdecl *)()>((uintptr_t)0x005d1750));
     }
-    return *reinterpret_cast<const u32 *>((uintptr_t)0x00fb3b7c);
+    return gDialog74fb20_fb3b7c;
 }
 
 // All research done: the advisor message 0xa7 posted and the "End" object made.

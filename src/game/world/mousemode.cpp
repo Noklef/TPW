@@ -24,6 +24,8 @@
 #include "mapcell.h"
 #include "objectdefs.h"
 #include "thingscan.h"
+#include "../ui/dialog7cb2b8build.h"
+#include "../ui/dialog74fb20.h"
 
 namespace {
 
@@ -249,10 +251,10 @@ void __stdcall MouseMode_Set(u8 *mode) {
     const u8 bits = guard;
     if (!(bits & 1)) {
         guard = bits | 1;
-        Setting_ReadMode(reinterpret_cast<u8 *>(0x00fb3b7c));
+        Setting_ReadMode(reinterpret_cast<u8 *>(&gDialog74fb20_fb3b7c));
         g_env->atExit(reinterpret_cast<void(__cdecl *)()>(0x005d1750));
     }
-    if (*reinterpret_cast<u32 *>(0x00fb3b7c) == 1 && mode && vcall<u32>(mode, 0x24) == 1) {
+    if (gDialog74fb20_fb3b7c == 1 && mode && vcall<u32>(mode, 0x24) == 1) {
         vcall<void>(mode, 0, 1u);
         u8 *const block = static_cast<u8 *>(GameHeap_Alloc(8));
         mode = block ? MMOnline_Ctor(block) : nullptr;
@@ -351,14 +353,14 @@ void __cdecl ChatButtons_Select(u32 leave) {
     if (*reinterpret_cast<u32 *>(*reinterpret_cast<uintptr_t *>(0x007cf83c) + 0x1da738) == 4 || Word7cf4f4_NonZero()) return;
     Window_SendMessage(*reinterpret_cast<u8 **>(0x007cb2ac), 6, leave, 0);
     Window_SendMessage(*reinterpret_cast<u8 **>(0x007cb2b0), 6, 1 - leave, 0);
-    u8 &guard = *reinterpret_cast<u8 *>(0x00fb34c1);   // (the mode setting 0xfb3b7c: this function's own guard of it)
+    u8 &guard = gDialog7cb2b8build_fb34c1;   // (the mode setting 0xfb3b7c: this function's own guard of it)
     const u8 bits = guard;
     if (!(bits & 1)) {
         guard = bits | 1;
-        Setting_ReadMode(reinterpret_cast<u8 *>(0x00fb3b7c));
+        Setting_ReadMode(reinterpret_cast<u8 *>(&gDialog74fb20_fb3b7c));
         g_env->atExit(reinterpret_cast<void(__cdecl *)()>(0x005d1750));
     }
-    if (*reinterpret_cast<u32 *>(0x00fb3b7c) == 1) {
+    if (gDialog74fb20_fb3b7c == 1) {
         if (leave)
             Window7cc8bc_LeaveChat();
         else

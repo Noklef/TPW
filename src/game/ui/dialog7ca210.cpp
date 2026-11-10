@@ -15,12 +15,13 @@
 #include "window.h"
 #include "window705a50.h"
 #include "windowscript.h"
+#include "dialog74fb20.h"
 
 namespace {
 
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
 
-u8 *dialog() { return global<u8 *>(0x007ca210); }
+u8 *dialog() { return gDialog7ca210_7ca210; }
 
 const Dialog7ca210Env kGameEnv = {reinterpret_cast<s32(__cdecl *)(void(__cdecl *)())>((uintptr_t)0x0067a7d0), &HoverLabel_Attach,
                                   reinterpret_cast<void(__fastcall *)(u8 *, void *, u8 *, u32)>((uintptr_t)0x004e2780),
@@ -41,7 +42,7 @@ void __cdecl Dialog7ca210_Open() {
     if (dialog()) return;
     Window7c24c8_Close();
     Global7cb28c_Select(3, 10);
-    global<u8 *>(0x007ca210) = WindowScript_Build(global<u8 *>(0x007cb2ac), nullptr, reinterpret_cast<u8 *>((uintptr_t)0x00751798), 0x00498c60);
+    gDialog7ca210_7ca210 = WindowScript_Build(global<u8 *>(0x007cb2ac), nullptr, reinterpret_cast<u8 *>((uintptr_t)0x00751798), 0x00498c60);
     Window7c24c8_Set(dialog());
     Window_SetHandler(Window_FindChild(dialog(), nullptr, 0x4f3af), nullptr, 0x00499060);
     const u16 word = *reinterpret_cast<const u16 *>(global<u8 *>(0x007cf83c) + 0x1da732);
@@ -56,19 +57,19 @@ void __cdecl Dialog7ca210_Open() {
     panelparts::rangedNumber(child, 1);
     const u8 *const money = reinterpret_cast<const u8 *>((uintptr_t)GameTable7cfb90_Get1da726_5195d0(global<u8 *>(0x007cf83c)));
     const u32 value = *reinterpret_cast<const u32 *>(money + 0x118);
-    global<u32>(0x007ca1e8) = value;
+    gDialog7ca210_7ca1e8 = value;
     vcall<void>(child, 0x1c, value);
     child = Window_FindChild(dialog(), nullptr, 0x4f3b1);
     const u32 flag = Get1da710_51a280(global<u8 *>(0x007cf83c));
-    global<u32>(0x007ca208) = flag;
+    gDialog7ca210_Open_7ca208 = flag;
     Window705a50_SetState(child, nullptr, flag ? 1 : 0, 1);
-    u8 &guard = global<u8>(0x00fb34c5);
+    u8 &guard = gDialog7ca210_fb34c5;
     if (!(guard & 1)) {
         guard |= 1;
-        Setting_ReadMode(reinterpret_cast<u8 *>((uintptr_t)0x00fb3b7c));
+        Setting_ReadMode(reinterpret_cast<u8 *>(&gDialog74fb20_fb3b7c));
         g_env->atExit(reinterpret_cast<void(__cdecl *)()>((uintptr_t)0x005d1750));
     }
-    if (global<u32>(0x00fb3b7c) == 2) vcall<void>(Window_FindChild(dialog(), nullptr, 0x4f3ac), 0x14, 0u);
+    if (gDialog74fb20_fb3b7c == 2) vcall<void>(Window_FindChild(dialog(), nullptr, 0x4f3ac), 0x14, 0u);
     Advisor_PostId(0x12f);
 }
 

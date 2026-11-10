@@ -18,13 +18,14 @@
 #include "window.h"
 #include "window705a20.h"
 #include "windowreg.h"
+#include "dialog74fb20.h"
 
 namespace {
 const Dialog7cdac4Env kGameEnv = {Window7c24c8_Close, Dialog_Create, Window_SetDepth, TextPart6ff4d0_Ctor, Window_SetImpl, Language_Font, Window_Set4c, Window705a20_SetBuffer, GuiWindows_FindByName, Window705a20_SetCaret, NamedObjects_SetThemeLabelAnsi, Window_Notify3000,
                                   Window_NotifyC00, Language_WideText, HoverLabel_Attach, Class702da0_Push};
 const Dialog7cdac4Env *g_env = &kGameEnv;
 
-u8 *&dialog() { return *reinterpret_cast<u8 **>((uintptr_t)0x007cdac4); }
+u8 *&dialog() { return gDialog7cdac4_7cdac4; }
 
 // A child with its part and font 7 (the first thing each of the two gets).
 u8 *editChild(u32 id) {
@@ -90,14 +91,14 @@ s32 __cdecl Dialog7cdac4_Handler(u8 *window, u32 message, u32 a, u32 b) {
     case 0x100:
         if (a == 0xfffffffe || a == 0xffffffff) {
             if (a == 0xffffffff) {
-                u8 &guard = *reinterpret_cast<u8 *>((uintptr_t)0x00fb34bb);
+                u8 &guard = gDialog7cdac4_Handler_fb34bb;
                 const u8 bits = guard;
                 if (!(bits & 1)) {
                     guard = bits | 1;
-                    env->readMode(reinterpret_cast<u8 *>((uintptr_t)0x00fb3b7c));
+                    env->readMode(reinterpret_cast<u8 *>(&gDialog74fb20_fb3b7c));
                     env->atExit(reinterpret_cast<void(__cdecl *)()>((uintptr_t)0x005d1750));
                 }
-                const u32 modeTwo = *reinterpret_cast<u32 *>((uintptr_t)0x00fb3b7c) == 2;
+                const u32 modeTwo = gDialog74fb20_fb3b7c == 2;
                 const u32 first = *reinterpret_cast<u32 *>((uintptr_t)0x00f82840), second = wordAt(0x00f82888, 8);
                 env->chatSend(env->chat(), nullptr, first, second, 0x007cd850, 0x007cd480, modeTwo, 0x004c4470, 0);
             }

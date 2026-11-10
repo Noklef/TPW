@@ -22,6 +22,7 @@
 #include "dialog7ca210.h"
 #include "guirect.h"
 #include "window.h"
+#include "dialogs.h"
 
 namespace {
 
@@ -249,7 +250,7 @@ void KeyDown(u8 *window, u32 a, u32 b) {
         return;
     }
     if (a == 0x73) {
-        if (modifiers == 0 && !global<u8>(0x007cc6a0)) SwapView();
+        if (modifiers == 0 && !gDialogs_7cc6a0) SwapView();
         return;
     }
     const s32 action = static_cast<s16>(g_env->findKey(global<u8 *>(0x0078721c), nullptr, a, modifiers));

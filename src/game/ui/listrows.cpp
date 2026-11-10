@@ -12,6 +12,7 @@
 #include "window.h"
 #include "windowfactory.h"
 #include "windowreg.h"
+#include "dialog7ca150.h"
 
 namespace {
 
@@ -194,7 +195,7 @@ u8 *__cdecl List7ca158_NewRow() {
     u8 *const window = newRow(0, 0, cachedHeight(0x007ca158, fontAt(0x00750d54)));
     Window_SetHandler(window, nullptr, 0x004959c0);   // (sic: not checked)
     if (!window) return window;
-    switch (global<u32>(0x007ca154)) {
+    switch (gDialog7ca150_7ca154) {
     case 0:
         child(window, 1, 1, 4);
         child(window, 9, 0x11, 5);
@@ -369,7 +370,7 @@ void __cdecl List7ca158_InitRow(u8 *row) {
     Window_Set4c(row, nullptr, Language_Font(global<u32>(0x00750d54)));
     Window_NotifyImpl100(row, nullptr, 0);
     u8 *window = firstChild(row);
-    const u32 state = global<u32>(0x007ca154);
+    const u32 state = gDialog7ca150_7ca154;
     if (state > 3) return;
     setPart(window, TextPart6ff350_Ctor);
     Window_Set4c(window, nullptr, Language_Font(global<u32>(0x00750d54)));

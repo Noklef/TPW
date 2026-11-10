@@ -2,6 +2,7 @@
 #include "frontendentries.h"
 
 #include <cstdint>
+#include "dialog7cc4b4open.h"
 
 namespace {
 
@@ -76,7 +77,7 @@ u32 __cdecl FrontEnd_PreviewHide() { return g_env->previewHide(); }
 u32 __fastcall FrontEnd_Message4(u8 *object) { return g_env->message4(object); }
 
 u32 __cdecl FrontEnd_Dialog7cc4b4Child() {
-    g_env->send(global<u8 *>(0x007cc4b4), 6, 1, 0);
+    g_env->send(gDialog7cc4b4open_7cc4b4, 6, 1, 0);
     return g_env->child7cc4b4();
 }
 

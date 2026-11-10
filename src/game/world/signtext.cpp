@@ -5,6 +5,7 @@
 
 #include "../online/chatlists.h"
 #include "../online/chatavatar.h"
+#include "../ui/dialog74fb20.h"
 
 namespace {
 
@@ -30,10 +31,10 @@ bool mode_is_one() {
     u8 &guard = global<u8>(0x00fb34b8);
     if (!(guard & 1)) {
         guard |= 1;
-        g_env->readMode(reinterpret_cast<u8 *>((uintptr_t)0x00fb3b7c));
+        g_env->readMode(reinterpret_cast<u8 *>(&gDialog74fb20_fb3b7c));
         g_env->atExit(game<void(__cdecl *)()>(0x005d1750));
     }
-    return global<u32>(0x00fb3b7c) == 1;
+    return gDialog74fb20_fb3b7c == 1;
 }
 
 // The player's own sign (the game's +0x1da732 against the sign's handle).

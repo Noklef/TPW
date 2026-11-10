@@ -251,7 +251,7 @@ s32 __fastcall ViewCtl702e20_ShowDialogs(u8 *) {
 }
 
 // (0x4b9c40, Window7cc4c4_Send6_4b9c40's work: that port's env is its own bench's recorder under the driver.)
-static void Send6To7cc4c4() { Window_SendMessage(*reinterpret_cast<u8 **>((uintptr_t)0x007cc4c4), 6, 0, 0); }
+static void Send6To7cc4c4() { Window_SendMessage(gDialogs_7cc4c4, 6, 0, 0); }
 
 s32 __fastcall ViewCtl702e70_HideDialogs(u8 *) {
     Dialog7cdb0c_Message6Off();

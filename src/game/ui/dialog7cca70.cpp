@@ -31,7 +31,7 @@ void Dialog7cca70_SetEnv(const Dialog7cca70Env *env) { g_env = env ? env : &kGam
 
 void __cdecl Dialog7cca70_Open(u32 value) {
     u8 *const built = WindowScript_Build(at<u8 *>(global<u8 *>(0x00f82884), 4), nullptr, reinterpret_cast<u8 *>((uintptr_t)0x007593e8), 0x004c1a10);
-    global<u32>(0x007cca8c) = value;
+    gDialog7cca70_7cca8c = value;
     global<u8 *>(0x007cca70) = built;
     u8 *const list = Window_FindChild(built, nullptr, 0x14beb);
     g_env->buildRows(list, nullptr, reinterpret_cast<u8 *(__cdecl *)()>((uintptr_t)0x004c1b30), reinterpret_cast<void(__cdecl *)(u8 *)>((uintptr_t)0x004c1c30));

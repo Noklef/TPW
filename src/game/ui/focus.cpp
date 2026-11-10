@@ -14,6 +14,7 @@
 #include "dialogs.h"
 #include "window.h"
 #include "windowfactory.h"
+#include "dialog74fb20.h"
 
 namespace {
 
@@ -48,7 +49,7 @@ u32 __cdecl Focus_Restore() {
         if (!*reinterpret_cast<u8 **>(frame + 4)) return (u32)(uintptr_t)frame;
         return focus(*reinterpret_cast<u8 **>(frame + 4));
     }
-    if (global<u8 *>(0x007c24cc)) return focus(global<u8 *>(0x007c24cc));
+    if (reinterpret_cast<u8 * &>(gDialog74fb20_7c24cc)) return focus(reinterpret_cast<u8 * &>(gDialog74fb20_7c24cc));
     if (shown(Fn_65d57c(global<u8 *>(0x007cb2b0)))) {
         enable(0x00787c14);
         return focus(global<u8 *>(0x007cb2b0));
