@@ -6,14 +6,15 @@ import struct
 import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
-from fncmp import IMPORT_TABLE, LOG, RAM, Bench, Call, _recorder, import_table, log_region, set_return  # noqa: E402
+from fncmp import IMPORT_TABLE, LOG, RAM, Bench, Call, _recorder, fill, import_table, log_region, set_return  # noqa: E402
 
-GETPTD, LOCK, UNLOCK, NHMALLOC, TZSET, INC, DEC = 2, 7, 8, 28, 29, 14, 15
+GETPTD, LOCK, UNLOCK, NHMALLOC, TZSET, INC, DEC, LOCALT, SYST, ZONE = 2, 7, 8, 28, 29, 14, 15, 16, 17, 18
 B = Bench([(0x67d8e0, 0x67dac6), (0x687c50, 0x687d32), (0x688060, 0x688088), (0x6a4520, 0x6a453a), (0x6902b0, 0x690394), (0x6903a0, 0x69048a), (0x690490, 0x6907f2), (0x690800, 0x690941), (0x690950, 0x690eee), (0x690ef0, 0x690f1d), (0x690f20, 0x690fb3), (0x690fc0, 0x691025), (0x691030, 0x6912dc), (0x687d40, 0x687d72),
-           (0x688090, 0x6882f9), (0x688300, 0x68849c), (0x6884a0, 0x688608), (0x67df40, 0x67e010), (0x67dcd0, 0x67dcf0)],
+           (0x688090, 0x6882f9), (0x688300, 0x68849c), (0x6884a0, 0x688608), (0x67df40, 0x67e010), (0x67dcd0, 0x67dcf0), (0x67d3f0, 0x67d51c)],
           hooks={0x682720: _recorder(LOCK, 1, cdecl=True), 0x6827a0: _recorder(UNLOCK, 1, cdecl=True), 0x67dcf0: _recorder(NHMALLOC, 2, cdecl=True), 0x687d80: _recorder(TZSET, 0, cdecl=True), 0x682460: _recorder(GETPTD, 0, cdecl=True)})
+B.emu.hooks.pop(0x67d3f0)   # (time itself under test here: not the emulator's fixed clock)
 WHEN, PTD, OUTVARS, OUT, FORMAT, NAMES, TZ, PCTYPE, STRINGS, BLOCK = RAM, RAM + 0x40, RAM + 0x90, RAM + 0x100, RAM + 0x400, RAM + 0x600, RAM + 0x700, RAM + 0x800, RAM + 0xc00, RAM + 0x3000
-OPS = [n for n in ('localtime', 'localtime', 'localtime', 'loctotime', 'loctotime', 'isindstlock', 'locinfo', 'strftime', 'strftime', 'strftime', 'expandtime', 'store_winword', 'store_str', 'store_num', 'store_number', 'gettnames', 'getdays', 'getmonths', 'tzset', 'cvtdate', 'gmtime', 'isindst', 'isindst') if not os.environ.get('OPS') or n in os.environ['OPS'].split(',')]
+OPS = [n for n in ('localtime', 'localtime', 'localtime', 'loctotime', 'loctotime', 'isindstlock', 'locinfo', 'strftime', 'strftime', 'strftime', 'expandtime', 'store_winword', 'store_str', 'store_num', 'store_number', 'gettnames', 'getdays', 'getmonths', 'tzset', 'cvtdate', 'gmtime', 'isindst', 'isindst', 'time', 'time') if not os.environ.get('OPS') or n in os.environ['OPS'].split(',')]
 PICTURES = [b'd', b'dd', b'ddd', b'dddd', b'ddddd', b'M', b'MM', b'MMM', b'MMMM', b'MMMMM', b'y', b'yy', b'yyy', b'yyyy', b'H', b'HH', b'HHH', b'h', b'hh', b'hhh', b'm', b'mm', b'mmm', b's', b'ss', b'sss', b't', b'tt', b'AM/PM', b'am/pm',
             b'A/P', b'a/p', b'A', b'a', b'aXm', b"'", b"''", b"'''", b"'te", b"xt'", b' ', b'/', b':', b'\x81x', b'\x81d', b"'\x81x'"]
 SPECS = b'aAbBcdHIjmMpSUwWxXyYzZ%q'
@@ -29,7 +30,8 @@ def picture(r):
 def case(r):
     name = r.deal(OPS)
     log = log_region()
-    regions = {LOG: log, IMPORT_TABLE: import_table(log, {'inc': (INC, 0x6fd0c0, 1, 0, 0), 'dec': (DEC, 0x6fd12c, 1, 0, 0)})}
+    regions = {LOG: log, IMPORT_TABLE: import_table(log, {'inc': (INC, 0x6fd0c0, 1, 0, 0), 'dec': (DEC, 0x6fd12c, 1, 0, 0), 'local': (LOCALT, 0x6fd164, 1, 0, 1), 'system': (SYST, 0x6fd220, 1, 0, 1),
+                                                          'zone': (ZONE, 0x6fd21c, 1, 0, 1)})}
     regions[PCTYPE] = struct.pack('<256H', *[0x8000 if i >= 0x81 else 0x20 for i in range(256)])
     regions[0x77ea90] = struct.pack('<I', PCTYPE)
     regions[0xfb1440] = bytes(4)
@@ -109,6 +111,21 @@ def case(r):
         regions[0x7813d8] = struct.pack('<3i', r.choice([0, 3600, -3600, 18000, -36000]), r.choice([1, 1, 1, 0]), r.choice([0, 3600, -3600, 7200]))
         regions[0x781470] = struct.pack('<4i', year - 1900, start, r.randrange(86400000), r.getrandbits(31)) + struct.pack('<4i', year - 1900, end, r.randrange(86400000), r.getrandbits(31))
         return Call(0x687c50, [year, r.randrange(13), r.randrange(32), r.randrange(25), r.randrange(60), r.randrange(60), r.choice([0, 1, -1, -1, -1, 2]) & 0xffffffff], regions, conv='c', ret='a')
+    if name == 'time':   # (as loctotime: no change day; the system times few, so the last one matches at times)
+        year = r.choice([1969, 1970, 1971, 1972, 2000, 2001, 2038, 2039, r.randrange(1960, 2050)])
+        start, end = r.choice([(1000, 2000), (2000, 1000)])
+        regions[0x781514] = struct.pack('<14i', *LEAP) + struct.pack('<14i', *PLAIN)
+        regions[0x7813d8] = struct.pack('<3i', r.choice([0, 3600, -3600, 18000, -36000]), r.choice([1, 1, 1, 0]), r.choice([0, 3600, -3600, 7200]))
+        regions[0x781470] = struct.pack('<4i', year - 1900, start, r.randrange(86400000), r.getrandbits(31)) + struct.pack('<4i', year - 1900, end, r.randrange(86400000), r.getrandbits(31))
+        system = struct.pack('<8H', *[r.choice([1, 1, 2]) for _ in range(8)])
+        last = system if r.random() < 0.4 else struct.pack('<8H', *[r.choice([1, 1, 2]) for _ in range(8)])
+        regions[0xfb1338] = struct.pack('<i', r.choice([0, 1, -1])) + r.bytes(4) + last
+        fill(log, LOCALT, 0, struct.pack('<8H', year, r.randrange(13), r.randrange(7), r.randrange(32), r.randrange(25), r.randrange(60), r.randrange(60), r.randrange(1000)), which=0)
+        fill(log, SYST, 0, system, which=1)
+        fill(log, ZONE, 0, struct.pack('<H', r.choice([0, 0, 3])) + bytes(12) + struct.pack('<i', r.choice([0, -60, 60])), which=2, offset=0x9a)
+        set_return(log, ZONE, r.choice([0, 1, 2, 2, 0xffffffff]))
+        regions[OUT] = r.bytes(8)
+        return Call(0x67d3f0, [r.choice([OUT, OUT, 0])], regions, conv='c', ret='a')
     if name == 'gmtime':
         regions[PTD] = struct.pack('<I', r.choice([0, 0, BLOCK + 0x100])).rjust(0x44, b'\0')
         set_return(log, GETPTD, PTD)
