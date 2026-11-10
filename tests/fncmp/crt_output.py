@@ -1,4 +1,5 @@
 # The C library's _output, its helpers, sprintf and the 64 bit division (src/game/core/crtoutput) against the originals: _flsbuf, the locks and _getptd cdecl recorders, the float conversions cdecl recorders in their table, the Win32 calls COM recorders in their import slots.
+# _woutput ('wformat') on a string file too, its format the same text widened; its crashes in both are arguments taken out of step (a bare %I, which _woutput writes as text).
 # Bench limits: no precision over 0x1ff (the digits go past the buffer, onto another frame in each side); no sprintf that fills 2 GB, so its _flsbuf is not reached; a wide %Z's length is not negative (it would read on to a fault).
 # usage: crt_output.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=...)
 import os
@@ -6,14 +7,17 @@ import struct
 import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
-from fncmp import IMPORT_TABLE, LOG, RAM, Bench, Call, _recorder, answers, blob, fill, import_table, log_region, recorder, set_return, strings  # noqa: E402
+from fncmp import IMPORT_TABLE, LOG, RAM, Bench, Call, _recorder, answers, blob, blob_array, fill, import_table, log_region, recorder, set_return, strings  # noqa: E402
 
 GETPTD, LOCK, UNLOCK, FLSBUF = 2, 7, 8, 22
 CFLT, FORCE, CROP = 9, 10, 11
 INC, DEC, W2M = 14, 15, 16
+M2W = 3
 B = Bench([(0x67a650, 0x67a6b8), (0x680c00, 0x681480), (0x681590, 0x6815d2), (0x6815e0, 0x681619), (0x681620, 0x68165d), (0x681660, 0x681671), (0x681680, 0x681692), (0x683aa0, 0x683ab2), (0x68c350, 0x68c3b8), (0x68c3c0, 0x68c435),
-           (0x687140, 0x6871ac), (0x6871b0, 0x687222), (0x686a00, 0x686a19)],
-          hooks={0x682720: _recorder(LOCK, 1, cdecl=True), 0x6827a0: _recorder(UNLOCK, 1, cdecl=True), 0x682460: _recorder(GETPTD, 0, cdecl=True), 0x680ad0: _recorder(FLSBUF, 2, cdecl=True)})
+           (0x687140, 0x6871ac), (0x6871b0, 0x687222), (0x686a00, 0x686a19),
+           (0x683090, 0x68391c), (0x6839f0, 0x683a1a), (0x683a20, 0x683a59), (0x683a60, 0x683a9f), (0x67ca20, 0x67cb85), (0x687690, 0x687701), (0x687710, 0x68780e), (0x687440, 0x68752f), (0x686ff0, 0x687137)],
+          hooks={0x682720: _recorder(LOCK, 1, cdecl=True), 0x6827a0: _recorder(UNLOCK, 1, cdecl=True), 0x682460: _recorder(GETPTD, 0, cdecl=True), 0x680ad0: _recorder(FLSBUF, 2, cdecl=True),
+                 })
 FILE, POINTER, COUNTS = RAM, RAM + 0x40, RAM + 0x80
 ARGS, OUT, FORMAT, STRINGS, WIDE, COUNTED = RAM + 0x100, RAM + 0x1000, RAM + 0x6000, RAM + 0x7000, RAM + 0x7400, RAM + 0x7800
 PCTYPE, PTD, A_W2M, A_FLS = RAM + 0x8000, RAM + 0x8400, RAM + 0x8500, RAM + 0x8600
@@ -23,11 +27,11 @@ WIDES = [[], [0x41], [0x41, 0x42, 0x43], [0xe4, 0x100, 0x41], [0x7a, 0x7b, 0x7c,
 INTS = [0, 1, 9, 10, 0x2a, 0xff, 0x7fff, 0x8000, 0xffff, 0x10000, 0x7fffffff, 0x80000000, 0xffffffff, 0xfffffffe, 0xffff8000, 0x12345678]
 LONGS = [0, 1, 0x100000000, 0xffffffffffffffff, 0x8000000000000000, 0x7fffffffffffffff, 0x123456789abcdef0, 0xfffffffffffffffe, 10000000000]
 SIZES = ['', '', '', '', 'h', 'l', 'w', 'I64', 'L', 'F', 'N', 'hl', 'lh']
-OPS = [n for n in ('format', 'format', 'format', 'format', 'format', 'format', 'sprintf', 'sprintf', 'write_char', 'write_multi', 'write_string', 'get_int', 'get_short', 'get_int64', 'aulldiv', 'aullrem')
+OPS = [n for n in ('format', 'format', 'format', 'format', 'format', 'format', 'wformat', 'wformat', 'wformat', 'wformat', 'sprintf', 'sprintf', 'write_char', 'write_multi', 'write_string', 'get_int', 'get_short', 'get_int64', 'aulldiv', 'aullrem')
        if not os.environ.get('OPS') or n in os.environ['OPS'].split(',')]
 
 
-def conversion(r, args):
+def conversion(r, args, w=False):
     """A conversion's text; its arguments added to args, in order."""
     def dword(value):
         args.append(struct.pack('<I', value & 0xffffffff))
@@ -53,6 +57,9 @@ def conversion(r, args):
             dword(r.choice(INTS + [r.getrandbits(32)]))
     elif letter in 'cC':
         dword(r.choice([0x41, 0x7a, 0xe4, 0x100, 0xffff, 0x10041]))
+    elif letter in 'sS' and w:   # (_woutput: bytes with an 'h', or %S without a 'w'; its 'l' does nothing)
+        wide = 'h' not in size and (letter == 's' or 'w' in size)
+        dword(r.choice([0] + [(WIDE if wide else STRINGS) + 0x40 * i for i in range(5)]))
     elif letter in 'sS':
         wide = size in ('l', 'w', 'hl', 'lh') or (letter == 'S' and size not in ('h',))
         dword(r.choice([0] + [(WIDE if wide else STRINGS) + 0x40 * i for i in range(5)]))
@@ -66,7 +73,7 @@ def conversion(r, args):
     return text
 
 
-def build_format(r, args):
+def build_format(r, args, w=False):
     out = bytearray()
     for _ in range(r.choice([1, 2, 3, 5, 8, 12])):
         kind = r.random()
@@ -74,7 +81,7 @@ def build_format(r, args):
             out += b'%#.0o'
             args.append(bytes(4))
         elif kind < 0.6:
-            out += conversion(r, args).encode()
+            out += conversion(r, args, w).encode()
         elif kind < 0.8:
             out += r.choice([b'plain', b' ', b'!', b'\x81A', b'\x81\x82', b'\xe4z', b'x=', b'\x7f', b'\x1f', b'y'])
         else:   # (not conversions: the state machine's other ways; a lead byte with its trail, or the next conversion's % goes and its arguments shift)
@@ -137,9 +144,24 @@ def make_file(r, regions):
 def case(r):
     name = r.deal(OPS)
     log = log_region()
-    regions = {LOG: log, IMPORT_TABLE: import_table(log, {'inc': (INC, 0x6fd0c0, 1, 0, 0), 'dec': (DEC, 0x6fd12c, 1, 0, 0), 'w2m': (W2M, 0x6fd1dc, 8, 0, 0)})}
+    regions = {LOG: log, IMPORT_TABLE: import_table(log, {'inc': (INC, 0x6fd0c0, 1, 0, 0), 'dec': (DEC, 0x6fd12c, 1, 0, 0), 'w2m': (W2M, 0x6fd1dc, 8, 0, 0),
+                                                          'm2w': (M2W, 0x6fd174, 6, 0, 0b10100)})}
     state(r, log, regions)
     make_file(r, regions)
+    if name == 'wformat':   # (_woutput on a string file: the original _flswbuf when the count runs out, which fails for one (the port's fputwc calls it directly); bytes through mbtowc, MultiByteToWideChar answering with a set locale)
+        args = []
+        text = build_format(r, args, True)
+        wide = lambda: [r.choice([0x100, 0x4e00, 0xffff, 0x2578]) for _ in range(r.choice([0, 0, 1, 2]))]   # (characters past 0xff before and after: not inside a conversion)
+        units = wide() + list(text) + wide()
+        regions[FORMAT] = struct.pack('<%dH' % len(units), *units) + bytes(0x10)
+        regions[ARGS] = b''.join(args) + bytes(0x100)
+        most = r.choice([1, 2])
+        regions[0x77e7dc] = struct.pack('<i', most)   # (a set locale only with MB_CUR_MAX 2: with 1, mbtowc leaves a lead byte's word unwritten)
+        regions[0xfb1438] = struct.pack('<3I', 0x11, 0x22, r.choice([0, 0, 0x411]) if most == 2 else 0) + bytes(0xc) + struct.pack('<I', 0x4e4)
+        blob_array(log, M2W, 2, 3, 1)
+        fill(log, M2W, 4, r.bytes(2), which=1)
+        set_return(log, M2W, r.choice([1, 1, 2, 0]))
+        return Call(0x683090, [FILE, FORMAT, ARGS], regions, conv='c', ret='a')
     if name in ('format', 'sprintf'):
         args = []
         text = build_format(r, args)

@@ -25,6 +25,10 @@ Crt64 __cdecl CRT_output_get_int64_arg(char **args);
 // 0x680c00: _output: the format to the file. Returns the characters written, or -1. No limit on a precision (sic): over 0x1ff, the digits go past the start of the buffer.
 s32 __cdecl CRT_output(CrtFile *file, const char *format, char *args);
 
+// 0x683090: _woutput: _output for a wide format. %c a word, %C (and %hc) a byte through mbtowc; %s wide text, %S (and %hs) bytes counted by lead bytes; no 'l' size (it does
+// nothing, sic). Bytes (numbers, floats, narrow text) written as wide characters through mbtowc, stopped by a failed one. Returns the characters written, or -1.
+s32 __cdecl CRT_woutput(CrtFile *file, const u16 *format, char *args);
+
 // 0x67a650: sprintf.
 s32 __cdecl CRT_sprintf(char *to, const char *format, ...);
 

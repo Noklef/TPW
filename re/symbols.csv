@@ -6434,6 +6434,7 @@ address,name,kind,confidence,notes
 0x00680c00,CRT_output,function,low,reimplemented (src/game/core/crtoutput); MSVC6 _output
 0x0068c350,CRT_aulldiv,function,low,reimplemented (src/game/core/crtoutput); MSVC6 _aulldiv
 0x0068c3c0,CRT_aullrem,function,low,reimplemented (src/game/core/crtoutput); MSVC6 _aullrem
+0x00683090,CRT_woutput,function,low,reimplemented (src/game/core/crtoutput); _woutput: _output for a wide format
 0x006a6650,BadAlloc_Ctor,function,low,reimplemented (src/game/core/locimp); bad_alloc's constructor (MSVC6)
 0x006a66c0,BadAlloc_Copy,function,low,reimplemented (src/game/core/locimp); bad_alloc's copy
 0x006a6670,BadAlloc_Dtor,function,low,reimplemented (src/game/core/locimp); bad_alloc's destructor
