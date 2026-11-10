@@ -9226,6 +9226,9 @@ address,name,kind,confidence,notes
 0x00657d6c,GuiFont_Dtor,function,low,reimplemented (src/game/ui/guifont); the GUI font's destructor: name unconfirmed
 0x00658460,GuiFont_DeletingDtor,function,low,reimplemented (src/game/ui/guifont); the GUI font's deleting destructor: name unconfirmed
 0x00657dff,GuiFont_FreeGlyphs,function,low,reimplemented (src/game/ui/guifont); thiscall: the glyphs +0xc freed and cleared; name invented
+0x00657da0,GuiFont_SetSpacing,function,low,"reimplemented (src/game/ui/guifont); thiscall (across, down: words), pops 8: the spacing words +6 / +8"
+0x00657e34,GuiFont_DrawText,function,low,"reimplemented (src/game/ui/guifont); thiscall (x, y, text, unused), pops 16: with glyphs, each character below the count drawn through the folded stub 0x416e10 (Save_FieldName); returns the pen (x high, y low)"
+0x00657ee0,GuiFont_DrawTextClipped,function,low,"reimplemented (src/game/ui/guifont); thiscall (x, y, text, clip, flag), pops 20: as DrawText with the clip's slot 0 testing each glyph's corners; flagged: only the run from the first character shown; returns the pen"
 0x004b6540,Panel7cc3e0_Dress,function,low,"reimplemented (src/game/ui/panel7cc3e0); thiscall, slot 3 of 0x6ffec8: with the window +0x14, its children 0x5211-0x520e found dressed (texts 0x37 / 0x38, 0x6ff350 / 0x6ff3b0 parts with 0)"
 0x004b67a0,Panel7cc3e0_Open,function,low,"reimplemented (src/game/ui/panel7cc3e0); thiscall, slot 0 of the vtable 0x6ffec8: the children 0x520a / 0x520b hidden when the group counts under 2, the hover label 0x5212 bound"
 0x004b6ae0,Panel7cc3e0_Show,function,low,"reimplemented (src/game/ui/panel7cc3e0); thiscall (thing), slot 10 of the vtable 0x6ffec8: the selected thing set, the window built (script 0x7573c8, handler 0x4b67f0, children 0x520c / 0x520d), the advisor posted 0x12d"
