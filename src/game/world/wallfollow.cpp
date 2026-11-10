@@ -3,15 +3,16 @@
 #include <cstdint>
 
 #include "mapcell.h"
+#include "route.h"
 
 namespace {
 
 template <typename T> T &at(void *p, u32 offset) { return *reinterpret_cast<T *>((uintptr_t)p + offset); }
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
 
-// The column and row steps of direction d (the table at 0x7622b0, read past its four entries as the original does).
-u8 StepX(u32 d) { return global<u8>(0x007622b0 + d * 2); }
-u8 StepY(u32 d) { return global<u8>(0x007622b1 + d * 2); }
+// The column and row steps of direction d (the table gRoute_7622b0, read past its four entries as the original does).
+u8 StepX(u32 d) { return gRoute_7622b0[d * 2]; }
+u8 StepY(u32 d) { return gRoute_7622b0[d * 2 + 1]; }
 
 // The walker's cell recorded; true when that makes more than 0xfb.
 bool Record(u8 *walker) {

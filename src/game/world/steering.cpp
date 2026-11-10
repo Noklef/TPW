@@ -26,13 +26,12 @@ s32 &g_force(u32 i) { return reinterpret_cast<s32 *>(0x7cf100)[i]; }  // the sum
 s32 &g_nearestHit() { return *reinterpret_cast<s32 *>(0x7cf32c); }     // avoid_obstacle's nearest hit so far
 s32 &g_lookAhead() { return gSteering_7cf048; }      // avoid_obstacle's reach
 
-// The behaviour named name (strcmp of the name at +4 of each object in the table at 0x761ec0: eight pointers, the last 0, sic: read
+// The behaviour named name (strcmp of the name at +4 of each object in the table gSteering_761ec0: eight pointers, the last 0, sic: read
 // as well when none before it matches) pushed with its weight onto the nav's behaviour list (0x7cf078 begin, 0x7cf07c end, 0x7cf080
 // capacity; 8-byte entries {weight, object}) unless the end is at the capacity (it does not grow).
 void PushBehaviour(u32 name, u32 weight) {
     const u8 *found = nullptr;
-    for (u32 slot = 0x761ec0; slot < 0x761ee0; slot += 4) {
-        const u8 *const object = *reinterpret_cast<const u8 *const *>(slot);
+    for (const u8 *const object : gSteering_761ec0) {
         if (std::strcmp(reinterpret_cast<const char *>(object + 4), reinterpret_cast<const char *>(name)) == 0) {
             found = object;
             break;
@@ -403,8 +402,8 @@ s32 *__fastcall SteerFollowPath_Steer(void *, void *, s32 *out, u8 *nav) {
 
 void __cdecl Steering_SetPathBehaviours() {
     EntryStack_Clear();  // inlined in the original
-    PushBehaviour(0x761f1c, 0xe666);  // avoid_walls, 0.9
-    PushBehaviour(0x761f28, 0x8000);  // follow_path, 0.5
-    PushBehaviour(0x761ef0, 0x1999);  // separation, 0.1
+    PushBehaviour((u32)gText_Steering_761f1c, 0xe666);  // avoid_walls, 0.9
+    PushBehaviour(0x00761f28, 0x8000);  // follow_path, 0.5
+    PushBehaviour((u32)gText_Steering_761ef0, 0x1999);  // separation, 0.1
 }
 }

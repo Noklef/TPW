@@ -243,7 +243,7 @@ u32 __fastcall StaffTraining_Serialize(u8 *training, void *, Stream *stream, u32
     if (version < 0 || version > 1)
         return 0;
     for (u32 i = 0; i < 5; ++i)
-        if (!Save_Field(stream, save, training + i * 4, 4, 0x00761eb0))
+        if (!Save_Field(stream, save, training + i * 4, 4, (u32)&gText_Staff_Serialize_761eb0))
             return 1;
     return Save_Field(stream, save, training + 0x14, 1, (u32)&gText_StaffTraining_Serialize_761e9c) ? 0 : 1;
 }

@@ -449,3 +449,4 @@ GAME_DATA(char[8], gText_StaffPoolEntry_Serialize_75e6d8, 0x0075e6d8, 0x8);
 GAME_DATA(char[28], gText_StaffPool_Serialize_75e788, 0x0075e788, 0x1c);
 GAME_DATA(char[20], gText_StaffPool_Serialize_75e7a4, 0x0075e7a4, 0x14);
 GAME_DATA(char[20], gText_StaffTraining_Serialize_761e9c, 0x00761e9c, 0x14);
+GAME_DATA(char[12], gText_Staff_Serialize_761eb0, 0x00761eb0, 0xc);

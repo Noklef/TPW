@@ -152,10 +152,10 @@ void __fastcall Weather_Update(u8 *weather) {
 }
 
 u32 __fastcall Weather_Serialize(u8 *weather, void *, Stream *stream, u32 save, s32 version, u32 unused) {
-    static const SaveSpec kHead[] = {{0xc, 4, 0x0076239c}, {0x10, 8, 0x0076238c}, {0x18, 8, 0x0076237c}};
-    static const SaveSpec kTail[] = {{0x30, 4, 0x0076236c}, {0x34, 4, 0x0076235c}, {0x38, 1, 0x00762350}, {0x3c, 4, 0x0076233c}, {0x40, 4, 0x00762324},
-                                     {0x44, 4, 0x00762310}, {0x48, 12, 0x007622f8}, {0x54, 4, 0x007622e4}, {0x58, 4, 0x007622dc}, {0x5c, 4, 0x007622d0},
-                                     {0x60, 4, 0x007622c4}, {0x64, 1, 0x007622b8}};
+    const SaveSpec kHead[] = {{0xc, 4, (u32)gText_Weather_Serialize_76239c}, {0x10, 8, (u32)gText_Weather_Serialize_76238c}, {0x18, 8, 0x0076237c}};
+    const SaveSpec kTail[] = {{0x30, 4, (u32)gText_Weather_Serialize_76236c}, {0x34, 4, (u32)gText_Weather_Serialize_76235c}, {0x38, 1, (u32)gText_Weather_Serialize_762350}, {0x3c, 4, 0x0076233c},
+                              {0x40, 4, 0x00762324}, {0x44, 4, (u32)gText_Weather_Serialize_762310}, {0x48, 12, (u32)gText_Weather_Serialize_7622f8}, {0x54, 4, (u32)gText_Weather_Serialize_7622e4},
+                              {0x58, 4, (u32)gText_Weather_Serialize_7622dc}, {0x5c, 4, (u32)gText_Weather_Serialize_7622d0}, {0x60, 4, (u32)gText_Weather_Serialize_7622c4}, {0x64, 1, 0x007622b8}};
     if (Thing_Serialize(weather, nullptr, stream, save, version, unused))
         return 1;
     if (version < 0 || version > 1)

@@ -48,3 +48,8 @@ u32 __cdecl Route_Find(u8 *route, u32 mode);
 // Manhattan steps between its cells.
 s32 __cdecl Route_CellDistance(u32 from, u32 to, u32 mode);
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(const u8[8], gRoute_7622b0, 0x007622b0, 8);

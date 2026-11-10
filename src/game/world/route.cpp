@@ -12,8 +12,8 @@ namespace {
 template <typename T> T &at(void *p, u32 offset) { return *reinterpret_cast<T *>((uintptr_t)p + offset); }
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
 
-u8 StepX(u32 d) { return global<u8>(0x007622b0 + d * 2); }
-u8 StepY(u32 d) { return global<u8>(0x007622b1 + d * 2); }
+u8 StepX(u32 d) { return gRoute_7622b0[d * 2]; }
+u8 StepY(u32 d) { return gRoute_7622b0[d * 2 + 1]; }
 
 u32 Blocked(u8 x, u8 y, u32 dir) { return MapCell_StepBlocked(x, y, dir, global<s32>(0x007cf3c0)); }
 

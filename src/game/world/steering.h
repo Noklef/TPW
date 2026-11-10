@@ -111,7 +111,7 @@ s32 *__fastcall SteerAvoidWalls_Steer(void *self, void *, s32 *out, const u8 *na
 s32 *__fastcall SteerFollowPath_Steer(void *self, void *, s32 *out, u8 *nav);
 
 // 0x50fdf0 (cdecl; name unconfirmed): the behaviour list (0x7cf078-0x7cf080, {weight, behaviour} entries) emptied as EntryStack_Clear (core/seqs) does,
-// then avoid_walls with 0.9, follow_path with 0.5 and separation with 0.1 (16.16) pushed, each found by its name in the table at 0x761ec0 (eight
+// then avoid_walls with 0.9, follow_path with 0.5 and separation with 0.1 (16.16) pushed, each found by its name in the table gSteering_761ec0 (eight
 // pointers, the last 0: read, sic, when no other matches) and only while the list's end is not at its capacity.
 void __cdecl Steering_SetPathBehaviours();
 }
@@ -119,4 +119,7 @@ void __cdecl Steering_SetPathBehaviours();
 #include "../core/gamedata.h"
 
 // Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(u8 *[8], gSteering_761ec0, 0x00761ec0, 0x20);
+GAME_DATA(char[12], gText_Steering_761ef0, 0x00761ef0, 0xc);
+GAME_DATA(char[12], gText_Steering_761f1c, 0x00761f1c, 0xc);
 GAME_DATA(s32, gSteering_7cf048, 0x007cf048, 0x4);
