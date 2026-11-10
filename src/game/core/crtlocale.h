@@ -67,5 +67,13 @@ char *__cdecl CRT_setlocale(s32 category, const char *locale);
 u32 __cdecl CRT_TestDefaultCountry(u32 lcid);
 // 0x68e2a0: CountryEnumProc: the search's country against this locale's name; 1 goes on with the enumeration.
 s32 __stdcall CRT_CountryEnumProc(const char *hex);
+// 0x68de40: LangCountryEnumProc: the search's language and country against this locale's names (abbreviated or full, a primary language
+// prefix, the default country and language); 1 goes on with the enumeration.
+s32 __stdcall CRT_LangCountryEnumProc(const char *hex);
+// 0x68e180: LanguageEnumProc: the search's language against this locale's name; 1 goes on.
+s32 __stdcall CRT_LanguageEnumProc(const char *hex);
+// 0x68e550: crtGetLocaleInfoA: the 27 locales of the table at 0x781a38 (0x2c bytes each, sorted by lcid) answer types 1, 3, 7, 0xb, 0x1001,
+// 0x1002 and 0x1004 themselves (the text cut to len - 1); anything else goes to GetLocaleInfoA.
+s32 __stdcall CRT_crtGetLocaleInfoA(u32 lcid, u32 what, char *out, s32 room);
 
 }
