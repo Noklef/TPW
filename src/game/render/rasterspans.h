@@ -37,4 +37,16 @@ void __cdecl RasterSpan_TexAdd(u32 row);
 // start, the four texels about them (the index stepped by 1, 0x100, -1, masked each time) weighted by their bits 10-25 masked by
 // [0xfbe1b8]; the depth written is the pixel's own.
 void __cdecl RasterSpan_BilinearShadeZ(u32 row);
+
+// 0x6f36d0 (table 0x6f1a00; row loops 0x6f3740, 0x6f39c0): RasterSpan_BilinearShadeZ's pixel added to the pixel under it, each
+// byte saturated (as RasterSpan_TexAdd's); the depth is not written.
+void __cdecl RasterSpan_BilinearAdd(u32 row);
+
+// 0x6f3be0 (table 0x6f1a08; row loops 0x6f3c50, 0x6f3ef0): RasterSpan_TexBlend's blend of the filtered texel (the tables' rows by
+// its fourth word >> 2); the depth is not written.
+void __cdecl RasterSpan_BilinearBlend(u32 row);
+
+// 0x6f4140 (table 0x6f1a0c; row loops 0x6f41b0, 0x6f4450): the filtered texel (the index masked, its neighbours not: + 1, 0x100,
+// 0x101) blended as RasterSpan_TexBlendLit's, by the fourth shaded word >> 2; the depth written is the pixel's own.
+void __cdecl RasterSpan_BilinearBlendLitZ(u32 row);
 }

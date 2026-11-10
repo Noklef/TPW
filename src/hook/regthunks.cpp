@@ -200,5 +200,8 @@ SPAN_THUNK(RasterSpan_TexBlendAlphaZ)
 SPAN_THUNK(RasterSpan_TexBlendLit)
 SPAN_THUNK(RasterSpan_TexAdd)
 SPAN_THUNK(RasterSpan_BilinearShadeZ)
+SPAN_THUNK(RasterSpan_BilinearAdd)
+SPAN_THUNK(RasterSpan_BilinearBlend)
+SPAN_THUNK(RasterSpan_BilinearBlendLitZ)
 #undef SPAN_THUNK
 }

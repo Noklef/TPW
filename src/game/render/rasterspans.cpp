@@ -33,37 +33,67 @@ template <bool kMasked> u32 Texel(const u32 *uv) {
     return global<const u32 *>(0x00fbe038)[kMasked ? index & global<u32>(0x00fbe008) : index];
 }
 
-// Each pixel's colour: from u and v, the shade words and the pixel under it; texel the texel read (its top 6 bits the alpha).
+// Each pixel's source: four words from u and v, and texel the texel read (its top 6 bits the alpha).
+typedef void (*Source)(const u32 *, u16 *, u32 &);
 
-// The texel's four bytes times the shade words (PMULHW of 2 * byte).
-u32 Shade(const u32 *uv, const u16 *shade, const u32 *, u32 &texel) {
-    texel = Texel<true>(uv);
+// The texel's four bytes.
+template <bool kMasked> void Point(const u32 *uv, u16 *source, u32 &texel) {
+    texel = Texel<kMasked>(uv);
+    for (int k = 0; k < 4; ++k) source[k] = Byte(texel, k);
+}
+
+// The four texels at (u, v), (u + 1, v), (u, v + 1), (u + 1, v + 1) weighted by u's and v's bits 10-25 masked by [0xfbe1b8] (its
+// two dwords); kWrapped: the index stepped by 1, 0x100, -1 and masked each time, else the masked index plus 1, 0x100, 0x101.
+template <bool kWrapped> void Filter(const u32 *uv, u16 *source, u32 &texel) {
+    const u32 mask = global<u32>(0x00fbe008);
+    const u32 *const texels = global<const u32 *>(0x00fbe038);
+    const u32 index = ((uv[0] >> 24) | (uv[1] >> 24) << 8) & mask;
+    const u32 i10 = kWrapped ? (index + 1) & mask : index + 1;
+    const u32 i11 = kWrapped ? (i10 + 0x100) & mask : index + 0x101;
+    const u32 i01 = kWrapped ? (i11 - 1) & mask : index + 0x100;
+    const u32 t00 = texels[index], t10 = texels[i10], t11 = texels[i11], t01 = texels[i01];
+    texel = t00;
+    const u16 fu = (u16)((uv[0] >> 10) & global<u32>(0x00fbe1b8)), fv = (u16)((uv[1] >> 10) & global<u32>(0x00fbe1bc));
+    for (int k = 0; k < 4; ++k) {
+        const u16 top = (u16)(Byte(t00, k) + MulHigh((u16)((Byte(t10, k) - Byte(t00, k)) * 4), fu));
+        const u16 bottom = (u16)(Byte(t01, k) + MulHigh((u16)((Byte(t11, k) - Byte(t01, k)) * 4), fu));
+        source[k] = (u16)(top + MulHigh((u16)((u16)(bottom - top) * 4), fv));
+    }
+}
+
+// Each pixel's colour: from the source, the shade words and the pixel under it.
+
+// The source's words times the shade words (PMULHW of 2 * word).
+template <Source kSource> u32 Shade(const u32 *uv, const u16 *shade, const u32 *, u32 &texel) {
+    u16 source[4];
+    kSource(uv, source, texel);
     u32 out = 0;
-    for (int k = 0; k < 4; ++k) out |= Saturate(MulHigh((u16)(Byte(texel, k) * 2), shade[k]), k);
+    for (int k = 0; k < 4; ++k) out |= Saturate(MulHigh((u16)(source[k] * 2), shade[k]), k);
     return out;
 }
 
-// The shaded texel (8 * byte) and the pixel under it (4 * byte), each times the row of its table (0xfbe2e0, 0xfbe4e0) for the
-// texel's top 6 bits, summed.
-u32 Blend(const u32 *uv, const u16 *shade, const u32 *dest, u32 &texel) {
-    texel = Texel<true>(uv);
-    const u32 alpha = texel >> 26, under = *dest;
+// The shaded source (8 * word) and the pixel under it (4 * byte), each times the row of its table (0xfbe2e0, 0xfbe4e0) for the
+// fourth word's top bits (word >> 2), summed.
+template <Source kSource> u32 Blend(const u32 *uv, const u16 *shade, const u32 *dest, u32 &texel) {
+    u16 source[4];
+    kSource(uv, source, texel);
+    const u32 alpha = source[3] >> 2, under = *dest;
     const u16 *const mine = at<const u16>(0x00fbe2e0 + alpha * 8), *const theirs = at<const u16>(0x00fbe4e0 + alpha * 8);
     u32 out = 0;
     for (int k = 0; k < 4; ++k) {
-        const u16 lit = (u16)MulHigh((u16)(Byte(texel, k) << 3), shade[k]);
+        const u16 lit = (u16)MulHigh((u16)(source[k] << 3), shade[k]);
         out |= Saturate((s16)(MulHigh(lit, mine[k]) + MulHigh((u16)(Byte(under, k) << 2), theirs[k])), k);
     }
     return out;
 }
 
-// The texel (unmasked) shaded as Shade's, then 4 * each word and 4 * the pixel under it times their tables' rows for the top 6 bits
-// of the first two shaded words (sic: of the second word's top bits, not the texel's), summed.
-u32 BlendLit(const u32 *uv, const u16 *shade, const u32 *dest, u32 &texel) {
-    texel = Texel<false>(uv);
-    u16 lit[4];
-    for (int k = 0; k < 4; ++k) lit[k] = (u16)MulHigh((u16)(Byte(texel, k) * 2), shade[k]);
-    const u32 alpha = ((u32)lit[1] << 16 | lit[0]) >> 26, under = *dest;
+// The source shaded as Shade's, then 4 * each word and 4 * the pixel under it times their tables' rows, for the top bits of the
+// fourth shaded word (word >> 2) or kSecond of the second (word >> 10, sic: the first two words' top 6 bits), summed.
+template <Source kSource, bool kSecond> u32 BlendLit(const u32 *uv, const u16 *shade, const u32 *dest, u32 &texel) {
+    u16 source[4], lit[4];
+    kSource(uv, source, texel);
+    for (int k = 0; k < 4; ++k) lit[k] = (u16)MulHigh((u16)(source[k] * 2), shade[k]);
+    const u32 alpha = kSecond ? lit[1] >> 10 : lit[3] >> 2, under = *dest;
     const u16 *const mine = at<const u16>(0x00fbe2e0 + alpha * 8), *const theirs = at<const u16>(0x00fbe4e0 + alpha * 8);
     u32 out = 0;
     for (int k = 0; k < 4; ++k)
@@ -72,37 +102,12 @@ u32 BlendLit(const u32 *uv, const u16 *shade, const u32 *dest, u32 &texel) {
 }
 
 // Shade's pixel added to the pixel under it, each byte saturated (PADDUSB).
-u32 Add(const u32 *uv, const u16 *shade, const u32 *dest, u32 &texel) {
-    const u32 lit = Shade(uv, shade, dest, texel), under = *dest;
+template <Source kSource> u32 Add(const u32 *uv, const u16 *shade, const u32 *dest, u32 &texel) {
+    const u32 lit = Shade<kSource>(uv, shade, dest, texel), under = *dest;
     u32 out = 0;
     for (int k = 0; k < 4; ++k) {
         const u32 sum = (u32)Byte(lit, k) + Byte(under, k);
         out |= (sum > 0xff ? 0xffu : sum) << (8 * k);
-    }
-    return out;
-}
-
-// The four texels at (u, v), (u + 1, v), (u, v + 1), (u + 1, v + 1) (the index stepped and masked each time), weighted by u's and v's
-// bits 10-25 masked by [0xfbe1b8] (its two dwords), then shaded as Shade's.
-u32 Bilinear(const u32 *uv, const u16 *shade, const u32 *, u32 &texel) {
-    const u32 mask = global<u32>(0x00fbe008);
-    const u32 *const texels = global<const u32 *>(0x00fbe038);
-    u32 index = ((uv[0] >> 24) | (uv[1] >> 24) << 8) & mask;
-    const u32 t00 = texels[index];
-    index = (index + 1) & mask;
-    const u32 t10 = texels[index];
-    index = (index + 0x100) & mask;
-    const u32 t11 = texels[index];
-    index = (index - 1) & mask;
-    const u32 t01 = texels[index];
-    texel = t00;
-    const u16 fu = (u16)((uv[0] >> 10) & global<u32>(0x00fbe1b8)), fv = (u16)((uv[1] >> 10) & global<u32>(0x00fbe1bc));
-    u32 out = 0;
-    for (int k = 0; k < 4; ++k) {
-        const u16 top = (u16)(Byte(t00, k) + MulHigh((u16)((Byte(t10, k) - Byte(t00, k)) * 4), fu));
-        const u16 bottom = (u16)(Byte(t01, k) + MulHigh((u16)((Byte(t11, k) - Byte(t01, k)) * 4), fu));
-        const u16 mixed = (u16)(top + MulHigh((u16)((u16)(bottom - top) * 4), fv));
-        out |= Saturate(MulHigh((u16)(mixed * 2), shade[k]), k);
     }
     return out;
 }
@@ -192,15 +197,21 @@ void Parts(u32 row) {
 
 extern "C" {
 
-void __cdecl RasterSpan_TexShadeZ(u32 row) { Parts<TexRows<Shade, kWriteNext, false, false>>(row); }
+void __cdecl RasterSpan_TexShadeZ(u32 row) { Parts<TexRows<Shade<Point<true>>, kWriteNext, false, false>>(row); }
 
-void __cdecl RasterSpan_TexBlend(u32 row) { Parts<TexRows<Blend, kKeep, false, false>>(row); }
+void __cdecl RasterSpan_TexBlend(u32 row) { Parts<TexRows<Blend<Point<true>>, kKeep, false, false>>(row); }
 
-void __cdecl RasterSpan_TexBlendAlphaZ(u32 row) { Parts<TexRows<Blend, kAlphaTest, false, false>>(row); }
+void __cdecl RasterSpan_TexBlendAlphaZ(u32 row) { Parts<TexRows<Blend<Point<true>>, kAlphaTest, false, false>>(row); }
 
-void __cdecl RasterSpan_TexBlendLit(u32 row) { Parts<TexRows<BlendLit, kKeep, true, false, true>>(row); }
+void __cdecl RasterSpan_TexBlendLit(u32 row) { Parts<TexRows<BlendLit<Point<false>, true>, kKeep, true, false, true>>(row); }
 
-void __cdecl RasterSpan_TexAdd(u32 row) { Parts<TexRows<Add, kKeep, false, false>>(row); }
+void __cdecl RasterSpan_TexAdd(u32 row) { Parts<TexRows<Add<Point<true>>, kKeep, false, false>>(row); }
 
-void __cdecl RasterSpan_BilinearShadeZ(u32 row) { Parts<TexRows<Bilinear, kWrite, false, true>>(row); }
+void __cdecl RasterSpan_BilinearShadeZ(u32 row) { Parts<TexRows<Shade<Filter<true>>, kWrite, false, true>>(row); }
+
+void __cdecl RasterSpan_BilinearAdd(u32 row) { Parts<TexRows<Add<Filter<true>>, kKeep, false, true>>(row); }
+
+void __cdecl RasterSpan_BilinearBlend(u32 row) { Parts<TexRows<Blend<Filter<true>>, kKeep, false, true>>(row); }
+
+void __cdecl RasterSpan_BilinearBlendLitZ(u32 row) { Parts<TexRows<BlendLit<Filter<false>, false>, kWrite, false, true>>(row); }
 }
