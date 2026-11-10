@@ -6203,6 +6203,7 @@ address,name,kind,confidence,notes
 0x0067fa20,CRT_lockexit,function,high,reimplemented (src/game/core/crtstartup); _lockexit: lock 0xd
 0x0067fa30,CRT_unlockexit,function,high,reimplemented (src/game/core/crtstartup); _unlockexit: unlock 0xd
 0x0067ee10,CRT_WinMainCRTStartup,function,high,"reimplemented (src/game/core/crtstartup); WinMainCRTStartup: the exe's entry point; the version globals, heap and thread set-up, then under __try the CRT's start-up, the command line past the program's name, WinMain and exit"
+0x00689850,CRT_setargv,function,high,reimplemented (src/game/core/crtstartup); _setargv: argv and argc from the command line
 0x00690ef0,CRT_store_str,function,low,reimplemented (src/game/core/crttime); _store_str
 0x00690fc0,CRT_store_number,function,low,reimplemented (src/game/core/crttime); _store_number
 0x00690f20,CRT_store_num,function,low,reimplemented (src/game/core/crttime); _store_num

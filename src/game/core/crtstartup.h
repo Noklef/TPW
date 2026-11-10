@@ -8,6 +8,9 @@ extern "C" {
 // 0x6898f0: parse_cmdline: the words of `command` into `words` (a table ending in null, may be null) and `text` (may be null), counted in *wordCount (with the table's end) and *textSize. The first word ends at
 // a closing quote or a blank; in the others 2n backslashes before a quote are n and the quote toggles (a doubled one inside quotes is itself), 2n+1 are n and a quote. The table 0xfb1669 bit 4 marks lead bytes.
 void __cdecl CRT_parse_cmdline(const char *command, char **words, char *text, s32 *wordCount, s32 *textSize);
+// 0x689850: _setargv: the program's name (GetModuleFileNameA) to 0xfb1558 and [0xfb1390]; the command line [0xfb3cb8] (empty: the name) parsed twice, counting then
+// into one malloc'd block (none: _amsg_exit(8), and on past it, sic); argv to [0xfb1378], argc to [0xfb1374].
+void __cdecl CRT_setargv();
 
 // 0x67f8f0: _cinit: the floating point set-up the pointer 0x77e718 holds (if any), then the C initialisers (0x72e0ec-0x72e0fc) and the C++ ones (0x727000-0x72e0e8).
 void __cdecl CRT_cinit();

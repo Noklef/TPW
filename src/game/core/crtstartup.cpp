@@ -121,6 +121,21 @@ void __cdecl CRT_parse_cmdline(const char *command, char **words, char *text, s3
     ++*wordCount;
 }
 
+void __cdecl CRT_setargv() {
+    char *const name = reinterpret_cast<char *>((uintptr_t)0x00fb1558);
+    import_slot<u32(__stdcall *)(void *, char *, u32)>(0x006fd194)(nullptr, name, 0x104);    // GetModuleFileNameA
+    at<char *>(0x00fb1390) = name;
+    const char *line = at<const char *>(0x00fb3cb8);
+    if (!*line) line = name;
+    s32 count, size;
+    CRT_parse_cmdline(line, nullptr, nullptr, &count, &size);
+    char **const argv = static_cast<char **>(CRT_malloc(static_cast<u32>(size + count * 4)));
+    if (!argv) CrtInner().amsgExit(8);
+    CRT_parse_cmdline(line, argv, reinterpret_cast<char *>(argv + count), &count, &size);
+    at<char **>(0x00fb1378) = argv;
+    at<s32>(0x00fb1374) = count - 1;
+}
+
 void __cdecl CRT_cinit() {
     if (const Init fpinit = at<Init>(0x0077e718)) fpinit();
     initterm(0x0072e0ec, 0x0072e0fc);
