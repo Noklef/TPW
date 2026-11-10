@@ -122,3 +122,8 @@ GAME_DATA(u32 *, gSpriteDrawOverlay, 0x0087692c, 0x4);
 GAME_DATA(float, gSpriteHeading, 0x00876b24, 0x4);
 GAME_DATA(u32, gLoading_876b28, 0x00876b28, 0x4);
 GAME_DATA(u8, gLoading_877354, 0x00877354, 0x1);
+
+// Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(char[0x4], gAvatarSprites, 0x00764030, 0x4);
+GAME_DATA(char[0x8], gText_Sprites_LoadFolder_76410c, 0x0076410c, 0x8);
+GAME_DATA(char[0x8], gText_Sprites_LoadFolder_764160, 0x00764160, 0x8);

@@ -68,4 +68,8 @@ u32 __cdecl Map_SendLine(u32 message, s32 x0, s32 y0, const s32 *x1, const s32 *
 // Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
 GAME_DATA(const float, gCellmessage_700d54, 0x00700d54, 0x4);
 GAME_DATA(const float, gCellmessage_700d5c, 0x00700d5c, 0x4);
+GAME_DATA(u32, gCellmessage_816d64, 0x00816d64, 4);
 GAME_DATA(u32, gMapCell_HandleMessage_8186bc, 0x008186bc, 0x4);
+GAME_DATA(u32, gCellmessage_820aa4, 0x00820aa4, 4);
+GAME_DATA(u32, gCellmessage_820ab8, 0x00820ab8, 4);
+GAME_DATA(u32, gCellmessage_820abc, 0x00820abc, 4);

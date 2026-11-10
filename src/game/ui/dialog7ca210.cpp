@@ -43,10 +43,10 @@ void __cdecl Dialog7ca210_Open() {
     if (dialog()) return;
     Window7c24c8_Close();
     Global7cb28c_Select(3, 10);
-    gDialog7ca210_7ca210 = WindowScript_Build(gPanel7b9940_7cb2ac, nullptr, reinterpret_cast<u8 *>((uintptr_t)0x00751798), 0x00498c60);
+    gDialog7ca210_7ca210 = WindowScript_Build(gPanel7b9940_7cb2ac, nullptr, gDialog7ca210_Open_751798, 0x00498c60);
     Window7c24c8_Set(dialog());
     Window_SetHandler(Window_FindChild(dialog(), nullptr, 0x4f3af), nullptr, 0x00499060);
-    const u16 word = *reinterpret_cast<const u16 *>(global<u8 *>(0x007cf83c) + 0x1da732);
+    const u16 word = *reinterpret_cast<const u16 *>(gWorldPtr + 0x1da732);
     u8 *const name = Thing_NameBuffer7ba058(global<u8 *>(0x007cfb90 + 20 * word));
     g_env->attach(dialog(), 0x4f3af, (u32)(uintptr_t)name);
     u8 *child = panelparts::withPart(dialog(), TextPart_Ctor, 0x4f3b0);
@@ -56,12 +56,12 @@ void __cdecl Dialog7ca210_Open() {
     Window_NotifyImpl100(child, nullptr, (u32)(uintptr_t)Language_WideText(0xa0));
     child = Window_FindChild(dialog(), nullptr, 0x4f3ae);
     panelparts::rangedNumber(child, 1);
-    const u8 *const money = reinterpret_cast<const u8 *>((uintptr_t)GameTable7cfb90_Get1da726_5195d0(global<u8 *>(0x007cf83c)));
+    const u8 *const money = reinterpret_cast<const u8 *>((uintptr_t)GameTable7cfb90_Get1da726_5195d0(gWorldPtr));
     const u32 value = *reinterpret_cast<const u32 *>(money + 0x118);
     gDialog7ca210_7ca1e8 = value;
     vcall<void>(child, 0x1c, value);
     child = Window_FindChild(dialog(), nullptr, 0x4f3b1);
-    const u32 flag = Get1da710_51a280(global<u8 *>(0x007cf83c));
+    const u32 flag = Get1da710_51a280(gWorldPtr);
     gDialog7ca210_Open_7ca208 = flag;
     Window705a50_SetState(child, nullptr, flag ? 1 : 0, 1);
     u8 &guard = gDialog7ca210_fb34c5;

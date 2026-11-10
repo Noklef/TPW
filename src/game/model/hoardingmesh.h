@@ -41,3 +41,6 @@ GAME_DATA(char *, gHoardingMesh_Build_74cfc0, 0x0074cfc0, 0x4);
 GAME_DATA(char *, gHoardingMesh_Build_74d010, 0x0074d010, 0x4);
 GAME_DATA(u32, gHoardingMesh_Build_74d020, 0x0074d020, 0x4);
 GAME_DATA(char[12], gText_HoardingMesh_Build_74d080, 0x0074d080, 0xc);
+
+// Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(u8[0x8], gHoardingmesh_74d008, 0x0074d008, 0x8);

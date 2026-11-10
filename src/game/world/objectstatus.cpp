@@ -21,7 +21,7 @@ template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cas
 // The waiting statuses: none when the world's word is 0, busy when the game table entry's indexed dword is set, then by the tracked person:
 // none, there, or there in its state.
 u32 WaitStatus(u8 *object, u32 word, u32 index, u32 base) {
-    u8 *const world = *reinterpret_cast<u8 **>(0x007cf83c);
+    u8 *const world = *&gWorldPtr;
     if (at<u16>(world, word) == 0)
         return base;
     if (Obj_GetIndexed28(reinterpret_cast<u8 *>((uintptr_t)GameTable7cfb90_Get1da718_519450(world)), nullptr, index) != 0)
@@ -81,8 +81,8 @@ u32 __fastcall ObjectStatus_ShowOnPanel(u8 *panel) {
 }
 
 u32 __cdecl ObjectStatus_Show(u8 *window, u32 status) {
-    const u32 colour = reinterpret_cast<const u32 *>(0x0074fb50)[status];
+    const u32 colour = reinterpret_cast<const u32 *>((u32)(uintptr_t)&gObjectstatus_74fb50)[status];
     Window_Notify40000(window, nullptr, colour & 0xff, colour >> 8 & 0xff, colour >> 16 & 0xff, 0xff);
-    return vcall<u32>(window, 0x24, Language_WideText(reinterpret_cast<const u32 *>(0x0074fbc0)[status]));
+    return vcall<u32>(window, 0x24, Language_WideText(reinterpret_cast<const u32 *>((u32)(uintptr_t)&gObjectStatus_Show_74fbc0)[status]));
 }
 }

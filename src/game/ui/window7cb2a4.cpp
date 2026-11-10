@@ -27,7 +27,7 @@ void show(u8 *window, u32 number, u32 back, u32 shown) {
 
 void tell(u8 *window, u32 number, s32 count) {
     u16 text[8];
-    g_env->format(text, reinterpret_cast<const u16 *>((uintptr_t)0x00752ef8), count);
+    g_env->format(text, reinterpret_cast<const u16 *>((uintptr_t)&gWindow7cb2a4_752ef8), count);
     vcall<void>(Window_FindChild(window, nullptr, number), 0x24, text);
 }
 
@@ -37,8 +37,8 @@ void Window7cb2a4_SetEnv(const Window7cb2a4Env *env) { g_env = env ? env : &kGam
 
 extern "C" s32 __cdecl Window7cb2a4_Handler(u8 *window, u32 message, u32 a, u32 b) {
     if (message == 0x15) {
-        global<s32>(0x00752ec4) = -1;
-        global<s32>(0x00752ec8) = -1;
+        gWindow7cb2a4_Handler_752ec4 = -1;
+        gWindow7cb2a4_Handler_752ec8 = -1;
     } else if (message == 0x1e) {
         u8 &guard = gDialog7cb2b8build_fb34c1;
         if (!(guard & 1)) {
@@ -46,8 +46,8 @@ extern "C" s32 __cdecl Window7cb2a4_Handler(u8 *window, u32 message, u32 a, u32 
             g_env->readMode(reinterpret_cast<u8 *>(&gDialog74fb20_fb3b7c));
             g_env->atExit(reinterpret_cast<void(__cdecl *)()>((uintptr_t)0x005d1750));
         }
-        if (gDialog74fb20_fb3b7c != 2 && g_env->level(g_env->save()) != global<s32>(0x00752ec8)) {
-            global<s32>(0x00752ec8) = g_env->level(g_env->save());
+        if (gDialog74fb20_fb3b7c != 2 && g_env->level(g_env->save()) != gWindow7cb2a4_Handler_752ec8) {
+            gWindow7cb2a4_Handler_752ec8 = g_env->level(g_env->save());
             if (g_env->level(g_env->save())) {
                 show(window, 0x36, 0x34, 1);
                 tell(window, 0x36, g_env->level(g_env->save()));
@@ -56,8 +56,8 @@ extern "C" s32 __cdecl Window7cb2a4_Handler(u8 *window, u32 message, u32 a, u32 
             }
         }
         const s32 left = g_env->left(g_env->save());
-        if (left != global<s32>(0x00752ec4)) {
-            global<s32>(0x00752ec4) = left;
+        if (left != gWindow7cb2a4_Handler_752ec4) {
+            gWindow7cb2a4_Handler_752ec4 = left;
             show(window, 0x37, 0x35, left ? 1 : 0);
             if (left) tell(window, 0x37, left);
         }

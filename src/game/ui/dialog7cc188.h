@@ -57,5 +57,6 @@ void __cdecl Dialog7cc188_Open();
 #include "../core/gamedata.h"
 
 // Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(char[0x8], gText_Dialog7cc188_74fa84, 0x0074fa84, 0x8);
 GAME_DATA(u8[372], gDialog7cc188_Open_7542b8, 0x007542b8, 0x174);
 GAME_DATA(u8[128], gDialog7cc188_7cb8d8, 0x007cb8d8, 0x80);

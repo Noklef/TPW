@@ -158,3 +158,6 @@ void __fastcall Visitor_PostUpdate(u8 *visitor);
 GAME_DATA(const float, gVisitor_StepIdle_700794, 0x00700794, 0x4);
 GAME_DATA(const float, gVisitor_StepIdle_700798, 0x00700798, 0x4);
 GAME_DATA(const float, gVisitor_StepIdle_70079c, 0x0070079c, 0x4);
+
+// Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(const u32, gVisitor_70048c, 0x0070048c, 0x4);

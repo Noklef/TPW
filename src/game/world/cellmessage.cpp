@@ -22,6 +22,8 @@
 #include "cellmessage.h"
 #include "cellbuild.h"
 #include "mapclick.h"
+#include "../math/intpair.h"
+#include "world.h"
 
 namespace {
 
@@ -57,7 +59,7 @@ float height_of(const u8 *cell, s32 x, s32 y) {
 
 // The squares down each side whose next cell stands lower: built (the answer 1) or not, with the tag and the mode flag of the other way.
 void walls(const u8 *cell, float top, u32 x10, u32 y10, bool built, u32 tag, u32 flag) {
-    static const u32 kSides[4][2] = {{0x007cdba0, 1}, {0x007cdbc8, 4}, {0x007cdba8, 0x10}, {0x007cdbd0, 0x40}};
+    static const u32 kSides[4][2] = {{(u32)gStepN_7cdba0, 1}, {(u32)gStepE_7cdbc8, 4}, {(u32)gStepS_7cdba8, 0x10}, {(u32)gStepW_7cdbd0, 0x40}};
     for (const auto &side : kSides) {
         const s32 *const step = reinterpret_cast<const s32 *>((uintptr_t)side[0]);
         const u8 *const next = Map_StepCell(reinterpret_cast<const u16 *>(cell), nullptr, step[0], step[1], 1);
@@ -71,8 +73,8 @@ void walls(const u8 *cell, float top, u32 x10, u32 y10, bool built, u32 tag, u32
             if (built) {
                 DynFaces_AddSquare(x10, bits(z), y10, (u8)side[1], 1, 0, 0x3f800000, 0, 0, 0, 0);
             } else {
-                global<u32>(0x00816d58) = 0;
-                global<u32>(0x00816d50) = 0;
+                gCellbuild_816d58 = 0;
+                gCellbuild_816d50 = 0;
                 DynFaces_AddSquare(x10, bits(z), y10, (u8)side[1], tag, 0, 0x3f800000, 0, 0, flag, 0);
             }
         }
@@ -109,7 +111,7 @@ u32 draw_walls(u8 *cell, u32 code, u32 a, u32 b) {
 // The cell's entry, or for a type 0xc / 0x11 one its parent ([0x7cf83c] + (its word +0x10 + 0x6cde) * 0x28).
 u8 *entry_of(const u8 *cell) {
     u8 *entry = MapHandle_Entry28(reinterpret_cast<const u16 *>(cell));
-    if (MapCell_IsTypeCOr11(entry)) entry = global<u8 *>(0x007cf83c) + ((u32)at<u16>(entry, 0x10) + 0x6cde) * 0x28;
+    if (MapCell_IsTypeCOr11(entry)) entry = gWorldPtr + ((u32)at<u16>(entry, 0x10) + 0x6cde) * 0x28;
     return entry;
 }
 
@@ -121,7 +123,7 @@ void reset_ends(u8 *cell, u32 a, u32 b) {
     if (!MapCell_IsTypeBDOr10Or12Or19(entry) || !MapCell_HasLowFlags(entry)) return;
     const u8 *const cell44 = MapHandle_Cell44(reinterpret_cast<const u16 *>(entry));
     s32 count = type1or3(cell44) ? 1 : 0;
-    static const u32 kPairs[3] = {0x007cdbc8, 0x007cdba8, 0x007cdbb8};
+    static const u32 kPairs[3] = {(u32)gStepE_7cdbc8, (u32)gStepS_7cdba8, (u32)gStepSE_7cdbb8};
     for (const u32 pair : kPairs) {
         const s32 *const step = reinterpret_cast<const s32 *>((uintptr_t)pair);
         const u8 *const next = Map_StepCell(reinterpret_cast<const u16 *>(cell44), nullptr, step[0], step[1], 1);
@@ -131,11 +133,11 @@ void reset_ends(u8 *cell, u32 a, u32 b) {
     const u8 direction = MapCell_Direction(entry);
     u32 first, second;
     if (direction == 1 || direction == 0x10) {
-        first = 0x007cdba8;
-        second = 0x007cdba0;
+        first = (u32)gStepS_7cdba8;
+        second = (u32)gStepN_7cdba0;
     } else if (direction == 4 || direction == 0x40) {
-        first = 0x007cdbd0;
-        second = 0x007cdbc8;
+        first = (u32)gStepW_7cdbd0;
+        second = (u32)gStepE_7cdbc8;
     } else {
         return;
     }
@@ -163,13 +165,13 @@ u32 __fastcall MapCell_HandleMessage(u8 *cell, void *, u32 message, u32 a, u32 b
         reset_ends(cell, a, b);
         return 1;
     case 0x80:
-        MapCell_LinkPath(cell, nullptr, global<u32>(0x00816d64), (s32)a, (s32)b, 1);
+        MapCell_LinkPath(cell, nullptr, gCellmessage_816d64, (s32)a, (s32)b, 1);
         return 1;
     case 0x81:
         MapCell_ApplyPathModel(cell);
-        global<u32>(0x00816d64) = 0;
-        if (!global<u32>(0x00820ab8) || !global<u32>(0x00820abc)) return 1;
-        global<u32>(0x00820abc) = 0;
+        gCellmessage_816d64 = 0;
+        if (!gCellmessage_820ab8 || !gCellmessage_820abc) return 1;
+        gCellmessage_820abc = 0;
         return 0;
     case 0x82:
         if (MapCell_Direction(cell)) return 1;
@@ -200,7 +202,7 @@ u32 __fastcall MapCell_HandleMessage(u8 *cell, void *, u32 message, u32 a, u32 b
         const u32 parent = at<u16>(entry, 0x10);
         if (!parent) return 1;
         u16 handle = (u16)b;
-        Cell_FirstObject(global<u8 *>(0x007cf83c) + 0x294 + parent * 0x44, nullptr, &handle);
+        Cell_FirstObject(gWorldPtr + 0x294 + parent * 0x44, nullptr, &handle);
         if (!handle) return 1;
         u8 *const thing = global<u8 *>(0x007cfb90 + (u32)handle * 20);
         const u32 slot = (a & 0xffff0000u) | (handle & 0xff00u) | (at<u32>(thing, 0x2c) != 0);   // (a's slot, sic)
@@ -224,12 +226,12 @@ u32 __fastcall MapCell_HandleMessage(u8 *cell, void *, u32 message, u32 a, u32 b
     default:
         break;
     }
-    global<u32>(0x00820abc) = 0;
-    if (global<u32>(0x00820ab8) && message != 0x15 && (at<u32>(cell, 8) == 3 || at<u32>(cell, 8) == 1)) global<u32>(0x00820abc) = 1;
+    gCellmessage_820abc = 0;
+    if (gCellmessage_820ab8 && message != 0x15 && (at<u32>(cell, 8) == 3 || at<u32>(cell, 8) == 1)) gCellmessage_820abc = 1;
     if (message == 0x15 && ((at<u8>(cell, 0xf) & 1) || at<u32>(cell, 8) == 4 || at<u32>(cell, 8) == 9 || at<u32>(cell, 8) == 0xa))
-        global<u32>(0x00820abc) = 1;
+        gCellmessage_820abc = 1;
     if (!MapCell_SetKind(cell, nullptr, message)) return 0;
-    global<u32>(0x00816d64) = message;
+    gCellmessage_816d64 = message;
     return 1;
 }
 }
@@ -237,7 +239,7 @@ u32 __fastcall MapCell_HandleMessage(u8 *cell, void *, u32 message, u32 a, u32 b
 namespace {
 
 u8 *map_cell(s32 x, s32 y) {
-    return global<u8 *>(0x007cf83c) + 0x294 + (((u32)y << 7) + (u32)x + 1 & 0xffff) * 0x44;
+    return gWorldPtr + 0x294 + (((u32)y << 7) + (u32)x + 1 & 0xffff) * 0x44;
 }
 
 }   // namespace
@@ -263,8 +265,8 @@ void __cdecl Map_SetRideCell(u32 unused, s32 x, s32 y, u32 ride, u32 flagged) {
 }
 
 u32 __cdecl Map_SendLine(u32 message, s32 x0, s32 y0, const s32 *x1, const s32 *y1) {
-    global<u32>(0x00820aa4) = 1;
-    global<u32>(0x00820ab8) = 0;
+    gCellmessage_820aa4 = 1;
+    gCellmessage_820ab8 = 0;
     const s32 ex = *x1, ey = *y1;
     const s32 dx = (s32)((u32)ex - (u32)x0), dy = (s32)((u32)ey - (u32)y0);
     const bool along_x = (dx < 0 ? (s32)(0u - (u32)dx) : dx) > (dy < 0 ? (s32)(0u - (u32)dy) : dy);
@@ -277,18 +279,18 @@ u32 __cdecl Map_SendLine(u32 message, s32 x0, s32 y0, const s32 *x1, const s32 *
             if (Map_InBounds(x, y)) {
                 const u32 answer = along_x ? MapCell_HandleMessage(map_cell(x, y), nullptr, message, (u32)step, 0)
                                            : MapCell_HandleMessage(map_cell(x, y), nullptr, message, 0, (u32)step);
-                global<u32>(0x00820aa4) = 0;
+                gCellmessage_820aa4 = 0;
                 if (!answer) return 0;
             }
             walk = (s32)((u32)walk + (u32)step);
         } while (walk != *end);
     }
-    global<u32>(0x00820ab8) = 1;
+    gCellmessage_820ab8 = 1;
     if (!Map_InBounds(x, y)) return 1;
     const u32 answer = along_x ? MapCell_HandleMessage(map_cell(x, y), nullptr, message, (u32)step, 0)
                                : MapCell_HandleMessage(map_cell(x, y), nullptr, message, 0, (u32)step);
-    global<u32>(0x00820aa4) = 0;
-    global<u32>(0x00820ab8) = 0;
+    gCellmessage_820aa4 = 0;
+    gCellmessage_820ab8 = 0;
     return answer ? 1 : 0;
 }
 }

@@ -19,6 +19,7 @@
 #include "cursor.h"
 #include "mouseclick.h"
 #include "window7cc8c0handler.h"
+#include "../world/world.h"
 #include "../core/textarg.h"
 
 namespace {
@@ -82,7 +83,7 @@ void overRideMode() {
     if (!global<u32>(0x007a1c7c)) {
         const u32 tile = global<u16>(0x007b05cc);
         if (!tile) return;
-        u8 *const world = global<u8 *>(0x007cf83c);
+        u8 *const world = gWorldPtr;
         const u8 *const cell = cellOf(world, tile);
         if (at<u32>(cell, 8) != 0x15) return;
         u16 out;
@@ -120,7 +121,7 @@ void overTile(u32 previous) {
         g_env->cursor(0);
         return;
     }
-    u8 *const world = global<u8 *>(0x007cf83c);
+    u8 *const world = gWorldPtr;
     u8 *const map = world + 0x2d8;
     u16 entrance0, entrance1, booth0, booth1;
     g_env->entrance(map, nullptr, &entrance0, 0);

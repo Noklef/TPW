@@ -6,6 +6,7 @@
 #include "../core/vcall.h"
 #include "../core/gameheap.h"
 #include "../render/screen.h"
+#include "../render/d3dsetup.h"
 
 namespace {
 
@@ -46,7 +47,7 @@ namespace {
 // once (done).
 u8 *wrapOnce(u8 *source, u32 done, u32 member, u32 iface, u32 surface) {
     if (!at<u32>(source, done)) {
-        void *const display = at<void *>(global<void *>(0x00879a24), member);
+        void *const display = at<void *>(global<void *>((u32)(uintptr_t)&gD3dsetup_879a20 + 0x4), member);
         comcall<s32>(display, 0, reinterpret_cast<const void *>(0x00707210), &at<void *>(source, iface));
         if (void *const s = at<void *>(source, iface)) {
             s32 result;

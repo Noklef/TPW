@@ -45,3 +45,9 @@ struct Dialog7cc984OpenEnv {
     void(__fastcall *push)(u8 *object, void *, u32 id, u32 clear);                // Class702da0_Push
 };
 void Dialog7cc984Open_SetEnv(const Dialog7cc984OpenEnv *env);
+
+#include "../core/gamedata.h"
+
+// Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(u8[0x10], gDialog7cc984open_759160, 0x00759160, 0x10);   // a window script (or a text / table before one): to the next named address
+GAME_DATA(u8[0x230], gDialog7cc984open_759170, 0x00759170, 0x230);   // a window script (or a text / table before one): to the next named address

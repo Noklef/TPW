@@ -16,6 +16,7 @@
 #include "windowfactory.h"
 #include "windowscript.h"
 #include "panel7b9940.h"
+#include "../world/world.h"
 
 namespace {
 
@@ -28,7 +29,7 @@ const Dialog74fb20Env kGameEnv = {Global7cb2e8_Get, Overlay7cb2b4_Toggle, Window
                                   reinterpret_cast<void(__fastcall *)(u8 *)>((uintptr_t)0x00516c10)};
 const Dialog74fb20Env *g_env = &kGameEnv;
 
-u8 *build() { return g_env->build(gFocus_7cb2b4, nullptr, reinterpret_cast<u8 *>((uintptr_t)0x0074fb20), 0x0048a740); }
+u8 *build() { return g_env->build(gFocus_7cb2b4, nullptr, gDialog74fb20_74fb20, 0x0048a740); }
 
 // Moved to half its rectangle's size, the script run.
 void place(u8 *window, u8 *rect, u32 script = 0x0074fc38) {
@@ -63,7 +64,7 @@ u8 *hide(u8 *thing) {
 // Dialog74faf0's way out: the bars back, and in the mode 2 the box of the text 0x1d7.
 void closingB(u8 *window, u32 bar) {
     g_env->send(window, 4, 0, 0);
-    g_env->tableOp(global<u8 *>(0x007cf83c));
+    g_env->tableOp(gWorldPtr);
     g_env->send(gPanel7b9940_7cb2b0, 6, 0, 0);
     g_env->send(gPanel7b9940_7cb2ac, 6, bar, 0);
     g_env->enableKeys();
@@ -145,7 +146,7 @@ u32 __cdecl Dialog74fb20_Handler(u8 *window, u32 message, u32 a, u32 b) {
 }
 
 void __cdecl CameraMode_Leave() {
-    const u32 flags = global<u32>(0x00790ab0);
+    const u32 flags = gCameraFlags;
     if (flags & 2) {
         g_env->walk();
     } else if (flags & 4) {
@@ -157,7 +158,7 @@ void __cdecl CameraMode_Leave() {
 void __cdecl Dialog74fb20_OpenFor(u8 *thing) {
     u8 *const host = hide(thing);
     g_env->setHandler(host, nullptr, 0x0048a740);
-    u8 *const dialog = g_env->build(host, nullptr, reinterpret_cast<u8 *>((uintptr_t)0x0074fb20), 0);
+    u8 *const dialog = g_env->build(host, nullptr, gDialog74fb20_74fb20, 0);
     u8 rect[12];
     GuiRect_Ctor(rect);
     place(dialog, rect);
@@ -168,11 +169,11 @@ void __cdecl Dialog74fb20_OpenFor(u8 *thing) {
 
 void __cdecl Dialog74faf0_OpenFor(u8 *thing) {
     u8 *const host = hide(thing);
-    u8 *const dialog = g_env->build(host, nullptr, reinterpret_cast<u8 *>((uintptr_t)0x0074faf0), 0);
+    u8 *const dialog = g_env->build(host, nullptr, gDialog74faf0_OpenFor_74faf0, 0);
     vcall<void>(dialog, 0x14, 0u);
     u8 rect[12];
     GuiRect_Ctor(rect);
-    place(dialog, rect, 0x0074fcf8);
+    place(dialog, rect, (u32)(uintptr_t)&gDialog74faf0_OpenFor_74fcf8);
     g_env->setHandler(host, nullptr, 0x0048a970);
     g_env->setFocus(host, nullptr, 0);
     GuiRect_Dtor(rect);

@@ -19,6 +19,7 @@
 #include "windowreg.h"
 #include "windowscript.h"
 #include "window7cc8c0handler.h"
+#include "dialog7cc188.h"
 
 namespace {
 
@@ -29,7 +30,7 @@ s32 __cdecl FormatWide(u8 *charset, u16 *dest, u32 size, u32 entry) { return Cha
 const Dialog7cc944Env kGameEnv = {&Window705a20_SetBuffer, &Window705a20_SetCaret, &Window_SetFocus, &Window7059f0_BuildRows, &Window7059f0_SetColumnBottom, &Window7059f0_SetHighlight, &ButtonText_Init, &Window7059f0_AddItem, &FormatWide, &HoverLabel_Attach, &Class702da0_Push};
 const Dialog7cc944Env *g_env = &kGameEnv;
 
-u8 *hilight() { return reinterpret_cast<u8 *>((uintptr_t)GuiWindows_FindByName(reinterpret_cast<const char *>(0x0074fa84))); }
+u8 *hilight() { return reinterpret_cast<u8 *>((uintptr_t)GuiWindows_FindByName(reinterpret_cast<const char *>((u32)(uintptr_t)&gText_Dialog7cc188_74fa84))); }
 
 }  // namespace
 
@@ -37,7 +38,7 @@ void Dialog7cc944_SetEnv(const Dialog7cc944Env *env) { g_env = env ? env : &kGam
 
 void __cdecl Dialog7cc944_Open(u32 value) {
     if (gDialog7cc944_7cc944) return;
-    u8 *const built = WindowScript_Build(*reinterpret_cast<u8 **>(global<u8 *>(0x00f82884) + 4), nullptr, reinterpret_cast<u8 *>((uintptr_t)0x00758f40), 0x004bf9f0);
+    u8 *const built = WindowScript_Build(*reinterpret_cast<u8 **>(global<u8 *>(0x00f82884) + 4), nullptr, reinterpret_cast<u8 *>((uintptr_t)&gListrows_758f10 + 0x30), 0x004bf9f0);
     gDialog7cc944_7cc948 = value;
     gDialog7cc944_7cc944 = built;
     u8 *const edit = Window_FindChild(built, nullptr, 0xe05a);

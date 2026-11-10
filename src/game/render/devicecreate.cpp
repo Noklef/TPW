@@ -6,6 +6,7 @@
 #include "../core/gameheap.h"
 #include "../core/vcall.h"
 #include "batch.h"
+#include "d3dsetup.h"
 
 namespace {
 
@@ -48,7 +49,7 @@ u8 *new_soft() {
 
 // The raster interface of the DirectDraw object's +0x14: its first slot (QueryInterface) with 0x707210.
 u32 raster_interface() {
-    const u32 surface = at<u32>(reinterpret_cast<const void *>((uintptr_t)global(0x00879a24)), 0x14);
+    const u32 surface = at<u32>(reinterpret_cast<const void *>((uintptr_t)global((u32)(uintptr_t)&gD3dsetup_879a20 + 0x4)), 0x14);
     u32 result;
     comcall<u32>(reinterpret_cast<void *>((uintptr_t)surface), 0, 0x00707210u, &result);
     return result;
@@ -125,8 +126,8 @@ u32 __cdecl SoftSetup_CreateSquare() {
     global((u32)&gDevicecreate_fbe034) = 0;
     global((u32)&gSoftSetup_fbe01c) = now - 1;
     global((u32)&gSoftSetup_fbe020) = now - 1;
-    global(0x00fbe024) = at<u32>(object, 8);
-    global(0x00fbe02c) = now * 4;
+    global((u32)(uintptr_t)&gDevicecreate_fbe024) = at<u32>(object, 8);
+    global((u32)(uintptr_t)&gDevicecreate_fbe02c) = now * 4;
     at<u32>(object, 0xc) = (now * now) << 2;
     return 1;
 }
@@ -160,8 +161,8 @@ u32 __fastcall SoftSetup_Open(u8 *self, void *, u32 kind) {
     global((u32)&gSoftSetup_fbe018) = 0;
     global((u32)&gSoftSetup_fbe020) = global(0x008bcbd4) - 1;
     global((u32)&gDevicecreate_fbe034) = 0;
-    global(0x00fbe024) = at<u32>(self, 8);
-    global(0x00fbe02c) = w * 4;
+    global((u32)(uintptr_t)&gDevicecreate_fbe024) = at<u32>(self, 8);
+    global((u32)(uintptr_t)&gDevicecreate_fbe02c) = w * 4;
     global((u32)&gDevicecreate_fbe028) = at<u32>(self, 4);
     global((u32)&gDevicecreate_fbe030) = w * 2;
     if (global(0x008bd508) & 0x2000000)

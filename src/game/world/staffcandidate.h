@@ -55,3 +55,5 @@ void StaffCandidate_SetEnv(const StaffCandidateEnv *env);   // nullptr: the game
 #include "../core/gamedata.h"
 
 // Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(u16[0x80], gStaffCandidate_TakenText_7cee18, 0x007cee18, 0x100);
+GAME_DATA(u16[0x80], gStaffCandidate_PickedText_7cef20, 0x007cef20, 0x100);

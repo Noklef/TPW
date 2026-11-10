@@ -31,9 +31,9 @@ u8 *Actions() { return gKeymap_787c14; }
 
 void LetCameraGo(u8 *window) {
     const Window7cb2b0HandlerEnv *const E = g_env;
-    if (!(global<u8>(0x790ab0) & 0x16)) return;
+    if (!(reinterpret_cast<u8 &>(gCameraFlags) & 0x16)) return;
     E->setCursor(window, nullptr, 1);
-    const u8 mode = global<u8>(0x790ab0);
+    const u8 mode = reinterpret_cast<u8 &>(gCameraFlags);
     if (mode & 2)
         E->walk();
     else if (mode & 4)

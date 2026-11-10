@@ -59,3 +59,6 @@ GAME_DATA(const float *, gRaypick_7a1cb0, 0x007a1cb0, 0x4);
 GAME_DATA(u32[3], gRayPick_7a1cb8, 0x007a1cb8, 0xc);
 GAME_DATA(float[3], gRaypick_7a1cc8, 0x007a1cc8, 0xc);
 GAME_DATA(const float *, gRaypick_7a1cd8, 0x007a1cd8, 0x4);
+
+// Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(u8[0x4], gRaypick_7a1cd4, 0x007a1cd4, 0x4);

@@ -10,6 +10,7 @@
 #include "rides.h"
 #include "trackrides.h"
 #include "trakcarroute.h"
+#include "collobj.h"
 
 namespace {
 
@@ -23,12 +24,12 @@ const u32 kCarSize = 0xac;
 
 // The ride the handle indexes (none when the module is not loaded).
 u8 *ride_of(u32 handle) {
-    return global<u32>(0x00877b58) == 0x4a454647 ? reinterpret_cast<u8 *>(global<uintptr_t>(0x00877b60) + (handle & 0xff) * 0xd0) : nullptr;
+    return gTrackPools.tag == 0x4a454647 ? reinterpret_cast<u8 *>((uintptr_t)gTrackPools.rides + (handle & 0xff) * 0xd0) : nullptr;
 }
 // Whether the handle names it (not loaded: only a handle of 0).
-bool names(u32 handle, const u8 *ride) { return handle == (global<u32>(0x00877b58) == 0x4a454647 ? (handle & 0xff) | at<u32>(ride, 0) << 8 : 0); }
+bool names(u32 handle, const u8 *ride) { return handle == (gTrackPools.tag == 0x4a454647 ? (handle & 0xff) | at<u32>(ride, 0) << 8 : 0); }
 
-u8 *instance_of(u32 id) { return reinterpret_cast<u8 *const *>(0x007a4610)[id]; }
+u8 *instance_of(u32 id) { return gRides_7a4610[id]; }
 
 void set_motion(u8 *car, u32 motion, u32 mode) {
     at<u32>(car, 0x10) = motion;
@@ -40,9 +41,9 @@ s32 by1024(float v) { return (s32)(long long)(X87Reg(v) * 1024.0f).v; }
 
 // The first used car of the module's areas holding the place, as TrakCar's area pass; none: 0.
 const u8 *area_at(s32 x, s32 y) {
-    const u8 *area = global<const u8 *>(0x00877b70);
+    const u8 *area = gTrackPools.nodes;
     if (!area) return nullptr;
-    for (s32 left = global<s32>(0x00877b74); left != 0; area += 0x20) {
+    for (s32 left = gTrackPools.nodeCount; left != 0; area += 0x20) {
         if (!(at<u32>(area, 0) & 1)) continue;
         left--;
         if (!(at<u32>(area, 0) & 0x40) && IntArea_Contains(x, y, reinterpret_cast<const s32 *>(area))) return area;
@@ -62,8 +63,8 @@ void __cdecl TrakRide_Break(u32 handle) {
     at<u32>(ride, 0x54) = 2;
     const s32 kind = at<s32>(ride, 0);
     if (!(kind > -15 && (kind < -2 || kind == -1))) return;
-    u8 *car = global<u8 *>(0x00877b68);
-    for (s32 left = global<s32>(0x00877b6c); left != 0; car += kCarSize) {
+    u8 *car = gTrackPools.cars;
+    for (s32 left = gTrackPools.carCount; left != 0; car += kCarSize) {
         if (!(at<u32>(car, 0) & 1)) continue;
         left--;
         if (at<u8 *>(car, 0x9c) != ride || !(at<u32>(car, 0) & 0x4000) || at<s32>(car, 0x24) == -1 || at<s32>(car, 0x2c) != -1) continue;
@@ -88,8 +89,8 @@ void __cdecl TrakRide_StartBump(u32 handle) {
     if (!(kind == -14 || kind == -11 || kind == -10 || kind == -9 || kind == -7 || kind == -6 || kind == -4 || kind == -3 || kind == -1)) return;
     if (at<u32>(ride, 0x50) != 1) return;
     at<u32>(ride, 0x50) = 2;
-    u8 *car = global<u8 *>(0x00877b68);
-    for (s32 left = global<s32>(0x00877b6c); left != 0; car += kCarSize) {
+    u8 *car = gTrackPools.cars;
+    for (s32 left = gTrackPools.carCount; left != 0; car += kCarSize) {
         if (!(at<u32>(car, 0) & 1)) continue;
         left--;
         if (at<u8 *>(car, 0x9c) != ride) continue;
@@ -103,9 +104,9 @@ void __cdecl TrakRide_StartBump(u32 handle) {
 u32 __cdecl TrakRide_LoadCar(u32 handle) {
     u8 *const ride = ride_of(handle);
     if (!names(handle, ride) || at<u32>(ride, 0x50) == 0) return 0;
-    s32 left = global<s32>(0x00877b6c);
+    s32 left = gTrackPools.carCount;
     if (left == 0) return 0;
-    u8 *car = global<u8 *>(0x00877b68);
+    u8 *car = gTrackPools.cars;
     for (;; car += kCarSize) {
         if (at<u32>(car, 0) & 1) {
             left--;
@@ -128,7 +129,7 @@ u8 *__cdecl TrakRide_AddCar(u32 handle, u32 flags) {
     u8 *const car = TrakPool_FirstFree();
     if (!car) return nullptr;
     const u32 y = at<u32>(ride, 0x78), x = at<u32>(ride, 0x74), owner = at<u32>(ride, 8);
-    global<s32>(0x00877b6c)++;
+    gTrackPools.carCount++;
     for (u32 off = 0; off < kCarSize; off += 4) at<u32>(car, off) = 0;
     at<u32>(car, 0x38) = y;
     at<u32>(car, 0x64) = owner;
@@ -173,8 +174,8 @@ u8 *__cdecl TrakRide_AddCar(u32 handle, u32 flags) {
 u32 __cdecl TrakRide_RemoveCar(u32 handle, u32 empty) {
     const u8 *const ride = ride_of(handle);
     if (names(handle, ride)) {
-        u8 *car = global<u8 *>(0x00877b68);
-        for (s32 left = global<s32>(0x00877b6c); left != 0; car += kCarSize) {
+        u8 *car = gTrackPools.cars;
+        for (s32 left = gTrackPools.carCount; left != 0; car += kCarSize) {
             if (!(at<u32>(car, 0) & 1)) continue;
             left--;
             if (at<const u8 *>(car, 0x9c) == ride && (empty == 0 || at<u32>(car, 0x30) == 0)) {

@@ -32,8 +32,8 @@ void StopSounds(u8 *self) {
 }
 
 void PlaySounds(u8 *item) {
-    at<u32>(item, 0x1c) = g_env->playAt(at<u32>(item, 0x1c), at<u32>(gSoundset_803a4c, at<u32>(item, 0x18) * 8 + 4), 1, 0, 0, 0);
-    at<u32>(item, 0x20) = g_env->playAt(at<u32>(item, 0x20), at<u32>(gSoundset_803a4c, at<u32>(item, 0x18) * 8), 2, 0, 0, 0);
+    at<u32>(item, 0x1c) = g_env->playAt(at<u32>(item, 0x1c), at<u32>(gSoundCategories.lobbyPairs, at<u32>(item, 0x18) * 8 + 4), 1, 0, 0, 0);
+    at<u32>(item, 0x20) = g_env->playAt(at<u32>(item, 0x20), at<u32>(gSoundCategories.lobbyPairs, at<u32>(item, 0x18) * 8), 2, 0, 0, 0);
     g_env->apply();
 }
 

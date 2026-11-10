@@ -19,6 +19,8 @@
 #include "../world/mapcell.h"
 #include "../world/thingscan.h"
 #include "../render/graphicssettings.h"
+#include "../world/rides.h"
+#include "../math/intpair.h"
 
 namespace {
 
@@ -463,7 +465,7 @@ u8 *__cdecl Terrain_RideAt(u32 x, u32 y) {
     const u32 height = at<u32>(grid, 0x1c);
     if (y >= height) y = height - 1;
     const u32 ride = Map_RideIndexAt((s32)x, (s32)y);
-    return ride ? global<u8 *>(0x007a4610 + 4 * ride) : nullptr;
+    return ride ? gRides_7a4610[ride] : nullptr;
 }
 
 double __cdecl Terrain_SurfaceHeight(s32 x, s32 y, u32 *slot) {
@@ -485,7 +487,7 @@ double __cdecl Terrain_SurfaceHeight(s32 x, s32 y, u32 *slot) {
     const float fy = (float)X87_MulIntDouble(y, 10.0);
     if (ride) {
         if (slot) *slot = ride;
-        const u8 *const record = global<const u8 *>(0x007a4610 + 4 * ride);
+        const u8 *const record = gRides_7a4610[ride];
         const u8 *const heights = record ? at<const u8 *>(record, 0xcc) : nullptr;
         if (heights) {
             const u8 *const placed = at<const u8 *>(record, 8);
@@ -527,7 +529,7 @@ float __cdecl Terrain_RoundedCellHeight(const u8 *cell, float height, s32 x, s32
         return (float)(X87Reg((double)tens) * X87Reg(10.0f));   // 0x700d94
     };
     if (counts(at<u32>(cell, 8))) height = rounded(x, y);
-    const uintptr_t pairs[3] = {0x007cdba8, 0x007cdbc8, 0x007cdbb8};
+    const uintptr_t pairs[3] = {(u32)gStepS_7cdba8, (u32)gStepE_7cdbc8, (u32)gStepSE_7cdbb8};
     for (const uintptr_t pair : pairs) {
         const s32 *const step = reinterpret_cast<const s32 *>(pair);
         const u8 *const next = Map_StepCell(reinterpret_cast<const u16 *>(cell), nullptr, step[0], step[1], 1);

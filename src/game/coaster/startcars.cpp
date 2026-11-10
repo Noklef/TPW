@@ -2,6 +2,7 @@
 
 #include <cstdint>
 #include "coastersload.h"
+#include "../world/rides.h"
 
 namespace {
 
@@ -12,7 +13,7 @@ template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((ui
 
 // The object of a part of the holder at this index of the table 0x7a4610.
 const u8 *partObject(u32 index, s32 part) {
-    const u8 *const holder = global<const u8 *>(0x007a4610 + 4 * index);
+    const u8 *const holder = gRides_7a4610[index];
     return at<const u8 *>(at<const u8 *>(at<const u8 *>(at<const u8 *>(holder, 8), 0x28), 4), 0x14 * part + 4);
 }
 
@@ -37,7 +38,7 @@ extern "C" void __cdecl Coaster_AddStartCars(u32 keepFrontEnd) {
                     position[0] = position[1] = position[2] = 0;
             }
         } else {
-            const s32 part = (s32)g_calls.Cd(0x0044b220, global<u32>(0x007a4610 + 4 * at<u32>(coaster, 0x10)), 0x400000u, i + 1);   // Model_FindPartByKey4
+            const s32 part = (s32)g_calls.Cd(0x0044b220, (u32)(uintptr_t)gRides_7a4610[at<u32>(coaster, 0x10)], 0x400000u, i + 1);   // Model_FindPartByKey4
             if (part != -1) {
                 if (const u8 *const object = partObject(at<u32>(coaster, 0x10), part)) {
                     position[0] = at<u32>(object, 0x30);

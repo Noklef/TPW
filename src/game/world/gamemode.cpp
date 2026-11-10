@@ -35,7 +35,7 @@ u32 store(u32 mode, u32 record, u32 code) {
     if (global<u32>(0x0081ae2c) != mode) {
         static const u32 kIds[] = {0xb8, 0xcb, 0xd6, 0xcd, 0xc9, 0xce, 0xc1, 0x159, 0x15a, 0x151};
         for (const u32 id : kIds) {
-            u8 *const advisor = reinterpret_cast<u8 *>((uintptr_t)GameTable7cfb90_Get1da71c_5194d0(global<u8 *>(0x007cf83c)));
+            u8 *const advisor = reinterpret_cast<u8 *>((uintptr_t)GameTable7cfb90_Get1da71c_5194d0(gWorldPtr));
             g_env->advisorCancel(advisor, nullptr, id);
         }
     }
@@ -88,10 +88,10 @@ void __cdecl GameMode_Set(u32 mode, u32 record) {
         global<u16>(0x00818694) = 0;
         gGamemode_763b00 = 0x80;
         gGamemode_763b04 = 0x80;
-        global<u16>(0x007639b0) = 0xffff;
+        gMapClick_StartWord_7639b0 = 0xffff;
         global<u16>(0x00818684) = 0;
-        global<u16>(0x007639b4) = 0xffff;
-        global<s32>(0x007639a0) = -1;
+        gMapClick_EndWord_7639b4 = 0xffff;
+        gMapClick_Mode_7639a0 = -1;
         global<u32>(0x0081b604) = 0;
         if (global<u32>(0x0081b134)) ActionRec_WriteW(recorder(), nullptr, 0xa, 0);
         global<u32>(0x0081b134) = global<u32>(0x0081d7a4);
@@ -143,7 +143,7 @@ u32 __cdecl GameMode_StepBack(u8 *thing, u32 relink) {
     }
     if (mode == 0xe || mode == 0x13 || mode == 4 || mode == 0x3b || mode == 0x16) return 0;
     s32 *const point = &global<s32>(0x0081adb0);
-    s32 &count = global<s32>(0x00820a8c);
+    s32 &count = gCellrun_820a8c;
     bool popped = false;
     if (count > 0) {
         point[0] = global<s32>(0x0081b738 + count * 8);
@@ -181,7 +181,7 @@ u32 __cdecl GameMode_StepBack(u8 *thing, u32 relink) {
     if (left == 1) corners = 1;
     if (left > 0) {
         const s32 x = point[0], y = point[1];
-        const u8 *const cell = global<u8 *>(0x007cf83c) + 0x294 + ((((u32)y << 7) + (u32)x + 1) & 0xffff) * 0x44;
+        const u8 *const cell = gWorldPtr + 0x294 + ((((u32)y << 7) + (u32)x + 1) & 0xffff) * 0x44;
         if (mode != 3 || *reinterpret_cast<const s32 *>(cell + 8) != 1) g_step->mapClick(x, y, 0, 0);
         global<s32>(0x0081ede4) = point[0];
         global<s32>(0x0081ede8) = point[1];

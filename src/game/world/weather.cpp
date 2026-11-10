@@ -16,11 +16,12 @@
 #include "random.h"
 #include "thingmsg.h"
 #include "things.h"
+#include "world.h"
 
 namespace {
 
 // A world random number (World_Rand on [0x7cf83c]) in 0..1: its low 30 bits times 2^-30 (fild qword; fmul float).
-X87Reg unit() { return X87_MulInt((u32)World_Rand(*reinterpret_cast<u8 *const *>(0x007cf83c)) & 0x3fffffff, 9.31322574615478515625e-10f); }
+X87Reg unit() { return X87_MulInt((u32)World_Rand(*&gWorldPtr) & 0x3fffffff, 9.31322574615478515625e-10f); }
 
 u32 bits(float f) {
     u32 b;
@@ -31,7 +32,7 @@ u32 bits(float f) {
 template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cast<T *>((uintptr_t)p + offset); }
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
 
-u8 *world() { return global<u8 *>(0x007cf83c); }
+u8 *world() { return gWorldPtr; }
 u8 *fx() { return global<u8 *>(0x008bcbac); }
 
 // The year's quarter's row of the table 0x7854c4: base, spread, percent.
@@ -146,15 +147,15 @@ void __fastcall Weather_Update(u8 *weather) {
     if (--at<s32>(weather, 0x44) == 0) {
         const auto ftol = [](float f) { return (s32)(long long)f; };
         const s32 x = ftol(at<float>(weather, 0x48)), y = ftol(at<float>(weather, 0x4c)), z = ftol(at<float>(weather, 0x50));
-        Sound_PlayAt(0, global<u32>(0x00803a20), 0x20, x, y, z);
+        Sound_PlayAt(0, gSoundCategories.ambient, 0x20, x, y, z);
     }
 }
 
 u32 __fastcall Weather_Serialize(u8 *weather, void *, Stream *stream, u32 save, s32 version, u32 unused) {
-    static const SaveSpec kHead[] = {{0xc, 4, 0x0076239c}, {0x10, 8, 0x0076238c}, {0x18, 8, 0x0076237c}};
-    static const SaveSpec kTail[] = {{0x30, 4, 0x0076236c}, {0x34, 4, 0x0076235c}, {0x38, 1, 0x00762350}, {0x3c, 4, 0x0076233c}, {0x40, 4, 0x00762324},
-                                     {0x44, 4, 0x00762310}, {0x48, 12, 0x007622f8}, {0x54, 4, 0x007622e4}, {0x58, 4, 0x007622dc}, {0x5c, 4, 0x007622d0},
-                                     {0x60, 4, 0x007622c4}, {0x64, 1, 0x007622b8}};
+    const SaveSpec kHead[] = {{0xc, 4, (u32)gText_Weather_Serialize_76239c}, {0x10, 8, (u32)gText_Weather_Serialize_76238c}, {0x18, 8, (u32)gText_Weather_Serialize_76237c}};
+    const SaveSpec kTail[] = {{0x30, 4, (u32)gText_Weather_Serialize_76236c}, {0x34, 4, (u32)gText_Weather_Serialize_76235c}, {0x38, 1, (u32)gText_Weather_Serialize_762350}, {0x3c, 4, (u32)gText_Weather_Serialize_76233c},
+                              {0x40, 4, (u32)gText_Weather_Serialize_762324}, {0x44, 4, (u32)gText_Weather_Serialize_762310}, {0x48, 12, (u32)gText_Weather_Serialize_7622f8}, {0x54, 4, (u32)gText_Weather_Serialize_7622e4},
+                              {0x58, 4, (u32)gText_Weather_Serialize_7622dc}, {0x5c, 4, (u32)gText_Weather_Serialize_7622d0}, {0x60, 4, (u32)gText_Weather_Serialize_7622c4}, {0x64, 1, (u32)gText_Weather_Serialize_7622b8}};
     if (Thing_Serialize(weather, nullptr, stream, save, version, unused))
         return 1;
     if (version < 0 || version > 1)
@@ -189,7 +190,7 @@ void __fastcall Weather_SetMode(u8 *weather, void *, s32 mode) {
     u32 &sound = *reinterpret_cast<u32 *>(weather + 0x54);
     if (mode == 0) {
         Obj_SetFirst(fx, nullptr, 1);
-        if (!sound) sound = Sound_PlayAt(0, *reinterpret_cast<const u32 *>(0x00803a20), 0x21, 0, 0, 0);
+        if (!sound) sound = Sound_PlayAt(0, gSoundCategories.ambient, 0x21, 0, 0, 0);
         return;
     }
     if (mode == 1) {
@@ -210,7 +211,7 @@ void __fastcall Weather_SetIntensity(u8 *weather, void *, s32 value) {
     const s32 floor1 = value < 1 ? 1 : value;
     const s32 v = floor1 >= 100 ? 100 : value < 1 ? 1 : value;
     *reinterpret_cast<s32 *>(weather + 0xc) = v;
-    u8 *const world = *reinterpret_cast<u8 *const *>(0x007cf83c);
+    u8 *const world = *&gWorldPtr;
     FileTime time;
     const FileTime *now = FunnyTime_Now(world + 0x2a0, nullptr, &time, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr);
     *reinterpret_cast<FileTime *>(weather + 0x10) = *now;
@@ -219,7 +220,7 @@ void __fastcall Weather_SetIntensity(u8 *weather, void *, s32 value) {
     bool b = v >= range[2] && v <= range[3];
     weather[0x38] = v >= range[4] && v <= range[5];
     if (a && b) {
-        if (World_Rand(*reinterpret_cast<u8 *const *>(0x007cf83c)) & 1) {
+        if (World_Rand(*&gWorldPtr) & 1) {
             a = false;
         } else {
             b = false;
@@ -238,30 +239,30 @@ void __fastcall Weather_SetIntensity(u8 *weather, void *, s32 value) {
         *reinterpret_cast<u32 *>(weather + 0x34) = 0;
     }
     // The wind's strength: (100 - v) * 0.01 cut to 0..1.
-    const X87Reg strength = X87Reg((double)(100 - v)) * *reinterpret_cast<const float *>(0x00700a58);
+    const X87Reg strength = X87Reg((double)(100 - v)) * gWeather_SetIntensity_700a58;
     u32 &strengthBits = *reinterpret_cast<u32 *>(weather + 0x60);
     if (strength.v < 0.0) {
         strengthBits = 0;
     } else if (strength.v > 1.0) {
-        strengthBits = *reinterpret_cast<const u32 *>(0x00700a3c);
+        strengthBits = gWeather_SetIntensity_700a3c;
     } else {
         strengthBits = bits((float)strength);
     }
     // The wind's angle: moved by a random 0-89 degrees less 45, then brought into 0..360 (a NaN or an infinity there loops for ever, sic).
     float &angle = *reinterpret_cast<float *>(weather + 0x5c);
     const float old = angle;
-    const u32 turn = (u32)World_Rand(*reinterpret_cast<u8 *const *>(0x007cf83c)) % 90;
-    X87Reg x = X87Reg((double)turn) + (X87Reg(X87_Through(old)) - *reinterpret_cast<const float *>(0x00700a5c));
+    const u32 turn = (u32)World_Rand(*&gWorldPtr) % 90;
+    X87Reg x = X87Reg((double)turn) + (X87Reg(X87_Through(old)) - gWeather_SetIntensity_700a5c);
     angle = (float)x;
     if (x.v < 0.0 || x.v != x.v) {
         do {
-            x = X87Reg(X87_Through(angle)) - *reinterpret_cast<const float *>(0x00700a60);
+            x = X87Reg(X87_Through(angle)) - gWeather_SetIntensity_700a60;
             angle = (float)x;
         } while (x.v < 0.0 || x.v != x.v);
     }
     if (X87Reg(X87_Through(angle)).v > 360.0) {
         do {
-            x = X87Reg(X87_Through(angle)) - *reinterpret_cast<const float *>(0x00700a64);
+            x = X87Reg(X87_Through(angle)) - gWeather_SetIntensity_700a64;
             angle = (float)x;
         } while (x.v > 360.0);
     }
@@ -278,7 +279,7 @@ void __fastcall Weather_HandleMessage(u8 *weather, void *, u8 *message) {
     }
     if (kind != 2) return;
     const s32 days = *reinterpret_cast<s32 *>(message + 0xc), value = *reinterpret_cast<s32 *>(message + 8);
-    u8 *const clock = *reinterpret_cast<u8 *const *>(0x007cf83c) + 0x2a0;
+    u8 *const clock = *&gWorldPtr + 0x2a0;
     FileTime span, until, now;
     s32 status;   // (the original's out: the message's own stack slot)
     FileTime_FromSpan(&span, nullptr, &status, days, 0, 0, 0, 0);

@@ -43,6 +43,7 @@
 #include "advisorscore.h"
 #include "object.h"
 #include "staff.h"
+#include "../core/soundset.h"
 #include "../core/vtables.h"
 
 namespace {
@@ -242,7 +243,7 @@ u32 __fastcall StaffTraining_Serialize(u8 *training, void *, Stream *stream, u32
     if (version < 0 || version > 1)
         return 0;
     for (u32 i = 0; i < 5; ++i)
-        if (!Save_Field(stream, save, training + i * 4, 4, 0x00761eb0))
+        if (!Save_Field(stream, save, training + i * 4, 4, (u32)&gText_Staff_Serialize_761eb0))
             return 1;
     return Save_Field(stream, save, training + 0x14, 1, (u32)&gText_StaffTraining_Serialize_761e9c) ? 0 : 1;
 }
@@ -386,21 +387,21 @@ s32 TrainSlot(u8 type) {
 void __fastcall Staff_TrainAll(const s32 *amounts) {
     s32 count[5] = {0, 0, 0, 0, 0};
     u16 handle;
-    World_FirstThing(global<void *>(0x007cf83c), nullptr, &handle);
+    World_FirstThing(global<void *>((u32)&gWorldPtr), nullptr, &handle);
     while (handle != 0) {
         const u8 *const thing = global<u8 *>(0x007cfb90 + 20 * (u32)handle);
         const s32 slot = TrainSlot(at<u8>(thing, 2));
         if (slot >= 0) ++count[slot];
         u16 next;
-        handle = *World_NextThing(global<void *>(0x007cf83c), nullptr, &next, thing);
+        handle = *World_NextThing(global<void *>((u32)&gWorldPtr), nullptr, &next, thing);
     }
-    World_FirstThing(global<void *>(0x007cf83c), nullptr, &handle);
+    World_FirstThing(global<void *>((u32)&gWorldPtr), nullptr, &handle);
     while (handle != 0) {
         u8 *const thing = global<u8 *>(0x007cfb90 + 20 * (u32)handle);
         const s32 slot = TrainSlot(at<u8>(thing, 2));
         if (slot >= 0) Staff_Train(thing, nullptr, amounts[slot] / count[slot]);
         u16 next;
-        handle = *World_NextThing(global<void *>(0x007cf83c), nullptr, &next, thing);
+        handle = *World_NextThing(global<void *>((u32)&gWorldPtr), nullptr, &next, thing);
     }
 }
 
@@ -427,7 +428,7 @@ u32 __fastcall Staff_Serialize(u8 *staff, void *, Stream *stream, u32 save, s32 
     if (version < 0 || version > 1)
         return 0;
     static const SaveSpec kRest[] = {{0x20a, 2, (u32)&gText_Staff_Serialize_75e370}, {0x20c, 2, (u32)&gText_Staff_Serialize_75e360}, {0x1e8, 1, (u32)&gText_Staff_Serialize_75e348}, {0x208, 2, (u32)&gText_Staff_Serialize_75e33c},
-                                     {0x19c, 4, (u32)&gText_Object_75b5b0}, {0x200, 4, 0x0075d1e0}, {0x1f0, 8, (u32)&gText_Staff_Serialize_75e330}};
+                                     {0x19c, 4, (u32)&gText_Object_75b5b0}, {0x200, 4, (u32)(uintptr_t)&gText_Staff_75d1e0}, {0x1f0, 8, (u32)&gText_Staff_Serialize_75e330}};
     if (save != 0) {
         // the two floats are saved as the float of their __ftol's low byte
         float happiness = (float)(u8)(long long)at<float>(staff, 0x1f8);
@@ -486,8 +487,8 @@ extern "C" void __fastcall Staff_InitBase(u8 *staff) {
     at<u32>(staff, 0x1f8) = 0x42c80000;  // 100.0f
     at<u32>(staff, 0x1fc) = 0x42c80000;
     at<u16>(staff, 0x20c) = 0x4000;
-    at<u16>(staff, 0xc2) = global<u16>(0x0075c7f0);
-    at<u16>(staff, 0xc0) = at<s32>(staff, 0x1e4) < 3 ? global<u16>(0x0075c7f8) : global<u16>(0x0075c7fc);
+    at<u16>(staff, 0xc2) = global<u16>((u32)(uintptr_t)&gStaff_75c7f0);
+    at<u16>(staff, 0xc0) = at<s32>(staff, 0x1e4) < 3 ? global<u16>((u32)(uintptr_t)&gStaff_75c7f0 + 0x8) : global<u16>((u32)(uintptr_t)&gStaff_75c7f0 + 0xc);
     MessageCentre_AddThing(MessageCentre_Instance(), nullptr, staff, 0xc);
     ParkAnalyser_StampTime21c38(reinterpret_cast<u8 *>(GameTable7cfb90_Get1da720_519510(global<u8 *>(0x0080239c))));
 }
@@ -521,27 +522,27 @@ u32 StaffType_Serialize(u8 *staff, Stream *stream, u32 save, s32 version, u32 un
 extern "C" {
 
 u32 __fastcall Handyman_Serialize(u8 *staff, void *, Stream *stream, u32 save, s32 version, u32 unused) {
-    static const SaveSpec kFields[] = {{0x218, 2, (u32)&gText_Handyman_Serialize_75aabc}, {0x214, 4, (u32)&gText_Handyman_Serialize_75aaa4}, {0x21a, 2, (u32)&gText_Handyman_Serialize_75aa94}, {0x210, 2, 0x0075a4f4}};
+    static const SaveSpec kFields[] = {{0x218, 2, (u32)&gText_Handyman_Serialize_75aabc}, {0x214, 4, (u32)&gText_Handyman_Serialize_75aaa4}, {0x21a, 2, (u32)&gText_Handyman_Serialize_75aa94}, {0x210, 2, (u32)(uintptr_t)&gText_Staff_75a4f4}};
     return StaffType_Serialize(staff, stream, save, version, unused, kFields, 4);
 }
 
 u32 __fastcall Guard_Serialize(u8 *staff, void *, Stream *stream, u32 save, s32 version, u32 unused) {
-    static const SaveSpec kFields[] = {{0x212, 2, (u32)&gText_Guard_Serialize_75a8f0}, {0x214, 4, (u32)&gText_Guard_Serialize_75a8d8}, {0x210, 2, 0x0075a4f4}};
+    static const SaveSpec kFields[] = {{0x212, 2, (u32)&gText_Guard_Serialize_75a8f0}, {0x214, 4, (u32)&gText_Guard_Serialize_75a8d8}, {0x210, 2, (u32)(uintptr_t)&gText_Staff_75a4f4}};
     return StaffType_Serialize(staff, stream, save, version, unused, kFields, 3);
 }
 
 u32 __fastcall Mechanic_Serialize(u8 *staff, void *, Stream *stream, u32 save, s32 version, u32 unused) {
-    static const SaveSpec kFields[] = {{0x214, 4, (u32)&gText_Mechanic_Serialize_75b168}, {0x218, 2, (u32)&gText_Mechanic_Serialize_75b158}, {0x210, 2, 0x0075a4f4}};
+    static const SaveSpec kFields[] = {{0x214, 4, (u32)&gText_Mechanic_Serialize_75b168}, {0x218, 2, (u32)&gText_Mechanic_Serialize_75b158}, {0x210, 2, (u32)(uintptr_t)&gText_Staff_75a4f4}};
     return StaffType_Serialize(staff, stream, save, version, unused, kFields, 3);
 }
 
 u32 __fastcall Entertainer_Serialize(u8 *staff, void *, Stream *stream, u32 save, s32 version, u32 unused) {
-    static const SaveSpec kFields[] = {{0x214, 4, 0x0075a4fc}, {0x210, 2, 0x0075a4f4}};
+    static const SaveSpec kFields[] = {{0x214, 4, (u32)(uintptr_t)&gText_Entertainer_Serialize_75a4fc}, {0x210, 2, (u32)(uintptr_t)&gText_Staff_75a4f4}};
     return StaffType_Serialize(staff, stream, save, version, unused, kFields, 2);
 }
 
 u32 __fastcall Researcher_Serialize(u8 *staff, void *, Stream *stream, u32 save, s32 version, u32 unused) {
-    static const SaveSpec kFields[] = {{0x214, 4, (u32)&gText_Researcher_Serialize_75e168}, {0x210, 2, 0x0075a4f4}};
+    static const SaveSpec kFields[] = {{0x214, 4, (u32)&gText_Researcher_Serialize_75e168}, {0x210, 2, (u32)(uintptr_t)&gText_Staff_75a4f4}};
     return StaffType_Serialize(staff, stream, save, version, unused, kFields, 2);
 }
 
@@ -557,11 +558,11 @@ void __fastcall Staff_SetState(u8 *staff, void *, u32 state) {
     switch (state) {
     case 0:
         at<u32>(staff, 0x200) = at<u32>(staff, 0x19c) == 1 ? tick() : 0;
-        at<u16>(staff, 0xc2) = global<u16>(0x0075c7f0);
+        at<u16>(staff, 0xc2) = global<u16>((u32)(uintptr_t)&gStaff_75c7f0);
         Wrap_Set4_4217f0_4fa460(staff);
         break;
     case 4:
-        at<u16>(staff, 0xc2) = global<u16>(0x0075c7f2);
+        at<u16>(staff, 0xc2) = global<u16>((u32)(uintptr_t)&gStaff_75c7f0 + 0x2);
         Set4_4217f0(ref, nullptr, 9);
         break;
     case 1:
@@ -576,7 +577,7 @@ void __fastcall Staff_SetState(u8 *staff, void *, u32 state) {
         break;
     case 5:
         at<u32>(staff, 0x1c) = 0;
-        at<u16>(staff, 0xc2) = global<u16>(0x0075c7f0);
+        at<u16>(staff, 0xc2) = global<u16>((u32)(uintptr_t)&gStaff_75c7f0);
         Set4_4217f0(ref, nullptr, 0x13);
         break;
     case 6:
@@ -685,7 +686,7 @@ void __fastcall Mechanic_SetState(u8 *mechanic, void *, u32 state) {
 
 void __fastcall Handyman_SetState(u8 *handyman, void *, u32 state) {
     if (state == 8 || state == 0xa) {
-        at<u16>(handyman, 0xc2) = global<u16>(0x0075c7f2);
+        at<u16>(handyman, 0xc2) = global<u16>((u32)(uintptr_t)&gStaff_75c7f0 + 0x2);
         Set4_4217f0(handyman + 0xc, nullptr, 9);
     } else if (state == 9 || state == 0xb) {
         at<u32>(handyman, 0x214) = global<u32>(global<u32>(0x0080239c) + 0x1da70c);
@@ -873,7 +874,7 @@ void __fastcall Staff_RestInArea(u8 *staff) {
 void __fastcall Researcher_PostUpdate(u8 *researcher) {
     const auto tick = [] { return at<u32>(global<u8 *>(0x0080239c), 0x1da70c); };
     const auto grumble = [researcher](u32 sound) {
-        if ((World_Rand(global<u8 *>(0x0080239c)) & 0xf) == 0) g_walk->playSound(researcher, nullptr, global<u32>(0x00803a30), sound);
+        if ((World_Rand(global<u8 *>(0x0080239c)) & 0xf) == 0) g_walk->playSound(researcher, nullptr, gSoundCategories.staff, sound);
     };
     const u32 grade = at<u32>(researcher, 0x1e4);
     switch (at<u32>(researcher, 0x19c)) {
@@ -941,7 +942,7 @@ u32 __fastcall Staff_CheckMood(u8 *staff) {
         if ((World_Rand(global<u8 *>(0x0080239c)) & 0xf) == 0) lower_happiness(staff);
         return 0;
     }
-    at<u16>(staff, 0xc0) = rest >= 100 ? global<u16>(0x0075c800) : global<u16>(0x0075c7f8 + rest / 20 * 2);
+    at<u16>(staff, 0xc0) = rest >= 100 ? global<u16>((u32)(uintptr_t)&gStaff_75c7f0 + 0x10) : global<u16>(((u32)(uintptr_t)&gStaff_75c7f0 + 0x8) + rest / 20 * 2);
     const u8 happiness = (u8)(long long)at<float>(staff, 0x1f8);   // __ftol
     if (happiness <= 0xa) {
         g_walk->showThought(staff + 0x30, nullptr, 0x13, 0);
@@ -1039,15 +1040,15 @@ void __fastcall Guard_SetState(u8 *guard, void *, u32 state) {
         }
         break;
     case 0x10:
-        word = *reinterpret_cast<u16 *>((uintptr_t)0x0075c7f2);
+        word = *reinterpret_cast<u16 *>((uintptr_t)&gStaff_75c7f0 + 0x2);
         *reinterpret_cast<u32 *>(guard + 0x214) = *reinterpret_cast<u32 *>((uintptr_t)0x00785498 + 8 * *reinterpret_cast<u32 *>(guard + 0x1e4));
         break;
     case 0x12:
     case 0x13:
-        word = *reinterpret_cast<u16 *>((uintptr_t)0x0075c7f0);
+        word = *reinterpret_cast<u16 *>((uintptr_t)&gStaff_75c7f0);
         break;
     default:
-        word = *reinterpret_cast<u16 *>((uintptr_t)0x0075c7f0);
+        word = *reinterpret_cast<u16 *>((uintptr_t)&gStaff_75c7f0);
         g_guardState->setState(guard, nullptr, state);
         break;
     }

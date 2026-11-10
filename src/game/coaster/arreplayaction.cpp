@@ -4,6 +4,7 @@
 #include "../core/buffers.h"
 #include "../core/gameheap.h"
 #include "../core/stdwstring.h"
+#include "../world/world.h"
 
 namespace {
 
@@ -14,7 +15,7 @@ T &G(u32 address) {
     return *reinterpret_cast<T *>((uintptr_t)address);
 }
 
-constexpr u32 kWorld = 0x007cf83c;
+const u32 kWorld = (u32)&gWorldPtr;
 constexpr u32 kThings = 0x007cfb90;
 
 u32 ThingAt(u32 handle) { return G<u32>(kThings + 20 * handle); }

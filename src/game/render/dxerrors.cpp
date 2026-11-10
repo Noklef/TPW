@@ -83,7 +83,7 @@ const char *__cdecl DxResult_Message(u32 result) {
     case 0x88760237u: return gText_DxResult_Message_7670a4;
     case 0x88760238u: return gText_DxResult_Message_766da8;
     case 0x88760239u: return gText_DxResult_Message_766c68;
-    case 0x8876023au: return Text(0x766f04);
+    case 0x8876023au: return Text((u32)(uintptr_t)&gText_DxResult_Message_766f04);
     case 0x8876023bu: return gText_DxResult_Message_766f74;
     case 0x8876023cu: return gText_DxResult_Message_766bb8;
     case 0x8876023du: return gText_DxResult_Message_766b84;

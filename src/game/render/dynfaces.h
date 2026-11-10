@@ -90,3 +90,11 @@ GAME_DATA(u8 *, gDynFaces_871ee4, 0x00871ee4, 0x4);
 GAME_DATA(float, gDynfaces_874fc0, 0x00874fc0, 0x4);
 GAME_DATA(s32, gDynFaces_874fc8, 0x00874fc8, 0x4);
 GAME_DATA(u32, gDynFaces_874fcc, 0x00874fcc, 0x4);
+
+// Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(char[0xc], gText_DynFaces_InitModels_763e3c, 0x00763e3c, 0xc);
+GAME_DATA(char[0xc], gText_DynFaces_InitModels_763e48, 0x00763e48, 0xc);
+GAME_DATA(char[0x10], gText_Dynfaces_763e54, 0x00763e54, 0x10);
+GAME_DATA(u8[0xe40], gDynFaces_870ed8, 0x00870ed8, 0xe40);
+GAME_DATA(u8[0x1b8], gDynFaces_871d18, 0x00871d18, 0x1b8);
+GAME_DATA(u8[0xe40], gDynFaces_874180, 0x00874180, 0xe40);

@@ -16,6 +16,7 @@
 #include "window7059f0.h"
 #include "windowreg.h"
 #include "dialog7cc530handler.h"
+#include "dialog7cc188.h"
 
 namespace {
 
@@ -48,7 +49,7 @@ void Dialog7cc530_SetOpenEnv(const Dialog7cc530OpenEnv *env) { g_env = env ? env
 
 void __cdecl Dialog7cc530_Open(u32 value) {
     gDialog7cc530open_7cc52c = value;
-    u8 *const built = g_env->create(reinterpret_cast<u8 *>((uintptr_t)0x00758218), 0x004ba530, 0);
+    u8 *const built = g_env->create(reinterpret_cast<u8 *>((uintptr_t)&gDialog7cc530_Open_758218), 0x004ba530, 0);
     gDialog7cc530open_7cc530 = built;
     gDialog7cc530handler_7cc53c = 0;
     gDialog7cc530open_7cc540 = 0;
@@ -67,7 +68,7 @@ void __cdecl Dialog7cc530_Open(u32 value) {
     g_env->buildRows(list, nullptr, reinterpret_cast<u8 *(__cdecl *)()>((uintptr_t)0x004bacc0), reinterpret_cast<void(__cdecl *)(u8 *)>((uintptr_t)0x004bad70));
     g_env->setColumn(list, nullptr, 0, 0);
     g_env->setColumn(list, nullptr, 1, 1);
-    g_env->setHighlight(list, nullptr, reinterpret_cast<u8 *>((uintptr_t)g_env->findByName(reinterpret_cast<const char *>((uintptr_t)0x0074fa84))));
+    g_env->setHighlight(list, nullptr, reinterpret_cast<u8 *>((uintptr_t)g_env->findByName(reinterpret_cast<const char *>((uintptr_t)&gText_Dialog7cc188_74fa84))));
     header(list, 0x10, 0xe2);
     header(list, 0x11, 0xe3);
     g_env->fill(0);

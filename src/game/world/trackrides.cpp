@@ -1,6 +1,7 @@
 #include "trackrides.h"
 
 #include <cstdint>
+#include <cstring>
 
 #include "../model/holder.h"
 #include "../coaster/registry.h"
@@ -20,13 +21,16 @@
 #include "things.h"
 #include "collobj.h"
 #include "trackrides.h"
+#include "rides.h"
+#include "world.h"
+#include "../math/intsin.h"
 
 namespace {
 
 template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cast<T *>((uintptr_t)p + offset); }
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
 
-bool loaded() { return global<u32>(0x00877b58) == 0x4a454647; }
+bool loaded() { return gTrackPools.tag == 0x4a454647; }
 
 s32 Ftol(X87Reg x) { return (s32)(long long)x.v; }
 
@@ -42,13 +46,13 @@ void SeatEffect(const u8 *instance, s32 effect = 0x13) {
 
 // The ride a handle indexes, or 0; whether the handle also names it (its index and serial).
 u8 *RideOf(u32 handle) {
-    return loaded() ? reinterpret_cast<u8 *>(global<uintptr_t>(0x00877b60) + (handle & 0xff) * 0xd0) : nullptr;
+    return loaded() ? reinterpret_cast<u8 *>((uintptr_t)gTrackPools.rides + (handle & 0xff) * 0xd0) : nullptr;
 }
 
 u32 NameOf(const u8 *ride) {
     if (!loaded())
         return 0;
-    return (u32)((s32)((uintptr_t)ride - global<uintptr_t>(0x00877b60)) / 0xd0) | at<u32>(ride, 0) << 8;
+    return (u32)((s32)((uintptr_t)ride - (uintptr_t)gTrackPools.rides) / 0xd0) | at<u32>(ride, 0) << 8;
 }
 
 // A track section's collision node (CollNode_Alloc(x, y, size)) put at the head of its list (+0x1c; the node's +0x14 the next, +0x18 the
@@ -75,7 +79,7 @@ s32 SoundPlace(const u8 *car, u32 offset) { return Ftol(X87_MulIntDouble(at<s32>
 // The first thing in use (newest first) that is an object (+2 is 3) of the ride (its dword +0x28 the name): its handle, else 0
 // (TrakRide_FindThing's search, inlined, through Thing_ByHandle).
 u16 RideObject(u32 ride) {
-    void *const world = global<void *>(0x007cf83c);
+    void *const world = global<void *>((u32)&gWorldPtr);
     u16 handle;
     World_FirstThing(world, nullptr, &handle);
     while (handle != 0) {
@@ -110,7 +114,7 @@ void SaveCar(u8 *car, const u8 *ride, Stream *stream) {
     PutDword(chunk, at<u32>(at<const u8 *>(car, 0x98), 4));
     PutDword(chunk, at<u32>(at<const u8 *>(car, 0x98), 8));
     const s32 stop = at<s32>(car, 0x7c);
-    const u8 *const entry = global<const u8 *>(0x00877b78) + stop * 0x1c;   // (read at -1 too, sic)
+    const u8 *const entry = gTrackPools.buoys + stop * 0x1c;   // (read at -1 too, sic)
     PutDword(chunk, stop == -1 ? 0 : NameOf(at<const u8 *>(entry, 0x10)));
     PutDword(chunk, at<u32>(entry, 8));
     PutDword(chunk, at<u32>(entry, 0xc));
@@ -140,8 +144,8 @@ void SaveRide(const u8 *ride, Stream *stream) {
         TrakChunk_Write(chunk, section + 0x14, 8);
         TrakChunk_End(chunk);
     }
-    u8 *car = global<u8 *>(0x00877b68);
-    for (u32 left = global<u32>(0x00877b6c); left != 0; car += 0xac) {
+    u8 *car = gTrackPools.cars;
+    for (u32 left = (u32)gTrackPools.carCount; left != 0; car += 0xac) {
         if (car[0] & 1) {
             --left;
             if (at<const u8 *>(car, 0x9c) == ride)
@@ -215,10 +219,10 @@ void LoadRideEnd(u8 *chunk) {
 
 // The first used collision node (as many as [0x877b74] counts) not a blocker (0x40) of the pool [0x877b70] that holds the point, or 0.
 u8 *CollNodeAt(s32 x, s32 y) {
-    u8 *node = global<u8 *>(0x00877b70);
+    u8 *node = gTrackPools.nodes;
     if (!node)
         return nullptr;
-    for (u32 left = global<u32>(0x00877b74); left != 0; node += 0x20) {
+    for (u32 left = (u32)gTrackPools.nodeCount; left != 0; node += 0x20) {
         const u32 flags = at<u32>(node, 0);
         if (flags & 1) {
             --left;
@@ -244,7 +248,7 @@ void LoadCar(u8 *chunk) {
     u8 *const car = TrakPool_FirstFree();
     if (!car)
         return;
-    ++global<u32>(0x00877b6c);
+    ++gTrackPools.carCount;
     // (The original's defaults before the read; a short read leaves zeroes for the rest, whatever these are.)
     for (u32 i = 0; i < 0xac; i += 4)
         at<u32>(car, i) = 0;
@@ -296,9 +300,9 @@ void LoadCarNode(u8 *chunk) {
     const u8 *const ride = RideOf(handle);
     if (handle != NameOf(ride))
         return;
-    u8 *const node = global<u8 *>(0x00877b8c);
+    u8 *const node = gTrackPools.freeLinks;
     u8 *const car = at<u8 *>(ride, 0xcc);
-    global<u8 *>(0x00877b8c) = at<u8 *>(node, 0x10);
+    gTrackPools.freeLinks = at<u8 *>(node, 0x10);
     at<u8 *>(node, 0x10) = at<u8 *>(car, 0x30);
     at<u8 *>(car, 0x30) = node;
     at<u32>(node, 0) = TrakChunk_ReadDword(chunk);
@@ -306,7 +310,7 @@ void LoadCarNode(u8 *chunk) {
     ++at<u32>(at<u8 *>(car, 0x9c), 0x60);
     const u32 key = TrakChunk_ReadDword(chunk);
     at<u32>(node, 0xc) = key;
-    at<u32>(node, 8) = Model_FindPartByKey4(global<const u8 *>(0x007a4610 + at<u32>(car, 8) * 4), 0x80, key);
+    at<u32>(node, 8) = Model_FindPartByKey4(gRides_7a4610[at<u32>(car, 8)], 0x80, key);
 }
 
 }  // namespace
@@ -374,8 +378,8 @@ u32 __cdecl TrackRides_Save(Stream *stream) {
         TrakChunk_Write(stamp, kTime, sizeof kTime - 1);
         TrakChunk_Write(stamp, kDate, sizeof kDate);
         TrakChunk_End(stamp);
-        const u8 *ride = global<const u8 *>(0x00877b60);
-        u32 left = global<u32>(0x00877b64);
+        const u8 *ride = gTrackPools.rides;
+        u32 left = (u32)gTrackPools.rideCount;
         if (ride) {
             for (; left != 0; ride += 0xd0) {
                 if (at<u32>(ride, 0)) {
@@ -439,7 +443,7 @@ s32 *__cdecl TrakStream_Read(s32 *result, Stream *stream, void *buffer, s32 coun
 }
 
 u8 *__cdecl TrakPool_FirstFree() {
-    u8 *record = global<u8 *>(0x00877b68);
+    u8 *record = gTrackPools.cars;
     if (!record) return nullptr;
     for (u32 i = 0; i < 0x100; ++i, record += 0xac) {
         if (!(record[0] & 1)) return record;
@@ -460,8 +464,8 @@ u32 __cdecl TrakRide_PopNode(u32 handle) {
     if (!node)
         return 0;
     at<u32>(ride, 0xc8) = at<u32>(node, 0x10);
-    at<u32>(node, 0x10) = global<u32>(0x00877b8c);
-    global<u32>(0x00877b8c) = (u32)(uintptr_t)node;
+    at<u32>(node, 0x10) = (u32)gTrackPools.freeLinks;
+    gTrackPools.freeLinks = node;
     return at<u32>(node, 0);
 }
 
@@ -540,8 +544,8 @@ void __cdecl TrakRide_Fixed(u32 handle) {
     const s32 kind = at<s32>(ride, 0);
     if (!(kind > -15 && (kind < -2 || kind == -1)))
         return;
-    u8 *record = global<u8 *>(0x00877b68);
-    u32 left = global<u32>(0x00877b6c);
+    u8 *record = gTrackPools.cars;
+    u32 left = (u32)gTrackPools.carCount;
     while (left != 0) {
         if ((at<u8>(record, 0) & 1) && (--left, at<u8 *>(record, 0x9c) == ride) && at<u32>(record, 0x2c) != 0xffffffffu) {
             ParticleSystem_End(at<u32>(record, 0x2c));
@@ -549,9 +553,9 @@ void __cdecl TrakRide_Fixed(u32 handle) {
             if (at<s32>(at<u8 *>(record, 0x9c), 0) == -1 && (at<u32>(record, 0) & 0x4000)) {
                 at<u32>(record, 0x10) = 5;
                 if (at<u32>(record, 8) != 0)
-                    Layer_ClearQueue(reinterpret_cast<u8 *const *>(0x007a4610)[at<u32>(record, 8)], 0);
+                    Layer_ClearQueue(gRides_7a4610[at<u32>(record, 8)], 0);
                 if (at<u32>(record, 8) != 0)
-                    Animator_Play(reinterpret_cast<u8 *const *>(0x007a4610)[at<u32>(record, 8)], 5, 0, 1, 1.0f, 0);
+                    Animator_Play(gRides_7a4610[at<u32>(record, 8)], 5, 0, 1, 1.0f, 0);
             }
         }
         record += 0xac;
@@ -619,10 +623,10 @@ u32 __cdecl TrakRide_AddNextCar(u32 handle, u32 value) {
     u8 *ride = RideOf(handle);
     if (handle != NameOf(ride) || at<u32>(ride, 0x50) == 0)
         return 0;
-    u8 *node = global<u8 *>(0x00877b8c);
+    u8 *node = gTrackPools.freeLinks;
     if (!node)
         return 0;
-    global<u32>(0x00877b8c) = at<u32>(node, 0x10);
+    gTrackPools.freeLinks = at<u8 *>(node, 0x10);
     at<u32>(node, 0x10) = at<u32>(ride, 0xc4);
     at<u8 *>(ride, 0xc4) = node;
     at<u32>(node, 0) = value;
@@ -655,14 +659,14 @@ void __cdecl TrakRide_Open(u32 handle) {
 }
 
 u32 __cdecl TrakRide_Create(s32 kind, s32 x, s32 y, u32 orientation, u32 handle, u32 value) {
-    if (global<u32>(0x00877b58) != 0x4a454647)
+    if (gTrackPools.tag != 0x4a454647)
         return 0;
     u8 *ride;
     if (handle != 0) {
-        ride = global<u8 *>(0x00877b60) + (handle & 0xff) * 0xd0;
+        ride = gTrackPools.rides + (handle & 0xff) * 0xd0;
         kind = (s32)handle >> 8;
     } else {
-        ride = global<u8 *>(0x00877b60);
+        ride = gTrackPools.rides;
         if (ride) {
             s32 i = 0;
             while (at<u32>(ride, 0) != 0) {
@@ -680,7 +684,7 @@ u32 __cdecl TrakRide_Create(s32 kind, s32 x, s32 y, u32 orientation, u32 handle,
     const u32 *from = reinterpret_cast<const u32 *>((uintptr_t)(0x00764178 - (u32)(kind + 1) * 0xd0));
     for (u32 i = 0; i < 0x34; ++i)
         at<u32>(ride, 4 * i) = from[i];
-    global<u32>(0x00877b64) += 1;
+    gTrackPools.rideCount += 1;
     at<u32>(ride, 0xb0) = orientation;
     at<u32>(ride, 0x5c) = 0;
     at<u32>(ride, 0x10) = value;
@@ -719,7 +723,7 @@ u32 __cdecl TrakRide_Create(s32 kind, s32 x, s32 y, u32 orientation, u32 handle,
         for (int n = 8; n != 0; --n) {
             if (u8 *piece = Buoy_Alloc(px + x, d + y))
                 AppendPiece(ride, piece);
-            const s32 cosine = gTrakRide_Create_877458, sine = gTrakRide_Create_877658;
+            const s32 cosine = (s32)gIntSinTable[0x40], sine = (s32)gIntSinTable[0xc0];
             const s32 oldx = px;
             px = ShiftDown8((s32)((u32)sine * (u32)px + (u32)cosine * (u32)d));
             d = ShiftDown8((s32)((u32)sine * (u32)d - (u32)oldx * (u32)cosine));
@@ -784,7 +788,7 @@ u32 __cdecl TrakRide_Create(s32 kind, s32 x, s32 y, u32 orientation, u32 handle,
             for (int n = 7; n != 0; --n) {
                 if (u8 *piece = Buoy_Alloc(px + starts[group][0], py + starts[group][1]))
                     AppendPiece(ride, piece);
-                const s32 cosine = gTrakRide_Create_877458, sine = gTrakRide_Create_877a58;
+                const s32 cosine = (s32)gIntSinTable[0x40], sine = (s32)gIntSinTable[0x1c0];
                 const s32 oldx = px;
                 px = ShiftDown8((s32)((u32)sine * (u32)py + (u32)cosine * (u32)px));
                 py = ShiftDown8((s32)((u32)cosine * (u32)py - (u32)oldx * (u32)sine));
@@ -817,8 +821,8 @@ void __cdecl TrakRide_Close(u32 handle) {
     const s32 kind = at<s32>(ride, 0);
     if (kind != -14 && kind != -11 && kind != -6 && kind != -3 && kind != -1)
         return;
-    u8 *record = global<u8 *>(0x00877b68);
-    u32 left = global<u32>(0x00877b6c);
+    u8 *record = gTrackPools.cars;
+    u32 left = (u32)gTrackPools.carCount;
     if (!record || !left)
         return;
     do {
@@ -849,10 +853,10 @@ void __cdecl TrakRide_PushNode(u32 handle, u32 value) {
     u8 *ride = RideOf(handle);
     if (handle != NameOf(ride))
         return;
-    u8 *node = global<u8 *>(0x00877b8c);
+    u8 *node = gTrackPools.freeLinks;
     if (!node)
         return;
-    global<u32>(0x00877b8c) = at<u32>(node, 0x10);
+    gTrackPools.freeLinks = at<u8 *>(node, 0x10);
     at<u32>(node, 0x10) = at<u32>(ride, 0xc8);
     at<u8 *>(ride, 0xc8) = node;
     at<u32>(node, 4) = handle;
@@ -860,7 +864,7 @@ void __cdecl TrakRide_PushNode(u32 handle, u32 value) {
 }
 
 u32 __cdecl TrakRide_LinkedValue(u32 handle) {
-    const uintptr_t rides = global<uintptr_t>(0x00877b60);
+    const uintptr_t rides = (uintptr_t)gTrackPools.rides;
     const uintptr_t ride = loaded() ? rides + (handle & 0xff) * 0xd0 : 0;
     // The handle of that ride: its index (from the pointer, as the original divides it back
     // out) and serial.
@@ -872,7 +876,7 @@ u32 __cdecl TrakRide_LinkedValue(u32 handle) {
 }
 
 void __cdecl TrakRide_SetAsleep(u8 *ride, s32 asleep) {
-    u8 *const *const instances = reinterpret_cast<u8 *const *>(0x007a4610);
+    u8 *const *const instances = gRides_7a4610;
     if (asleep && !(at<u32>(ride, 0) & 0x200)) {
         at<u32>(ride, 0) |= 0x200;
         u8 *inst = instances[at<u32>(ride, 8)];
@@ -917,7 +921,7 @@ s32 __cdecl TrakRide_AddSection(u32 handle, s32 x, s32 y, u32 piece, u32 a, u32 
     for (const u8 *other = at<const u8 *>(ride, 0xbc); other; other = at<const u8 *>(other, 0x24))
         if (at<s32>(other, 0x14) == x && at<s32>(other, 0x18) == y)
             return 0;   // (after "Duplicate track section - IGNORED!" to the empty Debug_Printf)
-    u8 *section = global<u8 *>(0x00877b80);
+    u8 *section = gTrackPools.sections;
     if (!section)
         return 0;
     u32 i = 0;
@@ -926,7 +930,7 @@ s32 __cdecl TrakRide_AddSection(u32 handle, s32 x, s32 y, u32 piece, u32 a, u32 
     if (i == 0x400)
         return 0;
     at<u32>(section, 0) = 1;
-    global<u32>(0x00877b84) += 1;
+    gTrackPools.sectionCount += 1;
     at<u32>(section, 8) = a;
     at<u32>(section, 0xc) = b;
     at<u32>(section, 0x10) = c;
@@ -1021,7 +1025,7 @@ s32 __cdecl TrakRide_AddSection(u32 handle, s32 x, s32 y, u32 piece, u32 a, u32 
 }
 
 u16 *__cdecl TrakRide_FindThing(u16 *out, u32 ride) {
-    void *const world = global<void *>(0x007cf83c);
+    void *const world = global<void *>((u32)&gWorldPtr);
     u16 handle;
     World_FirstThing(world, nullptr, &handle);
     while (handle != 0) {
@@ -1037,7 +1041,7 @@ u16 *__cdecl TrakRide_FindThing(u16 *out, u32 ride) {
 }
 
 s32 __cdecl TrakRide_Unload(u8 *ride, u32 effect) {
-    u8 *const *const instances = reinterpret_cast<u8 *const *>(0x007a4610);
+    u8 *const *const instances = gRides_7a4610;
     for (u8 *node; (node = at<u8 *>(ride, 0x30)) != nullptr;) {
         at<u32>(ride, 0x30) = at<u32>(node, 0x10);
         at<u32>(node, 0x10) = at<u32>(at<u8 *>(ride, 0x9c), 0xc8);
@@ -1058,7 +1062,7 @@ s32 __cdecl TrakCar_Remove(u8 *car) {
         at<u32>(ride, 0x58) = 0;
         at<u32>(car, 0) &= ~0x400000u;
     }
-    if (at<s32>(ride, 0x50) != 4) SeatEffect(reinterpret_cast<u8 *const *>(0x007a4610)[at<u32>(car, 8)], 0xf);
+    if (at<s32>(ride, 0x50) != 4) SeatEffect(gRides_7a4610[at<u32>(car, 8)], 0xf);
     QueuePiece_Remove(at<u32>(car, 8));   // (Ride_Destroy 0x463c80, through the queue pieces' env)
     if (at<u32>(car, 0) & 0x2002000u) {
         QueuePiece_Remove(at<u32>(car, 0xc));
@@ -1070,7 +1074,7 @@ s32 __cdecl TrakCar_Remove(u8 *car) {
         if (kind == -10 || kind == -9 || kind == -7 || kind == -4) {
             const u16 found = RideObject(NameOf(at<const u8 *>(car, 0x9c)));
             const s32 id = found ? at<s32>(Thing_ByHandle(found), 0x24) : 0;
-            const u32 played = Sound_PlayRideElement(id, sound, global<u32>(0x00803a3c), 1, 0, 0, 0);
+            const u32 played = Sound_PlayRideElement(id, sound, gSoundCategories.themeRides, 1, 0, 0, 0);
             at<u32>(car, 0x20) = played;
             if (played) {
                 const s32 x = SoundPlace(car, 0x34), z = SoundPlace(car, 0x38);
@@ -1086,7 +1090,7 @@ s32 __cdecl TrakCar_Remove(u8 *car) {
         at<s32>(car, 0x2c) = -1;
     }
     at<u32>(car, 0) &= ~1u;
-    --global<s32>(0x00877b6c);
+    --gTrackPools.carCount;
     if (--at<s32>(ride, 0x5c) == 0) {
         const s32 kind = at<s32>(ride, 0);
         if (kind != -13 && kind != -12 && kind != -8 && kind != -5) at<s32>(ride, 0x50) = 1;
@@ -1095,7 +1099,7 @@ s32 __cdecl TrakCar_Remove(u8 *car) {
 }
 
 void __cdecl TrakRide_Load(u8 *ride, u32 effect) {
-    u8 *const *const instances = reinterpret_cast<u8 *const *>(0x007a4610);
+    u8 *const *const instances = gRides_7a4610;
     u32 seat = 1;
     for (u8 *node = at<u8 *>(ride, 0x30); node; node = at<u8 *>(node, 0x10)) {
         const u32 part = Model_FindPartByKey4(instances[at<u32>(ride, 8)], 0x80, seat);
@@ -1120,8 +1124,8 @@ void __cdecl TrakCar_PlaySounds(u8 *car) {
     if (state - 1 > 4)
         return;
     if (state == 2) {
-        const u32 seed = global<u32>(0x00877b90) * 0x343fd + 0x269ec3;
-        global<u32>(0x00877b90) = seed;
+        const u32 seed = gTrackPools.seed * 0x343fd + 0x269ec3;
+        gTrackPools.seed = seed;
         if (seed & 0x70000) {
             at<u32>(car, 0x18) = 0;
             return;
@@ -1129,7 +1133,7 @@ void __cdecl TrakCar_PlaySounds(u8 *car) {
     }
     const s32 x = SoundPlace(car, 0x34), z = SoundPlace(car, 0x38);
     if (state == 1 || state == 3 || state == 5) {
-        Sound_PlayAt(0, global<u32>(0x00803a28), state == 1 ? 0x18 : 0xc, x, 0, z);
+        Sound_PlayAt(0, gSoundCategories.rides, state == 1 ? 0x18 : 0xc, x, 0, z);
         at<u32>(car, 0x18) = 0;
         return;
     }
@@ -1148,7 +1152,7 @@ void __cdecl TrakCar_PlaySounds(u8 *car) {
             id = at<s32>(Thing_ByHandle(found), 0x24);
         }
     }
-    Sound_PlayRideElement(id, 0, global<u32>(0x00803a3c), state == 2 ? 3 : 4, x, 0, z);
+    Sound_PlayRideElement(id, 0, gSoundCategories.themeRides, state == 2 ? 3 : 4, x, 0, z);
     at<u32>(car, 0x18) = 0;
 }
 
@@ -1166,12 +1170,12 @@ u32 BitsOf(float f) {
     return bits;
 }
 
-u8 *Instance(u32 index) { return global<u8 *>(0x007a4610 + 4 * index); }
+u8 *Instance(u32 index) { return gRides_7a4610[index]; }
 
 // The game's own rand (0x877b90 = * 0x343fd + 0x269ec3): the new seed.
-u32 NextSeed() { return global<u32>(0x00877b90) = global<u32>(0x00877b90) * 0x343fd + 0x269ec3; }
+u32 NextSeed() { return gTrackPools.seed = gTrackPools.seed * 0x343fd + 0x269ec3; }
 
-bool FrameDue() { return (global<u8>(0x00877b5c) & 0x1f) == 0; }
+bool FrameDue() { return ((u8)gTrackPools.frame & 0x1f) == 0; }
 
 // 256 - atan2(a, b) / pi * 256 truncated (__ftol): fild a; fild b; fpatan (unrounded); fmul 1 / pi [0x700eb8]; fmul 256 [0x700ec0];
 // fsubr 256, as collobj's RideTurn.
@@ -1270,7 +1274,7 @@ void SoundAtCar(u8 *car, u32 &slot, bool walk) {
         if (const u16 found = *TrakRide_FindThing(reinterpret_cast<u16 *>(&slot), ride))
             id = at<s32>(global<u8 *>(0x007cfb90 + 20u * found), 0x24);
     } else {
-        void *const world = global<void *>(0x007cf83c);
+        void *const world = global<void *>((u32)&gWorldPtr);
         u16 handle, found = 0;
         World_FirstThing(world, nullptr, &handle);
         while (handle != 0) {
@@ -1438,9 +1442,9 @@ namespace {
 // once) on ride (+0x9c) taken off (TrakCar_Remove), then the ride closed (TrakRide_Close). (Both originals check the handle against the
 // ride a second time first, always alike.)
 void RemoveCarsAndClose(u32 handle, const u8 *ride) {
-    u8 *record = global<u8 *>(0x00877b68);
+    u8 *record = gTrackPools.cars;
     if (record) {
-        u32 left = global<u32>(0x00877b6c);
+        u32 left = (u32)gTrackPools.carCount;
         while (left) {
             if (at<u8>(record, 0) & 1) {
                 --left;
@@ -1472,7 +1476,7 @@ void __cdecl TrakRide_Destroy(u32 handle) {
     Pool_FreeAll(ride);         // (inlined)
     Collider_ReleaseC0(ride);   // (inlined)
     at<u32>(ride, 0) = 0;
-    --global<s32>(0x00877b64);
+    --gTrackPools.rideCount;
 }
 
 void __cdecl TrakRide_RemoveCars(u32 handle) {
@@ -1482,10 +1486,10 @@ void __cdecl TrakRide_RemoveCars(u32 handle) {
 }
 
 void __cdecl TrakRides_DestroyAll() {
-    if (global<u32>(0x00877b58) != 0x4a454647)
+    if (gTrackPools.tag != 0x4a454647)
         return;
-    u8 *ride = global<u8 *>(0x00877b60);
-    for (u32 left = global<u32>(0x00877b64); left; ride += 0xd0) {   // (the used count read once: the walk ends with it)
+    u8 *ride = gTrackPools.rides;
+    for (u32 left = (u32)gTrackPools.rideCount; left; ride += 0xd0) {   // (the used count read once: the walk ends with it)
         if (!at<u32>(ride, 0))
             continue;
         at<u32>(ride, 0x50) = 4;
@@ -1495,18 +1499,19 @@ void __cdecl TrakRides_DestroyAll() {
     // the free records (0x400 of 0x14 bytes from [0x877b88]) chained again by +0x10 from the first, the block re-read each step
     u8 *next = nullptr;
     for (s32 offset = 0x4fec; offset >= 0; offset -= 0x14) {
-        at<u8 *>(global<u8 *>(0x00877b88) + offset, 0x10) = next;
-        next = global<u8 *>(0x00877b88) + offset;
+        at<u8 *>(gTrackPools.links + offset, 0x10) = next;
+        next = gTrackPools.links + offset;
     }
-    global<u8 *>(0x00877b8c) = global<u8 *>(0x00877b88);
+    gTrackPools.freeLinks = gTrackPools.links;
 }
 
 void __cdecl TrakRides_Shutdown() {
-    if (global<u32>(0x00877b58) != 0x4a454647) return;   // (the module not loaded: nothing)
+    if (gTrackPools.tag != 0x4a454647) return;   // (the module not loaded: nothing)
     TrakRides_DestroyAll();   // (inlined in the original: the same walk, each ride's RemoveCars called, and CollPool_Reset called)
-    static const u32 kBlocks[] = {0x00877b80, 0x00877b78, 0x00877b70, 0x00877b68, 0x00877b60, 0x00877b88};
-    for (const u32 block : kBlocks)   // (the original stores each GlobalFree result back: the words cleared just below)
-        (*Files_GetEnv()->globalFree)(global<void *>(block));
-    for (u32 i = 0; i < 15; ++i) global<u32>(0x00877b58 + 4 * i) = 0;   // (the module's words 0x877b58-0x877b93)
+    static u8 *TrackPools::*const kBlocks[] = {&TrackPools::sections, &TrackPools::buoys, &TrackPools::nodes, &TrackPools::cars, &TrackPools::rides,
+                                               &TrackPools::links};
+    for (u8 *TrackPools::*const block : kBlocks)   // (the original stores each GlobalFree result back: the words cleared just below)
+        (*Files_GetEnv()->globalFree)(gTrackPools.*block);
+    memset(&gTrackPools, 0, sizeof gTrackPools);
 }
 }

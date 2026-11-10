@@ -110,8 +110,8 @@ u32 __fastcall VertexBlock_AddFace(u8 *block, void *, u32 x, u32 y, u32 z, u32 f
         if (Global81ae2c_Get_52f840() == 4 || Global81ae2c_Get_52f840() == 0xe || Global81ae2c_Get_52f840() == 0x13) {
             const X87Reg across = X87Reg((double)gFocuscell_8186b8) * X87Reg(10.0f);
             const X87Reg down = X87Reg((double)gFocuscell_8186b4) * X87Reg(10.0f);
-            x = bits((float)(X87_SubR(across, X87Reg(value(x))) + X87Reg(*reinterpret_cast<const float *>(0x00820afc))));
-            z = bits((float)(X87_SubR(down, X87Reg(value(z))) + X87Reg(*reinterpret_cast<const float *>(0x00820af8))));
+            x = bits((float)(X87_SubR(across, X87Reg(value(x))) + X87Reg(gFocuscell_820afc)));
+            z = bits((float)(X87_SubR(down, X87Reg(value(z))) + X87Reg(gFocuscell_820af8)));
         }
     }
     const u32 wave = type != -1 && type < 15 ? 1 : 0;
@@ -213,10 +213,10 @@ u8 *__fastcall VertexBlock_Construct(u8 *block, void *, u32 cubes, u32 quads, u3
     at<u32>(block, 0) = head;
     at<u32>(block, 4) = 0;
     at<u16>(block, 8) = (u16)quads;
-    at<u32>(block, 0xc) = Flag54dcc0_Test() ? 0x763ee4 : 0x74cb98;
+    at<u32>(block, 0xc) = Flag54dcc0_Test() ? (u32)(uintptr_t)&gText_VertexBlock_Construct_763ee4 : (u32)(uintptr_t)&gText_Vertexblock_74cb98;
     char *const path = reinterpret_cast<char *>(0x00871f68);
     {
-        const char *const from = reinterpret_cast<const char *>(0x00763ed4);
+        const char *const from = reinterpret_cast<const char *>((u32)(uintptr_t)&gText_VertexBlock_Construct_763ed4);
         u32 n = 0;
         while (from[n])
             ++n;
@@ -224,7 +224,7 @@ u8 *__fastcall VertexBlock_Construct(u8 *block, void *, u32 cubes, u32 quads, u3
             path[i] = from[i];
     }
     append(path, at<const char *>(Obj_Self(reinterpret_cast<u8 *>(0x00786b68)), 8));
-    append(path, reinterpret_cast<const char *>(Flag54dcc0_Test() ? 0x00763ec0 : 0x00763eac));
+    append(path, reinterpret_cast<const char *>(Flag54dcc0_Test() ? (u32)(uintptr_t)&gText_VertexBlock_Construct_763ec0 : (u32)(uintptr_t)&gText_VertexBlock_Construct_763eac));
     at<u32>(block, 0x10) = 0x871f68;
     at<u32>(block, 0x14) = 0x763b38;
     at<u32>(block, 0x54) = 3;

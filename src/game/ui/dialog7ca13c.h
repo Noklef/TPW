@@ -47,3 +47,6 @@ void __fastcall Obj7b51f0_OnGuestAdded(void *, void *, u32 handle);
 GAME_DATA(u32, gDialog7ca13c_Open_7508b8, 0x007508b8, 4);
 GAME_DATA(u8 *, gDialog7ca13c_7ca138, 0x007ca138, 0x4);
 GAME_DATA(u8 *, gDialog7ca13c_7ca13c, 0x007ca13c, 0x4);
+
+// Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(u8[0x1ec], gDialog7ca13c_Open_7506c8, 0x007506c8, 0x1ec);   // a window script (or a text / table before one): to the next named address

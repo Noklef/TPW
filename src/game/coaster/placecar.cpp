@@ -99,7 +99,7 @@ extern "C" u32 __cdecl CoasterEdit_PlaceCar(s32 x, s32 y, u32 height, u8 **outNo
         const float atX = (float)(X87Reg(at<float>(node, 0x1c)) - gCoasterEdit_PlaceCar_6fdea4);
         const float atZ = (float)(X87Reg(at<float>(node, 0x24)) - gCoasterEdit_PlaceCar_6fdea4);
         const float cost = (float)g_env->travelCost(editing, 1, car, &atX, &atZ, nullptr, nullptr);
-        const u32 money = g_env->money(global<u8 *>(0x007cf83c));
+        const u32 money = g_env->money(gWorldPtr);
         g_env->sourceField(money);
         if (!global<u32>(0x00785a2c))
             g_env->debit(money, nullptr, (s32)(long long)(double)cost);

@@ -19,6 +19,7 @@
 #include "window7059f0.h"
 #include "windowreg.h"
 #include "../core/textarg.h"
+#include "dialog7cc188.h"
 
 namespace {
 
@@ -102,7 +103,7 @@ s32 __cdecl Dialog7cc654_Open() {
     g_env->columnBottom(list, nullptr, 1, 0);
     g_env->columnBottom(list, nullptr, 2, 1);
     g_env->columnBottom(list, nullptr, 3, 1);
-    g_env->setHighlight(list, nullptr, reinterpret_cast<u8 *>((uintptr_t)g_env->findByName(reinterpret_cast<const char *>((uintptr_t)0x0074fa84))));
+    g_env->setHighlight(list, nullptr, reinterpret_cast<u8 *>((uintptr_t)g_env->findByName(reinterpret_cast<const char *>((uintptr_t)&gText_Dialog7cc188_74fa84))));
     headText(list, 0x10, 0x136, 0x187);
     headText(list, 0x11, 0x137, 0x188);
     headText(list, 0x12, 0x138, 0x189);

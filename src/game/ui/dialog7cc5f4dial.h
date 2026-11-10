@@ -31,3 +31,6 @@ s32 __cdecl Dialog7cc5f4_DialHandler(u8 *window, u32 message, u32 a, u32 b);
 // Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
 GAME_DATA(s32, gDialog7cc5f4dial_7cc504, 0x007cc504, 0x4);
 GAME_DATA(u32, gDialog7cc5f4dial_7cc50c, 0x007cc50c, 0x4);
+
+// Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(u8[0x48], gDialog7cc5f4dial_7cc548, 0x007cc548, 0x48);   // the dial fields: to the next named address

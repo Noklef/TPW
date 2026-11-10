@@ -65,3 +65,7 @@ GAME_DATA(u32[5], gRasterformat_fbe07c, 0x00fbe07c, 0x14);
 GAME_DATA(u32, gRasterformat_fbe090, 0x00fbe090, 0x4);
 GAME_DATA(u32, gRasterformat_fbe094, 0x00fbe094, 0x4);
 GAME_DATA(u32, gRasterformat_fbe098, 0x00fbe098, 0x4);
+
+// Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(char[0x20], gText_Rasterformat_77e5cc, 0x0077e5cc, 0x20);
+GAME_DATA(char[0x18], gText_Rasterformat_77e5ec, 0x0077e5ec, 0x18);

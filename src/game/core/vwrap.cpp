@@ -16,6 +16,7 @@
 #include "../gfx/texcache.h"
 #include "../render/spritegroups.h"
 #include "vtables.h"
+#include "../render/d3dsetup.h"
 
 namespace {
 
@@ -48,7 +49,7 @@ u32 __fastcall Global8bba48_ClipAndTouch(u8 *self, void *) {
         if (v[0] != 0 || v[1] != 0 || v[2] != 0 || v[3] != 0 || v[4] != 0 || v[5] != 0) {
             float out[6];
             for (s32 j = 0; j < 6; j++) out[j] = (float)((double)v[j] * gSpritegroups_701b24);
-            code = (u8)g_calls.Th(0x00561a30, global<u32>(0x00879a20), (u32)(uintptr_t)out, global<u32>(0x0087b088));
+            code = (u8)g_calls.Th(0x00561a30, global<u32>((u32)(uintptr_t)&gD3dsetup_879a20), (u32)(uintptr_t)out, global<u32>(0x0087b088));
         }
         at<u8>(self, i - 0x98) = code;
         const u32 records = reinterpret_cast<Entry>(at<u32>(self, 0u - 0x10))(i);
@@ -234,7 +235,7 @@ void __cdecl Globals7cc2fc_Release() {
 }
 
 void __cdecl Table7c26b0_ReleaseIdle() {
-    for (u32 record = 0x007c26b0; (s32)record < reinterpret_cast<uintptr_t>(&gMsgtags_7c3b00); record += 0x208) {
+    for (u32 record = (u32)(uintptr_t)&gMsgtags_7c26b0; (s32)record < reinterpret_cast<uintptr_t>(&gMsgtags_7c3b00); record += 0x208) {
         if (global<u16>(record + 4) == 0 && global<u8 *>(record)) {
             vcall<u32>(global<u8 *>(record), 8, 1u);
             global<u32>(record) = 0;

@@ -15,3 +15,8 @@ u32 __fastcall AdvisorMsg_Send(u8 *self, void *, u32 *out, s32 offset);
 // 0x59b620 (thiscall (out, offset), pops 8): as AdvisorMsg_Send, but first the score of the id (AdvisorScoring_ScoreDetail): under [0xfb3560] (signed) gives 0 and out is not set. Its word and dword, when not 0, replace +0 and +4.
 u32 __fastcall AdvisorMsg_SendScored(u8 *self, void *, u32 *out, s32 offset);
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(u8[0x3], gAdvisorsend_fb2765, 0x00fb2765, 0x3);

@@ -36,5 +36,6 @@ void __cdecl MoneyDisplay_Update(u8 *window);
 
 // Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
 GAME_DATA(s32, gMoneydisplay_752e2c, 0x00752e2c, 0x4);
+GAME_DATA(s32, gMoneyDisplay_Update_752ec0, 0x00752ec0, 0x4);
 GAME_DATA(s32, gMoneydisplay_7cb27c, 0x007cb27c, 0x4);
 GAME_DATA(s32, gMoneydisplay_7cb2dc, 0x007cb2dc, 0x4);

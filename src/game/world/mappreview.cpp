@@ -22,6 +22,8 @@
 #include "mapclick.h"
 #include "focuscell.h"
 #include "tracktextures.h"
+#include "pathdrag.h"
+#include "world.h"
 
 namespace {
 
@@ -53,7 +55,7 @@ const MapPreviewEnv *g_env = &kGameEnv;
 
 using Line = u32(__cdecl *)(u32, s32, s32, s32 *, s32 *);
 
-u8 *World() { return global<u8 *>(0x007cf83c); }
+u8 *World() { return gWorldPtr; }
 u32 IdAt(s32 x, s32 y) { return (((u32)y << 7) + (u32)x + 1) & 0xffff; }
 // The 0x28-byte map cell of a cell id: [0x7cf83c] + (id + 0x6cde) * 0x28; the 0x44-byte one: [0x7cf83c] + 0x294 + id * 0x44.
 u8 *Cell28(u32 id) { return World() + ((id & 0xffff) + 0x6cde) * 0x28; }
@@ -158,8 +160,8 @@ void Piece(const MapPreviewEnv *E, s32 &x, s32 &y) {
         if (global<u32>(0x00785a2c) == 0) {
             const s32 money = (s32)Source_Field0c(reinterpret_cast<const TrackedSource *>((uintptr_t)E->table5195d0(World())));
             if ((s32)Global81af4c_Get_52fbc0() > money) {
-                global<u32>(0x00816d50) = 1;
-                global<u32>(0x00816d5c) = 1;
+                gCellbuild_816d50 = 1;
+                gCellbuild_816d5c = 1;
             }
         }
     }
@@ -171,8 +173,8 @@ void Piece(const MapPreviewEnv *E, s32 &x, s32 &y) {
         if (gMapclick_8187f8 != 0 && Map_InBounds(x, y)) {
             const u8 *def = Def(E);
             const u32 angle = Global81d7a4_Get_52f1f0();
-            x = Even(x, global<s32>(0x007639a4));
-            y = Even(y, global<s32>(0x007639a8));
+            x = Even(x, gFocusCell_X_7639a4);
+            y = Even(y, gFocusCell_Y_7639a8);
             PieceX() = x;
             PieceY() = y;
             if (Map_InBounds(x, y)) {
@@ -216,28 +218,28 @@ void Piece(const MapPreviewEnv *E, s32 &x, s32 &y) {
 // Mode 0x1a: a ride's entrance or exit dragged.
 void EntranceDrag(const MapPreviewEnv *E, s32 &x, s32 &y, u32 flags) {
     if (global<u16>(0x00818698) == 0) return;
-    x = Even(x, global<s32>(0x007639a4));
-    y = Even(y, global<s32>(0x007639a8));
+    x = Even(x, gFocusCell_X_7639a4);
+    y = Even(y, gFocusCell_Y_7639a8);
     gFocuscell_8186b8 = x;
     gFocuscell_8186b4 = y;
-    if (global<u16>(0x007639b0) == 0xffff) E->applyLine(Mode(), x, y, &x, &y);
-    if (global<u32>(0x007639c0) == 0) {
+    if (gMapClick_StartWord_7639b0 == 0xffff) E->applyLine(Mode(), x, y, &x, &y);
+    if (gMapClick_7639c0 == 0) {
         E->corners();
         E->mapClick(StartX(), StartY(), flags, 0);
         if (Global81ae2c_Equals(0x1a)) E->setOnly(0x19, 1);
         return;
     }
-    if (global<u16>(0x007639b0) == 0xffff) return;
+    if (gMapClick_StartWord_7639b0 == 0xffff) return;
     u16 &here = global<u16>(0x00818684);
     here = (u16)IdAt(x, y);
-    global<u16>(0x007639b4) = MapCell_Word24(Cell28(here));
+    gMapClick_EndWord_7639b4 = MapCell_Word24(Cell28(here));
     const u32 kind = E->canBuildTrack(Cell28(here), nullptr, Global81ae2c_Get_52f840(), 0, 0);
-    const u16 end = global<u16>(0x007639b0), other = global<u16>(0x00818694);
+    const u16 end = gMapClick_StartWord_7639b0, other = global<u16>(0x00818694);
     if (kind != 9) {
         here = other;
-        global<u16>(0x007639b4) = end;
+        gMapClick_EndWord_7639b4 = end;
     }
-    if ((s16)end > (s16)global<u16>(0x007639b4)) E->connect(Cell28(here), Cell28(other), 0);
+    if ((s16)end > (s16)gMapClick_EndWord_7639b4) E->connect(Cell28(here), Cell28(other), 0);
     else E->connect(Cell28(other), Cell28(here), 0);
 }
 
@@ -249,8 +251,13 @@ extern "C" void __cdecl GameMode_MapPreview(s32 x, s32 y, u32 flags) {
     const MapPreviewEnv *const E = g_env;
     gFocuscell_8186b8 = x;
     gFocuscell_8186b4 = y;
-    static const u32 kCleared[] = {0x00816d48, 0x00816d50, 0x00816d58, 0x00816d54, 0x00816d60, 0x00816d5c, 0x00816d4c};
-    for (const u32 a : kCleared) global<u32>(a) = 0;
+    gFocuscell_816d48 = 0;
+    gCellbuild_816d50 = 0;
+    gCellbuild_816d58 = 0;
+    gCellbuild_816d54 = 0;
+    gCellbuild_816d60 = 0;
+    gCellbuild_816d5c = 0;
+    gCellbuild_816d4c = 0;
     Global871ee0_Clear();
     gMapclick_818c10 = 0;
     reinterpret_cast<u32 &>(gCellbuild_818c14) = 0;
@@ -290,10 +297,10 @@ extern "C" void __cdecl GameMode_MapPreview(s32 x, s32 y, u32 flags) {
             const s32 w = Sub(gTracktextures_81d740, 2), h = Sub(global<s32>(0x0081b1b0), 3);
             if (!(cx < w)) cx = w;
             if (!(cy < h)) cy = h;
-            x = Even(cx, global<s32>(0x007639f0));
-            y = Even(cy, global<s32>(0x007639f4));
+            x = Even(cx, gFocusCell_PointAX_7639f0);
+            y = Even(cy, gFocusCell_PointAY_7639f4);
             if (HasStart()) {
-                global<u32>(0x00816d50) = E->checkArea(StartX(), StartY(), x, y, 1) == 0;
+                gCellbuild_816d50 = E->checkArea(StartX(), StartY(), x, y, 1) == 0;
                 Rect(E->applyLine, 0, x, y, 2);
             } else {
                 E->applyLine(Mode(), x, y, &x, &y);
@@ -303,7 +310,7 @@ extern "C" void __cdecl GameMode_MapPreview(s32 x, s32 y, u32 flags) {
         case 0x3a:
             Global81af4c_Set_52fb90(0xffffd8f1);
             if (HasStart()) {
-                global<u32>(0x00816d50) = Const1_424ec0() == 0;
+                gCellbuild_816d50 = Const1_424ec0() == 0;
                 Rect(E->sendLine, 0x13a, x, y, 1);
             } else {
                 E->sendLine(0x13a, x, y, &x, &y);
@@ -313,7 +320,7 @@ extern "C" void __cdecl GameMode_MapPreview(s32 x, s32 y, u32 flags) {
             Global81af4c_Set_52fb90(0xffffd8f1);
             if (HasStart()) {
                 const s32 sx = StartX(), sy = StartY();
-                global<u32>(0x00816d50) = E->areaBlocked(sx < x ? sx : x, sy < y ? sy : y, sx > x ? sx : x, sy > y ? sy : y) == 0;
+                gCellbuild_816d50 = E->areaBlocked(sx < x ? sx : x, sy < y ? sy : y, sx > x ? sx : x, sy > y ? sy : y) == 0;
                 Rect(E->sendLine, 0, x, y, 1);
             } else {
                 E->sendLine(Mode(), x, y, &x, &y);
@@ -328,16 +335,16 @@ extern "C" void __cdecl GameMode_MapPreview(s32 x, s32 y, u32 flags) {
             break;
         case 0x15:
             gMapclick_818c10 = 3;
-            global<u32>(0x00816d50) = E->canPlaceAt((u32)x, (u32)y, nullptr, 0, 0, 0, 0) == 0;
+            gCellbuild_816d50 = E->canPlaceAt((u32)x, (u32)y, nullptr, 0, 0, 0, 0) == 0;
             E->sendLine(0x115, x, y, &x, &y);
             CoasterArea(E);
             break;
         case 0x16:
             gMapclick_818c10 = 3;
-            if (global<u8>(0x00818c54) != 0) global<u32>(0x00816d50) = E->canPlaceAt((u32)x, (u32)y, nullptr, 0, 0, 0, 0) == 0;
-            if (global<s32>(0x007639a0) == -1) global<s32>(0x007639a0) = (s16)MapCell_Word40(Cell44(IdAt(x, y)));
+            if (gPathdrag_818c54 != 0) gCellbuild_816d50 = E->canPlaceAt((u32)x, (u32)y, nullptr, 0, 0, 0, 0) == 0;
+            if (gMapClick_Mode_7639a0 == -1) gMapClick_Mode_7639a0 = (s16)MapCell_Word40(Cell44(IdAt(x, y)));
             E->sendLine(0x116, x, y, &x, &y);
-            if (global<u8>(0x00818c54) != 0) CoasterArea(E);
+            if (gPathdrag_818c54 != 0) CoasterArea(E);
             break;
         }
         // A type 4 cell at the end whose parent's first object is a thing of kind 3: [0x818c14] = its definition's +0x54.

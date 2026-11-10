@@ -15,6 +15,7 @@
 #include "dialog7cc188handler.h"
 #include "dialog7cc184handler.h"
 #include "../core/textarg.h"
+#include "dialog7cc654.h"
 
 namespace {
 
@@ -27,7 +28,7 @@ const Dialog7cc188AddressEnv kGameEnv = {game<void(__fastcall *)(u8 *, void *, c
 const Dialog7cc188AddressEnv *g_env = &kGameEnv;
 
 u16 *address() { return reinterpret_cast<u16 *>(gDialog7cc188_7cb8d8); }
-u16 *recipients() { return reinterpret_cast<u16 *>((uintptr_t)0x007cb4d0); }
+u16 *recipients() { return reinterpret_cast<u16 *>((uintptr_t)&gDialog7cc654_7cb4d0); }
 
 // wcschr (0x67c2f0): the terminator counts as found.
 u16 *find(u16 *text, u16 c) {

@@ -22,6 +22,7 @@
 #include "wfilebuf.h"
 #include "vdtor.h"
 #include "../frontend/viewcontrols.h"
+#include "../math/mat4.h"
 
 namespace {
 
@@ -457,7 +458,7 @@ extern "C" u32 __fastcall Object_UpdateShadow(u8 *self) {
     scale[0] = scaleX;
     scale[10] = scaleZ;
     u8 &guard = gPointsprites_fb33e0;
-    float *const product = reinterpret_cast<float *>((uintptr_t)0x00fb3400);   // (a function-local static, an identity)
+    float *const product = reinterpret_cast<float *>((uintptr_t)&gMat4_fb3400);   // (a function-local static, an identity)
     if (!(guard & 1)) {
         guard |= 1;
         std::memset(product, 0, 0x40);

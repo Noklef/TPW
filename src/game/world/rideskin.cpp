@@ -30,7 +30,7 @@ extern "C" void __cdecl Ride_RestoreSkinsAndDestroy(u8 *record) {
     if (!record) return;
     const u32 kind = at<u32>(record, 0x84);
     if (kind != 0 && at<u32>(at<const u8 *>(reinterpret_cast<const void *>((uintptr_t)0x007ae6a8), kind * 4), 0xd0) != 0) {
-        const u8 *const instance = at<const u8 *>(reinterpret_cast<const void *>((uintptr_t)0x007a4610), at<u32>(record, 4) * 4);
+        const u8 *const instance = gRides_7a4610[at<u32>(record, 4)];
         const u8 *const model = at<const u8 *>(at<const u8 *>(instance, 8), 4);
         Replace(model, at<u32>(record, 0x7c), at<u32>(record, 0x74));
         Replace(model, at<u32>(record, 0x80), at<u32>(record, 0x78));

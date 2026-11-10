@@ -13,6 +13,7 @@
 #include "window.h"
 #include "windowarea.h"
 #include "panel7b9940.h"
+#include "msgtags.h"
 
 namespace {
 
@@ -47,7 +48,7 @@ void ShowMoney(u8 *window, s32 money) {
     if (index > 5) index = 5;
     gMoneydisplay_7cb27c = index;
     if (index != gMoneydisplay_752e2c) {
-        const u32 entry = 0x00752e30 + 4 * static_cast<u32>(index);
+        const u32 entry = (u32)(uintptr_t)&gMsgtags_752e30 + 4 * static_cast<u32>(index);
         E->notify40000(window, nullptr, global<u8>(entry), global<u8>(entry + 1), global<u8>(entry + 2), 0xff);
         gMoneydisplay_752e2c = gMoneydisplay_7cb27c;
     }
@@ -99,7 +100,7 @@ void __cdecl MoneyDisplay_Update(u8 *window) {
     const u32 kind = mode ? vcall<u32>(mode, 0x24) : 0;
     if (kind == 3 || kind == 4 || (kind == 8 && E->editFlag())) {
         const s32 cost = static_cast<s32>(E->cost());
-        if (cost == global<s32>(0x00752ec0)) return;
+        if (cost == gMoneyDisplay_Update_752ec0) return;
         u8 *const child = Window_FindChild(window, nullptr, 0x30);
         if (!child) return;
         if (cost != kNoCost) E->setShown(child, nullptr, 1);
@@ -108,11 +109,11 @@ void __cdecl MoneyDisplay_Update(u8 *window) {
             return;
         }
         vcall<void>(child, 0x1c, static_cast<u32>(cost));
-        global<s32>(0x00752ec0) = cost;
+        gMoneyDisplay_Update_752ec0 = cost;
         return;
     }
-    if (global<s32>(0x00752ec0) == kNoCost) return;
+    if (gMoneyDisplay_Update_752ec0 == kNoCost) return;
     if (u8 *const child = Window_FindChild(window, nullptr, 0x30)) E->setShown(child, nullptr, 0);
-    global<s32>(0x00752ec0) = kNoCost;
+    gMoneyDisplay_Update_752ec0 = kNoCost;
 }
 }

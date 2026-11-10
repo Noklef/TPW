@@ -26,7 +26,7 @@ namespace {
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
 template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cast<T *>((uintptr_t)p + offset); }
 
-u8 **instances() { return reinterpret_cast<u8 **>(0x007a4610); }
+u8 **instances() { return gRides_7a4610; }
 
 const RidesEnv kGameEnv = {&Camera_StopFollowing, &CoasterLink_Destroy, &Instance_Clone, &Animator_Reset,
                            &Animator_HasMotion, &Animator_Play, &Terrain_FootprintHeight, &Animator_Place, &Model_FitToGrid,
@@ -63,7 +63,7 @@ void __cdecl Ride_Destroy(u32 ride) {
     u8 *const instance = instances()[ride];
     if (!instance) return;
     if (Highlight_Current() == instance) Highlight_Clear();
-    if (instance == global<u8 *>(0x007afda0)) global<u8 *>(0x007afda0) = nullptr;
+    if (instance == gRides_7afda0) gRides_7afda0 = nullptr;
     if (Camera_IsFollowing(reinterpret_cast<const void *>((uintptr_t)ride))) g_env->stopFollowing();
     if (at<u32>(instance, 4) & 0x4000000u) Highlight_Unflash(instance);
     g_env->forgetCoaster(ride);

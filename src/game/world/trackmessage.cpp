@@ -22,6 +22,9 @@
 #include "mapclick.h"
 #include "focuscell.h"
 #include "trackmessage.h"
+#include "cellmessage.h"
+#include "../math/intpair.h"
+#include "world.h"
 
 namespace {
 
@@ -59,7 +62,7 @@ float height_of(const u8 *cell, s32 x, s32 y) {
 
 // The squares down each side whose cell two steps away stands lower (ordered and not equal), with the tag and the flag (argument i).
 void sides(const u8 *cell, float top, u32 x10, u32 y10, u32 tag, u32 flag) {
-    static const u32 kSides[4][2] = {{0x007cdba0, 1}, {0x007cdbc8, 4}, {0x007cdba8, 0x10}, {0x007cdbd0, 0x40}};
+    static const u32 kSides[4][2] = {{(u32)gStepN_7cdba0, 1}, {(u32)gStepE_7cdbc8, 4}, {(u32)gStepS_7cdba8, 0x10}, {(u32)gStepW_7cdbd0, 0x40}};
     for (const auto &side : kSides) {
         const s32 *const step = pair(side[0]);
         const u8 *const next = Map_StepCell28(handle(cell), nullptr, step[0], step[1], 2);
@@ -150,8 +153,8 @@ void hoarding_flags(const u8 *cell) {
     const u32 x = id & 0x7f, y = id >> 7;
     bool a = false, b = false, c = false, d = false;
     if (direction == 1 || direction == 4 || direction == 0x10 || direction == 0x40) {
-        if (straight(cell) || (x == global<u32>(0x007639f0) && y == global<u32>(0x007639f4)) ||
-            (x == global<u32>(0x007639f8) && y == global<u32>(0x007639fc))) {
+        if (straight(cell) || (x == reinterpret_cast<u32 &>(gFocusCell_PointAX_7639f0) && y == reinterpret_cast<u32 &>(gFocusCell_PointAY_7639f4)) ||
+            (x == reinterpret_cast<u32 &>(gFocusCell_PointBX_7639f8) && y == reinterpret_cast<u32 &>(gFocusCell_PointBY_7639fc))) {
             if (direction == 1) b = d = true;
             else if (direction == 4) c = d = true;
             else if (direction == 0x10) a = c = true;
@@ -166,7 +169,7 @@ void hoarding_flags(const u8 *cell) {
     }
     flag40(c44, c44, a);
     g_env->pathModel(c44);
-    static const u32 kPairs[3] = {0x007cdbc8, 0x007cdba8, 0x007cdbb8};
+    static const u32 kPairs[3] = {(u32)gStepE_7cdbc8, (u32)gStepS_7cdba8, (u32)gStepSE_7cdbb8};
     const bool clear[3] = {b, c, d};
     for (int k = 0; k < 3; ++k) {
         const s32 *const step = pair(kPairs[k]);
@@ -183,10 +186,10 @@ u32 model(u8 *cell) {
         hoarding_flags(cell);
     else if (corner(cell) || junction(cell))
         at<u16>(cell, 0xe) &= 0xfff0;
-    global<u32>(0x00816d64) = 0;
+    gCellmessage_816d64 = 0;
     if (at<u32>(cell, 8) != 0xd && at<u32>(cell, 8) != 0x12) g_env->model(cell);
-    if (global<u32>(0x00820ad0) && global<u32>(0x00820ae8)) {
-        global<u32>(0x00820ae8) = 0;
+    if (gCellbuild_820ad0 && gTrackmessage_820ae8) {
+        gTrackmessage_820ae8 = 0;
         return 0;
     }
     return 1;
@@ -196,7 +199,7 @@ u32 owner(u8 *cell) {
     const u16 id = *handle(cell);
     if (held(cell) || !gFocuscell_8186c4) return 1;
     at<u16>(cell, 0x10) = global<u16>(0x00818698);
-    static const u32 kPairs[3] = {0x007cdba8, 0x007cdbc8, 0x007cdbb8};
+    static const u32 kPairs[3] = {(u32)gStepS_7cdba8, (u32)gStepE_7cdbc8, (u32)gStepSE_7cdbb8};
     for (const u32 p : kPairs) {
         u8 *const next = Map_StepCell28(handle(cell), nullptr, pair(p)[0], pair(p)[1], 1);
         if (!next) continue;
@@ -211,7 +214,7 @@ bool type2or7(const u8 *cell) { return MapCell_IsType2(cell) || MapCell_IsType7O
 u32 end_flag(u8 *cell) {
     const u8 *const c44 = MapHandle_Cell44(handle(cell));
     if (corner(cell) || junction(cell)) return 1;
-    static const u32 kPairs[3] = {0x007cdba8, 0x007cdbc8, 0x007cdbb8};
+    static const u32 kPairs[3] = {(u32)gStepS_7cdba8, (u32)gStepE_7cdbc8, (u32)gStepSE_7cdbb8};
     if (at<u32>(cell, 8) == 0x19) {
         if (type2or7(c44)) at<u16>(cell, 0xe) = 1;
         for (const u32 p : kPairs) {
@@ -240,7 +243,7 @@ void run(const u8 *cell, u32 b) {
     const u32 parent = at<u16>(cell, 0x10);
     if (!parent) return;
     u16 first = (u16)b;   // (b's slot is the out word)
-    Cell_FirstObject(global<u8 *>(0x007cf83c) + 0x294 + parent * 0x44, nullptr, &first);
+    Cell_FirstObject(gWorldPtr + 0x294 + parent * 0x44, nullptr, &first);
     if (!first) return;
     // (the debug check of the thing table, Debug_Printf, left out)
     u8 *const thing = global<u8 *>(0x007cfb90 + (u32)first * 20);
@@ -259,10 +262,10 @@ void dead_ends(const u8 *cell) {
         g_env->deadEnds((s32)(x + 1), (s32)y, 0);
         g_env->deadEnds((s32)x, (s32)(y + 1), 0);
         g_env->deadEnds((s32)(x + 1), (s32)(y + 1), 0);
-        if (global<u32>(0x00820ad0)) {
+        if (gCellbuild_820ad0) {
             u8 *const c44 = MapHandle_Cell44(handle(cell));
             g_env->clear(c44, nullptr, 0, 0);
-            static const u32 kPairs[3] = {0x007cdbc8, 0x007cdba8, 0x007cdbb8};
+            static const u32 kPairs[3] = {(u32)gStepE_7cdbc8, (u32)gStepS_7cdba8, (u32)gStepSE_7cdbb8};
             for (const u32 p : kPairs) g_env->clear(Map_StepCell(handle(c44), nullptr, pair(p)[0], pair(p)[1], 1), nullptr, 0, 0);   // (unchecked, sic)
         }
     }
@@ -285,7 +288,7 @@ u32 __fastcall MapCell_HandleTrackMessage(u8 *cell, void *, u32 message, u32 a, 
         g_env->remove(cell, nullptr, (s32)a, (s32)b, 1);
         return 1;
     case 0x80:
-        g_env->link(cell, nullptr, global<u32>(0x00816d64), (s32)a, (s32)b);
+        g_env->link(cell, nullptr, gCellmessage_816d64, (s32)a, (s32)b);
         return 1;
     case 0x81:
         return model(cell);
@@ -306,10 +309,10 @@ u32 __fastcall MapCell_HandleTrackMessage(u8 *cell, void *, u32 message, u32 a, 
         break;
     }
     const u32 type = at<u32>(cell, 8);
-    global<u32>(0x00820ae8) = 0;
-    if ((global<u32>(0x00820ad0) && (type == 0xd || type == 0x12 || type == 0xb || type == 0x10)) || type == 0x19) global<u32>(0x00820ae8) = 1;
+    gTrackmessage_820ae8 = 0;
+    if ((gCellbuild_820ad0 && (type == 0xd || type == 0x12 || type == 0xb || type == 0x10)) || type == 0x19) gTrackmessage_820ae8 = 1;
     if (!g_env->setKind(cell, nullptr, message)) return message == 0x19;
-    global<u32>(0x00816d64) = message;
+    gCellmessage_816d64 = message;
     return 1;
 }
 }

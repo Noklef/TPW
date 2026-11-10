@@ -9,6 +9,7 @@
 #include "flyingrides.h"
 #include "random.h"
 #include "ridelist.h"
+#include "world.h"
 
 namespace {
 
@@ -28,12 +29,12 @@ s32 bound(u32 address) { return global<s32>(address); }
 
 // The magnitude of a World_Rand (wrapping).
 s32 Rand() {
-    const s32 r = World_Rand(global<u8 *>(0x007cf83c));
+    const s32 r = World_Rand(gWorldPtr);
     return r < 0 ? (s32)(0u - (u32)r) : r;
 }
 
 // The sine table's entry at an angle of 4096 to the turn (wrapped), times by, / 1024.
-s32 sine(s32 angle, s32 by) { return mul(global<s32 *>(0x008791c8)[(u32)angle & 0xfff], by) / 1024; }
+s32 sine(s32 angle, s32 by) { return mul(gFlyingrides_8791c8[(u32)angle & 0xfff], by) / 1024; }
 s32 cosine(s32 angle, s32 by) { return sine(add(angle, 0x400), by); }
 
 // __ftol's low half of the root of a sum of squares (a wrapped sum's NaN: 0).
@@ -219,9 +220,9 @@ void by_state(s32 index, u32 k, u8 *record, u8 *slot) {
                 const s32 angle = at<s32>(record, 0x40);
                 at<s32>(slot, 0xbc) = angle;
                 state = 5;
-                at<s32>(slot, 0x4c) = sub(at<s32>(record, 0x14), mul(global<s32 *>(0x008791c8)[(u32)add(angle, 0x400) & 0xfff], mul(out, 6)) / 1024);
+                at<s32>(slot, 0x4c) = sub(at<s32>(record, 0x14), mul(gFlyingrides_8791c8[(u32)add(angle, 0x400) & 0xfff], mul(out, 6)) / 1024);
                 at<s32>(slot, 0x50) = high < 14000 ? 14000 : high;
-                at<s32>(slot, 0x54) = sub(at<s32>(record, 0x1c), mul(global<s32 *>(0x008791c8)[(u32)angle & 0xfff], mul(out, 6)) / 1024);
+                at<s32>(slot, 0x54) = sub(at<s32>(record, 0x1c), mul(gFlyingrides_8791c8[(u32)angle & 0xfff], mul(out, 6)) / 1024);
             }
         }
         break;
@@ -346,7 +347,7 @@ extern "C" {
 
 void __cdecl FlyingRides_Update() {
     for (s32 index = 1; index < 100; index++) {
-        u8 *const record = global<u8 *>(0x008791f8 + (u32)index * 4);
+        u8 *const record = gFlyingrides_8791f8[(u32)index];
         if (!record) continue;
         if (at<s32>(record, 0xc) < at<s32>(record, 0)) g_env->launch(index);
         for (u32 k = 0; k < kSlots; k++) {

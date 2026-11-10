@@ -22,7 +22,7 @@ const float kNoHeight = 0.0f;   // 0x6fde74
 const u32 kBanks[5] = {3, 10, 2, 9, 10};
 const u32 kEntries[5] = {0, 0, 0, 0, 1};
 
-u8 *Instance(u32 ride) { return global<u8 *>(0x007a4610 + ride * 4); }
+u8 *Instance(u32 ride) { return gRides_7a4610[ride]; }
 
 // The part's kind in the model.
 u32 kind(const u8 *holder, u32 part) { return at<u32>(at<const u8 *>(at<const u8 *>(at<const u8 *>(holder, 8), 4), 0x7c), part * 0x14 + 4); }

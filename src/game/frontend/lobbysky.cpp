@@ -33,7 +33,7 @@ void __fastcall LobbySky_Enter(u8 *self) {
     at<u32>(self, 0x3c) = global<u32>(0x008bd490);
     at<u32>(self, 0x40) = global<u32>(0x008bd494);
     String folder;
-    String_CtorStr(&folder, nullptr, reinterpret_cast<const char *>((uintptr_t)0x00774c6c));
+    String_CtorStr(&folder, nullptr, reinterpret_cast<const char *>((uintptr_t)&gText_LobbySky_Enter_774c6c));
     void *const landscape = reinterpret_cast<void *>((uintptr_t)0x008c1828);
     g_env->loadSky(landscape, nullptr, folder.data);
     g_env->turnSky(landscape, nullptr, 0, kFloat180, 0);

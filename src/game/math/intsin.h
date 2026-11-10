@@ -16,3 +16,8 @@ s32 __cdecl IntCos(u32 angle);
 // the game's 24-bit precision, the product with the double rounded once).
 void __cdecl IntSin_BuildTable();
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(u32[0x200], gIntSinTable, 0x00877358, 0x800);   // (IntSin_BuildTable's entries; trackrides reads 0x40, 0xc0 and 0x1c0)

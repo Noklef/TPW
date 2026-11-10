@@ -8,6 +8,8 @@
 #include "crtopen.h"
 #include "crtstream.h"
 #include "guardheap.h"
+#include "../render/enginedebug.h"
+#include "../online/ftp.h"
 
 namespace {
 
@@ -80,9 +82,9 @@ u8 *__stdcall GuardFile_Open(const char *name) {
         } else {
             Copy(working, name);
             if (mode == 2 || mode == 3) ChangeExtension(working, text((u32)(uintptr_t)&gGuardfile_774a64));
-            handle = g_env->fopen(working, text(0x00766128));
+            handle = g_env->fopen(working, text((u32)(uintptr_t)&gText_Enginedebug_766128));
             if (!handle) {
-                handle = g_env->fopen(working, text(0x0074cfb4));
+                handle = g_env->fopen(working, text((u32)(uintptr_t)&gText_Ftp_74cfb4));
                 message()(text((u32)(uintptr_t)&gGuardfile_774a34), working);
             }
         }

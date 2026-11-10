@@ -31,7 +31,7 @@ s32 __cdecl Window7cb2cc_Handler(u8 *window, u32 message, u32 a, u32 b) {
         GuiRect_Ctor(rect);
         g_env->getRect(window, nullptr, rect, 1);
         g_env->setWords(window, nullptr, (u32)(s32)(s16)(at<s16>(rect, 8) >> 1), (u32)(s32)(s16)(at<s16>(rect, 0xa) >> 1));
-        g_env->runScript(window, nullptr, reinterpret_cast<u8 *>((uintptr_t)0x00752ed0), 0x23);
+        g_env->runScript(window, nullptr, gWindow7cb2cc_Handler_752ed0, 0x23);
         GuiRect_Dtor(rect);
     } else if (message == 0x1000b) {
         const u8 *const map = gKeymap_78718c;

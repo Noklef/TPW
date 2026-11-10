@@ -99,7 +99,7 @@ void Dialog7cc61c_SetOpenEnv(const Dialog7cc61cOpenEnv *env) { g_open = env ? en
 extern "C" void __cdecl Dialog7cc61c_Open() {
     u8 *&dialog = global<u8 *>(0x007cc61c);
     if (dialog || !global<u8 *>(0x00f82884)) return;
-    dialog = g_open->create(reinterpret_cast<u8 *>((uintptr_t)0x007586f0), 0x004bb690, 0);
+    dialog = g_open->create(reinterpret_cast<u8 *>((uintptr_t)&gDialog7cc61c_Open_7586f0), 0x004bb690, 0);
     Window_SetDepth(dialog, nullptr, (u16)(at<u16>(dialog, 0xe0) + 4));
     u8 *const panel = Window_FindChild(dialog, nullptr, 0x5b7f);
     setPart(panel);

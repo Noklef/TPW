@@ -32,3 +32,8 @@ void __cdecl Advisor_Load(Stream *stream);
 // Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
 GAME_DATA(char[28], gText_Advisor_Say_76e0d8, 0x0076e0d8, 0x1c);
 GAME_DATA(char[12], gText_Advisor_Say_76e0cc, 0x0076e0cc, 0xc);
+
+// Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(char[0x4], gText_Advisorspeech_74cfb8, 0x0074cfb8, 0x4);
+GAME_DATA(u8[0x4c60], gAdvisorResponses, 0x00768fb8, 0x4c60);
+GAME_DATA(u8[0x4b4], gAdvisor_QueueAnim_76dc18, 0x0076dc18, 0x4b4);

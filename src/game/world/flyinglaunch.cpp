@@ -9,6 +9,8 @@
 #include "objectdefs.h"
 #include "random.h"
 #include "rides.h"
+#include "../core/soundset.h"
+#include "world.h"
 
 namespace {
 
@@ -23,7 +25,7 @@ const s32 kOff = 0xafc8;
 
 // The magnitude of a World_Rand (wrapping).
 s32 Rand() {
-    const s32 r = World_Rand(global<u8 *>(0x007cf83c));
+    const s32 r = World_Rand(gWorldPtr);
     return r < 0 ? (s32)(0u - (u32)r) : r;
 }
 
@@ -43,7 +45,7 @@ void FlyingLaunch_SetEnv(const FlyingLaunchEnv *env) { g_env = env ? env : &kPor
 extern "C" {
 
 u32 __cdecl FlyingRide_Launch(s32 index) {
-    u8 *const record = global<u8 *>(0x008791f8 + (u32)index * 4);
+    u8 *const record = gFlyingrides_8791f8[(u32)index];
     u32 k = 0;
     u8 *slot = record + 0x5c;
     while (at<u32>(slot, 0x80) != 0) {
@@ -94,7 +96,7 @@ u32 __cdecl FlyingRide_Launch(s32 index) {
     at<s32>(slot, 0xcc) = -1;
     at<s32>(slot, 0xd0) = -1;
     at<s32>(slot, 0xd4) = -1;
-    at<u32>(slot, 0xe0) = g_env->playSound(at<s32>(record, 0x54), 0, global<u32>(0x00803a3c), 0, x / 300, y / 300, z / 300);
+    at<u32>(slot, 0xe0) = g_env->playSound(at<s32>(record, 0x54), 0, gSoundCategories.themeRides, 0, x / 300, y / 300, z / 300);
     at<s32>(slot, 0xd8) = Rand();
 
     if (at<u32>(record, 0xc) == 1) {
@@ -113,17 +115,17 @@ u32 __cdecl FlyingRide_Launch(s32 index) {
     g_env->playMotion(index, k, 0, 0, 0);
 
     u32 parts = 0;
-    while (g_env->findPart(global<const u8 *>(0x007a4610 + at<u32>(slot, 0xc0) * 4), 0x80, parts + 1) != 0xffffffff) ++parts;
+    while (g_env->findPart(gRides_7a4610[at<u32>(slot, 0xc0)], 0x80, parts + 1) != 0xffffffff) ++parts;
     at<u32>(slot, 0xdc) = parts;
     return 1;
 }
 
 s32 __cdecl FlyingRide_Create(u32 object, u32 sound, u32 x, u32 y, u32 z, u32 turn, u32 quick) {
     s32 index = 1;
-    while (index < 100 && global<u32>(0x008791f8 + index * 4) != 0) ++index;
+    while (index < 100 && gFlyingrides_8791f8[index] != nullptr) ++index;
     if (index >= 100) return -1;
     u8 *const record = static_cast<u8 *>(Mem_GlobalAlloc(0x122c));
-    global<u8 *>(0x008791f8 + index * 4) = record;
+    gFlyingrides_8791f8[index] = record;
     if (record) {
         at<u32>(record, 0x14) = x;
         at<u32>(record, 0x18) = y;

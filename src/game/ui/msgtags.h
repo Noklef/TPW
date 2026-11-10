@@ -127,6 +127,13 @@ void MsgTag_SetHandlerEnv(const MsgTagHandlerEnv *env);
 
 // Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
 GAME_DATA(s32, gMsgTags_Add_750610, 0x00750610, 4);
+GAME_DATA(u8[0x14], gMsgTags_AddVersion_750694, 0x00750694, 0x14);
+GAME_DATA(u8[0x1450], gMsgtags_7c26b0, 0x007c26b0, 0x1450);
 GAME_DATA(u32, gMsgtags_7c3b00, 0x007c3b00, 0x4);
 GAME_DATA(s32, gMsgtags_7ca09c, 0x007ca09c, 0x4);
 GAME_DATA(u8 *, gMsgtags_7cb2c8, 0x007cb2c8, 0x4);
+
+// Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(u8[0x320], gMsgtags_7502f0, 0x007502f0, 0x320);   // a window script (or a text / table before one): to the next named address
+GAME_DATA(u8[0x18], gMsgtags_752e30, 0x00752e30, 0x18);   // a table of dwords (moneydisplay: + 4 * index), up to the script 0x752e48
+GAME_DATA(u8[0x78], gMsgtags_752e48, 0x00752e48, 0x78);   // a window script (or a text / table before one): to the next named address

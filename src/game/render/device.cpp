@@ -1,6 +1,7 @@
 #include "device.h"
 
 #include <cstdint>
+#include "d3dsetup.h"
 
 namespace {
 
@@ -23,7 +24,7 @@ u8 *__fastcall Class701260_Ctor(u8 *object) {
     at<u32>(object, 0x20) = 0;
     at<u32>(object, 8) = 0;
     at<u32>(object, 0x24) = 0;
-    if (at<u32>(global<u8 *>(0x00879a24), 0x428) == 0x10de && global<u32>(0x008bd524) == 1)
+    if (at<u32>(global<u8 *>((u32)(uintptr_t)&gD3dsetup_879a20 + 0x4), 0x428) == 0x10de && global<u32>(0x008bd524) == 1)
         global<u32>(0x00879ab4) = 1;
     return object;
 }

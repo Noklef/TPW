@@ -39,3 +39,8 @@ void __fastcall Panel7cc408_Show(u8 *self, void *, u8 *thing);
 // with 0, 0x3730 a 0x6ff350 part with 0, 0x3731 a 0x6ff350 part with 0, 0x3732 (when found) a happygrad bar (no slot 7), 0x3733 no text.
 void __fastcall Panel7cc408_Dress(u8 *self);
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(u8[0x3e8], gPanel7cc408_Show_7575e0, 0x007575e0, 0x3e8);

@@ -35,3 +35,9 @@ void CameraUpdate_SetEnv(const CameraUpdateEnv *env);
 // Last, 0x790900 is the current matrix inverted (Matrix_Invert). Quirks kept: the height's arguments and the definition's id can be stale frame slots (see the source).
 void __cdecl Camera_Update();
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(u8[0x4], gCameraupdate_74d104, 0x0074d104, 0x4);
+GAME_DATA(u8[0x4], gCameraupdate_74d108, 0x0074d108, 0x4);

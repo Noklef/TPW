@@ -41,7 +41,7 @@ void __cdecl Scape_LoadObjects(const char *path) {
         } else {
             Stream_Read(&result, stream, record, static_cast<s32>(size), nullptr);
         }
-        const u32 category = global<u32>(record[1] ? 0x00803a38 : 0x00803a20);
+        const u32 category = record[1] ? gSoundCategories.themeAmbient : gSoundCategories.ambient;
         const u32 sound = static_cast<u32>(record[2]);
         const s32 x = record[3] / 1024, y = record[4] / 1024, z = record[5] / 1024;
         if (record[0] == 1) {

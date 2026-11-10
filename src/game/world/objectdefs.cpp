@@ -1,4 +1,5 @@
 #include "objectdefs.h"
+#include "world.h"
 
 #include <cstdint>
 #include <cstring>
@@ -285,16 +286,16 @@ const u8 *__fastcall ObjectDef_GetSchema(const void *, void *, u32 index) {
 }
 
 const u8 *__fastcall TrackType_GetSchema(const void *, void *, u32 index) {
-    return reinterpret_cast<const u8 *>(0x00739ea8) + index * 0x3c;
+    return reinterpret_cast<const u8 *>((u32)(uintptr_t)&gTrackType_GetSchema_739ea8) + index * 0x3c;
 }
 
 u8 __stdcall Table76e300_GetByte(u32 id) {
     if (id == 0x160 || id == 0x15f)
         return 0;
-    const u32 slot = 0x0076e300 + 56 * id;
+    const u32 slot = (u32)(uintptr_t)&gObjectdefs_76e300 + 56 * id;
     if (global<u32>(slot + 4) == id)
         return global<u8>(slot + 0x20);
-    for (u32 p = 0x0076e304; (s32)p < 0x00772fcc; p += 0x38) {
+    for (u32 p = ((u32)(uintptr_t)&gObjectdefs_76e300 + 0x4); (s32)p < (s32)((u32)(uintptr_t)&gObjectdefs_76e300 + 0x4ccc); p += 0x38) {
         if (global<u32>(p) == id)
             return global<u8>(slot + 0x20);
     }
@@ -318,10 +319,10 @@ u8 __fastcall Table76e300_ObjectDwordSet(const u8 *object, void *, u32 id) {
 extern "C" u32 Table76e300_FindRecord(u32 id) {
     if (id == 0x160 || id == 0x15f)
         return 0;
-    const u32 slot = 0x0076e300 + 56 * id;
+    const u32 slot = (u32)(uintptr_t)&gObjectdefs_76e300 + 56 * id;
     if (global<u32>(slot + 4) == id)
         return slot;
-    for (u32 p = 0x0076e304; (s32)p < 0x00772fcc; p += 0x38) {
+    for (u32 p = ((u32)(uintptr_t)&gObjectdefs_76e300 + 0x4); (s32)p < (s32)((u32)(uintptr_t)&gObjectdefs_76e300 + 0x4ccc); p += 0x38) {
         if (global<u32>(p) == id)
             return slot;
     }
@@ -350,10 +351,10 @@ u32 __fastcall Obj_DefKind123(const u8 *object) {
 
 u8 __stdcall Record_IsActive(u32 id) {
     if (id == 0x160 || id == 0x15f) return 0;
-    const u8 *const record = reinterpret_cast<const u8 *>(0x0076e300 + id * 0x38);
+    const u8 *const record = reinterpret_cast<const u8 *>((u32)(uintptr_t)&gObjectdefs_76e300 + id * 0x38);
     if (at<u32>(record, 4) != id) {
         bool found = false;
-        for (u32 scan = 0x0076e304; (s32)scan < 0x00772fcc; scan += 0x38) {
+        for (u32 scan = ((u32)(uintptr_t)&gObjectdefs_76e300 + 0x4); (s32)scan < (s32)((u32)(uintptr_t)&gObjectdefs_76e300 + 0x4ccc); scan += 0x38) {
             if (global<u32>(scan) == id) { found = true; break; }
         }
         if (!found) return 0;  // (the original prints that it was not found)
@@ -441,14 +442,14 @@ void __fastcall ObjectDefs_ReleaseEffects(u8 *defs) {
 
 void __fastcall ObjectDef_LoadText(u8 *def, void *, Stream *stream) {
     u16 **const fields = reinterpret_cast<u16 **>(def + 0x4f4);
-    for (u32 i = 0; i < 4; ++i) fields[i] = reinterpret_cast<u16 *>((uintptr_t)0x006fd880);
+    for (u32 i = 0; i < 4; ++i) fields[i] = reinterpret_cast<u16 *>((uintptr_t)&gObjectdefs_6fd880);
     const s32 size = vcall<s32>(stream, 0x14);
     if (size % 2 != 0) return;
     u16 *const text = static_cast<u16 *>(Mem_GlobalAlloc((u32)(size + 2)));
     const s32 got = vcall<s32>(stream, 8, text, size);
     if (!text || !got) return;
     text[size / 2] = 0;
-    const u16 *const *const keys = reinterpret_cast<const u16 *const *>((uintptr_t)0x007487f8);
+    const u16 *const *const keys = reinterpret_cast<const u16 *const *>((uintptr_t)&gObjectDef_LoadText_7487f8);
     const u16 *p = text[0] == 0xfeff ? text + 1 : text;
     while (*p) {
         s32 index = -1;
@@ -510,7 +511,7 @@ u8 __fastcall ObjectText_Suffix(void *, void *, u32 id, u16 *out, u32 size) {
 void __fastcall ObjectDefs_GetFullName(u8 *defs, void *, u32 id, u16 *out, u32 size) {
     if (u8 *def = ObjectDefs_Find(defs, nullptr, (u16)id)) {
         const u16 *text = at<const u16 *>(def, 0x4f4);
-        if (text && text != reinterpret_cast<const u16 *>((uintptr_t)0x006fd880)) {
+        if (text && text != reinterpret_cast<const u16 *>((uintptr_t)&gObjectdefs_6fd880)) {
             Crt().wcsncpy(out, text, size);
             return;
         }
@@ -536,7 +537,7 @@ void __fastcall ObjectDefs_Free(u8 *defs) {
         u8 **const slot = reinterpret_cast<u8 **>(defs + 4 * i);
         u16 **const texts = reinterpret_cast<u16 **>(*slot + 0x4f4);   // (a null entry: a fault, sic)
         for (u32 k = 0; k < 4; ++k) {
-            if (texts[k] && texts[k] != reinterpret_cast<u16 *>((uintptr_t)0x006fd880)) {   // (not the shared "MISSING STRING")
+            if (texts[k] && texts[k] != reinterpret_cast<u16 *>((uintptr_t)&gObjectdefs_6fd880)) {   // (not the shared "MISSING STRING")
                 Mem_GlobalFree(texts[k]);
                 texts[k] = nullptr;
             }
@@ -559,7 +560,7 @@ void __cdecl ObjectDefs_FreeAll() {
 s32 __stdcall ObjectDefs_ListBuiltNumbers(u16 *out) {
     std::memset(out, 0, 0x200);
     u8 *const defs = reinterpret_cast<u8 *>(0x007890a0);
-    const u8 *const built = reinterpret_cast<const u8 *>(0x00802080);
+    const u8 *const built = gWorld_802080;
     u32 count = 0;
     for (u32 index = 0; index < 0x20; ++index) {
         for (u32 bit = 0; bit < 8; ++bit) {
@@ -637,7 +638,7 @@ u32 loadDefinition(u8 *defs, u8 *entry, u8 *opener, u8 *source, String *path, St
         const u32 size = static_cast<u32>(std::strlen(from)) + 1;
         std::memcpy(def + 0x28c, from, size);
     }
-    Crt().swprintf(reinterpret_cast<u16 *>(def + 0x390), reinterpret_cast<const u16 *>((uintptr_t)0x007488b4), at<const char *>(source, 0xc));
+    Crt().swprintf(reinterpret_cast<u16 *>(def + 0x390), reinterpret_cast<const u16 *>((uintptr_t)&gText_Objectdefs_7488b4), at<const char *>(source, 0xc));
     DefLoad load = {source, stream, name};
     u8 *const handle = source + 0x2c;
     const u32 streamAt = address(stream);

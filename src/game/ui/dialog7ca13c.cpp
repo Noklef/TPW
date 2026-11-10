@@ -21,6 +21,8 @@
 #include "windowtimers.h"
 #include "dialog7ca13chandler.h"
 #include "panel7b9940.h"
+#include "../world/world.h"
+#include "dialog7cc188.h"
 
 namespace {
 
@@ -35,14 +37,14 @@ extern "C" {
 void __cdecl Dialog7ca13c_Open(u32 selected) {
     Window7c24c8_Close();
     Global7cb28c_Select(2, 6);
-    u8 *const dialog = WindowScript_Build(gPanel7b9940_7cb2ac, nullptr, reinterpret_cast<u8 *>((uintptr_t)0x007506c8), 0x00493230);
+    u8 *const dialog = WindowScript_Build(gPanel7b9940_7cb2ac, nullptr, gDialog7ca13c_Open_7506c8, 0x00493230);
     if (!dialog) return;
     gDialog7ca13c_7ca13c = dialog;
     Window7c24c8_Set(dialog);
     if (u8 *const list = Window_FindChild(gDialog7ca13c_7ca13c, nullptr, 0x1e497)) {
         Window7059f0_BuildRows(list, nullptr, &List7ca140_NewRow, &List7ca140_InitRow);   // (0x4938c0, 0x4939d0: only called, not stored)
         for (u32 i = 0; i < 6; ++i) Window7059f0_SetColumnBottom(list, nullptr, i, 1);
-        Window7059f0_SetHighlight(list, nullptr, reinterpret_cast<u8 *>((uintptr_t)GuiWindows_FindByName(reinterpret_cast<const char *>(0x0074fa84))));
+        Window7059f0_SetHighlight(list, nullptr, reinterpret_cast<u8 *>((uintptr_t)GuiWindows_FindByName(reinterpret_cast<const char *>((u32)(uintptr_t)&gText_Dialog7cc188_74fa84))));
         Window7059f0_SortBy(list, nullptr, gDialog7ca13c_7508bc, 0);
         u8 *const again = Window_FindChild(gDialog7ca13c_7ca13c, nullptr, 0x1e497);
         gDialog7ca13c_7ca138 = again;
@@ -75,7 +77,7 @@ void __cdecl Dialog7ca13c_RemoveData(u32 data) {
 
 void __cdecl Dialog7ca13c_AddRow(u8 *guest) {
     FileTime span;
-    const FileTime *const s = FunnyTime_SpanOf(global<u8 *>(0x007cf83c) + 0x2a0, nullptr, &span, Visitor_TimeInPark(guest));
+    const FileTime *const s = FunnyTime_SpanOf(gWorldPtr + 0x2a0, nullptr, &span, Visitor_TimeInPark(guest));
     const long long hours = (long long)(((unsigned long long)s->high << 32) | s->low) / 36000000000LL;   // (_alldiv: an hour of ticks)
     const u32 left = field<u32>(guest, 0x30);
     const u32 happy = (u32)(long long)field<float>(guest, 0x19c) & 0xff;   // (FLD, __ftol's low byte)

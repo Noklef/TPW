@@ -57,7 +57,7 @@ template <bool kWrapped, bool kMasked = true> void Filter(const u32 *uv, u16 *so
     const u32 i01 = kWrapped ? (i11 - 1) & mask : index + 0x100;
     const u32 t00 = texels[index], t10 = texels[i10], t11 = texels[i11], t01 = texels[i01];
     texel = t00;
-    const u16 fu = (u16)((uv[0] >> 10) & global<u32>(0x00fbe1b8)), fv = (u16)((uv[1] >> 10) & global<u32>(0x00fbe1bc));
+    const u16 fu = (u16)((uv[0] >> 10) & global<u32>((u32)(uintptr_t)&gRasterspans_fbe138 + 0x80)), fv = (u16)((uv[1] >> 10) & global<u32>((u32)(uintptr_t)&gRasterspans_fbe138 + 0x84));
     for (int k = 0; k < 4; ++k) {
         const u16 top = (u16)(Byte(t00, k) + MulHigh((u16)((Byte(t10, k) - Byte(t00, k)) * 4), fu));
         const u16 bottom = (u16)(Byte(t01, k) + MulHigh((u16)((Byte(t11, k) - Byte(t01, k)) * 4), fu));
@@ -82,7 +82,7 @@ template <Source kSource> u32 Blend(const u32 *uv, const u16 *shade, const u32 *
     u16 source[4];
     kSource(uv, source, texel);
     const u32 alpha = source[3] >> 2, under = *dest;
-    const u16 *const mine = at<const u16>(((u32)(uintptr_t)&gRastertriangle_fbe240 + 0xa0) + alpha * 8), *const theirs = at<const u16>(0x00fbe4e0 + alpha * 8);
+    const u16 *const mine = at<const u16>(((u32)(uintptr_t)&gRastertriangle_fbe240 + 0xa0) + alpha * 8), *const theirs = at<const u16>((u32)(uintptr_t)&gRasterspans_fbe4e0 + alpha * 8);
     u32 out = 0;
     for (int k = 0; k < 4; ++k) {
         const u16 lit = (u16)MulHigh((u16)(source[k] << 3), shade[k]);
@@ -101,7 +101,7 @@ template <Source kSource, Alpha kAlpha> u32 BlendLit(const u32 *uv, const u16 *s
     kSource(uv, source, texel);
     for (int k = 0; k < 4; ++k) lit[k] = (u16)MulHigh((u16)(source[k] * 2), shade[k]);
     const u32 alpha = kAlpha == kLitFourth ? lit[3] >> 2 : kAlpha == kLitSecond ? lit[1] >> 10 : source[3] >> 2, under = *dest;
-    const u16 *const mine = at<const u16>(((u32)(uintptr_t)&gRastertriangle_fbe240 + 0xa0) + alpha * 8), *const theirs = at<const u16>(0x00fbe4e0 + alpha * 8);
+    const u16 *const mine = at<const u16>(((u32)(uintptr_t)&gRastertriangle_fbe240 + 0xa0) + alpha * 8), *const theirs = at<const u16>((u32)(uintptr_t)&gRasterspans_fbe4e0 + alpha * 8);
     u32 out = 0;
     for (int k = 0; k < 4; ++k)
         out |= Saturate((s16)(MulHigh((u16)(lit[k] << 2), mine[k]) + MulHigh((u16)(Byte(under, k) << 2), theirs[k])), k);
@@ -120,7 +120,7 @@ u32 BlendKeyed(const u32 *uv, const u16 *shade, const u32 *dest, u32 &texel) {
     texel = Texel<false>(uv);
     const u32 alpha = texel >> 26, under = *dest;
     if (alpha == 0) return under;
-    const u16 *const mine = at<const u16>(((u32)(uintptr_t)&gRastertriangle_fbe240 + 0xa0) + alpha * 8), *const theirs = at<const u16>(0x00fbe4e0 + alpha * 8);
+    const u16 *const mine = at<const u16>(((u32)(uintptr_t)&gRastertriangle_fbe240 + 0xa0) + alpha * 8), *const theirs = at<const u16>((u32)(uintptr_t)&gRasterspans_fbe4e0 + alpha * 8);
     u32 out = 0;
     for (int k = 0; k < 4; ++k) {
         const u16 lit = (u16)MulHigh((u16)(Byte(texel, k) * 2), shade[k]);
@@ -154,8 +154,8 @@ template <Source kSource> u32 Add(const u32 *uv, const u16 *shade, const u32 *de
 // the left edge's u and v (kUv), shade (kShade) and depth their steps, and (kZ) the depth row [0xfbe228] -[0xfbe030]; returns the
 // row pointer.
 template <bool kUv, bool kShade = true, bool kZ = true> u32 NextRow(Edge *&left, const Edge *&right, u32 row) {
-    left = global<Edge *>(0x00fbe208);
-    Edge *const next = global<Edge *>(0x00fbe20c);
+    left = global<Edge *>((u32)(uintptr_t)&gRasterspans_fbe138 + 0xd0);
+    Edge *const next = global<Edge *>((u32)(uintptr_t)&gRasterspans_fbe138 + 0xd4);
     const u32 rightX = next->x + next->dx, leftX = left->x + left->dx;
     next->x = rightX;
     left->x = leftX;
@@ -166,9 +166,9 @@ template <bool kUv, bool kShade = true, bool kZ = true> u32 NextRow(Edge *&left,
         for (int k = 0; k < 4; ++k) left->shade[k] = (u16)(left->shade[k] + left->dshade[k]);
     if (kZ) {
         left->z += left->dz;
-        global<u32>(0x00fbe228) -= gDevicecreate_fbe030;
+        global<u32>((u32)(uintptr_t)&gRasterspans_fbe138 + 0xf0) -= gDevicecreate_fbe030;
     }
-    return row - global<u32>(0x00fbe02c);
+    return row - global<u32>((u32)(uintptr_t)&gDevicecreate_fbe02c);
 }
 
 // What a drawn pixel writes: the pixel and the next pixel's depth (sic); the pixel and its own depth; the pixel only; both (the
@@ -183,17 +183,17 @@ enum Depth { kWriteNext, kWrite, kKeep, kAlphaTest, kNone };
 template <u32 (*Colour)(const u32 *, const u16 *, const u32 *, u32 &), Depth kDepth, bool kBelow, bool kHalf, bool kRunTexel = false,
           bool kShaded = true>
 u32 TexRows(bool atLeast, Edge *left, const Edge *right, s32 rows, u32 row) {
-    const u32 uvStep[2] = {global<u32>(0x00fbe138), global<u32>(0x00fbe13c)};
-    const u16 *const shadeStep = at<const u16>(0x00fbe150);
-    const u16 *const prestep = at<const u16>(0x00fbe160);
-    const u32 depthStep = global<u32>(0x00fbe148);
+    const u32 uvStep[2] = {global<u32>((u32)(uintptr_t)&gRasterspans_fbe138), global<u32>((u32)(uintptr_t)&gRasterspans_fbe138 + 0x4)};
+    const u16 *const shadeStep = at<const u16>((u32)(uintptr_t)&gRasterspans_fbe138 + 0x18);
+    const u16 *const prestep = at<const u16>((u32)(uintptr_t)&gRasterspans_fbe138 + 0x28);
+    const u32 depthStep = global<u32>((u32)(uintptr_t)&gRasterspans_fbe138 + 0x10);
     do {
         const u32 start = (left->x + 0x7fff) & 0xffff8000u, end = (right->x + 0x7fff) >> 15;
         const u16 fraction = (u16)(left->x - start);
-        const u32 depthRow = global<u32>(0x00fbe228) + end * 2;
+        const u32 depthRow = global<u32>((u32)(uintptr_t)&gRasterspans_fbe138 + 0xf0) + end * 2;
         if (kDepth != kNone) {
-            global<s32>(0x00fbe1f8) = rows;
-            global<u32>(0x00fbe1fc) = row;
+            global<s32>((u32)(uintptr_t)&gRasterspans_fbe138 + 0xc0) = rows;
+            global<u32>((u32)(uintptr_t)&gRasterspans_fbe138 + 0xc4) = row;
         }
         s32 i = (s32)((start >> 15) - end);
         if (i < 0) {
@@ -237,14 +237,14 @@ u32 TexRows(bool atLeast, Edge *left, const Edge *right, s32 rows, u32 row) {
 // prestep is computed, not applied); after a drawn pixel the next one is tested against the drawn one's depth (sic); u and v unused.
 // Without kZ (0x6f6090's): every pixel, no depth read, written or stepped, [0xfbe1f8] and [0xfbe1fc] not written.
 template <bool kZ> u32 ShadeRows(bool atLeast, Edge *left, const Edge *right, s32 rows, u32 row) {
-    const u16 *const shadeStep = at<const u16>(0x00fbe150);
-    const u32 depthStep = global<u32>(0x00fbe148);
+    const u16 *const shadeStep = at<const u16>((u32)(uintptr_t)&gRasterspans_fbe138 + 0x18);
+    const u32 depthStep = global<u32>((u32)(uintptr_t)&gRasterspans_fbe138 + 0x10);
     do {
         const u32 start = (left->x + 0x7fff) & 0xffff8000u, end = (right->x + 0x7fff) >> 15;
-        const u32 depthRow = global<u32>(0x00fbe228) + end * 2;
+        const u32 depthRow = global<u32>((u32)(uintptr_t)&gRasterspans_fbe138 + 0xf0) + end * 2;
         if (kZ) {
-            global<s32>(0x00fbe1f8) = rows;
-            global<u32>(0x00fbe1fc) = row;
+            global<s32>((u32)(uintptr_t)&gRasterspans_fbe138 + 0xc0) = rows;
+            global<u32>((u32)(uintptr_t)&gRasterspans_fbe138 + 0xc4) = row;
         }
         s32 i = (s32)((start >> 15) - end);
         if (i < 0) {
@@ -276,12 +276,12 @@ template <bool kZ> u32 ShadeRows(bool atLeast, Edge *left, const Edge *right, s3
 template <u32 (*Rows)(bool, Edge *, const Edge *, s32, u32)>
 void Parts(u32 row) {
     const bool atLeast = gDevicecreate_fbe034 == 0;
-    if (global<s32>(0x00fbe204) > 0)
-        row = Rows(atLeast, global<Edge *>(0x00fbe208), global<Edge *>(0x00fbe20c), global<s32>(0x00fbe204), row);
-    if (global<s32>(0x00fbe200) > 0) {
-        global<u32>(0x00fbe208) = global<u32>(0x00fbe210);
-        global<u32>(0x00fbe20c) = global<u32>(0x00fbe214);
-        row = Rows(atLeast, global<Edge *>(0x00fbe208), global<Edge *>(0x00fbe20c), global<s32>(0x00fbe200), row);
+    if (global<s32>((u32)(uintptr_t)&gRasterspans_fbe138 + 0xcc) > 0)
+        row = Rows(atLeast, global<Edge *>((u32)(uintptr_t)&gRasterspans_fbe138 + 0xd0), global<Edge *>((u32)(uintptr_t)&gRasterspans_fbe138 + 0xd4), global<s32>((u32)(uintptr_t)&gRasterspans_fbe138 + 0xcc), row);
+    if (global<s32>((u32)(uintptr_t)&gRasterspans_fbe138 + 0xc8) > 0) {
+        global<u32>((u32)(uintptr_t)&gRasterspans_fbe138 + 0xd0) = global<u32>((u32)(uintptr_t)&gRasterspans_fbe138 + 0xd8);
+        global<u32>((u32)(uintptr_t)&gRasterspans_fbe138 + 0xd4) = global<u32>((u32)(uintptr_t)&gRasterspans_fbe138 + 0xdc);
+        row = Rows(atLeast, global<Edge *>((u32)(uintptr_t)&gRasterspans_fbe138 + 0xd0), global<Edge *>((u32)(uintptr_t)&gRasterspans_fbe138 + 0xd4), global<s32>((u32)(uintptr_t)&gRasterspans_fbe138 + 0xc8), row);
     }
 }
 

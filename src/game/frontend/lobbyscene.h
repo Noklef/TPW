@@ -119,6 +119,14 @@ u8 *__fastcall Class702af0_Ctor(u8 *object, void *, s32 count, const char *name,
 #include "../core/gamedata.h"
 
 // Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(const float, gLobbyscene_702c18, 0x00702c18, 0x4);
+GAME_DATA(const float, gLobbyscene_702c58, 0x00702c58, 0x4);
+GAME_DATA(const float, gLobbyscene_702c5c, 0x00702c5c, 0x4);
+GAME_DATA(const float, gLobbyscene_702c60, 0x00702c60, 0x4);
+GAME_DATA(const float, gLobbyscene_702c64, 0x00702c64, 0x4);
+GAME_DATA(const float, gLobbyscene_702c68, 0x00702c68, 0x4);
+GAME_DATA(const float, gLobbyscene_702c6c, 0x00702c6c, 0x4);
+GAME_DATA(const float, gLobbyscene_702c70, 0x00702c70, 0x4);
 GAME_DATA(const float, gLobbyscene_702c78, 0x00702c78, 0x4);
 GAME_DATA(const float, gLobbyscene_702c7c, 0x00702c7c, 0x4);
 GAME_DATA(const float, gLobbyscene_702c80, 0x00702c80, 0x4);
@@ -129,6 +137,7 @@ GAME_DATA(const float, gLobbyscene_702c90, 0x00702c90, 0x4);
 GAME_DATA(const float, gLobbyscene_702c94, 0x00702c94, 0x4);
 GAME_DATA(const float, gLobbyscene_702c98, 0x00702c98, 0x4);
 GAME_DATA(const float, gLobbyscene_702ca0, 0x00702ca0, 0x4);
+GAME_DATA(char[0x8], gText_Class702a60_Ctor_774c64, 0x00774c64, 0x8);
 
 // The vtables hold only ports: tpw.exe's loader points their slots at them (.docs/09-globals.md).
 GAME_DATA(void *[1], Class702a50_vtable, 0x00702a50, 0x4);

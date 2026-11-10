@@ -28,6 +28,7 @@
 #include "windowscript.h"
 #include "dialog7cb2b8build.h"
 #include "panel7cc218.h"
+#include "dialog7cc188.h"
 
 namespace {
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
@@ -112,7 +113,7 @@ u32 __cdecl ThingBrowser_PanelHandler(u8 *panel, u32 message, u32 a, u32 b) {
 }
 
 void __cdecl ThingBrowser_Create() {
-    WindowScript_Build(global<u8 *>(0x00faa5d8), nullptr, reinterpret_cast<u8 *>(0x00756950), 0);
+    WindowScript_Build(global<u8 *>(0x00faa5d8), nullptr, gThingBrowser_Create_756950, 0);
     gThingbrowser_7cc2fc = Window_FindChild(global<u8 *>(0x00faa5d8), nullptr, 0x95c);
     gThingbrowser_7cc300 = Window_FindChild(global<u8 *>(0x00faa5d8), nullptr, 0x963);
     Window_SetHandler(gThingbrowser_7cc2fc, nullptr, 0x004b3790);
@@ -138,7 +139,7 @@ void __cdecl ThingBrowser_Create() {
     vcall<void>(name, 0x14, 0u);
     vcall<void>(Window_FindChild(gThingbrowser_7cc304, nullptr, 0x148), 0x14, 0u);
     u8 *const hilight = Window_FindChild(gThingbrowser_7cc304, nullptr, 0x149);
-    Window_SetObject98(hilight, nullptr, reinterpret_cast<u8 *>((uintptr_t)GuiWindows_FindByName(reinterpret_cast<const char *>(0x0074fa84))));   // "hilight"
+    Window_SetObject98(hilight, nullptr, reinterpret_cast<u8 *>((uintptr_t)GuiWindows_FindByName(reinterpret_cast<const char *>((u32)(uintptr_t)&gText_Dialog7cc188_74fa84))));   // "hilight"
     vcall<void>(hilight, 0x14, 0u);
     Window_SetShown(hilight, nullptr, 0);
     Window_SetShown(gThingbrowser_7cc304, nullptr, 0);
@@ -171,7 +172,7 @@ void __cdecl ThingBrowser_Open(u8 *thing) {
         Window_AddChild(gDialog7cb2b8build_7cb2b8, nullptr, gThingbrowser_7cc304, 1, 1);
         Window_SetShown(gThingbrowser_7cc304, nullptr, 1);
         ThingBrowser_ShowName();
-        global<u32>(0x00790ab0) |= 0x1000;
+        gCameraFlags |= 0x1000;
     } else {
         gThingbrowser_7cc308 = nullptr;
         gThingbrowser_7cc30c = 0;
@@ -193,7 +194,7 @@ void __cdecl ThingBrowser_Open(u8 *thing) {
 }
 
 void __cdecl ThingBrowser_SendPatrolLines() {
-    if (!gThingbrowser_7cc308 || !(global<u32>(0x00790ab0) & 0x1000)) return;
+    if (!gThingbrowser_7cc308 || !(gCameraFlags & 0x1000)) return;
     g_patrol->centre(gThingbrowser_7cc308);
     u8 *const thing = gThingbrowser_7cc308;
     if (!is_staff(at<u8>(thing, 2)) || !Staff_HasPatrolRegion(thing)) return;
@@ -241,7 +242,7 @@ void panelAdded() {
 
 void nameShown() {
     g_handler->showName();
-    word(0x00790ab0) |= 0x1000;
+    gCameraFlags |= 0x1000;
 }
 
 void modeButton(u32 mode) {
@@ -259,7 +260,7 @@ void modeButton(u32 mode) {
     g_handler->step();
     if (!reinterpret_cast<u32 &>(gThingbrowser_7cc308)) {
         panelAway();
-        word(0x00790ab0) &= ~0x1000u;
+        gCameraFlags &= ~0x1000u;
         return;
     }
     if (!was) panelAdded();
@@ -286,7 +287,7 @@ s32 __cdecl ThingBrowser_Handler(u8 *window, u32 message, u32 a, u32 b) {
         reinterpret_cast<u32 &>(gThingbrowser_7cc308) = 0;
         panelAway();
         gThingbrowser_7cc2f0 = 0;
-        word(0x00790ab0) &= ~0x1000u;
+        gCameraFlags &= ~0x1000u;
         g_handler->cancelAdvisor(0x11f);
         g_handler->cancelAdvisor(0xc6);
         break;

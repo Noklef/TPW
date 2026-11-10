@@ -8,6 +8,7 @@
 #include "../math/sintable.h"
 #include "../math/x87.h"
 #include "coastersload.h"
+#include "../world/rides.h"
 
 namespace {
 
@@ -92,7 +93,7 @@ void __cdecl Track_RefreshOrientations() {
 }
 
 void __cdecl RideObject_Orient(u8 *object, const float *angles, float *v) {
-    const u8 *ride = reinterpret_cast<const u8 *const *>(0x007a4610)[*reinterpret_cast<const u32 *>(object + 0xc)];
+    const u8 *ride = gRides_7a4610[*reinterpret_cast<const u32 *>(object + 0xc)];
     const u8 *holder = *reinterpret_cast<const u8 *const *>(*reinterpret_cast<const u8 *const *>(ride + 8) + 4);
     float *m = reinterpret_cast<float *>(*reinterpret_cast<u8 *const *>(holder + 0x78) + 0x10);
     Matrix_Identity(m);
@@ -126,7 +127,7 @@ void __cdecl RideObject_Swing(u8 *object) {
     const u32 now = Clocks_Now(clock);
     const u32 elapsed = now - *reinterpret_cast<u32 *>(object + 0x70);
     *reinterpret_cast<u32 *>(object + 0x70) = now;
-    const u8 *ride = reinterpret_cast<const u8 *const *>(0x007a4610)[*reinterpret_cast<const u32 *>(object + 4)];
+    const u8 *ride = gRides_7a4610[*reinterpret_cast<const u32 *>(object + 4)];
     const u8 *holder = *reinterpret_cast<const u8 *const *>(*reinterpret_cast<const u8 *const *>(ride + 8) + 4);
     float *const m = reinterpret_cast<float *>(*reinterpret_cast<u8 *const *>(holder + 0x78) + 0x10);
     Rep_Movs(m, object + 8, 0x40);

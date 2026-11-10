@@ -92,7 +92,7 @@ u32 __fastcall LightList_Add(u8 *list, void *, float x, float y, float z) {
     at<float>(entry, 0x10) = (float)-(X87Reg(x) / y).v;
     at<float>(entry, 0x18) = (float)-(X87Reg(z) / y).v;
 
-    const float gx = global<float>(0x00768ab0), gy = global<float>(0x00768ab4), gz = global<float>(0x00768ab8);
+    const float gx = gLightList_Add_768ab0, gy = global<float>(0x00768ab4), gz = gLightList_Add_768ab8;
     at<float>(list, 0x140 + i * 12) = (float)(X87Reg(z) * gy - X87Reg(y) * gz);
     at<float>(list, 0x144 + i * 12) = (float)(X87Reg(x) * gz - X87Reg(z) * gx);
     at<float>(list, 0x148 + i * 12) = (float)(X87Reg(y) * gx - X87Reg(x) * gy);

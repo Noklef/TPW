@@ -60,3 +60,6 @@ GAME_DATA(u16[4], gChatlists_75c6c8, 0x0075c6c8, 0x8);
 GAME_DATA(char[12], gChatLists_75c6d0, 0x0075c6d0, 0xc);
 GAME_DATA(char[12], gChatLists_75c6e8, 0x0075c6e8, 0xc);
 GAME_DATA(u8 *, gChatlists_f81ebc, 0x00f81ebc, 0x4);
+
+// Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(u16[6], gText_ChatLists_75c6dc, 0x0075c6dc, 0xc);   // L".bud"

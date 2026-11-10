@@ -59,7 +59,7 @@ void SetEdge(u32 edge, const u8 *from, const u8 *to, u32 prestep) {
 template <bool kShade, bool kDepth> void StartEdge(u32 edge, const u8 *from, u32 prestep) {
     const u32 slope = global<u32>(edge + 4), step = global<u32>(edge + 0x30);
     if (kShade) {
-        const u16 *const perPixel = &global<u16>(0x00fbe150), *const perRow = &global<u16>(0x00fbe158);
+        const u16 *const perPixel = &global<u16>((u32)(uintptr_t)&gRasterspans_fbe138 + 0x18), *const perRow = &global<u16>((u32)(uintptr_t)&gRasterspans_fbe138 + 0x20);
         for (int k = 0; k < 4; ++k) {
             global<u16>(edge + 0x20 + 2 * k) = (u16)(Saturate(MulFixed(perPixel[k], slope, 14)) - perRow[k]);
             global<u16>(edge + 0x18 + 2 * k) = (u16)((at<u8>(from, 0xc + k) << 7) - 2 * MulHigh((u16)prestep, perRow[k]) +
@@ -67,12 +67,12 @@ template <bool kShade, bool kDepth> void StartEdge(u32 edge, const u8 *from, u32
         }
     }
     for (int k = 0; k < 2; ++k) {
-        const u32 perPixel = global<u32>(0x00fbe138 + 4 * k), perRow = global<u32>(0x00fbe140 + 4 * k);
+        const u32 perPixel = global<u32>((u32)(uintptr_t)&gRasterspans_fbe138 + 4 * k), perRow = global<u32>(((u32)(uintptr_t)&gRasterspans_fbe138 + 0x8) + 4 * k);
         global<u32>(edge + 0x10 + 4 * k) = MulShift15(slope, perPixel) - perRow;
         global<u32>(edge + 8 + 4 * k) = (at<u32>(from, 0x10 + 4 * k) << 20) - MulShift15(perRow, prestep) + MulShift15(perPixel, step);
     }
     if (kDepth) {
-        const u32 perPixel = global<u32>(0x00fbe148), perRow = global<u32>(0x00fbe14c);
+        const u32 perPixel = global<u32>((u32)(uintptr_t)&gRasterspans_fbe138 + 0x10), perRow = global<u32>((u32)(uintptr_t)&gRasterspans_fbe138 + 0x14);
         global<u32>(edge + 0x2c) = MulShift15(slope, perPixel) - perRow;
         global<u32>(edge + 0x28) = ((u32)at<u16>(from, 8) << 16) - MulShift15(perRow, prestep) + MulShift15(perPixel, step);
     }
@@ -123,22 +123,22 @@ template <bool kShade, bool kDepth> void Setup(const u8 *v0, const u8 *v1, const
     if (rows[top] <= rows[2]) middle = top, top = 2;
     if (rows[bottom] >= rows[2]) middle = bottom, bottom = 2;
     const s32 topRow = rows[top], middleRow = rows[middle];
-    global<s32>(0x00fbe204) = topRow - middleRow;
-    global<s32>(0x00fbe200) = middleRow - rows[bottom];
+    global<s32>((u32)(uintptr_t)&gRasterspans_fbe138 + 0xcc) = topRow - middleRow;
+    global<s32>((u32)(uintptr_t)&gRasterspans_fbe138 + 0xc8) = middleRow - rows[bottom];
     global<u32>((u32)(uintptr_t)&gRastertriangle_fbe0b0 + 0x10) = (at<u32>(v[top], 4) - 8 - ((u32)topRow << 4)) << 11;
     global<u32>((u32)(uintptr_t)&gRastertriangle_fbe0b0 + 0xc) = (at<u32>(v[middle], 4) - 8 - ((u32)middleRow << 4)) << 11;
     const u32 order = global<u32>(((u32)(uintptr_t)&gRastertriangle_fbe6f0 + 0x20) + 4 * ((middle < top) << 2 | (bottom < middle) << 1 | (bottom < top)));
     u32 pair[2];
     memcpy(pair, &global<u32>((u32)(uintptr_t)&gRastertriangle_fbe6f0 + order), 8);
-    memcpy(&global<u32>(0x00fbe210), pair, 8);
+    memcpy(&global<u32>((u32)(uintptr_t)&gRasterspans_fbe138 + 0xd8), pair, 8);
     memcpy(pair, &global<u32>(((u32)(uintptr_t)&gRastertriangle_fbe6f0 + 0x8) + order), 8);
-    memcpy(&global<u32>(0x00fbe208), pair, 8);
-    const u32 row = global<u32>(0x00fbe024) + MaddWords((u32)topRow, global<u32>(0x00fbe02c));
+    memcpy(&global<u32>((u32)(uintptr_t)&gRasterspans_fbe138 + 0xd0), pair, 8);
+    const u32 row = global<u32>((u32)(uintptr_t)&gDevicecreate_fbe024) + MaddWords((u32)topRow, global<u32>((u32)(uintptr_t)&gDevicecreate_fbe02c));
     const u32 depthRow = gDevicecreate_fbe028 + MaddWords((u32)topRow, gDevicecreate_fbe030);
     SetEdge((u32)(uintptr_t)&gRastertriangle_fbe240 + 0x68, v[top], v[middle], global<u32>((u32)(uintptr_t)&gRastertriangle_fbe0b0 + 0x10));
     SetEdge((u32)(uintptr_t)&gRastertriangle_fbe240 + 0x34, v[middle], v[bottom], global<u32>((u32)(uintptr_t)&gRastertriangle_fbe0b0 + 0xc));
     SetEdge((u32)(uintptr_t)&gRastertriangle_fbe240, v[top], v[bottom], global<u32>((u32)(uintptr_t)&gRastertriangle_fbe0b0 + 0x10));
-    global<u32>(0x00fbe228) = depthRow;
+    global<u32>((u32)(uintptr_t)&gRasterspans_fbe138 + 0xf0) = depthRow;
     global<u32>((u32)(uintptr_t)&gRastertriangle_fbe0b0 + 0x24) = global<u32>((u32)(uintptr_t)&gRastertriangle_fbe0b0 + 0x28) = sdx20;
     global<u32>((u32)(uintptr_t)&gRastertriangle_fbe0b0 + 0x1c) = global<u32>((u32)(uintptr_t)&gRastertriangle_fbe0b0 + 0x20) = sdy21;
     global<u32>((u32)(uintptr_t)&gRastertriangle_fbe0b0 + 0x2c) = global<u32>((u32)(uintptr_t)&gRastertriangle_fbe0b0 + 0x30) = sdx21;
@@ -147,20 +147,20 @@ template <bool kShade, bool kDepth> void Setup(const u8 *v0, const u8 *v1, const
     if (kShade)
         for (int k = 0; k < 4; ++k) {
             const u32 d1 = (u16)((at<u8>(v1, 0xc + k) - at<u8>(v2, 0xc + k)) * 8), d0 = (u16)((at<u8>(v0, 0xc + k) - at<u8>(v2, 0xc + k)) * 8);
-            global<u16>(0x00fbe150 + 2 * k) = Saturate(MulFixed(d1, sdy20, 15) - MulFixed(d0, sdy21, 15));
-            global<u16>(0x00fbe158 + 2 * k) = Saturate(MulFixed(d0, sdx21, 15) - MulFixed(d1, sdx20, 15));
+            global<u16>(((u32)(uintptr_t)&gRasterspans_fbe138 + 0x18) + 2 * k) = Saturate(MulFixed(d1, sdy20, 15) - MulFixed(d0, sdy21, 15));
+            global<u16>(((u32)(uintptr_t)&gRasterspans_fbe138 + 0x20) + 2 * k) = Saturate(MulFixed(d0, sdx21, 15) - MulFixed(d1, sdx20, 15));
         }
     for (int k = 0; k < 2; ++k) {
         const u32 d1 = at<u32>(v1, 0x10 + 4 * k) - at<u32>(v2, 0x10 + 4 * k), d0 = at<u32>(v0, 0x10 + 4 * k) - at<u32>(v2, 0x10 + 4 * k);
         const u32 perPixel = d1 * sdy20 - d0 * sdy21;
-        global<u32>(0x00fbe138 + 4 * k) = perPixel;
-        global<u32>(0x00fbe140 + 4 * k) = d0 * sdx21 - d1 * sdx20;
-        global<s32>(0x00fbe160 + 4 * k) = (s32)perPixel >> 17;
+        global<u32>((u32)(uintptr_t)&gRasterspans_fbe138 + 4 * k) = perPixel;
+        global<u32>(((u32)(uintptr_t)&gRasterspans_fbe138 + 0x8) + 4 * k) = d0 * sdx21 - d1 * sdx20;
+        global<s32>(((u32)(uintptr_t)&gRasterspans_fbe138 + 0x28) + 4 * k) = (s32)perPixel >> 17;
     }
     if (kDepth) {
         const u32 d1 = SubWords(at<u32>(v1, 8), at<u32>(v2, 8)), d0 = SubWords(at<u32>(v0, 8), at<u32>(v2, 8));
-        global<u32>(0x00fbe148) = (MulFixed(d1, sdy20 << 8, 14) - MulFixed(d0, sdy21 << 8, 14)) << 3;
-        global<u32>(0x00fbe14c) = (MulFixed(d0, sdx21 << 8, 14) - MulFixed(d1, sdx20 << 8, 14)) << 3;
+        global<u32>((u32)(uintptr_t)&gRasterspans_fbe138 + 0x10) = (MulFixed(d1, sdy20 << 8, 14) - MulFixed(d0, sdy21 << 8, 14)) << 3;
+        global<u32>((u32)(uintptr_t)&gRasterspans_fbe138 + 0x14) = (MulFixed(d0, sdx21 << 8, 14) - MulFixed(d1, sdx20 << 8, 14)) << 3;
     }
     // The left edges: top to bottom for both parts, or top to middle then middle to bottom.
     if (order == 0) {
@@ -170,9 +170,9 @@ template <bool kShade, bool kDepth> void Setup(const u8 *v0, const u8 *v1, const
         StartEdge<kShade, kDepth>((u32)(uintptr_t)&gRastertriangle_fbe240 + 0x68, v[top], global<u32>((u32)(uintptr_t)&gRastertriangle_fbe0b0 + 0x10));
     }
     if (kDepth) {
-        const u32 perPixel = global<u32>(0x00fbe148);
-        global<u32>(0x00fbe168) = perPixel;
-        global<u32>(0x00fbe148) = perPixel << 16 | perPixel >> 16;
+        const u32 perPixel = global<u32>((u32)(uintptr_t)&gRasterspans_fbe138 + 0x10);
+        global<u32>((u32)(uintptr_t)&gRasterspans_fbe138 + 0x30) = perPixel;
+        global<u32>((u32)(uintptr_t)&gRasterspans_fbe138 + 0x10) = perPixel << 16 | perPixel >> 16;
     }
     Span(row);
 }

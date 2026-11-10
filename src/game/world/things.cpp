@@ -43,6 +43,7 @@
 #include "weather.h"
 #include "../ui/panel7b9940.h"
 #include "things.h"
+#include "world.h"
 #include "../core/vdel.h"
 
 namespace {
@@ -161,7 +162,7 @@ extern "C" u32 __fastcall World_Attach(u8 *world) {
     *reinterpret_cast<u8 **>(0x0080239c) = world;
     *reinterpret_cast<u8 **>(0x008023a0) = world + 0x2d8;
     Things_InitTable();
-    MemRanges_Set(reinterpret_cast<u8 *>(0x007cdb30), nullptr, 0, (u32)(uintptr_t)world, 0x1da748, "World Struture");
+    MemRanges_Set(reinterpret_cast<u8 *>(&gMemRanges_7cdb30), nullptr, 0, (u32)(uintptr_t)world, 0x1da748, "World Struture");
     return 1;
 }
 
@@ -381,8 +382,8 @@ u8 *__fastcall ThingKindE_Ctor(u8 *object) {
 u32 __fastcall Thing_Serialize(u8 *thing, void *, Stream *stream, u32 save, s32 version, u32) {
     if (version < 0 || version > 1)
         return 0;
-    if (!Save_Field(stream, save, thing + 4, 2, 0x00761cbc) || !Save_Field(stream, save, thing + 6, 2, 0x00761cb8) ||
-        !Save_Field(stream, save, thing + 0xa, 2, 0x00761cac) || !Save_Field(stream, save, thing + 8, 2, 0x00761ca0))
+    if (!Save_Field(stream, save, thing + 4, 2, (u32)(uintptr_t)&gText_Thing_Serialize_761cbc) || !Save_Field(stream, save, thing + 6, 2, (u32)(uintptr_t)&gText_Thing_Serialize_761cb8) ||
+        !Save_Field(stream, save, thing + 0xa, 2, (u32)(uintptr_t)&gText_Thing_Serialize_761cac) || !Save_Field(stream, save, thing + 8, 2, (u32)(uintptr_t)&gText_Thing_Serialize_761ca0))
         return 1;
     if (save == 0)
         thing[3] = 0;
@@ -482,7 +483,7 @@ void __fastcall World_ClearLevel(u8 *world) {
         GameHeap_Free(mode);
     }
     gPanel7b9940_7b05e8 = nullptr;
-    g_sweep->mapReset(global<u8 *>(0x007cf83c) + 0x2d8);
+    g_sweep->mapReset(gWorldPtr + 0x2d8);
     for (u16 handle = firstHandle(); handle;) {
         u8 *const thing = static_cast<u8 *>(slots()[handle].thing);
         if (!thing[3]) g_sweep->destroy(thing);

@@ -4,6 +4,7 @@
 #include <cstring>
 
 #include "../files/file.h"
+#include "../render/particles.h"
 #include "crt.h"
 #include "gameheap.h"
 #include "textarg.h"
@@ -120,7 +121,7 @@ void __cdecl KeyMaps_ResetAll() {
 }
 
 void __cdecl KeyRecord_Push(u32 index, u32 shift, u32 a, u32 b, u32 c) {
-    const u32 record = 0x00f86918 + 68 * index;
+    const u32 record = (u32)&gParticlePools_f86900[0].spin + 68 * index;
     u32 second;
     if (shift) {
         global<u32>(record + 4) = a;

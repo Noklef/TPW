@@ -19,7 +19,7 @@ bool take(u8 *self) {
     if (!at<u8>(self, 0x14))
         return false;
     at<u8>(self, 0x14) = 0;
-    u8 &guard = global<u8>(0x00fb2766);
+    u8 &guard = global<u8>((u32)(uintptr_t)&gAdvisorsend_fb2765 + 0x1);
     if (!(guard & 1)) {
         guard |= 1;
         g_calls.Th(0x0059bea0, kScoring);

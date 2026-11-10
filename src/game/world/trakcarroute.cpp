@@ -12,6 +12,9 @@
 #include "rides.h"
 #include "things.h"
 #include "trackrides.h"
+#include "collobj.h"
+#include "world.h"
+#include "../math/intsin.h"
 
 namespace {
 
@@ -24,8 +27,8 @@ const TrakCarRouteEnv *g_env = &kPortEnv;
 const u32 kNew = 0x100000;
 const float kToSound = 0.00330360071f;   // 0x700f20
 
-u32 Rand() { return (u32)World_Rand(global<u8 *>(0x007cf83c)); }
-u8 *Pool() { return global<u8 *>(0x00877b68); }
+u32 Rand() { return (u32)World_Rand(gWorldPtr); }
+u8 *Pool() { return gTrackPools.cars; }
 
 void finish(u8 *car) { at<u32>(car, 0) &= ~kNew; }
 
@@ -36,7 +39,7 @@ s32 abs32(s32 x) { return x < 0 ? (s32)(0u - (u32)x) : x; }
 // Whether the place +0x34 / +0x38 of the car is free of the other used cars (their sizes +0x64 added).
 bool clash(const u8 *car) {
     u8 *other = Pool();
-    for (u32 left = global<u32>(0x00877b6c); left != 0; other += 0xac) {
+    for (u32 left = (u32)gTrackPools.carCount; left != 0; other += 0xac) {
         if (!(at<u32>(other, 0) & 1)) continue;
         --left;
         if (other == car) continue;
@@ -57,7 +60,7 @@ bool clash(const u8 *car) {
 
 // Up to 100 tries at a free place in the ride's area.
 void place(const u8 *ride, u8 *car) {
-    const s32 *const sines = reinterpret_cast<const s32 *>(0x00877358);
+    const s32 *const sines = reinterpret_cast<const s32 *>((uintptr_t)gIntSinTable);
     for (s32 tries = 100;;) {
         const u32 radius = Rand() % at<u32>(at<const u8 *>(ride, 0xc0), 0xc);
         const u32 angle = Rand() & 0x1ff;
@@ -75,11 +78,11 @@ s32 soundPlace(s32 n) { return (s32)(long long)X87_MulIntDouble(n, (double)kToSo
 void startSound(u8 *car) {
     const u8 *const ride = at<const u8 *>(car, 0x9c);
     const u32 name =
-        global<u32>(0x00877b58) == 0x4a454647 ? (u32)((s32)((uintptr_t)ride - global<uintptr_t>(0x00877b60)) / 0xd0) | at<u32>(ride, 0) << 8 : 0;
+        gTrackPools.tag == 0x4a454647 ? (u32)((s32)((uintptr_t)ride - (uintptr_t)gTrackPools.rides) / 0xd0) | at<u32>(ride, 0) << 8 : 0;
     u16 handle;
     const u16 found = *TrakRide_FindThing(&handle, name);
     const s32 id = found ? at<s32>(Thing_ByHandle(found), 0x24) : 0;
-    const u32 sound = g_env->playSound(id, 0, global<u32>(0x00803a3c), 0, 0, 0, 0);
+    const u32 sound = g_env->playSound(id, 0, gSoundCategories.themeRides, 0, 0, 0, 0);
     at<u32>(car, 0x20) = sound;
     if (sound) {
         const s32 x = soundPlace(at<s32>(car, 0x34));
@@ -100,19 +103,19 @@ const u8 *nextNode(const u8 *ride, const u8 *node) {
     return next ? next : at<const u8 *>(ride, 0xa8);
 }
 
-const u8 *arrayNode(const u8 *car) { return global<const u8 *>(0x00877b78) + (u32)at<s32>(car, 0x7c) * 0x1c; }
+const u8 *arrayNode(const u8 *car) { return gTrackPools.buoys + (u32)at<s32>(car, 0x7c) * 0x1c; }
 
 // A +0x7c outside the array becomes the route's start's point.
 void holdPoint(const u8 *ride, u8 *car) {
     const s32 point = at<s32>(car, 0x7c);
-    if (point < 0 || point >= global<s32>(0x00877b7c)) at<u32>(car, 0x7c) = at<u32>(at<const u8 *>(ride, 0xa4), 4);
+    if (point < 0 || point >= gTrackPools.buoyCount) at<u32>(car, 0x7c) = at<u32>(at<const u8 *>(ride, 0xa4), 4);
 }
 
 // A random other used car on the ride whose area overlaps, not flagged 0x20: its index; whether there was one.
 bool partner(u8 *car, u32 &index) {
     u8 *list = nullptr, *other = Pool();
     u32 count = 0;
-    for (u32 left = global<u32>(0x00877b6c); left != 0; other += 0xac) {
+    for (u32 left = (u32)gTrackPools.carCount; left != 0; other += 0xac) {
         const u32 flags = at<u32>(other, 0);
         if (!(flags & 1)) continue;
         if (other != car && !(flags & 0x20) && at<u32>(car, 0x9c) == at<u32>(other, 0x9c) &&
@@ -137,7 +140,7 @@ void wander(const u8 *ride, u8 *car) {
         const u32 phase = Rand() & 0x1ff;
         at<u32>(car, 0x54) = phase;
         at<u32>(car, 0x50) = phase;
-        const u8 *const *const instances = reinterpret_cast<const u8 *const *>(0x007a4610);
+        const u8 *const *const instances = gRides_7a4610;
         at<u32>(car, 0x24) = g_env->findPart(instances[at<u32>(car, 8)], 0x100, 2);
         at<u32>(car, 0x28) = g_env->findPart(instances[at<u32>(car, 8)], 0x100, 1);
         if (at<s32>(ride, 0) == -1) {
@@ -183,7 +186,7 @@ void follow(const u8 *ride, u8 *car) {
     at<u32>(car, 0x8c) = 0;
     if (at<u32>(car, 0) & kNew) {
         startSound(car);
-        const u8 *const *const instances = reinterpret_cast<const u8 *const *>(0x007a4610);
+        const u8 *const *const instances = gRides_7a4610;
         at<u32>(car, 0x24) = g_env->findPart(instances[at<u32>(car, 8)], 0x100, 1);
         if (at<u32>(car, 0) & 0x2000) createRide(ride, car);
     }
@@ -263,7 +266,7 @@ void __cdecl TrakCar_ChooseRoute(u8 *ride, u8 *car) {
     }
     default:
         at<u32>(car, 0) = (at<u32>(car, 0) & 0xffffff91) | 0x10010;
-        at<u32>(car, 0x7c) = Rand() % global<u32>(0x00877b7c);
+        at<u32>(car, 0x7c) = Rand() % (u32)gTrackPools.buoyCount;
         finish(car);
         return;
     }

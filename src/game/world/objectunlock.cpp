@@ -110,7 +110,7 @@ u8 __stdcall ObjectDef_IsUnlocked(u32 id) {
 
 u8 __stdcall ObjectDef_Unlock(u32 id) {
     const s32 needed = at<s32>(ObjectDefs_Find(reinterpret_cast<u8 *>(0x007890a0), nullptr, (u16)id), 0xc4);
-    if (AdvisorScore_ModeSetting(0x00fb34ba) == 1) return 1;
+    if (AdvisorScore_ModeSetting((u32)(uintptr_t)&gObjectUnlock_fb34ba) == 1) return 1;
     if (!ObjectDef_IsUnlocked(id)) return 0;
     return Object_AddKeyed(GlobalSave_Instance(), nullptr, id, needed);
 }
@@ -138,7 +138,7 @@ void __fastcall ObjectUnlock_AdviseExtraLevel(u8 *self, void *, u32 group, s32 l
 }
 
 void __fastcall ObjectUnlock_Step(u8 *self) {
-    u8 &guard = *reinterpret_cast<u8 *>((uintptr_t)0x00fb34ba);
+    u8 &guard = gObjectUnlock_fb34ba;
     if (!(guard & 1)) {
         guard |= 1;
         g_step->readMode(reinterpret_cast<u8 *>(&gDialog74fb20_fb3b7c));

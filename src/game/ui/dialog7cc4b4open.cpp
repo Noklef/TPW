@@ -31,7 +31,7 @@ extern "C" void __cdecl Dialog7cc4b4_Open() {
     if (dialog()) return;
     u8 *const parent = at<u8 *>(global<u8 *>(0x00f82884), 4);
     if (!parent) return;
-    gDialog7cc4b4open_7cc4b4 = g_env->build(parent, nullptr, reinterpret_cast<u8 *>((uintptr_t)0x00757f60), 0x004b8b70);
+    gDialog7cc4b4open_7cc4b4 = g_env->build(parent, nullptr, gDialog7cc4b4_Open_757f60, 0x004b8b70);
 
     u8 *const panel = child(dialog(), 0x1e0ec);
     u8 *const text = child(panel, 0x1e0ee);
@@ -53,7 +53,7 @@ extern "C" void __cdecl Dialog7cc4b4_Open() {
     g_env->setImpl(note, nullptr, block ? g_env->textPart530(block, nullptr, 0) : nullptr);
     g_env->set4c(note, nullptr, g_env->font(0));
     g_env->notifyC00(note, nullptr, 1, 1);
-    (*reinterpret_cast<void(__fastcall **)(u8 *, void *, u32)>(at<uintptr_t>(note, 0) + 0x24))(note, nullptr, 0x0075817c);
+    (*reinterpret_cast<void(__fastcall **)(u8 *, void *, u32)>(at<uintptr_t>(note, 0) + 0x24))(note, nullptr, (u32)(uintptr_t)&gText_Dialog7cc4b4open_75817c);
     g_env->notify40000(note, nullptr, 0xfc, 0xe8, 7, 0xff);
     g_env->finish();
 }

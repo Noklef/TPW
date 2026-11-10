@@ -80,7 +80,7 @@ u32 ModeKind() {
 u8 *EditBox(u8 *window) { return Window_FindChild(Window_FindChild(Window_FindChild(window, nullptr, 0xc3123), nullptr, 0xc312b), nullptr, 0xc312c); }
 
 void FollowPosition() {
-    u32 flags = global<u32>(0x00790ab0);
+    u32 flags = gCameraFlags;
     const u32 last = gWindow7cc8bc_7cc8ac;
     const bool on = (flags & 0x400) != 0;
     bool left = false;
@@ -93,7 +93,7 @@ void FollowPosition() {
             gChat_7cddec = avatar;
         }
         g_env->say(avatar);
-        flags = global<u32>(0x00790ab0);
+        flags = gCameraFlags;
     } else if (!on && (flags & 0x16) && (last & 0x400)) {
         gWindow7cc8bc_7cc8d4 = 1;
         left = true;
@@ -110,7 +110,7 @@ void FollowPosition() {
     if (left) {
         Camera_PackCellFractions(global<u32>(0x007908f0), global<u32>(0x007908f8), reinterpret_cast<u8 *>(&x), reinterpret_cast<u8 *>(&z));
     } else {
-        Camera_PackCellFractions(global<u32>(0x00790aa0), global<u32>(0x00790aa8), reinterpret_cast<u8 *>(&x), reinterpret_cast<u8 *>(&z));
+        Camera_PackCellFractions(reinterpret_cast<u32 &>(gCamera_790aa0[0]), reinterpret_cast<u32 &>(gCamera_790aa0[2]), reinterpret_cast<u8 *>(&x), reinterpret_cast<u8 *>(&z));
     }
     if (x == global<u16>(0x007cc690) && z == global<u16>(0x007cc694) && !left) return;
     global<u16>(0x007cc690) = x;

@@ -12,6 +12,7 @@
 #include "drawbuffer.h"
 #include "d3dresult.h"
 #include "ddopen.h"
+#include "d3dsetup.h"
 
 using namespace d3dresult;
 
@@ -247,7 +248,7 @@ u32 __fastcall D3dProbe_EndScene(u8 *self) {
 }
 
 u32 __fastcall D3dProbe_ReadPixel(u8 *, void *, s32 x, s32 y, u32 *out) {
-    u8 *const surface = at<u8 *>(global<u8 *>(0x00879a24), 0x14);
+    u8 *const surface = at<u8 *>(global<u8 *>((u32)(uintptr_t)&gD3dsetup_879a20 + 0x4), 0x14);
     u32 desc[31] = {0x7c};
     keep(comcall<u32>(surface, 0x64, 0u, desc, 1u, 0u));
     if (result() != 0) return 0;
@@ -565,7 +566,7 @@ u32 __fastcall D3dProbe_DrawBatch(u8 *self, void *, u8 *batch) {
 u32 __fastcall D3dProbe_SetUpDevice(u8 *self) {
     u8 *const probe = self - 0x2c;
     at<u8 *>(probe, 0x24) = at<u8 *>(caps(), 8);
-    const u8 *const adapter = global<u8 *>(0x00879a24) + 0x20;
+    const u8 *const adapter = global<u8 *>((u32)(uintptr_t)&gD3dsetup_879a20 + 0x4) + 0x20;
     const u32 &vendor = at<u32>(adapter, 0x408);
     const u32 &chip = at<u32>(adapter, 0x40c);
     u8 hardware[0xfc], software[0xfc];
@@ -576,7 +577,7 @@ u32 __fastcall D3dProbe_SetUpDevice(u8 *self) {
     const u32 sourceBlend = at<u32>(hardware, 0x74), destinationBlend = at<u32>(hardware, 0x78);
     const u32 textureCaps = at<u8>(hardware, 0xf4);
     if (destinationBlend == 0x20) {   // (the original's test of the source blend beside it is always true)
-        if (global<u32>(0x008bd508) & 0x2000000) EngineDebug_LogFallback(reinterpret_cast<const char *>((uintptr_t)0x0076637c));
+        if (global<u32>(0x008bd508) & 0x2000000) EngineDebug_LogFallback(reinterpret_cast<const char *>((uintptr_t)&gText_D3dProbe_SetUpDevice_76637c));
         return 0;
     }
     if (at<u16>(hardware, 0xf8) > 1) {
@@ -608,7 +609,7 @@ u32 __fastcall D3dProbe_SetUpDevice(u8 *self) {
         Crt().sprintf(text, reinterpret_cast<const char *>((uintptr_t)format), value);
         EngineDebug_Log(text);
     };
-    logged(0x0076636c, at<u32>(probe, 8));   // "Alpha ref %x"
+    logged((u32)(uintptr_t)&gText_D3dProbe_SetUpDevice_76636c, at<u32>(probe, 8));   // "Alpha ref %x"
     if (vendor == 0x1002 && chip == 0x4742) {
         renderCaps() = (renderCaps() & ~0x8000u) | 0x8004000;
     } else if ((vendor == 0x5333 && chip == 0x8a22) || (vendor == 0x1002 && (chip == 0x5246 || chip == 0x4c42))) {
@@ -616,7 +617,7 @@ u32 __fastcall D3dProbe_SetUpDevice(u8 *self) {
     } else if (vendor == 0x12d2 && chip == 0x18) {
         renderCaps() |= 2;
     }
-    logged(0x00766358, renderCaps() & 0xc000);   // "Fog algorithm %x"
+    logged((u32)(uintptr_t)&gText_D3dProbe_SetUpDevice_766358, renderCaps() & 0xc000);   // "Fog algorithm %x"
     if (options & 0x20) at<u32>(base(probe), 0x24) = 1;   // (the original first stores 1, 2 or 3 there by the texture stages and the vendor, then always 1)
     if ((textureCaps & 0x10) && vendor != 0x121a) {
         at<u32>(base(probe), 8) |= 8;

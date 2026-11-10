@@ -10,6 +10,7 @@
 #include "../frontend/lobbysky.h"
 #include "../gfx/texcache.h"
 #include "ddopen.h"
+#include "d3dsetup.h"
 
 namespace {
 
@@ -176,7 +177,7 @@ void __fastcall UvProbe_Detect(u8 *settings) {
     at<u32>(settings, 0x40e8) = 0;
     if (global<u32>(0x008bd524) != 1)
         return;
-    u8 *const direct = global<u8 *>(0x00879a24);
+    u8 *const direct = global<u8 *>((u32)(uintptr_t)&gD3dsetup_879a20 + 0x4);
     const u32 vendor = at<u32>(direct, 0x428);
     const bool permedia = vendor == 0x104c && at<u32>(direct, 0x42c) == 0x3d07;
     const bool tnt = vendor == 0x10de && at<u32>(direct, 0x42c) == 0x20;

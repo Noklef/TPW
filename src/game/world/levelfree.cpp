@@ -3,6 +3,7 @@
 #include <cstdint>
 
 #include "../core/addrcalls.h"
+#include "rides.h"
 
 namespace {
 
@@ -29,7 +30,7 @@ void __cdecl Level_FreeAll(u32 keep) {
     g_calls.Cd(0x0052f190);   // AllPieces_Destroy
     if (!kept) g_calls.Cd(0x00541ed0);   // Sprites_FreeAll
     for (u32 i = 0; i < global<u32>(0x007a3ebc) + global<u32>(0x007a4084); i++)
-        if (global<u32>(0x007a4614 + i * 4)) g_calls.Cd(0x00463c80, i + 1);   // Ride_Destroy
+        if ((u32)(uintptr_t)gRides_7a4610[i + 1]) g_calls.Cd(0x00463c80, i + 1);   // Ride_Destroy
     if (!kept) {
         g_calls.Cd(0x00450a80);   // Terrain_FreeLoaded
         g_calls.Cd(0x00463ed0);   // InstanceTypes_FreeAll
