@@ -10124,6 +10124,10 @@ address,name,kind,confidence,notes
 0x006aaaf0,TimeGet_DoGetMonthname,function,low,"reimplemented (src/game/core/timeget); time_get<char>::do_get_monthname: _Getloctxt over the month names, halved into tm_mon"
 0x006a3de0,WTimeGet_DoGetWeekday,function,low,reimplemented (src/game/core/timeget); time_get<wchar_t>::do_get_weekday: the same
 0x006a3e40,WTimeGet_DoGetMonthname,function,low,reimplemented (src/game/core/timeget); time_get<wchar_t>::do_get_monthname: the same
+0x006aade0,TimeGet_Getint,function,low,"reimplemented (src/game/core/timeget); time_get<char> _Getint: a sign, digits (leading zeros as one, 31 kept) to strtol; state 1 at the end, 2 for no number, errno or outside lo to hi"
+0x006aa370,TimeGet_DoGetTime,function,low,"reimplemented (src/game/core/timeget); time_get<char>::do_get_time: h:m:s to tm_hour, tm_min, tm_sec, each part while the state is good, else state 2"
+0x006aa730,TimeGet_DoGetDate,function,low,"reimplemented (src/game/core/timeget); time_get<char>::do_get_date: the facet's do_get_monthname, "" day"" to tm_mday, "", "" and its do_get_year; state 1 at the end"
+0x006aab50,TimeGet_DoGetYear,function,low,"reimplemented (src/game/core/timeget); time_get<char>::do_get_year: 0-2035; from 1900 on less 1900, 136-1899 state 2; to tm_year"
 0x00faac68,gDctVlc_faac68,data,low,"GAME_DATA (src/game/gfx/dctvlc): u32, named for its use in DctVlc_BeginFrame, DctVlc_BuildTables (tools/gamedata_codemod.py)"
 0x00faac64,gMadVideo_DecodeFrame_faac64,data,low,"GAME_DATA (src/game/gfx/madvideo): u32, named for its use in MadVideo_DecodeFrame (tools/gamedata_codemod.py)"
 0x00fab484,gMmxBlit_Copy32_fab484,data,low,"GAME_DATA (src/game/gfx/mmxblit): u32, named for its use in MmxBlit_Copy32 (tools/gamedata_codemod.py)"

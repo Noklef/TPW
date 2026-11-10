@@ -2620,7 +2620,9 @@ const u32 kRawCalled[] = {0x0065f6d1,   // Window_DefaultProc (src/game/ui/windo
                           0x004959c0,   // List7ca158_RowProc, the objects' lists' row handler (ui/listrows' List7ca158_NewRow)
                           0x004bed60,   // Windows7cc8c4_Handler, told 0x11 when Window7cc8bc_Create hides its windows (ui/window7cc8bc)
                           0x004be730,   // List758f04_RowProcA and RowProcB, the name lists' row handlers (ui/listrows' List758f04_NewRowA /
-                          0x004be7c0};  // NewRowB; the kept rows sent 0x12)
+                          0x004be7c0,   // NewRowB; the kept rows sent 0x12)
+                          0x006aaaf0,   // TimeGet_DoGetMonthname and DoGetYear, the slots 5 and 6 time_get<char>'s do_get_date calls
+                          0x006aab50};  // (tests/fncmp/timeget.py's date: the facet's vtable made there)
 
 void map_raw_called() {
     for (u32 a : kRawCalled) {
