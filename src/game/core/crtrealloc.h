@@ -22,4 +22,7 @@ s32 __cdecl CRT_sbh_resize_block(void *region, void *page, u8 *entry, u32 para);
 
 // 0x681740: realloc: null: malloc; size 0: free. Under lock 9 a small block stays or moves to a small or heap one; otherwise HeapReAlloc. With the new mode [0xfb1548] a failure retries through _callnewh.
 void *__cdecl CRT_realloc(void *block, u32 size);
+
+// 0x6818f0: _msize: under lock 9 a small block's paragraphs * 16; otherwise HeapSize.
+u32 __cdecl CRT_msize(void *block);
 }

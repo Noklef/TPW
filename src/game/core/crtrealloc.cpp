@@ -168,3 +168,16 @@ void *__cdecl CRT_realloc(void *block, u32 size) {
         if (!CRT_callnewh(size)) return nullptr;
     }
 }
+
+u32 __cdecl CRT_msize(void *block) {
+    CrtInner().lock(9);
+    void *region, *page;
+    const u8 *const entry = static_cast<const u8 *>(CRT_sbh_find_block(block, &region, &page));
+    if (entry) {
+        const u32 size = static_cast<u32>(*entry) << 4;
+        CrtInner().unlock(9);
+        return size;
+    }
+    CrtInner().unlock(9);
+    return import_slot<u32(__stdcall *)(u32, u32, void *)>(0x006fd208)(word(0x00fb3cac), 0, block);   // HeapSize
+}

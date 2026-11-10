@@ -9,6 +9,9 @@ extern "C" {
 // +0x18 0x400 groups of (paragraphs free, or -1 for uncommitted; a bound on the free run that may be found, u32).
 // A page: +0 where to start, +4 the paragraphs free there, +8 0xf0 bytes (0: free; else the block's paragraphs at its first), +0xf8 0xff, +0x100 the blocks.
 
+// 0x6826b0: _heap_init: HeapCreate(0, 0x1000, 0) to [0xfb3cac] and the first region; without one the heap destroyed. 1, or 0.
+s32 __cdecl CRT_heap_init();
+
 // 0x6828a0: __sbh_alloc_new_region: the static region first when its memory is -1; 4 MB reserved, the first 16 pages committed and made free. Fails: 0.
 void *__cdecl CRT_sbh_alloc_new_region();
 

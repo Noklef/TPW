@@ -6327,6 +6327,7 @@ address,name,kind,confidence,notes
 0x00682e40,CRT_sbh_alloc_block_from_page,function,low,reimplemented (src/game/core/crtsbh); MSVC6 __sbh_alloc_block_from_page
 0x00688710,CRT_callnewh,function,low,reimplemented (src/game/core/crtsbh); MSVC6 _callnewh
 0x0067fcb0,CRT_calloc,function,low,reimplemented (src/game/core/crtsbh); MSVC6 calloc
+0x006826b0,CRT_heap_init,function,high,"reimplemented (src/game/core/crtsbh); _heap_init: HeapCreate and the first region, or the heap destroyed"
 0x0068f060,CRT_crtCompareStringA,function,low,reimplemented (src/game/core/crtenv); MSVC6 __crtCompareStringA
 0x0068b530,CRT_mbsnbicoll,function,low,reimplemented (src/game/core/crtenv); MSVC6 _mbsnbicoll
 0x00691540,CRT_mbschr,function,low,reimplemented (src/game/core/crtenv); MSVC6 _mbschr
@@ -6349,6 +6350,7 @@ address,name,kind,confidence,notes
 0x00682ba0,CRT_sbh_free_block,function,low,reimplemented (src/game/core/crtrealloc); MSVC6 __sbh_free_block
 0x00682fc0,CRT_sbh_resize_block,function,low,reimplemented (src/game/core/crtrealloc); MSVC6 __sbh_resize_block
 0x00681740,CRT_realloc,function,low,reimplemented (src/game/core/crtrealloc); MSVC6 realloc
+0x006818f0,CRT_msize,function,high,"reimplemented (src/game/core/crtrealloc); _msize: a small block's paragraphs * 16 under lock 9, else HeapSize"
 0x00691de0,Lockit_Ctor,function,low,reimplemented (src/game/core/locinfo); MSVC6 std::_Lockit::_Lockit
 0x00691ea0,Lockit_Dtor,function,low,reimplemented (src/game/core/locinfo); MSVC6 std::_Lockit::~_Lockit
 0x00698fc0,Locinfo_Ctor,function,low,reimplemented (src/game/core/locinfo); MSVC6 std::_Locinfo::_Locinfo
