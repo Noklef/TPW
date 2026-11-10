@@ -25,3 +25,8 @@ extern "C" {
 // the array shrunk into the window (mode 2 passes 2, mode 3 passes 1; another mode: not). Unlocked and the array freed.
 void __cdecl Dialog7cc654_ShowPicture();
 }
+
+#include "../core/gamedata.h"
+
+// The JPEG codec's vtable (its slots ports: tpw.exe's loader points them there), stored by the picture's loader on the stack.
+GAME_DATA(void *[4], JpegCodec_vtable, 0x00700140, 0x10);

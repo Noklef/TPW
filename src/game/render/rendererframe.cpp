@@ -21,7 +21,7 @@ AddrCalls g_calls;
 template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cast<T *>((uintptr_t)p + offset); }
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
 
-const u32 kViewFlags = 0x008bcbc8, kSceneFlags = 0x008bd508, kMode = 0x008bd524, kDevice = 0x00879ab0, kWorldRender = reinterpret_cast<uintptr_t>(&gRenderer_87a6d0), kCamera = 0x0087aff0;
+const u32 kViewFlags = 0x008bcbc8, kSceneFlags = 0x008bd508, kMode = 0x008bd524, kDevice = 0x00879ab0, kWorldRender = reinterpret_cast<uintptr_t>(&gRenderer_87a6d0), kCamera = reinterpret_cast<uintptr_t>(&gMatrices_Update_87aff0);
 
 template <typename... A>
 u32 Slot(u32 object, u32 offset, A... args) {

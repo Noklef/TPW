@@ -19,6 +19,7 @@
 #include "waddir.h"
 #include "../core/vdtor.h"
 #include "../core/imports.h"
+#include "../world/objectdefs.h"
 
 namespace {
 
@@ -181,7 +182,7 @@ u32 __cdecl GamePaths_FontsFolder(char *out) {
     s32 length = 0;
     while (root[length] != 0)
         ++length;
-    const char *const format = root[length - 1] == '\\' ? at<const char *>((u32)&gText_Gamepaths_74d320) : at<const char *>(0x007488ac);   // (empty: root[-1], sic)
+    const char *const format = root[length - 1] == '\\' ? at<const char *>((u32)&gText_Gamepaths_74d320) : at<const char *>((u32)&gText_Objectdefs_7488ac);   // (empty: root[-1], sic)
     Crt().sprintf(out, format, root, at<const char *>((u32)&gText_GamePaths_FontsFolder_74d6c0));
     return 1;
 }
@@ -248,7 +249,7 @@ extern "C" const char *__cdecl GamePaths_Base() {
 
 s32 __cdecl GamePaths_ShareTexFolder(char *out) {
     const u32 root = g_calls.Cd(0x0040ef40);
-    return Crt().sprintf(out, reinterpret_cast<const char *>((uintptr_t)0x007488ac), reinterpret_cast<const char *>((uintptr_t)root), gGamePaths_7af720);
+    return Crt().sprintf(out, gText_Objectdefs_7488ac,reinterpret_cast<const char *>((uintptr_t)root), gGamePaths_7af720);
 }
 
 u32 *__cdecl GamePaths_SetRoots(u32 *result) {

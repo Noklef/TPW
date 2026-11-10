@@ -251,6 +251,7 @@ void __cdecl TrakRides_Shutdown();
 // Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
 
 // Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(u32[14][0x34], gTrakRide_Templates_764178, 0x00764178, 0xb60);   // the kinds -1 to -14's template records (0xd0 each)
 GAME_DATA(const float, gTrackrides_700ed0, 0x00700ed0, 0x4);
 GAME_DATA(const float, gTrackrides_700ed4, 0x00700ed4, 0x4);
 GAME_DATA(const float, gTrackrides_700f20, 0x00700f20, 0x4);

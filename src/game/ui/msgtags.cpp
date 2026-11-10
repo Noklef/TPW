@@ -281,7 +281,7 @@ u32 __cdecl MsgTags_Load(Stream *stream) {
 
 s32 *__cdecl MsgTags_Save(Stream *stream) {
     s32 count = 0;
-    for (u32 entry = ((u32)(uintptr_t)&gMsgtags_7c26b0 + 0x4); entry < 0x007c3b04; entry += 0x208)
+    for (u32 entry = ((u32)(uintptr_t)&gMsgtags_7c26b0 + 0x4); entry < (u32)(uintptr_t)&gMsgtags_7c3b00 + 0x4; entry += 0x208)
         if (*reinterpret_cast<u16 *>((uintptr_t)entry)) ++count;
     s32 result, done;
     s32 *answer = Stream_Write(&result, stream, &count, 4, &done);

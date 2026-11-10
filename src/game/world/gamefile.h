@@ -22,3 +22,8 @@ u32 __fastcall GameFile_Load(void *, void *, Stream *stream, u32 mode);
 // second argument 0). The same parts fail in the same way, but for SpriteScripts_Save, which can not. A stream's write status is 0 or 1, never the negative the original tests.
 u32 __fastcall GameFile_Save(void *, void *, Stream *stream, u32 mode);
 }
+
+#include "../core/gamedata.h"
+
+// The save's part tags ("DLRW", "CSPS", ...; 4 characters each, no NUL), by hand (named for its use, unconfirmed).
+GAME_DATA(const char[17][4], gGameFile_Tags_6fd8b8, 0x006fd8b8, 0x44);

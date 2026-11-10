@@ -37,3 +37,9 @@ void __cdecl LoadDialog_Create();
 // refused characters 0x752588 and focus 0. The list as for the load dialog with SaveDialog_FillList, then KeyMaps_ResetAllAndSetFlag.
 void __cdecl SaveDialog_Create();
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address (a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(u8[0x174], gSavedialogcreate_7523f0, 0x007523f0, 0x174);   // the load and save dialogs' window script
+GAME_DATA(u16[10], gText_Savedialogcreate_752588, 0x00752588, 0x14);   // L"\\/*?:|<>\"", the edit box's refused characters

@@ -31,7 +31,7 @@ u8 *__fastcall Class701260_Ctor(u8 *object) {
 
 u8 *__fastcall Class701378_Ctor(u8 *object, void *, u32 mostDerived) {
     if (mostDerived != 0) {
-        at<u32>(object, 0) = 0x00701378;
+        at<u32>(object, 0) = (u32)(uintptr_t)&Vbtable_701378;
         Class701260_Ctor(object + 0x2c);
     }
     at<u32>(object, BaseOffset(object)) = (u32)(uintptr_t)Class701330_vtable;

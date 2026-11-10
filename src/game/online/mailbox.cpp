@@ -622,7 +622,7 @@ u8 __fastcall AddressBook_Save(u8 *self, void *, const char *folder) {
     u8 stream[0x8c];   // (+0 the vbtable, +4 the file buffer, its file at +0x54, +0x58 the ios)
     u8 *const buffer = stream + 4;
     u8 *const ios = stream + 0x58;
-    at<u32>(stream, 0) = 0x00702978;
+    at<u32>(stream, 0) = (u32)(uintptr_t)&Vbtable_702978;
     g_env->iosInit(ios);
     g_env->ostreamCtor(stream, nullptr, buffer, 0, 1, 0);
     g_env->fileCtor(buffer, nullptr, nullptr);
@@ -705,7 +705,7 @@ u8 __fastcall Mailbox_SaveMessage(u8 *self) {
     u8 stream[0x8c];   // (+0 the vbtable, +4 the file buffer, its file at +0x54, +0x58 the ios)
     u8 *const buffer = stream + 4;
     u8 *const ios = stream + 0x58;
-    at<u32>(stream, 0) = 0x00702978;
+    at<u32>(stream, 0) = (u32)(uintptr_t)&Vbtable_702978;
     g_env->iosInit(ios);
     g_env->ostreamCtor(stream, nullptr, buffer, 0, 1, 0);
     g_env->fileCtor(buffer, nullptr, nullptr);
@@ -826,7 +826,7 @@ u8 __fastcall Mailbox_SaveOutbox(u8 *self) {
     u8 stream[0x8c];   // (+0 the vbtable, +4 the file buffer, its file at +0x54, +0x58 the ios: the original's frame has this much)
     u8 *const buffer = stream + 4;
     u8 *const ios = stream + 0x58;
-    at<u32>(stream, 0) = 0x00702978;
+    at<u32>(stream, 0) = (u32)(uintptr_t)&Vbtable_702978;
     g_env->iosInit(ios);
     g_env->ostreamCtor(stream, nullptr, buffer, 0, 1, 0);
     g_env->fileCtor(buffer, nullptr, nullptr);

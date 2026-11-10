@@ -25,3 +25,4 @@ u8 *__fastcall Class701378_Ctor(u8 *object, void *, u32 mostDerived);
 // The vtables hold only ports: tpw.exe's loader points their slots at them (.docs/09-globals.md).
 GAME_DATA(void *[18], Class701260_vtable, 0x00701260, 0x48);
 GAME_DATA(void *[18], Class701330_vtable, 0x00701330, 0x48);
+GAME_DATA(const s32[2], Vbtable_701378, 0x00701378, 0x8);   // (a vbtable: 0, the base at +0x2c)
