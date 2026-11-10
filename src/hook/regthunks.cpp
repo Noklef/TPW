@@ -4,6 +4,7 @@
 #include "../game/gfx/tgqvideo.h"
 #include "../game/gfx/tqivideo.h"
 #include "../game/math/ssemath.h"
+#include "../game/render/rasterspans.h"
 
 extern "C" {
 
@@ -177,4 +178,42 @@ __declspec(naked) void RegThunk_TqiVideo_ReadBlocks() {
         ret
     }
 }
+
+// The span routines: jumped to with the row pointer in EBP; each pops the six registers its set-up pushed, then returns to the
+// set-up's caller.
+#define SPAN_THUNK(name)              \
+    __declspec(naked) void RegThunk_##name() { \
+        __asm push ebp                \
+        __asm call name               \
+        __asm add esp, 4              \
+        __asm pop ecx                 \
+        __asm pop ebp                 \
+        __asm pop ebx                 \
+        __asm pop edx                 \
+        __asm pop esi                 \
+        __asm pop edi                 \
+        __asm ret                     \
+    }
+SPAN_THUNK(RasterSpan_TexShadeZ)
+SPAN_THUNK(RasterSpan_TexBlend)
+SPAN_THUNK(RasterSpan_TexBlendAlphaZ)
+SPAN_THUNK(RasterSpan_TexBlendLit)
+SPAN_THUNK(RasterSpan_TexAdd)
+SPAN_THUNK(RasterSpan_BilinearShadeZ)
+SPAN_THUNK(RasterSpan_BilinearAdd)
+SPAN_THUNK(RasterSpan_BilinearBlend)
+SPAN_THUNK(RasterSpan_BilinearBlendLitZ)
+SPAN_THUNK(RasterSpan_ShadeZ)
+SPAN_THUNK(RasterSpan_TexZ)
+SPAN_THUNK(RasterSpan_TexTintZ)
+SPAN_THUNK(RasterSpan_TexBrightZ)
+SPAN_THUNK(RasterSpan_TexShadeNoZ)
+SPAN_THUNK(RasterSpan_TexAddNoZ)
+SPAN_THUNK(RasterSpan_TexBlendKeyedNoZ)
+SPAN_THUNK(RasterSpan_TexBlendLitNoZ)
+SPAN_THUNK(RasterSpan_BilinearAddNoZ)
+SPAN_THUNK(RasterSpan_BilinearShadeNoZ)
+SPAN_THUNK(RasterSpan_BilinearBlendLitNoZ)
+SPAN_THUNK(RasterSpan_ShadeNoZ)
+#undef SPAN_THUNK
 }

@@ -21,5 +21,26 @@ void RegThunk_TqiVideo_PixelRowRgb16(); // 0x675d90: the same
 void RegThunk_TqiVideo_PixelRowRgb32(); // 0x6758c0: the same
 void RegThunk_TqiVideo_PixelRowBytes32(); // 0x677eb6: the same
 void RegThunk_TqiVideo_ReadBlocks(); // 0x6747d0: state in ESI, bits in EBP, position in EDI (and out); the blocks at [ESP + 4] of entry
+void RegThunk_RasterSpan_TexShadeZ(); // 0x6f1d70: jumped to, row pointer in EBP, ECX EBP EBX EDX ESI EDI on the stack (popped)
+void RegThunk_RasterSpan_TexBlend(); // 0x6f2140: the same
+void RegThunk_RasterSpan_TexBlendAlphaZ(); // 0x6f2570: the same
+void RegThunk_RasterSpan_TexBlendLit(); // 0x6f29d0: the same
+void RegThunk_RasterSpan_TexAdd(); // 0x6f2de0: the same
+void RegThunk_RasterSpan_BilinearShadeZ(); // 0x6f31c0: the same
+void RegThunk_RasterSpan_BilinearAdd(); // 0x6f36d0: the same
+void RegThunk_RasterSpan_BilinearBlend(); // 0x6f3be0: the same
+void RegThunk_RasterSpan_BilinearBlendLitZ(); // 0x6f4140: the same
+void RegThunk_RasterSpan_ShadeZ(); // 0x6f4690: the same
+void RegThunk_RasterSpan_TexZ(); // 0x6f49c0: the same
+void RegThunk_RasterSpan_TexTintZ(); // 0x6f4d40: the same
+void RegThunk_RasterSpan_TexBrightZ(); // 0x6f50d0: the same
+void RegThunk_RasterSpan_TexShadeNoZ(); // 0x6f5590: the same
+void RegThunk_RasterSpan_TexAddNoZ(); // 0x6f5840: the same
+void RegThunk_RasterSpan_TexBlendKeyedNoZ(); // 0x6f56d0: the same
+void RegThunk_RasterSpan_TexBlendLitNoZ(); // 0x6f5980: the same
+void RegThunk_RasterSpan_BilinearAddNoZ(); // 0x6f5af0: the same
+void RegThunk_RasterSpan_BilinearShadeNoZ(); // 0x6f5cc0: the same
+void RegThunk_RasterSpan_BilinearBlendLitNoZ(); // 0x6f5e90: the same
+void RegThunk_RasterSpan_ShadeNoZ(); // 0x6f6090: the same
 void RegThunk_TqiVideo_DecodeBlock(); // 0x674ab9: DC in EAX, dequantiser in ESI, bits in EBP, position in EDI (and out), out in EDX, pitch in ECX (ECX and EDX kept)
 }

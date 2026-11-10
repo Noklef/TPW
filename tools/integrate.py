@@ -26,7 +26,8 @@ HOOKS = os.path.join(ROOT, 'src', 'hook', 'hooks.cpp')
 THUNKS = os.path.join(ROOT, 'src', 'hook', 'regthunks.h')
 SYMBOLS = os.path.join(ROOT, 're', 'symbols.csv')
 CMAKE = os.path.join(ROOT, 'CMakeLists.txt')
-TEXT_DELTA = 0x400c00  # .text VA - file offset
+sys.path.insert(0, os.path.join(ROOT, 'tools'))
+from pe_read import PE  # noqa: E402  (a hook's bytes by section: .text or cseg)
 
 
 def read(path):
@@ -104,7 +105,7 @@ def add_hooks(spec, names_by_unit):
     lines = text.split(nl)
     start = next(i for i, l in enumerate(lines) if l.startswith('const Hook kHooks[]'))
     end = next(i for i in range(start, len(lines)) if lines[i] == '};')
-    exe = open(EXE, 'rb').read()
+    exe = PE(EXE)
     added = 0
     for name, addr, unit, _ in spec:
         if any(l.lstrip().startswith('{"%s",' % name) for l in lines[start:end]):
@@ -112,7 +113,7 @@ def add_hooks(spec, names_by_unit):
             continue
         if any('0x%08x,' % addr in l for l in lines[start:end]):
             sys.exit('hooks.cpp: 0x%08x is already hooked under another name' % addr)
-        b = exe[addr - TEXT_DELTA:addr - TEXT_DELTA + 5]
+        b = exe.bytes(addr, 5)
         fn = 'RegThunk_' + name if re.search(r'\bRegThunk_%s\(' % name, read(THUNKS)) else name  # (a register convention's naked thunk)
         row = '    {%-28s 0x%08x, (void *)&%s, {%s}},' % ('"%s",' % name, addr, fn, ', '.join('0x%02x' % x for x in b))
         at = end

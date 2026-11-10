@@ -488,7 +488,7 @@ class Emu:
             self.hooks[pc](self)
             return self.pop()
         if pc not in self.code:
-            if not 0x401000 <= pc < 0x6e7000:   # a jump out of the exe's code (to 0, a wild pointer, a case's data): faults natively too (DEP)
+            if not 0x401000 <= pc < 0x6fc800:   # a jump out of the exe's code (.text and cseg; to 0, a wild pointer, a case's data): faults natively too (DEP)
                 raise MemFault('execute of %08x' % pc)
             raise KeyError('no listing for %08x' % pc)   # (code the bench's ranges leave out)
         mn, ops = self.code[pc]
@@ -947,6 +947,7 @@ MMX = {'PADDW': lambda d, s: _join([a + b for a, b in zip(_lanes(d, 16), _lanes(
        'PACKUSWB': lambda d, s: _join([min(255, max(0, _signed(x, 16))) for x in _lanes(d, 16) + _lanes(s, 16)], 8),
        'PUNPCKLBW': lambda d, s: _join([x for p in zip(_lanes(d, 8)[:4], _lanes(s, 8)[:4]) for x in p], 8),
        'PUNPCKLWD': lambda d, s: _join([x for p in zip(_lanes(d, 16)[:2], _lanes(s, 16)[:2]) for x in p], 16),
+       'PUNPCKHBW': lambda d, s: _join([x for p in zip(_lanes(d, 8)[4:], _lanes(s, 8)[4:]) for x in p], 8),
        'PUNPCKLDQ': lambda d, s: _join([d & 0xffffffff, s & 0xffffffff], 32),
        'PUNPCKHDQ': lambda d, s: _join([d >> 32, s >> 32], 32),
        'PADDD': lambda d, s: _join([a + b for a, b in zip(_lanes(d, 32), _lanes(s, 32))], 32),

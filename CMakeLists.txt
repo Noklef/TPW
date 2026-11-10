@@ -332,6 +332,7 @@ add_library(tpw_game STATIC
     src/game/math/convexhull.cpp
     src/game/math/ssemath.cpp
     src/game/math/amd3dnow.cpp
+    src/game/math/intangle.cpp
     src/game/motion/curve.cpp
     src/game/motion/keys.cpp
     src/game/motion/quat.cpp
@@ -707,6 +708,7 @@ add_library(tpw_game STATIC
     src/game/render/viewfootprint.cpp
     src/game/render/rendererframe.cpp
     src/game/render/rasterdraw.cpp
+    src/game/render/rasterspans.cpp
     src/game/ui/quitconfirm.cpp
     src/game/world/mapsweep.cpp
     src/game/ui/imehostattach.cpp
@@ -728,6 +730,7 @@ add_library(tpw_game STATIC
     src/game/gfx/jpegwrite.cpp
     src/game/gfx/jpegsource.cpp
     src/game/gfx/screenview.cpp
+    src/game/gfx/spriterle.cpp
     src/game/ui/panel7cc3b0handler.cpp
     src/game/world/rideupkeep.cpp
     src/game/world/objectwear.cpp

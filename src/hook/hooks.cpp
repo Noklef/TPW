@@ -63,6 +63,7 @@
 #include "../game/math/ssemath.h"
 #include "../game/math/transform.h"
 #include "../game/math/amd3dnow.h"
+#include "../game/math/intangle.h"
 #include "../game/math/vec2.h"
 #include "../game/gfx/palette.h"
 #include "../game/gfx/surface.h"
@@ -175,6 +176,7 @@
 #include "../game/gfx/signrender.h"
 #include "../game/gfx/signstyle.h"
 #include "../game/gfx/spriteframelights.h"
+#include "../game/gfx/spriterle.h"
 #include "../game/gfx/tgqvideo.h"
 #include "../game/gfx/tqiframe.h"
 #include "../game/gfx/tqivideo.h"
@@ -607,6 +609,7 @@
 #include "../game/render/present.h"
 #include "../game/render/rasterdraw.h"
 #include "../game/render/rasterformat.h"
+#include "../game/render/rasterspans.h"
 #include "../game/render/rendererframe.h"
 #include "../game/render/scrolllayers.h"
 #include "../game/render/settingslog.h"
@@ -4695,6 +4698,7 @@ const Hook kHooks[] = {
     {"Amd3DNow_TransformBatch",   0x005f4730, (void *)&Amd3DNow_TransformBatch, {0x55, 0x57, 0x56, 0x52, 0x51}},
     {"Amd3DNow_TransformVectors", 0x005f4844, (void *)&Amd3DNow_TransformVectors, {0x55, 0x57, 0x56, 0x52, 0x51}},
     {"Amd3DNow_Multiply",         0x005f4bd0, (void *)&Amd3DNow_Multiply, {0x0f, 0x0e, 0x8b, 0x4c, 0x24}},
+    {"IntAngle_Atan2",            0x006e7074, (void *)&IntAngle_Atan2, {0x83, 0xec, 0x04, 0x53, 0x52}},
     {"Table_ScaledBySum",         0x00503980, (void *)&Table_ScaledBySum, {0x56, 0x57, 0x8b, 0xf9, 0x8b}},
     {"Staff_Train",               0x00505a10, (void *)&Staff_Train, {0x53, 0x56, 0x8b, 0xf1, 0x57}},
     {"Staff_CountTypes",          0x00508000, (void *)&Staff_CountTypes, {0x83, 0xec, 0x0c, 0x33, 0xc0}},
@@ -7798,6 +7802,7 @@ const Hook kHooks[] = {
     {"ScreenView_Field164",       0x006317f0, (void *)&ScreenView_Field164, {0xa1, 0xe4, 0x78, 0xfa, 0x00}},
     {"ScreenView_Rect",           0x00631800, (void *)&ScreenView_Rect, {0x56, 0x57, 0x33, 0xff, 0x8b}},
     {"ScreenView_Flag1",          0x00631860, (void *)&ScreenView_Flag1, {0xa1, 0x9c, 0x77, 0xfa, 0x00}},
+    {"Sprite_DrawRle",            0x006e73c0, (void *)&Sprite_DrawRle, {0x60, 0x8b, 0x44, 0x24, 0x24}},
     {"RenderMode_Size",           0x0044a590, (void *)&RenderMode_Size, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_Depth",          0x0044a5d0, (void *)&RenderMode_Depth, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_ResetScale",     0x0044a600, (void *)&RenderMode_ResetScale, {0x51, 0xc7, 0x44, 0x24, 0x00}},
@@ -8192,6 +8197,27 @@ const Hook kHooks[] = {
     {"RasterDraw_TestQuad",       0x0056a230, (void *)&RasterDraw_TestQuad, {0x55, 0x8b, 0xec, 0x83, 0xec}},
     {"RasterDraw_Rect",           0x0056a2f0, (void *)&RasterDraw_Rect, {0x55, 0x8b, 0xec, 0x83, 0xec}},
     {"RasterDraw_MappedTriangle", 0x0056a540, (void *)&RasterDraw_MappedTriangle, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"RasterSpan_TexShadeZ",      0x006f1d70, (void *)&RegThunk_RasterSpan_TexShadeZ, {0x8b, 0x3d, 0x34, 0xe0, 0xfb}},
+    {"RasterSpan_TexBlend",       0x006f2140, (void *)&RegThunk_RasterSpan_TexBlend, {0x8b, 0x3d, 0x34, 0xe0, 0xfb}},
+    {"RasterSpan_TexBlendAlphaZ", 0x006f2570, (void *)&RegThunk_RasterSpan_TexBlendAlphaZ, {0x8b, 0x3d, 0x34, 0xe0, 0xfb}},
+    {"RasterSpan_TexBlendLit",    0x006f29d0, (void *)&RegThunk_RasterSpan_TexBlendLit, {0x8b, 0x3d, 0x34, 0xe0, 0xfb}},
+    {"RasterSpan_TexAdd",         0x006f2de0, (void *)&RegThunk_RasterSpan_TexAdd, {0x8b, 0x3d, 0x34, 0xe0, 0xfb}},
+    {"RasterSpan_BilinearShadeZ", 0x006f31c0, (void *)&RegThunk_RasterSpan_BilinearShadeZ, {0x8b, 0x3d, 0x34, 0xe0, 0xfb}},
+    {"RasterSpan_BilinearAdd",    0x006f36d0, (void *)&RegThunk_RasterSpan_BilinearAdd, {0x8b, 0x3d, 0x34, 0xe0, 0xfb}},
+    {"RasterSpan_BilinearBlend",  0x006f3be0, (void *)&RegThunk_RasterSpan_BilinearBlend, {0x8b, 0x3d, 0x34, 0xe0, 0xfb}},
+    {"RasterSpan_BilinearBlendLitZ", 0x006f4140, (void *)&RegThunk_RasterSpan_BilinearBlendLitZ, {0x8b, 0x3d, 0x34, 0xe0, 0xfb}},
+    {"RasterSpan_ShadeZ",         0x006f4690, (void *)&RegThunk_RasterSpan_ShadeZ, {0x8b, 0x3d, 0x34, 0xe0, 0xfb}},
+    {"RasterSpan_TexZ",           0x006f49c0, (void *)&RegThunk_RasterSpan_TexZ, {0x8b, 0x3d, 0x34, 0xe0, 0xfb}},
+    {"RasterSpan_TexTintZ",       0x006f4d40, (void *)&RegThunk_RasterSpan_TexTintZ, {0x8b, 0x3d, 0x34, 0xe0, 0xfb}},
+    {"RasterSpan_TexBrightZ",     0x006f50d0, (void *)&RegThunk_RasterSpan_TexBrightZ, {0x8b, 0x3d, 0x34, 0xe0, 0xfb}},
+    {"RasterSpan_TexShadeNoZ",    0x006f5590, (void *)&RegThunk_RasterSpan_TexShadeNoZ, {0x0f, 0x6f, 0x2d, 0x50, 0xe1}},
+    {"RasterSpan_TexAddNoZ",      0x006f5840, (void *)&RegThunk_RasterSpan_TexAddNoZ, {0x0f, 0x6f, 0x2d, 0x50, 0xe1}},
+    {"RasterSpan_TexBlendKeyedNoZ", 0x006f56d0, (void *)&RegThunk_RasterSpan_TexBlendKeyedNoZ, {0x0f, 0x6f, 0x2d, 0x50, 0xe1}},
+    {"RasterSpan_TexBlendLitNoZ", 0x006f5980, (void *)&RegThunk_RasterSpan_TexBlendLitNoZ, {0x0f, 0x6f, 0x2d, 0x50, 0xe1}},
+    {"RasterSpan_BilinearAddNoZ", 0x006f5af0, (void *)&RegThunk_RasterSpan_BilinearAddNoZ, {0x0f, 0x6f, 0x2d, 0x50, 0xe1}},
+    {"RasterSpan_BilinearShadeNoZ", 0x006f5cc0, (void *)&RegThunk_RasterSpan_BilinearShadeNoZ, {0x0f, 0x6f, 0x2d, 0x50, 0xe1}},
+    {"RasterSpan_BilinearBlendLitNoZ", 0x006f5e90, (void *)&RegThunk_RasterSpan_BilinearBlendLitNoZ, {0x0f, 0x6f, 0x2d, 0x50, 0xe1}},
+    {"RasterSpan_ShadeNoZ",       0x006f6090, (void *)&RegThunk_RasterSpan_ShadeNoZ, {0x0f, 0x6f, 0x2d, 0x50, 0xe1}},
     {"Model_MarkFacesByMask",     0x0044b140, (void *)&Model_MarkFacesByMask, {0x53, 0x8b, 0x5c, 0x24, 0x08}},
     {"Model_MarkFacesNotValue",    0x0044b1b0, (void *)&Model_MarkFacesNotValue, {0x53, 0x8b, 0x5c, 0x24, 0x08}},
     {"Model_FindPartByKey4",      0x0044b220, (void *)&Model_FindPartByKey4, {0x56, 0x57, 0x8b, 0x7c, 0x24}},
