@@ -70,7 +70,7 @@ void LogText(uintptr_t format, A... args) {
 u32 Failure(u8 *object) {
     if (Flags() & kStepLog) {
         char text[0x40];
-        Crt().sprintf(text, reinterpret_cast<const char *>((uintptr_t)0x007661cc), result());
+        Crt().sprintf(text, reinterpret_cast<const char *>((uintptr_t)&gText_Ddopen_7661cc), result());
         EngineDebug_LogFallback(text);
     }
     EngineErrors_Push(kErrors, nullptr, 3, result());
@@ -121,9 +121,9 @@ bool FirstStart(u8 *object, u32 driver, u32 *answer) {
     if (Fails(Com(at<void *>(object, 8), 0x6c, object + 0x20, 1))) return *answer = Failure(object), false;
     if (Flags() & kTextLog) {
         LogText((u32)&gText_Ddopen_76628c, object + 0x20);
-        LogText(0x0076626c, object + 0x220);
-        LogText(0x00766248, at<u32>(object, 0x420), at<u32>(object, 0x424));
-        LogText(0x0076621c, at<u32>(object, 0x428), at<u32>(object, 0x42c));
+        LogText((u32)(uintptr_t)&gText_Ddopen_76626c, object + 0x220);
+        LogText((u32)(uintptr_t)&gText_Ddopen_766248, at<u32>(object, 0x420), at<u32>(object, 0x424));
+        LogText((u32)(uintptr_t)&gText_Ddopen_76621c, at<u32>(object, 0x428), at<u32>(object, 0x42c));
     }
     std::memset(object + 0x488, 0, 0x17c);
     std::memset(object + 0x604, 0, 0x17c);
@@ -143,7 +143,7 @@ bool ChangeDriver(u8 *object, u32 driver, u32 *answer) {
 }
 
 bool OpenFullScreen(u8 *object, s32 width, s32 height, u32 depth, u32 videoMemory, u32 *desc) {
-    if (Flags() & kTextLog) LogText(0x00766208, width, height, depth);
+    if (Flags() & kTextLog) LogText((u32)(uintptr_t)&gText_Ddopen_766208, width, height, depth);
     if (Fails(Com(at<void *>(object, 8), 0x50, Window(), 0x851))) return false;
     if (Fails(Com(at<void *>(object, 8), 0x54, width, height, depth, 0, 0))) return false;
     Import(0x006fd368, Window(), 3);
@@ -165,7 +165,7 @@ bool OpenFullScreen(u8 *object, s32 width, s32 height, u32 depth, u32 videoMemor
 }
 
 bool OpenWindowed(u8 *object, s32 width, s32 height, u32 *desc) {
-    if (Flags() & kTextLog) LogText(0x007661f4, width, height);
+    if (Flags() & kTextLog) LogText((u32)(uintptr_t)&gText_Ddopen_7661f4, width, height);
     Import(0x006fd368, Window(), 9);
     Import(0x006fd36c, Window());
     std::memset(desc, 0, kDescSize);
@@ -251,6 +251,6 @@ extern "C" u32 __fastcall DirectDraw_Open(u8 *object, void *, s32 width, s32 hei
     if (result()) return Failure(object);
     const u32 alpha = desc[0x19], red = desc[0x16], green = desc[0x17], blue = desc[0x18];
     Surface_SetMasks(kView, nullptr, alpha, Bits_Shift(alpha), Bits_Count(alpha), red, Bits_Shift(red), Bits_Count(red), green, Bits_Shift(green), Bits_Count(green), blue, Bits_Shift(blue), Bits_Count(blue));
-    if (Flags() & kStepLog) EngineDebug_LogFallback(reinterpret_cast<const char *>((uintptr_t)0x007661a8));
+    if (Flags() & kStepLog) EngineDebug_LogFallback(reinterpret_cast<const char *>((uintptr_t)&gText_DirectDraw_Open_7661a8));
     return 1;
 }

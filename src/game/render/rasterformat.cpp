@@ -4,6 +4,7 @@
 #include <cstdint>
 
 #include "../core/crt.h"
+#include "rastertriangle.h"
 
 namespace {
 
@@ -84,7 +85,7 @@ u32 __cdecl RasterFormat_LowBit(u32 mask) {
 }
 
 void __cdecl RasterFormat_BlendTables() {
-    u32 *const shares = reinterpret_cast<u32 *>((uintptr_t)0x00fbe2e0);
+    u32 *const shares = reinterpret_cast<u32 *>((uintptr_t)&gRastertriangle_fbe240 + 0xa0);
     u32 *const rests = reinterpret_cast<u32 *>((uintptr_t)0x00fbe4e0);
     for (s32 i = 0; i < 0x40; ++i) {
         const s32 share = i * 0x10000 / 255;
