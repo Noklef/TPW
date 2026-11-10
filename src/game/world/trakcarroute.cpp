@@ -79,7 +79,7 @@ void startSound(u8 *car) {
     u16 handle;
     const u16 found = *TrakRide_FindThing(&handle, name);
     const s32 id = found ? at<s32>(Thing_ByHandle(found), 0x24) : 0;
-    const u32 sound = g_env->playSound(id, 0, global<u32>(0x00803a3c), 0, 0, 0, 0);
+    const u32 sound = g_env->playSound(id, 0, gSoundCategories.themeRides, 0, 0, 0, 0);
     at<u32>(car, 0x20) = sound;
     if (sound) {
         const s32 x = soundPlace(at<s32>(car, 0x34));

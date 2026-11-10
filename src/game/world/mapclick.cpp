@@ -38,6 +38,7 @@
 #include "gamemode.h"
 #include "focuscell.h"
 #include "tracktextures.h"
+#include "../core/soundset.h"
 
 namespace {
 
@@ -139,7 +140,7 @@ s32 Scaled(s32 v) {
 void PlaySound(const MapClickEnv *E, u32 sound, s32 x, s32 y) {
     const s32 sy = Scaled(y);
     const s32 sx = Scaled(x);
-    E->soundPlayAt(0, global<u32>(0x00803a2c), sound, sx, 0, sy);
+    E->soundPlayAt(0, gSoundCategories.ui, sound, sx, 0, sy);
 }
 
 // The focus cell from the thing [0x8186ac]: [0x818698] its cell id (row +7, column +5); 0x7639a4 / 0x7639a8 its column and row, and

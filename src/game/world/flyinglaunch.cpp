@@ -9,6 +9,7 @@
 #include "objectdefs.h"
 #include "random.h"
 #include "rides.h"
+#include "../core/soundset.h"
 
 namespace {
 
@@ -94,7 +95,7 @@ u32 __cdecl FlyingRide_Launch(s32 index) {
     at<s32>(slot, 0xcc) = -1;
     at<s32>(slot, 0xd0) = -1;
     at<s32>(slot, 0xd4) = -1;
-    at<u32>(slot, 0xe0) = g_env->playSound(at<s32>(record, 0x54), 0, global<u32>(0x00803a3c), 0, x / 300, y / 300, z / 300);
+    at<u32>(slot, 0xe0) = g_env->playSound(at<s32>(record, 0x54), 0, gSoundCategories.themeRides, 0, x / 300, y / 300, z / 300);
     at<s32>(slot, 0xd8) = Rand();
 
     if (at<u32>(record, 0xc) == 1) {

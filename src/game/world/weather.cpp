@@ -147,7 +147,7 @@ void __fastcall Weather_Update(u8 *weather) {
     if (--at<s32>(weather, 0x44) == 0) {
         const auto ftol = [](float f) { return (s32)(long long)f; };
         const s32 x = ftol(at<float>(weather, 0x48)), y = ftol(at<float>(weather, 0x4c)), z = ftol(at<float>(weather, 0x50));
-        Sound_PlayAt(0, global<u32>(0x00803a20), 0x20, x, y, z);
+        Sound_PlayAt(0, gSoundCategories.ambient, 0x20, x, y, z);
     }
 }
 
@@ -190,7 +190,7 @@ void __fastcall Weather_SetMode(u8 *weather, void *, s32 mode) {
     u32 &sound = *reinterpret_cast<u32 *>(weather + 0x54);
     if (mode == 0) {
         Obj_SetFirst(fx, nullptr, 1);
-        if (!sound) sound = Sound_PlayAt(0, *reinterpret_cast<const u32 *>(0x00803a20), 0x21, 0, 0, 0);
+        if (!sound) sound = Sound_PlayAt(0, gSoundCategories.ambient, 0x21, 0, 0, 0);
         return;
     }
     if (mode == 1) {

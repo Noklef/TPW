@@ -44,6 +44,7 @@
 #include "object.h"
 #include "staff.h"
 #include "balancelevel.h"
+#include "../core/soundset.h"
 
 namespace {
 
@@ -873,7 +874,7 @@ void __fastcall Staff_RestInArea(u8 *staff) {
 void __fastcall Researcher_PostUpdate(u8 *researcher) {
     const auto tick = [] { return at<u32>(global<u8 *>(0x0080239c), 0x1da70c); };
     const auto grumble = [researcher](u32 sound) {
-        if ((World_Rand(global<u8 *>(0x0080239c)) & 0xf) == 0) g_walk->playSound(researcher, nullptr, global<u32>(0x00803a30), sound);
+        if ((World_Rand(global<u8 *>(0x0080239c)) & 0xf) == 0) g_walk->playSound(researcher, nullptr, gSoundCategories.staff, sound);
     };
     const u32 grade = at<u32>(researcher, 0x1e4);
     switch (at<u32>(researcher, 0x19c)) {

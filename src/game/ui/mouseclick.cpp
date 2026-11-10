@@ -20,6 +20,7 @@
 #include "panel7cc3b0.h"
 #include "panel7cc408.h"
 #include "thingpanel.h"
+#include "../core/soundset.h"
 
 namespace {
 
@@ -70,7 +71,7 @@ u32 clickObject(u32 tile) {
     const u16 id = at<u16>(thing, 0xe);
     const s32 price = at<s32>(g_env->find(game() + 0x1d943c, nullptr, id, 0), 4);
     if (price > (s32)g_env->money(g_env->table26(game()))) {
-        g_env->playAt(0, global<u32>(0x00803a2c), 0x1d, 0, 0, 0);
+        g_env->playAt(0, gSoundCategories.ui, 0x1d, 0, 0, 0);
         return 0;
     }
     u8 *const block = static_cast<u8 *>(GameHeap_Alloc(0x14));

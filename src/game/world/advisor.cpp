@@ -423,9 +423,9 @@ void __cdecl Advisor_StopSpeech() {
     }
     if (!had) return;
     const s32 k = Crt().rand() % 3;   // (each tested in turn; the voice re-read, 0 by now)
-    if (k == 0) Sound_PlayAt(global<u32>(0x00f79680), global<u32>(0x00803a34), 0x27f, 0, 0, 0);
-    if (k == 1) Sound_PlayAt(global<u32>(0x00f79680), global<u32>(0x00803a34), 0x280, 0, 0, 0);
-    if (k == 2) Sound_PlayAt(global<u32>(0x00f79680), global<u32>(0x00803a34), 0x281, 0, 0, 0);
+    if (k == 0) Sound_PlayAt(global<u32>(0x00f79680), gSoundCategories.speech, 0x27f, 0, 0, 0);
+    if (k == 1) Sound_PlayAt(global<u32>(0x00f79680), gSoundCategories.speech, 0x280, 0, 0, 0);
+    if (k == 2) Sound_PlayAt(global<u32>(0x00f79680), gSoundCategories.speech, 0x281, 0, 0, 0);
 }
 
 u8 __fastcall Advisor_Cancel(u8 *self, void *, u32 id) {
@@ -490,7 +490,7 @@ void __cdecl Advisor_UpdateHighlight() {
         KeyRecord_Push(0, 1, 0x3c23d70a, 0x3e4ccccd, 0x3f800000);
         break;
     case 0x40000:
-        Sound_PlayAt(0, global<u32>(0x00803a2c), 0xc5, 0, 0, 0);
+        Sound_PlayAt(0, gSoundCategories.ui, 0xc5, 0, 0, 0);
         ParticlePool_Resize(0, 2, 0x31);
         ParticlePool_Move(0, 0, 0.0f, 0.0f, time());
         KeyRecord_Push(0, 0, 0x3f19999a, 0x3ecccccd, 0x40000000);

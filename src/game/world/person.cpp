@@ -35,6 +35,7 @@
 #include "object.h"
 #include "person.h"
 #include "balancelevel.h"
+#include "../core/soundset.h"
 
 namespace {
 
@@ -167,7 +168,7 @@ void __fastcall Visitor_QuitQueue(u8 *visitor) {
 void __fastcall Visitor_SendAway(u8 *visitor) {
     Ring_PushUnique(visitor + 0x30, nullptr, 6, at<u16>(visitor, 0x1dc));
     u16 handle;
-    if (!(*Thing_GetHandle(visitor, nullptr, &handle) & 7)) Sprite_PlaySound(visitor, nullptr, global<u32>(0x00803a24), 0x80);
+    if (!(*Thing_GetHandle(visitor, nullptr, &handle) & 7)) Sprite_PlaySound(visitor, nullptr, gSoundCategories.kids, 0x80);
     Visitor_Lower19c(visitor, nullptr, 1);
     at<u16>(visitor, 0x22a) = 0;
     at<u16>(visitor, 0x228) = 0;
@@ -603,9 +604,9 @@ void __fastcall Visitor_UseObject(u8 *visitor, void *, u8 *object) {
     set100(visitor + 0x1a4, X87Reg(-(double)at<s32>(def, 0x144)) + at<float>(visitor, 0x1a4));
     set100(visitor + 0x1a8, X87Reg(-(double)at<s32>(def, 0x148)) + at<float>(visitor, 0x1a8));
     if (at<s32>(def, 0x144) > at<s32>(def, 0x148))
-        Sprite_PlaySound(visitor, nullptr, global<u32>(0x00803a24), 0x83);
+        Sprite_PlaySound(visitor, nullptr, gSoundCategories.kids, 0x83);
     else if (at<s32>(def, 0x144) < at<s32>(def, 0x148))
-        Sprite_PlaySound(visitor, nullptr, global<u32>(0x00803a24), 0x84);
+        Sprite_PlaySound(visitor, nullptr, gSoundCategories.kids, 0x84);
     set100(visitor + 0x1b0, X87Reg((double)at<s32>(def, 0x14c)) + at<float>(visitor, 0x1b0));
     set100(visitor + 0x19c, X87Reg((double)at<s32>(def, 0x150)) + at<float>(visitor, 0x19c));
     set100(visitor + 0x1b4, X87Reg((double)at<s32>(def, 0x154)) + at<float>(visitor, 0x1b4));
@@ -681,7 +682,7 @@ void __fastcall Visitor_PayObject(u8 *visitor, void *, u8 *object) {
     const u32 price = Obj_Get194(object);
     if (price == 0) return;
     Object_TakePayment(object, nullptr, (s32)price);
-    Sprite_PlaySound(visitor, nullptr, global<u32>(0x00803a24), 0xd0);
+    Sprite_PlaySound(visitor, nullptr, gSoundCategories.kids, 0xd0);
     at<u32>(visitor, 0x1a0) -= price;
 }
 
@@ -1015,7 +1016,7 @@ void __fastcall Visitor_Arrive(u8 *visitor, void *, u32 cell) {
     const u32 y = (cell & 0xffff0000u) | (index >> 7 & 0xff) << 8 | 0x80;
     Thing_PlaceAt(visitor, nullptr, x, y);
     ScriptRef_Start(visitor + 0xc, nullptr, 1, at<u32>(visitor, 0x24), at<u32>(visitor, 0x20));
-    Sprite_PlaySound(visitor, nullptr, global<u32>(0x00803a24), 0x80);
+    Sprite_PlaySound(visitor, nullptr, gSoundCategories.kids, 0x80);
     at<u32>(visitor, 0x188) = 1;
     const u8 *const map = global<const u8 *>(0x008023a0);   // (read before the roll)
     const u32 side = (u32)World_Rand(world80239c()) & 1;
@@ -1039,7 +1040,7 @@ void __fastcall Visitor_HandleMessage(u8 *visitor, void *, u8 *message) {
                 ScriptRef_Start(ref, nullptr, 3, at<u32>(visitor, 0x24), at<u32>(visitor, 0x20));
             at<u32>(visitor, 0x28) = 0;
             Ring_PushUnique(visitor + 0x30, nullptr, 0xd, at<u16>(visitor, 0x1dc));
-            Sprite_PlaySound(visitor, nullptr, global<u32>(0x00803a24), 0x80);
+            Sprite_PlaySound(visitor, nullptr, gSoundCategories.kids, 0x80);
         } else if (Visitor_IsState11To14(visitor)) {
             Visitor_SendAway(visitor);
         }

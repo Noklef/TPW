@@ -23,6 +23,7 @@
 #include "globalsave.h"
 #include "thunks.h"
 #include "vcall.h"
+#include "soundset.h"
 
 namespace {
 
@@ -62,7 +63,7 @@ u32 __cdecl KeyAction_ClickCell() {
         if (MapCell_IsType1(global<u8 *>(0x007cf83c) + id * 0x44 + 0x294) == 0) return 1;
         const s32 z = (s32)(long long)(X87Reg((double)row) * 10.0f).v;   // (0x6fd764; fild, fmul, __ftol: the row's first)
         const s32 x = (s32)(long long)(X87Reg((double)column) * 10.0f).v;
-        g_cancelEnv->playAt(0, global<u32>(0x00803a2c), 0x5f, x, 0, z);
+        g_cancelEnv->playAt(0, gSoundCategories.ui, 0x5f, x, 0, z);
         g_cancelEnv->setMode(0x32, 1);
         g_cancelEnv->mapClick(column, row, 0, 0);
         g_cancelEnv->setMode(0, 1);

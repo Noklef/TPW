@@ -24,6 +24,7 @@
 #include "focuscell.h"
 #include "demolish.h"
 #include "placeobject.h"
+#include "../core/soundset.h"
 
 namespace {
 
@@ -222,7 +223,7 @@ s32 *__cdecl PlaceObject_Footprint(s32 x, s32 y, u32, s32 angle, u32 place, u32 
             const s32 z = (s32)(long long)X87_MulIntDouble(y, scale);   // (__ftol)
             const s32 across = (s32)(long long)X87_MulIntDouble(x, scale);
             const u32 sound = count < 4 ? 0x8e : count < 8 ? 0x8d : count < 0x10 ? 0x8f : 0x90;
-            g_fp->playAt(0, global<u32>(0x00803a2c), sound, across, 0, z);
+            g_fp->playAt(0, gSoundCategories.ui, sound, across, 0, z);
         }
         objectCell = (u16)(object[7] * 0x80 + object[5] + 1);
     }

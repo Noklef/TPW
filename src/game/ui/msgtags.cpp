@@ -18,6 +18,7 @@
 #include "windowtimers.h"
 #include "dialog7cb2b8build.h"
 #include "panel7b9940.h"
+#include "../core/soundset.h"
 
 namespace {
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
@@ -214,7 +215,7 @@ u8 *__cdecl MsgTags_Add(const u8 *message) {
     Window_SetDwordA0(tag, nullptr, 10, 0);
     Window_PostMessage(gDialog7cb2b8build_7cb2c4, 0x100001, (u32)(uintptr_t)tag, 0);
     gMsgtags_7ca09c++;
-    Sound_PlayAt(0, global<u32>(0x00803a2c), 0x1e, 0, 0, 0);
+    Sound_PlayAt(0, gSoundCategories.ui, 0x1e, 0, 0, 0);
     return tag;
 }
 

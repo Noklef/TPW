@@ -8,6 +8,7 @@
 #include "../files/file.h"
 #include "advisorspeech.h"
 #include "advisor.h"
+#include "../core/soundset.h"
 
 namespace {
 
@@ -96,7 +97,7 @@ void __cdecl Advisor_UpdateSpeech() {
 
     const s32 sampleAt = global<s32>(0x00f79694);
     if (sampleAt && sampleAt - now <= 0) {
-        const u32 owner = global<u32>(0x00f79678) ? global<u32>(0x00803a40) : global<u32>(0x00803a34);
+        const u32 owner = global<u32>(0x00f79678) ? gSoundCategories.themeSpeech : gSoundCategories.speech;
         Voice() = g_calls.Cd(0x0051bfc0, 0u, owner, global<u32>(0x00f7967c), 0u, 0u, 0u);   // Sound_PlayAt
         global<u32>(0x00f79694) = 0;
         MouthOpen() = 1;
@@ -105,7 +106,7 @@ void __cdecl Advisor_UpdateSpeech() {
     const s32 endAt = global<s32>(0x00f79778);
     if (endAt && endAt - now <= 0) {
         g_calls.Cd(0x00521e60, 0x57u, 0x15f90u, 0u, 0x1b58u);   // Particle_Spawn
-        g_calls.Cd(0x0051bfc0, 0u, global<u32>(0x00803a2c), 0xc6u, 0u, 0u, 0u);
+        g_calls.Cd(0x0051bfc0, 0u, gSoundCategories.ui, 0xc6u, 0u, 0u, 0u);
         g_calls.Cd(0x004b9340);   // Dialog7cc4b4_Update
         global<u32>(0x00f79778) = 0;
     }
@@ -280,7 +281,7 @@ u32 __cdecl Advisor_Say(s32 id) {
     }
 
     g_calls.Cd(0x0051e6f0, 1u);   // Sound_Set803acc
-    const u32 owner = global<u32>(global<s32>(0x00f79678) ? 0x00803a40 : 0x00803a34);
+    const u32 owner = global<s32>(0x00f79678) ? gSoundCategories.themeSpeech : gSoundCategories.speech;
     Voice() = g_calls.Cd(0x0051bfc0, 0u, owner, global<u32>(0x00f7967c), 0u, 0u, 0u);   // Sound_PlayAt
     const u32 voiced = g_calls.Cd(0x0051c570, Voice()) + 0xc8;   // Sound_VoiceInfo: its length
     if (!voiced) return 0;

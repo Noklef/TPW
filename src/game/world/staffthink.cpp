@@ -15,6 +15,7 @@
 #include "staffsteps.h"
 #include "staffwork.h"
 #include "balancelevel.h"
+#include "../core/soundset.h"
 
 namespace {
 
@@ -32,7 +33,7 @@ u8 *world() { return global<u8 *>(0x0080239c); }
 u32 tick() { return at<u32>(world(), 0x1da70c); }
 
 void sometimesSound(u8 *staff, u32 sound) {
-    if (!(g_env->rand(world()) & 0xf)) g_env->playSound(staff, nullptr, global<u32>(0x00803a30), sound);
+    if (!(g_env->rand(world()) & 0xf)) g_env->playSound(staff, nullptr, gSoundCategories.staff, sound);
 }
 
 // The walk: true on arrival (0 or 2); else the walker tires.
@@ -131,7 +132,7 @@ void __fastcall Entertainer_Step(u8 *entertainer) {
             u32 r15;
             g_env->position(at<s32>(entertainer, 0xc), reinterpret_cast<u32 *>(&x), reinterpret_cast<u32 *>(&y), reinterpret_cast<u32 *>(&z), &r15);
             const s32 zAt = (s32)(long long)z, yAt = (s32)(long long)y, xAt = (s32)(long long)x;
-            g_env->playAt(0, global<u32>(0x00803a30), 0x87, xAt, yAt, zAt);
+            g_env->playAt(0, gSoundCategories.staff, 0x87, xAt, yAt, zAt);
             g_env->entertainerWork(entertainer);
         }
         break;

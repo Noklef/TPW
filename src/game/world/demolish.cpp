@@ -18,6 +18,7 @@
 #include "trackrides.h"
 #include "world.h"
 #include "demolish.h"
+#include "../core/soundset.h"
 
 namespace {
 
@@ -223,6 +224,6 @@ void __cdecl Path_CheckDeadEnds(s32 x, s32 y, u32 flag) {
     const s32 z = Ftol(X87_MulIntDouble(row, scale));
     const s32 across = Ftol(X87_MulIntDouble(col, scale));
     const u32 sound = count < 4 ? 0x96 : count < 8 ? 0x97 : count < 16 ? 0x98 : 0x99;
-    Sound_PlayAt(0, global<u32>(0x00803a2c), sound, across, 0, z);
+    Sound_PlayAt(0, gSoundCategories.ui, sound, across, 0, z);
 }
 }

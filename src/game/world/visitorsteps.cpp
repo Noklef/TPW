@@ -32,6 +32,7 @@
 #include "world.h"
 #include "visitorsteps.h"
 #include "balancelevel.h"
+#include "../core/soundset.h"
 
 namespace {
 
@@ -265,7 +266,7 @@ void __fastcall Visitor_StartEmote(u8 *visitor, void *, u32 mode) {
     SpriteScript_GetPosition(at<s32>(visitor, 0xc), &x, &y, &z, &r15);
     if (mode == 4) {
         u16 handle;
-        if ((*Thing_GetHandle(visitor, nullptr, &handle) & 0xf) == 0) g_env->playSound(visitor, nullptr, global<u32>(0x00803a24), 0x7e);
+        if ((*Thing_GetHandle(visitor, nullptr, &handle) & 0xf) == 0) g_env->playSound(visitor, nullptr, gSoundCategories.kids, 0x7e);
     }
     Set4_4217f0(visitor + 0xc, nullptr, mode);
     at<u32>(visitor, 0x208) = at<u32>(world(), 0x1da70c);
@@ -484,7 +485,7 @@ void __fastcall Visitor_StepIdle(u8 *visitor) {
         Visitor_StartEmote(visitor, nullptr, 7);
         g_env->cellEffect(mapCell, nullptr, 7);
         Ring_PushUnique(ring, nullptr, 0x12, 0);
-        g_env->playSound(visitor, nullptr, global<u32>(0x00803a24), 0xcc);
+        g_env->playSound(visitor, nullptr, gSoundCategories.kids, 0xcc);
         at<u32>(visitor, 0x1b0) = 0;
         return;
     }
@@ -556,7 +557,7 @@ void __fastcall Visitor_StepIdle(u8 *visitor) {
         if (chance == 0x64) {
             if (rnd % 100 < (u32)gBalanceLevel.mStinkbombLikelihood) {
                 g_env->cellEffect(cell, nullptr, 8);
-                g_env->playSound(visitor, nullptr, global<u32>(0x00803a24), 0xcf);
+                g_env->playSound(visitor, nullptr, gSoundCategories.kids, 0xcf);
                 done = true;
             }
         } else if (chance == 0x65) {
@@ -719,7 +720,7 @@ void __fastcall Visitor_ShowMoodThought(u8 *visitor) {
         }
     }
     // (the original's table also has 0x7e for 0xc, 0x7f for 0xd and 0x85 for 0xf: not reached)
-    if (!(handleOf(visitor) & 0xf) && thought == 4) g_env->playSound(visitor, nullptr, global<u32>(0x00803a24), 0x85);
+    if (!(handleOf(visitor) & 0xf) && thought == 4) g_env->playSound(visitor, nullptr, gSoundCategories.kids, 0x85);
     Thoughts_Show(visitor + 0x30, nullptr, thought, 0);
 }
 

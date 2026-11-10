@@ -524,7 +524,7 @@ void __cdecl FlyingRide_SetMode(s32 index, s32 mode) {
         if (at<u32>(rec, 0x114) != 0) {
             FlyingRide_PlaySlotMotion(index, 0, 0xa, 0, 0);
             at<u32>(rec, 0x114) = 0;
-            Sound_PlayAt(0, *reinterpret_cast<const u32 *>(0x00803a28), 0xbb, at<s32>(rec, 0x60) / 300, at<s32>(rec, 0x64) / 300,
+            Sound_PlayAt(0, gSoundCategories.rides, 0xbb, at<s32>(rec, 0x60) / 300, at<s32>(rec, 0x64) / 300,
                          at<s32>(rec, 0x68) / 300);
         }
         if (at<u32>(rec, 0xd8) != 0) {

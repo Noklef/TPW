@@ -17,6 +17,7 @@
 #include "../model/holder.h"
 #include "../motion/animator.h"
 #include "../world/levelsetup.h"
+#include "../core/soundset.h"
 
 namespace {
 
@@ -418,7 +419,7 @@ void __cdecl CoasterCar_PlayClank(const u8 *coaster, const u8 *car) {
     if (*reinterpret_cast<const u32 *>(0x00785a2c) != 0)
         return;
     const auto ftol = [](float f) { return (s32)(long long)f; };
-    Sound_PlayAt(0, *reinterpret_cast<const u32 *>(0x00803a28), 0xc, ftol(out[0]), ftol(out[1]), ftol(out[2]));
+    Sound_PlayAt(0, gSoundCategories.rides, 0xc, ftol(out[0]), ftol(out[1]), ftol(out[2]));
 }
 
 void __cdecl CoasterCar_Bump(const u8 *coaster, u8 *car) {

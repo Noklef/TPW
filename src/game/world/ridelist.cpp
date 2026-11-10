@@ -268,7 +268,7 @@ void __cdecl Ride_PlayEffect(s32 id) {
     const s32 sz = Ftol(X87Reg(z));
     const s32 sy = Ftol(X87Reg(y));
     const s32 sx = Ftol(X87Reg(x));
-    Sound_PlayAt(0, global<u32>(0x00803a28), 0xb8, sx, sy, sz);
+    Sound_PlayAt(0, gSoundCategories.rides, 0xb8, sx, sy, sz);
 }
 
 void __cdecl RideScripts_SetReverb() {

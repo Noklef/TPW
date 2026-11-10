@@ -46,7 +46,7 @@ u32 __cdecl Sound_PlayAtRange(u32 owner, u32 category, u32 sound, s32 x, s32 y, 
 
 void __cdecl Sound_StartMusic() {
     u32 &music = global<u32>(0x00803aa0);
-    music = Sound_PlayAt(music, global<u32>(0x00803a44), 2, 0, 0, 0);
+    music = Sound_PlayAt(music, gSoundCategories.music, 2, 0, 0, 0);
     music = Sound_SetParam(music, 4, 0);
 }
 
@@ -66,7 +66,7 @@ void __cdecl Sound_SetKidsLevel(s32 level) {
     if (!global<u32>(0x00803aa8)) return;
     u32 &sound = global<u32>(0x00803aa4);
     if (stored) {
-        if (!sound) sound = Sound_PlayAt(0, global<u32>(0x00803a24), 0x5b, 0, 0, 0);
+        if (!sound) sound = Sound_PlayAt(0, gSoundCategories.kids, 0x5b, 0, 0, 0);
         sound = Sound_SetParam(sound, 7, level);   // (the level as passed, not the clamped one, sic)
     } else if (sound) {
         Sound_Stop(sound);
@@ -79,21 +79,21 @@ void __cdecl Sound_SetAmbientLevel(s32 level) {
     if (level < 0) level = 0;
     u32 &sound = global<u32>(0x00803aac);
     if (level) {
-        if (!sound) sound = Sound_PlayAt(0, global<u32>(0x00803a20), 0x21, 0, 0, 0);
+        if (!sound) sound = Sound_PlayAt(0, gSoundCategories.ambient, 0x21, 0, 0, 0);
         sound = Sound_SetParam(sound, 8, level);
     } else if (sound) {
         Sound_Stop(sound);   // (the sound kept, sic)
     }
 }
 
-u32 __cdecl SoundUi_Play(u32 sound) { return Sound_PlayAt(0, global<u32>(0x00803a2c), sound, 0, 0, 0); }
+u32 __cdecl SoundUi_Play(u32 sound) { return Sound_PlayAt(0, gSoundCategories.ui, sound, 0, 0, 0); }
 
-u32 __cdecl SoundUi_Play1d() { return Sound_PlayAt(0, global<u32>(0x00803a2c), 0x1d, 0, 0, 0); }
+u32 __cdecl SoundUi_Play1d() { return Sound_PlayAt(0, gSoundCategories.ui, 0x1d, 0, 0, 0); }
 
 u32 __cdecl KidSound_Play(s32 level, s32 x, s32 y, s32 z) {
     if (level == 0) return 0;
     const u32 sound = level == 1 ? 0x69 : level < 4 ? 0x6a : level < 8 ? 0x6c : 0x6d;
-    return Sound_PlayAt(0, global<u32>(0x00803a24), sound, x, y, z);
+    return Sound_PlayAt(0, gSoundCategories.kids, sound, x, y, z);
 }
 
 u32 __cdecl KidSound_PlayGraded(s32 level, s32 a, s32 b, s32 x, s32 y, s32 z) {
@@ -101,7 +101,7 @@ u32 __cdecl KidSound_PlayGraded(s32 level, s32 a, s32 b, s32 x, s32 y, s32 z) {
     if (grade > 3) grade = 3;
     if (level == 0 || grade < 0) return 0;
     const u32 base = level == 1 ? 0x4b : level < 4 ? 0x4f : level < 8 ? 0x53 : 0x57;
-    return Sound_PlayAt(0, global<u32>(0x00803a24), base + (u32)grade, x, y, z);
+    return Sound_PlayAt(0, gSoundCategories.kids, base + (u32)grade, x, y, z);
 }
 
 u32 __cdecl Sound_PlayRideElement(s32 id, u32 owner, u32 category, s32 index, s32 x, s32 y, s32 z) {

@@ -10627,8 +10627,6 @@ address,name,kind,confidence,notes
 0x007a194c,gScreen_7a194c,data,low,"GAME_DATA (src/game/render/screen): float, named for its use in Screen_Init, Window7cc8bc_Create"
 0x007a1968,gScreen_7a1968,data,low,"GAME_DATA (src/game/render/screen): u32, named for its use in screen.cpp"
 0x007a1a8c,gGraphicssettings_7a1a8c,data,low,"GAME_DATA (src/game/render/graphicssettings): u32, named for its use in graphicssettings.cpp"
-0x00803a48,gSoundset_803a48,data,low,"GAME_DATA (src/game/core/soundset): u32, named for its use in soundset.cpp"
-0x00803a4c,gSoundset_803a4c,data,low,"GAME_DATA (src/game/core/soundset): u8 *, named for its use in soundset.cpp"
 0x0087a6d0,gRenderer_87a6d0,data,low,"GAME_DATA (src/game/render/renderer): u8 *, named for its use in renderer.cpp"
 0x008c4b44,gTexcache_8c4b44,data,low,"GAME_DATA (src/game/gfx/texcache): u32, named for its use in texcache.cpp"
 0x00f7c58c,gArreplayaction_f7c58c,data,low,"GAME_DATA (src/game/coaster/arreplayaction): u8 *, named for its use in arreplayaction.cpp"

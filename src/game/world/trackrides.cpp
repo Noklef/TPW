@@ -1070,7 +1070,7 @@ s32 __cdecl TrakCar_Remove(u8 *car) {
         if (kind == -10 || kind == -9 || kind == -7 || kind == -4) {
             const u16 found = RideObject(NameOf(at<const u8 *>(car, 0x9c)));
             const s32 id = found ? at<s32>(Thing_ByHandle(found), 0x24) : 0;
-            const u32 played = Sound_PlayRideElement(id, sound, global<u32>(0x00803a3c), 1, 0, 0, 0);
+            const u32 played = Sound_PlayRideElement(id, sound, gSoundCategories.themeRides, 1, 0, 0, 0);
             at<u32>(car, 0x20) = played;
             if (played) {
                 const s32 x = SoundPlace(car, 0x34), z = SoundPlace(car, 0x38);
@@ -1129,7 +1129,7 @@ void __cdecl TrakCar_PlaySounds(u8 *car) {
     }
     const s32 x = SoundPlace(car, 0x34), z = SoundPlace(car, 0x38);
     if (state == 1 || state == 3 || state == 5) {
-        Sound_PlayAt(0, global<u32>(0x00803a28), state == 1 ? 0x18 : 0xc, x, 0, z);
+        Sound_PlayAt(0, gSoundCategories.rides, state == 1 ? 0x18 : 0xc, x, 0, z);
         at<u32>(car, 0x18) = 0;
         return;
     }
@@ -1148,7 +1148,7 @@ void __cdecl TrakCar_PlaySounds(u8 *car) {
             id = at<s32>(Thing_ByHandle(found), 0x24);
         }
     }
-    Sound_PlayRideElement(id, 0, global<u32>(0x00803a3c), state == 2 ? 3 : 4, x, 0, z);
+    Sound_PlayRideElement(id, 0, gSoundCategories.themeRides, state == 2 ? 3 : 4, x, 0, z);
     at<u32>(car, 0x18) = 0;
 }
 

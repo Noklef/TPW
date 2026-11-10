@@ -7,6 +7,7 @@
 #include "../core/gameclock.h"
 #include "../core/indexed.h"
 #include "../core/soundplay.h"
+#include "../core/soundset.h"
 #include "../files/file.h"
 #include "../math/sintable.h"
 #include "../math/x87.h"
@@ -354,7 +355,9 @@ void __cdecl Rsse_UpdateWalkers(u8 *vm) {
 }
 
 s32 __cdecl Rsse_Trigger(u8 *vm, s32 kind, s32 key, u32 what, u32 extra) {
-    static const u32 categories[7] = {0x00803a3c, 0x00803a38, 0x00803a28, 0x00803a24, 0x00803a30, 0x00803a20, 0x00803a2c};   // kinds 3-9
+    static u32 SoundCategories::*const categories[7] = {&SoundCategories::themeRides, &SoundCategories::themeAmbient, &SoundCategories::rides,
+                                                        &SoundCategories::kids, &SoundCategories::staff, &SoundCategories::ambient,
+                                                        &SoundCategories::ui};   // kinds 3-9
     float place[3], dir[3];
     if (kind == 1 || kind == 2) {
         if (Ride_PartPlace(vm, place, kind == 2 ? dir : nullptr, key, 0x100) == 0)
@@ -398,7 +401,7 @@ s32 __cdecl Rsse_Trigger(u8 *vm, s32 kind, s32 key, u32 what, u32 extra) {
     const s32 y = Ftol(X87Reg(place[1]));
     const s32 x = Ftol(X87Reg(place[0]));
     if (kind != 10)
-        category = global<u32>(categories[kind - 3]);
+        category = gSoundCategories.*categories[kind - 3];
     return (s32)Sound_PlayAt(0, category, what, x, y, z);
 }
 

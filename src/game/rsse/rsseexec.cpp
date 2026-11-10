@@ -1041,8 +1041,8 @@ void __cdecl RSSE_ExecuteInstruction(RsseContext *ctx) {
         if (v != 0) {
             g_env->getVector(ride(ctx), reinterpret_cast<u32 *>(&x), reinterpret_cast<u32 *>(&y), reinterpret_cast<u32 *>(&z));
             const s32 sz = ftol(X87Reg(z)), sy = ftol(X87Reg(y)), sx = ftol(X87Reg(x));
-            g_env->playAt(0, global<u32>(0x00803a28), 0x6f, sx, sy, sz);
-            g_env->playAt(0, global<u32>(0x00803a28), 0xd3, sx, sy, sz);
+            g_env->playAt(0, gSoundCategories.rides, 0x6f, sx, sy, sz);
+            g_env->playAt(0, gSoundCategories.rides, 0xd3, sx, sy, sz);
         } else if ((s32)ctx->var_count > 5) {
             const s32 level = ctx->vars[5];
             g_env->getVector(ride(ctx), reinterpret_cast<u32 *>(&x), reinterpret_cast<u32 *>(&y), reinterpret_cast<u32 *>(&z));

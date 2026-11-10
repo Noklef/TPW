@@ -8,6 +8,7 @@
 #include "mapcell.h"
 #include "cellmessage.h"
 #include "focuscell.h"
+#include "../core/soundset.h"
 
 namespace {
 
@@ -72,7 +73,7 @@ void LinkSide(u8 *cell, const Side &s, bool models, s32 column) {
                 const float scale = gCellmessage_700d54;
                 const s32 z = ftol((double)column * scale);
                 const s32 x = ftol((double)column * scale);   // (the second local: the column too, sic)
-                Sound_PlayAt(0, global<u32>(0x00803a2c), 0x8b, x, 0, z);
+                Sound_PlayAt(0, gSoundCategories.ui, 0x8b, x, 0, z);
             }
         }
     }

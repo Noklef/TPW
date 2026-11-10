@@ -6,6 +6,7 @@
 #include "../render/screen.h"
 #include "../render/graphicssettings.h"
 #include "gamewindow.h"
+#include "soundset.h"
 
 namespace {
 
@@ -80,7 +81,7 @@ void __cdecl Game_Start() {
     g_calls.Cd(0x0051bbc0, global<u32>(0x00785930));
     g_calls.Cd(0x0051bba0, global<u32>(0x00785928));
     g_calls.Cd(0x0051eae0);
-    g_calls.Cd(0x0051bfc0, 0u, global<u32>(0x00803a2c), 0xd2u, 0u, 0u, 0u);
+    g_calls.Cd(0x0051bfc0, 0u, gSoundCategories.ui, 0xd2u, 0u, 0u, 0u);
     g_calls.Cd(0x0051bd70);
     g_calls.Cd(0x0053e920);
     g_calls.Th(0x00587380, kLoadScreen, g_calls.Th(0x0041a820, 0x0078b530u, 0x00764fe4u, 0x1f4u));
