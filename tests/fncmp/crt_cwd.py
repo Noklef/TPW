@@ -28,7 +28,7 @@ def filetime(r):
 def stat(r, log, regions):
     """_stat: wildcards and drive letters in the path (no lead bytes: _mbctolower's LCMapStringA path is crt_mbstring's); FindFirstFileA's data (times none at times), or none and the root's checks; the time conversions failing now and then
     (their tables the exe's, daylight off, tzset done)."""
-    regions[PATH] = r.choice([b'C:\\x', b'c:', b'C:', b'x?y', b'a*', b'\\\\srv\\s', b'.', b'..', b'C:\\', b'abc', b'\\', b'z:\\d\\', b'\x81:', b':']) + b'\0'
+    regions[PATH] = r.choice([b'C:\\x', b'c:', b'C:', b'x?y', b'a*', b'\\\\srv\\s', b'.', b'..', b'C:\\', b'abc', b'\\', b'z:\\d\\', b'\x81:', b':', b'\0:']) + b'\0'   # ("\0:": empty, its ':' past the end)
     regions.update({0xfb1870: struct.pack('<I', r.choice([0, 0, 0, 932])), 0xfb1668: bytes(0x101), 0xfb1510: struct.pack('<I', 1), 0x7813dc: bytes(4), 0x7813d8: struct.pack('<i', r.choice([0, -36000, 18000])),
                     STAT: r.bytes(0x24)})
     set_return(log, FIND, r.choice([0x1234, 0xffffffff, 0xffffffff]))
