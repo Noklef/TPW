@@ -251,6 +251,8 @@ u32 __fastcall PtrArray_ReleaseAll(u8 *object, void *) {
     return 1;
 }
 
+u32 __cdecl PtrArray_DecodedTexturesAtExit() { return PtrArray_ReleaseAll(reinterpret_cast<u8 *>((uintptr_t)0x00879ce0), nullptr); }
+
 u32 __fastcall PtrArray_Init(u8 *object, void *, u32 frames, u32 images) {
     u8 *const errors = reinterpret_cast<u8 *>((uintptr_t)0x00879ad0);
     if (at<u32>(object, 0x10)) {

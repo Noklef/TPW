@@ -4,7 +4,7 @@
 # 0x60 list or not, as holder.py), 0-3 frames at +8 (count +0x1c) and the virtual base object at +4 (its deleting destructor a recorder) or
 # none (the tracked blocks' table as in trackedglobal.py); a key's vector set (0x56b570) in an array of 0-6 of four keys, the key one of them,
 # a fifth or none, the count negative now and then.
-# usage: ptrarray_images.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Remove,Release,FindSet)
+# usage: ptrarray_images.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Remove,Release,FindSet,AtExit)
 import os
 import struct
 import sys
@@ -12,7 +12,7 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
 from fncmp import HEAP, LOG, RAM, Bench, Call, global_heap, heap, log_region, put, vtable  # noqa: E402
 
-B = Bench([(0x56b210, 0x56b2e4), (0x56b450, 0x56b4b3), (0x588ca0, 0x588d6e), (0x588350, 0x588410), (0x590a70, 0x590a75),
+B = Bench([(0x56b0b0, 0x56b0ba), (0x56b210, 0x56b2e4), (0x56b450, 0x56b4b3), (0x588ca0, 0x588d6e), (0x588350, 0x588410), (0x590a70, 0x590a75),
            (0x590b90, 0x590c39), (0x67afa0, 0x67b0d0), (0x579b80, 0x579c13), (0x576540, 0x5765d0), (0x56b570, 0x56b5b2)])
 COUNT, TABLE = 0x8bb214, 0x87b1f8   # the tracked blocks: their count and (block, block) pairs
 OBJ, IMAGES, ARRAY, EMPTY, BASE, VBT, VT, RENDERER, NODES, FRAMES = (RAM + 0x100 * k for k in range(10))
@@ -90,11 +90,17 @@ def find_set(r):
     return Call(0x56b570, [RAM, key, r.getrandbits(32), r.getrandbits(32), r.getrandbits(32)], {RAM: obj}, conv='t', ret='a')
 
 
-OPS = [k for k in os.environ.get('OPS', 'Remove,Release,FindSet').split(',') if k]
+def at_exit(r):   # 0x56b0b0: the release of the array at 0x879ce0
+    c = release(r)
+    c.regions[0x879ce0] = c.regions.pop(OBJ)
+    return Call(0x56b0b0, [], c.regions, ret='a')
+
+
+OPS = [k for k in os.environ.get('OPS', 'Remove,Release,FindSet,AtExit').split(',') if k]
 
 
 def case(r):
-    return {'Remove': remove, 'Release': release, 'FindSet': find_set}[r.deal(OPS)](r)
+    return {'Remove': remove, 'Release': release, 'FindSet': find_set, 'AtExit': at_exit}[r.deal(OPS)](r)
 
 
 if __name__ == '__main__':
