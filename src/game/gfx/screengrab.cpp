@@ -35,10 +35,10 @@ u32 __fastcall ScreenGrab_ToRgb24(u8 *grab, void *) {
             EngineErrors_Push(reinterpret_cast<u8 *>((uintptr_t)0x00879ad0), nullptr, 2, 0xb0754000);
             return 0;
         }
-        const u32 maskA = gScreengrab_8bcc54, maskB = gScreengrab_8bcc6c, maskC = gScreengrab_8bcc60;
-        const u32 shiftA = (0x18 - gScreengrab_8bcc58 - gScreengrab_8bcc5c) & 31;
-        const u32 shiftC = (0x10 - gScreengrab_8bcc64 - gScreengrab_8bcc68) & 31;
-        const u32 shiftB = (8 - gScreengrab_8bcc70 - gScreengrab_8bcc74) & 31;
+        const u32 maskA = global<u32>(0x008bcc54), maskB = global<u32>(0x008bcc6c), maskC = global<u32>(0x008bcc60);
+        const u32 shiftA = (0x18 - global<u32>(0x008bcc58) - global<u32>(0x008bcc5c)) & 31;
+        const u32 shiftC = (0x10 - global<u32>(0x008bcc64) - global<u32>(0x008bcc68)) & 31;
+        const u32 shiftB = (8 - global<u32>(0x008bcc70) - global<u32>(0x008bcc74)) & 31;
         const u16 *pixels = at<const u16 *>(grab, 0);
         for (s32 i = 0; i < at<s32>(grab, 8); ++i) {
             const u32 p = pixels[i];

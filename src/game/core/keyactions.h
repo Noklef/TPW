@@ -111,8 +111,3 @@ u32 __cdecl KeyAction_PeepLoc();       // 0x40c5a0: FrontEnd_Browser 0x4817c0
 u32 __cdecl KeyAction_Research();      // 0x40c5b0: FrontEnd_Research 0x4817e0
 u32 __cdecl KeyAction_Camcorder();     // 0x40c5c0: MouseMode_Enter6fead0 0x481a10
 }
-
-#include "gamedata.h"
-
-// Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
-GAME_DATA(u32, gKeyactions_78d96c, 0x0078d96c, 0x4);

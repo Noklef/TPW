@@ -110,7 +110,7 @@ void LoadText() {
 }
 
 void Particles() {
-    Cd(0x0051faa0, 0, gGameframe_7858c8, 0x800);   // Particles_Init
+    Cd(0x0051faa0, 0, G<u32>(0x007858c8), 0x800);   // Particles_Init
     Cd(0x0051fd80, G<u32>(0x0078d8e0) == 0 ? 1 : 0);   // Particles_SetReduced
     Cd(0x0051f370, Cd(0x0044a280, 0x007651b8, 1, 0));   // ParticleLib_Load of Quickload_Locate
 }

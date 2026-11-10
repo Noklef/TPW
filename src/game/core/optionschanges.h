@@ -22,11 +22,3 @@ u32 __cdecl Options_ConfirmSave();
 // GameOwner_SelectMode([0x78d95c]), [0x79d9c8] = [0x78d964].
 void __cdecl Options_LoadStartup();
 }
-
-#include "gamedata.h"
-
-// Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
-GAME_DATA(u32, gOptionschanges_78d950, 0x0078d950, 0x4);
-GAME_DATA(u32, gOptionschanges_78d954, 0x0078d954, 0x4);
-GAME_DATA(u32, gOptionschanges_78d95c, 0x0078d95c, 0x4);
-GAME_DATA(u32, gOptionschanges_78d964, 0x0078d964, 0x4);

@@ -186,7 +186,7 @@ u32 __cdecl Sound_VoiceInfo(u32 id) {
 void __cdecl Sound_SetCameraOcclusion(s32 level) {
     if (!On()) return;
     u32 functor[3] = {0x00700bc8, 0, 0};
-    const float &radius954 = global<float>(0x00785954), &radius95c = gSoundset_78595c, &radius964 = global<float>(0x00785964);
+    const float &radius954 = global<float>(0x00785954), &radius95c = global<float>(0x0078595c), &radius964 = global<float>(0x00785964);
     // Between two (level, radius) points: (level - low) * (high radius - low radius) / (high - low) + low radius; the level's slot
     // then holds the divisor (sic).
     auto between = [&](s32 low, s32 high, const float &lowRadius, const float &highRadius) {
@@ -198,7 +198,7 @@ void __cdecl Sound_SetCameraOcclusion(s32 level) {
         std::memcpy(&functor[2], &radius, 4);
     };
     if (global<u8>(0x00790ab0) & 0x16) {
-        const s32 high = gSoundset_785968, mid = gSoundset_785960, low = gSoundset_785958;
+        const s32 high = global<s32>(0x00785968), mid = global<s32>(0x00785960), low = global<s32>(0x00785958);
         if (level > high) {
             functor[1] = 1;
             functor[2] = X87_FloatThrough(global<u32>(0x00785964));
@@ -384,9 +384,9 @@ void __cdecl Sound_Load(u8 *stream) {
 }
 
 void __cdecl Sound_SetVoicesForLevel(s32 level) {
-    const s32 a = gSoundset_785938, b = gSoundset_78593c, c = global<s32>(0x00785940), d = global<s32>(0x00785944);
+    const s32 a = global<s32>(0x00785938), b = global<s32>(0x0078593c), c = global<s32>(0x00785940), d = global<s32>(0x00785944);
     u32 out;
-    if (level > gSoundset_78594c) {
+    if (level > global<s32>(0x0078594c)) {
         const s32 original = level;
         u32 query[2] = {0x00700b40, static_cast<u32>(reinterpret_cast<uintptr_t>(&level))};
         Apply(&out, query);

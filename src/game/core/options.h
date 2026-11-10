@@ -92,8 +92,3 @@ void __cdecl Options_LoadBalanceFiles();
 // to 2.
 void __fastcall Options_NoteChanges(u8 *options);
 }
-
-#include "gamedata.h"
-
-// Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
-GAME_DATA(u32, gOptions_785934, 0x00785934, 0x4);

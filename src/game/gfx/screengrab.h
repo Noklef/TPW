@@ -48,12 +48,3 @@ void ScreenGrab_SetCalls(const AddrCall *table, u32 count);
 
 // Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
 GAME_DATA(s32, gScreenGrab_Count_879084, 0x00879084, 0x4);
-GAME_DATA(u32, gScreengrab_8bcc54, 0x008bcc54, 0x4);
-GAME_DATA(u32, gScreengrab_8bcc58, 0x008bcc58, 0x4);
-GAME_DATA(u32, gScreengrab_8bcc5c, 0x008bcc5c, 0x4);
-GAME_DATA(u32, gScreengrab_8bcc60, 0x008bcc60, 0x4);
-GAME_DATA(u32, gScreengrab_8bcc64, 0x008bcc64, 0x4);
-GAME_DATA(u32, gScreengrab_8bcc68, 0x008bcc68, 0x4);
-GAME_DATA(u32, gScreengrab_8bcc6c, 0x008bcc6c, 0x4);
-GAME_DATA(u32, gScreengrab_8bcc70, 0x008bcc70, 0x4);
-GAME_DATA(u32, gScreengrab_8bcc74, 0x008bcc74, 0x4);
