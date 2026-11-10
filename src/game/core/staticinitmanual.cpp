@@ -19,7 +19,7 @@ void __cdecl StaticInit_412b90() {
     M<u32>(0x789c1c) = 0;
     M<u32>(0x789c20) = 0;
     M<u32>(0x789c24) = 0;
-    StaticInit_Calls().Cd(0x0067a7d0, (u32)(uintptr_t)StaticInit_Exit(0x412bc0));   // CRT_atexit
+    StaticInit_Calls().Cd(0x0067a7d0, 0x412bc0u);   // CRT_atexit (0x412bc0: hooked, FontFiles' exit destructor)
 }
 
 // 0x583540: the object at 0x8bd530 constructed (0x55e470), the fields at 0x8bd508-0x8bd52c set, the machine's physical memory
