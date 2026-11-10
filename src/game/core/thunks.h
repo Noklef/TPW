@@ -265,6 +265,16 @@ void __cdecl Wrap_Transform_BlockedPoints_579070(u8 *self, const float *matrix, 
                                                  u32 count);
 double __cdecl Wrap_Transform_ProjectToScreen_579080(u8 *self, float *vertices, s32 stride, u32 count, s32 mode);
 void __cdecl Wrap_Transform_Concatenate_5790a0(u8 *self, const float *a, const float *b, float *out);
+// 0x579100, 0x579110, 0x579120, 0x579130 and 0x579190, 0x5791a0, 0x5791c0 (cdecl; this the first stack argument): the same for the SSE kind's
+// SseMath_TransformVectors, SseMath_TransformBatch, SseMath_ProjectToScreen, SseMath_Multiply and the 3DNow! kind's Amd3DNow_TransformVectors,
+// Amd3DNow_TransformBatch, Amd3DNow_Multiply (src/game/math/ssemath, amd3dnow). (0x5791b0's target, the 3DNow! projection 0x5f4a46, is not ported.)
+void __cdecl Wrap_SseMath_TransformVectors_579100(u8 *self, const float *matrix, u8 *dest, const u8 *source, u32 destStride, u32 sourceStride, u32 count, u32 mode);
+void __cdecl Wrap_SseMath_TransformBatch_579110(u8 *self, const float *matrix, u8 *dest, const u8 *source, u32 destStride, u32 start, u32 count);
+double __cdecl Wrap_SseMath_ProjectToScreen_579120(u8 *self, u8 *vertices, s32 stride, u32 count, u32 mode);
+void __cdecl Wrap_SseMath_Multiply_579130(u8 *self, const float *a, const float *b, float *out);
+void __cdecl Wrap_Amd3DNow_TransformVectors_579190(u8 *self, const float *matrix, u8 *dest, const u8 *source, u32 destStride, u32 sourceStride, u32 count, u32 mode);
+void __cdecl Wrap_Amd3DNow_TransformBatch_5791a0(u8 *self, const float *matrix, u8 *dest, const u8 *source, u32 destStride, u32 start, u32 count);
+void __cdecl Wrap_Amd3DNow_Multiply_5791c0(u8 *self, const float *a, const float *b, float *out);
 // 0x579090 (cdecl; this the first stack argument; several slots of the 0x7010xx vtables): this lowered by the dword before it, then
 // the empty Debug_Printf (0x5da3c0): only the read of that dword.
 void __cdecl Wrap_Debug_Printf_579090(u8 *self);

@@ -39,6 +39,8 @@
 #include "../gfx/wctimage.h"
 #include "../render/d3dprobe.h"
 #include "../math/transform.h"
+#include "../math/amd3dnow.h"
+#include "../math/ssemath.h"
 #include "semaphore.h"
 #include "string.h"
 #include "../terrain/texcache.h"
@@ -412,6 +414,30 @@ double __cdecl Wrap_Transform_ProjectToScreen_579080(u8 *self, float *vertices, 
 void __cdecl Wrap_Transform_Concatenate_5790a0(u8 *self, const float *a, const float *b, float *out) {
     Transform_Concatenate(Adjust(self), a, b, out);
 }
+
+void __cdecl Wrap_SseMath_TransformVectors_579100(u8 *self, const float *matrix, u8 *dest, const u8 *source, u32 destStride, u32 sourceStride, u32 count, u32 mode) {
+    SseMath_TransformVectors(Adjust(self), matrix, dest, source, destStride, sourceStride, count, mode);
+}
+
+void __cdecl Wrap_SseMath_TransformBatch_579110(u8 *self, const float *matrix, u8 *dest, const u8 *source, u32 destStride, u32 start, u32 count) {
+    SseMath_TransformBatch(Adjust(self), matrix, dest, source, destStride, start, count);
+}
+
+double __cdecl Wrap_SseMath_ProjectToScreen_579120(u8 *self, u8 *vertices, s32 stride, u32 count, u32 mode) {
+    return SseMath_ProjectToScreen(Adjust(self), vertices, stride, count, mode);
+}
+
+void __cdecl Wrap_SseMath_Multiply_579130(u8 *self, const float *a, const float *b, float *out) { SseMath_Multiply(Adjust(self), a, b, out); }
+
+void __cdecl Wrap_Amd3DNow_TransformVectors_579190(u8 *self, const float *matrix, u8 *dest, const u8 *source, u32 destStride, u32 sourceStride, u32 count, u32 mode) {
+    Amd3DNow_TransformVectors(Adjust(self), matrix, dest, source, destStride, sourceStride, count, mode);
+}
+
+void __cdecl Wrap_Amd3DNow_TransformBatch_5791a0(u8 *self, const float *matrix, u8 *dest, const u8 *source, u32 destStride, u32 start, u32 count) {
+    Amd3DNow_TransformBatch(Adjust(self), matrix, dest, source, destStride, start, count);
+}
+
+void __cdecl Wrap_Amd3DNow_Multiply_5791c0(u8 *self, const float *a, const float *b, float *out) { Amd3DNow_Multiply(Adjust(self), a, b, out); }
 
 void __cdecl Wrap_Debug_Printf_579090(u8 *self) {
     (void)*reinterpret_cast<const volatile u32 *>(reinterpret_cast<uintptr_t>(self) - 4);  // (the offset read; the empty target does nothing)

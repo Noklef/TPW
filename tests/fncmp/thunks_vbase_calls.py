@@ -1,5 +1,5 @@
 # The adjusting thunks of src/game/core/thunks whose targets are the destructors, deleters and virtual forwarders (0x42a070, 0x42a080,0x564a80, 0x564b00, 0x564af0, 0x564ff0, 0x569c70, 0x569cc0, 0x5738c0, 0x56a650, 0x579010, 0x5790b0, 0x579140, 0x58c360,
-# 0x598790, 0x5987a0, 0x5987e0) and the vertex transforms (0x579060, 0x579070, 0x579080, 0x5790a0: this the first stack argument, which the transforms leave
+# 0x598790, 0x5987a0, 0x5987e0) and the vertex transforms (0x579060, 0x579070, 0x579080, 0x5790a0, their SSE twins 0x579100-0x579130 and 3DNow! twins 0x579190, 0x5791a0, 0x5791c0: this the first stack argument, which the transforms leave
 # unused, so it is given as a mapped address) and the empty Debug_Printf's (0x579090: no target bench, just this) against the originals. The cases are the targets' own (their benches' case generators, op by op): the call goes to the thunk with this raised by an offset, the
 # dword before it holding that offset, so that the thunk lowers it back to what the target is given.
 # usage: thunks_vbase_calls.py [CASES [SEED]] [--wild|--both] [--show N]   (env ONLY=42a080,... picks thunks)
@@ -28,6 +28,8 @@ import deleters_nodes  # noqa: E402
 import rleimage  # noqa: E402
 import texsurface  # noqa: E402
 import transform  # noqa: E402
+import amd3dnow  # noqa: E402
+import ssemath  # noqa: E402
 import vdtor  # noqa: E402
 import vobj2  # noqa: E402
 import vwrap  # noqa: E402
@@ -41,8 +43,11 @@ from fncmp import Bench, Call  # noqa: E402
 SOURCES = [(0x42a080, deleters_nodes, 'Del60'), (0x42a070, deleters_nodes, 'Del8b'),(0x56a650, deleters_nodes, 'Del8'), (0x569c70, buffers_nodes, 'Del'), (0x579010, counted_rings, 'V1'), (0x5790b0, counted_rings, 'V2'),
            (0x579140, counted_rings, 'V3'), (0x58c360, vobj2, 'Del'), (0x564af0, vdtor, 'VB'), (0x564a80, rleimage, 'Dtor'), (0x564b00, rleimage, 'Draw'), (0x564ff0, wctimage, 'Dtor'), (0x569cc0, d3dprobe, 'SetFlags'), (0x5738c0, texsurface, 'NewA'), (0x5987e0, vwrap, 'Rel'), (0x5987a0, wavelet_decode, 'Decode'), (0x598790, wavelet_decode, 'Scaled'),
            (0x579060, transform, 'Vertices'), (0x579070, transform, 'Blocked'), (0x579080, transform, 'Project'), (0x5790a0, transform, 'Concat')]
+SOURCES += [(0x579100, ssemath, 'Vectors'), (0x579110, ssemath, 'Batch'), (0x579120, ssemath, 'Project'), (0x579130, ssemath, 'Multiply'),
+            (0x579190, amd3dnow, 'Vectors'), (0x5791a0, amd3dnow, 'Batch'), (0x5791c0, amd3dnow, 'Multiply')]
 SOURCES += [(0x579090, None, None)]
-RANGES, HOOKS = [(a, a + (0x10 if m in (transform, None) else 8)) for a, m, _o in SOURCES] + [(0x5da3c0, 0x5da3c1)], {}
+MATRICES = (transform, ssemath, amd3dnow)
+RANGES, HOOKS = [(a, a + (0x10 if m in MATRICES + (None,) else 8)) for a, m, _o in SOURCES] + [(0x5da3c0, 0x5da3c1)], {}
 for _m in {m for _a, m, _o in SOURCES} - {None}:
     RANGES += _m.B.recorded[0]
     HOOKS.update(_m.B.recorded[1])
@@ -68,7 +73,7 @@ def case(r):
     else:
         module.OPS = [op]
         c = module.case(r)
-    if module is transform:
+    if module in MATRICES:
         c.args[0] = fncmp.RAM + 0x7000
     this = c.args[0]
     d, slot = free_slot(c.regions, this)

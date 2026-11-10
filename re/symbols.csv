@@ -3726,6 +3726,13 @@ address,name,kind,confidence,notes
 0x00618cb0,AtExit_618cc0,function,low,"reimplemented (src/game/core/thunks); atexit of 0x618cc0. Name invented, unconfirmed."
 0x005c8b70,Thread_Begin,function,low,"reimplemented (src/game/core/thunks); CRT_beginthread(proc, 0, arg). Name invented, unconfirmed."
 0x00532bb0,Wrap_Array81ed40_Dtor_532bb0,function,low,reimplemented (src/game/core/thunks); the atexit at 0x532b3a: the destructor iterator over 9 elements of 8 bytes at 0x81ed40
+0x00579100,Wrap_SseMath_TransformVectors_579100,function,low,"reimplemented (src/game/core/thunks); cdecl: the first stack argument lowered by the dword before it, then SseMath_TransformVectors"
+0x00579110,Wrap_SseMath_TransformBatch_579110,function,low,"reimplemented (src/game/core/thunks); cdecl: the first stack argument lowered by the dword before it, then SseMath_TransformBatch"
+0x00579120,Wrap_SseMath_ProjectToScreen_579120,function,low,"reimplemented (src/game/core/thunks); cdecl: the first stack argument lowered by the dword before it, then SseMath_ProjectToScreen"
+0x00579130,Wrap_SseMath_Multiply_579130,function,low,"reimplemented (src/game/core/thunks); cdecl: the first stack argument lowered by the dword before it, then SseMath_Multiply"
+0x00579190,Wrap_Amd3DNow_TransformVectors_579190,function,low,"reimplemented (src/game/core/thunks); cdecl: the first stack argument lowered by the dword before it, then Amd3DNow_TransformVectors"
+0x005791a0,Wrap_Amd3DNow_TransformBatch_5791a0,function,low,"reimplemented (src/game/core/thunks); cdecl: the first stack argument lowered by the dword before it, then Amd3DNow_TransformBatch"
+0x005791c0,Wrap_Amd3DNow_Multiply_5791c0,function,low,"reimplemented (src/game/core/thunks); cdecl: the first stack argument lowered by the dword before it, then Amd3DNow_Multiply"
 0x006b0620,Table_AddressPlus18,function,high,reimplemented (src/game/core/cursors); an address from a table of offsets plus the base plus 0x18
 0x006b0650,Table_Address,function,high,reimplemented (src/game/core/cursors); an address from a table of offsets plus the base
 0x006b0510,Packed_Read,function,high,reimplemented (src/game/core/cursors); reads a one- or two-byte packed value
