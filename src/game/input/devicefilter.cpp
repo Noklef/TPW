@@ -558,4 +558,13 @@ void __fastcall ChainFilter_Detach(u8 *self, void *, u8 *object) { vcall<void>(o
 u32 __cdecl MouseFilter_Constant1() { return 0x00707c40; }
 u32 __cdecl MouseFilter_Constant2() { return 0x00679440; }
 
+u32 *__fastcall KeyFilter_Open(u8 *self, void *, u32 *result) {
+    InputFilter_Reopen(self, nullptr, result);
+    return result;
+}
+
+u8 *__fastcall KeyFilter_DeletingDtorThunk(u8 *self, void *, u32 flags) { return KeyFilter_DeletingDtor(self - 0xc, nullptr, flags); }
+u8 *__fastcall CharFilter_DeletingDtorThunk(u8 *self, void *, u32 flags) { return CharFilter_DeletingDtor(self - 0xc, nullptr, flags); }
+u8 *__fastcall DeviceFilter_DeletingDtorThunk(u8 *self, void *, u32 flags) { return DeviceFilter_DeletingDtor(self - 0x10, nullptr, flags); }
+
 }  // extern "C"

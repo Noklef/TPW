@@ -35,4 +35,7 @@ void __fastcall MessageSource_DeliverKeys(u8 *self, void *, u32 count);
 u32 __fastcall KeyPool_Next(u8 *self);
 u32 __fastcall MousePool_Next(u8 *self);
 
+// 0x634a30 (thiscall; result out, pops 4): DeviceFilter_Open into a local, copied to out. Returns out.
+u32 *__fastcall MessageSource_Open(u8 *self, void *, u32 *result);
+
 }  // extern "C"

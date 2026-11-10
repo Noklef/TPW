@@ -200,4 +200,11 @@ void __fastcall MessageSource_DeliverKeys(u8 *self, void *, u32 count) {
 u32 __fastcall KeyPool_Next(u8 *self) { return next(self, &newKeyMessage); }
 u32 __fastcall MousePool_Next(u8 *self) { return next(self, &newMouseMessage); }
 
+u32 *__fastcall MessageSource_Open(u8 *self, void *, u32 *result) {
+    u32 local;
+    DeviceFilter_Open(self, nullptr, &local);
+    *result = local;
+    return result;
+}
+
 }  // extern "C"

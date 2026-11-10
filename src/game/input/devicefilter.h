@@ -135,6 +135,14 @@ u8 *__fastcall CharFilter_DeletingDtor(u8 *self, void *, u32 flags);
 u32 __cdecl MouseFilter_Constant1();
 u32 __cdecl MouseFilter_Constant2();
 
+// 0x633340 (thiscall; result out, pops 4): InputFilter_Reopen into out. Returns out.
+u32 *__fastcall KeyFilter_Open(u8 *self, void *, u32 *result);
+// 0x6336c0 / 0x634210 / 0x63e9d0 (thiscall; flags, pops 4): the secondary vtables' adjustor thunks: self - 0xc / - 0xc / - 0x10, then KeyFilter_DeletingDtor /
+// CharFilter_DeletingDtor / DeviceFilter_DeletingDtor.
+u8 *__fastcall KeyFilter_DeletingDtorThunk(u8 *self, void *, u32 flags);
+u8 *__fastcall CharFilter_DeletingDtorThunk(u8 *self, void *, u32 flags);
+u8 *__fastcall DeviceFilter_DeletingDtorThunk(u8 *self, void *, u32 flags);
+
 }  // extern "C"
 
 void InputFilter_SetCalls(const AddrCall *table, u32 count);
