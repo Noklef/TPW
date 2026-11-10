@@ -13062,3 +13062,7 @@ address,name,kind,confidence,notes
 0x0074ca70,gSetup_74ca70,data,low,"GAME_DATA (src/game/coaster/setup): u8[0x110], named for its use in CoasterLink_AddCar, CoasterType_Create (tools/gamedata_codemod.py)"
 0x0074cb80,gText_CoasterType_Load_74cb80,data,low,"GAME_DATA (src/game/coaster/setup): char[0xc], named for its use in CoasterType_Load (tools/gamedata_codemod.py)"
 0x0074cb8c,gText_CoasterType_Load_74cb8c,data,low,"GAME_DATA (src/game/coaster/setup): char[0xc], named for its use in CoasterType_Load (tools/gamedata_codemod.py)"
+0x0074d008,gHoardingmesh_74d008,data,low,"GAME_DATA (src/game/model/hoardingmesh): u8[0x8], named for its use in HoardingMesh_Build, Wrap_Dword_ClearBit0_454540 (tools/gamedata_codemod.py)"
+0x0074cefc,gText_Model_FindMouthPart_74cefc,data,low,"GAME_DATA (src/game/model/parts): char[0xc], named for its use in Model_FindMouthPart (tools/gamedata_codemod.py)"
+0x0074cf18,gText_Model_FindMouthPart_74cf18,data,low,"GAME_DATA (src/game/model/parts): char[0xc], named for its use in Model_FindMouthPart (tools/gamedata_codemod.py)"
+0x0074cf24,gText_Model_FindMouthPart_74cf24,data,low,"GAME_DATA (src/game/model/parts): char[0xc], named for its use in Model_FindMouthPart (tools/gamedata_codemod.py)"

@@ -51,6 +51,7 @@
 #include "../world/nav.h"
 #include "../world/object.h"
 #include "iosbase.h"
+#include "../model/hoardingmesh.h"
 
 namespace {
 
@@ -89,7 +90,7 @@ u32 __cdecl Wrap_Flags7a1a14_Update_40f220() {
 }
 
 u32 __cdecl Wrap_Dword_ClearBit0_454540() {
-    return Dword_ClearBit0(reinterpret_cast<u32 *>(0x74d008));
+    return Dword_ClearBit0(reinterpret_cast<u32 *>((u32)(uintptr_t)&gHoardingmesh_74d008));
 }
 
 u32 __cdecl Wrap_Global7c2650_Get_481590() {

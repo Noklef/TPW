@@ -46,3 +46,8 @@ void __cdecl Model_FindSignEntries(u8 *model, u32 *out1, u32 *out2);
 GAME_DATA(char[12], gText_Model_FindMouthPart_74cee4, 0x0074cee4, 0xc);
 GAME_DATA(char[12], gText_Model_FindMouthPart_74cef0, 0x0074cef0, 0xc);
 GAME_DATA(char[16], gText_Model_FindMouthPart_74cf08, 0x0074cf08, 0x10);
+
+// Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(char[0xc], gText_Model_FindMouthPart_74cefc, 0x0074cefc, 0xc);
+GAME_DATA(char[0xc], gText_Model_FindMouthPart_74cf18, 0x0074cf18, 0xc);
+GAME_DATA(char[0xc], gText_Model_FindMouthPart_74cf24, 0x0074cf24, 0xc);
