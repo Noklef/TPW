@@ -45,7 +45,7 @@ u32 *__fastcall NumGet_DoGetDouble(void *self, void *, u32 *out, NumGetIter firs
 u32 *__fastcall NumGet_DoGetLongDouble(void *self, void *, u32 *out, NumGetIter first, NumGetIter last, u8 *ios, u32 *state, double *value);
 
 // 0x69f8b0 (cdecl), 0x69cb60 (pops 0x20): _Getifld and do_get of a bool of wchar_t: the char ones, numpunct<wchar_t> by use_facet inlined; _Getifld widens '0' before the facet,
-// and '+', '-', 'x', 'X' after the unit is fetched. The names: falsename and truename wide.
+// and '+', '-', 'x', 'X' after the unit is fetched (the same: an equal() has fetched it before each). The names: falsename and truename wide.
 u32 __cdecl NumGetW_Getifld(char *text, WNumGetIter *first, WNumGetIter *last, u32 flags, u8 **locale);
 u32 *__fastcall NumGetW_DoGetBool(void *self, void *, u32 *out, WNumGetIter first, WNumGetIter last, u8 *ios, u32 *state, u8 *value);
 

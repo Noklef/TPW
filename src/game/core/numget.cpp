@@ -47,12 +47,8 @@ u8 *numpunct(const WNumGetIter &, u8 **locale) { return reinterpret_cast<u8 *>(U
 u8 *numpunct_inline(const NumGetIter &, u8 **locale) { return NumPut_NumpunctOf(locale); }
 u8 *numpunct_inline(const WNumGetIter &, u8 **locale) { return NumPutW_NumpunctOf(locale); }
 
-// Whether the unit at first is the literal c: widened first, as the inlined copies do, or fetched first (wide _Getifld).
-template <bool Fetched = false, typename It> bool is(It &first, char c) {
-    if (Fetched) {
-        const auto got = deref(first);
-        return got == lit(first, c);
-    }
+// Whether the unit at first is the literal c (widened first, as the inlined copies do; wide _Getifld fetches first, but an equal() before each has fetched it).
+template <typename It> bool is(It &first, char c) {
     const auto wanted = lit(first, c);
     return deref(first) == wanted;
 }
@@ -69,27 +65,27 @@ u32 base_of(u32 flags) {
     return field == 0x400 ? 8 : field == 0x800 ? 16 : field ? 10 : 0;
 }
 
-template <bool Fetched = false, typename It> void take_sign(char *&out, It &first, It &last) {
+template <typename It> void take_sign(char *&out, It &first, It &last) {
     if (equal(first, last)) return;
-    if (is<Fetched>(first, '+')) {
+    if (is(first, '+')) {
         *out++ = '+';
         increment(first);
-    } else if (is<Fetched>(first, '-')) {
+    } else if (is(first, '-')) {
         *out++ = '-';
         increment(first);
     }
 }
 
 // _Getifld's body: the sign, a base's prefix, then up to 0x1f characters of digits into text, separators counted in groups and checked against the grouping. Frees the grouping; the answer is the base.
-template <bool Fetched, typename It, typename Unit> u32 scan_integer(char *text, It &first, It &last, u32 flags, StdString &grouping, Unit separator, Unit zero) {
+template <typename It, typename Unit> u32 scan_integer(char *text, It &first, It &last, u32 flags, StdString &grouping, Unit separator, Unit zero) {
     char *out = text;
-    take_sign<Fetched>(out, first, last);
+    take_sign(out, first, last);
     u32 base = base_of(flags);
     bool seen = false;
     if (!equal(first, last) && deref(first) == zero) {
         seen = true;
         increment(first);
-        if (!equal(first, last) && (is<Fetched>(first, 'x') || is<Fetched>(first, 'X')) && (!base || base == 16)) {
+        if (!equal(first, last) && (is(first, 'x') || is(first, 'X')) && (!base || base == 16)) {
             base = 16;
             seen = false;
             increment(first);
@@ -152,18 +148,18 @@ template <bool Fetched, typename It, typename Unit> u32 scan_integer(char *text,
 }
 
 // _Getifld after the facet: its grouping and separator (slot 2), then the scan of the integer.
-template <bool Fetched, typename It, typename Unit> u32 getifld(char *text, It &first, It &last, u32 flags, u8 *facet, Unit zero) {
+template <typename It, typename Unit> u32 getifld(char *text, It &first, It &last, u32 flags, u8 *facet, Unit zero) {
     StdString grouping;
     MoneyPunct_Grouping(facet, nullptr, &grouping);
     using Slot = u32(__fastcall *)(u8 *);
     const Unit separator = static_cast<Unit>(reinterpret_cast<const Slot *>((uintptr_t)at<u32>(facet, 0))[2](facet));
-    return scan_integer<Fetched>(text, first, last, flags, grouping, separator, zero);
+    return scan_integer(text, first, last, flags, grouping, separator, zero);
 }
 
 // What each do_get of an integer begins with ('0' widened before the facet), then _Getifld inlined.
 template <typename It> u32 scan_with_facet(char *text, It &first, It &last, u32 flags, u8 **locale) {
     const auto zero = lit(first, '0');
-    return getifld<false>(text, first, last, flags, numpunct(first, locale), zero);
+    return getifld(text, first, last, flags, numpunct(first, locale), zero);
 }
 
 template <typename It> u32 *result(u32 *out, const It &first) {
@@ -436,11 +432,11 @@ template <typename Names, typename It> u32 *get_bool(u32 *out, It &first, It &la
 
 extern "C" {
 
-u32 __cdecl NumGet_Getifld(char *text, NumGetIter *first, NumGetIter *last, u32 flags, u8 **locale) { return getifld<false>(text, *first, *last, flags, NumPut_NumpunctOf(locale), '0'); }
+u32 __cdecl NumGet_Getifld(char *text, NumGetIter *first, NumGetIter *last, u32 flags, u8 **locale) { return getifld(text, *first, *last, flags, NumPut_NumpunctOf(locale), '0'); }
 
 u32 __cdecl NumGetW_Getifld(char *text, WNumGetIter *first, WNumGetIter *last, u32 flags, u8 **locale) {
     const u16 zero = lit(*first, '0');
-    return getifld<true>(text, *first, *last, flags, NumPutW_NumpunctOf(locale), zero);
+    return getifld(text, *first, *last, flags, NumPutW_NumpunctOf(locale), zero);
 }
 
 u32 *__fastcall NumGet_DoGetBool(void *, void *, u32 *out, NumGetIter first, NumGetIter last, u8 *ios, u32 *state, u8 *value) { return get_bool<StdString>(out, first, last, ios, state, value); }

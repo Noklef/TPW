@@ -43,11 +43,11 @@ LITERALS = {'int': ['0+-xX', '0+xX', '0+-x', '0+-xX'], 'float': ['0+-eE+-', '0+e
 ODD = [0xff10, 0x3000, 0x100, 0xffff, 0x2b00, 0x30]   # (fullwidth '0', past a byte, WEOF, a high byte with '+' low, a narrow '0')
 
 
-def name_string(r, regions, log, k, at, text, which):
-    """numget.py's name_string with 16-bit units (the count still the byte before them)."""
+def name_string(r, regions, log, k, at, text, which, high):
+    """numget.py's name_string with 16-bit units (the count still the byte before them), each with the high bits."""
     held = regions[HEAP]
     held[at - HEAP - 1] = r.choice([0, 0, 1, 2, 0xfe, 0xff])
-    data = struct.pack('<%dH' % (len(text) + 1), *text, 0)
+    data = struct.pack('<%dH' % (len(text) + 1), *[c | high for c in text], 0)
     held[at - HEAP:at - HEAP + len(data)] = data
     strings(log, k, 0, out=1)
     fill(log, k, 0, struct.pack('<4I', 0, at if text or r.random() < 0.5 else 0, len(text), max(len(text), 0x1f)), which=which)
@@ -80,7 +80,8 @@ def case(r):
     text = r.choice(numget.WORDS if name == 'bool' and r.random() < 0.7 else numget.FLOATS if floats and r.random() < 0.8 else numget.NUMBERS)
     if floats and r.random() < 0.15:
         text = bytes(r.choice(b'0123456789') for _ in range(r.randrange(34, 42))) + r.choice([b'', b'.5', b'e-3'])
-    units = [c for c in text]
+    high = r.choice([0, 0, 0x100, 0x3000]) if name == 'bool' else 0   # (the names and the input past a byte alike: they match as units, not as chars)
+    units = [c | high for c in text]
     for i in range(len(units)):
         if r.random() < 0.06:
             units[i] = r.choice(ODD + [widened[0]])
@@ -115,8 +116,8 @@ def case(r):
     strings(log, GROUPING, 0, out=1)
     fill(log, GROUPING, 0, struct.pack('<4I', 0, *fields), which=1)
     false_name, true_name = r.choice(numget.NAMES)
-    name_string(r, regions, log, FALSE_NAME, FALSE_BLOCK, false_name, 2)
-    name_string(r, regions, log, TRUE_NAME, TRUE_BLOCK, true_name, 3)
+    name_string(r, regions, log, FALSE_NAME, FALSE_BLOCK, false_name, 2, high)
+    name_string(r, regions, log, TRUE_NAME, TRUE_BLOCK, true_name, 3, high)
     regions[0x6fd6c4] = bytes(4)   # (the wide empty string, and npos)
     regions[0x6fef00] = struct.pack('<I', 0xffffffff)
     regions[FACET_VTABLE] = struct.pack('<6I', recorder(DELETE, 1), recorder(POINT, 0), recorder(SEPARATOR, 0), recorder(GROUPING, 1), recorder(FALSE_NAME, 1), recorder(TRUE_NAME, 1))
