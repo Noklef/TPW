@@ -9,6 +9,7 @@
 #include "crt.h"
 #include "gameheap.h"
 #include "string.h"
+#include "../gfx/texcache.h"
 
 namespace {
 
@@ -224,7 +225,7 @@ void FrontendEnd() {   // state 3
     Th(0x00481410, kPanel);
     Cd(0x00598ad0);
     Cd(0x00429e20, 0);   // ModelSlot_Free
-    Th(0x0058dd60, G<u32>(0x008c4b44), 0);   // TexCache_ReleaseItems
+    Th(0x0058dd60, gTexcache_8c4b44, 0);   // TexCache_ReleaseItems
     Th(0x00576820, G<u32>(0x0087a6d0));   // Renderer_ClearAll
     Cd(0x0051bcb0);   // Sound_Post700b60
     Cd(0x0051bd70);
@@ -533,7 +534,7 @@ void ParkEnd() {   // state 0xb
     if (Mode() != 1) Th(0x005ac610, kCameraMode, 0x00877c60);
     Cd(0x0048aff0);   // CameraMode_Leave
     Th(0x00576260, G<u32>(0x0087a6d0), 0);
-    Th(0x0058dd60, G<u32>(0x008c4b44), 0);
+    Th(0x0058dd60, gTexcache_8c4b44, 0);
     Th(0x00576820, G<u32>(0x0087a6d0));
     if (Mode() == 1)
         Th(0x00481430, kPanel);

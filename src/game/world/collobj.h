@@ -77,3 +77,10 @@ void __cdecl Collider_BounceOffBlockers(u8 *car);
 // Collider_BounceOffBlockers' do, against the bearing atan2(x, -y) of the new speed.
 void __cdecl Collider_KeepInArea(u8 *car);
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(const double, gCollobj_700eb8, 0x00700eb8, 0x8);
+GAME_DATA(const double, gCollobj_700ec0, 0x00700ec0, 0x8);
+GAME_DATA(const double, gCollobj_700f18, 0x00700f18, 0x8);

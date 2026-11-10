@@ -16,6 +16,7 @@
 #include "things.h"
 #include "ridelist.h"
 #include "staff.h"
+#include "thingscan.h"
 
 namespace {
 
@@ -701,7 +702,7 @@ template <typename Test> double averageByte(Test test, u32 offset) {
         }
         World_NextThing(world(), nullptr, &handle, thing);
     }
-    if (count <= 0) return global<float>(0x0070031c);
+    if (count <= 0) return gThingscan_70031c;
     return (X87Reg((double)sum) / X87Reg((double)count)).v;
 }
 
@@ -960,7 +961,7 @@ s32 __fastcall Things_HappiestDef4ac2(void *, void *, u16 *out) {
 }
 
 double __fastcall Things_AveragePersonStat19c(void *, void *, u32) {
-    if (Get1da710_51a280(static_cast<const u8 *>(world()))) return global<float>(0x0070031c);
+    if (Get1da710_51a280(static_cast<const u8 *>(world()))) return gThingscan_70031c;
     return averageByte([](const u8 *thing) { return at<u8>(thing, 2) == 1 && AnalyserCell_TypePlain(thing); }, 0x19c);
 }
 

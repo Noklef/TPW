@@ -45,3 +45,8 @@ u8 __cdecl Map_DemolishRect(s32 x0, s32 y0, s32 x1, s32 y1);
 // rows * [0x700cd8])) (Sound_PlayAt; the column count is 0 for no columns and, sic, x as given for no rows).
 void __cdecl Path_CheckDeadEnds(s32 x, s32 y, u32 flag);
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(const float, gDemolish_700cd8, 0x00700cd8, 0x4);

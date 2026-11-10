@@ -11,6 +11,7 @@
 #include "edittools.h"
 #include "registry.h"
 #include "train.h"
+#include "../world/ridelist.h"
 
 namespace {
 
@@ -38,7 +39,7 @@ const CoasterPlaceCarEnv *g_env = &kPorts;
 float AsFloat(u32 bits) { return *reinterpret_cast<const float *>(&bits); }
 
 u8 *FindNode(s32 square) {
-    for (u8 *link = global<u8 *>(0x00790fe0); link; link = at<u8 *>(link, 0x18)) {
+    for (u8 *link = gRidelist_790fe0; link; link = at<u8 *>(link, 0x18)) {
         for (u8 *node = at<u8 *>(link, 0x4c); node; node = at<u8 *>(node, 0x28)) {
             if (!(at<u8>(node, 4) & 5) && at<s32>(node, 8) == square)
                 return node;

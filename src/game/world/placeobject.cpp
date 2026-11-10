@@ -20,6 +20,10 @@
 #include "trackrides.h"
 #include "tracksquare.h"
 #include "../core/actionrec.h"
+#include "mapclick.h"
+#include "focuscell.h"
+#include "demolish.h"
+#include "placeobject.h"
 
 namespace {
 
@@ -31,7 +35,7 @@ const PlaceObjectEnv *g_env = &kGameEnv;
 
 // fild n; fmul [0x700cd0]; fmul [0x700cd8]; __ftol.
 s32 scaled(s32 n) {
-    const double v = (X87Reg(X87_MulIntDouble(n, global<float>(0x00700cd0))) * global<float>(0x00700cd8)).v;
+    const double v = (X87Reg(X87_MulIntDouble(n, gPlaceobject_700cd0)) * gDemolish_700cd8).v;
     return (s32)(long long)v;
 }
 
@@ -74,7 +78,7 @@ u8 *__cdecl PlaceObject_Create(s32 angle) {
     u8 *const object = block ? g_env->construct(block, nullptr, cell, global<u16>(0x00818c38), angle, ride) : nullptr;
     if (!object) return nullptr;
     u16 handle = 0;
-    if (global<u32>(0x008187f8) && at<u32>(def, 0x288) != 2) Thing_GetHandle(reinterpret_cast<const u8 *>((uintptr_t)Global8186ac_Get()), nullptr, &handle);
+    if (gMapclick_8187f8 && at<u32>(def, 0x288) != 2) Thing_GetHandle(reinterpret_cast<const u8 *>((uintptr_t)Global8186ac_Get()), nullptr, &handle);
     Fn_4e0de0(object, nullptr, handle);
     Wrap_Global7c2654_Set_4815b0((u32)(uintptr_t)object);
     return object;
@@ -214,7 +218,7 @@ s32 *__cdecl PlaceObject_Footprint(s32 x, s32 y, u32, s32 angle, u32 place, u32 
         global<u16>(0x00818c3c) = (u16)cellId(ax, ay);
         const u8 *const object = g_fp->create(angle);
         if (!global<u32>(0x00785a2c)) {
-            const float scale = global<float>(0x00700cd8);
+            const float scale = gDemolish_700cd8;
             const s32 z = (s32)(long long)X87_MulIntDouble(y, scale);   // (__ftol)
             const s32 across = (s32)(long long)X87_MulIntDouble(x, scale);
             const u32 sound = count < 4 ? 0x8e : count < 8 ? 0x8d : count < 0x10 ? 0x8f : 0x90;
@@ -222,7 +226,7 @@ s32 *__cdecl PlaceObject_Footprint(s32 x, s32 y, u32, s32 angle, u32 place, u32 
         }
         objectCell = (u16)(object[7] * 0x80 + object[5] + 1);
     }
-    if (!global<u32>(0x008187f8)) g_fp->focusUpdate(0);
+    if (!gMapclick_8187f8) g_fp->focusUpdate(0);
     for (s32 row = 0; row < rows; ++row) {
         for (s32 col = 0; col < cols; ++col) {
             s32 px, py;
@@ -352,7 +356,7 @@ s32 *__cdecl PlaceObject_Footprint(s32 x, s32 y, u32, s32 angle, u32 place, u32 
             }
         }
     }
-    if (!global<u32>(0x008187f8)) g_fp->focusUpdate(0);
+    if (!gMapclick_8187f8) g_fp->focusUpdate(0);
     const u8 out9 = (u8)Nibble_Scale(dir9), outA = (u8)Nibble_Scale(dirA);
     if (seen9 || seenA) {
         if (failed) global<u32>(0x00816d50) = 1;
@@ -383,7 +387,7 @@ s32 *__cdecl PlaceObject_Footprint(s32 x, s32 y, u32, s32 angle, u32 place, u32 
             test(behind, 0x81);
             test(behind, 0x85);
             test(behind, 0x86);
-            g_fp->thing4de1f0(global<u8 *>(0x008186ac));
+            g_fp->thing4de1f0(gFocuscell_8186ac);
         }
         if (Global81b0cc_IfNoFlag()) {
             if (!Map_InBounds(xA, yA)) return nullptr;

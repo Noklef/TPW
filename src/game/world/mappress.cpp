@@ -9,6 +9,8 @@
 #include "cellrun.h"
 #include "focuscell.h"
 #include "mappreview.h"
+#include "mapclick.h"
+#include "focuscell.h"
 
 namespace {
 
@@ -23,14 +25,14 @@ const MapPressEnv *g_env = &kGame;
 void MapPress_SetEnv(const MapPressEnv *env) { g_env = env ? env : &kGame; }
 
 extern "C" void __cdecl GameMode_MapPress(s32 x, s32 y, u32 flags, u32 useStored) {
-    global<u8>(0x008186d8) = 1;
+    gGameMode_8186d8 = 1;
     if (global<u32>(0x00785a2c) != 0) {
         global<u32>(0x00816d50) = 0;
-        if (global<u32>(0x008187f8) == 0) g_env->preview(x, y, flags);
+        if (gMapclick_8187f8 == 0) g_env->preview(x, y, flags);
     }
     if (useStored != 0) {
-        x = global<s32>(0x008186b8);
-        y = global<s32>(0x008186b4);
+        x = gFocuscell_8186b8;
+        y = gFocuscell_8186b4;
     }
     ActionRec *const record = reinterpret_cast<ActionRec *>((uintptr_t)0x00785a08);
     if (global<u32>(0x00816d48) == 0) {

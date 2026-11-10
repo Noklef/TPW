@@ -141,3 +141,10 @@ void __cdecl FlyingRide_Free(s32 index);
 // cleared, each record of the table (indices 1-99) freed as FlyingRide_Free frees one (inlined in the original), the flag cleared.
 void __cdecl FlyingRides_Shutdown();
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(const double, gFlyingRides_Init_701090, 0x00701090, 0x8);
+GAME_DATA(const double, gFlyingRides_Init_701098, 0x00701098, 0x8);
+GAME_DATA(const double, gFlyingRides_Init_7010a0, 0x007010a0, 0x8);

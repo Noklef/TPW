@@ -17,6 +17,7 @@
 #include "../core/soundset.h"
 #include "../render/particles.h"
 #include "../core/textarg.h"
+#include "objectdefs.h"
 
 namespace {
 
@@ -142,9 +143,9 @@ u32 __fastcall ObjectControls_Serialize(u8 *table, void *, Stream *stream, u32 s
     if (version < 0 || version > 1)
         return 0;
     for (u32 i = 0; i < 0x96; ++i)
-        if (!Save_Field(stream, save, table + i * 0x20, 0x20, 0x0075a3c8))
+        if (!Save_Field(stream, save, table + i * 0x20, 0x20, (u32)&gText_ObjectControls_Serialize_75a3c8))
             return 1;
-    if (!Save_Field(stream, save, table + 0x12c0, 4, 0x0075a3b4) || !Save_Field(stream, save, table + 0x12c4, 2, 0x0075a3a0))
+    if (!Save_Field(stream, save, table + 0x12c0, 4, (u32)&gText_ObjectControls_Serialize_75a3b4) || !Save_Field(stream, save, table + 0x12c4, 2, (u32)&gText_ObjectControls_Serialize_75a3a0))
         return 1;
     if (save == 0) {
         at<u32>(table, 0x12c8) = 0;
@@ -565,7 +566,7 @@ s32 __stdcall ObjectDefs_ListBuiltNumbers(u16 *out) {
             while (def && *reinterpret_cast<u32 *>(def + 0x94) != id) def = ObjectDefs_Next(defs);
             if (!def) continue;
             const char *const name = CRT_strrchr(reinterpret_cast<const char *>(def + 0x28c), 0x5c);
-            const char *const digits = CRT_strpbrk(name, reinterpret_cast<const char *>(0x00762b18));
+            const char *const digits = CRT_strpbrk(name, gText_ObjectDefs_ListBuiltNumbers_762b18);
             const char *end;
             out[count++] = static_cast<u16>(CRT_strtol(digits, &end, 10));
         }

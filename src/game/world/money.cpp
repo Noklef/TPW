@@ -12,6 +12,7 @@
 #include "parkopen.h"
 #include "thingmsg.h"
 #include "world.h"
+#include "money.h"
 
 namespace {
 
@@ -184,7 +185,7 @@ u32 *__fastcall Money_LoanOffer(u8 *money, void *, u32 *out, u32 index) {
     const u32 owed = Money_TotalOwed(money);
     u8 *const analyser = reinterpret_cast<u8 *>((uintptr_t)GameTable7cfb90_Get1da720_519510(global<u8 *>(0x0080239c)));
     const s32 score = (s32)ParkAnalyser_ParkScore(analyser, nullptr, 0x14);
-    const u32 credit = (u32)(long long)(X87Reg((double)score) * global<float>(0x00700370)).v - owed;
+    const u32 credit = (u32)(long long)(X87Reg((double)score) * gMoney_LoanOffer_700370).v - owed;
     u32 *const entry = reinterpret_cast<u32 *>(money + 0x14 + 0x20 * index);
     entry[0] = (s32)entry[1] > (s32)credit ? 0 : 1;
     for (u32 i = 0; i < 8; i++) out[i] = entry[i];

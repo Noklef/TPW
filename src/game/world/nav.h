@@ -76,3 +76,20 @@ u32 __fastcall Nav_PathTo(u8 *nav, void *, const s32 *target, u32 prepend);
 // 0x510100 (thiscall; x, y; name unconfirmed): Nav_PathTo the point, not prepending.
 u32 __fastcall Nav_PathToPoint(u8 *nav, void *, s32 x, s32 y);
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(char[20], gText_Nav_Serialize_761fe4, 0x00761fe4, 0x14);
+GAME_DATA(char[16], gText_Nav_Serialize_761ff8, 0x00761ff8, 0x10);
+GAME_DATA(char[12], gText_Nav_Serialize_762008, 0x00762008, 0xc);
+GAME_DATA(char[20], gText_Nav_Serialize_762014, 0x00762014, 0x14);
+GAME_DATA(char[12], gText_Nav_Serialize_762028, 0x00762028, 0xc);
+GAME_DATA(char[16], gText_Nav_Serialize_762034, 0x00762034, 0x10);
+GAME_DATA(char[12], gText_Nav_Serialize_762044, 0x00762044, 0xc);
+GAME_DATA(char[12], gText_Nav_Serialize_762050, 0x00762050, 0xc);
+GAME_DATA(char[8], gText_Nav_Serialize_76205c, 0x0076205c, 0x8);
+GAME_DATA(char[12], gText_Nav_Serialize_762064, 0x00762064, 0xc);
+GAME_DATA(char[12], gText_Nav_Serialize_762070, 0x00762070, 0xc);
+GAME_DATA(char[16], gText_Nav_Serialize_76207c, 0x0076207c, 0x10);
+GAME_DATA(char[8], gText_Nav_Serialize_76208c, 0x0076208c, 0x8);

@@ -5,6 +5,7 @@
 
 #include "../files/quickload.h"
 #include "objectdefs.h"
+#include "objectscript.h"
 
 namespace {
 
@@ -25,11 +26,11 @@ extern "C" void __fastcall Object_LoadScript(u8 *object) {
     char path[0x100];
     const u8 *const name = g_env->findAt390(kDefs, nullptr, at<u16>(object, 0xe));
     const u8 *const definition = g_env->find(kDefs, nullptr, at<u16>(object, 0xe));
-    g_env->sprintf(path, reinterpret_cast<const char *>((uintptr_t)0x0075b66c), definition + 0x28c, name, reinterpret_cast<const char *>((uintptr_t)0x00700540));
+    g_env->sprintf(path, gText_Object_LoadScript_75b66c, definition + 0x28c, name, gText_Object_LoadScript_700540);
     char *file = g_env->locate(path, 1, nullptr);
     if (!file) {
         g_env->find(kDefs, nullptr, at<u16>(object, 0xe));   // (for the Debug_Printf left out)
-        file = g_env->locate(reinterpret_cast<const char *>((uintptr_t)0x0075b61c), 1, nullptr);
+        file = g_env->locate(gText_Object_LoadScript_75b61c, 1, nullptr);
     }
     const u32 quiet = at<u32>(reinterpret_cast<void *>((uintptr_t)0x00785a2c), 0) ? 1 : 0;
     u16 handle;

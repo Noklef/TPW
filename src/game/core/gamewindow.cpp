@@ -1,6 +1,7 @@
 #include "gamewindow.h"
 
 #include <cstdint>
+#include "../gfx/texcache.h"
 
 namespace {
 
@@ -61,7 +62,7 @@ extern "C" u32 __cdecl GameWindow_Create() {
 
     const u32 detail = global<u32>(0x00785874);
     if (detail <= 3) {
-        u8 *const engine = global<u8 *>(0x008c4b44);
+        u8 *const engine = reinterpret_cast<u8 * &>(gTexcache_8c4b44);
         *reinterpret_cast<u32 *>(engine + 0x1920) = 3 - detail;
         *reinterpret_cast<u32 *>(engine + 0x18f4) = 3 - detail;
     }

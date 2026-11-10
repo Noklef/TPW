@@ -17,6 +17,8 @@
 #include "things.h"
 #include "thingscan.h"
 #include "world.h"
+#include "object.h"
+#include "research.h"
 
 namespace {
 
@@ -163,22 +165,22 @@ u8 *__fastcall ResearchGroup_Ctor(u8 *group) {
 }
 
 u32 __fastcall ResearchProject_Serialize(u8 *project, void *, Stream *stream, u32 save, s32 version, u32) {
-    static const SaveSpec kFields[] = {{0x0, 2, 0x0075e21c}, {0x4, 4, 0x0075e214}, {0x8, 1, 0x0075e204},
-                                       {0x9, 1, 0x0075b3d0}, {0xc, 4, 0x0075e1fc}, {0x10, 4, 0x0075e1ec}};
+    static const SaveSpec kFields[] = {{0x0, 2, (u32)&gText_ResearchProject_Serialize_75e21c}, {0x4, 4, (u32)&gText_ResearchProject_Serialize_75e214}, {0x8, 1, (u32)&gText_ResearchProject_Serialize_75e204},
+                                       {0x9, 1, (u32)&gText_Object_75b3d0}, {0xc, 4, (u32)&gText_ResearchProject_Serialize_75e1fc}, {0x10, 4, (u32)&gText_ResearchProject_Serialize_75e1ec}};
     if (version < 0 || version > 1)
         return 0;
     return Save_Fields(stream, save, project, kFields, 6) ? 0 : 1;
 }
 
 u32 __fastcall ResearchGroup_Serialize(u8 *group, void *, Stream *stream, u32 save, s32 version, u32) {
-    static const SaveSpec kFields[] = {{0x0, 4, 0x0075e254}, {0x4, 4, 0x0075e24c}, {0x8, 4, 0x0075e23c}, {0xc, 1, 0x0075e224}};
+    static const SaveSpec kFields[] = {{0x0, 4, (u32)&gText_ResearchGroup_Serialize_75e254}, {0x4, 4, (u32)&gText_ResearchGroup_Serialize_75e24c}, {0x8, 4, (u32)&gText_ResearchGroup_Serialize_75e23c}, {0xc, 1, (u32)&gText_ResearchGroup_Serialize_75e224}};
     if (version < 0 || version > 1)
         return 0;
     return Save_Fields(stream, save, group, kFields, 4) ? 0 : 1;
 }
 
 u32 __fastcall ResearchLab_Serialize(u8 *lab, void *, Stream *stream, u32 save, s32 version, u32 unused) {
-    static const SaveSpec kFields[] = {{0x145c, 4, 0x0075e1dc}, {0x1460, 4, 0x0075e1d0}, {0x1464, 4, 0x0075e1b8}, {0x1468, 1, 0x0075e1ac}};
+    static const SaveSpec kFields[] = {{0x145c, 4, (u32)&gText_ResearchLab_Serialize_75e1dc}, {0x1460, 4, (u32)&gText_ResearchLab_Serialize_75e1d0}, {0x1464, 4, (u32)&gText_ResearchLab_Serialize_75e1b8}, {0x1468, 1, (u32)&gText_ResearchLab_Serialize_75e1ac}};
     if (Thing_Serialize(lab, nullptr, stream, save, version, unused))
         return 1;
     if (version < 0 || version > 1)

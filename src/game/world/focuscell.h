@@ -32,3 +32,11 @@ void __cdecl FocusCell_Update(u32 record);
 // start when the start's word is above the end's (signed), else from the start to the end.
 void __cdecl FocusCell_TrackDrag(s32 x, s32 y);
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(u8 *, gFocuscell_8186ac, 0x008186ac, 0x4);
+GAME_DATA(s32, gFocuscell_8186b4, 0x008186b4, 0x4);
+GAME_DATA(s32, gFocuscell_8186b8, 0x008186b8, 0x4);
+GAME_DATA(u32, gFocuscell_8186c4, 0x008186c4, 0x4);

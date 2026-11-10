@@ -304,3 +304,22 @@ GAME_DATA(s32, gMapGrid_MarkEdges_8187f0, 0x008187f0, 4);
 GAME_DATA(s32, gMapGrid_MarkEdges_8187f4, 0x008187f4, 4);
 GAME_DATA(s32, gMapGrid_ClassifyTypes_818c00, 0x00818c00, 4);
 GAME_DATA(s32, gMapGrid_ClassifyTypes_818c04, 0x00818c04, 4);
+
+// Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(char[20], gText_MapCellBase_Serialize_75a020, 0x0075a020, 0x14);
+GAME_DATA(char[12], gText_MapCellBase_Serialize_75a03c, 0x0075a03c, 0xc);
+GAME_DATA(char[12], gText_MapCellBase_Serialize_75a048, 0x0075a048, 0xc);
+GAME_DATA(char[16], gText_MapCellBase_Serialize_75a054, 0x0075a054, 0x10);
+GAME_DATA(char[12], gText_MapCellBase_Serialize_75a064, 0x0075a064, 0xc);
+GAME_DATA(char[16], gText_MapCellBase_Serialize_75a070, 0x0075a070, 0x10);
+GAME_DATA(char[8], gText_Mapcell_75a080, 0x0075a080, 0x8);
+GAME_DATA(char[12], gText_MapCellBase_Serialize_75a088, 0x0075a088, 0xc);
+GAME_DATA(char[20], gText_Map_Serialize_75ae20, 0x0075ae20, 0x14);
+GAME_DATA(char[8], gText_MapCell_Serialize_75af0c, 0x0075af0c, 0x8);
+GAME_DATA(char[32], gText_MapCell_Serialize_75af14, 0x0075af14, 0x20);
+GAME_DATA(char[16], gText_MapCell_Serialize_75af34, 0x0075af34, 0x10);
+GAME_DATA(char[12], gText_MapCell_Serialize_75af44, 0x0075af44, 0xc);
+GAME_DATA(char[16], gText_MapCell_Serialize_75af50, 0x0075af50, 0x10);
+GAME_DATA(char[20], gText_MapCell_Serialize_75af60, 0x0075af60, 0x14);
+GAME_DATA(char[8], gText_MapCell_Serialize_75af74, 0x0075af74, 0x8);
+GAME_DATA(char[16], gText_TrackCell_Serialize_761e3c, 0x00761e3c, 0x10);

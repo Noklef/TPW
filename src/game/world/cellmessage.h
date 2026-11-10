@@ -62,3 +62,10 @@ void __cdecl Map_SetRideCell(u32 unused, s32 x, s32 y, u32 ride, u32 flagged);
 // other than 0, else 0. (Along y the original writes the cells' ids into the &x1 argument's slot, which no caller reads.)
 u32 __cdecl Map_SendLine(u32 message, s32 x0, s32 y0, const s32 *x1, const s32 *y1);
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(const float, gCellmessage_700d54, 0x00700d54, 0x4);
+GAME_DATA(const float, gCellmessage_700d5c, 0x00700d5c, 0x4);
+GAME_DATA(u32, gMapCell_HandleMessage_8186bc, 0x008186bc, 0x4);

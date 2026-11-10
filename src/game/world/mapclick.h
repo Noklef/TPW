@@ -104,3 +104,12 @@ void __cdecl GameMode_MapClick(s32 x, s32 y, u32 flags, u32 useStored);
 // Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
 GAME_DATA(u32, gMapclick_8186d0, 0x008186d0, 4);
 GAME_DATA(u32, gGameMode_MapClick_8186dc, 0x008186dc, 4);
+
+// Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(u32, gGameMode_MapClick_8186b0, 0x008186b0, 0x4);
+GAME_DATA(u32, gMapclick_8186c0, 0x008186c0, 0x4);
+GAME_DATA(u32, gMapclick_8186cc, 0x008186cc, 0x4);
+GAME_DATA(u8, gMapclick_8186d4, 0x008186d4, 0x1);
+GAME_DATA(u8, gGameMode_8186d8, 0x008186d8, 0x1);
+GAME_DATA(u32, gMapclick_8187f8, 0x008187f8, 0x4);
+GAME_DATA(u32, gMapclick_818c10, 0x00818c10, 0x4);

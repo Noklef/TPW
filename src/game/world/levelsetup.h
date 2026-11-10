@@ -18,3 +18,8 @@ u32 __cdecl Level_LoadTerrainAndAdvisor();
 u32 __cdecl Level_SetupAfterTerrain();
 
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(u32, gLevelsetup_7b0958, 0x007b0958, 0x4);

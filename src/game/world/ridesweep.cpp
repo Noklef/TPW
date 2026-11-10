@@ -7,6 +7,7 @@
 #include "staff.h"
 #include "thingscan.h"
 #include "things.h"
+#include "ridesweep.h"
 
 namespace {
 
@@ -127,15 +128,15 @@ s32 __cdecl Things_ForEachSelected(u32 mask, ObjectCallback callback) {
 }
 
 s32 __fastcall Things_CountGroup(const u8 *owner, void *, u32 value) {
-    global<s32>(0x007c2660) = 0;
+    gThings_7c2660 = 0;
     const u32 mask = groupMask(at<s32>(owner, 4));
     if (mask) Things_ForEachSelected(mask, countOne);
     global<u32>(0x007c2658) = value;
-    return global<s32>(0x007c2660);
+    return gThings_7c2660;
 }
 
 s32 __cdecl Things_CountOne(u8 *) {
-    ++global<s32>(0x007c2660);
+    ++gThings_7c2660;
     return 1;
 }
 

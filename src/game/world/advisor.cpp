@@ -21,6 +21,7 @@
 #include "objectdefs.h"
 #include "things.h"
 #include "world.h"
+#include "advisor.h"
 
 namespace {
 
@@ -62,7 +63,7 @@ void end_speech_parts() {
         if (text != reinterpret_cast<u8 *>(0x00f797d0))
             Crt().free(text);
         else
-            global<u32>(0x00f79bb8) = 0;
+            gAdvisor_f79bb8 = 0;
         global<u32>(0x00f797a0) = 0;
         global<u32>(0x00f79794) = 0;
         global<u32>(0x00f7979c) = 0;
@@ -257,7 +258,7 @@ void __fastcall Advisor_HandleCode(u8 *self, void *, u32 code) {
     case 4: post(self, 0x81, 0, 0); break;
     case 10: {
         using Output = void(__stdcall *)(const char *);
-        (*reinterpret_cast<const Output *>((uintptr_t)0x006fd1e0))(reinterpret_cast<const char *>((uintptr_t)0x0076e190));
+        (*reinterpret_cast<const Output *>((uintptr_t)0x006fd1e0))(gText_Advisor_HandleCode_76e190);
         for (u32 i = 0; i < 0x15f; ++i) {
             u8 *const record = self + 0xe0 + 0x10 * i;
             at<u32>(record, 0xc) = 0;
@@ -311,16 +312,16 @@ u32 __fastcall Advisor_Serialize(u8 *self, void *, Stream *stream, u32 save, s32
     if (Thing_Serialize(self, nullptr, stream, save, version, unused) != 0) return 1;
     if (version < 0 || version > 1) return 0;
     if (TimeSig_Serialize(self + 0xc, nullptr, stream, save, version, unused) != 0) return 1;
-    if (!Save_Field(stream, save, self + 0x10, 4, 0x0076e184)) return 1;   // mSoundId
+    if (!Save_Field(stream, save, self + 0x10, 4, (u32)&gText_Advisor_Serialize_76e184)) return 1;   // mSoundId
     for (u32 i = 0; i < 8; ++i)
         if (AdvisorMsg_Serialize(self + 0x14 + 0x18 * i, nullptr, stream, save, version, unused) != 0) return 1;
-    if (!Save_Field(stream, save, self + 0xd4, 4, 0x0076e16c)) return 1;   // mNextAvailableQueuePos
-    if (!Save_Field(stream, save, self + 0xd8, 4, 0x0076e158)) return 1;   // mLastActionStarted
+    if (!Save_Field(stream, save, self + 0xd4, 4, (u32)&gText_Advisor_Serialize_76e16c)) return 1;   // mNextAvailableQueuePos
+    if (!Save_Field(stream, save, self + 0xd8, 4, (u32)&gText_Advisor_Serialize_76e158)) return 1;   // mLastActionStarted
     if (!Save_Field(stream, save, self + 0xdc, 4, 0x0076e144)) return 1;   // mLastActionDuration
     for (u32 i = 0; i < 0x15f; ++i)
         if (!Save_Field(stream, save, self + 0xe0 + 0x10 * i, 0x10, 0x0076e138)) return 1;   // mHistory[i]
     if (AdvisorMsg_Serialize(self + 0x16d0, nullptr, stream, save, version, unused) != 0) return 1;
-    if (!Save_Field(stream, save, self + 0x16e8, 1, 0x0076e120)) return 1;   // mRequestedLastTutorial
+    if (!Save_Field(stream, save, self + 0x16e8, 1, (u32)&gText_Advisor_Serialize_76e120)) return 1;   // mRequestedLastTutorial
     if (save != 0) return Save_Field(stream, save, self + 0x16ec, 4, 0x0076e110) ? 0 : 1;
     return Save_ReadU32(stream, self + 0x16ec, reinterpret_cast<const char *>((uintptr_t)0x0076e110), 0) != 0 ? 1 : 0;
 }
@@ -344,7 +345,7 @@ void __cdecl Advisor_ClearSpeechText() {
     if (text != reinterpret_cast<u8 *>(0x00f797d0))
         Crt().free(text);
     else
-        global<u32>(0x00f79bb8) = 0;
+        gAdvisor_f79bb8 = 0;
     global<u32>(0x00f797a0) = 0;
 }
 

@@ -19,6 +19,7 @@
 #include "window.h"
 #include "window705a50.h"
 #include "windowscript.h"
+#include "../gfx/texcache.h"
 
 namespace {
 
@@ -263,7 +264,7 @@ void __cdecl Dialog7cb2fc_Open() {
     g_env->f5996d0(1);
     global<u32>(0x007cb2f4) = g_env->flags(global<u8 *>(0x0087a6d0));
     g_env->setFlags(global<u8 *>(0x0087a6d0), nullptr, 0x21);
-    g_env->release(global<u8 *>(0x008c4b44), nullptr, 0);
+    g_env->release(reinterpret_cast<u8 * &>(gTexcache_8c4b44), nullptr, 0);
     g_env->send(frameWindow(), 6, 0, 0);
     global<u8 *>(0x007cb2fc) = g_env->build(global<u8 *>(0x00faa5d8), nullptr, reinterpret_cast<u8 *>((uintptr_t)0x00752f30), 0x004a2bf0);
     const u32 title = (u32)(uintptr_t)g_env->text(0x13b);

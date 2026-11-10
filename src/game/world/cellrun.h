@@ -127,3 +127,11 @@ u32 __cdecl CellRun_Lay(s32 x, s32 y, s32 endX, s32 endY, u32 direction, u32 set
 // to, whose word makes it B, not a junction), and 0x53b280 (0, 0, 1) on A when A is B. A is from itself unless from's id names another cell. Returns the cells walked (0 when skipped).
 s32 __cdecl CellRun_Connect(u8 *from, u8 *to, u32 link);
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(s32, gCellrun_8186e4, 0x008186e4, 0x4);
+GAME_DATA(s32, gCellrun_8186e8, 0x008186e8, 0x4);
+GAME_DATA(s32, gCellrun_818c08, 0x00818c08, 0x4);
+GAME_DATA(s32, gCellrun_818c0c, 0x00818c0c, 0x4);

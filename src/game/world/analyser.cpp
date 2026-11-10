@@ -22,6 +22,7 @@
 #include "things.h"
 #include "thingscan.h"
 #include "world.h"
+#include "analyser.h"
 
 namespace {
 
@@ -35,7 +36,7 @@ void stamp(u8 *analyser, u32 offset) {
     at<FileTime>(analyser, offset) = *t;
 }
 
-const SaveSpec kVal[] = {{0x4, 4, 0x00759a48}, {0x8, 1, 0x00759a3c}};   // mVal, mWorkedOut
+const SaveSpec kVal[] = {{0x4, 4, (u32)&gText_Analyser_759a48}, {0x8, 1, (u32)&gText_Analyser_759a3c}};   // mVal, mWorkedOut
 }  // namespace
 
 extern "C" {
@@ -226,13 +227,13 @@ u32 __fastcall AnalyserVal_Serialize(u8 *val, void *, Stream *stream, u32 save, 
 }
 
 u32 __fastcall AnalyserCell_Serialize(u8 *cell, void *, Stream *stream, u32 save, s32 version, u32 unused) {
-    static const SaveSpec kHead[] = {{0x0, 4, 0x00759aec}, {0x4, 4, 0x00759ae4}, {0x8, 4, 0x00759adc}, {0xc, 4, 0x00759ad4}};
+    static const SaveSpec kHead[] = {{0x0, 4, 0x00759aec}, {0x4, 4, 0x00759ae4}, {0x8, 4, (u32)&gText_AnalyserCell_Serialize_759adc}, {0xc, 4, (u32)&gText_AnalyserCell_Serialize_759ad4}};
     if (version < 0 || version > 1) return 0;
     if (save != 0) {
         if (!Save_Fields(stream, save, cell, kHead, 4)) return 1;
         for (u32 at = 0x10; at < 0x58; at += 0xc) {   // the first six values inline (as Save_WriteU32 / U8), the last three as themselves
-            if (Save_WriteU32(stream, cell + at + 4, reinterpret_cast<const char *>(0x00759a48), 0)) return 1;
-            if (Save_WriteU8(stream, cell + at + 8, reinterpret_cast<const char *>(0x00759a3c), 0)) return 1;
+            if (Save_WriteU32(stream, cell + at + 4, gText_Analyser_759a48, 0)) return 1;
+            if (Save_WriteU8(stream, cell + at + 8, gText_Analyser_759a3c, 0)) return 1;
         }
         for (u32 at = 0x58; at < 0x7c; at += 0xc)
             if (AnalyserVal_Serialize(cell + at, nullptr, stream, save, version, unused)) return 1;
@@ -247,12 +248,12 @@ u32 __fastcall AnalyserCell_Serialize(u8 *cell, void *, Stream *stream, u32 save
 }
 
 u32 __fastcall ParkAnalyser_Serialize(u8 *analyser, void *, Stream *stream, u32 save, s32 version, u32 unused) {
-    static const SaveSpec kHead[] = {{0xc, 4, 0x00759ac0}, {0x10, 4, 0x00759ab4}, {0x14, 4, 0x00759aa8}, {0x18, 4, 0x00759a9c},
-                                     {0x1c, 4, 0x00759a90}};   // mMapSquaresPerCell, mGridSizeX / Y, mMapSizeX / Y
-    static const SaveSpec kTail[] = {{0x0, 4, 0x00759a28}, {0x4, 4, 0x00759a04}, {0x8, 4, 0x007599ec}, {0xc, 4, 0x007599d8},
-                                     {0x14, 8, 0x007599cc}, {0x1c, 8, 0x007599c0}, {0x24, 8, 0x007599b4}, {0x2c, 8, 0x007599a4},
-                                     {0x34, 8, 0x00759990}, {0x3c, 8, 0x00759980}, {0x44, 4, 0x0075996c}, {0x48, 4, 0x0075995c},
-                                     {0x4c, 4, 0x0075994c}};   // from +0x21bfc: mMisbehavingKids ..., mLastStrike ...
+    static const SaveSpec kHead[] = {{0xc, 4, (u32)&gText_ParkAnalyser_Serialize_759ac0}, {0x10, 4, (u32)&gText_ParkAnalyser_Serialize_759ab4}, {0x14, 4, (u32)&gText_ParkAnalyser_Serialize_759aa8}, {0x18, 4, (u32)&gText_ParkAnalyser_Serialize_759a9c},
+                                     {0x1c, 4, (u32)&gText_ParkAnalyser_Serialize_759a90}};   // mMapSquaresPerCell, mGridSizeX / Y, mMapSizeX / Y
+    static const SaveSpec kTail[] = {{0x0, 4, (u32)&gText_ParkAnalyser_Serialize_759a28}, {0x4, 4, (u32)&gText_ParkAnalyser_Serialize_759a04}, {0x8, 4, (u32)&gText_ParkAnalyser_Serialize_7599ec}, {0xc, 4, (u32)&gText_ParkAnalyser_Serialize_7599d8},
+                                     {0x14, 8, 0x007599cc}, {0x1c, 8, (u32)&gText_ParkAnalyser_Serialize_7599c0}, {0x24, 8, (u32)&gText_ParkAnalyser_Serialize_7599b4}, {0x2c, 8, 0x007599a4},
+                                     {0x34, 8, (u32)&gText_ParkAnalyser_Serialize_759990}, {0x3c, 8, 0x00759980}, {0x44, 4, (u32)&gText_ParkAnalyser_Serialize_75996c}, {0x48, 4, 0x0075995c},
+                                     {0x4c, 4, (u32)&gText_ParkAnalyser_Serialize_75994c}};   // from +0x21bfc: mMisbehavingKids ..., mLastStrike ...
     if (Thing_Serialize(analyser, nullptr, stream, save, version, unused)) return 1;
     if (version < 0 || version > 1) return 0;
     // (saving, the original inlines the CircBufU16s, the values and the first nine CircBufU32s as their serializers write them)

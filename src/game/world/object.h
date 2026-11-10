@@ -346,3 +346,43 @@ u8 __fastcall Object_Rating(const u8 *object, void *, u32 baseOnly);
 // +0x20 (.., 0, 1, the definition's +0x11c). Through the env's 0x42a560.
 void __fastcall Object_FollowCamera(const u8 *object, void *, u32 arg);
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(const float, gObject_Delete_700550, 0x00700550, 0x4);
+GAME_DATA(const float, gObject_Wear_7005d0, 0x007005d0, 0x4);
+GAME_DATA(char[16], gText_Object_75b3d0, 0x0075b3d0, 0x10);
+GAME_DATA(char[24], gText_Object_Serialize_75b3e0, 0x0075b3e0, 0x18);
+GAME_DATA(char[16], gText_Object_Serialize_75b3f8, 0x0075b3f8, 0x10);
+GAME_DATA(char[12], gText_Object_Serialize_75b408, 0x0075b408, 0xc);
+GAME_DATA(char[28], gText_Object_Serialize_75b414, 0x0075b414, 0x1c);
+GAME_DATA(char[20], gText_Object_Serialize_75b430, 0x0075b430, 0x14);
+GAME_DATA(char[20], gText_Object_Serialize_75b448, 0x0075b448, 0x14);
+GAME_DATA(char[28], gText_Object_Serialize_75b45c, 0x0075b45c, 0x1c);
+GAME_DATA(char[16], gText_Object_Serialize_75b478, 0x0075b478, 0x10);
+GAME_DATA(char[20], gText_Object_Serialize_75b488, 0x0075b488, 0x14);
+GAME_DATA(char[16], gText_Object_Serialize_75b49c, 0x0075b49c, 0x10);
+GAME_DATA(char[16], gText_Object_Serialize_75b4ac, 0x0075b4ac, 0x10);
+GAME_DATA(char[20], gText_Object_Serialize_75b4bc, 0x0075b4bc, 0x14);
+GAME_DATA(char[20], gText_Object_Serialize_75b4e0, 0x0075b4e0, 0x14);
+GAME_DATA(char[20], gText_Object_Serialize_75b4f4, 0x0075b4f4, 0x14);
+GAME_DATA(char[16], gText_Object_Serialize_75b508, 0x0075b508, 0x10);
+GAME_DATA(char[16], gText_Object_Serialize_75b518, 0x0075b518, 0x10);
+GAME_DATA(char[16], gText_Object_Serialize_75b528, 0x0075b528, 0x10);
+GAME_DATA(char[20], gText_Object_Serialize_75b538, 0x0075b538, 0x14);
+GAME_DATA(char[12], gText_Object_Serialize_75b54c, 0x0075b54c, 0xc);
+GAME_DATA(char[12], gText_Object_Serialize_75b558, 0x0075b558, 0xc);
+GAME_DATA(char[12], gText_Object_Serialize_75b564, 0x0075b564, 0xc);
+GAME_DATA(char[16], gText_Object_Serialize_75b570, 0x0075b570, 0x10);
+GAME_DATA(char[24], gText_Object_Serialize_75b580, 0x0075b580, 0x18);
+GAME_DATA(char[12], gText_Object_Serialize_75b598, 0x0075b598, 0xc);
+GAME_DATA(char[12], gText_Object_Serialize_75b5a4, 0x0075b5a4, 0xc);
+GAME_DATA(char[8], gText_Object_75b5b0, 0x0075b5b0, 0x8);
+GAME_DATA(char[20], gText_Object_Serialize_75b5b8, 0x0075b5b8, 0x14);
+GAME_DATA(char[20], gText_Object_Serialize_75b5cc, 0x0075b5cc, 0x14);
+GAME_DATA(char[12], gText_Object_Serialize_75b5e0, 0x0075b5e0, 0xc);
+GAME_DATA(char[12], gText_Object_Serialize_75b5ec, 0x0075b5ec, 0xc);
+GAME_DATA(char[16], gText_Object_Serialize_75b5f8, 0x0075b5f8, 0x10);
+GAME_DATA(char[8], gText_Object_Serialize_75b608, 0x0075b608, 0x8);
+GAME_DATA(char[8], gText_Object_Serialize_75b614, 0x0075b614, 0x8);

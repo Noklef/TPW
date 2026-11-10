@@ -19,6 +19,9 @@
 #include "mapcell.h"
 #include "pathlink.h"
 #include "thingscan.h"
+#include "cellmessage.h"
+#include "cellbuild.h"
+#include "mapclick.h"
 
 namespace {
 
@@ -39,7 +42,7 @@ s32 ftol(double x) { return (s32)(long long)x; }   // (__ftol)
 // The ground at (x, y) rounded up to tens: ((__ftol(height) + 9) / 10, signed) times the float 0x700d54 (fild, fmul).
 float rounded(s32 x, s32 y) {
     const s32 tens = (s32)((u32)ftol(Terrain_SurfaceHeight(x, y, nullptr)) + 9) / 10;
-    return (float)(X87Reg((double)tens) * global<float>(0x00700d54));
+    return (float)(X87Reg((double)tens) * gCellmessage_700d54);
 }
 
 // A cell's height: the rounded ground when its entry's type is 0xb, 0xc, 0x10, 0x11 or 0x19, or its own type 7, 0x1e, 4, 9 or 0xa; else 0.
@@ -64,7 +67,7 @@ void walls(const u8 *cell, float top, u32 x10, u32 y10, bool built, u32 tag, u32
         if (top == h || top != top || h != h) continue;   // (fcomp: equal or unordered)
         const s32 high = ftol(top);
         for (s32 i = ftol(h); i < high; i = (s32)((u32)i + 10)) {
-            const float z = (float)(X87Reg((double)i) - global<float>(0x00700d5c));
+            const float z = (float)(X87Reg((double)i) - gCellmessage_700d5c);
             if (built) {
                 DynFaces_AddSquare(x10, bits(z), y10, (u8)side[1], 1, 0, 0x3f800000, 0, 0, 0, 0);
             } else {
@@ -89,7 +92,7 @@ u32 draw_walls(u8 *cell, u32 code, u32 a, u32 b) {
     const float top = height_of(cell, x, y);
     const u32 y10 = bits((float)(s32)((u32)y * 10)), x10 = bits((float)(s32)((u32)x * 10));
     u32 answer = global<u32>(0x0081b604) ? 1 : MapCell_CanBuild(cell, nullptr, code, 0);
-    const u32 z = bits((float)(X87Reg(top) - global<float>(0x00700d5c)));
+    const u32 z = bits((float)(X87Reg(top) - gCellmessage_700d5c));
     if (answer == 1) {
         MapCell_CanBuild(cell, nullptr, code, 1);
         Global816d48_Set(1);
@@ -179,8 +182,8 @@ u32 __fastcall MapCell_HandleMessage(u8 *cell, void *, u32 message, u32 a, u32 b
         at<u16>(cell, 0x10) = global<u16>(0x00818698);
         return 1;
     case 0x84:
-        at<u16>(cell, 0x40) = global<u16>(0x008186bc);
-        ++global<u32>(0x008186bc);
+        at<u16>(cell, 0x40) = reinterpret_cast<u16 &>(gMapCell_HandleMessage_8186bc);
+        ++gMapCell_HandleMessage_8186bc;
         return 1;
     case 0x85: {
         u8 *const entry = entry_of(cell);
@@ -205,7 +208,7 @@ u32 __fastcall MapCell_HandleMessage(u8 *cell, void *, u32 message, u32 a, u32 b
         return 1;
     }
     case 0x87: {
-        if (global<s32>(0x00818c10) <= global<s32>(0x00818c14)) return 1;
+        if (reinterpret_cast<s32 &>(gMapclick_818c10) <= gCellbuild_818c14) return 1;
         const u32 id = (u32)*reinterpret_cast<const u16 *>(cell) - 1;
         const u32 saved8 = global<u32>(0x0081ede8), saved4 = global<u32>(0x0081ede4);
         const u32 mode = Global81ae2c_Get_52f840();

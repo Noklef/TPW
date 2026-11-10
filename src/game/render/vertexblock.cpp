@@ -12,6 +12,8 @@
 #include "../math/sintable.h"
 #include "../math/x87.h"
 #include "../terrain/land.h"
+#include "../world/mappreview.h"
+#include "../world/focuscell.h"
 
 namespace {
 
@@ -103,10 +105,10 @@ u32 __fastcall VertexBlock_AddFace(u8 *block, void *, u32 x, u32 y, u32 z, u32 f
     };
     const float step = big ? 20.0f : 10.0f;
     const u32 base = at<u32>(block, 0x9c);
-    if (!fixed && !*reinterpret_cast<const u32 *>(0x00874fc4) && type < 13) {
+    if (!fixed && !gMappreview_874fc4 && type < 13) {
         if (Global81ae2c_Get_52f840() == 4 || Global81ae2c_Get_52f840() == 0xe || Global81ae2c_Get_52f840() == 0x13) {
-            const X87Reg across = X87Reg((double)*reinterpret_cast<const s32 *>(0x008186b8)) * X87Reg(10.0f);
-            const X87Reg down = X87Reg((double)*reinterpret_cast<const s32 *>(0x008186b4)) * X87Reg(10.0f);
+            const X87Reg across = X87Reg((double)gFocuscell_8186b8) * X87Reg(10.0f);
+            const X87Reg down = X87Reg((double)gFocuscell_8186b4) * X87Reg(10.0f);
             x = bits((float)(X87_SubR(across, X87Reg(value(x))) + X87Reg(*reinterpret_cast<const float *>(0x00820afc))));
             z = bits((float)(X87_SubR(down, X87Reg(value(z))) + X87Reg(*reinterpret_cast<const float *>(0x00820af8))));
         }

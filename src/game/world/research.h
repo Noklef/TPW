@@ -142,3 +142,20 @@ void Research_SetEnv(const ResearchEnv *env);
 // [0x80239c] (GameTable7cfb90_Get1da71c_5194d0) and the "End" object made (EndThing_Create).
 void __fastcall ResearchLab_HandleMessage(u8 *lab, void *, u8 *message);
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(char[12], gText_ResearchLab_Serialize_75e1ac, 0x0075e1ac, 0xc);
+GAME_DATA(char[24], gText_ResearchLab_Serialize_75e1b8, 0x0075e1b8, 0x18);
+GAME_DATA(char[12], gText_ResearchLab_Serialize_75e1d0, 0x0075e1d0, 0xc);
+GAME_DATA(char[16], gText_ResearchLab_Serialize_75e1dc, 0x0075e1dc, 0x10);
+GAME_DATA(char[16], gText_ResearchProject_Serialize_75e1ec, 0x0075e1ec, 0x10);
+GAME_DATA(char[8], gText_ResearchProject_Serialize_75e1fc, 0x0075e1fc, 0x8);
+GAME_DATA(char[16], gText_ResearchProject_Serialize_75e204, 0x0075e204, 0x10);
+GAME_DATA(char[8], gText_ResearchProject_Serialize_75e214, 0x0075e214, 0x8);
+GAME_DATA(char[8], gText_ResearchProject_Serialize_75e21c, 0x0075e21c, 0x8);
+GAME_DATA(char[24], gText_ResearchGroup_Serialize_75e224, 0x0075e224, 0x18);
+GAME_DATA(char[16], gText_ResearchGroup_Serialize_75e23c, 0x0075e23c, 0x10);
+GAME_DATA(char[8], gText_ResearchGroup_Serialize_75e24c, 0x0075e24c, 0x8);
+GAME_DATA(char[8], gText_ResearchGroup_Serialize_75e254, 0x0075e254, 0x8);

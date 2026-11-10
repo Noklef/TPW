@@ -5,6 +5,7 @@
 #include "../files/wrapsources.h"
 #include "mapcell.h"
 #include "world.h"
+#include "tracktextures.h"
 
 namespace {
 
@@ -19,7 +20,7 @@ extern "C" {
 
 void __cdecl HoardingGrid_Fill() {
     for (s32 y = 0; y < global<s32>(0x0081b1b0); y++) {
-        for (s32 x = 0; x < global<s32>(0x0081d740); x++) {
+        for (s32 x = 0; x < gTracktextures_81d740; x++) {
             u8 *c = reinterpret_cast<u8 *>((uintptr_t)(0x0081eeb0 + (y >> 1) + (x >> 1) * 0x42 + (x >> 1)));
             *c = ' ';
             if (!Map_InBounds(x, y)) continue;

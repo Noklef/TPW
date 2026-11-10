@@ -17,6 +17,7 @@
 #include "thingscan.h"
 #include "trackrides.h"
 #include "world.h"
+#include "demolish.h"
 
 namespace {
 
@@ -218,7 +219,7 @@ void __cdecl Path_CheckDeadEnds(s32 x, s32 y, u32 flag) {
     if (!flag && at<u32>(thing, 0x28)) g_env->f545610(at<u32>(thing, 0x28));
     Thing_Delete(thing);
     if (global<u32>(0x00785a2c)) return;
-    const float scale = global<float>(0x00700cd8);
+    const float scale = gDemolish_700cd8;
     const s32 z = Ftol(X87_MulIntDouble(row, scale));
     const s32 across = Ftol(X87_MulIntDouble(col, scale));
     const u32 sound = count < 4 ? 0x96 : count < 8 ? 0x97 : count < 16 ? 0x98 : 0x99;

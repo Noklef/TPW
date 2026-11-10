@@ -32,6 +32,8 @@
 #include "staff.h"
 #include "things.h"
 #include "world.h"
+#include "object.h"
+#include "person.h"
 
 namespace {
 
@@ -77,7 +79,7 @@ double sideshow_log2(s32 a, s32 b, s32 m) {
         fxch st(1)
         fyl2x
         fldln2
-        mov eax, 0x00700758
+        mov eax, gPerson_700758
         fld qword ptr [eax]
         fyl2x
         _emit 0xde   // fdivp st(1), st
@@ -251,13 +253,13 @@ u8 *__fastcall Person_PartsCtor(u8 *object, void *, u32) {
 u32 __fastcall Thoughts_Serialize(u8 *thoughts, void *, Stream *stream, u32 save, s32 version, u32) {
     if (version < 0 || version > 1)
         return 0;
-    if (!Save_Field(stream, save, thoughts + 0x88, 4, 0x00761de8))
+    if (!Save_Field(stream, save, thoughts + 0x88, 4, (u32)&gText_Thoughts_Serialize_761de8))
         return 1;
     for (u32 i = 0; i < 0x20; ++i)
-        if (!Save_Field(stream, save, thoughts + 4 + i * 4, 4, 0x00761dd4))
+        if (!Save_Field(stream, save, thoughts + 4 + i * 4, 4, (u32)&gText_Thoughts_Serialize_761dd4))
             return 1;
-    if (!Save_Field(stream, save, thoughts, 4, 0x00761dc4) || !Save_Field(stream, save, thoughts + 0x84, 4, 0x00761db4) ||
-        !Save_Field(stream, save, thoughts + 0x8c, 4, 0x00761da0))
+    if (!Save_Field(stream, save, thoughts, 4, (u32)&gText_Thoughts_Serialize_761dc4) || !Save_Field(stream, save, thoughts + 0x84, 4, (u32)&gText_Thoughts_Serialize_761db4) ||
+        !Save_Field(stream, save, thoughts + 0x8c, 4, (u32)&gText_Thoughts_Serialize_761da0))
         return 1;
     return 0;
 }
@@ -413,11 +415,11 @@ u32 __fastcall Sprite_Serialize(u8 *sprite, void *, Stream *stream, u32 save, s3
     if (SpriteAnim_Serialize(sprite + 0xc, nullptr, stream, save, version, unused) != 0)
         return 1;
     if (version >= 0 && version <= 1) {
-        static const SaveSpec kHead[] = {{0x18, 2, 0x0075ca24}, {0x1a, 2, 0x0075ca14}, {0xc4, 2, 0x0075ca04}, {0xc0, 2, 0x0075c9f8},
-                                         {0x2c, 1, 0x0075c9f0}, {0x24, 4, 0x0075c9e4}, {0xcc, 2, 0x0075c9d0}};
-        static const SaveSpec kTail[] = {{0xc8, 4, 0x0075c9c0},  {0x190, 4, 0x0075c9b4}, {0x194, 4, 0x0075c9a8}, {0x198, 4, 0x0075c998},
-                                         {0xc2, 2, 0x0075c988},  {0xd0, 4, 0x0075c970},  {0x1c, 4, 0x0075c960},  {0x20, 4, 0x0075c954},
-                                         {0x28, 4, 0x0075c93c}};
+        static const SaveSpec kHead[] = {{0x18, 2, (u32)&gText_Sprite_Serialize_75ca24}, {0x1a, 2, (u32)&gText_Sprite_Serialize_75ca14}, {0xc4, 2, (u32)&gText_Sprite_Serialize_75ca04}, {0xc0, 2, (u32)&gText_Sprite_Serialize_75c9f8},
+                                         {0x2c, 1, (u32)&gText_Sprite_Serialize_75c9f0}, {0x24, 4, (u32)&gText_Sprite_Serialize_75c9e4}, {0xcc, 2, (u32)&gText_Sprite_Serialize_75c9d0}};
+        static const SaveSpec kTail[] = {{0xc8, 4, (u32)&gText_Sprite_Serialize_75c9c0},  {0x190, 4, (u32)&gText_Sprite_Serialize_75c9b4}, {0x194, 4, (u32)&gText_Sprite_Serialize_75c9a8}, {0x198, 4, (u32)&gText_Sprite_Serialize_75c998},
+                                         {0xc2, 2, (u32)&gText_Sprite_Serialize_75c988},  {0xd0, 4, (u32)&gText_Sprite_Serialize_75c970},  {0x1c, 4, (u32)&gText_Sprite_Serialize_75c960},  {0x20, 4, (u32)&gText_Sprite_Serialize_75c954},
+                                         {0x28, 4, (u32)&gText_Sprite_Serialize_75c93c}};
         if (save != 0) {
             if (!Save_Fields(stream, save, sprite, kHead, 7))
                 return 1;
@@ -428,9 +430,9 @@ u32 __fastcall Sprite_Serialize(u8 *sprite, void *, Stream *stream, u32 save, s3
         } else {
             if (!Save_Fields(stream, 0, sprite, kHead, 4))
                 return 1;
-            if (Save_ReadU8(stream, sprite + 0x2c, reinterpret_cast<const char *>(0x0075c9f0), 0) ||
-                Save_ReadU32(stream, sprite + 0x24, reinterpret_cast<const char *>(0x0075c9e4), 0) ||
-                Save_ReadU16(stream, sprite + 0xcc, reinterpret_cast<const char *>(0x0075c9d0), 0))
+            if (Save_ReadU8(stream, sprite + 0x2c, gText_Sprite_Serialize_75c9f0, 0) ||
+                Save_ReadU32(stream, sprite + 0x24, gText_Sprite_Serialize_75c9e4, 0) ||
+                Save_ReadU16(stream, sprite + 0xcc, gText_Sprite_Serialize_75c9d0, 0))
                 return 1;
             if (Nav_SerializeFwd(sprite + 0xd4, nullptr, stream, 0, version, unused) != 0)
                 return 1;
@@ -441,7 +443,7 @@ u32 __fastcall Sprite_Serialize(u8 *sprite, void *, Stream *stream, u32 save, s3
                     return 1;
             }
             at<u32>(sprite, 0x20) %= (u32)SpriteFolder_Count(at<u32>(sprite, 0x24));  // (DIV: faults on a count of 0)
-            if (Save_ReadU32(stream, sprite + 0x28, reinterpret_cast<const char *>(0x0075c93c), 0))
+            if (Save_ReadU32(stream, sprite + 0x28, gText_Sprite_Serialize_75c93c, 0))
                 return 1;
         }
         if (Thoughts_Serialize(sprite + 0x30, nullptr, stream, save, version, unused) != 0)
@@ -456,17 +458,17 @@ u32 __fastcall Visitor_Serialize(u8 *visitor, void *, Stream *stream, u32 save, 
         return 1;
     if (version < 0 || version > 1)
         return 0;
-    static const SaveSpec kHead[] = {{0x1d4, 4, 0x0075d380}, {0x1d8, 4, 0x0075d370}, {0x210, 4, 0x0075d360}, {0x1f8, 4, 0x0075d350}, {0x1a0, 4, 0x0075d348},
-                                     {0x1bc, 4, 0x0075d33c}, {0x19c, 4, kSaveStatName},  {0x1a8, 4, kSaveStatName},  {0x218, 4, 0x0075d330}, {0x21c, 4, 0x0075d324},
-                                     {0x1b4, 4, kSaveStatName},  {0x1dc, 2, 0x0075d318}, {0x1c4, 4, 0x0075d30c}, {0x1c8, 4, 0x0075d300}, {0x1cc, 4, 0x0075d2f0},
-                                     {0x1d0, 4, 0x0075d2dc}, {0x204, 4, 0x0075d2cc}, {0x200, 4, 0x0075d2b4}, {0x1f0, 1, 0x0075d2a8}, {0x1c0, 1, 0x0075d298}};
+    static const SaveSpec kHead[] = {{0x1d4, 4, (u32)&gText_Visitor_Serialize_75d380}, {0x1d8, 4, (u32)&gText_Visitor_Serialize_75d370}, {0x210, 4, (u32)&gText_Visitor_Serialize_75d360}, {0x1f8, 4, (u32)&gText_Visitor_Serialize_75d350}, {0x1a0, 4, (u32)&gText_Visitor_Serialize_75d348},
+                                     {0x1bc, 4, (u32)&gText_Visitor_Serialize_75d33c}, {0x19c, 4, kSaveStatName},  {0x1a8, 4, kSaveStatName},  {0x218, 4, (u32)&gText_Visitor_Serialize_75d330}, {0x21c, 4, (u32)&gText_Visitor_Serialize_75d324},
+                                     {0x1b4, 4, kSaveStatName},  {0x1dc, 2, (u32)&gText_Visitor_Serialize_75d318}, {0x1c4, 4, (u32)&gText_Visitor_Serialize_75d30c}, {0x1c8, 4, (u32)&gText_Visitor_Serialize_75d300}, {0x1cc, 4, (u32)&gText_Visitor_Serialize_75d2f0},
+                                     {0x1d0, 4, (u32)&gText_Visitor_Serialize_75d2dc}, {0x204, 4, (u32)&gText_Visitor_Serialize_75d2cc}, {0x200, 4, 0x0075d2b4}, {0x1f0, 1, 0x0075d2a8}, {0x1c0, 1, (u32)&gText_Visitor_Serialize_75d298}};
     static const SaveSpec kTail[] = {{0x228, 2, 0x0075d260}, {0x22a, 2, 0x0075d258}, {0x1f4, 4, 0x0075d248}, {0x1f1, 1, 0x0075d23c}, {0x214, 4, 0x0075d224},
-                                     {0x1de, 2, 0x0075d214}, {0x224, 4, 0x0075d208}, {0x220, 4, 0x0075b5b0}, {0x1a4, 4, kSaveStatName},  {0x208, 4, 0x0075d1f4},
+                                     {0x1de, 2, 0x0075d214}, {0x224, 4, 0x0075d208}, {0x220, 4, (u32)&gText_Object_75b5b0}, {0x1a4, 4, kSaveStatName},  {0x208, 4, 0x0075d1f4},
                                      {0x1fc, 4, 0x0075d1e0}, {0x1b8, 4, kSaveStatName},  {0x1ac, 4, kSaveStatName},  {0x1b0, 4, kSaveStatName}};
     if (!Save_StatFields(stream, save, visitor, kHead, 20))
         return 1;
     for (u32 i = 0; i < 4; ++i)  // the previous rides and the previous temporary rides, a pair at a time
-        if (!Save_Field(stream, save, visitor + 0x1e0 + i * 2, 2, 0x0075d284) || !Save_Field(stream, save, visitor + 0x1e8 + i * 2, 2, 0x0075d268))
+        if (!Save_Field(stream, save, visitor + 0x1e0 + i * 2, 2, (u32)&gText_Visitor_Serialize_75d284) || !Save_Field(stream, save, visitor + 0x1e8 + i * 2, 2, 0x0075d268))
             return 1;
     return Save_StatFields(stream, save, visitor, kTail, 14) ? 0 : 1;
 }
@@ -929,7 +931,7 @@ void __fastcall Visitor_SetState(u8 *visitor, void *, u32 state) {
     case 11:
         Set4_4217f0(ref, nullptr, 3);
         at<u32>(visitor, 0x1fc) = at<u32>(world80239c(), 0x1da70c);
-        at<u32>(visitor, 0x1f4) = (u32)(long long)X87_MulInt(at<u8>(visitor, 0x1f1), global<float>(0x007007a4));   // fild; fmul 1.2f; __ftol
+        at<u32>(visitor, 0x1f4) = (u32)(long long)X87_MulInt(at<u8>(visitor, 0x1f1), gVisitor_SetState_7007a4);   // fild; fmul 1.2f; __ftol
         return;
     case 12:
         at<u16>(visitor, 0xc2) = global<u16>(0x0075c7f0);

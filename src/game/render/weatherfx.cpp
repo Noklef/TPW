@@ -18,6 +18,7 @@
 #include "drawbuffer.h"
 #include "ribbon.h"
 #include "spritequeue.h"
+#include "../gfx/texcache.h"
 
 namespace {
 
@@ -637,13 +638,13 @@ extern "C" void __cdecl KidShadow_LoadTexture() {
 extern "C" {
 
 u32 __fastcall WeatherFx_TouchTextures(u8 *fx) {
-    if (at<u32>(fx, 0x3308) && at<u32>(fx, 0x334c)) g_boltCalls.Th(0x58c9f0, global<u32>(0x008c4b44), at<u32>(fx, 0x334c), 0x3f000000u);
+    if (at<u32>(fx, 0x3308) && at<u32>(fx, 0x334c)) g_boltCalls.Th(0x58c9f0, gTexcache_8c4b44, at<u32>(fx, 0x334c), 0x3f000000u);
     if (at<u32>(fx, 0x3318)) {
         const u32 kind = at<u32>(fx, 0);
         if (kind == 1) {
-            if (at<u32>(fx, 0x3350)) g_boltCalls.Th(0x58c9f0, global<u32>(0x008c4b44), at<u32>(fx, 0x3350), 0x3f000000u);
+            if (at<u32>(fx, 0x3350)) g_boltCalls.Th(0x58c9f0, gTexcache_8c4b44, at<u32>(fx, 0x3350), 0x3f000000u);
         } else if (kind == 2) {
-            if (at<u32>(fx, 0x3348)) g_boltCalls.Th(0x58c9f0, global<u32>(0x008c4b44), at<u32>(fx, 0x3348), 0x3dcccccdu);
+            if (at<u32>(fx, 0x3348)) g_boltCalls.Th(0x58c9f0, gTexcache_8c4b44, at<u32>(fx, 0x3348), 0x3dcccccdu);
         }
     }
     return 1;

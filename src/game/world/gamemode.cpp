@@ -13,6 +13,8 @@
 #include "mousemode.h"
 #include "object.h"
 #include "world.h"
+#include "gamemode.h"
+#include "focuscell.h"
 
 namespace {
 
@@ -57,7 +59,7 @@ void other_mode(u32 mode) {
         Advisor_PostId(0xcb);
         GameCursor_Set(4);
     } else if (mode == 0x15 || mode == 0x16) {
-        g_env->showRun(global<u32>(0x008186ac), 1);
+        g_env->showRun(reinterpret_cast<u32 &>(gFocuscell_8186ac), 1);
     } else if (mode == 1) {
         GameCursor_Set(3);
     }
@@ -84,8 +86,8 @@ void __cdecl GameMode_Set(u32 mode, u32 record) {
     global<s32>(0x0081ede8) = -1;
     if (mode == 0) {
         global<u16>(0x00818694) = 0;
-        global<u32>(0x00763b00) = 0x80;
-        global<u32>(0x00763b04) = 0x80;
+        gGamemode_763b00 = 0x80;
+        gGamemode_763b04 = 0x80;
         global<u16>(0x007639b0) = 0xffff;
         global<u16>(0x00818684) = 0;
         global<u16>(0x007639b4) = 0xffff;
@@ -101,8 +103,8 @@ void __cdecl GameMode_Set(u32 mode, u32 record) {
     }
     other_mode(mode);
     if (mode == 0x35) {
-        global<u32>(0x00763b00) = 0x80;
-        global<u32>(0x00763b04) = 0x80;
+        gGamemode_763b00 = 0x80;
+        gGamemode_763b04 = 0x80;
     }
 }
 }
@@ -123,8 +125,8 @@ const GameModeStepEnv *g_step = &kGameStepEnv;
 void relink_run(u32 mode, u32 corners, u32 relink) {
     if (mode != 0xb && mode != 0x10 && mode != 0x35) return;
     g_step->relink(corners);
-    u8 *const run = global<u8 *>(0x008186ac);
-    if ((u8)relink && run && !g_step->updateA(run, 0, 0, 0)) g_step->updateB(global<u8 *>(0x008186ac), 1, 0, 0);
+    u8 *const run = gFocuscell_8186ac;
+    if ((u8)relink && run && !g_step->updateA(run, 0, 0, 0)) g_step->updateB(gFocuscell_8186ac, 1, 0, 0);
 }
 
 }  // namespace
@@ -165,8 +167,8 @@ u32 __cdecl GameMode_StepBack(u8 *thing, u32 relink) {
         break;
     case 0xb: case 0x10: case 0x19: case 0x35:
         g_step->set(0x35, 1);
-        global<u32>(0x00763b00) = 0x80;
-        global<u32>(0x00763b04) = 0x80;
+        gGamemode_763b00 = 0x80;
+        gGamemode_763b04 = 0x80;
         break;
     }
     g_step->mapClick(point[0], point[1], 0, 0);
@@ -186,7 +188,7 @@ u32 __cdecl GameMode_StepBack(u8 *thing, u32 relink) {
     }
     g_step->setOnly(mode, 1);
     if (arm) {
-        u8 *const target = thing ? thing : global<u8 *>(0x008186ac);
+        u8 *const target = thing ? thing : gFocuscell_8186ac;
         if (target) g_step->thing4de1f0(target);
     }
     relink_run(mode, corners, relink);

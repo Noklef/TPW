@@ -17,6 +17,11 @@
 #include "mapline.h"
 #include "objectdefs.h"
 #include "../core/actionrec.h"
+#include "cellbuild.h"
+#include "mappreview.h"
+#include "mapclick.h"
+#include "focuscell.h"
+#include "tracktextures.h"
 
 namespace {
 
@@ -84,8 +89,8 @@ void Pull(s32 &x, s32 &y) {
     const s32 dx = Abs32(Sub(x, StartX()));
     if (dx >= Abs32(Sub(y, StartY()))) y = StartY();
     if (dx <= Abs32(Sub(y, StartY()))) x = StartX();
-    global<s32>(0x008186b8) = x;
-    global<s32>(0x008186b4) = y;
+    gFocuscell_8186b8 = x;
+    gFocuscell_8186b4 = y;
 }
 
 // A drag's line: from the start (pulled to) when there is one, else from (x, y) to itself.
@@ -140,12 +145,12 @@ void CoasterArea(const MapPreviewEnv *E) {
 void Footprint(const MapPreviewEnv *E) {
     if (E->footprint(PieceX(), PieceY(), 4, (s32)Global81d7a4_Get_52f1f0(), 0, 1) == nullptr) global<u32>(0x0081b604) = 1;
     E->footprint(PieceX(), PieceY(), 4, (s32)Global81d7a4_Get_52f1f0(), 0, 0);
-    global<u32>(0x00874fc4) = 0;
+    gMappreview_874fc4 = 0;
 }
 
 // Mode 4: a path or queue piece.
 void Piece(const MapPreviewEnv *E, s32 &x, s32 &y) {
-    global<u8>(0x008186d4) = 1;
+    gMapclick_8186d4 = 1;
     if (at<s32>(Def(E), 0xc4) > 0 && (u8)E->hasKey(World() + 0x2c0, nullptr, gActionrec_8186e0) == 0) {
         Global81af4c_Set_52fb90(0);
     } else {
@@ -162,8 +167,8 @@ void Piece(const MapPreviewEnv *E, s32 &x, s32 &y) {
     PieceY() = y;
     global<u32>(0x0081b604) = 0;
     if (gActionrec_8186e0 != 0) {
-        global<u32>(0x00818c10) = at<u32>(Def(E), 0x54);
-        if (global<u32>(0x008187f8) != 0 && Map_InBounds(x, y)) {
+        gMapclick_818c10 = at<u32>(Def(E), 0x54);
+        if (gMapclick_8187f8 != 0 && Map_InBounds(x, y)) {
             const u8 *def = Def(E);
             const u32 angle = Global81d7a4_Get_52f1f0();
             x = Even(x, global<s32>(0x007639a4));
@@ -194,18 +199,18 @@ void Piece(const MapPreviewEnv *E, s32 &x, s32 &y) {
                     PieceX() = (s32)((u32)PieceX() + at<u32>(def, dx));
                     PieceY() = (s32)((u32)PieceY() + at<u32>(def, dy));
                 }
-                switch (at<s32>(global<const u8 *>(0x008186ac), 0x10)) {
+                switch (at<s32>(gFocuscell_8186ac, 0x10)) {
                 case 0x5a: PieceX()--; break;
                 case 0xb4: PieceX()--, PieceY()++; break;
                 case 0x10e: PieceY()++; break;
                 }
             }
         }
-        global<s32>(0x008186b8) = PieceX();
-        global<s32>(0x008186b4) = PieceY();
+        gFocuscell_8186b8 = PieceX();
+        gFocuscell_8186b4 = PieceY();
         Footprint(E);
     }
-    global<u8>(0x008186d4) = 0;
+    gMapclick_8186d4 = 0;
 }
 
 // Mode 0x1a: a ride's entrance or exit dragged.
@@ -213,8 +218,8 @@ void EntranceDrag(const MapPreviewEnv *E, s32 &x, s32 &y, u32 flags) {
     if (global<u16>(0x00818698) == 0) return;
     x = Even(x, global<s32>(0x007639a4));
     y = Even(y, global<s32>(0x007639a8));
-    global<s32>(0x008186b8) = x;
-    global<s32>(0x008186b4) = y;
+    gFocuscell_8186b8 = x;
+    gFocuscell_8186b4 = y;
     if (global<u16>(0x007639b0) == 0xffff) E->applyLine(Mode(), x, y, &x, &y);
     if (global<u32>(0x007639c0) == 0) {
         E->corners();
@@ -242,19 +247,19 @@ void MapPreview_SetEnv(const MapPreviewEnv *e) { g_env = e ? e : &kGameEnv; }
 
 extern "C" void __cdecl GameMode_MapPreview(s32 x, s32 y, u32 flags) {
     const MapPreviewEnv *const E = g_env;
-    global<s32>(0x008186b8) = x;
-    global<s32>(0x008186b4) = y;
+    gFocuscell_8186b8 = x;
+    gFocuscell_8186b4 = y;
     static const u32 kCleared[] = {0x00816d48, 0x00816d50, 0x00816d58, 0x00816d54, 0x00816d60, 0x00816d5c, 0x00816d4c};
     for (const u32 a : kCleared) global<u32>(a) = 0;
     Global871ee0_Clear();
-    global<u32>(0x00818c10) = 0;
-    global<u32>(0x00818c14) = 0;
+    gMapclick_818c10 = 0;
+    reinterpret_cast<u32 &>(gCellbuild_818c14) = 0;
     const u32 mode = global<u32>(0x0081ae2c);
     if (mode != 0) {
         switch (mode) {
         case 1:
         case 3:
-            global<u32>(0x00818c10) = mode == 1 ? 2 : 3;
+            gMapclick_818c10 = mode == 1 ? 2 : 3;
             DragLine(E->sendLine, x, y);
             break;
         case 0x38:
@@ -265,24 +270,24 @@ extern "C" void __cdecl GameMode_MapPreview(s32 x, s32 y, u32 flags) {
             Piece(E, x, y);
             break;
         case 0x3b:
-            global<u8>(0x008186d4) = 1;
+            gMapclick_8186d4 = 1;
             global<u32>(0x0081b604) = 0;
             PieceX() = x;
             PieceY() = y;
             Global81af4c_Set_52fb90(at<u32>(Def(E), 0x1b8));
-            global<u32>(0x00818c10) = at<u32>(Def(E), 0x54);
+            gMapclick_818c10 = at<u32>(Def(E), 0x54);
             Footprint(E);
-            global<u8>(0x008186d4) = 0;
+            gMapclick_8186d4 = 0;
             break;
         case 0xb:
         case 0x10:
         case 0x19:
-            global<u32>(0x00818c10) = 3;
+            gMapclick_818c10 = 3;
             DragLine(E->applyLine, x, y);
             break;
         case 0x39: {
             s32 cx = x > 1 ? x : 1, cy = y > 1 ? y : 1;
-            const s32 w = Sub(global<s32>(0x0081d740), 2), h = Sub(global<s32>(0x0081b1b0), 3);
+            const s32 w = Sub(gTracktextures_81d740, 2), h = Sub(global<s32>(0x0081b1b0), 3);
             if (!(cx < w)) cx = w;
             if (!(cy < h)) cy = h;
             x = Even(cx, global<s32>(0x007639f0));
@@ -322,13 +327,13 @@ extern "C" void __cdecl GameMode_MapPreview(s32 x, s32 y, u32 flags) {
             EntranceDrag(E, x, y, flags);
             break;
         case 0x15:
-            global<u32>(0x00818c10) = 3;
+            gMapclick_818c10 = 3;
             global<u32>(0x00816d50) = E->canPlaceAt((u32)x, (u32)y, nullptr, 0, 0, 0, 0) == 0;
             E->sendLine(0x115, x, y, &x, &y);
             CoasterArea(E);
             break;
         case 0x16:
-            global<u32>(0x00818c10) = 3;
+            gMapclick_818c10 = 3;
             if (global<u8>(0x00818c54) != 0) global<u32>(0x00816d50) = E->canPlaceAt((u32)x, (u32)y, nullptr, 0, 0, 0, 0) == 0;
             if (global<s32>(0x007639a0) == -1) global<s32>(0x007639a0) = (s16)MapCell_Word40(Cell44(IdAt(x, y)));
             E->sendLine(0x116, x, y, &x, &y);
@@ -343,7 +348,7 @@ extern "C" void __cdecl GameMode_MapPreview(s32 x, s32 y, u32 flags) {
                 const u16 handle = *E->firstObject(Cell44(at<u16>(cell, 0x10)), nullptr, &out);
                 const u8 *thing = global<const u8 *>(0x007cfb90 + (u32)handle * 20);
                 if (at<u8>(thing, 2) == 3)
-                    global<u32>(0x00818c14) = at<u32>(E->findDef(reinterpret_cast<u8 *>((uintptr_t)0x007890a0), nullptr, at<u16>(thing, 0xe)), 0x54);
+                    reinterpret_cast<u32 &>(gCellbuild_818c14) = at<u32>(E->findDef(reinterpret_cast<u8 *>((uintptr_t)0x007890a0), nullptr, at<u16>(thing, 0xe)), 0x54);
             }
         }
     }

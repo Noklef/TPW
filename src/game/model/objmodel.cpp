@@ -18,6 +18,7 @@
 #include "../render/mode.h"
 #include "../terrain/procedural.h"
 #include "../terrain/texcache.h"
+#include "../gfx/texcache.h"
 
 namespace {
 
@@ -340,7 +341,7 @@ u32 __fastcall ObjModel_BlendTerrainTiles(u8 *object, void *, s32 x0, s32 y0, s3
             overlay.bytes_per_pixel = reinterpret_cast<const s32 *>((uintptr_t)0x00701a18)[global<u32>(0x008bd554)];
             overlay.flags = cell & 0xffff;
             result &= TerrainTexCache_BlendTile(ptr(global<u8 *>(0x00879d60), 0x230), nullptr, texture, x, y, &overlay);
-            TexCache_UnlinkItem(global<u8 *>(0x008c4b44), nullptr, reinterpret_cast<u8 *>((uintptr_t)*slot));
+            TexCache_UnlinkItem(reinterpret_cast<u8 * &>(gTexcache_8c4b44), nullptr, reinterpret_cast<u8 *>((uintptr_t)*slot));
             TexSet_InitShared(ptr(object, 0x128) + done * 0x10, nullptr, (u32)(uintptr_t)texture);
             u8 *const set = ptr(object, 0x128) + done * 0x10;
             u32 *const pair = at<u32 *>(object, 0x124) + 2 * done;
@@ -415,7 +416,7 @@ u32 __fastcall ObjModel_DrawOrQueue(u8 *part) {
             if (!g_drawCalls.Th(0x0057b8a0, me)) return 0;   // Object_UpdateShadow
             const u8 *const shadow = at<const u8 *>(object, 0x13c);
             if (shadow) {
-                g_drawCalls.Th(0x0058c9f0, global<u32>(0x008c4b44), at<u32>(shadow, 0x18), 0x3f000000u);   // TexCache_TouchItem (0.5f)
+                g_drawCalls.Th(0x0058c9f0, gTexcache_8c4b44, at<u32>(shadow, 0x18), 0x3f000000u);   // TexCache_TouchItem (0.5f)
                 g_drawCalls.Th(0x0057c270, 0x008bb638u, me);   // MeshQueue2_Add
             }
         }

@@ -297,3 +297,8 @@ s32 __fastcall ParkAnalyser_AverageRatingDef4ac0(u8 *analyser, void *, u32 maxAg
 // or of any when it is 0, with a patrol region (Staff_HasPatrolRegion), counted.
 s32 __stdcall Things_CountStaffWithPatrol(u32 kind);
 }  // extern "C"
+
+#include "../core/gamedata.h"
+
+// Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(const float, gThingscan_70031c, 0x0070031c, 0x4);

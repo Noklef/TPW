@@ -24,6 +24,7 @@
 #include "mapcell.h"
 #include "objectdefs.h"
 #include "thingscan.h"
+#include "mousemode.h"
 
 namespace {
 
@@ -102,7 +103,7 @@ void __fastcall MouseState_NewFrame(u8 *self) {
 
 u32 __fastcall MouseState_ShowFps(u8 *self, void *, float fps) {
     char *const text = reinterpret_cast<char *>(self + 0x10);
-    Crt().sprintf(text, reinterpret_cast<const char *>(0x0074d85c), (double)fps);  // "FPS: %4g\n"
+    Crt().sprintf(text, gText_MouseState_ShowFps_74d85c, (double)fps);  // "FPS: %4g\n"
     return Obj_Set14_18_10(reinterpret_cast<u8 *>(0x008bba50), nullptr, 0, 0, (u32)(uintptr_t)text);
 }
 

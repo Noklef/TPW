@@ -5,6 +5,7 @@
 #include "../core/accessors.h"
 #include "../core/ptrlist.h"
 #include "color.h"
+#include "../world/parkmap.h"
 
 namespace {
 
@@ -38,7 +39,7 @@ u8 *__fastcall TexSprite_Ctor(u8 *object, void *, u32 image, u32 a, u32 b, u32 c
     at<u32>(object, 0x24) = d;
     own = reinterpret_cast<u8 *>((uintptr_t)Fn_56b620(at<u32>(object, 0x28)));
     at<u32>(own, 0x10) |= 0x30000;
-    PtrList_Append(*reinterpret_cast<PtrList **>((uintptr_t)0x00fa6e38), nullptr, object);
+    PtrList_Append(gParkmap_fa6e38, nullptr, object);
     return object;
 }
 

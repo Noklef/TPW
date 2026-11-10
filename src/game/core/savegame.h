@@ -4,6 +4,7 @@
 
 #include "../../../re/types.h"
 #include "../files/file.h"
+#include "gamedata.h"
 
 extern "C" {
 
@@ -48,6 +49,7 @@ bool Save_Fields(Stream *stream, u32 save, u8 *object, const SaveSpec *spec, u32
 
 // The name the serializers give their 0..100 stats (floats: a visitor's, an object's): saved as the float of their __ftol's low byte, loaded into
 // a temporary and stored only when read whole.
-constexpr u32 kSaveStatName = 0x0075b444;
+GAME_DATA(char[4], gSaveStatName, 0x0075b444, 0x4);
+inline const u32 kSaveStatName = (u32)&gSaveStatName;
 // Save_Fields, with the stats (the fields named kSaveStatName) as above.
 bool Save_StatFields(Stream *stream, u32 save, u8 *object, const SaveSpec *spec, u32 count);

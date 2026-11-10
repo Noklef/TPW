@@ -9,6 +9,7 @@
 #include "../render/engineerrors.h"
 #include "../gfx/texture.h"
 #include "../gfx/texman.h"
+#include "../gfx/texcache.h"
 
 namespace {
 
@@ -229,7 +230,7 @@ u32 __fastcall SpriteQueue_Clear(u8 *queue) {
     at<u32>(queue, 0x2404) = 0;
     at<u32>(queue, 0x2408) = 0;
     at<u32>(queue, 0x240c) = 0;
-    return g_calls.Th(0x58c9f0, global<u32>(0x008c4b44), at<u32>(queue, 0x2400), 0u);
+    return g_calls.Th(0x58c9f0, gTexcache_8c4b44, at<u32>(queue, 0x2400), 0u);
 }
 
 u32 __fastcall SpriteQueue_ShowAll(u8 *queue) {
@@ -242,7 +243,7 @@ u32 __fastcall SpriteQueue_ShowAll(u8 *queue) {
 }
 
 u32 __fastcall Global8c47b0_Touch(u8 *object) {
-    g_calls.Th(0x58c9f0, global<u32>(0x008c4b44), at<u32>(object, 8), 0x3f000000u);
+    g_calls.Th(0x58c9f0, gTexcache_8c4b44, at<u32>(object, 8), 0x3f000000u);
     return 1;
 }
 

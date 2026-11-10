@@ -151,3 +151,10 @@ void __fastcall Visitor_StepComingOff(u8 *visitor);
 // 0x5019f0 (thiscall): the step of the state +0x220 (0x15 at most). (Its debug prints are left out.)
 void __fastcall Visitor_PostUpdate(u8 *visitor);
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(const float, gVisitor_StepIdle_700794, 0x00700794, 0x4);
+GAME_DATA(const float, gVisitor_StepIdle_700798, 0x00700798, 0x4);
+GAME_DATA(const float, gVisitor_StepIdle_70079c, 0x0070079c, 0x4);

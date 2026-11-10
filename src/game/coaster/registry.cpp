@@ -23,6 +23,7 @@
 #include "cars.h"
 #include "queue.h"
 #include "train.h"
+#include "../world/ridelist.h"
 
 namespace {
 
@@ -37,7 +38,7 @@ const CoasterLinksEnv kGameEnv = {&Ride_Create, &Model_FindPartByKey4, &CoasterL
 const CoasterLinksEnv *g_env = &kGameEnv;
 
 const u8 *coaster_at(u32 index) { return reinterpret_cast<u8 *const *>(0x00790bd0)[index]; }
-const u8 *first_link() { return *reinterpret_cast<u8 *const *>(0x00790fe0); }
+const u8 *first_link() { return *reinterpret_cast<u8 *const *>(&gRidelist_790fe0); }
 
 }  // namespace
 
@@ -102,7 +103,7 @@ u8 *__cdecl CoasterLinks_FindAtFocus(s32 *x, s32 *z, u32 *key) {
 }
 
 u8 *__cdecl CoasterLinks_FindKey(u32 tile) {
-    for (const u8 *link = *reinterpret_cast<const u8 *const *>(0x00790fe0); link; link = at<const u8 *>(link, 0x18))
+    for (const u8 *link = *reinterpret_cast<const u8 *const *>(&gRidelist_790fe0); link; link = at<const u8 *>(link, 0x18))
         for (u8 *found = at<u8 *>(link, 0x4c); found; found = at<u8 *>(found, 0x28))
             if (!(at<u8>(found, 4) & 5) && at<u32>(found, 8) == tile) return found;
     return nullptr;
@@ -155,7 +156,7 @@ u32 __cdecl Ride_Bit18(u32 index) {
 }
 
 u8 *__cdecl CoasterLink_ById(u32 id) {
-    for (u8 *link = *reinterpret_cast<u8 *const *>(0x00790fe0); link; link = at<u8 *>(link, 0x18))
+    for (u8 *link = *reinterpret_cast<u8 *const *>(&gRidelist_790fe0); link; link = at<u8 *>(link, 0x18))
         if (at<u32>(link, 0x10) == id) return link;
     return nullptr;
 }
@@ -537,7 +538,7 @@ void __cdecl CoasterLink_SetUpCars(const u8 *train, u8 *link, u32 quiet) {
 
 // A link destroyed (CoasterLink_Destroy's and CoasterLinks_DestroyAll's, inlined in both originals).
 static void DestroyLink(u8 *link) {
-    u8 **const head = reinterpret_cast<u8 **>(0x00790fe0);
+    u8 **const head = &gRidelist_790fe0;
     IdTable_Remove(reinterpret_cast<u32 *>(0x00790b04), reinterpret_cast<u32 *>(0x00790b00), reinterpret_cast<u32 *>(0x00791ce0),
                    reinterpret_cast<u32 *>(0x00790bd0), at<u32>(link, 0x14));
     --*reinterpret_cast<u32 *>(0x00792214);
@@ -577,7 +578,7 @@ static void DestroyLink(u8 *link) {
 }
 
 void __cdecl CoasterLink_Destroy(u32 id) {
-    u8 **const head = reinterpret_cast<u8 **>(0x00790fe0);
+    u8 **const head = &gRidelist_790fe0;
     u8 *link = *head;
     while (link && at<u32>(link, 0x10) != id) link = at<u8 *>(link, 0x18);
     if (!link) return;
@@ -585,7 +586,7 @@ void __cdecl CoasterLink_Destroy(u32 id) {
 }
 
 void __cdecl CoasterLinks_DestroyAll() {
-    u8 **const head = reinterpret_cast<u8 **>(0x00790fe0);
+    u8 **const head = &gRidelist_790fe0;
     for (u8 *link = *head; link;) {
         u8 *const next = at<u8 *>(link, 0x18);   // (read first)
         DestroyLink(link);
@@ -757,7 +758,7 @@ u32 __cdecl CoasterLink_Create(u32 typeId, u32 ride, u32 height, u32 a3, u32 loa
         }
         at<u32>(link, 0x14) = id;
     }
-    u8 *&head = *reinterpret_cast<u8 **>(0x00790fe0);
+    u8 *&head = gRidelist_790fe0;
     at<u8 *>(link, 0x18) = head;
     head = link;
     const u8 *type = nullptr;   // (none: the reads below fault, sic)

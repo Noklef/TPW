@@ -47,3 +47,15 @@ u32 __fastcall ParkGates_SpawnVisitor(u8 *gates);
 // more; with none, the stamp set, +0x10 = 0 and 0x51a2f0 of 0. Then, with World_BusStopBlocked, the state (taken anew) -1, 0, or 2 with no people left: 0x51a2f0 of 0; without, the state 4: the same.
 u32 __fastcall ParkGates_Step(u8 *gates);
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(char[12], gText_Parkgates_759b58, 0x00759b58, 0xc);
+GAME_DATA(char[16], gText_Parkgates_759b70, 0x00759b70, 0x10);
+GAME_DATA(char[24], gText_Parkgates_759b80, 0x00759b80, 0x18);
+GAME_DATA(char[16], gText_Parkgates_759b98, 0x00759b98, 0x10);
+GAME_DATA(s32, gParkGates_ArrivalSize_785310, 0x00785310, 0x4);
+GAME_DATA(u32, gParkGates_Step_785314, 0x00785314, 0x4);
+GAME_DATA(s32, gParkGates_ArrivalSize_78531c, 0x0078531c, 0x4);
+GAME_DATA(s32, gParkGates_ArrivalSize_785320, 0x00785320, 0x4);

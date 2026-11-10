@@ -17,6 +17,7 @@
 #include "../render/meshlist.h"
 #include "../render/transformer.h"
 #include "gridquad.h"
+#include "../gfx/texcache.h"
 
 using gridquad::Fan;
 using gridquad::FacingClipped;
@@ -141,7 +142,7 @@ extern "C" u32 __fastcall TerrainGround_PrepareTextures(u8 *self) {
             } else if (const u8 *const set = CellSet(self, cell)) {
                 u8 *const kept = reinterpret_cast<u8 *>((uintptr_t)TexSet_Texture(set, nullptr, 0));
                 if (kept) Texture_SetKeep(kept);
-                g_prepareCalls.Th(0x0058c9f0, global<u32>(0x8c4b44), kept, 0x3f000000u);   // TexCache_TouchItem
+                g_prepareCalls.Th(0x0058c9f0, gTexcache_8c4b44, kept, 0x3f000000u);   // TexCache_TouchItem
             }
         }
     }

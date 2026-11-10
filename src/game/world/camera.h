@@ -164,3 +164,8 @@ void __cdecl Camera_FollowThing(u32 ride, u32 ground, u32 force, u32 *out, u32 k
 // 0x8bd508 before that write.
 void __fastcall Camera_SetLookAt(u8 *self);
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(const float, gCamera_CentreOnSprite_6ff16c, 0x006ff16c, 0x4);

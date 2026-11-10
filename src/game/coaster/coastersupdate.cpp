@@ -6,6 +6,7 @@
 #include <cstring>
 
 #include "../math/x87.h"
+#include "../world/ridelist.h"
 
 namespace {
 
@@ -80,7 +81,7 @@ void CoastersUpdate_SetCalls(const AddrCall *table, u32 count) { g_calls.Set(tab
 extern "C" {
 
 void __cdecl Coasters_Update() {
-    for (u8 *coaster = global<u8 *>(0x00790fe0); coaster; coaster = at<u8 *>(coaster, 0x18)) {
+    for (u8 *coaster = gRidelist_790fe0; coaster; coaster = at<u8 *>(coaster, 0x18)) {
         if (!(at<u8>(coaster, 0) & 1)) continue;
         global<u8 *>(0x00792218) = coaster;
         global<u8 *>(0x00790fe4) = coaster + 0x3c;
@@ -90,7 +91,7 @@ void __cdecl Coasters_Update() {
         at<u32>(coaster, 0) |= 0x2000;
     }
     global<u32>(0x00792218) = 0;
-    for (u8 *coaster = global<u8 *>(0x00790fe0); coaster; coaster = at<u8 *>(coaster, 0x18)) {
+    for (u8 *coaster = gRidelist_790fe0; coaster; coaster = at<u8 *>(coaster, 0x18)) {
         if (!(at<u8>(coaster, 8) & 0xe)) continue;
         g_calls.Cd(0x0043ce20, coaster);   // Coaster_RunTrains
         if (at<u8>(at<const u8 *>(coaster, 4), 0) & 4) {

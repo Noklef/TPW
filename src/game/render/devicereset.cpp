@@ -3,6 +3,7 @@
 #include <cstdint>
 
 #include "../core/vcall.h"
+#include "../gfx/texcache.h"
 
 namespace {
 
@@ -16,11 +17,11 @@ bool DisplayRestored() {
 
 bool Restored() {
     if (global<u32>(0x8bd524) != 1) return DisplayRestored();
-    return g_calls.Th(0x0058dc10, global<u32>(0x8c4b44))   // TexCache_ReleaseGraphics
+    return g_calls.Th(0x0058dc10, gTexcache_8c4b44)   // TexCache_ReleaseGraphics
         && vcall<u32>(global<u8 *>(0x8bd52c), 0x14)
         && DisplayRestored()
         && vcall<u32>(global<u8 *>(0x8bd52c), 0x18)
-        && g_calls.Th(0x0058db90, global<u32>(0x8c4b44), 0xffffffffu)   // TexCache_ChangeFormat
+        && g_calls.Th(0x0058db90, gTexcache_8c4b44, 0xffffffffu)   // TexCache_ChangeFormat
         && vcall<u32>(global<u8 *>(0x879ab0), 4);
 }
 
@@ -35,7 +36,7 @@ u32 __cdecl Engine_ResetDevice() {
         g_calls.Cd(0x0047ea00);
         return 1;
     }
-    g_calls.Th(0x0058dc10, global<u32>(0x8c4b44));
+    g_calls.Th(0x0058dc10, gTexcache_8c4b44);
     g_calls.Cd(0x00583700);
     g_calls.Th(0x005640a0, global<u32>(0x879a24));
     g_calls.Th(0x0056af20, 0x00879ad0u, 3u, 0xb0754014u);   // EngineErrors_Push

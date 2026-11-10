@@ -5,6 +5,7 @@
 #include "addrcalls.h"
 #include "gameheap.h"
 #include "string.h"
+#include "../world/focuscell.h"
 
 namespace {
 
@@ -76,7 +77,7 @@ u32 __cdecl Global7c2650_Set(u32 value) {
     return value;
 }
 
-u32 __cdecl Global8186ac_Get() { return global<u32>(0x008186ac); }
+u32 __cdecl Global8186ac_Get() { return reinterpret_cast<u32 &>(gFocuscell_8186ac); }
 
 u32 __cdecl Global816d48_Set(u32 value) {
     global<u32>(0x00816d48) = value;
