@@ -2068,6 +2068,7 @@ address,name,kind,confidence,notes
 0x0067a5c0,CRT_isalnum,function,low,"reimplemented (src/game/core/crt); isalnum: the same, & 0x107"
 0x0067a6c0,CRT_atof,function,low,"reimplemented (src/game/core/crt); atof: past white space, _fltin2's double"
 0x0067a730,CRT_iswspace,function,low,"reimplemented (src/game/core/crt); iswspace: iswctype(c, 8)"
+0x006ac9a0,CRT_Getcoll,function,low,"reimplemented (src/game/core/crt); _Getcoll: the LC_COLLATE id and the code page by value in EDX:EAX, under the locale's lock"
 0x00f7a7d0,gCdVolumeLabel,data,medium,"const char *: the CD's volume label, looked for on the CD-ROM drives by the CD check (0x5aa585)"
 0x005f8ae0,RegKey_Open,function,high,"reimplemented (src/game/core/regkey); thiscall (&out, subkey or null, nonzero: HKCU else HKLM); the company key (0x775748) made, then the subkey in it; a held key closed first"
 0x005f8b70,RegKey_Dtor,function,high,reimplemented (src/game/core/regkey); thiscall; RegKey_Close
@@ -6275,6 +6276,7 @@ address,name,kind,confidence,notes
 0x0069c9d0,MoneypunctW_PositiveSign,function,low,reimplemented (src/game/core/moneypunct); do_positive_sign
 0x006a1b20,MoneypunctW_NegativeSign,function,low,reimplemented (src/game/core/moneypunct); do_negative_sign
 0x006a0370,WFacet709c0c_Get,function,low,reimplemented (src/game/core/moneypunct); the facet's do_get
+0x006a1ee0,MoneypunctWIntl_Ctor,function,low,"reimplemented (src/game/core/moneypunct); moneypunct<wchar_t, true>'s constructor: international, Init, then the vtable 0x709da4"
 0x0068bad0,CRT_abstract_cw,function,low,reimplemented (src/game/core/crtfloat); _abstract_cw
 0x0068bb70,CRT_hw_cw,function,low,reimplemented (src/game/core/crtfloat); _hw_cw
 0x0068f9d0,CRT_addl,function,low,reimplemented (src/game/core/crtfloat); __addl
@@ -6505,6 +6507,15 @@ address,name,kind,confidence,notes
 0x00695be0,Numpunct_DeletingDtor,function,low,reimplemented (src/game/core/localefacet); deleting dtor
 0x0069caa0,WNumpunct_DeletingDtor,function,low,reimplemented (src/game/core/localefacet); deleting dtor
 0x006a0460,WFacet709c0c_DeletingDtor,function,low,reimplemented (src/game/core/localefacet); deleting dtor
+0x006a67f0,Locimp_Makexloc,function,low,"reimplemented (src/game/core/localefacet); _Locimp::_Makexloc: the char facets past ctype, numeric and codecvt (collate, messages, the small numeric two, moneypunct both, the time two), each new without a locale, else the locale's own or the classic one"
+0x0069a7a0,Locimp_Makewloc,function,low,"reimplemented (src/game/core/localefacet); _Locimp::_Makewloc: the wchar_t facets, each new without a locale, else the locale's own or the classic one"
+0x006a6fc0,CollateC_Ctor,function,low,"reimplemented (src/game/core/localefacet); collate<char>'s constructor: refs, the vtable 0x709fc4, _Getcoll's block at +8 under a _Locinfo of the name at 0x75c74c"
+0x0069ff10,CollateW_Ctor,function,low,reimplemented (src/game/core/localefacet); collate<wchar_t>'s constructor: the same with the vtable 0x709c24
+0x006ab0e0,Facet70a044_Ctor,function,low,"reimplemented (src/game/core/localefacet); the facet of the vtable 0x70a044's constructor: refs, the _Timevec's block from _Gettnames at +8"
+0x006a4490,Facet709ef4_Ctor,function,low,reimplemented (src/game/core/localefacet); the facet of the vtable 0x709ef4's constructor: the same
+0x006abe80,UseFacet_70a044,function,low,"reimplemented (src/game/core/localefacet); use_facet of the facet of the vtable 0x70a044: the locale's, else the classic one made once and held to exit"
+0x006a5720,UseFacet_709ef4,function,low,reimplemented (src/game/core/localefacet); use_facet of the facet of the vtable 0x709ef4: the same
+0x006a54a0,UseFacet_TimeW,function,low,"reimplemented (src/game/core/localefacet); use_facet of the wchar_t time facet (vtable 0x709ed4): the same, the day and month names widened"
 0x006895b0,CRT_mbctolower,function,low,reimplemented (src/game/core/crtmbstring); _mbctolower
 0x00689650,CRT_mbspbrk,function,low,reimplemented (src/game/core/crtmbstring); _mbspbrk
 0x00689400,CRT_mbsrchr,function,low,reimplemented (src/game/core/crtmbstring); _mbsrchr
