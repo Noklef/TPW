@@ -21,3 +21,14 @@ void __fastcall LobbySky_Enter(u8 *self);
 // 0x5d8d70 (thiscall; name invented, unconfirmed): the vector 0x879dd8 = (1, 0, 0, 0); LightSlot_Set off; the renderer's flags and fog back from +0x34..+0x40; Landscape_ResetDomeCentre on 0x8c1828 and its answer.
 u32 __fastcall LobbySky_Leave(u8 *self);
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(u32, gLobbysky_879dd8, 0x00879dd8, 0x4);
+GAME_DATA(u32, gLobbysky_879ddc, 0x00879ddc, 0x4);
+GAME_DATA(u32, gLobbysky_879de0, 0x00879de0, 0x4);
+GAME_DATA(u32, gLobbysky_879de4, 0x00879de4, 0x4);
+GAME_DATA(u32, gLobbysky_8bd47c, 0x008bd47c, 0x4);
+GAME_DATA(u32, gLobbysky_8bd490, 0x008bd490, 0x4);
+GAME_DATA(u32, gLobbysky_8bd494, 0x008bd494, 0x4);

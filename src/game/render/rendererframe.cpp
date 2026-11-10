@@ -5,6 +5,8 @@
 
 #include "../math/mat4.h"
 #include "../math/x87.h"
+#include "../frontend/lobbysky.h"
+#include "../frontend/lobbyscene.h"
 
 namespace {
 
@@ -49,7 +51,7 @@ bool DrawViewSteps(u8 *renderer, const u32 *view) {
     g_calls.Th(0x00582390, global<u32>(0x008bcbc4), (global<u32>(kSceneFlags) & 0xc0000000) ? 3u : 2u);   // DrawBuffer_Reset
     at<u32>(renderer, 0x30) = 0;
     g_calls.Th(0x00579c70, 0x008bb220u);   // MeshQueue_Clear
-    Slot(Device(), 0x18, global<u32>(0x008bd490), global<u32>(0x008bd494), global<u32>(0x008bd47c));
+    Slot(Device(), 0x18, gLobbysky_8bd490, gLobbysky_8bd494, gLobbysky_8bd47c);
     if (!Slot(Device(), 0x1c)) return false;
     if ((view[0] & 0x10) && !g_calls.Th(0x00576910, (u32)(uintptr_t)renderer)) return false;   // Renderer_DrawCellLists
     if (view[0] & 0x20) {
@@ -112,7 +114,7 @@ bool DrawViewSteps(u8 *renderer, const u32 *view) {
         u32 widthBits, heightBits;
         std::memcpy(&widthBits, &width, 4);
         std::memcpy(&heightBits, &height, 4);
-        if (!Slot(Device(), 0x28, 0u, 0u, widthBits, heightBits, global<u32>(0x008bd4e4), 0u)) return false;
+        if (!Slot(Device(), 0x28, 0u, 0u, widthBits, heightBits, gLobbyscene_8bd4e4, 0u)) return false;
         if (!Slot(Device(), 0x20)) return false;
     }
     return true;

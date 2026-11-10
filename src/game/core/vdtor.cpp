@@ -12,6 +12,7 @@
 #include "vcall.h"
 #include "../model/holder.h"
 #include "../terrain/land.h"
+#include "../frontend/frame.h"
 
 namespace {
 
@@ -640,7 +641,7 @@ extern "C" {
 
 void __fastcall Class702af0_Dtor(u8 *object) {
     at<u32>(object, 0) = 0x00702af0;
-    vcall<u32>(global<u8 *>(0x00f83784), 0x1c, object);
+    vcall<u32>(gFrame_f83784, 0x1c, object);
     DrainMemberList(object, 0x58);
     String_Dtor(reinterpret_cast<String *>(object + 0x24));
     String_Dtor(reinterpret_cast<String *>(object + 0x10));
@@ -694,7 +695,7 @@ void __fastcall Class702a60_Dtor(u8 *object) {
             GameHeap_Free(node);
         }
         if (item) {
-            vcall<u32>(global<u8 *>(0x00f83774), 0x24, item);
+            vcall<u32>(gFrame_f83774, 0x24, item);
             String_Dtor(reinterpret_cast<String *>(item + 0x18));
             String_Dtor(reinterpret_cast<String *>(item + 4));
             GameHeap_Free(item);

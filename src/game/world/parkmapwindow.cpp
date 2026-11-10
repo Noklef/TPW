@@ -30,6 +30,7 @@
 #include "parkmap.h"
 #include "signtext.h"
 #include "staff.h"
+#include "../frontend/lobbysky.h"
 
 namespace {
 
@@ -97,7 +98,7 @@ void Close(u8 *map) {
     g_env->release(images);
     g_env->releaseAll(images);
     g_env->surfaceFree(reinterpret_cast<SurfaceInfo *>(map + 0x2c));
-    global<u32>(0x008bd47c) = at<u32>(map, 8);
+    gLobbysky_8bd47c = at<u32>(map, 8);
     g_env->setFlags(global<u8 *>(0x0087a6d0), nullptr, at<u32>(map, 0xc));
     global<u32>(0x00786ba4) = 1;
     g_env->restore(reinterpret_cast<u8 *>((uintptr_t)0x00786b68));
@@ -506,8 +507,8 @@ void __fastcall ParkMap_Open(u8 *map) {
     global<u32>(0x00786ba4) = 0;
     env->setFlag662411();
     env->f5996d0(1);
-    at<u32>(map, 8) = global<u32>(0x008bd47c);
-    global<u32>(0x008bd47c) = 0;
+    at<u32>(map, 8) = gLobbysky_8bd47c;
+    gLobbysky_8bd47c = 0;
     at<u32>(map, 0xc) = env->stateFlags(global<u8 *>(0x0087a6d0));
     env->setFlags(global<u8 *>(0x0087a6d0), nullptr, 0x2821);
     env->releaseItems(global<u8 *>(0x008c4b44), nullptr, 0);

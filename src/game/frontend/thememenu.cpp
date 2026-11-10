@@ -20,6 +20,7 @@
 #include "../ui/dialog7cc4b4open.h"
 #include "../ui/dialog7cc4b4update.h"
 #include "lobbyscript.h"
+#include "frame.h"
 
 namespace {
 
@@ -145,14 +146,14 @@ void __fastcall ThemeMenu_Enter(u8 *self) {
     if (vcall<s32>(self, 0x24)) return;
     if (!vcall<s32>(self, 0x24)) {
         at<u32>(self, 4) = 1;
-        g_env->holder(global<u8 *>(0x00f83774));
-        g_env->ambient(global<u8 *>(0x00f83778), nullptr, 1, 0x444444);
+        g_env->holder(gFrame_f83774);
+        g_env->ambient(gFrame_f83778, nullptr, 1, 0x444444);
         const u32 colour = 0xeeeeee;
-        g_env->light(global<u8 *>(0x00f83778), nullptr, 1, &colour, nullptr, 1);
-        Fn_5e1bb0(global<u8 *>(0x00f83778), nullptr, 0x40000000, 0x41000000, 1);
-        at<float>(global<u8 *>(0x00f83778), 4) = at<float>(at<u8 *>(global<u8 *>(0x00f82884), 0x10), 4);
-        Render_FogOn(global<u8 *>(0x00f83778));
-        Render_SetFog(global<u8 *>(0x00f83778), nullptr, 0xff44ddff, 0x42480000, 0x437a0000);
+        g_env->light(gFrame_f83778, nullptr, 1, &colour, nullptr, 1);
+        Fn_5e1bb0(gFrame_f83778, nullptr, 0x40000000, 0x41000000, 1);
+        at<float>(gFrame_f83778, 4) = at<float>(at<u8 *>(global<u8 *>(0x00f82884), 0x10), 4);
+        Render_FogOn(gFrame_f83778);
+        Render_SetFog(gFrame_f83778, nullptr, 0xff44ddff, 0x42480000, 0x437a0000);
         at<u32>(self, 0x14) = 0;
         at<u32>(self, 0xc) = 0;
         at<u32>(self, 0x10) = 0;

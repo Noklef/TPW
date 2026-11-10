@@ -7,6 +7,7 @@
 #include "../core/vcall.h"
 #include "../math/x87.h"
 #include "engineerrors.h"
+#include "../frontend/lobbysky.h"
 
 namespace {
 
@@ -54,23 +55,23 @@ void __fastcall Render_FogOff(void *) { global<u32>(0x008bcbc8) &= ~0x2000u; }
 
 // The start and end are floats, moved as dwords.
 void __fastcall Render_SetFog(void *, void *, u32 colour, u32 start, u32 end) {
-    global<u32>(0x008bd47c) = colour;
-    global<u32>(0x008bd490) = start;
-    global<u32>(0x008bd494) = end;
+    gLobbysky_8bd47c = colour;
+    gLobbysky_8bd490 = start;
+    gLobbysky_8bd494 = end;
 }
 
 void __fastcall Render_SetAmbient(void *, void *, u32 on, u32 colour) {
-    global<u32>(0x00879dd8) = 0x3f800000;  // 1.0f
+    gLobbysky_879dd8 = 0x3f800000;  // 1.0f
     if (on == 0) {
-        global<u32>(0x00879ddc) = 0;
-        global<u32>(0x00879de0) = 0;
-        global<u32>(0x00879de4) = 0;
+        gLobbysky_879ddc = 0;
+        gLobbysky_879de0 = 0;
+        gLobbysky_879de4 = 0;
         return;
     }
     const float scale = 1.0f / 255.0f;  // 0x702a4c; fild qword of each byte, fmul
-    global<float>(0x00879ddc) = (float)(X87Reg((double)(colour >> 16 & 0xff)) * scale);
-    global<float>(0x00879de0) = (float)(X87Reg((double)(colour >> 8 & 0xff)) * scale);
-    global<float>(0x00879de4) = (float)(X87Reg((double)(colour & 0xff)) * scale);
+    reinterpret_cast<float &>(gLobbysky_879ddc) = (float)(X87Reg((double)(colour >> 16 & 0xff)) * scale);
+    reinterpret_cast<float &>(gLobbysky_879de0) = (float)(X87Reg((double)(colour >> 8 & 0xff)) * scale);
+    reinterpret_cast<float &>(gLobbysky_879de4) = (float)(X87Reg((double)(colour & 0xff)) * scale);
 }
 
 u32 __cdecl Options_Apply() {
@@ -105,7 +106,7 @@ u32 __cdecl Options_Apply() {
 }
 
 u32 __cdecl Environment_Apply() {
-    global<u32>(0x008bd47c) = global<u32>(0x007856d4);
+    gLobbysky_8bd47c = global<u32>(0x007856d4);
     global<u32>(0x007a0b44) = global<u32>(0x007856d8);
     global<u32>(0x007a0b3c) = global<u32>(0x007856dc);
     const s32 c = global<s32>(0x007856e0), e = global<s32>(0x007856e4);
@@ -129,7 +130,7 @@ u32 __cdecl Environment_Apply() {
 }
 
 u32 __fastcall Render_FadeFog(u8 *fade) {
-    u32 colour = global<u32>(0x008bd47c);
+    u32 colour = gLobbysky_8bd47c;
     if (global<s32>(0x00785888) > 1 && global<u32>(0x0078d8d8) == 1) {
         const s32 a = at<s32>(fade, 0x44), b = at<s32>(fade, 0x48), c = at<s32>(fade, 0x4c);
         const s32 targetB = at<s32>(fade, 0x54), targetC = at<s32>(fade, 0x58);

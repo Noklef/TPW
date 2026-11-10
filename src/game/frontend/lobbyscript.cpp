@@ -137,17 +137,17 @@ void __fastcall LobbyScript_Load(u8 *self, void *, const char *name, u32 a2, s32
     const char *cursor = text;
     while (cursor < end) {
         const u32 world = *reinterpret_cast<u32 *>(self + 0x10);
-        if (!Crt().strncmp(reinterpret_cast<const char *>((uintptr_t)0x00774d78), cursor, 7)) {
+        if (!Crt().strncmp(gLobbyScript_Load_774d78, cursor, 7)) {
             Island(self, cursor, name, a2, index, a4, a5);
-        } else if (!Crt().strncmp(reinterpret_cast<const char *>((uintptr_t)0x00774d6c), cursor, 0xb)) {
+        } else if (!Crt().strncmp(gLobbyScript_Load_774d6c, cursor, 0xb)) {
             FlyingMesh(self, cursor);
-        } else if (!Crt().strncmp(reinterpret_cast<const char *>((uintptr_t)0x00774d60), cursor, 0xa)) {
+        } else if (!Crt().strncmp(gLobbyScript_Load_774d60, cursor, 0xa)) {
             SkipPast(cursor, '(');
             G<s32>(world + 0x5c) = IntToken(cursor, ')');
-        } else if (!Crt().strncmp(reinterpret_cast<const char *>((uintptr_t)0x00774d58), cursor, 6)) {
+        } else if (!Crt().strncmp(gLobbyScript_Load_774d58, cursor, 6)) {
             SkipPast(cursor, '(');
             G<s32>(world + 0x60) = IntToken(cursor, ')');
-        } else if (!Crt().strncmp(reinterpret_cast<const char *>((uintptr_t)0x00774d4c), cursor, 0xa)) {
+        } else if (!Crt().strncmp(gLobbyScript_Load_774d4c, cursor, 0xa)) {
             SkipPast(cursor, '(');
             const s32 red = IntToken(cursor, ',');
             const s32 green = IntToken(cursor, ',');

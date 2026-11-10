@@ -13,6 +13,7 @@
 #include "../ui/dialogs.h"
 #include "../ui/window.h"
 #include "lobbymodel.h"
+#include "frame.h"
 
 namespace {
 
@@ -64,7 +65,7 @@ void pickThing(u8 *self) {
     in[1] = (float)((X87Reg(X87_MulIntDouble(0x600 - *reinterpret_cast<const s32 *>(input + 0x24), *reinterpret_cast<float *>((uintptr_t)0x00702b84))) - kOne) *
                     *reinterpret_cast<float *>((uintptr_t)0x008bcbcc) * kScale);
     Mat4_Transform(*reinterpret_cast<const float **>((uintptr_t)0x0087afe8), nullptr, out, in, 2);
-    const float *const camera = reinterpret_cast<const float *>(*reinterpret_cast<u8 **>((uintptr_t)0x00f83778) + 8);
+    const float *const camera = reinterpret_cast<const float *>(gFrame_f83778 + 8);
     const float p0 = camera[0], p1 = camera[1], p2 = camera[2];
     const X87Reg a0 = X87Reg(out[0]) - p0, a1 = X87Reg(out[1]) - p1, a2 = X87Reg(out[2]) - p2;
     const float a0f = (float)a0, a1f = (float)a1;
@@ -75,7 +76,7 @@ void pickThing(u8 *self) {
     const float alongf = (float)along;
     const X87Reg w0 = n0 - along * u0, w1 = n1 - X87Reg(alongf) * u1, w2 = n2 - X87Reg(alongf) * u2;
     const float missed = (float)(w0 * w0 + w1 * (float)w1 + w2 * (float)w2);
-    const float kRadius = *reinterpret_cast<float *>((uintptr_t)0x00702b8c), kNear = *reinterpret_cast<float *>((uintptr_t)0x00702b90);
+    const float kRadius = gViewcontrols_702b8c, kNear = gViewcontrols_702b90;
     bool hit = false;
     X87Reg h = 0.0;
     if (!(missed >= kRadius)) {
@@ -91,8 +92,8 @@ void pickThing(u8 *self) {
         point[0] = (float)(X87Reg(u0) * h + p0);
         point[1] = (float)(X87Reg(u1) * h + p1);
         point[2] = (float)(X87Reg(u2) * h + p2);
-        float best = *reinterpret_cast<float *>((uintptr_t)0x00702b94);
-        const float kWithin = *reinterpret_cast<float *>((uintptr_t)0x00702b98);
+        float best = gViewcontrols_702b94;
+        const float kWithin = gViewcontrols_702b98;
         for (const u32 *node = *reinterpret_cast<const u32 **>(*reinterpret_cast<u8 **>(self + 0x6c) + 4); node;) {
             u8 *const value = reinterpret_cast<u8 *>((uintptr_t)node[0]);
             node = reinterpret_cast<const u32 *>((uintptr_t)node[1]);
@@ -114,14 +115,14 @@ void edgeScroll(u8 *self) {
     const u8 *const input = *reinterpret_cast<u8 **>((uintptr_t)0x00f82884);
     float &v48 = *reinterpret_cast<float *>(self + 0x48), &v50 = *reinterpret_cast<float *>(self + 0x50);
     const float kZero = *reinterpret_cast<float *>((uintptr_t)0x00702b88), kOne = *reinterpret_cast<float *>((uintptr_t)0x00702b60);
-    const float kLow = *reinterpret_cast<float *>((uintptr_t)0x00702ba8), kHigh = *reinterpret_cast<float *>((uintptr_t)0x00702bac);
-    float fx = (float)X87_MulIntDouble(*reinterpret_cast<const s32 *>(input + 0x20), *reinterpret_cast<float *>((uintptr_t)0x00702b9c));
+    const float kLow = gViewcontrols_702ba8, kHigh = gViewcontrols_702bac;
+    float fx = (float)X87_MulIntDouble(*reinterpret_cast<const s32 *>(input + 0x20), gViewcontrols_702b9c);
     if (fx < kZero) fx = 0.0f;
     else if (fx > kOne) fx = 1.0f;
-    X87Reg fy = X87_MulIntDouble(*reinterpret_cast<const s32 *>(input + 0x24), *reinterpret_cast<float *>((uintptr_t)0x00702ba0));
+    X87Reg fy = X87_MulIntDouble(*reinterpret_cast<const s32 *>(input + 0x24), gViewcontrols_702ba0);
     if (fy.v < kZero) fy = X87Reg(kZero);
     else if (fy.v > kOne) fy = X87Reg(kOne);
-    const X87Reg rate = X87Reg(*reinterpret_cast<float *>(self + 0x10)) * *reinterpret_cast<float *>((uintptr_t)0x00702ba4);
+    const X87Reg rate = X87Reg(*reinterpret_cast<float *>(self + 0x10)) * gViewcontrols_702ba4;
     if (fx < kLow) v48 = (float)X87_SubR((X87Reg(kLow) - fx) * rate, v48);
     else if (fx > kHigh) v48 = (float)((X87Reg(fx) - kHigh) * rate + v48);
     if (fy.v < kLow) v50 = (float)((X87Reg(kLow) - fy) * rate + v50);
@@ -166,13 +167,13 @@ extern "C" void __fastcall ViewCtl702bc8_Update(u8 *self) {
     const float target = *reinterpret_cast<const float *>(targets + (second ? 0x18 : 0x14));
     const float kept = *reinterpret_cast<float *>(self + (second ? 0x3c : 0x38));
     float &v54 = *reinterpret_cast<float *>(self + 0x54), &v34 = *reinterpret_cast<float *>(self + 0x34);
-    const float kEase = *reinterpret_cast<float *>((uintptr_t)0x00702bb0);
+    const float kEase = gViewCtl702bc8_Update_702bb0;
     const X87Reg toTarget = X87Reg(target) - v54, toKept = X87Reg(kept) - v34;
     const float dt = *reinterpret_cast<float *>(input() + 8);
     v54 = (float)X87_SubR(toTarget * dt * kEase, v54);
     const X87Reg s = X87_SubR(toKept * dt * kEase, v34);
     v34 = (float)s;
-    u8 *const camera = *reinterpret_cast<u8 **>((uintptr_t)0x00f83778);
+    u8 *const camera = gFrame_f83778;
     float *const view = reinterpret_cast<float *>(camera);
     view[0x28 / 4] = (float)s;
     *reinterpret_cast<u32 *>(camera + 0x30) = 0;

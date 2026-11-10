@@ -79,9 +79,9 @@ u32 __fastcall Frame_Start(u8 *frame) {
     if (settings) at<u32>(settings, 0) = 0x007029fc;
     at<u8 *>(frame, 0x10) = settings;
     g_start->camera(settings);
-    global<u8 *>(0x00f83774) = Make(0x10, g_start->make702a60);
-    global<u8 *>(0x00f83778) = Make(0x64, g_start->make702a90);
-    global<u8 *>(0x00f83784) = Make(8, g_start->make702b08);
+    gFrame_f83774 = Make(0x10, g_start->make702a60);
+    gFrame_f83778 = Make(0x64, g_start->make702a90);
+    gFrame_f83784 = Make(8, g_start->make702b08);
     global<u8 *>(0x00f85614) = Make(0x1c, g_start->make702d78);
     u8 *node = at<u8 *>(at<u8 *>(frame, 0x18), 4);
     while (node) {
@@ -165,9 +165,9 @@ u32 __fastcall Class7029f0_Close(u8 *frame) {
         node = at<u8 *>(node, 4);
         vcall<void>(object, 0x10);
     }
-    Delete(global<u8 *>(0x00f83784));
-    Delete(global<u8 *>(0x00f83778));
-    Delete(global<u8 *>(0x00f83774));
+    Delete(gFrame_f83784);
+    Delete(gFrame_f83778);
+    Delete(gFrame_f83774);
     Delete(global<u8 *>(0x00f85614));
     Delete(at<u8 *>(frame, 0x10));
     Sound_ReleaseLobbySfx();

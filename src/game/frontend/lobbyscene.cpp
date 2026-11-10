@@ -23,6 +23,7 @@
 #include "../world/rides.h"
 #include "lobbyflight.h"
 #include "lobbymodel.h"
+#include "frame.h"
 
 namespace {
 
@@ -109,7 +110,7 @@ void Steer(const float *target, const float *pos, float *want, float *dir) {
         std::memcpy(&want[2], &zero, 4);
     }
     Normalise(want);
-    const X87Reg ease = X87Reg(FrameScale()) * global<float>(0x00702c7c);  // 0.1
+    const X87Reg ease = X87Reg(FrameScale()) * gLobbyscene_702c7c;  // 0.1
     for (u32 k = 0; k < 3; ++k)
         dir[k] = (float)((X87Reg(want[k]) - dir[k]) * ease + dir[k]);
     Normalise(dir);
@@ -141,7 +142,7 @@ X87Reg Wrap(X87Reg a, float full) {
 
 // The camera on the model at +0xc, by the state.
 void Follow(u8 *object) {
-    u8 *const camera = global<u8 *>(0x00f83778);
+    u8 *const camera = gFrame_f83778;
     const u8 *const model = at<const u8 *>(object, 0xc);
     const u8 *const place = at<const u8 *>(global<u8 *>(0x00f82884), 0x10);
     const float pi = global<float>(0x00702c18);
@@ -174,7 +175,7 @@ void Follow(u8 *object) {
         const float full = (float)(X87Reg(pi) + X87Reg(pi));
         const X87Reg heading = Wrap(X87Reg(at<float>(model, 0x14)) + pi, full);
         const X87Reg off = Wrap(X87Reg(angle) - heading, full);
-        const X87Reg rate = X87Reg(FrameScale()) * global<float>(0x00702c78);   // 0.05
+        const X87Reg rate = X87Reg(FrameScale()) * gLobbyscene_702c78;   // 0.05
         const float step = (float)rate;
         const X87Reg half = rate * global<float>(0x00702c5c);   // 0.5
         if (!(off.v >= half.v) || off.v > (full - half).v) {
@@ -210,7 +211,7 @@ void Follow(u8 *object) {
 
 // The camera on its own: the position (+0x78) and look-at (+0xb4) each steered to their targets; the list's nearest model taken.
 void Roam(u8 *object, s32 count) {
-    u8 *const camera = global<u8 *>(0x00f83778);
+    u8 *const camera = gFrame_f83778;
     at<u32>(camera, 0x60) = 0;
     float *const pos = &at<float>(object, 0x78), *const target = &at<float>(object, 0x84), *const dir = &at<float>(object, 0x90);
     Steer(target, pos, &at<float>(object, 0x9c), dir);
@@ -229,7 +230,7 @@ void Roam(u8 *object, s32 count) {
         Copy3(lookTarget, object + 0x58);
         at<u32>(object, 0xc4) = 0x41200000;  // 10
     } else {
-        float best = global<float>(0x00702c80);   // 9999999
+        float best = gLobbyscene_702c80;   // 9999999
         for (const u8 *node = at<const u8 *>(at<const u8 *>(object, 8), 4); node; node = at<const u8 *>(node, 4)) {
             u8 *const model = at<u8 *>(node, 0);
             const X87Reg dx = X87Reg(at<float>(model, 0x3c)) - at<float>(object, 0x28);
@@ -249,11 +250,11 @@ void Roam(u8 *object, s32 count) {
     const float top = at<float>(object, 0xa8);
     if (Below(lookLeft, at<float>(object, 0xb0))) {
         if (!NotAbove(X87Reg(speed), 0.0f))
-            speed = (float)(speed - X87Reg(top) * global<float>(0x00702c78));   // 0.05
+            speed = (float)(speed - X87Reg(top) * gLobbyscene_702c78);   // 0.05
         else
             at<u32>(object, 0xac) = 0;
     } else if (Below(X87Reg(speed), top)) {
-        speed = (float)(speed - X87Reg(top) * global<float>(0x00702c84));   // -0.05
+        speed = (float)(speed - X87Reg(top) * gLobbyscene_702c84);   // -0.05
     } else {
         at<u32>(object, 0xac) = at<u32>(object, 0xa8);
     }
@@ -265,7 +266,7 @@ void Roam(u8 *object, s32 count) {
 // The weather's drops, the model's burst and sounds, and the list's models played again.
 void Ambience(u8 *object) {
     u8 *const weather = global<u8 *>(0x008bcbac);
-    u8 *const camera = global<u8 *>(0x00f83778);
+    u8 *const camera = gFrame_f83778;
     Obj_SetFirst(weather, nullptr, 1);
     X87Reg sum = 0.0;
     s32 flagged = 0;
@@ -282,10 +283,10 @@ void Ambience(u8 *object) {
     if (flagged > 0) {
         const X87Reg mean = sum / X87Reg((double)flagged);
         const X87Reg square = mean * mean;
-        drops = (float)(global<float>(0x00702c88) / (square * square));   // 1e17
-        if (Below(X87Reg(drops), global<float>(0x00702c8c)))   // 20
+        drops = (float)(gLobbyscene_702c88 / (square * square));   // 1e17
+        if (Below(X87Reg(drops), gLobbyscene_702c8c))   // 20
             drops = 0.0f;
-        else if (!NotAbove(X87Reg(drops), global<float>(0x00702c90)))   // 400
+        else if (!NotAbove(X87Reg(drops), gLobbyscene_702c90))   // 400
             drops = 400.0f;
     }
     WeatherFx_SetDropCount(weather, nullptr, (u32)(s32)(long long)(double)drops);
@@ -294,7 +295,7 @@ void Ambience(u8 *object) {
     if (!model)
         return;
     if (at<s32>(model, 0x5c) > 0 && (at<u32>(model, 0x5c) & NextRandom()) == 1) {
-        const float hundred = global<float>(0x00702c94), fifty = global<float>(0x00702c98), twenty = global<float>(0x00702c8c), ten = global<float>(0x00702ca0);
+        const float hundred = gLobbyscene_702c94, fifty = gLobbyscene_702c98, twenty = gLobbyscene_702c8c, ten = gLobbyscene_702ca0;
         const float x = at<float>(model, 0x3c), z = at<float>(model, 0x44);
         const float x1 = (float)(((RandomUnit() * hundred) + x) - fifty);
         const float z1 = (float)(((RandomUnit() * hundred) + z) - fifty);
@@ -335,7 +336,7 @@ extern "C" {
 
 void __fastcall Class702a50_Dtor(u8 *object) {
     at<u32>(object, 0) = 0x00702a50;
-    vcall<u32>(*reinterpret_cast<u8 **>((uintptr_t)0x00f83774), 0x20, object);
+    vcall<u32>(gFrame_f83774, 0x20, object);
     g_env->destroy(at<u32>(object, 4));
     g_env->stringDtor(reinterpret_cast<String *>(object + 0x20));
     g_env->stringDtor(reinterpret_cast<String *>(object + 0xc));
@@ -380,7 +381,7 @@ void __fastcall LobbyCamera_Frame(u8 *camera) {
     if (at<s32>(camera, 0x5c) > 0) {
         global<u32>(0x008bcbc8) |= 0x80000;
         const s32 alpha = at<s32>(camera, 0x5c) >> 8;
-        global<u32>(0x008bd4e4) = static_cast<u32>(alpha > 0xff ? 0xff : alpha) << 24;
+        gLobbyscene_8bd4e4 = static_cast<u32>(alpha > 0xff ? 0xff : alpha) << 24;
     } else {
         global<u32>(0x008bcbc8) &= 0xfff7ffff;
     }
@@ -497,10 +498,10 @@ void __fastcall Class702cb0_StepCamera(u8 *object) {
     for (int i = 0; i < 3; i++)
         look[i] = (float)((X87Reg(look[i + 3]) - look[i]) * near2 + look[i]);
 
-    u8 *camera = at<u8 *>(reinterpret_cast<const void *>(0x00f83778), 0);
+    u8 *camera = at<u8 *>(reinterpret_cast<const void *>(&gFrame_f83778), 0);
     for (u32 i = 0; i < 0xc; i += 4)
         at<u32>(camera, 8 + i) = at<u32>(pos, i);
-    camera = at<u8 *>(reinterpret_cast<const void *>(0x00f83778), 0);
+    camera = at<u8 *>(reinterpret_cast<const void *>(&gFrame_f83778), 0);
     for (u32 i = 0; i < 0xc; i += 4)
         at<u32>(camera, 0x14 + i) = at<u32>(look, i);
 }
@@ -519,7 +520,7 @@ u8 *__fastcall Class702af0_Ctor(u8 *object, void *, s32 count, const char *name,
     }
     at<u32>(object, 4) = 0;
     at<u32 *>(object, 0x58) = list;
-    s32 share = (s32)((u32)count * *reinterpret_cast<u32 *>((uintptr_t)0x007858dc)) / 100;
+    s32 share = (s32)((u32)count * gClass702af0_Ctor_7858dc) / 100;
     if (share < 1)
         share = 1;
     else if (share > count)
@@ -537,7 +538,7 @@ u8 *__fastcall Class702af0_Ctor(u8 *object, void *, s32 count, const char *name,
     at<u32>(object, 0x50) = a;
     at<u32>(object, 0x4c) = last;
     at<u32>(object, 0x54) = b;
-    vcall<void>(*reinterpret_cast<u8 **>((uintptr_t)0x00f83784), 0x18, object);
+    vcall<void>(gFrame_f83784, 0x18, object);
     return object;
 }
 }

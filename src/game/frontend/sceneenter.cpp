@@ -17,6 +17,7 @@
 #include "../ui/dialogs.h"
 #include "lobbymake.h"
 #include "scenequeue.h"
+#include "frame.h"
 
 namespace {
 
@@ -29,7 +30,7 @@ const SceneEnterEnv kPorts = {&WeatherFx_SetDropCount, &Render_FogOff, &Render_S
                               &Dialog7cdb0c_Create, &Dialog7cc4c4_Create};
 const SceneEnterEnv *g_env = &kPorts;
 
-u8 *View() { return global<u8 *>(0x00f83778); }
+u8 *View() { return gFrame_f83778; }
 
 u32 Active(u8 *self) { return vcall<u32>(self, 0x24); }
 
@@ -82,7 +83,7 @@ void __fastcall ViewCtl702bc8_Enter(u8 *self) {
     u8 *const part = static_cast<u8 *>(GameHeap_Alloc(0x18));
     if (part) {
         at<u32>(part, 0) = 0x00702bb4;
-        u8 *const model = g_env->makeModel(global<u8 *>(0x00f83774), nullptr, reinterpret_cast<const char *>(0x00774c80), reinterpret_cast<const char *>(0x00774cc0), 1, 1, 0, 0);
+        u8 *const model = g_env->makeModel(gFrame_f83774, nullptr, reinterpret_cast<const char *>(0x00774c80), reinterpret_cast<const char *>(0x00774cc0), 1, 1, 0, 0);
         at<u8 *>(part, 4) = model;
         g_env->acquire(model);
         at<u8 *>(part, 8) = self;
@@ -102,7 +103,7 @@ void __fastcall Class702cb0_Enter(u8 *self) {
     if (Active(self))
         return;
     at<u32>(self, 4) = 1;
-    g_env->holderAcquire(global<u8 *>(0x00f83774));
+    g_env->holderAcquire(gFrame_f83774);
     g_env->ambient(View(), nullptr, 1, 0x444444);
     const u32 colour = 0xeeeeee;
     g_env->light(View(), nullptr, 1, &colour, nullptr, 1);

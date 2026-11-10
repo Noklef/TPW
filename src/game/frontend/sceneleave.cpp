@@ -10,6 +10,7 @@
 #include "../model/holder.h"
 #include "../online/session.h"
 #include "../ui/dialogs.h"
+#include "frame.h"
 
 namespace {
 
@@ -41,7 +42,7 @@ void LeaveView(u8 *self) {
     g_env->message7cdb0c();
     ObjList_Drain(self, 8);
     ObjList_Drain(self, 0x6c);
-    g_env->drain0c(global<u8 *>(0x00f83774));
+    g_env->drain0c(gFrame_f83774);
     global<u32>(0x008bcbc8) &= 0xfdffffff;
     g_env->stop(at<u32>(self, 0x74));
     g_env->stop(at<u32>(self, 0x78));
@@ -58,9 +59,9 @@ void LeaveScene(u8 *self, s32(__cdecl *message)()) {
     if (!Active(self)) return;
     if (Active(self)) LeaveCurrent(self);
     ObjList_Drain(self, 8);
-    g_env->release(global<u8 *>(0x00f83774));
-    g_env->drain04(global<u8 *>(0x00f83784));
-    g_env->drain0c(global<u8 *>(0x00f83774));
+    g_env->release(gFrame_f83774);
+    g_env->drain04(gFrame_f83784);
+    g_env->drain0c(gFrame_f83774);
     vcall<u32>(self, 0x2c);
     message();
 }
