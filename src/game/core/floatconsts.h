@@ -79,3 +79,71 @@ void __cdecl FloatConsts_InitEpsilon_48d890();  // 0x7c26ac
 void __cdecl FloatConsts_InitOne_4b4490();      // 0x7cc31c (after the 0x7cc2f0 getter, before an unported constructor)
 void __cdecl FloatConsts_InitEpsilon_4b44b0();  // 0x7cc320
 }
+
+#include "gamedata.h"
+
+// Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(float, gFloatConsts_One_78639c, 0x0078639c, 0x4);
+GAME_DATA(float, gFloatConsts_Epsilon_786aec, 0x00786aec, 0x4);
+GAME_DATA(float, gFloatConsts_One_78736c, 0x0078736c, 0x4);
+GAME_DATA(float, gFloatConsts_Epsilon_787a5c, 0x00787a5c, 0x4);
+GAME_DATA(float, gFloatConsts_One_788394, 0x00788394, 0x4);
+GAME_DATA(float, gFloatConsts_Epsilon_788a84, 0x00788a84, 0x4);
+GAME_DATA(float, gFloatConsts_One_78a3e0, 0x0078a3e0, 0x4);
+GAME_DATA(float, gFloatConsts_Epsilon_78a458, 0x0078a458, 0x4);
+GAME_DATA(float, gFloatConsts_One_78c02c, 0x0078c02c, 0x4);
+GAME_DATA(float, gFloatConsts_Epsilon_78c71c, 0x0078c71c, 0x4);
+GAME_DATA(float, gFloatConsts_One_78de9c, 0x0078de9c, 0x4);
+GAME_DATA(float, gFloatConsts_Epsilon_78e58c, 0x0078e58c, 0x4);
+GAME_DATA(float, gFloatConsts_One_78e848, 0x0078e848, 0x4);
+GAME_DATA(float, gFloatConsts_Epsilon_78e84c, 0x0078e84c, 0x4);
+GAME_DATA(float, gFloatConsts_One_78fc74, 0x0078fc74, 0x4);
+GAME_DATA(float, gFloatConsts_Epsilon_790364, 0x00790364, 0x4);
+GAME_DATA(float, gFloatConsts_One_790fdc, 0x00790fdc, 0x4);
+GAME_DATA(float, gFloatConsts_Epsilon_791cdc, 0x00791cdc, 0x4);
+GAME_DATA(float, gFloatConsts_One_792224, 0x00792224, 0x4);
+GAME_DATA(float, gFloatConsts_Epsilon_792228, 0x00792228, 0x4);
+GAME_DATA(float, gFloatConsts_One_792234, 0x00792234, 0x4);
+GAME_DATA(float, gFloatConsts_Epsilon_7922e0, 0x007922e0, 0x4);
+GAME_DATA(float, gFloatConsts_One_792390, 0x00792390, 0x4);
+GAME_DATA(float, gFloatConsts_Epsilon_792394, 0x00792394, 0x4);
+GAME_DATA(float, gFloatConsts_One_792398, 0x00792398, 0x4);
+GAME_DATA(float, gFloatConsts_Epsilon_79239c, 0x0079239c, 0x4);
+GAME_DATA(float, gFloatConsts_One_79c63c, 0x0079c63c, 0x4);
+GAME_DATA(float, gFloatConsts_Epsilon_79c6cc, 0x0079c6cc, 0x4);
+GAME_DATA(float, gFloatConsts_One_79ce9c, 0x0079ce9c, 0x4);
+GAME_DATA(float, gFloatConsts_Epsilon_79d58c, 0x0079d58c, 0x4);
+GAME_DATA(float, gFloatConsts_One_79df2c, 0x0079df2c, 0x4);
+GAME_DATA(float, gFloatConsts_Epsilon_79e62c, 0x0079e62c, 0x4);
+GAME_DATA(float, gFloatConsts_One_79ee24, 0x0079ee24, 0x4);
+GAME_DATA(float, gFloatConsts_Epsilon_79f514, 0x0079f514, 0x4);
+GAME_DATA(float, gFloatConsts_One_79f7d8, 0x0079f7d8, 0x4);
+GAME_DATA(float, gFloatConsts_Epsilon_79fb14, 0x0079fb14, 0x4);
+GAME_DATA(float, gFloatConsts_One_79fb30, 0x0079fb30, 0x4);
+GAME_DATA(float, gFloatConsts_Epsilon_79fb34, 0x0079fb34, 0x4);
+GAME_DATA(float, gFloatConsts_One_7a3f1c, 0x007a3f1c, 0x4);
+GAME_DATA(float, gFloatConsts_Epsilon_7ae610, 0x007ae610, 0x4);
+GAME_DATA(float, gFloatConsts_One_7afd98, 0x007afd98, 0x4);
+GAME_DATA(float, gFloatConsts_Epsilon_7afda8, 0x007afda8, 0x4);
+GAME_DATA(float, gFloatConsts_One_7b4970, 0x007b4970, 0x4);
+GAME_DATA(float, gFloatConsts_Epsilon_7b4978, 0x007b4978, 0x4);
+GAME_DATA(float, gFloatConsts_One_7b4984, 0x007b4984, 0x4);
+GAME_DATA(float, gFloatConsts_Epsilon_7b498c, 0x007b498c, 0x4);
+GAME_DATA(float, gFloatConsts_One_7b4a24, 0x007b4a24, 0x4);
+GAME_DATA(float, gFloatConsts_Epsilon_7b4a28, 0x007b4a28, 0x4);
+GAME_DATA(float, gFloatConsts_One_7b4a2c, 0x007b4a2c, 0x4);
+GAME_DATA(float, gFloatConsts_Epsilon_7b4a30, 0x007b4a30, 0x4);
+GAME_DATA(float, gFloatConsts_One_7b4a58, 0x007b4a58, 0x4);
+GAME_DATA(float, gFloatConsts_Epsilon_7b4a5c, 0x007b4a5c, 0x4);
+GAME_DATA(float, gFloatConsts_One_7b4bf0, 0x007b4bf0, 0x4);
+GAME_DATA(float, gFloatConsts_Epsilon_7b4bf4, 0x007b4bf4, 0x4);
+GAME_DATA(float, gFloatConsts_One_7b51e4, 0x007b51e4, 0x4);
+GAME_DATA(float, gFloatConsts_Epsilon_7b51e8, 0x007b51e8, 0x4);
+GAME_DATA(float, gFloatConsts_One_7c265c, 0x007c265c, 0x4);
+GAME_DATA(float, gFloatConsts_Epsilon_7c2664, 0x007c2664, 0x4);
+GAME_DATA(float, gFloatConsts_One_7c26a8, 0x007c26a8, 0x4);
+GAME_DATA(float, gFloatConsts_Epsilon_7c26ac, 0x007c26ac, 0x4);
+GAME_DATA(float, gFloatConsts_One_7ca0b8, 0x007ca0b8, 0x4);
+GAME_DATA(float, gFloatConsts_Epsilon_7ca0dc, 0x007ca0dc, 0x4);
+GAME_DATA(float, gFloatConsts_One_7cc31c, 0x007cc31c, 0x4);
+GAME_DATA(float, gFloatConsts_Epsilon_7cc320, 0x007cc320, 0x4);
