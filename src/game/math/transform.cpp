@@ -46,25 +46,20 @@ void __cdecl Transform_Vertices(void *, const float *m, float *out, const u8 *in
         const float x = in[0], y = in[1], z = in[2];
         if (mode == 1) {
             const float w = in[3];
-            out[0] = (float)(((X87Reg(y) * m[4] + X87Reg(w) * m[12]) + X87Reg(z) * m[8]) + X87Reg(m[0]) * x);
+            out[0] = (float)(((X87Reg(y) * m[4] + X87Reg(w) * m[12]) + X87Reg(z) * m[8]) + X87Reg(m[0]) * X87Reg(x));
             out[1] = (float)(((X87Reg(w) * m[13] + X87Reg(y) * m[5]) + X87Reg(x) * m[1]) + X87Reg(z) * m[9]);
             out[2] = (float)(((X87Reg(z) * m[10] + X87Reg(y) * m[6]) + X87Reg(x) * m[2]) + X87Reg(w) * m[14]);
             out[3] = (float)(((X87Reg(z) * m[11] + X87Reg(y) * m[7]) + X87Reg(w) * m[15]) + X87Reg(x) * m[3]);
             continue;
         }
-        const X87Reg x_ = (X87Reg(y) * m[4] + X87Reg(z) * m[8]) + X87Reg(m[0]) * x;
+        // Each output reads m[] after the store before it: m may overlap out.
+        const X87Reg x_ = (X87Reg(y) * m[4] + X87Reg(z) * m[8]) + X87Reg(m[0]) * X87Reg(x);
+        out[0] = (float)(mode == 3 ? x_ : x_ + m[12]);
         const X87Reg y_ = (X87Reg(y) * m[5] + X87Reg(x) * m[1]) + X87Reg(z) * m[9];
+        out[1] = (float)(mode == 3 ? y_ : y_ + m[13]);
         const X87Reg z_ = (X87Reg(z) * m[10] + X87Reg(y) * m[6]) + X87Reg(x) * m[2];
-        if (mode == 3) {
-            out[0] = (float)x_;
-            out[1] = (float)y_;
-            out[2] = (float)z_;
-            continue;
-        }
-        out[0] = (float)(x_ + m[12]);
-        out[1] = (float)(y_ + m[13]);
-        out[2] = (float)(z_ + m[14]);
-        if (mode != 2) out[3] = (float)(((X87Reg(z) * m[11] + X87Reg(y) * m[7]) + X87Reg(x) * m[3]) + m[15]);
+        out[2] = (float)(mode == 3 ? z_ : z_ + m[14]);
+        if (mode != 2 && mode != 3) out[3] = (float)(((X87Reg(z) * m[11] + X87Reg(y) * m[7]) + X87Reg(x) * m[3]) + m[15]);
     }
 }
 
