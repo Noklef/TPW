@@ -4,6 +4,7 @@
 
 #include "../../../re/types.h"
 #include "stdstring.h"
+#include "stdwstring.h"
 
 // The stream's moneypunct<char, international> and ctype<char> facets (use_facet, inline at each use in the exe): for money_get too.
 u8 *MoneyPut_Facet(u8 *ios, u8 international);
@@ -30,6 +31,10 @@ u32 *__fastcall MoneyPunct_MakePattern(const u8 *facet, void *, u32 *out, u8 spa
 void *__fastcall MoneyPunctIntl_Ctor(u8 *facet, void *, u32 refs);
 void *__fastcall MoneyPunctLocal_Ctor(u8 *facet, void *, u32 refs);
 
+// 0x6a1bf0 / 0x6a2150 (pop 4; names invented, unconfirmed): moneypunct<wchar_t, true> / <wchar_t, false>'s constructor on a _Locinfo of "C": as the char ones over MoneypunctW_Init; the final vtable 0x709da4 / 0x709bbc.
+void *__fastcall MoneyPunctIntlW_Ctor(u8 *facet, void *, u32 refs);
+void *__fastcall MoneyPunctLocalW_Ctor(u8 *facet, void *, u32 refs);
+
 // 0x6a9260 (pops 0x20; this only passed on): do_put of a number: the value as text without its sign (a value of 1e35 or more scaled down, with zeros for that), then _Putmfld.
 u32 *__fastcall MoneyPut_DoPutNumber(void *self, void *, u32 *out, u32 failed, u8 *buffer, u8 international, u8 *ios, u32 fill, double value);
 
@@ -38,4 +43,10 @@ u32 *__fastcall MoneyPut_DoPutString(void *self, void *, u32 *out, u32 failed, u
 
 // 0x6a9700 (pops 0x2c; this not read): _Putmfld: the digits in { allocator, ptr, len, res }, a string it owns, with grouping, sign, symbol and padding by the facet's pattern. out gets the iterator. Returns out.
 u32 *__fastcall MoneyPut_Putmfld(void *self, void *, u32 *out, u32 failed, u8 *buffer, u8 international, u8 *ios, u32 fill, u8 negative, u32 allocator, char *ptr, u32 len, u32 res);
+
+// money_put<wchar_t> (names invented, unconfirmed): the char ones over wide strings and the wide iterator; each literal widened by btowc where it is used ('0' again for each run of zeros), the facets
+// moneypunct<wchar_t, intl> (ids 0xfb1de8 / 0xfb1e0c) and ctype<wchar_t> (its is(), slot +8, for the digits). 0x6a2450 (pops 0x20) a number, 0x6a2690 (pops 0x1c) a string, 0x6a2940 (pops 0x2c) _Putmfld.
+u32 *__fastcall MoneyPutW_DoPutNumber(void *self, void *, u32 *out, u32 failed, u8 *buffer, u8 international, u8 *ios, u32 fill, double value);
+u32 *__fastcall MoneyPutW_DoPutString(void *self, void *, u32 *out, u32 failed, u8 *buffer, u8 international, u8 *ios, u32 fill, const StdWString *text);
+u32 *__fastcall MoneyPutW_Putmfld(void *self, void *, u32 *out, u32 failed, u8 *buffer, u8 international, u8 *ios, u32 fill, u8 negative, u32 allocator, u16 *ptr, u32 len, u32 res);
 }

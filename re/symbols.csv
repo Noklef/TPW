@@ -6575,6 +6575,11 @@ address,name,kind,confidence,notes
 0x006a9260,MoneyPut_DoPutNumber,function,low,reimplemented (src/game/core/moneyput); money_put<char>::do_put of a number
 0x006a9480,MoneyPut_DoPutString,function,low,reimplemented (src/game/core/moneyput); money_put<char>::do_put of a string
 0x006a9700,MoneyPut_Putmfld,function,low,reimplemented (src/game/core/moneyput); money_put<char>::_Putmfld
+0x006a1bf0,MoneyPunctIntlW_Ctor,function,low,"reimplemented (src/game/core/moneyput); moneypunct<wchar_t, true>'s constructor on a _Locinfo of ""C"" (MoneypunctW_Init); final vtable 0x709da4"
+0x006a2150,MoneyPunctLocalW_Ctor,function,low,"reimplemented (src/game/core/moneyput); moneypunct<wchar_t, false>'s constructor on a _Locinfo of ""C"" (MoneypunctW_Init); final vtable 0x709bbc"
+0x006a2940,MoneyPutW_Putmfld,function,low,"reimplemented (src/game/core/moneyput); money_put<wchar_t>::_Putmfld: the digits with grouping, sign, symbol and padding by the facet's pattern, each literal widened by btowc"
+0x006a2690,MoneyPutW_DoPutString,function,low,"reimplemented (src/game/core/moneyput); money_put<wchar_t>::do_put of a string: a minus and the digits (ctype<wchar_t>::is), or ""0"", then _Putmfld"
+0x006a2450,MoneyPutW_DoPutNumber,function,low,"reimplemented (src/game/core/moneyput); money_put<wchar_t>::do_put of a number: the value as text without its sign (scaled past 1e35), widened, then _Putmfld"
 0x005cec80,NFileBuf_Dtor,function,low,reimplemented (src/game/core/narrowfilebuf); the narrow file buffer's destructor
 0x005cefe0,NFileBuf_PutBack,function,low,reimplemented (src/game/core/narrowfilebuf); the narrow file buffer's pbackfail
 0x005cf200,NFileBuf_Uflow,function,low,reimplemented (src/game/core/narrowfilebuf); the narrow file buffer's uflow
