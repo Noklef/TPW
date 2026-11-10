@@ -16,8 +16,8 @@ address,name,kind,confidence,notes
 0x005da3c0,Debug_Printf,function,high,"EMPTY in retail build: all debug/assert output compiled out. arg0 = condition or channel (0, 2, 0x499602d2)"
 0x0067a7d0,CRT_atexit,function,high,reimplemented (src/game/core/crt); MSVC CRT atexit
 0x0067a830,CRT_ftol,function,high,"MSVC CRT __ftol: st0 truncated to a 64-bit integer in EDX:EAX, popped"
-0x0067acc0,Mem_Alloc,function,medium,malloc/operator new wrapper
-0x0067acb0,Mem_Free,function,medium,free/operator delete wrapper
+0x0067acc0,CRT_new,function,low,"reimplemented (src/game/core/crt); operator new: _nh_malloc(size, 1)"
+0x0067acb0,CRT_delete,function,low,reimplemented (src/game/core/crt); operator delete: free
 0x005f5ad0,FileStream_Open,function,high,"reimplemented (src/game/files/file); (&result, &stream, path, mode): new 8-byte FileStream (vtable FileStream_vtable), opened with vtbl+0x24; leaked when that fails"
 0x005f5e20,Stream_Read,function,high,"reimplemented (src/game/files/file); (&result, stream, buf, len, &done) via vtbl+0x08; result = (done == len)"
 0x005f5e50,Stream_Write,function,high,"reimplemented (src/game/files/file); (&result, stream, buf, len, &done) via vtbl+0x0c; result = (done == len)"
@@ -1304,7 +1304,7 @@ address,name,kind,confidence,notes
 0x007030c8,WString_vtable,data,high,"WString: same slots as String_vtable, the wide functions"
 0x007030c0,StringView_vtable,data,high,"char view (Left/Right/Mid, AssignWide): two empty slots"
 0x007030f8,WStringView_vtable,data,high,"wide view (AssignNarrow): two empty slots"
-0x0067ae00,CRT_strncpy,function,high,"MSVC6 strncpy: a byte at a time to align the source, then a dword at a time (read before written)"
+0x0067ae00,CRT_strncpy,function,high,reimplemented (src/game/core/crt); strncpy
 0x0067b8c0,CRT_strncat,function,high,reimplemented (src/game/core/crt); strncat
 0x0067c250,CRT_strncmp,function,high,reimplemented (src/game/core/crtlocale); MSVC6 strncmp
 0x0068db70,CRT_strcspn,function,low,reimplemented (src/game/core/crtlocale); MSVC6 strcspn
@@ -1335,7 +1335,7 @@ address,name,kind,confidence,notes
 0x0068e550,CRT_crtGetLocaleInfoA,function,low,"reimplemented (src/game/core/crtlocale); crtGetLocaleInfoA: the C library's own table of 27 locales, else GetLocaleInfoA"
 0x0067c080,CRT_strstr,function,high,reimplemented (src/game/core/crt); strstr
 0x0067bfc0,CRT_strchr,function,high,reimplemented (src/game/core/crt); strchr
-0x0067a520,CRT_atoi,function,high,MSVC6 atoi
+0x0067a520,CRT_atoi,function,high,reimplemented (src/game/core/crt); atoi: atol
 0x0067f330,CRT_iswctype,function,high,reimplemented (src/game/core/crt); iswctype: a wide character's class
 0x0067c1e0,CRT_vsprintf,function,high,reimplemented (src/game/core/crt); vsprintf
 0x0067acd0,CRT_wcslen,function,high,reimplemented (src/game/online/chatlists); wcslen
@@ -2062,6 +2062,12 @@ address,name,kind,confidence,notes
 0x0068cbf0,CRT_ValidateWrite,function,high,reimplemented (src/game/core/crt); _ValidateWrite: !IsBadWritePtr
 0x0068cc10,CRT_ValidateExecute,function,high,reimplemented (src/game/core/crt); _ValidateExecute: !IsBadCodePtr
 0x00687bc0,CRT_CxxUnhandledExceptionFilter,function,high,"reimplemented (src/game/core/crt); __CxxUnhandledExceptionFilter: terminate for a C++ exception, else the filter before it"
+0x0067a530,CRT_isalpha,function,low,"reimplemented (src/game/core/crt); isalpha: _isctype past MB_CUR_MAX 1, else _pctype's word & 0x103"
+0x0067a560,CRT_isdigit,function,low,"reimplemented (src/game/core/crt); isdigit: the same, & 4"
+0x0067a590,CRT_isspace,function,low,"reimplemented (src/game/core/crt); isspace: the same, & 8"
+0x0067a5c0,CRT_isalnum,function,low,"reimplemented (src/game/core/crt); isalnum: the same, & 0x107"
+0x0067a6c0,CRT_atof,function,low,"reimplemented (src/game/core/crt); atof: past white space, _fltin2's double"
+0x0067a730,CRT_iswspace,function,low,"reimplemented (src/game/core/crt); iswspace: iswctype(c, 8)"
 0x00f7a7d0,gCdVolumeLabel,data,medium,"const char *: the CD's volume label, looked for on the CD-ROM drives by the CD check (0x5aa585)"
 0x005f8ae0,RegKey_Open,function,high,"reimplemented (src/game/core/regkey); thiscall (&out, subkey or null, nonzero: HKCU else HKLM); the company key (0x775748) made, then the subkey in it; a held key closed first"
 0x005f8b70,RegKey_Dtor,function,high,reimplemented (src/game/core/regkey); thiscall; RegKey_Close

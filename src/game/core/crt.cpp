@@ -1,5 +1,6 @@
 #include "crt.h"
 #include "crtenv.h"
+#include "crtfloat.h"
 #include "crtlock.h"
 #include "crtmbstring.h"
 #include "crtstartup.h"
@@ -1411,6 +1412,39 @@ s32 __cdecl CRT_atol(const char *text) {
         c = *at++;
     }
     return static_cast<s32>(sign == 0x2d ? 0u - number : number);
+}
+
+namespace {
+// The ctype test of isalpha and its kind: _isctype past MB_CUR_MAX 1, else _pctype's word.
+s32 ctype_is(s32 c, s32 mask) {
+    if (static_cast<s32>(global_u32(0x0077e7dc)) > 1) return CRT_isctype(c, mask);
+    return reinterpret_cast<const u16 *>((uintptr_t)global_u32(0x0077ea90))[c] & mask;
+}
+}  // namespace
+
+s32 __cdecl CRT_atoi(const char *text) { return CRT_atol(text); }
+s32 __cdecl CRT_isalpha(s32 c) { return ctype_is(c, 0x103); }
+s32 __cdecl CRT_isdigit(s32 c) { return ctype_is(c, 4); }
+s32 __cdecl CRT_isspace(s32 c) { return ctype_is(c, 8); }
+s32 __cdecl CRT_isalnum(s32 c) { return ctype_is(c, 0x107); }
+u32 __cdecl CRT_iswspace(u32 c) { return static_cast<u32>(CRT_iswctype(c, 8)); }
+
+double __cdecl CRT_atof(const char *text) {
+    while (ctype_is(*reinterpret_cast<const u8 *>(text), 8)) ++text;
+    u32 flt[6];
+    double value;
+    std::memcpy(&value, CRT_fltin2(flt, text, static_cast<s32>(std::strlen(text)), 0, 0) + 4, 8);
+    return value;
+}
+
+void __cdecl CRT_delete(void *block) { Crt().free(block); }
+void *__cdecl CRT_new(u32 size) { return CrtInner().nhMalloc(size, 1); }
+
+char *__cdecl CRT_strncpy(char *to, const char *from, u32 n) {
+    char *at = to;
+    for (; n && (*at = *from) != 0; --n) ++at, ++from;
+    for (; n; --n) *at++ = 0;
+    return to;
 }
 
 char *__cdecl CRT_itoa(s32 value, char *out, s32 radix) {

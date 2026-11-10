@@ -10,6 +10,8 @@ address,name,module,reason
 5fc840,JpegCodec_Load,gfx/jpeg,todo
 5fcbc0,JpegCodec_IsJpeg,gfx/jpeg,todo
 6784d0,Palette_SetVgaDac,gfx/palette,"hardware: CLI (0x6784d6) is privileged under Windows NT, both fault there; port I/O to the VGA DAC, nothing to compare"
+67acb0,CRT_delete,core/crt,"the fncmp driver and emulator take operator new and delete (0x67acc0, 0x67acb0) as their own heap on both sides"
+67acc0,CRT_new,core/crt,"the fncmp driver and emulator take operator new and delete (0x67acc0, 0x67acb0) as their own heap on both sides"
 686050,CRT_statfp,core/crtfpexcept,x87 status flags: the emulator keeps no exception flags
 686060,CRT_clrfp,core/crtfpexcept,x87 status flags: the emulator keeps no exception flags
 6860b0,CRT_set_statfp,core/crtfpexcept,x87 status flags: the emulator keeps no exception flags
