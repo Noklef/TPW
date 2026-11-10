@@ -445,6 +445,8 @@ u32 __cdecl CRT_beginthreadex(void *security, u32 stack, void *proc, void *arg, 
 
 s32 __cdecl CRT_swprintf(u16 *to, const u16 *format, ...) { return format_wide(to, 0x7fffffff, format, &format + 1); }
 
+s32 __cdecl CRT_vswprintf(u16 *to, const u16 *format, void *args) { return format_wide(to, 0x7fffffff, format, args); }
+
 s32 __cdecl CRT_snprintf(char *to, u32 count, const char *format, ...) { return format_narrow(to, static_cast<s32>(count), format, &format + 1); }
 
 s32 __cdecl CRT_vsprintf(char *to, const char *format, void *args) { return format_narrow(to, 0x7fffffff, format, args); }
@@ -1399,6 +1401,19 @@ s32 __cdecl CRT_atol(const char *text) {
 char *__cdecl CRT_itoa(s32 value, char *out, s32 radix) {
     CRT_xtoa(static_cast<u32>(value), out, static_cast<u32>(radix), radix == 10 && value < 0);
     return out;
+}
+
+u16 *__cdecl CRT_itow(s32 value, u16 *out, s32 radix) {
+    char digits[0x14];
+    CRT_itoa(value, digits, radix);
+    import_slot<s32(__stdcall *)(u32, u32, const char *, s32, u16 *, s32)>(0x006fd174)(0, 1, digits, -1, out, 0x14);   // MultiByteToWideChar
+    return out;
+}
+
+s32 __cdecl CRT_wtoi(const u16 *text) {
+    char digits[0x14];
+    import_slot<s32(__stdcall *)(u32, u32, const u16 *, s32, char *, s32, const char *, u32 *)>(0x006fd1dc)(0, 0, text, -1, digits, 0x14, nullptr, nullptr);   // WideCharToMultiByte
+    return CRT_atol(digits);
 }
 
 u16 *__cdecl CRT_wcsncpy(u16 *dest, const u16 *from, u32 count) {

@@ -164,6 +164,7 @@ void __cdecl CRT_endthreadex(u32 code);
 
 // 0x67af00: swprintf: _woutput on a string file (0x7fffffff bytes), then two zero bytes put (_flsbuf where the count has run out). Returns _woutput's answer.
 s32 __cdecl CRT_swprintf(u16 *to, const u16 *format, ...);
+s32 __cdecl CRT_vswprintf(u16 *to, const u16 *format, void *args);   // 0x67f4d0: the same with a va_list
 
 // 0x67bf40: _snprintf; 0x67c1e0: vsprintf (room of 0x7fffffff); 0x67f3a0: _vsnprintf: a string file (flags 0x42) through _output, then one zero byte, through _flsbuf when no room is left.
 s32 __cdecl CRT_snprintf(char *to, u32 count, const char *format, ...);
@@ -338,6 +339,11 @@ char *__cdecl CRT_strstr(const char *text, const char *wanted);
 // 0x67a480: atol: white space, a sign, digits, with no check for overflow. 0x688730: _itoa: a minus only in radix 10.
 s32 __cdecl CRT_atol(const char *text);
 char *__cdecl CRT_itoa(s32 value, char *out, s32 radix);
+
+// 0x67e010: _itow: _itoa into a 0x14-byte local (radix 2 with a long value overruns it, sic), widened by MultiByteToWideChar (ANSI code page, at most 0x14 units). Returns out.
+// 0x67f4a0: _wtoi: narrowed by WideCharToMultiByte into a 0x14-byte local (not terminated when the text fills it, sic), then atol.
+u16 *__cdecl CRT_itow(s32 value, u16 *out, s32 radix);
+s32 __cdecl CRT_wtoi(const u16 *text);
 
 // 0x67b0d0: wcsncpy. 0x67bf10: wcscpy. 0x67bed0: wcscat. 0x67f450: wcsncat (always an end). 0x67c290: wcscmp (-1, 0 or 1). 0x67f410: wcsncmp (the difference of the last units). 0x67c2f0: wcschr (the end too for 0).
 u16 *__cdecl CRT_wcsncpy(u16 *dest, const u16 *from, u32 count);
