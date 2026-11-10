@@ -42,5 +42,6 @@ void RegThunk_RasterSpan_BilinearAddNoZ(); // 0x6f5af0: the same
 void RegThunk_RasterSpan_BilinearShadeNoZ(); // 0x6f5cc0: the same
 void RegThunk_RasterSpan_BilinearBlendLitNoZ(); // 0x6f5e90: the same
 void RegThunk_RasterSpan_ShadeNoZ(); // 0x6f6090: the same
+void RegThunk_CRT_CIpow(); // 0x67c5d0: x in ST1, y in ST0, the result in ST0
 void RegThunk_TqiVideo_DecodeBlock(); // 0x674ab9: DC in EAX, dequantiser in ESI, bits in EBP, position in EDI (and out), out in EDX, pitch in ECX (ECX and EDX kept)
 }

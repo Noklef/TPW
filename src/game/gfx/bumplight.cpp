@@ -3,6 +3,7 @@
 
 #include <cstdint>
 
+#include "../../hook/regthunks.h"
 #include "../math/vector.h"
 #include "../math/x87.h"
 #include "array3d.h"
@@ -14,8 +15,7 @@ __declspec(naked) double __cdecl GamePow(double, double) {
     __asm {
         fld qword ptr [esp + 4]
         fld qword ptr [esp + 12]
-        mov eax, 0x0067c5d0
-        call eax
+        call RegThunk_CRT_CIpow
         ret
     }
 }
