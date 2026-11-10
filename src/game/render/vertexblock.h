@@ -65,3 +65,4 @@ GAME_DATA(char[0x14], gText_VertexBlock_Construct_763eac, 0x00763eac, 0x14);
 GAME_DATA(char[0x14], gText_VertexBlock_Construct_763ec0, 0x00763ec0, 0x14);
 GAME_DATA(char[0x10], gText_VertexBlock_Construct_763ed4, 0x00763ed4, 0x10);
 GAME_DATA(char[0x20], gText_VertexBlock_Construct_763ee4, 0x00763ee4, 0x20);
+GAME_DATA(char[0x200], gVertexBlock_Path_871f68, 0x00871f68, 0x200);   // the texture path built: to the face tags
