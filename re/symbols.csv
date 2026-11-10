@@ -10044,6 +10044,9 @@ address,name,kind,confidence,notes
 0x00802bc8,gSoundset_802bc8,data,low,"GAME_DATA (src/game/core/soundset): u32, named for its use in soundset.cpp (tools/gamedata_codemod.py)"
 0x00802bd4,gSoundset_802bd4,data,low,"GAME_DATA (src/game/core/soundset): u32, named for its use in soundset.cpp (tools/gamedata_codemod.py)"
 0x0080cee4,gEmitters_Reset_80cee4,data,low,"GAME_DATA (src/game/core/voices): u32, named for its use in Emitters_Reset (tools/gamedata_codemod.py)"
+0x006855b0,CRT_frnd,function,low,"reimplemented (src/game/core/crtpow); _frnd: x rounded to an integer by FRNDINT, through a double"
+0x00686f60,CRT_d_inttype,function,low,"reimplemented (src/game/core/crtpow); _d_inttype: 0 not an integer (or a denormal), 1 odd, 2 even; the half at the caller's precision"
+0x00686d30,CRT_powhlp,function,low,reimplemented (src/game/core/crtpow); _powhlp: pow's infinite x or y; 1 for |x| 1 to an infinite power
 0x00faac68,gDctVlc_faac68,data,low,"GAME_DATA (src/game/gfx/dctvlc): u32, named for its use in DctVlc_BeginFrame, DctVlc_BuildTables (tools/gamedata_codemod.py)"
 0x00faac64,gMadVideo_DecodeFrame_faac64,data,low,"GAME_DATA (src/game/gfx/madvideo): u32, named for its use in MadVideo_DecodeFrame (tools/gamedata_codemod.py)"
 0x00fab484,gMmxBlit_Copy32_fab484,data,low,"GAME_DATA (src/game/gfx/mmxblit): u32, named for its use in MmxBlit_Copy32 (tools/gamedata_codemod.py)"

@@ -267,6 +267,7 @@ add_library(tpw_game STATIC
     src/game/core/sectionlock.cpp
     src/game/core/waitthread.cpp
     src/game/core/moneyget.cpp
+    src/game/core/crtpow.cpp
     src/game/gfx/text.cpp
     src/game/gfx/canvas.cpp
     src/game/gfx/canvasdraw.cpp

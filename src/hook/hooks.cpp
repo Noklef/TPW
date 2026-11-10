@@ -228,6 +228,7 @@
 #include "../game/core/crtmessage.h"
 #include "../game/core/crtopen.h"
 #include "../game/core/crtoutput.h"
+#include "../game/core/crtpow.h"
 #include "../game/core/crtrealloc.h"
 #include "../game/core/crtsbh.h"
 #include "../game/core/crtstartup.h"
@@ -7172,6 +7173,9 @@ const Hook kHooks[] = {
     {"WaitThread_DeletingDtor",   0x006323c0, (void *)&WaitThread_DeletingDtor, {0x56, 0x8b, 0xf1, 0xe8, 0x18}},
     {"WaitThread_OpenAndStart",   0x006326e0, (void *)&WaitThread_OpenAndStart, {0x51, 0x8d, 0x44, 0x24, 0x00}},
     {"MoneyGet_Getmfld",          0x006a7920, (void *)&MoneyGet_Getmfld, {0x6a, 0xff, 0x68, 0x4d, 0x50}},
+    {"CRT_frnd",                  0x006855b0, (void *)&CRT_frnd, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"CRT_d_inttype",             0x00686f60, (void *)&CRT_d_inttype, {0x83, 0xec, 0x08, 0x56, 0x8b}},
+    {"CRT_powhlp",                0x00686d30, (void *)&CRT_powhlp, {0xdd, 0x44, 0x24, 0x04, 0xdc}},
     {"Nav_Ctor",          0x0050ffe0, (void *)&Nav_Ctor, {0x6a, 0xff, 0x68, 0x2d, 0xe6}},
     {"Nav_Dtor",                  0x0050f200, (void *)&Nav_Dtor, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"Nav_DtorAtD4",              0x004f7c30, (void *)&Nav_DtorAtD4, {0x81, 0xc1, 0xd4, 0x00, 0x00}},
