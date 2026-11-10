@@ -11,6 +11,7 @@
 #include "string.h"
 #include "vcall.h"
 #include "vobj3.h"
+#include "../world/mapclick.h"
 
 namespace {
 
@@ -111,9 +112,9 @@ void __cdecl Table879ad0_Clear() {
 
 u32 __cdecl Global81ae2c_Equals(u32 value) { return global<u32>(0x0081ae2c) == value; }
 
-u32 __cdecl Global81b0cc_IfNoFlag() { return global<u32>(0x008187f8) ? 0 : global<u32>(0x0081b0cc); }
+u32 __cdecl Global81b0cc_IfNoFlag() { return gMapclick_8187f8 ? 0 : global<u32>(0x0081b0cc); }
 
-u32 __cdecl Global81ecac_IfNoFlag() { return global<u32>(0x008187f8) ? 0 : global<u32>(0x0081ecac); }
+u32 __cdecl Global81ecac_IfNoFlag() { return gMapclick_8187f8 ? 0 : global<u32>(0x0081ecac); }
 
 u32 __cdecl Global81af4c_Add(u32 amount) {
     global<u32>(0x0081af4c) += amount;

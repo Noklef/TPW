@@ -21,6 +21,7 @@
 #include "thingscan.h"
 #include "cellmessage.h"
 #include "cellbuild.h"
+#include "mapclick.h"
 
 namespace {
 
@@ -207,7 +208,7 @@ u32 __fastcall MapCell_HandleMessage(u8 *cell, void *, u32 message, u32 a, u32 b
         return 1;
     }
     case 0x87: {
-        if (global<s32>(0x00818c10) <= gCellbuild_818c14) return 1;
+        if (reinterpret_cast<s32 &>(gMapclick_818c10) <= gCellbuild_818c14) return 1;
         const u32 id = (u32)*reinterpret_cast<const u16 *>(cell) - 1;
         const u32 saved8 = global<u32>(0x0081ede8), saved4 = global<u32>(0x0081ede4);
         const u32 mode = Global81ae2c_Get_52f840();

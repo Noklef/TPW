@@ -13,6 +13,8 @@
 #include "../core/thunks.h"
 #include "../world/world.h"
 #include "vertexblock.h"
+#include "../world/mappreview.h"
+#include "../world/focuscell.h"
 
 namespace {
 
@@ -114,7 +116,7 @@ void __cdecl DynFaces_AddSquare(u32 a, u32 b, u32 c, u8 d, u32 tag, u32 e, u32 f
     at<u8>(face, 0x1c) = h;
     at<u8>(face, 0x9c) = (u8)tag;
     at<u32>(face, 0x94) = 1;
-    at<u32>(face, 0x98) = global<u32>(0x00874fc4) == 0 ? i : 1;
+    at<u32>(face, 0x98) = gMappreview_874fc4 == 0 ? i : 1;
     at<u32>(face, 0x90) = j;
     Finish((u32)n, tag);
 }
@@ -372,7 +374,7 @@ void __cdecl DynFaces_ReleaseModels() {
 }
 
 void __cdecl DynFaces_Frame() {
-    const float moveX = (float)SubM(X87_MulDouble((double)global<s32>(0x008186b8), global<float>(0x00700de0)), global<float>(0x00820afc));
+    const float moveX = (float)SubM(X87_MulDouble((double)gFocuscell_8186b8, global<float>(0x00700de0)), global<float>(0x00820afc));
     const u32 t = global<u32>(0x00790a38);
     static const u32 kConstants[][2] = {{0x871ee8, 0}, {0x871eec, 0}, {0x871ef4, 0x3f800000}, {0x871ef8, 0}, {0x871f00, 0},
                                         {0x871f04, 0x3f800000}, {0x871f0c, 0x3f800000}, {0x871f10, 0x3f800000}, {0x871f18, 0x3f000000},
@@ -381,7 +383,7 @@ void __cdecl DynFaces_Frame() {
                                         {0x871f4c, 0x3ecccccd}};
     for (const auto &c : kConstants)
         global<u32>(c[0]) = c[1];
-    const float moveZ = (float)SubM(X87_MulDouble((double)global<s32>(0x008186b4), global<float>(0x00700de0)), global<float>(0x00820af8));
+    const float moveZ = (float)SubM(X87_MulDouble((double)gFocuscell_8186b4, global<float>(0x00700de0)), global<float>(0x00820af8));
     const float scale = global<float>(0x007b095c);
     const u32 mask = global<u32>(0x007b0960);
     const s32 i1 = Fistp((float)(X87Reg(scale) * of(t)));
@@ -458,7 +460,7 @@ void DynFaces_SetCalls(const AddrCall *table, u32 count) { g_calls.Set(table, co
 extern "C" {
 
 void __cdecl DynFaces_InitModels() {
-    global<u32>(0x00874fc4) = 0;
+    gMappreview_874fc4 = 0;
     if (!g_calls.Cd(0x00424ec0, 0x00763c78u)) return;
     bool awake = true;
     global<u32>(0x00871ee0) = 0;

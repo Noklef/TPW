@@ -16,6 +16,7 @@
 #include "trackrides.h"
 #include "trackmessage.h"
 #include "cellrun.h"
+#include "focuscell.h"
 
 namespace {
 
@@ -590,7 +591,7 @@ s32 __cdecl CellRun_Connect(u8 *from, u8 *to, u32 link) {
     }
     if (link) {
         const bool shaped = MapCell_StraightNeighbours(from) || MapCell_CornerNeighbours(from);
-        if (u8 *const track = global<u8 *>(0x008186ac)) g_env->track545450(at<u32>(track, 0x28));
+        if (u8 *const track = gFocuscell_8186ac) g_env->track545450(at<u32>(track, 0x28));
         s32 x, y;
         if (static_cast<s16>(wordTo) - static_cast<s16>(wordFrom) <= 1) {
             cell_xy(from, x, y);

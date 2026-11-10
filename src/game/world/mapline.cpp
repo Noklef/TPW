@@ -5,6 +5,8 @@
 
 #include "mapcell.h"
 #include "trackmessage.h"
+#include "mapclick.h"
+#include "gamemode.h"
 
 namespace {
 
@@ -96,8 +98,8 @@ u32 __cdecl Map_ApplyLine(u32 arg, s32 x, s32 y, s32 *xEnd, s32 *yEnd) {
 void __fastcall MapLine_LinkCell(u8 *cell, void *, u32 kind, s32 stepX, s32 stepY) {
     s32 sx = stepX, sy = stepY;
     if (gLineFirst()) {
-        sx = global<s32>(0x00763b00);
-        sy = global<s32>(0x00763b04);
+        sx = reinterpret_cast<s32 &>(gGamemode_763b00);
+        sy = reinterpret_cast<s32 &>(gGamemode_763b04);
         if (sx == 0x80 || sy == 0x80) sx = sy = 0;
     }
     if (kind == 0xb || kind == 0xd || kind == 0x10 || kind == 0x12 || kind == 0x19) {
@@ -107,8 +109,8 @@ void __fastcall MapLine_LinkCell(u8 *cell, void *, u32 kind, s32 stepX, s32 step
         if (sy == -2) link(cell, 0x007cdba8, 0x10, 0x01, only19);
         if (sx == 2) link(cell, 0x007cdbd0, 0x40, 0x04, only19);
     }
-    global<s32>(0x00763b00) = stepX;
-    global<s32>(0x00763b04) = stepY;
+    reinterpret_cast<s32 &>(gGamemode_763b00) = stepX;
+    reinterpret_cast<s32 &>(gGamemode_763b04) = stepY;
 }
 
 u32 __cdecl MapCell_PathLines(s32 x, s32 y) {
@@ -189,7 +191,7 @@ u8 *__cdecl Map_ApplyEntranceLines(const u8 *thing, s32 *xOut, s32 *yOut, u32 ki
     if (!Map_InBounds(x, y)) return nullptr;
     *xOut = x;
     *yOut = y;
-    global<u8 *>(0x008186cc) = cell(focusX, focusY);
+    reinterpret_cast<u8 * &>(gMapclick_8186cc) = cell(focusX, focusY);
     return cell(*xOut, y);  // (x read back: the same pointer twice gives y)
 }
 

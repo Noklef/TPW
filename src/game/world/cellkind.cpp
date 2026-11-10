@@ -15,6 +15,7 @@
 #include "pathlink.h"
 #include "thingscan.h"
 #include "world.h"
+#include "mapclick.h"
 
 namespace {
 
@@ -246,8 +247,8 @@ extern "C" {
 
 u32 __fastcall MapCell_SetTrackKind(u8 *cell, void *, u32 kind) {
     u32 price = 0;
-    if (kind == 0xb && !global<u8>(0x008186d4)) price = Global81aebc_Get_52fb60();
-    if (kind == 0x10 && !global<u8>(0x008186d4)) price = Global81b43c_Get_52fb80();
+    if (kind == 0xb && !gMapclick_8186d4) price = Global81aebc_Get_52fb60();
+    if (kind == 0x10 && !gMapclick_8186d4) price = Global81b43c_Get_52fb80();
     MapHandle_Cell44(reinterpret_cast<const u16 *>(cell));   // (its answer dropped)
     const u32 mine = at<u32>(cell, 8);
     if (mine != 0x19 && mine != 7 && !(cell[0xe] & 0x40) && kind != 0 && mine != 0 && kind != mine) return kind == 0x19 ? 1 : 0;
@@ -281,7 +282,7 @@ u32 __fastcall MapCell_SetTrackKind(u8 *cell, void *, u32 kind) {
             }
         }
     }
-    if (kind != 0 && kind != 7 && !global<u8>(0x008186d4)) Money_Debit(WorldMoney(), nullptr, (s32)price);
+    if (kind != 0 && kind != 7 && !gMapclick_8186d4) Money_Debit(WorldMoney(), nullptr, (s32)price);
     return 1;
 }
 
@@ -397,10 +398,10 @@ u32 __fastcall MapCell_SetKind(u8 *cell, void *, u32 kind) {
     }
     if (kind == 1) {
         if (at<u32>(cell, 8) == 3) track = true;
-        if (!global<u8>(0x008186d4)) price = Global81b6dc_Get_52fb20();
+        if (!gMapclick_8186d4) price = Global81b6dc_Get_52fb20();
     }
     if (kind == 3) {
-        if (!global<u8>(0x008186d4)) price = Global81ea14_Get_52fb40();
+        if (!gMapclick_8186d4) price = Global81ea14_Get_52fb40();
         if (at<u32>(cell, 8) == 1) {
             global<u32>(0x0081d7a8) = 1;
             MapCell_Clear(cell, nullptr, 0, 0);
@@ -423,8 +424,8 @@ u32 __fastcall MapCell_SetKind(u8 *cell, void *, u32 kind) {
             if (handle) g_env->thing4de1f0(ThingAt(handle));
         }
     }
-    if (kind == 1 && !global<u8>(0x008186d4)) Money_Debit(WorldMoney(), nullptr, (s32)price);
-    if (kind == 3 && !global<u8>(0x008186d4) && at<u32>(cell, 8) != 1) Money_Debit(WorldMoney(), nullptr, (s32)price);
+    if (kind == 1 && !gMapclick_8186d4) Money_Debit(WorldMoney(), nullptr, (s32)price);
+    if (kind == 3 && !gMapclick_8186d4 && at<u32>(cell, 8) != 1) Money_Debit(WorldMoney(), nullptr, (s32)price);
     return 1;
 }
 

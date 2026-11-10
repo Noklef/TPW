@@ -2,6 +2,7 @@
 #include "tracktextures.h"
 
 #include <cstdint>
+#include "focuscell.h"
 
 namespace {
 
@@ -104,7 +105,7 @@ void __cdecl Track_ResetMap(s32 columns, s32 rows) {
     TrackTextures_LoadWaterRide();
     TrackTextures_LoadHoarding();
     global<u32>(0x00820a8c) = 0;
-    global<u32>(0x008186ac) = 0;
+    reinterpret_cast<u32 &>(gFocuscell_8186ac) = 0;
     global<u16>(0x00818698) = 0;
     g_env->layEntrance();
     global<u32>(0x0081b604) = 0;

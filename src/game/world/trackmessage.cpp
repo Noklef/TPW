@@ -19,6 +19,8 @@
 #include "mapline.h"
 #include "thingscan.h"
 #include "cellbuild.h"
+#include "mapclick.h"
+#include "focuscell.h"
 
 namespace {
 
@@ -191,7 +193,7 @@ u32 model(u8 *cell) {
 
 u32 owner(u8 *cell) {
     const u16 id = *handle(cell);
-    if (held(cell) || !global<u32>(0x008186c4)) return 1;
+    if (held(cell) || !gFocuscell_8186c4) return 1;
     at<u16>(cell, 0x10) = global<u16>(0x00818698);
     static const u32 kPairs[3] = {0x007cdba8, 0x007cdbc8, 0x007cdbb8};
     for (const u32 p : kPairs) {
@@ -245,7 +247,7 @@ void run(const u8 *cell, u32 b) {
 }
 
 void dead_ends(const u8 *cell) {
-    if (global<s32>(0x00818c10) <= gCellbuild_818c14) return;
+    if (reinterpret_cast<s32 &>(gMapclick_818c10) <= gCellbuild_818c14) return;
     const u32 id = (u32)*handle(cell) - 1;
     const u32 x = id & 0x7f, y = id >> 7;
     const u32 saved4 = global<u32>(0x0081ede4), saved8 = global<u32>(0x0081ede8);

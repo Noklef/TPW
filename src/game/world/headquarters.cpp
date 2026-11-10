@@ -10,6 +10,7 @@
 #include "staff.h"
 #include "things.h"
 #include "world.h"
+#include "headquarters.h"
 
 namespace {
 
@@ -25,7 +26,7 @@ u32 __fastcall MechanicHQ_Serialize(u8 *hq, void *, Stream *stream, u32 save, s3
         return 1;
     if (version < 0 || version > 1)
         return 0;
-    return Save_Field(stream, save, hq + 0xc, 2, 0x0075b2f0) ? 0 : 1;
+    return Save_Field(stream, save, hq + 0xc, 2, (u32)&gText_MechanicHQ_Serialize_75b2f0) ? 0 : 1;
 }
 
 u32 __fastcall StaffHQ_Serialize(u8 *hq, void *, Stream *stream, u32 save, s32 version, u32 unused) {
@@ -33,7 +34,7 @@ u32 __fastcall StaffHQ_Serialize(u8 *hq, void *, Stream *stream, u32 save, s32 v
         return 1;
     if (version < 0 || version > 1)
         return 0;
-    if (!Save_Field(stream, save, hq + 0x64, 4, 0x0075e944) || !Save_Field(stream, save, hq + 0x60, 2, 0x0075e92c))
+    if (!Save_Field(stream, save, hq + 0x64, 4, (u32)&gText_StaffHQ_Serialize_75e944) || !Save_Field(stream, save, hq + 0x60, 2, (u32)&gText_StaffHQ_Serialize_75e92c))
         return 1;
     for (u32 i = 0; i < 5; ++i)
         if (!Save_Field(stream, save, hq + 0x24 + i * 0xc, 0xc, 0x0075e91c))

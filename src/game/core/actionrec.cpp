@@ -12,6 +12,7 @@
 #include "savegame.h"
 #include "stdwstring.h"
 #include "vcall.h"
+#include "../world/mapclick.h"
 
 namespace {
 
@@ -259,7 +260,7 @@ void __cdecl Global8186e0_SetRecorded(const u16 *id, u32 flag) {
     ActionRec_WriteWB(gActionRec(), nullptr, 5, *id, flag);
     World_MarkRideBuilt(global<u8 *>(0x007cf83c), nullptr, *id);
     global<u16>(0x008186ec) = gActionrec_8186e0;
-    global<u32>(0x008187f8) = flag;
+    gMapclick_8187f8 = flag;
     gActionrec_8186e0 = *id;
 }
 }

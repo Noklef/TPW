@@ -7,6 +7,7 @@
 #include "cellmodel.h"
 #include "mapcell.h"
 #include "cellmessage.h"
+#include "focuscell.h"
 
 namespace {
 
@@ -142,7 +143,7 @@ void DragSide(u8 *cell, u32 mode, u32 table, u32 bit, u32 back, u32 dropA, u32 d
 }
 
 void Drag(u8 *cell, u32 mode, s32 dx, s32 dy) {
-    const u8 *const target = World() + 0x294 + (u32)at<u16>(global<u8 *>(0x008186ac), 0x36) * 0x44;
+    const u8 *const target = World() + 0x294 + (u32)at<u16>(gFocuscell_8186ac, 0x36) * 0x44;
     if (global<u32>(0x00820aa4)) {
         static const u32 kTables[4] = {0x007cdba0, 0x007cdbc8, 0x007cdba8, 0x007cdbd0};
         static const u8 kFacing[4] = {0x10, 0x40, 1, 4};

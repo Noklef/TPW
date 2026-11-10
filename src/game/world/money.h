@@ -84,3 +84,8 @@ void BankAccount_SetEnv(const BankAccountEnv *env);
 void __fastcall BankAccount_HandleMessage(u8 *money, void *, u8 *message);
 
 }  // extern "C"
+
+#include "../core/gamedata.h"
+
+// Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(const float, gMoney_LoanOffer_700370, 0x00700370, 0x4);

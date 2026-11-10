@@ -13,6 +13,7 @@
 #include "mappreview.h"
 #include "mapclick.h"
 #include "cellbuild.h"
+#include "mapclick.h"
 
 namespace {
 
@@ -74,7 +75,7 @@ bool unfit(const u8 *cell) {
 bool priority_ok(const u8 *cell) {
     if (!footprint(type(cell))) return true;
     object_priority(cell);
-    return global<s32>(0x00818c10) <= gCellbuild_818c14;
+    return reinterpret_cast<s32 &>(gMapclick_818c10) <= gCellbuild_818c14;
 }
 
 // An entry beside the cell that is (or whose parent is) a track type (0xb, 0xd, 0x10, 0x12, 0x19) owned by another player: blocked, and
@@ -148,7 +149,7 @@ u32 __fastcall MapCell_CanBuild(u8 *cell, void *, u32 kind, u32 alone) {
     }
     if (cell[0xe] & 0x40) return 1;
     if (footprint(type(cell))) {
-        if (global<s32>(0x00818c10) > gCellbuild_818c14 && kind != 0x15 && kind != 0x16 && global<u32>(0x00816d58) == 0 && blocked == 0)
+        if (reinterpret_cast<s32 &>(gMapclick_818c10) > gCellbuild_818c14 && kind != 0x15 && kind != 0x16 && global<u32>(0x00816d58) == 0 && blocked == 0)
             return 0;
         global<u32>(0x00816d50) = 1;
         return 1;
@@ -157,11 +158,11 @@ u32 __fastcall MapCell_CanBuild(u8 *cell, void *, u32 kind, u32 alone) {
     if (kind == 3) price = Global81ea14_Get_52fb40();
     u8 *entry = MapHandle_Entry28(reinterpret_cast<const u16 *>(cell));
     if (MapCell_IsTypeCOr11(entry)) entry = parent_entry(at<u16>(entry, 0x10));
-    if (kind == 0xb && MapCell_IsTypeBDOr10Or12Or19(entry) && global<u32>(0x008187f8) == 0) {
+    if (kind == 0xb && MapCell_IsTypeBDOr10Or12Or19(entry) && gMapclick_8187f8 == 0) {
         global<u32>(0x00816d50) = 1;
         return 1;
     }
-    if (kind == 0x10 && MapCell_IsTypeBDOr10Or12Or19(entry) && global<u32>(0x008187f8) == 0) {
+    if (kind == 0x10 && MapCell_IsTypeBDOr10Or12Or19(entry) && gMapclick_8187f8 == 0) {
         global<u32>(0x00816d50) = 1;
         return 1;
     }
@@ -171,7 +172,7 @@ u32 __fastcall MapCell_CanBuild(u8 *cell, void *, u32 kind, u32 alone) {
         global<u32>(0x00816d50) = 1;
         return 1;
     }
-    if (Kinds_Compatible(cell, nullptr, kind) && type(cell) != kind && global<u8>(0x008186d4) == 0 && !(kind == 3 && type(cell) == 1))
+    if (Kinds_Compatible(cell, nullptr, kind) && type(cell) != kind && gMapclick_8186d4 == 0 && !(kind == 3 && type(cell) == 1))
         Global81af4c_Add(price);
     if (global<u32>(0x00785a2c) == 0 && Global81af4c_Get_52fbc0() != 0) {
         const s32 have = (s32)money();
@@ -182,7 +183,7 @@ u32 __fastcall MapCell_CanBuild(u8 *cell, void *, u32 kind, u32 alone) {
             return 1;
         }
     }
-    if (global<u32>(0x008187f8) != 0 && (kind == 0xb || kind == 0x10)) {
+    if (gMapclick_8187f8 != 0 && (kind == 0xb || kind == 0x10)) {
         if ((cell[0xe] & 0x10) == 0 && MapCell_IsTypeBDOr10Or12Or19(entry) && !MapCell_CornerNeighbours(entry) &&
             !MapCell_JunctionNeighbours(entry) && at<u16>(entry, 0x10) == global<u16>(0x00818698) && type(cell) != 3)
             return 0;
@@ -220,7 +221,7 @@ u32 __fastcall MapCell_CanBuild(u8 *cell, void *, u32 kind, u32 alone) {
         global<u32>(0x00816d58) = 1;
         return 1;
     }
-    if (kind == 4 && MapCell_IsTypeBDOr10Or12Or19(entry)) return global<u32>(0x008187f8) == 0 ? 1 : 0;
+    if (kind == 4 && MapCell_IsTypeBDOr10Or12Or19(entry)) return gMapclick_8187f8 == 0 ? 1 : 0;
     if (MapCell_CornerNeighbours(entry) || MapCell_JunctionNeighbours(entry)) {
         global<u32>(0x00816d58) = 1;
         return 1;
@@ -229,7 +230,7 @@ u32 __fastcall MapCell_CanBuild(u8 *cell, void *, u32 kind, u32 alone) {
     if (kind == 0x15 && type(cell) == 0x15) return 0;
     if (kind == 4 && type(cell) == 4) return 1;
     t = type(cell);
-    if (kind == t && at<u16>(cell, 0x10) == *global<u16 *>(0x008186c0)) return 0;
+    if (kind == t && at<u16>(cell, 0x10) == *reinterpret_cast<u16 * &>(gMapclick_8186c0)) return 0;
     if (t == 0) return 0;
     if (kind == 3) {
         if (t == 1) {
@@ -317,7 +318,7 @@ u32 __fastcall MapCell_CanBuildTrack(u8 *cell, void *, u32 kind, u32 alone, u32 
         add = t != kind;
     else
         add = (kind == 0 || t == 0) && t != kind;
-    if (add && global<u8>(0x008186d4) == 0) Global81af4c_Add(price);
+    if (add && gMapclick_8186d4 == 0) Global81af4c_Add(price);
     if (global<u32>(0x00785a2c) == 0 && kind != 0xe && kind != 0x13) {
         const s32 have = (s32)money();
         if ((s32)Global81af4c_Get_52fbc0() > have) {

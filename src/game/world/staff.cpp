@@ -41,6 +41,7 @@
 #include "world.h"
 #include "challenges.h"
 #include "advisorscore.h"
+#include "object.h"
 
 namespace {
 
@@ -424,7 +425,7 @@ u32 __fastcall Staff_Serialize(u8 *staff, void *, Stream *stream, u32 save, s32 
     if (version < 0 || version > 1)
         return 0;
     static const SaveSpec kRest[] = {{0x20a, 2, 0x0075e370}, {0x20c, 2, 0x0075e360}, {0x1e8, 1, 0x0075e348}, {0x208, 2, 0x0075e33c},
-                                     {0x19c, 4, 0x0075b5b0}, {0x200, 4, 0x0075d1e0}, {0x1f0, 8, 0x0075e330}};
+                                     {0x19c, 4, (u32)&gText_Object_75b5b0}, {0x200, 4, 0x0075d1e0}, {0x1f0, 8, 0x0075e330}};
     if (save != 0) {
         // the two floats are saved as the float of their __ftol's low byte
         float happiness = (float)(u8)(long long)at<float>(staff, 0x1f8);

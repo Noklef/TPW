@@ -22,3 +22,10 @@ extern "C" {
 // +0x24 and on the ride +0x20.
 void __fastcall Object_LoadScript(u8 *object);
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(const char[8], gText_Object_LoadScript_700540, 0x00700540, 0x8);
+GAME_DATA(char[28], gText_Object_LoadScript_75b61c, 0x0075b61c, 0x1c);
+GAME_DATA(char[8], gText_Object_LoadScript_75b66c, 0x0075b66c, 0x8);
