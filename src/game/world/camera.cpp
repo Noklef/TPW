@@ -22,6 +22,7 @@
 #include "things.h"
 #include "../ui/panel7cc218.h"
 #include "camera.h"
+#include "rides.h"
 
 namespace {
 
@@ -429,7 +430,7 @@ u32 __cdecl Camera_SetMode(u32 mode, u32 toggle, u32 ride, u32 force, u32 *out, 
             g_env->enterProcedural();
         }
     }
-    u8 *const *const rides = reinterpret_cast<u8 *const *>(0x007a4610);
+    u8 *const *const rides = gRides_7a4610;
     for (u32 i = 1; i <= global(0x007a3ebc) + global(0x007a4084); ++i) {
         if (rides[i]) mark_parts(rides[i], 0x4000000, 0x8000000, true);
     }
@@ -449,7 +450,7 @@ void __cdecl Camera_FollowThing(u32 ride, u32 ground, u32 force, u32 *out, u32 k
     }
     global(0x00790988) = 0;
     if (Ride_Bit18(ride)) ride = CoasterLink_IdValue(ride);
-    u8 *const *const rides = reinterpret_cast<u8 *const *>(0x007a4610);
+    u8 *const *const rides = gRides_7a4610;
     if (ride) {
         bool follow = true;
         if (!(global<u8>(0x00790ab0) & 4)) {

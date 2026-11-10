@@ -10,6 +10,7 @@
 #include "mapcell.h"
 #include "queuepieces.h"
 #include "random.h"
+#include "rides.h"
 
 namespace {
 
@@ -238,7 +239,7 @@ void __fastcall MapCell_ApplyModel(u8 *cell) {
         const auto place = group == 3 ? g_env->place3 : g_env->place4;
         const u32 ride = place(x, y, at<s32>(cell, 0x14), at<s32>(cell, 0x18), at<s32>(cell, 0x1c), 0);
         at<u32>(cell, 4) = ride;
-        if (group == 4 && ride) Animator_Play(global<u8 *>(0x007a4610 + 4 * ride), 0xc, 0, 7, 1.0f, 0);
+        if (group == 4 && ride) Animator_Play(gRides_7a4610[ride], 0xc, 0, 7, 1.0f, 0);
     } else if (group == 5) {
         if (at<u32>(cell, 4) && at<u32>(MapHandle_Cell44(reinterpret_cast<const u16 *>(cell)), 8) != 0x15) remove_ride(cell);
         at<u32>(cell, 4) = g_env->place5(x, y, at<s32>(cell, 0x14), at<s32>(cell, 0x18), at<s32>(cell, 0x1c), 0);

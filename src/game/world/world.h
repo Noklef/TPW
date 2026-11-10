@@ -79,3 +79,9 @@ u32 __fastcall World_BusStopBlocked(u8 *world);
 // (GameClock_Serialize), the park's gates at +0x2c4 (ParkGates_Serialize). 1 at the first that fails (a nonzero result), else 0.
 u32 __fastcall WorldGlobals_Serialize(u8 *world, void *, Stream *stream, u32 save, s32 version, u32 unused);
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(u8[32], gWorld_7cfb70, 0x007cfb70, 0x20);
+GAME_DATA(u8[32], gWorld_802080, 0x00802080, 0x20);

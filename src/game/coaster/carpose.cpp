@@ -15,6 +15,7 @@
 #include "../math/sintable.h"
 #include "coastersupdate.h"
 #include "coastersload.h"
+#include "../world/rides.h"
 
 namespace {
 
@@ -173,7 +174,7 @@ extern "C" void __cdecl Coaster_PoseCars() {
 
         if (On(piece)) {
             g_env->channelRates((u32)(uintptr_t)rules, piece);
-            animator = global<const u8 *>(0x007a4610 + at<u32>(piece, 0x70) * 4);
+            animator = gRides_7a4610[at<u32>(piece, 0x70)];
             g_env->animate(const_cast<u8 *>(animator), reinterpret_cast<const u8 *>(1), 0);
         }
 
@@ -191,5 +192,5 @@ extern "C" void __cdecl Coaster_PoseCars() {
     }
 
     for (u8 *piece = at<u8 *>(gCoastersload_790fe4, 0x18); piece; piece = at<u8 *>(piece, 0x64))
-        g_env->nodeHandles(piece, On(piece) ? global<const u8 *>(0x007a4610 + at<u32>(piece, 0x70) * 4) : nullptr);
+        g_env->nodeHandles(piece, On(piece) ? gRides_7a4610[at<u32>(piece, 0x70)] : nullptr);
 }

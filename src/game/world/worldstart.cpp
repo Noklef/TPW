@@ -7,6 +7,7 @@
 #include "../core/gameheap.h"
 #include "objectdefs.h"
 #include "thingmsg.h"
+#include "world.h"
 #include "things.h"
 #include "../ui/dialog74fb20.h"
 #include "worldstart.h"
@@ -78,7 +79,7 @@ extern "C" u32 __fastcall World_Start(u8 *world, void *, const char *level) {
     u32 ok = 1;
     g_env->objectControlsInit(global<u8 *>(0x007cf83c) + 0x1d943c);
     g_env->actionRestart(address(0x00785a08));
-    for (u32 i = 0; i < 8; ++i) global<u32>(0x00802080 + 4 * i) = 0;
+    for (u8 &b : gWorld_802080) b = 0;
     read_setting_once();
     char path[260];
     if (gDialog74fb20_fb3b7c == 1) {

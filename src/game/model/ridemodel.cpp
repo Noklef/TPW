@@ -15,6 +15,7 @@
 #include "partstate.h"
 #include "../files/gamepaths.h"
 #include "highlight.h"
+#include "../world/rides.h"
 
 namespace {
 
@@ -35,7 +36,7 @@ void raise(u32 address, u32 value) {
 extern "C" {
 
 void __cdecl Ride_MarkModel(const u32 *index) {
-    u8 *const instance = reinterpret_cast<u8 *const *>(0x007a4610)[*index];
+    u8 *const instance = gRides_7a4610[*index];
     at<u32>(at<u8 *>(at<u8 *>(instance, 8), 4), 0x30) |= 0x20;
     at<u32>(at<u8 *>(at<u8 *>(at<u8 *>(instance, 8), 4), 0x78), 0) |= 0x80800;
     at<u32>(instance, 4) |= 0x1000000;

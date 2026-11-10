@@ -32,6 +32,7 @@
 #include "scream.h"
 #include "scriptfile.h"
 #include "scriptkill.h"
+#include "../world/rides.h"
 
 namespace {
 
@@ -68,7 +69,7 @@ void set_result(RsseContext *ctx, u32 word, s32 value) {
 u32 fetch(RsseContext *ctx) { return RSSE_FetchWord(ctx); }
 s32 value(RsseContext *ctx) { return RSSE_OperandValue(ctx, RSSE_FetchWord(ctx)); }
 
-u8 *ride(const RsseContext *ctx) { return global<u8 *>(0x007a4610 + (u32)ctx->owner * 4); }
+u8 *ride(const RsseContext *ctx) { return gRides_7a4610[(u32)ctx->owner]; }
 u32 now() { return g_env->clock(reinterpret_cast<u8 *>((uintptr_t)0x00785970)); }
 s32 ftol(X87Reg x) { return (s32)(long long)x.v; }
 u32 float_bits(float f) {

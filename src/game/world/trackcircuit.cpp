@@ -11,6 +11,7 @@
 #include "thingscan.h"
 #include "trackrides.h"
 #include "focuscell.h"
+#include "rides.h"
 
 namespace {
 
@@ -35,7 +36,7 @@ bool side(const u8 *cell) {
     return at<u32>(cell, 8) == 0xd || at<u32>(cell, 8) == 0x12;
 }
 
-const u8 *holder(u32 thing) { return global<const u8 *>(0x007a4610 + thing * 4); }
+const u8 *holder(u32 thing) { return gRides_7a4610[thing]; }
 
 // A part's flags: the model's face for it (the first +0x44 0xa0-byte faces at +0x70, the rest 0x58-byte at +0x74, from +0x46).
 u32 &part_flags(u32 thing, u32 part) {

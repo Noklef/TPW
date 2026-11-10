@@ -5,6 +5,7 @@
 #include <cstring>
 
 #include "../core/vcall.h"
+#include "world.h"
 
 namespace {
 
@@ -48,7 +49,7 @@ bool get(Stream *stream, void *to, s32 size) {
 }
 
 const u32 kLanguageNames[] = {0x0074bdc8, 0x0074bdc0, 0x0074bdb8, 0x0074bdb0, 0x0074bda8, 0x0074bda0, 0x0074bd94};
-const u32 kLanguages = 0x0078a460, kGameId = 0x00802080;
+const u32 kLanguages = 0x0078a460;
 
 u8 languageNumber(u8 *text) {
     for (u8 i = 0; i < 7; ++i) {
@@ -65,7 +66,7 @@ bool headerWritten(Stream *stream, u8 *park, u8 *text) {
     const u8 number = (u8)language;
     if (!put(stream, &number, 1) || !put(stream, wide, 0x500)) return false;
     u8 id[0x100] = {};
-    memcpy(id, reinterpret_cast<const void *>((uintptr_t)kGameId), 0x20);
+    memcpy(id, gWorld_802080, 0x20);
     if (!put(stream, id, 0x100)) return false;
     const u32 version = global<u32(__stdcall *)(u32)>(0x006fd3fc)(global<u32>(0x00749870));
     if (!put(stream, &version, 4)) return false;
@@ -267,7 +268,7 @@ u32 __fastcall SaveGame_ReadHeader(u8 *self, void *, Stream *stream, u32 mode, u
         *reinterpret_cast<u32 *>(self + 4) = 8;
         return 0;
     }
-    memcpy(reinterpret_cast<void *>((uintptr_t)kGameId), id, 0x20);
+    memcpy(gWorld_802080, id, 0x20);
     u32 version = 0;
     if (!get(stream, &version, 4)) return 0;
     if (global<u32(__stdcall *)(u32)>(0x006fd400)(version) != global<u32>(0x00749870)) {

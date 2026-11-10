@@ -23,7 +23,7 @@ const float kHalf = 0.5f;            // 0x6fe7d0
 const float kTwoThirds = 0.6666667f;   // 0x6fe7d4
 const double kAngleWrap = 6.2831854820251465;   // 0x6fe7d8
 
-u8 *Instance(u32 ride) { return global<u8 *>(0x007a4610 + ride * 4); }
+u8 *Instance(u32 ride) { return gRides_7a4610[ride]; }
 
 // The faces of the model's nodes that use the entry take the other.
 void replace(const u8 *model, u32 from, u32 to) {

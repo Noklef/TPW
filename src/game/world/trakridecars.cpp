@@ -29,7 +29,7 @@ u8 *ride_of(u32 handle) {
 // Whether the handle names it (not loaded: only a handle of 0).
 bool names(u32 handle, const u8 *ride) { return handle == (gTrackPools.tag == 0x4a454647 ? (handle & 0xff) | at<u32>(ride, 0) << 8 : 0); }
 
-u8 *instance_of(u32 id) { return reinterpret_cast<u8 *const *>(0x007a4610)[id]; }
+u8 *instance_of(u32 id) { return gRides_7a4610[id]; }
 
 void set_motion(u8 *car, u32 motion, u32 mode) {
     at<u32>(car, 0x10) = motion;

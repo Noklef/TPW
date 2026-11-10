@@ -19,6 +19,7 @@
 #include "../world/objectdefs.h"
 #include "../world/personscripts.h"
 #include "../world/ridelist.h"
+#include "../world/rides.h"
 
 namespace {
 
@@ -53,7 +54,7 @@ void Puff(const float *place) {
     Particle_Spawn(0x13, x, y, z);
 }
 
-u8 *Ride(const u8 *vm) { return global<u8 *>(0x007a4610 + 4 * at<u32>(vm, 0xc8)); }
+u8 *Ride(const u8 *vm) { return gRides_7a4610[at<u32>(vm, 0xc8)]; }
 
 // The definition (ObjectDefs_Find of 0x7890a0 by its type +0xe) of the vm's thing (the u16 +0xac; 0x7cfb90, 20 bytes each).
 u8 *ThingDef(const u8 *vm) {

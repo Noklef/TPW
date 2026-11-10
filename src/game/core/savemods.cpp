@@ -12,6 +12,7 @@
 #include "soundset.h"
 #include "../world/ridelist.h"
 #include "../render/particles.h"
+#include "../world/rides.h"
 
 namespace {
 
@@ -332,7 +333,7 @@ u32 __cdecl RSSE_Load(Stream *stream) {
             const s32 owner = at<s32>(rec, 0xc8);
             const float half = gRidelist_700fd0;
             const float cx = static_cast<float>((X87Reg(box[0]) + box[3]) * half);
-            const u8 *const instance = global<u8 *>(0x007a4610 + 4 * owner);
+            const u8 *const instance = gRides_7a4610[owner];
             const float y = X87_Through(at<float>(at<u8 *>(at<u8 *>(at<u8 *>(instance, 8), 4), 0x78), 0x44));
             const float cz = static_cast<float>((X87Reg(box[2]) + box[5]) * half);
             float sizes[6];

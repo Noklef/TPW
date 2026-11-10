@@ -21,6 +21,7 @@
 #include "things.h"
 #include "collobj.h"
 #include "trackrides.h"
+#include "rides.h"
 
 namespace {
 
@@ -307,7 +308,7 @@ void LoadCarNode(u8 *chunk) {
     ++at<u32>(at<u8 *>(car, 0x9c), 0x60);
     const u32 key = TrakChunk_ReadDword(chunk);
     at<u32>(node, 0xc) = key;
-    at<u32>(node, 8) = Model_FindPartByKey4(global<const u8 *>(0x007a4610 + at<u32>(car, 8) * 4), 0x80, key);
+    at<u32>(node, 8) = Model_FindPartByKey4(gRides_7a4610[at<u32>(car, 8)], 0x80, key);
 }
 
 }  // namespace
@@ -550,9 +551,9 @@ void __cdecl TrakRide_Fixed(u32 handle) {
             if (at<s32>(at<u8 *>(record, 0x9c), 0) == -1 && (at<u32>(record, 0) & 0x4000)) {
                 at<u32>(record, 0x10) = 5;
                 if (at<u32>(record, 8) != 0)
-                    Layer_ClearQueue(reinterpret_cast<u8 *const *>(0x007a4610)[at<u32>(record, 8)], 0);
+                    Layer_ClearQueue(gRides_7a4610[at<u32>(record, 8)], 0);
                 if (at<u32>(record, 8) != 0)
-                    Animator_Play(reinterpret_cast<u8 *const *>(0x007a4610)[at<u32>(record, 8)], 5, 0, 1, 1.0f, 0);
+                    Animator_Play(gRides_7a4610[at<u32>(record, 8)], 5, 0, 1, 1.0f, 0);
             }
         }
         record += 0xac;
@@ -873,7 +874,7 @@ u32 __cdecl TrakRide_LinkedValue(u32 handle) {
 }
 
 void __cdecl TrakRide_SetAsleep(u8 *ride, s32 asleep) {
-    u8 *const *const instances = reinterpret_cast<u8 *const *>(0x007a4610);
+    u8 *const *const instances = gRides_7a4610;
     if (asleep && !(at<u32>(ride, 0) & 0x200)) {
         at<u32>(ride, 0) |= 0x200;
         u8 *inst = instances[at<u32>(ride, 8)];
@@ -1038,7 +1039,7 @@ u16 *__cdecl TrakRide_FindThing(u16 *out, u32 ride) {
 }
 
 s32 __cdecl TrakRide_Unload(u8 *ride, u32 effect) {
-    u8 *const *const instances = reinterpret_cast<u8 *const *>(0x007a4610);
+    u8 *const *const instances = gRides_7a4610;
     for (u8 *node; (node = at<u8 *>(ride, 0x30)) != nullptr;) {
         at<u32>(ride, 0x30) = at<u32>(node, 0x10);
         at<u32>(node, 0x10) = at<u32>(at<u8 *>(ride, 0x9c), 0xc8);
@@ -1059,7 +1060,7 @@ s32 __cdecl TrakCar_Remove(u8 *car) {
         at<u32>(ride, 0x58) = 0;
         at<u32>(car, 0) &= ~0x400000u;
     }
-    if (at<s32>(ride, 0x50) != 4) SeatEffect(reinterpret_cast<u8 *const *>(0x007a4610)[at<u32>(car, 8)], 0xf);
+    if (at<s32>(ride, 0x50) != 4) SeatEffect(gRides_7a4610[at<u32>(car, 8)], 0xf);
     QueuePiece_Remove(at<u32>(car, 8));   // (Ride_Destroy 0x463c80, through the queue pieces' env)
     if (at<u32>(car, 0) & 0x2002000u) {
         QueuePiece_Remove(at<u32>(car, 0xc));
@@ -1096,7 +1097,7 @@ s32 __cdecl TrakCar_Remove(u8 *car) {
 }
 
 void __cdecl TrakRide_Load(u8 *ride, u32 effect) {
-    u8 *const *const instances = reinterpret_cast<u8 *const *>(0x007a4610);
+    u8 *const *const instances = gRides_7a4610;
     u32 seat = 1;
     for (u8 *node = at<u8 *>(ride, 0x30); node; node = at<u8 *>(node, 0x10)) {
         const u32 part = Model_FindPartByKey4(instances[at<u32>(ride, 8)], 0x80, seat);
@@ -1167,7 +1168,7 @@ u32 BitsOf(float f) {
     return bits;
 }
 
-u8 *Instance(u32 index) { return global<u8 *>(0x007a4610 + 4 * index); }
+u8 *Instance(u32 index) { return gRides_7a4610[index]; }
 
 // The game's own rand (0x877b90 = * 0x343fd + 0x269ec3): the new seed.
 u32 NextSeed() { return gTrackPools.seed = gTrackPools.seed * 0x343fd + 0x269ec3; }

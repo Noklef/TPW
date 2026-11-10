@@ -9,6 +9,7 @@
 #include "../render/particles.h"
 #include "../terrain/land.h"
 #include "collobj.h"
+#include "rides.h"
 
 namespace {
 
@@ -35,7 +36,7 @@ const float kTwoPi = 0x1.921fb6p+2f;     // (0x700eec)
 X87Reg fild(s32 n) { return X87Reg((double)n); }
 s32 ftol(X87Reg x) { return (s32)(long long)x.v; }
 s32 sine(u32 i) { return global<s32>(0x877358 + 4 * (i & 0x1ff)); }
-u8 *model_of(u32 index) { return at<u8 *>(at<u8 *>(at<u8 *>(global<u8 *>(0x7a4610 + 4 * index), 8), 4), 0x78); }
+u8 *model_of(u32 index) { return at<u8 *>(at<u8 *>(at<u8 *>(gRides_7a4610[index], 8), 4), 0x78); }
 float *matrix_of(u8 *model) { return reinterpret_cast<float *>(model + 0x10); }
 
 void set_wheel(Wheel &w, const u8 *car, float x, float z) {

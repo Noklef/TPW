@@ -7,6 +7,7 @@
 #include "../math/x87.h"
 #include "../world/ridelist.h"
 #include "registry.h"
+#include "../world/rides.h"
 
 namespace {
 
@@ -18,7 +19,7 @@ T &G(u32 address) {
 }
 u32 &D(u32 base, u32 offset) { return G<u32>(base + offset); }
 
-constexpr u32 kTable = 0x007a4610;
+u32 Ride(u32 index) { return (u32)(uintptr_t)gRides_7a4610[index]; }
 
 void Read(void *stream, u32 buffer, u32 count) {
     s32 result;
@@ -119,7 +120,7 @@ void AddEntries() {   // flag 1
             const u32 car = D(coaster, 0x54);
             part = D(D(D(car, 0x100), 0x18), 0x2c);
             if (part != 0xffffffff) {
-                const u32 holder = D(D(D(G<u32>(kTable + 4 * D(car, 0x70)), 8), 0x28), 4);
+                const u32 holder = D(D(D(Ride(D(car, 0x70)), 8), 0x28), 4);
                 const u32 object = D(holder, part * 20 + 4);
                 if (object) {
                     g_calls.Cd(0x00435710, object, position);   // Object_GetPosition
@@ -130,7 +131,7 @@ void AddEntries() {   // flag 1
                 }
             }
         } else {
-            part = g_calls.Cd(0x0044b220, G<u32>(kTable + 4 * D(coaster, 0x10)), 0x400000u, i + 1);   // Model_FindPartByKey4
+            part = g_calls.Cd(0x0044b220, Ride(D(coaster, 0x10)), 0x400000u, i + 1);   // Model_FindPartByKey4
             if (part != 0xffffffff) g_calls.Cd(0x004386d0, D(coaster, 0x10), &part, position);   // Ride_EntryPosition
         }
         const u32 link = g_calls.Cd(0x00432c10, 0u, 0u, 0x13u, 0u, 0u, position);   // CoasterLink_AddEntry
@@ -154,13 +155,13 @@ void ReadSeat(void *stream, u32 seat) {
     if (D(kind, 0xc)) {
         g_calls.Cd(0x00463ab0, D(seat, 0xc), D(kind, 0xc), 0x101u, 0u, 0u, 0u, 0u, 0u, 0u);   // Ride_Claim
         if (!(q[0] & 1)) {
-            const u32 entry = G<u32>(kTable + 4 * D(seat, 0xc));
+            const u32 entry = Ride(D(seat, 0xc));
             if (G<u8>(entry + 5) & 0x40)
                 g_calls.Cd(0x0045be80, D(entry, 8), D(entry, 0xc0), D(entry, 0xc4));   // Obj_RemoveFromRect
             else
                 g_calls.Cd(0x0045bdd0, D(entry, 8));   // Holder_Sleep
         }
-        const u32 entry = G<u32>(kTable + 4 * D(seat, 0xc));
+        const u32 entry = Ride(D(seat, 0xc));
         if (entry) g_calls.Cd(0x00472f40, entry);   // Animator_SetPlaying
     }
     if (D(seat, 0x28) && D(seat, 0x2c)) {
@@ -200,7 +201,7 @@ void ReadCoaster(void *stream) {
         reinterpret_cast<u32 &>(gCoastersload_790fec) = coaster;
         reinterpret_cast<u32 &>(gCoastersload_790fe4) = coaster + 0x3c;
         g_calls.Cd(0x00436d10, D(coaster, 4), coaster, 1u);   // CoasterLink_SetUpCars
-        const X87Reg rate(G<const float>(D(D(D(G<u32>(kTable + 4 * id), 8), 4), 0x78) + 0x44));
+        const X87Reg rate(G<const float>(D(D(D(Ride(id), 8), 4), 0x78) + 0x44));
         g_calls.Cd(0x00436ac0, coaster, (u32)From<u16>(h, 0xe), (u32)From<u16>(h, 0x10), (float)rate, 1u);   // CoasterLink_AddFixedPieces
         D(coaster, 0x14) = g_calls.Cd(0x00468760, (u32)&gCoasterIdUsed_790b04, (u32)&gCoasterIdHoles_790b00, (u32)&gCoasterIdNext_791ce0, 0xffu, (u32)&gCoasters_790bd0, coaster, (u32)From<u16>(h, 0xc));   // IdTable_Add
         D(coaster, 0) |= 2;

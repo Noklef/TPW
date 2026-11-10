@@ -97,7 +97,7 @@ u32 __cdecl TrackQueuePiece_Place(s32 x, s32 y, u32, u32 piece, u32 angle, u32 c
 
 u32 __cdecl TrackQueuePiece_PlaceAnimated(s32 x, s32 y, u32, u32 piece, u32 angle, u32 claim) {
     const u32 ride = place_turned(0x007634d8, x, y, piece, angle, claim);
-    if (ride != 0) Animator_Play(*reinterpret_cast<u8 **>((uintptr_t)(0x007a4610 + ride * 4)), 0xc, 0, 7, 1.0f, 0);
+    if (ride != 0) Animator_Play(gRides_7a4610[ride], 0xc, 0, 7, 1.0f, 0);
     return ride;
 }
 

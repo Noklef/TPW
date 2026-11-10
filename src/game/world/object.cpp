@@ -38,6 +38,7 @@
 #include "object.h"
 #include "mapcell.h"
 #include "cellmessage.h"
+#include "rides.h"
 
 namespace {
 
@@ -353,7 +354,7 @@ void __fastcall Object_BeginCycle(u8 *object) {
         return;
     }
     const u8 level = (u8)(long long)at<float>(object, 0x48);   // (__ftol, the low byte)
-    u8 *const strip = global<u8 *>(0x007a4610 + 4 * at<u32>(object, 0x20));
+    u8 *const strip = gRides_7a4610[at<u32>(object, 0x20)];
     StripAnim_StartGrow(strip, level ? 2 : 4);
     Object_SetState(object, nullptr, level ? 1 : 4);
 }
@@ -391,7 +392,7 @@ void __fastcall Object_CallQueueHead(u8 *object) {
 }
 
 u32 __fastcall Object_SetOpen(u8 *object, void *, u32 open) {
-    u8 *const *const strips = reinterpret_cast<u8 *const *>(0x007a4610);
+    u8 *const *const strips = gRides_7a4610;
     if (open) {
         if (!(at<u8>(object, 0x32) & 4)) return 0;
         Object_SetState(object, nullptr, 2);
@@ -411,7 +412,7 @@ u32 __fastcall Object_SetOpen(u8 *object, void *, u32 open) {
 void __fastcall Object_Close(u8 *object) {
     Object_CanOpen(object);   // (the original's inline checks pick only a debug print; their calls are kept)
     at<u32>(object, 0x68) = 1;
-    StripAnim_StartShrink(reinterpret_cast<u8 *const *>(0x007a4610)[at<u32>(object, 0x20)]);
+    StripAnim_StartShrink(gRides_7a4610[at<u32>(object, 0x20)]);
     Rides_SetElement(Rides_FindById(at<s32>(object, 0x24)), 6, 0);
     Object_SetState(object, nullptr, 0);
 }
@@ -474,7 +475,7 @@ void __fastcall Object_MechanicDone(u8 *object, void *, u32) {
         Rides_GetElement(record, 7);
         Rides_GetElement(record, 4);
         Rides_SetElement(record, 4, 0);
-        StripAnim_StartShrink(reinterpret_cast<u8 *const *>(0x007a4610)[at<u32>(object, 0x20)]);
+        StripAnim_StartShrink(gRides_7a4610[at<u32>(object, 0x20)]);
     }
     Object_Close(object);
     if (at<s32>(Object_GetDef(object), 0x9c) == 3 && !Object_LinkOtherOpen(object)) Object_RestartRide(object);
@@ -535,7 +536,7 @@ void __fastcall Object_RestartRide(u8 *object) {
     at<u32>(object, 0x68) = 0;
     at<u16>(object, 0x6c) = 0;
     Rides_SetElement(Rides_FindById(at<s32>(object, 0x24)), 6, 1);
-    StripAnim_StartGrow(reinterpret_cast<u8 *const *>(0x007a4610)[at<u32>(object, 0x20)], 1);
+    StripAnim_StartGrow(gRides_7a4610[at<u32>(object, 0x20)], 1);
 }
 
 u32 __cdecl Object_TrackNeighboursOk(const u8 *object) {

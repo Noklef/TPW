@@ -14,6 +14,7 @@
 #include "cars.h"
 #include "orient.h"
 #include "spline.h"
+#include "../world/rides.h"
 
 namespace {
 
@@ -219,7 +220,7 @@ void PlaceCar(u8 *c, u8 *train, u8 *car, u32 k, float length) {
             out[1] = (float)(X87Reg(offset[1]) + out[1]);
             out[2] = (float)(X87Reg(offset[2]) + out[2]);
         }
-        u8 *holder = *reinterpret_cast<u8 **>((uintptr_t)(0x007a4610 + ride * 4));
+        u8 *holder = gRides_7a4610[ride];
         u8 *matrix = at<u8 *>(at<u8 *>(at<u8 *>(holder, 8), 4), 0x78);
         at<u32>(matrix, 0x40) = reinterpret_cast<const u32 *>(out)[0];
         at<float>(matrix, 0x44) = X87_Through(out[1]);

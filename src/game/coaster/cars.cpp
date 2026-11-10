@@ -18,6 +18,7 @@
 #include "../motion/animator.h"
 #include "../world/levelsetup.h"
 #include "../core/soundset.h"
+#include "../world/rides.h"
 
 namespace {
 
@@ -45,7 +46,7 @@ double __cdecl CoasterCar_SwingRate(const u8 *coaster, const u8 *car, float x) {
 
 void __cdecl CoasterCar_Wake(u8 *coaster, u8 *car) {
     if (!(coaster[0x3c] & 4)) return;
-    u8 *const *const strips = reinterpret_cast<u8 *const *>(0x007a4610);
+    u8 *const *const strips = gRides_7a4610;
     at<u32>(coaster, 0) |= 0x800;
     Motion_Time(0);   // (its answer unused)
     at<u32>(car, 0) |= 2;
@@ -72,7 +73,7 @@ void __cdecl CoasterCar_Wake(u8 *coaster, u8 *car) {
 }
 
 void __cdecl CoasterCar_Sleep(u8 *coaster, u8 *car) {
-    u8 *const *const strips = reinterpret_cast<u8 *const *>(0x007a4610);
+    u8 *const *const strips = gRides_7a4610;
     u8 *segment = at<u8 *>(car, 0x28) + at<u32>(car, 8) * 0x60;
     for (u32 n = at<u32>(car, 0xc); n != 0; --n, segment += 0x60) {
         at<u32>(segment, 0) &= ~1u;
@@ -350,7 +351,7 @@ void __cdecl Coaster_BoardRiders(u8 *queue, u8 *coaster, u32 first, u32 count) {
         for (u32 k = 0; k < count; ++k) {
             if (at<u32>((void *)car, 0x34) < at<u32>((void *)car, 0x44)) {
                 u8 *const c = reinterpret_cast<u8 *>(car);
-                const u8 *const kind = *reinterpret_cast<u8 *const *>((uintptr_t)(0x007a4610 + 4 * at<u32>(c, 0xc)));
+                const u8 *const kind = gRides_7a4610[at<u32>(c, 0xc)];
                 PartStates_Activate(at<u8 *>(kind, 8), at<const u32 *>(at<const u8 *>(c, 4), 0x2c)[at<u32>(c, 0x34)], rider);
                 ++at<u32>(coaster, 0x10);
                 at<u32 *>(c, 0x2c)[at<u32>(c, 0x34)] = rider;

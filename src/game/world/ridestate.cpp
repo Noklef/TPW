@@ -9,6 +9,7 @@
 #include "flyingrides.h"
 #include "ridelist.h"
 #include "trackrides.h"
+#include "rides.h"
 
 namespace {
 
@@ -26,11 +27,11 @@ u32 __cdecl Ride_IsBusy(const u8 *object, u32 index) {
         if (flying && FlyingRide_FirstSlotRide((s32)flying)) return 1;
     }
     if (Ride_Bit18(index) && CoasterLink_IdValue(index)) return 1;
-    return Model_FindPartByKey4(reinterpret_cast<const u8 *const *>(0x007a4610)[index], 0x1000, 1) != 0xffffffff;
+    return Model_FindPartByKey4(gRides_7a4610[index], 0x1000, 1) != 0xffffffff;
 }
 
 void __cdecl Ride_Sleep(u32 index) {
-    u8 *const holder = reinterpret_cast<u8 *const *>(0x007a4610)[index];
+    u8 *const holder = gRides_7a4610[index];
     if (!holder) return;
     u8 *const instance = at<u8 *>(holder, 8);
     if (at<u32>(instance, 0) & 1) {

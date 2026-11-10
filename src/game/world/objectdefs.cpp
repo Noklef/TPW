@@ -1,4 +1,5 @@
 #include "objectdefs.h"
+#include "world.h"
 
 #include <cstdint>
 #include <cstring>
@@ -558,7 +559,7 @@ void __cdecl ObjectDefs_FreeAll() {
 s32 __stdcall ObjectDefs_ListBuiltNumbers(u16 *out) {
     std::memset(out, 0, 0x200);
     u8 *const defs = reinterpret_cast<u8 *>(0x007890a0);
-    const u8 *const built = reinterpret_cast<const u8 *>(0x00802080);
+    const u8 *const built = gWorld_802080;
     u32 count = 0;
     for (u32 index = 0; index < 0x20; ++index) {
         for (u32 bit = 0; bit < 8; ++bit) {

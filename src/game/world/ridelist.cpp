@@ -14,6 +14,7 @@
 #include "ridelist.h"
 #include "balancelevel.h"
 #include "../rsse/rsse.h"
+#include "rides.h"
 
 namespace {
 
@@ -225,7 +226,7 @@ s32 __fastcall Game_GetRideElement1(const u8 *game) {
 void __cdecl Ride_SetRecordId(u32 index, u32 value) {
     if (!index)
         return;
-    u8 *const ride = reinterpret_cast<u8 *const *>(0x007a4610)[index];
+    u8 *const ride = gRides_7a4610[index];
     at<u32>(ride, 0xd4) = value;
     if (at<u32>(ride, 4) & 0x40000)
         Objects_SetRideId(index, value);
@@ -247,7 +248,7 @@ void __cdecl Ride_PlayEffect(s32 id) {
     const float &half = gRidelist_700fd0, &scale = gRidelist_700fdc;
     const X87Reg zc = (X87Reg(box[2]) + box[5]) * half;
     const X87Reg xc = (X87Reg(box[0]) + box[3]) * half;
-    const u8 *const ride = global<u8 *>(0x007a4610 + 4 * at<u32>(node, 0xc8));
+    const u8 *const ride = gRides_7a4610[at<u32>(node, 0xc8)];
     const float z = (float)zc;
     const float y = at<float>(at<u8 *>(at<u8 *>(at<u8 *>(ride, 8), 4), 0x78), 0x44);
     const float x = (float)xc;

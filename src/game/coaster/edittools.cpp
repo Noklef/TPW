@@ -23,6 +23,7 @@
 #include "placecar.h"
 #include "coastersupdate.h"
 #include "coastersload.h"
+#include "../world/rides.h"
 
 namespace {
 
@@ -62,7 +63,7 @@ u32 EndCarHas(const u8 *game, u32 on, u32 off) {
 // A car's ride part entry's +0x34 (the train type's +0x2c a 0x14-byte index into its ride's model (+8) +0x28 -> +4, its +4), or
 // [0x6fe1b4] for none: fld / fstp, as bits.
 u32 PartEntryValue(const u8 *car) {
-    const u8 *const model = at<const u8 *>(reinterpret_cast<const u8 *const *>(0x007a4610)[at<u32>(car, 0x70)], 8);
+    const u8 *const model = at<const u8 *>(gRides_7a4610[at<u32>(car, 0x70)], 8);
     const u32 part = at<u32>(at<const u8 *>(at<const u8 *>(car, 0x100), 0x18), 0x2c);
     const u8 *const entry = at<const u8 *>(at<const u8 *>(at<const u8 *>(model, 0x28), 4), part * 0x14 + 4);
     return X87_FloatThrough(entry ? at<u32>(entry, 0x34) : gEdittools_6fe1b4);

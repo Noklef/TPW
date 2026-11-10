@@ -14,6 +14,7 @@
 #include "scriptkill.h"
 #include "../world/ridelist.h"
 #include "rsse.h"
+#include "../world/rides.h"
 
 namespace {
 
@@ -32,7 +33,7 @@ T &at(void *base, u32 offset) {
 
 s32 ftol(X87Reg x) { return (s32)(long long)x.v; }
 
-u8 *ride_of(const RsseContext *ctx) { return global<u8 *>(0x007a4610 + (uintptr_t)(u32)(ctx->owner * 4)); }
+u8 *ride_of(const RsseContext *ctx) { return gRides_7a4610[(u32)ctx->owner]; }
 
 // The node's part's position, each __ftol'd (a null part: 0, 0, 0).
 struct Position {

@@ -13,6 +13,7 @@
 #include "../world/objectdefs.h"
 #include "../world/ridelist.h"
 #include "rsse.h"
+#include "../world/rides.h"
 
 namespace {
 
@@ -21,7 +22,7 @@ template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((ui
 
 s32 Ftol(X87Reg x) { return (s32)(long long)x.v; }
 
-u8 *ride(u8 *c) { return global<u8 *>(0x007a4610 + 4 * at<u32>(c, 0xc8)); }
+u8 *ride(u8 *c) { return gRides_7a4610[at<u32>(c, 0xc8)]; }
 
 // The ride's part of the key (mask 0x80) released, when found (the ride read again for each call).
 void release(u8 *c, u32 key) {

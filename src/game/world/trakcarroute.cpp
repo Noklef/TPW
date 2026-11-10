@@ -138,7 +138,7 @@ void wander(const u8 *ride, u8 *car) {
         const u32 phase = Rand() & 0x1ff;
         at<u32>(car, 0x54) = phase;
         at<u32>(car, 0x50) = phase;
-        const u8 *const *const instances = reinterpret_cast<const u8 *const *>(0x007a4610);
+        const u8 *const *const instances = gRides_7a4610;
         at<u32>(car, 0x24) = g_env->findPart(instances[at<u32>(car, 8)], 0x100, 2);
         at<u32>(car, 0x28) = g_env->findPart(instances[at<u32>(car, 8)], 0x100, 1);
         if (at<s32>(ride, 0) == -1) {
@@ -184,7 +184,7 @@ void follow(const u8 *ride, u8 *car) {
     at<u32>(car, 0x8c) = 0;
     if (at<u32>(car, 0) & kNew) {
         startSound(car);
-        const u8 *const *const instances = reinterpret_cast<const u8 *const *>(0x007a4610);
+        const u8 *const *const instances = gRides_7a4610;
         at<u32>(car, 0x24) = g_env->findPart(instances[at<u32>(car, 8)], 0x100, 1);
         if (at<u32>(car, 0) & 0x2000) createRide(ride, car);
     }

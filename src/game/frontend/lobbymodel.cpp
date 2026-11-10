@@ -7,12 +7,13 @@
 #include "../math/x87.h"
 #include "../model/holder.h"
 #include "../motion/animator.h"
+#include "../world/rides.h"
 
 namespace {
 
 template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cast<T *>((uintptr_t)p + offset); }
 
-u8 *entry(const u8 *model) { return reinterpret_cast<u8 *const *>(0x007a4610)[at<u32>(model, 4)]; }
+u8 *entry(const u8 *model) { return gRides_7a4610[at<u32>(model, 4)]; }
 
 float *matrix(const u8 *model) {
     return reinterpret_cast<float *>(at<u8 *>(at<u8 *>(at<u8 *>(entry(model), 8), 4), 0x78) + 0x10);

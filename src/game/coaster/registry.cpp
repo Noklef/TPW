@@ -73,7 +73,7 @@ void __cdecl Coaster_GetPair(u32 index, u32 *a, u32 *b) {
 }
 
 void __cdecl Ride_EntryPosition(u32 index, const u32 *slot, float *out) {
-    const u8 *ride = reinterpret_cast<u8 *const *>(0x007a4610)[index];
+    const u8 *ride = gRides_7a4610[index];
     const u8 *entries = at<const u8 *>(at<const u8 *>(at<const u8 *>(ride, 8), 0x28), 4);
     const u8 *object = at<const u8 *>(entries, *slot * 0x14 + 4);
     u32 *dst = reinterpret_cast<u32 *>(out);
@@ -131,7 +131,7 @@ void __cdecl CoasterLink_CheckEnd() {
 u8 *__cdecl CoasterLink_FindCarOnRide(u32 ride) {
     const u8 *link = *reinterpret_cast<const u8 *const *>(&gCoastersload_790fec);
     if (!at<u32>(link, 0x54)) return nullptr;
-    const u32 *rides = reinterpret_cast<const u32 *>(0x007a4610);
+    const u32 *rides = reinterpret_cast<const u32 *>(gRides_7a4610);
     for (const u8 *train = at<const u8 *>(link, 0x4c); train; train = at<const u8 *>(train, 0x28)) {
         if (at<u8>(train, 4) & 1) continue;
         for (u32 i = 0, n = at<u32>(train, 0x30); i < n; ++i) {
@@ -157,7 +157,7 @@ u32 __cdecl Table7ae6a8_Bit18(u32 index) {
 }
 
 u32 __cdecl Ride_Bit18(u32 index) {
-    return at<u32>(reinterpret_cast<const u8 *const *>(0x007a4610)[index], 4) >> 18 & 1;
+    return at<u32>(gRides_7a4610[index], 4) >> 18 & 1;
 }
 
 u8 *__cdecl CoasterLink_ById(u32 id) {
@@ -346,7 +346,7 @@ void __cdecl Coasters_InitTables() {
 }
 
 void __cdecl Coaster_FlashCar(u8 *coaster, u32 which) {
-    u8 *const *const rides = reinterpret_cast<u8 *const *>(0x007a4610);
+    u8 *const *const rides = gRides_7a4610;
     if (const u8 *const old = *reinterpret_cast<const u8 *const *>(coaster + 0x144)) {
         u8 *const ride = rides[*reinterpret_cast<const u32 *>(old + 0x70)];
         if (*reinterpret_cast<const u32 *>(ride + 4) & 0x4000000) Highlight_Unflash(ride);
@@ -367,7 +367,7 @@ void __cdecl Coaster_FlashCar(u8 *coaster, u32 which) {
 u32 __cdecl Ride_Claim(u32 index, u32 type, u32 key, const u32 *desc, u32, u32 value, u32 a, u32 b) {
     if (!a) a = desc && desc[3] ? reinterpret_cast<const u32 *>(desc[3])[0] : 0;
     if (!b) b = desc && desc[3] ? reinterpret_cast<const u32 *>(desc[3])[1] : 0;
-    u8 *const *const rides = reinterpret_cast<u8 *const *>(0x007a4610);
+    u8 *const *const rides = gRides_7a4610;
     const u8 *const *const types = reinterpret_cast<const u8 *const *>(0x007ae6a8);
     const u8 *def = ObjectDefs_Find(reinterpret_cast<u8 *>(0x007890a0), nullptr, (u16)at<u32>(types[type], 0xf8));
     u8 *ride;
@@ -497,7 +497,7 @@ void __cdecl CoasterLink_SetUpCars(const u8 *train, u8 *link, u32 quiet) {
     u8 *car = at<u8 *>(link, 0x128);
     u8 *slots = static_cast<u8 *>(GlobalMem_Alloc(at<u32>(train, 0x318) << 3, 1));
     at<u8 *>(link, 0x148) = slots;
-    u8 *const *const holders = reinterpret_cast<u8 *const *>(0x007a4610);
+    u8 *const *const holders = gRides_7a4610;
     u8 *holder = nullptr;   // (the link argument's slot, kept from segment to segment)
     for (u32 i = 0; i < at<u32>(train, 0x2e8); ++i, car += 0x80) {
         at<const u8 *>(car, 4) = train + 0x2f0;
@@ -655,7 +655,7 @@ u8 *__cdecl CoasterLink_AddCar(u8 *train, u32 a, u32 b, float height, u32 flags,
         const u32 *const key = gCoasterRideDesc_791ce8;
         at<u32>(piece, 0x70) = (flags & 1) ? Ride_Claim(claim, at<u32>(desc, 0x14), 0x3fa, key, 0, 0, 0, 0)
                                            : g_env->createRide(at<u32>(desc, 0x14), 0x3fa, key, 0, 0, 0, 0, 0, -1, 0);
-        u8 *const *const rides = reinterpret_cast<u8 *const *>(0x007a4610);
+        u8 *const *const rides = gRides_7a4610;
         at<u32>(rides[at<u32>(piece, 0x70)], 4) |= 0x80000;
         at<u8 *>(rides[at<u32>(piece, 0x70)], 0xd4) = piece;
         u8 *const ride = rides[at<u32>(piece, 0x70)];
@@ -708,7 +708,7 @@ void __cdecl CoasterLink_AddFixedPieces(u8 *link, u32, u32, float, u32 flag) {
     const u8 *const type = at<const u8 *>(link, 4);
     const bool twin = at<u8>(type, 0) & 0x20;
     const s32 count = twin ? 3 : 2, first = twin ? 1 : 2;
-    const auto holder = [link]() { return reinterpret_cast<const u8 *const *>(0x007a4610)[at<u32>(link, 0x10)]; };
+    const auto holder = [link]() { return gRides_7a4610[at<u32>(link, 0x10)]; };
     if (!at<u32>(link, 0x40)) {
         for (s32 i = 0; i < count; ++i) {
             const u32 part = env->findPart(holder(), 0x400000, (u32)(first + i));
@@ -794,7 +794,7 @@ u32 __cdecl CoasterLink_Create(u32 typeId, u32 ride, u32 height, u32 a3, u32 loa
     if (!loaded) {
         env->setUpCars(type, link, 0);
         env->setupCars(link, 0, at<u32>(type, 0x2f4), 1);
-        const u8 *const holder = reinterpret_cast<const u8 *const *>(0x007a4610)[ride];
+        const u8 *const holder = gRides_7a4610[ride];
         const u8 *const frame = at<const u8 *>(at<const u8 *>(at<const u8 *>(holder, 8), 4), 0x78);
         const u32 bits = X87_FloatThrough(at<u32>(frame, 0x44));   // fld / fstp
         float through;

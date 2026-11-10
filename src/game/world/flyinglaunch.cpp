@@ -114,7 +114,7 @@ u32 __cdecl FlyingRide_Launch(s32 index) {
     g_env->playMotion(index, k, 0, 0, 0);
 
     u32 parts = 0;
-    while (g_env->findPart(global<const u8 *>(0x007a4610 + at<u32>(slot, 0xc0) * 4), 0x80, parts + 1) != 0xffffffff) ++parts;
+    while (g_env->findPart(gRides_7a4610[at<u32>(slot, 0xc0)], 0x80, parts + 1) != 0xffffffff) ++parts;
     at<u32>(slot, 0xdc) = parts;
     return 1;
 }

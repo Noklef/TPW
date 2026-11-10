@@ -38,3 +38,13 @@ u32 __cdecl HoardingGrid_AreaBlocked(s32 x1, s32 y1, s32 x2, s32 y2);
 // answer is 0. Else 1.
 s32 __cdecl HoardingGrid_CheckArea(s32 x1, s32 y1, s32 x2, s32 y2, u8 charge);
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(u8[4489], gHoardingGrid_81d7c8, 0x0081d7c8, 0x1189);
+GAME_DATA(u8[128], gHoardingGrid_81ea78, 0x0081ea78, 0x80);
+GAME_DATA(u8[128], gHoardingGrid_81eb10, 0x0081eb10, 0x80);
+GAME_DATA(u8[128], gHoardingGrid_81eb98, 0x0081eb98, 0x80);
+GAME_DATA(u8[128], gHoardingGrid_81ec18, 0x0081ec18, 0x80);
+GAME_DATA(u8[4422], gHoardingGrid_81eeb0, 0x0081eeb0, 0x1146);

@@ -26,7 +26,7 @@ namespace {
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
 template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cast<T *>((uintptr_t)p + offset); }
 
-u8 **instances() { return reinterpret_cast<u8 **>(0x007a4610); }
+u8 **instances() { return gRides_7a4610; }
 
 const RidesEnv kGameEnv = {&Camera_StopFollowing, &CoasterLink_Destroy, &Instance_Clone, &Animator_Reset,
                            &Animator_HasMotion, &Animator_Play, &Terrain_FootprintHeight, &Animator_Place, &Model_FitToGrid,

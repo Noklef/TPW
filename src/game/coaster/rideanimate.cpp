@@ -3,6 +3,7 @@
 #include <cstdint>
 
 #include "../core/addrcalls.h"
+#include "../world/rides.h"
 
 namespace {
 
@@ -50,7 +51,7 @@ void __cdecl Rides_AnimateAll(u32 mode) {
         return;
     }
     for (u32 i = 0; i < global<u32>(0x007a3ebc) + global<u32>(0x007a4084); i++) {
-        u8 *const ride = global<u8 *>(0x007a4614 + i * 4);
+        u8 *const ride = gRides_7a4610[i + 1];
         if (!ride) continue;
         if (at<u32>(ride, 4) & 0x200000) {
             at<u32>(ride, 4) &= 0xffdfffffu;

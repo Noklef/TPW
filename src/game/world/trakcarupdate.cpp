@@ -11,6 +11,7 @@
 #include "trackrides.h"
 #include "trakcarroute.h"
 #include "collobj.h"
+#include "rides.h"
 
 namespace {
 
@@ -90,7 +91,7 @@ void leave(u8 *car, u8 *ride) {
             flags &= 0xffffff81;
             if (motion != 0xc) {
                 at<u32>(car, 0x10) = 0xc;
-                u8 *const *const instances = reinterpret_cast<u8 *const *>(0x007a4610);
+                u8 *const *const instances = gRides_7a4610;
                 if (at<u32>(car, 8)) g_env->clearQueue(instances[at<u32>(car, 8)], 0);
                 if (at<u32>(car, 8)) g_env->play(instances[at<u32>(car, 8)], 0xc, 0, 2, 1.0f, 0);
             }

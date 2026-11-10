@@ -17,6 +17,7 @@
 #include "trackmessage.h"
 #include "cellrun.h"
 #include "focuscell.h"
+#include "rides.h"
 
 namespace {
 
@@ -110,7 +111,7 @@ u32 animate_run(s32 x, s32 y, u8 direction, u32 start) {
                 direction = static_cast<u8>(MapCell_Neighbours(cell) ^ turn);
             }
             const u32 thing = at<u32>(cell, 4);
-            if (thing != 0) Animator_Play(global<u8 *>(0x007a4610 + thing * 4), static_cast<u8>(start) ? 5 : 0xc, 0, 7, 1.0f, 0);
+            if (thing != 0) Animator_Play(gRides_7a4610[thing], static_cast<u8>(start) ? 5 : 0xc, 0, 7, 1.0f, 0);
         } else {
             direction = 0;
         }
@@ -135,7 +136,7 @@ const CellRunEnv *g_env = &kGameEnv;
 u32 has_low(const u8 *cell) { return MapCell_HasLowFlags(cell); }
 u32 is_end(const u8 *cell) { return MapCell_IsTypeBDOr10Or12Or19(cell); }
 u16 owner(const u8 *cell) { return at<u16>(cell, 0x10); }
-u8 *thing_of(u32 thing) { return global<u8 *>(0x007a4610 + thing * 4); }
+u8 *thing_of(u32 thing) { return gRides_7a4610[thing]; }
 u8 *step(const u8 *cell, u32 direction) { return Map_StepCell28InDirection(reinterpret_cast<const u16 *>(cell), nullptr, direction, 2); }
 
 // The cell's low flags cleared (0xf) and then set to value; with of_a, value is (a is an end ? on : off), looked at after the clear.

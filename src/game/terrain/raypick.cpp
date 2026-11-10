@@ -13,6 +13,7 @@
 #include "../motion/normals.h"
 #include "land.h"
 #include "../math/sintable.h"
+#include "../world/rides.h"
 
 namespace {
 
@@ -153,7 +154,7 @@ u8 *__cdecl RayPick_Column(s32 x, s32 y, u32 alongX, float atX, float atY, float
     if (y < 0) y = 0;
     if (x >= global<s32>(0x7a0314)) x = global<s32>(0x7a0314) - 1;
     if (y >= global<s32>(0x7a0374)) y = global<s32>(0x7a0374) - 1;
-    u8 **const rides = reinterpret_cast<u8 **>((uintptr_t)0x7a4610);
+    u8 **const rides = gRides_7a4610;
 
     u32 slot = 0;
     float height = (float)g_env->surfaceHeight(x, y, &slot);

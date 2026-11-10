@@ -75,3 +75,8 @@ void __cdecl Ride_Destroy(u32 ride);
 // nothing is kept. Left out here.
 void __cdecl RideSystem_DumpSlot(const u8 *slot, const u8 *system);
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(u8 *[10240], gRides_7a4610, 0x007a4610, 0xa000);

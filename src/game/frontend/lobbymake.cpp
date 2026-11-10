@@ -79,7 +79,7 @@ u8 *__fastcall LobbyScene_MakeModel(u8 *scene, void *, const char *name, const c
     at<u32>(model, 0) = 0x00702a50;
     const u32 ride = g_env->create(type, 0x101, nullptr, 0, 0, 0, 0, 0, -1, 0);
     at<u32>(model, 4) = ride;
-    u8 *const instance = global<u8 *>(0x007a4610 + ride * 4);
+    u8 *const instance = gRides_7a4610[ride];
     if (at<u32>(instance, 4) & 0x4000)
         g_env->removeRect(at<u8 *>(instance, 8), at<u32>(instance, 0xc0), at<u32>(instance, 0xc4));
     else

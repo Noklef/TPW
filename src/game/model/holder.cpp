@@ -16,6 +16,7 @@
 #include "objmodel.h"
 #include "partstate.h"
 #include "release.h"
+#include "../world/rides.h"
 
 namespace {
 
@@ -52,7 +53,7 @@ void __cdecl Holder_InitUnusedOne() { gHolder_InitUnusedOne_7a1cac = 1.0f; }
 void __cdecl Holder_InitUnusedEpsilon() { gHolder_InitUnusedEpsilon_7a1cdc = 1.0f / 8388608.0f; }
 
 u32 __cdecl Ride_SlotKey(u32 ride, u32 i) {
-    const u8 *holder = at<const u8 *>(reinterpret_cast<const u8 *const *>(0x007a4610)[ride], 8);
+    const u8 *holder = at<const u8 *>(gRides_7a4610[ride], 8);
     // Integer arithmetic: the original tests table + i * 0x14 for zero, which pointer
     // arithmetic on a null table would leave undefined.
     const uintptr_t slot = (uintptr_t)at<const u8 *>(at<const u8 *>(holder, 0x28), 4) + i * 0x14;
@@ -223,7 +224,7 @@ void __fastcall HolderUser_Acquire(u8 *user) {
 void __fastcall RideUser_Acquire(u8 *user) {
     if (at<u32>(user, 8) != 0)
         return;
-    u8 *const target = reinterpret_cast<u8 *const *>(0x007a4610)[at<u32>(user, 4)];
+    u8 *const target = gRides_7a4610[at<u32>(user, 4)];
     if (at<u32>(target, 4) & 0x4000)
         Holder_AddToGrid(at<u8 *>(target, 8), at<u32>(target, 0xc0), at<u32>(target, 0xc4));
     else

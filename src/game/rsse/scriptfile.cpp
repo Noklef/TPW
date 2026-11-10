@@ -14,6 +14,7 @@
 #include "../world/objectdefs.h"
 #include "../world/ridelist.h"
 #include "rsse.h"
+#include "../world/rides.h"
 
 namespace {
 
@@ -116,7 +117,7 @@ u32 __cdecl RSSE_LoadScriptFile(const char *name, u32 handle, u32 quiet) {
     if (static_cast<u16>(handle)) at<u32>(vm, 0xc8) = at<u32>(thing_slot(static_cast<u16>(handle)), 0x20);
     if (at<u16>(vm, 0xac) && at<u32>(vm, 0xc8)) {
         u32 count = 0;
-        for (u32 key = 1; Model_FindPartByKey4(global<u8 *>(0x007a4610 + 4 * at<u32>(vm, 0xc8)), 0x80, key) != 0xffffffff; ++key) ++count;
+        for (u32 key = 1; Model_FindPartByKey4(gRides_7a4610[at<u32>(vm, 0xc8)], 0x80, key) != 0xffffffff; ++key) ++count;
         if (count) {
             u8 *const parts = static_cast<u8 *>(Mem_GlobalAlloc(count * 4));
             at<u8 *>(vm, 0x30) = parts;
@@ -130,7 +131,7 @@ u32 __cdecl RSSE_LoadScriptFile(const char *name, u32 handle, u32 quiet) {
         float box[6];
         if (effect && at<u32>(vm, 0xc8) && Ride_Bounds(at<s32>(vm, 0xc8), box)) {
             const float half = gRidelist_700fd0, scale = gRidelist_700fdc;
-            u8 *const instance = global<u8 *>(0x007a4610 + 4 * at<u32>(vm, 0xc8));
+            u8 *const instance = gRides_7a4610[at<u32>(vm, 0xc8)];
             const X87Reg zh = (X87Reg(box[2]) + box[5]) * half;
             const X87Reg xh = (X87Reg(box[0]) + box[3]) * half;
             const float cz = static_cast<float>(zh);

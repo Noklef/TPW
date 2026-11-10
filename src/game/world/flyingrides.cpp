@@ -20,6 +20,7 @@
 #include "../render/particles.h"
 #include "../terrain/land.h"
 #include "flyingrides.h"
+#include "rides.h"
 
 namespace {
 
@@ -40,7 +41,7 @@ void release(u8 *s, s32 step) {
     if (count == 0) return;
     const s32 key = (at<s32>(s, 0xd8) + step) % count + 1;
     if (at<u32>(s, 0xc0) == 0) return;
-    u8 *const *rides = reinterpret_cast<u8 *const *>(0x007a4610);
+    u8 *const *rides = gRides_7a4610;
     const u32 part = Model_FindPartByKey4(rides[at<u32>(s, 0xc0)], 0x80, (u32)key);
     if (part == 0xffffffff) return;
     PartStates_Release(at<u8 *>(rides[at<u32>(s, 0xc0)], 8), part);
@@ -63,7 +64,7 @@ void __cdecl FlyingRide_PlaySlotMotion(s32 index, u32 slotIndex, u32 bank, u32 e
     const u32 ride = at<u32>(s, 0xc0);
     if (ride == 0) return;
     if (at<u32>(s, 0xcc) == bank && at<u32>(s, 0xd0) == entry && at<u32>(s, 0xd4) == loop) return;
-    u8 *const *rides = reinterpret_cast<u8 *const *>(0x007a4610);
+    u8 *const *rides = gRides_7a4610;
     Animator_Play(rides[ride], bank, entry, loop != 0 ? 1 : 0, 1.0f, 0);
     at<u32>(s, 0xcc) = bank;
     at<u32>(s, 0xd0) = entry;
@@ -160,7 +161,7 @@ u32 __cdecl FlyingRide_AddToSlot(s32 index, u32 value) {
     if (parts != 0) {
         const s32 key = (s32)((u32)at<s32>(s, 0xd8) + (u32)at<s32>(s, 0x8c)) % parts + 1;
         if (at<u32>(s, 0xc0) != 0) {
-            u8 *const *rides = reinterpret_cast<u8 *const *>(0x007a4610);
+            u8 *const *rides = gRides_7a4610;
             const u32 part = Model_FindPartByKey4(rides[at<u32>(s, 0xc0)], 0x80, (u32)key);
             if (part != 0xffffffff) PartStates_Activate(at<u8 *>(rides[at<u32>(s, 0xc0)], 8), part, value);
         }
@@ -418,7 +419,7 @@ float ease_angle(float now, float last, s32 weight) {
     return (float)(((b * (weight - 1) + a) / weight) & 0xfff);
 }
 
-u8 *ride_of(u32 index) { return reinterpret_cast<u8 *const *>(0x007a4610)[index]; }
+u8 *ride_of(u32 index) { return gRides_7a4610[index]; }
 float *ride_matrix(u32 index) { return at<float *>(at<u8 *>(at<u8 *>(ride_of(index), 8), 4), 0x78); }
 
 }
