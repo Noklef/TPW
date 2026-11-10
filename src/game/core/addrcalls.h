@@ -9,6 +9,10 @@ struct AddrCall {
     u32 address, target;
 };
 
+// What a call to a game address reaches when no table names it: unset (the hook DLL, the tests), the address itself, where the hook's jump
+// takes it to the port; in tpw.exe the loader's resolver (src/loader), the port, or the address when there is none (the call then traps).
+inline u32(__cdecl *g_addressTarget)(u32 address) = nullptr;
+
 class AddrCalls {
 public:
     void Set(const AddrCall *table, u32 count) {
@@ -32,7 +36,7 @@ private:
     u32 Target(u32 address) const {
         for (u32 i = 0; i < count_; ++i)
             if (table_[i].address == address) return table_[i].target;
-        return address;
+        return g_addressTarget ? g_addressTarget(address) : address;
     }
     const AddrCall *table_ = nullptr;
     u32 count_ = 0;
