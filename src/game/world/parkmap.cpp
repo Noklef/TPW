@@ -130,7 +130,7 @@ const u8 *ThingOf(const u8 *square) { return thing(at<u16>(square, 4)); }
 
 const u32 *Record(u32 address) { return reinterpret_cast<const u32 *>((uintptr_t)address); }
 
-const u32 *Blend(u32 *out, s32 position) { return Colour_Blend3(out, position, Record((u32)(uintptr_t)&gStatic_f869e0 + 0x1f8), Record((u32)(uintptr_t)&gStatic_f869e0 + 0x21c), Record((u32)(uintptr_t)&gStatic_f869e0 + 0x240)); }
+const u32 *Blend(u32 *out, s32 position) { return Colour_Blend3(out, position, Record((u32)(uintptr_t)&gStatic_f86bd8), Record((u32)(uintptr_t)&gStatic_f86bfc), Record((u32)(uintptr_t)&gStatic_f86c20)); }
 
 // The square's fill (blended into `out`, or a fixed record); null for none.
 const u32 *SquareColour(const u8 *map, const u8 *square, u32 *out) {
@@ -154,10 +154,10 @@ const u32 *SquareColour(const u8 *map, const u8 *square, u32 *out) {
     case 6: shown = view == 3; break;
     case 7: shown = view != 0; break;
     case 8: shown = (flags & 0x10) != 0; break;
-    case 9: return Record((u32)(uintptr_t)&gStatic_f869e0 + 0x168);
-    case 10: return Record((u32)(uintptr_t)&gStatic_f869e0 + 0x120);
-    case 11: return Record((u32)(uintptr_t)&gStatic_f869e0 + 0x144);
-    case 12: return Record((u32)(uintptr_t)&gStatic_f869e0 + 0x18c);
+    case 9: return Record((u32)(uintptr_t)&gStatic_f86b48);
+    case 10: return Record((u32)(uintptr_t)&gStatic_f86b00);
+    case 11: return Record((u32)(uintptr_t)&gStatic_f86b24);
+    case 12: return Record((u32)(uintptr_t)&gStatic_f86b6c);
     default: break;
     }
     return shown ? Blend(out, Ftol((double)at<float>(ThingOf(square), 0x44)) & 0xff) : nullptr;
@@ -178,7 +178,7 @@ void DrawSpriteBox(const u8 *map, Canvas &canvas, const u8 *sprite, s32 cellW, s
         return;
     const s32 rect[4] = {cellW * (s32)(first & 0x7f) + 0xf, cellH * (s32)(first >> 7) + 0x2a, ((s32)(last & 0x7f) + 1) * cellW + 0xf,
                          ((s32)(last >> 7) + 1) * cellH + 0x2a};
-    const u32 *const record = Record(sprite == at<const u8 *>(map, 0x20060) ? ((u32)(uintptr_t)&gStatic_f869e0 + 0x1d4) : ((u32)(uintptr_t)&gStatic_f869e0 + 0x1b0));
+    const u32 *const record = Record(sprite == at<const u8 *>(map, 0x20060) ? (u32)(uintptr_t)&gStatic_f86bb4 : (u32)(uintptr_t)&gStatic_f86b90);
     if (canvas.driver)   // (the original tests the flags' bit 4: set, slot 7; clear, slot 8 at 0x20. The flags are 0xc here, so slot 8 is never called, and is left out)
         vcall<u32>(canvas.driver, 0x1c, &canvas.format, &canvas.clip, canvas.flags, rect, record);
 }
@@ -262,7 +262,7 @@ void __fastcall ParkMap_Draw(const u8 *map) {
             const u32 kind = at<u32>(square, 0);
             if (kind < 1 || kind > 8)
                 continue;
-            const u32 *const line = Record(kind != 8 && Is68_Zero_4e0440(ThingOf(square)) ? ((u32)(uintptr_t)&gStatic_f869e0 + 0x48) : ((u32)(uintptr_t)&gStatic_f869e0 + 0x6c));
+            const u32 *const line = Record(kind != 8 && Is68_Zero_4e0440(ThingOf(square)) ? (u32)(uintptr_t)&gStatic_f86a28 : (u32)(uintptr_t)&gStatic_f86a4c);
             if (!canvas.driver)
                 continue;
             const auto draw = [&](u32 slot, s32 lineX, s32 lineY) {

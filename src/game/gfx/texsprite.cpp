@@ -19,7 +19,7 @@ const u32 *Record(u32 address) { return reinterpret_cast<const u32 *>((uintptr_t
 // The source's float at offset as a position (__ftol's low byte) blended across the three records at 0xf86c44.
 u32 Blend(const u8 *source, u32 offset) {
     u32 out[9];
-    return *Colour_Blend3(out, (s32)((u32)(long long)at<float>(source, offset) & 0xff), Record((u32)(uintptr_t)&gStatic_f869e0 + 0x264), Record((u32)(uintptr_t)&gStatic_f869e0 + 0x288), Record((u32)(uintptr_t)&gStatic_f869e0 + 0x2ac));
+    return *Colour_Blend3(out, (s32)((u32)(long long)at<float>(source, offset) & 0xff), Record((u32)(uintptr_t)&gStatic_f86c44), Record((u32)(uintptr_t)&gStatic_f86c68), Record((u32)(uintptr_t)&gStatic_f86c8c));
 }
 
 }  // namespace
@@ -51,7 +51,7 @@ void __fastcall TexSprite_Update(u8 *object, void *, u32 mask, u32 a, u32 b) {
         return;
     }
     Obj_SetShown(object, nullptr, 1);
-    u32 colour = *Record((u32)(uintptr_t)&gStatic_f869e0 + 0x24);   // (the first of nine dwords copied)
+    u32 colour = *Record((u32)(uintptr_t)&gStatic_f86a04);   // (the first of nine dwords copied)
     const u8 *const source = at<const u8 *>(object, 0x18);
     switch (at<u32>(object, 0x14)) {
     case 0:
@@ -59,17 +59,17 @@ void __fastcall TexSprite_Update(u8 *object, void *, u32 mask, u32 a, u32 b) {
             colour = Blend(source, 0x19c);
         break;
     case 1:
-        colour = *Record((u32)(uintptr_t)&gStatic_f869e0 + 0x2d0);
+        colour = *Record((u32)(uintptr_t)&gStatic_f86cb0);
         break;
     case 3:
-        colour = *Record((u32)(uintptr_t)&gStatic_f869e0 + 0x2f4);
+        colour = *Record((u32)(uintptr_t)&gStatic_f86cd4);
         break;
     case 4:
         if (source && source[2] == 6)
             colour = Blend(source, 0x1f8);
         break;
     case 5:
-        colour = *Record((u32)(uintptr_t)&gStatic_f869e0 + 0x318);
+        colour = *Record((u32)(uintptr_t)&gStatic_f86cf8);
         break;
     }
     at<u32>(reinterpret_cast<u8 *>(Fn_56b620(at<u32>(object, 0x28))), 0x24) = colour;

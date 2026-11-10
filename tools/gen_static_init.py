@@ -687,12 +687,14 @@ class Gen:
                 s = pe.section_of(b)
                 spans.append([b, min(end, s[1] + s[2]), how, b])
         constructed = {sp[0] for sp in spans}
+        settled = [sp for sp in spans if sp[2] == 'STATIC']   # (STATIC's extent stands: a group leaves its objects out)
         for v in self.lifted:   # (one initializer's or thunk's bases and the memory it reaches by address: one object, an array, a struct)
             text = '\n'.join(self.function('F', v))
-            group = [sp for sp in spans if sp[3] in gamedata.statics(text)]
+            group = [sp for sp in spans if sp[3] in gamedata.statics(text) and sp not in settled]
             if group:
                 reached = [(int(m.group(2), 16), SIZES[{'u8': 'byte', 'u16': 'word', 'u32': 'dword'}.get(m.group(1), m.group(1))])
                            for m in re.finditer(r'\bM<(\w+)>\(0x([0-9a-f]+)u\)', text)]
+                reached = [(a, n) for a, n in reached if not any(sp[0] <= a < sp[1] for sp in settled)]
                 spans.append([min([g[0] for g in group] + [a for a, _ in reached]), max([g[1] for g in group] + [a + n for a, n in reached]),
                               GROUP, min(g[3] for g in group)])
         merged = []   # (overlapping spans: one object)

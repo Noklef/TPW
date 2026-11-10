@@ -159,6 +159,10 @@ STATIC = {         # static object: (size, why), where its functions do not say 
                      'advisor\'s globals follow (0xf79660 on)'),
     0x7b4e38: (0x3ac,'ImeHost (its code reaches +0x1aa); 0x7b51e4 and 0x7b51e8 are float constants of their own (core/floatconsts: their own '
                       'initialisers set them)'),
+    0x784e30: (0x210, 'balance file (hoardings A), to the level\'s file'),
+    0x785040: (0x7e8, 'balance file (the level: its challenge indices reach +0x7e4), to the online file'),
+    **{0xf869e0 + 0x24 * i: (0x24, 'a park-map colour of 23 (Init_5f0700): four colour bytes and 0x10 zeroed (Init_5ec210 on +4, '
+                                   'or Fn_5f0970), nine dwords copied (texsprite)') for i in range(23)},
 }
 STATIC_SOURCES = ('staticinit.cpp', 'staticinitmanual.cpp')
 STATIC_TABLE = re.compile(r'^\s*\{0x[0-9a-f]+, [^,{}]+, 0x([0-9a-f]+), &\w+\},', re.M)   # (kMain: init, text, ctor, exit)
@@ -188,6 +192,9 @@ def statics(text):
             end = re.compile(r'\b%s = |^\}' % m.group(1), re.M).search(text, m.end())
             body = text[m.end():end.start() if end else len(text)]
             base |= {int(f, 16) for f in re.findall(r'\.Th\(0x([0-9a-f]+), %s\b' % m.group(1), body)}
+    for s, (n, _) in STATIC.items():   # (a base inside a STATIC object is a member: a colour's Init_5ec210 on +4)
+        for b in [b for b in out if s < b < s + n]:
+            out.setdefault(s, set()).update(out.pop(b))
     return {b: fs for b, fs in out.items() if DATA_LO <= b < DATA_HI}
 
 

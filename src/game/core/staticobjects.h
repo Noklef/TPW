@@ -9,8 +9,8 @@
 #include "../../../re/types.h"
 
 GAME_DATA(u8[0x210], gBalanceHoardingsB, 0x00784c20, 0x210);   // BalanceFile_Init; to the next
-GAME_DATA(u8[0x210], gBalanceHoardingsA, 0x00784e30, 0x210);   // BalanceFile_Init; to the next
-GAME_DATA(u8[0x7e8], gBalanceLevel, 0x00785040, 0x7e8);   // BalanceFile_Init; to the next
+GAME_DATA(u8[0x210], gBalanceHoardingsA, 0x00784e30, 0x210);   // BalanceFile_Init
+GAME_DATA(u8[0x7e8], gBalanceLevel, 0x00785040, 0x7e8);   // BalanceFile_Init
 GAME_DATA(u8[0x40], gBalanceOnline, 0x00785828, 0x40);   // BalanceFile_Init; to the next
 GAME_DATA(u8[0x78], gBalanceGraphics, 0x00785868, 0x78);   // BalanceFile_Init; to the next
 GAME_DATA(u8[0x10], gBalanceResolution, 0x007858e0, 0x10);   // BalanceFile_Init; to the next
@@ -6495,7 +6495,29 @@ GAME_DATA(u8[0x14], gString_f868a0, 0x00f868a0, 0x14);   // String_CtorStr, Stri
 GAME_DATA(u8[0x14], gString_f868b8, 0x00f868b8, 0x14);   // String_CtorStr, String_Dtor
 GAME_DATA(u8[0x14], gString_f868d0, 0x00f868d0, 0x14);   // String_CtorStr, String_Dtor
 GAME_DATA(u8[0x14], gString_f868e8, 0x00f868e8, 0x14);   // String_CtorStr, String_Dtor
-GAME_DATA(u8[0x340], gStatic_f869e0, 0x00f869e0, 0x340);   // Init_5ec210, Fn_5f0970; one initializer's
+GAME_DATA(u8[0x24], gStatic_f869e0, 0x00f869e0, 0x24);   // Init_5ec210
+GAME_DATA(u8[0x24], gStatic_f86a04, 0x00f86a04, 0x24);   // Init_5ec210
+GAME_DATA(u8[0x24], gStatic_f86a28, 0x00f86a28, 0x24);   // Init_5ec210
+GAME_DATA(u8[0x24], gStatic_f86a4c, 0x00f86a4c, 0x24);   // Init_5ec210
+GAME_DATA(u8[0x24], gStatic_f86a70, 0x00f86a70, 0x24);   // Init_5ec210
+GAME_DATA(u8[0x24], gStatic_f86a94, 0x00f86a94, 0x24);   // Init_5ec210
+GAME_DATA(u8[0x24], gStatic_f86ab8, 0x00f86ab8, 0x24);   // Init_5ec210
+GAME_DATA(u8[0x24], gStatic_f86adc, 0x00f86adc, 0x24);   // Init_5ec210
+GAME_DATA(u8[0x24], gStatic_f86b00, 0x00f86b00, 0x24);   // Fn_5f0970
+GAME_DATA(u8[0x24], gStatic_f86b24, 0x00f86b24, 0x24);   // Fn_5f0970
+GAME_DATA(u8[0x24], gStatic_f86b48, 0x00f86b48, 0x24);   // Fn_5f0970
+GAME_DATA(u8[0x24], gStatic_f86b6c, 0x00f86b6c, 0x24);   // Fn_5f0970
+GAME_DATA(u8[0x24], gStatic_f86b90, 0x00f86b90, 0x24);   // Fn_5f0970
+GAME_DATA(u8[0x24], gStatic_f86bb4, 0x00f86bb4, 0x24);   // Fn_5f0970
+GAME_DATA(u8[0x24], gStatic_f86bd8, 0x00f86bd8, 0x24);   // Fn_5f0970
+GAME_DATA(u8[0x24], gStatic_f86bfc, 0x00f86bfc, 0x24);   // Fn_5f0970
+GAME_DATA(u8[0x24], gStatic_f86c20, 0x00f86c20, 0x24);   // Fn_5f0970
+GAME_DATA(u8[0x24], gStatic_f86c44, 0x00f86c44, 0x24);   // Fn_5f0970
+GAME_DATA(u8[0x24], gStatic_f86c68, 0x00f86c68, 0x24);   // Fn_5f0970
+GAME_DATA(u8[0x24], gStatic_f86c8c, 0x00f86c8c, 0x24);   // Fn_5f0970
+GAME_DATA(u8[0x24], gStatic_f86cb0, 0x00f86cb0, 0x24);   // Fn_5f0970
+GAME_DATA(u8[0x24], gStatic_f86cd4, 0x00f86cd4, 0x24);   // Fn_5f0970
+GAME_DATA(u8[0x24], gStatic_f86cf8, 0x00f86cf8, 0x24);   // Fn_5f0970
 GAME_DATA(u8[0x14], gString_f86d20, 0x00f86d20, 0x14);   // String_CtorStr, String_Dtor
 GAME_DATA(u8[0x78], gString_f86d40, 0x00f86d40, 0x78);   // String_CtorStr; one initializer's
 GAME_DATA(u8[0x20064], gSurfaceInfo_f86db8, 0x00f86db8, 0x20064);   // SurfaceInfo_Ctor; one initializer's
