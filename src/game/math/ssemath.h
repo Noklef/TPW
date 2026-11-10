@@ -29,3 +29,9 @@ void __cdecl SseMath_Multiply(void *object, const float *a, const float *b, floa
 // q2 = r r; above, the same with r' and +0x64, +0x68; t the 16-byte table 0x7754d0 (0, 1, 0, 0), read twice. Returns the z's sum as mode 2 does.
 double __cdecl SseMath_ProjectToScreen(void *object, u8 *vertices, s32 stride, u32 count, u32 mode);
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(float[64], gSseMath_TransformBatch_7753d0, 0x007753d0, 0x100);
+GAME_DATA(float, gSseMath_ProjectToScreen_7754f0, 0x007754f0, 0x4);

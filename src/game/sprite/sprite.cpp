@@ -9,14 +9,16 @@
 #include "../files/handles.h"
 #include "../gfx/spriteframe.h"
 #include "../world/random.h"
+#include "loading.h"
+#include "draw.h"
 
 namespace {
 
 template <typename T> T &at(void *p, u32 offset) { return *reinterpret_cast<T *>(static_cast<u8 *>(p) + offset); }
 
-u32 folderFirst(u32 folder) { return *reinterpret_cast<const u32 *>(0x00763f8c + 12u * folder); }
-u32 folderCount(u32 folder) { return *reinterpret_cast<const u32 *>(0x00763f90 + 12u * folder); }
-u8 *sprite(u32 index) { return reinterpret_cast<u8 **>(0x00876b48)[index]; }  // gSprites
+u32 folderFirst(u32 folder) { return gSpriteFolders[folder].first; }
+u32 folderCount(u32 folder) { return (u32)gSpriteFolders[folder].count; }
+u8 *sprite(u32 index) { return gSprites[index]; }
 u8 *world() { return *reinterpret_cast<u8 **>(0x007cf83c); }                  // gWorldPtr
 
 }  // namespace
@@ -108,11 +110,11 @@ extern "C" u32 __fastcall Sprite_LoadEsp(u8 *s, void *, const u8 *entry, u8 *fil
         vcall<void>(stream, 4);
         {
             StringView view;
-            String_Left(&path, nullptr, &view, path.length - *reinterpret_cast<const u32 *>(0x008757ac));
+            String_Left(&path, nullptr, &view, path.length - gSprite_LoadEsp_8757ac);
             String_Assign(&path, nullptr, &view);
         }
-        const bool first = *reinterpret_cast<const u32 *>(0x008768fc) && at<u8>(s, 0x205);
-        const u32 from = *reinterpret_cast<const u8 *>(0x00763f28) ? (first ? 0x00875fe8 : 0x00876270) : (first ? 0x00875598 : 0x008757a8);
+        const bool first = gLoading_8768fc && at<u8>(s, 0x205);
+        const u32 from = gLoading_763f28 ? (first ? 0x00875fe8 : 0x00876270) : (first ? 0x00875598 : 0x008757a8);
         String_Append(&path, nullptr, reinterpret_cast<const StringView *>((uintptr_t)from));
         if (open(&result, stream, path.data)) {
             u32 *const set = static_cast<u32 *>(GameHeap_Alloc(0x10));
@@ -123,11 +125,11 @@ extern "C" u32 __fastcall Sprite_LoadEsp(u8 *s, void *, const u8 *entry, u8 *fil
             at<u32 *>(s, 0) = set;
             at<u8>(s, 0x204) = SpriteFrames_Load(reinterpret_cast<u8 *>(set), nullptr, reinterpret_cast<u8 *>(stream), 0) == 1 ? 1 : 0;
             at<u32>(s, 0x208) = set[0];
-            const u8 mark = *reinterpret_cast<const u8 *>(0x00877354);
+            const u8 mark = gLoading_877354;
             at<u8>(s, 0x207) = mark;
             if (mark)
                 SpriteFrames_MarkTextures(reinterpret_cast<u8 *>(set));
-            ++*reinterpret_cast<u32 *>(0x0087626c);
+            ++*reinterpret_cast<u32 *>(&gLoading_87626c);
             answer = 1;
         }
     }

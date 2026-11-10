@@ -20,8 +20,6 @@ float from(u32 u) {
     return f;
 }
 
-float global(u32 address) { return *reinterpret_cast<const float *>(address); }
-
 }  // namespace
 
 extern "C" {
@@ -39,8 +37,8 @@ void __cdecl Sprite_ScreenMatrix(float *out, s16 x, s16 y, s16 w, s16 h, float l
     const float sy = (float)(X87Reg(height) / X87Reg((double)h));
     m[12] = (float)(X87Reg((double)x) * sx - left - X87Reg(sx) * 1024.0f);
     m[13] = (float)(X87_SubR(X87Reg((double)y), X87Reg(1536.0f)) * sy - top - X87Reg(sy) * 768.0f);
-    scale[0] = (float)(X87Reg(2.0f) / sx * global(0x0074f888));
-    scale[5] = (float)(X87Reg(2.0f) / sy * global(0x0074f88c));
+    scale[0] = (float)(X87Reg(2.0f) / sx * gSprite_ScreenMatrix_74f888);
+    scale[5] = (float)(X87Reg(2.0f) / sy * gSprite_ScreenMatrix_74f88c);
     if (angle) {
         const SinTable sines = SinTable_Game();
         const float t = (float)(X87Reg((double)angle) * 3.14159274f * 0.00048828125f);
@@ -63,5 +61,5 @@ void __cdecl Sprite_ScreenMatrix(float *out, s16 x, s16 y, s16 w, s16 h, float l
     std::memcpy(out, m, sizeof m);
 }
 
-double __cdecl Sprite_FlipY(s32 y) { return X87_SubR(X87Reg((double)y) / global(0x0074f898), X87Reg(1.0f)).v; }
+double __cdecl Sprite_FlipY(s32 y) { return X87_SubR(X87Reg((double)y) / gSprite_FlipY_74f898, X87Reg(1.0f)).v; }
 }

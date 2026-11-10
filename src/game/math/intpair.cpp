@@ -178,7 +178,7 @@ void __cdecl IntPair_ZeroAtExit() {}
 
 namespace {
 void markDestroyed(u8 bit) {
-    u8 &flags = *reinterpret_cast<u8 *>(0x007cdbe0);
+    u8 &flags = gIntpair_7cdbe0;
     if (!(flags & bit)) flags = (u8)(flags | bit);
 }
 }  // namespace

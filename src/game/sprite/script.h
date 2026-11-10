@@ -154,3 +154,27 @@ struct SpriteScriptEnv {
 };
 // The list's calls go to env (nullptr: the game's).
 void SpriteScripts_SetEnv(const SpriteScriptEnv *env);
+
+#include "../core/gamedata.h"
+
+// The VM's globals, 0x7b49f0-0x7b4a1b.
+struct SpriteScriptGlobals {
+    u8 **scripts;     // 0x7b49f0 slot table
+    s32 slots;        // 0x7b49f4
+    u8 *regs;         // 0x7b49f8 the current script's registers (+0x84)
+    u32 now;          // 0x7b49fc
+    u32 code;         // 0x7b4a00 the current script's code base
+    float one;        // 0x7b4a04 1 (FloatConsts_InitOne_474fd0)
+    u32 steps;        // 0x7b4a08
+    float epsilon;    // 0x7b4a0c 1 / 2^23 (FloatConsts_InitEpsilon_474ff0)
+    u32 stepLimit;    // 0x7b4a10
+    s32 ready;        // 0x7b4a14
+    u8 *current;      // 0x7b4a18
+};
+static_assert(sizeof(SpriteScriptGlobals) == 0x2c, "0x7b49f0-0x7b4a1b");
+
+// Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(u32[4], gSpriteScriptActions, 0x0074f7c8, 0x10);
+GAME_DATA(SpriteScriptGlobals, gSpriteScripts, 0x007b49f0, 0x2c);
+GAME_DATA(float, gSpriteScripts_InitUnusedOne_7b4a1c, 0x007b4a1c, 0x4);
+GAME_DATA(float, gSpriteScripts_InitUnusedEpsilon_7b4a20, 0x007b4a20, 0x4);

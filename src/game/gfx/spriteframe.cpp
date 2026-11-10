@@ -19,6 +19,7 @@
 #include "texcache.h"
 #include "../render/spritequeue.h"
 #include "../render/rendererframe.h"
+#include "../sprite/draw.h"
 
 namespace {
 
@@ -439,8 +440,8 @@ u32 __fastcall SpriteFrame_PlaceQuad(u8 *frame, void *, float *quad, float width
     quad[8] = (float)x1;
     if ((at<u32>(frame, 0x10) & 0x200) && (global<u32>(0x008bcbc8) & 0x1000000)) {
         const X87Reg inverse = X87Reg(1.0f) / quad[3];   // 0x702030
-        const X87Reg dx = X87_SubR(inverse * x0f, X87Reg(global<float>(0x008bd4f0)));
-        const X87Reg dy = X87_SubR(X87Reg(quad[1]) * inverse, X87Reg(global<float>(0x008bd4f4)));
+        const X87Reg dx = X87_SubR(inverse * x0f, X87Reg(gDraw_8bd4f0));
+        const X87Reg dy = X87_SubR(X87Reg(quad[1]) * inverse, X87Reg(gDraw_8bd4f4));
         const X87Reg dxx = dx * dx;
         const X87Reg across = X87Reg(right) - left;
         const float dyf = (float)dy;
