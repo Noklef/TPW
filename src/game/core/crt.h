@@ -103,6 +103,11 @@ void __cdecl CRT_srand(u32 seed);
 // 0x67a740: _onexit, under the exit lock: fn appended to the table [0xfb3cb4] up to its end [0xfb3cb0] (the block grown by 0x10 bytes when msize has
 // no room for one more). Returns fn; 0 when the growth fails.
 void *__cdecl CRT_onexit(void *fn);
+// 0x67a7f0: _onexitinit: the exit table [0xfb3cb4] a malloc of 0x80 (none: _amsg_exit(0x18), and on past it, sic), its first entry 0, the end [0xfb3cb0] its start.
+void __cdecl CRT_onexitinit();
+// 0x687c20: __CxxSetUnhandledExceptionFilter: SetUnhandledExceptionFilter(0x687bc0, the C++ one), the filter before it to [0xfb1454]; 0x687c40: put that one back.
+void __cdecl CRT_CxxSetUnhandledExceptionFilter();
+void __cdecl CRT_CxxRestoreUnhandledExceptionFilter();
 
 // 0x67a7d0: atexit: 0 when _onexit took fn, else -1.
 s32 __cdecl CRT_atexit(void *fn);

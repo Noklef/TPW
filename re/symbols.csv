@@ -2039,6 +2039,9 @@ address,name,kind,confidence,notes
 0x006823e0,CRT_mtinit,function,high,"reimplemented (src/game/core/crt); _mtinit: the locks, a TLS slot and the first thread's data"
 0x006824e0,CRT_freeptd,function,high,"reimplemented (src/game/core/crt); _freeptd: a thread's data and its buffers freed, its TLS value cleared"
 0x0067b5b0,CRT_srand,function,high,reimplemented (src/game/core/crt); srand: the thread's seed set
+0x0067a7f0,CRT_onexitinit,function,high,reimplemented (src/game/core/crt); _onexitinit: the exit table made
+0x00687c20,CRT_CxxSetUnhandledExceptionFilter,function,high,reimplemented (src/game/core/crt); __CxxSetUnhandledExceptionFilter: the C++ unhandled exception filter set
+0x00687c40,CRT_CxxRestoreUnhandledExceptionFilter,function,high,reimplemented (src/game/core/crt); __CxxRestoreUnhandledExceptionFilter: the filter before it set back
 0x00f7a7d0,gCdVolumeLabel,data,medium,"const char *: the CD's volume label, looked for on the CD-ROM drives by the CD check (0x5aa585)"
 0x005f8ae0,RegKey_Open,function,high,"reimplemented (src/game/core/regkey); thiscall (&out, subkey or null, nonzero: HKCU else HKLM); the company key (0x775748) made, then the subkey in it; a held key closed first"
 0x005f8b70,RegKey_Dtor,function,high,reimplemented (src/game/core/regkey); thiscall; RegKey_Close

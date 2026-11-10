@@ -213,6 +213,20 @@ void *__cdecl CRT_onexit(void *fn) {
 
 s32 __cdecl CRT_atexit(void *fn) { return CRT_onexit(fn) ? 0 : -1; }
 
+void __cdecl CRT_onexitinit() {
+    u32 &begin = *reinterpret_cast<u32 *>((uintptr_t)0x00fb3cb4);
+    begin = (u32)(uintptr_t)CRT_malloc(0x80);
+    if (!begin) g_inner->amsgExit(0x18);
+    *reinterpret_cast<u32 *>((uintptr_t)begin) = 0;
+    *reinterpret_cast<u32 *>((uintptr_t)0x00fb3cb0) = begin;
+}
+
+void __cdecl CRT_CxxSetUnhandledExceptionFilter() {
+    *reinterpret_cast<u32 *>((uintptr_t)0x00fb1454) = import_slot<u32(__stdcall *)(u32)>(0x006fd1a4)(0x00687bc0);    // SetUnhandledExceptionFilter(CxxUnhandledExceptionFilter)
+}
+
+void __cdecl CRT_CxxRestoreUnhandledExceptionFilter() { import_slot<u32(__stdcall *)(u32)>(0x006fd1a4)(*reinterpret_cast<u32 *>((uintptr_t)0x00fb1454)); }
+
 void __cdecl CRT_free(void *block) {
     if (!block) return;
     const CrtInnerEnv &env = *g_inner;

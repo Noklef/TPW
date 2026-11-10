@@ -10,12 +10,14 @@ sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'
 from fncmp import HEAP, LOG, RAM, Bench, Call, _recorder, fill, heap, log_region, recorder, set_return, strings  # noqa: E402
 
 GETPTD, LOCKEXIT, UNLOCKEXIT, MSIZE, REALLOC, LOCK, UNLOCK, FIND, FREEBLOCK, LOCKFILE, UNLOCKFILE, FCLOSE = range(2, 14)
-HEAPFREE = 20
-B = Bench([(0x67d380, 0x67d39e), (0x67d230, 0x67d24e), (0x67d350, 0x67d37f), (0x682360, 0x682385), (0x68f990, 0x68f9cf), (0x67fa40, 0x67fa60), (0x686a00, 0x686a10), (0x67b5c0, 0x67b5f0), (0x67b5b0, 0x67b5bd), (0x67a740, 0x67a7f0), (0x67ad90, 0x67ae00), (0x67b620, 0x67b660), (0x67d320, 0x67d340)],
+HEAPFREE, SETFILTER, AMSG, NHMALLOC = 20, 21, 26, 28
+B = Bench([(0x67d380, 0x67d39e), (0x67d230, 0x67d24e), (0x67d350, 0x67d37f), (0x682360, 0x682385), (0x68f990, 0x68f9cf), (0x67fa40, 0x67fa60), (0x686a00, 0x686a10), (0x67b5c0, 0x67b5f0), (0x67b5b0, 0x67b5bd), (0x67a740, 0x67a7f0), (0x67ad90, 0x67ae00), (0x67b620, 0x67b660), (0x67d320, 0x67d340),
+           (0x67a7f0, 0x67a826), (0x687c20, 0x687c31), (0x687c40, 0x687c4d), (0x67dcd0, 0x67dcf0)],
           hooks={0x682460: _recorder(GETPTD, 0, cdecl=True), 0x67fa20: _recorder(LOCKEXIT, 0, cdecl=True), 0x67fa30: _recorder(UNLOCKEXIT, 0, cdecl=True),
                  0x6818f0: _recorder(MSIZE, 1, cdecl=True), 0x681740: _recorder(REALLOC, 2, cdecl=True), 0x682720: _recorder(LOCK, 1, cdecl=True),
                  0x6827a0: _recorder(UNLOCK, 1, cdecl=True), 0x682b40: _recorder(FIND, 3, cdecl=True), 0x682ba0: _recorder(FREEBLOCK, 3, cdecl=True),
-                 0x6827c0: _recorder(LOCKFILE, 1, cdecl=True), 0x682830: _recorder(UNLOCKFILE, 1, cdecl=True), 0x67b660: _recorder(FCLOSE, 1, cdecl=True)})
+                 0x6827c0: _recorder(LOCKFILE, 1, cdecl=True), 0x682830: _recorder(UNLOCKFILE, 1, cdecl=True), 0x67b660: _recorder(FCLOSE, 1, cdecl=True),
+                 0x67dcf0: _recorder(NHMALLOC, 2, cdecl=True), 0x67efc0: _recorder(AMSG, 1, cdecl=True)})
 del B.emu.hooks[0x67b5c0]   # (the bench's stand-in of rand: here the original runs)
 TABLE, NEW, DATA = RAM, RAM + 0x400, RAM + 0x800
 END = 0xfb3cb0
@@ -50,6 +52,19 @@ def onexit(r):
 
 def atexit(r):
     return exit_table(r, 0x67a7d0)
+
+
+def onexitinit(r):   # (no block: _amsg_exit returns and the first entry is written through 0, a crash in both)
+    log = log_region()
+    set_return(log, NHMALLOC, TABLE if r.random() < 0.9 else 0)
+    return Call(0x67a7f0, [], {LOG: log, END: r.bytes(8), TABLE: r.bytes(8), 0xfb1548: r.bytes(4)}, conv='c', ret='v')
+
+
+def filter_(r):   # (SetUnhandledExceptionFilter a COM recorder in its slot)
+    log = log_region()
+    set_return(log, SETFILTER, r.getrandbits(32))
+    regions = {LOG: log, 0xfb1454: r.bytes(4), 0x6fd1a4: struct.pack('<I', recorder(SETFILTER, 1, True))}
+    return Call(r.choice([0x687c20, 0x687c40]), [], regions, conv='c', ret='v')
 
 
 def free(r):
@@ -128,7 +143,7 @@ def exception_delete(r):
     return Call(0x67d230, [HEAP + 0x200, r.choice([0, 1, 2, 3, r.getrandbits(32)])], {HEAP: h}, conv='t', ret='a')
 
 
-KINDS = {'excdelete': exception_delete, 'typeinfo': type_info_dtor, 'adjust': adjust_pointer, 'siglookup': siglookup, 'initterm': initterm, 'errno': errno, 'rand': rand, 'srand': srand, 'onexit': onexit, 'atexit': atexit, 'free': free, 'fclose': fclose, 'exception_dtor': exception_dtor}
+KINDS = {'excdelete': exception_delete, 'typeinfo': type_info_dtor, 'adjust': adjust_pointer, 'siglookup': siglookup, 'initterm': initterm, 'errno': errno, 'rand': rand, 'srand': srand, 'onexitinit': onexitinit, 'filter': filter_, 'onexit': onexit, 'atexit': atexit, 'free': free, 'fclose': fclose, 'exception_dtor': exception_dtor}
 OPS = [k for k in os.environ.get('OPS', ','.join(KINDS)).split(',') if k]
 
 
