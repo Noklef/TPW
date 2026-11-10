@@ -53,3 +53,9 @@ Locimp *__fastcall Locimp_Copy(Locimp *self, void *, const Locimp *from);
 // 0x693f50: locale::_Addfac (pops 0xc): a shared _Locimp left for a copy, then the facet added. Any category in mask: the name becomes "*". Returns self.
 LocaleHandle *__fastcall Locale_Addfac(LocaleHandle *self, void *, LocaleFacet *facet, u32 id, u32 mask);
 }
+
+#include "gamedata.h"
+
+// Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(u8, gLocimp_fb1e68, 0x00fb1e68, 0x1);
+GAME_DATA(u32[3], gLocimp_BadAlloc_fb1e70, 0x00fb1e70, 0xc);

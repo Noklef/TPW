@@ -79,3 +79,8 @@ u8 *__fastcall Texture_LockFlipped(u8 *texture);
 // A count-prefixed array of textures (the count in the dword before it; not 0) destroyed, Texture_Release on each from the last
 // (CRT_VectorDtorIterator: the originals pass Texture_Release's jump at 0x590a70), then freed 4 bytes below (GameHeap_Free).
 void Texture_DestroyArray(u8 *array);
+
+#include "../core/gamedata.h"
+
+// Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(u32, gTexture_8c4b60, 0x008c4b60, 0x4);

@@ -6,6 +6,7 @@
 #include "crt.h"
 #include "crtfloat.h"
 #include "crtstream.h"
+#include "initializers.h"
 
 namespace {
 
@@ -14,9 +15,9 @@ using u64 = unsigned long long;
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
 
 // _pctype[c] & mask as _input tests it: by _isctype when characters may be longer.
-s32 ctype(s32 c, s32 mask) { return CRT_mb_cur_max > 1 ? CRT_isctype(c, mask) : global<const u16 *>(0x0077ea90)[c] & mask; }
+s32 ctype(s32 c, s32 mask) { return CRT_mb_cur_max > 1 ? CRT_isctype(c, mask) : CRT_pctype[c] & mask; }
 
-bool lead(s32 c) { return (global<const u16 *>(0x0077ea90)[c & 0xff] & 0x8000) != 0; }
+bool lead(s32 c) { return (CRT_pctype[c & 0xff] & 0x8000) != 0; }
 
 void set(u8 *table, u32 c) { table[c >> 3] |= static_cast<u8>(1 << (c & 7)); }
 
@@ -356,7 +357,7 @@ s32 __cdecl CRT_input(CrtFile *file, const u8 *format, char *args) {
                 if (!suppress) {
                     ++count;
                     *scan = 0;
-                    reinterpret_cast<void(__cdecl *)(s32, char *, char *)>((uintptr_t)global<u32>(0x0077eca8))(longone - 1, pointer, floatstring);
+                    reinterpret_cast<void(__cdecl *)(s32, char *, char *)>((uintptr_t)CRT_cfltcvt_tab[2])(longone - 1, pointer, floatstring);
                 }
                 break;
             default:   // ('%' or any other character: matched as it is)

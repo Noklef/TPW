@@ -46,7 +46,7 @@ void __cdecl Sound_Set803ad0(u32 value) {
     global<u16>(0x00803ad0) = (u16)value;
 }
 
-void __cdecl Sound_Set803ad2(u32 value) { global<u16>(0x00803ad2) = (u16)value; }
+void __cdecl Sound_Set803ad2(u32 value) { gSoundset_803ad2 = (u16)value; }
 
 u32 __cdecl Sound_IsOn() { return gSoundset_802bc8; }
 
@@ -423,7 +423,7 @@ void __cdecl Sound_SetPlacement(u32 x, u32 y, u32 z, u32 dx, u32 dy, u32 dz, u32
     if (!On()) return;
     const u32 value[3] = {vx, vy, vz};
     const u32 direction[3] = {dx, dy, dz};
-    const u32 position[3] = {x, X87_FloatThrough(global<u16>(0x00803ad2) ? global<u32>(0x00700b28) : y), z};   // (fld / fstp m32)
+    const u32 position[3] = {x, X87_FloatThrough(gSoundset_803ad2 ? global<u32>(0x00700b28) : y), z};   // (fld / fstp m32)
     SoundManager_SetPlacement(global<u8 *>(0x00802bcc), nullptr, &x, position, direction, value);
 }
 

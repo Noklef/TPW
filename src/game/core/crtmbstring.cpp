@@ -76,7 +76,7 @@ u32 __cdecl CRT_ismbblead(u32 c) { return CRT_ismbbtype(c, 0, 4); }
 u32 __cdecl CRT_ismbbtype(u32 c, u32 ctype_mask, u32 mask) {
     const u32 byte = c & 0xff;
     if ((&CRT_mbctype[1])[byte] & static_cast<u8>(mask)) return 1;
-    return ctype_mask && reinterpret_cast<const u16 *>((uintptr_t)0x0077ea9a)[byte] & ctype_mask ? 1 : 0;
+    return ctype_mask && (CRT_ctype + 1)[byte] & ctype_mask ? 1 : 0;
 }
 
 s32 __cdecl CRT_mbsicmp(const char *a, const char *b) {

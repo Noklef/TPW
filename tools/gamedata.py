@@ -120,6 +120,8 @@ NEXT = {        # slot: why, for a dword at a converted object's end that points
     0x78259c: 'the text "a" at 0x766344',
     0x78170c: 'the text "runtime error" at 0x708dac, after CRT_text_empty_wide_708da8',
     0x781f88: 'the text "H:mm:ss" at 0x709750, after CRT_text_SNAN_709748',
+    0x781f8c: 'the C library\'s __lc_time_curr: its __lc_time_c (the time names) at 0x781ee0, after gCrtfpexcept_781edc',
+    0x782d24: 'the static object at 0xfb1edc (staticinit gives it the vtable 0x70a114), after gLocalefacet_fb1ed8',
 }
 NEXT.update({s: 'the C library locale tables\' text at 0x711c30, after CRT_zero_711c28'
              for s in (0x711c48, 0x711cf8, 0x711d2c, 0x711d80, 0x712188, 0x7121bc, 0x71237c, 0x7129dc)})

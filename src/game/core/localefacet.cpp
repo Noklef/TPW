@@ -24,11 +24,11 @@ const u32 kNumGetVtable = 0x00709aec;
 const u32 kNumPutVtable = 0x00709acc;
 const u32 kNumpunctVtable = 0x00709aac;
 const u32 kCodecvtVtable = 0x00709b8c;
-const u32 kCtypeId = 0x00fb1da4;
-const u32 kNumGetId = 0x00fb1da0;
-const u32 kNumPutId = 0x00fb1dac;
-const u32 kNumpunctId = 0x00fb1da8;
-const u32 kCodecvtId = 0x00fb275c;
+const u32 kCtypeId = (u32)(uintptr_t)&gLocalefacet_fb1da4;
+const u32 kNumGetId = (u32)(uintptr_t)&gLocalefacet_fb1da0;
+const u32 kNumPutId = (u32)(uintptr_t)&gLocalefacet_fb1dac;
+const u32 kNumpunctId = (u32)(uintptr_t)&gLocalefacet_fb1da8;
+const u32 kCodecvtId = (u32)(uintptr_t)&gLocalefacet_fb275c;
 const u32 kNpos = 0xffffffff;
 
 u32 *alloc_facet(u32 size) { return static_cast<u32 *>(IosBase_Env().memAlloc(size)); }
@@ -37,7 +37,7 @@ LocaleFacet *as_facet(void *object) { return static_cast<LocaleFacet *>(object);
 
 void throw_missing() {
     u32 bad[3];
-    BadCast_Ctor(bad, nullptr, reinterpret_cast<const char *>((uintptr_t)0x0075c734));
+    BadCast_Ctor(bad, nullptr, gLocalefacet_MissingFacet_75c734);
     IosBase_Env().cxxThrow(bad, reinterpret_cast<const void *>((uintptr_t)0x007193a8));
 }
 
@@ -156,7 +156,7 @@ u32 *refs_facet(u32 *self, u32 refs, u32 vtable) {
     self[1] = refs;
     self[0] = vtable;
     u32 info[0x10];
-    Locinfo_Ctor(info, nullptr, reinterpret_cast<const char *>((uintptr_t)0x0075c74c));
+    Locinfo_Ctor(info, nullptr, gLocalefacet_C_75c74c);
     Locinfo_Dtor(info);
     return self;
 }
@@ -229,7 +229,7 @@ void fill_tnames(u32 *facet, u32 vtable) {
     facet[2] = 0;
     facet[0] = vtable;
     u32 info[0x10];
-    Locinfo_Ctor(info, nullptr, reinterpret_cast<const char *>((uintptr_t)0x0075c74c));
+    Locinfo_Ctor(info, nullptr, gLocalefacet_C_75c74c);
     take_tnames(facet, info);
     Locinfo_Dtor(info);
 }
@@ -238,7 +238,7 @@ u32 *collate_ctor(u32 *self, u32 refs, u32 vtable) {
     self[1] = refs;
     self[0] = vtable;
     u32 info[0x10];
-    Locinfo_Ctor(info, nullptr, reinterpret_cast<const char *>((uintptr_t)0x0075c74c));
+    Locinfo_Ctor(info, nullptr, gLocalefacet_C_75c74c);
     const unsigned long long conversion = CRT_Getcoll();
     self[2] = static_cast<u32>(conversion);
     self[3] = static_cast<u32>(conversion >> 32);
@@ -267,8 +267,8 @@ void __fastcall CtypeChar_Init(u32 *self, void *, const void *) {
     self[3] = ctype[1];
     self[4] = ctype[2];
     self[5] = ctype[3];
-    if (!global<u32>(0x00fb1dd8)) {
-        global<u32>(0x00fb1dd8) = self[4];
+    if (!gLocalefacet_fb1dd8) {
+        gLocalefacet_fb1dd8 = self[4];
         IosBase_Env().atexit(reinterpret_cast<void(__cdecl *)()>((uintptr_t)0x005cfc80));
         self[5] = 0;
     }
@@ -335,7 +335,7 @@ u32 *__fastcall Numpunct_Ctor(u32 *self, void *, u32 refs) {
     self[1] = refs;
     self[0] = kNumpunctVtable;
     u32 info[0x10];
-    Locinfo_Ctor(info, nullptr, reinterpret_cast<const char *>((uintptr_t)0x0075c74c));
+    Locinfo_Ctor(info, nullptr, gLocalefacet_C_75c74c);
     Numpunct_Init(self, nullptr, info);
     Locinfo_Dtor(info);
     return self;
@@ -345,7 +345,7 @@ u32 *__fastcall WNumpunct_Ctor(u32 *self, void *, u32 refs) {
     self[1] = refs;
     self[0] = 0x00709c3c;
     u32 info[0x10];
-    Locinfo_Ctor(info, nullptr, reinterpret_cast<const char *>((uintptr_t)0x0075c74c));
+    Locinfo_Ctor(info, nullptr, gLocalefacet_C_75c74c);
     WNumpunct_Init(self, nullptr, info);
     Locinfo_Dtor(info);
     return self;
@@ -372,7 +372,7 @@ u32 *__fastcall WFacet709c0c_Ctor(u32 *self, void *, u32 refs) {
     self[1] = refs;
     self[0] = 0x00709c0c;
     u32 info[0x10];
-    Locinfo_Ctor(info, nullptr, reinterpret_cast<const char *>((uintptr_t)0x0075c74c));
+    Locinfo_Ctor(info, nullptr, gLocalefacet_C_75c74c);
     WFacet709c0c_Init(self, nullptr, info);
     Locinfo_Dtor(info);
     return self;
@@ -396,7 +396,7 @@ u32 *__fastcall Facet709fac_Ctor(u32 *self, void *, u32 refs) {
     self[1] = refs;
     self[0] = 0x00709fac;
     u32 info[0x10];
-    Locinfo_Ctor(info, nullptr, reinterpret_cast<const char *>((uintptr_t)0x0075c74c));
+    Locinfo_Ctor(info, nullptr, gLocalefacet_C_75c74c);
     Facet709fac_Init(self, nullptr, info);
     Locinfo_Dtor(info);
     return self;
@@ -416,7 +416,7 @@ u32 *__fastcall Codecvt_Ctor(u32 *self, void *, const void *, u32 refs) {
 }
 
 u32 *__cdecl UseFacet_Numpunct(u8 **loc, u32, u32 flag) {
-    return use_facet(loc, flag, kNumpunctId, 0x00fb1db8, 0x00fb1dbc, 0x18, 0x00699770, [](u32 *facet) {
+    return use_facet(loc, flag, kNumpunctId, (u32)(uintptr_t)&gLocalefacet_fb1db8, (u32)(uintptr_t)&gLocalefacet_fb1dbc, 0x18, 0x00699770, [](u32 *facet) {
         u32 info[0x10];
         Locinfo_Ctor(info, nullptr, "C");
         facet[0] = kNumpunctVtable;
@@ -426,7 +426,7 @@ u32 *__cdecl UseFacet_Numpunct(u8 **loc, u32, u32 flag) {
 }
 
 u32 *__cdecl UseFacet_Codecvt(u8 **loc, u32, u32 flag) {
-    return use_facet(loc, flag, kCodecvtId, 0x00f827e4, 0x00f827e8, 0x10, 0x005d1670, [](u32 *facet) {
+    return use_facet(loc, flag, kCodecvtId, (u32)(uintptr_t)&gLocalefacet_f827e4, (u32)(uintptr_t)&gLocalefacet_f827e8, 0x10, 0x005d1670, [](u32 *facet) {
         u32 info[0x10];
         Locinfo_Ctor(info, nullptr, "C");
         facet[0] = kCodecvtVtable;
@@ -438,23 +438,23 @@ u32 *__cdecl UseFacet_Codecvt(u8 **loc, u32, u32 flag) {
 }
 
 u32 *__cdecl UseFacet_MoneypunctWIntl(u8 **loc, u32, u32 flag) {
-    return use_facet(loc, flag, 0x00fb1de8, 0x00fb1e2c, 0x00fb1e34, 0x2c, 0x006a5e40, [](u32 *facet) { money_fill(facet, 1, 0x00709d74, 0x00709da4, MoneypunctW_Init); });
+    return use_facet(loc, flag, (u32)(uintptr_t)&gLocalefacet_fb1de8, (u32)(uintptr_t)&gLocalefacet_fb1e2c, (u32)(uintptr_t)&gLocalefacet_fb1e34, 0x2c, 0x006a5e40, [](u32 *facet) { money_fill(facet, 1, 0x00709d74, 0x00709da4, MoneypunctW_Init); });
 }
 
 u32 *__cdecl UseFacet_MoneypunctW(u8 **loc, u32, u32 flag) {
-    return use_facet(loc, flag, 0x00fb1e0c, 0x00fb1e28, 0x00fb1e38, 0x2c, 0x006a5f60, [](u32 *facet) { money_fill(facet, 0, 0x00709d74, 0x00709bbc, MoneypunctW_Init); });
+    return use_facet(loc, flag, (u32)(uintptr_t)&gLocalefacet_fb1e0c, (u32)(uintptr_t)&gLocalefacet_fb1e28, (u32)(uintptr_t)&gLocalefacet_fb1e38, 0x2c, 0x006a5f60, [](u32 *facet) { money_fill(facet, 0, 0x00709d74, 0x00709bbc, MoneypunctW_Init); });
 }
 
 u32 *__cdecl UseFacet_MoneypunctCIntl(u8 **loc, u32, u32 flag) {
-    return use_facet(loc, flag, 0x00fb1e80, 0x00fb1eb0, 0x00fb1eb4, 0x2c, 0x006ac1d0, [](u32 *facet) { money_fill(facet, 1, 0x00709fdc, 0x00709f2c, MoneypunctC_Init); });
+    return use_facet(loc, flag, (u32)(uintptr_t)&gLocalefacet_fb1e80, (u32)(uintptr_t)&gLocalefacet_fb1eb0, (u32)(uintptr_t)&gLocalefacet_fb1eb4, 0x2c, 0x006ac1d0, [](u32 *facet) { money_fill(facet, 1, 0x00709fdc, 0x00709f2c, MoneypunctC_Init); });
 }
 
 u32 *__cdecl UseFacet_MoneypunctC(u8 **loc, u32, u32 flag) {
-    return use_facet(loc, flag, 0x00fb1e90, 0x00fb1eac, 0x00fb1eb8, 0x2c, 0x006ac2f0, [](u32 *facet) { money_fill(facet, 0, 0x00709fdc, 0x00709f5c, MoneypunctC_Init); });
+    return use_facet(loc, flag, (u32)(uintptr_t)&gLocalefacet_fb1e90, (u32)(uintptr_t)&gLocalefacet_fb1eac, (u32)(uintptr_t)&gLocalefacet_fb1eb8, 0x2c, 0x006ac2f0, [](u32 *facet) { money_fill(facet, 0, 0x00709fdc, 0x00709f5c, MoneypunctC_Init); });
 }
 
 u32 *__cdecl UseFacet_709bec(u8 **loc, u32, u32 flag) {
-    return use_facet(loc, flag, 0x00fb1e08, 0x00fb1e40, 0x00fb1e3c, 8, 0x006a6360, [](u32 *facet) {
+    return use_facet(loc, flag, (u32)(uintptr_t)&gLocalefacet_fb1e08, (u32)(uintptr_t)&gLocalefacet_fb1e40, (u32)(uintptr_t)&gLocalefacet_fb1e3c, 8, 0x006a6360, [](u32 *facet) {
         u32 info[0x10];
         Locinfo_Ctor(info, nullptr, "C");
         facet[0] = 0x00709bec;
@@ -463,7 +463,7 @@ u32 *__cdecl UseFacet_709bec(u8 **loc, u32, u32 flag) {
 }
 
 u32 *__cdecl UseFacet_CodecvtW(u8 **loc, u32, u32 flag) {
-    return use_facet(loc, flag, 0x00fb1e00, 0x007ced40, 0x007ced48, 0x10, 0x004f7a10, [](u32 *facet) {
+    return use_facet(loc, flag, (u32)(uintptr_t)&gLocalefacet_fb1e00, (u32)(uintptr_t)&gLocalefacet_7ced40, (u32)(uintptr_t)&gLocalefacet_7ced48, 0x10, 0x004f7a10, [](u32 *facet) {
         u32 info[0x10];
         Locinfo_Ctor(info, nullptr, "C");
         facet[0] = 0x00709ce4;
@@ -475,7 +475,7 @@ u32 *__cdecl UseFacet_CodecvtW(u8 **loc, u32, u32 flag) {
 }
 
 u32 *__cdecl UseFacet_TimeC(u8 **loc, u32, u32 flag) {
-    return use_facet(loc, flag, 0x00fb1e84, 0x00fb1ec0, 0x00fb1ebc, 0x10, 0x006ac6f0, [](u32 *facet) {
+    return use_facet(loc, flag, (u32)(uintptr_t)&gLocalefacet_fb1e84, (u32)(uintptr_t)&gLocalefacet_fb1ec0, (u32)(uintptr_t)&gLocalefacet_fb1ebc, 0x10, 0x006ac6f0, [](u32 *facet) {
         u32 info[0x10];
         facet[0] = 0x0070a024;
         Locinfo_Ctor(info, nullptr, "C");
@@ -528,7 +528,7 @@ Locimp *__cdecl Locimp_Makeloc(void *info, u32 cats, Locimp *imp, u8 **loc) {
             Locimp_Addfac(imp, nullptr, as_facet(object), id);
         } else {
             const u32 id = locked_id(kCtypeId);
-            LocaleFacet *const facet = facet_of(loc, kCtypeId, 0x00f827e0, []() {
+            LocaleFacet *const facet = facet_of(loc, kCtypeId, (u32)(uintptr_t)&gLocalefacet_f827e0, []() {
                 void *const object = IosBase_Env().memAlloc(0x18);
                 void *const made = object ? IosBase_Env().ctypeCtor(object, nullptr, 0, 0, 0) : nullptr;
                 return as_facet(Globalf827dc_Set(static_cast<u8 *>(made)));
@@ -538,11 +538,11 @@ Locimp *__cdecl Locimp_Makeloc(void *info, u32 cats, Locimp *imp, u8 **loc) {
     }
     const u32 numeric = cats & 8;
     if (numeric) {
-        add_numeric(imp, loc, kNumGetVtable, kNumGetId, 0x00fb1db4, []() {
+        add_numeric(imp, loc, kNumGetVtable, kNumGetId, (u32)(uintptr_t)&gLocalefacet_fb1db4, []() {
             u32 *const object = alloc_facet(8);
             return as_facet(Globalfb1dc4_Set(reinterpret_cast<u8 *>(object ? NumGet_Ctor(object, nullptr, 0) : nullptr)));
         });
-        add_numeric(imp, loc, kNumPutVtable, kNumPutId, 0x00fb1db0, []() {
+        add_numeric(imp, loc, kNumPutVtable, kNumPutId, (u32)(uintptr_t)&gLocalefacet_fb1db0, []() {
             u32 *const object = alloc_facet(8);
             return as_facet(Globalfb1dc0_Set(reinterpret_cast<u8 *>(object ? NumPut_Ctor(object, nullptr, 0) : nullptr)));
         });
@@ -650,18 +650,18 @@ u32 *__fastcall Facet70a044_Ctor(u32 *self, void *, const void *info, u32 refs) 
 u32 *__fastcall Facet709ef4_Ctor(u32 *self, void *, const void *info, u32 refs) { return tnames_ctor(self, info, refs, 0x00709ef4); }
 
 u32 *__cdecl UseFacet_70a044(u8 **loc, u32, u32 flag) {
-    return use_facet(loc, flag, 0x00fb1e88, 0x00fb1ec8, 0x00fb1ec4, 0xc, 0x006ac790, [](u32 *facet) { fill_tnames(facet, 0x0070a044); });
+    return use_facet(loc, flag, (u32)(uintptr_t)&gLocalefacet_fb1e88, (u32)(uintptr_t)&gLocalefacet_fb1ec8, (u32)(uintptr_t)&gLocalefacet_fb1ec4, 0xc, 0x006ac790, [](u32 *facet) { fill_tnames(facet, 0x0070a044); });
 }
 
 u32 *__cdecl UseFacet_709ef4(u8 **loc, u32, u32 flag) {
-    return use_facet(loc, flag, 0x00fb1e04, 0x00fb1e50, 0x00fb1e4c, 0xc, 0x006a64a0, [](u32 *facet) { fill_tnames(facet, 0x00709ef4); });
+    return use_facet(loc, flag, (u32)(uintptr_t)&gLocalefacet_fb1e04, (u32)(uintptr_t)&gLocalefacet_fb1e50, (u32)(uintptr_t)&gLocalefacet_fb1e4c, 0xc, 0x006a64a0, [](u32 *facet) { fill_tnames(facet, 0x00709ef4); });
 }
 
 u32 *__cdecl UseFacet_TimeW(u8 **loc, u32, u32 flag) {
-    return use_facet(loc, flag, 0x00fb1df4, 0x00fb1e48, 0x00fb1e44, 0x10, 0x006a6400, [](u32 *facet) {
+    return use_facet(loc, flag, (u32)(uintptr_t)&gLocalefacet_fb1df4, (u32)(uintptr_t)&gLocalefacet_fb1e48, (u32)(uintptr_t)&gLocalefacet_fb1e44, 0x10, 0x006a6400, [](u32 *facet) {
         u32 info[0x10];
         facet[0] = 0x00709ed4;
-        Locinfo_Ctor(info, nullptr, reinterpret_cast<const char *>((uintptr_t)0x0075c74c));
+        Locinfo_Ctor(info, nullptr, gLocalefacet_C_75c74c);
         u8 *const held = reinterpret_cast<u8 *>(info);
         facet[2] = static_cast<u32>(reinterpret_cast<uintptr_t>(wide_copy(days_of(held))));
         facet[3] = static_cast<u32>(reinterpret_cast<uintptr_t>(Facet_WidenedCopy(months_of(held))));
@@ -673,13 +673,13 @@ void __cdecl Locimp_Makexloc(void *info, u32 cats, Locimp *imp, u8 **loc) {
     u32 lock[2];
     IosBase_Env().lockit(lock);
     if (cats & 1) {
-        add_facet(imp, loc, 0x00fb1e98, 0x00fb1ea8, []() { return new_collate(0x00709fc4); }, []() {
+        add_facet(imp, loc, (u32)(uintptr_t)&gLocalefacet_fb1e98, (u32)(uintptr_t)&gLocalefacet_fb1ea8, []() { return new_collate(0x00709fc4); }, []() {
             u32 *const object = alloc_facet(0x10);
             return as_facet(Globalfb1ecc_Set(reinterpret_cast<u8 *>(object ? CollateC_Ctor(object, nullptr, 0) : nullptr)));
         });
     }
     if (cats & 0x20) {
-        add_facet(imp, loc, 0x00fb1e8c, 0x00fb1ea4, [info]() {
+        add_facet(imp, loc, (u32)(uintptr_t)&gLocalefacet_fb1e8c, (u32)(uintptr_t)&gLocalefacet_fb1ea4, [info]() {
             u32 *const object = alloc_facet(0x10);
             if (object) {
                 Init_69fef0(reinterpret_cast<u8 *>(object), nullptr, 0);
@@ -693,17 +693,17 @@ void __cdecl Locimp_Makexloc(void *info, u32 cats, Locimp *imp, u8 **loc) {
         });
     }
     if (cats & 4) {
-        add_numeric(imp, loc, 0x00709f9c, 0x00fb1e94, 0x00fb1ea0, []() {
+        add_numeric(imp, loc, 0x00709f9c, (u32)(uintptr_t)&gLocalefacet_fb1e94, (u32)(uintptr_t)&gLocalefacet_fb1ea0, []() {
             u32 *const object = alloc_facet(8);
             return as_facet(Globalfb1ed4_Set(reinterpret_cast<u8 *>(object ? Facet709f9c_Ctor(object, nullptr, 0) : nullptr)));
         });
-        add_numeric(imp, loc, 0x00709f8c, 0x00fb1e7c, 0x00fb1e9c, []() {
+        add_numeric(imp, loc, 0x00709f8c, (u32)(uintptr_t)&gLocalefacet_fb1e7c, (u32)(uintptr_t)&gLocalefacet_fb1e9c, []() {
             u32 *const object = alloc_facet(8);
             return as_facet(Globalfb1ed8_Set(reinterpret_cast<u8 *>(object ? Facet709f8c_Ctor(object, nullptr, 0) : nullptr)));
         });
     }
     if (cats & 8) {
-        add_used(imp, loc, 0x00fb1e90, true, true, [info]() {
+        add_used(imp, loc, (u32)(uintptr_t)&gLocalefacet_fb1e90, true, true, [info]() {
             u8 *const object = reinterpret_cast<u8 *>(alloc_facet(0x2c));
             if (object) {
                 MoneypunctC_Ctor(object, nullptr, info, 0, 0);
@@ -711,7 +711,7 @@ void __cdecl Locimp_Makexloc(void *info, u32 cats, Locimp *imp, u8 **loc) {
             }
             return as_facet(object);
         }, UseFacet_MoneypunctC);
-        add_used(imp, loc, 0x00fb1e80, true, false, [info]() {
+        add_used(imp, loc, (u32)(uintptr_t)&gLocalefacet_fb1e80, true, false, [info]() {
             u8 *const object = reinterpret_cast<u8 *>(alloc_facet(0x2c));
             if (object) {
                 MoneypunctC_Ctor(object, nullptr, info, 0, 1);
@@ -721,11 +721,11 @@ void __cdecl Locimp_Makexloc(void *info, u32 cats, Locimp *imp, u8 **loc) {
         }, UseFacet_MoneypunctCIntl);
     }
     if (cats & 0x10) {
-        add_used(imp, loc, 0x00fb1e84, false, false, [info]() {
+        add_used(imp, loc, (u32)(uintptr_t)&gLocalefacet_fb1e84, false, false, [info]() {
             u32 *const object = alloc_facet(0x10);
             return as_facet(object ? TimeC_Ctor(object, nullptr, static_cast<u8 *>(info), 0) : nullptr);
         }, UseFacet_TimeC);
-        add_used(imp, loc, 0x00fb1e88, false, false, [info]() {
+        add_used(imp, loc, (u32)(uintptr_t)&gLocalefacet_fb1e88, false, false, [info]() {
             u32 *const object = alloc_facet(0xc);
             return as_facet(object ? Facet70a044_Ctor(object, nullptr, info, 0) : nullptr);
         }, UseFacet_70a044);
@@ -737,7 +737,7 @@ void __cdecl Locimp_Makewloc(void *info, u32 cats, Locimp *imp, u8 **loc) {
     u32 lock[2];
     IosBase_Env().lockit(lock);
     if (cats & 2) {
-        add_facet(imp, loc, 0x00fb1df8, 0x007ced3c, []() {
+        add_facet(imp, loc, (u32)(uintptr_t)&gLocalefacet_fb1df8, (u32)(uintptr_t)&gLocalefacet_7ced3c, []() {
             u8 *const object = static_cast<u8 *>(IosBase_Env().memAlloc(0x18));
             if (object) {
                 Init_4f1890(object, nullptr, 0);
@@ -753,15 +753,15 @@ void __cdecl Locimp_Makewloc(void *info, u32 cats, Locimp *imp, u8 **loc) {
         });
     }
     if (cats & 8) {
-        add_numeric(imp, loc, 0x00709c7c, 0x00fb1dfc, 0x00fb1e24, []() {
+        add_numeric(imp, loc, 0x00709c7c, (u32)(uintptr_t)&gLocalefacet_fb1dfc, (u32)(uintptr_t)&gLocalefacet_fb1e24, []() {
             u32 *const object = alloc_facet(8);
             return as_facet(Globalfb1e58_Set(reinterpret_cast<u8 *>(object ? WNumPut_Ctor(object, nullptr, 0) : nullptr)));
         });
-        add_numeric(imp, loc, 0x00709c5c, 0x00fb1dec, 0x00fb1e20, []() {
+        add_numeric(imp, loc, 0x00709c5c, (u32)(uintptr_t)&gLocalefacet_fb1dec, (u32)(uintptr_t)&gLocalefacet_fb1e20, []() {
             u32 *const object = alloc_facet(8);
             return as_facet(Globalfb1e54_Set(reinterpret_cast<u8 *>(object ? WNumGet_Ctor(object, nullptr, 0) : nullptr)));
         });
-        add_facet(imp, loc, 0x00fb1ddc, 0x00fb1e1c, [info]() {
+        add_facet(imp, loc, (u32)(uintptr_t)&gLocalefacet_fb1ddc, (u32)(uintptr_t)&gLocalefacet_fb1e1c, [info]() {
             u32 *const object = alloc_facet(0x18);
             if (object) {
                 object[1] = 0;
@@ -775,13 +775,13 @@ void __cdecl Locimp_Makewloc(void *info, u32 cats, Locimp *imp, u8 **loc) {
         });
     }
     if (cats & 1) {
-        add_facet(imp, loc, 0x00fb1df0, 0x00fb1e18, []() { return new_collate(0x00709c24); }, []() {
+        add_facet(imp, loc, (u32)(uintptr_t)&gLocalefacet_fb1df0, (u32)(uintptr_t)&gLocalefacet_fb1e18, []() { return new_collate(0x00709c24); }, []() {
             u32 *const object = alloc_facet(0x10);
             return as_facet(Globalfb1e5c_Set(reinterpret_cast<u8 *>(object ? CollateW_Ctor(object, nullptr, 0) : nullptr)));
         });
     }
     if (cats & 0x20) {
-        add_facet(imp, loc, 0x00fb1de4, 0x00fb1e14, [info]() {
+        add_facet(imp, loc, (u32)(uintptr_t)&gLocalefacet_fb1de4, (u32)(uintptr_t)&gLocalefacet_fb1e14, [info]() {
             u32 *const object = alloc_facet(0x10);
             if (object) {
                 Init_69fef0(reinterpret_cast<u8 *>(object), nullptr, 0);
@@ -795,11 +795,11 @@ void __cdecl Locimp_Makewloc(void *info, u32 cats, Locimp *imp, u8 **loc) {
         });
     }
     if (cats & 4) {
-        add_numeric(imp, loc, 0x00709bfc, 0x00fb1de0, 0x00fb1e10, []() {
+        add_numeric(imp, loc, 0x00709bfc, (u32)(uintptr_t)&gLocalefacet_fb1de0, (u32)(uintptr_t)&gLocalefacet_fb1e10, []() {
             u32 *const object = alloc_facet(8);
             return as_facet(Globalfb1e64_Set(reinterpret_cast<u8 *>(object ? WFacet709bfc_Ctor(object, nullptr, 0) : nullptr)));
         });
-        add_used(imp, loc, 0x00fb1e08, true, true, []() {
+        add_used(imp, loc, (u32)(uintptr_t)&gLocalefacet_fb1e08, true, true, []() {
             u32 *const object = alloc_facet(8);
             if (object) {
                 object[1] = 0;
@@ -809,7 +809,7 @@ void __cdecl Locimp_Makewloc(void *info, u32 cats, Locimp *imp, u8 **loc) {
         }, UseFacet_709bec);
     }
     if (cats & 8) {
-        add_used(imp, loc, 0x00fb1e0c, true, false, [info]() {
+        add_used(imp, loc, (u32)(uintptr_t)&gLocalefacet_fb1e0c, true, false, [info]() {
             u8 *const object = reinterpret_cast<u8 *>(alloc_facet(0x2c));
             if (object) {
                 MoneypunctW_Ctor(object, nullptr, info, 0, 0);
@@ -817,23 +817,23 @@ void __cdecl Locimp_Makewloc(void *info, u32 cats, Locimp *imp, u8 **loc) {
             }
             return as_facet(object);
         }, UseFacet_MoneypunctW);
-        add_used(imp, loc, 0x00fb1de8, false, false, [info]() {
+        add_used(imp, loc, (u32)(uintptr_t)&gLocalefacet_fb1de8, false, false, [info]() {
             u8 *const object = reinterpret_cast<u8 *>(alloc_facet(0x2c));
             return as_facet(object ? MoneypunctWIntl_Ctor(object, nullptr, info, 0) : nullptr);
         }, UseFacet_MoneypunctWIntl);
     }
     if (cats & 0x10) {
-        add_used(imp, loc, 0x00fb1df4, false, false, [info]() {
+        add_used(imp, loc, (u32)(uintptr_t)&gLocalefacet_fb1df4, false, false, [info]() {
             u32 *const object = alloc_facet(0x10);
             return as_facet(object ? TimeW_Ctor(object, nullptr, static_cast<u8 *>(info), 0) : nullptr);
         }, UseFacet_TimeW);
-        add_used(imp, loc, 0x00fb1e04, false, false, [info]() {
+        add_used(imp, loc, (u32)(uintptr_t)&gLocalefacet_fb1e04, false, false, [info]() {
             u32 *const object = alloc_facet(0xc);
             return as_facet(object ? Facet709ef4_Ctor(object, nullptr, info, 0) : nullptr);
         }, UseFacet_709ef4);
     }
     if (cats & 2) {
-        add_used(imp, loc, 0x00fb1e00, false, false, [info]() {
+        add_used(imp, loc, (u32)(uintptr_t)&gLocalefacet_fb1e00, false, false, [info]() {
             u32 *const object = alloc_facet(0x10);
             return as_facet(object ? WCodecvt_Ctor(object, nullptr, info, 0) : nullptr);
         }, UseFacet_CodecvtW);

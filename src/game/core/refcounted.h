@@ -22,3 +22,8 @@ u8 *__fastcall Class70a078_Ctor(u8 *object);
 u8 *__fastcall Class70a078_DeletingDtor(u8 *object, void *, u32 flags);
 
 }  // extern "C"
+
+#include "gamedata.h"
+
+// Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(void *[3], Class70a078_vtable, 0x0070a078, 0xc);

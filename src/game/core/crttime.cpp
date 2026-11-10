@@ -16,7 +16,7 @@ u32 &no_lead_zeros() { return CRT_no_lead_zeros; }
 // The struct tm's fields, in dwords.
 enum { kSecond, kMinute, kHour, kDay, kMonth, kYear, kWeekday, kYearday, kDaylight };
 
-bool lead_byte(char c) { return (*reinterpret_cast<const u16 *const *>((uintptr_t)0x0077ea90))[static_cast<u8>(c)] & 0x8000; }
+bool lead_byte(char c) { return CRT_pctype[static_cast<u8>(c)] & 0x8000; }
 
 char *const *current_names() { return *reinterpret_cast<char *const *const *>((uintptr_t)0x00781f8c); }
 
@@ -188,7 +188,7 @@ void __cdecl CRT_expandtime(char what, const s32 *when, char **out, u32 *left, c
     case 'z':
     case 'Z':
         CRT_tzset_once();
-        CRT_store_str(reinterpret_cast<char *const *>((uintptr_t)0x00781468)[when[kDaylight] != 0], out, left);
+        CRT_store_str(CRT_tzname[when[kDaylight] != 0], out, left);
         return;
     default:
         return;

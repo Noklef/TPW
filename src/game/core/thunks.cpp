@@ -49,6 +49,7 @@
 #include "crt.h"
 #include "keymap.h"
 #include "../world/nav.h"
+#include "iosbase.h"
 
 namespace {
 
@@ -131,7 +132,7 @@ u8 * __cdecl Wrap_Init_692970_6929b0() {
 }
 
 u8 * __cdecl Wrap_Init_692970_6929f0() {
-    return Init_692970(reinterpret_cast<u8 *>(reinterpret_cast<u8 *>(0x00fb1d00)), nullptr, 0x0);
+    return Init_692970(reinterpret_cast<u8 *>(0x00fb1d00), nullptr, 0x0);
 }
 
 u32 __stdcall Wrap_Globalfb2708_Set_6d1bc0_6baa10(u32 v0) {

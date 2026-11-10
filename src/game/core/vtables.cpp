@@ -6,6 +6,7 @@
 #include "../render/device.h"
 #include "../world/thingmsg.h"
 #include "../input/devicefilter.h"
+#include "refcounted.h"
 
 namespace {
 
@@ -176,11 +177,11 @@ void __fastcall Vtbl70a0a8_Set_6ad000(u8 *o) {
 }
 
 void __fastcall Vtbl70a078_Set_6add30(u8 *o) {
-    at<u32>(o, 0) = 0x0070a078;
+    at<u32>(o, 0) = (u32)(uintptr_t)Class70a078_vtable;
 }
 
 void __fastcall Vtbl70a078_Set_6b4a50(u8 *o) {
-    at<u32>(o, 0) = 0x0070a078;
+    at<u32>(o, 0) = (u32)(uintptr_t)Class70a078_vtable;
 }
 
 void __fastcall Vtbl70a258_Set_6b4a90(u8 *o) {

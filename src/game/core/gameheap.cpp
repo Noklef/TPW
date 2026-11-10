@@ -43,13 +43,13 @@ u32 __cdecl Sound_Free(void *block) {
 
 void *__stdcall Mem_AllocCounted(u32 size) {
     void *const block = Mem_GlobalAlloc(size);
-    if (block) global<u32>(0x00faa534) += 1;
+    if (block) gGameheap_faa534 += 1;
     return block;
 }
 
 u32 __stdcall Mem_FreeCounted(void *block) {
     if (block) Mem_GlobalFree(block);
-    global<u32>(0x00faa534) -= 1;
+    gGameheap_faa534 -= 1;
     return 1;
 }
 

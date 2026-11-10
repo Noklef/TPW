@@ -7,7 +7,7 @@
 
 namespace {
 
-const u32 kStatic = 0x0077eda0;
+u32 kStatic() { return static_cast<u32>(reinterpret_cast<uintptr_t>(&CRT_small_block_heap)); }
 const u32 kGroupsEnd = 0x2018;
 
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
@@ -53,7 +53,7 @@ bool from_groups(u32 region, u32 from, u32 end, u32 pages, u32 para, u32 *block)
         if (static_cast<s32>(available) < static_cast<s32>(para) || word(group + 4) <= para) continue;
         const u32 found = reinterpret_cast<u32>(CRT_sbh_alloc_block_from_page(reinterpret_cast<u8 *>((uintptr_t)pages), available, para));
         if (found) {
-            global<u32>(0x00780dc0) = region;
+            CRT_sbh_p_starting_region = region;
             word(group) -= para;
             word(region + 8) = group;
             *block = found;
@@ -78,21 +78,21 @@ s32 __cdecl CRT_heap_init() {
 }
 
 void *__cdecl CRT_sbh_alloc_new_region() {
-    u32 region = kStatic;
-    if (global<u32>(kStatic + 0x10) != 0xffffffff) {
+    u32 region = kStatic();
+    if (global<u32>(kStatic() + 0x10) != 0xffffffff) {
         region = heap_alloc(0, 0x2020);
         if (!region) return nullptr;
     }
     const u32 memory = virtual_alloc(0, 0x400000, 0x2000, 4);
     if (memory) {
         if (virtual_alloc(memory, 0x10000, 0x1000, 4)) {
-            if (region == kStatic) {
-                if (!word(kStatic)) word(kStatic) = kStatic;
-                if (!word(kStatic + 4)) word(kStatic + 4) = kStatic;
+            if (region == kStatic()) {
+                if (!word(kStatic())) word(kStatic()) = kStatic();
+                if (!word(kStatic() + 4)) word(kStatic() + 4) = kStatic();
             } else {
-                word(region) = kStatic;
-                word(region + 4) = word(kStatic + 4);
-                word(kStatic + 4) = region;
+                word(region) = kStatic();
+                word(region + 4) = word(kStatic() + 4);
+                word(kStatic() + 4) = region;
                 word(word(region + 4)) = region;
             }
             word(region + 0x14) = memory + 0x400000;
@@ -113,7 +113,7 @@ void *__cdecl CRT_sbh_alloc_new_region() {
         }
         import_slot<s32(__stdcall *)(u32, u32, u32)>(0x006fd1b8)(memory, 0, 0x8000);
     }
-    if (region != kStatic) import_slot<s32(__stdcall *)(u32, u32, u32)>(0x006fd210)(CRT_crtheap, 0, region);
+    if (region != kStatic()) import_slot<s32(__stdcall *)(u32, u32, u32)>(0x006fd210)(CRT_crtheap, 0, region);
     return nullptr;
 }
 
@@ -172,7 +172,7 @@ void *__cdecl CRT_sbh_alloc_block_from_page(u8 *page_bytes, u32 free_paragraphs,
 
 void *__cdecl CRT_sbh_alloc_block(u32 para) {
     u32 found = 0;
-    u32 region = global<u32>(0x00780dc0);
+    u32 region = CRT_sbh_p_starting_region;
     do {
         const u32 memory = word(region + 0x10);
         if (memory != 0xffffffff) {
@@ -182,16 +182,16 @@ void *__cdecl CRT_sbh_alloc_block(u32 para) {
             if (from_groups(region, region + 0x18, word(region + 8), word(region + 0x10), para, &found)) return reinterpret_cast<void *>((uintptr_t)found);
         }
         region = word(region);
-    } while (region != global<u32>(0x00780dc0));
-    region = kStatic;
+    } while (region != CRT_sbh_p_starting_region);
+    region = kStatic();
     while (word(region + 0x10) == 0xffffffff || !word(region + 0xc)) {
         region = word(region);
-        if (region == kStatic) {
+        if (region == kStatic()) {
             const u32 fresh = reinterpret_cast<u32>(CRT_sbh_alloc_new_region());
             if (!fresh) return nullptr;
             const u32 page = word(fresh + 0x10);
             byte_at(page + 8) = static_cast<u8>(para);
-            global<u32>(0x00780dc0) = fresh;
+            CRT_sbh_p_starting_region = fresh;
             word(page) = page + para + 8;
             word(page + 4) = 0xf0 - para;
             word(fresh + 0x18) -= para & 0xff;
@@ -215,7 +215,7 @@ void *__cdecl CRT_sbh_alloc_block(u32 para) {
         entry += 8;
     }
     const u32 end = region + kGroupsEnd;
-    global<u32>(0x00780dc0) = region;
+    CRT_sbh_p_starting_region = region;
     while (entry < end && word(entry) != 0xffffffff) entry += 8;
     word(region + 0xc) = entry < end ? entry : 0;
     byte_at(page + 8) = static_cast<u8>(para);

@@ -189,3 +189,9 @@ u8 *__fastcall CtypeW_DeletingDtor(u8 *self, void *, u32 flags);
 void *__cdecl Std_LocaleInit();
 
 }  // extern "C"
+
+#include "gamedata.h"
+
+// Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(u8 *[9], gIosbase_Streams_fb1d60, 0x00fb1d60, 0x24);
+GAME_DATA(s8[9], gIosbase_Opens_fb1d88, 0x00fb1d88, 0x9);

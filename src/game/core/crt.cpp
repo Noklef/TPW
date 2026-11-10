@@ -642,7 +642,7 @@ u32 *__cdecl CRT_Getctype(u32 *out) {
     const u32 hand = CRT_lc_handle[1];
     const u32 page = CRT_lc_codepage;
     u32 *const copy = static_cast<u32 *>(CRT_malloc(0x200));
-    u32 *const pctype = reinterpret_cast<u32 *>((uintptr_t)global_u32(0x0077ea90));
+    u32 *const pctype = reinterpret_cast<u32 *>(CRT_pctype);
     if (copy) {
         for (u32 i = 0; i < 0x80; ++i) copy[i] = pctype[i];
     }
@@ -702,7 +702,7 @@ s32 __cdecl CRT_MbrtowcLocked(u16 *unit, const char *text, u32 n, u8 *state, con
         *reinterpret_cast<u32 *>(state) = 0;
         return got;
     }
-    if (reinterpret_cast<const u16 *>((uintptr_t)global_u32(0x0077ea90))[first] & 0x8000) {
+    if (CRT_pctype[first] & 0x8000) {
         const u32 most = static_cast<u32>(CRT_mb_cur_max);
         if (n < most) {
             state[0] = first;
@@ -761,7 +761,7 @@ s32 __cdecl CRT_mbtowc_lk(u16 *out, const char *text, u32 size) {
     }
     const auto convert = import_slot<s32(__stdcall *)(u32, u32, const char *, s32, u16 *, s32)>(0x006fd174);
     const u32 page = CRT_lc_codepage;
-    if (reinterpret_cast<const u16 *>((uintptr_t)global_u32(0x0077ea90))[first] & 0x8000) {
+    if (CRT_pctype[first] & 0x8000) {
         const s32 most = static_cast<s32>(static_cast<u32>(CRT_mb_cur_max));
         if (most > 1 && static_cast<s32>(size) >= most && convert(page, 9, text, most, out, out != nullptr)) return most;
         if (size >= static_cast<u32>(most) && text[1]) return most;
@@ -899,7 +899,7 @@ s32 __cdecl CRT_LCMapStringA(u32 id, u32 flags, const char *from, s32 count, cha
 // A character's one or two bytes as the two routines below hand them on: true for two.
 static bool lead_and_trail(s32 c, char *bytes) {
     const u32 lead = static_cast<u32>(c >> 8) & 0xff;
-    if (reinterpret_cast<const u16 *>((uintptr_t)global_u32(0x0077ea90))[lead] & 0x8000) {
+    if (CRT_pctype[lead] & 0x8000) {
         bytes[0] = static_cast<char>(lead);
         bytes[1] = static_cast<char>(c);
         bytes[2] = 0;
@@ -911,7 +911,7 @@ static bool lead_and_trail(s32 c, char *bytes) {
 }
 
 s32 __cdecl CRT_isctype(s32 c, s32 mask) {
-    if (static_cast<u32>(c) + 1 <= 0x100) return reinterpret_cast<const u16 *>((uintptr_t)global_u32(0x0077ea90))[c] & mask;
+    if (static_cast<u32>(c) + 1 <= 0x100) return CRT_pctype[c] & mask;
     char bytes[4];
     const s32 count = lead_and_trail(c, bytes) ? 2 : 1;
     u16 types;
@@ -922,7 +922,7 @@ s32 __cdecl CRT_isctype(s32 c, s32 mask) {
 // What _tolower_lk, _toupper_lk, _Tolower and _Toupper share: below 0x100 only a character of the `type` (by isctype when characters may be longer); then __crtLCMapStringA.
 static s32 map_case(s32 c, s32 type, u32 flags, u32 id, u32 page, s32 strict) {
     if (c < 0x100) {
-        const s32 is_type = static_cast<s32>(static_cast<u32>(CRT_mb_cur_max)) > 1 ? CRT_isctype(c, type) : reinterpret_cast<const u16 *>((uintptr_t)global_u32(0x0077ea90))[c] & type;
+        const s32 is_type = static_cast<s32>(static_cast<u32>(CRT_mb_cur_max)) > 1 ? CRT_isctype(c, type) : CRT_pctype[c] & type;
         if (!is_type) return c;
     }
     char bytes[4];
@@ -1048,7 +1048,7 @@ s32 __cdecl CRT_iswctype(u32 c, u32 mask) {
     if (unit == 0xffff) return 0;
     u16 type;
     if (unit < 0x100)
-        type = reinterpret_cast<const u16 *>((uintptr_t)global_u32(0x0077ea94))[unit];
+        type = CRT_pwctype[unit];
     else if (!locale_set() || !CRT_GetStringTypeW(1, &unit, 1, &type, 0, 0))
         return 0;
     return type & static_cast<u16>(mask);
@@ -1097,7 +1097,7 @@ u16 __cdecl CRT_towupper(u32 c) {
 // A byte's class for strtoxl: _isctype under a multibyte locale, else the table.
 static bool byte_is(u8 c, u32 mask) {
     if (static_cast<s32>(static_cast<u32>(CRT_mb_cur_max)) > 1) return CRT_isctype(c, static_cast<s32>(mask)) != 0;
-    return (reinterpret_cast<const u16 *>((uintptr_t)global_u32(0x0077ea90))[c] & mask) != 0;
+    return (CRT_pctype[c] & mask) != 0;
 }
 
 u32 __cdecl CRT_strtoxl(const char *text, const char **end, s32 base, u32 flags) {
@@ -1410,7 +1410,7 @@ s32 __cdecl CRT_atol(const char *text) {
     const u8 *at = reinterpret_cast<const u8 *>(text);
     const auto is = [](u32 c, s32 mask) -> s32 {
         if (static_cast<s32>(static_cast<u32>(CRT_mb_cur_max)) > 1) return CRT_isctype(static_cast<s32>(c), mask);
-        return *reinterpret_cast<const u8 *>(static_cast<uintptr_t>(global_u32(0x0077ea90)) + c * 2) & mask;
+        return reinterpret_cast<const u8 *>(CRT_pctype)[c * 2] & mask;
     };
     while (is(*at, 8)) ++at;
     const u32 sign = *at++;
@@ -1428,7 +1428,7 @@ namespace {
 // The ctype test of isalpha and its kind: _isctype past MB_CUR_MAX 1, else _pctype's word.
 s32 ctype_is(s32 c, s32 mask) {
     if (static_cast<s32>(static_cast<u32>(CRT_mb_cur_max)) > 1) return CRT_isctype(c, mask);
-    return reinterpret_cast<const u16 *>((uintptr_t)global_u32(0x0077ea90))[c] & mask;
+    return CRT_pctype[c] & mask;
 }
 }  // namespace
 

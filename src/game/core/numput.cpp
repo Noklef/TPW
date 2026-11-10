@@ -15,6 +15,7 @@
 #include "stdwstring.h"
 #include "vobj3.h"
 #include "wtraits.h"
+#include "localefacet.h"
 
 namespace {
 
@@ -93,7 +94,7 @@ template <typename Pad, typename Digit> u32 *do_put(u32 *out, u32 failed, u8 *bu
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
 
 struct NarrowChars {
-    static const u32 kId = 0x00fb1da8, kCache = 0x00fb1db8;
+static inline const u32 kId = (u32)(uintptr_t)&gLocalefacet_fb1da8, kCache = (u32)(uintptr_t)&gLocalefacet_fb1db8;
     static void put(u32 *it, u32 c) { put_narrow(it[0], reinterpret_cast<u8 *>((uintptr_t)it[1]), c); }
     static u32 widen(char c) { return static_cast<u8>(c); }
     static bool any(u32 c) { return static_cast<u8>(c) != 0; }
@@ -118,7 +119,7 @@ struct NarrowChars {
 };
 
 struct WideChars {
-    static const u32 kId = 0x00fb1ddc, kCache = 0x00fb1e1c;
+static inline const u32 kId = (u32)(uintptr_t)&gLocalefacet_fb1ddc, kCache = (u32)(uintptr_t)&gLocalefacet_fb1e1c;
     static void put(u32 *it, u32 c) { put_wide(it[0], reinterpret_cast<u8 *>((uintptr_t)it[1]), c); }
     static u32 widen(char c) { return CRT_btowc(static_cast<u32>(static_cast<s32>(c))); }
     static bool any(u32 c) { return static_cast<u16>(c) != 0; }
@@ -164,7 +165,7 @@ template <typename C> u8 *numpunct_of(u8 **locale) {
             }
         } else {
             u32 bad[3];
-            BadCast_Ctor(bad, nullptr, reinterpret_cast<const char *>((uintptr_t)0x0075c734));
+            BadCast_Ctor(bad, nullptr, gLocalefacet_MissingFacet_75c734);
             IosBase_Env().cxxThrow(bad, reinterpret_cast<const void *>((uintptr_t)0x007193a8));
         }
     }

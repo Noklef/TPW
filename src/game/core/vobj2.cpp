@@ -435,7 +435,7 @@ extern "C" u32 __fastcall Object_UpdateShadow(u8 *self) {
     Box_Extend(reinterpret_cast<u32 *>(block), nullptr, bits((float)(X87Reg(moveX) + highX)), shadowY, farZ);
 
     if (block && at<s32>(block, 0x1c) > global<s32>(0x008bcc40)) {
-        at<u32>(block, 0x1c) = global<u32>(0x008bcc40) + global<u32>(0x008bd4b4);
+        at<u32>(block, 0x1c) = global<u32>(0x008bcc40) + gVobj2_8bd4b4;
         return 1;
     }
 
@@ -487,8 +487,8 @@ extern "C" u32 __fastcall Object_UpdateShadow(u8 *self) {
         return 0;
     g_calls.Th(0x0058dc50, gTexcache_8c4b44, at<u32>(block, 0x18));
     if (made) {
-        const u32 interval = global<u32>(0x008bd4b4);
-        const u32 turn = ++global<u32>(0x008bd4b8);
+        const u32 interval = gVobj2_8bd4b4;
+        const u32 turn = ++gVobj2_8bd4b8;
         at<u32>(block, 0x1c) = ((interval - 1) & turn) + global<u32>(0x008bcc40) + interval;
     }
     return 1;

@@ -28,7 +28,7 @@ u32 SideFor(u32 extent) {
 }
 
 // The planes' coefficients go to the stream buffer at 0xa067f8.
-u8 *const kStream = reinterpret_cast<u8 *>(0x00a067f8);
+u8 *const kStream = gWavelet_Stream_a067f8;
 
 // __ftol of a float, the low half.
 u32 FtolLow(float f) { return (u32)(long long)f; }
@@ -95,7 +95,7 @@ void InverseD4RowPairs(const u8 *src, u8 *dst, u32 width, u32 n) {
 }
 
 // The v0x13 decoders (0x595920, 0x597100): each plane's rows go into the plane at 0xd30a28, then down the columns into the plane's own.
-u8 *const kRowPlane = reinterpret_cast<u8 *>(0x00d30a28);
+u8 *const kRowPlane = gWavelet_RowPlane_d30a28;
 
 float FloatOf(u32 bits) {
     float f;
@@ -119,15 +119,15 @@ s32 Low8(float f) { return (s8)(BitsOf(f) & 0xffu); }
 // Cr, their middles at +0x200), the clamp bytes from 0xc27008 (index 0 at 0xc27088) and the 16-bit pixel words indexed by an s16 (0xcef328
 // alpha, 0xcef728 blue, 0xceff28 green, 0xcf0328 red, their index 0 there). Out of range indices read on (sic).
 s32 Table(u32 middle, s32 index) { return global<s32>(middle + 4 * (u32)index); }
-u8 Clamp(s32 index) { return global<u8>(0x00c27088 + (u32)index); }
+u8 Clamp(s32 index) { return gWavelet_Clamp_c27008[128 + (u32)index]; }
 u16 Word(u32 zero, s32 index) { return global<u16>(zero + 2 * (u32)index); }
 
 // The LZ77 stage of the v0x13 decoders (its first bit inline in 0x595920, Wavelet_ReadBits(1)'s steps): the bit reader reset over block (and
 // 0xd70a28 = the stream, 0xc67218 = 0), then into the stream at 0xa067f8 a 0 bit and 8 bits as a literal, a 1 bit, 12 bits of distance and
 // 7 of length less one as a copy (byte by byte, so overlapping), until a distance of 0.
 void Unpack(const void *block) {
-    global<const void *>(0x00e74a40) = block;
-    gWavelet_d70a28 = 0x00a067f8;
+    global<const void *>((u32)(uintptr_t)&gWavelet_BlockOffset_e74a40) = block;
+    gWavelet_d70a28 = (u32)(uintptr_t)&gWavelet_Stream_a067f8;
     gWavelet_be6800 = 0;
     gWavelet_c67218 = 0;
     gWavelet_f74a48 = 0;
@@ -241,8 +241,8 @@ const ColumnOrder kScaledColumnsCb = {{1, 2, 3, 0}, false};
 const ColumnOrder kScaledColumnsCr = {{0, 2, 1, 3}, true};
 
 // The decoded planes: 0x595920's and 0x597100's.
-const u32 kY = 0x00be6c08, kCb = 0x00f34a48, kCr = 0x00cf0a28, kA = 0x008c67f8;
-const u32 kScaledY = 0x00c6f228, kScaledCb = 0x00c27218, kScaledCr = 0x00e74a48, kScaledA = 0x00aa6800;
+const u32 kY = 0x00be6c08, kCb = 0x00f34a48, kCr = (u32)(uintptr_t)&gWavelet_Cr_cf0a28, kA = 0x008c67f8;
+const u32 kScaledY = (u32)(uintptr_t)&gWavelet_ScaledY_c6f228, kScaledCb = (u32)(uintptr_t)&gWavelet_ScaledCb_c27218, kScaledCr = (u32)(uintptr_t)&gWavelet_ScaledCr_e74a48, kScaledA = (u32)(uintptr_t)&gWavelet_ScaledA_aa6800;
 
 // The planes of both decoders: Y, Cb and Cr from the main block, alpha from its own when there is one.
 void DecodePlanes(u32 side, const void *main, const void *alpha, const float *q, const u32 *planes, const RowOrder *const *rows,
@@ -267,7 +267,7 @@ void DecodePlanes(u32 side, const void *main, const void *alpha, const float *q,
 // bits or'd with the alpha word (or the format's mask).
 u16 Pixel16(float y, float blue, X87Reg green, float red, u32 alpha) {
     const float b = (float)(X87Reg(blue) + y), g = (float)(green + y), r = (float)(X87Reg(red) + y);
-    return (u16)(Word(0x00ceff28, Low16(g)) | Word(0x00cef728, Low16(b)) | Word(0x00cf0328, Low16(r)) | alpha);
+    return (u16)(Word(((u32)(uintptr_t)&gWavelet_GreenWords_cefe28 + 0x100), Low16(g)) | Word(((u32)(uintptr_t)&gWavelet_BlueWords_cef628 + 0x100), Low16(b)) | Word(((u32)(uintptr_t)&gWavelet_RedWords_cf0228 + 0x100), Low16(r)) | alpha);
 }
 
 // The 16-bit colours of a Cb and a Cr: blue Cb * 1.772 and red Cr * 1.402 less the bias, each stored; green (Cb * -0.344136 - Cr * 0.714136)
@@ -296,9 +296,9 @@ void Output32(u32 width, u32 height, u8 *pixels, bool alpha) {
             for (u32 pairs = (width + 1) >> 1; pairs != 0; --pairs) {
                 const float b = Biased(cb[ci]), r = Biased(cr[ci]);
                 const float y0 = Biased(y[yi]), y1 = Biased(y[yi + 1]);
-                const s32 blue = Table(0x00be6a08, Low8(b));
-                const s32 green = Table(0x00cf0828, Low8(r)) + Table(0x00cefc28, Low8(b));
-                const s32 red = Table(0x00c26e08, Low8(r));
+                const s32 blue = Table(((u32)(uintptr_t)&gWavelet_BlueTable_be6808 + 0x200), Low8(b));
+                const s32 green = Table(((u32)(uintptr_t)&gWavelet_GreenTableCr_cf0628 + 0x200), Low8(r)) + Table(((u32)(uintptr_t)&gWavelet_GreenTableCb_cefa28 + 0x200), Low8(b));
+                const s32 red = Table(((u32)(uintptr_t)&gWavelet_RedTable_c26c08 + 0x200), Low8(r));
                 if (alpha) {
                     const float a0 = Biased(a[yi]), a1 = Biased(a[yi + 1]);
                     out[0] = Clamp(Low16(y0) + blue);
@@ -356,7 +356,7 @@ void Output16(u32 width, u32 height, u32 side, u8 *pixels, bool alpha) {
             const u32 index[4] = {yi, yi + 1, yi + side, yi + side + 1};
             u16 *const to[4] = {row0, row0 + 1, row1, row1 + 1};
             for (u32 k = 0; k < 4; ++k) {
-                const u32 word = alpha ? Word(0x00cef328, Low16(Biased(a[index[k]]))) : mask;
+                const u32 word = alpha ? Word(((u32)(uintptr_t)&gWavelet_AlphaWords_cef228 + 0x100), Low16(Biased(a[index[k]]))) : mask;
                 *to[k] = Pixel16(y[index[k]], blue, green, red, word);
             }
             yi += 2;
@@ -393,11 +393,11 @@ void OutputScaled(u32 dstWidth, u32 dstHeight, u32 pitch, u32 pixelSize, u8 *pix
                     alphaValue = Biased(a[li]);
                 const float yv = Biased(y[li]);
                 const float b = Biased(cb[ci]), r = Biased(cr[ci]);
-                const s32 blue = Table(0x00be6a08, Low8(b));
+                const s32 blue = Table(((u32)(uintptr_t)&gWavelet_BlueTable_be6808 + 0x200), Low8(b));
                 out[0] = Clamp(blue + Low16(yv));
-                const s32 green = Table(0x00cf0828, Low8(r)) + Table(0x00cefc28, Low8(b));
+                const s32 green = Table(((u32)(uintptr_t)&gWavelet_GreenTableCr_cf0628 + 0x200), Low8(r)) + Table(((u32)(uintptr_t)&gWavelet_GreenTableCb_cefa28 + 0x200), Low8(b));
                 out[1] = Clamp(green + Low16(yv));
-                out[2] = Clamp(Table(0x00c26e08, Low8(r)) + Low16(yv));
+                out[2] = Clamp(Table(((u32)(uintptr_t)&gWavelet_RedTable_c26c08 + 0x200), Low8(r)) + Low16(yv));
                 out[3] = alpha ? Clamp(Low16(alphaValue)) : 0xff;
                 chroma += chromaX;
                 luma += lumaX;
@@ -420,12 +420,12 @@ void OutputScaled(u32 dstWidth, u32 dstHeight, u32 pitch, u32 pixelSize, u8 *pix
             const float c = cb[ci], d = cr[ci];
             u32 word = mask;
             if (alpha)
-                word = Word(0x00cef328, Low16(Biased(a[li])));
+                word = Word(((u32)(uintptr_t)&gWavelet_AlphaWords_cef228 + 0x100), Low16(Biased(a[li])));
             const float yv = y[li];
             const float b = (float)((X87Reg(c) * kBlueCb - kBias) + yv);
             const float g = (float)((((X87Reg(c) * kGreenCb) - X87Reg(d) * kGreenCr) - kBias) + yv);
             const float r = (float)((X87Reg(d) * kRedCr - kBias) + yv);
-            at<u16>(out, 0) = (u16)(Word(0x00ceff28, Low16(g)) | Word(0x00cef728, Low16(b)) | Word(0x00cf0328, Low16(r)) | word);
+            at<u16>(out, 0) = (u16)(Word(((u32)(uintptr_t)&gWavelet_GreenWords_cefe28 + 0x100), Low16(g)) | Word(((u32)(uintptr_t)&gWavelet_BlueWords_cef628 + 0x100), Low16(b)) | Word(((u32)(uintptr_t)&gWavelet_RedWords_cf0228 + 0x100), Low16(r)) | word);
             chroma += chromaX;
             luma += lumaX;
             out += 2;
@@ -437,7 +437,7 @@ void OutputScaled(u32 dstWidth, u32 dstHeight, u32 pitch, u32 pixelSize, u8 *pix
 }
 
 // The planes of the v0x12 decoder 0x593ab0.
-const u32 kV12Y = 0x00eb4a48, kV12Cb = 0x00a667f8, kV12Cr = 0x00caf228, kV12A = 0x00ef4a48;
+const u32 kV12Y = 0x00eb4a48, kV12Cb = (u32)(uintptr_t)&gWavelet_V12Cb_a667f8, kV12Cr = 0x00caf228, kV12A = 0x00ef4a48;
 
 // The order a plane of 0x593ab0 sums its rows in. Between the pairs (n below 6: only the chroma planes of side 8 have any) the terms 0 h0 * next low, 1 h3 * next high, 2 h1 * high in
 // `pair`'s order, then h2 * low; at the row's start the terms 0 h3 * first high, 1 h1 * last high, 2 h2 * last low in `wrap`'s order, then first low * h0.
@@ -506,7 +506,7 @@ void V12Floats(u32 width, u32 height, u32 side, bool alpha) {
             continue;
         u32 ci = (u32)(row >> 1) * (side >> 1);
         u32 yi = (u32)row * side;
-        float *o0 = reinterpret_cast<float *>(0x00d70a38) + (u32)row * width * 4;
+        float *o0 = gWavelet_Rows_d70a38 + (u32)row * width * 4;
         float *o1 = o0 + width * 4;
         for (u32 blocks = (width + 1) >> 1; blocks != 0; --blocks) {
             const float blue = Blue16(cb[ci]);
@@ -536,7 +536,7 @@ void V12Floats(u32 width, u32 height, u32 side, bool alpha) {
 
 // Then the MMX packing (0x5950f6): (width * height * 4 + 7) / 8 runs of 8 floats to 8 bytes: each one's low 16 bits, signed, saturated to 0-255.
 void V12Pack(u32 width, u32 height, u8 *pixels) {
-    const u32 *from = reinterpret_cast<const u32 *>(0x00d70a38);
+    const u32 *from = reinterpret_cast<const u32 *>((u32)(uintptr_t)&gWavelet_Rows_d70a38);
     for (u32 runs = (height * width * 4 + 7) >> 3; runs != 0; --runs) {
         for (u32 k = 0; k < 8; ++k) {
             const s32 v = (s16)from[k];
@@ -570,13 +570,13 @@ void V12Output16(u32 width, u32 height, u32 side, u8 *pixels, bool alpha) {
             const u32 index[4] = {yi, yi + 1, yi + side, yi + side + 1};
             u16 *const to[4] = {row0, row0 + 1, row1, row1 + 1};
             for (u32 k = 0; k < 4; ++k) {
-                const u32 word = alpha ? Word(0x00cef328, Low16(Biased(a[index[k]]))) : mask;
+                const u32 word = alpha ? Word(((u32)(uintptr_t)&gWavelet_AlphaWords_cef228 + 0x100), Low16(Biased(a[index[k]]))) : mask;
                 if (k == 3) {
                     *to[k] = Pixel16(y[index[k]], blue, green, red, word);
                 } else {
                     const X87Reg v(y[index[k]]);
                     const float b = (float)(X87Reg(blue) + v), g = (float)(green + v), r = (float)(X87Reg(red) + v);
-                    *to[k] = (u16)(Word(0x00ceff28, Low16(g)) | Word(0x00cef728, Low16(b)) | Word(0x00cf0328, Low16(r)) | word);
+                    *to[k] = (u16)(Word(((u32)(uintptr_t)&gWavelet_GreenWords_cefe28 + 0x100), Low16(g)) | Word(((u32)(uintptr_t)&gWavelet_BlueWords_cef628 + 0x100), Low16(b)) | Word(((u32)(uintptr_t)&gWavelet_RedWords_cf0228 + 0x100), Low16(r)) | word);
                 }
             }
             yi += 2;
@@ -619,23 +619,23 @@ void __fastcall WaveletCodec_DecodeV12(u8 *codec, void *, u32 width, u32 height,
 }
 
 u32 __cdecl Wavelet_Startup() {
-    if (global<u32>(0x00879a68))
+    if (gWavelet_Block_879a68)
         return 0;
     u8 *const codec = WaveletCodec_Create();
-    global<u8 *>(0x00879a64) = codec;
+    gWavelet_Codec_879a64 = codec;
     if (!codec)
         return 0;
-    global<u32>(0x00879a68) = at<u32>(DrawBuffer_Begin(global<u8 *>(0x008bcbc4), nullptr, 2), 0x28);
+    gWavelet_Block_879a68 = at<u32>(DrawBuffer_Begin(global<u8 *>(0x008bcbc4), nullptr, 2), 0x28);
     return 1;
 }
 
 u32 __cdecl Wavelet_Shutdown() {
-    const u32 block = global<u32>(0x00879a68);
+    const u32 block = gWavelet_Block_879a68;
     if (!block)
         return 0;
     TrackedGlobal_Free(block);
-    u8 *codec = global<u8 *>(0x00879a64);
-    global<u32>(0x00879a68) = 0;
+    u8 *codec = gWavelet_Codec_879a64;
+    gWavelet_Block_879a68 = 0;
     if (codec)
         vcall<void>(codec, 0x18);
     return 1;
@@ -659,7 +659,7 @@ u32 __cdecl Wavelet_ReadBits(u32 count) {
     u32 held = gWavelet_aa67f8;
     if (held < count) {
         const u32 position = gWavelet_be6800;
-        const u32 word = at<u32>(reinterpret_cast<const void *>(position), global<u32>(0x00e74a40)) & 0xffffu;
+        const u32 word = at<u32>(reinterpret_cast<const void *>(position), gWavelet_BlockOffset_e74a40) & 0xffffu;
         gWavelet_be6800 = position + 2;
         gWavelet_f74a48 |= word << (held & 31);
         held += 0x10;
@@ -926,9 +926,9 @@ void __fastcall WaveletCodec_ReadCoefficients(u8 *, void *, const u8 **cursor, f
     if (gWaveletCodec_ReadCoefficients_f75ad4 == 0) {
         for (u32 i = 0; i < 0x100; ++i) {
             const float s = (float)(s8)i;
-            global<float>(0x00fb2be0 + 4 * i) = s;
-            global<float>(0x00fb2fe0 + 4 * i) = (float)i;
-            global<float>(0x00fb27e0 + 4 * i) = (float)(X87Reg(s) * 256.0f);  // 0x702688
+            gWavelet_Scale_fb2be0[i] = s;
+            gWavelet_ScaleLow_fb2fe0[i] = (float)i;
+            gWavelet_ScaleHigh_fb27e0[i] = (float)(X87Reg(s) * 256.0f);  // 0x702688
         }
         gWaveletCodec_ReadCoefficients_f75ad4 = 1;
     }
@@ -936,12 +936,12 @@ void __fastcall WaveletCodec_ReadCoefficients(u8 *, void *, const u8 **cursor, f
     do {
         const u8 b = *p++;
         if (b != 0x80) {
-            *dst++ = (float)(X87Reg(global<float>(0x00fb2be0 + 4 * b)) * q);
+            *dst++ = (float)(X87Reg(gWavelet_Scale_fb2be0[b]) * q);
         } else {
             const u8 low = p[0], high = p[1];
             p += 2;
             // fld; fld; faddp: both loaded (quiet), so a signalling NaN in the second table is compared as a register NaN.
-            *dst++ = (float)((X87Reg(global<float>(0x00fb2fe0 + 4 * low)) + X87Reg(global<float>(0x00fb27e0 + 4 * high))) * q);
+            *dst++ = (float)((X87Reg(gWavelet_ScaleLow_fb2fe0[low]) + X87Reg(gWavelet_ScaleHigh_fb27e0[high])) * q);
         }
     } while (--count != 0);
     *cursor = p;
@@ -1079,40 +1079,40 @@ void __fastcall WaveletCodec_YuvToRgb(u8 *codec, void *, u32 width, u32 height, 
         return X87Reg(f);
     };
     const u32 halfH = height >> 1, halfW = width >> 1;
-    global<u32>(0x00fb2768) = halfH;
-    global<u32>(0x00fb276c) = halfW;
-    global<u32>(0x00fb2770) = stride * 2;
-    global<u32>(0x00fb2774) = stride * 4;
-    global<u32>(0x00fb2778) = stride * 8;
-    global<u32>(0x00fb277c) = 0x3fe2d0e5;   // 1.772
-    global<u32>(0x00fb2780) = 0x3fb374bc;   // 1.402
-    global<u32>(0x00fb2784) = 0x3eb03298;   // 0.344136
-    global<u32>(0x00fb2788) = 0x3f36d19e;   // 0.714136
-    global<u32>(0x00fb278c) = 0x4b400080;   // 1.5 * 2^23 + 128
-    global<u32>(0x00fb2790) = width * 3;
-    global<u32>(0x00fb2794) = width * 6;
-    global<u32>(0x00fb2798) = 8 - stride * 4;
-    global<u32>(0x00fb279c) = 6 - width * 3;
+    gWavelet_fb2768 = halfH;
+    gWavelet_fb276c = halfW;
+    gWavelet_fb2770 = stride * 2;
+    gWavelet_fb2774 = stride * 4;
+    gWavelet_fb2778 = stride * 8;
+    gWavelet_fb277c = 0x3fe2d0e5;   // 1.772
+    gWavelet_fb2780 = 0x3fb374bc;   // 1.402
+    gWavelet_fb2784 = 0x3eb03298;   // 0.344136
+    gWavelet_fb2788 = 0x3f36d19e;   // 0.714136
+    gWavelet_fb278c = 0x4b400080;   // 1.5 * 2^23 + 128
+    gWavelet_fb2790 = width * 3;
+    gWavelet_fb2794 = width * 6;
+    gWavelet_fb2798 = 8 - stride * 4;
+    gWavelet_fb279c = 6 - width * 3;
     u8 *const y = at<u8 *>(codec, 0x2c);
-    global<u8 *>(0x00fb27a0) = y;
+    gWavelet_fb27a0 = y;
     u8 *const cr = at<u8 *>(codec, 0xc);
-    global<u8 *>(0x00fb27a4) = cr;
+    gWavelet_fb27a4 = cr;
     u8 *const cb = at<u8 *>(codec, 0x1c);
-    global<u8 *>(0x00fb27a8) = cb;
+    gWavelet_fb27a8 = cb;
     const u32 diff = (u32)((s32)(cr - cb) >> 2) << 2;
-    global<u32>(0x00fb27ac) = diff;
-    const u8 *const table = reinterpret_cast<const u8 *>(0x00c27008);
+    gWavelet_fb27ac = diff;
+    const u8 *const table = gWavelet_Clamp_c27008;
     const X87Reg magic = k(0x4b400080);
     const auto put = [&](u8 *o, X87Reg b0, X87Reg r0, X87Reg g0, X87Reg b1, X87Reg r1, X87Reg g1) {
-        global<u32>(0x00fb27b0) = bits(b0);
-        global<u32>(0x00fb27b4) = bits(r0);
-        global<u32>(0x00fb27b8) = bits(g0);
-        global<u32>(0x00fb27bc) = bits(b1);
-        global<u32>(0x00fb27c0) = bits(r1);
-        global<u32>(0x00fb27c4) = bits(g1);
-        const u8 c0 = table[global<u32>(0x00fb27b0) & 0x1ff], c1 = table[global<u32>(0x00fb27b8) & 0x1ff];
-        const u8 c2 = table[global<u32>(0x00fb27b4) & 0x1ff], c3 = table[global<u32>(0x00fb27bc) & 0x1ff];
-        const u32 i4 = global<u32>(0x00fb27c4) & 0x1ff, i5 = global<u32>(0x00fb27c0) & 0x1ff;
+        gWavelet_fb27b0 = bits(b0);
+        gWavelet_fb27b4 = bits(r0);
+        gWavelet_fb27b8 = bits(g0);
+        gWavelet_fb27bc = bits(b1);
+        gWavelet_fb27c0 = bits(r1);
+        gWavelet_fb27c4 = bits(g1);
+        const u8 c0 = table[gWavelet_fb27b0 & 0x1ff], c1 = table[gWavelet_fb27b8 & 0x1ff];
+        const u8 c2 = table[gWavelet_fb27b4 & 0x1ff], c3 = table[gWavelet_fb27bc & 0x1ff];
+        const u32 i4 = gWavelet_fb27c4 & 0x1ff, i5 = gWavelet_fb27c0 & 0x1ff;
         o[0] = c0;
         o[1] = c1;
         o[2] = c2;
@@ -1124,29 +1124,29 @@ void __fastcall WaveletCodec_YuvToRgb(u8 *codec, void *, u32 width, u32 height, 
     u32 rows = halfH;
     do {   // (do-while: a height below 2 runs 2^32 rows, sic)
         u8 *yp = ys, *o = out, *c = cbs;
-        u32 cols = global<u32>(0x00fb276c);
+        u32 cols = gWavelet_fb276c;
         do {
             const X87Reg a = X87Reg(at<float>(c, 0)) * k(0x3fe2d0e5) + magic;
             const X87Reg b = X87Reg(at<float>(c, diff)) * k(0x3fb374bc) + magic;
             const X87Reg g = X87_SubR(X87Reg(at<float>(c, diff)) * k(0x3f36d19e), X87_SubR(X87Reg(at<float>(c, 0)) * k(0x3eb03298), magic));
             X87Reg y0 = at<float>(yp, 0), y1 = at<float>(yp, 4);
             put(o, y0 + a, y0 + b, y0 + g, y1 + a, y1 + b, y1 + g);
-            yp += global<u32>(0x00fb2774);
-            o += global<u32>(0x00fb2790);
+            yp += gWavelet_fb2774;
+            o += gWavelet_fb2790;
             y0 = at<float>(yp, 0);
             const X87Reg b2 = y0 + a, r2 = y0 + b, g2 = y0 + g;
             // (fadd m32: the second luma a memory operand, so a signalling NaN there gives way to a NaN register)
             const X87Reg b3 = a + at<float>(yp, 4), r3 = b + at<float>(yp, 4), g3 = g + at<float>(yp, 4);
             put(o, b2, r2, g2, b3, r3, g3);
-            yp += global<u32>(0x00fb2798);
-            o += global<u32>(0x00fb279c);
+            yp += gWavelet_fb2798;
+            o += gWavelet_fb279c;
             c += 4;
         } while (--cols != 0);
-        ys += global<u32>(0x00fb2778);
-        out += global<u32>(0x00fb2794);
-        cbs += global<u32>(0x00fb2770);
+        ys += gWavelet_fb2778;
+        out += gWavelet_fb2794;
+        cbs += gWavelet_fb2770;
     } while (--rows != 0);
-    const u8 *const edge = reinterpret_cast<const u8 *>(0x00c27088);
+    const u8 *const edge = (&gWavelet_Clamp_c27008[128]);
     const X87Reg low = k(0xcb400000);   // -1.5 * 2^23
     const auto pixel = [&](u8 *o, const u8 *yp, const u8 *cbp, const u8 *crp) {
         const X87Reg yv = at<float>(yp, 0), e = at<float>(cbp, 0), c = at<float>(crp, 0);
@@ -1251,19 +1251,19 @@ u8 *__fastcall WaveletCodec_Construct(u8 *codec, void *, u32 mostDerived) {
     for (u32 i = 0; i < 0x200; ++i) {
         const s32 v = (s32)i - 0x80;
         const u32 c = v < 0 ? 0 : (v > 0xff ? 0xff : (u32)v);
-        global<u8>(0xc27008 + i) = (u8)c;
+        gWavelet_Clamp_c27008[i] = (u8)c;
         const u8 *const e = formats + c * 0x10;
-        global<u16>(0xcef628 + 2 * i) = at<u16>(e, 0xc);
-        global<u16>(0xcefe28 + 2 * i) = at<u16>(e, 8);
-        global<u16>(0xcf0228 + 2 * i) = at<u16>(e, 4);
-        global<u16>(0xcef228 + 2 * i) = at<u16>(e, 0);
+        gWavelet_BlueWords_cef628[i] = at<u16>(e, 0xc);
+        gWavelet_GreenWords_cefe28[i] = at<u16>(e, 8);
+        gWavelet_RedWords_cf0228[i] = at<u16>(e, 4);
+        gWavelet_AlphaWords_cef228[i] = at<u16>(e, 0);
     }
     for (u32 i = 0; i < 0x100; ++i) {
         const s32 v = (s32)i - 0x80;
-        global<s32>(0xbe6808 + 4 * i) = (s32)X87_MulIntDouble(v, gWavelet_CbBlue_702640);
-        global<s32>(0xcefa28 + 4 * i) = (s32)X87_MulIntDouble(v, global<double>(0x702648));   // (its low dword reads as a code address: the fixup round)
-        global<s32>(0xcf0628 + 4 * i) = (s32)X87_MulIntDouble(v, gWavelet_CrGreen_702650);
-        global<s32>(0xc26c08 + 4 * i) = (s32)X87_MulIntDouble(v, gWavelet_CrRed_702658);
+        gWavelet_BlueTable_be6808[i] = (s32)X87_MulIntDouble(v, gWavelet_CbBlue_702640);
+        gWavelet_GreenTableCb_cefa28[i] = (s32)X87_MulIntDouble(v, gWavelet_702648);   // (its low dword reads as a code address: the fixup round)
+        gWavelet_GreenTableCr_cf0628[i] = (s32)X87_MulIntDouble(v, gWavelet_CrGreen_702650);
+        gWavelet_RedTable_c26c08[i] = (s32)X87_MulIntDouble(v, gWavelet_CrRed_702658);
     }
     at<void *>(codec, 0x4c) = GameHeap_Alloc(0x62a39);
     u8 *const block = static_cast<u8 *>(GameHeap_Alloc(0x40000));
