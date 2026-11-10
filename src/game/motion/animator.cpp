@@ -10,6 +10,7 @@
 #include "keys.h"
 #include "normals.h"
 #include "track.h"
+#include "../coaster/rideanimate.h"
 
 namespace {
 
@@ -559,7 +560,7 @@ void Motion_UpdateClocksWith(u32 *time, float *step, u32 now) {
 
 extern "C" void __cdecl Motion_UpdateClocks() {
     u8 *const clocks = reinterpret_cast<u8 *>(0x00785970);  // the game clock: 0x402d70 and 0x402d80 are its ports
-    Motion_UpdateClocksWith(reinterpret_cast<u32 *>(0x007b496c), reinterpret_cast<float *>(0x007b497c), Clocks_Now(clocks));
+    Motion_UpdateClocksWith(reinterpret_cast<u32 *>(0x007b496c), &gMotionTimeStep, Clocks_Now(clocks));
     *reinterpret_cast<u32 *>(0x007b4974) = Clocks_RealNow(clocks);
 }
 

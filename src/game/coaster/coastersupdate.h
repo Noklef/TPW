@@ -14,3 +14,9 @@ extern "C" {
 // With a bit of 0xc at +8 and no 0x40: each car (+0xf4 of 0x80 bytes at +0x128) with flag 2 at the station, and each its sounds. 0x792218 and 0x792220 end 0.
 void __cdecl Coasters_Update();
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(u8 *, gCoastersupdate_792218, 0x00792218, 0x4);
+GAME_DATA(u32, gCoasters_Update_792220, 0x00792220, 0x4);

@@ -13,6 +13,8 @@
 #include "orient.h"
 #include "testrun.h"
 #include "trackmesh.h"
+#include "coastersupdate.h"
+#include "coastersload.h"
 
 namespace {
 
@@ -125,7 +127,7 @@ void AddToRun(u32 amount) { global<float>(0x0079240c) = (float)(X87Reg((double)a
 void CoasterRebuild_SetEnv(const CoasterRebuildEnv *env) { g_env = env ? env : &kPorts; }
 
 extern "C" void __cdecl Coaster_Rebuild(u8 *coaster) {
-    global<u8 *>(0x00792218) = coaster;
+    gCoastersupdate_792218 = coaster;
     u8 *const type = at<u8 *>(coaster, 4);
     if (type != global<u8 *>(0x007923ec)) {
         CopyPartFlags(type);
@@ -136,14 +138,14 @@ extern "C" void __cdecl Coaster_Rebuild(u8 *coaster) {
     const float *const slot = Slopes(at<u8 *>(coaster, 0x54), reinterpret_cast<const float *>(coaster));
 
     g_env->refresh();
-    g_env->buildNodes(global<u8 *>(0x00792218));
-    g_env->testRun(global<u8 *>(0x00792218));
-    g_env->updateBounds(global<u8 *>(0x00792218));
-    g_env->f439ab0(global<u8 *>(0x00792218));
-    g_env->dispose(global<u8 *>(0x00792218));
+    g_env->buildNodes(gCoastersupdate_792218);
+    g_env->testRun(gCoastersupdate_792218);
+    g_env->updateBounds(gCoastersupdate_792218);
+    g_env->f439ab0(gCoastersupdate_792218);
+    g_env->dispose(gCoastersupdate_792218);
     g_env->placeSections();
 
-    u8 *const track = global<u8 *>(0x00790fe4);
+    u8 *const track = gCoastersload_790fe4;
     u8 *piece = at<u8 *>(track, 0x18);
     global<u32>(0x00792414) = 0x00792600;
     global<u32>(0x0079240c) = 0;
@@ -172,7 +174,7 @@ extern "C" void __cdecl Coaster_Rebuild(u8 *coaster) {
                 g_env->emit(piece, piece, (s32)samples, kKeysOut, restart);
                 restart = 0;
             } else {
-                at<u32>(global<u8 *>(0x00790fe4), 0x34) = at<u32>(at<u8 *>(list, 4), count * 0x58 - 0x50);
+                at<u32>(gCoastersload_790fe4, 0x34) = at<u32>(at<u8 *>(list, 4), count * 0x58 - 0x50);
             }
             AddToRun(at<u32>(at<const u8 *>(piece, 0x90), 0) - 1);
         }
@@ -181,7 +183,7 @@ extern "C" void __cdecl Coaster_Rebuild(u8 *coaster) {
             g_env->emit(piece, next, (s32)samples, kKeysOut, restart);
             restart = 0;
         } else {
-            at<u32>(global<u8 *>(0x00790fe4), 0x34) = at<u32>(at<u8 *>(at<u8 *>(next, 0x90), 4), 8);
+            at<u32>(gCoastersload_790fe4, 0x34) = at<u32>(at<u8 *>(at<u8 *>(next, 0x90), 4), 8);
         }
         global<float>(0x0079240c) = (float)(X87Reg(global<float>(0x0079240c)) - -1.0f);
         piece = next;
@@ -189,5 +191,5 @@ extern "C" void __cdecl Coaster_Rebuild(u8 *coaster) {
     }
 
     g_env->finish(1);
-    at<u32>(global<u8 *>(0x00792218), 0) &= ~0x4000u;
+    at<u32>(gCoastersupdate_792218, 0) &= ~0x4000u;
 }

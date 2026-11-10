@@ -234,3 +234,43 @@ void __cdecl EditTools_RebuildIndexed(u32 index);
 
 struct AddrCall;
 void EditTools_SetRebuildCalls(const AddrCall *table, u32 count);   // tests/fncmp/edittoolsrebuild.py
+
+#include "../core/gamedata.h"
+
+// Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(const u32, gEdittools_6fe1b4, 0x006fe1b4, 0x4);
+GAME_DATA(u32, gCoasterEdit_79c610, 0x0079c610, 0x4);
+GAME_DATA(u8 *, gCoasterEdit_79c614, 0x0079c614, 0x4);
+GAME_DATA(u32, gCoasterEdit_79c618, 0x0079c618, 0x4);
+GAME_DATA(u32, gCoasterEdit_79c61c, 0x0079c61c, 0x4);
+GAME_DATA(u32, gEdittools_79c624, 0x0079c624, 0x4);
+GAME_DATA(u8 *, gEdittools_79c628, 0x0079c628, 0x4);
+GAME_DATA(u8 *, gEdittools_79c62c, 0x0079c62c, 0x4);
+GAME_DATA(u32, gCoasterEdit_79c630, 0x0079c630, 0x4);
+GAME_DATA(u32, gCoasterEdit_79c634, 0x0079c634, 0x4);
+GAME_DATA(u32, gCoasterEdit_79c638, 0x0079c638, 0x4);
+GAME_DATA(u8 *, gEdittools_79c640, 0x0079c640, 0x4);
+GAME_DATA(u32, gEdittools_79c644, 0x0079c644, 0x4);
+GAME_DATA(float, gEdittools_79c64c, 0x0079c64c, 0x4);
+GAME_DATA(u32, gCoasterEdit_79c65c, 0x0079c65c, 0x4);
+GAME_DATA(u8 *, gEdittools_79c660, 0x0079c660, 0x4);
+GAME_DATA(u32, gEdittools_79c664, 0x0079c664, 0x4);
+GAME_DATA(u32, gCoasterEdit_79c668, 0x0079c668, 0x4);
+GAME_DATA(u32, gCoasterEdit_79c66c, 0x0079c66c, 0x4);
+GAME_DATA(float, gEdittools_79c694, 0x0079c694, 0x4);
+GAME_DATA(float, gEdittools_79c698, 0x0079c698, 0x4);
+GAME_DATA(u32, gEdittools_79c69c, 0x0079c69c, 0x4);
+GAME_DATA(s32, gEdittools_79c6a0, 0x0079c6a0, 0x4);
+GAME_DATA(u8 *, gEdittools_79c6a4, 0x0079c6a4, 0x4);
+GAME_DATA(u32, gCoasterEdit_79c6a8, 0x0079c6a8, 0x4);
+GAME_DATA(u32, gCoasterEdit_79c6d0, 0x0079c6d0, 0x4);
+GAME_DATA(u32, gCoasterEdit_79c6d4, 0x0079c6d4, 0x4);
+GAME_DATA(s32, gEdittools_79c6d8, 0x0079c6d8, 0x4);
+GAME_DATA(u8 *, gEdittools_79c6dc, 0x0079c6dc, 0x4);
+GAME_DATA(u32, gCoasterEdit_79c6e0, 0x0079c6e0, 0x4);
+GAME_DATA(u32, gCoasterEdit_79c6e4, 0x0079c6e4, 0x4);
+GAME_DATA(u32, gCoasterEdit_79c6ec, 0x0079c6ec, 0x4);
+GAME_DATA(u32, gCoasterEdit_79c6f0, 0x0079c6f0, 0x4);
+GAME_DATA(u32, gCoasterEdit_79c6f4, 0x0079c6f4, 0x4);
+GAME_DATA(u32, gCoasterEdit_79c6f8, 0x0079c6f8, 0x4);
+GAME_DATA(u32, gCoasterEdit_79c6fc, 0x0079c6fc, 0x4);

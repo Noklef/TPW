@@ -7,6 +7,7 @@
 
 #include "../math/x87.h"
 #include "../world/ridelist.h"
+#include "coastersload.h"
 
 namespace {
 
@@ -83,14 +84,14 @@ extern "C" {
 void __cdecl Coasters_Update() {
     for (u8 *coaster = gRidelist_790fe0; coaster; coaster = at<u8 *>(coaster, 0x18)) {
         if (!(at<u8>(coaster, 0) & 1)) continue;
-        global<u8 *>(0x00792218) = coaster;
-        global<u8 *>(0x00790fe4) = coaster + 0x3c;
-        if (coaster == global<u8 *>(0x00790fec) && (at<u8>(coaster, 0) & 4)) g_calls.Cd(0x00435d50, coaster);   // Coaster_PlacePendingPiece
+        gCoastersupdate_792218 = coaster;
+        gCoastersload_790fe4 = coaster + 0x3c;
+        if (coaster == gCoastersload_790fec && (at<u8>(coaster, 0) & 4)) g_calls.Cd(0x00435d50, coaster);   // Coaster_PlacePendingPiece
         if (!(at<u32>(coaster, 0) & 0x2000)) g_calls.Th(0x00403d00, 0x00785a08u, 0x43u, (u32)at<u16>(coaster, 0x14));   // ActionRec_WriteW
-        g_calls.Cd(0x0043eb70, global<u32>(0x00792218));                                                               // Coaster_Rebuild
+        g_calls.Cd(0x0043eb70, reinterpret_cast<u32 &>(gCoastersupdate_792218));                                                               // Coaster_Rebuild
         at<u32>(coaster, 0) |= 0x2000;
     }
-    global<u32>(0x00792218) = 0;
+    reinterpret_cast<u32 &>(gCoastersupdate_792218) = 0;
     for (u8 *coaster = gRidelist_790fe0; coaster; coaster = at<u8 *>(coaster, 0x18)) {
         if (!(at<u8>(coaster, 8) & 0xe)) continue;
         g_calls.Cd(0x0043ce20, coaster);   // Coaster_RunTrains
@@ -111,6 +112,6 @@ void __cdecl Coasters_Update() {
             g_calls.Cd(0x00439570, coaster, car);                 // CoasterCar_UpdateSounds
         }
     }
-    global<u32>(0x00792220) = 0;
+    gCoasters_Update_792220 = 0;
 }
 }

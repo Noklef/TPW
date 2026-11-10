@@ -18,3 +18,8 @@ void __cdecl Rides_AnimateAll(u32 mode);
 // 0x463030 (cdecl; name invented, unconfirmed): the object's ride at +0xb4, if any: Ride_AnimateOne (shown 1), the ride's 0x200000 at +4 on.
 void __cdecl Object_AnimateRide(u8 *object);
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(float, gMotionTimeStep, 0x007b497c, 0x4);

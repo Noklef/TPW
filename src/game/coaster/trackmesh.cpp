@@ -10,6 +10,8 @@
 #include "nodes.h"
 #include "spline.h"
 #include "xsection.h"
+#include "coastersupdate.h"
+#include "coastersload.h"
 
 namespace {
 
@@ -18,9 +20,9 @@ template <typename T> T &at(const void *p, u32 offset) {
 }
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
 
-u8 *track() { return global<u8 *>(0x00790fe4); }
+u8 *track() { return gCoastersload_790fe4; }
 TrackOrientation *orientation() { return reinterpret_cast<TrackOrientation *>(track() + 0x3c); }
-const u8 *coasterNodes() { return at<u8 *>(global<u8 *>(0x00792218), 0x9c); }
+const u8 *coasterNodes() { return at<u8 *>(gCoastersupdate_792218, 0x9c); }
 
 float *const kMax = reinterpret_cast<float *>((uintptr_t)0x007925b8);
 float *const kMin = reinterpret_cast<float *>((uintptr_t)0x007925a8);
@@ -28,7 +30,7 @@ float *const kMin = reinterpret_cast<float *>((uintptr_t)0x007925a8);
 // The vertex counts moved on by a section's points.
 void advance(const u8 *section) {
     const s32 points = at<s32>(section, 0);
-    global<s32>(0x0079c600) += points;
+    reinterpret_cast<s32 &>(gLists_79c600) += points;
     global<s32>(0x007923e0) -= points;
     global<s32>(0x007925c4) += points;
     global<s32>(0x007925d4) -= points;
@@ -42,7 +44,7 @@ void emit(float blend, float yaw, float pitch, float roll, const Vec3 *at_, u32 
 // The spline value at a node index and fraction as 0x4402d0 inlines it: CoasterNodes_SplineAt's, but the spline node's +0 read
 // unsigned (fild of it and a zero dword).
 float splineValue(float at_) {
-    const u8 *const nodes = at<u8 *>(global<u8 *>(0x00792218), 0x9c);
+    const u8 *const nodes = at<u8 *>(gCoastersupdate_792218, 0x9c);
     s32 whole;
     Float_SplitWhole(at_, &whole);
     const u8 *node = at<u8 *>(nodes, whole * 0x38 + 0x2c);
@@ -53,7 +55,7 @@ float splineValue(float at_) {
     return (float)(X87Reg((double)at<u32>(node, 0)) + fraction);
 }
 
-float splineAt(float at_) { return (float)CoasterNodes_SplineAt(at<u8 *>(global<u8 *>(0x00792218), 0x9c), at_); }
+float splineAt(float at_) { return (float)CoasterNodes_SplineAt(at<u8 *>(gCoastersupdate_792218, 0x9c), at_); }
 
 u32 bits(float f) {
     u32 b;
@@ -66,7 +68,7 @@ u32 bits(float f) {
 extern "C" {
 
 void __cdecl TrackMesh_EmitPiece(u8 *piece, u8 *next, s32 count, const float *positions, u32 restart) {
-    u8 *const build = at<u8 *>(global<u8 *>(0x00792218), 4);
+    u8 *const build = at<u8 *>(gCoastersupdate_792218, 4);
     const u8 *record;
     u32 force = 0;
     const bool unbuilt = at<u32>(piece, 0xb0) == 0;
@@ -188,7 +190,7 @@ void __cdecl TrackMesh_EmitPiece(u8 *piece, u8 *next, s32 count, const float *po
             const u8 *entry = at<u8 *>(section, 0xc);
             for (s32 k = indices; k != 0; --k, entry += 0xc) {
                 u8 *const list = global<u8 *>(0x007925dc) + 0x1c * at<u16>(entry, 4);
-                const u32 base = global<u32>(0x0079c600);
+                const u32 base = gLists_79c600;
                 const u32 a = at<u16>(entry, 6), b = at<u16>(entry, 8);
                 const u32 i0 = a - points + base, i1 = a + base, i2 = b - points + base, i3 = b + base;
                 u32 low = at<u32>(list, 0x14);
@@ -226,7 +228,7 @@ void __cdecl TrackMesh_EmitPiece(u8 *piece, u8 *next, s32 count, const float *po
         section = at<u8 *>(record, 0xc);
         const s32 placed = at<s32>(section, 0);
         const u32 listed = at<u32>(section, 4) * 2;
-        global<s32>(0x0079c600) += placed;
+        reinterpret_cast<s32 &>(gLists_79c600) += placed;
         global<s32>(0x007923e0) -= placed;
         global<s32>(0x007925c4) += placed;
         global<s32>(0x007925d4) -= placed;
@@ -239,11 +241,11 @@ void __cdecl TrackMesh_EmitPiece(u8 *piece, u8 *next, s32 count, const float *po
 }
 
 void __cdecl TrackMesh_PlaceSections() {
-    u8 *const track = global<u8 *>(0x00790fe4);
+    u8 *const track = gCoastersload_790fe4;
     for (u32 o = 0x38; o <= 0x54; o += 4) at<u32>(track, o) = 0;
     at<u32>(track, 0x58) = 0x7f7fffff;
     TrackOrientation *const orient = orientation();
-    u8 *const coaster = global<u8 *>(0x00792218);
+    u8 *const coaster = gCoastersupdate_792218;
     u8 *const build = at<u8 *>(coaster, 4);
     global<u32>(0x00792600) = 0;
     global<u32>(0x00792604) = 0;

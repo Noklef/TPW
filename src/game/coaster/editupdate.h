@@ -55,3 +55,24 @@ extern "C" {
 //   0xf1111112). Bit 0 of 0x79c624: Flags_SetChanged (link, 0).
 void __cdecl CoasterEdit_Update();
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(u32, gCoasterEdit_Update_79c620, 0x0079c620, 0x4);
+GAME_DATA(s32, gCoasterEdit_Update_79c648, 0x0079c648, 0x4);
+GAME_DATA(s32, gCoasterEdit_Update_79c650, 0x0079c650, 0x4);
+GAME_DATA(u32, gCoasterEdit_Update_79c654, 0x0079c654, 0x4);
+GAME_DATA(u32, gCoasterEdit_Update_79c670, 0x0079c670, 0x4);
+GAME_DATA(float, gCoasterEdit_Update_79c678, 0x0079c678, 0x4);
+GAME_DATA(float, gCoasterEdit_Update_79c67c, 0x0079c67c, 0x4);
+GAME_DATA(float, gCoasterEdit_Update_79c680, 0x0079c680, 0x4);
+GAME_DATA(float, gCoasterEdit_Update_79c688, 0x0079c688, 0x4);
+GAME_DATA(float, gCoasterEdit_Update_79c68c, 0x0079c68c, 0x4);
+GAME_DATA(float, gCoasterEdit_Update_79c690, 0x0079c690, 0x4);
+GAME_DATA(u32, gCoasterEdit_Update_79c6ac, 0x0079c6ac, 0x4);
+GAME_DATA(float, gCoasterEdit_Update_79c6b0, 0x0079c6b0, 0x4);
+GAME_DATA(float, gCoasterEdit_Update_79c6b4, 0x0079c6b4, 0x4);
+GAME_DATA(float, gCoasterEdit_Update_79c6b8, 0x0079c6b8, 0x4);
+GAME_DATA(float[3], gCoasterEdit_Update_79c6c0, 0x0079c6c0, 0xc);
+GAME_DATA(u32, gCoasterEdit_Update_79c6e8, 0x0079c6e8, 0x4);

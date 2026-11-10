@@ -7,6 +7,7 @@
 #include "../math/x87.h"
 #include "helpers.h"
 #include "../math/sintable.h"
+#include "contacts.h"
 
 namespace {
 
@@ -107,8 +108,8 @@ extern "C" u32 __cdecl CarPrisms_InQuad(const float *point, float t, const float
 }
 
 extern "C" u32 __cdecl CarPrisms_Touch() {
-    PlaceShape(global<const u8 *>(0x007922dc), global<const u8 *>(0x0079223c), Corner(0x007922f0, 0));
-    PlaceShape(global<const u8 *>(0x00792244), global<const u8 *>(0x00792240), Corner(0x00792248, 0));
+    PlaceShape(global<const u8 *>(0x007922dc), gContacts_79223c, Corner(0x007922f0, 0));
+    PlaceShape(gContacts_792244, gContacts_792240, Corner(0x00792248, 0));
 
     const u32 n = at<u32>(global<const u8 *>(0x007922dc), 4);
     for (u32 i = 0; i < n; ++i) {
@@ -131,7 +132,7 @@ extern "C" u32 __cdecl CarPrisms_Touch() {
         const X87Reg through = ((X87Reg(b[0]) * nx) + (X87Reg(b[1]) * ny)) + (X87Reg(b[2]) * nz);
         const float d0 = (float)X87Reg(-through.v);
 
-        const u32 m = at<u32>(global<const u8 *>(0x00792244), 4);
+        const u32 m = at<u32>(gContacts_792244, 4);
         for (u32 j = 0; j < m; ++j) {
             const float *const p = Corner(0x00792248, j), *const q = Corner(0x00792248, (j + 1) % m), *const r = Corner(0x00792248, m + j);
             const float along[3] = {(float)(X87Reg(q[0]) - p[0]), (float)(X87Reg(q[1]) - p[1]), (float)(X87Reg(q[2]) - p[2])};

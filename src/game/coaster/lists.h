@@ -27,3 +27,9 @@ u8 *__cdecl CoasterList_Append(u8 *list);
 // 0x792410 take the sizes' words +6, +8, +0xc, +4; the counts 0x79c600, 0x7925c4, 0x7925d8, 0x7923e8, 0x7925c8 0; the bounds +-1e6.
 void __cdecl CoasterMesh_Finish(u32 keep);
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(u32, gLists_79c600, 0x0079c600, 0x4);
+GAME_DATA(u8 *, gLists_79c604, 0x0079c604, 0x4);

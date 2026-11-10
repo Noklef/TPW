@@ -286,3 +286,10 @@ void __cdecl CoasterLink_AddFixedPieces(u8 *link, u32 unused1, u32 unused2, floa
 // loaded, the original answers the caller's ECX (sic; its caller ignores it): 0 here.
 u32 __cdecl CoasterLink_Create(u32 typeId, u32 ride, u32 height, u32 a3, u32 loaded, u32 a5);
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(u32, gRegistry_790fd8, 0x00790fd8, 0x4);
+GAME_DATA(u32, gRegistry_792214, 0x00792214, 0x4);
+GAME_DATA(u32, gRegistry_79221c, 0x0079221c, 0x4);

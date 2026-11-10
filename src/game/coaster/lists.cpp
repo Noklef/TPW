@@ -5,6 +5,8 @@
 
 #include "../math/x87.h"
 #include "../model/holder.h"
+#include "coastersupdate.h"
+#include "coastersload.h"
 
 namespace {
 
@@ -18,8 +20,8 @@ template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((ui
 extern "C" {
 
 u8 *__cdecl CoasterList_Append(u8 *list) {
-    u8 *mesh = at<u8 *>(at<u8 *>(at<u8 *>(global<u8 *>(0x00792218), 0x38), 0x24), 4);
-    u8 *item = global<u8 *>(0x0079c604);
+    u8 *mesh = at<u8 *>(at<u8 *>(at<u8 *>(gCoastersupdate_792218, 0x38), 0x24), 4);
+    u8 *item = gLists_79c604;
     at<u32>(item, 8) = 0;
     if (!at<u8 *>(list, 8)) at<u8 *>(list, 8) = item;
     if (at<u8 *>(list, 0xc)) at<u8 *>(at<u8 *>(list, 0xc), 8) = item;
@@ -34,12 +36,12 @@ u8 *__cdecl CoasterList_Append(u8 *list) {
         ++global<u32>(0x007925c8);
     }
     ++at<u32>(list, 4);
-    global<u8 *>(0x0079c604) += 0x10;
+    gLists_79c604 += 0x10;
     return item;
 }
 
 void __cdecl CoasterMesh_Finish(u32 keep) {
-    const auto coaster = []() { return global<u8 *>(0x00792218); };
+    const auto coaster = []() { return gCoastersupdate_792218; };
     const auto copy3 = [](u8 *to, u32 from) {
         for (u32 k = 0; k < 0xc; k += 4)
             at<u32>(to, k) = global<u32>(from + k);
@@ -84,11 +86,11 @@ void __cdecl CoasterMesh_Finish(u32 keep) {
             first += at<u32>(list, 4);
         }
         u8 *const built = at<u8 *>(at<u8 *>(at<u8 *>(coaster(), 0x38), 0x24), 4);
-        at<u16>(built, 0x38) = (u16)((s32)(global<u32>(0x0079c600) + 3) >> 2);
+        at<u16>(built, 0x38) = (u16)((s32)(gLists_79c600 + 3) >> 2);
         u8 *const first_part = at<u8 *>(built, 0x78);
         at<u16>(built, 0x3a) = (u16)((s32)(global<u32>(0x007925c4) + 3) >> 2);
         at<u16>(built, 0x3e) = global<u16>(0x007923e8);
-        at<u16>(first_part, 0x58) = global<u16>(0x0079c600);
+        at<u16>(first_part, 0x58) = reinterpret_cast<u16 &>(gLists_79c600);
         at<u16>(first_part, 0x5c) = global<u16>(0x007923e8);
         at<u16>(first_part, 0x5e) = global<u16>(0x007925c4);
         Animator_Wake(at<u8 *>(coaster(), 0x38));
@@ -102,10 +104,10 @@ void __cdecl CoasterMesh_Finish(u32 keep) {
         at<u32>(list, 0x14) = 10000;
         at<u32>(list, 0x18) = 0;
     }
-    global<u32>(0x0079c604) = global<u32>(0x00792408);
+    reinterpret_cast<u32 &>(gLists_79c604) = global<u32>(0x00792408);
     double whole;
-    const double fraction = std::modf((double)at<float>(global<u8 *>(0x00790fe4), 0x38), &whole);   // CRT modf (0x67b280)
-    at<float>(global<u8 *>(0x00790fe4), 0x38) = (float)fraction;
+    const double fraction = std::modf((double)at<float>(gCoastersload_790fe4, 0x38), &whole);   // CRT modf (0x67b280)
+    at<float>(gCoastersload_790fe4, 0x38) = (float)fraction;
     if (keep)
         return;
     u8 *const old = at<u8 *>(coaster(), 0x38);
@@ -120,7 +122,7 @@ void __cdecl CoasterMesh_Finish(u32 keep) {
     global<u32>(0x007925d4) = at<u16>(sizes, 8);
     global<u32>(0x007925cc) = at<u16>(sizes, 0xc);
     global<u32>(0x00792410) = at<u16>(sizes, 4);
-    global<u32>(0x0079c600) = 0;
+    gLists_79c600 = 0;
     global<u32>(0x007925c4) = 0;
     global<u32>(0x007925d8) = 0;
     global<u32>(0x007923e8) = 0;

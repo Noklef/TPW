@@ -1,6 +1,7 @@
 #include "startcars.h"
 
 #include <cstdint>
+#include "coastersload.h"
 
 namespace {
 
@@ -20,8 +21,8 @@ const u8 *partObject(u32 index, s32 part) {
 void StartCars_SetCalls(const AddrCall *table, u32 count) { g_calls.Set(table, count); }
 
 extern "C" void __cdecl Coaster_AddStartCars(u32 keepFrontEnd) {
-    at<u32>(global<u8 *>(0x00790fec), 0x3c) |= 1;
-    u8 *const coaster = global<u8 *>(0x00790fec);
+    at<u32>(gCoastersload_790fec, 0x3c) |= 1;
+    u8 *const coaster = gCoastersload_790fec;
     const u8 *const type = at<const u8 *>(coaster, 4);
     const u32 cars = *type & 0x20 ? 1 : 2;
     u32 position[3];   // (a part not found leaves it as it was: at first what the stack holds, sic)
@@ -51,10 +52,10 @@ extern "C" void __cdecl Coaster_AddStartCars(u32 keepFrontEnd) {
         const u32 flags = !i && (*type & 0x20) ? 0x144 : 4;
         g_calls.Cd(0x00434060, link, at<u32>(link, 0x1c), at<u32>(link, 0x24), at<u32>(link, 0x20), flags, 0u, 0u, 0u, 0u);   // CoasterLink_AddCar
     }
-    at<u32>(global<u8 *>(0x00790fec), 0) |= 0x1001;
+    at<u32>(gCoastersload_790fec, 0) |= 0x1001;
     if (!global<u32>(0x00785a2c))
         g_calls.Cd(0x00442880, 0x10u);   // CoasterEdit_SetTools
     if (!keepFrontEnd)
         g_calls.Cd(0x00498780);   // FrontEnd_EnsureMode
-    g_calls.Cd(0x00435730, global<u32>(0x00790fec), 2u);   // Coaster_SetState
+    g_calls.Cd(0x00435730, reinterpret_cast<u32 &>(gCoastersload_790fec), 2u);   // Coaster_SetState
 }

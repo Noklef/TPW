@@ -13,6 +13,9 @@
 #include "placecheck.h"
 #include "registry.h"
 #include "train.h"
+#include "placecar.h"
+#include "edittools.h"
+#include "coastersload.h"
 
 namespace {
 
@@ -27,9 +30,9 @@ const EditUpdateEnv *g_env = &kPortEnv;
 const float kMinusHalfPi = -1.57079637f;  // 0x6fe1ec
 const float kTenth = 0.100000001f;        // 0x6fe1f0
 
-u32 Flags() { return g<u32>(0x0079c658); }
-u8 *Link() { return g<u8 *>(0x00790fec); }
-u8 *Car() { return g<u8 *>(0x0079c640); }
+u32 Flags() { return gPlacecar_79c658; }
+u8 *Link() { return gCoastersload_790fec; }
+u8 *Car() { return gEdittools_79c640; }
 
 // fcom's "equal" (C3): equal or unordered.
 bool same(float a, float b) { return !(a < b || a > b); }
@@ -91,13 +94,13 @@ void turn_vector(float *v, u32 from, float neg, float dy, float tdy, float headi
 // The span tool's ends for the hovered ride (0x7a1cd4).
 void select_span(u32 ride) {
     u8 *const car = ride ? g_env->findCarOnRide(ride) : nullptr;
-    u8 *first = g<u8 *>(0x0079c6dc), *second;
+    u8 *first = gEdittools_79c6dc, *second;
     if (!car) {
         second = nullptr;
     } else if (car == first) {
         if (at<u8>(at<u8 *>(first, 0x100), 4) & 2) {
             g_env->clearSelectionFlags();
-            g_env->setChanged(g<u32 *>(0x00790fec), 0);
+            g_env->setChanged(reinterpret_cast<u32 * &>(gCoastersload_790fec), 0);
             return;
         }
         const u32 flags = at<u32>(car, 8);
@@ -129,17 +132,17 @@ void select_span(u32 ride) {
         if (flags & 0x40 && !(flags & 0x80) && at<u8 *>(second, 0x64)) second = at<u8 *>(second, 0x64);
     }
     g_env->clearSelectionFlags();
-    g<u8 *>(0x0079c62c) = first;
+    gEdittools_79c62c = first;
     g_env->setFirst(second, 1);
 }
 
 // The move tool: the piece 0x79c6a4 dropped on the focus tile (x, z) of the link.
 void move_piece(u8 *link, s32 x, s32 z) {
-    u8 *piece = g<u8 *>(0x0079c6a4);
+    u8 *piece = gEdittools_79c6a4;
     if (at<s32>(at<u8 *>(piece, 0x100), 0xc) != x || at<s32>(at<u8 *>(piece, 0x100), 0x10) != z) {
         u8 *const found = g_env->findAtFocus(nullptr, nullptr, nullptr);
-        g_env->setChanged(g<u32 *>(0x00790fec), 0);
-        piece = g<u8 *>(0x0079c6a4);
+        g_env->setChanged(reinterpret_cast<u32 * &>(gCoastersload_790fec), 0);
+        piece = gEdittools_79c6a4;
         bool drop = true;
         if (found) {
             const u8 *const def = at<u8 *>(piece, 0x100);
@@ -149,15 +152,15 @@ void move_piece(u8 *link, s32 x, s32 z) {
         if (drop) {
             float outX, outZ;
             g_env->dropCar(link, piece, found, x, z, &outX, &outZ, 1, 1);
-            g_env->moveCostChange(g<u8 *>(0x0079c6a4), &g<float>(0x0079c698), &g<float>(0x0079c64c), &outX, &outZ, x, z);
+            g_env->moveCostChange(gEdittools_79c6a4, &gEdittools_79c698, &gEdittools_79c64c, &outX, &outZ, x, z);
             const s32 fits = g_env->canPlaceAt(x, z, nullptr, 0, 0, 0, 0);
-            if (u8 *const p = g<u8 *>(0x0079c6a4)) {
+            if (u8 *const p = gEdittools_79c6a4) {
                 if (fits)
                     at<u32>(p, 8) &= ~0x4000u;
                 else
                     at<u32>(p, 8) |= 0x4000;
             }
-            if (u8 *const next = at<u8 *>(g<u8 *>(0x0079c6a4), 0x68)) {
+            if (u8 *const next = at<u8 *>(gEdittools_79c6a4, 0x68)) {
                 if (fits)
                     at<u32>(next, 8) &= ~0x4000u;
                 else
@@ -166,7 +169,7 @@ void move_piece(u8 *link, s32 x, s32 z) {
         }
     }
     if (!g<u32>(0x00785a2c)) {
-        s32 cost = g<s32>(0x0079c69c);
+        s32 cost = reinterpret_cast<s32 &>(gEdittools_79c69c);
         if (cost < 0) cost += (s32)0xf1111112;
         Global81af4c_Add((u32)cost);
     }
@@ -188,8 +191,8 @@ void __cdecl CoasterEdit_Update() {
         copy(&h, 0x00790a38);
     u32 flags = Flags();
     if (flags & 0x3f && flags & 0x1e00) {
-        float dx = (float)((X87Reg(g<float>(0x0079c630)) - g<float>(0x00790ac8)) * g<float>(0x0079c6ec));
-        float dy = (float)((X87Reg(g<float>(0x0079c634)) - g<float>(0x00790acc)) * g<float>(0x0079c6a8));
+        float dx = (float)((X87Reg(reinterpret_cast<float &>(gCoasterEdit_79c630)) - g<float>(0x00790ac8)) * reinterpret_cast<float &>(gCoasterEdit_79c6ec));
+        float dy = (float)((X87Reg(reinterpret_cast<float &>(gCoasterEdit_79c634)) - g<float>(0x00790acc)) * reinterpret_cast<float &>(gCoasterEdit_79c6a8));
         if (flags & 0x2000) {   // (turned by the camera)
             const X87Reg s = sine(scaled(h));
             const float c = (float)sine(scaled_cos(h));
@@ -200,18 +203,18 @@ void __cdecl CoasterEdit_Update() {
         }
         flags = Flags();
         bool run = false;   // (the y value or vector)
-        if (flags & 0x1400) run = (flags & 0xa00 && !same(dx, g<float>(0x0079c668))) || !same(dy, g<float>(0x0079c618));
+        if (flags & 0x1400) run = (flags & 0xa00 && !same(dx, reinterpret_cast<float &>(gCoasterEdit_79c668))) || !same(dy, reinterpret_cast<float &>(gCoasterEdit_79c618));
         if (run) {
             if (flags & 0x400) {
-                float *const p = g<float *>(0x0079c6fc);
-                if (hold(p, X87Reg(dy) + g<float>(0x0079c6d4), 0x0079c6e4, 0x0079c66c) && !(Flags() & 0x2000))
-                    g<float>(0x0079c634) = (float)((X87Reg(*p) - g<float>(0x0079c6d4)) / g<float>(0x0079c6a8) + g<float>(0x00790acc));
-                if (float *const q = g<float *>(0x0079c6f8)) hold(q, X87Reg(dy) + g<float>(0x0079c6d0), 0x0079c6e8, 0x0079c670);
+                float *const p = reinterpret_cast<float * &>(gCoasterEdit_79c6fc);
+                if (hold(p, X87Reg(dy) + reinterpret_cast<float &>(gCoasterEdit_79c6d4), (u32)&gCoasterEdit_79c6e4, (u32)&gCoasterEdit_79c66c) && !(Flags() & 0x2000))
+                    reinterpret_cast<float &>(gCoasterEdit_79c634) = (float)((X87Reg(*p) - reinterpret_cast<float &>(gCoasterEdit_79c6d4)) / reinterpret_cast<float &>(gCoasterEdit_79c6a8) + g<float>(0x00790acc));
+                if (float *const q = reinterpret_cast<float * &>(gCoasterEdit_79c6f8)) hold(q, X87Reg(dy) + reinterpret_cast<float &>(gCoasterEdit_79c6d0), (u32)&gCoasterEdit_Update_79c6e8, (u32)&gCoasterEdit_Update_79c670);
             } else if (flags & 0x1000) {
-                float *const p = g<float *>(0x0079c6fc);
-                copy(p, 0x0079c6b0);
-                copy(p + 1, 0x0079c6b4);
-                copy(p + 2, 0x0079c6b8);
+                float *const p = reinterpret_cast<float * &>(gCoasterEdit_79c6fc);
+                copy(p, (u32)&gCoasterEdit_Update_79c6b0);
+                copy(p + 1, (u32)&gCoasterEdit_Update_79c6b4);
+                copy(p + 2, (u32)&gCoasterEdit_Update_79c6b8);
                 const double a = Vec3_AngleY(p);
                 const float heading = (float)a, neg = (float)-a;
                 turn_xz(p, sine(scaled(neg)), sine(scaled_cos(neg)));
@@ -219,35 +222,35 @@ void __cdecl CoasterEdit_Update() {
                 turn_yz(p, sine(scaled(dy)), sine(scaled(tdy)));
                 const float theading = (float)(X87Reg(heading) - kMinusHalfPi);
                 turn_xz(p, sine(scaled(heading)), sine(scaled(theading)));
-                if (float *const q = g<float *>(0x0079c6f8)) turn_vector(q, 0x0079c6c0, neg, dy, tdy, heading, theading);
+                if (float *const q = reinterpret_cast<float * &>(gCoasterEdit_79c6f8)) turn_vector(q, (u32)&gCoasterEdit_Update_79c6c0, neg, dy, tdy, heading, theading);
             }
-            store(0x0079c618, dy);
+            store((u32)&gCoasterEdit_79c618, dy);
             edited = 1;
             flags = Flags();
         }
         bool runX = false;   // (the x value or vector)
-        if (flags & 0xa00) runX = !same(dx, g<float>(0x0079c668)) || (flags & 0x1400 && !same(dy, g<float>(0x0079c618)));
+        if (flags & 0xa00) runX = !same(dx, reinterpret_cast<float &>(gCoasterEdit_79c668)) || (flags & 0x1400 && !same(dy, reinterpret_cast<float &>(gCoasterEdit_79c618)));
         if (runX) {
             if (flags & 0x200) {
-                float *const p = g<float *>(0x0079c614);
-                if (hold(p, X87Reg(dx) + g<float>(0x0079c6f0), 0x0079c61c, 0x0079c65c) && !(Flags() & 0x2000))
-                    g<float>(0x0079c630) = (float)((X87Reg(*p) - g<float>(0x0079c6f0)) / g<float>(0x0079c6ec) + g<float>(0x00790ac8));
-                if (float *const q = g<float *>(0x0079c610)) hold(q, X87Reg(dx) + g<float>(0x0079c6f4), 0x0079c620, 0x0079c654);
+                float *const p = reinterpret_cast<float * &>(gCoasterEdit_79c614);
+                if (hold(p, X87Reg(dx) + reinterpret_cast<float &>(gCoasterEdit_79c6f0), (u32)&gCoasterEdit_79c61c, (u32)&gCoasterEdit_79c65c) && !(Flags() & 0x2000))
+                    reinterpret_cast<float &>(gCoasterEdit_79c630) = (float)((X87Reg(*p) - reinterpret_cast<float &>(gCoasterEdit_79c6f0)) / reinterpret_cast<float &>(gCoasterEdit_79c6ec) + g<float>(0x00790ac8));
+                if (float *const q = reinterpret_cast<float * &>(gCoasterEdit_79c610)) hold(q, X87Reg(dx) + reinterpret_cast<float &>(gCoasterEdit_79c6f4), (u32)&gCoasterEdit_Update_79c620, (u32)&gCoasterEdit_Update_79c654);
             } else if (flags & 0x800) {
-                float *const p = g<float *>(0x0079c614);
-                copy(p, 0x0079c688);
-                copy(p + 1, 0x0079c68c);
-                copy(p + 2, 0x0079c690);
+                float *const p = reinterpret_cast<float * &>(gCoasterEdit_79c614);
+                copy(p, (u32)&gCoasterEdit_Update_79c688);
+                copy(p + 1, (u32)&gCoasterEdit_Update_79c68c);
+                copy(p + 2, (u32)&gCoasterEdit_Update_79c690);
                 const float tdx = (float)(X87Reg(dx) - kMinusHalfPi);
                 turn_xz(p, sine(scaled(dx)), sine(scaled(tdx)));
-                if (float *const q = g<float *>(0x0079c610)) {
-                    copy(q, 0x0079c678);
-                    copy(q + 1, 0x0079c67c);
-                    copy(q + 2, 0x0079c680);
+                if (float *const q = reinterpret_cast<float * &>(gCoasterEdit_79c610)) {
+                    copy(q, (u32)&gCoasterEdit_Update_79c678);
+                    copy(q + 1, (u32)&gCoasterEdit_Update_79c67c);
+                    copy(q + 2, (u32)&gCoasterEdit_Update_79c680);
                     turn_xz(q, sine(scaled(dx)), sine(scaled(tdx)));
                 }
             }
-            store(0x0079c668, dx);
+            store((u32)&gCoasterEdit_79c668, dx);
             edited = 1;
             flags = Flags();
         }
@@ -256,30 +259,30 @@ void __cdecl CoasterEdit_Update() {
         const s32 x = (s32)(long long)(X87Reg(g<float>(0x007a1c70)) * kTenth).v;  // (__ftol)
         const s32 z = (s32)(long long)(X87Reg(g<float>(0x007a1c78)) * kTenth).v;
         flags = Flags();
-        g<s32>(0x0079c650) = x;
-        g<s32>(0x0079c648) = z;
+        gCoasterEdit_Update_79c650 = x;
+        gCoasterEdit_Update_79c648 = z;
         if (flags & 0x180) {
             const u32 ride = g<u32>(0x007a1cd4);
             u8 *const link = Link();
-            if (flags & 0x80 && ride != g<u32>(0x0079c6ac))
+            if (flags & 0x80 && ride != gCoasterEdit_Update_79c6ac)
                 select_span(ride);
             else if (flags & 0x100)
                 move_piece(link, x, z);
         }
-        g<u32>(0x0079c6ac) = g<u32>(0x007a1cd4);
+        gCoasterEdit_Update_79c6ac = g<u32>(0x007a1cd4);
     }
     if (edited && Car()) g_env->carEdited(Flags(), Car(), Link(), 0, 0);
-    if (g<u8>(0x0079c658) & 0x3f) {
+    if (reinterpret_cast<u8 &>(gPlacecar_79c658) & 0x3f) {
         u8 *const car = Car();
         if (car && !(at<u8>(at<u8 *>(car, 0x100), 4) & 2) && !g<u32>(0x00785a2c)) {
-            const s32 old = (s32)(long long)(double)g<float>(0x0079c698);  // (__ftol)
+            const s32 old = (s32)(long long)(double)gEdittools_79c698;  // (__ftol)
             const double cost = g_env->travelCost(Link(), 0, Car(), nullptr, nullptr, nullptr, nullptr);
             s32 change = Float_RoundUp((float)cost) - old;
             if (change < 0) change += (s32)0xf1111112;
             Global81af4c_Add((u32)change);
         }
     }
-    if (g<u8>(0x0079c624) & 1) g_env->setChanged(g<u32 *>(0x00790fec), 0);
+    if (reinterpret_cast<u8 &>(gEdittools_79c624) & 1) g_env->setChanged(reinterpret_cast<u32 * &>(gCoastersload_790fec), 0);
 }
 
 }  // extern "C"

@@ -9,6 +9,7 @@
 #include "cursor.h"
 #include "helpers.h"
 #include "../math/sintable.h"
+#include "coastersupdate.h"
 
 namespace {
 
@@ -184,7 +185,7 @@ void __cdecl TrackNode_Handles(const u8 *rules, const float *way, u8 *node, floa
 }
 
 void __cdecl TrackPiece_NodeHandles(const u8 *piece, const u8 *source) {
-    const u8 *const rules = Ptr(*reinterpret_cast<u8 *const *>(0x00792218), 4);
+    const u8 *const rules = Ptr(*reinterpret_cast<u8 *const *>(&gCoastersupdate_792218), 4);
     const u8 *const info = Ptr(Ptr(piece, 0x100), 0x18);
     u8 *first = Ptr(Ptr(piece, 0x90), 4), *second = Ptr(Ptr(piece, 0x90), 8);
     for (u32 i = 0; i < at<u32>(Ptr(piece, 0x90), 0); ++i, first += 0x58, second += 0x58) {

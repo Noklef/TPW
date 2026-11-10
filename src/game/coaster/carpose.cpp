@@ -13,6 +13,8 @@
 #include "orient.h"
 #include "train.h"
 #include "../math/sintable.h"
+#include "coastersupdate.h"
+#include "coastersload.h"
 
 namespace {
 
@@ -125,23 +127,23 @@ void PoseOffNode(u8 *piece, const u8 *in, u8 *out) {
 void CoasterPose_SetEnv(const CoasterPoseEnv *env) { g_env = env ? env : &kPorts; }
 
 extern "C" void __cdecl Coaster_PoseCars() {
-    const u8 *const rules = at<const u8 *>(global<u8 *>(0x00792218), 4);
-    for (u8 *group = at<u8 *>(global<u8 *>(0x00790fe4), 0x10); group; group = at<u8 *>(group, 0x28))
+    const u8 *const rules = at<const u8 *>(gCoastersupdate_792218, 4);
+    for (u8 *group = at<u8 *>(gCoastersload_790fe4, 0x10); group; group = at<u8 *>(group, 0x28))
         for (u32 k = 0; k < at<u32>(group, 0x30); k++)
             PoseGroupCar(at<u8 *>(group, 0x34 + k * 4));
-    for (u8 *piece = at<u8 *>(global<u8 *>(0x00790fe4), 0x18); piece; piece = at<u8 *>(piece, 0x64))
-        g_env->handles(piece, rules, global<u8 *>(0x00790fe4));
+    for (u8 *piece = at<u8 *>(gCoastersload_790fe4, 0x18); piece; piece = at<u8 *>(piece, 0x64))
+        g_env->handles(piece, rules, gCoastersload_790fe4);
 
     const bool speeds = at<u32>(rules, 0) & 0x10;
     const float minimum = at<float>(rules, 0x48);
     float speed = 0.0f;
     const u8 *animator = nullptr;
-    for (u8 *piece = at<u8 *>(global<u8 *>(0x00790fe4), 0x18); piece; piece = at<u8 *>(piece, 0x64)) {
+    for (u8 *piece = at<u8 *>(gCoastersload_790fe4, 0x18); piece; piece = at<u8 *>(piece, 0x64)) {
         const u8 *const next = at<const u8 *>(piece, 0x64);
         u32 direction[3];
         CopyWords(direction, piece + 0x34);
         TrackOrientation orientation;
-        TrackOrientation_Init(global<u32>(0x00790fe4), reinterpret_cast<const Vec3 *>(direction), at<u32>(piece, 0x6c), &orientation, 1, nullptr);
+        TrackOrientation_Init(reinterpret_cast<u32 &>(gCoastersload_790fe4), reinterpret_cast<const Vec3 *>(direction), at<u32>(piece, 0x6c), &orientation, 1, nullptr);
         at<float>(piece, 0xd4) = orientation.yaw;
         if (!(at<u8>(piece, 8) & 1))
             at<float>(piece, 0xe0) = orientation.yaw;
@@ -150,7 +152,7 @@ extern "C" void __cdecl Coaster_PoseCars() {
         if (!(at<u8>(piece, 8) & 4))
             at<float>(piece, 0xd8) = 0.0f;
         if (speeds && !(at<u8>(piece, 8) & 4) && next) {
-            at<float>(piece, 0xd8) = (float)CoasterCar_SwingRate(global<const u8 *>(0x00792218), piece, speed);
+            at<float>(piece, 0xd8) = (float)CoasterCar_SwingRate(gCoastersupdate_792218, piece, speed);
             speed = (float)Coaster_SpeedAfterDrop(rules, speed, minimum, at<float>(piece, 0x50), at<float>(next, 0x50));
         }
 
@@ -188,6 +190,6 @@ extern "C" void __cdecl Coaster_PoseCars() {
         }
     }
 
-    for (u8 *piece = at<u8 *>(global<u8 *>(0x00790fe4), 0x18); piece; piece = at<u8 *>(piece, 0x64))
+    for (u8 *piece = at<u8 *>(gCoastersload_790fe4, 0x18); piece; piece = at<u8 *>(piece, 0x64))
         g_env->nodeHandles(piece, On(piece) ? global<const u8 *>(0x007a4610 + at<u32>(piece, 0x70) * 4) : nullptr);
 }

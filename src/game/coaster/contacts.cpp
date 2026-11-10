@@ -82,16 +82,16 @@ void __cdecl Contacts_TestPair(u8 *owner1, u8 *owner2, u8 *nodeA, const u8 *next
         box[3 + k] = X87_Through(!(b[3 + k] > a[3 + k]) ? b[3 + k] : a[3 + k]);
     }
     u32 count1, count2;
-    g_calls.Cd(0x0043a060, owner1, nodeA, nextA, box, global<u32>(0x00792238), &count1);
-    g_calls.Cd(0x0043a060, owner2, nodeB, nextB, box, global<u32>(0x00792230), &count2);
-    const u8 *seg1 = global<u8 *>(0x00792238);
+    g_calls.Cd(0x0043a060, owner1, nodeA, nextA, box, gContacts_792238, &count1);
+    g_calls.Cd(0x0043a060, owner2, nodeB, nextB, box, gContacts_792230, &count2);
+    const u8 *seg1 = reinterpret_cast<u8 * &>(gContacts_792238);
     for (u32 i = 0; i < count1; ++i, seg1 += 0x1c) {
-        const u8 *seg2 = global<u8 *>(0x00792230);
+        const u8 *seg2 = reinterpret_cast<u8 * &>(gContacts_792230);
         for (u32 j = count2; j; --j, seg2 += 0x1c) {
-            global<u32>(0x0079223c) = pointsA + at<u32>(seg1, 0) * 0x38;
-            global<u32>(0x00792240) = pointsB + at<u32>(seg2, 0) * 0x38;
+            reinterpret_cast<u32 &>(gContacts_79223c) = pointsA + at<u32>(seg1, 0) * 0x38;
+            reinterpret_cast<u32 &>(gContacts_792240) = pointsB + at<u32>(seg2, 0) * 0x38;
             global<u32>(0x007922dc) = at<u32>(owner1, 4) + 0x9c;
-            global<u32>(0x00792244) = at<u32>(owner2, 4) + 0x9c;
+            reinterpret_cast<u32 &>(gContacts_792244) = at<u32>(owner2, 4) + 0x9c;
             if (overlap(&at<const float>(seg1, 4), &at<const float>(seg2, 4)) && g_calls.Cd(0x0043a2b0, seg1, seg2)) {
                 addContact(owner1, nodeA, nodeB);
                 addContact(owner2, nodeB, nodeA);
@@ -209,8 +209,8 @@ extern "C" void __cdecl Contacts_TestAll(u8 *owner) {
     __asm fnstcw saved;
     truncating = saved | 0x0c00;
     __asm fldcw truncating;
-    global<u32>(0x00792238) = g_calls.Cd(0x0045b9d0, at<u32>(owner, 0xa0) * 0x1c, 1u);   // GlobalMem_Alloc
-    global<u32>(0x00792230) = g_calls.Cd(0x0045b9d0, at<u32>(owner, 0xa0) * 0x1c, 1u);
+    gContacts_792238 = g_calls.Cd(0x0045b9d0, at<u32>(owner, 0xa0) * 0x1c, 1u);   // GlobalMem_Alloc
+    gContacts_792230 = g_calls.Cd(0x0045b9d0, at<u32>(owner, 0xa0) * 0x1c, 1u);
     global<u32>(0x007922e8) = g_calls.Cd(0x0045b9d0, at<u32>(owner, 0xa0) * 0x78, 1u);
     global<u32>(0x007922e4) = g_calls.Cd(0x0045b9d0, at<u32>(owner, 0xa0) * 0x78, 1u);
     for (u8 *node = at<u8 *>(owner, 0x54); node && at<u8 *>(node, 0x64); node = at<u8 *>(node, 0x64)) {
@@ -228,7 +228,7 @@ extern "C" void __cdecl Contacts_TestAll(u8 *owner) {
     }
     g_calls.Cd(0x0045ba00, global<u32>(0x007922e4));   // GlobalMem_Free
     g_calls.Cd(0x0045ba00, global<u32>(0x007922e8));
-    g_calls.Cd(0x0045ba00, global<u32>(0x00792230));
-    g_calls.Cd(0x0045ba00, global<u32>(0x00792238));
+    g_calls.Cd(0x0045ba00, gContacts_792230);
+    g_calls.Cd(0x0045ba00, gContacts_792238);
     __asm fldcw saved;
 }
