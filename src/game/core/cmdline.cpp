@@ -50,14 +50,14 @@ u8 *__fastcall CommandLine_Split(u8 *self) {
 u32 __cdecl CommandLine_Parse(s32 argc, char **argv) {
     for (s32 i = 1; i < argc; ++i) {
         const char *const arg = argv[i];
-        if (is_switch(arg, 0x0074874c) || is_switch(arg, 0x00748744)) return 0;   // "v", "version"
-        if (is_switch(arg, 0x00748738) || is_switch(arg, 0x00748730) || is_switch(arg, 0x00748728) || is_switch(arg, 0x0074871c))
+        if (is_switch(arg, (u32)(uintptr_t)&gCmdline_74874c) || is_switch(arg, 0x00748744)) return 0;   // "v", "version"
+        if (is_switch(arg, (u32)(uintptr_t)&gCmdline_748738) || is_switch(arg, (u32)(uintptr_t)&gCmdline_748730) || is_switch(arg, (u32)(uintptr_t)&gCmdline_748728) || is_switch(arg, (u32)(uintptr_t)&gCmdline_74871c))
             continue;   // "quickload", "nodebug", "noload", "SAVEDEBUG"
-        if (is_switch(arg, 0x00748714)) {   // "flmouse"
+        if (is_switch(arg, (u32)(uintptr_t)&gCmdline_748714)) {   // "flmouse"
             global<u32>(0x0078826c) = 1;
             continue;
         }
-        if (is_switch(arg, 0x00748708)) {   // "bwcursor"
+        if (is_switch(arg, (u32)(uintptr_t)&gCmdline_748708)) {   // "bwcursor"
             gCmdline_788270 = 1;
             continue;
         }

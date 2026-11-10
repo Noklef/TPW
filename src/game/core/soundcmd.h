@@ -114,3 +114,8 @@ u32 *__fastcall SoundCmd700bb4_Run(const u8 *command, void *, u32 *out, u8 *targ
 u32 *__fastcall SoundCmd700b9c_Run(const u8 *command, void *, u32 *out, u8 *target);
 
 }  // extern "C"
+
+#include "gamedata.h"
+
+// The vtables hold only ports: tpw.exe's loader points their slots at them (.docs/09-globals.md).
+GAME_DATA(void *[40], SoundCmd_vtables, 0x00700b2c, 0xa0);

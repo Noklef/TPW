@@ -8,6 +8,7 @@
 #include "result.h"
 #include "seqs.h"
 #include "vcall.h"
+#include "dequeiter.h"
 
 namespace {
 
@@ -215,7 +216,7 @@ void __fastcall WaitThread_Shutdown(u8 *self) {
 }
 
 void __fastcall WaitThread_Dtor(u8 *self) {
-    at<u32>(self, 0) = 0x00703c14;
+    at<u32>(self, 0) = (u32)(uintptr_t)Class703c14_vtable;
     WaitThread_Shutdown(self);
     GameHeap_Free(at<void *>(self, 0x38));
     at<u32>(self, 0x38) = 0;

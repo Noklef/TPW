@@ -91,10 +91,10 @@ extern "C" u32 __stdcall Game_WinMain(u32 instance, u32 previous, u32 commandLin
         Flags() |= 1;
         g_calls.Cd(0x0045ba20);   // GlobalMem_InitUnusedFlag
         String path;
-        String_CtorStr(&path, nullptr, reinterpret_cast<const char *>((uintptr_t)0x0074d12c));   // "save\config.tcf"
+        String_CtorStr(&path, nullptr, gGamemain_74d12c);   // "save\config.tcf"
         g_calls.Th(0x00424930, 0x0078d8d8u, &path);   // Options_LoadFile
         String_Dtor(&path);
-        global<u32>(0x007a1c5c) = global<u32(__stdcall *)(u32)>(0x006fd350)(0x0074d11c);   // RegisterWindowMessageA ("MSWHEEL_ROLLMSG")
+        global<u32>(0x007a1c5c) = global<u32(__stdcall *)(u32)>(0x006fd350)((u32)(uintptr_t)&gGamemain_74d11c);   // RegisterWindowMessageA ("MSWHEEL_ROLLMSG")
 
         if (!(reinterpret_cast<u8 &>(gWindowproc_7a1a14) & kStopped)) {
             const auto peek = global<u32(__stdcall *)(u32 *, u32, u32, u32, u32)>(0x006fd354);

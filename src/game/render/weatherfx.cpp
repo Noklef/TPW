@@ -21,6 +21,7 @@
 #include "../gfx/texcache.h"
 #include "meshlist.h"
 #include "../world/camera.h"
+#include "../core/vdtor.h"
 
 namespace {
 
@@ -586,7 +587,7 @@ extern "C" void __cdecl WeatherFx_ReloadEffects() {
     u32 handle[2];
     Handle *const h = reinterpret_cast<Handle *>(handle);
     g_reload->ctor(h);
-    handle[0] = 0x006fd9e8;
+    handle[0] = ((u32)(uintptr_t)ListDtor6fd9e4_vtable + 0x4);
     if (*reinterpret_cast<u8 **>((uintptr_t)0x008bcbac)) {
         const char *name = g_reload->locate(TextAt((u32)&gText_WeatherFx_765218), 1, nullptr);
         g_reload->load(*reinterpret_cast<u8 **>((uintptr_t)0x008bcbac), nullptr, 2, name);

@@ -11,6 +11,7 @@
 #include "soundobject.h"
 #include "soundworker.h"
 #include "vcall.h"
+#include "soundmanager.h"
 
 namespace {
 
@@ -79,9 +80,9 @@ u8 *__cdecl SoundHandshake_Instance() {
 }
 
 void __fastcall SoundEngine_Dtor(u8 *engine) {
-    at<u32>(engine, 0) = 0x0070a2a0;
+    at<u32>(engine, 0) = (u32)(uintptr_t)Class70a2a0_vtable;
     SoundHandshake_Wait(SoundHandshake_Instance());
-    at<u32>(engine, 0) = 0x0070a588;
+    at<u32>(engine, 0) = (u32)(uintptr_t)SoundWorkerHost_vtable;
     if (u8 *const inner = at<u8 *>(engine, 0x24)) vcall<void>(inner, 0);
     if (u8 *const inner = at<u8 *>(engine, 0x20)) vcall<void>(inner, 0, 1u);
 }

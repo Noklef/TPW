@@ -21,7 +21,7 @@ u32 *__cdecl Class7037c0_Create(u32 *result, u8 **object) {
     if (block) {
         Class703770_Ctor(block);
         at<u32>(block, 8) = 0;
-        at<u32>(block, 0) = 0x007037c0;
+        at<u32>(block, 0) = (u32)(uintptr_t)Class7037c0_vtable;
     }
     if (!block) {
         *result = 0xcffe0100;
@@ -42,7 +42,7 @@ u32 *__cdecl Class703750_Create(u32 *result, u8 **object) {
         Class703770_Ctor(block);
         at<u32>(block, 8) = 0;
         at<u32>(block, 0xc) = 0;
-        at<u32>(block, 0) = 0x00703750;
+        at<u32>(block, 0) = (u32)(uintptr_t)Class703750_vtable;
     }
     if (!block) {
         *result = 0xcffe0100;

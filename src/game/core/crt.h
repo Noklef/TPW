@@ -417,6 +417,7 @@ GAME_DATA(char[2], CRT_decimal_point, 0x0077e7e0, 0x2);
 GAME_DATA(u16 *, CRT_pctype, 0x0077ea90, 0x4);
 GAME_DATA(u16 *, CRT_pwctype, 0x0077ea94, 0x4);
 GAME_DATA(u16[257], CRT_ctype, 0x0077ea98, 0x202);
+GAME_DATA(char[0x4], gCrt_781514, 0x00781514, 0x4);
 GAME_DATA(u32, CRT_cflush, 0x00fb1350, 0x4);
 GAME_DATA(u32, CRT_old_except_filter, 0x00fb1454, 0x4);
 GAME_DATA(u32, CRT_newmode, 0x00fb1548, 0x4);
@@ -428,3 +429,6 @@ GAME_DATA(s32, CRT_setlc_active, 0x00fb3ca4, 0x4);
 GAME_DATA(u32, CRT_unguarded_readlc_active, 0x00fb3ca8, 0x4);
 GAME_DATA(u32, CRT_onexitend, 0x00fb3cb0, 0x4);
 GAME_DATA(u32, CRT_onexitbegin, 0x00fb3cb4, 0x4);
+
+// The vtables hold only ports: tpw.exe's loader points their slots at them (.docs/09-globals.md).
+GAME_DATA(void *[2], CRT_exception_vtable, 0x007089c4, 0x8);

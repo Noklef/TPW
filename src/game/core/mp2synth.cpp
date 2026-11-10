@@ -5,6 +5,7 @@
 #include <emmintrin.h>
 
 #include "../math/x87.h"
+#include "globals.h"
 
 namespace {
 
@@ -32,7 +33,7 @@ template <typename T> void Put(u32 address, T v) { std::memcpy(reinterpret_cast<
 u32 Addr(const void *p) { return static_cast<u32>(reinterpret_cast<uintptr_t>(p)); }
 
 constexpr u32 kWindow = 0x70bd48;   // float[]: the synthesis window
-constexpr u32 kHalfRate = 0xfb2708;  // (a dword: nonzero, half the samples)
+const u32 kHalfRate =(u32)(uintptr_t)&gGlobals_fb2708;  // (a dword: nonzero, half the samples)
 
 // A window tap times a buffer value (fld window; fmul buffer).
 X87Reg Tap(u32 window, u32 buffer) { return X87Reg(Get<float>(window)) * Get<float>(buffer); }

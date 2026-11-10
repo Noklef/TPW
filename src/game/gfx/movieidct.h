@@ -10,6 +10,12 @@
 
 #include "../../../re/types.h"
 
+// The constants: the Q31 multiplier for IMUL, three float multipliers and the rounding constant.
+struct IdctConstants {
+    s32 k;
+    float c1, c2, c3, round;
+};
+
 extern "C" {
 
 // 0x6780c1 (block in ESI; name unconfirmed): block's 8 dwords transformed down the column at [0xfbc004] (dwords 0x24 bytes
@@ -37,3 +43,13 @@ void __cdecl MovieIdct_RowShift(const s32 *block, s32 *out);
 // each. It keeps every register but EAX (left as the last row's value 6: no caller reads it).
 void __cdecl DctIdct_Block(s32 *out, s32 pitch);
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(IdctConstants, gMovieidct_fbb598, 0x00fbb598, 0x14);
+GAME_DATA(u32, gMovieidct_fbc000, 0x00fbc000, 0x4);
+GAME_DATA(s32 *, gMovieidct_fbc004, 0x00fbc004, 0x4);
+GAME_DATA(u32[4], gMovieidct_fbc008, 0x00fbc008, 0x10);
+GAME_DATA(IdctConstants, gMovieidct_fbc018, 0x00fbc018, 0x14);
+GAME_DATA(s32[0x48], gMovieidct_fbc02c, 0x00fbc02c, 0x120);

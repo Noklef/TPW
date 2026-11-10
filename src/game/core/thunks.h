@@ -498,3 +498,12 @@ s32 __cdecl AtExit_618cc0();
 // 0x5c8b70 (cdecl; proc, arg): CRT_beginthread(proc, 0, arg).
 u32 __cdecl Thread_Begin(void *proc, void *arg);
 }  // extern "C"
+
+#include "gamedata.h"
+
+// The vtables hold only ports: tpw.exe's loader points their slots at them (.docs/09-globals.md).
+GAME_DATA(void *[16], Class6ff598_vtable, 0x006ff598, 0x40);
+GAME_DATA(void *[8], Class70a188_vtable, 0x0070a188, 0x20);
+GAME_DATA(void *[8], Class70a1a8_vtable, 0x0070a1a8, 0x20);
+GAME_DATA(void *[8], Class70a1c8_vtable, 0x0070a1c8, 0x20);
+GAME_DATA(void *[8], Class70a1e8_vtable, 0x0070a1e8, 0x20);

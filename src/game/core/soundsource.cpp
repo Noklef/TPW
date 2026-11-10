@@ -110,7 +110,7 @@ u32 *__fastcall SoundSource711b08_SetVector(u8 *source, void *, u32 *out, u32, c
 }
 
 void __fastcall SoundSourceBase_Dtor(u8 *source) {
-    at<u32>(source, 0) = 0x007119b8;
+    at<u32>(source, 0) = (u32)(uintptr_t)SoundSourceBase_vtable;
     SoundHelper_Free();
 }
 
@@ -144,7 +144,7 @@ u8 *__fastcall SoundSource711b08_Ctor(u8 *source, void *, u32 arg) {
     for (u32 off = 0x18; off <= 0x2c; off += 4) at<u32>(source, off) = 0;
     at<u32>(source, 0x34) = arg;
     CritSec_Ctor(source + 0x38);
-    at<u32>(source, 0) = 0x00711b08;
+    at<u32>(source, 0) = (u32)(uintptr_t)SoundSource711b08_vtable;
     at<u8 *>(reinterpret_cast<void *>((uintptr_t)0x00fb2724), 0) = source;
     return source;
 }
@@ -152,9 +152,9 @@ u8 *__fastcall SoundSource711b08_Ctor(u8 *source, void *, u32 arg) {
 u8 *__fastcall SoundSource711920_Ctor(u8 *source) {
     Init_6d6c50(source);
     at<u32>(source, 0x18) = at<u32>(source, 0x1c) = at<u32>(source, 0x20) = 0;
-    at<u32>(source, 0) = 0x00711920;
+    at<u32>(source, 0) = (u32)(uintptr_t)SoundSource711920_vtable;
     u32 *const helper = static_cast<u32 *>(GameHeap_Alloc(4));
-    if (helper) *helper = 0x00711910;
+    if (helper) *helper = (u32)(uintptr_t)Class711910_vtable;
     SoundHelper_Set(helper);
     return source;
 }
@@ -168,10 +168,10 @@ void __cdecl SoundHelper_Free() {
 u32 __fastcall SoundHelperFn70a27c_Run(const u8 *) { return vcall<u32>(at<u8 *>(reinterpret_cast<void *>((uintptr_t)kHelper), 0), 0); }
 
 void __fastcall SoundSource711920_Dtor(u8 *source) {
-    at<u32>(source, 0) = 0x00711920;
+    at<u32>(source, 0) = (u32)(uintptr_t)SoundSource711920_vtable;
     if (void *const block = at<void *>(source, 0x20)) GameHeap_Free(block);
     if (void *const block = at<void *>(source, 0x1c)) GameHeap_Free(block);
-    at<u32>(source, 0) = 0x007119b8;
+    at<u32>(source, 0) = (u32)(uintptr_t)SoundSourceBase_vtable;
     SoundHelper_Free();
 }
 

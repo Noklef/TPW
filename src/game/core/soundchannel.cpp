@@ -28,6 +28,8 @@
 #include "string.h"
 #include "thunks.h"
 #include "vcall.h"
+#include "soundobject.h"
+#include "soundworker.h"
 
 namespace {
 
@@ -81,7 +83,7 @@ u8 *__fastcall SoundChannel_DeletingDtor(u8 *channel, void *, u32 flags) {
 }
 
 void __fastcall SoundChannel_Dtor(u8 *channel) {
-    at<u32>(channel, 0) = 0x0070a5d8;
+    at<u32>(channel, 0) = (u32)(uintptr_t)SoundChannel_vtable;
     String_Dtor(reinterpret_cast<String *>(channel + 0x30));
     SoundSample70a548_Dtor(channel);
 }
@@ -119,7 +121,7 @@ u8 *__fastcall SoundChannel_Ctor(u8 *channel) {
     for (u32 i = 0x48; i <= 0x54; i += 4) at<u32>(channel, i) = 0x3f800000;   // (1.0f)
     at<u32>(channel, 0x60) = 0;
     at<u8>(channel, 0x64) = 0;
-    at<u32>(channel, 0) = 0x0070a5d8;
+    at<u32>(channel, 0) = (u32)(uintptr_t)SoundChannel_vtable;
     for (u32 i = 0x44; i <= 0x47; ++i) at<u8>(channel, i) = 1;
     at<u32>(channel, 0x5c) = 4;
     at<u8 *>(channel, 0x58) = channel + 0x48;
@@ -175,7 +177,7 @@ u32 *__fastcall SoundChannel_SetFlag2(u8 *channel, void *, u32 *out, u32 on) {
     if (!on != !(flags & 2)) {
         at<u32>(channel, 0x28) = on ? flags | 2 : flags & ~2u;
         u32 functor[2];   // (the second dword left unset, sic)
-        functor[0] = 0x0070a5b0;
+        functor[0] = ((u32)(uintptr_t)SoundWorkerHost_vtable + 0x28);
         vcall<void>(channel, 0x10, &on, functor);
         SoundCategory_ReleaseBankResources();
     }
@@ -728,7 +730,7 @@ u32 *__fastcall SoundChannel_RemoveOccluder(u8 *channel, void *, u32 *out, u8 **
 s32 __fastcall SoundChannel_Release(u8 *channel) {
     u32 out;          // (unset, as the original's)
     u32 functor[2];   // (the second dword left unset, sic)
-    functor[0] = 0x0070a5b0;
+    functor[0] = ((u32)(uintptr_t)SoundWorkerHost_vtable + 0x28);
     vcall<void>(channel, 0x10, &out, functor);
     return Class703770_Release(channel);
 }
@@ -746,7 +748,7 @@ u32 *__fastcall SoundChannel_SetRecordValue40Flagged(u8 *channel, void *, u32 *o
 
 u32 *__fastcall SoundChannel_SetRateModifier(u8 *channel, void *, u32 *out, u32 index, u32 modifier) {
     at<u32>(channel, 0x48 + 4 * (index & 0xff)) = X87_FloatThrough(modifier);   // (fld; fstp)
-    u32 functor[2] = {0x0070a610, modifier};   // (the index's own stack slot, then the modifier's)
+    u32 functor[2] = {((u32)(uintptr_t)SoundChannel_vtable + 0x38), modifier};   // (the index's own stack slot, then the modifier's)
     SoundChannel_Apply(channel, nullptr, out, reinterpret_cast<u8 *>(functor));
     return out;
 }
@@ -764,7 +766,7 @@ void __fastcall SoundChannel_SetHidden(u8 *channel, void *, u32 hide) {
 }
 
 void __fastcall SoundChannelEax_Dtor(u8 *channel) {
-    at<u32>(channel, 0) = 0x0070a630;
+    at<u32>(channel, 0) = (u32)(uintptr_t)Class70a630_vtable;
     if (void *const records = at<void *>(channel, 0x68)) {
         GameHeap_Free(records);
         at<void *>(channel, 0x68) = nullptr;

@@ -132,3 +132,9 @@ u8 __fastcall WScanner_TakeRest(u8 *scanner, void *, StdWString *out, u32 *count
 // count byte neither 0 nor 0xff, gets its own copy: _Grow(len, false); then the count byte 0xff).
 s32 __fastcall WScanner_SpanInSet14(u8 *scanner);
 }
+
+#include "gamedata.h"
+
+// The vtables hold only ports: tpw.exe's loader points their slots at them (.docs/09-globals.md).
+GAME_DATA(void *[1], Class702f14_vtable, 0x00702f14, 0x4);
+GAME_DATA(void *[1], Class702f18_vtable, 0x00702f18, 0x4);

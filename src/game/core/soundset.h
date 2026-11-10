@@ -198,4 +198,14 @@ struct SoundCategories {
 GAME_DATA(SoundCategories, gSoundCategories, 0x00803a20, 0x34);
 
 // Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(char[0x14], gSoundset_762bcc, 0x00762bcc, 0x14);
+GAME_DATA(char[0x14], gSoundset_762c2c, 0x00762c2c, 0x14);
+GAME_DATA(char[0x14], gSoundset_762c40, 0x00762c40, 0x14);
+GAME_DATA(char[0xc], gSoundset_762c54, 0x00762c54, 0xc);
+GAME_DATA(char[0xc], gSoundset_762c60, 0x00762c60, 0xc);
+GAME_DATA(char[0xc], gSoundset_762c6c, 0x00762c6c, 0xc);
+GAME_DATA(char[0x8], gSoundset_762c78, 0x00762c78, 0x8);
+GAME_DATA(char[0xc], gSoundset_762c80, 0x00762c80, 0xc);
+GAME_DATA(char[0xc], gSoundset_762c8c, 0x00762c8c, 0xc);
+GAME_DATA(char[0xc], gSoundset_762e68, 0x00762e68, 0xc);
 GAME_DATA(u16, gSoundset_803ad2, 0x00803ad2, 0x2);

@@ -8,6 +8,7 @@
 #include "../core/seqs.h"
 #include "../core/vcall.h"
 #include "handles.h"
+#include "../core/vdtor.h"
 
 namespace {
 
@@ -28,7 +29,7 @@ s32 *GetOfKind(u8 *folder, s32 *result, u32 key, u8 **object, u32 kind) {
 
 u8 *__fastcall ResFolder_Ctor(u8 *folder) {
     Handle_Ctor(HandleAt(folder, 4));
-    at<u32>(folder, 4) = 0x6fd9e8;
+    at<u32>(folder, 4) = ((u32)(uintptr_t)ListDtor6fd9e4_vtable + 0x4);
     at<u32>(folder, 0xc) = 0;
     at<u32>(folder, 0) = 0;
     return folder;
@@ -90,7 +91,7 @@ s32 *__fastcall ResIndex_Init(u8 *index, void *, s32 *result, u32 path, u8 *reco
 u8 *__fastcall ResIndex_Ctor(u8 *index) {
     Class70a078_Ctor(index);
     Handle_Ctor(HandleAt(index, 0x10));
-    at<u32>(index, 0x10) = 0x6fd9e8;
+    at<u32>(index, 0x10) = ((u32)(uintptr_t)ListDtor6fd9e4_vtable + 0x4);
     at<u32>(index, 0) = (u32)(uintptr_t)ResIndex_vtable;
     at<u32>(index, 8) = 0;
     at<u32>(index, 0xc) = 0;
@@ -176,7 +177,7 @@ s32 *__fastcall ResFolder_LoadIndex(u8 *folder, void *, s32 *result, u32 path) {
     }
     Handle handle;
     Handle_Ctor(&handle);
-    handle.vtable = reinterpret_cast<void *const *>((uintptr_t)0x6fd9e8);
+    handle.vtable = reinterpret_cast<void *const *>((uintptr_t)((u32)(uintptr_t)ListDtor6fd9e4_vtable + 0x4));
     s32 status = (s32)path;
     if (*Handle_Open28(&handle, nullptr, &status, path) < 0) {
         *result = -1;

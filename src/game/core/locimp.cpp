@@ -11,7 +11,7 @@ namespace {
 
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
 
-const u32 bad_alloc_vtable = 0x00709f1c;
+const u32 bad_alloc_vtable = (u32)(uintptr_t)BadAlloc_vtable;
 const u32 none = 0xffffffff;
 
 // A count taken, unless frozen at -1.
@@ -43,7 +43,7 @@ void set_vtable(Locimp *imp, u32 vtable) { imp->facet.vtable = reinterpret_cast<
 
 Locimp *__fastcall Locimp_Ctor(Locimp *self, void *, u32 xparse) {
     self->facet.refs = 1;
-    set_vtable(self, 0x00709b44);
+    set_vtable(self, (u32)(uintptr_t)LocaleFacet_vtable);
     self->facets = nullptr;
     self->count = 0;
     self->categories = 0;
@@ -56,12 +56,12 @@ Locimp *__fastcall Locimp_Ctor(Locimp *self, void *, u32 xparse) {
     u32 length = 0;
     while (text[length]) ++length;
     StdString_AssignChars(&self->name, nullptr, text, length);
-    set_vtable(self, 0x00709bac);
+    set_vtable(self, (u32)(uintptr_t)Class709bac_vtable);
     return self;
 }
 
 void __fastcall Locimp_Dtor(Locimp *self, void *) {
-    set_vtable(self, 0x00709bac);
+    set_vtable(self, (u32)(uintptr_t)Class709bac_vtable);
     u32 lock[2];
     IosBase_Env().lockit(lock);
     for (u32 i = self->count; i;) {
@@ -72,7 +72,7 @@ void __fastcall Locimp_Dtor(Locimp *self, void *) {
     Crt().free(self->facets);
     IosBase_Env().unlockit(lock);
     StdString_Tidy(&self->name, nullptr, 1);
-    set_vtable(self, 0x00709b44);
+    set_vtable(self, (u32)(uintptr_t)LocaleFacet_vtable);
 }
 
 void __cdecl Locimp_TidyAtExit() {
@@ -160,7 +160,7 @@ void __fastcall Locimp_Addfac(Locimp *self, void *, LocaleFacet *facet, u32 id) 
 
 Locimp *__fastcall Locimp_Copy(Locimp *self, void *, const Locimp *from) {
     self->facet.refs = 1;
-    self->facet.vtable = reinterpret_cast<void(__fastcall *const *)(LocaleFacet *, void *, u32)>((uintptr_t)0x00709b44);
+    self->facet.vtable = reinterpret_cast<void(__fastcall *const *)(LocaleFacet *, void *, u32)>((uintptr_t)(u32)(uintptr_t)LocaleFacet_vtable);
     self->facets = nullptr;
     self->count = from->count;
     self->categories = from->categories;
@@ -170,7 +170,7 @@ Locimp *__fastcall Locimp_Copy(Locimp *self, void *, const Locimp *from) {
     self->name.len = 0;
     self->name.res = 0;
     StdString_AssignSub(&self->name, nullptr, &from->name, 0, none);
-    self->facet.vtable = reinterpret_cast<void(__fastcall *const *)(LocaleFacet *, void *, u32)>((uintptr_t)0x00709bac);
+    self->facet.vtable = reinterpret_cast<void(__fastcall *const *)(LocaleFacet *, void *, u32)>((uintptr_t)(u32)(uintptr_t)Class709bac_vtable);
     u32 lock[2];
     IosBase_Env().lockit(lock);
     if (reinterpret_cast<uintptr_t>(from) == reinterpret_cast<uintptr_t>(gLocalefacet_fb1dcc)) {

@@ -9,6 +9,7 @@
 #include "gameheap.h"
 #include "initializers.h"
 #include "string.h"
+#include "soundindex.h"
 #include "../input/devicefilter.h"
 
 namespace {
@@ -56,7 +57,7 @@ u8 *__cdecl Records32_MaxWeight(u8 *records, s32 count) {
 }
 
 u8 *__fastcall Class703770_Ctor(u8 *object) {
-    at<u32>(object, 0) = 0x00703770;
+    at<u32>(object, 0) = (u32)(uintptr_t)Class703770_vtable;
     at<u32>(object, 4) = 1;
     return object;
 }

@@ -58,3 +58,8 @@ s32 __fastcall Mp2Decoder_DecodeFrame(u8 *decoder, void *, s16 *pcm);
 s32 __fastcall Mp2Decoder_Read(u8 *decoder, void *, u8 *out, s32 bytes);
 
 }  // extern "C"
+
+#include "gamedata.h"
+
+// The vtables hold only ports: tpw.exe's loader points their slots at them (.docs/09-globals.md).
+GAME_DATA(void *[6], Mp2Decoder_vtable, 0x007118e0, 0x18);

@@ -11,6 +11,7 @@
 #include "mp2pool.h"
 #include "trivial.h"
 #include "vcall.h"
+#include "globals.h"
 
 namespace {
 
@@ -23,7 +24,7 @@ template <typename T> void Put(u32 address, T v) { std::memcpy(reinterpret_cast<
 u32 Addr(const void *p) { return static_cast<u32>(reinterpret_cast<uintptr_t>(p)); }
 
 constexpr u32 kFixedPoint = 0xfb2704;  // (a dword: nonzero, the MMX decoder)
-constexpr u32 kHalfRate = 0xfb2708;    // (a dword: nonzero, half the samples)
+const u32 kHalfRate =(u32)(uintptr_t)&gGlobals_fb2708;    // (a dword: nonzero, half the samples)
 
 // A thiscall virtual call with no arguments / one argument: slot k of the object's vtable.
 u32 Call0(u32 object, u32 k) {
@@ -145,7 +146,7 @@ s32 __fastcall Mp2StreamDecoder_Open(u8 *decoder, void *, u32 stream, s32 bytes)
 }
 
 void __fastcall Mp2Decoder_Dtor(u8 *decoder, void *) {
-    *reinterpret_cast<u32 *>(decoder) = 0x007118e0;
+    *reinterpret_cast<u32 *>(decoder) = (u32)(uintptr_t)Mp2Decoder_vtable;
     if (decoder[0x243c]) Mp2Decoder_Close(decoder, nullptr);
 }
 

@@ -2,6 +2,7 @@
 #include "canvas.h"
 
 #include <cstdint>
+#include "../core/events.h"
 
 namespace {
 
@@ -13,8 +14,8 @@ const CanvasEnv kGameEnv = {
     at<SurfaceInfo *(__fastcall *)(SurfaceInfo *)>(0x005fa680),
     {at<CanvasDriver *>(0x00fa7e3c), at<CanvasDriver *>(0x00fa7e38), at<CanvasDriver *>(0x00fa7e34),
      at<CanvasDriver *>(0x00fa7e30)},
-    {at<void *const *>(0x00703650), at<void *const *>(0x00703680), at<void *const *>(0x007036b0),
-     at<void *const *>(0x007036e0)},
+    {at<void *const *>(((u32)(uintptr_t)EventList_vtable + 0x4)), at<void *const *>(((u32)(uintptr_t)EventList_vtable + 0x34)), at<void *const *>(((u32)(uintptr_t)EventList_vtable + 0x64)),
+     at<void *const *>(((u32)(uintptr_t)EventList_vtable + 0x94))},
 };
 const CanvasEnv *g_env = &kGameEnv;
 

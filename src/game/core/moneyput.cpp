@@ -44,7 +44,7 @@ void *moneypunct_ctor(u8 *facet, u32 refs, u8 international, u32 vtable) {
     u32 info[0x10];
     *reinterpret_cast<u32 *>(facet + 4) = refs;
     facet[0x28] = international;
-    *reinterpret_cast<u32 *>(facet) = 0x00709fdc;
+    *reinterpret_cast<u32 *>(facet) = (u32)(uintptr_t)MoneypunctC_vtable;
     Locinfo_Ctor(info, nullptr, gLocalefacet_C_75c74c);
     MoneypunctC_Init(facet, nullptr, info);
     Locinfo_Dtor(info);
@@ -263,9 +263,9 @@ u32 *__fastcall MoneyPunct_MakePattern(const u8 *facet, void *, u32 *out, u8 spa
     return out;
 }
 
-void *__fastcall MoneyPunctIntl_Ctor(u8 *facet, void *, u32 refs) { return moneypunct_ctor(facet, refs, 1, 0x00709f2c); }
+void *__fastcall MoneyPunctIntl_Ctor(u8 *facet, void *, u32 refs) { return moneypunct_ctor(facet, refs, 1, (u32)(uintptr_t)Class709f2c_vtable); }
 
-void *__fastcall MoneyPunctLocal_Ctor(u8 *facet, void *, u32 refs) { return moneypunct_ctor(facet, refs, 0, 0x00709f5c); }
+void *__fastcall MoneyPunctLocal_Ctor(u8 *facet, void *, u32 refs) { return moneypunct_ctor(facet, refs, 0, (u32)(uintptr_t)Class709f5c_vtable); }
 
 u32 *__fastcall MoneyPut_DoPutNumber(void *self, void *, u32 *out, u32 failed, u8 *buffer, u8 international, u8 *ios, u32 fill, double value) {
     u8 negative;

@@ -58,7 +58,7 @@ extern "C" void __fastcall MovieDisplay_Prepare(u8 *player) {
     g_env->buildTables(reinterpret_cast<const u32 *>(settingsOf(player) + 0x2c), player);
     for (s32 k = -0x200; k < 0x200; ++k) {
         const s32 clamped = k < -0x80 ? -0x80 : k > 0x7f ? 0x7f : k;
-        reinterpret_cast<u32 *>((uintptr_t)0x00fb7f30)[(k - 0x180) & 0x3ff] = static_cast<u32>(clamped + 0x80);
+        gMoviedisplay_fb7f30[(k - 0x180) & 0x3ff] = static_cast<u32>(clamped + 0x80);
     }
     at<u32>(player, 0x3c) = 1;
 }

@@ -61,3 +61,6 @@ struct WctReadHeader {
 
 // Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
 GAME_DATA(WctReadHeader,gWctImage_Header_879a38, 0x00879a38, 0x2c);
+
+// The vtables hold only ports: tpw.exe's loader points their slots at them (.docs/09-globals.md).
+GAME_DATA(void *[4], Class7011c8_vtable, 0x007011c8, 0x10);

@@ -37,7 +37,7 @@ void __fastcall ReleaseList_Dtor(ReleaseList *list) {
 
 void __fastcall ReleaseList_BaseDtor(ReleaseList *list) {
     ReleaseNode *node = list->head;
-    list->vtable = 0x00711c1c;
+    list->vtable = (u32)(uintptr_t)ReleaseList_vtable;
     list->tail = nullptr;
     list->head = nullptr;
     while (node) {
@@ -64,7 +64,7 @@ ReleaseList *__fastcall ReleaseList_Ctor(ReleaseList *list) {
     list->head = nullptr;
     list->tail = nullptr;
     list->count = 0;
-    list->vtable = 0x00711c20;
+    list->vtable = (u32)(uintptr_t)ReleaseList_vtable_711c20;
     Import<OnLock>(0x006fd144)(list->lock);   // InitializeCriticalSection
     return list;
 }

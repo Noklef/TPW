@@ -94,12 +94,12 @@ u8 *__fastcall SfBank_Ctor(u8 *self, void *, u8 *source, u8 *synth) {
     SoundResource_Ctor(self, nullptr, source);
     at<u32>(self, 0x18) = 0;
     at<u8 *>(self, 0x14) = synth;
-    at<u32>(self, 0) = 0x00711ba8;
+    at<u32>(self, 0) = (u32)(uintptr_t)SfBank_vtable;
     return self;
 }
 
 void __fastcall SfBank_Dtor(u8 *self) {
-    at<u32>(self, 0) = 0x00711ba8;
+    at<u32>(self, 0) = (u32)(uintptr_t)SfBank_vtable;
     SfBank_Unload(self);
     SoundResource_Dtor(self);
 }

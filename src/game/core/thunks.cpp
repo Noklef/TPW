@@ -145,11 +145,11 @@ u8 * __cdecl Wrap_Init_6c4fb0_6c4900() {
 }
 
 u8 * __fastcall Wrap_Fn_669fa8_492020(u8 *o) {
-    Fn_669fa8(reinterpret_cast<u8 *>(o)); at<u32>(o, 0x0) = 0x6ff598; at<u32>(o, 0x18) = 0x0; return o;
+    Fn_669fa8(reinterpret_cast<u8 *>(o)); at<u32>(o, 0x0) = (u32)(uintptr_t)Class6ff598_vtable; at<u32>(o, 0x18) = 0x0; return o;
 }
 
 u32 __fastcall Wrap_Fn_669fee_492060(u8 *o) {
-    at<u32>(o, 0x0) = 0x6ff598; return Fn_669fee(reinterpret_cast<u8 *>(o));
+    at<u32>(o, 0x0) = (u32)(uintptr_t)Class6ff598_vtable; return Fn_669fee(reinterpret_cast<u8 *>(o));
 }
 
 u32 __fastcall Wrap_Set4_4217f0_4fa460(u8 *o) {
@@ -161,35 +161,35 @@ void __fastcall Wrap_Vtbl70a078_Set_6b4a50_6b0470(u8 *o) {
 }
 
 u8 * __fastcall Wrap_Init_6b4a60_6b0710(u8 *o) {
-    Init_6b4a60(reinterpret_cast<u8 *>(o)); at<u32>(o, 0x0) = 0x70a188; return o;
+    Init_6b4a60(reinterpret_cast<u8 *>(o)); at<u32>(o, 0x0) = (u32)(uintptr_t)Class70a188_vtable; return o;
 }
 
 void __fastcall Wrap_Vtbl70a258_Set_6b4a90_6b0750(u8 *o) {
-    at<u32>(o, 0x0) = 0x70a188; Vtbl70a258_Set_6b4a90(reinterpret_cast<u8 *>(o));
+    at<u32>(o, 0x0) = (u32)(uintptr_t)Class70a188_vtable; Vtbl70a258_Set_6b4a90(reinterpret_cast<u8 *>(o));
 }
 
 u8 * __fastcall Wrap_Init_6b4a60_6b1de0(u8 *o) {
-    Init_6b4a60(reinterpret_cast<u8 *>(o)); at<u32>(o, 0x0) = 0x70a1a8; return o;
+    Init_6b4a60(reinterpret_cast<u8 *>(o)); at<u32>(o, 0x0) = (u32)(uintptr_t)Class70a1a8_vtable; return o;
 }
 
 void __fastcall Wrap_Vtbl70a258_Set_6b4a90_6b1e20(u8 *o) {
-    at<u32>(o, 0x0) = 0x70a1a8; Vtbl70a258_Set_6b4a90(reinterpret_cast<u8 *>(o));
+    at<u32>(o, 0x0) = (u32)(uintptr_t)Class70a1a8_vtable; Vtbl70a258_Set_6b4a90(reinterpret_cast<u8 *>(o));
 }
 
 u8 * __fastcall Wrap_Init_6b4a60_6b2a10(u8 *o) {
-    Init_6b4a60(reinterpret_cast<u8 *>(o)); at<u32>(o, 0x0) = 0x70a1c8; return o;
+    Init_6b4a60(reinterpret_cast<u8 *>(o)); at<u32>(o, 0x0) = (u32)(uintptr_t)Class70a1c8_vtable; return o;
 }
 
 void __fastcall Wrap_Vtbl70a258_Set_6b4a90_6b2a50(u8 *o) {
-    at<u32>(o, 0x0) = 0x70a1c8; Vtbl70a258_Set_6b4a90(reinterpret_cast<u8 *>(o));
+    at<u32>(o, 0x0) = (u32)(uintptr_t)Class70a1c8_vtable; Vtbl70a258_Set_6b4a90(reinterpret_cast<u8 *>(o));
 }
 
 u8 * __fastcall Wrap_Init_6b4a60_6b3c00(u8 *o) {
-    Init_6b4a60(reinterpret_cast<u8 *>(o)); at<u32>(o, 0x0) = 0x70a1e8; return o;
+    Init_6b4a60(reinterpret_cast<u8 *>(o)); at<u32>(o, 0x0) = (u32)(uintptr_t)Class70a1e8_vtable; return o;
 }
 
 void __fastcall Wrap_Vtbl70a258_Set_6b4a90_6b3c40(u8 *o) {
-    at<u32>(o, 0x0) = 0x70a1e8; Vtbl70a258_Set_6b4a90(reinterpret_cast<u8 *>(o));
+    at<u32>(o, 0x0) = (u32)(uintptr_t)Class70a1e8_vtable; Vtbl70a258_Set_6b4a90(reinterpret_cast<u8 *>(o));
 }
 
 u8 * __cdecl Wrap_Wrap_Init_6b4a60_6b0710_6b0140() {

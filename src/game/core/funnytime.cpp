@@ -149,9 +149,9 @@ FileTime *__fastcall FunnyTime_SpanSince(const u8 *clock, void *, FileTime *out,
 u32 __fastcall GameClock_Serialize(u8 *clock, void *, Stream *stream, u32 save, s32 version, u32) {
     if (version < 0 || version > 1)
         return 0;
-    if (!Save_Field(stream, save, clock, 8, 0x0075c7e0) || !Save_Field(stream, save, clock + 8, 8, 0x0075c7d0) ||
-        !Save_Field(stream, save, clock + 0x10, 4, 0x0075c7bc) || !Save_Field(stream, save, clock + 0x14, 4, 0x0075c7a8) ||
-        !Save_Field(stream, save, clock + 0x1c, 4, 0x0075c790))
+    if (!Save_Field(stream, save, clock, 8, (u32)(uintptr_t)&gFunnytime_75c7e0) || !Save_Field(stream, save, clock + 8, 8, (u32)(uintptr_t)&gFunnytime_75c7d0) ||
+        !Save_Field(stream, save, clock + 0x10, 4, (u32)(uintptr_t)&gFunnytime_75c7bc) || !Save_Field(stream, save, clock + 0x14, 4, (u32)(uintptr_t)&gFunnytime_75c7a8) ||
+        !Save_Field(stream, save, clock + 0x1c, 4, (u32)(uintptr_t)&gFunnytime_75c790))
         return 1;
     return 0;
 }

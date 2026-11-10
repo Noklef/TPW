@@ -10,6 +10,8 @@
 #include "stdstring.h"
 #include "vcall.h"
 #include "wfilebuf.h"
+#include "nstream.h"
+#include "wstream.h"
 
 namespace {
 
@@ -111,20 +113,20 @@ const IosBaseEnv &IosBase_Env() { return *g_env; }
 
 extern "C" {
 
-void __cdecl Std_Xlen() { throw_error(reinterpret_cast<const char *>((uintptr_t)0x00709890), 0x00709884, 0x00720468); }
+void __cdecl Std_Xlen() { throw_error(reinterpret_cast<const char *>((uintptr_t)0x00709890), (u32)(uintptr_t)Class709884_vtable, 0x00720468); }
 
-void __cdecl Std_Xran() { throw_error(reinterpret_cast<const char *>((uintptr_t)0x007098c0), 0x007098b4, 0x0071f298); }
+void __cdecl Std_Xran() { throw_error(reinterpret_cast<const char *>((uintptr_t)0x007098c0), (u32)(uintptr_t)Class7098b4_vtable, 0x0071f298); }
 
-void __cdecl Vector_Xran() { throw_error(reinterpret_cast<const char *>((uintptr_t)0x00779a68), 0x007098b4, 0x0071f298); }
+void __cdecl Vector_Xran() { throw_error(gIosbase_779a68, (u32)(uintptr_t)Class7098b4_vtable, 0x0071f298); }
 
 const char *__fastcall LogicError_What(u8 *self) {
     const char *const text = at<const char *>(self, 0x10);
     return text ? text : reinterpret_cast<const char *>((uintptr_t)0x006fe5b0);
 }
 
-u32 *__fastcall LogicError_Copy(u32 *self, void *, const u32 *from) { return copy_error(self, from, 0x007098a4); }
+u32 *__fastcall LogicError_Copy(u32 *self, void *, const u32 *from) { return copy_error(self, from, (u32)(uintptr_t)LogicError_vtable); }
 
-u32 *__fastcall OutOfRange_Copy(u32 *self, void *, const u32 *from) { return copy_error(self, from, 0x007098b4); }
+u32 *__fastcall OutOfRange_Copy(u32 *self, void *, const u32 *from) { return copy_error(self, from, (u32)(uintptr_t)Class7098b4_vtable); }
 
 void __fastcall LogicError_Raise(const u32 *self) {
     u32 local[7];
@@ -139,7 +141,7 @@ void __fastcall OutOfRange_Raise(const u32 *self) {
 }
 
 void __fastcall LogicError_Dtor(u32 *self) {
-    at<u32>(self, 0) = 0x007098a4;
+    at<u32>(self, 0) = (u32)(uintptr_t)LogicError_vtable;
     release_text(at<char *>(self, 0x10));
     at<u32>(self, 0x10) = 0;
     at<u32>(self, 0x14) = 0;
@@ -162,8 +164,8 @@ void __fastcall IosBase_Clear(u8 *self, void *, u32 state, u32 reraise) {
         g_env->cxxThrow(nullptr, nullptr);
         return;
     }
-    const u32 text = cause & 4 ? 0x00709a2c : cause & 2 ? 0x00709a18 : 0x00709a08;
-    throw_error(reinterpret_cast<const char *>((uintptr_t)text), 0x007099fc, 0x00720720);
+    const u32 text = cause & 4 ? 0x00709a2c : cause & 2 ? (u32)(uintptr_t)&gIosbase_709a18 : (u32)(uintptr_t)&gIosbase_709a08;
+    throw_error(reinterpret_cast<const char *>((uintptr_t)text), (u32)(uintptr_t)Class7099fc_vtable, 0x00720720);
 }
 
 static u32 *error_copy(u32 *self, const u32 *from, u32 vtable) {
@@ -179,16 +181,16 @@ static void error_raise(const u32 *from, u32 vtable, u32 info) {
     g_env->cxxThrow(copy, reinterpret_cast<const void *>((uintptr_t)info));
 }
 
-u32 *__fastcall LengthError_Copy(u32 *self, void *, const u32 *from) { return error_copy(self, from, 0x00709884); }
-u32 *__fastcall Failure_Copy(u32 *self, void *, const u32 *from) { return error_copy(self, from, 0x007099fc); }
-u32 *__fastcall Error709a44_Copy(u32 *self, void *, const u32 *from) { return error_copy(self, from, 0x00709a44); }
+u32 *__fastcall LengthError_Copy(u32 *self, void *, const u32 *from) { return error_copy(self, from, (u32)(uintptr_t)Class709884_vtable); }
+u32 *__fastcall Failure_Copy(u32 *self, void *, const u32 *from) { return error_copy(self, from, (u32)(uintptr_t)Class7099fc_vtable); }
+u32 *__fastcall Error709a44_Copy(u32 *self, void *, const u32 *from) { return error_copy(self, from, (u32)(uintptr_t)Error709a44_vtable); }
 
-void __fastcall LengthError_Raise(const u32 *from) { error_raise(from, 0x00709884, 0x00720468); }
-void __fastcall Failure_Raise(const u32 *from) { error_raise(from, 0x007099fc, 0x00720720); }
-void __fastcall Error709a44_Raise(const u32 *from) { error_raise(from, 0x00709a44, 0x00720798); }
+void __fastcall LengthError_Raise(const u32 *from) { error_raise(from, (u32)(uintptr_t)Class709884_vtable, 0x00720468); }
+void __fastcall Failure_Raise(const u32 *from) { error_raise(from, (u32)(uintptr_t)Class7099fc_vtable, 0x00720720); }
+void __fastcall Error709a44_Raise(const u32 *from) { error_raise(from, (u32)(uintptr_t)Error709a44_vtable, 0x00720798); }
 
 void __fastcall Error709a44_Dtor(u32 *self) {
-    self[0] = 0x00709a44;
+    self[0] = (u32)(uintptr_t)Error709a44_vtable;
     StdString_Tidy(reinterpret_cast<StdString *>(self + 3), nullptr, 1);
     CRT_exception_Dtor(self);
 }
@@ -217,8 +219,8 @@ static u8 *streambuf_ctor(u8 *self, u32 vtable) {
     return self;
 }
 
-u8 *__fastcall Streambuf_Ctor(u8 *self) { return streambuf_ctor(self, 0x00709914); }
-u8 *__fastcall StreambufW_Ctor(u8 *self) { return streambuf_ctor(self, 0x007099a4); }
+u8 *__fastcall Streambuf_Ctor(u8 *self) { return streambuf_ctor(self, (u32)(uintptr_t)Class709914_vtable); }
+u8 *__fastcall StreambufW_Ctor(u8 *self) { return streambuf_ctor(self, (u32)(uintptr_t)Class7099a4_vtable); }
 
 static void ios_init_rest(u8 *self, u32 isstd) {
     IosBase_Init(self);
@@ -252,10 +254,10 @@ static u8 *stream_uninit(u8 *self, u32 derived, u32 vbtable, u32 zero_at, u32 sl
     return self;
 }
 
-u8 *__fastcall Istream_CtorUninit(u8 *self, void *, u32, u32 derived) { return stream_uninit(self, derived, 0x00702988, 0x2c, 8, 0x00709954, 0x0070994c); }
-u8 *__fastcall Ostream_CtorUninit(u8 *self, void *, u32, u32 derived) { return stream_uninit(self, derived, 0x00702980, 0x28, 4, 0x00709954, 0x0070995c); }
-u8 *__fastcall IstreamW_CtorUninit(u8 *self, void *, u32, u32 derived) { return stream_uninit(self, derived, 0x00700650, 0x2c, 8, 0x007099e4, 0x007099dc); }
-u8 *__fastcall OstreamW_CtorUninit(u8 *self, void *, u32, u32 derived) { return stream_uninit(self, derived, 0x00700648, 0x28, 4, 0x007099e4, 0x007099ec); }
+u8 *__fastcall Istream_CtorUninit(u8 *self, void *, u32, u32 derived) { return stream_uninit(self, derived, 0x00702988, 0x2c, 8, (u32)(uintptr_t)NIos_vtable, (u32)(uintptr_t)Class70994c_vtable); }
+u8 *__fastcall Ostream_CtorUninit(u8 *self, void *, u32, u32 derived) { return stream_uninit(self, derived, 0x00702980, 0x28, 4, (u32)(uintptr_t)NIos_vtable, (u32)(uintptr_t)Class70995c_vtable); }
+u8 *__fastcall IstreamW_CtorUninit(u8 *self, void *, u32, u32 derived) { return stream_uninit(self, derived, 0x00700650, 0x2c, 8, (u32)(uintptr_t)BasicIosW_vtable, (u32)(uintptr_t)Class7099dc_vtable); }
+u8 *__fastcall OstreamW_CtorUninit(u8 *self, void *, u32, u32 derived) { return stream_uninit(self, derived, 0x00700648, 0x28, 4, (u32)(uintptr_t)BasicIosW_vtable, (u32)(uintptr_t)Class7099ec_vtable); }
 
 static bool init_first(u32 counter) {
     u32 lock;
@@ -282,7 +284,7 @@ static void narrow_filebuf(u32 address, u32 file) {
     u8 *const buf = std_address(address);
     Streambuf_Ctor(buf);
     LocaleRef_Ctor(reinterpret_cast<u32 *>(buf + 0x4c));
-    at<u32>(buf, 0) = 0x007098dc;
+    at<u32>(buf, 0) = (u32)(uintptr_t)Class7098dc_vtable;
     NFileBuf_Init(buf, nullptr, std_address(file), 0);
 }
 
@@ -290,7 +292,7 @@ static void wide_filebuf(u32 address, u32 file) {
     u8 *const buf = std_address(address);
     StreambufW_Ctor(buf);
     LocaleRef_Ctor(reinterpret_cast<u32 *>(buf + 0x4c));
-    at<u32>(buf, 0) = 0x0070996c;
+    at<u32>(buf, 0) = (u32)(uintptr_t)Class70996c_vtable;
     WFileBuf_Init(buf, nullptr, file, 0);
 }
 
@@ -311,22 +313,22 @@ u8 *__fastcall Ios_InitCtor(u8 *self) {
     u8 *const cin = std_stream(0x00fb1a90, 0x00702988);
     Init_5cfd80(cin + 8);
     at<u32>(cin, 4) = 0;
-    narrow_finish(cin, 0x0070994c, 0x00fb1ad0);
+    narrow_finish(cin, (u32)(uintptr_t)Class70994c_vtable, 0x00fb1ad0);
     u8 *const cout = std_stream(0x00fb1a00, 0x00702980);
     Init_5cfd80(cout + 4);
-    narrow_finish(cout, 0x0070995c, 0x00fb19a8);
+    narrow_finish(cout, (u32)(uintptr_t)Class70995c_vtable, 0x00fb19a8);
     std_tie(cin, 0x00fb1a00);
     narrow_filebuf(0x00fb1a38, 0x0077e840);
     u8 *const cerr = std_stream(0x00fb1b28, 0x00702980);
     Init_4ef830(cerr + 4);
-    at<u32>(cerr, 4) = 0x00709954;
-    narrow_finish(cerr, 0x0070995c, 0x00fb1a38);
+    at<u32>(cerr, 4) = (u32)(uintptr_t)NIos_vtable;
+    narrow_finish(cerr, (u32)(uintptr_t)Class70995c_vtable, 0x00fb1a38);
     std_tie(cerr, 0x00fb1a00);
     at<u32>(std_ios(cerr), 0xc) |= 2;
     u8 *const clog = std_stream(0x00fb1970, 0x00702980);
     Init_4ef830(clog + 4);
-    at<u32>(clog, 4) = 0x00709954;
-    narrow_finish(clog, 0x0070995c, 0x00fb1a38);
+    at<u32>(clog, 4) = (u32)(uintptr_t)NIos_vtable;
+    narrow_finish(clog, (u32)(uintptr_t)Class70995c_vtable, 0x00fb1a38);
     std_tie(clog, 0x00fb1a00);
     return self;
 }
@@ -339,21 +341,21 @@ u8 *__fastcall Ios_WinitCtor(u8 *self) {
     u8 *const cin = std_stream(0x00fb1bd8, 0x00700650);
     Init_4f1bd0(cin + 8);
     at<u32>(cin, 4) = 0;
-    wide_finish(cin, 0x007099dc, 0x00fb1c70);
+    wide_finish(cin, (u32)(uintptr_t)Class7099dc_vtable, 0x00fb1c70);
     u8 *const cout = std_stream(0x00fb1cc8, 0x00700648);
     Init_4f1bd0(cout + 4);
-    wide_finish(cout, 0x007099ec, 0x00fb1c18);
+    wide_finish(cout, (u32)(uintptr_t)Class7099ec_vtable, 0x00fb1c18);
     std_tie(cin, 0x00fb1cc8);
     u8 *const cerr = std_stream(0x00fb1b60, 0x00700648);
     Init_4ef830(cerr + 4);
-    at<u32>(cerr, 4) = 0x007099e4;
-    wide_finish(cerr, 0x007099ec, 0x00fb1d00);
+    at<u32>(cerr, 4) = (u32)(uintptr_t)BasicIosW_vtable;
+    wide_finish(cerr, (u32)(uintptr_t)Class7099ec_vtable, 0x00fb1d00);
     std_tie(cerr, 0x00fb1cc8);
     at<u32>(std_ios(cerr), 0xc) |= 2;
     u8 *const clog = std_stream(0x00fb1ba0, 0x00700648);
     Init_4ef830(clog + 4);
-    at<u32>(clog, 4) = 0x007099e4;
-    wide_finish(clog, 0x007099ec, 0x00fb1d00);
+    at<u32>(clog, 4) = (u32)(uintptr_t)BasicIosW_vtable;
+    wide_finish(clog, (u32)(uintptr_t)Class7099ec_vtable, 0x00fb1d00);
     std_tie(clog, 0x00fb1cc8);
     return self;
 }
@@ -422,7 +424,7 @@ void __fastcall IosBase_Tidy(u8 *self) {
 }
 
 void __fastcall IosBase_Dtor(u8 *self) {
-    at<u32>(self, 0) = 0x00709964;
+    at<u32>(self, 0) = (u32)(uintptr_t)IosBase_vtable;
     bool tidy = true;
     if (at<u32>(self, 0x24) != 0) {
         s8 &opens = gIosbase_Opens_fb1d88[at<u32>(self, 0x24)];
@@ -466,7 +468,7 @@ u8 *__fastcall IosBase_DeletingDtor(u8 *self, void *, u32 flags) {
 }
 
 void __fastcall BasicIosW_Dtor(u8 *self) {
-    at<u32>(self, 0) = 0x007099e4;
+    at<u32>(self, 0) = (u32)(uintptr_t)BasicIosW_vtable;
     IosBase_Dtor(self);
 }
 
@@ -477,12 +479,12 @@ u8 *__fastcall BasicIosW_DeletingDtor(u8 *self, void *, u32 flags) {
 }
 
 void __fastcall BasicOstreamW_VbaseDtor(u8 *stream) {
-    set_stream_vtable(stream, 0x007099ec);
+    set_stream_vtable(stream, (u32)(uintptr_t)Class7099ec_vtable);
     BasicIosW_Dtor(stream + 4);
 }
 
 void __fastcall BasicIstreamW_VbaseDtor(u8 *stream) {
-    set_stream_vtable(stream, 0x007099dc);
+    set_stream_vtable(stream, (u32)(uintptr_t)Class7099dc_vtable);
     BasicIosW_Dtor(stream + 8);
 }
 
@@ -528,9 +530,9 @@ u8 *__fastcall BasicOstreamW_Ctor(u8 *self, void *, void *buffer, u32 isstd, u32
     if (mostDerived) {
         at<u32>(self, 0) = 0x00700648;
         at<u32>(self, 0x28) = 0;
-        at<u32>(self, 4) = 0x007099e4;
+        at<u32>(self, 4) = (u32)(uintptr_t)BasicIosW_vtable;
     }
-    at<u32>(self + at<u32>(at<u8 *>(self, 0), 4), 0) = 0x007099ec;
+    at<u32>(self + at<u32>(at<u8 *>(self, 0), 4), 0) = (u32)(uintptr_t)Class7099ec_vtable;
     if ((u8)init) init_stream_ios(self, buffer, isstd);
     return self;
 }
@@ -539,28 +541,28 @@ u8 *__fastcall BasicIstreamW_Ctor(u8 *self, void *, void *buffer, u32 isstd, u32
     if (mostDerived) {
         at<u32>(self, 0) = 0x00700650;
         at<u32>(self, 0x2c) = 0;
-        at<u32>(self, 8) = 0x007099e4;
+        at<u32>(self, 8) = (u32)(uintptr_t)BasicIosW_vtable;
     }
     at<u32>(self, 4) = 0;
-    at<u32>(self + at<u32>(at<u8 *>(self, 0), 4), 0) = 0x007099dc;
+    at<u32>(self + at<u32>(at<u8 *>(self, 0), 4), 0) = (u32)(uintptr_t)Class7099dc_vtable;
     init_stream_ios(self, buffer, isstd);
     return self;
 }
 
 u32 *__fastcall BadCast_Ctor(u32 *self, void *, const char *text) {
     CRT_exception_Ctor(self, nullptr, &text);
-    self[0] = 0x00709b34;
+    self[0] = (u32)(uintptr_t)BadCast_vtable;
     return self;
 }
 
 u32 *__fastcall BadCast_Copy(u32 *self, void *, const u32 *from) {
     CRT_exception_Copy(self, nullptr, from);
-    self[0] = 0x00709b34;
+    self[0] = (u32)(uintptr_t)BadCast_vtable;
     return self;
 }
 
 void __fastcall BadCast_Dtor(u32 *self) {
-    self[0] = 0x00709b34;
+    self[0] = (u32)(uintptr_t)BadCast_vtable;
     CRT_exception_Dtor(self);
 }
 
@@ -613,9 +615,9 @@ const u16 *__fastcall CtypeW_NarrowRange(void *, void *, const u16 *first, const
 }
 
 void __fastcall CtypeW_Dtor(u8 *self) {
-    at<u32>(self, 0) = 0x00709cac;
+    at<u32>(self, 0) = (u32)(uintptr_t)WCtype_vtable;
     if (at<u32>(self, 0x14)) Crt().free(at<void *>(self, 0x10));
-    at<u32>(self, 0) = 0x00709b44;
+    at<u32>(self, 0) = (u32)(uintptr_t)LocaleFacet_vtable;
 }
 
 u8 *__fastcall CtypeW_DeletingDtor(u8 *self, void *, u32 flags) {

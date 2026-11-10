@@ -11,6 +11,7 @@
 #include "streampool.h"
 #include "vcall.h"
 #include "vtables.h"
+#include "channelvoice.h"
 
 namespace {
 
@@ -48,7 +49,7 @@ u32 *__fastcall SoundStream_SeekTime(u8 *stream, void *, u32 *out, u32 ms) {
 }
 
 u8 *__fastcall SoundStream_Dtor(u8 *stream, void *, u32 flags) {
-    at<u32>(stream, 0) = 0x70a778;
+    at<u32>(stream, 0) = (u32)(uintptr_t)Class70a778_vtable;
     if (flags & 1) GameHeap_Free(stream);
     return stream;
 }
@@ -192,7 +193,7 @@ u8 *__fastcall NotifyStream_Create(void *, void *, u8 *record) {
     at<u32>(stream, 0xc) = 0;
     at<u32>(stream, 0x10) = at<u32>(record, 0x48);
     at<u32>(stream, 0x18) = at<u32>(record, 0x50);
-    at<u32>(stream, 0) = 0x0070a748;
+    at<u32>(stream, 0) = (u32)(uintptr_t)Class70a748_vtable;
     return stream;
 }
 
@@ -260,7 +261,7 @@ u8 *__stdcall SoundStream_BuildChain(u8 *record, const u8 *format, u8 *stream) {
                 f[2] = 0;
                 f[3] = 0;
                 f[5] = loops;
-                f[0] = 0x0070a678;
+                f[0] = (u32)(uintptr_t)Class70a678_vtable;
             }
         }
         stream = SoundStream_Chain(stream, filter);

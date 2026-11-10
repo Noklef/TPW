@@ -18,6 +18,9 @@
 #include "../gfx/texcache.h"
 #include "../render/pointsprites.h"
 #include "../render/batch.h"
+#include "narrowfilebuf.h"
+#include "wfilebuf.h"
+#include "vdtor.h"
 #include "../frontend/viewcontrols.h"
 
 namespace {
@@ -136,8 +139,8 @@ void __fastcall Obj_SetNameAndWords(u8 *object, void *, u32 flag, u8 *text, cons
         at<u16>(object, 0x120 + 2 * i) = table[i];
 }
 
-void __fastcall Class709914_Dtor(u8 *object) { CountedDtor(object, 0x00709914); }
-void __fastcall Class7099a4_Dtor(u8 *object) { CountedDtor(object, 0x007099a4); }
+void __fastcall Class709914_Dtor(u8 *object) { CountedDtor(object, (u32)(uintptr_t)Class709914_vtable); }
+void __fastcall Class7099a4_Dtor(u8 *object) { CountedDtor(object, (u32)(uintptr_t)Class7099a4_vtable); }
 
 u32 __fastcall Pointers_MarkAndCallSlot4(u8 *object) {
     for (s32 i = 0; i < at<s32>(object, 0x400); ++i) {
@@ -153,12 +156,12 @@ u32 __fastcall Pointers_MarkAndCallSlot4(u8 *object) {
 u8 *__fastcall Class702198_DeletingDtor(u8 *field, void *, u32 flags) {
     u8 *object = field - 0x3c;
     u32 offset = at<u32>(at<u8 *>(object, 0), 4);
-    at<u32>(object + offset, 0) = 0x007021f0;
+    at<u32>(object + offset, 0) = (u32)(uintptr_t)Class7021f0_vtable;
     offset = at<u32>(at<u8 *>(object, 0), 4);  // (read again: the vtable pointer was just replaced when the virtual base is the object itself)
     at<u32>(object, offset - 4) = offset - 0x3c;
     offset = at<u32>(at<u8 *>(object, 0), 4);
     vcall<u32>(object + offset, 4);
-    at<u32>(object, 0x3c) = 0x00702198;
+    at<u32>(object, 0x3c) = (u32)(uintptr_t)TexCacheItem_vtable;
     if (flags & 1)
         GameHeap_Free(object);
     return object;
@@ -182,7 +185,7 @@ void __fastcall Obj_PickByName(u8 *object, void *, u32 flag) {
 void __fastcall Class702da0_Dtor(u8 *object) {
     at<u32>(object, 0) = (u32)(uintptr_t)Class702da0_vtable;
     u8 *node = at<u8 *>(object, 0xc);
-    at<u32>(object, 8) = 0x00702f10;
+    at<u32>(object, 8) = (u32)(uintptr_t)ListDtor702f10_vtable;
     at<u32>(object, 0x10) = 0;
     at<u32>(object, 0xc) = 0;
     while (node) {

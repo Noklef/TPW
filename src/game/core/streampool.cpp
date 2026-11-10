@@ -20,18 +20,20 @@ struct Pool {
     u32 size;    // the blocks' size
     u32 next;    // where a block keeps the next one
 };
-constexpr Pool kFilter = {0x00fb206c, 0x00fb2068, 0x18, 0x10};
-constexpr Pool kLoop = {0x00fb2084, 0x00fb2080, 0x24, 0x18};
-constexpr Pool k70abf8 = {0x00fb2090, 0x00fb208c, 0x14, 0x10};
-constexpr Pool k70a6c8 = {0x00fb20a8, 0x00fb20a4, 0x1c, 0x14};
-constexpr Pool kVoiceSample = {0x00fb20c0, 0x00fb20bc, 0x40, 0x28};
-constexpr Pool kVoiceStream = {0x00fb20cc, 0x00fb20c8, 0x5c, 0x58};
-constexpr Pool kSilence = {0x00fb2078, 0x00fb2074, 0x30, 0x28};
-constexpr Pool kFileSample = {0x00fb20b4, 0x00fb20b0, 0x48, 0x44};
-constexpr Pool kMp2Stream = {0x00fb26e8, 0x00fb26e4, 0x5c, 0x58};
-constexpr Pool kMp2Sample = {0x00fb26dc, 0x00fb26d8, 0x40, 0x28};
-constexpr Pool kCallback = {0x00fb26f4, 0x00fb26f0, 0x1c, 0x14};
-constexpr Pool kMemorySample = {0x00fb209c, 0x00fb2098, 0x2c, 0x28};
+Pool pool(StreamPoolGlobals &g, u32 size, u32 next) { return {(u32)(uintptr_t)&g.lock, (u32)(uintptr_t)&g.list, size, next}; }
+
+const Pool kFilter = pool(gStreampool_Filter_fb2068, 0x18, 0x10);
+const Pool kLoop = pool(gStreampool_Loop_fb2080, 0x24, 0x18);
+const Pool k70abf8 = pool(gStreampool_70abf8_fb208c, 0x14, 0x10);
+const Pool k70a6c8 = pool(gStreampool_70a6c8_fb20a4, 0x1c, 0x14);
+const Pool kVoiceSample = pool(gStreampool_VoiceSample_fb20bc, 0x40, 0x28);
+const Pool kVoiceStream = pool(gStreampool_VoiceStream_fb20c8, 0x5c, 0x58);
+const Pool kSilence = pool(gStreampool_Silence_fb2074, 0x30, 0x28);
+const Pool kFileSample = pool(gStreampool_FileSample_fb20b0, 0x48, 0x44);
+const Pool kMp2Stream = pool(gStreampool_Mp2Stream_fb26e4, 0x5c, 0x58);
+const Pool kMp2Sample = pool(gStreampool_Mp2Sample_fb26d8, 0x40, 0x28);
+const Pool kCallback = pool(gStreampool_Callback_fb26f0, 0x1c, 0x14);
+const Pool kMemorySample = pool(gStreampool_MemorySample_fb2098, 0x2c, 0x28);
 
 void Init(const Pool &p) {
     void *const lock = GameHeap_Alloc(0x18);

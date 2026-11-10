@@ -9,7 +9,7 @@ namespace {
 template <typename T> T &at(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
 const char *text(u32 address) { return reinterpret_cast<const char *>((uintptr_t)address); }
 
-const u32 kHeadTag = 0x00774934, kTailTag = 0x0077492c, kFreedTag = 0x007749c0, kCount = 0x00f827f4;
+const u32 kHeadTag = (u32)(uintptr_t)&gGuardheap_774934, kTailTag = (u32)(uintptr_t)&gGuardheap_77492c, kFreedTag = (u32)(uintptr_t)&gGuardheap_7749c0, kCount = 0x00f827f4;
 
 const GuardHeapEnv kGameEnv = {&CRT_malloc, &CRT_free};
 const GuardHeapEnv *g_env = &kGameEnv;
@@ -33,12 +33,12 @@ extern "C" {
 
 void *__stdcall GuardHeap_Alloc(s32 size) {
     if (size <= 0) {
-        message()(text(0x0077493c), size);
+        message()(text((u32)(uintptr_t)&gGuardheap_77493c), size);
         return nullptr;
     }
     u8 *const block = static_cast<u8 *>(g_env->malloc(static_cast<u32>(size) + 0xc));
     if (!block || block == reinterpret_cast<u8 *>((uintptr_t)0xffffffffu)) {
-        message()(text(0x007748f8), size);
+        message()(text((u32)(uintptr_t)&gGuardheap_7748f8), size);
         return nullptr;
     }
     *reinterpret_cast<u32 *>(block + 4) = static_cast<u32>(size);
@@ -51,13 +51,13 @@ void *__stdcall GuardHeap_Alloc(s32 size) {
 u32 __stdcall GuardHeap_Free(void *user) {
     const s32 address = static_cast<s32>(reinterpret_cast<uintptr_t>(user));
     if (address > -0x800 && address < 0x800) {
-        message()(text(0x007749c8));
+        message()(text((u32)(uintptr_t)&gGuardheap_7749c8));
         return 0;
     }
     u8 *const base = static_cast<u8 *>(user) - 8;
     const s32 size = *reinterpret_cast<const s32 *>(base + 4);
     if (!(same_tag(base, kHeadTag) && size > 0 && size < 0x6400000 && same_tag(static_cast<const u8 *>(user) + size, kTailTag))) {
-        message()(text(same_tag(base, kFreedTag) ? 0x00774998 : 0x00774958));
+        message()(text(same_tag(base, kFreedTag) ? (u32)(uintptr_t)&gGuardheap_774998 : (u32)(uintptr_t)&gGuardheap_774958));
         return 0;
     }
     *reinterpret_cast<u32 *>(base) = at<u32>(kFreedTag);

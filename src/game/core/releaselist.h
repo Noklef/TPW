@@ -52,3 +52,9 @@ u32 __fastcall ReleaseList_Push(ReleaseList *list, void *, u32 value);
 ReleaseList *__fastcall ReleaseListBase_DeletingDtor(ReleaseList *list, void *, u32 flags);
 
 }  // extern "C"
+
+#include "gamedata.h"
+
+// The vtables hold only ports: tpw.exe's loader points their slots at them (.docs/09-globals.md).
+GAME_DATA(void *[1], ReleaseList_vtable, 0x00711c1c, 0x4);
+GAME_DATA(void *[1], ReleaseList_vtable_711c20, 0x00711c20, 0x4);

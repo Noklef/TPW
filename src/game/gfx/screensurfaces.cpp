@@ -12,9 +12,6 @@ namespace {
 template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cast<T *>((uintptr_t)p + offset); }
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>(address); }
 
-constexpr u32 kBaseVtable = 0x006fef90;
-constexpr u32 kVtable = 0x006fef78;
-
 // A Surface's constructor, inlined: the colour key bytewise, attached and surface, the info.
 void initSurface(u8 *s) {
     for (u32 i = 0x10; i < 0x15; ++i) s[i] = 0;
@@ -28,10 +25,10 @@ void initSurface(u8 *s) {
 extern "C" {
 
 u8 *__fastcall ScreenSurfaces_Ctor(u8 *source) {
-    at<u32>(source, 0) = kBaseVtable;
+    at<u32>(source, 0) = (u32)(uintptr_t)SurfaceSource_vtable;
     initSurface(source + 4);
     initSurface(source + 0x54);
-    at<u32>(source, 0) = kVtable;
+    at<u32>(source, 0) = (u32)(uintptr_t)Class6fef78_vtable;
     at<u32>(source, 0xa8) = 0;
     at<u32>(source, 0xa4) = 0;
     at<u32>(source, 0xac) = 0;
@@ -39,7 +36,7 @@ u8 *__fastcall ScreenSurfaces_Ctor(u8 *source) {
     return source;
 }
 
-void __fastcall SurfaceSource_Dtor(u8 *source) { at<u32>(source, 0) = kBaseVtable; }
+void __fastcall SurfaceSource_Dtor(u8 *source) { at<u32>(source, 0) = (u32)(uintptr_t)SurfaceSource_vtable; }
 
 }
 
@@ -78,7 +75,7 @@ s32 *__fastcall ScreenSurfaces_Bounds(const u8 *, void *, s32 *out) {
     return out;
 }
 void __fastcall ScreenSurfaces_Dtor(u8 *object) {
-    at<u32>(object, 0) = 0x006fef78;
+    at<u32>(object, 0) = (u32)(uintptr_t)Class6fef78_vtable;
     u8 *second = at<u8 *>(object, 0xb0);
     at<u32>(object, 0xa8) = 0;
     at<u32>(object, 0xa4) = 0;
@@ -88,7 +85,7 @@ void __fastcall ScreenSurfaces_Dtor(u8 *object) {
         comcall<u32>(first, 8);
     at<u32>(object, 0xac) = 0;
     at<u32>(object, 0xb0) = 0;
-    at<u32>(object, 0) = 0x006fef90;
+    at<u32>(object, 0) = (u32)(uintptr_t)SurfaceSource_vtable;
 }
 
 u8 *__fastcall ScreenSurfaces_ScalarDtor(u8 *object, void *, u32 flags) {

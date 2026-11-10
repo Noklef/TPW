@@ -57,7 +57,7 @@ extern "C" {
 u8 *__fastcall Overlay_Ctor(u8 *overlay, void *, u8 *holder) {
     GuiDialog_Ctor(overlay, nullptr, static_cast<u32>(reinterpret_cast<uintptr_t>(holder)));
     u8 *const h = at<u8 *>(overlay, 4);
-    at<u32>(overlay, 0) = 0x006fee10u;
+    at<u32>(overlay, 0) = (u32)(uintptr_t)Overlay_vtable;
     if (h) {
         at<u32>(at<u8 *>(h, 4), 0x30) |= 0x200;   // (the model reread from the holder after each store, as the original)
         at<u16>(overlay, 0xe) = at<u16>(at<u8 *>(h, 4), 0x44);
@@ -76,13 +76,13 @@ u8 *__fastcall Overlay_Ctor(u8 *overlay, void *, u8 *holder) {
 // Slot 8's copy (see Overlay_Clone): flags for Holder_Clone, vtable the derived one's (0: the base's, left by Overlay_Ctor).
 u8 *__fastcall Overlay_CtorResized(u8 *overlay, void *, u8 *holder) {
     Overlay_Ctor(overlay, nullptr, holder);
-    at<u32>(overlay, 0) = 0x006fee38u;
+    at<u32>(overlay, 0) = (u32)(uintptr_t)Class6fee38_vtable;
     return overlay;
 }
 
 u8 *__fastcall Overlay_CtorResizedHeight(u8 *overlay, void *, u8 *holder) {
     Overlay_Ctor(overlay, nullptr, holder);
-    at<u32>(overlay, 0) = 0x006fee60u;
+    at<u32>(overlay, 0) = (u32)(uintptr_t)Class6fee60_vtable;
     return overlay;
 }
 
@@ -102,9 +102,9 @@ static u8 *CloneOverlay(u8 *overlay, u32 flags, u32 vtable) {
 
 u8 *__fastcall Overlay_Clone(u8 *overlay) { return CloneOverlay(overlay, 1, 0); }
 
-u8 *__fastcall Overlay_CloneResized(u8 *overlay) { return CloneOverlay(overlay, 4, 0x006fee38u); }
+u8 *__fastcall Overlay_CloneResized(u8 *overlay) { return CloneOverlay(overlay, 4, (u32)(uintptr_t)Class6fee38_vtable); }
 
-u8 *__fastcall Overlay_CloneResizedHeight(u8 *overlay) { return CloneOverlay(overlay, 4, 0x006fee60u); }
+u8 *__fastcall Overlay_CloneResizedHeight(u8 *overlay) { return CloneOverlay(overlay, 4, (u32)(uintptr_t)Class6fee60_vtable); }
 
 const u8 *__fastcall Overlay_ShowFrame(u8 *overlay, void *, u32 flags, const u8 *desc) {
     const u8 *holder = at<const u8 *>(overlay, 4);
@@ -121,7 +121,7 @@ const u8 *__fastcall Overlay_ShowFrame(u8 *overlay, void *, u32 flags, const u8 
 }
 
 void __fastcall Overlay_Dtor(u8 *overlay) {
-    at<u32>(overlay, 0) = 0x006fee10;
+    at<u32>(overlay, 0) = (u32)(uintptr_t)Overlay_vtable;
     if (u8 *holder = at<u8 *>(overlay, 4)) {
         if (at<u16>(overlay, 0x10) == 0)
             Holder_Dispose(holder);

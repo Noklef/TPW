@@ -105,8 +105,8 @@ u32 __fastcall LoadScreen_ShowImage(u8 *image) {
 u32 __fastcall LoadScreen_Show(u8 *self, void *, const char *name, const char *folder, s32 ms) {
     if (at<u32>(self, 0x10) || at<u32>(self, 0x14))
         close(self);
-    if (!name) name = text(0x00768dec);
-    if (!folder) folder = text(0x00768de0);
+    if (!name) name = text((u32)(uintptr_t)&gLoadscreen_768dec);
+    if (!folder) folder = text((u32)(uintptr_t)&gLoadscreen_768de0);
     global<u32>(0x008bd508) |= 1;
     at<u32>(self, 0) = 0;
     if (!ms) ms = 500;
@@ -117,17 +117,17 @@ u32 __fastcall LoadScreen_Show(u8 *self, void *, const char *name, const char *f
     char size[0x14], path[0x80], splash[0x80], stampFirst[0x80], stampLater[0x80];
     const s32 width = global<s32>(0x008bcbd0);
     if (width == 400 || width == 512 || width == 640 || width == 800 || width == 1024)
-        Crt().sprintf(size, text(0x00768dd4), width);
+        Crt().sprintf(size, text((u32)(uintptr_t)&gLoadscreen_768dd4), width);
     else
-        Crt().sprintf(size, text(0x00768dd8));
+        Crt().sprintf(size, text((u32)(uintptr_t)&gLoadscreen_768dd8));
     std::strcpy(path, folder);
     if (path[0] && path[std::strlen(path) - 1] != '\\')
         std::strcat(path, text(0x007477fc));
     std::strcat(path, size);
-    file_in(splash, path, 0x00768dcc, name);
-    file_in(stampFirst, path, 0x00768dc4, name);
-    file_in(stampLater, path, 0x00768db8, name);
-    std::strcat(path, text(0x00768dac));
+    file_in(splash, path, (u32)(uintptr_t)&gLoadscreen_768dcc, name);
+    file_in(stampFirst, path, (u32)(uintptr_t)&gLoadscreen_768dc4, name);
+    file_in(stampLater, path, (u32)(uintptr_t)&gLoadscreen_768db8, name);
+    std::strcat(path, text((u32)(uintptr_t)&gLoadscreen_768dac));
 
     u32(__stdcall *const timeGetTime)() = *reinterpret_cast<u32(__stdcall *const *)()>((uintptr_t)0x006fd3ec);
     if (global<u32>(0x008c4788) == 0) {

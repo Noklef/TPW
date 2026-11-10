@@ -23,6 +23,7 @@
 #include "window7cc8bc.h"
 #include "windowfactory.h"
 #include "windowscript.h"
+#include "../core/vtables.h"
 #include "../model/slots.h"
 #include "../render/lightsource.h"
 
@@ -55,7 +56,7 @@ u8 *__fastcall Panel7b9940_Ctor(u8 *self, void *, u32 complete) {
     if (complete) {
         at<u32>(self, 0) = 0x6fdd00;
         at<u32>(self, 0xc) = 0x6fdcf8;
-        at<u32>(self, 8) = 0x6fdce8;
+        at<u32>(self, 8) = (u32)(uintptr_t)Class6fdce8_vtable;
         at<u32>(self, vbase(self, 0xc, 4) + 0xc) = (u32)(uintptr_t)Class6fdcd8_vtable;
         const u32 d = vbase(self, 0xc, 4);
         at<u32>(self, d + 8) = d - 0x60;

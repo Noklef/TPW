@@ -44,6 +44,7 @@
 #include "../ui/panel7b9940.h"
 #include "things.h"
 #include "world.h"
+#include "../core/vdel.h"
 
 namespace {
 
@@ -395,7 +396,7 @@ void __cdecl ThingsToDelete_AtExit() {
     guard = (u8)(guard | 1);
     HandleQueue *const queue = deleteQueue();
     HandleNode *node = queue->head;
-    queue->unknown00 = 0x00700a9c;
+    queue->unknown00 = (u32)(uintptr_t)ListScalarDelete700a9c_vtable;
     queue->tail = nullptr;
     queue->head = nullptr;
     while (node) {

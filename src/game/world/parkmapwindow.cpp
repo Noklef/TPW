@@ -39,6 +39,7 @@
 #include "parkmap.h"
 #include "camera.h"
 #include "world.h"
+#include "../core/textarg.h"
 
 namespace {
 
@@ -165,7 +166,7 @@ void ShowName(const u8 *map, u8 *window) {
             if (!owner) {
                 g_env->formatWide(charset, text, 0x3fff, 0x1c9);
             } else {
-                const u32 argument[5] = {0x006ff170, 0x5641524d, 0x18, owner, 0};
+                const u32 argument[5] = {(u32)(uintptr_t)TextArgInt_vtable, 0x5641524d, 0x18, owner, 0};
                 g_env->formatWide(charset, text, 0x3fff, 0x1c8, argument);
             }
             vcall<void>(&name, 0x14, text);

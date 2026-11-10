@@ -136,6 +136,7 @@ GAME_DATA(const char[8], CRT_text_com_708a24, 0x00708a24, 0x8);
 GAME_DATA(const char[8], CRT_text_bat_708a2c, 0x00708a2c, 0x8);
 GAME_DATA(const char[8], CRT_text_cmd_708a34, 0x00708a34, 0x8);
 GAME_DATA(const char[8], CRT_text_exe_708a3c, 0x00708a3c, 0x8);
+GAME_DATA(const char[0x4], gCrtopen_708a44, 0x00708a44, 0x4);
 GAME_DATA(const char[4], CRT_text_wildcards_708a48, 0x00708a48, 0x4);
 GAME_DATA(u32, CRT_umaskval, 0x00fb1360, 0x4);
 GAME_DATA(char[14], CRT_tmpnam_buffer, 0x00fb13a8, 0xe);

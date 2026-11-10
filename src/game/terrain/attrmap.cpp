@@ -8,6 +8,7 @@
 #include "../core/stdlist.h"
 #include "../files/chunkfile.h"
 #include "../world/world.h"
+#include "../core/vdtor.h"
 
 namespace {
 template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cast<T *>((uintptr_t)p + offset); }
@@ -48,7 +49,7 @@ u32 __fastcall TP2M_ReadChunks(u8 *cells, void *, const char *name) {
     u32 handler[3] = {0x00700aa8, 0x2050414d, static_cast<u32>(reinterpret_cast<uintptr_t>(cells))};   // ("MAP ")
     List_PushHeadForward(reinterpret_cast<u8 *>(file), nullptr, static_cast<u32>(reinterpret_cast<uintptr_t>(handler)));
     const u32 result = ChunkFile_Open(reinterpret_cast<u8 *>(file), nullptr, name);
-    file[0] = 0x00700aa0;
+    file[0] = (u32)(uintptr_t)ListDtor700aa0_vtable;
     u8 *node = reinterpret_cast<u8 *>(static_cast<uintptr_t>(file[1]));
     file[2] = 0;
     file[1] = 0;

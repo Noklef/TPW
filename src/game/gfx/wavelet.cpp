@@ -10,6 +10,7 @@
 #include "../math/x87.h"
 #include "../render/drawbuffer.h"
 #include "../render/texformat.h"
+#include "../core/vtables.h"
 
 namespace {
 
@@ -689,9 +690,9 @@ u32 __fastcall WaveletCodec_DecodeScaled(u8 *codec, void *, s32 version, u32 a, 
 
 void __fastcall WaveletCodec_VBaseDtor(u8 *base) {
     // The SEH frame is left out.
-    at<u32>(base, -0x54) = 0x7026d8;
+    at<u32>(base, -0x54) = (u32)(uintptr_t)WaveletCodec_vtable;
     const u32 offset = at<u32>(at<u8 *>(base, -0x50), 4);
-    at<u32>(base, offset - 0x50) = 0x7026b8;
+    at<u32>(base, offset - 0x50) = (u32)(uintptr_t)IWaveletCodec_vtable;
     at<u32>(base, offset - 0x54) = offset - 0x50;
     for (u32 i = 1; i <= 5; i++) {
         if (void *const block = at<void *>(base, -0x10 * i + 8))
@@ -702,7 +703,7 @@ void __fastcall WaveletCodec_VBaseDtor(u8 *base) {
 u8 *__fastcall WaveletCodec_ScalarDelete(u8 *base, void *, u32 flags) {
     u8 *const codec = base - 0x54;
     WaveletCodec_VBaseDtor(base);
-    at<u32>(base, 0) = 0x7026e8;
+    at<u32>(base, 0) = (u32)(uintptr_t)Class7026e8_vtable;
     if (flags & 1)
         GameHeap_Free(codec);
     return codec;
@@ -1237,14 +1238,14 @@ void __fastcall WaveletCodec_DecodeColourOrGrey(u8 *face, void *, u32 width, u32
 u8 *__fastcall WaveletCodec_Construct(u8 *codec, void *, u32 mostDerived) {
     if (mostDerived != 0) {
         at<u32>(codec, 4) = 0x702708;
-        at<u32>(codec, 0x54) = 0x7026e8;
+        at<u32>(codec, 0x54) = (u32)(uintptr_t)Class7026e8_vtable;
     }
     at<u32>(codec, 8) = 1;
     for (u32 offset = 0xc; offset < 0x50; offset += 4)
         at<u32>(codec, offset) = 0;
-    at<u32>(codec, 0) = 0x7026d8;
+    at<u32>(codec, 0) = (u32)(uintptr_t)WaveletCodec_vtable;
     const u32 base = at<u32>(at<const u8 *>(codec, 4), 4);
-    at<u32>(codec, base + 4) = 0x7026b8;
+    at<u32>(codec, base + 4) = (u32)(uintptr_t)IWaveletCodec_vtable;
     const u32 again = at<u32>(at<const u8 *>(codec, 4), 4);
     at<u32>(codec, again) = again - 0x50;
     const u8 *const formats = TexFormat_Table(reinterpret_cast<u8 *>((uintptr_t)0x008bd550));

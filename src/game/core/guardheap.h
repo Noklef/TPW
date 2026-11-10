@@ -21,3 +21,15 @@ void *__stdcall GuardHeap_Alloc(s32 size);
 // pointer within 0x800 of null, the block freed already (its head the freed tag), or its guards bad.
 u32 __stdcall GuardHeap_Free(void *user);
 }
+
+#include "gamedata.h"
+
+// Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(char[0x34], gGuardheap_7748f8, 0x007748f8, 0x34);
+GAME_DATA(char[0x8], gGuardheap_77492c, 0x0077492c, 0x8);
+GAME_DATA(char[0x8], gGuardheap_774934, 0x00774934, 0x8);
+GAME_DATA(char[0x1c], gGuardheap_77493c, 0x0077493c, 0x1c);
+GAME_DATA(char[0x40], gGuardheap_774958, 0x00774958, 0x40);
+GAME_DATA(char[0x28], gGuardheap_774998, 0x00774998, 0x28);
+GAME_DATA(char[0x8], gGuardheap_7749c0, 0x007749c0, 0x8);
+GAME_DATA(char[0x28], gGuardheap_7749c8, 0x007749c8, 0x28);

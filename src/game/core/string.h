@@ -269,3 +269,9 @@ WString *__cdecl WString_ReadToken(WString *out, const char **cursor, u32 delimi
 u8 *__fastcall WString_CtorReturning(u8 *string);
 
 }  // extern "C"
+
+#include "gamedata.h"
+
+// The vtables hold only ports: tpw.exe's loader points their slots at them (.docs/09-globals.md).
+GAME_DATA(void *[11], String_vtable, 0x00703090, 0x2c);
+GAME_DATA(void *[11], WString_vtable, 0x007030c8, 0x2c);

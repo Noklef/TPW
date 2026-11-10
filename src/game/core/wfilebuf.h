@@ -99,3 +99,12 @@ u32 __fastcall CodecvtW_Out(u8 *self, void *, u32 *state, const u16 *from, const
 // it answers 0 or less or more than is left, or none are left.
 s32 __fastcall CodecvtW_Length(u8 *self, void *, void *state, const u16 *first, const u16 *last, u32 most);
 }
+
+#include "gamedata.h"
+
+// The vtables hold only ports: tpw.exe's loader points their slots at them (.docs/09-globals.md).
+GAME_DATA(void *[1], Class70062c_vtable, 0x0070062c, 0x4);
+GAME_DATA(void *[1], Class700638_vtable, 0x00700638, 0x4);
+GAME_DATA(void *[13], Class70996c_vtable, 0x0070996c, 0x34);
+GAME_DATA(void *[13], Class7099a4_vtable, 0x007099a4, 0x34);
+GAME_DATA(void *[7], CodecvtW_vtable, 0x00709ce4, 0x1c);

@@ -47,3 +47,7 @@ u8 *__fastcall LiveObject7019f8_DeletingDtor(u8 *base, void *, u32 flags);
 
 // Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
 GAME_DATA(s32, gLiveobjects_87aed8, 0x0087aed8, 0x4);
+
+// The vtables hold only ports: tpw.exe's loader points their slots at them (.docs/09-globals.md).
+GAME_DATA(void *[4], Class7019f8_vtable, 0x007019f8, 0x10);
+GAME_DATA(void *[4], Class701b30_vtable, 0x00701b30, 0x10);

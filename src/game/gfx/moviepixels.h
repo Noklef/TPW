@@ -39,3 +39,11 @@ u32 __fastcall MoviePixels_MaskShift(s32 mask);
 // or'd into out[6] and the bits' sum into out[7].
 void __fastcall MoviePixels_ReadFormat(void *unused, void *surface, u32 *out);
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(u32[256], gMoviepixels_fb8f30, 0x00fb8f30, 0x400);
+GAME_DATA(u32[256], gMoviepixels_fb9730, 0x00fb9730, 0x400);
+GAME_DATA(u32[256], gMoviepixels_fb9f30, 0x00fb9f30, 0x400);
+GAME_DATA(u32[0x39a], gMoviepixels_fba730, 0x00fba730, 0xe68);

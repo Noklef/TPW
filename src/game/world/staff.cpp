@@ -44,6 +44,7 @@
 #include "object.h"
 #include "staff.h"
 #include "../core/soundset.h"
+#include "../core/vtables.h"
 
 namespace {
 
@@ -763,7 +764,7 @@ void __fastcall Staff_HeadForEntrance(u8 *staff) {
 
 void __fastcall Staff_LeaveRestArea(u8 *staff) {
     u16 handle;
-    u32 msg[4] = {0x00700868, 0, *Thing_GetHandle(staff, nullptr, &handle), 0};   // (the original leaves the word above the handle as it was)
+    u32 msg[4] = {(u32)(uintptr_t)Class700868_vtable, 0, *Thing_GetHandle(staff, nullptr, &handle), 0};   // (the original leaves the word above the handle as it was)
     Object_PostMessage(reinterpret_cast<u8 *>(msg));
     const u16 area = *reinterpret_cast<u16 *>(staff + 0x208);
     const u8 *const thing = *reinterpret_cast<u8 **>((uintptr_t)0x007cfb90 + area * 20u);
@@ -820,7 +821,7 @@ void __fastcall Staff_WalkToRestArea(u8 *staff) {
         Rides_SetElement(record, 0, Rides_GetElement(record, 0) + 1);
         Staff_SetState(staff, nullptr, 3);
         u16 handle;
-        u32 msg[4] = {0x00700868, 0, *Thing_GetHandle(staff, nullptr, &handle), 1};   // (the original leaves the word above the handle as it was)
+        u32 msg[4] = {(u32)(uintptr_t)Class700868_vtable, 0, *Thing_GetHandle(staff, nullptr, &handle), 1};   // (the original leaves the word above the handle as it was)
         Object_PostMessage(reinterpret_cast<u8 *>(msg));
     } else if (walked == 2) {
         lower_happiness(staff);

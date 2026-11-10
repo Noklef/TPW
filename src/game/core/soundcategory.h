@@ -202,3 +202,11 @@ s32 *__fastcall SoundCategory_ReadSfxImage(u8 *category, void *, s32 *result, St
 s32 *__fastcall SoundCategory_ReadSfxMap(u8 *category, void *, s32 *result, const char *name, u32 *index);
 
 }  // extern "C"
+
+#include "gamedata.h"
+
+// The vtables hold only ports: tpw.exe's loader points their slots at them (.docs/09-globals.md).
+GAME_DATA(void *[1], BankList_vtable, 0x0070a948, 0x4);
+GAME_DATA(void *[3], Class70a950_vtable, 0x0070a950, 0xc);
+GAME_DATA(void *[1], SoundCategory_vtable, 0x0070a95c, 0x4);
+GAME_DATA(void *[3], Class70a960_vtable, 0x0070a960, 0xc);

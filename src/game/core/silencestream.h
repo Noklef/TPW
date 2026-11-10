@@ -22,3 +22,8 @@ u8 *__fastcall SilenceStream_DeletingDtor(u8 *stream, void *, u32 flags);
 u8 *__fastcall SilenceStream_Ctor(u8 *stream, void *, u32 ms, const u8 *format);
 
 }  // extern "C"
+
+#include "gamedata.h"
+
+// The vtables hold only ports: tpw.exe's loader points their slots at them (.docs/09-globals.md).
+GAME_DATA(void *[20], SilenceStream_vtable, 0x0070ab58, 0x50);

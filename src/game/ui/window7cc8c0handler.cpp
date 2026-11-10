@@ -24,6 +24,7 @@
 #include "window.h"
 #include "dialogs.h"
 #include "window7cc8bc.h"
+#include "../core/textarg.h"
 
 namespace {
 
@@ -177,7 +178,7 @@ void ShowHelp(u8 *window) {
             break;
         default: {   // 2, 4
             const u32 name = (u32)(uintptr_t)g_env->name(gWindow7cc8c0handler_7cc8e8);
-            const u32 arg[4] = {0x006ff174, 0x5641524d, 2, name};
+            const u32 arg[4] = {(u32)(uintptr_t)TextArgString_vtable, 0x5641524d, 2, name};
             g_env->format(charset, text, 0x3fff, 0x244, arg);
             g_env->setText(text);
             cursor = 0x13;

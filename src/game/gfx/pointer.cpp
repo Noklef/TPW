@@ -15,7 +15,7 @@ T at(u32 address) {
     return reinterpret_cast<T>(static_cast<std::uintptr_t>(address));
 }
 const AsyncPointerEnv kGameEnv = {
-    0x00703644,
+    (u32)(uintptr_t)AsyncPointer_vtable,
     at<void(__cdecl *)(void *)>(0x0067acb0),
     at<u32(__stdcall *)(void *)>(0x005fba00),
     at<void *(__cdecl *)(void *, u32, u32(__stdcall *)(void *), void *, u32, u32 *)>(0x0067f780),
@@ -25,7 +25,7 @@ const AsyncPointerEnv kGameEnv = {
     at<s32(__stdcall *const *)(void *)>(0x006fd13c),
     at<void(__stdcall *const *)(const char *)>(0x006fd1e0),
     at<const char *>(0x007758a4),
-    at<const char *>(0x00775878),
+    at<const char *>((u32)(uintptr_t)&gPointer_775878),
 };
 const AsyncPointerEnv *g_env = &kGameEnv;
 

@@ -224,6 +224,8 @@ def address(out):
 
 TEXT = {        # slot: why, for a dword of text whose bytes read as a pointer into a converted range (left as it is)
     0x74a418: 'a code page table\'s u16 pairs (0x2013, 0x7b), not a pointer into gSinTable',
+    0x7247fc: 'text "leep"', 0x74868c: 'text "help"', 0x75170c: 'text "loop"', 0x768984: 'text " bpp"',
+    0x7740b0: 'text "%08x"', 0x7785bc: 'text "%02x"', 0x778b0c: 'text "%02x"', 0x77be98: 'text "%02x"', 0x77c334: 'text "%02x"',
 }
 POINTERS = {}   # slot: why, for a pointer whose bytes read as text
 NEXT = {        # slot: why, for a dword at a converted object's end that points at what follows it (left as it is), not an end pointer

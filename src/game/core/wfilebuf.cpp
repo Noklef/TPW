@@ -146,13 +146,13 @@ void __fastcall WFileBuf_Init(u8 *buf, void *, u32 file, s32 which) {
 u8 *__fastcall WFileBuf_Ctor(u8 *buf, void *, u32 file) {
     LocaleRef_Ctor(reinterpret_cast<u32 *>(buf + 0x34));
     set_slot_pointers(buf);
-    at<u32>(buf, 0) = 0x007099a4;
+    at<u32>(buf, 0) = (u32)(uintptr_t)Class7099a4_vtable;
     at<u32>(buf, 8) = 0;
     at<u32>(buf, 0x18) = 0;
     at<u32>(buf, 0x28) = 0;
     Wstreambuf_Setg(buf, nullptr, 0, 0, 0);
     LocaleRef_Ctor(reinterpret_cast<u32 *>(buf + 0x4c));
-    at<u32>(buf, 0) = 0x0070996c;
+    at<u32>(buf, 0) = (u32)(uintptr_t)Class70996c_vtable;
     buf[0x48] = 0;
     lose_use(at<u8 *>(buf, 0x4c));
     LocaleRef_Ctor(reinterpret_cast<u32 *>(buf + 0x4c));
@@ -168,29 +168,29 @@ u8 *__fastcall WFileBuf_Ctor(u8 *buf, void *, u32 file) {
 }
 
 void __fastcall WFileBuf_Dtor(u8 *buf) {
-    at<u32>(buf, 0) = 0x0070996c;
+    at<u32>(buf, 0) = (u32)(uintptr_t)Class70996c_vtable;
     if (buf[0x48] && at<void *>(buf, 0x50) && g_env->fclose(at<void *>(buf, 0x50)) == 0) WFileBuf_Init(buf, nullptr, 0, 2);
     if (u8 *const name = at<u8 *>(buf, 0x44)) {
         StdString_Tidy(reinterpret_cast<StdString *>(name), nullptr, 1);
         GameHeap_Free(name);
     }
     lose_use(at<u8 *>(buf, 0x4c));
-    at<u32>(buf, 0) = 0x007099a4;
+    at<u32>(buf, 0) = (u32)(uintptr_t)Class7099a4_vtable;
     lose_use(at<u8 *>(buf, 0x34));
 }
 
 void __fastcall WOfstream_VbaseDtor(u8 *ios) {
     u8 *const stream = ios - 0x58;
-    set_stream_vtable(stream, 0x0070062c);
+    set_stream_vtable(stream, (u32)(uintptr_t)Class70062c_vtable);
     WFileBuf_Dtor(stream + 4);
-    set_stream_vtable(stream, 0x007099ec);
+    set_stream_vtable(stream, (u32)(uintptr_t)Class7099ec_vtable);
 }
 
 void __fastcall WIfstream_VbaseDtor(u8 *ios) {
     u8 *const stream = ios - 0x5c;
-    set_stream_vtable(stream, 0x00700638);
+    set_stream_vtable(stream, (u32)(uintptr_t)Class700638_vtable);
     WFileBuf_Dtor(stream + 8);
-    set_stream_vtable(stream, 0x007099dc);
+    set_stream_vtable(stream, (u32)(uintptr_t)Class7099dc_vtable);
 }
 
 void __fastcall WOfstream_Dtor(u8 *stream) {
@@ -351,7 +351,7 @@ u16 __fastcall WFileBuf_Uflow(u8 *buf) {
 
 u8 *__fastcall CodecvtW_Ctor(u8 *self, void *, u32 refs) {
     at<u32>(self, 4) = refs;
-    at<u32>(self, 0) = 0x00709ce4;
+    at<u32>(self, 0) = (u32)(uintptr_t)CodecvtW_vtable;
     u8 info[0x48];
     g_env->locinfoCtor(info, nullptr, gLocalefacet_C_75c74c);
     const unsigned long long conversion = CRT_Getcvt();

@@ -3,6 +3,7 @@
 #include "movieidct.h"
 
 #include <cstdint>
+#include "tqivideo.h"
 
 namespace {
 
@@ -38,9 +39,9 @@ struct CoefficientReader {
     }
 };
 
-u32 &coefficient(u32 index) { return global<u32>(0x00fb7600 + index * 4); }
-u32 dequantiser(u32 index) { return global<u32>(0x00fb7820 + index * 4); }
-u32 zigzag(s32 at) { return global<u32>(0x00fbb5ac + (u32)at * 4); }
+u32 &coefficient(u32 index) { return gTgqvideo_fb7000[384 + index]; }
+u32 dequantiser(u32 index) { return gTgqvideo_fb7000[520 + index]; }
+u32 zigzag(s32 at) { return gTqivideo_fbb5ac[(u32)at]; }
 
 // A channel rounded to bits (TgqVideo_PackColour).
 s32 rounded(s32 v, u32 bits) {
@@ -57,7 +58,7 @@ s32 rounded(s32 v, u32 bits) {
 
 // A table's entry for a value (its low byte, signed): value * [0xfb7820] as 16.16 rounded by bit 15, then >> 1 & 0x7f.
 u32 entry(u32 table, s32 value) {
-    const int64_t product = (int64_t)(s8)value * (s32)global<u32>(0x00fb7820);
+    const int64_t product = (int64_t)(s8)value * (s32)gTgqvideo_fb7000[520];
     const u32 low = (u32)product, high = (u32)((uint64_t)product >> 32);
     const u32 scaled = (high << 16) + (low >> 16) + (low >> 15 & 1);
     return global<u32>(table + ((scaled >> 1) & 0x7f) * 4);
@@ -78,25 +79,25 @@ void fill32(u8 *at, u32 colour, u32 step) {
 struct BlockPlace {
     u32 at, stride;
 };
-const BlockPlace kBlockPlaces[6] = {{0x00fb7000, 0x40}, {0x00fb7020, 0x40}, {0x00fb7200, 0x40},
-                                    {0x00fb7220, 0x40}, {0x00fb7400, 0x20}, {0x00fb7500, 0x20}};
+const BlockPlace kBlockPlaces[6] = {{(u32)(uintptr_t)&gTgqvideo_fb7000, 0x40}, {((u32)(uintptr_t)&gTgqvideo_fb7000 + 0x20), 0x40}, {((u32)(uintptr_t)&gTgqvideo_fb7000 + 0x200), 0x40},
+                                    {((u32)(uintptr_t)&gTgqvideo_fb7000 + 0x220), 0x40}, {((u32)(uintptr_t)&gTgqvideo_fb7000 + 0x400), 0x20}, {((u32)(uintptr_t)&gTgqvideo_fb7000 + 0x500), 0x20}};
 
 void decodeBlocks(const u8 *data) {
-    global<const u8 *>(0x00fb7920) = data + 1;
+    gTgqvideo_fb7920 = data + 1;
     gTgqvideo_fb7928 = data[0];
     gTgqvideo_fb7924 = 8;
     for (const BlockPlace &place : kBlockPlaces) {
         // EDI as the decoder leaves it (the counter): the columns' out, so the first write faults (sic).
         s32 *const edi = reinterpret_cast<s32 *>((uintptr_t)(u32)TgqVideo_DecodeCoefficients());
-        for (u32 i = 0; i < 8; ++i) MovieIdct_Column(reinterpret_cast<const s32 *>((uintptr_t)(0x00fb7600 + i * 0x20)), edi);
+        for (u32 i = 0; i < 8; ++i) MovieIdct_Column(reinterpret_cast<const s32 *>((uintptr_t)(((u32)(uintptr_t)&gTgqvideo_fb7000 + 0x600) + i * 0x20)), edi);
         for (u32 i = 0; i < 8; ++i)
-            MovieIdct_Row(reinterpret_cast<const s32 *>((uintptr_t)(0x00fb7700 + i * 0x24)),
+            MovieIdct_Row(reinterpret_cast<const s32 *>((uintptr_t)(((u32)(uintptr_t)&gTgqvideo_fb7000 + 0x700) + i * 0x24)),
                           reinterpret_cast<s32 *>((uintptr_t)(place.at + i * place.stride)));
     }
 }
 
-const u32 *rowLuma(u32 j) { return reinterpret_cast<const u32 *>((uintptr_t)(0x00fb7000 + j * 0x40)); }
-const u32 *rowChroma(u32 j) { return reinterpret_cast<const u32 *>((uintptr_t)(0x00fb7400 + (j >> 1) * 0x20)); }
+const u32 *rowLuma(u32 j) { return reinterpret_cast<const u32 *>((uintptr_t)((u32)(uintptr_t)&gTgqvideo_fb7000 + j * 0x40)); }
+const u32 *rowChroma(u32 j) { return reinterpret_cast<const u32 *>((uintptr_t)(((u32)(uintptr_t)&gTgqvideo_fb7000 + 0x400) + (j >> 1) * 0x20)); }
 
 template <typename T> T &at(u8 *base, u32 offset) { return *reinterpret_cast<T *>(base + offset); }
 
@@ -155,17 +156,17 @@ void __fastcall TgqVideo_BuildTables(u32 unused, u32 red_bits, u32 green_bits, u
                                      u32 blue_shift) {
     for (u32 i = 0; i < 0x80; ++i) {
         const s32 v = (s8)(u8)(i * 2 + 1) + 0x80;
-        global<u32>(0x00fb7930 + i * 4) = TgqVideo_PackColour(v, v, v, unused, red_bits, green_bits, blue_bits, red_shift, green_shift, blue_shift);
+        gTgqvideo_fb7930[i] = TgqVideo_PackColour(v, v, v, unused, red_bits, green_bits, blue_bits, red_shift, green_shift, blue_shift);
     }
     for (u32 i = 0; i < 0x80; ++i) {
         const s32 c = (s8)(u8)(i * 2 + 1);
         const s32 g = (s32)fixmul(c, -0x5816), b = (s32)fixmul(c, 0x1c5a1);
-        global<u32>(0x00fb7d30 + i * 4) = TgqVideo_PackColour(0, g, b, 0, red_bits, green_bits, blue_bits, red_shift, green_shift, blue_shift);
+        gTgqvideo_fb7d30[i] = TgqVideo_PackColour(0, g, b, 0, red_bits, green_bits, blue_bits, red_shift, green_shift, blue_shift);
     }
     for (u32 i = 0; i < 0x80; ++i) {
         const s32 c = (s8)(u8)(i * 2 + 1);
         const s32 r = (s32)fixmul(c, 0x166e9), g = (s32)fixmul(c, -0xb6cf);
-        global<u32>(0x00fb7b30 + i * 4) = TgqVideo_PackColour(r, g, 0, 0, red_bits, green_bits, blue_bits, red_shift, green_shift, blue_shift);
+        gTgqvideo_fb7b30[i] = TgqVideo_PackColour(r, g, 0, 0, red_bits, green_bits, blue_bits, red_shift, green_shift, blue_shift);
     }
 }
 
@@ -179,15 +180,15 @@ u32 __fastcall TgqVideo_PackLanes(s32 a, s32 b, s32 c, s32 d) {
 void __fastcall TgqVideo_BuildLaneTables(s32 alpha) {
     for (u32 i = 0; i < 0x80; ++i) {
         const s32 v = (s8)(u8)(i * 2 + 1) + 0x80;
-        global<u32>(0x00fb7930 + i * 4) = TgqVideo_PackLanes(v, v, v, alpha);
+        gTgqvideo_fb7930[i] = TgqVideo_PackLanes(v, v, v, alpha);
     }
     for (u32 i = 0; i < 0x80; ++i) {
         const s32 c = (s8)(u8)(i * 2 + 1);
-        global<u32>(0x00fb7d30 + i * 4) = TgqVideo_PackLanes(0, (s32)fixmul(c, -0x5816), (s32)fixmul(c, 0x1c5a1), 0);
+        gTgqvideo_fb7d30[i] = TgqVideo_PackLanes(0, (s32)fixmul(c, -0x5816), (s32)fixmul(c, 0x1c5a1), 0);
     }
     for (u32 i = 0; i < 0x80; ++i) {
         const s32 c = (s8)(u8)(i * 2 + 1);
-        global<u32>(0x00fb7b30 + i * 4) = TgqVideo_PackLanes((s32)fixmul(c, 0x166e9), (s32)fixmul(c, -0xb6cf), 0, 0);
+        gTgqvideo_fb7b30[i] = TgqVideo_PackLanes((s32)fixmul(c, 0x166e9), (s32)fixmul(c, -0xb6cf), 0, 0);
     }
 }
 
@@ -200,7 +201,7 @@ void __cdecl TgqVideo_SetQuality(s32 quality) {
         u32 at = row_start;
         for (s32 k = 0; k < 8; ++k, ++i, at += step) {
             const u32 scale = (u32)((s32)at / 14 + base) << 16;
-            global<u32>(0x00fb7820 + i * 4) = fixmul(global<s32>(0x00705c88 + i * 4), (s32)scale);
+            gTgqvideo_fb7000[520 + i] = fixmul(gTqivideo_705c88[i], (s32)scale);
         }
     }
 }
@@ -211,9 +212,9 @@ void __cdecl TgqVideo_PixelRow16(const u32 *luma, u16 *out, const u32 *chroma) {
     for (int k = 0; k < 8; ++k) {
         if (k == 4) (void)dropped[8];
         const u32 y0 = luma[2 * k], y1 = luma[2 * k + 1], u = chroma[k], v = chroma[k + 0x40];
-        const u32 colour = global<u32>(0x00fb7d30 + (u >> 17 & 0x7f) * 4) + global<u32>(0x00fb7b30 + (v >> 17 & 0x7f) * 4);
-        out[2 * k] = (u16)(global<u32>(0x00fb7930 + (y0 >> 17 & 0x7f) * 4) + colour);
-        out[2 * k + 1] = (u16)(global<u32>(0x00fb7930 + (y1 >> 17 & 0x7f) * 4) + colour);
+        const u32 colour = gTgqvideo_fb7d30[(u >> 17 & 0x7f)] + gTgqvideo_fb7b30[(v >> 17 & 0x7f)];
+        out[2 * k] = (u16)(gTgqvideo_fb7930[(y0 >> 17 & 0x7f)] + colour);
+        out[2 * k + 1] = (u16)(gTgqvideo_fb7930[(y1 >> 17 & 0x7f)] + colour);
     }
 }
 
@@ -223,20 +224,20 @@ void __cdecl TgqVideo_PixelRow32(const u32 *luma, u32 *out, const u32 *chroma) {
     for (int k = 0; k < 8; ++k) {
         if (k == 4) (void)dropped[8];
         const u32 y0 = luma[2 * k], y1 = luma[2 * k + 1], u = chroma[k], v = chroma[k + 0x40];
-        const u32 colour = global<u32>(0x00fb7d30 + (u >> 17 & 0x7f) * 4) + global<u32>(0x00fb7b30 + (v >> 17 & 0x7f) * 4);
-        out[2 * k] = global<u32>(0x00fb7930 + (y0 >> 17 & 0x7f) * 4) + colour;
-        out[2 * k + 1] = global<u32>(0x00fb7930 + (y1 >> 17 & 0x7f) * 4) + colour;
+        const u32 colour = gTgqvideo_fb7d30[(u >> 17 & 0x7f)] + gTgqvideo_fb7b30[(v >> 17 & 0x7f)];
+        out[2 * k] = gTgqvideo_fb7930[(y0 >> 17 & 0x7f)] + colour;
+        out[2 * k + 1] = gTgqvideo_fb7930[(y1 >> 17 & 0x7f)] + colour;
     }
 }
 
 s32 __cdecl TgqVideo_DecodeCoefficients() {
-    CoefficientReader in = {global<const u8 *>(0x00fb7920), gTgqvideo_fb7928, gTgqvideo_fb7924};
+    CoefficientReader in = {gTgqvideo_fb7920, gTgqvideo_fb7928, gTgqvideo_fb7924};
     coefficient(0) = fixmul((s32)(in.bits << 24) >> 8, (s32)dequantiser(0));
     in.Next8();
     s32 at = 0x3f;
     do {
         u32 index = zigzag(at);
-        const u32 target = global<u32>(0x00fbbaac + (in.bits & 7) * 4);
+        const u32 target = gTqivideo_fbb5ac[320 + (in.bits & 7)];
         bool wide = true;
         switch (target) {
         case 0x00672ede:
@@ -295,7 +296,7 @@ s32 __cdecl TgqVideo_DecodeCoefficients() {
             in.Drop3();
         }
     } while (--at > 0);
-    global<const u8 *>(0x00fb7920) = in.source;
+    gTgqvideo_fb7920 = in.source;
     gTgqvideo_fb7928 = in.bits;
     gTgqvideo_fb7924 = in.count;
     return at;
@@ -322,21 +323,21 @@ void __fastcall TgqVideo_DecodeFrame32(u8 *player, const u8 *data, u8 *out, u32,
 }
 
 void __cdecl TgqVideo_FillBlocks16(s32 y0, s32 y1, s32 y2, s32 y3, s32 c0, s32 c1, u8 *out, u32 pitch) {
-    const u32 chroma = entry(0x00fb7d30, c0) + entry(0x00fb7b30, c1);
+    const u32 chroma = entry((u32)(uintptr_t)&gTgqvideo_fb7d30, c0) + entry((u32)(uintptr_t)&gTgqvideo_fb7b30, c1);
     const u32 step = (pitch >> 1) * 2;
-    fill16(out, entry(0x00fb7930, y0) + chroma, step);
-    fill16(out + 0x10, entry(0x00fb7930, y1) + chroma, step);
-    fill16(out + pitch * 8, entry(0x00fb7930, y2) + chroma, step);
-    fill16(out + pitch * 8 + 0x10, entry(0x00fb7930, y3) + chroma, step);
+    fill16(out, entry((u32)(uintptr_t)&gTgqvideo_fb7930, y0) + chroma, step);
+    fill16(out + 0x10, entry((u32)(uintptr_t)&gTgqvideo_fb7930, y1) + chroma, step);
+    fill16(out + pitch * 8, entry((u32)(uintptr_t)&gTgqvideo_fb7930, y2) + chroma, step);
+    fill16(out + pitch * 8 + 0x10, entry((u32)(uintptr_t)&gTgqvideo_fb7930, y3) + chroma, step);
 }
 
 void __cdecl TgqVideo_FillBlocks32(s32 y0, s32 y1, s32 y2, s32 y3, s32 c0, s32 c1, u8 *out, u32 pitch) {
-    const u32 chroma = entry(0x00fb7d30, c0) + entry(0x00fb7b30, c1);
+    const u32 chroma = entry((u32)(uintptr_t)&gTgqvideo_fb7d30, c0) + entry((u32)(uintptr_t)&gTgqvideo_fb7b30, c1);
     const u32 step = (pitch >> 2) * 4;
-    fill32(out, entry(0x00fb7930, y0) + chroma, step);
-    fill32(out + 0x20, entry(0x00fb7930, y1) + chroma, step);
-    fill32(out + pitch * 8, entry(0x00fb7930, y2) + chroma, step);
-    fill32(out + pitch * 8 + 0x20, entry(0x00fb7930, y3) + chroma, step);
+    fill32(out, entry((u32)(uintptr_t)&gTgqvideo_fb7930, y0) + chroma, step);
+    fill32(out + 0x20, entry((u32)(uintptr_t)&gTgqvideo_fb7930, y1) + chroma, step);
+    fill32(out + pitch * 8, entry((u32)(uintptr_t)&gTgqvideo_fb7930, y2) + chroma, step);
+    fill32(out + pitch * 8 + 0x20, entry((u32)(uintptr_t)&gTgqvideo_fb7930, y3) + chroma, step);
 }
 
 u32 __fastcall TgqVideo_SetBlockBase(u32 value, u8 *state) {
