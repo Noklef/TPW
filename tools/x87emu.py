@@ -939,6 +939,7 @@ MMX = {'PADDW': lambda d, s: _join([a + b for a, b in zip(_lanes(d, 16), _lanes(
        'PSLLW': _shift(lambda x, s: x << s, 16),
        'PSRLW': _shift(lambda x, s: x >> s, 16),
        'PSRLQ': _shift(lambda x, s: x >> s, 64),
+       'PSLLQ': _shift(lambda x, s: x << s, 64),
        'PSRLD': _shift(lambda x, s: x >> s, 32),
        'PADDUSB': lambda d, s: _join([min(255, a + b) for a, b in zip(_lanes(d, 8), _lanes(s, 8))], 8),
        'PMADDWD': lambda d, s: _join([_signed(d1, 16) * _signed(s1, 16) + _signed(d2, 16) * _signed(s2, 16) for d1, d2, s1, s2 in
@@ -948,6 +949,7 @@ MMX = {'PADDW': lambda d, s: _join([a + b for a, b in zip(_lanes(d, 16), _lanes(
        'PUNPCKLBW': lambda d, s: _join([x for p in zip(_lanes(d, 8)[:4], _lanes(s, 8)[:4]) for x in p], 8),
        'PUNPCKLWD': lambda d, s: _join([x for p in zip(_lanes(d, 16)[:2], _lanes(s, 16)[:2]) for x in p], 16),
        'PUNPCKHBW': lambda d, s: _join([x for p in zip(_lanes(d, 8)[4:], _lanes(s, 8)[4:]) for x in p], 8),
+       'PUNPCKHWD': lambda d, s: _join([x for p in zip(_lanes(d, 16)[2:], _lanes(s, 16)[2:]) for x in p], 16),
        'PUNPCKLDQ': lambda d, s: _join([d & 0xffffffff, s & 0xffffffff], 32),
        'PUNPCKHDQ': lambda d, s: _join([d >> 32, s >> 32], 32),
        'PADDD': lambda d, s: _join([a + b for a, b in zip(_lanes(d, 32), _lanes(s, 32))], 32),
@@ -966,6 +968,8 @@ MMX = {'PADDW': lambda d, s: _join([a + b for a, b in zip(_lanes(d, 16), _lanes(
        'PFMUL': lambda d, s: _join([_sse_single('MULPS', a, b) for a, b in zip(_lanes(d, 32), _lanes(s, 32))], 32),
        'PFACC': lambda d, s: _join([_sse_single('ADDPS', *_lanes(d, 32)), _sse_single('ADDPS', *_lanes(s, 32))], 32),
        'MOVD': lambda d, s: s & 0xffffffff, 'MOVQ': lambda d, s: s}
+assert MMX['PSLLQ'](0x8877665544332211, 0x20) == 0x4433221100000000 and MMX['PSLLQ'](1, 64) == 0
+assert MMX['PUNPCKHWD'](0x8877665544332211, 0xffeeddccbbaa9988) == 0xffee8877ddcc6655   # (the high words interleaved)
 
 
 def fbits(x):
