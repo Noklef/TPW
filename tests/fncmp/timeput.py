@@ -51,7 +51,7 @@ def case(r):
     pointers = []
     for i in range(43):   # (the facet's names: days, months, AM/PM, the date and time pictures)
         pointers.append(STRINGS + len(text))
-        text += (b''.join(r.choice(PICTURES) for _ in range(r.randrange(4))) if i >= 40 else r.choice([b'', b'n', b'Sun', b'Sunday', b'name%d' % i])) + b'\0'
+        text += (b''.join(r.choice(PICTURES) for _ in range(r.randrange(4))) if i >= 40 else r.choice([b'', b'n', b'Sun', b'Sunday', b'name%d' % i, b'x' * r.choice([40, 70])])) + b'\0'   # (long: the string grown past 32)
     regions[STRINGS] = bytes(text) + bytes(8)
     regions[NAMES] = struct.pack('<43I', *pointers)
     regions[0x781f8c] = struct.pack('<I', NAMES)

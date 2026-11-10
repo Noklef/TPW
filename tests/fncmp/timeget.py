@@ -41,7 +41,7 @@ NUMBERS = {'getint': [b'', b'0', b'7', b'12', b'+5', b'-5', b'-', b'+', b'000', 
                     b'12:34:56x', b'1::2', b':1:2', b'-0:-0:-0', b'99999999999:1:1'],
            'year': [b'1999', b'0', b'99', b'135', b'136', b'1899', b'1900', b'2035', b'2036', b'-5', b'+2000', b'00002000', b'', b'x', b'20x', b'99999999999', b'-0']}
 MONTH_WORDS = [b'Jan', b'January', b'Feb', b'May', b'Dec', b'December', b'Ja', b'x', b'']
-DAY_PARTS = [b' 1, 1999', b' 31, 2000', b' 0, 1999', b' 32, 99', b' 5,1999', b' 5, ', b' 5', b' 15, 2036', b' 15, 1899', b' 15, 135', b' 15, 136', b' +3, +2000', b' 09, 0002000',
+DAY_PARTS = [b' 1, 1999', b' 31, 2000', b' 0, 1999', b' 32, 99', b' 5,1999', b' 5, ', b' 5,', b' 5', b' 15, 2036', b' 15, 1899', b' 15, 135', b' 15, 136', b' +3, +2000', b' 09, 0002000',
              b'1, 1999', b' 1 1999', b' x, 1999', b' 1,  1999', b' 7, 1x', b'', b' -1, 5']
 DAYS = b':Sun:Sunday:Mon:Monday:Tue:Tuesday:Wed:Wednesday:Thu:Thursday:Fri:Friday:Sat:Saturday'
 MONTHS = b':Jan:January:Feb:February:Mar:March:Apr:April:May:May:Jun:June:Jul:July:Aug:August:Sep:September:Oct:October:Nov:November:Dec:December'
