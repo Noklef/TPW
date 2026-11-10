@@ -7,6 +7,7 @@
 #include "../core/initializers.h"
 #include "../core/methods.h"
 #include "../core/vcall.h"
+#include "../ui/guifont.h"
 
 namespace {
 
@@ -189,6 +190,18 @@ u8 *__fastcall Obj_CtorValue(u8 *object, void *, u32 value) {
     Fn_657d30(object);
     at<u32>(object, 0) = 0x006ff058;
     at<u32>(object, 0x14) = value;
+    return object;
+}
+
+void __fastcall TextMetrics_Dtor(u8 *object) {
+    at<u32>(object, 0) = 0x006ff058;
+    GuiFont_Dtor(object);
+}
+
+u8 *__fastcall TextMetrics_DeletingDtor(u8 *object, void *, u32 flags) {
+    TextMetrics_Dtor(object);
+    if (flags & 1)
+        GameHeap_Free(object);
     return object;
 }
 }  // extern "C"
