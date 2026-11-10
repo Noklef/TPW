@@ -209,5 +209,11 @@ SPAN_THUNK(RasterSpan_TexTintZ)
 SPAN_THUNK(RasterSpan_TexBrightZ)
 SPAN_THUNK(RasterSpan_TexShadeNoZ)
 SPAN_THUNK(RasterSpan_TexAddNoZ)
+SPAN_THUNK(RasterSpan_TexBlendKeyedNoZ)
+SPAN_THUNK(RasterSpan_TexBlendLitNoZ)
+SPAN_THUNK(RasterSpan_BilinearAddNoZ)
+SPAN_THUNK(RasterSpan_BilinearShadeNoZ)
+SPAN_THUNK(RasterSpan_BilinearBlendLitNoZ)
+SPAN_THUNK(RasterSpan_ShadeNoZ)
 #undef SPAN_THUNK
 }

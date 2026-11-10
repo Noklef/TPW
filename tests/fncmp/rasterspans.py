@@ -16,12 +16,13 @@ import x87emu  # noqa: E402
 
 assert x87emu.MMX['PUNPCKHBW'](0x8877665544332211, 0xffeeddccbbaa9988) == 0xff88ee77dd66cc55   # (the high bytes interleaved)
 
-B = Bench([(0x6f1d70, 0x6f5980)])
+B = Bench([(0x6f1d70, 0x6f6156)])
 SPANS = [0x6f1d70, 0x6f2140, 0x6f2570, 0x6f29d0, 0x6f2de0, 0x6f31c0, 0x6f36d0, 0x6f3be0, 0x6f4140, 0x6f4690, 0x6f49c0, 0x6f4d40,
-         0x6f50d0, 0x6f5590, 0x6f5840]
-UNMASKED = [0x6f29d0, 0x6f5590, 0x6f5840]   # (the texel index not masked: u and v kept to top bytes below 0xe, the texels 0x1000)
-TABLED = [0x6f3be0, 0x6f4140]   # (the blend tables' row from the filtered word: the weights' masks at most 0x3fff)
-LIT = 0x6f4140   # (the row from the shaded word: the shade words kept positive)
+         0x6f50d0, 0x6f5590, 0x6f5840, 0x6f56d0, 0x6f5980, 0x6f5af0, 0x6f5cc0, 0x6f5e90, 0x6f6090]
+# (the texel index not masked: u and v kept to top bytes below 0xe, the half-texel offset below 0x1000000, the texels 0x1000)
+UNMASKED = [0x6f29d0, 0x6f5590, 0x6f5840, 0x6f56d0, 0x6f5980, 0x6f5af0, 0x6f5cc0, 0x6f5e90]
+TABLED = [0x6f3be0, 0x6f4140, 0x6f5e90]   # (the blend tables' row from the filtered word: the weights' masks at most 0x3fff)
+LIT = [0x6f4140, 0x6f5980]   # (the row from the shaded word: the shade words kept positive)
 G, EDGES, TEXELS, PIXELS, DEPTHS = 0xfbe000, RAM, RAM + 0x1000, RAM + 0x20000, RAM + 0x30000
 WIDTH = 24
 
@@ -54,13 +55,14 @@ def case(r):
     struct.pack_into('<I', g, 0x08, mask)
     struct.pack_into('<i', g, 0x10, alpha)
     struct.pack_into('<II', g, 0x1b8, *[r.deal([0x3fff, 0x3fc0, 0x1fff] if address in TABLED else [0x3fff, 0x3fc0, 0xffff, 0xffffffff]) for _ in range(2)])
-    if address == LIT:
+    if address in LIT:
         struct.pack_into('<4h', g, 0x150, *[r.randrange(-0x100, 0x100) for _ in range(4)])
     if flat:
         struct.pack_into('<I', g, 0x148, 0)
     if small:
         struct.pack_into('<ii', g, 0x138, r.randrange(-0x100000, 0x100000), r.randrange(-0x100000, 0x100000))
         struct.pack_into('<4h', g, 0x160, *[r.randrange(-0x20, 0x20) for _ in range(4)])
+        struct.pack_into('<II', g, 0xe4, r.randrange(0x1000000), r.randrange(0x1000000))
     struct.pack_into('<ii', g, 0x2c, -pitch if up else pitch, -zpitch if up else zpitch)
     struct.pack_into('<I', g, 0x34, r.deal([0, 1, 0x80000000]))
     struct.pack_into('<I', g, 0x38, TEXELS)
@@ -72,7 +74,7 @@ def case(r):
     texels = bytearray(r.randbytes(0x4000 if small else ((mask & 0xffff) + 0x102) * 4))   # (0x6f4140's neighbours past the mask)
     if r.randrange(2):   # (the texels' top 6 bits within 1 of the alpha threshold)
         texels[3::4] = bytes(texels[3::4]).translate(bytes(((alpha + b % 3 - 1) & 63) << 2 | (b & 3) for b in range(256)))
-    regions = {G: bytes(g), EDGES: b''.join(edge(r, z, small, address == LIT) for _ in range(4)), TEXELS: bytes(texels),
+    regions = {G: bytes(g), EDGES: b''.join(edge(r, z, small, address in LIT) for _ in range(4)), TEXELS: bytes(texels),
                PIXELS: r.randbytes(total * pitch), DEPTHS: depths}
     return Call(address, [row] + [r.getrandbits(32) for _ in range(6)], regions, conv='ebp', jumped=True, ignore=[(0xfbe218, 4)])
 

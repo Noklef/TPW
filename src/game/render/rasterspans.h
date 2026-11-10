@@ -73,4 +73,26 @@ void __cdecl RasterSpan_TexShadeNoZ(u32 row);
 // 0x6f5840 (table 0x6f19b8; row loop 0x6f58a0): RasterSpan_TexAdd's pixel, the texel unmasked, every pixel drawn as
 // RasterSpan_TexShadeNoZ's.
 void __cdecl RasterSpan_TexAddNoZ(u32 row);
+
+// 0x6f56d0 (table 0x6f19b4; row loop 0x6f5730): every pixel as RasterSpan_TexShadeNoZ's, the shaded texel blended by its own top 6
+// bits (as RasterSpan_TexBlendLit's), the pixel left at 0 and the shaded texel written unblended at 63.
+void __cdecl RasterSpan_TexBlendKeyedNoZ(u32 row);
+
+// 0x6f5980 (table 0x6f19bc; row loop 0x6f59e0): every pixel as RasterSpan_TexShadeNoZ's, RasterSpan_TexBlendLit's blend by the
+// fourth shaded word >> 2.
+void __cdecl RasterSpan_TexBlendLitNoZ(u32 row);
+
+// 0x6f5af0 (table 0x6f19c0; row loop 0x6f5b50): every pixel as RasterSpan_TexShadeNoZ's, RasterSpan_BilinearAdd's pixel, the
+// index not masked at all.
+void __cdecl RasterSpan_BilinearAddNoZ(u32 row);
+
+// 0x6f5cc0 (table 0x6f19c4; row loop 0x6f5d20): RasterSpan_BilinearShadeZ's pixel, as RasterSpan_BilinearAddNoZ.
+void __cdecl RasterSpan_BilinearShadeNoZ(u32 row);
+
+// 0x6f5e90 (table 0x6f19c8; row loop 0x6f5ef0): as RasterSpan_BilinearAddNoZ, the filtered texel blended as
+// RasterSpan_TexBlendLit's by its fourth word >> 2 (before shading).
+void __cdecl RasterSpan_BilinearBlendLitNoZ(u32 row);
+
+// 0x6f6090 (table 0x6f19cc; row loop 0x6f60f0): RasterSpan_ShadeZ's pixel, every pixel drawn, no depth read, written or stepped.
+void __cdecl RasterSpan_ShadeNoZ(u32 row);
 }

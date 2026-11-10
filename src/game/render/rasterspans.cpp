@@ -43,11 +43,11 @@ template <bool kMasked> void Point(const u32 *uv, u16 *source, u32 &texel) {
 }
 
 // The four texels at (u, v), (u + 1, v), (u, v + 1), (u + 1, v + 1) weighted by u's and v's bits 10-25 masked by [0xfbe1b8] (its
-// two dwords); kWrapped: the index stepped by 1, 0x100, -1 and masked each time, else the masked index plus 1, 0x100, 0x101.
-template <bool kWrapped> void Filter(const u32 *uv, u16 *source, u32 &texel) {
+// two dwords); kWrapped: the index stepped by 1, 0x100, -1 and masked each time, else the index (masked, or not) plus 1, 0x100, 0x101.
+template <bool kWrapped, bool kMasked = true> void Filter(const u32 *uv, u16 *source, u32 &texel) {
     const u32 mask = global<u32>(0x00fbe008);
     const u32 *const texels = global<const u32 *>(0x00fbe038);
-    const u32 index = ((uv[0] >> 24) | (uv[1] >> 24) << 8) & mask;
+    const u32 index = ((uv[0] >> 24) | (uv[1] >> 24) << 8) & (kMasked ? mask : ~0u);
     const u32 i10 = kWrapped ? (index + 1) & mask : index + 1;
     const u32 i11 = kWrapped ? (i10 + 0x100) & mask : index + 0x101;
     const u32 i01 = kWrapped ? (i11 - 1) & mask : index + 0x100;
@@ -87,13 +87,16 @@ template <Source kSource> u32 Blend(const u32 *uv, const u16 *shade, const u32 *
     return out;
 }
 
-// The source shaded as Shade's, then 4 * each word and 4 * the pixel under it times their tables' rows, for the top bits of the
-// fourth shaded word (word >> 2) or kSecond of the second (word >> 10, sic: the first two words' top 6 bits), summed.
-template <Source kSource, bool kSecond> u32 BlendLit(const u32 *uv, const u16 *shade, const u32 *dest, u32 &texel) {
+// Where BlendLit's alpha comes from: the fourth shaded word >> 2; the second >> 10 (sic: the first two words' top 6 bits); the
+// fourth source word >> 2.
+enum Alpha { kLitFourth, kLitSecond, kSourceFourth };
+
+// The source shaded as Shade's, then 4 * each word and 4 * the pixel under it times their tables' rows for the alpha, summed.
+template <Source kSource, Alpha kAlpha> u32 BlendLit(const u32 *uv, const u16 *shade, const u32 *dest, u32 &texel) {
     u16 source[4], lit[4];
     kSource(uv, source, texel);
     for (int k = 0; k < 4; ++k) lit[k] = (u16)MulHigh((u16)(source[k] * 2), shade[k]);
-    const u32 alpha = kSecond ? lit[1] >> 10 : lit[3] >> 2, under = *dest;
+    const u32 alpha = kAlpha == kLitFourth ? lit[3] >> 2 : kAlpha == kLitSecond ? lit[1] >> 10 : source[3] >> 2, under = *dest;
     const u16 *const mine = at<const u16>(0x00fbe2e0 + alpha * 8), *const theirs = at<const u16>(0x00fbe4e0 + alpha * 8);
     u32 out = 0;
     for (int k = 0; k < 4; ++k)
@@ -106,6 +109,21 @@ u32 Copy(const u32 *uv, const u16 *, const u32 *, u32 &texel) { return texel = T
 
 // The texel shaded as Shade's by the four words at 0xfbe000 (one shade for the triangle).
 u32 Tint(const u32 *uv, const u16 *, const u32 *dest, u32 &texel) { return Shade<Point<true>>(uv, at<const u16>(0x00fbe000), dest, texel); }
+
+// The texel (unmasked) shaded as Shade's and blended as BlendLit's by its own top 6 bits: at 0 the pixel under it kept (not
+// written), at 63 the shaded texel unblended.
+u32 BlendKeyed(const u32 *uv, const u16 *shade, const u32 *dest, u32 &texel) {
+    texel = Texel<false>(uv);
+    const u32 alpha = texel >> 26, under = *dest;
+    if (alpha == 0) return under;
+    const u16 *const mine = at<const u16>(0x00fbe2e0 + alpha * 8), *const theirs = at<const u16>(0x00fbe4e0 + alpha * 8);
+    u32 out = 0;
+    for (int k = 0; k < 4; ++k) {
+        const u16 lit = (u16)MulHigh((u16)(Byte(texel, k) * 2), shade[k]);
+        out |= Saturate(alpha == 63 ? (s16)lit : (s16)(MulHigh((u16)(lit << 2), mine[k]) + MulHigh((u16)(Byte(under, k) << 2), theirs[k])), k);
+    }
+    return out;
+}
 
 // a + b, each byte saturated (PADDUSB).
 u32 AddBytes(u32 a, u32 b) {
@@ -213,14 +231,17 @@ u32 TexRows(bool atLeast, Edge *left, const Edge *right, s32 rows, u32 row) {
 
 // 0x6f4690's row loop: the shade words >> 7, saturated, kept with the next pixel's depth (sic); the shade not prestepped (sic: the
 // prestep is computed, not applied); after a drawn pixel the next one is tested against the drawn one's depth (sic); u and v unused.
-u32 ShadeRows(bool atLeast, Edge *left, const Edge *right, s32 rows, u32 row) {
+// Without kZ (0x6f6090's): every pixel, no depth read, written or stepped, [0xfbe1f8] and [0xfbe1fc] not written.
+template <bool kZ> u32 ShadeRows(bool atLeast, Edge *left, const Edge *right, s32 rows, u32 row) {
     const u16 *const shadeStep = at<const u16>(0x00fbe150);
     const u32 depthStep = global<u32>(0x00fbe148);
     do {
         const u32 start = (left->x + 0x7fff) & 0xffff8000u, end = (right->x + 0x7fff) >> 15;
         const u32 depthRow = global<u32>(0x00fbe228) + end * 2;
-        global<s32>(0x00fbe1f8) = rows;
-        global<u32>(0x00fbe1fc) = row;
+        if (kZ) {
+            global<s32>(0x00fbe1f8) = rows;
+            global<u32>(0x00fbe1fc) = row;
+        }
         s32 i = (s32)((start >> 15) - end);
         if (i < 0) {
             const u32 pixels = row + end * 4;
@@ -229,12 +250,12 @@ u32 ShadeRows(bool atLeast, Edge *left, const Edge *right, s32 rows, u32 row) {
             for (int k = 0; k < 4; ++k) shade[k] = left->shade[k];
             for (; i < 0; ++i) {
                 u16 &depth = *at<u16>(depthRow + (u32)i * 2);
-                const bool drawn = atLeast ? depth >= (u16)test : depth <= (u16)test;
+                const bool drawn = !kZ || (atLeast ? depth >= (u16)test : depth <= (u16)test);
                 const u32 here = z;
                 z = StepDepth(z, depthStep);
                 test = drawn ? here : z;
                 if (drawn) {
-                    depth = (u16)z;
+                    if (kZ) depth = (u16)z;
                     u32 out = 0;
                     for (int k = 0; k < 4; ++k) out |= Saturate((s16)(shade[k] >> 7), k);
                     *at<u32>(pixels + (u32)i * 4) = out;
@@ -242,7 +263,7 @@ u32 ShadeRows(bool atLeast, Edge *left, const Edge *right, s32 rows, u32 row) {
                 for (int k = 0; k < 4; ++k) shade[k] = (u16)(shade[k] + shadeStep[k]);
             }
         }
-        row = NextRow<false>(left, right, row);
+        row = NextRow<false, true, kZ>(left, right, row);
     } while (--rows > 0);
     return row;
 }
@@ -270,7 +291,7 @@ void __cdecl RasterSpan_TexBlend(u32 row) { Parts<TexRows<Blend<Point<true>>, kK
 
 void __cdecl RasterSpan_TexBlendAlphaZ(u32 row) { Parts<TexRows<Blend<Point<true>>, kAlphaTest, false, false>>(row); }
 
-void __cdecl RasterSpan_TexBlendLit(u32 row) { Parts<TexRows<BlendLit<Point<false>, true>, kKeep, true, false, true>>(row); }
+void __cdecl RasterSpan_TexBlendLit(u32 row) { Parts<TexRows<BlendLit<Point<false>, kLitSecond>, kKeep, true, false, true>>(row); }
 
 void __cdecl RasterSpan_TexAdd(u32 row) { Parts<TexRows<Add<Point<true>>, kKeep, false, false>>(row); }
 
@@ -280,9 +301,9 @@ void __cdecl RasterSpan_BilinearAdd(u32 row) { Parts<TexRows<Add<Filter<true>>, 
 
 void __cdecl RasterSpan_BilinearBlend(u32 row) { Parts<TexRows<Blend<Filter<true>>, kKeep, false, true>>(row); }
 
-void __cdecl RasterSpan_BilinearBlendLitZ(u32 row) { Parts<TexRows<BlendLit<Filter<false>, false>, kWrite, false, true>>(row); }
+void __cdecl RasterSpan_BilinearBlendLitZ(u32 row) { Parts<TexRows<BlendLit<Filter<false>, kLitFourth>, kWrite, false, true>>(row); }
 
-void __cdecl RasterSpan_ShadeZ(u32 row) { Parts<ShadeRows>(row); }
+void __cdecl RasterSpan_ShadeZ(u32 row) { Parts<ShadeRows<true>>(row); }
 
 void __cdecl RasterSpan_TexZ(u32 row) { Parts<TexRows<Copy, kWriteNext, false, false, false, false>>(row); }
 
@@ -293,4 +314,18 @@ void __cdecl RasterSpan_TexBrightZ(u32 row) { Parts<TexRows<Bright, kWriteNext, 
 void __cdecl RasterSpan_TexShadeNoZ(u32 row) { Parts<TexRows<Shade<Point<false>>, kNone, false, false>>(row); }
 
 void __cdecl RasterSpan_TexAddNoZ(u32 row) { Parts<TexRows<Add<Point<false>>, kNone, false, false>>(row); }
+
+void __cdecl RasterSpan_TexBlendKeyedNoZ(u32 row) { Parts<TexRows<BlendKeyed, kNone, false, false>>(row); }
+
+void __cdecl RasterSpan_TexBlendLitNoZ(u32 row) { Parts<TexRows<BlendLit<Point<false>, kLitFourth>, kNone, false, false>>(row); }
+
+void __cdecl RasterSpan_BilinearAddNoZ(u32 row) { Parts<TexRows<Add<Filter<false, false>>, kNone, false, true>>(row); }
+
+void __cdecl RasterSpan_BilinearShadeNoZ(u32 row) { Parts<TexRows<Shade<Filter<false, false>>, kNone, false, true>>(row); }
+
+void __cdecl RasterSpan_BilinearBlendLitNoZ(u32 row) {
+    Parts<TexRows<BlendLit<Filter<false, false>, kSourceFourth>, kNone, false, true>>(row);
+}
+
+void __cdecl RasterSpan_ShadeNoZ(u32 row) { Parts<ShadeRows<false>>(row); }
 }

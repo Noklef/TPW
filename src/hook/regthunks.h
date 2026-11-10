@@ -36,5 +36,11 @@ void RegThunk_RasterSpan_TexTintZ(); // 0x6f4d40: the same
 void RegThunk_RasterSpan_TexBrightZ(); // 0x6f50d0: the same
 void RegThunk_RasterSpan_TexShadeNoZ(); // 0x6f5590: the same
 void RegThunk_RasterSpan_TexAddNoZ(); // 0x6f5840: the same
+void RegThunk_RasterSpan_TexBlendKeyedNoZ(); // 0x6f56d0: the same
+void RegThunk_RasterSpan_TexBlendLitNoZ(); // 0x6f5980: the same
+void RegThunk_RasterSpan_BilinearAddNoZ(); // 0x6f5af0: the same
+void RegThunk_RasterSpan_BilinearShadeNoZ(); // 0x6f5cc0: the same
+void RegThunk_RasterSpan_BilinearBlendLitNoZ(); // 0x6f5e90: the same
+void RegThunk_RasterSpan_ShadeNoZ(); // 0x6f6090: the same
 void RegThunk_TqiVideo_DecodeBlock(); // 0x674ab9: DC in EAX, dequantiser in ESI, bits in EBP, position in EDI (and out), out in EDX, pitch in ECX (ECX and EDX kept)
 }
