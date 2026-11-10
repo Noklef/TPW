@@ -6329,6 +6329,10 @@ address,name,kind,confidence,notes
 0x0067e530,CRT_remove,function,high,reimplemented (src/game/core/crtopen); remove: DeleteFileA
 0x0067e560,CRT_unlink,function,high,reimplemented (src/game/core/crtopen); _unlink: remove
 0x0067ecc0,CRT_rename,function,high,reimplemented (src/game/core/crtopen); rename: MoveFileA
+0x00687230,CRT_ioinit,function,high,"reimplemented (src/game/core/crtopen); _ioinit: the handle table made, the inherited and standard handles"
+0x0067e750,CRT_initstdio,function,high,reimplemented (src/game/core/crtopen); _initstdio: the stream table made
+0x0067e810,CRT_endstdio,function,high,"reimplemented (src/game/core/crtopen); _endstdio: the streams flushed, closed with the exit flag"
+0x0068b9f0,CRT_rmtmp,function,high,reimplemented (src/game/core/crtopen); _rmtmp: the temporary files closed
 0x0067efc0,CRT_amsg_exit,function,low,"reimplemented (src/game/core/crtmessage); MSVC6 _amsg_exit: the banner when [0xfb135c] is 1, the message, exit(0xff) by [0x77ea80]"
 0x0067eff0,CRT_fast_error_exit,function,low,"reimplemented (src/game/core/crtmessage); MSVC6 fast_error_exit: as _amsg_exit, ExitProcess(0xff)"
 0x0068a170,CRT_FF_MSGBANNER,function,low,reimplemented (src/game/core/crtmessage); MSVC6 _FF_MSGBANNER

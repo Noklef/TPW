@@ -70,4 +70,19 @@ s32 __cdecl CRT_remove(const char *path);
 s32 __cdecl CRT_unlink(const char *path);
 s32 __cdecl CRT_rename(const char *from, const char *to);
 
+// 0x687230: _ioinit: the first block of the handle table (0x480 bytes, 0x20 slots: handle -1, flags 0, 0xa at +5; none: _amsg_exit(0x1b), and on past it, sic); the handles
+// GetStartupInfoA passes (a count up to 0x800, its flags, its handles; more blocks while they are made) for those open (flag 1) and not -1 (and, without flag 8, of a type);
+// then slots 0-2 still -1 from GetStdHandle (flags 0x81, the type's 0x40 for 2, 8 for 3; none: 0x40), the others 0x80 added. SetHandleCount of the table's count.
+void __cdecl CRT_ioinit();
+
+// 0x67e750: _initstdio: [0xfb4cc0] streams (0: 0x200, under 0x14: 0x14), the table [0xfb3cbc] from calloc (none: 0x14 again, then _amsg_exit(0x1a)); its first 20 the
+// _iob entries 0x77e800-0x77ea80; stdin, stdout, stderr get fd -1 where their handle is -1 or 0.
+void __cdecl CRT_initstdio();
+
+// 0x67e810: _endstdio: _flushall, then with [0xfb1398] set _fcloseall.
+void __cdecl CRT_endstdio();
+
+// 0x68b9f0: _rmtmp: under lock 2 each stream, locked, in use with a temporary file (+0x1c) by _fclose_lk; the count of them.
+s32 __cdecl CRT_rmtmp();
+
 }

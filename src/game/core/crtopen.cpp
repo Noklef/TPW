@@ -578,4 +578,112 @@ s32 __cdecl CRT_rename(const char *from, const char *to) {
     return -1;
 }
 
+void __cdecl CRT_ioinit() {
+    const auto clear_block = [](u32 index) {
+        for (u8 *slot = handle_block(index); slot < handle_block(index) + 0x480; slot += 0x24) {
+            slot[4] = 0;
+            *reinterpret_cast<u32 *>(slot) = 0xffffffff;
+            slot[5] = 0xa;
+            *reinterpret_cast<u32 *>(slot + 8) = 0;
+        }
+    };
+    const auto file_type = [](u32 handle) { return import_slot<u32(__stdcall *)(u32)>(0x006fd1a8)(handle); };
+    u8 *const block = static_cast<u8 *>(CRT_malloc(0x480));
+    if (!block) CrtInner().amsgExit(0x1b);
+    handle_block(0) = block;
+    handle_count() = 0x20;
+    clear_block(0);
+    u8 info[0x44];
+    import_slot<void(__stdcall *)(void *)>(0x006fd23c)(info);    // GetStartupInfoA
+    const u8 *const passed = *reinterpret_cast<u8 *const *>(info + 0x34);
+    if (*reinterpret_cast<const u16 *>(info + 0x32) && passed) {
+        s32 count = *reinterpret_cast<const s32 *>(passed);
+        const u8 *flags = passed + 4;
+        const u32 *handles = reinterpret_cast<const u32 *>(flags + count);
+        if (count >= 0x800) count = 0x800;
+        if (static_cast<s32>(handle_count()) < count) {
+            for (u32 i = 1;; ++i) {
+                u8 *const more = static_cast<u8 *>(CRT_malloc(0x480));
+                if (!more) {
+                    count = static_cast<s32>(handle_count());
+                    break;
+                }
+                handle_block(i) = more;
+                handle_count() += 0x20;
+                clear_block(i);
+                if (static_cast<s32>(handle_count()) >= count) break;
+            }
+        }
+        for (s32 i = 0; i < count; ++i, ++flags, ++handles) {
+            if (*handles == 0xffffffff || !(*flags & 1)) continue;
+            if (!(*flags & 8) && !file_type(*handles)) continue;
+            u8 *const slot = crt_handle(i);
+            *reinterpret_cast<u32 *>(slot) = *handles;
+            slot[4] = *flags;
+        }
+    }
+    for (s32 i = 0; i < 3; ++i) {
+        u8 *const slot = handle_block(0) + i * 0x24;
+        if (*reinterpret_cast<u32 *>(slot) != 0xffffffff) {
+            slot[4] |= 0x80;
+            continue;
+        }
+        slot[4] = 0x81;
+        const u32 handle = import_slot<u32(__stdcall *)(s32)>(0x006fd1ac)(i == 0 ? -10 : i == 1 ? -11 : -12);    // GetStdHandle
+        u32 type;
+        if (handle != 0xffffffff && (type = file_type(handle)) != 0) {
+            *reinterpret_cast<u32 *>(slot) = handle;
+            if ((type & 0xff) == 2)
+                slot[4] |= 0x40;
+            else if ((type & 0xff) == 3)
+                slot[4] |= 8;
+        } else {
+            slot[4] |= 0x40;
+        }
+    }
+    import_slot<u32(__stdcall *)(u32)>(0x006fd1b0)(handle_count());    // SetHandleCount
+}
+
+void __cdecl CRT_initstdio() {
+    s32 &count = global<s32>(0x00fb4cc0);
+    u32 *&table = global<u32 *>(0x00fb3cbc);
+    if (!count)
+        count = 0x200;
+    else if (count < 0x14)
+        count = 0x14;
+    table = static_cast<u32 *>(CrtInner().calloc(static_cast<u32>(count), 4));
+    if (!table) {
+        count = 0x14;
+        table = static_cast<u32 *>(CrtInner().calloc(0x14, 4));
+        if (!table) CrtInner().amsgExit(0x1a);
+    }
+    for (u32 i = 0, file = 0x0077e800; file < 0x0077ea80; file += 0x20, ++i) table[i] = file;
+    for (s32 i = 0; i < 3; ++i) {
+        const u32 handle = *reinterpret_cast<const u32 *>(crt_handle(i));
+        if (handle == 0xffffffff || !handle) global<u32>(0x0077e810 + i * 0x20) = 0xffffffff;
+    }
+}
+
+void __cdecl CRT_endstdio() {
+    CRT_flushall();
+    if (global<u8>(0x00fb1398)) CRT_fcloseall();
+}
+
+s32 __cdecl CRT_rmtmp() {
+    s32 count = 0;
+    CrtInner().lock(2);
+    for (s32 i = 0; i < global<s32>(0x00fb4cc0); ++i) {
+        if (!stream(i)) continue;
+        CrtInner().lockFile2(i, stream(i));
+        CrtFile *const file = stream(i);
+        if (file->flags & 0x83 && file->name) {
+            CrtInner().fcloseLocked(file);
+            ++count;
+        }
+        CrtInner().unlockFile2(i, stream(i));
+    }
+    CrtInner().unlock(2);
+    return count;
+}
+
 }
