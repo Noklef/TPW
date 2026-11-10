@@ -32,6 +32,7 @@
 #include "windowreg.h"
 #include "windowscript.h"
 #include "panel7b9940.h"
+#include "../world/balancelevel.h"
 
 using namespace panelparts;
 
@@ -198,7 +199,7 @@ void __cdecl Dialog7cc1f8_FillList(u32 kind, u32 clear) {
     }
     if (kind == 3) {
         row.text = (u32)(uintptr_t)g_env->text(0x86);
-        row.value = gDialog7cc1f8_78560c;
+        row.value = gBalanceLevel.mMapCell;
         row.state = 0;
         g_env->addItem(list, nullptr, &row.text, 0xffffffff, -1, 0);
         row.text = (u32)(uintptr_t)g_env->text(0x87);

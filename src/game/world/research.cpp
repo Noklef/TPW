@@ -20,6 +20,7 @@
 #include "../ui/dialog74fb20.h"
 #include "object.h"
 #include "research.h"
+#include "balancelevel.h"
 
 namespace {
 
@@ -307,7 +308,7 @@ void __fastcall ResearchLab_UpdateLevels(u8 *lab, void *, u32 cat) {
             if (!not_done(p)) ++done;
         }
         const u32 share = count ? done * 100 / count : 0;
-        if (share < reinterpret_cast<const u32 *>(0x00785540)[highest] || highest >= 7) break;
+        if (share < (u32)gBalanceLevel.mResearchTechPercentageForThisTech[1 + highest] || highest >= 7) break;
         ++highest;
         changed = true;
     }
@@ -320,7 +321,7 @@ void __fastcall ResearchLab_UpdateLevels(u8 *lab, void *, u32 cat) {
 void __fastcall ResearchLab_Init(u8 *lab) {
     at<u32>(lab, 0x145c) = 0;
     at<u32>(lab, 0x1464) = 0xffffffff;
-    at<u32>(lab, 0x1460) = *reinterpret_cast<const u32 *>(0x00785580);
+    at<u32>(lab, 0x1460) = (u32)gBalanceLevel.mStartingWorkLoad;
     GameTable7cfb90_Get1da720_519510(*reinterpret_cast<u8 *const *>(0x0080239c));   // (into ECX for the stdcall count, which ignores it)
     at<u8>(lab, 0x1468) = Things_CountStaffOfKind(8) > 0;
     ResearchLab_FillProjects(lab);
@@ -329,7 +330,7 @@ void __fastcall ResearchLab_Init(u8 *lab) {
 }
 
 void __fastcall ResearchLab_ApplyEfforts(u8 *lab) {
-    const u32 *const settings = reinterpret_cast<const u32 *>(0x00785568);
+    const u32 *const settings = reinterpret_cast<const u32 *>(gBalanceLevel.mResearchCategoriesEffort);
     for (u32 cat = 0; cat < 5; ++cat) {
         const u32 setting = settings[cat];
         at<u32>(lab, 0x140c + cat * 16) = setting < 100 ? setting : 100;

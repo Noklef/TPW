@@ -12,6 +12,7 @@
 #include "route.h"
 #include "things.h"
 #include "world.h"
+#include "balancelevel.h"
 
 namespace {
 
@@ -72,32 +73,32 @@ u32 __fastcall Visitor_ScoreOption(u8 *visitor, void *, u8 *object) {
         u32 room = at<u32>(object, 0x40);
         if (!room) room = 1;
         const u32 place = (u32)Object_QueuePositionOfNone(object) * 100 / (room * 4);
-        queueWeight = global<u32>(0x007850b4);
+        queueWeight = gBalanceLevel.mDecisionVarQueueWeight;
         queue = 100 - place;
     }
 
-    const u32 wanted = global<u8>(0x007850e4 + 12 * at<u8>(visitor, 0x1f0));
+    const u32 wanted = (u8)gBalanceLevel.mPeepTypes[at<u8>(visitor, 0x1f0)].mPreferredExcitement;
     s32 off = (s32)wanted - (s32)Object_Rating(object, nullptr, 0);
     if (off < 0) off = -off;
     if (off > 50) off = 50;
     const u32 rating = 100 - 2 * (u32)off;
-    const u32 ratingWeight = Object_Rating(object, nullptr, 1) ? (u16)global<u32>(0x007850b8) : 0;
+    const u32 ratingWeight = Object_Rating(object, nullptr, 1) ? (u16)gBalanceLevel.mDecisionVarExcitementWeight : 0;
 
     const u32 first = match(visitor, object, 0x1a4, 0x144);
     const u32 second = match(visitor, object, 0x1a8, 0x148);
     const u32 third = need(visitor, object, 0x1ac);
     const u32 fourth = need(visitor, object, 0x1b0);
 
-    const u32 wDistance = (u16)global<u32>(0x007850b0), wFirst = (u16)global<u32>(0x007850bc), wSecond = (u16)global<u32>(0x007850c0);
-    const u32 wThird = (u16)global<u32>(0x007850c4), wFourth = (u16)global<u32>(0x007850c8);
+    const u32 wDistance = (u16)gBalanceLevel.mDecisionVarDistWeight, wFirst = (u16)gBalanceLevel.mDecisionVarThirstWeight, wSecond = (u16)gBalanceLevel.mDecisionVarHungerWeight;
+    const u32 wThird = (u16)gBalanceLevel.mDecisionVarToiletWeight, wFourth = (u16)gBalanceLevel.mDecisionVarIllnessWeight;
     const u32 sum = rating * ratingWeight + distance * wDistance + wSecond * second + wFirst * first + wThird * third + wFourth * fourth +
                     queue * queueWeight;
     u32 score = sum / (queueWeight + wDistance + wSecond + wFirst + wFourth + wThird + ratingWeight);
 
-    if ((u32)Object_AgeDays(object) <= global<u32>(0x00785090)) score *= global<u32>(0x00785094);
+    if ((u32)Object_AgeDays(object) <= gBalanceLevel.mDecisionVariable1) score *= gBalanceLevel.mDecisionVariable2;
     if (at<s32>((const void *)(uintptr_t)GameTable7cfb90_Get1da724_519590(global<u8 *>(0x0080239c)), 0x30) > 0 &&
         at<u32>(Object_GetDef(object), 0x114) != 0)
-        score *= global<u32>(0x00785098);
+        score *= gBalanceLevel.mDecisionVariable3;
     if (at<s32>(Object_GetDef(object), 0xc4) > 0) {
         const s32 n = at<s32>(Object_GetDef(object), 0xc4) + 1;
         const X87Reg factor = X87_SubR(X87_MulIntDouble(n, -0.1), X87Reg(1.0));   // fild; fmul -0.1; fsubr 1.0

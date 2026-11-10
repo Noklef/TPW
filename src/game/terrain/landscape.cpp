@@ -19,6 +19,7 @@
 #include "../render/engineerrors.h"
 #include "../render/quad.h"
 #include "../render/meshlist.h"
+#include "../world/balancelevel.h"
 
 namespace {
 
@@ -302,7 +303,7 @@ u32 __fastcall Landscape_AddTexture(u8 *landscape, void *, u8 **out, const char 
 }
 
 u32 __fastcall Landscape_RemoveTextureList(u8 **list) {
-    const s32 &count = *reinterpret_cast<const s32 *>(0x00785724);
+    const s32 &count = (s32)gBalanceLevel.mn;
     for (s32 i = 0; i < count; i++)
         Landscape_RemoveTexture(reinterpret_cast<u8 *>(0x008c1828), nullptr, list[i]);
     return static_cast<u32>(count);
@@ -469,9 +470,9 @@ extern "C" {
 void __fastcall Landscape_AddTextureList(u8 **list) {
     String path;
     String_Ctor(&path);
-    const s32 &count = *reinterpret_cast<const s32 *>((uintptr_t)0x00785724);
+    const s32 &count = (s32)gBalanceLevel.mn;
     u8 *got = nullptr;
-    const u32 *row = reinterpret_cast<const u32 *>((uintptr_t)0x00785728);
+    const u32 *row = reinterpret_cast<const u32 *>(gBalanceLevel.mSkyObjects);
     for (s32 i = 0; i < count; ++i, row += 6) {
         vcall<void>(&path, 0x14, reinterpret_cast<const char *>((uintptr_t)g_calls.Cd(0x0040ef40)));
         String_EnsureTrailingBackslash(&path);

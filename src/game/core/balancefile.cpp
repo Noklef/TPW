@@ -9,6 +9,7 @@
 #include "gameerror.h"
 #include "gameheap.h"
 #include "string.h"
+#include "../world/balancelevel.h"
 
 namespace {
 
@@ -203,7 +204,7 @@ void __fastcall BalanceFile_Init(u8 *self) {
 
 void __cdecl BalanceHoardingsA_StaticDtor() { destroy(0x00784e30, 0x006fd618); }
 void __cdecl BalanceHoardingsB_StaticDtor() { destroy(0x00784c20, 0x006fd618); }
-void __cdecl BalanceLevel_StaticDtor() { destroy(0x00785040, 0x006fd620); }
+void __cdecl BalanceLevel_StaticDtor() { destroy((u32)&gBalanceLevel, 0x006fd620); }
 void __cdecl BalanceOnline_StaticDtor() { destroy(0x00785828, 0x006fd628); }
 void __cdecl BalanceGraphics_StaticDtor() { destroy(0x00785868, 0x006fd630); }
 void __cdecl BalanceResolution_StaticDtor() { destroy(0x007858e0, 0x006fd638); }

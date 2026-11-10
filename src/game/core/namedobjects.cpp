@@ -21,6 +21,7 @@
 #include "../world/things.h"
 #include "../world/world.h"
 #include "../ui/windowproc.h"
+#include "../world/balancelevel.h"
 
 namespace {
 
@@ -371,7 +372,7 @@ u32 __fastcall NamedObjects_LoadData(u8 *self) {
     vcall<void>(&path, 0x20, reinterpret_cast<const char *>(0x00747ee8));
     g_calls.Cd(0x00550e00, g_calls.Cd(0x0044a280, path.data, 1u, 0u));   // Scape_LoadObjects(Quickload_Locate(the path, 1, 0))
     g_calls.Th(0x005852b0, 0x008c1828u, base());                          // Landscape_LoadSky
-    if ((*reinterpret_cast<u32 *>((uintptr_t)0x008bcbc8) & 0x400000) && *reinterpret_cast<s32 *>((uintptr_t)0x00785724) > 0 && !at<u32>(self, 0x38)) {
+    if ((*reinterpret_cast<u32 *>((uintptr_t)0x008bcbc8) & 0x400000) && (s32)gBalanceLevel.mn > 0 && !at<u32>(self, 0x38)) {
         void *const list = GameHeap_Alloc(0x10);
         at<void *>(self, 0x38) = list;
         g_calls.Th(0x00418c30, (u32)(uintptr_t)list);                     // Landscape_AddTextureList (a null list too)

@@ -12,6 +12,7 @@
 #include "../math/x87.h"
 #include "../render/particles.h"
 #include "ridelist.h"
+#include "balancelevel.h"
 
 namespace {
 
@@ -281,6 +282,6 @@ void __cdecl RideScripts_SetReverb() {
             }
         }
     }
-    Sound_SetEaxRecord(global<u32>(0x0078578c));   // (gBalanceLevel's reverb)
+    Sound_SetEaxRecord((u32)gBalanceLevel.mReverb);   // (gBalanceLevel's reverb)
 }
 }  // extern "C"

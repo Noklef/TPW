@@ -66,12 +66,4 @@ u32 __fastcall Render_FadeFog(u8 *fade);
 #include "../core/gamedata.h"
 
 // Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
-GAME_DATA(u32, gEnvironment_Apply_7856d4, 0x007856d4, 0x4);
-GAME_DATA(u32, gEnvironment_Apply_7856d8, 0x007856d8, 0x4);
-GAME_DATA(u32, gEnvironment_Apply_7856dc, 0x007856dc, 0x4);
-GAME_DATA(s32, gEnvironment_Apply_7856e0, 0x007856e0, 0x4);
-GAME_DATA(s32, gEnvironment_Apply_7856e4, 0x007856e4, 0x4);
-GAME_DATA(u32, gEnvironment_Apply_7856e8, 0x007856e8, 0x4);
-GAME_DATA(u32, gEnvironment_Apply_7856ec, 0x007856ec, 0x4);
-GAME_DATA(u32, gEnvironment_Apply_7856f0, 0x007856f0, 0x4);
 GAME_DATA(u32, gState_8c1620, 0x008c1620, 0x4);

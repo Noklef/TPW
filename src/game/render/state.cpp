@@ -9,6 +9,7 @@
 #include "engineerrors.h"
 #include "../frontend/lobbysky.h"
 #include "graphicssettings.h"
+#include "../world/balancelevel.h"
 
 namespace {
 
@@ -107,26 +108,26 @@ u32 __cdecl Options_Apply() {
 }
 
 u32 __cdecl Environment_Apply() {
-    gLobbysky_8bd47c = gEnvironment_Apply_7856d4;
-    global<u32>(0x007a0b44) = gEnvironment_Apply_7856d8;
-    global<u32>(0x007a0b3c) = gEnvironment_Apply_7856dc;
-    const s32 c = gEnvironment_Apply_7856e0, e = gEnvironment_Apply_7856e4;
+    gLobbysky_8bd47c = reinterpret_cast<u32 &>(gBalanceLevel.mFogColour);
+    global<u32>(0x007a0b44) = reinterpret_cast<u32 &>(gBalanceLevel.mAmbientLightLevel);
+    global<u32>(0x007a0b3c) = reinterpret_cast<u32 &>(gBalanceLevel.mDirectionalLightLevel);
+    const s32 c = gBalanceLevel.mProceduralTexturingXOffset, e = gBalanceLevel.mProceduralTexturingYOffset;
     global<s32>(0x007a006c) = c > 0 ? c : 0;
     global<s32>(0x007a01c0) = e > 0 ? e : 0;
-    global<u32>(0x007a0b30) = gEnvironment_Apply_7856e8;
-    global<u32>(0x007a0b34) = gEnvironment_Apply_7856ec;
-    global<u32>(0x007a0b38) = gEnvironment_Apply_7856f0;
-    global<u32>(0x00870ec8) = global<u32>(0x00785718);
-    global<u32>(0x00870ecc) = global<u32>(0x0078571c);
-    global<u32>(0x00870ed0) = global<u32>(0x00785720);
+    global<u32>(0x007a0b30) = reinterpret_cast<u32 &>(gBalanceLevel.mLightNormalX);
+    global<u32>(0x007a0b34) = reinterpret_cast<u32 &>(gBalanceLevel.mLightNormalY);
+    global<u32>(0x007a0b38) = reinterpret_cast<u32 &>(gBalanceLevel.mLightNormalZ);
+    global<u32>(0x00870ec8) = reinterpret_cast<const u32 &>(gBalanceLevel.mWaterStartPosX);
+    global<u32>(0x00870ecc) = reinterpret_cast<const u32 &>(gBalanceLevel.mWaterStartPosY);
+    global<u32>(0x00870ed0) = reinterpret_cast<const u32 &>(gBalanceLevel.mWaterStartPosZ);
     for (u32 i = 0; i < 4; i++) {
-        global<u32>(0x00f797a4 + 4 * i) = global<u32>(0x007856f4 + 8 * i);
-        global<u32>(0x00f797b4 + 4 * i) = global<u32>(0x007856f8 + 8 * i);
+        global<u32>(0x00f797a4 + 4 * i) = (u32)gBalanceLevel.mThemeAdvisorCostumes[i].mAddOns;
+        global<u32>(0x00f797b4 + 4 * i) = (u32)gBalanceLevel.mThemeAdvisorCostumes[i].mSubOffs;
     }
-    Global81b6dc_Set_52fb10(global<u32>(0x00785600));
-    Global81ea14_Set_52fb30(global<u32>(0x007855fc));
-    Global81aebc_Set_52fb50(global<u32>(0x00785604));
-    Global81b43c_Set_52fb70(global<u32>(0x00785608));
+    Global81b6dc_Set_52fb10(gBalanceLevel.mPathCell);
+    Global81ea14_Set_52fb30(gBalanceLevel.mQueueCell);
+    Global81aebc_Set_52fb50(gBalanceLevel.mKartTrackCell);
+    Global81b43c_Set_52fb70(gBalanceLevel.mWaterTrackCell);
     return 1;
 }
 

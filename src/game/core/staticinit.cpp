@@ -8,6 +8,7 @@
 
 #include "addrcalls.h"
 #include "../math/x87.h"
+#include "../world/balancelevel.h"
 
 namespace {
 
@@ -7452,8 +7453,8 @@ void __cdecl Init_402ae0() {   // 0x402ae0
     u32 eax = 0, ecx = 0;
     alignas(4) u8 frame[0x4];
     const u32 sp = (u32)(uintptr_t)(frame + sizeof frame);
-    ecx = 0x785040u;
-    M<u32>(0x785040u) = 0x6fd620u;
+    ecx = (u32)&gBalanceLevel;
+    M<u32>((u32)&gBalanceLevel) = 0x6fd620u;
     eax = g_calls.Th(0x00401030, ecx);   // BalanceFile_Init
     M<u32>(sp - 0x4) = 0x402b30u;
     eax = g_calls.Cd(0x0067a7d0, M<u32>(sp - 0x4));   // CRT_atexit

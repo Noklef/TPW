@@ -19,6 +19,7 @@
 #include "thingscan.h"
 #include "world.h"
 #include "../ui/dialog74fb20.h"
+#include "balancelevel.h"
 
 namespace {
 
@@ -78,29 +79,29 @@ extern "C" {
 
 void __fastcall ObjectUnlock_CheckThemes(u8 *self) {
     const u8 *const analyser = reinterpret_cast<const u8 *>((uintptr_t)g_themes->table(world()));
-    if (!marked(0) && (s32)g_themes->total(analyser) > limitAt(0x00785790)) markAndAdvise(self, 0);
-    if (!marked(1) && g_themes->people() > limitAt(0x00785794)) markAndAdvise(self, 1);
+    if (!marked(0) && (s32)g_themes->total(analyser) > limitAt((u32)&gBalanceLevel.mVisitors)) markAndAdvise(self, 0);
+    if (!marked(1) && g_themes->people() > limitAt((u32)&gBalanceLevel.mPeopleInPark)) markAndAdvise(self, 1);
     if (!marked(2)) {
         const double average = g_themes->average(const_cast<u8 *>(analyser), nullptr, 0);
-        if (!((double)limitAt(0x00785798) >= average) && g_themes->people() > limitAt(0x0078579c)) markAndAdvise(self, 2);
+        if (!((double)limitAt((u32)&gBalanceLevel.mHappiness) >= average) && g_themes->people() > limitAt((u32)&gBalanceLevel.mAtLeastThisManyHappyPeople)) markAndAdvise(self, 2);
     }
     if (!marked(3) && g_themes->allDone()) markAndAdvise(self, 3);
-    if (!marked(4) && (s32)g_themes->money(reinterpret_cast<const u8 *>((uintptr_t)g_themes->table26(world()))) > limitAt(0x007857a0)) markAndAdvise(self, 4);
-    if (!marked(5) && (s32)g_themes->since(analyser, nullptr, limitAt(0x007857a8)) > limitAt(0x007857a4)) {
+    if (!marked(4) && (s32)g_themes->money(reinterpret_cast<const u8 *>((uintptr_t)g_themes->table26(world()))) > limitAt((u32)&gBalanceLevel.mProfitYear)) markAndAdvise(self, 4);
+    if (!marked(5) && (s32)g_themes->since(analyser, nullptr, limitAt((u32)&gBalanceLevel.mRecentVisitorMonths)) > limitAt((u32)&gBalanceLevel.mRecentVisitors)) {
         FileTime out;
         const FileTime *const elapsed = g_themes->elapsed(world() + 0x2a0, nullptr, &out);
         const long long time = (long long)(((unsigned long long)elapsed->high << 32) | elapsed->low);
-        if ((s32)(time / 0x1792f8648000LL) > limitAt(0x007857a8)) markAndAdvise(self, 5);
+        if ((s32)(time / 0x1792f8648000LL) > limitAt((u32)&gBalanceLevel.mRecentVisitorMonths)) markAndAdvise(self, 5);
     }
 }
 
 void __fastcall ObjectUnlock_CheckScores(u8 *self) {
     g_scores->store(*reinterpret_cast<u8 **>((uintptr_t)0x0080239c));
     u16 out;
-    check_score(self, 0, (s32)g_scores->tallest(&out, 0), 0x007857ac);
-    check_score(self, 1, (s32)g_scores->bestRated(&out), 0x007857b0);
-    check_score(self, 2, (s32)g_scores->bestPieces(&out, 2), 0x007857b4);
-    check_score(self, 3, g_scores->specialCells(), 0x007857bc);
+    check_score(self, 0, (s32)g_scores->tallest(&out, 0), (u32)&gBalanceLevel.mCoasterHeight);
+    check_score(self, 1, (s32)g_scores->bestRated(&out), (u32)&gBalanceLevel.mGokartExcitement);
+    check_score(self, 2, (s32)g_scores->bestPieces(&out, 2), (u32)&gBalanceLevel.mWaterLength);
+    check_score(self, 3, g_scores->specialCells(), (u32)&gBalanceLevel.mMinCellsCovered);
 }
 
 u8 __stdcall ObjectDef_IsUnlocked(u32 id) {

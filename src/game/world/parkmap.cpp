@@ -28,6 +28,7 @@
 #include "things.h"
 #include "../render/screen.h"
 #include "parkmap.h"
+#include "balancelevel.h"
 
 namespace {
 
@@ -438,13 +439,13 @@ void __fastcall ParkMap_AddSprites(u8 *map) {
         case 5: sprite = new_sprite(at<u32>(map, 0x20070), 2, 2, 1, 0x3f800000); break;
         case 6: {
             place_at_thing(map, new_sprite(at<u32>(map, 0x20070), 2, 2, 4, 0x3f800000), t);
-            const float size = scaled(0x00785610);
+            const float size = scaled((u32)&gBalanceLevel.mRegionFX[0].mRadius);
             sprite = new_sprite(at<u32>(map, 0x20078), 4, 2, 4, bits(size));
             break;
         }
         case 7: {
             place_at_thing(map, new_sprite(at<u32>(map, 0x20070), 2, 2, 3, 0x3f800000), t);
-            const float size = scaled(0x00785658);
+            const float size = scaled((u32)&gBalanceLevel.mRegionFX[3].mRadius);
             sprite = new_sprite(at<u32>(map, 0x2007c), 5, 2, 3, bits(size));
             break;
         }
@@ -465,9 +466,9 @@ void __fastcall ParkMap_AddSprites(u8 *map) {
                 continue;
             float size = 1.0f;
             if (kind == 8)
-                size = static_cast<float>(gParkMap_AddSprites_785688);
+                size = static_cast<float>(reinterpret_cast<s32 &>(gBalanceLevel.mRegionFX[5].mRadius));
             else if (kind == 7)
-                size = static_cast<float>(global<s32>(0x00785640));
+                size = static_cast<float>((s32)gBalanceLevel.mRegionFX[2].mRadius);
             u8 *const sprite = new_inline_sprite(at<u32>(map, 0x20074), 3, 1, static_cast<float>(X87Reg(size) * gParkmap_703030));
             at<u32>(sprite, 0x18) = 0;
             const float c = gParkMap_703028;
@@ -481,7 +482,7 @@ void __fastcall ParkMap_AddSprites(u8 *map) {
     for (u16 h = at<u16>(global<u8 *>(0x007cf83c), 0x1da746); h; ) {
         const u8 *const t = thing(h);
         if (t[0x32] & 0x10) {
-            u8 *const sprite = new_inline_sprite(at<u32>(map, 0x2007c), 5, 3, scaled((u32)&gParkMap_AddSprites_785670));
+            u8 *const sprite = new_inline_sprite(at<u32>(map, 0x2007c), 5, 3, scaled((u32)&gBalanceLevel.mRegionFX[4].mRadius));
             u16 id;
             Thing_MapId(t, nullptr, &id);
             at<u32>(sprite, 0x18) = 0;
