@@ -6341,6 +6341,9 @@ address,name,kind,confidence,notes
 0x0067e750,CRT_initstdio,function,high,reimplemented (src/game/core/crtopen); _initstdio: the stream table made
 0x0067e810,CRT_endstdio,function,high,"reimplemented (src/game/core/crtopen); _endstdio: the streams flushed, closed with the exit flag"
 0x0068b9f0,CRT_rmtmp,function,high,reimplemented (src/game/core/crtopen); _rmtmp: the temporary files closed
+0x0067bb50,CRT_validdrive,function,high,reimplemented (src/game/core/crtopen); _validdrive: a drive GetDriveTypeA knows
+0x0067ba20,CRT_getdcwd_lk,function,high,reimplemented (src/game/core/crtopen); _getdcwd_lk: a drive's current directory
+0x0067b9f0,CRT_getcwd,function,high,reimplemented (src/game/core/crtopen); _getcwd: the current directory
 0x0067efc0,CRT_amsg_exit,function,low,"reimplemented (src/game/core/crtmessage); MSVC6 _amsg_exit: the banner when [0xfb135c] is 1, the message, exit(0xff) by [0x77ea80]"
 0x0067eff0,CRT_fast_error_exit,function,low,"reimplemented (src/game/core/crtmessage); MSVC6 fast_error_exit: as _amsg_exit, ExitProcess(0xff)"
 0x0068a170,CRT_FF_MSGBANNER,function,low,reimplemented (src/game/core/crtmessage); MSVC6 _FF_MSGBANNER

@@ -1,6 +1,7 @@
 #include "crtopen.h"
 
 #include <cstdint>
+#include <cstring>
 
 #include "crt.h"
 #include "crtmbstring.h"
@@ -684,6 +685,49 @@ s32 __cdecl CRT_rmtmp() {
     }
     CrtInner().unlock(2);
     return count;
+}
+
+s32 __cdecl CRT_validdrive(u32 drive) {
+    if (!drive) return 1;
+    const char root[4] = {static_cast<char>(drive + 0x40), ':', '\\', 0};
+    const u32 type = import_slot<u32(__stdcall *)(const char *)>(0x006fd09c)(root);
+    return type != 0 && type != 1;
+}
+
+char *__cdecl CRT_getdcwd_lk(u32 drive, char *buffer, s32 size) {
+    char path[0x104];
+    u32 length;
+    if (drive) {
+        if (!CRT_validdrive(drive)) {
+            *CRT_doserrno() = 0xf;
+            *CRT_errno() = 0xd;
+            return nullptr;
+        }
+        const char name[4] = {static_cast<char>(drive + 0x40), ':', '.', 0};
+        char *part;
+        length = import_slot<u32(__stdcall *)(const char *, u32, char *, char **)>(0x006fd214)(name, 0x104, path, &part);
+    } else {
+        length = import_slot<u32(__stdcall *)(u32, char *)>(0x006fd118)(0x104, path);
+    }
+    if (!length || ++length > 0x104) return nullptr;
+    if (!buffer) {
+        buffer = static_cast<char *>(CRT_malloc(static_cast<s32>(length) > size ? length : static_cast<u32>(size)));
+        if (!buffer) {
+            *CRT_errno() = 0xc;
+            return nullptr;
+        }
+    } else if (static_cast<s32>(length) > size) {
+        *CRT_errno() = 0x22;
+        return nullptr;
+    }
+    return std::strcpy(buffer, path);
+}
+
+char *__cdecl CRT_getcwd(char *buffer, s32 size) {
+    CrtInner().lock(0xc);
+    char *const result = CRT_getdcwd_lk(0, buffer, size);
+    CrtInner().unlock(0xc);
+    return result;
 }
 
 }

@@ -85,4 +85,14 @@ void __cdecl CRT_endstdio();
 // 0x68b9f0: _rmtmp: under lock 2 each stream, locked, in use with a temporary file (+0x1c) by _fclose_lk; the count of them.
 s32 __cdecl CRT_rmtmp();
 
+// 0x67bb50: _validdrive: 1 for drive 0 or a root ("X:\") GetDriveTypeA knows (not 0 or 1), else 0.
+s32 __cdecl CRT_validdrive(u32 drive);
+
+// 0x67ba20: _getdcwd_lk: drive 0 by GetCurrentDirectoryA, else (an invalid drive: __doserrno 0xf, errno 0xd, 0) by GetFullPathNameA of "X:."; none or over 0x103: 0. No buffer:
+// malloc of the larger of the length (with its 0) and size (errno 0xc on a failure); a buffer with a smaller size: errno 0x22, 0. The path copied, the buffer returned.
+char *__cdecl CRT_getdcwd_lk(u32 drive, char *buffer, s32 size);
+
+// 0x67b9f0: _getcwd: _getdcwd_lk(0, ...) under lock 0xc.
+char *__cdecl CRT_getcwd(char *buffer, s32 size);
+
 }
