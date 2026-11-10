@@ -17,25 +17,42 @@ struct Edge {
 
 s16 MulHigh(u16 a, u16 b) { return (s16)(((s32)(s16)a * (s16)b) >> 16); }  // PMULHW
 
+u32 Saturate(s16 w, int k) { return (u32)(w < 0 ? 0 : w > 0xff ? 0xff : w) << (8 * k); }  // PACKUSWB, byte k
+
+u8 Byte(u32 v, int k) { return (u8)(v >> (8 * k)); }
+
 // The depth with its halves swapped (the fraction high), stepped with the carry out of the fraction added in (ADD, ADC 0).
 u32 StepDepth(u32 z, u32 step) {
     const u32 sum = z + step;
     return sum + (sum < z ? 1u : 0u);
 }
 
-// The texel's four bytes times the shade words (PMULHW of 2 * byte), each saturated to a byte (PACKUSWB).
-u32 Shade(u32 texel, const u16 *shade) {
+// The texel's four bytes times the shade words (PMULHW of 2 * byte).
+u32 Shade(u32 texel, const u16 *shade, const u32 *) {
+    u32 out = 0;
+    for (int k = 0; k < 4; ++k) out |= Saturate(MulHigh((u16)(Byte(texel, k) * 2), shade[k]), k);
+    return out;
+}
+
+// The shaded texel (8 * byte) and the pixel under it (4 * byte), each times the row of its table (0xfbe2e0, 0xfbe4e0) for the
+// texel's top 6 bits, summed.
+u32 Blend(u32 texel, const u16 *shade, const u32 *dest) {
+    const u32 alpha = texel >> 26, under = *dest;
+    const u16 *const mine = at<const u16>(0x00fbe2e0 + alpha * 8), *const theirs = at<const u16>(0x00fbe4e0 + alpha * 8);
     u32 out = 0;
     for (int k = 0; k < 4; ++k) {
-        const s16 w = MulHigh((u16)((texel >> (8 * k) & 0xff) * 2), shade[k]);
-        out |= (u32)(w < 0 ? 0 : w > 0xff ? 0xff : w) << (8 * k);
+        const u16 lit = (u16)MulHigh((u16)(Byte(texel, k) << 3), shade[k]);
+        out |= Saturate((s16)(MulHigh(lit, mine[k]) + MulHigh((u16)(Byte(under, k) << 2), theirs[k])), k);
     }
     return out;
 }
 
-// 0x6f1de0 (atLeast) / 0x6f1fc0: rows of the part from the edges left and right (later rows from [0xfbe208] and [0xfbe20c], which
-// it steps); returns the row pointer after them.
-u32 TexShadeZRows(bool atLeast, Edge *left, const Edge *right, s32 rows, u32 row) {
+enum Depth { kWrite, kKeep, kAlphaTest };  // the depth written; none; both it and the pixel only above the alpha [0xfbe010]
+
+// One routine's row loop (two each, by the depth test: atLeast where the buffer's is at least the pixel's): rows of the part from the
+// edges left and right (later rows from [0xfbe208] and [0xfbe20c], which it steps); returns the row pointer after them.
+template <u32 (*Colour)(u32, const u16 *, const u32 *), Depth kDepth>
+u32 TexRows(bool atLeast, Edge *left, const Edge *right, s32 rows, u32 row) {
     const u32 uvStep[2] = {global<u32>(0x00fbe138), global<u32>(0x00fbe13c)};
     const u16 *const shadeStep = at<const u16>(0x00fbe150);
     const u16 *const prestep = at<const u16>(0x00fbe160);
@@ -60,8 +77,14 @@ u32 TexShadeZRows(bool atLeast, Edge *left, const Edge *right, s32 rows, u32 row
                 z = StepDepth(z, depthStep);
                 if (drawn) {
                     const u32 texel = texels[((uv[0] >> 24) | (uv[1] >> 24) << 8) & mask];
-                    depth = (u16)z;  // the next pixel's (sic)
-                    *at<u32>(pixels + (u32)i * 4) = Shade(texel, shade);
+                    u32 &out = *at<u32>(pixels + (u32)i * 4);
+                    const u32 colour = Colour(texel, shade, &out);
+                    if (kDepth == kKeep) {
+                        out = colour;
+                    } else if (kDepth == kWrite || (s32)(texel >> 26) > global<s32>(0x00fbe010)) {
+                        depth = (u16)z;  // the next pixel's (sic)
+                        out = colour;
+                    }
                 }
                 for (int k = 0; k < 2; ++k) uv[k] += uvStep[k];
                 for (int k = 0; k < 4; ++k) shade[k] = (u16)(shade[k] + shadeStep[k]);
@@ -82,18 +105,26 @@ u32 TexShadeZRows(bool atLeast, Edge *left, const Edge *right, s32 rows, u32 row
     return row;
 }
 
+// The routine: the triangle's two parts.
+template <u32 (*Rows)(bool, Edge *, const Edge *, s32, u32)>
+void Parts(u32 row) {
+    const bool atLeast = global<u32>(0x00fbe034) == 0;
+    if (global<s32>(0x00fbe204) > 0)
+        row = Rows(atLeast, global<Edge *>(0x00fbe208), global<Edge *>(0x00fbe20c), global<s32>(0x00fbe204), row);
+    if (global<s32>(0x00fbe200) > 0) {
+        global<u32>(0x00fbe208) = global<u32>(0x00fbe210);
+        global<u32>(0x00fbe20c) = global<u32>(0x00fbe214);
+        row = Rows(atLeast, global<Edge *>(0x00fbe208), global<Edge *>(0x00fbe20c), global<s32>(0x00fbe200), row);
+    }
+}
+
 }  // namespace
 
 extern "C" {
 
-void __cdecl RasterSpan_TexShadeZ(u32 row) {
-    const bool atLeast = global<u32>(0x00fbe034) == 0;
-    if (global<s32>(0x00fbe204) > 0)
-        row = TexShadeZRows(atLeast, global<Edge *>(0x00fbe208), global<Edge *>(0x00fbe20c), global<s32>(0x00fbe204), row);
-    if (global<s32>(0x00fbe200) > 0) {
-        global<u32>(0x00fbe208) = global<u32>(0x00fbe210);
-        global<u32>(0x00fbe20c) = global<u32>(0x00fbe214);
-        row = TexShadeZRows(atLeast, global<Edge *>(0x00fbe208), global<Edge *>(0x00fbe20c), global<s32>(0x00fbe200), row);
-    }
-}
+void __cdecl RasterSpan_TexShadeZ(u32 row) { Parts<TexRows<Shade, kWrite>>(row); }
+
+void __cdecl RasterSpan_TexBlend(u32 row) { Parts<TexRows<Blend, kKeep>>(row); }
+
+void __cdecl RasterSpan_TexBlendAlphaZ(u32 row) { Parts<TexRows<Blend, kAlphaTest>>(row); }
 }

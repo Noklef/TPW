@@ -179,19 +179,23 @@ __declspec(naked) void RegThunk_TqiVideo_ReadBlocks() {
     }
 }
 
-// Jumped to with the row pointer in EBP; pops the six registers its set-up pushed, then returns to the set-up's caller.
-__declspec(naked) void RegThunk_RasterSpan_TexShadeZ() {
-    __asm {
-        push ebp
-        call RasterSpan_TexShadeZ
-        add esp, 4
-        pop ecx
-        pop ebp
-        pop ebx
-        pop edx
-        pop esi
-        pop edi
-        ret
+// The span routines: jumped to with the row pointer in EBP; each pops the six registers its set-up pushed, then returns to the
+// set-up's caller.
+#define SPAN_THUNK(name)              \
+    __declspec(naked) void RegThunk_##name() { \
+        __asm push ebp                \
+        __asm call name               \
+        __asm add esp, 4              \
+        __asm pop ecx                 \
+        __asm pop ebp                 \
+        __asm pop ebx                 \
+        __asm pop edx                 \
+        __asm pop esi                 \
+        __asm pop edi                 \
+        __asm ret                     \
     }
-}
+SPAN_THUNK(RasterSpan_TexShadeZ)
+SPAN_THUNK(RasterSpan_TexBlend)
+SPAN_THUNK(RasterSpan_TexBlendAlphaZ)
+#undef SPAN_THUNK
 }

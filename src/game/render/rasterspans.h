@@ -14,4 +14,13 @@ extern "C" {
 // at least the pixel's, else at most. Its row loops 0x6f1de0 and 0x6f1fc0 are RasterSpan_TexShadeZ's own. The depth written is the
 // next pixel's (sic), and [0xfbe218] (the original's saved ESP) is not written.
 void __cdecl RasterSpan_TexShadeZ(u32 row);
+
+// 0x6f2140 (table 0x6f19f4, the blend with flag 0x800; row loops 0x6f21b0, 0x6f23c0): as RasterSpan_TexShadeZ, but each pixel the
+// shaded texel (8 * byte, times its shade word) times the row of 0xfbe2e0 for the texel's top 6 bits, plus the pixel under it (4 *
+// byte) times the row of 0xfbe4e0, saturated; the depth is not written.
+void __cdecl RasterSpan_TexBlend(u32 row);
+
+// 0x6f2570 (table 0x6f1a20, the blend without flag 0x800; row loops 0x6f25e0, 0x6f2800): RasterSpan_TexBlend's pixel, kept with
+// the (next pixel's, sic) depth only where the texel's top 6 bits are above [0xfbe010] (signed).
+void __cdecl RasterSpan_TexBlendAlphaZ(u32 row);
 }
