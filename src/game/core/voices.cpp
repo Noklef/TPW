@@ -24,17 +24,17 @@ extern "C" {
 u32 __cdecl Voice_Start(s32 voice, s32 x, s32 y, s32 z) {
     if (global<u32>(0x00816d40) == 0 || voice < 0 || voice >= 0x14) return 0xffffffffu;
     if (gParticles_80ced8 != 0 && global<u8>(0x0080c6f4 + voice * 0x68) != 0) return 0;
-    if (global<s16>(0x00816d22) < 0) return 0xffffffffu;
-    const s16 oldActive = global<s16>(0x00816d1e);
-    global<s16>(0x00816d1e) = global<s16>(0x00816d22);
-    s32 index = global<s16>(0x00816d1e);
+    if (gParticles_816d22 < 0) return 0xffffffffu;
+    const s16 oldActive = gParticles_816d1e;
+    gParticles_816d1e = gParticles_816d22;
+    s32 index = gParticles_816d1e;
     const s16 nextFree = global<s16>(0x0081655c + index * 0x68);
-    global<s16>(0x00816d22) = nextFree;
+    gParticles_816d22 = nextFree;
     if (nextFree >= 0) global<u16>(0x0081655e + nextFree * 0x68) = 0xffff;
-    index = global<s16>(0x00816d1e);
+    index = gParticles_816d1e;
     global<s16>(0x0081655c + index * 0x68) = oldActive;
-    if (oldActive >= 0) global<s16>(0x0081655e + oldActive * 0x68) = global<s16>(0x00816d1e);
-    index = global<s16>(0x00816d1e);
+    if (oldActive >= 0) global<s16>(0x0081655e + oldActive * 0x68) = gParticles_816d1e;
+    index = gParticles_816d1e;
     u8 *const instance = reinterpret_cast<u8 *>(0x008164fc + index * 0x68);
     const s16 previous = at<s16>(instance, 0x62);
     const s16 next = at<s16>(instance, 0x60);
@@ -172,7 +172,7 @@ void __cdecl Emitters_Reset() {
     for (u32 i = 0; i < 0x9600; ++i) global<u8>(0x0080cefc + i) = 0;
     for (u32 i = 0; i < 0x820; ++i) global<u8>(0x008164fc + i) = 0;
     global<s16>(0x00816d1c) = -1;
-    global<s16>(0x00816d20) = 0;
+    gParticles_816d20 = 0;
     global<s16>(0x0080cfce) = -1;
     global<s16>(0x0080cfcc) = 1;
     global<s16>(0x0081648c) = -1;
@@ -181,8 +181,8 @@ void __cdecl Emitters_Reset() {
         global<s16>(0x0080cfce + i * 0x140) = (s16)(i - 1);
         global<s16>(0x0080cfcc + i * 0x140) = (s16)(i + 1);
     }
-    global<s16>(0x00816d1e) = -1;
-    global<s16>(0x00816d22) = 0;
+    gParticles_816d1e = -1;
+    gParticles_816d22 = 0;
     global<s16>(0x0081655e) = -1;
     global<s16>(0x0081655c) = 1;
     global<s16>(0x00816d14) = -1;
@@ -201,6 +201,6 @@ void __cdecl Emitters_Reset() {
         at<s16>(Record(i), 0x32) = (s16)(i - 1);
         at<s16>(Record(i), 0x30) = (s16)(i + 1);
     }
-    global<u32>(0x00816d3c) = 0;
+    gParticles_816d3c = 0;
 }
 }  // extern "C"

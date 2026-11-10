@@ -44,7 +44,7 @@ void TexManager_SetCreateCalls(const AddrCall *table, u32 count) { g_createCalls
 extern "C" {
 
 u32 __cdecl TexManager_Create() {
-    if (global<u8 *>(0x0087a268))
+    if (gTexman_87a268)
         return 0;
     u8 *const manager = static_cast<u8 *>(GameHeap_Alloc(0x1000c));
     if (manager) {
@@ -54,7 +54,7 @@ u32 __cdecl TexManager_Create() {
         at<u32>(manager, 0x10004) = 0xffffffff;
         at<u32>(manager, 0x10008) = 0;
     }
-    global<u8 *>(0x0087a268) = manager;
+    gTexman_87a268 = manager;
     if (!manager) {
         EngineErrors_Push(reinterpret_cast<u8 *>((uintptr_t)0x00879ad0), nullptr, 3, 0xb0754000);
         return 0;
@@ -72,7 +72,7 @@ u32 __cdecl TexManager_Create() {
 }
 
 u32 __cdecl TexManager_Destroy() {
-    u8 *const manager = global<u8 *>(0x0087a268);
+    u8 *const manager = gTexman_87a268;
     if (!manager)
         return 0;
     if (at<s32>(manager, 0x10000) > 0) {
@@ -90,8 +90,8 @@ u32 __cdecl TexManager_Destroy() {
         } while (++i < at<s32>(manager, 0x10000));
     }
     at<u32>(manager, 0x10000) = 0;
-    GameHeap_Free(global<u8 *>(0x0087a268));
-    global<u32>(0x0087a268) = 0;
+    GameHeap_Free(gTexman_87a268);
+    reinterpret_cast<u32 &>(gTexman_87a268) = 0;
     return 1;
 }
 

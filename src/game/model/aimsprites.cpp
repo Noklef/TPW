@@ -9,6 +9,7 @@
 #include "../core/crt.h"
 #include "../math/matrix.h"
 #include "../math/x87.h"
+#include "../math/sintable.h"
 
 namespace {
 
@@ -34,10 +35,10 @@ const float kOverTwoPi = 0.159154937f;    // 0x6fe2cc
 // The table's entry for a scaled angle.
 float Table(float scaled) {
     const s32 i = _mm_cvtss_si32(_mm_set_ss(scaled));
-    return global<float>(0x007b0968 + 4 * (global<u32>(0x007b0960) & (u32)i));
+    return global<float>(0x007b0968 + 4 * (gSinTableMask & (u32)i));
 }
 
-float Scaled(float angle) { return Table((float)(X87Reg(global<float>(0x007b095c)) * angle)); }
+float Scaled(float angle) { return Table((float)(X87Reg(gSinTableScale) * angle)); }
 
 // A sine and cosine pair.
 struct Turn {
@@ -48,7 +49,7 @@ struct Turn {
 Turn FixedTurn(float sine, float cosine) { return {Scaled(sine), Scaled(cosine)}; }
 
 // Of an angle: the cosine by its quarter turn on.
-Turn AngleTurn(float angle) { return {Scaled(angle), Table((float)((X87Reg(angle) - kMinusHalfPi) * global<float>(0x007b095c)))}; }
+Turn AngleTurn(float angle) { return {Scaled(angle), Table((float)((X87Reg(angle) - kMinusHalfPi) * gSinTableScale))}; }
 
 // About Y: x and z.
 void TurnY(float *v, Turn t) {

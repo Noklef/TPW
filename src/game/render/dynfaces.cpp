@@ -21,7 +21,7 @@ namespace {
 template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cast<T *>((uintptr_t)p + offset); }
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
 
-constexpr u32 kFaces = 0x00820b00, kCount = 0x00871ee0, kTags = 0x00872168;
+constexpr u32 kFaces = 0x00820b00, kTags = 0x00872168;
 
 // fld m32; fistp m32: rounded to nearest even, 0x80000000 when out of range (as cvtss2si does).
 s32 Fistp(float f) { return _mm_cvtss_si32(_mm_set_ss(f)); }
@@ -37,7 +37,7 @@ float of(u32 b) {
 
 void Finish(u32 n, u32 tag) { 
     global<u32>(kTags + 4 * n) = (n << 5) | (tag & 0x1f);
-    global<u32>(kCount) = n + 1;
+    gDynfaces_871ee0 = n + 1;
 }
 
 // The memory forms (fadd / fsub / fsubr m32) with m read through a reference as bits, so that a signalling NaN m reaches the x87's
@@ -102,7 +102,7 @@ void Move(u32 *v, float dx, float dy, float dz) {
 extern "C" {
 
 void __cdecl DynFaces_AddSquare(u32 a, u32 b, u32 c, u8 d, u32 tag, u32 e, u32 f, u32 g, u8 h, u32 i, u32 j) {
-    const s32 n = global<s32>(kCount);
+    const s32 n = (s32)gDynfaces_871ee0;
     if (n >= 0x806) return;  // (the original prints that there are too many)
     if (tag == 1 && global<u8>(0x00763c98) == 0) return;
     u8 *const face = reinterpret_cast<u8 *>(kFaces + n * 0xa0);
@@ -122,7 +122,7 @@ void __cdecl DynFaces_AddSquare(u32 a, u32 b, u32 c, u8 d, u32 tag, u32 e, u32 f
 }
 
 void __cdecl DynFaces_AddPoly(const u32 *corners, u32 tag, const u32 *uvs, const u32 *colours, u32 user) {
-    const s32 n = global<s32>(kCount);
+    const s32 n = (s32)gDynfaces_871ee0;
     if (n >= 0x806) return;
     u8 *const face = reinterpret_cast<u8 *>(kFaces + n * 0xa0);
     for (u32 k = 0; k < 4; ++k) {
@@ -358,9 +358,9 @@ void __cdecl DynFaces_RippleGrid(s32 rows, s32 cols, float step, float phase) {
 }
 
 void __cdecl DynFaces_ReleaseModels() {
-    u32 &flag = *reinterpret_cast<u32 *>((uintptr_t)0x00874fcc);
+    u32 &flag = gDynFaces_874fcc;
     if (flag != 0) {
-        static const u32 kModels[3] = {0x00871f64, 0x00871ee4, 0x00871ed8};
+        static const u32 kModels[3] = {0x00871f64, (u32)&gDynFaces_871ee4, (u32)&gDynFaces_871ed8};
         for (u32 address : kModels) {
             u8 *const object = *reinterpret_cast<u8 *const *>((uintptr_t)address);
             if (object == nullptr) continue;
@@ -374,7 +374,7 @@ void __cdecl DynFaces_ReleaseModels() {
 }
 
 void __cdecl DynFaces_Frame() {
-    const float moveX = (float)SubM(X87_MulDouble((double)gFocuscell_8186b8, global<float>(0x00700de0)), global<float>(0x00820afc));
+    const float moveX = (float)SubM(X87_MulDouble((double)gFocuscell_8186b8, gDynFaces_Frame_700de0), global<float>(0x00820afc));
     const u32 t = global<u32>(0x00790a38);
     static const u32 kConstants[][2] = {{0x871ee8, 0}, {0x871eec, 0}, {0x871ef4, 0x3f800000}, {0x871ef8, 0}, {0x871f00, 0},
                                         {0x871f04, 0x3f800000}, {0x871f0c, 0x3f800000}, {0x871f10, 0x3f800000}, {0x871f18, 0x3f000000},
@@ -383,12 +383,12 @@ void __cdecl DynFaces_Frame() {
                                         {0x871f4c, 0x3ecccccd}};
     for (const auto &c : kConstants)
         global<u32>(c[0]) = c[1];
-    const float moveZ = (float)SubM(X87_MulDouble((double)gFocuscell_8186b4, global<float>(0x00700de0)), global<float>(0x00820af8));
-    const float scale = global<float>(0x007b095c);
-    const u32 mask = global<u32>(0x007b0960);
+    const float moveZ = (float)SubM(X87_MulDouble((double)gFocuscell_8186b4, gDynFaces_Frame_700de0), global<float>(0x00820af8));
+    const float scale = gSinTableScale;
+    const u32 mask = gSinTableMask;
     const s32 i1 = Fistp((float)(X87Reg(scale) * of(t)));
     const float s = global<float>(0x007b0968 + 4 * (mask & (u32)i1));
-    const s32 i2 = Fistp((float)((X87Reg(of(t)) - global<float>(0x00700df0)) * scale));
+    const s32 i2 = Fistp((float)((X87Reg(of(t)) - gDynFaces_Frame_700df0) * scale));
     const X87Reg c = global<float>(0x007b0968 + 4 * (mask & (u32)i2));
     for (u32 k = 0; k < 4; ++k) {
         float *const p = &global<float>(0x00871f24 + 0xc * k);
@@ -401,11 +401,11 @@ void __cdecl DynFaces_Frame() {
     global<u32>(0x00871f58) = 0x3f000000;
     for (u32 k = 0; k < 4; ++k) {
         float *const p = &global<float>(0x00871f24 + 0xc * k);
-        p[0] = (float)(X87Reg(p[0]) - global<float>(0x00700df4));
-        p[1] = (float)(X87Reg(p[1]) - global<float>(0x00700df4));
+        p[0] = (float)(X87Reg(p[0]) - gDynFaces_Frame_700df4);
+        p[1] = (float)(X87Reg(p[1]) - gDynFaces_Frame_700df4);
     }
-    global<float>(0x00820afc) = (float)AddM(X87Reg(moveX) * global<float>(0x00700de4), global<float>(0x00820afc));
-    global<float>(0x00820af8) = (float)AddM(X87Reg(moveZ) * global<float>(0x00700de4), global<float>(0x00820af8));
+    global<float>(0x00820afc) = (float)AddM(X87Reg(moveX) * gDynFaces_Frame_700de4, global<float>(0x00820afc));
+    global<float>(0x00820af8) = (float)AddM(X87Reg(moveZ) * gDynFaces_Frame_700de4, global<float>(0x00820af8));
     DynFaces_WaveGrid(0x10, 0x13, 20.0f, wavePhase);
     DynFaces_AddGrid(global<float>(0x00870ec8), global<float>(0x00870ecc), global<float>(0x00870ed0), 10, 11, 0, 0);
     DynFaces_AddGrid(global<float>(0x00870ec8), global<float>(0x00870ecc), global<float>(0x00870ed0), 4, 6, 10, 0);
@@ -413,31 +413,31 @@ void __cdecl DynFaces_Frame() {
     u32 tag = 0x12;
     for (u32 e = 0x00763cf8; e < 0x00763d78; e += 0x10) {
         const u8 *const record = reinterpret_cast<const u8 *>(GameTable7cfb90_Get1da724_519590(global<u8 *>(0x007cf83c)));
-        const float angle = (float)(X87Reg(at<float>(record, 0x5c)) * global<float>(0x00700dd0));
+        const float angle = (float)(X87Reg(at<float>(record, 0x5c)) * gDynFaces_Frame_700dd0);
         DynFaces_AddTurnedGrid(global<float>(e - 4), global<float>(e), global<float>(e + 4), 0.5f, 6, 4, tag, angle);
         tag = tag == 0x12 ? 0x13 : 0x12;
     }
-    DynFaces_SortTags(&global<u32>(kTags - 4), global<u32>(kCount));
+    DynFaces_SortTags(&global<u32>(kTags - 4), gDynfaces_871ee0);
     VertexBlock_TakeFaces(global<u8 *>(0x00871f64));
-    VertexBlock_TakeFaces(global<u8 *>(0x00871ee4));
-    VertexBlock_TakeFaces(global<u8 *>(0x00871ed8));
-    global<u32>(kCount) = 0;
+    VertexBlock_TakeFaces(gDynFaces_871ee4);
+    VertexBlock_TakeFaces(gDynFaces_871ed8);
+    gDynfaces_871ee0 = 0;
     u8 *const clock = reinterpret_cast<u8 *>(0x00785970);
     if (Wrap_Obj_Get30_402df0(clock))
         return;
-    global<float>(0x00874fc0) = (float)(X87Reg(global<float>(0x00874fc0)) - global<float>(0x00700df8));
-    global<float>(0x00871f60) = (float)SubRM(X87_MulDouble(GameClock_Double20(clock), global<float>(0x00700de8)), global<float>(0x00871f60));
-    global<float>(0x00871ed0) = (float)SubRM(X87_MulDouble(GameClock_Double20(clock), global<float>(0x00700de8)), global<float>(0x00871ed0));
-    const s32 count = (s32)(global<u32>(0x00874fc8) + (u32)Ftol(GameClock_Double20(clock)));
-    global<s32>(0x00874fc8) = count;
+    gDynfaces_874fc0 = (float)(X87Reg(gDynfaces_874fc0) - gDynFaces_Frame_700df8);
+    global<float>(0x00871f60) = (float)SubRM(X87_MulDouble(GameClock_Double20(clock), gDynFaces_Frame_700de8), global<float>(0x00871f60));
+    global<float>(0x00871ed0) = (float)SubRM(X87_MulDouble(GameClock_Double20(clock), gDynFaces_Frame_700de8), global<float>(0x00871ed0));
+    const s32 count = (s32)(reinterpret_cast<u32 &>(gDynFaces_874fc8) + (u32)Ftol(GameClock_Double20(clock)));
+    gDynFaces_874fc8 = count;
     if (global<u8>(0x00763c98) != 0) {
         if (count > 6) {
             global<u8>(0x00763c98) = 0;
-            global<s32>(0x00874fc8) = 0;
+            gDynFaces_874fc8 = 0;
         }
     } else if (count > 1) {
         global<u8>(0x00763c98) = 1;
-        global<s32>(0x00874fc8) = 0;
+        gDynFaces_874fc8 = 0;
     }
 }
 
@@ -463,12 +463,12 @@ void __cdecl DynFaces_InitModels() {
     gMappreview_874fc4 = 0;
     if (!g_calls.Cd(0x00424ec0, 0x00763c78u)) return;
     bool awake = true;
-    global<u32>(0x00871ee0) = 0;
-    global<u32>(0x00874fc0) = 0;
+    gDynfaces_871ee0 = 0;
+    reinterpret_cast<u32 &>(gDynfaces_874fc0) = 0;
     global<u32>(0x00871ed0) = 0;
     global<u32>(0x00871f60) = 0;
     global<u8>(0x00763c98) = 1;
-    global<u32>(0x00874fc8) = 0;
+    reinterpret_cast<u32 &>(gDynFaces_874fc8) = 0;
     for (u32 address = 0x00871d18; address < 0x00871ed0; address += 4)
         global<s32>(address) = Crt().rand() % 3 + 0xf;
     s32 result = 0;   // sic: in the original a stack slot not yet written, read when the first allocation fails
@@ -477,14 +477,14 @@ void __cdecl DynFaces_InitModels() {
         g_calls.Cd(0x00424ed0, 0x00763c78u);
         awake = false;
     }
-    global<u32>(0x00871ee4) = MakeModel(0x86, &result, 0x00763e48u, 1);
+    reinterpret_cast<u32 &>(gDynFaces_871ee4) = MakeModel(0x86, &result, 0x00763e48u, 1);
     if (awake && result == 0) {
         g_calls.Cd(0x00424ed0, 0x00763c78u);
         awake = false;
     }
-    global<u32>(0x00871ed8) = MakeModel(0x180, &result, 0x00763e3cu, 3);
+    reinterpret_cast<u32 &>(gDynFaces_871ed8) = MakeModel(0x180, &result, 0x00763e3cu, 3);
     if (awake && result == 0) g_calls.Cd(0x00424ed0, 0x00763c78u);
-    global<u32>(0x00874fcc) = 1;
+    gDynFaces_874fcc = 1;
 }
 
 }  // extern "C"

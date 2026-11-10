@@ -5,6 +5,7 @@
 #include "../gfx/texture.h"
 #include "../math/bits.h"
 #include "engineerrors.h"
+#include "uvprobe.h"
 
 namespace {
 
@@ -74,7 +75,7 @@ s32 __stdcall TexFormat_Classify(const u32 *pixels) {
         if (kind[i + 1] == 2)
             fit++;
     }
-    *reinterpret_cast<u32 *>(0x008c1644) = fit;
+    gUvprobe_8c1644 = fit;
     if (fit == 60)
         return 0;
     return kind[0] != 0 && kind[59] != 2 ? -1 : 1;

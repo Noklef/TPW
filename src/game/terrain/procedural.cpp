@@ -321,7 +321,7 @@ void __fastcall TerrainTex_LightGrid(u8 *tex) {
             header = at<const u8 *>(tex, 0);
             x = x + at<float>(header, 8);
         }
-        Meshes_LightPoints(reinterpret_cast<u8 *>((uintptr_t)global(0x0087a248)), nullptr, colours, frame.normals, frame.points, (u32)cols);
+        Meshes_LightPoints(reinterpret_cast<u8 *>((uintptr_t)global((u32)&gMeshlist_87a248)), nullptr, colours, frame.normals, frame.points, (u32)cols);
         header = at<const u8 *>(tex, 0);
         z = (float)(X87Reg(at<float>(header, 0x14)) + z);
         colours += 0x80;

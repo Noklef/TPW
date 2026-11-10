@@ -7,6 +7,7 @@
 #include "drawbuffer.h"
 #include "../gfx/spriteframe.h"
 #include "../math/x87.h"
+#include "meshlist.h"
 
 namespace {
 
@@ -59,7 +60,7 @@ u32 __fastcall Batch_DrawQuadInPlace(u8 *object, void *, u8 *spec, u32 mask) {
         batch = g_env->begin(object, nullptr, 2, 4, 0x1c4, at<u32>(spec, 0xc), at<u32>(spec, 0x10));
         if (!batch) return 1;
     }
-    const u32 colour = at<u32>(spec, 8) & at<u32>(global<u8 *>(0x0087a248), 0x2c);
+    const u32 colour = at<u32>(spec, 8) & at<u32>(gMeshlist_87a248, 0x2c);
     at<u32>(spec, 8) = colour;
     at<u32>(batch, 4) = at<u32>(spec, 0xc);
     u8 *const vertices = at<u8 *>(batch, 0x28) + (at<u32>(batch, 0x20) << 5);
@@ -110,7 +111,7 @@ u32 __fastcall Batch_DrawQuad(u8 *object, void *, u8 *spec, u32 mask) {
     if (result & 0xff) return 1;
     u8 *const batch = g_env->begin(object, nullptr, 2, 4, 0x1c4, at<u32>(spec, 0xc), at<u32>(spec, 0x10));
     if (!batch) return 1;
-    const u32 colour = at<u32>(spec, 8) & at<u32>(global<u8 *>(0x0087a248), 0x2c);
+    const u32 colour = at<u32>(spec, 8) & at<u32>(gMeshlist_87a248, 0x2c);
     at<u32>(spec, 8) = colour;
     const u32 *const points = at<const u32 *>(spec, 4);
     static const u8 kUs[4] = {0x18, 0x20, 0x20, 0x18}, kVs[4] = {0x1c, 0x1c, 0x24, 0x24};

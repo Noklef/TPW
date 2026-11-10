@@ -6,6 +6,7 @@
 #include "gameheap.h"
 #include "string.h"
 #include "../world/focuscell.h"
+#include "../render/dynfaces.h"
 
 namespace {
 
@@ -95,7 +96,7 @@ u32 __cdecl Global802ba8_SetMasked(u32 value) {
 
 void __cdecl Global802bc0_Set1() { gAccessors_802bc0 = 1; }
 
-void __cdecl Global871ee0_Clear() { global<u32>(0x00871ee0) = 0; }
+void __cdecl Global871ee0_Clear() { gDynfaces_871ee0 = 0; }
 
 u8 __cdecl Global7c24d0_GetByte() { return global<u8>(0x007c24d0); }
 

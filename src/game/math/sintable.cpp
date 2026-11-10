@@ -15,8 +15,8 @@ void SinTable_Fill(float *values, u32 n, u32 *mask, float *scale) {
 }
 
 SinTable SinTable_Game() {
-    return {reinterpret_cast<const float *>(0x007b0968), *reinterpret_cast<const u32 *>(0x007b0960),
-            *reinterpret_cast<const float *>(0x007b095c)};
+    return {reinterpret_cast<const float *>(0x007b0968), gSinTableMask,
+            gSinTableScale};
 }
 
 float SinTable_At(const SinTable &sines, float scaled) {
@@ -31,10 +31,10 @@ void __cdecl SinTable_Build(u32 n) {
     __asm fnstcw cw
     const bool single = (cw & 0x300) == 0;  // (24-bit precision; else 53, as double arithmetic rounds)
     float *const values = reinterpret_cast<float *>(0x007b0968);
-    *reinterpret_cast<u32 *>(0x007b0960) = n - 1;
+    gSinTableMask = n - 1;
     *reinterpret_cast<u32 *>(0x007b4968) = n;
     const float nf = (float)(double)n;  // (fild qword n, exact; fst float)
-    *reinterpret_cast<float *>(0x007b095c) = single ? (float)X87_MulInt(n, 0.159154937f) : (float)((double)n * (double)0.159154937f);
+    gSinTableScale = single ? (float)X87_MulInt(n, 0.159154937f) : (float)((double)n * (double)0.159154937f);
     for (u32 i = 0; i < n; ++i)
         values[i] = (float)X87_Sin(single ? (X87Reg((double)i) / X87Reg(nf) * X87Reg(6.28318548f)).v : (double)i / nf * (double)6.28318548f);
 }

@@ -5,6 +5,7 @@
 
 #include "../../../re/types.h"
 #include "../math/x87.h"
+#include "../render/batch.h"
 
 namespace gridquad {
 
@@ -12,26 +13,26 @@ template <typename T> T &Global(u32 address) { return *reinterpret_cast<T *>((ui
 inline u32 Dword(const u8 *p, u32 offset) { return *reinterpret_cast<const u32 *>(p + offset); }
 
 inline void KeepTriangle(const u8 *a, const u8 *b, const u8 *c) {
-    Global<u32>(0x008c63bc) = Dword(a, 0);
-    Global<u32>(0x008c63c8) = Dword(a, 4);
-    Global<u32>(0x008c63b0) = Dword(a, 0xc);
-    Global<u32>(0x008c63c0) = Dword(b, 0);
-    Global<u32>(0x008c63cc) = Dword(b, 4);
-    Global<u32>(0x008c63b4) = Dword(b, 0xc);
-    Global<u32>(0x008c63c4) = Dword(c, 0);
-    Global<u32>(0x008c63d0) = Dword(c, 4);
-    Global<u32>(0x008c63b8) = Dword(c, 0xc);
+    gBatch_8c63bc = Dword(a, 0);
+    gBatch_8c63c8 = Dword(a, 4);
+    gBatch_8c63b0 = Dword(a, 0xc);
+    gBatch_8c63c0 = Dword(b, 0);
+    gBatch_8c63cc = Dword(b, 4);
+    gBatch_8c63b4 = Dword(b, 0xc);
+    gBatch_8c63c4 = Dword(c, 0);
+    gBatch_8c63d0 = Dword(c, 4);
+    gBatch_8c63b8 = Dword(c, 0xc);
 }
 
-inline const float &X0() { return Global<float>(0x008c63bc); }
-inline const float &Y0() { return Global<float>(0x008c63c8); }
-inline const float &W0() { return Global<float>(0x008c63b0); }
-inline const float &X1() { return Global<float>(0x008c63c0); }
-inline const float &Y1() { return Global<float>(0x008c63cc); }
-inline const float &W1() { return Global<float>(0x008c63b4); }
-inline const float &X2() { return Global<float>(0x008c63c4); }
-inline const float &Y2() { return Global<float>(0x008c63d0); }
-inline const float &W2() { return Global<float>(0x008c63b8); }
+inline const float &X0() { return reinterpret_cast<float &>(gBatch_8c63bc); }
+inline const float &Y0() { return reinterpret_cast<float &>(gBatch_8c63c8); }
+inline const float &W0() { return reinterpret_cast<float &>(gBatch_8c63b0); }
+inline const float &X1() { return reinterpret_cast<float &>(gBatch_8c63c0); }
+inline const float &Y1() { return reinterpret_cast<float &>(gBatch_8c63cc); }
+inline const float &W1() { return reinterpret_cast<float &>(gBatch_8c63b4); }
+inline const float &X2() { return reinterpret_cast<float &>(gBatch_8c63c4); }
+inline const float &Y2() { return reinterpret_cast<float &>(gBatch_8c63d0); }
+inline const float &W2() { return reinterpret_cast<float &>(gBatch_8c63b8); }
 
 // A quad bound for the clipper: FCOM's less or unordered.
 inline bool FacingClipped() {
@@ -50,9 +51,9 @@ inline bool FacingOpen() {
 // A quad with no code set, a batch's vertices in place: the first test's third vertex comes through FLD and FSTP.
 inline bool FacingOpenFirst(const u8 *a, const u8 *b, const u8 *c) {
     KeepTriangle(a, b, c);
-    Global<u32>(0x008c63c4) = X87_FloatThrough(Dword(c, 0));
-    Global<u32>(0x008c63d0) = X87_FloatThrough(Dword(c, 4));
-    Global<u32>(0x008c63b8) = X87_FloatThrough(Dword(c, 0xc));
+    gBatch_8c63c4 = X87_FloatThrough(Dword(c, 0));
+    gBatch_8c63d0 = X87_FloatThrough(Dword(c, 4));
+    gBatch_8c63b8 = X87_FloatThrough(Dword(c, 0xc));
     return FacingOpen();
 }
 

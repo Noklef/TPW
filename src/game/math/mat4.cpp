@@ -8,6 +8,7 @@
 #include "x87.h"
 #include "vec2.h"
 #include "../render/viewport.h"
+#include "../render/pointsprites.h"
 
 namespace {
 
@@ -75,7 +76,7 @@ void transform(u32 in, u32 by, u32 out) {
 void inverse_through(u32 from, u32 inverse, u32 result) {
     copy16(inverse, from);
     Mat4_Invert(&global<u32>(inverse));
-    static_matrix(0x00fb33e0, 0x00fb3400);
+    static_matrix((u32)&gPointsprites_fb33e0, 0x00fb3400);
     transform(inverse, 0x0087b110, 0x00fb3400);
     copy16(result, 0x00fb3400);
     static_matrix(0x00fb3440, 0x00fb3460);

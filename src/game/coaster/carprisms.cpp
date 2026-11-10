@@ -6,6 +6,7 @@
 
 #include "../math/x87.h"
 #include "helpers.h"
+#include "../math/sintable.h"
 
 namespace {
 
@@ -26,12 +27,12 @@ double CrtAcos(X87Reg x) {
 // The sine table's entry for a value stored as a float first (fistp, rounded to nearest).
 float Entry(X87Reg scaled) {
     const float index = (float)scaled;
-    return reinterpret_cast<const float *>(0x007b0968)[_mm_cvtss_si32(_mm_set_ss(index)) & global<u32>(0x007b0960)];
+    return reinterpret_cast<const float *>(0x007b0968)[_mm_cvtss_si32(_mm_set_ss(index)) & gSinTableMask];
 }
 
 // One point (x, y, 0) turned by the three angles (each with its less -pi/2) and moved to the position.
 void Place(float *out, const float *point, const float *position, const float *angles, const float *shifted) {
-    const float scale = global<float>(0x007b095c);
+    const float scale = gSinTableScale;
     at<u32>(out, 0) = at<u32>(point, 0);
     at<u32>(out, 4) = at<u32>(point, 4);
     at<u32>(out, 8) = 0;

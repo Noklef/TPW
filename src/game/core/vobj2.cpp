@@ -16,6 +16,8 @@
 #include "../render/softrender.h"
 #include "../render/engineerrors.h"
 #include "../gfx/texcache.h"
+#include "../render/pointsprites.h"
+#include "../render/batch.h"
 
 namespace {
 
@@ -334,7 +336,7 @@ u32 __fastcall Object_RenderToBlock13c(u8 *object, void *, u8 *mesh) {
         return 1;
     const u32 *const pixels = at<const u32 *>(global<u8 *>(0x00879dac), 8);
     u16 *out = reinterpret_cast<u16 *>(Texture_Lock(at<u8 *>(at<u8 *>(object, 0x13c), 0x18)));
-    s32 width = global<s32>(0x008bd4ac), count = global<s32>(0x008bd4b0);
+    s32 width = gBatch_8bd4ac, count = global<s32>(0x008bd4b0);
     const s32 side = width / count;
     if (count <= 0)
         return 1;
@@ -356,7 +358,7 @@ u32 __fastcall Object_RenderToBlock13c(u8 *object, void *, u8 *mesh) {
                 const u32 high = (u32)mean & 0xf0;
                 *out++ = (u16)(((high | 0xff00) << 4) | (u32)(mean >> 4) | high);
                 count = global<s32>(0x008bd4b0);
-                width = global<s32>(0x008bd4ac);
+                width = gBatch_8bd4ac;
                 column += side;
                 if (++bx >= count)
                     break;
@@ -450,7 +452,7 @@ extern "C" u32 __fastcall Object_UpdateShadow(u8 *self) {
     matrix[6] = (float)X87Reg(-(X87Reg(light[2]) / light[1]).v);
     scale[0] = scaleX;
     scale[10] = scaleZ;
-    u8 &guard = global<u8>(0x00fb33e0);
+    u8 &guard = gPointsprites_fb33e0;
     float *const product = reinterpret_cast<float *>((uintptr_t)0x00fb3400);   // (a function-local static, an identity)
     if (!(guard & 1)) {
         guard |= 1;

@@ -3,6 +3,7 @@
 #include <cstdint>
 
 #include "../math/x87.h"
+#include "meshlist.h"
 
 namespace {
 
@@ -46,7 +47,7 @@ void __cdecl Model_TexCoords(u8 *out, const u8 *settings, s32 index, const u8 *t
     const u8 *pack = at<const u8 *>(settings, 0x68) + (first >> 2) * 32;
     u32 lane = first & 3;
     if (mode & 2) {
-        const float *const light = at<const float *>(global<const u8 *>(0x0087a248), 0x30);
+        const float *const light = at<const float *>(gMeshlist_87a248, 0x30);
         const float k = gModel_TexCoords_8c1618;
         const float su = (float)(X87Reg(uScale) / X87Reg((s32)at<s16>(texture, 0x14)));
         const float sv = (float)Negate(X87Reg(vScale) / X87Reg((s32)at<s16>(texture, 0x16)));

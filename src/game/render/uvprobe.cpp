@@ -99,7 +99,7 @@ void probe(u8 *settings, bool across, u32 result) {
     const u32 handle = at<u32>(texture, 8) & 0x1000 ? at<u32>(texture, 0x1c) : 0;
     vcall<u32>(device(), 0xc, 0u, handle);
     vcall<u32>(device(), 0x18, 0u, 0u, 0u);
-    global<u32>(0x008c1644) = 0;
+    gUvprobe_8c1644 = 0;
 
     u32 lines[0x3c];
     float place = 0.0f, step = 0.5f;

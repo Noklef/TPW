@@ -134,7 +134,7 @@ void __cdecl MeshRef_SetFlag10000000(u8 *const *ref) {
 
 u32 *__cdecl LightSource_Create(u32 kind, u32 colour, const u32 *point, const u32 *direction) {
     u32 *const light = static_cast<u32 *>(GlobalMem_Alloc(0x14, 1));
-    const float k = global<float>(0x006fe53c);
+    const float k = gLightSource_6fe53c;
     switch (kind) {
     case 0:
         M3D2_DataErrorBox(reinterpret_cast<const char *>((uintptr_t)0x0074d0dc));
@@ -177,7 +177,7 @@ u32 *__cdecl LightSource_Create(u32 kind, u32 colour, const u32 *point, const u3
             at<u32>(base, 0x4c) = 0x38d1b717;   // 0.0001
             LightPart_SetColour(part + offset(0, 8), nullptr, one, one, one, one);
         }
-        const float scale = global<float>(0x006fe50c);   // (no part: read through 0, sic)
+        const float scale = gLightSource_6fe50c;   // (no part: read through 0, sic)
         u8 *base = part + offset(0, 8);
         SceneFlags_Touch(reinterpret_cast<u32 *>(0x008bd508));
         at<u32>(base, 0x54) = colour;
@@ -227,7 +227,7 @@ void __cdecl LightSource_UpdateMain(u32 update) {
     const u32 ambient = global<u32>(0x007a0b44);
     global<u32>(0x00879dd8) = 0x3f800000;   // 1.0f
     const float scale = (float)(X87Reg(global<float>(0x0074d0d8)) / length);
-    const float k = global<float>(0x006fe53c);
+    const float k = gLightSource_6fe53c;
     global<float>(0x00879ddc) = (float)X87_MulInt(ambient >> 16 & 0xff, k);
     global<float>(0x00879de0) = (float)X87_MulInt(ambient >> 8 & 0xff, k);
     global<float>(0x00879de4) = (float)X87_MulInt(ambient & 0xff, k);
@@ -244,7 +244,7 @@ void __cdecl LightSource_UpdateMain(u32 update) {
     at<float>(b, 0x2c) = x;
     at<float>(b, 0x30) = y;
     at<float>(b, 0x34) = z;
-    const float factor = global<float>(0x006fe50c);
+    const float factor = gLightSource_6fe50c;
     const u32 colour = global<u32>(0x007a0b3c);
     b = base();
     SceneFlags_Touch(reinterpret_cast<u32 *>(0x008bd508));

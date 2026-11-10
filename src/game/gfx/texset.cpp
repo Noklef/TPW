@@ -17,7 +17,7 @@ template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cas
 
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
 
-u8 *manager() { return global<u8 *>(0x0087a268); }
+u8 *manager() { return gTexman_87a268; }
 
 AddrCalls g_bltCalls;
 
@@ -86,7 +86,7 @@ u32 __fastcall TexSet_Release(u8 *set) {
             Texture_DestroyArray(array);
     } else {
         for (s32 i = 0; i < at<s16>(set, 0xc); ++i)
-            TexManager_ReleaseTexture(*reinterpret_cast<u8 *const *>((uintptr_t)0x0087a268), nullptr, at<u8 **>(set, 8)[i]);
+            TexManager_ReleaseTexture(*reinterpret_cast<u8 *const *>(&gTexman_87a268), nullptr, at<u8 **>(set, 8)[i]);
     }
     TrackedGlobal_Free(at<u32>(set, 8));
     at<u32>(set, 8) = 0;

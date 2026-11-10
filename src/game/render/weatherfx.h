@@ -157,3 +157,29 @@ u32 __fastcall WeatherFx_AddBolt(u8 *fx, void *, u32 ax, u32 ay, u32 az, u32 bx,
 // place +0x3328.. moved by the wind +0x331c.. times the speed (+0x3338 with +0 bit 0, else +0x333c) and the time, wrapped into -4..4; +0xa1bc.. the camera's +0x20..; +0xa1c8 0; DrawStreaks with bit 0, else DrawDrops with bit 1 (offset plus place): 0 gives 0. Returns 1.
 u32 __fastcall WeatherFx_Frame(u8 *fx);
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(const float, gWeatherfx_701c64, 0x00701c64, 0x4);
+GAME_DATA(const float, gWeatherFx_701c84, 0x00701c84, 0x4);
+GAME_DATA(const float, gWeatherFx_DrawDrops_701c9c, 0x00701c9c, 0x4);
+GAME_DATA(const float, gWeatherFx_701ca0, 0x00701ca0, 0x4);
+GAME_DATA(const float, gWeatherFx_DrawDrops_701cd0, 0x00701cd0, 0x4);
+GAME_DATA(const float, gWeatherfx_701cf0, 0x00701cf0, 0x4);
+GAME_DATA(const float, gWeatherfx_701cf4, 0x00701cf4, 0x4);
+GAME_DATA(const float, gWeatherfx_701cf8, 0x00701cf8, 0x4);
+GAME_DATA(const float, gWeatherfx_701cfc, 0x00701cfc, 0x4);
+GAME_DATA(const float, gWeatherFx_DrawStreaks_701d00, 0x00701d00, 0x4);
+GAME_DATA(const float, gWeatherFx_DrawStreaks_701d04, 0x00701d04, 0x4);
+GAME_DATA(const float, gWeatherFx_DrawStreaks_701d08, 0x00701d08, 0x4);
+GAME_DATA(const float, gWeatherFx_DrawStreaks_701d0c, 0x00701d0c, 0x4);
+GAME_DATA(const float, gWeatherFx_701d10, 0x00701d10, 0x4);
+GAME_DATA(const float, gWeatherfx_701d14, 0x00701d14, 0x4);
+GAME_DATA(const float, gWeatherfx_701d18, 0x00701d18, 0x4);
+GAME_DATA(const float, gWeatherfx_701d1c, 0x00701d1c, 0x4);
+GAME_DATA(const float, gWeatherFx_DrawDrops_701d20, 0x00701d20, 0x4);
+GAME_DATA(const float, gWeatherFx_DrawDrops_701d24, 0x00701d24, 0x4);
+GAME_DATA(char[36], gText_WeatherFx_7651d0, 0x007651d0, 0x24);
+GAME_DATA(char[36], gText_WeatherFx_7651f4, 0x007651f4, 0x24);
+GAME_DATA(char[32], gText_WeatherFx_765218, 0x00765218, 0x20);

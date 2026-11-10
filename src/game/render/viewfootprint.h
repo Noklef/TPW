@@ -17,3 +17,8 @@ void __fastcall Polygon_ScanRows(const u8 *polygon, void *, u8 *scan, u8 *out, u
 // 0x56bb00 (thiscall; called from 0x576add; returns 1): the scan +0xc4 emptied; the corners +0 .. +0x2c from the field of view 0x87af58 (as ViewQuad_SetFov); the eye and each corner's ray point (WorldView_RayPoint) added to a polygon, the far distance the longest of 10 and the rays; the polygon clipped to (+0x3c, +0x40 - +0x4c, +0x44, +0x48 - +0x50) and scaled by 1 / +0x4c and 1 / +0x50; Polygon_ScanRows into +0xc4 and +0x1cc with limit +0x58; Mat4_SetFar on 0x87b110.
 u32 __fastcall WorldView_UpdateFootprint(u8 *view);
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(char[12], gText_Polygon_ScanRows_76830c, 0x0076830c, 0xc);

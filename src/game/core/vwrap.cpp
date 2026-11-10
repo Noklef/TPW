@@ -10,6 +10,7 @@
 #include "misc.h"
 #include "vcall.h"
 #include "../gfx/texcache.h"
+#include "../render/spritegroups.h"
 
 namespace {
 
@@ -41,7 +42,7 @@ u32 __fastcall Global8bba48_ClipAndTouch(u8 *self, void *) {
         u8 code = 0x7c;
         if (v[0] != 0 || v[1] != 0 || v[2] != 0 || v[3] != 0 || v[4] != 0 || v[5] != 0) {
             float out[6];
-            for (s32 j = 0; j < 6; j++) out[j] = (float)((double)v[j] * global<float>(0x00701b24));
+            for (s32 j = 0; j < 6; j++) out[j] = (float)((double)v[j] * gSpritegroups_701b24);
             code = (u8)g_calls.Th(0x00561a30, global<u32>(0x00879a20), (u32)(uintptr_t)out, global<u32>(0x0087b088));
         }
         at<u8>(self, i - 0x98) = code;
@@ -237,7 +238,7 @@ void __cdecl Table7c26b0_ReleaseIdle() {
 }
 
 u32 __cdecl Global8bba48_Create() {
-    if (global<u32>(0x008bba48)) return 0;
+    if (gVwrap_8bba48) return 0;
     u8 *object = static_cast<u8 *>(GameHeap_Alloc(0xa8));
     if (object) {
         at<u32>(object, 0) = 0x00701b40;
@@ -256,7 +257,7 @@ u32 __cdecl Global8bba48_Create() {
         at<u32>(object, 0x84) = 0x0051f280;
         LiveObjects_Add(object + at<s32>(at<u8 *>(object, 0), 4));
     }
-    global<u8 *>(0x008bba48) = object;
+    reinterpret_cast<u8 * &>(gVwrap_8bba48) = object;
     if (!object) {
         EngineErrors_Push(reinterpret_cast<u8 *>((uintptr_t)0x00879ad0), nullptr, 3, 0xb0754000);
         return 0;
@@ -265,10 +266,10 @@ u32 __cdecl Global8bba48_Create() {
 }
 
 u32 __cdecl Global8bba48_DeleteVBase() {
-    if (u8 *object = global<u8 *>(0x008bba48)) {
+    if (u8 *object = reinterpret_cast<u8 * &>(gVwrap_8bba48)) {
         u8 *base = object + at<u32>(at<u8 *>(object, 0), 4);
         vcall<u32>(base, 0, 1u);
-        global<u32>(0x008bba48) = 0;
+        gVwrap_8bba48 = 0;
         return 1;
     }
     return 0;

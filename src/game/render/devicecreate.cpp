@@ -5,6 +5,7 @@
 
 #include "../core/gameheap.h"
 #include "../core/vcall.h"
+#include "batch.h"
 
 namespace {
 
@@ -116,9 +117,9 @@ u32 __cdecl SoftSetup_CreateSquare() {
         return 0;
     }
     const u32 raster = raster_interface();
-    const u32 side = global(0x008bd4ac);
+    const u32 side = global((u32)&gBatch_8bd4ac);
     at<u32>(object, 8) = g_calls.Cd(0x00678e70, raster, 0u, side, side);
-    const u32 now = global(0x008bd4ac);
+    const u32 now = global((u32)&gBatch_8bd4ac);
     global((u32)&gSoftSetup_fbe014) = 0;
     global((u32)&gSoftSetup_fbe018) = 0;
     global((u32)&gDevicecreate_fbe034) = 0;

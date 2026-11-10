@@ -14,6 +14,7 @@
 #include "../terrain/land.h"
 #include "../world/mappreview.h"
 #include "../world/focuscell.h"
+#include "dynfaces.h"
 
 namespace {
 
@@ -24,7 +25,7 @@ template <typename T> T &at(const void *p, u32 offset) {
 // the sine table's entry for (the float at 0x874fc0 + phase) * its scale (stored as a float, then fistp)
 float ripple(float phase) {
     const SinTable sines = SinTable_Game();
-    return SinTable_At(sines, (float)((X87Reg(*reinterpret_cast<const float *>(0x00874fc0)) + phase) * sines.scale));
+    return SinTable_At(sines, (float)((X87Reg(gDynfaces_874fc0) + phase) * sines.scale));
 }
 
 }  // namespace
@@ -287,7 +288,7 @@ u32 __fastcall VertexBlock_TakeFaces(u8 *block) {
     s32 type = -1;
     u32 count = 0;
     bool found = false;
-    for (s32 n = 0; n < *reinterpret_cast<const s32 *>(0x00871ee0); ++n) {
+    for (s32 n = 0; n < *reinterpret_cast<const s32 *>(&gDynfaces_871ee0); ++n) {
         const u32 index = reinterpret_cast<const u32 *>(0x00872168)[n];
         const u8 *const face = reinterpret_cast<const u8 *>((uintptr_t)(0x00820b00u + (index >> 5) * 0xa0u));
         if (at<u32>(face, 0x90) != at<u32>(block, 0)) {

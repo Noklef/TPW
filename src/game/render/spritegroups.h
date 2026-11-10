@@ -19,3 +19,9 @@ extern "C" {
 // 0x100000 stays for the later sprites of all groups (sic).
 u32 __fastcall SpriteGroups_Draw(u8 *object, void *);
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(const float, gSpritegroups_701b24, 0x00701b24, 0x4);
+GAME_DATA(const float, gSpritegroups_701b28, 0x00701b28, 0x4);

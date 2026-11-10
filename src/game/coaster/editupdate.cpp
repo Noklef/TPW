@@ -54,7 +54,7 @@ bool hold(float *p, X87Reg v, u32 lo, u32 hi) {
 
 // The sine table's entry for an angle already scaled (fistp of the float).
 X87Reg sine(float scaled) { return X87Reg(SinTable_At(SinTable_Game(), scaled)); }
-const float &scale() { return g<float>(0x007b095c); }
+const float &scale() { return gSinTableScale; }
 // Its scaled angles: scale * a, and (a - -pi/2) * scale (cosines) where the original does not store a - -pi/2 first.
 float scaled(float a) { return (float)(X87Reg(scale()) * a); }
 float scaled_cos(float a) { return (float)((X87Reg(a) - kMinusHalfPi) * scale()); }

@@ -74,3 +74,8 @@ u32 __cdecl SpriteQueue_Create();
 // the array destroyed (Texture_DestroyArray); +8 is left. With a block at +0xc, it freed (TrackedGlobal_Free) and +4 and +0 cleared.
 void __cdecl Global8c47b0_Release();
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(u8 *, gSpritequeue_8bd4fc, 0x008bd4fc, 0x4);

@@ -10,6 +10,7 @@
 #include "../world/mapcell.h"
 #include "script.h"
 #include "../world/things.h"
+#include "../render/spritequeue.h"
 
 namespace {
 
@@ -169,7 +170,7 @@ extern "C" u32 __cdecl SpriteDraw_Pick() {
     Gui_GetMousePos(&x, &y);
     global<float>(0x008bd4f0) = (float)(X87Reg((double)(s16)x) * global<float>(0x00700d18) - global<float>(0x00700d10));
     global<float>(0x008bd4f4) = (float)(X87Reg((double)(s16)y) * global<float>(0x00700d1c) - global<float>(0x00700d10));
-    u8 *const picked = global<u8 *>(0x008bd4fc);
+    u8 *const picked = gSpritequeue_8bd4fc;
     if (!picked)
         return 0;
     const s32 slot = SpriteScript_FindShown(picked);

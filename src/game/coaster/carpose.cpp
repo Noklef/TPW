@@ -12,6 +12,7 @@
 #include "handles.h"
 #include "orient.h"
 #include "train.h"
+#include "../math/sintable.h"
 
 namespace {
 
@@ -108,10 +109,10 @@ void PoseOffNode(u8 *piece, const u8 *in, u8 *out) {
         const float angle = at<float>(piece, 0xe0);
         offset[1] = 0.0f;
         offset[2] = -1.0f;
-        const float a = (float)(X87Reg(angle) * global<float>(0x007b095c));
-        const float b = (float)((X87Reg(angle) - kMinusHalfPi) * global<float>(0x007b095c));
-        const s32 s = Fistp(a) & global<s32>(0x007b0960);
-        const s32 c = Fistp(b) & global<s32>(0x007b0960);
+        const float a = (float)(X87Reg(angle) * gSinTableScale);
+        const float b = (float)((X87Reg(angle) - kMinusHalfPi) * gSinTableScale);
+        const s32 s = Fistp(a) & reinterpret_cast<s32 &>(gSinTableMask);
+        const s32 c = Fistp(b) & reinterpret_cast<s32 &>(gSinTableMask);
         Vec3_RotateYCS(offset, global<float>(0x007b0968 + c * 4), global<float>(0x007b0968 + s * 4));
     }
     at<float>(out, -4) = (float)(X87Reg(offset[0]) + at<float>(in, 0));

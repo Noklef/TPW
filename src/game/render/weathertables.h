@@ -16,3 +16,16 @@ u32 __cdecl WeatherFx_Create();
 // points on the stack, in a ring, +0x8558, 0x80 records of 0x30 bytes (a cubic's differences g, h, k and its point, x87 at 24 bits); +0x3344 = timeGetTime. Returns 1.
 u32 __fastcall WeatherFx_FillTables(u8 *fx);
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(const float, gWeathertables_701c6c, 0x00701c6c, 0x4);
+GAME_DATA(const float, gWeathertables_701c70, 0x00701c70, 0x4);
+GAME_DATA(const float, gWeatherFx_FillTables_701c74, 0x00701c74, 0x4);
+GAME_DATA(const double, gWeatherFx_FillTables_701c78, 0x00701c78, 0x8);
+GAME_DATA(const float, gWeatherFx_FillTables_701c80, 0x00701c80, 0x4);
+GAME_DATA(const float, gWeatherFx_FillTables_701c88, 0x00701c88, 0x4);
+GAME_DATA(const float, gWeatherFx_FillTables_701c8c, 0x00701c8c, 0x4);
+GAME_DATA(const float, gWeathertables_701c90, 0x00701c90, 0x4);
+GAME_DATA(const float, gWeatherFx_FillTables_701c94, 0x00701c94, 0x4);

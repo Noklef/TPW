@@ -244,7 +244,7 @@ void __cdecl Rsse_MoveWalker(u8 *vm, u8 *slot, s32 from, s32 to, s32 mode, s32 t
     const float now = (float)(double)Clocks_Now(clock);   // (fild qword: the time unsigned)
     const s32 since = (s32)(Clocks_Now(clock) - at<u32>(vm, 0x80));
     const SinTable sines = SinTable_Game();
-    const float &scale = global<float>(0x007b095c);
+    const float &scale = gSinTableScale;
     const X87Reg angle = X87Reg(X87_MulIntDouble(since, global<float>(0x00701030))) / X87Reg((double)at<s32>(vm, 0x84)) * scale;
     const float s = SinTable_At(sines, (float)angle);
     const X87Reg g = X87Reg(a) * now * c;   // (fst: kept in the register for y, read back as the float for x)
