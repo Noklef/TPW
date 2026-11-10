@@ -4,9 +4,9 @@
    unit alone (the layout is the same). jinit_memory_mgr stores the eleven method addresses, so it is built as
    jpeg6a_jmemmgr_lib_jinit_memory_mgr: src/game/lib/jpeg6a.cpp's shim calls it and puts the exe's addresses in their place.
    What it calls outside the library is the exe's, as jmemansi.c's malloc and free are (wrap/jpeg-6a/jmemansi.c): getenv (0x67fbf0) and
-   sscanf (0x67f620), the exe's C runtime's, read JPEGMEM; and jpeg_open_backing_store is the exe's 6a copy (0x650265, it stays the
-   exe's: its tmpfile() is a FILE of the exe's C runtime, which its read / write / close methods take), so realize_virt_arrays opens the
-   exe's backing store. They go through jpeg6a.cpp's jpeg6a_exe_getenv / sscanf / open_backing_store. */
+   sscanf (0x67f620), the exe's C runtime's, read JPEGMEM; and jpeg_open_backing_store is called at the exe's 6a address (0x650265,
+   hooked to the library's through its shim in jpeg6a.cpp; the benches give a recorder). They go through jpeg6a.cpp's
+   jpeg6a_exe_getenv / sscanf / open_backing_store. */
 #define alloc_small jpeg6a_jmemmgr_alloc_small
 #define alloc_large jpeg6a_jmemmgr_alloc_large
 #define alloc_sarray jpeg6a_jmemmgr_alloc_sarray

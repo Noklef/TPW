@@ -393,7 +393,7 @@ jpeg6a_scan_info *__cdecl jpeg6a_jcparam_fill_scans(jpeg6a_scan_info *scanptr, i
 jpeg6a_scan_info *__cdecl jpeg6a_jcparam_fill_dc_scans(jpeg6a_scan_info *scanptr, int ncomps, int Ah, int Al);
 
 // jmemansi.c, the memory manager's system-dependent part, through third_party/wrap/jpeg-6a/jmemansi.c: its malloc and free are the
-// exe's C runtime's (Jpeg6a_SetCrtEnv below), so every block stays on the exe's heap.
+// exe's C runtime's (Jpeg6a_SetCrtEnv below), so every block stays on the exe's heap, and so are its backing store's FILE calls.
 // 0x650210, 0x650232: malloc(sizeofobject).
 void *__cdecl jpeg6a_jpeg_get_small(jpeg6a_common_struct *cinfo, std::size_t sizeofobject);
 void *__cdecl jpeg6a_jpeg_get_large(jpeg6a_common_struct *cinfo, std::size_t sizeofobject);
@@ -402,12 +402,24 @@ void __cdecl jpeg6a_jpeg_free_small(jpeg6a_common_struct *cinfo, void *object, s
 void __cdecl jpeg6a_jpeg_free_large(jpeg6a_common_struct *cinfo, void *object, std::size_t sizeofobject);
 // 0x650254: mem->max_memory_to_use (+0x2c) - already_allocated.
 long __cdecl jpeg6a_jpeg_mem_available(jpeg6a_common_struct *cinfo, long min_bytes_needed, long max_bytes_needed, long already_allocated);
+// The backing store, as 6b's: info is a backing_store_info (read_backing_store +0, write_backing_store +4, close_backing_store +8,
+// temp_file +0xc). 0x650265: tmpfile into temp_file (null: ERREXITS JERR_TFILE_CREATE 0x3e with the exe's ""), then the three methods.
+// Through the method shim (the exe's addresses stored).
+void __cdecl jpeg6a_jpeg_open_backing_store(jpeg6a_common_struct *cinfo, void *info, long total_bytes_needed);
+// 0x6502cd / 0x65033d: fseek to file_offset (failed: ERREXIT JERR_TFILE_SEEK 0x40), then fread / fwrite of byte_count bytes (short:
+// JERR_TFILE_READ 0x3f / JERR_TFILE_WRITE 0x41).
+void __cdecl jpeg6a_jmemansi_read_backing_store(jpeg6a_common_struct *cinfo, void *info, void *buffer_address, long file_offset,
+                                                long byte_count);
+void __cdecl jpeg6a_jmemansi_write_backing_store(jpeg6a_common_struct *cinfo, void *info, void *buffer_address, long file_offset,
+                                                 long byte_count);
+// 0x6503ad: fclose of temp_file.
+void __cdecl jpeg6a_jmemansi_close_backing_store(jpeg6a_common_struct *cinfo, void *info);
 
 // jmemmgr.c, the memory manager, through third_party/wrap/jpeg-6a/jmemmgr.c: cinfo->mem (my_memory_mgr, 0x50 bytes: the public
 // jpeg_memory_mgr 0x30 (no max_alloc_chunk in 6a), small_list[2] +0x30, large_list[2] +0x38, virt_sarray_list +0x40,
 // virt_barray_list +0x44, total_space_allocated +0x48, last_rowsperchunk +0x4c); pools 0 (JPOOL_PERMANENT) and 1 (JPOOL_IMAGE); a
-// pool's blocks start with a 16-byte header (next, bytes_used, bytes_left). Its getenv / sscanf and jpeg_open_backing_store are the
-// exe's (Jpeg6aCrtEnv below).
+// pool's blocks start with a 16-byte header (next, bytes_used, bytes_left). Its getenv / sscanf are the exe's and
+// jpeg_open_backing_store the exe's address (hooked to the library's above), through Jpeg6aCrtEnv below.
 struct jpeg6a_jvirt_sarray_control;  // 0x80 bytes (int booleans pre_zero +0x20, dirty +0x24, b_s_open +0x28; the backing store +0x30)
 struct jpeg6a_jvirt_barray_control;  // 0x80 bytes
 typedef short jpeg6a_block[64];      // JBLOCK

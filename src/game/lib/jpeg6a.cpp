@@ -60,6 +60,7 @@ static_assert(offsetof(jpeg_memory_mgr, free_pool) == 0x24 && offsetof(jpeg_memo
 // wrapper unit), and the shim of its name calls it and puts the exe's address of each method in place of the library's, so the exe's
 // code that compares or calls them sees its own (the game's hooks then run the library's anyway).
 extern "C" void __cdecl jpeg6a_jmemmgr_lib_jinit_memory_mgr(jpeg6a_common_struct *cinfo);
+extern "C" void __cdecl jpeg6a_jmemansi_lib_jpeg_open_backing_store(jpeg6a_common_struct *cinfo, void *info, long total_bytes_needed);
 extern "C" void __cdecl jpeg6a_jcmarker_lib_jinit_marker_writer(jpeg6a_compress_struct *cinfo);
 extern "C" void __cdecl jpeg6a_jcmaster_lib_jinit_c_master_control(jpeg6a_compress_struct *cinfo, int transcode_only);
 extern "C" void __cdecl jpeg6a_jcmainct_lib_jinit_c_main_controller(jpeg6a_compress_struct *cinfo, int need_full_buffer);
@@ -97,6 +98,10 @@ const ExeMethod kExeMethods[] = {
     {fn(&jpeg6a_jmemmgr_access_virt_barray), 0x64ee6f},
     {fn(&jpeg6a_jmemmgr_free_pool), 0x64f1aa},
     {fn(&jpeg6a_jmemmgr_self_destruct), 0x64f360},
+    // jmemansi.c's backing store
+    {fn(&jpeg6a_jmemansi_read_backing_store), 0x6502cd},
+    {fn(&jpeg6a_jmemansi_write_backing_store), 0x65033d},
+    {fn(&jpeg6a_jmemansi_close_backing_store), 0x6503ad},
     // jcmarker.c
     {fn(&jpeg6a_jcmarker_write_any_marker), 0x64f520},
     {fn(&jpeg6a_jcmarker_write_file_header), 0x64f644},
@@ -191,6 +196,12 @@ void __cdecl jpeg6a_jinit_memory_mgr(j_common_ptr cinfo) {
     exe_method(mem->access_virt_barray);
     exe_method(mem->free_pool);
     exe_method(mem->self_destruct);
+}
+
+// (backing_store_info: read_backing_store +0, write_backing_store +4, close_backing_store +8, temp_file +0xc)
+void __cdecl jpeg6a_jpeg_open_backing_store(j_common_ptr cinfo, void *info, long total_bytes_needed) {
+    jpeg6a_jmemansi_lib_jpeg_open_backing_store(cinfo, info, total_bytes_needed);
+    for (int slot = 0; slot < 12; slot += 4) exe_method_at(static_cast<char *>(info) + slot);
 }
 
 void __cdecl jpeg6a_jinit_marker_writer(j_compress_ptr cinfo) {
