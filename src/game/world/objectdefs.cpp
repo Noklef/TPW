@@ -282,7 +282,7 @@ u8 *__fastcall ObjectDefs_Next(u8 *defs) {
 }
 
 const u8 *__fastcall ObjectDef_GetSchema(const void *, void *, u32 index) {
-    return reinterpret_cast<const u8 *>(0x00744b30) + index * 0x3c;
+    return reinterpret_cast<const u8 *>((u32)(uintptr_t)&gObjectDef_GetSchema_744b30) + index * 0x3c;
 }
 
 const u8 *__fastcall TrackType_GetSchema(const void *, void *, u32 index) {

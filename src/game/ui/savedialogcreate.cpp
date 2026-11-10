@@ -37,7 +37,7 @@ u8 *Open(u32 dialog, u32 handler, u32 text) {
     g_env->disable(reinterpret_cast<u8 *>((uintptr_t)0x00786b68), nullptr, 0, 0);
     global<u32>(0x00786ba4) = 0;
     g_env->closeOther();
-    u8 *const window = g_env->create(reinterpret_cast<u8 *>((uintptr_t)0x007523f0), handler, 1);
+    u8 *const window = g_env->create(gSavedialogcreate_7523f0, handler, 1);
     global<u8 *>(dialog) = window;
     if (!window) return nullptr;
     g_env->setFocus(window, nullptr, 0);
@@ -79,7 +79,7 @@ void __cdecl SaveDialog_Create() {
     g_env->setCaret(edit, nullptr, reinterpret_cast<u8 *>((uintptr_t)g_env->findByName(hilight())));
     const u32 text = static_cast<u32>(reinterpret_cast<uintptr_t>(g_env->wideText(0xce)));
     vcall<void>(edit, 0x24, text);
-    g_env->setRefused(edit, nullptr, 0x00752588);
+    g_env->setRefused(edit, nullptr, (u32)(uintptr_t)&gText_Savedialogcreate_752588);
     g_env->setFocus(edit, nullptr, 0);
     u8 *const list = Window_FindChild(global<u8 *>(kSaveDialog), nullptr, 0x23bce0);
     if (list) {

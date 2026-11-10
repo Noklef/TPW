@@ -99,3 +99,5 @@ GAME_DATA(u32, gCoasterLinkWordsMax_791cfc, 0x00791cfc, 0x4);   // the links' la
 GAME_DATA(u8[0x110], gSetup_74ca70, 0x0074ca70, 0x110);
 GAME_DATA(char[0xc], gText_CoasterType_Load_74cb80, 0x0074cb80, 0xc);
 GAME_DATA(char[0xc], gText_CoasterType_Load_74cb8c, 0x0074cb8c, 0xc);
+GAME_DATA(u32[3][4], gCoasterType_Setup_74cde0, 0x0074cde0, 0x30);   // the static entries (7, a texture name's address, 0, 0)
+GAME_DATA(u32, gCoasterType_Setup_74ce10, 0x0074ce10, 0x4);          // their count

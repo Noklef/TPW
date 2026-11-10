@@ -226,7 +226,7 @@ u8 *__fastcall VertexBlock_Construct(u8 *block, void *, u32 cubes, u32 quads, u3
     append(path, at<const char *>(Obj_Self(reinterpret_cast<u8 *>(0x00786b68)), 8));
     append(path, reinterpret_cast<const char *>(Flag54dcc0_Test() ? (u32)(uintptr_t)&gText_VertexBlock_Construct_763ec0 : (u32)(uintptr_t)&gText_VertexBlock_Construct_763eac));
     at<u32>(block, 0x10) = 0x871f68;
-    at<u32>(block, 0x14) = 0x763b38;
+    at<u32>(block, 0x14) = (u32)(uintptr_t)&gVertexBlock_Construct_763b38;
     at<u32>(block, 0x54) = 3;
     at<u16>(block, 0x58) = 1;
     at<u8 *>(block, 0x5c) = block + 0x24;

@@ -60,6 +60,7 @@ u32 __fastcall VertexBlock_TakeFaces(u8 *block);
 
 // Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
 GAME_DATA(char[0x20], gText_Vertexblock_74cb98, 0x0074cb98, 0x20);
+GAME_DATA(u32[20][4], gVertexBlock_Construct_763b38, 0x00763b38, 0x140);   // the textures' entries (flags, a name's address, 0, 0)
 GAME_DATA(char[0x14], gText_VertexBlock_Construct_763eac, 0x00763eac, 0x14);
 GAME_DATA(char[0x14], gText_VertexBlock_Construct_763ec0, 0x00763ec0, 0x14);
 GAME_DATA(char[0x10], gText_VertexBlock_Construct_763ed4, 0x00763ed4, 0x10);

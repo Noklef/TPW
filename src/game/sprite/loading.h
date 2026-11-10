@@ -124,6 +124,11 @@ GAME_DATA(u32, gLoading_876b28, 0x00876b28, 0x4);
 GAME_DATA(u8, gLoading_877354, 0x00877354, 0x1);
 
 // Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
-GAME_DATA(char[0x4], gAvatarSprites, 0x00764030, 0x4);
+GAME_DATA(u32[4], gAvatarSprites, 0x00764030, 0x10);   // the four names' addresses (0x541b05 ends at 0x764040)
+GAME_DATA(char[0xc], gText_Sprites_LoadFolder_7640a8, 0x007640a8, 0xc);   // "researchers"
+GAME_DATA(char[0x8], gText_Sprites_LoadFolder_7640b4, 0x007640b4, 0x8);   // "guards"
+GAME_DATA(char[0xc], gText_Sprites_LoadFolder_7640bc, 0x007640bc, 0xc);   // "mechanics"
+GAME_DATA(char[0xc], gText_Sprites_LoadFolder_7640c8, 0x007640c8, 0xc);   // "handymen"
+GAME_DATA(char[0xc], gText_Sprites_LoadFolder_764100, 0x00764100, 0xc);   // "kidsheads"
 GAME_DATA(char[0x8], gText_Sprites_LoadFolder_76410c, 0x0076410c, 0x8);
 GAME_DATA(char[0x8], gText_Sprites_LoadFolder_764160, 0x00764160, 0x8);

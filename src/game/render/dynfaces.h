@@ -84,6 +84,9 @@ GAME_DATA(const float, gDynFaces_Frame_700de8, 0x00700de8, 0x4);
 GAME_DATA(const float, gDynFaces_Frame_700df0, 0x00700df0, 0x4);
 GAME_DATA(const float, gDynFaces_Frame_700df4, 0x00700df4, 0x4);
 GAME_DATA(const float, gDynFaces_Frame_700df8, 0x00700df8, 0x4);
+GAME_DATA(u32[8], gDynFaces_763c78, 0x00763c78, 0x20);   // the textures' record: flags, count 20, the folder 0x74cb98, 0, the entries 0x763b38
+GAME_DATA(u8, gDynFaces_763c98, 0x00763c98, 0x1);
+GAME_DATA(float[8][4], gDynFaces_Frame_763cf0, 0x00763cf0, 0x80);   // the turned grids' rows (-1, x, y, z)
 GAME_DATA(u8 *, gDynFaces_871ed8, 0x00871ed8, 0x4);
 GAME_DATA(u32, gDynfaces_871ee0, 0x00871ee0, 0x4);
 GAME_DATA(u8 *, gDynFaces_871ee4, 0x00871ee4, 0x4);

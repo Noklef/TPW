@@ -231,6 +231,15 @@ TEXT = {        # slot: why, for a dword of text whose bytes read as a pointer i
     0x7247fc: 'text "leep"', 0x74868c: 'text "help"', 0x75170c: 'text "loop"', 0x768984: 'text " bpp"',
     0x7740b0: 'text "%08x"', 0x7785bc: 'text "%02x"', 0x778b0c: 'text "%02x"', 0x77be98: 'text "%02x"', 0x77c334: 'text "%02x"',
 }
+TEXT.update({s: 'text " up", not a pointer into gD3dsetup_707520' for s in (0x74d964,)})
+TEXT.update({s: 'text "dat", not a pointer into gObjectDef_GetSchema_744b30' for s in (0x75c6f0, 0x7740bc)})
+TEXT.update({s: 'text "ect", not a pointer into gObjectDef_GetSchema_744b30' for s in (0x745eec, 0x745f2c, 0x75b2f8)})
+TEXT.update({s: 'text "wct", not a pointer into gObjectDef_GetSchema_744b30' for s in (0x750e0c, 0x753c50, 0x754ce0, 0x754cf0)})
+TEXT.update({s: 'text "set", not a pointer into gObjectDef_GetSchema_744b30' for s in (0x709a14, 0x709a38, 0x744dd4, 0x7745b4)})
+TEXT.update({s: 'text "yet", not a pointer into gObjectDef_GetSchema_744b30' for s in (0x779030, 0x779190, 0x77b820, 0x77b96c)})
+TEXT.update({s: 'text "ght", not a pointer into gObjectDef_GetSchema_744b30' for s in (0x73ef24, 0x74031c, 0x740354, 0x740390, 0x7403cc, 0x74f9c0, 0x74fa88)})
+TEXT.update({s: 'text "fit", not a pointer into gObjectDef_GetSchema_744b30' for s in (0x738b60,)})
+TEXT.update({s: 'text " %u", not a pointer into gSavedialogcreate_7523f0' for s in (0x778654, 0x778a0c, 0x778aa8, 0x778b60, 0x77be54, 0x77bef4, 0x77bfa4, 0x77c274)})
 POINTERS = {}   # slot: why, for a pointer whose bytes read as text
 NEXT = {        # slot: why, for a dword at a converted object's end that points at what follows it (left as it is), not an end pointer
     0x7061c4: 'the text "DDERR_UN..." at 0x77dd30, after gImaAdpcmState',
@@ -244,7 +253,14 @@ NEXT = {        # slot: why, for a dword at a converted object's end that points
     0x781f88: 'the text "H:mm:ss" at 0x709750, after CRT_text_SNAN_709748',
     0x781f8c: 'the C library\'s __lc_time_curr: its __lc_time_c (the time names) at 0x781ee0, after gCrtfpexcept_781edc',
     0x782d24: 'the static object at 0xfb1edc (staticinit gives it the vtable 0x70a114), after gLocalefacet_fb1ed8',
+    0x7054b8: 'libjpeg\'s message table: the text "Bogus message code" at 0x77b2e0, after gText_Jpegwrite_77b2d4',
+    0x763fb8: 'gSpriteFolders\' row: the text "entertainers" at 0x7640d4, after gText_Sprites_LoadFolder_7640c8',
+    0x763c5c: 'gVertexBlock_Construct_763b38\'s row: the text "gte_lgo1.tga" at 0x763d70, after gDynFaces_Frame_763cf0',
+    0x763c6c: 'gVertexBlock_Construct_763b38\'s row: the text "gte_lgo1.tga" at 0x763d70, after gDynFaces_Frame_763cf0',
 }
+NEXT.update({s: 'RTTI: the type descriptor at 0x75c700, after gText_ChatLists_75c6f4' for s in (0x711c30, 0x711c6c, 0x71935c)})
+NEXT.update({s: 'a texture entry: the text "blue.tga" at 0x74ce14, after gCoasterType_Setup_74ce10' for s in (0x74ce04, 0x763b3c)})
+NEXT[0x76403c] = 'gAvatarSprites\' last name: the text "SPR_SU.ESP" at 0x764040, after the array'
 NEXT.update({s: 'the C library locale tables\' text at 0x711c30, after CRT_zero_711c28'
              for s in (0x711c48, 0x711cf8, 0x711d2c, 0x711d80, 0x712188, 0x7121bc, 0x71237c, 0x7129dc)})
 NEXT.update({s: 'the .bss global at 0xfb3cc0, after CRT_piob' for s in (0x77e800, 0x77e808)})

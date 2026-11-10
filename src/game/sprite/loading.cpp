@@ -147,13 +147,14 @@ u32 __cdecl Sprites_LoadFolder(u8 *folder, const String *folderName) {
     s32 loaded = 0, avatarLimit = 0, staffLimit = 0;
     bool avatars = false, staff = false;
     gLoading_877354 = 1;
-    static constexpr u32 kKidsHeads[] = {0x00764100};
+    const u32 kKidsHeads[] = {(u32)(uintptr_t)&gText_Sprites_LoadFolder_764100};
     if (name_among(folderName, (u32)(uintptr_t)&gText_Sprites_LoadFolder_76410c, kKidsHeads, 1)) {
         avatars = true;
         avatarLimit = static_cast<s32>(g_calls.Th(0x0041a9d0, (u32)&gSprites_LoadFolder_78baec));
     }
-    static constexpr u32 kStaff[] = {0x007640bc, 0x007640b4, 0x007640a8};
-    if (name_among(folderName, 0x007640c8, kStaff, 3)) {
+    const u32 kStaff[] = {(u32)(uintptr_t)&gText_Sprites_LoadFolder_7640bc, (u32)(uintptr_t)&gText_Sprites_LoadFolder_7640b4,
+                          (u32)(uintptr_t)&gText_Sprites_LoadFolder_7640a8};
+    if (name_among(folderName, (u32)(uintptr_t)&gText_Sprites_LoadFolder_7640c8, kStaff, 3)) {
         staff = true;
         staffLimit = static_cast<s32>(g_calls.Th(0x0041aa40, (u32)&gSprites_LoadFolder_78baec));
     }
@@ -179,7 +180,7 @@ u32 __cdecl Sprites_LoadFolder(u8 *folder, const String *folderName) {
     list_files(folder, &path, folderName);
     SpriteFiles_Sort();
     if (avatars) {
-        for (u32 at = (u32)(uintptr_t)&gAvatarSprites; at < 0x00764040; at += 4) {
+        for (u32 at = (u32)(uintptr_t)&gAvatarSprites; at < (u32)(uintptr_t)&gAvatarSprites + sizeof(gAvatarSprites); at += 4) {
             for (s32 i = 0; i < gSpriteFileCount_875430; i++) {
                 FileEntry &e = entries()[i];
                 String wanted, have;
