@@ -34,7 +34,7 @@ GROUP_BLOCK, FALSE_BLOCK, TRUE_BLOCK = HEAP + 0x800, HEAP + 0x840, HEAP + 0x880
 GLOBALS = 0xfb1da8
 GETS = {'bool': 0x695ca0, 'ushort': 0x696450, 'uint': 0x6968a0, 'long': 0x696ce0, 'ulong': 0x6970e0, 'pointer': 0x6981f0, 'float': 0x6974e0, 'double': 0x697930, 'ldouble': 0x697d90}
 FLOATS = [b'', b'0', b'1.5', b'-0.25e3', b'+12.5E-2', b'1e', b'1e+', b'.5', b'.', b'-.', b'0.000123', b'000.000', b'1e400', b'1e-400', b'-1e+38', b'3.5e38', b'1e-45', b'0e5', b'1,5', b'1.2.3', b'e5', b'1E05',
-          b'12345678901234567890123456789012345678901234.5e1', b'0.00000000000000000000000000000000000000001', b'123e123456789', b'00012.500', b'1.e3', b'7x', b'\xff', b'99999999999999999999999999999999999999']
+          b'12345678901234567890123456789012345678901234.5e1', b'0.00000000000000000000000000000000000000001', b'123e123456789', b'00012.500', b'1.e3', b'7x', b'\xff', b'99999999999999999999999999999999999999', b'0.7', b'.7', b'0.9876543210123', b'.07e1']
 OPS = [n for n in list(GETS) * 2 + ['getifld'] * 2 if not os.environ.get('OPS') or n in os.environ['OPS'].split(',')]
 GROUPS = [b'', b'', b'\x03', b'\x03', b'\x03\x02', b'\x01', b'\x7f', b'\x03\x7f', b'\xff', b'\x03\xff', b'\x02\x00\x03', b'\x02\x01\x7f']
 NUMBERS = [b'', b'0', b'5', b'12', b'-12', b'+12', b'0x1f', b'0X1F', b'0x', b'077', b'08', b'1,234', b'12,345', b'1,234,567', b'12,34,567', b',1', b'1,', b'1,,2', b'1,2,', b'1234,567', b'00,012',
@@ -87,6 +87,8 @@ def case(r):
     regions[0x75c734] = b'missing locale facet\0\0\0\0'
     # The stream: its text waiting in the buffer, or nothing there and every character from underflow.
     text = r.choice(WORDS if name == 'bool' and r.random() < 0.7 else FLOATS if floats and r.random() < 0.8 else NUMBERS)
+    if floats and r.random() < 0.15:   # (0x24 digits are kept: the rest only count as a power of ten, which _Stod multiplies in)
+        text = bytes(r.choice(b'0123456789') for _ in range(r.randrange(34, 42))) + r.choice([b'', b'.5', b'e-3'])
     buffered = r.random() < 0.8
     if not buffered:
         text = text[:8]   # (two logged calls a character, and the answers stop moving when the log's 40 entries are full: the input must end before that, the other calls' entries too)
