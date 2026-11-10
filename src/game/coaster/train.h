@@ -325,3 +325,17 @@ GAME_DATA(const float, gCoaster_DropCar_6fe1e0, 0x006fe1e0, 0x4);
 GAME_DATA(const float, gCoaster_DropCar_6fe1e4, 0x006fe1e4, 0x4);
 GAME_DATA(const float, gCoaster_DropCar_6fe1e8, 0x006fe1e8, 0x4);
 GAME_DATA(u8 *, gTrain_790fd4, 0x00790fd4, 0x4);
+
+// 0x790ff0: the saved train's first 0x48 bytes (0x436230 / 0x4338e0); its car count at +0x30.
+struct CoasterTrainSave {
+    u32 head[12];
+    u32 cars;  // +0x30
+    u32 slots[5];  // +0x34 the car slots
+};
+static_assert(sizeof(CoasterTrainSave) == 0x48, "0x790ff0-0x791037");
+GAME_DATA(CoasterTrainSave, gCoasterTrainSave_790ff0, 0x00790ff0, 0x48);
+GAME_DATA(u32[5], gCoasterTrainSaveCarWords_791038, 0x00791038, 0x14);   // each saved car's +0x50
+// The pair {+0xb4, +0xb8} the record 0x791ce8 points at; the rest (up to 0x791cd8) nothing references directly.
+GAME_DATA(u32[802], gCoasterRidePair_791050, 0x00791050, 0xc88);
+GAME_DATA(u32[4], gCoasterRideDesc_791ce8, 0x00791ce8, 0x10);   // c, d, 0, the pair 0x791050
+GAME_DATA(u8[0x514], gCoasterTrainSaveCars_791d00, 0x00791d00, 0x514);   // 5 saved cars, 0x104 bytes each

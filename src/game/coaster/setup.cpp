@@ -272,7 +272,7 @@ void __cdecl CoasterPiece_Load(u8 *piece, const char *folder) {
 
 void __cdecl CoasterTypes_FreeAll() {
     for (u32 i = 0; i < gSetup_790fe8; ++i) {
-        u8 *&slot = global<u8 *>(0x00790b08 + 4 * i);
+        u8 *&slot = gCoasterTypes_790b08[i];
         u8 *const t = slot;
         u8 *const first = at<u8 *>(t, 0x300), *const last = at<u8 *>(t, 0x304), *const other = at<u8 *>(t, 0x2fc);
         releaseBlock(first, 0x2c);
@@ -307,7 +307,7 @@ u8 *__cdecl CoasterType_Create(u32 holder, u32, u32 id, const u8 *source) {
     at<u32>(balance, 0) = 0x006fd8b0;
     BalanceFile_Init(balance);
     u8 *const t = static_cast<u8 *>(GlobalMem_Alloc(0x35c, 1));
-    reinterpret_cast<u8 **>(0x00790b08)[gSetup_790fe8] = t;
+    gCoasterTypes_790b08[gSetup_790fe8] = t;
     ++gSetup_790fe8;
     const u32 one = 0x3f800000, five = 0x40a00000, ten = 0x41200000, half = 0x3f000000, pi = 0x40490fdb;
     at<u32>(t, 4) = holder;
@@ -450,7 +450,7 @@ void __cdecl CoasterType_Load(u32 slot, const char *folder, const u8 *source) {
     const s32 most = at<s32>(type, 0x3c);
     if (most > gSetup_790fd0) gSetup_790fd0 = most;
     const u32 words = at<u16>(at<u8 *>(type, 0x1c), 4);
-    if (words > global<u32>(0x00791cfc)) global<u32>(0x00791cfc) = words;
+    if (words > gCoasterLinkWordsMax_791cfc) gCoasterLinkWordsMax_791cfc = words;
     u8 *const holder = at<u8 *>(type, 0x14);
     u8 *const animator = at<u8 *>(type, 0x18);
     u8 *const record = at<u8 *>(type, 0x1c);

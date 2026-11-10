@@ -150,17 +150,17 @@ u32 __cdecl Train_ShrinkToTop(const u8 *owner, const u8 *type, const u8 *train) 
 }
 
 void __cdecl Train_RestoreSaved(const u8 *owner, u8 *train) {
-    for (u32 o = 0; o < 0x48; o += 4) at<u32>(train, o) = global<u32>(0x00790ff0 + o);   // (rep movsd)
+    for (u32 o = 0; o < 0x48; o += 4) at<u32>(train, o) = reinterpret_cast<const u32 *>(&gCoasterTrainSave_790ff0)[o / 4];   // (rep movsd)
     u32 i = 0;
-    for (; i < global<u32>(0x00791020); ++i) {
-        const u8 *const saved = reinterpret_cast<const u8 *>((uintptr_t)(0x00791d00 + 0x104 * i));
+    for (; i < gCoasterTrainSave_790ff0.cars; ++i) {
+        const u8 *const saved = gCoasterTrainSaveCars_791d00 + 0x104 * i;
         u8 *const car = at<u8 *>(train, 0x34 + 4 * i);
         at<u32>(car, 4) = at<u32>(saved, 4);
         at<u32>(car, 8) = (at<u32>(car, 8) & 0x600000) | at<u32>(saved, 8);
         constexpr u32 kRuns[][2] = {{0xc, 0x70}, {0x90, 0xb0}, {0xd4, 0x104}};
         for (const auto &run : kRuns)
             for (u32 o = run[0]; o < run[1]; o += 4) at<u32>(car, o) = at<u32>(saved, o);
-        at<u32>(car, 0x50) = global<u32>(0x00791038 + 4 * i);
+        at<u32>(car, 0x50) = gCoasterTrainSaveCarWords_791038[i];
         Car_SetChannelRates(at<u32>(owner, 4), car);
     }
     for (; i < 5; ++i) at<u32>(train, 0x34 + 4 * i) = 0;
@@ -230,13 +230,13 @@ u32 __cdecl Train_CarValue(const u8 *train, u32 n) {
 }
 
 u32 *__cdecl CoasterEvent_Make(u32 a, u32 b, u32 c, u32 d) {
-    u32 *pair = reinterpret_cast<u32 *>(0x00791050), *event = reinterpret_cast<u32 *>(0x00791ce8);
+    u32 *pair = gCoasterRidePair_791050, *event = gCoasterRideDesc_791ce8;
     pair[0] = a;
     pair[1] = b;
     event[0] = c;
     event[1] = d;
     event[2] = 0;
-    event[3] = 0x00791050;
+    event[3] = (u32)(uintptr_t)gCoasterRidePair_791050;
     return event;
 }
 
@@ -819,12 +819,12 @@ void __cdecl Train_PlaceCarAtBrace(u8 *coaster, u8 *car, u8 *train, u32, u32 sav
     u32 type;
     const bool marks = (reinterpret_cast<u8 &>(gPlacecar_79c658) & 0x40) != 0;
     if (save) {
-        std::memcpy(reinterpret_cast<void *>(0x00790ff0), train, 0x48);
-        const u32 count = global<u32>(0x00791020);
+        std::memcpy(&gCoasterTrainSave_790ff0, train, 0x48);
+        const u32 count = gCoasterTrainSave_790ff0.cars;
         for (u32 k = 0; k < count; ++k) {
             const u8 *const c = at<const u8 *>(train, 0x34 + 4 * k);
-            if (c) std::memcpy(reinterpret_cast<void *>(0x00791d00 + 0x104 * k), c, 0x104);
-            reinterpret_cast<u32 *>(0x00791038)[k] = at<u32>(c, 0x50);   // (an empty slot faults, sic)
+            if (c) std::memcpy(gCoasterTrainSaveCars_791d00 + 0x104 * k, c, 0x104);
+            gCoasterTrainSaveCarWords_791038[k] = at<u32>(c, 0x50);   // (an empty slot faults, sic)
         }
         gTrain_791cd8 = 1;
         type = at<u32>(train, 0x18);
