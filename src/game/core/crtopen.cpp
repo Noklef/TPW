@@ -562,4 +562,20 @@ s32 __cdecl CRT_commit(u32 fd) {
     return -1;
 }
 
+s32 __cdecl CRT_remove(const char *path) {
+    const u32 error = import_slot<s32(__stdcall *)(const char *)>(0x006fd0c4)(path) ? 0 : last_error();    // DeleteFileA
+    if (!error) return 0;
+    CRT_dosmaperr(error);
+    return -1;
+}
+
+s32 __cdecl CRT_unlink(const char *path) { return CRT_remove(path); }
+
+s32 __cdecl CRT_rename(const char *from, const char *to) {
+    const u32 error = import_slot<s32(__stdcall *)(const char *, const char *)>(0x006fd11c)(from, to) ? 0 : last_error();    // MoveFileA
+    if (!error) return 0;
+    CRT_dosmaperr(error);
+    return -1;
+}
+
 }
