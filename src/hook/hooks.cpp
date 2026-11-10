@@ -62,6 +62,7 @@
 #include "../game/math/sintable.h"
 #include "../game/math/ssemath.h"
 #include "../game/math/transform.h"
+#include "../game/math/amd3dnow.h"
 #include "../game/math/vec2.h"
 #include "../game/gfx/palette.h"
 #include "../game/gfx/surface.h"
@@ -1672,6 +1673,7 @@ const Hook kHooks[] = {
     {"Palette_Nearest",         0x005f73a0, (void *)&Palette_Nearest, {0x81, 0xec, 0x1c, 0x02, 0x00}},
     {"PalColour_Set",             0x0047ddc0, (void *)&PalColour_Set, {0x8b, 0x54, 0x24, 0x0c, 0x8b}},
     {"ColourRamps_SetFromPalette", 0x00409db0, (void *)&ColourRamps_SetFromPalette, {0x83, 0xec, 0x08, 0xa0, 0x0c}},
+    {"Palette_SetVgaDac",         0x006784d0, (void *)&Palette_SetVgaDac, {0x55, 0x8b, 0xec, 0x56, 0x57}},
     {"Lib_StrLen",              0x005f76c0, (void *)&Lib_StrLen, {0x57, 0x8b, 0x7c, 0x24, 0x08}},
     {"Lib_StrCpy",              0x005f76e0, (void *)&Lib_StrCpy, {0x56, 0x57, 0x8b, 0x7c, 0x24}},
     {"Lib_StrNCpy",             0x005f7710, (void *)&Lib_StrNCpy, {0x8b, 0x44, 0x24, 0x0c, 0x8b}},
@@ -3868,6 +3870,13 @@ const Hook kHooks[] = {
     {"AtExit_618cc0",             0x00618cb0, (void *)&AtExit_618cc0, {0x68, 0xc0, 0x8c, 0x61, 0x00}},
     {"Thread_Begin",              0x005c8b70, (void *)&Thread_Begin, {0x8b, 0x44, 0x24, 0x08, 0x8b}},
     {"Wrap_Array81ed40_Dtor_532bb0", 0x00532bb0, (void *)&Wrap_Array81ed40_Dtor_532bb0, {0x68, 0x50, 0x17, 0x5d, 0x00}},
+    {"Wrap_SseMath_TransformVectors_579100", 0x00579100, (void *)&Wrap_SseMath_TransformVectors_579100, {0x8b, 0x4c, 0x24, 0x04, 0x2b}},
+    {"Wrap_SseMath_TransformBatch_579110", 0x00579110, (void *)&Wrap_SseMath_TransformBatch_579110, {0x8b, 0x4c, 0x24, 0x04, 0x2b}},
+    {"Wrap_SseMath_ProjectToScreen_579120", 0x00579120, (void *)&Wrap_SseMath_ProjectToScreen_579120, {0x8b, 0x4c, 0x24, 0x04, 0x2b}},
+    {"Wrap_SseMath_Multiply_579130", 0x00579130, (void *)&Wrap_SseMath_Multiply_579130, {0x8b, 0x4c, 0x24, 0x04, 0x2b}},
+    {"Wrap_Amd3DNow_TransformVectors_579190", 0x00579190, (void *)&Wrap_Amd3DNow_TransformVectors_579190, {0x8b, 0x4c, 0x24, 0x04, 0x2b}},
+    {"Wrap_Amd3DNow_TransformBatch_5791a0", 0x005791a0, (void *)&Wrap_Amd3DNow_TransformBatch_5791a0, {0x8b, 0x4c, 0x24, 0x04, 0x2b}},
+    {"Wrap_Amd3DNow_Multiply_5791c0", 0x005791c0, (void *)&Wrap_Amd3DNow_Multiply_5791c0, {0x8b, 0x4c, 0x24, 0x04, 0x2b}},
     {"Table_AddressPlus18",       0x006b0620, (void *)&Table_AddressPlus18, {0x8b, 0x51, 0x08, 0x56, 0x85}},
     {"Table_Address",             0x006b0650, (void *)&Table_Address, {0x8b, 0x51, 0x08, 0x56, 0x85}},
     {"Packed_Read",               0x006b0510, (void *)&Packed_Read, {0x56, 0x8b, 0x74, 0x24, 0x08}},
@@ -4678,6 +4687,10 @@ const Hook kHooks[] = {
     {"SseMath_TransformBatch",    0x005f4f81, (void *)&SseMath_TransformBatch, {0x55, 0x57, 0x56, 0x52, 0x51}},
     {"SseMath_TransformVectors",  0x005f50c5, (void *)&SseMath_TransformVectors, {0x55, 0x57, 0x56, 0x52, 0x51}},
     {"SseMath_Multiply",          0x005f5433, (void *)&SseMath_Multiply, {0x8b, 0x54, 0x24, 0x08, 0x8b}},
+    {"SseMath_ProjectToScreen",   0x005f525f, (void *)&SseMath_ProjectToScreen, {0x55, 0x57, 0x56, 0x52, 0x51}},
+    {"Amd3DNow_TransformBatch",   0x005f4730, (void *)&Amd3DNow_TransformBatch, {0x55, 0x57, 0x56, 0x52, 0x51}},
+    {"Amd3DNow_TransformVectors", 0x005f4844, (void *)&Amd3DNow_TransformVectors, {0x55, 0x57, 0x56, 0x52, 0x51}},
+    {"Amd3DNow_Multiply",         0x005f4bd0, (void *)&Amd3DNow_Multiply, {0x0f, 0x0e, 0x8b, 0x4c, 0x24}},
     {"Table_ScaledBySum",         0x00503980, (void *)&Table_ScaledBySum, {0x56, 0x57, 0x8b, 0xf9, 0x8b}},
     {"Staff_Train",               0x00505a10, (void *)&Staff_Train, {0x53, 0x56, 0x8b, 0xf1, 0x57}},
     {"Staff_CountTypes",          0x00508000, (void *)&Staff_CountTypes, {0x83, 0xec, 0x0c, 0x33, 0xc0}},
@@ -7680,6 +7693,7 @@ const Hook kHooks[] = {
     {"TqiVideo_DecodeMacroblockTable16", 0x00675579, (void *)&TqiVideo_DecodeMacroblockTable16, {0x53, 0x51, 0x52, 0x56, 0x57}},
     {"TqiVideo_PixelRowBytes32",  0x00677eb6, (void *)&RegThunk_TqiVideo_PixelRowBytes32, {0x33, 0xdb, 0x33, 0xc0, 0x8a}},
     {"TqiVideo_BlockBytes32",     0x00677dad, (void *)&TqiVideo_BlockBytes32, {0x53, 0x51, 0x52, 0x56, 0x57}},
+    {"TqiVideo_ReadBlocks",       0x006747d0, (void *)&RegThunk_TqiVideo_ReadBlocks, {0x8b, 0xd7, 0xc1, 0xea, 0x05}},
     {"DdErrors_Name",             0x00672e30, (void *)&DdErrors_Name, {0x33, 0xd2, 0xb8, 0xe8, 0x5e}},
     {"MovieSurface_ReadSize",     0x00670300, (void *)&MovieSurface_ReadSize, {0x83, 0xec, 0x6c, 0x56, 0x8b}},
     {"MovieSurface_PickMode",     0x00670660, (void *)&MovieSurface_PickMode, {0x81, 0xec, 0xf8, 0x02, 0x00}},

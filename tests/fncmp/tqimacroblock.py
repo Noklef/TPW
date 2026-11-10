@@ -1,5 +1,5 @@
-# The TQI video's macroblocks and their row writers (src/game/gfx/tqivideo: 0x674faf, 0x67519d, 0x67538b, 0x675579, 0x676290, 0x675d90, 0x6758c0) against the originals. Rows: values mostly in the tables, the tables random. Macroblocks: valid streams, as tqiblock.py's, six blocks each after its DC code by the game's own tables (x87emu.exe_sections), the dequantiser the IDCT's scales * 8 (quality 100), its AC entries shifted down, DC predictors small; out and its pitch of either sign. [0xfb792c] is 0x6758c0's saved ESP, a stack address, ignored; the port has no such slot.
-# usage: tqimacroblock.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Yuy2,Rgb16,Rgb32,RowYuy2,RowRgb16,RowRgb32,Table16)
+# The TQI video's macroblocks and their row writers (src/game/gfx/tqivideo: 0x6747d0 (op Blocks: the blocks it leaves on the stack compared, Call(stack=True)), 0x674faf,0x67519d, 0x67538b, 0x675579, 0x676290, 0x675d90, 0x6758c0) against the originals. Rows: values mostly in the tables, the tables random. Macroblocks: valid streams, as tqiblock.py's, six blocks each after its DC code by the game's own tables (x87emu.exe_sections), the dequantiser the IDCT's scales * 8 (quality 100), its AC entries shifted down, DC predictors small; out and its pitch of either sign. [0xfb792c] is 0x6758c0's saved ESP, a stack address, ignored; the port has no such slot.
+# usage: tqimacroblock.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Yuy2,Rgb16,Rgb32,RowYuy2,RowRgb16,RowRgb32,Table16,Blocks)
 import os
 import struct
 import sys
@@ -53,10 +53,12 @@ def macroblock(r, op):
     size = 0x2000
     out = OUT + (size - 0x100 if pitch < 0 else 0)
     regions = {TABLES: tables(r), STATE: bytes(state), BITS: le_dwords(pack(bits)), OUT: r.bytes(size)}
+    if op == 'Blocks':   # 0x6747d0 alone: state, bits and position in registers; it writes the six blocks over its caller's 0x600 bytes above its return address
+        return Call(0x6747d0, [STATE, BITS, start] + [r.getrandbits(32) for _ in range(0x180)], {STATE: bytes(state), BITS: regions[BITS]}, conv='esiebpedi', ret='edi', stack=True)
     return Call(BLOCKS[op], [out, pitch & 0xffffffff, STATE], regions, ignore=[(0xfb792c, 4)])
 
 
-OPS = [k for k in os.environ.get('OPS', ','.join(list(BLOCKS) + list(ROWS))).split(',') if k]
+OPS = [k for k in os.environ.get('OPS', ','.join(list(BLOCKS) + list(ROWS) + ['Blocks'])).split(',') if k]
 
 
 def case(r):

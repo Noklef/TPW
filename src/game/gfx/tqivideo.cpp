@@ -51,26 +51,11 @@ s32 readDifference(const u32 *bits, u32 *position, u32 table, u32 indexBits) {
     return static_cast<s32>(value);
 }
 
-// 0x6747d0: the six blocks of a macroblock.
-void readBlocks(u8 *state, u32 *blocks) {
-    static const struct { u32 offset, predictor, table, indexBits; s32 pitch; } kBlocks[6] = {
-        {0, 0x100, 0xfbb92c, 7, 0x40}, {0x20, 0x100, 0xfbb92c, 7, 0x40}, {0x200, 0x100, 0xfbb92c, 7, 0x40}, {0x220, 0x100, 0xfbb92c, 7, 0x40},
-        {0x400, 0x104, 0xfbb9ac, 8, 0x20}, {0x500, 0x108, 0xfbb9ac, 8, 0x20}};
-    const s32 *const quant = reinterpret_cast<const s32 *>(state);
-    const u32 *const bits = *reinterpret_cast<const u32 **>(state + 0x200);
-    u32 position = *reinterpret_cast<u32 *>(state + 0x204);
-    for (const auto &block : kBlocks) {
-        s32 &predictor = *reinterpret_cast<s32 *>(state + block.predictor);
-        predictor = static_cast<s32>(static_cast<u32>(readDifference(bits, &position, block.table, block.indexBits)) + static_cast<u32>(predictor));
-        position = TqiVideo_DecodeBlock(predictor, quant, bits, position, reinterpret_cast<u8 *>(blocks) + block.offset, block.pitch);
-    }
-    *reinterpret_cast<u32 *>(state + 0x204) = position;
-}
-
 // The 16 rows of a macroblock through a row writer.
 template <typename Out, typename Row> void macroblock(Out *out, s32 pitch, u8 *state, Row row) {
     u32 blocks[0x200];
-    readBlocks(state, blocks);
+    u32 &position = *reinterpret_cast<u32 *>(state + 0x204);
+    position = TqiVideo_ReadBlocks(state, *reinterpret_cast<const u32 **>(state + 0x200), position, blocks);
     for (u32 j = 0; j < 16; ++j) row(blocks + 0x10 * j, blocks + 0x100 + 8 * (j / 2), reinterpret_cast<Out *>(reinterpret_cast<u8 *>(out) + static_cast<s32>(j) * pitch));
 }
 
@@ -84,6 +69,19 @@ u32 lumaPart(u32 luma) { return global<u32>(0x00fb9330 + luma * 4); }
 }  // namespace
 
 extern "C" {
+
+u32 __cdecl TqiVideo_ReadBlocks(u8 *state, const u32 *bits, u32 position, u32 *blocks) {
+    static const struct { u32 offset, predictor, table, indexBits; s32 pitch; } kBlocks[6] = {
+        {0, 0x100, 0xfbb92c, 7, 0x40}, {0x20, 0x100, 0xfbb92c, 7, 0x40}, {0x200, 0x100, 0xfbb92c, 7, 0x40}, {0x220, 0x100, 0xfbb92c, 7, 0x40},
+        {0x400, 0x104, 0xfbb9ac, 8, 0x20}, {0x500, 0x108, 0xfbb9ac, 8, 0x20}};
+    const s32 *const quant = reinterpret_cast<const s32 *>(state);
+    for (const auto &block : kBlocks) {
+        s32 &predictor = *reinterpret_cast<s32 *>(state + block.predictor);
+        predictor = static_cast<s32>(static_cast<u32>(readDifference(bits, &position, block.table, block.indexBits)) + static_cast<u32>(predictor));
+        position = TqiVideo_DecodeBlock(predictor, quant, bits, position, reinterpret_cast<u8 *>(blocks) + block.offset, block.pitch);
+    }
+    return position;
+}
 
 u32 __cdecl TqiVideo_DecodeBlock(s32 dc, const s32 *quant, const u32 *bits, u32 position, u8 *out, s32 pitch) {
     s32 block[64] = {};

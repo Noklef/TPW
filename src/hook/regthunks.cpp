@@ -163,4 +163,18 @@ __declspec(naked) void RegThunk_TqiVideo_DecodeBlock() {
         ret
     }
 }
+
+__declspec(naked) void RegThunk_TqiVideo_ReadBlocks() {
+    __asm {
+        lea eax, [esp + 4]
+        push eax
+        push edi
+        push ebp
+        push esi
+        call TqiVideo_ReadBlocks
+        add esp, 16
+        mov edi, eax
+        ret
+    }
+}
 }

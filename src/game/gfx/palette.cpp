@@ -2,6 +2,7 @@
 #include "palette.h"
 
 #include <cstdint>
+#include <intrin.h>
 
 namespace {
 
@@ -94,6 +95,14 @@ void __cdecl ColourRamps_SetFromPalette() {
         colour[3] = 0xff;
         colour[4] = (u8)c[1];
     }
+}
+
+void __cdecl Palette_SetVgaDac(const u8 *palette) {
+    _disable();
+    __outbyte(0x3c8, 0);
+    for (u32 i = 0; i < 0x100; ++i, palette += 4)
+        for (u32 k = 0; k < 3; ++k) __outbyte(0x3c9, static_cast<u8>(palette[k] >> 2));
+    _enable();
 }
 
 }  // extern "C"

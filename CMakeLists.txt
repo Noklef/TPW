@@ -329,6 +329,7 @@ add_library(tpw_game STATIC
     src/game/math/rectclip.cpp
     src/game/math/convexhull.cpp
     src/game/math/ssemath.cpp
+    src/game/math/amd3dnow.cpp
     src/game/motion/curve.cpp
     src/game/motion/keys.cpp
     src/game/motion/quat.cpp

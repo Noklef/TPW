@@ -1,4 +1,4 @@
-// Palette helpers: reimplementation of 0x5f7360, 0x5f73a0, 0x47ddc0 and 0x409db0.
+// Palette helpers: reimplementation of 0x5f7360, 0x5f73a0, 0x47ddc0, 0x409db0 and 0x6784d0.
 //
 // A palette is 256 PALETTEENTRYs (red, green, blue, flags); the game's is at 0xfa71f8.
 #pragma once
@@ -19,4 +19,8 @@ void __fastcall PalColour_Set(u8 *colour, void *, u32 red, u32 green, u32 blue);
 // and 0x7b0528 (10 to a ramp) set from the game's palette (0xfa71f8): 0x7b0550, 0x7b0546, 0x7b053c and 0x7b0532 from its entries 0x85,
 // 0x87, 0x89 and 0x8b; 0x7b04e0, 0x7b04d6, 0x7b04cc and 0x7b04c2 from 0xa7, 0xa9, 0xab and 0xad.
 void __cdecl ColourRamps_SetFromPalette();
+// 0x6784d0 (cdecl; name invented, unconfirmed; no callers in the listing): the VGA DAC set from a palette of 256 four-byte entries:
+// interrupts off (CLI), index 0 out to port 0x3c8, each entry's red, green and blue >> 2 out to 0x3c9, interrupts on. CLI is
+// privileged under Windows NT: the original and this both fault there (0xc0000096).
+void __cdecl Palette_SetVgaDac(const u8 *palette);
 }

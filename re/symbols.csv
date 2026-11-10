@@ -1420,6 +1420,7 @@ address,name,kind,confidence,notes
 0x005f73a0,Palette_Nearest,function,high,"reimplemented (src/game/gfx/palette); cdecl (palette, r, g, b) -> index: least squared distance, then summed distance, then b^2 + 2(r^2 + g^2), then lowest index"
 0x0047ddc0,PalColour_Set,function,high,"reimplemented (src/game/gfx/palette); thiscall (red, green, blue): bytes blue, green, red, 0xff, then Palette_Nearest in the game palette 0xfa71f8 at +4"
 0x00409db0,ColourRamps_SetFromPalette,function,low,reimplemented (src/game/gfx/palette); cdecl: eight colours of the ramps at 0x7b04b8 / 0x7b0528 from game palette entries 0x85-0x8b and 0xa7-0xad
+0x006784d0,Palette_SetVgaDac,function,low,"reimplemented (src/game/gfx/palette); the 256 entries' red, green and blue >> 2 out to the VGA DAC (ports 0x3c8 and 0x3c9) with interrupts off"
 0x00fa71f8,gPalette,data,high,PALETTEENTRY[256]; Palette_Nearest looks colours up in it
 0x005f76c0,Lib_StrLen,function,high,reimplemented (src/game/core/libc); stdcall; inline strlen
 0x005f76e0,Lib_StrCpy,function,high,reimplemented (src/game/core/libc); stdcall; inline strcpy (REP MOVSD then MOVSB)
@@ -3728,6 +3729,13 @@ address,name,kind,confidence,notes
 0x00618cb0,AtExit_618cc0,function,low,"reimplemented (src/game/core/thunks); atexit of 0x618cc0. Name invented, unconfirmed."
 0x005c8b70,Thread_Begin,function,low,"reimplemented (src/game/core/thunks); CRT_beginthread(proc, 0, arg). Name invented, unconfirmed."
 0x00532bb0,Wrap_Array81ed40_Dtor_532bb0,function,low,reimplemented (src/game/core/thunks); the atexit at 0x532b3a: the destructor iterator over 9 elements of 8 bytes at 0x81ed40
+0x00579100,Wrap_SseMath_TransformVectors_579100,function,low,"reimplemented (src/game/core/thunks); cdecl: the first stack argument lowered by the dword before it, then SseMath_TransformVectors"
+0x00579110,Wrap_SseMath_TransformBatch_579110,function,low,"reimplemented (src/game/core/thunks); cdecl: the first stack argument lowered by the dword before it, then SseMath_TransformBatch"
+0x00579120,Wrap_SseMath_ProjectToScreen_579120,function,low,"reimplemented (src/game/core/thunks); cdecl: the first stack argument lowered by the dword before it, then SseMath_ProjectToScreen"
+0x00579130,Wrap_SseMath_Multiply_579130,function,low,"reimplemented (src/game/core/thunks); cdecl: the first stack argument lowered by the dword before it, then SseMath_Multiply"
+0x00579190,Wrap_Amd3DNow_TransformVectors_579190,function,low,"reimplemented (src/game/core/thunks); cdecl: the first stack argument lowered by the dword before it, then Amd3DNow_TransformVectors"
+0x005791a0,Wrap_Amd3DNow_TransformBatch_5791a0,function,low,"reimplemented (src/game/core/thunks); cdecl: the first stack argument lowered by the dword before it, then Amd3DNow_TransformBatch"
+0x005791c0,Wrap_Amd3DNow_Multiply_5791c0,function,low,"reimplemented (src/game/core/thunks); cdecl: the first stack argument lowered by the dword before it, then Amd3DNow_Multiply"
 0x006b0620,Table_AddressPlus18,function,high,reimplemented (src/game/core/cursors); an address from a table of offsets plus the base plus 0x18
 0x006b0650,Table_Address,function,high,reimplemented (src/game/core/cursors); an address from a table of offsets plus the base
 0x006b0510,Packed_Read,function,high,reimplemented (src/game/core/cursors); reads a one- or two-byte packed value
@@ -4444,6 +4452,10 @@ address,name,kind,confidence,notes
 0x005f4f81,SseMath_TransformBatch,function,low,reimplemented (src/game/math/ssemath); batches of four vectors transformed through the expanded table
 0x005f50c5,SseMath_TransformVectors,function,low,"reimplemented (src/game/math/ssemath); vectors transformed by a matrix's rows, four modes"
 0x005f5433,SseMath_Multiply,function,low,reimplemented (src/game/math/ssemath); two 4 x 4 matrices multiplied
+0x005f525f,SseMath_ProjectToScreen,function,low,"reimplemented (src/game/math/ssemath); vertices put on the screen by the render view with RCPPS (and its Newton step), three modes"
+0x005f4730,Amd3DNow_TransformBatch,function,low,reimplemented (src/game/math/amd3dnow); pairs of vectors from batches of four transformed by a matrix (3DNow!)
+0x005f4844,Amd3DNow_TransformVectors,function,low,"reimplemented (src/game/math/amd3dnow); vectors transformed by a matrix's rows, four modes (3DNow!)"
+0x005f4bd0,Amd3DNow_Multiply,function,low,reimplemented (src/game/math/amd3dnow); two 4 x 4 matrices multiplied (3DNow!)
 0x00503980,Table_ScaledBySum,function,high,reimplemented (src/game/world/staff); a table share scaled by the things' sum
 0x00505a10,Staff_Train,function,low,"reimplemented (src/game/world/staff); thiscall (amount): pay for training: debit the money, add to the park's spend, add amount / cost points of progress, raise the grade at 100"
 0x00508000,Staff_CountTypes,function,low,"reimplemented (src/game/world/staff); thiscall: count the world's staff by type, flagging the types that reached their limits"
@@ -7337,6 +7349,7 @@ address,name,kind,confidence,notes
 0x00675579,TqiVideo_DecodeMacroblockTable16,function,low,"reimplemented (src/game/gfx/tqivideo); cdecl (out, pitch, state), hand-written; name invented, unconfirmed: the same, 16 rows of TgqVideo_PixelRow16"
 0x00677eb6,TqiVideo_PixelRowBytes32,function,low,"reimplemented (src/game/gfx/tqivideo); hand-written; luma in ESI, chroma in EDI, out in EBP; 8 dwords, each four bytes (bytes 2 of luma[2k], luma[2k+1], chroma[k], chroma[0x40+k]) through the bytes 0xfb7f30"
 0x00677dad,TqiVideo_BlockBytes32,function,low,"reimplemented (src/game/gfx/tqivideo); cdecl (luma, chroma, out, pitch): 16 rows of TqiVideo_PixelRowBytes32 (luma + 0x40 j, chroma + 0x20 (j / 2), out + pitch * j)"
+0x006747d0,TqiVideo_ReadBlocks,function,low,"reimplemented (src/game/gfx/tqivideo); a TQI macroblock's six blocks (DC difference, then the block) into its caller's frame above the return address; state in ESI, bits in EBP, position in EDI"
 0x00672e30,DdErrors_Name,function,low,"reimplemented (src/game/gfx/dderrors); fastcall (code): the DirectDraw error's name from the static (code, name) table 0x705ee8-0x7061c7, else the unknown error string 0x77e528"
 0x00670300,MovieSurface_ReadSize,function,low,reimplemented (src/game/gfx/moviesurface); thiscall on the player: the primary surface's description read (GetSurfaceDesc); on success its width and height into the player's +4 / +8
 0x00670660,MovieSurface_PickMode,function,low,"reimplemented (src/game/gfx/moviesurface); thiscall on the player, returns the mode: 1 unless the flags allow and the IDirectDraw's GetCaps succeeds; then 4 or 2 by the flags +8 and the driver caps' bits 8-9 / 13-14, else 1"
