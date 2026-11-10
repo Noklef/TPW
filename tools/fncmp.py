@@ -15,7 +15,8 @@ A test script defines a case generator and calls run():
 Call(address, args, regions, conv='c'|'s'|'t'|'f'|'esi'|'esiedi'..., ret='v'|'a'|'b'|'w'|'i'|'d'): ret 'a' compares
 EAX, 'b' AL (a flag returned over whatever EAX held), 'w' AX (likewise a u16), 'c' the x87 control word left (Call(cw=) going in, 0x7f; 'wc' AX too), 'i' EAX and EDX, 'd' the double left in
 st0, 'edi' EDI (an original that leaves a result there, its port's naked thunk moving the port's EAX to it: src/hook/regthunks.h). Call(stack=True): the stack arguments as the (last) call left them are compared too, after the regions (an original that writes above its return address). Call(ignore=[(address, count), ...]): those bytes of the regions are left out of the comparison in both (a stack address's low byte that
-the original stores, which the two sides' stacks cannot share). A register convention (hand-written assembly taking
+the original stores, which the two sides' stacks cannot share). Call(jumped=True): the first call is jumped to, its return address above
+the stack arguments (cseg's span routines, entered by a JMP with the six registers they pop on the stack). A register convention (hand-written assembly taking
 its arguments in registers) names the registers, three letters each, in argument order: conv='esi' puts args[0] in ESI and the rest on the
 stack, 'esiedi' args[0] in ESI and args[1] in EDI (of EAX EBX ECX EDX ESI EDI EBP; EBP must not be 0); the hook row's replacement is then the port's naked thunk
 (src/hook/regthunks.h), which pushes the registers as the port's ordinary cdecl arguments. Call(steps=) the emulator's step limit (5 000 000: a case past it is a
@@ -303,9 +304,12 @@ PREV = 0xfffffffb   # (a Call's then: this argument is the EAX the step before i
 
 
 class Call:
-    def __init__(self, address, args, regions, conv='c', ret='v', cw=0x7f, masks=(), ignore=(), steps=5_000_000, then=(), stack=False):
+    def __init__(self, address, args, regions, conv='c', ret='v', cw=0x7f, masks=(), ignore=(), steps=5_000_000, then=(), stack=False, jumped=False):
         self.address, self.args, self.regions, self.conv, self.ret = address, list(args), dict(regions), conv, ret
         self.stack = stack   # (the stack arguments as the call left them, compared too: an original that writes above its return address)
+        self.jumped = jumped   # (the first call is jumped to: its return address above the stack arguments, as cseg's span routines are entered)
+        if jumped and stack:
+            raise ValueError('jumped and stack do not combine')
         self.then = list(then)   # (further calls on the same memory, each (address, args, conv); ret compares the last one's; a fault in any ends the case)
         if len(register_args(conv)) > len(self.args):
             raise ValueError('register convention %r needs %d arguments' % (conv, len(register_args(conv))))
@@ -1270,10 +1274,14 @@ class Bench:
                 for reg in register_args(conv):
                     e.r[reg] = args[0]
                     args = args[1:]
+                jumped = c.jumped and not step
+                if jumped:
+                    e.push(x87emu.SENTINEL)
                 for a in reversed(args):
                     e.push(a & 0xffffffff)
                 low, pushed = e.r['ESP'], len(args)
-                e.push(x87emu.SENTINEL)
+                if not jumped:
+                    e.push(x87emu.SENTINEL)
                 pc = address
                 for _ in range(c.steps):
                     if pc == x87emu.SENTINEL:
@@ -1314,7 +1322,7 @@ class Bench:
 
     def native(self, cases):
         inp = ''.join('%x %s %s %x %s %x %s%s\n' % (
-            c.address, c.conv, c.ret + ('s' if c.stack else '') + ('+' if c.then else '') + (':%x' % c.cw if 'c' in c.ret else ''), len(c.args), ' '.join('%x' % (a & 0xffffffff) for a in c.args), len(c.regions),
+            c.address, c.conv, c.ret + ('s' if c.stack else '') + ('j' if c.jumped else '') + ('+' if c.then else '') + (':%x' % c.cw if 'c' in c.ret else ''), len(c.args), ' '.join('%x' % (a & 0xffffffff) for a in c.args), len(c.regions),
             ' '.join('%x %s' % (k, bytes(v).hex()) for k, v in c.regions.items()),
             ' %x%s' % (len(c.then), ''.join(' %x %s %x %s' % (at, conv, len(args), ' '.join('%x' % (a & 0xffffffff) for a in args)) for at, args, conv in c.then)) if c.then else '')
             for c in cases)

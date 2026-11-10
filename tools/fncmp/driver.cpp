@@ -2671,15 +2671,37 @@ int crash_filter(EXCEPTION_POINTERS *x) {
 void *g_invokeFn;
 u32 g_invokeFrame;
 
+// A jumped-to entry's (fncmp.Call(jumped=True)): the return address goes above the stack arguments, into the slot invoke pushed
+// first, and the routine is jumped to with the registers invoke set.
+u32 g_jumpCount, g_jumpRet, g_jumpEax;
+__declspec(naked) void jump_in() {
+    __asm {
+        pop g_jumpRet
+        mov g_jumpEax, eax
+        mov eax, g_jumpCount
+        lea eax, [esp + eax * 4]
+        push g_jumpRet
+        pop dword ptr [eax]
+        mov eax, g_jumpEax
+        jmp g_invokeFn
+    }
+}
+
 // Pushes the stack arguments right to left, sets the registers (EAX EBX ECX EDX ESI EDI, EBP when nonzero: ECX / EDX for thiscall
-// and fastcall, any of them for a register convention), calls, and restores ESP whatever the convention popped. EAX, EDX and EDI
-// come back (EDI for ret 'edi'), and with stackOut the count stack arguments as the call left them (ret 's').
-int invoke(void *fn, const u32 *regs, const u32 *stack, u32 count, int wantSt0, u32 *eax, u32 *edx, double *st0, u32 *edi, u32 *stackOut) {
+// and fastcall, any of them for a register convention), calls (jumped: the return address above the arguments, then jumps), and
+// restores ESP whatever the convention popped. EAX, EDX and EDI come back (EDI for ret 'edi'), and with stackOut the count stack
+// arguments as the call left them (ret 's').
+int invoke(void *fn, const u32 *regs, const u32 *stack, u32 count, int wantSt0, u32 *eax, u32 *edx, double *st0, u32 *edi, u32 *stackOut, int jumped) {
     u32 ra = 0, rd = 0, rdi = 0, saved = 0;
     double f = 0;
+    g_jumpCount = jumped ? count : 0xffffffff;
     __try {
         __asm {
             mov saved, esp
+            cmp jumped, 0
+            je slots
+            push 0
+        slots:
             mov esi, stack
             mov ecx, count
         next:
@@ -2703,7 +2725,13 @@ int invoke(void *fn, const u32 *regs, const u32 *stack, u32 count, int wantSt0, 
             mov ebp, [eax + 24]
         frame:
             mov eax, [eax]
+            cmp g_jumpCount, 0xffffffff
+            je called
+            call jump_in
+            jmp back
+        called:
             call g_invokeFn
+        back:
             mov ebp, g_invokeFrame
             mov ra, eax
             mov rd, edx
@@ -3795,7 +3823,8 @@ int main(int argc, char **argv) {
             static const bool paint = std::getenv("FNCMP_PAINT_STACK") != nullptr;
             if (paint) paint_stack();
             stackWords.assign(n - skip, 0);
-            code = invoke(step.fn, regs, step.args.data() + skip, n - skip, ret[0] == 'd', &eax, &edxOut, &st0, &ediOut, stackOut && n > skip ? stackWords.data() : nullptr);
+            code = invoke(step.fn, regs, step.args.data() + skip, n - skip, ret[0] == 'd', &eax, &edxOut, &st0, &ediOut, stackOut && n > skip ? stackWords.data() : nullptr,
+                          &step == &steps[0] && std::strchr(ret, 'j') != nullptr);
             if (code) break;
         }
         if ((DWORD)code == kCaseExit) code = 0, eax = edxOut = ediOut = 0, st0 = 0;  // (exit_case: the case ended there)
