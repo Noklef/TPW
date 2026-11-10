@@ -12656,7 +12656,7 @@ address,name,kind,confidence,notes
 0x0070aba8,Class70aba8_vtable,data,low,"GAME_DATA (core/initializers): the vtable (19 slots, all ported); name invented"
 0x0070abf8,Class70abf8_vtable,data,low,"GAME_DATA (core/initializers): the vtable (19 slots, all ported); name invented"
 0x006fd990,gLanguage_6fd990,data,low,"GAME_DATA (core/language): const char[0x10], the text ""Data\Language\"", named for its use"
-0x00702300,gTexcache_702300,data,low,"GAME_DATA (gfx/texcache): const char[0x4], the text ""/"", named for its use"
+0x00702300,gTexcache_702300,data,low,"GAME_DATA (gfx/texcache): const s32[8], the texture cache's (count limit, tier count) pairs, named for its use"
 0x00705c88,gTqivideo_705c88,data,low,"GAME_DATA (gfx/tqivideo): const s32[64], the IDCT scale table, named for its use"
 0x00705d88,gTqivideo_705d88,data,low,"GAME_DATA (gfx/tqivideo): const s32[64], the dequantiser factors, named for its use"
 0x007061d8,gDctvlc_7061d8,data,low,"GAME_DATA (gfx/dctvlc): const u32[0x406], the DCT codec's VLC records (two runs of 0x10-byte records), the DC quantiser +0xde0 and the AC quantisers +0xde4, named for its use"
