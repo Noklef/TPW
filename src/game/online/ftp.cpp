@@ -295,7 +295,7 @@ void __fastcall Ftp_Close(void *self) {
 }
 
 void __fastcall FtpSocket_Dtor(u32 *self) {
-    *self = 0x00702994;
+    *self = (u32)(uintptr_t)FtpSocket_vtable;
     Ftp_Close(self);
 }
 
@@ -306,7 +306,7 @@ u32 *__fastcall FtpSocket_DeletingDtor(u32 *self, void *, u8 flags) {
 }
 
 void __fastcall FtpBase_Dtor(u32 *self) {
-    *self = 0x0070295c;
+    *self = (u32)(uintptr_t)Class70295c_vtable;
     FtpSocket_Dtor(self);
 }
 
@@ -506,14 +506,14 @@ u32 *__fastcall FtpClient_Ctor(u32 *self, void *, void *callback, u8 threaded) {
     field<u8>(self, 0x277c) = 1;
     field<u8>(self, 0x277d) = 0;
     field<u8>(self, 0x277e) = threaded;
-    *self = 0x00702990;
+    *self = (u32)(uintptr_t)FtpClient_vtable;
     std::memset(&field<u8>(self, 0x242c), 0, 0x10);
     WsaStartup(0x101, data);
     return self;
 }
 
 void __fastcall FtpClient_Dtor(u32 *self) {
-    *self = 0x00702990;
+    *self = (u32)(uintptr_t)FtpClient_vtable;
     while (!field<u8>(self, 0x277c))
         SleepMs(1);
     field<u8>(self, 0x277c) = 0;

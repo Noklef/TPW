@@ -5,6 +5,7 @@
 #include "addrcalls.h"
 #include "../render/device.h"
 #include "../world/thingmsg.h"
+#include "../input/devicefilter.h"
 
 namespace {
 
@@ -18,7 +19,7 @@ void Vtables_SetDtorCalls(const AddrCall *table, u32 count) { g_dtorCalls.Set(ta
 
 extern "C" {
 
-void __fastcall Vtbl703748_Set(u8 *object) { at<u32>(object, 0) = 0x00703748; }
+void __fastcall Vtbl703748_Set(u8 *object) { at<u32>(object, 0) = (u32)(uintptr_t)KeyFilter_vtable_703748; }
 
 void __fastcall Vtbl703770_Set(u8 *object) { at<u32>(object, 0) = 0x00703770; }
 

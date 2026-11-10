@@ -18,6 +18,7 @@
 #include "../gfx/texcache.h"
 #include "../render/pointsprites.h"
 #include "../render/batch.h"
+#include "../frontend/viewcontrols.h"
 
 namespace {
 
@@ -179,7 +180,7 @@ void __fastcall Obj_PickByName(u8 *object, void *, u32 flag) {
 }
 
 void __fastcall Class702da0_Dtor(u8 *object) {
-    at<u32>(object, 0) = 0x00702da0;
+    at<u32>(object, 0) = (u32)(uintptr_t)Class702da0_vtable;
     u8 *node = at<u8 *>(object, 0xc);
     at<u32>(object, 8) = 0x00702f10;
     at<u32>(object, 0x10) = 0;
@@ -190,7 +191,7 @@ void __fastcall Class702da0_Dtor(u8 *object) {
         node = next;
     }
     at<u32>(object, 0x14) = 0;
-    at<u32>(object, 0) = 0x00702d48;
+    at<u32>(object, 0) = (u32)(uintptr_t)Class702d48_vtable;
     vcall<u32>(global<u8 *>(0x00f85614), 0x1c, object);
 }
 

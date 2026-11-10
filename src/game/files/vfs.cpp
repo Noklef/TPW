@@ -149,7 +149,7 @@ u32 __cdecl VFS_ExtractFile(const char *from, const char *to) {
     StreamBase *out = nullptr;
     if (block) {
         out = StreamBase_Ctor(static_cast<StreamBase *>(block));
-        *reinterpret_cast<u32 *>(out) = 0x006fd930;   // FileStream_vtable
+        *reinterpret_cast<u32 *>(out) = (u32)(uintptr_t)FileStream_vtable;   // FileStream_vtable
     }
     s32 result;
     if (*vcall<s32 *>(out, 0x24, &result, to, 0xc0000010u) < 0) return 0;

@@ -82,7 +82,7 @@ void __fastcall KeyFilter_OnMessage(u8 *self, void *, u8 *message) {
 void __stdcall InputSubs_Dispatch(u32 a, u32 b, u8 *object) { vcall<void>(object, 0, a, b); }
 
 void __fastcall InputSubs_Dtor(u8 *self) {
-    at<u32>(self, 0) = 0x00703744;
+    at<u32>(self, 0) = (u32)(uintptr_t)InputSubs_vtable;
     InputSubs_Unsubscribe(self);
 }
 
@@ -127,7 +127,7 @@ void __fastcall HandlerFilter_OnChar(u8 *self, void *, u8 *message) {
 }
 
 void __fastcall DeviceHolder_Dtor(u8 *self) {
-    at<u32>(self, 0) = 0x00703c80;
+    at<u32>(self, 0) = (u32)(uintptr_t)Class703c80_vtable;
     if (u8 *const device = at<u8 *>(self, 0xc)) com(device, 8);
 }
 
@@ -270,7 +270,7 @@ u8 *__fastcall InputFilter_DeletingDtor(u8 *self, void *, u32 flags) {
 }
 
 void __fastcall InputFilter_Dtor(u8 *self) {
-    at<u32>(self, 0) = 0x00703c18;
+    at<u32>(self, 0) = (u32)(uintptr_t)Class703c18_vtable;
     if (u8 *const sink = at<u8 *>(self, 0xc)) vcall<void>(sink, 0);
     InputFilter_CloseHandle(self);
     at<u32>(self, 0) = 0x00703770;
@@ -281,7 +281,7 @@ u8 *__fastcall KeyFilter_Ctor(u8 *self) {
     at<u32>(self, 8) = 0;
     at<u32>(self, 0x14) = 0;
     at<u32>(self, 0x18) = 0;
-    at<u32>(self, 0x10) = 0x00703744;
+    at<u32>(self, 0x10) = (u32)(uintptr_t)InputSubs_vtable;
     at<u32>(self, 0x11c) = 0;
     at<u32>(self, 0x120) = 0;
     at<void *const *>(self, 0) = KeyFilter_vtable;
@@ -355,8 +355,8 @@ u32 *__fastcall MouseFilter_Subscribe(u8 *self, void *, u32 *result) {
 u8 *__fastcall DeviceFilter_Ctor(u8 *self) {
     Class703c18_Ctor(self);
     Class703c80_Ctor(self + 0x10);
-    at<u32>(self, 0x10) = 0x00703ff0;
-    at<u32>(self, 0) = 0x00703fd8;
+    at<u32>(self, 0x10) = ((u32)(uintptr_t)DeviceFilter_vtable + 0x18);
+    at<u32>(self, 0) = (u32)(uintptr_t)DeviceFilter_vtable;
     return self;
 }
 
@@ -367,8 +367,8 @@ u8 *__fastcall DeviceFilter_DeletingDtor(u8 *self, void *, u32 flags) {
 }
 
 void __fastcall DeviceFilter_Dtor(u8 *self) {
-    at<u32>(self, 0) = 0x00703fd8;
-    at<u32>(self, 0x10) = 0x00703ff0;
+    at<u32>(self, 0) = (u32)(uintptr_t)DeviceFilter_vtable;
+    at<u32>(self, 0x10) = ((u32)(uintptr_t)DeviceFilter_vtable + 0x18);
     if (at<u32>(self, 0x30)) GameHeap_Free(at<void *>(self, 0x30));
     DeviceHolder_Dtor(self + 0x10);
     InputFilter_Dtor(self);
@@ -406,15 +406,15 @@ void __fastcall KeyFilter_Dtor(u8 *self) {
     if (u8 *const holder = at<u8 *>(self, 0x120)) vcall<void>(holder, 0);
     if (u8 *const holder = at<u8 *>(self, 0x11c)) vcall<void>(holder, 0);
     InputSubs_Dtor(self + 0x10);
-    at<u32>(self, 0xc) = 0x00703748;
+    at<u32>(self, 0xc) = (u32)(uintptr_t)KeyFilter_vtable_703748;
     Class703780_DtorF(self);
 }
 
 void __fastcall CharFilter_Dtor(u8 *self) {
-    at<u32>(self, 0) = 0x00703ca0;
-    at<u32>(self, 0xc) = 0x00703c98;
+    at<u32>(self, 0) = (u32)(uintptr_t)Class703ca0_vtable;
+    at<u32>(self, 0xc) = (u32)(uintptr_t)CharFilter_vtableC;
     InputSubs_Dtor(self + 0x10);
-    at<u32>(self, 0xc) = 0x00703748;
+    at<u32>(self, 0xc) = (u32)(uintptr_t)KeyFilter_vtable_703748;
     Class703780_DtorF(self);
 }
 

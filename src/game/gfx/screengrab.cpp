@@ -106,7 +106,7 @@ void __cdecl ScreenGrab_NextName() {
     char name[0x14];
     s32 result;
     StreamBase_Ctor(&stream);
-    stream.vtable = reinterpret_cast<void *const *>(0x006fd930);
+    stream.vtable = reinterpret_cast<void *const *>((u32)(uintptr_t)FileStream_vtable);
     do {
         StreamBase_Close(&stream);
         Crt().sprintf(name, reinterpret_cast<const char *>(0x007650dc), ++global<s32>(0x00879084));   // "Scr%05ld.tga"

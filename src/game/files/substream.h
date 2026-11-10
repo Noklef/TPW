@@ -28,3 +28,8 @@ void __fastcall SubStream_Dtor(u8 *self);
 u8 *__fastcall SubStream_DeletingDtor(u8 *self, void *, u32 flags);
 
 }  // extern "C"
+
+#include "../core/gamedata.h"
+
+// The vtables hold only ports: tpw.exe's loader points their slots at them (.docs/09-globals.md).
+GAME_DATA(void *[3], SubStream_vtable, 0x0070ad50, 0xc);

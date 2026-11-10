@@ -82,7 +82,7 @@ void __fastcall ViewCtl702bc8_Enter(u8 *self) {
     at<u32>(self, 0x78) = g_env->playAt(0, gSoundset_803a48, 3, 0, 0, 0);
     u8 *const part = static_cast<u8 *>(GameHeap_Alloc(0x18));
     if (part) {
-        at<u32>(part, 0) = 0x00702bb4;
+        at<u32>(part, 0) = (u32)(uintptr_t)Class702bb4_vtable;
         u8 *const model = g_env->makeModel(gFrame_f83774, nullptr, reinterpret_cast<const char *>(0x00774c80), reinterpret_cast<const char *>(0x00774cc0), 1, 1, 0, 0);
         at<u8 *>(part, 4) = model;
         g_env->acquire(model);

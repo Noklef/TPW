@@ -13,6 +13,8 @@
 #include "../world/parkmap.h"
 #include "../render/device.h"
 #include "../world/thingmsg.h"
+#include "../frontend/frame.h"
+#include "../input/devicefilter.h"
 
 namespace {
 
@@ -389,11 +391,11 @@ u8 * __fastcall ScalarDelete7026e8_591980(u8 *o, void *, u32 v0) {
 }
 
 u8 * __fastcall ScalarDelete7029fc_5d5c30(u8 *o, void *, u32 v0) {
-    at<u32>(o, 0x0) = 0x007029fc; if (v0 & 1) GameHeap_Free(o); return o;
+    at<u32>(o, 0x0) = (u32)(uintptr_t)Class7029fc_vtable; if (v0 & 1) GameHeap_Free(o); return o;
 }
 
 u8 * __fastcall ScalarDelete703748_617930(u8 *o, void *, u32 v0) {
-    at<u32>(o, 0x0) = 0x00703748; if (v0 & 1) GameHeap_Free(o); return o;
+    at<u32>(o, 0x0) = (u32)(uintptr_t)KeyFilter_vtable_703748; if (v0 & 1) GameHeap_Free(o); return o;
 }
 
 u8 * __fastcall ScalarDelete703770_617ae0(u8 *o, void *, u32 v0) {

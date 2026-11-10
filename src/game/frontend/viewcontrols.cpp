@@ -194,20 +194,20 @@ extern "C" void __fastcall ViewCtl702bc8_Update(u8 *self) {
 }
 
 extern "C" void __fastcall Class702d78_MakeViews(u8 *self) {
-    at<u8 *>(self, 4) = new_view(0xe8, g_sceneEnv->segmentsCtor, 0x00702ec0);
-    at<u8 *>(self, 0xc) = new_view(0x7c, g_sceneEnv->viewCtor, 0x00702e70);
-    at<u8 *>(self, 0x10) = new_view(0x7c, g_sceneEnv->viewCtor, 0x00702e20);
-    at<u8 *>(self, 8) = new_view(0xec, g_sceneEnv->segmentsCtor, 0x00702dd0);
+    at<u8 *>(self, 4) = new_view(0xe8, g_sceneEnv->segmentsCtor, (u32)(uintptr_t)Class702ec0_vtable);
+    at<u8 *>(self, 0xc) = new_view(0x7c, g_sceneEnv->viewCtor, (u32)(uintptr_t)Class702e70_vtable);
+    at<u8 *>(self, 0x10) = new_view(0x7c, g_sceneEnv->viewCtor, (u32)(uintptr_t)Class702e20_vtable);
+    at<u8 *>(self, 8) = new_view(0xec, g_sceneEnv->segmentsCtor, (u32)(uintptr_t)Class702dd0_vtable);
     u8 *const fifth = static_cast<u8 *>(GameHeap_Alloc(0x2c));
     if (fifth) {
-        at<u32>(fifth, 0) = 0x00702d48;
+        at<u32>(fifth, 0) = (u32)(uintptr_t)Class702d48_vtable;
         at<u32>(fifth, 4) = 0;
         vcall<void>(*reinterpret_cast<u8 **>((uintptr_t)0x00f85614), 0x18, fifth);
         at<u32>(fifth, 0xc) = 0;
         at<u32>(fifth, 0x10) = 0;
         at<u32>(fifth, 0x14) = 0;
-        at<u32>(fifth, 8) = 0x00702dc8;
-        at<u32>(fifth, 0) = 0x00702da0;
+        at<u32>(fifth, 8) = ((u32)(uintptr_t)Class702da0_vtable + 0x28);
+        at<u32>(fifth, 0) = (u32)(uintptr_t)Class702da0_vtable;
     }
     at<u8 *>(self, 0x14) = fifth;
     for (u8 *node = at<u8 *>(at<u8 *>(self, 0x18), 4); node;) {
