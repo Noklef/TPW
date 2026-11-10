@@ -97,6 +97,8 @@ long long __stdcall CRT_allmul(u32 aLow, u32 aHigh, u32 bLow, u32 bHigh);
 
 // 0x67b5c0: rand: the thread's seed (getptd +0x14) * 214013 + 2531011 stored, bits 16-30 of it.
 s32 __cdecl CRT_rand();
+// 0x67b5b0: srand: the thread's seed (getptd +0x14) set.
+void __cdecl CRT_srand(u32 seed);
 
 // 0x67a740: _onexit, under the exit lock: fn appended to the table [0xfb3cb4] up to its end [0xfb3cb0] (the block grown by 0x10 bytes when msize has
 // no room for one more). Returns fn; 0 when the growth fails.

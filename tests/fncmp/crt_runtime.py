@@ -1,4 +1,4 @@
-# The C library's rand, exit table, free, fclose and exception destructor (src/game/core/crt) against the originals. The routines under them (the thread's data, the locks,
+# The C library's rand, srand, exit table, free, fclose and exception destructor (src/game/core/crt) against the originals. The routines under them (the thread's data, the locks,
 # msize, realloc, the small block heap, _fclose_lk: CrtInnerEnv) are cdecl recorders at their game addresses; the small block heap's out arguments are stack slots, logged as
 # 0 and filled, so what it writes is what the free call that follows logs. HeapFree is a COM recorder in its import slot.
 # usage: crt_runtime.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=name,name to pick)
@@ -11,7 +11,7 @@ from fncmp import HEAP, LOG, RAM, Bench, Call, _recorder, fill, heap, log_region
 
 GETPTD, LOCKEXIT, UNLOCKEXIT, MSIZE, REALLOC, LOCK, UNLOCK, FIND, FREEBLOCK, LOCKFILE, UNLOCKFILE, FCLOSE = range(2, 14)
 HEAPFREE = 20
-B = Bench([(0x67d380, 0x67d39e), (0x67d230, 0x67d24e), (0x67d350, 0x67d37f), (0x682360, 0x682385), (0x68f990, 0x68f9cf), (0x67fa40, 0x67fa60), (0x686a00, 0x686a10), (0x67b5c0, 0x67b5f0), (0x67a740, 0x67a7f0), (0x67ad90, 0x67ae00), (0x67b620, 0x67b660), (0x67d320, 0x67d340)],
+B = Bench([(0x67d380, 0x67d39e), (0x67d230, 0x67d24e), (0x67d350, 0x67d37f), (0x682360, 0x682385), (0x68f990, 0x68f9cf), (0x67fa40, 0x67fa60), (0x686a00, 0x686a10), (0x67b5c0, 0x67b5f0), (0x67b5b0, 0x67b5bd), (0x67a740, 0x67a7f0), (0x67ad90, 0x67ae00), (0x67b620, 0x67b660), (0x67d320, 0x67d340)],
           hooks={0x682460: _recorder(GETPTD, 0, cdecl=True), 0x67fa20: _recorder(LOCKEXIT, 0, cdecl=True), 0x67fa30: _recorder(UNLOCKEXIT, 0, cdecl=True),
                  0x6818f0: _recorder(MSIZE, 1, cdecl=True), 0x681740: _recorder(REALLOC, 2, cdecl=True), 0x682720: _recorder(LOCK, 1, cdecl=True),
                  0x6827a0: _recorder(UNLOCK, 1, cdecl=True), 0x682b40: _recorder(FIND, 3, cdecl=True), 0x682ba0: _recorder(FREEBLOCK, 3, cdecl=True),
@@ -25,6 +25,12 @@ def rand(r):
     log = log_region()
     set_return(log, GETPTD, DATA)
     return Call(0x67b5c0, [], {LOG: log, DATA: r.bytes(0x20)}, conv='c', ret='a')
+
+
+def srand(r):
+    log = log_region()
+    set_return(log, GETPTD, DATA)
+    return Call(0x67b5b0, [r.getrandbits(32)], {LOG: log, DATA: r.bytes(0x20)}, conv='c', ret='v')
 
 
 def exit_table(r, address):
@@ -122,7 +128,7 @@ def exception_delete(r):
     return Call(0x67d230, [HEAP + 0x200, r.choice([0, 1, 2, 3, r.getrandbits(32)])], {HEAP: h}, conv='t', ret='a')
 
 
-KINDS = {'excdelete': exception_delete, 'typeinfo': type_info_dtor, 'adjust': adjust_pointer, 'siglookup': siglookup, 'initterm': initterm, 'errno': errno, 'rand': rand,'onexit': onexit, 'atexit': atexit, 'free': free, 'fclose': fclose, 'exception_dtor': exception_dtor}
+KINDS = {'excdelete': exception_delete, 'typeinfo': type_info_dtor, 'adjust': adjust_pointer, 'siglookup': siglookup, 'initterm': initterm, 'errno': errno, 'rand': rand, 'srand': srand, 'onexit': onexit, 'atexit': atexit, 'free': free, 'fclose': fclose, 'exception_dtor': exception_dtor}
 OPS = [k for k in os.environ.get('OPS', ','.join(KINDS)).split(',') if k]
 
 
