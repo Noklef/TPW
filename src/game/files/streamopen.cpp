@@ -2,6 +2,7 @@
 #include "streamopen.h"
 
 #include <cstdint>
+#include "../core/vdtor.h"
 
 namespace {
 
@@ -23,8 +24,8 @@ const StreamOpenEnv kGameEnv = {
     at<s32(__fastcall *)(const String *, void *, const char *, u32)>(0x005f7b90),
     at<StringView *(__fastcall *)(const String *, void *, StringView *, u32)>(0x005f7d60),
     at<StringView *(__fastcall *)(const String *, void *, StringView *, u32)>(0x005f7dd0),
-    at<void *const *>(0x006fda18),
-    at<void *const *>(0x006fd9e8),
+    at<void *const *>(((u32)(uintptr_t)ListDtor6fd9e4_vtable + 0x34)),
+    at<void *const *>(((u32)(uintptr_t)ListDtor6fd9e4_vtable + 0x4)),
     at<RefObject *(__fastcall *)(StreamBase *)>(0x004217e0),
     at<void *(__cdecl *)(u32)>(0x0067acc0),
     at<BufferedSource *(__fastcall *)(BufferedSource *)>(0x00638ef0),

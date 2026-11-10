@@ -20,6 +20,7 @@
 #include "../render/batch.h"
 #include "narrowfilebuf.h"
 #include "wfilebuf.h"
+#include "vdtor.h"
 
 namespace {
 
@@ -183,7 +184,7 @@ void __fastcall Obj_PickByName(u8 *object, void *, u32 flag) {
 void __fastcall Class702da0_Dtor(u8 *object) {
     at<u32>(object, 0) = 0x00702da0;
     u8 *node = at<u8 *>(object, 0xc);
-    at<u32>(object, 8) = 0x00702f10;
+    at<u32>(object, 8) = (u32)(uintptr_t)ListDtor702f10_vtable;
     at<u32>(object, 0x10) = 0;
     at<u32>(object, 0xc) = 0;
     while (node) {

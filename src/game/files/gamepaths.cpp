@@ -17,6 +17,7 @@
 #include "file.h"
 #include "handles.h"
 #include "waddir.h"
+#include "../core/vdtor.h"
 
 namespace {
 
@@ -41,7 +42,7 @@ void __fastcall GamePaths_MakeFolders(void *, void *, const WString *root) {
         String_Append(&path, nullptr, name);
         Handle folder;
         Handle_Ctor(&folder);
-        folder.vtable = at<void *const *>(0x006fd9e8);
+        folder.vtable = at<void *const *>(((u32)(uintptr_t)ListDtor6fd9e4_vtable + 0x4));
         s32 status;
         if (*Handle_Open28(&folder, nullptr, &status, reinterpret_cast<u32>(path.data)) < 0) {
             s32 made;
@@ -100,7 +101,7 @@ void __stdcall GamePaths_MakeFoldersCopying(const WString *root, u32 copy) {
 void __cdecl GamePaths_RemoveTree(const String *path) {
     Handle folder;
     Handle_Ctor(&folder);
-    folder.vtable = at<void *const *>(0x006fd9e8);
+    folder.vtable = at<void *const *>(((u32)(uintptr_t)ListDtor6fd9e4_vtable + 0x4));
     s32 status;
     if (*Handle_Open28(&folder, nullptr, &status, reinterpret_cast<u32>(path->data)) >= 0) {
         alignas(4) u8 buffer[0x124];

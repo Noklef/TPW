@@ -11,6 +11,7 @@
 #include "../files/direntry.h"
 #include "../files/handles.h"
 #include "../files/vfs.h"
+#include "vdtor.h"
 
 namespace {
 
@@ -292,7 +293,7 @@ void Hold(u8 *object, Handle *h) {
 extern "C" {
 
 void __fastcall Class6fd9d8_AddFolder(u8 *object, void *, const String *path) {
-    Handle *const h = NewHandle(0x006fd9e8);
+    Handle *const h = NewHandle(((u32)(uintptr_t)ListDtor6fd9e4_vtable + 0x4));
     if (!h)
         return;
     s32 result;
@@ -307,7 +308,7 @@ void __fastcall Class6fd9d8_AddFolder(u8 *object, void *, const String *path) {
 }
 
 void __fastcall Class6fd9d8_AddWad(u8 *object, void *, const String *path) {
-    Handle *const h = NewHandle(0x006fda18);
+    Handle *const h = NewHandle(((u32)(uintptr_t)ListDtor6fd9e4_vtable + 0x34));
     if (!h)
         return;
     s32 result;
@@ -663,10 +664,10 @@ void __fastcall Class6fdaa4_SetEntry(u8 *object, void *, const DirEntry *entry, 
     s32 result;
     const s32 *got;
     if (DirEntry_IsWad(entry)) {
-        *reinterpret_cast<u32 *>(&opened) = 0x006fda18;
+        *reinterpret_cast<u32 *>(&opened) = ((u32)(uintptr_t)ListDtor6fd9e4_vtable + 0x34);
         got = Handle_OpenE0(&opened, nullptr, &result, (u32)(uintptr_t)folder.data, 0);
     } else {
-        *reinterpret_cast<u32 *>(&opened) = 0x006fd9e8;
+        *reinterpret_cast<u32 *>(&opened) = ((u32)(uintptr_t)ListDtor6fd9e4_vtable + 0x4);
         got = Handle_Open28(&opened, nullptr, &result, (u32)(uintptr_t)folder.data);
     }
     if (*got >= 0) {

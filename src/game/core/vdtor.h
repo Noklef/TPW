@@ -233,3 +233,54 @@ u8 *__fastcall Class702a60_DeletingDtor(u8 *object, void *, u32 flags);
 // 0x5c9040 (thiscall): Init_5d36c0, vtable 0x70295c and the four dwords from +8 zeroed. Returns the object.
 u8 *__fastcall Class70295c_Ctor(u8 *object);
 }  // extern "C"
+
+#include "gamedata.h"
+
+// The vtables hold only ports: tpw.exe's loader points their slots at them (.docs/09-globals.md).
+GAME_DATA(void *[1], ListDtor6fd708_vtable, 0x006fd708, 0x4);
+GAME_DATA(void *[25], ListDtor6fd9e4_vtable, 0x006fd9e4, 0x64);
+GAME_DATA(void *[1], ListDtor6fdb08_vtable, 0x006fdb08, 0x4);
+GAME_DATA(void *[1], ListDtor6fdb10_vtable, 0x006fdb10, 0x4);
+GAME_DATA(void *[1], ListDtor700aa0_vtable, 0x00700aa0, 0x4);
+GAME_DATA(void *[1], ListDtor7027fc_vtable, 0x007027fc, 0x4);
+GAME_DATA(void *[4], Class702880_vtable, 0x00702880, 0x10);
+GAME_DATA(void *[4], Class702890_vtable, 0x00702890, 0x10);
+GAME_DATA(void *[1], ListDtor7028a0_vtable, 0x007028a0, 0x4);
+GAME_DATA(void *[1], Class7028a8_vtable, 0x007028a8, 0x4);
+GAME_DATA(void *[1], Class7028ac_vtable, 0x007028ac, 0x4);
+GAME_DATA(void *[1], ListDtor7028b0_vtable, 0x007028b0, 0x4);
+GAME_DATA(void *[1], ListDtor7028b4_vtable, 0x007028b4, 0x4);
+GAME_DATA(void *[4], Class7028b8_vtable, 0x007028b8, 0x10);
+GAME_DATA(void *[1], Class7028c8_vtable, 0x007028c8, 0x4);
+GAME_DATA(void *[4], Class7028d0_vtable, 0x007028d0, 0x10);
+GAME_DATA(void *[4], Class7028e0_vtable, 0x007028e0, 0x10);
+GAME_DATA(void *[1], Class7028f0_vtable, 0x007028f0, 0x4);
+GAME_DATA(void *[4], Class7028f8_vtable, 0x007028f8, 0x10);
+GAME_DATA(void *[4], Class702908_vtable, 0x00702908, 0x10);
+GAME_DATA(void *[1], Class702918_vtable, 0x00702918, 0x4);
+GAME_DATA(void *[4], Class702920_vtable, 0x00702920, 0x10);
+GAME_DATA(void *[1], ListDtor70294c_vtable, 0x0070294c, 0x4);
+GAME_DATA(void *[1], ListDtor702950_vtable, 0x00702950, 0x4);
+GAME_DATA(void *[1], ListDtor702954_vtable, 0x00702954, 0x4);
+GAME_DATA(void *[1], Class702958_vtable, 0x00702958, 0x4);
+GAME_DATA(void *[6], Class7029d0_vtable, 0x007029d0, 0x18);
+GAME_DATA(void *[1], Class7029e8_vtable, 0x007029e8, 0x4);
+GAME_DATA(void *[2], Class7029f0_vtable, 0x007029f0, 0x8);
+GAME_DATA(void *[1], ListDtor7029f8_vtable, 0x007029f8, 0x4);
+GAME_DATA(void *[1], ListDtor702a88_vtable, 0x00702a88, 0x4);
+GAME_DATA(void *[1], ListDtor702a8c_vtable, 0x00702a8c, 0x4);
+GAME_DATA(void *[1], ListDtor702afc_vtable, 0x00702afc, 0x4);
+GAME_DATA(void *[1], Class702b00_vtable, 0x00702b00, 0x4);
+GAME_DATA(void *[8], Class702b08_vtable, 0x00702b08, 0x20);
+GAME_DATA(void *[1], ListDtor702b28_vtable, 0x00702b28, 0x4);
+GAME_DATA(void *[1], Class702bbc_vtable, 0x00702bbc, 0x4);
+GAME_DATA(void *[1], Class702bc0_vtable, 0x00702bc0, 0x4);
+GAME_DATA(void *[17], Class702bc8_vtable, 0x00702bc8, 0x44);
+GAME_DATA(void *[1], ListDtor702c0c_vtable, 0x00702c0c, 0x4);
+GAME_DATA(void *[1], ListDtor702c10_vtable, 0x00702c10, 0x4);
+GAME_DATA(void *[1], ListDtor702d00_vtable, 0x00702d00, 0x4);
+GAME_DATA(void *[1], Class702d70_vtable, 0x00702d70, 0x4);
+GAME_DATA(void *[8], Class702d78_vtable, 0x00702d78, 0x20);
+GAME_DATA(void *[1], ListDtor702d98_vtable, 0x00702d98, 0x4);
+GAME_DATA(void *[1], ListDtor702f10_vtable, 0x00702f10, 0x4);
+GAME_DATA(void *[1], ListDtor703084_vtable, 0x00703084, 0x4);

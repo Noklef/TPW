@@ -18,6 +18,7 @@
 #include "string.h"
 #include "vcall.h"
 #include "soundindex.h"
+#include "vdtor.h"
 
 namespace {
 
@@ -239,13 +240,13 @@ void __fastcall SoundCategory_OpenBankFolder(u8 *, void *, BankFolder *found, co
     s32 status;
     Handle_Ctor(&handle);
     if (wad) {
-        handle.vtable = Vtable(0x6fda18);
+        handle.vtable = Vtable(((u32)(uintptr_t)ListDtor6fd9e4_vtable + 0x34));
         if (*Handle_OpenE0(&handle, nullptr, &status, Addr(path.data), 0) >= 0) {
             Handle_Assign(&found->handle, nullptr, &handle);
             found->found = 1;
         }
     } else {
-        handle.vtable = Vtable(0x6fd9e8);
+        handle.vtable = Vtable(((u32)(uintptr_t)ListDtor6fd9e4_vtable + 0x4));
         if (*Handle_Open28(&handle, nullptr, &status, Addr(folder->data)) >= 0) {
             Handle_Assign(&found->handle, nullptr, &handle);
             found->found = 1;

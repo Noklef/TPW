@@ -10,6 +10,7 @@
 #include "../math/x87.h"
 #include "iosbase.h"
 #include "nstream.h"
+#include "vdel.h"
 
 namespace {
 
@@ -10712,7 +10713,7 @@ void __cdecl Init_515390() {   // 0x515390
     const u32 sp = (u32)(uintptr_t)(frame + sizeof frame);
     eax = 0;
     M<u32>(sp - 0x4) = 0x5153c0u;
-    M<u32>(0x801f38u) = 0x700a9cu;
+    M<u32>(0x801f38u) = (u32)(uintptr_t)ListScalarDelete700a9c_vtable;
     M<u32>(0x801f3cu) = eax;
     M<u32>(0x801f40u) = eax;
     M<u32>(0x801f44u) = eax;
