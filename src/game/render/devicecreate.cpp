@@ -38,7 +38,7 @@ void set_tables(u8 *object, u32 table, u32 baseTable, u32 place) {
 u8 *new_soft() {
     u8 *const object = static_cast<u8 *>(GameHeap_Alloc(0x18));
     if (object) {
-        set_tables(object, 0x007016a8, 0x00701688, 0x14);
+        set_tables(object, 0x007016a8, (u32)(uintptr_t)Class701688_vtable, 0x14);
         at<u32>(object, 4) = 0;
         at<u32>(object, 8) = 0;
     }
@@ -65,7 +65,7 @@ u32 __cdecl D3dSetup_Create(u32 kind) {
         return 0;
     u8 *const object = static_cast<u8 *>(GameHeap_Alloc(0x22c));
     if (object) {
-        set_tables(object, 0x00701670, 0x00701630, 0x228);
+        set_tables(object, 0x00701670, (u32)(uintptr_t)Class701630_vtable, 0x228);
         const u32 *const guid = reinterpret_cast<const u32 *>(0x00707550);
         for (u32 i = 0; i < 4; ++i)
             at<u32>(object, 0x18 + 4 * i) = guid[i];
@@ -117,9 +117,9 @@ u32 __cdecl SoftSetup_CreateSquare() {
         return 0;
     }
     const u32 raster = raster_interface();
-    const u32 side = global((u32)&gBatch_8bd4ac);
+    const u32 side = global(0x008bd4ac);
     at<u32>(object, 8) = g_calls.Cd(0x00678e70, raster, 0u, side, side);
-    const u32 now = global((u32)&gBatch_8bd4ac);
+    const u32 now = global(0x008bd4ac);
     global((u32)&gSoftSetup_fbe014) = 0;
     global((u32)&gSoftSetup_fbe018) = 0;
     global((u32)&gDevicecreate_fbe034) = 0;

@@ -28,7 +28,7 @@ void __fastcall SndReverb_Load(u8 *system) {
     if (Get<u32>(system, 0x68)) return;
     StreamBase stream;
     StreamBase_Ctor(&stream);
-    stream.vtable = reinterpret_cast<void *const *>(static_cast<uintptr_t>(0x6fd930));   // FileStream
+    stream.vtable = reinterpret_cast<void *const *>(static_cast<uintptr_t>((u32)(uintptr_t)FileStream_vtable));   // FileStream
     String path;
     String_CtorCopy(&path, nullptr, reinterpret_cast<const StringView *>(system + 0x30));
     String_AppendStr(&path, nullptr, "SndReverb.map");

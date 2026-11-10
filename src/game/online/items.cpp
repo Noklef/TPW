@@ -43,7 +43,7 @@ u8 *__fastcall Class702938_Ctor(u8 *item, void *, const u8 *record, u8 *owner) {
     WString_Ctor(Wide(item, 0xc));
     WString_Ctor(Wide(item, 0x20));
     WString_Ctor(Wide(item, 0x44));
-    at<u32>(item, 0) = 0x00702938;
+    at<u32>(item, 0) = (u32)(uintptr_t)Class702938_vtable;
     at<u8 *>(item, 4) = owner;
     at<u32>(item, 8) = at<u32>(record, 0);
     AssignText(Wide(item, 0xc), record, 4);
@@ -66,7 +66,7 @@ u8 *__fastcall Class70293c_Ctor(u8 *item) {
     WString_Ctor(Wide(item, 0x34));
     String_Ctor(Narrow(item, 0x7c));
     WString_Ctor(Wide(item, 0x94));
-    at<u32>(item, 0) = 0x0070293c;
+    at<u32>(item, 0) = (u32)(uintptr_t)Class70293c_vtable;
     at<u32>(item, 4) = 0;
     at<u32>(item, 8) = 0xffffffff;
     vcall<void>(Wide(item, 0xc), 0x14, emptyWide);
@@ -93,7 +93,7 @@ u8 *__fastcall Class70293c_CtorFrom(u8 *item, void *, const u8 *record, u8 *owne
     WString_Ctor(Wide(item, 0x34));
     String_Ctor(Narrow(item, 0x7c));
     WString_Ctor(Wide(item, 0x94));
-    at<u32>(item, 0) = 0x0070293c;
+    at<u32>(item, 0) = (u32)(uintptr_t)Class70293c_vtable;
     at<u8 *>(item, 4) = owner;
     at<u32>(item, 8) = at<u32>(record, 0);
     AssignText(Wide(item, 0xc), record, 4);
@@ -138,7 +138,7 @@ u8 *__fastcall Class702940_Ctor(u8 *item, void *, const u8 *record, u8 *owner) {
     String_Ctor(Narrow(item, 0xc));
     String_Ctor(Narrow(item, 0x20));
     String_Ctor(Narrow(item, 0x34));
-    at<u32>(item, 0) = 0x00702940;
+    at<u32>(item, 0) = (u32)(uintptr_t)Class702940_vtable;
     at<u8 *>(item, 4) = owner;
     at<u32>(item, 8) = at<u32>(record, 0);
     WString text;
@@ -155,7 +155,7 @@ u8 *__fastcall Class702940_Ctor(u8 *item, void *, const u8 *record, u8 *owner) {
 u8 *__fastcall Class702944_Ctor(u8 *item, void *, const u8 *record, u8 *owner) {
     for (u32 offset : {0x10u, 0x24u, 0x40u, 0x54u, 0x6cu})
         WString_Ctor(Wide(item, offset));
-    at<u32>(item, 0) = 0x00702944;
+    at<u32>(item, 0) = (u32)(uintptr_t)Class702944_vtable;
     at<u8 *>(item, 4) = owner;
     at<u32>(item, 8) = at<u32>(record, 0);
     at<u32>(item, 0xc) = at<u32>(record, 4);
@@ -175,7 +175,7 @@ u8 *__fastcall Class702948_Ctor(u8 *item, void *, const u8 *record, u8 *owner) {
     WString_Ctor(Wide(item, 0xc));
     WString_Ctor(Wide(item, 0x20));
     WString_Ctor(Wide(item, 0x4c));
-    at<u32>(item, 0) = 0x00702948;
+    at<u32>(item, 0) = (u32)(uintptr_t)Class702948_vtable;
     at<u8 *>(item, 4) = owner;
     at<u32>(item, 8) = at<u32>(record, 0);
     AssignText(Wide(item, 0xc), record, 4);

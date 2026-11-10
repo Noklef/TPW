@@ -75,7 +75,7 @@ extern "C" {
 
 u32 __fastcall Staff_IsTooTired(const u8 *staff) {
     const u32 level = (u32)(long long)at<float>(staff, 0x1fc) & 0xff;  // __ftol
-    return (s32)level < gStaff_785324;
+    return (s32)level < global<s32>(0x00785324);
 }
 
 void __fastcall Staff_TireA(u8 *staff) {
@@ -350,11 +350,11 @@ void __fastcall Staff_CountTypes(u8 *counts) {
         const u8 *const thing = global<u8 *>(0x007cfb90 + 20 * (u32)handle);
         u32 count = 0, limit = 0, flag = 0;
         switch (at<u8>(thing, 2)) {
-        case 4: count = 0x284; limit = (u32)&gStaff_7852ec; flag = 0x29a; break;
-        case 5: count = 0x280; limit = (u32)&gStaff_7852e8; flag = 0x299; break;
-        case 6: count = 0x288; limit = (u32)&gStaff_7852f0; flag = 0x29b; break;
-        case 7: count = 0x28c; limit = (u32)&gStaff_7852f4; flag = 0x29c; break;
-        case 8: count = 0x290; limit = (u32)&gStaff_7852f8; flag = 0x29d; break;
+        case 4: count = 0x284; limit = 0x007852ec; flag = 0x29a; break;
+        case 5: count = 0x280; limit = 0x007852e8; flag = 0x299; break;
+        case 6: count = 0x288; limit = 0x007852f0; flag = 0x29b; break;
+        case 7: count = 0x28c; limit = 0x007852f4; flag = 0x29c; break;
+        case 8: count = 0x290; limit = 0x007852f8; flag = 0x29d; break;
         }
         if (count != 0) {
             const s32 now = at<s32>(counts, count) + 1;
@@ -790,7 +790,7 @@ void keep_level(float &level, X87Reg sum) {
 // +0x1f8 less the int [0x785328] (x87: fild, fchs, fadd).
 void lower_happiness(u8 *staff) {
     float &happiness = *reinterpret_cast<float *>(staff + 0x1f8);
-    keep_level(happiness, X87Reg(-(double)gStaff_785328) + happiness);
+    keep_level(happiness, X87Reg(-(double)global<s32>(0x00785328)) + happiness);
 }
 }  // namespace
 
@@ -925,7 +925,7 @@ u32 __fastcall Staff_CheckMood(u8 *staff) {
         }
     }
     const u32 rest = (u32)(long long)at<float>(staff, 0x1fc) & 0xff;   // __ftol
-    if ((s32)rest <= gStaff_785324) {
+    if ((s32)rest <= global<s32>(0x00785324)) {
         g_walk->showThought(staff + 0x30, nullptr, 0x14, 0);
         u16 area;
         Things_NearestRestArea(staff, nullptr, &area);

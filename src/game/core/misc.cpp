@@ -9,6 +9,7 @@
 #include "gameheap.h"
 #include "initializers.h"
 #include "string.h"
+#include "../input/devicefilter.h"
 
 namespace {
 
@@ -21,7 +22,7 @@ extern "C" {
 
 u8 *__fastcall Class703c18_Ctor(u8 *object) {
     Class703770_Ctor(object);
-    at<u32>(object, 0) = 0x00703c18;
+    at<u32>(object, 0) = (u32)(uintptr_t)Class703c18_vtable;
     at<u32>(object, 8) = 0;
     at<u32>(object, 0xc) = 0;
     return object;
@@ -30,14 +31,14 @@ u8 *__fastcall Class703c18_Ctor(u8 *object) {
 u8 *__fastcall Class703ca0_Ctor(u8 *object) {
     Class703770_Ctor(object);
     at<u32>(object, 8) = 0;
-    at<u32>(object, 0xc) = 0x00703748;
+    at<u32>(object, 0xc) = (u32)(uintptr_t)KeyFilter_vtable_703748;
     at<u32>(object, 0x14) = 0;
     at<u32>(object, 0x18) = 0;
-    at<u32>(object, 0x10) = 0x00703744;
+    at<u32>(object, 0x10) = (u32)(uintptr_t)InputSubs_vtable;
     at<u32>(object, 0x1c) = 0;
     at<u32>(object, 0x20) = 0;
-    at<u32>(object, 0) = 0x00703ca0;
-    at<u32>(object, 0xc) = 0x00703c98;
+    at<u32>(object, 0) = (u32)(uintptr_t)Class703ca0_vtable;
+    at<u32>(object, 0xc) = (u32)(uintptr_t)CharFilter_vtableC;
     return object;
 }
 
@@ -68,7 +69,7 @@ u8 *__fastcall Class703c80_Ctor(u8 *object) {
     at<u32>(object, 0x14) = 0xffffffff;
     at<u32>(object, 0x18) = 0xffffffff;
     at<u32>(object, 0x1c) = 0xffffffff;
-    at<u32>(object, 0) = 0x00703c80;
+    at<u32>(object, 0) = (u32)(uintptr_t)Class703c80_vtable;
     return object;
 }
 

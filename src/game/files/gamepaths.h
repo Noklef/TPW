@@ -96,7 +96,5 @@ GAME_DATA(u32[2], gGamePaths_Base_788028, 0x00788028, 0x8);
 GAME_DATA(u32, gGamePaths_Base_788030, 0x00788030, 0x4);
 GAME_DATA(u8, gGamePaths_Base_7887e4, 0x007887e4, 0x1);
 GAME_DATA(char[16], gGamePaths_7af720, 0x007af720, 0x10);
-GAME_DATA(u32, gCdVolumeLabel, 0x00f7a7d0, 0x4);
-GAME_DATA(u32, gGamePaths_RemoveTree_f81650, 0x00f81650, 0x4);
 GAME_DATA(u8, gGamePaths_CheckDisc_fb34ca, 0x00fb34ca, 0x1);
 GAME_DATA(u32[9], gGamePaths_CheckDisc_fb34f0, 0x00fb34f0, 0x24);

@@ -11,6 +11,7 @@
 #include "../ui/windowtimers.h"
 #include "../world/focuscell.h"
 #include "../render/dynfaces.h"
+#include "../world/thingmsg.h"
 
 namespace {
 
@@ -53,7 +54,7 @@ u8 __fastcall Obj_GetByte18c(const u8 *object) { return at<u8>(object, 0x18c); }
 
 void __fastcall Obj_Inc2b8(u8 *object) { at<u32>(object, 0x2b8)++; }
 
-void __fastcall Vtbl6fd818_Set(u8 *object) { at<u32>(object, 0) = 0x006fd818; }
+void __fastcall Vtbl6fd818_Set(u8 *object) { at<u32>(object, 0) = (u32)(uintptr_t)ThingMsg14_vtable; }
 
 u32 __fastcall Obj_SetByte7(u8 *object, void *, u32, u32 value) {
     at<u8>(object, 7) = (u8)value;

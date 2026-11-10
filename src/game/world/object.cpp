@@ -449,7 +449,7 @@ void __fastcall Object_MechanicDone(u8 *object, void *, u32) {
         }
         g_service->playEffect(at<s32>(object, 0x24));
         const u32 level = at<u8>(object, 0x50);
-        if (level == 1 || level == 2) at<s32>(object, 0x54) = g_service->spriteStart(0x0074f3a0, 0xc, 0, 0, FloatBits(x), 0, FloatBits(y));
+        if (level == 1 || level == 2) at<s32>(object, 0x54) = g_service->spriteStart(SpriteCode(0x18e8), 0xc, 0, 0, FloatBits(x), 0, FloatBits(y));
         const u8 *const def = Object_GetDef(object);
         const u8 *const row = def + level * 0x40;
         Money_Debit(reinterpret_cast<u8 *>((uintptr_t)GameTable7cfb90_Get1da726_5195d0(global<u8 *>(0x0080239c))), nullptr, at<s32>(row, 0x1b8));

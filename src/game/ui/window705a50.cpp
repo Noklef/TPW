@@ -20,7 +20,7 @@ extern "C" {
 
 u8 *__fastcall Window705a50_Ctor(u8 *window, void *, u8 *parent, u32 flags, u32 id, u32 left, u32 top, u32 right, u32 bottom) {
     Window_Ctor(window, nullptr, parent, flags, id, left, top, right, bottom);
-    at<u32>(window, 0) = 0x705a50;
+    at<u32>(window, 0) = (u32)(uintptr_t)Window705a50_vtable;
     window[0x138] = 0;
     window[0x139] = 0;
     at<u32>(window, 0x13c) = 500;
@@ -46,7 +46,7 @@ u16 __fastcall Window705a50_TextLength(const u8 *window) {
 }
 
 u32 __fastcall Window705a50_Dtor(u8 *window) {
-    at<u32>(window, 0) = 0x705a50;
+    at<u32>(window, 0) = (u32)(uintptr_t)Window705a50_vtable;
     if (at<u8 *>(window, 0x148)) TextPool_Release(at<u8 *>(window, 0x148));
     return Window_Dtor(window);
 }

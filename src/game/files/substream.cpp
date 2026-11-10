@@ -16,7 +16,7 @@ u8 *construct(u8 *self, const u8 *stream, u32 start) {
     at<u32>(self, 8) = start;
     StreamBase_CopyCtor(reinterpret_cast<StreamBase *>(self + 0xc), nullptr, reinterpret_cast<const StreamBase *>(stream));
     Semaphore_Ctor(reinterpret_cast<Semaphore *>(self + 0x14));
-    at<u32>(self, 0) = 0x0070ad50;
+    at<u32>(self, 0) = (u32)(uintptr_t)SubStream_vtable;
     return self;
 }
 
@@ -27,7 +27,7 @@ extern "C" {
 u8 *__fastcall SubStream_Ctor(u8 *self, void *, const u8 *stream) { return construct(self, stream, 0); }
 
 void __fastcall SubStream_Dtor(u8 *self) {
-    at<u32>(self, 0) = 0x0070ad50;
+    at<u32>(self, 0) = (u32)(uintptr_t)SubStream_vtable;
     Semaphore_Dtor(reinterpret_cast<Semaphore *>(self + 0x14));
     StreamBase_Dtor(reinterpret_cast<StreamBase *>(self + 0xc));
 }

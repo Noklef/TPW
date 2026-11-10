@@ -16,7 +16,7 @@ ADDRESS = {'SetNext': (0x632350, 38), 'Close': (0x633200, 26), 'SetSink': (0x633
            'ModKey': (0x633ed0, 174), 'KeyDtor': (0x633470, 147), 'CharDtor': (0x633e20, 123), 'OpenEvent': (0x6331c0, 62), 'Move': (0x634360, 190), 'Drain': (0x633280, 189), 'Poll': (0x63e970, 82),
            'BaseDel': (0x6342f0, 30), 'DevEvent': (0x633540, 19), 'SetKeys': (0x633560, 75), 'SetMice': (0x6335b0, 75), 'Const3': (0x6350d0, 6), 'Const4': (0x6350e0, 6),
            'Reopen': (0x633220, 43), 'HolderOpen': (0x633bf0, 285), 'DevOpen': (0x63e8c0, 170), 'KeyDel': (0x633400, 30), 'CharDel': (0x633e00, 30),
-           'KeyDelAdj': (0x6336c0, 8), 'CharDelAdj': (0x634210, 8), 'DevDelAdj': (0x63e9d0, 8), 'ReopenOut': (0x633340, 15), 'DevOpenOut': (0x634a30, 23)}
+           'KeyDelAdj': (0x6336c0, 8), 'CharDelAdj': (0x634210, 8), 'DevDelAdj': (0x63e9d0, 8), 'ReopenOut': (0x633340, 15), 'DevOpenOut': (0x634a30, 23), 'CharEvent': (0x634110, 19)}
 # the adjustors (this less the offset, then the op's function) and the wrappers returning the result: op -> (the op set up, the offset)
 WRAPS = {'KeyDelAdj': ('KeyDel', 0xc), 'CharDelAdj': ('CharDel', 0xc), 'DevDelAdj': ('DevDel', 0x10), 'ReopenOut': ('Reopen', 0), 'DevOpenOut': ('DevOpen', 0)}
 OPS = [n for n in ADDRESS if not os.environ.get('OPS') or n in os.environ['OPS'].split(',')]
@@ -152,7 +152,7 @@ def build(r, op):
         put(obj, 0, 'I', r.choice([0, DEV]))
         device(r, regions)
         return Call(address, [OBJ], regions, conv='t', ret='v')
-    if op == 'Modifiers':
+    if op in ('Modifiers', 'CharEvent'):
         put(obj, 0x1c, 'I', r.choice([NEXT - 0x10, NEXT - 0x10, NEXT - 0x10, NEXT, 0]))
         regions[NEXT] = put(bytearray(r.bytes(0x20)), 0xc, 'I', DEV)
         device(r, regions)
@@ -160,6 +160,9 @@ def build(r, op):
         strings(log, STATE, 0, out=0b100)   # (the local buffer)
         fill(log, STATE, 2, bytes(r.choice([0, 0, 0, 0x80, 0x7f, 0xff]) for _ in range(0x26)), which=0, offset=0x1d)
         fill(log, STATE, 2, bytes(r.choice([0, 0, 0, 0x80, 0x7f, 0xff]) for _ in range(0x1c)), which=1, offset=0x9d)
+        if op == 'CharEvent':   # (the adjustor: this + 0xc, the message's +4 the holder)
+            regions[MSG] = struct.pack('<II', r.getrandbits(32), r.choice([NEXT, NEXT, NEXT - 0x10]))
+            return Call(address, [OBJ + 0xc, r.getrandbits(32), MSG], regions, conv='t', ret='v')
         return Call(address, [OBJ, NEXT], regions, conv='t', ret='v')
     if op == 'Ctor':
         fill(log, SPI, 2, r.bytes(12))

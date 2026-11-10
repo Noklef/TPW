@@ -93,7 +93,7 @@ void WalkUsers(u8 *self, Handle *handle) {
     entry[0x24] = 0;
     s32 status;
     const u32 address = static_cast<u32>(reinterpret_cast<uintptr_t>(entry));
-    if (*g_scan->first(handle, nullptr, &status, at<u32>(nullptr, (u32)&gUserslots_f825d0), address) < 0) return;
+    if (*g_scan->first(handle, nullptr, &status, at<u32>(nullptr, 0x00f825d0), address) < 0) return;
     do {
         const char *const name = at<const char *>(entry, 0x20);
         if (CRT_strlen(name) > 1 && g_scan->isRealDir(entry) && g_scan->isDigit(name[0])) {

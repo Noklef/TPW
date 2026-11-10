@@ -14,7 +14,7 @@ CALLS = {'Base': 0x65a9f0, 'Circle': 0x66c01a, 'CircleWith': 0x66c054, 'CircleCo
          'Ellipse': 0x66c163, 'EllipseWith': 0x66c1a6, 'EllipseContains': 0x66c22c, 'EllipseOffset': 0x66c2a1, 'CircleDelete': 0x66c760,
          'CircleDtor': 0x66c790, 'Polygon': 0x66c2df, 'Triangle': 0x66c311, 'Quad': 0x66c3cb, 'Points': 0x66c4a1, 'PolygonDtor': 0x66c568,
          'PolygonContains': 0x66c5a4, 'PolygonOffset': 0x66c6c3, 'PolygonDelete': 0x66c7b0}
-B = Bench([(0x65a9d0, 0x65aa1b), (0x66bff7, 0x66c01a), (0x66c01a, 0x66c7dc), (0x67acb0, 0x67acb1)])
+B = Bench([(0x65a9d0, 0x65aa1e), (0x66bff7, 0x66c01a), (0x66c01a, 0x66c7dc), (0x67acb0, 0x67acb1)])
 SHAPE, SOURCE, BLOCK = RAM, RAM + 0x100, RAM + 0x200
 
 

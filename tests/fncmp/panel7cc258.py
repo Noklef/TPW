@@ -14,14 +14,16 @@
 # slots 5, 6 and 13 recorders (13's result set), its object +0x20 one with slot 9 a recorder.
 # Open7ca228 / Open7cc3e0 / Open7cc3b0 (0x499af0 / 0x4b67a0 / 0x4b5a60, slot 0 of the vtables 0x6ff8d0 / 0x6ffec8 / 0x6ffe50:
 # src/game/ui/panel7ca228 / panel7cc3e0 / panel7cc3b0): Open's
-# surroundings with that panel's selected thing, its two hidden children and hover label (SMALL).
+# surroundings with that panel's selected thing, its two hidden children and hover label (SMALL); Open7ca178 (0x4975c0, slot 0 of
+# 0x6ff740, src/game/ui/panel7ca178) the same. Open7cc298 (0x4b1b50, slot 0 of 0x6ffce8, src/game/ui/panel7cc298): Open's case with
+# that panel's selected thing [0x7cc2c8], children and texts (BIG_OPEN).
 # Apply / Apply7cc298 (0x4b0ae0 / 0x4b20f0: the panels' Things_Select callbacks, src/game/ui/panel7cc258 / panel7cc298): Open's things()
 # (the definition table: its items' +0x10c 0 mostly), a thing of one of its kinds, the shown thing [0x7c2658] of the same kind mostly,
 # the panels' settings 0x7cc27c-0x7cc287 / 0x7cc2bc-0x7cc2c7 random.
 # ApplyShown (0x4b20b0, slot 15 of 0x6ffce8, src/game/ui/panel7cc298): the same with the thing the shown one [0x7c2658] and the panel's
 # own settings +0x24-+0x2f random.
 # usage: panel7cc258.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Open,Update,Open7ca228,Open7cc3e0,Apply,Apply7cc298,Open7cc3b0,
-#   ApplyShown)
+#   ApplyShown,Open7ca178,Open7cc298)
 import os
 import struct
 import sys
@@ -37,11 +39,17 @@ from fncmp import CDECL_LOG4, LOG, RAM, Bench, Call, blob_bytes, put, recorder, 
 from thingenv import park  # noqa: E402
 
 CALLS = {'Open': 0x4b0640, 'Update': 0x4b0950, 'Open7ca228': 0x499af0, 'Open7cc3e0': 0x4b67a0, 'Apply': 0x4b0ae0, 'Apply7cc298': 0x4b20f0,
-         'Open7cc3b0': 0x4b5a60, 'ApplyShown': 0x4b20b0}
+         'Open7cc3b0': 0x4b5a60, 'ApplyShown': 0x4b20b0, 'Open7ca178': 0x4975c0, 'Open7cc298': 0x4b1b50}
 # The small openings (slot 0 of their panels' vtables): (the selected thing's global, the two children hidden when the group counts under 2,
 # the hover label's child).
 SMALL = {'Open7ca228': (0x7ca218, (0x157c, 0x157d), 0x157f), 'Open7cc3e0': (0x7cc3d8, (0x520a, 0x520b), 0x5212),
-         'Open7cc3b0': (0x7cc3a4, (0x50d, 0x50f), 0x520)}
+         'Open7cc3b0': (0x7cc3a4, (0x50d, 0x50f), 0x520), 'Open7ca178': (0x7ca19c, (0x15bb6, 0x15bb7), 0x15bc1)}
+# The big openings: (the selected thing's global, the children looked up, the 0x705b20 sliders, the 0x705af0 values, the hover label's
+# child, the language texts, decoy ids).
+BIG_OPEN = {'Open': (0x7cc288, (0xc069, 0xc06a, 0xc06b, 0xc086, 0xc085, 0xc07e, 0xc084, 0xc083, 0xc06e), (0xc06b, 0xc086), (0xc085,), 0xc06e,
+                     [0x27, 0x28], [0xc06c, 0xc087]),
+            'Open7cc298': (0x7cc2c8, (0xa08c, 0xa08d, 0xa08e, 0xa090, 0xa08f, 0xa0a7, 0xa0a6, 0xa0a5, 0xa0a4), (0xa08e,), (0xa090, 0xa08f),
+                           0xa0a4, [0x31, 0x32, 0x33], [0xa08b, 0xa0a8])}
 OPS = [k for k in os.environ.get('OPS', ','.join(CALLS)).split(',') if k]
 
 
@@ -64,7 +72,7 @@ RANGES = merged(panelparts.ALL_RANGES + ridesweep.SWEEP_RANGES + [
     (0x65aa20, 0x65aaa0), (0x65c388, 0x65c4c9), (0x65c7fe, 0x65c989), (0x65c9bd, 0x65cda5), (0x65d070, 0x65d1d8), (0x65e526, 0x65e559),
     (0x65f66e, 0x65f6e1), (0x6616b0, 0x661780), (0x6697e3, 0x6698b4), (0x499af0, 0x499b3d), (0x4b67a0, 0x4b67ed), (0x4b5a60, 0x4b5aad),
     (0x4b0ae0, 0x4b0b29), (0x4b20f0, 0x4b2146), (0x4b20b0, 0x4b20ef), (0x4e2770, 0x4e277d), (0x4e21c0, 0x4e21d2), (0x4e1a20, 0x4e1a2d), (0x4e21e0, 0x4e21ed),
-    (0x4e2190, 0x4e21a2), (0x4dd4e0, 0x4dd4fb)] + window705a50.RANGES)
+    (0x4e2190, 0x4e21a2), (0x4dd4e0, 0x4dd4fb), (0x4975c0, 0x49760d), (0x4b1b50, 0x4b1ed5)] + window705a50.RANGES)
 B = Bench(RANGES)
 ROOT = dialogbuild.ROW
 KIDS, PANEL, MANAGER = 0x31000000, 0x31010000, 0x31030000
@@ -177,14 +185,16 @@ def case(r):
         return apply_case(r, op)
     if op in SMALL:
         return small_case(r, op)
+    selected, looked, sliders, values, hover, texts, decoys = BIG_OPEN[op]
     regions = dialogbuild.chain(r, 'Open', 0)
     panelparts.surroundings(r, regions)
-    panelparts.texts(r, regions, [0x27, 0x28])
+    panelparts.texts(r, regions, texts)
     things(r, regions)
-    ids = list(LOOKED)
+    regions[selected] = regions.pop(0x7cc288)
+    ids = list(looked)
     if r.random() < 0.06:
         ids.remove(r.choice(ids))
-    ids += [r.choice([0, 1, 0xc06c, 0xc087, r.getrandbits(32)]) for _ in range(r.choice([0, 0, 1, 2]))]
+    ids += [r.choice([0, 1] + decoys + [r.getrandbits(32)]) for _ in range(r.choice([0, 0, 1, 2]))]
     r.shuffle(ids)
     items = [(KIDS + BIG * k, ident) for k, ident in enumerate(ids)]
     panelparts.kids(r, regions, items, ROOT)
@@ -192,12 +202,12 @@ def case(r):
         w = regions[at] = bytearray(regions[at]) + bytearray(r.bytes(BIG - len(regions[at])))
         put(w, 0x114, 'I', r.choice([0, CDECL_LOG4]))
         put(w, 0x5c, 'I', 0)   # (childless: a hidden window's children are told too)
-        if ident in (0xc06b, 0xc086):   # (0x705b20: range +0x138 / +0x13c, step +0x144)
+        if ident in sliders:   # (0x705b20: range +0x138 / +0x13c, step +0x144)
             put(w, 0x138, 'iiii', r.choice([2, 100, 0, r.getrandbits(31)]), r.choice([0, 0, 1, r.getrandbits(31)]), r.getrandbits(31),
                 r.choice([1, -1, 5, -5, 0, r.getrandbits(31)]))
-        elif ident == 0xc085:   # (0x705af0: low +0x138, high +0x13c, value +0x140, step +0x148)
-            put(w, 0x138, 'iii', r.choice([0, 5, -5]), r.choice([500, 100, 0]), r.choice([0, 250, 600, -3, r.getrandbits(31)]))
-        elif ident == 0xc06e:
+        elif ident in values:   # (0x705af0: low +0x138, high +0x13c, value +0x140, step +0x148)
+            put(w, 0x138, 'iii', r.choice([0, 5, -5]), r.choice([500, 100, 0, 10000]), r.choice([0, 250, 600, -3, 10001, r.getrandbits(31)]))
+        elif ident == hover:
             put(w, 0x98, 'I', dialogbuild.listrows.OBJ98)
     put(regions[ROOT], 0x114, 'I', r.choice([0, CDECL_LOG4]))
     regions[0x77c48c] = struct.pack('<I', MANAGER)   # (the manager told of a hidden window: its slot 13 a recorder)
@@ -211,7 +221,7 @@ def case(r):
     put(panel, 4, 'i', r.choice([-1] * 5 + [4, 0x3e9, -3]))
     put(panel, 0x10, 'I', ROOT)
     regions[PANEL] = panel
-    return Call(CALLS['Open'], [PANEL], regions, conv='t', ret='v')
+    return Call(CALLS[op], [PANEL], regions, conv='t', ret='v')
 
 
 def update_case(r):

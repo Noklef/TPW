@@ -73,5 +73,3 @@ GAME_DATA(s32, gDraw_875864, 0x00875864, 0x4);
 GAME_DATA(s32[16], gSpriteDrawCounts, 0x00876490, 0x40);
 GAME_DATA(u8 *[512], gSprites, 0x00876b48, 0x800);
 GAME_DATA(u32, gDraw_87734c, 0x0087734c, 0x4);
-GAME_DATA(float, gDraw_8bd4f0, 0x008bd4f0, 0x4);
-GAME_DATA(float, gDraw_8bd4f4, 0x008bd4f4, 0x4);

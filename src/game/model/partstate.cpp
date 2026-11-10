@@ -224,8 +224,8 @@ s32 __cdecl PartStates_Activate(u8 *instance, u32 part, u32 handle) {
     at<u32>(entry, 0) |= 2;
     // (the original asserts that the thing table exists: Debug_Printf, left out)
     const u32 choice = handle ? Thing_SpriteChoice(*reinterpret_cast<u8 **>(0x007cfb90 + 20 * (handle & 0xffff))) : 0;
-    const s32 slot = choice & 0x80000000 ? SpriteScript_Start(0x0074f558, 3, choice & 0x7fffffff, 0, 0, 0, 0)
-                                         : SpriteScript_Start(0x0074f558, 1, choice, 0, 0, 0, 0);
+    const s32 slot = choice & 0x80000000 ? SpriteScript_Start(SpriteCode(0x1aa0), 3, choice & 0x7fffffff, 0, 0, 0, 0)
+                                         : SpriteScript_Start(SpriteCode(0x1aa0), 1, choice, 0, 0, 0, 0);
     at<s32>(entry, 0xc) = slot;
     return slot;
 }

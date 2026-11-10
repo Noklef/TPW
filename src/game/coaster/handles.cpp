@@ -102,7 +102,7 @@ void Normalized(float x, float y, float z, float *out) {
 // The sine table's entry for an angle by the table's scale, stored as a float first (fistp, rounded to nearest).
 float SineAt(X87Reg angle) {
     const float index = (float)(angle * gSinTableScale);
-    return reinterpret_cast<const float *>(0x007b0968)[_mm_cvtss_si32(_mm_set_ss(index)) & gSinTableMask];
+    return gSinTable[_mm_cvtss_si32(_mm_set_ss(index)) & gSinTableMask];
 }
 
 // The two comparisons with 0 and 1: a NaN comes out 0.

@@ -112,6 +112,8 @@ u8 *__fastcall BaseFilter_DeletingDtor(u8 *self, void *, u32 flags);
 // 0x633540 (thiscall on +0xc; unused, message, pops 8): ReadState with the message's +4. 0x633560 / 0x6335b0 (thiscall; result out, holder, pops 8): the holder kept at +0x11c / +0x120 (slot 4),
 // the old one released (slot 0), the state read from it. 0: returned.
 void __fastcall KeyFilter_OnDeviceEvent(u8 *self, void *, u32 unused, const u32 *message);
+// 0x634110 (thiscall on +0xc; unused, message, pops 8; slot 0 of the vtable 0x703c98; name invented): KeyFilter_ReadModifiers with the message's +4.
+void __fastcall CharFilter_OnDeviceEvent(u8 *self, void *, u32 unused, const u32 *message);
 u32 *__fastcall KeyFilter_SetKeyboard(u8 *self, void *, u32 *result, u8 *holder);
 u32 *__fastcall KeyFilter_SetMouse(u8 *self, void *, u32 *result, u8 *holder);
 
@@ -159,3 +161,13 @@ GAME_DATA(const u32[192], gGuidTable_707c50, 0x00707c50, 0x300);
 GAME_DATA(void *[2], KeyFilter_vtableC, 0x00703c38, 0x8);
 GAME_DATA(void *[7], KeyFilter_vtable, 0x00703c40, 0x1c);
 GAME_DATA(void *[7], MouseFilter_vtable, 0x00703cc8, 0x1c);
+
+// The vtables hold only ports: tpw.exe's loader points their slots at them (.docs/09-globals.md).
+GAME_DATA(void *[1], InputSubs_vtable, 0x00703744, 0x4);
+GAME_DATA(void *[2], KeyFilter_vtable_703748, 0x00703748, 0x8);
+GAME_DATA(void *[8], Class703780_vtable, 0x00703780, 0x20);
+GAME_DATA(void *[5], Class703c18_vtable, 0x00703c18, 0x14);
+GAME_DATA(void *[3], Class703c80_vtable, 0x00703c80, 0xc);
+GAME_DATA(void *[2], CharFilter_vtableC, 0x00703c98, 0x8);
+GAME_DATA(void *[7], Class703ca0_vtable, 0x00703ca0, 0x1c);
+GAME_DATA(void *[9], DeviceFilter_vtable, 0x00703fd8, 0x24);

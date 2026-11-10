@@ -557,14 +557,14 @@ u32 __fastcall Sprite_WalkNav(u8 *sprite) {
     if (Nav_PathProgress(nav) == 0x10000) return 0;   // (through the jump 0x510180)
     at<u32>(sprite, 0x1c) = g_env->angle((s32)(x0 - x1), (s32)(y1 - y0)) & 0xffff;
     const u32 running = at<u16>(sprite, 0xc2) > global<u16>(0x0075c7f0) && (sprite[2] == 1 || sprite[2] == 7) ? 1 : 0;
-    u32 code = 0x0074db60, action = 1;
+    u32 code = SpriteCode(0xa8), action = 1;
     if (sprite[2] == 7 && Guard_IsState12(sprite)) {
-        code = 0x0074ef90;
+        code = SpriteCode(0x14d8);
         action = 0x17;
     }
     u8 *const ref = sprite + 0xc;
     if (!running && !SpriteScript_IsAt(at<s32>(ref, 0), code)) Set4_4217f0(ref, nullptr, action);
-    if (running && !SpriteScript_IsAt(at<s32>(ref, 0), 0x0074dbc0)) Set4_4217f0(ref, nullptr, 2);
+    if (running && !SpriteScript_IsAt(at<s32>(ref, 0), SpriteCode(0x108))) Set4_4217f0(ref, nullptr, 2);
     const u32 dx = x1 - x0, dy = y1 - y0;
     float period = (float)(X87_Sqrt(X87Reg((double)(s32)(dx * dx + dy * dy))) * global<float>(0x007006e8));   // fild; fsqrt; fmul; fstp
     if (!running) period = (float)(X87Reg(period) + X87Reg(period));   // fld; fadd st0, st0; fstp
@@ -636,7 +636,7 @@ void __fastcall Visitor_UseObject(u8 *visitor, void *, u8 *object) {
         World_SetSeed(global<u8 *>(0x0080239c), nullptr, *Thing_GetHandle(visitor, nullptr, &handle));
         const u32 sprite = SpriteFolder_RandomSprite(10);
         const u32 anim = Sprite_RandomAnim(10, sprite);
-        at<s32>(visitor, 0x210) = SpriteScript_Start(0x0074f480, 10, sprite, anim, 0, 0, 0);
+        at<s32>(visitor, 0x210) = SpriteScript_Start(SpriteCode(0x19c8), 10, sprite, anim, 0, 0, 0);
         u32 life = (u32)Obj_GetByte18c(object) * gVisitor_UseObject_75d0f4 / 100;   // (the product wraps)
         at<u32>(visitor, 0x214) = life;
         if (life < gVisitor_UseObject_75d0f0)
@@ -957,7 +957,7 @@ void __fastcall Visitor_SetState(u8 *visitor, void *, u32 state) {
         World_SetSeed(world80239c(), nullptr, *Thing_GetHandle(visitor, nullptr, &handle));
         const u32 sprite = SpriteFolder_RandomSprite(10);
         const u32 anim = Sprite_RandomAnim(10, sprite);
-        at<s32>(visitor, 0x210) = SpriteScript_Start(0x0074f480, 10, sprite, anim, 0, 0, 0);
+        at<s32>(visitor, 0x210) = SpriteScript_Start(SpriteCode(0x19c8), 10, sprite, anim, 0, 0, 0);
         return;
     }
     case 16: {

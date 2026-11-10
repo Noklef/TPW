@@ -128,3 +128,6 @@ GAME_DATA(char[12], gCursor_74fff4, 0x0074fff4, 0xc);
 GAME_DATA(s32, gGameCursor_Set_7cb2d8, 0x007cb2d8, 0x4);
 GAME_DATA(u8 *, gGui_faa604, 0x00faa604, 0x4);
 GAME_DATA(u8 *, gCursor_faa608, 0x00faa608, 0x4);
+
+// The vtables hold only ports: tpw.exe's loader points their slots at them (.docs/09-globals.md).
+GAME_DATA(void *[7], SysCursor_vtable, 0x007059d0, 0x1c);

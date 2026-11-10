@@ -56,3 +56,12 @@ void __fastcall Owner2c_Add702940s(u8 *owner, void *, const u32 *array);
 void __fastcall Owner2c_Add702944s(u8 *owner, void *, const u32 *array);
 void __fastcall Owner2c_Add702948s(u8 *owner, void *, const u32 *array);
 }
+
+#include "../core/gamedata.h"
+
+// The vtables hold only ports: tpw.exe's loader points their slots at them (.docs/09-globals.md).
+GAME_DATA(void *[1], Class702938_vtable, 0x00702938, 0x4);
+GAME_DATA(void *[1], Class70293c_vtable, 0x0070293c, 0x4);
+GAME_DATA(void *[1], Class702940_vtable, 0x00702940, 0x4);
+GAME_DATA(void *[1], Class702944_vtable, 0x00702944, 0x4);
+GAME_DATA(void *[1], Class702948_vtable, 0x00702948, 0x4);

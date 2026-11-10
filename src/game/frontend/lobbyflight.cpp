@@ -37,7 +37,7 @@ void LobbyFlight_SetCalls(const AddrCall *table, u32 count) { g_calls.Set(table,
 extern "C" {
 
 u8 *__fastcall LobbyFlight_Ctor(u8 *self, void *, u8 *owner, u32 a, u32 b, const u32 *centre, const u32 *spread, u32 e, u32 f) {
-    at<u32>(self, 0) = 0x00702ae8;
+    at<u32>(self, 0) = (u32)(uintptr_t)Class702ae8_vtable;
     at<u8 *>(self, 4) = owner;
     const u32 model = g_calls.Th(0x005d8870, reinterpret_cast<u32 &>(gFrame_f83774), a, b, 0u, 1u, 0u, 0u);
     at<u32>(self, 8) = model;

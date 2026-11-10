@@ -56,9 +56,9 @@ void __fastcall Render_FogOff(void *) { global<u32>(0x008bcbc8) &= ~0x2000u; }
 
 // The start and end are floats, moved as dwords.
 void __fastcall Render_SetFog(void *, void *, u32 colour, u32 start, u32 end) {
-    gLobbysky_8bd47c = colour;
-    gLobbysky_8bd490 = start;
-    gLobbysky_8bd494 = end;
+    global<u32>(0x008bd47c) = colour;
+    global<u32>(0x008bd490) = start;
+    global<u32>(0x008bd494) = end;
 }
 
 void __fastcall Render_SetAmbient(void *, void *, u32 on, u32 colour) {
@@ -88,7 +88,7 @@ u32 __cdecl Options_Apply() {
     global<u32>(0x008bd550) = settings;
     const u32 shifted = global<u32>(0x0079d9c8);
     if (shifted)
-        gState_8c1620 = shifted << 20;
+        global<u32>(0x008c1620) = shifted << 20;
     u32 scene = global<u32>(0x008bd508);
     scene = (b & 2) ? scene & 0xffffffbf : scene | 0x40;
     global<u32>(0x008bd508) = scene;
@@ -107,15 +107,15 @@ u32 __cdecl Options_Apply() {
 }
 
 u32 __cdecl Environment_Apply() {
-    gLobbysky_8bd47c = gEnvironment_Apply_7856d4;
-    global<u32>(0x007a0b44) = gEnvironment_Apply_7856d8;
-    global<u32>(0x007a0b3c) = gEnvironment_Apply_7856dc;
-    const s32 c = gEnvironment_Apply_7856e0, e = gEnvironment_Apply_7856e4;
+    global<u32>(0x008bd47c) = global<u32>(0x007856d4);
+    global<u32>(0x007a0b44) = global<u32>(0x007856d8);
+    global<u32>(0x007a0b3c) = global<u32>(0x007856dc);
+    const s32 c = global<s32>(0x007856e0), e = global<s32>(0x007856e4);
     global<s32>(0x007a006c) = c > 0 ? c : 0;
     global<s32>(0x007a01c0) = e > 0 ? e : 0;
-    global<u32>(0x007a0b30) = gEnvironment_Apply_7856e8;
-    global<u32>(0x007a0b34) = gEnvironment_Apply_7856ec;
-    global<u32>(0x007a0b38) = gEnvironment_Apply_7856f0;
+    global<u32>(0x007a0b30) = global<u32>(0x007856e8);
+    global<u32>(0x007a0b34) = global<u32>(0x007856ec);
+    global<u32>(0x007a0b38) = global<u32>(0x007856f0);
     global<u32>(0x00870ec8) = global<u32>(0x00785718);
     global<u32>(0x00870ecc) = global<u32>(0x0078571c);
     global<u32>(0x00870ed0) = global<u32>(0x00785720);
@@ -131,7 +131,7 @@ u32 __cdecl Environment_Apply() {
 }
 
 u32 __fastcall Render_FadeFog(u8 *fade) {
-    u32 colour = gLobbysky_8bd47c;
+    u32 colour = global<u32>(0x008bd47c);
     if (global<s32>(0x00785888) > 1 && global<u32>(0x0078d8d8) == 1) {
         const s32 a = at<s32>(fade, 0x44), b = at<s32>(fade, 0x48), c = at<s32>(fade, 0x4c);
         const s32 targetB = at<s32>(fade, 0x54), targetC = at<s32>(fade, 0x58);

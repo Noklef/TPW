@@ -47,3 +47,8 @@ void __fastcall Class702cb0_Enter(u8 *self);
 // (ListRequest_Start66 with [[0xf82888] + 8], 0x5e23c0, this), and with a current item (+0xc) its sounds played as 0x5e14a0's, Sound_ApplySettings.
 void __fastcall Scene702dd0_Enter(u8 *self);
 }
+
+#include "../core/gamedata.h"
+
+// The vtables hold only ports: tpw.exe's loader points their slots at them (.docs/09-globals.md).
+GAME_DATA(void *[1], Class702bb4_vtable, 0x00702bb4, 0x4);

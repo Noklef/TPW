@@ -18,3 +18,10 @@ u8 *__fastcall Class701260_Ctor(u8 *object);
 // cleared, +0x10 is 2, +0x14 is 1, +0x20 is -1 and the word at the virtual base + 0xc is 0x3000. Returns the object.
 u8 *__fastcall Class701378_Ctor(u8 *object, void *, u32 mostDerived);
 }
+
+
+#include "../core/gamedata.h"
+
+// The vtables hold only ports: tpw.exe's loader points their slots at them (.docs/09-globals.md).
+GAME_DATA(void *[18], Class701260_vtable, 0x00701260, 0x48);
+GAME_DATA(void *[18], Class701330_vtable, 0x00701330, 0x48);

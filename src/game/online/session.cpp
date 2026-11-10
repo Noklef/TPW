@@ -872,7 +872,7 @@ void QueueMissing(u8 *session, u32 number) {
 // The client made and connected: the server of the item of kind 1, the fixed user at 0x773a80, the password at +0x44.
 void ConnectClient(u8 *session) {
     u32 *const listener = static_cast<u32 *>(GameHeap_Alloc(4));
-    if (listener) *listener = 0x007028a4;
+    if (listener) *listener = (u32)(uintptr_t)Class7028a4_vtable;
     at<u32 *>(session, 0x39c) = listener;
     void *const memory = GameHeap_Alloc(0x2780);
     at<u32 *>(session, 0x3a0) = memory ? g_fetch->ftpCtor(static_cast<u32 *>(memory), nullptr, at<void *>(session, 0x39c), 1) : nullptr;
@@ -1099,7 +1099,7 @@ u8 *__fastcall Online_Construct(u8 *session) {
     at<u32>(session, 0x3cc) = 0;
     at<u32>(session, 0x3d0) = 0;
     at<u32>(session, 0x3d4) = 0;
-    at<u32>(session, 0x3c8) = 0x00702878;
+    at<u32>(session, 0x3c8) = ((u32)(uintptr_t)Class702868_vtable + 0x10);
     String_Ctor(reinterpret_cast<String *>(session + 0x3dc));
     at<u32>(session, 0) = 0;
     ClearLogin(session);
@@ -1110,22 +1110,22 @@ u8 *__fastcall Online_Construct(u8 *session) {
     u8 *cities = static_cast<u8 *>(GameHeap_Alloc(0x34));
     if (cities) {
         Class702880_Ctor(cities);
-        at<u32>(cities, 0) = 0x00702868;
+        at<u32>(cities, 0) = (u32)(uintptr_t)Class702868_vtable;
     }
     at<u8 *>(session, 0xe0) = cities;
-    at<u8 *>(session, 0xe4) = NewList(0x38, 0x00702858);
-    at<u8 *>(session, 0xe8) = NewList(0x38, 0x00702848);
+    at<u8 *>(session, 0xe4) = NewList(0x38, (u32)(uintptr_t)Class702858_vtable);
+    at<u8 *>(session, 0xe8) = NewList(0x38, (u32)(uintptr_t)Class702848_vtable);
     u8 *const named = static_cast<u8 *>(GameHeap_Alloc(0x48));
     if (named) {
         Class702890_Ctor(named);
-        at<u32>(named, 0) = 0x00702838;
+        at<u32>(named, 0) = (u32)(uintptr_t)Class702838_vtable;
         WString_Ctor(reinterpret_cast<WString *>(named + 0x34));
-        at<u32>(named, 0) = 0x00702828;
+        at<u32>(named, 0) = (u32)(uintptr_t)Class702828_vtable;
         vcall<void>(named + 0x34, 0x14, reinterpret_cast<uintptr_t>(&gWindow7cc8c0handler_78a374));
     }
     at<u8 *>(session, 0xec) = named;
-    at<u8 *>(session, 0xf0) = NewList(0x38, 0x00702818);
-    at<u8 *>(session, 0xf4) = NewList(0x38, 0x00702848);
+    at<u8 *>(session, 0xf0) = NewList(0x38, (u32)(uintptr_t)Class702818_vtable);
+    at<u8 *>(session, 0xf4) = NewList(0x38, (u32)(uintptr_t)Class702848_vtable);
     at<u8 *>(session, 0xf8) = NewObject(0x34, [](u8 *object) { return Class7028b8_Ctor(object); });
     at<u8 *>(session, 0xfc) = NewObject(0x34, [](u8 *object) { return Class7028e0_Ctor(object); });
     at<u8 *>(session, 0x100) = NewObject(0x34, [](u8 *object) { return Class702908_Ctor(object); });

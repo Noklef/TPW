@@ -8,6 +8,9 @@
 
 #include "addrcalls.h"
 #include "../math/x87.h"
+#include "../ui/panel7ca178.h"
+#include "../ui/panel7cc298.h"
+#include "../render/spritequeue.h"
 
 namespace {
 
@@ -792,7 +795,7 @@ void __cdecl Exit_540880() {   // 0x540880
     esi = 0x876420u;
     eax = M<u32>(esi);
     ecx = M<u32>(eax + 0x4u);
-    M<u32>(ecx + 0x876420u) = 0x6ff308u;
+    M<u32>(ecx + 0x876420u) = (u32)(uintptr_t)Class6ff308_vtable;
     edx = M<u32>(esi);
     eax = M<u32>(edx + 0x4u);
     ecx = eax + 0xffffffe0u;
@@ -8705,7 +8708,7 @@ void __cdecl Init_496f70() {   // 0x496f70
     u32 eax = 0, ecx = 0;
     ecx = 0x7ca178u;
     eax = g_calls.Th(0x0048c9e0, ecx);   // Fn_48c9e0
-    M<u32>(0x7ca178u) = 0x6ff740u;
+    M<u32>(0x7ca178u) = (u32)(uintptr_t)Panel7ca178_vtable;
     M<u32>(0x7ca17cu) = 0x3eau;
     return;
 }
@@ -9322,7 +9325,7 @@ void __cdecl Init_4b0eb0() {   // 0x4b0eb0
     u32 eax = 0, ecx = 0;
     ecx = 0x7cc298u;
     eax = g_calls.Th(0x0048c9e0, ecx);   // Fn_48c9e0
-    M<u32>(0x7cc298u) = 0x6ffce8u;
+    M<u32>(0x7cc298u) = (u32)(uintptr_t)Panel7cc298_vtable;
     M<u32>(0x7cc29cu) = 0x2u;
     return;
 }

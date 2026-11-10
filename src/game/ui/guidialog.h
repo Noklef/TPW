@@ -27,3 +27,8 @@ u8 *__fastcall GuiDialog_ScalarDtor(u8 *dialog, void *, u32 flags);
 // bit 0: GuiDialog_SetC(+4); bit 2: the word +0x30 = +8; bit 19: GuiDialog_SetA(+0xa); bit 6: the words +0x34 / +0x36 = +0xc / +0xe.
 void __fastcall GuiDialog_Apply(u8 *dialog, void *, u32 flags, const u8 *source);
 }
+
+#include "../core/gamedata.h"
+
+// The vtables hold only ports: tpw.exe's loader points their slots at them (.docs/09-globals.md).
+GAME_DATA(void *[9], GuiDialog_vtable, 0x007058f8, 0x24);

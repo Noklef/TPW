@@ -38,3 +38,7 @@ GAME_DATA(u32, gSoftSetup_fbe020, 0x00fbe020, 0x4);
 GAME_DATA(u32, gDevicecreate_fbe028, 0x00fbe028, 0x4);
 GAME_DATA(u32, gDevicecreate_fbe030, 0x00fbe030, 0x4);
 GAME_DATA(u32, gDevicecreate_fbe034, 0x00fbe034, 0x4);
+
+// The vtables hold only ports: tpw.exe's loader points their slots at them (.docs/09-globals.md).
+GAME_DATA(void *[7], Class701630_vtable, 0x00701630, 0x1c);
+GAME_DATA(void *[7], Class701688_vtable, 0x00701688, 0x1c);

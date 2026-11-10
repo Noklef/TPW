@@ -44,7 +44,7 @@ bool tree_mesh_wanted(const u8 *mesh) {
         return true;
     if (!(flags & 0x4000000))
         return g_treeCalls.Th(0x0056ee90, global<u32>(0x00879d60), at<u32>(mesh, 0x90)) != 0;
-    return gTerrainViewBox_8bd4e8[0] <= at<s8>(mesh, 0x92) && gTerrainViewBox_8bd4e8[1] <= at<s8>(mesh, 0x90) && gTerrainViewBox_8bd4e8[2] >= at<s8>(mesh, 0x93) && gTerrainViewBox_8bd4e8[3] >= at<s8>(mesh, 0x91);
+    return global<s8[4]>(0x008bd4e8)[0] <= at<s8>(mesh, 0x92) && global<s8[4]>(0x008bd4e8)[1] <= at<s8>(mesh, 0x90) && global<s8[4]>(0x008bd4e8)[2] >= at<s8>(mesh, 0x93) && global<s8[4]>(0x008bd4e8)[3] >= at<s8>(mesh, 0x91);
 }
 
 bool same(const char *a, const char *b) {

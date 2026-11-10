@@ -6,6 +6,12 @@
 
 extern "C" {
 
+// 0x4b1b50 (thiscall; slot 0 of the vtable 0x6ffce8; name invented): as Panel7cc258_Open: when the group counts under 2 (the selected
+// thing [0x7cc2c8]) the window +0x10's children 0xa08c / 0xa08d hidden; the slider 0xa08e given the range 0-100; 0xa090 / 0xa08f a
+// 0x6ff3b0 part with the range 0-10000 / 0-500 and step 1, font 6; 0xa0a7 / 0xa0a6 / 0xa0a5 a text part with the language texts
+// 0x31 / 0x32 / 0x33; 0xa0a4 bound as the hover label. Each child when found. A GuiRect built and destroyed around it.
+void __fastcall Panel7cc298_Open(u8 *self);
+
 // 0x4b1ee0 (thiscall; slot 1 of the vtable 0x6ffce8): the object +0x20's slot 9 given the panel's slot 13 (the object's vtable read before
 // that call, the object itself after it), then the panel's slots 6 and 5. In the window +0x10 (read for each lookup, Window_FindChild): the
 // 0x705a50 child 0xa08a (when there is one) set to the state Is68_Zero_4e0440 of the thing [0x7c2658] (read first), notifying; the children
@@ -46,3 +52,8 @@ void __fastcall Panel7cc298_ApplyToShown(u8 *self);
 // the panel's +8 set to Object_Status(thing, 2) and its slot 9 called when that changes it.
 void __fastcall Panel7cc298_ShowStats(u8 *self);
 }
+
+#include "../core/gamedata.h"
+
+// The vtables hold only ports: tpw.exe's loader points their slots at them (.docs/09-globals.md).
+GAME_DATA(void *[16], Panel7cc298_vtable, 0x006ffce8, 0x40);

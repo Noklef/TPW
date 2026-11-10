@@ -13,6 +13,16 @@
 #include "../model/holder.h"
 #include "../terrain/land.h"
 #include "../frontend/frame.h"
+#include "../render/randomsegments.h"
+#include "../frontend/lobbyflight.h"
+#include "../frontend/lobbymake.h"
+#include "../frontend/lobbyscene.h"
+#include "../frontend/sceneenter.h"
+#include "../frontend/viewcontrols.h"
+#include "../input/devicefilter.h"
+#include "../online/ftp.h"
+#include "../online/items.h"
+#include "../online/session.h"
 
 namespace {
 
@@ -134,7 +144,7 @@ void TakeOffParentList(u8 *object) {
 }
 
 void Dtor(u8 *object) {
-    at<u32>(object, 0) = 0x00703780;
+    at<u32>(object, 0) = (u32)(uintptr_t)Class703780_vtable;
     if (u8 *member = at<u8 *>(object, 8))
         vcall<u32>(member, 0);
     at<u32>(object, 0) = 0x00703770;
@@ -208,19 +218,19 @@ u8 *Class7028_Ctor(u8 *object, u32 vtable, u32 memberVtable) {
 extern "C" {
 
 u8 *__fastcall Class702d48_Ctor(u8 *object) {
-    at<u32>(object, 0) = 0x00702d48;
+    at<u32>(object, 0) = (u32)(uintptr_t)Class702d48_vtable;
     at<u32>(object, 4) = 0;
     vcall<u32>(global<u8 *>(0x00f85614), 0x18, object);
     return object;
 }
 
 u32 __fastcall Class702d48_Release(u8 *object) {
-    at<u32>(object, 0) = 0x00702d48;
+    at<u32>(object, 0) = (u32)(uintptr_t)Class702d48_vtable;
     return vcall<u32>(global<u8 *>(0x00f85614), 0x1c, object);
 }
 
 u8 *__fastcall Class702d48_DeletingDtor(u8 *object, void *, u32 flags) {
-    at<u32>(object, 0) = 0x00702d48;
+    at<u32>(object, 0) = (u32)(uintptr_t)Class702d48_vtable;
     vcall<u32>(global<u8 *>(0x00f85614), 0x1c, object);
     return Finish(object, flags);
 }
@@ -244,21 +254,21 @@ u8 *__fastcall Class7029d0_DeletingDtor(u8 *object, void *, u32 flags) {
 
 u8 *__fastcall Class702ae8_DeletingDtor(u8 *object, void *, u32 flags) {
     u8 *member = at<u8 *>(object, 4);
-    at<u32>(object, 0) = 0x00702ae8;
+    at<u32>(object, 0) = (u32)(uintptr_t)Class702ae8_vtable;
     vcall<u32>(member, 8, object);
     return Finish(object, flags);
 }
 
 u8 *__fastcall Class702bb4_DeletingDtor(u8 *object, void *, u32 flags) {
     u8 *member = at<u8 *>(object, 8);
-    at<u32>(object, 0) = 0x00702bb4;
+    at<u32>(object, 0) = (u32)(uintptr_t)Class702bb4_vtable;
     vcall<u32>(member, 0x3c, object);
     return Finish(object, flags);
 }
 
 u8 *__fastcall Class702bb8_DeletingDtor(u8 *object, void *, u32 flags) {
     u8 *member = at<u8 *>(object, 8);
-    at<u32>(object, 0) = 0x00702bb8;
+    at<u32>(object, 0) = (u32)(uintptr_t)Class702bb8_vtable;
     vcall<u32>(member, 0x38, object);
     return Finish(object, flags);
 }
@@ -287,7 +297,7 @@ void __fastcall Class7028f8_Dtor(u8 *object) { Class7028_Dtor(object, 0x007028f8
 void __fastcall Class702920_Dtor(u8 *object) { Class7028_Dtor(object, 0x00702920); }
 
 void __fastcall Class702828_Dtor(u8 *object) {
-    at<u32>(object, 0) = 0x00702828;
+    at<u32>(object, 0) = (u32)(uintptr_t)Class702828_vtable;
     WString_Dtor((WString *)(object + 0x34));
     Class7028_Dtor(object, 0x00702890);
 }
@@ -343,7 +353,7 @@ u8 *__fastcall Class7028e0_Ctor(u8 *object) { return Class7028_Ctor(object, 0x00
 u8 *__fastcall Class702908_Ctor(u8 *object) { return Class7028_Ctor(object, 0x00702920, 0x00702918, 0x00702908); }
 
 void __fastcall Class702938_Dtor(u8 *object) {
-    at<u32>(object, 0) = 0x00702938;
+    at<u32>(object, 0) = (u32)(uintptr_t)Class702938_vtable;
     TakeOffParentList(object);
     WString_Dtor((WString *)(object + 0x44));
     WString_Dtor((WString *)(object + 0x20));
@@ -351,7 +361,7 @@ void __fastcall Class702938_Dtor(u8 *object) {
 }
 
 void __fastcall Class702940_Dtor(u8 *object) {
-    at<u32>(object, 0) = 0x00702940;
+    at<u32>(object, 0) = (u32)(uintptr_t)Class702940_vtable;
     TakeOffParentList(object);
     String_Dtor((String *)(object + 0x34));
     String_Dtor((String *)(object + 0x20));
@@ -359,7 +369,7 @@ void __fastcall Class702940_Dtor(u8 *object) {
 }
 
 void __fastcall Class702948_Dtor(u8 *object) {
-    at<u32>(object, 0) = 0x00702948;
+    at<u32>(object, 0) = (u32)(uintptr_t)Class702948_vtable;
     TakeOffParentList(object);
     WString_Dtor((WString *)(object + 0x4c));
     WString_Dtor((WString *)(object + 0x20));
@@ -367,7 +377,7 @@ void __fastcall Class702948_Dtor(u8 *object) {
 }
 
 void __fastcall Class70293c_Dtor(u8 *object) {
-    at<u32>(object, 0) = 0x0070293c;
+    at<u32>(object, 0) = (u32)(uintptr_t)Class70293c_vtable;
     if (at<u8 *>(object, 4))
         TakeOffParentList(object);
     WString_Dtor((WString *)(object + 0x94));
@@ -378,7 +388,7 @@ void __fastcall Class70293c_Dtor(u8 *object) {
 }
 
 void __fastcall Class702944_Dtor(u8 *object) {
-    at<u32>(object, 0) = 0x00702944;
+    at<u32>(object, 0) = (u32)(uintptr_t)Class702944_vtable;
     TakeOffParentList(object);
     WString_Dtor((WString *)(object + 0x6c));
     WString_Dtor((WString *)(object + 0x54));
@@ -420,7 +430,7 @@ void __fastcall Class702b08_Dtor(u8 *object) {
 }
 
 void __fastcall Class702cb0_Dtor(u8 *object) {
-    at<u32>(object, 0) = 0x00702cb0;
+    at<u32>(object, 0) = (u32)(uintptr_t)Class702cb0_vtable;
     DrainList(object, 8);
     Class702d48_Release(object);
 }
@@ -456,22 +466,22 @@ u8 *__fastcall Class7029f0_Ctor(u8 *object) {
 }
 
 void __fastcall Class702ec0_Dtor(u8 *object) {
-    *reinterpret_cast<u32 *>(object) = 0x00702ec0;
+    *reinterpret_cast<u32 *>(object) = (u32)(uintptr_t)Class702ec0_vtable;
     Class702cb0_Dtor(object);
 }
 
 void __fastcall Class702dd0_Dtor(u8 *object) {
-    *reinterpret_cast<u32 *>(object) = 0x00702dd0;
+    *reinterpret_cast<u32 *>(object) = (u32)(uintptr_t)Class702dd0_vtable;
     Class702cb0_Dtor(object);
 }
 
 void __fastcall Class702e70_Dtor(u8 *object) {
-    *reinterpret_cast<u32 *>(object) = 0x00702e70;
+    *reinterpret_cast<u32 *>(object) = (u32)(uintptr_t)Class702e70_vtable;
     Class702bc8_Dtor(object);
 }
 
 void __fastcall Class702e20_Dtor(u8 *object) {
-    *reinterpret_cast<u32 *>(object) = 0x00702e20;
+    *reinterpret_cast<u32 *>(object) = (u32)(uintptr_t)Class702e20_vtable;
     Class702bc8_Dtor(object);
 }
 
@@ -640,7 +650,7 @@ void DrainMemberList(u8 *object, u32 offset) {
 extern "C" {
 
 void __fastcall Class702af0_Dtor(u8 *object) {
-    at<u32>(object, 0) = 0x00702af0;
+    at<u32>(object, 0) = (u32)(uintptr_t)Class702af0_vtable;
     vcall<u32>(gFrame_f83784, 0x1c, object);
     DrainMemberList(object, 0x58);
     String_Dtor(reinterpret_cast<String *>(object + 0x24));
@@ -665,7 +675,7 @@ u8 *__fastcall Class702bc8_DeletingDtor(u8 *object, void *, u32 flags) {
 }
 
 void __fastcall Class702ca8_Dtor(u8 *object) {
-    at<u32>(object, 0) = 0x00702ca8;
+    at<u32>(object, 0) = (u32)(uintptr_t)Class702ca8_vtable;
     vcall<u32>(at<u8 *>(object, 0xc), 0x34, object);
     WString_Dtor(reinterpret_cast<WString *>(object + 0x48));
     String_Dtor(reinterpret_cast<String *>(object + 0x28));
@@ -677,7 +687,7 @@ u8 *__fastcall Class702ca8_DeletingDtor(u8 *object, void *, u32 flags) {
 }
 
 void __fastcall Class702a60_Dtor(u8 *object) {
-    at<u32>(object, 0) = 0x00702a60;
+    at<u32>(object, 0) = (u32)(uintptr_t)Class702a60_vtable;
     DrainMemberList(object, 0xc);
     for (u8 *list = at<u8 *>(object, 8); at<u32>(list, 0xc) != 0; list = at<u8 *>(object, 8)) {
         u8 *node = at<u8 *>(list, 4);
@@ -716,7 +726,7 @@ u8 *__fastcall Class702a60_DeletingDtor(u8 *object, void *, u32 flags) {
 
 u8 *__fastcall Class70295c_Ctor(u8 *object) {
     Init_5d36c0(object);
-    at<u32>(object, 0) = 0x0070295c;
+    at<u32>(object, 0) = (u32)(uintptr_t)Class70295c_vtable;
     for (u32 offset : {0x8u, 0xcu, 0x10u, 0x14u})
         at<u32>(object, offset) = 0;
     return object;
