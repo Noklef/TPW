@@ -10,6 +10,7 @@
 #include "../math/x87.h"
 #include "engineerrors.h"
 #include "../frontend/lobbysky.h"
+#include "../core/staticobjects.h"
 
 namespace {
 
@@ -197,7 +198,7 @@ void __fastcall Meshes_LightAt(u32 seed, void *, const float *normal, float x, f
     }
 }
 void __fastcall Meshes_LightPoints(u8 *object, void *, u32 *colours, const float *normals, const float *points, u32 count) {
-    if (global<u32>(0x008bcbc8) & 0x800) {
+    if (global<u32>((u32)(uintptr_t)&gView_8bcbc8) & 0x800) {
         for (u32 i = 0; i < count; ++i)
             colours[i] = at<u32>(object, 0x2c);
         return;
@@ -210,7 +211,7 @@ void __fastcall Meshes_LightPoints(u8 *object, void *, u32 *colours, const float
 
 void __fastcall Meshes_LightMesh(u8 *object, void *, u32 *colours, const u8 *mesh) {
     const u32 count = at<u16>(mesh, 0x5e);
-    if (global<u32>(0x008bcbc8) & 0x800) {
+    if (global<u32>((u32)(uintptr_t)&gView_8bcbc8) & 0x800) {
         for (u32 i = 0; i < count; ++i)
             colours[i] = at<u32>(object, 0x2c);
         return;

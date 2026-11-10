@@ -23,6 +23,7 @@
 #include "globalsave.h"
 #include "thunks.h"
 #include "vcall.h"
+#include "staticobjects.h"
 
 namespace {
 
@@ -30,7 +31,7 @@ template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((ui
 
 AddrCalls g_calls;
 
-u8 *gameClock() { return reinterpret_cast<u8 *>((uintptr_t)0x00785970); }
+u8 *gameClock() { return reinterpret_cast<u8 *>((uintptr_t)&gObj_785970); }
 
 u32 turn(u32 by) {
     Global81d7a4_SetRecorded(static_cast<u32>(static_cast<s32>(Global81d7a4_Get_52f1f0() + by) % 360), 1);
@@ -117,7 +118,7 @@ u32 __cdecl KeyAction_Toggle787d1c() {
 }
 
 u32 __cdecl KeyAction_ViewFillStep() {
-    u32 &flags = global<u32>(0x008bcbc8);
+    u32 &flags = global<u32>((u32)(uintptr_t)&gView_8bcbc8);
     switch (flags & 0xc) {
     case 4: flags &= ~0xcu; break;
     case 0xc: flags = (flags & ~8u) | 4; break;
@@ -127,7 +128,7 @@ u32 __cdecl KeyAction_ViewFillStep() {
 }
 
 u32 __cdecl KeyAction_TogglePause() {
-    g_calls.Th(0x409350, 0x786b68u, 1u);
+    g_calls.Th(0x409350, (u32)(uintptr_t)&gNamedObjects_786b68, 1u);
     return 1;
 }
 
@@ -152,7 +153,7 @@ u32 __cdecl KeyAction_AdvisorPostHeld() {
 }
 
 u32 __cdecl KeyAction_Clear78d96c() {
-    global<u32>(0x0078d96c) = 0;
+    global<u32>((u32)(uintptr_t)&gOptions_78d8d8 + 0x94) = 0;
     return 1;
 }
 

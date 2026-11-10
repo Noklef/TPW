@@ -26,6 +26,7 @@
 #include "gamepause.h"
 #include "window7cc8bc.h"
 #include "panel7b9940.h"
+#include "../core/staticobjects.h"
 
 namespace {
 
@@ -75,7 +76,7 @@ void showPicture(u8 *picture) {
     u8 *const surface = reinterpret_cast<u8 *>((uintptr_t)g_open->slot7(picture, nullptr, (u32)(uintptr_t)&width, (u32)(uintptr_t)&height));
     if (surface && gDialog7cc184handler_7cc18c) {
         g_open->reset(gDialog7cc184handler_7cc18c);
-        const u32 mode = global<u32>(0x008bd554);
+        const u32 mode = global<u32>((u32)(uintptr_t)&gTexSettings_8bd550 + 0x4);
         if (mode == 2 || mode == 3) g_open->shrink(gDialog7cc184handler_7cc18c, nullptr, surface, width, height, mode == 2 ? 2 : 1);
         g_open->slot6(picture);
     }

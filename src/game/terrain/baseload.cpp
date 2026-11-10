@@ -7,6 +7,7 @@
 #include "../math/x87.h"
 #include "land.h"
 #include "../render/graphicssettings.h"
+#include "../core/staticobjects.h"
 
 namespace {
 
@@ -57,7 +58,7 @@ u32 __cdecl Terrain_Load(u32 shared, u32 texture_arg) {
     const CrtEnv &crt = Crt();
     char folder[0x104], share[0x104], land[0x104];
 
-    crt.sprintf(folder, "%s\\Terrain", shared ? global<const char *>(0xf81704) : text(g_calls.Cd(0x0040ef40)));   // GamePaths_Base
+    crt.sprintf(folder, "%s\\Terrain", shared ? global<const char *>((u32)(uintptr_t)&gStrings5_f816c0 + 0x44) : text(g_calls.Cd(0x0040ef40)));   // GamePaths_Base
     g_calls.Cd(0x0046e650, share);   // GamePaths_ShareTexFolder
     g_calls.Cd(0x00461a60, "base.md2", folder, share);   // Quickload_LoadRide
     g_calls.Cd(0x00461f10, "Base", 8u, 0x0079fcb4u, 0u, 1u);   // RideModel_Load

@@ -17,6 +17,7 @@
 #include "file.h"
 #include "handles.h"
 #include "waddir.h"
+#include "../core/staticobjects.h"
 
 namespace {
 
@@ -31,13 +32,13 @@ T at(u32 address) {
 extern "C" {
 
 void __fastcall GamePaths_MakeFolders(void *, void *, const WString *root) {
-    for (const u32 *node = *at<const u32 *const *>(0x00786b90); node;) {
+    for (const u32 *node = *at<const u32 *const *>((u32)(uintptr_t)&gNamedObjects_786b68 + 0x28); node;) {
         const StringView *const name = reinterpret_cast<const StringView *>((uintptr_t)node[0]);
         node = reinterpret_cast<const u32 *>((uintptr_t)node[1]);
         String path;
         String_Ctor(&path);
         String_AssignFromWide(&path, root);
-        String_Append(&path, nullptr, at<const StringView *>(0x00f81b48));   // (both through the String's vtable +0x28)
+        String_Append(&path, nullptr, at<const StringView *>((u32)(uintptr_t)&gString_f81b48));   // (both through the String's vtable +0x28)
         String_Append(&path, nullptr, name);
         Handle folder;
         Handle_Ctor(&folder);
@@ -53,15 +54,15 @@ void __fastcall GamePaths_MakeFolders(void *, void *, const WString *root) {
 }
 
 void __stdcall GamePaths_MakeFoldersCopying(const WString *root, u32 copy) {
-    const String *const separator = at<const String *>(0x00f81b48);
+    const String *const separator = at<const String *>((u32)(uintptr_t)&gString_f81b48);
     const char *const easymode = at<const char *>((u32)&gText_GamePaths_MakeFoldersCopying_773cd0);
-    const String *const extension = at<const String *>(0x00f825e0);
+    const String *const extension = at<const String *>((u32)(uintptr_t)&gString_f825e0);
     String base;
     String_Ctor(&base);
     String_AssignFromWide(&base, root);
     s32 result;
     Dir_Create(&result, base.data);
-    for (const u32 *node = *at<const u32 *const *>(0x00786b90); node;) {
+    for (const u32 *node = *at<const u32 *const *>((u32)(uintptr_t)&gNamedObjects_786b68 + 0x28); node;) {
         const String *const name = reinterpret_cast<const String *>((uintptr_t)node[0]);
         node = reinterpret_cast<const u32 *>((uintptr_t)node[1]);
         String folder;
@@ -72,9 +73,9 @@ void __stdcall GamePaths_MakeFoldersCopying(const WString *root, u32 copy) {
         if (copy) {
             String from;
             String_Ctor(&from);
-            vcall<void>(&from, 0x18, at<const String *>(0x00f816e8));   // (MemorySource_GetLock of 0xf816c0)
+            vcall<void>(&from, 0x18, at<const String *>((u32)(uintptr_t)&gStrings5_f816c0 + 0x28));   // (MemorySource_GetLock of 0xf816c0)
             vcall<void>(&from, 0x28, separator);
-            vcall<void>(&from, 0x28, at<const String *>(0x00f81980));
+            vcall<void>(&from, 0x28, at<const String *>((u32)(uintptr_t)&gString_f81980));
             vcall<void>(&from, 0x28, separator);
             vcall<void>(&from, 0x28, name);
             vcall<void>(&from, 0x28, separator);
@@ -107,13 +108,13 @@ void __cdecl GamePaths_RemoveTree(const String *path) {
         DirEntry *const entry = reinterpret_cast<DirEntry *>(buffer);
         entry->path[0] = 0;
         entry->name = entry->path;
-        if (*Handle_Vfn1(&folder, nullptr, &status, *at<const u32 *>(0x00f81650), reinterpret_cast<u32>(entry)) >= 0) {
+        if (*Handle_Vfn1(&folder, nullptr, &status, *at<const u32 *>((u32)(uintptr_t)&gString_f81648 + 0x8), reinterpret_cast<u32>(entry)) >= 0) {
             do {
                 if (entry->name[0] != '.') {
                     if (entry->attributes & 0x10) {
                         String inner;
                         String_CtorCopy(&inner, nullptr, reinterpret_cast<const StringView *>(path));
-                        vcall<void>(&inner, 0x28, at<const String *>(0x00f80be0));
+                        vcall<void>(&inner, 0x28, at<const String *>((u32)(uintptr_t)&gString_f80be0));
                         vcall<void>(&inner, 0x20, entry->name);
                         GamePaths_RemoveTree(&inner);
                         String_Dtor(&inner);
@@ -135,8 +136,8 @@ void __cdecl GamePaths_SetSecondRoot(String drive) {
     String_Ctor(&unused);
     vcall<void>(&path, 0x18, &drive);
     vcall<void>(&path, 0x20, at<const char *>((u32)&gText_GamePaths_SetSecondRoot_77316c));
-    vcall<void>(&path, 0x28, at<const String *>(0x00f79fe8));
-    Obj_CallSub14Slot18(at<u8 *>(0x00f816c0), nullptr, static_cast<u32>(reinterpret_cast<std::uintptr_t>(&path)));
+    vcall<void>(&path, 0x28, at<const String *>((u32)(uintptr_t)&gString_f79fe8));
+    Obj_CallSub14Slot18(at<u8 *>((u32)(uintptr_t)&gStrings5_f816c0), nullptr, static_cast<u32>(reinterpret_cast<std::uintptr_t>(&path)));
     String_Dtor(&unused);
     String_Dtor(&path);
     String_Dtor(&drive);
@@ -147,8 +148,8 @@ u32 __fastcall GamePaths_FindDisc(u8 *check) {
     WString_Ctor(&text);
     WString caption;
     WString_Ctor(&caption);
-    vcall<void>(&text, 0x14, Language_Widen(Records_DataIfTerminated(*at<const u8 *const *>(0x0078ba88), nullptr, 9)));
-    WString_AssignFromAnsi(&caption, reinterpret_cast<const String *>(0x00f7a7c8));
+    vcall<void>(&text, 0x14, Language_Widen(Records_DataIfTerminated(*at<const u8 *const *>((u32)(uintptr_t)&gLanguage_78b530 + 0x558), nullptr, 9)));
+    WString_AssignFromAnsi(&caption, reinterpret_cast<const String *>((u32)(uintptr_t)&gString_f7a7c8));
     using Box = s32(__stdcall *)(void *, const u16 *, const u16 *, u32);
     const Box box = *reinterpret_cast<const Box *>(0x006fd378);   // MessageBoxW (read once, as the original)
     SystemInfo *const info = reinterpret_cast<SystemInfo *>(check + 0x10);
@@ -157,7 +158,7 @@ u32 __fastcall GamePaths_FindDisc(u8 *check) {
     for (;;) {
         s32 status;
         if (*SystemInfo_ListDrives(info, nullptr, &status, list, 8) >= 0) {
-            const char letter = static_cast<char>(SystemInfo_FindVolume(info, nullptr, list, *at<const char *const *>(0x00f7a7d0)));
+            const char letter = static_cast<char>(SystemInfo_FindVolume(info, nullptr, list, *at<const char *const *>((u32)(uintptr_t)&gString_f7a7c8 + 0x8)));
             String drive;
             String_CtorChar(&drive, nullptr, &letter);
             GamePaths_SetSecondRoot(drive);
@@ -173,7 +174,7 @@ u32 __fastcall GamePaths_FindDisc(u8 *check) {
 }
 
 u32 __cdecl GamePaths_FontsFolder(char *out) {
-    const char *const root = *reinterpret_cast<const char *const *>(Obj_Self(at<u8 *>(0x00f816c0)) + 8);
+    const char *const root = *reinterpret_cast<const char *const *>(Obj_Self(at<u8 *>((u32)(uintptr_t)&gStrings5_f816c0)) + 8);
     if (root == nullptr)
         return 0;
     s32 length = 0;
@@ -198,8 +199,8 @@ s32 __cdecl GamePaths_SetTextureFolders(u32 low) {
 WString *__stdcall GamePaths_SaveFolder(WString *out) {
     WString path;
     WString_Ctor(&path);
-    WString_AssignFromAnsi(&path, reinterpret_cast<const String *>(Obj_Self(at<u8 *>(0x00f816c0))));
-    vcall<void>(&path, 0x28, at<const WString *>(0x00f818d8));
+    WString_AssignFromAnsi(&path, reinterpret_cast<const String *>(Obj_Self(at<u8 *>((u32)(uintptr_t)&gStrings5_f816c0))));
+    vcall<void>(&path, 0x28, at<const WString *>((u32)(uintptr_t)&gWString_f818d8));
     WString_CtorCopy(out, nullptr, &path);
     WString_Dtor(&path);
     return out;
@@ -208,8 +209,8 @@ WString *__stdcall GamePaths_SaveFolder(WString *out) {
 WString *__stdcall GamePaths_UsersFolder(WString *out) {
     WString path;
     GamePaths_SaveFolder(&path);
-    vcall<void>(&path, 0x28, at<const WString *>(0x00f82508));
-    vcall<void>(&path, 0x28, at<const WString *>(0x00f81ff8));
+    vcall<void>(&path, 0x28, at<const WString *>((u32)(uintptr_t)&gWString_f82508));
+    vcall<void>(&path, 0x28, at<const WString *>((u32)(uintptr_t)&gWString_f81ff8));
     WString_CtorCopy(out, nullptr, &path);
     WString_Dtor(&path);
     return out;
@@ -218,8 +219,8 @@ WString *__stdcall GamePaths_UsersFolder(WString *out) {
 WString *__stdcall GamePaths_OnlineFolder(WString *out) {
     WString path;
     GamePaths_SaveFolder(&path);
-    vcall<void>(&path, 0x28, at<const WString *>(0x00f82508));
-    vcall<void>(&path, 0x28, at<const WString *>(0x00f820e8));
+    vcall<void>(&path, 0x28, at<const WString *>((u32)(uintptr_t)&gWString_f82508));
+    vcall<void>(&path, 0x28, at<const WString *>((u32)(uintptr_t)&gWString_f820e8));
     WString_CtorCopy(out, nullptr, &path);
     WString_Dtor(&path);
     return out;
@@ -235,12 +236,12 @@ extern "C" const char *__cdecl GamePaths_Base() {
         String_Ctor(path);
         g_calls.Cd(0x0067a7d0, 0x0040eff0u);   // CRT_atexit (the String's destructor)
     }
-    vcall<void>(path, 0x18, at<const StringView *>(0x00f816e8));
+    vcall<void>(path, 0x18, at<const StringView *>((u32)(uintptr_t)&gStrings5_f816c0 + 0x28));
     String_EnsureTrailingBackslash(path);
     String_EnsureTrailingBackslash(path);
-    vcall<void>(path, 0x28, at<const StringView *>(0x00787f50));
+    vcall<void>(path, 0x28, at<const StringView *>((u32)(uintptr_t)&gString_787f50));
     String_EnsureTrailingBackslash(path);
-    vcall<void>(path, 0x28, at<const StringView *>(0x00786b68));
+    vcall<void>(path, 0x28, at<const StringView *>((u32)(uintptr_t)&gNamedObjects_786b68));
     return *at<const char *const *>((u32)&gGamePaths_Base_788030);
 }
 
@@ -250,18 +251,18 @@ s32 __cdecl GamePaths_ShareTexFolder(char *out) {
 }
 
 u32 *__cdecl GamePaths_SetRoots(u32 *result) {
-    u8 *const paths = at<u8 *>(0x00f816c0);
+    u8 *const paths = at<u8 *>((u32)(uintptr_t)&gStrings5_f816c0);
     String text;
     String_CtorStr(&text, nullptr, Dir_GetBase());
     Obj_CallSlot18(paths, nullptr, static_cast<u32>(reinterpret_cast<std::uintptr_t>(&text)));
     String_Dtor(&text);
-    String_CtorCopy(&text, nullptr, at<const StringView *>(0x00f7eaf0));
+    String_CtorCopy(&text, nullptr, at<const StringView *>((u32)(uintptr_t)&gString_f7eaf0));
     Obj_CallSub28Slot18(paths, nullptr, static_cast<u32>(reinterpret_cast<std::uintptr_t>(&text)));
     String_Dtor(&text);
     String_CtorStr(&text, nullptr, at<const char *>(0x00747810));
     Strings5_JoinPath(paths, nullptr, reinterpret_cast<const StringView *>(&text));
     String_Dtor(&text);
-    String_CtorCopy(&text, nullptr, at<const StringView *>(0x00f7edf8));
+    String_CtorCopy(&text, nullptr, at<const StringView *>((u32)(uintptr_t)&gString_f7edf8));
     Strings5_JoinPathAt50(paths, nullptr, reinterpret_cast<const StringView *>(&text));
     String_Dtor(&text);
     *result = 0;

@@ -14,6 +14,7 @@
 #include "guisystem.h"
 #include "cursor.h"
 #include "guistartup.h"
+#include "../core/staticobjects.h"
 
 namespace {
 
@@ -82,6 +83,6 @@ void __cdecl Gui_Frame() {
         E->update(reinterpret_cast<uintptr_t>(&gGui_7b9fe0), 0, 0, 0);
     }
     E->pumpSecond(0x1000);
-    E->ime(reinterpret_cast<u8 *>((uintptr_t)0x007b4e38));
+    E->ime(reinterpret_cast<u8 *>((uintptr_t)&gImeHost_7b4e38));
 }
 }

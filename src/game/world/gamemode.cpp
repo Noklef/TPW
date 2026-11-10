@@ -15,6 +15,7 @@
 #include "world.h"
 #include "gamemode.h"
 #include "focuscell.h"
+#include "../core/staticobjects.h"
 
 namespace {
 
@@ -27,7 +28,7 @@ const GameModeEnv kGameEnv = {
 };
 const GameModeEnv *g_env = &kGameEnv;
 
-ActionRec *recorder() { return reinterpret_cast<ActionRec *>((uintptr_t)0x00785a08); }
+ActionRec *recorder() { return reinterpret_cast<ActionRec *>((uintptr_t)&gActionRec_785a08); }
 
 // The common start: the action recorded, the old mode's advisor messages cancelled, the mode stored. Returns the old mode.
 u32 store(u32 mode, u32 record, u32 code) {
@@ -146,7 +147,7 @@ u32 __cdecl GameMode_StepBack(u8 *thing, u32 relink) {
     s32 &count = global<s32>(0x00820a8c);
     bool popped = false;
     if (count > 0) {
-        point[0] = global<s32>(0x0081b738 + count * 8);
+        point[0] = global<s32>(((u32)(uintptr_t)&gString_81b728 + 0x10) + count * 8);
         point[1] = global<s32>(0x0081b73c + count * 8);
         if (--count != 0)
             popped = true;
@@ -175,7 +176,7 @@ u32 __cdecl GameMode_StepBack(u8 *thing, u32 relink) {
     const s32 left = count;
     u32 corners = 0;
     if (left > 0) {
-        point[0] = global<s32>(0x0081b738 + left * 8);
+        point[0] = global<s32>(((u32)(uintptr_t)&gString_81b728 + 0x10) + left * 8);
         point[1] = global<s32>(0x0081b73c + left * 8);
     }
     if (left == 1) corners = 1;

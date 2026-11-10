@@ -10,6 +10,7 @@
 #include "texcache.h"
 #include "texcache.h"
 #include "wavelet.h"
+#include "../core/staticobjects.h"
 
 namespace {
 
@@ -23,7 +24,7 @@ void __fastcall ReleaseElement(void *texture) { Texture_Release(static_cast<u8 *
 extern "C" {
 
 u32 __fastcall Texture_Alloc(u8 *texture, void *, u32 size, u32 flags) {
-    const u32 pixel = reinterpret_cast<const u32 *>((uintptr_t)0x007024e0)[*reinterpret_cast<const u32 *>((uintptr_t)0x008bd554)];
+    const u32 pixel = reinterpret_cast<const u32 *>((uintptr_t)0x007024e0)[*reinterpret_cast<const u32 *>((uintptr_t)&gTexSettings_8bd550 + 0x4)];
     at<u32>(texture, 0x40) = TrackedGlobal_Alloc(pixel * size * size);
     if (!at<u32>(texture, 0x40)) {
         EngineErrors_Push(reinterpret_cast<u8 *>((uintptr_t)0x00879ad0), nullptr, 2, 0xb0754000);
@@ -148,7 +149,7 @@ u32 __fastcall Texture_UsesDriverFilter(const u8 *texture) {
 
 u32 __fastcall Texture_Reload(u8 *texture) {
     gTexture_8c4b60++;
-    at<u32>(texture, 0x14) = global<u32>(0x008bcc40);
+    at<u32>(texture, 0x14) = global<u32>((u32)(uintptr_t)&gView_8bcbc8 + 0x78);
     return vcall<u32>(at<u8 *>(texture, 0), 0x14);
 }
 
@@ -159,7 +160,7 @@ u8 *__fastcall Texture_Lock(u8 *texture) {
     lock[0] = gWavelet_Block_879a68;
     lock[1] = (u32)(s32)at<s16>(texture, 0x10);
     lock[2] = (u32)(s32)at<s16>(texture, 0x12);
-    lock[3] = reinterpret_cast<const u32 *>((uintptr_t)0x007024e0)[global<u32>(0x008bd554)] * lock[1];
+    lock[3] = reinterpret_cast<const u32 *>((uintptr_t)0x007024e0)[global<u32>((u32)(uintptr_t)&gTexSettings_8bd550 + 0x4)] * lock[1];
     vcall<void>(at<u8 *>(texture, 0x40), 8, lock);
     return reinterpret_cast<u8 *&>(gWavelet_Block_879a68);
 }
@@ -168,7 +169,7 @@ u8 *__fastcall Texture_LockFlipped(u8 *texture) {
     u8 *const pixels = Texture_Lock(texture);
     if (!(at<u32>(texture, 8) & 0x40000))
         return pixels;
-    const u32 pitch = reinterpret_cast<const u32 *>((uintptr_t)0x007024e0)[global<u32>(0x008bd554)] * (u32)(s32)at<s16>(texture, 0x10);
+    const u32 pitch = reinterpret_cast<const u32 *>((uintptr_t)0x007024e0)[global<u32>((u32)(uintptr_t)&gTexSettings_8bd550 + 0x4)] * (u32)(s32)at<s16>(texture, 0x10);
     if ((s16)(at<u16>(texture, 0x12) & 0xfffe) <= 0)
         return pixels;
     u8 *top = pixels;

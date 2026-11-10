@@ -2,6 +2,7 @@
 #include "helpbgstart.h"
 
 #include <cstdint>
+#include "../core/staticobjects.h"
 
 namespace {
 
@@ -16,11 +17,11 @@ const HelpBgStartEnv *g_env = &kGameEnv;
 void HelpBgStart_SetEnv(const HelpBgStartEnv *env) { g_env = env ? env : &kGameEnv; }
 
 extern "C" void __cdecl HelpBg_Start() {
-    u8 *const self = reinterpret_cast<u8 *>((uintptr_t)0x007ca0c0);
+    u8 *const self = reinterpret_cast<u8 *>((uintptr_t)&gStatic_7ca0c0);
     g_env->build(self);
-    if (global<u16>(0x007ca0cc)) {
+    if (global<u16>((u32)(uintptr_t)&gStatic_7ca0c0 + 0xc)) {
         g_env->stop(self);
-        g_env->setShown(global<u8 *>(0x007ca0d8), nullptr, 0);
+        g_env->setShown(global<u8 *>((u32)(uintptr_t)&gStatic_7ca0c0 + 0x18), nullptr, 0);
     }
     g_env->setPointer(self);
 }

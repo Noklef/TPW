@@ -43,6 +43,7 @@
 #include "advisorscore.h"
 #include "object.h"
 #include "staff.h"
+#include "../core/staticobjects.h"
 
 namespace {
 
@@ -75,7 +76,7 @@ extern "C" {
 
 u32 __fastcall Staff_IsTooTired(const u8 *staff) {
     const u32 level = (u32)(long long)at<float>(staff, 0x1fc) & 0xff;  // __ftol
-    return (s32)level < global<s32>(0x00785324);
+    return (s32)level < global<s32>((u32)(uintptr_t)&gBalanceLevel + 0x2e4);
 }
 
 void __fastcall Staff_TireA(u8 *staff) {
@@ -147,7 +148,7 @@ u32 __fastcall Staff_IsState3At(const u8 *staff, void *, u32 area) {
 }
 
 s32 __cdecl Staff_WageFor(u32 type, u32 grade) {
-    return (s32)(global<u32>(0x0078532c + (grade & 0xff) * 16) * global<u32>(0x00785380 + type * 4));
+    return (s32)(global<u32>(((u32)(uintptr_t)&gBalanceLevel + 0x2ec) + (grade & 0xff) * 16) * global<u32>(((u32)(uintptr_t)&gBalanceLevel + 0x340) + type * 4));
 }
 
 s32 __fastcall Staff_GetWage(const u8 *staff) {
@@ -160,7 +161,7 @@ s32 __fastcall Staff_GetWage(const u8 *staff) {
     case 8: type = 4; break;
     default: type = 5;
     }
-    return (s32)(global<u32>(0x00785380 + type * 4) * global<u32>(0x0078532c + (at<u32>(staff, 0x1e4) << 4)));
+    return (s32)(global<u32>(((u32)(uintptr_t)&gBalanceLevel + 0x340) + type * 4) * global<u32>(((u32)(uintptr_t)&gBalanceLevel + 0x2ec) + (at<u32>(staff, 0x1e4) << 4)));
 }
 
 void __fastcall Staff_SetPatrolRegion(u8 *staff, void *, u32 bl, u32 tr) {
@@ -273,7 +274,7 @@ u8 *__fastcall StaffPoolEntry_Ctor(u8 *entry) {
 void __fastcall StaffPoolEntry_FormatName(const u8 *entry, void *, u16 *to, u32 size) {
     const u32 kind = at<u32>(entry, 0);
     if (kind > 4) return;   // (Debug_Printf, empty in the retail build)
-    TextFormat().format(global<void *>(0x0078baa8 + 4 * kind), to, size, at<u32>(entry, 4));
+    TextFormat().format(global<void *>(((u32)(uintptr_t)&gLanguage_78b530 + 0x578) + 4 * kind), to, size, at<u32>(entry, 4));
 }
 
 u16 *__fastcall Staff_NearestInList1da740(const u8 *object, void *, u16 *out) {
@@ -322,11 +323,11 @@ void __fastcall Staff_Train(u8 *staff, void *, s32 amount) {
     const s32 grade = at<s32>(staff, 0x1e4);
     s32 cost;
     switch (at<u8>(staff, 2)) {
-    case 4: cost = global<s32>(0x00785430 + grade * 8); break;
-    case 5: cost = global<s32>(0x007853f4 + grade * 12); break;
-    case 6: cost = global<s32>(0x007853a4 + grade * 16); break;
-    case 7: cost = global<s32>(0x0078549c + grade * 8); break;
-    case 8: cost = global<s32>(0x00785460 + grade * 12); break;
+    case 4: cost = global<s32>(((u32)(uintptr_t)&gBalanceLevel + 0x3f0) + grade * 8); break;
+    case 5: cost = global<s32>(((u32)(uintptr_t)&gBalanceLevel + 0x3b4) + grade * 12); break;
+    case 6: cost = global<s32>(((u32)(uintptr_t)&gBalanceLevel + 0x364) + grade * 16); break;
+    case 7: cost = global<s32>(((u32)(uintptr_t)&gBalanceLevel + 0x45c) + grade * 8); break;
+    case 8: cost = global<s32>(((u32)(uintptr_t)&gBalanceLevel + 0x420) + grade * 12); break;
     default: cost = amount; break;
     }
     s32 points = amount / cost;  // sic: faults for a cost of 0 (and -0x80000000 / -1)
@@ -350,11 +351,11 @@ void __fastcall Staff_CountTypes(u8 *counts) {
         const u8 *const thing = global<u8 *>(0x007cfb90 + 20 * (u32)handle);
         u32 count = 0, limit = 0, flag = 0;
         switch (at<u8>(thing, 2)) {
-        case 4: count = 0x284; limit = 0x007852ec; flag = 0x29a; break;
-        case 5: count = 0x280; limit = 0x007852e8; flag = 0x299; break;
-        case 6: count = 0x288; limit = 0x007852f0; flag = 0x29b; break;
-        case 7: count = 0x28c; limit = 0x007852f4; flag = 0x29c; break;
-        case 8: count = 0x290; limit = 0x007852f8; flag = 0x29d; break;
+        case 4: count = 0x284; limit = ((u32)(uintptr_t)&gBalanceLevel + 0x2ac); flag = 0x29a; break;
+        case 5: count = 0x280; limit = ((u32)(uintptr_t)&gBalanceLevel + 0x2a8); flag = 0x299; break;
+        case 6: count = 0x288; limit = ((u32)(uintptr_t)&gBalanceLevel + 0x2b0); flag = 0x29b; break;
+        case 7: count = 0x28c; limit = ((u32)(uintptr_t)&gBalanceLevel + 0x2b4); flag = 0x29c; break;
+        case 8: count = 0x290; limit = ((u32)(uintptr_t)&gBalanceLevel + 0x2b8); flag = 0x29d; break;
         }
         if (count != 0) {
             const s32 now = at<s32>(counts, count) + 1;
@@ -646,7 +647,7 @@ u16 *__fastcall Handyman_FindJob(u8 *staff, void *, u16 *out) {
                 const u32 d2 = (u32)(dx * dx) + (u32)(dy * dy);
                 bool near = Get64_4e03d0(object) && d2 < best;
                 if (!near && Object_InPoorCondition(object)) {
-                    const u32 radius = global<u32>(0x007853f0 + 12 * at<u32>(staff, 0x1e4));
+                    const u32 radius = global<u32>(((u32)(uintptr_t)&gBalanceLevel + 0x3b0) + 12 * at<u32>(staff, 0x1e4));
                     near = d2 < radius * radius;
                 }
                 if (near && Sprite_SetDestinationCell(staff, nullptr, at<u16>(object, 0x36))) {
@@ -668,7 +669,7 @@ void __fastcall Mechanic_SetState(u8 *mechanic, void *, u32 state) {
     } else if (state == 0xd) {
         Set4_4217f0(mechanic + 0xc, nullptr, 0x12);
         const u8 *const target = global<u8 *>(0x007cfb90 + 20 * (u32)at<u16>(mechanic, 0x218));
-        const u32 scale = global<u32>(0x0078542c + 8 * at<u32>(mechanic, 0x1e4));
+        const u32 scale = global<u32>(((u32)(uintptr_t)&gBalanceLevel + 0x3ec) + 8 * at<u32>(mechanic, 0x1e4));
         if (Is19c_Eq2_4e03e0(target)) {
             const u32 rate = target[0x50];
             at<u32>(mechanic, 0x214) = at<u32>(Object_GetDef(target), 0x1fc + (rate << 6)) * scale;
@@ -755,7 +756,7 @@ void __fastcall Staff_HeadForEntrance(u8 *staff) {
     if (Obj_GetIndexed28(reinterpret_cast<u8 *>((uintptr_t)GameTable7cfb90_Get1da718_519450(global<u8 *>(0x0080239c))), nullptr, index))
         return;
     // (the cell is the low word of the dword slot that held the pushed ECX: its high word the staff pointer's)
-    const u16 cell = static_cast<u16>((global<u32>(0x007855c0) << 7) + global<u32>(0x007855bc) + 1);
+    const u16 cell = static_cast<u16>((global<u32>((u32)(uintptr_t)&gBalanceLevel + 0x580) << 7) + global<u32>((u32)(uintptr_t)&gBalanceLevel + 0x57c) + 1);
     const u32 arg = (static_cast<u32>(reinterpret_cast<uintptr_t>(staff)) & 0xffff0000u) | cell;
     Staff_SetState(staff, nullptr, Sprite_SetDestinationCell(staff, nullptr, arg) ? 1u : 0u);   // (0: after the original's debug print)
 }
@@ -790,7 +791,7 @@ void keep_level(float &level, X87Reg sum) {
 // +0x1f8 less the int [0x785328] (x87: fild, fchs, fadd).
 void lower_happiness(u8 *staff) {
     float &happiness = *reinterpret_cast<float *>(staff + 0x1f8);
-    keep_level(happiness, X87Reg(-(double)global<s32>(0x00785328)) + happiness);
+    keep_level(happiness, X87Reg(-(double)global<s32>((u32)(uintptr_t)&gBalanceLevel + 0x2e8)) + happiness);
 }
 }  // namespace
 
@@ -839,7 +840,7 @@ void __fastcall Researcher_Idle(u8 *researcher) {
 
 u8 *__fastcall Researcher_Ctor(u8 *researcher, void *, u32 cell, u32 type, u32 sprite, u32 name) {
     g_walk->ctorTyped(researcher, nullptr, cell, 8, type, sprite);
-    g_walk->formatName(global<u8 *>(0x0078bab8), reinterpret_cast<u16 *>(researcher + 0x1a0), 0x20, name);
+    g_walk->formatName(global<u8 *>((u32)(uintptr_t)&gLanguage_78b530 + 0x588), reinterpret_cast<u16 *>(researcher + 0x1a0), 0x20, name);
     at<u16>(researcher, 0x210) = 0;
     u8 *const world = global<u8 *>(0x0080239c);
     World_AddResearcher(world, nullptr, researcher);
@@ -855,8 +856,8 @@ u8 *__fastcall Researcher_Ctor(u8 *researcher, void *, u32 cell, u32 type, u32 s
 
 void __fastcall Staff_RestInArea(u8 *staff) {
     const u32 grade = at<u32>(staff, 0x1e4) << 4;
-    keep_level(at<float>(staff, 0x1fc), X87Reg(*reinterpret_cast<const float *>((uintptr_t)0x00785334 + grade)) + at<float>(staff, 0x1fc));
-    keep_level(at<float>(staff, 0x1f8), X87Reg(*reinterpret_cast<const float *>((uintptr_t)0x00785338 + grade)) + at<float>(staff, 0x1f8));
+    keep_level(at<float>(staff, 0x1fc), X87Reg(*reinterpret_cast<const float *>((uintptr_t)&gBalanceLevel + 0x2f4 + grade)) + at<float>(staff, 0x1fc));
+    keep_level(at<float>(staff, 0x1f8), X87Reg(*reinterpret_cast<const float *>((uintptr_t)&gBalanceLevel + 0x2f8 + grade)) + at<float>(staff, 0x1f8));
     if ((u8)(long long)at<float>(staff, 0x1fc) != 100) return;   // (__ftol's low byte)
     Staff_LeaveRestArea(staff);
     switch (staff[2]) {
@@ -878,7 +879,7 @@ void __fastcall Researcher_PostUpdate(u8 *researcher) {
     switch (at<u32>(researcher, 0x19c)) {
     case 0:
         grumble(0xa9);
-        if (tick() > *reinterpret_cast<const u32 *>((uintptr_t)0x00785330 + (grade << 4)) + at<u32>(researcher, 0x200)) Researcher_Idle(researcher);
+        if (tick() > *reinterpret_cast<const u32 *>((uintptr_t)&gBalanceLevel + 0x2f0 + (grade << 4)) + at<u32>(researcher, 0x200)) Researcher_Idle(researcher);
         return;
     case 1: {
         grumble(0xa8);
@@ -895,7 +896,7 @@ void __fastcall Researcher_PostUpdate(u8 *researcher) {
         return;
     case 0xf:
         Staff_TireB(researcher);
-        if (tick() > *reinterpret_cast<const u32 *>((uintptr_t)0x00785458 + grade * 12) + at<u32>(researcher, 0x214)) {
+        if (tick() > *reinterpret_cast<const u32 *>((uintptr_t)&gBalanceLevel + 0x418 + grade * 12) + at<u32>(researcher, 0x214)) {
             if (g_walk->setRandomDest(researcher)) Researcher_SetState(researcher, nullptr, 1);
             else at<u32>(researcher, 0x214) = tick();
             return;
@@ -914,9 +915,9 @@ u32 __fastcall Staff_CheckMood(u8 *staff) {
     if (Obj_GetIndexed28(reinterpret_cast<u8 *>((uintptr_t)record), nullptr, index) != 0 && Game_GetRideElement1(global<u8 *>(0x0080239c)) == 1) {
         // (Debug_Printf "Right, I'm fed up, I'm going on strike": empty)
         at<u32>(staff, 0x188) = 1;
-        const u8 xHigh = (u8)((u32)World_Rand(global<u8 *>(0x0080239c)) % global<u32>(0x007855f4) + global<u8>(0x007855ec));
+        const u8 xHigh = (u8)((u32)World_Rand(global<u8 *>(0x0080239c)) % global<u32>((u32)(uintptr_t)&gBalanceLevel + 0x5b4) + global<u8>((u32)(uintptr_t)&gBalanceLevel + 0x5ac));
         const u8 xLow = (u8)World_Rand(global<u8 *>(0x0080239c));
-        const u8 yHigh = (u8)((u32)World_Rand(global<u8 *>(0x0080239c)) % global<u32>(0x007855f8) + global<u8>(0x007855f0));
+        const u8 yHigh = (u8)((u32)World_Rand(global<u8 *>(0x0080239c)) % global<u32>((u32)(uintptr_t)&gBalanceLevel + 0x5b8) + global<u8>((u32)(uintptr_t)&gBalanceLevel + 0x5b0));
         const u8 yLow = (u8)World_Rand(global<u8 *>(0x0080239c));
         // (the original's dwords leave their upper words as the stack had them; the walk reads the words)
         if (Sprite_SetDestination(staff, nullptr, xHigh << 8 | xLow, yHigh << 8 | yLow)) {
@@ -925,7 +926,7 @@ u32 __fastcall Staff_CheckMood(u8 *staff) {
         }
     }
     const u32 rest = (u32)(long long)at<float>(staff, 0x1fc) & 0xff;   // __ftol
-    if ((s32)rest <= global<s32>(0x00785324)) {
+    if ((s32)rest <= global<s32>((u32)(uintptr_t)&gBalanceLevel + 0x2e4)) {
         g_walk->showThought(staff + 0x30, nullptr, 0x14, 0);
         u16 area;
         Things_NearestRestArea(staff, nullptr, &area);
@@ -966,7 +967,7 @@ void __fastcall Staff_ModelState(u8 *staff) {
         return;
     case 6: {
         const u32 tick = at<u32>(*reinterpret_cast<u8 **>((uintptr_t)0x0080239c), 0x1da70c);
-        const u32 stay = *reinterpret_cast<const u32 *>((uintptr_t)0x00785330 + (at<u32>(staff, 0x1e4) << 4));
+        const u32 stay = *reinterpret_cast<const u32 *>((uintptr_t)&gBalanceLevel + 0x2f0 + (at<u32>(staff, 0x1e4) << 4));
         if (tick - at<u32>(staff, 0x200) > stay * 3) Staff_SetState(staff, nullptr, 0);
         return;
     }
@@ -1039,7 +1040,7 @@ void __fastcall Guard_SetState(u8 *guard, void *, u32 state) {
         break;
     case 0x10:
         word = *reinterpret_cast<u16 *>((uintptr_t)0x0075c7f2);
-        *reinterpret_cast<u32 *>(guard + 0x214) = *reinterpret_cast<u32 *>((uintptr_t)0x00785498 + 8 * *reinterpret_cast<u32 *>(guard + 0x1e4));
+        *reinterpret_cast<u32 *>(guard + 0x214) = *reinterpret_cast<u32 *>((uintptr_t)&gBalanceLevel + 0x458 + 8 * *reinterpret_cast<u32 *>(guard + 0x1e4));
         break;
     case 0x12:
     case 0x13:
@@ -1105,8 +1106,8 @@ void __fastcall Researcher_Detach(u8 *researcher) {
 
 namespace {
 s32 handler_wage(const u8 *staff) {   // (as 0x504c70 has it: the grade's whole dword)
-    const s32 factor = *reinterpret_cast<const s32 *>((uintptr_t)0x00785380 + Byte2_ToIndex(staff) * 4u);
-    return factor * *reinterpret_cast<const s32 *>((uintptr_t)0x0078532c + (*reinterpret_cast<const u32 *>(staff + 0x1e4) << 4));
+    const s32 factor = *reinterpret_cast<const s32 *>((uintptr_t)&gBalanceLevel + 0x340 + Byte2_ToIndex(staff) * 4u);
+    return factor * *reinterpret_cast<const s32 *>((uintptr_t)&gBalanceLevel + 0x2ec + (*reinterpret_cast<const u32 *>(staff + 0x1e4) << 4));
 }
 
 // The wage debited from the park's money and added to the paid total (the wage computed again), as 0x504c70 and 0x505790 have it.

@@ -6,12 +6,13 @@
 #include "vcall.h"
 #include "../files/handles.h"
 #include "../files/userslots.h"
+#include "staticobjects.h"
 
 namespace {
 
 AddrCalls g_calls;
 
-constexpr u32 kSaves = 0x00f7b560, kThemeLabel = 0x00786b68;
+const u32 kSaves = (u32)(uintptr_t)&gStatic_f7b560, kThemeLabel = (u32)(uintptr_t)&gNamedObjects_786b68;
 constexpr u32 kLoadA = 0x005ac5d0, kSaveA = 0x005ac610, kSaveB = 0x005ac630, kThemeFolder = 0x005c8890;
 constexpr u32 kStreamCtor = 0x005f7180, kStreamDtor = 0x005f71e0, kStreamClose = 0x005f71f0, kOpenPath = 0x005f7ed0;
 
@@ -45,15 +46,15 @@ void __cdecl ThemeSaves_EnsureFile() {
     u8 *const slots = UserSlots_Instance();
     WString path;
     g_calls.Th(kThemeFolder, word(slots), &path);
-    vcall<void>(&path, 0x28, ptr<const WString *>(0x00878f18));
-    vcall<void>(&path, 0x28, ptr<const WString *>(0x00878a68));
-    vcall<void>(&path, 0x28, ptr<const WString *>(0x00877f38));
+    vcall<void>(&path, 0x28, ptr<const WString *>((u32)(uintptr_t)&gWString_878f18));
+    vcall<void>(&path, 0x28, ptr<const WString *>((u32)(uintptr_t)&gWString_878a68));
+    vcall<void>(&path, 0x28, ptr<const WString *>((u32)(uintptr_t)&gWString_877f38));
     String narrow;
     String_Ctor(&narrow);
     String_AssignFromWide(&narrow, &path);
     s32 result;
     if (*ptr<const s32 *>(g_calls.Th(kOpenPath, word(&stream), &result, narrow.data, 0x80000000u)) < 0)
-        g_calls.Th(kSaveB, kSaves, 0x00878a68u);
+        g_calls.Th(kSaveB, kSaves, (u32)(uintptr_t)&gWString_878a68);
     else
         g_calls.Th(kStreamClose, word(&stream));
     String_Dtor(&narrow);

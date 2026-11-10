@@ -12,6 +12,7 @@
 #include "terrain_blend.h"
 #include "../gfx/texcache.h"
 #include "../gfx/wavelet.h"
+#include "../core/staticobjects.h"
 
 namespace {
 
@@ -31,7 +32,7 @@ u8 *__fastcall TerrainTexCache_Ctor(u8 *cache) {
 }
 
 u32 __fastcall TerrainTexCache_Dtor(u8 *cache) {
-    *reinterpret_cast<u32 *>(0x008bd550) &= ~4u;
+    *reinterpret_cast<u32 *>((u32)(uintptr_t)&gTexSettings_8bd550) &= ~4u;
     if (at<u32>(cache, 0x10010)) {
         for (s32 i = 0; i < at<s32>(cache, 0x10010); ++i)
             if (u8 *const textures = at<u8 *>(at<u8 *>(cache, 0x10008), i * 0x10 + 0xc))
@@ -50,8 +51,8 @@ u32 __fastcall TerrainTexCache_Dtor(u8 *cache) {
 u32 __fastcall TerrainTexCache_Init(u8 *cache, void *, s32 count, u32 size) {
     if (size == 0) size = at<u32>(cache, 4);
     const s32 video = *reinterpret_cast<const s32 *>((uintptr_t)0x008bd520);
-    const s32 memory = (*reinterpret_cast<s32 *>((uintptr_t)0x008c1624));
-    const u32 unit = reinterpret_cast<const u32 *>(&gTexcache_701548)[*reinterpret_cast<const u32 *>((uintptr_t)0x008bd554)] << 20;
+    const s32 memory = (*reinterpret_cast<s32 *>((uintptr_t)&gTexSettings_8bd550 + 0x40d4));
+    const u32 unit = reinterpret_cast<const u32 *>(&gTexcache_701548)[*reinterpret_cast<const u32 *>((uintptr_t)&gTexSettings_8bd550 + 0x4)] << 20;
     if (video < 0x3000000 || memory < (s32)(unit * 3)) size = 0x10;
     if ((video < 0x4000000 || memory < (s32)(unit * 5)) && size == 0x40) size = 0x20;
     if (*reinterpret_cast<const u32 *>((uintptr_t)0x008bd524) == 4) return 1;
@@ -100,7 +101,7 @@ u32 __fastcall TerrainTexCache_Init(u8 *cache, void *, s32 count, u32 size) {
 
 u32 __fastcall TerrainTexCache_BlendTile(u8 *cache, void *, u8 *texture, u32 x, u32 y, const TerrainOverlay *overlay) {
     if (!Texture_Alloc(texture, nullptr, at<u32>(cache, 4), 0)) return 0;
-    const u32 format = *reinterpret_cast<const u32 *>((uintptr_t)0x008bd554);
+    const u32 format = *reinterpret_cast<const u32 *>((uintptr_t)&gTexSettings_8bd550 + 0x4);
     u8 **const scratch = reinterpret_cast<u8 **>(&gWavelet_Block_879a68);
     if (gTexcache_701548[format] == 2) {
         TerrainBlend_Tile(at<const Lnd *>(cache, 0), nullptr, *scratch, x, y, overlay);
@@ -131,7 +132,7 @@ u32 Self(const void *p) { return (u32)(uintptr_t)p; }
 // The tile's pixels blended for the record (the record's first dword, when set, its texture locked first).
 void RedrawTile(const u8 *cache, u8 *tile, u8 *record, s32 x, s32 y) {
     if (at<u8 *>(record, 0)) at<u32>(record, 0) = g_calls.Th(0x00590da0, Self(at<u8 *>(record, 0)));   // Texture_LockFlipped
-    const u32 format = *reinterpret_cast<const u32 *>((uintptr_t)0x008bd554);
+    const u32 format = *reinterpret_cast<const u32 *>((uintptr_t)&gTexSettings_8bd550 + 0x4);
     const u32 scratch = gWavelet_Block_879a68;
     if (gTexcache_701548[format] == 2) {
         g_calls.Th(0x0055f780, at<u32>(cache, 0), scratch, (u32)x, (u32)y, record);   // TerrainBlend_Tile
@@ -162,7 +163,7 @@ u32 __fastcall TerrainTexCache_ReadLnd(u8 *cache, void *, const char *name) {
         g_calls.Th(0x0056af20, 0x00879ad0u, 2u, 0xb0754001u);   // EngineErrors_Push
         return 0;
     }
-    *reinterpret_cast<u32 *>((uintptr_t)0x008bd550) |= 4;
+    *reinterpret_cast<u32 *>((uintptr_t)&gTexSettings_8bd550) |= 4;
     return 1;
 }
 

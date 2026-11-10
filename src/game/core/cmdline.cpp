@@ -5,6 +5,7 @@
 
 #include "crt.h"
 #include "gameerror.h"
+#include "staticobjects.h"
 
 namespace {
 
@@ -63,7 +64,7 @@ u32 __cdecl CommandLine_Parse(s32 argc, char **argv) {
         }
         bool named = false;
         if (!global<u32>(0x00788160)) {
-            const char *const extension = global<const char *>(0x007888c8);
+            const char *const extension = global<const char *>((u32)(uintptr_t)&gString_7888c0 + 0x8);
             const s32 n = length(arg), k = length(extension);
             named = n >= k && Crt().stricmp(arg + n - k, extension) == 0;
         }

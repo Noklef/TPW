@@ -10,6 +10,7 @@
 #include "../gfx/texture.h"
 #include "../gfx/texman.h"
 #include "../gfx/texcache.h"
+#include "../core/staticobjects.h"
 
 namespace {
 
@@ -70,8 +71,8 @@ void SpriteQueue_SetDrawCalls(const AddrCall *table, u32 count) { g_drawCalls.Se
 extern "C" {
 
 u32 __fastcall SpriteQueue_Draw(u8 *queue) {
-    const u32 render = global<u32>(0x008bcbc8);
-    reinterpret_cast<u32 &>(global<u8 *>(0x008bd4fc)) = 0;
+    const u32 render = global<u32>((u32)(uintptr_t)&gView_8bcbc8);
+    reinterpret_cast<u32 &>(global<u8 *>((u32)(uintptr_t)&gView_8bcbc8 + 0x934)) = 0;
     if (render & 0x80) {
         for (u32 i = at<u32>(queue, 0x2404); i--;) {
             if (!g_drawCalls.Th(0x00589f90, at<u32>(queue, i * 4))) return 0;
@@ -104,7 +105,7 @@ u32 __fastcall SpriteQueue_Draw(u8 *queue) {
         if (!CloseBatch()) return 0;
     }
 
-    const u32 after = global<u32>(0x008bcbc8);
+    const u32 after = global<u32>((u32)(uintptr_t)&gView_8bcbc8);
     if (after & 0x20000) return 1;
     if (after & 0x40000) {
         if (!at<u32>(queue, 0x2400)) return 1;
@@ -124,7 +125,7 @@ u32 __fastcall SpriteQueue_Draw(u8 *queue) {
 
 u32 __fastcall SpriteQueue_Ready(u8 *setPlus20) {
     u8 *set = setPlus20 - 0x20;
-    const u32 stampA = *reinterpret_cast<u32 *>(0x008bcc40), stampB = *reinterpret_cast<u32 *>(0x008bcc44);
+    const u32 stampA = *reinterpret_cast<u32 *>((u32)(uintptr_t)&gView_8bcbc8 + 0x78), stampB = *reinterpret_cast<u32 *>((u32)(uintptr_t)&gView_8bcbc8 + 0x7c);
     if (at<u32>(set, 0xc) == stampA && at<u32>(set, 0x10) == stampB)
         return 1;
     u8 *queue = *reinterpret_cast<u8 **>(0x008c47a0);

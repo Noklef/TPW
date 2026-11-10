@@ -37,6 +37,7 @@
 #include "../gfx/texcache.h"
 #include "parkmapwindow.h"
 #include "parkmap.h"
+#include "../core/staticobjects.h"
 
 namespace {
 
@@ -104,10 +105,10 @@ void Close(u8 *map) {
     g_env->release(images);
     g_env->releaseAll(images);
     g_env->surfaceFree(reinterpret_cast<SurfaceInfo *>(map + 0x2c));
-    global<u32>(0x008bd47c) = at<u32>(map, 8);
+    global<u32>((u32)(uintptr_t)&gView_8bcbc8 + 0x8b4) = at<u32>(map, 8);
     g_env->setFlags(gRenderer_87a6d0, nullptr, at<u32>(map, 0xc));
-    global<u32>(0x00786ba4) = 1;
-    g_env->restore(reinterpret_cast<u8 *>((uintptr_t)0x00786b68));
+    global<u32>((u32)(uintptr_t)&gNamedObjects_786b68 + 0x3c) = 1;
+    g_env->restore(reinterpret_cast<u8 *>((uintptr_t)&gNamedObjects_786b68));
     g_env->restartTimers();
     at<u32>(map, 4) = 0;
     g_env->send(gPanel7b9940_7cb2ac, 6, 1, 0);
@@ -158,7 +159,7 @@ void ShowName(const u8 *map, u8 *window) {
         if (IsPerson(kind)) {
             vcall<void>(&name, 0x14, g_env->staffName(thing));
         } else if (kind == 1) {
-            u8 *const charset = global<u8 *>(0x0078ba94);
+            u8 *const charset = global<u8 *>((u32)(uintptr_t)&gLanguage_78b530 + 0x564);
             const u32 owner = at<u32>(thing, 0x1d8);
             if (!owner) {
                 g_env->formatWide(charset, text, 0x3fff, 0x1c9);
@@ -274,7 +275,7 @@ const ParkMapOpenEnv kOpenPorts = {&Global7c2534_HasSource, &GameOwner_Pause, &F
                                    &Advisor_PostId, &HelpBg_Place, &ParkMap_HandleWindow, &ParkMap_HandleMouse};
 const ParkMapOpenEnv *g_open = &kOpenPorts;
 
-const u32 kOpenMap = 0x00f86db8;
+const u32 kOpenMap = (u32)(uintptr_t)&gSurfaceInfo_f86db8;
 
 // One coordinate of the origin as ParkMap_Open keeps it: below the floor [0x703010] the floor, past limit (compared exactly) the limit rounded to a float.
 float open_origin(float v, s32 limit) {
@@ -291,7 +292,7 @@ extern "C" {
 s32 __fastcall ParkMap_HandleMouse(u8 *map, void *, u8 *window, u32 message, u32 a, u32 b) {
     switch (message) {
         case 0x1e:
-            if (global<u8>(0x0078d910) && at<u32>(map, 0x20084)) {
+            if (global<u8>((u32)(uintptr_t)&gOptions_78d8d8 + 0x38) && at<u32>(map, 0x20084)) {
                 g_env->scroll(map, nullptr, 1, (float)(X87Reg((double)(s32)(at<u32>(map, 0x10) - 0x400)) * gParkMap_HandleMouse_703034));
                 g_env->scroll(map, nullptr, 3, (float)(X87Reg((double)(s32)(at<u32>(map, 0x14) - 0x300)) * gParkMap_HandleMouse_703038));
             }
@@ -327,7 +328,7 @@ s32 __fastcall ParkMap_HandleWindow(u8 *map, void *, u8 *window, u32 message, u3
             g_env->layOut(map);
             break;
         case 0x1e:
-            if (!global<u8>(0x0078d910)) EdgeScroll(map);
+            if (!global<u8>((u32)(uintptr_t)&gOptions_78d8d8 + 0x38)) EdgeScroll(map);
             break;
         case 0x100:
             switch (a) {
@@ -486,7 +487,7 @@ void __fastcall ParkMap_PrepareSprites(u8 *map) {
     u8 *const images = reinterpret_cast<u8 *>((uintptr_t)0x00879ce0);
     g_sprites->arrayInit(images, nullptr, count + 6, 0);
     g_sprites->addToRenderer(images);
-    for (u32 i = 0; i < 6; ++i) at<u32>(map, 0x20068 + 4 * i) = g_sprites->addImage(images, nullptr, global<u32>(0x00f86d48 + 0x14 * i));
+    for (u32 i = 0; i < 6; ++i) at<u32>(map, 0x20068 + 4 * i) = g_sprites->addImage(images, nullptr, global<u32>(((u32)(uintptr_t)&gString_f86d40 + 0x8) + 0x14 * i));
     u32 *const list = static_cast<u32 *>(GameHeap_Alloc(0x10));
     if (list) {
         list[1] = 0;
@@ -509,12 +510,12 @@ s32 __cdecl ParkMap_MouseHandler(u8 *window, u32 message, u32 a, u32 b) {
 void __fastcall ParkMap_Open(u8 *map) {
     const ParkMapOpenEnv *const env = g_open;
     if (env->hasSource() != 0 || at<u32>(map, 4) != 0) return;
-    env->pause(reinterpret_cast<u8 *>((uintptr_t)0x00786b68), nullptr, 0, 0);
-    global<u32>(0x00786ba4) = 0;
+    env->pause(reinterpret_cast<u8 *>((uintptr_t)&gNamedObjects_786b68), nullptr, 0, 0);
+    global<u32>((u32)(uintptr_t)&gNamedObjects_786b68 + 0x3c) = 0;
     env->setFlag662411();
     env->f5996d0(1);
-    at<u32>(map, 8) = global<u32>(0x008bd47c);
-    global<u32>(0x008bd47c) = 0;
+    at<u32>(map, 8) = global<u32>((u32)(uintptr_t)&gView_8bcbc8 + 0x8b4);
+    global<u32>((u32)(uintptr_t)&gView_8bcbc8 + 0x8b4) = 0;
     at<u32>(map, 0xc) = env->stateFlags(gRenderer_87a6d0);
     env->setFlags(gRenderer_87a6d0, nullptr, 0x2821);
     env->releaseItems(reinterpret_cast<u8 * &>(gTexcache_8c4b44), nullptr, 0);

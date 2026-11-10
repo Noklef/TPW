@@ -8,6 +8,7 @@
 #include "messagecentre.h"
 #include "things.h"
 #include "bankaccount.h"
+#include "../core/staticobjects.h"
 
 namespace {
 
@@ -46,7 +47,7 @@ extern "C" {
 
 u8 *__fastcall BankAccount_Ctor(u8 *account) {
     Thing_Construct(account, nullptr, 1, 0x10);
-    const u32 *const head = reinterpret_cast<const u32 *>((uintptr_t)0x007851d8);
+    const u32 *const head = reinterpret_cast<const u32 *>((uintptr_t)&gBalanceLevel + 0x198);
     dword(account, 0xc) = head[0];
     dword(account, 0x10) = 0;
     dword(account, 0x114) = 1;

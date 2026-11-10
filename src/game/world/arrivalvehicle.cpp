@@ -9,6 +9,7 @@
 #include "objectdefs.h"
 #include "ridelist.h"
 #include "things.h"
+#include "../core/staticobjects.h"
 
 namespace {
 
@@ -32,7 +33,8 @@ struct Kind {
     u32 word;
     u32 bit;
 };
-const Kind kKinds[3] = {{0x00802370, 0x1da72c, 1}, {0x00801d58, 0x1da72e, 2}, {0x007cf3f0, 0x1da730, 4}};
+const Kind kKinds[3] = {{(u32)(uintptr_t)&gWString_802370, 0x1da72c, 1}, {(u32)(uintptr_t)&gWString_801d58, 0x1da72e, 2},
+                        {(u32)(uintptr_t)&gWString_7cf3f0, 0x1da730, 4}};
 
 }  // namespace
 

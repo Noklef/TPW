@@ -29,6 +29,7 @@
 #include "windowscript.h"
 #include "dialog74fb20.h"
 #include "panel7b9940.h"
+#include "../core/staticobjects.h"
 
 namespace {
 
@@ -48,7 +49,7 @@ u8 *game() { return *reinterpret_cast<u8 **>((uintptr_t)0x007cf83c); }
 // The text of the number formatted into text and a box of it (the white record, its last colour byte never written, sic).
 void loanBox(u16 *text, u32 entry, u32 value, u32 buttons, u32 index, u32 callback) {
     const u32 arg[5] = {0x006ff170, 0x5641524d, 1, value, 0};   // (TextArgInt_Ctor (1, the value, unsigned), inline)
-    g_handler->format(*reinterpret_cast<u8 **>((uintptr_t)0x0078ba94), text, 0xff, entry, arg);
+    g_handler->format(*reinterpret_cast<u8 **>((uintptr_t)&gLanguage_78b530 + 0x564), text, 0xff, entry, arg);
     struct {
         u16 *text;
         u8 colour[4];
@@ -230,7 +231,7 @@ void __cdecl Dialog7cb25c_FillList(u8 *list) {
         } else {
             continue;
         }
-        const u8 *const text = Records_DataIfTerminated(*reinterpret_cast<const u8 *const *>((uintptr_t)0x0078bac4), nullptr, offer[7]);
+        const u8 *const text = Records_DataIfTerminated(*reinterpret_cast<const u8 *const *>((uintptr_t)&gLanguage_78b530 + 0x594), nullptr, offer[7]);
         const u32 texts[6] = {(u32)(uintptr_t)Language_Widen(text), offer[1], left, offer[2], offer[4], offer[4] * left};
         Window7059f0_AddItem(list, nullptr, texts, data, -1, 1);
     }

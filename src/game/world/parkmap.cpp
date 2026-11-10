@@ -28,6 +28,7 @@
 #include "things.h"
 #include "../render/screen.h"
 #include "parkmap.h"
+#include "../core/staticobjects.h"
 
 namespace {
 
@@ -129,7 +130,7 @@ const u8 *ThingOf(const u8 *square) { return thing(at<u16>(square, 4)); }
 
 const u32 *Record(u32 address) { return reinterpret_cast<const u32 *>((uintptr_t)address); }
 
-const u32 *Blend(u32 *out, s32 position) { return Colour_Blend3(out, position, Record(0x00f86bd8), Record(0x00f86bfc), Record(0x00f86c20)); }
+const u32 *Blend(u32 *out, s32 position) { return Colour_Blend3(out, position, Record((u32)(uintptr_t)&gStatic_f869e0 + 0x1f8), Record((u32)(uintptr_t)&gStatic_f869e0 + 0x21c), Record((u32)(uintptr_t)&gStatic_f869e0 + 0x240)); }
 
 // The square's fill (blended into `out`, or a fixed record); null for none.
 const u32 *SquareColour(const u8 *map, const u8 *square, u32 *out) {
@@ -153,10 +154,10 @@ const u32 *SquareColour(const u8 *map, const u8 *square, u32 *out) {
     case 6: shown = view == 3; break;
     case 7: shown = view != 0; break;
     case 8: shown = (flags & 0x10) != 0; break;
-    case 9: return Record(0x00f86b48);
-    case 10: return Record(0x00f86b00);
-    case 11: return Record(0x00f86b24);
-    case 12: return Record(0x00f86b6c);
+    case 9: return Record((u32)(uintptr_t)&gStatic_f869e0 + 0x168);
+    case 10: return Record((u32)(uintptr_t)&gStatic_f869e0 + 0x120);
+    case 11: return Record((u32)(uintptr_t)&gStatic_f869e0 + 0x144);
+    case 12: return Record((u32)(uintptr_t)&gStatic_f869e0 + 0x18c);
     default: break;
     }
     return shown ? Blend(out, Ftol((double)at<float>(ThingOf(square), 0x44)) & 0xff) : nullptr;
@@ -177,7 +178,7 @@ void DrawSpriteBox(const u8 *map, Canvas &canvas, const u8 *sprite, s32 cellW, s
         return;
     const s32 rect[4] = {cellW * (s32)(first & 0x7f) + 0xf, cellH * (s32)(first >> 7) + 0x2a, ((s32)(last & 0x7f) + 1) * cellW + 0xf,
                          ((s32)(last >> 7) + 1) * cellH + 0x2a};
-    const u32 *const record = Record(sprite == at<const u8 *>(map, 0x20060) ? 0x00f86bb4 : 0x00f86b90);
+    const u32 *const record = Record(sprite == at<const u8 *>(map, 0x20060) ? ((u32)(uintptr_t)&gStatic_f869e0 + 0x1d4) : ((u32)(uintptr_t)&gStatic_f869e0 + 0x1b0));
     if (canvas.driver)   // (the original tests the flags' bit 4: set, slot 7; clear, slot 8 at 0x20. The flags are 0xc here, so slot 8 is never called, and is left out)
         vcall<u32>(canvas.driver, 0x1c, &canvas.format, &canvas.clip, canvas.flags, rect, record);
 }
@@ -261,7 +262,7 @@ void __fastcall ParkMap_Draw(const u8 *map) {
             const u32 kind = at<u32>(square, 0);
             if (kind < 1 || kind > 8)
                 continue;
-            const u32 *const line = Record(kind != 8 && Is68_Zero_4e0440(ThingOf(square)) ? 0x00f86a28 : 0x00f86a4c);
+            const u32 *const line = Record(kind != 8 && Is68_Zero_4e0440(ThingOf(square)) ? ((u32)(uintptr_t)&gStatic_f869e0 + 0x48) : ((u32)(uintptr_t)&gStatic_f869e0 + 0x6c));
             if (!canvas.driver)
                 continue;
             const auto draw = [&](u32 slot, s32 lineX, s32 lineY) {
@@ -438,13 +439,13 @@ void __fastcall ParkMap_AddSprites(u8 *map) {
         case 5: sprite = new_sprite(at<u32>(map, 0x20070), 2, 2, 1, 0x3f800000); break;
         case 6: {
             place_at_thing(map, new_sprite(at<u32>(map, 0x20070), 2, 2, 4, 0x3f800000), t);
-            const float size = scaled(0x00785610);
+            const float size = scaled((u32)(uintptr_t)&gBalanceLevel + 0x5d0);
             sprite = new_sprite(at<u32>(map, 0x20078), 4, 2, 4, bits(size));
             break;
         }
         case 7: {
             place_at_thing(map, new_sprite(at<u32>(map, 0x20070), 2, 2, 3, 0x3f800000), t);
-            const float size = scaled(0x00785658);
+            const float size = scaled((u32)(uintptr_t)&gBalanceLevel + 0x618);
             sprite = new_sprite(at<u32>(map, 0x2007c), 5, 2, 3, bits(size));
             break;
         }
@@ -465,9 +466,9 @@ void __fastcall ParkMap_AddSprites(u8 *map) {
                 continue;
             float size = 1.0f;
             if (kind == 8)
-                size = static_cast<float>(global<s32>(0x00785688));
+                size = static_cast<float>(global<s32>((u32)(uintptr_t)&gBalanceLevel + 0x648));
             else if (kind == 7)
-                size = static_cast<float>(global<s32>(0x00785640));
+                size = static_cast<float>(global<s32>((u32)(uintptr_t)&gBalanceLevel + 0x600));
             u8 *const sprite = new_inline_sprite(at<u32>(map, 0x20074), 3, 1, static_cast<float>(X87Reg(size) * gParkmap_703030));
             at<u32>(sprite, 0x18) = 0;
             const float c = gParkMap_703028;
@@ -481,7 +482,7 @@ void __fastcall ParkMap_AddSprites(u8 *map) {
     for (u16 h = at<u16>(global<u8 *>(0x007cf83c), 0x1da746); h; ) {
         const u8 *const t = thing(h);
         if (t[0x32] & 0x10) {
-            u8 *const sprite = new_inline_sprite(at<u32>(map, 0x2007c), 5, 3, scaled(0x00785670));
+            u8 *const sprite = new_inline_sprite(at<u32>(map, 0x2007c), 5, 3, scaled((u32)(uintptr_t)&gBalanceLevel + 0x630));
             u16 id;
             Thing_MapId(t, nullptr, &id);
             at<u32>(sprite, 0x18) = 0;
@@ -513,7 +514,7 @@ void __fastcall ParkMap_LoadPicture(u8 *map, void *, u32 keep) {
     String_CtorStr(&path, nullptr, g_picture->folder());
     const char slash = 0x5c;
     vcall<void>(&path, 0x24, &slash);
-    vcall<void>(&path, 0x28, reinterpret_cast<const void *>((uintptr_t)0x00f86d20));
+    vcall<void>(&path, 0x28, reinterpret_cast<const void *>((uintptr_t)&gString_f86d20));
     alignas(4) u8 codecBytes[0x444];
     ImageCodec *codec = reinterpret_cast<ImageCodec *>(codecBytes);
     SurfaceInfo_Ctor(&codec->info);
@@ -528,7 +529,7 @@ void __fastcall ParkMap_LoadPicture(u8 *map, void *, u32 keep) {
     if (!keep) {
         at<u32>(map, 0x48) = info.width;
         at<u32>(map, 0x4c) = info.height;
-        const u8 *mode = reinterpret_cast<const u8 *>((uintptr_t)(0x008bd558 + (global<u32>(0x008bd554) << 5)));
+        const u8 *mode = reinterpret_cast<const u8 *>((uintptr_t)(((u32)(uintptr_t)&gTexSettings_8bd550 + 0x8) + (global<u32>((u32)(uintptr_t)&gTexSettings_8bd550 + 0x4) << 5)));
         own->redMask = at<u32>(mode, 0x10);
         own->greenMask = at<u32>(mode, 0x14);
         own->blueMask = at<u32>(mode, 0x18);

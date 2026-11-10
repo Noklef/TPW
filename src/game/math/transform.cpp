@@ -4,6 +4,7 @@
 
 #include "x87.h"
 #include "../core/trivial.h"
+#include "../core/staticobjects.h"
 
 namespace {
 
@@ -12,7 +13,7 @@ const float *Step(const float *p, s32 bytes) { return reinterpret_cast<const flo
 
 template <typename T> T &At(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
 
-const u32 kView = 0x8bcbc8;  // the render view (src/game/render/viewport)
+const u32 kView = (u32)(uintptr_t)&gView_8bcbc8;  // the render view (src/game/render/viewport)
 
 }  // namespace
 

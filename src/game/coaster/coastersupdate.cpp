@@ -8,6 +8,7 @@
 #include "../math/x87.h"
 #include "../world/ridelist.h"
 #include "coastersload.h"
+#include "../core/staticobjects.h"
 
 namespace {
 
@@ -87,7 +88,7 @@ void __cdecl Coasters_Update() {
         gCoastersupdate_792218 = coaster;
         gCoastersload_790fe4 = coaster + 0x3c;
         if (coaster == gCoastersload_790fec && (at<u8>(coaster, 0) & 4)) g_calls.Cd(0x00435d50, coaster);   // Coaster_PlacePendingPiece
-        if (!(at<u32>(coaster, 0) & 0x2000)) g_calls.Th(0x00403d00, 0x00785a08u, 0x43u, (u32)at<u16>(coaster, 0x14));   // ActionRec_WriteW
+        if (!(at<u32>(coaster, 0) & 0x2000)) g_calls.Th(0x00403d00, (u32)(uintptr_t)&gActionRec_785a08, 0x43u, (u32)at<u16>(coaster, 0x14));   // ActionRec_WriteW
         g_calls.Cd(0x0043eb70, reinterpret_cast<u32 &>(gCoastersupdate_792218));                                                               // Coaster_Rebuild
         at<u32>(coaster, 0) |= 0x2000;
     }

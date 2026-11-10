@@ -10,6 +10,7 @@
 #include "../math/x87.h"
 #include "../render/drawbuffer.h"
 #include "../render/texformat.h"
+#include "../core/staticobjects.h"
 
 namespace {
 
@@ -278,7 +279,7 @@ X87Reg Green16(float cb, float cr) { return ((X87Reg(cb) * kGreenCb) - X87Reg(cr
 float Red16(float cr) { return (float)(X87Reg(cr) * kRedCr - kBias); }
 
 // The 32-bit format's mask of the 16-bit outputs without alpha: [0x8bd574 + [0x8bd554] * 0x20].
-u32 FormatMask() { return global<u32>(0x008bd574 + (global<u32>(0x008bd554) << 5)); }
+u32 FormatMask() { return global<u32>(((u32)(uintptr_t)&gTexSettings_8bd550 + 0x24) + (global<u32>((u32)(uintptr_t)&gTexSettings_8bd550 + 0x4) << 5)); }
 
 // 0x595920's 32-bit outputs: height rows (signed) of (width + 1) / 2 pixel pairs (a width of 0 or less none), BGRA bytes from the biased
 // planes through the colour tables and the clamp. The Y and alpha indices and the output run on two by two from row to row (packed by the
@@ -334,7 +335,7 @@ void Output32(u32 width, u32 height, u8 *pixels, bool alpha) {
 // ((row / 2) * half + block); its Y and alpha from the planes' rows side floats apart; the pixels (x, y), (x + 1, y), (x, y + 1),
 // (x + 1, y + 1), rows width pixels apart. Without alpha the format's mask instead of the alpha word.
 void Output16(u32 width, u32 height, u32 side, u8 *pixels, bool alpha) {
-    TexFormat_Table(reinterpret_cast<u8 *>((uintptr_t)0x008bd550));
+    TexFormat_Table(reinterpret_cast<u8 *>((uintptr_t)&gTexSettings_8bd550));
     const u32 mask = alpha ? 0 : FormatMask();
     const u32 half = side >> 1;
     const float *const y = reinterpret_cast<const float *>(kY);
@@ -379,7 +380,7 @@ void OutputScaled(u32 dstWidth, u32 dstHeight, u32 pitch, u32 pixelSize, u8 *pix
     const float *const cr = reinterpret_cast<const float *>(kScaledCr);
     const u32 chromaX = steps[0], lumaX = steps[1], chromaY = steps[2], lumaY = steps[3];
     u32 chromaRow = 0, lumaRow = 0;
-    TexFormat_Table(reinterpret_cast<u8 *>((uintptr_t)0x008bd550));
+    TexFormat_Table(reinterpret_cast<u8 *>((uintptr_t)&gTexSettings_8bd550));
     if (pixelSize == 4) {
         const u32 skip = pitch - dstWidth * 4;
         u8 *out = pixels;
@@ -549,7 +550,7 @@ void V12Pack(u32 width, u32 height, u8 *pixels) {
 
 // 0x593ab0's 16-bit output: Output16's blocks over its own planes, the first three of a block's Y loaded, the fourth a memory operand.
 void V12Output16(u32 width, u32 height, u32 side, u8 *pixels, bool alpha) {
-    TexFormat_Table(reinterpret_cast<u8 *>((uintptr_t)0x008bd550));
+    TexFormat_Table(reinterpret_cast<u8 *>((uintptr_t)&gTexSettings_8bd550));
     const u32 mask = alpha ? 0 : FormatMask();
     const float *const y = reinterpret_cast<const float *>(kV12Y);
     const float *const a = reinterpret_cast<const float *>(kV12A);
@@ -1247,7 +1248,7 @@ u8 *__fastcall WaveletCodec_Construct(u8 *codec, void *, u32 mostDerived) {
     at<u32>(codec, base + 4) = 0x7026b8;
     const u32 again = at<u32>(at<const u8 *>(codec, 4), 4);
     at<u32>(codec, again) = again - 0x50;
-    const u8 *const formats = TexFormat_Table(reinterpret_cast<u8 *>((uintptr_t)0x008bd550));
+    const u8 *const formats = TexFormat_Table(reinterpret_cast<u8 *>((uintptr_t)&gTexSettings_8bd550));
     for (u32 i = 0; i < 0x200; ++i) {
         const s32 v = (s32)i - 0x80;
         const u32 c = v < 0 ? 0 : (v > 0xff ? 0xff : (u32)v);

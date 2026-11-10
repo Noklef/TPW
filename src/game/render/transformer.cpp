@@ -5,6 +5,7 @@
 #include "../core/gameheap.h"
 #include "../math/transform.h"
 #include "../math/x87.h"
+#include "../core/staticobjects.h"
 
 namespace {
 
@@ -26,16 +27,16 @@ u32 __fastcall Transformer_Transform(void *object, void *, u32 a, u32 b, u32 c, 
 }
 
 u32 __cdecl Transformer_Create() {
-    global<float>(0x0087b0d0) = (float)(X87Reg(global<float>(0x008bcbcc)) + global<float>(0x008bcbcc));
+    global<float>(0x0087b0d0) = (float)(X87Reg(global<float>((u32)(uintptr_t)&gView_8bcbc8 + 0x4)) + global<float>((u32)(uintptr_t)&gView_8bcbc8 + 0x4));
     global<u32>(0x0087b0e4) = 0xc0000000;
     global<u32>(0x0087afe8) = 0x0087aff0;
     global<u32>(0x0087b154) = 0x0087af68;
     global<u32>(0x0087b088) = 0x0087b158;
     global<u32>(0x0087af5c) = 0x0087b078;
     u32 kind = 1, table = 0x007018f0, vtable = 0x007018d0;
-    if ((global<u32>(0x008bd534) & 0x2000000) && Transform_SseProbe())
+    if ((global<u32>((u32)(uintptr_t)&gCpuInfo_8bd530 + 0x4) & 0x2000000) && Transform_SseProbe())
         kind = 3, table = 0x00701960, vtable = 0x00701920;
-    else if (global<u32>(0x008bd53c) != 0)
+    else if (global<u32>((u32)(uintptr_t)&gCpuInfo_8bd530 + 0xc) != 0)
         kind = 2, table = 0x00701918, vtable = 0x007018f8;
     u8 *const block = static_cast<u8 *>(GameHeap_Alloc(0x10));
     u8 *base = nullptr;

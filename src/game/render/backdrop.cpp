@@ -7,6 +7,7 @@
 #include "../gfx/texture.h"
 #include "../gfx/texcache.h"
 #include "../gfx/texcache.h"
+#include "../core/staticobjects.h"
 
 namespace {
 
@@ -46,7 +47,7 @@ u32 __fastcall Backdrop_Create(u8 *backdrop, void *, u8 *pixels, s32 width, s32 
                                     reinterpret_cast<void *>((uintptr_t)0x00590a70));
     }
     at<u8 *>(backdrop, 0x1c) = tiles;
-    const s32 bytes = *reinterpret_cast<const s32 *>((uintptr_t)0x00701820 + 4 * *reinterpret_cast<const u32 *>((uintptr_t)0x008bd554));
+    const s32 bytes = *reinterpret_cast<const s32 *>((uintptr_t)0x00701820 + 4 * *reinterpret_cast<const u32 *>((uintptr_t)&gTexSettings_8bd550 + 0x4));
     const s32 rowPixels = at<s32>(backdrop, 0xc) / bytes;
     u32 made = 0;
     at<u32>(backdrop, 0x48) = 0;

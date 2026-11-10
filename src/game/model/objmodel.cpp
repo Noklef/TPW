@@ -21,6 +21,7 @@
 #include "../render/renderer.h"
 #include "../gfx/texcache.h"
 #include "../render/pointsprites.h"
+#include "../core/staticobjects.h"
 
 namespace {
 
@@ -44,7 +45,7 @@ bool tree_mesh_wanted(const u8 *mesh) {
         return true;
     if (!(flags & 0x4000000))
         return g_treeCalls.Th(0x0056ee90, global<u32>(0x00879d60), at<u32>(mesh, 0x90)) != 0;
-    return global<s8[4]>(0x008bd4e8)[0] <= at<s8>(mesh, 0x92) && global<s8[4]>(0x008bd4e8)[1] <= at<s8>(mesh, 0x90) && global<s8[4]>(0x008bd4e8)[2] >= at<s8>(mesh, 0x93) && global<s8[4]>(0x008bd4e8)[3] >= at<s8>(mesh, 0x91);
+    return global<s8[4]>((u32)(uintptr_t)&gView_8bcbc8 + 0x920)[0] <= at<s8>(mesh, 0x92) && global<s8[4]>((u32)(uintptr_t)&gView_8bcbc8 + 0x920)[1] <= at<s8>(mesh, 0x90) && global<s8[4]>((u32)(uintptr_t)&gView_8bcbc8 + 0x920)[2] >= at<s8>(mesh, 0x93) && global<s8[4]>((u32)(uintptr_t)&gView_8bcbc8 + 0x920)[3] >= at<s8>(mesh, 0x91);
 }
 
 bool same(const char *a, const char *b) {
@@ -96,7 +97,7 @@ extern "C" {
 
 u32 __fastcall ObjModel_Unload(u8 *object) {
     if (ptr(object, 8)) {
-        if (*reinterpret_cast<const u8 *>(0x008bd550) & 0x20) {
+        if (*reinterpret_cast<const u8 *>((u32)(uintptr_t)&gTexSettings_8bd550) & 0x20) {
             u8 *mesh = ptr(ptr(object, 8), 0x70);
             for (s32 i = 0; i < (s32)at<u16>(ptr(object, 8), 0x44); ++i, mesh += 0xa0) {
                 if (at<u32>(mesh, 0) & 0x200) continue;
@@ -155,12 +156,12 @@ u32 __fastcall ObjModel_Load(u8 *object, void *, u8 *model) {
             at<u8>(ptr(model, 0x64), 0x10 * i + 0xc) |= 2;
     }
     u32 sharp = 0;
-    if ((at<u32>(model, 0x30) & 0x200) && !(*reinterpret_cast<const u8 *>(0x008bcbc8) & 2)) {
-        if ((*reinterpret_cast<const u32 *>(0x008bcbd0) == 0x200 && Flag54dcc0_Test()) ||
-            (*reinterpret_cast<const u32 *>(0x008bcbd0) == 0x280 && !Flag54dcc0_Test()))
+    if ((at<u32>(model, 0x30) & 0x200) && !(*reinterpret_cast<const u8 *>((u32)(uintptr_t)&gView_8bcbc8) & 2)) {
+        if ((*reinterpret_cast<const u32 *>((u32)(uintptr_t)&gView_8bcbc8 + 0x8) == 0x200 && Flag54dcc0_Test()) ||
+            (*reinterpret_cast<const u32 *>((u32)(uintptr_t)&gView_8bcbc8 + 0x8) == 0x280 && !Flag54dcc0_Test()))
             sharp = 1;
     }
-    u32 &render = *reinterpret_cast<u32 *>(0x008bd550);
+    u32 &render = *reinterpret_cast<u32 *>((u32)(uintptr_t)&gTexSettings_8bd550);
     if (render & 0x100)
         render |= 0x40000000;
     for (s32 i = 0; i < (s32)at<u16>(ptr(object, 8), 0x36); ++i) {
@@ -240,14 +241,14 @@ u32 __fastcall ObjModel_LightMesh(u8 *object, void *, u8 *mesh, const u32 *matri
     if (*colours == frame && !(global<u32>(0x008bd508) & 0x40000000) && !(kind & 0xc0000))
         return 1;
     *colours++ = frame;
-    if (!(at<u32>(mesh, 0) & 0x1000000) && !(global<u32>(0x008bcbc8) & 0x800)) {   // (the flag read again: the stamp may be the mesh's +0)
+    if (!(at<u32>(mesh, 0) & 0x1000000) && !(global<u32>((u32)(uintptr_t)&gView_8bcbc8) & 0x800)) {   // (the flag read again: the stamp may be the mesh's +0)
         global<u32>(0x00879dec) = 0;
         ListNodes_Drain(ptr(gRenderer_87a6d0, 0x30));
         if (!(flags & 0x3000000))
             ListNodes_Drain(ptr(gRenderer_87a6d0, 0x2c));
-        if (!(global<u32>(0x008bcbc8) & 0x1000))
+        if (!(global<u32>((u32)(uintptr_t)&gView_8bcbc8) & 0x1000))
             Meshes_Ready(gMeshlist_87a248, nullptr, lights);
-        if (global<u32>(0x008bcbc8) & 0x400) {
+        if (global<u32>((u32)(uintptr_t)&gView_8bcbc8) & 0x400) {
             // fld cam+0x34; fld cam+0x30; fsubr mesh+0x40; fld cam+0x38; fxch st2; fsubr mesh+0x44; ...; fsubr mesh+0x48
             const u8 *const camera = global<u8 *>(0x0087afe8);
             const float x = (float)(at<float>(mesh, 0x40) - X87Reg(at<float>(camera, 0x30)));
@@ -340,7 +341,7 @@ u32 __fastcall ObjModel_BlendTerrainTiles(u8 *object, void *, s32 x0, s32 y0, s3
             overlay.pixels = Texture_LockFlipped(old);
             overlay.width = at<s16>(old, 0x10);
             overlay.height = at<s16>(old, 0x12);
-            overlay.bytes_per_pixel = gObjModel_BlendTerrainTiles_701a18[global<u32>(0x008bd554)];
+            overlay.bytes_per_pixel = gObjModel_BlendTerrainTiles_701a18[global<u32>((u32)(uintptr_t)&gTexSettings_8bd550 + 0x4)];
             overlay.flags = cell & 0xffff;
             result &= TerrainTexCache_BlendTile(ptr(global<u8 *>(0x00879d60), 0x230), nullptr, texture, x, y, &overlay);
             TexCache_UnlinkItem(reinterpret_cast<u8 * &>(gTexcache_8c4b44), nullptr, reinterpret_cast<u8 *>((uintptr_t)*slot));
@@ -386,7 +387,7 @@ u32 __fastcall ObjModel_DrawMeshTree(u8 *object, void *, u8 *mesh, const u32 *fi
 u32 __fastcall ObjModel_DrawOrQueue(u8 *part) {
     u8 *const object = part - 0x154;
     const u32 me = (u32)(uintptr_t)object;
-    const u32 stampA = global<u32>(0x008bcc40), stampB = global<u32>(0x008bcc44);
+    const u32 stampA = global<u32>((u32)(uintptr_t)&gView_8bcbc8 + 0x78), stampB = global<u32>((u32)(uintptr_t)&gView_8bcbc8 + 0x7c);
     if (at<u32>(object, 0x90) == stampA && at<u32>(object, 0x94) == stampB) return 1;
     if ((at<u32>(ptr(object, 8), 0x30) & 0x200000) && !(at<u8>(object, 4) & 0x10)) {
         const s32 count = gObjModel_DrawOrQueue_8bb620;
@@ -402,7 +403,7 @@ u32 __fastcall ObjModel_DrawOrQueue(u8 *part) {
     at<u32>(object, 0x94) = stampB;
     at<u32>(object, 0x14c) = 0;
     if (global<u32>(0x008bd524) == 4) {
-        at<u32>(object, 0x14c) = (global<u32>(0x008bcbc8) & 0x800) << 0x11;
+        at<u32>(object, 0x14c) = (global<u32>((u32)(uintptr_t)&gView_8bcbc8) & 0x800) << 0x11;
         if (at<u32>(ptr(object, 8), 0x30) & 0x400000) at<u32>(object, 0x14c) |= 0x4000000;
         if (at<u32>(ptr(object, 8), 0x30) & 0x800000) at<u32>(object, 0x14c) |= 0x8000000;
     }
@@ -412,7 +413,7 @@ u32 __fastcall ObjModel_DrawOrQueue(u8 *part) {
         return g_drawCalls.Th(0x0057a530, me, at<u32>(ptr(object, 8), 0x78), object + 0x10, object + 0x50);
     }
     gRenderer_8bb624 &= ~0x2000000u;
-    if (global<u32>(0x008bcbc8) & 0x200000) {
+    if (global<u32>((u32)(uintptr_t)&gView_8bcbc8) & 0x200000) {
         const u32 flags = at<u32>(ptr(object, 8), 0x30);
         if (!(flags & 2) && (flags & 0x800)) {
             if (!g_drawCalls.Th(0x0057b8a0, me)) return 0;   // Object_UpdateShadow

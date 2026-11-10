@@ -10,11 +10,12 @@
 #include "../terrain/landscape.h"
 #include "viewport.h"
 #include "state.h"
+#include "../core/staticobjects.h"
 
 namespace {
 
 u32 &global(u32 address) { return *reinterpret_cast<u32 *>(address); }
-u32 setting(u32 i) { return global(0x00785878 + 4 * i); }
+u32 setting(u32 i) { return global(((u32)(uintptr_t)&gBalanceGraphics + 0x10) + 4 * i); }
 
 // A setting of 0 clears the bits of target, 1 sets them, any other value leaves them.
 void flag(u32 value, u32 target, u32 bits) {
@@ -29,7 +30,7 @@ void flag(u32 value, u32 target, u32 bits) {
 extern "C" {
 
 void __cdecl GraphicsSettings_Apply() {
-    const u32 kFlags = 0x008bd550, kOther = reinterpret_cast<uintptr_t>(&gGraphicssettings_7a1a8c), kMode = 0x0079d86c, kView = 0x008bcbc8;
+    const u32 kFlags = (u32)(uintptr_t)&gTexSettings_8bd550, kOther = reinterpret_cast<uintptr_t>(&gGraphicssettings_7a1a8c), kMode = 0x0079d86c, kView = (u32)(uintptr_t)&gView_8bcbc8;
     u32 v = setting(0);
     if (v == 0 || v == 1)
         global(kFlags) &= ~0x18u;
@@ -43,10 +44,10 @@ void __cdecl GraphicsSettings_Apply() {
         global(kMode) |= v == 1 ? 4 : v == 2 ? 2 : 1;
     }
     v = setting(2);
-    if (v <= 2) global(0x008c162c) = v == 0 ? 1500 : v == 1 ? 2000 : 2500;
+    if (v <= 2) global((u32)(uintptr_t)&gTexSettings_8bd550 + 0x40dc) = v == 0 ? 1500 : v == 1 ? 2000 : 2500;
     flag(setting(3), kFlags, 0x40);
     v = setting(4);
-    if (v == 0 || v == 1 || v == 2 || v == 4) Landscape_SetDetail(reinterpret_cast<u8 *>(0x008c1828), nullptr, v);
+    if (v == 0 || v == 1 || v == 2 || v == 4) Landscape_SetDetail(reinterpret_cast<u8 *>((u32)(uintptr_t)&gLandscape_8c1828), nullptr, v);
     flag(setting(5), kView, 0x400000);
     flag(setting(6), kView, 0x10000);
     flag(setting(7), kMode, 0x200);
@@ -68,7 +69,7 @@ void __cdecl GraphicsSettings_Apply() {
     if (v <= 3) {
         static const u32 kFog[] = {0x43480000, 0x43a28000, 0x43e10000, 0x442f0000};               // 200, 325, 450, 700
         static const float kNear[] = {50.0f, 100.0f, 135.0f, 230.0f}, kFar[] = {60.0f, 110.0f, 150.0f, 250.0f};
-        global(0x008bd4c0) = kFog[v];
+        global((u32)(uintptr_t)&gView_8bcbc8 + 0x8f8) = kFog[v];
         View_SetDepthRange(reinterpret_cast<u8 *>(kView), nullptr, kNear[v], kFar[v]);
     }
     v = setting(16);
@@ -81,15 +82,15 @@ void __cdecl GraphicsSettings_Apply() {
 u32 __cdecl GraphicsSettings_Load(u32 flags) {
     String path;
     String_Ctor(&path);
-    vcall<void>(&path, 0x18, MemorySource_GetLock(reinterpret_cast<MemorySource *>((uintptr_t)0x00f816c0)));   // (String's AssignWide)
+    vcall<void>(&path, 0x18, MemorySource_GetLock(reinterpret_cast<MemorySource *>((uintptr_t)&gStrings5_f816c0)));   // (String's AssignWide)
     String_EnsureTrailingBackslash(&path);
     if (flags & 0x800)
-        vcall<void>(&path, 0x28, 0x0079e3d8u);
+        vcall<void>(&path, 0x28, (u32)(uintptr_t)&gString_79e3d8);
     else if (flags & 0x1000)
-        vcall<void>(&path, 0x28, 0x0079e408u);
+        vcall<void>(&path, 0x28, (u32)(uintptr_t)&gString_79e408);
     else if (flags & 0x2000)
-        vcall<void>(&path, 0x28, 0x0079e660u);
-    if (!BalanceFile_Load(reinterpret_cast<u8 *>((uintptr_t)0x00785868), nullptr, path.data, 0)) {
+        vcall<void>(&path, 0x28, (u32)(uintptr_t)&gString_79e660);
+    if (!BalanceFile_Load(reinterpret_cast<u8 *>((uintptr_t)&gBalanceGraphics), nullptr, path.data, 0)) {
         String_Dtor(&path);
         return 0;
     }
@@ -99,9 +100,9 @@ u32 __cdecl GraphicsSettings_Load(u32 flags) {
 }
 
 u32 __cdecl GraphicsSettings_LoadForOptions() {
-    u8 *const options = reinterpret_cast<u8 *>((uintptr_t)0x0078d8d8);
+    u8 *const options = reinterpret_cast<u8 *>((uintptr_t)&gOptions_78d8d8);
     global(0x0079d86c) &= ~0x400u;
-    global(0x008c1620) = 0;
+    global((u32)(uintptr_t)&gTexSettings_8bd550 + 0x40d0) = 0;
     gGraphicssettings_7a1a8c |= 0x40604;
     const u32 mode = *reinterpret_cast<u32 *>(options + 8);
     u32 flags = 0;
@@ -124,10 +125,10 @@ u32 __cdecl GraphicsSettings_LoadForOptions() {
     else
         gGraphicssettings_7a1a8c &= ~0x1000u;
     if (*reinterpret_cast<u32 *>(options) == 0) {
-        global(0x008bcbc8) &= 0xfffefffe;
+        global((u32)(uintptr_t)&gView_8bcbc8) &= 0xfffefffe;
         global(0x008bd524) = 4;
         gGraphicssettings_7a1a8c &= 0xffed1fff;
-        global(0x008bd550) &= ~2u;
+        global((u32)(uintptr_t)&gTexSettings_8bd550) &= ~2u;
         global(0x0079d86c) &= ~0x200u;
         return 1;
     }

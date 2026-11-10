@@ -27,6 +27,7 @@
 #include "session.h"
 #include "chatevents.h"
 #include "../render/enginedebug.h"
+#include "../core/staticobjects.h"
 
 namespace {
 
@@ -138,8 +139,8 @@ void SortNumbers(u8 *list) {
     g_env->numbersDtor(carry);
 }
 
-const u8 *const kLanguage = reinterpret_cast<const u8 *>((uintptr_t)0x0078b530);
-const StdString *const kOtherAddress = reinterpret_cast<const StdString *>((uintptr_t)0x007a155c);
+const u8 *const kLanguage = reinterpret_cast<const u8 *>((uintptr_t)&gLanguage_78b530);
+const StdString *const kOtherAddress = reinterpret_cast<const StdString *>((uintptr_t)&gOnlineServers_7a14f0 + 0x6c);
 const char *const kEnglishAddress = gMailbox_7740f4;
 const char *const kAddressBookName = gMailbox_7740e4;
 

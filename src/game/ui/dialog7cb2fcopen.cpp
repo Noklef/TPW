@@ -21,6 +21,7 @@
 #include "windowscript.h"
 #include "panel7b9940.h"
 #include "../gfx/texcache.h"
+#include "../core/staticobjects.h"
 
 namespace {
 
@@ -36,13 +37,13 @@ const Dialog7cb2fcOpenEnv kGameEnv = {Language_WideText, Dialog7cb2fc_SetValueRo
                                       game<void(__fastcall *)(u8 *)>(0x004237f0), Options_Revert};
 const Dialog7cb2fcOpenEnv *g_env = &kGameEnv;
 
-u8 *const kOptions = reinterpret_cast<u8 *>((uintptr_t)0x0078d8d8);
+u8 *const kOptions = reinterpret_cast<u8 *>((uintptr_t)&gOptions_78d8d8);
 u16 *const kBuffer = reinterpret_cast<u16 *>((uintptr_t)0x007ba058);
 
 u8 *dialog() { return gDialog7cb2fcopen_7cb2fc; }
 u8 *child(u32 id) { return Window_FindChild(dialog(), nullptr, id); }
 u8 *rowItem(u32 row) { return Window_FindChild(child(row), nullptr, 0x1d4c9); }
-u32 option(u32 offset) { return global<u32>(0x0078d8d8 + offset); }
+u32 option(u32 offset) { return global<u32>((u32)(uintptr_t)&gOptions_78d8d8 + offset); }
 
 // The row's child gets the label's text with the text after it.
 void textRow(u32 row, u32 label, u32 after) {
@@ -59,8 +60,8 @@ u32 stepText(u32 value, u32 first) { return value < 3 ? first + value : 0; }
 
 // The value of a volume slider: stored after the flag byte; shown -1 with the flag clear.
 s32 flaggedValue(u32 offset, s32 value) {
-    global<s32>(0x0078d8d8 + offset + 4) = value;
-    return global<u8>(0x0078d8d8 + offset) ? value : -1;
+    global<s32>((u32)(uintptr_t)&gOptions_78d8d8 + offset + 4) = value;
+    return global<u8>((u32)(uintptr_t)&gOptions_78d8d8 + offset) ? value : -1;
 }
 
 u32 volumeOf(s32 value) { return value < 0 ? 0 : (u32)value; }
@@ -133,39 +134,39 @@ void __cdecl Dialog7cb2fc_OnButton(u32 id, u32 state) {
     const u8 off = state != 1;
     switch (id) {
     case 0x1d4c1:
-        global<u8>(0x0078d90c) = off;
+        global<u8>((u32)(uintptr_t)&gOptions_78d8d8 + 0x34) = off;
         g_env->toggle(0x1d4cb, 0x145, off, 1, 0, 0);
         return;
     case 0x1d4c2:
-        global<u8>(0x0078d90d) = off;
+        global<u8>((u32)(uintptr_t)&gOptions_78d8d8 + 0x35) = off;
         g_env->toggle(0x1d4cc, 0x146, off, 1, 0, 0);
         return;
     case 0x1d4c3:
-        global<u8>(0x0078d90e) = off;
+        global<u8>((u32)(uintptr_t)&gOptions_78d8d8 + 0x36) = off;
         g_env->toggle(0x1d4cd, 0x147, off, 1, 0, 0);
         return;
     case 0x1d4c4:
-        global<u8>(0x0078d90f) = off;
+        global<u8>((u32)(uintptr_t)&gOptions_78d8d8 + 0x37) = off;
         g_env->toggle(0x1d4ce, 0x148, off, 1, 0, 0);
         return;
     case 0x1d4c5:
-        global<u8>(0x0078d911) = off;
+        global<u8>((u32)(uintptr_t)&gOptions_78d8d8 + 0x39) = off;
         g_env->toggle(0x1d4cf, 0x14b, off, 1, 0, 0);
         return;
     case 0x1d4c6: {
-        const u8 on = !global<u8>(0x0078d912);
-        global<u8>(0x0078d912) = on;
+        const u8 on = !global<u8>((u32)(uintptr_t)&gOptions_78d8d8 + 0x3a);
+        global<u8>((u32)(uintptr_t)&gOptions_78d8d8 + 0x3a) = on;
         textRow(0x1d4d0, 0x15f, 0x160 + on);
         return;
     }
     case 0x1d4c7: {
-        const u8 on = !global<u8>(0x0078d910);
-        global<u8>(0x0078d910) = on;
+        const u8 on = !global<u8>((u32)(uintptr_t)&gOptions_78d8d8 + 0x38);
+        global<u8>((u32)(uintptr_t)&gOptions_78d8d8 + 0x38) = on;
         textRow(0x1d4d1, 0x162, 0x163 + on);
         return;
     }
     case 0x1d4d2: {
-        global<u32>(0x0078d8d8) = !option(0);
+        global<u32>((u32)(uintptr_t)&gOptions_78d8d8) = !option(0);
         const u32 label = option(0) ? 0x13c : 0x13d;
         const s32 percent = stepPercent(option(8));
         if (!(u16)vcall<u32>(child(0x1d4d6), 0x1c, percent)) Dialog7cb2fc_OnSlider(0x1d4d6, percent);
@@ -180,19 +181,19 @@ void __cdecl Dialog7cb2fc_OnButton(u32 id, u32 state) {
         textRow(0x1d4ca, 0x15c, 0x15d + (option(0xc) ? 1 : 0));
         return;
     case 0x1d4d7:
-        global<u8>(0x0078d8e8) = off;
+        global<u8>((u32)(uintptr_t)&gOptions_78d8d8 + 0x10) = off;
         Dialog7cb2fc_OnSlider(0x1d4d8, (s32)option(0x14));
         return;
     case 0x1d4d9:
-        global<u8>(0x0078d8f0) = off;
+        global<u8>((u32)(uintptr_t)&gOptions_78d8d8 + 0x18) = off;
         Dialog7cb2fc_OnSlider(0x1d4da, (s32)option(0x1c));
         return;
     case 0x1d4db:
-        global<u8>(0x0078d8f8) = off;
+        global<u8>((u32)(uintptr_t)&gOptions_78d8d8 + 0x20) = off;
         Dialog7cb2fc_OnSlider(0x1d4dc, (s32)option(0x24));
         return;
     case 0x1d4dd:
-        global<u8>(0x0078d900) = off;
+        global<u8>((u32)(uintptr_t)&gOptions_78d8d8 + 0x28) = off;
         Dialog7cb2fc_OnSlider(0x1d4de, (s32)option(0x2c));
         return;
     default: return;
@@ -204,14 +205,14 @@ s32 __cdecl Dialog7cb2fc_Handler(u8 *window, u32 message, u32 a, s32 b) {
     case 0x14:
         gDialog7cb2fcopen_7cb2fc = nullptr;
         g_env->setFlags(gRenderer_87a6d0, nullptr, gDialog7cb2fc_7cb2f4);
-        if (!global<u32>(0x00786ba4) && !gDialog7cb2fc_7cb2ec) {
-            global<u32>(0x00786ba4) = 1;
-            g_env->f409300(reinterpret_cast<u8 *>((uintptr_t)0x00786b68));
+        if (!global<u32>((u32)(uintptr_t)&gNamedObjects_786b68 + 0x3c) && !gDialog7cb2fc_7cb2ec) {
+            global<u32>((u32)(uintptr_t)&gNamedObjects_786b68 + 0x3c) = 1;
+            g_env->f409300(reinterpret_cast<u8 *>((uintptr_t)&gNamedObjects_786b68));
             g_env->f662420();
         }
         g_env->send(frameWindow(), 6, 1, 0);
         g_env->focus();
-        if (global<u8>(0x0078d90e)) g_env->slot3();
+        if (global<u8>((u32)(uintptr_t)&gOptions_78d8d8 + 0x36)) g_env->slot3();
         else g_env->slot4();
         g_env->particles();
         break;
@@ -231,13 +232,13 @@ s32 __cdecl Dialog7cb2fc_Handler(u8 *window, u32 message, u32 a, s32 b) {
     case 0x801:
         switch (a) {
         case 0x1d4d8:
-            if (global<u8>(0x0078d8e8)) g_env->soundAbc(volumeOf(b));
+            if (global<u8>((u32)(uintptr_t)&gOptions_78d8d8 + 0x10)) g_env->soundAbc(volumeOf(b));
             break;
         case 0x1d4da:
-            if (global<u8>(0x0078d8f0)) g_env->soundAc0(volumeOf(b));
+            if (global<u8>((u32)(uintptr_t)&gOptions_78d8d8 + 0x18)) g_env->soundAc0(volumeOf(b));
             break;
         case 0x1d4dc:
-            if (global<u8>(0x0078d8f8)) g_env->soundAc4(volumeOf(b));
+            if (global<u8>((u32)(uintptr_t)&gOptions_78d8d8 + 0x20)) g_env->soundAc4(volumeOf(b));
             break;
         case 0x1d4de:
         case 0x1d4e0: break;
@@ -254,9 +255,9 @@ void __cdecl Dialog7cb2fc_Open() {
     if (dialog()) return;
     Options_Keep(kOptions);
     gDialog7cb2fc_7cb300 = 0;
-    if (global<u32>(0x00786ba4) == 1) {
-        g_env->f4092a0(reinterpret_cast<u8 *>((uintptr_t)0x00786b68), nullptr, 0, 0);
-        global<u32>(0x00786ba4) = 0;
+    if (global<u32>((u32)(uintptr_t)&gNamedObjects_786b68 + 0x3c) == 1) {
+        g_env->f4092a0(reinterpret_cast<u8 *>((uintptr_t)&gNamedObjects_786b68), nullptr, 0, 0);
+        global<u32>((u32)(uintptr_t)&gNamedObjects_786b68 + 0x3c) = 0;
         Fn_662411();
         gDialog7cb2fc_7cb2ec = 0;
     } else {
@@ -294,7 +295,8 @@ void __cdecl Dialog7cb2fc_Open() {
     textRow(0x1d4ca, 0x15c, !option(0xc) ? 0x15d : (global<s32>(global<u32>(0x00879a24) + 0x788) > 1 ? 0x15e : 0x15d));
     Dialog7cb2fc_OnSlider(0x1d4e0, (s32)option(0x30));
 
-    static const struct { u32 flag, button; } kVolumes[] = {{0x0078d8e8, 0x1d4d7}, {0x0078d8f0, 0x1d4d9}, {0x0078d8f8, 0x1d4db}, {0x0078d900, 0x1d4dd}};
+    // (not static: the name's address makes it a dynamic initialiser)
+    const struct { u32 flag, button; } kVolumes[] = {{(u32)(uintptr_t)&gOptions_78d8d8 + 0x10, 0x1d4d7}, {(u32)(uintptr_t)&gOptions_78d8d8 + 0x18, 0x1d4d9}, {(u32)(uintptr_t)&gOptions_78d8d8 + 0x20, 0x1d4db}, {(u32)(uintptr_t)&gOptions_78d8d8 + 0x28, 0x1d4dd}};
     for (const auto &volume : kVolumes) {
         const u8 state = !global<u8>(volume.flag);
         g_env->setState(child(volume.button), nullptr, state, 1);
@@ -303,12 +305,12 @@ void __cdecl Dialog7cb2fc_Open() {
     textRow(0x1d4d5, 0x13f, stepText(option(4), 0x155));
     textRow(0x1d4d6, 0x13e, stepText(option(8), 0x150));
 
-    g_env->toggle(0x1d4cb, 0x145, global<u8>(0x0078d90c), 1, 1, 0x1d4c1);
-    g_env->toggle(0x1d4cc, 0x146, global<u8>(0x0078d90d), 1, 1, 0x1d4c2);
-    g_env->toggle(0x1d4cd, 0x147, global<u8>(0x0078d90e), 1, 1, 0x1d4c3);
-    g_env->toggle(0x1d4ce, 0x148, global<u8>(0x0078d90f), 1, 1, 0x1d4c4);
-    g_env->toggle(0x1d4cf, 0x14b, global<u8>(0x0078d911), 1, 1, 0x1d4c5);
-    textRow(0x1d4d0, 0x15f, global<u8>(0x0078d912) ? 0x161 : 0x160);
-    textRow(0x1d4d1, 0x162, global<u8>(0x0078d910) ? 0x164 : 0x163);
+    g_env->toggle(0x1d4cb, 0x145, global<u8>((u32)(uintptr_t)&gOptions_78d8d8 + 0x34), 1, 1, 0x1d4c1);
+    g_env->toggle(0x1d4cc, 0x146, global<u8>((u32)(uintptr_t)&gOptions_78d8d8 + 0x35), 1, 1, 0x1d4c2);
+    g_env->toggle(0x1d4cd, 0x147, global<u8>((u32)(uintptr_t)&gOptions_78d8d8 + 0x36), 1, 1, 0x1d4c3);
+    g_env->toggle(0x1d4ce, 0x148, global<u8>((u32)(uintptr_t)&gOptions_78d8d8 + 0x37), 1, 1, 0x1d4c4);
+    g_env->toggle(0x1d4cf, 0x14b, global<u8>((u32)(uintptr_t)&gOptions_78d8d8 + 0x39), 1, 1, 0x1d4c5);
+    textRow(0x1d4d0, 0x15f, global<u8>((u32)(uintptr_t)&gOptions_78d8d8 + 0x3a) ? 0x161 : 0x160);
+    textRow(0x1d4d1, 0x162, global<u8>((u32)(uintptr_t)&gOptions_78d8d8 + 0x38) ? 0x164 : 0x163);
 }
 }

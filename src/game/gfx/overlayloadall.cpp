@@ -7,6 +7,7 @@
 #include "../core/language.h"
 #include "../core/vcall.h"
 #include "../files/quickload.h"
+#include "../core/staticobjects.h"
 
 namespace {
 
@@ -14,11 +15,11 @@ const OverlayLoadAllEnv kGameEnv = {&Quickload_LoadRide, &NamedList_Find, reinte
                                     reinterpret_cast<decltype(OverlayLoadAllEnv::next)>(&Class6fd9d8_Find)};
 const OverlayLoadAllEnv *g_env = &kGameEnv;
 
-const u8 *const kLanguage = reinterpret_cast<const u8 *>((uintptr_t)0x0078b530);
-const String *const kPattern = reinterpret_cast<const String *>((uintptr_t)0x007b9760);
+const u8 *const kLanguage = reinterpret_cast<const u8 *>((uintptr_t)&gLanguage_78b530);
+const String *const kPattern = reinterpret_cast<const String *>((uintptr_t)&gString_7b9760);
 
 u32 findFolder(u32 key, u8 **folder) {
-    return g_env->find(*reinterpret_cast<u8 ***>((uintptr_t)0x00786b9c), nullptr, reinterpret_cast<const u8 *>((uintptr_t)key), folder);
+    return g_env->find(*reinterpret_cast<u8 ***>((uintptr_t)&gNamedObjects_786b68 + 0x34), nullptr, reinterpret_cast<const u8 *>((uintptr_t)key), folder);
 }
 
 // An empty entry: only its name's pointer and first character set.
@@ -56,7 +57,7 @@ u32 __cdecl OverlayLoad_All() {
 
 u32 __cdecl OverlayLoad_Language() {
     u8 *folder = nullptr;
-    if (findFolder(0x007c2458, &folder) != 1) return 0;
+    if (findFolder((u32)(uintptr_t)&gString_7c2458, &folder) != 1) return 0;
     OverlayFile file;
     clear(file);
     String pattern, path;

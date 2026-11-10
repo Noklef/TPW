@@ -7,6 +7,7 @@
 #include "../files/vfs.h"
 #include "../math/x87.h"
 #include "wavelet.h"
+#include "../core/staticobjects.h"
 
 namespace {
 
@@ -19,7 +20,7 @@ template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((ui
 float Step(const u8 *part, u32 offset, float scale) { return 1.0f - (float)at<u16>(part, offset) * scale; }
 
 // The format's pixel size (0x7011a0 indexed by [0x8bd554]).
-u32 PixelSize() { return reinterpret_cast<const u32 *>((uintptr_t)0x007011a0)[global<u32>(0x008bd554)]; }
+u32 PixelSize() { return reinterpret_cast<const u32 *>((uintptr_t)0x007011a0)[global<u32>((u32)(uintptr_t)&gTexSettings_8bd550 + 0x4)]; }
 
 constexpr u32 kKind = (u32)-0x28, kWidth = (u32)-0x24, kHeight = (u32)-0x22, kStepB = (u32)-0x20, kStepC = (u32)-0x1e, kStepD = (u32)-0x1c,
               kStepA = (u32)-0x1a, kBlockA = (u32)-0xc, kBlockB = (u32)-8;

@@ -20,6 +20,7 @@
 #include "panel7cc3b0.h"
 #include "panel7cc408.h"
 #include "thingpanel.h"
+#include "../core/staticobjects.h"
 
 namespace {
 
@@ -147,8 +148,8 @@ u32 __cdecl MouseClick_OnShown() {
     case 12: {
         u8 *const thing = reinterpret_cast<u8 *>((uintptr_t)Global7c2650_Get());
         if (!thing) return 1;
-        if (gMouseclick_7c24f4 == 7) g_env->showVisitor(reinterpret_cast<u8 *>((uintptr_t)0x007cc408), nullptr, thing);
-        else g_env->showStaff(reinterpret_cast<u8 *>((uintptr_t)0x007cc3b0), nullptr, thing);
+        if (gMouseclick_7c24f4 == 7) g_env->showVisitor(reinterpret_cast<u8 *>((uintptr_t)&gStatic_7cc408), nullptr, thing);
+        else g_env->showStaff(reinterpret_cast<u8 *>((uintptr_t)&gStatic_7cc3b0), nullptr, thing);
         return 1;
     }
     case 13:

@@ -4,6 +4,7 @@
 #include <cstdint>
 
 #include "../core/vcall.h"
+#include "../core/staticobjects.h"
 
 namespace {
 
@@ -126,7 +127,7 @@ void __cdecl Display_SetSurface(Surface *surface) {
 void __cdecl Format_FillInfo(u32 a, u32 *out, u32 c, u32 d) {
     if (!out)
         return;
-    const u32 *record = reinterpret_cast<const u32 *>((uintptr_t)(0x008bd558 + global<u32>(0x008bd554) * 32));
+    const u32 *record = reinterpret_cast<const u32 *>((uintptr_t)(((u32)(uintptr_t)&gTexSettings_8bd550 + 0x8) + global<u32>((u32)(uintptr_t)&gTexSettings_8bd550 + 0x4) * 32));
     u32 local[8];
     for (u32 i = 0; i < 8; ++i)
         local[i] = record[i];

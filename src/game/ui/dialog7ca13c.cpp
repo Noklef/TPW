@@ -21,6 +21,7 @@
 #include "windowtimers.h"
 #include "dialog7ca13chandler.h"
 #include "panel7b9940.h"
+#include "../core/staticobjects.h"
 
 namespace {
 
@@ -98,7 +99,7 @@ void __fastcall Obj7b51f0_OnGuestAdded(void *, void *, u32 handle) {
 void __fastcall Obj7b51f0_OnGuestRemoved(void *, void *, u32 handle) {
     u8 *const thing = global<u8 *>(0x007cfb90 + (handle & 0xffff) * 20);   // (the original's empty assert that the table is there left out)
     if (thing[2] != 1) return;
-    Obj_CallSlot2cIfGlobalIf10(reinterpret_cast<u8 *>((uintptr_t)0x007cc408), nullptr, (u32)(uintptr_t)thing);
+    Obj_CallSlot2cIfGlobalIf10(reinterpret_cast<u8 *>((uintptr_t)&gStatic_7cc408), nullptr, (u32)(uintptr_t)thing);
     Dialog7ca13c_RemoveData((u32)(uintptr_t)thing);
     ThingBrowser_ResetIfThing(thing);
 }

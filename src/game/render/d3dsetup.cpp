@@ -13,6 +13,7 @@
 #include "d3dviewport.h"
 #include "../frontend/lobbysky.h"
 #include "ddopen.h"
+#include "../core/staticobjects.h"
 
 using namespace d3dresult;
 
@@ -82,8 +83,8 @@ bool Build(u8 *self, u32 flags) {
         ZeroDwords(description, 0x1f);
         description[0] = 0x7c;
         description[1] = 0x1007;
-        description[2] = global<u32>(0x008bcbd4);
-        description[3] = global<u32>(0x008bcbd0);
+        description[2] = global<u32>((u32)(uintptr_t)&gView_8bcbc8 + 0xc);
+        description[3] = global<u32>((u32)(uintptr_t)&gView_8bcbc8 + 0x8);
         CopyFormat(description + 0x12, format);
         description[0x1a] = 0x24000;
         logged((u32)&gText_D3dsetup_76896c, format[3]);
@@ -107,7 +108,7 @@ bool Build(u8 *self, u32 flags) {
     if (!D3dSetup_CreateViewport(self)) return false;
     keep(comcall<u32>(at<u8 *>(self, 8), 0x20, 0x00573060u, self));
     if (result()) return false;
-    if (!global<u32>(0x008bd598)) {
+    if (!global<u32>((u32)(uintptr_t)&gTexSettings_8bd550 + 0x48)) {
         noted((u32)&gText_D3dsetup_768910);
         return false;
     }
@@ -165,16 +166,16 @@ u32 __fastcall D3dSetup_Reopen(u8 *base) {
 }
 
 u32 __fastcall D3dSetup_Clear(u8 *base) {
-    const u32 caps = global<u32>(0x008bcbc8);
+    const u32 caps = global<u32>((u32)(uintptr_t)&gView_8bcbc8);
     const auto ftol = [](X87Reg x) { return (s32)(long long)x.v; };
     s32 rect[4];
-    rect[0] = ftol(X87Reg(global<float>(0x008bcbf8)) - global<float>(0x008bcc00));
-    rect[1] = ftol(X87Reg(global<float>(0x008bcbfc)) - global<float>(0x008bcc04));
-    rect[2] = rect[0] + global<s32>(0x008bcbe8);
-    rect[3] = rect[1] + global<s32>(0x008bcbec);
+    rect[0] = ftol(X87Reg(global<float>((u32)(uintptr_t)&gView_8bcbc8 + 0x30)) - global<float>((u32)(uintptr_t)&gView_8bcbc8 + 0x38));
+    rect[1] = ftol(X87Reg(global<float>((u32)(uintptr_t)&gView_8bcbc8 + 0x34)) - global<float>((u32)(uintptr_t)&gView_8bcbc8 + 0x3c));
+    rect[2] = rect[0] + global<s32>((u32)(uintptr_t)&gView_8bcbc8 + 0x20);
+    rect[3] = rect[1] + global<s32>((u32)(uintptr_t)&gView_8bcbc8 + 0x24);
     u32 targets = (caps & 0x80000000u) ? 0 : 1;
     if (at<u32>(base - 8, 0) & 0x10) targets |= 2;
-    const u32 colour = (caps & 0x4002000) ? global<u32>(0x008bd47c) : 0;
+    const u32 colour = (caps & 0x4002000) ? global<u32>((u32)(uintptr_t)&gView_8bcbc8 + 0x8b4) : 0;
     keep(comcall<u32>(at<u8 *>(base - kVirtualBase, 0xc), 0x50, 1u, rect, targets, colour, 0x3f800000u, 0u));
     return pushed(2);
 }
@@ -193,7 +194,7 @@ u32 __stdcall D3dSetup_PickFormat(u32, const u32 *format, u32) {
     const s16 *entry = reinterpret_cast<const s16 *>((uintptr_t)0x007015f8);
     for (s32 i = 0; i < 4; ++i, entry += 4) {
         if ((s32)Bits_Count(format[4]) != entry[1] || (s32)Bits_Count(format[5]) != entry[2] || (s32)Bits_Count(format[6]) != entry[3] || (s32)Bits_Count(format[7]) != entry[0]) continue;
-        CopyFormat(reinterpret_cast<u32 *>((uintptr_t)0x008bd558) + i * 8, format);
+        CopyFormat(reinterpret_cast<u32 *>((uintptr_t)&gTexSettings_8bd550 + 0x8) + i * 8, format);
         logged((u32)&gText_D3dSetup_PickFormat_7688c4, i, (s32)entry[0], (s32)entry[1], (s32)entry[2], (s32)entry[3]);
     }
     return 1;

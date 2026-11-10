@@ -13,6 +13,7 @@
 #include "d3dresult.h"
 #include "texformat.h"
 #include "viewport.h"
+#include "../core/staticobjects.h"
 
 using d3dresult::keep;
 using d3dresult::result;
@@ -29,7 +30,7 @@ T &global(uintptr_t address) {
     return *reinterpret_cast<T *>(address);
 }
 
-u8 *const kView = reinterpret_cast<u8 *>((uintptr_t)0x008bcbc8);
+u8 *const kView = reinterpret_cast<u8 *>((uintptr_t)&gView_8bcbc8);
 u8 *const kErrors = reinterpret_cast<u8 *>((uintptr_t)0x00879ad0);
 const u32 kTextLog = 0x1000000, kStepLog = 0x2000000;
 const u32 kDescSize = 0x7c;
@@ -151,7 +152,7 @@ bool OpenFullScreen(u8 *object, s32 width, s32 height, u32 depth, u32 videoMemor
     std::memset(desc, 0, kDescSize);
     desc[0] = kDescSize;
     desc[1] = 0x21;
-    desc[5] = global<u8>(0x008bcbc8) & 1 ? 2 : 1;
+    desc[5] = global<u8>((u32)(uintptr_t)&gView_8bcbc8) & 1 ? 2 : 1;
     desc[0x1a] = videoMemory ? 0x6218 : 0x4218;
     if (Fails(Com(at<void *>(object, 8), 0x18, desc, object + 0x10, 0))) return false;
     u32 fill[0x19];
@@ -171,13 +172,13 @@ bool OpenWindowed(u8 *object, s32 width, s32 height, u32 *desc) {
     std::memset(desc, 0, kDescSize);
     desc[0] = kDescSize;
     if (Fails(Com(at<void *>(object, 8), 0x30, desc))) return false;
-    global<u32>(0x008bcbe4) = desc[0x15];
+    global<u32>((u32)(uintptr_t)&gView_8bcbc8 + 0x1c) = desc[0x15];
     if (Fails(Com(at<void *>(object, 8), 0x50, Window(), 0x808))) return false;
     s32 client[4], frame[4];
     Import(0x006fd390, Window(), client);
     Import(0x006fd38c, Window(), frame);
-    frame[2] += client[0] - client[2] + global<s32>(0x008bcbd0);
-    frame[3] += client[1] - client[3] + global<s32>(0x008bcbd4);
+    frame[2] += client[0] - client[2] + global<s32>((u32)(uintptr_t)&gView_8bcbc8 + 0x8);
+    frame[3] += client[1] - client[3] + global<s32>((u32)(uintptr_t)&gView_8bcbc8 + 0xc);
     Import(0x006fd31c, Window(), frame[0], frame[1], frame[2] - frame[0], frame[3] - frame[1], 0);
     std::memset(desc, 0, kDescSize);
     desc[0] = kDescSize;
@@ -194,10 +195,10 @@ bool OpenWindowed(u8 *object, s32 width, s32 height, u32 *desc) {
     if (Fails(Com(at<void *>(object, 0x10), 0x70, at<void *>(object, 0xc)))) return false;
     at<u32>(object, 0x780) &= ~1u;
     Com(at<void *>(object, 0x10), 0x58, desc);  // (the result not looked at)
-    global<u32>(0x008bd4c4) = desc[0x16];
-    global<u32>(0x008bd4cc) = desc[0x17];
-    global<u32>(0x008bd4d4) = desc[0x18];
-    global<u32>(0x008bd4dc) = desc[0x16] | desc[0x17] | desc[0x18];
+    global<u32>((u32)(uintptr_t)&gView_8bcbc8 + 0x8fc) = desc[0x16];
+    global<u32>((u32)(uintptr_t)&gView_8bcbc8 + 0x904) = desc[0x17];
+    global<u32>((u32)(uintptr_t)&gView_8bcbc8 + 0x90c) = desc[0x18];
+    global<u32>((u32)(uintptr_t)&gView_8bcbc8 + 0x914) = desc[0x16] | desc[0x17] | desc[0x18];
     Masks_TopBits(kView);
     Import(0x006fd380, Window(), 0, frame[0], frame[1], frame[2] - frame[0], frame[3] - frame[1], 0x40);
     Import(0x006fd368, Window(), 1);
@@ -223,8 +224,8 @@ void Display_SetRestoreCalls(const AddrCall *table, u32 count) { g_restoreCalls.
 
 extern "C" u32 __fastcall Display_RestoreOrOpen(u8 *self) {
     if (global<u32>(0x008bd524) == 1)
-        return g_restoreCalls.Th(0x00563460, (u32)(uintptr_t)self, global<u32>(0x008bcbd0), global<u32>(0x008bcbd4),
-                                 global<u32>(0x008bcbe4), at<u32>(self, 0x78c), at<u32>(self, 0x780) & 1, 1u);
+        return g_restoreCalls.Th(0x00563460, (u32)(uintptr_t)self, global<u32>((u32)(uintptr_t)&gView_8bcbc8 + 0x8), global<u32>((u32)(uintptr_t)&gView_8bcbc8 + 0xc),
+                                 global<u32>((u32)(uintptr_t)&gView_8bcbc8 + 0x1c), at<u32>(self, 0x78c), at<u32>(self, 0x780) & 1, 1u);
     if (RestoreOne(at<u8 *>(self, 0x10))) return 0;
     return RestoreOne(at<u8 *>(self, 0x14)) == 0;
 }
@@ -232,7 +233,7 @@ extern "C" u32 __fastcall Display_RestoreOrOpen(u8 *self) {
 extern "C" u32 __fastcall DirectDraw_Open(u8 *object, void *, s32 width, s32 height, u32 depth, u32 driver, u32 fullScreen, u32 videoMemory) {
     if (Flags() & kTextLog) LogText((u32)&gText_DirectDraw_Open_766310);
     if (Flags() & kStepLog) EngineDebug_LogFallback(gText_DirectDraw_Open_7662f8);
-    if (!(global<u32>(0x008bd534) & 0x800000)) {
+    if (!(global<u32>((u32)(uintptr_t)&gCpuInfo_8bd530 + 0x4) & 0x800000)) {
         EngineErrors_Push(kErrors, nullptr, 3, 0xb0754017);
         return 0;
     }

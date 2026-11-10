@@ -13,6 +13,7 @@
 #include "session.h"
 #include "../ui/panel7b9940.h"
 #include "../world/signtext.h"
+#include "../core/staticobjects.h"
 
 namespace {
 
@@ -139,7 +140,7 @@ void __fastcall ChatClient_Connect(u8 *self) {
         at<u32>(self, 0) = block ? session_call(0x006fd474, (u32)(uintptr_t)block) : 0;
     }
     const u32 host = at<u32>(self, 0x1c) ? at<u32>(self, 0x1c) : 0x006fe5b0u;
-    const s32 port = global<s16>(0x007a1552);
+    const s32 port = global<s16>((u32)(uintptr_t)&gOnlineServers_7a14f0 + 0x62);
     if (!session_call(0x006fd498, at<u32>(self, 0), host, port, 0x004e61f0u, (u32)(uintptr_t)Global7cc53c_Pick7cc4f0())) {
         (*reinterpret_cast<void(__stdcall *const *)(u32)>((uintptr_t)0x006fd1e0))(reinterpret_cast<uintptr_t>(&gChatClient_Connect_75c0fc));
     } else {

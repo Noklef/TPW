@@ -4,6 +4,7 @@
 
 #include "gameerror.h"
 #include "regkey.h"
+#include "staticobjects.h"
 
 namespace {
 
@@ -21,7 +22,7 @@ u8 __cdecl Startup_CheckCanRun() {
         GameError_Set(report, nullptr, 0, 0, nullptr);
         return 0;
     }
-    const u32 mutex = import<u32(__stdcall *)(void *, u32, const char *)>(0x006fd134)(nullptr, 1, global<const char *>(0x007a2508));
+    const u32 mutex = import<u32(__stdcall *)(void *, u32, const char *)>(0x006fd134)(nullptr, 1, global<const char *>((u32)(uintptr_t)&gString_7a2500 + 0x8));
     global<u32>(0x007a267c) = mutex;
     if (mutex && import<u32(__stdcall *)()>(0x006fd138)() == 0xb7) {   // (ERROR_ALREADY_EXISTS)
         GameError_Set(report, nullptr, 1, 0, nullptr);

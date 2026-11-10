@@ -6,6 +6,7 @@
 #include "../files/quickload.h"
 #include "objectdefs.h"
 #include "objectscript.h"
+#include "../core/staticobjects.h"
 
 namespace {
 
@@ -32,7 +33,7 @@ extern "C" void __fastcall Object_LoadScript(u8 *object) {
         g_env->find(kDefs, nullptr, at<u16>(object, 0xe));   // (for the Debug_Printf left out)
         file = g_env->locate(gText_Object_LoadScript_75b61c, 1, nullptr);
     }
-    const u32 quiet = at<u32>(reinterpret_cast<void *>((uintptr_t)0x00785a2c), 0) ? 1 : 0;
+    const u32 quiet = at<u32>(reinterpret_cast<void *>((uintptr_t)&gActionRec_785a08 + 0x24), 0) ? 1 : 0;
     u16 handle;
     const u16 id = *g_env->handle(object, nullptr, &handle);
     const u32 script = g_env->loadScript(file, id, quiet);

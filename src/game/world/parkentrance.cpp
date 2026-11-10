@@ -11,6 +11,7 @@
 #include "mapcell.h"
 #include "mapclick.h"
 #include "trackline.h"
+#include "../core/staticobjects.h"
 
 namespace {
 
@@ -60,8 +61,8 @@ void __cdecl ParkEntrance_Lay() {
         Click(x -= 0xc, y);
         Click(x, y -= 4);
         Click(x + 2, y);
-    } else if (global<s32>(0x00784e3c) != 0x200) {
-        for (const s32 *pair = &global<s32>(0x00784e3c); pair < &global<s32>(0x0078503c); pair += 2) {
+    } else if (global<s32>((u32)(uintptr_t)&gBalanceHoardingsA + 0xc) != 0x200) {
+        for (const s32 *pair = &global<s32>((u32)(uintptr_t)&gBalanceHoardingsA + 0xc); pair < &global<s32>((u32)(uintptr_t)&gBalanceHoardingsA + 0x20c); pair += 2) {
             Click(pair[0] + EndColumn(), pair[1] + EndRow());
             if (pair[2] == 0x200)
                 break;

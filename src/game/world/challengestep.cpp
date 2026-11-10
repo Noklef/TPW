@@ -12,6 +12,7 @@
 #include "world.h"
 #include "../ui/dialog7ca2e8.h"
 #include "../ui/dialog74fb20.h"
+#include "../core/staticobjects.h"
 
 namespace {
 
@@ -62,7 +63,7 @@ void __fastcall Challenges_Step(u8 *challenges) {
         if (!Game_Field1da710IsZero()) return;
         FileTime elapsed;
         FunnyTime_Elapsed(world() + 0x2a0, nullptr, &elapsed);
-        if (days(elapsed) < global<s32>(0x007857c8)) return;
+        if (days(elapsed) < global<s32>((u32)(uintptr_t)&gBalanceLevel + 0x788)) return;
         at<u8>(challenges, 0x3d8) = 1;
         g_env->offerNext(challenges, nullptr, 1);
     }
@@ -95,7 +96,7 @@ void __fastcall Challenges_Step(u8 *challenges) {
     }
     if (!at<s32>(Challenges_Current(challenges), 4)) return;
     const s32 left = daysLeft(challenges);
-    if (static_cast<s32>(static_cast<u32>(left) * 100) / at<s32>(Challenges_Current(challenges), 4) >= global<s32>(0x007857d0)) return;
+    if (static_cast<s32>(static_cast<u32>(left) * 100) / at<s32>(Challenges_Current(challenges), 4) >= global<s32>((u32)(uintptr_t)&gBalanceLevel + 0x790)) return;
     ThingMsg19_Ctor(msg, nullptr, 0x17f, 0x10f, 0, 0, 0, 0, 0, 0, 0, 0, 0);
     g_env->post(MessageCentre_Instance(), nullptr, msg);
 }

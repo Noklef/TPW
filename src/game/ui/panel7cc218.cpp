@@ -53,6 +53,7 @@
 #include "dialog7cc654handler.h"
 #include "dialog74fb20.h"
 #include "panel7b9940.h"
+#include "../core/staticobjects.h"
 
 using namespace panelparts;
 
@@ -90,7 +91,7 @@ void label(u8 *self, u32 id) {
 void settingText(u8 *self, u32 id, u32 n, u32 offset) {
     u8 arg[0x14];
     TextArgInt_Ctor(arg, nullptr, n, at<s32>(self, offset), 1);
-    TextFormat().format(*reinterpret_cast<void **>((uintptr_t)0x0078ba94), reinterpret_cast<u16 *>((uintptr_t)0x007ba058), 0x3fff, id, arg);
+    TextFormat().format(*reinterpret_cast<void **>((uintptr_t)&gLanguage_78b530 + 0x564), reinterpret_cast<u16 *>((uintptr_t)0x007ba058), 0x3fff, id, arg);
 }
 const Panel7cc218ShowEnv kShowGameEnv = {Window705b20_SetRange, Window_SetShown, Panel7cc218_ShowSettings};
 const Panel7cc218ShowEnv *g_show = &kShowGameEnv;
@@ -432,7 +433,7 @@ void addRow(u8 *list, u32 first, u32 second, u32 data) {
 
 void formatLevel(u32 entry, u32 value) {
     const u32 arg[5] = {0x006ff170, 0x5641524d, 0, value, 0};   // (TextArgInt_Ctor (0, the value, unsigned), inline)
-    g_levels->format(global<u8 *>(0x0078ba94), wideBuffer(), 0x3fff, entry, arg);
+    g_levels->format(global<u8 *>((u32)(uintptr_t)&gLanguage_78b530 + 0x564), wideBuffer(), 0x3fff, entry, arg);
 }
 
 // (A percent: the low byte * 1024 / 100.)
@@ -454,7 +455,7 @@ void showAge(u8 *label, const u8 *object) {
     const s32 age = g_figures->age(object);
     const u32 arg[5] = {0x006ff170, 0x5641524d, 8, static_cast<u32>(age < 0 ? -age : age), age < 0 ? 1u : 0u};   // (TextArgInt_Ctor (8, the size, its sign), inline)
     u16 text[0x20];
-    g_figures->format(global<u8 *>(0x0078ba94), text, 0x1f, 0x1b1, arg);
+    g_figures->format(global<u8 *>((u32)(uintptr_t)&gLanguage_78b530 + 0x564), text, 0x1f, 0x1b1, arg);
     g_figures->notify(label, nullptr, static_cast<u32>(reinterpret_cast<uintptr_t>(text)));
 }
 
@@ -540,7 +541,7 @@ const Panel7cc218LevelBoxEnv *g_levelBox = &kLevelBoxGameEnv;
 void Panel7cc218_SetLevelBoxEnv(const Panel7cc218LevelBoxEnv *env) { g_levelBox = env ? env : &kLevelBoxGameEnv; }
 
 s32 __cdecl Panel7cc218_LevelBoxHandler(u8 *window, u32 message, u32 a, u32 b) {
-    u8 *const panel = reinterpret_cast<u8 *>((uintptr_t)0x007cc218);
+    u8 *const panel = reinterpret_cast<u8 *>((uintptr_t)&gStatic_7cc218);
     if (message == 0x14) {
         u8 *const owner = reinterpret_cast<u8 *>((uintptr_t)g_levelBox->dword(window, nullptr, 0));
         *reinterpret_cast<u32 *>(owner + 0x24) = 0;
@@ -605,7 +606,7 @@ const Panel7cc218HandlerEnv *g_handler = &kHandlerGameEnv;
 void Panel7cc218_SetHandlerEnv(const Panel7cc218HandlerEnv *env) { g_handler = env ? env : &kHandlerGameEnv; }
 
 s32 __cdecl Panel7cc218_Handler(u8 *window, u32 message, u32 a, u32 b) {
-    u8 *const panel = reinterpret_cast<u8 *>((uintptr_t)0x007cc218);
+    u8 *const panel = reinterpret_cast<u8 *>((uintptr_t)&gStatic_7cc218);
     u8 *const thing = gPanel7cc218_7c2658;
     switch (message) {
     case 5:

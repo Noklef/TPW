@@ -11,6 +11,7 @@
 #include "../files/direntry.h"
 #include "../files/handles.h"
 #include "../files/vfs.h"
+#include "staticobjects.h"
 
 namespace {
 
@@ -38,7 +39,7 @@ void Blank(FoundRecord *record, const FoundRecord &blank) {
 bool OpenedUnder(u8 *opener, u8 *rootFrom, u32 stream, const StringView *path) {
     String relative, root, name;
     String_Ctor(&relative);
-    String_CtorCopy(&root, nullptr, reinterpret_cast<const StringView *>((uintptr_t)0x0078be50));
+    String_CtorCopy(&root, nullptr, reinterpret_cast<const StringView *>((uintptr_t)&gString_78be50));
     String_CtorCopy(&name, nullptr, path);
     vcall<void>(&root, 0x18, rootFrom);
     bool opened = false;
@@ -322,7 +323,7 @@ void __fastcall Class6fd9d8_AddFolderAndWad(u8 *object, void *, const StringView
     String name;
     String_CtorCopy(&name, nullptr, path);
     Class6fd9d8_AddFolder(object, nullptr, &name);
-    String_Append(&name, nullptr, reinterpret_cast<const StringView *>((uintptr_t)0x0078bb08));  // (the vtable's +0x28)
+    String_Append(&name, nullptr, reinterpret_cast<const StringView *>((uintptr_t)&gString_78bb08));  // (the vtable's +0x28)
     Class6fd9d8_AddWad(object, nullptr, &name);
     String_Dtor(&name);
 }
@@ -334,11 +335,11 @@ void __fastcall Class6fd9d8_AddFolderAndWadBoth(u8 *object, void *, const String
 
 void __fastcall Class6fd9d8_AddFolderAndWadIn(u8 *object, void *, const StringView *path) {
     String name;
-    String_CtorCopy(&name, nullptr, reinterpret_cast<const StringView *>((uintptr_t)0x00f816d4));   // (Obj_Part14 of 0xf816c0)
+    String_CtorCopy(&name, nullptr, reinterpret_cast<const StringView *>((uintptr_t)&gStrings5_f816c0 + 0x14));   // (Obj_Part14 of 0xf816c0)
     String_EnsureTrailingBackslash(&name);
     String_Append(&name, nullptr, path);   // (the vtable's +0x28)
     Class6fd9d8_AddFolder(object, nullptr, &name);
-    String_Append(&name, nullptr, reinterpret_cast<const StringView *>((uintptr_t)0x0078bb08));
+    String_Append(&name, nullptr, reinterpret_cast<const StringView *>((uintptr_t)&gString_78bb08));
     Class6fd9d8_AddWad(object, nullptr, &name);
     String_Dtor(&name);
 }
@@ -475,7 +476,7 @@ u8 __fastcall Class6fd9d8_FindFirstMatch(u8 *object, void *, const StringView *b
     };
     String pattern;
     String_CtorCopy(&pattern, nullptr, base);
-    String_Append(&pattern, nullptr, reinterpret_cast<const StringView *>((uintptr_t)0x0078c948));
+    String_Append(&pattern, nullptr, reinterpret_cast<const StringView *>((uintptr_t)&gString_78c948));
     u8 found = 0;
     if (u8 *const list = at<u8 *>(object, 0x2c)) {
         Record blank;  // (its eight dwords are never set, sic: each copy gets the stack's bytes)
@@ -496,7 +497,7 @@ u8 __fastcall Class6fd9d8_FindFirstMatch(u8 *object, void *, const StringView *b
             record.cursor = record.text + (blank.cursor - blank.text);
             s32 result;
             if (*vcall<s32 *>(held, 4, &result, static_cast<const char *>(pattern.data), &record) >= 0) {
-                vcall<s32 *>(held, 0x10, &result, arg, (uintptr_t)0x0078be50);
+                vcall<s32 *>(held, 0x10, &result, arg, (uintptr_t)&gString_78be50);
                 found = 1;
                 break;
             }
@@ -582,7 +583,7 @@ u32 OpenPrefixedOwn(u8 *object, u32 prefix, u32 stream) {
     String full;
     String_CtorCopy(&full, nullptr, GlobalString(prefix));
     String_Append(&full, nullptr, reinterpret_cast<const StringView *>(object + 4));
-    const u32 opened = OpenAssigned(object, &full, 0x0078c780, stream);
+    const u32 opened = OpenAssigned(object, &full, (u32)(uintptr_t)&gString_78c780, stream);
     String_Dtor(&full);
     return opened;
 }
@@ -592,7 +593,7 @@ u32 OpenPrefixedOwn(u8 *object, u32 prefix, u32 stream) {
 extern "C" {
 
 u32 __stdcall Class6fdaa4_OpenSamAt(const StringView *base, u8 *opener, u32 stream) {
-    return OpenAffixed(0, base, 0x0078c780, opener, stream);
+    return OpenAffixed(0, base, (u32)(uintptr_t)&gString_78c780, opener, stream);
 }
 
 u32 __fastcall Class6fdaa4_OpenSamWith(u8 *object, void *, u8 *opener, u32 stream) {
@@ -600,7 +601,7 @@ u32 __fastcall Class6fdaa4_OpenSamWith(u8 *object, void *, u8 *opener, u32 strea
 }
 
 u32 __stdcall Class6fdaa4_OpenOnlineSamAt(const StringView *base, u8 *opener, u32 stream) {
-    return OpenAffixed(0x0078c990, base, 0x0078c738, opener, stream);
+    return OpenAffixed((u32)(uintptr_t)&gString_78c990, base, (u32)(uintptr_t)&gString_78c738, opener, stream);
 }
 
 u32 __fastcall Class6fdaa4_OpenOnlineSamWith(u8 *object, void *, u8 *opener, u32 stream) {
@@ -608,7 +609,7 @@ u32 __fastcall Class6fdaa4_OpenOnlineSamWith(u8 *object, void *, u8 *opener, u32
 }
 
 u32 __fastcall Class6fdaa4_OpenSam(u8 *object, void *, const String *name, u32 stream) {
-    return OpenAssigned(object, name, 0x0078c780, stream);
+    return OpenAssigned(object, name, (u32)(uintptr_t)&gString_78c780, stream);
 }
 
 u32 __fastcall Class6fdaa4_OpenOwnSam(u8 *object, void *, u32 stream) {
@@ -616,17 +617,17 @@ u32 __fastcall Class6fdaa4_OpenOwnSam(u8 *object, void *, u32 stream) {
 }
 
 u32 __fastcall Class6fdaa4_OpenCoasterSam(u8 *object, void *, u32 stream) {
-    return Class6fdaa4_OpenSam(object, nullptr, reinterpret_cast<const String *>((uintptr_t)0x0078c708), stream);
+    return Class6fdaa4_OpenSam(object, nullptr, reinterpret_cast<const String *>((uintptr_t)&gString_78c708), stream);
 }
 
-u32 __fastcall Class6fdaa4_OpenEasySam(u8 *object, void *, u32 stream) { return OpenPrefixedOwn(object, 0x0078bb98, stream); }
+u32 __fastcall Class6fdaa4_OpenEasySam(u8 *object, void *, u32 stream) { return OpenPrefixedOwn(object, (u32)(uintptr_t)&gString_78bb98, stream); }
 
-u32 __fastcall Class6fdaa4_OpenOnlineSam(u8 *object, void *, u32 stream) { return OpenPrefixedOwn(object, 0x0078c990, stream); }
+u32 __fastcall Class6fdaa4_OpenOnlineSam(u8 *object, void *, u32 stream) { return OpenPrefixedOwn(object, (u32)(uintptr_t)&gString_78c990, stream); }
 
 u32 __fastcall Class6fdaa4_OpenLanguageTxt(u8 *object, void *, u32 stream) {
     String language;
-    String_CtorStr(&language, nullptr, Language_Buffer(reinterpret_cast<const u8 *>((uintptr_t)0x0078b530)));
-    const u32 opened = OpenAssigned(object, &language, 0x0078bec8, stream);
+    String_CtorStr(&language, nullptr, Language_Buffer(reinterpret_cast<const u8 *>((uintptr_t)&gLanguage_78b530)));
+    const u32 opened = OpenAssigned(object, &language, (u32)(uintptr_t)&gString_78bec8, stream);
     String_Dtor(&language);
     return opened;
 }
@@ -647,7 +648,7 @@ void __fastcall Class6fdaa4_TrimName(u8 *, void *, String *s) {
 }
 
 void __fastcall Class6fdaa4_SetEntry(u8 *object, void *, const DirEntry *entry, const String *path) {
-    const String *const wad = reinterpret_cast<const String *>((uintptr_t)0x0078bb08);
+    const String *const wad = reinterpret_cast<const String *>((uintptr_t)&gString_78bb08);
     String folder;
     String_Ctor(&folder);
     String *const name = reinterpret_cast<String *>(object + 4);
@@ -688,12 +689,12 @@ u32 __fastcall Class6fdaa4_HasEmt(u8 *object) {
     found.text[0] = 0;
     found.name = found.text;
     s32 result;
-    const char *const pattern = *reinterpret_cast<const char *const *>((uintptr_t)0x0078bcf0);   // the String 0x78bce8's text
+    const char *const pattern = *reinterpret_cast<const char *const *>((uintptr_t)&gString_78bce8 + 0x8);   // the String 0x78bce8's text
     return *vcall<s32 *>(object + 0x2c, 4, &result, pattern, &found) >= 0 ? 1 : 0;
 }
 
 u32 __fastcall Class6fdaa4_HasAllParts(u8 *object) {
-    for (const uintptr_t text : {0x0078c440u, 0x0078c248u, 0x0078c4e8u}) {
+    for (const uintptr_t text : {(u32)(uintptr_t)&gString_78c438 + 0x8, (u32)(uintptr_t)&gString_78c240 + 0x8, (u32)(uintptr_t)&gString_78c4e0 + 0x8}) {
         struct Found {
             u8 head[0x20];   // sic: unwritten for the first find, then copied from a local record never written
             char *name;

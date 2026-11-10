@@ -2,6 +2,7 @@
 
 #include <cstdint>
 #include "../gfx/texcache.h"
+#include "../core/staticobjects.h"
 
 namespace {
 
@@ -26,7 +27,7 @@ extern "C" void __stdcall Mesh_TouchTextures(const u8 *mesh) {
         u8 *const record = at<u8 *>(at<u8 *>(mesh, 0x6c) + i * 0x10, 0);
         if (!record || !at<u32>(record, 4))
             continue;
-        const u32 texture = textureOf(at<u32>(record, 4), global<u32>(0x008bd550) & 0x40 ? at<u16>(record, 2) : 0);
+        const u32 texture = textureOf(at<u32>(record, 4), global<u32>((u32)(uintptr_t)&gTexSettings_8bd550) & 0x40 ? at<u16>(record, 2) : 0);
         if (!texture)
             continue;
         if (!(at<u32>(mesh, 0) & 0xc0000))

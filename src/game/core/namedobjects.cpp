@@ -21,6 +21,7 @@
 #include "../world/things.h"
 #include "../world/world.h"
 #include "../ui/windowproc.h"
+#include "staticobjects.h"
 
 namespace {
 
@@ -28,10 +29,13 @@ AddrCalls g_calls;
 
 template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cast<T *>((uintptr_t)p + offset); }
 
-constexpr u32 kNames[] = {0x00786b68, 0x00785e78, 0x00785f98, 0x007862c8, 0x00785f68, 0x007862f8, 0x00786d10,
-                          0x007866e8, 0x007862e0, 0x00785ed8, 0x00785f80, 0x00786aa8, 0x00786040, 0x007867d8};
+const u32 kNames[] = {(u32)(uintptr_t)&gNamedObjects_786b68, (u32)(uintptr_t)&gString_785e78, (u32)(uintptr_t)&gString_785f98,
+                      (u32)(uintptr_t)&gString_7862c8,       (u32)(uintptr_t)&gString_785f68, (u32)(uintptr_t)&gString_7862f8,
+                      (u32)(uintptr_t)&gString_786d10,       (u32)(uintptr_t)&gString_7866e8, (u32)(uintptr_t)&gString_7862e0,
+                      (u32)(uintptr_t)&gString_785ed8,       (u32)(uintptr_t)&gString_785f80, (u32)(uintptr_t)&gString_786aa8,
+                      (u32)(uintptr_t)&gString_786040,       (u32)(uintptr_t)&gString_7867d8};
 
-u8 **registry() { return *reinterpret_cast<u8 ***>((uintptr_t)0x00786b9c); }
+u8 **registry() { return *reinterpret_cast<u8 ***>((uintptr_t)&gNamedObjects_786b68 + 0x34); }
 
 // A list node {object, next, prev} for the object, unlinked (none when the allocation fails).
 u8 *node(String *object) {
@@ -69,7 +73,7 @@ u8 *__fastcall NamedObjects_Ctor(u8 *self) {
     at<u32>(self, 0x18) = 0;
     at<u32>(self, 0x1c) = 0;
     at<u32>(self, 0x14) = 0xffffffffu;
-    vcall<u32>(self, 0x18, reinterpret_cast<const WString *>(0x007861c0));
+    vcall<u32>(self, 0x18, reinterpret_cast<const WString *>((u32)(uintptr_t)&gString_7861c0));
     at<u8>(self, 0x20) = 0;
     u8 *const ref = static_cast<u8 *>(GameHeap_Alloc(0xc));
     at<u8 *>(self, 0x34) = ref ? Init_421510(ref) : nullptr;
@@ -123,17 +127,17 @@ s32 *__cdecl NamedObjects_AddSubfolders(s32 *out, const String *folder) {
     String_Ctor(&path);
     vcall<void>(&path, 0x18, folder);
     String_EnsureTrailingBackslash(&path);
-    vcall<void>(&path, 0x28, reinterpret_cast<const String *>(0x00f7f908));
+    vcall<void>(&path, 0x28, reinterpret_cast<const String *>((u32)(uintptr_t)&gString_f7f908));
     s32 found = -1;
     s32 status;
     if (*Handle_Open28(&handle, nullptr, &status, static_cast<u32>(reinterpret_cast<uintptr_t>(path.data))) >= 0 &&
-        *Handle_Vfn1(&handle, nullptr, &status, *reinterpret_cast<const u32 *>(0x00f80768), static_cast<u32>(reinterpret_cast<uintptr_t>(entry))) >= 0) {
+        *Handle_Vfn1(&handle, nullptr, &status, *reinterpret_cast<const u32 *>((u32)(uintptr_t)&gString_f80760 + 0x8), static_cast<u32>(reinterpret_cast<uintptr_t>(entry))) >= 0) {
         found = 0;
         do {
             if (DirEntry_IsRealDir(entry)) {
                 String name;
                 String_CtorStr(&name, nullptr, *reinterpret_cast<const char *const *>(entry + 0x20));
-                NamedObjects_AddName(reinterpret_cast<u8 *>(0x00786b68), nullptr, &name);
+                NamedObjects_AddName(reinterpret_cast<u8 *>((u32)(uintptr_t)&gNamedObjects_786b68), nullptr, &name);
                 String_Dtor(&name);
             }
         } while (*Handle_Vfn2(&handle, nullptr, &status, static_cast<u32>(reinterpret_cast<uintptr_t>(entry))) >= 0);
@@ -193,12 +197,12 @@ void __fastcall NamedObjects_AddName(u8 *self, void *, const String *name) {
     }
 }
 
-void __cdecl NamedObjects_StaticDtor() { NamedObjects_Dtor(reinterpret_cast<u8 *>(0x00786b68)); }
+void __cdecl NamedObjects_StaticDtor() { NamedObjects_Dtor(reinterpret_cast<u8 *>((u32)(uintptr_t)&gNamedObjects_786b68)); }
 
 u32 __fastcall Flags7a1a14_Update(const u8 *object) {
     u32 &flags = gWindowproc_7a1a14;
     const u32 bit = (flags >> 3) & 1;
-    Obj_AdvanceUnless30(reinterpret_cast<u8 *>(0x00785970));
+    Obj_AdvanceUnless30(reinterpret_cast<u8 *>((u32)(uintptr_t)&gObj_785970));
     *reinterpret_cast<u32 *>((uintptr_t)0x007477e4) = bit;
     if (!at<u32>(object, 0x18))
         return 0;
@@ -209,7 +213,8 @@ u32 __fastcall Flags7a1a14_Update(const u8 *object) {
 void __fastcall NamedObjects_SetThemeLabel(u8 *, void *, const WString *theme, u8 *label) {
     String unused;   // (constructed and destroyed, never used)
     String_Ctor(&unused);
-    static constexpr u32 kThemes[][2] = {{0x00786478, 2}, {0x00786808, 1}, {0x00786970, 0}, {0x007869e8, 3}};
+    const u32 kThemes[][2] = {{(u32)(uintptr_t)&gWString_786478, 2}, {(u32)(uintptr_t)&gWString_786808, 1}, {(u32)(uintptr_t)&gWString_786970, 0},
+                              {(u32)(uintptr_t)&gWString_7869e8, 3}};
     for (const auto &t : kThemes) {
         if (WNames_Equal(reinterpret_cast<const u8 *>(theme), reinterpret_cast<const u8 *>((uintptr_t)t[0]))) {
             const u8 *const table = *reinterpret_cast<u8 *const *>((uintptr_t)0x0078bad4);
@@ -224,7 +229,8 @@ void __fastcall NamedObjects_SetThemeTexts(u8 *, void *, const WString *theme, u
     String unused;   // (constructed and destroyed, never used)
     String_Ctor(&unused);
     u16 firstText[0x20], secondText[0x20];   // (not set when no theme matches, sic)
-    static constexpr u32 kThemes[][2] = {{0x00786478, 0x11f9}, {0x00786808, 0xa29}, {0x00786970, 0x641}, {0x007869e8, 0xe11}};
+    const u32 kThemes[][2] = {{(u32)(uintptr_t)&gWString_786478, 0x11f9}, {(u32)(uintptr_t)&gWString_786808, 0xa29},
+                              {(u32)(uintptr_t)&gWString_786970, 0x641}, {(u32)(uintptr_t)&gWString_7869e8, 0xe11}};
     for (const auto &t : kThemes) {
         if (WNames_Equal(reinterpret_cast<const u8 *>(theme), reinterpret_cast<const u8 *>((uintptr_t)t[0]))) {
             g_calls.Th(0x00413020, 0x007890a0u, t[1], firstText, 0x20u);
@@ -254,14 +260,14 @@ void __fastcall NamedObjects_AddFolders(u8 *self, void *, const WString *root) {
         bool at8;   // (added by Obj_SetAt8AndAdd)
         u32 next;   // (the String the next folder gets appended; 0 for the last)
     };
-    static const Entry kEntries[] = {
-        {0x48, &Class6fda58_Ctor, 0x00786b68, false, 0x007869d0}, {0x40, &Class6fda48_Ctor, 0x00785e78, true, 0x007864f0},
-        {0x40, &Class6fda48_Ctor, 0x00785f98, true, 0x007865f8},  {0x50, &Class6fda98_Ctor, 0x007862c8, false, 0x00786640},
-        {0x50, &Class6fda98_Ctor, 0x00785f68, false, 0x00786388}, {0x50, &Class6fda98_Ctor, 0x007862f8, false, 0x00785f38},
-        {0x50, &Class6fda98_Ctor, 0x00786d10, false, 0x007868e0}, {0x50, &Class6fda98_Ctor, 0x007866e8, false, 0x00786778},
-        {0x50, &Class6fda88_Ctor, 0x007862e0, false, 0x00786af0}, {0x48, &Class6fdad8_Ctor, 0x00785ed8, false, 0x007863b8},
-        {0x48, &Class6fda58_Ctor, 0x00785f80, false, 0x00786850}, {0x48, &Class6fda58_Ctor, 0x00786aa8, false, 0x007869a0},
-        {0x48, &Class6fda58_Ctor, 0x00786040, false, 0x007869b8}, {0x48, &Class6fda58_Ctor, 0x007867d8, false, 0},
+    const Entry kEntries[] = {   // (not static: the names' addresses make it a dynamic initialiser, and a static one would take a guard)
+        {0x48, &Class6fda58_Ctor, (u32)(uintptr_t)&gNamedObjects_786b68, false, (u32)(uintptr_t)&gString_7869d0}, {0x40, &Class6fda48_Ctor, (u32)(uintptr_t)&gString_785e78, true, (u32)(uintptr_t)&gString_7864f0},
+        {0x40, &Class6fda48_Ctor, (u32)(uintptr_t)&gString_785f98, true, (u32)(uintptr_t)&gString_7865f8},  {0x50, &Class6fda98_Ctor, (u32)(uintptr_t)&gString_7862c8, false, (u32)(uintptr_t)&gString_786640},
+        {0x50, &Class6fda98_Ctor, (u32)(uintptr_t)&gString_785f68, false, (u32)(uintptr_t)&gString_786388}, {0x50, &Class6fda98_Ctor, (u32)(uintptr_t)&gString_7862f8, false, (u32)(uintptr_t)&gString_785f38},
+        {0x50, &Class6fda98_Ctor, (u32)(uintptr_t)&gString_786d10, false, (u32)(uintptr_t)&gString_7868e0}, {0x50, &Class6fda98_Ctor, (u32)(uintptr_t)&gString_7866e8, false, (u32)(uintptr_t)&gString_786778},
+        {0x50, &Class6fda88_Ctor, (u32)(uintptr_t)&gString_7862e0, false, (u32)(uintptr_t)&gString_786af0}, {0x48, &Class6fdad8_Ctor, (u32)(uintptr_t)&gString_785ed8, false, (u32)(uintptr_t)&gString_7863b8},
+        {0x48, &Class6fda58_Ctor, (u32)(uintptr_t)&gString_785f80, false, (u32)(uintptr_t)&gString_786850}, {0x48, &Class6fda58_Ctor, (u32)(uintptr_t)&gString_786aa8, false, (u32)(uintptr_t)&gString_7869a0},
+        {0x48, &Class6fda58_Ctor, (u32)(uintptr_t)&gString_786040, false, (u32)(uintptr_t)&gString_7869b8}, {0x48, &Class6fda58_Ctor, (u32)(uintptr_t)&gString_7867d8, false, 0},
     };
     String folder;
     String_Ctor(&folder);
@@ -285,9 +291,11 @@ void __fastcall NamedObjects_AddFolders(u8 *self, void *, const WString *root) {
 }
 
 void __fastcall NamedObjects_AddListedFolders(u8 *self) {
-    static constexpr u32 kParts[][2] = {{0x00786430, 0x00786a48}, {0x00785e90, 0x00786ce0}, {0x00786670, 0x007860e8}};
-    const auto *const root = reinterpret_cast<const WString *>((uintptr_t)0x00785e48);
-    for (u8 *node = *reinterpret_cast<u8 **>((uintptr_t)0x00786b90); node;) {
+    const u32 kParts[][2] = {{(u32)(uintptr_t)&gString_786430, (u32)(uintptr_t)&gString_786a48},
+                             {(u32)(uintptr_t)&gString_785e90, (u32)(uintptr_t)&gString_786ce0},
+                             {(u32)(uintptr_t)&gString_786670, (u32)(uintptr_t)&gString_7860e8}};
+    const auto *const root = reinterpret_cast<const WString *>((uintptr_t)&gString_785e48);
+    for (u8 *node = *reinterpret_cast<u8 **>((uintptr_t)&gNamedObjects_786b68 + 0x28); node;) {
         String folder, name;
         String_Ctor(&folder);
         String_Ctor(&name);
@@ -326,14 +334,14 @@ void __fastcall NamedObjects_AddFixedFolders(u8 *self) {
         u8 add;
         u32 wad;   // (a WAD String added after the folder, kFolder only; 0 for none)
     };
-    static const Entry kEntries[] = {
-        {0x48, &Class6fda58_Ctor, 0x00786940, 0x007861a8, kFolderAndWad, 0}, {0x48, &Class6fda58_Ctor, 0x00786b38, 0x00786088, kFolderAndWad, 0},
-        {0x40, &Class6fdaf8_Ctor, 0x00786cc8, 0x007866a0, kBoth, 0},         {0x40, &Class6fda68_Ctor, 0x00786358, 0x00785f20, kFolderAndWad, 0},
-        {0x40, &Class6fda68_Ctor, 0x007867f0, 0x00786bf0, kFolderAndWad, 0}, {0x40, &Class6fdaa8_Ctor, 0x00785fc8, 0x00786a00, kFolderAndWad, 0},
-        {0x50, &Class6fdac8_Ctor, 0x00786610, 0x00786bc0, kFolder, 0x00786028},
-        {0x40, &Class6fdab8_Ctor, 0x00786c08, 0x00786520, kFolder, 0x007860a0}, {0x48, &Class6fda58_Ctor, 0x00786298, 0x00786598, kFolder, 0},
-        {0x40, &Class6fdae8_Ctor, 0x00786d88, 0x00786dd0, kFolder, 0},        {0x48, &Class6fda58_Ctor, 0x00786310, 0x00786cb0, kFolder, 0x007860b8},
-        {0x50, &Class6fda88_Ctor, 0x00786ba8, 0x00786208, kFolderAndWad, 0}, {0x48, &Class6fda58_Ctor, 0x00786d40, 0x00786988, kFolder, 0x00786d28},
+    const Entry kEntries[] = {
+        {0x48, &Class6fda58_Ctor, (u32)(uintptr_t)&gString_786940, (u32)(uintptr_t)&gString_7861a8, kFolderAndWad, 0}, {0x48, &Class6fda58_Ctor, (u32)(uintptr_t)&gString_786b38, (u32)(uintptr_t)&gString_786088, kFolderAndWad, 0},
+        {0x40, &Class6fdaf8_Ctor, (u32)(uintptr_t)&gString_786cc8, (u32)(uintptr_t)&gString_7866a0, kBoth, 0},         {0x40, &Class6fda68_Ctor, (u32)(uintptr_t)&gString_786358, (u32)(uintptr_t)&gString_785f20, kFolderAndWad, 0},
+        {0x40, &Class6fda68_Ctor, (u32)(uintptr_t)&gString_7867f0, (u32)(uintptr_t)&gString_786bf0, kFolderAndWad, 0}, {0x40, &Class6fdaa8_Ctor, (u32)(uintptr_t)&gString_785fc8, (u32)(uintptr_t)&gString_786a00, kFolderAndWad, 0},
+        {0x50, &Class6fdac8_Ctor, (u32)(uintptr_t)&gString_786610, (u32)(uintptr_t)&gString_786bc0, kFolder, (u32)(uintptr_t)&gString_786028},
+        {0x40, &Class6fdab8_Ctor, (u32)(uintptr_t)&gString_786c08, (u32)(uintptr_t)&gString_786520, kFolder, (u32)(uintptr_t)&gString_7860a0}, {0x48, &Class6fda58_Ctor, (u32)(uintptr_t)&gString_786298, (u32)(uintptr_t)&gString_786598, kFolder, 0},
+        {0x40, &Class6fdae8_Ctor, (u32)(uintptr_t)&gString_786d88, (u32)(uintptr_t)&gString_786dd0, kFolder, 0},        {0x48, &Class6fda58_Ctor, (u32)(uintptr_t)&gString_786310, (u32)(uintptr_t)&gString_786cb0, kFolder, (u32)(uintptr_t)&gString_7860b8},
+        {0x50, &Class6fda88_Ctor, (u32)(uintptr_t)&gString_786ba8, (u32)(uintptr_t)&gString_786208, kFolderAndWad, 0}, {0x48, &Class6fda58_Ctor, (u32)(uintptr_t)&gString_786d40, (u32)(uintptr_t)&gString_786988, kFolder, (u32)(uintptr_t)&gString_786d28},
     };
     for (u32 i = 0; i < sizeof kEntries / sizeof kEntries[0]; ++i) {
         const Entry &e = kEntries[i];
@@ -370,13 +378,14 @@ u32 __fastcall NamedObjects_LoadData(u8 *self) {
     vcall<void>(&path, 0x14, base());
     vcall<void>(&path, 0x20, reinterpret_cast<const char *>(0x00747ee8));
     g_calls.Cd(0x00550e00, g_calls.Cd(0x0044a280, path.data, 1u, 0u));   // Scape_LoadObjects(Quickload_Locate(the path, 1, 0))
-    g_calls.Th(0x005852b0, 0x008c1828u, base());                          // Landscape_LoadSky
-    if ((*reinterpret_cast<u32 *>((uintptr_t)0x008bcbc8) & 0x400000) && *reinterpret_cast<s32 *>((uintptr_t)0x00785724) > 0 && !at<u32>(self, 0x38)) {
+    g_calls.Th(0x005852b0, (u32)(uintptr_t)&gLandscape_8c1828, base());                          // Landscape_LoadSky
+    if ((*reinterpret_cast<u32 *>((uintptr_t)&gView_8bcbc8) & 0x400000) && *reinterpret_cast<s32 *>((uintptr_t)&gBalanceLevel + 0x6e4) > 0 && !at<u32>(self, 0x38)) {
         void *const list = GameHeap_Alloc(0x10);
         at<void *>(self, 0x38) = list;
         g_calls.Th(0x00418c30, (u32)(uintptr_t)list);                     // Landscape_AddTextureList (a null list too)
     }
-    static const struct { u32 name, file; } kFiles[2] = {{0x00786bd8, 0x00784e30}, {0x007868c8, 0x00784c20}};
+    const struct { u32 name, file; } kFiles[2] = {{(u32)(uintptr_t)&gString_786bd8, (u32)(uintptr_t)&gBalanceHoardingsA},
+                                                  {(u32)(uintptr_t)&gString_7868c8, (u32)(uintptr_t)&gBalanceHoardingsB}};
     u32 result = 1;
     for (const auto &file : kFiles) {
         vcall<void>(&path, 0x14, base());
@@ -424,7 +433,7 @@ void __fastcall NamedObjects_SelectByName(u8 *self, void *, const String *name) 
 }
 
 u32 __cdecl GameOwner_SelectMode(u32 which) {
-    u8 *const owner = reinterpret_cast<u8 *>((uintptr_t)0x00786b68);
+    u8 *const owner = reinterpret_cast<u8 *>((uintptr_t)&gNamedObjects_786b68);
     set_index(owner, which == 2 ? 1 : which == 3 ? 0 : which == 4 ? 3 : 2);
     return select_theme(owner);
 }
@@ -438,7 +447,7 @@ u32 __fastcall NamedObjects_StartLevel(u8 *self, void *, u32 level) {
         WString wide;
         WString_Ctor(&wide);
         WString_AssignFromAnsi(&wide, &name);
-        g_calls.Th(0x005ac5d0, 0x00f7b560u, &wide);
+        g_calls.Th(0x005ac5d0, (u32)(uintptr_t)&gStatic_f7b560, &wide);
         WString_Dtor(&wide);
         String_Dtor(&name);
     }

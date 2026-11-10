@@ -12,6 +12,7 @@
 #include "things.h"
 #include "../ui/window7cc8c0handler.h"
 #include "tagsystem.h"
+#include "../core/staticobjects.h"
 
 namespace {
 
@@ -31,12 +32,12 @@ u8 *number(Arg &arg, u32 n, s32 value) { return TextArgInt_Ctor(arg.bytes, nullp
 u8 *string(Arg &arg, u32 n, const u16 *value) { return TextArgString_Ctor(arg.bytes, nullptr, n, (u32)(uintptr_t)value); }
 
 template <typename... A> void format(u8 *self, const u8 *record, A... args) {
-    TextFormat().format(global<void *>(0x0078ba90), &at<u16>(self, 0xc), 0x400, at<u32>(record, 0xc), args...);
+    TextFormat().format(global<void *>((u32)(uintptr_t)&gLanguage_78b530 + 0x560), &at<u16>(self, 0xc), 0x400, at<u32>(record, 0xc), args...);
 }
 
 // The kind's text (the table [0x78bac0]: 1, 3, 5, 7, 9). Past kind 4 the buffer stays as it was (sic: the original's uninitialised stack).
 void kindText(u32 kind, u16 *out) {
-    if (kind <= 4) TextFormat().format(global<void *>(0x0078bac0), out, 0x40, kind * 2 + 1);
+    if (kind <= 4) TextFormat().format(global<void *>((u32)(uintptr_t)&gLanguage_78b530 + 0x590), out, 0x40, kind * 2 + 1);
 }
 
 void fullName(const u8 *c, u32 offset, u16 *out) { ObjectDefs_GetFullName(defs(), nullptr, at<u16>(c, offset), out, 0x40); }
@@ -104,16 +105,16 @@ extern "C" u8 __fastcall TagSystem_FormatTag(u8 *self, void *, const u8 *record,
         Crt().swprintf(dest, gText_TagSystem_HandleMessage_75ebe0);
         return 1;
     case 5:
-        format(self, record, number(x, 1, global<s32>(0x00785790)));
+        format(self, record, number(x, 1, global<s32>((u32)(uintptr_t)&gBalanceLevel + 0x750)));
         return 1;
     case 6:
-        format(self, record, number(x, 1, global<s32>(0x00785794)));
+        format(self, record, number(x, 1, global<s32>((u32)(uintptr_t)&gBalanceLevel + 0x754)));
         return 1;
     case 7:
-        format(self, record, number(x, 1, global<s32>(0x007857a0)));
+        format(self, record, number(x, 1, global<s32>((u32)(uintptr_t)&gBalanceLevel + 0x760)));
         return 1;
     case 8:
-        format(self, record, number(x, 1, global<s32>(0x007857a4)), number(y, 2, global<s32>(0x007857a8)));
+        format(self, record, number(x, 1, global<s32>((u32)(uintptr_t)&gBalanceLevel + 0x764)), number(y, 2, global<s32>((u32)(uintptr_t)&gBalanceLevel + 0x768)));
         return 1;
     case 9:
     case 0xb:

@@ -6,6 +6,7 @@
 #include "../core/string.h"
 #include "../core/vcall.h"
 #include "vfs.h"
+#include "../core/staticobjects.h"
 
 namespace {
 
@@ -20,13 +21,13 @@ const u32 kAssign = 0x18, kAppendText = 0x20, kAppend = 0x28;
 const String *Global(u32 address) { return reinterpret_cast<const String *>((uintptr_t)address); }
 
 bool AddFont(String *from, String *to, const char *name) {
-    vcall<void>(from, kAssign, Global(0x00f86558));
-    vcall<void>(from, kAppend, Global(0x00f85a08));
+    vcall<void>(from, kAssign, Global((u32)(uintptr_t)&gString_f86558));
+    vcall<void>(from, kAppend, Global((u32)(uintptr_t)&gString_f85a08));
     vcall<void>(from, kAppendText, name);
-    vcall<void>(to, kAssign, Global(0x00f816e8));
-    vcall<void>(to, kAppend, Global(0x00f85a08));
-    vcall<void>(to, kAppend, Global(0x00f86750));
-    vcall<void>(to, kAppend, Global(0x00f85a08));
+    vcall<void>(to, kAssign, Global((u32)(uintptr_t)&gStrings5_f816c0 + 0x28));
+    vcall<void>(to, kAppend, Global((u32)(uintptr_t)&gString_f85a08));
+    vcall<void>(to, kAppend, Global((u32)(uintptr_t)&gString_f86750));
+    vcall<void>(to, kAppend, Global((u32)(uintptr_t)&gString_f85a08));
     vcall<void>(to, kAppendText, name);
     if (!g_env->extract(from->data, to->data)) return false;
     using AddFontResource = s32(__stdcall *)(const char *);

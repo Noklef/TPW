@@ -6,6 +6,7 @@
 #include "../core/gameheap.h"
 #include "objectdefs.h"
 #include "things.h"
+#include "../core/staticobjects.h"
 
 namespace {
 
@@ -27,7 +28,7 @@ void EndThing_SetEnv(const EndThingEnv *env) { g_env = env ? env : &kGameEnv; }
 void __cdecl EndThing_Create() {
     u8 *const defs = reinterpret_cast<u8 *>((uintptr_t)0x007890a0);
     u8 *def = ObjectDefs_First(defs);
-    while (def && Crt().wcsicmp(reinterpret_cast<const u16 *>(def + 0x390), global<const u16 *>(0x007cf9c8)) != 0) def = ObjectDefs_Next(defs);
+    while (def && Crt().wcsicmp(reinterpret_cast<const u16 *>(def + 0x390), global<const u16 *>((u32)(uintptr_t)&gWString_7cf9c0 + 0x8)) != 0) def = ObjectDefs_Next(defs);
     u8 *object = nullptr;
     if (def) {
         u8 *const block = static_cast<u8 *>(GameHeap_Alloc(0x450));

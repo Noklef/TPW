@@ -8,6 +8,7 @@
 #include "../core/vwrap.h"
 #include "../files/file.h"
 #include "../files/vfs.h"
+#include "../core/staticobjects.h"
 
 namespace {
 
@@ -31,8 +32,8 @@ extern "C" {
 
 void __fastcall IslandCamera_LoadSettings(u8 *settings) {
     String path;
-    String_CtorCopy(&path, nullptr, reinterpret_cast<const StringView *>((uintptr_t)0x00f855b8));
-    String_Append(&path, nullptr, reinterpret_cast<const StringView *>((uintptr_t)0x00f855d0));
+    String_CtorCopy(&path, nullptr, reinterpret_cast<const StringView *>((uintptr_t)&gString_f855b8));
+    String_Append(&path, nullptr, reinterpret_cast<const StringView *>((uintptr_t)&gString_f855d0));
     u8 *const stream = reinterpret_cast<u8 *>(VFS_Open(path.data));
     Stream_SeekFailed(stream, 0, 2);
     const u32 size = Object_CallSlot14(stream);

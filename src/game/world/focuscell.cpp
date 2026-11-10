@@ -15,6 +15,7 @@
 #include "object.h"
 #include "objectdefs.h"
 #include "focuscell.h"
+#include "../core/staticobjects.h"
 
 namespace {
 
@@ -82,7 +83,7 @@ void __cdecl FocusCell_Update(u32 record) {
     Position_StepB(&global<s32>(0x007639e8), &global<s32>(0x007639ec), direction);
     const u8 *const focus = gFocuscell_8186ac;
     if (focus && global<u16>(0x00818698) != global<u16>(0x008186a0) && (u8)record)
-        ActionRec_WriteW(reinterpret_cast<ActionRec *>(0x00785a08), nullptr, 0x32, CellId(focus));
+        ActionRec_WriteW(reinterpret_cast<ActionRec *>((u32)(uintptr_t)&gActionRec_785a08), nullptr, 0x32, CellId(focus));
 }
 
 void __cdecl FocusCell_TrackDrag(s32 x, s32 y) {

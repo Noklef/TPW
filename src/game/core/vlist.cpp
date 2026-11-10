@@ -5,6 +5,7 @@
 #include "../math/x87.h"
 #include "gameclock.h"
 #include "vcall.h"
+#include "staticobjects.h"
 
 namespace {
 
@@ -61,7 +62,7 @@ u32 __fastcall List18_CallSlotC(u8 *object) {
 
 u32 __fastcall List18_TickSlot8(u8 *object) {
     at<u32>(object, 0x28) = at<u32>(object, 0x2c);
-    const u32 now = Clocks_RealNow(reinterpret_cast<u8 *>(0x00785970));
+    const u32 now = Clocks_RealNow(reinterpret_cast<u8 *>((u32)(uintptr_t)&gObj_785970));
     at<u32>(object, 0x2c) = now;
     at<u32>(object, 0x30) = now - at<u32>(object, 0x28);
     if (now - at<u32>(object, 0x28) > 500)

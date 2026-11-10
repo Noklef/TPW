@@ -23,6 +23,7 @@
 #include "placecar.h"
 #include "coastersupdate.h"
 #include "coastersload.h"
+#include "../core/staticobjects.h"
 
 namespace {
 
@@ -33,7 +34,7 @@ u32 &Flags() { return gPlacecar_79c658; }
 u8 *Piece() { return gEdittools_79c640; }
 const u8 *Def(const u8 *piece) { return at<const u8 *>(piece, 0x100); }
 const u8 *Type(const u8 *piece) { return at<const u8 *>(Def(piece), 0x18); }
-ActionRec *Recorder() { return reinterpret_cast<ActionRec *>(0x00785a08); }
+ActionRec *Recorder() { return reinterpret_cast<ActionRec *>((u32)(uintptr_t)&gActionRec_785a08); }
 void ClearChanged() { at<u32>(gCoastersload_790fec, 0) &= ~0x2000u; }
 
 const EditToolsEnv kPortEnv = {&Coaster_DeleteCar,           &Coaster_DeleteFlaggedEnd,       &Coaster_SetState,
@@ -302,7 +303,7 @@ u32 __cdecl CoasterEdit_ToggleDrag() {
         Highlight_SetShown(1);
         return 1;
     }
-    if (!g<u32>(0x00785a2c)) {
+    if (!g<u32>((u32)(uintptr_t)&gActionRec_785a08 + 0x24)) {
         const s32 steps = Float_RoundUp(static_cast<float>(Car_TravelCost(game, 0, piece, nullptr, nullptr, nullptr, nullptr)));
         u8 *const money = reinterpret_cast<u8 *>(GameTable7cfb90_Get1da726_5195d0(g<u8 *>(0x007cf83c)));
         Money_Credit(money, nullptr, (s32)(long long)gEdittools_79c698);   // __ftol
@@ -603,7 +604,7 @@ void __cdecl CoasterEdit_SetEditing(u8 *coaster, u32 on) {
 
 void __cdecl CoasterEdit_EditRide(const u8 *object, u32 on) {
     u8 *const link = object ? CoasterLink_ById(at<u32>(object, 0x20)) : nullptr;
-    if (g<u32>(0x00785a2c)) return;
+    if (g<u32>((u32)(uintptr_t)&gActionRec_785a08 + 0x24)) return;
     if (on)
         CoasterEdit_SetEditing(link, 1);
     else
@@ -686,7 +687,7 @@ void __cdecl CoasterEdit_DeleteLastCar() {
         if (!car || (at<u8>(at<const u8 *>(car, 0x100), 4) & 2)) return;
         g_env->deleteCar(game, car);
     }
-    if (!g<u32>(0x00785a2c)) {
+    if (!g<u32>((u32)(uintptr_t)&gActionRec_785a08 + 0x24)) {
         if (retool) {
             CoasterEdit_Tools(nullptr);
             CoasterEdit_EndTool();
@@ -826,7 +827,7 @@ void __cdecl CoasterEdit_DeleteSpan() {
 }
 
 u32 __cdecl CoasterEdit_Click(u32 press) {
-    if (g<u32>(0x00785a2c)) return 0;
+    if (g<u32>((u32)(uintptr_t)&gActionRec_785a08 + 0x24)) return 0;
     const u32 ride = static_cast<u32>(reinterpret_cast<uintptr_t>(Highlight_Current()));
     const u8 flags = reinterpret_cast<u8 &>(gPlacecar_79c658);
     const auto find = [ride]() {   // (the car under the cursor, to 0x79c640; sic: with no link this faults)
@@ -952,7 +953,7 @@ u32 __cdecl CoasterEdit_PlaceSelected(s32 x, s32 y) {
         Fn_52c2a0();
         Flags() &= ~0x100u;
         gEdittools_79c6a4 = nullptr;
-        if (g<u32>(0x00785a2c)) EndToolVia(kEndInlined);
+        if (g<u32>((u32)(uintptr_t)&gActionRec_785a08 + 0x24)) EndToolVia(kEndInlined);
         return 0;
     }
     const u8 *const placed = gEdittools_79c6a4;
@@ -973,7 +974,7 @@ u32 __cdecl CoasterEdit_PlaceSelected(s32 x, s32 y) {
     } else {
         float outX, outY;
         env->dropCar(gCoastersload_790fec, piece, tile, x, y, &outX, &outY, 1, 0);
-        if (!g<u32>(0x00785a2c) && (gEdittools_79c6d8 != x || gEdittools_79c6a0 != y)) {
+        if (!g<u32>((u32)(uintptr_t)&gActionRec_785a08 + 0x24) && (gEdittools_79c6d8 != x || gEdittools_79c6a0 != y)) {
             u8 *const game = gCoastersload_790fec;
             s32 cost;
             u8 *money;
@@ -1000,7 +1001,7 @@ u32 __cdecl CoasterEdit_PlaceSelected(s32 x, s32 y) {
     Flags() &= ~0x100u;
     gEdittools_79c6a4 = nullptr;
     gEdittools_79c660 = nullptr;
-    if (g<u32>(0x00785a2c)) EndToolVia(kEndCalled);
+    if (g<u32>((u32)(uintptr_t)&gActionRec_785a08 + 0x24)) EndToolVia(kEndCalled);
     return settled ? at<u32>(placed, 0x70) : 0;
 }
 
@@ -1017,7 +1018,7 @@ void __cdecl CoasterEdit_CancelSelected() {
     Highlight_SetShown(0);
     gEdittools_79c6a4 = nullptr;
     gEdittools_79c660 = nullptr;
-    if (g<u32>(0x00785a2c)) EndToolVia(kAllInlined);
+    if (g<u32>((u32)(uintptr_t)&gActionRec_785a08 + 0x24)) EndToolVia(kAllInlined);
 }
 }
 

@@ -10,6 +10,7 @@
 #include "../files/handles.h"
 #include "../render/d3dresult.h"
 #include "../render/engineerrors.h"
+#include "../core/staticobjects.h"
 
 namespace {
 
@@ -25,7 +26,7 @@ void ScreenGrab_SetCalls(const AddrCall *table, u32 count) { g_calls.Set(table, 
 extern "C" {
 
 u32 __fastcall ScreenGrab_ToRgb24(u8 *grab, void *) {
-    const s32 depth = global<s32>(0x008bcbe4);
+    const s32 depth = global<s32>((u32)(uintptr_t)&gView_8bcbc8 + 0x1c);
     if (depth == 0x10) {
         const u32 out = TrackedGlobal_Alloc(at<u32>(grab, 8) * 3 + 1);
         at<u32>(grab, 4) = out;
@@ -35,10 +36,10 @@ u32 __fastcall ScreenGrab_ToRgb24(u8 *grab, void *) {
             EngineErrors_Push(reinterpret_cast<u8 *>((uintptr_t)0x00879ad0), nullptr, 2, 0xb0754000);
             return 0;
         }
-        const u32 maskA = global<u32>(0x008bcc54), maskB = global<u32>(0x008bcc6c), maskC = global<u32>(0x008bcc60);
-        const u32 shiftA = (0x18 - global<u32>(0x008bcc58) - global<u32>(0x008bcc5c)) & 31;
-        const u32 shiftC = (0x10 - global<u32>(0x008bcc64) - global<u32>(0x008bcc68)) & 31;
-        const u32 shiftB = (8 - global<u32>(0x008bcc70) - global<u32>(0x008bcc74)) & 31;
+        const u32 maskA = global<u32>((u32)(uintptr_t)&gView_8bcbc8 + 0x8c), maskB = global<u32>((u32)(uintptr_t)&gView_8bcbc8 + 0xa4), maskC = global<u32>((u32)(uintptr_t)&gView_8bcbc8 + 0x98);
+        const u32 shiftA = (0x18 - global<u32>((u32)(uintptr_t)&gView_8bcbc8 + 0x90) - global<u32>((u32)(uintptr_t)&gView_8bcbc8 + 0x94)) & 31;
+        const u32 shiftC = (0x10 - global<u32>((u32)(uintptr_t)&gView_8bcbc8 + 0x9c) - global<u32>((u32)(uintptr_t)&gView_8bcbc8 + 0xa0)) & 31;
+        const u32 shiftB = (8 - global<u32>((u32)(uintptr_t)&gView_8bcbc8 + 0xa8) - global<u32>((u32)(uintptr_t)&gView_8bcbc8 + 0xac)) & 31;
         const u16 *pixels = at<const u16 *>(grab, 0);
         for (s32 i = 0; i < at<s32>(grab, 8); ++i) {
             const u32 p = pixels[i];
@@ -64,9 +65,9 @@ u32 __fastcall ScreenGrab_ToRgb24(u8 *grab, void *) {
 }
 
 u32 __fastcall ScreenGrab_TakeFront(u8 *grab, void *) {
-    const u32 count = global<u32>(0x008bcbd0) * global<u32>(0x008bcbd4);
+    const u32 count = global<u32>((u32)(uintptr_t)&gView_8bcbc8 + 0x8) * global<u32>((u32)(uintptr_t)&gView_8bcbc8 + 0xc);
     at<u32>(grab, 8) = count;
-    const u32 pixels = TrackedGlobal_Alloc(global<u32>(0x008bcbe4) * count);   // (the depth in bits: eight times the room, sic)
+    const u32 pixels = TrackedGlobal_Alloc(global<u32>((u32)(uintptr_t)&gView_8bcbc8 + 0x1c) * count);   // (the depth in bits: eight times the room, sic)
     at<u32>(grab, 0) = pixels;
     if (!pixels) {
         EngineErrors_Push(reinterpret_cast<u8 *>((uintptr_t)0x00879ad0), nullptr, 2, 0xb0754000);
@@ -76,11 +77,11 @@ u32 __fastcall ScreenGrab_TakeFront(u8 *grab, void *) {
     u32 desc[0x1f] = {0x7c};
     d3dresult::keep(comcall<u32>(front, 0x64, nullptr, desc, 1u, nullptr));
     if (d3dresult::result()) return 0;
-    const u32 bytes = (u32)(global<s32>(0x008bcbe4) >> 3);
+    const u32 bytes = (u32)(global<s32>((u32)(uintptr_t)&gView_8bcbc8 + 0x1c) >> 3);
     const u8 *from = reinterpret_cast<const u8 *>((uintptr_t)desc[9]);
     u8 *to = reinterpret_cast<u8 *>((uintptr_t)pixels);
-    for (s32 y = 0; y < global<s32>(0x008bcbd4); ++y) {
-        const u32 row = bytes * global<u32>(0x008bcbd0);
+    for (s32 y = 0; y < global<s32>((u32)(uintptr_t)&gView_8bcbc8 + 0xc); ++y) {
+        const u32 row = bytes * global<u32>((u32)(uintptr_t)&gView_8bcbc8 + 0x8);
         memcpy(to, from, row);
         from += (s32)desc[4];
         to += row;
@@ -118,8 +119,8 @@ void __cdecl ScreenGrab_NextName() {
 
 u32 __fastcall ScreenGrab_WriteTga(u8 *grab, void *, const char *path) {
     u8 header[0x12] = {0, 0, 2};
-    at<u16>(header, 0xc) = global<u16>(0x008bcbd0);
-    at<u16>(header, 0xe) = global<u16>(0x008bcbd4);
+    at<u16>(header, 0xc) = global<u16>((u32)(uintptr_t)&gView_8bcbc8 + 0x8);
+    at<u16>(header, 0xe) = global<u16>((u32)(uintptr_t)&gView_8bcbc8 + 0xc);
     header[0x10] = 0x18;
     const u32 file = g_calls.Cd(0x0067b8a0, path, 0x00766128u);
     if (!file) {
@@ -127,9 +128,9 @@ u32 __fastcall ScreenGrab_WriteTga(u8 *grab, void *, const char *path) {
         return 0;
     }
     g_calls.Cd(0x0067b6d0, header, 1u, 0x12u, file);
-    for (s32 row = 0; row < global<s32>(0x008bcbd4); ++row) {
-        const s32 width = global<s32>(0x008bcbd0);
-        g_calls.Cd(0x0067b6d0, at<u8 *>(grab, 4) + (global<s32>(0x008bcbd4) - row - 1) * width * 3, 3u, width, file);
+    for (s32 row = 0; row < global<s32>((u32)(uintptr_t)&gView_8bcbc8 + 0xc); ++row) {
+        const s32 width = global<s32>((u32)(uintptr_t)&gView_8bcbc8 + 0x8);
+        g_calls.Cd(0x0067b6d0, at<u8 *>(grab, 4) + (global<s32>((u32)(uintptr_t)&gView_8bcbc8 + 0xc) - row - 1) * width * 3, 3u, width, file);
     }
     g_calls.Cd(0x0067b620, file);
     return 1;

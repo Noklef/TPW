@@ -4,6 +4,7 @@
 
 #include "../math/x87.h"
 #include "meshlist.h"
+#include "../core/staticobjects.h"
 
 namespace {
 
@@ -48,7 +49,7 @@ void __cdecl Model_TexCoords(u8 *out, const u8 *settings, s32 index, const u8 *t
     u32 lane = first & 3;
     if (mode & 2) {
         const float *const light = at<const float *>(gMeshlist_87a248, 0x30);
-        const float k = global<float>(0x008c1618);
+        const float k = global<float>((u32)(uintptr_t)&gTexSettings_8bd550 + 0x40c8);
         const float su = (float)(X87Reg(uScale) / X87Reg((s32)at<s16>(texture, 0x14)));
         const float sv = (float)Negate(X87Reg(vScale) / X87Reg((s32)at<s16>(texture, 0x16)));
         const float *edge = reinterpret_cast<const float *>(at<const u8 *>(settings, 0x74) + first * 24);
@@ -58,7 +59,7 @@ void __cdecl Model_TexCoords(u8 *out, const u8 *settings, s32 index, const u8 *t
             edge += 6;
             const X87Reg sk = s * k;
             const X87Reg tk = t * k;
-            const float limit = global<float>(0x008c161c);
+            const float limit = global<float>((u32)(uintptr_t)&gTexSettings_8bd550 + 0x40cc);
             float shiftU = (float)sk;
             if (sk.v > limit)
                 shiftU = limit;

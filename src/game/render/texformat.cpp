@@ -6,6 +6,7 @@
 #include "../math/bits.h"
 #include "engineerrors.h"
 #include "uvprobe.h"
+#include "../core/staticobjects.h"
 
 namespace {
 
@@ -17,7 +18,7 @@ extern "C" {
 
 u32 __fastcall TexFormat_Record(void *, void *, u32 *out, s32 index) {
     if (index < 4) {
-        u8 *const record = reinterpret_cast<u8 *>((uintptr_t)(0x008bd558 + (u32)index * 0x20));
+        u8 *const record = reinterpret_cast<u8 *>((uintptr_t)(((u32)(uintptr_t)&gTexSettings_8bd550 + 0x8) + (u32)index * 0x20));
         if (*reinterpret_cast<const u32 *>(record)) {
             *out = (u32)(uintptr_t)record;
             return 1;
@@ -56,10 +57,10 @@ s32 __stdcall TexFormat_Classify(const u32 *pixels) {
         class1 = 0x8000;
         class2 = 0x80;
     } else {
-        mask = (*reinterpret_cast<u32 *>((uintptr_t)0x008bd4e0));
-        class0 = (*reinterpret_cast<u32 *>((uintptr_t)0x008bd4c8));
-        class1 = (*reinterpret_cast<u32 *>((uintptr_t)0x008bd4d0));
-        class2 = (*reinterpret_cast<u32 *>((uintptr_t)0x008bd4d8));
+        mask = (*reinterpret_cast<u32 *>((uintptr_t)&gView_8bcbc8 + 0x918));
+        class0 = (*reinterpret_cast<u32 *>((uintptr_t)&gView_8bcbc8 + 0x900));
+        class1 = (*reinterpret_cast<u32 *>((uintptr_t)&gView_8bcbc8 + 0x908));
+        class2 = (*reinterpret_cast<u32 *>((uintptr_t)&gView_8bcbc8 + 0x910));
     }
     u8 kind[60];
     for (u32 i = 0; i < 60; i++) {
@@ -75,14 +76,14 @@ s32 __stdcall TexFormat_Classify(const u32 *pixels) {
         if (kind[i + 1] == 2)
             fit++;
     }
-    (*reinterpret_cast<u32 *>((uintptr_t)0x008c1644)) = fit;
+    (*reinterpret_cast<u32 *>((uintptr_t)&gTexSettings_8bd550 + 0x40f4)) = fit;
     if (fit == 60)
         return 0;
     return kind[0] != 0 && kind[59] != 2 ? -1 : 1;
 }
 
 u32 __fastcall TexLoad_DriverFlags(const u8 *object, void *, const u8 *request, const u8 *texture) {
-    const u32 scene = *reinterpret_cast<u32 *>(0x008bcbc8);
+    const u32 scene = *reinterpret_cast<u32 *>((u32)(uintptr_t)&gView_8bcbc8);
     u32 bits = 0;
     if (scene & 0x2000)
         bits = 0x100000;
@@ -136,7 +137,7 @@ u8 *__fastcall TexFormat_Table(u8 *settings) { return settings + 0x88 + (at<u32>
 
 void __cdecl TexFormat_ConvertSquare(u16 *to, const u32 *from, u32 side) {
     const u32 n = side * side;
-    switch (*reinterpret_cast<const u32 *>((uintptr_t)0x008bd554)) {
+    switch (*reinterpret_cast<const u32 *>((uintptr_t)&gTexSettings_8bd550 + 0x4)) {
     case 0:
         for (u32 i = 0; i < n; ++i) {
             const u32 c = from[i];

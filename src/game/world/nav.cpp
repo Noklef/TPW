@@ -12,6 +12,7 @@
 #include "mapcell.h"
 #include "route.h"
 #include "nav.h"
+#include "../core/staticobjects.h"
 
 namespace {
 
@@ -162,7 +163,7 @@ void __cdecl Nav_VisitNeighbours(const u8 *nav, s32 radius, void(__cdecl *visit)
 void __fastcall Nav_Update(u8 *nav) {
     typedef s32 *(__fastcall *Steer)(void *behaviour, void *, s32 *out, const u8 *nav);  // a behaviour's slot 0 (thiscall)
     s32 sum[2] = {0, 0};
-    for (u32 entry = *reinterpret_cast<u32 *>(0x007cf078); entry != *reinterpret_cast<u32 *>(0x007cf07c); entry += 8) {
+    for (u32 entry = *reinterpret_cast<u32 *>((u32)(uintptr_t)&gBlock50_7cf078); entry != *reinterpret_cast<u32 *>((u32)(uintptr_t)&gBlock50_7cf078 + 0x4); entry += 8) {
         u8 *const behaviour = at<u8 *>(reinterpret_cast<void *>(entry), 4);
         s32 force[2], limited[2], weighted[2];
         (*reinterpret_cast<Steer *>(at<u32>(behaviour, 0)))(behaviour, nullptr, force, nav);

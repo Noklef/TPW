@@ -17,6 +17,7 @@
 #include "window7059f0.h"
 #include "window705a20.h"
 #include "windowreg.h"
+#include "../core/staticobjects.h"
 
 namespace {
 
@@ -33,8 +34,8 @@ const char *hilight() { return reinterpret_cast<const char *>((uintptr_t)0x0074f
 
 // The controls off and any other window gone; the dialog made in its global, with its label.
 u8 *Open(u32 dialog, u32 handler, u32 text) {
-    g_env->disable(reinterpret_cast<u8 *>((uintptr_t)0x00786b68), nullptr, 0, 0);
-    global<u32>(0x00786ba4) = 0;
+    g_env->disable(reinterpret_cast<u8 *>((uintptr_t)&gNamedObjects_786b68), nullptr, 0, 0);
+    global<u32>((u32)(uintptr_t)&gNamedObjects_786b68 + 0x3c) = 0;
     g_env->closeOther();
     u8 *const window = g_env->create(reinterpret_cast<u8 *>((uintptr_t)0x007523f0), handler, 1);
     global<u8 *>(dialog) = window;

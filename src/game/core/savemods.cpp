@@ -11,6 +11,7 @@
 #include "../world/flyingrides.h"
 #include "soundset.h"
 #include "../world/ridelist.h"
+#include "staticobjects.h"
 
 namespace {
 
@@ -63,7 +64,7 @@ u32 __cdecl Camera_Load(Stream *stream) {
         return 0;
     global<u32>(0x00790ab0) = 0;
     global<u32>(0x007909e0) = global<u32>(0x00790a38);
-    if (global<u8>(0x0078d912))
+    if (global<u8>((u32)(uintptr_t)&gOptions_78d8d8 + 0x3a))
         Camera_SnapYaw();
     return 1;
 }

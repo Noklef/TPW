@@ -74,7 +74,7 @@ void __cdecl TrackMesh_EmitPiece(u8 *piece, u8 *next, s32 count, const float *po
     const u8 *record;
     u32 force = 0;
     const bool unbuilt = at<u32>(piece, 0xb0) == 0;
-    if (unbuilt && !(at<u32>(piece, 8) & 0x1000000) && !(at<u32>(next, 8) & 0x802000)) {
+    if (unbuilt && !(at<u32>(piece, 8) & 0x1000000) && !(at<u32>(next, 8) & (0x800000 | 0x2000))) {   // (flags: split, as the whole reads as a static object's address)
         if ((at<u32>(piece, 8) & 0x800) && (build[0] & 0x40)) {
             if (gRebuild_7925f8 == 0) force = 1;
             record = reinterpret_cast<const u8 *>(&gTrackMesh_7923f0);

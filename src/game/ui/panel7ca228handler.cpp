@@ -15,6 +15,7 @@
 #include "thinggoto.h"
 #include "window.h"
 #include "windowtimers.h"
+#include "../core/staticobjects.h"
 
 extern "C" u32 __cdecl ThingPanel_Handler_48d200(u8 *window, u32 message, u32 a, u32 b);
 
@@ -23,7 +24,7 @@ namespace {
 template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cast<T *>((uintptr_t)p + offset); }
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
 
-u8 *Panel() { return reinterpret_cast<u8 *>((uintptr_t)0x007ca228); }
+u8 *Panel() { return reinterpret_cast<u8 *>((uintptr_t)&gStatic_7ca228); }
 
 u32 __fastcall Word18Game(u8 *, void *, u32 id) { return ObjectControls_GetWord18(id); }
 
@@ -51,7 +52,7 @@ void Refresh() {
     const Panel7ca228HandlerEnv *const E = g_env;
     u8 *const thing = gPanel7cc218_7c2658;
     E->getDef(thing);
-    u8 *const window = global<u8 *>(0x007ca23c);
+    u8 *const window = global<u8 *>((u32)(uintptr_t)&gStatic_7ca228 + 0x14);
     if (!window) return;
     u8 *const word = Window_FindChild(window, nullptr, 0x1586);
     if (word) {
@@ -59,7 +60,7 @@ void Refresh() {
         const u32 value = E->word18(reinterpret_cast<u8 *>((uintptr_t)E->analyser(global<u8 *>(0x007cf83c))), nullptr, id);
         vcall<void>(word, 0x1c, value);
     }
-    u8 *const refund = Window_FindChild(global<u8 *>(0x007ca23c), nullptr, 0x1584);
+    u8 *const refund = Window_FindChild(global<u8 *>((u32)(uintptr_t)&gStatic_7ca228 + 0x14), nullptr, 0x1584);
     vcall<void>(refund, 0x1c, E->scrapRefund(thing));
 }
 

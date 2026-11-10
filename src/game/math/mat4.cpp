@@ -10,6 +10,7 @@
 #include "../render/viewport.h"
 #include "../render/pointsprites.h"
 #include "../terrain/landscape.h"
+#include "../core/staticobjects.h"
 
 namespace {
 
@@ -254,7 +255,7 @@ void __fastcall Mat4_Perspective(float *m, void *, float near_, float far_, floa
     m[5] = (float)c;
     m[10] = (float)q;
     m[14] = (float)(-shift.v);
-    if (global<u32>(0x008bcbc8) & 0x200)
+    if (global<u32>((u32)(uintptr_t)&gView_8bcbc8) & 0x200)
         m[15] = 1.0f;
     else
         m[11] = (float)s;
@@ -270,11 +271,11 @@ void __fastcall Mat4_SetFar(float *m, void *, u32 far_) {
     float far_value;
     std::memcpy(&far_value, &far_, 4);
     const float near_ = global<float>(0x0087b1dc);
-    X87Reg d = ((X87Reg(far_value) - m[14]) / m[10]) * global<float>(0x008bcc0c);
+    X87Reg d = ((X87Reg(far_value) - m[14]) / m[10]) * global<float>((u32)(uintptr_t)&gView_8bcbc8 + 0x44);
     if (!(d.v >= near_)) d = near_;
     const X87Reg b = X87Reg(m[11]) * d + m[15];
     const X87Reg a = d * m[10] + m[14];
-    View_SetProjection(reinterpret_cast<u8 *>(0x008bcbc8), nullptr, far_, (float)a, (float)b);
+    View_SetProjection(reinterpret_cast<u8 *>((u32)(uintptr_t)&gView_8bcbc8), nullptr, far_, (float)a, (float)b);
 }
 
 void __fastcall Mat4_Transform(const float *m, void *, float *out, const float *in, u32 mode) {

@@ -8,6 +8,7 @@
 #include "screen.h"
 #include "../core/gamewindow.h"
 #include "ddopen.h"
+#include "../core/staticobjects.h"
 
 namespace {
 
@@ -45,7 +46,7 @@ bool createParts(u32 a, u32 c) {
         if (!g_calls.Cd(0x005666f0))
             return false;
         global<u32>(0x00879ab0) = global<u32>(0x00879ac0);
-        if (global<u32>(0x008bcbc8) & 0x200000) {
+        if (global<u32>((u32)(uintptr_t)&gView_8bcbc8) & 0x200000) {
             g_calls.Cd(0x00573a30);
             if (!g_calls.Cd(0x00569e10))
                 return false;
@@ -68,7 +69,7 @@ bool createParts(u32 a, u32 c) {
     if (!g_calls.Cd(0x0058cff0, a))
         return false;
     logStage(" (tcache ok)");
-    if (!g_calls.Cd(0x00574a20) || !g_calls.Cd(0x0057d100) || !g_calls.Th(0x00585720, 0x008c1828u))
+    if (!g_calls.Cd(0x00574a20) || !g_calls.Cd(0x0057d100) || !g_calls.Th(0x00585720, (u32)(uintptr_t)&gLandscape_8c1828))
         return false;
     logStage(" (tload/rain/sky ok)");
     return g_calls.Cd(0x00564b20) != 0;
@@ -162,23 +163,23 @@ u32 __cdecl Engine_DestroyDevice() {
 u32 __cdecl Engine_Init(u32 a, u32, u32 c) {
     if (logging())
         g_calls.Cd(0x005645e0, address("Initializing engine internals"));
-    global<u32>(0x008bcbc8) &= ~2u;
+    global<u32>((u32)(uintptr_t)&gView_8bcbc8) &= ~2u;
     g_calls.Cd(0x005913f0);
-    g_calls.Th(0x005839f0, 0x008bd550u);
+    g_calls.Th(0x005839f0, (u32)(uintptr_t)&gTexSettings_8bd550);
     if (kind() == 4)
-        g_calls.Th(0x005839a0, 0x008bd550u);
+        g_calls.Th(0x005839a0, (u32)(uintptr_t)&gTexSettings_8bd550);
     if (!createParts(a, c)) {
         destroyParts();
         return 0;
     }
     g_calls.Th(0x0057d920, global<u32>(0x008bcbac), 0u, 0x3e99999au);   // (0.3)
     logStage(" (wavelet/printf ok)");
-    g_calls.Th(0x00583cc0, 0x008bd550u);
+    g_calls.Th(0x00583cc0, (u32)(uintptr_t)&gTexSettings_8bd550);
     logStage(" (uv correction ok)");
     if (global<u32>(0x008bd508) & 0x1000000) {
         g_calls.Th(0x005835c0, 0x008bd508u);
-        g_calls.Th(0x005833c0, 0x008bcbc8u);
-        g_calls.Th(0x00584790, 0x008bd550u);
+        g_calls.Th(0x005833c0, (u32)(uintptr_t)&gView_8bcbc8);
+        g_calls.Th(0x00584790, (u32)(uintptr_t)&gTexSettings_8bd550);
     }
     if (logging())
         g_calls.Cd(0x005645e0, address("Engine internals initialized succesfully"));   // (sic)

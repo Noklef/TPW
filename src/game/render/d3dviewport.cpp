@@ -5,6 +5,7 @@
 
 #include "../core/vcall.h"
 #include "d3dresult.h"
+#include "../core/staticobjects.h"
 
 using namespace d3dresult;
 
@@ -23,7 +24,7 @@ u32 __fastcall D3dSetup_CreateViewport(u8 *self) {
     if (!pushed(3)) return 0;
     keep(comcall<u32>(at<u8 *>(self, 8), 0x14, *viewport));
     if (!pushed(3)) return 0;
-    const s32 width = global<s32>(0x008bcbd0), height = global<s32>(0x008bcbd4);
+    const s32 width = global<s32>((u32)(uintptr_t)&gView_8bcbc8 + 0x8), height = global<s32>((u32)(uintptr_t)&gView_8bcbc8 + 0xc);
     u32 view[11] = {0x2c, 0, 0, (u32)width, (u32)height, 0, 0, 0, 0, 0, 0x3f800000};
     at<float>(view, 0x1c) = (float)width;
     at<float>(view, 0x20) = (float)height;

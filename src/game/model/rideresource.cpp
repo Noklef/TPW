@@ -13,6 +13,7 @@
 #include "parts.h"
 #include "ridebase.h"
 #include "ridemodel.h"
+#include "../core/staticobjects.h"
 
 namespace {
 
@@ -133,7 +134,7 @@ extern "C" u32 __cdecl Ride_LoadResource(const char *folder, const char *name, c
         }
     }
     MarkParts(model, flags);
-    if (flags & 8 && grid) g_env->hoarding(at<const char *>(Obj_Self(reinterpret_cast<u8 *>(0x00786b68)), 8), model, grid);
+    if (flags & 8 && grid) g_env->hoarding(at<const char *>(Obj_Self(reinterpret_cast<u8 *>((u32)(uintptr_t)&gNamedObjects_786b68)), 8), model, grid);
     if (flags & 0x80) g_env->markFaces(reinterpret_cast<const u8 *const *>(model + 8));
     if (flags & 0x400) {
         char *const dot = std::strrchr(modelName, '.');

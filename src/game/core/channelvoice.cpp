@@ -20,6 +20,7 @@
 #include "vcall.h"
 #include "voiceevents.h"
 #include "voicesample.h"
+#include "staticobjects.h"
 
 namespace {
 
@@ -304,7 +305,7 @@ u32 *__fastcall ChannelVoices_Start(u8 *pool, void *, u32 *out, u32 requested) {
 
 u32 *__fastcall ChannelVoiceHandle_Resume(const u8 *self, void *, u32 *out, u8 *owner) {
     SemaphoreLock lock;
-    SemaphoreLock_Ctor(&lock, nullptr, reinterpret_cast<const Semaphore *>((uintptr_t)0x00fb205c), 0);
+    SemaphoreLock_Ctor(&lock, nullptr, reinterpret_cast<const Semaphore *>((uintptr_t)&gSemaphore_fb205c), 0);
     SemaphoreLock_Acquire(&lock, nullptr, 1);
     u32 handle = at<u32>(self, 4);
     u8 *const voice = handle ? g_voices->find(at<u8 *>(owner, 0x14), nullptr, &handle) : nullptr;

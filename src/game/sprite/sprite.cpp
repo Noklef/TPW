@@ -11,6 +11,7 @@
 #include "../world/random.h"
 #include "loading.h"
 #include "draw.h"
+#include "../core/staticobjects.h"
 
 namespace {
 
@@ -60,7 +61,7 @@ extern "C" u32 __cdecl Sprite_RandomAnim(u32 folder, u32 index) {
 extern "C" u32 __fastcall Sprite_LoadEsp(u8 *s, void *, const u8 *entry, u8 *files) {
     const auto read = [](StreamBase *stream, void *buffer, u32 count) { return vcall<u32>(stream, 8, buffer, count); };
     const auto open = [files](s32 *result, StreamBase *stream, const char *path) { return *vcall<s32 *>(files, 0xc, result, stream, path, 0x80000001u, 0u) >= 0; };
-    const StringView *const suffix = reinterpret_cast<const StringView *>(0x008757a8);
+    const StringView *const suffix = reinterpret_cast<const StringView *>((u32)(uintptr_t)&gString_8757a8);
     String path;
     const char *const name = reinterpret_cast<const char *>(entry + 0x24);
     String_CtorStr(&path, nullptr, name);
@@ -110,11 +111,11 @@ extern "C" u32 __fastcall Sprite_LoadEsp(u8 *s, void *, const u8 *entry, u8 *fil
         vcall<void>(stream, 4);
         {
             StringView view;
-            String_Left(&path, nullptr, &view, path.length - (*reinterpret_cast<u32 *>((uintptr_t)0x008757ac)));
+            String_Left(&path, nullptr, &view, path.length - (*reinterpret_cast<u32 *>((uintptr_t)&gString_8757a8 + 0x4)));
             String_Assign(&path, nullptr, &view);
         }
         const bool first = gLoading_8768fc && at<u8>(s, 0x205);
-        const u32 from = gLoading_763f28 ? (first ? 0x00875fe8 : 0x00876270) : (first ? 0x00875598 : 0x008757a8);
+        const u32 from = gLoading_763f28 ? (first ? (u32)(uintptr_t)&gString_875fe8 : (u32)(uintptr_t)&gString_876270) : (first ? (u32)(uintptr_t)&gString_875598 : (u32)(uintptr_t)&gString_8757a8);
         String_Append(&path, nullptr, reinterpret_cast<const StringView *>((uintptr_t)from));
         if (open(&result, stream, path.data)) {
             u32 *const set = static_cast<u32 *>(GameHeap_Alloc(0x10));

@@ -24,6 +24,7 @@
 #include "../online/chatcommand.h"
 #include "../coaster/arreplayaction.h"
 #include "dialog7cc984.h"
+#include "../core/staticobjects.h"
 
 namespace {
 
@@ -72,10 +73,10 @@ void dressText(u8 *row, const WString &text) { dress(row, (u32)(uintptr_t)text.d
 
 // The theme's label of the key [0x7cc9d4] into label.
 void themeLabel(WString *label) {
-    const u32 key = global<u32>(0x007cc9d4);
+    const u32 key = global<u32>((u32)(uintptr_t)&gClass70293c_7cc988 + 0x4c);
     String theme;
     String_CtorStr(&theme, nullptr, reinterpret_cast<const char *>((uintptr_t)g_env->valueByKey(at<u8 *>(holder(), 0xf8), nullptr, key)));
-    g_env->setTheme(&global<u8>(0x00786b68), nullptr, &theme, reinterpret_cast<u8 *>(label));
+    g_env->setTheme(&global<u8>((u32)(uintptr_t)&gNamedObjects_786b68), nullptr, &theme, reinterpret_cast<u8 *>(label));
     String_Dtor(&theme);
 }
 
@@ -95,9 +96,9 @@ void censorIfSet(StdWString *s) {
 const u16 *shown(const StdWString &s) { return s.ptr ? s.ptr : reinterpret_cast<const u16 *>((uintptr_t)0x006fd6c4); }
 
 void plainRows(u8 *box, u8 *row, WString *text) {
-    const u16 *const name = global<const u16 *>(0x007cc9c4);
+    const u16 *const name = global<const u16 *>((u32)(uintptr_t)&gClass70293c_7cc988 + 0x3c);
     WString_Format(text, wide(L"%s : %s"), g_env->text(0x113), name);
-    const u16 *const value = global<const u16 *>(0x007cc9c4);
+    const u16 *const value = global<const u16 *>((u32)(uintptr_t)&gClass70293c_7cc988 + 0x3c);
     const u16 *const own = reinterpret_cast<const u16 *>(Online_String14(holder()));
     g_env->setShown(Window_FindChild(dialog(), nullptr, 0xe592f), nullptr, Crt().wcsicmp(own, value) == 0 ? 1 : 0);
     if (g_env->byte25(save())) {   // a copy censored and thrown away, sic
@@ -114,16 +115,16 @@ void plainRows(u8 *box, u8 *row, WString *text) {
     WString_AssignStr(text, nullptr, g_env->text(0x115));
     WString_AppendStr(text, nullptr, wide(L" : "));
     // (TextArgInt_Ctor (n, the word, unsigned), inline)
-    const u32 first[5] = {0x006ff170, 0x5641524d, 0x12, global<u16>(0x007cca34), 0};
-    const u32 second[5] = {0x006ff170, 0x5641524d, 0x11, global<u16>(0x007cca32), 0};
-    const u32 third[5] = {0x006ff170, 0x5641524d, 0x10, global<u16>(0x007cca30), 0};
+    const u32 first[5] = {0x006ff170, 0x5641524d, 0x12, global<u16>((u32)(uintptr_t)&gClass70293c_7cc988 + 0xac), 0};
+    const u32 second[5] = {0x006ff170, 0x5641524d, 0x11, global<u16>((u32)(uintptr_t)&gClass70293c_7cc988 + 0xaa), 0};
+    const u32 third[5] = {0x006ff170, 0x5641524d, 0x10, global<u16>((u32)(uintptr_t)&gClass70293c_7cc988 + 0xa8), 0};
     u16 *const buffer = reinterpret_cast<u16 *>((uintptr_t)0x007ba058);
-    TextFormat().format(global<void *>(0x0078ba94), buffer, 0x3fff, 0x1c0, third, second, first);
+    TextFormat().format(global<void *>((u32)(uintptr_t)&gLanguage_78b530 + 0x564), buffer, 0x3fff, 0x1c0, third, second, first);
     WString_AppendStr(text, nullptr, buffer);
     dressText(row, *text);
 
     row = Window_FindChild(box, nullptr, 0xe5936);
-    const u16 *address = global<const u16 *>(0x007cca24);
+    const u16 *address = global<const u16 *>((u32)(uintptr_t)&gClass70293c_7cc988 + 0x9c);
     WString_AssignStr(text, nullptr, g_env->text(0x114));
     if (!Crt().wcslen(address)) address = g_env->text(0x11c);
     WString_AppendStr(text, nullptr, wide(L" : "));
@@ -131,11 +132,11 @@ void plainRows(u8 *box, u8 *row, WString *text) {
     dressText(row, *text);
 
     row = Window_FindChild(box, nullptr, 0xe5933);
-    WString_Format(text, wide(L"%s : %d"), g_env->text(0x117), global<u32>(0x007cc9d8));
+    WString_Format(text, wide(L"%s : %d"), g_env->text(0x117), global<u32>((u32)(uintptr_t)&gClass70293c_7cc988 + 0x50));
     dressText(row, *text);
 
     row = Window_FindChild(box, nullptr, 0xe5938);
-    WString_Format(text, wide(L"%s : %d"), g_env->text(0x118), global<u32>(0x007cc9dc));
+    WString_Format(text, wide(L"%s : %d"), g_env->text(0x118), global<u32>((u32)(uintptr_t)&gClass70293c_7cc988 + 0x54));
     dressText(row, *text);
 
     row = Window_FindChild(box, nullptr, 0xe5939);
@@ -146,8 +147,8 @@ void plainRows(u8 *box, u8 *row, WString *text) {
     dressText(row, *text);
 
     row = Window_FindChild(box, nullptr, 0xe593a);
-    if (global<u32>(0x007cca40) != 0x7fffffff) {
-        WString_Format(text, wide(L"%s : %d"), g_env->text(0x111), global<u32>(0x007cca40));
+    if (global<u32>((u32)(uintptr_t)&gClass70293c_7cc988 + 0xb8) != 0x7fffffff) {
+        WString_Format(text, wide(L"%s : %d"), g_env->text(0x111), global<u32>((u32)(uintptr_t)&gClass70293c_7cc988 + 0xb8));
     } else {
         WString_Format(text, wide(L"%s : -"), g_env->text(0x111));
     }
@@ -155,7 +156,7 @@ void plainRows(u8 *box, u8 *row, WString *text) {
 
     row = Window_FindChild(box, nullptr, 0xe5935);
     WString_Format(text, wide(L"%s : "), g_env->text(0x11b));
-    WString_AppendStr(text, nullptr, g_env->text(global<u32>(0x007cca44) ? 0x14d : 0x14c));
+    WString_AppendStr(text, nullptr, g_env->text(global<u32>((u32)(uintptr_t)&gClass70293c_7cc988 + 0xbc) ? 0x14d : 0x14c));
     dressText(row, *text);
     WString_Dtor(&label);
 }
@@ -168,10 +169,10 @@ extern "C" {
 
 void __cdecl Dialog7cc984_Open(const u8 *record, u8 *parent, u32 callback, u32 a, u32 b) {
     if (dialog()) return;
-    g_env->assign(&global<u8>(0x007cc988), nullptr, record);
-    global<u32>(0x007cca48) = callback;
-    global<u32>(0x007cca4c) = a;
-    global<u32>(0x007cca50) = b;
+    g_env->assign(&global<u8>((u32)(uintptr_t)&gClass70293c_7cc988), nullptr, record);
+    global<u32>((u32)(uintptr_t)&gClass70293c_7cc988 + 0xc0) = callback;
+    global<u32>((u32)(uintptr_t)&gClass70293c_7cc988 + 0xc4) = a;
+    global<u32>((u32)(uintptr_t)&gClass70293c_7cc988 + 0xc8) = b;
     u32 down = 0xc8;
     if (!parent) {
         parent = at<u8 *>(global<u8 *>(0x00f82884), 4);
@@ -184,7 +185,7 @@ void __cdecl Dialog7cc984_Open(const u8 *record, u8 *parent, u32 callback, u32 a
     u8 *const box = Window_FindChild(dialog(), nullptr, 0xe5932);
     WString text;
     WString_Ctor(&text);
-    const u32 type = global<u32>(0x007cc9d0);
+    const u32 type = global<u32>((u32)(uintptr_t)&gClass70293c_7cc988 + 0x48);
     const u8 *const known = g_env->findByKey(at<u8 *>(holder(), 0xe0), nullptr, type);
     const u32 isKnown = at<u32>(known, 0x60);
     u8 *const row = Window_FindChild(box, nullptr, 0xe5937);
@@ -208,10 +209,10 @@ void __cdecl Dialog7cc984_Open(const u8 *record, u8 *parent, u32 callback, u32 a
     name.ptr = nullptr;
     name.len = 0;
     name.res = 0;
-    assign(&name, global<const u16 *>(0x007cc9b0));
+    assign(&name, global<const u16 *>((u32)(uintptr_t)&gClass70293c_7cc988 + 0x28));
     censorIfSet(&name);
     vcall<void>(title, 0x24, shown(name));
-    assign(&name, global<const u16 *>(0x007cc99c));
+    assign(&name, global<const u16 *>((u32)(uintptr_t)&gClass70293c_7cc988 + 0x14));
     censorIfSet(&name);
     u8 *const block = static_cast<u8 *>(GameHeap_Alloc(0x1a4));
     u8 *const part = block ? g_env->part2Ctor(block, nullptr, 0) : nullptr;

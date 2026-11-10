@@ -24,6 +24,7 @@
 #include "focuscell.h"
 #include "demolish.h"
 #include "placeobject.h"
+#include "../core/staticobjects.h"
 
 namespace {
 
@@ -217,7 +218,7 @@ s32 *__cdecl PlaceObject_Footprint(s32 x, s32 y, u32, s32 angle, u32 place, u32 
         global<s32>(0x00818c2c) = ay;
         global<u16>(0x00818c3c) = (u16)cellId(ax, ay);
         const u8 *const object = g_fp->create(angle);
-        if (!global<u32>(0x00785a2c)) {
+        if (!global<u32>((u32)(uintptr_t)&gActionRec_785a08 + 0x24)) {
             const float scale = gDemolish_700cd8;
             const s32 z = (s32)(long long)X87_MulIntDouble(y, scale);   // (__ftol)
             const s32 across = (s32)(long long)X87_MulIntDouble(x, scale);

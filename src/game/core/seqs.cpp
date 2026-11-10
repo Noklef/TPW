@@ -6,6 +6,7 @@
 #include "../gfx/texset.h"
 #include "gameheap.h"
 #include "movs.h"
+#include "staticobjects.h"
 
 namespace {
 
@@ -159,8 +160,8 @@ u32 *__cdecl Dwords_Copy(const u32 *first, const u32 *last, u32 *dest) {
 }
 
 void __cdecl EntryStack_Clear() {
-    u32 &top = *reinterpret_cast<u32 *>(0x007cf07c);
-    const u32 &base = *reinterpret_cast<u32 *>(0x007cf078);
+    u32 &top = *reinterpret_cast<u32 *>((u32)(uintptr_t)&gBlock50_7cf078 + 0x4);
+    const u32 &base = *reinterpret_cast<u32 *>((u32)(uintptr_t)&gBlock50_7cf078);
     if (top <= base)
         return;
     do {
@@ -278,7 +279,7 @@ void __fastcall Bands_CollectTextures(u8 *object, void *, u32 *ids, s32 *count, 
             if (cell[0] & 1)
                 continue;
             u32 texture;
-            if ((*reinterpret_cast<const u8 *>((uintptr_t)0x008bd550) & 4) && column >= at<s32>(object, 0x234) &&
+            if ((*reinterpret_cast<const u8 *>((uintptr_t)&gTexSettings_8bd550) & 4) && column >= at<s32>(object, 0x234) &&
                 column <= at<s32>(object, 0x23c) && row >= at<s32>(object, 0x238) && row <= at<s32>(object, 0x240)) {
                 texture = at<u32>(object, 0x248 + 4 * overrides++);
             } else {

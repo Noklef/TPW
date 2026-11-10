@@ -19,10 +19,11 @@
 #include "window.h"
 #include "windowtimers.h"
 #include "panel7cc218.h"
+#include "../core/staticobjects.h"
 
 namespace {
 
-u8 *const kPanel = reinterpret_cast<u8 *>((uintptr_t)0x007cc3b0);
+u8 *const kPanel = reinterpret_cast<u8 *>((uintptr_t)&gStatic_7cc3b0);
 
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
 
@@ -57,7 +58,7 @@ s32 __cdecl Panel7cc3b0_Handler(u8 *window, u32 message, u32 a, u32 b) {
         break;
     case 0x1e:
         if (thing()) {
-            u8 *const child = Window_FindChild(global<u8 *>(0x007cc3c0), nullptr, 0x50e);
+            u8 *const child = Window_FindChild(global<u8 *>((u32)(uintptr_t)&gStatic_7cc3b0 + 0x10), nullptr, 0x50e);
             const u32 on = g_env->checksCell(thing()) ? 1 : 0;
             reinterpret_cast<void(__fastcall *)(u8 *, void *, u32)>((*reinterpret_cast<uintptr_t **>(child))[5])(child, nullptr, on);
             g_env->copyScript();
@@ -72,7 +73,7 @@ s32 __cdecl Panel7cc3b0_Handler(u8 *window, u32 message, u32 a, u32 b) {
             g_env->openStaff(g_env->toIndex(thing()), (u32)(uintptr_t)thing());
             return 0;
         case 0x50c:
-            if (global<u8>(0x0078d90f)) {
+            if (global<u8>((u32)(uintptr_t)&gOptions_78d8d8 + 0x37)) {
                 struct {
                     u16 *text;
                     u8 colour[4];

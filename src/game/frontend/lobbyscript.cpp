@@ -8,6 +8,7 @@
 #include "../core/string.h"
 #include "../core/vcall.h"
 #include "../math/x87.h"
+#include "../core/staticobjects.h"
 
 namespace {
 
@@ -120,7 +121,7 @@ void LobbyScript_SetEnv(const AddrCall *table, u32 count) { g_calls.Set(table, c
 
 void __fastcall LobbyScript_Load(u8 *self, void *, const char *name, u32 a2, s32 index, u32 a4, u32 a5) {
     String path;
-    String_CtorCopy(&path, nullptr, reinterpret_cast<const StringView *>((uintptr_t)0x00f855b8));
+    String_CtorCopy(&path, nullptr, reinterpret_cast<const StringView *>((uintptr_t)&gString_f855b8));
     vcall<void>(&path, 0x20, name);
     vcall<void>(&path, 0x20, reinterpret_cast<const char *>((uintptr_t)0x00747948));
     const u32 stream = g_calls.Cd(0x005c4d50, path.data, 0x0074c8ecu);   // VFS_Open

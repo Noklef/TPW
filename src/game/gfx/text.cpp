@@ -8,6 +8,7 @@
 #include "../core/methods.h"
 #include "../core/vcall.h"
 #include "../ui/guifont.h"
+#include "../core/staticobjects.h"
 
 namespace {
 
@@ -178,7 +179,7 @@ u32 __fastcall TextMetrics_Lookup(u8 *object, void *, u32 key) {
     u8 *const inner = at<u8 *>(object, 0x14);
     if (!inner)
         return 0;
-    key = Ranges_LookupAdapter(*reinterpret_cast<const u8 *const *>((uintptr_t)0x0078ba80), nullptr, key);
+    key = Ranges_LookupAdapter(*reinterpret_cast<const u8 *const *>((uintptr_t)&gLanguage_78b530 + 0x550), nullptr, key);
     u32 local[3];  // (the original's: [0] = &key, [1] handed to slot 7, [2] unused)
     local[0] = static_cast<u32>(reinterpret_cast<uintptr_t>(&key));
     const u32 found = vcall<u32>(inner, 0x14, local);

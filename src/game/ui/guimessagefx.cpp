@@ -14,6 +14,7 @@
 #include "window.h"
 #include "window705a50handler.h"
 #include "../core/ime.h"
+#include "../core/staticobjects.h"
 
 namespace {
 
@@ -22,7 +23,7 @@ template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((ui
 const GuiMessageFxEnv kGameEnv = {&Sound_PlayAt, &ImeHost_Attach, &ImeHost_Detach, &ImeHost_OnWindow, &Window_FindChild, &Window_GetRect, &ParticlePool2_Finish, &ParticlePool2_Empty, &Fn_5eda40, &ParticlePool2_Setup};
 const GuiMessageFxEnv *g_env = &kGameEnv;
 
-u8 *Host() { return reinterpret_cast<u8 *>((uintptr_t)0x007b4e38); }
+u8 *Host() { return reinterpret_cast<u8 *>((uintptr_t)&gImeHost_7b4e38); }
 s32 Kind(u8 *window) { return vcall<s32>(window, 0xc); }
 
 u32 Bits(float f) {
@@ -64,7 +65,7 @@ u32 __cdecl GuiMessageFx_Handler(u8 *window, u32 message, u32 a, u32) {
     } else if (message == 0x801) {
         g_env->onWindow(Host(), nullptr, g_env->findChild(window, nullptr, a));
     }
-    if (global<u8>(0x0078d90e)) {
+    if (global<u8>((u32)(uintptr_t)&gOptions_78d8d8 + 0x36)) {
         switch (message) {
             case 0x11:
                 if (Kind(window) == 2 && window[0x139] == 1) g_env->finish();

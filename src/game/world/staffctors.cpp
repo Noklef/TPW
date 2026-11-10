@@ -11,6 +11,7 @@
 #include "person.h"
 #include "staff.h"
 #include "staffwork.h"
+#include "../core/staticobjects.h"
 
 namespace {
 
@@ -70,7 +71,7 @@ void StaffCtors_SetEnv(const StaffCtorsEnv *env) { g_env = env ? env : &kGameEnv
 
 u8 *__fastcall Handyman_Ctor(u8 *handyman, void *, u32 cell, u32 type, u32 sprite, u32 name) {
     g_env->typed(handyman, nullptr, cell, 5, type, sprite);
-    named(handyman, 0x0078baa8, name);
+    named(handyman, (u32)(uintptr_t)&gLanguage_78b530 + 0x578, name);
     at<u16>(handyman, 0x210) = 0;
     g_env->addHandyman(world(), nullptr, handyman);
     at<u32>(handyman, 0x214) = 0;
@@ -84,7 +85,7 @@ u8 *__fastcall Handyman_Ctor(u8 *handyman, void *, u32 cell, u32 type, u32 sprit
 
 u8 *__fastcall Mechanic_Ctor(u8 *mechanic, void *, u32 cell, u32 type, u32 sprite, u32 name) {
     g_env->typed(mechanic, nullptr, cell, 4, type, sprite);
-    named(mechanic, 0x0078baac, name);
+    named(mechanic, (u32)(uintptr_t)&gLanguage_78b530 + 0x57c, name);
     mechanicRest(mechanic, sprite);
     return mechanic;
 }
@@ -97,7 +98,7 @@ u8 *__fastcall Mechanic_CtorLoad(u8 *mechanic, void *, u32 cell) {
 
 u8 *__fastcall Entertainer_Ctor(u8 *entertainer, void *, u32 cell, u32 type, u32 sprite, u32 name) {
     g_env->typed(entertainer, nullptr, cell, 6, type, sprite);
-    named(entertainer, 0x0078bab0, name);
+    named(entertainer, (u32)(uintptr_t)&gLanguage_78b530 + 0x580, name);
     entertainerRest(entertainer, sprite);
     return entertainer;
 }
@@ -111,7 +112,7 @@ u8 *__fastcall Entertainer_CtorLoad(u8 *entertainer, void *, u32 cell) {
 
 u8 *__fastcall Guard_Ctor(u8 *guard, void *, u32 cell, u32 type, u32 sprite, u32 name) {
     g_env->typed(guard, nullptr, cell, 7, type, sprite);
-    named(guard, 0x0078bab4, name);
+    named(guard, (u32)(uintptr_t)&gLanguage_78b530 + 0x584, name);
     Guard_Init(guard);
     return guard;
 }

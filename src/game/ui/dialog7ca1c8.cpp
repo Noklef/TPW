@@ -22,6 +22,7 @@
 #include "windowreg.h"
 #include "windowscript.h"
 #include "panel7b9940.h"
+#include "../core/staticobjects.h"
 
 namespace {
 
@@ -159,7 +160,7 @@ s32 __cdecl Dialog7ca1c8_Handler(u8 *window, u32 message, u32 a, u32 b) {
 
 void __cdecl Dialog7ca1c8_Hide() {
     if (!dialogUp()) return;
-    if (!*reinterpret_cast<u32 *>((uintptr_t)0x00785a2c)) g_handler->resetChild(0);
+    if (!*reinterpret_cast<u32 *>((uintptr_t)&gActionRec_785a08 + 0x24)) g_handler->resetChild(0);
     if (dialogUp()) closeEdit();
     dialogUp() = 0;
 }
@@ -170,7 +171,7 @@ void __cdecl Dialog7ca1c8_OpenFor(u8 *thing) {
     gDialog7ca1c8_7ca1d0 = thing;
     Global7c2654_Set((u32)(uintptr_t)thing);
     g_open->focusCell(1);
-    if (!global<u32>(0x00785a2c)) {
+    if (!global<u32>((u32)(uintptr_t)&gActionRec_785a08 + 0x24)) {
         g_open->resetChild(1);
         g_open->childPost((u32)(uintptr_t)global<u8 *>(0x007ca1c8));
     }

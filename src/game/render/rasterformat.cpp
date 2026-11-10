@@ -5,6 +5,7 @@
 
 #include "../core/crt.h"
 #include "rastertriangle.h"
+#include "../core/staticobjects.h"
 
 namespace {
 
@@ -58,7 +59,7 @@ void setFormat(u32 red, u32 green, u32 blue) {
     const bool fiveGreen = greenBits == 5;
     global<u32>(0x00fbe1a8) = fiveGreen ? 6 : 5;
     global<u32>(0x00fbe190) = global<u32>(0x00fbe194) = fiveGreen ? 0x20000008 : 0x40000008;
-    global<u32>(0x00fbe198) = global<u32>(0x00fbe19c) = 0xf800f8;
+    global<u32>(0x00fbe198) = global<u32>(0x00fbe19c) = ((u32)(uintptr_t)&gString_f800e8 + 0x10);
     global<u32>(0x00fbe1a0) = global<u32>(0x00fbe1a4) = fiveGreen ? 0xf800 : 0xfc00;
     global<u32>(0x00fbe1ac) = 0;
 }

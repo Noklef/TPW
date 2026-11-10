@@ -14,6 +14,7 @@
 #include "../ui/window.h"
 #include "lobbymodel.h"
 #include "frame.h"
+#include "../core/staticobjects.h"
 
 namespace {
 
@@ -63,7 +64,7 @@ void pickThing(u8 *self) {
     in[0] = (float)((X87Reg(X87_MulIntDouble(*reinterpret_cast<const s32 *>(input + 0x20), *reinterpret_cast<float *>((uintptr_t)0x00702b7c))) - kOne) * kScale);
     in[2] = X87_Through(kOne);
     in[1] = (float)((X87Reg(X87_MulIntDouble(0x600 - *reinterpret_cast<const s32 *>(input + 0x24), *reinterpret_cast<float *>((uintptr_t)0x00702b84))) - kOne) *
-                    *reinterpret_cast<float *>((uintptr_t)0x008bcbcc) * kScale);
+                    *reinterpret_cast<float *>((uintptr_t)&gView_8bcbc8 + 0x4) * kScale);
     Mat4_Transform(*reinterpret_cast<const float **>((uintptr_t)0x0087afe8), nullptr, out, in, 2);
     const float *const camera = reinterpret_cast<const float *>(gFrame_f83778 + 8);
     const float p0 = camera[0], p1 = camera[1], p2 = camera[2];
@@ -136,9 +137,9 @@ extern "C" void __fastcall ViewCtl702bc8_Update(u8 *self) {
     if (*reinterpret_cast<u32 *>(self + 0x68) != 0) pickThing(self);
     const auto input = [] { return *reinterpret_cast<u8 **>((uintptr_t)0x00f82884); };
     float &v48 = *reinterpret_cast<float *>(self + 0x48), &v50 = *reinterpret_cast<float *>(self + 0x50);
-    const u8 dragging = *reinterpret_cast<u8 *>((uintptr_t)0x0078d910);
+    const u8 dragging = *reinterpret_cast<u8 *>((uintptr_t)&gOptions_78d8d8 + 0x38);
     if (dragging == 0) edgeScroll(self);
-    if (*reinterpret_cast<u8 *>((uintptr_t)0x0078d910) != 0 && Obj_Flags1cAnd(input(), nullptr, 2)) {
+    if (*reinterpret_cast<u8 *>((uintptr_t)&gOptions_78d8d8 + 0x38) != 0 && Obj_Flags1cAnd(input(), nullptr, 2)) {
         const float step = *reinterpret_cast<float *>(self + 0x10);
         v48 = (float)(X87Reg(X87_MulIntDouble(*reinterpret_cast<s32 *>(input() + 0x20) - 0x400, *reinterpret_cast<float *>((uintptr_t)0x00702b7c))) * step + v48);
         v50 = (float)X87_SubR(X87Reg(X87_MulIntDouble(*reinterpret_cast<s32 *>(input() + 0x24) - 0x300, *reinterpret_cast<float *>((uintptr_t)0x00702b84))) * step, v50);

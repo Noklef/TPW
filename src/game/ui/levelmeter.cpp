@@ -31,6 +31,7 @@
 #include "windowtimers.h"
 #include "dialog74fb20.h"
 #include "panel7b9940.h"
+#include "../core/staticobjects.h"
 
 namespace {
 
@@ -114,7 +115,7 @@ void __cdecl ResearchMeters_ShowName(u32 group) {
     at<u32>(title, 8) = 0xe;
     at<u32>(title, 0) = 0x006ff174;
     u16 text[0x80];
-    TextFormat().format(global<void *>(0x0078ba94), text, 0x7f, 0x1be, title, count);
+    TextFormat().format(global<void *>((u32)(uintptr_t)&gLanguage_78b530 + 0x564), text, 0x7f, 0x1be, title, count);
     Window_NotifyImpl100(gauge, nullptr, (u32)(uintptr_t)text);
 }
 

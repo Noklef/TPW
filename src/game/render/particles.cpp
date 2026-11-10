@@ -13,6 +13,7 @@
 #include "../sprite/sprite.h"
 #include "../ui/guirect.h"
 #include "../ui/window.h"
+#include "../core/staticobjects.h"
 
 namespace {
 
@@ -397,7 +398,7 @@ s32 __cdecl Particle_SpawnWithVelocity(s32 effect, s32 x, s32 y, s32 z, s32 vx, 
 void __cdecl Particle_SpawnAtWindow(s32 effect, u8 *window) {
     u8 rect[12];
     GuiRect_Ctor(rect);
-    if (Window_IsShown(window) != 0 && global<u32>(0x00786b84) == 0) {
+    if (Window_IsShown(window) != 0 && global<u32>((u32)(uintptr_t)&gNamedObjects_786b68 + 0x1c) == 0) {
         Window_GetRect(window, nullptr, rect, 1);
         const s32 left = *reinterpret_cast<s16 *>(rect + 4), top = *reinterpret_cast<s16 *>(rect + 6);
         const s32 right = *reinterpret_cast<s16 *>(rect + 8), bottom = *reinterpret_cast<s16 *>(rect + 0xa);

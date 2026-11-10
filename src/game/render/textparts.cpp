@@ -20,6 +20,7 @@
 #include "../gfx/textlayout.h"
 #include "../math/x87.h"
 #include "renderer.h"
+#include "../core/staticobjects.h"
 
 namespace {
 
@@ -213,7 +214,7 @@ namespace {
 // The number classes' SetLayouts: the text id's text with the number argument n (value, minus flag) into 0x3f characters on the stack.
 void format_number(u16 *text, u32 id, u32 n, u32 value, u32 minus) {
     u32 number[5] = {0x006ff170, 0x5641524d, n, value, minus};
-    TextFormat().format(*reinterpret_cast<void **>((uintptr_t)0x0078ba94), text, 0x3f, id, number);
+    TextFormat().format(*reinterpret_cast<void **>((uintptr_t)&gLanguage_78b530 + 0x564), text, 0x3f, id, number);
 }
 
 // ... then that text sent through SetLayout's flag 0x100 (the info's +0x10 a record whose +0 is the text; nothing else of either read).
@@ -227,7 +228,7 @@ u32 magnitude(s32 value) { return value < 0 ? 0u - (u32)value : (u32)value; }
 
 const u16 *const kDecimal = reinterpret_cast<const u16 *>((uintptr_t)0x0074f9d8);   // L"%d"
 
-u8 *const kStyle = reinterpret_cast<u8 *>(0x0078ba2c);
+u8 *const kStyle = reinterpret_cast<u8 *>((uintptr_t)&gLanguage_78b530 + 0x4fc);
 
 s32 screen_width() { return *reinterpret_cast<const s16 *>(0x00faa5c4); }
 s32 screen_height() { return *reinterpret_cast<const s16 *>(0x00faa5c0); }
@@ -296,7 +297,7 @@ TextRect lay_out(u8 *part, const u16 *text, bool textBottom) {
         break;
     }
     const u32 index = (u32)(s32)at<s8>(part, 0xdc);
-    const uintptr_t entry = index < 0xd ? 0x0078b54c + (index + *reinterpret_cast<const u32 *>(0x0078b534) * 13) * 24 : 0;  // (none: a read of 0x14)
+    const uintptr_t entry = index < 0xd ? (uintptr_t)&gLanguage_78b530 + 0x1c + (index + *reinterpret_cast<const u32 *>((u32)(uintptr_t)&gLanguage_78b530 + 0x4) * 13) * 24 : 0;  // (none: a read of 0x14)
     s32 set;
     TextStyle_SetFont(kStyle, nullptr, &set, *reinterpret_cast<u8 *const *>(entry + 0x14));
     return TextRect{left, top, right, bottom};
@@ -367,7 +368,7 @@ void __fastcall TextPart_DrawShadowed(u8 *part, void *, const u16 *text) {
 }
 
 u8 *__fastcall TextPart_Query(u8 *part, void *, u32 kind, u32 arg) {
-    u8 *const rect = reinterpret_cast<u8 *>(0x007ca0a0);
+    u8 *const rect = reinterpret_cast<u8 *>((u32)(uintptr_t)&gGuiRect_7ca0a0);
     if (kind == 1) {
         const s32 n = (s32)arg;
         s32 x, y;
@@ -408,8 +409,8 @@ u8 *__fastcall TextPart_Query(u8 *part, void *, u32 kind, u32 arg) {
     const s32 gw = screen_width(), gh = screen_height();
     Fn_659dac(rect, nullptr, (u32)((s32)((u32)box[0] << 11) / gw), (u32)((s32)((u32)box[1] * 0x600) / gh), (u32)((s32)((u32)box[2] << 11) / gw),
               (u32)((s32)((u32)box[3] * 0x600) / gh));
-    if (*reinterpret_cast<const s16 *>(0x007ca0aa) > at<s16>(part, 0x1e) - at<s16>(part, 0x1a))
-        *reinterpret_cast<u16 *>(0x007ca0aa) = (u16)(at<u16>(part, 0x1e) - at<u16>(part, 0x1a));
+    if (*reinterpret_cast<const s16 *>((u32)(uintptr_t)&gGuiRect_7ca0a0 + 0xa) > at<s16>(part, 0x1e) - at<s16>(part, 0x1a))
+        *reinterpret_cast<u16 *>((u32)(uintptr_t)&gGuiRect_7ca0a0 + 0xa) = (u16)(at<u16>(part, 0x1e) - at<u16>(part, 0x1a));
     return rect;
 }
 
@@ -482,7 +483,7 @@ void __fastcall TextPart6ff470_SetLayout(u8 *part, void *, u32 flags, const u8 *
     if (!(flags & 0x80)) return TextPart_SetLayout(part, nullptr, flags, info);
     const s32 value = *reinterpret_cast<const s32 *>(info);
     u16 text[0x40];
-    if (!value) TextFormat().format(*reinterpret_cast<void **>((uintptr_t)0x0078ba94), text, 0x3f, 0x1c9);
+    if (!value) TextFormat().format(*reinterpret_cast<void **>((uintptr_t)&gLanguage_78b530 + 0x564), text, 0x3f, 0x1c9);
     else Crt().swprintf(text, kDecimal, value);
     set_text(part, text);
 }

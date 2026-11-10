@@ -18,6 +18,7 @@
 #include "lobbymake.h"
 #include "scenequeue.h"
 #include "frame.h"
+#include "../core/staticobjects.h"
 
 namespace {
 
@@ -65,7 +66,7 @@ void __fastcall ViewCtl702bc8_Enter(u8 *self) {
     at<u32>(self, 0x10) = at<u32>(self, 0x1c);
     at<u32>(self, 0x14) = at<u32>(self, 0x20);
     at<u32>(self, 0x18) = at<u32>(self, 0x24);
-    global<u32>(0x008bcbc8) |= 0x2000000;
+    global<u32>((u32)(uintptr_t)&gView_8bcbc8) |= 0x2000000;
     g_env->ambient(View(), nullptr, 1, 0x202020);
     const u32 white = 0xffffff;
     g_env->light(View(), nullptr, 1, &white, nullptr, 1);

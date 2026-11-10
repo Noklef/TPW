@@ -14,6 +14,7 @@
 #include "things.h"
 #include "thingscan.h"
 #include "world.h"
+#include "../core/staticobjects.h"
 
 namespace {
 
@@ -45,11 +46,11 @@ void __fastcall Handyman_Update(u8 *handyman) {
     g_env->tick(handyman);
     if (at<u32>(handyman, 0x19c) == 0) {
         const u32 type = at<u32>(handyman, 0x1e4);
-        if (ticks() % global<u32>(0x00785330 + type * 16) == 0) {
+        if (ticks() % global<u32>(((u32)(uintptr_t)&gBalanceLevel + 0x2f0) + type * 16) == 0) {
             u8 *const world = global<u8 *>(0x0080239c);
             const u32 cell = ((u32)handyman[7] << 7) + handyman[5] + 1;
             u16 out;
-            if (*g_env->nearestCell(reinterpret_cast<u8 *>((uintptr_t)GameTable7cfb90_Get1da720_519510(world)), nullptr, &out, at<u16>(handyman, 0), (u16)cell, global<s32>(0x007853f0 + type * 12))) g_env->handymanWork(handyman);
+            if (*g_env->nearestCell(reinterpret_cast<u8 *>((uintptr_t)GameTable7cfb90_Get1da720_519510(world)), nullptr, &out, at<u16>(handyman, 0), (u16)cell, global<s32>(((u32)(uintptr_t)&gBalanceLevel + 0x3b0) + type * 12))) g_env->handymanWork(handyman);
         }
     }
     g_env->killAfter(handyman + 0x30);
@@ -76,7 +77,7 @@ void __fastcall Handyman_WalkToLitter(u8 *handyman) {
 
 void __fastcall Handyman_SweepLitter(u8 *handyman) {
     g_env->tire(handyman);
-    if (ticks() <= global<u32>(0x007853ec + at<u32>(handyman, 0x1e4) * 12) + at<u32>(handyman, 0x214)) return;
+    if (ticks() <= global<u32>(((u32)(uintptr_t)&gBalanceLevel + 0x3ac) + at<u32>(handyman, 0x1e4) * 12) + at<u32>(handyman, 0x214)) return;
     if (at<u32>(litterOf((u16)(((u32)handyman[7] << 7) + handyman[5] + 1)), 0x2c)) g_env->removeLitter(litterOf(at<u16>(handyman, 0x218)));
     handymanNext(handyman);
 }

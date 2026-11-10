@@ -2,6 +2,7 @@
 
 #include <cstdint>
 #include "coastersload.h"
+#include "../core/staticobjects.h"
 
 namespace {
 
@@ -53,7 +54,7 @@ extern "C" void __cdecl Coaster_AddStartCars(u32 keepFrontEnd) {
         g_calls.Cd(0x00434060, link, at<u32>(link, 0x1c), at<u32>(link, 0x24), at<u32>(link, 0x20), flags, 0u, 0u, 0u, 0u);   // CoasterLink_AddCar
     }
     at<u32>(gCoastersload_790fec, 0) |= 0x1001;
-    if (!global<u32>(0x00785a2c))
+    if (!global<u32>((u32)(uintptr_t)&gActionRec_785a08 + 0x24))
         g_calls.Cd(0x00442880, 0x10u);   // CoasterEdit_SetTools
     if (!keepFrontEnd)
         g_calls.Cd(0x00498780);   // FrontEnd_EnsureMode

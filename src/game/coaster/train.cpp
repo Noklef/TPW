@@ -26,6 +26,7 @@
 #include "edittools.h"
 #include "coastersupdate.h"
 #include "coastersload.h"
+#include "../core/staticobjects.h"
 
 namespace {
 
@@ -293,7 +294,7 @@ double __cdecl Car_TravelCost(const u8 *ride, u32 withBase, const u8 *car, const
 
 void __cdecl Car_SetMoveCostChange(const u8 *car, const float *cost, const float *extra, const float *x, const float *z, u32 a, u32 b) {
     const u8 *const ride = gCoastersload_790fec;
-    if (!ride || !reinterpret_cast<u32 &>(gEdittools_79c640) || global<u32>(0x00785a2c)) return;
+    if (!ride || !reinterpret_cast<u32 &>(gEdittools_79c640) || global<u32>((u32)(uintptr_t)&gActionRec_785a08 + 0x24)) return;
     s32 before = (s32)(long long)*cost;   // __ftol
     if (extra) before += (s32)(long long)*extra;
     s32 after = Float_RoundUp((float)Car_TravelCost(ride, 0, car, x, z, nullptr, nullptr));
@@ -953,7 +954,7 @@ void __cdecl Coaster_PlacePendingPiece(u8 *coaster) {
         ? Car_TravelCost(coaster, 1, piece, reinterpret_cast<const float *>(piece + 0x4c), reinterpret_cast<const float *>(piece + 0x54),
                          nullptr, nullptr)
         : 0.0;   // 0x6fde74
-    if (global<u32>(0x00785a2c)) return;
+    if (global<u32>((u32)(uintptr_t)&gActionRec_785a08 + 0x24)) return;
     u32 amount = (u32)(s32)(long long)cost;   // __ftol
     if ((s32)amount < 0) amount += 0xf1111112;   // (sic)
     Global81af4c_Add(amount);

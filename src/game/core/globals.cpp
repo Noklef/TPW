@@ -18,6 +18,7 @@
 #include "../render/meshlist.h"
 #include "gameframe.h"
 #include "localefacet.h"
+#include "staticobjects.h"
 
 namespace {
 
@@ -131,16 +132,16 @@ u32 __cdecl Global879a24_Get4c4() { return at<u32>(reinterpret_cast<const u8 *>(
 
 u32 __cdecl Global786b80_SetAndMode3() {
     const u32 target = global<u32>(0x00f82884);
-    global<u32>(0x00786b80) = 1;
+    global<u32>((u32)(uintptr_t)&gNamedObjects_786b68 + 0x18) = 1;
     at<u32>(reinterpret_cast<const u8 *>(target), 0x14) = 3;
     return target;
 }
 
 u8 __stdcall Bytes785058_Get(u32 index) {
     switch (index) {
-    case 0: return *reinterpret_cast<u8 *>(0x00785058);
-    case 1: return *reinterpret_cast<u8 *>(0x0078505c);
-    case 2: return *reinterpret_cast<u8 *>(0x00785060);
+    case 0: return *reinterpret_cast<u8 *>((u32)(uintptr_t)&gBalanceLevel + 0x18);
+    case 1: return *reinterpret_cast<u8 *>((u32)(uintptr_t)&gBalanceLevel + 0x1c);
+    case 2: return *reinterpret_cast<u8 *>((u32)(uintptr_t)&gBalanceLevel + 0x20);
     default: return 0;
     }
 }
@@ -152,19 +153,19 @@ u32 __cdecl Global7b4b88_Get_47eaa0() {
 u32 __cdecl Global7cc2f0_Get_4b4480() { return gThingbrowser_7cc2f0; }
 
 u32 __cdecl Global785584_Get_519410() {
-    return global<u32>(0x00785584);
+    return global<u32>((u32)(uintptr_t)&gBalanceLevel + 0x544);
 }
 
 u32 __cdecl Global785588_Get_519420() {
-    return global<u32>(0x00785588);
+    return global<u32>((u32)(uintptr_t)&gBalanceLevel + 0x548);
 }
 
 u32 __cdecl Global78558c_Get_519430() {
-    return global<u32>(0x0078558c);
+    return global<u32>((u32)(uintptr_t)&gBalanceLevel + 0x54c);
 }
 
 u32 __cdecl Global785590_Get_519440() {
-    return global<u32>(0x00785590);
+    return global<u32>((u32)(uintptr_t)&gBalanceLevel + 0x550);
 }
 
 u32 __cdecl Global81d7a4_Get_52f1f0() {
@@ -302,7 +303,7 @@ u32 __cdecl CreateGlobal8bcbb8_5804b0() { return CreateGlobal(0x008bcbb8, 0x1400
 
 u32 __cdecl CreateGlobal8c47d4_58aff0() { return CreateGlobal(0x008c47d4, 0xc, 0xffffffff); }
 u32 __cdecl Table879d08_FillFrom() {
-    const u32 start = global<u32>(0x008bcc40) & 0xf;
+    const u32 start = global<u32>((u32)(uintptr_t)&gView_8bcbc8 + 0x78) & 0xf;
     global<u32>(0x00879d48) = start;
     for (u32 i = 0; i < 16; i++)
         global<u32>(0x00879d08 + 4 * ((i + start) & 0xf)) = 16 - i;

@@ -4,6 +4,7 @@
 #include <cstdint>
 
 #include "../core/string.h"
+#include "../core/staticobjects.h"
 
 namespace {
 
@@ -14,7 +15,7 @@ template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cas
 extern "C" {
 
 u32 __cdecl DirEntry_IsWad(const DirEntry *entry) {
-    const String *const wad = reinterpret_cast<const String *>((uintptr_t)0x00f80808);
+    const String *const wad = reinterpret_cast<const String *>((uintptr_t)&gString_f80808);
     String name;
     String_CtorStr(&name, nullptr, entry->name);
     StringView view;

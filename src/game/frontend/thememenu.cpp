@@ -24,6 +24,7 @@
 #include "../online/chatlists.h"
 #include "../online/chatcommand.h"
 #include "../coaster/arreplayaction.h"
+#include "../core/staticobjects.h"
 
 namespace {
 
@@ -38,7 +39,7 @@ const ThemeMenuEnv kGameEnv = {&UserSlots_Ctor, &GlobalSave_Construct, &GlobalSa
                                &HolderUser_Acquire, &Render_SetAmbient, &LightSlot_Set, &Online_Instance, &Online_ResetConnections, &Dialog7cc4b4_Open, &Dialog7cc4b4_ShowTheme, &Time_GetMs, &ThemeMenu_Refresh, &Sound_PlayAt, &Sound_ApplySettings};
 const ThemeMenuEnv *g_env = &kGameEnv;
 
-u8 *const kNames = reinterpret_cast<u8 *>((uintptr_t)0x00786b68);
+u8 *const kNames = reinterpret_cast<u8 *>((uintptr_t)&gNamedObjects_786b68);
 
 u8 *Singleton(u32 address, u32 size, u8 *(__fastcall *ctor)(u8 *)) {
     u8 *&object = global<u8 *>(address);
@@ -164,7 +165,7 @@ void __fastcall ThemeMenu_Enter(u8 *self) {
     }
     g_env->dialogOpen();
     vcall<void>(self, 0x28);
-    u8 *node = global<u8 *>(0x00786b90);
+    u8 *node = global<u8 *>((u32)(uintptr_t)&gNamedObjects_786b68 + 0x28);
     while (node) {
         u8 *const name = at<u8 *>(node, 0);
         node = at<u8 *>(node, 4);
@@ -185,7 +186,7 @@ void __fastcall ThemeMenu_Enter(u8 *self) {
     while (node) {
         u8 *const item = at<u8 *>(node, 0);
         node = at<u8 *>(node, 4);
-        if (!CRT_stricmp(at<const char *>(item, 0x30), global<const char *>(0x00f85488))) at<u8 *>(self, 0xc) = item;
+        if (!CRT_stricmp(at<const char *>(item, 0x30), global<const char *>((u32)(uintptr_t)&gString_f85480 + 0x8))) at<u8 *>(self, 0xc) = item;
     }
     g_env->dialogShow();
     at<u32>(self, 0xe4) = g_env->time();

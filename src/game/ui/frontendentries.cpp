@@ -5,6 +5,7 @@
 #include "dialog7cc4b4open.h"
 #include "focus.h"
 #include "panel7cc218.h"
+#include "../core/staticobjects.h"
 
 namespace {
 
@@ -44,7 +45,7 @@ u32 __cdecl FrontEnd_OpenOnGui() { return g_env->openOnGui(); }
 u32 __cdecl FrontEnd_Pause() { return FrontEnd_PauseTimers(); }
 u32 __cdecl FrontEnd_Resume() { return FrontEnd_ResumeTimers(); }
 u32 __stdcall FrontEnd_MouseHelp(u32 forced) { return g_env->mouseHelp(forced); }
-u32 __cdecl FrontEnd_Other5f0b40() { return g_env->other5f0b40(reinterpret_cast<u8 *>((uintptr_t)0x00f86db8)); }
+u32 __cdecl FrontEnd_Other5f0b40() { return g_env->other5f0b40(reinterpret_cast<u8 *>((uintptr_t)&gSurfaceInfo_f86db8)); }
 u32 __cdecl FrontEnd_PanelMenu() { return g_env->panelMenu(0); }
 u32 __cdecl FrontEnd_Dialog7ca2e8() { return g_env->dialog7ca2e8(); }
 u32 __cdecl FrontEnd_Dialog7cb25c() { return g_env->dialog7cb25c(); }
@@ -52,7 +53,7 @@ u32 __cdecl FrontEnd_Dialog7cc2ec() { return g_env->dialog7cc2ec(); }
 u32 __cdecl FrontEnd_Dialog7ca210() { return g_env->dialog7ca210(); }
 
 u32 __cdecl FrontEnd_Browser() {
-    if (global<u32>(0x007cc418)) return g_env->browserOpen(reinterpret_cast<u32 &>(gPanel7cc218_7c2658));
+    if (global<u32>((u32)(uintptr_t)&gStatic_7cc408 + 0x10)) return g_env->browserOpen(reinterpret_cast<u32 &>(gPanel7cc218_7c2658));
     return g_env->openShown();
 }
 

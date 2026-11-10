@@ -17,6 +17,7 @@
 #include "../core/cmdline.h"
 #include "../render/graphicssettings.h"
 #include "../core/gamewindow.h"
+#include "../core/staticobjects.h"
 
 namespace {
 
@@ -101,8 +102,8 @@ void __cdecl Gui_Startup() {
     const s32 b = 0x3000 / screenY;
     const s32 height = 0x4800 / screenY;
     const s32 width = 0x4000 / global<s16>(0x00faa5c4);
-    E->fontInit(object(0x00786de8), nullptr, 0xff, width, 0, height, b);
-    E->guiInit(0x80, 0x800, E->isHebrew(object(0x0078b530)));
+    E->fontInit(object((u32)(uintptr_t)&gGuiFont_786de8), nullptr, 0xff, width, 0, height, b);
+    E->guiInit(0x80, 0x800, E->isHebrew(object((u32)(uintptr_t)&gLanguage_78b530)));
     E->fn659674(0x007b9864);
     E->fn6590ea(0x00485780);
     E->poolInit(0x40, 0x80, 0x10, 0x80);
@@ -118,7 +119,7 @@ void __cdecl Gui_Startup() {
     E->fn6591e3();
     E->fn4891d0();
     E->fn4893c0();
-    global<u16>(0x007c2128) = 1;
+    global<u16>((u32)(uintptr_t)&gTextPart6ff530_7c2118 + 0x10) = 1;
     u8 *const inner = local + 4;
     inner[4] = 1;
     inner[5] = 1;
@@ -128,7 +129,7 @@ void __cdecl Gui_Startup() {
     inner[0x12] = 0xff;
     u8 *const info = local + 0x18;
     *reinterpret_cast<u8 **>(info + 0x10) = inner;
-    E->setLayout(object(0x007c2118), nullptr, 0xc00, info);
+    E->setLayout(object((u32)(uintptr_t)&gTextPart6ff530_7c2118), nullptr, 0xc00, info);
     E->fn492470();
     gGuistartup_7c24d4 = global<u32(__fastcall *)(u8 *)>(0x006fd5ac)(object(0x007c24c0));
 }
@@ -146,7 +147,7 @@ u32 __cdecl Gui_Teardown() {
     Delete(reinterpret_cast<uintptr_t>(&gGui_Teardown_7c231c));
     Delete(0x007b9804);
     E->poolFree();
-    E->fn657dff(object(0x00786de8));
+    E->fn657dff(object((u32)(uintptr_t)&gGuiFont_786de8));
     E->fn424ec0(gGuistartup_7c249c);
     return global<u32(__fastcall *)(u8 *)>(0x006fd5b0)(object(0x007c24c0));
 }

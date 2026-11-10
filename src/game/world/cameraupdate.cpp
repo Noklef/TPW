@@ -15,6 +15,7 @@
 #include "object.h"
 #include "objectdefs.h"
 #include "../ui/windowproc.h"
+#include "../core/staticobjects.h"
 
 namespace {
 
@@ -204,9 +205,9 @@ void __cdecl Camera_Update() {
         float &vz = global<float>(0x00790a90);
         u32 &keys = global<u32>(0x00790aac);
         u32 &flagsNow = global<u32>(0x00790ab0);
-        const u32 paused = global<u8>(0x0078d912);
+        const u32 paused = global<u8>((u32)(uintptr_t)&gOptions_78d8d8 + 0x3a);
         u32 s2c = 0;   // (frame slots read again later, stale)
-        const u32 now = gEnv->now(reinterpret_cast<u8 *>((uintptr_t)0x00785970));
+        const u32 now = gEnv->now(reinterpret_cast<u8 *>((uintptr_t)&gObj_785970));
         float dt;
         if (global<u32>(0x007908e8)) {
             if (paused) {
@@ -335,7 +336,7 @@ void __cdecl Camera_Update() {
                     global<float>(0x00790adc) = 0.0f;
                 if (grab && !follows) s28 = (float)(X87Reg(s28) - kTiltStep);
             } else {
-                const bool free = global<u8>(0x0078d910) == 0;
+                const bool free = global<u8>((u32)(uintptr_t)&gOptions_78d8d8 + 0x38) == 0;
                 if (grab && !free) {
                     flags &= ~0x1000u;
                     s = X87Reg(mx);

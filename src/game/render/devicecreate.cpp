@@ -6,6 +6,7 @@
 #include "../core/gameheap.h"
 #include "../core/vcall.h"
 #include "batch.h"
+#include "../core/staticobjects.h"
 
 namespace {
 
@@ -117,9 +118,9 @@ u32 __cdecl SoftSetup_CreateSquare() {
         return 0;
     }
     const u32 raster = raster_interface();
-    const u32 side = global(0x008bd4ac);
+    const u32 side = global((u32)(uintptr_t)&gView_8bcbc8 + 0x8e4);
     at<u32>(object, 8) = g_calls.Cd(0x00678e70, raster, 0u, side, side);
-    const u32 now = global(0x008bd4ac);
+    const u32 now = global((u32)(uintptr_t)&gView_8bcbc8 + 0x8e4);
     global((u32)&gSoftSetup_fbe014) = 0;
     global((u32)&gSoftSetup_fbe018) = 0;
     global((u32)&gDevicecreate_fbe034) = 0;
@@ -151,14 +152,14 @@ u32 __fastcall SoftSetup_Open(u8 *self, void *, u32 kind) {
     if (global(0x008bd508) & 0x2000000)
         g_calls.Cd(0x005645e0, "\n\nInitializing Software renderer");
     const u32 raster = raster_interface();
-    const u32 width = global(0x008bcbd0), height = global(0x008bcbd4);
+    const u32 width = global((u32)(uintptr_t)&gView_8bcbc8 + 0x8), height = global((u32)(uintptr_t)&gView_8bcbc8 + 0xc);
     at<u32>(self, 8) = g_calls.Cd(0x00678e70, raster, kind ? address_of(self + 4) : 0u, width, height);
-    at<u32>(self, 0xc) = (global(0x008bcbd0) * global(0x008bcbd4)) << 2;
-    const u32 w = global(0x008bcbd0);
+    at<u32>(self, 0xc) = (global((u32)(uintptr_t)&gView_8bcbc8 + 0x8) * global((u32)(uintptr_t)&gView_8bcbc8 + 0xc)) << 2;
+    const u32 w = global((u32)(uintptr_t)&gView_8bcbc8 + 0x8);
     global((u32)&gSoftSetup_fbe014) = 0;
     global((u32)&gSoftSetup_fbe01c) = w - 1;
     global((u32)&gSoftSetup_fbe018) = 0;
-    global((u32)&gSoftSetup_fbe020) = global(0x008bcbd4) - 1;
+    global((u32)&gSoftSetup_fbe020) = global((u32)(uintptr_t)&gView_8bcbc8 + 0xc) - 1;
     global((u32)&gDevicecreate_fbe034) = 0;
     global(0x00fbe024) = at<u32>(self, 8);
     global(0x00fbe02c) = w * 4;

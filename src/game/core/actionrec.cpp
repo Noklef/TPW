@@ -14,12 +14,13 @@
 #include "vcall.h"
 #include "../world/mapclick.h"
 #include "../world/tracktextures.h"
+#include "staticobjects.h"
 
 namespace {
 
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
 
-ActionRec *gActionRec() { return reinterpret_cast<ActionRec *>((uintptr_t)0x00785a08); }
+ActionRec *gActionRec() { return reinterpret_cast<ActionRec *>((uintptr_t)&gActionRec_785a08); }
 
 AddrCalls g_calls;
 

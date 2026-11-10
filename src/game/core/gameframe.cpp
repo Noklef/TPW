@@ -20,6 +20,7 @@
 #include "../gfx/texcache.h"
 #include "../coaster/arreplayaction.h"
 #include "../world/thingmsg.h"
+#include "staticobjects.h"
 
 namespace {
 
@@ -57,7 +58,8 @@ u32 Sd(u32 address, A... args) {
 }
 u32 Ptr(const void *p) { return (u32)reinterpret_cast<uintptr_t>(p); }
 
-constexpr u32 kClocks = 0x00785970, kPanel = 0x007b51f0, kOwner = 0x00786b68, kLoadScreen = 0x008c4748, kCameraMode = 0x00f7b560, kPaths = 0x00f816c0, kState = 0x0087906c;
+const u32 kClocks = (u32)(uintptr_t)&gObj_785970, kPanel = 0x007b51f0, kOwner = (u32)(uintptr_t)&gNamedObjects_786b68, kLoadScreen = 0x008c4748,
+          kCameraMode = (u32)(uintptr_t)&gStatic_f7b560, kPaths = (u32)(uintptr_t)&gStrings5_f816c0, kState = 0x0087906c;
 
 u32 Now() { return Th(0x00402d70, kClocks); }            // Clocks_Now
 u32 Ticks() { return G<u32(__stdcall *)()>(0x006fd1d0)(); }   // timeGetTime
@@ -106,13 +108,13 @@ u32 Centre() {
 bool Stopped() { return (u16)Cd(0x006595a8) != 0 || Key(0x1b) || Key(0x20); }
 
 void LoadText() {
-    const u32 text = Th(0x0041a820, 0x0078b530);   // Language_Buffer, (its result and the two after it are the call's)
+    const u32 text = Th(0x0041a820, (u32)(uintptr_t)&gLanguage_78b530);   // Language_Buffer, (its result and the two after it are the call's)
     Th(0x00587380, kLoadScreen, text, 0x00764fe4, 0x1f4);
 }
 
 void Particles() {
-    Cd(0x0051faa0, 0, G<u32>(0x007858c8), 0x800);   // Particles_Init
-    Cd(0x0051fd80, G<u32>(0x0078d8e0) == 0 ? 1 : 0);   // Particles_SetReduced
+    Cd(0x0051faa0, 0, G<u32>((u32)(uintptr_t)&gBalanceGraphics + 0x60), 0x800);   // Particles_Init
+    Cd(0x0051fd80, G<u32>((u32)(uintptr_t)&gOptions_78d8d8 + 0x8) == 0 ? 1 : 0);   // Particles_SetReduced
     Cd(0x0051f370, Cd(0x0044a280, 0x007651b8, 1, 0));   // ParticleLib_Load of Quickload_Locate
 }
 
@@ -182,7 +184,7 @@ void Frontend() {   // state 1
     G<u32>(0x00f82884) = object;
     Th(0x005d5970, object);
     Th(0x00409300, kOwner);
-    G<u32>(0x00786ba4) = 0;
+    G<u32>((u32)(uintptr_t)&gNamedObjects_786b68 + 0x3c) = 0;
     Cd(0x00540900, 0, 1);   // Sprites_Init
     G<u32>(kState) = 2;
     Th(0x005879c0, kLoadScreen);   // LoadScreen_Close
@@ -244,14 +246,14 @@ void FrontendEnd() {   // state 3
     Th(0x005765c0, reinterpret_cast<u32 &>(gRenderer_87a6d0), 0x70);   // Renderer_ClearSlot
     Th(0x00578be0, 0x0087b110, 0x3dcccccd, 0x447a0000, 0x42b40000);   // Mat4_Perspective
     Th(0x0056b790, G<u32>(0x00879d54), 0x42b40000);   // ViewQuad_SetFov
-    Th(0x005c5560, kPaths, 0x00877f68);
+    Th(0x005c5560, kPaths, (u32)(uintptr_t)&gString_877f68);
     {
         String path;
         String_CtorStr(&path, nullptr, reinterpret_cast<const char *>(0x00747810));
         Th(0x005c5580, kPaths, &path);   // Strings5_JoinPath
         String_Dtor(&path);
     }
-    G<u32>(0x008bcbc8) &= 0xffffffdf;
+    G<u32>((u32)(uintptr_t)&gView_8bcbc8) &= 0xffffffdf;
     Cd(0x004628a0);   // WorldVerts_Free
     Cd(0x0051fd20);   // Globals816d40_Free
     Cd(0x00541ed0);   // Sprites_FreeAll
@@ -291,9 +293,9 @@ u32 ParkLoad() {   // state 9
         String_CtorStr(&folder, nullptr, reinterpret_cast<const char *>((uintptr_t)name));
         Th(0x00409480, kOwner, &folder);
         String_Dtor(&folder);
-        G<u32>(0x00786ba4) = 0;
+        G<u32>((u32)(uintptr_t)&gNamedObjects_786b68 + 0x3c) = 0;
     } else {
-        G<u32>(0x00786ba4) = 1;
+        G<u32>((u32)(uintptr_t)&gNamedObjects_786b68 + 0x3c) = 1;
     }
     {
         String folders;
@@ -355,7 +357,7 @@ u32 ParkLoad() {   // state 9
                 u8 buffer[0x3d4];
                 const u32 online = Online();
                 Th(0x00414d40, 0x0078a450, Th(0x005b96a0, online), buffer, 1);   // SaveGame_Load of Obj_Get3e4
-                Th(0x00404140, 0x00785a08, 0);
+                Th(0x00404140, (u32)(uintptr_t)&gActionRec_785a08, 0);
             }
         } else {
             Th(0x005accf0, kCameraMode);
@@ -470,8 +472,8 @@ void Drawing() {   // state 0xa
     const bool camera = (G<u32>(0x00790ab0) & 0x16) != 0;
     const u8 was = G<u8>(0x00878e84);
     if (camera ? was == 0 : was == 1) {
-        G<u32>(0x008bcbc8) ^= 0x2080;
-        Cd(0x0051c700, G<u32>(0x0078d908));   // Sound_SetCameraOcclusion
+        G<u32>((u32)(uintptr_t)&gView_8bcbc8) ^= 0x2080;
+        Cd(0x0051c700, G<u32>((u32)(uintptr_t)&gOptions_78d8d8 + 0x30));   // Sound_SetCameraOcclusion
         G<u32>(0x0087502c) = 0x12c;
         G<u32>(0x00875028) = Ticks();
     }
@@ -541,7 +543,7 @@ void FreeChat() {
 }
 
 void ParkEnd() {   // state 0xb
-    if (Mode() != 1) Th(0x005ac610, kCameraMode, 0x00877c60);
+    if (Mode() != 1) Th(0x005ac610, kCameraMode, (u32)(uintptr_t)&gWString_877c60);
     Cd(0x0048aff0);   // CameraMode_Leave
     Th(0x00576260, reinterpret_cast<u32 &>(gRenderer_87a6d0), 0);
     Th(0x0058dd60, gTexcache_8c4b44, 0);
@@ -663,7 +665,7 @@ u32 __cdecl Game_RunFrame() {
     case 0xd: G<u32>(kState) = 0xe; break;
     case 0xe:
         Cd(0x005996d0, 1);
-        Th(0x005ac5f0, kCameraMode, 0x00878a68);
+        Th(0x005ac5f0, kCameraMode, (u32)(uintptr_t)&gWString_878a68);
         G<u32>(kState) = 0xa;
         G<u32>(0x00879088) = 0;
         break;

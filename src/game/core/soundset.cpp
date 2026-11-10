@@ -10,6 +10,7 @@
 #include "string.h"
 #include "vcall.h"
 #include "../math/x87.h"
+#include "staticobjects.h"
 
 namespace {
 
@@ -22,7 +23,7 @@ void set(u32 address, u32 value) {
 
 // The named objects registry's (0x786b9c) folder of the key's name; false unless NamedList_Find answers 1.
 bool find_folder(const void *key, u8 **found) {
-    return NamedList_Find(global<u8 **>(0x00786b9c), nullptr, static_cast<const u8 *>(key), found) == 1;
+    return NamedList_Find(global<u8 **>((u32)(uintptr_t)&gNamedObjects_786b68 + 0x34), nullptr, static_cast<const u8 *>(key), found) == 1;
 }
 
 const char *text(u32 address) { return reinterpret_cast<const char *>((uintptr_t)address); }
@@ -152,7 +153,7 @@ void __cdecl Sound_ApplySettings() {
             local[2] = value;
             Apply(&local[0], &local[1]);
         };
-        const s32 scale = global<s32>(0x00785914);
+        const s32 scale = global<s32>((u32)(uintptr_t)&gBalanceSound + 0x24);
         auto scaled = [&](u32 value) { return (u32)((s32)(value * (u32)scale) / 100); };
         if (global<u32>(0x00803acc) && global<u32>(0x00803ae0) && global<s32>(0x00803ac4) > 0) {
             post(0x00700b88, global<u16>(0x00803ad0) ? 0 : scaled(global<u32>(0x00803ac0)));
@@ -186,7 +187,7 @@ u32 __cdecl Sound_VoiceInfo(u32 id) {
 void __cdecl Sound_SetCameraOcclusion(s32 level) {
     if (!On()) return;
     u32 functor[3] = {0x00700bc8, 0, 0};
-    const float &radius954 = global<float>(0x00785954), &radius95c = global<float>(0x0078595c), &radius964 = global<float>(0x00785964);
+    const float &radius954 = global<float>((u32)(uintptr_t)&gBalanceSound + 0x64), &radius95c = global<float>((u32)(uintptr_t)&gBalanceSound + 0x6c), &radius964 = global<float>((u32)(uintptr_t)&gBalanceSound + 0x74);
     // Between two (level, radius) points: (level - low) * (high radius - low radius) / (high - low) + low radius; the level's slot
     // then holds the divisor (sic).
     auto between = [&](s32 low, s32 high, const float &lowRadius, const float &highRadius) {
@@ -198,17 +199,17 @@ void __cdecl Sound_SetCameraOcclusion(s32 level) {
         std::memcpy(&functor[2], &radius, 4);
     };
     if (global<u8>(0x00790ab0) & 0x16) {
-        const s32 high = global<s32>(0x00785968), mid = global<s32>(0x00785960), low = global<s32>(0x00785958);
+        const s32 high = global<s32>((u32)(uintptr_t)&gBalanceSound + 0x78), mid = global<s32>((u32)(uintptr_t)&gBalanceSound + 0x70), low = global<s32>((u32)(uintptr_t)&gBalanceSound + 0x68);
         if (level > high) {
             functor[1] = 1;
-            functor[2] = X87_FloatThrough(global<u32>(0x00785964));
+            functor[2] = X87_FloatThrough(global<u32>((u32)(uintptr_t)&gBalanceSound + 0x74));
         } else if (level > mid) {
             between(mid, high, radius95c, radius964);
         } else if (level > low) {
             between(low, mid, radius954, radius95c);
-        } else if (level > global<s32>(0x0078590c)) {
+        } else if (level > global<s32>((u32)(uintptr_t)&gBalanceSound + 0x1c)) {
             functor[1] = 1;
-            functor[2] = X87_FloatThrough(global<u32>(0x00785954));
+            functor[2] = X87_FloatThrough(global<u32>((u32)(uintptr_t)&gBalanceSound + 0x64));
         }
     }
     Apply(reinterpret_cast<u32 *>(&level), functor);
@@ -248,7 +249,7 @@ void __cdecl Sound_Shutdown() {
 
 s32 __cdecl Sound_RegisterLobbyCategories(const char *name) {
     String key;
-    String_CtorCopy(&key, nullptr, view(0x00803768));
+    String_CtorCopy(&key, nullptr, view((u32)(uintptr_t)&gString_803768));
     String_AppendStr(&key, nullptr, name);
     u8 *found = nullptr;
     if (!find_folder(&key, &found)) {
@@ -273,36 +274,36 @@ s32 __cdecl Sound_RegisterLobbyCategories(const char *name) {
 
 void __cdecl Sound_RegisterGlobalCategories() {
     u8 *found = nullptr;
-    if (find_folder(reinterpret_cast<const void *>(0x008030d8), &found)) {
+    if (find_folder(reinterpret_cast<const void *>((u32)(uintptr_t)&gString_8030d8), &found)) {
         global<u32>(0x00803a20) = Sound_QueryFound(text(0x00762c8c), found);   // "cat_ambient"
         global<u32>(0x00803a28) = Sound_QueryFound(text(0x00762c80), found);   // "cat_rides"
         global<u32>(0x00803a2c) = Sound_QueryFound(text(0x00762c78), found);   // "cat_ui"
         global<u32>(0x00803a24) = Sound_QueryFound(text(0x00762c6c), found);   // "cat_kids"
         global<u32>(0x00803a30) = Sound_QueryFound(text(0x00762c60), found);   // "cat_staff"
     }
-    if (find_folder(reinterpret_cast<const void *>(0x00803558), &found))
+    if (find_folder(reinterpret_cast<const void *>((u32)(uintptr_t)&gString_803558), &found))
         global<u32>(0x00803a34) = Sound_QueryFound(text(0x00762c54), found);   // "cat_speech"
 }
 
 void __cdecl Sound_RegisterGlobalLobbySfx() {
     u8 *found = nullptr;
-    if (find_folder(reinterpret_cast<const void *>(0x008030d8), &found))
+    if (find_folder(reinterpret_cast<const void *>((u32)(uintptr_t)&gString_8030d8), &found))
         gSoundset_803a48 = Sound_QueryFound(text(0x00762bcc), found);   // "cat_globallobbysfx"
 }
 
 void __cdecl Sound_RegisterThemeCategories(const StringView *theme) {
     String key;
-    String_CtorCopy(&key, nullptr, view(0x00803768));
+    String_CtorCopy(&key, nullptr, view((u32)(uintptr_t)&gString_803768));
     u8 *found = nullptr;
     String_Append(&key, nullptr, theme);
     if (find_folder(&key, &found)) {
         global<u32>(0x00803a38) = Sound_QueryFound(text(0x00762c8c), found);   // "cat_ambient"
         global<u32>(0x00803a3c) = Sound_QueryFound(text(0x00762c80), found);   // "cat_rides"
     }
-    String_AssignWide(&key, nullptr, reinterpret_cast<const WString *>(0x008039c0));   // (slot 6: its data as chars, length bytes)
+    String_AssignWide(&key, nullptr, reinterpret_cast<const WString *>((u32)(uintptr_t)&gString_8039c0));   // (slot 6: its data as chars, length bytes)
     String_Append(&key, nullptr, theme);
     if (find_folder(&key, &found)) global<u32>(0x00803a40) = Sound_QueryFound(text(0x00762c54), found);   // "cat_speech"
-    String_AssignWide(&key, nullptr, reinterpret_cast<const WString *>(0x00802e68));
+    String_AssignWide(&key, nullptr, reinterpret_cast<const WString *>((u32)(uintptr_t)&gString_802e68));
     String_Append(&key, nullptr, theme);
     if (find_folder(&key, &found)) global<u32>(0x00803a44) = Sound_QueryFound(text(0x00762e68), found);   // "cat_music"
     String_Dtor(&key);
@@ -384,13 +385,13 @@ void __cdecl Sound_Load(u8 *stream) {
 }
 
 void __cdecl Sound_SetVoicesForLevel(s32 level) {
-    const s32 a = global<s32>(0x00785938), b = global<s32>(0x0078593c), c = global<s32>(0x00785940), d = global<s32>(0x00785944);
+    const s32 a = global<s32>((u32)(uintptr_t)&gBalanceSound + 0x48), b = global<s32>((u32)(uintptr_t)&gBalanceSound + 0x4c), c = global<s32>((u32)(uintptr_t)&gBalanceSound + 0x50), d = global<s32>((u32)(uintptr_t)&gBalanceSound + 0x54);
     u32 out;
-    if (level > global<s32>(0x0078594c)) {
+    if (level > global<s32>((u32)(uintptr_t)&gBalanceSound + 0x5c)) {
         const s32 original = level;
         u32 query[2] = {0x00700b40, static_cast<u32>(reinterpret_cast<uintptr_t>(&level))};
         Apply(&out, query);
-        const u32 c2 = global<u32>(0x00785940), d2 = global<u32>(0x00785944);
+        const u32 c2 = global<u32>((u32)(uintptr_t)&gBalanceSound + 0x50), d2 = global<u32>((u32)(uintptr_t)&gBalanceSound + 0x54);
         const u32 product = (static_cast<u32>(original) - d2) * (static_cast<u32>(level) - c2);
         u32 value[2] = {0x00700b3c, product / (100u - d2) + c2};
         Apply(&out, value);
@@ -401,8 +402,8 @@ void __cdecl Sound_SetVoicesForLevel(s32 level) {
         Apply(reinterpret_cast<u32 *>(&level), value);
         return;
     }
-    const s32 span = static_cast<s32>(global<u32>(0x00785944) - static_cast<u32>(b));
-    const s32 product = static_cast<s32>((static_cast<u32>(level) - static_cast<u32>(b)) * (global<u32>(0x00785940) - static_cast<u32>(a)));
+    const s32 span = static_cast<s32>(global<u32>((u32)(uintptr_t)&gBalanceSound + 0x54) - static_cast<u32>(b));
+    const s32 product = static_cast<s32>((static_cast<u32>(level) - static_cast<u32>(b)) * (global<u32>((u32)(uintptr_t)&gBalanceSound + 0x50) - static_cast<u32>(a)));
     u32 value[2] = {0x00700b3c, static_cast<u32>(product / span) + static_cast<u32>(a)};   // (idiv: a zero span or INT_MIN / -1 faults)
     Apply(reinterpret_cast<u32 *>(&level), value);
 }
@@ -444,9 +445,9 @@ void __cdecl Sound_SetCameraLevel(s32 level) {
     if (!On()) return;
     const s32 lv = level;
     u32 *const out = reinterpret_cast<u32 *>(&level);
-    u32 cmd[4] = {0x00700b54, lv > global<s32>(0x007858fc), lv > global<s32>(0x00785900), lv > global<s32>(0x00785904)};
+    u32 cmd[4] = {0x00700b54, lv > global<s32>((u32)(uintptr_t)&gBalanceSound + 0xc), lv > global<s32>((u32)(uintptr_t)&gBalanceSound + 0x10), lv > global<s32>((u32)(uintptr_t)&gBalanceSound + 0x14)};
     Apply(out, cmd);
-    if (lv > global<s32>(0x00785908)) {
+    if (lv > global<s32>((u32)(uintptr_t)&gBalanceSound + 0x18)) {
         cmd[1] = 1;
     } else {
         if (On() && global<u32>(0x00803ab4)) {
@@ -460,14 +461,14 @@ void __cdecl Sound_SetCameraLevel(s32 level) {
     cmd[0] = 0x00700b50;
     Apply(out, cmd);
     cmd[0] = 0x00700b4c;
-    cmd[1] = !(lv > global<s32>(0x00785910));
+    cmd[1] = !(lv > global<s32>((u32)(uintptr_t)&gBalanceSound + 0x20));
     Apply(out, cmd);
     Sound_SetCameraOcclusion(lv);
     Sound_SetVoicesForLevel(lv);
     cmd[0] = 0x00700b48;
-    cmd[1] = lv > global<s32>(0x00785920);
+    cmd[1] = lv > global<s32>((u32)(uintptr_t)&gBalanceSound + 0x30);
     Apply(out, cmd);
-    const bool above = lv > global<s32>(0x00785918);
+    const bool above = lv > global<s32>((u32)(uintptr_t)&gBalanceSound + 0x28);
     if (!On()) return;
     SoundCmd_Ctor(reinterpret_cast<u8 *>(cmd), nullptr, !above);
     cmd[0] = 0x00700b44;

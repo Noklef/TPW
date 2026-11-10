@@ -24,6 +24,7 @@
 #include "lobbyflight.h"
 #include "lobbymodel.h"
 #include "frame.h"
+#include "../core/staticobjects.h"
 
 namespace {
 
@@ -353,7 +354,7 @@ u8 *__fastcall Class702a60_Ctor(u8 *object) {
     at<u32>(object, 0) = (u32)(uintptr_t)Class702a60_vtable;
     String name;
     g_env->stringCtor(&name, nullptr, reinterpret_cast<const char *>((uintptr_t)0x00774c64));
-    g_env->joinPath(reinterpret_cast<u8 *>((uintptr_t)0x00f816c0), nullptr, reinterpret_cast<const StringView *>(&name));
+    g_env->joinPath(reinterpret_cast<u8 *>((uintptr_t)&gStrings5_f816c0), nullptr, reinterpret_cast<const StringView *>(&name));
     g_env->stringDtor(&name);
     g_env->terrainLoad(1, 0);
     at<u32>(object, 4) = 1;
@@ -379,11 +380,11 @@ void __fastcall LobbyCamera_Frame(u8 *camera) {
     const u32 gap = at<u32>(camera, 0x60) - fade;
     if (gap) at<u32>(camera, 0x5c) = fade + static_cast<u32>(static_cast<s32>(gap) >> 3);
     if (at<s32>(camera, 0x5c) > 0) {
-        global<u32>(0x008bcbc8) |= 0x80000;
+        global<u32>((u32)(uintptr_t)&gView_8bcbc8) |= 0x80000;
         const s32 alpha = at<s32>(camera, 0x5c) >> 8;
-        global<u32>(0x008bd4e4) = static_cast<u32>(alpha > 0xff ? 0xff : alpha) << 24;
+        global<u32>((u32)(uintptr_t)&gView_8bcbc8 + 0x91c) = static_cast<u32>(alpha > 0xff ? 0xff : alpha) << 24;
     } else {
-        global<u32>(0x008bcbc8) &= 0xfff7ffff;
+        global<u32>((u32)(uintptr_t)&gView_8bcbc8) &= 0xfff7ffff;
     }
 }
 
@@ -520,7 +521,7 @@ u8 *__fastcall Class702af0_Ctor(u8 *object, void *, s32 count, const char *name,
     }
     at<u32>(object, 4) = 0;
     at<u32 *>(object, 0x58) = list;
-    s32 share = (s32)((u32)count * global<u32>(0x007858dc)) / 100;
+    s32 share = (s32)((u32)count * global<u32>((u32)(uintptr_t)&gBalanceGraphics + 0x74)) / 100;
     if (share < 1)
         share = 1;
     else if (share > count)

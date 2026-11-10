@@ -5,6 +5,7 @@
 #include <cstring>
 
 #include "language.h"
+#include "staticobjects.h"
 
 namespace {
 
@@ -143,8 +144,8 @@ u8 __cdecl Registry_GameInstalled() {
     RegKey_Ctor(&unused);
     s32 result;
     u32 value;
-    const bool ok = *RegKey_Open(&key, nullptr, &result, *reinterpret_cast<const char *const *>(0x007a2b08), 0) >= 0 &&
-                    *RegKey_GetU32(&key, nullptr, &result, *reinterpret_cast<const char *const *>(0x007a2358), &value) >= 0;
+    const bool ok = *RegKey_Open(&key, nullptr, &result, *reinterpret_cast<const char *const *>((u32)(uintptr_t)&gString_7a2b00 + 0x8), 0) >= 0 &&
+                    *RegKey_GetU32(&key, nullptr, &result, *reinterpret_cast<const char *const *>((u32)(uintptr_t)&gString_7a2350 + 0x8), &value) >= 0;
     RegKey_Dtor(&unused);
     RegKey_Dtor(&key);
     return ok ? 1 : 0;
@@ -156,8 +157,8 @@ s32 *__cdecl Registry_LoadLanguage(s32 *out) {
     RegKey_Ctor(&key);
     s32 result;
     u32 value = 0x809;
-    if (*RegKey_Open(&key, nullptr, &result, *reinterpret_cast<const char *const *>(0x00f7f6b8), 0) >= 0 &&
-        *RegKey_GetU32Or(&key, nullptr, &result, *reinterpret_cast<const char *const *>(0x00f7ee18), &value, 0x809) >= 0) {
+    if (*RegKey_Open(&key, nullptr, &result, *reinterpret_cast<const char *const *>((u32)(uintptr_t)&gString_f7f6b0 + 0x8), 0) >= 0 &&
+        *RegKey_GetU32Or(&key, nullptr, &result, *reinterpret_cast<const char *const *>((u32)(uintptr_t)&gString_f7ee10 + 0x8), &value, 0x809) >= 0) {
         u32 flag;
         switch (value) {
         case 6: flag = 0x100; break;
@@ -181,8 +182,8 @@ s32 *__cdecl Registry_LoadLanguage(s32 *out) {
         *reinterpret_cast<u32 *>(0x0079d868) = flag;
         u32 bit = 0;
         while ((flag >> bit & 1) == 0) ++bit;
-        std::strcpy(reinterpret_cast<char *>(0x00f7f230), *reinterpret_cast<const char *const *>(0x00f7ec30 + bit * 0x14));
-        Language_SetId(reinterpret_cast<u8 *>(0x0078b530), nullptr, value);
+        std::strcpy(reinterpret_cast<char *>(0x00f7f230), *reinterpret_cast<const char *const *>(((u32)(uintptr_t)&gString_f7ec28 + 0x8) + bit * 0x14));
+        Language_SetId(reinterpret_cast<u8 *>((u32)(uintptr_t)&gLanguage_78b530), nullptr, value);
     }
     *out = 0;
     RegKey_Dtor(&key);

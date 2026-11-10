@@ -7,6 +7,7 @@
 #include "clipcodes.h"
 #include "clippoly.h"
 #include "engineerrors.h"
+#include "../core/staticobjects.h"
 
 namespace {
 
@@ -442,7 +443,7 @@ u32 __fastcall DrawBuffer_DrawAll(u8 *buffer) {
         if (lo > 1) g_drawAllCalls.Th(0x00582810, address(buffer), order, 0, lo - 1);   // DrawBuffer_SortByDword8
         if (n - 1 > lo) g_drawAllCalls.Th(0x005829e0, address(buffer), order, lo, n - 1);   // DrawBuffer_SortByFloat30Down
     } else if (n > 1) {
-        const u32 render = global<u32>(0x008bcbc8);
+        const u32 render = global<u32>((u32)(uintptr_t)&gView_8bcbc8);
         if ((render & 0xc) == 0xc && (render & 0x20000000)) g_drawAllCalls.Th(0x005828f0, address(buffer), order, 0, n - 1);   // DrawBuffer_SortByFloat30Up
         else g_drawAllCalls.Th(0x005829e0, address(buffer), order, 0, n - 1);
     }

@@ -23,6 +23,7 @@
 #include "lobbyscene.h"
 #include "../online/chatlists.h"
 #include "../online/chatcommand.h"
+#include "../core/staticobjects.h"
 
 namespace {
 
@@ -72,7 +73,7 @@ u32 __fastcall Frame_Start(u8 *frame) {
         if (!at<u32>(UserSlots(), 0xc4)) g_start->send(child, 6, 0, 0);
         g_start->label(0);
     }
-    const u32 now = g_start->now(reinterpret_cast<u8 *>((uintptr_t)0x00785970));
+    const u32 now = g_start->now(reinterpret_cast<u8 *>((uintptr_t)&gObj_785970));
     at<u32>(frame, 0x2c) = now;
     at<u32>(frame, 0x28) = now;
     at<u32>(frame, 0x1c) = 0;

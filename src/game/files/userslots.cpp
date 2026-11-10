@@ -20,6 +20,7 @@
 #include "../ui/dialog74fb20.h"
 #include "../ui/window7cc8c0handler.h"
 #include "../coaster/arreplayaction.h"
+#include "../core/staticobjects.h"
 
 namespace {
 
@@ -68,8 +69,8 @@ void TakeSlot(u8 *self, const char *folderName, s32 slot) {
     g_scan->slotFolder(self, nullptr, &folder, slot);
     WString path;
     WString_CtorCopy(&path, nullptr, &folder);
-    append(&path, wide(0x00f82508));
-    append(&path, wide(0x00f818a8));
+    append(&path, wide((u32)(uintptr_t)&gWString_f82508));
+    append(&path, wide((u32)(uintptr_t)&gWString_f818a8));
     String pathText;
     String_Ctor(&pathText);
     String_AssignFromWide(&pathText, &path);
@@ -93,7 +94,7 @@ void WalkUsers(u8 *self, Handle *handle) {
     entry[0x24] = 0;
     s32 status;
     const u32 address = static_cast<u32>(reinterpret_cast<uintptr_t>(entry));
-    if (*g_scan->first(handle, nullptr, &status, at<u32>(nullptr, 0x00f825d0), address) < 0) return;
+    if (*g_scan->first(handle, nullptr, &status, at<u32>(nullptr, (u32)(uintptr_t)&gString_f825c8 + 0x8), address) < 0) return;
     do {
         const char *const name = at<const char *>(entry, 0x20);
         if (CRT_strlen(name) > 1 && g_scan->isRealDir(entry) && g_scan->isDigit(name[0])) {
@@ -159,8 +160,8 @@ void __fastcall UserSlots_Choose(u8 *self, void *, s32 index) {
     g_choice->mailboxOpen(self + 0x64, nullptr, narrow.data);
     g_choice->bookLoad(self + 0x100, nullptr, narrow.data);
     DeleteGlobalSave();
-    append(&folder, wide(0x00f82508));
-    append(&folder, wide(0x00f818a8));
+    append(&folder, wide((u32)(uintptr_t)&gWString_f82508));
+    append(&folder, wide((u32)(uintptr_t)&gWString_f818a8));
     String path;
     String_Ctor(&path);
     String_AssignFromWide(&path, &folder);
@@ -170,7 +171,7 @@ void __fastcall UserSlots_Choose(u8 *self, void *, s32 index) {
         const bool online = g_scan->saveByte24(SaveInfo()) != 0;
         g_choice->settingSet(ModeSetting(), nullptr, online ? 2 : 0);
     }
-    u8 *node = at<u8 *>(nullptr, 0x00786b90);
+    u8 *node = at<u8 *>(nullptr, (u32)(uintptr_t)&gNamedObjects_786b68 + 0x28);
     while (node) {
         const u8 *const name = at<const u8 *>(node, 0);
         node = at<u8 *>(node, 4);
@@ -185,8 +186,8 @@ void __fastcall UserSlots_Choose(u8 *self, void *, s32 index) {
 static void WriteSaveFile(u8 *self, s32 i) {
     WString file;
     g_scan->slotFolder(self, nullptr, &file, i);
-    append(&file, wide(0x00f82508));
-    append(&file, wide(0x00f818a8));
+    append(&file, wide((u32)(uintptr_t)&gWString_f82508));
+    append(&file, wide((u32)(uintptr_t)&gWString_f818a8));
     String path;
     String_Ctor(&path);
     String_AssignFromWide(&path, &file);
@@ -258,8 +259,8 @@ void __fastcall UserSlots_Close(u8 *self) {
     {
         WString saveFile;
         g_scan->slotFolder(self, nullptr, &saveFile, at<s32>(self, 0x60));
-        append(&saveFile, wide(0x00f82508));
-        append(&saveFile, wide(0x00f818a8));
+        append(&saveFile, wide((u32)(uintptr_t)&gWString_f82508));
+        append(&saveFile, wide((u32)(uintptr_t)&gWString_f818a8));
         String path;
         String_Ctor(&path);
         String_AssignFromWide(&path, &saveFile);
@@ -275,10 +276,10 @@ void __fastcall UserSlots_Close(u8 *self) {
     WString root;
     vcall<void>(&optionsFile, 0x18, g_scan->saveFolder(&root));
     WString_Dtor(&root);
-    append(&optionsFile, wide(0x00f82508));
-    append(&optionsFile, wide(0x00f82028));
+    append(&optionsFile, wide((u32)(uintptr_t)&gWString_f82508));
+    append(&optionsFile, wide((u32)(uintptr_t)&gWString_f82028));
     String_AssignFromWide(&options, &optionsFile);
-    g_choice->optionsSave(reinterpret_cast<void *>((uintptr_t)0x0078d8d8), nullptr, &options);
+    g_choice->optionsSave(reinterpret_cast<void *>((uintptr_t)&gOptions_78d8d8), nullptr, &options);
     at<s32>(self, 0x60) = -1;
     String_Dtor(&options);
     WString_Dtor(&optionsFile);
@@ -351,7 +352,7 @@ WString *__fastcall UserSlots_SlotName(const u8 *self, void *, WString *out, s32
 WString *__fastcall UserSlots_SlotFolder(const u8 *self, void *, WString *out, s32 i) {
     WString path;
     GamePaths_UsersFolder(&path);
-    append(&path, wide(0x00f82508));
+    append(&path, wide((u32)(uintptr_t)&gWString_f82508));
     WString name;
     UserSlots_SlotName(self, nullptr, &name, i);
     append(&path, &name);
@@ -380,9 +381,9 @@ WString *__fastcall UserSlots_ChosenFolder(const u8 *self, void *, WString *out)
 WString *__fastcall UserSlots_ThemeFolder(const u8 *self, void *, WString *out) {
     WString path;
     UserSlots_ChosenFolder(self, nullptr, &path);
-    append(&path, wide(0x00f82508));
+    append(&path, wide((u32)(uintptr_t)&gWString_f82508));
     String label;
-    String_CtorCopy(&label, nullptr, reinterpret_cast<const StringView *>(Obj_Self(reinterpret_cast<u8 *>((uintptr_t)0x00786b68))));
+    String_CtorCopy(&label, nullptr, reinterpret_cast<const StringView *>(Obj_Self(reinterpret_cast<u8 *>((uintptr_t)&gNamedObjects_786b68))));
     WString name;
     WString_Ctor(&name);
     WString_AssignFromAnsi(&name, &label);
@@ -402,7 +403,7 @@ WString *__stdcall UserSlots_ThemePath(WString *out) {
     UserSlots_ThemeFolder(slots, nullptr, &folder);
     vcall<void>(&path, 0x18, static_cast<const WString *>(&folder));
     WString_Dtor(&folder);
-    for (const u32 tail : {0x00f7d740u, 0x00f7d668u, 0x00f7cf30u})
+    for (const u32 tail : {(u32)(uintptr_t)&gWString_f7d740, (u32)(uintptr_t)&gWString_f7d668, (u32)(uintptr_t)&gWString_f7cf30})
         append(&path, wide(tail));
     WString_CtorCopy(out, nullptr, &path);
     WString_Dtor(&path);

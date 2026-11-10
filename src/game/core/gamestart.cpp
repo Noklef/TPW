@@ -7,6 +7,7 @@
 #include "../render/graphicssettings.h"
 #include "gamewindow.h"
 #include "gameframe.h"
+#include "staticobjects.h"
 
 namespace {
 
@@ -15,7 +16,7 @@ AddrCalls g_calls;
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
 template <typename T> T ptr(u32 address) { return reinterpret_cast<T>((uintptr_t)address); }
 
-constexpr u32 kClock = 0x00785970, kArgs = 0x008787a0, kLoadScreen = 0x008c4748;
+const u32 kClock = (u32)(uintptr_t)&gObj_785970, kArgs = (u32)(uintptr_t)&gCommandLine_8787a0, kLoadScreen = 0x008c4748;
 const u32 kDayMovies[8] = {0x007650a0, 0x0076508c, 0x00765074, 0x00765060, 0x0076504c, 0x00765034, 0x00765020, 0x00765008};
 
 char *const kPath = reinterpret_cast<char *>((uintptr_t)0x008782d0);
@@ -54,10 +55,10 @@ void GameStart_SetCalls(const AddrCall *table, u32 count) { g_calls.Set(table, c
 void __cdecl Game_Start() {
     g_calls.Th(0x00402ea0, kClock, 0x20u);
     u32 folders;
-    if (global<u32>(0x0078d968))
+    if (global<u32>((u32)(uintptr_t)&gOptions_78d8d8 + 0x90))
         folders = global<u32>(0x0079d86c) & 0x800 ? 1 : 0;
     else
-        folders = global<u32>(0x00785874) <= 1 ? 1 : 0;
+        folders = global<u32>((u32)(uintptr_t)&gBalanceGraphics + 0xc) <= 1 ? 1 : 0;
     g_calls.Cd(0x004688b0, folders);
     g_calls.Cd(0x005d55a0);
     const u32 count = g_calls.Th(0x004056f0, kArgs);
@@ -74,17 +75,17 @@ void __cdecl Game_Start() {
     global<u32>(0x00879068) = 1;
     g_calls.Cd(0x0067b5b0, global<u32(__stdcall *)()>(0x006fd1d0)());
     g_calls.Cd(0x0051b660, 0x00786de4u, gGraphicssettings_7a1a8c & 0x400);
-    g_calls.Cd(0x0051b920, global<u32>(0x0078d8e0) ? global<s32>(0x0078591c) : global<s32>(0x0078591c) / 2);
+    g_calls.Cd(0x0051b920, global<u32>((u32)(uintptr_t)&gOptions_78d8d8 + 0x8) ? global<s32>((u32)(uintptr_t)&gBalanceSound + 0x2c) : global<s32>((u32)(uintptr_t)&gBalanceSound + 0x2c) / 2);
     g_calls.Cd(0x0051b3d0);
     g_calls.Cd(0x0051bb60, 0x64u);
-    g_calls.Cd(0x0051bb80, global<u32>(0x0078592c));
-    g_calls.Cd(0x0051bbc0, global<u32>(0x00785930));
-    g_calls.Cd(0x0051bba0, global<u32>(0x00785928));
+    g_calls.Cd(0x0051bb80, global<u32>((u32)(uintptr_t)&gBalanceSound + 0x3c));
+    g_calls.Cd(0x0051bbc0, global<u32>((u32)(uintptr_t)&gBalanceSound + 0x40));
+    g_calls.Cd(0x0051bba0, global<u32>((u32)(uintptr_t)&gBalanceSound + 0x38));
     g_calls.Cd(0x0051eae0);
     g_calls.Cd(0x0051bfc0, 0u, global<u32>(0x00803a2c), 0xd2u, 0u, 0u, 0u);
     g_calls.Cd(0x0051bd70);
     g_calls.Cd(0x0053e920);
-    g_calls.Th(0x00587380, kLoadScreen, g_calls.Th(0x0041a820, 0x0078b530u, 0x00764fe4u, 0x1f4u));
+    g_calls.Th(0x00587380, kLoadScreen, g_calls.Th(0x0041a820, (u32)(uintptr_t)&gLanguage_78b530, 0x00764fe4u, 0x1f4u));
     g_calls.Th(0x004813c0, 0x007b51f0u);
     g_calls.Th(0x005879c0, kLoadScreen);
     global<u32>(0x00875030) = 0;

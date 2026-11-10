@@ -9,10 +9,11 @@
 #include "guirect.h"
 #include "window.h"
 #include "window7cc8c0handler.h"
+#include "../core/staticobjects.h"
 
 namespace {
 
-u8 *sharedPart() { return reinterpret_cast<u8 *>((uintptr_t)0x007c2118); }
+u8 *sharedPart() { return reinterpret_cast<u8 *>((uintptr_t)&gTextPart6ff530_7c2118); }
 
 }  // namespace
 

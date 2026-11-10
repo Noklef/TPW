@@ -1,5 +1,6 @@
 // A saved game's stream: see gamefile.h.
 #include "gamefile.h"
+#include "../core/staticobjects.h"
 
 #include <cstdint>
 
@@ -7,7 +8,7 @@ namespace {
 
 AddrCalls g_calls;
 
-const u32 kActions = 0x00785a08, kClock = 0x00785970, kVanillaTime = 0x007859e8, kUi = 0x007b51f0, kCheats = 0x00fb3520, kScoring = 0x00fb3540;
+const u32 kActions = (u32)(uintptr_t)&gActionRec_785a08, kClock = (u32)(uintptr_t)&gObj_785970, kVanillaTime = kClock + 0x78, kUi = 0x007b51f0, kCheats = 0x00fb3520, kScoring = 0x00fb3540;
 
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
 

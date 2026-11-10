@@ -24,6 +24,7 @@
 #include "window.h"
 #include "dialogs.h"
 #include "window7cc8bc.h"
+#include "../core/staticobjects.h"
 
 namespace {
 
@@ -160,7 +161,7 @@ void ShowHelp(u8 *window) {
     const u32 state = hover();
     if (state != before && state <= 4) {
         u16 *const text = &global<u16>(0x007ba058);
-        u8 *const charset = global<u8 *>(0x0078ba98);
+        u8 *const charset = global<u8 *>((u32)(uintptr_t)&gLanguage_78b530 + 0x568);
         u32 cursor = 0;
         switch (state) {
         case 0:

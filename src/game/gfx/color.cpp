@@ -76,7 +76,7 @@ void __cdecl PixelFormat_InitXbgr8888() { set(kFormatXbgr8888, 0xff, 0xff00, 0xf
 u32 __fastcall Color_ToPixel(Color *c, void *, const PixelFormat *f) {
     const u32 v = c->argb;
     if (is(f, kFormatArgb1555))
-        return (((((v >> 7 & 0x1000000) | (v & 0xf80000)) >> 3 | (v & 0xf800)) >> 3) | (v & 0xf8)) >> 3;
+        return (((((v >> 7 & 0x1000000) | (v & 0xf8 << 16)) >> 3 | (v & 0xf800)) >> 3) | (v & 0xf8)) >> 3;
     if (is(f, kFormatRgb555)) return (((((v >> 3) & 0x1f0000) | (v & 0xf800)) >> 3) | (v & 0xf8)) >> 3;
     if (is(f, kFormatRgb565)) return (((((v >> 3) & 0x1f0000) | (v & 0xfc00)) >> 2) | (v & 0xf8)) >> 3;
     if (is(f, kFormatArgb4444))

@@ -9,12 +9,13 @@
 #include "display.h"
 #include "palette.h"
 #include "textlayout.h"
+#include "../core/staticobjects.h"
 
 namespace {
 
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
 
-u8 *const kStyle = reinterpret_cast<u8 *>(0x0078ba2c);
+u8 *const kStyle = reinterpret_cast<u8 *>((uintptr_t)&gLanguage_78b530 + 0x4fc);
 
 // The common part: the layout's kinds from the alignments, the rectangle (widened without fit), the global style's font. Returns the
 // rectangle to lay the text out in.
@@ -25,7 +26,7 @@ Rect Prepare(u8 *layout, const s32 *rect, s8 font, s8 hAlign, s8 vAlign, u32 fit
     const u32 height = (u32)rect[3] - (u32)rect[1];
     u32 shown = width;
     s32 h = hAlign;
-    if (Language_IsHebrew(reinterpret_cast<const u8 *>(0x0078b530))) {
+    if (Language_IsHebrew(reinterpret_cast<const u8 *>((u32)(uintptr_t)&gLanguage_78b530))) {
         if (h == 0)
             h = 2;
         else if (h == 2)
@@ -64,7 +65,7 @@ Rect Prepare(u8 *layout, const s32 *rect, s8 font, s8 hAlign, s8 vAlign, u32 fit
         break;
     }
     const u32 index = (u32)(s32)font;
-    const uintptr_t entry = index < 0xd ? 0x0078b54c + (index + global<u32>(0x0078b534) * 13) * 24 : 0;  // (none: a read of 0x14, sic)
+    const uintptr_t entry = index < 0xd ? (uintptr_t)&gLanguage_78b530 + 0x1c + (index + global<u32>((u32)(uintptr_t)&gLanguage_78b530 + 0x4) * 13) * 24 : 0;  // (none: a read of 0x14, sic)
     s32 set;
     TextStyle_SetFont(kStyle, nullptr, &set, *reinterpret_cast<u8 *const *>(entry + 0x14));
     Rect r;

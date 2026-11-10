@@ -19,6 +19,7 @@
 #include "../render/engineerrors.h"
 #include "../render/quad.h"
 #include "../render/meshlist.h"
+#include "../core/staticobjects.h"
 
 namespace {
 
@@ -209,7 +210,7 @@ void __fastcall Landscape_SampleColours(u8 *landscape) {
         u8 *cell = column;
         u32 x = 0;
         for (u32 i = 0; i < 16; i++) {
-            const u32 format = *reinterpret_cast<const u32 *>((uintptr_t)0x008bd554);
+            const u32 format = *reinterpret_cast<const u32 *>((uintptr_t)&gTexSettings_8bd550 + 0x4);
             const u32 index = (u32)(s32)at<s16>(texture, 0x34) * y + x0 + x;
             if (format == 2) {
                 const u32 c = *reinterpret_cast<const u16 *>(pixels + index * 2);
@@ -302,9 +303,9 @@ u32 __fastcall Landscape_AddTexture(u8 *landscape, void *, u8 **out, const char 
 }
 
 u32 __fastcall Landscape_RemoveTextureList(u8 **list) {
-    const s32 &count = *reinterpret_cast<const s32 *>(0x00785724);
+    const s32 &count = *reinterpret_cast<const s32 *>((u32)(uintptr_t)&gBalanceLevel + 0x6e4);
     for (s32 i = 0; i < count; i++)
-        Landscape_RemoveTexture(reinterpret_cast<u8 *>(0x008c1828), nullptr, list[i]);
+        Landscape_RemoveTexture(reinterpret_cast<u8 *>((u32)(uintptr_t)&gLandscape_8c1828), nullptr, list[i]);
     return static_cast<u32>(count);
 }
 
@@ -330,7 +331,7 @@ const u32 kFarBits = 0x4cbebc20;  // (the depth of the sky's layers: 1e8)
 
 // A sprite's vertices (four of x, y, z, w): the corners turned, then x scaled and all moved to the sprite's place, with the original's register and memory operands.
 void PlaceSprite(float *v, const float *place) {
-    const float &scale = K(0x008bcbcc);
+    const float &scale = K((u32)(uintptr_t)&gView_8bcbc8 + 0x4);
     const X87Reg x0 = X87Reg(v[0]) * scale, x1 = X87Reg(v[4]) * scale;
     const float x2 = (float)(X87Reg(v[8]) * scale), x3 = (float)(X87Reg(v[12]) * scale);
     v[0] = (float)(X87Reg(place[0]) + x0);
@@ -401,7 +402,7 @@ bool SkyLayer(u8 *landscape, s32 i, const void *points, u32 flags, u32 id, u32 c
     }
     u32 count = 0x100;
     const s32 indices = g_drawEnv->addClipped(object, nullptr, &count, reinterpret_cast<const u16 *>(landscape + 0x21fc), at<s32>(landscape, 0x1f60), 2);
-    G<u32>(0x008bcc3c) = G<u32>(0x008bcc1c);
+    G<u32>((u32)(uintptr_t)&gView_8bcbc8 + 0x74) = G<u32>((u32)(uintptr_t)&gView_8bcbc8 + 0x54);
     at<u32>(batch, 0x20) = count;
     at<s32>(batch, 0x24) = indices;
     if (!g_drawEnv->close(object, nullptr, at<float>(&kFarBits, 0))) {
@@ -419,7 +420,7 @@ u32 SkyRim(u8 *landscape, u32 colourMask, u32 stride) {
     if (!batch) return 1;
     at<u32>(batch, 0) = 0x21;
     TransformPoints(landscape, at<u8 *>(batch, 0x28), landscape, stride, 0x48);
-    const bool reflecting = G<u32>(0x008bcbc8) & 0x2000000;
+    const bool reflecting = G<u32>((u32)(uintptr_t)&gView_8bcbc8) & 0x2000000;
     X87Reg q = X87Reg(reflecting ? gLandscape_701f94 : gLandscape_701f88);
     const u32 low = reflecting ? 0x3c23d70a : 0x3e2e147b, high = reflecting ? 0x3e428f5c : 0x3eae147b;
     const float &e = gLandscape_701f78;
@@ -448,7 +449,7 @@ u32 SkyRim(u8 *landscape, u32 colourMask, u32 stride) {
     }
     u32 count = 0x48;
     const s32 indices = g_drawEnv->addClipped(object, nullptr, &count, reinterpret_cast<const u16 *>(landscape + 0x2c88), 0x120, 2);
-    G<u32>(0x008bcc3c) = G<u32>(0x008bcc1c);
+    G<u32>((u32)(uintptr_t)&gView_8bcbc8 + 0x74) = G<u32>((u32)(uintptr_t)&gView_8bcbc8 + 0x54);
     at<u32>(batch, 0x20) = count;
     at<s32>(batch, 0x24) = indices;
     if (!g_drawEnv->close(object, nullptr, 0.0f)) return 0;
@@ -469,24 +470,24 @@ extern "C" {
 void __fastcall Landscape_AddTextureList(u8 **list) {
     String path;
     String_Ctor(&path);
-    const s32 &count = *reinterpret_cast<const s32 *>((uintptr_t)0x00785724);
+    const s32 &count = *reinterpret_cast<const s32 *>((uintptr_t)&gBalanceLevel + 0x6e4);
     u8 *got = nullptr;
-    const u32 *row = reinterpret_cast<const u32 *>((uintptr_t)0x00785728);
+    const u32 *row = reinterpret_cast<const u32 *>((uintptr_t)&gBalanceLevel + 0x6e8);
     for (s32 i = 0; i < count; ++i, row += 6) {
         vcall<void>(&path, 0x14, reinterpret_cast<const char *>((uintptr_t)g_calls.Cd(0x0040ef40)));
         String_EnsureTrailingBackslash(&path);
-        vcall<void>(&path, 0x28, reinterpret_cast<const StringView *>((uintptr_t)0x0078aa30));
+        vcall<void>(&path, 0x28, reinterpret_cast<const StringView *>((uintptr_t)&gString_78aa30));
         String_EnsureTrailingBackslash(&path);
         vcall<void>(&path, 0x20, reinterpret_cast<const char *>((uintptr_t)row[5]));
-        if (g_calls.Th(0x005850c0, 0x008c1828u, &got, path.data, row[0], row[1], row[2], row[3], 0u, row[4] ? 1u : 2u)) list[i] = got;
+        if (g_calls.Th(0x005850c0, (u32)(uintptr_t)&gLandscape_8c1828, &got, path.data, row[0], row[1], row[2], row[3], 0u, row[4] ? 1u : 2u)) list[i] = got;
     }
     String_Dtor(&path);
 }
 
 u32 __fastcall Landscape_DrawSprites(u8 *landscape, void *, u32 mask) {
-    const u32 render = G<u32>(0x008bcbc8);
+    const u32 render = G<u32>((u32)(uintptr_t)&gView_8bcbc8);
     if (!(render & 0x400000) || (render & 8)) return 1;
-    G<u32>(0x008bcc3c) = 0x3f800000;
+    G<u32>((u32)(uintptr_t)&gView_8bcbc8 + 0x74) = 0x3f800000;
     float vertices[16];
     u32 spec[11] = {};  // (+0x14 is unset in the original too; Batch_DrawQuad does not read it)
     spec[0] = 1;
@@ -533,7 +534,7 @@ u32 __fastcall Landscape_Draw(u8 *landscape) {
     const u32 stride = gLandscape_Draw_701ed4;
     const u32 colourMask = at<u32>(gMeshlist_87a248, 0x2c);
     const u32 id = at<u32>(texture, 8) & 0x1000 ? at<u32>(texture, 0x1c) : 0;
-    const u32 flags = (G<u32>(0x008bcbc8) & 8 ? 0x1256 : 0x1556) | 0x400800;
+    const u32 flags = (G<u32>((u32)(uintptr_t)&gView_8bcbc8) & 8 ? 0x1256 : 0x1556) | 0x400800;
     SkyTurn turn = {};  // (without an id the original's four are unset stack: not benched)
     if (id) {
         turn.offsetU = at<u32>(texture, 0x28);
@@ -546,11 +547,11 @@ u32 __fastcall Landscape_Draw(u8 *landscape) {
     JoinMatrix(landscape, 0x0087b110);
     JoinMatrix(landscape, 0x0087b0d0);
     if (!Landscape_DrawSprites(landscape, nullptr, 2)) return 0;
-    const s32 layers = G<u32>(0x008bcbc8) & 8 ? 1 : at<s32>(landscape, 0x2ec8);
+    const s32 layers = G<u32>((u32)(uintptr_t)&gView_8bcbc8) & 8 ? 1 : at<s32>(landscape, 0x2ec8);
     u32 answer = 1;
     for (s32 i = 0; i < layers; i++)
         if (!SkyLayer(landscape, i, landscape + 0x360, flags, id, colourMask, stride, turn, answer)) return answer;
-    if (G<u32>(0x008bcbc8) & 0x2000000) {
+    if (G<u32>((u32)(uintptr_t)&gView_8bcbc8) & 0x2000000) {
         u32 reflected[256][3];
         for (u32 p = 0; p < 256; p++) {
             const u32 *const point = reinterpret_cast<const u32 *>(landscape + 0x360 + p * 0xc);

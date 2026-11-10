@@ -50,6 +50,7 @@
 #include "keymap.h"
 #include "../world/nav.h"
 #include "iosbase.h"
+#include "staticobjects.h"
 
 namespace {
 
@@ -84,7 +85,7 @@ u32 __fastcall Wrap_Obj_Get30_402df0(u8 *o) {
 }
 
 u32 __cdecl Wrap_Flags7a1a14_Update_40f220() {
-    return Flags7a1a14_Update(reinterpret_cast<const u8 *>(reinterpret_cast<u8 *>(0x00786b68)));
+    return Flags7a1a14_Update(reinterpret_cast<const u8 *>(reinterpret_cast<u8 *>((u32)(uintptr_t)&gNamedObjects_786b68)));
 }
 
 u32 __cdecl Wrap_Dword_ClearBit0_454540() {
@@ -112,27 +113,27 @@ u32 __cdecl Wrap_Owner64_Copy4At34_5f5650(u32 v0) {
 }
 
 u8 * __cdecl Wrap_Init_691ee0_691ed0() {
-    return Init_691ee0(reinterpret_cast<u8 *>(reinterpret_cast<u8 *>(0x00fb1ad0)), nullptr, 0x0);
+    return Init_691ee0(reinterpret_cast<u8 *>(reinterpret_cast<u8 *>((u32)(uintptr_t)&gNFileBuf_fb1ad0)), nullptr, 0x0);
 }
 
 u8 * __cdecl Wrap_Init_691ee0_691f20() {
-    return Init_691ee0(reinterpret_cast<u8 *>(reinterpret_cast<u8 *>(0x00fb19a8)), nullptr, 0x0);
+    return Init_691ee0(reinterpret_cast<u8 *>(reinterpret_cast<u8 *>((u32)(uintptr_t)&gNFileBuf_fb19a8)), nullptr, 0x0);
 }
 
 u8 * __cdecl Wrap_Init_691ee0_692100() {
-    return Init_691ee0(reinterpret_cast<u8 *>(reinterpret_cast<u8 *>(0x00fb1a38)), nullptr, 0x0);
+    return Init_691ee0(reinterpret_cast<u8 *>(reinterpret_cast<u8 *>((u32)(uintptr_t)&gNFileBuf_fb1a38)), nullptr, 0x0);
 }
 
 u8 * __cdecl Wrap_Init_692970_692960() {
-    return Init_692970(reinterpret_cast<u8 *>(reinterpret_cast<u8 *>(0x00fb1c70)), nullptr, 0x0);
+    return Init_692970(reinterpret_cast<u8 *>(reinterpret_cast<u8 *>((u32)(uintptr_t)&gWFileBuf_fb1c70)), nullptr, 0x0);
 }
 
 u8 * __cdecl Wrap_Init_692970_6929b0() {
-    return Init_692970(reinterpret_cast<u8 *>(reinterpret_cast<u8 *>(0x00fb1c18)), nullptr, 0x0);
+    return Init_692970(reinterpret_cast<u8 *>(reinterpret_cast<u8 *>((u32)(uintptr_t)&gWFileBuf_fb1c18)), nullptr, 0x0);
 }
 
 u8 * __cdecl Wrap_Init_692970_6929f0() {
-    return Init_692970(reinterpret_cast<u8 *>(0x00fb1d00), nullptr, 0x0);
+    return Init_692970(reinterpret_cast<u8 *>((u32)(uintptr_t)&gWFileBuf_fb1d00), nullptr, 0x0);
 }
 
 u32 __stdcall Wrap_Globalfb2708_Set_6d1bc0_6baa10(u32 v0) {
@@ -490,7 +491,7 @@ void __fastcall Wrap_String_Dtor_45f940(u8 *self) {
 }
 
 void __cdecl Wrap_ScreenSurfaces_Dtor_47e790() {
-    ScreenSurfaces_Dtor(reinterpret_cast<u8 *>(0x7b4ac0));
+    ScreenSurfaces_Dtor(reinterpret_cast<u8 *>((u32)(uintptr_t)&gScreenSurfaces_7b4ac0));
 }
 
 u32 __cdecl Wrap_Time_GetMs_489c80() {
@@ -498,7 +499,7 @@ u32 __cdecl Wrap_Time_GetMs_489c80() {
 }
 
 u32 __cdecl Wrap_Wrap_Fn_669fee_492060_492460() {
-    return Wrap_Fn_669fee_492060(reinterpret_cast<u8 *>(0x7ca0c0));
+    return Wrap_Fn_669fee_492060(reinterpret_cast<u8 *>((u32)(uintptr_t)&gStatic_7ca0c0));
 }
 
 u8 *__cdecl Wrap_SurfaceInfo_Ctor_492740() {
@@ -506,7 +507,7 @@ u8 *__cdecl Wrap_SurfaceInfo_Ctor_492740() {
 }
 
 u8 *__cdecl Wrap_Gauge_Init_49a0a0() {
-    return Gauge_Init(reinterpret_cast<u8 *>(0x7ca250));
+    return Gauge_Init(reinterpret_cast<u8 *>((u32)(uintptr_t)&gStatic_7ca228 + 0x28));
 }
 
 u8 *__cdecl Wrap_Gauge_Init_4a46f0() {
@@ -514,7 +515,7 @@ u8 *__cdecl Wrap_Gauge_Init_4a46f0() {
 }
 
 void __cdecl Wrap_Class70293c_Dtor_4c07c0() {
-    Class70293c_Dtor(reinterpret_cast<u8 *>(0x7cc988));
+    Class70293c_Dtor(reinterpret_cast<u8 *>((u32)(uintptr_t)&gClass70293c_7cc988));
 }
 
 u8 *__cdecl Wrap_SurfaceInfo_Ctor_51af80() {
@@ -522,15 +523,15 @@ u8 *__cdecl Wrap_SurfaceInfo_Ctor_51af80() {
 }
 
 void __cdecl Wrap_FileStream_Dtor_532660() {
-    FileStream_Dtor(reinterpret_cast<StreamBase *>(0x81b0e8));
+    FileStream_Dtor(reinterpret_cast<StreamBase *>((u32)(uintptr_t)&gStream6fd930_81b0e8));
 }
 
 void __cdecl Wrap_ListDtor7027fc_5ac590_5ac500() {
-    ListDtor7027fc_5ac590(reinterpret_cast<u8 *>(0xf7b560));
+    ListDtor7027fc_5ac590(reinterpret_cast<u8 *>((u32)(uintptr_t)&gStatic_f7b560));
 }
 
 void __cdecl Wrap_Strings5_Dtor_5c4c50() {
-    Strings5_Dtor(reinterpret_cast<u8 *>(0xf816c0));
+    Strings5_Dtor(reinterpret_cast<u8 *>((u32)(uintptr_t)&gStrings5_f816c0));
 }
 
 void __fastcall Wrap_WString_Dtor_5c74a0(u8 *self) {
@@ -650,7 +651,7 @@ void __fastcall Wrap_String_Dtor_6c1230(u8 *self) {
 }
 
 u8 *__cdecl Wrap_Semaphore_Ctor_6c5ae0() {
-    return reinterpret_cast<u8 *>(Semaphore_Ctor(reinterpret_cast<Semaphore *>(0xfb205c)));
+    return reinterpret_cast<u8 *>(Semaphore_Ctor(reinterpret_cast<Semaphore *>((u32)(uintptr_t)&gSemaphore_fb205c)));
 }
 
 void __cdecl Wrap_StringList_Dtor_6d8990() {
@@ -690,7 +691,7 @@ s32 __fastcall Wrap_Nav_PathProgress_510180(const u8 *nav) { return Nav_PathProg
 u32 __cdecl Wrap_KeyMap_AsyncModifiers_4815c0() { return KeyMap_AsyncModifiers(); }
 void __cdecl Wrap_MsgTags_AddVersion_481b70() { MsgTags_AddVersion(); }
 u32 __stdcall Wrap_MsgTags_Post_481580(const u8 *message) { return MsgTags_Post(message); }
-void __cdecl Static703078_Init() { Global(0x00f86db8) = 0x00703078; }
+void __cdecl Static703078_Init() { Global((u32)(uintptr_t)&gSurfaceInfo_f86db8) = 0x00703078; }
 void __cdecl Static7034d8_Init() { Global(0x00fa76f0) = 0x007034d8; }
 void __cdecl Static703518_Init() { Global(0x00fa76f8) = 0x00703518; }
 void __cdecl Static703558_Init() { Global(0x00fa76fc) = 0x00703558; }

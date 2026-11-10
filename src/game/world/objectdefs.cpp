@@ -20,6 +20,7 @@
 #include "../ui/dialog74fb20.h"
 #include "../ui/window7cc8c0handler.h"
 #include "objectdefs.h"
+#include "../core/staticobjects.h"
 
 namespace {
 
@@ -70,7 +71,7 @@ const u8 *object_text_row(u32 id) {
 }
 
 // A text of the game's text table (0x78bacc) into to (size chars).
-void format_text(u16 *to, u32 size, u32 text) { TextFormat().format(global<void *>(0x0078bacc), to, size, text); }
+void format_text(u16 *to, u32 size, u32 text) { TextFormat().format(global<void *>((u32)(uintptr_t)&gLanguage_78b530 + 0x59c), to, size, text); }
 
 // A text ending in '-' loses it (true).
 bool cut_dash(u16 *text) {
@@ -651,10 +652,10 @@ u32 loadDefinition(u8 *defs, u8 *entry, u8 *opener, u8 *source, String *path, St
     load.namePath(at<const char *>(source, 0xc));
     if (g_loadCalls.Th(0x0041f170, address(source), streamAt) && !load.read(def + 4, 1)) return 0;
     if (settingMode() == 1) {
-        load.namePrefixed(0x0078a338);
+        load.namePrefixed((u32)(uintptr_t)&gString_78a330 + 0x8);
         if (g_loadCalls.Th(0x0041f260, address(source), streamAt) && !load.read(def + 4, 1)) return 0;
     } else if (settingMode() == 2) {
-        load.namePrefixed(0x00788df0);
+        load.namePrefixed((u32)(uintptr_t)&gString_788de8 + 0x8);
         if (g_loadCalls.Th(0x0041f190, address(source), streamAt) && !load.read(def + 4, 1)) return 0;
     }
     if (g_loadCalls.Th(0x0041f420, address(source))) at<u32>(def, 0x4f0) = g_loadCalls.Cd(0x0051b4f0, address(handleFolder(handle)), 0x0074787cu);
@@ -678,7 +679,7 @@ u32 loadDefinition(u8 *defs, u8 *entry, u8 *opener, u8 *source, String *path, St
         if (at<u32>(def, 0x490) && at<u32>(def, 0x9c) == 3) {
             at<u32>(balance, 0) = 0x006fd8b0;
             g_loadCalls.Th(0x00401030, address(balance));
-            Crt().sprintf(name, kPathFormat, handleFolder(handle), global<const char *>(0x0078a0b0));
+            Crt().sprintf(name, kPathFormat, handleFolder(handle), global<const char *>((u32)(uintptr_t)&gString_78a0a8 + 0x8));
             if (g_loadCalls.Th(0x0041f330, address(source), streamAt) && !load.read(balance, 0)) {
                 at<u32>(balance, 0) = 0x006fd8b0;
                 g_loadCalls.Th(0x00401250, address(balance));
@@ -700,7 +701,7 @@ u32 loadDefinition(u8 *defs, u8 *entry, u8 *opener, u8 *source, String *path, St
 
 // One named folder: found in the list [0x786b9c] (1 exactly), its definitions loaded. 0 for a load that failed.
 bool load_named(u8 *defs, u32 key, s32 *folder) {
-    return g_loadCalls.Th(0x00421770, global<u32>(0x00786b9c), key, folder) != 1 || g_loadCalls.Th(0x00413930, (u32)(uintptr_t)defs, *folder) != 0;
+    return g_loadCalls.Th(0x00421770, global<u32>((u32)(uintptr_t)&gNamedObjects_786b68 + 0x34), key, folder) != 1 || g_loadCalls.Th(0x00413930, (u32)(uintptr_t)defs, *folder) != 0;
 }
 
 }  // namespace
@@ -718,7 +719,7 @@ u32 __fastcall ObjectDefs_Load(u8 *defs, void *, u8 *entry, u8 *opener, u8 *sour
     StreamBase stream;
     StreamBase_Ctor(&stream);
     vcall<void>(&path, 0x18, source + 0x18);
-    const StringView *const suffix = reinterpret_cast<const StringView *>((uintptr_t)0x007898c8);
+    const StringView *const suffix = reinterpret_cast<const StringView *>((uintptr_t)&gString_7898c8);
     StringView view;
     String copy;
     String_CtorCopy(&copy, nullptr, String_Right(&path, nullptr, &view, suffix->length));
@@ -743,7 +744,7 @@ void __fastcall ObjectDef_LoadTrackTypes(u8 *def, void *, u8 *handle) {
     found.name = found.text;
     found.text[0] = 0;
     s32 result;
-    if (*vcall<s32 *>(handle, 4, &result, global<const char *>(0x00788f40), &found) < 0) return;
+    if (*vcall<s32 *>(handle, 4, &result, global<const char *>((u32)(uintptr_t)&gString_788f38 + 0x8), &found) < 0) return;
     StreamBase stream;
     StreamBase_Ctor(&stream);
     String text;
@@ -751,7 +752,7 @@ void __fastcall ObjectDef_LoadTrackTypes(u8 *def, void *, u8 *handle) {
     do {
         if (*vcall<s32 *>(handle, 0xc, &result, &stream, found.name, 0x80000001u, 0u) >= 0) {
             vcall<void>(&text, 0x14, found.name);
-            vcall<void>(&text, 0x18, String_StripSuffix(reinterpret_cast<const String *>((uintptr_t)0x00789010), &text));
+            vcall<void>(&text, 0x18, String_StripSuffix(reinterpret_cast<const String *>((uintptr_t)&gString_789010), &text));
             StringView view;
             vcall<void>(&text, 0x1c, String_Right(&text, nullptr, &view, 1));
             char digit[4];
@@ -789,7 +790,7 @@ u32 __fastcall ObjectDefs_LoadFolders(u8 *defs, void *, u8 *folders) {
         u8 *const source = at<u8 *>(node, 0);
         node = at<const u8 *>(node, 4);
         u32 status;
-        const s32 *found = vcall<const s32 *>(source, 4, &status, global<u32>(0x0078a2f0), &entry);
+        const s32 *found = vcall<const s32 *>(source, 4, &status, global<u32>((u32)(uintptr_t)&gString_78a2e8 + 0x8), &entry);
         while (*found >= 0) {
             if (DirEntry_IsRealDir(reinterpret_cast<const u8 *>(&entry)) || DirEntry_IsWad(reinterpret_cast<const DirEntry *>(&entry))) {
                 String path;
@@ -854,7 +855,7 @@ u32 __fastcall ObjectDefs_ReloadAll(u8 *defs, void *, u32) {
     at<u32>(defs, 0x528) = 0;
     at<u16>(defs, 0x730) = 0;
     at<u32>(defs, 0x734) = 0;
-    if (!load_named(defs, 0x007898e0, &folder) || !load_named(defs, 0x00788e60, &folder))
+    if (!load_named(defs, (u32)(uintptr_t)&gString_7898e0, &folder) || !load_named(defs, (u32)(uintptr_t)&gString_788e60, &folder))
         return 0;
 
     const u8 *const end = global<u8 *>(0x00789c20);
@@ -868,6 +869,6 @@ u32 __fastcall ObjectDefs_ReloadAll(u8 *defs, void *, u32) {
         g_loadCalls.Th(at<u32>(at<u8 *>(font, 0), 0xc), (u32)(uintptr_t)font, 0u);
     global<u8 *>(0x00789c20) = begin;
 
-    return load_named(defs, 0x0078a2a0, &folder) && load_named(defs, 0x00789d00, &folder) && load_named(defs, 0x00789910, &folder) ? 1 : 0;
+    return load_named(defs, (u32)(uintptr_t)&gString_78a2a0, &folder) && load_named(defs, (u32)(uintptr_t)&gString_789d00, &folder) && load_named(defs, (u32)(uintptr_t)&gString_789910, &folder) ? 1 : 0;
 }
 }

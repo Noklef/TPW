@@ -8,6 +8,7 @@
 #include "../math/x87.h"
 #include "draw.h"
 #include "loading.h"
+#include "../core/staticobjects.h"
 
 namespace {
 
@@ -322,7 +323,7 @@ namespace {
 
 s32 __cdecl game_now() {
     using Clock = s32(__fastcall *)(void *self, void *unused);  // thiscall without arguments
-    return reinterpret_cast<Clock>(0x00402d70)(reinterpret_cast<void *>(0x00785970), nullptr);
+    return reinterpret_cast<Clock>(0x00402d70)(reinterpret_cast<void *>((u32)(uintptr_t)&gObj_785970), nullptr);
 }
 
 const SpriteScriptEnv kGameEnv = {

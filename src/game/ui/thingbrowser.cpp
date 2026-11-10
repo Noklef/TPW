@@ -28,6 +28,7 @@
 #include "windowscript.h"
 #include "dialog7cb2b8build.h"
 #include "panel7cc218.h"
+#include "../core/staticobjects.h"
 
 namespace {
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
@@ -54,7 +55,7 @@ void __cdecl ThingBrowser_ShowName() {
     } else {
         const u32 count = at<u32>(thing, 0x1d8);
         if (!count) {
-            TextFormat().format(global<void *>(0x0078ba94), kText, 0x3fff, 0x1c9);
+            TextFormat().format(global<void *>((u32)(uintptr_t)&gLanguage_78b530 + 0x564), kText, 0x3fff, 0x1c9);
         } else {
             u8 arg[0x14];  // (a number argument, as TextArgInt_Ctor (n 0x18, count, unsigned) builds it inline)
             at<u32>(arg, 0) = 0x006ff170;
@@ -62,7 +63,7 @@ void __cdecl ThingBrowser_ShowName() {
             at<u32>(arg, 8) = 0x18;
             at<u32>(arg, 0xc) = count;
             at<u32>(arg, 0x10) = 0;
-            TextFormat().format(global<void *>(0x0078ba94), kText, 0x3fff, 0x1c8, arg);
+            TextFormat().format(global<void *>((u32)(uintptr_t)&gLanguage_78b530 + 0x564), kText, 0x3fff, 0x1c8, arg);
         }
         vcall<void>(label, 0x24, kText);
     }
@@ -105,8 +106,8 @@ u32 __cdecl ThingBrowser_PanelHandler(u8 *panel, u32 message, u32 a, u32 b) {
         Window_SetShown(Window_FindChild(panel, nullptr, 0x149), nullptr, message == 0x10001);
     } else if (message == 0x10006 && a == 0) {
         u8 *const thing = gThingbrowser_7cc308;
-        if (is_staff(thing[2])) Panel7cc3b0_Show(reinterpret_cast<u8 *>(0x007cc3b0), nullptr, thing);
-        else Panel7cc408_Show(reinterpret_cast<u8 *>(0x007cc408), nullptr, thing);
+        if (is_staff(thing[2])) Panel7cc3b0_Show(reinterpret_cast<u8 *>((u32)(uintptr_t)&gStatic_7cc3b0), nullptr, thing);
+        else Panel7cc408_Show(reinterpret_cast<u8 *>((u32)(uintptr_t)&gStatic_7cc408), nullptr, thing);
     }
     return (u32)Window_CallDefault(panel, nullptr, message, a, b);
 }
@@ -216,7 +217,7 @@ void __cdecl ThingBrowser_SendPatrolLines() {
 }
 
 void __cdecl ThingBrowser_OpenShown() {
-    ThingBrowser_Open(global<u32>(0x007cc3c0) ? gPanel7cc218_7c2658 : nullptr);
+    ThingBrowser_Open(global<u32>((u32)(uintptr_t)&gStatic_7cc3b0 + 0x10) ? gPanel7cc218_7c2658 : nullptr);
 }
 }
 

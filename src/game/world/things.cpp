@@ -43,6 +43,7 @@
 #include "weather.h"
 #include "../ui/panel7b9940.h"
 #include "things.h"
+#include "../core/staticobjects.h"
 
 namespace {
 
@@ -353,7 +354,7 @@ u8 *__fastcall Thing_IngredientRecord(u8 *thing) {
     const u32 kind = at<u32>(definition, 0x158);
     if (kind - 1 > 3)
         return nullptr;
-    return Records_DataIfTerminated(global<const u8 *>(0x0078ba8c), nullptr, kind - 1);
+    return Records_DataIfTerminated(global<const u8 *>((u32)(uintptr_t)&gLanguage_78b530 + 0x55c), nullptr, kind - 1);
 }
 
 void __fastcall Obj_ReplaceHandle24(u8 *object, void *, u32 handle) {

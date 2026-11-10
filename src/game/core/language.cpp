@@ -9,6 +9,7 @@
 #include "crt.h"
 #include "gameheap.h"
 #include "vcall.h"
+#include "staticobjects.h"
 
 namespace {
 
@@ -43,8 +44,8 @@ s32 load_error(u32 name) {
 
 // The text widened into the static buffer while the converter is on; status is the caller's argument slot (as the originals use it).
 u16 *widen(const u8 *text, u32 *status) {
-    if (global<u32>(0x0078ba80) != 0)
-        Wide_FromNarrow(global<const u8 *>(0x0078ba7c), nullptr, status, kWideBuffer, text, 0x200);
+    if (global<u32>((u32)(uintptr_t)&gLanguage_78b530 + 0x550) != 0)
+        Wide_FromNarrow(global<const u8 *>((u32)(uintptr_t)&gLanguage_78b530 + 0x54c), nullptr, status, kWideBuffer, text, 0x200);
     return kWideBuffer;
 }
 // A font entry constructed (0x419680: Obj_CtorValue with 0) and destroyed (0x47f980: the vtable 0x6ff058, then the base's (0x657d6c): the
@@ -74,12 +75,12 @@ u32 __fastcall Language_IsHebrew(const u8 *lang) { return at<u32>(lang, 8) == 0x
 
 u8 *__cdecl Language_Font(u32 index) {
     if (index >= 13) return nullptr;
-    u8 *const lang = reinterpret_cast<u8 *>(0x0078b530);
+    u8 *const lang = reinterpret_cast<u8 *>((u32)(uintptr_t)&gLanguage_78b530);
     return lang + 0x1c + (index + at<u32>(lang, 4) * 13) * 0x18;
 }
 
 void __cdecl Language_MirrorAlign(u32 *align) {
-    if (!(u8)Language_IsHebrew(reinterpret_cast<const u8 *>(0x0078b530))) return;
+    if (!(u8)Language_IsHebrew(reinterpret_cast<const u8 *>((u32)(uintptr_t)&gLanguage_78b530))) return;
     if (*align == 0) {
         *align = 2;
     } else if (*align == 2) {
@@ -90,12 +91,12 @@ void __cdecl Language_MirrorAlign(u32 *align) {
 u16 *__cdecl Language_Widen(const u8 *text) { return text ? widen(text, reinterpret_cast<u32 *>(&text)) : nullptr; }
 
 u16 *__cdecl Language_WideText(u32 index) {
-    const u8 *const text = Records_DataIfTerminated(global<const u8 *>(0x0078ba94), nullptr, index);
+    const u8 *const text = Records_DataIfTerminated(global<const u8 *>((u32)(uintptr_t)&gLanguage_78b530 + 0x564), nullptr, index);
     return text ? widen(text, &index) : nullptr;
 }
 
 u32 __cdecl Language_SetObjectText(u8 *object, u32 index) {
-    const u8 *const text = Records_DataIfTerminated(global<const u8 *>(0x0078baa4), nullptr, index);
+    const u8 *const text = Records_DataIfTerminated(global<const u8 *>((u32)(uintptr_t)&gLanguage_78b530 + 0x574), nullptr, index);
     return vcall<u32>(object, 0x24, text ? widen(text, &index) : nullptr);
 }
 
@@ -166,8 +167,8 @@ s32 __fastcall Language_Load(u8 *lang) {
             return load_error(row.name);
         }
     }
-    const s32 by_setting = global<s32>(0x007858ec);
-    const s32 by_screen = global<s32>(0x0078d8dc);
+    const s32 by_setting = global<s32>((u32)(uintptr_t)&gBalanceResolution + 0xc);
+    const s32 by_screen = global<s32>((u32)(uintptr_t)&gOptions_78d8d8 + 0x4);
     const u32 set = by_setting > 0 ? (by_setting >= 4 ? 3 : by_setting - 1) : (by_screen == 0 || by_screen == 1 || by_screen == 2 ? by_screen : 3);
     for (u32 i = 0; i < 13; i++)
         if (failed(g_calls.Th(0x006ad570, folder, out, self + 0x30 + 0x138 * set + 0x18 * i, static_cast<u32>(kFontKeys[set][i])))) return load_error(0x0074c390);

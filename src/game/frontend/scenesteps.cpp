@@ -24,6 +24,7 @@
 #include "sceneleave.h"
 #include "../ui/dialog74fb20.h"
 #include "../coaster/arreplayaction.h"
+#include "../core/staticobjects.h"
 
 namespace {
 
@@ -146,11 +147,11 @@ u32 __cdecl ViewCtl702bc8_ListDone(u32 failed, u8 *object, u32 list) {
 
 void __fastcall Scene_ChooseTheme(u8 *self) {
     if (!at<u8 *>(self, 0xc)) return;
-    u8 *const object = reinterpret_cast<u8 *>((uintptr_t)0x00f85480);
+    u8 *const object = reinterpret_cast<u8 *>((uintptr_t)&gString_f85480);
     vcall<void>(object, 0x14, at<u32>(at<u8 *>(self, 0xc), 0x30));
     String name;
     g_env->stringCtor(&name, nullptr, at<const char *>(at<u8 *>(self, 0xc), 0x30));
-    g_env->chooseTheme(reinterpret_cast<void *>((uintptr_t)0x00786b68), nullptr, &name);
+    g_env->chooseTheme(reinterpret_cast<void *>((uintptr_t)&gNamedObjects_786b68), nullptr, &name);
     g_env->stringDtor(&name);
     at<u32>(global<u8 *>(0x00f82884), 0x14) = 2;
 }

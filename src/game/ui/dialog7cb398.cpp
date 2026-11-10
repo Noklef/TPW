@@ -27,6 +27,7 @@
 #include "windowscript.h"
 #include "windowtimers.h"
 #include "panel7b9940.h"
+#include "../core/staticobjects.h"
 
 namespace {
 
@@ -86,7 +87,7 @@ extern "C" {
 u32 __cdecl Dialog7cb398_TopHandler(u8 *window, u32 message, u32 a, u32 b) {
     if (message != 0xc) return (u32)Window_CallDefault(window, nullptr, message, a, b);
     const u32 index = vcall<u32>(window, 0x20) + 1;
-    global<u16 *>(0x007cb314) = Language_Widen(Records_DataIfTerminated(global<const u8 *>(0x0078ba9c), nullptr, index));
+    global<u16 *>(0x007cb314) = Language_Widen(Records_DataIfTerminated(global<const u8 *>((u32)(uintptr_t)&gLanguage_78b530 + 0x56c), nullptr, index));
     return 0x007cb310;
 }
 

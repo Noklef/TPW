@@ -30,6 +30,7 @@
 #include "panel7cc218.h"
 #include "dialog7cc984.h"
 #include "dialog7cc5f4dial.h"
+#include "../core/staticobjects.h"
 
 namespace {
 
@@ -154,7 +155,7 @@ s32 __cdecl ThingPanel_Handler_48d200(u8 *window, u32 message, u32 a, u32 b) {
 void __cdecl Dialog7cc984_Finish_4c07d0(u32 show) {
     g_env->clear702da0(at<u8 *>(global<u8 *>(0x00f85614), 0x14));
     g_env->send(gDialog7cc984_7cc984, 4, 0, 0);
-    reinterpret_cast<void(__cdecl *)(u32, u32)>(global<uintptr_t>(0x007cca4c))(show, global<u32>(0x007cca50));
+    reinterpret_cast<void(__cdecl *)(u32, u32)>(global<uintptr_t>((u32)(uintptr_t)&gClass70293c_7cc988 + 0xc4))(show, global<u32>((u32)(uintptr_t)&gClass70293c_7cc988 + 0xc8));
     if (show) g_env->send(at<u8 *>(global<u8 *>(0x00f82884), 4), 6, 1, 0);
 }
 

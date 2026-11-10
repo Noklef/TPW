@@ -22,6 +22,7 @@
 #include "things.h"
 #include "../ui/panel7cc218.h"
 #include "camera.h"
+#include "../core/staticobjects.h"
 
 namespace {
 
@@ -265,7 +266,7 @@ void __cdecl Camera_Reset() {
     const u32 flags = (global(0x00790aac) & 0x200) | 0x80;
     global(0x00790aac) = flags;
     global(0x007909d0) = flags;
-    global(0x007909e4) = Clocks_RealNow(reinterpret_cast<u8 *>(0x00785970));
+    global(0x007909e4) = Clocks_RealNow(reinterpret_cast<u8 *>((u32)(uintptr_t)&gObj_785970));
     global(0x00790a88) = 0;
     global(0x007908e8) = 1;
     global(0x00790a8c) = 0;

@@ -6,6 +6,7 @@
 #include "frame.h"
 #include "../ui/windowproc.h"
 #include "graphicssettings.h"
+#include "../core/staticobjects.h"
 
 namespace {
 
@@ -19,7 +20,7 @@ struct Size {
 bool pick(Size &size) {
     const Size k160{0xa0, 0x78}, k320{0x140, 0xf0}, k400{400, 300}, k512{0x200, 0x180}, k640{0x280, 0x1e0},
         k800{800, 600}, k1024{0x400, 0x300}, k1280{0x500, 0x400}, k1600{0x640, 0x4b0}, k2048{0x800, 0x600};
-    if (global<s32>(0x0078d968) == 1) {
+    if (global<s32>((u32)(uintptr_t)&gOptions_78d8d8 + 0x90) == 1) {
         const u32 options = gGraphicssettings_7a1a8c;
         if (options & 0x20000000 && !(options & 1)) size = k160;
         else if (options & 0x40000000) size = k320;
@@ -33,9 +34,9 @@ bool pick(Size &size) {
         else size = k640;
         return true;
     }
-    const s32 resolution = global<s32>(0x007858ec);  // gBalanceResolution.mRESOLUTION
+    const s32 resolution = global<s32>((u32)(uintptr_t)&gBalanceResolution + 0xc);  // gBalanceResolution.mRESOLUTION
     if (resolution <= 0) {
-        const s32 fallback = global<s32>(0x0078d8dc);
+        const s32 fallback = global<s32>((u32)(uintptr_t)&gOptions_78d8d8 + 0x4);
         size = fallback == 0 ? k512 : fallback == 2 ? k800 : k640;
         return true;
     }
@@ -56,13 +57,13 @@ bool pick(Size &size) {
 extern "C" {
 
 void __cdecl Screen_Init() {
-    global(0x0079d73c) = global(0x0079cb6c) + 1;
+    global(0x0079d73c) = global((u32)(uintptr_t)&gString_79cb68 + 0x4) + 1;
     char **const table = static_cast<char **>(GlobalMem_Alloc(4, 1));
     global<char **>(0x0079cb4c) = table;
     char *const text = static_cast<char *>(GlobalMem_Alloc(global(0x0079d73c), 1));
     global<char *>(0x0079d25c) = text;
     *table = text;
-    const char *from = global<const char *>(0x0079cb70);
+    const char *from = global<const char *>((u32)(uintptr_t)&gString_79cb68 + 0x8);
     char *to = *global<char **>(0x0079cb4c);
     do *to++ = *from; while (*from++);  // sic: the whole string, whatever the block holds
 

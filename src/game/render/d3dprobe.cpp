@@ -12,6 +12,7 @@
 #include "drawbuffer.h"
 #include "d3dresult.h"
 #include "ddopen.h"
+#include "../core/staticobjects.h"
 
 using namespace d3dresult;
 
@@ -27,7 +28,7 @@ const u32 kHundred = 0x42c80000;  // 100.0f
 u8 *base(u8 *probe) { return probe + at<u32>(at<u8 *>(probe, 0), 4); }
 u8 *device(u8 *probe) { return at<u8 *>(probe, 0x24); }
 u8 *caps() { return global<u8 *>(0x00879da8); }
-u32 &renderCaps() { return global<u32>(0x008bcbc8); }
+u32 &renderCaps() { return global<u32>((u32)(uintptr_t)&gView_8bcbc8); }
 
 void setFlags(u8 *probe, u32 flags) {
     at<u32>(base(probe), 0x14) = ~flags;
@@ -113,7 +114,7 @@ u32 __fastcall D3dProbe_FogTest(u8 *probe) {
         renderCaps() |= 0x8000;
         return 0;
     }
-    const u32 mask = global<u32>(0x008bd4dc);
+    const u32 mask = global<u32>((u32)(uintptr_t)&gView_8bcbc8 + 0x914);
     pixel &= mask;
     if (pixel == 0 || pixel == mask) {
         setFlags(probe, 0x109256);
@@ -122,7 +123,7 @@ u32 __fastcall D3dProbe_FogTest(u8 *probe) {
         renderState(probe, 0x22, 0xffffff);  // FOGCOLOR
         draw(probe, 0, 0x80000000);
         if (readPixel(probe, &pixel)) {
-            const u32 m = global<u32>(0x008bd4dc);
+            const u32 m = global<u32>((u32)(uintptr_t)&gView_8bcbc8 + 0x914);
             const u32 v = pixel & m;
             renderCaps() |= v == 0 || v == m ? 0x4000 : 0x8000;
         }
@@ -236,7 +237,7 @@ u32 __fastcall D3dProbe_Draw(u8 *self, void *, u32 size, u32 diffuse, u32 specul
 
 u32 __fastcall D3dProbe_BeginScene(u8 *self) {
     u8 *const probe = self - 0x2c;
-    stageState(probe, 0, 0x13, global<u32>(0x008bd4a8));
+    stageState(probe, 0, 0x13, global<u32>((u32)(uintptr_t)&gView_8bcbc8 + 0x8e0));
     keep(comcall<u32>(device(probe), 0x24));
     return pushed(3);
 }
@@ -251,10 +252,10 @@ u32 __fastcall D3dProbe_ReadPixel(u8 *, void *, s32 x, s32 y, u32 *out) {
     u32 desc[31] = {0x7c};
     keep(comcall<u32>(surface, 0x64, 0u, desc, 1u, 0u));
     if (result() != 0) return 0;
-    const s32 bits = global<s32>(0x008bcbe4);
+    const s32 bits = global<s32>((u32)(uintptr_t)&gView_8bcbc8 + 0x1c);
     const u32 pixel = desc[9] + static_cast<u32>(bits >> 3) * static_cast<u32>(x) + desc[4] * static_cast<u32>(y);
     *out = bits == 0x10 ? global<u16>(pixel) : global<u32>(pixel);
-    *out &= global<u32>(0x008bd4dc);
+    *out &= global<u32>((u32)(uintptr_t)&gView_8bcbc8 + 0x914);
     comcall<u32>(surface, 0x80, 0u);
     return 1;
 }
@@ -270,15 +271,15 @@ u32 __fastcall D3dProbe_SetTexture(u8 *self, void *, u32 stage, u32 texture) {
 
 u32 __fastcall D3dProbe_SetFog(u8 *self, void *, u32 start, u32 end, u32 colour) {
     u8 *const probe = self - 0x2c;
-    Obj_SetColour8b4(reinterpret_cast<u8 *>((uintptr_t)0x008bcbc8), nullptr, colour);
+    Obj_SetColour8b4(reinterpret_cast<u8 *>((uintptr_t)&gView_8bcbc8), nullptr, colour);
     float s, e;
     std::memcpy(&s, &start, 4);
     std::memcpy(&e, &end, 4);
     const X87Reg range = X87Reg(e) - s;
     if (range.v > 0)
-        global<float>(0x008bd498) = static_cast<float>(X87Reg(1.0) / range);
+        global<float>((u32)(uintptr_t)&gView_8bcbc8 + 0x8d0) = static_cast<float>(X87Reg(1.0) / range);
     else
-        reinterpret_cast<u32 &>(global<float>(0x008bd498)) = 0;
+        reinterpret_cast<u32 &>(global<float>((u32)(uintptr_t)&gView_8bcbc8 + 0x8d0)) = 0;
     renderState(probe, 0x30, 0);
     renderState(probe, 0x22, colour);   // FOGCOLOR
     if (renderCaps() & 0xc000) {
@@ -361,7 +362,7 @@ u32 __fastcall D3dProbe_DrawLines(u8 *self, void *, const float *points, s32 cou
 
 u32 __fastcall D3dProbe_DrawFrame(u8 *self) {
     u8 *const probe = self - 0x2c;
-    const double width = global<s32>(0x008bcbd0), height = global<s32>(0x008bcbd4);
+    const double width = global<s32>((u32)(uintptr_t)&gView_8bcbc8 + 0x8), height = global<s32>((u32)(uintptr_t)&gView_8bcbc8 + 0xc);
     const u32 w = bitsOf(static_cast<float>(width)), h = bitsOf(static_cast<float>(height));
     const u32 innerW = bitsOf(static_cast<float>(X87Reg(width) - 5.0f)), innerH = bitsOf(static_cast<float>(X87Reg(height) - 5.0f));
     const bool flat = (renderCaps() & 0x8000000) != 0;
@@ -588,7 +589,7 @@ u32 __fastcall D3dProbe_SetUpDevice(u8 *self) {
     for (const auto &state : kStates) renderState(probe, state[0], state[1]);
     stageState(probe, 0, 0xb, 0);
     at<u32>(probe, 0xc) = 1;
-    const u8 options = global<u8>(0x008bd550);
+    const u8 options = global<u8>((u32)(uintptr_t)&gTexSettings_8bd550);
     if (options & 2) {
         const u32 deviceCaps = at<u32>(caps(), 0xb0);
         at<u32>(probe, 0xc) = (options & 8) && (deviceCaps & 0x20) ? 3 : (deviceCaps & 8) ? 2 : 1;
@@ -673,7 +674,7 @@ u32 __fastcall D3dProbe_SetUpDevice(u8 *self) {
 
 float __fastcall D3dProbe_FillRate(u8 *self) {
     u8 *const probe = self - 0x2c;
-    const s32 width = global<s32>(0x008bcbd0), height = global<s32>(0x008bcbd4);
+    const s32 width = global<s32>((u32)(uintptr_t)&gView_8bcbc8 + 0x8), height = global<s32>((u32)(uintptr_t)&gView_8bcbc8 + 0xc);
     const s32 pixels = static_cast<s32>(static_cast<u32>(height) * static_cast<u32>(width) * 50);
     const u32 w = bitsOf(static_cast<float>(width)), h = bitsOf(static_cast<float>(height));
     const u32 z = 0x3f000000, one = 0x3f800000;   // 0.5, 1.0

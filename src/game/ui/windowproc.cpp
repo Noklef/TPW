@@ -4,6 +4,7 @@
 #include "../render/screen.h"
 #include "../gfx/texcache.h"
 #include "../core/keymap.h"
+#include "../core/staticobjects.h"
 
 namespace {
 
@@ -79,7 +80,7 @@ u32 __stdcall GameWindow_Proc(u32 window, u32 message, u32 wparam, u32 lparam) {
                 g_calls.Cd(0x0051b350);
                 g_calls.Cd(0x006593c5);
                 if (global<u32>(0x00f82884)) g_calls.Cd(0x0051bcf0);
-                else g_calls.Th(0x004092a0, 0x00786b68u, 1u, 1u);
+                else g_calls.Th(0x004092a0, (u32)(uintptr_t)&gNamedObjects_786b68, 1u, 1u);
             }
             g_calls.Cd(0x0047e9d0, wparam);
             return global<u32(__stdcall *)(u32, u32, u32, u32)>(0x006fd340)(window, 0x1c, wparam, lparam);
@@ -98,7 +99,7 @@ u32 __stdcall GameWindow_Proc(u32 window, u32 message, u32 wparam, u32 lparam) {
             u32 bytes = wparam, unit = 0;
             if (global<s32(__stdcall *)(u32, u32, const u32 *, s32, u32 *, s32)>(0x006fd174)(0, 0, &bytes, -1, &unit, 2) <= 0) return 0;
             if (static_cast<u16>(unit) < 0x20) return 0;
-            if (static_cast<u8>(g_calls.Th(0x0041a850, 0x0078b530u))) unit = g_calls.Cd(0x0046b460, unit);
+            if (static_cast<u8>(g_calls.Th(0x0041a850, (u32)(uintptr_t)&gLanguage_78b530))) unit = g_calls.Cd(0x0046b460, unit);
             g_calls.Cd(0x00658c96, unit, (lparam & 0xffff) | ((lparam & 0x40000000) ? 1u << 24 : 0));
             return 0;
         }

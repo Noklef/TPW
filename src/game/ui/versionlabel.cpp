@@ -9,6 +9,7 @@
 #include "../render/textparts.h"
 #include "window.h"
 #include "windowfactory.h"
+#include "../core/staticobjects.h"
 
 namespace {
 
@@ -35,7 +36,7 @@ void __cdecl VersionLabel_Create(u8 front) {
     u8 *const window = g_env->create(parent, nullptr, 1, 3, 0x008cfd55, 0x7c0 - width, 0x5c0 - height, 0x7c0, 0x5c0);
     u8 *const memory = static_cast<u8 *>(GameHeap_Alloc(0x1a4));
     g_env->setImpl(window, nullptr, memory ? g_env->part(memory, nullptr, 0) : nullptr);
-    g_env->set4c(window, nullptr, reinterpret_cast<u8 *>((uintptr_t)(0x0078b5dc + global<u32>(0x0078b534) * 0x138)));
+    g_env->set4c(window, nullptr, reinterpret_cast<u8 *>((uintptr_t)(((u32)(uintptr_t)&gLanguage_78b530 + 0xac) + global<u32>((u32)(uintptr_t)&gLanguage_78b530 + 0x4) * 0x138)));
     g_env->notify(window, nullptr, static_cast<u32>(reinterpret_cast<uintptr_t>(text)));
 }
 }

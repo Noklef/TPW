@@ -16,6 +16,7 @@
 #include "window7059f0.h"
 #include "window7059f0texts.h"
 #include "window7cc8c0handler.h"
+#include "../core/staticobjects.h"
 
 namespace {
 
@@ -104,7 +105,7 @@ extern "C" {
 s32 __cdecl Dialog7cc654_Handler(u8 *window, u32 message, u32 a, u32 b) {
     if (message == 0x14) {
         global<u8 *>(0x007cc654) = nullptr;
-        g_env->freeSurface(reinterpret_cast<void *>((uintptr_t)0x007cc628));
+        g_env->freeSurface(reinterpret_cast<void *>((uintptr_t)&gSurfaceInfo_7cc628));
         g_env->send(at<u8 *>(global<u8 *>(0x00f82884), 4), 6, 1, 0);
         g_env->focus();
     } else if (message == 0x15) {

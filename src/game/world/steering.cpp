@@ -9,6 +9,7 @@
 #include "mapcell.h"
 #include "nav.h"
 #include "steering.h"
+#include "../core/staticobjects.h"
 
 namespace {
 
@@ -22,8 +23,8 @@ u32 *Global(u32 address) { return reinterpret_cast<u32 *>(address); }
 
 template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cast<T *>((uintptr_t)p + offset); }
 
-s32 &g_force(u32 i) { return reinterpret_cast<s32 *>(0x7cf100)[i]; }  // the summed force, x and y
-s32 &g_nearestHit() { return *reinterpret_cast<s32 *>(0x7cf32c); }     // avoid_obstacle's nearest hit so far
+s32 &g_force(u32 i) { return reinterpret_cast<s32 *>((u32)(uintptr_t)&gSteerSeparation_7cf0d8 + 0x28)[i]; }  // the summed force, x and y
+s32 &g_nearestHit() { return *reinterpret_cast<s32 *>((u32)(uintptr_t)&gSteerFollowPath_7cf308 + 0x24); }     // avoid_obstacle's nearest hit so far
 s32 &g_lookAhead() { return gSteering_7cf048; }      // avoid_obstacle's reach
 
 // The behaviour named name (strcmp of the name at +4 of each object in the table at 0x761ec0: eight pointers, the last 0, sic: read
@@ -40,8 +41,8 @@ void PushBehaviour(u32 name, u32 weight) {
     }
     if (found == nullptr)
         return;
-    u32 &end = *Global(0x7cf07c);
-    if (end == *Global(0x7cf080))
+    u32 &end = *Global((u32)(uintptr_t)&gBlock50_7cf078 + 0x4);
+    if (end == *Global((u32)(uintptr_t)&gBlock50_7cf078 + 0x8))
         return;
     at<u32>(reinterpret_cast<void *>(end), 0) = weight;
     at<u32>(reinterpret_cast<void *>(end), 4) = (u32)(uintptr_t)found;
@@ -118,13 +119,13 @@ u32 *__fastcall SteerFollowPath_Ctor(u32 *self) { return Construct(self, (u32)(u
 
 void __fastcall Steer_Dtor(u32 *self) { self[0] = ((u32)(uintptr_t)Class7009b8_vtable + 0x4); }
 
-void __cdecl SteerSeek_Destroy() { Steer_Dtor(Global(0x7cf050)); }
-void __cdecl SteerArrival_Destroy() { Steer_Dtor(Global(0x7cf0b0)); }
-void __cdecl SteerSeparation_Destroy() { Steer_Dtor(Global(0x7cf0d8)); }
-void __cdecl SteerAvoidObstacle_Destroy() { Steer_Dtor(Global(0x7cf360)); }
-void __cdecl SteerRepelObstacle_Destroy() { Steer_Dtor(Global(0x7cf338)); }
-void __cdecl SteerAvoidWalls_Destroy() { Steer_Dtor(Global(0x7cf088)); }
-void __cdecl SteerFollowPath_Destroy() { Steer_Dtor(Global(0x7cf308)); }
+void __cdecl SteerSeek_Destroy() { Steer_Dtor(Global((u32)(uintptr_t)&gSteerSeek_7cf050)); }
+void __cdecl SteerArrival_Destroy() { Steer_Dtor(Global((u32)(uintptr_t)&gSteerArrival_7cf0b0)); }
+void __cdecl SteerSeparation_Destroy() { Steer_Dtor(Global((u32)(uintptr_t)&gSteerSeparation_7cf0d8)); }
+void __cdecl SteerAvoidObstacle_Destroy() { Steer_Dtor(Global((u32)(uintptr_t)&gSteerAvoidObstacle_7cf360)); }
+void __cdecl SteerRepelObstacle_Destroy() { Steer_Dtor(Global((u32)(uintptr_t)&gSteerRepelObstacle_7cf338)); }
+void __cdecl SteerAvoidWalls_Destroy() { Steer_Dtor(Global((u32)(uintptr_t)&gSteerAvoidWalls_7cf088)); }
+void __cdecl SteerFollowPath_Destroy() { Steer_Dtor(Global((u32)(uintptr_t)&gSteerFollowPath_7cf308)); }
 
 s32 *__fastcall SteerSeek_Steer(void *, void *, s32 *out, const u8 *nav) {
     s32 toTarget[2];

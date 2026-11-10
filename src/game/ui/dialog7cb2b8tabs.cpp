@@ -7,6 +7,7 @@
 #include "levelmeter.h"
 #include "menuactions.h"
 #include "window.h"
+#include "../core/staticobjects.h"
 
 namespace {
 
@@ -28,7 +29,7 @@ s32 __cdecl Dialog7cb2b8_TabsHandler(u8 *window, u32 message, u32 a, u32 b) {
             else g_env->cancel();
             break;
         case 0x28: g_env->reopen(2); break;
-        case 0x29: g_env->other(reinterpret_cast<u8 *>((uintptr_t)0x00f86db8)); break;
+        case 0x29: g_env->other(reinterpret_cast<u8 *>((uintptr_t)&gSurfaceInfo_f86db8)); break;
         case 0x2a: g_env->reopen(3); break;
         case 0x2b: g_env->research(); break;
         default: break;

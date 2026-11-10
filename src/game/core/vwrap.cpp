@@ -15,6 +15,7 @@
 #include "../ui/panel7cc218.h"
 #include "../gfx/texcache.h"
 #include "../render/spritegroups.h"
+#include "staticobjects.h"
 
 namespace {
 
@@ -304,7 +305,7 @@ s32 __fastcall Refcounted_Release(u8 *field) {
 }
 
 void __cdecl Global7ca1bc_Release() {
-    if (u8 *object = global<u8 *>(0x007ca1bc))
+    if (u8 *object = global<u8 *>((u32)(uintptr_t)&gStatic_7ca178 + 0x44))
         vcall<u32>(object, 8, 1u);
 }
 
@@ -342,7 +343,7 @@ u32 __fastcall Obj_KeyMessageToSlots(u8 *object, void *, u32 message, u32 key, u
 }
 
 void __fastcall Obj7b51f0_PassThingTo7cc218(u8 *, void *, u32 handle) {
-    Obj_CallSlot14IfGlobalThing(reinterpret_cast<u8 *>(0x007cc218), nullptr, handle);
+    Obj_CallSlot14IfGlobalThing(reinterpret_cast<u8 *>((u32)(uintptr_t)&gStatic_7cc218), nullptr, handle);
 }
 
 }  // extern "C"

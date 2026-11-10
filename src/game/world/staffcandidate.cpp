@@ -12,6 +12,7 @@
 #include "staff.h"
 #include "things.h"
 #include "staffcandidate.h"
+#include "../core/staticobjects.h"
 
 namespace {
 
@@ -71,7 +72,7 @@ void __fastcall StaffPoolEntry_Generate(u8 *entry, void *, u32 kind, u32 slot) {
     u8 grade = (u8)kind;
     if (kind <= 4) {
         at<u8>(entry, 9) = (u8)SpriteFolder_RandomSprite(kFolders[kind]);
-        grade = random_grade(0x00785298 + kind * 4);
+        grade = random_grade(((u32)(uintptr_t)&gBalanceLevel + 0x258) + kind * 4);
     }
     at<u8>(entry, 8) = grade > 4 ? 4 : grade;
     StaffPoolEntry_PickName(entry);
@@ -79,7 +80,7 @@ void __fastcall StaffPoolEntry_Generate(u8 *entry, void *, u32 kind, u32 slot) {
     g_env->tellDialog(reinterpret_cast<void *>((uintptr_t)0x007b51f0), nullptr, slot);
     Out_SetFromGame1da70c(&at<u32>(entry, 0xc));
     const u32 draw = (u32)World_Rand(global<u8 *>(0x0080239c));
-    const s32 timeout = global<s32>(0x0078530c);
+    const s32 timeout = global<s32>((u32)(uintptr_t)&gBalanceLevel + 0x2cc);
     at<u32>(entry, 0x10) = draw % (u32)(timeout >> 1) + (u32)timeout;
 }
 
@@ -104,7 +105,7 @@ u8 __fastcall StaffPool_AddCandidate(u8 *pool, void *, u32 kind) { return add_ca
 u8 __fastcall StaffPool_FillAll(u8 *pool) {
     if (at<u8>(pool, 0x298)) return 0;   // (with a debug print, left out)
     for (u32 kind = 0; kind != 5; ++kind) {
-        for (s32 n = 0; n < global<s32>(0x007852ac + kind * 4); ++n) add_candidate(pool, kind);
+        for (s32 n = 0; n < global<s32>(((u32)(uintptr_t)&gBalanceLevel + 0x26c) + kind * 4); ++n) add_candidate(pool, kind);
     }
     at<u8>(pool, 0x298) = 1;
     return 1;
@@ -143,10 +144,10 @@ void __fastcall StaffPool_Update(u8 *pool) {
         }
     }
     u32 *const clock = reinterpret_cast<u32 *>(pool + 0x294);
-    if (Game1da70c_MinusAt0(clock) <= global<u32>(0x00785304) * 4) return;
+    if (Game1da70c_MinusAt0(clock) <= global<u32>((u32)(uintptr_t)&gBalanceLevel + 0x2c4) * 4) return;
     u32 used = 0;
     for (u32 i = 0; i < 0x20; i++) used += at<u8>(pool, i * 0x14 + 0xa) != 0;
-    const u32 count = global<u32>(0x00785308);
+    const u32 count = global<u32>((u32)(uintptr_t)&gBalanceLevel + 0x2c8);
     s32 left = (s32)(count < 0x20 - used ? count : 0x20 - used);
     Staff_CountTypes(pool);
     s32 wants[5];
@@ -157,7 +158,7 @@ void __fastcall StaffPool_Update(u8 *pool) {
         } else {
             s32 ofKind = 0;
             for (u32 i = 0; i < 0x20; i++) ofKind += at<u8>(pool, i * 0x14 + 0xa) != 0 && at<u32>(pool, i * 0x14) == k;
-            wants[k] = global<s32>(0x007852c0 + k * 4) - ofKind;
+            wants[k] = global<s32>(((u32)(uintptr_t)&gBalanceLevel + 0x280) + k * 4) - ofKind;
         }
         total += wants[k];
     }
@@ -196,7 +197,7 @@ void __fastcall StaffPool_TopUp(u8 *pool) {
         for (u32 i = 0; i != 0x20; ++i) {
             if (at<u8>(pool, i * 0x14 + 0xa) && at<u32>(pool, i * 0x14) == kind) ++used;
         }
-        return (s32)(at<u32>(pool, 0x280 + kind * 4) + used) < global<s32>(0x007852d4 + kind * 4);
+        return (s32)(at<u32>(pool, 0x280 + kind * 4) + used) < global<s32>(((u32)(uintptr_t)&gBalanceLevel + 0x294) + kind * 4);
     };
     static const u8 kOrder[5] = {1, 0, 2, 3, 4};
     bool again;

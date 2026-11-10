@@ -13,6 +13,7 @@
 #include "train.h"
 #include "../world/ridelist.h"
 #include "coastersload.h"
+#include "../core/staticobjects.h"
 
 namespace {
 
@@ -101,16 +102,16 @@ extern "C" u32 __cdecl CoasterEdit_PlaceCar(s32 x, s32 y, u32 height, u8 **outNo
         const float cost = (float)g_env->travelCost(editing, 1, car, &atX, &atZ, nullptr, nullptr);
         const u32 money = g_env->money(global<u8 *>(0x007cf83c));
         g_env->sourceField(money);
-        if (!global<u32>(0x00785a2c))
+        if (!global<u32>((u32)(uintptr_t)&gActionRec_785a08 + 0x24))
             g_env->debit(money, nullptr, (s32)(long long)(double)cost);
     }
     if (reinterpret_cast<u8 &>(gPlacecar_79c658) & 0x40) {
         const u32 left = --gEdittools_79c664;
         if (!left) {
             gPlacecar_79c658 &= ~0x40u;
-            if (!given && !global<u32>(0x00785a2c))
+            if (!given && !global<u32>((u32)(uintptr_t)&gActionRec_785a08 + 0x24))
                 g_env->switchToTool1();
-        } else if (left == 1 && !given && !global<u32>(0x00785a2c)) {
+        } else if (left == 1 && !given && !global<u32>((u32)(uintptr_t)&gActionRec_785a08 + 0x24)) {
             g_env->refreshTools();
         }
     }

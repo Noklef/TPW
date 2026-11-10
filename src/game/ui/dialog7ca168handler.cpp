@@ -20,6 +20,7 @@
 #include "window7059f0.h"
 #include "window7059f0texts.h"
 #include "dialog7ca168.h"
+#include "../core/staticobjects.h"
 
 namespace {
 
@@ -41,7 +42,7 @@ void UpdateRows() {
         if (mode == 1 && g_env->hasRegion(staff) == 0) mode = 0;
         u32 texts[5];
         texts[0] = 0;
-        const u8 *const record = g_env->record(global<const u8 *>(0x0078baa4), nullptr, mode);
+        const u8 *const record = g_env->record(global<const u8 *>((u32)(uintptr_t)&gLanguage_78b530 + 0x574), nullptr, mode);
         texts[1] = static_cast<u32>(reinterpret_cast<uintptr_t>(g_env->widen(record)));
         texts[2] = static_cast<u32>(g_env->wage(staff));
         texts[3] = (g_env->grade(staff) << 10) / 100;
@@ -97,7 +98,7 @@ s32 __cdecl Dialog7ca168_WindowHandler(u8 *window, u32 message, u32 a, u32 b) {
         u8 *const child = Window_FindChild(window, nullptr, a);
         if (child && b != 0xffffffff) {
             g_env->nth(child, nullptr, static_cast<s32>(b), &data);
-            g_env->show(reinterpret_cast<u8 *>((uintptr_t)0x007cc3b0), nullptr, reinterpret_cast<u8 *>((uintptr_t)data));
+            g_env->show(reinterpret_cast<u8 *>((uintptr_t)&gStatic_7cc3b0), nullptr, reinterpret_cast<u8 *>((uintptr_t)data));
         }
         return 0;
     }

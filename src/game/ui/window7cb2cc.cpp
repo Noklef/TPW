@@ -8,6 +8,7 @@
 #include "guirect.h"
 #include "window.h"
 #include "focus.h"
+#include "../core/staticobjects.h"
 
 namespace {
 
@@ -35,7 +36,7 @@ s32 __cdecl Window7cb2cc_Handler(u8 *window, u32 message, u32 a, u32 b) {
         GuiRect_Dtor(rect);
     } else if (message == 0x1000b) {
         const u8 *const map = gKeymap_78718c;
-        if (at<u16>(map, 6) == 0 && (u16)g_env->findKey(map, nullptr, (s16)a, (b & 0xff0000) ? 0 : 1)) g_env->key(reinterpret_cast<u8 *>((uintptr_t)0x00786b68), nullptr, 0);
+        if (at<u16>(map, 6) == 0 && (u16)g_env->findKey(map, nullptr, (s16)a, (b & 0xff0000) ? 0 : 1)) g_env->key(reinterpret_cast<u8 *>((uintptr_t)&gNamedObjects_786b68), nullptr, 0);
     }
     return g_env->base(window, message, a, b);
 }

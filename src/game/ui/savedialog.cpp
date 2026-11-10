@@ -13,6 +13,7 @@
 #include "focus.h"
 #include "window.h"
 #include "window7059f0.h"
+#include "../core/staticobjects.h"
 
 namespace {
 
@@ -23,7 +24,7 @@ const SaveDialogEnv kGameEnv = {game<u8 *(__fastcall *)(u8 *)>(0x005ac8f0), game
                                 &Focus_Restore, &KeyMaps_EnableAllAndClearFlag, &Dialog_BaseHandler, &Window7059f0_NthItemData, &Charset_FormatWide, game<void(__cdecl *)(const u8 *, u32, u32, u32, u32, u32, u32, u32)>(0x0047f020), &Window7059f0_AddItem};
 const SaveDialogEnv *g_env = &kGameEnv;
 
-u8 *list() { return reinterpret_cast<u8 *>((uintptr_t)0x00f7b560); }
+u8 *list() { return reinterpret_cast<u8 *>((uintptr_t)&gStatic_f7b560); }
 u16 *typed() { return reinterpret_cast<u16 *>(gSavedialog_7ca720); }
 u8 *next(u8 *item) { return WNamedList_FindAfter(list(), nullptr, item); }
 void close(u32 dialog) { g_env->send(global<u8 *>(dialog), 4, 0, 0); }
@@ -58,7 +59,7 @@ void Fill(u8 *window, u32 dayAt, u32 monthAt, u32 yearAt) {
         args[monthAt] = {0x006ff170, kArgTag, 0x11, month, 0};
         args[dayAt] = {0x006ff170, kArgTag, 0x10, day, 0};
         u16 text[0x20];
-        g_env->format(global<u8 *>(0x0078ba94), text, 0x20, 0x1c0, &args[dayAt], &args[monthAt], &args[yearAt]);
+        g_env->format(global<u8 *>((u32)(uintptr_t)&gLanguage_78b530 + 0x564), text, 0x20, 0x1c0, &args[dayAt], &args[monthAt], &args[yearAt]);
         u16 *const row = reinterpret_cast<u16 *>((uintptr_t)0x007ba058);
         Crt().swprintf(row, reinterpret_cast<const u16 *>((uintptr_t)0x00752564), text, hour, minute);
         texts[1] = static_cast<u32>(reinterpret_cast<uintptr_t>(row));
@@ -74,7 +75,7 @@ void AskFirst() {
         const u16 *text;
     } arg = {0x006ff174, kArgTag, 2, typed()};
     u16 text[0x80];
-    g_env->format(global<u8 *>(0x0078ba94), text, 0x7f, 0xcd, &arg);
+    g_env->format(global<u8 *>((u32)(uintptr_t)&gLanguage_78b530 + 0x564), text, 0x7f, 0xcd, &arg);
     struct {
         u16 *text;
         u8 colour[4];
@@ -88,8 +89,8 @@ void AskFirst() {
 
 // 0x14's common end.
 void EnableControls() {
-    global<u32>(0x00786ba4) = 1;
-    g_env->enable(reinterpret_cast<u8 *>((uintptr_t)0x00786b68));
+    global<u32>((u32)(uintptr_t)&gNamedObjects_786b68 + 0x3c) = 1;
+    g_env->enable(reinterpret_cast<u8 *>((uintptr_t)&gNamedObjects_786b68));
 }
 
 }  // namespace

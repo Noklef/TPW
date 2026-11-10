@@ -16,6 +16,7 @@
 #include "placecar.h"
 #include "edittools.h"
 #include "coastersload.h"
+#include "../core/staticobjects.h"
 
 namespace {
 
@@ -168,7 +169,7 @@ void move_piece(u8 *link, s32 x, s32 z) {
             }
         }
     }
-    if (!g<u32>(0x00785a2c)) {
+    if (!g<u32>((u32)(uintptr_t)&gActionRec_785a08 + 0x24)) {
         s32 cost = reinterpret_cast<s32 &>(gEdittools_79c69c);
         if (cost < 0) cost += (s32)0xf1111112;
         Global81af4c_Add((u32)cost);
@@ -274,7 +275,7 @@ void __cdecl CoasterEdit_Update() {
     if (edited && Car()) g_env->carEdited(Flags(), Car(), Link(), 0, 0);
     if (reinterpret_cast<u8 &>(gPlacecar_79c658) & 0x3f) {
         u8 *const car = Car();
-        if (car && !(at<u8>(at<u8 *>(car, 0x100), 4) & 2) && !g<u32>(0x00785a2c)) {
+        if (car && !(at<u8>(at<u8 *>(car, 0x100), 4) & 2) && !g<u32>((u32)(uintptr_t)&gActionRec_785a08 + 0x24)) {
             const s32 old = (s32)(long long)(double)gEdittools_79c698;  // (__ftol)
             const double cost = g_env->travelCost(Link(), 0, Car(), nullptr, nullptr, nullptr, nullptr);
             s32 change = Float_RoundUp((float)cost) - old;

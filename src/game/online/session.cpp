@@ -29,6 +29,7 @@
 #include "chatlists.h"
 #include "chatcommand.h"
 #include "../ui/window7cc8c0handler.h"
+#include "../core/staticobjects.h"
 
 namespace {
 
@@ -277,9 +278,9 @@ u8 *__fastcall Online_OpenCity(u8 *session) {
     }
     at<u8 *>(session, 0xd4) = city;
     Say(reinterpret_cast<uintptr_t>(&gOnline_OpenCity_7738b0));
-    const u32 name = *reinterpret_cast<const u32 *>((uintptr_t)0x007a1524);
+    const u32 name = *reinterpret_cast<const u32 *>((uintptr_t)&gOnlineServers_7a14f0 + 0x34);
     const u32 server = name ? name : 0x006fe5b0;
-    const u32 port = (name & 0xffff0000) | *reinterpret_cast<const u16 *>((uintptr_t)0x007a1556);   // (mov ax: the high half left)
+    const u32 port = (name & 0xffff0000) | *reinterpret_cast<const u16 *>((uintptr_t)&gOnlineServers_7a14f0 + 0x66);   // (mov ax: the high half left)
     using Connect = u32(__fastcall *)(u8 *, void *, u32, u8 *, u32, u32);
     const u8 *const picked = Global7cc53c_Pick7cc4f0();
     if ((*reinterpret_cast<const Connect *>((uintptr_t)0x006fd534))(at<u8 *>(session, 0xd4), nullptr, server, const_cast<u8 *>(picked), port, 0x005b72c0) != 1) {
@@ -290,7 +291,7 @@ u8 *__fastcall Online_OpenCity(u8 *session) {
     Say(reinterpret_cast<uintptr_t>(&gOnline_OpenCity_773854));
     at<u32>(session, 0xd8) = Time_GetMs();
     const u32 a = at<u32>(session, 0x34), b = at<u32>(session, 0x38), c = at<u32>(session, 0x28);
-    const u32 language = Language_Id(reinterpret_cast<const u8 *>((uintptr_t)0x0078b530));
+    const u32 language = Language_Id(reinterpret_cast<const u8 *>((uintptr_t)&gLanguage_78b530));
     using SetSessionInfo = void(__fastcall *)(u8 *, void *, u32, u32, u32, u32);
     (*reinterpret_cast<const SetSessionInfo *>((uintptr_t)0x006fd53c))(at<u8 *>(session, 0xd4), nullptr, language, a, b, c);
     at<u32>(session, 0xdc) = 1;
@@ -439,7 +440,7 @@ u32 __fastcall Online_UploadConnect(u8 *session) {
     if (answer == 1) {
         Say(reinterpret_cast<uintptr_t>(&gOnline_UploadConnect_7739dc));
         using Lobby = void(__fastcall *)(void *, void *, u32, u32, u32, u32);
-        const u32 language = Language_Id(reinterpret_cast<const u8 *>((uintptr_t)0x0078b530));
+        const u32 language = Language_Id(reinterpret_cast<const u8 *>((uintptr_t)&gLanguage_78b530));
         (*reinterpret_cast<const Lobby *>((uintptr_t)0x006fd5e4))(at<void *>(session, 0x104), nullptr, language, at<u32>(session, 0x34), at<u32>(session, 0x38), at<u32>(session, 0x28));
         result = 1;
     } else {
@@ -520,7 +521,7 @@ void __fastcall Online_UploadEvent(u8 *session, void *, u32 code, u32, u32, u8 *
             return;
         case 0xffffffd8u:
             at<u32>(session, 0x37c) = 0xde;
-            at<u32>(session, 0x380) = *reinterpret_cast<const u32 *>((uintptr_t)0x0078ba94);
+            at<u32>(session, 0x380) = *reinterpret_cast<const u32 *>((uintptr_t)&gLanguage_78b530 + 0x564);
             at<u32>(session, 0x32c) = 0;
             at<u32>(session, 0x328) = 1;
             return;
@@ -831,9 +832,9 @@ void QueueMissing(u8 *session, u32 number) {
     u16 extension[0x10], drive[0x10], name[0x100], folder[0x100];
     g_fetch->splitPath(path.data, drive, folder, name, extension);
     String root;
-    String_CtorCopy(&root, nullptr, reinterpret_cast<const StringView *>((uintptr_t)0x00f816c0));
+    String_CtorCopy(&root, nullptr, reinterpret_cast<const StringView *>((uintptr_t)&gStrings5_f816c0));
     String_EnsureTrailingBackslash(&root);
-    vcall<void>(&root, 0x28, 0x00f7ccd8u);
+    vcall<void>(&root, 0x28, (u32)(uintptr_t)&gString_f7ccd8);
     String_EnsureTrailingBackslash(&root);
     WString plain;
     WString_Ctor(&plain);
@@ -932,10 +933,10 @@ void __fastcall Online_DownloadStart(u8 *session, void *, const u8 *item) {
     }
     WString folder;
     g_fetch->folder(&folder);
-    vcall<void>(&folder, 0x28, 0x00f7d740u);
+    vcall<void>(&folder, 0x28, (u32)(uintptr_t)&gWString_f7d740);
     String_AssignFromWide(reinterpret_cast<String *>(session + 0x3dc), &folder);
     vcall<void>(session + 0x3dc, 0x20, at<u32>(at<u8 *>(session, 0x3a4), 0x84));
-    vcall<void>(session + 0x3dc, 0x28, 0x00f7d1e8u);
+    vcall<void>(session + 0x3dc, 0x28, (u32)(uintptr_t)&gString_f7d1e8);
     at<u32>(session, 0x3d8) = g_fetch->exists(at<const char *>(session, 0x3e4)) ? 0 : 1;
     if (!at<u32>(session, 0x3d8) && !at<u32>(session, 0x3d4)) {
         if (const TransferCallback callback = at<TransferCallback>(session, 0x3c0)) callback(0, at<u32>(session, 0x3c4));
@@ -973,9 +974,9 @@ void __fastcall Online_DownloadNext(u8 *session) {
         String_Ctor(&from);
         String_AssignFromWide(&from, &url);
         String to;
-        String_CtorCopy(&to, nullptr, reinterpret_cast<const StringView *>((uintptr_t)0x00f816c0));
+        String_CtorCopy(&to, nullptr, reinterpret_cast<const StringView *>((uintptr_t)&gStrings5_f816c0));
         String_EnsureTrailingBackslash(&to);
-        vcall<void>(&to, 0x28, 0x00f7ccd8u);
+        vcall<void>(&to, 0x28, (u32)(uintptr_t)&gString_f7ccd8);
         String_EnsureTrailingBackslash(&to);
         WString wide;
         WString_Ctor(&wide);

@@ -22,6 +22,7 @@
 #include "mapclick.h"
 #include "focuscell.h"
 #include "tracktextures.h"
+#include "../core/staticobjects.h"
 
 namespace {
 
@@ -155,7 +156,7 @@ void Piece(const MapPreviewEnv *E, s32 &x, s32 &y) {
         Global81af4c_Set_52fb90(0);
     } else {
         Global81af4c_Set_52fb90(at<u32>(Def(E), 0x1b8));
-        if (global<u32>(0x00785a2c) == 0) {
+        if (global<u32>((u32)(uintptr_t)&gActionRec_785a08 + 0x24) == 0) {
             const s32 money = (s32)Source_Field0c(reinterpret_cast<const TrackedSource *>((uintptr_t)E->table5195d0(World())));
             if ((s32)Global81af4c_Get_52fbc0() > money) {
                 global<u32>(0x00816d50) = 1;

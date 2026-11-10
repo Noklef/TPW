@@ -2,6 +2,7 @@
 #include "dialog7cc654picture.h"
 
 #include <cstdint>
+#include "../core/staticobjects.h"
 
 namespace {
 
@@ -60,10 +61,10 @@ extern "C" void __cdecl Dialog7cc654_ShowPicture() {
     if (!pixels) return;
     g_env->fillInfo(pixels, information.info, width, height);
     g_env->infoFromFile(&loader, nullptr, &information, fileName(), 0, 0);
-    g_env->loadFromFile(&loader, nullptr, &information, reinterpret_cast<void *>((uintptr_t)0x007cc628), fileName(), 0, 0);
+    g_env->loadFromFile(&loader, nullptr, &information, reinterpret_cast<void *>((uintptr_t)&gSurfaceInfo_7cc628), fileName(), 0, 0);
     Array array;
-    g_env->arrayInit(&array, nullptr, global<u32>(0x007cc644), global<u32>(0x007cc648), 4);
-    const u8 *from = global<const u8 *>(0x007cc640);
+    g_env->arrayInit(&array, nullptr, global<u32>((u32)(uintptr_t)&gSurfaceInfo_7cc628 + 0x1c), global<u32>((u32)(uintptr_t)&gSurfaceInfo_7cc628 + 0x20), 4);
+    const u8 *from = global<const u8 *>((u32)(uintptr_t)&gSurfaceInfo_7cc628 + 0x18);
     u8 *to = array.pixels;
     for (u32 y = 0; y < array.height; ++y) {
         for (u32 x = 0; x < array.width; ++x, from += 4, to += 4) {
@@ -73,7 +74,7 @@ extern "C" void __cdecl Dialog7cc654_ShowPicture() {
             to[3] = from[0];
         }
     }
-    const u32 mode = global<u32>(0x008bd554);
+    const u32 mode = global<u32>((u32)(uintptr_t)&gTexSettings_8bd550 + 0x4);
     if (mode == 2) g_env->shrink(&array, nullptr, pixels, width, height, 2);
     else if (mode == 3) g_env->shrink(&array, nullptr, pixels, width, height, 1);
     g_env->unlock(window);

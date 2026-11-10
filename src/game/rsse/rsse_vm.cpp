@@ -18,6 +18,7 @@
 #include "../world/objectdefs.h"
 #include "../world/personscripts.h"
 #include "../world/ridelist.h"
+#include "../core/staticobjects.h"
 
 namespace {
 
@@ -63,7 +64,7 @@ u8 *ThingDef(const u8 *vm) {
 // A leg's progress in thousandths: (now * 1000 - start * 1000) / (end - start), unsigned (the start +8 read before the clock).
 u32 Progress(u8 *slot) {
     const u32 start = at<u32>(slot, 8);
-    const u32 now = Clocks_Now(reinterpret_cast<u8 *>(0x00785970));
+    const u32 now = Clocks_Now(reinterpret_cast<u8 *>((u32)(uintptr_t)&gObj_785970));
     return (now * 1000 - start * 1000) / (at<u32>(slot, 0xc) - start);
 }
 
@@ -133,7 +134,7 @@ const char *__cdecl RsseScript_EventName(const u8 *script, u32 index, u32 *group
 }
 
 u32 __cdecl RSSE_StartTimer(RsseContext *ctx, u32 ms, u32 a, u32 b) {
-    at<u32>(ctx, 0x80) = Clocks_Now(reinterpret_cast<u8 *>(0x00785970));
+    at<u32>(ctx, 0x80) = Clocks_Now(reinterpret_cast<u8 *>((u32)(uintptr_t)&gObj_785970));
     at<u32>(ctx, 0x84) = ms;
     at<u16>(ctx, 0x88) = (u16)a;
     at<u16>(ctx, 0x8a) = (u16)b;
@@ -182,7 +183,7 @@ s32 __cdecl Rsse_StartWalker(u8 *vm, u32 value, s32 from, s32 to, u32 a, u32 b, 
     at<u16>(slot, 6) = (u16)b;
     at<u32>(slot, 0x10) = value;
     at<u16>(slot, 0x16) = (u16)kind;
-    u8 *const clock = reinterpret_cast<u8 *>(0x00785970);
+    u8 *const clock = reinterpret_cast<u8 *>((u32)(uintptr_t)&gObj_785970);
     at<u32>(slot, 8) = Clocks_Now(clock);
     at<u32>(slot, 0xc) = Clocks_Now(clock) + time;
     const s32 octant = Octant(X87_Atan2((X87Reg(p2[2]) - p1[2]).v, (X87Reg(p2[0]) - p1[0]).v));
@@ -240,7 +241,7 @@ void __cdecl Rsse_MoveWalker(u8 *vm, u8 *slot, s32 from, s32 to, s32 mode, s32 t
     const float c = (float)(gRidelist_700fd0 - X87Reg((double)at<s16>(vm, 0xc0)) * gRsse_MoveWalker_700fcc);
     const float d = (float)(X87Reg((double)at<u16>(vm, 0x88)) * k0001);
     const float e = (float)(X87Reg((double)at<u16>(vm, 0x8a)) * k0001);
-    u8 *const clock = reinterpret_cast<u8 *>(0x00785970);
+    u8 *const clock = reinterpret_cast<u8 *>((u32)(uintptr_t)&gObj_785970);
     const float now = (float)(double)Clocks_Now(clock);   // (fild qword: the time unsigned)
     const s32 since = (s32)(Clocks_Now(clock) - at<u32>(vm, 0x80));
     const SinTable sines = SinTable_Game();
@@ -275,7 +276,7 @@ void __cdecl Rsse_WalkerBack(u8 *vm, u32 value) {
     Ride_PartPlace(vm, p2, nullptr, at<s16>(slot, 6), 0x800);
     const u32 time = WalkTime(p1, p2);
     at<u16>(slot, 0x14) = (u16)Octant(X87_Atan2((X87Reg(p2[2]) - p1[2]).v, (X87Reg(p2[0]) - p1[0]).v));
-    u8 *const clock = reinterpret_cast<u8 *>(0x00785970);
+    u8 *const clock = reinterpret_cast<u8 *>((u32)(uintptr_t)&gObj_785970);
     at<u32>(slot, 0xc) = Clocks_Now(clock) + time;
     at<u32>(slot, 8) = Clocks_Now(clock);
     if (at<u16>(slot, 0x16) == 2) {
@@ -295,7 +296,7 @@ void __cdecl Rsse_UpdateWalkers(u8 *vm) {
     if (at<s32>(vm, 0x7c) == 0)
         return;
     Model_BeginView(at<u8 *>(Ride(vm), 8));
-    u8 *const clock = reinterpret_cast<u8 *>(0x00785970);
+    u8 *const clock = reinterpret_cast<u8 *>((u32)(uintptr_t)&gObj_785970);
     for (s32 i = 0; i < at<s32>(vm, 0x7c); ++i) {
         u8 *const slot = at<u8 *>(vm, 0x2c) + 0x20 * i;
         if (at<u16>(slot, 0x18) == 0)
@@ -430,7 +431,7 @@ void __cdecl Rsse_UpdateAll() {
             const u8 *const entry = at<u8 *>(vm, 0x28) + 0x10 * i;
             if (at<u32>(entry, 0) == 0)
                 continue;
-            const s32 elapsed = (s32)(Clocks_Now(reinterpret_cast<u8 *>(0x00785970)) - at<u32>(entry, 0xc));
+            const s32 elapsed = (s32)(Clocks_Now(reinterpret_cast<u8 *>((u32)(uintptr_t)&gObj_785970)) - at<u32>(entry, 0xc));
             u8 *const person = global<u8 *>(0x007cfb90 + 20 * (at<u32>(entry, 0) & 0xffff));
             const s32 part = (s32)Model_FindPartByKey4(Ride(vm), 0x800, at<u32>(at<u8 *>(vm, 0x28) + 0x10 * i, 4));
             if (part < 0)

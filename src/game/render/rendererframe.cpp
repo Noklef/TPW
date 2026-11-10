@@ -11,6 +11,7 @@
 #include "../gfx/texcache.h"
 #include "meshlist.h"
 #include "../core/vwrap.h"
+#include "../core/staticobjects.h"
 
 namespace {
 
@@ -19,7 +20,7 @@ AddrCalls g_calls;
 template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cast<T *>((uintptr_t)p + offset); }
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
 
-const u32 kViewFlags = 0x008bcbc8, kSceneFlags = 0x008bd508, kMode = 0x008bd524, kDevice = 0x00879ab0, kWorldRender = reinterpret_cast<uintptr_t>(&gRenderer_87a6d0), kCamera = 0x0087aff0;
+const u32 kViewFlags = (u32)(uintptr_t)&gView_8bcbc8, kSceneFlags = 0x008bd508, kMode = 0x008bd524, kDevice = 0x00879ab0, kWorldRender = reinterpret_cast<uintptr_t>(&gRenderer_87a6d0), kCamera = 0x0087aff0;
 
 template <typename... A>
 u32 Slot(u32 object, u32 offset, A... args) {
@@ -34,10 +35,10 @@ bool DrawViewSteps(u8 *renderer, const u32 *view) {
         if (!Slot(global<u32>(0x008bd52c), 0)) return false;
     }
     if (global<u32>(kViewFlags) & 0x2000) {
-        reinterpret_cast<u32 &>(global<float>(0x008bd4ec)) = 0x3e800000;
+        reinterpret_cast<u32 &>(global<float>((u32)(uintptr_t)&gView_8bcbc8 + 0x924)) = 0x3e800000;
     } else {
-        reinterpret_cast<u32 &>(global<float>(0x008bd4ec)) = 0x3f19999a;
-        if (global<u32>(kMode) == 4) reinterpret_cast<u32 &>(global<float>(0x008bd4ec)) = 0x3e800000;
+        reinterpret_cast<u32 &>(global<float>((u32)(uintptr_t)&gView_8bcbc8 + 0x924)) = 0x3f19999a;
+        if (global<u32>(kMode) == 4) reinterpret_cast<u32 &>(global<float>((u32)(uintptr_t)&gView_8bcbc8 + 0x924)) = 0x3e800000;
     }
     if ((view[0] & 0x1000) && at<u32>(renderer, 0x34)) g_calls.Th(0x00575fb0, at<u32>(renderer, 0x34));   // TexSet_BltToBack
     if (global<u8>(0x00790ab0) & 0x16) global<u32>(kSceneFlags) |= 0x100;
@@ -55,7 +56,7 @@ bool DrawViewSteps(u8 *renderer, const u32 *view) {
     g_calls.Th(0x00582390, global<u32>(0x008bcbc4), (global<u32>(kSceneFlags) & 0xc0000000) ? 3u : 2u);   // DrawBuffer_Reset
     at<u32>(renderer, 0x30) = 0;
     g_calls.Th(0x00579c70, 0x008bb220u);   // MeshQueue_Clear
-    Slot(Device(), 0x18, global<u32>(0x008bd490), global<u32>(0x008bd494), global<u32>(0x008bd47c));
+    Slot(Device(), 0x18, global<u32>((u32)(uintptr_t)&gView_8bcbc8 + 0x8c8), global<u32>((u32)(uintptr_t)&gView_8bcbc8 + 0x8cc), global<u32>((u32)(uintptr_t)&gView_8bcbc8 + 0x8b4));
     if (!Slot(Device(), 0x1c)) return false;
     if ((view[0] & 0x10) && !g_calls.Th(0x00576910, (u32)(uintptr_t)renderer)) return false;   // Renderer_DrawCellLists
     if (view[0] & 0x20) {
@@ -71,19 +72,19 @@ bool DrawViewSteps(u8 *renderer, const u32 *view) {
         Slot(groups + at<u32>((void *)(uintptr_t)at<u32>((void *)(uintptr_t)groups, 0), 4), 4);
     }
     if (view[0] & 0x100) g_calls.Th(0x0057dc80, global<u32>(0x008bcbac));   // WeatherFx_TouchTextures
-    if (view[0] & 0x400) g_calls.Th(0x00585f10, 0x008c1828u);   // ScrollLayers_Update
+    if (view[0] & 0x400) g_calls.Th(0x00585f10, (u32)(uintptr_t)&gLandscape_8c1828);   // ScrollLayers_Update
     if (view[0] & 0x2000) g_calls.Th(0x00577a30, 0x0087aee8u);   // TileGrid_TouchVisible
     if (view[0] & 0x4000) g_calls.Th(0x0058ac70, 0x008c47b0u);   // Global8c47b0_Touch
     const u32 once = at<u32>(renderer, 0x78);
-    if (once && at<u32>(renderer, 0x74) != global<u32>(0x008bcc40)) {
+    if (once && at<u32>(renderer, 0x74) != global<u32>((u32)(uintptr_t)&gView_8bcbc8 + 0x78)) {
         reinterpret_cast<u32(__fastcall *)(u32, u32)>((uintptr_t)once)(at<u32>(renderer, 0x74), 0);
-        at<u32>(renderer, 0x74) = global<u32>(0x008bcc40);
+        at<u32>(renderer, 0x74) = global<u32>((u32)(uintptr_t)&gView_8bcbc8 + 0x78);
     }
     g_calls.Th(0x0058a720, global<u32>(0x008c47a0));   // SpriteQueue_ShowAll
     g_calls.Th(0x00579c80, 0x008bb220u);   // Pointers_MarkAndCallSlot4
     if (!g_calls.Th(0x0058cf40, gTexcache_8c4b44)) return false;   // TexCache_Update
     if (view[0] & 0x10) {
-        if (!g_calls.Th(0x005863c0, 0x008c1828u)) return false;   // Landscape_Draw
+        if (!g_calls.Th(0x005863c0, (u32)(uintptr_t)&gLandscape_8c1828)) return false;   // Landscape_Draw
         if (!g_calls.Th(0x0056f670, global<u32>(0x00879d60))) return false;   // TerrainGround_Draw
         if ((global<u32>(kViewFlags) & 0x10000) && !g_calls.Th(0x00570d90, global<u32>(0x00879d60))) return false;   // TerrainWater_Draw
         if (!g_calls.Th(0x0057c620, gVwrap_8bba48)) return false;   // SpriteGroups_Draw
@@ -114,11 +115,11 @@ bool DrawViewSteps(u8 *renderer, const u32 *view) {
     if (!Slot(Device(), 0x20)) return false;
     if ((global<u32>(kViewFlags) & 0x80000) && global<u32>(kMode) == 1) {
         if (!Slot(Device(), 0x1c)) return false;
-        const float width = (float)global<s32>(0x008bcbd0), height = (float)global<s32>(0x008bcbd4);
+        const float width = (float)global<s32>((u32)(uintptr_t)&gView_8bcbc8 + 0x8), height = (float)global<s32>((u32)(uintptr_t)&gView_8bcbc8 + 0xc);
         u32 widthBits, heightBits;
         std::memcpy(&widthBits, &width, 4);
         std::memcpy(&heightBits, &height, 4);
-        if (!Slot(Device(), 0x28, 0u, 0u, widthBits, heightBits, global<u32>(0x008bd4e4), 0u)) return false;
+        if (!Slot(Device(), 0x28, 0u, 0u, widthBits, heightBits, global<u32>((u32)(uintptr_t)&gView_8bcbc8 + 0x91c), 0u)) return false;
         if (!Slot(Device(), 0x20)) return false;
     }
     return true;
@@ -140,7 +141,7 @@ u32 __fastcall Renderer_DrawView(u8 *renderer, void *, const u32 *view) {
     if (!drawn) Slot(Device(), 0x20);
     std::memcpy(&global<u32>(kCamera), saved, 0x40);
     if (!drawn) return 0;
-    ++global<u32>(0x008bcc44);
+    ++global<u32>((u32)(uintptr_t)&gView_8bcbc8 + 0x7c);
     return 1;
 }
 
@@ -150,7 +151,7 @@ u32 __fastcall Renderer_DrawFrame(u8 *renderer) {
     const u32 savedView = global<u32>(kViewFlags);
     if (mode == 4) {
         global<u32>(kViewFlags) = (savedView & ~0x200000u & ~0x2000u) | 0x20800;
-        global<u32>(0x008bd550) &= ~4u;
+        global<u32>((u32)(uintptr_t)&gTexSettings_8bd550) &= ~4u;
     }
     if (global<u32(__stdcall *)()>(0x006fd328)() != global<u32>(0x008bd518)) return 1;
     if (global<u32>(kSceneFlags) & 1) {
@@ -179,7 +180,7 @@ u32 __fastcall Renderer_DrawFrame(u8 *renderer) {
         for (s32 i = 0; drawn && i < at<s32>(renderer, 0x70); ++i) {
             const u32 *&source = at<const u32 *>(renderer, 0x60 + (u32)i * 4);
             u32 left[16], right[16];
-            const float separation = global<float>(0x008bd478);
+            const float separation = global<float>((u32)(uintptr_t)&gView_8bcbc8 + 0x8b0);
             std::memcpy(right, global<const void *>(0x0087afe8), 0x40);
             std::memcpy(left, global<const void *>(0x0087afe8), 0x40);
             Mat4_MoveAlongX(reinterpret_cast<float *>(left), nullptr, (float)(X87Reg(separation) * gRenderer_DrawFrame_7017f8));

@@ -14,6 +14,7 @@
 #include "window7059f0.h"
 #include "dialog7cc188handler.h"
 #include "dialog7cc184handler.h"
+#include "../core/staticobjects.h"
 
 namespace {
 
@@ -55,7 +56,7 @@ void refuse() {
         const u16 *text;
     } arg = {0x006ff174, 0x5641524d, 3, address()};
     u16 text[0x80];
-    g_env->format(global<u8 *>(0x0078ba94), text, 0x7f, 0xd5, &arg);
+    g_env->format(global<u8 *>((u32)(uintptr_t)&gLanguage_78b530 + 0x564), text, 0x7f, 0xd5, &arg);
     struct {
         u16 *text;
         u8 colour[4];

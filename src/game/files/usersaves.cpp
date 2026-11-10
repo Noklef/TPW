@@ -10,6 +10,7 @@
 #include "file.h"
 #include "handles.h"
 #include "userslots.h"
+#include "../core/staticobjects.h"
 
 namespace {
 
@@ -53,7 +54,7 @@ u32 pathCall(u32 call, const WString *name, const WString *extension) {
     const u32 made = g_calls.Th(kThemeFolder, word(slots), &folder);
     vcall<void>(&path, 0x18, at<const WString *>(made));
     WString_Dtor(&folder);
-    vcall<void>(&path, 0x28, at<const WString *>(0x00f7b888));
+    vcall<void>(&path, 0x28, at<const WString *>((u32)(uintptr_t)&gWString_f7b888));
     vcall<void>(&path, 0x28, name);
     vcall<void>(&path, 0x28, extension);
     String narrow;
@@ -104,7 +105,7 @@ void addEntry(List *list, Entry &entry) {
     String name;
     String_CtorStr(&name, nullptr, entry->name);
     StringView view;
-    const StringView *const stem = String_Left(&name, nullptr, &view, name.length - at<const String *>(0x00f7b548)->length);
+    const StringView *const stem = String_Left(&name, nullptr, &view, name.length - at<const String *>((u32)(uintptr_t)&gString_f7b548)->length);
     vcall<void>(&name, 0x1c, stem);
     void *const block = GameHeap_Alloc(0x1c);
     WString *const item = block ? WString_Ctor(static_cast<WString *>(block)) : nullptr;
@@ -173,10 +174,10 @@ u32 __stdcall UserSaves_Save(const WString *name, const WString *extension) {
     return pathCall(kSave, name, extension);
 }
 
-u32 __stdcall UserSaves_LoadA(const WString *name) { return UserSaves_Load(name, at<const WString *>(0x00f7ad98)); }
-u32 __stdcall UserSaves_LoadB(const WString *name) { return UserSaves_Load(name, at<const WString *>(0x00f7adf8)); }
-u32 __stdcall UserSaves_SaveA(const WString *name) { return UserSaves_Save(name, at<const WString *>(0x00f7ad98)); }
-u32 __stdcall UserSaves_SaveB(const WString *name) { return UserSaves_Save(name, at<const WString *>(0x00f7adf8)); }
+u32 __stdcall UserSaves_LoadA(const WString *name) { return UserSaves_Load(name, at<const WString *>((u32)(uintptr_t)&gWString_f7ad98)); }
+u32 __stdcall UserSaves_LoadB(const WString *name) { return UserSaves_Load(name, at<const WString *>((u32)(uintptr_t)&gWString_f7adf8)); }
+u32 __stdcall UserSaves_SaveA(const WString *name) { return UserSaves_Save(name, at<const WString *>((u32)(uintptr_t)&gWString_f7ad98)); }
+u32 __stdcall UserSaves_SaveB(const WString *name) { return UserSaves_Save(name, at<const WString *>((u32)(uintptr_t)&gWString_f7adf8)); }
 
 u8 *__fastcall UserSaves_List(u8 *self) {
     List *const list = reinterpret_cast<List *>(self);
@@ -195,8 +196,8 @@ u8 *__fastcall UserSaves_List(u8 *self) {
         clearEntry(entry);
         String filter;
         String_Ctor(&filter);
-        vcall<void>(&filter, 0x18, at<const String *>(0x00f7b948));
-        vcall<void>(&filter, 0x28, at<const String *>(0x00f7b548));
+        vcall<void>(&filter, 0x18, at<const String *>((u32)(uintptr_t)&gString_f7b948));
+        vcall<void>(&filter, 0x28, at<const String *>((u32)(uintptr_t)&gString_f7b548));
         s32 found;
         if (status(g_calls.Th(kHandleFirst, word(&folder), &result, filter.data, entry.bytes)) >= 0) {
             do {
@@ -227,8 +228,8 @@ void __cdecl UserSaves_LoadNewest() {
         clearEntry(entry);
         String filter;
         String_Ctor(&filter);
-        vcall<void>(&filter, 0x18, at<const String *>(0x00f7b948));
-        vcall<void>(&filter, 0x28, at<const String *>(0x00f7b398));
+        vcall<void>(&filter, 0x18, at<const String *>((u32)(uintptr_t)&gString_f7b948));
+        vcall<void>(&filter, 0x28, at<const String *>((u32)(uintptr_t)&gString_f7b398));
         if (status(g_calls.Th(kHandleFirst, word(&folder), &result, filter.data, entry.bytes)) >= 0) {
             Entry newest;
             clearEntry(newest);
@@ -242,7 +243,7 @@ void __cdecl UserSaves_LoadNewest() {
             if (any) {
                 String path;
                 String_CtorCopy(&path, nullptr, reinterpret_cast<const StringView *>(&folderPath));
-                vcall<void>(&path, 0x28, at<const String *>(0x00f7aed0));
+                vcall<void>(&path, 0x28, at<const String *>((u32)(uintptr_t)&gString_f7aed0));
                 vcall<void>(&path, 0x20, newest->name);
                 g_calls.Th(kLoad, kSaveObject, path.data, 0u, 2u);
                 String_Dtor(&path);

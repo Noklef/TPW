@@ -4,6 +4,7 @@
 #include <cstring>
 
 #include "../core/stdstring.h"
+#include "../core/staticobjects.h"
 
 namespace {
 
@@ -14,7 +15,7 @@ void assign(u32 offset, const char *s) {
     StdString t;
     StdString_Tidy(&t, nullptr, 0);
     StdString_AssignChars(&t, nullptr, s, (u32)std::strlen(s));
-    StdString_AssignSub(&global<StdString>(0x007a14f0 + offset), nullptr, &t, 0, 0xffffffff);  // npos
+    StdString_AssignSub(&global<StdString>((u32)(uintptr_t)&gOnlineServers_7a14f0 + offset), nullptr, &t, 0, 0xffffffff);  // npos
     StdString_Tidy(&t, nullptr, 1);
 }
 
@@ -42,7 +43,7 @@ const char *chars(u32 address) { return reinterpret_cast<const char *>((uintptr_
 extern "C" {
 
 void __cdecl Online_ApplyBalance() {
-    const BalanceOnline &b = global<BalanceOnline>(0x00785828);  // gBalanceOnline
+    const BalanceOnline &b = global<BalanceOnline>((u32)(uintptr_t)&gBalanceOnline);  // gBalanceOnline
     assign(0x00, b.mMailServer);
     assign(0x10, b.mChatServer);
     assign(0x20, b.mLoginServer);
@@ -50,12 +51,12 @@ void __cdecl Online_ApplyBalance() {
     assign(0x40, b.mNewsServer);
     assign(0x50, b.mVoteServer);
     assign(0x6c, b.mComplainEmail);
-    global<u16>(0x007a1550) = (u16)b.mMailPort;
-    global<u16>(0x007a1552) = (u16)b.mChatPort;
-    global<u16>(0x007a1554) = (u16)b.mLoginPort;
-    global<u16>(0x007a1556) = (u16)b.mCityPort;
-    global<u16>(0x007a1558) = (u16)b.mNewsPort;
-    global<u16>(0x007a155a) = (u16)b.mVotePort;
+    global<u16>((u32)(uintptr_t)&gOnlineServers_7a14f0 + 0x60) = (u16)b.mMailPort;
+    global<u16>((u32)(uintptr_t)&gOnlineServers_7a14f0 + 0x62) = (u16)b.mChatPort;
+    global<u16>((u32)(uintptr_t)&gOnlineServers_7a14f0 + 0x64) = (u16)b.mLoginPort;
+    global<u16>((u32)(uintptr_t)&gOnlineServers_7a14f0 + 0x66) = (u16)b.mCityPort;
+    global<u16>((u32)(uintptr_t)&gOnlineServers_7a14f0 + 0x68) = (u16)b.mNewsPort;
+    global<u16>((u32)(uintptr_t)&gOnlineServers_7a14f0 + 0x6a) = (u16)b.mVotePort;
 }
 
 u8 *__fastcall OnlineServers_Ctor(u8 *servers) {

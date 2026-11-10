@@ -19,6 +19,7 @@
 #include "../render/pointsprites.h"
 #include "../render/batch.h"
 #include "../frontend/viewcontrols.h"
+#include "staticobjects.h"
 
 namespace {
 
@@ -167,13 +168,13 @@ u8 *__fastcall Class702198_DeletingDtor(u8 *field, void *, u32 flags) {
 void __fastcall Obj_PickByName(u8 *object, void *, u32 flag) {
     at<u32>(object, 0xc) = at<u32>(at<u8 *>(at<u8 *>(object, 8), 4), 0);
     if (flag) {
-        vcall<u32>((u8 *)(uintptr_t)0x00f85480, 0x14, (u8 *)(uintptr_t)0x00786de4);
+        vcall<u32>((u8 *)(uintptr_t)&gString_f85480, 0x14, (u8 *)(uintptr_t)0x00786de4);
         return;
     }
     for (u8 *node = at<u8 *>(at<u8 *>(object, 8), 4); node;) {
         u8 *next = at<u8 *>(node, 4);
         u8 *entry = at<u8 *>(node, 0);
-        if (Crt().stricmp(at<const char *>(entry, 0x30), global<const char *>(0x00f85488)) == 0)
+        if (Crt().stricmp(at<const char *>(entry, 0x30), global<const char *>((u32)(uintptr_t)&gString_f85480 + 0x8)) == 0)
             at<u8 *>(object, 0xc) = entry;
         node = next;
     }
@@ -204,7 +205,7 @@ u32 __fastcall Object_MakeBlock13c(u8 *object) {
         at<u8 *>(at<u8 *>(object, 0x13c), 0x18) = memory ? Texture_Ctor(memory, nullptr, 1) : nullptr;
         u8 *const block = at<u8 *>(object, 0x13c);
         if (u8 *const texture = at<u8 *>(block, 0x18)) {
-            if (Texture_Alloc(texture, nullptr, global<u32>(0x008bd4b0), 0))
+            if (Texture_Alloc(texture, nullptr, global<u32>((u32)(uintptr_t)&gView_8bcbc8 + 0x8e8), 0))
                 return 1;
             if (u8 *const again = at<u8 *>(at<u8 *>(object, 0x13c), 0x18)) {
                 Texture_Release(again);   // (through its jump 0x590a70)
@@ -333,11 +334,11 @@ u32 __fastcall Object_RenderToBlock13c(u8 *object, void *, u8 *mesh) {
     FixedVerts_Pack(at<u8 *>(mesh, 0x28), at<u32>(mesh, 0x20), 0x20);
     SoftRenderer_ClearBuffer(global<u8 *>(0x00879dac));
     vcall<void>(global<u8 *>(0x00879acc), 0x14, mesh);
-    if (global<u32>(0x008bd554) != 2)
+    if (global<u32>((u32)(uintptr_t)&gTexSettings_8bd550 + 0x4) != 2)
         return 1;
     const u32 *const pixels = at<const u32 *>(global<u8 *>(0x00879dac), 8);
     u16 *out = reinterpret_cast<u16 *>(Texture_Lock(at<u8 *>(at<u8 *>(object, 0x13c), 0x18)));
-    s32 width = global<s32>(0x008bd4ac), count = global<s32>(0x008bd4b0);
+    s32 width = global<s32>((u32)(uintptr_t)&gView_8bcbc8 + 0x8e4), count = global<s32>((u32)(uintptr_t)&gView_8bcbc8 + 0x8e8);
     const s32 side = width / count;
     if (count <= 0)
         return 1;
@@ -358,8 +359,8 @@ u32 __fastcall Object_RenderToBlock13c(u8 *object, void *, u8 *mesh) {
                 const s32 mean = sum / (s32)((u32)side * (u32)side);
                 const u32 high = (u32)mean & 0xf0;
                 *out++ = (u16)(((high | 0xff00) << 4) | (u32)(mean >> 4) | high);
-                count = global<s32>(0x008bd4b0);
-                width = global<s32>(0x008bd4ac);
+                count = global<s32>((u32)(uintptr_t)&gView_8bcbc8 + 0x8e8);
+                width = global<s32>((u32)(uintptr_t)&gView_8bcbc8 + 0x8e4);
                 column += side;
                 if (++bx >= count)
                     break;
@@ -434,8 +435,8 @@ extern "C" u32 __fastcall Object_UpdateShadow(u8 *self) {
     const u32 farZ = bits((float)(X87Reg(moveZ) + highZ));
     Box_Extend(reinterpret_cast<u32 *>(block), nullptr, bits((float)(X87Reg(moveX) + highX)), shadowY, farZ);
 
-    if (block && at<s32>(block, 0x1c) > global<s32>(0x008bcc40)) {
-        at<u32>(block, 0x1c) = global<u32>(0x008bcc40) + global<u32>(0x008bd4b4);
+    if (block && at<s32>(block, 0x1c) > global<s32>((u32)(uintptr_t)&gView_8bcbc8 + 0x78)) {
+        at<u32>(block, 0x1c) = global<u32>((u32)(uintptr_t)&gView_8bcbc8 + 0x78) + global<u32>((u32)(uintptr_t)&gView_8bcbc8 + 0x8ec);
         return 1;
     }
 
@@ -487,9 +488,9 @@ extern "C" u32 __fastcall Object_UpdateShadow(u8 *self) {
         return 0;
     g_calls.Th(0x0058dc50, gTexcache_8c4b44, at<u32>(block, 0x18));
     if (made) {
-        const u32 interval = global<u32>(0x008bd4b4);
-        const u32 turn = ++global<u32>(0x008bd4b8);
-        at<u32>(block, 0x1c) = ((interval - 1) & turn) + global<u32>(0x008bcc40) + interval;
+        const u32 interval = global<u32>((u32)(uintptr_t)&gView_8bcbc8 + 0x8ec);
+        const u32 turn = ++global<u32>((u32)(uintptr_t)&gView_8bcbc8 + 0x8f0);
+        at<u32>(block, 0x1c) = ((interval - 1) & turn) + global<u32>((u32)(uintptr_t)&gView_8bcbc8 + 0x78) + interval;
     }
     return 1;
 }

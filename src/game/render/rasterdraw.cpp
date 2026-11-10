@@ -8,6 +8,7 @@
 #include "fixedverts.h"
 #include "rasteriser.h"
 #include "rasterformat.h"
+#include "../core/staticobjects.h"
 
 namespace {
 
@@ -62,7 +63,7 @@ extern "C" {
 u32 __fastcall RasterDraw_Primitive(u8 *self, void *, const u8 *primitive) {
     if (at<u32>(primitive, 4) & 0x4000) return 1;
     Slot(VirtualBase(self), 8, at<u32>(primitive, 4));
-    Slot(VirtualBase(self), 0xc, 0u, (global<u8>(0x008bd550) & 1) ? 0u : at<u32>(primitive, 8));
+    Slot(VirtualBase(self), 0xc, 0u, (global<u8>((u32)(uintptr_t)&gTexSettings_8bd550) & 1) ? 0u : at<u32>(primitive, 8));
     global<u32>(kColour) = at<u32>(primitive, 0x34);
     const u32 flags = at<u32>(primitive, 4);
     Triangles(primitive, (flags & 0x10000000) && !(flags & 0x100) ? 0x006f02e0u : 0x006ef7f0u);

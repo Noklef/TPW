@@ -6,6 +6,7 @@
 #include "heightgrid.h"
 #include "../math/x87.h"
 #include "rendererframe.h"
+#include "../core/staticobjects.h"
 
 namespace {
 
@@ -15,7 +16,7 @@ template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((ui
 const GroundShadowEnv kPortEnv = {&Batch_DrawQuad, &GroundShadow_Draw};
 const GroundShadowEnv *g_env = &kPortEnv;
 
-float Height(const u8 *grid, float x, float z) { return (float)(X87Reg(HeightGrid_HeightAt(grid, nullptr, x, z)) + global<float>(0x008bd4ec)); }
+float Height(const u8 *grid, float x, float z) { return (float)(X87Reg(HeightGrid_HeightAt(grid, nullptr, x, z)) + global<float>((u32)(uintptr_t)&gView_8bcbc8 + 0x924)); }
 
 }  // namespace
 

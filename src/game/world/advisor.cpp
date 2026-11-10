@@ -22,6 +22,7 @@
 #include "things.h"
 #include "world.h"
 #include "advisor.h"
+#include "../core/staticobjects.h"
 
 namespace {
 
@@ -51,7 +52,7 @@ AddrCalls g_calls;
 // The speech's model, particles and text ended, and the voice's pause undone: the part Advisor_StopSpeech and Advisor_EndSpeech share.
 void end_speech_parts() {
     Sound_SetVoicePending(global<u32>(0x00f79680), 0);
-    if (global<u32>(0x00f797c4) && global<u8>(0x0078d90c) && global<u32>(0x00f79680)) {
+    if (global<u32>(0x00f797c4) && global<u8>((u32)(uintptr_t)&gOptions_78d8d8 + 0x34) && global<u32>(0x00f79680)) {
         Sound_VoiceFunctor3(global<u32>(0x00f79680));
         global<u32>(0x00f797c4) = 0;
     }
@@ -164,7 +165,7 @@ u8 *__fastcall Advisor_Ctor(u8 *advisor) {
 }
 
 u8 __fastcall Advisor_MayPost(u8 *self, void *, u32 id, u8 urgent) {
-    if (!global<u8>(0x0078d90d)) {
+    if (!global<u8>((u32)(uintptr_t)&gOptions_78d8d8 + 0x35)) {
         AdvisorScoring_Instance();
         if (Record_IsActive(id))
             return 0;
@@ -327,13 +328,13 @@ u32 __fastcall Advisor_Serialize(u8 *self, void *, Stream *stream, u32 save, s32
 }
 
 void __cdecl Advisor_PauseSpeech() {
-    if (!global<u32>(0x00f7966c) || !global<u8>(0x0078d90c) || !global<u32>(0x00f79680)) return;
+    if (!global<u32>(0x00f7966c) || !global<u8>((u32)(uintptr_t)&gOptions_78d8d8 + 0x34) || !global<u32>(0x00f79680)) return;
     Sound_SendVoiceFunctor2(global<u32>(0x00f79680));
     global<u32>(0x00f797c4) = 1;
 }
 
 void __cdecl Advisor_ResumeSpeech() {
-    if (!global<u32>(0x00f797c4) || !global<u8>(0x0078d90c) || !global<u32>(0x00f79680)) return;
+    if (!global<u32>(0x00f797c4) || !global<u8>((u32)(uintptr_t)&gOptions_78d8d8 + 0x34) || !global<u32>(0x00f79680)) return;
     Sound_VoiceFunctor3(global<u32>(0x00f79680));
     global<u32>(0x00f797c4) = 0;
 }
@@ -370,7 +371,7 @@ void __fastcall Advisor_Update(u8 *self) {
         u8 message[0x18];
         g_calls.Th(0x0059a940, me, g_calls.Th(0x0059b590, (u32)(uintptr_t)message, picked, 0u, 0u, 0xffffffffu, 0u, 0xffffffffu));
     }
-    if (g_calls.Th(0x00402d80, 0x00785970u) < at<u32>(self, 0xd8) + at<u32>(self, 0xdc)) return;
+    if (g_calls.Th(0x00402d80, (u32)(uintptr_t)&gObj_785970) < at<u32>(self, 0xd8) + at<u32>(self, 0xdc)) return;
     if (at<u8>(self, 0x16e8) == 1) {
         at<u8>(self, 0x16e8) = 0;
         return;
@@ -393,7 +394,7 @@ void __fastcall Advisor_Update(u8 *self) {
     u32 out;
     if (!g_calls.Th(at<u8>(slot, 0x16) ? 0x0059b870 : 0x0059b620, (u32)(uintptr_t)slot, &out, next)) return;
     const u32 length = out + 1000;
-    at<u32>(self, 0xd8) = g_calls.Th(0x00402d80, 0x00785970u);
+    at<u32>(self, 0xd8) = g_calls.Th(0x00402d80, (u32)(uintptr_t)&gObj_785970);
     at<u32>(self, 0xdc) = length;
     const u32 id = at<u32>(slot, 0xc);
     g_calls.Th(0x0041a960, me + 0xe0 + (id << 4));
@@ -441,7 +442,7 @@ u8 __fastcall Advisor_Cancel(u8 *self, void *, u32 id) {
             found = 1;
         }
     }
-    const u32 now = Clocks_RealNow(reinterpret_cast<u8 *>(0x00785970));
+    const u32 now = Clocks_RealNow(reinterpret_cast<u8 *>((u32)(uintptr_t)&gObj_785970));
     const u32 speaking = now < at<u32>(self, 0xd8) + at<u32>(self, 0xdc) ? at<u32>(self, 0x16ec) : 0x160;
     if (speaking == id) {
         found = 1;

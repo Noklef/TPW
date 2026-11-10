@@ -37,6 +37,7 @@
 #include "../ui/dialog74fb20.h"
 #include "object.h"
 #include "mapcell.h"
+#include "../core/staticobjects.h"
 
 namespace {
 
@@ -85,7 +86,7 @@ void __fastcall Object_Delete(u8 *object) {
     if (at<u32>(global<u8 *>(0x0080239c), 0x1da738) == 2)
         g_delete->killScript(at<s32>(object, 0x24), 0);
     else
-        g_delete->killScript(at<s32>(object, 0x24), global<u32>(0x00785a2c) ? 4 : 7);
+        g_delete->killScript(at<s32>(object, 0x24), global<u32>((u32)(uintptr_t)&gActionRec_785a08 + 0x24) ? 4 : 7);
     if ((uintptr_t)object == Wrap_Global7c2654_Get_4815a0()) Wrap_Global7c2654_Set_4815b0(0);
     Thing_Detach(object);
 }

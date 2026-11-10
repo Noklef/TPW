@@ -7,6 +7,7 @@
 #include "accessors.h"
 #include "initializers.h"
 #include "thunks.h"
+#include "staticobjects.h"
 
 namespace {
 
@@ -171,10 +172,10 @@ void __fastcall Clocks_RestoreNow(u8 *clock) {
 
 void __cdecl GameClock_InitUnusedOne() { *reinterpret_cast<float *>(0x00785a04) = 1.0f; }
 
-void __cdecl GameClock_InitUnusedEpsilon() { *reinterpret_cast<float *>(0x00785ddc) = 1.0f / 8388608.0f; }
+void __cdecl GameClock_InitUnusedEpsilon() { *reinterpret_cast<float *>((u32)(uintptr_t)&gActionRec_785a08 + 0x3d4) = 1.0f / 8388608.0f; }
 
 u32 __cdecl Clocks_RealNowLessPauses() {
-    u8 *const clocks = reinterpret_cast<u8 *>(0x00785970);
+    u8 *const clocks = reinterpret_cast<u8 *>((u32)(uintptr_t)&gObj_785970);
     u32 &paused = *reinterpret_cast<u32 *>(0x00f7977c);
     u32 &pauseStart = *reinterpret_cast<u32 *>(0x00f79780);
     u32 &pausedFor = *reinterpret_cast<u32 *>(0x00f79784);

@@ -5,6 +5,7 @@
 #include <cstring>
 
 #include "../math/x87.h"
+#include "../core/staticobjects.h"
 
 namespace {
 
@@ -31,7 +32,7 @@ void ViewQuad_SetScaled(float *quad, float fov, float scale) {
     }
     const X87Reg h = X87Reg(tangent) * one * scale;
     const float hf = static_cast<float>(h);
-    const X87Reg w = h / *reinterpret_cast<const float *>((uintptr_t)0x008bcbcc);
+    const X87Reg w = h / *reinterpret_cast<const float *>((uintptr_t)&gView_8bcbc8 + 0x4);
     const float wf = static_cast<float>(w);
     quad[2] = quad[5] = quad[8] = quad[11] = 1.0f;
     quad[0] = -wf;

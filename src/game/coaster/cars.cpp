@@ -17,6 +17,7 @@
 #include "../model/holder.h"
 #include "../motion/animator.h"
 #include "../world/levelsetup.h"
+#include "../core/staticobjects.h"
 
 namespace {
 
@@ -305,7 +306,7 @@ void __cdecl Coaster_SetMix(u8 *coaster, u32 value, u32 quiet) {
 void __cdecl Coaster_SetMixAt(u32 index, u32 value) {
     u8 *coaster = gCoasters_790bd0[index];
     if (!coaster || value == at<u32>(coaster, 0x30)) return;
-    if (!*reinterpret_cast<const u32 *>(0x00785a2c) && (at<u32>(coaster, 0) & 0x8000)) return;
+    if (!*reinterpret_cast<const u32 *>((u32)(uintptr_t)&gActionRec_785a08 + 0x24) && (at<u32>(coaster, 0) & 0x8000)) return;
     Coaster_SetMix(coaster, value, 0);
 }
 
@@ -415,7 +416,7 @@ void __cdecl CoasterCar_PlayClank(const u8 *coaster, const u8 *car) {
     const float t = (float)std::modf(place, &whole);
     float out[3];
     CoasterNode_Lerp(coaster, (u32)(s32)(long long)whole, t, out);
-    if (*reinterpret_cast<const u32 *>(0x00785a2c) != 0)
+    if (*reinterpret_cast<const u32 *>((u32)(uintptr_t)&gActionRec_785a08 + 0x24) != 0)
         return;
     const auto ftol = [](float f) { return (s32)(long long)f; };
     Sound_PlayAt(0, *reinterpret_cast<const u32 *>(0x00803a28), 0xc, ftol(out[0]), ftol(out[1]), ftol(out[2]));

@@ -10,6 +10,7 @@
 #include "../frontend/lobbysky.h"
 #include "../gfx/texcache.h"
 #include "ddopen.h"
+#include "../core/staticobjects.h"
 
 namespace {
 
@@ -44,7 +45,7 @@ void fillTexture(u8 *settings, u8 *texture, bool across) {
         u16 *out = reinterpret_cast<u16 *>(pixels);
         for (u32 y = 0; y < 0x80; ++y) {
             for (u32 x = 0; x < 0x80; ++x)
-                *out++ = (u16)stripe(across ? x : y, reinterpret_cast<u16 &>(global<u32>(0x008bd4c4)), reinterpret_cast<u16 &>(global<u32>(0x008bd4cc)), reinterpret_cast<u16 &>(global<u32>(0x008bd4d4)), reinterpret_cast<u16 &>(global<u32>(0x008bd4dc)));
+                *out++ = (u16)stripe(across ? x : y, reinterpret_cast<u16 &>(global<u32>((u32)(uintptr_t)&gView_8bcbc8 + 0x8fc)), reinterpret_cast<u16 &>(global<u32>((u32)(uintptr_t)&gView_8bcbc8 + 0x904)), reinterpret_cast<u16 &>(global<u32>((u32)(uintptr_t)&gView_8bcbc8 + 0x90c)), reinterpret_cast<u16 &>(global<u32>((u32)(uintptr_t)&gView_8bcbc8 + 0x914)));
         }
         return;
     }
@@ -55,10 +56,10 @@ void fillTexture(u8 *settings, u8 *texture, bool across) {
         even = 0xff;
         odd = 0xffffff;
     } else {
-        edge = global<u32>(0x008bd4c4);
-        frame = global<u32>(0x008bd4cc);
-        even = global<u32>(0x008bd4d4);
-        odd = global<u32>(0x008bd4dc);
+        edge = global<u32>((u32)(uintptr_t)&gView_8bcbc8 + 0x8fc);
+        frame = global<u32>((u32)(uintptr_t)&gView_8bcbc8 + 0x904);
+        even = global<u32>((u32)(uintptr_t)&gView_8bcbc8 + 0x90c);
+        odd = global<u32>((u32)(uintptr_t)&gView_8bcbc8 + 0x914);
     }
     u32 *out = reinterpret_cast<u32 *>(pixels);
     for (u32 y = 0; y < 0x80; ++y) {
@@ -89,7 +90,7 @@ void probe(u8 *settings, bool across, u32 result) {
     u8 *const texture = block ? Texture_Ctor(block, nullptr, 1) : nullptr;
     if (!texture)
         return;
-    const u32 saved = global<u32>(0x008bd47c);
+    const u32 saved = global<u32>((u32)(uintptr_t)&gView_8bcbc8 + 0x8b4);
     g_calls.Th(0x00590a80, address(texture), 0x80u, 0u);
     at<u32>(texture, 8) = 0x51b0000;
     fillTexture(settings, texture, across);
@@ -100,7 +101,7 @@ void probe(u8 *settings, bool across, u32 result) {
     const u32 handle = at<u32>(texture, 8) & 0x1000 ? at<u32>(texture, 0x1c) : 0;
     vcall<u32>(device(), 0xc, 0u, handle);
     vcall<u32>(device(), 0x18, 0u, 0u, 0u);
-    global<u32>(0x008c1644) = 0;
+    global<u32>((u32)(uintptr_t)&gTexSettings_8bd550 + 0x40f4) = 0;
 
     u32 lines[0x3c];
     float place = 0.0f, step = 0.5f;
@@ -148,7 +149,7 @@ void probe(u8 *settings, bool across, u32 result) {
     g_calls.Th(0x0058dd60, gTexcache_8c4b44, 1u);
     g_calls.Th(0x00590a70, address(texture));
     GameHeap_Free(texture);
-    global<u32>(0x008bd47c) = saved;
+    global<u32>((u32)(uintptr_t)&gView_8bcbc8 + 0x8b4) = saved;
 }
 
 void note(const char *text) {
@@ -181,9 +182,9 @@ void __fastcall UvProbe_Detect(u8 *settings) {
     const bool permedia = vendor == 0x104c && at<u32>(direct, 0x42c) == 0x3d07;
     const bool tnt = vendor == 0x10de && at<u32>(direct, 0x42c) == 0x20;
     if (vendor == 0x1002 && at<u32>(direct, 0x42c) == 0x4c42)
-        global<u32>(0x008bcbc8) |= 2;
+        global<u32>((u32)(uintptr_t)&gView_8bcbc8) |= 2;
     if (at<u32>(direct, 0x428) == 0x1002 && at<u32>(direct, 0x42c) == 0x524c)
-        global<u32>(0x008bcbc8) |= 2;
+        global<u32>((u32)(uintptr_t)&gView_8bcbc8) |= 2;
     bool early = false;
     if (tnt) {
         u32 hardware[0xfc / 4], software[0xfc / 4];
@@ -197,14 +198,14 @@ void __fastcall UvProbe_Detect(u8 *settings) {
     }
     if (permedia) {
         note("NOTICE: This is an Permedia2, overriding detection");   // (sic)
-        global<u32>(0x008bcbc8) |= 2;
+        global<u32>((u32)(uintptr_t)&gView_8bcbc8) |= 2;
         setOffsets(settings, 0x3ee66666);   // (0.45)
         return;
     }
     if (early) {
         note("NOTICE: This is an early version of the NVidia TNT, overriding detection");
-        global<u32>(0x008bcbc8) |= 2;
-    } else if (global<u32>(0x008bcbc8) & 0x8000002) {
+        global<u32>((u32)(uintptr_t)&gView_8bcbc8) |= 2;
+    } else if (global<u32>((u32)(uintptr_t)&gView_8bcbc8) & 0x8000002) {
         note("NOTICE: This is either a Rage Pro or Riva128, overriding");
     } else {
         g_calls.Th(0x00584310, address(settings));

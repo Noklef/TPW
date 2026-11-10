@@ -13,6 +13,7 @@
 #include "../core/vcall.h"
 #include "../core/wtraits.h"
 #include "postcardsend.h"
+#include "../core/staticobjects.h"
 
 namespace {
 
@@ -68,7 +69,7 @@ void build_path(const u8 *self, const char *name, u8 *folder, StdString *narrow,
         gChatlists_f81ebc = block ? g_env->singletonCtor(block) : nullptr;
     }
     g_env->onlineFolder(folder);
-    vcall<u32>(folder, 0x28, 0x007cebd8u);
+    vcall<u32>(folder, 0x28, (u32)(uintptr_t)&gWString_7cebd8);
     const u32 text = at<u32>(self, 0xc);
     vcall<u32>(folder, 0x20, text ? text : 0x006fd6c4u);
     vcall<u32>(folder, 0x20, wide_suffix);

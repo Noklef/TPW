@@ -18,6 +18,7 @@
 #include "window7059f0.h"
 #include "window7059f0texts.h"
 #include "windowtimers.h"
+#include "../core/staticobjects.h"
 
 namespace {
 
@@ -27,10 +28,10 @@ const Panel7cc328HandlerEnv kGameEnv = {&WindowAt10_Message4, &Window7059f0_NthI
                                         &Panel7cc328_ShowStaff, &SpriteScript_Kill, &ThingPanel_Handler_48d200, &Panel7cc3b0_Show};
 const Panel7cc328HandlerEnv *g_env = &kGameEnv;
 
-u8 *panel() { return reinterpret_cast<u8 *>((uintptr_t)0x007cc328); }
+u8 *panel() { return reinterpret_cast<u8 *>((uintptr_t)&gStatic_7cc328); }
 
 void UpdateRows() {
-    u8 *const list = Window_FindChild(global<u8 *>(0x007cc338), nullptr, 0x1e7b);
+    u8 *const list = Window_FindChild(global<u8 *>((u32)(uintptr_t)&gStatic_7cc328 + 0x10), nullptr, 0x1e7b);
     for (s32 row = *reinterpret_cast<s32 *>(list + 0x150) - 1; row >= 0; --row) {
         u32 data;
         g_env->nth(list, nullptr, row, &data);
@@ -71,7 +72,7 @@ s32 __cdecl Panel7cc328_Handler(u8 *window, u32 message, u32 a, u32 b) {
             g_env->gotoThing(panel());
             return 0;
         case 0x1e83:
-            g_env->staffList(global<u32>(0x007cc358), 0);
+            g_env->staffList(global<u32>((u32)(uintptr_t)&gStatic_7cc328 + 0x30), 0);
             return 0;
         case 0x1e85:
             g_env->stepBack(panel());
@@ -93,7 +94,7 @@ s32 __cdecl Panel7cc328_Handler(u8 *window, u32 message, u32 a, u32 b) {
         u8 *const child = Window_FindChild(window, nullptr, a);
         if (child && b != 0xffffffff) {
             g_env->nth(child, nullptr, static_cast<s32>(b), &data);
-            g_env->show(reinterpret_cast<u8 *>((uintptr_t)0x007cc3b0), nullptr, reinterpret_cast<u8 *>((uintptr_t)data));
+            g_env->show(reinterpret_cast<u8 *>((uintptr_t)&gStatic_7cc3b0), nullptr, reinterpret_cast<u8 *>((uintptr_t)data));
         }
         return 0;
     }
@@ -103,11 +104,11 @@ s32 __cdecl Panel7cc328_Handler(u8 *window, u32 message, u32 a, u32 b) {
         if (b != 0xffffffff) {
             g_env->nth(child, nullptr, static_cast<s32>(b), &data);
             g_env->showStaff(panel(), nullptr, reinterpret_cast<const u8 *>((uintptr_t)data));
-        } else if (const s32 script = global<s32>(0x007cc34c)) {
+        } else if (const s32 script = global<s32>((u32)(uintptr_t)&gStatic_7cc328 + 0x24)) {
             g_env->kill(script);
-            global<u32>(0x007cc34c) = 0;
-            global<u32>(0x007cc350) = 0xffffffff;
-            global<u32>(0x007cc354) = 0xffffffff;
+            global<u32>((u32)(uintptr_t)&gStatic_7cc328 + 0x24) = 0;
+            global<u32>((u32)(uintptr_t)&gStatic_7cc328 + 0x28) = 0xffffffff;
+            global<u32>((u32)(uintptr_t)&gStatic_7cc328 + 0x2c) = 0xffffffff;
         }
         break;
     }

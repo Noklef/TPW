@@ -18,6 +18,7 @@
 #include "window.h"
 #include "window7059f0.h"
 #include "windowreg.h"
+#include "../core/staticobjects.h"
 
 namespace {
 
@@ -60,7 +61,7 @@ void addRows(u8 *list, u8 *lists) {
         args[2].number = 0x11;
         args[2].value = at<u32>(lists, 0x50);
         u16 text[0x20];
-        g_env->format(global<u8 *>(0x0078ba94), text, 0x1f, 0x1c0, &args[1], &args[2], &args[0]);
+        g_env->format(global<u8 *>((u32)(uintptr_t)&gLanguage_78b530 + 0x564), text, 0x1f, 0x1c0, &args[1], &args[2], &args[0]);
         texts[1] = (u32)(uintptr_t)text;
         texts[2] = 1;
         texts[3] = 0;
@@ -93,7 +94,7 @@ s32 __cdecl Dialog7cc654_Open() {
     memory = static_cast<u8 *>(GameHeap_Alloc(0xd8));
     g_env->setImpl(child, nullptr, memory ? g_env->rendererPart(memory, nullptr, 0) : nullptr);
     s32 size;
-    g_env->surface(reinterpret_cast<SurfaceInfo *>((uintptr_t)0x007cc628), nullptr, &size);
+    g_env->surface(reinterpret_cast<SurfaceInfo *>((uintptr_t)&gSurfaceInfo_7cc628), nullptr, &size);
 
     u8 *const list = Window_FindChild(window, nullptr, 0xee8);
     g_env->buildRows(list, nullptr, game<u8 *(__cdecl *)()>(0x004bcbc0), game<void(__cdecl *)(u8 *)>(0x004bcca0));
