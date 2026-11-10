@@ -42,11 +42,11 @@ namespace {
 // (inflate_codes and inflate_fast share theirs, inflate's "need dictionary" is z_errmsg's): inflate.c's, infblock.c's, infcodes.c's /
 // inffast.c's and inftrees.c's literals, then the entries of the exe's z_errmsg (0x779b10) that deflate.c stores through ERR_MSG.
 const std::uintptr_t kExeMessages[] = {
-    (std::uintptr_t)&gText_Zlib_779adc, 0x779ac8, (std::uintptr_t)&gText_Zlib_779ab0, (std::uintptr_t)&gText_Zlib_779a98, 0x779a88,                       // inflate
+    (std::uintptr_t)&gText_Zlib_779adc, (std::uintptr_t)&gText_Zlib_779ac8, (std::uintptr_t)&gText_Zlib_779ab0, (std::uintptr_t)&gText_Zlib_779a98, (std::uintptr_t)&gText_Zlib_779a88,                       // inflate
     (std::uintptr_t)&gText_Zlib_779c4c, (std::uintptr_t)&gText_Zlib_779c2c, (std::uintptr_t)&gText_Zlib_779c08, (std::uintptr_t)&gText_Zlib_779bec,                                 // inflate_blocks
-    0x77a078, (std::uintptr_t)&gText_Zlib_77a060,                                                     // inflate_codes, inflate_fast
-    0x77b1c4, 0x77b1a0, (std::uintptr_t)&gText_Zlib_77b270, (std::uintptr_t)&gText_Zlib_77b254, (std::uintptr_t)&gText_Zlib_77b230, (std::uintptr_t)&gText_Zlib_77b20c, (std::uintptr_t)&gText_Zlib_77b1ec,  // inflate_trees_bits / dynamic
-    0x779b9c, 0x779b90, 0x779b80, 0x779b74, 0x779b60, 0x779b50, 0x779b38,  // z_errmsg[1], [3..8]
+    (std::uintptr_t)&gText_Zlib_77a078, (std::uintptr_t)&gText_Zlib_77a060,                                                     // inflate_codes, inflate_fast
+    (std::uintptr_t)&gText_Zlib_77b1c4, (std::uintptr_t)&gText_Zlib_77b1a0, (std::uintptr_t)&gText_Zlib_77b270, (std::uintptr_t)&gText_Zlib_77b254, (std::uintptr_t)&gText_Zlib_77b230, (std::uintptr_t)&gText_Zlib_77b20c, (std::uintptr_t)&gText_Zlib_77b1ec,  // inflate_trees_bits / dynamic
+    (std::uintptr_t)&gText_Zlib_779b9c, (std::uintptr_t)&gText_Zlib_779b90, (std::uintptr_t)&gText_Zlib_779b80, (std::uintptr_t)&gText_Zlib_779b74, (std::uintptr_t)&gText_Zlib_779b60, (std::uintptr_t)&gText_Zlib_779b50, (std::uintptr_t)&gText_Zlib_779b38,  // z_errmsg[1], [3..8]
 };
 }  // namespace
 
