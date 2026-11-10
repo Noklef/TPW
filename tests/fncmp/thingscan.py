@@ -14,7 +14,7 @@
 # Rate9c1 / RateBest (0x4cc3b0 / 0x4ccd10) and RateAvg (0x4ccbf0, kept at +0x1f0f4 as CPlain's): the rides' ratings (Object_Rating on
 # object_checks.py's terms without a track ride or coaster: the definitions' +0x4ac 0 mostly, +0x9c 1, 0 or 4, the base +0x13c and the
 # rows' limits small or any, the things' rows +0x50 0-3, their +0x28 0).
-# StaffAvg (0x4964d0, src/game/ui/dialogs): see staff_average().
+# StaffAvg (0x4964d0, src/game/ui/dialogs): see staff_average(). Ct (0x4c9aa0): the staff too tired (Staff_IsTooTired), their energy about the rest level.
 # usage: thingscan.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=C1,C2,Max,...)
 import os
 import struct
@@ -34,7 +34,7 @@ CALLS = {'C1': (0x4c9f90, 'c', 0xa0, 'n'), 'C2': (0x4ca0c0, 'c', 0xa0, 'n'), 'Ma
          'Re': (0x4c9ee0, 't', 0xb0, 'g'), 'D4': (0x4ca8e0, 's', 0xd0, 'vv'), 'D5': (0x4ca9b0, 's', 0xc0, 'v'),
          'B4ac': (0x483280, 'c', 0x140, 'vp'), 'Bw': (0x4833c0, 'c', 0x120, 'p'), 'Bu2': (0x4834e0, 'c', 0x140, 'p'), 'Bf2': (0x483620, 'c', 0x120, 'p'),
          'P1': (0x4c9130, 'c', 0xa0, 'n'), 'P2': (0x4c9530, 'c', 0xa0, 'n'), 'P3': (0x4c95d0, 'c', 0xa0, 'n'),
-         'Sum': (0x4c9e60, 'c', 0x70, 'n'), 'Cs': (0x4c9a10, 'c', 0xa0, 'n'), 'U3c': (0x519690, 't', 0x130, 'u'), 'U3e': (0x519800, 't', 0x130, 'u'), 'U40': (0x519970, 't', 0x130, 'u'),
+         'Sum': (0x4c9e60, 'c', 0x70, 'n'), 'Cs': (0x4c9a10, 'c', 0xa0, 'n'), 'Ct': (0x4c9aa0, 'c', 0x9d, 'n'), 'U3c': (0x519690, 't', 0x130, 'u'), 'U3e': (0x519800, 't', 0x130, 'u'), 'U40': (0x519970, 't', 0x130, 'u'),
          'U42': (0x519c50, 't', 0x130, 'u'), 'U44': (0x519ae0, 't', 0x130, 'u'), 'U46': (0x519dc0, 't', 0x130, 'u'), 'S5': (0x59edd0, 't', 0x50, 's'), 'S6': (0x59ee20, 't', 0x50, 's'), 'S4': (0x59ee70, 't', 0x50, 's'), 'S7': (0x59eec0, 't', 0x50, 's'), 'S8': (0x59ef10, 't', 0x50, 's'),
          'Cat': (0x4824d0, 'c', 0x40c, 'kp'), 'CatB': (0x482da0, 'c', 0x430, 'kp'), 'CatW': (0x483740, 'c', 0x23, 'kp'), 'CatPW': (0x483770, 'c', 0x23, 'kp'),
          'Step': (0x4b3340, 'c', 0x14c, 'kp'), 'Group': (0x48caf0, 't', 0xe4, 'kp'),
@@ -46,7 +46,7 @@ CALLS = {'C1': (0x4c9f90, 'c', 0xa0, 'n'), 'C2': (0x4ca0c0, 'c', 0xa0, 'n'), 'Ma
 B = Bench([(a, a + n) for (a, _c, n, _s) in CALLS.values()] + [(0x516130, 0x516160), (0x516160, 0x5161b0), (0x50b350, 0x50b360), (0x4e0440, 0x4e0450),
                                                               (0x4e2710, 0x4e2740), (0x4dd4e0, 0x4dd500), (0x412e90, 0x412eea), (0x5da3c0, 0x5da3c1), (0x41a960, 0x41a970), (0x5161b0, 0x516200), (0x4fa990, 0x4fa9fa), (0x536300, 0x53644c), (0x519510, 0x519550),
                                                               (0x481f80, 0x481fa0), (0x481fc0, 0x482030), (0x4cd300, 0x4cd331), (0x41a990, 0x41a9a7),
-                                                              (0x506eb0, 0x506ecc), (0x4e0560, 0x4e0860), (0x4e0860, 0x4e0900), (0x65d7bc, 0x65d832)])
+                                                              (0x506eb0, 0x506ecc), (0x4e0560, 0x4e0860), (0x4e0860, 0x4e0900), (0x65d7bc, 0x65d832), (0x506680, 0x5066a0), (0x67a830, 0x67a860)])
 OUT = RAM + 0x1000
 OWNER, OWNER_VT = RAM + 0x1100, RAM + 0x1180
 GROUPS = [-2, -1, 0, 1, 2, 3, 0x3ea, 0x3eb, 0x3ec]
@@ -60,8 +60,8 @@ def case(r):
     if name == 'StaffAvg':
         return staff_average(r)
     regions, handles, things = park(r, count=r.choice([1, 2, 3, 4, 6]) if shape in ('o', 'u') or name.startswith('B') else None,
-                                    defs=name not in ('C1', 'C2', 'Max', 'C3', 'Staff', 'Avg', 'Re', 'P1', 'P2', 'P3', 'Sum', 'Cs', 'Avg1f8', 'AvgS1f8', 'Avg44', 'Most44', 'Patrol') and shape != 'u',
-                                    kinds=(4, 5, 6, 7, 8, 3, 1, 0) if name in ('Staff', 'S5', 'S6', 'S4', 'S7', 'S8', 'Cs', 'Avg1f8', 'AvgS1f8', 'Patrol') else (1, 1, 1, 3, 0, 0xff) if name[0] == 'P' or name in ('CPlain', 'Half') else
+                                    defs=name not in ('C1', 'C2', 'Max', 'C3', 'Staff', 'Avg', 'Re', 'P1', 'P2', 'P3', 'Sum', 'Cs', 'Ct', 'Avg1f8', 'AvgS1f8', 'Avg44', 'Most44', 'Patrol') and shape != 'u',
+                                    kinds=(4, 5, 6, 7, 8, 3, 1, 0) if name in ('Staff', 'S5', 'S6', 'S4', 'S7', 'S8', 'Cs', 'Ct', 'Avg1f8', 'AvgS1f8', 'Patrol') else (1, 1, 1, 3, 0, 0xff) if name[0] == 'P' or name in ('CPlain', 'Half') else
                                     (4, 5, 5, 6, 7, 8, 1, 1, 3, 3, 3, 0) if name == 'Score' else (3, 3, 3, 1, 2, 0xff, 0),
                                     cells=name[0] == 'P' or name in ('Score', 'CPlain', 'Half'))
     if name.startswith('Rate'):   # (the ratings: no track ride (+0x28) or coaster (+0x9c 3), rows 0-3)
@@ -90,6 +90,10 @@ def case(r):
         game = RAM + 0x20000 - head
         regions[RAM + 0x20000] = struct.pack('<H', handles[order[0]]) + r.bytes(0x10)
         return Call(address, [game, things[r.choice(order)]], regions, conv=conv, ret='v')
+    if name == 'Ct':   # (the staff's energy +0x1fc about the rest level [0x785324], now and then past a byte)
+        for i in range(len(things)):
+            struct.pack_into('<f', regions[POOL], THING * i + 0x1fc, r.choice([0.0, 10.0, 29.9, 30.0, 30.5, 99.0, 255.0, 256.0, 290.0, -1.0]))
+        regions[0x785324] = struct.pack('<i', r.choice([0, 1, 30, 31, 100, 255, 256, -1]))
     prev = r.choice([0, 0] + things) if things else 0
     value = r.choice([0, 1, 2, 3, 5, 0x10001, r.getrandbits(32)])
     if name == 'Re':  # the game object: its fields far out, and the game time they are set from
