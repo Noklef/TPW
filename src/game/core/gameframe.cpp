@@ -501,7 +501,7 @@ void ParkFrame() {   // state 0xa
         G<u32>(0x008786c0) = 0;
         G<u32>(0x00879070) = 0;
     }
-    if (G<u32>(0x00878128))
+    if (gGameframe_878128)
         Th(0x00402ea0, kClocks, 0x20);   // GameClock_Freeze
     else
         Th(0x00402ed0, kClocks);
@@ -511,7 +511,7 @@ void ParkFrame() {   // state 0xa
     if ((s32)(now - G<u32>(0x00878c74)) > 0x7d0) G<u32>(0x00878c74) = now - 0x7d0;
     FixedSteps();
     if ((reinterpret_cast<u8 &>(gWindowproc_7a1a14) & 8) || !(reinterpret_cast<u8 &>(gGraphicssettings_7a1a8c) & 1)) Drawing();
-    if (G<u32>(0x00878128)) ScreenGrab_NextName();
+    if (gGameframe_878128) ScreenGrab_NextName();
     G<u32>(0x00879064) = 0;
     G<u32>(0x0087868c) = Ticks();
     Cd(0x0044e550);

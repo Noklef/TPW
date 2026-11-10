@@ -5,6 +5,7 @@
 #include "crt.h"
 #include "iosbase.h"
 #include "locinfo.h"
+#include "localefacet.h"
 
 namespace {
 
@@ -77,7 +78,7 @@ void __fastcall Locimp_Dtor(Locimp *self, void *) {
 void __cdecl Locimp_TidyAtExit() {
     u32 lock[2];
     IosBase_Env().lockit(lock);
-    LocaleFacet *const facet = global<LocaleFacet *>(0x00fb1dd0);
+    LocaleFacet *const facet = reinterpret_cast<LocaleFacet *>(gLocalefacet_fb1dd0);
     if (facet) release(facet);
     IosBase_Env().unlockit(lock);
 }
@@ -99,7 +100,7 @@ void __fastcall BadAlloc_Dtor(u32 *self) {
     CRT_exception_Dtor(self);
 }
 
-void __cdecl Nomemory_DestroyBadAlloc() { BadAlloc_Dtor(&global<u32>(0x00fb1e70)); }
+void __cdecl Nomemory_DestroyBadAlloc() { BadAlloc_Dtor(&gLocimp_BadAlloc_fb1e70[0]); }
 
 Locimp *__fastcall Locimp_DeletingDtor(Locimp *self, void *, u32 flags) {
     Locimp_Dtor(self, nullptr);
@@ -120,8 +121,8 @@ void __fastcall BadAlloc_Doraise(const u32 *self) {
 }
 
 void __cdecl Nomemory() {
-    u32 *const made = &global<u32>(0x00fb1e70);
-    u8 &flag = global<u8>(0x00fb1e68);
+    u32 *const made = &gLocimp_BadAlloc_fb1e70[0];
+    u8 &flag = gLocimp_fb1e68;
     if (!(flag & 1)) {
         flag |= 1;
         BadAlloc_Ctor(made, nullptr, "bad allocation");
@@ -172,7 +173,7 @@ Locimp *__fastcall Locimp_Copy(Locimp *self, void *, const Locimp *from) {
     self->facet.vtable = reinterpret_cast<void(__fastcall *const *)(LocaleFacet *, void *, u32)>((uintptr_t)0x00709bac);
     u32 lock[2];
     IosBase_Env().lockit(lock);
-    if (reinterpret_cast<uintptr_t>(from) == global<u32>(0x00fb1dcc)) {
+    if (reinterpret_cast<uintptr_t>(from) == reinterpret_cast<uintptr_t>(gLocalefacet_fb1dcc)) {
         u32 info[0x10];
         Locinfo_Ctor(info, nullptr, "C");
         IosBase_Env().makeloc(info, 0x3f, self, nullptr);

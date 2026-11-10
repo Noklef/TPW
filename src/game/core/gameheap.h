@@ -61,3 +61,8 @@ void __fastcall TrackedBlock_Dtor(u8 *holder);
 u32 __fastcall TrackedBlock_Free(u8 *holder);
 
 }  // extern "C"
+
+#include "gamedata.h"
+
+// Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(u32, gGameheap_faa534, 0x00faa534, 0x4);

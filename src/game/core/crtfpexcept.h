@@ -33,3 +33,8 @@ void __cdecl CRT_raise_exc(u32 *rec, u32 *cw, u32 flags, u32 opcode, const doubl
 void __cdecl CRT_87except(s32 opcode, s32 *exc, const u16 *cw);
 
 }
+
+#include "gamedata.h"
+
+// Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(u32, gCrtfpexcept_781edc, 0x00781edc, 0x4);

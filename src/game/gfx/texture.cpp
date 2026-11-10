@@ -9,6 +9,7 @@
 #include "../render/engineerrors.h"
 #include "texcache.h"
 #include "texcache.h"
+#include "wavelet.h"
 
 namespace {
 
@@ -146,7 +147,7 @@ u32 __fastcall Texture_UsesDriverFilter(const u8 *texture) {
 }
 
 u32 __fastcall Texture_Reload(u8 *texture) {
-    global<u32>(0x008c4b60)++;
+    gTexture_8c4b60++;
     at<u32>(texture, 0x14) = global<u32>(0x008bcc40);
     return vcall<u32>(at<u8 *>(texture, 0), 0x14);
 }
@@ -155,12 +156,12 @@ u8 *__fastcall Texture_Lock(u8 *texture) {
     if (!(at<u32>(texture, 8) & 0x10000000))
         return at<u8 *>(texture, 0x40);
     u32 lock[4];
-    lock[0] = global<u32>(0x00879a68);
+    lock[0] = gWavelet_Block_879a68;
     lock[1] = (u32)(s32)at<s16>(texture, 0x10);
     lock[2] = (u32)(s32)at<s16>(texture, 0x12);
     lock[3] = reinterpret_cast<const u32 *>((uintptr_t)0x007024e0)[global<u32>(0x008bd554)] * lock[1];
     vcall<void>(at<u8 *>(texture, 0x40), 8, lock);
-    return global<u8 *>(0x00879a68);
+    return reinterpret_cast<u8 *&>(gWavelet_Block_879a68);
 }
 
 u8 *__fastcall Texture_LockFlipped(u8 *texture) {

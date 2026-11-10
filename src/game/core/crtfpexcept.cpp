@@ -238,7 +238,7 @@ void __cdecl CRT_87except(s32 opcode, s32 *exc, const u16 *cw) {
     }
     CRT_ctrlfp(word, 0xffff);
     u32 handled = 0;
-    if (exc[0] != 8 && global<u32>(0x00781edc) == 0) handled = Zero_5d60c0();   // (_matherr)
+    if (exc[0] != 8 && gCrtfpexcept_781edc == 0) handled = Zero_5d60c0();   // (_matherr)
     if (!handled) CRT_set_errno_from_matherr(exc[0]);
 }
 

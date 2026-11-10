@@ -16,8 +16,8 @@ namespace {
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
 template <typename T> T &at(u8 *p, u32 offset) { return *reinterpret_cast<T *>(p + offset); }
 
-u32 &state() { return global<u32>(0x0087a24c); }
-s32 levels() { return global<s32>(0x0087a264); }
+u32 &state() { return gTexfile_87a24c; }
+s32 levels() { return gTexfile_87a264; }
 
 // The TGA header (0x12 bytes read; the dword at +0x10 is read whole by the game, only its two low bytes used).
 struct Header {

@@ -59,12 +59,12 @@ s32 __cdecl CRT_init_monetary() {
 }
 
 s32 __cdecl CRT_init_ctype() {
-    u16 *&ctype = global<u16 *>(0x0077ea90);
-    u16 *&wctype = global<u16 *>(0x0077ea94);
+    u16 *&ctype = CRT_pctype;
+    u16 *&wctype = CRT_pwctype;
     void *&owned = CRT_ctype_owned_fb18b0;
     void *&owned_wide = CRT_ctype_wide_owned_fb18b4;
     if (!CRT_lc_handle[2]) {
-        ctype = wctype = reinterpret_cast<u16 *>((uintptr_t)0x0077ea9a);
+        ctype = wctype = &CRT_ctype[1];
         Crt().free(owned);
         Crt().free(owned_wide);
         owned = owned_wide = nullptr;

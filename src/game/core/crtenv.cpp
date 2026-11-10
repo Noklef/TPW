@@ -412,8 +412,8 @@ void __cdecl CRT_tzset() {
     CRT_dstend.year = -1;
     CRT_dststart.year = -1;
     const char *zone = CRT_getenv(CRT_text_TZ_708da0);
-    char *&standard = global<char *>(0x00781468);
-    char *&daylight = global<char *>(0x0078146c);
+    char *&standard = CRT_tzname[0];
+    char *&daylight = CRT_tzname[1];
     s32 &offset = CRT_timezone;
     if (!zone) {
         CrtInner().unlock(0xc);

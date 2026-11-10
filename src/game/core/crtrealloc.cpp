@@ -14,7 +14,7 @@ u8 &byte_at(u32 address) { return *reinterpret_cast<u8 *>((uintptr_t)address); }
 
 template <typename F> F import_slot(u32 slot) { return *reinterpret_cast<F *>((uintptr_t)slot); }
 
-const u32 static_region = 0x0077eda0;
+u32 static_region() { return static_cast<u32>(reinterpret_cast<uintptr_t>(&CRT_small_block_heap)); }
 const u32 uncommitted = 0xffffffff;
 
 s32 virtual_free(u32 address, u32 size, u32 kind) { return import_slot<s32(__stdcall *)(u32, u32, u32)>(0x006fd1b8)(address, size, kind); }
@@ -36,10 +36,10 @@ void move_block(void *to, const void *block, void *region, void *page, u8 *entry
 
 void *__cdecl CRT_sbh_find_block(void *block, void **region, void **page) {
     const u32 at = static_cast<u32>(reinterpret_cast<uintptr_t>(block));
-    u32 holder = static_region;
+    u32 holder = static_region();
     while (!(at > word(holder + 0x10) && at < word(holder + 0x14))) {
         holder = word(holder);
-        if (holder == static_region) return nullptr;
+        if (holder == static_region()) return nullptr;
     }
     if (at & 0xf) return nullptr;
     if ((at & 0xfff) < 0x100) return nullptr;
@@ -52,9 +52,9 @@ void *__cdecl CRT_sbh_find_block(void *block, void **region, void **page) {
 void __cdecl CRT_sbh_release_region(void *region) {
     const u32 at = static_cast<u32>(reinterpret_cast<uintptr_t>(region));
     virtual_free(word(at + 0x10), 0, 0x8000);
-    if (word(0x00780dc0) == at) word(0x00780dc0) = word(at + 4);
-    if (at == static_region) {
-        word(0x0077edb0) = uncommitted;
+    if (CRT_sbh_p_starting_region == at) CRT_sbh_p_starting_region = word(at + 4);
+    if (at == static_region()) {
+        word(static_region() + 0x10) = uncommitted;
         return;
     }
     word(word(at + 4)) = word(at);
@@ -63,7 +63,7 @@ void __cdecl CRT_sbh_release_region(void *region) {
 }
 
 void __cdecl CRT_sbh_decommit_pages(s32 count) {
-    const u32 first = 0x0077eda4;
+    const u32 first = static_region() + 4;
     u32 region = word(first);
     do {   // (sic: a region without memory does not advance: when it is not the first, this never ends)
         if (word(region + 0x10) != uncommitted) {

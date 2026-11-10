@@ -11,7 +11,7 @@ namespace {
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
 
 void **list() { return reinterpret_cast<void **>((uintptr_t)0x0087a6d8); }
-s32 &count() { return global<s32>(0x0087aed8); }
+s32 &count() { return gLiveobjects_87aed8; }
 
 template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cast<T *>((uintptr_t)p + offset); }
 

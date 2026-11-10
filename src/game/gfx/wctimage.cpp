@@ -6,6 +6,7 @@
 #include "../core/vwrap.h"
 #include "../files/vfs.h"
 #include "../math/x87.h"
+#include "wavelet.h"
 
 namespace {
 
@@ -55,7 +56,7 @@ u32 __fastcall WctImage_Read(u8 *image, void *, u8 *stream) {
 }
 
 u32 __fastcall Texture_DecodeWct(const u8 *part, void *, u8 *const *pixels) {
-    u8 *const codec = global<u8 *>(0x00879a64);
+    u8 *const codec = gWavelet_Codec_879a64;
     vcall<u32>(codec, 8, (u32)at<u8>(part, kKind), (u32)at<u16>(part, kWidth), (u32)at<u16>(part, kHeight), PixelSize(), at<u32>(part, kBlockB),
                at<u32>(part, kBlockA), *pixels, Step(part, kStepB, -0.5f), Step(part, kStepD, -0.25f), Step(part, kStepC, -0.25f),
                (float)at<u16>(part, kStepA) - -1.0f);
@@ -69,7 +70,7 @@ u32 __fastcall Texture_DecodeWctInto(const u8 *part, void *, u32 *surface, u32 f
         surface[0] += (surface[2] - 1) * surface[3];
         surface[3] = 0u - surface[3];
     }
-    u8 *const codec = global<u8 *>(0x00879a64);
+    u8 *const codec = gWavelet_Codec_879a64;
     vcall<u32>(codec, 4, (u32)at<u8>(part, kKind), (u32)at<u16>(part, kWidth), (u32)at<u16>(part, kHeight), surface[1], surface[2], surface[3],
                PixelSize(), at<u32>(part, kBlockB), at<u32>(part, kBlockA), surface[0], Step(part, kStepB, -0.5f), Step(part, kStepD, -0.25f),
                Step(part, kStepC, -0.25f), (float)at<u16>(part, kStepA) - -1.0f);

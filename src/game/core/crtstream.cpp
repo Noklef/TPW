@@ -427,7 +427,7 @@ u16 __cdecl CRT_fgetwc_lk(CrtFile *file) {
     const s32 c = next_byte(file);
     if (c == -1) return 0xffff;
     bytes[0] = static_cast<char>(c);
-    if ((*reinterpret_cast<const u16 *const *>((uintptr_t)0x0077ea90))[c & 0xff] & 0x8000) {
+    if (CRT_pctype[c & 0xff] & 0x8000) {
         const s32 second = next_byte(file);
         if (second == -1) {
             CRT_ungetc(bytes[0], file);

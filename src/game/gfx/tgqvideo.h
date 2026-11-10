@@ -106,3 +106,9 @@ u32 __fastcall TgqVideo_SetBlockBase(u32 value, u8 *state);
 // the lanes' (TgqVideo_BuildLaneTables (0xff)).
 void __fastcall TgqVideo_SetupTables(u8 *player);
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(u32, gTgqvideo_fb7924, 0x00fb7924, 0x4);
+GAME_DATA(u32, gTgqvideo_fb7928, 0x00fb7928, 0x4);

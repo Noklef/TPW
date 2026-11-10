@@ -152,7 +152,7 @@ void __cdecl KeyMaps_Init() {
     gKeymap_787c14 = NewMap(0x00748158, 0x19, 0x007486f0);
     gKeymap_78733c = NewMap(0x007484d0, 0xc, 0x007486e8);
     gKeymap_787294 = NewMap(0x00748350, 2, 0x00747940);
-    u8 *map = NewMap(0x00748378, 0x11, 0x007486dc);
+    u8 *map = NewMap(reinterpret_cast<uintptr_t>(gKeyMap_Shortcuts_748378), 0x11, 0x007486dc);
     gKeymap_78721c = map;
     // the shortcuts' actions 1-4: their keys from the texts 0-3 (a null map faults, sic)
     u32 slot = 0;   // (the original's stack slot: the formatter's two characters land over it)
