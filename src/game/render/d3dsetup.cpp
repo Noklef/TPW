@@ -12,6 +12,7 @@
 #include "d3dresult.h"
 #include "d3dviewport.h"
 #include "../frontend/lobbysky.h"
+#include "ddopen.h"
 
 using namespace d3dresult;
 
@@ -147,7 +148,7 @@ u32 __fastcall D3dSetup_Open(u8 *self, void *, u32 flags) {
     }
     if (debugFlags() & 0x2000000) {
         char text[0x100];
-        Crt().sprintf(text, reinterpret_cast<const char *>((uintptr_t)0x007661cc), result());
+        Crt().sprintf(text, reinterpret_cast<const char *>((uintptr_t)&gText_Ddopen_7661cc), result());
         EngineDebug_LogFallback(text);
     }
     CloseAll(self);

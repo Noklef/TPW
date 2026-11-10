@@ -116,7 +116,7 @@ template <bool kShade, bool kDepth> void Setup(const u8 *v0, const u8 *v1, const
     const u32 sdx21 = MulFixed(Saturate(dx21), inverse, 14), sdy21 = MulFixed(Saturate(dy21), inverse, 14);
     const u32 sdx20 = MulFixed(Saturate(dx20), inverse, 14), sdy20 = MulFixed(Saturate(dy20), inverse, 14);
     s32 rows[3];
-    for (int k = 0; k < 3; ++k) global<s32>(0x00fbe0b0 + 4 * k) = rows[k] = (s32)(at<u32>(v[k], 4) - 8) >> 4;
+    for (int k = 0; k < 3; ++k) global<s32>((u32)(uintptr_t)&gRastertriangle_fbe0b0 + 4 * k) = rows[k] = (s32)(at<u32>(v[k], 4) - 8) >> 4;
     // The top (most rows), bottom and middle (sic: on ties both top and bottom can be v2).
     int top = 0, bottom = 1, middle = 2;
     if (rows[0] < rows[1]) top = 1, bottom = 0;
@@ -125,24 +125,24 @@ template <bool kShade, bool kDepth> void Setup(const u8 *v0, const u8 *v1, const
     const s32 topRow = rows[top], middleRow = rows[middle];
     global<s32>(0x00fbe204) = topRow - middleRow;
     global<s32>(0x00fbe200) = middleRow - rows[bottom];
-    global<u32>(0x00fbe0c0) = (at<u32>(v[top], 4) - 8 - ((u32)topRow << 4)) << 11;
-    global<u32>(0x00fbe0bc) = (at<u32>(v[middle], 4) - 8 - ((u32)middleRow << 4)) << 11;
-    const u32 order = global<u32>(0x00fbe710 + 4 * ((middle < top) << 2 | (bottom < middle) << 1 | (bottom < top)));
+    global<u32>((u32)(uintptr_t)&gRastertriangle_fbe0b0 + 0x10) = (at<u32>(v[top], 4) - 8 - ((u32)topRow << 4)) << 11;
+    global<u32>((u32)(uintptr_t)&gRastertriangle_fbe0b0 + 0xc) = (at<u32>(v[middle], 4) - 8 - ((u32)middleRow << 4)) << 11;
+    const u32 order = global<u32>(((u32)(uintptr_t)&gRastertriangle_fbe6f0 + 0x20) + 4 * ((middle < top) << 2 | (bottom < middle) << 1 | (bottom < top)));
     u32 pair[2];
-    memcpy(pair, &global<u32>(0x00fbe6f0 + order), 8);
+    memcpy(pair, &global<u32>((u32)(uintptr_t)&gRastertriangle_fbe6f0 + order), 8);
     memcpy(&global<u32>(0x00fbe210), pair, 8);
-    memcpy(pair, &global<u32>(0x00fbe6f8 + order), 8);
+    memcpy(pair, &global<u32>(((u32)(uintptr_t)&gRastertriangle_fbe6f0 + 0x8) + order), 8);
     memcpy(&global<u32>(0x00fbe208), pair, 8);
     const u32 row = global<u32>(0x00fbe024) + MaddWords((u32)topRow, global<u32>(0x00fbe02c));
     const u32 depthRow = gDevicecreate_fbe028 + MaddWords((u32)topRow, gDevicecreate_fbe030);
-    SetEdge(0x00fbe2a8, v[top], v[middle], global<u32>(0x00fbe0c0));
-    SetEdge(0x00fbe274, v[middle], v[bottom], global<u32>(0x00fbe0bc));
-    SetEdge(0x00fbe240, v[top], v[bottom], global<u32>(0x00fbe0c0));
+    SetEdge((u32)(uintptr_t)&gRastertriangle_fbe240 + 0x68, v[top], v[middle], global<u32>((u32)(uintptr_t)&gRastertriangle_fbe0b0 + 0x10));
+    SetEdge((u32)(uintptr_t)&gRastertriangle_fbe240 + 0x34, v[middle], v[bottom], global<u32>((u32)(uintptr_t)&gRastertriangle_fbe0b0 + 0xc));
+    SetEdge((u32)(uintptr_t)&gRastertriangle_fbe240, v[top], v[bottom], global<u32>((u32)(uintptr_t)&gRastertriangle_fbe0b0 + 0x10));
     global<u32>(0x00fbe228) = depthRow;
-    global<u32>(0x00fbe0d4) = global<u32>(0x00fbe0d8) = sdx20;
-    global<u32>(0x00fbe0cc) = global<u32>(0x00fbe0d0) = sdy21;
-    global<u32>(0x00fbe0dc) = global<u32>(0x00fbe0e0) = sdx21;
-    global<u32>(0x00fbe0c4) = global<u32>(0x00fbe0c8) = sdy20;
+    global<u32>((u32)(uintptr_t)&gRastertriangle_fbe0b0 + 0x24) = global<u32>((u32)(uintptr_t)&gRastertriangle_fbe0b0 + 0x28) = sdx20;
+    global<u32>((u32)(uintptr_t)&gRastertriangle_fbe0b0 + 0x1c) = global<u32>((u32)(uintptr_t)&gRastertriangle_fbe0b0 + 0x20) = sdy21;
+    global<u32>((u32)(uintptr_t)&gRastertriangle_fbe0b0 + 0x2c) = global<u32>((u32)(uintptr_t)&gRastertriangle_fbe0b0 + 0x30) = sdx21;
+    global<u32>((u32)(uintptr_t)&gRastertriangle_fbe0b0 + 0x14) = global<u32>((u32)(uintptr_t)&gRastertriangle_fbe0b0 + 0x18) = sdy20;
     // The gradients: each the differences from v2 (v1's and v0's) across the scaled ones.
     if (kShade)
         for (int k = 0; k < 4; ++k) {
@@ -164,10 +164,10 @@ template <bool kShade, bool kDepth> void Setup(const u8 *v0, const u8 *v1, const
     }
     // The left edges: top to bottom for both parts, or top to middle then middle to bottom.
     if (order == 0) {
-        StartEdge<kShade, kDepth>(0x00fbe240, v[top], global<u32>(0x00fbe0c0));
+        StartEdge<kShade, kDepth>((u32)(uintptr_t)&gRastertriangle_fbe240, v[top], global<u32>((u32)(uintptr_t)&gRastertriangle_fbe0b0 + 0x10));
     } else {
-        StartEdge<kShade, kDepth>(0x00fbe274, v[middle], global<u32>(0x00fbe0bc));
-        StartEdge<kShade, kDepth>(0x00fbe2a8, v[top], global<u32>(0x00fbe0c0));
+        StartEdge<kShade, kDepth>((u32)(uintptr_t)&gRastertriangle_fbe240 + 0x34, v[middle], global<u32>((u32)(uintptr_t)&gRastertriangle_fbe0b0 + 0xc));
+        StartEdge<kShade, kDepth>((u32)(uintptr_t)&gRastertriangle_fbe240 + 0x68, v[top], global<u32>((u32)(uintptr_t)&gRastertriangle_fbe0b0 + 0x10));
     }
     if (kDepth) {
         const u32 perPixel = global<u32>(0x00fbe148);
