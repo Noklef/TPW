@@ -34,3 +34,8 @@ void __fastcall World_Update(u8 *world);
 // 0x5166b0 (thiscall on the world; name invented, unconfirmed): the setting 0xfb3b7c read once (guard bit 0 of 0xfb34a9), World_Update when it is 1.
 void __fastcall World_UpdateInMode1(u8 *world);
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(u8, gWorldUpdate_fb34ab, 0x00fb34ab, 0x1);   // a function-local static's guard

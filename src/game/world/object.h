@@ -390,3 +390,4 @@ GAME_DATA(char[4], gText_Object_Serialize_75b610, 0x0075b610, 0x4);
 GAME_DATA(char[16], gText_Object_Serialize_75b4d0, 0x0075b4d0, 0x10);
 GAME_DATA(float, gObject_WearRate_7cdc54, 0x007cdc54, 4);
 GAME_DATA(s32[9][2], gObject_Around_7ced88, 0x007ced88, 0x48);   // the nine (x, y) offsets about a cell (static objects, destroyed by CRT_VectorDtorIterator)
+GAME_DATA(u8, gObject_fb34b8, 0x00fb34b8, 0x1);   // a function-local static's guard

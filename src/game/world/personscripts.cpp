@@ -104,7 +104,7 @@ void __fastcall Thoughts_Show(u8 *thoughts, void *, u32 thought, u8 force) {
     const ThoughtsEnv *const E = g_thoughts;
     at<u32>(thoughts, 0) = thought;
     if (reinterpret_cast<u8 &>(gCameraFlags) & 0x16) return;
-    u8 &guard = global<u8>(0x00fb34aa);   // (the mode setting 0xfb3b7c: a function-local static)
+    u8 &guard = gPersonScripts_fb34aa;   // (the mode setting 0xfb3b7c: a function-local static)
     if (!(guard & 1)) {
         guard |= 1;
         E->readMode(reinterpret_cast<u8 *>(&gDialog74fb20_fb3b7c));

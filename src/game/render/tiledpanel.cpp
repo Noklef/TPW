@@ -7,6 +7,7 @@
 #include "batchquad.h"
 #include "../math/x87.h"
 #include "../gfx/texcache.h"
+#include "fixedverts.h"
 
 namespace {
 
@@ -26,7 +27,7 @@ const float &kHalf = global<float>(0x00702050);
 s32 Pixel(X87Reg a, float b) {
     const float scaled = (float)((a * b) * kHalf);
     const s32 n = _mm_cvtss_si32(_mm_set_ss(scaled));
-    global<s32>(0x00fb34a4) = n;
+    gFixedVerts_fb34a4 = n;
     return n;
 }
 

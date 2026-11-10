@@ -99,3 +99,8 @@ void __fastcall ObjectUnlock_Step(u8 *self);
 // 0x4d4ac0 (cdecl; name invented, unconfirmed): GlobalSave_CountSet4 of the instance.
 s32 __cdecl ObjectUnlock_ExtraCount();
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(u8, gObjectUnlock_fb34ba, 0x00fb34ba, 0x1);   // a function-local static's guard

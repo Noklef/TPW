@@ -6,6 +6,7 @@
 #include "../online/chatlists.h"
 #include "../ui/dialog74fb20.h"
 #include "signtext.h"
+#include "object.h"
 
 namespace {
 
@@ -28,7 +29,7 @@ const SignTextEnv kGameEnv = {
 const SignTextEnv *g_env = &kGameEnv;
 
 bool mode_is_one() {
-    u8 &guard = global<u8>(0x00fb34b8);
+    u8 &guard = gObject_fb34b8;
     if (!(guard & 1)) {
         guard |= 1;
         g_env->readMode(reinterpret_cast<u8 *>(&gDialog74fb20_fb3b7c));

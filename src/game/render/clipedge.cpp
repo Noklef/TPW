@@ -4,6 +4,7 @@
 #include <xmmintrin.h>
 
 #include "../math/x87.h"
+#include "fixedverts.h"
 
 namespace {
 
@@ -41,7 +42,7 @@ void colour(u8 *out, const u8 *a, const u8 *b, u32 offset) {
     // t * 255 made a float (in the argument a's slot, sic), then fistp: round to nearest, 0x80000000 out of range
     const float scaled = (float)(X87Reg(global<double>(0x00879a18)) * 255.0f);  // 0x70112c
     const s32 n = _mm_cvtss_si32(_mm_set_ss(scaled));
-    global<s32>(0x00fb34a4) = n;
+    gFixedVerts_fb34a4 = n;
     global<s32>(0x00879968) = n;
     const u32 lo = at<u32>(b, offset) & 0xff00ff, hi = at<u32>(a, offset) & 0xff00ff;
     global<u32>(0x00879960) = lo;
@@ -50,7 +51,7 @@ void colour(u8 *out, const u8 *a, const u8 *b, u32 offset) {
     const u32 b1 = at<u8>(b, offset + 1), a1 = at<u8>(a, offset + 1);
     global<u32>(0x00879960) = b1;
     global<u32>(0x00879964) = a1;
-    const u32 g = (a1 - b1) * (u32)global<s32>(0x00fb34a4) + (b1 << 8);
+    const u32 g = (a1 - b1) * (u32)gFixedVerts_fb34a4 + (b1 << 8);
     at<u32>(out, offset) = ((g | (at<u32>(a, offset) & 0xffff00ff)) & 0xff00ff00) | global<u32>(0x0087996c);  // (byte 3 or'd, sic)
 }
 

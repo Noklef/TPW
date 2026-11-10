@@ -22,3 +22,8 @@ extern "C" {
 // Started into +0x28 (folder 0xb); the world's seed the word; at x = (word - 1) & 0x7f, y = (word - 1) >> 7, its position x * 10 + the 1st rand % 9 + 1, y * 10 + the 2nd's + 1. The word +0x30 = 0, +0x2c = the kind; for 8, +0x38 the particle 0x32 at the position * 1024.
 void __fastcall MapCell_StartEffect(u8 *cell, void *, u32 kind);
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(u8, gCellEffect_fb34b9, 0x00fb34b9, 0x1);   // a function-local static's guard

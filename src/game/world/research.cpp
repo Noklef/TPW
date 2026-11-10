@@ -83,7 +83,7 @@ const ResearchEnv *g_env = &kGameEnv;
 
 // The mode setting (0xfb3b7c), read the first time under the handler's guard bit (0xfb34ac & 1), its empty destructor 0x5d1750 given to atexit.
 u32 modeSetting() {
-    u8 &guard = *reinterpret_cast<u8 *>((uintptr_t)0x00fb34ac);
+    u8 &guard = gResearch_fb34ac;
     const u8 bits = guard;
     if (!(bits & 1)) {
         guard = bits | 1;

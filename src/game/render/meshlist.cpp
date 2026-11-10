@@ -10,6 +10,7 @@
 #include "../math/x87.h"
 #include "engineerrors.h"
 #include "../frontend/lobbysky.h"
+#include "fixedverts.h"
 
 namespace {
 
@@ -45,7 +46,7 @@ float of(u32 b) {
 // fld m32; fistp [0xfb34a4]: rounded to nearest even, 0x80000000 when out of range (as cvtss2si does), kept in the dword.
 s32 Fistp(float f) {
     const s32 n = _mm_cvtss_si32(_mm_set_ss(f));
-    global<s32>(0x00fb34a4) = n;
+    gFixedVerts_fb34a4 = n;
     return n;
 }
 

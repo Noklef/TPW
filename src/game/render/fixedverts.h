@@ -23,3 +23,9 @@ void __cdecl FixedVerts_PackRounded(u8 *verts, u32 count, s32 stride);
 // one more; 0xffffffff none), both of a pair read before either is written. (EAX is left 0xff00ff; the caller does not read it.)
 void __cdecl FixedVerts_Modulate(u8 *verts, u32 colour, u32 count, s32 stride);
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(s32, gFixedVerts_fb34a0, 0x00fb34a0, 0x4);   // the rounded x / y
+GAME_DATA(s32, gFixedVerts_fb34a4, 0x00fb34a4, 0x4);   // the last rounded value, also the vertex count of several writers

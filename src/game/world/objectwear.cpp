@@ -23,7 +23,7 @@ const ObjectWearEnv kGameEnv = {ObjectDefs_Find, Setting_ReadMode, reinterpret_c
 const ObjectWearEnv *g_env = &kGameEnv;
 
 bool modeIsOne() {
-    u8 &guard = global<u8>(0x00fb34b8);
+    u8 &guard = gObject_fb34b8;
     if (!(guard & 1)) {
         guard |= 1;
         g_env->readMode(reinterpret_cast<u8 *>(&gDialog74fb20_fb3b7c));

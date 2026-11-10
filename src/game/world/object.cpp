@@ -1023,7 +1023,7 @@ u32 __fastcall Object_InPoorCondition(const u8 *object) {
 }
 
 void __fastcall Object_Wear(u8 *object, void *, u32 amount) {
-    u8 &guard = global<u8>(0x00fb34b8);   // (the mode setting 0xfb3b7c: a function-local static)
+    u8 &guard = gObject_fb34b8;   // (the mode setting 0xfb3b7c: a function-local static)
     if (!(guard & 1)) {
         guard |= 1;
         Setting_ReadMode(reinterpret_cast<u8 *>(&gDialog74fb20_fb3b7c));

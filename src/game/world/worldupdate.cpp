@@ -6,6 +6,7 @@
 #include "ridelist.h"
 #include "things.h"
 #include "../ui/dialog74fb20.h"
+#include "worldstart.h"
 
 namespace {
 
@@ -101,10 +102,10 @@ void __fastcall Thing_Update(u8 *thing) {
     case 6: both(e->entertainer, thing); break;
     case 7: both(e->guard, thing); break;
     case 8: both(e->researcher, thing); break;
-    case 11: if (setting(0x00fb34ab) != 1) e->kind11(thing); break;
+    case 11: if (setting((u32)(uintptr_t)&gWorldUpdate_fb34ab) != 1) e->kind11(thing); break;
     case 15: e->weather(thing); break;
-    case 18: if (setting(0x00fb34ab) == 1) both(e->chat, thing); break;
-    case 19: if (setting(0x00fb34ab) != 1) e->kind19(thing); break;
+    case 18: if (setting((u32)(uintptr_t)&gWorldUpdate_fb34ab) == 1) both(e->chat, thing); break;
+    case 19: if (setting((u32)(uintptr_t)&gWorldUpdate_fb34ab) != 1) e->kind19(thing); break;
     default: break;
     }
 }
@@ -125,6 +126,6 @@ void __fastcall World_Update(u8 *world) {
 }
 
 void __fastcall World_UpdateInMode1(u8 *world) {
-    if (setting(0x00fb34a9) == 1) World_Update(world);
+    if (setting((u32)(uintptr_t)&gWorldStart_fb34a9) == 1) World_Update(world);
 }
 }

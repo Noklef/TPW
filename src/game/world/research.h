@@ -162,3 +162,4 @@ GAME_DATA(char[8], gText_ResearchGroup_Serialize_75e254, 0x0075e254, 0x8);
 
 // Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
 GAME_DATA(const float, gResearchLab_Spend_7007e4, 0x007007e4, 0x4);
+GAME_DATA(u8, gResearch_fb34ac, 0x00fb34ac, 0x1);   // a function-local static's guard

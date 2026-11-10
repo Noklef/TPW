@@ -49,7 +49,7 @@ const struct {
 const u32 kBalanceFile = 0x00785040;
 
 void read_setting_once() {
-    u8 &guard = global<u8>(0x00fb34a9);
+    u8 &guard = gWorldStart_fb34a9;
     if (guard & 1) return;
     guard |= 1;
     g_env->settingReadMode(address(reinterpret_cast<uintptr_t>(&gDialog74fb20_fb3b7c)));
