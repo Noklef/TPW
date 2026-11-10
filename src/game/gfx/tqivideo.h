@@ -20,6 +20,11 @@ void __cdecl TqiVideo_SetQuality(s32 *out, s32 quality);
 // MovieIdct_RowShift to out. Returns the bit position (EDI). Its EAX and EBX are not kept by the original; the callers set them again.
 u32 __cdecl TqiVideo_DecodeBlock(s32 dc, const s32 *quant, const u32 *bits, u32 position, u8 *out, s32 pitch);
 
+// 0x6747d0 (hand-written; state in ESI, the bit stream in EBP, its bit position in EDI; the thunk; name invented, unconfirmed): a macroblock's six blocks, as described under
+// TqiVideo_DecodeMacroblockYuy2 below, into blocks: the original writes them at [ESP + 4], its caller's frame above the return address, which the thunk passes. Returns the bit
+// position (EDI); state's +0x204 is the callers' to write back.
+u32 __cdecl TqiVideo_ReadBlocks(u8 *state, const u32 *bits, u32 position, u32 *blocks);
+
 // 0x676290 (hand-written; luma in ESI, chroma in EDI, out in EBP; the thunk; name unconfirmed): a row of 16 pixels as 8 YUY2 dwords: from the table of dwords 8 bytes apart 0xfb8730 by
 // luma[2k], chroma[k], luma[2k + 1], chroma[k + 0x40]: first | second << 8 | third << 16 | fourth << 24 (the whole dwords, overlapping bits or'ed).
 void __cdecl TqiVideo_PixelRowYuy2(const u32 *luma, const u32 *chroma, u32 *out);
@@ -32,7 +37,7 @@ void __cdecl TqiVideo_PixelRowRgb16(const u32 *luma, const u32 *chroma, u32 *out
 void __cdecl TqiVideo_PixelRowRgb32(const u32 *luma, const u32 *chroma, u32 *out);
 
 // 0x674faf (cdecl (out, pitch in bytes, state); hand-written, all registers but EAX kept; name unconfirmed): a macroblock. The state: 64 dwords the dequantiser, +0x100 / +0x104 / +0x108 the three DC
-// predictors, +0x200 the bit stream, +0x204 its bit position (written back). Six blocks (0x6747d0, also the other three's; it writes above its return address, and is not hooked): a DC difference
+// predictors, +0x200 the bit stream, +0x204 its bit position (written back). Six blocks (TqiVideo_ReadBlocks, also the other three's): a DC difference
 // (four luma: the top 7 bits by the bytes 0xfbb92c; two chroma: the top 8 by 0xfbb9ac; the byte's low nibble the code's length, its high nibble n the bits that follow, whose top bit clear means
 // that value less (1 << n) - 1) added to the predictor, then TqiVideo_DecodeBlock: the luma squares +0, +0x20, +0x200, +0x220 of the stack's 0x800 bytes (pitch 0x40), the chroma +0x400 and +0x500 (0x20).
 // Then 16 rows of TqiVideo_PixelRowYuy2 (luma + 0x40 j, chroma 0x400 + 0x20 (j / 2), out + pitch * j).

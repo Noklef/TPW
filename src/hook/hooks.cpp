@@ -7682,6 +7682,7 @@ const Hook kHooks[] = {
     {"TqiVideo_DecodeMacroblockTable16", 0x00675579, (void *)&TqiVideo_DecodeMacroblockTable16, {0x53, 0x51, 0x52, 0x56, 0x57}},
     {"TqiVideo_PixelRowBytes32",  0x00677eb6, (void *)&RegThunk_TqiVideo_PixelRowBytes32, {0x33, 0xdb, 0x33, 0xc0, 0x8a}},
     {"TqiVideo_BlockBytes32",     0x00677dad, (void *)&TqiVideo_BlockBytes32, {0x53, 0x51, 0x52, 0x56, 0x57}},
+    {"TqiVideo_ReadBlocks",       0x006747d0, (void *)&RegThunk_TqiVideo_ReadBlocks, {0x8b, 0xd7, 0xc1, 0xea, 0x05}},
     {"DdErrors_Name",             0x00672e30, (void *)&DdErrors_Name, {0x33, 0xd2, 0xb8, 0xe8, 0x5e}},
     {"MovieSurface_ReadSize",     0x00670300, (void *)&MovieSurface_ReadSize, {0x83, 0xec, 0x6c, 0x56, 0x8b}},
     {"MovieSurface_PickMode",     0x00670660, (void *)&MovieSurface_PickMode, {0x81, 0xec, 0xf8, 0x02, 0x00}},
