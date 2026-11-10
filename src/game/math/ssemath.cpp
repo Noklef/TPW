@@ -149,8 +149,8 @@ double __cdecl SseMath_ProjectToScreen(void *, u8 *v, s32 stride, u32 count, u32
             v += stride;
         } while (--count);
     } else {
-        const __m128 nearZ = _mm_add_ps(_mm_load_ss(Float(0x008bcc34)), _mm_load_ps(Float(0x007754d0)));
-        const __m128 farZ = _mm_add_ps(_mm_load_ss(Float(0x008bcc2c)), _mm_load_ps(Float(0x007754d0)));
+        const __m128 nearZ = _mm_add_ps(_mm_load_ss(Float(0x008bcc34)), _mm_load_ps(Float((u32)(uintptr_t)&gSseMath_ProjectToScreen_7754d0)));
+        const __m128 farZ = _mm_add_ps(_mm_load_ss(Float(0x008bcc2c)), _mm_load_ps(Float((u32)(uintptr_t)&gSseMath_ProjectToScreen_7754d0)));
         const __m128 nearScale = _mm_shuffle_ps(scale, nearZ, 0x44), nearOffset = _mm_shuffle_ps(offset, _mm_load_ss(Float(0x008bcc38)), 0x44);
         const __m128 farScale = _mm_shuffle_ps(scale, farZ, 0x44), farOffset = _mm_shuffle_ps(offset, _mm_load_ss(Float(0x008bcc30)), 0x44);
         const u32 limit = *reinterpret_cast<const u32 *>((uintptr_t)0x008bcc28);

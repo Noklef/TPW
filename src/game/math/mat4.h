@@ -78,3 +78,6 @@ GAME_DATA(const float, gMatrices_Update_701888, 0x00701888, 0x4);
 GAME_DATA(const float, gMatrices_Update_70189c, 0x0070189c, 0x4);
 GAME_DATA(const double, gMatrices_Update_7018a0, 0x007018a0, 0x8);
 GAME_DATA(u32, gMat4_Perspective_768acc, 0x00768acc, 0x4);
+
+// Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(u8[0x40], gMat4_fb3400, 0x00fb3400, 0x40);

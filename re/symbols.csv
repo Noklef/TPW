@@ -13066,3 +13066,5 @@ address,name,kind,confidence,notes
 0x0074cefc,gText_Model_FindMouthPart_74cefc,data,low,"GAME_DATA (src/game/model/parts): char[0xc], named for its use in Model_FindMouthPart (tools/gamedata_codemod.py)"
 0x0074cf18,gText_Model_FindMouthPart_74cf18,data,low,"GAME_DATA (src/game/model/parts): char[0xc], named for its use in Model_FindMouthPart (tools/gamedata_codemod.py)"
 0x0074cf24,gText_Model_FindMouthPart_74cf24,data,low,"GAME_DATA (src/game/model/parts): char[0xc], named for its use in Model_FindMouthPart (tools/gamedata_codemod.py)"
+0x00fb3400,gMat4_fb3400,data,low,"GAME_DATA (src/game/math/mat4): u8[0x40], named for its use in mat4.cpp (tools/gamedata_codemod.py)"
+0x007754d0,gSseMath_ProjectToScreen_7754d0,data,low,"GAME_DATA (src/game/math/ssemath): u8[0x20], named for its use in SseMath_ProjectToScreen (tools/gamedata_codemod.py)"

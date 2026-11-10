@@ -23,6 +23,7 @@
 #include "../render/pointsprites.h"
 #include "../render/dynfaces.h"
 #include "../render/d3dsetup.h"
+#include "../math/mat4.h"
 
 namespace {
 
@@ -62,7 +63,7 @@ const ObjModelEnv *g_env = &kGameEnv;
 // The engine's static matrix (0xfb3400): the identity, built the first time under the guard 0xfb33e0 & 1.
 u32 *static_matrix() {
     u8 &guard = gPointsprites_fb33e0;
-    u32 *const m = reinterpret_cast<u32 *>((uintptr_t)0x00fb3400);
+    u32 *const m = reinterpret_cast<u32 *>((uintptr_t)&gMat4_fb3400);
     const u8 bits = guard;
     if (!(bits & 1)) {
         for (u32 i = 0; i < 16; ++i)

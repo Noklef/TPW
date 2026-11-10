@@ -35,3 +35,6 @@ double __cdecl SseMath_ProjectToScreen(void *object, u8 *vertices, s32 stride, u
 // Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
 GAME_DATA(float[64], gSseMath_TransformBatch_7753d0, 0x007753d0, 0x100);
 GAME_DATA(float, gSseMath_ProjectToScreen_7754f0, 0x007754f0, 0x4);
+
+// Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(u8[0x20], gSseMath_ProjectToScreen_7754d0, 0x007754d0, 0x20);
