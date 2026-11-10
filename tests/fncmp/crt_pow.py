@@ -64,6 +64,7 @@ def case(r):
             x = r.choice([x, 0x3ff0000000000000, 0xbff0000000000000, x ^ 1 << 63])
         else:
             x = r.choice(special)
+            y = r.choice([y, y, 0, 1 << 63])   # (a zero y: 1, not 0)
     return Call(0x686d30, words(x) + words(y) + [RESULT], regions, conv='c', ret='wc', cw=cw)
 
 
