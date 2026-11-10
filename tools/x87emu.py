@@ -4,7 +4,8 @@ exe runs: the listing text is interpreted, and constants are read from the file 
 
 The x87 unit runs as the game leaves it, at single precision (Direct3D): every FADD/FSUB/
 FMUL/FDIV/FSQRT (and FIADD...) result is the exact result rounded once to a 24-bit
-significand, with the register's wide exponent (it becomes a float only when stored). FSIN/FCOS/FPTAN/FPATAN are exempt from precision
+significand, with the register's wide exponent (it becomes a float only when stored); a control word of
+precision control 2 (the CRT's start-up 0x27f, the static initialisers') rounds to 53 bits instead. FSIN/FCOS/FPTAN/FPATAN are exempt from precision
 control on real hardware; here they are evaluated in double, standing in for 64-bit
 extended (the first three reduced by the hardware's 66-bit pi, see hw_trig). Integer flags cover what compiled MSVC 6 code tests.
 
@@ -101,34 +102,42 @@ def farith(fn, a, b):
     return INDEFINITE if math.isnan(r) else r
 
 
-def r24(q):
+def r24(q, bits=24):
     """The nonzero rational q rounded once to a 24-bit significand (nearest even) with the
     exponent unbounded: an x87 register at the game's precision, whose exponent range is far
-    wider than a float's (it only becomes one, rounding again if subnormal, when stored)."""
+    wider than a float's (it only becomes one, rounding again if subnormal, when stored).
+    bits=53: at double precision (PC53, the CRT's start-up control word 0x27f), within the double range."""
     from fractions import Fraction
     sign, m = (-1.0 if q < 0 else 1.0), abs(Fraction(q))
     e = m.numerator.bit_length() - m.denominator.bit_length()
     if Fraction(2) ** e > m:
         e -= 1
-    scaled = m * Fraction(2) ** (23 - e)
+    scaled = m * Fraction(2) ** (bits - 1 - e)
     n = scaled.numerator // scaled.denominator
     rest = scaled - n
     if rest > Fraction(1, 2) or (rest == Fraction(1, 2) and n & 1):
         n += 1
-    return sign * math.ldexp(n, e - 23)
+    return sign * math.ldexp(n, e - bits + 1)
 
 
-def x87op(fn, a, b):
-    """fn(a, b) (fn exact on Fractions as on floats) as the x87 computes it at 24-bit
-    precision: the exact result rounded once."""
+def x87op(fn, a, b, bits=24):
+    """fn(a, b) (fn exact on Fractions as on floats) as the x87 computes it at `bits`-bit
+    precision (24 or 53): the exact result rounded once."""
     from fractions import Fraction
     if math.isfinite(a) and math.isfinite(b):
         try:
             q = fn(Fraction(a), Fraction(b))
         except ZeroDivisionError:
             return farith(fn, a, b)
-        return r24(q) if q != 0 else fn(a, b)  # an exact zero: its sign as IEEE has it
+        return r24(q, bits) if q != 0 else fn(a, b)  # an exact zero: its sign as IEEE has it
     return farith(fn, a, b)
+
+
+def precision(cw):
+    """The significand bits the control word's precision control (bits 8-9) rounds to: 2 (double) 53, any other 24. Extended (3, which
+    the C library's math sets for a while: 0x133f, | 0x33f) is not modelled (a Python float holds 53 bits) and stays at 24 bits, as the
+    emulator always had it."""
+    return 53 if cw >> 8 & 3 == 2 else 24
 
 
 def f32(x):
@@ -198,7 +207,7 @@ class Emu:
         self.mm = [0] * 8  # the MMX registers, kept apart from the x87 stack (the code they run in ends with EMMS)
         self.xmm = [0] * 8  # the XMM registers, 128-bit integers (only the moves and packed singles of SSE, in SSE below)
         self.c0 = self.c2 = self.c3 = False
-        self.cw = 0x007f  # the game's (single precision); FLDCW keeps it, arithmetic stays at 24 bits
+        self.cw = 0x007f  # the game's (single precision); arithmetic rounds at its precision control (precision())
         self.zf = self.sf = self.cf = self.of = self.pf = False
         self.df = False  # the direction flag (STD / CLD): string instructions step down when set
         self.idf = False  # EFLAGS.ID (bit 21), as POPFD left it
@@ -492,12 +501,13 @@ class Emu:
                     elif o[1 - i] in LOW16:
                         o[i] = 'word ptr ' + o[i]
         nxt = self.next.get(pc)
-        arith = {'FADD': lambda a, b: x87op(lambda x, y: x + y, a, b),
-                 'FSUB': lambda a, b: x87op(lambda x, y: x - y, a, b),
-                 'FMUL': lambda a, b: x87op(lambda x, y: x * y, a, b),
-                 'FDIV': lambda a, b: x87op(lambda x, y: x / y, a, b),
-                 'FSUBR': lambda a, b: x87op(lambda x, y: x - y, b, a),
-                 'FDIVR': lambda a, b: x87op(lambda x, y: x / y, b, a)}
+        bits = precision(self.cw)
+        arith = {'FADD': lambda a, b: x87op(lambda x, y: x + y, a, b, bits),
+                 'FSUB': lambda a, b: x87op(lambda x, y: x - y, a, b, bits),
+                 'FMUL': lambda a, b: x87op(lambda x, y: x * y, a, b, bits),
+                 'FDIV': lambda a, b: x87op(lambda x, y: x / y, a, b, bits),
+                 'FSUBR': lambda a, b: x87op(lambda x, y: x - y, b, a, bits),
+                 'FDIVR': lambda a, b: x87op(lambda x, y: x / y, b, a, bits)}
         base = mn[:-1] if mn.endswith('P') and mn[:-1] in arith else mn
         if base in arith:
             fn = arith[base]
@@ -516,7 +526,7 @@ class Emu:
             n = int.from_bytes(self.read(a, SIZES.get(kind, 4)), 'little', signed=True)
             fn = {'FIADD': lambda p, q: p + q, 'FISUB': lambda p, q: p - q, 'FISUBR': lambda p, q: q - p,
                   'FIMUL': lambda p, q: p * q, 'FIDIV': lambda p, q: p / q, 'FIDIVR': lambda p, q: q / p}[mn]
-            self.st[0] = x87op(fn, self.st[0], float(n))
+            self.st[0] = x87op(fn, self.st[0], float(n), bits)
         elif mn == 'FLD':
             self.st.insert(0, self.fload(o[0]))
         elif mn == 'FILD':
@@ -546,7 +556,7 @@ class Emu:
             self.st[0] = abs(self.st[0])
         elif mn == 'FSQRT':
             v = self.st[0]
-            self.st[0] = v if math.isnan(v) or v == 0 or v == math.inf else r24(math.sqrt(v)) if v > 0 else INDEFINITE
+            self.st[0] = v if math.isnan(v) or v == 0 or v == math.inf else r24(math.sqrt(v), bits) if v > 0 else INDEFINITE
         elif mn in ('FSIN', 'FCOS'):
             v = self.st[0]
             # infinity: invalid, the indefinite; beyond 2^63: C2 set, st0 left as it is
@@ -992,6 +1002,22 @@ def selftest():
                 bad += 1
                 print('FAIL %s: %08x, %08x gave %08x, the x87 %08x' % (' ; '.join(form), a, b, got, want))
     print('x87emu NaN rule: %d of %d differ' % (bad, len(forms) * len(NAN_RULE)))
+    # precision control: the static initialiser 0x591600, (sqrt 3 - -1) * 0.25 / sqrt 2, stores 0x3ef746ea at PC53 (0x27f: as IEEE double
+    # arithmetic gives it), 0x3ef746eb at PC24
+    lines = ['MOV ECX,dword ptr [ESP + 0x4]', 'FLDCW word ptr [ECX + 0x24]', 'FLD double ptr [ECX]', 'FSQRT', 'FLD double ptr [ECX + 0x8]',
+             'FSQRT', 'FXCH', 'FSUB double ptr [ECX + 0x10]', 'FMUL double ptr [ECX + 0x18]', 'FXCH', 'FDIVP', 'FSTP float ptr [ECX + 0x20]', 'RET']
+    with tempfile.NamedTemporaryFile('w', suffix='.asm', delete=False) as f:
+        f.write('\n'.join('%08x  %s' % (0x401000 + 0x10 * i, s) for i, s in enumerate(lines)))
+    emu = Emu([f.name])
+    os.unlink(f.name)
+    for cw, want in ((0x27f, 0x3ef746ea), (0x7f, 0x3ef746eb)):
+        at = emu.alloc(0x28)
+        emu.write(at, struct.pack('<4dIH', 3.0, 2.0, -1.0, 0.25, 0, cw))
+        emu.call(0x401000, [at])
+        got = struct.unpack('<I', emu.read(at + 0x20, 4))[0]
+        if got != want:
+            bad += 1
+            print('FAIL precision control %04x: 0x591600 gave %08x, the x87 %08x' % (cw, got, want))
     return bad == 0
 
 

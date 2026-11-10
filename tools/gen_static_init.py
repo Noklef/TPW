@@ -6,7 +6,8 @@ compiler-generated initialiser, generated here:
 - the main shape `PUSH text ; MOV ECX,object ; CALL ctor ; PUSH exit ; CALL 0x67a7d0 ; ADD ESP,4 ; RET` (ctor a thiscall of one stack
   argument) is a row of a data table, run by one generic runner;
 - an exit thunk `MOV ECX,object ; JMP dtor` (dtor a thiscall of no stack arguments) is the template ExitThunk<object, dtor>;
-- anything else is lifted instruction by instruction (registers as locals, the stack as a local frame, x87 through X87Reg, calls through
+- anything else is lifted instruction by instruction (registers as locals, the stack as a local frame, x87 through X87Reg53 in an
+  initialiser (the CRT's start-up precision, PC53) and X87Reg in an exit thunk (the game's, PC24), calls through
   AddrCalls' Cd / Th by address, each callee's convention from its hook's declaration). An instruction or a value the lifter cannot
   reproduce exactly (an undefined register or stack slot read, a stack argument a tail call would pass on, an indirect call) refuses
   the function: those are listed in MANUAL and ported by hand in src/game/core/staticinitmanual.cpp.
@@ -565,11 +566,15 @@ class Lifter:
             if i >= len(self.fpu):
                 raise Refuse('x87 stack underflow')
             return self.fpu[-1 - i]
+        # An initialiser runs at the CRT's start-up precision, PC53 (0x27f: _setdefaultprecision 0x6804d0 sets it before _initterm):
+        # X87Reg53; an exit thunk at the game's, PC24: X87Reg.
+        pc53 = self.address not in self.gen.thunk_addresses
+        reg = 'X87Reg53' if pc53 else 'X87Reg'
         if mn == 'FLD':
             kind, ref = operand(ops[0])
             name = 'x%d' % self.fpus
             self.fpus += 1
-            self.lines.append('X87Reg %s = %s;' % (name, ref) if kind == 'double' else 'X87Reg %s = X87Reg(%s);' % (name, ref))
+            self.lines.append('%s %s = %s;' % (reg, name, ref) if kind == 'double' else '%s %s = %s(%s);' % (reg, name, reg, ref))
             self.fpu.append(name)
         elif mn in ('FADD', 'FSUB', 'FSUBR', 'FMUL', 'FDIV', 'FDIVR') and len(ops) == 1:
             kind, ref = operand(ops[0])
@@ -577,6 +582,9 @@ class Lifter:
             if kind == 'float':   # (a float operand is a memory operand: X87Reg's rule for a signalling NaN there)
                 e = {'FADD': '%s + %s', 'FSUB': '%s - %s', 'FMUL': '%s * %s', 'FDIV': '%s / %s', 'FSUBR': '%s - %s', 'FDIVR': '%s / %s'}[mn]
                 e = e % ((ref, a) if mn in ('FSUBR', 'FDIVR') else (a, ref))
+            elif pc53:   # (a double operand: the double operation is the x87's at 53 bits)
+                op = {'FADD': '+', 'FSUB': '-', 'FMUL': '*', 'FDIV': '/', 'FSUBR': '-', 'FDIVR': '/'}[mn]
+                e = ('X87Reg53(%s) %s %s' % (ref, op, a)) if mn in ('FSUBR', 'FDIVR') else '%s %s X87Reg53(%s)' % (a, op, ref)
             elif mn in ('FADD', 'FSUB', 'FSUBR'):   # (X87_Add rounds the exact sum of any two doubles once)
                 e = {'FADD': '%s + X87Reg(%s)' % (a, ref), 'FSUB': '%s - X87Reg(%s)' % (a, ref), 'FSUBR': 'X87Reg(%s) - %s' % (ref, a)}[mn]
             elif mn == 'FMUL':   # (the exact product of a 24-bit register and a 53-bit double rounded once)
@@ -591,7 +599,7 @@ class Lifter:
             self.lines.append('%s = %s;' % (a, e))
             self.fpu.pop()
         elif mn == 'FSQRT':
-            self.lines.append('%s = X87_Sqrt(%s);' % (st(0), st(0)))
+            self.lines.append('%s = %s(%s);' % (st(0), 'X87_Sqrt53' if pc53 else 'X87_Sqrt', st(0)))
         elif mn == 'FXCH' and (not ops or ops == ['ST1']):
             self.fpu[-1], self.fpu[-2] = st(1), st(0)
         elif mn in ('FSTP', 'FST'):

@@ -21,6 +21,9 @@ import x87emu  # noqa: E402
 G = gsi.analyse()
 CALLS = 0x2c000000          # driver.cpp kStaticInitCalls: 64 (address, target) entries
 VBTABLE = CALLS + 0x800     # (Exit 0x540880's vbtable)
+# The initialisers run at the CRT's start-up control word: 0x27f (PC53; _FPinit 0x67a5f0's _setdefaultprecision 0x6804d0 sets PC53
+# before _initterm); the exit thunks at the game's, 0x7f.
+CW_START = 0x27f
 ATEXIT_STUB = STUBS + 0xe0  # driver.cpp stub_static_init_atexit
 K_ATEXIT = 31               # (the cdecl recorder of one argument it ends in)
 TABLE, TABLE_END = gsi.TABLE, gsi.TABLE_END
@@ -184,7 +187,7 @@ def case(r):
         regions[CALLS] = table(functions, log, regions, extra)
         regions[TABLE] = slots
         data(r, functions, regions)
-        return Call(0x67f90d, [], regions, ret='c')
+        return Call(0x67f90d, [], regions, ret='c', cw=CW_START)
     f = r.deal(MAIN if op == 'Main' else LIFTED if op == 'Lifted' else EXITS)
     functions = closure([f])
     regions[CALLS] = table(functions, log, regions)
@@ -193,7 +196,7 @@ def case(r):
         regions[VBTABLE] = struct.pack('<2I', 0, off)
         regions[0x876420] = struct.pack('<I', VBTABLE) + r.bytes(off + 4)
     data(r, functions, regions)
-    return Call(f, [], regions, ret='c')
+    return Call(f, [], regions, ret='c', cw=0x7f if op == 'Exit' else CW_START)
 
 
 if __name__ == '__main__':

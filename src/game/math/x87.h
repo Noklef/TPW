@@ -256,6 +256,40 @@ template <class F, class = std::enable_if_t<std::is_same<F, float>::value>> inli
     return X87_MemGivesWay(a, m) ? a : X87Reg(m) / a;
 }
 
+// An x87 register at double precision (PC53: the CRT's start-up control word 0x27f, which the static initialisers run at, before the
+// game sets PC24): + - * / round the exact result once to 53 bits, which the build's SSE2 double operations do; NaNs as X87Reg has
+// them (two: X87_NanPick; a signalling float memory operand gives way to a NaN register). Within the double range: the register's
+// 15-bit exponent would keep a result past it, or in its denormals, exactly.
+struct X87Reg53 {
+    double v;
+    X87Reg53(double x) : v(x) {}
+    explicit operator float() const { return (float)v; }
+};
+inline bool X87_TwoNans(X87Reg53 a, X87Reg53 b) { return a.v != a.v && b.v != b.v; }
+inline X87Reg53 operator+(X87Reg53 a, X87Reg53 b) { return X87_TwoNans(a, b) ? X87_NanPick(a.v, b.v) : a.v + b.v; }
+inline X87Reg53 operator-(X87Reg53 a, X87Reg53 b) { return X87_TwoNans(a, b) ? X87_NanPick(a.v, b.v) : a.v - b.v; }
+inline X87Reg53 operator*(X87Reg53 a, X87Reg53 b) { return X87_TwoNans(a, b) ? X87_NanPick(a.v, b.v) : a.v * b.v; }
+inline X87Reg53 operator/(X87Reg53 a, X87Reg53 b) { return X87_TwoNans(a, b) ? X87_NanPick(a.v, b.v) : a.v / b.v; }
+template <class F, class = std::enable_if_t<std::is_same<F, float>::value>> inline X87Reg53 operator+(X87Reg53 a, F m) {
+    return X87_MemGivesWay(a.v, m) ? a : a + X87Reg53(m);
+}
+template <class F, class = std::enable_if_t<std::is_same<F, float>::value>> inline X87Reg53 operator-(X87Reg53 a, F m) {
+    return X87_MemGivesWay(a.v, m) ? a : a - X87Reg53(m);
+}
+template <class F, class = std::enable_if_t<std::is_same<F, float>::value>> inline X87Reg53 operator-(F m, X87Reg53 a) {
+    return X87_MemGivesWay(a.v, m) ? a : X87Reg53(m) - a;
+}
+template <class F, class = std::enable_if_t<std::is_same<F, float>::value>> inline X87Reg53 operator*(X87Reg53 a, F m) {
+    return X87_MemGivesWay(a.v, m) ? a : a * X87Reg53(m);
+}
+template <class F, class = std::enable_if_t<std::is_same<F, float>::value>> inline X87Reg53 operator/(X87Reg53 a, F m) {
+    return X87_MemGivesWay(a.v, m) ? a : a / X87Reg53(m);
+}
+template <class F, class = std::enable_if_t<std::is_same<F, float>::value>> inline X87Reg53 operator/(F m, X87Reg53 a) {
+    return X87_MemGivesWay(a.v, m) ? a : X87Reg53(m) / a;
+}
+inline X87Reg53 X87_Sqrt53(X87Reg53 x) { return x.v != x.v ? x : X87Reg53(std::sqrt(x.v)); }
+
 // fsin / fcos (unaffected by the precision control): infinity is invalid and gives the
 // indefinite (negative quiet NaN), a NaN comes through, and from 2^63 on st0 is left as it is
 // (C2 set; the game never checks it).
