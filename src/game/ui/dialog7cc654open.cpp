@@ -18,6 +18,7 @@
 #include "window.h"
 #include "window7059f0.h"
 #include "windowreg.h"
+#include "../core/textarg.h"
 
 namespace {
 
@@ -52,7 +53,7 @@ void addRows(u8 *list, u8 *lists) {
         u32 texts[4];
         texts[0] = (u32)(uintptr_t)String_AnsiToWide(name ? name : reinterpret_cast<const char *>((uintptr_t)0x006fe5b0), nullptr, 0);
         NumberArg args[3];
-        for (u32 i = 0; i < 3; ++i) args[i].vtable = 0x006ff170, args[i].tag = 0x5641524d, args[i].zero = 0;
+        for (u32 i = 0; i < 3; ++i) args[i].vtable = (u32)(uintptr_t)TextArgInt_vtable, args[i].tag = 0x5641524d, args[i].zero = 0;
         args[0].number = 0x12;
         args[0].value = at<u32>(lists, 0x54);
         args[1].number = 0x10;

@@ -368,7 +368,7 @@ u8 *__fastcall GlyphRenderer_DeletingDtor(u8 *renderer, void *, u32 flags) {
 }
 
 u8 *__fastcall Vtbl70a258_DeletingDtor(u8 *object, void *, u32 flags) {
-    at<u32>(object, 0) = 0x70a258;
+    at<u32>(object, 0) = (u32)(uintptr_t)Class70a258_vtable;
     return Delete(object, flags);
 }
 

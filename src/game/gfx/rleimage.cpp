@@ -118,7 +118,7 @@ u32 __fastcall RleImage_ReadCodes(u8 *image, void *, u8 *stream, u32 size) {
 
 u8 *__fastcall RleImage_DeletingDtor(u8 *part, void *, u32 flags) {
     u8 *image = part - 0x18;
-    at<u32>(image, at<u32>(at<u8 *>(image, 0), 4)) = 0x00701168;
+    at<u32>(image, at<u32>(at<u8 *>(image, 0), 4)) = (u32)(uintptr_t)Class701168_vtable;
     const u32 base = at<u32>(at<u8 *>(image, 0), 4);
     at<u32>(image, base - 4) = base - 0x18;
     if (at<u32>(image, 4)) {
@@ -127,7 +127,7 @@ u8 *__fastcall RleImage_DeletingDtor(u8 *part, void *, u32 flags) {
     }
     at<u32>(image, 0x10) = 0;
     at<u32>(image, 0xc) = 0;
-    at<u32>(image, 0x18) = 0x00701178;
+    at<u32>(image, 0x18) = ((u32)(uintptr_t)Class701168_vtable + 0x10);
     if (flags & 1) GameHeap_Free(image);
     return image;
 }
@@ -135,9 +135,9 @@ u8 *__fastcall RleImage_DeletingDtor(u8 *part, void *, u32 flags) {
 u8 *__fastcall Obj_CtorVirtual5646c0(u8 *object, void *, u32 mostDerived) {
     if (mostDerived) {
         at<u32>(object, 0) = 0x00701188;
-        at<u32>(object, 0x18) = 0x00701178;
+        at<u32>(object, 0x18) = ((u32)(uintptr_t)Class701168_vtable + 0x10);
     }
-    at<u32>(object, at<u32>(at<u8 *>(object, 0), 4)) = 0x00701168;
+    at<u32>(object, at<u32>(at<u8 *>(object, 0), 4)) = (u32)(uintptr_t)Class701168_vtable;
     const u32 base = at<u32>(at<u8 *>(object, 0), 4);
     at<u32>(object, base - 4) = base - 0x18;
     for (u32 offset : {0xcu, 0x10u, 0x8u, 0x4u})

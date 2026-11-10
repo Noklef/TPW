@@ -103,3 +103,13 @@ u32 *__cdecl Input_OpenDevice5c(u32 *out);
 void __cdecl Input_CloseDevice5c();
 
 }  // extern "C"
+
+#include "gamedata.h"
+
+// The vtables hold only ports: tpw.exe's loader points their slots at them (.docs/09-globals.md).
+GAME_DATA(void *[7], Class703710_vtable, 0x00703710, 0x1c);
+GAME_DATA(void *[5], Class7037a0_vtable, 0x007037a0, 0x14);
+GAME_DATA(void *[1], Class7037b4_vtable, 0x007037b4, 0x4);
+GAME_DATA(void *[1], Class7037b8_vtable, 0x007037b8, 0x4);
+GAME_DATA(void *[7], Class7037e8_vtable, 0x007037e8, 0x1c);
+GAME_DATA(void *[7], InputChain64_vtable, 0x00703810, 0x1c);

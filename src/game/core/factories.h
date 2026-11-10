@@ -12,3 +12,9 @@ u32 *__cdecl Class7037c0_Create(u32 *result, u8 **object);
 // 0x617970 (cdecl; result code out, object out): as Class7037c0_Create for a 0x14-byte object (Class703770_Ctor, then +8 and +0xc cleared and the vtable 0x703750). Returns the result pointer.
 u32 *__cdecl Class703750_Create(u32 *result, u8 **object);
 }  // extern "C"
+
+#include "gamedata.h"
+
+// The vtables hold only ports: tpw.exe's loader points their slots at them (.docs/09-globals.md).
+GAME_DATA(void *[7], Class703750_vtable, 0x00703750, 0x1c);
+GAME_DATA(void *[7], Class7037c0_vtable, 0x007037c0, 0x1c);

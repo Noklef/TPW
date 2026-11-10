@@ -15,7 +15,7 @@ const InverseMapEnv kGameEnv = {
 };
 const InverseMapEnv *g_env = &kGameEnv;
 
-void *const *const kVtable = at<void *const *>(0x00704ac0);
+void *const *const kVtable = at<void *const *>((u32)(uintptr_t)InverseMap_vtable);
 
 }  // namespace
 

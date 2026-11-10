@@ -106,7 +106,7 @@ u16 *format(u8 *avatar, u32 entry, const u16 *chars, bool withText) {
     if (withText) {
         u8 arg[16];
         TextArg_Ctor(arg, nullptr, 0);
-        at<u32>(arg, 0) = 0x006ff174;
+        at<u32>(arg, 0) = (u32)(uintptr_t)TextArgString_vtable;
         at<const u16 *>(arg, 0xc) = chars;
         g_env->format(global<u8 *>(0x0078bac8), buffer, 0x400, entry, arg);
     } else {

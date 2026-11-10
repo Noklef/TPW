@@ -83,7 +83,7 @@ void __fastcall Panel7cc3b0_ShowStats(u8 *self) {
     u32 index = Mode19c_ToIndex(staff);
     const s32 days = Staff_AgeDays(staff);
     u8 age[0x14];   // (a number argument, as TextArgInt_Ctor builds it inline)
-    *reinterpret_cast<u32 *>(age) = 0x006ff170;
+    *reinterpret_cast<u32 *>(age) = (u32)(uintptr_t)TextArgInt_vtable;
     *reinterpret_cast<u32 *>(age + 4) = 0x5641524d;
     *reinterpret_cast<u32 *>(age + 8) = 8;
     *reinterpret_cast<s32 *>(age + 0xc) = days;

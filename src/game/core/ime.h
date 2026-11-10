@@ -117,3 +117,8 @@ s32 __cdecl ImeHost_WindowProc(u8 *window, u32 message, u32 a, u32 b);
 s32 __stdcall Imm_SetCompositionStringA(u32 context, u32 index, void *comp, u32 comp_length, void *read, u32 read_length);
 u32 __stdcall Imm_GetCandidateListA(u32 context, u32 index, void *list, u32 length);
 }
+
+#include "gamedata.h"
+
+// The vtables hold only ports: tpw.exe's loader points their slots at them (.docs/09-globals.md).
+GAME_DATA(void *[1], Ime_vtable, 0x006fef04, 0x4);

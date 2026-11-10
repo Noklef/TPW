@@ -37,3 +37,10 @@ struct TextFormatEnv {
 };
 const TextFormatEnv &TextFormat();
 void TextFormat_SetEnv(const TextFormatEnv *env);  // nullptr: the game's
+
+#include "gamedata.h"
+
+// The vtables hold only ports: tpw.exe's loader points their slots at them (.docs/09-globals.md).
+GAME_DATA(void *[1], TextArgInt_vtable, 0x006ff170, 0x4);
+GAME_DATA(void *[2], TextArgString_vtable, 0x006ff174, 0x8);
+GAME_DATA(void *[1], TextArg_vtable, 0x006ffb34, 0x4);

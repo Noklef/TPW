@@ -14,6 +14,7 @@
 #include "../terrain/land.h"
 #include "../frontend/frame.h"
 #include "soundindex.h"
+#include "inputsystem.h"
 
 namespace {
 
@@ -477,7 +478,7 @@ void __fastcall Class702e20_Dtor(u8 *object) {
 }
 
 void __fastcall Class7037b8_Dtor(u8 *object) {
-    at<u32>(object, 0) = 0x007037b8;
+    at<u32>(object, 0) = (u32)(uintptr_t)Class7037b8_vtable;
     u8 *const head = at<u8 *>(object, 8);
     for (u8 *node = at<u8 *>(head, 0); node != at<u8 *>(object, 8); node = at<u8 *>(node, 0))
         GameHeap_Free(at<void *>(node, 8));

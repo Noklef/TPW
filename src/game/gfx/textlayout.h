@@ -149,3 +149,9 @@ s32 *__fastcall TextLayout_Draw(u8 *layout, void *, s32 *status, const s32 *rect
 s32 *__fastcall TextLayout_Measure(u8 *layout, void *, s32 *status, const s32 *rect, const u8 *text, u8 *style, s32 *box);
 
 }
+
+#include "../core/gamedata.h"
+
+// The vtables hold only ports: tpw.exe's loader points their slots at them (.docs/09-globals.md).
+GAME_DATA(void *[1], TextStyle_vtable, 0x0070a0d8, 0x4);
+GAME_DATA(void *[6], TextLayout_vtable, 0x0070a10c, 0x18);

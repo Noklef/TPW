@@ -113,12 +113,12 @@ u8 *__fastcall TextStyle_Ctor(u8 *style) {
     at<u32>(style, 0x40) = 0;
     for (u32 i = 0x44; i <= 0x48; ++i) at<u8>(style, i) = 0;
     at<u32>(style, 0x4c) = 0;
-    at<u32>(style, 0) = 0x0070a0d8;
+    at<u32>(style, 0) = (u32)(uintptr_t)TextStyle_vtable;
     return style;
 }
 
 void __fastcall TextStyle_Dtor(u8 *style) {
-    at<u32>(style, 0) = 0x0070a0d8;
+    at<u32>(style, 0) = (u32)(uintptr_t)TextStyle_vtable;
     if (font(style)) {
         vcall<void>(font(style), 0);
         at<u32>(style, 4) = 0;
@@ -672,12 +672,12 @@ u8 *__fastcall TextLayout_Ctor(u8 *layout) {
     at<u32>(layout, 0x98) = 0;
     at<u32>(layout, 0x9c) = 0;
     for (u32 i = 0xac; i <= 0xb8; i += 4) at<u32>(layout, i) = 0;
-    at<u32>(layout, 0) = 0x0070a10c;
+    at<u32>(layout, 0) = (u32)(uintptr_t)TextLayout_vtable;
     return layout;
 }
 
 void __fastcall TextLayout_Dtor(u8 *layout) {
-    at<u32>(layout, 0) = 0x0070a10c;
+    at<u32>(layout, 0) = (u32)(uintptr_t)TextLayout_vtable;
     FreeVector(layout, 0x88);
     FreeVector(layout, 0x74);
     FreeVector(layout, 0x60);

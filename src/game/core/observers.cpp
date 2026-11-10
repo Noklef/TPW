@@ -45,11 +45,11 @@ u32 ObserverList_Add(u8 *&listField, u32 vtable, u8 *item, u32 backOffset, u8 *o
 extern "C" {
 
 u32 __fastcall ObserverList4c_Add(u8 *object, void *, u8 *item) {
-    return ObserverList_Add(at<u8 *>(object, 0x4c), 0x006fdb04, item, 0x34, object);
+    return ObserverList_Add(at<u8 *>(object, 0x4c), (u32)(uintptr_t)Class6fdb04_vtable, item, 0x34, object);
 }
 
 u32 __fastcall ObserverList0_Add(u8 *object, void *, u8 *item) {
-    return ObserverList_Add(at<u8 *>(object, 0), 0x006fdb0c, item, 0x30, object);
+    return ObserverList_Add(at<u8 *>(object, 0), (u32)(uintptr_t)Class6fdb0c_vtable, item, 0x30, object);
 }
 
 u32 __fastcall Obj_SetAt8AndAdd(u8 *object, void *, u8 *item) {

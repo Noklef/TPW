@@ -121,7 +121,7 @@ void __fastcall Panel7cc298_ShowStats(u8 *self) {
         const double sum0 = CircBufU32_30_SumVia(thing + 0x1a8, &seen0);
         const double sum1 = CircBufU32_30_SumVia(thing + 0x230, &seen1);
         u8 both[0x14], recent[0x14];   // (number arguments, as TextArgInt_Ctor builds them inline)
-        at<u32>(both, 0) = 0x006ff170;
+        at<u32>(both, 0) = (u32)(uintptr_t)TextArgInt_vtable;
         at<u32>(both, 4) = 0x5641524d;
         at<u32>(both, 8) = 0x1a;
         at<u32>(both, 0xc) = (u32)(long long)sum0 + (u32)(long long)sum1;  // (__ftol, the low halves)
@@ -130,7 +130,7 @@ void __fastcall Panel7cc298_ShowStats(u8 *self) {
         u32 slot;
         std::memcpy(&slot, &sum0, 4);
         const double sum2 = CircBufU32_30_SumVia(thing + 0x1a8, &slot);
-        at<u32>(recent, 0) = 0x006ff170;
+        at<u32>(recent, 0) = (u32)(uintptr_t)TextArgInt_vtable;
         at<u32>(recent, 4) = 0x5641524d;
         at<u32>(recent, 8) = 0x19;
         at<u32>(recent, 0xc) = (u32)(long long)sum2;

@@ -155,12 +155,12 @@ u32 __fastcall Pointers_MarkAndCallSlot4(u8 *object) {
 u8 *__fastcall Class702198_DeletingDtor(u8 *field, void *, u32 flags) {
     u8 *object = field - 0x3c;
     u32 offset = at<u32>(at<u8 *>(object, 0), 4);
-    at<u32>(object + offset, 0) = 0x007021f0;
+    at<u32>(object + offset, 0) = (u32)(uintptr_t)Class7021f0_vtable;
     offset = at<u32>(at<u8 *>(object, 0), 4);  // (read again: the vtable pointer was just replaced when the virtual base is the object itself)
     at<u32>(object, offset - 4) = offset - 0x3c;
     offset = at<u32>(at<u8 *>(object, 0), 4);
     vcall<u32>(object + offset, 4);
-    at<u32>(object, 0x3c) = 0x00702198;
+    at<u32>(object, 0x3c) = (u32)(uintptr_t)TexCacheItem_vtable;
     if (flags & 1)
         GameHeap_Free(object);
     return object;

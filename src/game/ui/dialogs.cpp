@@ -228,7 +228,7 @@ void __cdecl Dialog7cc4c4_ShowThing(u8 *thing) {
     }
     vcall<void>(Window_FindChild(window(reinterpret_cast<uintptr_t>(&gDialogs_7cc4c4)), nullptr, 0x16c11), 0x24, *reinterpret_cast<u32 *>(thing + 0x14));
     u8 arg[0x14];   // (a number argument, as TextArgInt_Ctor builds it inline)
-    *reinterpret_cast<u32 *>(arg) = 0x006ff170;
+    *reinterpret_cast<u32 *>(arg) = (u32)(uintptr_t)TextArgInt_vtable;
     *reinterpret_cast<u32 *>(arg + 4) = 0x5641524d;
     *reinterpret_cast<u32 *>(arg + 8) = 0x1b;
     *reinterpret_cast<u32 *>(arg + 0xc) = *reinterpret_cast<u32 *>(thing + 0x40);

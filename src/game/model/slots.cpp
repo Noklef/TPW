@@ -11,6 +11,7 @@
 #include "holder.h"
 #include "parts.h"
 #include "ridemodel.h"
+#include "../core/vtables.h"
 
 namespace {
 
@@ -82,7 +83,7 @@ u8 *__fastcall ModelSlot_Ctor(u8 *slot) {
     u8 *const part = slot + 0x48;
     at<u32>(part, 0) = 0x006fdd00;
     at<u32>(part, 0xc) = 0x006fdcf8;
-    at<u32>(part, 8) = 0x006fdce8;
+    at<u32>(part, 8) = (u32)(uintptr_t)Class6fdce8_vtable;
     // The offsets come through the vbtable pointers just stored, read again for each store as the original does.
     at<u32>(part, at<u32>(at<u8 *>(part, 0xc), 4) + 0xc) = 0x006fdcd8;
     const u32 inner = at<u32>(at<u8 *>(part, 0xc), 4);

@@ -114,9 +114,9 @@ void plainRows(u8 *box, u8 *row, WString *text) {
     WString_AssignStr(text, nullptr, g_env->text(0x115));
     WString_AppendStr(text, nullptr, wide(L" : "));
     // (TextArgInt_Ctor (n, the word, unsigned), inline)
-    const u32 first[5] = {0x006ff170, 0x5641524d, 0x12, global<u16>(0x007cca34), 0};
-    const u32 second[5] = {0x006ff170, 0x5641524d, 0x11, global<u16>(0x007cca32), 0};
-    const u32 third[5] = {0x006ff170, 0x5641524d, 0x10, global<u16>(0x007cca30), 0};
+    const u32 first[5] = {(u32)(uintptr_t)TextArgInt_vtable, 0x5641524d, 0x12, global<u16>(0x007cca34), 0};
+    const u32 second[5] = {(u32)(uintptr_t)TextArgInt_vtable, 0x5641524d, 0x11, global<u16>(0x007cca32), 0};
+    const u32 third[5] = {(u32)(uintptr_t)TextArgInt_vtable, 0x5641524d, 0x10, global<u16>(0x007cca30), 0};
     u16 *const buffer = reinterpret_cast<u16 *>((uintptr_t)0x007ba058);
     TextFormat().format(global<void *>(0x0078ba94), buffer, 0x3fff, 0x1c0, third, second, first);
     WString_AppendStr(text, nullptr, buffer);

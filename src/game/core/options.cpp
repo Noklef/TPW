@@ -269,7 +269,7 @@ u32 __fastcall Options_LoadMiscFile(u8 *options, void *, const u8 *path) {
 
 u8 __fastcall Options_CheckGraphicsMode(u8 *options, void *, u32 mode) {
     u8 file[0x78];   // (a graphics balance file on the stack)
-    at<u32>(file, 0) = 0x006fd630;
+    at<u32>(file, 0) = (u32)(uintptr_t)BalanceGraphics_vtable;
     BalanceFile_Init(file);
     String path;
     String_Ctor(&path);
@@ -283,7 +283,7 @@ u8 __fastcall Options_CheckGraphicsMode(u8 *options, void *, u32 mode) {
         vcall<void>(&path, 0x28, 0x0078e5c0u);
     if (!BalanceFile_Load(file, nullptr, path.data, 0)) {
         String_Dtor(&path);
-        at<u32>(file, 0) = 0x006fd630;
+        at<u32>(file, 0) = (u32)(uintptr_t)BalanceGraphics_vtable;
         BalanceFile_Release(file);
         return 0;
     }
@@ -298,7 +298,7 @@ u8 __fastcall Options_CheckGraphicsMode(u8 *options, void *, u32 mode) {
     differs(global(0x007858a8), at<u32>(file, 0x40));
     differs(global(0x007858ac), at<u32>(file, 0x44));
     String_Dtor(&path);
-    at<u32>(file, 0) = 0x006fd630;
+    at<u32>(file, 0) = (u32)(uintptr_t)BalanceGraphics_vtable;
     BalanceFile_Release(file);
     return 1;
 }

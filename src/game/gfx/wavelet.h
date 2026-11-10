@@ -239,3 +239,7 @@ GAME_DATA(u32, gWavelet_fb27c4, 0x00fb27c4, 0x4);
 GAME_DATA(float[256], gWavelet_ScaleHigh_fb27e0, 0x00fb27e0, 0x400);
 GAME_DATA(float[256], gWavelet_Scale_fb2be0, 0x00fb2be0, 0x400);
 GAME_DATA(float[256], gWavelet_ScaleLow_fb2fe0, 0x00fb2fe0, 0x400);
+
+// The vtables hold only ports: tpw.exe's loader points their slots at them (.docs/09-globals.md).
+GAME_DATA(void *[8], IWaveletCodec_vtable, 0x007026b8, 0x20);
+GAME_DATA(void *[3], WaveletCodec_vtable, 0x007026d8, 0xc);

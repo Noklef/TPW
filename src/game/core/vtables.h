@@ -138,3 +138,13 @@ void __fastcall Vtbl70a258_Set_6b4a90(u8 *o);
 // 0x6c7090: the vtable pointer +0 = 0x70a778.
 void __fastcall Vtbl70a778_Set_6c7090(u8 *o);
 }  // extern "C"
+
+#include "gamedata.h"
+
+// The vtables hold only ports: tpw.exe's loader points their slots at them (.docs/09-globals.md).
+GAME_DATA(void *[4], Class6fdce8_vtable, 0x006fdce8, 0x10);
+GAME_DATA(void *[4], Class6fefb8_vtable, 0x006fefb8, 0x10);
+GAME_DATA(void *[2], Class7007a8_vtable, 0x007007a8, 0x8);
+GAME_DATA(void *[2], Class700868_vtable, 0x00700868, 0x8);
+GAME_DATA(void *[8], Class7026e8_vtable, 0x007026e8, 0x20);
+GAME_DATA(void *[3], Class70a258_vtable, 0x0070a258, 0xc);

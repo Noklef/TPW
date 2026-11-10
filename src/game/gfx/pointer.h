@@ -99,3 +99,8 @@ u32 __fastcall PointerFrames_LoadFile(u8 *self, void *, const char *name);
 // shows it (the shown byte left), the last step now.
 void __fastcall PointerFrames_Step(u8 *self, void *, s32 now);
 }
+
+#include "../core/gamedata.h"
+
+// The vtables hold only ports: tpw.exe's loader points their slots at them (.docs/09-globals.md).
+GAME_DATA(void *[2], AsyncPointer_vtable, 0x00703644, 0x8);

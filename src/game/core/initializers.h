@@ -255,3 +255,19 @@ GAME_DATA(u32, gInitializers_f827f0, 0x00f827f0, 0x4);
 
 // Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
 GAME_DATA(u32[6], CRT_cfltcvt_tab, 0x0077eca0, 0x18);
+
+// The vtables hold only ports: tpw.exe's loader points their slots at them (.docs/09-globals.md).
+GAME_DATA(void *[7], Class6fefc8_vtable, 0x006fefc8, 0x1c);
+GAME_DATA(void *[16], Class6ff1f0_vtable, 0x006ff1f0, 0x40);
+GAME_DATA(void *[1], Class7027f8_vtable, 0x007027f8, 0x4);
+GAME_DATA(void *[5], Class7058d8_vtable, 0x007058d8, 0x14);
+GAME_DATA(void *[1], Class7058f0_vtable, 0x007058f0, 0x4);
+GAME_DATA(void *[6], Class705938_vtable, 0x00705938, 0x18);
+GAME_DATA(void *[7], Class7059b0_vtable, 0x007059b0, 0x1c);
+GAME_DATA(void *[16], Class705a80_vtable, 0x00705a80, 0x40);
+GAME_DATA(void *[1], Class709b4c_vtable, 0x00709b4c, 0x4);
+GAME_DATA(void *[1], Class709d04_vtable, 0x00709d04, 0x4);
+GAME_DATA(void *[8], Class70a238_vtable, 0x0070a238, 0x20);
+GAME_DATA(void *[1], Class70aa7c_vtable, 0x0070aa7c, 0x4);
+GAME_DATA(void *[19], Class70aba8_vtable, 0x0070aba8, 0x4c);
+GAME_DATA(void *[19], Class70abf8_vtable, 0x0070abf8, 0x4c);

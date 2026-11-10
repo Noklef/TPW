@@ -431,7 +431,7 @@ void addRow(u8 *list, u32 first, u32 second, u32 data) {
 }
 
 void formatLevel(u32 entry, u32 value) {
-    const u32 arg[5] = {0x006ff170, 0x5641524d, 0, value, 0};   // (TextArgInt_Ctor (0, the value, unsigned), inline)
+    const u32 arg[5] = {(u32)(uintptr_t)TextArgInt_vtable, 0x5641524d, 0, value, 0};   // (TextArgInt_Ctor (0, the value, unsigned), inline)
     g_levels->format(global<u8 *>(0x0078ba94), wideBuffer(), 0x3fff, entry, arg);
 }
 
@@ -452,7 +452,7 @@ void showBufferSum(u8 *gauge, const u8 *buffer) {
 
 void showAge(u8 *label, const u8 *object) {
     const s32 age = g_figures->age(object);
-    const u32 arg[5] = {0x006ff170, 0x5641524d, 8, static_cast<u32>(age < 0 ? -age : age), age < 0 ? 1u : 0u};   // (TextArgInt_Ctor (8, the size, its sign), inline)
+    const u32 arg[5] = {(u32)(uintptr_t)TextArgInt_vtable, 0x5641524d, 8, static_cast<u32>(age < 0 ? -age : age), age < 0 ? 1u : 0u};   // (TextArgInt_Ctor (8, the size, its sign), inline)
     u16 text[0x20];
     g_figures->format(global<u8 *>(0x0078ba94), text, 0x1f, 0x1b1, arg);
     g_figures->notify(label, nullptr, static_cast<u32>(reinterpret_cast<uintptr_t>(text)));

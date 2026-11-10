@@ -9,6 +9,7 @@
 #include "crt.h"
 #include "gameheap.h"
 #include "vcall.h"
+#include "initializers.h"
 
 namespace {
 
@@ -51,8 +52,8 @@ u16 *widen(const u8 *text, u32 *status) {
 // vtable 0x7058d8 and its block +0xc freed when set).
 void __fastcall EntryCtor(void *entry) { Obj_CtorValue(static_cast<u8 *>(entry), nullptr, 0); }
 void __fastcall EntryDtor(void *entry) {
-    at<u32>(entry, 0) = 0x006ff058;
-    at<u32>(entry, 0) = 0x007058d8;
+    at<u32>(entry, 0) = (u32)(uintptr_t)Class6ff058_vtable;
+    at<u32>(entry, 0) = (u32)(uintptr_t)Class7058d8_vtable;
     if (void *const block = at<void *>(entry, 0xc))
         GameHeap_Free(block);
 }

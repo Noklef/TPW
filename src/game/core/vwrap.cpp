@@ -15,6 +15,7 @@
 #include "../ui/panel7cc218.h"
 #include "../gfx/texcache.h"
 #include "../render/spritegroups.h"
+#include "vtables.h"
 
 namespace {
 
@@ -177,7 +178,7 @@ u32 __cdecl Global879acc_Create() {
         at<u32>(object, 0) = 0x00701410;
         Class701260_Ctor(object + 8);
         const s32 offset = at<s32>(at<u8 *>(object, 0), 4);
-        at<u32>(object, offset) = 0x007013c8;
+        at<u32>(object, offset) = (u32)(uintptr_t)Class7013c8_vtable;
         const s32 again = at<s32>(at<u8 *>(object, 0), 4);
         at<s32>(object, again - 4) = again - 8;
         at<u32>(object, at<s32>(at<u8 *>(object, 0), 4) + 0xc) = 0x1000;
@@ -246,8 +247,8 @@ u32 __cdecl Global8bba48_Create() {
     u8 *object = static_cast<u8 *>(GameHeap_Alloc(0xa8));
     if (object) {
         at<u32>(object, 0) = 0x00701b40;
-        at<u32>(object, 0xa4) = 0x006fdce8;
-        at<u32>(object, at<s32>(at<u8 *>(object, 0), 4)) = 0x00701b30;
+        at<u32>(object, 0xa4) = (u32)(uintptr_t)Class6fdce8_vtable;
+        at<u32>(object, at<s32>(at<u8 *>(object, 0), 4)) = (u32)(uintptr_t)Class701b30_vtable;
         const s32 offset = at<s32>(at<u8 *>(object, 0), 4);
         at<s32>(object, offset - 4) = offset - 0xa4;
         at<u32>(object, 4) = 0xffffffff;

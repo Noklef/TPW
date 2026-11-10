@@ -17,6 +17,7 @@
 #include "../core/liveobjects.h"
 #include "../render/spritequeue.h"
 #include "../ui/guidialog.h"
+#include "../core/vtables.h"
 
 namespace {
 
@@ -486,7 +487,7 @@ u8 *__fastcall RendererPart_Ctor(u8 *object, void *, u32 value) {
     SpriteImage_Init(object + 0x9c);
     u8 *const set = object + 0xb4;   // (the sprite set's construction, inlined)
     at<u32>(set, 0) = 0x006ff318;
-    at<u32>(set, 0x20) = 0x006fdce8;
+    at<u32>(set, 0x20) = (u32)(uintptr_t)Class6fdce8_vtable;
     at<u32>(set, at<s32>(at<u8 *>(set, 0), 4)) = 0x006ff308;
     const s32 base = at<s32>(at<u8 *>(set, 0), 4);
     at<s32>(set, base - 4) = base - 0x20;

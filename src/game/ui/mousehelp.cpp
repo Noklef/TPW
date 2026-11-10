@@ -19,6 +19,7 @@
 #include "cursor.h"
 #include "mouseclick.h"
 #include "window7cc8c0handler.h"
+#include "../core/textarg.h"
 
 namespace {
 
@@ -55,7 +56,7 @@ void format(u32 entry, const u32 *argument) { g_env->format(global<u8 *>(0x0078b
 
 // The entry formatted with a string argument, shown.
 void showWith(u32 entry, const void *text) {
-    const u32 argument[4] = {0x006ff174, 0x5641524d, 2, (u32)(uintptr_t)text};
+    const u32 argument[4] = {(u32)(uintptr_t)TextArgString_vtable, 0x5641524d, 2, (u32)(uintptr_t)text};
     format(entry, argument);
     g_env->help(kBuffer);
 }
@@ -266,7 +267,7 @@ void overPerson(u8 *under, u32 previous) {
             if (!id) {
                 format(0x22a, nullptr);
             } else {
-                const u32 argument[5] = {0x006ff170, 0x5641524d, 3, id, 0};
+                const u32 argument[5] = {(u32)(uintptr_t)TextArgInt_vtable, 0x5641524d, 3, id, 0};
                 format(0x229, argument);
             }
             g_env->help(kBuffer);

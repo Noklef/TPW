@@ -304,7 +304,7 @@ void __cdecl CoasterTypes_FreeAll() {
 
 u8 *__cdecl CoasterType_Create(u32 holder, u32, u32 id, const u8 *source) {
     u8 balance[0x3b80];   // (a track type balance file laid out and released again, used for nothing: sic)
-    at<u32>(balance, 0) = 0x006fd8b0;
+    at<u32>(balance, 0) = (u32)(uintptr_t)TrackTypeBalance_vtable;
     BalanceFile_Init(balance);
     u8 *const t = static_cast<u8 *>(GlobalMem_Alloc(0x35c, 1));
     gCoasterTypes_790b08[gSetup_790fe8] = t;
@@ -413,7 +413,7 @@ u8 *__cdecl CoasterType_Create(u32 holder, u32, u32 id, const u8 *source) {
     at<float>(t, 0x270) = (float)X87_Sqrt(X87Reg(gCoasterType_Create_6fde90));
     CoasterType_Setup(t, id, source);   // (its result unused: sic)
     at<u32>(at<u8 *>(t, 0x1c), 0xc) = 0x0074cb98;   // "Data\Generic\Dynamic\Textures"
-    at<u32>(balance, 0) = 0x006fd8b0;
+    at<u32>(balance, 0) = (u32)(uintptr_t)TrackTypeBalance_vtable;
     BalanceFile_Release(balance);
     return t;
 }

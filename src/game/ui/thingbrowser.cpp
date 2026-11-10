@@ -57,7 +57,7 @@ void __cdecl ThingBrowser_ShowName() {
             TextFormat().format(global<void *>(0x0078ba94), kText, 0x3fff, 0x1c9);
         } else {
             u8 arg[0x14];  // (a number argument, as TextArgInt_Ctor (n 0x18, count, unsigned) builds it inline)
-            at<u32>(arg, 0) = 0x006ff170;
+            at<u32>(arg, 0) = (u32)(uintptr_t)TextArgInt_vtable;
             at<u32>(arg, 4) = 0x5641524d;
             at<u32>(arg, 8) = 0x18;
             at<u32>(arg, 0xc) = count;

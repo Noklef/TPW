@@ -30,3 +30,9 @@ void __fastcall ScreenSurfaces_Dtor(u8 *object);
 // 0x47e3c0 (thiscall; flags, pops 4): ScreenSurfaces_Dtor, then the object freed when bit 0 of the flags is set. Returns the object.
 u8 *__fastcall ScreenSurfaces_ScalarDtor(u8 *object, void *, u32 flags);
 }
+
+#include "../core/gamedata.h"
+
+// The vtables hold only ports: tpw.exe's loader points their slots at them (.docs/09-globals.md).
+GAME_DATA(void *[5], Class6fef78_vtable, 0x006fef78, 0x14);
+GAME_DATA(void *[5], SurfaceSource_vtable, 0x006fef90, 0x14);

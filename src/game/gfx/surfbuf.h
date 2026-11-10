@@ -35,3 +35,8 @@ void __fastcall SurfaceBuffer_Dtor(SurfaceBuffer *b);                           
 s32 *__fastcall SurfaceBuffer_Create(SurfaceBuffer *b, void *edx, s32 *out, const u32 *size, u32 caps);
 void __fastcall SurfaceBuffer_Release(SurfaceBuffer *b);  // 0x630790
 }
+
+#include "../core/gamedata.h"
+
+// The vtables hold only ports: tpw.exe's loader points their slots at them (.docs/09-globals.md).
+GAME_DATA(void *[1], SurfaceBuffer_vtable, 0x00703998, 0x4);

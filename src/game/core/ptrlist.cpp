@@ -12,6 +12,7 @@
 #include "liveobjects.h"
 #include "stdlist.h"
 #include "vcall.h"
+#include "vtables.h"
 
 namespace {
 
@@ -262,7 +263,7 @@ u32 __fastcall PtrArray_Init(u8 *object, void *, u32 frames, u32 images) {
     u8 *set = static_cast<u8 *>(GameHeap_Alloc(0x24));
     if (set) {   // (the sprite set's construction, inlined as in RendererPart_Ctor)
         at<u32>(set, 0) = 0x006ff318;
-        at<u32>(set, 0x20) = 0x006fdce8;
+        at<u32>(set, 0x20) = (u32)(uintptr_t)Class6fdce8_vtable;
         at<u32>(set, at<s32>(at<u8 *>(set, 0), 4)) = 0x006ff308;
         const s32 base = at<s32>(at<u8 *>(set, 0), 4);
         at<s32>(set, base - 4) = base - 0x20;

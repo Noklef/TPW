@@ -205,20 +205,20 @@ void __cdecl BalanceHoardingsA_StaticDtor() { destroy(0x00784e30, 0x006fd618); }
 void __cdecl BalanceHoardingsB_StaticDtor() { destroy(0x00784c20, 0x006fd618); }
 void __cdecl BalanceLevel_StaticDtor() { destroy(0x00785040, 0x006fd620); }
 void __cdecl BalanceOnline_StaticDtor() { destroy(0x00785828, 0x006fd628); }
-void __cdecl BalanceGraphics_StaticDtor() { destroy(0x00785868, 0x006fd630); }
-void __cdecl BalanceResolution_StaticDtor() { destroy(0x007858e0, 0x006fd638); }
-void __cdecl BalanceSound_StaticDtor() { destroy(0x007858f0, 0x006fd640); }
+void __cdecl BalanceGraphics_StaticDtor() { destroy(0x00785868, (u32)(uintptr_t)BalanceGraphics_vtable); }
+void __cdecl BalanceResolution_StaticDtor() { destroy(0x007858e0, ((u32)(uintptr_t)BalanceGraphics_vtable + 0x8)); }
+void __cdecl BalanceSound_StaticDtor() { destroy(0x007858f0, ((u32)(uintptr_t)BalanceGraphics_vtable + 0x10)); }
 
 void __fastcall ObjectDefBalance_Dtor(u8 *self) {
-    at<u32>(self, 0) = 0x006fd8a8;
+    at<u32>(self, 0) = (u32)(uintptr_t)ObjectDefBalance_vtable;
     BalanceFile_Release(self);
 }
 void __fastcall TrackTypeBalance_Dtor(u8 *self) {
-    at<u32>(self, 0) = 0x006fd8b0;
+    at<u32>(self, 0) = (u32)(uintptr_t)TrackTypeBalance_vtable;
     BalanceFile_Release(self);
 }
 void __fastcall BalanceGraphics_Dtor(u8 *self) {
-    at<u32>(self, 0) = 0x006fd630;
+    at<u32>(self, 0) = (u32)(uintptr_t)BalanceGraphics_vtable;
     BalanceFile_Release(self);
 }
 
@@ -226,7 +226,7 @@ const u8 *__fastcall AdvisorScoring_GetSchema(const void *, void *, u32 index) {
 
 void __fastcall ThemeRecord_Dtor(u8 *self) {
     if (u8 *const file = at<u8 *>(self, 0x1c)) {
-        at<u32>(file, 0) = 0x00702800;
+        at<u32>(file, 0) = (u32)(uintptr_t)ThemeRecord_vtable;
         BalanceFile_Release(file);
         GameHeap_Free(file);
     }
@@ -244,7 +244,7 @@ u8 __fastcall ThemeRecord_LoadGlobalSam(u8 *self) {
         return 1;
     u8 *file = static_cast<u8 *>(GameHeap_Alloc(0x1c));
     if (file) {
-        at<u32>(file, 0) = 0x00702800;
+        at<u32>(file, 0) = (u32)(uintptr_t)ThemeRecord_vtable;
         BalanceFile_Init(file);
     }
     at<u8 *>(self, 0x1c) = file;
@@ -255,7 +255,7 @@ u8 __fastcall ThemeRecord_LoadGlobalSam(u8 *self) {
     if (BalanceFile_Load(at<u8 *>(self, 0x1c), nullptr, path, 0))
         return 1;
     if (u8 *const loaded = at<u8 *>(self, 0x1c)) {
-        at<u32>(loaded, 0) = 0x00702800;
+        at<u32>(loaded, 0) = (u32)(uintptr_t)ThemeRecord_vtable;
         BalanceFile_Release(loaded);
         GameHeap_Free(loaded);
     }
@@ -264,12 +264,12 @@ u8 __fastcall ThemeRecord_LoadGlobalSam(u8 *self) {
 }
 
 void __fastcall AdvisorScoring_Dtor(u8 *self) {
-    at<u32>(self, 0xc) = 0x006fd958;
+    at<u32>(self, 0xc) = (u32)(uintptr_t)AdvisorScoringFile_vtable;
     BalanceFile_Release(self + 0xc);
 }
 
 void __fastcall AdvisorScoringFile_Dtor(u8 *self) {
-    at<u32>(self, 0) = 0x006fd958;
+    at<u32>(self, 0) = (u32)(uintptr_t)AdvisorScoringFile_vtable;
     BalanceFile_Release(self);
 }
 
@@ -277,7 +277,7 @@ void __cdecl AdvisorScoring_StaticDtor() { AdvisorScoring_Dtor(reinterpret_cast<
 
 u8 *__fastcall AdvisorScoring_Construct(u8 *self) {
     u8 *const file = self + 0xc;
-    at<u32>(file, 0) = 0x006fd958;
+    at<u32>(file, 0) = (u32)(uintptr_t)AdvisorScoringFile_vtable;
     BalanceFile_Init(file);
     at<u32>(self, 0) = 0;
     BalanceFile_Load(file, nullptr, reinterpret_cast<const char *>(0x00773014), 0);   // (failing: Debug_Printf, empty in this build)

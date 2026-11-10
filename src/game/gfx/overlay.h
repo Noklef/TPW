@@ -87,3 +87,10 @@ void __fastcall Overlay_ApplyResizedHeight(u8 *overlay, void *, u32 flags, const
 // the node gets 0x8010 and the holder sleeps. +8 = shown.
 void __fastcall Overlay_SetShown(u8 *overlay, void *, u32 shown);
 }
+
+#include "../core/gamedata.h"
+
+// The vtables hold only ports: tpw.exe's loader points their slots at them (.docs/09-globals.md).
+GAME_DATA(void *[9], Overlay_vtable, 0x006fee10, 0x24);
+GAME_DATA(void *[9], Class6fee38_vtable, 0x006fee38, 0x24);
+GAME_DATA(void *[9], Class6fee60_vtable, 0x006fee60, 0x24);

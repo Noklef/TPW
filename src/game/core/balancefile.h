@@ -136,3 +136,12 @@ u32 __fastcall BalanceFile_LoadStream(u8 *self, void *, const char *name, Stream
 // 0x5b0d40 (stdcall; i): the address of 60-byte record i of the table at 0x73f8a8.
 u32 __stdcall Table73f8a8_At(u32 i);
 }
+
+#include "gamedata.h"
+
+// The vtables hold only ports: tpw.exe's loader points their slots at them (.docs/09-globals.md).
+GAME_DATA(void *[6], BalanceGraphics_vtable, 0x006fd630, 0x18);
+GAME_DATA(void *[2], ObjectDefBalance_vtable, 0x006fd8a8, 0x8);
+GAME_DATA(void *[2], TrackTypeBalance_vtable, 0x006fd8b0, 0x8);
+GAME_DATA(void *[2], AdvisorScoringFile_vtable, 0x006fd958, 0x8);
+GAME_DATA(void *[2], ThemeRecord_vtable, 0x00702800, 0x8);

@@ -11,6 +11,7 @@
 #include "renderer.h"
 #include "state.h"
 #include "../frontend/lobbysky.h"
+#include "../core/vtables.h"
 
 namespace {
 
@@ -98,7 +99,7 @@ void __fastcall LightPart_SetColour(u8 *part, void *, u32 a, u32 r, u32 g, u32 b
 u8 *__fastcall Obj_CtorVirtual(u8 *object, void *, u32 mostDerived) {
     if (mostDerived) {
         at<u32>(object, 0) = 0x006fe570;
-        at<u32>(object, 0x60) = 0x006fdce8;
+        at<u32>(object, 0x60) = (u32)(uintptr_t)Class6fdce8_vtable;
     }
     at<u32>(object, at<u32>(at<u8 *>(object, 0), 4)) = 0x006fdcd8;
     const u32 base = at<u32>(at<u8 *>(object, 0), 4);
@@ -154,7 +155,7 @@ u32 *__cdecl LightSource_Create(u32 kind, u32 colour, const u32 *point, const u3
         if (part && kind == 2) {   // (the constructors inline)
             at<u32>(part, 0) = 0x006fdd00;
             at<u32>(part, 0xc) = 0x006fdcf8;
-            at<u32>(part, 8) = 0x006fdce8;
+            at<u32>(part, 8) = (u32)(uintptr_t)Class6fdce8_vtable;
             at<u32>(part, offset(0xc, 4) + 0xc) = 0x006fdcd8;
             at<s32>(part, offset(0xc, 4) + 8) = offset(0xc, 4) - 0x60;
             at<u32>(part, 0x5c) = 0;
@@ -166,7 +167,7 @@ u32 *__cdecl LightSource_Create(u32 kind, u32 colour, const u32 *point, const u3
         } else if (part) {
             at<u32>(part, 0) = 0x006fe560;
             at<u32>(part, 0xc) = 0x006fe558;
-            at<u32>(part, 8) = 0x006fdce8;
+            at<u32>(part, 8) = (u32)(uintptr_t)Class6fdce8_vtable;
             Obj_CtorVirtual(part + 0xc, nullptr, 0);
             at<u32>(part, offset(0, 4)) = 0x006fe548;
             at<s32>(part, offset(0, 4) - 4) = offset(0, 4) - 8;

@@ -18,6 +18,7 @@
 #include "dialog7cc188address.h"
 #include "dialog7cc184handler.h"
 #include "window7cc8c0handler.h"
+#include "../core/textarg.h"
 
 namespace {
 
@@ -72,7 +73,7 @@ void askDelete() {
         u32 tag;
         u32 number;
         const u16 *text;
-    } arg = {0x006ff174, 0x5641524d, 3, name};
+    } arg = {(u32)(uintptr_t)TextArgString_vtable, 0x5641524d, 3, name};
     u16 text[0x80];
     g_env->format(global<u8 *>(0x0078ba94), text, 0x7f, 0xd7, &arg);
     struct {

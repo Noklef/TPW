@@ -13,6 +13,8 @@
 #include "../world/parkmap.h"
 #include "localefacet.h"
 #include "soundindex.h"
+#include "../gfx/rleimage.h"
+#include "../gfx/texcache.h"
 
 namespace {
 
@@ -231,14 +233,14 @@ u8 *__fastcall Class703088_ScalarDtor(u8 *object, void *, u32 flags) {
 }
 
 u8 *__fastcall Deleter_Minus60_42a090(u8 *object, void *, u32 flags) {
-    at<u32>(object, 0) = 0x006fdce8;
+    at<u32>(object, 0) = (u32)(uintptr_t)Class6fdce8_vtable;
     if (flags & 1)
         GameHeap_Free(object - 0x60);
     return object - 0x60;
 }
 
 u8 *__fastcall Deleter_Minus8_458970(u8 *object, void *, u32 flags) {
-    at<u32>(object, 0x0) = 0x006fdce8;
+    at<u32>(object, 0x0) = (u32)(uintptr_t)Class6fdce8_vtable;
     if (flags & 1)
         GameHeap_Free(object - 0x8);
     return object - 0x8;
@@ -349,15 +351,15 @@ u8 * __fastcall ScalarDelete6fd848_40f930(u8 *o, void *, u32 v0) {
 }
 
 u8 * __fastcall ScalarDelete6fdce8_429b60(u8 *o, void *, u32 v0) {
-    at<u32>(o, 0x0) = 0x006fdce8; if (v0 & 1) GameHeap_Free(o); return o;
+    at<u32>(o, 0x0) = (u32)(uintptr_t)Class6fdce8_vtable; if (v0 & 1) GameHeap_Free(o); return o;
 }
 
 u8 * __fastcall ScalarDelete6fef90_47e3a0(u8 *o, void *, u32 v0) {
-    at<u32>(o, 0x0) = 0x006fef90; if (v0 & 1) GameHeap_Free(o); return o;
+    at<u32>(o, 0x0) = (u32)(uintptr_t)SurfaceSource_vtable; if (v0 & 1) GameHeap_Free(o); return o;
 }
 
 u8 * __fastcall ScalarDelete6fefb8_47e730(u8 *o, void *, u32 v0) {
-    at<u32>(o, 0x0) = 0x006fefb8; if (v0 & 1) GameHeap_Free(o); return o;
+    at<u32>(o, 0x0) = (u32)(uintptr_t)Class6fefb8_vtable; if (v0 & 1) GameHeap_Free(o); return o;
 }
 
 u8 * __fastcall ScalarDelete709b44_4f18b0(u8 *o, void *, u32 v0) {
@@ -365,15 +367,15 @@ u8 * __fastcall ScalarDelete709b44_4f18b0(u8 *o, void *, u32 v0) {
 }
 
 u8 * __fastcall ScalarDelete7007a8_4ff500(u8 *o, void *, u32 v0) {
-    at<u32>(o, 0x0) = 0x007007a8; if (v0 & 1) GameHeap_Free(o); return o;
+    at<u32>(o, 0x0) = (u32)(uintptr_t)Class7007a8_vtable; if (v0 & 1) GameHeap_Free(o); return o;
 }
 
 u8 * __fastcall ScalarDelete700868_5061b0(u8 *o, void *, u32 v0) {
-    at<u32>(o, 0x0) = 0x00700868; if (v0 & 1) GameHeap_Free(o); return o;
+    at<u32>(o, 0x0) = (u32)(uintptr_t)Class700868_vtable; if (v0 & 1) GameHeap_Free(o); return o;
 }
 
 u8 * __fastcall ScalarDelete701178_564710(u8 *o, void *, u32 v0) {
-    at<u32>(o, 0x0) = 0x00701178; if (v0 & 1) GameHeap_Free(o); return o;
+    at<u32>(o, 0x0) = ((u32)(uintptr_t)Class701168_vtable + 0x10); if (v0 & 1) GameHeap_Free(o); return o;
 }
 
 u8 * __fastcall ScalarDelete701260_565210(u8 *o, void *, u32 v0) {
@@ -381,11 +383,11 @@ u8 * __fastcall ScalarDelete701260_565210(u8 *o, void *, u32 v0) {
 }
 
 u8 * __fastcall ScalarDelete702198_58b310(u8 *o, void *, u32 v0) {
-    at<u32>(o, 0x0) = 0x00702198; if (v0 & 1) GameHeap_Free(o); return o;
+    at<u32>(o, 0x0) = (u32)(uintptr_t)TexCacheItem_vtable; if (v0 & 1) GameHeap_Free(o); return o;
 }
 
 u8 * __fastcall ScalarDelete7026e8_591980(u8 *o, void *, u32 v0) {
-    at<u32>(o, 0x0) = 0x007026e8; if (v0 & 1) GameHeap_Free(o); return o;
+    at<u32>(o, 0x0) = (u32)(uintptr_t)Class7026e8_vtable; if (v0 & 1) GameHeap_Free(o); return o;
 }
 
 u8 * __fastcall ScalarDelete7029fc_5d5c30(u8 *o, void *, u32 v0) {

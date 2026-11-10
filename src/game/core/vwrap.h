@@ -136,3 +136,6 @@ void __cdecl Pointer_BeginFlip();
 
 // Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
 GAME_DATA(u32, gVwrap_8bba48, 0x008bba48, 0x4);
+
+// The vtables hold only ports: tpw.exe's loader points their slots at them (.docs/09-globals.md).
+GAME_DATA(void *[18], Class7013c8_vtable, 0x007013c8, 0x48);

@@ -297,7 +297,7 @@ u8 *__fastcall TexCacheEntry_Ctor(u8 *entry) {
 }
 
 u8 *__fastcall TexCacheItem_Ctor(u8 *item) {
-    at<u32>(item, 0) = 0x00702198;
+    at<u32>(item, 0) = (u32)(uintptr_t)TexCacheItem_vtable;
     at<u32>(item, 4) = 0;
     return item;
 }

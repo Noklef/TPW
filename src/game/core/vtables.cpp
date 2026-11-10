@@ -47,9 +47,9 @@ u32 __fastcall Vtbl7099ec_SetVirtual(u8 *sub) {
 
 void __fastcall Vtbl6fd800_Set(u8 *object) { at<u32>(object, 0) = 0x006fd800; }
 
-void __fastcall Vtbl6fdce8_At60_Set(u8 *object) { at<u32>(object, 0x60) = 0x006fdce8; }
+void __fastcall Vtbl6fdce8_At60_Set(u8 *object) { at<u32>(object, 0x60) = (u32)(uintptr_t)Class6fdce8_vtable; }
 
-void __fastcall Vtbl6fdce8_At50_Set(u8 *object) { at<u32>(object, 0x50) = 0x006fdce8; }
+void __fastcall Vtbl6fdce8_At50_Set(u8 *object) { at<u32>(object, 0x50) = (u32)(uintptr_t)Class6fdce8_vtable; }
 
 u32 __fastcall VirtualBase_SetVtbl70994c(u8 *object) {
     const u32 vtable = at<u32>(object, (u32)-8);
@@ -62,7 +62,7 @@ void __fastcall Vtbl6fd6c8_Set_405520(u8 *o) {
 }
 
 void __fastcall Vtbl6fdce8_Set_429b50(u8 *o) {
-    at<u32>(o, 0) = 0x006fdce8;
+    at<u32>(o, 0) = (u32)(uintptr_t)Class6fdce8_vtable;
 }
 
 void __fastcall Vtbl6fd810_Set_4a8bf0(u8 *o) {
@@ -70,7 +70,7 @@ void __fastcall Vtbl6fd810_Set_4a8bf0(u8 *o) {
 }
 
 void __fastcall Vtbl6fefb8_Set_4bc420(u8 *o) {
-    at<u32>(o, 0) = 0x006fefb8;
+    at<u32>(o, 0) = (u32)(uintptr_t)Class6fefb8_vtable;
 }
 
 u8 *__fastcall Vtbl6fefb8_Delete(u8 *object, void *, u32 flags) {
@@ -132,7 +132,7 @@ void __fastcall Vtbl6fd840_Set_4fb320(u8 *o) {
 }
 
 void __fastcall Vtbl7007a8_Set_4ff4e0(u8 *o) {
-    at<u32>(o, 0) = 0x007007a8;
+    at<u32>(o, 0) = (u32)(uintptr_t)Class7007a8_vtable;
 }
 
 void __fastcall Vtbl6fd808_Set_503fe0(u8 *o) {
@@ -140,7 +140,7 @@ void __fastcall Vtbl6fd808_Set_503fe0(u8 *o) {
 }
 
 void __fastcall Vtbl700868_Set_506190(u8 *o) {
-    at<u32>(o, 0) = 0x00700868;
+    at<u32>(o, 0) = (u32)(uintptr_t)Class700868_vtable;
 }
 
 void __fastcall Vtbl6fd820_Set_509350(u8 *o) {
@@ -164,7 +164,7 @@ void __fastcall Vtbl701260_Set_565230(u8 *o) {
 }
 
 void __fastcall Vtbl7026e8_Set_591970(u8 *o) {
-    at<u32>(o, 0) = 0x007026e8;
+    at<u32>(o, 0) = (u32)(uintptr_t)Class7026e8_vtable;
 }
 
 void __fastcall Vtbl6fd828_Set_59b860(u8 *o) {
@@ -188,7 +188,7 @@ void __fastcall Vtbl70a078_Set_6b4a50(u8 *o) {
 }
 
 void __fastcall Vtbl70a258_Set_6b4a90(u8 *o) {
-    at<u32>(o, 0) = 0x0070a258;
+    at<u32>(o, 0) = (u32)(uintptr_t)Class70a258_vtable;
 }
 
 void __fastcall Vtbl70a778_Set_6c7090(u8 *o) {

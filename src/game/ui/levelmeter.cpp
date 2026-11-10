@@ -109,10 +109,10 @@ void __cdecl ResearchMeters_ShowName(u32 group) {
     at<u32>(count, 4) = at<u32>(title, 4) = 0x5641524d;
     at<u32>(title, 0xc) = (u32)(uintptr_t)name;
     at<u32>(count, 8) = 0xd;
-    at<u32>(count, 0) = 0x006ff170;
+    at<u32>(count, 0) = (u32)(uintptr_t)TextArgInt_vtable;
     at<u32>(count, 0x10) = 0;
     at<u32>(title, 8) = 0xe;
-    at<u32>(title, 0) = 0x006ff174;
+    at<u32>(title, 0) = (u32)(uintptr_t)TextArgString_vtable;
     u16 text[0x80];
     TextFormat().format(global<void *>(0x0078ba94), text, 0x7f, 0x1be, title, count);
     Window_NotifyImpl100(gauge, nullptr, (u32)(uintptr_t)text);

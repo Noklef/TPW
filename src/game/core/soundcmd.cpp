@@ -11,6 +11,7 @@
 #include "soundobject.h"
 #include "vcall.h"
 #include "../math/x87.h"
+#include "vtables.h"
 
 namespace {
 
@@ -92,7 +93,7 @@ u32 *__fastcall SoundCmd700b5c_Run(const u8 *, void *, u32 *out, u8 *target) { r
 
 u32 *__fastcall SoundCmd700b6c_Run(const u8 *, void *, u32 *out, u8 *target) {
     u8 *const object = target;
-    u32 functor = 0x0070a260;
+    u32 functor = ((u32)(uintptr_t)Class70a258_vtable + 0x8);
     SoundChannel_Apply(at<u8 *>(object, 0x24), nullptr, reinterpret_cast<u32 *>(&target), reinterpret_cast<u8 *>(&functor));
     SoundMixer_Update(at<u8 *>(object, 0x20));
     *out = 0;

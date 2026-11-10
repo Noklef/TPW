@@ -13,6 +13,7 @@
 #include "focus.h"
 #include "window.h"
 #include "window7059f0.h"
+#include "../core/textarg.h"
 
 namespace {
 
@@ -54,9 +55,9 @@ void Fill(u8 *window, u32 dayAt, u32 monthAt, u32 yearAt) {
         u32 year, month, day, hour, minute;
         FileTime_ToSystemTime(&time, nullptr, &status, &year, &month, &day, nullptr, &hour, &minute, nullptr, nullptr);
         FormatArg args[3];
-        args[yearAt] = {0x006ff170, kArgTag, 0x12, year, 0};
-        args[monthAt] = {0x006ff170, kArgTag, 0x11, month, 0};
-        args[dayAt] = {0x006ff170, kArgTag, 0x10, day, 0};
+        args[yearAt] = {(u32)(uintptr_t)TextArgInt_vtable, kArgTag, 0x12, year, 0};
+        args[monthAt] = {(u32)(uintptr_t)TextArgInt_vtable, kArgTag, 0x11, month, 0};
+        args[dayAt] = {(u32)(uintptr_t)TextArgInt_vtable, kArgTag, 0x10, day, 0};
         u16 text[0x20];
         g_env->format(global<u8 *>(0x0078ba94), text, 0x20, 0x1c0, &args[dayAt], &args[monthAt], &args[yearAt]);
         u16 *const row = reinterpret_cast<u16 *>((uintptr_t)0x007ba058);
@@ -72,7 +73,7 @@ void AskFirst() {
         u32 tag;
         u32 number;
         const u16 *text;
-    } arg = {0x006ff174, kArgTag, 2, typed()};
+    } arg = {(u32)(uintptr_t)TextArgString_vtable, kArgTag, 2, typed()};
     u16 text[0x80];
     g_env->format(global<u8 *>(0x0078ba94), text, 0x7f, 0xcd, &arg);
     struct {
