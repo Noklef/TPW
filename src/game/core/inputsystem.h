@@ -113,3 +113,6 @@ GAME_DATA(void *[1], Class7037b4_vtable, 0x007037b4, 0x4);
 GAME_DATA(void *[1], Class7037b8_vtable, 0x007037b8, 0x4);
 GAME_DATA(void *[7], Class7037e8_vtable, 0x007037e8, 0x1c);
 GAME_DATA(void *[7], InputChain64_vtable, 0x00703810, 0x1c);
+
+// Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(char[0x1c], gInputsystem_7780d0, 0x007780d0, 0x1c);

@@ -124,6 +124,11 @@ u8 *__fastcall Vtbl70a0a8_DeletingDtor(u8 *self, void *, u32 flags);
 #include "gamedata.h"
 
 // Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(const char[0x8], gLocalefacet_709b60, 0x00709b60, 0x8);
+GAME_DATA(const char[0x8], gLocalefacet_709b68, 0x00709b68, 0x8);
+GAME_DATA(const char[0x4], gLocalefacet_709d08, 0x00709d08, 0x4);
+GAME_DATA(const char[0x4], gLocalefacet_709d0c, 0x00709d0c, 0x4);
+GAME_DATA(const char[0x88], gLocalefacet_709df0, 0x00709df0, 0x88);
 GAME_DATA(const char[0x15], gLocalefacet_MissingFacet_75c734, 0x0075c734, 0x15);
 GAME_DATA(const char[2], gLocalefacet_C_75c74c, 0x0075c74c, 0x2);
 GAME_DATA(u32, gLocalefacet_7ced3c, 0x007ced3c, 0x4);

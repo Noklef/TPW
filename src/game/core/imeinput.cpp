@@ -166,7 +166,7 @@ void __fastcall Ime_OnComposition(u8 *ime, void *, u32 window, u32, u32 flags) {
     if (!context[1]) return;
     char description[0x100];
     global<u32(__stdcall *)(u32, char *, u32)>(0x006fd088)(global<u32(__stdcall *)(u32)>(0x006fd304)(0), description, 0x100);
-    const bool ime98 = Crt().strncmp(description, reinterpret_cast<const char *>((uintptr_t)0x0074f8b0), 0x10) == 0;
+    const bool ime98 = Crt().strncmp(description, gImeinput_74f8b0, 0x10) == 0;
     const u32 limit = at<u32>(ime, 0x58);
     if (at<u32>(ime, 0x10) > limit) {
         StdWString kept;

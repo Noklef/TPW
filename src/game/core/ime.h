@@ -122,3 +122,6 @@ u32 __stdcall Imm_GetCandidateListA(u32 context, u32 index, void *list, u32 leng
 
 // The vtables hold only ports: tpw.exe's loader points their slots at them (.docs/09-globals.md).
 GAME_DATA(void *[1], Ime_vtable, 0x006fef04, 0x4);
+
+// Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(char[0xc], gIme_74fa8c, 0x0074fa8c, 0xc);

@@ -61,3 +61,11 @@ u32 __fastcall LoadScreen_Show(u8 *self, void *, const char *name, const char *f
 
 // Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
 GAME_DATA(const float, gLoadScreen_Hundred_701fd4, 0x00701fd4, 0x4);
+GAME_DATA(char[0xc], gLoadscreen_768dac, 0x00768dac, 0xc);
+GAME_DATA(char[0xc], gLoadscreen_768db8, 0x00768db8, 0xc);
+GAME_DATA(char[0x8], gLoadscreen_768dc4, 0x00768dc4, 0x8);
+GAME_DATA(char[0x8], gLoadscreen_768dcc, 0x00768dcc, 0x8);
+GAME_DATA(char[0x4], gLoadscreen_768dd4, 0x00768dd4, 0x4);
+GAME_DATA(char[0x8], gLoadscreen_768dd8, 0x00768dd8, 0x8);
+GAME_DATA(char[0xc], gLoadscreen_768de0, 0x00768de0, 0xc);
+GAME_DATA(char[0x8], gLoadscreen_768dec, 0x00768dec, 0x8);

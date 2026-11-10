@@ -117,7 +117,7 @@ void __cdecl Std_Xlen() { throw_error(reinterpret_cast<const char *>((uintptr_t)
 
 void __cdecl Std_Xran() { throw_error(reinterpret_cast<const char *>((uintptr_t)0x007098c0), (u32)(uintptr_t)Class7098b4_vtable, 0x0071f298); }
 
-void __cdecl Vector_Xran() { throw_error(reinterpret_cast<const char *>((uintptr_t)0x00779a68), (u32)(uintptr_t)Class7098b4_vtable, 0x0071f298); }
+void __cdecl Vector_Xran() { throw_error(gIosbase_779a68, (u32)(uintptr_t)Class7098b4_vtable, 0x0071f298); }
 
 const char *__fastcall LogicError_What(u8 *self) {
     const char *const text = at<const char *>(self, 0x10);
@@ -164,7 +164,7 @@ void __fastcall IosBase_Clear(u8 *self, void *, u32 state, u32 reraise) {
         g_env->cxxThrow(nullptr, nullptr);
         return;
     }
-    const u32 text = cause & 4 ? 0x00709a2c : cause & 2 ? 0x00709a18 : 0x00709a08;
+    const u32 text = cause & 4 ? 0x00709a2c : cause & 2 ? (u32)(uintptr_t)&gIosbase_709a18 : (u32)(uintptr_t)&gIosbase_709a08;
     throw_error(reinterpret_cast<const char *>((uintptr_t)text), (u32)(uintptr_t)Class7099fc_vtable, 0x00720720);
 }
 

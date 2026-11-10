@@ -388,7 +388,7 @@ void __fastcall ImeHost_InsertResult(u8 *host) {
         const s32 room = (s32)at<s16>(window, 0x13c) - (s16)Window705a50_TextLength(window);
         Ime_SetLimit(ime, nullptr, (u32)room);
         if (room == 0 && length != 0) {
-            import<void(__stdcall *)(const char *)>(0x006fd1e0)(reinterpret_cast<const char *>((uintptr_t)0x0074fa8c));
+            import<void(__stdcall *)(const char *)>(0x006fd1e0)(gIme_74fa8c);
             return;
         }
     }

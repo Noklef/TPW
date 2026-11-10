@@ -851,7 +851,7 @@ s32 __cdecl CRT_stat(const char *path, CrtStat *out) {
     FindData found;
     const u32 handle = import_slot<u32(__stdcall *)(const char *, FindData *)>(0x006fd100)(path, &found);   // FindFirstFileA
     if (handle == 0xffffffff) {
-        if (!CRT_mbspbrk(path, reinterpret_cast<const char *>(0x00708a44))) return no_entry();
+        if (!CRT_mbspbrk(path, reinterpret_cast<const char *>((u32)(uintptr_t)&gCrtopen_708a44))) return no_entry();
         char full[0x104];
         const char *const root = CRT_fullpath(full, path, 0x104);
         if (!root) return no_entry();

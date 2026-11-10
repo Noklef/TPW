@@ -341,7 +341,7 @@ void __fastcall InputBase_OnEvent(u8 *o, void *, u32, const u32 *event) {
     u32 local;
     switch (event[0]) {
     case 4:
-        global<void(__stdcall *)(const char *)>(0x6fd1e0)(reinterpret_cast<const char *>((uintptr_t)0x7780d0));
+        global<void(__stdcall *)(const char *)>(0x6fd1e0)(gInputsystem_7780d0);
         global<u32(__stdcall *)(u32)>(0x6fd30c)(event[1] ? 0 : 1);
         if (!at<u32>(o, 0x54) && event[1]) InputBase_SetDeviceValue(o, nullptr, &local, event[1]);
         return;

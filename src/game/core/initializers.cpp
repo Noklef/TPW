@@ -327,7 +327,7 @@ u32 __cdecl Fn_5eda40(u32 v0, u32 v1) {
 }
 
 u32 __cdecl Fn_64a450(u32 v0, u32 v1, u32 v2, u32 v3) {
-    at<u32>(reinterpret_cast<u8 *>((uintptr_t)v0), 0x0) = global<u32>(0x0077a098);
+    at<u32>(reinterpret_cast<u8 *>((uintptr_t)v0), 0x0) = global<u32>((u32)(uintptr_t)&gInitializers_77a098);
     at<u32>(reinterpret_cast<u8 *>((uintptr_t)v1), 0x0) = global<u32>(0x0077a09c);
     at<u32>(reinterpret_cast<u8 *>((uintptr_t)v2), 0x0) = 0x77a0a0;
     at<u32>(reinterpret_cast<u8 *>((uintptr_t)v3), 0x0) = 0x77b0a0;

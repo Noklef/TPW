@@ -193,6 +193,9 @@ void *__cdecl Std_LocaleInit();
 #include "gamedata.h"
 
 // Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(const char[0x10], gIosbase_709a08, 0x00709a08, 0x10);
+GAME_DATA(const char[0x14], gIosbase_709a18, 0x00709a18, 0x14);
+GAME_DATA(char[0x1c], gIosbase_779a68, 0x00779a68, 0x1c);
 GAME_DATA(u8 *[9], gIosbase_Streams_fb1d60, 0x00fb1d60, 0x24);
 GAME_DATA(s8[9], gIosbase_Opens_fb1d88, 0x00fb1d88, 0x9);
 

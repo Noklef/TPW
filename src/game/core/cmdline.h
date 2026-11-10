@@ -25,3 +25,12 @@ u32 __cdecl CommandLine_Parse(s32 argc, char **argv);
 
 // Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
 GAME_DATA(u32, gCmdline_788270, 0x00788270, 4);
+
+// Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(char[0xc], gCmdline_748708, 0x00748708, 0xc);
+GAME_DATA(char[0x8], gCmdline_748714, 0x00748714, 0x8);
+GAME_DATA(char[0xc], gCmdline_74871c, 0x0074871c, 0xc);
+GAME_DATA(char[0x8], gCmdline_748728, 0x00748728, 0x8);
+GAME_DATA(char[0x8], gCmdline_748730, 0x00748730, 0x8);
+GAME_DATA(char[0xc], gCmdline_748738, 0x00748738, 0xc);
+GAME_DATA(char[0x4], gCmdline_74874c, 0x0074874c, 0x4);

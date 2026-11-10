@@ -280,7 +280,7 @@ char *__cdecl CRT_Getmonths() { return name_pairs(14, 26, 12); }
 
 void __cdecl CRT_cvtdate(s32 transition, s32 type, s32 year, s32 month, s32 week, s32 weekday, s32 day, s32 hour, s32 minute, s32 second, s32 millisecond) {
     const bool leap = !(year & 3);
-    const s32 *const firsts = day_table(leap ? 0x00781514 : 0x0078154c);
+    const s32 *const firsts = day_table(leap ? (u32)(uintptr_t)&gCrt_781514 : 0x0078154c);
     s32 yearday;
     if (type == 1) {
         const s32 start = firsts[month] + 1;

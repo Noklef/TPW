@@ -254,6 +254,7 @@ GAME_DATA(u32, gInitializers_f827ec, 0x00f827ec, 0x4);
 GAME_DATA(u32, gInitializers_f827f0, 0x00f827f0, 0x4);
 
 // Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(char[0x4], gInitializers_77a098, 0x0077a098, 0x4);
 GAME_DATA(u32[6], CRT_cfltcvt_tab, 0x0077eca0, 0x18);
 
 // The vtables hold only ports: tpw.exe's loader points their slots at them (.docs/09-globals.md).

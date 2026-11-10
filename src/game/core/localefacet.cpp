@@ -145,7 +145,7 @@ const char *months_of(u8 *info) {
         StdString_AssignChars(s, nullptr, months, text_length(months));   // (0x6aa200 and 0x6a3470 have it inlined, short of its length check)
         Crt().free(months);
     }
-    return names_of(s, 0x00709df0);
+    return names_of(s, (u32)(uintptr_t)&gLocalefacet_709df0);
 }
 
 u16 *wide_copy(const char *text) {
@@ -318,8 +318,8 @@ void __fastcall WNumpunct_Init(u32 *self, void *, const void *) {
     marks[1] = static_cast<u16>(CRT_btowc(static_cast<u32>(static_cast<s32>(*lconv[1]))));
     const char *const grouping = lconv[2];
     self[2] = static_cast<u32>(reinterpret_cast<uintptr_t>(Numpunct_Copy(grouping)));
-    self[4] = static_cast<u32>(reinterpret_cast<uintptr_t>(Facet_WidenedCopy(reinterpret_cast<const char *>((uintptr_t)0x00709b68))));
-    self[5] = static_cast<u32>(reinterpret_cast<uintptr_t>(Facet_WidenedCopy(reinterpret_cast<const char *>((uintptr_t)0x00709b60))));
+    self[4] = static_cast<u32>(reinterpret_cast<uintptr_t>(Facet_WidenedCopy(reinterpret_cast<const char *>((uintptr_t)(u32)(uintptr_t)&gLocalefacet_709b68))));
+    self[5] = static_cast<u32>(reinterpret_cast<uintptr_t>(Facet_WidenedCopy(reinterpret_cast<const char *>((uintptr_t)(u32)(uintptr_t)&gLocalefacet_709b60))));
 }
 
 u32 *__fastcall WNumGet_Ctor(u32 *self, void *, u32 refs) { return refs_facet(self, refs, (u32)(uintptr_t)WNumGet_vtable); }
@@ -368,8 +368,8 @@ void __fastcall Numpunct_Tidy(u32 *self, void *) { numpunct_tidy(self, kNumpunct
 void __fastcall WNumpunct_Tidy(u32 *self, void *) { numpunct_tidy(self, (u32)(uintptr_t)WNumpunct_vtable); }
 
 void __fastcall WFacet709c0c_Init(u32 *self, void *, const void *) {
-    self[2] = static_cast<u32>(reinterpret_cast<uintptr_t>(Facet_WidenedCopy(reinterpret_cast<const char *>((uintptr_t)0x00709d0c))));
-    self[3] = static_cast<u32>(reinterpret_cast<uintptr_t>(Facet_WidenedCopy(reinterpret_cast<const char *>((uintptr_t)0x00709d08))));
+    self[2] = static_cast<u32>(reinterpret_cast<uintptr_t>(Facet_WidenedCopy(reinterpret_cast<const char *>((uintptr_t)(u32)(uintptr_t)&gLocalefacet_709d0c))));
+    self[3] = static_cast<u32>(reinterpret_cast<uintptr_t>(Facet_WidenedCopy(reinterpret_cast<const char *>((uintptr_t)(u32)(uintptr_t)&gLocalefacet_709d08))));
 }
 
 u32 *__fastcall WFacet709c0c_Ctor(u32 *self, void *, u32 refs) {
@@ -392,8 +392,8 @@ void __fastcall WFacet709c0c_Tidy(u32 *self, void *) {
 u32 *__fastcall WFacet709bfc_Ctor(u32 *self, void *, u32 refs) { return refs_facet(self, refs, 0x00709bfc); }
 
 void __fastcall Facet709fac_Init(u32 *self, void *, const void *) {
-    self[2] = static_cast<u32>(reinterpret_cast<uintptr_t>(Numpunct_Copy(reinterpret_cast<const char *>((uintptr_t)0x00709d0c))));
-    self[3] = static_cast<u32>(reinterpret_cast<uintptr_t>(Numpunct_Copy(reinterpret_cast<const char *>((uintptr_t)0x00709d08))));
+    self[2] = static_cast<u32>(reinterpret_cast<uintptr_t>(Numpunct_Copy(reinterpret_cast<const char *>((uintptr_t)(u32)(uintptr_t)&gLocalefacet_709d0c))));
+    self[3] = static_cast<u32>(reinterpret_cast<uintptr_t>(Numpunct_Copy(reinterpret_cast<const char *>((uintptr_t)(u32)(uintptr_t)&gLocalefacet_709d08))));
 }
 
 u32 *__fastcall Facet709fac_Ctor(u32 *self, void *, u32 refs) {

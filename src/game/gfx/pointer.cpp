@@ -25,7 +25,7 @@ const AsyncPointerEnv kGameEnv = {
     at<s32(__stdcall *const *)(void *)>(0x006fd13c),
     at<void(__stdcall *const *)(const char *)>(0x006fd1e0),
     at<const char *>(0x007758a4),
-    at<const char *>(0x00775878),
+    at<const char *>((u32)(uintptr_t)&gPointer_775878),
 };
 const AsyncPointerEnv *g_env = &kGameEnv;
 
