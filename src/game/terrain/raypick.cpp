@@ -438,7 +438,7 @@ void __cdecl RayPick_World(float *out, u32 unused, float *out2, u32 *hitFlag) {
                 }
             }
         }
-        global<u8 *>(0x7a1cd4) = found;
+        global<u8 *>((u32)(uintptr_t)&gRaypick_7a1cd4) = found;
         g_env->setTarget(found);
     }
 
@@ -446,7 +446,7 @@ void __cdecl RayPick_World(float *out, u32 unused, float *out2, u32 *hitFlag) {
     if (out == nullptr) return;
     bool useTarget = false;
     const float *const point = reinterpret_cast<const float *>(&gRayPick_7a1cb8);
-    if (global<u8 *>(0x7a1cd4) != nullptr) {
+    if (global<u8 *>((u32)(uintptr_t)&gRaypick_7a1cd4) != nullptr) {
         if (!hit) {
             useTarget = true;
         } else {

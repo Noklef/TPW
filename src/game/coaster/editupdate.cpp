@@ -17,6 +17,7 @@
 #include "edittools.h"
 #include "coastersload.h"
 #include "../world/camera.h"
+#include "../terrain/raypick.h"
 
 namespace {
 
@@ -263,14 +264,14 @@ void __cdecl CoasterEdit_Update() {
         gCoasterEdit_Update_79c650 = x;
         gCoasterEdit_Update_79c648 = z;
         if (flags & 0x180) {
-            const u32 ride = g<u32>(0x007a1cd4);
+            const u32 ride = g<u32>((u32)(uintptr_t)&gRaypick_7a1cd4);
             u8 *const link = Link();
             if (flags & 0x80 && ride != gCoasterEdit_Update_79c6ac)
                 select_span(ride);
             else if (flags & 0x100)
                 move_piece(link, x, z);
         }
-        gCoasterEdit_Update_79c6ac = g<u32>(0x007a1cd4);
+        gCoasterEdit_Update_79c6ac = g<u32>((u32)(uintptr_t)&gRaypick_7a1cd4);
     }
     if (edited && Car()) g_env->carEdited(Flags(), Car(), Link(), 0, 0);
     if (reinterpret_cast<u8 &>(gPlacecar_79c658) & 0x3f) {
