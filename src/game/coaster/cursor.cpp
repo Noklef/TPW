@@ -134,7 +134,7 @@ void __cdecl TrackSelection_Clear() {
     const u32 changed = TrackSelection_ClearFlags();
     *reinterpret_cast<u32 *>(&gEdittools_79c62c) = 0;
     *reinterpret_cast<u32 *>(&gEdittools_79c628) = 0;
-    *reinterpret_cast<u32 *>(0x007925d0) = 0;
+    gEdittools_7925d0 = 0;
     if (changed) Flags_SetChanged(*reinterpret_cast<u32 *const *>(&gCoastersload_790fec), 0);
 }
 

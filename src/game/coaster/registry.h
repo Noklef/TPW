@@ -293,3 +293,6 @@ u32 __cdecl CoasterLink_Create(u32 typeId, u32 ride, u32 height, u32 a3, u32 loa
 GAME_DATA(u32, gRegistry_790fd8, 0x00790fd8, 0x4);
 GAME_DATA(u32, gRegistry_792214, 0x00792214, 0x4);
 GAME_DATA(u32, gRegistry_79221c, 0x0079221c, 0x4);
+GAME_DATA(u32, gCoasters_AllocTables_792400, 0x00792400, 0x4);
+GAME_DATA(float, gCoasters_ResetUnit_792404, 0x00792404, 0x4);
+GAME_DATA(float, gCoasters_InitEpsilon_7925e0, 0x007925e0, 0x4);

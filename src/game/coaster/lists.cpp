@@ -28,12 +28,12 @@ u8 *__cdecl CoasterList_Append(u8 *list) {
     at<u8 *>(item, 0xc) = at<u8 *>(list, 0xc);
     at<u8 *>(list, 0xc) = item;
     if (!at<u8 *>(list, 0x10)) {
-        u8 *slot = at<u8 *>(at<u8 *>(mesh, 0x78), 0x6c) + (global<u32>(0x007925c8) << 4);
+        u8 *slot = at<u8 *>(at<u8 *>(mesh, 0x78), 0x6c) + (gLists_7925c8 << 4);
         at<u8 *>(list, 0x10) = slot;
         at<u8>(slot, 0xc) = list[0] & 1;
         ++at<u16>(mesh, 0x3c);
         ++at<u16>(at<u8 *>(mesh, 0x78), 0x5a);
-        ++global<u32>(0x007925c8);
+        ++gLists_7925c8;
     }
     ++at<u32>(list, 4);
     gLists_79c604 += 0x10;
@@ -52,18 +52,18 @@ void __cdecl CoasterMesh_Finish(u32 keep) {
     const u8 *const sizes = at<const u8 *>(build, 0x14);
     if (at<u8 *>(coaster(), 0x38)) {
         u8 *const mesh = at<u8 *>(at<u8 *>(at<u8 *>(coaster(), 0x38), 0x24), 4);
-        copy3(mesh + 0x80, 0x007925b8);
-        copy3(mesh + 0x8c, 0x007925a8);
+        copy3(mesh + 0x80, (u32)&gLists_7925b8);
+        copy3(mesh + 0x8c, (u32)&gLists_7925a8);
         u8 *const part = at<u8 *>(mesh, 0x78);
-        copy3(part + 0x78, 0x007925b8);
-        copy3(part + 0x84, 0x007925a8);
-        const u32 a = tenth(0x007925b8);
-        const u32 b = tenth(0x007925c0);
-        const u32 c = tenth(0x007925a8);
-        const u32 d = tenth(0x007925b0);
+        copy3(part + 0x78, (u32)&gLists_7925b8);
+        copy3(part + 0x84, (u32)&gLists_7925a8);
+        const u32 a = tenth((u32)&gLists_7925b8);
+        const u32 b = tenth((u32)&gLists_7925b8[2]);
+        const u32 c = tenth((u32)&gLists_7925a8);
+        const u32 d = tenth((u32)&gLists_7925a8[2]);
         at<u32>(mesh, 0xa8) = (a & 0xff) << 24 | (c & 0xff) << 16 | (b & 0xff) << 8 | (d & 0xff);
         at<u32>(mesh, 0x30) |= 0xc00;
-        u8 *const lists = global<u8 *>(0x007925dc);
+        u8 *const lists = gLists_7925dc;
         u8 *const animator = at<u8 *>(coaster(), 0x38);
         u32 slot = at<u32>(at<u8 *>(at<u8 *>(animator, 0x24), 4), 0x50);
         u8 *pairs = at<u8 *>(animator, 0x1c);
@@ -88,14 +88,14 @@ void __cdecl CoasterMesh_Finish(u32 keep) {
         u8 *const built = at<u8 *>(at<u8 *>(at<u8 *>(coaster(), 0x38), 0x24), 4);
         at<u16>(built, 0x38) = (u16)((s32)(gLists_79c600 + 3) >> 2);
         u8 *const first_part = at<u8 *>(built, 0x78);
-        at<u16>(built, 0x3a) = (u16)((s32)(global<u32>(0x007925c4) + 3) >> 2);
-        at<u16>(built, 0x3e) = global<u16>(0x007923e8);
+        at<u16>(built, 0x3a) = (u16)((s32)(gLists_7925c4 + 3) >> 2);
+        at<u16>(built, 0x3e) = reinterpret_cast<u16 &>(gLists_7923e8);
         at<u16>(first_part, 0x58) = reinterpret_cast<u16 &>(gLists_79c600);
-        at<u16>(first_part, 0x5c) = global<u16>(0x007923e8);
-        at<u16>(first_part, 0x5e) = global<u16>(0x007925c4);
+        at<u16>(first_part, 0x5c) = reinterpret_cast<u16 &>(gLists_7923e8);
+        at<u16>(first_part, 0x5e) = reinterpret_cast<u16 &>(gLists_7925c4);
         Animator_Wake(at<u8 *>(coaster(), 0x38));
     }
-    u8 *list = global<u8 *>(0x007925dc);
+    u8 *list = gLists_7925dc;
     for (u32 i = at<u16>(at<u8 *>(at<u8 *>(coaster(), 4), 0x1c), 4); i != 0; --i, list += 0x1c) {
         at<u32>(list, 4) = 0;
         at<u32>(list, 8) = 0;
@@ -104,7 +104,7 @@ void __cdecl CoasterMesh_Finish(u32 keep) {
         at<u32>(list, 0x14) = 10000;
         at<u32>(list, 0x18) = 0;
     }
-    reinterpret_cast<u32 &>(gLists_79c604) = global<u32>(0x00792408);
+    reinterpret_cast<u32 &>(gLists_79c604) = gLists_792408;
     double whole;
     const double fraction = std::modf((double)at<float>(gCoastersload_790fe4, 0x38), &whole);   // CRT modf (0x67b280)
     at<float>(gCoastersload_790fe4, 0x38) = (float)fraction;
@@ -118,18 +118,18 @@ void __cdecl CoasterMesh_Finish(u32 keep) {
     u8 *const part = at<u8 *>(mesh, 0x78);
     at<u16>(mesh, 0x3c) = 0;
     at<u16>(part, 0x5a) = 0;
-    global<u32>(0x007923e0) = at<u16>(sizes, 6);
-    global<u32>(0x007925d4) = at<u16>(sizes, 8);
-    global<u32>(0x007925cc) = at<u16>(sizes, 0xc);
-    global<u32>(0x00792410) = at<u16>(sizes, 4);
+    reinterpret_cast<u32 &>(gLists_7923e0) = at<u16>(sizes, 6);
+    reinterpret_cast<u32 &>(gLists_7925d4) = at<u16>(sizes, 8);
+    gCoasterMesh_Finish_7925cc = at<u16>(sizes, 0xc);
+    gLists_792410 = at<u16>(sizes, 4);
     gLists_79c600 = 0;
-    global<u32>(0x007925c4) = 0;
-    global<u32>(0x007925d8) = 0;
-    global<u32>(0x007923e8) = 0;
-    global<u32>(0x007925c8) = 0;
+    gLists_7925c4 = 0;
+    gCoasterMesh_Finish_7925d8 = 0;
+    gLists_7923e8 = 0;
+    gLists_7925c8 = 0;
     for (u32 k = 0; k < 0xc; k += 4)
-        global<u32>(0x007925b8 + k) = 0x49742400;   // 1e6
+        global<u32>((u32)&gLists_7925b8 + k) = 0x49742400;   // 1e6
     for (u32 k = 0; k < 0xc; k += 4)
-        global<u32>(0x007925a8 + k) = 0xc9742400;   // -1e6
+        global<u32>((u32)&gLists_7925a8 + k) = 0xc9742400;   // -1e6
 }
 }

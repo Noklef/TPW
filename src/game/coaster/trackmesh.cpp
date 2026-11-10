@@ -12,6 +12,8 @@
 #include "xsection.h"
 #include "coastersupdate.h"
 #include "coastersload.h"
+#include "rebuild.h"
+#include "edittools.h"
 
 namespace {
 
@@ -24,16 +26,16 @@ u8 *track() { return gCoastersload_790fe4; }
 TrackOrientation *orientation() { return reinterpret_cast<TrackOrientation *>(track() + 0x3c); }
 const u8 *coasterNodes() { return at<u8 *>(gCoastersupdate_792218, 0x9c); }
 
-float *const kMax = reinterpret_cast<float *>((uintptr_t)0x007925b8);
-float *const kMin = reinterpret_cast<float *>((uintptr_t)0x007925a8);
+float *const kMax = gLists_7925b8;
+float *const kMin = gLists_7925a8;
 
 // The vertex counts moved on by a section's points.
 void advance(const u8 *section) {
     const s32 points = at<s32>(section, 0);
     reinterpret_cast<s32 &>(gLists_79c600) += points;
-    global<s32>(0x007923e0) -= points;
-    global<s32>(0x007925c4) += points;
-    global<s32>(0x007925d4) -= points;
+    gLists_7923e0 -= points;
+    reinterpret_cast<s32 &>(gLists_7925c4) += points;
+    gLists_7925d4 -= points;
 }
 
 void emit(float blend, float yaw, float pitch, float roll, const Vec3 *at_, u32 separate, const u8 *record) {
@@ -74,19 +76,19 @@ void __cdecl TrackMesh_EmitPiece(u8 *piece, u8 *next, s32 count, const float *po
     const bool unbuilt = at<u32>(piece, 0xb0) == 0;
     if (unbuilt && !(at<u32>(piece, 8) & 0x1000000) && !(at<u32>(next, 8) & 0x802000)) {
         if ((at<u32>(piece, 8) & 0x800) && (build[0] & 0x40)) {
-            if (global<u32>(0x007925f8) == 0) force = 1;
-            record = reinterpret_cast<const u8 *>((uintptr_t)0x007923f0);
-            global<u32>(0x007925f8) = 1;
+            if (gRebuild_7925f8 == 0) force = 1;
+            record = reinterpret_cast<const u8 *>(&gTrackMesh_7923f0);
+            gRebuild_7925f8 = 1;
         } else {
-            if (global<u32>(0x007925f8) != 0) force = 1;
-            record = global<u8 *>(0x00792414);
-            global<u32>(0x007925f8) = 0;
+            if (gRebuild_7925f8 != 0) force = 1;
+            record = reinterpret_cast<u8 * &>(gRebuild_792414);
+            gRebuild_7925f8 = 0;
         }
     } else {
         const u32 flags = at<u32>(piece, 8);
         u32 kind;
         if (flags & 0x1000000)
-            kind = (flags & 0x4000) ? 2 : global<u32>(0x007925d0);
+            kind = (flags & 0x4000) ? 2 : gEdittools_7925d0;
         else if (!unbuilt)
             kind = 2;
         else
@@ -94,7 +96,7 @@ void __cdecl TrackMesh_EmitPiece(u8 *piece, u8 *next, s32 count, const float *po
         const u16 list = (u16)(at<u32>(build, 0x20) + kind - 1);
         u8 *const section = at<u8 *>(build, 0x80);
         for (u32 i = 0; i < at<u32>(section, 4); ++i) at<u16>(at<u8 *>(section, 0xc), 12 * i + 4) = list;
-        record = reinterpret_cast<const u8 *>((uintptr_t)0x007925e8);
+        record = reinterpret_cast<const u8 *>(&gTrackMesh_7925e8);
         force = 1;
     }
 
@@ -137,7 +139,7 @@ void __cdecl TrackMesh_EmitPiece(u8 *piece, u8 *next, s32 count, const float *po
         u8 *const following = at<u8 *>(next, 0x90);
         if (piece == next) {
             double whole;
-            const double fraction = std::modf((X87Reg(*position) - global<float>(0x0079240c)).v, &whole);   // CRT modf (0x67b280)
+            const double fraction = std::modf((X87Reg(*position) - gRebuild_79240c).v, &whole);   // CRT modf (0x67b280)
             s32 node = (s32)(long long)whole;   // __ftol
             float t = (float)fraction;
             if (node == at<s32>(spline, 0) - 1) {
@@ -150,13 +152,13 @@ void __cdecl TrackMesh_EmitPiece(u8 *piece, u8 *next, s32 count, const float *po
                               at<u8 *>(following, 8) + (node + 1) * 0x58, t, &cur, orientation());
             blend = (float)(X87Reg(at<float>(from, 8)) * (X87Reg(one) - t) + X87Reg(at<float>(to, 8)) * t);   // (t the memory operand)
         } else {
-            const X87Reg t = X87Reg(*position) - global<float>(0x0079240c);
+            const X87Reg t = X87Reg(*position) - gRebuild_79240c;
             const s32 last = at<s32>(spline, 0) * 0x58 - 0x58;
             const u8 *from = at<u8 *>(spline, 4) + last;
             const u8 *to = at<u8 *>(following, 4);
             TrackSpline_Frame(coasterNodes(), track(), from, to, at<u8 *>(spline, 8) + last, at<u8 *>(following, 8), (float)t, &cur,
                               orientation());
-            const X87Reg t2 = X87Reg(*position) - global<float>(0x0079240c);
+            const X87Reg t2 = X87Reg(*position) - gRebuild_79240c;
             blend = (float)(X87Reg(at<float>(from, 8)) * (X87Reg(one) - t2) + X87Reg(at<float>(to, 8)) * t2);
         }
 
@@ -168,7 +170,7 @@ void __cdecl TrackMesh_EmitPiece(u8 *piece, u8 *next, s32 count, const float *po
         }
         const u8 *section = at<u8 *>(record, 0xc);
         const s32 points = at<s32>(section, 0);
-        const u32 overflow = (s32)((u32)points * 2) > global<s32>(0x007923e0) || (s32)(at<u32>(section, 4) * 2) > global<s32>(0x00792410);
+        const u32 overflow = (s32)((u32)points * 2) > gLists_7923e0 || (s32)(at<u32>(section, 4) * 2) > reinterpret_cast<s32 &>(gLists_792410);
         if (overflow || moved || force) {
             const float carried = at<float>(track(), 0x34);
             if (overflow) CoasterMesh_Finish(0);
@@ -189,7 +191,7 @@ void __cdecl TrackMesh_EmitPiece(u8 *piece, u8 *next, s32 count, const float *po
         if (indices > 0) {
             const u8 *entry = at<u8 *>(section, 0xc);
             for (s32 k = indices; k != 0; --k, entry += 0xc) {
-                u8 *const list = global<u8 *>(0x007925dc) + 0x1c * at<u16>(entry, 4);
+                u8 *const list = gLists_7925dc + 0x1c * at<u16>(entry, 4);
                 const u32 base = gLists_79c600;
                 const u32 a = at<u16>(entry, 6), b = at<u16>(entry, 8);
                 const u32 i0 = a - points + base, i1 = a + base, i2 = b - points + base, i3 = b + base;
@@ -202,7 +204,7 @@ void __cdecl TrackMesh_EmitPiece(u8 *piece, u8 *next, s32 count, const float *po
                 if (high <= i3) high = i3;
                 at<u32>(list, 0x18) = high;
                 u8 *item;
-                if (global<u32>(0x007923e4) == 0) {
+                if (gRebuild_7923e4 == 0) {
                     item = CoasterList_Append(list);
                     at<u16>(item, 2) = (u16)i0;
                     at<u16>(item, 4) = (u16)i1;
@@ -221,7 +223,7 @@ void __cdecl TrackMesh_EmitPiece(u8 *piece, u8 *next, s32 count, const float *po
                     at<u16>(item, 4) = (u16)i2;
                     at<u16>(item, 6) = (u16)i0;
                 }
-                global<u32>(0x007923e4) = global<u32>(0x007923e4) == 0;
+                gRebuild_7923e4 = gRebuild_7923e4 == 0;
             }
         }
 
@@ -229,11 +231,11 @@ void __cdecl TrackMesh_EmitPiece(u8 *piece, u8 *next, s32 count, const float *po
         const s32 placed = at<s32>(section, 0);
         const u32 listed = at<u32>(section, 4) * 2;
         reinterpret_cast<s32 &>(gLists_79c600) += placed;
-        global<s32>(0x007923e0) -= placed;
-        global<s32>(0x007925c4) += placed;
-        global<s32>(0x007925d4) -= placed;
-        global<u32>(0x007923e8) += listed;
-        global<u32>(0x00792410) -= listed;
+        gLists_7923e0 -= placed;
+        reinterpret_cast<s32 &>(gLists_7925c4) += placed;
+        gLists_7925d4 -= placed;
+        gLists_7923e8 += listed;
+        gLists_792410 -= listed;
         at<float>(track(), 0x34) = blend;
         std::memcpy(&prev, &cur, sizeof prev);
         ++position;
@@ -247,20 +249,20 @@ void __cdecl TrackMesh_PlaceSections() {
     TrackOrientation *const orient = orientation();
     u8 *const coaster = gCoastersupdate_792218;
     u8 *const build = at<u8 *>(coaster, 4);
-    global<u32>(0x00792600) = 0;
-    global<u32>(0x00792604) = 0;
+    gTrackmesh_792600[0] = 0;
+    gTrackmesh_792600[1] = 0;
     const u32 first = at<u32>(at<u8 *>(build, 0x78), 0x20);
-    global<u32>(0x007925ec) = 0x4b189680;   // 1e7
-    global<u32>(0x0079260c) = first;
-    global<u32>(0x007925e8) = 0x4b189680;
-    global<u32>(0x007925f4) = at<u32>(build, 0x80);
-    global<u32>(0x007925f0) = 0;
-    global<u32>(0x007923f4) = 0x4b189680;
-    global<u32>(0x007923f0) = 0x4b189680;
-    global<u32>(0x007923f8) = 0;
-    global<u32>(0x007923fc) = at<u32>(build, 0x84);
+    gTrackMesh_7925e8[1] = 0x4b189680;   // 1e7
+    gTrackmesh_792600[3] = first;
+    gTrackMesh_7925e8[0] = 0x4b189680;
+    gTrackMesh_7925e8[3] = at<u32>(build, 0x80);
+    gTrackMesh_7925e8[2] = 0;
+    gTrackMesh_7923f0[1] = 0x4b189680;
+    gTrackMesh_7923f0[0] = 0x4b189680;
+    gTrackMesh_7923f0[2] = 0;
+    gTrackMesh_7923f0[3] = at<u32>(build, 0x84);
 
-    u8 *cur = reinterpret_cast<u8 *>((uintptr_t)0x00792600);
+    u8 *cur = reinterpret_cast<u8 *>(&gTrackmesh_792600);
     u8 *open = nullptr;
     u32 blending = 0, previous = first;
     float p = 0.0f;

@@ -239,6 +239,7 @@ void EditTools_SetRebuildCalls(const AddrCall *table, u32 count);   // tests/fnc
 
 // Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
 GAME_DATA(const u32, gEdittools_6fe1b4, 0x006fe1b4, 0x4);
+GAME_DATA(u32, gEdittools_7925d0, 0x007925d0, 0x4);
 GAME_DATA(u32, gCoasterEdit_79c610, 0x0079c610, 0x4);
 GAME_DATA(u8 *, gCoasterEdit_79c614, 0x0079c614, 0x4);
 GAME_DATA(u32, gCoasterEdit_79c618, 0x0079c618, 0x4);

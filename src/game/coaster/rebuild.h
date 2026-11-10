@@ -31,3 +31,13 @@ struct CoasterRebuildEnv {
     void(__cdecl *finish)(u32 keep);
 };
 void CoasterRebuild_SetEnv(const CoasterRebuildEnv *env);
+
+#include "../core/gamedata.h"
+
+// Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(u32, gRebuild_7923e4, 0x007923e4, 0x4);
+GAME_DATA(u8 *, gCoaster_Rebuild_7923ec, 0x007923ec, 0x4);
+GAME_DATA(float, gRebuild_79240c, 0x0079240c, 0x4);
+GAME_DATA(float *, gRebuild_792414, 0x00792414, 0x4);
+GAME_DATA(float[100], gRebuild_792418, 0x00792418, 0x190);
+GAME_DATA(u32, gRebuild_7925f8, 0x007925f8, 0x4);

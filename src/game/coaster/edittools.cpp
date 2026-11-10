@@ -645,7 +645,7 @@ u32 __cdecl CoasterEdit_SelectPiece(u8 *piece) {
     u8 *const first = at<u8 *>(piece, 0x68) ? at<u8 *>(piece, 0x68) : piece;
     u8 *const prev = gEdittools_79c628;
     gEdittools_79c62c = first;
-    g<u32>(0x007925d0) = 3;
+    gEdittools_7925d0 = 3;
     u8 *const next = at<u8 *>(piece, 0x64);
     if (prev) mark_span(first, prev, false);
     gEdittools_79c628 = next ? next : piece;
@@ -715,7 +715,7 @@ void __cdecl CoasterEdit_DeleteSpan() {
         if (!piece) return;
         gEdittools_79c62c = piece;
         Flags() |= 0xa0;
-        g<u32>(0x007925d0) = 1;
+        gEdittools_7925d0 = 1;
         return;
     }
     u8 *hi = Piece();
@@ -724,7 +724,7 @@ void __cdecl CoasterEdit_DeleteSpan() {
     const u32 cleared = TrackSelection_ClearFlags();
     reinterpret_cast<u32 &>(gEdittools_79c62c) = 0;
     reinterpret_cast<u32 &>(gEdittools_79c628) = 0;
-    g<u32>(0x007925d0) = 0;
+    gEdittools_7925d0 = 0;
     if (cleared) Flags_SetChanged(reinterpret_cast<u32 *>(game), 0);
     if (!go) {
         reinterpret_cast<u32 &>(gEdittools_79c6dc) = 0;
@@ -959,7 +959,7 @@ u32 __cdecl CoasterEdit_PlaceSelected(s32 x, s32 y) {
     const u32 cleared = env->clearSelectionFlags();
     reinterpret_cast<u32 &>(gEdittools_79c62c) = 0;
     reinterpret_cast<u32 &>(gEdittools_79c628) = 0;
-    g<u32>(0x007925d0) = 0;
+    gEdittools_7925d0 = 0;
     if (cleared) Flags_SetChanged(reinterpret_cast<u32 * &>(gCoastersload_790fec), 0);
     u8 *const tile = env->findTile((u32)x, (u32)y, nullptr);
     u8 *const piece = gEdittools_79c6a4;
