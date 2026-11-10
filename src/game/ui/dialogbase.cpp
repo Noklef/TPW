@@ -17,7 +17,7 @@ namespace {
 const DialogKeyEnv kGameKeyEnv = {Window_SendMessage, reinterpret_cast<u8 *(__fastcall *)(const u8 *)>(GameTable7cfb90_Get1da71c_5194d0), reinterpret_cast<u32(__fastcall *)(u8 *)>((uintptr_t)0x0059ab50), Actions_FireDown, Actions_FireUp, Window7c24c8_Set, Window_CallDefault};
 const DialogKeyEnv *g_keys = &kGameKeyEnv;
 
-u8 *actions() { return *reinterpret_cast<u8 **>(static_cast<uintptr_t>(0x0078721c)); }
+u8 *actions() { return gKeymap_78721c; }
 
 AddrCalls g_calls;
 

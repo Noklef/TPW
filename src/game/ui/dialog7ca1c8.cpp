@@ -127,7 +127,7 @@ void button(u32 a, u32 b) {
 
 void fire(u32(__fastcall *call)(u8 *, void *, u32, u32), u32 a, u32 b) {
     const u32 third = (b >> 16) & 0xff;
-    if (!call(*reinterpret_cast<u8 **>((uintptr_t)0x00787c14), nullptr, a, third)) call(*reinterpret_cast<u8 **>((uintptr_t)0x00787294), nullptr, a, third);
+    if (!call(gKeymap_787c14, nullptr, a, third)) call(gKeymap_787294, nullptr, a, third);
 }
 }  // namespace
 

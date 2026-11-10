@@ -23,6 +23,7 @@
 #include "frame.h"
 #include "../online/chatlists.h"
 #include "../online/chatcommand.h"
+#include "../coaster/arreplayaction.h"
 
 namespace {
 
@@ -85,7 +86,7 @@ void RefreshItem(u8 *item) {
     } else {
         String name;
         String_CtorStr(&name, nullptr, at<const char *>(item, 0x30));
-        u8 *const info = Singleton(0x00f7c58c, 0x50, g_env->globalSave);
+        u8 *const info = Singleton(reinterpret_cast<uintptr_t>(&gArreplayaction_f7c58c), 0x50, g_env->globalSave);
         u8 *const record = g_env->themeGet(info, nullptr, reinterpret_cast<const u8 *>(&name));
         String_Dtor(&name);
         u16 text[0x100];
@@ -191,8 +192,8 @@ void __fastcall ThemeMenu_Enter(u8 *self) {
     g_env->refresh(self);
     u8 *const chosen = at<u8 *>(self, 0xc);
     if (chosen) {
-        at<u32>(chosen, 0x1c) = g_env->play(at<u32>(chosen, 0x1c), at<u32>(global<u8 *>(0x00803a4c), at<u32>(chosen, 0x18) * 8 + 4), 1, 0, 0, 0);
-        at<u32>(chosen, 0x20) = g_env->play(at<u32>(chosen, 0x20), at<u32>(global<u8 *>(0x00803a4c), at<u32>(chosen, 0x18) * 8), 2, 0, 0, 0);
+        at<u32>(chosen, 0x1c) = g_env->play(at<u32>(chosen, 0x1c), at<u32>(gSoundset_803a4c, at<u32>(chosen, 0x18) * 8 + 4), 1, 0, 0, 0);
+        at<u32>(chosen, 0x20) = g_env->play(at<u32>(chosen, 0x20), at<u32>(gSoundset_803a4c, at<u32>(chosen, 0x18) * 8), 2, 0, 0, 0);
         g_env->applySound();
     }
 }

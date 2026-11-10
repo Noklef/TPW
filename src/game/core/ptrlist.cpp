@@ -217,7 +217,7 @@ u32 __fastcall PtrArray_RemoveImage(u8 *object, void *, u8 *image) {
 u32 __fastcall PtrArray_ReleaseAll(u8 *object, void *) {
     if (at<u32>(object, 0) & 1) {
         at<u32>(object, 0) &= ~1u;
-        u8 *renderer = *reinterpret_cast<u8 **>((uintptr_t)0x0087a6d0);
+        u8 *renderer = gRenderer_87a6d0;
         if (renderer) {
             u8 *owner = at<u8 *>(object, 4);
             const u32 part = owner ? (u32)(uintptr_t)owner + at<u32>(at<u8 *>(owner, 0), 4) : 0;

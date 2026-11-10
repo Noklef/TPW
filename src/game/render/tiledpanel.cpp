@@ -6,6 +6,7 @@
 
 #include "batchquad.h"
 #include "../math/x87.h"
+#include "../gfx/texcache.h"
 
 namespace {
 
@@ -29,7 +30,7 @@ s32 Pixel(X87Reg a, float b) {
     return n;
 }
 
-s32 Tile() { return at<s32>(global<u8 *>(0x008c4b44), 0x18f0); }
+s32 Tile() { return at<s32>(reinterpret_cast<u8 * &>(gTexcache_8c4b44), 0x18f0); }
 
 // The screen's y of the place: its top, by the anchor flags.
 X87Reg AnchoredY(const u8 *object, const u8 *panel, u32 flags, float y, float screenH) {

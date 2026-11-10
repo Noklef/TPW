@@ -25,3 +25,11 @@ void __cdecl Screen_Init();
 // Quickload_Free, then frees the path text and the table (each nulled; null skipped).
 void __cdecl Screen_Shutdown();
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(float, gScreen_7a192c, 0x007a192c, 0x4);
+GAME_DATA(u32, gScreen_7a1930, 0x007a1930, 0x4);
+GAME_DATA(float, gScreen_7a194c, 0x007a194c, 0x4);
+GAME_DATA(u32, gScreen_7a1968, 0x007a1968, 0x4);

@@ -10,6 +10,7 @@
 #include "window.h"
 #include "dialog7cc4b4open.h"
 #include "dialog74fb20.h"
+#include "../core/soundset.h"
 
 namespace {
 
@@ -41,7 +42,7 @@ void __cdecl Dialog7cc4b4_Sparkle() {
     g_env->getRect(Window_FindChild(dialog, nullptr, 0x1e0ea), nullptr, rect, 1);
     const s32 top = at<s16>(rect, 6), bottom = at<s16>(rect, 0xa);
     g_env->spawn(0x62, 50000, 0, (s32)((u32)(((bottom - top) >> 1) + top) * 75000) / 0x600);
-    g_env->playAt(0, global<u32>(0x00803a48), 4, 0, 0, 0);
+    g_env->playAt(0, gSoundset_803a48, 4, 0, 0, 0);
     GuiRect_Dtor(rect);
 }
 }

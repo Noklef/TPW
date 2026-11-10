@@ -28,7 +28,7 @@ void flag(u32 value, u32 target, u32 bits) {
 extern "C" {
 
 void __cdecl GraphicsSettings_Apply() {
-    const u32 kFlags = 0x008bd550, kOther = 0x007a1a8c, kMode = 0x0079d86c, kView = 0x008bcbc8;
+    const u32 kFlags = 0x008bd550, kOther = reinterpret_cast<uintptr_t>(&gGraphicssettings_7a1a8c), kMode = 0x0079d86c, kView = 0x008bcbc8;
     u32 v = setting(0);
     if (v == 0 || v == 1)
         global(kFlags) &= ~0x18u;
@@ -101,7 +101,7 @@ u32 __cdecl GraphicsSettings_LoadForOptions() {
     u8 *const options = reinterpret_cast<u8 *>((uintptr_t)0x0078d8d8);
     global(0x0079d86c) &= ~0x400u;
     global(0x008c1620) = 0;
-    global(0x007a1a8c) |= 0x40604;
+    gGraphicssettings_7a1a8c |= 0x40604;
     const u32 mode = *reinterpret_cast<u32 *>(options + 8);
     u32 flags = 0;
     if (mode == 0) {
@@ -119,13 +119,13 @@ u32 __cdecl GraphicsSettings_LoadForOptions() {
     if (flags && !GraphicsSettings_Load(flags))
         return 0;
     if (*reinterpret_cast<u32 *>(options + 0xc) == 1)
-        global(0x007a1a8c) |= 0x1000;
+        gGraphicssettings_7a1a8c |= 0x1000;
     else
-        global(0x007a1a8c) &= ~0x1000u;
+        gGraphicssettings_7a1a8c &= ~0x1000u;
     if (*reinterpret_cast<u32 *>(options) == 0) {
         global(0x008bcbc8) &= 0xfffefffe;
         global(0x008bd524) = 4;
-        global(0x007a1a8c) &= 0xffed1fff;
+        gGraphicssettings_7a1a8c &= 0xffed1fff;
         global(0x008bd550) &= ~2u;
         global(0x0079d86c) &= ~0x200u;
         return 1;

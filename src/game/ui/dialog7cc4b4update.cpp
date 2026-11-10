@@ -16,6 +16,7 @@
 #include "dialog7cc4b4sparkle.h"
 #include "dialog7cc4b4open.h"
 #include "dialog74fb20.h"
+#include "../coaster/arreplayaction.h"
 
 namespace {
 
@@ -32,7 +33,7 @@ u8 *child(u32 id) { return Window_FindChild(dialog(), nullptr, id); }
 
 // The save info, made the first time, as GlobalSave_Instance does inline here.
 u8 *info() {
-    u8 *&saved = global<u8 *>(0x00f7c58c);
+    u8 *&saved = gArreplayaction_f7c58c;
     if (!saved) {
         u8 *const memory = static_cast<u8 *>(GameHeap_Alloc(0x50));
         saved = memory ? g_env->construct(memory) : nullptr;
@@ -91,7 +92,7 @@ void themePart(u8 *theme, u8 *panel) {
     if (dialog()) showFour(1);
     info();
     const s32 need = g_env->field14(theme);
-    figures(theme, panel, g_env->countLevels(global<u8 *>(0x00f7c58c)) >= need);
+    figures(theme, panel, g_env->countLevels(gArreplayaction_f7c58c) >= need);
 }
 
 }  // namespace

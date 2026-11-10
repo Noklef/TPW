@@ -8,6 +8,7 @@
 #include "../math/x87.h"
 #include "engineerrors.h"
 #include "../frontend/lobbysky.h"
+#include "graphicssettings.h"
 
 namespace {
 
@@ -78,7 +79,7 @@ u32 __cdecl Options_Apply() {
     const u32 a = global<u32>(0x0079d86c);
     u32 render = global<u32>(0x008bcbc8);
     render = (a & 0x100) ? render | 0x10000 : render & 0xfffeffff;
-    const u32 b = global<u32>(0x007a1a8c);
+    const u32 b = gGraphicssettings_7a1a8c;
     global<u32>(0x008bcbc8) = render;
     render = (b & 0x8000) ? render | 1 : render & 0xfffffffe;
     global<u32>(0x008bcbc8) = render;
@@ -94,10 +95,10 @@ u32 __cdecl Options_Apply() {
     if (a & 0x40) {
         Obj_SetFirst(reinterpret_cast<u8 *>(0x0078d8d8), nullptr, 0);
         const u32 options = global<u32>(0x0079d86c) & 0xfffff8ff;
-        const u32 flags = global<u32>(0x007a1a8c) & 0xffe50fff;
+        const u32 flags = gGraphicssettings_7a1a8c & 0xffe50fff;
         global<u32>(0x008bd524) = 4;
         global<u32>(0x0079d86c) = options;
-        global<u32>(0x007a1a8c) = flags;
+        gGraphicssettings_7a1a8c = flags;
         return flags;
     }
     Obj_SetFirst(reinterpret_cast<u8 *>(0x0078d8d8), nullptr, 1);

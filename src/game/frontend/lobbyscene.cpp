@@ -303,11 +303,11 @@ void Ambience(u8 *object) {
         const float z2 = (float)(((RandomUnit() * twenty) + z1) - ten);
         g_env->weatherBurst(weather, nullptr, x2, 0.0f, z2, x1, 500.0f, z1, 0x1f4, 1);
         WeatherFx_RequestReload(weather);
-        g_env->playAt(0, global<u32>(0x00803a48), 1, 0, 0, 0);
+        g_env->playAt(0, gSoundset_803a48, 1, 0, 0, 0);
     }
     if ((NextRandom() & 0xf) == 1) {
         const u32 sound = 3 + NextRandom() % 3;
-        g_env->playAt(0, at<u32>(global<const u8 *>(0x00803a4c), at<u32>(model, 0x18) * 8), sound, 0, 0, 0);
+        g_env->playAt(0, at<u32>(gSoundset_803a4c, at<u32>(model, 0x18) * 8), sound, 0, 0, 0);
     }
     Copy3(camera + 0x50, model + 0x64);
     for (const u8 *node = at<const u8 *>(at<const u8 *>(object, 8), 4); node; node = at<const u8 *>(node, 4)) {

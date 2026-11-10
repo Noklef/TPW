@@ -147,3 +147,8 @@ void __fastcall RendererPart_Dtor(u8 *object);
 // flags bit 0; returns it.
 u8 *__fastcall RendererPart_ScalarDtor(u8 *object, void *, u32 flags);
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(u8 *, gRenderer_87a6d0, 0x0087a6d0, 0x4);

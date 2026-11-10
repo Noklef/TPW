@@ -5,6 +5,7 @@
 #include "surface.h"
 #include "../core/vcall.h"
 #include "../core/gameheap.h"
+#include "../render/screen.h"
 
 namespace {
 
@@ -68,8 +69,8 @@ u8 *__fastcall ScreenSurfaces_Surface10(u8 *source) { return wrapOnce(source, 0x
 u8 *__fastcall ScreenSurfaces_Surface14(u8 *source) { return wrapOnce(source, 0xa4, 0x14, 0xb0, 0x4); }
 
 s32 *__fastcall ScreenSurfaces_Bounds(const u8 *, void *, s32 *out) {
-    const s32 right = (s32)(global<u32>(0x007a1968) - 1);
-    const s32 bottom = (s32)(global<u32>(0x007a1930) - 1);
+    const s32 right = (s32)(gScreen_7a1968 - 1);
+    const s32 bottom = (s32)(gScreen_7a1930 - 1);
     out[0] = 0;
     out[1] = 0;
     out[2] = right;

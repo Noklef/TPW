@@ -3,6 +3,9 @@
 #include <cstdint>
 
 #include "string.h"
+#include "../render/screen.h"
+#include "../render/graphicssettings.h"
+#include "gamewindow.h"
 
 namespace {
 
@@ -32,15 +35,15 @@ bool lookUp(String *found) {
 }
 
 void play(const String *movie) {
-    const u32 height = (u32)(((unsigned long long)(global<u32>(0x007a1930) << 6) * 0x88888889ull) >> 40);
-    if (global<u8>(0x007a1a8c) & 1) {
-        g_calls.Cd(0x0051b010, movie->data, global<u32>(0x007a130c), 0u, height, 0u);
+    const u32 height = (u32)(((unsigned long long)(gScreen_7a1930 << 6) * 0x88888889ull) >> 40);
+    if (reinterpret_cast<u8 &>(gGraphicssettings_7a1a8c) & 1) {
+        g_calls.Cd(0x0051b010, movie->data, gGamewindow_7a130c, 0u, height, 0u);
         return;
     }
     s32 origin[2] = {0, 0};
-    global<s32(__stdcall *)(u32, s32 *)>(0x006fd318)(global<u32>(0x007a130c), origin);
-    const u32 lowered = (u32)(((unsigned long long)(global<u32>(0x007a1930) << 6) * 0x88888889ull) >> 40);
-    g_calls.Cd(0x0051b010, movie->data, global<u32>(0x007a130c), 0 - origin[0], lowered - origin[1], 0u);
+    global<s32(__stdcall *)(u32, s32 *)>(0x006fd318)(gGamewindow_7a130c, origin);
+    const u32 lowered = (u32)(((unsigned long long)(gScreen_7a1930 << 6) * 0x88888889ull) >> 40);
+    g_calls.Cd(0x0051b010, movie->data, gGamewindow_7a130c, 0 - origin[0], lowered - origin[1], 0u);
 }
 
 }  // namespace
@@ -69,7 +72,7 @@ void __cdecl Game_Start() {
     g_calls.Cd(0x0067a650, line, 0x00764facu, 0x00764fccu, 0x00764fd8u, now);
     global<u32>(0x00879068) = 1;
     g_calls.Cd(0x0067b5b0, global<u32(__stdcall *)()>(0x006fd1d0)());
-    g_calls.Cd(0x0051b660, 0x00786de4u, global<u32>(0x007a1a8c) & 0x400);
+    g_calls.Cd(0x0051b660, 0x00786de4u, gGraphicssettings_7a1a8c & 0x400);
     g_calls.Cd(0x0051b920, global<u32>(0x0078d8e0) ? global<s32>(0x0078591c) : global<s32>(0x0078591c) / 2);
     g_calls.Cd(0x0051b3d0);
     g_calls.Cd(0x0051bb60, 0x64u);
@@ -84,7 +87,7 @@ void __cdecl Game_Start() {
     g_calls.Th(0x004813c0, 0x007b51f0u);
     g_calls.Th(0x005879c0, kLoadScreen);
     global<u32>(0x00875030) = 0;
-    global<u32>(0x0087906c) = global<u32>(0x007a1a8c) & 0x200 ? 4 : 9;
+    global<u32>(0x0087906c) = gGraphicssettings_7a1a8c & 0x200 ? 4 : 9;
     global<u32>(0x00875034) = g_calls.Th(0x00402d70, kClock);
     g_calls.Cd(0x005989c0);
     global<u32>(0x00878128) = 0;

@@ -87,7 +87,7 @@ void __fastcall Backdrop_UncacheRect(u8 *backdrop, void *, s32 x0, s32 y0, s32 x
     for (s32 y = top; y <= bottom; ++y)
         for (s32 x = left; x <= right; ++x) {
             u8 *const tile = at<u8 *>(backdrop, 0x1c) + (y * at<s32>(backdrop, 0x10) + x + at<s32>(backdrop, 0x48)) * 0x60;
-            TexCache_UnlinkItem(*reinterpret_cast<u8 *const *>((uintptr_t)0x008c4b44), nullptr, tile);
+            TexCache_UnlinkItem(*reinterpret_cast<u8 *const *>(&gTexcache_8c4b44), nullptr, tile);
         }
 }
 }

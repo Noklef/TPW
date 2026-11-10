@@ -263,3 +263,8 @@ u32 __cdecl TexCache_Destroy();
 // 0x58dc10 (thiscall; name invented, unconfirmed): TexCache_ReleaseItems of [0x8c4b44] with 1, this one's six arrays freed (Object_FreeSixPointerArrays), the pool 0x8c47d8's surfaces released, this one's 0x20000000 at +0x18cc off. Returns 1.
 u32 __fastcall TexCache_ReleaseGraphics(u8 *self);
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(u32, gTexcache_8c4b44, 0x008c4b44, 0x4);

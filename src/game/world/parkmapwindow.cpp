@@ -33,6 +33,7 @@
 #include "../frontend/lobbysky.h"
 #include "../ui/panel7b9940.h"
 #include "../ui/window7cc8c0handler.h"
+#include "../render/screen.h"
 
 namespace {
 
@@ -101,7 +102,7 @@ void Close(u8 *map) {
     g_env->releaseAll(images);
     g_env->surfaceFree(reinterpret_cast<SurfaceInfo *>(map + 0x2c));
     gLobbysky_8bd47c = at<u32>(map, 8);
-    g_env->setFlags(global<u8 *>(0x0087a6d0), nullptr, at<u32>(map, 0xc));
+    g_env->setFlags(gRenderer_87a6d0, nullptr, at<u32>(map, 0xc));
     global<u32>(0x00786ba4) = 1;
     g_env->restore(reinterpret_cast<u8 *>((uintptr_t)0x00786b68));
     g_env->restartTimers();
@@ -177,7 +178,7 @@ void ShowName(const u8 *map, u8 *window) {
 }
 
 void MouseMoved(u8 *map, u8 *window, u32 a) {
-    const u32 width = global<u32>(0x007a1968), height = global<u32>(0x007a1930);
+    const u32 width = gScreen_7a1968, height = gScreen_7a1930;
     const u8 *list = at<u8 *>(map, 0x20080);
     const float widthF = (float)(double)width, heightF = (float)(double)height;
     const u32 mouseX = a >> 16, mouseY = a & 0xffff;
@@ -223,7 +224,7 @@ void MouseMoved(u8 *map, u8 *window, u32 a) {
 }
 
 void MouseClicked(u8 *map) {
-    const u32 width = global<u32>(0x007a1968), height = global<u32>(0x007a1930);
+    const u32 width = gScreen_7a1968, height = gScreen_7a1930;
     const float zoom = at<float>(map, 0x5c);
     const float half = global<float>(0x00703030);
     const X87Reg toX = X87_DivR(static_cast<double>(at<s32>(map, 0x24)), global<float>(0x00703044));
@@ -511,9 +512,9 @@ void __fastcall ParkMap_Open(u8 *map) {
     env->f5996d0(1);
     at<u32>(map, 8) = gLobbysky_8bd47c;
     gLobbysky_8bd47c = 0;
-    at<u32>(map, 0xc) = env->stateFlags(global<u8 *>(0x0087a6d0));
-    env->setFlags(global<u8 *>(0x0087a6d0), nullptr, 0x2821);
-    env->releaseItems(global<u8 *>(0x008c4b44), nullptr, 0);
+    at<u32>(map, 0xc) = env->stateFlags(gRenderer_87a6d0);
+    env->setFlags(gRenderer_87a6d0, nullptr, 0x2821);
+    env->releaseItems(reinterpret_cast<u8 * &>(gTexcache_8c4b44), nullptr, 0);
     env->focusClose();
     env->send(gPanel7b9940_7cb2ac, 6, 0, 0);
     u8 *const window = env->build(global<u8 *>(0x00faa5d8), nullptr, reinterpret_cast<u8 *>((uintptr_t)0x00774da0), 0x005f0b00);

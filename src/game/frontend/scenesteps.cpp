@@ -23,6 +23,7 @@
 #include "thememenu.h"
 #include "sceneleave.h"
 #include "../ui/dialog74fb20.h"
+#include "../coaster/arreplayaction.h"
 
 namespace {
 
@@ -49,7 +50,7 @@ u8 *Setting() {
 }
 
 u8 *SaveInfo() {
-    u8 *&info = global<u8 *>(0x00f7c58c);
+    u8 *&info = gArreplayaction_f7c58c;
     if (!info) {
         u8 *const block = static_cast<u8 *>(GameHeap_Alloc(0x50));
         info = block ? g_env->saveCtor(block) : nullptr;

@@ -3,6 +3,7 @@
 #include <cstdint>
 
 #include "../math/x87.h"
+#include "../gfx/texcache.h"
 
 namespace {
 
@@ -11,7 +12,7 @@ AddrCalls g_calls;
 template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cast<T *>((uintptr_t)p + offset); }
 u32 &global(u32 address) { return *reinterpret_cast<u32 *>((uintptr_t)address); }
 
-void touch(u32 item) { g_calls.Th(0x0058c9f0, global(0x008c4b44), item, 0u); }
+void touch(u32 item) { g_calls.Th(0x0058c9f0, gTexcache_8c4b44, item, 0u); }
 
 void wrap(float &x) {
     if (x > 1.0f || !(x >= -1.0f)) {

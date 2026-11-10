@@ -15,6 +15,8 @@
 #include "guisystem.h"
 #include "textpool.h"
 #include "../core/cmdline.h"
+#include "../render/graphicssettings.h"
+#include "../core/gamewindow.h"
 
 namespace {
 
@@ -63,7 +65,7 @@ const GuiTeardownEnv kTeardownEnv = {
 const GuiStartupEnv *g_startup = &kStartupEnv;
 const GuiTeardownEnv *g_teardown = &kTeardownEnv;
 
-bool WindowMode() { return (global<u32>(0x007a1a8c) & 0x800) && !gCmdline_788270; }
+bool WindowMode() { return (gGraphicssettings_7a1a8c & 0x800) && !gCmdline_788270; }
 
 void Delete(u32 holder) {
     u8 *const thing = global<u8 *>(holder);
@@ -85,7 +87,7 @@ void __cdecl Gui_Startup() {
     E->screenOpen(reinterpret_cast<s32 *>(local), nullptr, 0, nullptr, nullptr);
     E->setDirectDraw(*global<void **>(0x00879a24));
     if (WindowMode()) {
-        E->setWindow(global<void *>(0x007a130c));
+        E->setWindow(reinterpret_cast<void * &>(gGamewindow_7a130c));
         E->fn5f55c0(local);
         E->fn5f5600(local);
         gGui_7b9fe0 = 0;

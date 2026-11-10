@@ -84,7 +84,7 @@ extern "C" {
 
 s32 __cdecl Panel7c2534_OnlineHandler(u8 *window, u32 message, u32 a, u32 b) {
     if (message == 0x1000b) {
-        if (a == 0x1b || !static_cast<u16>(g_env->findKey(global<u8 *>(0x0078721c), nullptr, a, (b >> 16) & 0xff))) {
+        if (a == 0x1b || !static_cast<u16>(g_env->findKey(gKeymap_78721c, nullptr, a, (b >> 16) & 0xff))) {
             close();
             return 0;
         }

@@ -19,3 +19,8 @@ extern "C" {
 // (signed) option C set to 0. 1.
 u32 __cdecl GameWindow_Create();
 }
+
+#include "gamedata.h"
+
+// Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(u32, gGamewindow_7a130c, 0x007a130c, 0x4);

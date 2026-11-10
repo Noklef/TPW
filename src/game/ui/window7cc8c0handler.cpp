@@ -33,7 +33,7 @@ template <typename T> T &field(u8 *object, u32 offset) { return *reinterpret_cas
 u8 *&view() { return gWindow7cc8bc_7cc8bc; }
 u8 *&viewB() { return gWindow7cc8bc_7cc8c0; }
 u32 &hover() { return gWindow7cc8bc_7cc8e4; }
-u8 *table() { return global<u8 *>(0x00787c14); }
+u8 *table() { return gKeymap_787c14; }
 
 const Window7cc8c0HandlerEnv kGameEnv = {
     Window_GetRect,
@@ -254,7 +254,7 @@ void KeyDown(u8 *window, u32 a, u32 b) {
         if (modifiers == 0 && !gDialogs_7cc6a0) SwapView();
         return;
     }
-    const s32 action = static_cast<s16>(g_env->findKey(global<u8 *>(0x0078721c), nullptr, a, modifiers));
+    const s32 action = static_cast<s16>(g_env->findKey(gKeymap_78721c, nullptr, a, modifiers));
     if (action == 0) {
         MouseModes_EnsureHolder();
         if (ModeKind() == 9) {

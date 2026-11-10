@@ -192,7 +192,7 @@ u32 __fastcall Texture_Release(u8 *texture) {
     if (at<u32>(texture, 8) & 0x800000)
         Texture_Release(texture + 0x60);
     if (at<u32>(texture, 8) & 0x1000)
-        TexCache_UnlinkItem(global<u8 *>(0x008c4b44), nullptr, texture);
+        TexCache_UnlinkItem(reinterpret_cast<u8 * &>(gTexcache_8c4b44), nullptr, texture);
     if (at<u32>(texture, 8) & 0x10000000) {
         if (u8 *const object = at<u8 *>(texture, 0x40))
             vcall<void>(object, 0, 1u);

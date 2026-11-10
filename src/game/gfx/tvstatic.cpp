@@ -7,6 +7,7 @@
 #include "../core/vcall.h"
 #include "display.h"
 #include "palette.h"
+#include "../render/screen.h"
 
 namespace {
 
@@ -78,7 +79,7 @@ void __cdecl TvStatic_Draw(void *screen) {
                 Display_Pixel(x, y, grey);
         }
     Surface_Unlock(gTvStatic_874fd0);
-    const Rect to = {0, 0, global<s32>(0x007a1968), global<s32>(0x007a1930)};
+    const Rect to = {0, 0, reinterpret_cast<s32 &>(gScreen_7a1968), reinterpret_cast<s32 &>(gScreen_7a1930)};
     const Rect from = {0, 0, 0x140, 0xf0};
     Surface_Blt(&out, target, &to, gTvStatic_874fd0, &from, 0);
 }

@@ -119,7 +119,7 @@ s32 __cdecl MsgQueue_PumpSecond(s32 most) {
 s32 __cdecl MsgQueue_Pump(s32 most) {
     using Hook = void(__cdecl *)(u32, u32, u32, u32);
     u8 *&queue = gGuisystem_faa5f0;
-    const Hook &hook = *reinterpret_cast<Hook *>((uintptr_t)0x00faa5fc);
+    const Hook &hook = *reinterpret_cast<Hook *>(&gAccessors_faa5fc);
     s32 done = 0;
     if (!queue) return 0;
     if (!hook) {

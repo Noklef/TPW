@@ -42,7 +42,7 @@ u32 __cdecl Focus_Restore() {
     if (Global7c2534_HasSource()) return focus(*reinterpret_cast<u8 **>(gPanel7c2534menus_7c2534 + 0x10));
     if (!gPanel7b9940_7cb2ac) {
         if (gPanel7b9940_7cb2b0 && shown(Fn_65d57c(gPanel7b9940_7cb2b0))) {
-            enable(0x00787c14);
+            enable(reinterpret_cast<uintptr_t>(&gKeymap_787c14));
             return focus(gPanel7b9940_7cb2b0);
         }
         if (gWindow7cc8bc_7cc8bc && shown(Fn_65d57c(gWindow7cc8bc_7cc8bc))) return focus(gWindow7cc8bc_7cc8bc);
@@ -54,25 +54,25 @@ u32 __cdecl Focus_Restore() {
     }
     if (reinterpret_cast<u8 * &>(gDialog74fb20_7c24cc)) return focus(reinterpret_cast<u8 * &>(gDialog74fb20_7c24cc));
     if (shown(Fn_65d57c(gPanel7b9940_7cb2b0))) {
-        enable(0x00787c14);
+        enable(reinterpret_cast<uintptr_t>(&gKeymap_787c14));
         return focus(gPanel7b9940_7cb2b0);
     }
     u32 flags = Fn_65d57c(gPanel7b9940_7cb2ac);
     if (shown(flags)) {
         if (gFocus_7c24c8) return focus(gFocus_7c24c8);
         if (Global7ca1cc_Get()) {
-            enable(0x00787c14);
+            enable(reinterpret_cast<uintptr_t>(&gKeymap_787c14));
             return Dialog7ca1c8_Focus();
         }
-        enable(0x00787c14);
-        enable(0x00787a60);
-        enable(0x0078733c);
+        enable(reinterpret_cast<uintptr_t>(&gKeymap_787c14));
+        enable(reinterpret_cast<uintptr_t>(&gKeymap_787a60));
+        enable(reinterpret_cast<uintptr_t>(&gKeymap_78733c));
         return focus(gPanel7b9940_7cb2ac);
     }
     if (!gFocus_7cb2b4) return flags;
     flags = Fn_65d57c(gFocus_7cb2b4);
     if (!shown(flags)) return flags;
-    enable(0x00787c14);
+    enable(reinterpret_cast<uintptr_t>(&gKeymap_787c14));
     return focus(gFocus_7cb2b4);
 }
 
@@ -96,9 +96,9 @@ u32 __cdecl Window7c24c8_Set(u8 *window) {
             MouseMode_Set(mode);
         }
         GameCursor_Set(0);
-        KeyMap_Reset(global<u8 *>(0x00787c14));
-        KeyMap_Reset(global<u8 *>(0x0078733c));
-        KeyMap_Reset(global<u8 *>(0x00787a60));
+        KeyMap_Reset(gKeymap_787c14);
+        KeyMap_Reset(gKeymap_78733c);
+        KeyMap_Reset(gKeymap_787a60);
         Dialog7cb2b8_ResetChild21(1);
     }
     gFocus_7c24c8 = window;

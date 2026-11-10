@@ -79,7 +79,7 @@ u32 __cdecl Panel7b9940_Detach() {
     GuiManager_CallSlot4();
     const u8 *const table = global<const u8 *>(0x007b9940);
     const u32 base = 0x007b9940 + *reinterpret_cast<const u32 *>(table + 4);
-    return Renderer_RemoveFromSlot(global<u8 *>(0x0087a6d0), nullptr, base, 0x20);
+    return Renderer_RemoveFromSlot(gRenderer_87a6d0, nullptr, base, 0x20);
 }
 
 void __cdecl Panel7b9940_Open() {
@@ -109,7 +109,7 @@ void __cdecl Panel7b9940_Open() {
     at<u32>(base, 0x2c) = 0xbe99999a;
     at<u32>(base, 0x30) = 0xbf000000;
     at<u32>(base, 0x34) = 0x3f4ccccd;
-    g_open->add(global<u8 *>(0x0087a6d0), nullptr, self + vbase(self, 0, 4), 0x20);
+    g_open->add(gRenderer_87a6d0, nullptr, self + vbase(self, 0, 4), 0x20);
     if (u8 *const window = g_open->create(global<u8 *>(0x00faa5d8), nullptr, 1, 0, 0, 0, 0, 0x7ff, 0x5ff)) {
         g_open->setShown(window, nullptr, 1);
         g_open->setHandler(window, nullptr, 0x004881a0);
@@ -154,7 +154,7 @@ void __cdecl Panel7b9940_Close() {
     Windows7c26b0_Message5();
     const u8 *const table = global<const u8 *>(0x007b9940);
     const u32 base = 0x007b9940 + *reinterpret_cast<const u32 *>(table + 4);
-    Renderer_RemoveFromSlot(global<u8 *>(0x0087a6d0), nullptr, base, 0x20);
+    Renderer_RemoveFromSlot(gRenderer_87a6d0, nullptr, base, 0x20);
     GuiManager_CallSlot4();
     Global7ca1e0_Release();
     Globals7cc2fc_Release();
@@ -179,7 +179,7 @@ u32 __cdecl Panel7b9940_Show() {
     at<u32>(base, 0x2c) = 0xbe99999a;  // -0.3f
     at<u32>(base, 0x30) = 0xbf000000;  // -0.5f
     at<u32>(base, 0x34) = 0x3f4ccccd;  // 0.8f
-    Renderer_Add(global<u8 *>(0x0087a6d0), nullptr, self + vbase(self, 0, 4), 0x20);
+    Renderer_Add(gRenderer_87a6d0, nullptr, self + vbase(self, 0, 4), 0x20);
     return global<u8>(0x0078d90e) ? GuiManager_CallSlot3() : GuiManager_CallSlot4();
 }
 
@@ -196,7 +196,7 @@ u32 __cdecl Panel7b9940_ShowWindow() {
     at<u32>(base, 0x2c) = 0xbe99999a;  // -0.3f
     at<u32>(base, 0x30) = 0xbf000000;  // -0.5f
     at<u32>(base, 0x34) = 0x3f4ccccd;  // 0.8f
-    g_open->add(global<u8 *>(0x0087a6d0), nullptr, self + vbase(self, 0, 4), 0x20);
+    g_open->add(gRenderer_87a6d0, nullptr, self + vbase(self, 0, 4), 0x20);
     g_open->create7cc8bc();
     u8 *const made = g_open->create(global<u8 *>(0x00faa5d8), nullptr, 1, 0, 1, 0, 0, 0x7ff, 0x5ff);
     if (made) {

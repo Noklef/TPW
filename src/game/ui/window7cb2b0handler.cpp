@@ -27,7 +27,7 @@ const Window7cb2b0HandlerEnv kGameEnv = {
 };
 const Window7cb2b0HandlerEnv *g_env = &kGameEnv;
 
-u8 *Actions() { return global<u8 *>(0x787c14); }
+u8 *Actions() { return gKeymap_787c14; }
 
 void LetCameraGo(u8 *window) {
     const Window7cb2b0HandlerEnv *const E = g_env;
@@ -75,9 +75,9 @@ s32 __cdecl Window7cb2b0_Handler(u8 *window, u32 message, u32 a, u32 b) {
         case 0x1000b: {
             const u32 modifiers = (b >> 16) & 0xff;
             E->fireUp(Actions(), nullptr, a, modifiers);
-            if (a == 0x1b || static_cast<u16>(E->findKey(global<u8 *>(0x78721c), nullptr, a, modifiers)) == 0x10)
+            if (a == 0x1b || static_cast<u16>(E->findKey(gKeymap_78721c, nullptr, a, modifiers)) == 0x10)
                 LetCameraGo(window);
-            else if (static_cast<u16>(E->findKey(global<u8 *>(0x78721c), nullptr, a, modifiers)) == 0xf)
+            else if (static_cast<u16>(E->findKey(gKeymap_78721c, nullptr, a, modifiers)) == 0xf)
                 E->pauseHide();
             break;
         }

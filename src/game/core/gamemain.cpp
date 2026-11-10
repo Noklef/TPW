@@ -8,6 +8,7 @@
 #include "../online/chatcommand.h"
 #include "../online/chat.h"
 #include "../ui/windowproc.h"
+#include "../render/screen.h"
 
 namespace {
 
@@ -39,7 +40,7 @@ bool StartGame() {
     g_calls.Th(0x00408470, 0x00786b68u);   // NamedObjects_AddFixedFolders
     g_calls.Cd(0x00449eb0);   // SinTable_BuildGame
     g_calls.Cd(0x00449ec0);   // Screen_Init
-    g_calls.Th(0x0041a5a0, kLanguage, global<u32>(0x007a1968));   // Language_SetFontSet
+    g_calls.Th(0x0041a5a0, kLanguage, gScreen_7a1968);   // Language_SetFontSet
     if (g_calls.Cd(0x0044e080) == 0) return stop();   // GameWindow_Create
     g_calls.Cd(0x0054dcf0);   // Game_Start
     Flags() |= kStarted;

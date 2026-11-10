@@ -23,6 +23,7 @@
 #include "windowreg.h"
 #include "windowscript.h"
 #include "window7cc8c0handler.h"
+#include "../render/screen.h"
 
 namespace {
 
@@ -192,8 +193,8 @@ void __cdecl Window7cc8bc_Create() {
         u8 rect[12];
         GuiRect_Ctor(rect);
         Window_GetRect(gWindow7cc8bc_7cc8bc, nullptr, rect, 1);
-        global<u32>(0x007a1c54) = global<u32>(0x007a192c);
-        global<u32>(0x007a1c58) = global<u32>(0x007a194c);
+        global<u32>(0x007a1c54) = reinterpret_cast<u32 &>(gScreen_7a192c);
+        global<u32>(0x007a1c58) = reinterpret_cast<u32 &>(gScreen_7a194c);
         global<u32>(0x0074d108) = global<u32>(0x007a162c);
         global<u32>(0x0074d104) = global<u32>(0x007a0c9c);
         GuiRect_Dtor(rect);

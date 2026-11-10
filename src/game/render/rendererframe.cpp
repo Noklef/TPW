@@ -7,6 +7,8 @@
 #include "../math/x87.h"
 #include "../frontend/lobbysky.h"
 #include "../frontend/lobbyscene.h"
+#include "renderer.h"
+#include "../gfx/texcache.h"
 
 namespace {
 
@@ -15,7 +17,7 @@ AddrCalls g_calls;
 template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cast<T *>((uintptr_t)p + offset); }
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
 
-const u32 kViewFlags = 0x008bcbc8, kSceneFlags = 0x008bd508, kMode = 0x008bd524, kDevice = 0x00879ab0, kWorldRender = 0x0087a6d0, kCamera = 0x0087aff0;
+const u32 kViewFlags = 0x008bcbc8, kSceneFlags = 0x008bd508, kMode = 0x008bd524, kDevice = 0x00879ab0, kWorldRender = reinterpret_cast<uintptr_t>(&gRenderer_87a6d0), kCamera = 0x0087aff0;
 
 template <typename... A>
 u32 Slot(u32 object, u32 offset, A... args) {
@@ -45,7 +47,7 @@ bool DrawViewSteps(u8 *renderer, const u32 *view) {
         g_calls.Th(0x0056bb00, global<u32>(0x00879d54));   // WorldView_UpdateFootprint
         at<u32>(renderer, 0x44) = g_calls.Th(0x0056dd60, global<u32>(0x00879d54));
     }
-    g_calls.Th(0x0058d8e0, global<u32>(0x008c4b44));   // TexCache_BeginFrame
+    g_calls.Th(0x0058d8e0, gTexcache_8c4b44);   // TexCache_BeginFrame
     g_calls.Th(0x00581da0, global<u32>(0x008bcbb8));   // Ptr_Ctor
     g_calls.Th(0x0058a630, global<u32>(0x008c47a0));   // SpriteQueue_Clear
     g_calls.Th(0x00582390, global<u32>(0x008bcbc4), (global<u32>(kSceneFlags) & 0xc0000000) ? 3u : 2u);   // DrawBuffer_Reset
@@ -77,7 +79,7 @@ bool DrawViewSteps(u8 *renderer, const u32 *view) {
     }
     g_calls.Th(0x0058a720, global<u32>(0x008c47a0));   // SpriteQueue_ShowAll
     g_calls.Th(0x00579c80, 0x008bb220u);   // Pointers_MarkAndCallSlot4
-    if (!g_calls.Th(0x0058cf40, global<u32>(0x008c4b44))) return false;   // TexCache_Update
+    if (!g_calls.Th(0x0058cf40, gTexcache_8c4b44)) return false;   // TexCache_Update
     if (view[0] & 0x10) {
         if (!g_calls.Th(0x005863c0, 0x008c1828u)) return false;   // Landscape_Draw
         if (!g_calls.Th(0x0056f670, global<u32>(0x00879d60))) return false;   // TerrainGround_Draw

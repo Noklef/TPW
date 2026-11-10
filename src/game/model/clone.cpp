@@ -5,6 +5,7 @@
 
 #include "../core/globalmem.h"
 #include "parts.h"
+#include "../render/graphicssettings.h"
 
 namespace {
 
@@ -19,7 +20,7 @@ void copy(u32 to, u32 from, u32 bytes) {  // rep movsd / movsb
 // procedural terrain textures could load.
 bool wants_points(u32 flags, u32 model) {
     const u32 own = at<u32>(model, 0x30);
-    return (flags & 0x200) || (own & 0x1000) || ((own & 8) && (at<u32>(0x007a1a8c, 0) & 0x2000));
+    return (flags & 0x200) || (own & 0x1000) || ((own & 8) && (at<u32>(reinterpret_cast<uintptr_t>(&gGraphicssettings_7a1a8c), 0) & 0x2000));
 }
 
 }  // namespace

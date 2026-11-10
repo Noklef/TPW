@@ -71,7 +71,7 @@ void __cdecl ModelSlot_Free(u32 slot) {
     u8 *const base = reinterpret_cast<u8 *>((uintptr_t)(0x00790398 + slot * 0xb0));
     if (!holder_of(slot)) return;
     u8 *const part = base + 0x48;  // (through its virtual base: the offset at +4 of its vbtable)
-    Renderer_RemoveFromSlot(global<u8 *>(0x0087a6d0), nullptr, (u32)(uintptr_t)(part + at<s32>(at<const u8 *>(part, 0), 4)), 0x10);
+    Renderer_RemoveFromSlot(gRenderer_87a6d0, nullptr, (u32)(uintptr_t)(part + at<s32>(at<const u8 *>(part, 0), 4)), 0x10);
     Instance_Dispose(holder_of(slot));
     Instance_Free(at<u8 *>(base, 0), 0);
     holder_of(slot) = nullptr;
@@ -139,7 +139,7 @@ void __cdecl ModelSlot_LoadAdvisor(const char *folder, const char *c, const char
     if (!*instance) return;
     Holder_FlagModel(reinterpret_cast<const u8 *const *>(*instance + 8));
     at<u8 *>(*instance, 0xc8) = s + 8;
-    Renderer_Add(global<u8 *>(0x0087a6d0), nullptr, part + at<u32>(at<u8 *>(part, 0), 4), 0x10);
+    Renderer_Add(gRenderer_87a6d0, nullptr, part + at<u32>(at<u8 *>(part, 0), 4), 0x10);
     const u32 scale[3] = {0x3c3851eb, 0x3a83126f, 0x3c75c28f};   // 0.01125f, 0.001f, 0.015f
     Matrix_ScaleAxesV(reinterpret_cast<float *>(at<u8 *>(at<u8 *>(at<u8 *>(*instance, 8), 4), 0x78) + 0x10),
                       reinterpret_cast<const float *>(scale));

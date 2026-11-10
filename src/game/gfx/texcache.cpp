@@ -1497,19 +1497,19 @@ u32 __fastcall TexCache_Update(u8 *cache) {
 }
 
 extern "C" u32 __cdecl TexCache_Destroy() {
-    u8 *const cache = global<u8 *>(0x008c4b44);
+    u8 *const cache = reinterpret_cast<u8 * &>(gTexcache_8c4b44);
     if (!cache) return 0;
     g_destroyCalls.Th(0x0058dd60, address(cache), 1u);   // TexCache_ReleaseItems
     g_destroyCalls.Th(0x0058d380, address(cache));       // Object_FreeSixPointerArrays
     g_destroyCalls.Th(0x0058b280, 0x008c47d8u);          // SurfacePool_ReleaseAll
     at<u32>(cache, 0x18cc) &= ~0x20000000u;
-    g_destroyCalls.Cd(0x0067acb0, global<u32>(0x008c4b44));
-    global<u32>(0x008c4b44) = 0;
+    g_destroyCalls.Cd(0x0067acb0, gTexcache_8c4b44);
+    gTexcache_8c4b44 = 0;
     return 1;
 }
 
 extern "C" u32 __fastcall TexCache_ReleaseGraphics(u8 *self) {
-    g_destroyCalls.Th(0x0058dd60, global<u32>(0x008c4b44), 1u);
+    g_destroyCalls.Th(0x0058dd60, gTexcache_8c4b44, 1u);
     g_destroyCalls.Th(0x0058d380, address(self));
     g_destroyCalls.Th(0x0058b280, 0x008c47d8u);
     at<u32>(self, 0x18cc) &= ~0x20000000u;
@@ -1538,10 +1538,10 @@ extern "C" u32 __fastcall TexCache_Setup(u8 *self, void *, u32 format) {
 
 extern "C" u32 __cdecl TexCache_Create(u32 format) {
     g_setupCalls.Cd(0x0056b630);   // Table879d08_Fill
-    if (global<u32>(0x8c4b44)) return 0;
+    if (gTexcache_8c4b44) return 0;
     void *const block = GameHeap_Alloc(0x1928);
     const u32 cache = block ? g_setupCalls.Th(0x0058d0f0, (u32)(uintptr_t)block) : 0;   // TexCache_InitDefaults
-    global<u32>(0x8c4b44) = cache;
+    gTexcache_8c4b44 = cache;
     if (cache) return TexCache_Setup(reinterpret_cast<u8 *>((uintptr_t)cache), nullptr, format);
     g_setupCalls.Th(0x0056af20, 0x00879ad0u, 3u, 0xb0754000u);   // EngineErrors_Push
     return 0;
@@ -1549,7 +1549,7 @@ extern "C" u32 __cdecl TexCache_Create(u32 format) {
 
 extern "C" u32 __fastcall TexCache_ChangeFormat(u8 *self, void *, u32 format) {
     if (at<u32>(self, 0x18cc) & 0x20000000) {
-        g_setupCalls.Th(0x0058dd60, global<u32>(0x8c4b44), 1u);   // TexCache_ReleaseItems
+        g_setupCalls.Th(0x0058dd60, gTexcache_8c4b44, 1u);   // TexCache_ReleaseItems
         g_setupCalls.Th(0x0058d380, (u32)(uintptr_t)self);   // Object_FreeSixPointerArrays
         g_setupCalls.Th(0x0058b280, 0x008c47d8u);   // SurfacePool_ReleaseAll
         at<u32>(self, 0x18cc) &= 0xdfffffff;

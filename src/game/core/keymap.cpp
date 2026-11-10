@@ -15,7 +15,7 @@ template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cas
 
 u8 *map(u32 address) { return *reinterpret_cast<u8 **>(address); }
 
-constexpr u32 kMaps[5] = {0x0078718c, 0x00787a60, 0x00787c14, 0x0078733c, 0x0078721c};
+const u32 kMaps[5] = {reinterpret_cast<uintptr_t>(&gKeymap_78718c), reinterpret_cast<uintptr_t>(&gKeymap_787a60), reinterpret_cast<uintptr_t>(&gKeymap_787c14), reinterpret_cast<uintptr_t>(&gKeymap_78733c), reinterpret_cast<uintptr_t>(&gKeymap_78721c)};
 
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
 
@@ -147,18 +147,18 @@ void __cdecl KeyMaps_ResetAllAndSetFlag() {
 void __cdecl KeyMaps_Init() {
     // (the maps, their static entry tables and counts, and their names in the game's data: "system", "game", "camera", "cheat",
     // "coaster", "shortcuts")
-    global<u8 *>(0x0078718c) = NewMap(0x00747f38, 0xc, 0x00748700);
-    global<u8 *>(0x00787a60) = NewMap(0x00748028, 0xf, 0x007486f8);
-    global<u8 *>(0x00787c14) = NewMap(0x00748158, 0x19, 0x007486f0);
-    global<u8 *>(0x0078733c) = NewMap(0x007484d0, 0xc, 0x007486e8);
-    global<u8 *>(0x00787294) = NewMap(0x00748350, 2, 0x00747940);
+    gKeymap_78718c = NewMap(0x00747f38, 0xc, 0x00748700);
+    gKeymap_787a60 = NewMap(0x00748028, 0xf, 0x007486f8);
+    gKeymap_787c14 = NewMap(0x00748158, 0x19, 0x007486f0);
+    gKeymap_78733c = NewMap(0x007484d0, 0xc, 0x007486e8);
+    gKeymap_787294 = NewMap(0x00748350, 2, 0x00747940);
     u8 *map = NewMap(0x00748378, 0x11, 0x007486dc);
-    global<u8 *>(0x0078721c) = map;
+    gKeymap_78721c = map;
     // the shortcuts' actions 1-4: their keys from the texts 0-3 (a null map faults, sic)
     u32 slot = 0;   // (the original's stack slot: the formatter's two characters land over it)
     for (s16 action = 1; action <= 4; ++action) {
         if (action > 1)
-            map = global<u8 *>(0x0078721c);
+            map = gKeymap_78721c;
         if (at<s16>(map, 4) <= action)
             continue;
         TextFormat().format(global<void *>(0x0078ba84), reinterpret_cast<u16 *>(&slot), 2, (u32)(action - 1));
@@ -172,17 +172,17 @@ void __cdecl KeyMaps_Init() {
             at<u16>(at<u8 *>(map, 0), found * 0x14 + 2) = (u16)slot;
     }
     // the keys from texts: (map, action, text)
-    static const u32 kKeys[17][3] = {{0x0078721c, 5, 4},    {0x0078721c, 6, 5},    {0x0078721c, 7, 6},    {0x0078721c, 8, 7},
-                                     {0x0078721c, 9, 8},    {0x0078721c, 10, 9},   {0x0078721c, 0xb, 10}, {0x0078721c, 0x10, 0xb},
-                                     {0x0078721c, 0xd, 0xc}, {0x0078721c, 0xe, 0xd}, {0x0078721c, 0xf, 0xe}, {0x00787a60, 1, 0x12},
-                                     {0x00787a60, 2, 0x13}, {0x00787a60, 9, 0x10}, {0x00787a60, 10, 0x11}, {0x0078718c, 0, 0x14},
-                                     {0x0078718c, 1, 0xf}};
+    static const u32 kKeys[17][3] = {{reinterpret_cast<uintptr_t>(&gKeymap_78721c), 5, 4},    {reinterpret_cast<uintptr_t>(&gKeymap_78721c), 6, 5},    {reinterpret_cast<uintptr_t>(&gKeymap_78721c), 7, 6},    {reinterpret_cast<uintptr_t>(&gKeymap_78721c), 8, 7},
+                                     {reinterpret_cast<uintptr_t>(&gKeymap_78721c), 9, 8},    {reinterpret_cast<uintptr_t>(&gKeymap_78721c), 10, 9},   {reinterpret_cast<uintptr_t>(&gKeymap_78721c), 0xb, 10}, {reinterpret_cast<uintptr_t>(&gKeymap_78721c), 0x10, 0xb},
+                                     {reinterpret_cast<uintptr_t>(&gKeymap_78721c), 0xd, 0xc}, {reinterpret_cast<uintptr_t>(&gKeymap_78721c), 0xe, 0xd}, {reinterpret_cast<uintptr_t>(&gKeymap_78721c), 0xf, 0xe}, {reinterpret_cast<uintptr_t>(&gKeymap_787a60), 1, 0x12},
+                                     {reinterpret_cast<uintptr_t>(&gKeymap_787a60), 2, 0x13}, {reinterpret_cast<uintptr_t>(&gKeymap_787a60), 9, 0x10}, {reinterpret_cast<uintptr_t>(&gKeymap_787a60), 10, 0x11}, {reinterpret_cast<uintptr_t>(&gKeymap_78718c), 0, 0x14},
+                                     {reinterpret_cast<uintptr_t>(&gKeymap_78718c), 1, 0xf}};
     for (const auto &key : kKeys)
         KeyMap_SetKeyFromText(global<u8 *>(key[0]), nullptr, key[1], key[2]);
 }
 
 void __cdecl KeyMaps_FreeAll() {
-    static const u32 kSlots[6] = {0x0078718c, 0x00787a60, 0x00787c14, 0x0078733c, 0x00787294, 0x0078721c};
+    static const u32 kSlots[6] = {reinterpret_cast<uintptr_t>(&gKeymap_78718c), reinterpret_cast<uintptr_t>(&gKeymap_787a60), reinterpret_cast<uintptr_t>(&gKeymap_787c14), reinterpret_cast<uintptr_t>(&gKeymap_78733c), reinterpret_cast<uintptr_t>(&gKeymap_787294), reinterpret_cast<uintptr_t>(&gKeymap_78721c)};
     for (const u32 slot : kSlots)
         if (void *const block = global<void *>(slot)) GameHeap_Free(block);
 }

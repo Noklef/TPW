@@ -473,7 +473,7 @@ u32 __cdecl Fn_6590c3(u32 v0) {
 }
 
 u32 __cdecl Fn_6590ea(u32 v0) {
-    global<u32>(0x00faa5fc) = v0;
+    gAccessors_faa5fc = v0;
     return v0;
 }
 

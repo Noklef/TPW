@@ -12,6 +12,7 @@
 #include "../core/thunks.h"
 #include "../core/vcall.h"
 #include "../core/vdtor.h"
+#include "../core/initializers.h"
 
 namespace {
 template <typename F> F import(std::uintptr_t slot) { return *reinterpret_cast<const F *>(slot); }
@@ -534,13 +535,13 @@ u32 *__fastcall FtpClient_DeletingDtor(u32 *self, void *, u8 flags) {
 
 void __fastcall Ftp_WsaErrorBox(void *) {
     const s32 error = WsaGetLastError();
-    const s16 *code = *reinterpret_cast<const s16 *const *>(static_cast<std::uintptr_t>(0x00f827ec));
+    const s16 *code = *reinterpret_cast<const s16 *const *>(&gInitializers_f827ec);
     u32 index = 0;
     while (*code != error && *code != 0) {
         code++;
         index++;
     }
-    const char *const *const texts = *reinterpret_cast<const char *const *const *>(static_cast<std::uintptr_t>(0x00f827f0));
+    const char *const *const texts = *reinterpret_cast<const char *const *const *>(&gInitializers_f827f0);
     MessageBoxText(0, texts[index], text_at(0x00774810), 0);
 }
 

@@ -103,7 +103,7 @@ extern "C" {
 u32 __fastcall Renderer_DrawCellLists(u8 *renderer) {
     global<u32>(0x8bb624) = 0x1000000;
     const u8 *const head = at<const u8 *>(renderer, 0x2c);
-    if (head) at<const u8 *>(global<u8 *>(0x87a6d0), 0x30) = head;
+    if (head) at<const u8 *>(gRenderer_87a6d0, 0x30) = head;
     if (!DrawList(head)) return 0;
     if (!g_drawCalls.Th(0x0056f090, global<u32>(0x879d60))) return 0;   // TerrainGround_PrepareTextures
     global<u32>(0x8bb624) = 0;
@@ -114,7 +114,7 @@ u32 __fastcall Renderer_DrawCellLists(u8 *renderer) {
         const u8 *const *row = at<const u8 *const *>(renderer, 0x10) + y * at<s32>(renderer, 0x38) + start;
         for (s32 i = at<s8>(view, 0x88 + y) - start; i > 0; --i, ++row) {
             const u8 *cell = *row;
-            at<const u8 *>(global<u8 *>(0x87a6d0), 0x30) = cell;
+            at<const u8 *>(gRenderer_87a6d0, 0x30) = cell;
             if (!DrawList(cell)) return 0;
         }
         view = at<const u8 *>(renderer, 0x44);
@@ -123,7 +123,7 @@ u32 __fastcall Renderer_DrawCellLists(u8 *renderer) {
 }
 
 u32 __cdecl Renderer_Create() {
-    if (global<u32>(0x0087a6d0))
+    if (reinterpret_cast<u32 &>(gRenderer_87a6d0))
         return 0;
     u8 *const renderer = static_cast<u8 *>(GameHeap_Alloc(0x7c));
     if (renderer) {
@@ -144,7 +144,7 @@ u32 __cdecl Renderer_Create() {
         }
         // (a renderer without its pool is kept and counts as made, sic)
     }
-    global<u8 *>(0x0087a6d0) = renderer;
+    gRenderer_87a6d0 = renderer;
     if (!renderer) {
         EngineErrors_Push(reinterpret_cast<u8 *>((uintptr_t)0x00879ad0), nullptr, 3, 0xb0754000);
         return 0;
@@ -153,13 +153,13 @@ u32 __cdecl Renderer_Create() {
 }
 
 u32 __cdecl Renderer_Destroy() {
-    u8 *renderer = global<u8 *>(0x0087a6d0);
+    u8 *renderer = gRenderer_87a6d0;
     if (!renderer)
         return 0;
     if (const u32 frame = at<u32>(renderer, 0x10)) {
         TrackedGlobal_Free(frame);
         at<u32>(renderer, 0x10) = 0;
-        renderer = global<u8 *>(0x0087a6d0);
+        renderer = gRenderer_87a6d0;
     }
     if (renderer) {
         if (const u32 pool = at<u32>(renderer, 0)) {
@@ -173,7 +173,7 @@ u32 __cdecl Renderer_Destroy() {
         }
         GameHeap_Free(renderer);
     }
-    global<u32>(0x0087a6d0) = 0;
+    reinterpret_cast<u32 &>(gRenderer_87a6d0) = 0;
     return 1;
 }
 
@@ -385,7 +385,7 @@ u32 __fastcall Obj_ReleaseFromRenderer(u8 *object) {
     if (!(at<u32>(object, 0) & 1))
         return 1;
     at<u32>(object, 0) &= 0xfffffffe;
-    u8 *renderer = global<u8 *>(0x0087a6d0);
+    u8 *renderer = gRenderer_87a6d0;
     if (!renderer)
         return 0;
     u8 *part = at<u8 *>(object, 4);
@@ -397,7 +397,7 @@ u32 __fastcall Obj_ReleaseFromRenderer(u8 *object) {
 u32 __fastcall Obj_AddToRenderer(u8 *object) {
     if (at<u32>(object, 0) & 1)
         return 1;
-    u8 *const renderer = global<u8 *>(0x0087a6d0);
+    u8 *const renderer = gRenderer_87a6d0;
     if (!renderer)
         return 0;
     u8 *part = nullptr;
@@ -419,10 +419,10 @@ void __fastcall Obj_SetRendererPart30(u8 *object, void *, u32 value) {
     if (id != 0) {
         // (the original has a branch for a null part pointer here, which cannot happen)
         part += at<u32>(at<u8 *>(part, 0), 4);
-        Renderer_Add(global<u8 *>(0x0087a6d0), nullptr, part, 0x30);
+        Renderer_Add(gRenderer_87a6d0, nullptr, part, 0x30);
     } else {
         part += at<u32>(at<u8 *>(part, 0), 4);
-        Renderer_RemoveFromSlot(global<u8 *>(0x0087a6d0), nullptr, static_cast<u32>(reinterpret_cast<uintptr_t>(part)), 0x30);
+        Renderer_RemoveFromSlot(gRenderer_87a6d0, nullptr, static_cast<u32>(reinterpret_cast<uintptr_t>(part)), 0x30);
     }
     at<u16>(object, 8) = id;
 }

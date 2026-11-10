@@ -6,6 +6,7 @@
 #include "../core/crt.h"
 #include "../math/x87.h"
 #include "land.h"
+#include "../render/graphicssettings.h"
 
 namespace {
 
@@ -87,12 +88,12 @@ u32 __cdecl Terrain_Load(u32 shared, u32 texture_arg) {
     }
 
     g_calls.Cd(0x00450950, global<u32>(0x7a0854), 0x0079fc54u);   // Terrain_CloneAttrs
-    if ((global<u32>(0x7a1a8c) & 0x2000) && !shared) {
+    if ((gGraphicssettings_7a1a8c & 0x2000) && !shared) {
         const u32 directory = g_calls.Cd(0x0046e610);   // TexDirs_First
         if (directory) crt.sprintf(land, "%sbase.lnd", text(directory));
         else crt.sprintf(land, "base.lnd");
         g_calls.Cd(0x0056dfe0, land, texture_arg);   // TerrainTex_InitGlobal
-        if (global<u32>(0x7a1a8c) & 0x4000) g_calls.Cd(0x0046ded0, 1u);   // Terrain_SetProceduralCells
+        if (gGraphicssettings_7a1a8c & 0x4000) g_calls.Cd(0x0046ded0, 1u);   // Terrain_SetProceduralCells
         else g_calls.Cd(0x0056dfd0);   // TerrainTex_Disable
     }
 

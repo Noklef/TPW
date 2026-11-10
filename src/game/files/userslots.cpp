@@ -19,6 +19,7 @@
 #include "../online/chatlists.h"
 #include "../ui/dialog74fb20.h"
 #include "../ui/window7cc8c0handler.h"
+#include "../coaster/arreplayaction.h"
 
 namespace {
 
@@ -43,16 +44,16 @@ const UserSlotsScanEnv kScanGameEnv = {&GamePaths_SaveFolder, &GamePaths_UsersFo
 const UserSlotsScanEnv *g_scan = &kScanGameEnv;
 
 void DeleteGlobalSave() {
-    if (u8 *const info = at<u8 *>(nullptr, 0x00f7c58c)) {
+    if (u8 *const info = at<u8 *>(nullptr, reinterpret_cast<uintptr_t>(&gArreplayaction_f7c58c))) {
         g_scan->saveDtor(info);
         GameHeap_Free(info);
     }
-    at<u8 *>(nullptr, 0x00f7c58c) = nullptr;
+    at<u8 *>(nullptr, reinterpret_cast<uintptr_t>(&gArreplayaction_f7c58c)) = nullptr;
 }
 
 void NewGlobalSave() {
     void *const block = GameHeap_Alloc(0x50);
-    at<u8 *>(nullptr, 0x00f7c58c) = block ? g_scan->saveCtor(static_cast<u8 *>(block)) : nullptr;
+    at<u8 *>(nullptr, reinterpret_cast<uintptr_t>(&gArreplayaction_f7c58c)) = block ? g_scan->saveCtor(static_cast<u8 *>(block)) : nullptr;
 }
 
 // A folder of users named "<slot + 1><name>".
@@ -75,9 +76,9 @@ void TakeSlot(u8 *self, const char *folderName, s32 slot) {
     DeleteGlobalSave();
     const char *const text = pathText.data;
     NewGlobalSave();
-    g_scan->saveLoad(at<u8 *>(nullptr, 0x00f7c58c), nullptr, text);
-    if (!at<u8 *>(nullptr, 0x00f7c58c)) NewGlobalSave();
-    at<u32>(record, 0x14) = g_scan->saveByte24(at<u8 *>(nullptr, 0x00f7c58c));
+    g_scan->saveLoad(at<u8 *>(nullptr, reinterpret_cast<uintptr_t>(&gArreplayaction_f7c58c)), nullptr, text);
+    if (!at<u8 *>(nullptr, reinterpret_cast<uintptr_t>(&gArreplayaction_f7c58c))) NewGlobalSave();
+    at<u32>(record, 0x14) = g_scan->saveByte24(at<u8 *>(nullptr, reinterpret_cast<uintptr_t>(&gArreplayaction_f7c58c)));
     DeleteGlobalSave();
     g_scan->makeFolders(self, nullptr, &folder);
     String_Dtor(&pathText);
@@ -125,7 +126,7 @@ const UserSlotsChoiceEnv *g_choice = &kChoiceGameEnv;
 
 // The global save info, made when there is none.
 u8 *SaveInfo() {
-    u8 *&info = at<u8 *>(nullptr, 0x00f7c58c);
+    u8 *&info = at<u8 *>(nullptr, reinterpret_cast<uintptr_t>(&gArreplayaction_f7c58c));
     if (!info) {
         void *const block = GameHeap_Alloc(0x50);
         info = block ? g_scan->saveCtor(static_cast<u8 *>(block)) : nullptr;
@@ -221,7 +222,7 @@ void __fastcall UserSlots_Create(u8 *self, void *, s32 i, const WString *name, u
         DeleteGlobalSave();
         void *const block = GameHeap_Alloc(0x50);
         u8 *const info = block ? g_scan->saveCtor(static_cast<u8 *>(block)) : nullptr;
-        at<u8 *>(nullptr, 0x00f7c58c) = info;
+        at<u8 *>(nullptr, reinterpret_cast<uintptr_t>(&gArreplayaction_f7c58c)) = info;
         g_choice->setByte24(info, nullptr, at<u32>(record, 0x14) ? 1 : 0);
         WriteSaveFile(self, i);
         WString_Dtor(&folder);

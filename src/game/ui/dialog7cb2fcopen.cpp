@@ -202,7 +202,7 @@ s32 __cdecl Dialog7cb2fc_Handler(u8 *window, u32 message, u32 a, s32 b) {
     switch (message) {
     case 0x14:
         gDialog7cb2fcopen_7cb2fc = nullptr;
-        g_env->setFlags(global<u8 *>(0x0087a6d0), nullptr, gDialog7cb2fc_7cb2f4);
+        g_env->setFlags(gRenderer_87a6d0, nullptr, gDialog7cb2fc_7cb2f4);
         if (!global<u32>(0x00786ba4) && !gDialog7cb2fc_7cb2ec) {
             global<u32>(0x00786ba4) = 1;
             g_env->f409300(reinterpret_cast<u8 *>((uintptr_t)0x00786b68));
@@ -262,9 +262,9 @@ void __cdecl Dialog7cb2fc_Open() {
         gDialog7cb2fc_7cb2ec = 1;
     }
     g_env->f5996d0(1);
-    gDialog7cb2fc_7cb2f4 = g_env->flags(global<u8 *>(0x0087a6d0));
-    g_env->setFlags(global<u8 *>(0x0087a6d0), nullptr, 0x21);
-    g_env->release(global<u8 *>(0x008c4b44), nullptr, 0);
+    gDialog7cb2fc_7cb2f4 = g_env->flags(gRenderer_87a6d0);
+    g_env->setFlags(gRenderer_87a6d0, nullptr, 0x21);
+    g_env->release(reinterpret_cast<u8 * &>(gTexcache_8c4b44), nullptr, 0);
     g_env->send(frameWindow(), 6, 0, 0);
     gDialog7cb2fcopen_7cb2fc = g_env->build(global<u8 *>(0x00faa5d8), nullptr, reinterpret_cast<u8 *>((uintptr_t)0x00752f30), 0x004a2bf0);
     const u32 title = (u32)(uintptr_t)g_env->text(0x13b);

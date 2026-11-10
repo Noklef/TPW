@@ -16,6 +16,7 @@
 #include "window705a50.h"
 #include "../online/chatcommand.h"
 #include "window7cc8c0handler.h"
+#include "../coaster/arreplayaction.h"
 
 extern "C" const u16 *__cdecl Language_WideText(u32 id);
 
@@ -46,7 +47,7 @@ u8 *Made(u32 holder, u32 size, u8 *(__fastcall *ctor)(u8 *)) {
     }
     return global<u8 *>(holder);
 }
-u8 *Save() { return Made(0x00f7c58c, 0x50, g_env->saveCtor); }
+u8 *Save() { return Made(reinterpret_cast<uintptr_t>(&gArreplayaction_f7c58c), 0x50, g_env->saveCtor); }
 u8 *Online() { return Made(reinterpret_cast<uintptr_t>(&gChatcommand_f7d88c), 0x404, g_env->onlineCtor); }
 
 }  // namespace

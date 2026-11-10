@@ -69,7 +69,7 @@ inline u32 Bits(float x) {
 inline bool Below0(float x) { return !(x >= 0.0f); }   // (or a NaN)
 inline bool Zero(double x) { return !(x < 0.0 || x > 0.0); }   // (or a NaN)
 inline s32 Cell(float x) { return (s32)(long long)(X87Reg(x) * kTenth).v; }   // __ftol
-inline u16 Held(u32 action) { return gEnv->isHeld(global<const u8 *>(0x00787c14), nullptr, action); }
+inline u16 Held(u32 action) { return gEnv->isHeld(gKeymap_787c14, nullptr, action); }
 
 // A register's product with a double one (fsin, fcos): rounded once.
 inline X87Reg Mul(double a, double b) { return a != a && b != b ? X87Reg(X87_Add(a, b)) : X87Reg(X87_MulDouble(a, b)); }

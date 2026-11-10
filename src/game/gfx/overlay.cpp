@@ -12,6 +12,7 @@
 #include "../sprite/screenmatrix.h"
 #include "../ui/guidialog.h"
 #include "../ui/guistartup.h"
+#include "../render/screen.h"
 
 namespace {
 
@@ -63,7 +64,7 @@ u8 *__fastcall Overlay_Ctor(u8 *overlay, void *, u8 *holder) {
         for (u8 *node = at<u8 *>(at<u8 *>(h, 4), 0x78); node; node = at<u8 *>(node, 0xc)) {
             const u32 flags = at<u32>(node, 0) | 0xc8010;
             at<u32>(node, 0) = flags;
-            if (*reinterpret_cast<const volatile s32 *>(0x007a1968) == 0x280) at<u32>(node, 0) = flags | 0x8000000;
+            if (*reinterpret_cast<const volatile s32 *>(&gScreen_7a1968) == 0x280) at<u32>(node, 0) = flags | 0x8000000;
         }
         Holder_Create(h);
     }

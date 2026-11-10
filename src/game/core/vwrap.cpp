@@ -13,6 +13,7 @@
 #include "../ui/msgtags.h"
 #include "../ui/thingbrowser.h"
 #include "../ui/panel7cc218.h"
+#include "../gfx/texcache.h"
 
 namespace {
 
@@ -52,7 +53,7 @@ u32 __fastcall Global8bba48_ClipAndTouch(u8 *self, void *) {
         if (records == 0) continue;
         for (u32 record = records + 0x10; count > 0; count--, record += 0x1c) {
             const u32 item = global<u32>(record);
-            if (item != 0xffffffffu) g_calls.Th(0x0058c9f0, global<u32>(0x008c4b44), global<u32>(item), 0x3f000000u);
+            if (item != 0xffffffffu) g_calls.Th(0x0058c9f0, gTexcache_8c4b44, global<u32>(item), 0x3f000000u);
         }
         reinterpret_cast<Give>(at<u32>(self, 0u - 0xc))(records);
     }

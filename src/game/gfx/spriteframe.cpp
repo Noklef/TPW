@@ -86,7 +86,7 @@ void FreeTextures(u8 *image) {
     for (s32 i = 0; i < (s32)at<u16>(image, 0x16); ++i) {
         u8 *const texture = at<u8 *>(image, 0) + i * 0x60;
         if (at<u32>(texture, 8) & 0x1000)
-            TexCache_UnlinkItem(*reinterpret_cast<u8 **>((uintptr_t)0x008c4b44), nullptr, texture);
+            TexCache_UnlinkItem(*reinterpret_cast<u8 * *>(&gTexcache_8c4b44), nullptr, texture);
         at<u32>(at<u8 *>(image, 0), 0x40) = 0;
     }
     DestroyArray(at<u8 *>(image, 0));
@@ -223,7 +223,7 @@ u32 __fastcall SpriteImage_LoadRle(u8 *image, void *, u8 *stream, u32 language, 
 }
 
 u32 __fastcall SpriteImage_MakeTextures(u8 *image, void *, u32 x, u32 y) {
-    const s32 tile = at<s32>(global<u8 *>(0x008c4b44), 0x18f0);
+    const s32 tile = at<s32>(reinterpret_cast<u8 * &>(gTexcache_8c4b44), 0x18f0);
     const s32 across = (s32)(tile + at<u16>(image, 0x10) - 1) / tile;
     const s32 down = (s32)(tile + at<u16>(image, 0x12) - 1) / tile;
     const s32 count = down * across;
@@ -684,13 +684,13 @@ u32 __fastcall SpriteFrame_Show(u8 *frame) {
         image = at<u8 *>(frame, 0x28);
         if (!at<u32>(image, 0)) g_calls.Th(0x005889b0, (u32)(uintptr_t)image, (s32)at<s16>(frame, 0x34), (s32)at<s16>(frame, 0x36));   // SpriteImage_MakeTextures
         for (u32 i = 0; i < at<u16>(image, 0x16); ++i)
-            g_calls.Th(0x0058c9f0, global<u32>(0x008c4b44), at<u32>(image, 0) + i * 0x60, 0x3dcccccdu);   // TexCache_TouchItem (0.1)
+            g_calls.Th(0x0058c9f0, gTexcache_8c4b44, at<u32>(image, 0) + i * 0x60, 0x3dcccccdu);   // TexCache_TouchItem (0.1)
         g_calls.Th(0x0058a6e0, global<u32>(0x008c47a0), frame);   // SpriteQueue_Add2
         return 1;
     }
     if (flags & 0x40000) {
         at<u32>(frame, 0x10) = flags | 0x10000000u;
-        g_calls.Th(0x0058c9f0, global<u32>(0x008c4b44), at<u32>(image, 0), 0x3f000000u);   // (0.5)
+        g_calls.Th(0x0058c9f0, gTexcache_8c4b44, at<u32>(image, 0), 0x3f000000u);   // (0.5)
         g_calls.Th(0x0058a6b0, global<u32>(0x008c47a0), frame);   // SpriteQueue_Add
         return 1;
     }
@@ -705,7 +705,7 @@ u32 __fastcall SpriteFrame_Show(u8 *frame) {
     }
     g_calls.Th(0x0058a6b0, global<u32>(0x008c47a0), frame);
     at<u32>(frame, 0x10) |= 0x10000000u;
-    g_calls.Th(0x0058c9f0, global<u32>(0x008c4b44), at<u32>(at<u8 *>(frame, 0x28), 0), at<u32>(frame, 8));
+    g_calls.Th(0x0058c9f0, gTexcache_8c4b44, at<u32>(at<u8 *>(frame, 0x28), 0), at<u32>(frame, 8));
     return 1;
 }
 }

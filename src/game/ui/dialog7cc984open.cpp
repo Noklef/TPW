@@ -22,6 +22,7 @@
 #include "window.h"
 #include "windowscript.h"
 #include "../online/chatcommand.h"
+#include "../coaster/arreplayaction.h"
 
 namespace {
 
@@ -50,7 +51,7 @@ u8 *holder() {
 
 // The global save info, made when none (inlined each time).
 u8 *save() {
-    u8 *&made = global<u8 *>(0x00f7c58c);
+    u8 *&made = gArreplayaction_f7c58c;
     if (!made) {
         u8 *const block = static_cast<u8 *>(GameHeap_Alloc(0x50));
         made = block ? g_env->saveCtor(block) : nullptr;

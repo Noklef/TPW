@@ -78,8 +78,8 @@ void __fastcall ViewCtl702bc8_Enter(u8 *self) {
     at<u32>(View(), 0x50) = 0xf30000;
     at<u32>(View(), 0x54) = 0xcb0000;
     at<u32>(View(), 0x58) = 0xbf0000;
-    at<u32>(self, 0x74) = g_env->playAt(0, global<u32>(0x00803a48), 2, 0, 0, 0);
-    at<u32>(self, 0x78) = g_env->playAt(0, global<u32>(0x00803a48), 3, 0, 0, 0);
+    at<u32>(self, 0x74) = g_env->playAt(0, gSoundset_803a48, 2, 0, 0, 0);
+    at<u32>(self, 0x78) = g_env->playAt(0, gSoundset_803a48, 3, 0, 0, 0);
     u8 *const part = static_cast<u8 *>(GameHeap_Alloc(0x18));
     if (part) {
         at<u32>(part, 0) = 0x00702bb4;
@@ -131,7 +131,7 @@ void __fastcall Scene702dd0_Enter(u8 *self) {
     u8 *const item = at<u8 *>(self, 0xc);
     if (!item)
         return;
-    u8 *const table = global<u8 *>(0x00803a4c);
+    u8 *const table = gSoundset_803a4c;
     at<u32>(item, 0x1c) = g_env->playAt(at<u32>(item, 0x1c), at<u32>(table, at<u32>(item, 0x18) * 8 + 4), 1, 0, 0, 0);
     at<u32>(item, 0x20) = g_env->playAt(at<u32>(item, 0x20), at<u32>(table, at<u32>(item, 0x18) * 8), 2, 0, 0, 0);
     g_env->apply();
