@@ -1335,6 +1335,43 @@ static void test_code_slots(const char *exe_path) {
     CHECK(found.size() == n && std::equal(found.begin(), found.end(), kCodeSlots));
     static_assert(sizeof kCodeSlots / sizeof kCodeSlots[0] >= 4262, "the survey's count (.docs/07-standalone-survey.md); hooks only add slots");
 }
+
+#include "gamedata_fixups.h"
+
+// tpw.exe's start-up fixups (tools/gamedata.py pointers()) against a rescan of the exe here: every 4-aligned dword of a data section whose
+// value lies inside a converted global (0x6fd000-0xfc1000), or that lies inside one and holds a .text / cseg address.
+static void test_gamedata_fixups(const char *exe_path) {
+    std::ifstream f(exe_path, std::ios::binary);
+    if (!f) { ++g_failures; return; }
+    std::vector<unsigned char> pe((std::istreambuf_iterator<char>(f)), std::istreambuf_iterator<char>());
+    auto u32 = [&](size_t o) { std::uint32_t v; std::memcpy(&v, &pe[o], 4); return v; };
+    auto converted = [](std::uint32_t a) {
+        for (unsigned i = 0; i < kFixupRangeCount; ++i)
+            if (a - kFixupRanges[i][0] < kFixupRanges[i][1]) return true;
+        return false;
+    };
+    const std::uint32_t nt = u32(0x3C), base = u32(nt + 0x34), nsec = pe[nt + 6] | pe[nt + 7] << 8;
+    const std::uint32_t sec0 = nt + 0x18 + (pe[nt + 0x14] | pe[nt + 0x15] << 8);
+    std::vector<std::pair<std::uint32_t, std::uint32_t>> found;
+    unsigned code = 0;
+    for (std::uint32_t i = 0, s = sec0; i < nsec; ++i, s += 40) {
+        char name[9] = {};
+        std::memcpy(name, &pe[s], 8);
+        if (!std::strcmp(name, ".text") || !std::strcmp(name, "cseg") || !std::strcmp(name, ".rsrc")) continue;
+        const std::uint32_t va = base + u32(s + 12), rs = u32(s + 16), raw = u32(s + 20);
+        for (std::uint32_t o = 0; o + 4 <= rs; o += 4) {
+            const std::uint32_t v = u32(raw + o);
+            const bool into = v >= 0x6fd000 && v < 0xfc1000 && converted(v);
+            const bool code_in = v >= 0x401000 && v < 0x6fc800 && converted(va + o);
+            if (into || code_in) found.push_back({va + o, v});
+            code += code_in;
+        }
+    }
+    std::printf("  gamedata fixups: %u pointers into %u globals, %u code addresses in them; table %u\n", unsigned(found.size()) - code,
+                kFixupRangeCount, code, kFixupCount);
+    CHECK(found.size() == kFixupCount);
+    for (std::size_t i = 0; i < found.size() && i < kFixupCount; ++i) CHECK(found[i].first == kFixups[i][0] && found[i].second == kFixups[i][1]);
+}
 #endif
 
 int main(int argc, char **argv) {
@@ -1366,6 +1403,7 @@ int main(int argc, char **argv) {
     if (argc > 1) test_hook_table(argv[1]);
 #ifdef TPW_CODE_SLOTS
     if (argc > 1) test_code_slots(argv[1]);
+    if (argc > 1) test_gamedata_fixups(argv[1]);
 #endif
     std::printf(g_failures ? "%d FAILED\n" : "all tests passed\n", g_failures);
     return g_failures ? 1 : 0;

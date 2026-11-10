@@ -958,8 +958,8 @@ if(EXISTS "${TPW_EXE}")
         COMMAND ${TPW_PYTHON} -I ${CMAKE_SOURCE_DIR}/tools/gen_loader_slots.py ${TPW_EXE} ${CMAKE_BINARY_DIR}/codeslots.h
         DEPENDS ${CMAKE_SOURCE_DIR}/tools/gen_loader_slots.py ${CMAKE_SOURCE_DIR}/src/hook/hooks.cpp ${TPW_EXE}
         COMMENT "tpw.exe's code-slot table from tp.exe")
-    add_custom_command(OUTPUT ${CMAKE_BINARY_DIR}/gamedata_object.cpp
-        COMMAND ${TPW_PYTHON} -I ${CMAKE_SOURCE_DIR}/tools/gamedata.py object ${TPW_EXE} ${CMAKE_BINARY_DIR}/gamedata_object.cpp
+    add_custom_command(OUTPUT ${CMAKE_BINARY_DIR}/gamedata_object.cpp ${CMAKE_BINARY_DIR}/gamedata_fixups.h
+        COMMAND ${TPW_PYTHON} -I ${CMAKE_SOURCE_DIR}/tools/gamedata.py object ${TPW_EXE} ${CMAKE_BINARY_DIR}/gamedata_object.cpp ${CMAKE_BINARY_DIR}/gamedata_fixups.h
         DEPENDS ${CMAKE_SOURCE_DIR}/tools/gamedata.py ${tpw_sources} ${TPW_EXE}
         COMMENT "tpw.exe's globals, their initial values from tp.exe")
     add_executable(tpw WIN32
@@ -972,7 +972,7 @@ if(EXISTS "${TPW_EXE}")
     target_include_directories(tpw PRIVATE ${CMAKE_BINARY_DIR})
     target_link_libraries(tpw PRIVATE tpw_game)
     target_link_options(tpw PRIVATE /FIXED /DYNAMICBASE:NO /BASE:0x10000 /NXCOMPAT /ENTRY:LoaderEntry /MAP /INCREMENTAL:NO /OPT:REF)
-    target_sources(tpw_tests PRIVATE ${CMAKE_BINARY_DIR}/codeslots.h)
+    target_sources(tpw_tests PRIVATE ${CMAKE_BINARY_DIR}/codeslots.h ${CMAKE_BINARY_DIR}/gamedata_fixups.h)
     target_include_directories(tpw_tests PRIVATE ${CMAKE_BINARY_DIR})
     target_compile_definitions(tpw_tests PRIVATE TPW_CODE_SLOTS)
 else()
