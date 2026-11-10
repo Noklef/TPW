@@ -1,4 +1,5 @@
 #include "crt.h"
+#include "crtlock.h"
 #include "crtmbstring.h"
 
 #include <intrin.h>
@@ -302,6 +303,34 @@ void *__cdecl CRT_getptd() {
     }
     import_slot<void(__stdcall *)(u32)>(0x006fd1c8)(error);    // SetLastError
     return data;
+}
+
+s32 __cdecl CRT_mtinit() {
+    CRT_mtinitlocks();
+    u32 &slot = *reinterpret_cast<u32 *>((uintptr_t)0x0077ecd0);
+    slot = import_slot<u32(__stdcall *)()>(0x006fd178)();    // TlsAlloc
+    if (slot == 0xffffffffu) return 0;
+    u32 *const data = static_cast<u32 *>(g_inner->calloc(1, 0x74));
+    if (!data || !import_slot<s32(__stdcall *)(u32, void *)>(0x006fd230)(slot, data)) return 0;    // TlsSetValue
+    g_inner->initptd(data);
+    data[0] = import_slot<u32(__stdcall *)()>(0x006fd248)();    // GetCurrentThreadId
+    data[1] = 0xffffffffu;
+    return 1;
+}
+
+void __cdecl CRT_freeptd(void *data) {
+    const u32 slot = *reinterpret_cast<u32 *>((uintptr_t)0x0077ecd0);
+    if (slot == 0xffffffffu) return;
+    if (!data) data = import_slot<void *(__stdcall *)(u32)>(0x006fd1c4)(slot);    // TlsGetValue
+    if (data) {
+        const u32 *const fields = static_cast<const u32 *>(data);
+        static const u32 kBuffers[] = {0x24 / 4, 0x28 / 4, 0x30 / 4, 0x38 / 4, 0x40 / 4, 0x44 / 4};
+        for (u32 i : kBuffers)
+            if (fields[i]) Crt().free(reinterpret_cast<void *>((uintptr_t)fields[i]));
+        if (fields[0x50 / 4] != 0x00781490) Crt().free(reinterpret_cast<void *>((uintptr_t)fields[0x50 / 4]));
+        Crt().free(data);
+    }
+    import_slot<s32(__stdcall *)(u32, void *)>(0x006fd230)(*reinterpret_cast<u32 *>((uintptr_t)0x0077ecd0), nullptr);    // TlsSetValue
 }
 
 s32 *__cdecl CRT_errno() { return reinterpret_cast<s32 *>(g_inner->getptd() + 8); }
