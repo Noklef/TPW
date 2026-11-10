@@ -109,6 +109,15 @@ void __cdecl CRT_onexitinit();
 void __cdecl CRT_CxxSetUnhandledExceptionFilter();
 void __cdecl CRT_CxxRestoreUnhandledExceptionFilter();
 
+// 0x68cbd0 / 0x68cbf0 / 0x68cc10: _ValidateRead / _ValidateWrite / _ValidateExecute: 1 when IsBadReadPtr / IsBadWritePtr / IsBadCodePtr says 0, else 0.
+s32 __cdecl CRT_ValidateRead(const void *block, u32 size);
+s32 __cdecl CRT_ValidateWrite(void *block, u32 size);
+s32 __cdecl CRT_ValidateExecute(const void *code);
+
+// 0x687bc0: __CxxUnhandledExceptionFilter (stdcall): an MSVC C++ exception (0xe06d7363, 3 parameters, magic 0x19930520): terminate 0x682590 (the EH runtime, by address), 1. Else the
+// filter before it ([0xfb1454], read again for the call) when set and _ValidateExecute passes it; else 0.
+s32 __stdcall CRT_CxxUnhandledExceptionFilter(const u32 *const *pointers);
+
 // 0x67a7d0: atexit: 0 when _onexit took fn, else -1.
 s32 __cdecl CRT_atexit(void *fn);
 

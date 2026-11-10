@@ -231,6 +231,21 @@ void __cdecl CRT_CxxSetUnhandledExceptionFilter() {
 
 void __cdecl CRT_CxxRestoreUnhandledExceptionFilter() { import_slot<u32(__stdcall *)(u32)>(0x006fd1a4)(*reinterpret_cast<u32 *>((uintptr_t)0x00fb1454)); }
 
+s32 __cdecl CRT_ValidateRead(const void *block, u32 size) { return !import_slot<s32(__stdcall *)(const void *, u32)>(0x006fd1d8)(block, size); }   // IsBadReadPtr
+s32 __cdecl CRT_ValidateWrite(void *block, u32 size) { return !import_slot<s32(__stdcall *)(void *, u32)>(0x006fd25c)(block, size); }        // IsBadWritePtr
+s32 __cdecl CRT_ValidateExecute(const void *code) { return !import_slot<s32(__stdcall *)(const void *)>(0x006fd280)(code); }               // IsBadCodePtr
+
+s32 __stdcall CRT_CxxUnhandledExceptionFilter(const u32 *const *pointers) {
+    const u32 *const record = pointers[0];
+    if (record[0] == 0xe06d7363 && record[4] == 3 && record[5] == 0x19930520) {
+        reinterpret_cast<void(__cdecl *)()>((uintptr_t)0x00682590)();   // terminate (the C++ EH runtime, not ported)
+        return 1;
+    }
+    const u32 previous = *reinterpret_cast<const u32 *>((uintptr_t)0x00fb1454);
+    if (!previous || !CRT_ValidateExecute(reinterpret_cast<const void *>((uintptr_t)previous))) return 0;
+    return (*reinterpret_cast<s32(__stdcall *const *)(const u32 *const *)>((uintptr_t)0x00fb1454))(pointers);
+}
+
 void __cdecl CRT_free(void *block) {
     if (!block) return;
     const CrtInnerEnv &env = *g_inner;

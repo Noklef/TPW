@@ -2054,6 +2054,10 @@ address,name,kind,confidence,notes
 0x0067e5d0,CRT_towlower,function,high,reimplemented (src/game/core/crt); towlower: _towlower_lk under the locale's lock
 0x0067ed00,CRT_towupper,function,high,reimplemented (src/game/core/crt); towupper: _towupper_lk under the locale's lock
 0x0067e010,CRT_itow,function,high,reimplemented (src/game/core/crt); _itow: _itoa widened
+0x0068cbd0,CRT_ValidateRead,function,high,reimplemented (src/game/core/crt); _ValidateRead: !IsBadReadPtr
+0x0068cbf0,CRT_ValidateWrite,function,high,reimplemented (src/game/core/crt); _ValidateWrite: !IsBadWritePtr
+0x0068cc10,CRT_ValidateExecute,function,high,reimplemented (src/game/core/crt); _ValidateExecute: !IsBadCodePtr
+0x00687bc0,CRT_CxxUnhandledExceptionFilter,function,high,"reimplemented (src/game/core/crt); __CxxUnhandledExceptionFilter: terminate for a C++ exception, else the filter before it"
 0x00f7a7d0,gCdVolumeLabel,data,medium,"const char *: the CD's volume label, looked for on the CD-ROM drives by the CD check (0x5aa585)"
 0x005f8ae0,RegKey_Open,function,high,"reimplemented (src/game/core/regkey); thiscall (&out, subkey or null, nonzero: HKCU else HKLM); the company key (0x775748) made, then the subkey in it; a held key closed first"
 0x005f8b70,RegKey_Dtor,function,high,reimplemented (src/game/core/regkey); thiscall; RegKey_Close
