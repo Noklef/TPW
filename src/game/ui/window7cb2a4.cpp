@@ -8,6 +8,8 @@
 #include "../core/options.h"
 #include "../core/vcall.h"
 #include "window.h"
+#include "dialog7cb2b8build.h"
+#include "dialog74fb20.h"
 
 namespace {
 
@@ -38,13 +40,13 @@ extern "C" s32 __cdecl Window7cb2a4_Handler(u8 *window, u32 message, u32 a, u32 
         global<s32>(0x00752ec4) = -1;
         global<s32>(0x00752ec8) = -1;
     } else if (message == 0x1e) {
-        u8 &guard = global<u8>(0x00fb34c1);
+        u8 &guard = gDialog7cb2b8build_fb34c1;
         if (!(guard & 1)) {
             guard |= 1;
-            g_env->readMode(reinterpret_cast<u8 *>((uintptr_t)0x00fb3b7c));
+            g_env->readMode(reinterpret_cast<u8 *>(&gDialog74fb20_fb3b7c));
             g_env->atExit(reinterpret_cast<void(__cdecl *)()>((uintptr_t)0x005d1750));
         }
-        if (global<u32>(0x00fb3b7c) != 2 && g_env->level(g_env->save()) != global<s32>(0x00752ec8)) {
+        if (gDialog74fb20_fb3b7c != 2 && g_env->level(g_env->save()) != global<s32>(0x00752ec8)) {
             global<s32>(0x00752ec8) = g_env->level(g_env->save());
             if (g_env->level(g_env->save())) {
                 show(window, 0x36, 0x34, 1);

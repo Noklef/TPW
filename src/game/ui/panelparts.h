@@ -15,14 +15,19 @@
 #include "../gfx/barmesh.h"
 #include "../render/textparts.h"
 #include "window.h"
+#include "dialog7cc2ec.h"
+#include "../core/gamedata.h"
+
+// Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(char[16], gPanelparts_7508c0, 0x007508c0, 0x10);
 
 namespace panelparts {
 
 using PartCtor = u8 *(__fastcall *)(u8 *, void *, u32);
 
 // the bars' texture names in the game's data
-inline const char *const kRideStatBar = reinterpret_cast<const char *>(0x00750e00);   // "ridestatbar.wct"
-inline const char *const kHappyGrad = reinterpret_cast<const char *>(0x007508c0);     // "happygrad.wct"
+inline const char *const kRideStatBar = gDialog7cc2ec_750e00;   // "ridestatbar.wct"
+inline const char *const kHappyGrad = gPanelparts_7508c0;     // "happygrad.wct"
 
 // the child `id` given a part made by ctor and font 6; returns the child
 inline u8 *dress(u8 *window, PartCtor ctor, u32 id) {

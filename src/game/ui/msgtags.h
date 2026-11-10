@@ -127,3 +127,6 @@ void MsgTag_SetHandlerEnv(const MsgTagHandlerEnv *env);
 
 // Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
 GAME_DATA(s32, gMsgTags_Add_750610, 0x00750610, 4);
+GAME_DATA(u32, gMsgtags_7c3b00, 0x007c3b00, 0x4);
+GAME_DATA(s32, gMsgtags_7ca09c, 0x007ca09c, 0x4);
+GAME_DATA(u8 *, gMsgtags_7cb2c8, 0x007cb2c8, 0x4);

@@ -19,7 +19,7 @@ const Dialog7cc4b4OpenEnv kGameEnv = {&WindowScript_Build, &TextPart_Ctor, &Text
                                       reinterpret_cast<void(__cdecl *)()>((uintptr_t)0x004bbbd0)};
 const Dialog7cc4b4OpenEnv *g_env = &kGameEnv;
 
-u8 *dialog() { return global<u8 *>(0x007cc4b4); }
+u8 *dialog() { return gDialog7cc4b4open_7cc4b4; }
 
 u8 *child(u8 *window, u32 id) { return Window_FindChild(window, nullptr, id); }
 
@@ -31,7 +31,7 @@ extern "C" void __cdecl Dialog7cc4b4_Open() {
     if (dialog()) return;
     u8 *const parent = at<u8 *>(global<u8 *>(0x00f82884), 4);
     if (!parent) return;
-    global<u8 *>(0x007cc4b4) = g_env->build(parent, nullptr, reinterpret_cast<u8 *>((uintptr_t)0x00757f60), 0x004b8b70);
+    gDialog7cc4b4open_7cc4b4 = g_env->build(parent, nullptr, reinterpret_cast<u8 *>((uintptr_t)0x00757f60), 0x004b8b70);
 
     u8 *const panel = child(dialog(), 0x1e0ec);
     u8 *const text = child(panel, 0x1e0ee);
@@ -44,8 +44,8 @@ extern "C" void __cdecl Dialog7cc4b4_Open() {
     g_env->setShown(panel, nullptr, 0);
     g_env->notify1(child(dialog(), 0x1e0ea), nullptr, 1);
     g_env->notify1(child(child(dialog(), 0x1e0ea), 0x1e0eb), nullptr, 5);
-    global<u32>(0x007cc4b8) = 0;
-    global<u32>(0x007cc4bc) = 0;
+    reinterpret_cast<u32 &>(gDialog7cc4b4_7cc4b8) = 0;
+    gDialog7cc4b4update_7cc4bc = 0;
     g_env->update();
 
     u8 *const note = child(dialog(), 0x1e0ef);

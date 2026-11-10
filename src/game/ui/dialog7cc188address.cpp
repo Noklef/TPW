@@ -12,6 +12,8 @@
 #include "dialog7cc188.h"
 #include "window.h"
 #include "window7059f0.h"
+#include "dialog7cc188handler.h"
+#include "dialog7cc184handler.h"
 
 namespace {
 
@@ -23,7 +25,7 @@ const Dialog7cc188AddressEnv kGameEnv = {game<void(__fastcall *)(u8 *, void *, c
                                          game<void(__cdecl *)(const u8 *, u32, u32, u32, u32, u32, u32, u32)>(0x0047f020), &Window_CallDefault};
 const Dialog7cc188AddressEnv *g_env = &kGameEnv;
 
-u16 *address() { return reinterpret_cast<u16 *>((uintptr_t)0x007cb8d8); }
+u16 *address() { return reinterpret_cast<u16 *>(gDialog7cc188_7cb8d8); }
 u16 *recipients() { return reinterpret_cast<u16 *>((uintptr_t)0x007cb4d0); }
 
 // wcschr (0x67c2f0): the terminator counts as found.
@@ -84,7 +86,7 @@ void __cdecl Dialog7cc188_AddAddress() {
         return;
     }
     char narrow[0x40];
-    Crt().sprintf(narrow, reinterpret_cast<const char *>((uintptr_t)0x00754440), address());
+    Crt().sprintf(narrow, gDialog7cc188_AddAddress_754440, address());
     u8 *const slots = UserSlots_Instance();
     StdString name;
     name.ptr = nullptr;
@@ -96,13 +98,13 @@ void __cdecl Dialog7cc188_AddAddress() {
     g_env->addName(slots + 0x100, nullptr, &name);
     StdString_Dtor(&name, nullptr);
     g_env->fillList(1);
-    g_env->scrollTo(Window_FindChild(global<u8 *>(0x007cc188), nullptr, 0x26), nullptr, -1);
+    g_env->scrollTo(Window_FindChild(gDialog7cc188handler_7cc188, nullptr, 0x26), nullptr, -1);
     if (contains(recipients(), address())) return;
     u16 entry[0x80];
-    Crt().swprintf(entry, reinterpret_cast<const u16 *>((uintptr_t)0x00754438), address());
+    Crt().swprintf(entry, reinterpret_cast<const u16 *>(gDialog7cc188address_754438), address());
     if (Crt().wcscmp(recipients(), g_env->wideText(0xd3)) == 0) Crt().wcscpy(recipients(), entry);
     else Crt().wcscat(recipients(), entry);
-    vcall<void>(Window_FindChild(global<u8 *>(0x007cc184), nullptr, 0x5da5), 0x24, recipients());
+    vcall<void>(Window_FindChild(gDialog7cc184handler_7cc184, nullptr, 0x5da5), 0x24, recipients());
 }
 
 s32 __cdecl Dialog7cc188_AddressHandler(u8 *window, u32 message, u32 a, u32 b) {

@@ -12,7 +12,7 @@ namespace {
 
 template <typename T> T &at(void *p, u32 offset) { return *reinterpret_cast<T *>((uintptr_t)p + offset); }
 
-u8 *&timers() { return *reinterpret_cast<u8 **>((uintptr_t)0x00faa634); }
+u8 *&timers() { return gWindowtimers_faa634; }
 }
 
 extern "C" {
@@ -59,8 +59,8 @@ u32 __cdecl WindowTimers_Kill(u32 window, u32 id) {
 
 u8 *__cdecl WindowTimer_New(u32) {
     u8 *found = nullptr;
-    for (s32 i = 0; i < *reinterpret_cast<s32 *>((uintptr_t)0x00faa62c) && !found; ++i) {
-        u8 *const node = *reinterpret_cast<u8 **>((uintptr_t)0x00faa630) + 0x20 * i;
+    for (s32 i = 0; i < gWindowtimers_faa62c && !found; ++i) {
+        u8 *const node = gWindowtimers_faa630 + 0x20 * i;
         if (at<u32>(node, 0x14)) {
             found = node;
             at<u32>(node, 0x14) = 0;
@@ -180,14 +180,14 @@ u32 __cdecl WindowTimers_Init(u32 count) {
                                reinterpret_cast<void *>(&WindowTimer_Unlink));
         nodes = block + 4;
     }
-    *reinterpret_cast<u8 **>((uintptr_t)0x00faa630) = nodes;
-    *reinterpret_cast<u32 *>((uintptr_t)0x00faa62c) = count;
-    *reinterpret_cast<u32 *>((uintptr_t)0x00faa638) = 0;
+    gWindowtimers_faa630 = nodes;
+    *reinterpret_cast<u32 *>(&gWindowtimers_faa62c) = count;
+    gWindowtimers_faa638 = 0;
     return count;
 }
 
 void __cdecl WindowTimers_FireAll() {
-    if (*reinterpret_cast<u32 *>((uintptr_t)0x00faa638)) return;
+    if (gWindowtimers_faa638) return;
     for (u8 *node = timers(); node; node = at<u8 *>(node, 0x18)) WindowTimer_Fire(node);
 }
 
@@ -196,7 +196,7 @@ u8 *__cdecl WindowTimers_Find(u32 window, u32 id) {
 }
 
 void __cdecl WindowTimers_Shutdown() {
-    if (u8 *const nodes = *reinterpret_cast<u8 **>((uintptr_t)0x00faa630)) WindowTimer_VecDelete(nodes, nullptr, 3);
+    if (u8 *const nodes = gWindowtimers_faa630) WindowTimer_VecDelete(nodes, nullptr, 3);
     timers() = nullptr;
 }
 }

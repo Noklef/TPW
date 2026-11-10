@@ -7,6 +7,7 @@
 #include "../core/ime.h"
 #include "window.h"
 #include "window705a50.h"
+#include "../core/gamewindow.h"
 
 namespace {
 
@@ -25,7 +26,7 @@ extern "C" {
 void __fastcall ImeHost_Attach(u8 *host, void *, u8 *window) {
     u8 *const ime = host + 0x1c;
     s32 result;
-    g_env->open(ime, nullptr, &result, global<u32>(0x007a130c));
+    g_env->open(ime, nullptr, &result, gGamewindow_7a130c);
     if (result < 0) {
         at<u8>(host, 0xc) = 0;
         return;

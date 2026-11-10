@@ -65,3 +65,12 @@ u32 __cdecl Dialog7cb3f8_DoneConfirmed();
 // pushed 0x18e (1) and [0x7cb3fc] 0; its +4 played.
 void __cdecl Dialog7cb3f8_Open();
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(u8, gDialog7cb3f8_7540c0, 0x007540c0, 0x1);
+GAME_DATA(u8, gDialog7cb3f8_7540c4, 0x007540c4, 0x1);
+GAME_DATA(u8, gDialog7cb3f8_7540c8, 0x007540c8, 0x1);
+GAME_DATA(u8, gDialog7cb3f8_SlotHandler_7540cc, 0x007540cc, 0x1);
+GAME_DATA(u8, gDialog7cb3f8_SlotHandler_7540d0, 0x007540d0, 0x1);

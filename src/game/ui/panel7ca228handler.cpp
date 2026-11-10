@@ -49,7 +49,7 @@ const Panel7ca228HandlerEnv *g_env = &kGameEnv;
 
 void Refresh() {
     const Panel7ca228HandlerEnv *const E = g_env;
-    u8 *const thing = global<u8 *>(0x007c2658);
+    u8 *const thing = gPanel7cc218_7c2658;
     E->getDef(thing);
     u8 *const window = global<u8 *>(0x007ca23c);
     if (!window) return;
@@ -70,7 +70,7 @@ extern "C" {
 void Panel7ca228Handler_SetEnv(const Panel7ca228HandlerEnv *env) { g_env = env ? env : &kGameEnv; }
 
 void __fastcall Panel7ca228_Follow(u8 *panel) {
-    g_env->followCamera(global<u8 *>(0x007c2658), nullptr, 0);
+    g_env->followCamera(gPanel7cc218_7c2658, nullptr, 0);
     vcall<void>(panel, 0x2c);
 }
 

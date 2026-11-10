@@ -24,3 +24,8 @@ extern "C" {
 // 0x410: Gui_KeyChar(wparam, 0). Answers 0. All else: 1.
 u32 __stdcall GameWindow_Proc(u32 window, u32 message, u32 wparam, u32 lparam);
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(u32, gWindowproc_7a1a14, 0x007a1a14, 0x4);

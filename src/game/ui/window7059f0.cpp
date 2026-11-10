@@ -911,7 +911,7 @@ u32 __cdecl Window7059f0_Proc(u8 *window, u32 message, u32 a, u32 b) {
     case 0x1000a: Window7059f0_OnKey(window, nullptr, a, b); break;
     case 0x15:
     case 0x1a:
-        if (Fn_65d57c(window) & 0x200) Window_SetModal(window, nullptr, 0x0077c4b8);
+        if (Fn_65d57c(window) & 0x200) Window_SetModal(window, nullptr, reinterpret_cast<uintptr_t>(&gWindow7059f0_Proc_77c4b8));
         break;
     }
     return Window_DefaultProc(window, message, a, b);

@@ -29,3 +29,11 @@ void __cdecl Dialog7ca210_Open();
 // Window_CallDefault, its answer returned.
 s32 __cdecl Dialog7ca210_NameHandler(u8 *window, u32 message, u32 a, u32 b);
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(u32, gDialog7ca210_7ca1e8, 0x007ca1e8, 0x4);
+GAME_DATA(u32, gDialog7ca210_Open_7ca208, 0x007ca208, 0x4);
+GAME_DATA(u8 *, gDialog7ca210_7ca210, 0x007ca210, 0x4);
+GAME_DATA(u8, gDialog7ca210_fb34c5, 0x00fb34c5, 0x1);

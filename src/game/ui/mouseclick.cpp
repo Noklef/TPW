@@ -115,7 +115,7 @@ u32 __cdecl MouseClick_OnShown() {
     if (modeKind > 1) return 1;
     Globals7c264c_Load();
     const u32 tile = global<u16>(0x007b05cc);
-    switch (global<u32>(0x007c24f4)) {
+    switch (gMouseclick_7c24f4) {
     case 1:
     case 2:
         if (tile) enterTile(1);
@@ -147,7 +147,7 @@ u32 __cdecl MouseClick_OnShown() {
     case 12: {
         u8 *const thing = reinterpret_cast<u8 *>((uintptr_t)Global7c2650_Get());
         if (!thing) return 1;
-        if (global<u32>(0x007c24f4) == 7) g_env->showVisitor(reinterpret_cast<u8 *>((uintptr_t)0x007cc408), nullptr, thing);
+        if (gMouseclick_7c24f4 == 7) g_env->showVisitor(reinterpret_cast<u8 *>((uintptr_t)0x007cc408), nullptr, thing);
         else g_env->showStaff(reinterpret_cast<u8 *>((uintptr_t)0x007cc3b0), nullptr, thing);
         return 1;
     }

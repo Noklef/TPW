@@ -29,3 +29,9 @@ extern "C" {
 // 0x802 with child 0xe059's state word 0: 0x100 (0xe059, 1) posted to the window, 0xe059's state set (1, 1), child a's Window705a20_SelectAll. Else, and after these: Window_CallDefault, its answer.
 s32 __cdecl Dialog7cc944_Handler(u8 *window, u32 message, u32 a, u32 b);
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(char[76], gDialog7cc944_Handler_75910c, 0x0075910c, 0x4c);
+GAME_DATA(u32[2], gDialog7cc944handler_759158, 0x00759158, 0x8);

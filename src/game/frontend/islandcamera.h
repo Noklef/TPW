@@ -17,3 +17,11 @@ extern "C" {
 // last line without '\n' is read on past the block to a NUL (sic). The block freed (Mem_GlobalFree).
 void __fastcall IslandCamera_LoadSettings(u8 *settings);
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(char[16], gIslandCamera_LoadSettings_774d18, 0x00774d18, 0x10);
+GAME_DATA(char[12], gIslandCamera_LoadSettings_774d28, 0x00774d28, 0xc);
+GAME_DATA(char[11], gIslandCamera_LoadSettings_774d34, 0x00774d34, 0xb);
+GAME_DATA(char[11], gIslandCamera_LoadSettings_774d40, 0x00774d40, 0xb);

@@ -10,7 +10,7 @@ namespace {
 
 template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cast<T *>((uintptr_t)p + offset); }
 
-u8 *&head() { return *reinterpret_cast<u8 **>((uintptr_t)0x00faa624); }
+u8 *&head() { return gGuinamed_faa624; }
 
 }  // namespace
 

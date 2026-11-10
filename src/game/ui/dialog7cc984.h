@@ -23,3 +23,8 @@ struct Dialog7cc984Env {
     u32(__cdecl *restoreFocus)();                                            // Focus_Restore
 };
 void Dialog7cc984_SetEnv(const Dialog7cc984Env *env);
+
+#include "../core/gamedata.h"
+
+// Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(u8 *, gDialog7cc984_7cc984, 0x007cc984, 0x4);

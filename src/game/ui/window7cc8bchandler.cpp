@@ -8,6 +8,7 @@
 #include "gamepause.h"
 #include "window.h"
 #include "window7059f0.h"
+#include "window7cc8bc.h"
 
 namespace {
 
@@ -27,8 +28,8 @@ s32 __cdecl Window7cc8bc_Handler(u8 *window, u32 message, u32 a, u32 b) {
     const Window7cc8bcHandlerEnv *const E = g_env;
     if (message == 0x101) {
         const bool rooms = a == 0xc3126;
-        global<u32>(0x7cc8d0) = rooms ? 0 : 1;
-        E->clear(Window_FindChild(Window_FindChild(global<u8 *>(0x7cc8bc), nullptr, 0xc3123), nullptr, 0xc3124));
+        gWindow7cc8bc_7cc8d0 = rooms ? 0 : 1;
+        E->clear(Window_FindChild(Window_FindChild(gWindow7cc8bc_7cc8bc, nullptr, 0xc3123), nullptr, 0xc3124));
         if (rooms)
             E->fillRooms(E->chat());
         else

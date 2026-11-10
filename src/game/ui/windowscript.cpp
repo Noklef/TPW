@@ -17,7 +17,7 @@
 
 namespace {
 
-u32 &cursor() { return *reinterpret_cast<u32 *>((uintptr_t)0x00faa620); }
+u32 &cursor() { return gWindowscript_faa620; }
 
 u16 next(u8 *script) {
     const u16 word = *reinterpret_cast<u16 *>(script + 2 * cursor());

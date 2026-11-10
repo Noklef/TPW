@@ -84,7 +84,7 @@ extern "C" s32 __cdecl Panel7ca178_Handler(u8 *window, u32 message, u32 a, u32 b
             g_env->stepGroup(panel);
             break;
         case 0x15bc2:
-            g_env->open7ca150(3, global<u32>(0x007c2658));
+            g_env->open7ca150(3, reinterpret_cast<u32 &>(gPanel7cc218_7c2658));
             return 0;
         case 0x15bc3:
             g_env->moveMode(panel);
@@ -133,10 +133,10 @@ extern "C" s32 __cdecl Panel7cc408_Handler(u8 *window, u32 message, u32 a, u32 b
             g_env->stepGroup(panel);
             break;
         case 0x3737:
-            g_env->openBrowser(global<u8 *>(0x007c2658));
+            g_env->openBrowser(gPanel7cc218_7c2658);
             return 0;
         case 0x3738:
-            g_env->open7ca13c(global<u32>(0x007c2658));
+            g_env->open7ca13c(reinterpret_cast<u32 &>(gPanel7cc218_7c2658));
             return 0;
         default:
             break;
@@ -157,7 +157,7 @@ extern "C" s32 __cdecl Panel7cc3e0_Handler(u8 *window, u32 message, u32 a, u32 b
         return 1;
     case 0x10:
         if (a == 0x80080) {
-            const u8 *const thing = global<const u8 *>(0x007c2658);
+            const u8 *const thing = gPanel7cc218_7c2658;
             g_env->def(thing);
             if (!global<u8 *>(0x007cc3f4)) break;
             if (u8 *const child = Window_FindChild(global<u8 *>(0x007cc3f4), nullptr, 0x5210)) {
@@ -246,7 +246,7 @@ extern "C" s32 __cdecl Panel7cc258_Handler(u8 *window, u32 message, u32 a, u32 b
             g_env->close(self());
             return 0;
         case 0xc067:
-            g_env->open7ca150(1, global<u32>(0x007c2658));
+            g_env->open7ca150(1, reinterpret_cast<u32 &>(gPanel7cc218_7c2658));
             return 0;
         case 0xc068:
             g_env->goTo(self());
@@ -314,7 +314,7 @@ extern "C" s32 __cdecl Panel7cc298_Handler(u8 *window, u32 message, u32 a, u32 b
             g_env->close(other());
             return 0;
         case 0xa089:
-            g_env->open7ca150(2, global<u32>(0x007c2658));
+            g_env->open7ca150(2, reinterpret_cast<u32 &>(gPanel7cc218_7c2658));
             return 0;
         case 0xa08a:
             g_env->restart(other(), nullptr, b == 1 ? b : 0);

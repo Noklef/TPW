@@ -77,3 +77,11 @@ u32 __cdecl Dialog7cb25c_PayOffLoan(u32 index);
 u32 __cdecl Dialog7cb25c_TakeLoan(u32 index);
 
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(u32, gDialog7cb25c_Open_752938, 0x00752938, 0x4);
+GAME_DATA(u8 *, gDialog7cb25c_7cb25c, 0x007cb25c, 0x4);
+GAME_DATA(u32, gDialog7cb25c_7cb260, 0x007cb260, 0x4);
+GAME_DATA(u8, gDialog7cb25c_fb34c2, 0x00fb34c2, 0x1);

@@ -67,3 +67,10 @@ void __cdecl Dialog7cb398_Create();
 // (100 - the percent above 0x42) * 1024 / 100 (signed, truncated); Dialog7cb398_ShowTopThree. 0x14 the window 0, Game_CancelAdvisor (0xc7). 0x15 the hover label 0x4a68c5 with the text 0x96. 0x800 Obj_Set118 (b) of the game's table 0x5195d0.
 s32 __cdecl Dialog7cb398_Handler(u8 *window, u32 message, u32 a, u32 b);
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(u32, gDialog7cb398_753c48, 0x00753c48, 0x4);
+GAME_DATA(char[8], gDialog7cb398_Create_753c4c, 0x00753c4c, 0x8);
+GAME_DATA(char[20], gDialog7cb398_Create_753c54, 0x00753c54, 0x14);

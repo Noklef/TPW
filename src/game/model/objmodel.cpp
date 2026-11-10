@@ -18,8 +18,8 @@
 #include "../render/mode.h"
 #include "../terrain/procedural.h"
 #include "../terrain/texcache.h"
-#include "../gfx/texcache.h"
 #include "../render/renderer.h"
+#include "../gfx/texcache.h"
 #include "../render/pointsprites.h"
 
 namespace {
@@ -242,9 +242,9 @@ u32 __fastcall ObjModel_LightMesh(u8 *object, void *, u8 *mesh, const u32 *matri
     *colours++ = frame;
     if (!(at<u32>(mesh, 0) & 0x1000000) && !(global<u32>(0x008bcbc8) & 0x800)) {   // (the flag read again: the stamp may be the mesh's +0)
         global<u32>(0x00879dec) = 0;
-        ListNodes_Drain(ptr(global<u8 *>(0x0087a6d0), 0x30));
+        ListNodes_Drain(ptr(gRenderer_87a6d0, 0x30));
         if (!(flags & 0x3000000))
-            ListNodes_Drain(ptr(global<u8 *>(0x0087a6d0), 0x2c));
+            ListNodes_Drain(ptr(gRenderer_87a6d0, 0x2c));
         if (!(global<u32>(0x008bcbc8) & 0x1000))
             Meshes_Ready(gMeshlist_87a248, nullptr, lights);
         if (global<u32>(0x008bcbc8) & 0x400) {

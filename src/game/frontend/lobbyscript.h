@@ -17,3 +17,12 @@ void LobbyScript_SetEnv(const AddrCall *table, u32 count);
 // A missing delimiter runs on past it, sic.
 void __fastcall LobbyScript_Load(u8 *self, void *, const char *name, u32 a2, s32 index, u32 a4, u32 a5);
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(char[11], gLobbyScript_Load_774d4c, 0x00774d4c, 0xb);
+GAME_DATA(char[7], gLobbyScript_Load_774d58, 0x00774d58, 0x7);
+GAME_DATA(char[11], gLobbyScript_Load_774d60, 0x00774d60, 0xb);
+GAME_DATA(char[12], gLobbyScript_Load_774d6c, 0x00774d6c, 0xc);
+GAME_DATA(char[8], gLobbyScript_Load_774d78, 0x00774d78, 0x8);

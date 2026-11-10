@@ -21,6 +21,8 @@
 #include "../ui/windowscript.h"
 #include "islandcamera.h"
 #include "lobbyscene.h"
+#include "../online/chatlists.h"
+#include "../online/chatcommand.h"
 
 namespace {
 
@@ -45,7 +47,7 @@ u8 *Make(u32 size, u8 *(__fastcall *ctor)(u8 *)) {
 }
 
 u8 *UserSlots() {
-    u8 *&slots = global<u8 *>(0x00f81ebc);
+    u8 *&slots = gChatlists_f81ebc;
     if (!slots) slots = Make(0x110, g_start->userSlots);
     return slots;
 }
@@ -79,9 +81,9 @@ u32 __fastcall Frame_Start(u8 *frame) {
     if (settings) at<u32>(settings, 0) = 0x007029fc;
     at<u8 *>(frame, 0x10) = settings;
     g_start->camera(settings);
-    global<u8 *>(0x00f83774) = Make(0x10, g_start->make702a60);
-    global<u8 *>(0x00f83778) = Make(0x64, g_start->make702a90);
-    global<u8 *>(0x00f83784) = Make(8, g_start->make702b08);
+    gFrame_f83774 = Make(0x10, g_start->make702a60);
+    gFrame_f83778 = Make(0x64, g_start->make702a90);
+    gFrame_f83784 = Make(8, g_start->make702b08);
     global<u8 *>(0x00f85614) = Make(0x1c, g_start->make702d78);
     u8 *node = at<u8 *>(at<u8 *>(frame, 0x18), 4);
     while (node) {
@@ -89,7 +91,7 @@ u32 __fastcall Frame_Start(u8 *frame) {
         node = at<u8 *>(node, 4);
         vcall<void>(object, 4);
     }
-    u8 *&session = global<u8 *>(0x00f7d88c);
+    u8 *&session = gChatcommand_f7d88c;
     if (!session) session = Make(0x404, g_start->online);
     if (at<u32>(session, 0x108)) {
         ShowPanel(0x10);
@@ -165,9 +167,9 @@ u32 __fastcall Class7029f0_Close(u8 *frame) {
         node = at<u8 *>(node, 4);
         vcall<void>(object, 0x10);
     }
-    Delete(global<u8 *>(0x00f83784));
-    Delete(global<u8 *>(0x00f83778));
-    Delete(global<u8 *>(0x00f83774));
+    Delete(gFrame_f83784);
+    Delete(gFrame_f83778);
+    Delete(gFrame_f83774);
     Delete(global<u8 *>(0x00f85614));
     Delete(at<u8 *>(frame, 0x10));
     Sound_ReleaseLobbySfx();

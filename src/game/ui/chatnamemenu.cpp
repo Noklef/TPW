@@ -10,6 +10,7 @@
 #include "../online/chat.h"
 #include "../online/chatcommand.h"
 #include "window.h"
+#include "window7cc8bc.h"
 
 namespace {
 
@@ -38,7 +39,7 @@ NameCall command(u32 row, u32 b) {
 }
 
 u8 *chat() {
-    u8 *&made = global<u8 *>(0x007cddec);
+    u8 *&made = gChat_7cddec;
     if (!made) {
         u8 *const block = static_cast<u8 *>(GameHeap_Alloc(0xf0c));
         made = block ? g_env->chatCtor(block) : nullptr;
@@ -67,9 +68,9 @@ s32 __cdecl ChatNameMenu_Handler(u8 *window, u32 message, u32 a, u32 b) {
             call(chat(), nullptr, &text);
             CountedBuf_Reset(reinterpret_cast<u8 *>(&text), nullptr, 1);
         }
-        g_env->setShown(global<u8 *>(0x007cc8cc), nullptr, 0);
-        g_env->unlink(global<u8 *>(0x007cc8cc));
-        g_env->setFocus(global<u8 *>(0x007cc8bc), nullptr, 0);
+        g_env->setShown(gWindow7cc8bc_7cc8cc, nullptr, 0);
+        g_env->unlink(gWindow7cc8bc_7cc8cc);
+        g_env->setFocus(gWindow7cc8bc_7cc8bc, nullptr, 0);
     }
     return g_env->callDefault(window, nullptr, message, a, b);
 }

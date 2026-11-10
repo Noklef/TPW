@@ -24,3 +24,9 @@ extern "C" {
 // [[0xf82888] + 0x14]}; the hover label on 0x14bec with it; the focus; [[0xf85614] + 0x14]: Class702da0_Push (0x253, 1).
 void __cdecl Dialog7cca70_Open(u32 value);
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(u8[352], gDialog7cca70_Open_7593e8, 0x007593e8, 0x160);
+GAME_DATA(u32, gDialog7cca70_7cca8c, 0x007cca8c, 0x4);

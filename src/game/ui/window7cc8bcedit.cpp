@@ -12,6 +12,10 @@
 #include "cursor.h"
 #include "panel7c2534menus.h"
 #include "window.h"
+#include "dialogs.h"
+#include "window7cc8c0handler.h"
+#include "window7cc8bc.h"
+#include "panel7b9940.h"
 
 namespace {
 
@@ -23,9 +27,9 @@ const Window7cc8bcEditEnv kGameEnv = {reinterpret_cast<s32(__fastcall *)(const u
                                       game<void(__fastcall *)(u8 *, void *, StdWString)>(0x004ea490), &KeyMaps_ResetAllAndSetFlag, &KeyMaps_EnableAllAndClearFlag, &Window_CallDefault};
 const Window7cc8bcEditEnv *g_env = &kGameEnv;
 
-u8 *&holder() { return global<u8 *>(0x007b05e8); }
-u8 *inView() { return global<u8 *>(0x007cc8bc); }
-u8 *inEntry() { return global<u8 *>(0x007cc8c0); }
+u8 *&holder() { return gPanel7b9940_7b05e8; }
+u8 *inView() { return gWindow7cc8bc_7cc8bc; }
+u8 *inEntry() { return gWindow7cc8bc_7cc8c0; }
 
 // Slot 9 of a window or mode (its address in the table, by thiscall).
 template <typename... A> u32 slot9(u8 *object, A... args) {
@@ -44,7 +48,7 @@ u32 mouseMode() {
 }
 
 void say(u8 *window) {
-    const u16 *const chars = reinterpret_cast<const u16 *>((uintptr_t)0x007cc6a8);
+    const u16 *const chars = reinterpret_cast<const u16 *>(gWindow7cc8bc_7cc6a8);
     StdWString text;
     text.allocator = 0;   // (byte 0 the window's low byte, the rest unset: never read)
     text.ptr = nullptr;
@@ -56,14 +60,14 @@ void say(u8 *window) {
         ImeWString_SetLength(reinterpret_cast<u8 *>(&text), nullptr, length);
     }
     g_env->say(g_env->chat(), nullptr, text);
-    slot9(window, static_cast<u32>(0x0078a374));
+    slot9(window, static_cast<u32>(reinterpret_cast<uintptr_t>(&gWindow7cc8c0handler_78a374)));
 }
 
 void toggleEntry() {
-    const u8 entry = global<u8>(0x007cc8b4);
+    const u8 entry = gWindow7cc8c0handler_7cc8b4;
     g_env->send(inView(), 6, entry == 0, 0);
     g_env->send(inEntry(), 6, entry, 0);
-    if (global<u8>(0x007cc8b4)) {
+    if (gWindow7cc8c0handler_7cc8b4) {
         u8 *const list = Window_FindChild(inView(), nullptr, 0xc3123);
         u8 *const column = Window_FindChild(list, nullptr, 0xc312b);
         g_env->setFocus(Window_FindChild(column, nullptr, 0xc312c), nullptr, 0);
@@ -121,8 +125,8 @@ extern "C" s32 __cdecl Window7cc8bc_EditHandler(u8 *window, u32 message, u32 a, 
                 return 1;
             }
         } else if (a == 0x73) {
-            if (!modifiers && !global<u8>(0x007cc6a0)) toggleEntry();
-        } else if (!static_cast<u16>(g_env->findKey(global<const u8 *>(0x0078721c), nullptr, a, modifiers))) {
+            if (!modifiers && !gDialogs_7cc6a0) toggleEntry();
+        } else if (!static_cast<u16>(g_env->findKey(gKeymap_78721c, nullptr, a, modifiers))) {
             leaveLine(window);
         }
     }

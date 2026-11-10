@@ -94,3 +94,17 @@ u32 __stdcall Obj_Pending(const u8 *object);
 // 0x5e2750 (Class702dd0 slot 19; thiscall; value, pops 4): with a value, +0xc = value and +0x14 = 0.
 void __fastcall Obj_SetOrKeepC(u8 *object, void *, u32 value);
 }  // extern "C"
+
+#include "../core/gamedata.h"
+
+// Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(const float, gViewcontrols_702b8c, 0x00702b8c, 0x4);
+GAME_DATA(const float, gViewcontrols_702b90, 0x00702b90, 0x4);
+GAME_DATA(const float, gViewcontrols_702b94, 0x00702b94, 0x4);
+GAME_DATA(const float, gViewcontrols_702b98, 0x00702b98, 0x4);
+GAME_DATA(const float, gViewcontrols_702b9c, 0x00702b9c, 0x4);
+GAME_DATA(const float, gViewcontrols_702ba0, 0x00702ba0, 0x4);
+GAME_DATA(const float, gViewcontrols_702ba4, 0x00702ba4, 0x4);
+GAME_DATA(const float, gViewcontrols_702ba8, 0x00702ba8, 0x4);
+GAME_DATA(const float, gViewcontrols_702bac, 0x00702bac, 0x4);
+GAME_DATA(const float, gViewCtl702bc8_Update_702bb0, 0x00702bb0, 0x4);

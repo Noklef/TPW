@@ -24,7 +24,7 @@ u8 *gamePart(u32 offset) { return at<u8 *>(global<u8 *>(0x00f85614), offset); }
 
 void closeDialog() {
     g_env->clear(gamePart(0x14));
-    g_env->send(global<u8 *>(0x007cc984), 4, 0, 0);
+    g_env->send(gDialog7cc984_7cc984, 4, 0, 0);
 }
 
 s32 cancel(u8 *window) {
@@ -45,7 +45,7 @@ void Dialog7cc984_SetEnv(const Dialog7cc984Env *env) { g_env = env ? env : &kGam
 
 extern "C" s32 __cdecl Dialog7cc984_Handler(u8 *window, u32 message, u32 a, u32 b) {
     if (message == 0x14) {
-        global<u8 *>(0x007cc984) = nullptr;
+        gDialog7cc984_7cc984 = nullptr;
         if (parentOf(window) && !at<u8>(parentOf(window), 4)) g_env->setFocus(parentOf(window), nullptr, 0);
         else g_env->restoreFocus();
     } else if (message == 0x100) {

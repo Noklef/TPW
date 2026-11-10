@@ -229,3 +229,12 @@ void __cdecl Panel7cc218_FillLevels(u32 id, u8 *list, u32 clear, u8 *object);
 // Always: Object_Status (2) when it differs from +8 is kept, slot 9, Panel7cc218_UpdateButtons and _ShowRide; with the window +0x24 Panel7cc218_FillLevels (the object's word +0xe, its child 0x1f4d, 1, the object).
 void __fastcall Panel7cc218_RefreshFigures(u8 *self);
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(u8[236], gPanel7cc218_OpenLevelBox_755750, 0x00755750, 0xec);
+GAME_DATA(char[20], gPanel7cc218_7558f4, 0x007558f4, 0x14);
+GAME_DATA(u8 *, gPanel7cc218_7c2658, 0x007c2658, 0x4);
+GAME_DATA(u8, gPanel7cc218_EnterMoveMode_81b14c, 0x0081b14c, 0x1);
+GAME_DATA(u8 *, gPanel7cc218_EnterMoveMode_81b3ac, 0x0081b3ac, 0x4);

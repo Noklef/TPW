@@ -120,3 +120,15 @@ void __cdecl ResearchPanel_Open();
 
 // Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
 GAME_DATA(u32, gResearchPanel_Open_754bc8, 0x00754bc8, 4);
+GAME_DATA(char[12], gResearchPanel_Open_754cd8, 0x00754cd8, 0xc);
+GAME_DATA(char[20], gResearchPanel_Open_754ce4, 0x00754ce4, 0x14);
+GAME_DATA(s32, gLevelmeter_7cc1b4, 0x007cc1b4, 0x4);
+GAME_DATA(u8, gLevelmeter_7cc1bc, 0x007cc1bc, 0x1);
+GAME_DATA(u32, gLevelmeter_7cc1c0, 0x007cc1c0, 0x4);
+GAME_DATA(u32, gLevelmeter_7cc1c8, 0x007cc1c8, 0x4);
+GAME_DATA(u32, gLevelmeter_7cc1cc, 0x007cc1cc, 0x4);
+GAME_DATA(u32, gLevelmeter_7cc1d0, 0x007cc1d0, 0x4);
+GAME_DATA(u32, gLevelmeter_7cc1d4, 0x007cc1d4, 0x4);
+GAME_DATA(u8 *, gLevelmeter_7cc1d8, 0x007cc1d8, 0x4);
+GAME_DATA(u8 *, gResearchPanel_Open_7cc1dc, 0x007cc1dc, 0x4);
+GAME_DATA(u8, gResearchPanel_Open_fb34be, 0x00fb34be, 0x1);

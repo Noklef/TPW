@@ -10,6 +10,8 @@
 #include "messagecentre.h"
 #include "thingmsg.h"
 #include "world.h"
+#include "../ui/dialog7ca2e8.h"
+#include "../ui/dialog74fb20.h"
 
 namespace {
 
@@ -48,13 +50,13 @@ void ChallengeStep_SetEnv(const ChallengeStepEnv *env) { g_env = env ? env : &kG
 extern "C" {
 
 void __fastcall Challenges_Step(u8 *challenges) {
-    u8 &guard = global<u8>(0x00fb34c3);
+    u8 &guard = gDialog7ca2e8_fb34c3;
     if (!(guard & 1)) {
         guard |= 1;
-        Setting_ReadMode(reinterpret_cast<u8 *>((uintptr_t)0x00fb3b7c));
+        Setting_ReadMode(reinterpret_cast<u8 *>(&gDialog74fb20_fb3b7c));
         g_env->atExit(reinterpret_cast<void(__cdecl *)()>((uintptr_t)0x005d1750));
     }
-    if (global<u32>(0x00fb3b7c)) return;
+    if (gDialog74fb20_fb3b7c) return;
     if (!at<u8>(challenges, 0x3d8)) {
         GameTable7cfb90_Get1da720_519510(world());
         if (!Game_Field1da710IsZero()) return;

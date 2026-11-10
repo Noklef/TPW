@@ -75,6 +75,21 @@ StdString *__fastcall Locinfo_GetName(const u8 *self, void *, StdString *out);
 
 // 0x694120: _Locimp::_Makeloc: for the categories in cats (2: ctype and codecvt, 8: numeric), each facet new from the _Locinfo when loc is null, else loc's own or the classic one; then _Makexloc and _Makewloc, the categories added, the name from _Locinfo. Returns imp.
 Locimp *__cdecl Locimp_Makeloc(void *info, u32 cats, Locimp *imp, u8 **loc);
+// 0x6a67f0 / 0x69a7a0: _Locimp::_Makexloc / _Makewloc: _Makeloc's shape for the other facets of char / of wchar_t (collate, messages, money_get / _put, moneypunct
+// both ways, time_get / _put; for wchar_t also ctype, num_get / _put, numpunct and codecvt), each new from the _Locinfo when loc is null, else loc's own or the classic one.
+void __cdecl Locimp_Makexloc(void *info, u32 cats, Locimp *imp, u8 **loc);
+void __cdecl Locimp_Makewloc(void *info, u32 cats, Locimp *imp, u8 **loc);
+// 0x6a6fc0 / 0x69ff10 (pops 4; collate<char> / <wchar_t> by their shape, names invented, unconfirmed): refs, the vtable 0x709fc4 / 0x709c24, _Getcoll at +8 under a _Locinfo.
+u32 *__fastcall CollateC_Ctor(u32 *self, void *, u32 refs);
+u32 *__fastcall CollateW_Ctor(u32 *self, void *, u32 refs);
+// 0x6ab0e0 / 0x6a4490 (pops 8; names invented, unconfirmed): the facets of vtable 0x70a044 / 0x709ef4 from a _Locinfo: refs, +8 the _Timevec's block taken from _Gettnames
+// (the emptied _Timevec's free of null follows). Returns self.
+u32 *__fastcall Facet70a044_Ctor(u32 *self, void *, const void *info, u32 refs);
+u32 *__fastcall Facet709ef4_Ctor(u32 *self, void *, const void *info, u32 refs);
+// use_facet of those (0x6abe80, 0x6a5720; the _Locinfo of the name at 0x75c74c) and 0x6a54a0 of the time facet of vtable 0x709ed4 (TimeW_Ctor's days and months, widened).
+u32 *__cdecl UseFacet_70a044(u8 **loc, u32 unused, u32 flag);
+u32 *__cdecl UseFacet_709ef4(u8 **loc, u32 unused, u32 flag);
+u32 *__cdecl UseFacet_TimeW(u8 **loc, u32 unused, u32 flag);
 // 0x6a4520 (thiscall, pops 4): _Locinfo::_Gettnames: the block of _Gettnames in the _Timevec out, which is returned.
 u32 *__fastcall Locinfo_Gettnames(const void *self, void *, u32 *out);
 

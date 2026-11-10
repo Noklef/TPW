@@ -1,4 +1,4 @@
-# The C++ library's money_put<char>, moneypunct's constructors and small methods (src/game/core/moneyput) against the originals, over the strings' ports, the locale's and sprintf: the locks do nothing, _CxxThrowException a COM recorder, atexit the shared globals' log, _cfltcvt a cdecl recorder, ctype's constructor and the facets' slots thiscall recorders.
+# The C++ library's money_put<char>, moneypunct's constructors and small methods (src/game/core/moneyput), money_get<char>'s _Getmfld and do_get (src/game/core/moneyget) against the originals, over the strings' ports, the locale's, sprintf and _Stod: the locks do nothing, _CxxThrowException a COM recorder, atexit the shared globals' log, _cfltcvt a cdecl recorder, ctype's constructor and the facets' slots thiscall recorders.
 # Bench limit: after a bad_cast the original goes on with a null facet and faults, as the port does: the throw's arguments are not compared there. _Xlen and _Xran end a case, so they are not reached (npos stays large).
 # usage: moneyput.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=...)
 import os
@@ -7,14 +7,16 @@ import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
-from localefacet import OTHER_FACETS, state  # noqa: E402
+from localefacet import OTHER_FACETS, PCTYPE, state  # noqa: E402
+from numget import CTYPE as REAL_CTYPE  # noqa: E402
 from locimp import SOURCE  # noqa: E402
 from locinfo import NHMALLOC, REALLOC, LOCK, UNLOCK  # noqa: E402
 from fncmp import HEAP, IMPORT_TABLE, LOG, RAM, Bench, Call, _cdecl_log, _free, _recorder, answers, blob, fill, heap, import_table, log_region, recorder, set_return, strings  # noqa: E402
 
 DELETE, THROW, CTYPE = 0, 14, 18
 DECIMAL, SEPARATOR, GROUPING, SYMBOL, PLUS, MINUS, DIGITS, PLUS_PATTERN, MINUS_PATTERN, OVERFLOW, CFLT = 10, 11, 12, 13, 15, 16, 17, 19, 29, 30, 31
-LCID, VERSION, VALIDCP, VALIDLOCALE, ENUM, INFO, INC, DEC = 22, 23, 24, 25, 26, 27, 2, 3
+LCID, VERSION, VALIDCP, VALIDLOCALE, ENUM, INFO, INC, DEC = 22, 23, 24, 25, 26, 27, 32, 3
+GETPTD = 2   # (the driver's CrtInnerEnv getptd is the cdecl recorder 2: InterlockedIncrement moved to the COM slot 32)
 
 
 def lock(e):
@@ -28,16 +30,22 @@ B = Bench([(0x694ac0, 0x694b09), (0x694b10, 0x694b71), (0x69c660, 0x69c67b), (0x
            (0x698fc0, 0x6990fa), (0x699100, 0x6991e2), (0x683ac0, 0x683d88), (0x683d90, 0x683ee5), (0x683ef0, 0x68400b), (0x684010, 0x684202), (0x684210, 0x684254), (0x684260, 0x684367), (0x684370, 0x6843da), (0x68db70, 0x68dbae),
            (0x67c250, 0x67c288), (0x68dbb0, 0x68dd41), (0x68dd50, 0x68ddad), (0x68ddb0, 0x68de3a), (0x68e120, 0x68e17e), (0x68e260, 0x68e29e), (0x68e340, 0x68e35b), (0x68e360, 0x68e443), (0x68e510, 0x68e549), (0x68e6c0, 0x68e6e1),
            (0x67d7f0, 0x67d82a), (0x67dcd0, 0x67dcf0), (0x67df40, 0x67e010), (0x67a480, 0x67a519), (0x688730, 0x68876d), (0x688770, 0x6887d1), (0x67ae00, 0x67aefe),
-           (0x6a7920, 0x6a86fc), (0x696330, 0x6963eb), (0x6963f0, 0x69644b), (0x698bf0, 0x698c3c), (0x696160, 0x696226), (0x6a8700, 0x6a87e9), (0x47b1c0, 0x47b280)],
-          hooks={0x67ad90: _free, 0x691de0: lock, 0x691ea0: lambda e: None, 0x67d3a0: _recorder(THROW, 2, com=True), 0x67a7d0: _cdecl_log, 0x5cfb60: _recorder(CTYPE, 3),
+           (0x6a7920, 0x6a86fc), (0x696330, 0x6963eb), (0x6963f0, 0x69644b), (0x698bf0, 0x698c3c), (0x696160, 0x696226), (0x6a8700, 0x6a87e9), (0x47b1c0, 0x47b280),
+           (0x6a7550, 0x6a7762), (0x6a7760, 0x6a7927), (0x5d0050, 0x5d0079), (0x67acb0, 0x67acc6), (0x67acc0, 0x67acd8), (0x686a00, 0x686a11), (0x6ac940, 0x6ac9a0), (0x6d7710, 0x6d782e),
+           (0x67fcb0, 0x67fd63), (0x680430, 0x6804cd), (0x6816a0, 0x68173e), (0x6828a0, 0x682a0a), (0x682c00, 0x682e3b), (0x682e40, 0x682fba), (0x688710, 0x688738), (0x68a5d0, 0x68a710),
+           (0x68bc00, 0x68bc6e), (0x68bc70, 0x68bce1), (0x68bce0, 0x68bd85), (0x68bd80, 0x68bda5), (0x68bda0, 0x68bdb7), (0x68bdb0, 0x68bdd5), (0x68bdd0, 0x68be89), (0x68be90, 0x68c067),
+           (0x68c060, 0x68c080), (0x68c440, 0x68caa9), (0x68f9d0, 0x68f9fb), (0x68fa00, 0x68fa70), (0x68fa70, 0x68faa6), (0x68faa0, 0x68fad5), (0x68fad0, 0x68fbc9), (0x68ff60, 0x690220),
+           (0x690220, 0x6902b2), (0x6918f0, 0x691a1a), (0x691ba0, 0x691cca)],
+          hooks={0x682460: _recorder(GETPTD, 0, cdecl=True),0x67ad90: _free, 0x691de0: lock, 0x691ea0: lambda e: None, 0x67d3a0: _recorder(THROW, 2, com=True), 0x67a7d0: _cdecl_log, 0x5cfb60: _recorder(CTYPE, 3),
                  0x681740: _recorder(REALLOC, 2, cdecl=True), 0x67dcf0: _recorder(NHMALLOC, 2, cdecl=True), 0x682720: _recorder(LOCK, 1, cdecl=True), 0x6827a0: _recorder(UNLOCK, 1, cdecl=True)})
 BASE = RAM + 0x3000
 MONEY_LCONV, MONEY_TEXTS, OBJECT, FACET_VTABLE, IOS, BUFFER, POINTER, COUNT, BUFFER_VTABLE, ITERATOR, IMP_VTABLE, A_OVERFLOW, TABLE, OUT, TEXT, MADE = (
     BASE + i for i in (0, 0x100, 0x300, 0x400, 0x440, 0x480, 0x4c0, 0x4d0, 0x4e0, 0x4f0, 0x500, 0x600, 0x800, 0xa00, 0xa20, 0xa40))
+VALUE, STATE, PTD = BASE + 0xa80, BASE + 0xa90, BASE + 0xaa0
 AREA = RAM + 0x4000
 TEXT_BLOCKS, FIRST_BLOCK = HEAP + 0x8000, HEAP + 0x9000
 OPS = [n for n in ('sputc', 'iteratorput', 'grouping', 'plus', 'symbol', 'minus', 'pattern', 'pattern', 'intl', 'local', 'putmfld', 'putmfld', 'putmfld', 'putmfld', 'putmfld', 'putmfld', 'number', 'number', 'number', 'number', 'string', 'string', 'string', 'string',
-                   'getmfld', 'getmfld', 'getmfld', 'getmfld', 'getmfld', 'getmfld')
+                   'getmfld', 'getmfld', 'getmfld', 'getmfld', 'getmfld', 'getmfld', 'getld', 'getld', 'getld', 'getld', 'getstr', 'getstr', 'getstr', 'getstr')
        if not os.environ.get('OPS') or n in os.environ['OPS'].split(',')]
 UNDERFLOW, UFLOW = 4, 5   # (the input stream's slots)
 INPUT = RAM + 0x6000
@@ -236,6 +244,22 @@ def case(r):
         stream(r, regions, log)
         # (out's first byte is the allocator byte of a string on the original's stack, which nothing set)
         return Call(0x6a7920, [r.getrandbits(32), OUT, FIRST, LAST, r.choice([0, 1, 1, 0x100, 0x101]), IOS], regions, conv='t', ret='a', ignore=[(OUT, 1)])
+    if name in ('getld', 'getstr'):
+        stream(r, regions, log)
+        regions[PCTYPE] = REAL_CTYPE   # (_Stod's strtod over a real ctype table, the C locale's MB_CUR_MAX and errno)
+        regions[0x77e7dc] = struct.pack('<I', 1)
+        regions[PTD] = bytes(8) + struct.pack('<I', r.choice([0, 0, 0, 0x22])) + bytes(0x10)
+        set_return(log, GETPTD, PTD)
+        regions[STATE] = struct.pack('<I', r.choice([0, 0, 0, 1, 2, 4, r.getrandbits(32)]))
+        if name == 'getld':
+            regions[VALUE] = r.bytes(8)
+        else:
+            fields, at = block(r, regions, at, r.choice(TEXTS))
+            if r.random() < 0.05:
+                fields = (0, 0, 0)
+            regions[VALUE] = struct.pack('<4I', r.getrandbits(32), *fields)
+        first, last = struct.unpack_from('<2I', regions[FIRST]), struct.unpack_from('<2I', regions[LAST])
+        return Call(0x6a7550 if name == 'getld' else 0x6a7760, [r.getrandbits(32), OUT, *first, *last, r.choice([0, 1, 1, 0x100, 0x101]), IOS, STATE, VALUE], regions, conv='t', ret='a')
     common = [OUT, r.getrandbits(32), r.choice([BUFFER, BUFFER, BUFFER, BUFFER, 0]), r.choice([0, 1, 1, 0x100, 0x101]), IOS, r.getrandbits(24) << 8 | r.choice(b' *0_')]
     if name == 'putmfld':
         fields, at = block(r, regions, at, r.choice(NUMBERS))

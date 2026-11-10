@@ -11,6 +11,7 @@
 #include "../core/wtraits.h"
 #include "chatlists.h"
 #include "session.h"
+#include "../ui/panel7b9940.h"
 #include "../world/signtext.h"
 
 namespace {
@@ -140,7 +141,7 @@ void __fastcall ChatClient_Connect(u8 *self) {
     const u32 host = at<u32>(self, 0x1c) ? at<u32>(self, 0x1c) : 0x006fe5b0u;
     const s32 port = global<s16>(0x007a1552);
     if (!session_call(0x006fd498, at<u32>(self, 0), host, port, 0x004e61f0u, (u32)(uintptr_t)Global7cc53c_Pick7cc4f0())) {
-        (*reinterpret_cast<void(__stdcall *const *)(u32)>((uintptr_t)0x006fd1e0))(0x0075c0fc);
+        (*reinterpret_cast<void(__stdcall *const *)(u32)>((uintptr_t)0x006fd1e0))(reinterpret_cast<uintptr_t>(&gChatClient_Connect_75c0fc));
     } else {
         const u16 *const name = reinterpret_cast<const u16 *>(Online_String28(Online_Instance()));
         alignas(4) u8 strings[0x20];   // (two wide strings side by side, as the original's: the login's first argument hashes both)
@@ -184,7 +185,7 @@ void __fastcall ChatClient_EnterWorld(u8 *self) {
     }
     u8 *const block = static_cast<u8 *>(GameHeap_Alloc(8));
     u8 *const mode = block ? g_env->modeCtor(block) : nullptr;
-    if (!global<u8 *>(0x007b05e8)) {
+    if (!gPanel7b9940_7b05e8) {
         u8 *const holder = static_cast<u8 *>(GameHeap_Alloc(1));
         if (holder) {
             u8 *const base = static_cast<u8 *>(GameHeap_Alloc(8));
@@ -192,9 +193,9 @@ void __fastcall ChatClient_EnterWorld(u8 *self) {
             global<s32>(0x007b05e0) = -1;
             global<s32>(0x007b05d4) = -1;
         }
-        global<u8 *>(0x007b05e8) = holder;
+        gPanel7b9940_7b05e8 = holder;
     }
-    g_env->setMode(global<u8 *>(0x007b05e8), nullptr, mode);
+    g_env->setMode(gPanel7b9940_7b05e8, nullptr, mode);
     session_call(0x006fd4d4, at<u32>(self, 0), 0xa00u, (u32)(uintptr_t)self);
     session_call(0x006fd4c0, at<u32>(self, 0), (u32)(uintptr_t)self);
 }

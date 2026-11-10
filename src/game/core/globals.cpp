@@ -11,6 +11,8 @@
 #include "string.h"
 #include "vcall.h"
 #include "vobj3.h"
+#include "../ui/thingbrowser.h"
+#include "../ui/panel7cc218.h"
 #include "../world/mapclick.h"
 #include "../render/particles.h"
 #include "../render/meshlist.h"
@@ -97,7 +99,7 @@ void __cdecl Globals816d40_Free() {
 }
 
 void __fastcall Obj_ApplyToGlobalObject(u8 *object) {
-    u8 *game = global<u8 *>(0x007c2658);
+    u8 *game = gPanel7cc218_7c2658;
     const u32 returned = Set198_4e21e0(game, nullptr, at<u32>(object, 0x28));
     const u32 product = (u32)(u16)(s16)((s32)at<s8>(object, 0x24) * 0x32);
     Object_SetQualityOfGoods(game, nullptr, (returned & 0xffff0000u) | product);
@@ -145,7 +147,7 @@ u32 __cdecl Global7b4b88_Get_47eaa0() {
     return global<u32>(0x007b4b88);
 }
 
-u32 __cdecl Global7cc2f0_Get_4b4480() { return global<u32>(0x007cc2f0); }
+u32 __cdecl Global7cc2f0_Get_4b4480() { return gThingbrowser_7cc2f0; }
 
 u32 __cdecl Global785584_Get_519410() {
     return global<u32>(0x00785584);

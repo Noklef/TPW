@@ -15,6 +15,8 @@
 #include "guisystem.h"
 #include "textpool.h"
 #include "../core/cmdline.h"
+#include "../render/graphicssettings.h"
+#include "../core/gamewindow.h"
 
 namespace {
 
@@ -63,7 +65,7 @@ const GuiTeardownEnv kTeardownEnv = {
 const GuiStartupEnv *g_startup = &kStartupEnv;
 const GuiTeardownEnv *g_teardown = &kTeardownEnv;
 
-bool WindowMode() { return (global<u32>(0x007a1a8c) & 0x800) && !gCmdline_788270; }
+bool WindowMode() { return (gGraphicssettings_7a1a8c & 0x800) && !gCmdline_788270; }
 
 void Delete(u32 holder) {
     u8 *const thing = global<u8 *>(holder);
@@ -85,14 +87,14 @@ void __cdecl Gui_Startup() {
     E->screenOpen(reinterpret_cast<s32 *>(local), nullptr, 0, nullptr, nullptr);
     E->setDirectDraw(*global<void **>(0x00879a24));
     if (WindowMode()) {
-        E->setWindow(global<void *>(0x007a130c));
+        E->setWindow(reinterpret_cast<void * &>(gGamewindow_7a130c));
         E->fn5f55c0(local);
         E->fn5f5600(local);
-        global<u32>(0x007b9fe0) = 0;
-        global<u32>(0x007b9fe4) = 0;
-        global<u32>(0x007b9fe8) = 0;
-        global<u32>(0x007b9fec) = 0;
-        global<u32>(0x007b9ff0) = 0x00486c70;
+        gGui_7b9fe0 = 0;
+        gGui_Startup_7b9fe4 = 0;
+        gGui_Startup_7b9fe8 = 0;
+        gGui_Startup_7b9fec = 0;
+        gGui_Startup_7b9ff0 = 0x00486c70;
         E->fn47e7d0();
     }
     const s32 screenY = global<s16>(0x00faa5c0);
@@ -104,7 +106,7 @@ void __cdecl Gui_Startup() {
     E->fn659674(0x007b9864);
     E->fn6590ea(0x00485780);
     E->poolInit(0x40, 0x80, 0x10, 0x80);
-    E->outOne(0x100000, 3, 0xd, reinterpret_cast<u32 *>((uintptr_t)0x007c249c));
+    E->outOne(0x100000, 3, 0xd, &gGuistartup_7c249c);
     global<u32(__stdcall *)(u32)>(0x006fd30c)(0);
     E->tableInit(object(0x007b9e88), nullptr, 0x16);
     E->tableInit(object(0x007b9ab0), nullptr, 0x16);
@@ -128,7 +130,7 @@ void __cdecl Gui_Startup() {
     *reinterpret_cast<u8 **>(info + 0x10) = inner;
     E->setLayout(object(0x007c2118), nullptr, 0xc00, info);
     E->fn492470();
-    global<u32>(0x007c24d4) = global<u32(__fastcall *)(u8 *)>(0x006fd5ac)(object(0x007c24c0));
+    gGuistartup_7c24d4 = global<u32(__fastcall *)(u8 *)>(0x006fd5ac)(object(0x007c24c0));
 }
 
 u32 __cdecl Gui_Teardown() {
@@ -141,11 +143,11 @@ u32 __cdecl Gui_Teardown() {
     E->listenEnd();
     E->guiShutdown();
     Delete(0x007b9a04);
-    Delete(0x007c231c);
+    Delete(reinterpret_cast<uintptr_t>(&gGui_Teardown_7c231c));
     Delete(0x007b9804);
     E->poolFree();
     E->fn657dff(object(0x00786de8));
-    E->fn424ec0(global<u32>(0x007c249c));
+    E->fn424ec0(gGuistartup_7c249c);
     return global<u32(__fastcall *)(u8 *)>(0x006fd5b0)(object(0x007c24c0));
 }
 }

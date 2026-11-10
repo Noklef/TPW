@@ -5,6 +5,8 @@
 #include "engineerrors.h"
 #include "../core/crt.h"
 #include "../core/gameheap.h"
+#include "screen.h"
+#include "../core/gamewindow.h"
 #include "ddopen.h"
 
 namespace {
@@ -103,7 +105,7 @@ void destroyParts() {
     g_calls.Cd(0x0056b760);
 }
 
-u32 openDirectDraw(u32 a, u32 b, u32 c) { return g_calls.Cd(0x005632b0, global<u32>(0x007a130c), global<u32>(0x007a1968), global<u32>(0x007a1930), a, b, c); }
+u32 openDirectDraw(u32 a, u32 b, u32 c) { return g_calls.Cd(0x005632b0, gGamewindow_7a130c, gScreen_7a1968, gScreen_7a1930, a, b, c); }
 
 u32 init(u32 d) { return g_calls.Cd(0x00572780, d, 0x092f2266u, 0u); }
 

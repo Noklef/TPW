@@ -14,6 +14,10 @@
 #include "dialogs.h"
 #include "window.h"
 #include "windowfactory.h"
+#include "dialog74fb20.h"
+#include "window7cc8bc.h"
+#include "panel7c2534menus.h"
+#include "panel7b9940.h"
 
 namespace {
 
@@ -30,53 +34,53 @@ void enable(u32 map) { KeyMap_Enable(global<u8 *>(map)); }
 extern "C" {
 
 u32 __cdecl Global7c2534_HasSource() {
-    const TrackedSource *const source = global<const TrackedSource *>(0x007c2534);
+    const TrackedSource *const source = reinterpret_cast<const TrackedSource *>(gPanel7c2534menus_7c2534);
     return source && Source_Field0c(source) ? 1 : 0;
 }
 
 u32 __cdecl Focus_Restore() {
-    if (Global7c2534_HasSource()) return focus(*reinterpret_cast<u8 **>(global<u8 *>(0x007c2534) + 0x10));
-    if (!global<u8 *>(0x007cb2ac)) {
-        if (global<u8 *>(0x007cb2b0) && shown(Fn_65d57c(global<u8 *>(0x007cb2b0)))) {
-            enable(0x00787c14);
-            return focus(global<u8 *>(0x007cb2b0));
+    if (Global7c2534_HasSource()) return focus(*reinterpret_cast<u8 **>(gPanel7c2534menus_7c2534 + 0x10));
+    if (!gPanel7b9940_7cb2ac) {
+        if (gPanel7b9940_7cb2b0 && shown(Fn_65d57c(gPanel7b9940_7cb2b0))) {
+            enable(reinterpret_cast<uintptr_t>(&gKeymap_787c14));
+            return focus(gPanel7b9940_7cb2b0);
         }
-        if (global<u8 *>(0x007cc8bc) && shown(Fn_65d57c(global<u8 *>(0x007cc8bc)))) return focus(global<u8 *>(0x007cc8bc));
-        if (global<u8 *>(0x007cc8c0) && shown(Fn_65d57c(global<u8 *>(0x007cc8c0)))) return focus(global<u8 *>(0x007cc8c0));
+        if (gWindow7cc8bc_7cc8bc && shown(Fn_65d57c(gWindow7cc8bc_7cc8bc))) return focus(gWindow7cc8bc_7cc8bc);
+        if (gWindow7cc8bc_7cc8c0 && shown(Fn_65d57c(gWindow7cc8bc_7cc8c0))) return focus(gWindow7cc8bc_7cc8c0);
         u8 *const frame = global<u8 *>(0x00f82884);
         if (!frame) return 0;
         if (!*reinterpret_cast<u8 **>(frame + 4)) return (u32)(uintptr_t)frame;
         return focus(*reinterpret_cast<u8 **>(frame + 4));
     }
-    if (global<u8 *>(0x007c24cc)) return focus(global<u8 *>(0x007c24cc));
-    if (shown(Fn_65d57c(global<u8 *>(0x007cb2b0)))) {
-        enable(0x00787c14);
-        return focus(global<u8 *>(0x007cb2b0));
+    if (reinterpret_cast<u8 * &>(gDialog74fb20_7c24cc)) return focus(reinterpret_cast<u8 * &>(gDialog74fb20_7c24cc));
+    if (shown(Fn_65d57c(gPanel7b9940_7cb2b0))) {
+        enable(reinterpret_cast<uintptr_t>(&gKeymap_787c14));
+        return focus(gPanel7b9940_7cb2b0);
     }
-    u32 flags = Fn_65d57c(global<u8 *>(0x007cb2ac));
+    u32 flags = Fn_65d57c(gPanel7b9940_7cb2ac);
     if (shown(flags)) {
-        if (global<u8 *>(0x007c24c8)) return focus(global<u8 *>(0x007c24c8));
+        if (gFocus_7c24c8) return focus(gFocus_7c24c8);
         if (Global7ca1cc_Get()) {
-            enable(0x00787c14);
+            enable(reinterpret_cast<uintptr_t>(&gKeymap_787c14));
             return Dialog7ca1c8_Focus();
         }
-        enable(0x00787c14);
-        enable(0x00787a60);
-        enable(0x0078733c);
-        return focus(global<u8 *>(0x007cb2ac));
+        enable(reinterpret_cast<uintptr_t>(&gKeymap_787c14));
+        enable(reinterpret_cast<uintptr_t>(&gKeymap_787a60));
+        enable(reinterpret_cast<uintptr_t>(&gKeymap_78733c));
+        return focus(gPanel7b9940_7cb2ac);
     }
-    if (!global<u8 *>(0x007cb2b4)) return flags;
-    flags = Fn_65d57c(global<u8 *>(0x007cb2b4));
+    if (!gFocus_7cb2b4) return flags;
+    flags = Fn_65d57c(gFocus_7cb2b4);
     if (!shown(flags)) return flags;
-    enable(0x00787c14);
-    return focus(global<u8 *>(0x007cb2b4));
+    enable(reinterpret_cast<uintptr_t>(&gKeymap_787c14));
+    return focus(gFocus_7cb2b4);
 }
 
 u32 __cdecl Window7c24c8_Close() {
-    u8 *const window = global<u8 *>(0x007c24c8);
+    u8 *const window = gFocus_7c24c8;
     if (!window) return 0;
     Window_SendMessage(window, 5, 0, 0);
-    global<u8 *>(0x007c24c8) = nullptr;
+    gFocus_7c24c8 = nullptr;
     Focus_Restore();
     return 1;
 }
@@ -92,18 +96,18 @@ u32 __cdecl Window7c24c8_Set(u8 *window) {
             MouseMode_Set(mode);
         }
         GameCursor_Set(0);
-        KeyMap_Reset(global<u8 *>(0x00787c14));
-        KeyMap_Reset(global<u8 *>(0x0078733c));
-        KeyMap_Reset(global<u8 *>(0x00787a60));
+        KeyMap_Reset(gKeymap_787c14);
+        KeyMap_Reset(gKeymap_78733c);
+        KeyMap_Reset(gKeymap_787a60);
         Dialog7cb2b8_ResetChild21(1);
     }
-    global<u8 *>(0x007c24c8) = window;
+    gFocus_7c24c8 = window;
     return Focus_Restore();
 }
 
 u8 *__cdecl Window7cb2cc_Open() {
-    if (!global<u8 *>(0x007cb2cc)) global<u8 *>(0x007cb2cc) = Dialog_Create(reinterpret_cast<u8 *>(0x00752e00), 0x004a2680, 1);
-    return global<u8 *>(0x007cb2cc);
+    if (!gFocus_7cb2cc) gFocus_7cb2cc = Dialog_Create(gWindow7cb2cc_Open_752e00, 0x004a2680, 1);
+    return gFocus_7cb2cc;
 }
 
 u8 *__cdecl Window7cb2cc_OpenOnGui() {
@@ -113,20 +117,20 @@ u8 *__cdecl Window7cb2cc_OpenOnGui() {
 }
 
 u32 __cdecl Window7cb2cc_Close() {
-    if (u8 *const window = global<u8 *>(0x007cb2cc)) Window_SendMessage(window, 4, 0, 0);
-    global<u8 *>(0x007cb2cc) = nullptr;
+    if (u8 *const window = gFocus_7cb2cc) Window_SendMessage(window, 4, 0, 0);
+    gFocus_7cb2cc = nullptr;
     return Focus_Restore();
 }
 
 u32 __cdecl Window7cb2cc_Toggle() {
-    if (global<u8 *>(0x007cb2cc)) return Window7cb2cc_Close();
+    if (gFocus_7cb2cc) return Window7cb2cc_Close();
     return (u32)(uintptr_t)Window7cb2cc_Open();
 }
 
 u32 __cdecl Overlay7cb2b4_Toggle() {
-    u32 &on = global<u32>(0x007cb2e8);
-    u8 *&overlay = global<u8 *>(0x007cb2b4);
-    if (!global<u8 *>(0x007cb2ac)) return 0;
+    u32 &on = gFocus_7cb2e8;
+    u8 *&overlay = gFocus_7cb2b4;
+    if (!gPanel7b9940_7cb2ac) return 0;
     if (on) {
         if (overlay) vcall<void>(overlay, 8, 1u);
         overlay = nullptr;
@@ -140,7 +144,7 @@ u32 __cdecl Overlay7cb2b4_Toggle() {
             }
         }
     }
-    Window_SetShown(global<u8 *>(0x007cb2ac), nullptr, (u16)on);
+    Window_SetShown(gPanel7b9940_7cb2ac, nullptr, (u16)on);
     const u32 old = on;
     on = 1 - old;
     return on ? old : Focus_Restore();

@@ -20,6 +20,11 @@
 #include "window7059f0.h"
 #include "windowreg.h"
 #include "windowscript.h"
+#include "dialog7cc188handler.h"
+#include "dialog7cc184handler.h"
+#include "dialog74fb20.h"
+#include "gamepause.h"
+#include "window7cc8c0handler.h"
 
 namespace {
 
@@ -47,9 +52,9 @@ void Dialog7cc188_SetListEnv(const Dialog7cc188ListEnv *env) { g_env = env ? env
 void Dialog7cc188_SetOpenEnv(const Dialog7cc188OpenEnv *env) { g_open = env ? env : &kGameOpenEnv; }
 
 void __cdecl Dialog7cc188_Open() {
-    u8 *&window = global<u8 *>(0x007cc188);
+    u8 *&window = gDialog7cc188handler_7cc188;
     if (window) return;
-    window = g_open->build(global<u8 *>(0x007cc184), nullptr, reinterpret_cast<u8 *>((uintptr_t)0x007542b8), 0x004a73d0);
+    window = g_open->build(gDialog7cc184handler_7cc184, nullptr, gDialog7cc188_Open_7542b8, 0x004a73d0);
     u8 *const label = static_cast<u8 *>(g_open->alloc(0x1a4));
     u8 *const labelPart = label ? g_open->labelPart(label, nullptr, 0) : nullptr;
     g_open->setImpl(Window_FindChild(window, nullptr, 0x27), nullptr, labelPart);
@@ -59,7 +64,7 @@ void __cdecl Dialog7cc188_Open() {
     u8 *const child = Window_FindChild(window, nullptr, 0x27);
     vcall<void>(child, 0x24, g_open->text(0xd4));
     g_open->hoverYellow(Window_FindChild(window, nullptr, 0x27));
-    Window_SetDepth(window, nullptr, (u16)(at<u16>(global<u8 *>(0x007cc184), 0xe0) + 0xa));
+    Window_SetDepth(window, nullptr, (u16)(at<u16>(gDialog7cc184handler_7cc184, 0xe0) + 0xa));
     u8 *const list = Window_FindChild(window, nullptr, 0x26);
     g_open->buildRows(list, nullptr, reinterpret_cast<u8 *(__cdecl *)()>((uintptr_t)0x004a8380), reinterpret_cast<void(__cdecl *)(u8 *)>((uintptr_t)0x004a8420));
     g_open->columnBottom(list, nullptr, 0, 0);
@@ -72,16 +77,16 @@ void __cdecl Dialog7cc188_Open() {
     g_open->notify40000(edit, nullptr, 0xff, 0xff, 0xff, 0xff);
     g_open->notifyC00(edit, nullptr, 0, 0);
     g_open->setHandler(edit, nullptr, 0x004a77c0);
-    g_open->setBuffer(edit, nullptr, 0x007cb8d8, 0x3f);
+    g_open->setBuffer(edit, nullptr, reinterpret_cast<uintptr_t>(&gDialog7cc188_7cb8d8), 0x3f);
     g_open->setCaret(edit, nullptr, reinterpret_cast<u8 *>((uintptr_t)g_open->findByName(reinterpret_cast<const char *>((uintptr_t)0x0074fa84))));
-    vcall<void>(edit, 0x24, reinterpret_cast<const void *>((uintptr_t)0x0078a374));
+    vcall<void>(edit, 0x24, reinterpret_cast<const void *>(gWindow7cc8c0handler_78a374));
     g_open->post(0x134);
 }
 
 void __cdecl Dialog7cc188_FillList(u32 clear) {
     u8 *const strings = g_env->source() + 0x100;
     const char *text = textOf(StdListString_First(strings));
-    u8 *const list = Window_FindChild(global<u8 *>(0x007cc188), nullptr, 0x26);
+    u8 *const list = Window_FindChild(gDialog7cc188handler_7cc188, nullptr, 0x26);
     if (clear) g_env->clear(list);
     u32 texts[1];
     for (u32 index = 0; *text; ++index) {
@@ -91,13 +96,13 @@ void __cdecl Dialog7cc188_FillList(u32 clear) {
         g_env->add(list, nullptr, texts, index, -1, 0);
         text = textOf(StdListString_Next(strings));
     }
-    u8 &guard = global<u8>(0x00fb34bf);
+    u8 &guard = gGamepause_fb34bf;
     if (!(guard & 1)) {
         guard |= 1;
-        Setting_ReadMode(reinterpret_cast<u8 *>((uintptr_t)0x00fb3b7c));
+        Setting_ReadMode(reinterpret_cast<u8 *>(&gDialog74fb20_fb3b7c));
         g_env->atExit(reinterpret_cast<void(__cdecl *)()>((uintptr_t)0x005d1750));
     }
-    if (global<u32>(0x00fb3b7c) == 1) {
+    if (gDialog74fb20_fb3b7c == 1) {
         const u16 *const name = at<const u16 *>(reinterpret_cast<const void *>((uintptr_t)Obj_Get3a4(Online_Instance())), 0x9c);
         if (name && Crt().wcslen(name)) {
             texts[0] = (u32)(uintptr_t)g_env->wideText(0x121);

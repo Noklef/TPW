@@ -38,3 +38,8 @@ extern "C" {
 // 0x22b (staff, settled), 0x1cb/0x1cc (the entrance and booth tiles), 0x1be (a ride's queue), 0x1b9, 0x1ba, 0x1bc, 0x226, 0x1c0 by the cell's type.
 void __cdecl MouseHelp_Update(u32 forced);
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(u8 *, gMousehelp_7c24f8, 0x007c24f8, 0x4);

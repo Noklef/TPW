@@ -4,6 +4,7 @@
 #include <cstdint>
 
 #include "../core/options.h"
+#include "dialog74fb20.h"
 
 namespace {
 
@@ -21,8 +22,8 @@ extern "C" {
 void __cdecl QuitConfirm_Answered(u32 answer) {
     if (answer) return;
     *reinterpret_cast<u32 *>(global<u8 *>(0x00f82884) + 0x14) = 2;
-    u8 &guard = global<u8>(0x00fb34bc);
-    u8 *const setting = reinterpret_cast<u8 *>((uintptr_t)0x00fb3b7c);
+    u8 &guard = gQuitconfirm_fb34bc;
+    u8 *const setting = reinterpret_cast<u8 *>(&gDialog74fb20_fb3b7c);
     if (!(guard & 1)) {
         guard |= 1;
         g_env->readMode(setting);

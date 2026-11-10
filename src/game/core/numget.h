@@ -30,4 +30,10 @@ u32 *__fastcall NumGet_DoGetUlong(void *self, void *, u32 *out, NumGetIter first
 // 0x6981f0 (pops 0x20): do_get of a pointer: hexadecimal whatever the flags; value written unless state has 2 set, from before too.
 u32 *__fastcall NumGet_DoGetPointer(void *self, void *, u32 *out, NumGetIter first, NumGetIter last, u8 *ios, u32 *state, u32 *value);
 
+// 0x6974e0, 0x697930, 0x697d90 (pops 0x20): do_get of a float, a double, a long double (a double): _Getffld inlined (the sign, 0x24 digits kept and the rest a power of ten, the facet's decimal
+// point written as the C locale's, 'e' with up to 8 digits), then _Stold (float, long double) or _Stod with that power; state 2 when nothing converts or errno is set.
+u32 *__fastcall NumGet_DoGetFloat(void *self, void *, u32 *out, NumGetIter first, NumGetIter last, u8 *ios, u32 *state, float *value);
+u32 *__fastcall NumGet_DoGetDouble(void *self, void *, u32 *out, NumGetIter first, NumGetIter last, u8 *ios, u32 *state, double *value);
+u32 *__fastcall NumGet_DoGetLongDouble(void *self, void *, u32 *out, NumGetIter first, NumGetIter last, u8 *ios, u32 *state, double *value);
+
 }  // extern "C"

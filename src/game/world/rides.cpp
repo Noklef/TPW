@@ -19,6 +19,7 @@
 #include "../motion/placement.h"
 #include "../terrain/land.h"
 #include "camera.h"
+#include "../render/graphicssettings.h"
 
 namespace {
 
@@ -163,7 +164,7 @@ u32 __cdecl Ride_Create(u32 type, u32 flags, const u32 *desc, u32 mask, u32 d4, 
     }
     if (flags & 8) {
         g_env->fitToGrid(at<u8 *>(inst, 8), global<u8 *>(0x007a0854), height, 0);
-        if (global<u32>(0x007a1a8c) & 0x4000) {
+        if (gGraphicssettings_7a1a8c & 0x4000) {
             u8 *obj = at<u8 *>(inst, 8);
             if (at<u8>(obj, 0) & 0x40) {
                 const u8 *map = at<u8 *>(global<u8 *>(0x007a0854), 0x6c);

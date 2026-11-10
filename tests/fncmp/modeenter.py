@@ -70,7 +70,8 @@ def case(r):
         regions[0x81ae2c] = struct.pack('<I', r.choice([0x19, 0x1a, 0x19, 0, 5, r.getrandbits(32)]))
         steps = bytearray(r.bytes(0x58))
         put(steps, 0x50, 'II', r.randrange(0x80), r.randrange(0x80)) if r.random() < 0.6 else put(steps, 0x50, 'I', 0xffffffff)
-        regions.update({focuscell.STEPS: steps, focuscell.FOCUS: r.bytes(0x30), 0x818c50: r.bytes(4), 0x7c2654: bytes(4), 0x7cf83c: r.bytes(4),
+        # (the focus object +0x14 none: a random one faulted in both, or natively read a system DLL's page, 0x77...: panel7cc218choose case 827)
+        regions.update({focuscell.STEPS: steps, focuscell.FOCUS: put(bytearray(r.bytes(0x30)), 0x14, 'I', 0), 0x818c50: r.bytes(4), 0x7c2654: bytes(4), 0x7cf83c: r.bytes(4),
                         0x7b05cc: struct.pack('<H', r.choice([0, 1, 0x80, 0x81, r.getrandbits(16)])), 0x81eca8: r.bytes(0xc)})
         regions.update(ra.recorder(r))
         return Call(CALLS[op], [], regions, ret='v')

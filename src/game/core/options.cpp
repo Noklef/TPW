@@ -14,6 +14,7 @@
 #include "vcall.h"
 #include "../files/memsource.h"
 #include "../online/servers.h"
+#include "../render/graphicssettings.h"
 
 namespace {
 
@@ -70,7 +71,7 @@ void __fastcall Options_SetC(u8 *options, void *, u32 value) { set_changed(optio
 
 void __fastcall Setting_SetMode(u8 *object, void *, u32 mode) {
     at<u32>(object, 0) = mode;
-    u32 &flags = global<u32>(0x007a1a8c);
+    u32 &flags = gGraphicssettings_7a1a8c;
     if (mode == 0)
         flags = (flags & 0xfcffffff) | 0x800000;
     else if (mode == 1)
@@ -80,7 +81,7 @@ void __fastcall Setting_SetMode(u8 *object, void *, u32 mode) {
 }
 
 u8 *__fastcall Setting_ReadMode(u8 *object) {
-    u32 &flags = global<u32>(0x007a1a8c);
+    u32 &flags = gGraphicssettings_7a1a8c;
     if (flags & 0x2000000) {
         at<u32>(object, 0) = 2;
         flags = (flags & 0xfe7fffff) | 0x2000000;

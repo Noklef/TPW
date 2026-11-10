@@ -4,6 +4,8 @@
 
 #include "buffers.h"
 #include "crt.h"
+#include "crtfloat.h"
+#include "globals.h"
 #include "iosbase.h"
 #include "localefacet.h"
 #include "moneyput.h"
@@ -157,6 +159,102 @@ template <typename T> u32 *get_unsigned(u32 *out, NumGetIter &first, NumGetIter 
     return result(out, first);
 }
 
+// One character into text at out, which moves on while fewer than room digits are kept; false when it is not a digit (written all the same).
+bool take_digit(char *&out, NumGetIter &first, s32 &digits, s32 room) {
+    const char c = deref(first);
+    *out = c;
+    if (!CRT_isdigit(c)) return false;
+    if (digits < room) {
+        ++out;
+        ++digits;
+    }
+    return true;
+}
+
+void take_sign(char *&out, NumGetIter &first, NumGetIter &last) {
+    if (equal(first, last)) return;
+    if (deref(first) == '+') {
+        *out++ = '+';
+        increment(first);
+    } else if (deref(first) == '-') {
+        *out++ = '-';
+        increment(first);
+    }
+}
+
+// Leading zeros dropped, one '0' written for them. Whether there were any.
+bool take_zeros(char *&out, NumGetIter &first, NumGetIter &last) {
+    bool seen = false;
+    for (; !equal(first, last) && deref(first) == '0'; increment(first)) seen = true;
+    if (seen) *out++ = '0';
+    return seen;
+}
+
+// _Getffld, inlined in each float do_get: the sign, 0x24 digits kept (the rest counted in the power of ten), the facet's decimal point as the C locale's,
+// zeros after it counted down before any digit, the fraction, then 'e' with a sign and up to 8 digits. Text empty without a digit. The answer is the power.
+s32 scan_float(char *text, NumGetIter &first, NumGetIter &last, u8 *facet) {
+    char *out = text;
+    take_sign(out, first, last);
+    bool seen = take_zeros(out, first, last);
+    s32 power = 0;
+    s32 digits = 0;
+    for (; !equal(first, last); increment(first)) {
+        const s32 kept = digits;
+        if (!take_digit(out, first, digits, 0x24)) break;
+        if (kept == digits) ++power;
+        seen = true;
+    }
+    if (!equal(first, last)) {
+        using Slot = u32(__fastcall *)(u8 *);
+        const char point = static_cast<char>(reinterpret_cast<const Slot *>((uintptr_t)at<u32>(facet, 0))[1](facet));
+        if (deref(first) == point) {
+            *out++ = **reinterpret_cast<const char *const *>((uintptr_t)Global781fc8_Get_691530());
+            increment(first);
+        }
+    }
+    if (!digits) {
+        for (; !equal(first, last) && deref(first) == '0'; increment(first)) {
+            --power;
+            seen = true;
+        }
+        if (power < 0) {
+            *out++ = '0';
+            ++power;
+        }
+    }
+    for (; !equal(first, last) && take_digit(out, first, digits, 0x24); increment(first)) seen = true;
+    if (seen && !equal(first, last) && (deref(first) == 'e' || deref(first) == 'E')) {
+        *out++ = 'e';
+        increment(first);
+        digits = 0;
+        take_sign(out, first, last);
+        seen = take_zeros(out, first, last);
+        for (; !equal(first, last) && take_digit(out, first, digits, 8); increment(first)) seen = true;
+    }
+    if (!seen) out = text;
+    *out = 0;
+    return power;
+}
+
+// do_get of a float, a double, a long double: the scanned text and its power to _Stod or _Stold, the locale kept over it.
+template <typename T> u32 *get_float(u32 *out, NumGetIter &first, NumGetIter &last, u8 *ios, u32 *state, T *value, double(__cdecl *convert)(const char *, const char **, s32)) {
+    *CRT_errno() = 0;
+    u8 *locale;
+    Obj_ShareMember20(ios, nullptr, &locale);
+    char text[0x3c];
+    const s32 power = scan_float(text, first, last, reinterpret_cast<u8 *>(UseFacet_Numpunct(&locale, 0, 1)));
+    const char *end;
+    const T number = static_cast<T>(convert(text, &end, power));
+    CountedRef_Release(&locale);
+    if (equal(first, last)) *state |= 1;
+    if (end != text && !*CRT_errno()) {
+        *value = number;
+    } else {
+        *state |= 2;
+    }
+    return result(out, first);
+}
+
 // do_get of a long or an unsigned long: the whole text to the C library, the locale kept over it.
 template <typename Convert> u32 *get_long(u32 *out, NumGetIter &first, NumGetIter &last, u8 *ios, u32 *state, u32 *value, Convert convert) {
     *CRT_errno() = 0;
@@ -303,5 +401,11 @@ u32 *__fastcall NumGet_DoGetPointer(void *, void *, u32 *out, NumGetIter first, 
     if (!(*state & 2)) *value = number;
     return result(out, first);
 }
+
+u32 *__fastcall NumGet_DoGetFloat(void *, void *, u32 *out, NumGetIter first, NumGetIter last, u8 *ios, u32 *state, float *value) { return get_float(out, first, last, ios, state, value, CRT_Stold); }
+
+u32 *__fastcall NumGet_DoGetDouble(void *, void *, u32 *out, NumGetIter first, NumGetIter last, u8 *ios, u32 *state, double *value) { return get_float(out, first, last, ios, state, value, CRT_Stod); }
+
+u32 *__fastcall NumGet_DoGetLongDouble(void *, void *, u32 *out, NumGetIter first, NumGetIter last, u8 *ios, u32 *state, double *value) { return get_float(out, first, last, ios, state, value, CRT_Stold); }
 
 }  // extern "C"

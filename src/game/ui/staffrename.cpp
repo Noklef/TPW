@@ -15,6 +15,7 @@
 #include "window705a20.h"
 #include "windowreg.h"
 #include "windowscript.h"
+#include "panel7cc218.h"
 
 namespace {
 
@@ -29,11 +30,11 @@ void StaffRename_SetEnv(const StaffRenameEnv *env) { g_env = env ? env : &kGameE
 void __fastcall StaffRename_Open(u8 *self) {
     u8 *&dialog = *reinterpret_cast<u8 **>(self + 0xc);
     if (dialog) return;
-    u8 *const thing = *reinterpret_cast<u8 **>((uintptr_t)0x007c2658);
+    u8 *const thing = gPanel7cc218_7c2658;
     if (!thing || (u8)(thing[2] - 4) > 4) return;
     u8 *const parent = *reinterpret_cast<u8 **>(self + 0x10);
     const s32 depth = *reinterpret_cast<s16 *>(parent + 0xe0);
-    u8 *const window = g_env->build(parent, nullptr, reinterpret_cast<u8 *>((uintptr_t)0x007572e8), 0x004b6320);
+    u8 *const window = g_env->build(parent, nullptr, gStaffRename_Open_7572e8, 0x004b6320);
     dialog = window;
     g_env->setDepth(window, nullptr, (u32)(depth + 10));
     g_env->setDwordA0(window, nullptr, 0, (u32)(uintptr_t)thing);

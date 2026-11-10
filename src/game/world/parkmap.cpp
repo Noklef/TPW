@@ -26,6 +26,7 @@
 #include "object.h"
 #include "person.h"
 #include "things.h"
+#include "../render/screen.h"
 #include "parkmap.h"
 
 namespace {
@@ -322,7 +323,7 @@ void __fastcall ParkMap_Classify(u8 *map) {
 }
 
 void __fastcall ParkMap_PlaceSprite(const u8 *map, void *, u8 *sprite) {
-    const X87Reg width = static_cast<double>(global<u32>(0x007a1968)), height = static_cast<double>(global<u32>(0x007a1930));
+    const X87Reg width = static_cast<double>(gScreen_7a1968), height = static_cast<double>(gScreen_7a1930);
     const X87Reg toX = X87_DivR(static_cast<double>(at<s32>(map, 0x24)), 480.0);
     const float toY = static_cast<float>(X87_DivR(static_cast<double>(at<s32>(map, 0x28)), 425.0));
     const float widthF = static_cast<float>(width), heightF = static_cast<float>(height);
@@ -372,7 +373,7 @@ void __fastcall ParkMap_LayOut(const u8 *map) {
         std::memcpy(&b, &f, 4);
         return b;
     };
-    const u32 width = global<u32>(0x007a1968), height = global<u32>(0x007a1930);
+    const u32 width = gScreen_7a1968, height = gScreen_7a1930;
     const float zoom = at<float>(map, 0x5c);
     const X87Reg toX = X87_DivR(static_cast<double>(at<s32>(map, 0x24)), 480.0f);
     const float widthF = static_cast<float>(static_cast<double>(width));

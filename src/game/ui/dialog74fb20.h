@@ -55,3 +55,12 @@ void __cdecl Dialog74faf0_OpenFor(u8 *thing);
 // Closed: the window sent 4 (0, 0), 0x516c10 on [0x7cf83c], [0x7cb2b0] sent 6 (0, 0), [0x7cb2ac] sent 6 (1, 0), the keys enabled, the byte [0x7c24d0] cleared, Focus_Restore, and with the mode setting (0xfb3b7c, read under the guard 0xfb34c7 & 1) 2 the box of the text 0x1d7.
 u32 __cdecl Dialog74faf0_Handler(u8 *window, u32 message, u32 a, u32 b);
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(u32, gDialog74fb20_7c24cc, 0x007c24cc, 0x4);
+GAME_DATA(u8, gDialog74fb20_7c24d0, 0x007c24d0, 0x1);
+GAME_DATA(u32, gDialog74fb20_7c2508, 0x007c2508, 0x4);
+GAME_DATA(u8, gDialog74fb20_fb34c7, 0x00fb34c7, 0x1);
+GAME_DATA(u32, gDialog74fb20_fb3b7c, 0x00fb3b7c, 0x4);

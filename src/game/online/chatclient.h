@@ -45,3 +45,8 @@ void __fastcall ChatClient_Connect(u8 *self);
 // 0x4e5ef0: the player made at the map's entrance (+4; 0x3a8 bytes, its name +8). Its thing a kind 0x12: placed at the cell's middle, the imports 0x6fd4cc and 0x6fd4bc on the session, +0xeb1 cleared. Mouse mode MMOnline set (the holder [0x7b05e8] made when missing), the imports 0x6fd4d4 (0xa00) and 0x6fd4c0.
 void __fastcall ChatClient_EnterWorld(u8 *self);
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(char[36], gChatClient_Connect_75c0fc, 0x0075c0fc, 0x24);

@@ -71,7 +71,7 @@ void __cdecl Holder_Sleep(u8 *holder) {
         tag = 0x20;
     else
         tag = 0x70;
-    Renderer_RemoveFromSlot(global<u8 *>(0x0087a6d0), nullptr, (u32)(uintptr_t)key, tag);
+    Renderer_RemoveFromSlot(gRenderer_87a6d0, nullptr, (u32)(uintptr_t)key, tag);
     at<u32>(holder, 0) = at<u32>(holder, 0) & 0xffffffe6;
 }
 
@@ -139,7 +139,7 @@ void __cdecl Holder_AddToGrid(u8 *holder, u32 from, u32 to) {
     u8 *part = nullptr;
     if (u8 *const sub = at<u8 *>(holder, 0x1c))
         part = sub + at<s32>(at<u8 *>(sub, 0), 4);
-    Grid_AddObject(global<u8 *>(0x0087a6d0), nullptr, (s32)(from >> 16), (s32)(from & 0xffff), (s32)(to >> 16), (s32)(to & 0xffff), part, 0x70);
+    Grid_AddObject(gRenderer_87a6d0, nullptr, (s32)(from >> 16), (s32)(from & 0xffff), (s32)(to >> 16), (s32)(to & 0xffff), part, 0x70);
     at<u32>(holder, 0) = at<u32>(holder, 0) | 1;
 }
 
@@ -180,7 +180,7 @@ void __cdecl Holder_Wake(u8 *holder) {
     u8 *part = nullptr;
     if (u8 *const sub = at<u8 *>(holder, 0x1c))
         part = sub + at<s32>(at<u8 *>(sub, 0), 4);
-    Renderer_Add(global<u8 *>(0x0087a6d0), nullptr, part, 0x70);
+    Renderer_Add(gRenderer_87a6d0, nullptr, part, 0x70);
     at<u32>(holder, 0) = at<u32>(holder, 0) | 1;
 }
 
@@ -192,10 +192,10 @@ void __cdecl Holder_WakeWithMatrix(u8 *holder, const u32 *matrix, u32 grid) {
     if (u8 *const sub = at<u8 *>(holder, 0x1c))
         part = sub + at<s32>(at<u8 *>(sub, 0), 4);
     if (grid) {
-        Renderer_Add(global<u8 *>(0x0087a6d0), nullptr, part, 0x10);
+        Renderer_Add(gRenderer_87a6d0, nullptr, part, 0x10);
         at<u32>(holder, 0) = at<u32>(holder, 0) | 0x11;
     } else {
-        Renderer_Add(global<u8 *>(0x0087a6d0), nullptr, part, 0x20);
+        Renderer_Add(gRenderer_87a6d0, nullptr, part, 0x20);
         at<u32>(holder, 0) = at<u32>(holder, 0) | 9;
     }
 }
@@ -351,7 +351,7 @@ u32 __cdecl Obj_RemoveFromRect(u8 *object, u32 from, u32 to) {
     u8 *part = at<u8 *>(object, 0x1c);
     if (part)
         part += at<u32>(at<u8 *>(part, 0), 4);
-    Renderer_RemoveInRect(global<u8 *>(0x0087a6d0), nullptr, (s32)(from >> 16), (s32)(from & 0xffff), (s32)(to >> 16),
+    Renderer_RemoveInRect(gRenderer_87a6d0, nullptr, (s32)(from >> 16), (s32)(from & 0xffff), (s32)(to >> 16),
                           (s32)(to & 0xffff), (u32)(uintptr_t)part);
     at<u32>(object, 0) &= 0xfffffffe;
     return at<u32>(object, 0);

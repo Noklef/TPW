@@ -9,7 +9,16 @@
 #include "crt.h"
 #include "gameheap.h"
 #include "string.h"
+#include "../online/chatlists.h"
+#include "../online/chatcommand.h"
+#include "../online/chat.h"
+#include "../ui/dialog74fb20.h"
+#include "../ui/windowproc.h"
+#include "../ui/panel7b9940.h"
+#include "../render/renderer.h"
+#include "../render/graphicssettings.h"
 #include "../gfx/texcache.h"
+#include "../coaster/arreplayaction.h"
 
 namespace {
 
@@ -47,7 +56,7 @@ u32 Sd(u32 address, A... args) {
 }
 u32 Ptr(const void *p) { return (u32)reinterpret_cast<uintptr_t>(p); }
 
-constexpr u32 kClocks = 0x00785970, kPanel = 0x007b51f0, kOwner = 0x00786b68, kLoadScreen = 0x008c4748, kCameraMode = 0x00f7b560, kPaths = 0x00f816c0, kSetting = 0x00fb3b7c, kState = 0x0087906c;
+constexpr u32 kClocks = 0x00785970, kPanel = 0x007b51f0, kOwner = 0x00786b68, kLoadScreen = 0x008c4748, kCameraMode = 0x00f7b560, kPaths = 0x00f816c0, kState = 0x0087906c;
 
 u32 Now() { return Th(0x00402d70, kClocks); }            // Clocks_Now
 u32 Ticks() { return G<u32(__stdcall *)()>(0x006fd1d0)(); }   // timeGetTime
@@ -64,10 +73,10 @@ u32 Mode() {
     u8 &made = G<u8>(0x00fb34a8);
     if (!(made & 1)) {
         made |= 1;
-        Th(0x00550ca0, kSetting);   // Setting_ReadMode
+        Th(0x00550ca0, Ptr(&gDialog74fb20_fb3b7c));   // Setting_ReadMode
         Cd(0x0067a7d0, 0x005d1750);  // atexit
     }
-    return G<u32>(kSetting);
+    return gDialog74fb20_fb3b7c;
 }
 
 // The singletons, made on the first use wherever they are asked for (a failed allocation leaves null, which the next use faults on or asks again for).
@@ -79,10 +88,10 @@ u32 Single(u32 slot, u32 size, u32 ctor) {
     }
     return p;
 }
-u32 Chat() { return Single(0x007cddec, 0xf0c, 0x004e5260); }      // OnlineChat_Ctor
-u32 Online() { return Single(0x00f7d88c, 0x404, 0x005b50b0); }
-u32 Records() { return Single(0x00f81ebc, 0x110, 0x005c7420); }
-u32 Saves() { return Single(0x00f7c58c, 0x50, 0x005aef50); }      // GlobalSave_Construct
+u32 Chat() { return Single(reinterpret_cast<uintptr_t>(&gChat_7cddec), 0xf0c, 0x004e5260); }      // OnlineChat_Ctor
+u32 Online() { return Single(reinterpret_cast<uintptr_t>(&gChatcommand_f7d88c), 0x404, 0x005b50b0); }
+u32 Records() { return Single(reinterpret_cast<uintptr_t>(&gChatlists_f81ebc), 0x110, 0x005c7420); }
+u32 Saves() { return Single(reinterpret_cast<uintptr_t>(&gArreplayaction_f7c58c), 0x50, 0x005aef50); }      // GlobalSave_Construct
 u32 Centre() {
     u32 &p = G<u32>(0x00788d3c);
     if (!p) {
@@ -226,12 +235,12 @@ void FrontendEnd() {   // state 3
     Cd(0x00598ad0);
     Cd(0x00429e20, 0);   // ModelSlot_Free
     Th(0x0058dd60, gTexcache_8c4b44, 0);   // TexCache_ReleaseItems
-    Th(0x00576820, G<u32>(0x0087a6d0));   // Renderer_ClearAll
+    Th(0x00576820, reinterpret_cast<u32 &>(gRenderer_87a6d0));   // Renderer_ClearAll
     Cd(0x0051bcb0);   // Sound_Post700b60
     Cd(0x0051bd70);
     LoadText();
     G<u32>(0x008bd508) |= 1;
-    Th(0x005765c0, G<u32>(0x0087a6d0), 0x70);   // Renderer_ClearSlot
+    Th(0x005765c0, reinterpret_cast<u32 &>(gRenderer_87a6d0), 0x70);   // Renderer_ClearSlot
     Th(0x00578be0, 0x0087b110, 0x3dcccccd, 0x447a0000, 0x42b40000);   // Mat4_Perspective
     Th(0x0056b790, G<u32>(0x00879d54), 0x42b40000);   // ViewQuad_SetFov
     Th(0x005c5560, kPaths, 0x00877f68);
@@ -296,7 +305,7 @@ u32 ParkLoad() {   // state 9
     Cd(0x00551600);   // RSSE_Init
     Cd(0x0055a5a0);   // FlyingRides_Init
     Particles();
-    if (!(G<u32>(0x007a1a8c) & 0x200)) {
+    if (!(gGraphicssettings_7a1a8c & 0x200)) {
         if (at<s32>(Records(), 0x60) == -1) {
             const u32 name = Th(0x005b6480, kOwner);   // Online_String14
             if (!Th(0x005c7d00, Records(), 0)) {   // Records24_IfUsed
@@ -316,7 +325,7 @@ u32 ParkLoad() {   // state 9
     if (!Cd(0x00457a90)) {
         result = 2;
     } else {
-        Th(0x00576260, G<u32>(0x0087a6d0), 0x0054e2b0);   // Renderer_SetRestoreCallback
+        Th(0x00576260, reinterpret_cast<u32 &>(gRenderer_87a6d0), 0x0054e2b0);   // Renderer_SetRestoreCallback
         if (!Th(0x00407d80, kOwner)) {   // NamedObjects_CreateWorld
             result = 2;
         } else {
@@ -398,10 +407,10 @@ void MusicLevels() {   // state 0xa: every 32nd step
 void FixedSteps() {   // state 0xa
     s32 last = G<s32>(0x00878c74);
     while (G<s32>(0x008786bc) > last) {
-        const u8 flags = G<u8>(0x007a1a14);
+        const u8 flags = reinterpret_cast<u8 &>(gWindowproc_7a1a14);
         G<s32>(0x00878c74) = (s32)((u32)last + 0x1f);
         ++G<u32>(0x00877d34);
-        if ((flags & 8) || !(G<u8>(0x007a1a8c) & 1)) {
+        if ((flags & 8) || !(reinterpret_cast<u8 &>(gGraphicssettings_7a1a8c) & 1)) {
             Timed(0x00878694, 0x008780e8, [] { Cd(0x00520130); });
             Cd(0x00546c80);   // TrakCars_Update
             Timed(0x00878690, 0x008780c8, [] { Cd(0x005516b0); });   // RSSE_Tick
@@ -501,7 +510,7 @@ void ParkFrame() {   // state 0xa
     G<u32>(0x008786bc) = now;
     if ((s32)(now - G<u32>(0x00878c74)) > 0x7d0) G<u32>(0x00878c74) = now - 0x7d0;
     FixedSteps();
-    if ((G<u8>(0x007a1a14) & 8) || !(G<u8>(0x007a1a8c) & 1)) Drawing();
+    if ((reinterpret_cast<u8 &>(gWindowproc_7a1a14) & 8) || !(reinterpret_cast<u8 &>(gGraphicssettings_7a1a8c) & 1)) Drawing();
     if (G<u32>(0x00878128)) ScreenGrab_NextName();
     G<u32>(0x00879064) = 0;
     G<u32>(0x0087868c) = Ticks();
@@ -522,20 +531,20 @@ void ParkFrame() {   // state 0xa
 }
 
 void FreeChat() {
-    const u32 chat = G<u32>(0x007cddec);
+    const u32 chat = reinterpret_cast<u32 &>(gChat_7cddec);
     if (chat) {
         Th(0x004e5950, chat);
         GameHeap_Free(reinterpret_cast<void *>((uintptr_t)chat));
     }
-    G<u32>(0x007cddec) = 0;
+    reinterpret_cast<u32 &>(gChat_7cddec) = 0;
 }
 
 void ParkEnd() {   // state 0xb
     if (Mode() != 1) Th(0x005ac610, kCameraMode, 0x00877c60);
     Cd(0x0048aff0);   // CameraMode_Leave
-    Th(0x00576260, G<u32>(0x0087a6d0), 0);
+    Th(0x00576260, reinterpret_cast<u32 &>(gRenderer_87a6d0), 0);
     Th(0x0058dd60, gTexcache_8c4b44, 0);
-    Th(0x00576820, G<u32>(0x0087a6d0));
+    Th(0x00576820, reinterpret_cast<u32 &>(gRenderer_87a6d0));
     if (Mode() == 1)
         Th(0x00481430, kPanel);
     else
@@ -543,7 +552,7 @@ void ParkEnd() {   // state 0xb
     Th(0x00409180, kOwner);
     Cd(0x00457d50, 0);
     Cd(0x004752e0);   // SpriteScripts_Shutdown
-    if (G<u32>(0x00879088) != 3 && (G<u32>(0x007a1a8c) & 0x200))
+    if (G<u32>(0x00879088) != 3 && (gGraphicssettings_7a1a8c & 0x200))
         G<u32>(kState) = at<u32>(Online(), 0x3f0) ? 9 : 1;
     else
         G<u32>(kState) = 0xc;
@@ -560,7 +569,7 @@ void ParkEnd() {   // state 0xb
     if (at<u32>(Online(), 0x3f0)) return;
     const u32 set = (u8)Th(0x005afc40, Saves()) ? 2 : 0;   // GlobalSave_Byte24
     Mode();
-    Th(0x00550d80, kSetting, set);   // Setting_SetMode
+    Th(0x00550d80, Ptr(&gDialog74fb20_fb3b7c), set);   // Setting_SetMode
 }
 
 void FreeOf(u32 slot, u32 dtor) {
@@ -578,22 +587,22 @@ void Shutdown() {   // state 0xc
         FreeChat();
     }
     Cd(0x0051eda0);   // Sound_ReleaseGlobalCategories
-    G<u32>(0x007a1a14) |= 2;
+    gWindowproc_7a1a14 |= 2;
     const u32 centre = G<u32>(0x00788d3c);
     if (centre) {
         Sd(0x0067afa0, centre, 0x14, 0x1d, 0x0040f970);   // the C library's array destructor
         GameHeap_Free(reinterpret_cast<void *>((uintptr_t)centre));
     }
     G<u32>(0x00788d3c) = 0;
-    FreeOf(0x00f7c58c, 0x005af250);
-    FreeOf(0x00f7d88c, 0x005b5920);
-    FreeOf(0x00f81ebc, 0x005c74b0);
-    const u32 mouse = G<u32>(0x007b05e8);
+    FreeOf(reinterpret_cast<uintptr_t>(&gArreplayaction_f7c58c), 0x005af250);
+    FreeOf(reinterpret_cast<uintptr_t>(&gChatcommand_f7d88c), 0x005b5920);
+    FreeOf(reinterpret_cast<uintptr_t>(&gChatlists_f81ebc), 0x005c74b0);
+    const u32 mouse = reinterpret_cast<u32 &>(gPanel7b9940_7b05e8);
     if (mouse) {
         Th(0x0046c350, mouse, 0);   // MouseMode_Set
         GameHeap_Free(reinterpret_cast<void *>((uintptr_t)mouse));
     }
-    G<u32>(0x007b05e8) = 0;
+    reinterpret_cast<u32 &>(gPanel7b9940_7b05e8) = 0;
     FreeChat();
 }
 

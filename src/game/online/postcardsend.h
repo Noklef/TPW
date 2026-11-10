@@ -28,3 +28,13 @@ extern "C" {
 // then connect (0x5c9f10) to the host [0x7a14f4] (0: the empty string at 0x6fe5b0, an empty one: "ftp.ea-europe.com" at 0x754454 and port 0x19; else the port, a signed word, [0x7a1550]) with Global7cc53c_Pick7cc4f0 and 0; an answer other than 0: the command 0x39 (CommandQueue_Post, 0).
 void __cdecl Postcard_Send();
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(char[4], gPostcardsend_74f8c4, 0x0074f8c4, 0x4);
+GAME_DATA(char[20], gPostcardsend_754454, 0x00754454, 0x14);
+GAME_DATA(char[8], gPostcard_Send_754468, 0x00754468, 0x8);
+GAME_DATA(char[12], gPostcard_Send_754470, 0x00754470, 0xc);
+GAME_DATA(u8[512], gPostcard_Send_7cbcb0, 0x007cbcb0, 0x200);
+GAME_DATA(u32, gPostcard_Send_7cbf38, 0x007cbf38, 0x4);

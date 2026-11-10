@@ -21,3 +21,9 @@ extern "C" {
 // their first dword set, [0x7cc53c] = 1, the name +0x212 in 0x7cc4f0 ("%S"), then the same send and create; with it 0, the send and Dialog7cc5f4_CreateFrom(data, properties). Those answer 0. Message 0x101 with b 1: DialupList_Fill(a != 0xe). Everything else, as after 0x14, 0x15 and 0x101: Dialog_BaseHandler.
 s32 __cdecl Dialog7cc530_Handler(u8 *window, u32 message, u32 a, u32 b);
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(u8[20], gDialog7cc530handler_7cc4f0, 0x007cc4f0, 0x14);
+GAME_DATA(u8, gDialog7cc530handler_7cc53c, 0x007cc53c, 0x1);

@@ -24,6 +24,12 @@
 #include "dialogs.h"
 #include "msgtags.h"
 #include "window.h"
+#include "dialog7cb2fcopen.h"
+#include "dialog7ca1e0.h"
+#include "window7cc8bc.h"
+#include "panel7cc218.h"
+#include "dialog7cc984.h"
+#include "dialog7cc5f4dial.h"
 
 namespace {
 
@@ -34,7 +40,7 @@ const MenuActionsEnv kGameEnv = {&Dialog7cc1f8_Open, &Dialog7ca308_Open, &Dialog
     &Dialog7cb2b8_Child21Post, &Advisor_PostId, &Dialog7cb2b8_ResetChild21, &Game_CancelAdvisor, &Object_RestartRide, &Object_Close, &Object_SetFlag64, &Global7c2654_Set, &FocusCell_Update, &GameMode_Set, &GameMode_MapClick, &Class702da0_Clear, &Things_StepGroup, &Things_StepGroupBack, &Dialog_KeyHandler, &Window_DwordA0};
 const MenuActionsEnv *g_env = &kGameEnv;
 
-u8 *shownThing() { return global<u8 *>(0x007c2658); }
+u8 *shownThing() { return gPanel7cc218_7c2658; }
 
 template <typename R>
 R slot(u8 *object, u32 offset) {
@@ -72,9 +78,9 @@ u16 *__cdecl ShownThing_GetName_4b60f0() { return shownThing() ? g_env->getName(
 u32 __cdecl Game_Part8Slot28_4b8510() { return slot<u32>(at<u8 *>(global<u8 *>(0x00f85614), 8), 0x28); }
 u32 __cdecl Game_Part10Slot2c_4c4470() { return slot<u32>(at<u8 *>(global<u8 *>(0x00f85614), 0x10), 0x2c); }
 
-void __cdecl Window7cb2fc_Close_4a4580() { g_env->send(global<u8 *>(0x007cb2fc), 4, 0, 0); }
-void __cdecl Window7cc8bc_Close_4bf8e0() { g_env->send(global<u8 *>(0x007cc8bc), 4, 0, 0); }
-void __cdecl Window7cc4c4_Send6_4b9c40() { g_env->send(global<u8 *>(0x007cc4c4), 6, 0, 0); }
+void __cdecl Window7cb2fc_Close_4a4580() { g_env->send(gDialog7cb2fcopen_7cb2fc, 4, 0, 0); }
+void __cdecl Window7cc8bc_Close_4bf8e0() { g_env->send(gWindow7cc8bc_7cc8bc, 4, 0, 0); }
+void __cdecl Window7cc4c4_Send6_4b9c40() { g_env->send(gDialogs_7cc4c4, 6, 0, 0); }
 
 u32 __cdecl Globals7cc684_Set_4bc640(u32 a, u32 b) {
     global<u32>(0x007cc684) = a;
@@ -83,7 +89,7 @@ u32 __cdecl Globals7cc684_Set_4bc640(u32 a, u32 b) {
 }
 
 u32 __stdcall Global7cc504_Set_4b9f60(u32 a, u32) {
-    global<u32>(0x007cc504) = a;
+    reinterpret_cast<u32 &>(gDialog7cc5f4dial_7cc504) = a;
     return a;
 }
 
@@ -102,7 +108,7 @@ u32 __fastcall Obj_Count28s_4d0690(const u8 *object) {
 }
 
 void __cdecl Dialog7ca1e0_Post_498bb0() {
-    g_env->child21Post(global<u32>(0x007ca1e0));
+    g_env->child21Post(reinterpret_cast<u32 &>(gDialog7ca1e0_7ca1e0));
     g_env->postId(0x131);
 }
 
@@ -147,9 +153,9 @@ s32 __cdecl ThingPanel_Handler_48d200(u8 *window, u32 message, u32 a, u32 b) {
 
 void __cdecl Dialog7cc984_Finish_4c07d0(u32 show) {
     g_env->clear702da0(at<u8 *>(global<u8 *>(0x00f85614), 0x14));
-    g_env->send(global<u8 *>(0x007cc984), 4, 0, 0);
+    g_env->send(gDialog7cc984_7cc984, 4, 0, 0);
     reinterpret_cast<void(__cdecl *)(u32, u32)>(global<uintptr_t>(0x007cca4c))(show, global<u32>(0x007cca50));
     if (show) g_env->send(at<u8 *>(global<u8 *>(0x00f82884), 4), 6, 1, 0);
 }
 
-u8 *__cdecl ShownThing_NameBuffer() { return Thing_NameBuffer7ba058(global<u8 *>(0x007c2658)); }
+u8 *__cdecl ShownThing_NameBuffer() { return Thing_NameBuffer7ba058(gPanel7cc218_7c2658); }

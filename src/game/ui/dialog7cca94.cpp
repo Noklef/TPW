@@ -12,7 +12,7 @@
 
 namespace {
 
-u8 *&dialog() { return *reinterpret_cast<u8 **>((uintptr_t)0x007cca94); }
+u8 *&dialog() { return gDialog7cca94_7cca94; }
 
 u8 *text() { return Window_FindChild(dialog(), nullptr, 0x2241); }
 
@@ -30,9 +30,9 @@ void __cdecl Dialog7cca94_Show(const u16 *string) {
         vcall<void>(text(), 0x24, string);
         return;
     }
-    dialog() = WindowScript_Build(*reinterpret_cast<u8 **>((uintptr_t)0x00faa5d8), nullptr, reinterpret_cast<u8 *>(0x00759548), 0x004c23c0);
+    dialog() = WindowScript_Build(*reinterpret_cast<u8 **>((uintptr_t)0x00faa5d8), nullptr, gDialog7cca94_Show_759548, 0x004c23c0);
     u8 *memory = static_cast<u8 *>(GameHeap_Alloc(0x124));
-    Window_SetImpl(dialog(), nullptr, memory ? MeshOverlay_Construct(memory, nullptr, reinterpret_cast<const char *>(0x007595a0)) : nullptr);
+    Window_SetImpl(dialog(), nullptr, memory ? MeshOverlay_Construct(memory, nullptr, gDialog7cca94_Show_7595a0) : nullptr);
     vcall<void>(dialog(), 0x1c, 0u);
     memory = static_cast<u8 *>(GameHeap_Alloc(0x1a4));
     u8 *const part = memory ? TextPart_Ctor(memory, nullptr, 0) : nullptr;
@@ -48,8 +48,8 @@ void __cdecl Dialog7cca94_Show(const u16 *string) {
 }
 
 void __cdecl Dialog7cca94_ShowText(u32 index) {
-    if (!dialog() || index != *reinterpret_cast<u32 *>((uintptr_t)0x007cca9c)) Dialog7cca94_Show(Language_WideText(index));
-    *reinterpret_cast<u32 *>((uintptr_t)0x007cca9c) = index;
+    if (!dialog() || index != gDialog7cca94_ShowText_7cca9c) Dialog7cca94_Show(Language_WideText(index));
+    gDialog7cca94_ShowText_7cca9c = index;
 }
 
 void __cdecl Dialog7cca94_SetProgress(u32 percent) {

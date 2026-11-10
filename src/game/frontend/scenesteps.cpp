@@ -22,6 +22,8 @@
 #include "scenequeue.h"
 #include "thememenu.h"
 #include "sceneleave.h"
+#include "../ui/dialog74fb20.h"
+#include "../coaster/arreplayaction.h"
 
 namespace {
 
@@ -38,7 +40,7 @@ const SceneStepsEnv *g_env = &kPorts;
 
 u8 *Setting() {
     u8 &guard = global<u8>(0x00fb2758);
-    u8 *const setting = reinterpret_cast<u8 *>((uintptr_t)0x00fb3b7c);
+    u8 *const setting = reinterpret_cast<u8 *>(&gDialog74fb20_fb3b7c);
     if (!(guard & 1)) {
         guard |= 1;
         g_env->readMode(setting);
@@ -48,7 +50,7 @@ u8 *Setting() {
 }
 
 u8 *SaveInfo() {
-    u8 *&info = global<u8 *>(0x00f7c58c);
+    u8 *&info = gArreplayaction_f7c58c;
     if (!info) {
         u8 *const block = static_cast<u8 *>(GameHeap_Alloc(0x50));
         info = block ? g_env->saveCtor(block) : nullptr;
