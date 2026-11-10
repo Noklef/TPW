@@ -14,11 +14,11 @@ namespace {
 
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
 
-u32 indexes() { return global<u32>(0x006fe228); }
+u32 indexes() { return gQuickload_6fe228; }
 u32 &loaded() { return global<u32>(0x007a445c); }
 
 QuickloadIndex *table(u32 second) {
-    return second ? global<QuickloadIndex *>(0x007a3e5c) : global<QuickloadIndex *>(0x007a45dc);
+    return second ? gQuickload_7a3e5c : gQuickload_7a45dc;
 }
 
 // strcpy as inlined (rep movsd, then rep movsb, the NUL included), then the extension cut off.
@@ -48,18 +48,18 @@ u32 length(const char *s) {
 extern "C" {
 
 void __cdecl Quickload_Init() {
-    global<u32>(0x007a3d3c) = 1;
-    global<void *>(0x007a45dc) = GlobalMem_Alloc(indexes() * 12, 1);
-    global<void *>(0x007a3e5c) = GlobalMem_Alloc(indexes() * 12, 1);
+    gQuickload_7a3d3c = 1;
+    reinterpret_cast<void * &>(gQuickload_7a45dc) = GlobalMem_Alloc(indexes() * 12, 1);
+    reinterpret_cast<void * &>(gQuickload_7a3e5c) = GlobalMem_Alloc(indexes() * 12, 1);
 }
 
 void __cdecl Quickload_Free() {
-    GlobalMem_Free(global<void *>(0x007a45dc));
-    global<void *>(0x007a45dc) = nullptr;
-    GlobalMem_Free(global<void *>(0x007a3e5c));
-    global<void *>(0x007a3e5c) = nullptr;
+    GlobalMem_Free(reinterpret_cast<void * &>(gQuickload_7a45dc));
+    reinterpret_cast<void * &>(gQuickload_7a45dc) = nullptr;
+    GlobalMem_Free(reinterpret_cast<void * &>(gQuickload_7a3e5c));
+    reinterpret_cast<void * &>(gQuickload_7a3e5c) = nullptr;
     loaded() = 0;
-    global<u32>(0x007a3d3c) = 0;
+    gQuickload_7a3d3c = 0;
 }
 
 s32 __cdecl Quickload_Has(const char *name, u32 second, u32 index) {
@@ -125,7 +125,7 @@ char *__cdecl Quickload_Locate(const char *name, u32 flags, s32 *index) {
     u32 n = 0;
     while (name[n]) ++n;
     char *const directory = global<char **>(0x0079cb4c)[slot];
-    char *const buffer = reinterpret_cast<char *>(static_cast<uintptr_t>(0x0079c9d0));
+    char *const buffer = gQuickload_Locate_79c9d0;
     Rep_Movs(buffer, name, n + 1);
     if (!listed) {
         if (!VFS_FileExists(buffer)) {
@@ -143,7 +143,7 @@ u32 __cdecl Quickload_LoadRide(const char *name, const char *folder, const char 
         u32 left = indexes();
         do {
             for (u32 t = 0; t < 2; ++t) {
-                QuickloadIndex *const q = (t == 0 ? global<QuickloadIndex *>(0x007a3e5c) : global<QuickloadIndex *>(0x007a45dc)) + e;
+                QuickloadIndex *const q = (t == 0 ? gQuickload_7a3e5c : gQuickload_7a45dc) + e;
                 GlobalMem_Free(q->names);
                 q->names = nullptr;
                 GlobalMem_Free(q->text);
@@ -161,18 +161,18 @@ u32 __cdecl Quickload_LoadRide(const char *name, const char *folder, const char 
     s32 index;
     char *const directory = Quickload_Locate(paths.located, 0, &index);
     if (index == -1) return 0;   // (the original's "Could not find ride" goes to the empty Debug_Printf)
-    if (global<u32>(0x007a3d3c)) {
+    if (gQuickload_7a3d3c) {
         for (u32 pass = 0; pass < 2; ++pass) {
             char quick[0x104];
             const char *const base = global<char **>(0x0079cb4c)[index];
             QuickloadIndex *q;
             if (pass == 0) {
-                Crt().sprintf(quick, reinterpret_cast<const char *>(0x0074d27c), base, folder);   // "%s\%s\qickload.txt"
-                q = global<QuickloadIndex *>(0x007a45dc) + index;
+                Crt().sprintf(quick, gText_Quickload_LoadRide_74d27c, base, folder);   // "%s\%s\qickload.txt"
+                q = gQuickload_7a45dc + index;
             } else {
-                Crt().sprintf(quick, reinterpret_cast<const char *>(0x0074d290), base, folder,
+                Crt().sprintf(quick, gText_Quickload_LoadRide_74d290, base, folder,
                               reinterpret_cast<const char *>(0x007af650));   // "%s\%s\%s\qickload.txt"
-                q = global<QuickloadIndex *>(0x007a3e5c) + index;
+                q = gQuickload_7a3e5c + index;
             }
             u8 *const stream = reinterpret_cast<u8 *>(VFS_Open(quick));
             char *data = nullptr;
@@ -229,7 +229,7 @@ u32 __cdecl Quickload_LoadRide(const char *name, const char *folder, const char 
     const u32 n = length(folder);
     Rep_Movs(paths.directories, folder, n + 1);
     const char before = n ? paths.directories[n - 1] : paths.located[0x103];
-    Crt().sprintf(paths.directories + n, reinterpret_cast<const char *>(before == '\\' ? 0x0074d1f0 : 0x0074d1ec),   // "%s" / "\%s"
+    Crt().sprintf(paths.directories + n, reinterpret_cast<const char *>(before == '\\' ? (u32)&gText_Quickload_74d1f0 : (u32)&gText_Quickload_LoadRide_74d1ec),   // "%s" / "\%s"
                   reinterpret_cast<const char *>(0x007af650));
     if (!directory) return 0;
     TexDirs_Set(directory, folder, paths.directories, c);

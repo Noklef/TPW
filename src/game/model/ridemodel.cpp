@@ -13,6 +13,7 @@
 #include "holder.h"
 #include "md2file.h"
 #include "partstate.h"
+#include "../files/gamepaths.h"
 
 namespace {
 
@@ -46,7 +47,7 @@ u32 __cdecl RideModel_Load(const char *name, u32 flags, u8 **out, char *outName,
     if (!dir || (flags & 0x200))
         Crt().sprintf(path, name);   // (sic: the name is the format)
     else
-        Crt().sprintf(path, text(0x0074d320), dir, name);   // "%s%s"
+        Crt().sprintf(path, text((u32)&gText_Gamepaths_74d320), dir, name);   // "%s%s"
     const char *dot = Crt().strrchr(path, '.');
     if (!dot || dot == path || dot[1] == '\\')
         std::strcat(path, text(0x00747950));   // ".md2"
@@ -54,7 +55,7 @@ u32 __cdecl RideModel_Load(const char *name, u32 flags, u8 **out, char *outName,
     if (char *const cut = Crt().strrchr(base, '.'))
         if (cut != path && cut[1] != '\\')   // (sic: against the other buffer, so never equal)
             *cut = 0;
-    u8 *const holder = Holder_LoadMd2(path, 0, 1, global<u32>(0x007b4980) & 8, 0);
+    u8 *const holder = Holder_LoadMd2(path, 0, 1, gMotionFlags & 8, 0);
     if (!holder)
         return 0;
     at<u8 *>(anim, 8) = holder;

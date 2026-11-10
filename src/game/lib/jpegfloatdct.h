@@ -22,3 +22,16 @@ void __cdecl Jpeg6a_ForwardDctFloat(u8 *cinfo, u8 *compptr, u8 **sample_data, s1
 void __cdecl Jpeg6b_IdctFloat(u8 *cinfo, u8 *compptr, const s16 *coef_block, u8 **output_buf, u32 output_col);
 
 }  // extern "C"
+
+#include "../core/gamedata.h"
+
+// Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(const float, gJpeg6b_IdctFloat_7050f8, 0x007050f8, 0x4);
+GAME_DATA(const float, gJpeg6b_IdctFloat_7050fc, 0x007050fc, 0x4);
+GAME_DATA(const float, gJpeg6b_IdctFloat_705100, 0x00705100, 0x4);
+GAME_DATA(const float, gJpeg6b_IdctFloat_705104, 0x00705104, 0x4);
+GAME_DATA(const float, gJpeg6a_ForwardDctFloat_7058c0, 0x007058c0, 0x4);
+GAME_DATA(const float, gJpegfloatdct_7058c4, 0x007058c4, 0x4);
+GAME_DATA(const float, gJpegfloatdct_7058c8, 0x007058c8, 0x4);
+GAME_DATA(const float, gJpegfloatdct_7058cc, 0x007058cc, 0x4);
+GAME_DATA(const float, gJpegfloatdct_7058d0, 0x007058d0, 0x4);

@@ -81,3 +81,22 @@ s32 __cdecl GamePaths_ShareTexFolder(char *out);
 extern "C" {
 bool __cdecl GamePaths_CheckDisc();
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(char[8], gText_Gamepaths_74d320, 0x0074d320, 0x8);
+GAME_DATA(char[12], gText_GamePaths_FontsFolder_74d6c0, 0x0074d6c0, 0xc);
+GAME_DATA(char[12], gText_GamePaths_SetTextureFolders_74d6dc, 0x0074d6dc, 0xc);
+GAME_DATA(char[12], gText_GamePaths_SetTextureFolders_74d6e8, 0x0074d6e8, 0xc);
+GAME_DATA(char[12], gText_GamePaths_SetTextureFolders_74d6f4, 0x0074d6f4, 0xc);
+GAME_DATA(u16[2], gText_GamePaths_SetSecondRoot_77316c, 0x0077316c, 0x4);
+GAME_DATA(char[12], gText_GamePaths_MakeFoldersCopying_773cd0, 0x00773cd0, 0xc);
+GAME_DATA(u32[2], gGamePaths_Base_788028, 0x00788028, 0x8);
+GAME_DATA(u32, gGamePaths_Base_788030, 0x00788030, 0x4);
+GAME_DATA(u8, gGamePaths_Base_7887e4, 0x007887e4, 0x1);
+GAME_DATA(char[16], gGamePaths_7af720, 0x007af720, 0x10);
+GAME_DATA(u32, gCdVolumeLabel, 0x00f7a7d0, 0x4);
+GAME_DATA(u32, gGamePaths_RemoveTree_f81650, 0x00f81650, 0x4);
+GAME_DATA(u8, gGamePaths_CheckDisc_fb34ca, 0x00fb34ca, 0x1);
+GAME_DATA(u32[9], gGamePaths_CheckDisc_fb34f0, 0x00fb34f0, 0x24);

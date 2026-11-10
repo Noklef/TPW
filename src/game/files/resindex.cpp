@@ -156,7 +156,7 @@ s32 *__fastcall ResIndex_Load(u8 *index, void *, s32 *result, u8 *record, u8 **o
     s32 slot = (s32)(uintptr_t)object;
     s32 status = -1;
     if (*ResIndex_OpenEntry(index, nullptr, &slot, (u32)(uintptr_t)&stream, record) >= 0) {
-        u8 *const loader = *reinterpret_cast<u8 *const *>((uintptr_t)0x782d20 + at<u16>(record, 4) * 4);
+        u8 *const loader = *reinterpret_cast<u8 *const *>((uintptr_t)(u32)&gResIndex_Load_782d20 + at<u16>(record, 4) * 4);
         if (loader && *vcall<s32 *>(loader, 0, &slot, &stream, object, at<u32>(record, 0), index) >= 0) {
             u8 *const loaded = *object;
             at<u8 *>(record, 8) = loaded;
@@ -186,7 +186,7 @@ s32 *__fastcall ResFolder_LoadIndex(u8 *folder, void *, s32 *result, u32 path) {
     StreamBase stream;
     StreamBase_Ctor(&stream);
     s32 outcome = -1;
-    if (*Handle_Vfn3(&handle, nullptr, &status, (u32)(uintptr_t)&stream, 0x782d14, 0x80000001u, 0) >= 0) {
+    if (*Handle_Vfn3(&handle, nullptr, &status, (u32)(uintptr_t)&stream, (u32)&gText_ResFolder_LoadIndex_782d14, 0x80000001u, 0) >= 0) {
         u32 header[2];
         const s32 got = stream.source ? vcall<s32>(stream.source, 4, header, 8u) : -1;
         if (got == 8 && header[0] == 0x49524642) {   // "BFRI"

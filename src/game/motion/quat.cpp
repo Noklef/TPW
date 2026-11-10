@@ -6,6 +6,7 @@
 #include <cmath>
 
 #include "../math/x87.h"
+#include "animator.h"
 
 namespace {
 
@@ -103,6 +104,6 @@ extern "C" void __cdecl Quat_Slerp(const float *a, const float *b, float t, floa
 }
 
 extern "C" void __cdecl Motion_RotationAt(const RotationKey *keys, u32 index, float t, float *m) {
-    Motion_RotationAtWith(SinTable_Game(), keys, *reinterpret_cast<const u32 *>(0x007b4988),
-                          *reinterpret_cast<const u32 *>(0x007b4980), index, t, m);
+    Motion_RotationAtWith(SinTable_Game(), keys, gRotationKeyCount,
+                          gMotionFlags, index, t, m);
 }

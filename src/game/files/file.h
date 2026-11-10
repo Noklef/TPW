@@ -118,3 +118,11 @@ struct FileEnv {
 void Files_SetEnv(const FileEnv *env);
 // The env in use (for the file library's classes).
 const FileEnv *Files_GetEnv();
+
+#include "../core/gamedata.h"
+
+// Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(char[264], gCommandLine, 0x00fa6ec8, 0x108);
+GAME_DATA(char[264], gBaseDir, 0x00fa6fd0, 0x108);
+GAME_DATA(char[264], gPathBuffer, 0x00fa70d8, 0x108);
+GAME_DATA(u32[6], gClock, 0x00fa71e0, 0x18);

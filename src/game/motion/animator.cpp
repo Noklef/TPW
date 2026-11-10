@@ -132,7 +132,7 @@ void Animator_ResetLayersWith(u32 motionFlags, u32 *trackFlags, u8 *animator) {
 }
 
 extern "C" void __cdecl Animator_ResetLayers(u8 *animator) {
-    Animator_ResetLayersWith(*reinterpret_cast<const u32 *>(0x007b4980), *reinterpret_cast<u32 **>(0x007aecd4),
+    Animator_ResetLayersWith(gMotionFlags, *reinterpret_cast<u32 **>(0x007aecd4),
                              animator);
 }
 
@@ -160,7 +160,7 @@ void Layer_StartWith(u32 time, u32 realTime, u8 *layer, const u8 *block, s32 res
 }
 
 extern "C" void __cdecl Layer_Start(u8 *layer, const u8 *block, s32 restart, float frame) {
-    Layer_StartWith(*reinterpret_cast<const u32 *>(0x007b496c), *reinterpret_cast<const u32 *>(0x007b4974), layer,
+    Layer_StartWith(gMotionTime, gMotionRealTime, layer,
                     block, restart, frame);
 }
 
@@ -507,8 +507,8 @@ s32 Animator_UpdateWith(const AnimatorEnv &env, u8 *animator, const u8 *block, u
 
 namespace {
 AnimatorEnv game_env() {
-    AnimatorEnv env{*reinterpret_cast<const u32 *>(0x007b4980), *reinterpret_cast<u32 **>(0x007aecd4),
-                    *reinterpret_cast<const u32 *>(0x007b496c), *reinterpret_cast<const u32 *>(0x007b4974),
+    AnimatorEnv env{gMotionFlags, *reinterpret_cast<u32 **>(0x007aecd4),
+                    gMotionTime, gMotionRealTime,
                     reinterpret_cast<void(__cdecl *)(u8 *, u32, s32)>(0x0045bd30)};
     env.track = &Track_Apply;
     env.material = &Motion_ApplyMaterial;
@@ -521,7 +521,7 @@ AnimatorEnv game_env() {
 }  // namespace
 
 extern "C" s32 __cdecl Animator_IsIdle(u8 *animator) {
-    return Animator_IsIdleWith(*reinterpret_cast<const u32 *>(0x007b496c), *reinterpret_cast<const u32 *>(0x007b4974),
+    return Animator_IsIdleWith(gMotionTime, gMotionRealTime,
                                animator);
 }
 
@@ -560,8 +560,8 @@ void Motion_UpdateClocksWith(u32 *time, float *step, u32 now) {
 
 extern "C" void __cdecl Motion_UpdateClocks() {
     u8 *const clocks = reinterpret_cast<u8 *>(0x00785970);  // the game clock: 0x402d70 and 0x402d80 are its ports
-    Motion_UpdateClocksWith(reinterpret_cast<u32 *>(0x007b496c), &gMotionTimeStep, Clocks_Now(clocks));
-    *reinterpret_cast<u32 *>(0x007b4974) = Clocks_RealNow(clocks);
+    Motion_UpdateClocksWith(&gMotionTime, &gMotionTimeStep, Clocks_Now(clocks));
+    gMotionRealTime = Clocks_RealNow(clocks);
 }
 
 extern "C" s32 __cdecl Animator_Reset(u8 *animator, s32 clear, s32 realTime, s32 keepNodes) {
@@ -630,10 +630,10 @@ extern "C" u32 __cdecl Animator_MotionEndMs(const u8 *animator, u32 bank, u32 en
     return field<u32>(entry_block(animator, bank, entry), 8) * 1000u / 30;
 }
 
-extern "C" void __cdecl Motion_SetFlags(u32 flags) { *reinterpret_cast<u32 *>(0x007b4980) = flags; }
+extern "C" void __cdecl Motion_SetFlags(u32 flags) { gMotionFlags = flags; }
 
-extern "C" void __cdecl Motion_SetTime(u32 time) { *reinterpret_cast<u32 *>(0x007b496c) = time; }
+extern "C" void __cdecl Motion_SetTime(u32 time) { gMotionTime = time; }
 
 extern "C" u32 __cdecl Motion_Time(u32 real) {
-    return real ? *reinterpret_cast<const u32 *>(0x007b4974) : *reinterpret_cast<const u32 *>(0x007b496c);
+    return real ? gMotionRealTime : gMotionTime;
 }

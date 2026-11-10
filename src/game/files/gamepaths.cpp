@@ -53,7 +53,7 @@ void __fastcall GamePaths_MakeFolders(void *, void *, const WString *root) {
 
 void __stdcall GamePaths_MakeFoldersCopying(const WString *root, u32 copy) {
     const String *const separator = at<const String *>(0x00f81b48);
-    const char *const easymode = at<const char *>(0x00773cd0);
+    const char *const easymode = at<const char *>((u32)&gText_GamePaths_MakeFoldersCopying_773cd0);
     const String *const extension = at<const String *>(0x00f825e0);
     String base;
     String_Ctor(&base);
@@ -106,7 +106,7 @@ void __cdecl GamePaths_RemoveTree(const String *path) {
         DirEntry *const entry = reinterpret_cast<DirEntry *>(buffer);
         entry->path[0] = 0;
         entry->name = entry->path;
-        if (*Handle_Vfn1(&folder, nullptr, &status, *at<const u32 *>(0x00f81650), reinterpret_cast<u32>(entry)) >= 0) {
+        if (*Handle_Vfn1(&folder, nullptr, &status, *at<const u32 *>((u32)&gGamePaths_RemoveTree_f81650), reinterpret_cast<u32>(entry)) >= 0) {
             do {
                 if (entry->name[0] != '.') {
                     if (entry->attributes & 0x10) {
@@ -133,7 +133,7 @@ void __cdecl GamePaths_SetSecondRoot(String drive) {
     String unused;
     String_Ctor(&unused);
     vcall<void>(&path, 0x18, &drive);
-    vcall<void>(&path, 0x20, at<const char *>(0x0077316c));
+    vcall<void>(&path, 0x20, at<const char *>((u32)&gText_GamePaths_SetSecondRoot_77316c));
     vcall<void>(&path, 0x28, at<const String *>(0x00f79fe8));
     Obj_CallSub14Slot18(at<u8 *>(0x00f816c0), nullptr, static_cast<u32>(reinterpret_cast<std::uintptr_t>(&path)));
     String_Dtor(&unused);
@@ -156,7 +156,7 @@ u32 __fastcall GamePaths_FindDisc(u8 *check) {
     for (;;) {
         s32 status;
         if (*SystemInfo_ListDrives(info, nullptr, &status, list, 8) >= 0) {
-            const char letter = static_cast<char>(SystemInfo_FindVolume(info, nullptr, list, *at<const char *const *>(0x00f7a7d0)));
+            const char letter = static_cast<char>(SystemInfo_FindVolume(info, nullptr, list, *at<const char *const *>((u32)&gCdVolumeLabel)));
             String drive;
             String_CtorChar(&drive, nullptr, &letter);
             GamePaths_SetSecondRoot(drive);
@@ -178,20 +178,20 @@ u32 __cdecl GamePaths_FontsFolder(char *out) {
     s32 length = 0;
     while (root[length] != 0)
         ++length;
-    const char *const format = root[length - 1] == '\\' ? at<const char *>(0x0074d320) : at<const char *>(0x007488ac);   // (empty: root[-1], sic)
-    Crt().sprintf(out, format, root, at<const char *>(0x0074d6c0));
+    const char *const format = root[length - 1] == '\\' ? at<const char *>((u32)&gText_Gamepaths_74d320) : at<const char *>(0x007488ac);   // (empty: root[-1], sic)
+    Crt().sprintf(out, format, root, at<const char *>((u32)&gText_GamePaths_FontsFolder_74d6c0));
     return 1;
 }
 
 s32 __cdecl GamePaths_SetTextureFolders(u32 low) {
     char *const textures = reinterpret_cast<char *>(0x007af650);
-    char *const shared = reinterpret_cast<char *>(0x007af720);
+    char *const shared = gGamePaths_7af720;
     if (low) {
-        Crt().sprintf(textures, reinterpret_cast<const char *>(0x0074d6f4));
+        Crt().sprintf(textures, gText_GamePaths_SetTextureFolders_74d6f4);
         return Crt().sprintf(shared, reinterpret_cast<const char *>(0x00747e88));
     }
-    Crt().sprintf(textures, reinterpret_cast<const char *>(0x0074d6e8));
-    return Crt().sprintf(shared, reinterpret_cast<const char *>(0x0074d6dc));
+    Crt().sprintf(textures, gText_GamePaths_SetTextureFolders_74d6e8);
+    return Crt().sprintf(shared, gText_GamePaths_SetTextureFolders_74d6dc);
 }
 
 WString *__stdcall GamePaths_SaveFolder(WString *out) {
@@ -227,8 +227,8 @@ WString *__stdcall GamePaths_OnlineFolder(WString *out) {
 void GamePaths_SetCalls(const AddrCall *table, u32 count) { g_calls.Set(table, count); }
 
 extern "C" const char *__cdecl GamePaths_Base() {
-    String *const path = at<String *>(0x00788028);
-    u8 &guard = *at<u8 *>(0x007887e4);
+    String *const path = at<String *>((u32)&gGamePaths_Base_788028);
+    u8 &guard = *at<u8 *>((u32)&gGamePaths_Base_7887e4);
     if (!(guard & 1)) {
         guard |= 1;
         String_Ctor(path);
@@ -240,12 +240,12 @@ extern "C" const char *__cdecl GamePaths_Base() {
     vcall<void>(path, 0x28, at<const StringView *>(0x00787f50));
     String_EnsureTrailingBackslash(path);
     vcall<void>(path, 0x28, at<const StringView *>(0x00786b68));
-    return *at<const char *const *>(0x00788030);
+    return *at<const char *const *>((u32)&gGamePaths_Base_788030);
 }
 
 s32 __cdecl GamePaths_ShareTexFolder(char *out) {
     const u32 root = g_calls.Cd(0x0040ef40);
-    return Crt().sprintf(out, reinterpret_cast<const char *>((uintptr_t)0x007488ac), reinterpret_cast<const char *>((uintptr_t)root), reinterpret_cast<const char *>((uintptr_t)0x007af720));
+    return Crt().sprintf(out, reinterpret_cast<const char *>((uintptr_t)0x007488ac), reinterpret_cast<const char *>((uintptr_t)root), gGamePaths_7af720);
 }
 
 u32 *__cdecl GamePaths_SetRoots(u32 *result) {
@@ -270,13 +270,13 @@ u32 *__cdecl GamePaths_SetRoots(u32 *result) {
 
 extern "C" bool __cdecl GamePaths_CheckDisc() {
     u8 *const statics = reinterpret_cast<u8 *>(static_cast<std::uintptr_t>(0x00fb34e0));
-    u8 &guard = *reinterpret_cast<u8 *>(static_cast<std::uintptr_t>(0x00fb34ca));
+    u8 &guard = gGamePaths_CheckDisc_fb34ca;
     u32 *const list = reinterpret_cast<u32 *>(statics);
     if (!(guard & 1)) {
         list[1] = list[2] = list[3] = 0;
         guard |= 1;
         list[0] = 0x006fe67c;
-        g_calls.Th(0x005f8790, 0x00fb34f0u);   // SystemInfo_Ctor
+        g_calls.Th(0x005f8790, (u32)&gGamePaths_CheckDisc_fb34f0);   // SystemInfo_Ctor
         g_calls.Cd(0x0067a7d0, 0x0045d810u);   // atexit: the list's destructor
     }
     u32 copy[0xe];
