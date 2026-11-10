@@ -165,6 +165,8 @@ void __cdecl SoundHelper_Free() {
     if (void *const helper = at<void *>(reinterpret_cast<void *>((uintptr_t)kHelper), 0)) GameHeap_Free(helper);
 }
 
+u32 __fastcall SoundHelperFn70a27c_Run(const u8 *) { return vcall<u32>(at<u8 *>(reinterpret_cast<void *>((uintptr_t)kHelper), 0), 0); }
+
 void __fastcall SoundSource711920_Dtor(u8 *source) {
     at<u32>(source, 0) = 0x00711920;
     if (void *const block = at<void *>(source, 0x20)) GameHeap_Free(block);

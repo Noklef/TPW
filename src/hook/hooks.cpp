@@ -6368,6 +6368,7 @@ const Hook kHooks[] = {
     {"SoundSource711920_DeletingDtor", 0x006d1ea0, (void *)&SoundSource711920_DeletingDtor, {0x56, 0x8b, 0xf1, 0xe8, 0x18}},
     {"SoundSource711b08_SetVector", 0x006d3700, (void *)&SoundSource711b08_SetVector, {0x83, 0xec, 0x08, 0x56, 0x8b}},
     {"SoundSourceBase_Dtor",      0x006d2760, (void *)&SoundSourceBase_Dtor, {0xc7, 0x01, 0xb8, 0x19, 0x71}},
+    {"SoundHelperFn70a27c_Run",   0x006b9d80, (void *)&SoundHelperFn70a27c_Run, {0x8b, 0x0d, 0x04, 0x1f, 0xfb}},
     {"WideWriter_Finish",         0x006b00e0, (void *)&WideWriter_Finish, {0x8b, 0xc1, 0x33, 0xd2, 0x53}},
     {"WideWriter_PutChar",        0x006aff70, (void *)&WideWriter_PutChar, {0x56, 0x8b, 0x71, 0x0c, 0x33}},
     {"WideWriter_PutNarrow",      0x006afe80, (void *)&WideWriter_PutNarrow, {0x53, 0x55, 0x56, 0x57, 0x8b}},

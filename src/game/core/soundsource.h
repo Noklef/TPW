@@ -65,6 +65,9 @@ u8 *__fastcall SoundSource711920_Ctor(u8 *source);
 void __cdecl SoundHelper_Set(void *helper);
 // 0x6b9d50 (cdecl; name invented): the global 0xfb1f04 freed unless null; it keeps its value.
 void __cdecl SoundHelper_Free();
+// 0x6b9d80 (thiscall, no arguments; slot 0 of the stack functor 0x70a27c that SoundSource711920_Open hands its slot 25; name invented,
+// unconfirmed): the helper at 0xfb1f04's slot 0 (the functor itself not read), by JMP: its answer.
+u32 __fastcall SoundHelperFn70a27c_Run(const u8 *functor);
 
 // 0x6d1ec0 (thiscall; an SEH frame; called by the deleting destructor 0x6d1ea0; name invented, unconfirmed): vtable 0x711920; the blocks +0x20 and +0x1c freed (each unless null);
 // vtable 0x7119b8; SoundHelper_Free.
