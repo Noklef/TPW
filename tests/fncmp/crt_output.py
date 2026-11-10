@@ -22,7 +22,7 @@ FILE, POINTER, COUNTS = RAM, RAM + 0x40, RAM + 0x80
 ARGS, OUT, FORMAT, STRINGS, WIDE, COUNTED = RAM + 0x100, RAM + 0x1000, RAM + 0x6000, RAM + 0x7000, RAM + 0x7400, RAM + 0x7800
 PCTYPE, PTD, A_W2M, A_FLS = RAM + 0x8000, RAM + 0x8400, RAM + 0x8500, RAM + 0x8600
 NULLS, WNULLS = RAM + 0x8800, RAM + 0x8810
-TEXTS = [b'', b'a', b'hello', b'\xe4\xf6', b'a longer text of some length']
+TEXTS = [b'', b'a', b'hello', b'\xe4\xf6z\x81\x82y', b'a longer text of some length']   # (lead bytes with text after: _woutput's mbtowc steps by its count)
 WIDES = [[], [0x41], [0x41, 0x42, 0x43], [0xe4, 0x100, 0x41], [0x7a, 0x7b, 0x7c, 0x7d, 0x7e]]
 INTS = [0, 1, 9, 10, 0x2a, 0xff, 0x7fff, 0x8000, 0xffff, 0x10000, 0x7fffffff, 0x80000000, 0xffffffff, 0xfffffffe, 0xffff8000, 0x12345678]
 LONGS = [0, 1, 0x100000000, 0xffffffffffffffff, 0x8000000000000000, 0x7fffffffffffffff, 0x123456789abcdef0, 0xfffffffffffffffe, 10000000000]
@@ -151,13 +151,16 @@ def case(r):
     if name == 'wformat':   # (_woutput on a string file: the original _flswbuf when the count runs out, which fails for one (the port's fputwc calls it directly); bytes through mbtowc, MultiByteToWideChar answering with a set locale)
         args = []
         text = build_format(r, args, True)
-        wide = lambda: [r.choice([0x100, 0x4e00, 0xffff, 0x2578]) for _ in range(r.choice([0, 0, 1, 2]))]   # (characters past 0xff before and after: not inside a conversion)
+        if r.random() < 0.2:   # (bytes with lead bytes through mbtowc: it steps by its count)
+            text += b'%hs'
+            args.append(struct.pack('<I', STRINGS + 0xc0))
+        wide =lambda: [r.choice([0x100, 0x4e00, 0xffff, 0x2578]) for _ in range(r.choice([0, 0, 1, 2]))]   # (characters past 0xff before and after: not inside a conversion)
         units = wide() + list(text) + wide()
         regions[FORMAT] = struct.pack('<%dH' % len(units), *units) + bytes(0x10)
         regions[ARGS] = b''.join(args) + bytes(0x100)
         most = r.choice([1, 2])
         regions[0x77e7dc] = struct.pack('<i', most)   # (a set locale only with MB_CUR_MAX 2: with 1, mbtowc leaves a lead byte's word unwritten)
-        regions[0xfb1438] = struct.pack('<3I', 0x11, 0x22, r.choice([0, 0, 0x411]) if most == 2 else 0) + bytes(0xc) + struct.pack('<I', 0x4e4)
+        regions[0xfb1438] = struct.pack('<3I', 0x11, 0x22, r.choice([0, 0x411]) if most == 2 else 0) + bytes(0xc) + struct.pack('<I', 0x4e4)
         blob_array(log, M2W, 2, 3, 1)
         fill(log, M2W, 4, r.bytes(2), which=1)
         set_return(log, M2W, r.choice([1, 1, 2, 0]))
