@@ -26,7 +26,7 @@ u32 parkSide() { return at<u32>(global<u8 *>(0x0080239c), 0x1da70c) & 1; }
 
 void givenUp(u8 *guard) {
     g_env->tally(record(), nullptr, 0);
-    at<u16>(guard, 0xc2) = global<u16>(0x0075c7f0);
+    at<u16>(guard, 0xc2) = global<u16>((u32)(uintptr_t)&gStaff_75c7f0);
     g_env->setState(guard, nullptr, 0);
     at<u16>(guard, 0x212) = 0;
 }
@@ -73,7 +73,7 @@ void __fastcall Guard_Chase(u8 *guard) {
         givenUp(guard);
         return;
     }
-    at<u16>(guard, 0xc2) = global<u16>(0x0075c7f0);
+    at<u16>(guard, 0xc2) = global<u16>((u32)(uintptr_t)&gStaff_75c7f0);
     Set4_4217f0(guard + 0xc, nullptr, 0x16);
     g_env->tally(record(), nullptr, 2);
     g_env->playSound(guard, nullptr, gSoundCategories.staff, 0x89);

@@ -82,3 +82,9 @@ GAME_DATA(u8, gCellmodel_820ac0, 0x00820ac0, 1);
 GAME_DATA(s32[3], gCellmodel_820ad8, 0x00820ad8, 0xc);
 GAME_DATA(s32, gCellmodel_820aec, 0x00820aec, 4);
 GAME_DATA(u32, gCellmodel_820af0, 0x00820af0, 4);
+
+// Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(const s32, gMapCell_PickModel_700c18, 0x00700c18, 0x4);
+GAME_DATA(const s32, gMapCell_PickModel_700c1c, 0x00700c1c, 0x4);
+GAME_DATA(const s32, gMapCell_PickPathModel_700c20, 0x00700c20, 0x4);
+GAME_DATA(const s32, gMapCell_700c24, 0x00700c24, 0x4);

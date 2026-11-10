@@ -6,6 +6,7 @@
 #include "../core/movs.h"
 #include "../math/x87.h"
 #include "../coaster/rideanimate.h"
+#include "../world/rides.h"
 
 namespace {
 
@@ -16,7 +17,7 @@ template <typename T> T &at(const void *p, u32 offset) {
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>(address); }
 
 u8 *&current() { return gHighlight_7a1ce0; }
-u8 *&target() { return global<u8 *>(0x007afda0); }
+u8 *&target() { return gRides_7afda0; }
 u32 *saved() { return reinterpret_cast<u32 * &>(gHighlight_7afd94); }
 u8 *model(const u8 *holder) { return at<u8 *>(at<const u8 *>(holder, 8), 4); }
 u8 *&flashing() { return gHighlight_7afe14; }

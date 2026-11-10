@@ -29,6 +29,7 @@
 #include "../ui/panel7b9940.h"
 #include "mousemode.h"
 #include "world.h"
+#include "mousemodeclick.h"
 
 namespace {
 
@@ -250,7 +251,7 @@ void __stdcall MouseMode_Set(u8 *mode) {
         vcall<void>(current, 0x2c);
         if (current) vcall<void>(current, 0, 1u);
     }
-    u8 &guard = *reinterpret_cast<u8 *>(0x00fb3518);
+    u8 &guard = gMousemodeclick_fb3518;
     const u8 bits = guard;
     if (!(bits & 1)) {
         guard = bits | 1;

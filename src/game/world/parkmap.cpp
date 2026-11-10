@@ -29,6 +29,7 @@
 #include "../render/screen.h"
 #include "parkmap.h"
 #include "world.h"
+#include "parkmapwindow.h"
 
 namespace {
 
@@ -108,7 +109,7 @@ u8 *new_inline_sprite(u32 image, u32 a, u32 c, float size) {
 // One coordinate of the origin kept for ParkMap_Scroll: below the floor [0x703010] or a NaN the floor, past limit (the integer, compared
 // exactly) the limit rounded to a float.
 float clamp_scroll(float v, s32 limit) {
-    const float floor = global<float>(0x00703010);
+    const float floor = gParkmapwindow_703010;
     if (!(v >= floor)) return X87_Through(floor);
     return (double)v <= (double)limit ? v : (float)limit;
 }

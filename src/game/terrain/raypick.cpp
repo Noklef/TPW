@@ -215,7 +215,7 @@ u8 *__cdecl RayPick_Column(s32 x, s32 y, u32 alongX, float atX, float atY, float
 void __cdecl RayPick_World(float *out, u32 unused, float *out2, u32 *hitFlag) {
     (void)unused;
     // The three corners of the view, turned to the screen, then by the camera.
-    const float half = (float)((X87Reg(global<float>(0x74c9b8)) * gRayPick_World_74d13c) * kHalf);
+    const float half = (float)((X87Reg(gCamera_74c9b8) * gRayPick_World_74d13c) * kHalf);
     const float scale = gSinTableScale;
     const s32 first = Fistp((float)(X87Reg(scale) * half));
     const s32 second = Fistp((float)((X87Reg(half) - kQuarterTurn) * scale));

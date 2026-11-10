@@ -67,7 +67,7 @@ u32 holderMade() {
 }
 
 bool onlineGame() {
-    u8 &made = global<u8>(0x00fb3518);
+    u8 &made = gMousemodeclick_fb3518;
     if (!(made & 1)) {
         made |= 1;
         g_calls.Th(0x00550ca0, reinterpret_cast<uintptr_t>(&gDialog74fb20_fb3b7c));

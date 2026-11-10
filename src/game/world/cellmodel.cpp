@@ -76,18 +76,18 @@ u32 __fastcall MapCell_PickModel(const u8 *cell, void *, s32 *angle) {
     u32 model;
     switch (size) {
     case 3:
-    case 0xb: model = search(0x00762f30, global<s32>(0x00700c18), bits, turn_of(cell, direction), angle); break;
-    case 0x10: model = search(0x00762ff0, global<s32>(0x00700c1c), bits, turn_of(cell, direction), angle); break;
+    case 0xb: model = search(0x00762f30, gMapCell_PickModel_700c18, bits, turn_of(cell, direction), angle); break;
+    case 0x10: model = search(0x00762ff0, gMapCell_PickModel_700c1c, bits, turn_of(cell, direction), angle); break;
     case 0x19: {
         const u32 index = static_cast<u32>(at<u16>(cell, 0)) - 1;
         const s32 x = static_cast<s32>(index & 0x7f), y = static_cast<s32>(index >> 7);
         const s32 turn = turn_of(cell, direction);
         if ((x == gFocusCell_PointAX_7639f0 && y == gFocusCell_PointAY_7639f4) || (x == gFocusCell_PointBX_7639f8 && y == gFocusCell_PointBY_7639fc))
             bits |= static_cast<u8>(Nibble_Scale(bits));
-        model = search(0x00762ff0, global<s32>(0x00700c1c), bits, turn, angle);
+        model = search(0x00762ff0, gMapCell_PickModel_700c1c, bits, turn, angle);
         break;
     }
-    default: model = search(0x00763138, global<s32>(0x00700c24), bits, 0, angle); break;
+    default: model = search(0x00763138, gMapCell_700c24, bits, 0, angle); break;
     }
 
     if (!MapCell_CornerNeighbours(cell) && !MapCell_JunctionNeighbours(cell)) {
@@ -147,9 +147,9 @@ u32 __fastcall MapCell_PickPathModel(const u8 *cell, void *, s32 *angle) {
     u32 model;
     if (size == 3) {
         const s32 turn = MapCell_StraightNeighbours(cell) && direction != 0x40 && direction != 0x10 ? 0xb4 : 0;
-        model = search(0x007630b0, global<s32>(0x00700c20), bits, turn, angle);
+        model = search(0x007630b0, gMapCell_PickPathModel_700c20, bits, turn, angle);
     } else {
-        model = search(0x00763138, global<s32>(0x00700c24), bits, 0, angle);
+        model = search(0x00763138, gMapCell_700c24, bits, 0, angle);
     }
     if (type == 3 && MapCell_CornerNeighbours(cell)) {
         const u8 d = MapCell_Direction(cell), b = MapCell_Neighbours(cell);

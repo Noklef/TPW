@@ -29,3 +29,8 @@ u32 __fastcall SaveGame_ReadHeader(u8 *self, void *, Stream *stream, u32 mode, u
 // 0x415140 (thiscall, this unused): after a loaded game: the parts told, each font of the list at 0x789c1c removed and its file deleted, the list emptied (each one's +0xc (0)), the interface told.
 void __fastcall SaveGame_AfterLoad(void *);
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(const u8[0x8], gSaveGame_Save_6fd928, 0x006fd928, 0x8);

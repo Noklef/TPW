@@ -150,3 +150,8 @@ GAME_DATA(const float, gParkmapwindow_703040, 0x00703040, 0x4);
 
 // The vtables hold only ports: tpw.exe's loader points their slots at them (.docs/09-globals.md).
 GAME_DATA(void *[1], Class703080_vtable, 0x00703080, 0x4);
+
+// Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(const float, gParkMap_Open_70300c, 0x0070300c, 0x4);
+GAME_DATA(const float, gParkmapwindow_703010, 0x00703010, 0x4);
+GAME_DATA(const float, gParkmapwindow_703014, 0x00703014, 0x4);

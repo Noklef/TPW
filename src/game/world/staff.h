@@ -455,3 +455,9 @@ GAME_DATA(char[24], gText_Staff_Serialize_75e348, 0x0075e348, 0x18);
 GAME_DATA(char[16], gText_Staff_Serialize_75e360, 0x0075e360, 0x10);
 GAME_DATA(char[16], gText_Staff_Serialize_75e370, 0x0075e370, 0x10);
 GAME_DATA(char[16], gText_StaffPool_Serialize_75e7b8, 0x0075e7b8, 0x10);
+
+// Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(char[0x8], gText_Staff_75a4f4, 0x0075a4f4, 0x8);
+GAME_DATA(char[0x1c], gText_Entertainer_Serialize_75a4fc, 0x0075a4fc, 0x1c);
+GAME_DATA(u8[0x14c], gStaff_75c7f0, 0x0075c7f0, 0x14c);
+GAME_DATA(char[0x14], gText_Staff_75d1e0, 0x0075d1e0, 0x14);

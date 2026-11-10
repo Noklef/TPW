@@ -9,6 +9,7 @@
 #include "gameheap.h"
 #include "stdwstring.h"
 #include "string.h"
+#include "../world/objectdefs.h"
 
 namespace {
 
@@ -326,7 +327,7 @@ void __fastcall Shared_Release10(u8 *object) { SharedRelease(object, 0x10, 0x006
 void __fastcall Obj_FreeFourBuffers(u8 *object) {
     for (u32 offset = 0x4f4, i = 0; i < 4; ++i, offset += 4) {
         u8 *buffer = at<u8 *>(object, offset);
-        if (buffer && buffer != reinterpret_cast<u8 *>(0x006fd880)) {
+        if (buffer && buffer != reinterpret_cast<u8 *>((u32)(uintptr_t)&gObjectdefs_6fd880)) {
             Mem_GlobalFree(buffer);
             at<u32>(object, offset) = 0;
         }

@@ -81,8 +81,8 @@ u32 __fastcall ObjectStatus_ShowOnPanel(u8 *panel) {
 }
 
 u32 __cdecl ObjectStatus_Show(u8 *window, u32 status) {
-    const u32 colour = reinterpret_cast<const u32 *>(0x0074fb50)[status];
+    const u32 colour = reinterpret_cast<const u32 *>((u32)(uintptr_t)&gObjectstatus_74fb50)[status];
     Window_Notify40000(window, nullptr, colour & 0xff, colour >> 8 & 0xff, colour >> 16 & 0xff, 0xff);
-    return vcall<u32>(window, 0x24, Language_WideText(reinterpret_cast<const u32 *>(0x0074fbc0)[status]));
+    return vcall<u32>(window, 0x24, Language_WideText(reinterpret_cast<const u32 *>((u32)(uintptr_t)&gObjectStatus_Show_74fbc0)[status]));
 }
 }

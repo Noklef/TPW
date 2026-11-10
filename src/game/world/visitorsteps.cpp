@@ -220,9 +220,9 @@ void __fastcall Visitor_GoToTicketBooth(u8 *visitor) {
 void __fastcall Visitor_StepWalkingIn(u8 *visitor) {
     u16 speed;
     if (World_ArrivalVehicleNotSize1(world()) == 0 && Game_TakeRideElement1(world()) == 3)
-        speed = global<u16>(0x0075c7f4);   // Debug_Printf(2, "The bus is coming, RUUUUUUUUUUN...")
+        speed = global<u16>((u32)(uintptr_t)&gStaff_75c7f0 + 0x4);   // Debug_Printf(2, "The bus is coming, RUUUUUUUUUUN...")
     else
-        speed = (handleOf(visitor) & 3) == 0 ? global<u16>(0x0075c7f2) : global<u16>(0x0075c7f0);
+        speed = (handleOf(visitor) & 3) == 0 ? global<u16>((u32)(uintptr_t)&gStaff_75c7f0 + 0x2) : global<u16>((u32)(uintptr_t)&gStaff_75c7f0);
     at<u16>(visitor, 0xc2) = speed;
     if (g_env->walkNav(visitor) != 0) return;   // (2: Debug_Printf(0, "Big problem ..."))
     g_env->setState(visitor, nullptr, Get1da710_51a280(world()) ? 3 : 4);
@@ -324,7 +324,7 @@ u8 *__fastcall Visitor_Ctor(u8 *visitor, void *, u32 cell) {
     at<u32>(visitor, 0x24) = 0;
     at<u32>(visitor, 0x20) = SpriteFolder_RandomSprite(0);
     ScriptRef_Start(visitor + 0xc, nullptr, 1, at<u32>(visitor, 0x24), at<u32>(visitor, 0x20));
-    at<u16>(visitor, 0xc2) = global<u16>(0x0075c7f2);
+    at<u16>(visitor, 0xc2) = global<u16>((u32)(uintptr_t)&gStaff_75c7f0 + 0x2);
     if (AnalyserCell_TypePlain(visitor) != 0) {
         at<u32>(visitor, 0x1d8) = World_AddVisitorToDate(world());
         g_env->setState(visitor, nullptr, 6);
@@ -499,7 +499,7 @@ void __fastcall Visitor_StepIdle(u8 *visitor) {
                 g_env->setState(visitor, nullptr, 9);
                 return;
             }
-            const u32 kind = (u32)World_Rand(world()) % (global<u32>(0x0070048c) - 1) + 1;
+            const u32 kind = (u32)World_Rand(world()) % (gVisitor_70048c - 1) + 1;
             g_env->cellEffect(mapCell, nullptr, kind);
             at<u32>(visitor, 0x1b4) = 0;
         }
@@ -754,7 +754,7 @@ void __fastcall Visitor_Update(u8 *visitor) {
         if ((u8)(long long)hunger == 0x64) Stat100_Add(&mood, nullptr, -1.0f);
         if ((u8)(long long)thirst == 0x64) Stat100_Add(&mood, nullptr, -1.0f);
         if ((u8)(long long)tired == 0x64) Stat100_Add(&mood, nullptr, -1.0f);
-        at<u16>(visitor, 0xc2) = global<u16>((u8)(long long)tired > 0x50 ? 0x0075c7f2 : 0x0075c7f0);
+        at<u16>(visitor, 0xc2) = global<u16>((u8)(long long)tired > 0x50 ? ((u32)(uintptr_t)&gStaff_75c7f0 + 0x2) : (u32)(uintptr_t)&gStaff_75c7f0);
         const u32 state = at<u32>(visitor, 0x220);
         if (state != 0x10 && state != 0x11 && AnalyserCell_TypePlain(visitor)) {
             if ((u32)World_Rand(world()) % 10 == 0) Visitor_ShowMoodThought(visitor);
@@ -843,7 +843,7 @@ void __fastcall Visitor_StepComingOff(u8 *visitor) {
     if (walk == 0 && object != 0) {
         Rides_SetElement(Rides_FindById(at<s32>(global<u8 *>(0x007cfb90 + 20u * object), 0x24)), 0, 1);
     } else if (walk == 0 || walk == 2) {
-        const u32 rnd = (u32)World_Rand(world()) % (global<u32>(0x0070048c) - 1);
+        const u32 rnd = (u32)World_Rand(world()) % (gVisitor_70048c - 1);
         E->cellEffect(const_cast<u8 *>(map()) + ownCell(visitor) * 0x44u - 0x44u, nullptr, rnd + 1);
     } else {
         return;

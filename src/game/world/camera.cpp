@@ -86,7 +86,7 @@ u32 __cdecl Camera_MatricesClose(const float *a, const float *b) {
     X87Reg sum = diff(1) + diff(0);
     const u32 pairs[5][2] = {{2, 4}, {5, 6}, {8, 9}, {10, 12}, {13, 14}};
     for (const auto &pair : pairs) sum = diff(pair[0]) + (float)sum + diff(pair[1]);
-    return !(sum.v >= global<float>(0x0074c980));  // fcomp: NaN counts as less
+    return !(sum.v >= gCamera_MatricesClose_74c980);  // fcomp: NaN counts as less
 }
 
 const void *__cdecl Camera_Followed() {
@@ -111,7 +111,7 @@ void __cdecl Camera_SetView(const u32 *x, const u32 *z, const u32 *zoom, const u
     }
     if (zoom) reinterpret_cast<u32 &>(gCamera_7909ec) = *zoom;
     if (yaw) reinterpret_cast<u32 &>(gCamera_790a38) = *yaw;
-    if (other) global(0x0074c9bc) = *other;
+    if (other) gCamera_SetView_74c9bc = *other;
 }
 
 void __cdecl Camera_CentreOnCell(const u16 *cell) {
@@ -260,7 +260,7 @@ void __cdecl Camera_Reset() {
     reinterpret_cast<u32 &>(gCamera_790990[12]) = global(0x007908f0);
     reinterpret_cast<u32 &>(gCamera_790990[14]) = X87_FloatThrough(global(0x007908f8));
     Mat4_Assign(global<u32 *>(0x0087afe8), nullptr, &reinterpret_cast<u32 &>(gCamera_790990[0]));
-    const float fov = (float)(X87Reg(global<float>(0x0074c9b8)) * X87Reg(global<float>(0x006fdd80)));
+    const float fov = (float)(X87Reg(gCamera_74c9b8) * X87Reg(global<float>(0x006fdd80)));
     Mat4_Perspective(reinterpret_cast<float *>(0x0087b110), nullptr, 0.1f, 1000.0f, fov);
     ViewQuad_SetFov(global<float *>(0x00879d54), nullptr, fov);
     const u32 flags = (gCamera_790aac & 0x200) | 0x80;
@@ -307,7 +307,7 @@ void __cdecl Camera_Input(s32 message, u32 param) {
     case 0x1e:
         if (flags & 2) {
             float &yaw = gCamera_790a38;
-            yaw = (float)((((X87Reg(gCamera_790ac8) * 2048.0f) / X87Reg((double)height)) - 1024.0f) * global<float>(0x0074c9c0) + yaw);
+            yaw = (float)((((X87Reg(gCamera_790ac8) * 2048.0f) / X87Reg((double)height)) - 1024.0f) * gCamera_Input_74c9c0 + yaw);
         }
         break;
     case 0x20:
@@ -514,7 +514,7 @@ void __fastcall Camera_SetLookAt(u8 *self) {
     const float forward0 = (float)(X87Reg(d[0]) / distance), forward1 = (float)(X87Reg(d[1]) / distance);
     const X87Reg forward2 = X87Reg(d[2]) / distance;
 
-    const float kZero = *reinterpret_cast<const float *>((uintptr_t)0x00702a38);
+    const float kZero = gCamera_SetLookAt_702a38;
     const X87Reg sideX = forward2 - 0.0f;
     float side[3] = {(float)sideX, kZero, (float)(X87Reg(0.0f) - forward0)};
     if (SameOrNan(sideX, kZero) && SameOrNan(X87Reg(side[1]), kZero) && SameOrNan(X87Reg(side[2]), kZero)) {
@@ -555,7 +555,7 @@ void __fastcall Camera_SetLookAt(u8 *self) {
     to[2] = (float)(X87Reg(target[2]) - (X87Reg(m) * side[2] + along2));
     Normalize(to, to);
     if (flat) {
-        to[1] = (float)(X87Reg(to[1]) - *reinterpret_cast<const float *>((uintptr_t)0x00702a48));
+        to[1] = (float)(X87Reg(to[1]) - gCamera_SetLookAt_702a48);
         Normalize(to, to);
     }
     SceneFlags_Touch(reinterpret_cast<u32 *>((uintptr_t)0x008bd508));

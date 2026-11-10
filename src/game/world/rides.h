@@ -80,3 +80,6 @@ void __cdecl RideSystem_DumpSlot(const u8 *slot, const u8 *system);
 
 // Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
 GAME_DATA(u8 *[10240], gRides_7a4610, 0x007a4610, 0xa000);
+
+// Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(u8 *, gRides_7afda0, 0x007afda0, 0x4);

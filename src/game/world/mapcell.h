@@ -301,6 +301,8 @@ u32 __cdecl MapCell_StepOpen(u32 from, u32 to, s32 mode);
 
 // Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
 GAME_DATA(u32, gMapCell_StepOpenWarned_7cf38c, 0x007cf38c, 4);
+GAME_DATA(u8[0x100], gMapGrid_MarkEdges_8186f0, 0x008186f0, 0x100);
+GAME_DATA(u8[0x400], gMapGrid_ClassifyTypes_818800, 0x00818800, 0x400);
 // The memory ranges MemRanges_Set fills ({first, end} by index: 0 the world, 2 the 0x44-byte cells, 3 the 0x28-byte cells) and the strides.
 struct MemRanges {
     u32 range[4][2];

@@ -26,6 +26,7 @@
 #include "../core/vtables.h"
 #include "../model/slots.h"
 #include "../render/lightsource.h"
+#include "../world/cameraupdate.h"
 
 namespace {
 
@@ -125,8 +126,8 @@ void __cdecl Panel7b9940_Open() {
         const s32 scaleX = global<s16>(0x00faa5c4), scaleY = global<s16>(0x00faa5c0);
         global<float>(0x007a1c54) = (float)((halfWidth + left) * scaleX / 0x800);
         global<float>(0x007a1c58) = (float)((halfHeight + top) * scaleY / 0x600);
-        global<float>(0x0074d104) = (float)(scaleX * halfWidth / 0x800);
-        global<float>(0x0074d108) = (float)(scaleY * halfHeight / 0x600);
+        global<float>((u32)(uintptr_t)&gCameraupdate_74d104) = (float)(scaleX * halfWidth / 0x800);
+        global<float>((u32)(uintptr_t)&gCameraupdate_74d108) = (float)(scaleY * halfHeight / 0x600);
         GuiRect_Dtor(rect);
     }
     if (u8 *const window = g_open->create(global<u8 *>(0x00faa5d8), nullptr, 1, 0, 1, 0, 0, 0x7ff, 0x5ff)) {

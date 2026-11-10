@@ -39,6 +39,7 @@
 #include "mapcell.h"
 #include "cellmessage.h"
 #include "rides.h"
+#include "staff.h"
 
 namespace {
 
@@ -939,7 +940,7 @@ u32 __fastcall Object_Serialize(u8 *object, void *, Stream *stream, u32 save, s3
         if (!Save_Field(stream, save, object + 0x3c8 + i * 2, 2, (u32)&gText_Object_Serialize_75b5ec) || !Save_Field(stream, save, object + 0x40a + i * 2, 2, (u32)&gText_Object_Serialize_75b5e0))
             return 1;
     static const SaveSpec kIds[] = {{0x24, 4, (u32)&gText_Object_Serialize_75b5cc}, {0x28, 4, (u32)&gText_Object_Serialize_75b5b8}, {0x19c, 4, (u32)&gText_Object_75b5b0}, {0x34, 2, (u32)&gText_Object_Serialize_75b5a4}, {0x36, 2, (u32)&gText_Object_Serialize_75b598},
-                                    {0xc, 2, 0x0075a4f4},  {0x5e, 2, (u32)&gText_Object_Serialize_75b580}, {0x3a, 2, (u32)&gText_Object_Serialize_75b570},  {0x68, 4, (u32)&gText_Object_Serialize_75b564}, {0x38, 2, (u32)&gText_Object_Serialize_75b558},
+                                    {0xc, 2, (u32)(uintptr_t)&gText_Staff_75a4f4},  {0x5e, 2, (u32)&gText_Object_Serialize_75b580}, {0x3a, 2, (u32)&gText_Object_Serialize_75b570},  {0x68, 4, (u32)&gText_Object_Serialize_75b564}, {0x38, 2, (u32)&gText_Object_Serialize_75b558},
                                     {0x3c, 2, (u32)&gText_Object_Serialize_75b54c}, {0x2c, 4, (u32)&gText_Object_Serialize_75b538}, {0x30, 2, (u32)&gText_Object_Serialize_75b528}};
     if (!Save_Fields(stream, save, object, kIds, 13))
         return 1;

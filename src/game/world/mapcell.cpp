@@ -563,7 +563,7 @@ u16 *__cdecl Cell_MakeHandle(u16 *out, u32 x, u32 z) {
 }
 
 u8 *__cdecl MapGrid_MarkEdges(const u8 *grid) {
-    u8 *const table = reinterpret_cast<u8 *>(0x008186f0);
+    u8 *const table = reinterpret_cast<u8 *>((u32)(uintptr_t)&gMapGrid_MarkEdges_8186f0);
     const s32 width = at<s32>(grid, 0), height = at<s32>(grid, 4);
     gMapGrid_MarkEdges_8187f0 = width;
     gMapGrid_MarkEdges_8187f4 = height;
@@ -590,7 +590,7 @@ u8 *__cdecl MapGrid_MarkEdges(const u8 *grid) {
 }
 
 u32 *__cdecl MapGrid_ClassifyTypes(const u8 *object) {
-    u32 *const table = reinterpret_cast<u32 *>(0x00818800);
+    u32 *const table = reinterpret_cast<u32 *>((u32)(uintptr_t)&gMapGrid_ClassifyTypes_818800);
     const u8 *const grid = at<const u8 *>(object, 0x18);
     gMapGrid_ClassifyTypes_818c00 = at<s32>(grid, 0);
     gMapGrid_ClassifyTypes_818c04 = at<s32>(grid, 4);

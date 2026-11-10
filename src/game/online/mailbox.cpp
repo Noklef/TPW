@@ -28,6 +28,7 @@
 #include "chatevents.h"
 #include "../render/enginedebug.h"
 #include "../core/swearfilter.h"
+#include "../world/advisorspeech.h"
 
 namespace {
 
@@ -410,7 +411,7 @@ u8 *__fastcall MailAttachment_Ctor(u8 *self, void *, const char *path) {
     StdString_Zero(self + 0x10);
     u8 *data = nullptr;
     s32 size = static_cast<s32>(reinterpret_cast<uintptr_t>(path));   // (no file: the path's address is the length, sic)
-    void *const file = g_client->fopen(path, reinterpret_cast<const char *>((uintptr_t)0x0074cfb8));
+    void *const file = g_client->fopen(path, reinterpret_cast<const char *>((uintptr_t)&gText_Advisorspeech_74cfb8));
     if (file) {
         g_client->fseek(file, 0, 2);
         size = g_client->ftell(file);

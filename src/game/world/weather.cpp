@@ -239,12 +239,12 @@ void __fastcall Weather_SetIntensity(u8 *weather, void *, s32 value) {
         *reinterpret_cast<u32 *>(weather + 0x34) = 0;
     }
     // The wind's strength: (100 - v) * 0.01 cut to 0..1.
-    const X87Reg strength = X87Reg((double)(100 - v)) * *reinterpret_cast<const float *>(0x00700a58);
+    const X87Reg strength = X87Reg((double)(100 - v)) * gWeather_SetIntensity_700a58;
     u32 &strengthBits = *reinterpret_cast<u32 *>(weather + 0x60);
     if (strength.v < 0.0) {
         strengthBits = 0;
     } else if (strength.v > 1.0) {
-        strengthBits = *reinterpret_cast<const u32 *>(0x00700a3c);
+        strengthBits = gWeather_SetIntensity_700a3c;
     } else {
         strengthBits = bits((float)strength);
     }
@@ -252,17 +252,17 @@ void __fastcall Weather_SetIntensity(u8 *weather, void *, s32 value) {
     float &angle = *reinterpret_cast<float *>(weather + 0x5c);
     const float old = angle;
     const u32 turn = (u32)World_Rand(*&gWorldPtr) % 90;
-    X87Reg x = X87Reg((double)turn) + (X87Reg(X87_Through(old)) - *reinterpret_cast<const float *>(0x00700a5c));
+    X87Reg x = X87Reg((double)turn) + (X87Reg(X87_Through(old)) - gWeather_SetIntensity_700a5c);
     angle = (float)x;
     if (x.v < 0.0 || x.v != x.v) {
         do {
-            x = X87Reg(X87_Through(angle)) - *reinterpret_cast<const float *>(0x00700a60);
+            x = X87Reg(X87_Through(angle)) - gWeather_SetIntensity_700a60;
             angle = (float)x;
         } while (x.v < 0.0 || x.v != x.v);
     }
     if (X87Reg(X87_Through(angle)).v > 360.0) {
         do {
-            x = X87Reg(X87_Through(angle)) - *reinterpret_cast<const float *>(0x00700a64);
+            x = X87Reg(X87_Through(angle)) - gWeather_SetIntensity_700a64;
             angle = (float)x;
         } while (x.v > 360.0);
     }

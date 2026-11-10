@@ -208,3 +208,11 @@ GAME_DATA(float, gCamera_790adc, 0x00790adc, 4);
 GAME_DATA(float, gCamera_790ae0, 0x00790ae0, 4);
 GAME_DATA(float, gCamera_790ae4, 0x00790ae4, 4);
 GAME_DATA(u32, gCamera_790afc, 0x00790afc, 4);
+
+// Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(const float, gCamera_SetLookAt_702a38, 0x00702a38, 0x4);
+GAME_DATA(const float, gCamera_SetLookAt_702a48, 0x00702a48, 0x4);
+GAME_DATA(float, gCamera_MatricesClose_74c980, 0x0074c980, 0x4);
+GAME_DATA(float, gCamera_74c9b8, 0x0074c9b8, 0x4);
+GAME_DATA(u32, gCamera_SetView_74c9bc, 0x0074c9bc, 0x4);
+GAME_DATA(float, gCamera_Input_74c9c0, 0x0074c9c0, 0x4);

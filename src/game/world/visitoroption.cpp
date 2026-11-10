@@ -31,13 +31,13 @@ u32 stat(const u8 *visitor, u32 offset) { return (u8)(long long)at<float>(visito
 u32 match(const u8 *visitor, u8 *object, u32 statAt, u32 defAt) {
     const u32 value = stat(visitor, statAt);
     const u32 wanted = at<u8>(Object_GetDef(object), defAt);
-    return global<u8>(0x0075d0f8 + (wanted / 10) * 11 + value / 10);
+    return global<u8>((u32)(uintptr_t)&gVisitoroption_75d0f8 + (wanted / 10) * 11 + value / 10);
 }
 
 // The byte of 0x75d178 for (the stat + 4) / 5 when the object's +0x32 has bit 0, else 0.
 u32 need(const u8 *visitor, const u8 *object, u32 statAt) {
     if (!(at<u8>(object, 0x32) & 1)) return 0;
-    return global<u8>(0x0075d178 + (stat(visitor, statAt) + 4) / 5);
+    return global<u8>((u32)(uintptr_t)&gVisitoroption_75d178 + (stat(visitor, statAt) + 4) / 5);
 }
 
 }  // namespace

@@ -39,3 +39,9 @@ GAME_DATA(u32, gTracktextures_816d68, 0x00816d68, 4);
 GAME_DATA(u32, gTracktextures_816d6c, 0x00816d6c, 4);
 GAME_DATA(u16, gTracktextures_8186ec, 0x008186ec, 0x2);
 GAME_DATA(s32, gTracktextures_81d740, 0x0081d740, 0x4);
+
+// Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(char[0xc], gText_TrackTextures_LoadQueue_76394c, 0x0076394c, 0xc);
+GAME_DATA(char[0x14], gText_TrackTextures_LoadGoKarts_763958, 0x00763958, 0x14);
+GAME_DATA(char[0x14], gText_TrackTextures_LoadWaterRide_76396c, 0x0076396c, 0x14);
+GAME_DATA(char[0xc], gText_TrackTextures_LoadHoarding_763980, 0x00763980, 0xc);

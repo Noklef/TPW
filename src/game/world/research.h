@@ -159,3 +159,6 @@ GAME_DATA(char[24], gText_ResearchGroup_Serialize_75e224, 0x0075e224, 0x18);
 GAME_DATA(char[16], gText_ResearchGroup_Serialize_75e23c, 0x0075e23c, 0x10);
 GAME_DATA(char[8], gText_ResearchGroup_Serialize_75e24c, 0x0075e24c, 0x8);
 GAME_DATA(char[8], gText_ResearchGroup_Serialize_75e254, 0x0075e254, 0x8);
+
+// Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(const float, gResearchLab_Spend_7007e4, 0x007007e4, 0x4);

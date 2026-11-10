@@ -63,7 +63,7 @@ void __cdecl Ride_Destroy(u32 ride) {
     u8 *const instance = instances()[ride];
     if (!instance) return;
     if (Highlight_Current() == instance) Highlight_Clear();
-    if (instance == global<u8 *>(0x007afda0)) global<u8 *>(0x007afda0) = nullptr;
+    if (instance == gRides_7afda0) gRides_7afda0 = nullptr;
     if (Camera_IsFollowing(reinterpret_cast<const void *>((uintptr_t)ride))) g_env->stopFollowing();
     if (at<u32>(instance, 4) & 0x4000000u) Highlight_Unflash(instance);
     g_env->forgetCoaster(ride);

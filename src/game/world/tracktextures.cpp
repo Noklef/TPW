@@ -58,7 +58,7 @@ void __cdecl TrackTextures_LoadQueue() {
     gTracktextures_816d68 = 1;
     gTracktextures_816d6c = 1;
     char folder[0x104];
-    g_env->format(folder, 0x0076394c, g_env->basePath());
+    g_env->format(folder, (u32)(uintptr_t)&gText_TrackTextures_LoadQueue_76394c, g_env->basePath());
     u32 open = 0;
     u32 id = 0x4268;
     for (u32 slot = pieces(4); slot < pieces(0x64); slot += 0xc, ++id) {
@@ -69,11 +69,11 @@ void __cdecl TrackTextures_LoadQueue() {
     }
 }
 
-void __cdecl TrackTextures_LoadGoKarts() { load_table(0x008179f8, 0x00763958, pieces(0x60), pieces(0x150), 0x42cc, 0x10422, true); }
+void __cdecl TrackTextures_LoadGoKarts() { load_table(0x008179f8, (u32)(uintptr_t)&gText_TrackTextures_LoadGoKarts_763958, pieces(0x60), pieces(0x150), 0x42cc, 0x10422, true); }
 
-void __cdecl TrackTextures_LoadWaterRide() { load_table(0x008179f8, 0x0076396c, pieces(0x150), pieces(0x27c), 0x4330, 0x10422, true); }
+void __cdecl TrackTextures_LoadWaterRide() { load_table(0x008179f8, (u32)(uintptr_t)&gText_TrackTextures_LoadWaterRide_76396c, pieces(0x150), pieces(0x27c), 0x4330, 0x10422, true); }
 
-void __cdecl TrackTextures_LoadHoarding() { load_table(0x008179f8, 0x00763980, pieces(0x280), pieces(0x3d0), 0x4394, 0x422, false); }
+void __cdecl TrackTextures_LoadHoarding() { load_table(0x008179f8, (u32)(uintptr_t)&gText_TrackTextures_LoadHoarding_763980, pieces(0x280), pieces(0x3d0), 0x4394, 0x422, false); }
 
 void __cdecl Track_ResetMap(s32 columns, s32 rows) {
     global<s32>(0x0081ede4) = -1;

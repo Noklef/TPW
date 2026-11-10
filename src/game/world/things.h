@@ -217,3 +217,9 @@ void Things_SetSweepEnv(const ThingSweepEnv *env);
 
 // Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
 GAME_DATA(u32, gThings_877350, 0x00877350, 0x4);
+
+// Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(char[0xc], gText_Thing_Serialize_761ca0, 0x00761ca0, 0xc);
+GAME_DATA(char[0xc], gText_Thing_Serialize_761cac, 0x00761cac, 0xc);
+GAME_DATA(char[0x4], gText_Thing_Serialize_761cb8, 0x00761cb8, 0x4);
+GAME_DATA(char[0x4], gText_Thing_Serialize_761cbc, 0x00761cbc, 0x4);

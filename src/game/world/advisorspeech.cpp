@@ -196,7 +196,7 @@ u32 __cdecl Advisor_QueueRandom(s32 length) {
 u32 __cdecl Advisor_QueueAnim(s32 index, s32 length) {
     u32 total = 0, count = 0;
     global<u32>(0x00f79778) = 0;
-    const u32 *step = &global<u32>(0x0076dc18 + index * 0x50);
+    const u32 *step = &global<u32>((u32)(uintptr_t)&gAdvisor_QueueAnim_76dc18 + index * 0x50);
     for (;;) {
         const u32 anim = *step;
         Queued(count) = anim;
@@ -218,7 +218,7 @@ u32 __cdecl Advisor_QueueAnim(s32 index, s32 length) {
 
 u32 __cdecl Advisor_Say(s32 id) {
     if (!global<u8>(0x0078d90c) || Speaking()) return 0;
-    u32 entry = 0x00768fb8;
+    u32 entry = (u32)(uintptr_t)&gAdvisorResponses;
     while (global<s32>(entry) != id) {
         if (global<s32>(entry) == 0x270f) return 0;
         entry += 0x20;
@@ -257,7 +257,7 @@ u32 __cdecl Advisor_Say(s32 id) {
 
     if (g_calls.Cd(0x0044a280, path, 1u, 0u)) {   // Quickload_Locate
         const u32 located = g_calls.Cd(0x0044a280, path, 1u, 0u);
-        const u32 stream = g_calls.Cd(0x005c4d50, located, 0x0074cfb8u);   // VFS_Open
+        const u32 stream = g_calls.Cd(0x005c4d50, located, (u32)(uintptr_t)&gText_Advisorspeech_74cfb8);   // VFS_Open
         global<u32>(0x00f797c8) = stream;
         if (stream) {
             global<u32>(0x00f79794) = g_calls.Cd(0x005c5000, stream);   // Object_CallSlot14: its size

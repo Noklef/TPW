@@ -133,7 +133,7 @@ s32 Abs32(s32 v) {
 
 // fild v; fmul [0x700c9c]; __ftol (the FPU at 24 bits).
 s32 Scaled(s32 v) {
-    const float k = global<float>(0x00700c9c);
+    const float k = gMapclick_700c9c;
     const double r = v < 0 ? -X87_MulInt(0u - (u32)v, k) : X87_MulInt((u32)v, k);
     return (s32)(long long)r;
 }

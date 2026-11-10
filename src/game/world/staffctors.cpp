@@ -58,7 +58,7 @@ void entertainerRest(u8 *entertainer, u32 sprite) {
     at<u16>(entertainer, 0x210) = 0;
     g_env->addEntertainer(world(), nullptr, entertainer);
     started(entertainer, 4, sprite);
-    at<u16>(entertainer, 0xc0) = global<u16>(0x0075c7f8);
+    at<u16>(entertainer, 0xc0) = global<u16>((u32)(uintptr_t)&gStaff_75c7f0 + 0x8);
     g_env->spread(global<u8 *>(0x008023a0), nullptr, 0, cellOf(entertainer));
     at<u32>(entertainer, 0x214) = 0;
     g_env->entertainerWork(entertainer);

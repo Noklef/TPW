@@ -91,7 +91,7 @@ u32 __fastcall SaveGame_Save(u8 *self, void *, const char *name, u32 header, u32
         error = 1;
         return 0;
     }
-    Stream_Write(&status, start, reinterpret_cast<const void *>((uintptr_t)0x006fd928), 4, nullptr);   // (its status is 0 or 1: never the negative the original tests)
+    Stream_Write(&status, start, reinterpret_cast<const void *>((uintptr_t)&gSaveGame_Save_6fd928), 4, nullptr);   // (its status is 0 or 1: never the negative the original tests)
     if (!g_calls.Th(0x00415f50, me, start, header)) {
         g_calls.Cd(0x005f5b80, &status, start);
         g_calls.Cd(0x005f5d60, &status, name);

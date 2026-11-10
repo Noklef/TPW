@@ -14,6 +14,7 @@
 #include "../world/pathdrag.h"
 #include "../world/cellrun.h"
 #include "../world/thingmsg.h"
+#include "../world/objectstatus.h"
 
 namespace {
 
@@ -107,7 +108,7 @@ void __cdecl Global871ee0_Clear() { gDynfaces_871ee0 = 0; }
 
 u8 __cdecl Global7c24d0_GetByte() { return gDialog74fb20_7c24d0; }
 
-u32 __cdecl Table74fb50_Get(u32 i) { return reinterpret_cast<u32 *>(0x0074fb50)[i]; }
+u32 __cdecl Table74fb50_Get(u32 i) { return reinterpret_cast<u32 *>((u32)(uintptr_t)&gObjectstatus_74fb50)[i]; }
 
 u32 __cdecl Counter7cdb98_Inc() { return ++global<u32>(0x007cdb98); }
 

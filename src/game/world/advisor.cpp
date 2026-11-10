@@ -22,6 +22,8 @@
 #include "things.h"
 #include "world.h"
 #include "advisor.h"
+#include "advisorspeech.h"
+#include "advisorsend.h"
 
 namespace {
 
@@ -105,7 +107,7 @@ void Advisor_SetCalls(const AddrCall *table, u32 count) { g_calls.Set(table, cou
 extern "C" {
 
 u32 __cdecl Table768fb8_Lookup(u32 id) {
-    for (u32 entry = 0x00768fb8; global<u32>(entry) != 0x270f; entry += 0x20) {
+    for (u32 entry = (u32)(uintptr_t)&gAdvisorResponses; global<u32>(entry) != 0x270f; entry += 0x20) {
         if (global<u32>(entry) == id)
             return global<u32>(entry + 0x1c);
     }
@@ -251,7 +253,7 @@ void __fastcall Advisor_HandleCode(u8 *self, void *, u32 code) {
     switch (code) {
     case 0:
         post(self, 0, 0, 0);
-        if (AdvisorScore_ModeSetting(0x00fb2765) == 2) post(self, 0x143, 0, 0);
+        if (AdvisorScore_ModeSetting((u32)(uintptr_t)&gAdvisorsend_fb2765) == 2) post(self, 0x143, 0, 0);
         break;
     case 2: post(self, 0x6a, 0, 0); break;
     case 3: post(self, 0x80, 0, 0); break;

@@ -215,6 +215,10 @@ s32 __stdcall ObjectDefs_ListBuiltNumbers(u16 *out);
 #include "../core/gamedata.h"
 
 // Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(const u8[0x28], gObjectdefs_6fd880, 0x006fd880, 0x28);
+GAME_DATA(u8[0x5a00], gTrackType_GetSchema_739ea8, 0x00739ea8, 0x5a00);
+GAME_DATA(u8[0xac], gObjectDef_LoadText_7487f8, 0x007487f8, 0xac);
+GAME_DATA(u8[0x4ce8], gObjectdefs_76e300, 0x0076e300, 0x4ce8);   // (351 records of 0x38)
 GAME_DATA(u8, gObjectdefs_fb3b78, 0x00fb3b78, 1);
 
 // Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).

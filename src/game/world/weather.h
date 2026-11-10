@@ -92,3 +92,10 @@ GAME_DATA(char[14], gText_Weather_Serialize_76236c, 0x0076236c, 0xe);
 GAME_DATA(char[16], gText_Weather_Serialize_76237c, 0x0076237c, 0x10);
 GAME_DATA(char[13], gText_Weather_Serialize_76238c, 0x0076238c, 0xd);
 GAME_DATA(char[9], gText_Weather_Serialize_76239c, 0x0076239c, 9);
+
+// Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(const u32, gWeather_SetIntensity_700a3c, 0x00700a3c, 0x4);
+GAME_DATA(const float, gWeather_SetIntensity_700a58, 0x00700a58, 0x4);
+GAME_DATA(const float, gWeather_SetIntensity_700a5c, 0x00700a5c, 0x4);
+GAME_DATA(const float, gWeather_SetIntensity_700a60, 0x00700a60, 0x4);
+GAME_DATA(const float, gWeather_SetIntensity_700a64, 0x00700a64, 0x4);

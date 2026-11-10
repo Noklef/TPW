@@ -231,7 +231,7 @@ void __fastcall ResearchLab_Spend(u8 *lab, void *, s32 amount) {
         double v = intQuotient(weight, (s32)sum);
         v = X87_MulIntDouble(*reinterpret_cast<const s32 *>(lab + 0x1460), v);
         v = X87_MulIntDouble(amount, v);
-        v = X87_MulFloatDouble(*reinterpret_cast<const float *>(0x007007e4), v);
+        v = X87_MulFloatDouble(gResearchLab_Spend_7007e4, v);
         ResearchProject_AddResearch(lab + current * 20 + 0xc, nullptr, (float)v);
     }
 }

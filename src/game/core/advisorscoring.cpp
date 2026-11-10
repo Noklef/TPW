@@ -739,13 +739,13 @@ s32 __fastcall AdvisorScoring_AgedPerStaff(const u8 *scoring) {
 
 namespace {
 
-u8 *criterion(s32 index) { return reinterpret_cast<u8 *>((uintptr_t)0x0076e300 + (u32)index * 0x38); }
+u8 *criterion(s32 index) { return reinterpret_cast<u8 *>((uintptr_t)&gObjectdefs_76e300 + (u32)index * 0x38); }
 
 // The criterion of an id: its place in the table when that one holds the id or any other does (sic: the address by the id all the same); the two out of range or unknown, none.
 const u8 *find_criterion(s32 id) {
     if (id == 0x160 || id == 0x15f) return nullptr;
     if (at<s32>(criterion(id), 4) == id) return criterion(id);
-    for (u32 entry = 0x0076e304; entry < 0x00772fcc; entry += 0x38)
+    for (u32 entry = ((u32)(uintptr_t)&gObjectdefs_76e300 + 0x4); entry < ((u32)(uintptr_t)&gObjectdefs_76e300 + 0x4ccc); entry += 0x38)
         if (*reinterpret_cast<const s32 *>((uintptr_t)entry) == id) return criterion(id);
     return nullptr;
 }

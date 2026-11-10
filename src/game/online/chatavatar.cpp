@@ -19,6 +19,7 @@
 #include "../world/things.h"
 #include "../world/signtext.h"
 #include "../world/world.h"
+#include "../world/staff.h"
 
 namespace {
 
@@ -81,7 +82,7 @@ u8 *__fastcall ChatPlayer_Ctor(u8 *player, void *, u32 cell, u32 sprite, const u
     const u16 *text = at<const u16 *>(name, 4);
     if (!text) text = reinterpret_cast<const u16 *>((uintptr_t)0x006fd6c4);
     g_env->swprintf(reinterpret_cast<u16 *>(player + 0x19c), gText_Signtext_75c0cc, text);
-    at<u16>(player, 0xc2) = *reinterpret_cast<const u16 *>((uintptr_t)0x0075c7f2);
+    at<u16>(player, 0xc2) = *reinterpret_cast<const u16 *>((uintptr_t)&gStaff_75c7f0 + 0x2);
     at<u32>(player, 0x188) = 1;
     return player;
 }

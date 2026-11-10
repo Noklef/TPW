@@ -46,3 +46,9 @@ void __fastcall Visitor_ChooseMajorDest(u8 *visitor);
 // prints are left out: their reads only.)
 void __fastcall Visitor_ChooseMinorDest(u8 *visitor);
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(u8[0x80], gVisitoroption_75d0f8, 0x0075d0f8, 0x80);
+GAME_DATA(u8[0x68], gVisitoroption_75d178, 0x0075d178, 0x68);

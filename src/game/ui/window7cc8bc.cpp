@@ -25,6 +25,7 @@
 #include "window7cc8c0handler.h"
 #include "../render/screen.h"
 #include "../world/camera.h"
+#include "../world/cameraupdate.h"
 
 namespace {
 
@@ -196,8 +197,8 @@ void __cdecl Window7cc8bc_Create() {
         Window_GetRect(gWindow7cc8bc_7cc8bc, nullptr, rect, 1);
         global<u32>(0x007a1c54) = reinterpret_cast<u32 &>(gScreen_7a192c);
         global<u32>(0x007a1c58) = reinterpret_cast<u32 &>(gScreen_7a194c);
-        global<u32>(0x0074d108) = global<u32>(0x007a162c);
-        global<u32>(0x0074d104) = global<u32>(0x007a0c9c);
+        global<u32>((u32)(uintptr_t)&gCameraupdate_74d108) = global<u32>(0x007a162c);
+        global<u32>((u32)(uintptr_t)&gCameraupdate_74d104) = global<u32>(0x007a0c9c);
         GuiRect_Dtor(rect);
     }
     buildHidden(reinterpret_cast<uintptr_t>(&gWindow7cc8bc_Create_758cd8), reinterpret_cast<uintptr_t>(&gWindow7cc8bc_7cc8c4), 0x1789);
