@@ -233,4 +233,12 @@ u8 *__fastcall WaitThread_DeletingDtor(u8 *self, void *, u32 flags) {
     return self;
 }
 
+u32 *__fastcall WaitThread_OpenAndStart(u8 *self, void *, u32 *out) {
+    u32 status;
+    s32 r = (s32)*WaitThread_OpenEvents(self, nullptr, &status);
+    if (r >= 0) r = (s32)*WaitThread_Start(self, nullptr, &status);
+    *out = r < 0 ? (u32)r : 0;
+    return out;
+}
+
 }  // extern "C"
