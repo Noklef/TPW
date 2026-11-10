@@ -52,3 +52,8 @@ void __fastcall Panel7cc298_ApplyToShown(u8 *self);
 // the panel's +8 set to Object_Status(thing, 2) and its slot 9 called when that changes it.
 void __fastcall Panel7cc298_ShowStats(u8 *self);
 }
+
+#include "../core/gamedata.h"
+
+// The vtables hold only ports: tpw.exe's loader points their slots at them (.docs/09-globals.md).
+GAME_DATA(void *[16], Panel7cc298_vtable, 0x006ffce8, 0x40);

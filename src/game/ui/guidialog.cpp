@@ -25,7 +25,7 @@ void __fastcall GuiDialog_SetC(u8 *dialog, void *, u32 value) {
 u8 *__fastcall GuiDialog_Ctor(u8 *dialog, void *, u32 value) {
     GuiRect_Ctor(dialog + 0x14);
     GuiRect_Ctor(dialog + 0x20);
-    at<u32>(dialog, 0) = 0x7058f8;
+    at<u32>(dialog, 0) = (u32)(uintptr_t)GuiDialog_vtable;
     at<u16>(dialog, 0x10) = 0;
     at<u16>(dialog, 0x12) = 0;
     at<u32>(dialog, 4) = value;
@@ -38,7 +38,7 @@ u8 *__fastcall GuiDialog_Ctor(u8 *dialog, void *, u32 value) {
 }
 
 void __fastcall GuiDialog_Dtor(u8 *dialog) {
-    at<u32>(dialog, 0) = 0x7058f8;
+    at<u32>(dialog, 0) = (u32)(uintptr_t)GuiDialog_vtable;
     GuiRect_Dtor(dialog + 0x20);
     GuiRect_Dtor(dialog + 0x14);
 }

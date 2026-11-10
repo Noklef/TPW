@@ -87,3 +87,8 @@ u8 *__fastcall Window705b20_Ctor(u8 *window, void *, u8 *parent, u32 flags, u32 
 void __fastcall Window705b20_NotifyScroll(u8 *window);
 void __fastcall Window705b20_NotifyScrollEnd(u8 *window);
 }
+
+#include "../core/gamedata.h"
+
+// The vtables hold only ports: tpw.exe's loader points their slots at them (.docs/09-globals.md).
+GAME_DATA(void *[12], Window705b20_vtable, 0x00705b20, 0x30);

@@ -28,3 +28,8 @@ u16 __fastcall RadioGroup_Select(u8 *group, void *, u32 id);
 // (Window705a50_SetState(1, 1)). Then, for every message, Window_DefaultProc (group, message, a, b), whose answer it returns.
 u32 __cdecl RadioGroup_Proc(u8 *group, u32 message, u32 a, u32 b);
 }
+
+#include "../core/gamedata.h"
+
+// The vtables hold only ports: tpw.exe's loader points their slots at them (.docs/09-globals.md).
+GAME_DATA(void *[12], Window705ac0_vtable, 0x00705ac0, 0x30);

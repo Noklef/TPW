@@ -54,3 +54,8 @@ u32 __fastcall Window705bf8_Compare(u8 *window, void *, u8 *other);
 // 0x66d6f5 (cdecl (window, message, a, b); the label's handler; name unconfirmed): Window_DefaultProc, whose answer it returns.
 u32 __cdecl Window705bf8_Proc(u8 *window, u32 message, u32 a, u32 b);
 }
+
+#include "../core/gamedata.h"
+
+// The vtables hold only ports: tpw.exe's loader points their slots at them (.docs/09-globals.md).
+GAME_DATA(void *[12], Window705bf8_vtable, 0x00705bf8, 0x30);

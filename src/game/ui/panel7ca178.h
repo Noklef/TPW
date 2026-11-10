@@ -43,3 +43,6 @@ void __fastcall Panel7ca178_Open(u8 *self);
 
 // Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
 GAME_DATA(const double, gPanel7ca178_6ff738, 0x006ff738, 0x8);
+
+// The vtables hold only ports: tpw.exe's loader points their slots at them (.docs/09-globals.md).
+GAME_DATA(void *[16], Panel7ca178_vtable, 0x006ff740, 0x40);
