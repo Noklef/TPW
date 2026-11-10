@@ -1807,7 +1807,7 @@ address,name,kind,confidence,notes
 0x0061e100,Draw8_CircleFill,function,high,"reimplemented (src/game/gfx/draw8); slot 6, (x, y, r, colour); midpoint circle as slot-8 spans; r 0/1 as the outline; negative r draws the centre span leftwards and two dots"
 0x0061b1e0,Draw8_Sprite,function,high,"reimplemented (src/game/gfx/draw8); slot 14, (x, y, sprite); copies the context to SpriteDrawParams 0xfaa4d8 and calls the cseg blitter 0x6e73c0 with clip-relative x, y"
 0x00faa4d8,gSpriteDrawParams,data,high,"SpriteDrawParams: pitch, clip size, flags, bits, ghost, ?, ?, clip left/top; read by the cseg sprite blitter"
-0x006e73c0,Sprite_DrawRle,function,medium,"hand-written (cseg) run-length sprite blitter, cdecl (x, y, RleSprite *) with x, y relative to the clip; reads gSpriteDrawParams"
+0x006e73c0,Sprite_DrawRle,function,medium,"reimplemented (src/game/gfx/spriterle); cdecl (x, y, sprite): the hand-written (cseg) run-length sprite blitter: clip, row / column flips, ghost blends"
 0x0061b270,Draw8_SpriteShape,function,high,"reimplemented (src/game/gfx/draw8); slot 15, (x, y, RleSprite *, colour); the sprite's opaque pixels filled or ghost-blended in one colour; flags 1/2 flip; visible rows/cols counted in bytes (an empty clip wraps the row count)"
 0x00628870,Draw16_Pixel,function,high,"reimplemented (src/game/gfx/drawrgb); 16-bit slot 0, (x, y, colour); the colour packed through the context's PixelShifts; flag 0x20 takes it from the palette (0xfa71f8) entry of the remapped index unless a ghost flag is set; no blending"
 0x00629650,Draw16_HLine,function,high,"reimplemented (src/game/gfx/drawrgb); 16-bit slot 8, (x, y, length, colour); clipping as Draw8_HLine"
