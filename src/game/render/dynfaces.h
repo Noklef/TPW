@@ -73,3 +73,20 @@ void __cdecl DynFaces_InitModels();
 }  // extern "C"
 
 void DynFaces_SetCalls(const AddrCall *table, u32 count);
+
+#include "../core/gamedata.h"
+
+// Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(const float, gDynFaces_Frame_700dd0, 0x00700dd0, 0x4);
+GAME_DATA(const float, gDynFaces_Frame_700de0, 0x00700de0, 0x4);
+GAME_DATA(const float, gDynFaces_Frame_700de4, 0x00700de4, 0x4);
+GAME_DATA(const float, gDynFaces_Frame_700de8, 0x00700de8, 0x4);
+GAME_DATA(const float, gDynFaces_Frame_700df0, 0x00700df0, 0x4);
+GAME_DATA(const float, gDynFaces_Frame_700df4, 0x00700df4, 0x4);
+GAME_DATA(const float, gDynFaces_Frame_700df8, 0x00700df8, 0x4);
+GAME_DATA(u8 *, gDynFaces_871ed8, 0x00871ed8, 0x4);
+GAME_DATA(u32, gDynfaces_871ee0, 0x00871ee0, 0x4);
+GAME_DATA(u8 *, gDynFaces_871ee4, 0x00871ee4, 0x4);
+GAME_DATA(float, gDynfaces_874fc0, 0x00874fc0, 0x4);
+GAME_DATA(s32, gDynFaces_874fc8, 0x00874fc8, 0x4);
+GAME_DATA(u32, gDynFaces_874fcc, 0x00874fcc, 0x4);

@@ -266,5 +266,5 @@ u32 __fastcall TexCache_ReleaseGraphics(u8 *self);
 
 #include "../core/gamedata.h"
 
-// Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
+// Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
 GAME_DATA(u32, gTexcache_8c4b44, 0x008c4b44, 0x4);

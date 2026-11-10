@@ -6,6 +6,9 @@
 
 #include <cmath>
 #include <cstdint>
+#include "placecar.h"
+#include "edittools.h"
+#include "coastersload.h"
 
 namespace {
 
@@ -96,7 +99,7 @@ u32 __cdecl Track_PieceAt(const u8 *track, u32 n) {
 }
 
 u32 __cdecl TrackSelection_ClearFlags() {
-    u8 *a = *reinterpret_cast<u8 *const *>(0x0079c628), *b = *reinterpret_cast<u8 *const *>(0x0079c62c);
+    u8 *a = *reinterpret_cast<u8 *const *>(&gEdittools_79c628), *b = *reinterpret_cast<u8 *const *>(&gEdittools_79c62c);
     if (!a) return 0;
     u8 *from = b, *to = a;
     if (at<u32>(b, 0) > at<u32>(a, 0)) from = a, to = b;
@@ -115,31 +118,31 @@ void __cdecl TrackPieces_Renumber(u8 *piece) {
 }
 
 void __cdecl TrackSelection_SetFirst(u8 *piece, u32 keep) {
-    u8 *&first = *reinterpret_cast<u8 **>(0x0079c628);
+    u8 *&first = gEdittools_79c628;
     u32 changed = keep ? first != piece : TrackSelection_ClearFlags();
     first = piece;
     if (piece) {
-        u8 *other = *reinterpret_cast<u8 *const *>(0x0079c62c), *from = other, *to = piece;
+        u8 *other = *reinterpret_cast<u8 *const *>(&gEdittools_79c62c), *from = other, *to = piece;
         if (at<u32>(other, 0) > at<u32>(piece, 0)) from = piece, to = other;
         for (u8 *p = from; p != to; p = at<u8 *>(p, 0x64)) at<u32>(p, 8) |= 0x1000000;
         changed = 1;
     }
-    if (changed) Flags_SetChanged(*reinterpret_cast<u32 *const *>(0x00790fec), 0);
+    if (changed) Flags_SetChanged(*reinterpret_cast<u32 *const *>(&gCoastersload_790fec), 0);
 }
 
 void __cdecl TrackSelection_Clear() {
     const u32 changed = TrackSelection_ClearFlags();
-    *reinterpret_cast<u32 *>(0x0079c62c) = 0;
-    *reinterpret_cast<u32 *>(0x0079c628) = 0;
-    *reinterpret_cast<u32 *>(0x007925d0) = 0;
-    if (changed) Flags_SetChanged(*reinterpret_cast<u32 *const *>(0x00790fec), 0);
+    *reinterpret_cast<u32 *>(&gEdittools_79c62c) = 0;
+    *reinterpret_cast<u32 *>(&gEdittools_79c628) = 0;
+    gEdittools_7925d0 = 0;
+    if (changed) Flags_SetChanged(*reinterpret_cast<u32 *const *>(&gCoastersload_790fec), 0);
 }
 
 void __cdecl TrackSelection_End() {
-    u32 &flags = *reinterpret_cast<u32 *>(0x0079c658);
+    u32 &flags = gPlacecar_79c658;
     if (flags & 0x80) {
         Highlight_SetShown(0);
-        *reinterpret_cast<u32 *>(0x0079c6dc) = 0;
+        *reinterpret_cast<u32 *>(&gEdittools_79c6dc) = 0;
         TrackSelection_Clear();
     }
     flags &= ~0xa0u;

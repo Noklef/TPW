@@ -101,12 +101,12 @@ void Renderer_SetDrawCalls(const AddrCall *table, u32 count) { g_drawCalls.Set(t
 extern "C" {
 
 u32 __fastcall Renderer_DrawCellLists(u8 *renderer) {
-    global<u32>(0x8bb624) = 0x1000000;
+    gRenderer_8bb624 = 0x1000000;
     const u8 *const head = at<const u8 *>(renderer, 0x2c);
     if (head) at<const u8 *>(gRenderer_87a6d0, 0x30) = head;
     if (!DrawList(head)) return 0;
     if (!g_drawCalls.Th(0x0056f090, global<u32>(0x879d60))) return 0;   // TerrainGround_PrepareTextures
-    global<u32>(0x8bb624) = 0;
+    gRenderer_8bb624 = 0;
     const u8 *view = at<const u8 *>(renderer, 0x44);
     if (!view) return 1;
     for (s32 y = at<s32>(view, 0); y < at<s32>(view, 4); ++y) {

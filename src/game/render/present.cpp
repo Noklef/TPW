@@ -2,6 +2,7 @@
 
 #include <cstdint>
 #include "../frontend/lobbysky.h"
+#include "ddopen.h"
 
 namespace {
 
@@ -21,7 +22,7 @@ using WindowRect = s32(__stdcall *)(u32, s32 *);
 u32 blt(u8 *engine, s32 *to, s32 *from, u32 flags) {
     u8 *const front = at<u8 *>(engine, 0x10);
     const u32 result = reinterpret_cast<const Blt *>(at<const u8 *>(front, 0) + 0x14)[0](front, to, at<u8 *>(engine, 0x14), from, flags, 0);
-    global<u32>(0x00879cd4) = result;
+    gDdopen_879cd4 = result;
     return result;
 }
 
@@ -42,7 +43,7 @@ void full_screen(u8 *engine) {
             result = blt(engine, nullptr, nullptr, ~global<u32>(0x008bcbc8) & 1);
             if (result == kWasStillDrawing || result == kWasSurfaceLost) {
                 result = 0;
-                global<u32>(0x00879cd4) = 0;
+                gDdopen_879cd4 = 0;
             }
         }
     } else {
@@ -51,7 +52,7 @@ void full_screen(u8 *engine) {
         do {
             u8 *const front = at<u8 *>(engine, 0x10);
             result = reinterpret_cast<const Flip *>(at<const u8 *>(front, 0) + 0x2c)[0](front, nullptr, flag);
-            global<u32>(0x00879cd4) = result;
+            gDdopen_879cd4 = result;
             budget -= result == kWasStillDrawing ? 1 : 50;
         } while ((result == kWasStillDrawing || result == kWasSurfaceLost) && budget > 0);
     }
@@ -87,9 +88,9 @@ u32 __fastcall Device_Present(u8 *engine) {
     else
         windowed(engine);
     run_hook(0x008bd514);
-    const u32 result = global<u32>(0x00879cd4);
+    const u32 result = gDdopen_879cd4;
     if (!full && result) g_calls.Th(0x0056af20, 0x00879ad0u, 3u, result);
-    return global<u32>(0x00879cd4) == 0;
+    return gDdopen_879cd4 == 0;
 }
 
 u32 __cdecl Present_Engine() { return g_calls.Th(0x00564210, global<u32>(0x00879a24)); }
@@ -98,10 +99,10 @@ namespace {
 
 // A surface's answer kept; a failure's text logged, then a nonzero answer goes to the engine's errors. True when it was 0.
 bool answered(u32 result) {
-    global<u32>(0x00879cd4) = result;
+    gDdopen_879cd4 = result;
     if ((s32)result < 0) {
         g_calls.Cd(0x00564650, g_calls.Cd(0x0056a770, result));
-        result = global<u32>(0x00879cd4);
+        result = gDdopen_879cd4;
     }
     if (result) g_calls.Th(0x0056af20, 0x00879ad0u, 2u, result);
     return !result;

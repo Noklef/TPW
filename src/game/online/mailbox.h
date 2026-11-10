@@ -170,7 +170,6 @@ u8 __fastcall Mailbox_DropFirst(u8 *self, void *, u8 *target);
 
 // Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
 GAME_DATA(char[20], gMailbox_75447c, 0x0075447c, 0x14);
-GAME_DATA(char[4], gMailbox_764ff0, 0x00764ff0, 0x4);
 GAME_DATA(char[12], gMailbox_7740b4, 0x007740b4, 0xc);
 GAME_DATA(char[8], gMailbox_Open_7740c0, 0x007740c0, 0x8);
 GAME_DATA(char[4], gMailbox_7740c8, 0x007740c8, 0x4);

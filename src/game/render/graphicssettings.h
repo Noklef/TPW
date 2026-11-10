@@ -32,5 +32,7 @@ u32 __cdecl GraphicsSettings_LoadForOptions();
 
 #include "../core/gamedata.h"
 
-// Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
+// Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
 GAME_DATA(u32, gGraphicssettings_7a1a8c, 0x007a1a8c, 0x4);
+GAME_DATA(float, gGraphicssettings_8bd4c0, 0x008bd4c0, 0x4);
+GAME_DATA(u32, gGraphicssettings_8c162c, 0x008c162c, 0x4);

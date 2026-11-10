@@ -9,6 +9,8 @@
 #include "../frontend/lobbyscene.h"
 #include "renderer.h"
 #include "../gfx/texcache.h"
+#include "meshlist.h"
+#include "../core/vwrap.h"
 
 namespace {
 
@@ -32,10 +34,10 @@ bool DrawViewSteps(u8 *renderer, const u32 *view) {
         if (!Slot(global<u32>(0x008bd52c), 0)) return false;
     }
     if (global<u32>(kViewFlags) & 0x2000) {
-        global<u32>(0x008bd4ec) = 0x3e800000;
+        reinterpret_cast<u32 &>(gRendererframe_8bd4ec) = 0x3e800000;
     } else {
-        global<u32>(0x008bd4ec) = 0x3f19999a;
-        if (global<u32>(kMode) == 4) global<u32>(0x008bd4ec) = 0x3e800000;
+        reinterpret_cast<u32 &>(gRendererframe_8bd4ec) = 0x3f19999a;
+        if (global<u32>(kMode) == 4) reinterpret_cast<u32 &>(gRendererframe_8bd4ec) = 0x3e800000;
     }
     if ((view[0] & 0x1000) && at<u32>(renderer, 0x34)) g_calls.Th(0x00575fb0, at<u32>(renderer, 0x34));   // TexSet_BltToBack
     if (global<u8>(0x00790ab0) & 0x16) global<u32>(kSceneFlags) |= 0x100;
@@ -65,7 +67,7 @@ bool DrawViewSteps(u8 *renderer, const u32 *view) {
         }
     }
     if (view[0] & 0x200) {   // (through the virtual base's offset)
-        const u32 groups = global<u32>(0x008bba48);
+        const u32 groups = gVwrap_8bba48;
         Slot(groups + at<u32>((void *)(uintptr_t)at<u32>((void *)(uintptr_t)groups, 0), 4), 4);
     }
     if (view[0] & 0x100) g_calls.Th(0x0057dc80, global<u32>(0x008bcbac));   // WeatherFx_TouchTextures
@@ -84,7 +86,7 @@ bool DrawViewSteps(u8 *renderer, const u32 *view) {
         if (!g_calls.Th(0x005863c0, 0x008c1828u)) return false;   // Landscape_Draw
         if (!g_calls.Th(0x0056f670, global<u32>(0x00879d60))) return false;   // TerrainGround_Draw
         if ((global<u32>(kViewFlags) & 0x10000) && !g_calls.Th(0x00570d90, global<u32>(0x00879d60))) return false;   // TerrainWater_Draw
-        if (!g_calls.Th(0x0057c620, global<u32>(0x008bba48))) return false;   // SpriteGroups_Draw
+        if (!g_calls.Th(0x0057c620, gVwrap_8bba48)) return false;   // SpriteGroups_Draw
     }
     if ((view[0] & 0x2000) && !g_calls.Th(0x00577ae0, 0x0087aee8u)) return false;   // TileGrid_Draw
     if ((view[0] & 0x4000) && !g_calls.Th(0x0058ac90, 0x008c47b0u)) return false;   // PointSprites_Draw
@@ -180,8 +182,8 @@ u32 __fastcall Renderer_DrawFrame(u8 *renderer) {
             const float separation = gRenderer_DrawFrame_8bd478;
             std::memcpy(right, global<const void *>(0x0087afe8), 0x40);
             std::memcpy(left, global<const void *>(0x0087afe8), 0x40);
-            Mat4_MoveAlongX(reinterpret_cast<float *>(left), nullptr, (float)(X87Reg(separation) * global<float>(0x007017f8)));
-            Mat4_MoveAlongX(reinterpret_cast<float *>(right), nullptr, (float)(X87Reg(separation) * global<float>(0x007017fc)));
+            Mat4_MoveAlongX(reinterpret_cast<float *>(left), nullptr, (float)(X87Reg(separation) * gRenderer_DrawFrame_7017f8));
+            Mat4_MoveAlongX(reinterpret_cast<float *>(right), nullptr, (float)(X87Reg(separation) * gRenderer_DrawFrame_7017fc));
             const u32 savedFlags = global<u32>(kViewFlags);
             u32 view[6];
             std::memcpy(view, source, 0x18);
@@ -189,26 +191,26 @@ u32 __fastcall Renderer_DrawFrame(u8 *renderer) {
             if (global<u32>(kViewFlags) & 8) {
                 view[0] = source[0] & 0x1b11;
                 view[5] = (u32)(uintptr_t)left;
-                at<u32>(global<void *>(0x0087a248), 0x2c) = 0xffff0000;
+                at<u32>(reinterpret_cast<void * &>(gMeshlist_87a248), 0x2c) = 0xffff0000;
                 drawn = CallView(renderer, view) != 0;
                 if (drawn) {
                     global<u32>(kViewFlags) |= 0x80000000;
                     view[5] = (u32)(uintptr_t)right;
-                    at<u32>(global<void *>(0x0087a248), 0x2c) = 0xff00ffff;
+                    at<u32>(reinterpret_cast<void * &>(gMeshlist_87a248), 0x2c) = 0xff00ffff;
                     drawn = CallView(renderer, view) != 0;
                 }
                 if (drawn) {
                     global<u32>(kViewFlags) &= 0x7fffffff;
-                    at<u32>(global<void *>(0x0087a248), 0x2c) = 0xffffffff;
+                    at<u32>(reinterpret_cast<void * &>(gMeshlist_87a248), 0x2c) = 0xffffffff;
                     view[0] = source[0] & 0x420;
                     drawn = CallView(renderer, view) != 0;
                 }
             } else {
                 float *const window = reinterpret_cast<float *>(view + 1);
-                const float scale = global<float>(0x00701818);
+                const float scale = gRenderer_DrawFrame_701818;
                 float x = window[0], y = window[1], w = window[2], h = window[3];
-                window[0] = (float)X87_SubR((X87Reg(x) - global<float>(0x00701808)) * global<float>(0x0070180c), global<float>(0x00701810));
-                window[1] = (float)X87_SubR((X87Reg(y) - global<float>(0x00701808)) * global<float>(0x0070180c), global<float>(0x00701814));
+                window[0] = (float)X87_SubR((X87Reg(x) - gRenderer_DrawFrame_701808) * gRenderer_DrawFrame_70180c, gRenderer_DrawFrame_701810);
+                window[1] = (float)X87_SubR((X87Reg(y) - gRenderer_DrawFrame_701808) * gRenderer_DrawFrame_70180c, gRenderer_DrawFrame_701814);
                 window[2] = (float)(X87Reg(w) * scale);
                 window[3] = (float)(X87Reg(h) * scale);
                 view[5] = (u32)(uintptr_t)left;
@@ -216,8 +218,8 @@ u32 __fastcall Renderer_DrawFrame(u8 *renderer) {
                 if (drawn) {
                     std::memcpy(view, source, 0x18);
                     x = window[0], y = window[1], w = window[2], h = window[3];
-                    window[0] = (float)X87_SubR((X87Reg(x) - global<float>(0x00701808)) * global<float>(0x0070180c), global<float>(0x0070181c));
-                    window[1] = (float)X87_SubR((X87Reg(y) - global<float>(0x00701808)) * global<float>(0x0070180c), global<float>(0x00701814));
+                    window[0] = (float)X87_SubR((X87Reg(x) - gRenderer_DrawFrame_701808) * gRenderer_DrawFrame_70180c, gRenderer_DrawFrame_70181c);
+                    window[1] = (float)X87_SubR((X87Reg(y) - gRenderer_DrawFrame_701808) * gRenderer_DrawFrame_70180c, gRenderer_DrawFrame_701814);
                     window[2] = (float)(X87Reg(w) * scale);
                     window[3] = (float)(X87Reg(h) * scale);
                     view[5] = (u32)(uintptr_t)right;

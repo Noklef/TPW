@@ -26,7 +26,7 @@ u32 __fastcall MeshDraws_Add(u8 *list, void *, u32 matrix, u32, u32, u8 *mesh, u
     u8 *const entry = list + 4 + count * 0x14;
     at<u8 *>(entry, 4) = mesh;
     at<u32>(entry, 0) = at<u32>(gRenderer_87a6d0, 0x30);
-    at<u32>(entry, 8) = flags | global<u32>(0x008bb624);
+    at<u32>(entry, 8) = flags | gRenderer_8bb624;
     const u32 room = DrawBuffer_Alloc(global<u8 *>(0x008bcbc4), nullptr, vertices);
     if (room == 0) return 1;  // (the count stays; the entry's first three dwords are written, sic)
     at<u32>(entry, 0xc) = room;

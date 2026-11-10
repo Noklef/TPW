@@ -17,6 +17,7 @@
 #include "ridelist.h"
 #include "staff.h"
 #include "../ui/thingbrowser.h"
+#include "thingscan.h"
 
 namespace {
 
@@ -227,6 +228,19 @@ u32 __cdecl Things_SumChain() {
 s32 __cdecl Things_CountKind3Flag1() { return CountKind3(1); }
 
 s32 __cdecl Things_CountStaff() { return CountKinds4To8(); }
+
+s32 __cdecl Things_CountTiredStaff() {
+    s32 count = 0;
+    u16 handle;
+    World_FirstThing(world(), nullptr, &handle);
+    while (handle) {
+        const u8 *thing = thing_of(handle);
+        const u8 kind = at<u8>(thing, 2);
+        if ((kind == 4 || kind == 5 || kind == 6 || kind == 8 || kind == 7) && Staff_IsTooTired(thing)) ++count;
+        World_NextThing(world(), nullptr, &handle, thing);
+    }
+    return count;
+}
 
 void __stdcall Things_TopThreeValues(u8 *first, u8 *second, u8 *third) {
     s32 counts[23] = {};
@@ -689,7 +703,7 @@ template <typename Test> double averageByte(Test test, u32 offset) {
         }
         World_NextThing(world(), nullptr, &handle, thing);
     }
-    if (count <= 0) return global<float>(0x0070031c);
+    if (count <= 0) return gThingscan_70031c;
     return (X87Reg((double)sum) / X87Reg((double)count)).v;
 }
 
@@ -948,7 +962,7 @@ s32 __fastcall Things_HappiestDef4ac2(void *, void *, u16 *out) {
 }
 
 double __fastcall Things_AveragePersonStat19c(void *, void *, u32) {
-    if (Get1da710_51a280(static_cast<const u8 *>(world()))) return global<float>(0x0070031c);
+    if (Get1da710_51a280(static_cast<const u8 *>(world()))) return gThingscan_70031c;
     return averageByte([](const u8 *thing) { return at<u8>(thing, 2) == 1 && AnalyserCell_TypePlain(thing); }, 0x19c);
 }
 

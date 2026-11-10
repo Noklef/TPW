@@ -184,4 +184,114 @@ char *__cdecl CRT_mbsrchr(const char *text, u32 c) {
     return const_cast<char *>(reinterpret_cast<const char *>(found));
 }
 
+void __cdecl CRT_setSBUpLow() {
+    struct Frame {   // (the original's frame: a lead byte list without its end reads on into the characters)
+        u8 info[0x14];
+        u8 chars[0x100];
+        u8 lower[0x100];
+        u8 upper[0x100];
+        u16 types[0x100];
+    } f;
+    u8 *const types = &global<u8>(0x00fb1669);
+    u8 *const casemap = &global<u8>(0x00fb1770);
+    if (reinterpret_cast<s32(__stdcall *const *)(u32, void *)>((uintptr_t)0x006fd180)[0](code_page(), f.info) == 1) {    // GetCPInfo
+        for (u32 i = 0; i < 0x100; ++i) f.chars[i] = static_cast<u8>(i);
+        f.chars[0] = 0x20;
+        for (const u8 *lead = f.info + 6; *lead; lead += 2)
+            for (u32 c = lead[0]; c <= lead[1]; ++c) f.chars[c] = 0x20;
+        CRT_GetStringTypeA(1, reinterpret_cast<const char *>(f.chars), 0x100, f.types, code_page(), global<u32>(0x00fb1874), 0);
+        CRT_LCMapStringA(global<u32>(0x00fb1874), 0x100, reinterpret_cast<const char *>(f.chars), 0x100, reinterpret_cast<char *>(f.lower), 0x100, code_page(), 0);
+        CRT_LCMapStringA(global<u32>(0x00fb1874), 0x200, reinterpret_cast<const char *>(f.chars), 0x100, reinterpret_cast<char *>(f.upper), 0x100, code_page(), 0);
+        for (u32 i = 0; i < 0x100; ++i) {
+            if (f.types[i] & 1) {
+                types[i] |= 0x10;
+                casemap[i] = f.lower[i];
+            } else if (f.types[i] & 2) {
+                types[i] |= 0x20;
+                casemap[i] = f.upper[i];
+            } else {
+                casemap[i] = 0;
+            }
+        }
+        return;
+    }
+    for (u32 i = 0; i < 0x100; ++i) {
+        if (i >= 0x41 && i <= 0x5a) {
+            types[i] |= 0x10;
+            casemap[i] = static_cast<u8>(i + 0x20);
+        } else if (i >= 0x61 && i <= 0x7a) {
+            types[i] |= 0x20;
+            casemap[i] = static_cast<u8>(i - 0x20);
+        } else {
+            casemap[i] = 0;
+        }
+    }
+}
+
+s32 __cdecl CRT_setmbcp(s32 page) {
+    u8 *const types = &global<u8>(0x00fb1668);
+    const auto clear = [&] {
+        for (u32 i = 0; i < 0x101; ++i) types[i] = 0;
+    };
+    // The ranges [first, last] of a list of byte pairs (to a first or a last of 0) given bits in the table.
+    const auto mark = [&](const u8 *pairs, u8 bits) {
+        for (; *pairs && pairs[1]; pairs += 2)
+            for (u32 c = pairs[0]; c <= pairs[1]; ++c) types[c + 1] |= bits;
+    };
+    CrtInner().lock(kMbcsLock);
+    const u32 wanted = CRT_getSystemCP(static_cast<u32>(page));
+    if (wanted == code_page()) {
+        CrtInner().unlock(kMbcsLock);
+        return 0;
+    }
+    if (!wanted) {
+        CRT_setSBCS();
+        CRT_setSBUpLow();
+        CrtInner().unlock(kMbcsLock);
+        return 0;
+    }
+    for (u32 i = 0, at = 0x00781590; at < 0x00781680; at += 0x30, ++i) {
+        if (global<u32>(at) != wanted) continue;
+        clear();
+        for (u32 range = 0; range < 4; ++range) mark(&global<u8>(0x007815a0 + i * 0x30 + range * 8), global<u8>(0x00781588 + range));
+        global<u32>(0x00fb3b84) = 1;
+        global<u32>(0x00fb1870) = wanted;
+        global<u32>(0x00fb1874) = CRT_CPtoLCID(wanted);
+        global<u32>(0x00fb1878) = global<u32>(0x00781594 + i * 0x30);
+        global<u32>(0x00fb187c) = global<u32>(0x00781598 + i * 0x30);
+        global<u32>(0x00fb1880) = global<u32>(0x0078159c + i * 0x30);
+        CRT_setSBUpLow();
+        CrtInner().unlock(kMbcsLock);
+        return 0;
+    }
+    u8 info[0x14];
+    if (reinterpret_cast<s32(__stdcall *const *)(u32, void *)>((uintptr_t)0x006fd180)[0](wanted, info) == 1) {    // GetCPInfo
+        clear();
+        global<u32>(0x00fb1870) = wanted;
+        global<u32>(0x00fb1874) = 0;
+        if (*reinterpret_cast<const u32 *>(info) > 1) {
+            mark(info + 6, 4);
+            for (u32 c = 1; c < 0xff; ++c) types[c + 1] |= 8;
+            global<u32>(0x00fb1874) = CRT_CPtoLCID(wanted);
+            global<u32>(0x00fb3b84) = 1;
+        } else {
+            global<u32>(0x00fb3b84) = 0;
+        }
+        global<u32>(0x00fb1878) = 0;
+        global<u32>(0x00fb187c) = 0;
+        global<u32>(0x00fb1880) = 0;
+    } else {
+        if (!global<u32>(0x00fb1884)) {
+            CrtInner().unlock(kMbcsLock);
+            return -1;
+        }
+        CRT_setSBCS();
+    }
+    CRT_setSBUpLow();
+    CrtInner().unlock(kMbcsLock);
+    return 0;
+}
+
+s32 __cdecl CRT_initmbctable() { return CRT_setmbcp(-3); }
+
 }  // extern "C"

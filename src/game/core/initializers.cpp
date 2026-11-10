@@ -6,6 +6,7 @@
 #include "gameheap.h"
 #include "../gfx/surface.h"
 #include "../ui/panel7cc218.h"
+#include "../world/cellrun.h"
 
 namespace {
 
@@ -240,10 +241,10 @@ u32 __fastcall Fn_4f0150(u8 *o, void *, u32 v0) {
 }
 
 u32 __cdecl Fn_52c6c0(u32 v0, u32 v1, u32 v2, u32 v3) {
-    at<u32>(reinterpret_cast<u8 *>((uintptr_t)v0), 0x0) = global<u32>(0x008186e4);
-    at<u32>(reinterpret_cast<u8 *>((uintptr_t)v1), 0x0) = global<u32>(0x008186e8);
-    at<u32>(reinterpret_cast<u8 *>((uintptr_t)v2), 0x0) = global<u32>(0x00818c0c);
-    at<u32>(reinterpret_cast<u8 *>((uintptr_t)v3), 0x0) = global<u32>(0x00818c08);
+    at<u32>(reinterpret_cast<u8 *>((uintptr_t)v0), 0x0) = reinterpret_cast<u32 &>(gCellrun_8186e4);
+    at<u32>(reinterpret_cast<u8 *>((uintptr_t)v1), 0x0) = reinterpret_cast<u32 &>(gCellrun_8186e8);
+    at<u32>(reinterpret_cast<u8 *>((uintptr_t)v2), 0x0) = reinterpret_cast<u32 &>(gCellrun_818c0c);
+    at<u32>(reinterpret_cast<u8 *>((uintptr_t)v3), 0x0) = reinterpret_cast<u32 &>(gCellrun_818c08);
     return v3;
 }
 

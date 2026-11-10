@@ -11,8 +11,8 @@
 #include "../core/wtraits.h"
 #include "chatlists.h"
 #include "session.h"
-#include "chatavatar.h"
 #include "../ui/panel7b9940.h"
+#include "../world/signtext.h"
 
 namespace {
 
@@ -132,7 +132,7 @@ void __fastcall ChatClient_Connect(u8 *self) {
     alignas(4) u8 message[8];
     if (!g_env->messageCheck(new_message(message))) at<u8>(self, 0x2b) = 1;
     u16 *const text = reinterpret_cast<u16 *>(self + 0x260);
-    g_env->format(text, reinterpret_cast<const u16 *>(&gChatavatar_75c0cc), Online_String14(Online_Instance()));
+    g_env->format(text, gText_Signtext_75c0cc, Online_String14(Online_Instance()));
     assign(self + 8, text);
     if (!at<u32>(self, 0)) {
         void *const block = GameHeap_Alloc(0xc);

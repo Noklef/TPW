@@ -7,6 +7,7 @@
 #include "../world/ridelist.h"
 #include "../world/things.h"
 #include "../world/thingscan.h"
+#include "../world/ridelist.h"
 
 namespace {
 
@@ -107,7 +108,7 @@ void __cdecl CoasterRing_Init(u8 *ring, u32 capacity) {
 void __cdecl CoasterRing_Free(u8 *ring) { GlobalMem_Free(at<u32 *>(ring, 4)); }
 
 void __cdecl Coaster_RequeueWaitingPeeps(s32 id) {
-    u8 *coaster = *reinterpret_cast<u8 **>((uintptr_t)0x00790fe0);
+    u8 *coaster = gRidelist_790fe0;
     while (coaster && at<s32>(coaster, 0x10) != id) coaster = at<u8 *>(coaster, 0x18);
     if (!coaster) return;
     u16 handle;

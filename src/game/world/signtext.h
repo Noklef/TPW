@@ -29,3 +29,9 @@ void __fastcall SignText_SetFirst(u8 *sign, void *, const u16 *text);
 // 0x4e2a50 (thiscall; pops 4): the second line; message 0x55.
 void __fastcall SignText_SetSecond(u8 *sign, void *, const u16 *text);
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(u16[6], gText_Signtext_75c0c0, 0x0075c0c0, 0xc);
+GAME_DATA(u16[4], gText_Signtext_75c0cc, 0x0075c0cc, 0x8);

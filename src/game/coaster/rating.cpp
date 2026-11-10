@@ -6,7 +6,7 @@
 
 namespace {
 
-CoasterRatingState &state() { return *reinterpret_cast<CoasterRatingState *>(0x007923a8); }
+CoasterRatingState &state() { return gCoasterRating; }
 
 template <typename T> T &at(void *p, u32 offset) { return *reinterpret_cast<T *>(static_cast<u8 *>(p) + offset); }
 template <typename T> const T &at(const void *p, u32 offset) {

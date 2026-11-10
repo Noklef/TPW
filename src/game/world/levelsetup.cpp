@@ -5,6 +5,7 @@
 #include "../core/crt.h"
 #include "../math/x87.h"
 #include "../render/graphicssettings.h"
+#include "levelsetup.h"
 
 namespace {
 
@@ -28,7 +29,7 @@ u32 __cdecl Level_LoadTerrainAndAdvisor() {
     char first[0x104], second[0x104], language[0x104];   // the original's frame, 0x30c
     const CrtEnv &crt = Crt();
     const char *const advisorName = reinterpret_cast<const char *>((uintptr_t)0x007af650);
-    global<u32>(0x7b0958) = crt.rand();
+    gLevelsetup_7b0958 = crt.rand();
     g_calls.Cd(0x004740d0, 0u);   // Motion_SetFlags
     g_calls.Cd(0x0042a990);   // Camera_Reset
     GamePath();   // the original looks for its last backslash and does not use the result

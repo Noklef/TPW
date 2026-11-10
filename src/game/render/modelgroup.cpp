@@ -12,6 +12,7 @@
 #include "clippoly.h"
 #include "fixedverts.h"
 #include "texcoords.h"
+#include "meshlist.h"
 
 namespace {
 
@@ -23,8 +24,8 @@ const ModelGroupEnv *g_env = &kPortEnv;
 
 u32 TextureId(const u8 *texture) { return at<u32>(texture, 8) & 0x1000 ? at<u32>(texture, 0x1c) : 0; }
 
-const float &MinusOne() { return global<float>(0x00701d84); }
-const float &Half() { return global<float>(0x00701d88); }
+const float &MinusOne() { return gModelgroup_701d84; }
+const float &Half() { return gModelgroup_701d88; }
 
 void Zeros(u8 *uv, u32 count, s32 stride) {
     for (; count; --count, uv += stride) {
@@ -122,7 +123,7 @@ u32 __fastcall ModelGroup_AddToBatch(u8 *model, void *, u8 *batch, u32 group, s3
 
     const u8 *const verts = at<const u8 *>(model, 0xc);
     const u32 *const colours = at<const u32 *>(model, 0x10);
-    const u32 mask = at<u32>(global<const u8 *>(0x0087a248), 0x2c);
+    const u32 mask = at<u32>(gMeshlist_87a248, 0x2c);
     const bool coloured = !(at<u8>(entry, 0xc) & 1) && colours;
     u8 *out = base;
     for (u32 k = 0; k < count; ++k, out += stride) {
@@ -197,9 +198,9 @@ u32 __fastcall ModelGroup_AddToBatch(u8 *model, void *, u8 *batch, u32 group, s3
     at<float>(batch, 0x30) = (float)(X87Reg(answer) + at<float>(batch, 0x30));
     if (at<u32>(batch, 4) & 0x800000) {
         if (flag == 2)
-            at<u32>(batch, 0x30) = X87_FloatThrough(global<u32>(0x00701d8c));
+            at<u32>(batch, 0x30) = X87_FloatThrough(gModelGroup_AddToBatch_701d8c);
         else
-            at<float>(batch, 0x30) = (float)(X87Reg((double)(s32)(at<u32>(batch, 0x20) - old)) * global<float>(0x008bcc14) - global<float>(0x00701d90));
+            at<float>(batch, 0x30) = (float)(X87Reg((double)(s32)(at<u32>(batch, 0x20) - old)) * global<float>(0x008bcc14) - gModelGroup_AddToBatch_701d90);
     }
     if (texture && (at<u32>(texture, 8) & 0x4000000))
         at<u32>(batch, 0) |= 0x400;

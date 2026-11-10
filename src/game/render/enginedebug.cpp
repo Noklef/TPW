@@ -2,7 +2,6 @@
 #include "enginedebug.h"
 
 #include <cstdint>
-#include "../online/mailbox.h"
 
 namespace {
 
@@ -24,13 +23,13 @@ extern "C" {
 void __cdecl EngineDebug_LogFallback(const char *text) {
     void *file;
     if (global<u32>(0x00879a28) != 0) {
-        file = g_env->fopen(text_at(0x00766334), text_at(0x00766344));   // "fallback...", "a"
+        file = g_env->fopen(text_at((u32)&gText_EngineDebug_LogFallback_766334), text_at(0x00766344));   // "fallback...", "a"
     } else {
-        file = g_env->fopen(text_at(0x00766334), text_at(0x00766128));   // "w+b"
+        file = g_env->fopen(text_at((u32)&gText_EngineDebug_LogFallback_766334), text_at(0x00766128));   // "w+b"
         global<u32>(0x00879a28)++;
     }
     if (file != nullptr) {
-        g_env->fprintf(file, text_at(reinterpret_cast<uintptr_t>(&gMailbox_764ff0)), text);
+        g_env->fprintf(file, text_at((u32)&gText_Enginedebug_764ff0), text);
         g_env->fflush(file);
         g_env->fclose(file);
     }
@@ -45,7 +44,7 @@ void __cdecl EngineDebug_Log(const char *text) {
         global<u32>(0x00879a2c)++;
     }
     if (file != nullptr) {
-        g_env->fprintf(file, text_at(reinterpret_cast<uintptr_t>(&gMailbox_764ff0)), text);   // "%s\n"
+        g_env->fprintf(file, text_at((u32)&gText_Enginedebug_764ff0), text);   // "%s\n"
         g_env->fflush(file);
         g_env->fclose(file);
     }

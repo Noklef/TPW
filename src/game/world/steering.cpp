@@ -8,6 +8,7 @@
 #include "../core/seqs.h"
 #include "mapcell.h"
 #include "nav.h"
+#include "steering.h"
 
 namespace {
 
@@ -23,7 +24,7 @@ template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cas
 
 s32 &g_force(u32 i) { return reinterpret_cast<s32 *>(0x7cf100)[i]; }  // the summed force, x and y
 s32 &g_nearestHit() { return *reinterpret_cast<s32 *>(0x7cf32c); }     // avoid_obstacle's nearest hit so far
-s32 &g_lookAhead() { return *reinterpret_cast<s32 *>(0x7cf048); }      // avoid_obstacle's reach
+s32 &g_lookAhead() { return gSteering_7cf048; }      // avoid_obstacle's reach
 
 // The behaviour named name (strcmp of the name at +4 of each object in the table at 0x761ec0: eight pointers, the last 0, sic: read
 // as well when none before it matches) pushed with its weight onto the nav's behaviour list (0x7cf078 begin, 0x7cf07c end, 0x7cf080

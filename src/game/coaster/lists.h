@@ -27,3 +27,21 @@ u8 *__cdecl CoasterList_Append(u8 *list);
 // 0x792410 take the sizes' words +6, +8, +0xc, +4; the counts 0x79c600, 0x7925c4, 0x7925d8, 0x7923e8, 0x7925c8 0; the bounds +-1e6.
 void __cdecl CoasterMesh_Finish(u32 keep);
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(s32, gLists_7923e0, 0x007923e0, 0x4);
+GAME_DATA(u32, gLists_7923e8, 0x007923e8, 0x4);
+GAME_DATA(u32, gLists_792408, 0x00792408, 0x4);
+GAME_DATA(u32, gLists_792410, 0x00792410, 0x4);
+GAME_DATA(float[3], gLists_7925a8, 0x007925a8, 0xc);
+GAME_DATA(float[3], gLists_7925b8, 0x007925b8, 0xc);
+GAME_DATA(u32, gLists_7925c4, 0x007925c4, 0x4);
+GAME_DATA(u32, gLists_7925c8, 0x007925c8, 0x4);
+GAME_DATA(u32, gCoasterMesh_Finish_7925cc, 0x007925cc, 0x4);
+GAME_DATA(s32, gLists_7925d4, 0x007925d4, 0x4);
+GAME_DATA(u32, gCoasterMesh_Finish_7925d8, 0x007925d8, 0x4);
+GAME_DATA(u8 *, gLists_7925dc, 0x007925dc, 0x4);
+GAME_DATA(u32, gLists_79c600, 0x0079c600, 0x4);
+GAME_DATA(u8 *, gLists_79c604, 0x0079c604, 0x4);

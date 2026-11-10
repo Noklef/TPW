@@ -30,6 +30,7 @@
 #include "things.h"
 #include "visitoroption.h"
 #include "world.h"
+#include "visitorsteps.h"
 
 namespace {
 
@@ -579,9 +580,9 @@ void __fastcall Visitor_StepIdle(u8 *visitor) {
             at<u16>(msg, 8) = me;
             at<u32>(msg, 0xc) = me % 3u;
             g_env->post(MessageCentre_Instance(), nullptr, msg);
-            const X87Reg mood = X87Reg(at<float>(visitor, 0x19c)) - global<float>(0x00700794);
-            if (mood.v > global<float>(0x00700798)) at<u32>(visitor, 0x19c) = 0x42c80000;
-            else if (!(mood.v >= global<float>(0x0070079c))) at<u32>(visitor, 0x19c) = 0;
+            const X87Reg mood = X87Reg(at<float>(visitor, 0x19c)) - gVisitor_StepIdle_700794;
+            if (mood.v > gVisitor_StepIdle_700798) at<u32>(visitor, 0x19c) = 0x42c80000;
+            else if (!(mood.v >= gVisitor_StepIdle_70079c)) at<u32>(visitor, 0x19c) = 0;
             else at<float>(visitor, 0x19c) = (float)mood;
         }
     }

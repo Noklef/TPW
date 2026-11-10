@@ -11,6 +11,8 @@
 #include "edittools.h"
 #include "registry.h"
 #include "train.h"
+#include "../world/ridelist.h"
+#include "coastersload.h"
 
 namespace {
 
@@ -38,7 +40,7 @@ const CoasterPlaceCarEnv *g_env = &kPorts;
 float AsFloat(u32 bits) { return *reinterpret_cast<const float *>(&bits); }
 
 u8 *FindNode(s32 square) {
-    for (u8 *link = global<u8 *>(0x00790fe0); link; link = at<u8 *>(link, 0x18)) {
+    for (u8 *link = gRidelist_790fe0; link; link = at<u8 *>(link, 0x18)) {
         for (u8 *node = at<u8 *>(link, 0x4c); node; node = at<u8 *>(node, 0x28)) {
             if (!(at<u8>(node, 4) & 5) && at<s32>(node, 8) == square)
                 return node;
@@ -52,20 +54,20 @@ u8 *FindNode(s32 square) {
 void CoasterPlaceCar_SetEnv(const CoasterPlaceCarEnv *env) { g_env = env ? env : &kPorts; }
 
 extern "C" u32 __cdecl CoasterEdit_PlaceCar(s32 x, s32 y, u32 height, u8 **outNode, u32 *outCar, u32 kind, u32 claim) {
-    u8 *const coaster = global<u8 *>(0x00790fec);
+    u8 *const coaster = gCoastersload_790fec;
     u8 *const edit = coaster + 0x3c;
-    u8 *const range = at<u8 *>(coaster, 4) + (global<u8>(0x0079c658) & 0x40 ? 0x1c8 : 0xa8);
+    u8 *const range = at<u8 *>(coaster, 4) + (reinterpret_cast<u8 &>(gPlacecar_79c658) & 0x40 ? 0x1c8 : 0xa8);
     const s32 square = at<s32>(at<u8 *>(global<u8 *>(0x007a0854), 0x6c), 0x18) * y + x;
     const u32 given = height;
     u8 *node = FindNode(square);
     if (node) {
         if (at<u8>(edit, 0) & 2) {
-            const u32 current = at<u32>(global<u8 *>(0x00790fec), 0x64);
+            const u32 current = at<u32>(gCoastersload_790fec, 0x64);
             const u32 count = at<u32>(node, 0x30);
             for (u32 k = 0; k < count; k++) {
                 if (at<u32>(node, 0x34 + k * 4) != current)
                     continue;
-                g_env->resumeRunning(global<u8 *>(0x00790fec));
+                g_env->resumeRunning(gCoastersload_790fec);
                 if (outNode)
                     *outNode = node;
                 if (outCar)
@@ -84,28 +86,28 @@ extern "C" u32 __cdecl CoasterEdit_PlaceCar(s32 x, s32 y, u32 height, u8 **outNo
         node = g_env->addEntry(x, y, 0, height, static_cast<u32>(reinterpret_cast<uintptr_t>(range)), nullptr);
     }
     if (!given) {
-        g_env->lengthFromNode(node, range, at<u8 *>(edit, 0x24), at<const u8 *>(edit, 0x20), global<u32>(0x0079c664) == 2, 0, &height);
+        g_env->lengthFromNode(node, range, at<u8 *>(edit, 0x24), at<const u8 *>(edit, 0x20), gEdittools_79c664 == 2, 0, &height);
         g_env->findBraceLevel(AsFloat(height), node, reinterpret_cast<u32 *>(&y), reinterpret_cast<float *>(&height), 0);
     }
     if ((u8)kind == 0xff)
         kind = (kind & ~0xffu) | (u8)y;
-    u8 *const car = g_env->addCar(node, at<u32>(node, 0x1c), at<u32>(node, 0x24), AsFloat(height), given != 0, range, 2 - global<u32>(0x0079c664), kind & 0xff, claim);
-    g_env->setChannelRates(at<u32>(global<u8 *>(0x00790fec), 4), car);
+    u8 *const car = g_env->addCar(node, at<u32>(node, 0x1c), at<u32>(node, 0x24), AsFloat(height), given != 0, range, 2 - gEdittools_79c664, kind & 0xff, claim);
+    g_env->setChannelRates(at<u32>(gCoastersload_790fec, 4), car);
     if (!given) {
-        u8 *const editing = global<u8 *>(0x00790fec);
+        u8 *const editing = gCoastersload_790fec;
         at<u32>(editing, 0) |= 0x1001;
-        const float atX = (float)(X87Reg(at<float>(node, 0x1c)) - global<float>(0x006fdea4));
-        const float atZ = (float)(X87Reg(at<float>(node, 0x24)) - global<float>(0x006fdea4));
+        const float atX = (float)(X87Reg(at<float>(node, 0x1c)) - gCoasterEdit_PlaceCar_6fdea4);
+        const float atZ = (float)(X87Reg(at<float>(node, 0x24)) - gCoasterEdit_PlaceCar_6fdea4);
         const float cost = (float)g_env->travelCost(editing, 1, car, &atX, &atZ, nullptr, nullptr);
         const u32 money = g_env->money(global<u8 *>(0x007cf83c));
         g_env->sourceField(money);
         if (!global<u32>(0x00785a2c))
             g_env->debit(money, nullptr, (s32)(long long)(double)cost);
     }
-    if (global<u8>(0x0079c658) & 0x40) {
-        const u32 left = --global<u32>(0x0079c664);
+    if (reinterpret_cast<u8 &>(gPlacecar_79c658) & 0x40) {
+        const u32 left = --gEdittools_79c664;
         if (!left) {
-            global<u32>(0x0079c658) &= ~0x40u;
+            gPlacecar_79c658 &= ~0x40u;
             if (!given && !global<u32>(0x00785a2c))
                 g_env->switchToTool1();
         } else if (left == 1 && !given && !global<u32>(0x00785a2c)) {

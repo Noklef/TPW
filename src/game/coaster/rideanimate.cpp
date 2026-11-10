@@ -20,7 +20,7 @@ void AimSprites(u8 *ride) {
 }
 
 void StripAnim(u8 *ride) {
-    if (at<u8>(ride, 4) & 0x20) g_calls.Cd(0x004548f0, Address(ride), global<u32>(0x007b497c));
+    if (at<u8>(ride, 4) & 0x20) g_calls.Cd(0x004548f0, Address(ride), reinterpret_cast<u32 &>(gMotionTimeStep));
 }
 
 }  // namespace

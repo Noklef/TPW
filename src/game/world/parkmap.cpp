@@ -27,6 +27,7 @@
 #include "person.h"
 #include "things.h"
 #include "../render/screen.h"
+#include "parkmap.h"
 
 namespace {
 
@@ -76,7 +77,7 @@ u8 *new_sprite(u32 image, u32 a, u32 b, u32 c, u32 d) {
 
 // The sprite placed at the thing: +4 / +8 the bytes +5 / +7 less +4 / +6 times 0x703064's float, +0x18 the thing. (A null sprite faults, sic.)
 void place_at_thing(const u8 *map, u8 *sprite, const u8 *thing) {
-    const float k = global<float>(0x00703064);
+    const float k = gParkmap_703064;
     at<float>(sprite, 4) = static_cast<float>(X87Reg(thing[5]) - X87Reg(thing[4]) * k);
     at<const u8 *>(sprite, 0x18) = thing;
     at<float>(sprite, 8) = static_cast<float>(X87Reg(thing[7]) - X87Reg(thing[6]) * k);
@@ -84,7 +85,7 @@ void place_at_thing(const u8 *map, u8 *sprite, const u8 *thing) {
 }
 
 // A float global (an int) times 0x703030's float.
-float scaled(u32 address) { return static_cast<float>(X87Reg(global<s32>(address)) * global<float>(0x00703030)); }
+float scaled(u32 address) { return static_cast<float>(X87Reg(global<s32>(address)) * gParkmap_703030); }
 
 // TexSprite_Ctor inlined, its shown flag set and then cleared (Obj_SetShown 0); size the float stored at +0x24. Faults without the block (sic).
 u8 *new_inline_sprite(u32 image, u32 a, u32 c, float size) {
@@ -98,7 +99,7 @@ u8 *new_inline_sprite(u32 image, u32 a, u32 c, float size) {
     Obj_SetShown(sprite, nullptr, 0);
     at<float>(sprite, 0x24) = size;
     at<u32>(reinterpret_cast<u8 *>((uintptr_t)Fn_56b620(at<u32>(sprite, 0x28))), 0x10) |= 0x30000;
-    PtrList_Append(global<PtrList *>(0x00fa6e38), nullptr, sprite);
+    PtrList_Append(gParkmap_fa6e38, nullptr, sprite);
     return sprite;
 }
 
@@ -200,7 +201,7 @@ void __fastcall ParkMap_DrawCoasterLines(const u8 *map) {
     Canvas_Ctor(&canvas);
     const SurfaceInfo *const surface = reinterpret_cast<const SurfaceInfo *>(map + 0x2c);
     Canvas_SetSurface(&canvas, nullptr, surface);
-    const float scale = (float)(global<float>(0x00703044) / (X87Reg((double)at<s32>(map, 0x24)) * global<float>(0x0070304c)));
+    const float scale = (float)(gParkmap_703044 / (X87Reg((double)at<s32>(map, 0x24)) * gParkMap_DrawCoasterLines_70304c));
     const u32 count = Coaster_Count();
     for (u32 i = 0; i < count; ++i) {
         u32 value;
@@ -231,7 +232,7 @@ void __fastcall ParkMap_DrawCoasterLines(const u8 *map) {
                     default: break;
                     }
                 }
-                next = X87Reg(t) - global<float>(0x00703050);
+                next = X87Reg(t) - gParkMap_DrawCoasterLines_703050;
                 previous = point;
                 t = (float)next;
             } while (!(next.v > (double)global<float>(0x00703004)));
@@ -244,8 +245,8 @@ void __fastcall ParkMap_Draw(const u8 *map) {
     Canvas_Ctor(&canvas);
     Canvas_SetSurface(&canvas, nullptr, reinterpret_cast<const SurfaceInfo *>(map + 0x2c));
     canvas.flags = 8;
-    const s32 cellW = Ftol((global<float>(0x00703044) / X87Reg((double)at<s32>(map, 0x24))).v);
-    const s32 cellH = Ftol((global<float>(0x00703048) / X87Reg((double)at<s32>(map, 0x28))).v);
+    const s32 cellW = Ftol((gParkmap_703044 / X87Reg((double)at<s32>(map, 0x24))).v);
+    const s32 cellH = Ftol((gParkmap_703048 / X87Reg((double)at<s32>(map, 0x28))).v);
     s32 top = 0x2a;
     for (s32 y = 0; y < at<s32>(map, 0x28); ++y, top += cellH) {
         s32 left = 0xf;
@@ -464,12 +465,12 @@ void __fastcall ParkMap_AddSprites(u8 *map) {
                 continue;
             float size = 1.0f;
             if (kind == 8)
-                size = static_cast<float>(global<s32>(0x00785688));
+                size = static_cast<float>(gParkMap_AddSprites_785688);
             else if (kind == 7)
                 size = static_cast<float>(global<s32>(0x00785640));
-            u8 *const sprite = new_inline_sprite(at<u32>(map, 0x20074), 3, 1, static_cast<float>(X87Reg(size) * global<float>(0x00703030)));
+            u8 *const sprite = new_inline_sprite(at<u32>(map, 0x20074), 3, 1, static_cast<float>(X87Reg(size) * gParkmap_703030));
             at<u32>(sprite, 0x18) = 0;
-            const float c = global<float>(0x00703028);
+            const float c = gParkMap_703028;
             at<float>(sprite, 4) = static_cast<float>(X87Reg(x) - c);
             at<float>(sprite, 8) = static_cast<float>(X87Reg(y) - c);
             ParkMap_PlaceSprite(map, nullptr, sprite);
@@ -480,11 +481,11 @@ void __fastcall ParkMap_AddSprites(u8 *map) {
     for (u16 h = at<u16>(global<u8 *>(0x007cf83c), 0x1da746); h; ) {
         const u8 *const t = thing(h);
         if (t[0x32] & 0x10) {
-            u8 *const sprite = new_inline_sprite(at<u32>(map, 0x2007c), 5, 3, scaled(0x00785670));
+            u8 *const sprite = new_inline_sprite(at<u32>(map, 0x2007c), 5, 3, scaled((u32)&gParkMap_AddSprites_785670));
             u16 id;
             Thing_MapId(t, nullptr, &id);
             at<u32>(sprite, 0x18) = 0;
-            const float c = global<float>(0x00703028);
+            const float c = gParkMap_703028;
             at<float>(sprite, 4) = static_cast<float>(X87Reg((s32)(((u32)id - 1) & 0x7f)) - c);
             at<float>(sprite, 8) = static_cast<float>(X87Reg((s32)(((u32)id - 1) >> 7)) - c);
             ParkMap_PlaceSprite(map, nullptr, sprite);

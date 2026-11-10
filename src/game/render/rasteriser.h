@@ -31,3 +31,10 @@ u32 __stdcall SoftRenderer_PixelAt(s32 x, s32 y, u32 *out);
 // pixels drawn (width * height * 50, an int) over the ticks passed (<< 4, an int).
 double __cdecl Rasteriser_SpeedTest();
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(u32, gRasteriser_fbe010, 0x00fbe010, 0x4);
+GAME_DATA(u32 *, gRasteriser_fbe038, 0x00fbe038, 0x4);
+GAME_DATA(u32, gRasteriser_fbe044, 0x00fbe044, 0x4);

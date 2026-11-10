@@ -6,6 +6,8 @@
 
 #include "../core/crt.h"
 #include "../files/file.h"
+#include "advisorspeech.h"
+#include "advisor.h"
 
 namespace {
 
@@ -36,7 +38,7 @@ void FreeLipTimes() {
         if (times != 0x00f797d0) {
             g_calls.Cd(0x0067ad90, times);   // CRT_free
         } else {
-            global<u32>(0x00f79bb8) = 0;
+            gAdvisor_f79bb8 = 0;
         }
     }
 }
@@ -75,7 +77,7 @@ void __cdecl Advisor_UpdateSpeech() {
             if ((u32)(uintptr_t)times != 0x00f797d0) {
                 g_calls.Cd(0x0067ad90, times);   // CRT_free
             } else {
-                global<u32>(0x00f79bb8) = 0;
+                gAdvisor_f79bb8 = 0;
             }
             global<u32>(0x00f797a0) = 0;
             global<u32>(0x00f79794) = 0;
@@ -245,7 +247,7 @@ u32 __cdecl Advisor_Say(s32 id) {
     global<s32>(0x00f79664) = now - global<s32>(0x00f79784) - 200;
 
     char file[100], path[240];
-    g_calls.Cd(0x0067a650, file, 0x0076e0d8u, name);   // sprintf ("\\Speech\\lips\\sp_...")
+    g_calls.Cd(0x0067a650, file, (u32)&gText_Advisor_Say_76e0d8, name);   // sprintf ("\\Speech\\lips\\sp_...")
     strcpy(path, global<s32>(0x00f79678) ? reinterpret_cast<const char *>((uintptr_t)g_calls.Cd(0x0040ef40)) : reinterpret_cast<const char *>((uintptr_t)0x0076e0cc));
     strcat(path, file);
     global<u32>(0x00f79670) = 0;
@@ -261,8 +263,8 @@ u32 __cdecl Advisor_Say(s32 id) {
             FreeLipTimes();
             const s32 bytes = global<s32>(0x00f79794);
             u32 times;
-            if (bytes < 1000 && !global<u32>(0x00f79bb8)) {
-                global<u32>(0x00f79bb8) = 1;
+            if (bytes < 1000 && !gAdvisor_f79bb8) {
+                gAdvisor_f79bb8 = 1;
                 times = 0x00f797d0;
             } else {
                 times = g_calls.Cd(0x0067dcd0, bytes);   // malloc
@@ -327,8 +329,8 @@ void __cdecl Advisor_Load(Stream *stream) {
     const s32 bytes = global<s32>(0x00f79794);
     if (!bytes) return;
     u32 times;
-    if (bytes < 1000 && !global<u32>(0x00f79bb8)) {
-        global<u32>(0x00f79bb8) = 1;
+    if (bytes < 1000 && !gAdvisor_f79bb8) {
+        gAdvisor_f79bb8 = 1;
         times = 0x00f797d0;
     } else {
         times = g_calls.Cd(0x0067dcd0, bytes);   // malloc

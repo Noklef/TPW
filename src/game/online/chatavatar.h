@@ -98,8 +98,3 @@ u8 __fastcall ChatPlayer_NameIs(const u8 *thing, void *, const u8 *name);
 // for the first chat player (kind 0x12) whose name it is (ChatPlayer_NameIs). Returns it, or 0.
 u8 *__stdcall ChatPlayers_FindByName(const u8 *name);
 }
-
-#include "../core/gamedata.h"
-
-// Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
-GAME_DATA(u16[4], gChatavatar_75c0cc, 0x0075c0cc, 0x8);

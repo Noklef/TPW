@@ -756,7 +756,7 @@ def current(r, op):
     if op in ('BeginEnd', 'SetEnd', 'ClearEnd'):  # with type flag 2: 0x79c664 and 0x79c658 flag 0x40
         put(link, 4, 'I', TYPE)
         return Call({'BeginEnd': 0x442cd0, 'SetEnd': 0x444c50, 'ClearEnd': 0x444c80}[op], [], {COAST: link, TYPE: r.bytes(4), 0x79c658: r.bytes(4), 0x79c664: r.bytes(4),
-                                   0x790fec: put(bytearray(4), 0, 'I', r.choice([COAST] * 9 + [0]))}, ret='a')
+                                   0x790fec: put(bytearray(4), 0, 'I', r.choice([COAST] * 9 + [0]))}, ret='a' if op == 'BeginEnd' else 'v')
     if op == 'Tools':  # the end check, type flags 0x80 / 0x100, +0x3c flags 1 / 2
         put(link, 4, 'I', TYPE)
         put(link, 0x58, 'I', NODES)

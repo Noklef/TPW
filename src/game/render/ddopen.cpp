@@ -112,15 +112,15 @@ bool FirstStart(u8 *object, u32 driver, u32 *answer) {
         at<u32>(object, 0x78c) = driver;
         if (Fails(Import(0x006fd018, object + 0x448 + (driver << 4), object, nullptr))) return *answer = Failure(object), false;
     }
-    if (Flags() & kTextLog) LogText(0x007662cc, at<u32>(object, 0x788), at<u32>(object, 0x78c));
+    if (Flags() & kTextLog) LogText((u32)&gText_Ddopen_7662cc, at<u32>(object, 0x788), at<u32>(object, 0x78c));
     if (Fails(Com(at<void *>(object, 0), 0, kIidDraw2, object + 4))) return *answer = Failure(object), false;
     if (Fails(Com(at<void *>(object, 0), 0, kIidDraw4, object + 8))) {
-        if (Flags() & kStepLog) EngineDebug_LogFallback(reinterpret_cast<const char *>((uintptr_t)0x007662a8));
+        if (Flags() & kStepLog) EngineDebug_LogFallback(gText_Ddopen_7662a8);
         return *answer = NoDraw4(object), false;
     }
     if (Fails(Com(at<void *>(object, 8), 0x6c, object + 0x20, 1))) return *answer = Failure(object), false;
     if (Flags() & kTextLog) {
-        LogText(0x0076628c, object + 0x20);
+        LogText((u32)&gText_Ddopen_76628c, object + 0x20);
         LogText(0x0076626c, object + 0x220);
         LogText(0x00766248, at<u32>(object, 0x420), at<u32>(object, 0x424));
         LogText(0x0076621c, at<u32>(object, 0x428), at<u32>(object, 0x42c));
@@ -194,10 +194,10 @@ bool OpenWindowed(u8 *object, s32 width, s32 height, u32 *desc) {
     if (Fails(Com(at<void *>(object, 0x10), 0x70, at<void *>(object, 0xc)))) return false;
     at<u32>(object, 0x780) &= ~1u;
     Com(at<void *>(object, 0x10), 0x58, desc);  // (the result not looked at)
-    global<u32>(0x008bd4c4) = desc[0x16];
-    global<u32>(0x008bd4cc) = desc[0x17];
-    global<u32>(0x008bd4d4) = desc[0x18];
-    global<u32>(0x008bd4dc) = desc[0x16] | desc[0x17] | desc[0x18];
+    gDdopen_8bd4c4 = desc[0x16];
+    gDdopen_8bd4cc = desc[0x17];
+    gDdopen_8bd4d4 = desc[0x18];
+    gDdopen_8bd4dc = desc[0x16] | desc[0x17] | desc[0x18];
     Masks_TopBits(kView);
     Import(0x006fd380, Window(), 0, frame[0], frame[1], frame[2] - frame[0], frame[3] - frame[1], 0x40);
     Import(0x006fd368, Window(), 1);
@@ -213,9 +213,9 @@ AddrCalls g_restoreCalls;
 // A surface's Restore (slot 0x6c): the answer kept at [0x879cd4], a failure's text logged (DxResult_Message, EngineDebug_Log).
 u32 RestoreOne(u8 *surface) {
     const u32 answer = comcall<u32>(surface, 0x6c);
-    global<u32>(0x00879cd4) = answer;
+    gDdopen_879cd4 = answer;
     if ((s32)answer < 0) g_restoreCalls.Cd(0x00564650, g_restoreCalls.Cd(0x0056a770, answer));
-    return global<u32>(0x00879cd4);
+    return gDdopen_879cd4;
 }
 }  // namespace
 
@@ -230,8 +230,8 @@ extern "C" u32 __fastcall Display_RestoreOrOpen(u8 *self) {
 }
 
 extern "C" u32 __fastcall DirectDraw_Open(u8 *object, void *, s32 width, s32 height, u32 depth, u32 driver, u32 fullScreen, u32 videoMemory) {
-    if (Flags() & kTextLog) LogText(0x00766310);
-    if (Flags() & kStepLog) EngineDebug_LogFallback(reinterpret_cast<const char *>((uintptr_t)0x007662f8));
+    if (Flags() & kTextLog) LogText((u32)&gText_DirectDraw_Open_766310);
+    if (Flags() & kStepLog) EngineDebug_LogFallback(gText_DirectDraw_Open_7662f8);
     if (!(global<u32>(0x008bd534) & 0x800000)) {
         EngineErrors_Push(kErrors, nullptr, 3, 0xb0754017);
         return 0;

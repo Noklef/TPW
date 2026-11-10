@@ -99,3 +99,19 @@ void __fastcall ParkMap_AddSprites(u8 *map);
 // picture is converted into that SurfaceInfo and freed. No result is looked at (sic).
 void __fastcall ParkMap_LoadPicture(u8 *map, void *, u32 keep);
 }
+
+#include "../core/gamedata.h"
+
+struct PtrList;
+
+// Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(const float, gParkMap_703028, 0x00703028, 0x4);
+GAME_DATA(const float, gParkmap_703030, 0x00703030, 0x4);
+GAME_DATA(const float, gParkmap_703044, 0x00703044, 0x4);
+GAME_DATA(const float, gParkmap_703048, 0x00703048, 0x4);
+GAME_DATA(const float, gParkMap_DrawCoasterLines_70304c, 0x0070304c, 0x4);
+GAME_DATA(const float, gParkMap_DrawCoasterLines_703050, 0x00703050, 0x4);
+GAME_DATA(const float, gParkmap_703064, 0x00703064, 0x4);
+GAME_DATA(u32, gParkMap_AddSprites_785670, 0x00785670, 0x4);
+GAME_DATA(s32, gParkMap_AddSprites_785688, 0x00785688, 0x4);
+GAME_DATA(PtrList *, gParkmap_fa6e38, 0x00fa6e38, 0x4);

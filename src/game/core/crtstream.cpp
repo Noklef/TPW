@@ -273,6 +273,90 @@ s32 __cdecl CRT_fseek(CrtFile *file, s32 offset, s32 origin) {
     return result;
 }
 
+int64_t __cdecl CRT_ftelli64_lk(CrtFile *file) {
+    const s32 fd = file->fd;
+    if (file->count < 0) file->count = 0;
+    int64_t place = CRT_lseeki64(static_cast<u32>(fd), 0, 1);
+    if (place < 0) return -1;
+    const u32 flags = file->flags;
+    if (!(flags & 0x108)) return place - file->count;
+    char *const ptr = file->ptr;
+    char *const base = file->base;
+    u32 offset = static_cast<u32>(ptr - base);
+    if (flags & 3) {
+        if (crt_handle(fd)[4] & 0x80) {
+            for (const char *at = base; at < ptr; ++at)
+                if (*at == '\n') ++offset;
+        }
+    } else if (!(flags & 0x80)) {
+        *CRT_errno() = 0x16;
+        return -1;
+    }
+    if (!place) return offset;   // (the offset zero-extended here and below, sic)
+    if (file->flags & 1) {
+        if (!file->count) {
+            offset = 0;
+        } else {
+            u32 read = static_cast<u32>(ptr - base) + static_cast<u32>(file->count);
+            if (crt_handle(fd)[4] & 0x80) {
+                if (CRT_lseeki64(static_cast<u32>(fd), 0, 2) == place) {
+                    const char *const start = file->base;
+                    const char *const end = start + read;
+                    for (const char *at = start; at < end; ++at)
+                        if (*at == '\n') ++read;
+                    if (file->flags & 0x2000) ++read;
+                } else {
+                    CRT_lseeki64(static_cast<u32>(fd), place, 0);
+                    if (read <= 0x200 && file->flags & 8 && !(file->flags & 0x400))
+                        read = 0x200;
+                    else
+                        read = static_cast<u32>(file->size);
+                    if (crt_handle(fd)[4] & 4) ++read;
+                }
+            }
+            place -= read;
+        }
+    }
+    return place + offset;
+}
+
+int64_t __cdecl CRT_ftelli64(CrtFile *file) {
+    CrtInner().lockFile(file);
+    const int64_t result = CRT_ftelli64_lk(file);
+    CrtInner().unlockFile(file);
+    return result;
+}
+
+s32 __cdecl CRT_fseeki64_lk(CrtFile *file, int64_t offset, s32 origin) {
+    if (!(file->flags & 0x83) || (origin != 0 && origin != 1 && origin != 2)) {
+        *CRT_errno() = 0x16;
+        return -1;
+    }
+    file->flags &= ~0x10;
+    if (origin == 1) {
+        offset += CRT_ftelli64_lk(file);
+        origin = 0;
+    }
+    CRT_flush(file);
+    if (file->flags & 0x80) file->flags &= ~3;
+    else if (file->flags & 1 && file->flags & 8 && !(file->flags & 0x400)) file->size = 0x200;
+    return CRT_lseeki64(static_cast<u32>(file->fd), offset, static_cast<u32>(origin)) == -1 ? -1 : 0;
+}
+
+s32 __cdecl CRT_fseeki64(CrtFile *file, int64_t offset, s32 origin) {
+    CrtInner().lockFile(file);
+    const s32 result = CRT_fseeki64_lk(file, offset, origin);
+    CrtInner().unlockFile(file);
+    return result;
+}
+
+s32 __cdecl CRT_fgetpos(CrtFile *file, int64_t *position) {
+    *position = CRT_ftelli64(file);
+    return *position == -1 ? -1 : 0;
+}
+
+s32 __cdecl CRT_fsetpos(CrtFile *file, const int64_t *position) { return CRT_fseeki64(file, *position, 0); }
+
 s32 __cdecl CRT_stbuf(CrtFile *file) {
     if (!CRT_isatty(static_cast<u32>(file->fd))) return 0;
     u32 slot;

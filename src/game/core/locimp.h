@@ -33,6 +33,8 @@ void __fastcall BadAlloc_Doraise(const u32 *self);                    // 0x6a668
 
 // 0x6a65f0: _Nomemory: a copy of the one bad_alloc ([0xfb1e70], made once: flag bit 0 of [0xfb1e68]; atexit 0x6a66e0) thrown with info 0x721c88.
 void __cdecl Nomemory();
+// 0x6a66e0 (name invented, unconfirmed): that atexit thunk: BadAlloc_Dtor on 0xfb1e70.
+void __cdecl Nomemory_DestroyBadAlloc();
 
 // 0x698ea0: _Locimp::_Addfac (pops 8): the array grown to hold id (at least 0x20, the new slots null), the facet counted in, the one it replaces counted out and deleted at 0.
 void __fastcall Locimp_Addfac(Locimp *self, void *, LocaleFacet *facet, u32 id);

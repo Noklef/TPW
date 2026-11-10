@@ -12,7 +12,8 @@ LOCK, UNLOCK, NHMALLOC, INIT = 7, 8, 28, 9
 LCID, VERSION, VALIDCP, VALIDLOCALE, ENUM, INFO = 14, 15, 16, 17, 18, 19
 B = Bench([(0x68e2a0, 0x68e33e), (0x68e480, 0x68e502), (0x68e450, 0x68e471), (0x68d800, 0x68d833), (0x68d840, 0x68d8a6), (0x68e680, 0x68e6be), (0x683ac0, 0x683d88), (0x683d90, 0x683ee5), (0x683ef0, 0x68400b), (0x684010, 0x684202), (0x684210, 0x684254), (0x684260, 0x684367), (0x684370, 0x6843da), (0x68db70, 0x68dbae), (0x67c250, 0x67c288), (0x68dbb0, 0x68dd41),
            (0x68dd50, 0x68ddad), (0x68ddb0, 0x68de3a), (0x68e120, 0x68e17e), (0x68e260, 0x68e29e), (0x68e340, 0x68e35b), (0x68e360, 0x68e443), (0x68e510, 0x68e549), (0x68e6c0, 0x68e6e1),
-           (0x67d7f0, 0x67d82a), (0x67dcd0, 0x67dcf0), (0x67df40, 0x67e010), (0x67a480, 0x67a519), (0x688730, 0x68876d), (0x688770, 0x6887d1), (0x67ae00, 0x67aefe), (0x689180, 0x6891af), (0x686a00, 0x686a19)],
+           (0x68de40, 0x68e111), (0x68e180, 0x68e25e), (0x68e550, 0x68e679), (0x67f670, 0x67f771),
+           (0x67d7f0, 0x67d82a), (0x67dcd0, 0x67dcf0), (0x67df40, 0x67e010),(0x67a480, 0x67a519), (0x688730, 0x68876d), (0x688770, 0x6887d1), (0x67ae00, 0x67aefe), (0x689180, 0x6891af), (0x686a00, 0x686a19)],
           hooks={0x682720: _recorder(LOCK, 1, cdecl=True), 0x6827a0: _recorder(UNLOCK, 1, cdecl=True), 0x67dcf0: _recorder(NHMALLOC, 2, cdecl=True), 0x67ad90: _free})
 A_MALLOC, A_INIT, A_INFO, A_LCID, PCTYPE = (RAM + 0x100 * i for i in range(5))
 NAMES_AT, STRINGS, TEXT, TEXT2, OUT, ID, CP, POINTER, TABLE, KEYS = (RAM + 0x800 + 0x200 * i for i in range(10))
@@ -32,7 +33,32 @@ KEY_LIST = [b'america', b'canadian', b'english', b'french', b'german', b'usa']
 QUERIES = KEY_LIST + [b'ENGLISH', b'aaa', b'zzz', b'french2', b'', b'b', b'f', b'german ']
 CODE_PAGES = [None, b'', b'ACP', b'OCP', b'1252', b'abc', b'acp', b'ACP2', b'932x', b'0', b'-1', b'  7']
 OPS = [n for n in ('countryenum', 'countryenum', 'testlanguage', 'testlanguage', 'testcountry', 'fixgrouping', 'fixgrouping', 'freemon', 'freemon', 'hex', 'strncmp', 'strcspn', 'strcats', 'strtolc', 'strtolc', 'lctostr', 'primary', 'isnt', 'translate', 'translate', 'langcountry', 'language', 'country', 'default', 'codepage', 'qualified', 'qualified', 'qualified', 'expand', 'expand', 'expand',
-                       'getall', 'getall', 'setcat', 'setcat', 'setcat', 'setlocale', 'setlocale', 'setlocale', 'setlocale', 'setlocale') if not os.environ.get('OPS') or n in os.environ['OPS'].split(',')]
+                       'getall', 'getall', 'setcat', 'setcat', 'setcat', 'setlocale', 'setlocale', 'setlocale', 'setlocale', 'setlocale',
+                       'langcountryenum', 'langcountryenum', 'langcountryenum', 'languageenum', 'languageenum', 'getinfo', 'getinfo') if not os.environ.get('OPS') or n in os.environ['OPS'].split(',')]
+
+
+ENUM_NAMES = [b'USA\0\0\0\0\0', b'usa\0\0\0\0\0', b'english\0', b'English\0', b'ENG\0\0\0\0\0', b'eng\0\0\0\0\0', b'en\0\0\0\0\0\0', b'fra\0\0\0\0\0', b'0409\0\0\0\0',
+              b'409\0\0\0\0\0', b'\0' * 8]
+INFO_TYPES = [1, 3, 7, 0xb, 0x1001, 0x1002, 0x1004, 0, 2, 8, 0xc, 0x1000, 0x1003, 0x1005]
+
+
+def locale_table(r):
+    """crtGetLocaleInfoA's 27 entries (0x2c bytes, sorted by lcid; texts at +4, +0x10, +0x18, +0x1c and +0x24 that may fill their field, the
+    pointers at +0xc and +0x14 to STRINGS or null) and an lcid to look for."""
+    keys = sorted(r.getrandbits(32) if r.random() < 0.2 else r.randrange(0x400, 0x4000) for _ in range(27))
+    table = bytearray(27 * 0x2c)
+    for i, key in enumerate(keys):
+        struct.pack_into('<I', table, i * 0x2c, key)
+        for at, n in ((4, 8), (0x10, 4), (0x18, 4), (0x1c, 8), (0x24, 8)):
+            text = bytes(r.choice(b'abcXYZ12') for _ in range(r.randrange(n + 1)))
+            table[i * 0x2c + at:i * 0x2c + at + len(text)] = text
+        struct.pack_into('<2I', table, i * 0x2c + 0xc, 0 if r.random() < 0.15 else STRINGS + 0x20 * r.randrange(16), 0 if r.random() < 0.15 else STRINGS + 0x20 * r.randrange(16))
+    strings_ = bytearray(0x200)
+    for j in range(16):
+        text = bytes(r.choice(b'defUVW') for _ in range(r.randrange(0x1f)))
+        strings_[j * 0x20:j * 0x20 + len(text)] = text
+    key = r.choice(keys)
+    return table, strings_, r.choice([key, key, key, key + 1, key - 1, r.getrandbits(32), 0])
 
 
 def names(r):
@@ -95,6 +121,25 @@ def case(r):
         fill(log, INFO, 2, r.choice([b'0409\0\0\0\0', b'0c0c\0\0\0\0', b'409\0\0\0\0\0', b'\0\0\0\0\0\0\0\0']))
         regions[TEXT] = r.choice([b'english\0', b'eng\0', b'eng-us\0', b'\0'])
         return Call(0x68e480, [r.choice([0x409, 0xc0c, 0x809, 0x10409, r.getrandbits(32)]), r.choice([0, 1, 1, 0x100])], regions, conv='c', ret='a')
+    if name in ('langcountryenum', 'languageenum'):   # (the search's language TEXT and country TEXT2, its state as the block at 0xfb18dc has it)
+        fill(log, INFO, 2, b''.join(r.choice(ENUM_NAMES) for _ in range(4)), records=4)
+        language = r.choice([b'english', b'eng', b'en', b'ENGLISH', b'English', b'e', b''])
+        regions[TEXT] = language + b'\0'
+        regions[TEXT2] = r.choice([b'usa', b'USA', b'fra', b'us', b'']) + b'\0'
+        regions[0xfb18dc] = struct.pack('<8I', r.choice([0, 0, 0x1234]), r.choice([0, 1]), r.choice([0, 2, 3, len(language), len(language), 7]), r.choice([0, 1]), TEXT, TEXT2,
+                                        r.choice([0, 0, 1, 2, 3, 0x100, 0x200, 0x300, 0x102, 0x201, 0x301]), r.choice([0, 0x5678]))
+        if r.random() < 0.1:   # (an empty language that matches, no primary length: the language found without TestDefaultLanguage)
+            fill(log, INFO, 2, b'USA\0\0\0\0\0' + bytes(8) + b'0c0c\0\0\0\0' + bytes(8), records=4)
+            regions[TEXT], regions[TEXT2] = b'\0', b'fra\0'
+            regions[0xfb18dc] = regions[0xfb18dc][:8] + bytes(8) + regions[0xfb18dc][16:24] + bytes(4) + regions[0xfb18dc][28:]
+        regions[KEYS] = r.choice([b'0409\0', b'0409\0', b'0c0c\0', b'409\0', b'00000409\0', b'0809\0'])
+        regions[0x781a20] = struct.pack('<11H', *[r.choice([0x409, 0xc0c, 0x411, 0x807, 0x1000 + i]) for i in range(11)])
+        return Call(0x68de40 if name == 'langcountryenum' else 0x68e180, [KEYS], regions, conv='s', ret='a')
+    if name == 'getinfo':   # (the table and the strings it points to this bench's own; anything else GetLocaleInfoA's recorder)
+        regions[0x781a38], regions[STRINGS], lcid = locale_table(r)
+        regions[OUT] = r.bytes(0x80)
+        fill(log, INFO, 2, b'Info\0\0\0\0')
+        return Call(0x68e550, [lcid, r.choice(INFO_TYPES), OUT, r.choice([0, 1, 2, 4, 9, 0x20, 0x77, -1, -0x80000000])], regions, conv='s', ret='a')
     # The categories: the strings theirs or "C"; the cache of one.
     strings_ = bytearray(0x200)
     at = 0

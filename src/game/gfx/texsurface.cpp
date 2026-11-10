@@ -9,6 +9,7 @@
 #include "../core/vcall.h"
 #include "../core/gameheap.h"
 #include "../math/x87.h"
+#include "../render/ddopen.h"
 
 namespace {
 
@@ -44,10 +45,10 @@ u32 CreateFailed(u32 code) {
 
 // A level's call result kept, a failure written to the debug log; read back as the original does.
 u32 LevelResult(u32 result) {
-    global<u32>(0x00879cd4) = result;
+    gDdopen_879cd4 = result;
     if ((s32)result < 0) {
         g_calls.Cd(0x00564650, g_calls.Cd(0x0056a770, result));   // EngineDebug_Log, DxResult_Message
-        return global<u32>(0x00879cd4);
+        return gDdopen_879cd4;
     }
     return result;
 }
@@ -55,9 +56,9 @@ u32 LevelResult(u32 result) {
 // The device's CreateSurface timed by the free video memory.
 u32 CreateTimed(u8 *device, u8 *sub, u32 *desc) {
     const u32 before = g_calls.Th(0x005645a0, global<u32>(0x00879a24));   // Obj_FreeVideoMemory
-    global<u32>(0x00879cd4) = comcall<u32>(device, 0x18, desc, sub - 0x28, 0u);
+    gDdopen_879cd4 = comcall<u32>(device, 0x18, desc, sub - 0x28, 0u);
     global<u32>(0x008c4898) = before - g_calls.Th(0x005645a0, global<u32>(0x00879a24));
-    return global<u32>(0x00879cd4);
+    return gDdopen_879cd4;
 }
 
 }  // namespace

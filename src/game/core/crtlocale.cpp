@@ -420,3 +420,88 @@ s32 __stdcall CRT_CountryEnumProc(const char *hex) {
     }
     return ~global<u32>(0x00fb18f4) >> 2 & 1;
 }
+
+s32 __stdcall CRT_LangCountryEnumProc(const char *hex) {
+    const u32 lcid = CRT_LcidFromHexString(hex);
+    char name[0x78];
+    const u32 abbreviated = global<u32>(0x00fb18e8), primary_length = global<u32>(0x00fb18e4);
+    u32 &language_lcid = global<u32>(0x00fb18dc), &country_lcid = global<u32>(0x00fb18f8);
+    if (!locale_info()(lcid, global<u32>(0x00fb18e0) ? 7 : 0x1002, name, sizeof name)) return lcid_state() = 0, 1;
+    if (!CRT_stricmp(country(), name)) {
+        if (!locale_info()(lcid, abbreviated ? 3 : 0x1001, name, sizeof name)) return lcid_state() = 0, 1;
+        if (!CRT_stricmp(language(), name)) {
+            lcid_state() |= 0x304;
+            country_lcid = lcid;
+            language_lcid = lcid;
+        } else if (!(lcid_state() & 2)) {
+            if (primary_length && !CRT_strnicmp(language(), name, primary_length)) {
+                lcid_state() |= 2;
+                country_lcid = lcid;
+                if (std::strlen(language()) == primary_length) language_lcid = lcid;
+            } else if (!(lcid_state() & 1) && CRT_TestDefaultCountry(lcid)) {
+                lcid_state() |= 1;
+                country_lcid = lcid;
+            }
+        }
+    }
+    if ((lcid_state() & 0x300) != 0x300) {
+        if (!locale_info()(lcid, abbreviated ? 3 : 0x1001, name, sizeof name)) return lcid_state() = 0, 1;
+        bool exists = false;
+        if (!CRT_stricmp(language(), name)) {
+            lcid_state() |= 0x200;
+            exists = abbreviated || !primary_length || std::strlen(language()) != primary_length || CRT_TestDefaultLanguage(lcid, 1);
+        } else {
+            exists = !abbreviated && primary_length && !CRT_strnicmp(language(), name, primary_length) && CRT_TestDefaultLanguage(lcid, 0);
+        }
+        if (exists) {
+            lcid_state() |= 0x100;
+            if (!language_lcid) language_lcid = lcid;
+        }
+    }
+    return ~lcid_state() >> 2 & 1;
+}
+
+s32 __stdcall CRT_LanguageEnumProc(const char *hex) {
+    const u32 lcid = CRT_LcidFromHexString(hex);
+    char name[0x78];
+    const u32 abbreviated = global<u32>(0x00fb18e8), primary_length = global<u32>(0x00fb18e4);
+    if (!locale_info()(lcid, abbreviated ? 3 : 0x1001, name, sizeof name)) return lcid_state() = 0, 1;
+    const bool found = !CRT_stricmp(language(), name) ? abbreviated || CRT_TestDefaultLanguage(lcid, 1)
+                                                      : !abbreviated && primary_length && !CRT_strnicmp(language(), name, primary_length) && CRT_TestDefaultLanguage(lcid, 0);
+    if (found) {
+        global<u32>(0x00fb18f8) = lcid;
+        lcid_state() |= 4;
+        global<u32>(0x00fb18dc) = lcid;
+    }
+    return ~lcid_state() >> 2 & 1;
+}
+
+s32 __stdcall CRT_crtGetLocaleInfoA(u32 lcid, u32 what, char *out, s32 room) {
+    s32 low = 0, high = 0x1a;
+    while (low <= high) {
+        const s32 middle = (low + high) / 2;
+        const uintptr_t entry = 0x00781a38 + middle * 0x2c;
+        const u32 key = *reinterpret_cast<const u32 *>(entry);
+        if (lcid == key) {
+            const char *text = nullptr;
+            switch (what) {
+            case 1: text = reinterpret_cast<const char *>(entry + 4); break;
+            case 3: text = reinterpret_cast<const char *>(entry + 0x10); break;
+            case 7: text = reinterpret_cast<const char *>(entry + 0x18); break;
+            case 0xb: text = reinterpret_cast<const char *>(entry + 0x1c); break;
+            case 0x1001: text = *reinterpret_cast<const char *const *>(entry + 0xc); break;
+            case 0x1002: text = *reinterpret_cast<const char *const *>(entry + 0x14); break;
+            case 0x1004: text = reinterpret_cast<const char *>(entry + 0x24); break;
+            }
+            if (text && room >= 1) {
+                Crt().strncpy(out, text, static_cast<u32>(room - 1));
+                out[room - 1] = 0;
+                return 1;
+            }
+            break;
+        }
+        if (lcid < key) high = middle - 1;
+        else low = middle + 1;
+    }
+    return import_slot<LocaleInfo>(0x006fd28c)(lcid, what, out, room);
+}

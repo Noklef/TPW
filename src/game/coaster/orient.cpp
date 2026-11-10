@@ -7,6 +7,7 @@
 #include "../math/matrix.h"
 #include "../math/sintable.h"
 #include "../math/x87.h"
+#include "coastersload.h"
 
 namespace {
 
@@ -72,7 +73,7 @@ void __cdecl TrackOrientation_Init(u32, const Vec3 *direction, u32 unused, Track
 }
 
 void __cdecl Track_RefreshOrientations() {
-    const u8 *track = *reinterpret_cast<u8 *const *>(0x00790fe4);
+    const u8 *track = *reinterpret_cast<u8 *const *>(&gCoastersload_790fe4);
     for (u8 *piece = *reinterpret_cast<u8 *const *>(track + 0x18); piece; piece = *reinterpret_cast<u8 **>(piece + 0x64)) {
         const u32 *list = *reinterpret_cast<const u32 *const *>(piece + 0x90);
         const u8 *node = reinterpret_cast<const u8 *>(list[1]);

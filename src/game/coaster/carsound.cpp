@@ -9,6 +9,7 @@
 #include "../rsse/scream.h"
 #include "../world/camera.h"
 #include "../world/ridelist.h"
+#include "../world/ridelist.h"
 
 namespace {
 
@@ -121,7 +122,7 @@ void __cdecl CoasterCar_UpdateScream(u8 *link, u8 *car, s32 x, s32 y, s32 z) {
 }
 
 void __cdecl CoasterCars_StartAllSounds() {
-    for (u8 *link = *reinterpret_cast<u8 *const *>(0x00790fe0); link; link = at<u8 *>(link, 0x18)) {
+    for (u8 *link = *reinterpret_cast<u8 *const *>(&gRidelist_790fe0); link; link = at<u8 *>(link, 0x18)) {
         u8 *car = at<u8 *>(link, 0x128);
         for (u32 i = 0; i < at<u32>(link, 0xf4); i++, car += 0x80)   // (the count read again each time)
             CoasterCar_StartSounds(link, car, 0);

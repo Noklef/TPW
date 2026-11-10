@@ -99,3 +99,12 @@ void __cdecl Ride_PlayEffect(s32 id);
 // nothing when that is negative; none followed or no such record: gBalanceLevel's reverb ([0x78578c]).
 void __cdecl RideScripts_SetReverb();
 }  // extern "C"
+
+#include "../core/gamedata.h"
+
+// Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(const float, gRidelist_700fd0, 0x00700fd0, 0x4);
+GAME_DATA(const float, gRidelist_700fdc, 0x00700fdc, 0x4);
+GAME_DATA(const float, gRidelist_701050, 0x00701050, 0x4);
+GAME_DATA(const float, gRidelist_701054, 0x00701054, 0x4);
+GAME_DATA(u8 *, gRidelist_790fe0, 0x00790fe0, 0x4);

@@ -1,4 +1,5 @@
 #include "floatconsts.h"
+#include "../coaster/rating.h"
 
 extern "C" {
 
@@ -54,9 +55,9 @@ void __cdecl FloatConsts_InitOne_43b010() { *reinterpret_cast<float *>(0x0079239
 
 void __cdecl FloatConsts_InitEpsilon_43b030() { *reinterpret_cast<float *>(0x0079239c) = 1.0f / 8388608.0f; }
 
-void __cdecl FloatConsts_InitOne_43dbb0() { *reinterpret_cast<float *>(0x007923b8) = 1.0f; }
+void __cdecl FloatConsts_InitOne_43dbb0() { reinterpret_cast<float &>(gCoasterRating.unknownB8) = 1.0f; }
 
-void __cdecl FloatConsts_InitEpsilon_43dbd0() { *reinterpret_cast<float *>(0x007923d4) = 1.0f / 8388608.0f; }
+void __cdecl FloatConsts_InitEpsilon_43dbd0() { reinterpret_cast<float &>(gCoasterRating.unknownD4) = 1.0f / 8388608.0f; }
 
 void __cdecl FloatConsts_InitOne_441800() { *reinterpret_cast<float *>(0x0079c63c) = 1.0f; }
 

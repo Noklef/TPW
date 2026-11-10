@@ -16,11 +16,12 @@
 #include "world.h"
 #include "../ui/dialog7cb25c.h"
 #include "../ui/dialog74fb20.h"
+#include "parkgates.h"
 
 namespace {
 
-const SaveSpec kRate[] = {{0x0, 4, 0x00759b98}};
-const SaveSpec kRest[] = {{0x8, 4, 0x00759b80}, {0xc, 4, 0x00759b70}, {0x10, 1, 0x00759b64}, {0x11, 1, 0x00759b58}};
+const SaveSpec kRate[] = {{0x0, 4, (u32)&gText_Parkgates_759b98}};
+const SaveSpec kRest[] = {{0x8, 4, (u32)&gText_Parkgates_759b80}, {0xc, 4, (u32)&gText_Parkgates_759b70}, {0x10, 1, 0x00759b64}, {0x11, 1, (u32)&gText_Parkgates_759b58}};
 
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
 template <typename T> T &at(u8 *p, u32 offset) { return *reinterpret_cast<T *>(p + offset); }
@@ -77,12 +78,12 @@ u32 __fastcall ParkGates_Serialize(u8 *gates, void *, Stream *stream, u32 save, 
 s32 __fastcall ParkGates_ArrivalSize(u8 *) {
     if (at<u32>(World(), 0x1da738) == 4) return 0;
     const s32 people = static_cast<s32>(g_env->count(reinterpret_cast<u8 *>((uintptr_t)g_env->table(World())), nullptr, 0x14));
-    s32 share = global<s32>(0x00785320);
+    s32 share = gParkGates_ArrivalSize_785320;
     if (share <= 1) share = 1;
     const s32 upkeep = g_env->upkeep(reinterpret_cast<void *>((uintptr_t)g_env->table(World())));
     const float scale = at<s32>(reinterpret_cast<u8 *>((uintptr_t)g_env->record(World())), 0x30) > 0 ? 0.800000012f : 1.20000005f;  // 0x700368, 0x700364
-    const s32 scaled = static_cast<s32>(static_cast<long long>(X87_MulIntDouble(global<s32>(0x0078531c) + upkeep, scale)));  // __ftol
-    s32 size = global<s32>(0x00785310);
+    const s32 scaled = static_cast<s32>(static_cast<long long>(X87_MulIntDouble(gParkGates_ArrivalSize_78531c + upkeep, scale)));  // __ftol
+    s32 size = gParkGates_ArrivalSize_785310;
     const s32 wanted = scaled / share;
     if (size <= wanted) size = wanted;
     if (Mode() == 1 && static_cast<u32>(size + people) > 0x1f4) size = 0x1f4 - people;
@@ -103,7 +104,7 @@ u32 __fastcall ParkGates_SpawnVisitor(u8 *) {
 
 u32 __fastcall ParkGates_Step(u8 *gates) {
     if (!at<u8>(gates, 0x10)) {
-        if (g_env->since(reinterpret_cast<const u32 *>(gates + 4)) > global<u32>(0x00785314)) {
+        if (g_env->since(reinterpret_cast<const u32 *>(gates + 4)) > gParkGates_Step_785314) {
             const s32 size = ParkGates_ArrivalSize(gates);
             at<s32>(gates, 0xc) = size;
             at<u8>(gates, 0x10) = 1;

@@ -1,7 +1,7 @@
 # The C library's wide string routines (src/game/core/crt) against the originals: swprintf and _snwprintf's string file (and _snprintf, vsprintf, _vsnprintf's over _output, with their one zero byte), as _woutput (a recorder, which moves the file's pointer and
 # count) leaves it, then one or two characters through _flsbuf (a recorder) when it has no room; _wcsicmp and _wcsnicmp in the "C" locale (A-Z folded down) and with a
 # locale (the lock's Interlocked imports, or lock 0x13 when the locale is being set; _towlower_lk a stand-in on both sides that looks only at the low 16 bits); btowc over
-# _Mbrtowc (a recorder that fills the answer through its stack pointers).
+# _Mbrtowc (a recorder that fills the answer through its stack pointers); vswprintf over _woutput as swprintf; _itow and _wtoi over their import (a recorder) and _itoa / atol.
 # usage: crt_wide.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=name,name to pick)
 import os
 import struct
@@ -12,6 +12,7 @@ from fncmp import LOG, RAM, Bench, Call, _recorder, blob, fill, log_region, reco
 
 LOCK, UNLOCK, WOUTPUT, FLSBUF, MBRTOWC, OUTPUT = 7, 8, 21, 22, 23, 1
 INC, DEC = 30, 31
+M2W, W2M = 14, 15
 
 
 def towlower(e):
@@ -20,7 +21,8 @@ def towlower(e):
     e.r['EAX'] = c ^ 0x20 if 0x41 <= c <= 0x5a or 0x100 <= c < 0x180 else c
 
 
-B = Bench([(0x67bf40, 0x67bfa8), (0x67c1e0, 0x67c248), (0x67f3a0, 0x67f408), (0x67af00, 0x67afa0), (0x67c830, 0x67c8d0), (0x67b140, 0x67b240), (0x67c8d0, 0x67c9f0), (0x693dc0, 0x693e20), (0x67dda0, 0x67df3e), (0x67acd0, 0x67acee), (0x67b0d0, 0x67b10f)],
+B = Bench([(0x67bf40, 0x67bfa8), (0x67c1e0, 0x67c248), (0x67f3a0, 0x67f408), (0x67af00, 0x67afa0), (0x67c830, 0x67c8d0), (0x67b140, 0x67b240), (0x67c8d0, 0x67c9f0), (0x693dc0, 0x693e20), (0x67dda0, 0x67df3e), (0x67acd0, 0x67acee), (0x67b0d0, 0x67b10f),
+           (0x67e010, 0x67e04a), (0x67f4a0, 0x67f4d0), (0x67f4d0, 0x67f564), (0x688730, 0x68876d), (0x688770, 0x6887d1), (0x67a480, 0x67a519)],
           hooks={0x682720: _recorder(LOCK, 1, cdecl=True), 0x6827a0: _recorder(UNLOCK, 1, cdecl=True), 0x683090: _recorder(WOUTPUT, 3, cdecl=True), 0x680c00: _recorder(OUTPUT, 3, cdecl=True), 0x680ad0: _recorder(FLSBUF, 2, cdecl=True),
                  0x693bc0: _recorder(MBRTOWC, 5, cdecl=True), 0x67e670: towlower})
 TO, FMT, A, Z = RAM, RAM + 0x100, RAM + 0x200, RAM + 0x300
@@ -110,6 +112,37 @@ def snwprintf(r):
     return printing(r, 0x67c830, [r.choice([0, 1, 2, 0x10, 0x40000000])])
 
 
+def vswprintf(r):
+    return printing(r, 0x67f4d0, [], WOUTPUT, A)
+
+
+def itow(r):
+    """_itow: _itoa into its 0x14-byte local (the digits logged as text), MultiByteToWideChar (a recorder) through to the caller's buffer. Radix 2 only for
+    values short enough for the local (a longer one overruns it on both sides)."""
+    log = log_region()
+    strings(log, M2W, 0b100, out=0)
+    fill(log, M2W, 4, r.bytes(r.choice([2, 8, 0x28])))
+    set_return(log, M2W, r.choice([0, 1, 5]))
+    radix = r.choice([2, 8, 10, 10, 16, 36])
+    value = r.choice([0, 1, 9, 0x7fffffff, 0x80000000, 0xffffffff, r.getrandbits(32)])
+    return Call(0x67e010, [value & 0x3ffff if radix == 2 else value, TO, radix], {LOG: log, TO: r.bytes(0x30), 0x6fd174: struct.pack('<I', recorder(M2W, 6, True))}, conv='c', ret='a')
+
+
+def wtoi(r):
+    """_wtoi: WideCharToMultiByte (a recorder) into its 0x14-byte local (filled with the bytes atol then reads), atol on them (the "C" table)."""
+    log = log_region()
+    strings(log, W2M, 0, out=0b10000)
+    fill(log, W2M, 4, r.choice([b'0', b'12', b'-7', b'+42', b' 99', b'\t-0x1', b'2147483648', b'4294967296', b'abc', b'', b'1 2']) + b'\0')
+    set_return(log, W2M, r.choice([0, 1, 3]))
+    table = bytearray(0x200)
+    for c in range(0x30, 0x3a):
+        table[2 * c] = 4
+    for c in (0x20, 9):
+        table[2 * c] = 8
+    regions = {LOG: log, A: struct.pack('<4H', 0x31, 0x32, 0, 0), 0x6fd1dc: struct.pack('<I', recorder(W2M, 8, True)), 0x77e7dc: struct.pack('<I', 1), 0x77ea90: struct.pack('<I', Z), Z: bytes(table)}
+    return Call(0x67f4a0, [A], regions, conv='c', ret='a')
+
+
 def btowc(r):
     log = log_region()
     if r.random() < 0.5:   # (one blob a slot: the argument's slot, the byte over it; or the state, zeroed)
@@ -139,7 +172,8 @@ def splitpath(r):
     return Call(0x67dda0, [PATH, *outs], regions, conv='c', ret='v')
 
 
-KINDS = {'splitpath': splitpath, 'wcsicmp': wcsicmp, 'wcsnicmp': wcsnicmp, 'swprintf': swprintf, 'snwprintf': snwprintf, 'snprintf': snprintf, 'vsprintf': vsprintf, 'vsnprintf': vsnprintf, 'btowc': btowc}
+KINDS = {'splitpath': splitpath, 'wcsicmp': wcsicmp, 'wcsnicmp': wcsnicmp, 'swprintf': swprintf, 'snwprintf': snwprintf, 'snprintf': snprintf, 'vsprintf': vsprintf, 'vsnprintf': vsnprintf, 'btowc': btowc,
+         'vswprintf': vswprintf, 'itow': itow, 'wtoi': wtoi}
 OPS = [k for k in os.environ.get('OPS', ','.join(KINDS)).split(',') if k]
 
 

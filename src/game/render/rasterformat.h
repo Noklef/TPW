@@ -40,3 +40,28 @@ void __cdecl RasterFormat_FreeBuffers();
 // and the answer is 0x6791f0's.
 u32 __cdecl RasterFormat_Init(u8 *surface, u32 *zBufferOut, u32 width, u32 height);
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(u32, gRasterFormat_fac514, 0x00fac514, 0x4);
+GAME_DATA(u32, gRasterFormat_fac52c, 0x00fac52c, 0x4);
+GAME_DATA(u32, gRasterFormat_fac534, 0x00fac534, 0x4);
+GAME_DATA(double, gRasterformat_fbe008, 0x00fbe008, 0x8);
+GAME_DATA(u32, gRasterformat_fbe048, 0x00fbe048, 0x4);
+GAME_DATA(u32, gRasterformat_fbe04c, 0x00fbe04c, 0x4);
+GAME_DATA(u32, gRasterformat_fbe050, 0x00fbe050, 0x4);
+GAME_DATA(u32, gRasterformat_fbe054, 0x00fbe054, 0x4);
+GAME_DATA(u32, gRasterformat_fbe058, 0x00fbe058, 0x4);
+GAME_DATA(u32, gRasterformat_fbe05c, 0x00fbe05c, 0x4);
+GAME_DATA(u32, gRasterformat_fbe060, 0x00fbe060, 0x4);
+GAME_DATA(u32, gRasterformat_fbe064, 0x00fbe064, 0x4);
+GAME_DATA(u32, gRasterformat_fbe068, 0x00fbe068, 0x4);
+GAME_DATA(u32, gRasterformat_fbe06c, 0x00fbe06c, 0x4);
+GAME_DATA(u32, gRasterformat_fbe070, 0x00fbe070, 0x4);
+GAME_DATA(u32, gRasterformat_fbe074, 0x00fbe074, 0x4);
+GAME_DATA(u32, gRasterformat_fbe078, 0x00fbe078, 0x4);
+GAME_DATA(u32[5], gRasterformat_fbe07c, 0x00fbe07c, 0x14);
+GAME_DATA(u32, gRasterformat_fbe090, 0x00fbe090, 0x4);
+GAME_DATA(u32, gRasterformat_fbe094, 0x00fbe094, 0x4);
+GAME_DATA(u32, gRasterformat_fbe098, 0x00fbe098, 0x4);

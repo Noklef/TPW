@@ -96,3 +96,8 @@ void __cdecl RasterSpan_BilinearBlendLitNoZ(u32 row);
 // 0x6f6090 (table 0x6f19cc; row loop 0x6f60f0): RasterSpan_ShadeZ's pixel, every pixel drawn, no depth read, written or stepped.
 void __cdecl RasterSpan_ShadeNoZ(u32 row);
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(u16[4], gRasterspans_fbe000, 0x00fbe000, 0x8);

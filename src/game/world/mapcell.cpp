@@ -9,6 +9,8 @@
 #include "cellkind.h"
 #include "object.h"
 #include "ridestate.h"
+#include "challenges.h"
+#include "mapcell.h"
 
 namespace {
 
@@ -158,16 +160,16 @@ u32 __fastcall RECell_Serialize(u8 *cell, void *, Stream *stream, u32 save, s32 
 }
 
 u32 __fastcall MapCellBase_Serialize(u8 *cell, void *, Stream *stream, u32 save, s32 version, u32) {
-    static const SaveSpec kFields[] = {{0xd, 1, 0x0075a088}, {0xe, 2, 0x0075a080},  {0x4, 4, 0x0075a070}, {0xc, 1, 0x0075a064}, {0x20, 2, 0x0075a054},
-                                       {0x10, 2, 0x0075a048}, {0x14, 12, 0x0075a03c}, {0x8, 4, 0x0075a034}, {0x22, 1, 0x0075a020}};
+    static const SaveSpec kFields[] = {{0xd, 1, (u32)&gText_MapCellBase_Serialize_75a088}, {0xe, 2, (u32)&gText_Mapcell_75a080},  {0x4, 4, (u32)&gText_MapCellBase_Serialize_75a070}, {0xc, 1, (u32)&gText_MapCellBase_Serialize_75a064}, {0x20, 2, (u32)&gText_MapCellBase_Serialize_75a054},
+                                       {0x10, 2, (u32)&gText_MapCellBase_Serialize_75a048}, {0x14, 12, (u32)&gText_MapCellBase_Serialize_75a03c}, {0x8, 4, (u32)&gText_Challenges_75a034}, {0x22, 1, (u32)&gText_MapCellBase_Serialize_75a020}};
     if (version < 0 || version > 1)
         return 0;
     return Save_Fields(stream, save, cell, kFields, 9) ? 0 : 1;
 }
 
 u32 __fastcall MapCell_Serialize(u8 *cell, void *, Stream *stream, u32 save, s32 version, u32 unused) {
-    static const SaveSpec kFields[] = {{0x2c, 4, 0x0075af74}, {0x30, 2, 0x0075af60}, {0x28, 4, 0x0075af50}, {0x38, 4, 0x0075af50},
-                                       {0x40, 2, 0x0075af44}, {0x26, 1, 0x0075af34}, {0x34, 4, 0x0075af14}, {0x24, 2, 0x0075af0c}};
+    static const SaveSpec kFields[] = {{0x2c, 4, (u32)&gText_MapCell_Serialize_75af74}, {0x30, 2, (u32)&gText_MapCell_Serialize_75af60}, {0x28, 4, (u32)&gText_MapCell_Serialize_75af50}, {0x38, 4, (u32)&gText_MapCell_Serialize_75af50},
+                                       {0x40, 2, (u32)&gText_MapCell_Serialize_75af44}, {0x26, 1, (u32)&gText_MapCell_Serialize_75af34}, {0x34, 4, (u32)&gText_MapCell_Serialize_75af14}, {0x24, 2, (u32)&gText_MapCell_Serialize_75af0c}};
     MapCellBase_Serialize(cell, nullptr, stream, save, version, unused);  // sic: its result is ignored
     if (version < 0 || version > 1)
         return 0;
@@ -178,7 +180,7 @@ u32 __fastcall TrackCell_Serialize(u8 *cell, void *, Stream *stream, u32 save, s
     MapCellBase_Serialize(cell, nullptr, stream, save, version, unused);  // sic: its result is ignored
     if (version < 0 || version > 1)
         return 0;
-    return Save_Field(stream, save, cell + 0x24, 2, 0x00761e3c) ? 0 : 1;
+    return Save_Field(stream, save, cell + 0x24, 2, (u32)&gText_TrackCell_Serialize_761e3c) ? 0 : 1;
 }
 
 namespace {
@@ -212,7 +214,7 @@ u32 __fastcall Map_Serialize(u8 *map, void *, Stream *stream, u32 save, s32 vers
             if (Const1_50c1f0((u32)(uintptr_t)trackTemp)) status |= 2;
             if (!RECell_Equals(re, nullptr, reTemp)) status |= 4;
         }
-        if (!Save_Field(stream, save ? 1 : 0, &status, 1, 0x0075ae20)) return 1;
+        if (!Save_Field(stream, save ? 1 : 0, &status, 1, (u32)&gText_Map_Serialize_75ae20)) return 1;
         if ((status & 1) && E->mapCell(cell, nullptr, stream, save, version, unused)) return 1;
         if ((status & 2) && E->trackCell(track, nullptr, stream, save, version, unused)) return 1;
         if ((status & 4) && E->reCell(re, nullptr, stream, save, version, unused)) return 1;

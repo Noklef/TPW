@@ -24,6 +24,7 @@ import math
 import os
 import re
 import struct
+from fractions import Fraction
 
 EXE = os.path.join(os.path.dirname(__file__), '..', '.data', 'nocd', 'tp.exe')
 SENTINEL = 0xdead0000
@@ -102,13 +103,50 @@ def farith(fn, a, b):
     return INDEFINITE if math.isnan(r) else r
 
 
+class Ext(float):
+    """A finite register value a double cannot hold: a 64-bit significand (precision control 3, FYL2X, F2XM1, an extended load) or an
+    exponent past a double's (the register's is 15 bits). As a float it is the nearest double, what the operations modelled in double
+    see (FSIN, FPATAN, FSQRT...); .q is the exact value, which the arithmetic, FRNDINT, FSCALE, compares and stores use."""
+    def __neg__(self):
+        return ext(-self.q)
+
+    def __abs__(self):
+        return ext(abs(self.q))
+
+
+def ext(q):
+    """The exact nonzero rational q (a register's value) as a float when a double holds it exactly, else as an Ext."""
+    try:
+        v = float(q)
+    except OverflowError:
+        v = math.inf if q > 0 else -math.inf
+    if v == q:
+        return v
+    x = Ext(v)
+    x.q = Fraction(q)
+    return x
+
+
+def exact(v):
+    """A finite register value as a Fraction."""
+    return v.q if isinstance(v, Ext) else Fraction(v)
+
+
+def finite(v):
+    return isinstance(v, Ext) or math.isfinite(v)
+
+
+def zero(v):
+    return not isinstance(v, Ext) and v == 0
+
+
 def r24(q, bits=24):
     """The nonzero rational q rounded once to a 24-bit significand (nearest even) with the
     exponent unbounded: an x87 register at the game's precision, whose exponent range is far
     wider than a float's (it only becomes one, rounding again if subnormal, when stored).
-    bits=53: at double precision (PC53, the CRT's start-up control word 0x27f), within the double range."""
-    from fractions import Fraction
-    sign, m = (-1.0 if q < 0 else 1.0), abs(Fraction(q))
+    bits=53: at double precision (PC53, the CRT's start-up control word 0x27f); 64: extended (PC64). A value a double cannot hold
+    comes back as an Ext."""
+    m = abs(Fraction(q))
     e = m.numerator.bit_length() - m.denominator.bit_length()
     if Fraction(2) ** e > m:
         e -= 1
@@ -117,27 +155,102 @@ def r24(q, bits=24):
     rest = scaled - n
     if rest > Fraction(1, 2) or (rest == Fraction(1, 2) and n & 1):
         n += 1
-    return sign * math.ldexp(n, e - bits + 1)
+    return ext((-n if q < 0 else n) * Fraction(2) ** (e - bits + 1))
 
 
 def x87op(fn, a, b, bits=24):
     """fn(a, b) (fn exact on Fractions as on floats) as the x87 computes it at `bits`-bit
-    precision (24 or 53): the exact result rounded once."""
-    from fractions import Fraction
-    if math.isfinite(a) and math.isfinite(b):
+    precision (24, 53 or 64): the exact result rounded once."""
+    if finite(a) and finite(b):
         try:
-            q = fn(Fraction(a), Fraction(b))
+            q = fn(exact(a), exact(b))
         except ZeroDivisionError:
             return farith(fn, a, b)
-        return r24(q, bits) if q != 0 else fn(a, b)  # an exact zero: its sign as IEEE has it
-    return farith(fn, a, b)
+        return r24(q, bits) if q != 0 else fn(float(a), float(b))  # an exact zero: its sign as IEEE has it
+    return farith(fn, float(a), float(b))
 
 
 def precision(cw):
-    """The significand bits the control word's precision control (bits 8-9) rounds to: 2 (double) 53, any other 24. Extended (3, which
-    the C library's math sets for a while: 0x133f, | 0x33f) is not modelled (a Python float holds 53 bits) and stays at 24 bits, as the
-    emulator always had it."""
-    return 53 if cw >> 8 & 3 == 2 else 24
+    """The significand bits the control word's precision control (bits 8-9) rounds to: 2 (double) 53, 3 (extended, which the C library's
+    math sets for a while: 0x133f, | 0x33f, and FSAVE's FNINIT 0x37f) 64, 0 and 1 24."""
+    return {2: 53, 3: 64}.get(cw >> 8 & 3, 24)
+
+
+def x80_value(b):
+    """The register value of the 10 bytes b (an extended double: 64-bit significand with an explicit integer bit, 15-bit exponent). A NaN
+    keeps the top 52 bits of its significand, quiet bit as it is (an extended load does not quiet a signalling NaN)."""
+    mant, se = struct.unpack('<QH', b)
+    sign, e = se >> 15, se & 0x7fff
+    if e == 0x7fff:
+        if mant << 1 & (1 << 64) - 1 == 0:
+            return -math.inf if sign else math.inf
+        frac = mant >> 11 & (1 << 52) - 1
+        return struct.unpack('<d', struct.pack('<Q', sign << 63 | 0x7ff << 52 | (frac or 1 << 51)))[0]
+    if mant == 0:
+        return -0.0 if sign else 0.0
+    q =mant * Fraction(2) ** (max(e, 1) - 16383 - 63)
+    return ext(-q if sign else q)
+
+
+def value_x80(v):
+    """The 10 bytes of the register value v as an extended double (the inverse of x80_value)."""
+    sign = math.copysign(1, v) < 0
+    if math.isnan(v) and not isinstance(v, Ext):
+        mant, e = 1 << 63 | significand(v) << 11, 0x7fff
+    elif not finite(v):
+        mant, e = 1 << 63, 0x7fff
+    elif v == 0 and not isinstance(v, Ext):
+        mant, e = 0, 0
+    else:
+        q = abs(exact(v))
+        e = q.numerator.bit_length() - q.denominator.bit_length()
+        if Fraction(2) ** e > q:
+            e -= 1
+        e = max(e + 16383, 0)   # (below the normal range: a denormal, exponent field 0, scaled as 1)
+        mant = int(q * Fraction(2) ** (63 - max(e, 1) + 16383))
+    return struct.pack('<QH', mant, sign << 15 | e)
+
+
+def yl2x_exact(y, x):
+    """y * log2(x) for finite positive x and finite y, rounded once to 64 bits (FYL2X is exempt from precision control)."""
+    with decimal.localcontext() as c:
+        c.prec = 60
+        qx, qy = exact(x), exact(y)
+        k = qx.numerator.bit_length() - qx.denominator.bit_length()
+        if qx.numerator == 1 << (qx.numerator.bit_length() - 1) and qx.denominator == 1 << (qx.denominator.bit_length() - 1):
+            q = qy * k   # a power of two: exact
+        else:
+            dx = decimal.Decimal(qx.numerator) / decimal.Decimal(qx.denominator)
+            q = qy * Fraction(dx.ln() / decimal.Decimal(2).ln())
+    if q == 0:   # (y zero or x one: the sign of y, flipped by a negative logarithm)
+        return math.copysign(0.0, float(y)) * (-1.0 if qx < 1 else 1.0)
+    return r24(q, 64)
+
+
+def f2xm1_exact(x):
+    """2^x - 1 for finite x, |x| <= 1, rounded once to 64 bits (F2XM1 is exempt from precision control); by its series, so that a tiny x
+    loses nothing."""
+    with decimal.localcontext() as c:
+        c.prec = 60
+        q = exact(x)
+        t = decimal.Decimal(q.numerator) / decimal.Decimal(q.denominator) * decimal.Decimal(2).ln()
+        term, total, n = t, t, 1
+        while abs(term) > abs(t) * decimal.Decimal(10) ** -55:
+            n += 1
+            term = term * t / n
+            total += term
+    return r24(Fraction(total), 64)
+
+
+# The extended register's exactness, checked at import (values worked by hand): 1/3 at PC64 keeps 64 bits (0xaaaaaaaaaaaaaaab * 2^-65),
+# at PC53 it is the double; FYL2X of 2^-3 is exactly -3 * y, of 1 a zero of y's sign; F2XM1(1) is 1, F2XM1(-1) -0.5, F2XM1(2^-70) keeps
+# its 64 bits (ln 2 * 2^-70: 0xb17217f7d1cf79ac * 2^-134); an extended load and store round-trip (1.5, past a double, 1/3, a denormal).
+assert exact(x87op(lambda a, b: a / b, 1.0, 3.0, 64)) == Fraction(0xaaaaaaaaaaaaaaab, 1 << 65)
+assert x87op(lambda a, b: a / b, 1.0, 3.0, 53) == 1 / 3 and not isinstance(x87op(lambda a, b: a / b, 1.0, 3.0, 53), Ext)
+assert yl2x_exact(1.5, 0.125) == -4.5 and math.copysign(1, yl2x_exact(-2.0, 1.0)) < 0 and f2xm1_exact(1.0) == 1.0 and f2xm1_exact(-1.0) == -0.5
+assert exact(f2xm1_exact(2.0 ** -70)) == Fraction(0xb17217f7d1cf79ac, 1 << 134)
+assert all(value_x80(x80_value(b)) == b for b in (bytes.fromhex('00000000000000c0ff3f'), bytes.fromhex('0100000000000080fe7f'),
+                                                bytes.fromhex('abaaaaaaaaaaaaaafd3f'), bytes.fromhex('00000000000000400000')))
 
 
 def f32(x):
@@ -353,14 +466,7 @@ class Emu:
                 b |= 1 << 51
             return struct.unpack('<d', struct.pack('<Q', b))[0]
         if kind == 'extended double':
-            b = self.read(a, 10)
-            mant, se = struct.unpack('<QH', b)
-            if se & 0x7fff == 0x7fff:
-                return math.copysign(math.inf if mant << 1 == 0 else math.nan, -1 if se >> 15 else 1)
-            try:
-                return math.ldexp(mant, (se & 0x7fff) - 16383 - 63) * (-1 if se >> 15 else 1)
-            except OverflowError:   # (past a double: the CRT's error path loads such a constant at 0x6860be only to raise a masked exception with it)
-                return math.copysign(math.inf, -1 if se >> 15 else 1)
+            return x80_value(self.read(a, 10))
         raise ValueError(op)
 
     def fstore(self, op, v):
@@ -368,16 +474,22 @@ class Emu:
             self.st[int(op[2])] = v
             return
         a, kind = self.mem_operand(op)
+        if math.isnan(v):   # (a signalling NaN from an extended load stores quiet)
+            v = struct.unpack('<d', struct.pack('<Q', struct.unpack('<Q', struct.pack('<d', v))[0] | 1 << 51))[0]
         if kind == 'float':
-            self.write(a, struct.pack('<f', f32(v)))
+            self.write(a, struct.pack('<f', f32(r24(v.q) if isinstance(v, Ext) else v)))
         elif kind == 'double':
-            self.write(a, struct.pack('<d', v))
+            self.write(a, struct.pack('<d', v))   # (an Ext: its nearest double)
+        elif kind == 'extended double':
+            self.write(a, value_x80(v))
         else:
             raise ValueError(op)
 
     def compare(self, a, b):
         if math.isnan(a) or math.isnan(b):
             self.c0 = self.c2 = self.c3 = True
+        elif finite(a) and finite(b):
+            self.c0, self.c2, self.c3 = exact(a) < exact(b), False, exact(a) == exact(b)
         else:
             self.c0, self.c2, self.c3 = a < b, False, a == b
 
@@ -532,7 +644,8 @@ class Emu:
         elif mn == 'FILD':
             a, kind = self.mem_operand(o[0])
             n = SIZES.get(kind, 4) if kind != 'dword' else 4
-            self.st.insert(0, float(int.from_bytes(self.read(a, n), 'little', signed=True)))
+            i = int.from_bytes(self.read(a, n), 'little', signed=True)
+            self.st.insert(0, ext(i) if i else 0.0)
         elif mn in ('FLD1', 'FLDZ', 'FLDPI', 'FLDLN2', 'FLDLG2', 'FLDL2E'):
             self.st.insert(0, {'FLD1': 1.0, 'FLDZ': 0.0, 'FLDPI': math.pi, 'FLDLN2': math.log(2), 'FLDLG2': math.log10(2), 'FLDL2E': 1 / math.log(2)}[mn])
         elif mn in ('FST', 'FSTP'):
@@ -541,7 +654,7 @@ class Emu:
                 self.st.pop(0)
         elif mn in ('FIST', 'FISTP'):
             v = self.st[0]
-            i = round(v) if math.isfinite(v) and -2 ** 31 <= round(v) < 2 ** 31 else -2 ** 31
+            i = round(exact(v)) if finite(v) and -2 ** 31 <= round(exact(v)) < 2 ** 31 else -2 ** 31
             self.put(o[0], i)
             if mn == 'FISTP':
                 self.st.pop(0)
@@ -573,19 +686,21 @@ class Emu:
                 self.st[0] = INDEFINITE if math.isinf(v) else v if math.isnan(v) else hw_trig(v)[2]
                 self.st.insert(0, self.st[0] if math.isnan(self.st[0]) else 1.0)
         elif mn == 'FYL2X':
-            # ST1 * log2(ST0), popped; exempt from precision control (evaluated in double, as FPATAN). A NaN operand comes through; log2 of a
-            # negative number, 0 * log2(0 or infinity) and infinity * log2(1) are invalid (the indefinite); log2(0) is -infinity.
+            # ST1 * log2(ST0), popped; exempt from precision control: rounded once to 64 bits (yl2x_exact). A NaN operand comes through;
+            # log2 of a negative number, 0 * log2(0 or infinity) and infinity * log2(1) are invalid (the indefinite); log2(0) is -infinity.
             x, y = self.st.pop(0), self.st[0]
 
             def yl2x(y, x):
-                if x < 0 or (y == 0 and (x == 0 or math.isinf(x))) or (math.isinf(y) and x == 1):
+                if x < 0 or (zero(y) and (zero(x) or not finite(x))) or (not finite(y) and x == 1):
                     return INDEFINITE
-                if x == 0:
+                if zero(x):
                     return -math.copysign(math.inf, y)
-                if math.isinf(x):
+                if not finite(x):
                     return math.copysign(math.inf, y)
-                return y * math.log2(x)
-            self.st[0] = farith(yl2x, y, x)
+                if not finite(y):
+                    return y if exact(x) > 1 else -y
+                return yl2x_exact(y, x)
+            self.st[0] = yl2x(y, x) if not (math.isnan(x) or math.isnan(y)) else farith(yl2x, float(y), float(x))
         elif mn == 'FPATAN':
             x, y = self.st.pop(0), self.st[0]
             # a NaN operand comes through (Python's atan2 would give its own NaN)
@@ -593,17 +708,26 @@ class Emu:
         elif mn == 'FRNDINT':
             # to the nearest, ties to even, exempt from precision control; a zero's sign kept, also on a result of 0; a NaN or infinity comes through
             v = self.st[0]
-            self.st[0] = v if not math.isfinite(v) else math.copysign(float(round(v)), v)
+            n = round(exact(v)) if finite(v) else None
+            self.st[0] = v if n is None else ext(n) if n else math.copysign(0.0, v)
         elif mn == 'F2XM1':
-            # 2^x - 1, |x| <= 1 (the inline exp's fraction); exempt from precision control (evaluated in double, as FPATAN); a NaN comes through
+            # 2^x - 1, |x| <= 1 (the inline exp's fraction); exempt from precision control: rounded once to 64 bits (f2xm1_exact); a NaN
+            # comes through, -infinity gives -1, +infinity itself
             v = self.st[0]
-            self.st[0] = v if math.isnan(v) or v == 0 else math.expm1(v * math.log(2))
+            self.st[0] = v if math.isnan(v) or zero(v) else f2xm1_exact(v) if finite(v) else -1.0 if v < 0 else v
         elif mn == 'FSCALE':
-            # ST0 * 2^trunc(ST1), ST1 kept. Finite operands only (the inline exp's); past a double's range an infinity or a zero, not the register's wide exponent
-            try:
-                self.st[0] = math.ldexp(self.st[0], int(self.st[1]))
-            except OverflowError:
-                self.st[0] = math.copysign(math.inf, self.st[0])
+            # ST0 * 2^trunc(ST1), ST1 kept, exact in the register's 15-bit exponent (past it an infinity or a zero: overflow and
+            # underflow masked; shortcut: no extended denormals, not reached by the C library's exp and pow). A NaN comes through;
+            # 0 * 2^+inf and inf * 2^-inf are invalid.
+            v, s = self.st[0], self.st[1]
+            if math.isnan(v) or math.isnan(s):
+                self.st[0] = farith(lambda a, b: a, float(v), float(s))
+            elif not finite(s):
+                self.st[0] = (INDEFINITE if zero(v) else math.copysign(math.inf, v)) if s > 0 else (INDEFINITE if not finite(v) else math.copysign(0.0, v))
+            elif finite(v) and not zero(v):
+                n = int(exact(s))
+                q = exact(v) * Fraction(2) ** max(min(n, 1 << 15), -(1 << 15))
+                self.st[0] = math.copysign(math.inf, v) if abs(q) >= 2 ** 16384 else math.copysign(0.0, v) if abs(q) < Fraction(1, 2 ** 16382) else ext(q)
         elif mn in ('FCOM', 'FCOMP', 'FCOMPP'):
             self.compare(self.st[0], self.fload(o[0]) if o else self.st[1])
             for _ in range({'FCOM': 0, 'FCOMP': 1, 'FCOMPP': 2}[mn]):
@@ -614,6 +738,29 @@ class Emu:
             self.cw = self.get(o[0]) & 0x1f3f | 0x40   # (as an x87 reads it back: bit 6 set, the top three clear)
         elif mn in ('FNSTSW', 'FSTSW'):
             self.put(o[0], (self.c0 << 8) | (self.c2 << 10) | (self.c3 << 14))
+        elif mn in ('FSAVE', 'FNSAVE'):
+            # the 108-byte image (32-bit protected mode): control, status (TOP, C0 C2 C3; no exception flags kept), tag words, pointers
+            # (zero here), ST0-ST7; then FNINIT (control word 0x37f, the stack empty)
+            a, n = self.mem_operand(o[0])[0], len(self.st)
+            top = -n & 7
+            tags = 0xffff
+            for i, v in enumerate(self.st):
+                tag = 2 if not finite(v) or (not zero(v) and abs(exact(v)) < Fraction(1, 2 ** 16382)) else 1 if zero(v) else 0
+                tags &= ~(3 << 2 * ((top + i) & 7)) | tag << 2 * ((top + i) & 7)
+            status = self.c0 << 8 | self.c2 << 10 | self.c3 << 14 | top << 11
+            self.write(a, struct.pack('<7I', self.cw, status, tags, 0, 0, 0, 0) + b''.join(value_x80(v) for v in self.st) + bytes(10 * (8 - n)))
+            self.st, self.cw, self.c0, self.c2, self.c3 = [], 0x37f, False, False, False
+        elif mn == 'FRSTOR':
+            a = self.mem_operand(o[0])[0]
+            cw, status, tags = struct.unpack('<3I', self.read(a, 12))
+            self.cw = cw & 0x1f3f | 0x40
+            self.c0, self.c2, self.c3 = bool(status & 0x100), bool(status & 0x400), bool(status & 0x4000)
+            top, self.st = status >> 11 & 7, []
+            while len(self.st) < 8 and tags >> 2 * ((top + len(self.st)) & 7) & 3 != 3:
+                self.st.append(x80_value(self.read(a + 28 + 10 * len(self.st), 10)))
+        elif mn == 'SAHF':   # SF ZF AF PF CF from AH (bits 7 6 4 2 0)
+            ah = self.r['EAX'] >> 8 & 0xff
+            self.sf, self.zf, self.pf, self.cf = bool(ah & 0x80), bool(ah & 0x40), bool(ah & 4), bool(ah & 1)
         elif mn in ('FNCLEX', 'FCLEX'):
             pass   # (no exception flags kept: the status word is C0, C2 and C3 only)
         elif mn in ('MOV', 'MOVZX'):  # get() is already zero-extended
@@ -1025,6 +1172,22 @@ def selftest():
         if got != want:
             bad += 1
             print('FAIL precision control %04x: 0x591600 gave %08x, the x87 %08x' % (cw, got, want))
+    # FSAVE / FRSTOR (as _CIpow 0x67c701 wraps _powhlp): 1/3 at PC64 and 2 saved; inside, FNINIT's control word 0x37f and an empty stack
+    # (FLD1 is then the only register); restored, ST0 still the 64-bit third, ST1 2, the control word 0x27f
+    lines = ['MOV ECX,dword ptr [ESP + 0x4]', 'FLDCW word ptr [ECX + 0x80]', 'FLD double ptr [ECX + 0x88]', 'FLD1', 'FLD double ptr [ECX + 0x90]',
+             'FDIVP', 'FLDCW word ptr [ECX + 0x82]', 'FSAVE [ECX]', 'FSTCW word ptr [ECX + 0x84]', 'FLD1', 'FSTP ST0', 'FRSTOR [ECX]',
+             'FSTCW word ptr [ECX + 0x86]', 'FSTP extended double ptr [ECX + 0x98]', 'FSTP double ptr [ECX + 0xa8]', 'RET']
+    with tempfile.NamedTemporaryFile('w', suffix='.asm', delete=False) as f:
+        f.write('\n'.join('%08x  %s' % (0x401000 + 0x10 * i, s) for i, s in enumerate(lines)))
+    emu = Emu([f.name])
+    os.unlink(f.name)
+    at = emu.alloc(0xb0)
+    emu.write(at + 0x80, struct.pack('<4H2d', 0x37f, 0x27f, 0, 0, 2.0, 3.0))
+    emu.call(0x401000, [at])
+    got = emu.read(at + 0x84, 4), emu.read(at + 0x98, 10), struct.unpack('<d', emu.read(at + 0xa8, 8))[0], emu.st
+    if got != (struct.pack('<2H', 0x37f, 0x27f), bytes.fromhex('abaaaaaaaaaaaaaafd3f'), 2.0, []):
+        bad += 1
+        print('FAIL FSAVE / FRSTOR: %r' % (got,))
     return bad == 0
 
 

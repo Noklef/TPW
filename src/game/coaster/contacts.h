@@ -54,3 +54,15 @@ void __cdecl Contacts_SegmentsInBox(const u8 *owner, const u8 *node, const u8 *n
 extern "C" {
 void __cdecl Contacts_TestAll(u8 *owner);
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(u32, gContacts_792230, 0x00792230, 0x4);
+GAME_DATA(u32, gContacts_792238, 0x00792238, 0x4);
+GAME_DATA(u8 *, gContacts_79223c, 0x0079223c, 0x4);
+GAME_DATA(u8 *, gContacts_792240, 0x00792240, 0x4);
+GAME_DATA(u8 *, gContacts_792244, 0x00792244, 0x4);
+GAME_DATA(u8 *, gContacts_7922dc, 0x007922dc, 0x4);
+GAME_DATA(u32, gContacts_TestAll_7922e4, 0x007922e4, 0x4);
+GAME_DATA(u32, gContacts_TestAll_7922e8, 0x007922e8, 0x4);

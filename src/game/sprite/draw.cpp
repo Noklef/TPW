@@ -9,6 +9,8 @@
 #include "../ui/guimanager.h"
 #include "../world/mapcell.h"
 #include "script.h"
+#include "../world/things.h"
+#include "../render/spritequeue.h"
 
 namespace {
 
@@ -80,8 +82,8 @@ extern "C" void __cdecl SpriteDraw_End() {
         global<s32>(0x00876424) = overlayCount();
     }
     const u32 thing = env().pick();
-    env().setPicked(global<u32>(0x00877350));
-    global<u32>(0x00877350) = thing;
+    env().setPicked(gThings_877350);
+    gThings_877350 = thing;
 }
 
 extern "C" void __cdecl Sprite_DrawScript(u8 *s) {
@@ -168,7 +170,7 @@ extern "C" u32 __cdecl SpriteDraw_Pick() {
     Gui_GetMousePos(&x, &y);
     global<float>(0x008bd4f0) = (float)(X87Reg((double)(s16)x) * global<float>(0x00700d18) - global<float>(0x00700d10));
     global<float>(0x008bd4f4) = (float)(X87Reg((double)(s16)y) * global<float>(0x00700d1c) - global<float>(0x00700d10));
-    u8 *const picked = global<u8 *>(0x008bd4fc);
+    u8 *const picked = gSpritequeue_8bd4fc;
     if (!picked)
         return 0;
     const s32 slot = SpriteScript_FindShown(picked);

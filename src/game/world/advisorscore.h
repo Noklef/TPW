@@ -51,3 +51,14 @@ u8 *__fastcall AdvisorMsg_Init(u8 *self, void *, u32 id, u16 type, u32 a, u32 b,
 // mOverrideOnlyOnce (+0x15), mScoreOverridden (+0x16); a load reads all but the first through Save_ReadU32 / Save_ReadU8.
 u32 __fastcall AdvisorMsg_Serialize(u8 *self, void *, Stream *stream, u32 save, s32 version, u32 unused);
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(char[8], gText_Advisorscore_75e6b8, 0x0075e6b8, 0x8);
+GAME_DATA(char[20], gText_Advisorscore_76e2a0, 0x0076e2a0, 0x14);
+GAME_DATA(char[20], gText_Advisorscore_76e2b4, 0x0076e2b4, 0x14);
+GAME_DATA(char[8], gText_Advisorscore_76e2d4, 0x0076e2d4, 0x8);
+GAME_DATA(char[12], gText_Advisorscore_76e2dc, 0x0076e2dc, 0xc);
+GAME_DATA(char[12], gText_Advisorscore_76e2e8, 0x0076e2e8, 0xc);
+GAME_DATA(char[12], gText_Advisorscore_76e2f4, 0x0076e2f4, 0xc);

@@ -24,7 +24,7 @@ u32 __stdcall Rasteriser_ChooseSpan(u32 flags) {
         if (flags & 0x200000) {
             routine = global<u32>(0x006f19f8);
         } else {
-            global<u32>(0x00fbe010) = (((flags & 0x200) ? 0xe0 : 0) + 0x10) >> 2;
+            gRasteriser_fbe010 = (((flags & 0x200) ? 0xe0 : 0) + 0x10) >> 2;
             routine = (flags & 0x800) ? global<u32>(0x006f19f4) : global<u32>(0x006f1a20);
         }
     } else if (flags & 0x10000000) {
@@ -37,7 +37,7 @@ u32 __stdcall Rasteriser_ChooseSpan(u32 flags) {
     } else {
         routine = global<u32>(0x006f19f0);
     }
-    global<u32>(0x00fbe044) = routine;
+    gRasteriser_fbe044 = routine;
     return 1;
 }
 
@@ -48,9 +48,9 @@ u32 __cdecl Rasteriser_ClearMmx() {
 
 u32 __stdcall Setting569f30_Set(u32, u32 value) {
     if (value)
-        global<u32>(0x00fbe038) = value;
+        reinterpret_cast<u32 &>(gRasteriser_fbe038) = value;
     else
-        global<u32>(0x00fbe044) = global<u32>(0x006f1a10);
+        gRasteriser_fbe044 = global<u32>(0x006f1a10);
     return 1;
 }
 
@@ -65,7 +65,7 @@ double __cdecl Rasteriser_SpeedTest() {
     const u32 width = global<u32>(0x008bcbd0), height = global<u32>(0x008bcbd4);
     const s32 pixels = (s32)(height * width * 50);
     const u32 right = width << 4, bottom = height << 4;
-    global<u32>(0x00fbe044) = global<u32>(0x006f1a10);
+    gRasteriser_fbe044 = global<u32>(0x006f1a10);
     u32 corners[4][3] = {{0, 0, 0}, {right, 0, 0}, {right, bottom, 0}, {0, bottom, 0}};
     const u32 start = g_speedCalls.Cd(0x0057cb90);
     for (u32 i = 0; i < 50; ++i) {

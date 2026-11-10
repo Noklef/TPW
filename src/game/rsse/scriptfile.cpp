@@ -12,6 +12,7 @@
 #include "../model/parts.h"
 #include "../render/particles.h"
 #include "../world/objectdefs.h"
+#include "../world/ridelist.h"
 
 namespace {
 
@@ -127,7 +128,7 @@ u32 __cdecl RSSE_LoadScriptFile(const char *name, u32 handle, u32 quiet) {
         const s32 effect = at<s32>(ObjectDefs_Find(reinterpret_cast<u8 *>(0x007890a0), nullptr, id), 0x60);
         float box[6];
         if (effect && at<u32>(vm, 0xc8) && Ride_Bounds(at<s32>(vm, 0xc8), box)) {
-            const float half = global<float>(0x00700fd0), scale = global<float>(0x00700fdc);
+            const float half = gRidelist_700fd0, scale = gRidelist_700fdc;
             u8 *const instance = global<u8 *>(0x007a4610 + 4 * at<u32>(vm, 0xc8));
             const X87Reg zh = (X87Reg(box[2]) + box[5]) * half;
             const X87Reg xh = (X87Reg(box[0]) + box[3]) * half;
@@ -143,9 +144,9 @@ u32 __cdecl RSSE_LoadScriptFile(const char *name, u32 handle, u32 quiet) {
                 const X87Reg dy = X87Reg(box[4]) - box[1];
                 const X87Reg dx = X87Reg(box[3]) - box[0];
                 const float dzf = static_cast<float>(dz), dyf = static_cast<float>(dy), dxf = static_cast<float>(dx);
-                const s32 jz = Ftol(dz * global<float>(0x00701050));
-                const s32 jy = Ftol(X87Reg(dyf) * global<float>(0x00701054));
-                const s32 jx = Ftol(X87Reg(dxf) * global<float>(0x00701050));
+                const s32 jz = Ftol(dz * gRidelist_701050);
+                const s32 jy = Ftol(X87Reg(dyf) * gRidelist_701054);
+                const s32 jx = Ftol(X87Reg(dxf) * gRidelist_701050);
                 ParticleSystem_SetVectorB(static_cast<u32>(system), jx, jy, jz);
                 const float radius = static_cast<float>((X87Reg(dzf) + dxf) * half);
                 at<u32>(vm, 0xd4) = Sound_AddOccluder(bits(cx), bits(y), bits(cz), bits(radius), bits(dyf));

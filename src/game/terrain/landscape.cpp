@@ -18,6 +18,7 @@
 #include "../render/drawbuffer.h"
 #include "../render/engineerrors.h"
 #include "../render/quad.h"
+#include "../render/meshlist.h"
 
 namespace {
 
@@ -63,7 +64,7 @@ u8 *LoadSky(u8 *landscape, u32 offset, const char *folder, const char *file) {
     const char *const located = Quickload_Locate(path, 1, nullptr);
     if (at<u8 *>(landscape, offset) != nullptr)
         ReleaseSlot(landscape, offset);
-    u8 *const textures = TexManager_Load(*reinterpret_cast<u8 *const *>((uintptr_t)0x0087a268), nullptr, located);
+    u8 *const textures = TexManager_Load(*reinterpret_cast<u8 *const *>(&gTexman_87a268), nullptr, located);
     at<u8 *>(landscape, offset) = textures;
     if (textures == nullptr) {
         u8 *const errors = reinterpret_cast<u8 *>((uintptr_t)0x00879ad0);
@@ -281,7 +282,7 @@ u32 __fastcall Landscape_AddTexture(u8 *landscape, void *, u8 **out, const char 
             Texture_DestroyArray(array);
         at<u32>(entry, 0) = 0;
     }
-    u8 *const textures = TexManager_Load(*reinterpret_cast<u8 *const *>((uintptr_t)0x0087a268), nullptr, name);
+    u8 *const textures = TexManager_Load(*reinterpret_cast<u8 *const *>(&gTexman_87a268), nullptr, name);
     at<u8 *>(entry, 0) = textures;
     if (textures == nullptr) {
         EngineErrors_Push(errors, nullptr, 1, 0xb0754001);
@@ -530,7 +531,7 @@ u32 __fastcall Landscape_Draw(u8 *landscape) {
     const u8 *const texture = at<const u8 *>(landscape, 0x1fd0);
     if (!at<u32>(landscape, 0x2ec8) || !texture || !at<u32>(landscape, 0x1fd8) || G<u32>(0x008bd524) == 4) return 1;
     const u32 stride = G<u32>(0x00701ed4);
-    const u32 colourMask = at<u32>(G<u8 *>(0x0087a248), 0x2c);
+    const u32 colourMask = at<u32>(gMeshlist_87a248, 0x2c);
     const u32 id = at<u32>(texture, 8) & 0x1000 ? at<u32>(texture, 0x1c) : 0;
     const u32 flags = (G<u32>(0x008bcbc8) & 8 ? 0x1256 : 0x1556) | 0x400800;
     SkyTurn turn = {};  // (without an id the original's four are unset stack: not benched)

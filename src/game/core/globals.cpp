@@ -13,6 +13,9 @@
 #include "vobj3.h"
 #include "../ui/thingbrowser.h"
 #include "../ui/panel7cc218.h"
+#include "../world/mapclick.h"
+#include "../render/particles.h"
+#include "../render/meshlist.h"
 
 namespace {
 
@@ -90,7 +93,7 @@ void __cdecl Globals816d40_Free() {
         return;
     global<u32>(0x0080ced0) = 0;
     Mem_FreeChecked(global<void *>(0x0080cef8));
-    const u32 other = global<u32>(0x00816d38);
+    const u32 other = gParticles_816d38;
     global<u32>(0x00816d40) = 0;
     Mem_FreeChecked((void *)(uintptr_t)other);
 }
@@ -113,9 +116,9 @@ void __cdecl Table879ad0_Clear() {
 
 u32 __cdecl Global81ae2c_Equals(u32 value) { return global<u32>(0x0081ae2c) == value; }
 
-u32 __cdecl Global81b0cc_IfNoFlag() { return global<u32>(0x008187f8) ? 0 : global<u32>(0x0081b0cc); }
+u32 __cdecl Global81b0cc_IfNoFlag() { return gMapclick_8187f8 ? 0 : global<u32>(0x0081b0cc); }
 
-u32 __cdecl Global81ecac_IfNoFlag() { return global<u32>(0x008187f8) ? 0 : global<u32>(0x0081ecac); }
+u32 __cdecl Global81ecac_IfNoFlag() { return gMapclick_8187f8 ? 0 : global<u32>(0x0081ecac); }
 
 u32 __cdecl Global81af4c_Add(u32 amount) {
     global<u32>(0x0081af4c) += amount;
@@ -268,7 +271,7 @@ u32 __cdecl FreeGlobal879d54_56b760() {
 }
 
 u32 __cdecl FreeGlobal87a248_5740e0() {
-    const u32 p = global<u32>(0x0087a248); if (!p) return 0; GameHeap_Free(reinterpret_cast<void *>(p)); global<u32>(0x0087a248) = 0; return 1;
+    const u32 p = reinterpret_cast<u32 &>(gMeshlist_87a248); if (!p) return 0; GameHeap_Free(reinterpret_cast<void *>(p)); reinterpret_cast<u32 &>(gMeshlist_87a248) = 0; return 1;
 }
 
 u32 __cdecl FreeGlobal8bcbb8_580500() {

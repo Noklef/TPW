@@ -61,3 +61,9 @@ extern "C" {
 //   whole message: its 0 answers the message was 0x19, else 0x816d64 = the message and 1.
 u32 __fastcall MapCell_HandleTrackMessage(u8 *cell, void *, u32 message, u32 a, u32 b);
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(const float, gTrackmessage_700d94, 0x00700d94, 0x4);
+GAME_DATA(const float, gTrackmessage_700d9c, 0x00700d9c, 0x4);

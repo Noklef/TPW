@@ -48,6 +48,10 @@ s32 __cdecl CRT_lseek_lk(u32 fd, s32 offset, u32 origin);
 // 0x686a20: _lseek: the same under the handle's lock; a bad handle: errno 9, __doserrno 0, -1.
 s32 __cdecl CRT_lseek(u32 fd, s32 offset, u32 origin);
 
+// 0x68ec50 / 0x68ebc0: _lseeki64_lk / _lseeki64: the same with a 64-bit place (SetFilePointer's high word).
+int64_t __cdecl CRT_lseeki64_lk(u32 fd, int64_t offset, u32 origin);
+int64_t __cdecl CRT_lseeki64(u32 fd, int64_t offset, u32 origin);
+
 // 0x68c320: _isatty: flag 0x40, 0 for a bad handle.
 s32 __cdecl CRT_isatty(u32 fd);
 

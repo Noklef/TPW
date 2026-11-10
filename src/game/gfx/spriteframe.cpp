@@ -16,6 +16,9 @@
 #include "rleimage.h"
 #include "texture.h"
 #include "wctimage.h"
+#include "texcache.h"
+#include "../render/spritequeue.h"
+#include "../render/rendererframe.h"
 
 namespace {
 
@@ -452,9 +455,9 @@ u32 __fastcall SpriteFrame_PlaceQuad(u8 *frame, void *, float *quad, float width
         const X87Reg reach = (dd + aaf) * 0.0002f;   // 0x70203c
         const float distance = (float)(dyy + dxxf);
         if (reach.v > distance) {
-            const u8 *const picked = global<const u8 *>(0x008bd4fc);
+            const u8 *const picked = gSpritequeue_8bd4fc;
             if (!picked || !(quad[3] >= at<float>(picked, 0xc)))
-                global<u8 *>(0x008bd4fc) = frame;
+                gSpritequeue_8bd4fc = frame;
         }
     }
     if (at<u32>(frame, 0x10) & 0x80000) {
@@ -467,7 +470,7 @@ u32 __fastcall SpriteFrame_PlaceQuad(u8 *frame, void *, float *quad, float width
         quad[14] = (float)z2;
         quad[10] = z2f;
         for (u32 i = 1; i < 16; i += 4)
-            quad[i] = (float)(X87Reg(global<float>(0x008bd4ec)) + quad[i]);
+            quad[i] = (float)(X87Reg(gRendererframe_8bd4ec) + quad[i]);
         if (at<u8>(frame, 0x10) & 0x80)
             Quad_TurnXZ(quad, at<float>(frame, 0x30));
         return result;
@@ -510,7 +513,7 @@ u32 __fastcall SpriteFrame_FillItem(u8 *frame, void *, u8 *item) {
     at<u32>(item, 0) = 0;   // (sic: the flag 4 just set is lost)
     const u32 flags = at<u32>(frame, 0x10);
     if (flags & 0x400)
-        at<float>(frame, 0x18) = (float)(GroundAt(at<float>(frame, 0x14), at<float>(frame, 0x1c)) + global<float>(0x008bd4ec) +
+        at<float>(frame, 0x18) = (float)(GroundAt(at<float>(frame, 0x14), at<float>(frame, 0x1c)) + gRendererframe_8bd4ec +
                                          at<float>(frame, 0x18));
     u32 placed;
     if (flags & 0x40000) {
@@ -626,7 +629,7 @@ u32 __fastcall SpriteFrame_GroundQuad(u8 *frame, void *, float *quad, u32 matrix
     }
     TransformQuad(matrix, quad);
     const X87Reg base = X87Reg((at<u32>(frame, 0x10) & 0x800) ? at<float>(frame, 0x20) : global<float>(0x00702034)) +
-                        global<float>(0x008bd4ec);
+                        gRendererframe_8bd4ec;
     for (s32 k = 3; k >= 0; --k)
         quad[4 * k + 1] = (float)(GroundAt(quad[4 * k], quad[4 * k + 2]) + base + quad[4 * k + 1]);
     TransformQuad(global<u32>(0x0087b088), quad);

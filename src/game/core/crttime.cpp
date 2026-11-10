@@ -545,4 +545,25 @@ u32 __cdecl CRT_loctotime_t(s32 year, s32 month, s32 day, s32 hour, s32 minute, 
     return total;
 }
 
+u32 __cdecl CRT_time(u32 *out) {
+    u16 local[8], system[8];   // (SYSTEMTIME: year, month, weekday, day, hour, minute, second, ms)
+    import_slot<void(__stdcall *)(u16 *)>(0x006fd164)(local);    // GetLocalTime
+    import_slot<void(__stdcall *)(u16 *)>(0x006fd220)(system);   // GetSystemTime
+    u16 *const last = reinterpret_cast<u16 *>((uintptr_t)0x00fb1340);   // (the system time the answer below was for)
+    s32 dst;
+    if (system[5] == last[5] && system[4] == last[4] && system[3] == last[3] && system[1] == last[1] && system[0] == last[0]) {
+        dst = global(0x00fb1338);
+    } else {
+        u8 zone[0xac];
+        const u32 kind = import_slot<u32(__stdcall *)(u8 *)>(0x006fd21c)(zone);   // GetTimeZoneInformation
+        if (kind == 0xffffffffu) dst = -1;
+        else dst = kind == 2 && *reinterpret_cast<const u16 *>(zone + 0x9a) && *reinterpret_cast<const s32 *>(zone + 0xa8) ? 1 : 0;
+        std::memcpy(last, system, 0x10);
+        *reinterpret_cast<s32 *>((uintptr_t)0x00fb1338) = dst;
+    }
+    const u32 when = CRT_loctotime_t(local[0], local[1], local[3], local[4], local[5], local[6], dst);
+    if (out) *out = when;
+    return when;
+}
+
 }  // extern "C"

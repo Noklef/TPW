@@ -5,6 +5,7 @@
 
 #include "../math/x87.h"
 #include "../frontend/lobbysky.h"
+#include "d3dprobe.h"
 
 namespace {
 
@@ -34,7 +35,7 @@ void __stdcall VertexFog_Colour(u8 *vertices, u32 count, s32 stride) {
             specular = gLobbysky_8bd47c;
             continue;
         }
-        const X87Reg t = (X87Reg(z) - reinterpret_cast<float &>(gLobbysky_8bd490)) * At<float>(0x8bd498);
+        const X87Reg t = (X87Reg(z) - reinterpret_cast<float &>(gLobbysky_8bd490)) * gD3dprobe_8bd498;
         const float tf = (float)t;
         const s32 r = Fistp((float)(t * gVertexFog_Colour_8bd484));
         const s32 g = Fistp((float)(X87Reg(tf) * gVertexFog_Colour_8bd488));
@@ -59,7 +60,7 @@ void __stdcall VertexFog_Alpha(u8 *vertices, u32 count, s32 stride) {
         else if (z >= reinterpret_cast<float &>(gLobbysky_8bd494))
             specular = 0;
         else
-            specular = (u32)Fistp((float)(((X87Reg(reinterpret_cast<float &>(gLobbysky_8bd494)) - z) * At<float>(0x8bd498)) * 255.0f)) << 24;  // 0x7016e4
+            specular = (u32)Fistp((float)(((X87Reg(reinterpret_cast<float &>(gLobbysky_8bd494)) - z) * gD3dprobe_8bd498) * 255.0f)) << 24;  // 0x7016e4
     }
 }
 }

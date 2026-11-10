@@ -8,6 +8,7 @@
 #include "../math/x87.h"
 #include "../render/engineerrors.h"
 #include "texcache.h"
+#include "texcache.h"
 
 namespace {
 

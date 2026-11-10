@@ -19,6 +19,7 @@
 #include "ribbon.h"
 #include "spritequeue.h"
 #include "../gfx/texcache.h"
+#include "meshlist.h"
 
 namespace {
 
@@ -168,7 +169,7 @@ u32 __fastcall WeatherFx_LoadTexture(u8 *fx, void *, u32 which, const char *name
     else
         slot = reinterpret_cast<u8 **>((uintptr_t)which);
     if (*slot == nullptr) {
-        *slot = TexManager_Load(*reinterpret_cast<u8 *const *>((uintptr_t)0x0087a268), nullptr, name);
+        *slot = TexManager_Load(*reinterpret_cast<u8 *const *>(&gTexman_87a268), nullptr, name);
         if (*slot != nullptr)
             *reinterpret_cast<u32 *>(*slot + 8) |= 0x80200;
     }
@@ -179,9 +180,9 @@ u32 __cdecl WeatherFx_LoadTextures() {
     u8 *const *const fx = reinterpret_cast<u8 *const *>((uintptr_t)0x008bcbac);
     if (!*fx) return 0;
     const auto name = [](u32 address) { return Quickload_Locate(reinterpret_cast<const char *>((uintptr_t)address), 1, nullptr); };
-    WeatherFx_LoadTexture(*fx, nullptr, 2, name(0x00765218));          // "Data\Generic\Weather\snow.tga"
-    WeatherFx_LoadTexture(*fx, nullptr, 1, name(0x007651f4));          // "Data\Generic\Weather\raindrop.tga"
-    return WeatherFx_LoadTexture(*fx, nullptr, 3, name(0x007651d0));   // "Data\Generic\Weather\lightning.tga"
+    WeatherFx_LoadTexture(*fx, nullptr, 2, name((u32)&gText_WeatherFx_765218));          // "Data\Generic\Weather\snow.tga"
+    WeatherFx_LoadTexture(*fx, nullptr, 1, name((u32)&gText_WeatherFx_7651f4));          // "Data\Generic\Weather\raindrop.tga"
+    return WeatherFx_LoadTexture(*fx, nullptr, 3, name((u32)&gText_WeatherFx_7651d0));   // "Data\Generic\Weather\lightning.tga"
 }
 
 namespace {
@@ -254,9 +255,9 @@ u32 __fastcall WeatherFx_BoltSubdivide(u8 *fx, void *, const float *a, const flo
 
 u32 __fastcall WeatherFx_ReloadTextures(u8 *fx) {
     const auto name = [](u32 address) { return Quickload_Locate(reinterpret_cast<const char *>((uintptr_t)address), 1, nullptr); };
-    WeatherFx_LoadTexture(fx, nullptr, 2, name(0x00765218));
-    WeatherFx_LoadTexture(fx, nullptr, 1, name(0x007651f4));
-    WeatherFx_LoadTexture(fx, nullptr, 3, name(0x007651d0));
+    WeatherFx_LoadTexture(fx, nullptr, 2, name((u32)&gText_WeatherFx_765218));
+    WeatherFx_LoadTexture(fx, nullptr, 1, name((u32)&gText_WeatherFx_7651f4));
+    WeatherFx_LoadTexture(fx, nullptr, 3, name((u32)&gText_WeatherFx_7651d0));
     *reinterpret_cast<u32 *>(fx + 4) = 0;
     return 1;
 }
@@ -302,7 +303,6 @@ struct Place {
     float x, y, z;
 };
 
-const float &K(uintptr_t address) { return *reinterpret_cast<const float *>(address); }
 u8 *BatchObject() { return *reinterpret_cast<u8 **>((uintptr_t)0x00879ab0); }
 
 // The curve's row for a phase (+0x8558: 128 rows of 0x30) and the fraction: p less its __ftol.
@@ -326,7 +326,7 @@ template <class F3> X87Reg CurveZ(const u8 *row, float f, float f2, F3 f3) {
 // A gust: its x from the register, y and z from the stored floats (and they are multiplied by the wind, not added, sic).
 Place Gust(const u8 *fx, float phase, float time) {
     float f;
-    const u8 *const row = CurveRow(fx, (X87Reg(phase) - time) * K(0x00701d18), f);
+    const u8 *const row = CurveRow(fx, (X87Reg(phase) - time) * gWeatherfx_701d18, f);
     const X87Reg f2r = X87Reg(f) * f;
     const float f2 = (float)f2r;
     const X87Reg f3 = f2r * f;
@@ -338,23 +338,23 @@ Place Gust(const u8 *fx, float phase, float time) {
 
 // Past 4 less 8; below -4 or a NaN less -8; above: the first comparison (of x's register, for x).
 void Wrap(float &x, bool above) {
-    if (above) x = (float)(X87Reg(x) - K(0x00701cf4));
-    else if (!(x >= K(0x00701cf8))) x = (float)(X87Reg(x) - K(0x00701cfc));
+    if (above) x = (float)(X87Reg(x) - gWeatherfx_701cf4);
+    else if (!(x >= gWeatherfx_701cf8)) x = (float)(X87Reg(x) - gWeatherfx_701cfc);
 }
 
 void WrapPlace(Place &p, X87Reg x) {
-    Wrap(p.x, x.v > K(0x00701cf0));
-    Wrap(p.y, p.y > K(0x00701cf0));
-    Wrap(p.z, p.z > K(0x00701cf0));
+    Wrap(p.x, x.v > gWeatherfx_701cf0);
+    Wrap(p.y, p.y > gWeatherfx_701cf0);
+    Wrap(p.z, p.z > gWeatherfx_701cf0);
 }
 
 void SwirledPlaces(u8 *fx, Place *places, float x, float y, float z) {
-    const float time = (float)(X87Reg(at<float>(fx, 0x9d98)) * K(0x00701d14));
+    const float time = (float)(X87Reg(at<float>(fx, 0x9d98)) * gWeatherfx_701d14);
     const Place gusts[2] = {Gust(fx, at<float>(fx, 0x3558), time), Gust(fx, at<float>(fx, 0x355c), time)};
     Place orbits[16];
     for (s32 i = 0; i < 16; i++) {
         float f;
-        const u8 *const row = CurveRow(fx, (X87Reg(at<float>(fx, 0x3558 + i * 4)) - time) * K(0x00701d1c), f);
+        const u8 *const row = CurveRow(fx, (X87Reg(at<float>(fx, 0x3558 + i * 4)) - time) * gWeatherfx_701d1c, f);
         const X87Reg f2r = X87Reg(f) * f;
         const float f2 = (float)f2r;
         const X87Reg f3 = f2r * f;
@@ -366,7 +366,7 @@ void SwirledPlaces(u8 *fx, Place *places, float x, float y, float z) {
     }
     for (s32 i = 0; i < at<s32>(fx, 0x3318); i++) {
         float &phase = at<float>(fx, 0x3558 + i * 4);
-        const X87Reg v = phase - (X87Reg(at<float>(fx, 0x9d98)) * K(0x00701d14));
+        const X87Reg v = phase - (X87Reg(at<float>(fx, 0x9d98)) * gWeatherfx_701d14);
         phase = (float)v;
         float f;
         const u8 *const row = CurveRow(fx, v, f);
@@ -386,7 +386,7 @@ void SwirledPlaces(u8 *fx, Place *places, float x, float y, float z) {
     }
 }
 
-float ShakeDraw() { return (float)(X87Reg((double)(s32)((Crt().rand() & 0x1f) - 0x10)) * K(0x00701c64)); }
+float ShakeDraw() { return (float)(X87Reg((double)(s32)((Crt().rand() & 0x1f) - 0x10)) * gWeatherfx_701c64); }
 
 void ShakenPlaces(const u8 *fx, Place *places, float x, float y, float z) {
     for (s32 i = 0; i < at<s32>(fx, 0x3318); i++) {
@@ -409,7 +409,7 @@ u32 __fastcall WeatherFx_DrawDrops(u8 *fx, void *, float x, float y, float z) {
     const float across = (float)(X87Reg(*reinterpret_cast<const float *>((uintptr_t)0x008bcbcc)) * at<float>(fx, 0x3354));
     const u32 highBits = X87_FloatThrough(at<u32>(fx, 0x3354));
     const float &high = at<float>(&highBits, 0);
-    const u32 colour = at<u32>(*reinterpret_cast<u8 **>((uintptr_t)0x0087a248), 0x2c);
+    const u32 colour = at<u32>(gMeshlist_87a248, 0x2c);
     const u8 *const texture = at<const u8 *>(fx, 0x3348);
     const u32 id = texture && (at<u32>(texture, 8) & 0x1000) ? at<u32>(texture, 0x1c) : 0;
     u32 u0 = 0, v0 = 0;
@@ -423,8 +423,8 @@ u32 __fastcall WeatherFx_DrawDrops(u8 *fx, void *, float x, float y, float z) {
     float us[3], vs[3];
     at<u32>(us, 0) = u0;
     at<u32>(vs, 0) = v0;
-    us[1] = (float)(us[0] - s * K(0x00701cd0));
-    vs[1] = (float)(vs[0] - t * K(0x00701cd0));
+    us[1] = (float)(us[0] - s * gWeatherFx_DrawDrops_701cd0);
+    vs[1] = (float)(vs[0] - t * gWeatherFx_DrawDrops_701cd0);
     us[2] = (float)(X87Reg(us[0]) + s);
     vs[2] = (float)(X87Reg(vs[0]) + t);
 
@@ -438,13 +438,13 @@ u32 __fastcall WeatherFx_DrawDrops(u8 *fx, void *, float x, float y, float z) {
 
     for (s32 i = 0; i < at<s32>(fx, 0x3318); i++) {
         Place &p = places[i];
-        if (!(p.z > K(0x00701ca0))) continue;
-        const X87Reg w = X87Reg(p.z) * K(0x00701d20) - K(0x00701c9c);
+        if (!(p.z > gWeatherFx_701ca0)) continue;
+        const X87Reg w = X87Reg(p.z) * gWeatherFx_DrawDrops_701d20 - gWeatherFx_DrawDrops_701c9c;
         p.x = (float)(X87Reg(p.x) * w);
         p.y = (float)(X87Reg(p.y) * w);
         const u32 uA = X87_FloatThrough(at<u32>(us, (1 + (i & 1)) * 4)), uB = X87_FloatThrough(at<u32>(us, (i & 1) * 4));
         const u32 vA = X87_FloatThrough(at<u32>(vs, (1 + (i >> 1 & 1)) * 4)), vB = X87_FloatThrough(at<u32>(vs, (i >> 1 & 1) * 4));
-        const float nearer = (float)(X87Reg(p.z) - K(0x00701d10)), further = (float)(X87Reg(p.z) - K(0x00701d24));
+        const float nearer = (float)(X87Reg(p.z) - gWeatherFx_701d10), further = (float)(X87Reg(p.z) - gWeatherFx_DrawDrops_701d24);
         const float lower = (float)X87Reg(-(X87Reg(p.y) - high).v);
         // (The second dword of each vertex's colour stays unset, sic.)
         u32 vertices[20 * 8];   // (room for clipping, which swaps its output with this buffer)
@@ -453,7 +453,7 @@ u32 __fastcall WeatherFx_DrawDrops(u8 *fx, void *, float x, float y, float z) {
         vertices[2] = Bits(nearer);
         vertices[3] = Bits(further);
         vertices[4] = colour;
-        vertices[6] = Bits((float)((X87Reg(at<float>(&uA, 0)) + at<float>(&uB, 0)) * K(0x00701c84)));
+        vertices[6] = Bits((float)((X87Reg(at<float>(&uA, 0)) + at<float>(&uB, 0)) * gWeatherFx_701c84));
         vertices[7] = vB;
         vertices[8] = Bits((float)(X87Reg(across) + p.x));
         vertices[9] = Bits(lower);
@@ -508,20 +508,20 @@ u32 __fastcall WeatherFx_DrawStreaks(u8 *fx, void *, float x, float y, float z) 
 
     Streak *s = streaks;
     for (s32 left = at<s32>(fx, 0x3318); left != 0; left--, s++) {
-        const bool front = s->from.z > K(0x00701ca0);
+        const bool front = s->from.z > gWeatherFx_701ca0;
         s->from.y = (float)X87Reg(-X87Reg(s->from.y).v);
         s->to.y = (float)X87Reg(-X87Reg(s->to.y).v);
         if (!front) continue;
         // Across the streak on the screen, its size a tenth of its length; the nearer, the brighter (none past 6).
-        const float acrossY = (float)((X87Reg(s->to.x) - s->from.x) * K(0x00701d00));
-        const float acrossX = (float)((X87Reg(s->to.y) - s->from.y) * K(0x00701d00));
-        s32 bright = (s32)(long long)((X87Reg(K(0x00701d04)) - s->from.z) * K(0x00701d08)).v;
+        const float acrossY = (float)((X87Reg(s->to.x) - s->from.x) * gWeatherFx_DrawStreaks_701d00);
+        const float acrossX = (float)((X87Reg(s->to.y) - s->from.y) * gWeatherFx_DrawStreaks_701d00);
+        s32 bright = (s32)(long long)((X87Reg(gWeatherFx_DrawStreaks_701d04) - s->from.z) * gWeatherFx_DrawStreaks_701d08).v;
         if (bright < 0) bright = 0;
-        const u32 fog = at<u32>(*reinterpret_cast<u8 **>((uintptr_t)0x0087a248), 0x2c);
+        const u32 fog = at<u32>(gMeshlist_87a248, 0x2c);
         const u32 shade = (u32)bright * 0x30303;
         const u32 colourFrom = (shade | 0x80000000) & fog, colourTo = (shade | 0xff000000) & fog;
-        const u32 nearer = Bits((float)(X87Reg(s->from.z) - K(0x00701d0c)));
-        const u32 depthFrom = Bits((float)(X87Reg(s->from.z) - K(0x00701d10))), depthTo = Bits((float)(X87Reg(s->to.z) - K(0x00701d10)));
+        const u32 nearer = Bits((float)(X87Reg(s->from.z) - gWeatherFx_DrawStreaks_701d0c));
+        const u32 depthFrom = Bits((float)(X87Reg(s->from.z) - gWeatherFx_701d10)), depthTo = Bits((float)(X87Reg(s->to.z) - gWeatherFx_701d10));
         const u32 uFar = Bits((float)(X87Reg(u) + uSize)), vFar = Bits((float)(X87Reg(v) + vSize));
         const u32 uNear = X87_FloatThrough(at<u32>(sizes, 8)), vNear = X87_FloatThrough(at<u32>(sizes, 0xc));
         // (The second dword of each vertex's colour stays unset, sic.)
@@ -587,11 +587,11 @@ extern "C" void __cdecl WeatherFx_ReloadEffects() {
     g_reload->ctor(h);
     handle[0] = 0x006fd9e8;
     if (*reinterpret_cast<u8 **>((uintptr_t)0x008bcbac)) {
-        const char *name = g_reload->locate(TextAt(0x00765218), 1, nullptr);
+        const char *name = g_reload->locate(TextAt((u32)&gText_WeatherFx_765218), 1, nullptr);
         g_reload->load(*reinterpret_cast<u8 **>((uintptr_t)0x008bcbac), nullptr, 2, name);
-        name = g_reload->locate(TextAt(0x007651f4), 1, nullptr);
+        name = g_reload->locate(TextAt((u32)&gText_WeatherFx_7651f4), 1, nullptr);
         g_reload->load(*reinterpret_cast<u8 **>((uintptr_t)0x008bcbac), nullptr, 1, name);
-        name = g_reload->locate(TextAt(0x007651d0), 1, nullptr);
+        name = g_reload->locate(TextAt((u32)&gText_WeatherFx_7651d0), 1, nullptr);
         g_reload->load(*reinterpret_cast<u8 **>((uintptr_t)0x008bcbac), nullptr, 3, name);
     }
     if (u8 *const queue = *reinterpret_cast<u8 **>((uintptr_t)0x008c47a0))

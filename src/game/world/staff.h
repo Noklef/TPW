@@ -425,3 +425,34 @@ void __fastcall Guard_HandleMessage(u8 *guard, void *, u8 *message);
 // 0x4d4450 (thiscall (message), pops 4; kinds 6 and 8): Staff_HandleMessage.
 void __fastcall Staff_HandleMessageDefault(u8 *staff, void *, u8 *message);
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(char[24], gText_Guard_Serialize_75a8d8, 0x0075a8d8, 0x18);
+GAME_DATA(char[8], gText_Guard_Serialize_75a8f0, 0x0075a8f0, 0x8);
+GAME_DATA(char[16], gText_Handyman_Serialize_75aa94, 0x0075aa94, 0x10);
+GAME_DATA(char[24], gText_Handyman_Serialize_75aaa4, 0x0075aaa4, 0x18);
+GAME_DATA(char[20], gText_Handyman_Serialize_75aabc, 0x0075aabc, 0x14);
+GAME_DATA(char[16], gText_Mechanic_Serialize_75b158, 0x0075b158, 0x10);
+GAME_DATA(char[20], gText_Mechanic_Serialize_75b168, 0x0075b168, 0x14);
+GAME_DATA(char[12], gText_Staff_Serialize_75e330, 0x0075e330, 0xc);
+GAME_DATA(char[12], gText_Staff_Serialize_75e33c, 0x0075e33c, 0xc);
+GAME_DATA(char[12], gText_Staff_Serialize_75e380, 0x0075e380, 0xc);
+GAME_DATA(char[12], gText_Staff_Serialize_75e38c, 0x0075e38c, 0xc);
+GAME_DATA(char[20], gText_Staff_Serialize_75e398, 0x0075e398, 0x14);
+GAME_DATA(char[16], gText_StaffPoolEntry_Serialize_75e69c, 0x0075e69c, 0x10);
+GAME_DATA(char[12], gText_StaffPoolEntry_Serialize_75e6ac, 0x0075e6ac, 0xc);
+GAME_DATA(char[12], gText_StaffPoolEntry_Serialize_75e6c0, 0x0075e6c0, 0xc);
+GAME_DATA(char[12], gText_StaffPoolEntry_Serialize_75e6cc, 0x0075e6cc, 0xc);
+GAME_DATA(char[8], gText_StaffPoolEntry_Serialize_75e6d8, 0x0075e6d8, 0x8);
+GAME_DATA(char[28], gText_StaffPool_Serialize_75e788, 0x0075e788, 0x1c);
+GAME_DATA(char[20], gText_StaffPool_Serialize_75e7a4, 0x0075e7a4, 0x14);
+GAME_DATA(char[20], gText_StaffTraining_Serialize_761e9c, 0x00761e9c, 0x14);
+GAME_DATA(u32, gStaff_7852e8, 0x007852e8, 0x4);
+GAME_DATA(u32, gStaff_7852ec, 0x007852ec, 0x4);
+GAME_DATA(u32, gStaff_7852f0, 0x007852f0, 0x4);
+GAME_DATA(u32, gStaff_7852f4, 0x007852f4, 0x4);
+GAME_DATA(s32, gStaff_7852f8, 0x007852f8, 0x4);
+GAME_DATA(s32, gStaff_785324, 0x00785324, 0x4);
+GAME_DATA(s32, gStaff_785328, 0x00785328, 0x4);

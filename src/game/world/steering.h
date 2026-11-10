@@ -115,3 +115,8 @@ s32 *__fastcall SteerFollowPath_Steer(void *self, void *, s32 *out, u8 *nav);
 // pointers, the last 0: read, sic, when no other matches) and only while the list's end is not at its capacity.
 void __cdecl Steering_SetPathBehaviours();
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(s32, gSteering_7cf048, 0x007cf048, 0x4);

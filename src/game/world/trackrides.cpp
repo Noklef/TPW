@@ -18,6 +18,8 @@
 #include "ridelist.h"
 #include "trackpools.h"
 #include "things.h"
+#include "collobj.h"
+#include "trackrides.h"
 
 namespace {
 
@@ -68,7 +70,7 @@ u8 *Flagged(u8 *node, u32 clear, u32 set) {
 }
 
 // A car's position dword (+0x34 or +0x38) as the sounds take it: fild; fmul 0.0033036 (0x700f20); __ftol.
-s32 SoundPlace(const u8 *car, u32 offset) { return Ftol(X87_MulIntDouble(at<s32>(car, offset), global<float>(0x00700f20))); }
+s32 SoundPlace(const u8 *car, u32 offset) { return Ftol(X87_MulIntDouble(at<s32>(car, offset), gTrackrides_700f20)); }
 
 // The first thing in use (newest first) that is an object (+2 is 3) of the ride (its dword +0x28 the name): its handle, else 0
 // (TrakRide_FindThing's search, inlined, through Thing_ByHandle).
@@ -1174,8 +1176,8 @@ bool FrameDue() { return (global<u8>(0x00877b5c) & 0x1f) == 0; }
 // 256 - atan2(a, b) / pi * 256 truncated (__ftol): fild a; fild b; fpatan (unrounded); fmul 1 / pi [0x700eb8]; fmul 256 [0x700ec0];
 // fsubr 256, as collobj's RideTurn.
 s32 Heading(s32 a, s32 b) {
-    const double turned = X87_MulDouble(X87_MulDouble(X87_Atan2((double)a, (double)b), global<double>(0x00700eb8)), global<double>(0x00700ec0));
-    return (s32)(long long)X87_Add(global<double>(0x00700ec0), -turned);
+    const double turned = X87_MulDouble(X87_MulDouble(X87_Atan2((double)a, (double)b), gCollobj_700eb8), gCollobj_700ec0);
+    return (s32)(long long)X87_Add(gCollobj_700ec0, -turned);
 }
 
 // (heading - +0x54) & 0x1ff as -0xff..0x100, times speed (32-bit) over 1000 (signed, truncated).
@@ -1199,7 +1201,7 @@ const u8 *PartPlace(const u8 *entry, u32 &x, u32 &y, X87Reg &z) {
         y = at<u32>(part, 0x34);
         z = X87Reg(at<float>(part, 0x38));
     } else {
-        z = X87Reg(global<float>(0x00700ed0));
+        z = X87Reg(gTrackrides_700ed0);
         y = x = 0;
     }
     return part;
@@ -1230,10 +1232,10 @@ void SpawnAlong(const u8 *car, u32 index, s32 effect, u32 &slot) {
         dz = X87Reg(z) / stored;
     } else {
         dz = X87Reg(global<float>(0x00700eb0));
-        dy = X87Reg(global<float>(0x00700ed0));
+        dy = X87Reg(gTrackrides_700ed0);
         dx = 0;
     }
-    const float scale = global<float>(0x00700ed4);
+    const float scale = gTrackrides_700ed4;
     const s32 vz = Ftol(dz * scale), vy = Ftol(dy * scale), vx = Ftol(X87Reg(FloatOf(dx)) * scale);
     const s32 z = Ftol(pz * scale), y = Ftol(X87Reg(FloatOf(py)) * scale), x = Ftol(X87Reg(FloatOf(px)) * scale);
     Particle_SpawnWithVelocity(effect, x, y, z, vx, vy, vz);
@@ -1247,7 +1249,7 @@ void SystemAtPart(const u8 *car) {
     u32 px, py;
     X87Reg pz(0.0);
     PartPlace(PartEntry(car, at<u32>(car, 0x24)), px, py, pz);
-    const float scale = global<float>(0x00700ed4);
+    const float scale = gTrackrides_700ed4;
     const s32 z = Ftol(pz * scale), y = Ftol(X87Reg(FloatOf(py)) * scale), x = Ftol(X87Reg(FloatOf(px)) * scale);
     ParticleSystem_SetVectorA(system, x, y, z);
 }
@@ -1259,8 +1261,8 @@ void SoundAtCar(u8 *car, u32 &slot, bool walk) {
     const u32 sound = at<u32>(car, 0x20);
     if (!sound)
         return;
-    const s32 x = Ftol(X87_MulIntDouble(at<s32>(car, 0x34), global<float>(0x00700f20)));
-    const s32 z = Ftol(X87_MulIntDouble(at<s32>(car, 0x38), global<float>(0x00700f20)));
+    const s32 x = Ftol(X87_MulIntDouble(at<s32>(car, 0x34), gTrackrides_700f20));
+    const s32 z = Ftol(X87_MulIntDouble(at<s32>(car, 0x38), gTrackrides_700f20));
     at<u32>(car, 0x20) = Sound_SetPosition(sound, x, 0, z);
     const u32 ride = NameOf(at<const u8 *>(car, 0x9c));
     s32 id = 0;
@@ -1336,7 +1338,7 @@ void __cdecl TrakCar_Move(u8 *car) {
         slot = at<u32>(car, 0x58);
         const s32 turn = (s32)slot;
         if ((turn < 0 ? (s32)(0u - (u32)turn) : turn) > 0x30)
-            at<s32>(car, 0x58) = Ftol(X87Reg((double)turn) * global<float>(0x00700f24) * global<float>(0x00700f28));
+            at<s32>(car, 0x58) = Ftol(X87Reg((double)turn) * gTrakCar_Move_700f24 * gTrakCar_Move_700f28);
         const s32 now = at<s32>(car, 0x58);
         const s32 eighth = (s32)((u32)now + ((u32)(now >> 31) & 0x7f)) >> 7;
         at<s32>(car, 0x5c) = eighth > 0x10 ? 0x10 : eighth < -0x10 ? -0x10 : eighth;

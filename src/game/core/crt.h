@@ -109,6 +109,15 @@ void __cdecl CRT_onexitinit();
 void __cdecl CRT_CxxSetUnhandledExceptionFilter();
 void __cdecl CRT_CxxRestoreUnhandledExceptionFilter();
 
+// 0x68cbd0 / 0x68cbf0 / 0x68cc10: _ValidateRead / _ValidateWrite / _ValidateExecute: 1 when IsBadReadPtr / IsBadWritePtr / IsBadCodePtr says 0, else 0.
+s32 __cdecl CRT_ValidateRead(const void *block, u32 size);
+s32 __cdecl CRT_ValidateWrite(void *block, u32 size);
+s32 __cdecl CRT_ValidateExecute(const void *code);
+
+// 0x687bc0: __CxxUnhandledExceptionFilter (stdcall): an MSVC C++ exception (0xe06d7363, 3 parameters, magic 0x19930520): terminate 0x682590 (the EH runtime, by address), 1. Else the
+// filter before it ([0xfb1454], read again for the call) when set and _ValidateExecute passes it; else 0.
+s32 __stdcall CRT_CxxUnhandledExceptionFilter(const u32 *const *pointers);
+
 // 0x67a7d0: atexit: 0 when _onexit took fn, else -1.
 s32 __cdecl CRT_atexit(void *fn);
 
@@ -149,8 +158,22 @@ s32 *__cdecl CRT_errno();
 // no thread or no resume: the block freed (a null too), the Win32 error mapped when there is one, -1.
 u32 __cdecl CRT_beginthread(void *proc, u32 stack, void *arg);
 
+// 0x67f780: _beginthreadex: the same with +4 -1 and CreateThread's own security, flags and id (entry 0x67f800); no resume. Returns the handle, or 0.
+u32 __cdecl CRT_beginthreadex(void *security, u32 stack, void *proc, void *arg, u32 flags, u32 *id);
+
+// 0x67e0d0 / 0x67f800 (stdcall (data)): _threadstart / _threadstartex: the data to the TLS slot (_amsg_exit(0x10) when that fails; ex: +0 the thread's id), the
+// floating point set-up [0x77e71c]; then under __try the proc (cdecl / stdcall) with +0x4c, and _endthread / _endthreadex (with its answer); __except (_XcptFilter, 0x688800) _exit(code).
+u32 __stdcall CRT_threadstart(u32 *data);
+u32 __stdcall CRT_threadstartex(u32 *data);
+
+// 0x67e180 / 0x67f8b0: _endthread / _endthreadex(code): [0x77e720] when set; the thread's data (none: _amsg_exit(0x10)); its handle +4 closed unless -1 (not ex);
+// _freeptd; ExitThread(0 / code).
+void __cdecl CRT_endthread();
+void __cdecl CRT_endthreadex(u32 code);
+
 // 0x67af00: swprintf: _woutput on a string file (0x7fffffff bytes), then two zero bytes put (_flsbuf where the count has run out). Returns _woutput's answer.
 s32 __cdecl CRT_swprintf(u16 *to, const u16 *format, ...);
+s32 __cdecl CRT_vswprintf(u16 *to, const u16 *format, void *args);   // 0x67f4d0: the same with a va_list
 
 // 0x67bf40: _snprintf; 0x67c1e0: vsprintf (room of 0x7fffffff); 0x67f3a0: _vsnprintf: a string file (flags 0x42) through _output, then one zero byte, through _flsbuf when no room is left.
 s32 __cdecl CRT_snprintf(char *to, u32 count, const char *format, ...);
@@ -262,6 +285,27 @@ u32 __cdecl CRT_strtoul(const char *text, const char **end, s32 base);
 s32 __cdecl CRT_tolowerLocked(s32 c);
 s32 __cdecl CRT_tolower(s32 c);  // 0x67fa60
 
+// 0x688d00: __crtLCMapStringW: the call found once as for __crtLCMapStringA (0xfb1550). A positive count cut at a terminator (wcsncnt). 1: LCMapStringW. 2: the units narrowed (code page
+// or the current 0xfb1450; a block of malloc), LCMapStringA twice (a block of malloc for the result), then with flag 0x400 the bytes strncpy'd (at most size; none if size is 0), else widened.
+// The size written or needed; 0 if a step fails. Any other value there is returned (sic).
+s32 __cdecl CRT_LCMapStringW(u32 id, u32 flags, const u16 *from, s32 count, u16 *to, s32 size, u32 page);
+
+// 0x68a440: __crtGetStringTypeW: the call found once (0xfb188c). 1: GetStringTypeW. 2: the units narrowed into a block of calloc(1, n), their types by GetStringTypeA into a block of malloc
+// (2n + 2) with 0xffff put at the count's last unit and the one past (by the wide count, sic); copied out only when the first changed and the second did not, else 0. Others returned (sic).
+s32 __cdecl CRT_GetStringTypeW(u32 info, const u16 *text, s32 count, u16 *types, u32 page, u32 id);
+
+// 0x67f330: iswctype: WEOF 0; below 0x100 the table _pwctype ([0x77ea94]); else 0 with no locale, else __crtGetStringTypeW (0 if it fails). Anded with the mask's low 16 bits.
+s32 __cdecl CRT_iswctype(u32 c, u32 mask);
+
+// 0x67e670 / 0x67ed90: _towlower_lk / _towupper_lk: WEOF as it is; no locale: A-Z / a-z only; below 0x100 and not upper / lower case (iswctype 1 / 2): as it is; else __crtLCMapStringW
+// (0x100 / 0x200), c when it fails. Only the low 16 bits count.
+u16 __cdecl CRT_towlowerLocked(u32 c);
+u16 __cdecl CRT_towupperLocked(u32 c);
+
+// 0x67e5d0 / 0x67ed00: towlower / towupper: no locale: A-Z / a-z only (towupper: no WEOF test first); else the same under the locale's count or lock 0x13.
+u16 __cdecl CRT_towlower(u32 c);
+u16 __cdecl CRT_towupper(u32 c);
+
 // 0x67f670: _strnicmp: -1, 0, 1 over at most n bytes. No locale: through A-Z, the bytes as they are when one ends. Else through _tolower_lk under the locale's count or lock 0x13; both
 // words keep what the map left above their bytes (sic), so that an end is not seen under a two-byte answer.
 s32 __cdecl CRT_strnicmp(const char *a, const char *b, u32 n);
@@ -304,6 +348,27 @@ char *__cdecl CRT_strstr(const char *text, const char *wanted);
 // 0x67a480: atol: white space, a sign, digits, with no check for overflow. 0x688730: _itoa: a minus only in radix 10.
 s32 __cdecl CRT_atol(const char *text);
 char *__cdecl CRT_itoa(s32 value, char *out, s32 radix);
+
+// 0x67a520: atoi: atol. 0x67a530, 0x67a560, 0x67a590, 0x67a5c0: isalpha (0x103), isdigit (4), isspace (8), isalnum (0x107): _isctype past MB_CUR_MAX 1, else
+// _pctype's word (the character not checked). 0x67a730: iswspace: iswctype(c, 8).
+s32 __cdecl CRT_atoi(const char *text);
+s32 __cdecl CRT_isalpha(s32 c);
+s32 __cdecl CRT_isdigit(s32 c);
+s32 __cdecl CRT_isspace(s32 c);
+s32 __cdecl CRT_isalnum(s32 c);
+u32 __cdecl CRT_iswspace(u32 c);
+// 0x67a6c0: atof: past white space (isspace's test), _fltin2 over the rest; its double.
+double __cdecl CRT_atof(const char *text);
+// 0x67acb0, 0x67acc0: operator delete (free), operator new (_nh_malloc with mode 1).
+void __cdecl CRT_delete(void *block);
+void *__cdecl CRT_new(u32 size);
+// 0x67ae00: strncpy: n bytes, the zeros past the text's end.
+char *__cdecl CRT_strncpy(char *to, const char *from, u32 n);
+
+// 0x67e010: _itow: _itoa into a 0x14-byte local (radix 2 with a long value overruns it, sic), widened by MultiByteToWideChar (ANSI code page, at most 0x14 units). Returns out.
+// 0x67f4a0: _wtoi: narrowed by WideCharToMultiByte into a 0x14-byte local (not terminated when the text fills it, sic), then atol.
+u16 *__cdecl CRT_itow(s32 value, u16 *out, s32 radix);
+s32 __cdecl CRT_wtoi(const u16 *text);
 
 // 0x67b0d0: wcsncpy. 0x67bf10: wcscpy. 0x67bed0: wcscat. 0x67f450: wcsncat (always an end). 0x67c290: wcscmp (-1, 0 or 1). 0x67f410: wcsncmp (the difference of the last units). 0x67c2f0: wcschr (the end too for 0).
 u16 *__cdecl CRT_wcsncpy(u16 *dest, const u16 *from, u32 count);

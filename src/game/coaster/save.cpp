@@ -4,6 +4,7 @@
 #include <cstring>
 
 #include "../files/file.h"
+#include "../world/ridelist.h"
 
 namespace {
 
@@ -36,7 +37,7 @@ u32 remap(u32 flags, const u32 *from, u32 count) {
 extern "C" {
 
 u32 __cdecl Coasters_Save(Stream *stream) {
-    const u8 *first = *reinterpret_cast<const u8 *const *>(0x00790fe0);
+    const u8 *first = *reinterpret_cast<const u8 *const *>(&gRidelist_790fe0);
     u32 links = 0;
     for (const u8 *link = first; link; link = at<const u8 *>(link, 0x18)) ++links;
     write(stream, &links, 4);

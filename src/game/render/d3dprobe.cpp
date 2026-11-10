@@ -11,6 +11,7 @@
 #include "../math/x87.h"
 #include "drawbuffer.h"
 #include "d3dresult.h"
+#include "ddopen.h"
 
 using namespace d3dresult;
 
@@ -112,7 +113,7 @@ u32 __fastcall D3dProbe_FogTest(u8 *probe) {
         renderCaps() |= 0x8000;
         return 0;
     }
-    const u32 mask = global<u32>(0x008bd4dc);
+    const u32 mask = gDdopen_8bd4dc;
     pixel &= mask;
     if (pixel == 0 || pixel == mask) {
         setFlags(probe, 0x109256);
@@ -121,7 +122,7 @@ u32 __fastcall D3dProbe_FogTest(u8 *probe) {
         renderState(probe, 0x22, 0xffffff);  // FOGCOLOR
         draw(probe, 0, 0x80000000);
         if (readPixel(probe, &pixel)) {
-            const u32 m = global<u32>(0x008bd4dc);
+            const u32 m = gDdopen_8bd4dc;
             const u32 v = pixel & m;
             renderCaps() |= v == 0 || v == m ? 0x4000 : 0x8000;
         }
@@ -253,7 +254,7 @@ u32 __fastcall D3dProbe_ReadPixel(u8 *, void *, s32 x, s32 y, u32 *out) {
     const s32 bits = global<s32>(0x008bcbe4);
     const u32 pixel = desc[9] + static_cast<u32>(bits >> 3) * static_cast<u32>(x) + desc[4] * static_cast<u32>(y);
     *out = bits == 0x10 ? global<u16>(pixel) : global<u32>(pixel);
-    *out &= global<u32>(0x008bd4dc);
+    *out &= gDdopen_8bd4dc;
     comcall<u32>(surface, 0x80, 0u);
     return 1;
 }
@@ -275,9 +276,9 @@ u32 __fastcall D3dProbe_SetFog(u8 *self, void *, u32 start, u32 end, u32 colour)
     std::memcpy(&e, &end, 4);
     const X87Reg range = X87Reg(e) - s;
     if (range.v > 0)
-        global<float>(0x008bd498) = static_cast<float>(X87Reg(1.0) / range);
+        gD3dprobe_8bd498 = static_cast<float>(X87Reg(1.0) / range);
     else
-        global<u32>(0x008bd498) = 0;
+        reinterpret_cast<u32 &>(gD3dprobe_8bd498) = 0;
     renderState(probe, 0x30, 0);
     renderState(probe, 0x22, colour);   // FOGCOLOR
     if (renderCaps() & 0xc000) {

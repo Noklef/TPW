@@ -1,6 +1,7 @@
 #include "mmxblit.h"
 
 #include <cstdint>
+#include "../render/rasterformat.h"
 
 namespace {
 
@@ -130,7 +131,7 @@ void __cdecl MmxBlit_Convert16(u8 *source, u8 *out, u32 width, u32 rows, s32 sou
     const uint64_t far = clearing ? global<uint64_t>(0x0077e580) : 0;
     const u32 back = gMmxBlit_Convert16_fab4d8;
     u8 *z = moved(depth, (s32)(0u - back * 2)), *d = moved(out, (s32)(0u - back * 2)), *s = moved(source, (s32)(0u - back * 4));
-    const bool packed = global<u32>(0x00fbe058) == 5;
+    const bool packed = gRasterformat_fbe058 == 5;
     u32 row = 0;
     do {
         const uint64_t d0 = global<uint64_t>(0x0077e540 + (row & 3) * 16), d1 = global<uint64_t>(0x0077e548 + (row & 3) * 16);

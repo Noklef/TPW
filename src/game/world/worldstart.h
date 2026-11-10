@@ -34,3 +34,9 @@ extern "C" {
 // Message 13 of 0 posted to the message centre [0x788d3c], made first when null (0x244 bytes: 29 of 20 bytes, 0x405460 and 0x40f970; a failed block stays null). +0x1da738 = 0. Returns 0 when one of the first two loads failed, else 1.
 u32 __fastcall World_Start(u8 *world, void *, const char *level);
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(char[16], gText_World_Start_76255c, 0x0076255c, 0x10);
+GAME_DATA(char[28], gText_World_Start_76256c, 0x0076256c, 0x1c);

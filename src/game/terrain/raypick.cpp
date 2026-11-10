@@ -12,6 +12,7 @@
 #include "../model/worldverts.h"
 #include "../motion/normals.h"
 #include "land.h"
+#include "../math/sintable.h"
 
 namespace {
 
@@ -213,10 +214,10 @@ void __cdecl RayPick_World(float *out, u32 unused, float *out2, u32 *hitFlag) {
     (void)unused;
     // The three corners of the view, turned to the screen, then by the camera.
     const float half = (float)((X87Reg(global<float>(0x74c9b8)) * global<float>(0x74d13c)) * kHalf);
-    const float scale = global<float>(0x7b095c);
+    const float scale = gSinTableScale;
     const s32 first = Fistp((float)(X87Reg(scale) * half));
     const s32 second = Fistp((float)((X87Reg(half) - kQuarterTurn) * scale));
-    const u32 mask = global<u32>(0x7b0960);
+    const u32 mask = gSinTableMask;
     const float *const sines = reinterpret_cast<const float *>((uintptr_t)0x7b0968);
     const float sine = sines[mask & (u32)first], cosine = sines[mask & (u32)second];
     const float yz[2] = {(float)((X87Reg(cosine) * 0.0f) - (X87Reg(sine) * 1.0f)), (float)((X87Reg(cosine) * 1.0f) + (X87Reg(0.0f) * sine))};

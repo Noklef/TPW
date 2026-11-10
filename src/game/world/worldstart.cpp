@@ -9,6 +9,7 @@
 #include "thingmsg.h"
 #include "things.h"
 #include "../ui/dialog74fb20.h"
+#include "worldstart.h"
 
 namespace {
 
@@ -85,12 +86,12 @@ extern "C" u32 __fastcall World_Start(u8 *world, void *, const char *level) {
         Crt().sprintf(path, reinterpret_cast<const char *>(0x007488ac), level, reinterpret_cast<const char *>(0x00762588));
         if (!load_balance(path, 1)) ok = 0;
     } else {
-        if (!load_balance(reinterpret_cast<const char *>(0x0076256c), 0)) ok = 0;
-        Crt().sprintf(path, reinterpret_cast<const char *>(0x007488ac), level, reinterpret_cast<const char *>(0x0076255c));
+        if (!load_balance(gText_World_Start_76256c, 0)) ok = 0;
+        Crt().sprintf(path, reinterpret_cast<const char *>(0x007488ac), level, gText_World_Start_76255c);
         if (!load_balance(path, 1)) ok = 0;
         read_setting_once();
         if (gDialog74fb20_fb3b7c == 2) {
-            Crt().sprintf(path, reinterpret_cast<const char *>(0x007488a4), level, global<const char *>(0x007cf4a0), reinterpret_cast<const char *>(0x0076255c));
+            Crt().sprintf(path, reinterpret_cast<const char *>(0x007488a4), level, global<const char *>(0x007cf4a0), gText_World_Start_76255c);
             load_balance(path, 1);   // (its failure only printed)
         }
     }

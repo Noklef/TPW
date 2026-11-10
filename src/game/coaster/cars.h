@@ -163,3 +163,9 @@ void __cdecl CoasterCar_PlayClank(const u8 *coaster, const u8 *car);
 // ahead's unrounded| > 1, CoasterCar_PlayClank.
 void __cdecl CoasterCar_Bump(const u8 *coaster, u8 *car);
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(float, gCoasterCars_InitUnusedOne_7923a0, 0x007923a0, 0x4);
+GAME_DATA(float, gCoasterCars_InitUnusedEpsilon_7923a4, 0x007923a4, 0x4);

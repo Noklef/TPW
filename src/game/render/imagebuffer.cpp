@@ -4,6 +4,7 @@
 #include <cstring>
 
 #include "../core/vcall.h"
+#include "ddopen.h"
 
 namespace {
 
@@ -19,10 +20,10 @@ bool screen_format(u32 *format) {
     format[0] = 0x20;
     const u32 surface = at<u32>(reinterpret_cast<const void *>((uintptr_t)global(0x00879a24)), 0x10);
     const u32 answer = comcall<u32>(reinterpret_cast<void *>((uintptr_t)surface), 0x54, format);
-    global(0x00879cd4) = answer;
+    global((u32)&gDdopen_879cd4) = answer;
     if ((s32)answer < 0)
         g_calls.Cd(0x00564650, g_calls.Cd(0x0056a770, answer));
-    if (const u32 now = global(0x00879cd4)) {
+    if (const u32 now = global((u32)&gDdopen_879cd4)) {
         g_calls.Th(0x0056af20, 0x00879ad0, 2u, now);
         return false;
     }

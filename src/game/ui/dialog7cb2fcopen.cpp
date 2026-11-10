@@ -20,6 +20,7 @@
 #include "window705a50.h"
 #include "windowscript.h"
 #include "panel7b9940.h"
+#include "../gfx/texcache.h"
 
 namespace {
 

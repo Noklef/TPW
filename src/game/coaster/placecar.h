@@ -41,3 +41,9 @@ u32 __cdecl CoasterEdit_PlaceCarPart(s32 x, s32 y, u32 height, u32 *out);
 
 struct AddrCall;
 void CoasterPlaceCar_SetPartCalls(const AddrCall *table, u32 count);   // tests/fncmp/placecarpart.py
+
+#include "../core/gamedata.h"
+
+// Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(const float, gCoasterEdit_PlaceCar_6fdea4, 0x006fdea4, 0x4);
+GAME_DATA(u32, gPlacecar_79c658, 0x0079c658, 0x4);

@@ -157,7 +157,7 @@ extern "C" u32 __fastcall TerrainGround_Draw(u8 *self) {
     const u32 stride = global<u32>(0x007014b4);
     global<u32>(0x00879dec) = 0;
     g_env->drain(at<u8 *>(gRenderer_87a6d0, 0x2c));
-    g_env->setView(global<u8 *>(0x0087a248), nullptr, reinterpret_cast<const u32 *>((uintptr_t)0x0087b090), 0);
+    g_env->setView(gMeshlist_87a248, nullptr, reinterpret_cast<const u32 *>((uintptr_t)0x0087b090), 0);
     g_env->light(self);
     static const float kUvs[4][2] = {{0, 0}, {0, 1}, {1, 1}, {1, 0}};
     // (The frame's arrays, as big as the original's.)

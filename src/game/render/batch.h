@@ -76,3 +76,17 @@ u32 __fastcall Model_AddTriangles(u8 *model, void *, u8 *batch, const void *matr
 // (or child) that did. 1 else, or with no current part.
 u32 __fastcall Model_AddTree(void *self, void *, u8 *model, const u32 *matrix, u8 *batch, const u8 *vertices);
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(s32, gBatch_8bd4ac, 0x008bd4ac, 0x4);
+GAME_DATA(u32, gBatch_8c63b0, 0x008c63b0, 0x4);
+GAME_DATA(u32, gBatch_8c63b4, 0x008c63b4, 0x4);
+GAME_DATA(u32, gBatch_8c63b8, 0x008c63b8, 0x4);
+GAME_DATA(u32, gBatch_8c63bc, 0x008c63bc, 0x4);
+GAME_DATA(u32, gBatch_8c63c0, 0x008c63c0, 0x4);
+GAME_DATA(u32, gBatch_8c63c4, 0x008c63c4, 0x4);
+GAME_DATA(u32, gBatch_8c63c8, 0x008c63c8, 0x4);
+GAME_DATA(u32, gBatch_8c63cc, 0x008c63cc, 0x4);
+GAME_DATA(u32, gBatch_8c63d0, 0x008c63d0, 0x4);

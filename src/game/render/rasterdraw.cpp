@@ -6,6 +6,8 @@
 
 #include "../math/x87.h"
 #include "fixedverts.h"
+#include "rasteriser.h"
+#include "rasterformat.h"
 
 namespace {
 
@@ -14,7 +16,7 @@ AddrCalls g_calls;
 template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cast<T *>((uintptr_t)p + offset); }
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
 
-const u32 kSpanRoutine = 0x00fbe044, kColour = 0x00fbe008;
+const u32 kSpanRoutine = (u32)&gRasteriser_fbe044, kColour = (u32)&gRasterformat_fbe008;
 
 // __ftol's low half.
 s32 Ftol(X87Reg v) { return (s32)(u32)(long long)v.v; }
@@ -38,6 +40,17 @@ void Triangles(const u8 *primitive, u32 routine) {
         const u32 vertices = at<u32>(primitive, 0x28);
         g_calls.Cd(routine, vertices + index[0] * 0x18u, vertices + index[1] * 0x18u, vertices + index[2] * 0x18u);
     }
+}
+
+// An index list's triangles, (count + 2) / 3 of them, each by a routine. Returns 0. (sic: a count past 0xfffffffd wraps to none and the loop runs on.)
+u32 IndexedTriangles(const u8 *vertices, const u16 *indices, u32 count, u32 routine) {
+    if (!count) return 0;
+    u32 n = (count + 2) / 3;
+    do {
+        g_calls.Cd(routine, (u32)(uintptr_t)(vertices + indices[0] * 0x18u), (u32)(uintptr_t)(vertices + indices[1] * 0x18u), (u32)(uintptr_t)(vertices + indices[2] * 0x18u));
+        indices += 3;
+    } while (--n);
+    return 0;
 }
 
 }  // namespace
@@ -107,6 +120,10 @@ u32 __fastcall RasterDraw_Rect(u8 *self, void *, float x0, float y0, float x1, f
     _mm_empty();
     return 1;
 }
+
+u32 __cdecl RasterDraw_TriangleList(u32, u32, const u8 *vertices, u32, const u16 *indices, u32 count, u32) { return IndexedTriangles(vertices, indices, count, 0x006ef7f0u); }
+
+u32 __cdecl RasterDraw_TriangleListNoZ(u32, u32, const u8 *vertices, u32, const u16 *indices, u32 count, u32) { return IndexedTriangles(vertices, indices, count, 0x006f0a50u); }
 
 u32 __stdcall RasterDraw_MappedTriangle(float scale, u32 colour, u32 specular, float u0, float v0, float u1, float v1) {
     const float half = global<float>(0x007013c4), z = 50.0f, w = 0.02f;

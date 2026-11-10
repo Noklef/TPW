@@ -17,7 +17,9 @@ EAX, 'b' AL (a flag returned over whatever EAX held), 'w' AX (likewise a u16), '
 st0, 'edi' EDI (an original that leaves a result there, its port's naked thunk moving the port's EAX to it: src/hook/regthunks.h). Call(stack=True): the stack arguments as the (last) call left them are compared too, after the regions (an original that writes above its return address). Call(ignore=[(address, count), ...]): those bytes of the regions are left out of the comparison in both (a stack address's low byte that
 the original stores, which the two sides' stacks cannot share). Call(jumped=True): the first call is jumped to, its return address above
 the stack arguments (cseg's span routines, entered by a JMP with the six registers they pop on the stack). A register convention (hand-written assembly taking
-its arguments in registers) names the registers, three letters each, in argument order: conv='esi' puts args[0] in ESI and the rest on the
+its arguments in registers) names the registers, three letters each, in argument order (conv='st': the arguments are doubles, two dwords
+each, low first, loaded onto the x87 stack in order, the last in ST0, as the C library's _CI math helpers take them; with ret 'd', or 'dc'
+for the double and the control word): conv='esi' puts args[0] in ESI and the rest on the
 stack, 'esiedi' args[0] in ESI and args[1] in EDI (of EAX EBX ECX EDX ESI EDI EBP; EBP must not be 0); the hook row's replacement is then the port's naked thunk
 (src/hook/regthunks.h), which pushes the registers as the port's ordinary cdecl arguments. Call(steps=) the emulator's step limit (5 000 000: a case past it is a
 "step limit"; raise it only for a function whose smallest real input runs that long). Region addresses must be in the game's data (0x6e7000-0xfc5200) or at 0x10000000 and up (RAM, ALLOC.. are free slots); anything a case
@@ -1274,6 +1276,10 @@ class Bench:
                 for reg in register_args(conv):
                     e.r[reg] = args[0]
                     args = args[1:]
+                if conv == 'st':   # (as FLD loads them: a signalling NaN quiet)
+                    e.st = [struct.unpack('<d', struct.pack('<Q', q | (1 << 51 if q >> 52 & 0x7ff == 0x7ff and q & (1 << 52) - 1 else 0)))[0]
+                            for q in (args[i] & 0xffffffff | (args[i + 1] & 0xffffffff) << 32 for i in range(0, len(args), 2))][::-1]
+                    args = []
                 jumped = c.jumped and not step
                 if jumped:
                     e.push(x87emu.SENTINEL)
@@ -1302,9 +1308,9 @@ class Bench:
             return 'masked byte %08x read (emu at %08x)' % (f.args[0], at)
         finally:
             e.__dict__.pop('rb', None)
-        st0 = struct.unpack('<Q', struct.pack('<d', e.st[0]))[0] if c.ret == 'd' and e.st else 0
+        st0 = struct.unpack('<Q', struct.pack('<d', e.st[0]))[0] if c.ret[0] == 'd' and e.st else 0
         head = ['%08x' % e.r['EDI'] if c.ret == 'edi' else '%08x' % e.r['EAX'] if c.ret in 'ai' else '%02x' % (e.r['EAX'] & 0xff) if c.ret == 'b' else '%04x' % (e.r['EAX'] & 0xffff) if 'w' in c.ret else '-', '%08x' % e.r['EDX'] if c.ret == 'i' else '%04x' % e.cw if 'c' in c.ret else '-',
-                '%016x' % st0 if c.ret == 'd' else '-']
+                '%016x' % st0 if c.ret[0] == 'd' else '-']
         return head + [e.read(k, len(v)).hex() for k, v in c.regions.items()] + ([e.read(low, 4 * pushed).hex()] if c.stack else [])
 
     def cases(self, gen, n, seed, wild):
@@ -1339,7 +1345,7 @@ class Bench:
             if len(w) < 3 or w[0] in ('crash', 'nohook', 'fncmp:'):
                 out.append(line)
                 continue
-            out.append([w[0] if c.ret in 'ai' or c.ret == 'edi' else w[0][-2:] if c.ret == 'b' else w[0][-4:] if 'w' in c.ret else '-', w[1] if c.ret == 'i' else w[1][-4:] if 'c' in c.ret else '-', w[2] if c.ret == 'd' else '-'] + w[3:])
+            out.append([w[0] if c.ret in 'ai' or c.ret == 'edi' else w[0][-2:] if c.ret == 'b' else w[0][-4:] if 'w' in c.ret else '-', w[1] if c.ret == 'i' else w[1][-4:] if 'c' in c.ret else '-', w[2] if c.ret[0] == 'd' else '-'] + w[3:])
         if len(out) < len(cases):
             out += ['driver stopped (exit %x): %s' % (p.returncode & 0xffffffff, p.stderr.strip()[:200])] * (len(cases) - len(out))
         return out

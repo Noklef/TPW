@@ -21,6 +21,11 @@
 #include "../world/queuepieces.h"
 #include "placecheck.h"
 #include "registry.h"
+#include "../world/ridelist.h"
+#include "placecar.h"
+#include "edittools.h"
+#include "coastersupdate.h"
+#include "coastersload.h"
 
 namespace {
 
@@ -287,18 +292,18 @@ double __cdecl Car_TravelCost(const u8 *ride, u32 withBase, const u8 *car, const
 }
 
 void __cdecl Car_SetMoveCostChange(const u8 *car, const float *cost, const float *extra, const float *x, const float *z, u32 a, u32 b) {
-    const u8 *const ride = global<const u8 *>(0x00790fec);
-    if (!ride || !global<u32>(0x0079c640) || global<u32>(0x00785a2c)) return;
+    const u8 *const ride = gCoastersload_790fec;
+    if (!ride || !reinterpret_cast<u32 &>(gEdittools_79c640) || global<u32>(0x00785a2c)) return;
     s32 before = (s32)(long long)*cost;   // __ftol
     if (extra) before += (s32)(long long)*extra;
     s32 after = Float_RoundUp((float)Car_TravelCost(ride, 0, car, x, z, nullptr, nullptr));
     if (extra)
-        after += Float_RoundUp((float)Car_TravelCost(global<const u8 *>(0x00790fec), 0, at<const u8 *>(car, 0x64), nullptr, nullptr, x, z));
-    if (global<u32>(0x0079c6d8) == a && global<u32>(0x0079c6a0) == b) {
-        global<s32>(0x0079c69c) = 0;
+        after += Float_RoundUp((float)Car_TravelCost(gCoastersload_790fec, 0, at<const u8 *>(car, 0x64), nullptr, nullptr, x, z));
+    if (reinterpret_cast<u32 &>(gEdittools_79c6d8) == a && reinterpret_cast<u32 &>(gEdittools_79c6a0) == b) {
+        reinterpret_cast<s32 &>(gEdittools_79c69c) = 0;
         return;
     }
-    global<s32>(0x0079c69c) = after - before;
+    reinterpret_cast<s32 &>(gEdittools_79c69c) = after - before;
 }
 
 void __cdecl Car_SetupCoupling(u8 *car, u32 *coupling, const u8 *spec, const u8 *type) {
@@ -376,7 +381,7 @@ void __cdecl Coaster_DeleteCar(u8 *owner, u8 *car) {
             const u8 *const model = at<u8 *>(RideAt(at<u32>(end, 0x70)), 8);
             const u32 part = at<u32>(at<u8 *>(at<u8 *>(end, 0x100), 0x18), 0x2c);
             const u8 *const entry = at<u8 *>(at<u8 *>(at<u8 *>(model, 0x28), 4), part * 0x14 + 4);
-            at<u32>(owner, 0x118) = X87_FloatThrough(entry ? at<u32>(entry, 0x34) : global<u32>(0x006fe1b4));
+            at<u32>(owner, 0x118) = X87_FloatThrough(entry ? at<u32>(entry, 0x34) : gEdittools_6fe1b4);
         }
     }
     at<u32>(owner, 0x44) -= 1;
@@ -392,14 +397,14 @@ void __cdecl Coaster_DeleteCar(u8 *owner, u8 *car) {
     }
     const u32 flags = at<u32>(car, 8);
     if (flags & 0x40) {
-        const u8 *const game = global<u8 *>(0x00790fec);
+        const u8 *const game = gCoastersload_790fec;
         if (game && (*at<const u8 *>(game, 4) & 2)) {
             if (flags & 0x80) {
-                global<u32>(0x0079c664) = 0;
-                global<u32>(0x0079c658) &= ~0x40u;
+                gEdittools_79c664 = 0;
+                gPlacecar_79c658 &= ~0x40u;
             } else {
-                global<u32>(0x0079c664) = 1;
-                global<u32>(0x0079c658) |= 0x40;
+                gEdittools_79c664 = 1;
+                gPlacecar_79c658 |= 0x40;
             }
         }
     }
@@ -460,27 +465,27 @@ void __cdecl Coaster_DropCar(u8 *owner, u8 *car, u8 *pylon, s32 x, s32 y, float 
         // it leaves them)
         if (several) {
             if (pylon) {
-                const float wanted = global<float>(0x0079c694);
+                const float wanted = gEdittools_79c694;
                 u32 level = several, height = (u32)cx;
                 if (env->findBraceLevel(wanted, pylon, &level, &at<float>(&height, 0), 0))
                     env->insertCar(owner, car, pylon, level, at<float>(&height, 0), nullptr, 0, 0, noShrink, 0);
             } else {
                 u8 *const entry = env->addEntry(x, y, 0, 0, (u32)(uintptr_t)type, nullptr);
-                env->insertCar(owner, car, entry, 0, global<float>(0x0079c694), nullptr, 0, 0, noShrink, 0);
+                env->insertCar(owner, car, entry, 0, gEdittools_79c694, nullptr, 0, 0, noShrink, 0);
             }
         } else if (pylon) {
-            const float wanted = global<float>(0x0079c694);
+            const float wanted = gEdittools_79c694;
             u8 *const own = at<u8 *>(car, 0x100);
             env->removeCar(owner, car);
             env->removeEntry(owner, own, 1);
-            if (own == global<u8 *>(0x0079c660)) global<u8 *>(0x0079c660) = nullptr;
+            if (own == gEdittools_79c660) gEdittools_79c660 = nullptr;
             u32 level = (u32)cx, height = (u32)(uintptr_t)owner;
             if (env->findBraceLevel(wanted, pylon, &level, &at<float>(&height, 0), 0))
                 env->insertCar(owner, car, pylon, level, at<float>(&height, 0), nullptr, 0, 0, noShrink, 0);
         } else {   // (the lone car's train moved: x / y unclamped)
-            const double fx = X87_MulInt((u32)x, global<float>(0x006fe1e0));
+            const double fx = X87_MulInt((u32)x, gCoaster_DropCar_6fe1e0);
             at<s32>(at<u8 *>(car, 0x100), 0xc) = x;
-            const double fy = X87_MulInt((u32)y, global<float>(0x006fe1e0));
+            const double fy = X87_MulInt((u32)y, gCoaster_DropCar_6fe1e0);
             at<s32>(at<u8 *>(car, 0x100), 0x10) = y;
             at<u32>(at<u8 *>(car, 0x100), 8) = tile;
             at<float>(at<u8 *>(car, 0x100), 0x1c) = (float)fx;
@@ -493,8 +498,8 @@ void __cdecl Coaster_DropCar(u8 *owner, u8 *car, u8 *pylon, s32 x, s32 y, float 
         at<u32>(at<u8 *>(at<u8 *>(holder, 8), 4), 0x30) |= 0x4000;
         env->fitToGrid(at<u8 *>(holder, 8), global<u8 *>(0x007a0854), at<u32>(at<u8 *>(car, 0x100), 0x20), 0);
     }
-    if (outX) *outX = (float)(global<float>(0x006fe1e8) - X87Reg(X87_MulInt((u32)x, global<float>(0x006fe1e4))));
-    if (outY) *outY = (float)(global<float>(0x006fe1e8) - X87Reg(X87_MulInt((u32)y, global<float>(0x006fe1e4))));
+    if (outX) *outX = (float)(gCoaster_DropCar_6fe1e8 - X87Reg(X87_MulInt((u32)x, gCoaster_DropCar_6fe1e4)));
+    if (outY) *outY = (float)(gCoaster_DropCar_6fe1e8 - X87Reg(X87_MulInt((u32)y, gCoaster_DropCar_6fe1e4)));
 }
 }
 
@@ -522,7 +527,7 @@ u32 __cdecl Pylon_FindBraceLevel(float wanted, const u8 *train, u32 *level, floa
     float want;
     std::memcpy(&want, &wantBits, 4);
     const u32 count = at<u32>(train, 0x30);
-    if (!(global<u32>(0x0079c658) & 0x100) && count && (at<u8>(at<const u8 *>(train, 0x34), 8) & 0x40)) {
+    if (!(gPlacecar_79c658 & 0x100) && count && (at<u8>(at<const u8 *>(train, 0x34), 8) & 0x40)) {
         const float length = CarLength(at<const u8 *>(train, 0x30 + 4 * count));
         if (!(((X87Reg(length) + base) + gap).v >= top)) {  // below the top, or unordered
             *level = count;
@@ -675,7 +680,7 @@ void __cdecl Train_InsertCar(const u8 *owner, u8 *car, u8 *train, u32 slot, floa
         if (!(t.v > 0.0)) t = 0.0;
         if (!(t.v < 1.0)) t = 1.0;
         at<float>(car, 0xe8) = (float)t;
-        Car_SetChannelRates(at<u32>(global<const u8 *>(0x00790fec), 4), car);
+        Car_SetChannelRates(at<u32>(gCoastersload_790fec, 4), car);
         Car_FitHeight(owner, old, type, oldLength, free);
     } else if (type) {
         Car_FitHeight(owner, car, type, height, free);
@@ -704,10 +709,10 @@ void __cdecl Train_SwapCars(u8 *a, u8 *b) {
     const u32 la = at<u32>(a, 0xe8);
     at<u32>(a, 0xe8) = at<u32>(b, 0xe8);
     at<u32>(b, 0xe8) = X87_FloatThrough(la);
-    Car_SetChannelRates(at<u32>(global<const u8 *>(0x00790fec), 4), a);
-    Car_SetChannelRates(at<u32>(global<const u8 *>(0x00790fec), 4), b);
+    Car_SetChannelRates(at<u32>(gCoastersload_790fec, 4), a);
+    Car_SetChannelRates(at<u32>(gCoastersload_790fec, 4), b);
     Train_SetCouplings(at<u32>(train, 0x18), train);
-    Flags_SetChanged(global<u32 *>(0x00790fec), 1);
+    Flags_SetChanged(reinterpret_cast<u32 * &>(gCoastersload_790fec), 1);
     Train_PlaceCars(at<const u8 *>(train, 0x18), train, 0, 0);
 }
 
@@ -734,10 +739,10 @@ void __cdecl Car_Edited(u32 what, u8 *car, u8 *coaster, u32, u32 keepContacts) {
 }
 
 void __cdecl Car_SetLengthAt(u32 length, u32 index, u32 unused, u32 keepContacts) {
-    u8 *const coaster = global<u8 *>(0x00790fec);
+    u8 *const coaster = gCoastersload_790fec;
     u8 *const car = reinterpret_cast<u8 *>((uintptr_t)Track_PieceAt(coaster + 0x3c, index));
     at<u32>(car, 0xe8) = length;
-    Car_Edited(1, car, global<u8 *>(0x00790fec), unused, keepContacts);
+    Car_Edited(1, car, gCoastersload_790fec, unused, keepContacts);
 }
 
 }
@@ -745,7 +750,7 @@ void __cdecl Car_SetLengthAt(u32 length, u32 index, u32 unused, u32 keepContacts
 namespace {
 
 u8 *PieceAt(u32 index) {
-    return reinterpret_cast<u8 *>((uintptr_t)Track_PieceAt(global<u8 *>(0x00790fec) + 0x3c, index));
+    return reinterpret_cast<u8 *>((uintptr_t)Track_PieceAt(gCoastersload_790fec + 0x3c, index));
 }
 
 void SetAngles(u8 *car, u32 a, u32 b, bool mark) {
@@ -769,33 +774,33 @@ extern "C" {
 void __cdecl Car_ApplyLengthAt(u32 length, u32 index) {
     u8 *const car = PieceAt(index);
     at<u32>(car, 0xe8) = length;
-    Car_Edited(1, car, global<u8 *>(0x00790fec), 0, 0);
+    Car_Edited(1, car, gCoastersload_790fec, 0, 0);
 }
 
 void __cdecl Car_SetE0At(u32 value, u32 index, u32 mark, u32 keep) {
     u8 *const car = PieceAt(index);
     at<u32>(car, 0xe0) = value;
     if (mark) at<u32>(car, 8) |= 1;
-    Car_Edited(2, car, global<u8 *>(0x00790fec), 0, keep);
+    Car_Edited(2, car, gCoastersload_790fec, 0, keep);
 }
 
 void __cdecl Car_ApplyE0At(u32 value, u32 index) {
     u8 *const car = PieceAt(index);
     at<u32>(car, 0xe0) = value;
     at<u32>(car, 8) |= 1;
-    Car_Edited(2, car, global<u8 *>(0x00790fec), 0, 0);
+    Car_Edited(2, car, gCoastersload_790fec, 0, 0);
 }
 
 void __cdecl Car_SetAnglesAt(u32 a, u32 b, u32 index, u32 mark, u32 keep) {
     u8 *const car = PieceAt(index);
     SetAngles(car, a, b, mark != 0);
-    Car_Edited(4, car, global<u8 *>(0x00790fec), 0, keep);
+    Car_Edited(4, car, gCoastersload_790fec, 0, keep);
 }
 
 void __cdecl Car_ApplyAnglesAt(u32 a, u32 b, u32 index) {
     u8 *const car = PieceAt(index);
     SetAngles(car, a, b, true);
-    Car_Edited(4, car, global<u8 *>(0x00790fec), 0, 0);
+    Car_Edited(4, car, gCoastersload_790fec, 0, 0);
 }
 
 void __cdecl Car_SwapWithNextAt(u32 index) {
@@ -812,7 +817,7 @@ void __cdecl Train_PlaceCarAtBrace(u8 *coaster, u8 *car, u8 *train, u32, u32 sav
     const u8 *const other = at<const u8 *>(coaster, (at<u8>(coaster, 0x3c) & 2) ? 0x64 : 0x54);
     u32 out = 0;   // (the loop's counter's slot: 0 after a saved train; Train_InsertCar always writes it)
     u32 type;
-    const bool marks = (global<u8>(0x0079c658) & 0x40) != 0;
+    const bool marks = (reinterpret_cast<u8 &>(gPlacecar_79c658) & 0x40) != 0;
     if (save) {
         std::memcpy(reinterpret_cast<void *>(0x00790ff0), train, 0x48);
         const u32 count = global<u32>(0x00791020);
@@ -828,7 +833,7 @@ void __cdecl Train_PlaceCarAtBrace(u8 *coaster, u8 *car, u8 *train, u32, u32 sav
     }
     if (marks) {
         at<u32>(car, 8) |= 0x40;
-        if (global<u32>(0x0079c664) == 2) at<u32>(car, 8) |= 0x80;
+        if (gEdittools_79c664 == 2) at<u32>(car, 8) |= 0x80;
     }
     if (!save) at<u32>(train, 0x18) = type;
     u32 wanted;
@@ -889,7 +894,7 @@ void __cdecl Coaster_PlacePendingPiece(u8 *coaster) {
     const s32 gz = (s32)(long long)(X87Reg(global<float>(0x007a1c78)) * 0.100000001f).v;
     const u32 cell = at<u32>(at<const u8 *>(global<const u8 *>(0x007a0854), 0x6c), 0x18) * (u32)gz + (u32)gx;
     u8 *const link = CoasterLinks_FindKey(cell);
-    global<u8 *>(0x00790fd4) = link;
+    gTrain_790fd4 = link;
     const float fx = (float)X87_MulInt((u32)gx, 10.0f), fz = (float)X87_MulInt((u32)gz, 10.0f);   // fild qword; 0x6fde7c
     const u8 *const last = at<const u8 *>(track, 0x24);
     const X87Reg dx = X87Reg(at<float>(last, 0x4c)) - fx, dz = X87Reg(at<float>(last, 0x54)) - fz;
@@ -918,7 +923,7 @@ void __cdecl Coaster_PlacePendingPiece(u8 *coaster) {
             if (at<u32>(link, 0x34 + 4 * k) == at<u32>(track, flag2 ? 0x24 : 0x1c)) return;
         const u8 *const type = at<const u8 *>(link, 0x18);
         if (count >= at<u32>(type, 0xcc)) return;
-        if (((global<u32>(0x0079c658) & 0x40) != 0) != ((at<u32>(type, 0) & 0x4000) != 0)) return;
+        if (((gPlacecar_79c658 & 0x40) != 0) != ((at<u32>(type, 0) & 0x4000) != 0)) return;
         Track_AppendPiece(at<u8 *>(track, 0x30), track, (u32)open);
         Train_PlaceCarAtBrace(coaster, at<u8 *>(track, 0x30), link, at<u32>(coaster, 0x118), 1);
     } else {
@@ -955,14 +960,14 @@ void __cdecl Coaster_PlacePendingPiece(u8 *coaster) {
 }
 
 void __cdecl Coasters_DropPendingPiece() {
-    for (u8 *c = global<u8 *>(0x00790fe0); c; c = at<u8 *>(c, 0x18)) {
+    for (u8 *c = gRidelist_790fe0; c; c = at<u8 *>(c, 0x18)) {
         if (!(at<u8>(c, 0) & 1)) continue;
         u8 *const track = c + 0x3c;
-        global<u8 *>(0x00792218) = c;
-        global<u8 *>(0x00790fe4) = track;
+        gCoastersupdate_792218 = c;
+        gCoastersload_790fe4 = track;
         const u32 flags = at<u32>(c, 0);
-        if (c == global<u8 *>(0x00790fec) && (flags & 4)) {
-            const bool held = global<u32>(0x00790fd4) != 0;
+        if (c == gCoastersload_790fec && (flags & 4)) {
+            const bool held = reinterpret_cast<u32 &>(gTrain_790fd4) != 0;
             u8 *piece = at<u8 *>(track, 0x30);
             u8 *const before = at<u8 *>(piece, 0x68);
             if (held && (flags & 8)) {
@@ -1013,9 +1018,9 @@ void __cdecl Coasters_DropPendingPiece() {
                 TrackPieces_Renumber(before);
             }
         }
-        at<u32>(global<u8 *>(0x00792218), 0) &= ~1u;
+        at<u32>(gCoastersupdate_792218, 0) &= ~1u;
     }
-    global<u32>(0x00792218) = 0;
+    reinterpret_cast<u32 &>(gCoastersupdate_792218) = 0;
 }
 
 double __cdecl Car_LengthFromNode(const u8 *node, const u8 *range, u8 *car, const u8 *other, u32 keep, u32 wantValue, u32 *out) {
@@ -1038,7 +1043,7 @@ double __cdecl Car_LengthFromNode(const u8 *node, const u8 *range, u8 *car, cons
         }
         float v;
         std::memcpy(&v, &value, 4);
-        v = (float)(v - X87Reg(Vec3_Distance(a, b)) * global<float>(0x006fdea0));   // (fmul -0.5; fsubr)
+        v = (float)(v - X87Reg(Vec3_Distance(a, b)) * gCar_LengthFromNode_6fdea0);   // (fmul -0.5; fsubr)
         std::memcpy(&value, &v, 4);
         const u8 *const model = at<const u8 *>(at<const u8 *>(car, 0x100), 0x18);
         const float length = (float)((X87Reg(v) - at<float>(model, 0xbc)) / (X87Reg(at<float>(model, 0xc0)) - at<float>(model, 0xbc)));
@@ -1046,7 +1051,7 @@ double __cdecl Car_LengthFromNode(const u8 *node, const u8 *range, u8 *car, cons
         std::memcpy(&bits, &length, 4);
         Car_SetLengthAt(bits, at<u32>(car, 0), 1, 0);
     } else {
-        value = at<u32>(global<const u8 *>(0x00790fec), 0x118);
+        value = at<u32>(gCoastersload_790fec, 0x118);
     }
     if (out) *out = value;
     float v;

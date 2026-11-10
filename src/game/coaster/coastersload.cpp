@@ -5,6 +5,7 @@
 
 #include "../files/file.h"
 #include "../math/x87.h"
+#include "../world/ridelist.h"
 
 namespace {
 
@@ -106,7 +107,7 @@ void PlaceTrains(u32 coaster) {
 }
 
 void AddEntries() {   // flag 1
-    const u32 coaster = G<u32>(0x00790fec);
+    const u32 coaster = reinterpret_cast<u32 &>(gCoastersload_790fec);
     D(coaster, 0x3c) |= 1;
     const u32 type = D(coaster, 4);
     const u32 entries = (G<u8>(type) & 0x20) ? 1 : 2;
@@ -135,9 +136,9 @@ void AddEntries() {   // flag 1
         const u32 how = (i == 0 && (G<u8>(type) & 0x20)) ? 0x144 : 4;
         g_calls.Cd(0x00434060, link, D(link, 0x1c), D(link, 0x24), D(link, 0x20), how, 0u, 0u, 0u, 0u);   // CoasterLink_AddCar
     }
-    D(G<u32>(0x00790fec), 0) |= 0x1001;
+    D(reinterpret_cast<u32 &>(gCoastersload_790fec), 0) |= 0x1001;
     if (!G<u32>(0x00785a2c)) g_calls.Cd(0x00442880, 0x10u);   // CoasterEdit_SetTools
-    g_calls.Cd(0x00435730, G<u32>(0x00790fec), 2u);   // Coaster_SetState
+    g_calls.Cd(0x00435730, reinterpret_cast<u32 &>(gCoastersload_790fec), 2u);   // Coaster_SetState
 }
 
 void ReadSeat(void *stream, u32 seat) {
@@ -192,11 +193,11 @@ void ReadCoaster(void *stream) {
     Read(stream, Ptr(h), 0x20);
     const u32 flags = From<u32>(h, 0);
     const u32 id = From<u16>(h, 0xa);
-    u32 coaster = G<u32>(0x00790fe0);
+    u32 coaster = reinterpret_cast<u32 &>(gRidelist_790fe0);
     while (coaster && D(coaster, 0x10) != id) coaster = D(coaster, 0x18);
     if (coaster) {
-        G<u32>(0x00790fec) = coaster;
-        G<u32>(0x00790fe4) = coaster + 0x3c;
+        reinterpret_cast<u32 &>(gCoastersload_790fec) = coaster;
+        reinterpret_cast<u32 &>(gCoastersload_790fe4) = coaster + 0x3c;
         g_calls.Cd(0x00436d10, D(coaster, 4), coaster, 1u);   // CoasterLink_SetUpCars
         const X87Reg rate(G<const float>(D(D(D(G<u32>(kTable + 4 * id), 8), 4), 0x78) + 0x44));
         g_calls.Cd(0x00436ac0, coaster, (u32)From<u16>(h, 0xe), (u32)From<u16>(h, 0x10), (float)rate, 1u);   // CoasterLink_AddFixedPieces
@@ -258,7 +259,7 @@ u32 __cdecl Coasters_Load(void *stream) {
     Read(stream, 0x00791ce0, 4);
     for (u32 i = 0; i < count; ++i) {
         ReadCoaster(stream);
-        G<u32>(0x00790fec) = 0;
+        reinterpret_cast<u32 &>(gCoastersload_790fec) = 0;
     }
     return 1;
 }

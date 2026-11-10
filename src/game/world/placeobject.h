@@ -64,3 +64,6 @@ s32 *__cdecl PlaceObject_Footprint(s32 x, s32 y, u32 unused, s32 angle, u32 plac
 
 // Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
 GAME_DATA(const s32 *, gPlaceObject_Footprint_818c18, 0x00818c18, 4);
+
+// Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(const float, gPlaceobject_700cd0, 0x00700cd0, 0x4);

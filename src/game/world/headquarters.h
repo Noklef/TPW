@@ -29,3 +29,10 @@ void __fastcall MechanicHQ_HandleMessage(u8 *hq, void *, u8 *event);
 // levels from +0x24 zeroed, +0x60 (word) and +0x64 = 0, then the message centre's slots 0xc and 0xe. Returns hq.
 u8 *__fastcall StaffHQ_Ctor(u8 *hq);
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(char[12], gText_MechanicHQ_Serialize_75b2f0, 0x0075b2f0, 0xc);
+GAME_DATA(char[24], gText_StaffHQ_Serialize_75e92c, 0x0075e92c, 0x18);
+GAME_DATA(char[16], gText_StaffHQ_Serialize_75e944, 0x0075e944, 0x10);

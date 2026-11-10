@@ -16,6 +16,7 @@
 #include "carsound.h"
 #include "../model/holder.h"
 #include "../motion/animator.h"
+#include "../world/levelsetup.h"
 
 namespace {
 
@@ -341,7 +342,7 @@ void __cdecl Coaster_BoardRiders(u8 *queue, u8 *coaster, u32 first, u32 count) {
         at<uintptr_t>(queue, 0xc4) = slots + 4 * ((u32)((s32)(read - slots + 4) >> 2) % at<u32>(queue, 0xb0));
         --at<u32>(queue, 0xbc);
         if (!rider) return;
-        u32 &seed = *reinterpret_cast<u32 *>((uintptr_t)0x007b0958);
+        u32 &seed = gLevelsetup_7b0958;
         seed = seed * 214013 + 2531011;
         const uintptr_t cars = at<uintptr_t>(coaster, 0x28);
         uintptr_t car = cars + (u32)(((seed >> 16) % count + first) * 0x60);
@@ -403,9 +404,9 @@ void __cdecl CoasterTrain_AtStation(u8 *coaster, u8 *train) {
     at<u32>(train, 0) |= 0x20;
 }
 
-void __cdecl CoasterCars_InitUnusedOne() { *reinterpret_cast<float *>(0x007923a0) = 1.0f; }
+void __cdecl CoasterCars_InitUnusedOne() { gCoasterCars_InitUnusedOne_7923a0 = 1.0f; }
 
-void __cdecl CoasterCars_InitUnusedEpsilon() { *reinterpret_cast<float *>(0x007923a4) = 1.0f / 8388608.0f; }
+void __cdecl CoasterCars_InitUnusedEpsilon() { gCoasterCars_InitUnusedEpsilon_7923a4 = 1.0f / 8388608.0f; }
 
 void __cdecl CoasterCar_PlayClank(const u8 *coaster, const u8 *car) {
     // fld car+0x20; fld coaster+0xa8; _CIfmod; modf(that, &whole); fstp float (the argument's slot); __ftol(whole)

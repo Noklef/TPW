@@ -1,6 +1,11 @@
 #include "crt.h"
+#include "crtenv.h"
+#include "crtfloat.h"
 #include "crtlock.h"
 #include "crtmbstring.h"
+#include "crtstartup.h"
+
+#include <excpt.h>
 
 #include <intrin.h>
 
@@ -227,6 +232,21 @@ void __cdecl CRT_CxxSetUnhandledExceptionFilter() {
 
 void __cdecl CRT_CxxRestoreUnhandledExceptionFilter() { import_slot<u32(__stdcall *)(u32)>(0x006fd1a4)(*reinterpret_cast<u32 *>((uintptr_t)0x00fb1454)); }
 
+s32 __cdecl CRT_ValidateRead(const void *block, u32 size) { return !import_slot<s32(__stdcall *)(const void *, u32)>(0x006fd1d8)(block, size); }   // IsBadReadPtr
+s32 __cdecl CRT_ValidateWrite(void *block, u32 size) { return !import_slot<s32(__stdcall *)(void *, u32)>(0x006fd25c)(block, size); }        // IsBadWritePtr
+s32 __cdecl CRT_ValidateExecute(const void *code) { return !import_slot<s32(__stdcall *)(const void *)>(0x006fd280)(code); }               // IsBadCodePtr
+
+s32 __stdcall CRT_CxxUnhandledExceptionFilter(const u32 *const *pointers) {
+    const u32 *const record = pointers[0];
+    if (record[0] == 0xe06d7363 && record[4] == 3 && record[5] == 0x19930520) {
+        reinterpret_cast<void(__cdecl *)()>((uintptr_t)0x00682590)();   // terminate (the C++ EH runtime, not ported)
+        return 1;
+    }
+    const u32 previous = *reinterpret_cast<const u32 *>((uintptr_t)0x00fb1454);
+    if (!previous || !CRT_ValidateExecute(reinterpret_cast<const void *>((uintptr_t)previous))) return 0;
+    return (*reinterpret_cast<s32(__stdcall *const *)(const u32 *const *)>((uintptr_t)0x00fb1454))(pointers);
+}
+
 void __cdecl CRT_free(void *block) {
     if (!block) return;
     const CrtInnerEnv &env = *g_inner;
@@ -368,7 +388,80 @@ u32 __cdecl CRT_beginthread(void *proc, u32 stack, void *arg) {
     return 0xffffffffu;
 }
 
+void __cdecl CRT_endthread() {
+    if (const auto term = *reinterpret_cast<void(__cdecl *const *)()>((uintptr_t)0x0077e720)) term();
+    u32 *const data = reinterpret_cast<u32 *>(g_inner->getptd());
+    if (!data) g_inner->amsgExit(0x10);
+    if (data[1] != 0xffffffffu) import_slot<s32(__stdcall *)(u32)>(0x006fd13c)(data[1]);    // CloseHandle
+    CRT_freeptd(data);
+    import_slot<void(__stdcall *)(u32)>(0x006fd234)(0);    // ExitThread
+}
+
+void __cdecl CRT_endthreadex(u32 code) {
+    if (const auto term = *reinterpret_cast<void(__cdecl *const *)()>((uintptr_t)0x0077e720)) term();
+    u32 *const data = reinterpret_cast<u32 *>(g_inner->getptd());
+    if (!data) g_inner->amsgExit(0x10);
+    CRT_freeptd(data);
+    import_slot<void(__stdcall *)(u32)>(0x006fd234)(code);    // ExitThread
+}
+
+// The threads' entries share their start: the data to the TLS slot (_amsg_exit(0x10) when that fails), and the floating point set-up [0x77e71c] when there is one.
+static void thread_data(u32 *data) {
+    if (!import_slot<s32(__stdcall *)(u32, void *)>(0x006fd230)(*reinterpret_cast<u32 *>((uintptr_t)0x0077ecd0), data)) g_inner->amsgExit(0x10);    // TlsSetValue
+}
+
+static void thread_fpinit() {
+    if (const auto init = *reinterpret_cast<void(__cdecl *const *)()>((uintptr_t)0x0077e71c)) init();
+}
+
+static s32 thread_filter(u32 code, void *pointers) { return reinterpret_cast<s32(__cdecl *)(u32, void *)>((uintptr_t)0x00688800)(code, pointers); }   // _XcptFilter (the SEH runtime)
+
+u32 __stdcall CRT_threadstart(u32 *data) {
+    thread_data(data);
+    thread_fpinit();
+    u32 code = 0;
+    __try {
+        reinterpret_cast<void(__cdecl *)(u32)>((uintptr_t)data[0x48 / 4])(data[0x4c / 4]);
+        CRT_endthread();
+    } __except (code = GetExceptionCode(), thread_filter(code, GetExceptionInformation())) {
+        CRT__exit(static_cast<s32>(code));
+    }
+    return 0;
+}
+
+u32 __stdcall CRT_threadstartex(u32 *data) {
+    thread_data(data);
+    data[0] = import_slot<u32(__stdcall *)()>(0x006fd248)();    // GetCurrentThreadId (ex only)
+    thread_fpinit();
+    u32 code = 0;
+    __try {
+        CRT_endthreadex(reinterpret_cast<u32(__stdcall *)(u32)>((uintptr_t)data[0x48 / 4])(data[0x4c / 4]));
+    } __except (code = GetExceptionCode(), thread_filter(code, GetExceptionInformation())) {
+        CRT__exit(static_cast<s32>(code));
+    }
+    return 0;
+}
+
+u32 __cdecl CRT_beginthreadex(void *security, u32 stack, void *proc, void *arg, u32 flags, u32 *id) {
+    u32 error = 0;
+    u32 *const data = static_cast<u32 *>(g_inner->calloc(1, 0x74));
+    if (data) {
+        g_inner->initptd(data);
+        data[0x48 / 4] = (u32)(uintptr_t)proc;
+        data[0x4c / 4] = (u32)(uintptr_t)arg;
+        data[1] = 0xffffffffu;
+        const u32 handle = import_slot<u32(__stdcall *)(void *, u32, void *, void *, u32, u32 *)>(0x006fd22c)(security, stack, reinterpret_cast<void *>((uintptr_t)0x0067f800), data, flags, id);    // CreateThread
+        if (handle) return handle;
+        error = last_error();
+    }
+    Crt().free(data);
+    if (error) g_inner->dosmaperr(error);
+    return 0;
+}
+
 s32 __cdecl CRT_swprintf(u16 *to, const u16 *format, ...) { return format_wide(to, 0x7fffffff, format, &format + 1); }
+
+s32 __cdecl CRT_vswprintf(u16 *to, const u16 *format, void *args) { return format_wide(to, 0x7fffffff, format, args); }
 
 s32 __cdecl CRT_snprintf(char *to, u32 count, const char *format, ...) { return format_narrow(to, static_cast<s32>(count), format, &format + 1); }
 
@@ -860,6 +953,137 @@ s32 __cdecl CRT_tolower(s32 c) {
     return result;
 }
 
+s32 __cdecl CRT_LCMapStringW(u32 id, u32 flags, const u16 *from, s32 count, u16 *to, s32 size, u32 page) {
+    using MapW = s32(__stdcall *)(u32, u32, const void *, s32, void *, s32);
+    using MapA = s32(__stdcall *)(u32, u32, const void *, s32, void *, s32);
+    using Widen = s32(__stdcall *)(u32, u32, const char *, s32, u16 *, s32);
+    using Narrow = s32(__stdcall *)(u32, u32, const u16 *, s32, char *, s32, const char *, u32 *);
+    u32 &mode = *reinterpret_cast<u32 *>((uintptr_t)0x00fb1550);
+    if (!mode) {
+        if (import_slot<MapW>(0x006fd198)(0, 0x100, reinterpret_cast<const void *>((uintptr_t)0x00708da8), 1, nullptr, 0))
+            mode = 1;
+        else if (import_slot<MapA>(0x006fd19c)(0, 0x100, reinterpret_cast<const void *>((uintptr_t)0x00708da4), 1, nullptr, 0))
+            mode = 2;
+        else
+            return 0;
+    }
+    if (count > 0) count = static_cast<s32>(CRT_wcsnlen(from, static_cast<u32>(count)));
+    if (mode == 1) return import_slot<MapW>(0x006fd198)(id, flags, from, count, to, size);
+    if (mode != 2) return static_cast<s32>(mode);
+    const u32 code = page ? page : global_u32(0x00fb1450);
+    const s32 bytes = import_slot<Narrow>(0x006fd1dc)(code, 0x220, from, count, nullptr, 0, nullptr, nullptr);
+    if (!bytes) return 0;
+    char *const narrow = static_cast<char *>(CRT_malloc(static_cast<u32>(bytes)));
+    if (!narrow) return 0;
+    char *mapped = nullptr;
+    s32 result = 0;
+    if (import_slot<Narrow>(0x006fd1dc)(code, 0x220, from, count, narrow, bytes, nullptr, nullptr)) {
+        const s32 needed = import_slot<MapA>(0x006fd19c)(id, flags, narrow, bytes, nullptr, 0);
+        if (needed && (mapped = static_cast<char *>(CRT_malloc(static_cast<u32>(needed)))) != nullptr &&
+            import_slot<MapA>(0x006fd19c)(id, flags, narrow, bytes, mapped, needed)) {
+            if (flags & 0x400) {
+                if (size) Crt().strncpy(reinterpret_cast<char *>(to), mapped, static_cast<u32>(size < needed ? size : needed));
+                result = needed;
+            } else {
+                result = size ? import_slot<Widen>(0x006fd174)(code, 1, mapped, needed, to, size) : import_slot<Widen>(0x006fd174)(code, 1, mapped, needed, nullptr, 0);
+            }
+        }
+    }
+    Crt().free(narrow);
+    Crt().free(mapped);
+    return result;
+}
+
+s32 __cdecl CRT_GetStringTypeW(u32 info, const u16 *text, s32 count, u16 *types, u32 page, u32 id) {
+    using TypesW = s32(__stdcall *)(u32, const void *, s32, u16 *);
+    using TypesA = s32(__stdcall *)(u32, u32, const void *, s32, u16 *);
+    using Narrow = s32(__stdcall *)(u32, u32, const u16 *, s32, char *, s32, const char *, u32 *);
+    u32 &mode = *reinterpret_cast<u32 *>((uintptr_t)0x00fb188c);
+    u16 probe[2];
+    if (!mode) {
+        if (import_slot<TypesW>(0x006fd1ec)(1, reinterpret_cast<const void *>((uintptr_t)0x00708da8), 1, probe))
+            mode = 1;
+        else if (import_slot<TypesA>(0x006fd1f0)(0, 1, reinterpret_cast<const void *>((uintptr_t)0x00708da4), 1, probe))
+            mode = 2;
+        else
+            return 0;
+    }
+    if (mode == 1) return import_slot<TypesW>(0x006fd1ec)(info, text, count, types);
+    if (mode != 2) return static_cast<s32>(mode);
+    const u32 code = page ? page : global_u32(0x00fb1450);
+    const s32 bytes = import_slot<Narrow>(0x006fd1dc)(code, 0x220, text, count, nullptr, 0, nullptr, nullptr);
+    if (!bytes) return 0;
+    char *const narrow = static_cast<char *>(g_inner->calloc(1, static_cast<u32>(bytes)));
+    if (!narrow) return 0;
+    u16 *block = nullptr;
+    s32 result = 0;
+    if (import_slot<Narrow>(0x006fd1dc)(code, 0x220, text, count, narrow, bytes, nullptr, nullptr) &&
+        (block = static_cast<u16 *>(CRT_malloc(static_cast<u32>(bytes) * 2 + 2))) != nullptr) {
+        u16 *const end = block + count;   // (by the wide count, sic)
+        end[0] = 0xffff;
+        end[-1] = 0xffff;
+        result = import_slot<TypesA>(0x006fd1f0)(id ? id : global_u32(0x00fb1440), info, narrow, bytes, block);
+        if (end[-1] != 0xffff && end[0] == 0xffff)
+            CRT_memmove(types, block, static_cast<u32>(count) * 2);
+        else
+            result = 0;
+    }
+    Crt().free(narrow);
+    Crt().free(block);
+    return result;
+}
+
+s32 __cdecl CRT_iswctype(u32 c, u32 mask) {
+    const u16 unit = static_cast<u16>(c);
+    if (unit == 0xffff) return 0;
+    u16 type;
+    if (unit < 0x100)
+        type = reinterpret_cast<const u16 *>((uintptr_t)global_u32(0x0077ea94))[unit];
+    else if (!locale_set() || !CRT_GetStringTypeW(1, &unit, 1, &type, 0, 0))
+        return 0;
+    return type & static_cast<u16>(mask);
+}
+
+// What _towlower_lk and _towupper_lk do under a locale: below 0x100 only a character of the `type`; then __crtLCMapStringW.
+static u16 map_wide(u32 c, u32 type, u32 flags) {
+    const u16 unit = static_cast<u16>(c);
+    if (unit < 0x100 && !CRT_iswctype(c, type)) return unit;
+    u16 mapped;
+    return CRT_LCMapStringW(global_u32(0x00fb1440), flags, &unit, 1, &mapped, 1, 0) ? mapped : unit;
+}
+
+static u16 upper_c(u16 unit) { return unit >= 0x61 && unit <= 0x7a ? static_cast<u16>(unit - 0x20) : unit; }
+
+u16 __cdecl CRT_towlowerLocked(u32 c) {
+    const u16 unit = static_cast<u16>(c);
+    if (unit == 0xffff) return unit;
+    return locale_set() ? map_wide(c, 1, 0x100) : fold_c(unit);
+}
+
+u16 __cdecl CRT_towupperLocked(u32 c) {
+    const u16 unit = static_cast<u16>(c);
+    if (unit == 0xffff) return unit;
+    return locale_set() ? map_wide(c, 2, 0x200) : upper_c(unit);
+}
+
+u16 __cdecl CRT_towlower(u32 c) {
+    const u16 unit = static_cast<u16>(c);
+    if (unit == 0xffff) return unit;
+    if (!locale_set()) return fold_c(unit);
+    const bool locked = locale_enter();
+    const u16 result = CRT_towlowerLocked(c);
+    locale_leave(locked);
+    return result;
+}
+
+u16 __cdecl CRT_towupper(u32 c) {
+    if (!locale_set()) return upper_c(static_cast<u16>(c));
+    const bool locked = locale_enter();
+    const u16 result = CRT_towupperLocked(c);
+    locale_leave(locked);
+    return result;
+}
+
 // A byte's class for strtoxl: _isctype under a multibyte locale, else the table.
 static bool byte_is(u8 c, u32 mask) {
     if (static_cast<s32>(global_u32(0x0077e7dc)) > 1) return CRT_isctype(c, static_cast<s32>(mask)) != 0;
@@ -1190,9 +1414,55 @@ s32 __cdecl CRT_atol(const char *text) {
     return static_cast<s32>(sign == 0x2d ? 0u - number : number);
 }
 
+namespace {
+// The ctype test of isalpha and its kind: _isctype past MB_CUR_MAX 1, else _pctype's word.
+s32 ctype_is(s32 c, s32 mask) {
+    if (static_cast<s32>(global_u32(0x0077e7dc)) > 1) return CRT_isctype(c, mask);
+    return reinterpret_cast<const u16 *>((uintptr_t)global_u32(0x0077ea90))[c] & mask;
+}
+}  // namespace
+
+s32 __cdecl CRT_atoi(const char *text) { return CRT_atol(text); }
+s32 __cdecl CRT_isalpha(s32 c) { return ctype_is(c, 0x103); }
+s32 __cdecl CRT_isdigit(s32 c) { return ctype_is(c, 4); }
+s32 __cdecl CRT_isspace(s32 c) { return ctype_is(c, 8); }
+s32 __cdecl CRT_isalnum(s32 c) { return ctype_is(c, 0x107); }
+u32 __cdecl CRT_iswspace(u32 c) { return static_cast<u32>(CRT_iswctype(c, 8)); }
+
+double __cdecl CRT_atof(const char *text) {
+    while (ctype_is(*reinterpret_cast<const u8 *>(text), 8)) ++text;
+    u32 flt[6];
+    double value;
+    std::memcpy(&value, CRT_fltin2(flt, text, static_cast<s32>(std::strlen(text)), 0, 0) + 4, 8);
+    return value;
+}
+
+void __cdecl CRT_delete(void *block) { Crt().free(block); }
+void *__cdecl CRT_new(u32 size) { return CrtInner().nhMalloc(size, 1); }
+
+char *__cdecl CRT_strncpy(char *to, const char *from, u32 n) {
+    char *at = to;
+    for (; n && (*at = *from) != 0; --n) ++at, ++from;
+    for (; n; --n) *at++ = 0;
+    return to;
+}
+
 char *__cdecl CRT_itoa(s32 value, char *out, s32 radix) {
     CRT_xtoa(static_cast<u32>(value), out, static_cast<u32>(radix), radix == 10 && value < 0);
     return out;
+}
+
+u16 *__cdecl CRT_itow(s32 value, u16 *out, s32 radix) {
+    char digits[0x14];
+    CRT_itoa(value, digits, radix);
+    import_slot<s32(__stdcall *)(u32, u32, const char *, s32, u16 *, s32)>(0x006fd174)(0, 1, digits, -1, out, 0x14);   // MultiByteToWideChar
+    return out;
+}
+
+s32 __cdecl CRT_wtoi(const u16 *text) {
+    char digits[0x14];
+    import_slot<s32(__stdcall *)(u32, u32, const u16 *, s32, char *, s32, const char *, u32 *)>(0x006fd1dc)(0, 0, text, -1, digits, 0x14, nullptr, nullptr);   // WideCharToMultiByte
+    return CRT_atol(digits);
 }
 
 u16 *__cdecl CRT_wcsncpy(u16 *dest, const u16 *from, u32 count) {

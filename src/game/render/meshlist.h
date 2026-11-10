@@ -54,3 +54,8 @@ void __fastcall Meshes_LightPoints(u8 *object, void *, u32 *colours, const float
 // a group of four), its normal the i-th of +0x64.
 void __fastcall Meshes_LightMesh(u8 *object, void *, u32 *colours, const u8 *mesh);
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(u8 *, gMeshlist_87a248, 0x0087a248, 0x4);

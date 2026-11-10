@@ -4,6 +4,8 @@
 
 #include <cstdint>
 #include <cstring>
+#include "rasteriser.h"
+#include "devicecreate.h"
 
 namespace {
 
@@ -78,7 +80,7 @@ template <bool kShade, bool kDepth> void StartEdge(u32 edge, const u8 *from, u32
 
 // The span routine [0xfbe044] (one of the 21 its tables hold).
 void Span(u32 row) {
-    switch (global<u32>(0x00fbe044)) {
+    switch (gRasteriser_fbe044) {
     case 0x006f1d70: RasterSpan_TexShadeZ(row); break;
     case 0x006f2140: RasterSpan_TexBlend(row); break;
     case 0x006f2570: RasterSpan_TexBlendAlphaZ(row); break;
@@ -132,7 +134,7 @@ template <bool kShade, bool kDepth> void Setup(const u8 *v0, const u8 *v1, const
     memcpy(pair, &global<u32>(0x00fbe6f8 + order), 8);
     memcpy(&global<u32>(0x00fbe208), pair, 8);
     const u32 row = global<u32>(0x00fbe024) + MaddWords((u32)topRow, global<u32>(0x00fbe02c));
-    const u32 depthRow = global<u32>(0x00fbe028) + MaddWords((u32)topRow, global<u32>(0x00fbe030));
+    const u32 depthRow = gDevicecreate_fbe028 + MaddWords((u32)topRow, gDevicecreate_fbe030);
     SetEdge(0x00fbe2a8, v[top], v[middle], global<u32>(0x00fbe0c0));
     SetEdge(0x00fbe274, v[middle], v[bottom], global<u32>(0x00fbe0bc));
     SetEdge(0x00fbe240, v[top], v[bottom], global<u32>(0x00fbe0c0));
@@ -182,7 +184,7 @@ extern "C" {
 void __cdecl RasterTriangle_Draw(const u8 *v0, const u8 *v1, const u8 *v2) { Setup<true, true>(v0, v1, v2); }
 
 void __cdecl RasterTriangle_DrawFlat(const u8 *v0, const u8 *v1, const u8 *v2) {
-    for (int k = 0; k < 4; ++k) global<u16>(0x00fbe000 + 2 * k) = (u16)(at<u8>(v0, 0xc + k) << 7);
+    for (int k = 0; k < 4; ++k) gRasterspans_fbe000[k] = (u16)(at<u8>(v0, 0xc + k) << 7);
     Setup<false, true>(v0, v1, v2);
 }
 

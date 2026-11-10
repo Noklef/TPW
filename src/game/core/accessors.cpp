@@ -9,6 +9,8 @@
 #include "../ui/dialog74fb20.h"
 #include "../ui/focus.h"
 #include "../ui/windowtimers.h"
+#include "../world/focuscell.h"
+#include "../render/dynfaces.h"
 
 namespace {
 
@@ -80,7 +82,7 @@ u32 __cdecl Global7c2650_Set(u32 value) {
     return value;
 }
 
-u32 __cdecl Global8186ac_Get() { return global<u32>(0x008186ac); }
+u32 __cdecl Global8186ac_Get() { return reinterpret_cast<u32 &>(gFocuscell_8186ac); }
 
 u32 __cdecl Global816d48_Set(u32 value) {
     global<u32>(0x00816d48) = value;
@@ -98,7 +100,7 @@ u32 __cdecl Global802ba8_SetMasked(u32 value) {
 
 void __cdecl Global802bc0_Set1() { gAccessors_802bc0 = 1; }
 
-void __cdecl Global871ee0_Clear() { global<u32>(0x00871ee0) = 0; }
+void __cdecl Global871ee0_Clear() { gDynfaces_871ee0 = 0; }
 
 u8 __cdecl Global7c24d0_GetByte() { return gDialog74fb20_7c24d0; }
 

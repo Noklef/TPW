@@ -171,3 +171,25 @@ u32 __fastcall ParkAnalyser_CountAtTicketBooths(u8 *analyser);
 s32 __fastcall ParkAnalyser_DaysSince21c30(const u8 *analyser);
 s32 __fastcall ParkAnalyser_DaysSince21c38(const u8 *analyser);
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(char[16], gText_ParkAnalyser_Serialize_75994c, 0x0075994c, 0x10);
+GAME_DATA(char[20], gText_ParkAnalyser_Serialize_75996c, 0x0075996c, 0x14);
+GAME_DATA(char[20], gText_ParkAnalyser_Serialize_759990, 0x00759990, 0x14);
+GAME_DATA(char[12], gText_ParkAnalyser_Serialize_7599b4, 0x007599b4, 0xc);
+GAME_DATA(char[12], gText_ParkAnalyser_Serialize_7599c0, 0x007599c0, 0xc);
+GAME_DATA(char[20], gText_ParkAnalyser_Serialize_7599d8, 0x007599d8, 0x14);
+GAME_DATA(char[24], gText_ParkAnalyser_Serialize_7599ec, 0x007599ec, 0x18);
+GAME_DATA(char[36], gText_ParkAnalyser_Serialize_759a04, 0x00759a04, 0x24);
+GAME_DATA(char[20], gText_ParkAnalyser_Serialize_759a28, 0x00759a28, 0x14);
+GAME_DATA(char[12], gText_Analyser_759a3c, 0x00759a3c, 0xc);
+GAME_DATA(char[8], gText_Analyser_759a48, 0x00759a48, 0x8);
+GAME_DATA(char[12], gText_ParkAnalyser_Serialize_759a90, 0x00759a90, 0xc);
+GAME_DATA(char[12], gText_ParkAnalyser_Serialize_759a9c, 0x00759a9c, 0xc);
+GAME_DATA(char[12], gText_ParkAnalyser_Serialize_759aa8, 0x00759aa8, 0xc);
+GAME_DATA(char[12], gText_ParkAnalyser_Serialize_759ab4, 0x00759ab4, 0xc);
+GAME_DATA(char[20], gText_ParkAnalyser_Serialize_759ac0, 0x00759ac0, 0x14);
+GAME_DATA(char[8], gText_AnalyserCell_Serialize_759ad4, 0x00759ad4, 0x8);
+GAME_DATA(char[8], gText_AnalyserCell_Serialize_759adc, 0x00759adc, 0x8);

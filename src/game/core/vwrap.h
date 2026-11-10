@@ -131,3 +131,8 @@ void __fastcall Obj7b51f0_PassThingTo7cc218(u8 *object, void *, u32 handle);
 // 0x47e9b0 (cdecl; name invented, unconfirmed): AsyncPointer_BeginFlip of the pointer [0x7b4b84], if any.
 void __cdecl Pointer_BeginFlip();
 }  // extern "C"
+
+#include "gamedata.h"
+
+// Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(u32, gVwrap_8bba48, 0x008bba48, 0x4);

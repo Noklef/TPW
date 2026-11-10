@@ -36,3 +36,8 @@ u32 __fastcall MapCell_CanBuild(u8 *cell, void *, u32 kind, u32 alone);
 // sets 0x816d58 (or 0x816d50) unless alone. Returns 0, 1, 9, 0xb or 0xd.
 u32 __fastcall MapCell_CanBuildTrack(u8 *cell, void *, u32 kind, u32 alone, u32 direction);
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(s32, gCellbuild_818c14, 0x00818c14, 0x4);

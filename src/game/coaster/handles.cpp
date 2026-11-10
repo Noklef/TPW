@@ -8,6 +8,8 @@
 #include "../math/x87.h"
 #include "cursor.h"
 #include "helpers.h"
+#include "../math/sintable.h"
+#include "coastersupdate.h"
 
 namespace {
 
@@ -99,8 +101,8 @@ void Normalized(float x, float y, float z, float *out) {
 
 // The sine table's entry for an angle by the table's scale, stored as a float first (fistp, rounded to nearest).
 float SineAt(X87Reg angle) {
-    const float index = (float)(angle * *reinterpret_cast<const float *>(0x007b095c));
-    return reinterpret_cast<const float *>(0x007b0968)[_mm_cvtss_si32(_mm_set_ss(index)) & *reinterpret_cast<const u32 *>(0x007b0960)];
+    const float index = (float)(angle * gSinTableScale);
+    return reinterpret_cast<const float *>(0x007b0968)[_mm_cvtss_si32(_mm_set_ss(index)) & gSinTableMask];
 }
 
 // The two comparisons with 0 and 1: a NaN comes out 0.
@@ -183,7 +185,7 @@ void __cdecl TrackNode_Handles(const u8 *rules, const float *way, u8 *node, floa
 }
 
 void __cdecl TrackPiece_NodeHandles(const u8 *piece, const u8 *source) {
-    const u8 *const rules = Ptr(*reinterpret_cast<u8 *const *>(0x00792218), 4);
+    const u8 *const rules = Ptr(*reinterpret_cast<u8 *const *>(&gCoastersupdate_792218), 4);
     const u8 *const info = Ptr(Ptr(piece, 0x100), 0x18);
     u8 *first = Ptr(Ptr(piece, 0x90), 4), *second = Ptr(Ptr(piece, 0x90), 8);
     for (u32 i = 0; i < at<u32>(Ptr(piece, 0x90), 0); ++i, first += 0x58, second += 0x58) {

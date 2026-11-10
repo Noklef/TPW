@@ -42,6 +42,7 @@
 #include "trakcarpose.h"
 #include "weather.h"
 #include "../ui/panel7b9940.h"
+#include "things.h"
 
 namespace {
 
@@ -122,7 +123,7 @@ u32 __fastcall Thing_Detach(u8 *thing) {
     if (thing[2] == 3) g_detach->rideDestroy(at<u32>(thing, 0x20));
     switch (thing[2]) {
     case 1: case 4: case 5: case 6: case 7: case 8: case 0x12:
-        if (thing == global<u8 *>(0x00877350)) global<u8 *>(0x00877350) = nullptr;
+        if (thing == reinterpret_cast<u8 * &>(gThings_877350)) reinterpret_cast<u8 * &>(gThings_877350) = nullptr;
         break;
     default:
         break;

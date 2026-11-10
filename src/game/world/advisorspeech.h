@@ -26,3 +26,8 @@ u32 __cdecl Advisor_Say(s32 id);
 // 0x599d00 (cdecl; a stream): "ADV_", the block 0xf79660 of the size given, the lip times; the old times freed. A short read leaves the words as they were.
 void __cdecl Advisor_Load(Stream *stream);
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(char[28], gText_Advisor_Say_76e0d8, 0x0076e0d8, 0x1c);

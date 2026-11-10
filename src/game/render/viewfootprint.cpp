@@ -93,7 +93,7 @@ void __fastcall Polygon_ScanRows(const u8 *polygon, void *, u8 *scan, u8 *out, u
     if (global<u32>(0x008bd508) & 0x1000000) {
         char line[200];
         for (s32 i = 0; i < at<s32>(polygon, 0xd0); ++i) {
-            Crt().sprintf(line, reinterpret_cast<const char *>((uintptr_t)0x0076830c), (double)at<float>(polygon, (u32)i * 12), (double)at<float>(polygon, (u32)i * 12 + 8));
+            Crt().sprintf(line, gText_Polygon_ScanRows_76830c, (double)at<float>(polygon, (u32)i * 12), (double)at<float>(polygon, (u32)i * 12 + 8));
             g_calls.Cd(0x00564650, line);
         }
     }

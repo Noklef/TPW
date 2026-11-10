@@ -83,3 +83,12 @@ u32 __cdecl CoasterTrains_Setup(u8 *coaster, const u8 *source);
 // sides (CoasterTrain_Unload, the trains of 0x80 bytes from the pointer at +0x128); then +0xf4 is count.
 void __cdecl Coaster_SetTrainCount(u8 *coaster, u32 count);
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(const double, gCoasterType_Create_6fde80, 0x006fde80, 0x8);
+GAME_DATA(const double, gCoasterType_Create_6fde88, 0x006fde88, 0x8);
+GAME_DATA(const double, gCoasterType_Create_6fde90, 0x006fde90, 0x8);
+GAME_DATA(s32, gSetup_790fd0, 0x00790fd0, 0x4);
+GAME_DATA(u32, gSetup_790fe8, 0x00790fe8, 0x4);

@@ -212,3 +212,8 @@ struct ThingSweepEnv {
 };
 void Things_SetSweepEnv(const ThingSweepEnv *env);
 }  // extern "C"
+
+#include "../core/gamedata.h"
+
+// Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(u32, gThings_877350, 0x00877350, 0x4);

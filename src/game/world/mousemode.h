@@ -169,3 +169,8 @@ void __fastcall MouseMode_CancelStaff(u8 *self);
 // 0x57cb00 (cdecl; name invented, unconfirmed): the atexit entry of the text object 0x8bba50 (its static initialiser 0x57cac0): nothing.
 void __cdecl MouseModeText_AtExit();
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(char[12], gText_MouseState_ShowFps_74d85c, 0x0074d85c, 0xc);

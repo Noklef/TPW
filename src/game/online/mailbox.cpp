@@ -26,6 +26,7 @@
 #include "postcardmail.h"
 #include "session.h"
 #include "chatevents.h"
+#include "../render/enginedebug.h"
 
 namespace {
 
@@ -636,7 +637,7 @@ u8 __fastcall AddressBook_Save(u8 *self, void *, const char *folder) {
     }
     char line[0x80];
     for (u8 *node = at<u8 *>(at<u8 *>(self, 4), 0); node != at<u8 *>(self, 4); node = at<u8 *>(node, 0)) {
-        CRT_sprintf(line, gMailbox_764ff0, TextOf(at<StdString>(node, 8)));
+        CRT_sprintf(line, gText_Enginedebug_764ff0, TextOf(at<StdString>(node, 8)));
         g_env->write(stream, line);
     }
     void *const file = at<void *>(stream, 0x54);

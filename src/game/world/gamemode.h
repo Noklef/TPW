@@ -60,3 +60,9 @@ void __cdecl GameMode_SetOnly(u32 mode, u32 record);
 // and 0x763b04 0x80.
 void __cdecl GameMode_Set(u32 mode, u32 record);
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(u32, gGamemode_763b00, 0x00763b00, 0x4);
+GAME_DATA(u32, gGamemode_763b04, 0x00763b04, 0x4);

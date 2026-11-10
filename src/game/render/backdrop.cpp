@@ -6,6 +6,7 @@
 #include "../core/gameheap.h"
 #include "../gfx/texture.h"
 #include "../gfx/texcache.h"
+#include "../gfx/texcache.h"
 
 namespace {
 

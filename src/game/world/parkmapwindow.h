@@ -135,3 +135,15 @@ s32 __fastcall ParkMap_HandleWindow(u8 *map, void *, u8 *window, u32 message, u3
 // +0x20080, or 0; then ParkMap_AddSprites.
 void __fastcall ParkMap_PrepareSprites(u8 *map);
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(const float, gParkmapwindow_703018, 0x00703018, 0x4);
+GAME_DATA(const float, gParkmapwindow_70301c, 0x0070301c, 0x4);
+GAME_DATA(const float, gParkmapwindow_703020, 0x00703020, 0x4);
+GAME_DATA(const float, gParkmapwindow_703024, 0x00703024, 0x4);
+GAME_DATA(const float, gParkmapwindow_70302c, 0x0070302c, 0x4);
+GAME_DATA(const float, gParkMap_HandleMouse_703034, 0x00703034, 0x4);
+GAME_DATA(const float, gParkMap_HandleMouse_703038, 0x00703038, 0x4);
+GAME_DATA(const float, gParkmapwindow_703040, 0x00703040, 0x4);
