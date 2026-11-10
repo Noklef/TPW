@@ -8269,6 +8269,8 @@ const Hook kHooks[] = {
     {"RasterDraw_TestQuad",       0x0056a230, (void *)&RasterDraw_TestQuad, {0x55, 0x8b, 0xec, 0x83, 0xec}},
     {"RasterDraw_Rect",           0x0056a2f0, (void *)&RasterDraw_Rect, {0x55, 0x8b, 0xec, 0x83, 0xec}},
     {"RasterDraw_MappedTriangle", 0x0056a540, (void *)&RasterDraw_MappedTriangle, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"RasterDraw_TriangleList",   0x006792f0, (void *)&RasterDraw_TriangleList, {0x8b, 0x44, 0x24, 0x18, 0x85}},
+    {"RasterDraw_TriangleListNoZ", 0x00679350, (void *)&RasterDraw_TriangleListNoZ, {0x8b, 0x44, 0x24, 0x18, 0x85}},
     {"RasterSpan_TexShadeZ",      0x006f1d70, (void *)&RegThunk_RasterSpan_TexShadeZ, {0x8b, 0x3d, 0x34, 0xe0, 0xfb}},
     {"RasterSpan_TexBlend",       0x006f2140, (void *)&RegThunk_RasterSpan_TexBlend, {0x8b, 0x3d, 0x34, 0xe0, 0xfb}},
     {"RasterSpan_TexBlendAlphaZ", 0x006f2570, (void *)&RegThunk_RasterSpan_TexBlendAlphaZ, {0x8b, 0x3d, 0x34, 0xe0, 0xfb}},

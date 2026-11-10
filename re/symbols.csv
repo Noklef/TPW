@@ -8102,6 +8102,8 @@ address,name,kind,confidence,notes
 0x0056a230,RasterDraw_TestQuad,function,low,reimplemented (src/game/render/rasterdraw); the fixed quad of four colours
 0x0056a2f0,RasterDraw_Rect,function,low,"reimplemented (src/game/render/rasterdraw); a rectangle, plain or mapped"
 0x0056a540,RasterDraw_MappedTriangle,function,low,reimplemented (src/game/render/rasterdraw); a mapped triangle over the screen
+0x006792f0,RasterDraw_TriangleList,function,low,"reimplemented (src/game/render/rasterdraw); an indexed triangle list, each triangle by 0x6ef7f0"
+0x00679350,RasterDraw_TriangleListNoZ,function,low,"reimplemented (src/game/render/rasterdraw); an indexed triangle list, each triangle by 0x6f0a50 (no depth)"
 0x006f1d70,RasterSpan_TexShadeZ,function,low,"reimplemented (src/game/render/rasterspans); jumped to (row pointer in EBP, six registers on the stack): the rasteriser's default cseg span routine (table 0x6f19f0): shaded 32-bit texels, depth-tested"
 0x006f2140,RasterSpan_TexBlend,function,low,"reimplemented (src/game/render/rasterspans); jumped to (row pointer in EBP, six registers on the stack): cseg span routine (table 0x6f19f4): shaded texels blended with the pixel under them by the texel's alpha tables, depth kept"
 0x006f2570,RasterSpan_TexBlendAlphaZ,function,low,"reimplemented (src/game/render/rasterspans); jumped to (row pointer in EBP, six registers on the stack): cseg span routine (table 0x6f1a20): the blend, kept with the depth above the alpha threshold [0xfbe010]"
