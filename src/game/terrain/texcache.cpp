@@ -49,8 +49,8 @@ u32 __fastcall TerrainTexCache_Dtor(u8 *cache) {
 u32 __fastcall TerrainTexCache_Init(u8 *cache, void *, s32 count, u32 size) {
     if (size == 0) size = at<u32>(cache, 4);
     const s32 video = *reinterpret_cast<const s32 *>((uintptr_t)0x008bd520);
-    const s32 memory = *reinterpret_cast<const s32 *>((uintptr_t)0x008c1624);
-    const u32 unit = reinterpret_cast<const u32 *>((uintptr_t)0x00701548)[*reinterpret_cast<const u32 *>((uintptr_t)0x008bd554)] << 20;
+    const s32 memory = gTexcache_8c1624;
+    const u32 unit = reinterpret_cast<const u32 *>(&gTexcache_701548)[*reinterpret_cast<const u32 *>((uintptr_t)0x008bd554)] << 20;
     if (video < 0x3000000 || memory < (s32)(unit * 3)) size = 0x10;
     if ((video < 0x4000000 || memory < (s32)(unit * 5)) && size == 0x40) size = 0x20;
     if (*reinterpret_cast<const u32 *>((uintptr_t)0x008bd524) == 4) return 1;
@@ -101,7 +101,7 @@ u32 __fastcall TerrainTexCache_BlendTile(u8 *cache, void *, u8 *texture, u32 x, 
     if (!Texture_Alloc(texture, nullptr, at<u32>(cache, 4), 0)) return 0;
     const u32 format = *reinterpret_cast<const u32 *>((uintptr_t)0x008bd554);
     u8 **const scratch = reinterpret_cast<u8 **>((uintptr_t)0x00879a68);
-    if (reinterpret_cast<const s32 *>((uintptr_t)0x00701548)[format] == 2) {
+    if (gTexcache_701548[format] == 2) {
         TerrainBlend_Tile(at<const Lnd *>(cache, 0), nullptr, *scratch, x, y, overlay);
         const u32 side = at<u32>(cache, 4);
         const u32 *const from = reinterpret_cast<const u32 *>(*scratch);
@@ -132,7 +132,7 @@ void RedrawTile(const u8 *cache, u8 *tile, u8 *record, s32 x, s32 y) {
     if (at<u8 *>(record, 0)) at<u32>(record, 0) = g_calls.Th(0x00590da0, Self(at<u8 *>(record, 0)));   // Texture_LockFlipped
     const u32 format = *reinterpret_cast<const u32 *>((uintptr_t)0x008bd554);
     const u32 scratch = *reinterpret_cast<const u32 *>((uintptr_t)0x00879a68);
-    if (reinterpret_cast<const s32 *>((uintptr_t)0x00701548)[format] == 2) {
+    if (gTexcache_701548[format] == 2) {
         g_calls.Th(0x0055f780, at<u32>(cache, 0), scratch, (u32)x, (u32)y, record);   // TerrainBlend_Tile
         g_calls.Cd(0x00562f70, g_calls.Th(0x00590d40, Self(tile)), scratch, at<u32>(cache, 4));   // TexFormat_ConvertSquare, Texture_Lock
     } else {

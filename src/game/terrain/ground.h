@@ -39,3 +39,10 @@ u32 __fastcall TerrainGround_PrepareTextures(u8 *self);
 // flag 0x10 off and 0x100 on, all vertices its count (sic: each run), Batch_Close at vertices * 2000000 (as a signed dword); 0 from it: 0. Else 1. Sic: columns outside a row's points read the frame's stack.
 u32 __fastcall TerrainGround_Draw(u8 *self);
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(const u32, gGround_7014b4, 0x007014b4, 0x4);
+GAME_DATA(const u32[10], gTerrainGround_PrepareTextures_7014c8, 0x007014c8, 0x28);
+GAME_DATA(const float, gTerrainGround_Draw_701520, 0x00701520, 0x4);

@@ -234,9 +234,9 @@ void __cdecl Terrain_SetProceduralCells(u32 on) {
 
 void __cdecl Terrain_RestoreCells() { Terrain_CopyAttrs(pointer(0x007a0854), pointer(0x0079fc54)); }
 
-void __cdecl Terrain_InitUnusedOne() { *reinterpret_cast<float *>(0x007a0b28) = 1.0f; }
+void __cdecl Terrain_InitUnusedOne() { gTerrain_InitUnusedOne_7a0b28 = 1.0f; }
 
-void __cdecl Terrain_InitUnusedEpsilon() { *reinterpret_cast<float *>(0x007a0b48) = 1.0f / 8388608.0f; }
+void __cdecl Terrain_InitUnusedEpsilon() { gTerrain_InitUnusedEpsilon_7a0b48 = 1.0f / 8388608.0f; }
 
 void __fastcall Extents_Include(u8 *extents, void *, s32 low, s32 first, s32 high, s32 last) {
     if (at<s32>(extents, 0x20) > first)
@@ -370,7 +370,7 @@ u32 __fastcall TerrainTex_CullView(u8 *self) {
     const float distance = *reinterpret_cast<const float *>(&far_bits);
     g_calls.Th(0x00578ca0, 0x0087b110, 0x447a0000u);   // 1000.0
     g_calls.Cd(0x005783b0);
-    at<u32>(self, 0x1c) = global(0x007014c0);
+    at<u32>(self, 0x1c) = gTerrainTex_CullView_7014c0;
     at<u32>(self, 0x20) = 0x7f;
     at<u32>(self, 0x24) = 0xffffffff;
     u8 *const lows = self + 0x28, *const highs = self + 0xa8;
@@ -439,7 +439,7 @@ u32 __fastcall TerrainTex_CullView(u8 *self) {
     const s32 right = ftol((X87Reg(at<float>(view, 0x30)) - less - ox) * at<float>(self, 0x10));
     const s32 top = ftol((X87Reg(at<float>(view, 0x38)) - half - oz) * at<float>(self, 0x14));
     const s32 bottom = ftol((X87Reg(at<float>(view, 0x38)) - less - oz) * at<float>(self, 0x14));
-    u8 *const box = reinterpret_cast<u8 *>(0x008bd4e8);
+    u8 *const box = reinterpret_cast<u8 *>(&gTerrainViewBox_8bd4e8);
     box[0] = (u8)keep_within(left, -0x80, 0x7f);
     box[1] = (u8)keep_within(top, -0x80, 0x7f);
     box[2] = (u8)keep_within(right, -0x80, 0x7f);

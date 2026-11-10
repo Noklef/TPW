@@ -72,8 +72,8 @@ bool HitFace(const float *v1, const float *v2, const float *v3, const float *nor
     n[1] = (float)(X87Reg(n[1]) / length);
     n[2] = (float)(X87Reg(n[2]) / length);
 
-    const float *o = global<const float *>(0x7a1cb0);
-    const float *d = global<const float *>(0x7a1cd8);
+    const float *o = gRaypick_7a1cb0;
+    const float *d = gRaypick_7a1cd8;
     const X87Reg p = ((X87Reg(o[0]) * n[0]) + (X87Reg(n[1]) * o[1])) + (X87Reg(n[2]) * o[2]);
     const X87Reg q = ((X87Reg(n[2]) * v1[2]) + (X87Reg(n[1]) * v1[1])) + (X87Reg(n[0]) * v1[0]);
     const X87Reg top = p + X87Reg(-q.v);
@@ -108,8 +108,8 @@ bool HitFace(const float *v1, const float *v2, const float *v3, const float *nor
     const X87Reg total = sum + X87Reg(third);
     if (!(total.v >= kFullCircle)) return false;
 
-    float *point = reinterpret_cast<float *>((uintptr_t)0x7a1cc8);
-    float *normal = reinterpret_cast<float *>((uintptr_t)0x7a1c80);
+    float *point = gRaypick_7a1cc8;
+    float *normal = gRaypick_7a1c80;
     for (int i = 0; i < 3; ++i) {
         point[i] = h[i];
         normal[i] = n[i];
@@ -191,15 +191,15 @@ u8 *__cdecl RayPick_Column(s32 x, s32 y, u32 alongX, float atX, float atY, float
         u8 *model = at<u8 *>(at<u8 *>(ride, 8), 4);
         if (!(highest >= at<float>(model, 0x84))) continue;
 
-        global<const float *>(0x7a1cd8) = direction;
-        global<const float *>(0x7a1cb0) = origin;
+        gRaypick_7a1cd8 = direction;
+        gRaypick_7a1cb0 = origin;
         RayPickMatrix m;
         Matrix_Identity(m.m);
         if (g_env->node(at<u8 *>(model, 0x78), m) != 0) {
-            const u32 *point = reinterpret_cast<const u32 *>((uintptr_t)0x7a1cc8);
-            const u32 *normal = reinterpret_cast<const u32 *>((uintptr_t)0x7a1c80);
-            u32 *pointOut = reinterpret_cast<u32 *>((uintptr_t)0x7a1cb8);
-            u32 *normalOut = reinterpret_cast<u32 *>((uintptr_t)0x7a1ca0);
+            const u32 *point = reinterpret_cast<const u32 *>(&gRaypick_7a1cc8);
+            const u32 *normal = reinterpret_cast<const u32 *>(&gRaypick_7a1c80);
+            u32 *pointOut = gRayPick_7a1cb8;
+            u32 *normalOut = gRayPick_Column_7a1ca0;
             for (int k = 0; k < 3; ++k) {
                 pointOut[k] = point[k];
                 normalOut[k] = normal[k];
@@ -213,7 +213,7 @@ u8 *__cdecl RayPick_Column(s32 x, s32 y, u32 alongX, float atX, float atY, float
 void __cdecl RayPick_World(float *out, u32 unused, float *out2, u32 *hitFlag) {
     (void)unused;
     // The three corners of the view, turned to the screen, then by the camera.
-    const float half = (float)((X87Reg(global<float>(0x74c9b8)) * global<float>(0x74d13c)) * kHalf);
+    const float half = (float)((X87Reg(global<float>(0x74c9b8)) * gRayPick_World_74d13c) * kHalf);
     const float scale = gSinTableScale;
     const s32 first = Fistp((float)(X87Reg(scale) * half));
     const s32 second = Fistp((float)((X87Reg(half) - kQuarterTurn) * scale));
@@ -443,7 +443,7 @@ void __cdecl RayPick_World(float *out, u32 unused, float *out2, u32 *hitFlag) {
     if (hitFlag != nullptr) *hitFlag = hit;
     if (out == nullptr) return;
     bool useTarget = false;
-    const float *const point = reinterpret_cast<const float *>((uintptr_t)0x7a1cb8);
+    const float *const point = reinterpret_cast<const float *>(&gRayPick_7a1cb8);
     if (global<u8 *>(0x7a1cd4) != nullptr) {
         if (!hit) {
             useTarget = true;

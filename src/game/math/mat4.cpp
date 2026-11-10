@@ -9,6 +9,7 @@
 #include "vec2.h"
 #include "../render/viewport.h"
 #include "../render/pointsprites.h"
+#include "../terrain/landscape.h"
 
 namespace {
 
@@ -79,9 +80,9 @@ void inverse_through(u32 from, u32 inverse, u32 result) {
     static_matrix((u32)&gPointsprites_fb33e0, 0x00fb3400);
     transform(inverse, 0x0087b110, 0x00fb3400);
     copy16(result, 0x00fb3400);
-    static_matrix(0x00fb3440, 0x00fb3460);
-    transform(result, 0x0087b0d0, 0x00fb3460);
-    copy16(result, 0x00fb3460);
+    static_matrix((u32)&gLandscapeMatrixGuard_fb3440, (u32)&gLandscapeMatrix_fb3460);
+    transform(result, 0x0087b0d0, (u32)&gLandscapeMatrix_fb3460);
+    copy16(result, (u32)&gLandscapeMatrix_fb3460);
 }
 
 }  // namespace
