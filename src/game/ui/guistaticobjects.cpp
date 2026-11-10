@@ -4,6 +4,7 @@
 #include <cstdint>
 
 #include "../core/initializers.h"
+#include "../core/imports.h"
 
 namespace {
 template <typename T> T game(u32 address) { return reinterpret_cast<T>((uintptr_t)address); }
@@ -23,7 +24,7 @@ void __cdecl GuiStatic_Init() {
 void __cdecl GuiStatic_Make() { g_env->make(game<u8 *>(0x00faa550)); }
 void __cdecl GuiStatic_AtExit() { g_env->atExit(0x006584d0); }
 void __cdecl GuiStatic_Destroy() { g_env->destroy(game<u8 *>(0x00faa550)); }
-u32 __fastcall GuiClock_Time(u8 *) { return (*game<u32(__stdcall *const *)()>(0x006fd3ec))(); }
+u32 __fastcall GuiClock_Time(u8 *) { return (*game<u32(__stdcall *const *)()>(IMPORT(Winmm_timeGetTime)))(); }
 void __cdecl GuiClock_Init() { GuiClock_Make(); }
 void __cdecl GuiClock_Make() { GuiClock_Ctor(game<u8 *>(0x00faa580)); }
 

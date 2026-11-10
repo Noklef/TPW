@@ -52,6 +52,8 @@ u32 *__fastcall Codecvt_Ctor(u32 *self, void *, const void *info, u32 refs);
 // 0x6991f0 / 0x699440: use_facet of numpunct<char> / codecvt<char, char, int>: the locale's own facet; a missing one from the classic locale (flag's low byte set), made once and freed at exit; else bad_cast thrown with "missing locale facet".
 u32 *__cdecl UseFacet_Numpunct(u8 **loc, u32 unused, u32 flag);
 u32 *__cdecl UseFacet_Codecvt(u8 **loc, u32 unused, u32 flag);
+// 0x6a4790: the same of numpunct<wchar_t> (0x18 bytes, WNumpunct_Init under the "C" _Locinfo; name invented, unconfirmed).
+u32 *__cdecl UseFacet_WNumpunct(u8 **loc, u32 unused, u32 flag);
 
 // The same for more facets (names invented, by their vtables' shapes, unconfirmed): 0x6a4d70 / 0x6a5180 moneypunct<wchar_t, true / false> (0x2c bytes, MoneypunctW_Init),
 // 0x6ab6d0 / 0x6aba80 moneypunct<char, true / false> (MoneypunctC_Init), each with the international byte at +0x28 and its base's vtable first; 0x6a5320 the wide facet of
@@ -222,8 +224,14 @@ GAME_DATA(void *[4], WFacet709c0c_vtable, 0x00709c0c, 0x10);
 GAME_DATA(void *[4], CollateW_vtable, 0x00709c24, 0x10);
 GAME_DATA(void *[6], WNumpunct_vtable, 0x00709c3c, 0x18);
 GAME_DATA(void *[7], WNumGet_vtable, 0x00709c5c, 0x1c);
+GAME_DATA(void *[10], NumGetW_vtable, 0x00709c7c, 0x28);
 GAME_DATA(void *[10], Class709f2c_vtable, 0x00709f2c, 0x28);
 GAME_DATA(void *[10], Class709f5c_vtable, 0x00709f5c, 0x28);
 GAME_DATA(void *[3], Facet709f8c_vtable, 0x00709f8c, 0xc);
 GAME_DATA(void *[3], Facet709f9c_vtable, 0x00709f9c, 0xc);
 GAME_DATA(void *[4], Facet709fac_vtable, 0x00709fac, 0x10);
+GAME_DATA(void *[4], CollateC_vtable, 0x00709fc4, 0x10);
+GAME_DATA(void *[7], WTimeGet_vtable, 0x00709ed4, 0x1c);
+GAME_DATA(void *[2], WTimePut_vtable, 0x00709ef4, 0x8);
+GAME_DATA(void *[7], TimeGet_vtable, 0x0070a024, 0x1c);
+GAME_DATA(void *[2], TimePut_vtable, 0x0070a044, 0x8);

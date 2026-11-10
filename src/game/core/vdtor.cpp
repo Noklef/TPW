@@ -25,6 +25,7 @@
 #include "../online/ftp.h"
 #include "../online/items.h"
 #include "../online/session.h"
+#include "imports.h"
 
 namespace {
 
@@ -52,11 +53,11 @@ u8 *Finish(u8 *object, u32 flags) {
 // The destructor the 0x7028xx classes share, for the vtable pointer they set: their shared arrays hold the WEACITYR records of the online lists,
 // each class's own kind (its element size and its destructor's import slot).
 void Class7028_Dtor(u8 *object, u32 vtable) {
-    u32 size = 0x30, slot = 0x006fd500;  // ccCityInfo
-    if (vtable == (u32)(uintptr_t)Class702890_vtable) size = 0x66, slot = 0x006fd504;  // ccParkInfo
-    if (vtable == (u32)(uintptr_t)Class7028d0_vtable) size = 0x10, slot = 0x006fd50c;  // ccThemeInfo
-    if (vtable == (u32)(uintptr_t)Class7028f8_vtable) size = 0x26, slot = 0x006fd508;  // ccServerInfo
-    if (vtable == (u32)(uintptr_t)Class702920_vtable) size = 0x34, slot = 0x006fd510;  // the rides'
+    u32 size = 0x30, slot = IMPORT(Weacityr_ccCityInfo_Dtor);  // ccCityInfo
+    if (vtable == (u32)(uintptr_t)Class702890_vtable) size = 0x66, slot = IMPORT(Weacityr_ccParkInfo_Dtor);  // ccParkInfo
+    if (vtable == (u32)(uintptr_t)Class7028d0_vtable) size = 0x10, slot = IMPORT(Weacityr_ccThemeInfo_Dtor);  // ccThemeInfo
+    if (vtable == (u32)(uintptr_t)Class7028f8_vtable) size = 0x26, slot = IMPORT(Weacityr_ccServerInfo_Dtor);  // ccServerInfo
+    if (vtable == (u32)(uintptr_t)Class702920_vtable) size = 0x34, slot = IMPORT(Weacityr_ccRideInfo_Dtor);  // the rides'
     u8 *shared = at<u8 *>(object, 0x30);
     at<u32>(object, 0) = vtable;
     if (shared) {

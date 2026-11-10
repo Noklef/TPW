@@ -6,6 +6,7 @@
 #include "../core/gameheap.h"
 #include "../math/x87.h"
 #include "weatherfx.h"
+#include "../core/imports.h"
 
 namespace {
 
@@ -70,6 +71,6 @@ u32 __fastcall WeatherFx_FillTables(u8 *fx) {
             at<float>(record, 0x24 + 4 * c) = p1[c];
         }
     }
-    at<u32>(fx, 0x3344) = global<u32(__stdcall *)()>(0x006fd1d0)();
+    at<u32>(fx, 0x3344) = global<u32(__stdcall *)()>(IMPORT(Kernel32_GetTickCount))();
     return 1;
 }

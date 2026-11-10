@@ -25,6 +25,7 @@
 #include "../game/core/staticinit.h"
 #include "../hook/hooks.h"
 #include "codeslots.h"
+#include "../game/core/imports.h"
 
 // gamedata_object.cpp (tools/gamedata.py): the original's address and size of each global tpw.exe has as an object of its own, and the
 // fixups for the pointers into them and for their code addresses.
@@ -265,8 +266,13 @@ HMODULE Load(const char *dll) {   // as tp.exe from its folder: that folder firs
     return LoadLibraryA(dll);
 }
 
+// Each slot twice: in the copy (its code calls through it) and in gImports (the ports' IMPORT(member)), at the same offset into the table.
 void FillImports(const IMAGE_NT_HEADERS32 &nt) {
     const IMAGE_DATA_DIRECTORY &dir = nt.OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_IMPORT];
+    const IMAGE_DATA_DIRECTORY &iat = nt.OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_IAT];
+    if (iat.Size != sizeof(ImportTable)) Fail("tpw: tp.exe's import address table is %X bytes; gImports is %X", iat.Size, (u32)sizeof(ImportTable));
+    u8 *const own = reinterpret_cast<u8 *>(&gImports);
+    const u32 first = kBase + iat.VirtualAddress;
     for (auto *desc = reinterpret_cast<const IMAGE_IMPORT_DESCRIPTOR *>((uintptr_t)kBase + dir.VirtualAddress); dir.VirtualAddress && desc->Name; ++desc) {
         const char *const dll = reinterpret_cast<const char *>((uintptr_t)kBase + desc->Name);
         const HMODULE module = Load(dll);
@@ -276,6 +282,7 @@ void FillImports(const IMAGE_NT_HEADERS32 &nt) {
                                                                      : reinterpret_cast<const char *>((uintptr_t)kBase + *names + 2);
             const FARPROC fn = module ? GetProcAddress(module, name) : nullptr;
             *slot = fn ? (u32)(uintptr_t)fn : AddMissing(dll, name);
+            *reinterpret_cast<u32 *>(own + ((u32)(uintptr_t)slot - first)) = *slot;
         }
     }
 }
@@ -349,7 +356,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
     const AddrCalls calls;   // (no table: the loader's resolver)
     u16 cw = 0x27f;          // the control word a new process starts with, which the C library's _FPinit keeps (PC53); Direct3D sets
     __asm fldcw cw           // the game's 0x7f later
-    const u32 version = G<u32(__stdcall *)()>(0x006fd240)();   // GetVersion
+    const u32 version = G<u32(__stdcall *)()>(IMPORT(Kernel32_GetVersion))();   // GetVersion
     G<u32>(0x00fb1370) = version >> 8 & 0xff;                  // _osminor
     G<u32>(0x00fb136c) = version & 0xff;                       // _osmajor
     G<u32>(0x00fb1368) = ((version & 0xff) << 8) + (version >> 8 & 0xff);   // _winver
@@ -358,7 +365,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
     if (!calls.Cd(0x006823e0)) calls.Cd(0x0067eff0, 0x10);     // _mtinit, else fast_error_exit(_RT_THREAD)
     calls.Cd(0x00687230);                                      // _ioinit
     calls.Cd(0x0068a160);
-    G<u32>(0x00fb3cb8) = G<u32(__stdcall *)()>(0x006fd1e4)();   // _acmdln = GetCommandLineA()
+    G<u32>(0x00fb3cb8) = G<u32(__stdcall *)()>(IMPORT(Kernel32_GetCommandLineA))();   // _acmdln = GetCommandLineA()
     G<u32>(0x00fb1354) = calls.Cd(0x00689b00);                  // _aenvptr = __crtGetEnvironmentStrings()
     if (!G<u32>(0x00fb1354) || !G<u32>(0x00fb3cb8)) calls.Cd(0x0067f920, -1);   // exit(-1)
     calls.Cd(0x00689850);                                      // _setargv
@@ -380,10 +387,10 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
     while (*p != 0 && *p <= ' ') ++p;
     STARTUPINFOA startup;
     startup.dwFlags = 0;
-    G<void(__stdcall *)(STARTUPINFOA *)>(0x006fd23c)(&startup);   // GetStartupInfoA
+    G<void(__stdcall *)(STARTUPINFOA *)>(IMPORT(Kernel32_GetStartupInfoA))(&startup);   // GetStartupInfoA
     const u32 show = startup.dwFlags & STARTF_USESHOWWINDOW ? startup.wShowWindow : SW_SHOWDEFAULT;
     // GetModuleHandleA(nullptr): tpw.exe's, a loaded module, as DirectInputCreateA wants; the game loads no resources through it.
-    const u32 instance = G<u32(__stdcall *)(const char *)>(0x006fd238)(nullptr);
+    const u32 instance = G<u32(__stdcall *)(const char *)>(IMPORT(Kernel32_GetModuleHandleA))(nullptr);
     const u32 result = calls.St(0x0045a960, instance, 0u, (u32)(uintptr_t)p, show);   // Game_WinMain
     calls.Cd(0x0067f920, result);                                                    // exit
     return (int)result;

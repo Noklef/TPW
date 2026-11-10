@@ -11,6 +11,7 @@
 #include "soundvoice.h"
 #include "vcall.h"
 #include "soundworker.h"
+#include "imports.h"
 
 namespace {
 
@@ -20,8 +21,8 @@ template <typename F> F Import(u32 slot) { return *reinterpret_cast<const F *>((
 
 using OnObject = u32(__stdcall *)(void *);
 
-void Lock(u8 *mixer) { Import<OnObject>(0x006fd140)(mixer + 4); }     // EnterCriticalSection
-void Unlock(u8 *mixer) { Import<OnObject>(0x006fd130)(mixer + 4); }   // LeaveCriticalSection
+void Lock(u8 *mixer) { Import<OnObject>(IMPORT(Kernel32_EnterCriticalSection))(mixer + 4); }     // EnterCriticalSection
+void Unlock(u8 *mixer) { Import<OnObject>(IMPORT(Kernel32_LeaveCriticalSection))(mixer + 4); }   // LeaveCriticalSection
 
 }  // namespace
 
@@ -54,7 +55,7 @@ void __fastcall SoundMixer_Update(u8 *mixer) {
 void __fastcall SoundMixer_Dtor(u8 *mixer) {
     at<u32>(mixer, 0) = (u32)(uintptr_t)SoundWorker_vtable;
     mixer[0x35] = 1;
-    Import<u32(__stdcall *)(void *, u32)>(0x006fd200)(mixer + 0x38, 1);   // InterlockedExchange
+    Import<u32(__stdcall *)(void *, u32)>(IMPORT(Kernel32_InterlockedExchange))(mixer + 0x38, 1);   // InterlockedExchange
     while (!*reinterpret_cast<volatile u8 *>(mixer + 0x34)) {
     }
     for (u8 *voice = at<u8 *>(mixer, 0x24); voice; voice = at<u8 *>(voice, 0x34)) vcall<void>(voice, 0xc);
@@ -65,7 +66,7 @@ void __fastcall SoundMixer_Dtor(u8 *mixer) {
     GameHeap_Free(at<void *>(mixer, 0x44));
     GameHeap_Free(at<void *>(mixer, 0x40));
     if (u8 *const object = at<u8 *>(mixer, 0x3c)) vcall<void>(object, 8, 3u);
-    Import<OnObject>(0x006fd0d0)(mixer + 4);   // DeleteCriticalSection
+    Import<OnObject>(IMPORT(Kernel32_DeleteCriticalSection))(mixer + 4);   // DeleteCriticalSection
 }
 
 u8 *__fastcall SoundMixer_DeletingDtor(u8 *mixer, void *, u32 flags) {
@@ -84,7 +85,7 @@ u32 __fastcall SoundMixer_TouchFlagged(u8 *mixer) {
     u32 count = 0;
     for (u8 *voice = at<u8 *>(mixer, 0x24); voice; voice = at<u8 *>(voice, 0x34)) {
         if (!(at<u32>(voice, 0x30) & 0x400)) continue;
-        Import<OnObject>(0x006fd0c0)(&count);   // InterlockedIncrement
+        Import<OnObject>(IMPORT(Kernel32_InterlockedIncrement))(&count);   // InterlockedIncrement
         vcall<void>(voice, 0x2c);
     }
     return count;

@@ -5,6 +5,7 @@
 #include "crt.h"
 #include "crtlocale.h"
 #include "crtlocaleinfo.h"
+#include "imports.h"
 
 namespace {
 
@@ -80,7 +81,7 @@ s32 __cdecl CRT_init_ctype() {
     info.lead[12] = info.lead[13] = 0;
     if (types && wide_types && bytes && units) {
         for (u32 i = 0; i < 0x100; ++i) bytes[i] = static_cast<u8>(i);
-        if (reinterpret_cast<s32(__stdcall *const *)(u32, CodePageInfo *)>((uintptr_t)0x006fd180)[0](CRT_lc_codepage, &info) && info.max_size <= 2) {
+        if (reinterpret_cast<s32(__stdcall *const *)(u32, CodePageInfo *)>((uintptr_t)IMPORT(Kernel32_GetCPInfo))[0](CRT_lc_codepage, &info) && info.max_size <= 2) {
             CRT_mb_cur_max = static_cast<s32>(info.max_size);
             if (info.max_size > 1) {
                 for (const u8 *range = info.lead; range[0] && range[1]; range += 2) {

@@ -8,6 +8,7 @@
 #include "../game/core/streampool.h"
 #include "../hook/patch.h"
 #include "log.h"
+#include "../game/core/imports.h"
 
 namespace tpw::testing {
 
@@ -31,7 +32,7 @@ Pool g_pools[] = {
 #undef POOL
 
 constexpr DWORD kFree = 0x67ad90, kFreeBody = 0x67ad96, kMemFree = 0x67acba, kMemAlloc = 0x67acc0, kNhMalloc = 0x67dcf0;
-constexpr DWORD kLeaveSlot = 0x6fd130;
+const DWORD kLeaveSlot = IMPORT(Kernel32_LeaveCriticalSection);
 constexpr DWORD kGameText = 0x401000, kGameTextEnd = 0x6e7000;
 constexpr int kMaxLines = 200;
 constexpr DWORD kWalk = 0x10000;   // (a list with a cycle ends here)

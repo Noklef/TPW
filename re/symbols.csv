@@ -6533,6 +6533,7 @@ address,name,kind,confidence,notes
 0x006abe80,UseFacet_70a044,function,low,"reimplemented (src/game/core/localefacet); use_facet of the facet of the vtable 0x70a044: the locale's, else the classic one made once and held to exit"
 0x006a5720,UseFacet_709ef4,function,low,reimplemented (src/game/core/localefacet); use_facet of the facet of the vtable 0x709ef4: the same
 0x006a54a0,UseFacet_TimeW,function,low,"reimplemented (src/game/core/localefacet); use_facet of the wchar_t time facet (vtable 0x709ed4): the same, the day and month names widened"
+0x006a4790,UseFacet_WNumpunct,function,low,"reimplemented (src/game/core/localefacet); use_facet of numpunct<wchar_t>: the locale's, else the classic one made once (WNumpunct_Init under the ""C"" _Locinfo) and held to exit"
 0x006895b0,CRT_mbctolower,function,low,reimplemented (src/game/core/crtmbstring); _mbctolower
 0x00689650,CRT_mbspbrk,function,low,reimplemented (src/game/core/crtmbstring); _mbspbrk
 0x00689400,CRT_mbsrchr,function,low,reimplemented (src/game/core/crtmbstring); _mbsrchr
@@ -6720,6 +6721,16 @@ address,name,kind,confidence,notes
 0x006974e0,NumGet_DoGetFloat,function,low,"reimplemented (src/game/core/numget); num_get<char>::do_get of a float: the text scanned as below, _Stold, stored as a float"
 0x00697930,NumGet_DoGetDouble,function,low,"reimplemented (src/game/core/numget); num_get<char>::do_get of a double: the same scan, _Stod"
 0x00697d90,NumGet_DoGetLongDouble,function,low,"reimplemented (src/game/core/numget); num_get<char>::do_get of a long double (a double): the same scan, _Stold"
+0x0069d1c0,NumGetW_DoGetUshort,function,low,"reimplemented (src/game/core/numget); num_get<wchar_t>::do_get of an unsigned short: numget's scan with the literals widened by btowc and the units narrowed by wctob, then strtoul without the '-'"
+0x0069d6a0,NumGetW_DoGetUint,function,low,"reimplemented (src/game/core/numget); num_get<wchar_t>::do_get of an unsigned int: numget's scan with the literals widened by btowc and the units narrowed by wctob, then strtoul without the '-'"
+0x0069db70,NumGetW_DoGetLong,function,low,"reimplemented (src/game/core/numget); num_get<wchar_t>::do_get of a long: numget's scan with the literals widened by btowc and the units narrowed by wctob, then strtol"
+0x0069e030,NumGetW_DoGetUlong,function,low,"reimplemented (src/game/core/numget); num_get<wchar_t>::do_get of an unsigned long: numget's scan with the literals widened by btowc and the units narrowed by wctob, then strtoul"
+0x0069f3c0,NumGetW_DoGetPointer,function,low,"reimplemented (src/game/core/numget); num_get<wchar_t>::do_get of a pointer: the hexadecimal scan of the wide units, then strtoul"
+0x0069e4f0,NumGetW_DoGetFloat,function,low,"reimplemented (src/game/core/numget); num_get<wchar_t>::do_get of a float: _Getffld inlined over the wide units (btowc, wctob), then _Stold"
+0x0069e9e0,NumGetW_DoGetDouble,function,low,"reimplemented (src/game/core/numget); num_get<wchar_t>::do_get of a double: _Getffld inlined over the wide units (btowc, wctob), then _Stod"
+0x0069eed0,NumGetW_DoGetLongDouble,function,low,"reimplemented (src/game/core/numget); num_get<wchar_t>::do_get of a long double (a double): _Getffld inlined over the wide units (btowc, wctob), then _Stold"
+0x0069f8b0,NumGetW_Getifld,function,low,"reimplemented (src/game/core/numget); num_get<wchar_t> _Getifld: '0' widened, use_facet<numpunct<wchar_t>> inlined, then the char scan with '+', '-', 'x', 'X' compared after the unit is fetched"
+0x0069cb60,NumGetW_DoGetBool,function,low,"reimplemented (src/game/core/numget); num_get<wchar_t>::do_get of a bool: the char one over the wide names (falsename, truename) or _Getifld 0x69f8b0 and strtoul"
 0x00633900,OwnedSection_Ctor,function,low,reimplemented (src/game/core/sectionlock); thiscall: a block of 0x18 made a critical section at *self; name invented
 0x00633920,OwnedSection_Dtor,function,low,"reimplemented (src/game/core/sectionlock); thiscall: the section deleted, its block freed; name invented"
 0x00633940,SectionGuard_Dtor,function,low,"reimplemented (src/game/core/sectionlock); thiscall: the guard's destructor, Leave; name invented"
@@ -10115,6 +10126,14 @@ address,name,kind,confidence,notes
 0x006aaaf0,TimeGet_DoGetMonthname,function,low,"reimplemented (src/game/core/timeget); time_get<char>::do_get_monthname: _Getloctxt over the month names, halved into tm_mon"
 0x006a3de0,WTimeGet_DoGetWeekday,function,low,reimplemented (src/game/core/timeget); time_get<wchar_t>::do_get_weekday: the same
 0x006a3e40,WTimeGet_DoGetMonthname,function,low,reimplemented (src/game/core/timeget); time_get<wchar_t>::do_get_monthname: the same
+0x006aade0,TimeGet_Getint,function,low,"reimplemented (src/game/core/timeget); time_get<char> _Getint: a sign, digits (leading zeros as one, 31 kept) to strtol; state 1 at the end, 2 for no number, errno or outside lo to hi"
+0x006aa370,TimeGet_DoGetTime,function,low,"reimplemented (src/game/core/timeget); time_get<char>::do_get_time: h:m:s to tm_hour, tm_min, tm_sec, each part while the state is good, else state 2"
+0x006aa730,TimeGet_DoGetDate,function,low,"reimplemented (src/game/core/timeget); time_get<char>::do_get_date: the facet's do_get_monthname, "" day"" to tm_mday, "", "" and its do_get_year; state 1 at the end"
+0x006aab50,TimeGet_DoGetYear,function,low,"reimplemented (src/game/core/timeget); time_get<char>::do_get_year: 0-2035; from 1900 on less 1900, 136-1899 state 2; to tm_year"
+0x006a4160,WTimeGet_Getint,function,low,"reimplemented (src/game/core/timeget); time_get<wchar_t> _Getint: as the char one, the sign and zeros compared with btowc's literals, the digits narrowed by _Wctob"
+0x006a3600,WTimeGet_DoGetTime,function,low,"reimplemented (src/game/core/timeget); time_get<wchar_t>::do_get_time: ':' widened first, then as the char one"
+0x006a3a30,WTimeGet_DoGetDate,function,low,"reimplemented (src/game/core/timeget); time_get<wchar_t>::do_get_date: as the char one, its literals widened by btowc"
+0x006a3ea0,WTimeGet_DoGetYear,function,low,reimplemented (src/game/core/timeget); time_get<wchar_t>::do_get_year: as the char one
 0x00faac68,gDctVlc_faac68,data,low,"GAME_DATA (src/game/gfx/dctvlc): u32, named for its use in DctVlc_BeginFrame, DctVlc_BuildTables (tools/gamedata_codemod.py)"
 0x00faac64,gMadVideo_DecodeFrame_faac64,data,low,"GAME_DATA (src/game/gfx/madvideo): u32, named for its use in MadVideo_DecodeFrame (tools/gamedata_codemod.py)"
 0x00fab484,gMmxBlit_Copy32_fab484,data,low,"GAME_DATA (src/game/gfx/mmxblit): u32, named for its use in MmxBlit_Copy32 (tools/gamedata_codemod.py)"
@@ -10642,6 +10661,9 @@ address,name,kind,confidence,notes
 0x00f827ec,gInitializers_f827ec,data,low,"GAME_DATA (src/game/core/initializers): u32, named for its use in Fn_5d29b0, Ftp_WsaErrorBox"
 0x00f827f0,gInitializers_f827f0,data,low,"GAME_DATA (src/game/core/initializers): u32, named for its use in Fn_5d29b0, Ftp_WsaErrorBox"
 0x00faa5fc,gAccessors_faa5fc,data,low,"GAME_DATA (src/game/core/accessors): u32, named for its use in Fn_6590ea, MsgQueue_Pump, Window_SendMessage"
+0x006a7080,Collate_DoTransform,function,low,"reimplemented (src/game/core/collate); collate<char>::do_transform: the characters first to last copied into a local string grown with zeros until they fit, then trimmed to them and assigned to out"
+0x006ab160,TimePut_DoPut,function,low,"reimplemented (src/game/core/timeput); time_put<char>::do_put: ""!%[mod]fmt"" by _Strftime into a string grown 16, 32, 64...; the characters after the '!' to the buffer, out = {failed, buffer}"
+0x006a4540,WTimePut_DoPut,function,low,"reimplemented (src/game/core/timeput); time_put<wchar_t>::do_put: as the char one, each character widened by btowc"
 0x0074f9bc,gDialogbase_74f9bc,data,low,"GAME_DATA (src/game/ui/dialogbase): char[8], named for its use in Dialog_Create, TextButton_CreateWindow"
 0x0074f9c4,gDialogbase_74f9c4,data,low,"GAME_DATA (src/game/ui/dialogbase): char[8], named for its use in dialogbase.cpp"
 0x0074f9cc,gDialogbase_74f9cc,data,low,"GAME_DATA (src/game/ui/dialogbase): char[8], named for its use in dialogbase.cpp"

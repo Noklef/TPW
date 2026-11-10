@@ -4,6 +4,7 @@
 
 #include "../core/crt.h"
 #include "dderrors.h"
+#include "../core/imports.h"
 
 namespace {
 
@@ -328,7 +329,7 @@ void __fastcall MovieSurface_Present(u8 *player) {
     if (at<u32>(s, 0x48) == 8) {
         com(at<u8 *>(s, 0x24), 0x18, 0u, 0u, 0x100u, palette);
     } else if (result) {
-        (*reinterpret_cast<void(__stdcall *const *)(const char *)>((uintptr_t)0x006fd1e0))(DdErrors_Name(result));
+        (*reinterpret_cast<void(__stdcall *const *)(const char *)>((uintptr_t)IMPORT(Kernel32_OutputDebugStringA)))(DdErrors_Name(result));
     }
 }
 }

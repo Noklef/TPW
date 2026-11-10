@@ -3,6 +3,7 @@
 
 #include <cstdint>
 #include <cstring>
+#include "../core/imports.h"
 
 namespace {
 
@@ -10,10 +11,10 @@ template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cas
 template <typename T> T game(u32 address) { return reinterpret_cast<T>((uintptr_t)address); }
 template <typename F> F import(u32 slot) { return *reinterpret_cast<F const *>((uintptr_t)slot); }
 
-u32 exchange(void *place, u32 value) { return import<u32(__stdcall *)(void *, u32)>(0x006fd200)(place, value); }
-void increment(void *place) { import<u32(__stdcall *)(void *)>(0x006fd0c0)(place); }
-void decrement(void *place) { import<u32(__stdcall *)(void *)>(0x006fd12c)(place); }
-void sleep(u32 ms) { import<void(__stdcall *)(u32)>(0x006fd1d4)(ms); }
+u32 exchange(void *place, u32 value) { return import<u32(__stdcall *)(void *, u32)>(IMPORT(Kernel32_InterlockedExchange))(place, value); }
+void increment(void *place) { import<u32(__stdcall *)(void *)>(IMPORT(Kernel32_InterlockedIncrement))(place); }
+void decrement(void *place) { import<u32(__stdcall *)(void *)>(IMPORT(Kernel32_InterlockedDecrement))(place); }
+void sleep(u32 ms) { import<void(__stdcall *)(u32)>(IMPORT(Kernel32_Sleep))(ms); }
 
 const MovieSoundThreadEnv kGameEnv = {game<void(__cdecl *)()>(0x0067e180), game<u32(__fastcall *)(u8 *)>(0x00672730), game<u32(__fastcall *)(void *)>(0x00672950),
                                       game<u32(__stdcall *)(const void *, void **, void *)>(0x006d76e0)};

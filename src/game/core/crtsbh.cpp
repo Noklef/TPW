@@ -4,6 +4,7 @@
 #include <cstring>
 
 #include "crt.h"
+#include "imports.h"
 
 namespace {
 
@@ -19,10 +20,10 @@ u32 &word(u32 address) { return *reinterpret_cast<u32 *>((uintptr_t)address); }
 u8 &byte_at(u32 address) { return *reinterpret_cast<u8 *>((uintptr_t)address); }
 
 u32 virtual_alloc(u32 at, u32 size, u32 type, u32 protect) {
-    return import_slot<u32(__stdcall *)(u32, u32, u32, u32)>(0x006fd1b4)(at, size, type, protect);
+    return import_slot<u32(__stdcall *)(u32, u32, u32, u32)>(IMPORT(Kernel32_VirtualAlloc))(at, size, type, protect);
 }
 
-u32 heap_alloc(u32 flags, u32 size) { return import_slot<u32(__stdcall *)(u32, u32, u32)>(0x006fd224)(CRT_crtheap, flags, size); }
+u32 heap_alloc(u32 flags, u32 size) { return import_slot<u32(__stdcall *)(u32, u32, u32)>(IMPORT(Kernel32_HeapAlloc))(CRT_crtheap, flags, size); }
 
 // The block at a map byte of the page.
 u32 block_of(u32 map, u32 page) { return (map + 8) * 16 - page * 15; }
@@ -69,11 +70,11 @@ bool from_groups(u32 region, u32 from, u32 end, u32 pages, u32 para, u32 *block)
 extern "C" {
 
 s32 __cdecl CRT_heap_init() {
-    const u32 heap = import_slot<u32(__stdcall *)(u32, u32, u32)>(0x006fd1bc)(0, 0x1000, 0);   // HeapCreate
+    const u32 heap = import_slot<u32(__stdcall *)(u32, u32, u32)>(IMPORT(Kernel32_HeapCreate))(0, 0x1000, 0);   // HeapCreate
     CRT_crtheap = heap;
     if (!heap) return 0;
     if (CRT_sbh_alloc_new_region()) return 1;
-    import_slot<s32(__stdcall *)(u32)>(0x006fd1c0)(CRT_crtheap);   // HeapDestroy
+    import_slot<s32(__stdcall *)(u32)>(IMPORT(Kernel32_HeapDestroy))(CRT_crtheap);   // HeapDestroy
     return 0;
 }
 
@@ -111,9 +112,9 @@ void *__cdecl CRT_sbh_alloc_new_region() {
             }
             return reinterpret_cast<void *>((uintptr_t)region);
         }
-        import_slot<s32(__stdcall *)(u32, u32, u32)>(0x006fd1b8)(memory, 0, 0x8000);
+        import_slot<s32(__stdcall *)(u32, u32, u32)>(IMPORT(Kernel32_VirtualFree))(memory, 0, 0x8000);
     }
-    if (region != kStatic()) import_slot<s32(__stdcall *)(u32, u32, u32)>(0x006fd210)(CRT_crtheap, 0, region);
+    if (region != kStatic()) import_slot<s32(__stdcall *)(u32, u32, u32)>(IMPORT(Kernel32_HeapFree))(CRT_crtheap, 0, region);
     return nullptr;
 }
 

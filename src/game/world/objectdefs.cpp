@@ -20,6 +20,7 @@
 #include "../ui/dialog74fb20.h"
 #include "../ui/window7cc8c0handler.h"
 #include "objectdefs.h"
+#include "../core/imports.h"
 
 namespace {
 
@@ -860,7 +861,7 @@ u32 __fastcall ObjectDefs_ReloadAll(u8 *defs, void *, u32) {
     const u8 *const end = global<u8 *>(0x00789c20);
     u8 *const begin = global<u8 *>(0x00789c1c);
     for (u8 *font = begin; font != end; font += 0x14) {
-        reinterpret_cast<s32(__stdcall *)(u32)>((uintptr_t)global<u32>(0x006fd058))(at<u32>(font, 8));   // RemoveFontResourceA
+        reinterpret_cast<s32(__stdcall *)(u32)>((uintptr_t)global<u32>(IMPORT(Gdi32_RemoveFontResourceA)))(at<u32>(font, 8));   // RemoveFontResourceA
         s32 result;
         g_loadCalls.Cd(0x005f5d60, &result, at<u32>(font, 8));
     }

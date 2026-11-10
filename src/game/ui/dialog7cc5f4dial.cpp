@@ -11,6 +11,7 @@
 #include "window.h"
 #include "dialog7cc534handler.h"
 #include "dialog7cc530open.h"
+#include "../core/imports.h"
 
 namespace {
 
@@ -39,7 +40,7 @@ void connect(u8 *window) {
     u8 *const box = g_env->box(record, 2, 0x004b9f30, 0, 0, 0, 0, 0);
     gDialog7cc534handler_7cc534 = box;
     g_env->setHandler(box, nullptr, 0x004b9f70);
-    if (!global<u32(__fastcall *)(void *, void *, u32, u32, u32, u32, u32)>(0x006fd5b4)(reinterpret_cast<void *>((uintptr_t)0x007c24c0), nullptr, id, 0x004b9f60, 0x007cc590, 0x007cc548, id)) {
+    if (!global<u32(__fastcall *)(void *, void *, u32, u32, u32, u32, u32)>(IMPORT(Wearasr_Dialup_Connect))(reinterpret_cast<void *>((uintptr_t)0x007c24c0), nullptr, id, 0x004b9f60, 0x007cc590, 0x007cc548, id)) {
         u16 *const text = g_env->text(0x1d8);
         u8 *const shown = gDialog7cc534handler_7cc534;
         (*reinterpret_cast<void(__fastcall **)(u8 *, void *, u16 *)>(at<uintptr_t>(shown, 0) + 0x24))(shown, nullptr, text);

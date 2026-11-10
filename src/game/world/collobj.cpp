@@ -7,6 +7,7 @@
 #include "../math/vec2.h"
 #include "../math/x87.h"
 #include "collobj.h"
+#include "../core/imports.h"
 
 namespace {
 
@@ -75,7 +76,7 @@ void __cdecl CollPool_Reset() {
 
 u32 __cdecl CollPool_Startup() {
     IntSin_BuildTable();
-    void *(__stdcall *const allocate)(u32, u32) = global<void *(__stdcall *)(u32, u32)>(0x006fd1cc);
+    void *(__stdcall *const allocate)(u32, u32) = global<void *(__stdcall *)(u32, u32)>(IMPORT(Kernel32_GlobalAlloc));
     for (u32 i = 0; i < 0xf; i++) global<u32>(0x00877b58 + i * 4) = 0;
     global<u32>(0x00877b58) = 0x4a454647;
     static const struct { u32 address, size; } kPools[] = {{0x00877b60, 0x3400}, {0x00877b68, 0xac00}, {0x00877b70, 0x10000}, {0x00877b78, 0x7000}, {0x00877b80, 0xa000}, {0x00877b88, 0x5000}};

@@ -9,6 +9,7 @@
 #include "engineerrors.h"
 #include "../frontend/lobbysky.h"
 #include "graphicssettings.h"
+#include "../core/imports.h"
 
 namespace {
 
@@ -27,7 +28,7 @@ void __fastcall SceneFlags_Touch(u32 *flags) {
 u32 __cdecl RenderDevice_Call0() { return vcall<u32>(global<u8 *>(0x008bd52c), 0); }
 
 u32 __cdecl Display_RestoreIfFocused() {
-    u32(__stdcall *const getFocus)() = *reinterpret_cast<u32(__stdcall *const *)()>((uintptr_t)0x006fd328);
+    u32(__stdcall *const getFocus)() = *reinterpret_cast<u32(__stdcall *const *)()>((uintptr_t)IMPORT(User32_GetFocus));
     if (getFocus() != global<u32>(0x008bd518))
         return 1;
     const u32 generation = global<u32>(0x008bcc40) + 1;

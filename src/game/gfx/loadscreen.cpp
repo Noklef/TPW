@@ -10,6 +10,7 @@
 #include "../math/x87.h"
 #include "../render/state.h"
 #include "mmxfill.h"
+#include "../core/imports.h"
 
 namespace {
 
@@ -18,7 +19,7 @@ template <typename T> T &at(u8 *base, u32 offset) { return *reinterpret_cast<T *
 
 void close(u8 *screen) {
     if (global<u32>(0x008c478c)) {
-        u32(__stdcall *const timeGetTime)() = *reinterpret_cast<u32(__stdcall *const *)()>((uintptr_t)0x006fd3ec);
+        u32(__stdcall *const timeGetTime)() = *reinterpret_cast<u32(__stdcall *const *)()>((uintptr_t)IMPORT(Winmm_timeGetTime));
         if (timeGetTime() - global<u32>(0x008c4780) < 3000) {
             while (timeGetTime() - global<u32>(0x008c4780) < 3000) {
             }
@@ -129,7 +130,7 @@ u32 __fastcall LoadScreen_Show(u8 *self, void *, const char *name, const char *f
     file_in(stampLater, path, (u32)(uintptr_t)&gLoadscreen_768db8, name);
     std::strcat(path, text((u32)(uintptr_t)&gLoadscreen_768dac));
 
-    u32(__stdcall *const timeGetTime)() = *reinterpret_cast<u32(__stdcall *const *)()>((uintptr_t)0x006fd3ec);
+    u32(__stdcall *const timeGetTime)() = *reinterpret_cast<u32(__stdcall *const *)()>((uintptr_t)IMPORT(Winmm_timeGetTime));
     if (global<u32>(0x008c4788) == 0) {
         u32 image[4];
         image[0] = 0;
@@ -208,7 +209,7 @@ u32 __fastcall LoadScreen_DrawBar(u8 *screen) {
 }
 
 u32 __fastcall LoadScreen_Tick(u8 *screen) {
-    u32(__stdcall *const timeGetTime)() = *reinterpret_cast<u32(__stdcall *const *)()>((uintptr_t)0x006fd3ec);
+    u32(__stdcall *const timeGetTime)() = *reinterpret_cast<u32(__stdcall *const *)()>((uintptr_t)IMPORT(Winmm_timeGetTime));
     if (at<u32>(screen, 0) == 0) {
         at<u32>(screen, 0x28) = timeGetTime();
         at<u32>(screen, 0x2c) = 0;

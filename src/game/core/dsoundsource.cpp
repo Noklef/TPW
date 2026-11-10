@@ -13,6 +13,7 @@
 #include "soundworker.h"
 #include "vcall.h"
 #include "waveformat.h"
+#include "imports.h"
 
 namespace {
 
@@ -34,8 +35,8 @@ const DSoundSourceEnv *g_env = &kGameEnv;
 bool failed(u32 answer) { return (s32)answer < 0; }
 u8 *direct_sound(const u8 *source) { return at<u8 *>(source, 0x18); }
 u8 *slot_of(const u8 *source, u32 index) { return at<u8 *>(source, 0x28) + index * 0x2c; }
-void enter(u8 *source) { import(0x006fd140, source + 0x38); }
-void leave(u8 *source) { import(0x006fd130, source + 0x38); }
+void enter(u8 *source) { import(IMPORT(Kernel32_EnterCriticalSection), source + 0x38); }
+void leave(u8 *source) { import(IMPORT(Kernel32_LeaveCriticalSection), source + 0x38); }
 
 void release(u8 *source, u32 offset) {
     u8 *&object = at<u8 *>(source, offset);
@@ -59,10 +60,10 @@ void set_up_extra_interfaces(u8 *source) {
 
 bool open_source(u8 *source, const u8 *info) {
     ComInit_Get();
-    if (failed(import(0x006fd454, address(0x00711a68), 0u, 1u, address(0x00711aa8), &at<u8 *>(source, 0x18)))) return false;
+    if (failed(import(IMPORT(Ole32_CoCreateInstance), address(0x00711a68), 0u, 1u, address(0x00711aa8), &at<u8 *>(source, 0x18)))) return false;
     if (failed(comcall<u32>(direct_sound(source), 0x3c, 0u, 0xc2u, 0u))) return false;
     if (!(u8)SoundSource711b08_HasCaps(source)) return false;
-    const u32 window = at<u8>(info, 0x4c) & 2 ? at<u32>(info, 0x48) : import(0x006fd370);
+    const u32 window = at<u8>(info, 0x4c) & 2 ? at<u32>(info, 0x48) : import(IMPORT(User32_GetForegroundWindow));
     if (failed(comcall<u32>(direct_sound(source), 0x4c, window, 1u))) return false;
     comcall<u32>(direct_sound(source), 0x5c, 1u);
     if (!comcall<u32>(direct_sound(source), 0x40, 0x40u) || !comcall<u32>(direct_sound(source), 0x40, 2u)) return false;
@@ -81,7 +82,7 @@ bool open_source(u8 *source, const u8 *info) {
     SoundSource711b08_CreateEvents(source);
     at<u32>(source, 8) |= 0x40;
     const u32 thread = g_env->beginthread(0x006d2d60, 0, source);
-    return !failed(import(0x006fd1fc, thread, 0xfu));
+    return !failed(import(IMPORT(Kernel32_SetThreadPriority), thread, 0xfu));
 }
 
 }  // namespace
@@ -104,7 +105,7 @@ u32 *__fastcall SoundSource711b08_Open(u8 *source, void *, u32 *out, const u8 *i
 
 void __fastcall SoundSource711b08_Close(u8 *source) {
     if (at<u8>(source, 8) & 0x40) {
-        import(0x006fd124, at<u32 *>(source, 0x2c)[at<u32>(source, 0x30) - 1]);
+        import(IMPORT(Kernel32_SetEvent), at<u32 *>(source, 0x2c)[at<u32>(source, 0x30) - 1]);
         while (*reinterpret_cast<volatile u8 *>(source + 8) & 0x80) {
         }
     }
@@ -114,7 +115,7 @@ void __fastcall SoundSource711b08_Close(u8 *source) {
     release(source, 0x24);
     release(source, 0x18);
     if (at<u32 *>(source, 0x2c)) {
-        for (u32 i = 0; i < at<u32>(source, 0x30); ++i) import(0x006fd13c, at<u32 *>(source, 0x2c)[i]);
+        for (u32 i = 0; i < at<u32>(source, 0x30); ++i) import(IMPORT(Kernel32_CloseHandle), at<u32 *>(source, 0x2c)[i]);
         GameHeap_Free(at<u32 *>(source, 0x2c));
         at<u32 *>(source, 0x2c) = nullptr;
     }
@@ -236,7 +237,7 @@ u8 *__fastcall SoundSource711b08_DeletingDtor(u8 *source, void *, u32 flags) {
 
 void __fastcall SoundSource711b08_Dtor(u8 *source) {
     at<u32>(source, 0) = (u32)(uintptr_t)SoundSource711b08_vtable;
-    import(0x006fd0d0, source + 0x38);
+    import(IMPORT(Kernel32_DeleteCriticalSection), source + 0x38);
     at<u32>(source, 0) = (u32)(uintptr_t)SoundSourceBase_vtable;
     SoundHelper_Free();
 }

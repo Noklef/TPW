@@ -5,6 +5,7 @@
 #include <cstring>
 
 #include "language.h"
+#include "imports.h"
 
 namespace {
 
@@ -14,10 +15,10 @@ T at(u32 address) {
 }
 const RegKeyEnv kGameEnv = {
     at<void(__fastcall *)(RegKey *)>(0x00581da0),
-    at<s32(__stdcall *const *)(u32)>(0x006fd000),
-    at<s32(__stdcall *const *)(u32, const char *, u32 *)>(0x006fd004),
-    at<s32(__stdcall *const *)(u32, const char *, u32 *, u32 *, void *, u32 *)>(0x006fd008),
-    at<s32(__stdcall *const *)(u32, const char *, u32, char *, u32, u32, void *, u32 *, u32 *)>(0x006fd00c),
+    at<s32(__stdcall *const *)(u32)>(IMPORT(Advapi32_RegCloseKey)),
+    at<s32(__stdcall *const *)(u32, const char *, u32 *)>(IMPORT(Advapi32_RegOpenKeyA)),
+    at<s32(__stdcall *const *)(u32, const char *, u32 *, u32 *, void *, u32 *)>(IMPORT(Advapi32_RegQueryValueExA)),
+    at<s32(__stdcall *const *)(u32, const char *, u32, char *, u32, u32, void *, u32 *, u32 *)>(IMPORT(Advapi32_RegCreateKeyExA)),
     at<const char *>(0x00775748),
 };
 const RegKeyEnv *g_env = &kGameEnv;

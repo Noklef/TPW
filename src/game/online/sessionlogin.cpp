@@ -22,6 +22,7 @@
 #include "servers.h"
 #include "session.h"
 #include "../ui/window7cc8c0handler.h"
+#include "../core/imports.h"
 
 namespace {
 
@@ -35,7 +36,7 @@ const u32 kEmptyWide = reinterpret_cast<uintptr_t>(&gWindow7cc8c0handler_78a374)
 
 void Say(u32 text) {
     using Output = void(__stdcall *)(const char *);
-    (*reinterpret_cast<const Output *>((uintptr_t)0x006fd1e0))(reinterpret_cast<const char *>((uintptr_t)text));
+    (*reinterpret_cast<const Output *>((uintptr_t)IMPORT(Kernel32_OutputDebugStringA)))(reinterpret_cast<const char *>((uintptr_t)text));
 }
 
 // A connection object: 0xc bytes, built by the import at the slot; none when the block is not had.
@@ -85,9 +86,9 @@ void __fastcall Online_LogIn(u8 *session, void *, const u16 *name, const u16 *pa
     vcall<void>(session + 0xc, 0x14, name);
     vcall<void>(session + 0x20, 0x14, password);
     Online_ReleaseLogin(session);
-    at<u8 *>(session, 0) = NewConnection(0x006fd46c);   // Auth::Auth
+    at<u8 *>(session, 0) = NewConnection(IMPORT(Weaauthr_Auth_Ctor));   // Auth::Auth
     Say(reinterpret_cast<uintptr_t>(&gOnline_LogIn_77343c));
-    if (Connect(0x006fd464, at<u8 *>(session, 0), 0x007a1514, 0x007a1554, 0x005b5ce0) != 1) {
+    if (Connect(IMPORT(Weaauthr_Auth_Connect), at<u8 *>(session, 0), 0x007a1514, 0x007a1554, 0x005b5ce0) != 1) {
         at<u32>(session, 0x68) = 0x4f;
         Online_LoginFinish(session, nullptr, 0);
         return;
@@ -95,7 +96,7 @@ void __fastcall Online_LogIn(u8 *session, void *, const u16 *name, const u16 *pa
     Say(reinterpret_cast<uintptr_t>(&gOnline_LogIn_773414));
     const u32 password28 = at<u32>(session, 0x28), name14 = at<u32>(session, 0x14), language = LanguageId();
     using Login = void(__fastcall *)(u8 *, void *, u32, u32, u32, u32);
-    (*reinterpret_cast<const Login *>((uintptr_t)0x006fd468))(at<u8 *>(session, 0), nullptr, language, name14, password28, 0);
+    (*reinterpret_cast<const Login *>((uintptr_t)IMPORT(Weaauthr_Auth_Login)))(at<u8 *>(session, 0), nullptr, language, name14, password28, 0);
 }
 
 void __fastcall Online_LoginFinish(u8 *session, void *, u32 flag) {
@@ -135,21 +136,21 @@ void __stdcall Online_NewsAnswer(s32 status, u32 a, u32 b, u8 *record) { Online_
 
 void __fastcall Online_OpenNews(u8 *session) {
     Online_ReleaseNews(session);
-    at<u8 *>(session, 0x6c) = NewConnection(0x006fd5a0);   // News::News
+    at<u8 *>(session, 0x6c) = NewConnection(IMPORT(Weanewsr_News_Ctor));   // News::News
     Say(reinterpret_cast<uintptr_t>(&gOnline_OpenNews_7734e8));
     g_env->showText(0xf4);
-    if (Connect(0x006fd59c, at<u8 *>(session, 0x6c), 0x007a1534, 0x007a1558, 0x005b6630) != 1) {
+    if (Connect(IMPORT(Weanewsr_News_Connect), at<u8 *>(session, 0x6c), 0x007a1534, 0x007a1558, 0x005b6630) != 1) {
         Say(reinterpret_cast<uintptr_t>(&gOnline_OpenNews_7734c8));
         at<u32>(session, 0xd0) = 0x4f;
         Online_NewsFinish(session);
         return;
     }
     Say(reinterpret_cast<uintptr_t>(&gOnline_OpenNews_7734a0));
-    at<u32>(session, 0x74) = NewsRequest(0x006fd598, at<u8 *>(session, 0x6c));
-    at<u32>(session, 0x90) = NewsRequest(0x006fd594, at<u8 *>(session, 0x6c));
+    at<u32>(session, 0x74) = NewsRequest(IMPORT(Weanewsr_News_GetGameServerDetails), at<u8 *>(session, 0x6c));
+    at<u32>(session, 0x90) = NewsRequest(IMPORT(Weanewsr_News_GetGameNews), at<u8 *>(session, 0x6c));
     const u32 language = LanguageId();
     using ServerNews = u32(__fastcall *)(u8 *, void *, u32, u32);
-    at<u32>(session, 0xac) = (*reinterpret_cast<const ServerNews *>((uintptr_t)0x006fd590))(at<u8 *>(session, 0x6c), nullptr, language, 0);
+    at<u32>(session, 0xac) = (*reinterpret_cast<const ServerNews *>((uintptr_t)IMPORT(Weanewsr_News_GetServerNews)))(at<u8 *>(session, 0x6c), nullptr, language, 0);
 }
 
 void __fastcall Online_NewsResult(u8 *session, void *, s32 status, u32 a, u32, u8 *record) {
@@ -199,7 +200,7 @@ void __fastcall Online_NewsPoll(u8 *session) {
         return;
     }
     using Active = u32(__fastcall *)(u8 *, void *, u32);
-    const Active active = *reinterpret_cast<const Active *>((uintptr_t)0x006fd5a4);
+    const Active active = *reinterpret_cast<const Active *>((uintptr_t)IMPORT(Weanewsr_News_GetCurrentMessage));
     u32 request = active(news, nullptr, 0);
     if (!request)
         request = active(at<u8 *>(session, 0x6c), nullptr, 1);
@@ -213,7 +214,7 @@ void __fastcall Online_NewsPoll(u8 *session) {
         g_env->message4();
     s32 done, total;
     using Progress = void(__fastcall *)(u8 *, void *, u32, s32 *, s32 *);
-    (*reinterpret_cast<const Progress *>((uintptr_t)0x006fd584))(at<u8 *>(session, 0x6c), nullptr, request, &done, &total);
+    (*reinterpret_cast<const Progress *>((uintptr_t)IMPORT(Weanewsr_News_MonitorMessage)))(at<u8 *>(session, 0x6c), nullptr, request, &done, &total);
     if (total > 0)
         g_env->setProgress(static_cast<u32>(static_cast<s32>(static_cast<u32>(done) * 100) / total));
 }

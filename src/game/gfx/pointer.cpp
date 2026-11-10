@@ -7,6 +7,7 @@
 #include "../files/file.h"
 #include "imageops.h"
 #include "../render/screen.h"
+#include "../core/imports.h"
 
 namespace {
 
@@ -20,10 +21,10 @@ const AsyncPointerEnv kGameEnv = {
     at<u32(__stdcall *)(void *)>(0x005fba00),
     at<void *(__cdecl *)(void *, u32, u32(__stdcall *)(void *), void *, u32, u32 *)>(0x0067f780),
     at<void(__cdecl *)(u32)>(0x0067f8b0),
-    at<s32(__stdcall *const *)(void *, u32 *)>(0x006fd0b8),
-    at<u32(__stdcall *const *)(void *, u32)>(0x006fd128),
-    at<s32(__stdcall *const *)(void *)>(0x006fd13c),
-    at<void(__stdcall *const *)(const char *)>(0x006fd1e0),
+    at<s32(__stdcall *const *)(void *, u32 *)>(IMPORT(Kernel32_GetExitCodeThread)),
+    at<u32(__stdcall *const *)(void *, u32)>(IMPORT(Kernel32_WaitForSingleObject)),
+    at<s32(__stdcall *const *)(void *)>(IMPORT(Kernel32_CloseHandle)),
+    at<void(__stdcall *const *)(const char *)>(IMPORT(Kernel32_OutputDebugStringA)),
     at<const char *>(0x007758a4),
     at<const char *>((u32)(uintptr_t)&gPointer_775878),
 };

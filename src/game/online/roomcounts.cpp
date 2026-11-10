@@ -14,6 +14,7 @@
 #include "itemlist.h"
 #include "session.h"
 #include "chatevents.h"
+#include "../core/imports.h"
 
 namespace {
 
@@ -53,7 +54,7 @@ void Release(char *ptr) {
 u8 *NewChat() {
     typedef u8 *(__fastcall * Ctor)(u8 *, void *);
     u8 *const memory = static_cast<u8 *>(GameHeap_Alloc(0xc));
-    return memory ? (*reinterpret_cast<const Ctor *>((uintptr_t)0x006fd474))(memory, nullptr) : nullptr;
+    return memory ? (*reinterpret_cast<const Ctor *>((uintptr_t)IMPORT(Weachatr_Chat_Ctor)))(memory, nullptr) : nullptr;
 }
 
 void AskRoom(s32 id) {
@@ -66,7 +67,7 @@ void AskRoom(s32 id) {
     text.len = 0;
     text.res = 0;
     StdString_AssignChars(&text, nullptr, number.data, static_cast<u32>(std::strlen(number.data)));
-    (*reinterpret_cast<const RoomInfo *>((uintptr_t)0x006fd478))(chat(), nullptr, &text, nullptr);
+    (*reinterpret_cast<const RoomInfo *>((uintptr_t)IMPORT(Weachatr_Chat_RoomInfo)))(chat(), nullptr, &text, nullptr);
     Release(text.ptr);
     String_Dtor(&number);
 }
@@ -90,9 +91,9 @@ void StartRound() {
     const s32 port = global<s16>(0x007a1552);
     u8 *const context = Global7cc53c_Pick7cc4f0();
     // (the callback by its address in the game, which RoomCounts_ChatEvent's hook answers)
-    if (!(*reinterpret_cast<const Connect *>((uintptr_t)0x006fd498))(chat(), nullptr, host, port, 0x004c4920, context)) {
+    if (!(*reinterpret_cast<const Connect *>((uintptr_t)IMPORT(Weachatr_Chat_Connect)))(chat(), nullptr, host, port, 0x004c4920, context)) {
         typedef void(__stdcall * Debug)(const char *);
-        (*reinterpret_cast<const Debug *>((uintptr_t)0x006fd1e0))(gRoomcounts_759924);
+        (*reinterpret_cast<const Debug *>((uintptr_t)IMPORT(Kernel32_OutputDebugStringA)))(gRoomcounts_759924);
         return;
     }
     ready() = 0;
@@ -137,7 +138,7 @@ void __cdecl RoomCounts_Update() {
     if (global<u32>(0x007cdb10)) StartRound();
     if (!ready()) return;
     typedef u32(__fastcall * ChatRelease)(u8 *);
-    (*reinterpret_cast<const ChatRelease *>((uintptr_t)0x006fd47c))(chat());
+    (*reinterpret_cast<const ChatRelease *>((uintptr_t)IMPORT(Weachatr_Chat_Release)))(chat());
     for (u32 i = 0; i < 5; ++i) {
         u8 *const dialog = global<u8 *>(0x007cdb0c);
         const s32 count = counts()[i];

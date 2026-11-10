@@ -4,16 +4,17 @@
 #include <cstring>
 
 #include "crt.h"
+#include "imports.h"
 
 namespace {
 
 template <typename F> F import_slot(u32 slot) { return *reinterpret_cast<F *>((uintptr_t)slot); }
 
 bool read_file(u32 handle, void *data, u32 count, u32 *got) {
-    return import_slot<s32(__stdcall *)(u32, void *, u32, u32 *, void *)>(0x006fd0dc)(handle, data, count, got, nullptr) != 0;
+    return import_slot<s32(__stdcall *)(u32, void *, u32, u32 *, void *)>(IMPORT(Kernel32_ReadFile))(handle, data, count, got, nullptr) != 0;
 }
 
-u32 last_error() { return import_slot<u32(__stdcall *)()>(0x006fd138)(); }
+u32 last_error() { return import_slot<u32(__stdcall *)()>(IMPORT(Kernel32_GetLastError))(); }
 
 bool text_file(const CrtFile *file) { return !(file->flags & 0x40) && crt_handle_or_dummy(file->fd)[4] & 0x80; }
 

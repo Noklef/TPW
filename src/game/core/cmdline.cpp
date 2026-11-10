@@ -5,6 +5,7 @@
 
 #include "crt.h"
 #include "gameerror.h"
+#include "imports.h"
 
 namespace {
 
@@ -35,7 +36,7 @@ u8 *__fastcall CommandLine_Split(u8 *self) {
     using GetLine = const char *(__stdcall *)();
     u32 &count = *reinterpret_cast<u32 *>(self);
     char **const parts = reinterpret_cast<char **>(self + 4);
-    char *p = reinterpret_cast<char *>((uintptr_t)g_calls.Cd(0x0068b5f0, global<GetLine>(0x006fd1e4)()));
+    char *p = reinterpret_cast<char *>((uintptr_t)g_calls.Cd(0x0068b5f0, global<GetLine>(IMPORT(Kernel32_GetCommandLineA))()));
     *reinterpret_cast<char **>(self + 0x204) = p;
     count = 0;
     while (*p) {

@@ -6,6 +6,7 @@
 #include "vobj2.h"
 #include "../render/screen.h"
 #include "../gfx/pointer.h"
+#include "imports.h"
 
 namespace {
 
@@ -21,10 +22,10 @@ const EventQueueEnv kGameEnv = {
     at<void(__cdecl *)(void *)>(0x0067acb0),
     at<s32(__cdecl *)(void(__cdecl *)())>(0x0067a7d0),
     at<void(__cdecl *)()>(0x005fbe10),
-    at<void(__stdcall *const *)(void *)>(0x006fd144),
-    at<void(__stdcall *const *)(void *)>(0x006fd0d0),
-    at<void(__stdcall *const *)(void *)>(0x006fd140),
-    at<void(__stdcall *const *)(void *)>(0x006fd130),
+    at<void(__stdcall *const *)(void *)>(IMPORT(Kernel32_InitializeCriticalSection)),
+    at<void(__stdcall *const *)(void *)>(IMPORT(Kernel32_DeleteCriticalSection)),
+    at<void(__stdcall *const *)(void *)>(IMPORT(Kernel32_EnterCriticalSection)),
+    at<void(__stdcall *const *)(void *)>(IMPORT(Kernel32_LeaveCriticalSection)),
 };
 const EventQueueEnv *g_env = &kGameEnv;
 

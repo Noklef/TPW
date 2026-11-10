@@ -15,6 +15,7 @@
 #include "postcardsend.h"
 #include "../core/iosbase.h"
 #include "../core/wfilebuf.h"
+#include "../core/imports.h"
 
 namespace {
 
@@ -233,7 +234,7 @@ u8 __fastcall ChatLists_LoadIgnored(u8 *self, void *, const char *name) {
     StdString_Tidy(&narrow, nullptr, 0);
     build_path(self, name, folder, &narrow, path, 0x0075c6f4, reinterpret_cast<uintptr_t>(&gChatLists_75c6e8));
     if (!g_env->filebufOpen(buffer, nullptr, path, 1)) g_env->clear(ios_of(stream), nullptr, at<u32>(ios_of(stream), 4) | 2, 0);
-    const auto notify = *reinterpret_cast<u32(__fastcall *const *)(u32, u32, u8 *, u8 *)>((uintptr_t)0x006fd484);
+    const auto notify = *reinterpret_cast<u32(__fastcall *const *)(u32, u32, u8 *, u8 *)>((uintptr_t)IMPORT(Weachatr_Chat_Ignore));
     while (stream_good(g_env->getline(stream, nullptr, line, 0x20, g_env->widen(ios_of(stream), nullptr, 10)))) {
         CountedBuf_Reset(wide, nullptr, 0);
         g_env->assign(wide, nullptr, line, CRT_wcslen(line));

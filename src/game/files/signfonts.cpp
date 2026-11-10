@@ -6,6 +6,7 @@
 #include "../core/string.h"
 #include "../core/vcall.h"
 #include "vfs.h"
+#include "../core/imports.h"
 
 namespace {
 
@@ -30,7 +31,7 @@ bool AddFont(String *from, String *to, const char *name) {
     vcall<void>(to, kAppendText, name);
     if (!g_env->extract(from->data, to->data)) return false;
     using AddFontResource = s32(__stdcall *)(const char *);
-    if (!(*reinterpret_cast<const AddFontResource *>((uintptr_t)0x006fd030))(to->data)) return false;
+    if (!(*reinterpret_cast<const AddFontResource *>((uintptr_t)IMPORT(Gdi32_AddFontResourceA)))(to->data)) return false;
     const u8 *const first = *reinterpret_cast<u8 *const *>(kVector + 4);
     u8 *const last = *reinterpret_cast<u8 **>(kVector + 8);
     for (const u8 *font = first; font != last; font += 0x14)

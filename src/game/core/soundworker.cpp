@@ -7,6 +7,7 @@
 #include "methods.h"
 #include "soundvoice.h"
 #include "vcall.h"
+#include "imports.h"
 
 namespace {
 
@@ -15,8 +16,8 @@ template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((ui
 
 using OnObject = void(__stdcall *)(void *);
 OnObject import(u32 slot) { return global<OnObject>(slot); }
-void Enter(void *section) { import(0x006fd140)(section); }
-void Leave(void *section) { import(0x006fd130)(section); }
+void Enter(void *section) { import(IMPORT(Kernel32_EnterCriticalSection))(section); }
+void Leave(void *section) { import(IMPORT(Kernel32_LeaveCriticalSection))(section); }
 
 const SoundWorkerEnv kGameEnv = {reinterpret_cast<u32(__cdecl *)(u32, u32, void *)>((uintptr_t)0x0067e050)};
 const SoundWorkerEnv *g_env = &kGameEnv;
@@ -71,7 +72,7 @@ void __fastcall ComList_ReleaseAll(u8 *list) {
 }
 
 u8 *__fastcall SoundWorker_Ctor(u8 *worker, void *, u32 count) {
-    import(0x006fd144)(worker + 4);   // InitializeCriticalSection
+    import(IMPORT(Kernel32_InitializeCriticalSection))(worker + 4);   // InitializeCriticalSection
     worker[0x34] = 0;
     for (u32 offset = 0x1c; offset <= 0x30; offset += 4) at<u32>(worker, offset) = 0;
     worker[0x35] = 0;

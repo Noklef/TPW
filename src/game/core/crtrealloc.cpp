@@ -5,6 +5,7 @@
 
 #include "crt.h"
 #include "crtsbh.h"
+#include "imports.h"
 
 namespace {
 
@@ -17,7 +18,7 @@ template <typename F> F import_slot(u32 slot) { return *reinterpret_cast<F *>((u
 u32 static_region() { return static_cast<u32>(reinterpret_cast<uintptr_t>(&CRT_small_block_heap)); }
 const u32 uncommitted = 0xffffffff;
 
-s32 virtual_free(u32 address, u32 size, u32 kind) { return import_slot<s32(__stdcall *)(u32, u32, u32)>(0x006fd1b8)(address, size, kind); }
+s32 virtual_free(u32 address, u32 size, u32 kind) { return import_slot<s32(__stdcall *)(u32, u32, u32)>(IMPORT(Kernel32_VirtualFree))(address, size, kind); }
 
 // The group of a page.
 u32 group_of(u32 region, u32 page) {
@@ -59,7 +60,7 @@ void __cdecl CRT_sbh_release_region(void *region) {
     }
     word(word(at + 4)) = word(at);
     word(word(at) + 4) = word(at + 4);
-    import_slot<s32(__stdcall *)(u32, u32, u32)>(0x006fd210)(CRT_crtheap, 0, at);
+    import_slot<s32(__stdcall *)(u32, u32, u32)>(IMPORT(Kernel32_HeapFree))(CRT_crtheap, 0, at);
 }
 
 void __cdecl CRT_sbh_decommit_pages(s32 count) {
@@ -155,13 +156,13 @@ void *__cdecl CRT_realloc(void *block, u32 size) {
                     }
                 }
                 if (!result) {
-                    result = import_slot<void *(__stdcall *)(u32, u32, u32)>(0x006fd224)(CRT_crtheap, 0, size);
+                    result = import_slot<void *(__stdcall *)(u32, u32, u32)>(IMPORT(Kernel32_HeapAlloc))(CRT_crtheap, 0, size);
                     if (result) move_block(result, block, region, page, entry, size);
                 }
                 CrtInner().unlock(9);
             } else {
                 CrtInner().unlock(9);
-                result = import_slot<void *(__stdcall *)(u32, u32, void *, u32)>(0x006fd258)(CRT_crtheap, 0, block, size);
+                result = import_slot<void *(__stdcall *)(u32, u32, void *, u32)>(IMPORT(Kernel32_HeapReAlloc))(CRT_crtheap, 0, block, size);
             }
         }
         if (result || !CRT_newmode) return result;
@@ -179,5 +180,5 @@ u32 __cdecl CRT_msize(void *block) {
         return size;
     }
     CrtInner().unlock(9);
-    return import_slot<u32(__stdcall *)(u32, u32, void *)>(0x006fd208)(CRT_crtheap, 0, block);   // HeapSize
+    return import_slot<u32(__stdcall *)(u32, u32, void *)>(IMPORT(Kernel32_HeapSize))(CRT_crtheap, 0, block);   // HeapSize
 }

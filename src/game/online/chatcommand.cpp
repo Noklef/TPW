@@ -20,6 +20,7 @@
 #include "../ui/window7cc8bc.h"
 #include "itemlist.h"
 #include "session.h"
+#include "../core/imports.h"
 
 namespace {
 
@@ -52,7 +53,7 @@ template <typename... A> void tell(u32 slot, u8 *avatar, A... args) {
 }
 
 // OutputDebugStringA (stdcall) through its import slot.
-void debugLine(u32 text) { (*reinterpret_cast<void(__stdcall *const *)(u32)>((uintptr_t)0x006fd1e0))(text); }
+void debugLine(u32 text) { (*reinterpret_cast<void(__stdcall *const *)(u32)>((uintptr_t)IMPORT(Kernel32_OutputDebugStringA)))(text); }
 
 // The tokens vector's count ((last - first) / 0x24, signed as the original's; no first: 0) and its token i.
 u32 count(const u8 *tokens) {
@@ -187,7 +188,7 @@ void vote(u8 *avatar) {
     for (u32 k = 0; k < 4; ++k) guid[k] = gChatcommand_7005d8[k];
     u8 *const block = static_cast<u8 *>(GameHeap_Alloc(0xc));
     using Ctor = u32(__fastcall *)(u8 *, void *);
-    const u32 made = block ? (*reinterpret_cast<const Ctor *>((uintptr_t)0x006fd5f4))(block, nullptr) : 0;
+    const u32 made = block ? (*reinterpret_cast<const Ctor *>((uintptr_t)IMPORT(Weavoter_Vote_Ctor)))(block, nullptr) : 0;
     at<u32>(avatar, 0xec4) = made;
     if (!made)
         return;
@@ -198,7 +199,7 @@ void vote(u8 *avatar) {
     const u32 port = global<u16>(0x007a155a);
     const u32 pick = (u32)(uintptr_t)Global7cc53c_Pick7cc4f0();
     using Connect = u32(__fastcall *)(u32, void *, const char *, u32, u32, u32);
-    if ((*reinterpret_cast<const Connect *>((uintptr_t)0x006fd5f8))(at<u32>(avatar, 0xec4), nullptr, host, pick, port, 0x004e4fc0) != 1)
+    if ((*reinterpret_cast<const Connect *>((uintptr_t)IMPORT(Weavoter_Vote_Connect)))(at<u32>(avatar, 0xec4), nullptr, host, pick, port, 0x004e4fc0) != 1)
         return;
     debugLine(reinterpret_cast<uintptr_t>(&gChatcommand_75c5f0));
     u8 *s = gChatcommand_f7d88c;   // (made up to three times: twice, then once more for the third getter)
@@ -211,10 +212,10 @@ void vote(u8 *avatar) {
     const u32 b = Get38_41ce90(first);
     const u32 c = Get34_41ce80(s);
     using Info = u32(__fastcall *)(u32, void *, u32, u32, u32, u32);
-    (*reinterpret_cast<const Info *>((uintptr_t)0x006fd5fc))(at<u32>(avatar, 0xec4), nullptr, 9, c, b, name);
+    (*reinterpret_cast<const Info *>((uintptr_t)IMPORT(Weavoter_Vote_SetSessionInfo)))(at<u32>(avatar, 0xec4), nullptr, 9, c, b, name);
     const u32 y = at<u32>(reinterpret_cast<u8 *>((uintptr_t)Obj_Get3a4(session())), 8);
     using Send = u32(__fastcall *)(u32, void *, u32, u32 *, u32, u32);
-    (*reinterpret_cast<const Send *>((uintptr_t)0x006fd600))(at<u32>(avatar, 0xec4), nullptr, y, guid, 1, 0);
+    (*reinterpret_cast<const Send *>((uintptr_t)IMPORT(Weavoter_Vote_SendVote)))(at<u32>(avatar, 0xec4), nullptr, y, guid, 1, 0);
     debugLine(reinterpret_cast<uintptr_t>(&gChatcommand_75c5e4));
 }
 
@@ -253,7 +254,7 @@ void gotoName(u8 *avatar, const u8 *tokens) {
         }
         const u16 *chars = ChatToken_Text(token(tokens, 1), nullptr, &text)->ptr;
         if (found) {
-            tellChars(0x006fd490, avatar, chars, found);
+            tellChars(IMPORT(Weachatr_Chat_Goto), avatar, chars, found);
             reset(&text, 1);
         } else {
             format(avatar, 0x7f, chars ? chars : kNullStr, true);   // (the argument built inline in the original: the same bytes)
@@ -523,18 +524,18 @@ void __fastcall ChatAvatar_RunCommand(u8 *avatar, void *, const u8 *tokens) {
         return;
     if (at<u32>(token(tokens, 0), 0x20) != 0x12) {
         at<u8>(avatar, 0xeb1) = 0;
-        tell(0x006fd4bc, avatar);   // Chat::NotAFK
+        tell(IMPORT(Weachatr_Chat_NotAFK), avatar);   // Chat::NotAFK
     }
     switch (at<u32>(token(tokens, 0), 0x20)) {
     case 0:   // Say
         if (count(tokens) > 1 && hasText(tokens, 1))
-            tellTextFlag(0x006fd4b8, avatar, tokens, 1, 0);
+            tellTextFlag(IMPORT(Weachatr_Chat_Say), avatar, tokens, 1, 0);
         break;
     case 1:   // Tell, keeping the target
         if (count(tokens) > 1) {
             StdWString message, to;
             ChatToken_Text(token(tokens, 2), nullptr, &message);
-            tell(0x006fd4b4, avatar, ChatToken_Text(token(tokens, 1), nullptr, &to), &message, 0u);
+            tell(IMPORT(Weachatr_Chat_Tell), avatar, ChatToken_Text(token(tokens, 1), nullptr, &to), &message, 0u);
             reset(&to, 1);
             reset(&message, 1);
             StdWString_AssignSub(&at<StdWString>(avatar, 0xe60), nullptr, ChatToken_Text(token(tokens, 1), nullptr, &to), 0, npos());
@@ -552,7 +553,7 @@ void __fastcall ChatAvatar_RunCommand(u8 *avatar, void *, const u8 *tokens) {
                 notice(avatar, none);
             } else {
                 StdWString text;
-                tell(0x006fd4b4, avatar, &at<StdWString>(avatar, target), ChatToken_Text(token(tokens, 1), nullptr, &text), 0u);
+                tell(IMPORT(Weachatr_Chat_Tell), avatar, &at<StdWString>(avatar, target), ChatToken_Text(token(tokens, 1), nullptr, &text), 0u);
                 reset(&text, 1);
             }
         } else {
@@ -565,17 +566,17 @@ void __fastcall ChatAvatar_RunCommand(u8 *avatar, void *, const u8 *tokens) {
         if (at<u8>(avatar, 0xeb0))
             notice(avatar, 0x5f);
         else if (hasText(tokens, 1))
-            tellTextFlag(0x006fd4b0, avatar, tokens, 1, at<u32>(token(tokens, 0), 0x20) == 7 ? 1u : 0u);
+            tellTextFlag(IMPORT(Weachatr_Chat_RoomShout), avatar, tokens, 1, at<u32>(token(tokens, 0), 0x20) == 7 ? 1u : 0u);
         break;
     case 5:   // Say (emote)
         if (hasText(tokens, 1))
-            tellTextFlag(0x006fd4b8, avatar, tokens, 1, 1);
+            tellTextFlag(IMPORT(Weachatr_Chat_Say), avatar, tokens, 1, 1);
         break;
     case 6:   // Tell (emote)
         if (count(tokens) > 1) {
             StdWString message, to;
             ChatToken_Text(token(tokens, 2), nullptr, &message);
-            tell(0x006fd4b4, avatar, ChatToken_Text(token(tokens, 1), nullptr, &to), &message, 1u);
+            tell(IMPORT(Weachatr_Chat_Tell), avatar, ChatToken_Text(token(tokens, 1), nullptr, &to), &message, 1u);
             reset(&to, 1);
             reset(&message, 1);
         } else {
@@ -583,15 +584,15 @@ void __fastcall ChatAvatar_RunCommand(u8 *avatar, void *, const u8 *tokens) {
         }
         break;
     case 0xa:   // SetHearingRange (the second token read whatever the count, sic)
-        tell(0x006fd4d4, avatar, at<u32>(token(tokens, 1), 0x20));
+        tell(IMPORT(Weachatr_Chat_SetHearingRange), avatar, at<u32>(token(tokens, 1), 0x20));
         break;
     case 0xc:   // the earmuffs toggled
         if (at<u8>(avatar, 0xeb0)) {
             at<u8>(avatar, 0xeb0) = 0;
-            tell(0x006fd4ac, avatar);
+            tell(IMPORT(Weachatr_Chat_EarmuffsOff), avatar);
         } else {
             at<u8>(avatar, 0xeb0) = 1;
-            tell(0x006fd4a8, avatar);
+            tell(IMPORT(Weachatr_Chat_EarmuffsOn), avatar);
         }
         break;
     case 0xd:   // UnIgnore / Ignore
@@ -603,7 +604,7 @@ void __fastcall ChatAvatar_RunCommand(u8 *avatar, void *, const u8 *tokens) {
             reset(&key, 1);
             reset(&text, 1);
             if (it != at<u32>(avatar, 0xea4)) {
-                tellText(0x006fd4a4, avatar, tokens, 1);
+                tellText(IMPORT(Weachatr_Chat_UnIgnore), avatar, tokens, 1);
                 break;
             }
             StdWString own;
@@ -612,7 +613,7 @@ void __fastcall ChatAvatar_RunCommand(u8 *avatar, void *, const u8 *tokens) {
                 debugLine(reinterpret_cast<uintptr_t>(&gChatAvatar_RunCommand_75c680));
                 notice(avatar, 0xb1);
             } else if (hasText(tokens, 1)) {
-                tellText(0x006fd484, avatar, tokens, 1);
+                tellText(IMPORT(Weachatr_Chat_Ignore), avatar, tokens, 1);
             }
             reset(&own, 1);
             reset(&key, 1);
@@ -628,7 +629,7 @@ void __fastcall ChatAvatar_RunCommand(u8 *avatar, void *, const u8 *tokens) {
                 debugLine(reinterpret_cast<uintptr_t>(&gChatAvatar_RunCommand_75c660));
                 notice(avatar, 0xb0);
             } else if (hasText(tokens, 1)) {
-                tellText(0x006fd4a0, avatar, tokens, 1);
+                tellText(IMPORT(Weachatr_Chat_Blackmark), avatar, tokens, 1);
             }
             reset(&own, 1);
             reset(&key, 1);
@@ -649,7 +650,7 @@ void __fastcall ChatAvatar_RunCommand(u8 *avatar, void *, const u8 *tokens) {
             reset(&key, 1);
             reset(&text, 1);
             if (it != at<u32>(avatar, 0xe94)) {
-                tellText(0x006fd49c, avatar, tokens, 1);
+                tellText(IMPORT(Weachatr_Chat_RemoveBuddy), avatar, tokens, 1);
                 break;
             }
             StdWString own;
@@ -657,7 +658,7 @@ void __fastcall ChatAvatar_RunCommand(u8 *avatar, void *, const u8 *tokens) {
             if (sameSub(&key, &own))
                 notice(avatar, 0x9b);
             else
-                tellText(0x006fd488, avatar, tokens, 1);
+                tellText(IMPORT(Weachatr_Chat_AddBuddy), avatar, tokens, 1);
             reset(&own, 1);
             reset(&key, 1);
         } else {
@@ -666,7 +667,7 @@ void __fastcall ChatAvatar_RunCommand(u8 *avatar, void *, const u8 *tokens) {
         break;
     case 0x11:   // Page
         if (count(tokens) > 1)
-            tellText(0x006fd4d0, avatar, tokens, 1);
+            tellText(IMPORT(Weachatr_Chat_Page), avatar, tokens, 1);
         else
             notice(avatar, 0x72);
         break;
@@ -679,10 +680,10 @@ void __fastcall ChatAvatar_RunCommand(u8 *avatar, void *, const u8 *tokens) {
         text.allocator = 0;
         reset(&text, 0);
         assign(&text, buffer, kAssignCall);
-        tell(0x006fd4b8, avatar, &text, 0u);
+        tell(IMPORT(Weachatr_Chat_Say), avatar, &text, 0u);
         if (!away) {
             at<u8>(avatar, 0xeb1) = 1;
-            tell(0x006fd4c8, avatar);   // Chat::AFK
+            tell(IMPORT(Weachatr_Chat_AFK), avatar);   // Chat::AFK
         }
         reset(&text, 1);
         break;
@@ -693,7 +694,7 @@ void __fastcall ChatAvatar_RunCommand(u8 *avatar, void *, const u8 *tokens) {
     case 0x14:   // Locate
         if (count(tokens) > 1 && hasText(tokens, 1)) {
             StdWString text;
-            tellChars(0x006fd48c, avatar, ChatToken_Text(token(tokens, 1), nullptr, &text)->ptr, 0);
+            tellChars(IMPORT(Weachatr_Chat_Locate), avatar, ChatToken_Text(token(tokens, 1), nullptr, &text)->ptr, 0);
             reset(&text, 1);
         } else {
             notice(avatar, 0x72, kAssignGrow);
@@ -711,7 +712,7 @@ void __fastcall ChatAvatar_RunCommand(u8 *avatar, void *, const u8 *tokens) {
     case 0x17:   // Say
         if (count(tokens) > 1) {
             if (hasText(tokens, 1))
-                tellTextFlag(0x006fd4b8, avatar, tokens, 1, 0);
+                tellTextFlag(IMPORT(Weachatr_Chat_Say), avatar, tokens, 1, 0);
         } else {
             notice(avatar, 0xa1, kAssignInline);
         }

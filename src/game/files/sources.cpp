@@ -5,6 +5,7 @@
 
 #include "../core/vcall.h"
 #include "file.h"
+#include "../core/imports.h"
 
 namespace {
 
@@ -14,24 +15,24 @@ T at(u32 address) {
 }
 #define SLOT(member, address) at<decltype(SourcesEnv::member)>(address)
 const SourcesEnv kGameEnv = {
-    SLOT(createFile, 0x006fd0d8),
-    SLOT(readFile, 0x006fd0dc),
-    SLOT(writeFile, 0x006fd0e0),
-    SLOT(setFilePointer, 0x006fd0e4),
-    SLOT(getFileSize, 0x006fd0e8),
-    SLOT(getSystemInfo, 0x006fd0ec),
-    SLOT(mapViewOfFileEx, 0x006fd0f0),
-    SLOT(createFileMapping, 0x006fd0f4),
-    SLOT(unmapViewOfFile, 0x006fd0f8),
-    SLOT(flushFileBuffers, 0x006fd0fc),
-    SLOT(closeHandle, 0x006fd13c),
-    SLOT(mmioOpen, 0x006fd3e4),
-    SLOT(mmioClose, 0x006fd3f0),
-    SLOT(mmioRead, 0x006fd3e0),
-    SLOT(mmioWrite, 0x006fd3dc),
-    SLOT(mmioSeek, 0x006fd3d8),
-    SLOT(mmioSetBuffer, 0x006fd3e8),
-    SLOT(mmioFlush, 0x006fd3d4),
+    SLOT(createFile, IMPORT(Kernel32_CreateFileA)),
+    SLOT(readFile, IMPORT(Kernel32_ReadFile)),
+    SLOT(writeFile, IMPORT(Kernel32_WriteFile)),
+    SLOT(setFilePointer, IMPORT(Kernel32_SetFilePointer)),
+    SLOT(getFileSize, IMPORT(Kernel32_GetFileSize)),
+    SLOT(getSystemInfo, IMPORT(Kernel32_GetSystemInfo)),
+    SLOT(mapViewOfFileEx, IMPORT(Kernel32_MapViewOfFileEx)),
+    SLOT(createFileMapping, IMPORT(Kernel32_CreateFileMappingA)),
+    SLOT(unmapViewOfFile, IMPORT(Kernel32_UnmapViewOfFile)),
+    SLOT(flushFileBuffers, IMPORT(Kernel32_FlushFileBuffers)),
+    SLOT(closeHandle, IMPORT(Kernel32_CloseHandle)),
+    SLOT(mmioOpen, IMPORT(Winmm_mmioOpenA)),
+    SLOT(mmioClose, IMPORT(Winmm_mmioClose)),
+    SLOT(mmioRead, IMPORT(Winmm_mmioRead)),
+    SLOT(mmioWrite, IMPORT(Winmm_mmioWrite)),
+    SLOT(mmioSeek, IMPORT(Winmm_mmioSeek)),
+    SLOT(mmioSetBuffer, IMPORT(Winmm_mmioSetBuffer)),
+    SLOT(mmioFlush, IMPORT(Winmm_mmioFlush)),
     at<char *>((u32)&gFileSourcePath),
     at<char *>((u32)&gMmioSourcePath),
 };

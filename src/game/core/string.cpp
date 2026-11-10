@@ -13,6 +13,7 @@
 #include "stdstring.h"
 #include "vcall.h"
 #include "wtraits.h"
+#include "imports.h"
 
 namespace {
 
@@ -836,7 +837,7 @@ s32 __fastcall ByteString_Compare(const u8 *object, void *, const u8 *other) {
 
 s32 __cdecl String_AssignFromWide(String *s, const WString *wide) {
     using WideToMulti = s32(__stdcall *)(u32, u32, const u16 *, s32, char *, s32, const char *, s32 *);
-    const WideToMulti convert = *reinterpret_cast<const WideToMulti *>(0x006fd1dc);
+    const WideToMulti convert = *reinterpret_cast<const WideToMulti *>(IMPORT(Kernel32_WideCharToMultiByte));
     s32 result = 0;
     const s32 size = convert(0, 0, wide->data, -1, nullptr, 0, nullptr, nullptr);
     if (size > 0) {
@@ -851,7 +852,7 @@ s32 __cdecl String_AssignFromWide(String *s, const WString *wide) {
 
 s32 __cdecl WString_AssignFromAnsi(WString *wide, const String *s) {
     using MultiToWide = s32(__stdcall *)(u32, u32, const char *, s32, u16 *, s32);
-    const MultiToWide convert = *reinterpret_cast<const MultiToWide *>(0x006fd174);
+    const MultiToWide convert = *reinterpret_cast<const MultiToWide *>(IMPORT(Kernel32_MultiByteToWideChar));
     s32 result = 0;
     const s32 units = convert(0, 0, s->data, -1, nullptr, 0);
     if (units > 0) {
@@ -866,7 +867,7 @@ s32 __cdecl WString_AssignFromAnsi(WString *wide, const String *s) {
 
 u16 *__cdecl String_AnsiToWide(const char *text, u16 *buffer, s32 size) {
     using MultiToWide = s32(__stdcall *)(u32, u32, const char *, s32, u16 *, s32);
-    const MultiToWide convert = *reinterpret_cast<const MultiToWide *>(0x006fd174);
+    const MultiToWide convert = *reinterpret_cast<const MultiToWide *>(IMPORT(Kernel32_MultiByteToWideChar));
     if (!buffer) {
         u16 *const fixed = reinterpret_cast<u16 *>(0x007ba058);
         convert(0, 0, text, -1, fixed, 0x3fff);
