@@ -7,6 +7,7 @@
 #include "gameheap.h"
 #include "initializers.h"
 #include "vcall.h"
+#include "imports.h"
 
 namespace {
 
@@ -17,7 +18,7 @@ template <typename F> F api(const u8 *self, u32 offset) { return at<F>(at<u8 *>(
 
 u32 ShortMsg(u32 handle, u32 message) {   // midiOutShortMsg
     using F = u32(__stdcall *)(u32, u32);
-    return (*reinterpret_cast<const F *>((uintptr_t)0x006fd3ccu))(handle, message);
+    return (*reinterpret_cast<const F *>((uintptr_t)IMPORT(Winmm_midiOutShortMsg)))(handle, message);
 }
 
 template <typename F> F Import(u32 slot) { return *reinterpret_cast<const F *>((uintptr_t)slot); }
@@ -113,20 +114,20 @@ u32 *__fastcall SfMan_Sysex(u8 *self, void *, u32 *out, u32 value, const u32 *me
     header[0] = static_cast<u32>(reinterpret_cast<uintptr_t>(data));
     header[1] = length;
     u32 result = 0;
-    if (Import<Header>(0x006fd3b8u)(handle, header, 0x40)) result = 0xffffffff;
-    if (Import<Header>(0x006fd3d0u)(at<u32>(self, 0x10), header, 0x40)) result = 0xffffffff;
+    if (Import<Header>(IMPORT(Winmm_midiOutPrepareHeader))(handle, header, 0x40)) result = 0xffffffff;
+    if (Import<Header>(IMPORT(Winmm_midiOutLongMsg))(at<u32>(self, 0x10), header, 0x40)) result = 0xffffffff;
     return Answer(out, result);
 }
 
 u32 *__fastcall SfMan_OpenOut(u8 *self, void *, u32 *out) {
     if (at<u32>(self, 0x10)) return Answer(out, 0);
-    const u32 count = Import<u32(__stdcall *)()>(0x006fd3c8u)();   // midiOutGetNumDevs
+    const u32 count = Import<u32(__stdcall *)()>(IMPORT(Winmm_midiOutGetNumDevs))();   // midiOutGetNumDevs
     if (!static_cast<u16>(count)) return Answer(out, 0xffffffff);
     for (u32 i = 0; static_cast<u16>(i) < static_cast<u16>(count); ++i) {
         u8 caps[0x34] = {};
-        Import<u32(__stdcall *)(u32, u8 *, u32)>(0x006fd3c4u)(i & 0xffff, caps, 0x34);   // midiOutGetDevCapsA
+        Import<u32(__stdcall *)(u32, u8 *, u32)>(IMPORT(Winmm_midiOutGetDevCapsA))(i & 0xffff, caps, 0x34);   // midiOutGetDevCapsA
         if (Crt().strncmp(reinterpret_cast<const char *>(caps + 8), "SoundFont", 9)) continue;
-        if (Import<u32(__stdcall *)(u32 *, u32, u32, u32, u32)>(0x006fd3c0u)(&at<u32>(self, 0x10), i & 0xffff, 0, 0, 0)) continue;   // midiOutOpen
+        if (Import<u32(__stdcall *)(u32 *, u32, u32, u32, u32)>(IMPORT(Winmm_midiOutOpen))(&at<u32>(self, 0x10), i & 0xffff, 0, 0, 0)) continue;   // midiOutOpen
         u32 message[4] = {0x7f, 0, 0, 0};
         SfMan_Sysex(self, nullptr, out, 0, message);
         return out;
@@ -214,17 +215,17 @@ u32 *__fastcall SfMan_SelectDevice(u8 *self, void *, u32 *out, u32 count) {
     u32 header[0x10] = {};
     header[0] = static_cast<u32>(reinterpret_cast<uintptr_t>(data));
     header[1] = 0xc;
-    if (Import<Header>(0x006fd3b8u)(at<u32>(self, 0x10), header, 0x40)) return Answer(out, 0xffffffff);
-    if (Import<Header>(0x006fd3d0u)(at<u32>(self, 0x10), header, 0x40)) return Answer(out, 0xffffffff);
+    if (Import<Header>(IMPORT(Winmm_midiOutPrepareHeader))(at<u32>(self, 0x10), header, 0x40)) return Answer(out, 0xffffffff);
+    if (Import<Header>(IMPORT(Winmm_midiOutLongMsg))(at<u32>(self, 0x10), header, 0x40)) return Answer(out, 0xffffffff);
     return Answer(out, 0);
 }
 
 u32 *__fastcall SfMan_Open(u8 *self, void *, u32 *out) {
     if (at<u8>(self, 0x14) & 1) return Answer(out, 0);
     for (;;) {
-        at<u32>(self, 0) = Import<u32(__stdcall *)(const char *)>(0x006fd0b4u)("SFMAN32.DLL");   // LoadLibraryA
+        at<u32>(self, 0) = Import<u32(__stdcall *)(const char *)>(IMPORT(Kernel32_LoadLibraryA))("SFMAN32.DLL");   // LoadLibraryA
         if (!at<u32>(self, 0)) break;
-        at<u32>(self, 4) = Import<u32(__stdcall *)(u32, const char *)>(0x006fd0b0u)(at<u32>(self, 0), "SFManager");   // GetProcAddress
+        at<u32>(self, 4) = Import<u32(__stdcall *)(u32, const char *)>(IMPORT(Kernel32_GetProcAddress))(at<u32>(self, 0), "SFManager");   // GetProcAddress
         const u8 *const manager = at<u8 *>(self, 4);
         if (!manager) break;
         if (at<s32(__cdecl *)(u32, u8 **)>(manager, 0)(0x10001, &at<u8 *>(self, 8))) break;
@@ -237,7 +238,7 @@ u32 *__fastcall SfMan_Open(u8 *self, void *, u32 *out) {
         return Answer(out, 0);
     }
     at<u32>(self, 8) = 0;
-    Import<u32(__stdcall *)(u32)>(0x006fd0a8u)(at<u32>(self, 0));   // FreeLibrary
+    Import<u32(__stdcall *)(u32)>(IMPORT(Kernel32_FreeLibrary))(at<u32>(self, 0));   // FreeLibrary
     return Answer(out, 0xffffffff);
 }
 
@@ -246,14 +247,14 @@ u32 __fastcall SfMan_Close(u8 *self) {
     SfMan_NotesOff(self);
     SfMan_UnloadBank(self);
     if (at<u32>(self, 0x10)) {
-        Import<u32(__stdcall *)(u32)>(0x006fd3bcu)(at<u32>(self, 0x10));   // midiOutClose
+        Import<u32(__stdcall *)(u32)>(IMPORT(Winmm_midiOutClose))(at<u32>(self, 0x10));   // midiOutClose
         at<u32>(self, 0x10) = 0;
     }
     if (at<u8 *>(self, 8)) {
         api<s32(__cdecl *)(u16)>(self, 0x14)(at<u16>(self, 0xc));
         at<u32>(self, 8) = 0;
     }
-    Import<u32(__stdcall *)(u32)>(0x006fd0a8u)(at<u32>(self, 0));   // FreeLibrary
+    Import<u32(__stdcall *)(u32)>(IMPORT(Kernel32_FreeLibrary))(at<u32>(self, 0));   // FreeLibrary
     at<u32>(self, 0x14) = 0;
     return 1;
 }

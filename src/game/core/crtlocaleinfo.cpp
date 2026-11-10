@@ -4,6 +4,7 @@
 
 #include "crt.h"
 #include "crtlocale.h"
+#include "imports.h"
 
 namespace {
 
@@ -13,8 +14,8 @@ using Info = s32(__stdcall *)(u32, u32, void *, s32);
 using ToWide = s32(__stdcall *)(u32, u32, const char *, s32, u16 *, s32);
 using ToMulti = s32(__stdcall *)(u32, u32, const u16 *, s32, char *, s32, const char *, s32 *);
 
-Info info_wide() { return global<Info>(0x006fd204); }
-Info info_multi() { return global<Info>(0x006fd28c); }
+Info info_wide() { return global<Info>(IMPORT(Kernel32_GetLocaleInfoW)); }
+Info info_multi() { return global<Info>(IMPORT(Kernel32_GetLocaleInfoA)); }
 
 // Which call works: 1 GetLocaleInfoW, 2 GetLocaleInfoA, 0 neither.
 u32 probe() {
@@ -43,7 +44,7 @@ s32 __cdecl CRT_GetLocaleInfoW(u32 locale, u32 type, u16 *buffer, s32 size, u32 
     if (!text) return 0;
     s32 result = 0;
     if (info_multi()(locale, type, text, length)) {
-        result = global<ToWide>(0x006fd174)(code_page, 1, text, -1, size ? buffer : nullptr, size);
+        result = global<ToWide>(IMPORT(Kernel32_MultiByteToWideChar))(code_page, 1, text, -1, size ? buffer : nullptr, size);
     }
     Crt().free(text);
     return result;
@@ -66,7 +67,7 @@ s32 __cdecl CRT_GetLocaleInfoA(u32 locale, u32 type, char *buffer, s32 size, u32
     if (!text) return 0;
     s32 result = 0;
     if (info_wide()(locale, type, text, length)) {
-        result = global<ToMulti>(0x006fd1dc)(code_page, 0x220, text, -1, size ? buffer : nullptr, size, nullptr, nullptr);
+        result = global<ToMulti>(IMPORT(Kernel32_WideCharToMultiByte))(code_page, 0x220, text, -1, size ? buffer : nullptr, size, nullptr, nullptr);
     }
     Crt().free(text);
     return result;
@@ -79,7 +80,7 @@ s32 __cdecl CRT_Getlocaleinfo(s32 kind, u32 locale, u32 type, void *out) {
         bool allocated = false;
         s32 size = CRT_GetLocaleInfoA(locale, type, frame, 0x80, 0);
         if (!size) {
-            if (global<u32(__stdcall *)()>(0x006fd138)() != 0x7a) return -1;
+            if (global<u32(__stdcall *)()>(IMPORT(Kernel32_GetLastError))() != 0x7a) return -1;
             size = CRT_GetLocaleInfoA(locale, type, nullptr, 0, 0);
             if (!size) return -1;
             text = static_cast<char *>(CRT_malloc(static_cast<u32>(size)));

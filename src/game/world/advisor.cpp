@@ -24,6 +24,7 @@
 #include "advisor.h"
 #include "advisorspeech.h"
 #include "advisorsend.h"
+#include "../core/imports.h"
 
 namespace {
 
@@ -260,7 +261,7 @@ void __fastcall Advisor_HandleCode(u8 *self, void *, u32 code) {
     case 4: post(self, 0x81, 0, 0); break;
     case 10: {
         using Output = void(__stdcall *)(const char *);
-        (*reinterpret_cast<const Output *>((uintptr_t)0x006fd1e0))(gText_Advisor_HandleCode_76e190);
+        (*reinterpret_cast<const Output *>((uintptr_t)IMPORT(Kernel32_OutputDebugStringA)))(gText_Advisor_HandleCode_76e190);
         for (u32 i = 0; i < 0x15f; ++i) {
             u8 *const record = self + 0xe0 + 0x10 * i;
             at<u32>(record, 0xc) = 0;

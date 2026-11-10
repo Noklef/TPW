@@ -8,6 +8,7 @@
 #include "../math/vec2.h"
 #include "../math/x87.h"
 #include "collobj.h"
+#include "../core/imports.h"
 
 namespace {
 
@@ -76,7 +77,7 @@ void __cdecl CollPool_Reset() {
 
 u32 __cdecl CollPool_Startup() {
     IntSin_BuildTable();
-    void *(__stdcall *const allocate)(u32, u32) = global<void *(__stdcall *)(u32, u32)>(0x006fd1cc);
+    void *(__stdcall *const allocate)(u32, u32) = global<void *(__stdcall *)(u32, u32)>(IMPORT(Kernel32_GlobalAlloc));
     memset(&gTrackPools, 0, sizeof gTrackPools);
     gTrackPools.tag = 0x4a454647;
     static const struct { u8 *TrackPools::*block; u32 size; } kPools[] = {{&TrackPools::rides, 0x3400}, {&TrackPools::cars, 0xac00}, {&TrackPools::nodes, 0x10000},

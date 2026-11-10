@@ -5,6 +5,7 @@
 #include "../render/graphicssettings.h"
 #include "../gfx/texcache.h"
 #include "../render/d3dsetup.h"
+#include "imports.h"
 
 namespace {
 
@@ -22,13 +23,13 @@ u32 Fail(u32 code) {
 u32 MakeWindow() {
     using CreateWindowExA = u32(__stdcall *)(u32, u32, u32, u32, u32, u32, s32, s32, u32, u32, u32, u32);
     const auto create = [](u32 style, s32 width, s32 height) {
-        return global<CreateWindowExA>(0x006fd398)(0, kWindowName, kWindowName, style, 0x80000000u, 0x80000000u, width, height, 0, 0, global<u32>(0x007a1a44), 0);
+        return global<CreateWindowExA>(IMPORT(User32_CreateWindowExA))(0, kWindowName, kWindowName, style, 0x80000000u, 0x80000000u, width, height, 0, 0, global<u32>(0x007a1a44), 0);
     };
     if (reinterpret_cast<u8 &>(gGraphicssettings_7a1a8c) & 1)
         return create(0x90000000u, reinterpret_cast<s32 &>(gScreen_7a1968), reinterpret_cast<s32 &>(gScreen_7a1930));
     s32 rect[4] = {0, 0, reinterpret_cast<s32 &>(gScreen_7a1968), reinterpret_cast<s32 &>(gScreen_7a1930)};
     const u32 overlapped = 0xc00000 | 0x80000 | 0x40000 | 0x20000 | 0x10000;   // WS_OVERLAPPEDWINDOW in its parts (one literal lies in a GAME_DATA range)
-    global<u32(__stdcall *)(s32 *, u32, u32)>(0x006fd384)(rect, overlapped, 0);   // AdjustWindowRect
+    global<u32(__stdcall *)(s32 *, u32, u32)>(IMPORT(User32_AdjustWindowRect))(rect, overlapped, 0);   // AdjustWindowRect
     return create(overlapped, rect[2] - rect[0], rect[3] - rect[1]);
 }
 
@@ -38,15 +39,15 @@ void GameWindow_SetCalls(const AddrCall *table, u32 count) { g_calls.Set(table, 
 
 extern "C" u32 __cdecl GameWindow_Create() {
     const u32 instance = global<u32>(0x007a1a44);
-    const u32 cursor = global<u32(__stdcall *)(u32, u32)>(0x006fd364)(0, 0x7f00);   // LoadCursorA
+    const u32 cursor = global<u32(__stdcall *)(u32, u32)>(IMPORT(User32_LoadIconA))(0, 0x7f00);   // LoadCursorA
     const u32 windowClass[10] = {0, 0x0046bcb0, 0, 0, instance, cursor, 0, 0, 0, kWindowName};   // (the cursor in hIcon, none in hCursor: sic)
-    if ((u16)global<u32(__stdcall *)(const u32 *)>(0x006fd394)(windowClass) == 0)   // RegisterClassA
+    if ((u16)global<u32(__stdcall *)(const u32 *)>(IMPORT(User32_RegisterClassA))(windowClass) == 0)   // RegisterClassA
         return Fail(4);
     const u32 window = MakeWindow();
     gGamewindow_7a130c = window;
     if (window == 0) return Fail(4);
-    global<u32(__stdcall *)(u32, u32)>(0x006fd368)(window, 5);   // ShowWindow
-    global<u32(__stdcall *)(u32)>(0x006fd36c)(gGamewindow_7a130c);   // UpdateWindow
+    global<u32(__stdcall *)(u32, u32)>(IMPORT(User32_ShowWindow))(window, 5);   // ShowWindow
+    global<u32(__stdcall *)(u32)>(IMPORT(User32_UpdateWindow))(gGamewindow_7a130c);   // UpdateWindow
 
     if (global<u32>(0x0078d968) == 1) {
         const u32 settings = global<u32>(0x0079d86c);

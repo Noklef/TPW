@@ -24,6 +24,7 @@
 #include "../online/chatlists.h"
 #include "../online/chatcommand.h"
 #include "../coaster/arreplayaction.h"
+#include "../core/imports.h"
 
 namespace {
 
@@ -61,7 +62,7 @@ void WideFrom(WString *wide, const char *text) {
 void ClearFonts() {
     u8 *&end = global<u8 *>(0x00789c20);
     u8 *const begin = global<u8 *>(0x00789c1c);
-    const auto remove = *reinterpret_cast<u32(__stdcall **)(const char *)>((uintptr_t)0x006fd058);
+    const auto remove = *reinterpret_cast<u32(__stdcall **)(const char *)>((uintptr_t)IMPORT(Gdi32_RemoveFontResourceA));
     for (u8 *font = begin; font != end; font += 0x14) {
         remove(at<const char *>(font, 8));
         s32 result;

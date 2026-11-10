@@ -18,6 +18,7 @@
 #include "handles.h"
 #include "waddir.h"
 #include "../core/vdtor.h"
+#include "../core/imports.h"
 
 namespace {
 
@@ -151,7 +152,7 @@ u32 __fastcall GamePaths_FindDisc(u8 *check) {
     vcall<void>(&text, 0x14, Language_Widen(Records_DataIfTerminated(*at<const u8 *const *>(0x0078ba88), nullptr, 9)));
     WString_AssignFromAnsi(&caption, reinterpret_cast<const String *>(0x00f7a7c8));
     using Box = s32(__stdcall *)(void *, const u16 *, const u16 *, u32);
-    const Box box = *reinterpret_cast<const Box *>(0x006fd378);   // MessageBoxW (read once, as the original)
+    const Box box = *reinterpret_cast<const Box *>(IMPORT(User32_MessageBoxW));   // MessageBoxW (read once, as the original)
     SystemInfo *const info = reinterpret_cast<SystemInfo *>(check + 0x10);
     StringList *const list = reinterpret_cast<StringList *>(check);
     u32 found = 0;

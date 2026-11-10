@@ -14,6 +14,7 @@
 #include "../ui/panel7b9940.h"
 #include "../world/signtext.h"
 #include "../world/world.h"
+#include "../core/imports.h"
 
 namespace {
 
@@ -88,10 +89,10 @@ extern "C" {
 void __fastcall ChatClient_Dtor(u8 *self) {
     const char *const name = reinterpret_cast<const char *>((uintptr_t)0x00786de4);
     if (at<u32>(self, 0)) {
-        session_call(0x006fd47c, at<u32>(self, 0));
+        session_call(IMPORT(Weachatr_Chat_Release), at<u32>(self, 0));
         const u32 session = at<u32>(self, 0);
         if (session) {
-            session_call(0x006fd4d8, session);
+            session_call(IMPORT(Weachatr_Chat_Dtor), session);
             GameHeap_Free(reinterpret_cast<void *>((uintptr_t)session));
         }
         at<u32>(self, 0) = 0;
@@ -137,12 +138,12 @@ void __fastcall ChatClient_Connect(u8 *self) {
     assign(self + 8, text);
     if (!at<u32>(self, 0)) {
         void *const block = GameHeap_Alloc(0xc);
-        at<u32>(self, 0) = block ? session_call(0x006fd474, (u32)(uintptr_t)block) : 0;
+        at<u32>(self, 0) = block ? session_call(IMPORT(Weachatr_Chat_Ctor), (u32)(uintptr_t)block) : 0;
     }
     const u32 host = at<u32>(self, 0x1c) ? at<u32>(self, 0x1c) : 0x006fe5b0u;
     const s32 port = global<s16>(0x007a1552);
-    if (!session_call(0x006fd498, at<u32>(self, 0), host, port, 0x004e61f0u, (u32)(uintptr_t)Global7cc53c_Pick7cc4f0())) {
-        (*reinterpret_cast<void(__stdcall *const *)(u32)>((uintptr_t)0x006fd1e0))(reinterpret_cast<uintptr_t>(&gChatClient_Connect_75c0fc));
+    if (!session_call(IMPORT(Weachatr_Chat_Connect), at<u32>(self, 0), host, port, 0x004e61f0u, (u32)(uintptr_t)Global7cc53c_Pick7cc4f0())) {
+        (*reinterpret_cast<void(__stdcall *const *)(u32)>((uintptr_t)IMPORT(Kernel32_OutputDebugStringA)))(reinterpret_cast<uintptr_t>(&gChatClient_Connect_75c0fc));
     } else {
         const u16 *const name = reinterpret_cast<const u16 *>(Online_String28(Online_Instance()));
         alignas(4) u8 strings[0x20];   // (two wide strings side by side, as the original's: the login's first argument hashes both)
@@ -155,7 +156,7 @@ void __fastcall ChatClient_Connect(u8 *self) {
         u8 *session = Online_Instance();
         if (!session) session = Online_Instance();
         const u32 word34 = at<u32>(session, 0x34);
-        session_call(0x006fd494, at<u32>(self, 0), (u32)(uintptr_t)first, at<u32>(session, 0x38), word34, (u32)(uintptr_t)second, (u32)(uintptr_t)self);
+        session_call(IMPORT(Weachatr_Chat_CreatePlayer), at<u32>(self, 0), (u32)(uintptr_t)first, at<u32>(session, 0x38), word34, (u32)(uintptr_t)second, (u32)(uintptr_t)self);
         CountedBuf_Reset(first, nullptr, 1);
         release_counted(second + 4, 2);
     }
@@ -180,9 +181,9 @@ void __fastcall ChatClient_EnterWorld(u8 *self) {
     u8 *const thing = g_env->byHandle(gWorldPtr, nullptr, id);
     if (at<u8>(thing, 2) == 0x12) {
         g_env->placeAt(thing, nullptr, column, row);
-        session_call(0x006fd4cc, at<u32>(self, 0), (s32)(s16)column, (s32)(s16)row, 1u, (u32)(uintptr_t)self);
+        session_call(IMPORT(Weachatr_Chat_MovePlayer), at<u32>(self, 0), (s32)(s16)column, (s32)(s16)row, 1u, (u32)(uintptr_t)self);
         at<u8>(self, 0xeb1) = 0;
-        session_call(0x006fd4bc, at<u32>(self, 0), (u32)(uintptr_t)self);
+        session_call(IMPORT(Weachatr_Chat_NotAFK), at<u32>(self, 0), (u32)(uintptr_t)self);
     }
     u8 *const block = static_cast<u8 *>(GameHeap_Alloc(8));
     u8 *const mode = block ? g_env->modeCtor(block) : nullptr;
@@ -197,7 +198,7 @@ void __fastcall ChatClient_EnterWorld(u8 *self) {
         gPanel7b9940_7b05e8 = holder;
     }
     g_env->setMode(gPanel7b9940_7b05e8, nullptr, mode);
-    session_call(0x006fd4d4, at<u32>(self, 0), 0xa00u, (u32)(uintptr_t)self);
-    session_call(0x006fd4c0, at<u32>(self, 0), (u32)(uintptr_t)self);
+    session_call(IMPORT(Weachatr_Chat_SetHearingRange), at<u32>(self, 0), 0xa00u, (u32)(uintptr_t)self);
+    session_call(IMPORT(Weachatr_Chat_EnumPlayers), at<u32>(self, 0), (u32)(uintptr_t)self);
 }
 }

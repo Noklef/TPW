@@ -18,6 +18,7 @@
 #include "../render/graphicssettings.h"
 #include "../core/gamewindow.h"
 #include "../render/d3dsetup.h"
+#include "../core/imports.h"
 
 namespace {
 
@@ -108,7 +109,7 @@ void __cdecl Gui_Startup() {
     E->fn6590ea(0x00485780);
     E->poolInit(0x40, 0x80, 0x10, 0x80);
     E->outOne(0x100000, 3, 0xd, &gGuistartup_7c249c);
-    global<u32(__stdcall *)(u32)>(0x006fd30c)(0);
+    global<u32(__stdcall *)(u32)>(IMPORT(User32_ShowCursor))(0);
     E->tableInit(object(0x007b9e88), nullptr, 0x16);
     E->tableInit(object(0x007b9ab0), nullptr, 0x16);
     E->loadAni();
@@ -131,7 +132,7 @@ void __cdecl Gui_Startup() {
     *reinterpret_cast<u8 **>(info + 0x10) = inner;
     E->setLayout(object(0x007c2118), nullptr, 0xc00, info);
     E->fn492470();
-    gGuistartup_7c24d4 = global<u32(__fastcall *)(u8 *)>(0x006fd5ac)(object(0x007c24c0));
+    gGuistartup_7c24d4 = global<u32(__fastcall *)(u8 *)>(IMPORT(Wearasr_Dialup_Initialise))(object(0x007c24c0));
 }
 
 u32 __cdecl Gui_Teardown() {
@@ -149,6 +150,6 @@ u32 __cdecl Gui_Teardown() {
     E->poolFree();
     E->fn657dff(object(0x00786de8));
     E->fn424ec0(gGuistartup_7c249c);
-    return global<u32(__fastcall *)(u8 *)>(0x006fd5b0)(object(0x007c24c0));
+    return global<u32(__fastcall *)(u8 *)>(IMPORT(Wearasr_Dialup_Release))(object(0x007c24c0));
 }
 }

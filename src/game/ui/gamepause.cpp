@@ -18,6 +18,7 @@
 #include "dialog7cc184handler.h"
 #include "../render/d3dsetup.h"
 #include "../online/postcardsend.h"
+#include "../core/imports.h"
 
 namespace {
 
@@ -107,7 +108,7 @@ void __cdecl GamePause_Resume() {
     else if (E->overlayState())
         E->overlayToggle();
     if (!gGamePause_Resume_7cc194) {
-        global<u32(__stdcall *)(u32, u32)>(0x006fd14c)(0x200, (u32)(uintptr_t)&gPostcardsend_7cb958);
+        global<u32(__stdcall *)(u32, u32)>(IMPORT(Kernel32_GetTempPathA))(0x200, (u32)(uintptr_t)&gPostcardsend_7cb958);
         gGamePause_Resume_7cc194 = 1;
     }
     E->openDialog();

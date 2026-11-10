@@ -5,6 +5,8 @@
 
 // use_facet<numpunct<char>> as the library inlines it: the locale's facet, or the classic locale's, made once (kept at 0xfb1db8); another locale without one throws bad_cast.
 u8 *NumPut_NumpunctOf(u8 **locale);
+// The same of numpunct<wchar_t> (kept at 0xfb1e1c).
+u8 *NumPutW_NumpunctOf(u8 **locale);
 
 extern "C" {
 

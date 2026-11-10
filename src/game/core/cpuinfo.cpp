@@ -3,6 +3,7 @@
 
 #include <cstring>
 #include <intrin.h>
+#include "imports.h"
 
 namespace {
 
@@ -66,7 +67,7 @@ void __fastcall CpuInfo_Ctor(CpuInfo *c) {
 u32 __fastcall CpuInfo_TicksPerMs(CpuInfo *c, void *, u32 ms) {
     const volatile u32 &hasTsc = c->hasTsc;
     if (!hasTsc) return 0;
-    u32(__stdcall *const timeGetTime)() = *reinterpret_cast<u32(__stdcall *const *)()>((uintptr_t)0x006fd3ec);
+    u32(__stdcall *const timeGetTime)() = *reinterpret_cast<u32(__stdcall *const *)()>((uintptr_t)IMPORT(Winmm_timeGetTime));
     const u32 begin = timeGetTime();
     const u32 first = hasTsc ? g_env->ticks() : 0;
     const u32 end = begin + ms;

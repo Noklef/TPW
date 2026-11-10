@@ -14,6 +14,7 @@
 #include "vdtor.h"
 #include "../gfx/screensurfaces.h"
 #include "../input/devicefilter.h"
+#include "imports.h"
 
 namespace {
 
@@ -342,8 +343,8 @@ void __fastcall InputBase_OnEvent(u8 *o, void *, u32, const u32 *event) {
     u32 local;
     switch (event[0]) {
     case 4:
-        global<void(__stdcall *)(const char *)>(0x6fd1e0)(gInputsystem_7780d0);
-        global<u32(__stdcall *)(u32)>(0x6fd30c)(event[1] ? 0 : 1);
+        global<void(__stdcall *)(const char *)>(IMPORT(Kernel32_OutputDebugStringA))(gInputsystem_7780d0);
+        global<u32(__stdcall *)(u32)>(IMPORT(User32_ShowCursor))(event[1] ? 0 : 1);
         if (!at<u32>(o, 0x54) && event[1]) InputBase_SetDeviceValue(o, nullptr, &local, event[1]);
         return;
     case 6:

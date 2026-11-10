@@ -2,6 +2,7 @@
 #include "filetime.h"
 
 #include <cstdint>
+#include "imports.h"
 
 namespace {
 
@@ -12,8 +13,8 @@ T at(u32 address) {
     return reinterpret_cast<T>(static_cast<std::uintptr_t>(address));
 }
 const FileTimeEnv kGameEnv = {
-    at<s32(__stdcall *const *)(const FileTime *, u16 *)>(0x006fd0bc),
-    at<s32(__stdcall *const *)(const u16 *, FileTime *)>(0x006fd150),
+    at<s32(__stdcall *const *)(const FileTime *, u16 *)>(IMPORT(Kernel32_FileTimeToSystemTime)),
+    at<s32(__stdcall *const *)(const u16 *, FileTime *)>(IMPORT(Kernel32_SystemTimeToFileTime)),
 };
 const FileTimeEnv *g_env = &kGameEnv;
 

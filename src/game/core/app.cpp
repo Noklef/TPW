@@ -2,6 +2,7 @@
 #include "app.h"
 
 #include <cstdint>
+#include "imports.h"
 
 namespace {
 
@@ -12,9 +13,9 @@ T at(u32 address) {
 const AppEnv kGameEnv = {
     at<AppState *>(0x00fa7608),
     at<const char *>(0x00775708),
-    at<s32(__stdcall *const *)(void *, void *, u32, u32, u32)>(0x006fd354),
-    at<s32(__stdcall *const *)(const void *)>(0x006fd358),
-    at<s32(__stdcall *const *)(const void *)>(0x006fd35c),
+    at<s32(__stdcall *const *)(void *, void *, u32, u32, u32)>(IMPORT(User32_PeekMessageA)),
+    at<s32(__stdcall *const *)(const void *)>(IMPORT(User32_TranslateMessage)),
+    at<s32(__stdcall *const *)(const void *)>(IMPORT(User32_DispatchMessageA)),
 };
 const AppEnv *g_env = &kGameEnv;
 

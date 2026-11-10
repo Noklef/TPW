@@ -1,6 +1,7 @@
 #include "globalmem.h"
 
 #include <cstdint>
+#include "imports.h"
 
 namespace {
 
@@ -12,12 +13,12 @@ extern "C" {
 
 void *__cdecl GlobalMem_Alloc(u32 size, u32 zero) {
     if (!size) return nullptr;
-    return slot<void *(__stdcall *)(u32, u32)>(0x006fd1cc)((u8)zero & 1 ? 0x40 : 0, size);  // GMEM_ZEROINIT
+    return slot<void *(__stdcall *)(u32, u32)>(IMPORT(Kernel32_GlobalAlloc))((u8)zero & 1 ? 0x40 : 0, size);  // GMEM_ZEROINIT
 }
 
 void *__cdecl GlobalMem_Free(void *block) {
     if (!block) return block;
-    return slot<void *(__stdcall *)(void *)>(0x006fd26c)(block);
+    return slot<void *(__stdcall *)(void *)>(IMPORT(Kernel32_GlobalFree))(block);
 }
 
 void *__cdecl GlobalMem_AllocCounted(u32 count) {

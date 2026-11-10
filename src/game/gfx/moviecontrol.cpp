@@ -3,6 +3,7 @@
 #include <cstdint>
 
 #include "moviechunks.h"
+#include "../core/imports.h"
 
 namespace {
 
@@ -11,8 +12,8 @@ template <typename T> T &at(u8 *base, u32 offset) { return *reinterpret_cast<T *
 const MovieControlEnv kGameEnv = {&MovieChunks_Next, reinterpret_cast<u32(__cdecl *)(u32, u32, u8 *)>((uintptr_t)0x0067e050)};
 const MovieControlEnv *g_env = &kGameEnv;
 
-u32 exchange(u32 *target, u32 value) { return (*reinterpret_cast<u32(__stdcall *const *)(u32 *, u32)>((uintptr_t)0x006fd200))(target, value); }
-void sleep(u32 milliseconds) { (*reinterpret_cast<void(__stdcall *const *)(u32)>((uintptr_t)0x006fd1d4))(milliseconds); }
+u32 exchange(u32 *target, u32 value) { return (*reinterpret_cast<u32(__stdcall *const *)(u32 *, u32)>((uintptr_t)IMPORT(Kernel32_InterlockedExchange)))(target, value); }
+void sleep(u32 milliseconds) { (*reinterpret_cast<void(__stdcall *const *)(u32)>((uintptr_t)IMPORT(Kernel32_Sleep)))(milliseconds); }
 
 const s32 kFull = 0x16;
 
@@ -60,7 +61,7 @@ void __fastcall MovieControl_Rewind(u8 *player) {
     u8 *const s = at<u8 *>(player, 0);
     if (at<u32>(s, 4) & 0x8000) {
         sleep(0);
-        (*reinterpret_cast<s32(__stdcall *const *)(u32, u32, u32)>((uintptr_t)0x006fd3d8))(at<u32>(s, 0xa4), at<u32>(player, 0x3b8), 0);
+        (*reinterpret_cast<s32(__stdcall *const *)(u32, u32, u32)>((uintptr_t)IMPORT(Winmm_mmioSeek)))(at<u32>(s, 0xa4), at<u32>(player, 0x3b8), 0);
         at<s32>(player, 0x3ac) = g_env->next(player);
     } else {
         at<s32>(player, 0x3ac) = -1;
@@ -89,7 +90,7 @@ u32 __fastcall MovieControl_StartThread(u8 *player) {
     exchange(&at<u32>(player, 0x3c0), 1);
     const u32 thread = g_env->beginThread(0x006724a0, 0, player);
     at<u32>(player, 0x3c4) = thread;
-    (*reinterpret_cast<s32(__stdcall *const *)(u32, u32)>((uintptr_t)0x006fd1fc))(thread, 0xf);
+    (*reinterpret_cast<s32(__stdcall *const *)(u32, u32)>((uintptr_t)IMPORT(Kernel32_SetThreadPriority)))(thread, 0xf);
     return at<u32>(player, 0x3c4) == 0;
 }
 

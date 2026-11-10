@@ -9,6 +9,7 @@
 #include "gameheap.h"
 #include "textarg.h"
 #include "../ui/dialog74fb20.h"
+#include "imports.h"
 
 namespace {
 
@@ -223,7 +224,7 @@ u32 Modifiers(u32 slot) {
 }  // namespace
 
 extern "C" {
-u32 __cdecl KeyMap_Modifiers() { return Modifiers(0x006fd324); }
+u32 __cdecl KeyMap_Modifiers() { return Modifiers(IMPORT(User32_GetKeyState)); }
 
-u32 __cdecl KeyMap_AsyncModifiers() { return Modifiers(0x006fd320); }
+u32 __cdecl KeyMap_AsyncModifiers() { return Modifiers(IMPORT(User32_GetAsyncKeyState)); }
 }

@@ -10,6 +10,7 @@
 #include "itemlist.h"
 #include "session.h"
 #include "sessionlogin.h"
+#include "../core/imports.h"
 
 namespace {
 
@@ -137,41 +138,41 @@ void ListRequest_SetEnv(const ListRequestEnv *env) { g_env = env ? env : &kGameE
 
 extern "C" {
 
-void __fastcall ListRequest_Done30(u8 *list, void *, u32 failed) { Finish(list, failed, 0x30, 0x006fd500); }
-void __fastcall ListRequest_Done66(u8 *list, void *, u32 failed) { Finish(list, failed, 0x66, 0x006fd504); }
-void __fastcall ListRequest_Done10(u8 *list, void *, u32 failed) { Finish(list, failed, 0x10, 0x006fd50c); }
-void __fastcall ListRequest_Done26(u8 *list, void *, u32 failed) { Finish(list, failed, 0x26, 0x006fd508); }
-void __fastcall ListRequest_Done34(u8 *list, void *, u32 failed) { Finish(list, failed, 0x34, 0x006fd510); }
+void __fastcall ListRequest_Done30(u8 *list, void *, u32 failed) { Finish(list, failed, 0x30, IMPORT(Weacityr_ccCityInfo_Dtor)); }
+void __fastcall ListRequest_Done66(u8 *list, void *, u32 failed) { Finish(list, failed, 0x66, IMPORT(Weacityr_ccParkInfo_Dtor)); }
+void __fastcall ListRequest_Done10(u8 *list, void *, u32 failed) { Finish(list, failed, 0x10, IMPORT(Weacityr_ccThemeInfo_Dtor)); }
+void __fastcall ListRequest_Done26(u8 *list, void *, u32 failed) { Finish(list, failed, 0x26, IMPORT(Weacityr_ccServerInfo_Dtor)); }
+void __fastcall ListRequest_Done34(u8 *list, void *, u32 failed) { Finish(list, failed, 0x34, IMPORT(Weacityr_ccRideInfo_Dtor)); }
 
 void __fastcall ListRequest_Start30(u8 *list, void *, u32 callback, u32 user) {
-    Reset(list, callback, user, 0x30, 0x006fd500);
+    Reset(list, callback, user, 0x30, IMPORT(Weacityr_ccCityInfo_Dtor));
     Start(list, &ListRequest_Done30, 0x005bc710, reinterpret_cast<u32>(list));
 }
 
 void __fastcall ListRequest_Start66(u8 *list, void *, u32 value, u32 callback, u32 user) {
     at<u32>(list, 0x34) = value;
-    Reset(list, callback, user, 0x66, 0x006fd504);
+    Reset(list, callback, user, 0x66, IMPORT(Weacityr_ccParkInfo_Dtor));
     Start(list, &ListRequest_Done66, 0x005bca70, reinterpret_cast<u32>(list));
 }
 
 void __fastcall ListRequest_StartText66(u8 *list, void *, u32 text, u32 callback, u32 user) {
     vcall<void>(list + 0x34, 0x14, text);
-    Reset(list, callback, user, 0x66, 0x006fd504);
+    Reset(list, callback, user, 0x66, IMPORT(Weacityr_ccParkInfo_Dtor));
     Start(list, &ListRequest_Done66, 0x005bca70, reinterpret_cast<u32>(list));
 }
 
 void __fastcall ListRequest_Start10(u8 *list) {
-    Reset(list, 0, 0, 0x10, 0x006fd50c);
+    Reset(list, 0, 0, 0x10, IMPORT(Weacityr_ccThemeInfo_Dtor));
     StartMember(list, &ListRequest_Done10, 0xf8, 0x005bcfb0);
 }
 
 void __fastcall ListRequest_Start26(u8 *list) {
-    Reset(list, 0, 0, 0x26, 0x006fd508);
+    Reset(list, 0, 0, 0x26, IMPORT(Weacityr_ccServerInfo_Dtor));
     StartMember(list, &ListRequest_Done26, 0xfc, 0x005bd3f0);
 }
 
 void __fastcall ListRequest_Start34(u8 *list) {
-    Reset(list, 0, 0, 0x34, 0x006fd510);
+    Reset(list, 0, 0, 0x34, IMPORT(Weacityr_ccRideInfo_Dtor));
     StartMember(list, &ListRequest_Done34, 0x100, 0x005bd800);
 }
 

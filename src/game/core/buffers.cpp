@@ -10,6 +10,7 @@
 #include "stdwstring.h"
 #include "string.h"
 #include "../world/objectdefs.h"
+#include "imports.h"
 
 namespace {
 
@@ -320,9 +321,9 @@ u8 *__fastcall Counted_CopyCtor(u8 *object, void *, const u8 *from) {
 
 void Shared_Release(u8 *object, u32 elementSize, u32 destructorAt) { SharedRelease(object, elementSize, destructorAt); }
 
-void __fastcall Shared_Release66(u8 *object) { SharedRelease(object, 0x66, 0x006fd504); }
+void __fastcall Shared_Release66(u8 *object) { SharedRelease(object, 0x66, IMPORT(Weacityr_ccParkInfo_Dtor)); }
 
-void __fastcall Shared_Release10(u8 *object) { SharedRelease(object, 0x10, 0x006fd50c); }
+void __fastcall Shared_Release10(u8 *object) { SharedRelease(object, 0x10, IMPORT(Weacityr_ccThemeInfo_Dtor)); }
 
 void __fastcall Obj_FreeFourBuffers(u8 *object) {
     for (u32 offset = 0x4f4, i = 0; i < 4; ++i, offset += 4) {
@@ -334,9 +335,9 @@ void __fastcall Obj_FreeFourBuffers(u8 *object) {
     }
 }
 
-void __fastcall Obj_ResetAndRelease26(u8 *object, void *, u32 a, u32 b) { ResetAndRelease(object, a, b, 0x26, 0x006fd508); }
+void __fastcall Obj_ResetAndRelease26(u8 *object, void *, u32 a, u32 b) { ResetAndRelease(object, a, b, 0x26, IMPORT(Weacityr_ccServerInfo_Dtor)); }
 
-void __fastcall Obj_ResetAndRelease34(u8 *object, void *, u32 a, u32 b) { ResetAndRelease(object, a, b, 0x34, 0x006fd510); }
+void __fastcall Obj_ResetAndRelease34(u8 *object, void *, u32 a, u32 b) { ResetAndRelease(object, a, b, 0x34, IMPORT(Weacityr_ccRideInfo_Dtor)); }
 
 void __fastcall IntArray_SetSize(u8 *array, void *, s32 newSize, s32 growBy) {
     if (growBy != -1) at<s32>(array, 0xc) = growBy;

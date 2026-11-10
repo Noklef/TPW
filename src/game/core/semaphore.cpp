@@ -2,6 +2,7 @@
 #include "semaphore.h"
 
 #include <cstdint>
+#include "imports.h"
 
 namespace {
 
@@ -10,10 +11,10 @@ T at(u32 address) {
     return reinterpret_cast<T>(static_cast<std::uintptr_t>(address));
 }
 const SemaphoreEnv kGameEnv = {
-    at<void *(__stdcall *const *)(void *, s32, s32, const char *)>(0x006fd16c),
-    at<s32(__stdcall *const *)(void *)>(0x006fd13c),
-    at<u32(__stdcall *const *)(void *, u32)>(0x006fd128),
-    at<s32(__stdcall *const *)(void *, s32, s32 *)>(0x006fd170),
+    at<void *(__stdcall *const *)(void *, s32, s32, const char *)>(IMPORT(Kernel32_CreateSemaphoreA)),
+    at<s32(__stdcall *const *)(void *)>(IMPORT(Kernel32_CloseHandle)),
+    at<u32(__stdcall *const *)(void *, u32)>(IMPORT(Kernel32_WaitForSingleObject)),
+    at<s32(__stdcall *const *)(void *, s32, s32 *)>(IMPORT(Kernel32_ReleaseSemaphore)),
 };
 const SemaphoreEnv *g_env = &kGameEnv;
 

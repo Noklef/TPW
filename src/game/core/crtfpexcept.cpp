@@ -5,6 +5,7 @@
 
 #include <cstdint>
 #include <cstring>
+#include "imports.h"
 
 namespace {
 
@@ -193,7 +194,7 @@ void __cdecl CRT_raise_exc(u32 *rec, u32 *cw, u32 flags, u32 opcode, const doubl
     rec[0x11] = words(result)[1];
     CRT_clrfp();
     // RaiseException(code, 0, 1, the address of the argument holding rec)
-    import_slot<void(__stdcall *)(u32, u32, u32, u32 **)>(0x006fd218)(code, 0, 1, &rec);
+    import_slot<void(__stdcall *)(u32, u32, u32, u32 **)>(IMPORT(Kernel32_RaiseException))(code, 0, 1, &rec);
     if (rec[2] & 0x10) *cw &= ~1u;
     if (rec[2] & 8) *cw &= ~4u;
     if (rec[2] & 4) *cw &= ~8u;

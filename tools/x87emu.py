@@ -993,6 +993,7 @@ class Emu:
             target = self.get(o[0])
             if target in self.hooks:
                 self.tail = False
+                self.return_to = nxt   # (the call's return address, for a hook that answers by call site)
                 self.hooks[target](self)
                 return nxt
             self.push(nxt)

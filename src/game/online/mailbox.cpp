@@ -29,6 +29,7 @@
 #include "../render/enginedebug.h"
 #include "../core/swearfilter.h"
 #include "../world/advisorspeech.h"
+#include "../core/imports.h"
 
 namespace {
 
@@ -199,7 +200,7 @@ void SendNextString(u8 *self) {
     StdString_Tidy(&line, nullptr, 0);
     StdString_AssignSub(&line, nullptr, &at<StdString>(node, 8), 0, npos());
     if (at<u8 *>(self, 0x88) == at<u8 *>(self, 0x14)) ++at<u32>(self, 0x6c);
-    LibraryText(self, 0x006fd570, TextOf(line));
+    LibraryText(self, IMPORT(Weamailr_Mail_DoTo), TextOf(line));
     StdString_Tidy(&line, nullptr, 1);
 }
 
@@ -280,7 +281,7 @@ void __fastcall MailClient_OnEvent(u8 *self, void *, s32 kind, s32 code, u32) {
     switch (at<u32>(self, 0x6c)) {
     case 0:
         at<u32>(self, 0x6c) = 1;
-        LibraryText(self, 0x006fd578, TextOf(at<StdString>(self, 0)));
+        LibraryText(self, IMPORT(Weamailr_Mail_DoFrom), TextOf(at<StdString>(self, 0)));
         at<u8 *>(self, 0x88) = at<u8 *>(at<u8 *>(self, 0x14), 0);
         return;
     case 1:
@@ -288,7 +289,7 @@ void __fastcall MailClient_OnEvent(u8 *self, void *, s32 kind, s32 code, u32) {
     case 2:
         g_client->build(self);
         ++at<u32>(self, 0x6c);
-        return LibraryText(self, 0x006fd56c, TextOf(at<StdString>(self, 0x74)));
+        return LibraryText(self, IMPORT(Weamailr_Mail_DoData), TextOf(at<StdString>(self, 0x74)));
     case 3:
         if (!at<u8>(self, 0x85)) {
             AssignText(at<StdString>(self, 0), gPostcardmail_773d80.f40);
@@ -300,12 +301,12 @@ void __fastcall MailClient_OnEvent(u8 *self, void *, s32 kind, s32 code, u32) {
             AssignText(at<StdString>(self, 0x74), reinterpret_cast<const char *>((uintptr_t)0x00786de4));
             if (g_client->dropFirst(at<u8 *>(self, 0x8c), nullptr, self)) {
                 at<u32>(self, 0x6c) = 0;
-                at<void(__fastcall *)(u8 *)>(nullptr, 0x006fd564)(at<u8 *>(self, 0x70));
+                at<void(__fastcall *)(u8 *)>(nullptr, IMPORT(Weamailr_Mail_DoReset))(at<u8 *>(self, 0x70));
                 return;
             }
         }
         at<u8>(self, 0x84) = 1;
-        at<void(__fastcall *)(u8 *)>(nullptr, 0x006fd568)(at<u8 *>(self, 0x70));
+        at<void(__fastcall *)(u8 *)>(nullptr, IMPORT(Weamailr_Mail_Quit))(at<u8 *>(self, 0x70));
         return;
     default:
         return;
@@ -323,7 +324,7 @@ void __fastcall MailClient_Dtor(u8 *self) {
         at<u8 *>(self, 0x68) = nullptr;
     }
     AssignChars(at<StdString>(self, 0x74), reinterpret_cast<const char *>((uintptr_t)0x00786de4));
-    at<s32(__stdcall *)()>(nullptr, 0x006fd430)();
+    at<s32(__stdcall *)()>(nullptr, IMPORT(Wsock32_WSACleanup))();
     StdString_Tidy(&at<StdString>(self, 0x74), nullptr, 1);
     CountedBuf_Reset(self + 0x54, nullptr, 1);
     CountedBuf_Reset(self + 0x44, nullptr, 1);
@@ -460,7 +461,7 @@ u8 *__fastcall MailClient_Ctor(u8 *self) {
     at<u8>(self, 0x84) = 0;
     at<u32>(self, 0x90) = 0;
     u8 startup[0x190];   // (the original's frame has this much)
-    at<s32(__stdcall *)(u32, void *)>(nullptr, 0x006fd42c)(0x101, startup);
+    at<s32(__stdcall *)(u32, void *)>(nullptr, IMPORT(Wsock32_WSAStartup))(0x101, startup);
     AssignText(at<StdString>(self, 0), gPostcardmail_773d80.f40);
     return self;
 }
@@ -475,11 +476,11 @@ u32 __fastcall MailClient_Connect(u8 *self, void *, const char *host, u32 port, 
     }
     if (!at<u8 *>(self, 0x70)) {
         void *const block = GameHeap_Alloc(0x10);
-        at<u8 *>(self, 0x70) = block ? at<u8 *(__fastcall *)(void *)>(nullptr, 0x006fd57c)(block) : nullptr;
+        at<u8 *>(self, 0x70) = block ? at<u8 *(__fastcall *)(void *)>(nullptr, IMPORT(Weamailr_Mail_Ctor))(block) : nullptr;
         if (!at<u8 *>(self, 0x70)) return 1;
     }
     at<u32>(self, 0x6c) = 0;
-    const u32 got = at<u32(__fastcall *)(u8 *, void *, const char *, u32, u32, u8 *, u32)>(nullptr, 0x006fd574)(at<u8 *>(self, 0x70), nullptr, host, port, 0x005c9a60, self, arg3);
+    const u32 got = at<u32(__fastcall *)(u8 *, void *, const char *, u32, u32, u8 *, u32)>(nullptr, IMPORT(Weamailr_Mail_Connect))(at<u8 *>(self, 0x70), nullptr, host, port, 0x005c9a60, self, arg3);
     return got == 0;
 }
 
@@ -543,7 +544,7 @@ u8 __fastcall Mailbox_Open(u8 *self, void *, const char *folder) {
     StdString_AppendChars(&path, nullptr, name, CRT_strlen(name));
     if (!g_env->open(buffer, nullptr, TextOf(path), 1)) g_env->setState(IosOf(stream), nullptr, 2, 0);
     if (!at<void *>(stream, 0x58)) {
-        const s32 made = at<s32(__stdcall *)(const char *, void *)>(nullptr, 0x006fd120)(TextOf(*own), nullptr);
+        const s32 made = at<s32(__stdcall *)(const char *, void *)>(nullptr, IMPORT(Kernel32_CreateDirectoryA))(TextOf(*own), nullptr);
         g_env->ifstreamDtor(ios);
         NIos_Dtor(ios);
         StdString_Tidy(&path, nullptr, 1);
@@ -752,7 +753,7 @@ u8 __fastcall Mailbox_SaveMessage(u8 *self) {
     CRT_sprintf(line, gMailbox_7740cc, number);
     StdString_AppendChars(&picture, nullptr, line, CRT_strlen(line));
     StdString *const pictureAt = reinterpret_cast<StdString *>(self + 0x3c);
-    at<s32(__stdcall *)(const char *, const char *)>(nullptr, 0x006fd11c)(TextOf(*pictureAt), TextOf(picture));
+    at<s32(__stdcall *)(const char *, const char *)>(nullptr, IMPORT(Kernel32_MoveFileA))(TextOf(*pictureAt), TextOf(picture));
     StdString_AssignSub(pictureAt, nullptr, &picture, 0, npos());
     u32 value = number;
     u32 out;

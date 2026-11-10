@@ -7,6 +7,7 @@
 #include "../core/gamewindow.h"
 #include "../world/rides.h"
 #include "../world/world.h"
+#include "../core/imports.h"
 
 namespace {
 
@@ -159,9 +160,9 @@ u32 draw(u8 *renderer, u8 *object, const char *folder, const char *style, const 
 
     const u32 mode = global<u32>(0x008bd554);
     const u32 params[7] = {address(lines[0]), address(lines[1]), at<u32>(textures[0], 0x12), at<u32>(textures[1], 0x12), 0x80u, 0x80u, mode == 2 ? 2u : mode == 3 ? 1u : 2u};
-    const u32 dc = slot<u32(__stdcall *)(u32)>(0x006fd34c)(gGamewindow_7a130c);   // GetDC
+    const u32 dc = slot<u32(__stdcall *)(u32)>(IMPORT(User32_GetDC))(gGamewindow_7a130c);   // GetDC
     g_calls.Th(0x005ecb40, address(renderer), dc, address(params));
-    slot<u32(__stdcall *)(u32, u32)>(0x006fd348)(gGamewindow_7a130c, dc);   // ReleaseDC
+    slot<u32(__stdcall *)(u32, u32)>(IMPORT(User32_ReleaseDC))(gGamewindow_7a130c, dc);   // ReleaseDC
 
     at<u32>(model, 0x30) |= 0x8000;
     if (!(at<u32>(object, 4) & 1)) at<u32>(object, 4) |= 0x8000000;

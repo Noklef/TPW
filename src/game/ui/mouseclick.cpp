@@ -21,6 +21,7 @@
 #include "panel7cc408.h"
 #include "thingpanel.h"
 #include "../core/soundset.h"
+#include "../core/imports.h"
 
 namespace {
 
@@ -63,7 +64,7 @@ u32 clickObject(u32 tile) {
     g_env->objectAt(&handle, place & 0x7f, place >> 7);
     if (!handle) return 1;
     using KeyStateFn = s16(__stdcall *)(s32);
-    if (global<KeyStateFn>(0x006fd320)(0x11) >= 0) {
+    if (global<KeyStateFn>(IMPORT(User32_GetAsyncKeyState))(0x11) >= 0) {
         g_env->thingPanel(reinterpret_cast<u8 *>((uintptr_t)Global7c2654_Get()));
         return 1;
     }

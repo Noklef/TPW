@@ -23,6 +23,7 @@
 #include "../world/world.h"
 #include "dialog7cc188.h"
 #include "versionlabel.h"
+#include "../core/imports.h"
 
 namespace {
 
@@ -41,7 +42,7 @@ const SignNameDialogOpenEnv kOpenGameEnv = {WindowScript_Build, Window_SetDwordA
                                             Window705a20_SetBuffer, GuiWindows_FindByName, Window705a20_SetCaret, reinterpret_cast<NameFn>((uintptr_t)0x004e2860), reinterpret_cast<NameFn>((uintptr_t)0x004e2920), Window705a20_SelectAll, KeyMaps_ResetAllAndSetFlag, Window_SetFocus};
 const SignNameDialogOpenEnv *g_open = &kOpenGameEnv;
 
-s32 __stdcall RemoveFont(const char *path) { return global<s32(__stdcall *)(const char *)>(0x006fd058)(path); }
+s32 __stdcall RemoveFont(const char *path) { return global<s32(__stdcall *)(const char *)>(IMPORT(Gdi32_RemoveFontResourceA))(path); }
 
 const SignNameDialogHandlerEnv kHandlerGameEnv = {KeyMaps_EnableAllAndClearFlag, Focus_Restore, reinterpret_cast<SetNameFn>((uintptr_t)0x004e2950), reinterpret_cast<SetNameFn>((uintptr_t)0x004e2a50), reinterpret_cast<void(__cdecl *)(u8 *, const u16 *, const u16 *)>((uintptr_t)0x004682b0),
                                                   RemoveFont, File_Delete, GlobalSave_Instance, GlobalSave_SetSignNameA, GlobalSave_SetSignNameB, CheatSystem_Construct,reinterpret_cast<s32(__cdecl *)(void(__cdecl *)())>((uintptr_t)0x0067a7d0),

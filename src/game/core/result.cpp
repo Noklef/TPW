@@ -2,11 +2,12 @@
 #include "result.h"
 
 #include <cstdint>
+#include "imports.h"
 
 namespace {
 
 u32(__stdcall *const *const kGameGetLastError)() =
-    reinterpret_cast<u32(__stdcall *const *)()>(static_cast<std::uintptr_t>(0x006fd138));
+    reinterpret_cast<u32(__stdcall *const *)()>(static_cast<std::uintptr_t>(IMPORT(Kernel32_GetLastError)));
 u32(__stdcall *const *g_getLastError)() = kGameGetLastError;
 
 }  // namespace

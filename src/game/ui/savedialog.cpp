@@ -14,6 +14,7 @@
 #include "window.h"
 #include "window7059f0.h"
 #include "../core/textarg.h"
+#include "../core/imports.h"
 
 namespace {
 
@@ -49,7 +50,7 @@ void Fill(u8 *window, u32 dayAt, u32 monthAt, u32 yearAt) {
         u32 texts[2];
         texts[0] = *reinterpret_cast<u32 *>(item + 8);
         FileTime local;
-        (*game<s32(__stdcall *const *)(const FileTime *, FileTime *)>(0x006fd15c))(reinterpret_cast<const FileTime *>(item + 0x14), &local);
+        (*game<s32(__stdcall *const *)(const FileTime *, FileTime *)>(IMPORT(Kernel32_FileTimeToLocalFileTime)))(reinterpret_cast<const FileTime *>(item + 0x14), &local);
         FileTime_Assign(&time, nullptr, &local);
         s32 status;
         u32 year, month, day, hour, minute;

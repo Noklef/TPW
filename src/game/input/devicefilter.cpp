@@ -13,6 +13,7 @@
 #include "../core/vdtor.h"
 #include "../math/x87.h"
 #include "../core/soundindex.h"
+#include "../core/imports.h"
 
 namespace {
 
@@ -61,7 +62,7 @@ void __fastcall InputFilter_SetNext(u8 *self, void *, u8 *object) {
 
 void __fastcall InputFilter_CloseHandle(u8 *self) {
     if (const u32 handle = at<u32>(self, 8)) {
-        import<s32(__stdcall *)(u32)>(0x006fd13c)(handle);
+        import<s32(__stdcall *)(u32)>(IMPORT(Kernel32_CloseHandle))(handle);
         at<u32>(self, 8) = 0;
     }
 }
@@ -217,12 +218,12 @@ u8 *__fastcall MouseFilter_Ctor(u8 *self) {
     at<u8>(self, 0x60) = 0;
     at<void *const *>(self, 0) = MouseFilter_vtable;
     u32 mouse[3];
-    import<s32(__stdcall *)(u32, u32, u32 *, u32)>(0x006fd374)(3, 0, mouse, 0);   // SystemParametersInfoA(SPI_GETMOUSE)
+    import<s32(__stdcall *)(u32, u32, u32 *, u32)>(IMPORT(User32_SystemParametersInfoA))(3, 0, mouse, 0);   // SystemParametersInfoA(SPI_GETMOUSE)
     at<u32>(self, 0x50) = mouse[0];
     at<u32>(self, 0x54) = mouse[1];
     at<u32>(self, 0x58) = mouse[2];
-    at<u32>(self, 0x44) = import<u32(__stdcall *)()>(0x006fd32c)();   // GetDoubleClickTime
-    const auto swap = import<s32(__stdcall *)(u32)>(0x006fd330);   // SwapMouseButton
+    at<u32>(self, 0x44) = import<u32(__stdcall *)()>(IMPORT(User32_GetDoubleClickTime))();   // GetDoubleClickTime
+    const auto swap = import<s32(__stdcall *)(u32)>(IMPORT(User32_SwapMouseButton));   // SwapMouseButton
     if (swap(0)) {
         at<u8>(self, 0x60) = 1;
         swap(1);
@@ -421,7 +422,7 @@ void __fastcall CharFilter_Dtor(u8 *self) {
 
 u32 *__fastcall InputFilter_OpenEvent(u8 *self, void *, u32 *result) {
     InputFilter_CloseHandle(self);
-    at<u32>(self, 8) = import<u32(__stdcall *)(u32, u32, u32, u32)>(0x006fd0d4)(0, 0, 0, 0);
+    at<u32>(self, 8) = import<u32(__stdcall *)(u32, u32, u32, u32)>(IMPORT(Kernel32_CreateEventA))(0, 0, 0, 0);
     if (!at<u32>(self, 8)) return reinterpret_cast<u32 *>(Result_FromLastError(reinterpret_cast<s32 *>(result)));
     *result = 0;
     return result;
@@ -457,7 +458,7 @@ void __fastcall InputFilter_DrainValues(u8 *self) {
     u32 *const end = at<u32 *>(self, 0x2c);
     while (from != end) *to++ = *from++;
     at<u32 *>(self, 0x2c) = to;
-    import<s32(__stdcall *)(u32)>(0x006fd168)(at<u32>(self, 8));   // ResetEvent
+    import<s32(__stdcall *)(u32)>(IMPORT(Kernel32_ResetEvent))(at<u32>(self, 8));   // ResetEvent
     SectionGuard_Dtor(guard);
 }
 
@@ -504,7 +505,7 @@ u32 *__fastcall InputFilter_Reopen(u8 *self, void *, u32 *result) {
 
 u32 *__fastcall DeviceHolder_Open(u8 *self, void *, u32 *result) {
     u8 *input = nullptr;
-    const s32 created = import<s32(__stdcall *)(u32, u32, u8 **, u32)>(0x006fd020)(Obj_Get14OrInstance(self), 0x500, &input, 0);   // DirectInputCreateA
+    const s32 created = import<s32(__stdcall *)(u32, u32, u8 **, u32)>(IMPORT(Dinput_DirectInputCreateA))(Obj_Get14OrInstance(self), 0x500, &input, 0);   // DirectInputCreateA
     if (created < 0) {
         *result = static_cast<u32>(created);
         if (input) com(input, 8);

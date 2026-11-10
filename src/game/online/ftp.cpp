@@ -13,32 +13,33 @@
 #include "../core/vcall.h"
 #include "../core/vdtor.h"
 #include "../core/initializers.h"
+#include "../core/imports.h"
 
 namespace {
 template <typename F> F import(std::uintptr_t slot) { return *reinterpret_cast<const F *>(slot); }
 template <typename T> T &field(void *self, u32 offset) { return *reinterpret_cast<T *>(static_cast<u8 *>(self) + offset); }
 
 using SocketFn = u32(__stdcall *)(s32, s32, s32);
-const auto Connect = [](u32 s, const void *address, u32 size) { return import<s32(__stdcall *)(u32, const void *, u32)>(0x006fd404)(s, address, size); };
-const auto Htons = [](u32 value) { return import<u16(__stdcall *)(u32)>(0x006fd408)(value); };
-const auto GetHostByName = [](const char *name) { return import<u8 *(__stdcall *)(const char *)>(0x006fd40c)(name); };
-const auto InetAddr = [](const char *text) { return import<u32(__stdcall *)(const char *)>(0x006fd410)(text); };
-const auto Socket = [](s32 family, s32 type, s32 protocol) { return import<SocketFn>(0x006fd414)(family, type, protocol); };
-const auto Recv = [](u32 s, void *buffer, s32 size, s32 flags) { return import<s32(__stdcall *)(u32, void *, s32, s32)>(0x006fd418)(s, buffer, size, flags); };
-const auto CloseSocket = [](u32 s) { return import<s32(__stdcall *)(u32)>(0x006fd41c)(s); };
-const auto GetSockName = [](u32 s, void *address, s32 *size) { return import<s32(__stdcall *)(u32, void *, s32 *)>(0x006fd420)(s, address, size); };
-const auto GetHostName = [](char *name, s32 size) { return import<s32(__stdcall *)(char *, s32)>(0x006fd3f8)(name, size); };
-const auto SendTo = [](u32 s, const void *buffer, s32 size, s32 flags) { return import<s32(__stdcall *)(u32, const void *, s32, s32)>(0x006fd428)(s, buffer, size, flags); };
-const auto Shutdown = [](u32 s, s32 how) { return import<s32(__stdcall *)(u32, s32)>(0x006fd444)(s, how); };
-const auto Accept = [](u32 s, void *address, u32 *size) { return import<u32(__stdcall *)(u32, void *, u32 *)>(0x006fd434)(s, address, size); };
-const auto Bind = [](u32 s, const void *address, u32 size) { return import<s32(__stdcall *)(u32, const void *, u32)>(0x006fd440)(s, address, size); };
-const auto Listen = [](u32 s, s32 backlog) { return import<s32(__stdcall *)(u32, s32)>(0x006fd43c)(s, backlog); };
-const auto Ntohs = [](u32 value) { return import<u16(__stdcall *)(u32)>(0x006fd438)(value); };
-const auto WsaStartup = [](u32 version, void *data) { return import<s32(__stdcall *)(u32, void *)>(0x006fd42c)(version, data); };
-const auto WsaCleanup = []() { return import<s32(__stdcall *)()>(0x006fd430)(); };
-const auto WsaGetLastError = []() { return import<s32(__stdcall *)()>(0x006fd424)(); };
-const auto SleepMs = [](u32 ms) { import<void(__stdcall *)(u32)>(0x006fd1d4)(ms); };
-const auto MessageBoxText = [](u32 owner, const char *text, const char *caption, u32 type) { return import<s32(__stdcall *)(u32, const char *, const char *, u32)>(0x006fd37c)(owner, text, caption, type); };
+const auto Connect = [](u32 s, const void *address, u32 size) { return import<s32(__stdcall *)(u32, const void *, u32)>(IMPORT(Wsock32_connect))(s, address, size); };
+const auto Htons = [](u32 value) { return import<u16(__stdcall *)(u32)>(IMPORT(Wsock32_htons))(value); };
+const auto GetHostByName = [](const char *name) { return import<u8 *(__stdcall *)(const char *)>(IMPORT(Wsock32_gethostbyname))(name); };
+const auto InetAddr = [](const char *text) { return import<u32(__stdcall *)(const char *)>(IMPORT(Wsock32_inet_addr))(text); };
+const auto Socket = [](s32 family, s32 type, s32 protocol) { return import<SocketFn>(IMPORT(Wsock32_socket))(family, type, protocol); };
+const auto Recv = [](u32 s, void *buffer, s32 size, s32 flags) { return import<s32(__stdcall *)(u32, void *, s32, s32)>(IMPORT(Wsock32_recv))(s, buffer, size, flags); };
+const auto CloseSocket = [](u32 s) { return import<s32(__stdcall *)(u32)>(IMPORT(Wsock32_closesocket))(s); };
+const auto GetSockName = [](u32 s, void *address, s32 *size) { return import<s32(__stdcall *)(u32, void *, s32 *)>(IMPORT(Wsock32_getsockname))(s, address, size); };
+const auto GetHostName = [](char *name, s32 size) { return import<s32(__stdcall *)(char *, s32)>(IMPORT(Wsock32_gethostname))(name, size); };
+const auto SendTo = [](u32 s, const void *buffer, s32 size, s32 flags) { return import<s32(__stdcall *)(u32, const void *, s32, s32)>(IMPORT(Wsock32_send))(s, buffer, size, flags); };
+const auto Shutdown = [](u32 s, s32 how) { return import<s32(__stdcall *)(u32, s32)>(IMPORT(Wsock32_shutdown))(s, how); };
+const auto Accept = [](u32 s, void *address, u32 *size) { return import<u32(__stdcall *)(u32, void *, u32 *)>(IMPORT(Wsock32_accept))(s, address, size); };
+const auto Bind = [](u32 s, const void *address, u32 size) { return import<s32(__stdcall *)(u32, const void *, u32)>(IMPORT(Wsock32_bind))(s, address, size); };
+const auto Listen = [](u32 s, s32 backlog) { return import<s32(__stdcall *)(u32, s32)>(IMPORT(Wsock32_listen))(s, backlog); };
+const auto Ntohs = [](u32 value) { return import<u16(__stdcall *)(u32)>(IMPORT(Wsock32_ntohs))(value); };
+const auto WsaStartup = [](u32 version, void *data) { return import<s32(__stdcall *)(u32, void *)>(IMPORT(Wsock32_WSAStartup))(version, data); };
+const auto WsaCleanup = []() { return import<s32(__stdcall *)()>(IMPORT(Wsock32_WSACleanup))(); };
+const auto WsaGetLastError = []() { return import<s32(__stdcall *)()>(IMPORT(Wsock32_WSAGetLastError))(); };
+const auto SleepMs = [](u32 ms) { import<void(__stdcall *)(u32)>(IMPORT(Kernel32_Sleep))(ms); };
+const auto MessageBoxText = [](u32 owner, const char *text, const char *caption, u32 type) { return import<s32(__stdcall *)(u32, const char *, const char *, u32)>(IMPORT(User32_MessageBoxA))(owner, text, caption, type); };
 
 const FtpEnv kPorts = {reinterpret_cast<void *(__cdecl *)(const char *, const char *)>(&CRT_fopen), reinterpret_cast<u32(__cdecl *)(const void *, u32, u32, void *)>(&CRT_fwrite), &CRT_fclose, &Thread_Begin,
                        &SyncEvent_Set, &SyncEvent_Wait, &SyncEvent_Ctor, &Semaphore_Dtor, &Class702958_Ctor};

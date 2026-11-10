@@ -6,6 +6,7 @@
 #include "crt.h"
 #include "crtopen.h"
 #include "crtmbstring.h"
+#include "imports.h"
 
 namespace {
 
@@ -41,7 +42,7 @@ void __cdecl CRT_amsg_exit(s32 code) {
 void __cdecl CRT_fast_error_exit(s32 code) {
     if (CRT_error_mode_fb135c == 1) CRT_FF_MSGBANNER();
     CRT_NMSG_WRITE(code);
-    import_slot<void(__stdcall *)(u32)>(0x006fd244)(0xff);
+    import_slot<void(__stdcall *)(u32)>(IMPORT(Kernel32_ExitProcess))(0xff);
 }
 
 void __cdecl CRT_FF_MSGBANNER() {
@@ -62,14 +63,14 @@ void __cdecl CRT_NMSG_WRITE(s32 code) {
     if (mode == 1 || (mode == 0 && CRT_app_type == 1)) {
         const u8 *const block = CRT_pioinfo[0];
         u32 handle = block ? *reinterpret_cast<const u32 *>(block + 0x48) : 0xffffffff;
-        if (handle == 0xffffffff) handle = import_slot<u32(__stdcall *)(s32)>(0x006fd1ac)(-12);
+        if (handle == 0xffffffff) handle = import_slot<u32(__stdcall *)(s32)>(IMPORT(Kernel32_GetStdHandle))(-12);
         u32 written;
-        import_slot<s32(__stdcall *)(u32, const char *, u32, u32 *, void *)>(0x006fd0e0)(handle, text, static_cast<u32>(std::strlen(text)), &written, nullptr);
+        import_slot<s32(__stdcall *)(u32, const char *, u32, u32 *, void *)>(IMPORT(Kernel32_WriteFile))(handle, text, static_cast<u32>(std::strlen(text)), &written, nullptr);
         return;
     }
     if (code == 0xfc) return;
     char path[0x104];
-    if (!import_slot<u32(__stdcall *)(void *, char *, u32)>(0x006fd194)(nullptr, path, 0x104)) std::strcpy(path, "<program name unknown>");
+    if (!import_slot<u32(__stdcall *)(void *, char *, u32)>(IMPORT(Kernel32_GetModuleFileNameA))(nullptr, path, 0x104)) std::strcpy(path, "<program name unknown>");
     char *name = path;
     if (std::strlen(path) + 1 > 0x3c) {
         name = path + std::strlen(path) - 0x3b;
@@ -85,9 +86,9 @@ void __cdecl CRT_NMSG_WRITE(s32 code) {
 
 s32 __cdecl CRT_crtMessageBoxA(const char *text, const char *title, u32 type) {
     if (!CRT_pfnMessageBox) {
-        const u32 library = import_slot<u32(__stdcall *)(u32)>(0x006fd0b4)((u32)(uintptr_t)CRT_text_user32_709724);
+        const u32 library = import_slot<u32(__stdcall *)(u32)>(IMPORT(Kernel32_LoadLibraryA))((u32)(uintptr_t)CRT_text_user32_709724);
         if (!library) return 0;
-        const auto find = import_slot<void *(__stdcall *)(u32, u32)>(0x006fd0b0);
+        const auto find = import_slot<void *(__stdcall *)(u32, u32)>(IMPORT(Kernel32_GetProcAddress));
         CRT_pfnMessageBox = reinterpret_cast<CrtMessageBoxFn>(find(library, 0x00709718));
         if (!CRT_pfnMessageBox) return 0;
         CRT_pfnGetActiveWindow = reinterpret_cast<CrtGetActiveWindowFn>(find(library, (u32)(uintptr_t)CRT_text_GetActiveWindow_709708));

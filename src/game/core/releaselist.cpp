@@ -3,6 +3,7 @@
 #include <cstdint>
 
 #include "gameheap.h"
+#include "imports.h"
 
 namespace {
 
@@ -31,7 +32,7 @@ void __fastcall ReleaseList_Dtor(ReleaseList *list) {
         --list->count;
         GameHeap_Free(node);
     }
-    Import<OnLock>(0x006fd0d0)(list->lock);   // DeleteCriticalSection
+    Import<OnLock>(IMPORT(Kernel32_DeleteCriticalSection))(list->lock);   // DeleteCriticalSection
     ReleaseList_BaseDtor(list);
 }
 
@@ -65,7 +66,7 @@ ReleaseList *__fastcall ReleaseList_Ctor(ReleaseList *list) {
     list->tail = nullptr;
     list->count = 0;
     list->vtable = (u32)(uintptr_t)ReleaseList_vtable_711c20;
-    Import<OnLock>(0x006fd144)(list->lock);   // InitializeCriticalSection
+    Import<OnLock>(IMPORT(Kernel32_InitializeCriticalSection))(list->lock);   // InitializeCriticalSection
     return list;
 }
 
@@ -76,7 +77,7 @@ ReleaseList *__fastcall ReleaseList_BaseDeletingDtor(ReleaseList *list, void *, 
 }
 
 u32 __fastcall ReleaseList_Push(ReleaseList *list, void *, u32 value) {
-    Import<OnLock>(0x006fd140)(list->lock);   // EnterCriticalSection
+    Import<OnLock>(IMPORT(Kernel32_EnterCriticalSection))(list->lock);   // EnterCriticalSection
     ReleaseNode *const node = static_cast<ReleaseNode *>(GameHeap_Alloc(sizeof(ReleaseNode)));
     if (node) {
         node->value = value;
@@ -89,7 +90,7 @@ u32 __fastcall ReleaseList_Push(ReleaseList *list, void *, u32 value) {
     else list->tail = node;
     list->head = node;
     ++list->count;
-    return Import<OnLock>(0x006fd130)(list->lock);   // LeaveCriticalSection
+    return Import<OnLock>(IMPORT(Kernel32_LeaveCriticalSection))(list->lock);   // LeaveCriticalSection
 }
 
 ReleaseList *__fastcall ReleaseListBase_DeletingDtor(ReleaseList *list, void *, u32 flags) {

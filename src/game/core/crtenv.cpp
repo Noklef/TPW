@@ -7,6 +7,7 @@
 #include "crtmbstring.h"
 #include "crtlocale.h"
 #include "crttime.h"
+#include "imports.h"
 
 namespace {
 
@@ -19,19 +20,19 @@ bool lead_byte(u8 c) { return (&CRT_mbctype[1])[c] & 4; }
 char **&environment() { return CRT_environ; }
 
 s32 compare_a(u32 locale, u32 flags, u32 a, s32 a_length, u32 b, s32 b_length) {
-    return import_slot<s32(__stdcall *)(u32, u32, u32, s32, u32, s32)>(0x006fd270)(locale, flags, a, a_length, b, b_length);
+    return import_slot<s32(__stdcall *)(u32, u32, u32, s32, u32, s32)>(IMPORT(Kernel32_CompareStringA))(locale, flags, a, a_length, b, b_length);
 }
 
 s32 compare_w(u32 locale, u32 flags, u32 a, s32 a_length, u32 b, s32 b_length) {
-    return import_slot<s32(__stdcall *)(u32, u32, u32, s32, u32, s32)>(0x006fd274)(locale, flags, a, a_length, b, b_length);
+    return import_slot<s32(__stdcall *)(u32, u32, u32, s32, u32, s32)>(IMPORT(Kernel32_CompareStringW))(locale, flags, a, a_length, b, b_length);
 }
 
 s32 to_wide(u32 code_page, u32 flags, const char *text, s32 length, u16 *out, s32 room) {
-    return import_slot<s32(__stdcall *)(u32, u32, const char *, s32, u16 *, s32)>(0x006fd174)(code_page, flags, text, length, out, room);
+    return import_slot<s32(__stdcall *)(u32, u32, const char *, s32, u16 *, s32)>(IMPORT(Kernel32_MultiByteToWideChar))(code_page, flags, text, length, out, room);
 }
 
 s32 to_narrow(u32 code_page, u32 flags, const u16 *text, s32 length, char *out, s32 room, void *used, s32 *lossy) {
-    return import_slot<s32(__stdcall *)(u32, u32, const u16 *, s32, char *, s32, void *, s32 *)>(0x006fd1dc)(code_page, flags, text, length, out, room, used, lossy);
+    return import_slot<s32(__stdcall *)(u32, u32, const u16 *, s32, char *, s32, void *, s32 *)>(IMPORT(Kernel32_WideCharToMultiByte))(code_page, flags, text, length, out, room, used, lossy);
 }
 
 // A lead byte range of the code page's holds c.
@@ -75,7 +76,7 @@ s32 __cdecl CRT_crtCompareStringA(u32 locale, u32 flags, const char *a, s32 a_le
             u8 fallback[2];
             u8 lead[12];
         } info;
-        const s32 got = import_slot<s32(__stdcall *)(u32, void *)>(0x006fd180)(code_page, &info);
+        const s32 got = import_slot<s32(__stdcall *)(u32, void *)>(IMPORT(Kernel32_GetCPInfo))(code_page, &info);
         if (!got) return got;
         if (a_length > 0) {
             if (info.max_size < 2) return 3;
@@ -218,7 +219,7 @@ s32 __cdecl CRT_crtsetenv(char *option, s32 primary) {
         if (pair) {
             std::strcpy(pair, option);
             pair[name_length] = 0;
-            import_slot<s32(__stdcall *)(const char *, const char *)>(0x006fd278)(pair, remove ? nullptr : pair + name_length + 1);
+            import_slot<s32(__stdcall *)(const char *, const char *)>(IMPORT(Kernel32_SetEnvironmentVariableA))(pair, remove ? nullptr : pair + name_length + 1);
             Crt().free(pair);
         }
     }
@@ -298,15 +299,15 @@ char *__cdecl CRT_crtGetEnvironmentStringsA() {
     u16 *wide = nullptr;
     char *narrow = nullptr;
     if (!mode) {
-        if ((wide = import_slot<GetW>(0x006fd184)()) != nullptr)    // GetEnvironmentStringsW
+        if ((wide = import_slot<GetW>(IMPORT(Kernel32_GetEnvironmentStringsW))()) != nullptr)    // GetEnvironmentStringsW
             mode = 1;
-        else if ((narrow = import_slot<GetA>(0x006fd188)()) != nullptr)    // GetEnvironmentStrings
+        else if ((narrow = import_slot<GetA>(IMPORT(Kernel32_GetEnvironmentStrings))()) != nullptr)    // GetEnvironmentStrings
             mode = 2;
         else
             return nullptr;
     }
     if (mode == 1) {
-        if (!wide && !(wide = import_slot<GetW>(0x006fd184)())) return nullptr;
+        if (!wide && !(wide = import_slot<GetW>(IMPORT(Kernel32_GetEnvironmentStringsW))())) return nullptr;
         const u16 *end = wide;
         if (*end) {
             do {
@@ -324,11 +325,11 @@ char *__cdecl CRT_crtGetEnvironmentStringsA() {
                 copy = nullptr;
             }
         }
-        import_slot<Release>(0x006fd18c)(wide);    // FreeEnvironmentStringsW
+        import_slot<Release>(IMPORT(Kernel32_FreeEnvironmentStringsW))(wide);    // FreeEnvironmentStringsW
         return copy;
     }
     if (mode != 2) return nullptr;
-    if (!narrow && !(narrow = import_slot<GetA>(0x006fd188)())) return nullptr;
+    if (!narrow && !(narrow = import_slot<GetA>(IMPORT(Kernel32_GetEnvironmentStrings))())) return nullptr;
     const char *end = narrow;
     if (*end) {
         do {
@@ -340,7 +341,7 @@ char *__cdecl CRT_crtGetEnvironmentStringsA() {
     const u32 size = static_cast<u32>(end - narrow) + 1;
     char *const copy = static_cast<char *>(CRT_malloc(size));
     if (copy) std::memcpy(copy, narrow, size);
-    import_slot<Release>(0x006fd190)(narrow);    // FreeEnvironmentStringsA
+    import_slot<Release>(IMPORT(Kernel32_FreeEnvironmentStringsA))(narrow);    // FreeEnvironmentStringsA
     return copy;
 }
 
@@ -374,7 +375,7 @@ u32 __cdecl CRT_wcstombs_lk(char *to, const u16 *from, u32 n) {
         if (lossy) return unconvertible();
         return static_cast<u32>(size) - 1;
     }
-    if (lossy || import_slot<u32(__stdcall *)()>(0x006fd138)() != 0x7a) return unconvertible();
+    if (lossy || import_slot<u32(__stdcall *)()>(IMPORT(Kernel32_GetLastError))() != 0x7a) return unconvertible();
     u32 done = 0;
     while (done < n) {
         char one[16];   // (sic: the original's is the argument's slot on the stack, room for 8 bytes before the return address)
@@ -393,8 +394,8 @@ u32 __cdecl CRT_wcstombs_lk(char *to, const u16 *from, u32 n) {
 
 u32 __cdecl CRT_wcstombs(char *to, const u16 *from, u32 n) {
     const u32 readers = (u32)(uintptr_t)&CRT_unguarded_readlc_active;
-    const auto decrement = import_slot<s32(__stdcall *)(u32)>(0x006fd12c);
-    import_slot<s32(__stdcall *)(u32)>(0x006fd0c0)(readers);
+    const auto decrement = import_slot<s32(__stdcall *)(u32)>(IMPORT(Kernel32_InterlockedDecrement));
+    import_slot<s32(__stdcall *)(u32)>(IMPORT(Kernel32_InterlockedIncrement))(readers);
     const bool locked = CRT_setlc_active != 0;
     if (locked) {
         decrement(readers);
@@ -417,7 +418,7 @@ void __cdecl CRT_tzset() {
     s32 &offset = CRT_timezone;
     if (!zone) {
         CrtInner().unlock(0xc);
-        if (import_slot<s32(__stdcall *)(u32)>(0x006fd21c)((u32)(uintptr_t)&CRT_tzinfo) == -1) return;
+        if (import_slot<s32(__stdcall *)(u32)>(IMPORT(Kernel32_GetTimeZoneInformation))((u32)(uintptr_t)&CRT_tzinfo) == -1) return;
         const s32 bias = CRT_tzinfo.standard_bias;
         CRT_tzapiused = 1;
         offset = CRT_tzinfo.bias * 60;

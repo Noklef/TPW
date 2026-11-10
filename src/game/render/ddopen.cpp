@@ -13,6 +13,7 @@
 #include "d3dresult.h"
 #include "texformat.h"
 #include "viewport.h"
+#include "../core/imports.h"
 
 using d3dresult::keep;
 using d3dresult::result;
@@ -104,13 +105,13 @@ bool FirstStart(u8 *object, u32 driver, u32 *answer) {
     if (Flags() & 0x10) {
         at<u32>(object, 0x788) = 1;
         at<u32>(object, 0x78c) = driver;
-        if (Fails(Import(0x006fd018, nullptr, object, nullptr))) return *answer = Failure(object), false;
+        if (Fails(Import(IMPORT(Ddraw_DirectDrawCreate), nullptr, object, nullptr))) return *answer = Failure(object), false;
     } else {
         at<u32>(object, 0x788) = 0;
-        Import(0x006fd014, kEnumDriver, object);
+        Import(IMPORT(Ddraw_DirectDrawEnumerateA), kEnumDriver, object);
         SortDrivers(object);
         at<u32>(object, 0x78c) = driver;
-        if (Fails(Import(0x006fd018, object + 0x448 + (driver << 4), object, nullptr))) return *answer = Failure(object), false;
+        if (Fails(Import(IMPORT(Ddraw_DirectDrawCreate), object + 0x448 + (driver << 4), object, nullptr))) return *answer = Failure(object), false;
     }
     if (Flags() & kTextLog) LogText((u32)&gText_Ddopen_7662cc, at<u32>(object, 0x788), at<u32>(object, 0x78c));
     if (Fails(Com(at<void *>(object, 0), 0, kIidDraw2, object + 4))) return *answer = Failure(object), false;
@@ -137,7 +138,7 @@ bool FirstStart(u8 *object, u32 driver, u32 *answer) {
 bool ChangeDriver(u8 *object, u32 driver, u32 *answer) {
     Obj_ReleaseSevenComMembers(object);
     at<u32>(object, 0x78c) = driver;
-    if (Fails(Import(0x006fd018, object + 0x448 + (driver << 4), object, nullptr))) return *answer = Failure(object), false;
+    if (Fails(Import(IMPORT(Ddraw_DirectDrawCreate), object + 0x448 + (driver << 4), object, nullptr))) return *answer = Failure(object), false;
     if (Fails(Com(at<void *>(object, 0), 0, kIidDraw4, object + 8))) return *answer = NoDraw4(object), false;
     return true;
 }
@@ -146,8 +147,8 @@ bool OpenFullScreen(u8 *object, s32 width, s32 height, u32 depth, u32 videoMemor
     if (Flags() & kTextLog) LogText((u32)(uintptr_t)&gText_Ddopen_766208, width, height, depth);
     if (Fails(Com(at<void *>(object, 8), 0x50, Window(), 0x851))) return false;
     if (Fails(Com(at<void *>(object, 8), 0x54, width, height, depth, 0, 0))) return false;
-    Import(0x006fd368, Window(), 3);
-    Import(0x006fd36c, Window());
+    Import(IMPORT(User32_ShowWindow), Window(), 3);
+    Import(IMPORT(User32_UpdateWindow), Window());
     std::memset(desc, 0, kDescSize);
     desc[0] = kDescSize;
     desc[1] = 0x21;
@@ -166,19 +167,19 @@ bool OpenFullScreen(u8 *object, s32 width, s32 height, u32 depth, u32 videoMemor
 
 bool OpenWindowed(u8 *object, s32 width, s32 height, u32 *desc) {
     if (Flags() & kTextLog) LogText((u32)(uintptr_t)&gText_Ddopen_7661f4, width, height);
-    Import(0x006fd368, Window(), 9);
-    Import(0x006fd36c, Window());
+    Import(IMPORT(User32_ShowWindow), Window(), 9);
+    Import(IMPORT(User32_UpdateWindow), Window());
     std::memset(desc, 0, kDescSize);
     desc[0] = kDescSize;
     if (Fails(Com(at<void *>(object, 8), 0x30, desc))) return false;
     global<u32>(0x008bcbe4) = desc[0x15];
     if (Fails(Com(at<void *>(object, 8), 0x50, Window(), 0x808))) return false;
     s32 client[4], frame[4];
-    Import(0x006fd390, Window(), client);
-    Import(0x006fd38c, Window(), frame);
+    Import(IMPORT(User32_GetClientRect), Window(), client);
+    Import(IMPORT(User32_GetWindowRect), Window(), frame);
     frame[2] += client[0] - client[2] + global<s32>(0x008bcbd0);
     frame[3] += client[1] - client[3] + global<s32>(0x008bcbd4);
-    Import(0x006fd31c, Window(), frame[0], frame[1], frame[2] - frame[0], frame[3] - frame[1], 0);
+    Import(IMPORT(User32_MoveWindow), Window(), frame[0], frame[1], frame[2] - frame[0], frame[3] - frame[1], 0);
     std::memset(desc, 0, kDescSize);
     desc[0] = kDescSize;
     desc[1] = 1;
@@ -199,9 +200,9 @@ bool OpenWindowed(u8 *object, s32 width, s32 height, u32 *desc) {
     global<u32>(0x008bd4d4) = desc[0x18];
     global<u32>(0x008bd4dc) = desc[0x16] | desc[0x17] | desc[0x18];
     Masks_TopBits(kView);
-    Import(0x006fd380, Window(), 0, frame[0], frame[1], frame[2] - frame[0], frame[3] - frame[1], 0x40);
-    Import(0x006fd368, Window(), 1);
-    Import(0x006fd36c, Window());
+    Import(IMPORT(User32_SetWindowPos), Window(), 0, frame[0], frame[1], frame[2] - frame[0], frame[3] - frame[1], 0x40);
+    Import(IMPORT(User32_ShowWindow), Window(), 1);
+    Import(IMPORT(User32_UpdateWindow), Window());
     return true;
 }
 

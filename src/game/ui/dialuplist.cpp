@@ -9,6 +9,7 @@
 #include "dialog7cc654handler.h"
 #include "guistartup.h"
 #include "dialog7cc530open.h"
+#include "../core/imports.h"
 
 namespace {
 
@@ -16,8 +17,8 @@ template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((ui
 
 void *dialup() { return reinterpret_cast<void *>((uintptr_t)0x007c24c0); }
 
-u32 __fastcall Count(void *object) { return global<u32(__fastcall *)(void *)>(0x006fd5c0)(object); }
-u32 __fastcall Properties(void *object, void *, u32 index, void *out) { return global<u32(__fastcall *)(void *, void *, u32, void *)>(0x006fd5bc)(object, nullptr, index, out); }
+u32 __fastcall Count(void *object) { return global<u32(__fastcall *)(void *)>(IMPORT(Wearasr_Dialup_GetNoDialUpConnections))(object); }
+u32 __fastcall Properties(void *object, void *, u32 index, void *out) { return global<u32(__fastcall *)(void *, void *, u32, void *)>(IMPORT(Wearasr_Dialup_GetDialupProperties))(object, nullptr, index, out); }
 void __fastcall SetShown(u8 *window, void *, u32 shown) { Window_SetShown(window, nullptr, static_cast<u16>(shown)); }
 
 const DialupListEnv kGameEnv = {&Count, &Properties, &Window7059f0_Clear, &SetShown, &Window7059f0_AddItem, &Window7059f0_RefreshRows, &Language_WideText, reinterpret_cast<u16 *(__cdecl *)(u16 *, const u16 *)>((uintptr_t)0x0067c430)};

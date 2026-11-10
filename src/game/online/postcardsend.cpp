@@ -18,6 +18,7 @@
 #include "../ui/dialog7cc184handler.h"
 #include "../files/gamepaths.h"
 #include "../ui/dialog7cc654.h"
+#include "../core/imports.h"
 
 namespace {
 
@@ -51,7 +52,7 @@ void __cdecl Postcard_Send() {
     g_env->savePicture(gDialog7cc184handler_7cc18c, nullptr, text(reinterpret_cast<uintptr_t>(&gPostcard_Send_7cbcb0)));
     char local[0x100];
     Crt().sprintf(local, text(reinterpret_cast<uintptr_t>(&gPostcard_Send_754470)), text((u32)(uintptr_t)&gPostcardsend_7cb958), gPostcard_Send_7cbf38++);
-    (*reinterpret_cast<s32(__stdcall *const *)(const char *, const char *, s32)>((uintptr_t)0x006fd158))(text(reinterpret_cast<uintptr_t>(&gPostcard_Send_7cbcb0)), local, 0);
+    (*reinterpret_cast<s32(__stdcall *const *)(const char *, const char *, s32)>((uintptr_t)IMPORT(Kernel32_CopyFileA)))(text(reinterpret_cast<uintptr_t>(&gPostcard_Send_7cbcb0)), local, 0);
 
     u8 *const memory = static_cast<u8 *>(GameHeap_Alloc(0x94));
     u8 *const mail = memory ? g_env->mailCtor(memory) : nullptr;
