@@ -45,7 +45,7 @@ struct Box {
         bottom = words[3];
     }
     u32 CentreX() const { return Bits(Scaled((right - left) / 2 + left - 0x400, reinterpret_cast<uintptr_t>(&gGuimessagefx_6ff154))); }
-    u32 CentreY() const { return Bits(Scaled((bottom - top) / 2 + top - 0x300, 0x006ff150)); }
+    u32 CentreY() const { return Bits(Scaled((bottom - top) / 2 + top - 0x300, reinterpret_cast<uintptr_t>(&gGuimessagefx_6ff150))); }
 };
 
 }  // namespace

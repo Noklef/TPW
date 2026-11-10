@@ -43,7 +43,7 @@ void counter(u8 *child) {
     Window_Set4c(child, nullptr, Language_Font(2));
     Window_NotifyImpl100(child, nullptr, 0);
     Window_NotifyC00(child, nullptr, 2, 1);
-    vcall<void>(child, 0x24, 0x00752f24u);
+    vcall<void>(child, 0x24, (u32)(uintptr_t)&gText_Dialog7cb2b8build_752f24);
 }
 
 void buildRepair(u8 *bar) {   // (the child 0x2d and its 0x2e)
