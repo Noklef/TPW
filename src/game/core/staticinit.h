@@ -26,6 +26,8 @@ void __cdecl StaticInit_SetCalls(const AddrCall *table, u32 count);
 // By hand (staticinitmanual.cpp): the initialisers the generator refuses.
 void __cdecl StaticInit_412b90();
 void __cdecl StaticInit_583540();
+// And the exit thunk it refuses (its MANUAL_EXITS).
+void __cdecl StaticInit_699cc0();
 
 }  // extern "C"
 

@@ -43,4 +43,14 @@ void __cdecl StaticInit_583540() {
     M<u32>(0x8bd50c) = 0xffffffff;
 }
 
+// 0x699cc0 (an exit thunk of the C++ library's 0x699c90): the object at 0xfb1dc8 (none: nothing) released (0x4ef7b0, Counted_Release),
+// and the object it answers when unused deleted through its vtable's first slot (the deleting destructor, 1: free it).
+void __cdecl StaticInit_699cc0() {
+    const AddrCalls &calls = StaticInit_Calls();
+    const u32 object = M<u32>(0xfb1dc8);
+    if (!object) return;
+    const u32 unused = calls.Th(0x004ef7b0, object);
+    if (unused) calls.Th(M<u32>(M<u32>(unused)), unused, 1u);
+}
+
 }  // extern "C"

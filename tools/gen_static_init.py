@@ -1,8 +1,8 @@
 """Generates src/game/core/staticinit.cpp: the C++ static initialisers of tp.exe's CRT table __xc_a..__xc_z (0x727000-0x72e0e8, which
 CRT_initterm 0x67fa40 runs from 0x67f90d before WinMain) and the exit thunks they register with CRT_atexit 0x67a7d0.
 
-Each table slot is zero, a hooked function (ported already), a C library function (0x679000-0x6b0000: left as a call to its address) or a
-compiler-generated initialiser, generated here:
+Each table slot is zero, a hooked function (ported already) or a compiler-generated initialiser (the C++ library's in 0x679000-0x6b0000
+too), generated here; the C library callees they call that are not hooked (no arguments) are lifted as Sub_ helpers:
 - the main shape `PUSH text ; MOV ECX,object ; CALL ctor ; PUSH exit ; CALL 0x67a7d0 ; ADD ESP,4 ; RET` (ctor a thiscall of one stack
   argument) is a row of a data table, run by one generic runner;
 - an exit thunk `MOV ECX,object ; JMP dtor` (dtor a thiscall of no stack arguments) is the template ExitThunk<object, dtor>;
@@ -56,6 +56,8 @@ def import_names():
 # Initialisers the lifter refuses, ported by hand (src/game/core/staticinitmanual.cpp: StaticInit_Manual), with the reason.
 MANUAL = {0x412b90: 'stores the top byte of the ECX it was entered with (an uninitialised byte)',
           0x583540: 'reads the MEMORYSTATUS GlobalMemoryStatus fills on its stack'}
+# Exit thunks the lifter refuses, by hand in the same file: (the reason, their callees as the bench's call table needs them).
+MANUAL_EXITS = {0x699cc0: ('calls the object 0x4ef7b0 answers through its vtable (an indirect call)', [(0x4ef7b0, 'T', 0)])}
 
 REG32 = ('EAX', 'ECX', 'EDX', 'EBX', 'ESP', 'EBP', 'ESI', 'EDI')
 REG16 = {'AX': 'EAX', 'CX': 'ECX', 'DX': 'EDX', 'BX': 'EBX', 'SI': 'ESI', 'DI': 'EDI', 'BP': 'EBP'}
@@ -330,6 +332,17 @@ class Lifter:
             self.callees.append((target, 'G', 0))
             self.lines.append('StaticInit_RunAt(0x%06x);   // (tail)' % target)
             self.lines.append('return;')
+            return
+        if slot is None and target in self.gen.helpers:   # (a C library callee of no arguments, lifted as Sub_)
+            if target not in self.gen.lifted and target not in self.gen.refused:
+                self.gen.lift(target)
+            if target not in self.gen.lifted:
+                raise Refuse('calls %x: %s' % (target, self.gen.refused[target]))
+            self.callees.append((target, 'G', 0))
+            self.lines.append('Sub_%06x();' % target)
+            if tail:
+                self.lines.append('return;')
+            self.defined['EAX'] = self.defined['ECX'] = self.defined['EDX'] = 0
             return
         info = import_convention(self.gen.import_names.get(slot)) if slot is not None else self.gen.hooks.get(target) or LIBRARY.get(target)
         if info is None:
@@ -616,7 +629,8 @@ class Gen:
         self.hooks = hooks_and_conventions()
         self.slots = table_slots()
         self.registered = set()
-        self.kinds = {}       # address -> 'hooked' | 'clib' | 'main' | 'lifted' | 'manual'
+        self.kinds = {}       # address -> 'hooked' | 'main' | 'lifted' | 'manual'
+        self.helpers = set()  # the C library callees (not hooked) the initialisers call: lifted as Sub_ functions
         self.main = []        # (address, text, object, ctor, exit)
         self.lifted = {}      # address -> (C++ lines, used registers, frame size, x87 locals)
         self.callees = {}     # address -> [(callee, kind, n)] of each generated initialiser / thunk
@@ -629,7 +643,7 @@ class Gen:
 
     def thunk_name(self, address):
         t = self.thunks[address]
-        return 'ExitThunk<0x%x, 0x%x>' % (t[1], t[2]) if t[0] == 'template' else 'Exit_%06x' % address
+        return 'ExitThunk<0x%x, 0x%x>' % (t[1], t[2]) if t[0] == 'template' else 'StaticInit_%06x' % address if t[0] == 'manual' else 'Exit_%06x' % address
 
     def run(self):
         inits = []
@@ -638,20 +652,33 @@ class Gen:
                 continue
             if v in self.hooks:
                 self.kinds[v] = 'hooked'
-            elif CLIB_LOW <= v < CLIB_HIGH:
-                self.kinds[v] = 'clib'
-            else:
+            else:   # (the C library's slots too: the C++ library's static objects)
                 inits.append(v)
         self.generated = set(inits)
         starts = frozenset(self.generated) | frozenset(self.hooks)
-        # the exit thunks: the last address the initialisers push before a CALL of atexit (not hooked: those are ports already)
         for v in inits:
             try:
-                body = function_body(v, starts)
+                self.bodies[v] = function_body(v, starts)
             except Refuse as r:
                 self.refused[v] = str(r)
+        # the C library callees the initialisers call (not hooked): lifted as helpers
+        todo = [v for v in inits if v in self.bodies]
+        while todo:
+            for _, ins in self.bodies[todo.pop()]:
+                m = re.fullmatch(r'CALL 0x([0-9a-f]+)', ins)
+                t = int(m.group(1), 16) if m else None
+                if t and CLIB_LOW <= t < CLIB_HIGH and t not in self.hooks and t not in LIBRARY and t not in self.helpers:
+                    self.helpers.add(t)
+                    try:
+                        self.bodies[t] = function_body(t, starts)
+                        todo.append(t)
+                    except Refuse as r:
+                        self.refused[t] = str(r)
+        # the exit thunks: the last address the initialisers push before a CALL of atexit (not hooked: those are ports already)
+        for v in inits + sorted(self.helpers):
+            if v not in self.bodies:
                 continue
-            self.bodies[v] = body
+            body = self.bodies[v]
             pushed = None
             for _, ins in body:
                 m = re.fullmatch(r'PUSH 0x([0-9a-f]+)', ins)
@@ -672,6 +699,9 @@ class Gen:
             if m0 and m1 and self.hooks.get(int(m1.group(1), 16), (0, 0, 0))[1:] == ('T', 0):
                 self.thunks[t] = ('template', int(m0.group(1), 16), int(m1.group(1), 16))
                 self.callees[t] = [(int(m1.group(1), 16), 'T', 0)]
+            elif t in MANUAL_EXITS:
+                self.thunks[t] = ('manual',)
+                self.callees[t] = MANUAL_EXITS[t][1]
             else:
                 self.thunks[t] = ('lifted',)
         for t in sorted(self.thunk_addresses):
@@ -705,7 +735,7 @@ class Gen:
             return
         self.lifted[v] = (lines, lf.used, -lf.low, lf.fpus)
         self.callees[v] = lf.callees
-        if v not in self.thunk_addresses:
+        if v not in self.thunk_addresses and v not in self.helpers:
             self.kinds[v] = 'lifted'
 
     # --- output
@@ -717,7 +747,7 @@ class Gen:
             out.append('    u32 %s;' % ', '.join('%s = 0' % r for r in regs))
         if 'ZF' in used:
             out.append('    bool zf = false;')
-        if frame:
+        if frame and re.search(r'\bsp\b', '\n'.join(lines)):   # (pushes of undefined registers only: no frame)
             out.append('    alignas(4) u8 frame[0x%x];' % frame)
             out.append('    const u32 sp = (u32)(uintptr_t)(frame + sizeof frame);')
         for line in lines:
@@ -747,6 +777,13 @@ class Gen:
              '// MOV ECX,Object ; JMP Dtor (a thiscall of no stack arguments).',
              'template <u32 Object, u32 Dtor> void __cdecl ExitThunk() { g_calls.Th(Dtor, Object); }',
              '']
+        helpers = sorted(h for h in self.helpers if h in self.lifted)
+        if helpers:
+            o.append('// The C library\'s callees of the initialisers (no arguments; called directly).')
+            o += ['void __cdecl Sub_%06x();' % h for h in helpers]
+            o.append('')
+        for h in helpers:
+            o += self.function('Sub_%06x' % h, h)
         lifted_thunks = [t for t in sorted(self.thunks) if self.thunks[t][0] == 'lifted' and t in self.lifted]
         for t in lifted_thunks:
             o += self.function('Exit_%06x' % t, t)
@@ -780,7 +817,7 @@ class Gen:
         o.append('};')
         o.append('const Fn0 kExits[] = {')
         for t in sorted(self.thunks):
-            if self.thunks[t][0] == 'template' or t in self.lifted:
+            if self.thunks[t][0] in ('template', 'manual') or t in self.lifted:
                 o.append('    {0x%06x, &%s},' % (t, self.thunk_name(t)))
         o.append('};')
         o.append('')
@@ -852,7 +889,7 @@ def main():
         reasons = Counter(r for r in g.refused.values())
         for r, n in reasons.most_common():
             print(n, r, [hex(a) for a, x in g.refused.items() if x == r][:6])
-        print('clib', ' '.join('%x' % v for v in g.slots if g.kinds.get(v) == 'clib'))
+        print('helpers', len(g.helpers), 'lifted', len([h for h in g.helpers if h in g.lifted]))
         return
     text = g.cpp()
     if '--check' in sys.argv:
