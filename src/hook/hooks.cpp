@@ -222,6 +222,7 @@
 #include "../game/core/crtfile.h"
 #include "../game/core/crtfloat.h"
 #include "../game/core/crtfpexcept.h"
+#include "../game/core/crtinput.h"
 #include "../game/core/crtlocale.h"
 #include "../game/core/crtlocaleinfo.h"
 #include "../game/core/crtlocaleinit.h"
@@ -7194,6 +7195,8 @@ const Hook kHooks[] = {
     {"CRT_init_ctype",            0x0068d8b0, (void *)&CRT_init_ctype, {0xa1, 0x40, 0x14, 0xfb, 0x00}},
     {"CRT_raise",                 0x0068f780, (void *)&CRT_raise, {0x83, 0xec, 0x08, 0x53, 0x55}},
     {"CRT_abort",                 0x0068cc30, (void *)&CRT_abort, {0x6a, 0x0a, 0xe8, 0x79, 0xd5}},
+    {"CRT_input",                 0x0068a710, (void *)&CRT_input, {0x81, 0xec, 0xd0, 0x01, 0x00}},
+    {"CRT_sscanf",                0x0067f620, (void *)&CRT_sscanf, {0x83, 0xec, 0x20, 0x57, 0x8b}},
     {"Nav_Ctor",          0x0050ffe0, (void *)&Nav_Ctor, {0x6a, 0xff, 0x68, 0x2d, 0xe6}},
     {"Nav_Dtor",                  0x0050f200, (void *)&Nav_Dtor, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"Nav_DtorAtD4",              0x004f7c30, (void *)&Nav_DtorAtD4, {0x81, 0xc1, 0xd4, 0x00, 0x00}},
