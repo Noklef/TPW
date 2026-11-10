@@ -115,14 +115,14 @@ void __cdecl HilightList_InitRow(u8 *row) { initRow(row); }
 void __cdecl List7cc188_InitRow(u8 *row) { initRow(row); }
 
 u8 *__cdecl List7cc338_NewRow() {
-    u8 *const window = newRow(0, 0x64, cachedHeight(0x007cc35c, fontAt(0x00756f38)));
+    u8 *const window = newRow(0, 0x64, cachedHeight(0x007cc35c, fontAt(reinterpret_cast<uintptr_t>(&gList7cc338_756f38))));
     if (window) child(window, 9, 0x11, 1, 0x64, 0, 0xc8, 0x32);
     return window;
 }
 
 void __cdecl List7cc338_InitRow(u8 *row) {
     setPart(row, TextPart_Ctor);
-    Window_Set4c(row, nullptr, Language_Font(global<u32>(0x00756f38)));
+    Window_Set4c(row, nullptr, Language_Font(gList7cc338_756f38));
     Window_NotifyImpl100(row, nullptr, 0);
     vcall<void>(panelparts::barOf(firstChild(row), panelparts::kRideStatBar), 0x1c, 0u);
 }
@@ -143,9 +143,9 @@ void __cdecl List7cc530_InitRow(u8 *row) {
 }
 
 u8 *__cdecl List7ca140_NewRow() {
-    if (global<u32>(0x007ca140) == 0) fontHeight(gList7ca140_7508b4);   // (sic: the font's height asked for and dropped)
-    global<u32>(0x007ca140) = 0x38;
-    u8 *const window = newRow(0, 0, global<u16>(0x007ca140));
+    if (gList7ca140_NewRow_7ca140 == 0) fontHeight(gList7ca140_7508b4);   // (sic: the font's height asked for and dropped)
+    gList7ca140_NewRow_7ca140 = 0x38;
+    u8 *const window = newRow(0, 0, reinterpret_cast<u16 &>(gList7ca140_NewRow_7ca140));
     if (window) {
         child(window, 1, 1, 3, 0, 0x2c, 0, 0x2c);
         child(window, 1, 1, 0x3e7);
@@ -157,19 +157,19 @@ u8 *__cdecl List7ca140_NewRow() {
 }
 
 u8 *__cdecl List7ca314_NewRow() {
-    u8 *const window = newRow(0, 0x64, cachedHeight(0x007ca314, fontAt(0x007523dc)));
+    u8 *const window = newRow(0, 0x64, cachedHeight(reinterpret_cast<uintptr_t>(&gList7ca314_NewRow_7ca314), fontAt(reinterpret_cast<uintptr_t>(&gList7ca314_7523dc))));
     if (window) child(window, 1, 1, 1, 0x64, 0, 0xc8, 0x32);
     return window;
 }
 
 u8 *__cdecl List7cb24c_NewRow() {
-    u8 *const window = newRow(0, 0x64, cachedHeight(0x007cb24c, &kFont7));
-    child(window, 1, 1, 1, 0, 0, 0x64, global<u16>(0x007cb24c));   // (sic: not checked)
+    u8 *const window = newRow(0, 0x64, cachedHeight(reinterpret_cast<uintptr_t>(&gList7cb24c_NewRow_7cb24c), &kFont7));
+    child(window, 1, 1, 1, 0, 0, 0x64, reinterpret_cast<u16 &>(gList7cb24c_NewRow_7cb24c));   // (sic: not checked)
     return window;
 }
 
 u8 *__cdecl List7cb264_NewRow() {
-    u8 *const window = newRow(0, 0x64, cachedHeight(0x007cb264, fontAt(0x00752934)));
+    u8 *const window = newRow(0, 0x64, cachedHeight(reinterpret_cast<uintptr_t>(&gList7cb264_NewRow_7cb264), fontAt(reinterpret_cast<uintptr_t>(&gList7cb264_752934))));
     for (u32 id = 2; id <= 6; id++) child(window, 1, 1, id);   // (sic: not checked)
     return window;
 }
@@ -192,7 +192,7 @@ u8 *__cdecl List7cc654_NewRow() {
 }
 
 u8 *__cdecl List7ca158_NewRow() {
-    u8 *const window = newRow(0, 0, cachedHeight(0x007ca158, fontAt(0x00750d54)));
+    u8 *const window = newRow(0, 0, cachedHeight(reinterpret_cast<uintptr_t>(&gList7ca158_NewRow_7ca158), fontAt(0x00750d54)));
     Window_SetHandler(window, nullptr, 0x004959c0);   // (sic: not checked)
     if (!window) return window;
     switch (gDialog7ca150_7ca154) {
@@ -225,7 +225,7 @@ u8 *__cdecl List7ca158_NewRow() {
 }
 
 u8 *__cdecl List7ca170_NewRow() {
-    u8 *const window = newRow(0, 0, cachedHeight(0x007ca170, fontAt(0x00751184)));
+    u8 *const window = newRow(0, 0, cachedHeight(reinterpret_cast<uintptr_t>(&gList7ca170_NewRow_7ca170), fontAt(reinterpret_cast<uintptr_t>(&gList7ca170_751184))));
     if (window) {
         child(window, 1, 1, 0x3e7);
         child(window, 1, 1, 0x3e7);   // (sic: two children 0x3e7)
@@ -236,7 +236,7 @@ u8 *__cdecl List7ca170_NewRow() {
 }
 
 u8 *__cdecl List7cc200_NewRow() {
-    u8 *const window = newRow(0, 0x64, cachedHeight(0x007cc200, fontAt(0x00755134)));
+    u8 *const window = newRow(0, 0x64, cachedHeight(0x007cc200, fontAt(reinterpret_cast<uintptr_t>(&gList7cc200_755134))));
     if (window) {
         Window_SetHandler(window, nullptr, 0x004acb70);
         Window_SetHandler(child(window, 1, 1, 1, 0x64, 0, 0xc8, 0x32), nullptr, 0x004acb70);   // (sic: not checked)
@@ -249,10 +249,10 @@ u8 *__cdecl List7ca314_NewRowJump() { return List7ca314_NewRow(); }
 
 void __cdecl List7ca314_InitRow(u8 *row) {
     setPart(row, TextPart_Ctor);
-    Window_Set4c(row, nullptr, Language_Font(global<u32>(0x007523dc)));
+    Window_Set4c(row, nullptr, Language_Font(gList7ca314_7523dc));
     u8 *const text = firstChild(row);
     setPart(text, TextPart6ff3b0_Ctor);
-    Window_Set4c(text, nullptr, Language_Font(global<u32>(0x007523dc)));
+    Window_Set4c(text, nullptr, Language_Font(gList7ca314_7523dc));
     Window_NotifyC00(text, nullptr, 2, 1);
     vcall<void>(text, 0x1c, 0u);
 }
@@ -300,7 +300,7 @@ u8 *__cdecl List7cc94c_NewRow() {
 }
 
 u8 *__cdecl List7cca90_NewRow() {
-    u8 *const window = newRow(0, 0, cachedHeight(0x007cca90, &kFont7));
+    u8 *const window = newRow(0, 0, cachedHeight(reinterpret_cast<uintptr_t>(&gList7cca90_NewRow_7cca90), &kFont7));
     for (u32 id = 2; id <= 5; id++) child(window, 1, 1, id);   // (sic: not checked)
     return window;
 }
@@ -335,11 +335,11 @@ void __cdecl List7cca90_InitRow(u8 *row) {
 
 void __cdecl List7cc200_InitRow(u8 *row) {
     setPart(row, TextPart_Ctor);
-    Window_Set4c(row, nullptr, Language_Font(global<u32>(0x00755134)));
+    Window_Set4c(row, nullptr, Language_Font(gList7cc200_755134));
     Window_Notify40000(row, nullptr, 0xff, 0xff, 0xff, 0xff);
     u8 *const text = firstChild(row);
     setPart(text, TextPart6ff3e0_Ctor);
-    Window_Set4c(text, nullptr, Language_Font(global<u32>(0x00755134)));
+    Window_Set4c(text, nullptr, Language_Font(gList7cc200_755134));
     Window_NotifyC00(text, nullptr, 2, 1);
     vcall<void>(text, 0x1c, 0u);
     u8 *const box = nextSibling(text);
@@ -349,7 +349,7 @@ void __cdecl List7cc200_InitRow(u8 *row) {
 
 void __cdecl List7cb264_InitRow(u8 *row) {
     setPart(row, TextPart_Ctor);
-    Window_Set4c(row, nullptr, Language_Font(global<u32>(0x00752934)));
+    Window_Set4c(row, nullptr, Language_Font(gList7cb264_752934));
     Window_SetHandler(row, nullptr, 0x004a0710);
     static const PartCtor kParts[5] = {TextPart6ff3b0_Ctor, TextPart6ff350_Ctor, TextPart6ff440_Ctor, TextPart6ff3b0_Ctor, TextPart6ff3b0_Ctor};
     u8 *window = row;
@@ -359,7 +359,7 @@ void __cdecl List7cb264_InitRow(u8 *row) {
         setPart(window, kParts[k]);
         const bool label = kParts[k] == TextPart6ff3b0_Ctor;
         if (label) Window_NotifyC00(window, nullptr, 2, 1);
-        Window_Set4c(window, nullptr, Language_Font(global<u32>(0x00752934)));
+        Window_Set4c(window, nullptr, Language_Font(gList7cb264_752934));
         vcall<void>(window, 0x1c, 0u);
         if (!label) Window_NotifyC00(window, nullptr, 1, 1);
     }
@@ -417,16 +417,16 @@ void __cdecl List7ca140_InitRow(u8 *row) {   // (sic: the original builds a GuiR
 
 void __cdecl List7ca170_InitRow(u8 *row) {   // (sic: the original builds a GuiRect on its stack and destroys it, unused)
     setPart(row, TextPart_Ctor);
-    Window_Set4c(row, nullptr, Language_Font(global<u32>(0x00751184)));
+    Window_Set4c(row, nullptr, Language_Font(gList7ca170_751184));
     Window_NotifyImpl100(row, nullptr, 0);
     u8 *window = firstChild(row);
     setPart(window, TextPart_Ctor);
-    Window_Set4c(window, nullptr, Language_Font(global<u32>(0x00751184)));
+    Window_Set4c(window, nullptr, Language_Font(gList7ca170_751184));
     Window_NotifyImpl100(window, nullptr, 0);
     window = nextSibling(window);
     setPart(window, TextPart6ff3b0_Ctor);
     Window_NotifyC00(window, nullptr, 2, 1);
-    Window_Set4c(window, nullptr, Language_Font(global<u32>(0x00751184)));
+    Window_Set4c(window, nullptr, Language_Font(gList7ca170_751184));
     vcall<void>(window, 0x1c, 0u);
     window = nextSibling(window);
     vcall<void>(panelparts::barOf(window, panelparts::kRideStatBar, 0, 8), 0x1c, 0x1f4u);

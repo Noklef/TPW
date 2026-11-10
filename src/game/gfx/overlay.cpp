@@ -11,6 +11,7 @@
 #include "../model/objmodel.h"
 #include "../sprite/screenmatrix.h"
 #include "../ui/guidialog.h"
+#include "../ui/guistartup.h"
 
 namespace {
 
@@ -87,7 +88,7 @@ u8 *__fastcall Overlay_CtorResizedHeight(u8 *overlay, void *, u8 *holder) {
 static u8 *CloneOverlay(u8 *overlay, u32 flags, u32 vtable) {
     if (!at<u16>(overlay, 0x10) || !at<u16>(overlay, 0x12) || !at<u8 *>(overlay, 4)) return overlay;
     u8 *holder = nullptr;
-    Holder_Clone(at<u8 *>(overlay, 4), *reinterpret_cast<const volatile u32 *>(0x007c249c), flags, &holder, 0);
+    Holder_Clone(at<u8 *>(overlay, 4), *reinterpret_cast<const volatile u32 *>(&gGuistartup_7c249c), flags, &holder, 0);
     u8 *const copy = static_cast<u8 *>(GameHeap_Alloc(0x84));
     if (!copy) return overlay;
     Overlay_Ctor(copy, nullptr, holder);

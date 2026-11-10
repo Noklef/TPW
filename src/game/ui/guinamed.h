@@ -20,3 +20,8 @@ void __cdecl GuiNamed_FreeAll();
 // characters read on past them when not terminated), else 0.
 u8 *__cdecl GuiNamed_Find(const char *name);
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(u8 *, gGuinamed_faa624, 0x00faa624, 0x4);

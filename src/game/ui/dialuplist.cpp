@@ -7,6 +7,7 @@
 #include "window.h"
 #include "window7059f0.h"
 #include "dialog7cc654handler.h"
+#include "guistartup.h"
 
 namespace {
 
@@ -34,7 +35,7 @@ void __cdecl DialupList_Fill(u8 shown) {
     }
     g_env->setShown(list, nullptr, 1);
     u32 message = 0xffffffff;
-    if (!global<u32>(0x007c24d4)) {
+    if (!gGuistartup_7c24d4) {
         message = 0xe7;
     } else if (const s32 count = g_env->count(dialup())) {
         for (s32 i = 0; i < count; ++i) {

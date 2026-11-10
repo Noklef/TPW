@@ -18,3 +18,8 @@ void MoneyDisplayHandler_SetEnv(const MoneyDisplayHandlerEnv *env);
 // and the count 0; the cost Global81af4c 0. Every message then goes to Window_CallDefault, its answer returned.
 s32 __cdecl MoneyDisplay_Handler(u8 *window, u32 message, u32 a, u32 b);
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(u32, gMoneyDisplay_Handler_7cb2e0, 0x007cb2e0, 0x4);

@@ -11,6 +11,8 @@
 #include "msgqueue.h"
 #include "window.h"
 #include "windowtimers.h"
+#include "guisystem.h"
+#include "cursor.h"
 
 namespace {
 
@@ -47,31 +49,31 @@ void __cdecl Gui_Frame() {
     const GuiFrameEnv *const E = g_env;
     E->begin();
     E->fireTimers();
-    global<u32>(0x007b9a4c) = E->count(global<u8 *>(0x00faa5f0));
-    global<u32>(0x007b9bac) = E->count(global<u8 *>(0x00faa5f4));
+    gGui_Frame_7b9a4c = E->count(gGuisystem_faa5f0);
+    global<u32>(0x007b9bac) = E->count(gGuisystem_faa5f4);
     if (E->countdownStep()) E->countdownDone();
     E->pump(0x400);
     E->fireWindowTimers();
     E->post(global<u8 *>(0x00faa5d8), 2, 0, 0);
     E->afterPost();
     if (E->active()) {
-        if (global<u8 *>(0x00faa608)) {
-            u32 *const vtable = global<u32 *>(global<u32>(0x00faa608));
+        if (gCursor_faa608) {
+            u32 *const vtable = global<u32 *>(reinterpret_cast<u32 &>(gCursor_faa608));
             const u32 now = E->clock();
-            reinterpret_cast<void(__fastcall *)(u8 *, void *, u32)>((uintptr_t)vtable[6])(global<u8 *>(0x00faa608), nullptr, now);
+            reinterpret_cast<void(__fastcall *)(u8 *, void *, u32)>((uintptr_t)vtable[6])(gCursor_faa608, nullptr, now);
         }
-        if (!(global<u8>(0x007c20e4) & 1)) {
-            global<u8>(0x007c20e4) |= 1;
-            global<u32>(0x007b9d00) = 0;
-            global<u32>(0x007b9d04) = 0;
+        if (!(gGui_Frame_7c20e4 & 1)) {
+            gGui_Frame_7c20e4 |= 1;
+            gGui_Frame_7b9d00 = 0;
+            gGui_Frame_7b9d04 = 0;
             E->atExit(0x0048a6d0);
         }
         const u32 *const mouse = reinterpret_cast<const u32 *>((uintptr_t)E->mouse());
-        if (mouse[0] != global<u32>(0x007b9d00) || mouse[1] != global<u32>(0x007b9d04)) {
+        if (mouse[0] != gGui_Frame_7b9d00 || mouse[1] != gGui_Frame_7b9d04) {
             const u32 x = mouse[0];
             const u32 y = mouse[1];
-            global<u32>(0x007b9d00) = x;
-            global<u32>(0x007b9d04) = y;
+            gGui_Frame_7b9d00 = x;
+            gGui_Frame_7b9d04 = y;
             const s32 scaledY = static_cast<s32>(y * 3 << 9) / global<s16>(0x00faa5c0);
             const s32 scaledX = static_cast<s32>(x << 11) / global<s16>(0x00faa5c4);
             E->mouseMove(static_cast<u32>(scaledX), static_cast<u32>(scaledY));

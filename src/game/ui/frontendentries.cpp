@@ -3,6 +3,7 @@
 
 #include <cstdint>
 #include "dialog7cc4b4open.h"
+#include "focus.h"
 
 namespace {
 
@@ -68,7 +69,7 @@ u32 __cdecl FrontEnd_PauseTimers() {
 
 u32 __cdecl FrontEnd_ResumeTimers() {
     g_env->toggle();
-    return global<u32>(0x007cb2cc) ? g_env->resumeTimer() : g_env->restartTimers();
+    return reinterpret_cast<u32 &>(gFocus_7cb2cc) ? g_env->resumeTimer() : g_env->restartTimers();
 }
 
 u32 __cdecl FrontEnd_EnsureMode() { return g_env->ensureMode(); }

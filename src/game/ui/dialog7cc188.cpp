@@ -23,6 +23,7 @@
 #include "dialog7cc188handler.h"
 #include "dialog7cc184handler.h"
 #include "dialog74fb20.h"
+#include "gamepause.h"
 
 namespace {
 
@@ -94,7 +95,7 @@ void __cdecl Dialog7cc188_FillList(u32 clear) {
         g_env->add(list, nullptr, texts, index, -1, 0);
         text = textOf(StdListString_Next(strings));
     }
-    u8 &guard = global<u8>(0x00fb34bf);
+    u8 &guard = gGamepause_fb34bf;
     if (!(guard & 1)) {
         guard |= 1;
         Setting_ReadMode(reinterpret_cast<u8 *>(&gDialog74fb20_fb3b7c));

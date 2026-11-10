@@ -61,12 +61,12 @@ s32 closed(u8 *window, u32 message, u32 a) {
     u16 &used = global<u16>(0x007c26b4 + (u32)index * 0x208);
     if (!used) return 0;
     used = 0;
-    --global<s32>(0x007ca09c);
+    --gMsgtags_7ca09c;
     u32 height = message;
     g_handler->getSize(window, nullptr, nullptr, reinterpret_cast<s16 *>(&height), 1);
     height += 10;
     g_handler->adjustRect(gDialog7cb2b8build_7cb2c4, nullptr, 0, height, 0, 0);
-    if (window == global<u8 *>(0x007cb2c8)) global<u32>(0x007cb2c8) = Fn_65d56b(window);
+    if (window == gMsgtags_7cb2c8) reinterpret_cast<u32 &>(gMsgtags_7cb2c8) = Fn_65d56b(window);
     if (a) {
         for (u8 *tag = reinterpret_cast<u8 *>((uintptr_t)Fn_65d56b(window)); tag; tag = reinterpret_cast<u8 *>((uintptr_t)Fn_65d56b(tag))) {
             g_handler->offset(tag, nullptr, 0, height);
@@ -163,7 +163,7 @@ void __cdecl MsgTag_Open(u8 *tag) {
 u8 *__cdecl MsgTags_Add(const u8 *message) {
     if (!global<u32>(0x007cb2ac)) return nullptr;
     bool fresh = true;
-    for (u8 *tag = global<u8 *>(0x007cb2c8); tag; tag = reinterpret_cast<u8 *>((uintptr_t)Fn_65d56b(tag))) {
+    for (u8 *tag = gMsgtags_7cb2c8; tag; tag = reinterpret_cast<u8 *>((uintptr_t)Fn_65d56b(tag))) {
         if (at<u32>(message, 4) != Window_DwordA0(tag, nullptr, 1)) continue;
         if (at<u16>(message, 0x1c) != (u16)Window_DwordA0(tag, nullptr, 3)) continue;
         if (at<u32>(message, 0x20) != Window_DwordA0(tag, nullptr, 8)) continue;
@@ -177,11 +177,11 @@ u8 *__cdecl MsgTags_Add(const u8 *message) {
             Window_SendMessage(gDialog7cb2b8build_7cb2c4, 0x100002, (u32)(uintptr_t)tag, 1);
         }
     }
-    if (!fresh || global<s32>(0x007ca09c) >= gMsgTags_Add_750610 || !gDialog7cb2b8build_7cb2c4) return nullptr;
+    if (!fresh || gMsgtags_7ca09c >= gMsgTags_Add_750610 || !gDialog7cb2b8build_7cb2c4) return nullptr;
     s16 width;
     Window_GetSize(gDialog7cb2b8build_7cb2c4, nullptr, &width, nullptr, 1);
     u8 *tag = nullptr;
-    for (u8 *record = reinterpret_cast<u8 *>((uintptr_t)0x007c26b0); record < reinterpret_cast<u8 *>((uintptr_t)0x007c3b00); record += 0x208) {
+    for (u8 *record = reinterpret_cast<u8 *>((uintptr_t)0x007c26b0); record < reinterpret_cast<u8 *>(&gMsgtags_7c3b00); record += 0x208) {
         if (*reinterpret_cast<u16 *>(record + 4)) continue;
         *reinterpret_cast<u16 *>(record + 4) = 1;
         tag = *reinterpret_cast<u8 **>(record);
@@ -189,7 +189,7 @@ u8 *__cdecl MsgTags_Add(const u8 *message) {
         break;
     }
     if (!tag) return nullptr;
-    if (!global<u8 *>(0x007cb2c8)) global<u8 *>(0x007cb2c8) = tag;
+    if (!gMsgtags_7cb2c8) gMsgtags_7cb2c8 = tag;
     u16 *const text = reinterpret_cast<u16 *>((uintptr_t)Window_DwordA0(tag, nullptr, 2));
     if (at<const u16 *>(message, 8) && Crt().wcslen(at<const u16 *>(message, 8)) && text) {
         Crt().wcsncpy(text, at<const u16 *>(message, 8), 0xff);
@@ -212,7 +212,7 @@ u8 *__cdecl MsgTags_Add(const u8 *message) {
     Window_SetDwordA0(tag, nullptr, 9, 0xffffffff);
     Window_SetDwordA0(tag, nullptr, 10, 0);
     Window_PostMessage(gDialog7cb2b8build_7cb2c4, 0x100001, (u32)(uintptr_t)tag, 0);
-    global<s32>(0x007ca09c)++;
+    gMsgtags_7ca09c++;
     Sound_PlayAt(0, global<u32>(0x00803a2c), 0x1e, 0, 0, 0);
     return tag;
 }
@@ -284,7 +284,7 @@ s32 *__cdecl MsgTags_Save(Stream *stream) {
     s32 result, done;
     s32 *answer = Stream_Write(&result, stream, &count, 4, &done);
     u8 record[0x21c];
-    for (u8 *entry = reinterpret_cast<u8 *>((uintptr_t)0x007c26b0); entry < reinterpret_cast<u8 *>((uintptr_t)0x007c3b00); entry += 0x208) {
+    for (u8 *entry = reinterpret_cast<u8 *>((uintptr_t)0x007c26b0); entry < reinterpret_cast<u8 *>(&gMsgtags_7c3b00); entry += 0x208) {
         if (!at<u16>(entry, 4)) continue;
         u8 *const window = at<u8 *>(entry, 0);
         *reinterpret_cast<u32 *>(record + 0) = Window_DwordA0(window, nullptr, 1);
@@ -323,7 +323,7 @@ s32 __cdecl MsgTags_WindowHandler(u8 *window, u32 message, u8 *tag, u32 b) {
             }
         } else if (message == 0x100003) {
             u32 delay = 100;
-            for (u8 *t = global<u8 *>(0x007cb2c8); t; t = reinterpret_cast<u8 *>((uintptr_t)Fn_65d56b(t))) {
+            for (u8 *t = gMsgtags_7cb2c8; t; t = reinterpret_cast<u8 *>((uintptr_t)Fn_65d56b(t))) {
                 Window_PostTimed(t, 5, 1, 0, delay);
                 delay += 100;
             }
@@ -360,7 +360,7 @@ s32 __cdecl MsgTags_WindowHandler(u8 *window, u32 message, u8 *tag, u32 b) {
             GuiRect_Dtor(rect);
         }
     } else if (message == 0x14) {
-        global<u32>(0x007cb2c8) = 0;
+        reinterpret_cast<u32 &>(gMsgtags_7cb2c8) = 0;
     }
     return Window_CallDefault(window, nullptr, message, (u32)(uintptr_t)tag, b);
 }

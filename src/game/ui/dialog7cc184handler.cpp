@@ -19,6 +19,7 @@
 #include "textpanel7cc18c.h"
 #include "window.h"
 #include "dialog74fb20.h"
+#include "gamepause.h"
 
 namespace {
 
@@ -38,7 +39,7 @@ u16 *find(u16 *text, u16 c) {
 }
 
 bool modeOne() {
-    u8 &guard = global<u8>(0x00fb34bf);
+    u8 &guard = gGamepause_fb34bf;
     if (!(guard & 1)) {
         guard |= 1;
         Setting_ReadMode(reinterpret_cast<u8 *>(&gDialog74fb20_fb3b7c));

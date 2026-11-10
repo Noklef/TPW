@@ -6,6 +6,7 @@
 #include "../core/accessors.h"
 #include "../core/gameheap.h"
 #include "window.h"
+#include "guisystem.h"
 
 namespace {
 
@@ -108,7 +109,7 @@ void __fastcall MsgQueue_Clear(u8 *queue) {
 }
 
 s32 __cdecl MsgQueue_PumpSecond(s32 most) {
-    u8 **const queue = reinterpret_cast<u8 **>((uintptr_t)0x00faa5f4);
+    u8 **const queue = &gGuisystem_faa5f4;
     s32 n = 0;
     if (!*queue) return 0;
     while ((s16)MsgQueue_DispatchOne(*queue) && n < most) ++n;
@@ -117,7 +118,7 @@ s32 __cdecl MsgQueue_PumpSecond(s32 most) {
 
 s32 __cdecl MsgQueue_Pump(s32 most) {
     using Hook = void(__cdecl *)(u32, u32, u32, u32);
-    u8 *&queue = *reinterpret_cast<u8 **>((uintptr_t)0x00faa5f0);
+    u8 *&queue = gGuisystem_faa5f0;
     const Hook &hook = *reinterpret_cast<Hook *>((uintptr_t)0x00faa5fc);
     s32 done = 0;
     if (!queue) return 0;

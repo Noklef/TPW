@@ -7,6 +7,7 @@
 #include "dialogbase.h"
 #include "guirect.h"
 #include "window.h"
+#include "focus.h"
 
 namespace {
 
@@ -24,7 +25,7 @@ extern "C" {
 
 s32 __cdecl Window7cb2cc_Handler(u8 *window, u32 message, u32 a, u32 b) {
     if (message == 0x14) {
-        global<u32>(0x007cb2cc) = 0;
+        reinterpret_cast<u32 &>(gFocus_7cb2cc) = 0;
     } else if (message == 0x15) {
         u8 rect[12];
         GuiRect_Ctor(rect);

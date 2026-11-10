@@ -13,6 +13,8 @@
 #include "guitimers.h"
 #include "msgqueue.h"
 #include "windowtimers.h"
+#include "guisystem.h"
+#include "guisettings.h"
 
 namespace {
 
@@ -485,25 +487,25 @@ u32 __fastcall Window_Destroying(u8 *window) {
 }
 
 u32 __cdecl Window_CancelPosted(u8 *window) {
-    u8 *const queue = *reinterpret_cast<u8 **>((uintptr_t)0x00faa5f0);
+    u8 *const queue = gGuisystem_faa5f0;
     if (!queue || !window) return 0xffff;  // only AX is set
     return MsgQueue_Cancel(queue, nullptr, (u32)(uintptr_t)window);
 }
 
 u32 __cdecl Window_CancelPostedFirst(u8 *window) {
-    u8 *const queue = *reinterpret_cast<u8 **>((uintptr_t)0x00faa5f4);
+    u8 *const queue = gGuisystem_faa5f4;
     if (!queue || !window) return 0xffff;  // only AX is set
     return MsgQueue_Cancel(queue, nullptr, (u32)(uintptr_t)window);
 }
 
 u32 __cdecl Window_CancelTimed(u8 *window) {
-    u8 *const table = *reinterpret_cast<u8 **>((uintptr_t)0x00faa5f8);
+    u8 *const table = gGuisystem_faa5f8;
     if (!table || !window) return 0xffff;  // only AX is set
     return GuiTimers_Cancel(table, nullptr, (u32)(uintptr_t)window);
 }
 
 u32 __cdecl Window_PostTimed(u8 *window, u32 message, u32 a, u32 b, u32 delay) {
-    u8 *const table = *reinterpret_cast<u8 **>((uintptr_t)0x00faa5f8);
+    u8 *const table = gGuisystem_faa5f8;
     if (!table || !window || message == 1 || message == 3 || message == 2) return 0;
     GuiTimers_Add(table, nullptr, (u32)(uintptr_t)window, message, a, b, delay);
     return 1;
@@ -516,15 +518,15 @@ s32 __fastcall Window_Compare(u8 *window, void *, u8 *other) {
 }
 
 s32 __cdecl Window_FireTimers() {
-    u8 *const table = *reinterpret_cast<u8 **>((uintptr_t)0x00faa5f8);
+    u8 *const table = gGuisystem_faa5f8;
     if (!table) return -1;
     return (s16)GuiTimers_Fire(table);
 }
 
 void __cdecl Gui_ResetQueues() {
-    if (u8 *const table = *reinterpret_cast<u8 **>((uintptr_t)0x00faa5f8)) GuiTimers_Reset(table);
-    if (u8 *const first = *reinterpret_cast<u8 **>((uintptr_t)0x00faa5f4)) MsgQueue_Clear(first);
-    if (u8 *const queue = *reinterpret_cast<u8 **>((uintptr_t)0x00faa5f0)) MsgQueue_Clear(queue);
+    if (u8 *const table = gGuisystem_faa5f8) GuiTimers_Reset(table);
+    if (u8 *const first = gGuisystem_faa5f4) MsgQueue_Clear(first);
+    if (u8 *const queue = gGuisystem_faa5f0) MsgQueue_Clear(queue);
 }
 
 u32 __fastcall Window_Dtor(u8 *window) {
@@ -576,8 +578,8 @@ u32 __fastcall Window_DwordA0(u8 *window, void *, u32 index) {
 }
 
 u32 __cdecl Window_PostMessage(u8 *window, u32 message, u32 a, u32 b) {
-    u8 *const input = *reinterpret_cast<u8 **>((uintptr_t)0x00faa5f4);
-    u8 *const queue = *reinterpret_cast<u8 **>((uintptr_t)0x00faa5f0);
+    u8 *const input = gGuisystem_faa5f4;
+    u8 *const queue = gGuisystem_faa5f0;
     if (message == 1 || message == 3 || message == 2) {
         if (!input || !window || Fn_659710(window)) return 0;
         MsgQueue_Push(input, nullptr, (u32)(uintptr_t)window, message, a, b);
@@ -605,8 +607,8 @@ u8 *__fastcall Window_HitTest(u8 *window, void *, u32 x, u32 y) {
 }
 
 u32 __cdecl Window_UpdateHover() {
-    const s16 x = *reinterpret_cast<s16 *>((uintptr_t)0x00faa540);
-    const s16 y = *reinterpret_cast<s16 *>((uintptr_t)0x00faa544);
+    const s16 x = *reinterpret_cast<s16 *>(&gGuisettings_faa540);
+    const s16 y = *reinterpret_cast<s16 *>(&gGuisettings_faa544);
     u8 *const root = *reinterpret_cast<u8 **>((uintptr_t)0x00faa5d8);
     if (!root || *reinterpret_cast<u32 *>((uintptr_t)0x00faa5e8)) return 0;
     u8 *const hit = Window_HitTest(root, nullptr, (u16)x, (u16)y);
@@ -708,8 +710,8 @@ u32 __cdecl Gui_KeyChar(u32 key, u32 b) { return Gui_PostKey(0x1000c, key, b); }
 
 u32 __cdecl Gui_MouseMove(u32 x, u32 y) {
     if (*reinterpret_cast<const u32 *>((uintptr_t)0x0077c488) == 0) return 0;  // only AX is set
-    *reinterpret_cast<u16 *>((uintptr_t)0x00faa540) = (u16)x;
-    *reinterpret_cast<u16 *>((uintptr_t)0x00faa544) = (u16)y;
+    gGuisettings_faa540 = (u16)x;
+    gGuisettings_faa544 = (u16)y;
     u8 *const root = *reinterpret_cast<u8 **>((uintptr_t)0x00faa5d8);
     if (!root) return 0;
     const u32 xy = ((u32)(s32)(s16)x << 16) | (u32)(s32)(s16)y;
@@ -730,7 +732,7 @@ u32 __cdecl Gui_MouseMove(u32 x, u32 y) {
 }
 
 void __cdecl Gui_PollMouseMove() {
-    s16 *const now = reinterpret_cast<s16 *>((uintptr_t)0x00faa540);   // (x, then y at +4)
+    s16 *const now = reinterpret_cast<s16 *>(&gGuisettings_faa540);   // (x, then y at +4)
     s16 *const seen = reinterpret_cast<s16 *>((uintptr_t)0x00faa5cc);  // (x, then y at +4)
     const u32 x_high = (u32)(s32)seen[0] & 0xffff0000u;
     u32 y_high;

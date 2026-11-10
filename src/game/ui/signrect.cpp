@@ -7,6 +7,7 @@
 #include "../sprite/screenmatrix.h"
 #include "../world/rideskin.h"
 #include "../world/sign.h"
+#include "guimessagefx.h"
 
 namespace {
 
@@ -22,7 +23,7 @@ s32 word(const u8 *rect, u32 offset) { return *reinterpret_cast<const s16 *>(rec
 void SignRect_SetEnv(const SignRectEnv *env) { g_env = env ? env : &kGameEnv; }
 
 void __cdecl Sign_PlaceOverRect(const u8 *rect, u32 type, s32 row) {
-    const float scaleX = global<float>(0x006ff154), scaleY = global<float>(0x006ff150);
+    const float scaleX = gGuimessagefx_6ff154, scaleY = global<float>(0x006ff150);
     const float x0 = static_cast<float>(word(rect, 4) - 0x400) * scaleX;
     const float x1 = static_cast<float>(word(rect, 8) - 0x400) * scaleX;
     const float y0 = static_cast<float>(0x300 - word(rect, 6)) * scaleY;

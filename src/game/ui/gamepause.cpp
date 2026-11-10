@@ -57,8 +57,8 @@ const GamePauseEnv *g_env = &kGameEnv;
 
 // The setting's first read, its guard the bit 0xfb34bf here. The answer: is it 1.
 bool SettingOne() {
-    if (!(global<u8>(0x00fb34bf) & 1)) {
-        global<u8>(0x00fb34bf) |= 1;
+    if (!(gGamepause_fb34bf & 1)) {
+        gGamepause_fb34bf |= 1;
         g_env->readMode(object(reinterpret_cast<uintptr_t>(&gDialog74fb20_fb3b7c)));
         g_env->atExit(0x005d1750);
     }
@@ -104,12 +104,12 @@ void __cdecl GamePause_Resume() {
         E->selectFirst();
     else if (E->overlayState())
         E->overlayToggle();
-    if (!global<u8>(0x007cc194)) {
+    if (!gGamePause_Resume_7cc194) {
         global<u32(__stdcall *)(u32, u32)>(0x006fd14c)(0x200, 0x007cb958);
-        global<u8>(0x007cc194) = 1;
+        gGamePause_Resume_7cc194 = 1;
     }
     E->openDialog();
-    global<u32>(0x007cc190) = 0;
+    gGamepause_7cc190 = 0;
 }
 
 void __cdecl GamePause_Hide() {
@@ -125,7 +125,7 @@ void __cdecl GamePause_Hide() {
     E->cursorSlot3();
     E->finish();
     E->fn5996d0(1);
-    global<u32>(0x007cc190) = 1;
-    global<u32>(0x007cc150) = 3;
+    gGamepause_7cc190 = 1;
+    reinterpret_cast<u32 &>(gGamepause_7cc150) = 3;
 }
 }

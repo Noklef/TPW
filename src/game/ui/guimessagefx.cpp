@@ -43,7 +43,7 @@ struct Box {
         right = words[2];
         bottom = words[3];
     }
-    u32 CentreX() const { return Bits(Scaled((right - left) / 2 + left - 0x400, 0x006ff154)); }
+    u32 CentreX() const { return Bits(Scaled((right - left) / 2 + left - 0x400, reinterpret_cast<uintptr_t>(&gGuimessagefx_6ff154))); }
     u32 CentreY() const { return Bits(Scaled((bottom - top) / 2 + top - 0x300, 0x006ff150)); }
 };
 
@@ -84,8 +84,8 @@ u32 __cdecl GuiMessageFx_Handler(u8 *window, u32 message, u32 a, u32) {
                 if (Kind(window) == 2) {
                     g_env->getRect(window, nullptr, rect, 1);
                     const Box box(rect);
-                    const float height = Scaled(box.bottom - box.top, 0x006ff158);
-                    const float width = Scaled(box.right - box.left, 0x006ff15c);
+                    const float height = Scaled(box.bottom - box.top, reinterpret_cast<uintptr_t>(&gGuiMessageFx_Handler_6ff158));
+                    const float width = Scaled(box.right - box.left, reinterpret_cast<uintptr_t>(&gGuiMessageFx_Handler_6ff15c));
                     const u32 y = box.CentreY();
                     g_env->setup(box.CentreX(), y, width, height);
                 }

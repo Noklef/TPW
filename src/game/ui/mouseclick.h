@@ -41,3 +41,8 @@ extern "C" {
 // 7: Global7c2650_Get not 0: Panel7cc408_Show on 0x7cc408. 8 to 12: the same, Panel7cc3b0_Show on 0x7cc3b0. 13, 14: Dialog7ca210_Open. Else 1.
 u32 __cdecl MouseClick_OnShown();
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(u32, gMouseclick_7c24f4, 0x007c24f4, 0x4);

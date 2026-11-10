@@ -193,3 +193,15 @@ u32 __cdecl List758f04_RowProcB(u8 *window, u32 message, u32 a, u32 b);
 
 // Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
 GAME_DATA(u32, gList7ca140_7508b4, 0x007508b4, 4);
+GAME_DATA(u32, gList7ca170_751184, 0x00751184, 0x4);
+GAME_DATA(u32, gList7ca314_7523dc, 0x007523dc, 0x4);
+GAME_DATA(u32, gList7cb264_752934, 0x00752934, 0x4);
+GAME_DATA(u32, gList7cc200_755134, 0x00755134, 0x4);
+GAME_DATA(u32, gList7cc338_756f38, 0x00756f38, 0x4);
+GAME_DATA(u32, gList7ca140_NewRow_7ca140, 0x007ca140, 0x4);
+GAME_DATA(u32, gList7ca158_NewRow_7ca158, 0x007ca158, 0x4);
+GAME_DATA(u32, gList7ca170_NewRow_7ca170, 0x007ca170, 0x4);
+GAME_DATA(u32, gList7ca314_NewRow_7ca314, 0x007ca314, 0x4);
+GAME_DATA(u32, gList7cb24c_NewRow_7cb24c, 0x007cb24c, 0x4);
+GAME_DATA(u32, gList7cb264_NewRow_7cb264, 0x007cb264, 0x4);
+GAME_DATA(u32, gList7cca90_NewRow_7cca90, 0x007cca90, 0x4);

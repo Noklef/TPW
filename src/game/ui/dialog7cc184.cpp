@@ -23,6 +23,7 @@
 #include "../online/chatcommand.h"
 #include "dialog7cc184handler.h"
 #include "dialog74fb20.h"
+#include "gamepause.h"
 
 namespace {
 
@@ -34,7 +35,7 @@ const Dialog7cc184OpenEnv kGameEnv = {Setting_ReadMode, reinterpret_cast<s32(__c
 const Dialog7cc184OpenEnv *g_open = &kGameEnv;
 
 bool settingIsOne() {
-    u8 &guard = global<u8>(0x00fb34bf);
+    u8 &guard = gGamepause_fb34bf;
     if (!(guard & 1)) {
         guard |= 1;
         g_open->readMode(reinterpret_cast<u8 *>(&gDialog74fb20_fb3b7c));

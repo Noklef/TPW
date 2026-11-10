@@ -31,3 +31,9 @@ void MoneyDisplay_SetEnv(const MoneyDisplayEnv *env);
 // hidden and [0x752ec0] -999 unless so already.
 void __cdecl MoneyDisplay_Update(u8 *window);
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(s32, gMoneydisplay_7cb27c, 0x007cb27c, 0x4);
+GAME_DATA(s32, gMoneydisplay_7cb2dc, 0x007cb2dc, 0x4);

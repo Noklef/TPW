@@ -7,6 +7,7 @@
 #include "string.h"
 #include "../ui/dialog7cb2b8build.h"
 #include "../ui/dialog74fb20.h"
+#include "../ui/focus.h"
 
 namespace {
 
@@ -62,7 +63,7 @@ void __stdcall Stub_Ret4b(u32) {}
 
 u32 __cdecl Global7ca1cc_Get() { return global<u32>(0x007ca1cc); }
 
-u32 __cdecl Global7cb2e8_Get() { return global<u32>(0x007cb2e8); }
+u32 __cdecl Global7cb2e8_Get() { return gFocus_7cb2e8; }
 
 u32 __cdecl Global7c2650_Get() { return gAccessors_7c2650; }
 

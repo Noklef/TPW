@@ -138,7 +138,7 @@ void __cdecl Panel7b9940_Open() {
     g_open->create7ca1bc();
     g_open->create7ca098();
     g_open->create7ca1c8();
-    global<u32>(0x007c24c8) = 0;
+    reinterpret_cast<u32 &>(gFocus_7c24c8) = 0;
     g_open->focus();
     if (global<u8>(0x0078d90e)) g_open->slot3();
     else g_open->slot4();

@@ -27,7 +27,7 @@ const Dialog74fb20Env kGameEnv = {Global7cb2e8_Get, Overlay7cb2b4_Toggle, Window
                                   reinterpret_cast<void(__fastcall *)(u8 *)>((uintptr_t)0x00516c10)};
 const Dialog74fb20Env *g_env = &kGameEnv;
 
-u8 *build() { return g_env->build(global<u8 *>(0x007cb2b4), nullptr, reinterpret_cast<u8 *>((uintptr_t)0x0074fb20), 0x0048a740); }
+u8 *build() { return g_env->build(gFocus_7cb2b4, nullptr, reinterpret_cast<u8 *>((uintptr_t)0x0074fb20), 0x0048a740); }
 
 // Moved to half its rectangle's size, the script run.
 void place(u8 *window, u8 *rect, u32 script = 0x0074fc38) {
@@ -49,9 +49,9 @@ u8 *hide(u8 *thing) {
     g_env->resetKeys();
     gDialog74fb20_7c24d0 = 1;
     if (g_env->toggled()) g_env->toggle();
-    if (global<u8 *>(0x007c24c8)) {
-        g_env->send(global<u8 *>(0x007c24c8), 5, 0, 0);
-        global<u8 *>(0x007c24c8) = nullptr;
+    if (gFocus_7c24c8) {
+        g_env->send(gFocus_7c24c8, 5, 0, 0);
+        gFocus_7c24c8 = nullptr;
         g_env->restore();
     }
     g_env->send(global<u8 *>(0x007cb2ac), 6, 0, 0);
@@ -100,7 +100,7 @@ void __cdecl Dialog74fb20_Open() {
     u8 rect[12];
     GuiRect_Ctor(rect);
     place(window, rect);
-    g_env->setFocus(global<u8 *>(0x007cb2b4), nullptr, 0);
+    g_env->setFocus(gFocus_7cb2b4, nullptr, 0);
     GuiRect_Dtor(rect);
 }
 

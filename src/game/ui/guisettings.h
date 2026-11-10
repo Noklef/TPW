@@ -22,3 +22,10 @@ void __cdecl Gui_SetPointer48c(u32 value);
 // 0x659674 (cdecl): 0x77c490 set to the value, or 0xfaa580 for none.
 void __cdecl Gui_SetPointer490(u32 value);
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(u16, gGuisettings_faa540, 0x00faa540, 0x2);
+GAME_DATA(u16, gGuisettings_faa544, 0x00faa544, 0x2);
+GAME_DATA(u16, gGui_faa600, 0x00faa600, 0x2);

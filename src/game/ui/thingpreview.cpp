@@ -6,6 +6,7 @@
 #include "../math/x87.h"
 #include "../sprite/screenmatrix.h"
 #include "../sprite/script.h"
+#include "guimessagefx.h"
 
 namespace {
 
@@ -34,7 +35,7 @@ u32 __cdecl ThingPreview_Show(const u8 *rect, u8 *thing, s32 depth, u32 scale) {
         return (u32)(uintptr_t)thing;
     }
     const s32 left = at<s16>(rect, 4), top = at<s16>(rect, 6), right = at<s16>(rect, 8), bottom = at<s16>(rect, 0xa);
-    const float x = (float)X87_MulIntDouble(((right - left) >> 1) + left - 1016, global<float>(0x006ff154));  // / 1024
+    const float x = (float)X87_MulIntDouble(((right - left) >> 1) + left - 1016, gGuimessagefx_6ff154);  // / 1024
     float lift;
     std::memcpy(&lift, &scale, 4);
     const u32 sunk = FtolLow(X87Reg(lift) * X87Reg(global<float>(0x006ff160)));  // * -0.25
