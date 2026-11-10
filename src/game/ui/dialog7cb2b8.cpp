@@ -223,7 +223,7 @@ void __cdecl Dialog7cb2b8_ShowDate(u32 day, u32 month, u32 year) {
     u32 months[5] = {(u32)(uintptr_t)TextArgInt_vtable, 0x5641524d, 0x11, month, 0};
     u32 days[5] = {(u32)(uintptr_t)TextArgInt_vtable, 0x5641524d, 0x10, day, 0};
     u8 text[0x20];
-    TextFormat().formatNarrow(global<void *>(0x0078ba94), text, 0x1f, 0x1c0, days, months, years);
+    TextFormat().formatNarrow(gLanguage_78ba94, text, 0x1f, 0x1c0, days, months, years);
     Window_NotifyImpl100(label, nullptr, (u32)(uintptr_t)Language_Widen(text));
     u8 *const light = Window_FindChild(Window_FindChild(gPanel7b9940_7cb2ac, nullptr, 0x2f), nullptr, 0x31);
     const u8 *const analyser = ptr(GameTable7cfb90_Get1da720_519510(*global<u8 **>(0x007cf6ec)));

@@ -3,6 +3,7 @@
 #include <cstdint>
 #include <cstdlib>
 #include <cstring>
+#include "globals.h"
 
 namespace {
 
@@ -16,7 +17,7 @@ u32 Addr(const void *p) { return static_cast<u32>(reinterpret_cast<uintptr_t>(p)
 
 constexpr u32 kRates = 0x7114c8;     // s32[]: the sampling rates by row
 constexpr u32 kBitrates = 0x711308;  // s32[]: the bitrates by 16 (3 lsf + layer) + index
-constexpr u32 kHalfRate = 0xfb2708;  // (a dword: nonzero, half the samples)
+const u32 kHalfRate =(u32)(uintptr_t)&gGlobals_fb2708;  // (a dword: nonzero, half the samples)
 
 // The stream's slot 1: read (buffer, bytes).
 void StreamRead(u32 decoder, u32 buffer, u32 bytes) {

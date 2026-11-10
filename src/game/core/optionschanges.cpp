@@ -7,6 +7,7 @@
 #include "../files/userslots.h"
 #include "../ui/windowproc.h"
 #include "../render/graphicssettings.h"
+#include "language.h"
 
 namespace {
 
@@ -55,7 +56,7 @@ void __fastcall Options_ApplyChanges(u8 *options) {
         if (!global<u32>(0x00f82884)) g_calls.Th(0x005ac5f0, kSaves, 0x0078dcf0u);
     } else if (level == 2) {
         u16 text[0x100];
-        g_calls.Cd(0x006acd60, global<u32>(0x0078ba94), text, 0xffu, 0x193u);
+        g_calls.Cd(0x006acd60, (u32)(uintptr_t)gLanguage_78ba94, text, 0xffu, 0x193u);
         Box box;
         box.text = text;
         box.colour[0] = box.colour[1] = box.colour[2] = 0xff;

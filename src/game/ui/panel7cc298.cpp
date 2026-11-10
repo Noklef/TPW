@@ -135,7 +135,7 @@ void __fastcall Panel7cc298_ShowStats(u8 *self) {
         at<u32>(recent, 8) = 0x19;
         at<u32>(recent, 0xc) = (u32)(long long)sum2;
         at<u32>(recent, 0x10) = 0;
-        TextFormat().format(global<void *>(0x0078ba94), reinterpret_cast<u16 *>((uintptr_t)0x007ba058), 0x3fff, 0x1cc, recent, both);
+        TextFormat().format(gLanguage_78ba94, reinterpret_cast<u16 *>((uintptr_t)0x007ba058), 0x3fff, 0x1cc, recent, both);
         vcall<void>(text, 0x24, 0x007ba058u);  // (not checked)
         if (u8 *const bar = Window_FindChild(window14(self), nullptr, 0xa096))
             vcall<void>(bar, 0x1c, (u32)((s32)(Object_HistoryPercent(thing) << 10) / 100));

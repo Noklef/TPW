@@ -114,7 +114,7 @@ void __cdecl ResearchMeters_ShowName(u32 group) {
     at<u32>(title, 8) = 0xe;
     at<u32>(title, 0) = (u32)(uintptr_t)TextArgString_vtable;
     u16 text[0x80];
-    TextFormat().format(global<void *>(0x0078ba94), text, 0x7f, 0x1be, title, count);
+    TextFormat().format(gLanguage_78ba94, text, 0x7f, 0x1be, title, count);
     Window_NotifyImpl100(gauge, nullptr, (u32)(uintptr_t)text);
 }
 

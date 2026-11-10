@@ -159,7 +159,7 @@ void ShowName(const u8 *map, u8 *window) {
         if (IsPerson(kind)) {
             vcall<void>(&name, 0x14, g_env->staffName(thing));
         } else if (kind == 1) {
-            u8 *const charset = global<u8 *>(0x0078ba94);
+            u8 *const charset = gLanguage_78ba94;
             const u32 owner = at<u32>(thing, 0x1d8);
             if (!owner) {
                 g_env->formatWide(charset, text, 0x3fff, 0x1c9);

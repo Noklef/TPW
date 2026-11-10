@@ -49,7 +49,7 @@ u8 *game() { return *reinterpret_cast<u8 **>((uintptr_t)0x007cf83c); }
 // The text of the number formatted into text and a box of it (the white record, its last colour byte never written, sic).
 void loanBox(u16 *text, u32 entry, u32 value, u32 buttons, u32 index, u32 callback) {
     const u32 arg[5] = {(u32)(uintptr_t)TextArgInt_vtable, 0x5641524d, 1, value, 0};   // (TextArgInt_Ctor (1, the value, unsigned), inline)
-    g_handler->format(*reinterpret_cast<u8 **>((uintptr_t)0x0078ba94), text, 0xff, entry, arg);
+    g_handler->format(gLanguage_78ba94, text, 0xff, entry, arg);
     struct {
         u16 *text;
         u8 colour[4];

@@ -175,7 +175,7 @@ u32 __cdecl Dialog7ca168_AddStaffRow(u8 *staff) {
     u8 *const list = window(reinterpret_cast<uintptr_t>(&gDialog7ca168_7ca164));
     u32 mode = Mode19c_ToIndex(staff);
     if (mode == 1 && !Staff_HasPatrolRegion(staff)) mode = 0;
-    texts[1] = (u32)(uintptr_t)Language_Widen(Records_DataIfTerminated(window(0x0078baa4), nullptr, mode));
+    texts[1] = (u32)(uintptr_t)Language_Widen(Records_DataIfTerminated(gLanguage_78baa4, nullptr, mode));
     texts[2] = (u32)Staff_GetWage(staff);
     texts[3] = (u32)((s32)(grade << 10) / 100);
     texts[4] = (u32)((s32)(stat << 10) / 100);
@@ -233,7 +233,7 @@ void __cdecl Dialog7cc4c4_ShowThing(u8 *thing) {
     *reinterpret_cast<u32 *>(arg + 8) = 0x1b;
     *reinterpret_cast<u32 *>(arg + 0xc) = *reinterpret_cast<u32 *>(thing + 0x40);
     *reinterpret_cast<u32 *>(arg + 0x10) = 0;
-    TextFormat().format(*reinterpret_cast<void **>((uintptr_t)0x0078ba94), reinterpret_cast<u16 *>((uintptr_t)0x007ba058), 0x3fff, 0x1ce, arg);
+    TextFormat().format(gLanguage_78ba94, reinterpret_cast<u16 *>((uintptr_t)0x007ba058), 0x3fff, 0x1ce, arg);
     vcall<void>(Window_FindChild(window(reinterpret_cast<uintptr_t>(&gDialogs_7cc4c4)), nullptr, 0x16c12), 0x24, 0x007ba058u);
 }
 

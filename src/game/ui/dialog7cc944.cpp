@@ -59,7 +59,7 @@ void __cdecl Dialog7cc944_Open(u32 value) {
     const u32 texts[6] = {(u32)(uintptr_t)Language_WideText(0x133), reinterpret_cast<uintptr_t>(&gWindow7cc8c0handler_78a374), reinterpret_cast<uintptr_t>(&gWindow7cc8c0handler_78a374), 0, 0, 0};
     g_env->add(list, nullptr, texts, 0, -1, 1);
     u16 *const buffer = reinterpret_cast<u16 *>((uintptr_t)0x007ba058);
-    g_env->format(global<u8 *>(0x0078ba94), buffer, 0x3fff, 0x12b);
+    g_env->format(gLanguage_78ba94, buffer, 0x3fff, 0x12b);
     g_env->attach(gDialog7cc944_7cc944, 0xe05c, 0x007ba058);
     g_env->push(*reinterpret_cast<u8 **>(global<u8 *>(0x00f85614) + 0x14), nullptr, 0x254, 1);
 }

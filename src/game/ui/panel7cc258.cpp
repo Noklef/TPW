@@ -22,6 +22,7 @@
 #include "window705af0.h"
 #include "window705b20.h"
 #include "panel7cc218.h"
+#include "../core/language.h"
 
 using namespace panelparts;
 
@@ -160,7 +161,7 @@ void __fastcall Panel7cc258_ShowStats(u8 *self) {
         at<u32>(recent, 8) = 0x19;
         at<u32>(recent, 0xc) = (u32)(long long)sum2;
         at<u32>(recent, 0x10) = 0;
-        TextFormat().format(global<void *>(0x0078ba94), reinterpret_cast<u16 *>((uintptr_t)0x007ba058), 0x3fff, 0x1cc, recent, both);
+        TextFormat().format(gLanguage_78ba94, reinterpret_cast<u16 *>((uintptr_t)0x007ba058), 0x3fff, 0x1cc, recent, both);
         vcall<void>(text, 0x24, 0x007ba058u);
         u8 *const settings = Window_FindChild(at<u8 *>(self, 0x14), nullptr, 0xc076);
         // the stack slot the ring +0x70's look backs write to next: first the setting +0x24 * 50

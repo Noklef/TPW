@@ -213,7 +213,7 @@ namespace {
 // The number classes' SetLayouts: the text id's text with the number argument n (value, minus flag) into 0x3f characters on the stack.
 void format_number(u16 *text, u32 id, u32 n, u32 value, u32 minus) {
     u32 number[5] = {(u32)(uintptr_t)TextArgInt_vtable, 0x5641524d, n, value, minus};
-    TextFormat().format(*reinterpret_cast<void **>((uintptr_t)0x0078ba94), text, 0x3f, id, number);
+    TextFormat().format(gLanguage_78ba94, text, 0x3f, id, number);
 }
 
 // ... then that text sent through SetLayout's flag 0x100 (the info's +0x10 a record whose +0 is the text; nothing else of either read).
@@ -482,7 +482,7 @@ void __fastcall TextPart6ff470_SetLayout(u8 *part, void *, u32 flags, const u8 *
     if (!(flags & 0x80)) return TextPart_SetLayout(part, nullptr, flags, info);
     const s32 value = *reinterpret_cast<const s32 *>(info);
     u16 text[0x40];
-    if (!value) TextFormat().format(*reinterpret_cast<void **>((uintptr_t)0x0078ba94), text, 0x3f, 0x1c9);
+    if (!value) TextFormat().format(gLanguage_78ba94, text, 0x3f, 0x1c9);
     else Crt().swprintf(text, kDecimal, value);
     set_text(part, text);
 }

@@ -88,7 +88,7 @@ void __fastcall Panel7cc3b0_ShowStats(u8 *self) {
     *reinterpret_cast<u32 *>(age + 8) = 8;
     *reinterpret_cast<s32 *>(age + 0xc) = days;
     *reinterpret_cast<u32 *>(age + 0x10) = 0;
-    TextFormat().format(*reinterpret_cast<void **>((uintptr_t)0x0078ba94), reinterpret_cast<u16 *>((uintptr_t)0x007ba058), 0x3fff, 0x1bb, age);
+    TextFormat().format(gLanguage_78ba94, reinterpret_cast<u16 *>((uintptr_t)0x007ba058), 0x3fff, 0x1bb, age);
     vcall<void>(Window_FindChild(window(self), nullptr, 0x51b), 0x24, 0x007ba058u);   // (none of the children checked)
     u8 *child = Window_FindChild(window(self), nullptr, 0x51e);
     vcall<void>(child, 0x1c, (u32)Staff_GetWage(staff));

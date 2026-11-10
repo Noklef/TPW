@@ -71,3 +71,57 @@ u32 __fastcall Language_CtorValue0(u8 *self);
 
 // Test seam: fncmp's driver sends Language_Load's calls to recorders.
 void Language_SetCalls(const AddrCall *table, u32 count);
+
+#include "gamedata.h"
+
+// Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(const char[0x10], gLanguage_6fd990, 0x006fd990, 0x10);
+GAME_DATA(char[0x8], gLanguage_74c390, 0x0074c390, 0x8);
+GAME_DATA(char[0xc], gLanguage_74c398, 0x0074c398, 0xc);
+GAME_DATA(char[0x14], gLanguage_74c3a4, 0x0074c3a4, 0x14);
+GAME_DATA(char[0x14], gLanguage_74c3b8, 0x0074c3b8, 0x14);
+GAME_DATA(char[0x14], gLanguage_74c3cc, 0x0074c3cc, 0x14);
+GAME_DATA(char[0x10], gLanguage_74c3e0, 0x0074c3e0, 0x10);
+GAME_DATA(char[0x18], gLanguage_74c3f0, 0x0074c3f0, 0x18);
+GAME_DATA(char[0x10], gLanguage_74c408, 0x0074c408, 0x10);
+GAME_DATA(char[0x18], gLanguage_74c418, 0x0074c418, 0x18);
+GAME_DATA(char[0x10], gLanguage_74c430, 0x0074c430, 0x10);
+GAME_DATA(char[0x14], gLanguage_74c440, 0x0074c440, 0x14);
+GAME_DATA(char[0xc], gLanguage_74c454, 0x0074c454, 0xc);
+GAME_DATA(char[0x18], gLanguage_74c460, 0x0074c460, 0x18);
+GAME_DATA(char[0x10], gLanguage_74c478, 0x0074c478, 0x10);
+GAME_DATA(char[0x18], gLanguage_74c488, 0x0074c488, 0x18);
+GAME_DATA(char[0x14], gLanguage_74c4a0, 0x0074c4a0, 0x14);
+GAME_DATA(char[0x1c], gLanguage_74c4b4, 0x0074c4b4, 0x1c);
+GAME_DATA(char[0xc], gLanguage_74c4d0, 0x0074c4d0, 0xc);
+GAME_DATA(char[0x18], gLanguage_74c4dc, 0x0074c4dc, 0x18);
+GAME_DATA(char[0x14], gLanguage_74c4f4, 0x0074c4f4, 0x14);
+GAME_DATA(char[0x1c], gLanguage_74c508, 0x0074c508, 0x1c);
+GAME_DATA(char[0x10], gLanguage_74c524, 0x0074c524, 0x10);
+GAME_DATA(char[0x18], gLanguage_74c534, 0x0074c534, 0x18);
+GAME_DATA(char[0x10], gLanguage_74c54c, 0x0074c54c, 0x10);
+GAME_DATA(char[0x18], gLanguage_74c55c, 0x0074c55c, 0x18);
+GAME_DATA(char[0x10], gLanguage_74c574, 0x0074c574, 0x10);
+GAME_DATA(char[0x18], gLanguage_74c584, 0x0074c584, 0x18);
+GAME_DATA(char[0x10], gLanguage_74c59c, 0x0074c59c, 0x10);
+GAME_DATA(char[0x14], gLanguage_74c5ac, 0x0074c5ac, 0x14);
+GAME_DATA(char[0xc], gLanguage_74c5c0, 0x0074c5c0, 0xc);
+GAME_DATA(char[0x14], gLanguage_74c5cc, 0x0074c5cc, 0x14);
+GAME_DATA(char[0xc], gLanguage_74c5e0, 0x0074c5e0, 0xc);
+GAME_DATA(char[0x14], gLanguage_74c5ec, 0x0074c5ec, 0x14);
+GAME_DATA(char[0x8], gLanguage_74c600, 0x0074c600, 0x8);
+GAME_DATA(char[0x10], gLanguage_74c608, 0x0074c608, 0x10);
+GAME_DATA(char[0xc], gLanguage_74c618, 0x0074c618, 0xc);
+GAME_DATA(char[0x14], gLanguage_74c624, 0x0074c624, 0x14);
+GAME_DATA(char[0x10], gLanguage_74c638, 0x0074c638, 0x10);
+GAME_DATA(char[0x14], gLanguage_74c648, 0x0074c648, 0x14);
+GAME_DATA(char[0xc], gLanguage_74c65c, 0x0074c65c, 0xc);
+GAME_DATA(char[0x14], gLanguage_74c668, 0x0074c668, 0x14);
+GAME_DATA(char[0x28], gLanguage_74c67c, 0x0074c67c, 0x28);
+GAME_DATA(char[0x10], gLanguage_74c6a4, 0x0074c6a4, 0x10);
+GAME_DATA(char[0x14], gLanguage_74c6b4, 0x0074c6b4, 0x14);
+GAME_DATA(u8 *, gLanguage_78ba7c, 0x0078ba7c, 0x4);
+GAME_DATA(u32, gLanguage_78ba80, 0x0078ba80, 0x4);
+GAME_DATA(u8 *, gLanguage_78ba94, 0x0078ba94, 0x4);
+GAME_DATA(u8 *, gLanguage_78baa4, 0x0078baa4, 0x4);
+GAME_DATA(char[0x108], gLanguage_f7f230, 0x00f7f230, 0x108);

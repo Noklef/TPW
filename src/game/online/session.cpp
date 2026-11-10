@@ -520,7 +520,7 @@ void __fastcall Online_UploadEvent(u8 *session, void *, u32 code, u32, u32, u8 *
             return;
         case 0xffffffd8u:
             at<u32>(session, 0x37c) = 0xde;
-            at<u32>(session, 0x380) = *reinterpret_cast<const u32 *>((uintptr_t)0x0078ba94);
+            at<u32>(session, 0x380) = (u32)(uintptr_t)gLanguage_78ba94;
             at<u32>(session, 0x32c) = 0;
             at<u32>(session, 0x328) = 1;
             return;

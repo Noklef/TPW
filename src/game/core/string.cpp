@@ -13,6 +13,7 @@
 #include "stdstring.h"
 #include "vcall.h"
 #include "wtraits.h"
+#include "language.h"
 
 namespace {
 
@@ -810,7 +811,7 @@ void __fastcall Strings5_Dtor(u8 *object) {
 }
 
 u32 __cdecl Text_NarrowToGlobalBuffer(const u16 *text) {
-    if (const u32 table = global<u32>(0x0078ba80)) {
+    if (const u32 table = gLanguage_78ba80) {
         u32 status;
         Narrow_FromWide(reinterpret_cast<const u8 *>(table), nullptr, &status, reinterpret_cast<u8 *>(0x007b5378), text, 0x3fff);
     }
