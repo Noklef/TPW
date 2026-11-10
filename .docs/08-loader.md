@@ -8,6 +8,7 @@
    - Limit: the linker puts the code first, so tpw.exe's code must stay under `0x3ef000`. It is `0x35a000` now, with `/OPT:REF`. If it grows past that, the loader stops with a message. The fix then: move the game's code into a DLL that the loader loads after the copy.
 2. **The copy.** `LoaderEntry` (`/ENTRY`) runs before tpw.exe's C runtime. It does these steps in order:
    - Copies the headers and sections to their addresses, then checks that every hooked function starts with the bytes `hooks.cpp` expects.
+   - Zeroes the ranges of the globals that `tpw.exe` has as objects of its own (`.docs/09-globals.md`).
    - Fills the import table (step 4).
    - Rewrites the code slots (step 3).
    - Sets the protection. `.text` and `cseg` become read-only data, which DEP will not execute. Writable sections become read-write. The rest becomes read-only or no-access.
