@@ -479,7 +479,7 @@ class Emu:
             self.hooks[pc](self)
             return self.pop()
         if pc not in self.code:
-            if not 0x401000 <= pc < 0x6e7000:   # a jump out of the exe's code (to 0, a wild pointer, a case's data): faults natively too (DEP)
+            if not 0x401000 <= pc < 0x6fc800:   # a jump out of the exe's code (.text and cseg; to 0, a wild pointer, a case's data): faults natively too (DEP)
                 raise MemFault('execute of %08x' % pc)
             raise KeyError('no listing for %08x' % pc)   # (code the bench's ranges leave out)
         mn, ops = self.code[pc]
