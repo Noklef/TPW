@@ -6,7 +6,8 @@ A slot: a 4-aligned dword of a section other than .text, cseg (code: its tables 
 and .rsrc, whose value is in .text and is
 - a hooked function (hooks.cpp's rows): vtables, handler and callback tables;
 - an adjustor thunk (SUB ECX,[ECX-4] / SUB ECX,n / ADD ECX,n ; JMP hooked): the loader makes an equivalent of it with the port's address;
-- a JMP thunk (JMP rel32, at most three in a row, to a hooked function: the COM AddRef / Release thunks 0x6acea0 / 0x6aceb0): the loader
+- a JMP thunk (JMP rel32 at a 16-aligned function start, at most three in a row, to a hooked function: the COM AddRef / Release thunks
+  0x6acea0 / 0x6aceb0; a JMP inside a function is taken for text that happens to point there): the loader
   follows the jumps (Resolve), so the slot gets the port itself; an adjustor thunk's JMP may lead through them too;
 - PROVIDED: the empty Debug_Printf (a RET, in many vtables), which the loader gives an empty function for.
 Any other code address in the data stays the original's: a call through it traps (.docs/08-loader.md). The CRT's initialiser tables
@@ -68,7 +69,8 @@ def scan(pe, hooked):
             if not t0 <= v < t1:
                 continue
             t = thunk_target(pe, v) if v not in hooked else None
-            thunk = v not in hooked and v not in PROVIDED and (resolve(pe, v, hooked) or t is not None and resolve(pe, t, hooked))
+            # (a JMP thunk starts a function, 16-aligned: a JMP inside one is a text's bytes that happen to point there, "UE" 0x450055)
+            thunk = v not in hooked and v not in PROVIDED and (v % 16 == 0 and resolve(pe, v, hooked) or t is not None and resolve(pe, t, hooked))
             kind = ('hooked' if v in hooked else 'provided' if v in PROVIDED else 'thunk' if thunk else
                     'crt init' if 0x727000 <= va + o < 0x72e118 else 'C library' if 0x679000 <= v < 0x6b0000 else 'other')
             yield name, va + o, v, kind

@@ -1293,7 +1293,7 @@ static void test_hook_table(const char *exe_path) {
 #include "codeslots.h"
 
 // tpw.exe's code-slot table (tools/gen_loader_slots.py) against a rescan of the exe here: every dword of a data section whose value is a
-// hooked function, the empty Debug_Printf 0x5da3c0, a JMP thunk (at most three JMP rel32s) to one, or an adjustor thunk (SUB ECX,[ECX-4] /
+// hooked function, the empty Debug_Printf 0x5da3c0, a JMP thunk (16-aligned, at most three JMP rel32s) to one, or an adjustor thunk (SUB ECX,[ECX-4] /
 // SUB ECX,n / ADD ECX,n ; JMP) to either.
 static void test_code_slots(const char *exe_path) {
     std::ifstream f(exe_path, std::ios::binary);
@@ -1331,7 +1331,7 @@ static void test_code_slots(const char *exe_path) {
             if (v < t0 || v >= t1) continue;
             std::uint8_t b[8] = {};
             int kind = is_hooked(v) ? 0 : v == 0x5da3c0 ? 1 : -1;
-            if (kind < 0 && (resolves(v) || (read_va(pe, v, b, 8) && b[3] == 0xE9 &&
+            if (kind < 0 && (((v & 15) == 0 && resolves(v)) || (read_va(pe, v, b, 8) && b[3] == 0xE9 &&
                                              ((b[0] == 0x2B && b[1] == 0x49 && b[2] == 0xFC) || (b[0] == 0x83 && (b[1] == 0xE9 || b[1] == 0xC1))) &&
                                              resolves(v + 8 + std::uint32_t(b[4] | b[5] << 8 | b[6] << 16 | b[7] << 24)))))
                 kind = 2;
