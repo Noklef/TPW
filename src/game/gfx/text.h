@@ -77,4 +77,11 @@ u32 __fastcall TextMetrics_Lookup(u8 *object, void *, u32 key);
 // (0x47f990, TextMetrics_Width, 0x47fa40, TextMetrics_FitIndex) and +0x14 = value (the inner object TextMetrics_ForwardSlot8 asks).
 // Returns the object.
 u8 *__fastcall Obj_CtorValue(u8 *object, void *, u32 value);
+
+// 0x47f980 (thiscall; name unconfirmed): the text metrics' destructor: the vtable 0x6ff058, then the base's (GuiFont_Dtor, reached by JMP).
+void __fastcall TextMetrics_Dtor(u8 *object);
+
+// 0x47f960 (thiscall; flags, pops 4; name unconfirmed): TextMetrics_Dtor, then the object freed (Mem_Free) with bit 0 of the flags.
+// Returns the object.
+u8 *__fastcall TextMetrics_DeletingDtor(u8 *object, void *, u32 flags);
 }

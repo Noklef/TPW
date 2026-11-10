@@ -107,4 +107,6 @@ u32 __fastcall LightList_Add(u8 *list, void *, float x, float y, float z) {
     at<s32>(list, 0x1c0) = count + 1;
     return 1;
 }
+
+void __cdecl LightList_AtExit() {}
 }

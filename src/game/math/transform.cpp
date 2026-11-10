@@ -111,4 +111,6 @@ u32 __cdecl Transform_SseProbe() {
     }
     return 1;
 }
+
+void __cdecl Transform_StaticAtExit() {}
 }

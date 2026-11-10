@@ -1,4 +1,4 @@
-# The text measuring of src/game/gfx/text (0x47f9a0, 0x47fa00; and the constructor 0x47f940) against the originals: wide text (some NULs inside), start and end words either side of the text and of
+# The text measuring of src/game/gfx/text (0x47f9a0, 0x47fa00; and the constructor 0x47f940, destructors 0x47f980, 0x47f960) against the originals: wide text (some NULs inside), start and end words either side of the text and of
 # each other, widths and glyph widths including negative ones; the glyph width slot is a recorder returning a value of the case (the argument it was given is logged: its
 # high half is what the originals left in EAX).
 # Lookup (0x47fa40): the key through the ranges [0x78ba80] (methods.py's chains), the inner object's slots 5 and 7 recorders (5 logs the key
@@ -9,11 +9,12 @@ import struct
 import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
-from fncmp import Bench, Call, LOG, RAM, blob_bytes, log_region, put, set_return, strings, vtable  # noqa: E402
+from fncmp import HEAP, Bench, Call, LOG, RAM, blob_bytes, heap, log_region, put, set_return, strings, vtable  # noqa: E402
 
 CALLS = {'Width': 0x47f9a0, 'Fit': 0x47fa00}
-OTHER = {'Ctor': 0x47f940, 'Lookup': 0x47fa40}   # (its constructor, over any bytes)
-B = Bench([(a, a + 0x60) for a in CALLS.values()] + [(0x47f940, 0x47f95a), (0x657d30, 0x657d6c), (0x47fa40, 0x47fa98), (0x6ad8f0, 0x6ad948)])
+OTHER = {'Ctor': 0x47f940, 'Lookup': 0x47fa40, 'Dtor': 0x47f980, 'Delete': 0x47f960}   # (its constructor and destructors, over any bytes)
+B = Bench([(a, a + 0x60) for a in CALLS.values()] + [(0x47f940, 0x47f95a), (0x657d30, 0x657da0), (0x47fa40, 0x47fa98), (0x6ad8f0, 0x6ad948),
+                                                     (0x47f960, 0x47f98b)])
 OBJ, VT, TEXT = RAM, RAM + 0x100, RAM + 0x1000
 INNER, VT2, WORD, RANGES, POOL = RAM + 0x200, RAM + 0x300, RAM + 0x400, RAM + 0x500, RAM + 0x600
 
@@ -43,6 +44,11 @@ def case(r):
         return Call(OTHER[name], [OBJ, r.getrandbits(32)], {OBJ: r.bytes(0x40)}, conv='t', ret='a')
     if name == 'Lookup':
         return lookup(r)
+    if name in ('Dtor', 'Delete'):   # the base's block at +0xc freed when set; the frees seen in the heap region
+        regions = {HEAP: heap(0x40), OBJ: put(bytearray(r.bytes(0x20)), 0xc, 'I', r.deal([0, OBJ + 0x18, r.getrandbits(32)]))}
+        if name == 'Dtor':
+            return Call(OTHER[name], [OBJ], regions, conv='t', ret='v')
+        return Call(OTHER[name], [OBJ, r.deal([0, 1, 2, 3, r.getrandbits(32)])], regions, conv='t', ret='a')
     log = log_region()
     text = bytearray(r.bytes(0x40))
     for i in range(0, 0x40, 2):

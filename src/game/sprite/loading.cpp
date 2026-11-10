@@ -320,3 +320,5 @@ extern "C" bool __cdecl Sprites_Setup(u32 mode, u32 onlyLast) {
     g_calls.Th(0x00576410, global<u32>(0x0087a6d0), 0x00876420u + global<u32>(global<u32>(0x00876420) + 4), 0x20u);
     return true;
 }
+
+void __cdecl SpriteFolderName_AtExit() {}

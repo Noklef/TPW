@@ -17,6 +17,8 @@ void SoundWait_SetEnv(const SoundWaitEnv *env);
 // 0x6c6180 (thiscall; called from 0x6ba227): bit 1 of +0x14 set; until bit 0 of +0x14 is (asked before each wait), WaitForMultipleObjects (+8 handles at +0x10, any, forever): the
 // answer +0xc ends the loop, any other refills the voice (ChannelVoice_Refill) of that index among the 0x8c-byte ones at +4. Bit 1 cleared.
 void __fastcall ChannelVoices_WaitLoop(u8 *pool);
+// 0x6ba220 (cdecl (arg); _beginthread's entry in ChannelVoices_Start; name invented, unconfirmed): ChannelVoices_WaitLoop on the arg's +0x10, by JMP.
+void __cdecl ChannelVoices_ThreadStart(u8 *arg);
 
 // 0x6d3800 (thiscall; called from 0x6d2d64): bit 7 of +8 set; while bit 6 of +8 is, WaitForMultipleObjects (+0x30 handles at +0x2c, any, forever): the last handle's answer
 // (+0x30 - 1) ends the loop, any other refills that position (SoundWorker_RefillVoice). Bit 7 cleared.
@@ -43,6 +45,8 @@ u32 __fastcall SoundEngine_TouchFlagged(u8 *engine);
 
 // 0x6b9e30 (thiscall; the thread 0x6b9ef0 starts, through the jump at 0x6b9d90): until the handshake's byte +4 is set, the mixer touched and Sleep (100 when it touched any, else 250). Then byte +5 = 1.
 void __fastcall SoundEngine_ThreadLoop(u8 *engine);
+// 0x6b9d90 (cdecl (engine); _beginthread's entry; name invented, unconfirmed): SoundEngine_ThreadLoop on the engine, by JMP.
+void __cdecl SoundEngine_ThreadStart(u8 *engine);
 
 // 0x6b9ef0 (thiscall (out, engine), pops 8): with no thread at +0, bytes +4, +5 cleared and _beginthread (0x6b9d90, 0, engine) into +0; 0 fails (*out = -1), otherwise SetThreadPriority (the thread, -1).
 // *out = 0 otherwise. Returns out.

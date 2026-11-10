@@ -10,7 +10,7 @@
 # vtable: AddRef 1, Release 2, GetCaps 4 filling the caps' max 3D streaming buffers, small) or null (DirectSoundCreate a recorder filling DS
 # in); the cached caps (0xfb201c) done or not.
 # The source's destroy (0x6c42b0): the slot's source a recorder vtable (slots 7 and 0), null now and then (a fault in both).
-# The two sources' constructors (0x6d2d70, 0x6d1e30; the heap failing now and then), the second's helper object's set (0x6b9d70) and free (0x6b9d50: null or a block).
+# The two sources' constructors (0x6d2d70, 0x6d1e30; the heap failing now and then), the second's helper object's set (0x6b9d70) and free (0x6b9d50: null or a block); the functor 0x70a27c's run (0x6b9d80): the helper's slot 0.
 # The QSound source's destructor (0x6d1ec0).
 # usage: soundsource.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=name,name to pick)
 import os
@@ -22,11 +22,11 @@ from fncmp import (HEAP, IMPORT_TABLE, LOG, RAM, Bench, Call, blob_bytes, fb, fi
                    strings, vtable)
 
 CALLS = {'setrate': 0x6d21d0, 'orient': 0x6d37b0, 'events': 0x6d3020, 'caps': 0x6d3070, 'configure': 0x6d1f40, 'flags': 0x6d20a0,
-         'sound': 0x6d2290, 'destroy': 0x6c42b0, 'ctorb': 0x6d2d70, 'ctora': 0x6d1e30, 'sethelper': 0x6b9d70, 'freehelper': 0x6b9d50, 'dtora': 0x6d1ec0, 'deldtora': 0x6d1ea0, 'vector': 0x6d3700, 'dtorbase': 0x6d2760}
+         'sound': 0x6d2290, 'destroy': 0x6c42b0, 'ctorb': 0x6d2d70, 'ctora': 0x6d1e30, 'sethelper': 0x6b9d70, 'helperfn': 0x6b9d80, 'freehelper': 0x6b9d50, 'dtora': 0x6d1ec0, 'deldtora': 0x6d1ea0, 'vector': 0x6d3700, 'dtorbase': 0x6d2760}
 B = Bench([(0x6d3700, 0x6d37a3), (0x67b410, 0x67b440), (0x6d2760, 0x6d276e)] +[(0x6d21d0, 0x6d2214), (0x6d6c70, 0x6d6cf0), (0x6c4390, 0x6c4410), (0x6c4500, 0x6c4541), (0x6d3a80, 0x6d3b04),
            (0x6d1f40, 0x6d2093), (0x6d20a0, 0x6d2110), (0x6d2290, 0x6d22a5), (0x6c4040, 0x6c418b),
            (0x6d37b0, 0x6d37fe), (0x6d3020, 0x6d306a), (0x6d3070, 0x6d30a8), (0x6c42b0, 0x6c42d2),
-           (0x6d2d70, 0x6d2ddb), (0x6d1e30, 0x6d1e9c), (0x6b9d50, 0x6b9d63), (0x6b9d70, 0x6b9d7a), (0x6d6c50, 0x6d6c70), (0x6d1ec0, 0x6d1f31), (0x6d1ea0, 0x6d1ebe)])
+           (0x6d2d70, 0x6d2ddb), (0x6d1e30, 0x6d1e9c), (0x6b9d50, 0x6b9d63), (0x6b9d70, 0x6b9d7a), (0x6b9d80, 0x6b9d8a), (0x6d6c50, 0x6d6c70), (0x6d1ec0, 0x6d1f31), (0x6d1ea0, 0x6d1ebe)])
 EVENT_K, CAPS_K = 42, 11
 SRC, OUT, PRIM, PRIM_VT, LISTENER, LVT, FRONT, TOP = (RAM + 0x100 * i for i in range(8))
 DEVICE_GUARD = 0xfb2028   # (the guard's byte, then the device at 0xfb2030)
@@ -36,6 +36,7 @@ STATICS = 0xfb201c   # (Obj_CacheStatics's max and free 3D streaming buffers, th
 DSCREATE_K = 44
 SLOT, DSRC, DSRC_VT = RAM + 0xb00, RAM + 0xc00, RAM + 0xd00   # (0x6c42b0: the slot, its source, a recorder vtable)
 HELPER = 0xfb1f04
+HOBJ, HVT = RAM + 0xe00, RAM + 0xf00   # (0x6b9d80: the helper object and its recorder vtable)
 OPS = [n for n in CALLS if not os.environ.get('OPS') or n in os.environ['OPS'].split(',')]
 
 
@@ -103,6 +104,10 @@ def case(r):
         return Call(0x6d3700, [SRC, OUT, r.getrandbits(32), FRONT, r.getrandbits(32), r.getrandbits(32)], regions, conv='t', ret='a')
     if name == 'sethelper':
         return Call(0x6b9d70, [r.getrandbits(32)], {LOG: log, HELPER: r.bytes(4)}, conv='c', ret='v')
+    if name == 'helperfn':   # 0x6b9d80: the functor 0x70a27c's run: the helper's slot 0 (a recorder answering any)
+        set_return(log, 0, r.getrandbits(32))
+        regions = {LOG: log, HELPER: struct.pack('<I', HOBJ), HOBJ: struct.pack('<I', HVT) + r.bytes(0xc), HVT: vtable({0: 0}), SRC: struct.pack('<I', 0x70a27c)}
+        return Call(0x6b9d80, [SRC], regions, conv='t', ret='a')
     if name == 'freehelper':
         regions = {LOG: log, HEAP: heap(0x40), HELPER: struct.pack('<I', r.choice([0, HEAP + 0x10, r.getrandbits(32) | 1]))}
         return Call(0x6b9d50, [], regions, conv='c', ret='v')

@@ -11,14 +11,15 @@ from fncmp import HEAP, IMPORT_TABLE, LOG, RAM, STUBS, Bench, Call, _recorder, a
 
 # The engine's thread (0x6b9e30, 0x6b9ef0, 0x6b9f40, 0x6ba020) with the handshake's singleton mapped: the mixer real, _beginthread and the object's open recorders 24 and 23. The thread's loop ends only when something sets the
 # handshake's byte +4: the list's last voice lies on the singleton at +3 (its vtable word the bytes +3 to +6, reading 0x30000000 = OBJ with the bytes zero) and its slot 0x2c is the driver's and the emulator's stub_mark, whose word 0x6fd800 sets +4.
-B = Bench([(0x6c6180, 0x6c61d6), (0x6d3800, 0x6d384c), (0x6b9ec0, 0x6b9ec1), (0x6b9ed0, 0x6b9ee9), (0x6b9e80, 0x6b9eba), (0x6b9fa0, 0x6ba018), (0x6b5e20, 0x6b5e3e), (0x6ba080, 0x6ba089), (0x6b6260, 0x6b62a1), (0x6b9d90, 0x6b9d98),
+B = Bench([(0x6c6180, 0x6c61d6), (0x6d3800, 0x6d384c), (0x6b9ec0, 0x6b9ec1), (0x6b9ed0, 0x6b9ee9), (0x6b9e80, 0x6b9eba), (0x6b9fa0, 0x6ba018), (0x6b5e20, 0x6b5e3e), (0x6ba080, 0x6ba089), (0x6b6260, 0x6b62a1), (0x6b9d90, 0x6b9d98), (0x6ba220, 0x6ba22c),
            (0x6b9e30, 0x6b9e73), (0x6b9ef0, 0x6b9f3f), (0x6b9f40, 0x6b9f92), (0x6ba020, 0x6ba07e), (0x6b85a0, 0x6b85f0), (0x6b6240, 0x6b6260), (0x6b7190, 0x6b7198)],
           hooks={0x6bb590: _recorder(20, 0), 0x6d3850: _recorder(21, 1), 0x67a7d0: _recorder(22, 1, cdecl=True), 0x6b8480: _recorder(23, 2), 0x67e050: _recorder(24, 3, cdecl=True)})
-OPS = [k for k in os.environ.get('OPS', 'voices,source,handshake,atexit,instance,engine,deleting,touch,thread,start,open,threaded,lock').split(',') if k]
+OPS = [k for k in os.environ.get('OPS', 'voices,voicesstart,source,handshake,atexit,instance,engine,deleting,touch,thread,threadstart,start,open,threaded,lock').split(',') if k]
 OBJ, TABLE = RAM, RAM + 0x400
 INNER, INNER_VT, INNER2, INNER2_VT = RAM + 0x800, RAM + 0x900, RAM + 0xa00, RAM + 0xb00
 MIXER, VOICE, VOICE_VT, OUT, STATUS, TARGET = RAM + 0xc00, RAM + 0xd00, RAM + 0xe00, RAM + 0xf00, RAM + 0xf10, RAM + 0xf20
-GUARD = 0xfb1f08   # (the guard byte, then at +8 the singleton 0xfb1f10)
+START = RAM + 0x1000   # (0x6ba220's argument)
+GUARD = 0xfb1f08  # (the guard byte, then at +8 the singleton 0xfb1f10)
 WAIT_K, BUMP_K, NAP_K, PRIORITY_K, TOUCHED_K, LOCK_K = 1, 2, 3, 4, 5, 6
 OPEN_K, BEGIN_K = 23, 24
 
@@ -54,7 +55,7 @@ def engine_case(name, r, log, regions, obj):
     if name == 'touch':
         mixer_chain(r, log, regions, obj)
         return Call(0x6ba080, [OBJ], regions, conv='t', ret='a')
-    if name == 'thread':
+    if name in ('thread', 'threadstart'):
         stop_now = r.random() < 0.2
         guard = singleton(r)
         if not guard[0] & 1 or not stop_now:
@@ -67,6 +68,8 @@ def engine_case(name, r, log, regions, obj):
         put(obj, 0x2c, 'I', STUBS + 0x40)
         mixer_chain(r, log, regions, obj, last=0xfb1f13)
         put(regions[MIXER], 0x24, 'I', r.choice([VOICE, 0xfb1f13]))
+        if name == 'threadstart':   # 0x6b9d90: _beginthread's entry (cdecl, the engine), a jump to the loop
+            return Call(0x6b9d90, [OBJ], regions, conv='c', ret='v')
         return Call(0x6b9e30, [OBJ], regions, conv='t', ret='v')
     regions[OUT] = r.bytes(8)
     regions[GUARD] = singleton(r, stopped=None)
@@ -102,7 +105,7 @@ def case(r):
     log = log_region()
     obj = bytearray(r.bytes(0x40))
     regions = {LOG: log, OBJ: obj}
-    if name in ('lock', 'touch', 'thread', 'start', 'open', 'threaded'):
+    if name in ('lock', 'touch', 'thread', 'threadstart', 'start', 'open', 'threaded'):
         return engine_case(name, r, log, regions, obj)
     if name == 'deleting':
         guard = bytearray(r.bytes(0x10))
@@ -129,7 +132,7 @@ def case(r):
     if name == 'handshake':
         obj[5] = r.randrange(1, 256)
         return Call(0x6b9ed0, [OBJ], regions, conv='t', ret='v')
-    voices = name == 'voices'
+    voices = name in ('voices', 'voicesstart')
     at_flags = 0x14 if voices else 8
     running = (lambda v: v & ~1) if voices else (lambda v: v | 0x40)
     ended = (lambda v: v | 1) if voices else (lambda v: v & ~0x40)
@@ -156,6 +159,9 @@ def case(r):
         table[waits - 1] = other
     regions[TABLE] = struct.pack('<40I', *table)
     answers(log, WAIT_K, TABLE)
+    if name == 'voicesstart':   # 0x6ba220: the voice thread's entry (cdecl, an object whose +0x10 is the pool), a jump to the loop
+        regions[START] = put(bytearray(r.bytes(0x18)), 0x10, 'I', OBJ)
+        return Call(0x6ba220, [START], regions, conv='c', ret='v')
     return Call(0x6c6180 if voices else 0x6d3800, [OBJ], regions, conv='t', ret='v')
 
 

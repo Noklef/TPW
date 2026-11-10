@@ -19,4 +19,8 @@ u32 __fastcall Renderer_DrawFrame(u8 *renderer);
 
 // 0x44e540 (the jump to it with the renderer [0x87a6d0]).
 u32 __cdecl Engine_DrawFrame();
+
+// 0x5774b0 (cdecl; name invented, unconfirmed): the atexit entry of Renderer_DrawFrame's static matrix 0x87a680 (made the first time, guard
+// bit 0 of 0x87a6c0): nothing.
+void __cdecl RendererFrame_MatrixAtExit();
 }

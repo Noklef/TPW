@@ -94,6 +94,9 @@ u32 __fastcall PtrArray_RemoveImage(u8 *object, void *, u8 *image);
 // cleared; with an object at +4 each of the +0x1c frames at +8 is freed, the object deleted through its virtual base (slot 0, flags 1) and
 // +4 / +0x1c cleared; +8 and +0x10 are cleared in any case. Returns 1.
 u32 __fastcall PtrArray_ReleaseAll(u8 *object, void *);
+// 0x56b0b0 (cdecl, no arguments; name unconfirmed): the atexit entry of the decoded textures' array 0x879ce0 (registered by its static
+// initialiser 0x56b070): PtrArray_ReleaseAll on it by JMP, so its answer (1) is left in EAX.
+u32 __cdecl PtrArray_DecodedTexturesAtExit();
 // 0x56b0c0 (thiscall on the same array object; frames, images, pops 8; name unconfirmed): with a capacity already (+0x10) the error (2,
 // 0xb0754015) is pushed onto the engine's list and 0 returned. Otherwise a sprite set (Mem_Alloc 0x24, built inline as RendererPart_Ctor's,
 // its virtual base added to the live objects) goes to +4 (none: the error (2, 0xb0754000), 0); the set's +4 cleared, +8 = its tracked

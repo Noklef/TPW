@@ -9,6 +9,7 @@
 #include "moneyput.h"
 #include "numput.h"
 #include "stdstring.h"
+#include "streambufiter.h"
 #include "vobj3.h"
 
 namespace {
@@ -16,89 +17,21 @@ namespace {
 template <typename T> T &at(u8 *base, u32 offset) { return *reinterpret_cast<T *>(base + offset); }
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
 
-// The read pointer (through +0x1c) and its count (through +0x2c), as streambuf::sgetc and sbumpc read them. The vtable's slot 4 is underflow, slot 5 uflow.
-u8 *&next_of(u8 *buffer) { return **reinterpret_cast<u8 ***>(buffer + 0x1c); }
-u32 &left_of(u8 *buffer) { return **reinterpret_cast<u32 **>(buffer + 0x2c); }
+// istreambuf_iterator's operator*, equal and _Inc, and string(n, c), append(n, c), operator[]: the exe's own functions (streambufiter, stdstring).
+StreambufIter *iter(NumGetIter &it) { return reinterpret_cast<StreambufIter *>(&it); }
 
-bool waiting(u8 *buffer) {
-    const u32 next = static_cast<u32>(reinterpret_cast<uintptr_t>(next_of(buffer)));
-    return next && next < next + left_of(buffer);
-}
+char deref(NumGetIter &it) { return static_cast<char>(*StreambufIter_Deref(iter(it), nullptr)); }
 
-u32 buffer_slot(u8 *buffer, u32 offset) {
-    using Slot = u32(__fastcall *)(u8 *);
-    return reinterpret_cast<const Slot *>((uintptr_t)at<u32>(buffer, 0))[offset / 4](buffer);
-}
+bool equal(NumGetIter &it, NumGetIter &other) { return StreambufIter_Equal(iter(it), nullptr, iter(other)) != 0; }
 
-// istreambuf_iterator's operator*, == and ++ (0x6962d0, 0x696330, 0x6963f0: A's, here because they keep the iterator's state, which a stand-in cannot).
-void fetch(NumGetIter &it) {
-    if (it.got) return;
-    if (it.buffer) {
-        const u32 c = waiting(it.buffer) ? *next_of(it.buffer) : buffer_slot(it.buffer, 0x10);
-        if (c != 0xffffffff) {
-            it.value = static_cast<u8>(c);
-            it.got = 1;
-            return;
-        }
-    }
-    it.buffer = nullptr;
-    it.got = 1;
-}
+void increment(NumGetIter &it) { StreambufIter_Inc(iter(it), nullptr); }
 
-char deref(NumGetIter &it) {
-    fetch(it);
-    return static_cast<char>(it.value);
-}
+// (the allocator byte its own: the original's is a stack byte of the caller's)
+void string_fill(StdString &s, u32 n, u32 c) { StdString_CtorFill(&s, nullptr, n, c, reinterpret_cast<const u8 *>(&s)); }
 
-bool equal(NumGetIter &it, NumGetIter &other) {
-    fetch(it);
-    fetch(other);
-    return !it.buffer == !other.buffer;
-}
+void string_append_one(StdString &s, char c) { StdString_AppendFill(&s, nullptr, 1, static_cast<u32>(c)); }
 
-void increment(NumGetIter &it) {
-    u8 *const buffer = it.buffer;
-    if (buffer) {
-        u32 c;
-        if (waiting(buffer)) {
-            --left_of(buffer);
-            u8 *&next = next_of(buffer);
-            const u8 *const from = next;
-            next = next + 1;
-            c = *from;
-        } else {
-            c = buffer_slot(buffer, 0x14);
-        }
-        if (c != 0xffffffff) {
-            it.got = 0;
-            return;
-        }
-    }
-    it.buffer = nullptr;
-    it.got = 1;
-}
-
-// string(n, c), string::append(n, c), string::operator[] (0x696090, 0x696160, 0x696230: A's, on the string's own ports).
-void string_fill(StdString &s, u32 n, u32 c) {
-    StdString_Tidy(&s, nullptr, 0);
-    StdString_AssignFill(&s, nullptr, n, c);
-}
-
-void string_append_one(StdString &s, char c) {
-    if (global<u32>(0x006fe5ac) - s.len <= 1) Std_Xlen();
-    const u32 total = s.len + 1;
-    if (StdString_Grow(&s, nullptr, total, 0)) {
-        s.ptr[s.len] = c;
-        s.len = total;
-        s.ptr[total] = 0;
-    }
-}
-
-char &string_at(StdString &s, u32 position) {
-    if (s.len < position || !s.ptr) return global<char>(0x006fe5b0);
-    StdString_Freeze(&s, nullptr);
-    return s.ptr[position];
-}
+char &string_at(StdString &s, u32 position) { return *StdString_At(&s, nullptr, position); }
 
 u32 base_of(u32 flags) {
     const u32 field = flags & 0xe00;
