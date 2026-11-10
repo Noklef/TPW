@@ -233,6 +233,7 @@
 #include "../game/core/crtpow.h"
 #include "../game/core/crtrealloc.h"
 #include "../game/core/crtsbh.h"
+#include "../game/core/crtsignal.h"
 #include "../game/core/crtstartup.h"
 #include "../game/core/crtstream.h"
 #include "../game/core/crttime.h"
@@ -7191,6 +7192,8 @@ const Hook kHooks[] = {
     {"CRT_get_lc_lconv",          0x0068d6b0, (void *)&CRT_get_lc_lconv, {0x53, 0x8b, 0x5c, 0x24, 0x08}},
     {"CRT_init_monetary",         0x0068d5c0, (void *)&CRT_init_monetary, {0xa1, 0x44, 0x14, 0xfb, 0x00}},
     {"CRT_init_ctype",            0x0068d8b0, (void *)&CRT_init_ctype, {0xa1, 0x40, 0x14, 0xfb, 0x00}},
+    {"CRT_raise",                 0x0068f780, (void *)&CRT_raise, {0x83, 0xec, 0x08, 0x53, 0x55}},
+    {"CRT_abort",                 0x0068cc30, (void *)&CRT_abort, {0x6a, 0x0a, 0xe8, 0x79, 0xd5}},
     {"Nav_Ctor",          0x0050ffe0, (void *)&Nav_Ctor, {0x6a, 0xff, 0x68, 0x2d, 0xe6}},
     {"Nav_Dtor",                  0x0050f200, (void *)&Nav_Dtor, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"Nav_DtorAtD4",              0x004f7c30, (void *)&Nav_DtorAtD4, {0x81, 0xc1, 0xd4, 0x00, 0x00}},

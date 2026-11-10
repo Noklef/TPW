@@ -10060,6 +10060,8 @@ address,name,kind,confidence,notes
 0x0068d6b0,CRT_get_lc_lconv,function,low,reimplemented (src/game/core/crtlocaleinit); _get_lc_lconv: the LC_MONETARY locale's texts and digits into an lconv
 0x0068d5c0,CRT_init_monetary,function,low,"reimplemented (src/game/core/crtlocaleinit); __init_monetary: LC_MONETARY's lconv, the ""C"" locale's static one or a new one"
 0x0068d8b0,CRT_init_ctype,function,low,"reimplemented (src/game/core/crtlocaleinit); __init_ctype: LC_CTYPE's character type tables, the ""C"" locale's static one or new ones"
+0x0068f780,CRT_raise,function,low,"reimplemented (src/game/core/crtsignal); raise: a signal's handler, reset to SIG_DFL, called (SIG_IGN nothing, SIG_DFL _exit(3))"
+0x0068cc30,CRT_abort,function,low,"reimplemented (src/game/core/crtsignal); abort: message 10, raise(SIGABRT), _exit(3)"
 0x00faac68,gDctVlc_faac68,data,low,"GAME_DATA (src/game/gfx/dctvlc): u32, named for its use in DctVlc_BeginFrame, DctVlc_BuildTables (tools/gamedata_codemod.py)"
 0x00faac64,gMadVideo_DecodeFrame_faac64,data,low,"GAME_DATA (src/game/gfx/madvideo): u32, named for its use in MadVideo_DecodeFrame (tools/gamedata_codemod.py)"
 0x00fab484,gMmxBlit_Copy32_fab484,data,low,"GAME_DATA (src/game/gfx/mmxblit): u32, named for its use in MmxBlit_Copy32 (tools/gamedata_codemod.py)"

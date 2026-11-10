@@ -270,6 +270,7 @@ add_library(tpw_game STATIC
     src/game/core/crtpow.cpp
     src/game/core/crtfpexcept.cpp
     src/game/core/crtlocaleinit.cpp
+    src/game/core/crtsignal.cpp
     src/game/gfx/text.cpp
     src/game/gfx/canvas.cpp
     src/game/gfx/canvasdraw.cpp
