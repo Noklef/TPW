@@ -8034,6 +8034,7 @@ address,name,kind,confidence,notes
 0x0056a230,RasterDraw_TestQuad,function,low,reimplemented (src/game/render/rasterdraw); the fixed quad of four colours
 0x0056a2f0,RasterDraw_Rect,function,low,"reimplemented (src/game/render/rasterdraw); a rectangle, plain or mapped"
 0x0056a540,RasterDraw_MappedTriangle,function,low,reimplemented (src/game/render/rasterdraw); a mapped triangle over the screen
+0x006f1d70,RasterSpan_TexShadeZ,function,low,"reimplemented (src/game/render/rasterspans); jumped to (row pointer in EBP, six registers on the stack): the rasteriser's default cseg span routine (table 0x6f19f0): shaded 32-bit texels, depth-tested"
 0x0044b140,Model_MarkFacesByMask,function,high,"reimplemented (src/game/model/parts); cdecl (holder**, mask): face flags 0x80000010 for parts whose +8 has any mask bit"
 0x0044b1b0,Model_MarkFacesNotValue,function,high,"reimplemented (src/game/model/parts); cdecl (holder**, value): face flags 0x80000010 for parts whose +8 is not value"
 0x0044b220,Model_FindPartByKey4,function,high,"reimplemented (src/game/model/parts); cdecl u32 (holder, mask, key): first part with +4 == key and flags & mask (mask defaults 0x3da1f82), or -1"

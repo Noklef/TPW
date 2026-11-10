@@ -609,6 +609,7 @@
 #include "../game/render/present.h"
 #include "../game/render/rasterdraw.h"
 #include "../game/render/rasterformat.h"
+#include "../game/render/rasterspans.h"
 #include "../game/render/rendererframe.h"
 #include "../game/render/scrolllayers.h"
 #include "../game/render/settingslog.h"
@@ -8196,6 +8197,7 @@ const Hook kHooks[] = {
     {"RasterDraw_TestQuad",       0x0056a230, (void *)&RasterDraw_TestQuad, {0x55, 0x8b, 0xec, 0x83, 0xec}},
     {"RasterDraw_Rect",           0x0056a2f0, (void *)&RasterDraw_Rect, {0x55, 0x8b, 0xec, 0x83, 0xec}},
     {"RasterDraw_MappedTriangle", 0x0056a540, (void *)&RasterDraw_MappedTriangle, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"RasterSpan_TexShadeZ",      0x006f1d70, (void *)&RegThunk_RasterSpan_TexShadeZ, {0x8b, 0x3d, 0x34, 0xe0, 0xfb}},
     {"Model_MarkFacesByMask",     0x0044b140, (void *)&Model_MarkFacesByMask, {0x53, 0x8b, 0x5c, 0x24, 0x08}},
     {"Model_MarkFacesNotValue",    0x0044b1b0, (void *)&Model_MarkFacesNotValue, {0x53, 0x8b, 0x5c, 0x24, 0x08}},
     {"Model_FindPartByKey4",      0x0044b220, (void *)&Model_FindPartByKey4, {0x56, 0x57, 0x8b, 0x7c, 0x24}},

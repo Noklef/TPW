@@ -1,0 +1,48 @@
+# The rasteriser's cseg span routines (src/game/render/rasterspans) against the original, jumped to (Call(jumped=True)) with the row pointer
+# in EBP and six words for their POPs: the two parts' row counts (-1 to 5) and edges (x 17.15 within a 24-pixel row, any u, v, shade
+# and depth), the steps, both depth tests ([0xfbe034]), the texel mask, the row and depth pitches either way. The globals 0xfbe000-0xfbe230
+# are the case's own; [0xfbe218] (the original's saved ESP) is left out.
+# usage: rasterspans.py [CASES [SEED]] [--wild|--both] [--show N]
+import os
+import struct
+import sys
+
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
+from fncmp import Bench, Call, RAM  # noqa: E402
+import x87emu  # noqa: E402
+
+assert x87emu.MMX['PUNPCKHBW'](0x8877665544332211, 0xffeeddccbbaa9988) == 0xff88ee77dd66cc55   # (the high bytes interleaved)
+
+B = Bench([(0x6f1d70, 0x6f2140)])
+G, EDGES, TEXELS, PIXELS, DEPTHS = 0xfbe000, RAM, RAM + 0x1000, RAM + 0x20000, RAM + 0x30000
+WIDTH = 24
+
+
+def edge(r):
+    x = r.randrange(3 << 15, (WIDTH - 3) << 15)
+    return struct.pack('<IiII', x, r.randrange(-0x2000, 0x2000), r.getrandbits(32), r.getrandbits(32)) + r.bytes(0x20)
+
+
+def case(r):
+    rows = [r.deal([-1, 0, 1, 2, 3, 5]), r.deal([0, 1, 2, 4])]
+    total = max(1, sum(n for n in rows if n > 0))
+    pitch, zpitch = WIDTH * 4 + r.randrange(0, 3) * 4, (WIDTH + 1) * 2 + r.randrange(0, 2) * 2
+    up = r.randrange(2)   # (the rows go down the buffer: the pitches negative)
+    row = PIXELS + (0 if up else (total - 1) * pitch)
+    zrow = DEPTHS + (0 if up else (total - 1) * zpitch)
+    mask = r.deal([0x0707, 0x0f0f, 0x1f1f, 0x3f3f, 0x0f3f, 0xffff0f0f])
+    g = bytearray(r.bytes(0x230))
+    struct.pack_into('<I', g, 0x08, mask)
+    struct.pack_into('<ii', g, 0x2c, -pitch if up else pitch, -zpitch if up else zpitch)
+    struct.pack_into('<I', g, 0x34, r.deal([0, 1, 0x80000000]))
+    struct.pack_into('<I', g, 0x38, TEXELS)
+    struct.pack_into('<ii', g, 0x200, rows[1], rows[0])
+    struct.pack_into('<IIII', g, 0x208, EDGES, EDGES + 0x30, EDGES + 0x60, EDGES + 0x90)
+    struct.pack_into('<I', g, 0x228, zrow)
+    regions = {G: bytes(g), EDGES: b''.join(edge(r) for _ in range(4)), TEXELS: r.randbytes(((mask & 0xffff) + 1) * 4),
+               PIXELS: r.randbytes(total * pitch), DEPTHS: r.randbytes(total * zpitch + 2)}
+    return Call(0x6f1d70, [row] + [r.getrandbits(32) for _ in range(6)], regions, conv='ebp', jumped=True, ignore=[(0xfbe218, 4)])
+
+
+if __name__ == '__main__':
+    B.main(case)

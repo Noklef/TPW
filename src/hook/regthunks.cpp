@@ -4,6 +4,7 @@
 #include "../game/gfx/tgqvideo.h"
 #include "../game/gfx/tqivideo.h"
 #include "../game/math/ssemath.h"
+#include "../game/render/rasterspans.h"
 
 extern "C" {
 
@@ -174,6 +175,22 @@ __declspec(naked) void RegThunk_TqiVideo_ReadBlocks() {
         call TqiVideo_ReadBlocks
         add esp, 16
         mov edi, eax
+        ret
+    }
+}
+
+// Jumped to with the row pointer in EBP; pops the six registers its set-up pushed, then returns to the set-up's caller.
+__declspec(naked) void RegThunk_RasterSpan_TexShadeZ() {
+    __asm {
+        push ebp
+        call RasterSpan_TexShadeZ
+        add esp, 4
+        pop ecx
+        pop ebp
+        pop ebx
+        pop edx
+        pop esi
+        pop edi
         ret
     }
 }
