@@ -6372,6 +6372,8 @@ address,name,kind,confidence,notes
 0x00689490,CRT_fullpath,function,high,reimplemented (src/game/core/crtopen); _fullpath: GetFullPathNameA into the buffer or a block of its own
 0x00689560,CRT_getdrive,function,high,"reimplemented (src/game/core/crtopen); _getdrive: the current directory's drive, 1 for A"
 0x0067e900,CRT_stat,function,low,"reimplemented (src/game/core/crtopen); _stat: a path's drive, mode, size and times by FindFirstFileA, a root by its checks"
+0x0067fe80,CRT_init_namebuf,function,low,"reimplemented (src/game/core/crtopen); init_namebuf: tmpfile's and tmpnam's name: ""\"" s or t, the process id in base 32, ""."""
+0x0067fd60,CRT_tmpfile,function,low,"reimplemented (src/game/core/crtopen); tmpfile: a new temporary file, opened ""w+bD"" under the next free name"
 0x0067efc0,CRT_amsg_exit,function,low,"reimplemented (src/game/core/crtmessage); MSVC6 _amsg_exit: the banner when [0xfb135c] is 1, the message, exit(0xff) by [0x77ea80]"
 0x0067eff0,CRT_fast_error_exit,function,low,"reimplemented (src/game/core/crtmessage); MSVC6 fast_error_exit: as _amsg_exit, ExitProcess(0xff)"
 0x0068a170,CRT_FF_MSGBANNER,function,low,reimplemented (src/game/core/crtmessage); MSVC6 _FF_MSGBANNER

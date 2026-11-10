@@ -4,6 +4,7 @@
 #include <cstring>
 
 #include "crt.h"
+#include "crtenv.h"
 #include "crtmbstring.h"
 #include "crtstream.h"
 #include "crttime.h"
@@ -696,6 +697,52 @@ void __cdecl CRT_initstdio() {
 void __cdecl CRT_endstdio() {
     CRT_flushall();
     if (global<u8>(0x00fb1398)) CRT_fcloseall();
+}
+
+void __cdecl CRT_init_namebuf(s32 flag) {
+    char *const name = reinterpret_cast<char *>((uintptr_t)(flag ? 0x00fb13b8 : 0x00fb13a8));
+    *reinterpret_cast<u16 *>(name) = global<u16>(0x007477fc);
+    char *at = name + 1;
+    if (name[0] != '\\' && name[0] != '/') *at++ = '\\';
+    *at++ = flag ? 't' : 's';
+    CRT_ultoa(import_slot<u32(__stdcall *)()>(0x006fd1e8)(), at, 32);   // (_getpid 0x68b9e0: JMP [0x6fd1e8])
+    std::strcat(name, reinterpret_cast<const char *>((uintptr_t)0x00747800));
+}
+
+CrtFile *__cdecl CRT_tmpfile() {
+    char *const name = reinterpret_cast<char *>((uintptr_t)0x00fb13b8);
+    CrtInner().getptd();   // (its answer unused, sic)
+    CrtInner().lock(3);
+    if (!name[0]) {
+        CRT_init_namebuf(1);
+    } else if (CRT_genfname(name)) {
+        CrtInner().unlock(3);
+        return nullptr;
+    }
+    CrtFile *const file = CRT_getstream();
+    if (!file) {
+        CrtInner().unlock(3);
+        return nullptr;
+    }
+    s32 fd = CRT_sopen(name, 0x8542, 0x40, 0x180);
+    while (fd == -1 && *CRT_errno() == 0x11 && !CRT_genfname(name)) fd = CRT_sopen(name, 0x8542, 0x40, 0x180);
+    if (fd != -1) {
+        file->name = CRT_strdup(name);
+        if (file->name) {
+            file->count = 0;
+            file->ptr = nullptr;
+            file->base = nullptr;
+            file->flags = global<u32>(0x00fb1894) | 0x80;
+            file->fd = fd;
+            CrtInner().unlockFile(file);
+            CrtInner().unlock(3);
+            return file;
+        }
+        CRT_close(fd);
+    }
+    CrtInner().unlockFile(file);
+    CrtInner().unlock(3);
+    return nullptr;
 }
 
 s32 __cdecl CRT_rmtmp() {
