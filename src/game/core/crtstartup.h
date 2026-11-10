@@ -19,4 +19,16 @@ void __cdecl CRT__exit(s32 code);    // 0x67f940: doexit(code, 1, 0)
 void __cdecl CRT_lockexit();         // 0x67fa20: lock 0xd
 void __cdecl CRT_unlockexit();       // 0x67fa30
 
+// 0x67ee10: WinMainCRTStartup, the exe's entry point: GetVersion's parts to 0xfb1364-0xfb1370, _heap_init and _mtinit (else fast_error_exit), then under __try
+// the CRT's start-up, the command line past the program's name, exit(WinMain(...)); __except (_XcptFilter) _exit(code). Its callees go through the table below.
+// (Not the original's SEH frame: the compiler's own, not _except_handler3 0x67dbf4 with the scope table 0x708a50.)
+void __cdecl CRT_WinMainCRTStartup();
+
+}  // extern "C"
+
+struct AddrCall;
+void CRT_SetStartupCalls(const AddrCall *table, u32 count);   // tests/fncmp/crt_entry.py
+
+extern "C" {
+
 }  // extern "C"

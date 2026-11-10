@@ -1,7 +1,10 @@
 #include "crtstartup.h"
 
+#include <excpt.h>
+
 #include <cstdint>
 
+#include "addrcalls.h"
 #include "crt.h"
 
 namespace {
@@ -11,10 +14,14 @@ bool lead_byte(char c) { return reinterpret_cast<const u8 *>((uintptr_t)0x00fb16
 template <typename T> T &at(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
 template <typename F> F import_slot(u32 slot) { return at<F>(slot); }
 
+AddrCalls g_startCalls;
+
 using Init = void(__cdecl *)();
 void initterm(u32 begin, u32 end) { CRT_initterm(reinterpret_cast<Init *>((uintptr_t)begin), reinterpret_cast<Init *>((uintptr_t)end)); }
 
 }  // namespace
+
+void CRT_SetStartupCalls(const AddrCall *table, u32 count) { g_startCalls.Set(table, count); }
 
 extern "C" {
 
@@ -145,5 +152,48 @@ void __cdecl CRT_exit(s32 code) { CRT_doexit(code, 0, 0); }
 void __cdecl CRT__exit(s32 code) { CRT_doexit(code, 1, 0); }
 void __cdecl CRT_lockexit() { CrtInner().lock(0xd); }
 void __cdecl CRT_unlockexit() { CrtInner().unlock(0xd); }
+
+void __cdecl CRT_WinMainCRTStartup() {
+    const u32 version = import_slot<u32(__stdcall *)()>(0x006fd240)();   // GetVersion
+    const u32 minor = version >> 8 & 0xff, major = version & 0xff;
+    at<u32>(0x00fb1370) = minor;
+    at<u32>(0x00fb136c) = major;
+    at<u32>(0x00fb1368) = (major << 8) + minor;
+    at<u32>(0x00fb1364) = version >> 16;
+    if (!g_startCalls.Cd(0x006826b0)) g_startCalls.Cd(0x0067eff0, 0x1c);   // _heap_init, fast_error_exit
+    if (!g_startCalls.Cd(0x006823e0)) g_startCalls.Cd(0x0067eff0, 0x10);   // _mtinit
+    u32 code = 0;
+    __try {
+        g_startCalls.Cd(0x00687230);   // _ioinit
+        g_startCalls.Cd(0x0068a160);   // the multibyte table
+        at<u32>(0x00fb3cb8) = import_slot<u32(__stdcall *)()>(0x006fd1e4)();   // GetCommandLineA
+        const u32 environment = g_startCalls.Cd(0x00689b00);
+        at<u32>(0x00fb1354) = environment;
+        if (!environment || !at<u32>(0x00fb3cb8)) g_startCalls.Cd(0x0067f920, -1);   // exit
+        g_startCalls.Cd(0x00689850);   // _setargv
+        g_startCalls.Cd(0x00689760);   // _setenvp
+        g_startCalls.Cd(0x0067f8f0);   // _cinit
+        const u8 *line = at<const u8 *>(0x00fb3cb8);
+        if (*line == '"') {
+            for (;;) {
+                const u8 c = *++line;
+                if (c == '"' || !c) break;
+                if (g_startCalls.Cd(0x00689700, static_cast<u32>(c))) ++line;   // _ismbblead
+            }
+            if (*line == '"') ++line;
+        } else {
+            while (*line > ' ') ++line;
+        }
+        while (*line && *line <= ' ') ++line;
+        u8 info[0x44];   // STARTUPINFOA: only its dwFlags cleared
+        *reinterpret_cast<u32 *>(info + 0x2c) = 0;
+        import_slot<void(__stdcall *)(u8 *)>(0x006fd23c)(info);   // GetStartupInfoA
+        const u32 show = info[0x2c] & 1 ? *reinterpret_cast<const u16 *>(info + 0x30) : 10u;   // STARTF_USESHOWWINDOW: wShowWindow, else SW_SHOWDEFAULT
+        const u32 module = import_slot<u32(__stdcall *)(u32)>(0x006fd238)(0);   // GetModuleHandleA
+        g_startCalls.Cd(0x0067f920, g_startCalls.St(0x0045a960, module, 0u, reinterpret_cast<uintptr_t>(line), show));   // exit(WinMain(...))
+    } __except (code = GetExceptionCode(), static_cast<s32>(g_startCalls.Cd(0x00688800, code, GetExceptionInformation()))) {   // _XcptFilter
+        g_startCalls.Cd(0x0067f940, code);   // _exit
+    }
+}
 
 }  // extern "C"
