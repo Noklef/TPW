@@ -40,6 +40,8 @@ using CrtNewHandlerFn = s32(__cdecl *)(u32);
 #include "gamedata.h"
 
 // Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(u8[0x2020], CRT_small_block_heap, 0x0077eda0, 0x2020);
+GAME_DATA(u32, CRT_sbh_p_starting_region, 0x00780dc0, 0x4);
 GAME_DATA(u32, CRT_sbh_threshold, 0x00780dc4, 0x4);
 GAME_DATA(CrtNewHandlerFn, CRT_pnhHeap, 0x00fb154c, 0x4);
 GAME_DATA(u32, CRT_crtheap, 0x00fb3cac, 0x4);

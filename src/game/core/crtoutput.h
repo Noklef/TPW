@@ -36,3 +36,11 @@ s32 __cdecl CRT_sprintf(char *to, const char *format, ...);
 Crt64 __stdcall CRT_aulldiv(Crt64 value, Crt64 divisor);
 Crt64 __stdcall CRT_aullrem(Crt64 value, Crt64 divisor);
 }
+
+#include "gamedata.h"
+
+// Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(const wchar_t[7], CRT_wnullstring_text, 0x00708b0c, 0xe);
+GAME_DATA(const char[7], CRT_nullstring_text, 0x00708b1c, 0x7);
+GAME_DATA(char *, CRT_nullstring, 0x0077ecb8, 0x4);
+GAME_DATA(wchar_t *, CRT_wnullstring, 0x0077ecbc, 0x4);

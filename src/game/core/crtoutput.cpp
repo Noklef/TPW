@@ -172,7 +172,7 @@ s32 __cdecl CRT_output(CrtFile *file, const char *format, char *args) {
             case kNormal:
             normal:
                 wide_text = 0;
-                if (reinterpret_cast<const u16 *>((uintptr_t)word(0x0077ea90))[static_cast<u8>(ch)] & 0x8000) {
+                if (CRT_pctype[static_cast<u8>(ch)] & 0x8000) {
                     CRT_output_write_char(ch, file, &written);
                     ch = *format++;
                 }
@@ -212,7 +212,7 @@ s32 __cdecl CRT_output(CrtFile *file, const char *format, char *args) {
                                 wide_text = 0;
                             }
                         } else {
-                            text = reinterpret_cast<char *>((uintptr_t)word(0x0077ecb8));
+                            text = CRT_nullstring;
                             length = static_cast<s32>(std::strlen(text));
                         }
                         break;
@@ -224,13 +224,13 @@ s32 __cdecl CRT_output(CrtFile *file, const char *format, char *args) {
                         u32 most = precision == -1 ? 0x7fffffff : static_cast<u32>(precision);
                         text = reinterpret_cast<char *>((uintptr_t)CRT_output_get_int_arg(&args));
                         if (flags & (kLong | kWide)) {
-                            if (!text) text = reinterpret_cast<char *>((uintptr_t)word(0x0077ecbc));
+                            if (!text) text = reinterpret_cast<char *>(CRT_wnullstring);
                             wide_text = 1;
                             const u16 *at = reinterpret_cast<const u16 *>(text);
                             while (most-- && *at) ++at;
                             length = static_cast<s32>(at - reinterpret_cast<const u16 *>(text));
                         } else {
-                            if (!text) text = reinterpret_cast<char *>((uintptr_t)word(0x0077ecb8));
+                            if (!text) text = CRT_nullstring;
                             const char *at = text;
                             while (most-- && *at) ++at;
                             length = static_cast<s32>(at - text);
@@ -504,7 +504,7 @@ s32 __cdecl CRT_woutput(CrtFile *file, const u16 *format, char *args) {
                                 wide_text = 0;
                             }
                         } else {
-                            text = reinterpret_cast<char *>((uintptr_t)word(0x0077ecb8));
+                            text = CRT_nullstring;
                             length = static_cast<s32>(std::strlen(text));
                         }
                         break;
@@ -516,15 +516,15 @@ s32 __cdecl CRT_woutput(CrtFile *file, const u16 *format, char *args) {
                         const s32 most = precision == -1 ? 0x7fffffff : precision;
                         text = reinterpret_cast<char *>((uintptr_t)CRT_output_get_int_arg(&args));
                         if (flags & kShort) {
-                            if (!text) text = reinterpret_cast<char *>((uintptr_t)word(0x0077ecb8));
-                            const u16 *const lead = reinterpret_cast<const u16 *>((uintptr_t)word(0x0077ea90));
+                            if (!text) text = CRT_nullstring;
+                            const u16 *const lead = CRT_pctype;
                             const char *at = text;
                             for (length = 0; length < most && *at; ++length) {
                                 if (lead[static_cast<u8>(*at)] & 0x8000) ++at;
                                 ++at;
                             }
                         } else {
-                            if (!text) text = reinterpret_cast<char *>((uintptr_t)word(0x0077ecbc));
+                            if (!text) text = reinterpret_cast<char *>(CRT_wnullstring);
                             wide_text = 1;
                             u32 left = static_cast<u32>(most);
                             const u16 *at = reinterpret_cast<const u16 *>(text);

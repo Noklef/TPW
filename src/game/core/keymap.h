@@ -74,6 +74,21 @@ u32 __cdecl KeyMap_AsyncModifiers();
 
 #include "gamedata.h"
 
+// An entry of a map's static table (0x14 bytes): the action, its key and modifiers (the words Actions_Fire* match), held (+6), its name,
+// the handlers for up (+0xc) and down (+0x10; called with ECX = the handler).
+struct KeyMapEntry {
+    s16 action;
+    u16 key;
+    u16 modifiers;
+    u16 held;
+    const char *name;
+    void *up;
+    void *down;
+};
+
+// Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(KeyMapEntry[17], gKeyMap_Shortcuts_748378, 0x00748378, 0x154);
+
 // Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
 GAME_DATA(u8 *, gKeymap_78718c, 0x0078718c, 0x4);
 GAME_DATA(u8 *, gKeymap_78721c, 0x0078721c, 0x4);
