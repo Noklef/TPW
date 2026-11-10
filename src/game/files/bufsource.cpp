@@ -18,7 +18,7 @@ const BufferedSourceEnv kGameEnv = {
 };
 const BufferedSourceEnv *g_env = &kGameEnv;
 
-void *const *const kBufferedSourceVtable = at<void *const *>(0x00703f78);
+void *const *const kBufferedSourceVtable = BufferedSource_vtable;
 
 }  // namespace
 

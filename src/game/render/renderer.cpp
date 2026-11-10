@@ -303,7 +303,7 @@ static void DefaultFont(u8 *block) {
     at<u32>(block, 0x10) = 0x190;
     const u8 bytes[8] = {0, 0, 0, 1, 4, 1, 4, 0};
     std::memcpy(block + 0x14, bytes, 8);
-    std::strcpy(reinterpret_cast<char *>(block + 0x1c), reinterpret_cast<const char *>(0x00774d80));
+    std::strcpy(reinterpret_cast<char *>(block + 0x1c), gText_Renderer_DefaultFont_774d80);
 }
 
 // One of the two groups of four arrays (+0x2c, +0x3c, +0x4c, +0x5c): the first two cleared directly or by Init_5ec210 (first),

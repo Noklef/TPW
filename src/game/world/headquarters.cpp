@@ -37,7 +37,7 @@ u32 __fastcall StaffHQ_Serialize(u8 *hq, void *, Stream *stream, u32 save, s32 v
     if (!Save_Field(stream, save, hq + 0x64, 4, (u32)&gText_StaffHQ_Serialize_75e944) || !Save_Field(stream, save, hq + 0x60, 2, (u32)&gText_StaffHQ_Serialize_75e92c))
         return 1;
     for (u32 i = 0; i < 5; ++i)
-        if (!Save_Field(stream, save, hq + 0x24 + i * 0xc, 0xc, 0x0075e91c))
+        if (!Save_Field(stream, save, hq + 0x24 + i * 0xc, 0xc, (u32)&gText_StaffHQ_Serialize_75e91c))
             return 1;
     return StaffTraining_Serialize(hq + 0xc, nullptr, stream, save, version, unused) != 0 ? 1 : 0;
 }

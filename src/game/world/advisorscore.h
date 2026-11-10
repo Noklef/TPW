@@ -62,3 +62,4 @@ GAME_DATA(char[8], gText_Advisorscore_76e2d4, 0x0076e2d4, 0x8);
 GAME_DATA(char[12], gText_Advisorscore_76e2dc, 0x0076e2dc, 0xc);
 GAME_DATA(char[12], gText_Advisorscore_76e2e8, 0x0076e2e8, 0xc);
 GAME_DATA(char[12], gText_Advisorscore_76e2f4, 0x0076e2f4, 0xc);
+GAME_DATA(char[12], gText_Advisorscore_76e2c8, 0x0076e2c8, 0xc);

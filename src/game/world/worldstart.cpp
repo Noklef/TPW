@@ -82,8 +82,8 @@ extern "C" u32 __fastcall World_Start(u8 *world, void *, const char *level) {
     read_setting_once();
     char path[260];
     if (gDialog74fb20_fb3b7c == 1) {
-        if (!load_balance(reinterpret_cast<const char *>(0x0076259c), 0)) ok = 0;
-        Crt().sprintf(path, reinterpret_cast<const char *>(0x007488ac), level, reinterpret_cast<const char *>(0x00762588));
+        if (!load_balance(gText_World_Start_76259c, 0)) ok = 0;
+        Crt().sprintf(path, reinterpret_cast<const char *>(0x007488ac), level, gText_World_Start_762588);
         if (!load_balance(path, 1)) ok = 0;
     } else {
         if (!load_balance(gText_World_Start_76256c, 0)) ok = 0;

@@ -456,6 +456,6 @@ extern "C" u32 __cdecl TerrainTex_InitGlobal(u32 a, u32 b) {
         if (texture) return g_calls.Th(0x0056e550, texture, a, b);
         return 1;
     }
-    if (*reinterpret_cast<u32 *>((uintptr_t)0x008bd508) & 0x02000000) g_calls.Cd(0x005645e0, 0x00768320u);
+    if (*reinterpret_cast<u32 *>((uintptr_t)0x008bd508) & 0x02000000) g_calls.Cd(0x005645e0, (u32)(uintptr_t)gText_TerrainTex_InitGlobal_768320);
     return 1;
 }

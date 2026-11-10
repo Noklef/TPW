@@ -164,5 +164,16 @@ void WrapSources_SetEnv(const WrapSourcesEnv *env);
 #include "../core/gamedata.h"
 
 // Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+// The vtables hold only ports: tpw.exe's loader points their slots at them.
+GAME_DATA(void *[8], ZlibCodec_vtable, 0x00703128, 0x20);
+GAME_DATA(void *[6], Codec_vtable, 0x00703148, 0x18);
+GAME_DATA(void *[3], CallbackStream_vtable, 0x00703160, 0xc);
+GAME_DATA(void *[3], CallbackStreamBase_vtable, 0x00703170, 0xc);
+GAME_DATA(void *[12], SharedSource_vtable, 0x00703ea0, 0x30);
+GAME_DATA(void *[12], BufferSource_vtable, 0x00703ed0, 0x30);
+GAME_DATA(void *[6], RefPackCodec_vtable, 0x00703f00, 0x18);
+GAME_DATA(void *[12], ZlibBufferSource_vtable, 0x00703f18, 0x30);
+GAME_DATA(void *[12], SliceSource_vtable, 0x00703f48, 0x30);
+GAME_DATA(void *[12], TrackedSource_vtable, 0x00704a90, 0x30);
 GAME_DATA(u8, gWrapsources_fa75f8, 0x00fa75f8, 0x1);
 GAME_DATA(u32[3], g_Compressor, 0x00fa75fc, 0xc);

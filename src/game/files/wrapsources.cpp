@@ -24,16 +24,16 @@ const WrapSourcesEnv kGameEnv = {
 };
 const WrapSourcesEnv *g_env = &kGameEnv;
 
-void *const *const kTrackedSourceVtable = at<void *const *>(0x00704a90);
-void *const *const kSharedSourceVtable = at<void *const *>(0x00703ea0);
-void *const *const kRefPackBufferVtable = at<void *const *>(0x00703ed0);
-void *const *const kZlibBufferVtable = at<void *const *>(0x00703f18);
-void *const *const kSliceSourceVtable = at<void *const *>(0x00703f48);
-void *const *const kRefPackCodecVtable = at<void *const *>(0x00703f00);
-void *const *const kCodecBaseVtable = at<void *const *>(0x00703148);
-void *const *const kZlibCodecVtable = at<void *const *>(0x00703128);
-void *const *const kCallbackStreamVtable = at<void *const *>(0x00703160);
-void *const *const kCallbackStreamBaseVtable = at<void *const *>(0x00703170);
+void *const *const kTrackedSourceVtable = TrackedSource_vtable;
+void *const *const kSharedSourceVtable = SharedSource_vtable;
+void *const *const kRefPackBufferVtable = BufferSource_vtable;
+void *const *const kZlibBufferVtable = ZlibBufferSource_vtable;
+void *const *const kSliceSourceVtable = SliceSource_vtable;
+void *const *const kRefPackCodecVtable = RefPackCodec_vtable;
+void *const *const kCodecBaseVtable = Codec_vtable;
+void *const *const kZlibCodecVtable = ZlibCodec_vtable;
+void *const *const kCallbackStreamVtable = CallbackStream_vtable;
+void *const *const kCallbackStreamBaseVtable = CallbackStreamBase_vtable;
 
 // The wrapped source's lock, taken for good; released when it goes out of scope.
 struct LinkLock {

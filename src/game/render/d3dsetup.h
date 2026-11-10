@@ -39,5 +39,7 @@ GAME_DATA(char[36], gText_D3dSetup_Open_7688ec, 0x007688ec, 0x24);
 GAME_DATA(char[72], gText_D3dsetup_768910, 0x00768910, 0x48);
 GAME_DATA(char[20], gText_D3dsetup_768958, 0x00768958, 0x14);
 GAME_DATA(char[28], gText_D3dsetup_76896c, 0x0076896c, 0x1c);
+GAME_DATA(char[16], gText_D3dsetup_768988, 0x00768988, 0x10);
+GAME_DATA(char[24], gText_D3dsetup_768998, 0x00768998, 0x18);
 GAME_DATA(char[32], gText_D3dsetup_7689b0, 0x007689b0, 0x20);
 GAME_DATA(char[40], gText_D3dsetup_7689d0, 0x007689d0, 0x28);

@@ -35,9 +35,9 @@ void Motion_UVsAt(const UvTrack *track, float frame, float *blocks, s32 add) {
         X87Reg u = X87Reg(key[2]) * X87Reg(t) + X87Reg(key[0]) * w;
         X87Reg v = X87Reg(key[3]) * X87Reg(t) + X87Reg(key[1]) * w;
         float *block = blocks + 8 * (i >> 2);
-        if (add) {
-            u = u + X87Reg(block[i & 3]);
-            v = v + X87Reg(block[4 + (i & 3)]);
+        if (add) {  // fadd m32: a signalling NaN in the block gives way to a NaN in the register
+            u = u + block[i & 3];
+            v = v + block[4 + (i & 3)];
         }
         block[i & 3] = (float)u;
         block[4 + (i & 3)] = (float)v;

@@ -19,13 +19,13 @@ const WadDirEnv kGameEnv = {
 };
 const WadDirEnv *g_env = &kGameEnv;
 
-const void *const kFolderListVtable = at<const void *>(0x00703e94);
-const void *const kFolderListBaseVtable = at<const void *>(0x00703e98);
-const void *const kFileListVtable = at<const void *>(0x00703e90);
-const void *const kFileListBaseVtable = at<const void *>(0x00703e9c);
-const void *const kStringListVtable = at<const void *>(0x006fe680);
-const void *const kStringList2Vtable = at<const void *>(0x006fe67c);
-const void *const kFinderListVtable = at<const void *>(0x0070393c);
+const void *const kFolderListVtable = WadFolderList_vtable;
+const void *const kFolderListBaseVtable = WadFolderListBase_vtable;
+const void *const kFileListVtable = WadFileList_vtable;
+const void *const kFileListBaseVtable = WadFileListBase_vtable;
+const void *const kStringListVtable = StringList_vtable;
+const void *const kStringList2Vtable = StringList2_vtable;
+const void *const kFinderListVtable = WadStringList_vtable;
 const char kSeparators[] = "\\/";  // 0x775704
 constexpr u32 kHeaderSize = 0x58, kRecordSize = 0x28, kPoolCount = 100;
 

@@ -21,7 +21,7 @@
 namespace {
 
 const SaveSpec kRate[] = {{0x0, 4, (u32)&gText_Parkgates_759b98}};
-const SaveSpec kRest[] = {{0x8, 4, (u32)&gText_Parkgates_759b80}, {0xc, 4, (u32)&gText_Parkgates_759b70}, {0x10, 1, 0x00759b64}, {0x11, 1, (u32)&gText_Parkgates_759b58}};
+const SaveSpec kRest[] = {{0x8, 4, (u32)&gText_Parkgates_759b80}, {0xc, 4, (u32)&gText_Parkgates_759b70}, {0x10, 1, (u32)&gText_Parkgates_759b64}, {0x11, 1, (u32)&gText_Parkgates_759b58}};
 
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
 template <typename T> T &at(u8 *p, u32 offset) { return *reinterpret_cast<T *>(p + offset); }

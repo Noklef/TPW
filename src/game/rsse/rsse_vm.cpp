@@ -114,7 +114,7 @@ void __cdecl RSSE_Init() {
 }
 
 const char *__cdecl RsseScript_EventName(const u8 *script, u32 index, u32 *group_out, u32 *entry_out, u32 *count_out) {
-    static const u32 names[12] = {(u32)&gText_RsseScript_EventName_74d19c, (u32)&gText_RsseScript_EventName_74d194, (u32)&gText_RsseScript_EventName_74d18c, (u32)&gText_RsseScript_EventName_74d184, (u32)&gText_RsseScript_EventName_74d17c, (u32)&gText_RsseScript_EventName_74d174, 0x74d170, (u32)&gText_RsseScript_EventName_74d168, (u32)&gText_RsseScript_EventName_74d160, (u32)&gText_RsseScript_EventName_74d158, (u32)&gText_RsseScript_EventName_74d150, (u32)&gText_RsseScript_EventName_74d148};
+    static const u32 names[12] = {(u32)&gText_RsseScript_EventName_74d19c, (u32)&gText_RsseScript_EventName_74d194, (u32)&gText_RsseScript_EventName_74d18c, (u32)&gText_RsseScript_EventName_74d184, (u32)&gText_RsseScript_EventName_74d17c, (u32)&gText_RsseScript_EventName_74d174, (u32)&gText_RsseScript_EventName_74d170,(u32)&gText_RsseScript_EventName_74d168, (u32)&gText_RsseScript_EventName_74d160, (u32)&gText_RsseScript_EventName_74d158, (u32)&gText_RsseScript_EventName_74d150, (u32)&gText_RsseScript_EventName_74d148};
     for (u32 group = 0; group < 12; group++) {
         const u8 *const record = script + 0x1c + group * 12;
         for (u32 entry = 0; entry < at<u32>(record, 0); entry++) {
@@ -129,7 +129,7 @@ const char *__cdecl RsseScript_EventName(const u8 *script, u32 index, u32 *group
             return reinterpret_cast<const char *>(names[group]);
         }
     }
-    return reinterpret_cast<const char *>(0x74d6d4);
+    return gText_RsseScript_EventName_74d6d4;
 }
 
 u32 __cdecl RSSE_StartTimer(RsseContext *ctx, u32 ms, u32 a, u32 b) {

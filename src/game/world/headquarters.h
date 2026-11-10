@@ -36,3 +36,4 @@ u8 *__fastcall StaffHQ_Ctor(u8 *hq);
 GAME_DATA(char[12], gText_MechanicHQ_Serialize_75b2f0, 0x0075b2f0, 0xc);
 GAME_DATA(char[24], gText_StaffHQ_Serialize_75e92c, 0x0075e92c, 0x18);
 GAME_DATA(char[16], gText_StaffHQ_Serialize_75e944, 0x0075e944, 0x10);
+GAME_DATA(char[16], gText_StaffHQ_Serialize_75e91c, 0x0075e91c, 0x10);

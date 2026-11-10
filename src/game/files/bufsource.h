@@ -61,3 +61,6 @@ struct BufferedSourceEnv {
 };
 // The calls go through env (nullptr: the game's).
 void BufferedSource_SetEnv(const BufferedSourceEnv *env);
+
+// Globals by address, by hand (.docs/09-globals.md). The vtable holds only ports: tpw.exe's loader points its slots at them.
+GAME_DATA(void *[12], BufferedSource_vtable, 0x00703f78, 0x30);

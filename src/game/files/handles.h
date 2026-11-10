@@ -159,3 +159,11 @@ struct HandlesEnv {
 void Handles_SetEnv(const HandlesEnv *env);
 // The env in use (for the file library's other classes).
 const HandlesEnv *Handles_GetEnv();
+
+#include "../core/gamedata.h"
+
+// Globals by address, by hand (.docs/09-globals.md). The vtables hold only ports: tpw.exe's loader points their slots at them.
+GAME_DATA(void *[9], StreamBase_vtable, 0x00703100, 0x24);
+GAME_DATA(void *[12], Handle_vtable, 0x00703180, 0x30);
+GAME_DATA(void *[12], RefObject_vtable, 0x00703838, 0x30);
+GAME_DATA(void *[13], RefObject2_vtable, 0x00703898, 0x34);

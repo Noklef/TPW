@@ -21,10 +21,10 @@ const WadSourceEnv kGameEnv = {
 };
 const WadSourceEnv *g_env = &kGameEnv;
 
-void *const *const kWadSourceVtable = at<void *const *>(0x00703908);
+void *const *const kWadSourceVtable = WadSource_vtable;
 void *const *const kFileStreamVtable = at<void *const *>(0x006fd930);
-const void *const kWadStringListVtable = at<const void *>(0x0070393c);
-const void *const kStringListVtable = at<const void *>(0x006fe680);
+const void *const kWadStringListVtable = WadStringList_vtable;
+const void *const kStringListVtable = StringList_vtable;
 
 constexpr u32 kMagic = 0x42465744;  // "DWFB"
 constexpr u32 kDirectory = 0x10;    // FILE_ATTRIBUTE_DIRECTORY

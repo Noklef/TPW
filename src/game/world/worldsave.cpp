@@ -50,11 +50,11 @@ struct WorldField {
 const WorldField kWorldFields[] = {
     {0x1da72c, 2, (u32)&gText_Worldsave_7629fc}, {0x1da72e, 2, (u32)&gText_Worldsave_7629e4}, {0x1da730, 2, (u32)&gText_Worldsave_7629cc}, {0x1da726, 2, (u32)&gText_Worldsave_7629bc}, {0x1da72a, 2, (u32)&gText_Worldsave_7629a4},
     {0x1da70c, 4, (u32)&gText_Worldsave_762998}, {0x1da71a, 2, (u32)&gText_Worldsave_762988}, {0x1da720, 2, (u32)&gText_Worldsave_762978}, {0x1da710, 4, (u32)&gText_Worldsave_762968}, {0x1da714, 4, (u32)&gText_Worldsave_76294c},
-    {0x1da732, 2, (u32)&gText_Worldsave_762940}, {0x1da734, 2, (u32)&gText_Worldsave_762930}, {0x1da708, 4, 0x762924}, {0x1da722, 2, (u32)&gText_Worldsave_762914}, {0x1da718, 2, (u32)&gText_Worldsave_762908},
+    {0x1da732, 2, (u32)&gText_Worldsave_762940}, {0x1da734, 2, (u32)&gText_Worldsave_762930}, {0x1da708, 4, (u32)&gText_Worldsave_762924}, {0x1da722, 2, (u32)&gText_Worldsave_762914}, {0x1da718, 2, (u32)&gText_Worldsave_762908},
     {0x1da71e, 2, (u32)&gText_Worldsave_7628fc}, {0x1da728, 2, (u32)&gText_Worldsave_7628ec}, {0x1da724, 2, (u32)&gText_Worldsave_7628e0}, {0x1da738, 4, (u32)&gText_Worldsave_7628d0}, {0x1da73c, 2, (u32)&gText_Worldsave_7628c0},
-    {0x1da73e, 2, (u32)&gText_Worldsave_7628b0}, {0x1da740, 2, (u32)&gText_Worldsave_76289c}, {0x1da744, 2, 0x762890}, {0x1da742, 2, (u32)&gText_Worldsave_76287c}, {0x1da746, 2, (u32)&gText_Worldsave_76286c},
+    {0x1da73e, 2, (u32)&gText_Worldsave_7628b0}, {0x1da740, 2, (u32)&gText_Worldsave_76289c}, {0x1da744, 2, (u32)&gText_Worldsave_762890}, {0x1da742, 2, (u32)&gText_Worldsave_76287c}, {0x1da746, 2, (u32)&gText_Worldsave_76286c},
 };
-const u32 kFirstDwordName = 0x748744, kFirstThingName = 0x7627e4, kNextThingName = (u32)&gText_Worldsave_7627d4, kKindName = (u32)&gText_Worldsave_7627c8;
+const u32 kFirstDwordName = 0x748744, kFirstThingName = (u32)&gText_Worldsave_7627e4, kNextThingName = (u32)&gText_Worldsave_7627d4, kKindName = (u32)&gText_Worldsave_7627c8;
 const u32 kSlots = 0x007cfb90, kSlotSize = 20;
 
 bool worldFields(u8 *world, Stream *stream, u32 save) {

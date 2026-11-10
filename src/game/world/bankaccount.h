@@ -40,3 +40,6 @@ GAME_DATA(char[16], gText_Bankaccount_759db4, 0x00759db4, 0x10);
 GAME_DATA(char[16], gText_Bankaccount_759dd8, 0x00759dd8, 0x10);
 GAME_DATA(char[12], gText_Bankaccount_759de8, 0x00759de8, 0xc);
 GAME_DATA(char[16], gText_Bankaccount_759df4, 0x00759df4, 0x10);
+GAME_DATA(char[28], gText_Bankaccount_759d78, 0x00759d78, 0x1c);
+GAME_DATA(char[16], gText_Bankaccount_759da4, 0x00759da4, 0x10);
+GAME_DATA(char[20], gText_Bankaccount_759dc4, 0x00759dc4, 0x14);

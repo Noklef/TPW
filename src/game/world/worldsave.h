@@ -60,3 +60,6 @@ GAME_DATA(char[16], gText_Worldsave_7629bc, 0x007629bc, 0x10);
 GAME_DATA(char[24], gText_Worldsave_7629cc, 0x007629cc, 0x18);
 GAME_DATA(char[24], gText_Worldsave_7629e4, 0x007629e4, 0x18);
 GAME_DATA(char[24], gText_Worldsave_7629fc, 0x007629fc, 0x18);
+GAME_DATA(char[16], gText_Worldsave_7627e4, 0x007627e4, 0x10);
+GAME_DATA(char[12], gText_Worldsave_762890, 0x00762890, 0xc);
+GAME_DATA(char[12], gText_Worldsave_762924, 0x00762924, 0xc);
