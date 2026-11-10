@@ -103,3 +103,8 @@ void __fastcall GuiRect_GetEdges(u8 *rect, void *, u16 *left, u16 *top, u16 *rig
 // 0x661700 (thiscall (other), pops 4; name unconfirmed): 1 when the four words equal the other's, else 0.
 u32 __fastcall GuiRect_Equals(const u8 *rect, void *, const u8 *other);
 }
+
+#include "../core/gamedata.h"
+
+// The vtables hold only ports: tpw.exe's loader points their slots at them (.docs/09-globals.md).
+GAME_DATA(void *[6], GuiRect_vtable, 0x00705920, 0x18);

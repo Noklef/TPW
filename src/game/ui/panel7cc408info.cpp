@@ -46,7 +46,7 @@ void __fastcall Panel7cc408_ShowVisitor(u8 *self) {
         at<u32>(self, 0x24) = id;
         if (id) {
             const u32 arg[5] = {(u32)(uintptr_t)TextArgInt_vtable, 0x5641524d, 0x18, id, 0};
-            g_env->format(gLanguage_78ba94, buffer(), 0x3fff, 0x1c8, arg);
+            g_env->format(global<u8 *>(0x0078ba94), buffer(), 0x3fff, 0x1c8, arg);
             g_env->attach(at<u8 *>(self, 0x10), 0x3736, 0x007ba058);
         }
     }

@@ -162,7 +162,7 @@ void __cdecl Dialog7ca308_ShowStaff(u32 index) {
             std::memcpy(&bits[0], &x, 4);
             std::memcpy(&bits[1], &y, 4);
             std::memcpy(&bits[2], &z, 4);
-            gDialog7ca308_7ca310 = SpriteScript_Start(0x0074f758, folder, sprite, 1, bits[0], bits[1], bits[2]);
+            gDialog7ca308_7ca310 = SpriteScript_Start(SpriteCode(0x1ca0), folder, sprite, 1, bits[0], bits[1], bits[2]);
             SpriteScript_SetRegF(gDialog7ca308_7ca310, 8, 0x41000000);
         }
     }
@@ -189,7 +189,7 @@ void __cdecl Dialog7ca308_Open(u32 kind) {
     u8 *child = Window_FindChild(gDialog7ca308_7ca308, nullptr, 0x2496);
     const s32 money = (s32)Source_Field0c(reinterpret_cast<const TrackedSource *>((uintptr_t)GameTable7cfb90_Get1da726_5195d0(global<u8 *>(0x007cf83c))));
     u32 number[5] = {(u32)(uintptr_t)TextArgInt_vtable, 0x5641524d, 0xd, money < 0 ? 0u - (u32)money : (u32)money, 0};
-    g_env->format(gLanguage_78ba94, reinterpret_cast<u16 *>((uintptr_t)0x007ba058), 0x3fff, money < 0 ? 0x1cbu : 0x1cau, number);
+    g_env->format(global<u8 *>(0x0078ba94), reinterpret_cast<u16 *>((uintptr_t)0x007ba058), 0x3fff, money < 0 ? 0x1cbu : 0x1cau, number);
     u8 *const memory = static_cast<u8 *>(GameHeap_Alloc(0x1a4));
     Window_SetObject98(child, nullptr, memory ? TextPart6ff530_Ctor(memory, nullptr, 0) : nullptr);
     Window_NotifyC00(child, nullptr, 2, 1);
@@ -256,7 +256,7 @@ void showMoney(u8 *window) {
     u8 *const label = g_handler->child(window, nullptr, 0x2496);
     const s32 money = static_cast<s32>(g_handler->money(g_handler->table26(addr(0x007cf83c))));
     u32 arg[5] = {(u32)(uintptr_t)TextArgInt_vtable, 0x5641524d, 0xd, static_cast<u32>(money < 0 ? -money : money), 0};   // (TextArgInt_Ctor (0xd, the value, unsigned), inline)
-    g_handler->format(addr((u32)(uintptr_t)&gLanguage_78ba94), reinterpret_cast<u16 *>(static_cast<uintptr_t>(0x007ba058)), 0x3fff, money < 0 ? 0x1cb : 0x1ca, arg);
+    g_handler->format(addr(0x0078ba94), reinterpret_cast<u16 *>(static_cast<uintptr_t>(0x007ba058)), 0x3fff, money < 0 ? 0x1cb : 0x1ca, arg);
     vcall<void>(label, 0x24, 0x007ba058u);
 }
 

@@ -131,3 +131,6 @@ GAME_DATA(char[20], gText_Challenges_Serialize_75a2b0, 0x0075a2b0, 0x14);
 GAME_DATA(char[24], gText_Challenges_Serialize_75a298, 0x0075a298, 0x18);
 GAME_DATA(char[12], gText_Challenge_Serialize_75a168, 0x0075a168, 0xc);
 GAME_DATA(char[20], gText_Challenges_LoadSam_75a1f4, 0x0075a1f4, 0x14);
+
+// The vtables hold only ports: tpw.exe's loader points their slots at them (.docs/09-globals.md).
+GAME_DATA(void *[2], BalanceChallenges_vtable, 0x00700398, 0x8);

@@ -28,3 +28,8 @@ u32 __fastcall Window705c28_Dtor(u8 *window);
 // returns the window.
 u8 *__fastcall Window705c28_DeletingDtor(u8 *window, void *, u32 flags);
 }
+
+#include "../core/gamedata.h"
+
+// The vtables hold only ports: tpw.exe's loader points their slots at them (.docs/09-globals.md).
+GAME_DATA(void *[12], Window705c28_vtable, 0x00705c28, 0x30);

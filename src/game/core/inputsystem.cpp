@@ -13,6 +13,7 @@
 #include "vcall.h"
 #include "vdtor.h"
 #include "../gfx/screensurfaces.h"
+#include "../input/devicefilter.h"
 
 namespace {
 
@@ -231,7 +232,7 @@ u32 *__cdecl InputSystem_CreateDevice74(u32 *out, u8 **object) {
     Fn_4f0150(made + 0x24, nullptr, static_cast<u32>(reinterpret_cast<uintptr_t>(&blockAllocator)));
     g_env->c633900(made + 0x34);
     at<u32>(made, 0) = (u32)(uintptr_t)Class7037a0_vtable;
-    at<u32>(part, 0) = 0x70379c;
+    at<u32>(part, 0) = ((u32)(uintptr_t)Class703780_vtable + 0x1c);
     return finish(out, object, made, g_env->f633340);
 }
 
@@ -244,7 +245,7 @@ u8 *__fastcall InputDevice74_DeletingDtorThunk(u8 *part, void *, u32 flags) { re
 
 void __fastcall InputDevice74_Dtor(u8 *o) {
     at<u32>(o, 0) = (u32)(uintptr_t)Class7037a0_vtable;
-    at<u32>(o, 0x10) = 0x70379c;
+    at<u32>(o, 0x10) = ((u32)(uintptr_t)Class703780_vtable + 0x1c);
     g_env->f633920(o + 0x34);
     GameHeap_Free(at<void *>(o, 0x28));
     at<u32>(o, 0x28) = 0;
@@ -271,7 +272,7 @@ void __fastcall InputBase_Dtor(u8 *o) {
     release(at<u8 *>(o, 0x58));
     g_env->f6323e0(o + 0x10);
     g_env->f6336f0(o + 4);
-    at<u32>(o, 0) = 0x703748;
+    at<u32>(o, 0) = (u32)(uintptr_t)KeyFilter_vtable_703748;
 }
 
 u32 *__fastcall InputBase_Init(u8 *o, void *, u32 *out) {
@@ -406,7 +407,7 @@ u32 *__cdecl InputBase_CreateDevice64(u32 *out, u8 **object) {
     g_env->c634220(made);
     at<u32>(made, 0x6c) = 0;
     at<u32>(made, 0x70) = 0;
-    at<u32>(made, 0x68) = 0x703744;
+    at<u32>(made, 0x68) = (u32)(uintptr_t)InputSubs_vtable;
     at<u32>(made, 0) = (u32)(uintptr_t)InputChain64_vtable;
     at<u32>(made, 0x64) = 0x703808;
     return finish(out, object, made, g_env->f6345a0);
@@ -423,7 +424,7 @@ void __fastcall InputChain64_Dtor(u8 *o) {
     at<u32>(o, 0) = (u32)(uintptr_t)InputChain64_vtable;
     at<u32>(o, 0x64) = 0x703808;
     g_env->f6336f0(o + 0x68);
-    at<u32>(o, 0x64) = 0x703748;
+    at<u32>(o, 0x64) = (u32)(uintptr_t)KeyFilter_vtable_703748;
     g_env->f634310(o);
 }
 

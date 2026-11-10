@@ -61,7 +61,7 @@ void addRows(u8 *list, u8 *lists) {
         args[2].number = 0x11;
         args[2].value = at<u32>(lists, 0x50);
         u16 text[0x20];
-        g_env->format(gLanguage_78ba94, text, 0x1f, 0x1c0, &args[1], &args[2], &args[0]);
+        g_env->format(global<u8 *>(0x0078ba94), text, 0x1f, 0x1c0, &args[1], &args[2], &args[0]);
         texts[1] = (u32)(uintptr_t)text;
         texts[2] = 1;
         texts[3] = 0;

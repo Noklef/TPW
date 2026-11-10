@@ -20,7 +20,6 @@
 #include "mouseclick.h"
 #include "window7cc8c0handler.h"
 #include "../core/textarg.h"
-#include "../core/language.h"
 
 namespace {
 
@@ -46,9 +45,9 @@ u8 *recordOf(u8 *world, u32 tile) { return world + (tile + 0x6cde) * 40; }
 const u16 *entryText(u32 entry) {
     const u8 *const source = g_env->records(global<u8 *>(0x0078ba98), nullptr, entry);
     if (!source) return nullptr;
-    if (gLanguage_78ba80) {
+    if (global<u32>(0x0078ba80)) {
         u32 status;
-        g_env->widen(gLanguage_78ba7c, nullptr, &status, kBuffer, source, 0x200);
+        g_env->widen(global<u8 *>(0x0078ba7c), nullptr, &status, kBuffer, source, 0x200);
     }
     return kBuffer;
 }

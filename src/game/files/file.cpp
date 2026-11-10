@@ -16,7 +16,7 @@ char *pathBuffer() { return gPathBuffer; }
 Timer *clock() { return reinterpret_cast<Timer *>(&gClock); }
 
 void *const *const kStreamVtable = StreamBase_vtable;
-void *const *const kFileStreamVtable = reinterpret_cast<void *const *>(0x006fd930);
+void *const *const kFileStreamVtable = reinterpret_cast<void *const *>((u32)(uintptr_t)FileStream_vtable);
 
 template <typename T>
 T iat(u32 slot) {

@@ -14,7 +14,6 @@
 #include "window.h"
 #include "window7059f0.h"
 #include "../core/textarg.h"
-#include "../core/language.h"
 
 namespace {
 
@@ -60,7 +59,7 @@ void Fill(u8 *window, u32 dayAt, u32 monthAt, u32 yearAt) {
         args[monthAt] = {(u32)(uintptr_t)TextArgInt_vtable, kArgTag, 0x11, month, 0};
         args[dayAt] = {(u32)(uintptr_t)TextArgInt_vtable, kArgTag, 0x10, day, 0};
         u16 text[0x20];
-        g_env->format(gLanguage_78ba94, text, 0x20, 0x1c0, &args[dayAt], &args[monthAt], &args[yearAt]);
+        g_env->format(global<u8 *>(0x0078ba94), text, 0x20, 0x1c0, &args[dayAt], &args[monthAt], &args[yearAt]);
         u16 *const row = reinterpret_cast<u16 *>((uintptr_t)0x007ba058);
         Crt().swprintf(row, reinterpret_cast<const u16 *>((uintptr_t)0x00752564), text, hour, minute);
         texts[1] = static_cast<u32>(reinterpret_cast<uintptr_t>(row));
@@ -76,7 +75,7 @@ void AskFirst() {
         const u16 *text;
     } arg = {(u32)(uintptr_t)TextArgString_vtable, kArgTag, 2, typed()};
     u16 text[0x80];
-    g_env->format(gLanguage_78ba94, text, 0x7f, 0xcd, &arg);
+    g_env->format(global<u8 *>(0x0078ba94), text, 0x7f, 0xcd, &arg);
     struct {
         u16 *text;
         u8 colour[4];

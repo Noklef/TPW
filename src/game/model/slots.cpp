@@ -12,6 +12,7 @@
 #include "parts.h"
 #include "ridemodel.h"
 #include "../core/vtables.h"
+#include "../render/lightsource.h"
 
 namespace {
 
@@ -85,11 +86,11 @@ u8 *__fastcall ModelSlot_Ctor(u8 *slot) {
     at<u32>(part, 0xc) = 0x006fdcf8;
     at<u32>(part, 8) = (u32)(uintptr_t)Class6fdce8_vtable;
     // The offsets come through the vbtable pointers just stored, read again for each store as the original does.
-    at<u32>(part, at<u32>(at<u8 *>(part, 0xc), 4) + 0xc) = 0x006fdcd8;
+    at<u32>(part, at<u32>(at<u8 *>(part, 0xc), 4) + 0xc) = (u32)(uintptr_t)Class6fdcd8_vtable;
     const u32 inner = at<u32>(at<u8 *>(part, 0xc), 4);
     at<u32>(part, inner + 8) = inner - 0x60;
     at<u32>(part, 0x5c) = 0;
-    at<u32>(part, at<u32>(at<u8 *>(part, 0), 4)) = 0x006fdcc8;
+    at<u32>(part, at<u32>(at<u8 *>(part, 0), 4)) = (u32)(uintptr_t)Class6fdcc8_vtable;
     const u32 outer = at<u32>(at<u8 *>(part, 0), 4);
     at<u32>(part, outer - 4) = outer - 8;
     at<u32>(part, at<u32>(at<u8 *>(part, 0), 8) + 0x50) = 2;

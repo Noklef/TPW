@@ -18,7 +18,7 @@ extern "C" {
 u8 *__fastcall Window705c28_Ctor(u8 *window, void *, u8 *parent, u32 flags, u32 id, u32 left, u32 top, u32 right, u32 bottom) {
     Window_Ctor(window, nullptr, parent, flags, id, left, top, right, bottom);
     GuiRect_Ctor(window + 0x148);
-    at<u32>(window, 0) = 0x705c28;
+    at<u32>(window, 0) = (u32)(uintptr_t)Window705c28_vtable;
     at<u32>(window, 0x140) = 0;
     at<u32>(window, 0x13c) = 0;
     at<u32>(window, 0x138) = 0;
@@ -46,7 +46,7 @@ u16 __fastcall Window705c28_SetValue(u8 *window, void *, s32 value) {
 }
 
 u32 __fastcall Window705c28_Dtor(u8 *window) {
-    at<u32>(window, 0) = 0x705c28;
+    at<u32>(window, 0) = (u32)(uintptr_t)Window705c28_vtable;
     GuiRect_Dtor(window + 0x148);
     return Window_Dtor(window);
 }

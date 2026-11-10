@@ -4,6 +4,7 @@
 #include "rasteriser.h"
 #include "rasterformat.h"
 #include "devicecreate.h"
+#include "rastertriangle.h"
 
 namespace {
 
@@ -81,7 +82,7 @@ template <Source kSource> u32 Blend(const u32 *uv, const u16 *shade, const u32 *
     u16 source[4];
     kSource(uv, source, texel);
     const u32 alpha = source[3] >> 2, under = *dest;
-    const u16 *const mine = at<const u16>(0x00fbe2e0 + alpha * 8), *const theirs = at<const u16>(0x00fbe4e0 + alpha * 8);
+    const u16 *const mine = at<const u16>(((u32)(uintptr_t)&gRastertriangle_fbe240 + 0xa0) + alpha * 8), *const theirs = at<const u16>(0x00fbe4e0 + alpha * 8);
     u32 out = 0;
     for (int k = 0; k < 4; ++k) {
         const u16 lit = (u16)MulHigh((u16)(source[k] << 3), shade[k]);
@@ -100,7 +101,7 @@ template <Source kSource, Alpha kAlpha> u32 BlendLit(const u32 *uv, const u16 *s
     kSource(uv, source, texel);
     for (int k = 0; k < 4; ++k) lit[k] = (u16)MulHigh((u16)(source[k] * 2), shade[k]);
     const u32 alpha = kAlpha == kLitFourth ? lit[3] >> 2 : kAlpha == kLitSecond ? lit[1] >> 10 : source[3] >> 2, under = *dest;
-    const u16 *const mine = at<const u16>(0x00fbe2e0 + alpha * 8), *const theirs = at<const u16>(0x00fbe4e0 + alpha * 8);
+    const u16 *const mine = at<const u16>(((u32)(uintptr_t)&gRastertriangle_fbe240 + 0xa0) + alpha * 8), *const theirs = at<const u16>(0x00fbe4e0 + alpha * 8);
     u32 out = 0;
     for (int k = 0; k < 4; ++k)
         out |= Saturate((s16)(MulHigh((u16)(lit[k] << 2), mine[k]) + MulHigh((u16)(Byte(under, k) << 2), theirs[k])), k);
@@ -119,7 +120,7 @@ u32 BlendKeyed(const u32 *uv, const u16 *shade, const u32 *dest, u32 &texel) {
     texel = Texel<false>(uv);
     const u32 alpha = texel >> 26, under = *dest;
     if (alpha == 0) return under;
-    const u16 *const mine = at<const u16>(0x00fbe2e0 + alpha * 8), *const theirs = at<const u16>(0x00fbe4e0 + alpha * 8);
+    const u16 *const mine = at<const u16>(((u32)(uintptr_t)&gRastertriangle_fbe240 + 0xa0) + alpha * 8), *const theirs = at<const u16>(0x00fbe4e0 + alpha * 8);
     u32 out = 0;
     for (int k = 0; k < 4; ++k) {
         const u16 lit = (u16)MulHigh((u16)(Byte(texel, k) * 2), shade[k]);
@@ -201,7 +202,7 @@ u32 TexRows(bool atLeast, Edge *left, const Edge *right, s32 rows, u32 row) {
             u16 shade[4];
             for (int k = 0; k < 2; ++k) uv[k] = left->uv[k] - ((u32)(u16)MulHigh(prestep[2 * k], fraction) << 18);
             if (kHalf)
-                for (int k = 0; k < 2; ++k) uv[k] -= global<u32>(0x00fbe0e4 + 4 * k);
+                for (int k = 0; k < 2; ++k) uv[k] -= global<u32>(((u32)(uintptr_t)&gRastertriangle_fbe0b0 + 0x34) + 4 * k);
             for (int k = 0; k < 4; ++k) shade[k] = (u16)(left->shade[k] - 2 * MulHigh(fraction, shadeStep[k]));
             u32 held[2] = {0, 0};
             bool run = false;

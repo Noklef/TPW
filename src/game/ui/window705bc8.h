@@ -65,3 +65,8 @@ void __fastcall Window705bc8_Drag(u8 *window, void *, u32 y);
 // 0x10003: dragged to a (Window705bc8_Drag); it and the rest then go to Window_DefaultProc, whose answer is returned.
 u32 __cdecl Window705bc8_OnMessage(u8 *window, u32 message, u32 a, u32 b);
 }
+
+#include "../core/gamedata.h"
+
+// The vtables hold only ports: tpw.exe's loader points their slots at them (.docs/09-globals.md).
+GAME_DATA(void *[12], Window705bc8_vtable, 0x00705bc8, 0x30);

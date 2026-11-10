@@ -79,7 +79,7 @@ void __fastcall StaffPoolEntry_Generate(u8 *entry, void *, u32 kind, u32 slot) {
     g_env->tellDialog(reinterpret_cast<void *>((uintptr_t)0x007b51f0), nullptr, slot);
     Out_SetFromGame1da70c(&at<u32>(entry, 0xc));
     const u32 draw = (u32)World_Rand(global<u8 *>(0x0080239c));
-    const s32 timeout = gStaffPoolEntry_Generate_78530c;
+    const s32 timeout = global<s32>(0x0078530c);
     at<u32>(entry, 0x10) = draw % (u32)(timeout >> 1) + (u32)timeout;
 }
 
@@ -143,10 +143,10 @@ void __fastcall StaffPool_Update(u8 *pool) {
         }
     }
     u32 *const clock = reinterpret_cast<u32 *>(pool + 0x294);
-    if (Game1da70c_MinusAt0(clock) <= gStaffPool_Update_785304 * 4) return;
+    if (Game1da70c_MinusAt0(clock) <= global<u32>(0x00785304) * 4) return;
     u32 used = 0;
     for (u32 i = 0; i < 0x20; i++) used += at<u8>(pool, i * 0x14 + 0xa) != 0;
-    const u32 count = gStaffPool_Update_785308;
+    const u32 count = global<u32>(0x00785308);
     s32 left = (s32)(count < 0x20 - used ? count : 0x20 - used);
     Staff_CountTypes(pool);
     s32 wants[5];

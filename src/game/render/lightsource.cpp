@@ -12,6 +12,7 @@
 #include "state.h"
 #include "../frontend/lobbysky.h"
 #include "../core/vtables.h"
+#include "../model/slots.h"
 
 namespace {
 
@@ -101,7 +102,7 @@ u8 *__fastcall Obj_CtorVirtual(u8 *object, void *, u32 mostDerived) {
         at<u32>(object, 0) = 0x006fe570;
         at<u32>(object, 0x60) = (u32)(uintptr_t)Class6fdce8_vtable;
     }
-    at<u32>(object, at<u32>(at<u8 *>(object, 0), 4)) = 0x006fdcd8;
+    at<u32>(object, at<u32>(at<u8 *>(object, 0), 4)) = (u32)(uintptr_t)Class6fdcd8_vtable;
     const u32 base = at<u32>(at<u8 *>(object, 0), 4);
     at<u32>(object, base - 4) = base - 0x60;
     at<u32>(object, 0x50) = 0;
@@ -156,10 +157,10 @@ u32 *__cdecl LightSource_Create(u32 kind, u32 colour, const u32 *point, const u3
             at<u32>(part, 0) = 0x006fdd00;
             at<u32>(part, 0xc) = 0x006fdcf8;
             at<u32>(part, 8) = (u32)(uintptr_t)Class6fdce8_vtable;
-            at<u32>(part, offset(0xc, 4) + 0xc) = 0x006fdcd8;
+            at<u32>(part, offset(0xc, 4) + 0xc) = (u32)(uintptr_t)Class6fdcd8_vtable;
             at<s32>(part, offset(0xc, 4) + 8) = offset(0xc, 4) - 0x60;
             at<u32>(part, 0x5c) = 0;
-            at<u32>(part, offset(0, 4)) = 0x006fdcc8;
+            at<u32>(part, offset(0, 4)) = (u32)(uintptr_t)Class6fdcc8_vtable;
             at<s32>(part, offset(0, 4) - 4) = offset(0, 4) - 8;
             at<u32>(part, offset(0, 8) + 0x50) = 2;
             Obj_SetVectorAt2c(part + offset(0, 8), nullptr, 0, 0, one);
@@ -169,7 +170,7 @@ u32 *__cdecl LightSource_Create(u32 kind, u32 colour, const u32 *point, const u3
             at<u32>(part, 0xc) = 0x006fe558;
             at<u32>(part, 8) = (u32)(uintptr_t)Class6fdce8_vtable;
             Obj_CtorVirtual(part + 0xc, nullptr, 0);
-            at<u32>(part, offset(0, 4)) = 0x006fe548;
+            at<u32>(part, offset(0, 4)) = (u32)(uintptr_t)Class6fe548_vtable;
             at<s32>(part, offset(0, 4) - 4) = offset(0, 4) - 8;
             at<u32>(part, offset(0, 8) + 0x50) = 4;
             u8 *const base = part + offset(0, 8);

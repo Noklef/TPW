@@ -78,4 +78,6 @@ void __cdecl Global8c47b0_Release();
 #include "../core/gamedata.h"
 
 // Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
-GAME_DATA(u8 *, gSpritequeue_8bd4fc, 0x008bd4fc, 0x4);
+
+// The vtables hold only ports: tpw.exe's loader points their slots at them (.docs/09-globals.md).
+GAME_DATA(void *[4], Class6ff308_vtable, 0x006ff308, 0x10);

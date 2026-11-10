@@ -64,3 +64,29 @@ u32 __fastcall ThingMsg1b_Type(const u8 *msg);  // 0x40f920
 u32 __fastcall ThingMsg15_Type(const u8 *msg);
 u8 *__fastcall ThingMsg15_DeletingDtor(u8 *msg, void *, u8 flags);
 }
+
+#include "../core/gamedata.h"
+
+// The vtables hold only ports: tpw.exe's loader points their slots at them (.docs/09-globals.md).
+GAME_DATA(void *[2], ThingMsg02_vtable, 0x006fd7a0, 0x8);
+GAME_DATA(void *[2], ThingMsg01_vtable, 0x006fd7a8, 0x8);
+GAME_DATA(void *[2], Class6fd7b0_vtable, 0x006fd7b0, 0x8);
+GAME_DATA(void *[1], Class6fd7b8_vtable, 0x006fd7b8, 0x4);
+GAME_DATA(void *[2], ThingMsg06_vtable, 0x006fd7c0, 0x8);
+GAME_DATA(void *[2], ThingMsg07_vtable, 0x006fd7c8, 0x8);
+GAME_DATA(void *[2], ThingMsg08_vtable, 0x006fd7d0, 0x8);
+GAME_DATA(void *[2], ThingMsg09_vtable, 0x006fd7d8, 0x8);
+GAME_DATA(void *[2], ThingMsg0a_vtable, 0x006fd7e0, 0x8);
+GAME_DATA(void *[2], ThingMsg0b_vtable, 0x006fd7e8, 0x8);
+GAME_DATA(void *[2], ThingMsg0c_vtable, 0x006fd7f0, 0x8);
+GAME_DATA(void *[2], ThingMsg0d_vtable, 0x006fd7f8, 0x8);
+GAME_DATA(void *[2], ThingMsg11_vtable, 0x006fd800, 0x8);
+GAME_DATA(void *[2], ThingMsg12_vtable, 0x006fd808, 0x8);
+GAME_DATA(void *[2], ThingMsg13_vtable, 0x006fd810, 0x8);
+GAME_DATA(void *[2], ThingMsg14_vtable, 0x006fd818, 0x8);
+GAME_DATA(void *[2], ThingMsg17_vtable, 0x006fd820, 0x8);
+GAME_DATA(void *[2], ThingMsg18_vtable, 0x006fd828, 0x8);
+GAME_DATA(void *[2], ThingMsg19_vtable, 0x006fd830, 0x8);
+GAME_DATA(void *[2], ThingMsg1a_vtable, 0x006fd838, 0x8);
+GAME_DATA(void *[2], ThingMsg1c_vtable, 0x006fd840, 0x8);
+GAME_DATA(void *[2], ThingMsg1b_vtable, 0x006fd848, 0x8);

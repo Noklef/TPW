@@ -21,14 +21,14 @@ const ThoughtsEnv kThoughtsGame = {&Setting_ReadMode, reinterpret_cast<s32(__cde
                                    reinterpret_cast<s32(__cdecl *)(u32, u32, u32, u32, u32, u32, u32)>(&SpriteScript_Start)};
 const ThoughtsEnv *g_thoughts = &kThoughtsGame;
 
-// Each thought's bubble (an entry point) and wait (times 20 ticks), thoughts 1 to 0x16.
+// Each thought's bubble (an entry point: its byte offset in gSpriteScriptCode) and wait (times 20 ticks), thoughts 1 to 0x16.
 struct Bubble {
     u32 code, wait;
 };
 const Bubble kBubbles[0x16] = {
-    {0x0074f250, 1}, {0x0074f280, 1}, {0x0074f2b0, 1}, {0x0074f2c8, 1}, {0x0074f310, 0}, {0x0074f268, 0}, {0x0074f2e0, 1}, {0x0074f208, 3},
-    {0x0074f190, 3}, {0x0074f1a8, 3}, {0x0074f1d8, 3}, {0x0074f1f0, 0}, {0x0074f1c0, 0}, {0x0074f220, 1}, {0x0074f238, 0}, {0x0074f298, 0},
-    {0x0074f2f8, 0}, {0x0074f328, 3}, {0x0074f340, 2}, {0x0074f358, 0}, {0x0074f370, 0}, {0x0074f388, 0},
+    {0x1798, 1}, {0x17c8, 1}, {0x17f8, 1}, {0x1810, 1}, {0x1858, 0}, {0x17b0, 0}, {0x1828, 1}, {0x1750, 3},
+    {0x16d8, 3}, {0x16f0, 3}, {0x1720, 3}, {0x1738, 0}, {0x1708, 0}, {0x1768, 1}, {0x1780, 0}, {0x17e0, 0},
+    {0x1840, 0}, {0x1870, 3}, {0x1888, 2}, {0x18a0, 0}, {0x18b8, 0}, {0x18d0, 0},
 };
 
 }  // namespace
@@ -68,7 +68,7 @@ void __fastcall Person_KillScript84After(u8 *person) {
 
 void __fastcall Person_JumpScript210(u8 *person) {
     if (at<u32>(person, 0x210)) {
-        SpriteScript_Jump((s32)at<u32>(person, 0x210), 0x0074f4c0);
+        SpriteScript_Jump((s32)at<u32>(person, 0x210), SpriteCode(0x1a08));
         at<u32>(person, 0x210) = 0;
     }
 }
@@ -119,6 +119,6 @@ void __fastcall Thoughts_Show(u8 *thoughts, void *, u32 thought, u8 force) {
     const u32 clock = at<u32>(*global<u8 **>(0x007cf6ec), 0x1da70c);
     if (clock < at<u32>(thoughts, 0x8c) + bubble.wait * 20) return;
     at<u32>(thoughts, 0x8c) = clock;
-    at<s32>(thoughts, 0x84) = E->start(bubble.code, 9, 0, 0, 0, 0, 0);
+    at<s32>(thoughts, 0x84) = E->start(SpriteCode(bubble.code), 9, 0, 0, 0, 0, 0);
 }
 }

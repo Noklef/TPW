@@ -105,7 +105,7 @@ void Close(u8 *map) {
     g_env->release(images);
     g_env->releaseAll(images);
     g_env->surfaceFree(reinterpret_cast<SurfaceInfo *>(map + 0x2c));
-    gLobbysky_8bd47c = at<u32>(map, 8);
+    global<u32>(0x008bd47c) = at<u32>(map, 8);
     g_env->setFlags(gRenderer_87a6d0, nullptr, at<u32>(map, 0xc));
     global<u32>(0x00786ba4) = 1;
     g_env->restore(reinterpret_cast<u8 *>((uintptr_t)0x00786b68));
@@ -159,7 +159,7 @@ void ShowName(const u8 *map, u8 *window) {
         if (IsPerson(kind)) {
             vcall<void>(&name, 0x14, g_env->staffName(thing));
         } else if (kind == 1) {
-            u8 *const charset = gLanguage_78ba94;
+            u8 *const charset = global<u8 *>(0x0078ba94);
             const u32 owner = at<u32>(thing, 0x1d8);
             if (!owner) {
                 g_env->formatWide(charset, text, 0x3fff, 0x1c9);
@@ -493,7 +493,7 @@ void __fastcall ParkMap_PrepareSprites(u8 *map) {
         list[1] = 0;
         list[2] = 0;
         list[3] = 0;
-        list[0] = 0x00703080;
+        list[0] = (u32)(uintptr_t)Class703080_vtable;
     }
     at<u32 *>(map, 0x20080) = list;
     g_sprites->addSprites(map);
@@ -514,8 +514,8 @@ void __fastcall ParkMap_Open(u8 *map) {
     global<u32>(0x00786ba4) = 0;
     env->setFlag662411();
     env->f5996d0(1);
-    at<u32>(map, 8) = gLobbysky_8bd47c;
-    gLobbysky_8bd47c = 0;
+    at<u32>(map, 8) = global<u32>(0x008bd47c);
+    global<u32>(0x008bd47c) = 0;
     at<u32>(map, 0xc) = env->stateFlags(gRenderer_87a6d0);
     env->setFlags(gRenderer_87a6d0, nullptr, 0x2821);
     env->releaseItems(reinterpret_cast<u8 * &>(gTexcache_8c4b44), nullptr, 0);

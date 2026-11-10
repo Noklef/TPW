@@ -387,9 +387,9 @@ void __cdecl DynFaces_Frame() {
     const float scale = gSinTableScale;
     const u32 mask = gSinTableMask;
     const s32 i1 = Fistp((float)(X87Reg(scale) * of(t)));
-    const float s = global<float>(0x007b0968 + 4 * (mask & (u32)i1));
+    const float s = gSinTable[mask & (u32)i1];
     const s32 i2 = Fistp((float)((X87Reg(of(t)) - gDynFaces_Frame_700df0) * scale));
-    const X87Reg c = global<float>(0x007b0968 + 4 * (mask & (u32)i2));
+    const X87Reg c = gSinTable[mask & (u32)i2];
     for (u32 k = 0; k < 4; ++k) {
         float *const p = &global<float>(0x00871f24 + 0xc * k);
         const X87Reg y = p[1];

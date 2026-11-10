@@ -218,7 +218,7 @@ void __cdecl RayPick_World(float *out, u32 unused, float *out2, u32 *hitFlag) {
     const s32 first = Fistp((float)(X87Reg(scale) * half));
     const s32 second = Fistp((float)((X87Reg(half) - kQuarterTurn) * scale));
     const u32 mask = gSinTableMask;
-    const float *const sines = reinterpret_cast<const float *>((uintptr_t)0x7b0968);
+    const float *const sines = gSinTable;
     const float sine = sines[mask & (u32)first], cosine = sines[mask & (u32)second];
     const float yz[2] = {(float)((X87Reg(cosine) * 0.0f) - (X87Reg(sine) * 1.0f)), (float)((X87Reg(cosine) * 1.0f) + (X87Reg(0.0f) * sine))};
     float v1[3] = {0.0f, yz[0], yz[1]}, v2[3] = {0.0f, yz[0], yz[1]}, v3[3] = {0.0f, yz[0], yz[1]};

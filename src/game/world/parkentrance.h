@@ -34,4 +34,3 @@ void __cdecl ParkEntrance_LayOutline(s32 x1, s32 y1, s32 x2, s32 y2);
 #include "../core/gamedata.h"
 
 // Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
-GAME_DATA(s32, gParkEntrance_Lay_78503c, 0x0078503c, 4);

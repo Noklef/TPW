@@ -44,7 +44,7 @@ void fillTexture(u8 *settings, u8 *texture, bool across) {
         u16 *out = reinterpret_cast<u16 *>(pixels);
         for (u32 y = 0; y < 0x80; ++y) {
             for (u32 x = 0; x < 0x80; ++x)
-                *out++ = (u16)stripe(across ? x : y, reinterpret_cast<u16 &>(gDdopen_8bd4c4), reinterpret_cast<u16 &>(gDdopen_8bd4cc), reinterpret_cast<u16 &>(gDdopen_8bd4d4), reinterpret_cast<u16 &>(gDdopen_8bd4dc));
+                *out++ = (u16)stripe(across ? x : y, reinterpret_cast<u16 &>(global<u32>(0x008bd4c4)), reinterpret_cast<u16 &>(global<u32>(0x008bd4cc)), reinterpret_cast<u16 &>(global<u32>(0x008bd4d4)), reinterpret_cast<u16 &>(global<u32>(0x008bd4dc)));
         }
         return;
     }
@@ -55,10 +55,10 @@ void fillTexture(u8 *settings, u8 *texture, bool across) {
         even = 0xff;
         odd = 0xffffff;
     } else {
-        edge = gDdopen_8bd4c4;
-        frame = gDdopen_8bd4cc;
-        even = gDdopen_8bd4d4;
-        odd = gDdopen_8bd4dc;
+        edge = global<u32>(0x008bd4c4);
+        frame = global<u32>(0x008bd4cc);
+        even = global<u32>(0x008bd4d4);
+        odd = global<u32>(0x008bd4dc);
     }
     u32 *out = reinterpret_cast<u32 *>(pixels);
     for (u32 y = 0; y < 0x80; ++y) {
@@ -89,7 +89,7 @@ void probe(u8 *settings, bool across, u32 result) {
     u8 *const texture = block ? Texture_Ctor(block, nullptr, 1) : nullptr;
     if (!texture)
         return;
-    const u32 saved = gLobbysky_8bd47c;
+    const u32 saved = global<u32>(0x008bd47c);
     g_calls.Th(0x00590a80, address(texture), 0x80u, 0u);
     at<u32>(texture, 8) = 0x51b0000;
     fillTexture(settings, texture, across);
@@ -100,7 +100,7 @@ void probe(u8 *settings, bool across, u32 result) {
     const u32 handle = at<u32>(texture, 8) & 0x1000 ? at<u32>(texture, 0x1c) : 0;
     vcall<u32>(device(), 0xc, 0u, handle);
     vcall<u32>(device(), 0x18, 0u, 0u, 0u);
-    gUvprobe_8c1644 = 0;
+    global<u32>(0x008c1644) = 0;
 
     u32 lines[0x3c];
     float place = 0.0f, step = 0.5f;
@@ -148,7 +148,7 @@ void probe(u8 *settings, bool across, u32 result) {
     g_calls.Th(0x0058dd60, gTexcache_8c4b44, 1u);
     g_calls.Th(0x00590a70, address(texture));
     GameHeap_Free(texture);
-    gLobbysky_8bd47c = saved;
+    global<u32>(0x008bd47c) = saved;
 }
 
 void note(const char *text) {

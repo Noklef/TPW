@@ -44,8 +44,8 @@ s32 load_error(u32 name) {
 
 // The text widened into the static buffer while the converter is on; status is the caller's argument slot (as the originals use it).
 u16 *widen(const u8 *text, u32 *status) {
-    if (gLanguage_78ba80 != 0)
-        Wide_FromNarrow(gLanguage_78ba7c, nullptr, status, kWideBuffer, text, 0x200);
+    if (global<u32>(0x0078ba80) != 0)
+        Wide_FromNarrow(global<const u8 *>(0x0078ba7c), nullptr, status, kWideBuffer, text, 0x200);
     return kWideBuffer;
 }
 // A font entry constructed (0x419680: Obj_CtorValue with 0) and destroyed (0x47f980: the vtable 0x6ff058, then the base's (0x657d6c): the
@@ -91,12 +91,12 @@ void __cdecl Language_MirrorAlign(u32 *align) {
 u16 *__cdecl Language_Widen(const u8 *text) { return text ? widen(text, reinterpret_cast<u32 *>(&text)) : nullptr; }
 
 u16 *__cdecl Language_WideText(u32 index) {
-    const u8 *const text = Records_DataIfTerminated(gLanguage_78ba94, nullptr, index);
+    const u8 *const text = Records_DataIfTerminated(global<const u8 *>(0x0078ba94), nullptr, index);
     return text ? widen(text, &index) : nullptr;
 }
 
 u32 __cdecl Language_SetObjectText(u8 *object, u32 index) {
-    const u8 *const text = Records_DataIfTerminated(gLanguage_78baa4, nullptr, index);
+    const u8 *const text = Records_DataIfTerminated(global<const u8 *>(0x0078baa4), nullptr, index);
     return vcall<u32>(object, 0x24, text ? widen(text, &index) : nullptr);
 }
 

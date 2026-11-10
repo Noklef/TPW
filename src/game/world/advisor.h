@@ -134,7 +134,6 @@ GAME_DATA(char[20], gText_Advisor_Serialize_76e158, 0x0076e158, 0x14);
 GAME_DATA(char[24], gText_Advisor_Serialize_76e16c, 0x0076e16c, 0x18);
 GAME_DATA(char[12], gText_Advisor_Serialize_76e184, 0x0076e184, 0xc);
 GAME_DATA(char[68], gText_Advisor_HandleCode_76e190, 0x0076e190, 0x44);
-GAME_DATA(u32, gAdvisor_f79bb8, 0x00f79bb8, 0x4);
 GAME_DATA(char[16], gText_Advisor_Serialize_76e110, 0x0076e110, 0x10);
 GAME_DATA(char[12], gText_Advisor_Serialize_76e138, 0x0076e138, 0xc);
 GAME_DATA(char[20], gText_Advisor_Serialize_76e144, 0x0076e144, 0x14);

@@ -54,7 +54,7 @@ void __cdecl ThingBrowser_ShowName() {
     } else {
         const u32 count = at<u32>(thing, 0x1d8);
         if (!count) {
-            TextFormat().format(gLanguage_78ba94, kText, 0x3fff, 0x1c9);
+            TextFormat().format(global<void *>(0x0078ba94), kText, 0x3fff, 0x1c9);
         } else {
             u8 arg[0x14];  // (a number argument, as TextArgInt_Ctor (n 0x18, count, unsigned) builds it inline)
             at<u32>(arg, 0) = (u32)(uintptr_t)TextArgInt_vtable;
@@ -62,7 +62,7 @@ void __cdecl ThingBrowser_ShowName() {
             at<u32>(arg, 8) = 0x18;
             at<u32>(arg, 0xc) = count;
             at<u32>(arg, 0x10) = 0;
-            TextFormat().format(gLanguage_78ba94, kText, 0x3fff, 0x1c8, arg);
+            TextFormat().format(global<void *>(0x0078ba94), kText, 0x3fff, 0x1c8, arg);
         }
         vcall<void>(label, 0x24, kText);
     }

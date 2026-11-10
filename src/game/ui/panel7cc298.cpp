@@ -12,11 +12,16 @@
 #include "../world/analyser.h"
 #include "../world/object.h"
 #include "../world/objectstatus.h"
+#include "../world/ridesweep.h"
 #include "../world/world.h"
 #include "dialogs.h"
+#include "guirect.h"
+#include "hoverlabel.h"
 #include "panelparts.h"
 #include "window.h"
 #include "window705a50.h"
+#include "window705af0.h"
+#include "window705b20.h"
 #include "panel7cc218.h"
 
 namespace {
@@ -85,6 +90,45 @@ void __fastcall Panel7cc298_Dress(u8 *self) {
 
 void __fastcall Panel7cc298_DressTip(u8 *self) { panelparts::tip(self); }
 
+void __fastcall Panel7cc298_Open(u8 *self) {
+    if (Things_CountGroup(self, nullptr, *reinterpret_cast<const u32 *>((uintptr_t)0x007cc2c8)) < 2) {
+        Window_SetShown(child(self, 0xa08c), nullptr, 0);
+        Window_SetShown(child(self, 0xa08d), nullptr, 0);
+    }
+    u8 rect[12];
+    GuiRect_Ctor(rect);
+    if (u8 *const slider = child(self, 0xa08e)) Window705b20_SetRange(slider, nullptr, 0, 100);
+    const auto value = [self](u32 id, s32 high) {
+        u8 *const value = child(self, id);
+        if (!value) return;
+        u8 *const memory = static_cast<u8 *>(GameHeap_Alloc(0x1a4));
+        Window_SetImpl(value, nullptr, memory ? TextPart6ff3b0_Ctor(memory, nullptr, 0) : nullptr);
+        const s32 low = 0, step = 1;
+        Window705af0_SetRange(value, nullptr, &low, &high);
+        Window705af0_SetStep(value, nullptr, &step);
+        Window_Set4c(value, nullptr, Language_Font(6));
+        Window_NotifyC00(value, nullptr, 1, 1);
+        Window_Notify40000(value, nullptr, 0, 0, 0, 0xff);
+    };
+    const auto label = [self](u32 id, u32 text) {
+        u8 *const label = child(self, id);
+        if (!label) return;
+        u8 *const memory = static_cast<u8 *>(GameHeap_Alloc(0x1a4));
+        Window_SetImpl(label, nullptr, memory ? TextPart_Ctor(memory, nullptr, 0) : nullptr);
+        Window_NotifyC00(label, nullptr, 1, 1);
+        Window_Set4c(label, nullptr, Language_Font(6));
+        Window_Notify40000(label, nullptr, 0, 0, 0, 0xff);
+        Window_NotifyImpl100(label, nullptr, (u32)(uintptr_t)Language_WideText(text));
+    };
+    value(0xa090, 10000);
+    value(0xa08f, 500);
+    label(0xa0a7, 0x31);
+    label(0xa0a6, 0x32);
+    label(0xa0a5, 0x33);
+    HoverLabel_Bind(self, nullptr, 0xa0a4);
+    GuiRect_Dtor(rect);
+}
+
 void __fastcall Panel7cc298_Show(u8 *self, void *, u8 *thing) {
     *reinterpret_cast<u8 **>((uintptr_t)0x007cc2c8) = thing;
     WindowAt10_Create(self, nullptr, reinterpret_cast<u8 *>((uintptr_t)0x00755e80), 0x004b2150, 0xa0a2, 0xa091, 0xa0a3);
@@ -135,7 +179,7 @@ void __fastcall Panel7cc298_ShowStats(u8 *self) {
         at<u32>(recent, 8) = 0x19;
         at<u32>(recent, 0xc) = (u32)(long long)sum2;
         at<u32>(recent, 0x10) = 0;
-        TextFormat().format(gLanguage_78ba94, reinterpret_cast<u16 *>((uintptr_t)0x007ba058), 0x3fff, 0x1cc, recent, both);
+        TextFormat().format(global<void *>(0x0078ba94), reinterpret_cast<u16 *>((uintptr_t)0x007ba058), 0x3fff, 0x1cc, recent, both);
         vcall<void>(text, 0x24, 0x007ba058u);  // (not checked)
         if (u8 *const bar = Window_FindChild(window14(self), nullptr, 0xa096))
             vcall<void>(bar, 0x1c, (u32)((s32)(Object_HistoryPercent(thing) << 10) / 100));

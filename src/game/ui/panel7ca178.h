@@ -33,9 +33,16 @@ void __fastcall Panel7ca178_DressTip(u8 *self);
 // (WindowAt10_Create: the script 0x751190, the handler 0x497640, the children 0x15bb8, 0x15bba and 0x15bb9), and the advisor posted 0xd5
 // when the low byte of the thing's float +0x44 (__ftol) is under 25, else 0x12b (Advisor_PostId).
 void __fastcall Panel7ca178_Show(u8 *self, void *, u8 *thing);
+
+// 0x4975c0 (thiscall; slot 0 of the vtable 0x6ff740; name invented): when the group counts under 2 (Things_CountGroup of the selected
+// thing [0x7ca19c]), the window +0x10's children 0x15bb6 and 0x15bb7 hidden; then 0x15bc1 bound as the hover label.
+void __fastcall Panel7ca178_Open(u8 *self);
 }
 
 #include "../core/gamedata.h"
 
 // Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
 GAME_DATA(const double, gPanel7ca178_6ff738, 0x006ff738, 0x8);
+
+// The vtables hold only ports: tpw.exe's loader points their slots at them (.docs/09-globals.md).
+GAME_DATA(void *[16], Panel7ca178_vtable, 0x006ff740, 0x40);

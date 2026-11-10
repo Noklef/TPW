@@ -6,6 +6,7 @@
 #include "gameheap.h"
 #include "../model/objmodel.h"
 #include "vtables.h"
+#include "../render/spritequeue.h"
 
 namespace {
 
@@ -69,7 +70,7 @@ u8 *__fastcall LiveObject6ff308_Construct(u8 *o, void *, u32 most_derived) {
         at<u32>(o, 0) = 0x006ff318;
         at<u32>(o, 0x20) = (u32)(uintptr_t)Class6fdce8_vtable;
     }
-    at<u32>(o, at<u32>(at<u8 *>(o, 0), 4)) = 0x006ff308;
+    at<u32>(o, at<u32>(at<u8 *>(o, 0), 4)) = (u32)(uintptr_t)Class6ff308_vtable;
     const u32 base = at<u32>(at<u8 *>(o, 0), 4);
     at<u32>(o, base - 4) = base - 0x20;
     at<u32>(o, 4) = 0;

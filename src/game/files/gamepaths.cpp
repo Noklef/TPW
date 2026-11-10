@@ -108,7 +108,7 @@ void __cdecl GamePaths_RemoveTree(const String *path) {
         DirEntry *const entry = reinterpret_cast<DirEntry *>(buffer);
         entry->path[0] = 0;
         entry->name = entry->path;
-        if (*Handle_Vfn1(&folder, nullptr, &status, *at<const u32 *>((u32)&gGamePaths_RemoveTree_f81650), reinterpret_cast<u32>(entry)) >= 0) {
+        if (*Handle_Vfn1(&folder, nullptr, &status, *at<const u32 *>(0x00f81650), reinterpret_cast<u32>(entry)) >= 0) {
             do {
                 if (entry->name[0] != '.') {
                     if (entry->attributes & 0x10) {
@@ -158,7 +158,7 @@ u32 __fastcall GamePaths_FindDisc(u8 *check) {
     for (;;) {
         s32 status;
         if (*SystemInfo_ListDrives(info, nullptr, &status, list, 8) >= 0) {
-            const char letter = static_cast<char>(SystemInfo_FindVolume(info, nullptr, list, *at<const char *const *>((u32)&gCdVolumeLabel)));
+            const char letter = static_cast<char>(SystemInfo_FindVolume(info, nullptr, list, *at<const char *const *>(0x00f7a7d0)));
             String drive;
             String_CtorChar(&drive, nullptr, &letter);
             GamePaths_SetSecondRoot(drive);

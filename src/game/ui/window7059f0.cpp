@@ -33,7 +33,7 @@ void __fastcall Window7059f0_Layout(u8 *window) {
 u8 *__fastcall Window7059f0_Ctor(u8 *window, void *, u8 *parent, u32 flags, u32 id, u32 left, u32 top, u32 right, u32 bottom) {
     Window_Ctor(window, nullptr, parent, flags, id, left, top, right, bottom);
     GuiRect_Ctor(window + 0x138);
-    at<u32>(window, 0) = 0x7059f0;
+    at<u32>(window, 0) = (u32)(uintptr_t)Window7059f0_vtable;
     u32 bar_flags = 0x10;
     at<u32>(window, 0x14c) = 0xffffffff;
     at<u32>(window, 0x144) = 0;
@@ -67,7 +67,7 @@ u8 *__fastcall Window7059f0_Ctor(u8 *window, void *, u8 *parent, u32 flags, u32 
 }
 
 u32 __fastcall Window7059f0_Dtor(u8 *window) {
-    at<u32>(window, 0) = 0x7059f0;
+    at<u32>(window, 0) = (u32)(uintptr_t)Window7059f0_vtable;
     Window7059f0_Clear(window);
     if (u8 *const columns = at<u8 *>(window, 0x16c)) vcall<u32>(columns, 0x10, 3u);
     if (at<u32>(window, 0x148)) {

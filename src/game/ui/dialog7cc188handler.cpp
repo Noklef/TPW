@@ -75,7 +75,7 @@ void askDelete() {
         const u16 *text;
     } arg = {(u32)(uintptr_t)TextArgString_vtable, 0x5641524d, 3, name};
     u16 text[0x80];
-    g_env->format(gLanguage_78ba94, text, 0x7f, 0xd7, &arg);
+    g_env->format(global<u8 *>(0x0078ba94), text, 0x7f, 0xd7, &arg);
     struct {
         u16 *text;
         u8 colour[4];

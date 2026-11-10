@@ -41,7 +41,7 @@ u32 __cdecl ThemeSaves_Load() { return withLabel(kLoadA); }
 void __cdecl ThemeSaves_EnsureFile() {
     StreamBase stream;
     g_calls.Th(kStreamCtor, word(&stream));
-    stream.vtable = ptr<void *const *>(0x006fd930);
+    stream.vtable = ptr<void *const *>((u32)(uintptr_t)FileStream_vtable);
     u8 *const slots = UserSlots_Instance();
     WString path;
     g_calls.Th(kThemeFolder, word(slots), &path);

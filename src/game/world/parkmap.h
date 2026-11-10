@@ -112,6 +112,7 @@ GAME_DATA(const float, gParkmap_703048, 0x00703048, 0x4);
 GAME_DATA(const float, gParkMap_DrawCoasterLines_70304c, 0x0070304c, 0x4);
 GAME_DATA(const float, gParkMap_DrawCoasterLines_703050, 0x00703050, 0x4);
 GAME_DATA(const float, gParkmap_703064, 0x00703064, 0x4);
-GAME_DATA(u32, gParkMap_AddSprites_785670, 0x00785670, 0x4);
-GAME_DATA(s32, gParkMap_AddSprites_785688, 0x00785688, 0x4);
 GAME_DATA(PtrList *, gParkmap_fa6e38, 0x00fa6e38, 0x4);
+
+// The vtables hold only ports: tpw.exe's loader points their slots at them (.docs/09-globals.md).
+GAME_DATA(void *[1], Class703088_vtable, 0x00703088, 0x4);

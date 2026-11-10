@@ -13,3 +13,8 @@ extern "C" {
 // The model placed at the start, the owner's slot 1 told of it. Returns self.
 u8 *__fastcall LobbyFlight_Ctor(u8 *self, void *, u8 *owner, u32 a, u32 b, const u32 *centre, const u32 *spread, u32 e, u32 f);
 }
+
+#include "../core/gamedata.h"
+
+// The vtables hold only ports: tpw.exe's loader points their slots at them (.docs/09-globals.md).
+GAME_DATA(void *[1], Class702ae8_vtable, 0x00702ae8, 0x4);

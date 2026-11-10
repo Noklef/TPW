@@ -15,3 +15,8 @@ u8 *__fastcall Window705c58_Ctor(u8 *window, void *, u8 *parent, u32 flags, u32 
 // (the rest of EAX Window_Notify80's).
 u32 __fastcall Window705c58_SetValue(u8 *window, void *, u32 value);
 }
+
+#include "../core/gamedata.h"
+
+// The vtables hold only ports: tpw.exe's loader points their slots at them (.docs/09-globals.md).
+GAME_DATA(void *[12], Window705c58_vtable, 0x00705c58, 0x30);

@@ -158,7 +158,7 @@ StreamBase *__fastcall StreamBase_Ctor(StreamBase *s) {
 
 StreamBase *__fastcall Stream6fd930_Ctor(StreamBase *s) {
     StreamBase_Ctor(s);
-    reinterpret_cast<u32 *>(s)[0] = 0x006fd930;
+    reinterpret_cast<u32 *>(s)[0] = (u32)(uintptr_t)FileStream_vtable;
     return s;
 }
 

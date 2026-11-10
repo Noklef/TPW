@@ -80,7 +80,6 @@ u32 __fastcall Model_AddTree(void *self, void *, u8 *model, const u32 *matrix, u
 #include "../core/gamedata.h"
 
 // Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
-GAME_DATA(s32, gBatch_8bd4ac, 0x008bd4ac, 0x4);
 GAME_DATA(u32, gBatch_8c63b0, 0x008c63b0, 0x4);
 GAME_DATA(u32, gBatch_8c63b4, 0x008c63b4, 0x4);
 GAME_DATA(u32, gBatch_8c63b8, 0x008c63b8, 0x4);

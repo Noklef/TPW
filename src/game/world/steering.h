@@ -120,3 +120,12 @@ void __cdecl Steering_SetPathBehaviours();
 
 // Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
 GAME_DATA(s32, gSteering_7cf048, 0x007cf048, 0x4);
+
+// The vtables hold only ports: tpw.exe's loader points their slots at them (.docs/09-globals.md).
+GAME_DATA(void *[2], Class7009b8_vtable, 0x007009b8, 0x8);
+GAME_DATA(void *[1], Class7009c0_vtable, 0x007009c0, 0x4);
+GAME_DATA(void *[1], Class7009c4_vtable, 0x007009c4, 0x4);
+GAME_DATA(void *[1], Class7009c8_vtable, 0x007009c8, 0x4);
+GAME_DATA(void *[1], Class7009cc_vtable, 0x007009cc, 0x4);
+GAME_DATA(void *[1], Class7009d0_vtable, 0x007009d0, 0x4);
+GAME_DATA(void *[1], Class7009d4_vtable, 0x007009d4, 0x4);

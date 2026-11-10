@@ -19,6 +19,8 @@
 // its code base, 0x7b49f8 its registers. Register operands 1-6 compare and add as floats.
 #pragma once
 
+#include <cstdint>
+
 #include "../../../re/types.h"
 
 extern "C" {
@@ -174,7 +176,11 @@ struct SpriteScriptGlobals {
 static_assert(sizeof(SpriteScriptGlobals) == 0x2c, "0x7b49f0-0x7b4a1b");
 
 // Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(u32[0x742], gSpriteScriptCode, 0x0074dab8, 0x1d08);   // the scripts' code (threaded: opcode addresses and operands)
 GAME_DATA(u32[4], gSpriteScriptActions, 0x0074f7c8, 0x10);
+
+// The code address at a byte offset into gSpriteScriptCode (callers pass it as the script's start).
+inline u32 SpriteCode(u32 offset) { return (u32)(uintptr_t)gSpriteScriptCode + offset; }
 GAME_DATA(SpriteScriptGlobals, gSpriteScripts, 0x007b49f0, 0x2c);
 GAME_DATA(float, gSpriteScripts_InitUnusedOne_7b4a1c, 0x007b4a1c, 0x4);
 GAME_DATA(float, gSpriteScripts_InitUnusedEpsilon_7b4a20, 0x007b4a20, 0x4);

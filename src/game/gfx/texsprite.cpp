@@ -26,7 +26,7 @@ u32 Blend(const u8 *source, u32 offset) {
 extern "C" {
 
 u8 *__fastcall TexSprite_Ctor(u8 *object, void *, u32 image, u32 a, u32 b, u32 c, u32 d) {
-    at<u32>(object, 0) = 0x00703088;
+    at<u32>(object, 0) = (u32)(uintptr_t)Class703088_vtable;
     u8 *const frame = PtrArray_AddSpriteFrame(kFrames, nullptr, image);
     at<u32>(object, 0x14) = a;
     at<u32>(object, 0x1c) = b;

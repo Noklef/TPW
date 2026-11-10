@@ -335,7 +335,7 @@ u32 __fastcall Class702cb0_ReloadWeather(u8 *) { return g_env->reloadTextures(*r
 extern "C" {
 
 void __fastcall Class702a50_Dtor(u8 *object) {
-    at<u32>(object, 0) = 0x00702a50;
+    at<u32>(object, 0) = (u32)(uintptr_t)Class702a50_vtable;
     vcall<u32>(gFrame_f83774, 0x20, object);
     g_env->destroy(at<u32>(object, 4));
     g_env->stringDtor(reinterpret_cast<String *>(object + 0x20));
@@ -350,7 +350,7 @@ u8 *__fastcall Class702a50_DeletingDtor(u8 *object, void *, u32 flags) {
 
 u8 *__fastcall Class702a60_Ctor(u8 *object) {
     g_env->baseCtor(object);
-    at<u32>(object, 0) = 0x00702a60;
+    at<u32>(object, 0) = (u32)(uintptr_t)Class702a60_vtable;
     String name;
     g_env->stringCtor(&name, nullptr, reinterpret_cast<const char *>((uintptr_t)0x00774c64));
     g_env->joinPath(reinterpret_cast<u8 *>((uintptr_t)0x00f816c0), nullptr, reinterpret_cast<const StringView *>(&name));
@@ -363,8 +363,8 @@ u8 *__fastcall Class702a60_Ctor(u8 *object) {
     else
         g_env->holderSleep(at<u8 *>(renderer, 8));
     at<u32>(object, 4) = 0;
-    at<u8 *>(object, 8) = NewEmpty(0x00702a58);
-    at<u8 *>(object, 0xc) = NewEmpty(0x00702a54);
+    at<u8 *>(object, 8) = NewEmpty((u32)(uintptr_t)Class702a58_vtable);
+    at<u8 *>(object, 0xc) = NewEmpty((u32)(uintptr_t)Class702a54_vtable);
     return object;
 }
 
@@ -381,7 +381,7 @@ void __fastcall LobbyCamera_Frame(u8 *camera) {
     if (at<s32>(camera, 0x5c) > 0) {
         global<u32>(0x008bcbc8) |= 0x80000;
         const s32 alpha = at<s32>(camera, 0x5c) >> 8;
-        gLobbyscene_8bd4e4 = static_cast<u32>(alpha > 0xff ? 0xff : alpha) << 24;
+        global<u32>(0x008bd4e4) = static_cast<u32>(alpha > 0xff ? 0xff : alpha) << 24;
     } else {
         global<u32>(0x008bcbc8) &= 0xfff7ffff;
     }
@@ -510,17 +510,17 @@ u8 *__fastcall Class702af0_Ctor(u8 *object, void *, s32 count, const char *name,
                                 u32 b) {
     String_Ctor(reinterpret_cast<String *>(object + 0x10));
     String_Ctor(reinterpret_cast<String *>(object + 0x24));
-    at<u32>(object, 0) = 0x00702af0;
+    at<u32>(object, 0) = (u32)(uintptr_t)Class702af0_vtable;
     u32 *list = static_cast<u32 *>(GameHeap_Alloc(0x10));
     if (list) {
         list[1] = 0;
         list[2] = 0;
         list[3] = 0;
-        list[0] = 0x00702aec;
+        list[0] = (u32)(uintptr_t)Class702aec_vtable;
     }
     at<u32>(object, 4) = 0;
     at<u32 *>(object, 0x58) = list;
-    s32 share = (s32)((u32)count * gClass702af0_Ctor_7858dc) / 100;
+    s32 share = (s32)((u32)count * global<u32>(0x007858dc)) / 100;
     if (share < 1)
         share = 1;
     else if (share > count)

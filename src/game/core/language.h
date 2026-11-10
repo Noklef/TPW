@@ -120,8 +120,4 @@ GAME_DATA(char[0x14], gLanguage_74c668, 0x0074c668, 0x14);
 GAME_DATA(char[0x28], gLanguage_74c67c, 0x0074c67c, 0x28);
 GAME_DATA(char[0x10], gLanguage_74c6a4, 0x0074c6a4, 0x10);
 GAME_DATA(char[0x14], gLanguage_74c6b4, 0x0074c6b4, 0x14);
-GAME_DATA(u8 *, gLanguage_78ba7c, 0x0078ba7c, 0x4);
-GAME_DATA(u32, gLanguage_78ba80, 0x0078ba80, 0x4);
-GAME_DATA(u8 *, gLanguage_78ba94, 0x0078ba94, 0x4);
-GAME_DATA(u8 *, gLanguage_78baa4, 0x0078baa4, 0x4);
 GAME_DATA(char[0x108], gLanguage_f7f230, 0x00f7f230, 0x108);

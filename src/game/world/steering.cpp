@@ -108,15 +108,15 @@ bool WallCorner(s32 *out, const u8 *nav, const s32 *dir, s32 len, u32 x, u32 y) 
 
 extern "C" {
 
-u32 *__fastcall SteerSeek_Ctor(u32 *self) { return Construct(self, 0x7009b8, "seek"); }
-u32 *__fastcall SteerArrival_Ctor(u32 *self) { return Construct(self, 0x7009c0, "arrival"); }
-u32 *__fastcall SteerSeparation_Ctor(u32 *self) { return Construct(self, 0x7009c4, "separation"); }
-u32 *__fastcall SteerAvoidObstacle_Ctor(u32 *self) { return Construct(self, 0x7009c8, "avoid_obstacle"); }
-u32 *__fastcall SteerRepelObstacle_Ctor(u32 *self) { return Construct(self, 0x7009cc, "repel_obstacle"); }
-u32 *__fastcall SteerAvoidWalls_Ctor(u32 *self) { return Construct(self, 0x7009d0, "avoid_walls"); }
-u32 *__fastcall SteerFollowPath_Ctor(u32 *self) { return Construct(self, 0x7009d4, "follow_path"); }
+u32 *__fastcall SteerSeek_Ctor(u32 *self) { return Construct(self, (u32)(uintptr_t)Class7009b8_vtable, "seek"); }
+u32 *__fastcall SteerArrival_Ctor(u32 *self) { return Construct(self, (u32)(uintptr_t)Class7009c0_vtable, "arrival"); }
+u32 *__fastcall SteerSeparation_Ctor(u32 *self) { return Construct(self, (u32)(uintptr_t)Class7009c4_vtable, "separation"); }
+u32 *__fastcall SteerAvoidObstacle_Ctor(u32 *self) { return Construct(self, (u32)(uintptr_t)Class7009c8_vtable, "avoid_obstacle"); }
+u32 *__fastcall SteerRepelObstacle_Ctor(u32 *self) { return Construct(self, (u32)(uintptr_t)Class7009cc_vtable, "repel_obstacle"); }
+u32 *__fastcall SteerAvoidWalls_Ctor(u32 *self) { return Construct(self, (u32)(uintptr_t)Class7009d0_vtable, "avoid_walls"); }
+u32 *__fastcall SteerFollowPath_Ctor(u32 *self) { return Construct(self, (u32)(uintptr_t)Class7009d4_vtable, "follow_path"); }
 
-void __fastcall Steer_Dtor(u32 *self) { self[0] = 0x7009bc; }
+void __fastcall Steer_Dtor(u32 *self) { self[0] = ((u32)(uintptr_t)Class7009b8_vtable + 0x4); }
 
 void __cdecl SteerSeek_Destroy() { Steer_Dtor(Global(0x7cf050)); }
 void __cdecl SteerArrival_Destroy() { Steer_Dtor(Global(0x7cf0b0)); }

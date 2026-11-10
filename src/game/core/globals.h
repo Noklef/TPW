@@ -187,6 +187,5 @@ GAME_DATA(u32, gGlobals_81ea14, 0x0081ea14, 0x4);
 GAME_DATA(u32[0x10], gGlobals_879d08, 0x00879d08, 0x40);
 GAME_DATA(s32, gGlobals_879d48, 0x00879d48, 0x4);
 GAME_DATA(u32[0x2], gGlobals_8bba78, 0x008bba78, 0x8);
-GAME_DATA(u32, gGlobals_8c47d4, 0x008c47d4, 0x4);
 GAME_DATA(u32, gGlobals_f827dc, 0x00f827dc, 0x4);
 GAME_DATA(u32, gGlobals_fb2708, 0x00fb2708, 0x4);

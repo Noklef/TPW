@@ -41,7 +41,7 @@ void UpdateRows() {
         if (mode == 1 && g_env->hasRegion(staff) == 0) mode = 0;
         u32 texts[5];
         texts[0] = 0;
-        const u8 *const record = g_env->record(gLanguage_78baa4, nullptr, mode);
+        const u8 *const record = g_env->record(global<const u8 *>(0x0078baa4), nullptr, mode);
         texts[1] = static_cast<u32>(reinterpret_cast<uintptr_t>(g_env->widen(record)));
         texts[2] = static_cast<u32>(g_env->wage(staff));
         texts[3] = (g_env->grade(staff) << 10) / 100;

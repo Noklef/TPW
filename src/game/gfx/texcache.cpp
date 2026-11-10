@@ -672,7 +672,7 @@ u32 __fastcall TexCache_ChooseBudget(u8 *cache) {
     u32 added = 1;
     s32 count;
     if (memory == 0) {
-        const s32 budget = at<s32>(nullptr, (u32)&gState_8c1620);
+        const s32 budget = at<s32>(nullptr, 0x008c1620);
         at<s32>(cache, 0x1860) = budget ? budget : 0x2000000;
         added = TexCache_AddSurfaces(cache, nullptr, 0x100, &count, at<u32>(nullptr, 0x008bd554), 0);
         memory = (s32)((u32)sizes[at<u32>(nullptr, 0x008bd554)] * (u32)count << 16);
@@ -682,7 +682,7 @@ u32 __fastcall TexCache_ChooseBudget(u8 *cache) {
         count = (memory >> 16) / sizes[at<u32>(nullptr, 0x008bd554)];
         if (count > 0x2000000) count = 0x2000000;
     }
-    gTexcache_8c1624 = memory;
+    global<s32>(0x008c1624) = memory;
     if (const s32 fixed = at<s32>(cache, 0x1920)) {
         at<s32>(cache, 0x18f4) = fixed;
     } else {

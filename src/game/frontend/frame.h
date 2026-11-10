@@ -67,3 +67,6 @@ u32 __fastcall Frame_Start(u8 *frame);
 GAME_DATA(u8 *, gFrame_f83774, 0x00f83774, 0x4);
 GAME_DATA(u8 *, gFrame_f83778, 0x00f83778, 0x4);
 GAME_DATA(u8 *, gFrame_f83784, 0x00f83784, 0x4);
+
+// The vtables hold only ports: tpw.exe's loader points their slots at them (.docs/09-globals.md).
+GAME_DATA(void *[1], Class7029fc_vtable, 0x007029fc, 0x4);

@@ -30,4 +30,3 @@ GAME_DATA(const float, gTerrainWater_Draw_70153c, 0x0070153c, 0x4);
 GAME_DATA(const float, gTerrainWater_Draw_701540, 0x00701540, 0x4);
 GAME_DATA(float, gTerrainWater_Draw_768318, 0x00768318, 0x4);
 GAME_DATA(float, gTerrainWater_Draw_76831c, 0x0076831c, 0x4);
-GAME_DATA(u32, gTerrainWater_Draw_8bd4bc, 0x008bd4bc, 0x4);

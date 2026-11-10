@@ -24,3 +24,10 @@ void __cdecl RasterTriangle_DrawFlat(const u8 *v0, const u8 *v1, const u8 *v2);
 // 0x6f0a50: as RasterTriangle_Draw without depth: [0xfbe148], [0xfbe168] and the edges' depth not written.
 void __cdecl RasterTriangle_DrawNoZ(const u8 *v0, const u8 *v1, const u8 *v2);
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(u8[0x88], gRastertriangle_fbe0b0, 0x00fbe0b0, 0x88);
+GAME_DATA(u8[0x2a0], gRastertriangle_fbe240, 0x00fbe240, 0x2a0);
+GAME_DATA(u8[0x110], gRastertriangle_fbe6f0, 0x00fbe6f0, 0x110);

@@ -8,6 +8,7 @@
 #include "file.h"
 #include "wadfind.h"
 #include "wrapsources.h"
+#include "handles.h"
 
 namespace {
 
@@ -22,7 +23,7 @@ const WadSourceEnv kGameEnv = {
 const WadSourceEnv *g_env = &kGameEnv;
 
 void *const *const kWadSourceVtable = WadSource_vtable;
-void *const *const kFileStreamVtable = at<void *const *>(0x006fd930);
+void *const *const kFileStreamVtable = at<void *const *>((u32)(uintptr_t)FileStream_vtable);
 const void *const kWadStringListVtable = WadStringList_vtable;
 const void *const kStringListVtable = StringList_vtable;
 
