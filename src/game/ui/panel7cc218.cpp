@@ -52,6 +52,7 @@
 #include "windowreg.h"
 #include "dialog7cc654handler.h"
 #include "dialog74fb20.h"
+#include "panel7b9940.h"
 
 using namespace panelparts;
 
@@ -67,7 +68,7 @@ void gauge(u8 *self, u32 id) {
     u8 *const child = Window_FindChild(root(self), nullptr, id);
     Window705b20_SetRange(child, nullptr, 0, 0x78);
     u8 *const memory = static_cast<u8 *>(GameHeap_Alloc(0x124));
-    u8 *const mesh = memory ? MeshOverlay_Construct(memory, nullptr, reinterpret_cast<const char *>(0x007558f4)) : nullptr;
+    u8 *const mesh = memory ? MeshOverlay_Construct(memory, nullptr, gPanel7cc218_7558f4) : nullptr;
     Window_SetImpl(Window_FindChild(child, nullptr, 0x3e2e), nullptr, mesh);
     vcall<void>(Window_FindChild(child, nullptr, 0x3e2e), 0x1c, 0u);
 }
@@ -109,7 +110,7 @@ const Panel7cc218RefreshEnv *g_refresh = &kRefreshGameEnv;
 void Panel7cc218_SetRefreshEnv(const Panel7cc218RefreshEnv *env) { g_refresh = env ? env : &kRefreshGameEnv; }
 
 extern "C" void __fastcall Panel7cc218_Refresh(u8 *self) {
-    u8 *const name = g_refresh->name(*reinterpret_cast<u8 **>((uintptr_t)0x007c2658));
+    u8 *const name = g_refresh->name(gPanel7cc218_7c2658);
     vcall<void>(at<u8 *>(self, 0x20), 0x24, name);
     vcall<void>(self, 0x18);
     vcall<void>(self, 0x14);
@@ -131,7 +132,7 @@ u8 *newTileMode(u32 kind) {
 
 // MouseModes_EnsureHolder, inline in the original, then the mode current.
 void setMode(u8 *mode) {
-    u8 *&holder = *reinterpret_cast<u8 **>((uintptr_t)0x007b05e8);
+    u8 *&holder = gPanel7b9940_7b05e8;
     if (!holder) {
         u8 *const block = static_cast<u8 *>(g_tile->alloc(1));
         if (block) {
@@ -155,12 +156,12 @@ void setTileMode(u8 *mode) {
 void Panel7cc218_SetTileEnv(const Panel7cc218TileEnv *env) { g_tile = env ? env : &kTileGameEnv; }
 
 extern "C" void __fastcall Panel7cc218_EnterMoveMode(u8 *self) {
-    u8 *const thing = *reinterpret_cast<u8 **>((uintptr_t)0x007c2658);
+    u8 *const thing = gPanel7cc218_7c2658;
     g_tile->select((u32)(uintptr_t)thing);
     g_tile->focus(1);
     const u16 cell = (u16)((thing[7] << 7) + thing[5] + 1);
     if (*reinterpret_cast<u32 *>(g_tile->getDef(thing) + 0x40)) {
-        *reinterpret_cast<u8 *>((uintptr_t)0x0081b14c) = g_tile->traceQueue(thing);
+        gPanel7cc218_EnterMoveMode_81b14c = g_tile->traceQueue(thing);
         g_tile->commitPairs();
     }
     g_tile->gameMode(0x33, 1);
@@ -169,17 +170,17 @@ extern "C" void __fastcall Panel7cc218_EnterMoveMode(u8 *self) {
     u8 *const block = static_cast<u8 *>(g_tile->alloc(0x14));
     u8 *const mode = block ? g_tile->tileCtorKind(block, nullptr, 0x3b, *reinterpret_cast<u16 *>(thing + 0xe)) : nullptr;
     setMode(mode);
-    *reinterpret_cast<u8 **>((uintptr_t)0x0081b3ac) = thing;
+    gPanel7cc218_EnterMoveMode_81b3ac = thing;
     g_tile->gameMode(0x3b, 1);
     const u16 id = *reinterpret_cast<u16 *>(thing + 0xe);
     g_tile->setId(&id, 0);
     g_tile->setValue(*reinterpret_cast<u32 *>(thing + 0x10), 1);
-    *reinterpret_cast<u8 **>((uintptr_t)0x007c2658) = nullptr;
+    gPanel7cc218_7c2658 = nullptr;
     vcall<void>(self, 0x2c);
 }
 
 extern "C" void __fastcall Panel7cc218_EnterTileMode(u8 *self, void *, u32 flag) {
-    u8 *const thing = *reinterpret_cast<u8 **>((uintptr_t)0x007c2658);
+    u8 *const thing = gPanel7cc218_7c2658;
     g_tile->select((u32)(uintptr_t)thing);
     g_tile->focus(1);
     if (!flag) {
@@ -201,7 +202,7 @@ extern "C" void __fastcall Panel7cc218_EnterTileMode(u8 *self, void *, u32 flag)
 extern "C" {
 
 void __fastcall Panel7cc218_ShowRide(u8 *self) {
-    const u8 *const thing = *reinterpret_cast<u8 **>((uintptr_t)0x007c2658);
+    const u8 *const thing = gPanel7cc218_7c2658;
     const u8 *const def = Object_GetDef(thing);
     if (!root(self)) return;
     if (u8 *const child = Window_FindChild(root(self), nullptr, 0x3e30)) {
@@ -280,7 +281,7 @@ void __fastcall Panel7cc218_Show(u8 *self, void *, u8 *thing) {
 }
 
 void __fastcall Panel7cc218_ApplyToShown(u8 *self) {
-    u8 *const thing = *reinterpret_cast<u8 **>((uintptr_t)0x007c2658);
+    u8 *const thing = gPanel7cc218_7c2658;
     Obj_SetSpeed(thing, nullptr, at<u32>(self, 0x2c));
     Object_SetCapacity(thing, nullptr, at<u8>(self, 0x30));
     if (at<u32>(Object_GetDef(thing), 0x70)) Obj_SetDuration(thing, nullptr, at<u8>(self, 0x34));
@@ -297,7 +298,7 @@ void __fastcall Panel7cc218_Open(u8 *self) {
 }
 
 void __fastcall Panel7cc218_UpdateButtons(u8 *self) {
-    u8 *const thing = *reinterpret_cast<u8 **>((uintptr_t)0x007c2658);
+    u8 *const thing = gPanel7cc218_7c2658;
     if (!thing) return;
     const u8 *const def = Object_GetDef(thing);
     if (mode(self) == 3) {
@@ -330,7 +331,7 @@ void __fastcall Panel7cc218_UpdateButtons(u8 *self) {
 }
 
 u32 __fastcall Panel7cc218_Choose(u8 *, void *, s32 index, u8 close) {
-    u8 *const thing = *reinterpret_cast<u8 **>(0x007c2658);
+    u8 *const thing = gPanel7cc218_7c2658;
     u8 *const game = *reinterpret_cast<u8 **>(0x007cf83c);
     const s32 balance = (s32)Source_Field0c(reinterpret_cast<const TrackedSource *>((uintptr_t)GameTable7cfb90_Get1da726_5195d0(game)));
     if (close == 1) {
@@ -355,7 +356,7 @@ u32 __fastcall Panel7cc218_Choose(u8 *, void *, s32 index, u8 close) {
 }
 
 void __fastcall Panel7cc218_ShowSettings(u8 *self, void *, u8 flags) {
-    u8 *const thing = *reinterpret_cast<u8 **>((uintptr_t)0x007c2658);
+    u8 *const thing = gPanel7cc218_7c2658;
     if (flags & 1) {
         u8 *const child = Window_FindChild(root(self), nullptr, 0x3e33);
         settingText(self, 0x1aa, 5, 0x2c);
@@ -518,7 +519,7 @@ extern "C" void __cdecl Panel7cc218_FillLevels(u32 id, u8 *list, u32 clear, u8 *
 }
 
 extern "C" void __fastcall Panel7cc218_RefreshFigures(u8 *self) {
-    u8 *const object = global<u8 *>(0x007c2658);
+    u8 *const object = gPanel7cc218_7c2658;
     g_figures->def(object);
     if (u8 *const window = at<u8 *>(self, 0x14)) showFigures(self, window, object);
     const u32 status = g_figures->status(object, 2);
@@ -591,7 +592,7 @@ void __fastcall Panel7cc218_OpenLevelBox(u8 *self) {
     Window7059f0_SetColumnBottom(list, nullptr, 0, 0);
     Window7059f0_SetColumnBottom(list, nullptr, 1, 1);
     Window7059f0_SetHighlight(list, nullptr, reinterpret_cast<u8 *>((uintptr_t)GuiWindows_FindByName(reinterpret_cast<const char *>(0x0074fa84))));
-    u8 *const thing = *reinterpret_cast<u8 **>((uintptr_t)0x007c2658);
+    u8 *const thing = gPanel7cc218_7c2658;
     g_levelBox->levels(at<u16>(thing, 0xe), list, 0, thing);
 }
 
@@ -605,7 +606,7 @@ void Panel7cc218_SetHandlerEnv(const Panel7cc218HandlerEnv *env) { g_handler = e
 
 s32 __cdecl Panel7cc218_Handler(u8 *window, u32 message, u32 a, u32 b) {
     u8 *const panel = reinterpret_cast<u8 *>((uintptr_t)0x007cc218);
-    u8 *const thing = global<u8 *>(0x007c2658);
+    u8 *const thing = gPanel7cc218_7c2658;
     switch (message) {
     case 5:
         g_handler->close(panel);

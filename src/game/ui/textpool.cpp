@@ -9,12 +9,12 @@ namespace {
 
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
 
-u8 *&LongBlock() { return global<u8 *>(0x00faa644); }
-s32 &LongLength() { return global<s32>(0x00faa648); }
-s32 &LongRows() { return global<s32>(0x00faa64c); }
-u8 *&ShortBlock() { return global<u8 *>(0x00faa63c); }
-s32 &ShortLength() { return global<s32>(0x00faa640); }
-s32 &ShortRows() { return global<s32>(0x00faa650); }
+u8 *&LongBlock() { return gTextpool_faa644; }
+s32 &LongLength() { return gTextpool_faa648; }
+s32 &LongRows() { return gTextpool_faa64c; }
+u8 *&ShortBlock() { return gTextpool_faa63c; }
+s32 &ShortLength() { return gTextpool_faa640; }
+s32 &ShortRows() { return gTextpool_faa650; }
 
 // the first (or with `last` the last) free row among `rows` rows of `length` characters from `row`, or 0
 u8 *FreeRow(u8 *row, s32 rows, s32 length, bool last) {

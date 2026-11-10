@@ -28,8 +28,8 @@ u16 *typed() { return reinterpret_cast<u16 *>((uintptr_t)0x007ca720); }
 u8 *next(u8 *item) { return WNamedList_FindAfter(list(), nullptr, item); }
 void close(u32 dialog) { g_env->send(global<u8 *>(dialog), 4, 0, 0); }
 
-const u32 kLoadDialog = 0x007cb244;
-const u32 kSaveDialog = 0x007cb248;
+const u32 kLoadDialog = reinterpret_cast<uintptr_t>(&gSavedialog_7cb244);
+const u32 kSaveDialog = reinterpret_cast<uintptr_t>(&gSavedialog_7cb248);
 const u32 kArgTag = 0x5641524d;
 
 struct FormatArg {

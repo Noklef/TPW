@@ -67,12 +67,12 @@ u32 __stdcall GameWindow_Proc(u32 window, u32 message, u32 wparam, u32 lparam) {
         case 0x1c:
             if (wparam) {
                 if (const u32 cache = global<u32>(0x008c4b44)) g_calls.Th(0x0058dd60, cache, 1u);
-                global<u32>(0x007a1a14) |= 8;
+                gWindowproc_7a1a14 |= 8;
                 g_calls.Cd(0x00659333);
                 if (global<u32>(0x00f82884)) g_calls.Cd(0x0051bd30);
                 if (global<u32>(0x007b4b88)) global<u32(__stdcall *)(u32)>(0x006fd30c)(0);
             } else {
-                global<u32>(0x007a1a14) &= ~8u;
+                gWindowproc_7a1a14 &= ~8u;
                 g_calls.Cd(0x0051b350);
                 g_calls.Cd(0x006593c5);
                 if (global<u32>(0x00f82884)) g_calls.Cd(0x0051bcf0);

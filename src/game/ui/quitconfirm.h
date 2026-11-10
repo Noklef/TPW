@@ -16,3 +16,8 @@ extern "C" {
 // 0x4c0830 (cdecl (answer), a message box's callback): with the answer 0, [[0xf82884] +0x14] = 2 and the setting 0xfb3b7c (read the first time, guard 0xfb34bc bit 0, atexit 0x5d1750) given the mode 1.
 void __cdecl QuitConfirm_Answered(u32 answer);
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(u8, gQuitconfirm_fb34bc, 0x00fb34bc, 0x1);

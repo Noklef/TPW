@@ -14,6 +14,7 @@
 #include "window.h"
 #include "windowscript.h"
 #include "dialog74fb20.h"
+#include "panel7b9940.h"
 
 namespace {
 
@@ -140,8 +141,8 @@ void __cdecl Dialog7cb2b8_Build() {
     gDialog7cb2b8build_7cb28c = 1;
     gDialog7cb2b8build_7cb2a0 = 3;
     gDialog7cb2b8build_7cb290 = 0xa;
-    if (WindowScript_Build(global<u8 *>(0x007cb2ac), nullptr, reinterpret_cast<u8 *>((uintptr_t)0x00752940), 0)) {
-        u8 *const top = gDialog7cb2b8_Build_7cb2a4 = Window_FindChild(global<u8 *>(0x007cb2ac), nullptr, 0x33);
+    if (WindowScript_Build(gPanel7b9940_7cb2ac, nullptr, reinterpret_cast<u8 *>((uintptr_t)0x00752940), 0)) {
+        u8 *const top = gDialog7cb2b8_Build_7cb2a4 = Window_FindChild(gPanel7b9940_7cb2ac, nullptr, 0x33);
         Window_SetDepth(top, nullptr, 0);
         vcall<void>(gDialog7cb2b8_Build_7cb2a4, 0x14, 0u);
         g_env->setHandler(gDialog7cb2b8_Build_7cb2a4, nullptr, 0x004a0fb0);
@@ -158,10 +159,10 @@ void __cdecl Dialog7cb2b8_Build() {
         } else {
             Window_SetShown(Window_FindChild(gDialog7cb2b8_Build_7cb2a4, nullptr, 0x34), nullptr, 0);
         }
-        buildRepair(Window_FindChild(global<u8 *>(0x007cb2ac), nullptr, 0x2d));
-        if (u8 *const money = Window_FindChild(global<u8 *>(0x007cb2ac), nullptr, 0x2f)) buildMoney(money);
+        buildRepair(Window_FindChild(gPanel7b9940_7cb2ac, nullptr, 0x2d));
+        if (u8 *const money = Window_FindChild(gPanel7b9940_7cb2ac, nullptr, 0x2f)) buildMoney(money);
     }
-    if (u8 *const dialog = Window_FindChild(global<u8 *>(0x007cb2ac), nullptr, 0x1d)) {
+    if (u8 *const dialog = Window_FindChild(gPanel7b9940_7cb2ac, nullptr, 0x1d)) {
         g_env->setHandler(dialog, nullptr, 0x004a0a20);
         u8 rect[12];
         GuiRect_Ctor(rect);

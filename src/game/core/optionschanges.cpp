@@ -5,6 +5,7 @@
 #include "string.h"
 #include "vcall.h"
 #include "../files/userslots.h"
+#include "../ui/windowproc.h"
 
 namespace {
 
@@ -99,7 +100,7 @@ u32 __cdecl Options_ConfirmSave() {
 }
 
 void __cdecl Options_LoadStartup() {
-    global<u32>(0x007a1a14) = 0;
+    gWindowproc_7a1a14 = 0;
     global<u32>(0x007a1a8c) = 0x000c0e15;
     String path;
     String_CtorStr(&path, nullptr, ptr<const char *>(0x0074ce84));

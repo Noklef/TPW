@@ -53,8 +53,8 @@ u32 __fastcall MsgQueue_DispatchOne(u8 *queue) {
             if (window(0x00faa578) && takes(0x00faa57c) &&
                 WordPairs_Contains(reinterpret_cast<const s16 *>(window(0x00faa578)), (u16)entry[2], (entry[3] >> 16) & 0xff))
                 target = window(0x00faa57c);
-            else if (takes(0x00faa5ec))
-                target = window(0x00faa5ec);
+            else if (takes(reinterpret_cast<uintptr_t>(&gWindow_faa5ec)))
+                target = window(reinterpret_cast<uintptr_t>(&gWindow_faa5ec));
             else if (takes(0x00faa5dc))
                 target = window(0x00faa5dc);
             if (target) Window_CallHandler(target, nullptr, entry[1], entry[2], entry[3]);

@@ -26,6 +26,7 @@
 #include "thingscan.h"
 #include "../ui/dialog7cb2b8build.h"
 #include "../ui/dialog74fb20.h"
+#include "../ui/panel7b9940.h"
 
 namespace {
 
@@ -52,7 +53,7 @@ void MMPlaceStaff_SetCalls(const AddrCall *table, u32 count) { g_calls.Set(table
 extern "C" {
 
 u8 *__cdecl MouseModes_EnsureHolder() {
-    u8 *&holder = *reinterpret_cast<u8 **>(0x007b05e8);
+    u8 *&holder = gPanel7b9940_7b05e8;
     if (holder) return holder;
     u8 *const block = static_cast<u8 *>(GameHeap_Alloc(1));
     if (block) MouseModeHolder_Ctor(block);
@@ -351,8 +352,8 @@ void __cdecl MouseMode_EnterTile16() { enter_tile(0x16); }
 
 void __cdecl ChatButtons_Select(u32 leave) {
     if (*reinterpret_cast<u32 *>(*reinterpret_cast<uintptr_t *>(0x007cf83c) + 0x1da738) == 4 || Word7cf4f4_NonZero()) return;
-    Window_SendMessage(*reinterpret_cast<u8 **>(0x007cb2ac), 6, leave, 0);
-    Window_SendMessage(*reinterpret_cast<u8 **>(0x007cb2b0), 6, 1 - leave, 0);
+    Window_SendMessage(gPanel7b9940_7cb2ac, 6, leave, 0);
+    Window_SendMessage(gPanel7b9940_7cb2b0, 6, 1 - leave, 0);
     u8 &guard = gDialog7cb2b8build_fb34c1;   // (the mode setting 0xfb3b7c: this function's own guard of it)
     const u8 bits = guard;
     if (!(bits & 1)) {

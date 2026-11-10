@@ -13,6 +13,8 @@
 #include "../online/chatcommand.h"
 #include "../online/chat.h"
 #include "../ui/dialog74fb20.h"
+#include "../ui/windowproc.h"
+#include "../ui/panel7b9940.h"
 
 namespace {
 
@@ -401,7 +403,7 @@ void MusicLevels() {   // state 0xa: every 32nd step
 void FixedSteps() {   // state 0xa
     s32 last = G<s32>(0x00878c74);
     while (G<s32>(0x008786bc) > last) {
-        const u8 flags = G<u8>(0x007a1a14);
+        const u8 flags = reinterpret_cast<u8 &>(gWindowproc_7a1a14);
         G<s32>(0x00878c74) = (s32)((u32)last + 0x1f);
         ++G<u32>(0x00877d34);
         if ((flags & 8) || !(G<u8>(0x007a1a8c) & 1)) {
@@ -504,7 +506,7 @@ void ParkFrame() {   // state 0xa
     G<u32>(0x008786bc) = now;
     if ((s32)(now - G<u32>(0x00878c74)) > 0x7d0) G<u32>(0x00878c74) = now - 0x7d0;
     FixedSteps();
-    if ((G<u8>(0x007a1a14) & 8) || !(G<u8>(0x007a1a8c) & 1)) Drawing();
+    if ((reinterpret_cast<u8 &>(gWindowproc_7a1a14) & 8) || !(G<u8>(0x007a1a8c) & 1)) Drawing();
     if (G<u32>(0x00878128)) ScreenGrab_NextName();
     G<u32>(0x00879064) = 0;
     G<u32>(0x0087868c) = Ticks();
@@ -581,7 +583,7 @@ void Shutdown() {   // state 0xc
         FreeChat();
     }
     Cd(0x0051eda0);   // Sound_ReleaseGlobalCategories
-    G<u32>(0x007a1a14) |= 2;
+    gWindowproc_7a1a14 |= 2;
     const u32 centre = G<u32>(0x00788d3c);
     if (centre) {
         Sd(0x0067afa0, centre, 0x14, 0x1d, 0x0040f970);   // the C library's array destructor
@@ -591,12 +593,12 @@ void Shutdown() {   // state 0xc
     FreeOf(0x00f7c58c, 0x005af250);
     FreeOf(reinterpret_cast<uintptr_t>(&gChatcommand_f7d88c), 0x005b5920);
     FreeOf(reinterpret_cast<uintptr_t>(&gChatlists_f81ebc), 0x005c74b0);
-    const u32 mouse = G<u32>(0x007b05e8);
+    const u32 mouse = reinterpret_cast<u32 &>(gPanel7b9940_7b05e8);
     if (mouse) {
         Th(0x0046c350, mouse, 0);   // MouseMode_Set
         GameHeap_Free(reinterpret_cast<void *>((uintptr_t)mouse));
     }
-    G<u32>(0x007b05e8) = 0;
+    reinterpret_cast<u32 &>(gPanel7b9940_7b05e8) = 0;
     FreeChat();
 }
 

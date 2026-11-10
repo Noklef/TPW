@@ -16,6 +16,7 @@
 #include "things.h"
 #include "ridelist.h"
 #include "staff.h"
+#include "../ui/thingbrowser.h"
 
 namespace {
 
@@ -890,8 +891,8 @@ u8 *__cdecl Things_FindPrevOfCategoryWrap(s32 category, const u8 *previous) {
 }
 
 void __cdecl ThingBrowser_Step() {
-    const u8 *&current = *reinterpret_cast<const u8 **>(0x007cc308);
-    const u32 choice = *reinterpret_cast<const u32 *>(0x007cc30c) - 1;
+    u8 *&current = gThingbrowser_7cc308;
+    const u32 choice = gThingbrowser_7cc30c - 1;
     if (choice > 5) {
         current = nullptr;
         return;

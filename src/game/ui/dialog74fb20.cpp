@@ -15,6 +15,7 @@
 #include "window.h"
 #include "windowfactory.h"
 #include "windowscript.h"
+#include "panel7b9940.h"
 
 namespace {
 
@@ -54,8 +55,8 @@ u8 *hide(u8 *thing) {
         gFocus_7c24c8 = nullptr;
         g_env->restore();
     }
-    g_env->send(global<u8 *>(0x007cb2ac), 6, 0, 0);
-    g_env->send(global<u8 *>(0x007cb2b0), 6, 0, 0);
+    g_env->send(gPanel7b9940_7cb2ac, 6, 0, 0);
+    g_env->send(gPanel7b9940_7cb2b0, 6, 0, 0);
     return g_env->create(global<u8 *>(0x00faa5d8), nullptr, 1, 1, 0x7472, 0, 0, 0x7ff, 0x5ff);
 }
 
@@ -63,8 +64,8 @@ u8 *hide(u8 *thing) {
 void closingB(u8 *window, u32 bar) {
     g_env->send(window, 4, 0, 0);
     g_env->tableOp(global<u8 *>(0x007cf83c));
-    g_env->send(global<u8 *>(0x007cb2b0), 6, 0, 0);
-    g_env->send(global<u8 *>(0x007cb2ac), 6, bar, 0);
+    g_env->send(gPanel7b9940_7cb2b0, 6, 0, 0);
+    g_env->send(gPanel7b9940_7cb2ac, 6, bar, 0);
     g_env->enableKeys();
     gDialog74fb20_7c24d0 = 0;
     g_env->restore();

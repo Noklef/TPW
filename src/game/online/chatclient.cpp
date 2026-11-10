@@ -12,6 +12,7 @@
 #include "chatlists.h"
 #include "session.h"
 #include "chatavatar.h"
+#include "../ui/panel7b9940.h"
 
 namespace {
 
@@ -184,7 +185,7 @@ void __fastcall ChatClient_EnterWorld(u8 *self) {
     }
     u8 *const block = static_cast<u8 *>(GameHeap_Alloc(8));
     u8 *const mode = block ? g_env->modeCtor(block) : nullptr;
-    if (!global<u8 *>(0x007b05e8)) {
+    if (!gPanel7b9940_7b05e8) {
         u8 *const holder = static_cast<u8 *>(GameHeap_Alloc(1));
         if (holder) {
             u8 *const base = static_cast<u8 *>(GameHeap_Alloc(8));
@@ -192,9 +193,9 @@ void __fastcall ChatClient_EnterWorld(u8 *self) {
             global<s32>(0x007b05e0) = -1;
             global<s32>(0x007b05d4) = -1;
         }
-        global<u8 *>(0x007b05e8) = holder;
+        gPanel7b9940_7b05e8 = holder;
     }
-    g_env->setMode(global<u8 *>(0x007b05e8), nullptr, mode);
+    g_env->setMode(gPanel7b9940_7b05e8, nullptr, mode);
     session_call(0x006fd4d4, at<u32>(self, 0), 0xa00u, (u32)(uintptr_t)self);
     session_call(0x006fd4c0, at<u32>(self, 0), (u32)(uintptr_t)self);
 }

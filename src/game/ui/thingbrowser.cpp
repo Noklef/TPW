@@ -27,6 +27,7 @@
 #include "windowreg.h"
 #include "windowscript.h"
 #include "dialog7cb2b8build.h"
+#include "panel7cc218.h"
 
 namespace {
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
@@ -45,9 +46,9 @@ void ThingBrowser_SetPatrolEnv(const ThingPatrolEnv *env) { g_patrol = env ? env
 extern "C" {
 
 void __cdecl ThingBrowser_ShowName() {
-    if (!global<u8 *>(0x007cc308)) return;
-    u8 *const label = Window_FindChild(global<u8 *>(0x007cc304), nullptr, 0x147);
-    u8 *const thing = global<u8 *>(0x007cc308);
+    if (!gThingbrowser_7cc308) return;
+    u8 *const label = Window_FindChild(gThingbrowser_7cc304, nullptr, 0x147);
+    u8 *const thing = gThingbrowser_7cc308;
     if (is_staff(thing[2])) {
         vcall<void>(label, 0x24, Staff_GetName(thing));
     } else {
@@ -66,25 +67,25 @@ void __cdecl ThingBrowser_ShowName() {
         vcall<void>(label, 0x24, kText);
     }
     ThingBrowser_ShowDetail();
-    Camera_CentreOnSprite(global<u8 *>(0x007cc308));
+    Camera_CentreOnSprite(gThingbrowser_7cc308);
 }
 
 void __cdecl ThingBrowser_ResetIfThing(u8 *thing) {
-    if (global<u8 *>(0x007cc308) == thing) Dialog7cb2b8_ResetChild21(1);
+    if (gThingbrowser_7cc308 == thing) Dialog7cb2b8_ResetChild21(1);
 }
 
 void __cdecl ThingBrowser_ShowDetail() {
-    u8 *const thing = global<u8 *>(0x007cc308);
+    u8 *const thing = gThingbrowser_7cc308;
     if (!thing) return;
     if (is_staff(thing[2])) {
         const u32 code = Index_ToCode485ec0(Mode19c_ToIndex(thing));
         if (code == global<u32>(0x00756b98)) return;
         global<u32>(0x00756b98) = code;
-        Window_Notify1(Window_FindChild(global<u8 *>(0x007cc304), nullptr, 0x148), nullptr, code);
+        Window_Notify1(Window_FindChild(gThingbrowser_7cc304, nullptr, 0x148), nullptr, code);
         return;
     }
     const u32 count = at<u32>(thing, 0x30);
-    u8 *const child = Window_FindChild(global<u8 *>(0x007cc304), nullptr, 0x14a);
+    u8 *const child = Window_FindChild(gThingbrowser_7cc304, nullptr, 0x14a);
     vcall<void>(child, 0x1c, count ? count - 1 : 0x29au);
 }
 
@@ -99,11 +100,11 @@ u32 __cdecl ThingBrowser_GroupHandler(u8 *group, u32 message, u32 a, u32 b) {
 
 u32 __cdecl ThingBrowser_PanelHandler(u8 *panel, u32 message, u32 a, u32 b) {
     if (message == 0x14) {
-        global<u32>(0x007cc304) = 0;
+        reinterpret_cast<u32 &>(gThingbrowser_7cc304) = 0;
     } else if (message == 0x10001 || message == 0x10002) {
         Window_SetShown(Window_FindChild(panel, nullptr, 0x149), nullptr, message == 0x10001);
     } else if (message == 0x10006 && a == 0) {
-        u8 *const thing = global<u8 *>(0x007cc308);
+        u8 *const thing = gThingbrowser_7cc308;
         if (is_staff(thing[2])) Panel7cc3b0_Show(reinterpret_cast<u8 *>(0x007cc3b0), nullptr, thing);
         else Panel7cc408_Show(reinterpret_cast<u8 *>(0x007cc408), nullptr, thing);
     }
@@ -112,73 +113,73 @@ u32 __cdecl ThingBrowser_PanelHandler(u8 *panel, u32 message, u32 a, u32 b) {
 
 void __cdecl ThingBrowser_Create() {
     WindowScript_Build(global<u8 *>(0x00faa5d8), nullptr, reinterpret_cast<u8 *>(0x00756950), 0);
-    global<u8 *>(0x007cc2fc) = Window_FindChild(global<u8 *>(0x00faa5d8), nullptr, 0x95c);
-    global<u8 *>(0x007cc300) = Window_FindChild(global<u8 *>(0x00faa5d8), nullptr, 0x963);
-    Window_SetHandler(global<u8 *>(0x007cc2fc), nullptr, 0x004b3790);
-    Window_SetHandler(global<u8 *>(0x007cc300), nullptr, 0x004b3790);
-    Window_Unlink(global<u8 *>(0x007cc2fc));
-    Window_Unlink(global<u8 *>(0x007cc300));
-    Window_SetDwordA0(global<u8 *>(0x007cc2fc), nullptr, 0, 3);
-    Window_SetDwordA0(global<u8 *>(0x007cc300), nullptr, 0, 3);
-    Window_SetHandler(Window_FindChild(global<u8 *>(0x007cc2fc), nullptr, 0x95d), nullptr, 0x004b3b90);
-    Window_SetHandler(Window_FindChild(global<u8 *>(0x007cc300), nullptr, 0x95d), nullptr, 0x004b3b90);
-    Window_SetShown(global<u8 *>(0x007cc2fc), nullptr, 0);
-    Window_SetShown(global<u8 *>(0x007cc300), nullptr, 0);
+    gThingbrowser_7cc2fc = Window_FindChild(global<u8 *>(0x00faa5d8), nullptr, 0x95c);
+    gThingbrowser_7cc300 = Window_FindChild(global<u8 *>(0x00faa5d8), nullptr, 0x963);
+    Window_SetHandler(gThingbrowser_7cc2fc, nullptr, 0x004b3790);
+    Window_SetHandler(gThingbrowser_7cc300, nullptr, 0x004b3790);
+    Window_Unlink(gThingbrowser_7cc2fc);
+    Window_Unlink(gThingbrowser_7cc300);
+    Window_SetDwordA0(gThingbrowser_7cc2fc, nullptr, 0, 3);
+    Window_SetDwordA0(gThingbrowser_7cc300, nullptr, 0, 3);
+    Window_SetHandler(Window_FindChild(gThingbrowser_7cc2fc, nullptr, 0x95d), nullptr, 0x004b3b90);
+    Window_SetHandler(Window_FindChild(gThingbrowser_7cc300, nullptr, 0x95d), nullptr, 0x004b3b90);
+    Window_SetShown(gThingbrowser_7cc2fc, nullptr, 0);
+    Window_SetShown(gThingbrowser_7cc300, nullptr, 0);
     u8 *const panel = WindowScript_Build(global<u8 *>(0x00faa5d8), nullptr, reinterpret_cast<u8 *>(0x00756ad8), 0x004b3c10);
-    global<u8 *>(0x007cc304) = panel;
+    gThingbrowser_7cc304 = panel;
     Window_SetCursor(panel, nullptr, 2);
-    Window_Unlink(global<u8 *>(0x007cc304));
-    u8 *const name = Window_FindChild(global<u8 *>(0x007cc304), nullptr, 0x147);
+    Window_Unlink(gThingbrowser_7cc304);
+    u8 *const name = Window_FindChild(gThingbrowser_7cc304, nullptr, 0x147);
     u8 *const memory = static_cast<u8 *>(GameHeap_Alloc(0x1a4));
     Window_SetImpl(name, nullptr, memory ? TextPart_Ctor(memory, nullptr, 0) : nullptr);
     Window_Notify40000(name, nullptr, 0xff, 0xff, 0xff, 0xff);
     Window_Set4c(name, nullptr, Language_Font(0xb));
     Window_NotifyImpl100(name, nullptr, 0);
     vcall<void>(name, 0x14, 0u);
-    vcall<void>(Window_FindChild(global<u8 *>(0x007cc304), nullptr, 0x148), 0x14, 0u);
-    u8 *const hilight = Window_FindChild(global<u8 *>(0x007cc304), nullptr, 0x149);
+    vcall<void>(Window_FindChild(gThingbrowser_7cc304, nullptr, 0x148), 0x14, 0u);
+    u8 *const hilight = Window_FindChild(gThingbrowser_7cc304, nullptr, 0x149);
     Window_SetObject98(hilight, nullptr, reinterpret_cast<u8 *>((uintptr_t)GuiWindows_FindByName(reinterpret_cast<const char *>(0x0074fa84))));   // "hilight"
     vcall<void>(hilight, 0x14, 0u);
     Window_SetShown(hilight, nullptr, 0);
-    Window_SetShown(global<u8 *>(0x007cc304), nullptr, 0);
-    global<u32>(0x007cc2f0) = 0;
+    Window_SetShown(gThingbrowser_7cc304, nullptr, 0);
+    gThingbrowser_7cc2f0 = 0;
 }
 
 void __cdecl ThingBrowser_Open(u8 *thing) {
     u8 *window;
     if (thing && thing[2] == 1) {
-        window = global<u8 *>(0x007cc300);
-        global<u32>(0x007cc2f0) = 2;
+        window = gThingbrowser_7cc300;
+        gThingbrowser_7cc2f0 = 2;
     } else {
-        window = global<u8 *>(0x007cc2fc);
-        global<u32>(0x007cc2f0) = 1;
+        window = gThingbrowser_7cc2fc;
+        gThingbrowser_7cc2f0 = 1;
     }
     Dialog7cb2b8_Child21Post((u32)(uintptr_t)window);   // (a second argument 0 pushed, unread)
     u8 *const group = Window_FindChild(window, nullptr, 0x95d);
     if (thing) {
-        global<u8 *>(0x007cc308) = thing;
+        gThingbrowser_7cc308 = thing;
         u32 id = 0;
         switch (thing[2]) {
-        case 1: global<u32>(0x007cc30c) = 6; id = 0x964; break;
-        case 4: global<u32>(0x007cc30c) = 2; id = 0x95f; break;
-        case 5: global<u32>(0x007cc30c) = 1; id = 0x95e; break;
-        case 6: global<u32>(0x007cc30c) = 4; id = 0x961; break;
-        case 7: global<u32>(0x007cc30c) = 3; id = 0x962; break;
-        case 8: global<u32>(0x007cc30c) = 5; id = 0x960; break;
+        case 1: gThingbrowser_7cc30c = 6; id = 0x964; break;
+        case 4: gThingbrowser_7cc30c = 2; id = 0x95f; break;
+        case 5: gThingbrowser_7cc30c = 1; id = 0x95e; break;
+        case 6: gThingbrowser_7cc30c = 4; id = 0x961; break;
+        case 7: gThingbrowser_7cc30c = 3; id = 0x962; break;
+        case 8: gThingbrowser_7cc30c = 5; id = 0x960; break;
         }
         if (id) RadioGroup_Select(group, nullptr, id);
-        Window_AddChild(gDialog7cb2b8build_7cb2b8, nullptr, global<u8 *>(0x007cc304), 1, 1);
-        Window_SetShown(global<u8 *>(0x007cc304), nullptr, 1);
+        Window_AddChild(gDialog7cb2b8build_7cb2b8, nullptr, gThingbrowser_7cc304, 1, 1);
+        Window_SetShown(gThingbrowser_7cc304, nullptr, 1);
         ThingBrowser_ShowName();
         global<u32>(0x00790ab0) |= 0x1000;
     } else {
-        global<u8 *>(0x007cc308) = nullptr;
-        global<u32>(0x007cc30c) = 0;
+        gThingbrowser_7cc308 = nullptr;
+        gThingbrowser_7cc30c = 0;
         RadioGroup_Select(group, nullptr, 0xffffffffu);
     }
-    const bool six = global<u32>(0x007cc30c) == 6;
-    Window_SetShown(Window_FindChild(global<u8 *>(0x007cc304), nullptr, 0x148), nullptr, six ? 0 : 1);
-    Window_SetShown(Window_FindChild(global<u8 *>(0x007cc304), nullptr, 0x14a), nullptr, six ? 1 : 0);
+    const bool six = gThingbrowser_7cc30c == 6;
+    Window_SetShown(Window_FindChild(gThingbrowser_7cc304, nullptr, 0x148), nullptr, six ? 0 : 1);
+    Window_SetShown(Window_FindChild(gThingbrowser_7cc304, nullptr, 0x14a), nullptr, six ? 1 : 0);
     Advisor_PostId(six ? 0x11f : 0xc6);
     Window7c24c8_Close();
     MouseModes_EnsureHolder();
@@ -192,9 +193,9 @@ void __cdecl ThingBrowser_Open(u8 *thing) {
 }
 
 void __cdecl ThingBrowser_SendPatrolLines() {
-    if (!global<u8 *>(0x007cc308) || !(global<u32>(0x00790ab0) & 0x1000)) return;
-    g_patrol->centre(global<u8 *>(0x007cc308));
-    u8 *const thing = global<u8 *>(0x007cc308);
+    if (!gThingbrowser_7cc308 || !(global<u32>(0x00790ab0) & 0x1000)) return;
+    g_patrol->centre(gThingbrowser_7cc308);
+    u8 *const thing = gThingbrowser_7cc308;
     if (!is_staff(at<u8>(thing, 2)) || !Staff_HasPatrolRegion(thing)) return;
     u16 first, last;
     Staff_GetPatrolRegion(thing, nullptr, &first, &last);
@@ -215,7 +216,7 @@ void __cdecl ThingBrowser_SendPatrolLines() {
 }
 
 void __cdecl ThingBrowser_OpenShown() {
-    ThingBrowser_Open(global<u32>(0x007cc3c0) ? global<u8 *>(0x007c2658) : nullptr);
+    ThingBrowser_Open(global<u32>(0x007cc3c0) ? gPanel7cc218_7c2658 : nullptr);
 }
 }
 
@@ -226,7 +227,7 @@ const ThingBrowserHandlerEnv kGameHandlerEnv = {ThingBrowser_SendPatrolLines, Th
 const ThingBrowserHandlerEnv *g_handler = &kGameHandlerEnv;
 
 u32 &word(u32 address) { return *reinterpret_cast<u32 *>((uintptr_t)address); }
-u8 *panel() { return *reinterpret_cast<u8 **>((uintptr_t)0x007cc304); }
+u8 *panel() { return gThingbrowser_7cc304; }
 
 void panelAway() {
     g_handler->setShown(panel(), nullptr, 0);
@@ -244,19 +245,19 @@ void nameShown() {
 }
 
 void modeButton(u32 mode) {
-    if (word(0x007cc30c) == 0) {
-        word(0x007cc30c) = mode;
+    if (gThingbrowser_7cc30c == 0) {
+        gThingbrowser_7cc30c = mode;
         g_handler->step();
-        if (!word(0x007cc308)) return;
+        if (!reinterpret_cast<u32 &>(gThingbrowser_7cc308)) return;
         panelAdded();
         nameShown();
         return;
     }
-    const u32 was = word(0x007cc308);
-    if (word(0x007cc30c) != mode) word(0x007cc308) = 0;
-    word(0x007cc30c) = mode;
+    const u32 was = reinterpret_cast<u32 &>(gThingbrowser_7cc308);
+    if (gThingbrowser_7cc30c != mode) reinterpret_cast<u32 &>(gThingbrowser_7cc308) = 0;
+    gThingbrowser_7cc30c = mode;
     g_handler->step();
-    if (!word(0x007cc308)) {
+    if (!reinterpret_cast<u32 &>(gThingbrowser_7cc308)) {
         panelAway();
         word(0x00790ab0) &= ~0x1000u;
         return;
@@ -273,18 +274,18 @@ extern "C" {
 s32 __cdecl ThingBrowser_Handler(u8 *window, u32 message, u32 a, u32 b) {
     static const u8 kModes[7] = {1, 2, 5, 4, 3, 0, 6};
     switch (message) {
-    case 0x14: word(0x007cc2fc) = 0; break;
+    case 0x14: reinterpret_cast<u32 &>(gThingbrowser_7cc2fc) = 0; break;
     case 0x1e:
         g_handler->sendPatrol();
         g_handler->showDetail();
         break;
     case 0x101:
-        if (word(0x007cc2f0) && a - 0x95e <= 6 && b == 1 && kModes[a - 0x95e]) modeButton(kModes[a - 0x95e]);
+        if (gThingbrowser_7cc2f0 && a - 0x95e <= 6 && b == 1 && kModes[a - 0x95e]) modeButton(kModes[a - 0x95e]);
         break;
     case 0x1001d8:
-        word(0x007cc308) = 0;
+        reinterpret_cast<u32 &>(gThingbrowser_7cc308) = 0;
         panelAway();
-        word(0x007cc2f0) = 0;
+        gThingbrowser_7cc2f0 = 0;
         word(0x00790ab0) &= ~0x1000u;
         g_handler->cancelAdvisor(0x11f);
         g_handler->cancelAdvisor(0xc6);

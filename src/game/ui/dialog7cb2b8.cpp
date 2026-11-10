@@ -19,6 +19,7 @@
 #include "window.h"
 #include "windowtimers.h"
 #include "dialog7cb2b8build.h"
+#include "panel7b9940.h"
 
 namespace {
 
@@ -224,7 +225,7 @@ void __cdecl Dialog7cb2b8_ShowDate(u32 day, u32 month, u32 year) {
     u8 text[0x20];
     TextFormat().formatNarrow(global<void *>(0x0078ba94), text, 0x1f, 0x1c0, days, months, years);
     Window_NotifyImpl100(label, nullptr, (u32)(uintptr_t)Language_Widen(text));
-    u8 *const light = Window_FindChild(Window_FindChild(global<u8 *>(0x007cb2ac), nullptr, 0x2f), nullptr, 0x31);
+    u8 *const light = Window_FindChild(Window_FindChild(gPanel7b9940_7cb2ac, nullptr, 0x2f), nullptr, 0x31);
     const u8 *const analyser = ptr(GameTable7cfb90_Get1da720_519510(*global<u8 **>(0x007cf6ec)));
     const s32 first = newest(analyser + 0x1f5a0, (s32)year);
     const s32 second = newest(analyser + 0x1fc90, (s32)year);

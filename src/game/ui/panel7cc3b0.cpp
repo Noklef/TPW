@@ -21,6 +21,7 @@
 #include "thingpreview.h"
 #include "window.h"
 #include "window705a50.h"
+#include "panel7cc218.h"
 
 using namespace panelparts;
 
@@ -31,12 +32,12 @@ u8 *window(u8 *self) { return *reinterpret_cast<u8 **>(self + 0x14); }
 extern "C" {
 
 void __fastcall Panel7cc3b0_ShowPreview(u8 *self) {
-    if (!*reinterpret_cast<u8 *const *>((uintptr_t)0x007c2658)) return;
+    if (!*reinterpret_cast<u8 *const *>(&gPanel7cc218_7c2658)) return;
     u8 rect[0xc];
     GuiRect_Ctor(rect);
     u8 *const shown = *reinterpret_cast<u8 **>(self + 0x18);
     Window_GetSavedRect(shown, nullptr, rect);
-    ThingPreview_Show(rect, *reinterpret_cast<u8 *const *>((uintptr_t)0x007c2658), *reinterpret_cast<const s16 *>(shown + 0xe0) + 1, 0x41000000);
+    ThingPreview_Show(rect, *reinterpret_cast<u8 *const *>(&gPanel7cc218_7c2658), *reinterpret_cast<const s16 *>(shown + 0xe0) + 1, 0x41000000);
     GuiRect_Dtor(rect);
 }
 
@@ -77,7 +78,7 @@ void __fastcall Panel7cc3b0_Dress(u8 *self) {
 }
 
 void __fastcall Panel7cc3b0_ShowStats(u8 *self) {
-    u8 *const staff = *reinterpret_cast<u8 **>((uintptr_t)0x007c2658);
+    u8 *const staff = gPanel7cc218_7c2658;
     if (!window(self)) return;
     u32 index = Mode19c_ToIndex(staff);
     const s32 days = Staff_AgeDays(staff);
@@ -105,7 +106,7 @@ void __fastcall Panel7cc3b0_ShowStats(u8 *self) {
 }
 
 void __fastcall Panel7cc3b0_Update(u8 *self) {
-    u8 *const staff = *reinterpret_cast<u8 **>((uintptr_t)0x007c2658);
+    u8 *const staff = gPanel7cc218_7c2658;
     if (!staff) return;
     vcall<void>(*reinterpret_cast<u8 **>(self + 0x20), 0x24, Staff_GetName(staff));
     vcall<void>(self, 0x18);
@@ -122,7 +123,7 @@ void __fastcall Panel7cc3b0_Update(u8 *self) {
 }
 
 u32 __fastcall Panel7cc3b0_SetPatrol(u8 *self, void *, u32 on) {
-    u8 *const staff = *reinterpret_cast<u8 **>((uintptr_t)0x007c2658);
+    u8 *const staff = gPanel7cc218_7c2658;
     if (!on) {
         Staff_ClearPatrolRegion(staff);
         return 0;

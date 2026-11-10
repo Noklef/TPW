@@ -83,7 +83,7 @@ s32 __cdecl Panel7cc328_Handler(u8 *window, u32 message, u32 a, u32 b) {
             g_env->moveMode(panel());
             return 0;
         case 0x1e88:
-            g_env->jobs(3, global<u32>(0x007c2658));
+            g_env->jobs(3, reinterpret_cast<u32 &>(gPanel7cc218_7c2658));
             return 0;
         default:
             break;
@@ -112,7 +112,7 @@ s32 __cdecl Panel7cc328_Handler(u8 *window, u32 message, u32 a, u32 b) {
         break;
     }
     case 0x406:
-        global<u32>(0x00756f40) = b;
+        gPanel7cc328_Handler_756f40 = b;
         break;
     default:
         break;

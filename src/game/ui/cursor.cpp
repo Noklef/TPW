@@ -9,6 +9,8 @@
 #include "../gfx/display.h"
 #include "../gfx/palette.h"
 #include "guisettings.h"
+#include "window7cc8bc.h"
+#include "panel7b9940.h"
 
 namespace {
 
@@ -150,19 +152,19 @@ void __fastcall Window_SetCursor(u8 *window, void *, u32 id) {
 void __fastcall Window_ApplyCursor(const u8 *window) { Gui_SetCursor(at<u16>(window, 0x50)); }
 
 void __cdecl GameCursor_Set(u32 id) {
-    u8 *const window = global<u8 *>(0x007cb2ac);
+    u8 *const window = gPanel7b9940_7cb2ac;
     if (!window) return;
     Window_SetCursor(window, nullptr, id);
     gGameCursor_Set_7cb2d8 = (s16)id;
 }
 
 void __fastcall Obj7b51f0_SetCursor(void *, void *, u32 id) {
-    if (global<u8 *>(0x007cb2ac)) {
+    if (gPanel7b9940_7cb2ac) {
         GameCursor_Set(id);
         return;
     }
-    if (u8 *const window = global<u8 *>(0x007cc8c0)) Window_SetCursor(window, nullptr, id);
-    if (u8 *const window = global<u8 *>(0x007cc8bc)) Window_SetCursor(window, nullptr, id);
+    if (u8 *const window = gWindow7cc8bc_7cc8c0) Window_SetCursor(window, nullptr, id);
+    if (u8 *const window = gWindow7cc8bc_7cc8bc) Window_SetCursor(window, nullptr, id);
 }
 
 void __cdecl GameCursor_Update() {

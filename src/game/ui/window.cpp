@@ -464,7 +464,7 @@ u32 __fastcall Window_DropModal(u8 *window) {
 }
 
 u32 __fastcall Window_SetModal(u8 *window, void *, u32 pairs) {
-    u8 *const focus = *reinterpret_cast<u8 *const *>((uintptr_t)0x00faa5ec);
+    u8 *const focus = *reinterpret_cast<u8 *const *>(&gWindow_faa5ec);
     const u32 high = (u32)(uintptr_t)focus & 0xffff0000u;  // sic: only AX is set, EAX held the focus
     if (focus == window) return high;
     *reinterpret_cast<u8 **>((uintptr_t)0x00faa57c) = window;
@@ -478,7 +478,7 @@ u32 __fastcall Window_Destroying(u8 *window) {
     for (u8 *child = at<u8 *>(window, 0x5c); child; child = at<u8 *>(child, 0x54))
         Window_Destroying(child);
     Window_DropModal(window);
-    u8 *&focus = *reinterpret_cast<u8 **>((uintptr_t)0x00faa5ec);
+    u8 *&focus = gWindow_faa5ec;
     u8 *const old = focus;
     if (focus == window) focus = nullptr;
     u8 *&other = *reinterpret_cast<u8 **>((uintptr_t)0x00faa5dc);
@@ -646,7 +646,7 @@ void __cdecl Window_SaveInsetRect(u8 *window, s32 dx, s32 dy) {
 }
 
 u32 __fastcall Window_SetFocus(u8 *window, void *, u32 a) {
-    u8 *&focus = *reinterpret_cast<u8 **>((uintptr_t)0x00faa5ec);
+    u8 *&focus = gWindow_faa5ec;
     if (focus == window) return (u32)(uintptr_t)focus & 0xffff0000u;  // only AX is set
     if (focus) Window_PostMessage(focus, 0x20, a, 0);
     focus = window;
@@ -654,7 +654,7 @@ u32 __fastcall Window_SetFocus(u8 *window, void *, u32 a) {
 }
 
 u32 __fastcall Window_KillFocus(u8 *window, void *, u32 a) {
-    u8 *&focus = *reinterpret_cast<u8 **>((uintptr_t)0x00faa5ec);
+    u8 *&focus = gWindow_faa5ec;
     if (focus != window) return (u32)(uintptr_t)focus & 0xffff0000u;  // only AX is set
     Window_PostMessage(focus, 0x20, a, 0);
     focus = nullptr;
@@ -1192,8 +1192,8 @@ u32 __cdecl Window_DefaultProc(u8 *window, u32 message, u32 a, u32 b) {
         if (Window_RaiseToTop(window) && a && *reinterpret_cast<const u32 *>((uintptr_t)0x00faa5d4)) Window_PostMessage(window, 1, 0, 0);
         break;
     case 12:
-        *reinterpret_cast<u32 *>((uintptr_t)0x00faa618) = vcall<u32>(window, 0x2c);
-        return 0x00faa618;
+        *gWindow_DefaultProc_faa618 = vcall<u32>(window, 0x2c);
+        return reinterpret_cast<uintptr_t>(&gWindow_DefaultProc_faa618);
     case 0x10:
         if (a == 0x80084) Window_ScriptStep(window);
         else if (a == 0x80085) Window_SlideStep(window);

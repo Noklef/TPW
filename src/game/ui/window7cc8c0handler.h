@@ -56,3 +56,12 @@ extern "C" {
 // Actions_FireUp(a, modifiers). Always answers Window_CallDefault's.
 s32 __cdecl Window7cc8c0_Handler(u8 *window, u32 message, u32 a, u32 b);
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(u8, gWindow7cc8c0handler_7cc8b4, 0x007cc8b4, 0x1);
+GAME_DATA(u32, gWindow7cc8c0handler_7cc8d8, 0x007cc8d8, 0x4);
+GAME_DATA(u8, gWindow7cc8c0handler_7cc8dc, 0x007cc8dc, 0x1);
+GAME_DATA(u8, gWindow7cc8c0handler_7cc8e0, 0x007cc8e0, 0x1);
+GAME_DATA(u8 *, gWindow7cc8c0handler_7cc8e8, 0x007cc8e8, 0x4);

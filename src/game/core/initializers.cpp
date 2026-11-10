@@ -5,6 +5,7 @@
 #include "dequeiter.h"
 #include "gameheap.h"
 #include "../gfx/surface.h"
+#include "../ui/panel7cc218.h"
 
 namespace {
 
@@ -216,7 +217,7 @@ u32 __fastcall Fn_47f910(u8 *o, void *, u32 v0) {
 
 u32 __fastcall Fn_48c9e0(u8 *o) {
     at<u32>(o, 0x0) = 0x6ff1f0;
-    global<u32>(0x007c2658) = 0x0;
+    reinterpret_cast<u32 &>(gPanel7cc218_7c2658) = 0x0;
     at<u32>(o, 0x10) = 0x0;
     at<u32>(o, 0x18) = 0x0;
     at<u32>(o, 0x14) = 0x0;

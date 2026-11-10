@@ -7,6 +7,7 @@
 #include "staff.h"
 #include "thingscan.h"
 #include "things.h"
+#include "../ui/panel7cc218.h"
 
 namespace {
 
@@ -130,7 +131,7 @@ s32 __fastcall Things_CountGroup(const u8 *owner, void *, u32 value) {
     global<s32>(0x007c2660) = 0;
     const u32 mask = groupMask(at<s32>(owner, 4));
     if (mask) Things_ForEachSelected(mask, countOne);
-    global<u32>(0x007c2658) = value;
+    reinterpret_cast<u32 &>(gPanel7cc218_7c2658) = value;
     return global<s32>(0x007c2660);
 }
 
@@ -142,9 +143,9 @@ s32 __cdecl Things_CountOne(u8 *) {
 void __fastcall Things_StepGroup(u8 *owner) {
     vcall<void>(owner, 0x3c);
     const u32 category = groupMask(at<s32>(owner, 4));
-    u8 *const next = category ? Things_FindNextOfCategoryWrap(category, global<const u8 *>(0x007c2658)) : nullptr;
-    if (next && next != global<u8 *>(0x007c2658)) {
-        global<u8 *>(0x007c2658) = next;
+    u8 *const next = category ? Things_FindNextOfCategoryWrap(category, gPanel7cc218_7c2658) : nullptr;
+    if (next && next != gPanel7cc218_7c2658) {
+        gPanel7cc218_7c2658 = next;
         vcall<void>(owner, 4);
     }
 }
@@ -152,9 +153,9 @@ void __fastcall Things_StepGroup(u8 *owner) {
 void __fastcall Things_StepGroupBack(u8 *owner) {
     vcall<void>(owner, 0x3c);
     const u32 category = groupMask(at<s32>(owner, 4));
-    u8 *const back = category ? Things_FindPrevOfCategoryWrap(category, global<const u8 *>(0x007c2658)) : nullptr;
-    if (back && back != global<u8 *>(0x007c2658)) {
-        global<u8 *>(0x007c2658) = back;
+    u8 *const back = category ? Things_FindPrevOfCategoryWrap(category, gPanel7cc218_7c2658) : nullptr;
+    if (back && back != gPanel7cc218_7c2658) {
+        gPanel7cc218_7c2658 = back;
         vcall<void>(owner, 4);
     }
 }

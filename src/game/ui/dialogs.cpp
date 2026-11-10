@@ -33,6 +33,10 @@
 #include "dialog7ca168.h"
 #include "dialog7ca098.h"
 #include "msgtags.h"
+#include "window7cc8c0handler.h"
+#include "window7cc8bc.h"
+#include "panel7cc218.h"
+#include "panel7b9940.h"
 
 namespace {
 
@@ -271,36 +275,36 @@ u8 *__fastcall WindowAt10_ScalarDtor(u8 *object, void *, u32 flags) {
 }
 
 s32 __cdecl Windows7cc8bc_Message6Pair() {
-    u8 *const first = window(0x007cc8bc);
+    u8 *const first = window(reinterpret_cast<uintptr_t>(&gWindow7cc8bc_7cc8bc));
     u32 &chosen = gDialogs_7cc698;
     const bool same = chosen == (u32)(uintptr_t)first;
     Window_SendMessage(first, 6, same, 0);
-    const s32 result = Window_SendMessage(window(0x007cc8c0), 6, !same, 0);
+    const s32 result = Window_SendMessage(window(reinterpret_cast<uintptr_t>(&gWindow7cc8bc_7cc8c0)), 6, !same, 0);
     chosen = 0;
     return result;
 }
 
 u32 __cdecl Windows7cc8bc_SelectSecond() {
-    Window_SendMessage(window(0x007cc8bc), 6, 0, 0);
-    Window_SendMessage(window(0x007cc8c0), 6, 1, 0);
+    Window_SendMessage(window(reinterpret_cast<uintptr_t>(&gWindow7cc8bc_7cc8bc)), 6, 0, 0);
+    Window_SendMessage(window(reinterpret_cast<uintptr_t>(&gWindow7cc8bc_7cc8c0)), 6, 1, 0);
     gDialogs_7cc6a0 = 1;
-    return Window_SetFocus(window(0x007cc8c0), nullptr, 0);
+    return Window_SetFocus(window(reinterpret_cast<uintptr_t>(&gWindow7cc8bc_7cc8c0)), nullptr, 0);
 }
 
 void __cdecl Windows7cc8bc_SelectFirst() {
-    const u8 shown = *reinterpret_cast<u8 *>((uintptr_t)0x007cc8b4);
+    const u8 shown = gWindow7cc8c0handler_7cc8b4;
     if (!shown || gDialogs_7cc6a0) return;
-    Window_SendMessage(window(0x007cc8bc), 6, 0, 0);
-    Window_SendMessage(window(0x007cc8c0), 6, shown, 0);
-    if (!*reinterpret_cast<u8 *>((uintptr_t)0x007cc8b4)) {   // (read again)
-        Window_SetFocus(window(0x007cc8c0), nullptr, 0);
+    Window_SendMessage(window(reinterpret_cast<uintptr_t>(&gWindow7cc8bc_7cc8bc)), 6, 0, 0);
+    Window_SendMessage(window(reinterpret_cast<uintptr_t>(&gWindow7cc8bc_7cc8c0)), 6, shown, 0);
+    if (!gWindow7cc8c0handler_7cc8b4) {   // (read again)
+        Window_SetFocus(window(reinterpret_cast<uintptr_t>(&gWindow7cc8bc_7cc8c0)), nullptr, 0);
         return;
     }
-    u8 *const names = Window_FindChild(window(0x007cc8bc), nullptr, 0xc3123);
+    u8 *const names = Window_FindChild(window(reinterpret_cast<uintptr_t>(&gWindow7cc8bc_7cc8bc)), nullptr, 0xc3123);
     Window_SetFocus(Window_FindChild(Window_FindChild(names, nullptr, 0xc312b), nullptr, 0xc312c), nullptr, 0);
     MouseModes_EnsureHolder();
     u8 *const mode = window(0x007b05d8);
-    if ((mode ? vcall<u32>(mode, 0x24) : 0) == 9) Window_SetCursor(window(0x007cc8bc), nullptr, 0x13);
+    if ((mode ? vcall<u32>(mode, 0x24) : 0) == 9) Window_SetCursor(window(reinterpret_cast<uintptr_t>(&gWindow7cc8bc_7cc8bc)), nullptr, 0x13);
 }
 
 void __cdecl Windows7c26b0_Message5() {
@@ -320,7 +324,7 @@ u32 __cdecl Dialog7cb2b8_Child21Post(u32 value) {
 }
 
 void __cdecl Dialog7cb2b8_ResetChild21(u32 clear27) {
-    if (!window(0x007cb2ac) || !window(reinterpret_cast<uintptr_t>(&gDialog7cb2b8build_7cb2b8))) return;
+    if (!window(reinterpret_cast<uintptr_t>(&gPanel7b9940_7cb2ac)) || !window(reinterpret_cast<uintptr_t>(&gDialog7cb2b8build_7cb2b8))) return;
     if (u8 *const child = Window_FindChild(window(reinterpret_cast<uintptr_t>(&gDialog7cb2b8build_7cb2b8)), nullptr, 0x21)) {
         const u8 kind = child[0x134];
         if (kind == 3 || kind == 4) {
@@ -345,27 +349,27 @@ u32 __fastcall Obj7b51f0_ResetDialogChild21(void *) {
 
 u32 __cdecl Global7cc698_Choose() {
     u32 &chosen = gDialogs_7cc698;
-    if (*reinterpret_cast<const u32 *>((uintptr_t)0x007cc8b8)) {
-        chosen = *reinterpret_cast<const u32 *>((uintptr_t)0x007cc8b8);
+    if (gWindow7cc8bc_7cc8b8) {
+        chosen = gWindow7cc8bc_7cc8b8;
         return chosen;
     }
-    if (*reinterpret_cast<const u8 *>((uintptr_t)0x007cc8b4)) {
-        chosen = *reinterpret_cast<const u32 *>((uintptr_t)0x007cc8bc);
+    if (gWindow7cc8c0handler_7cc8b4) {
+        chosen = *reinterpret_cast<const u32 *>(&gWindow7cc8bc_7cc8bc);
         return chosen;
     }
-    chosen = *reinterpret_cast<const u32 *>((uintptr_t)0x007cc8c0);
+    chosen = *reinterpret_cast<const u32 *>(&gWindow7cc8bc_7cc8c0);
     return 0;
 }
 
 void __cdecl Window7cc8bc_SetC3128(u8 value) {
-    if (u8 *const w = window(0x007cc8bc)) {
+    if (u8 *const w = window(reinterpret_cast<uintptr_t>(&gWindow7cc8bc_7cc8bc))) {
         u8 *const child = Window_FindChild(Window_FindChild(Window_FindChild(w, nullptr, 0xc3123), nullptr, 0xc3124), nullptr, 0xc3128);
         Window705a50_SetState(child, nullptr, value == 1 ? 1 : 0, 1);
     }
 }
 
 void __cdecl Window7cc8bc_SetC3129(u8 value) {
-    if (u8 *const w = window(0x007cc8bc)) {
+    if (u8 *const w = window(reinterpret_cast<uintptr_t>(&gWindow7cc8bc_7cc8bc))) {
         u8 *const child = Window_FindChild(Window_FindChild(Window_FindChild(w, nullptr, 0xc3123), nullptr, 0xc3124), nullptr, 0xc3129);
         vcall<void>(child, 0x14, (u32)(value == 0 ? 1 : 0));
     }
@@ -429,7 +433,7 @@ void __fastcall WindowAt10_Create(u8 *object, void *, u8 *script, u32 handler, u
     fields[7] = nullptr;
     fields[2] = nullptr;
     Window7c24c8_Close();
-    u8 *const built = WindowScript_Build(window(0x007cb2ac), nullptr, script, handler);
+    u8 *const built = WindowScript_Build(window(reinterpret_cast<uintptr_t>(&gPanel7b9940_7cb2ac)), nullptr, script, handler);
     if (!built) return;
     fields[4] = built;
     Window7c24c8_Set(built);
@@ -476,7 +480,7 @@ void __fastcall WindowAt10_Hide(u8 *object) {
 s32 __cdecl WindowAt10_CentreHandler(u8 *window, u32 message, u32 a, u32 b) {
     if (message != 0x10006) return Window_CallDefault(window, nullptr, message, a, b);
     u8 *const object = reinterpret_cast<u8 *>((uintptr_t)Window_DwordA0(window, nullptr, 6));
-    const u8 *const thing = *reinterpret_cast<const u8 *const *>((uintptr_t)0x007c2658);
+    const u8 *const thing = *reinterpret_cast<const u8 *const *>(&gPanel7cc218_7c2658);
     u16 handle;
     Thing_GetHandle(thing, nullptr, &handle);
     Camera_CentreOnThing((static_cast<u32>(reinterpret_cast<uintptr_t>(thing)) & 0xffff0000u) | handle);   // (ECX's high word: the thing's)

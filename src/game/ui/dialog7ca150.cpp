@@ -23,6 +23,7 @@
 #include "window7059f0.h"
 #include "windowreg.h"
 #include "windowscript.h"
+#include "panel7b9940.h"
 
 namespace {
 
@@ -142,7 +143,7 @@ void __cdecl Dialog7ca150_Open(s32 tab, u32 selected) {
     if (tab == -1) tab = reinterpret_cast<s32 &>(gDialog7ca150_7ca154);
     Window7c24c8_Close();
     Global7cb28c_Select(2, 5);
-    gDialog7ca150_7ca150 = WindowScript_Build(global<u8 *>(0x007cb2ac), nullptr, reinterpret_cast<u8 *>((uintptr_t)0x007508e0), 0x00495290);
+    gDialog7ca150_7ca150 = WindowScript_Build(gPanel7b9940_7cb2ac, nullptr, reinterpret_cast<u8 *>((uintptr_t)0x007508e0), 0x00495290);
     Window7c24c8_Set(gDialog7ca150_7ca150);
     u8 *const group = Window_FindChild(Window_FindChild(gDialog7ca150_7ca150, nullptr, 0x12c4b8), nullptr, 0x12c4b9);
     switch ((u32)tab) {

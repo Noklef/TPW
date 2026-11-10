@@ -11,6 +11,8 @@
 #include "vcall.h"
 #include "../ui/dialog7ca1e0.h"
 #include "../ui/msgtags.h"
+#include "../ui/thingbrowser.h"
+#include "../ui/panel7cc218.h"
 
 namespace {
 
@@ -146,7 +148,7 @@ u32 __fastcall Obj_ApplyIfShared(u8 *object, void *, u8 *a) {
 }
 
 u32 __fastcall Obj_CallSlot2cIfGlobal(u8 *object, void *, u32 a) {
-    if (a == global<u32>(0x007c2658))
+    if (a == reinterpret_cast<u32 &>(gPanel7cc218_7c2658))
         return vcall<u32>(object, 0x2c);
     return a;
 }
@@ -220,11 +222,11 @@ void __cdecl Global7b4b84_Delete() {
 }
 
 void __cdecl Globals7cc2fc_Release() {
-    if (u8 *object = global<u8 *>(0x007cc2fc))
+    if (u8 *object = gThingbrowser_7cc2fc)
         vcall<u32>(object, 8, 1u);
-    if (u8 *object = global<u8 *>(0x007cc300))
+    if (u8 *object = gThingbrowser_7cc300)
         vcall<u32>(object, 8, 1u);
-    if (u8 *object = global<u8 *>(0x007cc304))
+    if (u8 *object = gThingbrowser_7cc304)
         vcall<u32>(object, 8, 1u);
 }
 
@@ -316,7 +318,7 @@ u32 __fastcall Obj_CallMember20Slot14(u8 *object, void *, u32 a) { return vcall<
 void __fastcall Obj_CallSlot14IfGlobalThing(u8 *object, void *, u32 handle) {
     if (!at<u32>(object, 0x10)) return;
     const u8 *const thing = global<const u8 *>(0x007cfb90 + 20 * (handle & 0xffff));
-    if (thing && thing == global<const u8 *>(0x007c2658))
+    if (thing && thing == gPanel7cc218_7c2658)
         vcall<u32>(object, 0x14);
 }
 

@@ -12,6 +12,7 @@
 #include "guirect.h"
 #include "window.h"
 #include "windowarea.h"
+#include "panel7b9940.h"
 
 namespace {
 
@@ -71,7 +72,7 @@ void ShowMoney(u8 *window, s32 money) {
 
 void EnsureHolder() {
     const MoneyDisplayEnv *const E = g_env;
-    if (global<u8 *>(0x007b05e8)) return;
+    if (gPanel7b9940_7b05e8) return;
     u8 *const holder = static_cast<u8 *>(GameHeap_Alloc(1));
     if (holder) {
         u8 *const block = static_cast<u8 *>(GameHeap_Alloc(8));
@@ -79,7 +80,7 @@ void EnsureHolder() {
         global<s32>(0x007b05e0) = -1;
         global<s32>(0x007b05d4) = -1;
     }
-    global<u8 *>(0x007b05e8) = holder;
+    gPanel7b9940_7b05e8 = holder;
 }
 
 }  // namespace

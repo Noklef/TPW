@@ -24,14 +24,14 @@ extern "C" {
 
 s32 __cdecl Window7cc8bc_ListHandler(u8 *window, u32 message, u32 a, u32 b) {
     if (message == 0x402) {
-        u8 *const list = Window_FindChild(Window_FindChild(global<u8 *>(0x007cc8bc), nullptr, 0xc3123), nullptr, 0xc3124);
+        u8 *const list = Window_FindChild(Window_FindChild(gWindow7cc8bc_7cc8bc, nullptr, 0xc3123), nullptr, 0xc3124);
         u32 data, cell;
         g_env->itemData(list, nullptr, (s32)b, &data);
         g_env->itemCell(list, nullptr, (s32)b, 0, &cell);
         if (!g_env->isSelf(g_env->chat(), nullptr, cell)) {
             const bool first = data & 1;
-            u8 *const owner = global<u8 *>(first ? 0x007cc8c4 : 0x007cc8c8);
-            global<u8 *>(0x007cc8cc) = owner;
+            u8 *const owner = global<u8 *>(first ? reinterpret_cast<uintptr_t>(&gWindow7cc8bc_7cc8c4) : reinterpret_cast<uintptr_t>(&gWindow7cc8bc_7cc8c8));
+            gWindow7cc8bc_7cc8cc = owner;
             u8 *const placed = Window_FindChild(owner, nullptr, first ? 0x1789 : 0x3003);
             g_env->place(b, placed);
             g_env->setState(Window_FindChild(placed, nullptr, first ? 0x178c : 0x3006), nullptr, (data & 8) ? 1 : 0, 1);

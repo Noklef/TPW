@@ -4,6 +4,7 @@
 #include <cstdint>
 #include "dialog7cc4b4open.h"
 #include "focus.h"
+#include "panel7cc218.h"
 
 namespace {
 
@@ -51,7 +52,7 @@ u32 __cdecl FrontEnd_Dialog7cc2ec() { return g_env->dialog7cc2ec(); }
 u32 __cdecl FrontEnd_Dialog7ca210() { return g_env->dialog7ca210(); }
 
 u32 __cdecl FrontEnd_Browser() {
-    if (global<u32>(0x007cc418)) return g_env->browserOpen(global<u32>(0x007c2658));
+    if (global<u32>(0x007cc418)) return g_env->browserOpen(reinterpret_cast<u32 &>(gPanel7cc218_7c2658));
     return g_env->openShown();
 }
 

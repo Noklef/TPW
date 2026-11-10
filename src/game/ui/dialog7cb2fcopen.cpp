@@ -19,6 +19,7 @@
 #include "window.h"
 #include "window705a50.h"
 #include "windowscript.h"
+#include "panel7b9940.h"
 
 namespace {
 
@@ -81,7 +82,7 @@ void valueRow(u32 id, u32 label, s32 value) {
 // The frame's window, or without a frame [0x7cb2ac].
 u8 *frameWindow() {
     u8 *const frame = global<u8 *>(0x00f82884);
-    return frame ? *reinterpret_cast<u8 **>(frame + 4) : global<u8 *>(0x007cb2ac);
+    return frame ? *reinterpret_cast<u8 **>(frame + 4) : gPanel7b9940_7cb2ac;
 }
 
 }  // namespace

@@ -64,3 +64,10 @@ void __fastcall Panel7cc328_Dress(u8 *self);
 // window built (WindowAt10_Create: the script 0x756ba0, the handler 0x4b4fc0, the children 0x1e84 and 0x1e89, no inner one), then the advisor posted 0x12c (Advisor_PostId).
 void __fastcall Panel7cc328_Show(u8 *self, void *, u8 *thing);
 }  // extern "C"
+
+#include "../core/gamedata.h"
+
+// Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(u16, gPanel7cc328_7cc310, 0x007cc310, 0x2);
+GAME_DATA(u8 *, gPanel7cc328_7cc314, 0x007cc314, 0x4);
+GAME_DATA(u8 *, gPanel7cc328_Show_7cc318, 0x007cc318, 0x4);

@@ -31,6 +31,7 @@
 #include "signtext.h"
 #include "staff.h"
 #include "../frontend/lobbysky.h"
+#include "../ui/panel7b9940.h"
 
 namespace {
 
@@ -104,7 +105,7 @@ void Close(u8 *map) {
     g_env->restore(reinterpret_cast<u8 *>((uintptr_t)0x00786b68));
     g_env->restartTimers();
     at<u32>(map, 4) = 0;
-    g_env->send(global<u8 *>(0x007cb2ac), 6, 1, 0);
+    g_env->send(gPanel7b9940_7cb2ac, 6, 1, 0);
     g_env->cancelAdvisor(0x130);
     g_env->focusSet(nullptr);
     g_env->focusRestore();
@@ -513,7 +514,7 @@ void __fastcall ParkMap_Open(u8 *map) {
     env->setFlags(global<u8 *>(0x0087a6d0), nullptr, 0x2821);
     env->releaseItems(global<u8 *>(0x008c4b44), nullptr, 0);
     env->focusClose();
-    env->send(global<u8 *>(0x007cb2ac), 6, 0, 0);
+    env->send(gPanel7b9940_7cb2ac, 6, 0, 0);
     u8 *const window = env->build(global<u8 *>(0x00faa5d8), nullptr, reinterpret_cast<u8 *>((uintptr_t)0x00774da0), 0x005f0b00);
     env->focusSet(window);
     at<u8 *>(map, 4) = window;

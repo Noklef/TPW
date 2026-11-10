@@ -20,6 +20,7 @@
 #include "windowscript.h"
 #include "windowtimers.h"
 #include "dialog7ca13chandler.h"
+#include "panel7b9940.h"
 
 namespace {
 
@@ -34,7 +35,7 @@ extern "C" {
 void __cdecl Dialog7ca13c_Open(u32 selected) {
     Window7c24c8_Close();
     Global7cb28c_Select(2, 6);
-    u8 *const dialog = WindowScript_Build(global<u8 *>(0x007cb2ac), nullptr, reinterpret_cast<u8 *>((uintptr_t)0x007506c8), 0x00493230);
+    u8 *const dialog = WindowScript_Build(gPanel7b9940_7cb2ac, nullptr, reinterpret_cast<u8 *>((uintptr_t)0x007506c8), 0x00493230);
     if (!dialog) return;
     gDialog7ca13c_7ca13c = dialog;
     Window7c24c8_Set(dialog);

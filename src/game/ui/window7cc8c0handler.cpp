@@ -23,15 +23,16 @@
 #include "guirect.h"
 #include "window.h"
 #include "dialogs.h"
+#include "window7cc8bc.h"
 
 namespace {
 
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
 template <typename T> T &field(u8 *object, u32 offset) { return *reinterpret_cast<T *>(object + offset); }
 
-u8 *&view() { return global<u8 *>(0x007cc8bc); }
-u8 *&viewB() { return global<u8 *>(0x007cc8c0); }
-u32 &hover() { return global<u32>(0x007cc8e4); }
+u8 *&view() { return gWindow7cc8bc_7cc8bc; }
+u8 *&viewB() { return gWindow7cc8bc_7cc8c0; }
+u32 &hover() { return gWindow7cc8bc_7cc8e4; }
 u8 *table() { return global<u8 *>(0x00787c14); }
 
 const Window7cc8c0HandlerEnv kGameEnv = {
@@ -79,11 +80,11 @@ u8 *EditBox(u8 *window) { return Window_FindChild(Window_FindChild(Window_FindCh
 
 void FollowPosition() {
     u32 flags = global<u32>(0x00790ab0);
-    const u32 last = global<u32>(0x007cc8ac);
+    const u32 last = gWindow7cc8bc_7cc8ac;
     const bool on = (flags & 0x400) != 0;
     bool left = false;
     if (on && !(last & 0x400)) {
-        global<u8>(0x007cc8d4) = 0;
+        gWindow7cc8bc_7cc8d4 = 0;
         u8 *avatar = gChat_7cddec;
         if (!avatar) {
             u8 *const block = static_cast<u8 *>(GameHeap_Alloc(0xf0c));
@@ -93,17 +94,17 @@ void FollowPosition() {
         g_env->say(avatar);
         flags = global<u32>(0x00790ab0);
     } else if (!on && (flags & 0x16) && (last & 0x400)) {
-        global<u8>(0x007cc8d4) = 1;
+        gWindow7cc8bc_7cc8d4 = 1;
         left = true;
-        global<u32>(0x007cc8d8) = 0;
+        gWindow7cc8c0handler_7cc8d8 = 0;
     }
-    const u32 timer = global<u32>(0x007cc8d8);
-    global<u32>(0x007cc8ac) = flags;
+    const u32 timer = gWindow7cc8c0handler_7cc8d8;
+    gWindow7cc8bc_7cc8ac = flags;
     if (timer) {
-        global<u32>(0x007cc8d8) = timer - 1;
+        gWindow7cc8c0handler_7cc8d8 = timer - 1;
         if (timer - 1) return;
     }
-    if (!global<u8>(0x007cc8d4)) return;
+    if (!gWindow7cc8bc_7cc8d4) return;
     u16 x, z;
     if (left) {
         Camera_PackCellFractions(global<u32>(0x007908f0), global<u32>(0x007908f8), reinterpret_cast<u8 *>(&x), reinterpret_cast<u8 *>(&z));
@@ -137,7 +138,7 @@ bool OverObject() {
     if (!over) over = field<u32>(g_env->def(object), 0x4ac) == 3 && (object[0x32] & 0x10);
     if (!over) return false;
     hover() = 2;
-    global<u8 *>(0x007cc8e8) = object;
+    gWindow7cc8c0handler_7cc8e8 = object;
     return true;
 }
 
@@ -146,7 +147,7 @@ void ShowHelp(u8 *window) {
     const u32 before = hover();
     bool over = false;
     hover() = 0;
-    if (global<u8>(0x007cc8dc) || global<u8>(0x007cc8e0)) {
+    if (gWindow7cc8c0handler_7cc8dc || gWindow7cc8c0handler_7cc8e0) {
         over = OverObject();
         MouseModes_EnsureHolder();
         const u32 kind = ModeKind();
@@ -175,7 +176,7 @@ void ShowHelp(u8 *window) {
             cursor = 0x13;
             break;
         default: {   // 2, 4
-            const u32 name = (u32)(uintptr_t)g_env->name(global<u8 *>(0x007cc8e8));
+            const u32 name = (u32)(uintptr_t)g_env->name(gWindow7cc8c0handler_7cc8e8);
             const u32 arg[4] = {0x006ff174, 0x5641524d, 2, name};
             g_env->format(charset, text, 0x3fff, 0x244, arg);
             g_env->setText(text);
@@ -203,7 +204,7 @@ void MouseDown(u8 *window, u32 a, u32 b) {
         MouseModes_EnsureHolder();
         const u32 kind = ModeKind();
         if (kind != 9 && hover() == 2) {
-            const u8 *const object = global<u8 *>(0x007cc8e8);
+            const u8 *const object = gWindow7cc8c0handler_7cc8e8;
             if (object && object[2] == 3) {
                 g_env->follow(object, nullptr, 0);
                 button = false;
@@ -219,10 +220,10 @@ void MouseDown(u8 *window, u32 a, u32 b) {
 
 // 0x73: the view swapped.
 void SwapView() {
-    const u8 shown = global<u8>(0x007cc8b4);
+    const u8 shown = gWindow7cc8c0handler_7cc8b4;
     g_env->send(view(), 6, shown == 0, 0);
     g_env->send(viewB(), 6, shown, 0);
-    if (global<u8>(0x007cc8b4)) {
+    if (gWindow7cc8c0handler_7cc8b4) {
         g_env->setFocus(EditBox(view()), nullptr, 0);
         MouseModes_EnsureHolder();
         if (ModeKind() == 9) Window_SetCursor(view(), nullptr, 0x13);
@@ -240,7 +241,7 @@ void KeyDown(u8 *window, u32 a, u32 b) {
     const u32 high = static_cast<u32>(static_cast<s32>(b) >> 16);
     const u32 modifiers = high & 0xff;
     if (a == 9 || a == 13 || a == 0x2f) {
-        if (!global<u8>(0x007cc8b4) || modifiers != 0) {
+        if (!gWindow7cc8c0handler_7cc8b4 || modifiers != 0) {
             g_env->fireUp(table(), nullptr, a, modifiers);
             return;
         }
@@ -270,7 +271,7 @@ void KeyDown(u8 *window, u32 a, u32 b) {
         u8 *const mode = NewMode(MouseMode6fead0_Ctor);
         MouseModes_EnsureHolder();
         MouseMode_Set(mode);
-        Window_SetCursor(global<u8>(0x007cc8b4) ? view() : viewB(), nullptr, 0x13);
+        Window_SetCursor(gWindow7cc8c0handler_7cc8b4 ? view() : viewB(), nullptr, 0x13);
     } else {
         g_env->fireUp(table(), nullptr, a, modifiers);
     }
@@ -288,18 +289,18 @@ s32 __cdecl Window7cc8c0_Handler(u8 *window, u32 message, u32 a, u32 b) {
             u8 rect[12];
             GuiRect_Ctor(rect);
             g_env->getRect(window, nullptr, rect, a);
-            if (window == view()) global<u8>(0x007cc8b4) = 1;
+            if (window == view()) gWindow7cc8c0handler_7cc8b4 = 1;
             GuiRect_Dtor(rect);
         } else if (window == view()) {
-            global<u8>(0x007cc8b4) = 0;
+            gWindow7cc8c0handler_7cc8b4 = 0;
         }
     } else if (message == 0x14) {
         if (view() == window) {
             view() = nullptr;
             g_env->place(0xffffffffu, 0xffffffffu);
             g_env->send(viewB(), 4, 0, 0);
-            g_env->send(global<u8 *>(0x007cc8c8), 4, 0, 0);
-            g_env->send(global<u8 *>(0x007cc8c4), 4, 0, 0);
+            g_env->send(gWindow7cc8bc_7cc8c8, 4, 0, 0);
+            g_env->send(gWindow7cc8bc_7cc8c4, 4, 0, 0);
         }
         if (viewB() == window) viewB() = nullptr;
     } else if (message == 0x10004) {
@@ -315,10 +316,10 @@ s32 __cdecl Window7cc8c0_Handler(u8 *window, u32 message, u32 a, u32 b) {
         break;
     case 0x10001:
         hover() = 0;
-        global<u8>(window == viewB() ? 0x007cc8e0 : 0x007cc8dc) = 1;
+        global<u8>(window == viewB() ? reinterpret_cast<uintptr_t>(&gWindow7cc8c0handler_7cc8e0) : reinterpret_cast<uintptr_t>(&gWindow7cc8c0handler_7cc8dc)) = 1;
         break;
     case 0x10002:
-        global<u8>(window == viewB() ? 0x007cc8e0 : 0x007cc8dc) = 0;
+        global<u8>(window == viewB() ? reinterpret_cast<uintptr_t>(&gWindow7cc8c0handler_7cc8e0) : reinterpret_cast<uintptr_t>(&gWindow7cc8c0handler_7cc8dc)) = 0;
         break;
     case 0x10004: {
         const u32 modifiers = g_env->modifiers();

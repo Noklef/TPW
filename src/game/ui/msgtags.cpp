@@ -17,6 +17,7 @@
 #include "windowreg.h"
 #include "windowtimers.h"
 #include "dialog7cb2b8build.h"
+#include "panel7b9940.h"
 
 namespace {
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
@@ -161,7 +162,7 @@ void __cdecl MsgTag_Open(u8 *tag) {
 }
 
 u8 *__cdecl MsgTags_Add(const u8 *message) {
-    if (!global<u32>(0x007cb2ac)) return nullptr;
+    if (!reinterpret_cast<u32 &>(gPanel7b9940_7cb2ac)) return nullptr;
     bool fresh = true;
     for (u8 *tag = gMsgtags_7cb2c8; tag; tag = reinterpret_cast<u8 *>((uintptr_t)Fn_65d56b(tag))) {
         if (at<u32>(message, 4) != Window_DwordA0(tag, nullptr, 1)) continue;

@@ -24,6 +24,8 @@
 #include "dialog7cc184handler.h"
 #include "dialog74fb20.h"
 #include "gamepause.h"
+#include "window7cc8bc.h"
+#include "panel7b9940.h"
 
 namespace {
 
@@ -98,10 +100,10 @@ extern "C" void __cdecl Dialog7cc184_Open() {
     }
     u8 *parent;
     if (settingIsOne()) {
-        parent = global<u8 *>(0x007cc8c0);
+        parent = gWindow7cc8bc_7cc8c0;
     } else {
         g_open->closeModal();
-        parent = global<u8 *>(0x007cb2ac);
+        parent = gPanel7b9940_7cb2ac;
     }
     if (u8 *const window = g_open->build(parent, nullptr, reinterpret_cast<u8 *>((uintptr_t)0x007540d8), 0x004a7d70)) {
         dialog = window;

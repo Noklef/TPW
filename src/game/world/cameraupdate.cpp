@@ -14,6 +14,7 @@
 #include "mapcell.h"
 #include "object.h"
 #include "objectdefs.h"
+#include "../ui/windowproc.h"
 
 namespace {
 
@@ -279,7 +280,7 @@ void __cdecl Camera_Update() {
         if (flags & 0x16) {
             moved = (~flags >> 0xb) & 1;
         } else {
-            if ((global<u8>(0x007a1a14) & 8) && !(flags & 0x100) && (!(mx >= kMinusEdge) || mx > kEdge || !(my >= kMinusEdge) || my > kEdge)) pressing = 1;
+            if ((reinterpret_cast<u8 &>(gWindowproc_7a1a14) & 8) && !(flags & 0x100) && (!(mx >= kMinusEdge) || mx > kEdge || !(my >= kMinusEdge) || my > kEdge)) pressing = 1;
             if (Held(0xd) || Held(0xe) || Held(0xf) || Held(0x10)) s2c = 1;
             flags = flagsNow;
             k = keys;

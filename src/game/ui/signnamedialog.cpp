@@ -19,6 +19,7 @@
 #include "window705a20.h"
 #include "windowreg.h"
 #include "windowscript.h"
+#include "panel7cc218.h"
 
 namespace {
 
@@ -133,7 +134,7 @@ extern "C" {
 
 void __fastcall SignNameDialog_Open(u8 *self) {
     if (at<u8 *>(self, 0xc)) return;
-    u8 *const thing = global<u8 *>(0x007c2658);
+    u8 *const thing = gPanel7cc218_7c2658;
     if (!thing || at<u8>(thing, 2) != 3) return;
     u8 *const parent = at<u8 *>(self, 0x10);
     const s32 depth = at<s16>(parent, 0xe0) + 0x11;
@@ -147,11 +148,11 @@ void __fastcall SignNameDialog_Open(u8 *self) {
 }
 
 void __cdecl SignNameDialog7ca214_Open() {
-    if (global<u8 *>(0x007ca214)) return;
+    if (gSignNameDialog7ca214_7ca214) return;
     u8 *const parent = gDialog7ca210_7ca210;
     const s32 depth = at<s16>(parent, 0xe0) + 7;
     u8 *const window = g_open->build(parent, nullptr, reinterpret_cast<u8 *>((uintptr_t)0x00751928), 0x004993e0);
-    global<u8 *>(0x007ca214) = window;
+    gSignNameDialog7ca214_7ca214 = window;
     Window_SetDepth(window, nullptr, (u16)depth);
     dressLabel(window);
     dressEdits(window, tableThing());
@@ -176,7 +177,7 @@ s32 __cdecl SignNameDialog_Handler(u8 *window, u32 message, u32 a, u32 b) {
 s32 __cdecl SignNameDialog7ca214_Handler(u8 *window, u32 message, u32 a, u32 b) {
     if (message == 0x14) {
         g_handler->enableKeys();
-        global<u32>(0x007ca214) = 0;
+        reinterpret_cast<u32 &>(gSignNameDialog7ca214_7ca214) = 0;
         g_handler->restoreFocus();
     } else if (message == 0x100 && a == 0xffffffff) {
         applyNames(tableThing());
@@ -185,7 +186,7 @@ s32 __cdecl SignNameDialog7ca214_Handler(u8 *window, u32 message, u32 a, u32 b) 
         scramble(kNameA);
         scramble(kNameB);
         if (!Crt().wcscmp(gSignNameDialog7ca214_Handler_751a34, kNameA) && !Crt().wcscmp(gSignNameDialog7ca214_Handler_751a38, kNameB)) {
-            u8 &guard = global<u8>(0x00fb34c4);
+            u8 &guard = gSignNameDialog7ca214_Handler_fb34c4;
             u8 *const cheats = reinterpret_cast<u8 *>((uintptr_t)0x00fb3520);
             if (!(guard & 1)) {
                 guard |= 1;

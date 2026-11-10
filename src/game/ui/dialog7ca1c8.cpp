@@ -21,6 +21,7 @@
 #include "window.h"
 #include "windowreg.h"
 #include "windowscript.h"
+#include "panel7b9940.h"
 
 namespace {
 
@@ -53,7 +54,7 @@ u8 *newBaseMode() {
 
 // MouseModes_EnsureHolder, inline in the original.
 void ensureHolder() {
-    u8 *&holder = *reinterpret_cast<u8 **>((uintptr_t)0x007b05e8);
+    u8 *&holder = gPanel7b9940_7b05e8;
     if (holder) return;
     u8 *const block = static_cast<u8 *>(g_reset->alloc(1));
     if (block) {

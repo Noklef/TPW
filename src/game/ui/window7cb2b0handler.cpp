@@ -7,6 +7,7 @@
 #include "cursor.h"
 #include "gamepause.h"
 #include "window.h"
+#include "panel7b9940.h"
 
 namespace {
 
@@ -50,7 +51,7 @@ s32 __cdecl Window7cb2b0_Handler(u8 *window, u32 message, u32 a, u32 b) {
     const Window7cb2b0HandlerEnv *const E = g_env;
     switch (message) {
         case 0x14:
-            global<u8 *>(0x7cb2b0) = nullptr;
+            gPanel7b9940_7cb2b0 = nullptr;
             break;
         case 0x100:
             LetCameraGo(window);

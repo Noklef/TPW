@@ -17,3 +17,8 @@ void __cdecl WindowTick_Tick(u8 *window);
 // 0x658f6c (cdecl; name invented): the count 0xfaa60c from 0 over the tree of the root 0xfaa5d8, when there is one; the count.
 u32 __cdecl WindowTick_TickAll();
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(u32, gWindowTick_faa60c, 0x00faa60c, 0x4);

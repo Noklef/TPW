@@ -88,3 +88,17 @@ void __cdecl Window7cc8bc_LeaveChat();
 void __cdecl Window7cc8cc_PlaceAtMouse(u32 unused, u8 *window);
 
 }  // extern "C"
+
+#include "../core/gamedata.h"
+
+// Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(u32, gWindow7cc8bc_7cc8ac, 0x007cc8ac, 0x4);
+GAME_DATA(u32, gWindow7cc8bc_7cc8b8, 0x007cc8b8, 0x4);
+GAME_DATA(u8 *, gWindow7cc8bc_7cc8bc, 0x007cc8bc, 0x4);
+GAME_DATA(u8 *, gWindow7cc8bc_7cc8c0, 0x007cc8c0, 0x4);
+GAME_DATA(u8 *, gWindow7cc8bc_7cc8c4, 0x007cc8c4, 0x4);
+GAME_DATA(u8 *, gWindow7cc8bc_7cc8c8, 0x007cc8c8, 0x4);
+GAME_DATA(u8 *, gWindow7cc8bc_7cc8cc, 0x007cc8cc, 0x4);
+GAME_DATA(u32, gWindow7cc8bc_7cc8d0, 0x007cc8d0, 0x4);
+GAME_DATA(u8, gWindow7cc8bc_7cc8d4, 0x007cc8d4, 0x1);
+GAME_DATA(u32, gWindow7cc8bc_7cc8e4, 0x007cc8e4, 0x4);

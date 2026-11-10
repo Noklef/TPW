@@ -7,6 +7,7 @@
 #include "guirect.h"
 #include "signrect.h"
 #include "window.h"
+#include "panel7cc218.h"
 
 namespace {
 
@@ -16,7 +17,7 @@ const ThingSignEnv kGameEnv = {&Object_GetDef, &Sign_PlaceOverRect};
 const ThingSignEnv *g_env = &kGameEnv;
 
 void show(u8 *self, s32 depth) {
-    const u8 *const thing = *reinterpret_cast<u8 **>((uintptr_t)0x007c2658);
+    const u8 *const thing = gPanel7cc218_7c2658;
     if (!at<u8 *>(self, 0x18) || !thing) return;
     const u8 *const def = g_env->def(thing);
     u8 rect[12];

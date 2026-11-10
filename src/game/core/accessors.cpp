@@ -8,6 +8,7 @@
 #include "../ui/dialog7cb2b8build.h"
 #include "../ui/dialog74fb20.h"
 #include "../ui/focus.h"
+#include "../ui/windowtimers.h"
 
 namespace {
 
@@ -566,7 +567,7 @@ u32 __fastcall Fn_6620cc(u8 *o, void *, u32 v0) {
 }
 
 void __cdecl Fn_662411() {
-    global<u32>(0x00faa638) = 0x1;
+    gWindowtimers_faa638 = 0x1;
 }
 
 u32 __fastcall Fn_667801(u8 *o, void *, u32 v0) {

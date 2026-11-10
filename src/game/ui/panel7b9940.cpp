@@ -86,16 +86,16 @@ void __cdecl Panel7b9940_Open() {
     u8 *const self = reinterpret_cast<u8 *>((uintptr_t)0x007b9940);
     g_open->resetQueues();
     g_open->msgTags();
-    if (!global<u8 *>(0x007b05e8)) {
+    if (!gPanel7b9940_7b05e8) {
         u8 *const mode = static_cast<u8 *>(g_open->alloc(1));
         if (mode) {
             u8 *const memory = static_cast<u8 *>(g_open->alloc(8));
             g_open->setMode(memory ? g_open->modeBase(memory) : nullptr);
-            global<u8 *>(0x007b05e8) = mode;
+            gPanel7b9940_7b05e8 = mode;
             global<u32>(0x007b05e0) = 0xffffffff;
             global<u32>(0x007b05d4) = 0xffffffff;
         } else {
-            global<u8 *>(0x007b05e8) = nullptr;
+            gPanel7b9940_7b05e8 = nullptr;
         }
     }
     if (u8 *const object = global<u8 *>(0x007b05d8)) (*reinterpret_cast<void(__fastcall *const *const *)(u8 *)>(object))[9](object);
@@ -113,7 +113,7 @@ void __cdecl Panel7b9940_Open() {
     if (u8 *const window = g_open->create(global<u8 *>(0x00faa5d8), nullptr, 1, 0, 0, 0, 0, 0x7ff, 0x5ff)) {
         g_open->setShown(window, nullptr, 1);
         g_open->setHandler(window, nullptr, 0x004881a0);
-        global<u8 *>(0x007cb2ac) = window;
+        gPanel7b9940_7cb2ac = window;
         u8 rect[12];
         GuiRect_Ctor(rect);
         g_open->getRect(window, nullptr, rect, 1);
@@ -128,9 +128,9 @@ void __cdecl Panel7b9940_Open() {
     }
     if (u8 *const window = g_open->create(global<u8 *>(0x00faa5d8), nullptr, 1, 0, 1, 0, 0, 0x7ff, 0x5ff)) {
         g_open->setHandler(window, nullptr, 0x00488a00);
-        global<u8 *>(0x007cb2b0) = window;
+        gPanel7b9940_7cb2b0 = window;
         g_open->setCursor(window, nullptr, 0x15);
-        g_open->build(global<u8 *>(0x007cb2b0), nullptr, reinterpret_cast<u8 *>((uintptr_t)0x0074fa98), 0);
+        g_open->build(gPanel7b9940_7cb2b0, nullptr, reinterpret_cast<u8 *>((uintptr_t)0x0074fa98), 0);
     }
     g_open->build7cb2b8();
     g_open->create7ca1e0();
@@ -146,7 +146,7 @@ void __cdecl Panel7b9940_Open() {
 
 u32 __cdecl Panel7b9940_Exit() {
     g_exit->closeMenu();
-    Window_SendMessage(global<u8 *>(0x007cb2b0), 4, 0, 0);
+    Window_SendMessage(gPanel7b9940_7cb2b0, 4, 0, 0);
     return Panel7b9940_Detach();
 }
 
@@ -161,8 +161,8 @@ void __cdecl Panel7b9940_Close() {
     Global7ca1bc_Release();
     Dialog7ca098_Message4IfUp();
     Global7ca1c8_Release();
-    Window_SendMessage(global<u8 *>(0x007cb2ac), 4, 0, 0);
-    Window_SendMessage(global<u8 *>(0x007cb2b0), 4, 0, 0);
+    Window_SendMessage(gPanel7b9940_7cb2ac, 4, 0, 0);
+    Window_SendMessage(gPanel7b9940_7cb2b0, 4, 0, 0);
     Table7c26b0_ReleaseIdle();
 }
 
@@ -201,9 +201,9 @@ u32 __cdecl Panel7b9940_ShowWindow() {
     u8 *const made = g_open->create(global<u8 *>(0x00faa5d8), nullptr, 1, 0, 1, 0, 0, 0x7ff, 0x5ff);
     if (made) {
         g_open->setHandler(made, nullptr, 0x488a00);
-        global<u8 *>(0x007cb2b0) = made;
+        gPanel7b9940_7cb2b0 = made;
         g_open->setCursor(made, nullptr, 0x15);
-        g_open->build(global<u8 *>(0x007cb2b0), nullptr, reinterpret_cast<u8 *>((uintptr_t)0x0074fa98), 0);
+        g_open->build(gPanel7b9940_7cb2b0, nullptr, reinterpret_cast<u8 *>((uintptr_t)0x0074fa98), 0);
     }
     return global<u8>(0x0078d90e) ? g_open->slot3() : g_open->slot4();
 }

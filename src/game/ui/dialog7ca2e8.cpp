@@ -24,6 +24,7 @@
 #include "window705a50.h"
 #include "windowscript.h"
 #include "dialog74fb20.h"
+#include "panel7b9940.h"
 
 namespace {
 
@@ -103,7 +104,7 @@ void __cdecl Dialog7ca2e8_Open() {
     if (dialog()) return;
     Window7c24c8_Close();
     Global7cb28c_Select(3, 7);
-    u8 *const built = WindowScript_Build(*reinterpret_cast<u8 **>((uintptr_t)0x007cb2ac), nullptr, reinterpret_cast<u8 *>((uintptr_t)0x00751ca8), 0x0049a0b0);
+    u8 *const built = WindowScript_Build(gPanel7b9940_7cb2ac, nullptr, reinterpret_cast<u8 *>((uintptr_t)0x00751ca8), 0x0049a0b0);
     if (!built) return;
     dialog() = built;
     Window7c24c8_Set(built);

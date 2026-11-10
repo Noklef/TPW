@@ -2,6 +2,7 @@
 #include "gameowner.h"
 
 #include <cstdint>
+#include "../ui/panel7b9940.h"
 
 namespace {
 
@@ -42,12 +43,12 @@ void GameOwner_SetCalls(const AddrCall *table, u32 count) { g_calls.Set(table, c
 
 extern "C" void __fastcall GameOwner_ShutdownAll(u8 *self) {
     g_calls.Th(0x00409180, (u32)(uintptr_t)self);   // GameOwner_Shutdown
-    const u32 mode = *reinterpret_cast<u32 *>((uintptr_t)0x007b05e8);
+    const u32 mode = *reinterpret_cast<u32 *>(&gPanel7b9940_7b05e8);
     if (mode) {
         g_calls.Th(0x0046c350, mode, 0u);   // MouseMode_Set
         g_calls.Cd(0x0067acb0, mode);
     }
-    *reinterpret_cast<u32 *>((uintptr_t)0x007b05e8) = 0;
+    *reinterpret_cast<u32 *>(&gPanel7b9940_7b05e8) = 0;
 }
 
 extern "C" {

@@ -21,6 +21,7 @@
 #include "window705a50.h"
 #include "window705af0.h"
 #include "window705b20.h"
+#include "panel7cc218.h"
 
 using namespace panelparts;
 
@@ -98,7 +99,7 @@ void __fastcall Panel7cc258_Open(u8 *self) {
 }
 
 void __fastcall Panel7cc258_Update(u8 *self) {
-    const u8 *const thing = *reinterpret_cast<const u8 *const *>((uintptr_t)0x007c2658);
+    const u8 *const thing = *reinterpret_cast<const u8 *const *>(&gPanel7cc218_7c2658);
     void *const *const table = *reinterpret_cast<void *const *const *>(*reinterpret_cast<u8 **>(self + 0x20));
     const u32 value = vcall<u32>(self, 0x34);
     // sic: the object's vtable from before the call, the object read again after it
@@ -129,7 +130,7 @@ void __fastcall Panel7cc258_Show(u8 *self, void *, u8 *thing) {
 }
 
 u32 __cdecl Panel7cc258_ApplyToThing(u8 *thing) {
-    const u8 *const shown = *reinterpret_cast<u8 *const *>((uintptr_t)0x007c2658);
+    const u8 *const shown = *reinterpret_cast<u8 *const *>(&gPanel7cc218_7c2658);
     if (*reinterpret_cast<const u16 *>(thing + 0xe) == *reinterpret_cast<const u16 *>(shown + 0xe)) {
         Set198_4e21e0(thing, nullptr, *reinterpret_cast<const u32 *>((uintptr_t)0x007cc280));
         Object_SetQualityOfGoods(thing, nullptr, (u8)(*reinterpret_cast<const s8 *>((uintptr_t)0x007cc27c) * 0x32));   // (IMUL CL: the low byte)
@@ -139,7 +140,7 @@ u32 __cdecl Panel7cc258_ApplyToThing(u8 *thing) {
 }
 
 void __fastcall Panel7cc258_ShowStats(u8 *self) {
-    u8 *const thing = global<u8 *>(0x007c2658);
+    u8 *const thing = gPanel7cc218_7c2658;
     Object_GetDef(thing);  // (its result not used)
     if (at<u8 *>(self, 0x14)) {
         // (each sum's debug print of whether 30 is within the size is left out; no child is checked)

@@ -4,6 +4,7 @@
 #include <cstdint>
 
 #include "guimanager.h"
+#include "windowtimers.h"
 
 namespace {
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
@@ -18,8 +19,8 @@ extern "C" {
 void __fastcall WindowTimer_Restart(u8 *timer) { *reinterpret_cast<u32 *>(timer + 4) = g_env->now(); }
 
 void __cdecl WindowTimers_RestartAll() {
-    if (!global<u32>(0x00faa638)) return;
-    global<u32>(0x00faa638) = 0;
-    for (u8 *timer = global<u8 *>(0x00faa634); timer; timer = *reinterpret_cast<u8 **>(timer + 0x18)) WindowTimer_Restart(timer);
+    if (!gWindowtimers_faa638) return;
+    gWindowtimers_faa638 = 0;
+    for (u8 *timer = gWindowtimers_faa634; timer; timer = *reinterpret_cast<u8 **>(timer + 0x18)) WindowTimer_Restart(timer);
 }
 }

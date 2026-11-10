@@ -12,6 +12,7 @@
 #include "hoverlabel.h"
 #include "panelparts.h"
 #include "window.h"
+#include "panel7cc218.h"
 
 namespace {
 
@@ -23,7 +24,7 @@ template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cas
 extern "C" {
 
 void __fastcall Panel7ca228_Update(u8 *self) {
-    const u8 *const thing = global<const u8 *>(0x007c2658);
+    const u8 *const thing = gPanel7cc218_7c2658;
     void *const *const table = at<void *const *>(at<u8 *>(self, 0x20), 0);
     const u32 value = vcall<u32>(self, 0x34);
     // sic: the object's vtable from before the call, the object read again after it
@@ -35,13 +36,13 @@ void __fastcall Panel7ca228_Update(u8 *self) {
 }
 
 void __fastcall Panel7ca228_Show(u8 *self, void *, u8 *thing) {
-    *reinterpret_cast<u8 **>((uintptr_t)0x007ca218) = thing;
+    *reinterpret_cast<u8 * *>(&gPanel7ca228_7ca218) = thing;
     WindowAt10_Create(self, nullptr, reinterpret_cast<u8 *>((uintptr_t)0x00751a68), 0x00499bb0, 0x157e, 0x1583, 0);
     Advisor_PostId(0x12a);
 }
 
 void __fastcall Panel7ca228_Open(u8 *self) {
-    if (Things_CountGroup(self, nullptr, global<u32>(0x007ca218)) < 2) {
+    if (Things_CountGroup(self, nullptr, gPanel7ca228_7ca218) < 2) {
         Window_SetShown(Window_FindChild(at<u8 *>(self, 0x10), nullptr, 0x157c), nullptr, 0);
         Window_SetShown(Window_FindChild(at<u8 *>(self, 0x10), nullptr, 0x157d), nullptr, 0);
     }
@@ -59,7 +60,7 @@ void __fastcall Panel7ca228_Dress(u8 *self) {
 
 void __fastcall Panel7ca228_ShowValues(u8 *self) {
     using SetValue = void(__fastcall *)(u8 *, void *, u32);
-    const u8 *const thing = global<const u8 *>(0x007c2658);
+    const u8 *const thing = gPanel7cc218_7c2658;
     Object_GetDef(thing);
     if (!at<u8 *>(self, 0x14)) return;
     if (u8 *const child = Window_FindChild(at<u8 *>(self, 0x14), nullptr, 0x1586)) {

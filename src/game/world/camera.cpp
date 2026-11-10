@@ -20,6 +20,7 @@
 #include "mousemode.h"
 #include "person.h"
 #include "things.h"
+#include "../ui/panel7cc218.h"
 
 namespace {
 
@@ -178,7 +179,7 @@ void __cdecl Camera_PackCellFractions(u32 x, u32 z, u8 *outX, u8 *outZ) {
 }
 
 void __cdecl Camera_CentreOnGlobalThing() {
-    const u8 *const thing = global<const u8 *>(0x007c2658);
+    const u8 *const thing = gPanel7cc218_7c2658;
     u16 handle;
     Thing_GetHandle(thing, nullptr, &handle);
     // (the high word what ECX held: the thing pointer's)

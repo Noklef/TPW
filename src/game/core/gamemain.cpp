@@ -7,6 +7,7 @@
 #include "../online/chatlists.h"
 #include "../online/chatcommand.h"
 #include "../online/chat.h"
+#include "../ui/windowproc.h"
 
 namespace {
 
@@ -17,7 +18,7 @@ template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((ui
 const u32 kLanguage = 0x0078b530;
 const u32 kStopped = 2, kStarted = 4;
 
-u32 &Flags() { return global<u32>(0x007a1a14); }
+u32 &Flags() { return gWindowproc_7a1a14; }
 
 // new UserSlots: the constructor's answer, or 0 with no block.
 u32 MakeSlots() {
@@ -94,7 +95,7 @@ extern "C" u32 __stdcall Game_WinMain(u32 instance, u32 previous, u32 commandLin
         String_Dtor(&path);
         global<u32>(0x007a1c5c) = global<u32(__stdcall *)(u32)>(0x006fd350)(0x0074d11c);   // RegisterWindowMessageA ("MSWHEEL_ROLLMSG")
 
-        if (!(global<u8>(0x007a1a14) & kStopped)) {
+        if (!(reinterpret_cast<u8 &>(gWindowproc_7a1a14) & kStopped)) {
             const auto peek = global<u32(__stdcall *)(u32 *, u32, u32, u32, u32)>(0x006fd354);
             const auto translate = global<u32(__stdcall *)(const u32 *)>(0x006fd358);
             const auto dispatch = global<u32(__stdcall *)(const u32 *)>(0x006fd35c);
@@ -109,7 +110,7 @@ extern "C" u32 __stdcall Game_WinMain(u32 instance, u32 previous, u32 commandLin
                     dispatch(message);
                 }
                 if (!quit && (Flags() & 1)) Frame();
-            } while (!quit && !(global<u8>(0x007a1a14) & kStopped));
+            } while (!quit && !(reinterpret_cast<u8 &>(gWindowproc_7a1a14) & kStopped));
         }
     }
 

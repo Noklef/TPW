@@ -4,6 +4,7 @@
 #include "../files/quickload.h"
 #include "../math/sintable.h"
 #include "frame.h"
+#include "../ui/windowproc.h"
 
 namespace {
 
@@ -72,7 +73,7 @@ void __cdecl Screen_Init() {
     const float half = 0.5f;  // 0x6fe230
     const float cx = static_cast<float>(static_cast<double>(global(0x007a1968)) * half);
     const float cy = static_cast<float>(static_cast<double>(global(0x007a1930)) * half);
-    global(0x007a1a14) |= 8;
+    gWindowproc_7a1a14 |= 8;
     global<float>(0x007a0c9c) = cx;
     global<float>(0x007a162c) = cy;
     global<float>(0x007a192c) = cx;

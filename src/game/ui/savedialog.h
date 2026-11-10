@@ -37,3 +37,9 @@ void __cdecl LoadDialog_FillList(u8 *window);
 // 0x49edf0 (cdecl (the list window)): the same, with its format arguments on the stack in another order and an unused WString.
 void __cdecl SaveDialog_FillList(u8 *window);
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(u32, gSavedialog_7cb244, 0x007cb244, 0x4);
+GAME_DATA(u32, gSavedialog_7cb248, 0x007cb248, 0x4);

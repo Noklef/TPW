@@ -28,3 +28,8 @@ u32 __cdecl GuiWindows_FindByName(const char *name);
 u32 __cdecl GuiWindows_FindByHash(s32 hash);
 
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(u8 *, gWindowreg_faa610, 0x00faa610, 0x4);

@@ -45,7 +45,7 @@ const Panel7c2534OpenEnv *g_open = &kOpenEnv;
 void NewPanel(u32 handler) {
     u8 *const block = static_cast<u8 *>(GameHeap_Alloc(0x14));
     u8 *const panel = block ? g_env->ctor(block) : nullptr;
-    global<u8 *>(0x007c2534) = panel;
+    gPanel7c2534menus_7c2534 = panel;
     g_env->setHandlers(panel, nullptr, handler, 0x0048b2a0);
 }
 
@@ -59,7 +59,7 @@ u8 *Online() {
 
 s32 Row(s32 top, u32 text, u32 id, u32 colour) {
     const u16 *const wide = g_env->wideText(text);
-    return g_env->addRow(global<u8 *>(0x007c2534), nullptr, top, wide, id, 0, colour, colour, colour);
+    return g_env->addRow(gPanel7c2534menus_7c2534, nullptr, top, wide, id, 0, colour, colour, colour);
 }
 
 }  // namespace
@@ -72,8 +72,8 @@ void Panel7c2534Open_SetEnv(const Panel7c2534OpenEnv *env) { g_open = env ? env 
 
 void __cdecl Panel7c2534_BuildMain() {
     NewPanel(0x0048b6a0);
-    if (!(global<u8>(0x00fb34c6) & 1)) {
-        global<u8>(0x00fb34c6) |= 1;
+    if (!(gPanel7c2534_BuildMain_fb34c6 & 1)) {
+        gPanel7c2534_BuildMain_fb34c6 |= 1;
         g_env->readMode(reinterpret_cast<u8 *>(&gDialog74fb20_fb3b7c));
         g_env->atExit(0x005d1750);
     }
@@ -121,7 +121,7 @@ void __cdecl Panel7c2534_BuildOnline() {
 }
 
 void __cdecl Panel7c2534_Open(u32 flag) {
-    if (global<u8 *>(0x007c2534)) return;
+    if (gPanel7c2534menus_7c2534) return;
     if (flag) {
         g_open->buildOnline();
     } else {
@@ -130,13 +130,13 @@ void __cdecl Panel7c2534_Open(u32 flag) {
         if (global<u32>(0x00786ba4) == 1) {
             g_open->leave(reinterpret_cast<u8 *>((uintptr_t)0x00786b68), nullptr, 0, 0);
             global<u32>(0x00786ba4) = 0;
-            global<u8>(0x007c2518) = 0;
+            gPanel7c2534menus_7c2518 = 0;
             g_open->refresh();
-            g_open->show(global<u8 *>(0x007c2534), nullptr, flag);
+            g_open->show(gPanel7c2534menus_7c2534, nullptr, flag);
             return;
         }
     }
-    global<u8>(0x007c2518) = 1;
-    g_open->show(global<u8 *>(0x007c2534), nullptr, flag);
+    gPanel7c2534menus_7c2518 = 1;
+    g_open->show(gPanel7c2534menus_7c2534, nullptr, flag);
 }
 }

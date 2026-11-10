@@ -21,3 +21,9 @@ extern "C" {
 // runs into it, sic); the colours' padding is what the stack held.
 void __fastcall Window705950_Draw(u8 *window);
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(char[8], gWindow705950_Draw_74f8c8, 0x0074f8c8, 0x8);
+GAME_DATA(char[8], gWindow705950_Draw_74f8d0, 0x0074f8d0, 0x8);

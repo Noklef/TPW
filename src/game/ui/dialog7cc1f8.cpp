@@ -31,6 +31,7 @@
 #include "window7059f0.h"
 #include "windowreg.h"
 #include "windowscript.h"
+#include "panel7b9940.h"
 
 using namespace panelparts;
 
@@ -91,7 +92,7 @@ void __cdecl Dialog7cc1f8_Open(u32 kind, u32 selected) {
     global<u16>(0x007cc1e4) = 0;
     global<u16>(0x007cc1e8) = 0;
     global<u16>(0x007cc1e0) = 0;
-    global<u8 *>(0x007cc1f8) = WindowScript_Build(global<u8 *>(0x007cb2ac), nullptr, reinterpret_cast<u8 *>((uintptr_t)0x00754cf8), 0x004ac270);
+    global<u8 *>(0x007cc1f8) = WindowScript_Build(gPanel7b9940_7cb2ac, nullptr, reinterpret_cast<u8 *>((uintptr_t)0x00754cf8), 0x004ac270);
     if (global<u8 *>(0x007cc1f8)) {
         Window7c24c8_Set(global<u8 *>(0x007cc1f8));
         // the money line: a number argument 13, its size, in the text 0x1cb when negative (0x1ca else)

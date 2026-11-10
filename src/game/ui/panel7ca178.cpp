@@ -12,6 +12,7 @@
 #include "panelparts.h"
 #include "window.h"
 #include "window705a50.h"
+#include "panel7cc218.h"
 
 using namespace panelparts;
 
@@ -28,7 +29,7 @@ double ringSum(const u8 *thing) {
     const bool wrapped = at<u8>(thing, 0x22c) != 0;
     s32 count = wrapped ? at<s32>(thing, 0x228) : at<s32>(thing, 0x224) + 1;
     if (count >= 0x1e) count = 0x1e;
-    double sum = *reinterpret_cast<const double *>((uintptr_t)0x006ff738);
+    double sum = gPanel7ca178_6ff738;
     for (s32 i = 0; i < count; ++i) {
         const s32 used = at<s32>(thing, 0x228), head = at<s32>(thing, 0x224);
         if (i >= used) continue;
@@ -44,7 +45,7 @@ void Panel7ca178_SetStatsEnv(const Panel7ca178StatsEnv *env) { g_stats = env ? e
 extern "C" {
 
 void __fastcall Panel7ca178_ShowStats(u8 *self) {
-    u8 *const thing = *reinterpret_cast<u8 **>((uintptr_t)0x007c2658);
+    u8 *const thing = gPanel7cc218_7c2658;
     Object_GetDef(thing);
     if (window(self)) {
         if (u8 *const part = Window_FindChild(window(self), nullptr, 0x15bbd))

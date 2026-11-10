@@ -17,6 +17,7 @@
 #include "panelparts.h"
 #include "window.h"
 #include "window705a50.h"
+#include "panel7cc218.h"
 
 namespace {
 
@@ -34,7 +35,7 @@ u8 *child(u8 *self, u32 id) { return Window_FindChild(at<u8 *>(self, 0x10), null
 extern "C" {
 
 void __fastcall Panel7cc298_Update(u8 *self) {
-    const u8 *const thing = global<const u8 *>(0x007c2658);
+    const u8 *const thing = gPanel7cc218_7c2658;
     void *const *table = at<void *const *>(at<u8 *>(self, 0x20), 0);
     const u32 value = vcall<u32>(self, 0x34);
     // sic: the object's vtable from before the call, the object read again after it
@@ -91,7 +92,7 @@ void __fastcall Panel7cc298_Show(u8 *self, void *, u8 *thing) {
 }
 
 void __fastcall Panel7cc298_ApplyToShown(u8 *self) {
-    u8 *const thing = global<u8 *>(0x007c2658);
+    u8 *const thing = gPanel7cc218_7c2658;
     Obj_Set194(thing, nullptr, at<u32>(self, 0x2c));
     if (!at<u32>(Object_GetDef(thing), 0x10c)) {
         Object_SetChanceOfWinning(thing, nullptr, at<u8>(self, 0x24));
@@ -100,7 +101,7 @@ void __fastcall Panel7cc298_ApplyToShown(u8 *self) {
 }
 
 u32 __cdecl Panel7cc298_ApplyToThing(u8 *thing) {
-    if (at<u16>(thing, 0xe) == at<u16>(global<const u8 *>(0x007c2658), 0xe)) {
+    if (at<u16>(thing, 0xe) == at<u16>(gPanel7cc218_7c2658, 0xe)) {
         Obj_Set194(thing, nullptr, global<u32>(0x007cc2c4));
         if (!at<u32>(Object_GetDef(thing), 0x10c)) {
             Object_SetChanceOfWinning(thing, nullptr, global<u8>(0x007cc2bc));
@@ -111,7 +112,7 @@ u32 __cdecl Panel7cc298_ApplyToThing(u8 *thing) {
 }
 
 void __fastcall Panel7cc298_ShowStats(u8 *self) {
-    u8 *const thing = global<u8 *>(0x007c2658);
+    u8 *const thing = gPanel7cc218_7c2658;
     Object_GetDef(thing);  // (its result not used)
     if (window14(self)) {
         // (each sum's debug print of whether 30 is within the size is left out)

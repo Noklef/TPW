@@ -8,6 +8,7 @@
 #include "objectdefs.h"
 #include "../ui/dialog7cc2ec.h"
 #include "../ui/dialog74fb20.h"
+#include "../ui/quitconfirm.h"
 
 namespace {
 
@@ -35,9 +36,9 @@ bool applies(u32 record) {
     const u32 when = global<u32>(record + 0xc);
     if (when == 2)
         return true;
-    if (when == 0 && AdvisorScore_ModeSetting(0x00fb34bc) == 0)
+    if (when == 0 && AdvisorScore_ModeSetting(reinterpret_cast<uintptr_t>(&gQuitconfirm_fb34bc)) == 0)
         return true;
-    return global<u32>(record + 0xc) == 1 && AdvisorScore_ModeSetting(0x00fb34bc) == 2;
+    return global<u32>(record + 0xc) == 1 && AdvisorScore_ModeSetting(reinterpret_cast<uintptr_t>(&gQuitconfirm_fb34bc)) == 2;
 }
 
 s32 call(u8 *self, u32 record) {

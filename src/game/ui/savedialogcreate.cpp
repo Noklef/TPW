@@ -27,8 +27,8 @@ const SaveDialogCreateEnv kGameEnv = {game<void(__fastcall *)(u8 *, void *, u32,
                                       &Window7059f0_SetHighlight, &LoadDialog_FillList, &SaveDialog_FillList, &TextPart6ff4d0_Ctor, &Window_SetImpl, &Window_Set4c, &Language_Font, &Window705a20_SetBuffer, &Window705a20_SetCaret, &Fn_66781a, &KeyMaps_ResetAllAndSetFlag};
 const SaveDialogCreateEnv *g_env = &kGameEnv;
 
-const u32 kLoadDialog = 0x007cb244;
-const u32 kSaveDialog = 0x007cb248;
+const u32 kLoadDialog = reinterpret_cast<uintptr_t>(&gSavedialog_7cb244);
+const u32 kSaveDialog = reinterpret_cast<uintptr_t>(&gSavedialog_7cb248);
 const char *hilight() { return reinterpret_cast<const char *>((uintptr_t)0x0074fa84); }
 
 // The controls off and any other window gone; the dialog made in its global, with its label.

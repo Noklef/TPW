@@ -18,6 +18,7 @@
 #include "accessors.h"
 #include "globalsave.h"
 #include "../ui/dialog74fb20.h"
+#include "../ui/quitconfirm.h"
 
 namespace {
 
@@ -750,7 +751,7 @@ const u8 *find_criterion(s32 id) {
 
 // The state the game object is in, its function-local static (guard byte 0xfb34bc, bit 0) made at first use.
 s32 game_state() {
-    u8 &guard = *reinterpret_cast<u8 *>((uintptr_t)0x00fb34bc);
+    u8 &guard = gQuitconfirm_fb34bc;
     if (!(guard & 1)) {
         guard |= 1;
         g_calls.Th(0x00550ca0, reinterpret_cast<uintptr_t>(&gDialog74fb20_fb3b7c));
