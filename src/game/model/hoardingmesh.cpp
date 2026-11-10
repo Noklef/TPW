@@ -20,16 +20,16 @@ const HoardingMeshEnv kPortEnv = {&GlobalMem_Alloc, &PortFormat, &Animator_Creat
 const HoardingMeshEnv *g_env = &kPortEnv;
 
 // The constants, as the game's memory holds them: 0.5, -0.5, -1, -5 pi / 4, 2 pi, -10, 5, 10, the most a float can be, 0.
-const float &kHalf = global<float>(0x006fe444);
-const float &kLessHalf = global<float>(0x006fe448);
-const float &kLessOne = global<float>(0x006fe44c);
-const float &kAngle = global<float>(0x006fe450);
-const double &kTurn = global<double>(0x006fe458);
-const float &kLessTen = global<float>(0x006fe460);
-const float &kFive = global<float>(0x006fe464);
-const float &kTen = global<float>(0x006fe468);
-const float &kFar = global<float>(0x006fe46c);
-const float &kNone = global<float>(0x006fe470);
+const float &kHalf = gHoardingmesh_6fe444;
+const float &kLessHalf = gHoardingmesh_6fe448;
+const float &kLessOne = gHoardingmesh_6fe44c;
+const float &kAngle = gHoardingmesh_6fe450;
+const double &kTurn = gHoardingmesh_6fe458;
+const float &kLessTen = gHoardingmesh_6fe460;
+const float &kFive = gHoardingmesh_6fe464;
+const float &kTen = gHoardingmesh_6fe468;
+const float &kFar = gHoardingmesh_6fe46c;
+const float &kNone = gHoardingmesh_6fe470;
 
 const u32 kOne = 0x3f800000, kLessOneBits = 0xbf800000;
 
@@ -146,12 +146,12 @@ extern "C" void __cdecl HoardingMesh_Build(const char *level, u8 *object, const 
     at<float>(part, 0x1c) = (float)(kFive - X87Reg((double)width) * kLessTen);
     at<float>(part, 0x24) = (float)(kFive - X87Reg((double)height) * kLessTen);
 
-    g_env->format(folder, global<const char *>(0x0074cfc0), level);
-    global<char *>(0x0074d010) = folder;
-    g_env->create(animator, reinterpret_cast<u8 *>((uintptr_t)0x0074d008), reinterpret_cast<const char *>((uintptr_t)0x0074d080), 1);
+    g_env->format(folder, gHoardingMesh_Build_74cfc0, level);
+    gHoardingMesh_Build_74d010 = folder;
+    g_env->create(animator, reinterpret_cast<u8 *>((uintptr_t)0x0074d008), gText_HoardingMesh_Build_74d080, 1);
     Matrix_Identity(at<float *>(part, 0x28));
     u8 *const range = at<u8 *>(part, 0x2c);
-    at<u32>(range, 0) = global<u32>(0x0074d020);
+    at<u32>(range, 0) = gHoardingMesh_Build_74d020;
     at<u16>(range, 4) = 0;
     at<u16>(range, 6) = at<u16>(part, 4);
     at<u16>(range, 8) = 0;

@@ -33,12 +33,12 @@ void MarkEdges(const u8 *cells, s32 width, s32 height) {
         for (s32 x = 0; x < width; ++x) {
             const s32 cell = y * 0xa0 + x * 8;
             const bool self = Set(cells, cell + 8);
-            u32 edges = global<u32>(0x007afe20 + 4 * (y * 20 + x));
+            u32 edges = gRideBaseEdges_7afe20[y * 20 + x];
             if (self != (y < height - 1 && Set(cells, cell + 0xa8))) edges |= 4;
             if (self != (x > 0 && Set(cells, cell))) edges |= 2;
             if (self != (y > 0 && Set(cells, cell - 0x98))) edges |= 1;
             if (self != (x < width - 1 && Flags_AnyLow4(at<u32>(cells, (u32)(cell + 0x10))) != 0)) edges |= 8;
-            global<u32>(0x007afe20 + 4 * (y * 20 + x)) = edges;
+            gRideBaseEdges_7afe20[y * 20 + x] = edges;
         }
     }
 }
@@ -51,10 +51,10 @@ void __cdecl RideBase_Prepare(const u8 *object, const u8 *owner, const u8 *cells
     u8 *holder = at<u8 *>(object, 8);
     const u8 *model = at<u8 *>(holder, 4);
 
-    std::memset(reinterpret_cast<void *>((uintptr_t)0x007afe20), 0, 0x190 * 4);
+    std::memset(gRideBaseEdges_7afe20, 0, 0x190 * 4);
     const bool edges = !(at<u8>(model, 0x30) & 0x80) && cells;
-    global<s32>(0x007afe18) = edges ? width : 0;
-    global<s32>(0x007b0460) = edges ? height : 0;
+    reinterpret_cast<s32 &>(gRidebase_7afe18) = edges ? width : 0;
+    reinterpret_cast<s32 &>(gRidebase_7b0460) = edges ? height : 0;
     if (edges) MarkEdges(cells, width, height);
 
     Fit fit;

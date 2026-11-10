@@ -340,7 +340,7 @@ u32 __fastcall ObjModel_BlendTerrainTiles(u8 *object, void *, s32 x0, s32 y0, s3
             overlay.pixels = Texture_LockFlipped(old);
             overlay.width = at<s16>(old, 0x10);
             overlay.height = at<s16>(old, 0x12);
-            overlay.bytes_per_pixel = reinterpret_cast<const s32 *>((uintptr_t)0x00701a18)[global<u32>(0x008bd554)];
+            overlay.bytes_per_pixel = gObjModel_BlendTerrainTiles_701a18[global<u32>(0x008bd554)];
             overlay.flags = cell & 0xffff;
             result &= TerrainTexCache_BlendTile(ptr(global<u8 *>(0x00879d60), 0x230), nullptr, texture, x, y, &overlay);
             TexCache_UnlinkItem(reinterpret_cast<u8 * &>(gTexcache_8c4b44), nullptr, reinterpret_cast<u8 *>((uintptr_t)*slot));

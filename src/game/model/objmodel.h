@@ -93,3 +93,6 @@ u32 __fastcall ObjModel_DrawOrQueue(u8 *part);
 
 // Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
 GAME_DATA(s32, gObjModel_DrawOrQueue_8bb620, 0x008bb620, 4);
+
+// Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(const s32[18], gObjModel_BlendTerrainTiles_701a18, 0x00701a18, 0x48);

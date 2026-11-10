@@ -25,3 +25,10 @@ void RideBase_SetEnv(const RideBaseEnv *env);
 // of (count, pointer to what follows, the hits). With cells: unless model +0x30 lacks 8 (Debug_Printf in the original: left out), or there
 // is no best frame without 0x80, RideBase_FillCells. The best count starts as stack garbage when the first fit is skipped (0 here).
 void __cdecl RideBase_Prepare(const u8 *object, const u8 *owner, const u8 *cells, s32 width, s32 height);
+
+#include "../core/gamedata.h"
+
+// Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(u32, gRidebase_7afe18, 0x007afe18, 0x4);
+GAME_DATA(u32[400], gRideBaseEdges_7afe20, 0x007afe20, 0x640);
+GAME_DATA(u32, gRidebase_7b0460, 0x007b0460, 0x4);

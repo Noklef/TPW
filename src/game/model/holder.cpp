@@ -47,9 +47,9 @@ void __cdecl Holder_SetScale(const u8 *holder, const float *scale) {
     Matrix_ScaleAxes(m, scale[0], scale[1], scale[2]);
 }
 
-void __cdecl Holder_InitUnusedOne() { at<float>(reinterpret_cast<void *>(0x007a1cac), 0) = 1.0f; }
+void __cdecl Holder_InitUnusedOne() { gHolder_InitUnusedOne_7a1cac = 1.0f; }
 
-void __cdecl Holder_InitUnusedEpsilon() { at<float>(reinterpret_cast<void *>(0x007a1cdc), 0) = 1.0f / 8388608.0f; }
+void __cdecl Holder_InitUnusedEpsilon() { gHolder_InitUnusedEpsilon_7a1cdc = 1.0f / 8388608.0f; }
 
 u32 __cdecl Ride_SlotKey(u32 ride, u32 i) {
     const u8 *holder = at<const u8 *>(reinterpret_cast<const u8 *const *>(0x007a4610)[ride], 8);
@@ -271,13 +271,13 @@ u32 __cdecl Instance_Dispose(u8 *instance) {
     return 1;
 }
 
-void __cdecl Animator_InitUnusedOne() { *reinterpret_cast<float *>(0x0078ed8c) = 1.0f; }
+void __cdecl Animator_InitUnusedOne() { gAnimator_InitUnusedOne_78ed8c = 1.0f; }
 
-void __cdecl Animator_InitUnusedEpsilon() { *reinterpret_cast<float *>(0x0078f47c) = 1.0f / 8388608.0f; }
+void __cdecl Animator_InitUnusedEpsilon() { gAnimator_InitUnusedEpsilon_78f47c = 1.0f / 8388608.0f; }
 
-void __cdecl Instance_InitUnusedOne() { *reinterpret_cast<float *>(0x007a0174) = 1.0f; }
+void __cdecl Instance_InitUnusedOne() { gInstance_InitUnusedOne_7a0174 = 1.0f; }
 
-void __cdecl Instance_InitUnusedEpsilon() { *reinterpret_cast<float *>(0x007a086c) = 1.0f / 8388608.0f; }
+void __cdecl Instance_InitUnusedEpsilon() { gInstance_InitUnusedEpsilon_7a086c = 1.0f / 8388608.0f; }
 
 void __cdecl Holder_Free(u8 *holder) {
     if (at<u32>(holder, 0) & 1)
@@ -525,7 +525,7 @@ u32 __cdecl Animator_Create(u8 *animator, u8 *record, const char *name, u32 flag
 
 u32 __cdecl Animator_Clone(const u8 *animator, u32 unused, u32 flags, u8 **out) {
     if (!unused)
-        unused = global<u32>(0x0079fb2c);
+        unused = gHolder_79fb2c;
     u8 *const block = static_cast<u8 *>(GlobalMem_Alloc((u32)at<u16>(animator, 4) * 0x30 + 0x44, 0));
     u8 *const copy = reinterpret_cast<u8 *>(((uintptr_t)block + 7) & ~(uintptr_t)7);
     if (copy && animator) {
@@ -575,7 +575,7 @@ u32 __cdecl Instance_Clone(const u8 *instance, u32 heap, u32 flags, u8 **out, u3
     // each section's padding to 4 counted on top (sic; always 0 here).
     const u32 size = 0xfc + entries + parts * 12;
     if (!heap)
-        heap = global<u32>(0x0079fb2c);   // (for the parts only)
+        heap = gHolder_79fb2c;   // (for the parts only)
     u8 *const block = static_cast<u8 *>(GlobalMem_Alloc(size, 0));
     for (u32 k = 0; k < 0xfc; k += 4)   // (REP MOVSD)
         at<u32>(block, k) = at<u32>(instance, k);

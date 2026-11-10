@@ -14,6 +14,7 @@
 #include "md2file.h"
 #include "partstate.h"
 #include "../files/gamepaths.h"
+#include "highlight.h"
 
 namespace {
 
@@ -64,15 +65,15 @@ u32 __cdecl RideModel_Load(const char *name, u32 flags, u8 **out, char *outName,
     {
         const u8 *node = at<const u8 *>(m, 0x70);
         for (u32 n = at<u16>(m, 0x44); n; --n, node += 0xa0) {
-            raise(0x007a42ac, at<u16>(node, 0x5c));
-            raise(0x007a42ac, at<u16>(node, 0x58));
-            raise(0x007a42ac, at<u16>(node, 0x5e));
+            raise((u32)&gRidemodel_7a42ac, at<u16>(node, 0x5c));
+            raise((u32)&gRidemodel_7a42ac, at<u16>(node, 0x58));
+            raise((u32)&gRidemodel_7a42ac, at<u16>(node, 0x5e));
         }
     }
-    raise(0x007a42ac, at<u16>(at<u8 *>(holder, 4), 0x42));
-    raise(0x007afd90, (u32)at<u16>(at<u8 *>(holder, 4), 0x3a) << 2);
-    raise(0x007afd9c, at<u16>(at<u8 *>(holder, 4), 0x3e));
-    raise(0x007afe10, at<u16>(at<u8 *>(holder, 4), 0x44));
+    raise((u32)&gRidemodel_7a42ac, at<u16>(at<u8 *>(holder, 4), 0x42));
+    raise((u32)&gHighlight_7afd90, (u32)at<u16>(at<u8 *>(holder, 4), 0x3a) << 2);
+    raise((u32)&gHighlight_7afd9c, at<u16>(at<u8 *>(holder, 4), 0x3e));
+    raise((u32)&gHighlight_7afe10, at<u16>(at<u8 *>(holder, 4), 0x44));
     if (!(flags & 0x20000) && (at<u8>(at<u8 *>(holder, 4), 0x30) & 4)) {
         at<u32>(at<u8 *>(holder, 4), 0x30) &= ~4u;
         at<u32>(at<u8 *>(holder, 4), 0x30) |= 0x1000000;
@@ -113,7 +114,7 @@ u32 __cdecl RideModel_Load(const char *name, u32 flags, u8 **out, char *outName,
             const u32 want = at<u32>(bank, 4);
             at<u32>(bank, 4) = 0;
             u32 numbered = loading ? (at<u32>(bank, 0) & 0xff) >> 1 & 1 : 1;
-            const s32 letter = global<s8>(0x006fe6bc + 8 * kind);
+            const s32 letter = gRideModel_Letters_6fe6bc[8 * kind];
             for (;;) {
                 if (flags & 9) {   // (sic: the copy is not used)
                     std::strcpy(scratch, base);
@@ -121,9 +122,9 @@ u32 __cdecl RideModel_Load(const char *name, u32 flags, u8 **out, char *outName,
                         if (cut[1] != '\\') *cut = 0;
                 }
                 if (numbered)
-                    Crt().sprintf(path, text(0x0074d2b4), dir, base, letter, at<u32>(bank, 4) + 1);   // "%s%s%c%d.md2"
+                    Crt().sprintf(path, text((u32)&gText_RideModel_Load_74d2b4), dir, base, letter, at<u32>(bank, 4) + 1);   // "%s%s%c%d.md2"
                 else
-                    Crt().sprintf(path, text(0x0074d2a8), dir, base, letter);   // "%s%s%c.md2"
+                    Crt().sprintf(path, text((u32)&gText_RideModel_Load_74d2a8), dir, base, letter);   // "%s%s%c.md2"
                 s32 found = 0;
                 if (loading) {
                     if (at<u32>(bank, 0) & 3) {

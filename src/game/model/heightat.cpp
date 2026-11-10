@@ -6,12 +6,13 @@
 
 #include "../math/x87.h"
 #include "../terrain/land.h"
+#include "scratch.h"
 
 namespace {
 
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>(address); }
 // The view's (0x79fb18) model's (+4) floor offset (+0xa0), read afresh each time as the original does.
-u32 &view_offset() { return *reinterpret_cast<u32 *>(global<uintptr_t>(global<uintptr_t>(0x0079fb18) + 4) + 0xa0); }
+u32 &view_offset() { return *reinterpret_cast<u32 *>(global<uintptr_t>(reinterpret_cast<uintptr_t &>(gScratch_79fb18) + 4) + 0xa0); }
 template <typename T> T &at(const void *p, u32 offset) {
     return *reinterpret_cast<T *>((uintptr_t)p + offset);
 }
@@ -29,7 +30,7 @@ float __cdecl Model_HeightAt(const u8 *model, const u8 *instance, float x, float
     const u8 *const faces = at<const u8 *>(model, 0x70);
     for (u32 g = 0; g < groups; ++g, group += 0x10) {
         const u16 *face = reinterpret_cast<const u16 *>(faces + at<u16>(group, 4) * 8);
-        const u8 *verts = global<const u8 *>(0x0079f7e0);
+        const u8 *verts = static_cast<const u8 *>(gModel_79f7e0);
         if (instance) verts += at<u16>(instance, 0x10) * 12;
         for (u32 left = at<u16>(group, 6); left; --left, face += 4) {
             if (!(face[0] & 0x8000)) continue;
@@ -62,7 +63,7 @@ float __cdecl Model_HeightAt(const u8 *model, const u8 *instance, float x, float
             if (!under) continue;
             const float ny = normal[1];
             X87Reg pa = 0.0, pb = 0.0;  // the normal's z and x, turned with the view
-            switch (at<s32>(global<const u8 *>(0x0079fb18), 0x10)) {
+            switch (at<s32>(gScratch_79fb18, 0x10)) {
             case 90:
                 pa = neg(normal[0]);
                 pb = normal[2];
@@ -90,13 +91,13 @@ float __cdecl Model_HeightAt(const u8 *model, const u8 *instance, float x, float
 }
 
 float __cdecl Model_FloorHeight(float x, float z, s32 noParts, s32 noMain) {
-    const u8 *view = global<const u8 *>(0x0079fb18);
+    const u8 *view = gScratch_79fb18;
     const u8 *const model = at<const u8 *>(view, 4);
     const u8 *const holder = at<const u8 *>(view, 0x28);
     float best = -100.0f;
     if (!noMain && at<const u8 *>(view, 0x2c)) {
         best = Model_HeightAt(at<const u8 *>(view, 0x2c), nullptr, x, z, at<const float *>(view, 0x30), 1);
-        view = global<const u8 *>(0x0079fb18);
+        view = gScratch_79fb18;
         if (!(best != -100.0f)) {  // fcomp: equal, or unordered
             at<u32>(&best, 0) = at<u32>(at<const u8 *>(at<const u8 *>(view, 4), 0x78), 0x44);
         }
@@ -120,7 +121,7 @@ void __cdecl View_FloorAt(float x, float z, float *out) {
     float offset;
     std::memcpy(&offset, &view_offset(), 4);
     if (std::isnan(offset)) view_offset() = 0;   // _isnan (0x67b410)
-    const u8 mode = global<u8>(0x0079fb10);
+    const u8 mode = reinterpret_cast<u8 &>(gScratch_79fb10);
     double height;
     if (mode & 1) {
         height = Terrain_HeightAt(x, z);

@@ -60,7 +60,7 @@ void MarkParts(const u8 *model, u32 flags) {
             extra += 0x14;
         }
     }
-    if (count > global<u32>(0x0079f7d0)) global<u32>(0x0079f7d0) = count;
+    if (count > gRideresource_79f7d0) gRideresource_79f7d0 = count;
 }
 
 void FinishParts(const u8 *model) {
