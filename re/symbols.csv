@@ -6348,6 +6348,7 @@ address,name,kind,confidence,notes
 0x00688f10,CRT_wcsnlen,function,low,reimplemented (src/game/core/crtenv); LCMapStringW's count
 0x00689760,CRT_setenvp,function,low,reimplemented (src/game/core/crtenv); _setenvp
 0x0067fbf0,CRT_getenv_locked,function,low,reimplemented (src/game/core/crtenv); getenv
+0x00689b00,CRT_crtGetEnvironmentStringsA,function,high,reimplemented (src/game/core/crtenv); __crtGetEnvironmentStringsA: a malloc'd copy of the environment block
 0x00682b40,CRT_sbh_find_block,function,low,reimplemented (src/game/core/crtrealloc); MSVC6 __sbh_find_block
 0x00682a10,CRT_sbh_release_region,function,low,reimplemented (src/game/core/crtrealloc); MSVC6 __sbh_release_region
 0x00682a70,CRT_sbh_decommit_pages,function,low,reimplemented (src/game/core/crtrealloc); MSVC6 __sbh_decommit_pages

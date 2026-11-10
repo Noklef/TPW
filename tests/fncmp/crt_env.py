@@ -10,7 +10,8 @@ from fncmp import HEAP, IMPORT_TABLE, LOG, RAM, Bench, Call, _free, _recorder, a
 
 GETPTD, REALLOC, LOCK, UNLOCK, AMSG, NHMALLOC = 2, 6, 7, 8, 26, 28
 CMPA, CMPW, TOWIDE, TONARROW, CPINFO, SETENV, ERROR, INCR, DECR, TZI = 14, 15, 16, 17, 18, 19, 20, 21, 22, 23
-B = Bench([(0x67fbf0, 0x67fc18), (0x688f10, 0x688f45), (0x689760, 0x68984e), (0x68f060, 0x68f325), (0x68b530, 0x68b56b), (0x691540, 0x691602), (0x68b5f0, 0x68b640), (0x68f540, 0x68f5b4), (0x68f5c0, 0x68f62f), (0x68f330, 0x68f534), (0x68b570, 0x68b5ea), (0x67fc20, 0x67fcae),
+GETW, GETA, FREEW, FREEA = 24, 25, 27, 29   # (GetEnvironmentStringsW / A, FreeEnvironmentStringsW / A)
+B = Bench([(0x689b00, 0x689c56), (0x67fbf0, 0x67fc18), (0x688f10, 0x688f45), (0x689760, 0x68984e), (0x68f060, 0x68f325), (0x68b530, 0x68b56b), (0x691540, 0x691602), (0x68b5f0, 0x68b640), (0x68f540, 0x68f5b4), (0x68f5c0, 0x68f62f), (0x68f330, 0x68f534), (0x68b570, 0x68b5ea), (0x67fc20, 0x67fcae),
            (0x68ef70, 0x68efa2), (0x68ed80, 0x68ef6a), (0x68ed00, 0x68ed71), (0x687d80, 0x688058),
            (0x689180, 0x6891af), (0x67dcd0, 0x67dcf0), (0x67bfb0, 0x67c07c), (0x67acd0, 0x67acee), (0x67ae00, 0x67aefe), (0x67a480, 0x67a519), (0x686a00, 0x686a19)],
           hooks={0x682720: _recorder(LOCK, 1, cdecl=True), 0x6827a0: _recorder(UNLOCK, 1, cdecl=True), 0x682460: _recorder(GETPTD, 0, cdecl=True), 0x67dcf0: _recorder(NHMALLOC, 2, cdecl=True),
@@ -21,7 +22,7 @@ BLOCKS = [HEAP + 0x100 + 0x80 * i for i in range(40)]   # (each once: a block wr
 TEXTS = [b'PATH=c:\\x', b'TZ=EST5EDT', b'tz', b'A=1', b'AB=2', b'ab=', b'=C:=x', b'NOEQ', b'']
 ZONES = [b'', b'EST5EDT', b'PST8', b'CET-1CEST', b'XYZ+5:30', b'XYZ-5:30:15QQQ', b'ABC12:', b'ABC:1', b'AB', b'ABC+', b'ABC1:2:3:4', b'ABC 7', b'ABC-', b'SAME']
 OPTIONS = [b'A=1', b'TZ=X', b'A=', b'TZ=', b'NEW=v', b'NEW=', b'=x', b'noeq', b'']
-OPS = [n for n in ('getenvlock', 'compare', 'compare', 'coll', 'mbschr', 'strdup', 'findenv', 'copyenv', 'setenv', 'setenv', 'wtomb', 'getenv', 'wcsnlen', 'setenvp', 'setenvp', 'wcsncnt', 'wcslk', 'wcslk', 'wcslk', 'wcs', 'tzset', 'tzset')
+OPS = [n for n in ('getenvlock', 'compare', 'compare', 'coll', 'mbschr', 'strdup', 'findenv', 'copyenv', 'setenv', 'setenv', 'wtomb', 'getenv', 'wcsnlen', 'setenvp', 'setenvp', 'wcsncnt', 'wcslk', 'wcslk', 'wcslk', 'wcs', 'tzset', 'tzset', 'envstrings', 'envstrings')
        if not os.environ.get('OPS') or n in os.environ['OPS'].split(',')]
 
 GETENV = {'getenv': 0x67fc20, 'getenvlock': 0x67fbf0}
@@ -36,7 +37,8 @@ def case(r):
     log = log_region()
     regions = {LOG: log, PTD: bytearray(0x40), HEAP: heap(0x1600),
                IMPORT_TABLE: import_table(log, {'cmpa': (CMPA, 0x6fd270, 6, 0, 0), 'cmpw': (CMPW, 0x6fd274, 6, 0, 0), 'towide': (TOWIDE, 0x6fd174, 6, 0, 0), 'tonarrow': (TONARROW, 0x6fd1dc, 8, 0, 0b10010000), 'cpinfo': (CPINFO, 0x6fd180, 2, 0, 0b10),
-                                                'setenv': (SETENV, 0x6fd278, 2, 0, 0), 'error': (ERROR, 0x6fd138, 0, 0, 0), 'incr': (INCR, 0x6fd0c0, 1, 0, 0), 'decr': (DECR, 0x6fd12c, 1, 0, 0), 'tzi': (TZI, 0x6fd21c, 1, 0, 0)})}
+                                                'setenv': (SETENV, 0x6fd278, 2, 0, 0), 'error': (ERROR, 0x6fd138, 0, 0, 0), 'incr': (INCR, 0x6fd0c0, 1, 0, 0), 'decr': (DECR, 0x6fd12c, 1, 0, 0), 'tzi': (TZI, 0x6fd21c, 1, 0, 0),
+                                                'getw': (GETW, 0x6fd184, 0, 0, 0), 'geta': (GETA, 0x6fd188, 0, 0, 0), 'freew': (FREEW, 0x6fd18c, 1, 0, 0), 'freea': (FREEA, 0x6fd190, 1, 0, 0)})}
     set_return(log, GETPTD, PTD)
     answers(log, CMPA, A_CMP)
     answers(log, CMPW, A_CMP)
@@ -138,6 +140,15 @@ def case(r):
         return Call(GETENV[name], [r.choice([STRINGS + 0x20, STRINGS + 0x20, STRINGS + 0x40, 0])], regions, conv='c', ret='a')
     if name == 'wcsnlen':
         return Call(0x688f10, [ZONE, r.choice([0, 1, 2, 3, 0x20])], regions, conv='c', ret='a')
+    if name == 'envstrings':   # (__crtGetEnvironmentStringsA: the wide block or the narrow one, by the mode at 0xfb1660 (0: chosen now))
+        block = r.choice([b'\0', b'A=1\0\0', b'A=1\0=C:=x\0BB=22\0\0', b'\0\0'])
+        regions[HEAP][0x1500:0x1500 + len(block)] = block
+        wblock = block.decode('latin-1').encode('utf-16-le')
+        regions[HEAP][0x1560:0x1560 + len(wblock)] = wblock
+        set_return(log, GETW, r.choice([HEAP + 0x1560, HEAP + 0x1560, 0]))
+        set_return(log, GETA, r.choice([HEAP + 0x1500, HEAP + 0x1500, 0]))
+        regions[0xfb1660] = struct.pack('<I', r.choice([0, 0, 1, 2, 3]))
+        return Call(0x689b00, [], regions, conv='c', ret='a')
     if name == 'setenvp':   # (a failed malloc goes on through a null pointer, in both)
         block = r.choice([b'\0', b'A=1\0\0', b'=C:=x\0\0', b'A=1\0=C:=x\0BB=22\0\0', b'=x\0=y\0\0', b'long name=a longer text than the first\0B=\0\0'])
         regions[HEAP][0x1500:0x1500 + len(block)] = block
