@@ -1,7 +1,7 @@
 # The rasteriser's cseg triangle set-ups (src/game/render/rastertriangle) against the original, which jumps on into the span routine
 # [0xfbe044] (dealt from the 21; rasterspans.py's fixture for the globals, texels, pixels and depths): three vertices (x within a
 # 24-pixel row, y within 6 rows, any depth words, colour, u and v; a third of the cases one depth for all, the buffer's within 1 of it;
-# one case in 16 a vertex twice), the order table [0xfbe710] the original's or dealt 0 / 0x10, the row and depth pitches either way.
+# one case in 16 a vertex twice; an eighth of the unbanded ones a sliver whose cross product is about 0x80), the order table [0xfbe710] the original's or dealt 0 / 0x10, the row and depth pitches either way.
 # Where the span reads texels unmasked or picks the blend tables' row by the shaded word, the triangles are at least 32 pixels and u,
 # v (and the colours) kept in a band, so the interpolated values stay within the texels and tables.
 # usage: rastertriangle.py [CASES [SEED]] [--wild|--both] [--show N]
@@ -28,6 +28,11 @@ def vertices(r, banded, lit, z):
             colour = bytes(r.randrange(0x50, 0x90) for _ in range(4)) if lit else r.randbytes(4)
             uv = (r.randrange(0x30, 0xb0), r.randrange(0x30, 0xb0)) if banded else (r.getrandbits(32), r.getrandbits(32))
             out.append((r.randrange(3 << 4, (WIDTH - 3) << 4), r.randrange(8, 8 + ROWS * 16), r.getrandbits(32) if z is None else z, colour, uv))
+        if not banded and r.randrange(8) == 0:   # (a sliver about the area threshold 0x80: v2 - v1 = (0, 1), v2 - v0 = (k, any))
+            x, y, k = r.randrange(0xc0, (WIDTH - 3) << 4), r.randrange(8 + 16, 8 + ROWS * 16), r.choice([0x7f, 0x80, 0x81, r.randrange(0x100)])
+            out[2] = (x, y) + out[2][2:]
+            out[1] = (x, y - 1) + out[1][2:]
+            out[0] = (x - k, r.randrange(8, y + 1)) + out[0][2:]
         (x0, y0, *_), (x1, y1, *_), (x2, y2, *_) = out
         if not banded or abs((x2 - x1) * (y2 - y0) - (y2 - y1) * (x2 - x0)) >= 0x2000:
             return b''.join(struct.pack('<III', x, y, z) + c + struct.pack('<II', *uv) for x, y, z, c, uv in out)
