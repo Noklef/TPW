@@ -84,15 +84,15 @@ extern "C" u32 __fastcall World_Start(u8 *world, void *, const char *level) {
     char path[260];
     if (gDialog74fb20_fb3b7c == 1) {
         if (!load_balance(gText_World_Start_76259c, 0)) ok = 0;
-        Crt().sprintf(path, reinterpret_cast<const char *>(0x007488ac), level, gText_World_Start_762588);
+        Crt().sprintf(path, gText_Objectdefs_7488ac, level, gText_World_Start_762588);
         if (!load_balance(path, 1)) ok = 0;
     } else {
         if (!load_balance(gText_World_Start_76256c, 0)) ok = 0;
-        Crt().sprintf(path, reinterpret_cast<const char *>(0x007488ac), level, gText_World_Start_76255c);
+        Crt().sprintf(path, gText_Objectdefs_7488ac, level, gText_World_Start_76255c);
         if (!load_balance(path, 1)) ok = 0;
         read_setting_once();
         if (gDialog74fb20_fb3b7c == 2) {
-            Crt().sprintf(path, reinterpret_cast<const char *>(0x007488a4), level, global<const char *>(0x007cf4a0), gText_World_Start_76255c);
+            Crt().sprintf(path, gText_Objectdefs_7488a4, level, global<const char *>(0x007cf4a0), gText_World_Start_76255c);
             load_balance(path, 1);   // (its failure only printed)
         }
     }

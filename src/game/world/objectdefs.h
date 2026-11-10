@@ -219,6 +219,9 @@ GAME_DATA(const u8[0x28], gObjectdefs_6fd880, 0x006fd880, 0x28);
 GAME_DATA(u8[0x5a00], gTrackType_GetSchema_739ea8, 0x00739ea8, 0x5a00);
 GAME_DATA(u8[0x1ef0], gObjectDef_GetSchema_744b30, 0x00744b30, 0x1ef0);   // (132 rows of 0x3c, the last of type 0xc)
 GAME_DATA(u8[0xac], gObjectDef_LoadText_7487f8, 0x007487f8, 0xac);
+GAME_DATA(char[8], gText_Objectdefs_7488a4, 0x007488a4, 0x8);   // "%s\\%s%s"
+GAME_DATA(char[8], gText_Objectdefs_7488ac, 0x007488ac, 0x8);   // "%s\\%s", the folder and file format
+GAME_DATA(u32[330][3], gObjectTexts_7488d8, 0x007488d8, 0xf78);   // the object texts' rows (to 0x749850)
 GAME_DATA(u8[0x4ce8], gObjectdefs_76e300, 0x0076e300, 0x4ce8);   // (351 records of 0x38)
 GAME_DATA(u8, gObjectdefs_fb3b78, 0x00fb3b78, 1);
 

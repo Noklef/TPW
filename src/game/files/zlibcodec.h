@@ -98,3 +98,4 @@ void ZlibCodec_SetEnv(const ZlibEnv *env);
 
 // Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
 GAME_DATA(u32, gZlibInputLimit, 0x007780ec, 0x4);
+GAME_DATA(char[8], gZlibVersion, 0x007780f0, 0x8);   // "1.1.3"
