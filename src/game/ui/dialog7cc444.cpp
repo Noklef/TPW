@@ -44,7 +44,7 @@ extern "C" {
 void __cdecl Dialog7cc444_Create() {
     if (dialog()) return;
     Window7c24c8_Close();
-    u8 *const built = WindowScript_Build(gPanel7b9940_7cb2ac, nullptr, reinterpret_cast<u8 *>(0x007579c8), 0x004b7a70);
+    u8 *const built = WindowScript_Build(gPanel7b9940_7cb2ac, nullptr, gDialog7cc444_Create_7579c8, 0x004b7a70);
     if (!built) return;
     dialog() = built;
     Window7c24c8_Set(built);

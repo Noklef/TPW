@@ -134,7 +134,7 @@ void __cdecl Panel7b9940_Open() {
         g_open->setHandler(window, nullptr, 0x00488a00);
         gPanel7b9940_7cb2b0 = window;
         g_open->setCursor(window, nullptr, 0x15);
-        g_open->build(gPanel7b9940_7cb2b0, nullptr, reinterpret_cast<u8 *>((uintptr_t)0x0074fa98), 0);
+        g_open->build(gPanel7b9940_7cb2b0, nullptr, gPanel7b9940_74fa98, 0);
     }
     g_open->build7cb2b8();
     g_open->create7ca1e0();
@@ -207,7 +207,7 @@ u32 __cdecl Panel7b9940_ShowWindow() {
         g_open->setHandler(made, nullptr, 0x488a00);
         gPanel7b9940_7cb2b0 = made;
         g_open->setCursor(made, nullptr, 0x15);
-        g_open->build(gPanel7b9940_7cb2b0, nullptr, reinterpret_cast<u8 *>((uintptr_t)0x0074fa98), 0);
+        g_open->build(gPanel7b9940_7cb2b0, nullptr, gPanel7b9940_74fa98, 0);
     }
     return global<u8>(0x0078d90e) ? g_open->slot3() : g_open->slot4();
 }

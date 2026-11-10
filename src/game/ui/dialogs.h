@@ -242,3 +242,6 @@ GAME_DATA(u8 *, gDialogs_7cc4c4, 0x007cc4c4, 0x4);
 GAME_DATA(u32, gDialog7cc4c4_7cc4e4, 0x007cc4e4, 0x4);
 GAME_DATA(u32, gDialogs_7cc698, 0x007cc698, 0x4);
 GAME_DATA(u8, gDialogs_7cc6a0, 0x007cc6a0, 0x1);
+
+// Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(u8[0x118], gDialog7ca098_Create_7501a0, 0x007501a0, 0x118);   // a window script (or a text / table before one): to the next named address

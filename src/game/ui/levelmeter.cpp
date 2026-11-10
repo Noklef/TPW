@@ -317,7 +317,7 @@ void __cdecl ResearchPanel_Open() {
         refuse(0x1d3);
         return;
     }
-    u8 *const panel = WindowScript_Build(gPanel7b9940_7cb2ac, nullptr, reinterpret_cast<u8 *>((uintptr_t)0x00754490), 0x004a96b0);
+    u8 *const panel = WindowScript_Build(gPanel7b9940_7cb2ac, nullptr, gResearchPanel_Open_754490, 0x004a96b0);
     gLevelmeter_7cc1d8 = panel;
     if (!panel) return;
     Window7c24c8_Set(panel);

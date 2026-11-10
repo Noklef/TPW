@@ -26,7 +26,7 @@ void __cdecl Dialog7cc47c_Create() {
     if (dialog()) return;
     u8 *const parent = *reinterpret_cast<u8 **>(*reinterpret_cast<u8 **>((uintptr_t)0x00f82884) + 4);
     if (!parent) return;
-    dialog() = WindowScript_Build(parent, nullptr, reinterpret_cast<u8 *>((uintptr_t)0x00757d88), 0x004b86a0);
+    dialog() = WindowScript_Build(parent, nullptr, gDialog7cc47c_Create_757d88, 0x004b86a0);
     u8 *const label = Window_FindChild(dialog(), nullptr, 0x49d9);
     dress(label);
     Window_Set4c(label, nullptr, Language_Font(5));

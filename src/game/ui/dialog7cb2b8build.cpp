@@ -142,7 +142,7 @@ void __cdecl Dialog7cb2b8_Build() {
     gDialog7cb2b8build_7cb28c = 1;
     gDialog7cb2b8build_7cb2a0 = 3;
     gDialog7cb2b8build_7cb290 = 0xa;
-    if (WindowScript_Build(gPanel7b9940_7cb2ac, nullptr, reinterpret_cast<u8 *>((uintptr_t)0x00752940), 0)) {
+    if (WindowScript_Build(gPanel7b9940_7cb2ac, nullptr, gDialog7cb2b8_Build_752940, 0)) {
         u8 *const top = gDialog7cb2b8_Build_7cb2a4 = Window_FindChild(gPanel7b9940_7cb2ac, nullptr, 0x33);
         Window_SetDepth(top, nullptr, 0);
         vcall<void>(gDialog7cb2b8_Build_7cb2a4, 0x14, 0u);

@@ -180,7 +180,7 @@ void __cdecl Dialog7ca308_Open(u32 kind) {
         g_env->fillList(gDialog7ca308_7ca30c, 1);
         return;
     }
-    u8 *const dialog = WindowScript_Build(gPanel7b9940_7cb2ac, nullptr, reinterpret_cast<u8 *>((uintptr_t)0x00751fa8), 0x0049b650);
+    u8 *const dialog = WindowScript_Build(gPanel7b9940_7cb2ac, nullptr, gDialog7ca308_Open_751fa8, 0x0049b650);
     if (!dialog) return;
     if (kind == 0xffffffff) kind = gDialog7ca308_7ca30c;
     gDialog7ca308_7ca30c = kind;

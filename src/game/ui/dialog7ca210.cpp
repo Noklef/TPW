@@ -43,7 +43,7 @@ void __cdecl Dialog7ca210_Open() {
     if (dialog()) return;
     Window7c24c8_Close();
     Global7cb28c_Select(3, 10);
-    gDialog7ca210_7ca210 = WindowScript_Build(gPanel7b9940_7cb2ac, nullptr, reinterpret_cast<u8 *>((uintptr_t)0x00751798), 0x00498c60);
+    gDialog7ca210_7ca210 = WindowScript_Build(gPanel7b9940_7cb2ac, nullptr, gDialog7ca210_Open_751798, 0x00498c60);
     Window7c24c8_Set(dialog());
     Window_SetHandler(Window_FindChild(dialog(), nullptr, 0x4f3af), nullptr, 0x00499060);
     const u16 word = *reinterpret_cast<const u16 *>(gWorldPtr + 0x1da732);

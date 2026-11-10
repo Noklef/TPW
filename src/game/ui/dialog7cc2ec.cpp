@@ -46,7 +46,7 @@ void __cdecl Dialog7cc2ec_Open() {
     if (dialog()) return;
     Window7c24c8_Close();
     Global7cb28c_Select(3, 9);
-    u8 *const built = WindowScript_Build(gPanel7b9940_7cb2ac, nullptr, reinterpret_cast<u8 *>((uintptr_t)0x00756400), 0x004b24b0);
+    u8 *const built = WindowScript_Build(gPanel7b9940_7cb2ac, nullptr, gDialog7cc2ec_Open_756400, 0x004b24b0);
     if (!built) return;
     gDialog7cc2ec_7cc2ec = built;
     Window7c24c8_Set(built);

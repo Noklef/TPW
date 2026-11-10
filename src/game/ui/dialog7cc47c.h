@@ -14,3 +14,8 @@ extern "C" {
 void __cdecl Dialog7cc47c_Create();
 
 }  // extern "C"
+
+#include "../core/gamedata.h"
+
+// Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(u8[0x1d8], gDialog7cc47c_Create_757d88, 0x00757d88, 0x1d8);   // a window script (or a text / table before one): to the next named address

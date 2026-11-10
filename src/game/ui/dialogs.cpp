@@ -117,7 +117,7 @@ s32 __cdecl Dialog7cdb0c_Child16007Message6Off() {
 
 void __cdecl Dialog7ca098_Create() {
     const Dialog7ca098CreateEnv *const env = g_createEnv;
-    gDialogs_7ca098 = env->build(window(0x00faa5d8), nullptr, reinterpret_cast<u8 *>((uintptr_t)0x007501a0), 0x0048e2f0);
+    gDialogs_7ca098 = env->build(window(0x00faa5d8), nullptr, gDialog7ca098_Create_7501a0, 0x0048e2f0);
     env->unlink(window(reinterpret_cast<uintptr_t>(&gDialogs_7ca098)));
     env->setDwordA0(window(reinterpret_cast<uintptr_t>(&gDialogs_7ca098)), nullptr, 0, 1);
     env->setShown(window(reinterpret_cast<uintptr_t>(&gDialogs_7ca098)), nullptr, 0);

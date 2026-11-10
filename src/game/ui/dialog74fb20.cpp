@@ -29,7 +29,7 @@ const Dialog74fb20Env kGameEnv = {Global7cb2e8_Get, Overlay7cb2b4_Toggle, Window
                                   reinterpret_cast<void(__fastcall *)(u8 *)>((uintptr_t)0x00516c10)};
 const Dialog74fb20Env *g_env = &kGameEnv;
 
-u8 *build() { return g_env->build(gFocus_7cb2b4, nullptr, reinterpret_cast<u8 *>((uintptr_t)0x0074fb20), 0x0048a740); }
+u8 *build() { return g_env->build(gFocus_7cb2b4, nullptr, gDialog74fb20_74fb20, 0x0048a740); }
 
 // Moved to half its rectangle's size, the script run.
 void place(u8 *window, u8 *rect, u32 script = 0x0074fc38) {
@@ -158,7 +158,7 @@ void __cdecl CameraMode_Leave() {
 void __cdecl Dialog74fb20_OpenFor(u8 *thing) {
     u8 *const host = hide(thing);
     g_env->setHandler(host, nullptr, 0x0048a740);
-    u8 *const dialog = g_env->build(host, nullptr, reinterpret_cast<u8 *>((uintptr_t)0x0074fb20), 0);
+    u8 *const dialog = g_env->build(host, nullptr, gDialog74fb20_74fb20, 0);
     u8 rect[12];
     GuiRect_Ctor(rect);
     place(dialog, rect);
@@ -169,7 +169,7 @@ void __cdecl Dialog74fb20_OpenFor(u8 *thing) {
 
 void __cdecl Dialog74faf0_OpenFor(u8 *thing) {
     u8 *const host = hide(thing);
-    u8 *const dialog = g_env->build(host, nullptr, reinterpret_cast<u8 *>((uintptr_t)0x0074faf0), 0);
+    u8 *const dialog = g_env->build(host, nullptr, gDialog74faf0_OpenFor_74faf0, 0);
     vcall<void>(dialog, 0x14, 0u);
     u8 rect[12];
     GuiRect_Ctor(rect);

@@ -22,6 +22,7 @@
 #include "panel7cc218.h"
 #include "../world/world.h"
 #include "dialog7cc188.h"
+#include "versionlabel.h"
 
 namespace {
 
@@ -140,7 +141,7 @@ void __fastcall SignNameDialog_Open(u8 *self) {
     if (!thing || at<u8>(thing, 2) != 3) return;
     u8 *const parent = at<u8 *>(self, 0x10);
     const s32 depth = at<s16>(parent, 0xe0) + 0x11;
-    u8 *const window = g_open->build(parent, nullptr, reinterpret_cast<u8 *>((uintptr_t)0x00750090), 0x0048d640);
+    u8 *const window = g_open->build(parent, nullptr, gSignNameDialog_750090, 0x0048d640);
     at<u8 *>(self, 0xc) = window;
     Window_SetDepth(window, nullptr, (u16)depth);
     g_open->setDword(window, nullptr, 0, (u32)(uintptr_t)thing);

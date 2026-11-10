@@ -523,7 +523,7 @@ void __fastcall ParkMap_Open(u8 *map) {
     env->releaseItems(reinterpret_cast<u8 * &>(gTexcache_8c4b44), nullptr, 0);
     env->focusClose();
     env->send(gPanel7b9940_7cb2ac, 6, 0, 0);
-    u8 *const window = env->build(global<u8 *>(0x00faa5d8), nullptr, reinterpret_cast<u8 *>((uintptr_t)0x00774da0), 0x005f0b00);
+    u8 *const window = env->build(global<u8 *>(0x00faa5d8), nullptr, gParkMap_Open_774da0, 0x005f0b00);
     env->focusSet(window);
     at<u8 *>(map, 4) = window;
     env->setFocus(window, nullptr, 0);

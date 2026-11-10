@@ -72,9 +72,9 @@ s32 closed(u8 *window, u32 message, u32 a) {
     if (a) {
         for (u8 *tag = reinterpret_cast<u8 *>((uintptr_t)Fn_65d56b(window)); tag; tag = reinterpret_cast<u8 *>((uintptr_t)Fn_65d56b(tag))) {
             g_handler->offset(tag, nullptr, 0, height);
-            if (!tag[0x135]) g_handler->runScript(tag, nullptr, reinterpret_cast<u8 *>((uintptr_t)0x007502f0), 0x14);
+            if (!tag[0x135]) g_handler->runScript(tag, nullptr, gMsgtags_7502f0, 0x14);
         }
-        if (u8 *const child = Window_FindChild(gDialog7cb2b8build_7cb2c4, nullptr, 0x2e)) g_handler->runScript(child, nullptr, reinterpret_cast<u8 *>((uintptr_t)0x007502f0), 0x32);
+        if (u8 *const child = Window_FindChild(gDialog7cb2b8build_7cb2c4, nullptr, 0x2e)) g_handler->runScript(child, nullptr, gMsgtags_7502f0, 0x32);
     }
     g_handler->unlink(window);
     resetWhenShown(window);
@@ -357,7 +357,7 @@ s32 __cdecl MsgTags_WindowHandler(u8 *window, u32 message, u8 *tag, u32 b) {
             Window_SetDwordA0(window, nullptr, 0, first);
             Window_SetDwordA0(window, nullptr, 1, second);
             u8 *const child = Window_FindChild(window, nullptr, 0x2e);
-            if (child && !child[0x135]) Window_RunScript(child, nullptr, reinterpret_cast<u8 *>(0x00752e48), 0x32);
+            if (child && !child[0x135]) Window_RunScript(child, nullptr, gMsgtags_752e48, 0x32);
             GuiRect_Dtor(tagRect);
             GuiRect_Dtor(rect);
         }

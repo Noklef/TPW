@@ -31,7 +31,7 @@ extern "C" void __cdecl Dialog7cc4b4_Open() {
     if (dialog()) return;
     u8 *const parent = at<u8 *>(global<u8 *>(0x00f82884), 4);
     if (!parent) return;
-    gDialog7cc4b4open_7cc4b4 = g_env->build(parent, nullptr, reinterpret_cast<u8 *>((uintptr_t)0x00757f60), 0x004b8b70);
+    gDialog7cc4b4open_7cc4b4 = g_env->build(parent, nullptr, gDialog7cc4b4_Open_757f60, 0x004b8b70);
 
     u8 *const panel = child(dialog(), 0x1e0ec);
     u8 *const text = child(panel, 0x1e0ee);

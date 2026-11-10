@@ -155,3 +155,4 @@ GAME_DATA(void *[1], Class703080_vtable, 0x00703080, 0x4);
 GAME_DATA(const float, gParkMap_Open_70300c, 0x0070300c, 0x4);
 GAME_DATA(const float, gParkmapwindow_703010, 0x00703010, 0x4);
 GAME_DATA(const float, gParkmapwindow_703014, 0x00703014, 0x4);
+GAME_DATA(u8[0x544], gParkMap_Open_774da0, 0x00774da0, 0x544);   // a window script (or a text / table before one): to the next named address

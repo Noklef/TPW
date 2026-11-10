@@ -113,7 +113,7 @@ u32 __cdecl ThingBrowser_PanelHandler(u8 *panel, u32 message, u32 a, u32 b) {
 }
 
 void __cdecl ThingBrowser_Create() {
-    WindowScript_Build(global<u8 *>(0x00faa5d8), nullptr, reinterpret_cast<u8 *>(0x00756950), 0);
+    WindowScript_Build(global<u8 *>(0x00faa5d8), nullptr, gThingBrowser_Create_756950, 0);
     gThingbrowser_7cc2fc = Window_FindChild(global<u8 *>(0x00faa5d8), nullptr, 0x95c);
     gThingbrowser_7cc300 = Window_FindChild(global<u8 *>(0x00faa5d8), nullptr, 0x963);
     Window_SetHandler(gThingbrowser_7cc2fc, nullptr, 0x004b3790);

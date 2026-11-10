@@ -93,7 +93,7 @@ void __cdecl Dialog7cc1f8_Open(u32 kind, u32 selected) {
     reinterpret_cast<u16 &>(gDialog7cc1f8_Open_7cc1e4) = 0;
     gDialog7cc1f8_Open_7cc1e8 = 0;
     global<u16>(0x007cc1e0) = 0;
-    global<u8 *>(0x007cc1f8) = WindowScript_Build(gPanel7b9940_7cb2ac, nullptr, reinterpret_cast<u8 *>((uintptr_t)0x00754cf8), 0x004ac270);
+    global<u8 *>(0x007cc1f8) = WindowScript_Build(gPanel7b9940_7cb2ac, nullptr, gDialog7cc1f8_Open_754cf8, 0x004ac270);
     if (global<u8 *>(0x007cc1f8)) {
         Window7c24c8_Set(global<u8 *>(0x007cc1f8));
         // the money line: a number argument 13, its size, in the text 0x1cb when negative (0x1ca else)

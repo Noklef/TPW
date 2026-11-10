@@ -178,7 +178,7 @@ void __cdecl Dialog7cc984_Open(const u8 *record, u8 *parent, u32 callback, u32 a
         down = 0;
     }
     const s32 depth = g_env->topDepth(nullptr, nullptr);
-    gDialog7cc984_7cc984 = g_env->build(parent, nullptr, game<u8 *>(0x00759170), 0x004c0880);
+    gDialog7cc984_7cc984 = g_env->build(parent, nullptr, game<u8 *>((u32)(uintptr_t)&gDialog7cc984open_759170), 0x004c0880);
     g_env->setDepth(dialog(), nullptr, depth + 4);
     g_env->offset(dialog(), nullptr, 0, down);
     u8 *const box = Window_FindChild(dialog(), nullptr, 0xe5932);
