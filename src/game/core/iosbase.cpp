@@ -391,13 +391,13 @@ void __fastcall IosBase_Addstd(u8 *self) {
     if (index < 8) {
         u32 i = index;
         do {
-            const u32 slot = *reinterpret_cast<u32 *>((uintptr_t)(0x00fb1d60 + i * 4));
+            const u32 slot = (u32)(uintptr_t)gIosbase_Streams_fb1d60[i];
             if (!slot || slot == (u32)(uintptr_t)self) break;
             index = ++i;
         } while (i < 8);
     }
-    *reinterpret_cast<u8 **>((uintptr_t)(0x00fb1d60 + index * 4)) = self;
-    ++*reinterpret_cast<u8 *>((uintptr_t)(0x00fb1d88 + index));
+    gIosbase_Streams_fb1d60[index] = self;
+    ++gIosbase_Opens_fb1d88[index];
     g_env->unlockit(&lock);
 }
 
@@ -425,9 +425,9 @@ void __fastcall IosBase_Dtor(u8 *self) {
     at<u32>(self, 0) = 0x00709964;
     bool tidy = true;
     if (at<u32>(self, 0x24) != 0) {
-        s8 &opens = *reinterpret_cast<s8 *>((uintptr_t)(0x00fb1d88 + at<u32>(self, 0x24)));
+        s8 &opens = gIosbase_Opens_fb1d88[at<u32>(self, 0x24)];
         --opens;
-        tidy = *reinterpret_cast<s8 *>((uintptr_t)(0x00fb1d88 + at<u32>(self, 0x24))) <= 0;
+        tidy = gIosbase_Opens_fb1d88[at<u32>(self, 0x24)] <= 0;
     }
     if (tidy) IosBase_Tidy(self);
     u8 *const locale = at<u8 *>(self, 0x20);
@@ -627,14 +627,14 @@ u8 *__fastcall CtypeW_DeletingDtor(u8 *self, void *, u32 flags) {
 void *__cdecl Std_LocaleInit() {
     u32 lock;
     g_env->lockit(&lock);
-    u8 *&classic = global<u8 *>(0x00fb1dd0);
+    u8 *&classic = gLocalefacet_fb1dd0;
     if (!classic) {
         void *const block = g_env->memAlloc(0x28);
         classic = block ? static_cast<u8 *>(g_env->locimpCtor(block, nullptr, 0)) : nullptr;
         g_env->atexit(reinterpret_cast<void(__cdecl *)()>((uintptr_t)0x00699ee0));
         at<u32>(classic, 0x10) = 0x3f;
         StdString &name = at<StdString>(classic, 0x18);
-        const char *const text = reinterpret_cast<const char *>((uintptr_t)0x0075c74c);
+        const char *const text = gLocalefacet_C_75c74c;
         const u32 n = (u32)strlen(text);
         if (StdString_Grow(&name, nullptr, n, 1)) {
             memcpy(name.ptr, text, n);
@@ -642,13 +642,13 @@ void *__cdecl Std_LocaleInit() {
             name.ptr[n] = 0;
         }
         u8 *const held = classic;
-        global<u8 *>(0x00fb1dcc) = held;
+        gLocalefacet_fb1dcc = held;
         u32 inner;
         g_env->lockit(&inner);
         u32 &uses = at<u32>(held, 4);
         if (uses < 0xffffffffu) ++uses;
         g_env->unlockit(&inner);
-        global<u8 *>(0x00fb1dc8) = global<u8 *>(0x00fb1dcc);
+        global<u8 *>(0x00fb1dc8) = gLocalefacet_fb1dcc;
     }
     u8 *const answer = classic;
     g_env->unlockit(&lock);

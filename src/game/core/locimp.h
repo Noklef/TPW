@@ -58,3 +58,4 @@ LocaleHandle *__fastcall Locale_Addfac(LocaleHandle *self, void *, LocaleFacet *
 
 // Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
 GAME_DATA(u8, gLocimp_fb1e68, 0x00fb1e68, 0x1);
+GAME_DATA(u32[3], gLocimp_BadAlloc_fb1e70, 0x00fb1e70, 0xc);

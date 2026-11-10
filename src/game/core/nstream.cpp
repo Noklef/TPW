@@ -14,6 +14,7 @@
 #include "vcall.h"
 #include "vobj3.h"
 #include "vstream.h"
+#include "localefacet.h"
 
 namespace {
 
@@ -39,18 +40,18 @@ u8 *ios_of(u8 *stream) { return stream + base_of(stream); }
 u8 *buffer_of(u8 *stream) { return at<u8 *>(ios_of(stream), 0x28); }
 
 u8 *use_ctype(u8 **locale) {
-    const u32 id = Id_Get(reinterpret_cast<u32 *>((uintptr_t)0x00fb1da4));
+    const u32 id = Id_Get(&gLocalefacet_fb1da4);
     u8 *const facet = Locale_Getfacet(locale, nullptr, id, 1);
     if (facet) return facet;
     if (Locale_Iscloc(locale)) {
-        u8 *&kept = global<u8 *>(0x00f827e0);
+        u8 *&kept = reinterpret_cast<u8 *&>(gLocalefacet_f827e0);
         if (kept) return kept;
         u8 *const block = static_cast<u8 *>(GameHeap_Alloc(0x18));
         kept = Globalf827dc_Set(block ? NCtype_Ctor(block, nullptr, nullptr, 0, 0) : nullptr);
         return kept;
     }
     u32 bad_cast[3];
-    BadCast_Ctor(bad_cast, nullptr, reinterpret_cast<const char *>((uintptr_t)0x0075c734));
+    BadCast_Ctor(bad_cast, nullptr, gLocalefacet_MissingFacet_75c734);
     g_env->cxxThrow(bad_cast, reinterpret_cast<const void *>((uintptr_t)0x007193a8));
     return nullptr;
 }
@@ -123,12 +124,12 @@ u8 *__fastcall NCtype_Ctor(u8 *self, void *, u8 *table, u32 del, u32 refs) {
     at<u32>(self, 4) = refs;
     at<u32>(self, 0) = 0x00709b1c;
     u8 info[0x48];
-    g_env->locinfoCtor(info, nullptr, reinterpret_cast<const char *>((uintptr_t)0x0075c74c));
+    g_env->locinfoCtor(info, nullptr, gLocalefacet_C_75c74c);
     u32 out[4];
     const u32 *const ctype = g_env->getCtype(out);
     for (u32 i = 0; i < 4; ++i) at<u32>(self, 8 + 4 * i) = ctype[i];
-    if (global<u32>(0x00fb1dd8) == 0) {
-        global<u32>(0x00fb1dd8) = at<u32>(self, 0x10);
+    if (gLocalefacet_fb1dd8 == 0) {
+        gLocalefacet_fb1dd8 = at<u32>(self, 0x10);
         g_env->atExit(reinterpret_cast<void *>((uintptr_t)0x005cfc80));
         at<u32>(self, 0x14) = 0;
     }
@@ -141,7 +142,7 @@ u8 *__fastcall NCtype_Ctor(u8 *self, void *, u8 *table, u32 del, u32 refs) {
         at<u8 *>(self, 0x10) = table;
         at<u32>(self, 0x14) = static_cast<u8>(del);
     } else {
-        at<u32>(self, 0x10) = global<u32>(0x00fb1dd8);
+        at<u32>(self, 0x10) = gLocalefacet_fb1dd8;
     }
     return self;
 }
@@ -158,7 +159,7 @@ u8 *__fastcall NCtype_DeletingDtor(u8 *self, void *, u32 flags) {
     return self;
 }
 
-void __cdecl NCtype_FreeTable() { Crt().free(global<void *>(0x00fb1dd8)); }
+void __cdecl NCtype_FreeTable() { Crt().free(reinterpret_cast<void *>(gLocalefacet_fb1dd8)); }
 
 s32 __fastcall NCtype_ToLower(u8 *self, void *, u32 c) { return g_env->tolower(c & 0xff, reinterpret_cast<const u32 *>(self + 8)); }
 

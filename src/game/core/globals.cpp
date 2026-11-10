@@ -17,6 +17,7 @@
 #include "../render/particles.h"
 #include "../render/meshlist.h"
 #include "gameframe.h"
+#include "localefacet.h"
 
 namespace {
 
@@ -48,8 +49,8 @@ u32 __cdecl Globals8bcb80_SetOne() {
 
 u32 __fastcall Id_Get(u32 *id) {
     if (*id == 0) {
-        const u32 next = global<u32>(0x00fb1dd4) + 1;
-        global<u32>(0x00fb1dd4) = next;
+        const u32 next = gLocalefacet_fb1dd4 + 1;
+        gLocalefacet_fb1dd4 = next;
         *id = next;
     }
     return *id;

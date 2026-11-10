@@ -15,6 +15,7 @@
 #include "streambuf.h"
 #include "vcall.h"
 #include "vobj3.h"
+#include "localefacet.h"
 
 namespace {
 
@@ -86,11 +87,11 @@ void lose_use(u8 *counted) {
 // The conversion facet of the locale (use_facet<codecvt<wchar_t, char, mbstate_t>>, inline at 0x4f5ad0): the id 0xfb1e00 given out on the first use. Not in it: the classic locale has the one kept at 0x7ced40 (made with a
 // use, 0x7ced48 too, on the first use); else bad_cast thrown.
 u8 *use_codecvt(u8 **locale) {
-    const u32 id = Id_Get(reinterpret_cast<u32 *>((uintptr_t)0x00fb1e00));
+    const u32 id = Id_Get(&gLocalefacet_fb1e00);
     u8 *const facet = Locale_Getfacet(locale, nullptr, id, 1);
     if (facet) return facet;
     if (Locale_Iscloc(locale)) {
-        u8 *&kept = global<u8 *>(0x007ced40);
+        u8 *&kept = reinterpret_cast<u8 *&>(gLocalefacet_7ced40);
         if (kept) return kept;
         u8 *const block = static_cast<u8 *>(GameHeap_Alloc(0x10));
         if (block) CodecvtW_Ctor(block, nullptr, 0);
@@ -99,7 +100,7 @@ u8 *use_codecvt(u8 **locale) {
         return block;
     }
     u32 bad_cast[3];
-    BadCast_Ctor(bad_cast, nullptr, reinterpret_cast<const char *>((uintptr_t)0x0075c734));
+    BadCast_Ctor(bad_cast, nullptr, gLocalefacet_MissingFacet_75c734);
     g_env->cxxThrow(bad_cast, reinterpret_cast<const void *>((uintptr_t)0x007193a8));
     return nullptr;
 }
@@ -115,7 +116,7 @@ void WFileBuf_SetEnv(const WFileBufEnv *env) { g_env = env ? env : &kGameEnv; }
 
 u32 *__fastcall LocaleRef_Ctor(u32 *ref) {
     *ref = g_env->localeInit();
-    u32 &uses = at<u32>(global<u8 *>(0x00fb1dd0), 4);
+    u32 &uses = at<u32>(gLocalefacet_fb1dd0, 4);
     if (uses < 0xffffffffu) ++uses;
     return ref;
 }
@@ -352,7 +353,7 @@ u8 *__fastcall CodecvtW_Ctor(u8 *self, void *, u32 refs) {
     at<u32>(self, 4) = refs;
     at<u32>(self, 0) = 0x00709ce4;
     u8 info[0x48];
-    g_env->locinfoCtor(info, nullptr, reinterpret_cast<const char *>((uintptr_t)0x0075c74c));
+    g_env->locinfoCtor(info, nullptr, gLocalefacet_C_75c74c);
     const unsigned long long conversion = CRT_Getcvt();
     at<u32>(self, 8) = static_cast<u32>(conversion);
     at<u32>(self, 0xc) = static_cast<u32>(conversion >> 32);
@@ -361,7 +362,7 @@ u8 *__fastcall CodecvtW_Ctor(u8 *self, void *, u32 refs) {
 }
 
 u8 **__cdecl Locale_WithCodecvt(u8 **out, u8 *locale, u8 *facet) {
-    const u32 id = Id_Get(reinterpret_cast<u32 *>((uintptr_t)0x00fb1e00));
+    const u32 id = Id_Get(&gLocalefacet_fb1e00);
     u8 *const made = *g_env->addfac(&locale, nullptr, facet, id, 2);
     *out = made;
     Counted_AddRef(made);
