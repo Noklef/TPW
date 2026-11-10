@@ -324,7 +324,7 @@ void __fastcall WNumpunct_Init(u32 *self, void *, const void *) {
 
 u32 *__fastcall WNumGet_Ctor(u32 *self, void *, u32 refs) { return refs_facet(self, refs, (u32)(uintptr_t)WNumGet_vtable); }
 
-u32 *__fastcall WNumPut_Ctor(u32 *self, void *, u32 refs) { return refs_facet(self, refs, 0x00709c7c); }
+u32 *__fastcall WNumPut_Ctor(u32 *self, void *, u32 refs) { return refs_facet(self, refs, (u32)(uintptr_t)NumGetW_vtable); }
 
 u32 *__fastcall WCodecvt_Ctor(u32 *self, void *, const void *, u32 refs) {
     self[1] = refs;
@@ -767,7 +767,7 @@ void __cdecl Locimp_Makewloc(void *info, u32 cats, Locimp *imp, u8 **loc) {
         });
     }
     if (cats & 8) {
-        add_numeric(imp, loc, 0x00709c7c, (u32)(uintptr_t)&gLocalefacet_fb1dfc, (u32)(uintptr_t)&gLocalefacet_fb1e24, []() {
+        add_numeric(imp, loc, (u32)(uintptr_t)NumGetW_vtable,(u32)(uintptr_t)&gLocalefacet_fb1dfc, (u32)(uintptr_t)&gLocalefacet_fb1e24, []() {
             u32 *const object = alloc_facet(8);
             return as_facet(Globalfb1e58_Set(reinterpret_cast<u8 *>(object ? WNumPut_Ctor(object, nullptr, 0) : nullptr)));
         });

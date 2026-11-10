@@ -224,6 +224,7 @@ GAME_DATA(void *[4], WFacet709c0c_vtable, 0x00709c0c, 0x10);
 GAME_DATA(void *[4], CollateW_vtable, 0x00709c24, 0x10);
 GAME_DATA(void *[6], WNumpunct_vtable, 0x00709c3c, 0x18);
 GAME_DATA(void *[7], WNumGet_vtable, 0x00709c5c, 0x1c);
+GAME_DATA(void *[10], NumGetW_vtable, 0x00709c7c, 0x28);
 GAME_DATA(void *[10], Class709f2c_vtable, 0x00709f2c, 0x28);
 GAME_DATA(void *[10], Class709f5c_vtable, 0x00709f5c, 0x28);
 GAME_DATA(void *[3], Facet709f8c_vtable, 0x00709f8c, 0xc);
