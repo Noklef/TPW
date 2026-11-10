@@ -363,7 +363,7 @@ s32 __cdecl CRT_stbuf(CrtFile *file) {
     if (reinterpret_cast<uintptr_t>(file) == 0x0077e820) slot = 0;
     else if (reinterpret_cast<uintptr_t>(file) == 0x0077e840) slot = 1;
     else return 0;
-    ++*reinterpret_cast<u32 *>((uintptr_t)0x00fb1350);
+    ++CRT_cflush;
     if (file->flags & 0x10c) return 0;
     char *&kept = reinterpret_cast<char **>((uintptr_t)0x00fb1540)[slot];
     if (!kept) kept = static_cast<char *>(CRT_malloc(0x1000));

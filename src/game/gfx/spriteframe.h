@@ -158,3 +158,12 @@ struct SpriteFramesEnv {
 };
 void SpriteFrames_SetEnv(const SpriteFramesEnv *e);
 void SpriteFrame_SetCalls(const AddrCall *table, u32 count);
+
+#include "../core/gamedata.h"
+
+// Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(const float, gSpriteFrame_Twentieth_702008, 0x00702008, 0x4);
+GAME_DATA(const float, gSpriteFrame_Twenty_70200c, 0x0070200c, 0x4);
+GAME_DATA(const float, gSpriteFrame_Zero_702034, 0x00702034, 0x4);
+GAME_DATA(const float, gSpriteFrame_Step_702040, 0x00702040, 0x4);
+GAME_DATA(const float, gSpriteFrame_Fifth_702044, 0x00702044, 0x4);

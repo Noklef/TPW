@@ -3,6 +3,7 @@
 #include <cstdint>
 
 #include "crt.h"
+#include "crtlocale.h"
 
 namespace {
 
@@ -26,16 +27,16 @@ u32 probe() {
 extern "C" {
 
 s32 __cdecl CRT_GetLocaleInfoW(u32 locale, u32 type, u16 *buffer, s32 size, u32 code_page) {
-    u32 mode = global<u32>(0x00fb1944);
+    u32 mode = CRT_GetLocaleInfoW_use_fb1944;
     const Info wide = info_wide();
     if (!mode) {
         mode = probe();
         if (!mode) return 0;
-        global<u32>(0x00fb1944) = mode;
+        CRT_GetLocaleInfoW_use_fb1944 = mode;
     }
     if (mode == 1) return wide(locale, type, buffer, size);
     if (mode != 2) return static_cast<s32>(mode);
-    if (!code_page) code_page = global<u32>(0x00fb1450);
+    if (!code_page) code_page = CRT_lc_codepage;
     const s32 length = info_multi()(locale, type, nullptr, 0);
     if (!length) return 0;
     char *const text = static_cast<char *>(CRT_malloc(static_cast<u32>(length)));
@@ -49,16 +50,16 @@ s32 __cdecl CRT_GetLocaleInfoW(u32 locale, u32 type, u16 *buffer, s32 size, u32 
 }
 
 s32 __cdecl CRT_GetLocaleInfoA(u32 locale, u32 type, char *buffer, s32 size, u32 code_page) {
-    u32 mode = global<u32>(0x00fb1948);
+    u32 mode = CRT_GetLocaleInfoA_use_fb1948;
     const Info multi = info_multi();
     if (!mode) {
         mode = probe();
         if (!mode) return 0;
-        global<u32>(0x00fb1948) = mode;
+        CRT_GetLocaleInfoA_use_fb1948 = mode;
     }
     if (mode == 2) return multi(locale, type, buffer, size);
     if (mode != 1) return static_cast<s32>(mode);
-    if (!code_page) code_page = global<u32>(0x00fb1450);
+    if (!code_page) code_page = CRT_lc_codepage;
     const s32 length = info_wide()(locale, type, nullptr, 0);
     if (!length) return 0;
     u16 *const text = static_cast<u16 *>(CRT_malloc(static_cast<u32>(length) * 2));
@@ -101,12 +102,12 @@ s32 __cdecl CRT_Getlocaleinfo(s32 kind, u32 locale, u32 type, void *out) {
         return 0;
     }
     if (kind != 0) return -1;
-    if (!CRT_GetLocaleInfoW(locale, type, reinterpret_cast<u16 *>((uintptr_t)0x00fb1938), 4, 0)) return -1;
+    if (!CRT_GetLocaleInfoW(locale, type, CRT_Getlocaleinfo_buffer_fb1938, 4, 0)) return -1;
     u8 *const value = static_cast<u8 *>(out);
     *value = 0;
     for (u32 i = 0; i < 4; ++i) {
-        const u8 c = global<u8>(0x00fb1938 + 2 * i);
-        const s32 digit = global<s32>(0x0077e7dc) > 1 ? CRT_isctype(c, 4) : global<const u8 *>(0x0077ea90)[c * 2] & 4;
+        const u8 c = static_cast<u8>(CRT_Getlocaleinfo_buffer_fb1938[i]);
+        const s32 digit = CRT_mb_cur_max > 1 ? CRT_isctype(c, 4) : global<const u8 *>(0x0077ea90)[c * 2] & 4;
         if (!digit) return 0;
         *value = static_cast<u8>(*value * 10 + c - 0x30);
     }

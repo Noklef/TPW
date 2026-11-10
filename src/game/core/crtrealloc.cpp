@@ -59,7 +59,7 @@ void __cdecl CRT_sbh_release_region(void *region) {
     }
     word(word(at + 4)) = word(at);
     word(word(at) + 4) = word(at + 4);
-    import_slot<s32(__stdcall *)(u32, u32, u32)>(0x006fd210)(word(0x00fb3cac), 0, at);
+    import_slot<s32(__stdcall *)(u32, u32, u32)>(0x006fd210)(CRT_crtheap, 0, at);
 }
 
 void __cdecl CRT_sbh_decommit_pages(s32 count) {
@@ -72,7 +72,7 @@ void __cdecl CRT_sbh_decommit_pages(s32 count) {
             for (s32 offset = 0x3ff000; offset >= 0; offset -= 0x1000, group -= 8) {
                 if (word(group) != 0xf0 || !virtual_free(word(region + 0x10) + static_cast<u32>(offset), 0x1000, 0x4000)) continue;
                 word(group) = uncommitted;
-                --word(0x00fb1428);
+                --CRT_sbh_empty_groups_fb1428;
                 if (!word(region + 0xc) || word(region + 0xc) > group) word(region + 0xc) = group;
                 ++done;
                 if (!--count) break;
@@ -94,7 +94,7 @@ void __cdecl CRT_sbh_free_block(void *region, void *page, void *entry) {
     word(group) += *at;
     *at = 0;
     word(group + 4) = 0xf1;
-    if (word(group) == 0xf0 && ++word(0x00fb1428) == 0x20) CRT_sbh_decommit_pages(0x10);
+    if (word(group) == 0xf0 && ++CRT_sbh_empty_groups_fb1428 == 0x20) CRT_sbh_decommit_pages(0x10);
 }
 
 s32 __cdecl CRT_sbh_resize_block(void *region, void *page, u8 *entry, u32 para) {
@@ -145,7 +145,7 @@ void *__cdecl CRT_realloc(void *block, u32 size) {
             void *page;
             u8 *const entry = static_cast<u8 *>(CRT_sbh_find_block(block, &region, &page));
             if (entry) {
-                if (size < word(0x00780dc4)) {
+                if (size < CRT_sbh_threshold) {
                     const u32 para = size >> 4;
                     if (CRT_sbh_resize_block(region, page, entry, para)) {
                         result = block;
@@ -155,16 +155,16 @@ void *__cdecl CRT_realloc(void *block, u32 size) {
                     }
                 }
                 if (!result) {
-                    result = import_slot<void *(__stdcall *)(u32, u32, u32)>(0x006fd224)(word(0x00fb3cac), 0, size);
+                    result = import_slot<void *(__stdcall *)(u32, u32, u32)>(0x006fd224)(CRT_crtheap, 0, size);
                     if (result) move_block(result, block, region, page, entry, size);
                 }
                 CrtInner().unlock(9);
             } else {
                 CrtInner().unlock(9);
-                result = import_slot<void *(__stdcall *)(u32, u32, void *, u32)>(0x006fd258)(word(0x00fb3cac), 0, block, size);
+                result = import_slot<void *(__stdcall *)(u32, u32, void *, u32)>(0x006fd258)(CRT_crtheap, 0, block, size);
             }
         }
-        if (result || !word(0x00fb1548)) return result;
+        if (result || !CRT_newmode) return result;
         if (!CRT_callnewh(size)) return nullptr;
     }
 }
@@ -179,5 +179,5 @@ u32 __cdecl CRT_msize(void *block) {
         return size;
     }
     CrtInner().unlock(9);
-    return import_slot<u32(__stdcall *)(u32, u32, void *)>(0x006fd208)(word(0x00fb3cac), 0, block);   // HeapSize
+    return import_slot<u32(__stdcall *)(u32, u32, void *)>(0x006fd208)(CRT_crtheap, 0, block);   // HeapSize
 }

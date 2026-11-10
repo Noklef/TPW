@@ -109,7 +109,7 @@ void __cdecl ScreenGrab_NextName() {
     stream.vtable = reinterpret_cast<void *const *>((u32)(uintptr_t)FileStream_vtable);
     do {
         StreamBase_Close(&stream);
-        Crt().sprintf(name, reinterpret_cast<const char *>(0x007650dc), ++global<s32>(0x00879084));   // "Scr%05ld.tga"
+        Crt().sprintf(name, reinterpret_cast<const char *>(0x007650dc), ++gScreenGrab_Count_879084);   // "Scr%05ld.tga"
     } while (*FileStream_OpenPath(&stream, nullptr, &result, name, 0x80000001) >= 0);
     StreamBase_Close(&stream);
     ScreenGrab_SetName(reinterpret_cast<u8 *>(0x008798d0), nullptr, name);

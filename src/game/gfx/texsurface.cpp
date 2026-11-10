@@ -207,7 +207,7 @@ u32 __fastcall TexSurfaceB_Area(const u8 *sub) {
     return back<u32>(sub + off, 8) * back<u32>(sub + off, 4);
 }
 
-float __fastcall TexSurfaceB_Zero(const u8 *) { return *reinterpret_cast<const float *>((uintptr_t)0x00702248); }
+float __fastcall TexSurfaceB_Zero(const u8 *) { return gTexSurface_Zero_702248; }
 
 u32 __fastcall TexSurfaceB_FreePixels(u8 *sub) {
     if (const u32 pixels = back<u32>(sub, 0xc)) {

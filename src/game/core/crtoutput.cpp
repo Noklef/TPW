@@ -480,7 +480,7 @@ s32 __cdecl CRT_woutput(CrtFile *file, const u16 *format, char *args) {
                         wchar = CRT_output_get_int_arg(&args);
                         if (flags & kShort) {
                             const char bytes[2] = {static_cast<char>(wchar), 0};
-                            if (CRT_mbtowc(reinterpret_cast<u16 *>(buffer), bytes, word(0x0077e7dc)) < 0) no_output = 1;
+                            if (CRT_mbtowc(reinterpret_cast<u16 *>(buffer), bytes, static_cast<u32>(CRT_mb_cur_max)) < 0) no_output = 1;
                         } else {
                             *reinterpret_cast<u16 *>(buffer) = static_cast<u16>(wchar);
                         }
@@ -662,7 +662,7 @@ s32 __cdecl CRT_woutput(CrtFile *file, const u16 *format, char *args) {
                     const char *at = text;
                     s32 left = length - 1;
                     do {
-                        const s32 count = CRT_mbtowc(reinterpret_cast<u16 *>(&wchar), at, word(0x0077e7dc));
+                        const s32 count = CRT_mbtowc(reinterpret_cast<u16 *>(&wchar), at, static_cast<u32>(CRT_mb_cur_max));
                         if (count <= 0) break;
                         CRT_woutput_write_char(wchar, file, &written);
                         at += count;

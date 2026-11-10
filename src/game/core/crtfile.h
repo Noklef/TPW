@@ -5,6 +5,11 @@
 #include <cstdint>
 
 #include "../../../re/types.h"
+#include "gamedata.h"
+
+// Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(u8 *[64], CRT_pioinfo, 0x00fb3ba0, 0x100);
+GAME_DATA(u32, CRT_nhandle, 0x00fb3ca0, 0x4);
 
 struct CrtFile {
     char *ptr;
@@ -17,12 +22,12 @@ struct CrtFile {
     void *name;
 };
 
-inline u8 *crt_handle(s32 fd) { return reinterpret_cast<u8 **>((uintptr_t)0x00fb3ba0)[fd >> 5] + (fd & 0x1f) * 0x24; }
+inline u8 *crt_handle(s32 fd) { return CRT_pioinfo[fd >> 5] + (fd & 0x1f) * 0x24; }
 
 // The record, or the dummy record 0x7813b0 for no file.
 inline u8 *crt_handle_or_dummy(s32 fd) { return fd == -1 ? reinterpret_cast<u8 *>((uintptr_t)0x007813b0) : crt_handle(fd); }
 
-inline bool crt_handle_open(u32 fd) { return fd < *reinterpret_cast<u32 *>((uintptr_t)0x00fb3ca0) && crt_handle(static_cast<s32>(fd))[4] & 1; }
+inline bool crt_handle_open(u32 fd) { return fd < CRT_nhandle && crt_handle(static_cast<s32>(fd))[4] & 1; }
 
 // A bad handle's errno 9, __doserrno 0: -1.
 s32 crt_bad_handle();

@@ -43,3 +43,8 @@ u32 __fastcall ScreenGrab_Save(u8 *grab);
 // Calls by the game's address (the bench's recorders): the C library's files, the engine's errors, the grab's steps and the free.
 #include "../core/addrcalls.h"
 void ScreenGrab_SetCalls(const AddrCall *table, u32 count);
+
+#include "../core/gamedata.h"
+
+// Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(s32, gScreenGrab_Count_879084, 0x00879084, 0x4);

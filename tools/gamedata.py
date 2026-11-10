@@ -118,7 +118,15 @@ NEXT = {        # slot: why, for a dword at a converted object's end that points
     0x779a84: 'gZlibVersion\'s text "1.1.3" at 0x7780f0',
     0x781704: 'the text "\\r\\n" at 0x773cdc',
     0x78259c: 'the text "a" at 0x766344',
+    0x78170c: 'the text "runtime error" at 0x708dac, after CRT_text_empty_wide_708da8',
+    0x781f88: 'the text "H:mm:ss" at 0x709750, after CRT_text_SNAN_709748',
 }
+NEXT.update({s: 'the C library locale tables\' text at 0x711c30, after CRT_zero_711c28'
+             for s in (0x711c48, 0x711cf8, 0x711d2c, 0x711d80, 0x712188, 0x7121bc, 0x71237c, 0x7129dc)})
+NEXT.update({s: 'the .bss global at 0xfb3cc0, after CRT_piob' for s in (0x77e800, 0x77e808)})
+NEXT.update({s: 'the small-block heap\'s list head at 0x780dc8 (rows of 0xc), after CRT_sbh_threshold'
+             for s in range(0x780de0, 0x780e14, 0xc)})
+NEXT.update({s: 'the .bss global at 0xfb1940, after CRT_Getlocaleinfo_buffer_fb1938' for s in range(0x781f9c, 0x781fc0, 4)})
 
 def printable(b):
     return 0x20 <= b < 0x7f

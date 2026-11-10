@@ -14,7 +14,7 @@ using u64 = unsigned long long;
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
 
 // _pctype[c] & mask as _input tests it: by _isctype when characters may be longer.
-s32 ctype(s32 c, s32 mask) { return global<s32>(0x0077e7dc) > 1 ? CRT_isctype(c, mask) : global<const u16 *>(0x0077ea90)[c] & mask; }
+s32 ctype(s32 c, s32 mask) { return CRT_mb_cur_max > 1 ? CRT_isctype(c, mask) : global<const u16 *>(0x0077ea90)[c] & mask; }
 
 bool lead(s32 c) { return (global<const u16 *>(0x0077ea90)[c & 0xff] & 0x8000) != 0; }
 
@@ -174,7 +174,7 @@ s32 __cdecl CRT_input(CrtFile *file, const u8 *format, char *args) {
                     } else if (fl_wchar_arg) {
                         temp[0] = static_cast<char>(ch);
                         if (lead(ch)) temp[1] = static_cast<char>(inc());
-                        CRT_mbtowc(&wctemp, temp, global<u32>(0x0077e7dc));
+                        CRT_mbtowc(&wctemp, temp, static_cast<u32>(CRT_mb_cur_max));
                         *reinterpret_cast<u16 *>(pointer) = wctemp;
                         pointer += 2;
                     } else {
@@ -325,9 +325,9 @@ s32 __cdecl CRT_input(CrtFile *file, const u8 *format, char *args) {
                     *scan++ = static_cast<char>(ch);
                     ch = inc();
                 }
-                if (global<u8>(0x0077e7e0) == static_cast<u8>(ch) && width--) {
+                if (static_cast<u8>(CRT_decimal_point[0]) == static_cast<u8>(ch) && width--) {
                     ch = inc();
-                    *scan++ = global<char>(0x0077e7e0);
+                    *scan++ = CRT_decimal_point[0];
                     while (ctype(ch, 4) && width--) {
                         ++started;
                         *scan++ = static_cast<char>(ch);

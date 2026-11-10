@@ -35,3 +35,14 @@ void CRT_SetStartupCalls(const AddrCall *table, u32 count);   // tests/fncmp/crt
 extern "C" {
 
 }  // extern "C"
+
+#include "gamedata.h"
+
+// Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(s32, CRT_argc, 0x00fb1374, 0x4);
+GAME_DATA(char **, CRT_argv, 0x00fb1378, 0x4);
+GAME_DATA(char *, CRT_pgmptr, 0x00fb1390, 0x4);
+GAME_DATA(u8, CRT_exitflag, 0x00fb1398, 0x1);
+GAME_DATA(s32, CRT_C_Termination_Done, 0x00fb139c, 0x4);
+GAME_DATA(s32, CRT_C_Exit_Done, 0x00fb13a0, 0x4);
+GAME_DATA(char[0x105], CRT_pgmname, 0x00fb1558, 0x105);

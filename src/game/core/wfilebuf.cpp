@@ -441,7 +441,7 @@ u32 __fastcall CodecvtW_Out(u8 *self, void *, u32 *state, const u16 *from, const
         if (place == to_end) return partial;
         const u32 room = static_cast<u32>(to_end - place);
         s32 written;
-        if (global<s32>(0x0077e7dc) <= static_cast<s32>(room)) {
+        if (CRT_mb_cur_max <= static_cast<s32>(room)) {
             // (The high half of the unit passed is the source pointer's, here, and the room's below, sic.)
             written = g_env->wcrtomb(reinterpret_cast<char *>(place), (static_cast<u32>(reinterpret_cast<uintptr_t>(text)) & 0xffff0000u) | *text, state, conversion);
             if (written <= 0) return 2;
