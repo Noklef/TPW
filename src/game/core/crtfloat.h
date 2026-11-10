@@ -103,6 +103,15 @@ s32 __cdecl CRT_ctrlfp(u32 value, u32 mask);
 // 0x68ba70: _control87: the same in the C library's form of the word (_abstract_cw, _hw_cw); returns the new form.
 u32 __cdecl CRT_control87(u32 value, u32 mask);
 u32 __cdecl CRT_controlfp(u32 value, u32 mask);   // 0x68bab0: _controlfp: _control87 without the denormal bit in the mask
+
+// 0x6804d0: _setdefaultprecision: _controlfp(_PC_53, _MCW_PC).
+void __cdecl CRT_setdefaultprecision();
+// 0x6804f0: _ms_p5_test_fdiv: 1 when 4195835 - 4195835 / 3145727 * 3145727 (on the x87) is above 1.0 (the Pentium's FDIV bug), else 0.
+s32 __cdecl CRT_ms_p5_test_fdiv();
+// 0x680540: _ms_p5_mp_test_fdiv: IsProcessorFeaturePresent(0) from KERNEL32 when it has one, else _ms_p5_test_fdiv.
+s32 __cdecl CRT_ms_p5_mp_test_fdiv();
+// 0x67a5f0: _FPinit: the conversion pointers (0x67a610), the FDIV answer to [0xfb1334], the default precision, the exception flags cleared.
+void __cdecl CRT_FPinit();
 // 0x67b3e0: _copysign: the first double with the second's sign, by its words.
 double __cdecl CRT_copysign(u32 low, u32 high, u32 other_low, u32 other_high);
 void __cdecl CRT_forcdecpt(char *text);         // 0x680570

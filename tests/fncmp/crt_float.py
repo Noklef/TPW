@@ -6,17 +6,18 @@ import struct
 import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
-from fncmp import LOG, RAM, Bench, Call, _recorder, log_region, set_return  # noqa: E402
+from fncmp import IMPORT_TABLE, LOG, RAM, Bench, Call, _recorder, import_table, log_region, recorder, set_return  # noqa: E402
 
 B = Bench([(0x68bab0, 0x68bac8), (0x6ac980, 0x6ac998), (0x685f40, 0x686043), (0x67b440, 0x67b4db), (0x680660, 0x6806b2), (0x680740, 0x680832), (0x6808b0, 0x680966), (0x680570, 0x6805cd), (0x6805d0, 0x68063b), (0x680640, 0x68065c), (0x67fa60, 0x67fae2), (0x680aa0, 0x680ac9), (0x67bb90, 0x67bed0), (0x685e00, 0x685e28), (0x685e30, 0x685e55), (0x686080, 0x6860a8), (0x68ba70, 0x68baab), (0x67b3e0, 0x67b40b), (0x685ee0, 0x685f3c), (0x685e60, 0x685e97), (0x685ea0, 0x685ed9), (0x68c0a0, 0x68c0d8), (0x68c0e0, 0x68c118), (0x68b450, 0x68b489), (0x6ac940, 0x6ac976), (0x68bad0, 0x68bb66), (0x68bb70, 0x68bbfb), (0x68bc00, 0x68bc66), (0x68bc70, 0x68bcd9), (0x68bce0, 0x68bd7d), (0x68bd80, 0x68bd9d), (0x68bda0, 0x68bdaf), (0x68bdb0, 0x68bdcd), (0x68bdd0, 0x68be81),
            (0x68be90, 0x68c05f), (0x68c060, 0x68c078), (0x68c080, 0x68c098), (0x68f9d0, 0x68f9f3),
            (0x68fa00, 0x68fa70), (0x68fa70, 0x68faa0), (0x68faa0, 0x68fad0), (0x68fad0, 0x68fbc1), (0x68ff60, 0x690218), (0x690220, 0x6902aa), (0x68c440, 0x68caa0), (0x6816a0, 0x681736), (0x6d7710, 0x6d7826),
-           (0x680430, 0x6804e0), (0x686a00, 0x686a19)], hooks={0x682460: _recorder(2, 0, cdecl=True)})
+           (0x680430, 0x6804c5), (0x686a00, 0x686a19), (0x6804d0, 0x6804e3), (0x6804f0, 0x680540), (0x680540, 0x680569), (0x67a5f0, 0x67a607), (0x67a610, 0x67a648)], hooks={0x682460: _recorder(2, 0, cdecl=True)})
 GETPTD = 2
+MODULE, PROC, PRESENT = 14, 15, 16   # (GetModuleHandleA, GetProcAddress, IsProcessorFeaturePresent: COM recorders)
 MAN, OUT, TEXT, FORMAT = (RAM + 0x40 * i for i in range(4))
 ENDS, FLT, PTD, TEXT2, PCTYPE = RAM + 0x100, RAM + 0x120, RAM + 0x140, RAM + 0x200, RAM + 0x400
 TWELVE = ('atodbl', 'atoflt', 'hextodec', 'stod', 'add12', 'shl12', 'shr12', 'mtold12', 'ld12mul', 'multtenpow', 'strgtold', 'fltin', 'strtod')
-OPS = [n for n in ('frexp', 'frexp', 'fpclass', 'fpclass', 'fassign', 'cftoe2', 'cftoe2', 'cftof2', 'cftof2', 'forcdecpt', 'forcdecpt', 'cropzeros', 'cropzeros', 'positive', 'shift', 'seterrno', 'fname', 'ctrlfp', 'ctrlfp', 'control87', 'control87', 'copysign', 'sptype', 'sptype', 'errcode', 'setexp', 'setexp', 'atodbl', 'atoflt', 'hextodec', 'hextodec', 'stod', 'stod', 'abstract', 'hw', 'addl', 'zerotail', 'incman', 'roundman', 'copyman', 'iszero', 'shrman', 'cvt', 'cvt', 'cvt', 'tod', 'tod', 'tof', 'tof', 'add12', 'shl12', 'shr12', 'mtold12', 'mtold12', 'ld12mul', 'ld12mul', 'ld12mul', 'multtenpow', 'multtenpow', 'strgtold', 'strgtold', 'strgtold', 'strgtold', 'fltin', 'fltin', 'strtod', 'strtod', 'strtod') if not os.environ.get('OPS') or n in os.environ['OPS'].split(',')]
+OPS = [n for n in ('frexp', 'frexp', 'fpclass', 'fpclass', 'fassign', 'cftoe2', 'cftoe2', 'cftof2', 'cftof2', 'forcdecpt', 'forcdecpt', 'cropzeros', 'cropzeros', 'positive', 'shift', 'seterrno', 'fname', 'ctrlfp', 'ctrlfp', 'control87', 'control87', 'copysign', 'sptype', 'sptype', 'errcode', 'setexp', 'setexp', 'atodbl', 'atoflt', 'hextodec', 'hextodec', 'stod', 'stod', 'abstract', 'hw', 'addl', 'zerotail', 'incman', 'roundman', 'copyman', 'iszero', 'shrman', 'cvt', 'cvt', 'cvt', 'tod', 'tod', 'tof', 'tof', 'add12', 'shl12', 'shr12', 'mtold12', 'mtold12', 'ld12mul', 'ld12mul', 'ld12mul', 'multtenpow', 'multtenpow', 'strgtold', 'strgtold', 'strgtold', 'strgtold', 'fltin', 'fltin', 'strtod', 'strtod', 'strtod', 'precision', 'fdiv', 'mpfdiv', 'mpfdiv', 'fpinit', 'fpinit') if not os.environ.get('OPS') or n in os.environ['OPS'].split(',')]
 DOUBLE = (0x400, -0x3ff, 0x35, 0xb, 0x40, 0x3ff)
 SINGLE = (0x80, -0x7f, 0x18, 8, 0x20, 0x7f)
 
@@ -148,6 +149,22 @@ def twelve(r, name, regions):
 def case(r):
     name = r.deal(OPS)
     regions = {MAN: mantissa(r), OUT: r.bytes(0x10)}
+    if name in ('precision', 'fdiv', 'mpfdiv', 'fpinit'):   # (the control word going in kept to the bits an x87 keeps, as ctrlfp's)
+        cw = r.choice([0x7f, 0x27f, 0x37f, 0x67f, 0xc7f, 0x107f, 0x40, r.getrandbits(16) & 0x1f3f | 0x40])
+        if name == 'precision':
+            return Call(0x6804d0, [], regions, conv='c', ret='c', cw=cw)
+        cw |= 0x3f   # (the FDIV test's arithmetic with the exceptions masked: the emulator raises none, the x87 an unmasked inexact one)
+        if name == 'fdiv':
+            return Call(0x6804f0, [], regions, conv='c', ret='wc', cw=cw)
+        log = log_region()
+        regions.update({LOG: log, IMPORT_TABLE: import_table(log, {'module': (MODULE, 0x6fd238, 1, 0b1, 0), 'proc': (PROC, 0x6fd0b0, 2, 0b10, 0)}),
+                        0x77eca0: r.bytes(0x18), 0xfb1334: r.bytes(4)})
+        set_return(log, MODULE, r.choice([0x7c800000, 0x7c800000, 0]))
+        set_return(log, PROC, r.choice([recorder(PRESENT, 1, True), recorder(PRESENT, 1, True), 0]))
+        set_return(log, PRESENT, r.choice([0, 1, r.getrandbits(32)]))
+        if name == 'mpfdiv':
+            return Call(0x680540, [], regions, conv='c', ret='a')
+        return Call(0x67a5f0, [], regions, conv='c', ret='c', cw=cw)
     if name in ('frexp', 'fpclass'):
         low = r.choice([0, 1, 0x80000000, 0xffffffff, r.getrandbits(32)])
         high = r.choice([0, 0x80000000, 1, 0x80000001, 0xfffff, 0x800fffff, 0x100000, 0x3ff00000, 0xbff00000, 0x7ff00000, 0xfff00000, 0x7ff80000, 0xfff80000, 0x7ff00001, r.getrandbits(32)])
