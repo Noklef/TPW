@@ -134,12 +134,10 @@ def x87op(fn, a, b, bits=24):
 
 
 def precision(cw):
-    """The significand bits the control word's precision control (bits 8-9) rounds to: 0 single, 2 double; 3 (extended) and 1 (reserved)
-    are not modelled (a Python float holds 53 bits)."""
-    pc = cw >> 8 & 3
-    if pc in (1, 3):
-        raise ValueError('x87emu: precision control %d (cw %04x) not modelled' % (pc, cw))
-    return 24 if pc == 0 else 53
+    """The significand bits the control word's precision control (bits 8-9) rounds to: 2 (double) 53, any other 24. Extended (3, which
+    the C library's math sets for a while: 0x133f, | 0x33f) is not modelled (a Python float holds 53 bits) and stays at 24 bits, as the
+    emulator always had it."""
+    return 53 if cw >> 8 & 3 == 2 else 24
 
 
 def f32(x):
