@@ -931,6 +931,33 @@ add_executable(tpw_tests
 )
 target_link_libraries(tpw_tests PRIVATE tpw_game)
 
+# tpw.exe: the game without tp.exe's code, which it reads as a file and copies in as data (src/loader/loader.cpp, .docs/08-loader.md).
+# Fixed at 0x10000 like the driver below, so its code ends below 0x400000 and its .game section covers the game's image; its entry point
+# runs before its C runtime. Its code-slot table is generated at build time from the user's exe (tools/gen_loader_slots.py; tpw_tests
+# checks it); without the exe at TPW_EXE (or Python) tpw.exe is left out.
+set(TPW_EXE "${CMAKE_SOURCE_DIR}/.data/nocd/tp.exe" CACHE FILEPATH "The user's decrypted tp.exe, read for tpw.exe's code-slot table")
+find_program(TPW_PYTHON NAMES py python)
+if(EXISTS "${TPW_EXE}" AND TPW_PYTHON)
+    add_custom_command(OUTPUT ${CMAKE_BINARY_DIR}/codeslots.h
+        COMMAND ${TPW_PYTHON} -I ${CMAKE_SOURCE_DIR}/tools/gen_loader_slots.py ${TPW_EXE} ${CMAKE_BINARY_DIR}/codeslots.h
+        DEPENDS ${CMAKE_SOURCE_DIR}/tools/gen_loader_slots.py ${CMAKE_SOURCE_DIR}/src/hook/hooks.cpp ${TPW_EXE}
+        COMMENT "tpw.exe's code-slot table from tp.exe")
+    add_executable(tpw WIN32
+        src/loader/loader.cpp
+        src/hook/hooks.cpp
+        src/hook/regthunks.cpp
+        ${CMAKE_BINARY_DIR}/codeslots.h
+    )
+    target_include_directories(tpw PRIVATE ${CMAKE_BINARY_DIR})
+    target_link_libraries(tpw PRIVATE tpw_game)
+    target_link_options(tpw PRIVATE /FIXED /DYNAMICBASE:NO /BASE:0x10000 /NXCOMPAT /ENTRY:LoaderEntry /MAP /INCREMENTAL:NO /OPT:REF)
+    target_sources(tpw_tests PRIVATE ${CMAKE_BINARY_DIR}/codeslots.h)
+    target_include_directories(tpw_tests PRIVATE ${CMAKE_BINARY_DIR})
+    target_compile_definitions(tpw_tests PRIVATE TPW_CODE_SLOTS)
+else()
+    message(STATUS "tpw.exe left out: no exe at TPW_EXE (${TPW_EXE}) or no Python")
+endif()
+
 # Comparison driver for tools/fncmp.py: calls hooked functions by their original address. Fixed at 0x10000, below the game's image
 # Comparison driver for tools/fncmp.py: calls hooked functions by their original address. Fixed at 0x10000 (the lowest base; 0x100000 until its code outgrew the 3 MB below the game), below the game's image
 # base, so its code ends below 0x400000 and its g_game section (the next one) covers the game's whole image, 0x400000-0xfc5200, where

@@ -28,7 +28,7 @@ T &at(u32 base, u32 offset) {
 u32 Target(u32 address) {
     for (u32 i = 0; i < g_count; ++i)
         if (g_table[i].address == address) return g_table[i].target;
-    return address;
+    return g_addressTarget ? g_addressTarget(address) : address;   // (addrcalls.h)
 }
 
 // A cdecl call; a thiscall one on object (an address or a pointer); a stdcall one (the C library's array iterators).
