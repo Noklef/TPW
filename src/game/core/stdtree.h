@@ -251,3 +251,9 @@ u8 **__fastcall StdTree_EraseRangeJ(u8 *tree, void *, u8 **out, u8 *first, u8 *l
 void __cdecl StdTree_InitUnusedOne();
 void __cdecl StdTree_InitUnusedEpsilon();
 }  // extern "C"
+
+#include "gamedata.h"
+
+// Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(float, gStdTree_7899b4, 0x007899b4, 0x4);
+GAME_DATA(float, gStdTree_78a0bc, 0x0078a0bc, 0x4);

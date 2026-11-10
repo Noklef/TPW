@@ -18,3 +18,10 @@ extern "C" {
 // the odd ones, + half << 5 for the lower two) or RefBlock_Copy8 (swapped 1 and 0) with half and a third code - 0x40 as its bias; any other decoded (DctVlc_DecodeBlock), 1 its DC filled (DctVlc_FillDc), else DctIdct_Block, pitch 0x10 or 8. At the end TqiVideo_BlockBytes32 into out, half * 4.
 void __fastcall DctVideo_DecodeMacroblock(u8 *reference, u8 *out, s32 pitch);
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(u32[64], gDctmacroblock_faa660, 0x00faa660, 0x100);
+GAME_DATA(u32[64], gDctmacroblock_faa760, 0x00faa760, 0x100);
+GAME_DATA(u32[256], gDctmacroblock_faa860, 0x00faa860, 0x400);

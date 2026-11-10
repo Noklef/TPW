@@ -4,19 +4,14 @@
 #include <cstring>
 
 #include "../math/x87.h"
+#include "dctvlc.h"
 
 namespace {
 
-// The constants: the Q31 multiplier for IMUL, three float multipliers and the rounding constant.
-struct IdctConstants {
-    s32 k;
-    float c1, c2, c3, round;
-};
-
-IdctConstants *const kDctConstants = reinterpret_cast<IdctConstants *>((uintptr_t)0x00fbc018);
-IdctConstants *const kMovieConstants = reinterpret_cast<IdctConstants *>((uintptr_t)0x00fbb598);
-u32 *const kDctScratch = reinterpret_cast<u32 *>((uintptr_t)0x00fbc008);
-s32 **const kDctOut = reinterpret_cast<s32 **>((uintptr_t)0x00fbc004);
+IdctConstants *const kDctConstants = &gMovieidct_fbc018;
+IdctConstants *const kMovieConstants = &gMovieidct_fbb598;
+u32 *const kDctScratch = gMovieidct_fbc008;
+s32 **const kDctOut = &gMovieidct_fbc004;
 
 u32 HighTwice(u32 a, s32 k) { return (u32)(s32)(((long long)(s32)a * k) >> 32) << 1; }  // imul; shl edx, 1
 
@@ -91,17 +86,17 @@ void __cdecl DctIdct_Column(const s32 *block) {
 void __cdecl DctIdct_Row(const s32 *block) { Transform(block, kDctScratch, kDctConstants, kDctOut, 1, 0); }
 
 void __cdecl DctIdct_Block(s32 *out, s32 pitch) {
-    u32 *const pitchBytes = reinterpret_cast<u32 *>((uintptr_t)0x00fbc000);
+    u32 *const pitchBytes = &gMovieidct_fbc000;
     *pitchBytes = (u32)pitch << 2;
     for (u32 i = 0; i < 8; ++i) {
-        *kDctOut = reinterpret_cast<s32 *>((uintptr_t)(0x00fbc02c + i * 4));
-        DctIdct_Column(reinterpret_cast<const s32 *>((uintptr_t)(0x00fbc14c + i * 0x20)));
+        *kDctOut = reinterpret_cast<s32 *>((uintptr_t)((u32)(uintptr_t)&gMovieidct_fbc02c + i * 4));
+        DctIdct_Column(reinterpret_cast<const s32 *>((uintptr_t)((u32)(uintptr_t)&gDctvlc_fbc14c + i * 0x20)));
     }
     *kDctOut = out;
-    DctIdct_Row(reinterpret_cast<const s32 *>((uintptr_t)0x00fbc02c));
+    DctIdct_Row(gMovieidct_fbc02c);
     for (u32 i = 1; i < 8; ++i) {
         *kDctOut = reinterpret_cast<s32 *>((uintptr_t)((u32)(uintptr_t)*kDctOut + *pitchBytes));
-        DctIdct_Row(reinterpret_cast<const s32 *>((uintptr_t)(0x00fbc02c + i * 0x24)));
+        DctIdct_Row(reinterpret_cast<const s32 *>((uintptr_t)((u32)(uintptr_t)&gMovieidct_fbc02c + i * 0x24)));
     }
 }
 

@@ -49,40 +49,40 @@ u32 fixmul(s32 value, s32 factor) {
 extern "C" {
 
 void __cdecl DctVlc_BuildTables() {
-    global<u32>(0x00fbc44c) = 0xf;
-    fill(0x00fbc450, 7, 0x1f);
-    fill(0x00fbc46c, 8, 0x2f);
-    fill(0x00fbc84c, 0x80, 0x3f);
-    for (u32 record = 0x007061d8; record < 0x007067b8; record += 0x10) {
+    gDctvlc_fbc44c[0] = 0xf;
+    fill(((u32)(uintptr_t)&gDctvlc_fbc44c + 0x4), 7, 0x1f);
+    fill(((u32)(uintptr_t)&gDctvlc_fbc44c + 0x20), 8, 0x2f);
+    fill(((u32)(uintptr_t)&gDctvlc_fbc44c + 0x400), 0x80, 0x3f);
+    for (u32 record = (u32)(uintptr_t)&gDctvlc_7061d8; record < ((u32)(uintptr_t)&gDctvlc_7061d8 + 0x5e0); record += 0x10) {
         const u32 length = global<u32>(record), word = global<u32>(record + 4);
         const s32 code = global<s32>(record + 0xc);
         if (code & 0xfc00)
-            spread(0x00fbc44c, code >> 7, (s32)(1u << ((9 - length) & 31)), code_entry(word, length));
+            spread((u32)(uintptr_t)&gDctvlc_fbc44c, code >> 7, (s32)(1u << ((9 - length) & 31)), code_entry(word, length));
         else
-            spread(0x00fbd04c, code >> 2, (s32)(1u << ((0xe - length) & 31)), code_entry(word, length - 6));
+            spread(((u32)(uintptr_t)&gDctvlc_fbc44c + 0xc00), code >> 2, (s32)(1u << ((0xe - length) & 31)), code_entry(word, length - 6));
     }
-    for (u32 record = 0x007067b8; record < 0x00706fb8; record += 0x10) {
+    for (u32 record = ((u32)(uintptr_t)&gDctvlc_7061d8 + 0x5e0); record < ((u32)(uintptr_t)&gDctvlc_7061d8 + 0xde0); record += 0x10) {
         const u32 length = global<u32>(record) + 8, word = global<u32>(record + 4);
         const s32 code = global<s32>(record + 0xc);
         if (!(code & 0x8000))
-            spread(0x00fbcc4c, code >> 7, (s32)(1u << ((0x11 - length) & 31)), code_entry(word, length - 9));
+            spread(((u32)(uintptr_t)&gDctvlc_fbc44c + 0x800), code >> 7, (s32)(1u << ((0x11 - length) & 31)), code_entry(word, length - 9));
         else
-            spread(0x00fbd04c, code >> 10, (s32)(1u << ((0xe - length) & 31)), code_entry(word, length - 6));
+            spread(((u32)(uintptr_t)&gDctvlc_fbc44c + 0xc00), code >> 10, (s32)(1u << ((0xe - length) & 31)), code_entry(word, length - 6));
     }
-    fill(0x00fbd44c, 0x20, 1);
-    for (u32 k = 0; k < 0x10; ++k) global<u32>(0x00fbd4cc + k * 4) = (k + 1) << 22 | 6;
-    for (u32 k = 0; k < 0x10; ++k) global<u32>(0x00fbd50c + k * 4) = (0xfc000000u + (k << 22)) | 6;
+    fill(((u32)(uintptr_t)&gDctvlc_fbc44c + 0x1000), 0x20, 1);
+    for (u32 k = 0; k < 0x10; ++k) gDctvlc_fbc44c[1056 + k] = (k + 1) << 22 | 6;
+    for (u32 k = 0; k < 0x10; ++k) gDctvlc_fbc44c[1072 + k] = (0xfc000000u + (k << 22)) | 6;
     gDctVlc_faac68 = 1;
 }
 
 s32 __cdecl DctVlc_DecodeBlock() {
-    Bits in{global<const u16 *>(0x00fbd64c), global<u32>(0x00fbd650), global<s32>(0x00fbd654)};
-    global<s32>(0x00fbc14c) = ((s32)in.bits >> 24) * global<s32>(0x00fbd54c);
+    Bits in{gDctvlc_fbd64c, gDctvlc_fbd650, gDctvlc_fbd654};
+    gDctvlc_fbc14c[0] = ((s32)in.bits >> 24) * gDctvlc_fbd54c[0];
     in.skip(8);
-    fill(0x00fbc150, 0x3f, 0);
+    fill(((u32)(uintptr_t)&gDctvlc_fbc14c + 0x4), 0x3f, 0);
     s32 k = 1;
     for (;;) {
-        u32 entry = global<u32>(0x00fbc44c + (in.bits >> 23) * 4);
+        u32 entry = gDctvlc_fbc44c[(in.bits >> 23)];
         const u8 kind = (u8)entry;
         if ((s8)kind > 9) {
             if (kind >= 0x30) {   // the end
@@ -94,56 +94,56 @@ s32 __cdecl DctVlc_DecodeBlock() {
                 entry = (in.bits & 0xffff0000) | 0x10;
             } else if (kind >= 0x10) {
                 in.skip(6);
-                entry = global<u32>(0x00fbd04c + (in.bits >> 24) * 4);
+                entry = gDctvlc_fbc44c[768 + (in.bits >> 24)];
             } else {
                 in.skip(9);
-                entry = global<u32>(0x00fbcc4c + (in.bits >> 24) * 4);
+                entry = gDctvlc_fbc44c[512 + (in.bits >> 24)];
             }
         }
         k += (s32)(entry >> 16 & 0x3f);
         in.skip((u8)entry);
-        const u32 offset = global<u32>(0x00fbc34c + (u32)k * 4);
+        const u32 offset = gDctvlc_fbc34c[(u32)k];
         ++k;
-        global<s32>(0x00fbc14c + offset) = ((s32)entry >> 22) * global<s32>(0x00fbd54c + offset);
+        global<s32>((u32)(uintptr_t)&gDctvlc_fbc14c + offset) = ((s32)entry >> 22) * global<s32>((u32)(uintptr_t)&gDctvlc_fbd54c + offset);
     }
-    global<const u16 *>(0x00fbd64c) = in.next;
-    global<u32>(0x00fbd650) = in.bits;
-    global<s32>(0x00fbd654) = in.count;
+    gDctvlc_fbd64c = in.next;
+    gDctvlc_fbd650 = in.bits;
+    gDctvlc_fbd654 = in.count;
     return k;
 }
 
 void __fastcall DctVlc_Skip(u32 n) {
-    const u32 count = global<u32>(0x00fbd654) - n;
-    global<u32>(0x00fbd654) = count;
-    global<u32>(0x00fbd650) <<= n & 31;
+    const u32 count = static_cast<u32>(gDctvlc_fbd654) - n;
+    global<u32>((u32)(uintptr_t)&gDctvlc_fbd654) = count;
+    gDctvlc_fbd650 <<= n & 31;
     if (count >= 0x10) return;
-    const u16 *next = global<const u16 *>(0x00fbd64c);
-    global<u32>(0x00fbd654) = count + 0x10;
-    global<u32>(0x00fbd650) |= (u32)*next << ((0x10 - count) & 31);
-    global<const u16 *>(0x00fbd64c) = next + 1;
+    const u16 *next = gDctvlc_fbd64c;
+    global<u32>((u32)(uintptr_t)&gDctvlc_fbd654) = count + 0x10;
+    gDctvlc_fbd650 |= (u32)*next << ((0x10 - count) & 31);
+    gDctvlc_fbd64c = next + 1;
 }
 
 s32 __cdecl DctVlc_ReadCode() {
-    const u32 entry = global<u32>(0x00fbd44c + (global<u32>(0x00fbd650) >> 26) * 4);
+    const u32 entry = gDctvlc_fbc44c[1024 + (gDctvlc_fbd650 >> 26)];
     DctVlc_Skip(entry & 0xff);
     return (s32)entry >> 22;
 }
 
 void __fastcall DctVlc_FillDc(s32 *out, s32 pitch) {
     for (s32 row = 0; row < 8; ++row, out += pitch)
-        for (s32 k = 0; k < 8; ++k) out[k] = global<s32>(0x00fbc14c);
+        for (s32 k = 0; k < 8; ++k) out[k] = gDctvlc_fbc14c[0];
 }
 
 void __fastcall DctVlc_BeginFrame(const u16 *data, s32 *out, s32 quality) {
     if (gDctVlc_faac68 == 0) DctVlc_BuildTables();
-    const u32 dc = global<u32>(0x00706fb8);
+    const u32 dc = gDctvlc_7061d8[888];
     const u32 bits = (u32)data[0] << 16 | data[1];
-    global<u32>(0x00fbd654) = 0x20;
-    global<u32>(0x00fbd650) = bits;
-    global<const u16 *>(0x00fbd64c) = data + 2;
-    global<s32 *>(0x00faac60) = out;
-    global<u32>(0x00fbd54c) = fixmul(global<s32>(0x00fbc24c), (s32)(dc << 15));
+    global<u32>((u32)(uintptr_t)&gDctvlc_fbd654) = 0x20;
+    gDctvlc_fbd650 = bits;
+    gDctvlc_fbd64c = data + 2;
+    gDctvlc_faac60 = out;
+    global<u32>((u32)(uintptr_t)&gDctvlc_fbd54c) = fixmul(gDctvlc_fbc24c[0], (s32)(dc << 15));
     for (u32 k = 0; k < 0x3f; ++k)
-        global<u32>(0x00fbd550 + k * 4) = fixmul(global<s32>(0x00fbc250 + k * 4), (s32)(global<u32>(0x00706fbc + k * 4) * (u32)quality << 12));
+        global<u32>(((u32)(uintptr_t)&gDctvlc_fbd54c + 0x4) + k * 4) = fixmul(gDctvlc_fbc24c[1 + k], (s32)(gDctvlc_7061d8[889 + k] * (u32)quality << 12));
 }
 }
