@@ -10090,6 +10090,12 @@ address,name,kind,confidence,notes
 0x0068cc30,CRT_abort,function,low,"reimplemented (src/game/core/crtsignal); abort: message 10, raise(SIGABRT), _exit(3)"
 0x0068a710,CRT_input,function,low,"reimplemented (src/game/core/crtinput); _input: the format's directives against a file's characters; fields assigned, -1 at the end before any match"
 0x0067f620,CRT_sscanf,function,low,reimplemented (src/game/core/crtinput); sscanf: _input over a string file on the text
+0x006ab3b0,TimeGet_Getloctxt,function,low,"reimplemented (src/game/core/timeget); _Getloctxt<char>: the stream matched against a list of names led by their first character; the index of the one that ended, -1 or -2"
+0x006a4a30,WTimeGet_Getloctxt,function,low,reimplemented (src/game/core/timeget); _Getloctxt<wchar_t>: the same
+0x006aaa90,TimeGet_DoGetWeekday,function,low,"reimplemented (src/game/core/timeget); time_get<char>::do_get_weekday: _Getloctxt over the day names, halved into tm_wday"
+0x006aaaf0,TimeGet_DoGetMonthname,function,low,"reimplemented (src/game/core/timeget); time_get<char>::do_get_monthname: _Getloctxt over the month names, halved into tm_mon"
+0x006a3de0,WTimeGet_DoGetWeekday,function,low,reimplemented (src/game/core/timeget); time_get<wchar_t>::do_get_weekday: the same
+0x006a3e40,WTimeGet_DoGetMonthname,function,low,reimplemented (src/game/core/timeget); time_get<wchar_t>::do_get_monthname: the same
 0x00faac68,gDctVlc_faac68,data,low,"GAME_DATA (src/game/gfx/dctvlc): u32, named for its use in DctVlc_BeginFrame, DctVlc_BuildTables (tools/gamedata_codemod.py)"
 0x00faac64,gMadVideo_DecodeFrame_faac64,data,low,"GAME_DATA (src/game/gfx/madvideo): u32, named for its use in MadVideo_DecodeFrame (tools/gamedata_codemod.py)"
 0x00fab484,gMmxBlit_Copy32_fab484,data,low,"GAME_DATA (src/game/gfx/mmxblit): u32, named for its use in MmxBlit_Copy32 (tools/gamedata_codemod.py)"

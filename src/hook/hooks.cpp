@@ -319,6 +319,7 @@
 #include "../game/core/swearfilter.h"
 #include "../game/core/themenames.h"
 #include "../game/core/themesaves.h"
+#include "../game/core/timeget.h"
 #include "../game/core/voicecodec.h"
 #include "../game/core/voiceevents.h"
 #include "../game/core/voicesample.h"
@@ -7227,6 +7228,12 @@ const Hook kHooks[] = {
     {"CRT_abort",                 0x0068cc30, (void *)&CRT_abort, {0x6a, 0x0a, 0xe8, 0x79, 0xd5}},
     {"CRT_input",                 0x0068a710, (void *)&CRT_input, {0x81, 0xec, 0xd0, 0x01, 0x00}},
     {"CRT_sscanf",                0x0067f620, (void *)&CRT_sscanf, {0x83, 0xec, 0x20, 0x57, 0x8b}},
+    {"TimeGet_Getloctxt",         0x006ab3b0, (void *)&TimeGet_Getloctxt, {0x64, 0xa1, 0x00, 0x00, 0x00}},
+    {"WTimeGet_Getloctxt",        0x006a4a30, (void *)&WTimeGet_Getloctxt, {0x64, 0xa1, 0x00, 0x00, 0x00}},
+    {"TimeGet_DoGetWeekday",      0x006aaa90, (void *)&TimeGet_DoGetWeekday, {0x8b, 0x41, 0x08, 0x8d, 0x4c}},
+    {"TimeGet_DoGetMonthname",    0x006aaaf0, (void *)&TimeGet_DoGetMonthname, {0x8b, 0x41, 0x0c, 0x8d, 0x4c}},
+    {"WTimeGet_DoGetWeekday",     0x006a3de0, (void *)&WTimeGet_DoGetWeekday, {0x8b, 0x41, 0x08, 0x8d, 0x4c}},
+    {"WTimeGet_DoGetMonthname",   0x006a3e40, (void *)&WTimeGet_DoGetMonthname, {0x8b, 0x41, 0x0c, 0x8d, 0x4c}},
     {"Nav_Ctor",          0x0050ffe0, (void *)&Nav_Ctor, {0x6a, 0xff, 0x68, 0x2d, 0xe6}},
     {"Nav_Dtor",                  0x0050f200, (void *)&Nav_Dtor, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"Nav_DtorAtD4",              0x004f7c30, (void *)&Nav_DtorAtD4, {0x81, 0xc1, 0xd4, 0x00, 0x00}},
