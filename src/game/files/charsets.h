@@ -91,3 +91,11 @@ s32 __cdecl Charset_FormatNarrow(u8 *charset, u8 *dest, u32 size, u32 entry, ...
 s32 __cdecl Charset_FormatWide(u8 *charset, u16 *dest, u32 size, u32 entry, ...);
 
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address, by hand (.docs/09-globals.md). The vtables hold only ports (the AddRef / Release slots JMP thunks to them): tpw.exe's
+// loader points their slots at the ports.
+GAME_DATA(void *[5], Charset_vtable, 0x0070a060, 0x14);
+GAME_DATA(void *[5], RangeTable_vtable, 0x0070a0e0, 0x14);
+GAME_DATA(void *[5], CodeTable_vtable, 0x0070a0f8, 0x14);

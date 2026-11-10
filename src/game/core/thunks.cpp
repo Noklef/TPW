@@ -27,6 +27,7 @@
 #include "vwrap.h"
 #include "../files/drives.h"
 #include "../files/file.h"
+#include "../files/fontloaders.h"
 #include "../files/handles.h"
 #include "../files/wadsource.h"
 #include "../gfx/canvas.h"
@@ -154,7 +155,7 @@ u32 __fastcall Wrap_Set4_4217f0_4fa460(u8 *o) {
 }
 
 void __fastcall Wrap_Vtbl70a078_Set_6b4a50_6b0470(u8 *o) {
-    at<u32>(o, 0x0) = 0x70a158; Vtbl70a078_Set_6b4a50(reinterpret_cast<u8 *>(o));
+    at<u32>(o, 0x0) = (u32)(uintptr_t)Font_vtable; Vtbl70a078_Set_6b4a50(reinterpret_cast<u8 *>(o));
 }
 
 u8 * __fastcall Wrap_Init_6b4a60_6b0710(u8 *o) {

@@ -26,7 +26,7 @@ u32 BytesLeft(u8 *stream) {
 u8 *__fastcall RangeTable_Ctor(u8 *table, void *, u8 *data) {
     Class70a078_Ctor(table);
     at<u8 *>(table, 8) = data;
-    at<u32>(table, 0) = 0x70a0e0;
+    at<u32>(table, 0) = (u32)(uintptr_t)RangeTable_vtable;
     return table;
 }
 
@@ -60,7 +60,7 @@ u8 *__fastcall CodeTable_Ctor(u8 *table, void *, u32 lead, u32 count, u8 *data) 
     Class70a078_Ctor(table);
     at<u8>(table, 8) = (u8)lead;
     at<u16>(table, 0xa) = (u16)count;
-    at<u32>(table, 0) = 0x70a0f8;
+    at<u32>(table, 0) = (u32)(uintptr_t)CodeTable_vtable;
     at<u8 *>(table, 0xc) = data;
     return table;
 }
@@ -98,7 +98,7 @@ s32 *__fastcall CodeTable_Load(u8 *, void *, s32 *result, u8 *stream, u8 **objec
 
 u8 *__fastcall Charset_Ctor(u8 *charset, void *, u32 count, u32 *table, u8 *index) {
     Class70a078_Ctor(charset);
-    at<u32>(charset, 0) = 0x70a060;
+    at<u32>(charset, 0) = (u32)(uintptr_t)Charset_vtable;
     at<u32>(charset, 8) = count;
     at<u32 *>(charset, 0xc) = table;
     for (u32 left = count; left; --left, ++table) *table += at<u32>(charset, 0xc);
@@ -119,7 +119,7 @@ u8 *__fastcall Charset_Ctor(u8 *charset, void *, u32 count, u32 *table, u8 *inde
 }
 
 void __fastcall Charset_Dtor(u8 *charset) {
-    at<u32>(charset, 0) = 0x70a060;
+    at<u32>(charset, 0) = (u32)(uintptr_t)Charset_vtable;
     if (u8 *const range = at<u8 *>(charset, 0x14)) {
         vcall<void>(range, 0);
         at<u32>(charset, 0x14) = 0;
