@@ -256,4 +256,6 @@ u32 __fastcall Renderer_DrawFrame(u8 *renderer) {
 }
 
 u32 __cdecl Engine_DrawFrame() { return Renderer_DrawFrame(global<u8 *>(kWorldRender)); }
+
+void __cdecl RendererFrame_MatrixAtExit() {}
 }

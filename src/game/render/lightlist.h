@@ -31,4 +31,7 @@ double __cdecl LightList_Angle(float a1, float a2, float a3, float a4);
 // low byte, shifted to the top, to +0x1b0 + 4 i, the angle to +0x1a0 + 4 i, and the count goes up;
 // otherwise the count stays. The angle's scale comes from x and y but scales x and z (sic). Name invented.
 u32 __fastcall LightList_Add(u8 *list, void *, float x, float y, float z);
+
+// 0x584b00 (cdecl; name invented, unconfirmed): the atexit entry of the light list 0x8c1658 (its static initialiser 0x584a70): nothing.
+void __cdecl LightList_AtExit();
 }

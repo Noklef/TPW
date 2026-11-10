@@ -38,4 +38,8 @@ void __cdecl Transform_Concatenate(void *self, const float *a, const float *b, f
 // not 1) takes the handler (0x579adc) and 0 is returned. The caller (0x578224) asks when CPUID's SSE bit (0x2000000) is set,
 // before it makes the SSE transformer. (Every Windows the port runs on has SSE enabled, and ReturnOne leaves the MOVAPS out.)
 u32 __cdecl Transform_SseProbe();
+
+// 0x579b30 (cdecl; name invented, unconfirmed): the atexit entry of the unit's static 0x8bb1f8 (four dwords its static initialiser 0x579b00
+// zeroes): nothing.
+void __cdecl Transform_StaticAtExit();
 }

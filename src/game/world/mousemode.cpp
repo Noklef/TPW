@@ -380,4 +380,6 @@ void __fastcall MouseMode_CancelStaff(u8 *self) {
     const u32 table = g_calls.Th(0x005194d0, *reinterpret_cast<u32 *>((uintptr_t)0x007cf83c));
     g_calls.Th(0x0059aa70, table, 0x135u);   // Advisor_Cancel
 }
+
+void __cdecl MouseModeText_AtExit() {}
 }

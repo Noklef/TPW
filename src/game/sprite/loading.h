@@ -67,6 +67,10 @@ extern "C" {
 // (0x587db0): +0x204 = it answered 1, +0x208 = the set's count; with +0x207 SpriteFrames_MarkTextures. Answers 1.
 u8 __cdecl Sprites_UseGroundFrames();
 u8 __cdecl Sprites_UseParkFrames();
+
+// 0x540bc0 (cdecl; name invented, unconfirmed): the atexit entry of the sprite folder name 0x875058 (its static initialiser 0x540ba0 points it
+// at the buffer 0x87505c): nothing.
+void __cdecl SpriteFolderName_AtExit();
 }
 
 // 0x541d90 (cdecl; name invented, unconfirmed): the sprites' count [0x87626c] 0, the folder 0x876960 found in [0x786b9c]'s list (not exactly 1: false). Each of the 14 sets of 0x763f88 (only the last, with the flag), 0xc bytes each: its +4 the count so far and its +8 Sprites_LoadFolder(the folder, its name +0). [0x876b28] the count. True.
