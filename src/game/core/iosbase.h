@@ -195,3 +195,17 @@ void *__cdecl Std_LocaleInit();
 // Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
 GAME_DATA(u8 *[9], gIosbase_Streams_fb1d60, 0x00fb1d60, 0x24);
 GAME_DATA(s8[9], gIosbase_Opens_fb1d88, 0x00fb1d88, 0x9);
+
+// The vtables hold only ports: tpw.exe's loader points their slots at them (.docs/09-globals.md).
+GAME_DATA(void *[3], Class709884_vtable, 0x00709884, 0xc);
+GAME_DATA(void *[3], LogicError_vtable, 0x007098a4, 0xc);
+GAME_DATA(void *[3], Class7098b4_vtable, 0x007098b4, 0xc);
+GAME_DATA(void *[1], NIos_vtable, 0x00709954, 0x4);
+GAME_DATA(void *[1], Class70995c_vtable, 0x0070995c, 0x4);
+GAME_DATA(void *[1], IosBase_vtable, 0x00709964, 0x4);
+GAME_DATA(void *[1], Class7099dc_vtable, 0x007099dc, 0x4);
+GAME_DATA(void *[1], BasicIosW_vtable, 0x007099e4, 0x4);
+GAME_DATA(void *[1], Class7099ec_vtable, 0x007099ec, 0x4);
+GAME_DATA(void *[3], Class7099fc_vtable, 0x007099fc, 0xc);
+GAME_DATA(void *[3], Error709a44_vtable, 0x00709a44, 0xc);
+GAME_DATA(void *[3], BadCast_vtable, 0x00709b34, 0xc);

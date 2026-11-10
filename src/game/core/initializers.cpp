@@ -7,6 +7,9 @@
 #include "../gfx/surface.h"
 #include "../ui/panel7cc218.h"
 #include "../world/cellrun.h"
+#include "iosbase.h"
+#include "narrowfilebuf.h"
+#include "wfilebuf.h"
 
 namespace {
 
@@ -72,7 +75,7 @@ u8 * __fastcall Init_4d3ed0(u8 *o) {
 
 u8 * __fastcall Init_4ef830(u8 *o) {
     at<u32>(o, 0x24) = 0x0;
-    at<u32>(o, 0x0) = 0x709964;
+    at<u32>(o, 0x0) = (u32)(uintptr_t)IosBase_vtable;
     return o;
 }
 
@@ -84,7 +87,7 @@ u8 * __fastcall Init_4f1890(u8 *o, void *, u32 v0) {
 
 u8 * __fastcall Init_4f1bd0(u8 *o) {
     at<u32>(o, 0x24) = 0x0;
-    at<u32>(o, 0x0) = 0x7099e4;
+    at<u32>(o, 0x0) = (u32)(uintptr_t)BasicIosW_vtable;
     return o;
 }
 
@@ -105,7 +108,7 @@ u8 * __fastcall Init_5ac510(u8 *o) {
 
 u8 * __fastcall Init_5cfd80(u8 *o) {
     at<u32>(o, 0x24) = 0x0;
-    at<u32>(o, 0x0) = 0x709954;
+    at<u32>(o, 0x0) = (u32)(uintptr_t)NIos_vtable;
     return o;
 }
 
@@ -124,12 +127,12 @@ u8 * __fastcall Init_5ec210(u8 *o) {
 }
 
 u8 * __fastcall Init_691ee0(u8 *o, void *, u32 v0) {
-    at<u32>(o, 0x0) = 0x7098dc;
+    at<u32>(o, 0x0) = (u32)(uintptr_t)Class7098dc_vtable;
     return o;
 }
 
 u8 * __fastcall Init_692970(u8 *o, void *, u32 v0) {
-    at<u32>(o, 0x0) = 0x70996c;
+    at<u32>(o, 0x0) = (u32)(uintptr_t)Class70996c_vtable;
     return o;
 }
 

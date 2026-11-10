@@ -11,6 +11,7 @@
 #include "vobj2.h"
 #include "vtables.h"
 #include "../world/parkmap.h"
+#include "localefacet.h"
 
 namespace {
 
@@ -359,7 +360,7 @@ u8 * __fastcall ScalarDelete6fefb8_47e730(u8 *o, void *, u32 v0) {
 }
 
 u8 * __fastcall ScalarDelete709b44_4f18b0(u8 *o, void *, u32 v0) {
-    at<u32>(o, 0x0) = 0x00709b44; if (v0 & 1) GameHeap_Free(o); return o;
+    at<u32>(o, 0x0) = (u32)(uintptr_t)LocaleFacet_vtable; if (v0 & 1) GameHeap_Free(o); return o;
 }
 
 u8 * __fastcall ScalarDelete7007a8_4ff500(u8 *o, void *, u32 v0) {

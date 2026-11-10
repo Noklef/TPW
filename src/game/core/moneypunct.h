@@ -39,3 +39,10 @@ StdString *__fastcall Facet709fac_Get(const u8 *self, void *, StdString *out, u3
 StdWString *__fastcall WFacet709c0c_Get(const u8 *self, void *, StdWString *out, u32, u32, u32 which, const StdWString *fallback);
 
 }  // extern "C"
+
+#include "gamedata.h"
+
+// The vtables hold only ports: tpw.exe's loader points their slots at them (.docs/09-globals.md).
+GAME_DATA(void *[10], MoneypunctW_vtable, 0x00709d74, 0x28);
+GAME_DATA(void *[10], Class709da4_vtable, 0x00709da4, 0x28);
+GAME_DATA(void *[10], MoneypunctC_vtable, 0x00709fdc, 0x28);

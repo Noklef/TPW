@@ -4,6 +4,7 @@
 
 #include "gameheap.h"
 #include "vcall.h"
+#include "narrowwriter.h"
 
 namespace {
 
@@ -84,11 +85,11 @@ void __fastcall WideWriter_PutWide(u8 *writer, void *, const u16 *text, s32 coun
 }
 
 void __fastcall WideWriter_Dtor(u8 *writer) {
-    at<u32>(writer, 0) = 0x70a0c0;
+    at<u32>(writer, 0) = (u32)(uintptr_t)Class70a0c0_vtable;
     WideWriter_Finish(writer);
     if (u8 *const table = at<u8 *>(writer, 0xc))
         vcall<void>(table, 0);
-    at<u32>(writer, 0) = 0x70a0a8;
+    at<u32>(writer, 0) = (u32)(uintptr_t)Class70a0a8_vtable;
 }
 
 u8 *__fastcall WideWriter_DeletingDtor(u8 *writer, void *, u32 flags) {

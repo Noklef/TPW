@@ -113,7 +113,7 @@ extern "C" {
 
 u8 *__fastcall WCtype_Ctor(u8 *self, void *, u32 refs) {
     at<u32>(self, 4) = refs;
-    at<u32>(self, 0) = 0x00709cac;
+    at<u32>(self, 0) = (u32)(uintptr_t)WCtype_vtable;
     u8 info[0x48];
     g_env->locinfoCtor(info, nullptr, gLocalefacet_C_75c74c);
     u32 out[4];

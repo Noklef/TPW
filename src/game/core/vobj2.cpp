@@ -18,6 +18,8 @@
 #include "../gfx/texcache.h"
 #include "../render/pointsprites.h"
 #include "../render/batch.h"
+#include "narrowfilebuf.h"
+#include "wfilebuf.h"
 
 namespace {
 
@@ -135,8 +137,8 @@ void __fastcall Obj_SetNameAndWords(u8 *object, void *, u32 flag, u8 *text, cons
         at<u16>(object, 0x120 + 2 * i) = table[i];
 }
 
-void __fastcall Class709914_Dtor(u8 *object) { CountedDtor(object, 0x00709914); }
-void __fastcall Class7099a4_Dtor(u8 *object) { CountedDtor(object, 0x007099a4); }
+void __fastcall Class709914_Dtor(u8 *object) { CountedDtor(object, (u32)(uintptr_t)Class709914_vtable); }
+void __fastcall Class7099a4_Dtor(u8 *object) { CountedDtor(object, (u32)(uintptr_t)Class7099a4_vtable); }
 
 u32 __fastcall Pointers_MarkAndCallSlot4(u8 *object) {
     for (s32 i = 0; i < at<s32>(object, 0x400); ++i) {

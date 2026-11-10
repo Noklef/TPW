@@ -206,3 +206,19 @@ GAME_DATA(u32, gLocalefacet_fb1ed0, 0x00fb1ed0, 0x4);
 GAME_DATA(u32, gLocalefacet_fb1ed4, 0x00fb1ed4, 0x4);
 GAME_DATA(u32, gLocalefacet_fb1ed8, 0x00fb1ed8, 0x4);
 GAME_DATA(u32, gLocalefacet_fb275c, 0x00fb275c, 0x4);
+
+// The vtables hold only ports: tpw.exe's loader points their slots at them (.docs/09-globals.md).
+GAME_DATA(void *[6], Numpunct_vtable, 0x00709aac, 0x18);
+GAME_DATA(void *[7], NumPut_vtable, 0x00709acc, 0x1c);
+GAME_DATA(void *[10], NumGet_vtable, 0x00709aec, 0x28);
+GAME_DATA(void *[1], LocaleFacet_vtable, 0x00709b44, 0x4);
+GAME_DATA(void *[10], Class709bbc_vtable, 0x00709bbc, 0x28);
+GAME_DATA(void *[4], WFacet709c0c_vtable, 0x00709c0c, 0x10);
+GAME_DATA(void *[4], CollateW_vtable, 0x00709c24, 0x10);
+GAME_DATA(void *[6], WNumpunct_vtable, 0x00709c3c, 0x18);
+GAME_DATA(void *[7], WNumGet_vtable, 0x00709c5c, 0x1c);
+GAME_DATA(void *[10], Class709f2c_vtable, 0x00709f2c, 0x28);
+GAME_DATA(void *[10], Class709f5c_vtable, 0x00709f5c, 0x28);
+GAME_DATA(void *[3], Facet709f8c_vtable, 0x00709f8c, 0xc);
+GAME_DATA(void *[3], Facet709f9c_vtable, 0x00709f9c, 0xc);
+GAME_DATA(void *[4], Facet709fac_vtable, 0x00709fac, 0x10);

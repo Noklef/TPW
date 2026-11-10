@@ -428,3 +428,6 @@ GAME_DATA(s32, CRT_setlc_active, 0x00fb3ca4, 0x4);
 GAME_DATA(u32, CRT_unguarded_readlc_active, 0x00fb3ca8, 0x4);
 GAME_DATA(u32, CRT_onexitend, 0x00fb3cb0, 0x4);
 GAME_DATA(u32, CRT_onexitbegin, 0x00fb3cb4, 0x4);
+
+// The vtables hold only ports: tpw.exe's loader points their slots at them (.docs/09-globals.md).
+GAME_DATA(void *[2], CRT_exception_vtable, 0x007089c4, 0x8);

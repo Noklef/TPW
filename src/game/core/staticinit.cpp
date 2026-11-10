@@ -8,6 +8,8 @@
 
 #include "addrcalls.h"
 #include "../math/x87.h"
+#include "iosbase.h"
+#include "nstream.h"
 
 namespace {
 
@@ -866,7 +868,7 @@ void __cdecl Exit_692000() {   // 0x692000
     u32 eax = 0, ecx = 0;
     eax = M<u32>(0xfb1a90u);
     ecx = M<u32>(eax + 0x4u);
-    M<u32>(ecx + 0xfb1a90u) = 0x70994cu;
+    M<u32>(ecx + 0xfb1a90u) = (u32)(uintptr_t)Class70994c_vtable;
     ecx = 0xfb1a98u;
     g_calls.Th(0x005cde40, ecx);   // NIos_Dtor (tail)
     return;
@@ -875,7 +877,7 @@ void __cdecl Exit_6920d0() {   // 0x6920d0
     u32 eax = 0, ecx = 0;
     eax = M<u32>(0xfb1a00u);
     ecx = M<u32>(eax + 0x4u);
-    M<u32>(ecx + 0xfb1a00u) = 0x70995cu;
+    M<u32>(ecx + 0xfb1a00u) = (u32)(uintptr_t)Class70995c_vtable;
     ecx = 0xfb1a04u;
     g_calls.Th(0x005cde40, ecx);   // NIos_Dtor (tail)
     return;
@@ -884,7 +886,7 @@ void __cdecl Exit_692160() {   // 0x692160
     u32 eax = 0, ecx = 0;
     eax = M<u32>(0xfb1b28u);
     ecx = M<u32>(eax + 0x4u);
-    M<u32>(ecx + 0xfb1b28u) = 0x70995cu;
+    M<u32>(ecx + 0xfb1b28u) = (u32)(uintptr_t)Class70995c_vtable;
     ecx = 0xfb1b2cu;
     g_calls.Th(0x005cde40, ecx);   // NIos_Dtor (tail)
     return;
@@ -893,7 +895,7 @@ void __cdecl Exit_6921b0() {   // 0x6921b0
     u32 eax = 0, ecx = 0;
     eax = M<u32>(0xfb1970u);
     ecx = M<u32>(eax + 0x4u);
-    M<u32>(ecx + 0xfb1970u) = 0x70995cu;
+    M<u32>(ecx + 0xfb1970u) = (u32)(uintptr_t)Class70995c_vtable;
     ecx = 0xfb1974u;
     g_calls.Th(0x005cde40, ecx);   // NIos_Dtor (tail)
     return;
@@ -902,7 +904,7 @@ void __cdecl Exit_692ad0() {   // 0x692ad0
     u32 eax = 0, ecx = 0;
     eax = M<u32>(0xfb1bd8u);
     ecx = M<u32>(eax + 0x4u);
-    M<u32>(ecx + 0xfb1bd8u) = 0x7099dcu;
+    M<u32>(ecx + 0xfb1bd8u) = (u32)(uintptr_t)Class7099dc_vtable;
     ecx = 0xfb1be0u;
     g_calls.Th(0x004f0100, ecx);   // BasicIosW_Dtor (tail)
     return;
@@ -911,7 +913,7 @@ void __cdecl Exit_692ba0() {   // 0x692ba0
     u32 eax = 0, ecx = 0;
     eax = M<u32>(0xfb1cc8u);
     ecx = M<u32>(eax + 0x4u);
-    M<u32>(ecx + 0xfb1cc8u) = 0x7099ecu;
+    M<u32>(ecx + 0xfb1cc8u) = (u32)(uintptr_t)Class7099ec_vtable;
     ecx = 0xfb1cccu;
     g_calls.Th(0x004f0100, ecx);   // BasicIosW_Dtor (tail)
     return;
@@ -920,7 +922,7 @@ void __cdecl Exit_692bf0() {   // 0x692bf0
     u32 eax = 0, ecx = 0;
     eax = M<u32>(0xfb1b60u);
     ecx = M<u32>(eax + 0x4u);
-    M<u32>(ecx + 0xfb1b60u) = 0x7099ecu;
+    M<u32>(ecx + 0xfb1b60u) = (u32)(uintptr_t)Class7099ec_vtable;
     ecx = 0xfb1b64u;
     g_calls.Th(0x004f0100, ecx);   // BasicIosW_Dtor (tail)
     return;
@@ -929,7 +931,7 @@ void __cdecl Exit_692c40() {   // 0x692c40
     u32 eax = 0, ecx = 0;
     eax = M<u32>(0xfb1ba0u);
     ecx = M<u32>(eax + 0x4u);
-    M<u32>(ecx + 0xfb1ba0u) = 0x7099ecu;
+    M<u32>(ecx + 0xfb1ba0u) = (u32)(uintptr_t)Class7099ec_vtable;
     ecx = 0xfb1ba4u;
     g_calls.Th(0x004f0100, ecx);   // BasicIosW_Dtor (tail)
     return;

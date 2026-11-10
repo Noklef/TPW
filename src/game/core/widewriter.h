@@ -35,3 +35,8 @@ void __fastcall WideWriter_Dtor(u8 *writer);
 u8 *__fastcall WideWriter_DeletingDtor(u8 *writer, void *, u32 flags);
 
 }
+
+#include "gamedata.h"
+
+// The vtables hold only ports: tpw.exe's loader points their slots at them (.docs/09-globals.md).
+GAME_DATA(void *[6], Class70a0c0_vtable, 0x0070a0c0, 0x18);

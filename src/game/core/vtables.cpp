@@ -4,6 +4,10 @@
 
 #include "addrcalls.h"
 #include "refcounted.h"
+#include "iosbase.h"
+#include "localefacet.h"
+#include "narrowwriter.h"
+#include "nstream.h"
 
 namespace {
 
@@ -23,19 +27,19 @@ void __fastcall Vtbl703770_Set(u8 *object) { at<u32>(object, 0) = 0x00703770; }
 
 u32 __fastcall VirtualBase_SetVtbl7099dc(u8 *object) {
     const u32 vtable = at<u32>(object, (u32)-8);
-    at<u32>(object, at<u32>(reinterpret_cast<const u8 *>(vtable), 4) - 8) = 0x007099dc;
+    at<u32>(object, at<u32>(reinterpret_cast<const u8 *>(vtable), 4) - 8) = (u32)(uintptr_t)Class7099dc_vtable;
     return vtable;
 }
 
 u32 __fastcall VirtualBase_SetVtbl70995c(u8 *object) {
     const u32 vtable = at<u32>(object, (u32)-4);
-    at<u32>(object, at<u32>(reinterpret_cast<const u8 *>(vtable), 4) - 4) = 0x0070995c;
+    at<u32>(object, at<u32>(reinterpret_cast<const u8 *>(vtable), 4) - 4) = (u32)(uintptr_t)Class70995c_vtable;
     return vtable;
 }
 
 u32 __fastcall Vtbl7099ec_SetVirtual(u8 *sub) {
     const u32 vtable = at<u32>(sub, (u32)-4);
-    at<u32>(sub, at<u32>(reinterpret_cast<const u8 *>(vtable), 4) - 4) = 0x007099ec;
+    at<u32>(sub, at<u32>(reinterpret_cast<const u8 *>(vtable), 4) - 4) = (u32)(uintptr_t)Class7099ec_vtable;
     return vtable;
 }
 
@@ -47,7 +51,7 @@ void __fastcall Vtbl6fdce8_At50_Set(u8 *object) { at<u32>(object, 0x50) = 0x006f
 
 u32 __fastcall VirtualBase_SetVtbl70994c(u8 *object) {
     const u32 vtable = at<u32>(object, (u32)-8);
-    at<u32>(object, at<u32>(reinterpret_cast<const u8 *>(vtable), 4) - 8) = 0x0070994c;
+    at<u32>(object, at<u32>(reinterpret_cast<const u8 *>(vtable), 4) - 8) = (u32)(uintptr_t)Class70994c_vtable;
     return vtable;
 }
 
@@ -166,11 +170,11 @@ void __fastcall Vtbl6fd828_Set_59b860(u8 *o) {
 }
 
 void __fastcall Vtbl709b44_Set_6a9180(u8 *o) {
-    at<u32>(o, 0) = 0x00709b44;
+    at<u32>(o, 0) = (u32)(uintptr_t)LocaleFacet_vtable;
 }
 
 void __fastcall Vtbl70a0a8_Set_6ad000(u8 *o) {
-    at<u32>(o, 0) = 0x0070a0a8;
+    at<u32>(o, 0) = (u32)(uintptr_t)Class70a0a8_vtable;
 }
 
 void __fastcall Vtbl70a078_Set_6add30(u8 *o) {
