@@ -28,9 +28,9 @@ const MovieStartEnv *g_env = &kGameEnv;
 u32 &allowed() { return gAccessors_802bc0; }
 u32 &on() { return gMoviestart_802bbc; }
 u8 *&player() { return gMoviestart_802bb4; }
-u8 *&front() { return global<u8 *>(0x00802404); }
-u8 *&back() { return global<u8 *>(0x00802408); }
-u32 &flags() { return global<u32>(0x008023f4); }
+u8 *&front() { return gMovieStart_Settings_8023f0.front; }
+u8 *&back() { return gMovieStart_Settings_8023f0.back; }
+u32 &flags() { return gMovieStart_Settings_8023f0.flags; }
 
 u32 query(u8 *object, u32 iid, void *out) { return comcall<u32>(object, 0, address(iid), out); }
 
@@ -64,47 +64,48 @@ u32 __cdecl Movie_Start(u32 file, u32 mode, s32 x, s32 y, u32 overlay) {
     const u32 sound = g_env->soundWord();
     if (!allowed() || !file || on()) return 0;
     gMovie_Start_802bb0 = 0;
-    memset(address(0x008023f0), 0, 0x1ee * 4);
-    global<u32>(0x008023e8) = 0;
+    MovieSettings &settings = gMovieStart_Settings_8023f0;
+    memset(&settings, 0, sizeof settings);
+    gMovieStart_8023e8 = 0;
     u8 *const renderer = global<u8 *>(0x00879a24);
-    global<u32>(0x008023fc) = at<u32>(renderer, 0);
+    settings.renderer = at<u32>(renderer, 0);
     u8 *back_surface, *front_surface;
     if (query(at<u8 *>(renderer, 0x14), 0x00707210, &back_surface)) return 0;
     if (query(at<u8 *>(global<u8 *>(0x00879a24), 0x10), 0x00707210, &front_surface)) return 0;
     if (query(front_surface, 0x00707220, &front())) return 0;
     if (query(back_surface, 0x00707220, &back())) return 0;
-    global<u32>(0x00802460) = global<u32>(0x007a1968);
-    global<u32>(0x00802498) = 2;
-    global<u32>(0x008023f8) = 1;
-    global<u32>(0x00802464) = global<u32>(0x007a1930) * 352 / 480;
+    settings.field70 = global<u32>(0x007a1968);
+    settings.fieldA8 = 2;
+    settings.kind = 1;
+    settings.field74 = global<u32>(0x007a1930) * 352 / 480;
     u32 f = global<u8>(0x007a1a8c) & 1 ? 0x0b030180 : 0x03030180;
     if (x == -1) {
         f |= 4;
     } else {
         f |= 1;
-        global<s32>(0x00802458) = x;
+        settings.x = x;
     }
     if (y == -1) {
         f |= 8;
     } else {
         f |= 2;
-        global<s32>(0x0080245c) = y;
+        settings.y = y;
     }
     if (overlay) {
         f |= 0x200;
-        global<u32>(0x008023f8) = 7;
+        settings.kind = 7;
     }
     if (sound) f |= 0x200000;
     flags() = f;
     if (g_env->soundOn()) flags() |= 0x800000;
-    global<u32>(0x00802444) = sound;
+    settings.sound = sound;
     u32 fx[0x19] = {0x64};
     if (back_surface) {
         clear_back(back_surface, fx);
         clear_back(back_surface, fx);
     }
     u32 result = 0;
-    player() = g_env->open(file, mode, address(0x008023f0));
+    player() = g_env->open(file, mode, reinterpret_cast<u8 *>(&settings));
     if (player()) {
         result = 1;
     } else {

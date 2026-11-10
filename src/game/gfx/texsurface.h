@@ -114,3 +114,8 @@ u32 __fastcall TexSurfaceA_BuildMips(u8 *sub);
 // (slot 0x64 (0, the description, 1, 0)); 1 when that gave 0.
 u32 __fastcall TexSurfaceA_LockNext(u8 *sub);
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(const float, gTexSurface_Zero_702248, 0x00702248, 0x4);

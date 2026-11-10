@@ -56,3 +56,8 @@ u32 __fastcall LoadScreen_Tick(u8 *screen);
 // at a row by the image's width (400, 512, 800, 1024, others 0xff, 0x145, 0x1fe, 0x28c, 0x198; later 0x8c, 0xb3, 0x118, 0x166, 0xe0). Both counts bumped, bit 0x40000000 of 0x8bcbc8, +4 = -1, +0xc = 0. When 0x8c4788 is now 1, timeGetTime is asked until 2500 ms past the time taken; when no splash loaded the "time" is ms (sic). Returns 1.
 u32 __fastcall LoadScreen_Show(u8 *self, void *, const char *name, const char *folder, s32 ms);
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(const float, gLoadScreen_Hundred_701fd4, 0x00701fd4, 0x4);
