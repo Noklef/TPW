@@ -54,4 +54,12 @@ void __cdecl RasterSpan_BilinearBlendLitZ(u32 row);
 // pixel's depth (sic); the shade is not prestepped (sic), and after a drawn pixel the next is tested against the drawn one's depth
 // (sic); the edges' u and v are not stepped.
 void __cdecl RasterSpan_ShadeZ(u32 row);
+
+// 0x6f49c0 (table 0x6f1a14; row loops 0x6f4a30, 0x6f4be0): RasterSpan_TexShadeZ's texel unshaded, with the next pixel's depth (sic);
+// the edges' shade is not stepped.
+void __cdecl RasterSpan_TexZ(u32 row);
+
+// 0x6f4d40 (table 0x6f1a18; row loops 0x6f4db0, 0x6f4f70): RasterSpan_TexShadeZ with one shade for the triangle, the four words at
+// 0xfbe000; the edges' shade is not stepped.
+void __cdecl RasterSpan_TexTintZ(u32 row);
 }

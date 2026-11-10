@@ -8207,6 +8207,8 @@ const Hook kHooks[] = {
     {"RasterSpan_BilinearBlend",  0x006f3be0, (void *)&RegThunk_RasterSpan_BilinearBlend, {0x8b, 0x3d, 0x34, 0xe0, 0xfb}},
     {"RasterSpan_BilinearBlendLitZ", 0x006f4140, (void *)&RegThunk_RasterSpan_BilinearBlendLitZ, {0x8b, 0x3d, 0x34, 0xe0, 0xfb}},
     {"RasterSpan_ShadeZ",         0x006f4690, (void *)&RegThunk_RasterSpan_ShadeZ, {0x8b, 0x3d, 0x34, 0xe0, 0xfb}},
+    {"RasterSpan_TexZ",           0x006f49c0, (void *)&RegThunk_RasterSpan_TexZ, {0x8b, 0x3d, 0x34, 0xe0, 0xfb}},
+    {"RasterSpan_TexTintZ",       0x006f4d40, (void *)&RegThunk_RasterSpan_TexTintZ, {0x8b, 0x3d, 0x34, 0xe0, 0xfb}},
     {"Model_MarkFacesByMask",     0x0044b140, (void *)&Model_MarkFacesByMask, {0x53, 0x8b, 0x5c, 0x24, 0x08}},
     {"Model_MarkFacesNotValue",    0x0044b1b0, (void *)&Model_MarkFacesNotValue, {0x53, 0x8b, 0x5c, 0x24, 0x08}},
     {"Model_FindPartByKey4",      0x0044b220, (void *)&Model_FindPartByKey4, {0x56, 0x57, 0x8b, 0x7c, 0x24}},

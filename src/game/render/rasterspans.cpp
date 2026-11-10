@@ -101,6 +101,12 @@ template <Source kSource, bool kSecond> u32 BlendLit(const u32 *uv, const u16 *s
     return out;
 }
 
+// The texel as it is.
+u32 Copy(const u32 *uv, const u16 *, const u32 *, u32 &texel) { return texel = Texel<true>(uv); }
+
+// The texel shaded as Shade's by the four words at 0xfbe000 (one shade for the triangle).
+u32 Tint(const u32 *uv, const u16 *, const u32 *dest, u32 &texel) { return Shade<Point<true>>(uv, at<const u16>(0x00fbe000), dest, texel); }
+
 // Shade's pixel added to the pixel under it, each byte saturated (PADDUSB).
 template <Source kSource> u32 Add(const u32 *uv, const u16 *shade, const u32 *dest, u32 &texel) {
     const u32 lit = Shade<kSource>(uv, shade, dest, texel), under = *dest;
@@ -113,8 +119,8 @@ template <Source kSource> u32 Add(const u32 *uv, const u16 *shade, const u32 *de
 }
 
 // A row's end: the edges [0xfbe208] (now left) and [0xfbe20c] (now right) step x (both read first), the row pointer -[0xfbe02c],
-// the left edge's u and v (kUv), shade and depth their steps, the depth row [0xfbe228] -[0xfbe030]; returns the row pointer.
-template <bool kUv> u32 NextRow(Edge *&left, const Edge *&right, u32 row) {
+// the left edge's u and v (kUv), shade (kShade) and depth their steps, the depth row [0xfbe228] -[0xfbe030]; returns the row pointer.
+template <bool kUv, bool kShade = true> u32 NextRow(Edge *&left, const Edge *&right, u32 row) {
     left = global<Edge *>(0x00fbe208);
     Edge *const next = global<Edge *>(0x00fbe20c);
     const u32 rightX = next->x + next->dx, leftX = left->x + left->dx;
@@ -123,7 +129,8 @@ template <bool kUv> u32 NextRow(Edge *&left, const Edge *&right, u32 row) {
     right = next;
     if (kUv)
         for (int k = 0; k < 2; ++k) left->uv[k] += left->duv[k];
-    for (int k = 0; k < 4; ++k) left->shade[k] = (u16)(left->shade[k] + left->dshade[k]);
+    if (kShade)
+        for (int k = 0; k < 4; ++k) left->shade[k] = (u16)(left->shade[k] + left->dshade[k]);
     left->z += left->dz;
     global<u32>(0x00fbe228) -= global<u32>(0x00fbe030);
     return row - global<u32>(0x00fbe02c);
@@ -136,8 +143,9 @@ enum Depth { kWriteNext, kWrite, kKeep, kAlphaTest };
 // One routine's row loop (two each, by the depth test: atLeast where the buffer's is at least the pixel's, else at most, or below
 // with kBelow): rows of the part from the edges left and right (later rows from [0xfbe208] and [0xfbe20c], which it steps); returns
 // the row pointer after them. kHalf: u and v less [0xfbe0e4] (two dwords) at each row's start too. kRunTexel: the texel of each run
-// of drawn pixels is its first pixel's (sic: the index is not reloaded in the loop).
-template <u32 (*Colour)(const u32 *, const u16 *, const u32 *, u32 &), Depth kDepth, bool kBelow, bool kHalf, bool kRunTexel = false>
+// of drawn pixels is its first pixel's (sic: the index is not reloaded in the loop). kShaded: the left edge's shade stepped per row.
+template <u32 (*Colour)(const u32 *, const u16 *, const u32 *, u32 &), Depth kDepth, bool kBelow, bool kHalf, bool kRunTexel = false,
+          bool kShaded = true>
 u32 TexRows(bool atLeast, Edge *left, const Edge *right, s32 rows, u32 row) {
     const u32 uvStep[2] = {global<u32>(0x00fbe138), global<u32>(0x00fbe13c)};
     const u16 *const shadeStep = at<const u16>(0x00fbe150);
@@ -182,7 +190,7 @@ u32 TexRows(bool atLeast, Edge *left, const Edge *right, s32 rows, u32 row) {
                 for (int k = 0; k < 4; ++k) shade[k] = (u16)(shade[k] + shadeStep[k]);
             }
         }
-        row = NextRow<true>(left, right, row);
+        row = NextRow<true, kShaded>(left, right, row);
     } while (--rows > 0);
     return row;
 }
@@ -259,4 +267,8 @@ void __cdecl RasterSpan_BilinearBlend(u32 row) { Parts<TexRows<Blend<Filter<true
 void __cdecl RasterSpan_BilinearBlendLitZ(u32 row) { Parts<TexRows<BlendLit<Filter<false>, false>, kWrite, false, true>>(row); }
 
 void __cdecl RasterSpan_ShadeZ(u32 row) { Parts<ShadeRows>(row); }
+
+void __cdecl RasterSpan_TexZ(u32 row) { Parts<TexRows<Copy, kWriteNext, false, false, false, false>>(row); }
+
+void __cdecl RasterSpan_TexTintZ(u32 row) { Parts<TexRows<Tint, kWriteNext, false, false, false, false>>(row); }
 }
