@@ -20,7 +20,7 @@ HOOKS[0x45a960] = _recorder(WINMAIN, 4, com=True)
 HOOKS[0x67eff0] = HOOKS[0x67f920] = _exit_case(EXIT)
 B = Bench([(0x67ee10, 0x67ef6d), (0x67ef82, 0x67efb8)], hooks=HOOKS)
 COMMAND, LEADS = RAM, RAM + 0x200
-PIECES = [b'a', b'tp.exe', b' ', b'  ', b'\t', b'"', b'\x81', b'\x81"', b'-w', b'\x01']
+PIECES = [b'a', b'tp.exe', b' ', b'  ', b'\t', b'"', b'\x81', b'\x81"', b'-w', b'\x01', b'!']
 
 
 def case(r):
