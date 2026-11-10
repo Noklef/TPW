@@ -5,6 +5,7 @@
 #include "engineerrors.h"
 #include "../core/crt.h"
 #include "../core/gameheap.h"
+#include "ddopen.h"
 
 namespace {
 
@@ -74,7 +75,7 @@ bool createParts(u32 a, u32 c) {
 void destroyParts() {
     if (logging()) {
         char line[0x64];
-        Crt().sprintf(line, " --- FAILED, exiting (error code %x)", global<u32>(0x00879cd4));
+        Crt().sprintf(line, " --- FAILED, exiting (error code %x)", gDdopen_879cd4);
         g_calls.Cd(0x005645e0, address(line));
     }
     g_calls.Cd(0x00564b60);

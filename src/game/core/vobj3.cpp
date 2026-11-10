@@ -6,6 +6,7 @@
 #include "../render/d3dresult.h"
 #include "gameheap.h"
 #include "vcall.h"
+#include "../render/ddopen.h"
 
 namespace {
 
@@ -26,7 +27,7 @@ void ReleaseCom(u8 *object, u32 field) {
 extern "C" {
 
 u32 __fastcall Obj_StoreComSlot80(u8 *object) {
-    global<u32>(0x00879cd4) = comcall<u32>(at<u8 *>(object, 0x14), 0x80, 0u);
+    gDdopen_879cd4 = comcall<u32>(at<u8 *>(object, 0x14), 0x80, 0u);
     return 1;
 }
 

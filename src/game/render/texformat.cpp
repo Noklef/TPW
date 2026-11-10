@@ -55,10 +55,10 @@ s32 __stdcall TexFormat_Classify(const u32 *pixels) {
         class1 = 0x8000;
         class2 = 0x80;
     } else {
-        mask = *reinterpret_cast<u32 *>(0x008bd4e0);
-        class0 = *reinterpret_cast<u32 *>(0x008bd4c8);
-        class1 = *reinterpret_cast<u32 *>(0x008bd4d0);
-        class2 = *reinterpret_cast<u32 *>(0x008bd4d8);
+        mask = gTexFormat_Classify_8bd4e0;
+        class0 = gTexFormat_Classify_8bd4c8;
+        class1 = gTexFormat_Classify_8bd4d0;
+        class2 = gTexFormat_Classify_8bd4d8;
     }
     u8 kind[60];
     for (u32 i = 0; i < 60; i++) {

@@ -6,6 +6,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <cstdio>
+#include "../render/enginedebug.h"
 
 // (jpeglib.h declares the two table allocators with its untagged JQUANT_TBL / JHUFF_TBL, which jpeg6b.h names by tags of its own:
 // jpeglib.h's declarations of them are renamed away here, where nothing calls them)
@@ -478,7 +479,7 @@ size_t __cdecl jpeg6b_exe_fwrite(const void *buffer, size_t size, size_t count, 
 int __cdecl jpeg6b_exe_fclose(void *file) { return g_crt->fclose(file); }
 void __cdecl jpeg6b_exe_exit(int status) { g_crt->exit(status); }
 // output_message's fprintf(stderr, "%s\n", buffer): the exe's stderr (0x77e840) and its "%s\n" (0x764ff0, in .data).
-int __cdecl jpeg6b_exe_print(const char *text) { return g_crt->fprintf((void *)0x0077e840, (const char *)0x00764ff0, text); }
+int __cdecl jpeg6b_exe_print(const char *text) { return g_crt->fprintf((void *)0x0077e840, gText_Enginedebug_764ff0, text); }
 // jmemansi.c's ERREXITS(cinfo, JERR_TFILE_CREATE, ""): the exe's "" is a byte of its .bss (0x786de4, the "" of much of its code),
 // writable, so the text is read there.
 const char *__cdecl jpeg6b_exe_empty() { return (const char *)0x00786de4; }

@@ -21,3 +21,9 @@ void __cdecl EngineDebug_Log(const char *text);
 // 0x5645e0 (name invented): the same, to the file named at 0x766334, its count 0x879a28.
 void __cdecl EngineDebug_LogFallback(const char *text);
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(char[4], gText_Enginedebug_764ff0, 0x00764ff0, 0x4);
+GAME_DATA(char[16], gText_EngineDebug_LogFallback_766334, 0x00766334, 0x10);

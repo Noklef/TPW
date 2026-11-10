@@ -121,3 +121,6 @@ void D3dProbe_SetEnv(const D3dProbeEnv *e);
 
 // Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
 GAME_DATA(u32, gD3dProbe_BeginScene_8bd4a8, 0x008bd4a8, 4);
+
+// Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(float, gD3dprobe_8bd498, 0x008bd498, 0x4);

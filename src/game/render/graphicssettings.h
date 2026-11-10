@@ -29,3 +29,9 @@ u32 __cdecl GraphicsSettings_Load(u32 flags);
 // bit 9 of the mode word and bits 13-15, 17 and 20 of 0x7a1a8c are cleared and 0x8bd524 = 4, else 0x8bd524 = 1. Returns 1.
 u32 __cdecl GraphicsSettings_LoadForOptions();
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(float, gGraphicssettings_8bd4c0, 0x008bd4c0, 0x4);
+GAME_DATA(u32, gGraphicssettings_8c162c, 0x008c162c, 0x4);

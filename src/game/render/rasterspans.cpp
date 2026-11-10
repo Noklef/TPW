@@ -1,6 +1,9 @@
 #include "rasterspans.h"
 
 #include <cstdint>
+#include "rasteriser.h"
+#include "rasterformat.h"
+#include "devicecreate.h"
 
 namespace {
 
@@ -30,7 +33,7 @@ u32 StepDepth(u32 z, u32 step) {
 // The texel at the top bytes of u and v, masked by [0xfbe008] (or not).
 template <bool kMasked> u32 Texel(const u32 *uv) {
     const u32 index = (uv[0] >> 24) | (uv[1] >> 24) << 8;
-    return global<const u32 *>(0x00fbe038)[kMasked ? index & global<u32>(0x00fbe008) : index];
+    return gRasteriser_fbe038[kMasked ? index & reinterpret_cast<u32 &>(gRasterformat_fbe008) : index];
 }
 
 // Each pixel's source: four words from u and v, and texel the texel read (its top 6 bits the alpha).
@@ -45,8 +48,8 @@ template <bool kMasked> void Point(const u32 *uv, u16 *source, u32 &texel) {
 // The four texels at (u, v), (u + 1, v), (u, v + 1), (u + 1, v + 1) weighted by u's and v's bits 10-25 masked by [0xfbe1b8] (its
 // two dwords); kWrapped: the index stepped by 1, 0x100, -1 and masked each time, else the index (masked, or not) plus 1, 0x100, 0x101.
 template <bool kWrapped, bool kMasked = true> void Filter(const u32 *uv, u16 *source, u32 &texel) {
-    const u32 mask = global<u32>(0x00fbe008);
-    const u32 *const texels = global<const u32 *>(0x00fbe038);
+    const u32 mask = reinterpret_cast<u32 &>(gRasterformat_fbe008);
+    const u32 *const texels = gRasteriser_fbe038;
     const u32 index = ((uv[0] >> 24) | (uv[1] >> 24) << 8) & (kMasked ? mask : ~0u);
     const u32 i10 = kWrapped ? (index + 1) & mask : index + 1;
     const u32 i11 = kWrapped ? (i10 + 0x100) & mask : index + 0x101;
@@ -108,7 +111,7 @@ template <Source kSource, Alpha kAlpha> u32 BlendLit(const u32 *uv, const u16 *s
 u32 Copy(const u32 *uv, const u16 *, const u32 *, u32 &texel) { return texel = Texel<true>(uv); }
 
 // The texel shaded as Shade's by the four words at 0xfbe000 (one shade for the triangle).
-u32 Tint(const u32 *uv, const u16 *, const u32 *dest, u32 &texel) { return Shade<Point<true>>(uv, at<const u16>(0x00fbe000), dest, texel); }
+u32 Tint(const u32 *uv, const u16 *, const u32 *dest, u32 &texel) { return Shade<Point<true>>(uv, gRasterspans_fbe000, dest, texel); }
 
 // The texel (unmasked) shaded as Shade's and blended as BlendLit's by its own top 6 bits: at 0 the pixel under it kept (not
 // written), at 63 the shaded texel unblended.
@@ -162,7 +165,7 @@ template <bool kUv, bool kShade = true, bool kZ = true> u32 NextRow(Edge *&left,
         for (int k = 0; k < 4; ++k) left->shade[k] = (u16)(left->shade[k] + left->dshade[k]);
     if (kZ) {
         left->z += left->dz;
-        global<u32>(0x00fbe228) -= global<u32>(0x00fbe030);
+        global<u32>(0x00fbe228) -= gDevicecreate_fbe030;
     }
     return row - global<u32>(0x00fbe02c);
 }
@@ -214,7 +217,7 @@ u32 TexRows(bool atLeast, Edge *left, const Edge *right, s32 rows, u32 row) {
                     const u32 colour = Colour(kRunTexel ? held : uv, shade, &out, texel);
                     if (kDepth == kKeep || kDepth == kNone) {
                         out = colour;
-                    } else if (kDepth != kAlphaTest || (s32)(texel >> 26) > global<s32>(0x00fbe010)) {
+                    } else if (kDepth != kAlphaTest || (s32)(texel >> 26) > reinterpret_cast<s32 &>(gRasteriser_fbe010)) {
                         depth = (u16)(kDepth == kWrite ? here : z);
                         out = colour;
                     }
@@ -271,7 +274,7 @@ template <bool kZ> u32 ShadeRows(bool atLeast, Edge *left, const Edge *right, s3
 // The routine: the triangle's two parts.
 template <u32 (*Rows)(bool, Edge *, const Edge *, s32, u32)>
 void Parts(u32 row) {
-    const bool atLeast = global<u32>(0x00fbe034) == 0;
+    const bool atLeast = gDevicecreate_fbe034 == 0;
     if (global<s32>(0x00fbe204) > 0)
         row = Rows(atLeast, global<Edge *>(0x00fbe208), global<Edge *>(0x00fbe20c), global<s32>(0x00fbe204), row);
     if (global<s32>(0x00fbe200) > 0) {

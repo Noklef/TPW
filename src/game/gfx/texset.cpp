@@ -9,6 +9,7 @@
 #include "../render/engineerrors.h"
 #include "texman.h"
 #include "texture.h"
+#include "../render/ddopen.h"
 
 namespace {
 
@@ -31,10 +32,10 @@ void TexSet_SetBltCalls(const AddrCall *table, u32 count) { g_bltCalls.Set(table
 extern "C" u32 __fastcall TexSet_BltToBack(u8 *self) {
     u8 *const target = at<u8 *>(global<u8 *>(0x00879a24), 0x14);
     u32 answer = comcall<u32>(target, 0x14, 0u, at<u32>(self, 0), 0u, 0x1000000u, 0u);
-    global<u32>(0x00879cd4) = answer;
+    gDdopen_879cd4 = answer;
     if ((s32)answer < 0) {
         g_bltCalls.Cd(0x00564650, g_bltCalls.Cd(0x0056a770, answer));
-        answer = global<u32>(0x00879cd4);
+        answer = gDdopen_879cd4;
     }
     if (answer) {
         g_bltCalls.Th(0x0056af20, 0x00879ad0u, 2u, answer);

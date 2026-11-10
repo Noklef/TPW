@@ -66,3 +66,11 @@ void __cdecl TexFormat_ConvertSquare(u16 *to, const u32 *from, u32 side);
 // stored at +0x900, +0x908 and +0x910, and their union at +0x918, which is returned.
 u32 __fastcall Masks_TopBits(u8 *object);
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(u32, gTexFormat_Classify_8bd4c8, 0x008bd4c8, 0x4);
+GAME_DATA(u32, gTexFormat_Classify_8bd4d0, 0x008bd4d0, 0x4);
+GAME_DATA(u32, gTexFormat_Classify_8bd4d8, 0x008bd4d8, 0x4);
+GAME_DATA(u32, gTexFormat_Classify_8bd4e0, 0x008bd4e0, 0x4);

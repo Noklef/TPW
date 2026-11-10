@@ -21,31 +21,31 @@ u32 spread(s32 red, s32 green, s32 blue, int n) { return static_cast<u32>(((blue
 
 void setFormat(u32 red, u32 green, u32 blue) {
     const u32 redBits = g_env->bitCount(red);
-    global<u32>(0x00fbe054) = redBits;
+    gRasterformat_fbe054 = redBits;
     const u32 greenBits = g_env->bitCount(green);
-    global<u32>(0x00fbe058) = greenBits;
+    gRasterformat_fbe058 = greenBits;
     const u32 blueBits = g_env->bitCount(blue);
-    global<u32>(0x00fbe05c) = blueBits;
+    gRasterformat_fbe05c = blueBits;
     const u32 redLow = g_env->lowBit(red);
-    global<u32>(0x00fbe048) = redLow;
+    gRasterformat_fbe048 = redLow;
     const u32 greenLow = g_env->lowBit(green);
-    global<u32>(0x00fbe04c) = greenLow;
+    gRasterformat_fbe04c = greenLow;
     const u32 blueLow = g_env->lowBit(blue);
-    global<u32>(0x00fbe050) = blueLow;
-    global<u32>(0x00fbe064) = red;
-    global<u32>(0x00fbe068) = ~red;
-    global<u32>(0x00fbe06c) = green;
-    global<u32>(0x00fbe070) = ~green;
-    global<u32>(0x00fbe074) = blue;
-    global<u32>(0x00fbe078) = ~blue;
-    global<u32>(0x00fbe060) = redBits + greenBits + blueBits;
+    gRasterformat_fbe050 = blueLow;
+    gRasterformat_fbe064 = red;
+    gRasterformat_fbe068 = ~red;
+    gRasterformat_fbe06c = green;
+    gRasterformat_fbe070 = ~green;
+    gRasterformat_fbe074 = blue;
+    gRasterformat_fbe078 = ~blue;
+    gRasterformat_fbe060 = redBits + greenBits + blueBits;
     const u32 both = green | blue;
     const u32 all = red | both;
     const u32 halves = (all << 16) | all;
-    global<u32>(0x00fbe094) = both;
-    global<u32>(0x00fbe098) = ~both;
-    global<u32>(0x00fbe07c) = halves;
-    global<u32>(0x00fbe090) = ~halves;
+    gRasterformat_fbe094 = both;
+    gRasterformat_fbe098 = ~both;
+    gRasterformat_fbe07c[0] = halves;
+    gRasterformat_fbe090 = ~halves;
     const OutputDebugStringFn print = *reinterpret_cast<const OutputDebugStringFn *>((uintptr_t)0x006fd1e0);
     char text[0x74];
     Crt().sprintf(text, reinterpret_cast<const char *>((uintptr_t)0x0077e5ec), redBits, greenBits, blueBits);
@@ -53,7 +53,7 @@ void setFormat(u32 red, u32 green, u32 blue) {
     Crt().sprintf(text, reinterpret_cast<const char *>((uintptr_t)0x0077e5cc), redLow, greenLow, blueLow);
     print(text);
     for (int n = 1; n <= 4; ++n)
-        global<u32>(0x00fbe07c + 4 * n) = spread(static_cast<s32>(red), static_cast<s32>(green), static_cast<s32>(blue), n);
+        gRasterformat_fbe07c[n] = spread(static_cast<s32>(red), static_cast<s32>(green), static_cast<s32>(blue), n);
     const bool fiveGreen = greenBits == 5;
     global<u32>(0x00fbe1a8) = fiveGreen ? 6 : 5;
     global<u32>(0x00fbe190) = global<u32>(0x00fbe194) = fiveGreen ? 0x20000008 : 0x40000008;
@@ -102,9 +102,9 @@ static u32 alloc_once(u32 *block, u32 size, u32 margin) {
     return aligned;
 }
 
-u32 __cdecl RasterFormat_FrameBuffer(u32 width, u32 height) { return alloc_once(reinterpret_cast<u32 *>((uintptr_t)0x00fac52c), width * height * 4 + 0x6423, 0x3220); }
+u32 __cdecl RasterFormat_FrameBuffer(u32 width, u32 height) { return alloc_once(&gRasterFormat_fac52c, width * height * 4 + 0x6423, 0x3220); }
 
-u32 __cdecl RasterFormat_ZBuffer(u32 width, u32 height) { return alloc_once(reinterpret_cast<u32 *>((uintptr_t)0x00fac534), width * height * 2 + 0x3223, 0x1920); }
+u32 __cdecl RasterFormat_ZBuffer(u32 width, u32 height) { return alloc_once(&gRasterFormat_fac534, width * height * 2 + 0x3223, 0x1920); }
 
 static void free_once(u32 *block) {
     if (!*block) return;
@@ -113,14 +113,14 @@ static void free_once(u32 *block) {
     block[1] = 0;
 }
 
-void __cdecl RasterFormat_FreeFrameBuffer() { free_once(reinterpret_cast<u32 *>((uintptr_t)0x00fac52c)); }
+void __cdecl RasterFormat_FreeFrameBuffer() { free_once(&gRasterFormat_fac52c); }
 
-void __cdecl RasterFormat_FreeZBuffer() { free_once(reinterpret_cast<u32 *>((uintptr_t)0x00fac534)); }
+void __cdecl RasterFormat_FreeZBuffer() { free_once(&gRasterFormat_fac534); }
 
 void __cdecl RasterFormat_FreeBuffers() {
     RasterFormat_FreeZBuffer();
     RasterFormat_FreeFrameBuffer();
-    --*reinterpret_cast<s32 *>((uintptr_t)0x00fac514);
+    --*reinterpret_cast<s32 *>(&gRasterFormat_fac514);
 }
 
 extern "C" u32 __cdecl RasterFormat_Init(u8 *surface, u32 *zBufferOut, u32 width, u32 height) {
@@ -130,9 +130,9 @@ extern "C" u32 __cdecl RasterFormat_Init(u8 *surface, u32 *zBufferOut, u32 width
         get(surface, format);
         if (format[3] != 8) setFormat(format[4], format[5], format[6]);
     }
-    global<u32>(0x00fbe008) = 0xffff;
+    reinterpret_cast<u32 &>(gRasterformat_fbe008) = 0xffff;
     g_env->blendTables();
-    ++global<u32>(0x00fac514);
+    ++gRasterFormat_fac514;
     if (zBufferOut) *zBufferOut = g_env->zBuffer(width, height);
     return g_env->frameBuffer(width, height);
 }

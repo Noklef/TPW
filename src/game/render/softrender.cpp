@@ -2,6 +2,7 @@
 
 #include <cstdint>
 #include <cstring>
+#include "state.h"
 
 namespace {
 
@@ -17,7 +18,7 @@ u32 __fastcall SoftRenderer_ClearBuffer(u8 *renderer) {
 }
 
 u32 __fastcall SoftRenderer_TextureMemory(u8 *) {
-    u32 option = *reinterpret_cast<u32 *>(0x008c1620);
+    u32 option = gState_8c1620;
     if (option) return option;
     s32 quarter = *reinterpret_cast<s32 *>(0x008bd520) / 4;
     if (quarter > 0x1800000) return 0x1800000;
