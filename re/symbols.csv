@@ -6700,6 +6700,9 @@ address,name,kind,confidence,notes
 0x00696ce0,NumGet_DoGetLong,function,low,reimplemented (src/game/core/numget); num_get::do_get (long)
 0x006970e0,NumGet_DoGetUlong,function,low,reimplemented (src/game/core/numget); num_get::do_get (unsigned long)
 0x006981f0,NumGet_DoGetPointer,function,low,reimplemented (src/game/core/numget); num_get::do_get (void *)
+0x006974e0,NumGet_DoGetFloat,function,low,"reimplemented (src/game/core/numget); num_get<char>::do_get of a float: the text scanned as below, _Stold, stored as a float"
+0x00697930,NumGet_DoGetDouble,function,low,"reimplemented (src/game/core/numget); num_get<char>::do_get of a double: the same scan, _Stod"
+0x00697d90,NumGet_DoGetLongDouble,function,low,"reimplemented (src/game/core/numget); num_get<char>::do_get of a long double (a double): the same scan, _Stold"
 0x00633900,OwnedSection_Ctor,function,low,reimplemented (src/game/core/sectionlock); thiscall: a block of 0x18 made a critical section at *self; name invented
 0x00633920,OwnedSection_Dtor,function,low,"reimplemented (src/game/core/sectionlock); thiscall: the section deleted, its block freed; name invented"
 0x00633940,SectionGuard_Dtor,function,low,"reimplemented (src/game/core/sectionlock); thiscall: the guard's destructor, Leave; name invented"
