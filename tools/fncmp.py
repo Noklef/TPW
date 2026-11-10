@@ -970,6 +970,21 @@ def _recorder(k, n, com=False, cdecl=False):
     return hook
 
 
+class CaseExit(Exception):
+    """A call that never comes back in the game (the C runtime's exit) ended the case: its memory is reported as it is then."""
+
+
+def _exit_case(k):
+    """The exe's exit (0x67f920): the cdecl recorder k of 1 argument, then the case ends there (driver.cpp's exit_case: jpeg_recorder(k, 1),
+    then kCaseExit, which the driver reports as a return). The bench's Call has ret 'v'."""
+    log = _recorder(k, 1, cdecl=True)
+
+    def hook(e):
+        log(e)
+        raise CaseExit()
+    return hook
+
+
 CDECL_LOG = STUBS + 0x50  # a callback of one cdecl argument that logs it (the entry k 0x13f, n 1, this 0)
 
 
@@ -1267,6 +1282,8 @@ class Bench:
                     pc = e.step(pc)
                 else:
                     return 'step limit'
+        except CaseExit:
+            pass
         except x87emu.MemFault as f:
             return '%s (emu: %s at %08x)' % (CRASH, f, at)
         except x87emu.DivFault as f:
