@@ -452,7 +452,12 @@ void __cdecl jpeg6a_jmemmgr_self_destruct(jpeg6a_common_struct *cinfo);
 // jerror.c's methods, through third_party/wrap/jpeg-6a/jerror.c: cinfo->err (jpeg_error_mgr, 0x84 bytes, 6b's layout: the five
 // methods +0, msg_code +0x14, msg_parm +0x18 (eight ints or an 80-character string), trace_level +0x68, num_warnings +0x6c,
 // jpeg_message_table +0x70, last_jpeg_message +0x74, addon_message_table +0x78, first_addon_message +0x7c, last_addon_message +0x80).
-// error_exit (0x64ddec), output_message (0x64de13) and jpeg_std_error (the hand port Fn_64dd60) stay the exe's.
+// jpeg_std_error (the hand port Fn_64dd60) stays the exe's.
+// 0x64ddec: output_message (+8), jpeg_destroy, then the exe's exit(1) (Jpeg6aCrtEnv), which does not come back.
+void __cdecl jpeg6a_jerror_error_exit(jpeg6a_common_struct *cinfo);
+// 0x64de13: format_message (+0xc) into a buffer of JMSG_LENGTH_MAX (200), then the exe's fprintf of it to its stderr with its 6a
+// "%s\n" (jpeg6a_exe_print).
+void __cdecl jpeg6a_jerror_output_message(jpeg6a_common_struct *cinfo);
 // 0x64de4f: a warning (msg_level < 0) is output when it is the first or trace_level >= 3, and counted; a trace when trace_level >=
 // msg_level.
 void __cdecl jpeg6a_jerror_emit_message(jpeg6a_common_struct *cinfo, int msg_level);

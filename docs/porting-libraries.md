@@ -221,9 +221,11 @@ Jpeg6a_ExeMethod's): jpeg6a_api.py sets it for jpeg_write_tables, which calls th
 for jinit_compress_master and jpeg_start_compress, which run every init and then the methods they stored (write_file_header,
 prepare_for_pass and the first pass's start_pass methods). Jpeg6aCrtEnv is 6b's Jpeg6bCrtEnv again (malloc / free in wrap/jpeg-6a/jmemansi.c, which now carries the
 DEFAULT_MAX_MEM define; getenv / sscanf / jpeg_open_backing_store in wrap/jpeg-6a/jmemmgr.c, the exe's 6a backing store 0x650265;
-sprintf in wrap/jpeg-6a/jerror.c), and the fncmp driver's kJpeg6aCrtEnv uses the same recorders 24-28. Replaced so far: jutils.c
+sprintf, exit and fprintf in wrap/jpeg-6a/jerror.c, the 6a "%s\n" 0x77c46c), and the fncmp driver's kJpeg6aCrtEnv uses the same
+recorders and exit_case. Replaced so far: jutils.c
 (all five), jpeg_fdct_islow and jpeg_fdct_ifast, jcomapi.c (all four), jcparam.c (all thirteen), jmemansi.c's allocation and
-jpeg_mem_available, jmemmgr.c (all fifteen), jerror.c's emit_message / format_message / reset_error_mgr, jcapimin.c, jcapistd.c,
+jpeg_mem_available, jmemmgr.c (all fifteen), jerror.c's error_exit / emit_message / output_message / format_message /
+reset_error_mgr, jcapimin.c, jcapistd.c,
 jcinit.c, jcmarker.c (all but emit_dac), jcmaster.c, jcmainct.c, jcprepct.c, jccoefct.c, jccolor.c (all but
 null_method), jcsample.c (all but start_pass_downsample), jcdctmgr.c (forward_DCT_float a hand port, below), jchuff.c and jcphuff.c (benches
 jpeg6a_utils.py, jpeg6a_fdct.py, jpeg6a_comapi.py, jpeg6a_param.py, jpeg6a_memansi.py, jpeg6a_memmgr.py, jpeg6a_error.py,
@@ -238,11 +240,11 @@ at the FPU's precision. jpeg_fdct_float (0x657110) and forward_DCT_float (0x653d
 Jpeg6a_ForwardDctFloat (src/game/lib/jpegfloatdct, X87Reg in the listings' order: x87 against the library's SSE rounding, as 6b's
 float IDCT; forward_DCT_float's (int) of an out-of-range product, a zero quantval, is the low half of _ftol's 64-bit FISTP in the exe,
 0x80000000 in the library's build; only JDCT_FLOAT stores them, and the game's writer 0x64c258 never sets dct_method, so JDCT_ISLOW).
-Stay the exe's: jpeg_open_backing_store and its read / write / close methods (a FILE of the exe's C runtime), error_exit and output_message (the exe's
-exit and fprintf(stderr)), and the hand ports jpeg_std_error (0x64dd60, which stores those and the exe's 6a table 0x7054b8), emit_dac,
+Stay the exe's: jpeg_open_backing_store and its read / write / close methods (a FILE of the exe's C runtime), and the hand ports
+jpeg_std_error (0x64dd60, which stores the exe's methods and its 6a table 0x7054b8), emit_dac,
 jpeg_mem_init / term, start_pass_downsample, null_method (src/game/core/framestubs; the library's copies are mapped to them in
 kExeMethods). That finishes 6a: everything else in 0x64c5f0..0x657cb4 is the library's, and what stays the exe's is the list above,
-for its reasons: the backing store and error_exit / output_message (the exe's C runtime), and the
+for its reasons: the backing store (the exe's C runtime), and the
 hand ports (the exe's tables and stubs the library's copies are mapped to). The two jerror.h lists differ: 6b added JERR_BAD_DCT_COEF (code 8) and
 JERR_BAD_HUFF_TABLE (10), dropped 6a's JERR_DHT_COUNTS (6a's 30) and added three JTRC_THUMB_* traces at the end, so most codes are
 one apart (two between 10 and 30) and a 6a bench takes its numbers from jpeg-6a's.
