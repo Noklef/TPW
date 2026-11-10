@@ -16,8 +16,8 @@ address,name,kind,confidence,notes
 0x005da3c0,Debug_Printf,function,high,"EMPTY in retail build: all debug/assert output compiled out. arg0 = condition or channel (0, 2, 0x499602d2)"
 0x0067a7d0,CRT_atexit,function,high,reimplemented (src/game/core/crt); MSVC CRT atexit
 0x0067a830,CRT_ftol,function,high,"MSVC CRT __ftol: st0 truncated to a 64-bit integer in EDX:EAX, popped"
-0x0067acc0,Mem_Alloc,function,medium,malloc/operator new wrapper
-0x0067acb0,Mem_Free,function,medium,free/operator delete wrapper
+0x0067acc0,CRT_new,function,low,"reimplemented (src/game/core/crt); operator new: _nh_malloc(size, 1)"
+0x0067acb0,CRT_delete,function,low,reimplemented (src/game/core/crt); operator delete: free
 0x005f5ad0,FileStream_Open,function,high,"reimplemented (src/game/files/file); (&result, &stream, path, mode): new 8-byte FileStream (vtable FileStream_vtable), opened with vtbl+0x24; leaked when that fails"
 0x005f5e20,Stream_Read,function,high,"reimplemented (src/game/files/file); (&result, stream, buf, len, &done) via vtbl+0x08; result = (done == len)"
 0x005f5e50,Stream_Write,function,high,"reimplemented (src/game/files/file); (&result, stream, buf, len, &done) via vtbl+0x0c; result = (done == len)"
@@ -1304,7 +1304,7 @@ address,name,kind,confidence,notes
 0x007030c8,WString_vtable,data,high,"WString: same slots as String_vtable, the wide functions"
 0x007030c0,StringView_vtable,data,high,"char view (Left/Right/Mid, AssignWide): two empty slots"
 0x007030f8,WStringView_vtable,data,high,"wide view (AssignNarrow): two empty slots"
-0x0067ae00,CRT_strncpy,function,high,"MSVC6 strncpy: a byte at a time to align the source, then a dword at a time (read before written)"
+0x0067ae00,CRT_strncpy,function,high,reimplemented (src/game/core/crt); strncpy
 0x0067b8c0,CRT_strncat,function,high,reimplemented (src/game/core/crt); strncat
 0x0067c250,CRT_strncmp,function,high,reimplemented (src/game/core/crtlocale); MSVC6 strncmp
 0x0068db70,CRT_strcspn,function,low,reimplemented (src/game/core/crtlocale); MSVC6 strcspn
@@ -1330,9 +1330,12 @@ address,name,kind,confidence,notes
 0x0068e450,CRT_TestDefaultCountry,function,low,reimplemented (src/game/core/crtlocale); TestDefaultCountry
 0x0068e480,CRT_TestDefaultLanguage,function,low,reimplemented (src/game/core/crtlocale); TestDefaultLanguage
 0x0068e2a0,CRT_CountryEnumProc,function,low,reimplemented (src/game/core/crtlocale); CountryEnumProc
+0x0068de40,CRT_LangCountryEnumProc,function,low,reimplemented (src/game/core/crtlocale); LangCountryEnumProc: the search's language and country against an enumerated locale
+0x0068e180,CRT_LanguageEnumProc,function,low,reimplemented (src/game/core/crtlocale); LanguageEnumProc: the search's language against an enumerated locale
+0x0068e550,CRT_crtGetLocaleInfoA,function,low,"reimplemented (src/game/core/crtlocale); crtGetLocaleInfoA: the C library's own table of 27 locales, else GetLocaleInfoA"
 0x0067c080,CRT_strstr,function,high,reimplemented (src/game/core/crt); strstr
 0x0067bfc0,CRT_strchr,function,high,reimplemented (src/game/core/crt); strchr
-0x0067a520,CRT_atoi,function,high,MSVC6 atoi
+0x0067a520,CRT_atoi,function,high,reimplemented (src/game/core/crt); atoi: atol
 0x0067f330,CRT_iswctype,function,high,reimplemented (src/game/core/crt); iswctype: a wide character's class
 0x0067c1e0,CRT_vsprintf,function,high,reimplemented (src/game/core/crt); vsprintf
 0x0067acd0,CRT_wcslen,function,high,reimplemented (src/game/online/chatlists); wcslen
@@ -2059,6 +2062,12 @@ address,name,kind,confidence,notes
 0x0068cbf0,CRT_ValidateWrite,function,high,reimplemented (src/game/core/crt); _ValidateWrite: !IsBadWritePtr
 0x0068cc10,CRT_ValidateExecute,function,high,reimplemented (src/game/core/crt); _ValidateExecute: !IsBadCodePtr
 0x00687bc0,CRT_CxxUnhandledExceptionFilter,function,high,"reimplemented (src/game/core/crt); __CxxUnhandledExceptionFilter: terminate for a C++ exception, else the filter before it"
+0x0067a530,CRT_isalpha,function,low,"reimplemented (src/game/core/crt); isalpha: _isctype past MB_CUR_MAX 1, else _pctype's word & 0x103"
+0x0067a560,CRT_isdigit,function,low,"reimplemented (src/game/core/crt); isdigit: the same, & 4"
+0x0067a590,CRT_isspace,function,low,"reimplemented (src/game/core/crt); isspace: the same, & 8"
+0x0067a5c0,CRT_isalnum,function,low,"reimplemented (src/game/core/crt); isalnum: the same, & 0x107"
+0x0067a6c0,CRT_atof,function,low,"reimplemented (src/game/core/crt); atof: past white space, _fltin2's double"
+0x0067a730,CRT_iswspace,function,low,"reimplemented (src/game/core/crt); iswspace: iswctype(c, 8)"
 0x00f7a7d0,gCdVolumeLabel,data,medium,"const char *: the CD's volume label, looked for on the CD-ROM drives by the CD check (0x5aa585)"
 0x005f8ae0,RegKey_Open,function,high,"reimplemented (src/game/core/regkey); thiscall (&out, subkey or null, nonzero: HKCU else HKLM); the company key (0x775748) made, then the subkey in it; a held key closed first"
 0x005f8b70,RegKey_Dtor,function,high,reimplemented (src/game/core/regkey); thiscall; RegKey_Close
@@ -6369,6 +6378,8 @@ address,name,kind,confidence,notes
 0x00689490,CRT_fullpath,function,high,reimplemented (src/game/core/crtopen); _fullpath: GetFullPathNameA into the buffer or a block of its own
 0x00689560,CRT_getdrive,function,high,"reimplemented (src/game/core/crtopen); _getdrive: the current directory's drive, 1 for A"
 0x0067e900,CRT_stat,function,low,"reimplemented (src/game/core/crtopen); _stat: a path's drive, mode, size and times by FindFirstFileA, a root by its checks"
+0x0067fe80,CRT_init_namebuf,function,low,"reimplemented (src/game/core/crtopen); init_namebuf: tmpfile's and tmpnam's name: ""\"" s or t, the process id in base 32, ""."""
+0x0067fd60,CRT_tmpfile,function,low,"reimplemented (src/game/core/crtopen); tmpfile: a new temporary file, opened ""w+bD"" under the next free name"
 0x0067efc0,CRT_amsg_exit,function,low,"reimplemented (src/game/core/crtmessage); MSVC6 _amsg_exit: the banner when [0xfb135c] is 1, the message, exit(0xff) by [0x77ea80]"
 0x0067eff0,CRT_fast_error_exit,function,low,"reimplemented (src/game/core/crtmessage); MSVC6 fast_error_exit: as _amsg_exit, ExitProcess(0xff)"
 0x0068a170,CRT_FF_MSGBANNER,function,low,reimplemented (src/game/core/crtmessage); MSVC6 _FF_MSGBANNER
@@ -6423,6 +6434,7 @@ address,name,kind,confidence,notes
 0x00680c00,CRT_output,function,low,reimplemented (src/game/core/crtoutput); MSVC6 _output
 0x0068c350,CRT_aulldiv,function,low,reimplemented (src/game/core/crtoutput); MSVC6 _aulldiv
 0x0068c3c0,CRT_aullrem,function,low,reimplemented (src/game/core/crtoutput); MSVC6 _aullrem
+0x00683090,CRT_woutput,function,low,reimplemented (src/game/core/crtoutput); _woutput: _output for a wide format
 0x006a6650,BadAlloc_Ctor,function,low,reimplemented (src/game/core/locimp); bad_alloc's constructor (MSVC6)
 0x006a66c0,BadAlloc_Copy,function,low,reimplemented (src/game/core/locimp); bad_alloc's copy
 0x006a6670,BadAlloc_Dtor,function,low,reimplemented (src/game/core/locimp); bad_alloc's destructor
@@ -6436,6 +6448,7 @@ address,name,kind,confidence,notes
 0x006a66a0,BadAlloc_DeletingDtor,function,low,reimplemented (src/game/core/locimp); bad_alloc's deleting destructor
 0x006a6680,BadAlloc_Doraise,function,low,reimplemented (src/game/core/locimp); bad_alloc's _Doraise
 0x00698e80,Locimp_DeletingDtor,function,low,reimplemented (src/game/core/locimp); deleting dtor
+0x006a66e0,Nomemory_DestroyBadAlloc,function,low,reimplemented (src/game/core/locimp); the atexit thunk of _Nomemory: its static bad_alloc 0xfb1e70 destroyed
 0x00694710,CtypeChar_Init,function,low,reimplemented (src/game/core/localefacet); ctype<char>::_Init (MSVC6)
 0x00694780,NumPut_Ctor,function,low,reimplemented (src/game/core/localefacet); num_put<char>'s constructor
 0x00695c40,NumGet_Ctor,function,low,reimplemented (src/game/core/localefacet); num_get<char>'s constructor
@@ -10044,6 +10057,23 @@ address,name,kind,confidence,notes
 0x00802bc8,gSoundset_802bc8,data,low,"GAME_DATA (src/game/core/soundset): u32, named for its use in soundset.cpp (tools/gamedata_codemod.py)"
 0x00802bd4,gSoundset_802bd4,data,low,"GAME_DATA (src/game/core/soundset): u32, named for its use in soundset.cpp (tools/gamedata_codemod.py)"
 0x0080cee4,gEmitters_Reset_80cee4,data,low,"GAME_DATA (src/game/core/voices): u32, named for its use in Emitters_Reset (tools/gamedata_codemod.py)"
+0x006855b0,CRT_frnd,function,low,"reimplemented (src/game/core/crtpow); _frnd: x rounded to an integer by FRNDINT, through a double"
+0x00686f60,CRT_d_inttype,function,low,"reimplemented (src/game/core/crtpow); _d_inttype: 0 not an integer (or a denormal), 1 odd, 2 even; the half at the caller's precision"
+0x00686d30,CRT_powhlp,function,low,reimplemented (src/game/core/crtpow); _powhlp: pow's infinite x or y; 1 for |x| 1 to an infinite power
+0x0067c5d0,CRT_CIpow,function,low,reimplemented (src/game/core/crtpow); _CIpow: x (ST1) to the power y (ST0) by FYL2X and F2XM1 at the caller's precision; its special cases and errors
+0x00686050,CRT_statfp,function,low,"reimplemented (src/game/core/crtfpexcept); _statfp: the x87 status word, sign extended"
+0x00686060,CRT_clrfp,function,low,"reimplemented (src/game/core/crtfpexcept); _clrfp: the x87 status word, then the exception flags cleared"
+0x006860b0,CRT_set_statfp,function,low,reimplemented (src/game/core/crtfpexcept); _set_statfp: raises the x87 exception flags by operations that flag them
+0x00685a20,CRT_handle_exc,function,low,"reimplemented (src/game/core/crtfpexcept); _handle_exc: the masked exceptions flagged, an overflow's or underflow's masked result"
+0x006856e0,CRT_raise_exc,function,low,"reimplemented (src/game/core/crtfpexcept); _raise_exc: the _FPIEEE_RECORD filled, RaiseException, the record's control word back"
+0x0068e6f0,CRT_87except,function,low,"reimplemented (src/game/core/crtfpexcept); _87except: a math function's error record through the control word, then _matherr and errno"
+0x0068d6b0,CRT_get_lc_lconv,function,low,reimplemented (src/game/core/crtlocaleinit); _get_lc_lconv: the LC_MONETARY locale's texts and digits into an lconv
+0x0068d5c0,CRT_init_monetary,function,low,"reimplemented (src/game/core/crtlocaleinit); __init_monetary: LC_MONETARY's lconv, the ""C"" locale's static one or a new one"
+0x0068d8b0,CRT_init_ctype,function,low,"reimplemented (src/game/core/crtlocaleinit); __init_ctype: LC_CTYPE's character type tables, the ""C"" locale's static one or new ones"
+0x0068f780,CRT_raise,function,low,"reimplemented (src/game/core/crtsignal); raise: a signal's handler, reset to SIG_DFL, called (SIG_IGN nothing, SIG_DFL _exit(3))"
+0x0068cc30,CRT_abort,function,low,"reimplemented (src/game/core/crtsignal); abort: message 10, raise(SIGABRT), _exit(3)"
+0x0068a710,CRT_input,function,low,"reimplemented (src/game/core/crtinput); _input: the format's directives against a file's characters; fields assigned, -1 at the end before any match"
+0x0067f620,CRT_sscanf,function,low,reimplemented (src/game/core/crtinput); sscanf: _input over a string file on the text
 0x00faac68,gDctVlc_faac68,data,low,"GAME_DATA (src/game/gfx/dctvlc): u32, named for its use in DctVlc_BeginFrame, DctVlc_BuildTables (tools/gamedata_codemod.py)"
 0x00faac64,gMadVideo_DecodeFrame_faac64,data,low,"GAME_DATA (src/game/gfx/madvideo): u32, named for its use in MadVideo_DecodeFrame (tools/gamedata_codemod.py)"
 0x00fab484,gMmxBlit_Copy32_fab484,data,low,"GAME_DATA (src/game/gfx/mmxblit): u32, named for its use in MmxBlit_Copy32 (tools/gamedata_codemod.py)"

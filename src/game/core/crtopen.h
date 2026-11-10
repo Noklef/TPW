@@ -93,6 +93,14 @@ void __cdecl CRT_initstdio();
 // 0x67e810: _endstdio: _flushall, then with [0xfb1398] set _fcloseall.
 void __cdecl CRT_endstdio();
 
+// 0x67fe80: _init_namebuf: flag 0 the name at 0xfb13a8, else 0xfb13b8: the two bytes [0x7477fc], a '\' after the first unless it is a slash, 's' or 't', the process id in
+// base 32 (_ultoa), then the text [0x747800].
+void __cdecl CRT_init_namebuf(s32 flag);
+
+// 0x67fd60: tmpfile: under lock 3 the name 0xfb13b8 (made by _init_namebuf(1) when empty, else the next by genfname; none: 0), a stream of _getstream (none: 0), _sopen(0x8542,
+// 0x40, 0x180) again with the next name while it fails with EEXIST. Its name copied (_strdup) to +0x1c; that failed: the file closed, 0. The stream's flags [0xfb1894] | 0x80, unlocked.
+CrtFile *__cdecl CRT_tmpfile();
+
 // 0x68b9f0: _rmtmp: under lock 2 each stream, locked, in use with a temporary file (+0x1c) by _fclose_lk; the count of them.
 s32 __cdecl CRT_rmtmp();
 

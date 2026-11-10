@@ -10,17 +10,19 @@ from fncmp import HEAP, IMPORT_TABLE, LOG, RAM, Bench, Call, _free, _recorder, a
 
 GETPTD, LOCK, UNLOCK, LOCKFILE, UNLOCKFILE, NHMALLOC, LOCKFILE2, UNLOCKFILE2 = 2, 7, 8, 11, 12, 28, 30, 31
 CSINIT, CSENTER, CSLEAVE, WRITE, SEEK, ERROR, READ, CREATE, TYPE, CLOSE, SETSTD, SEOF, FLUSHFB = 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26
-DELETE, MOVE = 32, 33   # (DeleteFileA, MoveFileA)
+DELETE, MOVE, PID = 32, 33, 34   # (DeleteFileA, MoveFileA, GetCurrentProcessId)
 B = Bench([(0x67b660, 0x67b6c5), (0x4f1070, 0x4f10a2), (0x4f10b0, 0x4f10cb), (0x686a00, 0x686a19), (0x686980, 0x6869f3), (0x68ead0, 0x68eb19), (0x68eb20, 0x68eb85), (0x68eb90, 0x68ebb2), (0x686440, 0x6864b2), (0x6864c0, 0x6866ca), (0x686aa0, 0x686b20), (0x67d0f0, 0x67d15e), (0x67dcd0, 0x67dcf0),
            (0x688ad0, 0x688cf5), (0x67b110, 0x67b13f), (0x67b860, 0x67b897), (0x67b8a0, 0x67b8b5), (0x6868a0, 0x686979), (0x6866d0, 0x68682b), (0x68b640, 0x68b991), (0x68e810, 0x68e978), (0x68e980, 0x68ea21), (0x68ea30, 0x68eac3),
            (0x686300, 0x686368), (0x686370, 0x686400), (0x686400, 0x686433), (0x68f630, 0x68f77e), (0x691610, 0x691674), (0x67cf90, 0x67d067), (0x67d070, 0x67d0a7), (0x67d0b0, 0x67d0e5), (0x67d160, 0x67d16b), (0x67d170, 0x67d22b),
-           (0x687b20, 0x687bbe), (0x67e530, 0x67e55d), (0x67e560, 0x67e56e), (0x67ecc0, 0x67ecf2)],
+           (0x687b20, 0x687bbe), (0x67e530, 0x67e55d), (0x67e560, 0x67e56e), (0x67ecc0, 0x67ecf2),
+           (0x67fd60, 0x67fe78), (0x67fe80, 0x67fefd), (0x67ff00, 0x67ff62), (0x689400, 0x689490), (0x67b5f0, 0x67b617), (0x67f1a0, 0x67f1bb), (0x67f221, 0x67f222),(0x6887e0, 0x6887fe), (0x688770, 0x6887d1), (0x67d7d0, 0x67d7ea), (0x67d540, 0x67d7c1),
+           (0x680430, 0x6804c5), (0x68b5f0, 0x68b640), (0x68b9e0, 0x68b9e6)],
           hooks={0x682720: _recorder(LOCK, 1, cdecl=True), 0x6827a0: _recorder(UNLOCK, 1, cdecl=True), 0x682460: _recorder(GETPTD, 0, cdecl=True), 0x6827c0: _recorder(LOCKFILE, 1, cdecl=True), 0x682830: _recorder(UNLOCKFILE, 1, cdecl=True),
                  0x67dcf0: _recorder(NHMALLOC, 2, cdecl=True), 0x682800: _recorder(LOCKFILE2, 2, cdecl=True), 0x682870: _recorder(UNLOCKFILE2, 2, cdecl=True), 0x67ad90: _free})
 PTD, ANSWERS, SEEKS, READS = (RAM + 0x100 * i for i in range(4))
 INFO0, INFO1, TEXT, STREAMS, FILES, GIVEN, BLOCK = RAM + 0x1000, RAM + 0x1800, RAM + 0x2000, RAM + 0x2100, RAM + 0x2200, RAM + 0x2800, RAM + 0x3000
-BUFFER, MODE, WBUF = HEAP + 0x100, RAM + 0x2f00, RAM + 0x2e00
-OPS = [n for n in ('fopen', 'fsopen', 'getstream', 'openfile', 'sopen', 'sopen', 'alloc', 'set', 'free', 'close', 'close_lk', 'chsize', 'setmode', 'freebuf', 'fclose_lk', 'setvbuf', 'fflush', 'fflush_lk', 'flsall', 'flushall', 'commit', 'wsetbuf', 'wsync', 'remove', 'unlink', 'rename')
+BUFFER, MODE, WBUF, CREATES = HEAP + 0x100, RAM + 0x2f00, RAM + 0x2e00, RAM + 0x3800
+OPS = [n for n in ('fopen', 'fsopen', 'getstream', 'openfile', 'sopen', 'sopen', 'alloc', 'set', 'free', 'close', 'close_lk', 'chsize', 'setmode', 'freebuf', 'fclose_lk', 'setvbuf', 'fflush', 'fflush_lk', 'flsall', 'flushall', 'commit', 'wsetbuf', 'wsync', 'remove', 'unlink', 'rename', 'tmpfile', 'tmpfile', 'namebuf')
        if not os.environ.get('OPS') or n in os.environ['OPS'].split(',')]
 FDS = [0, 1, 2, 5, 0x1f, 0x20, 0x21, 0x3f, 0x40, 0x50]
 MODES = ['r', 'w', 'a', 'x', '', 'r+', 'w+', 'a+', 'rb', 'rt', 'wb', 'r+b', 'rb+', 'rbt', 'rtb', 'rc', 'rn', 'rcn', 'wc', 'rbc', 'rS', 'rR', 'rSR', 'rT', 'rTT', 'rD', 'rDD', 'r++', 'rz', 'rzb', 'r+D', 'r bS', 'wcbSTD', 'a+tnRTD', 'r\xff', 'rb\x2a', 'r,', 'ru']
@@ -47,7 +49,7 @@ def case(r):
                IMPORT_TABLE: import_table(log, {'init': (CSINIT, 0x6fd144, 1, 0, 0), 'enter': (CSENTER, 0x6fd140, 1, 0, 0), 'leave': (CSLEAVE, 0x6fd130, 1, 0, 0), 'write': (WRITE, 0x6fd0e0, 5, 0, 0b1000),
                                                 'seek': (SEEK, 0x6fd0e4, 4, 0, 0), 'error': (ERROR, 0x6fd138, 0, 0, 0), 'read': (READ, 0x6fd0dc, 5, 0, 0b1010), 'create': (CREATE, 0x6fd0d8, 7, 1, 0),
                                                 'type': (TYPE, 0x6fd1a8, 1, 0, 0), 'close': (CLOSE, 0x6fd13c, 1, 0, 0), 'setstd': (SETSTD, 0x6fd268, 2, 0, 0), 'seof': (SEOF, 0x6fd27c, 1, 0, 0), 'flush': (FLUSHFB, 0x6fd0fc, 1, 0, 0),
-                                                'delete': (DELETE, 0x6fd0c4, 1, 1, 0), 'move': (MOVE, 0x6fd11c, 2, 0b11, 0)})}
+                                                'delete': (DELETE, 0x6fd0c4, 1, 1, 0), 'move': (MOVE, 0x6fd11c, 2, 0b11, 0), 'pid': (PID, 0x6fd1e8, 0, 0, 0)})}
     set_return(log, GETPTD, PTD)
     regions[0xfb3ba0] = struct.pack('<64I', *[INFO1 if i == 1 else INFO0 for i in range(64)])
     regions[0xfb3ca0] = struct.pack('<I', 0x40)
@@ -113,6 +115,19 @@ def case(r):
         blocks = r.choice([1, 2, 2, 0x40])
         regions[0xfb3ba0] = struct.pack('<64I', *[(INFO1 if i == 1 else INFO0) if i < blocks else 0 for i in range(64)])
         regions[0xfb3ca0] = struct.pack('<I', 0x20 * blocks)
+    if name in ('tmpfile', 'namebuf'):   # (the names 0xfb13a8 and 0xfb13b8, their prefix 0x7477fc and the process id; CreateFileA failing with errno 0x11 now and then)
+        set_return(log, PID, r.choice([0, 1, 0x1f, 0x20, 0x4d2, 0xffffffff, r.getrandbits(32)]))
+        regions[0x7477fc] = r.choice([b'\\\0', b'\\\0', b'/\0', b'C:', b'x\0'])
+        regions[0xfb13a8] = r.bytes(0x10)
+        regions[0xfb13b8] = (r.choice([b'\0', b'\0', b'\\t1.0', b'\\t2a.1', b'\\tz.vvv', b'\\t9.vv']) + bytes(0x10))[:0x10]
+        if name == 'namebuf':
+            return Call(0x67fe80, [r.choice([0, 1, 2])], regions, conv='c')
+        # (answers move only while the log has room, about 5 tries here: an open by the third, or the loop runs on to the name 0x7fff)
+        regions[CREATES] = struct.pack('<40I', *[r.choice([0xffffffff, 0xffffffff, 0x2222]) if i < 2 else 0x2222 for i in range(40)])
+        answers(log, CREATE, CREATES)
+        set_return(log, ERROR, r.choice([0x50, 0x50, 0x50, 5]))
+        set_return(log, TYPE, r.choice([1, 2, 3]))   # (not 0: a file type always failing with errno 0x11 loops for each name to 0x7fff)
+        return Call(0x67fd60, [], regions, conv='c', ret='a')
     if name == 'fopen':
         return Call(0x67b8a0, [TEXT, MODE], regions, conv='c', ret='a')
     if name == 'fsopen':

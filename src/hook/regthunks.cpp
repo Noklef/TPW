@@ -1,5 +1,6 @@
 #include "regthunks.h"
 
+#include "../game/core/crtpow.h"
 #include "../game/gfx/movieidct.h"
 #include "../game/gfx/tgqvideo.h"
 #include "../game/gfx/tqivideo.h"
@@ -216,4 +217,27 @@ SPAN_THUNK(RasterSpan_BilinearShadeNoZ)
 SPAN_THUNK(RasterSpan_BilinearBlendLitNoZ)
 SPAN_THUNK(RasterSpan_ShadeNoZ)
 #undef SPAN_THUNK
+
+// x in ST1, y in ST0, the result in ST0 (80 bits). x and y stored as the original stores them; the caller's other x87 registers
+// saved round the C++ (as the original saves them round _powhlp), its control word kept for the port and the port's left after.
+__declspec(naked) void RegThunk_CRT_CIpow() {
+    __asm {
+        sub esp, 0x94
+        fxch st(1)
+        fstp qword ptr [esp]
+        fst qword ptr [esp + 8]
+        fstp tbyte ptr [esp + 0x18]
+        fsave [esp + 0x28]
+        fldcw word ptr [esp + 0x28]
+        lea eax, [esp + 0x18]
+        mov [esp + 0x10], eax
+        call CRT_CIpow
+        fnstcw word ptr [esp + 0x10]
+        frstor [esp + 0x28]
+        fldcw word ptr [esp + 0x10]
+        fld tbyte ptr [esp + 0x18]
+        add esp, 0x94
+        ret
+    }
+}
 }

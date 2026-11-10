@@ -349,6 +349,22 @@ char *__cdecl CRT_strstr(const char *text, const char *wanted);
 s32 __cdecl CRT_atol(const char *text);
 char *__cdecl CRT_itoa(s32 value, char *out, s32 radix);
 
+// 0x67a520: atoi: atol. 0x67a530, 0x67a560, 0x67a590, 0x67a5c0: isalpha (0x103), isdigit (4), isspace (8), isalnum (0x107): _isctype past MB_CUR_MAX 1, else
+// _pctype's word (the character not checked). 0x67a730: iswspace: iswctype(c, 8).
+s32 __cdecl CRT_atoi(const char *text);
+s32 __cdecl CRT_isalpha(s32 c);
+s32 __cdecl CRT_isdigit(s32 c);
+s32 __cdecl CRT_isspace(s32 c);
+s32 __cdecl CRT_isalnum(s32 c);
+u32 __cdecl CRT_iswspace(u32 c);
+// 0x67a6c0: atof: past white space (isspace's test), _fltin2 over the rest; its double.
+double __cdecl CRT_atof(const char *text);
+// 0x67acb0, 0x67acc0: operator delete (free), operator new (_nh_malloc with mode 1).
+void __cdecl CRT_delete(void *block);
+void *__cdecl CRT_new(u32 size);
+// 0x67ae00: strncpy: n bytes, the zeros past the text's end.
+char *__cdecl CRT_strncpy(char *to, const char *from, u32 n);
+
 // 0x67e010: _itow: _itoa into a 0x14-byte local (radix 2 with a long value overruns it, sic), widened by MultiByteToWideChar (ANSI code page, at most 0x14 units). Returns out.
 // 0x67f4a0: _wtoi: narrowed by WideCharToMultiByte into a 0x14-byte local (not terminated when the text fills it, sic), then atol.
 u16 *__cdecl CRT_itow(s32 value, u16 *out, s32 radix);
