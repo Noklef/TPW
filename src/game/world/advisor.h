@@ -125,3 +125,13 @@ void __cdecl Advisor_UpdateHighlight();
 // Last ParticlePools_Update.
 void __cdecl Advisor_FrameTick();
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(char[24], gText_Advisor_Serialize_76e120, 0x0076e120, 0x18);
+GAME_DATA(char[20], gText_Advisor_Serialize_76e158, 0x0076e158, 0x14);
+GAME_DATA(char[24], gText_Advisor_Serialize_76e16c, 0x0076e16c, 0x18);
+GAME_DATA(char[12], gText_Advisor_Serialize_76e184, 0x0076e184, 0xc);
+GAME_DATA(char[68], gText_Advisor_HandleCode_76e190, 0x0076e190, 0x44);
+GAME_DATA(u32, gAdvisor_f79bb8, 0x00f79bb8, 0x4);

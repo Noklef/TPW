@@ -30,6 +30,7 @@
 #include "parkmap.h"
 #include "signtext.h"
 #include "staff.h"
+#include "../gfx/texcache.h"
 
 namespace {
 
@@ -510,7 +511,7 @@ void __fastcall ParkMap_Open(u8 *map) {
     global<u32>(0x008bd47c) = 0;
     at<u32>(map, 0xc) = env->stateFlags(global<u8 *>(0x0087a6d0));
     env->setFlags(global<u8 *>(0x0087a6d0), nullptr, 0x2821);
-    env->releaseItems(global<u8 *>(0x008c4b44), nullptr, 0);
+    env->releaseItems(reinterpret_cast<u8 * &>(gTexcache_8c4b44), nullptr, 0);
     env->focusClose();
     env->send(global<u8 *>(0x007cb2ac), 6, 0, 0);
     u8 *const window = env->build(global<u8 *>(0x00faa5d8), nullptr, reinterpret_cast<u8 *>((uintptr_t)0x00774da0), 0x005f0b00);

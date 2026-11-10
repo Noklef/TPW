@@ -1,6 +1,7 @@
 #include "meshtextures.h"
 
 #include <cstdint>
+#include "../gfx/texcache.h"
 
 namespace {
 
@@ -11,7 +12,7 @@ template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((ui
 
 u32 textureOf(u32 set, u32 index) { return g_calls.Th(0x00575f90, set, index); }
 
-void touch(u32 texture, u32 level) { g_calls.Th(0x0058c9f0, global<u32>(0x008c4b44), texture, level); }
+void touch(u32 texture, u32 level) { g_calls.Th(0x0058c9f0, gTexcache_8c4b44, texture, level); }
 
 }  // namespace
 
@@ -31,7 +32,7 @@ extern "C" void __stdcall Mesh_TouchTextures(const u8 *mesh) {
         if (!(at<u32>(mesh, 0) & 0xc0000))
             g_calls.Th(0x00590f90, texture);
         if (at<u16>(record, 0) & 0x80 && at<u16>(record, 0) & 0x400) {
-            g_calls.Th(0x0058dc50, global<u32>(0x008c4b44), texture);
+            g_calls.Th(0x0058dc50, gTexcache_8c4b44, texture);
             at<u16>(record, 0) &= 0xfbff;
         }
         touch(texture, level);

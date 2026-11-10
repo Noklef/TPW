@@ -12,6 +12,7 @@
 #include "world.h"
 #include "mappreview.h"
 #include "mapclick.h"
+#include "cellbuild.h"
 
 namespace {
 
@@ -35,7 +36,7 @@ void object_priority(const u8 *cell) {
     Cell_FirstObject(owner, nullptr, &handle);
     const u8 *thing = global<u8 *>(0x007cfb90 + 20 * (u32)handle);
     if (thing[2] == 3)
-        global<u32>(0x00818c14) = at<u32>(ObjectDefs_Find(reinterpret_cast<u8 *>(0x007890a0), nullptr, at<u16>(thing, 0xe)), 0x54);
+        reinterpret_cast<u32 &>(gCellbuild_818c14) = at<u32>(ObjectDefs_Find(reinterpret_cast<u8 *>(0x007890a0), nullptr, at<u16>(thing, 0xe)), 0x54);
 }
 
 // The money the world's table entry holds (Source_Field0c).
@@ -73,7 +74,7 @@ bool unfit(const u8 *cell) {
 bool priority_ok(const u8 *cell) {
     if (!footprint(type(cell))) return true;
     object_priority(cell);
-    return global<s32>(0x00818c10) <= global<s32>(0x00818c14);
+    return global<s32>(0x00818c10) <= gCellbuild_818c14;
 }
 
 // An entry beside the cell that is (or whose parent is) a track type (0xb, 0xd, 0x10, 0x12, 0x19) owned by another player: blocked, and
@@ -147,7 +148,7 @@ u32 __fastcall MapCell_CanBuild(u8 *cell, void *, u32 kind, u32 alone) {
     }
     if (cell[0xe] & 0x40) return 1;
     if (footprint(type(cell))) {
-        if (global<s32>(0x00818c10) > global<s32>(0x00818c14) && kind != 0x15 && kind != 0x16 && global<u32>(0x00816d58) == 0 && blocked == 0)
+        if (global<s32>(0x00818c10) > gCellbuild_818c14 && kind != 0x15 && kind != 0x16 && global<u32>(0x00816d58) == 0 && blocked == 0)
             return 0;
         global<u32>(0x00816d50) = 1;
         return 1;

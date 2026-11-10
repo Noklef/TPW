@@ -104,3 +104,27 @@ u32 __fastcall Challenges_Serialize(u8 *challenges, void *, Stream *stream, u32 
 // 0x11; then the challenges loaded (Challenges_LoadSam). Returns challenges.
 u8 *__fastcall Challenges_Ctor(u8 *challenges);
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(char[8], gText_Challenges_75a034, 0x0075a034, 0x8);
+GAME_DATA(char[20], gText_Challenge_Serialize_75a094, 0x0075a094, 0x14);
+GAME_DATA(char[16], gText_Challenge_Serialize_75a0a8, 0x0075a0a8, 0x10);
+GAME_DATA(char[12], gText_Challenge_Serialize_75a0b8, 0x0075a0b8, 0xc);
+GAME_DATA(char[20], gText_Challenge_Serialize_75a0c4, 0x0075a0c4, 0x14);
+GAME_DATA(char[16], gText_Challenge_Serialize_75a0d8, 0x0075a0d8, 0x10);
+GAME_DATA(char[20], gText_Challenge_Serialize_75a0e8, 0x0075a0e8, 0x14);
+GAME_DATA(char[16], gText_Challenge_Serialize_75a0fc, 0x0075a0fc, 0x10);
+GAME_DATA(char[28], gText_Challenge_Serialize_75a10c, 0x0075a10c, 0x1c);
+GAME_DATA(char[8], gText_Challenge_Serialize_75a128, 0x0075a128, 0x8);
+GAME_DATA(char[20], gText_Challenge_Serialize_75a130, 0x0075a130, 0x14);
+GAME_DATA(char[12], gText_Challenge_Serialize_75a144, 0x0075a144, 0xc);
+GAME_DATA(char[12], gText_Challenge_Serialize_75a150, 0x0075a150, 0xc);
+GAME_DATA(char[12], gText_Challenge_Serialize_75a15c, 0x0075a15c, 0xc);
+GAME_DATA(char[16], gText_Challenges_Serialize_75a248, 0x0075a248, 0x10);
+GAME_DATA(char[8], gText_Challenges_Serialize_75a258, 0x0075a258, 0x8);
+GAME_DATA(char[20], gText_Challenges_Serialize_75a260, 0x0075a260, 0x14);
+GAME_DATA(char[16], gText_Challenges_Serialize_75a274, 0x0075a274, 0x10);
+GAME_DATA(char[20], gText_Challenges_Serialize_75a284, 0x0075a284, 0x14);
+GAME_DATA(char[20], gText_Challenges_Serialize_75a2b0, 0x0075a2b0, 0x14);

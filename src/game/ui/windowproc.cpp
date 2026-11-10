@@ -1,6 +1,7 @@
 #include "windowproc.h"
 
 #include <cstdint>
+#include "../gfx/texcache.h"
 
 namespace {
 
@@ -66,7 +67,7 @@ u32 __stdcall GameWindow_Proc(u32 window, u32 message, u32 wparam, u32 lparam) {
     switch (message) {
         case 0x1c:
             if (wparam) {
-                if (const u32 cache = global<u32>(0x008c4b44)) g_calls.Th(0x0058dd60, cache, 1u);
+                if (const u32 cache = gTexcache_8c4b44) g_calls.Th(0x0058dd60, cache, 1u);
                 global<u32>(0x007a1a14) |= 8;
                 g_calls.Cd(0x00659333);
                 if (global<u32>(0x00f82884)) g_calls.Cd(0x0051bd30);

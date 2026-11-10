@@ -5,6 +5,7 @@
 #include "../core/addrcalls.h"
 #include "batchquad.h"
 #include "../math/x87.h"
+#include "../gfx/texcache.h"
 
 namespace {
 
@@ -55,7 +56,7 @@ u32 __fastcall TileGrid_TouchVisible(u8 *grid) {
     const s32 last = Cell(at<float>(grid, 0x2c));
     for (s32 y = Cell(at<float>(grid, 0x24)); y <= last; y++)
         for (s32 x = left; x <= right; x++)
-            g_touchCalls.Th(0x58c9f0, global<u32>(0x008c4b44), ((u32)y * at<u32>(grid, 0x10) + (u32)x + at<u32>(grid, 0x48)) * 0x60u + at<u32>(grid, 0x1c), 0u);
+            g_touchCalls.Th(0x58c9f0, gTexcache_8c4b44, ((u32)y * at<u32>(grid, 0x10) + (u32)x + at<u32>(grid, 0x48)) * 0x60u + at<u32>(grid, 0x1c), 0u);
     return 1;
 }
 

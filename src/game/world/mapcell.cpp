@@ -9,6 +9,7 @@
 #include "cellkind.h"
 #include "object.h"
 #include "ridestate.h"
+#include "challenges.h"
 
 namespace {
 
@@ -159,7 +160,7 @@ u32 __fastcall RECell_Serialize(u8 *cell, void *, Stream *stream, u32 save, s32 
 
 u32 __fastcall MapCellBase_Serialize(u8 *cell, void *, Stream *stream, u32 save, s32 version, u32) {
     static const SaveSpec kFields[] = {{0xd, 1, 0x0075a088}, {0xe, 2, 0x0075a080},  {0x4, 4, 0x0075a070}, {0xc, 1, 0x0075a064}, {0x20, 2, 0x0075a054},
-                                       {0x10, 2, 0x0075a048}, {0x14, 12, 0x0075a03c}, {0x8, 4, 0x0075a034}, {0x22, 1, 0x0075a020}};
+                                       {0x10, 2, 0x0075a048}, {0x14, 12, 0x0075a03c}, {0x8, 4, (u32)&gText_Challenges_75a034}, {0x22, 1, 0x0075a020}};
     if (version < 0 || version > 1)
         return 0;
     return Save_Fields(stream, save, cell, kFields, 9) ? 0 : 1;

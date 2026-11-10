@@ -24,3 +24,19 @@ u8 *__fastcall BankAccount_Ctor(u8 *account);
 // (announced). 1 at the first field that fails (the debug print left out), else 0.
 u32 __fastcall BankAccount_Serialize(u8 *account, void *, Stream *stream, u32 save, s32 version, u32 unused);
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(char[32], gText_Bankaccount_759c9c, 0x00759c9c, 0x20);
+GAME_DATA(char[28], gText_Bankaccount_759cbc, 0x00759cbc, 0x1c);
+GAME_DATA(char[28], gText_Bankaccount_759cd8, 0x00759cd8, 0x1c);
+GAME_DATA(char[32], gText_Bankaccount_759cf4, 0x00759cf4, 0x20);
+GAME_DATA(char[40], gText_Bankaccount_759d14, 0x00759d14, 0x28);
+GAME_DATA(char[28], gText_Bankaccount_759d3c, 0x00759d3c, 0x1c);
+GAME_DATA(char[32], gText_Bankaccount_759d58, 0x00759d58, 0x20);
+GAME_DATA(char[16], gText_Bankaccount_759d94, 0x00759d94, 0x10);
+GAME_DATA(char[16], gText_Bankaccount_759db4, 0x00759db4, 0x10);
+GAME_DATA(char[16], gText_Bankaccount_759dd8, 0x00759dd8, 0x10);
+GAME_DATA(char[12], gText_Bankaccount_759de8, 0x00759de8, 0xc);
+GAME_DATA(char[16], gText_Bankaccount_759df4, 0x00759df4, 0x10);

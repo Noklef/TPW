@@ -15,6 +15,7 @@
 #include "../render/fixedverts.h"
 #include "../render/softrender.h"
 #include "../render/engineerrors.h"
+#include "../gfx/texcache.h"
 
 namespace {
 
@@ -481,7 +482,7 @@ extern "C" u32 __fastcall Object_UpdateShadow(u8 *self) {
         return 0;
     if (!g_calls.Th(0x0057b6e0, me, batch))
         return 0;
-    g_calls.Th(0x0058dc50, global<u32>(0x008c4b44), at<u32>(block, 0x18));
+    g_calls.Th(0x0058dc50, gTexcache_8c4b44, at<u32>(block, 0x18));
     if (made) {
         const u32 interval = global<u32>(0x008bd4b4);
         const u32 turn = ++global<u32>(0x008bd4b8);

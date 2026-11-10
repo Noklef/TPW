@@ -7,6 +7,7 @@
 #include "../core/vcall.h"
 #include "../gfx/texture.h"
 #include "../math/x87.h"
+#include "../gfx/texcache.h"
 
 namespace {
 
@@ -80,7 +81,7 @@ s32 tryPlace(u8 *settings, float place, bool across, u32 *lines) {
 }
 
 void probe(u8 *settings, bool across, u32 result) {
-    g_calls.Th(0x0058dd60, global<u32>(0x008c4b44), 1u);
+    g_calls.Th(0x0058dd60, gTexcache_8c4b44, 1u);
     g_calls.Cd(0x00583720);
     u8 *const block = static_cast<u8 *>(GameHeap_Alloc(0x60));
     u8 *const texture = block ? Texture_Ctor(block, nullptr, 1) : nullptr;
@@ -90,9 +91,9 @@ void probe(u8 *settings, bool across, u32 result) {
     g_calls.Th(0x00590a80, address(texture), 0x80u, 0u);
     at<u32>(texture, 8) = 0x51b0000;
     fillTexture(settings, texture, across);
-    g_calls.Th(0x0058dd60, global<u32>(0x008c4b44), 1u);
-    g_calls.Th(0x0058c9f0, global<u32>(0x008c4b44), address(texture), 0u);
-    g_calls.Th(0x0058cf40, global<u32>(0x008c4b44));
+    g_calls.Th(0x0058dd60, gTexcache_8c4b44, 1u);
+    g_calls.Th(0x0058c9f0, gTexcache_8c4b44, address(texture), 0u);
+    g_calls.Th(0x0058cf40, gTexcache_8c4b44);
     vcall<u32>(device(), 8, 0x1069256u);
     const u32 handle = at<u32>(texture, 8) & 0x1000 ? at<u32>(texture, 0x1c) : 0;
     vcall<u32>(device(), 0xc, 0u, handle);
@@ -142,7 +143,7 @@ void probe(u8 *settings, bool across, u32 result) {
         }
         at<float>(settings, result) = foundUp ? (float)((X87Reg(upFit) + lastFit) * 0.5f) : (float)((X87Reg(lastFit) + firstFit) * 0.5f);
     }
-    g_calls.Th(0x0058dd60, global<u32>(0x008c4b44), 1u);
+    g_calls.Th(0x0058dd60, gTexcache_8c4b44, 1u);
     g_calls.Th(0x00590a70, address(texture));
     GameHeap_Free(texture);
     global<u32>(0x008bd47c) = saved;

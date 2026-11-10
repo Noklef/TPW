@@ -10,6 +10,7 @@
 #include "random.h"
 #include "trackrides.h"
 #include "trakcarroute.h"
+#include "collobj.h"
 
 namespace {
 
@@ -244,9 +245,9 @@ void cars_meet(u8 *a, u8 *b) {
     const s32 length = IntVec2_Length(dx, dy);
     if (length == 0 || length >= reach) return;
     const s32 vx = (s32)(at<u32>(a, 0x44) - at<u32>(b, 0x44)), vy = (s32)(at<u32>(a, 0x48) - at<u32>(b, 0x48));
-    const double scale = global<double>(0x00700eb8), half = global<double>(0x00700ec0);
+    const double scale = gCollobj_700eb8, half = gCollobj_700ec0;
     const s32 bearing = cars_ftol(X87Reg(half) - X87Reg(X87_MulDouble(X87_MulDouble(X87_Atan2((double)dx, (double)(s32)(0u - (u32)dy)), scale), half)));
-    const s32 heading = cars_ftol(X87Reg(X87_MulDouble(X87_MulDouble(X87_Atan2((double)vx, (double)(s32)(0u - (u32)vy)), scale), half)) + X87Reg(global<double>(0x00700f18)));
+    const s32 heading = cars_ftol(X87Reg(X87_MulDouble(X87_MulDouble(X87_Atan2((double)vx, (double)(s32)(0u - (u32)vy)), scale), half)) + X87Reg(gCollobj_700f18));
     const s32 c = (s32)((0u - (u32)bearing - (u32)heading) & 0x1ff);
     if (c < 0x80 || c > 0x180) {
         cars_bounce(a, b, c, bearing, vx, vy);

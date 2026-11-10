@@ -6,6 +6,7 @@
 #include "../core/options.h"
 #include "../core/savegame.h"
 #include "objectdefs.h"
+#include "advisorscore.h"
 
 namespace {
 
@@ -14,8 +15,8 @@ template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((ui
 
 // The message's fields in save order (Save_Field each); a load reads the first the same way and the rest by size through Save_ReadU32 or
 // Save_ReadU8.
-const SaveSpec kMessage[] = {{0, 2, 0x0076e2f4}, {4, 4, 0x0076e2e8}, {0xc, 4, 0x0076e2dc}, {0x10, 4, 0x0076e2d4},
-                             {0x14, 1, 0x0075e6b8}, {8, 4, 0x0076e2c8}, {0x15, 1, 0x0076e2b4}, {0x16, 1, 0x0076e2a0}};
+const SaveSpec kMessage[] = {{0, 2, (u32)&gText_Advisorscore_76e2f4}, {4, 4, (u32)&gText_Advisorscore_76e2e8}, {0xc, 4, (u32)&gText_Advisorscore_76e2dc}, {0x10, 4, (u32)&gText_Advisorscore_76e2d4},
+                             {0x14, 1, (u32)&gText_Advisorscore_75e6b8}, {8, 4, 0x0076e2c8}, {0x15, 1, (u32)&gText_Advisorscore_76e2b4}, {0x16, 1, (u32)&gText_Advisorscore_76e2a0}};
 
 const AdvisorScoreEnv kGameEnv = {reinterpret_cast<s32(__cdecl *)(void(__cdecl *)())>(0x0067a7d0)};
 const AdvisorScoreEnv *g_env = &kGameEnv;

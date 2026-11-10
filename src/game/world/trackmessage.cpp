@@ -18,6 +18,7 @@
 #include "mapcell.h"
 #include "mapline.h"
 #include "thingscan.h"
+#include "cellbuild.h"
 
 namespace {
 
@@ -244,7 +245,7 @@ void run(const u8 *cell, u32 b) {
 }
 
 void dead_ends(const u8 *cell) {
-    if (global<s32>(0x00818c10) <= global<s32>(0x00818c14)) return;
+    if (global<s32>(0x00818c10) <= gCellbuild_818c14) return;
     const u32 id = (u32)*handle(cell) - 1;
     const u32 x = id & 0x7f, y = id >> 7;
     const u32 saved4 = global<u32>(0x0081ede4), saved8 = global<u32>(0x0081ede8);

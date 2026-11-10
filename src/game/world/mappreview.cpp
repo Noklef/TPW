@@ -17,6 +17,7 @@
 #include "mapline.h"
 #include "objectdefs.h"
 #include "../core/actionrec.h"
+#include "cellbuild.h"
 
 namespace {
 
@@ -248,7 +249,7 @@ extern "C" void __cdecl GameMode_MapPreview(s32 x, s32 y, u32 flags) {
     for (const u32 a : kCleared) global<u32>(a) = 0;
     Global871ee0_Clear();
     global<u32>(0x00818c10) = 0;
-    global<u32>(0x00818c14) = 0;
+    reinterpret_cast<u32 &>(gCellbuild_818c14) = 0;
     const u32 mode = global<u32>(0x0081ae2c);
     if (mode != 0) {
         switch (mode) {
@@ -343,7 +344,7 @@ extern "C" void __cdecl GameMode_MapPreview(s32 x, s32 y, u32 flags) {
                 const u16 handle = *E->firstObject(Cell44(at<u16>(cell, 0x10)), nullptr, &out);
                 const u8 *thing = global<const u8 *>(0x007cfb90 + (u32)handle * 20);
                 if (at<u8>(thing, 2) == 3)
-                    global<u32>(0x00818c14) = at<u32>(E->findDef(reinterpret_cast<u8 *>((uintptr_t)0x007890a0), nullptr, at<u16>(thing, 0xe)), 0x54);
+                    reinterpret_cast<u32 &>(gCellbuild_818c14) = at<u32>(E->findDef(reinterpret_cast<u8 *>((uintptr_t)0x007890a0), nullptr, at<u16>(thing, 0xe)), 0x54);
             }
         }
     }

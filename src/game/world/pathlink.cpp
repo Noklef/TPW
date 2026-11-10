@@ -6,6 +6,7 @@
 #include "../core/soundplay.h"
 #include "cellmodel.h"
 #include "mapcell.h"
+#include "cellmessage.h"
 
 namespace {
 
@@ -67,7 +68,7 @@ void LinkSide(u8 *cell, const Side &s, bool models, s32 column) {
         if ((MapCell_Neighbours(next) & s.back) && models) {
             MapCell_ApplyPathModel(next);
             if (!global<u32>(0x00785a2c)) {
-                const float scale = global<float>(0x00700d54);
+                const float scale = gCellmessage_700d54;
                 const s32 z = ftol((double)column * scale);
                 const s32 x = ftol((double)column * scale);   // (the second local: the column too, sic)
                 Sound_PlayAt(0, global<u32>(0x00803a2c), 0x8b, x, 0, z);

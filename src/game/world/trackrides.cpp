@@ -18,6 +18,7 @@
 #include "ridelist.h"
 #include "trackpools.h"
 #include "things.h"
+#include "collobj.h"
 
 namespace {
 
@@ -1174,8 +1175,8 @@ bool FrameDue() { return (global<u8>(0x00877b5c) & 0x1f) == 0; }
 // 256 - atan2(a, b) / pi * 256 truncated (__ftol): fild a; fild b; fpatan (unrounded); fmul 1 / pi [0x700eb8]; fmul 256 [0x700ec0];
 // fsubr 256, as collobj's RideTurn.
 s32 Heading(s32 a, s32 b) {
-    const double turned = X87_MulDouble(X87_MulDouble(X87_Atan2((double)a, (double)b), global<double>(0x00700eb8)), global<double>(0x00700ec0));
-    return (s32)(long long)X87_Add(global<double>(0x00700ec0), -turned);
+    const double turned = X87_MulDouble(X87_MulDouble(X87_Atan2((double)a, (double)b), gCollobj_700eb8), gCollobj_700ec0);
+    return (s32)(long long)X87_Add(gCollobj_700ec0, -turned);
 }
 
 // (heading - +0x54) & 0x1ff as -0xff..0x100, times speed (32-bit) over 1000 (signed, truncated).

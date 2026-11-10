@@ -39,6 +39,8 @@
 #include "things.h"
 #include "thingscan.h"
 #include "world.h"
+#include "challenges.h"
+#include "advisorscore.h"
 
 namespace {
 
@@ -407,8 +409,8 @@ u32 __fastcall Table_ScaledBySum(u8 *table, void *, s32 index) {
 }
 
 u32 __fastcall StaffPoolEntry_Serialize(u8 *entry, void *, Stream *stream, u32 save, s32 version, u32 unused) {
-    static const SaveSpec kFields[] = {{0x0, 4, 0x0075a034}, {0x4, 4, 0x0075e6d8}, {0x8, 1, 0x0075e6cc},
-                                       {0x9, 1, 0x0075e6c0}, {0xa, 1, 0x0075e6b8}, {0xb, 1, 0x0075e6ac}};
+    static const SaveSpec kFields[] = {{0x0, 4, (u32)&gText_Challenges_75a034}, {0x4, 4, 0x0075e6d8}, {0x8, 1, 0x0075e6cc},
+                                       {0x9, 1, 0x0075e6c0}, {0xa, 1, (u32)&gText_Advisorscore_75e6b8}, {0xb, 1, 0x0075e6ac}};
     if (version < 0 || version > 1)
         return 0;
     if (!Save_Fields(stream, save, entry, kFields, 6) || TimeSig_Serialize(entry + 0xc, nullptr, stream, save, version, unused))

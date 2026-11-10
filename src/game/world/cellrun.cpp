@@ -15,6 +15,7 @@
 #include "mapline.h"
 #include "trackrides.h"
 #include "trackmessage.h"
+#include "cellrun.h"
 
 namespace {
 
@@ -458,10 +459,10 @@ void __cdecl TrackCell_Relink(u32 corners) {
 
 u32 __cdecl CellRun_Lay(s32 x, s32 y, s32 endX, s32 endY, u32 direction, u32 setDirection) {
     u8 dir = static_cast<u8>(direction);
-    global<s32>(0x00818c0c) = 0;
-    global<s32>(0x00818c08) = 0;
-    global<s32>(0x008186e4) = 0x400;
-    global<s32>(0x008186e8) = 0x400;
+    gCellrun_818c0c = 0;
+    gCellrun_818c08 = 0;
+    gCellrun_8186e4 = 0x400;
+    gCellrun_8186e8 = 0x400;
     bool done = false;
     do {
         u8 *const cell = cell_at(x, y);
@@ -508,10 +509,10 @@ u32 __cdecl CellRun_Lay(s32 x, s32 y, s32 endX, s32 endY, u32 direction, u32 set
             }
         }
         move(dir, x, y);
-        if (x < global<s32>(0x008186e4)) global<s32>(0x008186e4) = x;
-        if (y < global<s32>(0x008186e8)) global<s32>(0x008186e8) = y;
-        if (x > global<s32>(0x00818c0c)) global<s32>(0x00818c0c) = x;
-        if (y > global<s32>(0x00818c08)) global<s32>(0x00818c08) = y;
+        if (x < gCellrun_8186e4) gCellrun_8186e4 = x;
+        if (y < gCellrun_8186e8) gCellrun_8186e8 = y;
+        if (x > gCellrun_818c0c) gCellrun_818c0c = x;
+        if (y > gCellrun_818c08) gCellrun_818c08 = y;
     } while (!done);
     HoardingGrid_Fill();
     return 1;

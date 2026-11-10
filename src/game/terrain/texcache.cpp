@@ -10,6 +10,7 @@
 #include "../render/texformat.h"
 #include "land.h"
 #include "terrain_blend.h"
+#include "../gfx/texcache.h"
 
 namespace {
 
@@ -145,7 +146,7 @@ void RedrawTile(const u8 *cache, u8 *tile, u8 *record, s32 x, s32 y) {
             pixel[2] = b1;
         }
     }
-    g_calls.Th(0x0058dc50, *reinterpret_cast<const u32 *>((uintptr_t)0x008c4b44), tile);   // TexCache_UnlinkItem
+    g_calls.Th(0x0058dc50, gTexcache_8c4b44, tile);   // TexCache_UnlinkItem
 }
 
 }  // namespace
@@ -199,7 +200,7 @@ u32 __fastcall TerrainTexCache_Update(u8 *cache, void *, u32 *keys, u8 *records,
         }
         if (redraw) RedrawTile(cache, tile, records, x, y);
         g_calls.Th(0x00590f90, Self(tile));   // Texture_SetKeep
-        g_calls.Th(0x0058c9f0, *reinterpret_cast<const u32 *>((uintptr_t)0x008c4b44), tile, 0u);   // TexCache_TouchItem
+        g_calls.Th(0x0058c9f0, gTexcache_8c4b44, tile, 0u);   // TexCache_TouchItem
     }
     return 1;
 }

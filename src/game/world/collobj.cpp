@@ -6,6 +6,7 @@
 #include "../math/intsin.h"
 #include "../math/vec2.h"
 #include "../math/x87.h"
+#include "collobj.h"
 
 namespace {
 
@@ -28,12 +29,12 @@ s32 RideDistance(s32 dx, s32 dy) {
 
 // fpatan's atan2(a, b) (the integers loaded by fild) times [0x700eb8] (1 / pi) times by, x87 at the game's precision.
 double RideAtan(s32 a, s32 b, double by) {
-    return X87_MulDouble(X87_MulDouble(X87_Atan2((double)a, (double)b), global<double>(0x00700eb8)), by);
+    return X87_MulDouble(X87_MulDouble(X87_Atan2((double)a, (double)b), gCollobj_700eb8), by);
 }
 
 // The rides' angles in 512ths of a turn, truncated (__ftol): 256 - atan2(a, b) / pi * 256 (a heading) and atan2(a, b) / pi * 256 - 256.
-s32 RideTurn(s32 a, s32 b) { return (s32)(long long)X87_Add(global<double>(0x00700ec0), -RideAtan(a, b, global<double>(0x00700ec0))); }
-s32 RideBearing(s32 a, s32 b) { return (s32)(long long)X87_Add(RideAtan(a, b, global<double>(0x00700ec0)), global<double>(0x00700f18)); }
+s32 RideTurn(s32 a, s32 b) { return (s32)(long long)X87_Add(gCollobj_700ec0, -RideAtan(a, b, gCollobj_700ec0)); }
+s32 RideBearing(s32 a, s32 b) { return (s32)(long long)X87_Add(RideAtan(a, b, gCollobj_700ec0), gCollobj_700f18); }
 
 s32 Abs(s32 v) { return v < 0 ? (s32)(0u - (u32)v) : v; }
 
@@ -275,7 +276,7 @@ void __cdecl Collider_KeepInArea(u8 *car) {
             gap = Abs((s32)((u32)ry - (u32)ay));
         }
     } else {   // a circle: the motion mirrored about the rim's normal, scaled by the kind's +0x2c, the car put on the rim
-        const double down = global<double>(0x00700f18);   // -256
+        const double down = gCollobj_700f18;   // -256
         const s32 away = (s32)(long long)X87_Add(down, -RideAtan(dx, (s32)(0u - (u32)dy), down));
         const u32 mirror = (0xffffff80u - (u32)away) & 0x1ff, back = ((u32)heading - 0x100) & 0x1ff;
         const u32 turn = (mirror * 2 - 0x100 - back - (u32)heading) & 0x1ff;
@@ -347,8 +348,8 @@ s32 __cdecl Collider_SteerTo(u8 *car, s32 x, s32 y) {
     }
     const s32 dy = (s32)(at<u32>(car, 0x70) - at<u32>(car, 0x38)), dx = (s32)(at<u32>(car, 0x6c) - at<u32>(car, 0x34));
     const double turned = X87_Atan2((double)dx, (double)(s32)(0u - (u32)dy));   // (fpatan: unrounded)
-    const s32 bearing = (s32)(long long)X87_Add(X87_MulDouble(X87_MulDouble(turned, global<double>(0x00700eb8)), global<double>(0x00700ec0)),
-                                               global<double>(0x00700f18));   // (x / pi * 256 - 256, then __ftol)
+    const s32 bearing = (s32)(long long)X87_Add(X87_MulDouble(X87_MulDouble(turned, gCollobj_700eb8), gCollobj_700ec0),
+                                               gCollobj_700f18);   // (x / pi * 256 - 256, then __ftol)
     s32 turn = (s32)((0u - at<u32>(car, 0x50) - (u32)bearing) & 0x1ff);
     const s32 distance = RideDistance(dx, dy);
     const u8 *const kind = at<const u8 *>(car, 0x9c);
