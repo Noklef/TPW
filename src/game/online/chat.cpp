@@ -61,7 +61,7 @@ u8 *__fastcall OnlineChat_Ctor(u8 *chat) {
     chat[0xefc] = 0;
     CountedBuf_Reset(chat + 0xefc, nullptr, 0);
     u16 text[0x104];
-    Crt().swprintf(text, reinterpret_cast<const u16 *>((uintptr_t)0x0075c0f0), Crt().rand());   // L"%08x"
+    Crt().swprintf(text, reinterpret_cast<const u16 *>((uintptr_t)&gOnlineChat_Ctor_75c0f0), Crt().rand());   // L"%08x"
     const u32 n = Crt().wcslen(text);
     StdWString *const name = reinterpret_cast<StdWString *>(chat + 8);
     if (StdWString_Grow(name, nullptr, n, 1)) {

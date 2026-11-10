@@ -60,11 +60,11 @@ void __cdecl Online_ApplyBalance() {
 
 u8 *__fastcall OnlineServers_Ctor(u8 *servers) {
     StdString *const s = reinterpret_cast<StdString *>(servers);
-    make(&s[0], chars(0x0077485c), true);
-    make(&s[1], chars(0x00774844), true);
-    make(&s[2], chars(0x00774838), true);
-    make(&s[3], chars(0x00774838), false);
-    make(&s[4], chars(0x00774838), false);
+    make(&s[0], chars((u32)(uintptr_t)&gText_OnlineServers_Ctor_77485c), true);
+    make(&s[1], chars((u32)(uintptr_t)&gText_OnlineServers_Ctor_774844), true);
+    make(&s[2], chars((u32)(uintptr_t)&gText_OnlineServers_Ctor_774838), true);
+    make(&s[3], chars((u32)(uintptr_t)&gText_OnlineServers_Ctor_774838), false);
+    make(&s[4], chars((u32)(uintptr_t)&gText_OnlineServers_Ctor_774838), false);
     servers[0x50] = 0;  // (the allocator byte, sic)
     StdString_Tidy(&s[5], nullptr, 0);
     u16 *const ports = reinterpret_cast<u16 *>(servers + 0x60);
@@ -73,7 +73,7 @@ u8 *__fastcall OnlineServers_Ctor(u8 *servers) {
     ports[2] = 0x1dae;
     ports[3] = 0x1da7;
     ports[4] = 0x1dad;
-    make(reinterpret_cast<StdString *>(servers + 0x6c), chars(0x0077481c), false);
+    make(reinterpret_cast<StdString *>(servers + 0x6c), chars((u32)(uintptr_t)&gText_OnlineServers_Ctor_77481c), false);
     return servers;
 }
 

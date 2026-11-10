@@ -6,6 +6,7 @@
 #include "../math/x87.h"
 #include "../motion/animator.h"
 #include "../world/advisorspeech.h"
+#include "../online/ftp.h"
 
 namespace {
 
@@ -280,7 +281,7 @@ void __cdecl HeightMap_ReadOrBuild(u8 *instance, u32 width, u32 height, const ch
             at<u32>(block, 0xc) = 0x30;
             at<u32>(block, 0x10) = 0x30 + cells * 25;
             at<u32>(block, 0x14) = 0x30 + cells * 26;
-            if (const u32 file = g_calls.Cd(0x0067b8a0, path, 0x0074cfb4u)) {
+            if (const u32 file = g_calls.Cd(0x0067b8a0, path, (u32)(uintptr_t)&gText_Ftp_74cfb4)) {
                 g_calls.Cd(0x0067b6d0, block, total, 1u, file);
                 g_calls.Cd(0x0067b620, file);
             }

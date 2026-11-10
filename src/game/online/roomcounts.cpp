@@ -27,7 +27,7 @@ const T &field(const u8 *object, u32 offset) {
 }
 
 s32 *counts() { return &reinterpret_cast<s32 &>(gRoomcounts_7cdac8); }
-s32 *ids() { return &global<s32>(0x007cdae0); }
+s32 *ids() { return &gRoomcounts_7cdae0; }
 u8 *&chat() { return global<u8 *>(0x007cdb14); }
 s32 &answers() { return global<s32>(0x007cdb18); }
 u32 &ready() { return global<u32>(0x007cdb1c); }

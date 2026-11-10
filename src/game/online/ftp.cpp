@@ -147,7 +147,7 @@ s32 login_steps(void *self) {
     }
     const char *const host = &field<char>(self, 0x243c);
     u32 address = InetAddr(host);
-    if (address == 0xffffffffu && std::strcmp(host, text_at(0x00773ce0)) != 0) {
+    if (address == 0xffffffffu && std::strcmp(host, text_at((u32)(uintptr_t)&gText_Ftp_773ce0)) != 0) {
         const u8 *const found = GetHostByName(host);
         if (found) address = ***reinterpret_cast<const u32 *const *const *>(found + 0xc);
     }
@@ -277,7 +277,7 @@ u32 __cdecl Ftp_LocalAddress() {
     SockAddrIn remote;
     remote.family = 2;
     remote.port = Htons(7);
-    remote.address = InetAddr(reinterpret_cast<const char *>(0x00773cf0));
+    remote.address = InetAddr(reinterpret_cast<const char *>((u32)(uintptr_t)&gText_Ftp_LocalAddress_773cf0));
     if (Connect(s, &remote, 0x10) == 0) GetSockName(s, &local, &size);
     CloseSocket(s);
     return local.address;
@@ -337,7 +337,7 @@ s32 __fastcall Ftp_Receive(void *self, void *, u8 toFile, u32 count) {
         if (field<u32>(self, 0x2424) == 0xffffffffu) return 3;
     }
     if (toFile == 1) {
-        file = g_env->fopen(&field<char>(self, 0x255c), text_at(0x0074cfb4));
+        file = g_env->fopen(&field<char>(self, 0x255c), text_at((u32)(uintptr_t)&gText_Ftp_74cfb4));
         if (!file) result = 1;
     }
     if (count != 0) {
@@ -542,7 +542,7 @@ void __fastcall Ftp_WsaErrorBox(void *) {
         index++;
     }
     const char *const *const texts = *reinterpret_cast<const char *const *const *>(&gInitializers_f827f0);
-    MessageBoxText(0, texts[index], text_at(0x00774810), 0);
+    MessageBoxText(0, texts[index], text_at((u32)(uintptr_t)&gFtp_WsaErrorBox_774810), 0);
 }
 
 s32 __fastcall Ftp_WsaStartup(void *self) {

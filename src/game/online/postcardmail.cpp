@@ -58,7 +58,7 @@ void AddWideHex(StdString *to, char *buffer, uintptr_t label, const char *wide) 
         from += 2;
         out += 6;
     }
-    Crt().sprintf(out, Text(0x00773cdc));
+    Crt().sprintf(out, Text((u32)(uintptr_t)&gText_Postcardmail_773cdc));
     Add(to, buffer);
 }
 
@@ -89,7 +89,7 @@ extern "C" void __fastcall PostcardMail_Build(u8 *mail) {
         node = at<const u8 *>(node, 0);
         if (node != at<const u8 *>(mail, 0x14)) Add(to, Text(reinterpret_cast<uintptr_t>(&gPostcardMail_Build_774084)));
     }
-    Add(to, Text(0x00773cdc));
+    Add(to, Text((u32)(uintptr_t)&gText_Postcardmail_773cdc));
     CutLines(OrNull(at<char *>(mail, 0x20)));
     AddFormat(to, buffer, reinterpret_cast<uintptr_t>(&gPostcardMail_Build_774074), OrNull(at<char *>(mail, 0x20)));
     AddFormat(to, buffer, reinterpret_cast<uintptr_t>(&gPostcardMail_Build_77405c), at<u32>(mail, 0x3c));
