@@ -13,6 +13,7 @@
 #include "../render/particles.h"
 #include "ridelist.h"
 #include "balancelevel.h"
+#include "../rsse/rsse.h"
 
 namespace {
 
@@ -21,10 +22,10 @@ template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((ui
 
 s32 Ftol(X87Reg x) { return (s32)(long long)x.v; }
 
-bool system() { return global<u32>(0x008791a0) != 0; }
+bool system() { return gRsseSystem.initialised != 0; }
 
 u8 *find(s32 id) {
-    for (u8 *node = global<u8 *>(0x008791b0); node; node = at<u8 *>(node, 0))
+    for (u8 *node = reinterpret_cast<u8 * &>(gRsseSystem.scriptList); node; node = at<u8 *>(node, 0))
         if (at<s32>(node, 8) == id)
             return node;
     return nullptr;
@@ -274,7 +275,7 @@ void __cdecl Ride_PlayEffect(s32 id) {
 void __cdecl RideScripts_SetReverb() {
     const u32 followed = (u32)(uintptr_t)Camera_Followed();
     if (followed) {   // (the system's flag not looked at)
-        for (u8 *node = global<u8 *>(0x008791b0); node; node = at<u8 *>(node, 0)) {
+        for (u8 *node = reinterpret_cast<u8 * &>(gRsseSystem.scriptList); node; node = at<u8 *>(node, 0)) {
             if (at<u32>(node, 0xc8) == followed && !at<u32>(node, 0x10) && at<s32>(node, 0xd8)) {
                 if (at<s32>(node, 0xd8) >= 0)
                     Sound_SetEaxRecord(at<u32>(node, 0xd8));

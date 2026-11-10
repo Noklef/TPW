@@ -374,7 +374,7 @@ void __cdecl DynFaces_ReleaseModels() {
 }
 
 void __cdecl DynFaces_Frame() {
-    const float moveX = (float)SubM(X87_MulDouble((double)gFocuscell_8186b8, gDynFaces_Frame_700de0), global<float>(0x00820afc));
+    const float moveX = (float)SubM(X87_MulDouble((double)gFocuscell_8186b8, gDynFaces_Frame_700de0), gFocuscell_820afc);
     const u32 t = global<u32>(0x00790a38);
     static const u32 kConstants[][2] = {{0x871ee8, 0}, {0x871eec, 0}, {0x871ef4, 0x3f800000}, {0x871ef8, 0}, {0x871f00, 0},
                                         {0x871f04, 0x3f800000}, {0x871f0c, 0x3f800000}, {0x871f10, 0x3f800000}, {0x871f18, 0x3f000000},
@@ -383,7 +383,7 @@ void __cdecl DynFaces_Frame() {
                                         {0x871f4c, 0x3ecccccd}};
     for (const auto &c : kConstants)
         global<u32>(c[0]) = c[1];
-    const float moveZ = (float)SubM(X87_MulDouble((double)gFocuscell_8186b4, gDynFaces_Frame_700de0), global<float>(0x00820af8));
+    const float moveZ = (float)SubM(X87_MulDouble((double)gFocuscell_8186b4, gDynFaces_Frame_700de0), gFocuscell_820af8);
     const float scale = gSinTableScale;
     const u32 mask = gSinTableMask;
     const s32 i1 = Fistp((float)(X87Reg(scale) * of(t)));
@@ -404,8 +404,8 @@ void __cdecl DynFaces_Frame() {
         p[0] = (float)(X87Reg(p[0]) - gDynFaces_Frame_700df4);
         p[1] = (float)(X87Reg(p[1]) - gDynFaces_Frame_700df4);
     }
-    global<float>(0x00820afc) = (float)AddM(X87Reg(moveX) * gDynFaces_Frame_700de4, global<float>(0x00820afc));
-    global<float>(0x00820af8) = (float)AddM(X87Reg(moveZ) * gDynFaces_Frame_700de4, global<float>(0x00820af8));
+    gFocuscell_820afc = (float)AddM(X87Reg(moveX) * gDynFaces_Frame_700de4, gFocuscell_820afc);
+    gFocuscell_820af8 = (float)AddM(X87Reg(moveZ) * gDynFaces_Frame_700de4, gFocuscell_820af8);
     DynFaces_WaveGrid(0x10, 0x13, 20.0f, wavePhase);
     DynFaces_AddGrid(global<float>(0x00870ec8), global<float>(0x00870ecc), global<float>(0x00870ed0), 10, 11, 0, 0);
     DynFaces_AddGrid(global<float>(0x00870ec8), global<float>(0x00870ecc), global<float>(0x00870ed0), 4, 6, 10, 0);

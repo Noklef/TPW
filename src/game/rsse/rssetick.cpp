@@ -74,8 +74,8 @@ void run(RsseContext *ctx) {
     }
     if (ctx->child_id != 0) {
         RsseContext *child = nullptr;
-        if (global<u32>(0x008791a0) != 0) {
-            child = global<RsseContext *>(0x008791b0);
+        if (gRsseSystem.initialised != 0) {
+            child = gRsseSystem.scriptList;
             while (child != nullptr && child->id != ctx->child_id) child = child->next;
         }
         child->speed = ctx->speed;   // sic: none found writes at 0xc0
@@ -96,7 +96,7 @@ void node_step(RsseContext *ctx, u8 *node) {
         const s32 jy = ftol(X87Reg(dir[1]) * gRidelist_700fdc);
         const s32 jx = ftol(X87Reg(dir[0]) * gRidelist_700fdc);
         g_env->setScaled(at<u32>(node, 0xc), jx, jy, jz);
-    } else if (kind >= 3 && kind <= 10 && (((u32)ctx->id ^ RSSE_TickCounter) & 7) == 0) {
+    } else if (kind >= 3 && kind <= 10 && (((u32)ctx->id ^ gRsseSystem.tickCounter) & 7) == 0) {
         const Position p = part_position(ctx, node);
         g_env->setPosition(at<u32>(node, 0xc), p.x, p.y, p.z);
     }
@@ -107,11 +107,11 @@ void node_step(RsseContext *ctx, u8 *node) {
 void RsseTick_SetEnv(const RsseTickEnv *env) { g_env = env ? env : &kPortEnv; }
 
 u32 __cdecl RSSE_Tick() {
-    if (global<u32>(0x008791a0) == 0) return global<u32>(0x008791b4);
-    ++RSSE_TickCounter;
-    RsseContext *ctx = global<RsseContext *>(0x008791b0);
+    if (gRsseSystem.initialised == 0) return reinterpret_cast<u32 &>(gRsse_8791b4);
+    ++gRsseSystem.tickCounter;
+    RsseContext *ctx = gRsseSystem.scriptList;
     while (ctx != nullptr) {
-        if (ctx->turbo != 0 || (((u32)ctx->id ^ RSSE_TickCounter) & 7) == 0) run(ctx);
+        if (ctx->turbo != 0 || (((u32)ctx->id ^ gRsseSystem.tickCounter) & 7) == 0) run(ctx);
         for (u8 *node = static_cast<u8 *>(ctx->objects); node != nullptr; node = at<u8 *>(node, 0)) {
             if (at<s32>(node, 0x10) >= 0) node_step(ctx, node);
         }
@@ -123,5 +123,5 @@ u32 __cdecl RSSE_Tick() {
             ctx = ctx->next;
         }
     }
-    return global<u32>(0x008791b4);
+    return reinterpret_cast<u32 &>(gRsse_8791b4);
 }

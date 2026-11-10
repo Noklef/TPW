@@ -9,6 +9,7 @@
 #include "addrcalls.h"
 #include "../math/x87.h"
 #include "../world/balancelevel.h"
+#include "../world/placeobject.h"
 
 namespace {
 
@@ -10860,7 +10861,7 @@ void __cdecl Init_529df0() {   // 0x529df0
     return;
 }
 void __cdecl Init_529e00() {   // 0x529e00
-    M<u16>(0x818c3cu) = 0x0u;
+    M<u16>((u32)&gPlaceobject_818c3c) = 0x0u;
     return;
 }
 void __cdecl Init_52d240() {   // 0x52d240

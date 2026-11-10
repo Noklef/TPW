@@ -8,6 +8,7 @@
 #include "../ui/dialog7cc1f8.h"
 #include "tracktextures.h"
 #include "balancelevel.h"
+#include "cellbuild.h"
 
 namespace {
 
@@ -228,7 +229,7 @@ s32 __cdecl HoardingGrid_CheckArea(s32 x1, s32 y1, s32 x2, s32 y2, u8 charge) {
         }
     }
     if (over) {
-        global<u32>(0x00816d5c) = 1;
+        gCellbuild_816d5c = 1;
         return 0;
     }
     return 1;

@@ -7,6 +7,7 @@
 #include "cellmodel.h"
 #include "mapcell.h"
 #include "tracktextures.h"
+#include "focuscell.h"
 
 namespace {
 
@@ -56,7 +57,7 @@ void __cdecl TrackLine_Prune() {
     bool done = false;
     s32 steps = 0;
     u8 facing = 4;   // (a stack slot's low byte; its other bytes unset)
-    global<u8>(0x00818c50) = 4;
+    gFocuscell_818c50 = 4;
     bool northEnded = false;   // (set once, never reset)
     do {
         u8 *const cell = CellAt(x, y);

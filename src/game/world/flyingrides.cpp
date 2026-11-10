@@ -25,7 +25,7 @@ namespace {
 
 template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cast<T *>((uintptr_t)p + offset); }
 
-u8 *const *table() { return reinterpret_cast<u8 *const *>(0x008791f8); }
+u8 *const *table() { return gFlyingrides_8791f8; }
 
 // The record for index, null for one outside 1-99 or an empty entry.
 u8 *record(s32 index) { return index > 0 && index < 100 ? table()[index] : nullptr; }
@@ -385,7 +385,6 @@ void __cdecl FlyingRide_PickWaypoint(u8 *rec) {
 
 namespace {
 
-float &global_float(u32 address) { return *reinterpret_cast<float *>((uintptr_t)address); }
 u32 bits_of(float f) { u32 b; std::memcpy(&b, &f, 4); return b; }
 
 const float kPerUnit = 1.0f / 300;   // 0x7010bc
@@ -428,10 +427,10 @@ extern "C" {
 
 void __cdecl FlyingRides_LerpSlots(float t) {
     if (t > 2.0f) t = 2.0f;   // 0x7010b8
-    float &x = global_float(0x008791e0), &y = global_float(0x008791f4), &z = global_float(0x008791d8);
-    float &a = global_float(0x008791e8), &b = global_float(0x008791c4), &c = global_float(0x008791c0);
-    for (u32 address = 0x008791fc; address < 0x00879388; address += 4) {
-        u8 *const rec = *reinterpret_cast<u8 *const *>((uintptr_t)address);
+    float &x = gFlyingrides_8791e0, &y = gFlyingrides_8791f4, &z = gFlyingrides_8791d8;
+    float &a = gFlyingrides_8791e8, &b = gFlyingrides_8791c4, &c = gFlyingrides_8791c0;
+    for (s32 index = 1; index < 100; ++index) {
+        u8 *const rec = gFlyingrides_8791f8[index];
         if (!rec) continue;
         for (u32 i = 0; i < 20; ++i) {
             u8 *const s = slot(rec, i);
@@ -496,13 +495,13 @@ void __cdecl FlyingRides_LerpSlots(float t) {
 }
 
 void __cdecl FlyingRides_Init() {
-    u32 *const flag = reinterpret_cast<u32 *>(0x008791ec);
+    u32 *const flag = &gFlyingrides_8791ec;
     if (*flag)
         return;
     *flag = 1;
-    *reinterpret_cast<u32 *>(0x008791f0) = 1;
-    std::memset(reinterpret_cast<void *>(0x008791f8), 0, 0x64 * 4);
-    u32 *volatile *const sines = reinterpret_cast<u32 *volatile *>(0x008791c8);
+    gFlyingrides_8791f0 = 1;
+    std::memset(gFlyingrides_8791f8, 0, sizeof gFlyingrides_8791f8);
+    u32 *volatile *const sines = reinterpret_cast<u32 *volatile *>(&gFlyingrides_8791c8);
     *sines = static_cast<u32 *>(Mem_GlobalAlloc(0x4000));
     const double step = gFlyingRides_Init_701090, scale = gFlyingRides_Init_701098,
                  half = gFlyingRides_Init_7010a0;
@@ -572,14 +571,14 @@ extern "C" void __cdecl FlyingRide_Free(s32 index) {
         FlyingRide_ClearSlot(index, i);
     }
     Mem_GlobalFree(table()[index]);
-    reinterpret_cast<u8 **>(0x008791f8)[index] = nullptr;
+    gFlyingrides_8791f8[index] = nullptr;
 }
 
 extern "C" void __cdecl FlyingRides_Shutdown() {
-    u32 *const flag = reinterpret_cast<u32 *>(0x008791ec);
+    u32 *const flag = &gFlyingrides_8791ec;
     if (!*flag)
         return;
-    void **const sines = reinterpret_cast<void **>(0x008791c8);
+    void **const sines = reinterpret_cast<void **>(&gFlyingrides_8791c8);
     Mem_GlobalFree(*sines);
     *sines = nullptr;
     for (s32 index = 1; index < 100; ++index)

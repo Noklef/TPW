@@ -49,7 +49,7 @@ void counted(u8 *vm, u32 field, u32 array, u32 shift, bool zero, u8 *stream) {
 extern "C" {
 
 u32 __cdecl RSSE_LoadScriptFile(const char *name, u32 handle, u32 quiet) {
-    if (!global<u32>(0x008791a0)) return 0;
+    if (!gRsseSystem.initialised) return 0;
     u32 result = 0;
     u8 *const stream = reinterpret_cast<u8 *>(VFS_Open(name));
     if (!stream) return 0;
@@ -63,11 +63,11 @@ u32 __cdecl RSSE_LoadScriptFile(const char *name, u32 handle, u32 quiet) {
     read(&version, 4, 1, stream);
     u8 *const vm = static_cast<u8 *>(Mem_GlobalAlloc(0xf4));
     std::memset(vm, 0, 0xf4);
-    ++global<u32>(0x008791ac);
-    at<u8 *>(vm, 0) = global<u8 *>(0x008791b0);
+    ++gRsseSystem.scriptCount;
+    at<u8 *>(vm, 0) = reinterpret_cast<u8 * &>(gRsseSystem.scriptList);
     at<u8 *>(vm, 4) = nullptr;
-    if (global<u8 *>(0x008791b0)) at<u8 *>(global<u8 *>(0x008791b0), 4) = vm;
-    global<u8 *>(0x008791b0) = vm;
+    if (reinterpret_cast<u8 * &>(gRsseSystem.scriptList)) at<u8 *>(reinterpret_cast<u8 * &>(gRsseSystem.scriptList), 4) = vm;
+    reinterpret_cast<u8 * &>(gRsseSystem.scriptList) = vm;
     counted(vm, 0x8c, 0x1c, 2, true, stream);
     counted(vm, 0x54, 0x20, 2, false, stream);
     read(vm + 0x94, 4, 1, stream);
@@ -89,8 +89,8 @@ u32 __cdecl RSSE_LoadScriptFile(const char *name, u32 handle, u32 quiet) {
         read(data, 1, at<u32>(vm, 0x90), stream);
     }
     at<u32>(vm, 0x40) = at<u32>(vm, 0x54) - 1;
-    at<u32>(vm, 8) = gRSSE_8791a8;
-    ++gRSSE_8791a8;
+    at<u32>(vm, 8) = gRsseSystem.flag08;
+    ++gRsseSystem.flag08;
     at<u16>(vm, 0x88) = 1000;
     at<u16>(vm, 0x8a) = 1000;
     at<u16>(vm, 0xe4) = 1000;

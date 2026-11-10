@@ -11,6 +11,8 @@
 #include "../ui/windowtimers.h"
 #include "../world/focuscell.h"
 #include "../render/dynfaces.h"
+#include "../world/pathdrag.h"
+#include "../world/cellrun.h"
 
 namespace {
 
@@ -85,11 +87,11 @@ u32 __cdecl Global7c2650_Set(u32 value) {
 u32 __cdecl Global8186ac_Get() { return reinterpret_cast<u32 &>(gFocuscell_8186ac); }
 
 u32 __cdecl Global816d48_Set(u32 value) {
-    global<u32>(0x00816d48) = value;
+    gFocuscell_816d48 = value;
     return value;
 }
 
-u32 __cdecl Global816d48_Get() { return global<u32>(0x00816d48); }
+u32 __cdecl Global816d48_Get() { return gFocuscell_816d48; }
 
 u32 __cdecl Global80239c_Get() { return global<u32>(0x0080239c); }
 
@@ -445,11 +447,11 @@ u16 __fastcall Fn_50b080(u8 *o, void *, u32 v0) {
 }
 
 void __cdecl Fn_52c2a0() {
-    global<u8>(0x00818c54) = 0x0;
+    gPathdrag_818c54 = 0x0;
 }
 
 void __cdecl Fn_52fbd0() {
-    global<u32>(0x00820a8c) = 0x0;
+    reinterpret_cast<u32 &>(gCellrun_820a8c) = 0x0;
 }
 
 u32 __stdcall Fn_56b620(u32 v0) {

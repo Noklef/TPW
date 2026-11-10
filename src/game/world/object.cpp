@@ -37,6 +37,7 @@
 #include "../ui/dialog74fb20.h"
 #include "object.h"
 #include "mapcell.h"
+#include "cellmessage.h"
 
 namespace {
 
@@ -197,7 +198,7 @@ u32 __fastcall Kinds_Compatible(const u8 *object, void *, u32 kind) {
     if (kind == 4 && mine == 1)
         return 1;
     if (kind == 3 && mine == 1)
-        return global<u32>(0x00820ab8) == 0 ? 1 : 0;
+        return gCellmessage_820ab8 == 0 ? 1 : 0;
     return 0;
 }
 

@@ -46,19 +46,19 @@ void Rotate(s32 *pos, s32 angle) {
 extern "C" {
 
 u32 __cdecl Particle_IsAlive(u32 handle) {
-    if (handle == 0 || global<u32>(0x00816d40) == 0 || (u16)handle >= 0x78) return 0;
+    if (handle == 0 || gParticles_816d40 == 0 || (u16)handle >= 0x78) return 0;
     return *reinterpret_cast<u16 *>(system((u16)handle) + 0xa) == (u16)(handle >> 16) ? 1 : 0;
 }
 
 u32 __cdecl ParticleEffector_IsAlive(u32 handle) {
-    if (global<u32>(0x00816d40) == 0 || (u16)handle >= 0x14) return 0;
+    if (gParticles_816d40 == 0 || (u16)handle >= 0x14) return 0;
     return global<u16>(0x00816504 + (u16)handle * 0x68) == (u16)(handle >> 16) ? 1 : 0;
 }
 
 void __cdecl Particles_SetReduced(u32 reduced) { gParticles_80ced8 = reduced; }
 
 void __cdecl ParticleEffect_Clear118(u32 effect) {
-    if (global<u32>(0x00816d40) != 0 && effect < 0x69) global<u8>(0x00804370 + effect * 0x140 + 0x118) = 0;
+    if (gParticles_816d40 != 0 && effect < 0x69) global<u8>(0x00804370 + effect * 0x140 + 0x118) = 0;
 }
 
 void __cdecl ParticleSystem_End(u32 handle) {
@@ -138,7 +138,7 @@ void __cdecl ParticleSystem_Release(s32 slot) {
 }
 
 void __cdecl Particles_EndAll() {
-    if (global<u32>(0x00816d40) == 0)
+    if (gParticles_816d40 == 0)
         return;
     for (s32 slot = global<s16>(0x00816d1c); slot >= 0;) {
         u8 *s = system((u32)slot);
@@ -288,7 +288,7 @@ s32 __cdecl Particle_Emit(u32 slot) {
 // Particle_Spawn and Particle_SpawnWithVelocity: the same but for the velocity, the definition's plus jitter (null) or the one given (times the system's
 // scale +0xb0 over 1024).
 static s32 StartSystem(s32 effect, s32 x, s32 y, s32 z, const s32 *velocity) {
-    if (global<u32>(0x00816d40) == 0 || effect < 0 || effect >= 0x69)
+    if (gParticles_816d40 == 0 || effect < 0 || effect >= 0x69)
         return -1;
     u8 *const def = reinterpret_cast<u8 *>(0x00804370 + effect * 0x140);
     if (gParticles_80ced8 != 0 && def[0xc1] != 0)
@@ -715,7 +715,7 @@ void __cdecl Particles_Update() {
 }
 
 u32 __cdecl Particles_Tick() {
-    if (global<u32>(0x00816d40) == 0)
+    if (gParticles_816d40 == 0)
         return gParticles_Tick_80436c;
     if (++global<s32>(0x0080ced4) <= 1)
         return gParticles_Tick_80436c;
@@ -790,7 +790,7 @@ u32 __cdecl Particles_Tick() {
 }
 
 u32 __cdecl ParticleLib_Load(const char *name) {
-    const u32 &on = global<u32>(0x00816d40);
+    const u32 &on = gParticles_816d40;
     if (!on) return 1;
     Stream *const stream = reinterpret_cast<Stream *>(VFS_Open(name));
     if (!stream) return 1;
@@ -825,7 +825,7 @@ u32 __cdecl ParticleLib_Load(const char *name) {
 }
 
 u8 *__cdecl ParticleSystem_DrawList(u32 slot) {
-    if (!global<u32>(0x00816d40)) return nullptr;
+    if (!gParticles_816d40) return nullptr;
     u8 *const sys = system(slot);
     const bool flat = (s8)sys[5] != 0;
     const s32 scale = field<s16>(sys, 0xa2);
@@ -884,26 +884,26 @@ u8 *__cdecl ParticleSystem_DrawList(u32 slot) {
 }
 
 u32 __cdecl ParticleSystem_Count(u32 slot) {
-    if (!global<u32>(0x00816d40)) return 0;
+    if (!gParticles_816d40) return 0;
     u8 *const sys = system(slot & 0xffff);
     return field<u16>(sys, 0) ? field<u16>(sys, 8) : 0;
 }
 
 void __cdecl ParticleSystem_Bounds(u32 slot, s32 *low, s32 *high) {
-    if (!global<u32>(0x00816d40)) return;
+    if (!gParticles_816d40) return;
     u8 *const sys = system(slot);
     for (u32 i = 0; i < 3; ++i) low[i] = (s32)(field<u32>(sys, 0x128 + 4 * i) << 4);
     for (u32 i = 0; i < 3; ++i) high[i] = (s32)(field<u32>(sys, 0x134 + 4 * i) << 4);
 }
 
 void __cdecl ParticleSystem_FreeDrawList(u8 *list) {
-    if (!global<u32>(0x00816d40) || !list) return;
+    if (!gParticles_816d40 || !list) return;
     if (list == reinterpret_cast<u8 * &>(gParticles_816d38)) gParticles_816d3c = 0;
     else Mem_GlobalFree(list);
 }
 
 void __cdecl Particles_Init(u32 callback, u32 flag, s32 count) {
-    if (global<u32>(0x00816d40)) return;
+    if (gParticles_816d40) return;
     if (count > 0x7fff) count = 0x7fff;
     if (count < 0x64) count = 0x64;
     for (u32 i = 0; i < 0x279a; ++i) (&global<u32>(0x0080ced0))[i] = 0;
@@ -914,7 +914,7 @@ void __cdecl Particles_Init(u32 callback, u32 flag, s32 count) {
     gParticles_80ced8 = 0;
     global<u32>(0x0080cef4) = callback ? callback : 0x005d60c0;
     global<u32>(0x0080cef8) = Mem_AllocChecked((u32)count * 0x34);
-    global<u32>(0x00816d40) = 1;
+    gParticles_816d40 = 1;
     Emitters_Reset();
     gParticles_816d38 = Mem_AllocChecked(0xaf0);
     gParticles_816d3c = 0;

@@ -22,6 +22,7 @@
 #include "mapclick.h"
 #include "focuscell.h"
 #include "trackmessage.h"
+#include "cellmessage.h"
 
 namespace {
 
@@ -183,10 +184,10 @@ u32 model(u8 *cell) {
         hoarding_flags(cell);
     else if (corner(cell) || junction(cell))
         at<u16>(cell, 0xe) &= 0xfff0;
-    global<u32>(0x00816d64) = 0;
+    gCellmessage_816d64 = 0;
     if (at<u32>(cell, 8) != 0xd && at<u32>(cell, 8) != 0x12) g_env->model(cell);
-    if (global<u32>(0x00820ad0) && global<u32>(0x00820ae8)) {
-        global<u32>(0x00820ae8) = 0;
+    if (gCellbuild_820ad0 && gTrackmessage_820ae8) {
+        gTrackmessage_820ae8 = 0;
         return 0;
     }
     return 1;
@@ -259,7 +260,7 @@ void dead_ends(const u8 *cell) {
         g_env->deadEnds((s32)(x + 1), (s32)y, 0);
         g_env->deadEnds((s32)x, (s32)(y + 1), 0);
         g_env->deadEnds((s32)(x + 1), (s32)(y + 1), 0);
-        if (global<u32>(0x00820ad0)) {
+        if (gCellbuild_820ad0) {
             u8 *const c44 = MapHandle_Cell44(handle(cell));
             g_env->clear(c44, nullptr, 0, 0);
             static const u32 kPairs[3] = {0x007cdbc8, 0x007cdba8, 0x007cdbb8};
@@ -285,7 +286,7 @@ u32 __fastcall MapCell_HandleTrackMessage(u8 *cell, void *, u32 message, u32 a, 
         g_env->remove(cell, nullptr, (s32)a, (s32)b, 1);
         return 1;
     case 0x80:
-        g_env->link(cell, nullptr, global<u32>(0x00816d64), (s32)a, (s32)b);
+        g_env->link(cell, nullptr, gCellmessage_816d64, (s32)a, (s32)b);
         return 1;
     case 0x81:
         return model(cell);
@@ -306,10 +307,10 @@ u32 __fastcall MapCell_HandleTrackMessage(u8 *cell, void *, u32 message, u32 a, 
         break;
     }
     const u32 type = at<u32>(cell, 8);
-    global<u32>(0x00820ae8) = 0;
-    if ((global<u32>(0x00820ad0) && (type == 0xd || type == 0x12 || type == 0xb || type == 0x10)) || type == 0x19) global<u32>(0x00820ae8) = 1;
+    gTrackmessage_820ae8 = 0;
+    if ((gCellbuild_820ad0 && (type == 0xd || type == 0x12 || type == 0xb || type == 0x10)) || type == 0x19) gTrackmessage_820ae8 = 1;
     if (!g_env->setKind(cell, nullptr, message)) return message == 0x19;
-    global<u32>(0x00816d64) = message;
+    gCellmessage_816d64 = message;
     return 1;
 }
 }

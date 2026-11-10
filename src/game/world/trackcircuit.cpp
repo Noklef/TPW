@@ -10,6 +10,7 @@
 #include "object.h"
 #include "thingscan.h"
 #include "trackrides.h"
+#include "focuscell.h"
 
 namespace {
 
@@ -95,7 +96,7 @@ void TrackCircuit_SetEnv(const TrackCircuitEnv *env) { g_env = env ? env : &kGam
 u32 __cdecl TrackCircuit_Walk(u32 check) {
     const TrackCircuitEnv *const E = g_env;
     const bool build = (u8)check == 0;
-    u8 direction = global<u8>(0x00818c50);
+    u8 direction = gFocuscell_818c50;
     s32 upgrades = 0, index = 0;
     u32 mesh = 0, def = 0, result = 1, sides = 0;
     s32 x0 = global<s32>(0x007639e0), y0 = global<s32>(0x007639e4);

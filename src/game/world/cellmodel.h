@@ -73,3 +73,12 @@ void __fastcall MapCell_ApplyModel(u8 *cell);
 // groups nothing more.
 void __fastcall MapCell_PlaceRide(u8 *cell);
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(s32[3], gCellmodel_820aa8, 0x00820aa8, 0xc);
+GAME_DATA(u8, gCellmodel_820ac0, 0x00820ac0, 1);
+GAME_DATA(s32[3], gCellmodel_820ad8, 0x00820ad8, 0xc);
+GAME_DATA(s32, gCellmodel_820aec, 0x00820aec, 4);
+GAME_DATA(u32, gCellmodel_820af0, 0x00820af0, 4);

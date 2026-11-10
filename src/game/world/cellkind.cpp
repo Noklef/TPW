@@ -16,6 +16,7 @@
 #include "thingscan.h"
 #include "world.h"
 #include "mapclick.h"
+#include "cellbuild.h"
 
 namespace {
 
@@ -264,7 +265,7 @@ u32 __fastcall MapCell_SetTrackKind(u8 *cell, void *, u32 kind) {
     const u32 count = Counter7cdb98_Inc();
     Map_SetBlockValue(World() + 0x2d8, nullptr, count, at<u16>(cell, 0));   // (the high half: a local's unset stack bytes; the callee reads the low)
     const u32 now = at<u32>(cell, 8);
-    if ((now == 0xb || now == 0x10) && global<u32>(0x00820ad0)) {
+    if ((now == 0xb || now == 0x10) && gCellbuild_820ad0) {
         u8 *const here = MapHandle_Cell44(reinterpret_cast<const u16 *>(cell));
         if (here) {
             u8 *const east = Map_StepCell(reinterpret_cast<const u16 *>(here), nullptr, PairX(0x007cdbc8), PairY(0x007cdbc8), 1);

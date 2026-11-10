@@ -122,11 +122,11 @@ u32 __fastcall MapCell_PickModel(const u8 *cell, void *, s32 *angle) {
         }
     }
     if (MapCell_StraightNeighbours(cell) && !(at<u8>(cell, 0xe) & 0xf)) {
-        const s32 counter = global<s32>(0x00820aec);
+        const s32 counter = gCellmodel_820aec;
         const u32 variant = counter < 0x12 ? 0 : counter < 0x18 ? 0x14 : counter < 0x1e ? 0x17 : static_cast<u32>(reinterpret_cast<uintptr_t>(angle));
-        if (global<u32>(0x00820af0) != variant) model += variant;
-        global<u32>(0x00820af0) = variant;
-        global<u32>(0x00820aec) = static_cast<u32>(World_Rand(global<u8 *>(0x007cf83c))) % 30;
+        if (gCellmodel_820af0 != variant) model += variant;
+        gCellmodel_820af0 = variant;
+        reinterpret_cast<u32 &>(gCellmodel_820aec) = static_cast<u32>(World_Rand(global<u8 *>(0x007cf83c))) % 30;
     }
     return (model & 0xffff) | 0x50000;
 }
@@ -152,11 +152,11 @@ u32 __fastcall MapCell_PickPathModel(const u8 *cell, void *, s32 *angle) {
         const u8 d = MapCell_Direction(cell), b = MapCell_Neighbours(cell);
         if ((d == 0x40 && b == 0x50) || (d == 0x10 && b == 0x14) || (d == 1 && b == 0x41) || (d == 4 && b == 5)) ++model;
     }
-    if (global<u8>(0x00820ac0) && (model & 0xffff0000u) == 0x10000) {
+    if (gCellmodel_820ac0 && (model & 0xffff0000u) == 0x10000) {
         if ((model & 0xffff) == 2) model += 0x11;
         if ((model & 0xffff) == 0xa) model += 0xa;
     }
-    global<u8>(0x00820ac0) = static_cast<u8>(Crt().rand() % 2);
+    gCellmodel_820ac0 = static_cast<u8>(Crt().rand() % 2);
     if ((model & 0xffff0000u) != 0x20000) return model;
     const u16 *const handle = reinterpret_cast<const u16 *>(cell);
     u8 side = 1;
@@ -181,7 +181,7 @@ void __fastcall MapCell_ApplyPathModel(u8 *cell) {
     u32 model = 0x37;
     if (kind > 0 && kind != 5)
         model = MapCell_PickPathModel(cell, nullptr, &angle);
-    s32 *const paint = reinterpret_cast<s32 *>(0x00820aa8);
+    s32 *const paint = gCellmodel_820aa8;
     paint[0] = static_cast<s32>(model) >> 16;
     paint[1] = static_cast<s32>(model & 0xffff);
     paint[2] = angle;
@@ -222,7 +222,7 @@ void __fastcall MapCell_ApplyModel(u8 *cell) {
     const s32 kind = at<s32>(cell, 8);
     if (kind > 0 && kind != 5)
         model = MapCell_PickModel(cell, nullptr, &angle);
-    s32 *const kept = reinterpret_cast<s32 *>(0x00820ad8);
+    s32 *const kept = gCellmodel_820ad8;
     kept[0] = static_cast<s32>(model) >> 16;
     kept[1] = static_cast<s32>(model & 0xffff);
     kept[2] = angle;

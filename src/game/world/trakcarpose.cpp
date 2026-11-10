@@ -8,6 +8,7 @@
 #include "../model/scratch.h"
 #include "../render/particles.h"
 #include "../terrain/land.h"
+#include "collobj.h"
 
 namespace {
 
@@ -169,14 +170,14 @@ void TrakPose_SetEnv(const TrakPoseEnv *env) { g_env = env ? env : &kPortEnv; }
 extern "C" void __cdecl TrakRide_PoseCars(u32 handle, float a) {
     if (!(a <= 1.0f)) a = 1.0f;
     else if (a < -1.0f) a = -1.0f;
-    const bool loaded = global<u32>(0x877b58) == 0x4a454647;
-    const u8 *const ride = loaded ? global<u8 *>(0x877b60) + (handle & 0xff) * 0xd0 : nullptr;
+    const bool loaded = gTrackPools.tag == 0x4a454647;
+    const u8 *const ride = loaded ? gTrackPools.rides + (handle & 0xff) * 0xd0 : nullptr;
     if (handle != (loaded ? (handle & 0xff) | at<u32>(ride, 0) << 8 : 0)) return;
-    u8 *car = global<u8 *>(0x877b68);
+    u8 *car = gTrackPools.cars;
     if (!car) return;
     Wheel wheels[0x100];
     s32 count = 0;
-    for (u32 left = global<u32>(0x877b6c); left; car += 0xac) {
+    for (u32 left = (u32)gTrackPools.carCount; left; car += 0xac) {
         if (!(car[0] & 1)) continue;
         left--;
         if (at<const u8 *>(car, 0x9c) != ride) continue;

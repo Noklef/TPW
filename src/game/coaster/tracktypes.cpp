@@ -3,6 +3,7 @@
 #include <cstdint>
 
 #include "../core/vwrap.h"
+#include "../render/particles.h"
 
 namespace {
 
@@ -13,7 +14,7 @@ template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((ui
 extern "C" {
 
 s32 __cdecl TrackTypeSlot_ReadIntoFree(u8 *stream) {
-    if (global<u32>(0x00816d40) == 0)
+    if (gParticles_816d40 == 0)
         return -1;
     s32 index = 0;
     for (u32 slot = 0x00804488; slot != 0 && global<u8>(slot) != 0;) {

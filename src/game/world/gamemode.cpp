@@ -143,7 +143,7 @@ u32 __cdecl GameMode_StepBack(u8 *thing, u32 relink) {
     }
     if (mode == 0xe || mode == 0x13 || mode == 4 || mode == 0x3b || mode == 0x16) return 0;
     s32 *const point = &global<s32>(0x0081adb0);
-    s32 &count = global<s32>(0x00820a8c);
+    s32 &count = gCellrun_820a8c;
     bool popped = false;
     if (count > 0) {
         point[0] = global<s32>(0x0081b738 + count * 8);

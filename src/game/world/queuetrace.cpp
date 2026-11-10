@@ -34,7 +34,7 @@ extern "C" {
 u8 __cdecl RideQueue_Trace(const u8 *thing) {
     const u32 handle = at<u16>(thing, 0x36);
     u8 stop = 0, result = 0, moved = 0;
-    global<s32>(0x00820a8c) = 0;
+    gCellrun_820a8c = 0;
     s32 x = (s32)((handle - 1) & 0x7f), y = (s32)((handle - 1) >> 7);
     u8 *cell = map_cell(x, y);
     u8 direction = MapCell_Neighbours(cell);

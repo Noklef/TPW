@@ -110,8 +110,8 @@ u32 __fastcall VertexBlock_AddFace(u8 *block, void *, u32 x, u32 y, u32 z, u32 f
         if (Global81ae2c_Get_52f840() == 4 || Global81ae2c_Get_52f840() == 0xe || Global81ae2c_Get_52f840() == 0x13) {
             const X87Reg across = X87Reg((double)gFocuscell_8186b8) * X87Reg(10.0f);
             const X87Reg down = X87Reg((double)gFocuscell_8186b4) * X87Reg(10.0f);
-            x = bits((float)(X87_SubR(across, X87Reg(value(x))) + X87Reg(*reinterpret_cast<const float *>(0x00820afc))));
-            z = bits((float)(X87_SubR(down, X87Reg(value(z))) + X87Reg(*reinterpret_cast<const float *>(0x00820af8))));
+            x = bits((float)(X87_SubR(across, X87Reg(value(x))) + X87Reg(gFocuscell_820afc)));
+            z = bits((float)(X87_SubR(down, X87Reg(value(z))) + X87Reg(gFocuscell_820af8)));
         }
     }
     const u32 wave = type != -1 && type < 15 ? 1 : 0;

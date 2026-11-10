@@ -14,6 +14,7 @@
 #include "mapclick.h"
 #include "cellbuild.h"
 #include "mapclick.h"
+#include "cellmessage.h"
 
 namespace {
 
@@ -86,7 +87,7 @@ void claim(const u8 *entry, u32 &blocked) {
     const u32 t = type(entry);
     if ((t == 0xb || t == 0xd || t == 0x10 || t == 0x12 || t == 0x19) && !owned(entry)) {
         blocked = 1;
-        global<u32>(0x00816d50) = 1;
+        gCellbuild_816d50 = 1;
     }
 }
 
@@ -114,7 +115,7 @@ u8 turned(const u8 *cell) { return (u8)Nibble_Scale(cell[0xd]); }
 
 // A refusal: 0x816d58 set unless alone; 1.
 u32 taken(u32 alone) {
-    if (alone == 0) global<u32>(0x00816d58) = 1;
+    if (alone == 0) gCellbuild_816d58 = 1;
     return 1;
 }
 
@@ -140,18 +141,18 @@ u32 __fastcall MapCell_CanBuild(u8 *cell, void *, u32 kind, u32 alone) {
         if (kind == 0x18 && type(cell) == 1) return 0;
     }
     if (kind == 0x18) kind = 1;
-    if (kind == 0x36) return global<u32>(0x00816d50) != 0 ? 1 : 0;
+    if (kind == 0x36) return gCellbuild_816d50 != 0 ? 1 : 0;
     if (footprint(type(cell))) object_priority(cell);
-    const u32 blocked = global<u32>(0x00816d50);
+    const u32 blocked = gCellbuild_816d50;
     if (blocked == 0 && kind == 0x15 && type(cell) == 0x15 && (cell[0xf] & 1) && owned(cell)) {
-        global<u32>(0x00816d4c) = 1;
+        gCellbuild_816d4c = 1;
         return 0xb;
     }
     if (cell[0xe] & 0x40) return 1;
     if (footprint(type(cell))) {
-        if (reinterpret_cast<s32 &>(gMapclick_818c10) > gCellbuild_818c14 && kind != 0x15 && kind != 0x16 && global<u32>(0x00816d58) == 0 && blocked == 0)
+        if (reinterpret_cast<s32 &>(gMapclick_818c10) > gCellbuild_818c14 && kind != 0x15 && kind != 0x16 && gCellbuild_816d58 == 0 && blocked == 0)
             return 0;
-        global<u32>(0x00816d50) = 1;
+        gCellbuild_816d50 = 1;
         return 1;
     }
     if (kind == 1) price = Global81b6dc_Get_52fb20();
@@ -159,17 +160,17 @@ u32 __fastcall MapCell_CanBuild(u8 *cell, void *, u32 kind, u32 alone) {
     u8 *entry = MapHandle_Entry28(reinterpret_cast<const u16 *>(cell));
     if (MapCell_IsTypeCOr11(entry)) entry = parent_entry(at<u16>(entry, 0x10));
     if (kind == 0xb && MapCell_IsTypeBDOr10Or12Or19(entry) && gMapclick_8187f8 == 0) {
-        global<u32>(0x00816d50) = 1;
+        gCellbuild_816d50 = 1;
         return 1;
     }
     if (kind == 0x10 && MapCell_IsTypeBDOr10Or12Or19(entry) && gMapclick_8187f8 == 0) {
-        global<u32>(0x00816d50) = 1;
+        gCellbuild_816d50 = 1;
         return 1;
     }
-    if (global<u32>(0x00816d58) != 0) global<u32>(0x00816d50) = 1;
-    if (alone == 0 && global<u32>(0x00816d50) != 0) return 1;
+    if (gCellbuild_816d58 != 0) gCellbuild_816d50 = 1;
+    if (alone == 0 && gCellbuild_816d50 != 0) return 1;
     if (type(entry) == 0x19) {
-        global<u32>(0x00816d50) = 1;
+        gCellbuild_816d50 = 1;
         return 1;
     }
     if (Kinds_Compatible(cell, nullptr, kind) && type(cell) != kind && gMapclick_8186d4 == 0 && !(kind == 3 && type(cell) == 1))
@@ -177,9 +178,9 @@ u32 __fastcall MapCell_CanBuild(u8 *cell, void *, u32 kind, u32 alone) {
     if (global<u32>(0x00785a2c) == 0 && Global81af4c_Get_52fbc0() != 0) {
         const s32 have = (s32)money();
         if ((s32)Global81af4c_Get_52fbc0() > have) {
-            global<u32>(0x00816d50) = 1;
+            gCellbuild_816d50 = 1;
             Global816d48_Set(1);
-            global<u32>(0x00816d5c) = 1;
+            gCellbuild_816d5c = 1;
             return 1;
         }
     }
@@ -197,33 +198,33 @@ u32 __fastcall MapCell_CanBuild(u8 *cell, void *, u32 kind, u32 alone) {
     }
     if (kind == 3 && type(cell) == 3) {
         if (MapCell_NeighbourCount(cell) == 2 && gMapclick_8186d0 == 0) {
-            global<u32>(0x00816d50) = 1;
+            gCellbuild_816d50 = 1;
             return 1;
         }
         if (!owned(cell)) {
-            global<u32>(0x00816d50) = 1;
+            gCellbuild_816d50 = 1;
             return 1;
         }
-        if (global<u32>(0x00820ab8) == 0) return 0;
-        global<u32>(0x00816d4c) = 1;
+        if (gCellmessage_820ab8 == 0) return 0;
+        gCellbuild_816d4c = 1;
         return 0xb;
     }
     u32 t = type(cell);
-    if (kind == t && ((global<u32>(0x00820aa4) != 0 && gMappreview_818688 != 0) || global<u32>(0x00820ab8) != 0)) {
+    if (kind == t && ((gCellmessage_820aa4 != 0 && gMappreview_818688 != 0) || gCellmessage_820ab8 != 0)) {
         if (t == 3 && MapCell_NeighbourCount(cell) == 2) return 1;
-        global<u32>(0x00816d4c) = 1;
+        gCellbuild_816d4c = 1;
         return 0xb;
     }
     const bool lane = kind == 0x15 || kind == 0x16;
     if (lane && (cell[0xe] & 0x20) == 0 && t == 1) return 0;
     if (t == 0x15) {
         if (lane && owned(cell)) return 0;
-        global<u32>(0x00816d58) = 1;
+        gCellbuild_816d58 = 1;
         return 1;
     }
     if (kind == 4 && MapCell_IsTypeBDOr10Or12Or19(entry)) return gMapclick_8187f8 == 0 ? 1 : 0;
     if (MapCell_CornerNeighbours(entry) || MapCell_JunctionNeighbours(entry)) {
-        global<u32>(0x00816d58) = 1;
+        gCellbuild_816d58 = 1;
         return 1;
     }
     if (kind == 1 && type(cell) == 1) return 0;
@@ -234,36 +235,36 @@ u32 __fastcall MapCell_CanBuild(u8 *cell, void *, u32 kind, u32 alone) {
     if (t == 0) return 0;
     if (kind == 3) {
         if (t == 1) {
-            if (global<u32>(0x00820ab8) != 0 && global<u32>(0x00816d50) == 0) {
-                global<u32>(0x00816d60) = 1;
-                global<u32>(0x00816d58) = 1;
+            if (gCellmessage_820ab8 != 0 && gCellbuild_816d50 == 0) {
+                gCellbuild_816d60 = 1;
+                gCellbuild_816d58 = 1;
                 return 8;
             }
             if (cell[0xe] & 0x20) {
-                global<u32>(0x00816d58) = 1;
+                gCellbuild_816d58 = 1;
                 return 1;
             }
             return 0;
         }
         if (t == 4) {
-            global<u32>(0x00816d58) = 1;
+            gCellbuild_816d58 = 1;
             return 1;
         }
     }
     if (kind == 1) {
         if (t == 4 || t == 9) {
-            global<u32>(0x00816d58) = 1;
+            gCellbuild_816d58 = 1;
             return 1;
         }
         if (t == 3) {
             if (MapCell_NeighbourCount(cell) == 1) {
                 const u8 *next = Map_StepCellInDirection(reinterpret_cast<const u16 *>(cell), nullptr, MapCell_Neighbours(cell));
                 if (type(next) == 3) {  // (a null step is read: sic)
-                    global<u32>(0x00816d60) = 1;
+                    gCellbuild_816d60 = 1;
                     return 8;
                 }
             }
-            global<u32>(0x00816d50) = 1;
+            gCellbuild_816d50 = 1;
             return 1;
         }
     }
@@ -274,7 +275,7 @@ u32 __fastcall MapCell_CanBuild(u8 *cell, void *, u32 kind, u32 alone) {
 u32 __fastcall MapCell_CanBuildTrack(u8 *cell, void *, u32 kind, u32 alone, u32 direction) {
     const u8 dir = (u8)direction;
     u32 blocked = 0, price = 0;
-    if (kind == 0x39) return global<u32>(0x00816d50) != 0 ? 1 : 0;
+    if (kind == 0x39) return gCellbuild_816d50 != 0 ? 1 : 0;
     u8 *here = MapHandle_Cell44(reinterpret_cast<const u16 *>(cell));
     u8 *n1 = step44(here, 0x007cdbc8), *n2 = step44(here, 0x007cdbb8), *n3 = step44(here, 0x007cdba8);
     if (unfit(here) || unfit(n1) || unfit(n2) || unfit(n3)) blocked = 1;
@@ -290,8 +291,8 @@ u32 __fastcall MapCell_CanBuildTrack(u8 *cell, void *, u32 kind, u32 alone, u32 
         claim(e2, blocked);
         claim(e3, blocked);
     }
-    if (global<u32>(0x00816d58) != 0) global<u32>(0x00816d50) = 1;
-    if (alone == 0 && global<u32>(0x00816d50) != 0) return 1;
+    if (gCellbuild_816d58 != 0) gCellbuild_816d50 = 1;
+    if (alone == 0 && gCellbuild_816d50 != 0) return 1;
     u32 t = type(cell);
     if (t == 0x19) {
         if (kind == 0x19) {  // a hoarding on a hoarding: only at either of the two points (0x7639f0, 0x7639f8)
@@ -303,13 +304,13 @@ u32 __fastcall MapCell_CanBuildTrack(u8 *cell, void *, u32 kind, u32 alone, u32 
         }
     } else if (kind == 0x19) {  // (the original's test of a type 0x19 cell's direction here is never reached)
         if (t == 0 || t == 7) return 0;
-        global<u32>(0x00816d50) = 1;
+        gCellbuild_816d50 = 1;
         return 1;
     }
     if (kind == t && owned(cell)) {
-        if (global<u32>(0x00816d54) == 0 || MapCell_NeighbourCount(cell) == 1 || MapCell_NeighbourCount(cell) == 3) global<u32>(0x00816d54) = 1;
+        if (gCellbuild_816d54 == 0 || MapCell_NeighbourCount(cell) == 1 || MapCell_NeighbourCount(cell) == 3) gCellbuild_816d54 = 1;
     }
-    if (kind == type(cell) && global<u32>(0x00820ac8) == 0 && global<u32>(0x00820ad0) == 0) {
+    if (kind == type(cell) && gCellbuild_820ac8 == 0 && gCellbuild_820ad0 == 0) {
         if (!straight(cell) && MapCell_NeighbourCount(cell) != 1) return taken(alone);
     }
     t = type(cell);  // (the original also looks up MapHandle_Cell44 of the cell here and drops it)
@@ -323,14 +324,14 @@ u32 __fastcall MapCell_CanBuildTrack(u8 *cell, void *, u32 kind, u32 alone, u32 
         const s32 have = (s32)money();
         if ((s32)Global81af4c_Get_52fbc0() > have) {
             if (alone == 0) {
-                global<u32>(0x00816d50) = 1;
+                gCellbuild_816d50 = 1;
                 Global816d48_Set(1);
             }
-            global<u32>(0x00816d5c) = 1;
+            gCellbuild_816d5c = 1;
             return 1;
         }
     }
-    if (global<u32>(0x00820ad0) != 0 && type(cell) != 0xb && type(cell) != 0x10 && (kind == 0xb || kind == 0x10)) {
+    if (gCellbuild_820ad0 != 0 && type(cell) != 0xb && type(cell) != 0x10 && (kind == 0xb || kind == 0x10)) {
         if (MapCell_IsType3Or9(here) || MapCell_IsType3Or9(n1) || MapCell_IsType3Or9(n2) || MapCell_IsType3Or9(n3) ||
             MapCell_HasFlags(here, nullptr, 0x20) || MapCell_HasFlags(n1, nullptr, 0x20) || MapCell_HasFlags(n2, nullptr, 0x20) ||
             MapCell_HasFlags(n3, nullptr, 0x20))
@@ -338,21 +339,21 @@ u32 __fastcall MapCell_CanBuildTrack(u8 *cell, void *, u32 kind, u32 alone, u32 
     }
     t = type(cell);
     if (t == 0 && kind != 0xe && kind != 0x13 && blocked == 0) {
-        if (alone == 0) global<u32>(0x00816d54) = 0;
+        if (alone == 0) gCellbuild_816d54 = 0;
         return 0;
     }
     if (kind == t || (kind == 0xb && t == 0xd) || (kind == 0x10 && t == 0x12)) {
-        const u32 joined = global<u32>(0x00820ac8);
-        if ((joined != 0 && gMappreview_818688 != 0) || global<u32>(0x00820ad0) != 0) {
+        const u32 joined = gCellbuild_820ac8;
+        if ((joined != 0 && gMappreview_818688 != 0) || gCellbuild_820ad0 != 0) {
             if (t == 0xb || t == 0x10) {
                 if (dir != cell[0xd] && MapCell_NeighbourCount(cell) == 2) return taken(alone);
                 if (corner(cell)) return taken(alone);
             }
             t = type(cell);
             if ((t == 0xd || t == 0x12) && dir != cell[0xd]) return taken(alone);
-            if ((cell[0xe] & 0xf) && dir != 0 && dir != cell[0xd] && (global<u32>(0x00820ad0) != 0 || joined != 0)) return taken(alone);
+            if ((cell[0xe] & 0xf) && dir != 0 && dir != cell[0xd] && (gCellbuild_820ad0 != 0 || joined != 0)) return taken(alone);
             if (dir != turned(cell) && owned(cell) && (cell[0xe] & 0x10) && dir != cell[0xd]) return taken(alone);
-            global<u32>(0x00816d4c) = 1;
+            gCellbuild_816d4c = 1;
             return 0xb;
         }
         if ((cell[0xe] & 0xf) && dir != 0 && dir != cell[0xd] && joined != 0) return taken(alone);
@@ -363,7 +364,7 @@ u32 __fastcall MapCell_CanBuildTrack(u8 *cell, void *, u32 kind, u32 alone, u32 
     }
     t = type(cell);
     if (t == 0x12 && kind == 0x10 && dir == cell[0xd]) {
-        if (alone == 0) global<u32>(0x00816d58) = 1;
+        if (alone == 0) gCellbuild_816d58 = 1;
         return 0;
     }
     if (t == 0x10 && kind == 0x10) {
@@ -372,7 +373,7 @@ u32 __fastcall MapCell_CanBuildTrack(u8 *cell, void *, u32 kind, u32 alone, u32 
     }
     t = type(cell);
     if (t == 0xd && kind == 0xb && dir == cell[0xd]) {
-        if (alone == 0) global<u32>(0x00816d58) = 1;
+        if (alone == 0) gCellbuild_816d58 = 1;
         return 0;
     }
     if (blocked != 0 && (cell[0xe] & 0x10) == 0) return taken(alone);
@@ -384,16 +385,16 @@ u32 __fastcall MapCell_CanBuildTrack(u8 *cell, void *, u32 kind, u32 alone, u32 
     if (type(cell) == 0x10 && (kind == 0x13 || kind == 0xe) && owned(cell) && !spread(cell)) return 9;
     bool refuse = corner(cell) && gMapclick_8186d0 == 0;
     if (!refuse && (cell[0xe] & 0xf)) {
-        if (global<u32>(0x00820ac8) == 0)
+        if (gCellbuild_820ac8 == 0)
             refuse = true;
         else if (dir != cell[0xd] && dir != turned(cell))
             refuse = true;
     }
     if (refuse) {
-        if (alone == 0) global<u32>(0x00816d50) = 1;
+        if (alone == 0) gCellbuild_816d50 = 1;
         return 1;
     }
-    if (MapCell_NeighbourCount(cell) == 2 && dir != cell[0xd] && dir != turned(cell)) global<u32>(0x00816d54) = 0;
+    if (MapCell_NeighbourCount(cell) == 2 && dir != cell[0xd] && dir != turned(cell)) gCellbuild_816d54 = 0;
     if (kind == type(cell) && owned(cell) && MapCell_NeighbourCount(cell) == 3) return 0;
     return 1;
 }

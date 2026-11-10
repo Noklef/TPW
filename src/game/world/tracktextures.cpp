@@ -4,6 +4,8 @@
 #include <cstdint>
 #include "focuscell.h"
 #include "tracktextures.h"
+#include "cellbuild.h"
+#include "cellrun.h"
 
 namespace {
 
@@ -50,8 +52,8 @@ void TrackTextures_SetEnv(const TrackTexturesEnv *env) { g_env = env ? env : &kG
 extern "C" {
 
 void __cdecl TrackTextures_LoadQueue() {
-    global<u32>(0x00816d68) = 1;
-    global<u32>(0x00816d6c) = 1;
+    gTracktextures_816d68 = 1;
+    gTracktextures_816d6c = 1;
     char folder[0x104];
     g_env->format(folder, 0x0076394c, g_env->basePath());
     u32 open = 0;
@@ -60,7 +62,7 @@ void __cdecl TrackTextures_LoadQueue() {
         const u32 name = global<u32>(slot);
         if (!open) open = g_env->openFolder(name, folder, open);
         const u32 flags = global<u8>(slot + 5) ? 0x112423 : 0x12423;
-        global<u32>(slot - 4) = g_env->load(folder, name, &global<u32>(0x00816d68), &global<u32>(0x00816d68), flags, id, 1, 0, 0, 0, 0);
+        global<u32>(slot - 4) = g_env->load(folder, name, &gTracktextures_816d68, &gTracktextures_816d68, flags, id, 1, 0, 0, 0, 0);
     }
 }
 
@@ -92,11 +94,11 @@ void __cdecl Track_ResetMap(s32 columns, s32 rows) {
         }
     }
     g_env->setList(0);
-    global<u32>(0x00816d50) = 0;
-    global<u32>(0x00816d58) = 0;
-    global<u32>(0x00816d60) = 0;
-    global<u32>(0x00816d5c) = 0;
-    global<u32>(0x00816d4c) = 0;
+    gCellbuild_816d50 = 0;
+    gCellbuild_816d58 = 0;
+    gCellbuild_816d60 = 0;
+    gCellbuild_816d5c = 0;
+    gCellbuild_816d4c = 0;
     global<u32>(0x0081b0cc) = 1;
     global<u32>(0x0081ecac) = 0;
     global<u32>(0x0081d7a8) = 0;
@@ -105,7 +107,7 @@ void __cdecl Track_ResetMap(s32 columns, s32 rows) {
     TrackTextures_LoadGoKarts();
     TrackTextures_LoadWaterRide();
     TrackTextures_LoadHoarding();
-    global<u32>(0x00820a8c) = 0;
+    reinterpret_cast<u32 &>(gCellrun_820a8c) = 0;
     reinterpret_cast<u32 &>(gFocuscell_8186ac) = 0;
     global<u16>(0x00818698) = 0;
     g_env->layEntrance();

@@ -151,7 +151,7 @@ u8 *new_node(RsseContext *ctx) {
     at<u32>(node, 4) = 0;
     if (ctx->objects != nullptr) at<u8 *>(ctx->objects, 4) = node;
     ctx->objects = node;
-    global<s32>(0x008791b4)++;
+    gRsse_8791b4++;
     at<s32>(node, 8) = value(ctx);
     at<s32>(node, 0x10) = value(ctx);
     return node;
@@ -169,15 +169,15 @@ void remove_nodes(RsseContext *ctx, s32 key, void(__cdecl *stop)(u32)) {
             if (at<u8 *>(node, 0) != nullptr) at<u8 *>(at<u8 *>(node, 0), 4) = at<u8 *>(node, 4);
             if (node == ctx->objects) ctx->objects = at<u8 *>(node, 0);
             g_env->free(node);
-            global<s32>(0x008791b4)--;
+            gRsse_8791b4--;
         }
         node = next;
     }
 }
 
 RsseContext *find_script(s32 id) {
-    if (global<u32>(0x008791a0) == 0) return nullptr;
-    RsseContext *p = global<RsseContext *>(0x008791b0);
+    if (gRsseSystem.initialised == 0) return nullptr;
+    RsseContext *p = gRsseSystem.scriptList;
     while (p != nullptr && p->id != id) p = p->next;
     return p;
 }
@@ -241,14 +241,14 @@ void pick_script(RsseContext *ctx, u32 word, u32 out) {
     if (base == nullptr) return;
     const char *const name = base + (word ^ kString);
     s32 count = 0;
-    for (const RsseContext *p = global<RsseContext *>(0x008791b0); p != nullptr; p = p->next) {
+    for (const RsseContext *p = gRsseSystem.scriptList; p != nullptr; p = p->next) {
         if (name_matches(p, name)) count++;
     }
     if (count == 0) return;
     s32 pick = rand_half() % count;
     if (pick < 0) pick = -pick;
     s32 seen = 0;
-    for (const RsseContext *p = global<RsseContext *>(0x008791b0); p != nullptr; p = p->next) {
+    for (const RsseContext *p = gRsseSystem.scriptList; p != nullptr; p = p->next) {
         if (name_matches(p, name) && ++seen == pick + 1) {
             ctx->result = p->id;
             if ((out & kVar) == kVar) at<s32>(ctx->vars, out * 4) = p->id;

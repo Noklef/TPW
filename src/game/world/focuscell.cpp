@@ -47,7 +47,7 @@ void __cdecl FocusCell_Update(u32 record) {
         global<s32>(0x007639ac) = 0;
         global<s32>(0x007639e8) = x;
         global<s32>(0x007639ec) = y;
-        global<u8>(0x00818c50) = 4;
+        gFocuscell_818c50 = 4;
         gFocuscell_8186c4 = global<u32>(0x007cf83c) + ((u32)global<u16>(0x00818698) + 0x6cde) * 0x28;
         direction = 0;
     } else {
@@ -76,7 +76,7 @@ void __cdecl FocusCell_Update(u32 record) {
         global<s32>(0x007639e8) = x;
         global<s32>(0x007639ac) = at<s32>(focus, 0x10);
         global<s32>(0x007639ec) = y;
-        global<u8>(0x00818c50) = (u8)Position_StepA(&global<s32>(0x007639e0), &global<s32>(0x007639e4), global<s32>(0x007639ac));
+        gFocuscell_818c50 = (u8)Position_StepA(&global<s32>(0x007639e0), &global<s32>(0x007639e4), global<s32>(0x007639ac));
         direction = global<s32>(0x007639ac);
     }
     Position_StepB(&global<s32>(0x007639e8), &global<s32>(0x007639ec), direction);
@@ -109,7 +109,7 @@ void __cdecl FocusCell_TrackDrag(s32 x, s32 y) {
     global<s32>(0x007639e8) = stepX;
     global<s32>(0x007639ec) = stepY;
     global<s32>(0x007639ac) = at<s32>(gFocuscell_8186ac, 0x10);
-    global<u8>(0x00818c50) = (u8)Position_StepA(&stepX, &stepY, global<s32>(0x007639ac));
+    gFocuscell_818c50 = (u8)Position_StepA(&stepX, &stepY, global<s32>(0x007639ac));
     Position_StepB(&global<s32>(0x007639e8), &global<s32>(0x007639ec), global<s32>(0x007639ac));
     // the point the even number of cells from the stepped cell towards (x, y) (the difference halved rounding down, doubled)
     s32 cx = (s32)((u32)stepX + (((u32)x - (u32)stepX) & ~1u));
@@ -124,8 +124,8 @@ void __cdecl FocusCell_TrackDrag(s32 x, s32 y) {
     u8 *const focus = gFocuscell_8186ac;
     if (at<u32>(focus, 0x2c) == 0) {
         TrackRun_TraceA(focus);
-        global<float>(0x00820afc) = (float)global<s32>(0x0081ede4);
-        global<float>(0x00820af8) = (float)global<s32>(0x0081ede8);
+        gFocuscell_820afc = (float)global<s32>(0x0081ede4);
+        gFocuscell_820af8 = (float)global<s32>(0x0081ede8);
         return;
     }
     if (global<s16>(0x007639b0) == -1)
@@ -147,9 +147,9 @@ void __cdecl FocusCell_TrackDrag(s32 x, s32 y) {
     if (built != 9) {
         global<u16>(0x00818684) = (u16)start;
         global<s16>(0x007639b4) = startWord;
-        global<u32>(0x00816d48) = 0;
-        global<u32>(0x00816d50) = 0;
-        global<u32>(0x00816d58) = 0;
+        gFocuscell_816d48 = 0;
+        gCellbuild_816d50 = 0;
+        gCellbuild_816d58 = 0;
     }
     if (startWord > global<s16>(0x007639b4))
         CellRun_Connect(Cell28(global<u32>(0x00818684)), Cell28(start), 0);

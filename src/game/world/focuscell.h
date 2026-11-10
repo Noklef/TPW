@@ -36,7 +36,11 @@ void __cdecl FocusCell_TrackDrag(s32 x, s32 y);
 #include "../core/gamedata.h"
 
 // Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(u32, gFocuscell_816d48, 0x00816d48, 4);
 GAME_DATA(u8 *, gFocuscell_8186ac, 0x008186ac, 0x4);
 GAME_DATA(s32, gFocuscell_8186b4, 0x008186b4, 0x4);
 GAME_DATA(s32, gFocuscell_8186b8, 0x008186b8, 0x4);
 GAME_DATA(u32, gFocuscell_8186c4, 0x008186c4, 0x4);
+GAME_DATA(u8, gFocuscell_818c50, 0x00818c50, 1);
+GAME_DATA(float, gFocuscell_820af8, 0x00820af8, 4);
+GAME_DATA(float, gFocuscell_820afc, 0x00820afc, 4);

@@ -7,6 +7,9 @@
 #include "trackmessage.h"
 #include "mapclick.h"
 #include "gamemode.h"
+#include "placeobject.h"
+#include "focuscell.h"
+#include "cellbuild.h"
 
 namespace {
 
@@ -17,8 +20,8 @@ const MapLineEnv kGameEnv = {
 };
 const MapLineEnv *g_env = &kGameEnv;
 
-u32 &gLineFirst() { return global<u32>(0x00820ac8); }
-u32 &gLineLast() { return global<u32>(0x00820ad0); }
+u32 &gLineFirst() { return gCellbuild_820ac8; }
+u32 &gLineLast() { return gCellbuild_820ad0; }
 
 s32 abs32(u32 v) {
     const u32 s = static_cast<u32>(static_cast<s32>(v) >> 31);
@@ -167,11 +170,11 @@ u8 *__cdecl Map_ApplyEntranceLines(const u8 *thing, s32 *xOut, s32 *yOut, u32 ki
     s32 x = *reinterpret_cast<const s32 *>(thing + 8);
     s32 y = *reinterpret_cast<const s32 *>(thing + 0xc);
     s32 startX, startY, endX, endY, focusX, focusY;
-    switch (global<s32>(0x00818c4c)) {
-    case 0: startX = x; startY = y + 1; endX = x + 2; endY = y + 1; focusX = x; focusY = y + 1; x += 4; y += 1; global<u8>(0x00818c50) = 4; break;
-    case 0x5a: startX = x + 1; startY = y - 1; endX = x + 1; endY = y - 3; focusX = x + 1; focusY = y; x += 1; y -= 5; global<u8>(0x00818c50) = 1; break;
-    case 0xb4: startX = x - 1; startY = y - 2; endX = x - 3; endY = y - 2; focusX = x; focusY = y - 2; x -= 5; y -= 2; global<u8>(0x00818c50) = 0x40; break;
-    case 0x10e: startX = x - 2; startY = y; endX = x - 2; endY = y + 2; focusX = x - 2; focusY = y; x -= 2; y += 4; global<u8>(0x00818c50) = 0x10; break;
+    switch (gPlaceObject_Footprint_818c4c) {
+    case 0: startX = x; startY = y + 1; endX = x + 2; endY = y + 1; focusX = x; focusY = y + 1; x += 4; y += 1; gFocuscell_818c50 = 4; break;
+    case 0x5a: startX = x + 1; startY = y - 1; endX = x + 1; endY = y - 3; focusX = x + 1; focusY = y; x += 1; y -= 5; gFocuscell_818c50 = 1; break;
+    case 0xb4: startX = x - 1; startY = y - 2; endX = x - 3; endY = y - 2; focusX = x; focusY = y - 2; x -= 5; y -= 2; gFocuscell_818c50 = 0x40; break;
+    case 0x10e: startX = x - 2; startY = y; endX = x - 2; endY = y + 2; focusX = x - 2; focusY = y; x -= 2; y += 4; gFocuscell_818c50 = 0x10; break;
     default:
         // (another angle: the start and the focus row are the kind itself, the end's column and the focus column stale stack dwords (0 here) and the end's
         // row the thing pointer, all as the original's stack slots leave them; the game's angles are quarter turns)

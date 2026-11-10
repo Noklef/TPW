@@ -17,6 +17,7 @@
 #include "../render/particles.h"
 #include "../render/meshlist.h"
 #include "../world/balancelevel.h"
+#include "../world/cellrun.h"
 
 namespace {
 
@@ -90,12 +91,12 @@ u32 __cdecl Global879a24_Free() {
 }
 
 void __cdecl Globals816d40_Free() {
-    if (!global<u32>(0x00816d40))
+    if (!gParticles_816d40)
         return;
     global<u32>(0x0080ced0) = 0;
     Mem_FreeChecked(global<void *>(0x0080cef8));
     const u32 other = gParticles_816d38;
-    global<u32>(0x00816d40) = 0;
+    gParticles_816d40 = 0;
     Mem_FreeChecked((void *)(uintptr_t)other);
 }
 
@@ -224,7 +225,7 @@ u32 __cdecl Global81af4c_Get_52fbc0() {
 }
 
 u32 __cdecl Global820a8c_Get_52fbe0() {
-    return global<u32>(0x00820a8c);
+    return reinterpret_cast<u32 &>(gCellrun_820a8c);
 }
 
 u32 __cdecl Global879088_Set_5508b0(u32 v0) {

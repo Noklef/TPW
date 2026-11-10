@@ -25,3 +25,9 @@ void __cdecl PathDrag_Begin(s32 x, s32 y, u32 keep);
 // id * 0x28) gets the saved value of 0x818c58 back; the byte 0x818c54 is cleared and the cell becomes -1, -1.
 void __cdecl PathDrag_Finish();
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(u8, gPathdrag_818c54, 0x00818c54, 1);
+GAME_DATA(u32, gPathdrag_818c58, 0x00818c58, 4);

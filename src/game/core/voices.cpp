@@ -22,7 +22,7 @@ s32 NextRandom() {
 extern "C" {
 
 u32 __cdecl Voice_Start(s32 voice, s32 x, s32 y, s32 z) {
-    if (global<u32>(0x00816d40) == 0 || voice < 0 || voice >= 0x14) return 0xffffffffu;
+    if (gParticles_816d40 == 0 || voice < 0 || voice >= 0x14) return 0xffffffffu;
     if (gParticles_80ced8 != 0 && global<u8>(0x0080c6f4 + voice * 0x68) != 0) return 0;
     if (gParticles_816d22 < 0) return 0xffffffffu;
     const s16 oldActive = gParticles_816d1e;
@@ -159,7 +159,7 @@ void __cdecl Emitter_Spawn(s32 index, u32 reset) {
 }
 
 void __cdecl Emitters_Reset() {
-    if (global<u32>(0x00816d40) == 0) return;
+    if (gParticles_816d40 == 0) return;
     const u32 bytes = global<u32>(0x0080cedc) * 0x34;
     u8 *const records = global<u8 *>(0x0080cef8);
     global<u32>(0x0080ced0) = 0;

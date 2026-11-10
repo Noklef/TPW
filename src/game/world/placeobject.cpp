@@ -25,6 +25,7 @@
 #include "demolish.h"
 #include "placeobject.h"
 #include "../core/soundset.h"
+#include "cellbuild.h"
 
 namespace {
 
@@ -47,11 +48,11 @@ extern "C" {
 void PlaceObject_SetEnv(const PlaceObjectEnv *env) { g_env = env ? env : &kGameEnv; }
 
 u8 *__cdecl PlaceObject_Create(s32 angle) {
-    const u8 *const def = ObjectDefs_Find(reinterpret_cast<u8 *>(0x007890a0), nullptr, global<u16>(0x00818c38));
+    const u8 *const def = ObjectDefs_Find(reinterpret_cast<u8 *>(0x007890a0), nullptr, gPlaceobject_818c38);
     u32 ride = 0;
     const s32 kind = at<s32>(def, 0xa0);
     if (kind) {
-        const u32 cell = (u32)global<u16>(0x00818c3c) - 1;
+        const u32 cell = (u32)gPlaceobject_818c3c - 1;
         s32 x = (s32)(cell & 0x7f), y = (s32)(cell >> 7);
         u32 code;
         switch (angle) {
@@ -70,13 +71,13 @@ u8 *__cdecl PlaceObject_Create(s32 angle) {
         }
         const s32 ty = scaled(y);
         const s32 tx = scaled(x);
-        ride = TrakRide_Create(kind, tx, ty, code, 0, global<u16>(0x00818c38));
+        ride = TrakRide_Create(kind, tx, ty, code, 0, gPlaceobject_818c38);
     }
     u32 pair[2];
     IntPair_Rotated(reinterpret_cast<const u32 *>(def + 0x4b0), nullptr, pair, angle);
-    const u16 cell = (u16)((u16)(pair[1] << 7) + global<u16>(0x00818c3c) + (u16)pair[0]);
+    const u16 cell = (u16)((u16)(pair[1] << 7) + gPlaceobject_818c3c + (u16)pair[0]);
     u8 *const block = static_cast<u8 *>(GameHeap_Alloc(0x450));
-    u8 *const object = block ? g_env->construct(block, nullptr, cell, global<u16>(0x00818c38), angle, ride) : nullptr;
+    u8 *const object = block ? g_env->construct(block, nullptr, cell, gPlaceobject_818c38, angle, ride) : nullptr;
     if (!object) return nullptr;
     u16 handle = 0;
     if (gMapclick_8187f8 && at<u32>(def, 0x288) != 2) Thing_GetHandle(reinterpret_cast<const u8 *>((uintptr_t)Global8186ac_Get()), nullptr, &handle);
@@ -162,18 +163,18 @@ s32 *__cdecl PlaceObject_Footprint(s32 x, s32 y, u32, s32 angle, u32 place, u32 
     u8 failed = 0, seen9 = 0, seenA = 0, dir9 = 0, dirA = 0;
     s32 x9 = 0, y9 = 0, xA = 0, yA = 0;   // (the cell behind the type 9 cell, the one ahead of the type 0xa cell)
     u8 dir = 0;                           // (unset in the original until a pass sets it)
-    global<u8>(0x00818c50) = 0;
-    global<u8>(0x00818c30) = 0;
+    gFocuscell_818c50 = 0;
+    gPlaceObject_Footprint_818c30 = 0;
     const u16 id = gActionrec_8186e0;
-    global<u16>(0x00818c38) = id;
+    gPlaceobject_818c38 = id;
     global<s32>(0x007639e0) = -1;
     global<s32>(0x007639e4) = -1;
-    global<s32>(0x00818c28) = -1;
-    global<s32>(0x00818c2c) = -1;
-    global<s32>(0x00818c20) = -1;
-    global<s32>(0x00818c24) = -1;
+    gPlaceObject_Footprint_818c28 = -1;
+    gPlaceObject_Footprint_818c2c = -1;
+    gPlaceObject_Footprint_818c20 = -1;
+    gPlaceObject_Footprint_818c24 = -1;
     u8 *const def = ObjectDefs_Find(reinterpret_cast<u8 *>(0x007890a0), nullptr, id);
-    global<u8 *>(0x00818c40) = def;
+    gPlaceObject_Footprint_818c40 = def;
     const s32 *const shape = at<s32 *>(def, 0x18);
     gPlaceObject_Footprint_818c18 = shape;
     const s32 cols = shape[0], rows = shape[1];
@@ -195,9 +196,9 @@ s32 *__cdecl PlaceObject_Footprint(s32 x, s32 y, u32, s32 angle, u32 place, u32 
     }
     f.x = x;
     f.y = y;
-    global<s32>(0x00818c44) = x - h;
-    global<s32>(0x00818c48) = y - v;
-    global<s32>(0x00818c4c) = angle;
+    gPlaceObject_Footprint_818c44 = x - h;
+    gPlaceObject_Footprint_818c48 = y - v;
+    gPlaceObject_Footprint_818c4c = angle;
     const auto type = [&](s32 col, s32 row) { return shape[2 + 2 * (row * 0x14 + col)]; };
     const auto dirByte = [&](s32 col, s32 row) { return reinterpret_cast<const u8 *>(shape)[0xc + 8 * (row * 0x14 + col)]; };
     if (place) {
@@ -214,9 +215,9 @@ s32 *__cdecl PlaceObject_Footprint(s32 x, s32 y, u32, s32 angle, u32 place, u32 
         if (rows > 0) dir = (u8)(f.o68 + y + 5 - rows);   // (sic: the pass's row coordinate, kept where the direction goes)
         s32 ax, ay;
         spot(f, 0, 0, &ax, &ay);
-        global<s32>(0x00818c28) = ax;
-        global<s32>(0x00818c2c) = ay;
-        global<u16>(0x00818c3c) = (u16)cellId(ax, ay);
+        gPlaceObject_Footprint_818c28 = ax;
+        gPlaceObject_Footprint_818c2c = ay;
+        gPlaceobject_818c3c = (u16)cellId(ax, ay);
         const u8 *const object = g_fp->create(angle);
         if (!global<u32>(0x00785a2c)) {
             const float scale = gDemolish_700cd8;
@@ -276,10 +277,10 @@ s32 *__cdecl PlaceObject_Footprint(s32 x, s32 y, u32, s32 angle, u32 place, u32 
                 default: break;
                 }
                 if (place) {
-                    global<s32>(0x00818c20) = px;
-                    global<s32>(0x00818c24) = py;
+                    gPlaceObject_Footprint_818c20 = px;
+                    gPlaceObject_Footprint_818c24 = py;
                     const u8 d = shift(dir, b);
-                    global<u8>(0x00818c30) = d;
+                    gPlaceObject_Footprint_818c30 = d;
                     MapCell_SetDirection(cell, nullptr, d);
                     u8 *const next = Map_StepCellInDirection(reinterpret_cast<const u16 *>(cell), nullptr, Nibble_Scale(MapCell_Direction(cell)));
                     if (next && at<s32>(next, 8) == 1) link(next);
@@ -342,7 +343,7 @@ s32 *__cdecl PlaceObject_Footprint(s32 x, s32 y, u32, s32 angle, u32 place, u32 
                 } else if (next) {
                     test(next, 0x104, 5, shift(dir, 0x10));
                 } else {
-                    global<u32>(0x00816d50) = 1;
+                    gCellbuild_816d50 = 1;
                 }
                 break;
             }
@@ -360,7 +361,7 @@ s32 *__cdecl PlaceObject_Footprint(s32 x, s32 y, u32, s32 angle, u32 place, u32 
     if (!gMapclick_8187f8) g_fp->focusUpdate(0);
     const u8 out9 = (u8)Nibble_Scale(dir9), outA = (u8)Nibble_Scale(dirA);
     if (seen9 || seenA) {
-        if (failed) global<u32>(0x00816d50) = 1;
+        if (failed) gCellbuild_816d50 = 1;
         if (!Map_InBounds(x9, y9)) return nullptr;
         u8 *const behind = cell44(x9, y9);
         if (!Global81b0cc_IfNoFlag()) {
@@ -376,7 +377,7 @@ s32 *__cdecl PlaceObject_Footprint(s32 x, s32 y, u32, s32 angle, u32 place, u32 
         } else if (!place) {
             test(behind, 0x104, 3, out9);
         } else {
-            u8 *const end = cell44(global<s32>(0x00818c20), global<s32>(0x00818c24));
+            u8 *const end = cell44(gPlaceObject_Footprint_818c20, gPlaceObject_Footprint_818c24);
             MapCell_AddNeighbours(end, nullptr, out9);
             MapCell_SetDirection(end, nullptr, out9);
             test(behind, 0x87);
@@ -436,6 +437,6 @@ s32 *__cdecl PlaceObject_Footprint(s32 x, s32 y, u32, s32 angle, u32 place, u32 
         }
         if (!TrackSquare_Check(x2, y2, (u32)angle, place, check, dir)) return nullptr;
     }
-    return reinterpret_cast<s32 *>(0x00818c20);
+    return &gPlaceObject_Footprint_818c20;
 }
 }

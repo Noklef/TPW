@@ -11,6 +11,7 @@
 #include "../world/flyingrides.h"
 #include "soundset.h"
 #include "../world/ridelist.h"
+#include "../render/particles.h"
 
 namespace {
 
@@ -70,8 +71,8 @@ u32 __cdecl Camera_Load(Stream *stream) {
 
 u32 __cdecl Particles_Save(Stream *stream, s32 full) {
     WriteValue(stream, 0x5054434c);
-    Write(stream, &global<u32>(0x00816d40), 4);
-    if (global<u32>(0x00816d40) != 0) {
+    Write(stream, &gParticles_816d40, 4);
+    if (gParticles_816d40 != 0) {
         WriteValue(stream, 0x9e68);
         Write(stream, &global<u8>(0x0080ced0), 0x9e68);
         WriteValue(stream, 0x8b60);
@@ -85,7 +86,7 @@ u32 __cdecl Particles_Save(Stream *stream, s32 full) {
 }
 
 u32 __cdecl Particles_Load(Stream *stream) {
-    if (global<u32>(0x00816d40) == 0)
+    if (gParticles_816d40 == 0)
         return 0;
     s32 result;
     u32 slot = (u32)(uintptr_t)stream;  // (the read goes to the same slot every time: a short read leaves the old value)
@@ -146,18 +147,18 @@ u32 __cdecl Particles_Load(Stream *stream) {
 
 u32 __cdecl FlyingRides_Save(Stream *stream) {
     WriteValue(stream, 0x5f594c46);
-    Write(stream, &global<u32>(0x008791ec), 4);
-    if (global<u32>(0x008791ec) != 0) {
+    Write(stream, &gFlyingrides_8791ec, 4);
+    if (gFlyingrides_8791ec != 0) {
         WriteValue(stream, 400);
-        Write(stream, &global<u8>(0x008791f8), 400);
+        Write(stream, reinterpret_cast<u8 *>(gFlyingrides_8791f8), 400);
         for (u32 address = 0x007660b8; address <= 0x007660c4; address += 4)
             Write(stream, &global<u32>(address), 4);
         const u32 pad = 0x5f444150;
         for (int i = 0; i < 5; ++i)
             Write(stream, &pad, 4);
         WriteValue(stream, 0x122c);
-        for (u32 address = 0x008791fc; (s32)address < 0x879388; address += 4) {
-            if (u8 *block = global<u8 *>(address))
+        for (s32 index = 1; index < 100; ++index) {
+            if (u8 *block = gFlyingrides_8791f8[index])
                 Write(stream, block, 0x122c);
         }
     }
@@ -167,18 +168,18 @@ u32 __cdecl FlyingRides_Save(Stream *stream) {
 u32 __cdecl RSSE_Save(Stream *stream) {
     WriteValue(stream, 0x45535352);
     WriteValue(stream, 0x14);
-    Write(stream, &global<u8>(0x008791a0), 0x14);
-    if (global<u32>(0x008791a0) == 0)
+    Write(stream, reinterpret_cast<u8 *>(&gRsseSystem), 0x14);
+    if (gRsseSystem.initialised == 0)
         return 0;
     const u32 pad = 0x5f444150;
     for (int i = 0; i < 5; ++i)
         Write(stream, &pad, 4);
     u32 count = 0;
-    for (const u8 *ctx = global<const u8 *>(0x008791b0); ctx; ctx = at<const u8 *>(ctx, 0))
+    for (const u8 *ctx = reinterpret_cast<u8 * &>(gRsseSystem.scriptList); ctx; ctx = at<const u8 *>(ctx, 0))
         ++count;
     WriteValue(stream, count);
     WriteValue(stream, 0xf4);
-    for (const u8 *ctx = global<const u8 *>(0x008791b0); ctx; ctx = at<const u8 *>(ctx, 0)) {
+    for (const u8 *ctx = reinterpret_cast<u8 * &>(gRsseSystem.scriptList); ctx; ctx = at<const u8 *>(ctx, 0)) {
         Write(stream, ctx, 0xf4);
         u32 size = at<u32>(ctx, 0x50) << 2;
         WriteValue(stream, size);
@@ -231,11 +232,11 @@ u32 __cdecl RSSE_Save(Stream *stream) {
 }
 
 u32 __cdecl RSSE_Load(Stream *stream) {
-    if (global<u32>(0x008791a0)) {
-        for (RsseContext *ctx = global<RsseContext *>(0x008791b0); ctx; ctx = RSSE_FreeContext(ctx, 0)) {
+    if (gRsseSystem.initialised) {
+        for (RsseContext *ctx = gRsseSystem.scriptList; ctx; ctx = RSSE_FreeContext(ctx, 0)) {
         }
-        global<u32>(0x008791b0) = 0;
-        global<u32>(0x008791a0) = 0;
+        gRsseSystem.scriptList = nullptr;
+        gRsseSystem.initialised = 0;
         // (a non-zero 0x8791b8 prints "Something malloced but not freed": Debug_Printf, left out)
     }
     RSSE_Init();   // (inlined in the original)
@@ -245,8 +246,8 @@ u32 __cdecl RSSE_Load(Stream *stream) {
     if (value != 0x45535352)
         return 1;   // ("Load Fail - Missing header": Debug_Printf, left out)
     Read(stream, &value, 4);
-    Read(stream, &global<u8>(0x008791a0), value);
-    global<u32>(0x008791b0) = 0;
+    Read(stream, reinterpret_cast<u8 *>(&gRsseSystem), value);
+    gRsseSystem.scriptList = nullptr;
     for (int i = 0; i < 5; ++i)
         Read(stream, &value, 4);
     Read(stream, &count, 4);
@@ -254,12 +255,12 @@ u32 __cdecl RSSE_Load(Stream *stream) {
     for (s32 n = 0; n < (s32)count; ++n) {
         u8 *const rec = static_cast<u8 *>(Mem_GlobalAlloc(0xf4));
         std::memset(rec, 0, 0xf4);
-        ++global<s32>(0x008791ac);
-        at<u8 *>(rec, 0) = global<u8 *>(0x008791b0);
+        ++gRsseSystem.scriptCount;
+        at<u8 *>(rec, 0) = reinterpret_cast<u8 * &>(gRsseSystem.scriptList);
         at<u8 *>(rec, 4) = nullptr;
-        if (global<u8 *>(0x008791b0))
-            at<u8 *>(global<u8 *>(0x008791b0), 4) = rec;
-        global<u8 *>(0x008791b0) = rec;
+        if (reinterpret_cast<u8 * &>(gRsseSystem.scriptList))
+            at<u8 *>(reinterpret_cast<u8 * &>(gRsseSystem.scriptList), 4) = rec;
+        reinterpret_cast<u8 * &>(gRsseSystem.scriptList) = rec;
         u8 *const next = at<u8 *>(rec, 0), *const prev = at<u8 *>(rec, 4);
         Read(stream, rec, size);   // (the record as saved, its links kept)
         at<u8 *>(rec, 4) = prev;
@@ -357,7 +358,7 @@ u32 __cdecl RSSE_Load(Stream *stream) {
             if (at<u8 *>(rec, 0xb0))
                 at<u8 *>(at<u8 *>(rec, 0xb0), 4) = node;
             at<u8 *>(rec, 0xb0) = node;
-            ++global<s32>(0x008791b4);
+            ++gRsse_8791b4;
             u8 *const link_prev = at<u8 *>(node, 4), *const link_next = at<u8 *>(node, 0);
             Read(stream, node, value);
             at<u8 *>(node, 0) = link_next;
@@ -379,15 +380,15 @@ u32 __cdecl FlyingRides_Load(Stream *stream) {
         return 0;
     FlyingRides_Init();   // (inlined in the original: the flag is clear here)
     Read(stream, &value, 4);
-    Read(stream, &global<u8>(0x008791f8), value);
+    Read(stream, reinterpret_cast<u8 *>(gFlyingrides_8791f8), value);
     for (u32 address = 0x007660b8; address <= 0x007660c4; address += 4)
         Read(stream, &global<u32>(address), 4);
     for (int i = 0; i < 6; ++i)   // (five pads, then the record size)
         Read(stream, &value, 4);
-    for (u32 address = 0x008791fc; address < 0x00879388; address += 4) {
-        if (global<u32>(address)) {   // (the saved pointer: a record follows)
-            global<void *>(address) = Mem_GlobalAlloc(value);
-            Read(stream, global<void *>(address), value);
+    for (s32 index = 1; index < 100; ++index) {
+        if (gFlyingrides_8791f8[index]) {   // (the saved pointer: a record follows)
+            gFlyingrides_8791f8[index] = static_cast<u8 *>(Mem_GlobalAlloc(value));
+            Read(stream, gFlyingrides_8791f8[index], value);
         }
     }
     return 0;

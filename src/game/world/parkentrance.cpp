@@ -43,7 +43,7 @@ void __cdecl ParkEntrance_Lay() {
     Map_EntrancePos(global<u8 *>(0x007cf83c) + 0x2d8, nullptr, &first, 0);
     Map_EntrancePos(global<u8 *>(0x007cf83c) + 0x2d8, nullptr, &second, 1);
 
-    global<u8>(0x00818c50) = 4;
+    gFocuscell_818c50 = 4;
     const u32 start = (u32)first - 1, end = (u32)second - 1;
     StartRow() = (s32)(start >> 7);
     StartColumn() = (s32)(start & 0x7f) - 4;
