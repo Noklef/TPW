@@ -545,3 +545,9 @@ void Jpeg6a_SetCrtEnv(const Jpeg6aCrtEnv *env);
 // method's (0 for anything else), which the driver puts back in the memory it reports.
 void Jpeg6a_SetNativeMethods(bool native);
 std::uint32_t Jpeg6a_ExeMethod(std::uint32_t address);
+
+#include "../core/gamedata.h"
+
+// Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(char[4], gText_Jpeg6a_77c46c, 0x0077c46c, 0x4);
+GAME_DATA(char[8], gJpeg6a_faa538, 0x00faa538, 0x8);

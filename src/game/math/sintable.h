@@ -45,3 +45,4 @@ void __cdecl SinTable256_Build();
 // Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
 GAME_DATA(float, gSinTableScale, 0x007b095c, 0x4);
 GAME_DATA(u32, gSinTableMask, 0x007b0960, 0x4);
+GAME_DATA(u32, gSinTableSize, 0x007b4968, 0x4);

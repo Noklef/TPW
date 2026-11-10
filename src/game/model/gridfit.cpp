@@ -6,6 +6,7 @@
 
 #include "../math/matrix.h"
 #include "../math/x87.h"
+#include "ridebase.h"
 
 namespace {
 
@@ -120,13 +121,13 @@ void __cdecl Frame_FitToGrid(const u8 *node, u8 *frame, u16 **cursor, GridFitMat
                     }
                     if (place == 0 && onGrid) {
                         if (axis == 0) {
-                            const u32 nx = global<u32>(0x007afe18);
+                            const u32 nx = gRidebase_7afe18;
                             if (column >= nx) {
                                 if (sides & 1) sides = (sides & ~1u) | 4;
                                 column = nx - 1;
                             }
                         } else {
-                            const u32 nz = global<u32>(0x007b0460);
+                            const u32 nz = gRidebase_7b0460;
                             if (row >= nz) {
                                 if (sides & 8) sides = (sides & ~8u) | 2;
                                 row = nz - 1;
@@ -206,7 +207,7 @@ void __cdecl Frame_FitToGrid(const u8 *node, u8 *frame, u16 **cursor, GridFitMat
                             hit = true;
                         } else {
                             const u32 edge = column + row * 20;
-                            const u8 *const marks = reinterpret_cast<const u8 *>(0x007afe20);
+                            const u8 *const marks = reinterpret_cast<const u8 *>(&gRideBaseEdges_7afe20);
                             if (snapX && (sides & 1) && (marks[edge * 4] & 2)) hit = true;
                             if (snapZ && (sides & 2) && (marks[edge * 4] & 4)) hit = true;
                             if (snapX && (sides & 4) && (marks[edge * 4] & 8)) hit = true;

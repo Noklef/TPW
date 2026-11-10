@@ -93,7 +93,7 @@ void WalkUsers(u8 *self, Handle *handle) {
     entry[0x24] = 0;
     s32 status;
     const u32 address = static_cast<u32>(reinterpret_cast<uintptr_t>(entry));
-    if (*g_scan->first(handle, nullptr, &status, at<u32>(nullptr, 0x00f825d0), address) < 0) return;
+    if (*g_scan->first(handle, nullptr, &status, at<u32>(nullptr, (u32)&gUserslots_f825d0), address) < 0) return;
     do {
         const char *const name = at<const char *>(entry, 0x20);
         if (CRT_strlen(name) > 1 && g_scan->isRealDir(entry) && g_scan->isDigit(name[0])) {
@@ -137,7 +137,7 @@ u8 *SaveInfo() {
 // The mode setting's static (0xfb3b7c), read and its destructor registered on the first use.
 void *ModeSetting() {
     void *const setting = reinterpret_cast<void *>(&gDialog74fb20_fb3b7c);
-    u8 &guard = at<u8>(nullptr, 0x00fb2764);
+    u8 &guard = at<u8>(nullptr, (u32)&gUserslots_fb2764);
     if (!(guard & 1)) {
         guard |= 1;
         g_choice->settingRead(setting);

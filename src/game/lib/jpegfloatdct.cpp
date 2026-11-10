@@ -16,7 +16,7 @@ inline s32 ftol(X87Reg x) { return (s32)(long long)x.v; }
 // One pass of jfdctflt.c over the 8 rows (step 1, next 8) or the 8 columns (step 8, next 1), in the unoptimised 6a build's order:
 // every variable a float local, each statement loaded, operated on and stored, except where one stays in the register (FST then on).
 void fdct_pass(float *p, int s, int next) {
-    const float c0_707 = rdata(0x007058d0), c0_382 = rdata(0x007058cc), c0_541 = rdata(0x007058c8), c1_306 = rdata(0x007058c4);
+    const float c0_707 = gJpegfloatdct_7058d0, c0_382 = gJpegfloatdct_7058cc, c0_541 = gJpegfloatdct_7058c8, c1_306 = gJpegfloatdct_7058c4;
     for (int ctr = 7; ctr >= 0; --ctr, p += next) {
         const float tmp0 = (float)(X87Reg(p[0]) + p[7 * s]), tmp7 = (float)(X87Reg(p[0]) - p[7 * s]);
         const float tmp1 = (float)(X87Reg(p[s]) + p[6 * s]), tmp6 = (float)(X87Reg(p[s]) - p[6 * s]);
@@ -69,14 +69,14 @@ void __cdecl Jpeg6a_ForwardDctFloat(u8 *cinfo, u8 *compptr, u8 **sample_data, s1
             for (int k = 0; k < 8; ++k) *w++ = (float)(s32)(sample_data[row][start_col + k] - 0x80);
         do_dct(workspace);
         s16 *const out = coef_blocks + 64 * bi;
-        for (int i = 0; i < 64; ++i) out[i] = (s16)(ftol(X87Reg(workspace[i]) * divisors[i] + rdata(0x007058c0)) - 0x4000);
+        for (int i = 0; i < 64; ++i) out[i] = (s16)(ftol(X87Reg(workspace[i]) * divisors[i] + gJpeg6a_ForwardDctFloat_7058c0) - 0x4000);
     }
 }
 
 // The optimised 6b build keeps values on the x87 stack between statements: r<n> is a register's value, f<nn> the float stack slot at
 // ESP+nn, written and read in the listing's order (a register and its stored float differ past the float range).
 void __cdecl Jpeg6b_IdctFloat(u8 *cinfo, u8 *compptr, const s16 *coef_block, u8 **output_buf, u32 output_col) {
-    const float k1_414 = rdata(0x007050f8), k1_848 = rdata(0x007050fc), k2_613 = rdata(0x00705100), k1_082 = rdata(0x00705104);
+    const float k1_414 = gJpeg6b_IdctFloat_7050f8, k1_848 = gJpeg6b_IdctFloat_7050fc, k2_613 = gJpeg6b_IdctFloat_705100, k1_082 = gJpeg6b_IdctFloat_705104;
     const u8 *const limit = at<const u8 *>(cinfo, 0x120) + 0x80;
     float workspace[64];
     float f10, f14, f18, f1c, f20, f24, f28, f2c, f30;

@@ -98,7 +98,7 @@ void movs(u8 *&out, const u8 *in, u32 n) {
 
 // The CRC-16 table at 0x779c60 (writable .data: read live) as the hash of the three bytes at p.
 u32 hash3(const u8 *p) {
-    const u32 *const crc = reinterpret_cast<const u32 *>((uintptr_t)0x00779c60);
+    const u32 *const crc = gCrc16Table;
     u32 h = crc[p[0]];
     h = crc[(h & 0xff) ^ p[1]] ^ (h >> 8);
     return crc[(h & 0xff) ^ p[2]] ^ (h >> 8);

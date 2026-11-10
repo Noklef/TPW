@@ -32,8 +32,8 @@ const SourcesEnv kGameEnv = {
     SLOT(mmioSeek, 0x006fd3d8),
     SLOT(mmioSetBuffer, 0x006fd3e8),
     SLOT(mmioFlush, 0x006fd3d4),
-    at<char *>(0x00faa2c8),
-    at<char *>(0x00faa3d0),
+    at<char *>((u32)&gFileSourcePath),
+    at<char *>((u32)&gMmioSourcePath),
 };
 #undef SLOT
 const SourcesEnv *g_env = &kGameEnv;

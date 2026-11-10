@@ -113,7 +113,7 @@ extern "C" u32 __fastcall TerrainGround_PrepareTextures(u8 *self) {
         memcpy(self + 0x128, block + 0xc4, 0x108);
         memcpy(self + 0x20, block + 0x1cc, 0x108);
     }
-    const u32 format = at<u32>(reinterpret_cast<const void *>((uintptr_t)0x7014c8), global<u32>(0x8bd554) * 4);
+    const u32 format = gTerrainGround_PrepareTextures_7014c8[global<u32>(0x8bd554)];
     if (at<s32>(self, 0x128) > at<s32>(self, 0x12c)) return 1;
     if ((global<u8>(0x8bd550) & 4) && !at<u32>(self, 0x230)) global<u32>(0x8bd550) &= ~4u;
 
@@ -154,7 +154,7 @@ extern "C" u32 __fastcall TerrainGround_PrepareTextures(u8 *self) {
 
 extern "C" u32 __fastcall TerrainGround_Draw(u8 *self) {
     if (at<s32>(self, 0x128) > at<s32>(self, 0x12c) || !(global<u32>(0x008bd508) & 0xc0000000)) return 1;
-    const u32 stride = global<u32>(0x007014b4);
+    const u32 stride = gGround_7014b4;
     global<u32>(0x00879dec) = 0;
     g_env->drain(at<u8 *>(gRenderer_87a6d0, 0x2c));
     g_env->setView(gMeshlist_87a248, nullptr, reinterpret_cast<const u32 *>((uintptr_t)0x0087b090), 0);
@@ -193,8 +193,8 @@ extern "C" u32 __fastcall TerrainGround_Draw(u8 *self) {
             const u8 *const texture = reinterpret_cast<const u8 *>((uintptr_t)textures[number]);
             const u32 id = texture && (at<u32>(texture, 8) & 0x1000) ? at<u32>(texture, 0x1c) : 0;
             const float scaleU = texture ? at<float>(texture, 0x20) : 0.0f, scaleV = texture ? at<float>(texture, 0x24) : 0.0f;
-            const X87Reg offsetU = X87Reg(texture ? at<float>(texture, 0x28) : global<float>(0x00701520));
-            const X87Reg offsetV = X87Reg(texture ? at<float>(texture, 0x2c) : global<float>(0x00701520));
+            const X87Reg offsetU = X87Reg(texture ? at<float>(texture, 0x28) : gTerrainGround_Draw_701520);
+            const X87Reg offsetV = X87Reg(texture ? at<float>(texture, 0x2c) : gTerrainGround_Draw_701520);
             const u32 extra = texture ? at<u32>(texture, 0x44) : 0xffffffff;
             const bool halved = !(global<u32>(0x008bcbc8) & 0x800) && (reinterpret_cast<const u8 *>(cell)[1] & 4);
 

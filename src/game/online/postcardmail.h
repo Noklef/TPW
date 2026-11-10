@@ -30,7 +30,6 @@ struct Postcardmail_773d80_t {   // 0x773d80-0x773e98: the base64 alphabet (inde
 #pragma pack(pop)
 
 // Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
-GAME_DATA(char[4], gPostcardmail_74d1f0, 0x0074d1f0, 0x4);
 GAME_DATA(Postcardmail_773d80_t, gPostcardmail_773d80, 0x00773d80, 0x118);
 GAME_DATA(char[12], gPostcardmail_773e98, 0x00773e98, 0xc);
 GAME_DATA(char[32], gPostcardMail_Build_773ea4, 0x00773ea4, 0x20);

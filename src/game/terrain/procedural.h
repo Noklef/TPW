@@ -123,3 +123,11 @@ u32 __fastcall TerrainTex_Init(u8 *tex, void *, const char *name, u32 size);
 // the far distance back from +0x1c; the view's square less the land's origin into the bytes 0x8bd4e8-0x8bd4eb (-0x80 to 0x7f). Returns 1.
 u32 __fastcall TerrainTex_CullView(u8 *self);
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(const u32, gTerrainTex_CullView_7014c0, 0x007014c0, 0x4);
+GAME_DATA(float, gTerrain_InitUnusedOne_7a0b28, 0x007a0b28, 0x4);
+GAME_DATA(float, gTerrain_InitUnusedEpsilon_7a0b48, 0x007a0b48, 0x4);
+GAME_DATA(s8[4], gTerrainViewBox_8bd4e8, 0x008bd4e8, 0x4);

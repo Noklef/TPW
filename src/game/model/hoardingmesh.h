@@ -23,3 +23,21 @@ extern "C" {
 // original's corner moves are unset stack but for the first (the port's are 0; not benched), and a mesh's points over 1023 run off the frame.
 void __cdecl HoardingMesh_Build(const char *level, u8 *object, const u8 *grid);
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(const float, gHoardingmesh_6fe444, 0x006fe444, 0x4);
+GAME_DATA(const float, gHoardingmesh_6fe448, 0x006fe448, 0x4);
+GAME_DATA(const float, gHoardingmesh_6fe44c, 0x006fe44c, 0x4);
+GAME_DATA(const float, gHoardingmesh_6fe450, 0x006fe450, 0x4);
+GAME_DATA(const double, gHoardingmesh_6fe458, 0x006fe458, 0x8);
+GAME_DATA(const float, gHoardingmesh_6fe460, 0x006fe460, 0x4);
+GAME_DATA(const float, gHoardingmesh_6fe464, 0x006fe464, 0x4);
+GAME_DATA(const float, gHoardingmesh_6fe468, 0x006fe468, 0x4);
+GAME_DATA(const float, gHoardingmesh_6fe46c, 0x006fe46c, 0x4);
+GAME_DATA(const float, gHoardingmesh_6fe470, 0x006fe470, 0x4);
+GAME_DATA(char *, gHoardingMesh_Build_74cfc0, 0x0074cfc0, 0x4);
+GAME_DATA(char *, gHoardingMesh_Build_74d010, 0x0074d010, 0x4);
+GAME_DATA(u32, gHoardingMesh_Build_74d020, 0x0074d020, 0x4);
+GAME_DATA(char[12], gText_HoardingMesh_Build_74d080, 0x0074d080, 0xc);

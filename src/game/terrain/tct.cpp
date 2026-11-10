@@ -9,6 +9,7 @@
 #include "../core/vwrap.h"
 #include "../files/textscan.h"
 #include "../files/vfs.h"
+#include "land.h"
 
 namespace {
 
@@ -185,12 +186,12 @@ extern "C" u32 __cdecl TerrainSets_LoadLevel(u32 model) {
     const char *const base = reinterpret_cast<const char *>((uintptr_t)g_levelCalls.Cd(0x0040ef40));
     crt.sprintf(path, "%s\\Terrain\\%s.tct", base, name);
     const u32 found = g_levelCalls.Cd(0x0044a280, address(path), 1u, 0u);
-    if (found) g_levelCalls.Cd(0x00427620, found, 0x0074c8a8u);
+    if (found) g_levelCalls.Cd(0x00427620, found, (u32)&gLand_74c8a8);
     const u32 folder = g_levelCalls.Cd(0x0044a280, address(path), 0u, 0u);
     if (!folder) return 1;
     const char *const text = reinterpret_cast<const char *>((uintptr_t)folder);
     const char *const format = text[std::strlen(text) - 1] == '\\' ? "%s%s%s%s" : "%s\\%s%s%s";
     crt.sprintf(path, format, text, "data\\levels\\", name, "\\Terrain\\");
-    g_levelCalls.Cd(0x0046e130, model, 0x0074c8a8u, address(path));
+    g_levelCalls.Cd(0x0046e130, model, (u32)&gLand_74c8a8, address(path));
     return 1;
 }

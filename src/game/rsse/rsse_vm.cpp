@@ -39,8 +39,8 @@ u32 WalkTime(const float *p1, const float *p2) {
 
 // The octant (C's % 8, signed) of __ftol(0.5 - (6.28318 - (angle - 1.570795)) * -1.27324...) (the doubles 0x700fe8..0x701000).
 s32 Octant(double angle) {
-    const X87Reg turn = X87_SubR(X87_SubR(X87Reg(angle) - global<double>(0x00700fe8), global<double>(0x00700ff0)) * global<double>(0x00700ff8),
-                                 global<double>(0x00701000));
+    const X87Reg turn = X87_SubR(X87_SubR(X87Reg(angle) - gRsseVm_700fe8, gRsseVm_700ff0) * gRsseVm_700ff8,
+                                 gRsseVm_701000);
     return Ftol(turn) % 8;
 }
 
@@ -94,15 +94,15 @@ void __cdecl RSSE_Init() {
     if (global<u32>(0x008791a0))
         return;   // Original: Debug_Printf("RSSE: Tried to Initialise twice") (compiled out in retail).
     global<u32>(0x008791a0) = 1;
-    global<u32>(0x008791a8) = 1;
+    gRSSE_8791a8 = 1;
     global<u32>(0x008791b0) = 0;
     global<u32>(0x008791ac) = 0;
-    global<u32>(0x008791a4) = 0;
+    RSSE_TickCounter = 0;
     RSSE_ScriptVersion = 0;
-    global<u32>(0x0087919c) = 0;
+    RSSE_CritLock = 0;
     // The checksum runs over the names in the opcode table one pointer at a time (the table holds a mnemonic and an
     // operand string per opcode: every pointer is read, sic) and stops at the first pointer to an empty string.
-    const u32 *entry = reinterpret_cast<const u32 *>(0x00765280);
+    const u32 *entry = RSSE_OpcodeNameTable;
     if (!*reinterpret_cast<const char *>(*entry))
         return;
     do {
@@ -114,7 +114,7 @@ void __cdecl RSSE_Init() {
 }
 
 const char *__cdecl RsseScript_EventName(const u8 *script, u32 index, u32 *group_out, u32 *entry_out, u32 *count_out) {
-    static const u32 names[12] = {0x74d19c, 0x74d194, 0x74d18c, 0x74d184, 0x74d17c, 0x74d174, 0x74d170, 0x74d168, 0x74d160, 0x74d158, 0x74d150, 0x74d148};
+    static const u32 names[12] = {(u32)&gText_RsseScript_EventName_74d19c, (u32)&gText_RsseScript_EventName_74d194, (u32)&gText_RsseScript_EventName_74d18c, (u32)&gText_RsseScript_EventName_74d184, (u32)&gText_RsseScript_EventName_74d17c, (u32)&gText_RsseScript_EventName_74d174, 0x74d170, (u32)&gText_RsseScript_EventName_74d168, (u32)&gText_RsseScript_EventName_74d160, (u32)&gText_RsseScript_EventName_74d158, (u32)&gText_RsseScript_EventName_74d150, (u32)&gText_RsseScript_EventName_74d148};
     for (u32 group = 0; group < 12; group++) {
         const u8 *const record = script + 0x1c + group * 12;
         for (u32 entry = 0; entry < at<u32>(record, 0); entry++) {
@@ -199,7 +199,7 @@ void __cdecl Rsse_MoveWalker(u8 *vm, u8 *slot, s32 from, s32 to, s32 mode, s32 t
     if (t > 1000)
         t = 1000;
     const X87Reg T = (double)t;
-    const float &k1000 = global<float>(0x00701020), &k0001 = global<float>(0x00700fd4);
+    const float &k1000 = gRsse_MoveWalker_701020, &k0001 = gRsseVm_700fd4;
     // fld to; fsub from (m32); fmul st1; fld from; fmul -1000; fsubp; fmul 0.001
     const auto lerp = [&](int i) { return (float)(((X87Reg(p2[i]) - p1[i]) * T - X87Reg(p1[i]) * k1000) * k0001); };
     float x = lerp(0);
@@ -234,10 +234,10 @@ void __cdecl Rsse_MoveWalker(u8 *vm, u8 *slot, s32 from, s32 to, s32 mode, s32 t
         return;
     }
     const u32 h = at<u32>(slot, 0x10);
-    const float &k04 = global<float>(0x00701028), &k3 = global<float>(0x00701044), &k0033 = global<float>(0x00701040);
-    const float a = (float)(k04 - X87Reg((double)(s32)(h & 7)) * global<float>(0x00701024));
-    const float b = (float)(k04 - X87Reg((double)(s32)(h & 3)) * global<float>(0x0070102c));
-    const float c = (float)(gRidelist_700fd0 - X87Reg((double)at<s16>(vm, 0xc0)) * global<float>(0x00700fcc));
+    const float &k04 = gRsse_MoveWalker_701028, &k3 = gRsse_MoveWalker_701044, &k0033 = gRsse_MoveWalker_701040;
+    const float a = (float)(k04 - X87Reg((double)(s32)(h & 7)) * gRsse_MoveWalker_701024);
+    const float b = (float)(k04 - X87Reg((double)(s32)(h & 3)) * gRsse_MoveWalker_70102c);
+    const float c = (float)(gRidelist_700fd0 - X87Reg((double)at<s16>(vm, 0xc0)) * gRsse_MoveWalker_700fcc);
     const float d = (float)(X87Reg((double)at<u16>(vm, 0x88)) * k0001);
     const float e = (float)(X87Reg((double)at<u16>(vm, 0x8a)) * k0001);
     u8 *const clock = reinterpret_cast<u8 *>(0x00785970);
@@ -245,17 +245,17 @@ void __cdecl Rsse_MoveWalker(u8 *vm, u8 *slot, s32 from, s32 to, s32 mode, s32 t
     const s32 since = (s32)(Clocks_Now(clock) - at<u32>(vm, 0x80));
     const SinTable sines = SinTable_Game();
     const float &scale = gSinTableScale;
-    const X87Reg angle = X87Reg(X87_MulIntDouble(since, global<float>(0x00701030))) / X87Reg((double)at<s32>(vm, 0x84)) * scale;
+    const X87Reg angle = X87Reg(X87_MulIntDouble(since, gRsse_MoveWalker_701030)) / X87Reg((double)at<s32>(vm, 0x84)) * scale;
     const float s = SinTable_At(sines, (float)angle);
     const X87Reg g = X87Reg(a) * now * c;   // (fst: kept in the register for y, read back as the float for x)
     const float gf = (float)g;
-    const float sy = SinTable_At(sines, (float)(g * global<float>(0x00701034) * scale));
-    y = (float)((global<float>(0x0070103c) - X87Reg(sy) * global<float>(0x00701038)) * s * e + y);
+    const float sy = SinTable_At(sines, (float)(g * gRsse_MoveWalker_701034 * scale));
+    y = (float)((gRsse_MoveWalker_70103c - X87Reg(sy) * gRsse_MoveWalker_701038) * s * e + y);
     const float sx = SinTable_At(sines, (float)(X87Reg(gf) * k0033 * scale));
     x = (float)(X87Reg(sx) * b * s * k3 * d + x);
-    const float sz = SinTable_At(sines, (float)((X87Reg(b) * now * c * k0033 - global<float>(0x00701048)) * scale));
+    const float sz = SinTable_At(sines, (float)((X87Reg(b) * now * c * k0033 - gRsse_MoveWalker_701048) * scale));
     z = (float)(X87Reg(sz) * a * s * k3 * d + z);
-    const u32 q = Clocks_Now(clock) / (u32)Ftol(X87Reg(b) * global<float>(0x0070104c));
+    const u32 q = Clocks_Now(clock) / (u32)Ftol(X87Reg(b) * gRsse_MoveWalker_70104c);
     const s16 octant = (s16)(((s32)(s16)q + at<s16>(slot, 0x14)) % 8);
     at<s16>(slot, 0x14) = octant;
     place(octant, 2);
@@ -447,12 +447,12 @@ void __cdecl Rsse_UpdateAll() {
                 Person_PlaceScript(person, nullptr, pos[0], y, pos[2], (u32)seven, 3);
                 continue;
             }
-            const X87Reg rate = X87_SubR(X87Reg((double)at<s16>(vm, 0xc0)) * global<float>(0x00701008), global<double>(0x00701010));
+            const X87Reg rate = X87_SubR(X87Reg((double)at<s16>(vm, 0xc0)) * gRsse_UpdateAll_701008, gRsse_UpdateAll_701010);
             const s32 turns = Ftol(rate * X87Reg((double)elapsed));
-            const float phase = (float)(X87Reg((double)(turns % 1000)) * global<float>(0x00701018));
+            const float phase = (float)(X87Reg((double)(turns % 1000)) * gRsse_UpdateAll_701018);
             const SinTable sines = SinTable_Game();
             const X87Reg sine = SinTable_At(sines, (float)(X87Reg(sines.scale) * phase));
-            const X87Reg bob = sine * (X87Reg((double)seven) - global<float>(0x0070101c)) + rootY + X87Reg((double)at<s16>(vm, 0x6e));
+            const X87Reg bob = sine * (X87Reg((double)seven) - gRsse_UpdateAll_70101c) + rootY + X87Reg((double)at<s16>(vm, 0x6e));
             float posY;
             std::memcpy(&posY, &pos[1], 4);
             if (!(bob.v >= (double)posY))   // (fcomp: below or unordered)

@@ -22,7 +22,7 @@ const ZlibEnv kGameEnv = {
     at<void *(__cdecl *)(void *, u32, u32)>(0x00619250),
     at<void(__cdecl *)(void *, void *)>(0x005da3c0),
     at<const char *>(0x007780f0),
-    at<const u32 *>(0x007780ec),
+    at<const u32 *>((u32)&gZlibInputLimit),
 };
 const ZlibEnv *g_env = &kGameEnv;
 

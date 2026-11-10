@@ -35,3 +35,8 @@ u32 __cdecl Sprite_FrameEntry(s32 anim, u32 frame, u32 dir);
 // block (the stream is not freed: sic).
 u32 __fastcall Sprite_LoadEsp(u8 *sprite, void *, const u8 *entry, u8 *files);
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(u32, gSprite_LoadEsp_8757ac, 0x008757ac, 0x4);

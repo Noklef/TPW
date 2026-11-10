@@ -91,4 +91,6 @@ GAME_DATA(const double, gCoasterType_Create_6fde80, 0x006fde80, 0x8);
 GAME_DATA(const double, gCoasterType_Create_6fde88, 0x006fde88, 0x8);
 GAME_DATA(const double, gCoasterType_Create_6fde90, 0x006fde90, 0x8);
 GAME_DATA(s32, gSetup_790fd0, 0x00790fd0, 0x4);
+GAME_DATA(u8 *[50], gCoasterTypes_790b08, 0x00790b08, 0xc8);   // the coaster types (count 0x790fe8)
 GAME_DATA(u32, gSetup_790fe8, 0x00790fe8, 0x4);
+GAME_DATA(u32, gCoasterLinkWordsMax_791cfc, 0x00791cfc, 0x4);   // the links' largest word count (CoasterType_Load)

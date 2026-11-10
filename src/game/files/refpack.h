@@ -40,3 +40,8 @@ u32 __cdecl RefPack_MatchLength(const u8 *a, const u8 *b, u32 max);
 // bytes past the input near its end and the candidate test a byte past the longest match (sic).
 u32 __fastcall RefPack_Encode(u8 *codec, void *, u8 *dst, const u8 *src, u32 len, s32 *workspace);
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(u32[256], gCrc16Table, 0x00779c60, 0x400);

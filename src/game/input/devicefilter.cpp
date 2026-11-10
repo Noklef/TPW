@@ -287,7 +287,7 @@ u8 *__fastcall KeyFilter_Ctor(u8 *self) {
     at<u32>(self, 0) = 0x00703c40;
     at<u32>(self, 0xc) = 0x00703c38;
     for (u32 offset = 0x1c; offset < 0x11c; offset += 4) at<u32>(self, offset) = 0;
-    InputSubs_Subscribe(self + 0x10, nullptr, reinterpret_cast<const s32 *>(0x00703c30), static_cast<u32>(reinterpret_cast<uintptr_t>(self + 0xc)));
+    InputSubs_Subscribe(self + 0x10, nullptr, gKeyFilter_Ctor_703c30, static_cast<u32>(reinterpret_cast<uintptr_t>(self + 0xc)));
     return self;
 }
 
@@ -334,7 +334,7 @@ u32 *__fastcall DeviceHolder_SetMode(u8 *self, void *, u32 *result, u32 flags) {
 }
 
 u32 *__fastcall InputFilter_SubscribeC90(u8 *self, void *, u32 *result) {
-    InputSubs_Subscribe(self + 0x10, nullptr, reinterpret_cast<const s32 *>(0x00703c90), self ? static_cast<u32>(reinterpret_cast<uintptr_t>(self + 0xc)) : 0);
+    InputSubs_Subscribe(self + 0x10, nullptr, gInputFilter_SubscribeC90_703c90, self ? static_cast<u32>(reinterpret_cast<uintptr_t>(self + 0xc)) : 0);
     *result = 0;
     return result;
 }
@@ -347,7 +347,7 @@ u32 *__fastcall KeyFilter_SetHolder(u8 *self, void *, u32 *result, u8 *holder) {
 }
 
 u32 *__fastcall MouseFilter_Subscribe(u8 *self, void *, u32 *result) {
-    InputSubs_Subscribe(self + 0x68, nullptr, reinterpret_cast<const s32 *>(0x00703cc0), self ? static_cast<u32>(reinterpret_cast<uintptr_t>(self + 0x64)) : 0);
+    InputSubs_Subscribe(self + 0x68, nullptr, gMouseFilter_Subscribe_703cc0, self ? static_cast<u32>(reinterpret_cast<uintptr_t>(self + 0x64)) : 0);
     *result = 0;
     return result;
 }
@@ -549,13 +549,13 @@ u8 *__fastcall CharFilter_DeletingDtor(u8 *self, void *, u32 flags) {
     return self;
 }
 
-u32 __cdecl MessageSource_Constant1() { return 0x00707c50; }
+u32 __cdecl MessageSource_Constant1() { return (u32)&gGuidTable_707c50; }
 u32 __cdecl MessageSource_Constant2() { return 0x0067a460; }
 
 void __fastcall ChainFilter_Attach(u8 *self, void *, u8 *object) { vcall<void>(object, 0x14, self); }
 void __fastcall ChainFilter_Detach(u8 *self, void *, u8 *object) { vcall<void>(object, 0x18, self); }
 
-u32 __cdecl MouseFilter_Constant1() { return 0x00707c40; }
+u32 __cdecl MouseFilter_Constant1() { return (u32)&gGuidSysMouse_707c40; }
 u32 __cdecl MouseFilter_Constant2() { return 0x00679440; }
 
 u32 *__fastcall KeyFilter_Open(u8 *self, void *, u32 *result) {

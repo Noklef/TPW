@@ -32,7 +32,6 @@ void __cdecl Postcard_Send();
 #include "../core/gamedata.h"
 
 // Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
-GAME_DATA(char[8], gPostcardsend_74d320, 0x0074d320, 0x8);
 GAME_DATA(char[4], gPostcardsend_74f8c4, 0x0074f8c4, 0x4);
 GAME_DATA(char[20], gPostcardsend_754454, 0x00754454, 0x14);
 GAME_DATA(char[8], gPostcard_Send_754468, 0x00754468, 0x8);

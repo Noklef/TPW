@@ -374,8 +374,8 @@ std::size_t __cdecl jpeg6a_exe_fwrite(const void *buffer, std::size_t size, std:
 int __cdecl jpeg6a_exe_fclose(void *file) { return g_crt->fclose(file); }
 void __cdecl jpeg6a_exe_exit(int status) { g_crt->exit(status); }
 // output_message's fprintf(stderr, "%s\n", buffer): the exe's stderr (0x77e840) and its 6a "%s\n" (0x77c46c, in .data).
-int __cdecl jpeg6a_exe_print(const char *text) { return g_crt->fprintf((void *)0x0077e840, (const char *)0x0077c46c, text); }
+int __cdecl jpeg6a_exe_print(const char *text) { return g_crt->fprintf((void *)0x0077e840, gText_Jpeg6a_77c46c, text); }
 // jmemansi.c's ERREXITS(cinfo, JERR_TFILE_CREATE, ""): the exe's 6a "" is a byte of its .bss (0xfaa538), writable, so the text is
 // read there.
-const char *__cdecl jpeg6a_exe_empty() { return (const char *)0x00faa538; }
+const char *__cdecl jpeg6a_exe_empty() { return gJpeg6a_faa538; }
 }

@@ -65,14 +65,14 @@ u32 __cdecl Terrain_Load(u32 shared, u32 texture_arg) {
         g_calls.Cd(0x00461f10, "TestBase", 8u, 0x0079fcb4u, 0u, 1u);
         if (!global<u32>(0x79fcb4)) {
             global<u32>(0x7a0854) = 0;
-            global<u32>(0x7a0884) = 0;
+            gTerrain_7a0884 = 0;
             return 0;
         }
     }
 
     const u8 *const model = at<const u8 *>(at<const u8 *>(global<const u8 *>(0x79fcb4), 8), 4);
     global<const u8 *>(0x7a0854) = model;
-    global<u32>(0x7a0884) = at<u32>(at<const u8 *>(model, 0x6c), 0x2c);   // read before the test below: a null model faults here
+    gTerrain_7a0884 = at<u32>(at<const u8 *>(model, 0x6c), 0x2c);   // read before the test below: a null model faults here
     if (!model) return 1;
 
     g_calls.Cd(0x00427ad0, global<u32>(0x7a0854));   // TerrainSets_LoadLevel

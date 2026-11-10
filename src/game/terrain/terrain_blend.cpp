@@ -10,6 +10,7 @@
 
 #include <cstring>
 #include <vector>
+#include "land.h"
 
 namespace {
 
@@ -347,7 +348,7 @@ void blend(const Lnd *lnd, u8 *out, u32 x, u32 ty, const TerrainOverlay *overlay
 // game's own scratch buffer, and like the original does nothing before one is allocated.
 extern "C" void __fastcall TerrainBlend_Tile(const Lnd *self, void * /*edx*/, u8 *out, u32 x, u32 y,
                                              const TerrainOverlay *overlay) {
-    u8 *scratch = *reinterpret_cast<u8 *const *>(0x008798c8);  // gTerrainBlendScratch
+    u8 *scratch = reinterpret_cast<u8 *>((uintptr_t)gTerrainBlendScratch);
     if (!scratch) return;
     // The weight maps are the game's (W1 0x8798a8, W3 0x879398, W2 0x8798b8: made over at the tile size first), and so are the
     // ramps, built by Lnd_Read (0x560ff0) from the Lnd's (centre, width) pairs.
@@ -361,8 +362,8 @@ extern "C" void __fastcall TerrainBlend_Tile(const Lnd *self, void * /*edx*/, u8
     Lnd_BuildWeightMap(&self->control, (s32)x, (s32)ty, 1, w1);
     Lnd_BuildWeightMap(&self->control, (s32)x, (s32)ty, 2, w2);
     Lnd_BuildWeightMap(&self->control, (s32)x, (s32)ty, 3, w3);
-    const u8 *const ramps[5] = {reinterpret_cast<const u8 *>(0x008795a8), reinterpret_cast<const u8 *>(0x008796a8),
-                                reinterpret_cast<const u8 *>(0x008793a8), reinterpret_cast<const u8 *>(0x008797a8),
-                                reinterpret_cast<const u8 *>(0x008794a8)};
+    const u8 *const ramps[5] = {gLand_8795a8, gLand_8796a8,
+                                gLand_8793a8, gLand_8797a8,
+                                gLand_8794a8};
     blend(self, out, x, ty, overlay, scratch, w1->data, w2->data, w3->data, ramps);
 }

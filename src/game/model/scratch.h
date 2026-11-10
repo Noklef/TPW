@@ -37,3 +37,14 @@ void __cdecl Model_InitUnusedTolerances();
 void __cdecl Model_InitUnusedOne();
 void __cdecl Model_InitUnusedEpsilon();
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(u32, gModel_InitUnusedTolerances_79f7dc, 0x0079f7dc, 0x4);
+GAME_DATA(void *, gModel_79f7e0, 0x0079f7e0, 0x4);
+GAME_DATA(u32, gScratch_79fb10, 0x0079fb10, 0x4);
+GAME_DATA(const u8 *, gScratch_79fb18, 0x0079fb18, 0x4);
+GAME_DATA(u32, gModel_InitUnusedTolerances_79fb1c, 0x0079fb1c, 0x4);
+GAME_DATA(float, gModel_InitUnusedOne_79fb24, 0x0079fb24, 0x4);
+GAME_DATA(float, gModel_InitUnusedEpsilon_79fb28, 0x0079fb28, 0x4);

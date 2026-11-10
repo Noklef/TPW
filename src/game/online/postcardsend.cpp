@@ -16,6 +16,7 @@
 #include "mailbox.h"
 #include "chatlists.h"
 #include "../ui/dialog7cc184handler.h"
+#include "../files/gamepaths.h"
 
 namespace {
 
@@ -45,7 +46,7 @@ void PostcardSend_SetEnv(const PostcardSendEnv *env) { g_env = env ? env : &kGam
 extern "C" {
 
 void __cdecl Postcard_Send() {
-    Crt().sprintf(buffer(reinterpret_cast<uintptr_t>(&gPostcard_Send_7cbcb0)), text(reinterpret_cast<uintptr_t>(&gPostcardsend_74d320)), text(0x007cb958), text(reinterpret_cast<uintptr_t>(&gMailbox_75447c)));
+    Crt().sprintf(buffer(reinterpret_cast<uintptr_t>(&gPostcard_Send_7cbcb0)), text((u32)&gText_Gamepaths_74d320), text(0x007cb958), text(reinterpret_cast<uintptr_t>(&gMailbox_75447c)));
     g_env->savePicture(gDialog7cc184handler_7cc18c, nullptr, text(reinterpret_cast<uintptr_t>(&gPostcard_Send_7cbcb0)));
     char local[0x100];
     Crt().sprintf(local, text(reinterpret_cast<uintptr_t>(&gPostcard_Send_754470)), text(0x007cb958), gPostcard_Send_7cbf38++);

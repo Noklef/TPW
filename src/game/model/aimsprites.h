@@ -15,3 +15,8 @@ void AimSprites_SetCalls(const AddrCall *table, u32 count);
 // A second matrix from that up vector and the (0, 0, -1) turned and tilted the same way: register 9 its roll over 2 pi, register 8 the float 0x74ced0. sic: a direction with no winner keeps the turn, tilt and up vector of the vertex before (the stack's on the first).
 void __cdecl AimSprites_Update(const u8 *instance);
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(u32, gAimSprites_Update_74ced0, 0x0074ced0, 0x4);

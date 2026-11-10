@@ -84,3 +84,8 @@ void __cdecl IntPair_WestAtExit();
 void __cdecl IntPair_NorthWestAtExit();
 
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(u8, gIntpair_7cdbe0, 0x007cdbe0, 0x1);

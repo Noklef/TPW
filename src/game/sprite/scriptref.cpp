@@ -11,7 +11,7 @@ namespace {
 template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cast<T *>((uintptr_t)p + offset); }
 
 // Entry point number i of the table of script start codes.
-u32 Entry(u32 i) { return reinterpret_cast<const u32 *>(0x0075a418)[i]; }
+u32 Entry(u32 i) { return gScriptref_75a418[i]; }
 
 }  // namespace
 
@@ -46,8 +46,8 @@ void __fastcall ScriptRef_Apply(u8 *ref) {
 u32 __fastcall SpriteAnim_Serialize(u8 *ref, void *, Stream *stream, u32 save, s32 version, u32) {
     if (version < 0 || version > 1)
         return 0;
-    if (!Save_Field(stream, save, ref, 4, 0x0075a4c0) || !Save_Field(stream, save, ref + 4, 4, 0x0075a4b4) ||
-        !Save_Field(stream, save, ref + 8, 4, 0x0075a49c))
+    if (!Save_Field(stream, save, ref, 4, (u32)&gText_SpriteAnim_Serialize_75a4c0) || !Save_Field(stream, save, ref + 4, 4, (u32)&gText_SpriteAnim_Serialize_75a4b4) ||
+        !Save_Field(stream, save, ref + 8, 4, (u32)&gText_SpriteAnim_Serialize_75a49c))
         return 1;
     return 0;
 }

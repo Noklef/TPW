@@ -12,6 +12,7 @@
 #include "quat.h"
 #include "uvanim.h"
 #include "vertexanim.h"
+#include "animator.h"
 
 namespace {
 
@@ -308,8 +309,8 @@ void Motion_ResetChannelsWith(u32 motionFlags, u32 *trackFlags, const void *anim
 
 namespace {
 MotionEnv game_env() {
-    return {reinterpret_cast<u32 *>(0x007b4988), reinterpret_cast<u32 *>(0x007b49e8),
-            reinterpret_cast<const u32 *>(0x007b4980), SinTable_Game()};
+    return {&gRotationKeyCount, &gCurvePointCount,
+            &gMotionFlags, SinTable_Game()};
 }
 }  // namespace
 
@@ -333,7 +334,7 @@ extern "C" void __cdecl Motion_CopyVertices(const void *from, const void *to, s3
 }
 
 extern "C" void __cdecl Motion_ResetChannels(const void *animator, const u8 *block, const u8 *next) {
-    Motion_ResetChannelsWith(*reinterpret_cast<const u32 *>(0x007b4980), *reinterpret_cast<u32 **>(0x007aecd4),
+    Motion_ResetChannelsWith(gMotionFlags, *reinterpret_cast<u32 **>(0x007aecd4),
                              animator, block, next);
 }
 

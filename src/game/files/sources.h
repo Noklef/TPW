@@ -113,3 +113,9 @@ struct SourcesEnv {
 };
 // The calls go through env (nullptr: the game's).
 void Sources_SetEnv(const SourcesEnv *env);
+
+#include "../core/gamedata.h"
+
+// Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(char[264], gFileSourcePath, 0x00faa2c8, 0x108);
+GAME_DATA(char[264], gMmioSourcePath, 0x00faa3d0, 0x108);

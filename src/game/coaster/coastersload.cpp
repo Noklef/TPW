@@ -6,6 +6,7 @@
 #include "../files/file.h"
 #include "../math/x87.h"
 #include "../world/ridelist.h"
+#include "registry.h"
 
 namespace {
 
@@ -201,7 +202,7 @@ void ReadCoaster(void *stream) {
         g_calls.Cd(0x00436d10, D(coaster, 4), coaster, 1u);   // CoasterLink_SetUpCars
         const X87Reg rate(G<const float>(D(D(D(G<u32>(kTable + 4 * id), 8), 4), 0x78) + 0x44));
         g_calls.Cd(0x00436ac0, coaster, (u32)From<u16>(h, 0xe), (u32)From<u16>(h, 0x10), (float)rate, 1u);   // CoasterLink_AddFixedPieces
-        D(coaster, 0x14) = g_calls.Cd(0x00468760, 0x00790b04u, 0x00790b00u, 0x00791ce0u, 0xffu, 0x00790bd0u, coaster, (u32)From<u16>(h, 0xc));   // IdTable_Add
+        D(coaster, 0x14) = g_calls.Cd(0x00468760, (u32)&gCoasterIdUsed_790b04, (u32)&gCoasterIdHoles_790b00, (u32)&gCoasterIdNext_791ce0, 0xffu, (u32)&gCoasters_790bd0, coaster, (u32)From<u16>(h, 0xc));   // IdTable_Add
         D(coaster, 0) |= 2;
     }
     D(coaster, 0) |= 0x4000;
@@ -254,9 +255,9 @@ void CoastersLoad_SetEnv(const AddrCall *table, u32 count) { g_calls.Set(table, 
 u32 __cdecl Coasters_Load(void *stream) {
     u32 count;
     Read(stream, Ptr(&count), 4);
-    Read(stream, 0x00790b04, 4);
-    Read(stream, 0x00790b00, 4);
-    Read(stream, 0x00791ce0, 4);
+    Read(stream, (u32)&gCoasterIdUsed_790b04, 4);
+    Read(stream, (u32)&gCoasterIdHoles_790b00, 4);
+    Read(stream, (u32)&gCoasterIdNext_791ce0, 4);
     for (u32 i = 0; i < count; ++i) {
         ReadCoaster(stream);
         reinterpret_cast<u32 &>(gCoastersload_790fec) = 0;

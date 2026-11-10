@@ -13,6 +13,7 @@
 #include "rsseexec.h"
 #include "scriptkill.h"
 #include "../world/ridelist.h"
+#include "rsse.h"
 
 namespace {
 
@@ -46,19 +47,19 @@ Position part_position(const RsseContext *ctx, u8 *node) {
 
 void run(RsseContext *ctx) {
     if (ctx->code != nullptr) {
-        global<u32>(0x0087919c) = 0;
+        RSSE_CritLock = 0;
         ctx->budget_left = ctx->budget;
         if (ctx->budget > 0) {
             while (ctx->pc >= 0) {
                 g_env->execute(ctx);
-                if (global<u32>(0x0087919c) == 0) --ctx->budget_left;
+                if (RSSE_CritLock == 0) --ctx->budget_left;
                 if (ctx->budget_left <= 0) break;
             }
         }
     }
     if (ctx->owner != 0) {
         const s32 speed = ctx->speed, scale = at<s16>(ctx, 0xe4);
-        const float value = (float)(X87_SubR(X87Reg((double)speed) * -0.01f, 0.5f) * X87Reg((double)scale) * global<float>(0x00700fd4));
+        const float value = (float)(X87_SubR(X87Reg((double)speed) * -0.01f, 0.5f) * X87Reg((double)scale) * gRsseVm_700fd4);
         g_env->setSpeed(ride_of(ctx), value);
     }
     if (ctx->sound != 0) {
@@ -95,7 +96,7 @@ void node_step(RsseContext *ctx, u8 *node) {
         const s32 jy = ftol(X87Reg(dir[1]) * gRidelist_700fdc);
         const s32 jx = ftol(X87Reg(dir[0]) * gRidelist_700fdc);
         g_env->setScaled(at<u32>(node, 0xc), jx, jy, jz);
-    } else if (kind >= 3 && kind <= 10 && (((u32)ctx->id ^ global<u32>(0x008791a4)) & 7) == 0) {
+    } else if (kind >= 3 && kind <= 10 && (((u32)ctx->id ^ RSSE_TickCounter) & 7) == 0) {
         const Position p = part_position(ctx, node);
         g_env->setPosition(at<u32>(node, 0xc), p.x, p.y, p.z);
     }
@@ -107,10 +108,10 @@ void RsseTick_SetEnv(const RsseTickEnv *env) { g_env = env ? env : &kPortEnv; }
 
 u32 __cdecl RSSE_Tick() {
     if (global<u32>(0x008791a0) == 0) return global<u32>(0x008791b4);
-    ++global<u32>(0x008791a4);
+    ++RSSE_TickCounter;
     RsseContext *ctx = global<RsseContext *>(0x008791b0);
     while (ctx != nullptr) {
-        if (ctx->turbo != 0 || (((u32)ctx->id ^ global<u32>(0x008791a4)) & 7) == 0) run(ctx);
+        if (ctx->turbo != 0 || (((u32)ctx->id ^ RSSE_TickCounter) & 7) == 0) run(ctx);
         for (u8 *node = static_cast<u8 *>(ctx->objects); node != nullptr; node = at<u8 *>(node, 0)) {
             if (at<s32>(node, 0x10) >= 0) node_step(ctx, node);
         }
