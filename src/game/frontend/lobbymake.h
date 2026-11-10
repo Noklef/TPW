@@ -51,3 +51,14 @@ u8 *__fastcall Class702ca8_Ctor(u8 *self, void *, u8 *owner, u32 a1, const char 
 // The vtables hold only ports: tpw.exe's loader points their slots at them (.docs/09-globals.md).
 GAME_DATA(void *[1], Class702bb8_vtable, 0x00702bb8, 0x4);
 GAME_DATA(void *[1], Class702ca8_vtable, 0x00702ca8, 0x4);
+
+// Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(const float, gClass702bb8_Ctor_702b64, 0x00702b64, 0x4);
+GAME_DATA(const float, gClass702bb8_Ctor_702b68, 0x00702b68, 0x4);
+GAME_DATA(const float, gClass702bb8_Ctor_702b6c, 0x00702b6c, 0x4);
+GAME_DATA(const float, gClass702bb8_Ctor_702b70, 0x00702b70, 0x4);
+GAME_DATA(const float, gClass702bb8_Ctor_702b74, 0x00702b74, 0x4);
+GAME_DATA(const float, gClass702bb8_Ctor_702b78, 0x00702b78, 0x4);
+GAME_DATA(const float, gClass702ca8_Ctor_702c54, 0x00702c54, 0x4);
+GAME_DATA(char[0x8], gText_Class702bb8_Ctor_774c94, 0x00774c94, 0x8);
+GAME_DATA(char[0xc], gText_Class702bb8_Ctor_774c9c, 0x00774c9c, 0xc);
