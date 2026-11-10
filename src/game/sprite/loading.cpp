@@ -148,7 +148,7 @@ u32 __cdecl Sprites_LoadFolder(u8 *folder, const String *folderName) {
     bool avatars = false, staff = false;
     gLoading_877354 = 1;
     static constexpr u32 kKidsHeads[] = {0x00764100};
-    if (name_among(folderName, 0x0076410c, kKidsHeads, 1)) {
+    if (name_among(folderName, (u32)(uintptr_t)&gText_Sprites_LoadFolder_76410c, kKidsHeads, 1)) {
         avatars = true;
         avatarLimit = static_cast<s32>(g_calls.Th(0x0041a9d0, (u32)&gSprites_LoadFolder_78baec));
     }
@@ -168,7 +168,7 @@ u32 __cdecl Sprites_LoadFolder(u8 *folder, const String *folderName) {
     std::strcpy(buffer, gSprites_LoadFolder_764168);
     std::strcat(buffer, folderName->data);
     std::strcat(buffer, backslash);
-    vcall<void>(&path, 0x14, reinterpret_cast<const char *>((uintptr_t)0x00764160));
+    vcall<void>(&path, 0x14, reinterpret_cast<const char *>((uintptr_t)&gText_Sprites_LoadFolder_764160));
     list_files(folder, &path, folderName);
     const String *const root = reinterpret_cast<const String *>((uintptr_t)0x00786b68);   // (a wide string: Obj_Self; its data read as chars, sic)
     std::strcpy(buffer, root->data);
@@ -179,7 +179,7 @@ u32 __cdecl Sprites_LoadFolder(u8 *folder, const String *folderName) {
     list_files(folder, &path, folderName);
     SpriteFiles_Sort();
     if (avatars) {
-        for (u32 at = 0x00764030; at < 0x00764040; at += 4) {
+        for (u32 at = (u32)(uintptr_t)&gAvatarSprites; at < 0x00764040; at += 4) {
             for (s32 i = 0; i < gSpriteFileCount_875430; i++) {
                 FileEntry &e = entries()[i];
                 String wanted, have;

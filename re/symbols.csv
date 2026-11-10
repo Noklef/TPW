@@ -13057,3 +13057,5 @@ address,name,kind,confidence,notes
 0x00774838,gText_OnlineServers_Ctor_774838,data,low,"GAME_DATA (src/game/online/servers): char[0xc], named for its use in OnlineServers_Ctor (tools/gamedata_codemod.py)"
 0x00774844,gText_OnlineServers_Ctor_774844,data,low,"GAME_DATA (src/game/online/servers): char[0x18], named for its use in OnlineServers_Ctor (tools/gamedata_codemod.py)"
 0x0077485c,gText_OnlineServers_Ctor_77485c,data,low,"GAME_DATA (src/game/online/servers): char[0x14], named for its use in OnlineServers_Ctor (tools/gamedata_codemod.py)"
+0x0076410c,gText_Sprites_LoadFolder_76410c,data,low,"GAME_DATA (src/game/sprite/loading): char[0x8], named for its use in Sprites_LoadFolder (tools/gamedata_codemod.py)"
+0x00764160,gText_Sprites_LoadFolder_764160,data,low,"GAME_DATA (src/game/sprite/loading): char[0x8], named for its use in Sprites_LoadFolder (tools/gamedata_codemod.py)"
