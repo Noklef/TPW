@@ -27,6 +27,7 @@
 #include "coastersupdate.h"
 #include "coastersload.h"
 #include "../world/rides.h"
+#include "../world/camera.h"
 
 namespace {
 
@@ -49,7 +50,7 @@ u8 *RideAt(u32 index) { return gRides_7a4610[index]; }
 extern "C" {
 
 void __cdecl Train_SetCouplings(u32, u8 *train) {
-    if (*reinterpret_cast<const u32 *>(0x00790afc)) return;
+    if (gCamera_790afc) return;
     for (u32 i = 0; i < at<u32>(train, 0x30); ++i) {
         u8 *car = at<u8 *>(train, 0x34 + 4 * i);
         const u32 count = at<u32>(train, 0x30);
@@ -583,7 +584,7 @@ u32 __cdecl Pylon_FindBraceLevel(float wanted, const u8 *train, u32 *level, floa
 }
 
 void __cdecl Train_PlaceCars(const u8 *type, u8 *train, u32 force, u32 keep) {
-    if (global<u32>(0x00790afc) && !force) return;
+    if (gCamera_790afc && !force) return;
     for (u32 i = 0; i < at<u32>(train, 0x30); ++i) {
         u8 *const car = at<u8 *>(train, 0x34 + 4 * i);
         if (!keep) {

@@ -4,6 +4,7 @@
 
 #include "../core/addrcalls.h"
 #include "../world/rides.h"
+#include "../world/camera.h"
 
 namespace {
 
@@ -44,10 +45,10 @@ void __cdecl Ride_AnimateOne(u8 *ride, u32 shown) {
 
 void __cdecl Rides_AnimateAll(u32 mode) {
     if (mode == 2) {
-        if (!(global<u8>(0x00790ab0) & 4)) return;
-        AnimatorUpdate(global<u8 *>(0x00790988), 1, 0);
-        AimSprites(global<u8 *>(0x00790988));
-        StripAnim(global<u8 *>(0x00790988));
+        if (!(reinterpret_cast<u8 &>(gCameraFlags) & 4)) return;
+        AnimatorUpdate(gCamera_790988, 1, 0);
+        AimSprites(gCamera_790988);
+        StripAnim(gCamera_790988);
         return;
     }
     for (u32 i = 0; i < global<u32>(0x007a3ebc) + global<u32>(0x007a4084); i++) {

@@ -11,6 +11,7 @@
 #include "../gfx/texcache.h"
 #include "meshlist.h"
 #include "../core/vwrap.h"
+#include "../world/camera.h"
 
 namespace {
 
@@ -40,7 +41,7 @@ bool DrawViewSteps(u8 *renderer, const u32 *view) {
         if (global<u32>(kMode) == 4) reinterpret_cast<u32 &>(gRendererframe_8bd4ec) = 0x3e800000;
     }
     if ((view[0] & 0x1000) && at<u32>(renderer, 0x34)) g_calls.Th(0x00575fb0, at<u32>(renderer, 0x34));   // TexSet_BltToBack
-    if (global<u8>(0x00790ab0) & 0x16) global<u32>(kSceneFlags) |= 0x100;
+    if (reinterpret_cast<u8 &>(gCameraFlags) & 0x16) global<u32>(kSceneFlags) |= 0x100;
     if (global<u32>(kSceneFlags) & 0x100) {
         const u32 terrain = global<u32>(0x00879d60);
         g_calls.Th(0x0056ea90, terrain);   // TerrainTex_CullView

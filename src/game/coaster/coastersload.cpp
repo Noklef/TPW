@@ -8,6 +8,7 @@
 #include "../world/ridelist.h"
 #include "registry.h"
 #include "../world/rides.h"
+#include "../world/camera.h"
 
 namespace {
 
@@ -83,7 +84,7 @@ void ReadPiece(void *stream, u32 &piece, u32 &first, u32 &second) {
 void PlaceTrains(u32 coaster) {
     for (u32 train = D(coaster, 0x4c); train; train = D(train, 0x28)) {
         if (G<u8>(train + 4) & 1) continue;
-        if (!G<u32>(0x00790afc)) {
+        if (!gCamera_790afc) {
             for (u32 i = 0; i < D(train, 0x30); ++i) {
                 const u32 count = D(train, 0x30);
                 const u32 car = D(train, 0x34 + 4 * i);
@@ -191,7 +192,7 @@ void ReadRecords(void *stream, u32 coaster) {
 
 void ReadCoaster(void *stream) {
     u8 h[0x20];
-    G<u32>(0x00790afc) = 1;
+    gCamera_790afc = 1;
     Read(stream, Ptr(h), 0x20);
     const u32 flags = From<u32>(h, 0);
     const u32 id = From<u16>(h, 0xa);
@@ -217,7 +218,7 @@ void ReadCoaster(void *stream) {
     Read(stream, piece + 0xb0, 4);
     ReadWords(stream, piece);
     for (u32 k = 0; k < From<u16>(h, 0x16); ++k) ReadPiece(stream, piece, first, second);
-    G<u32>(0x00790afc) = 0;
+    gCamera_790afc = 0;
     PlaceTrains(coaster);
     if (h[0] & 1) AddEntries();
     for (u32 car = D(coaster, 0x54); car; car = D(car, 0x64))

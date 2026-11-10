@@ -16,6 +16,7 @@
 #include "placecar.h"
 #include "edittools.h"
 #include "coastersload.h"
+#include "../world/camera.h"
 
 namespace {
 
@@ -186,13 +187,13 @@ void __cdecl CoasterEdit_Update() {
     u32 edited = 0;
     float h;
     if (u8 *const car = Car())
-        h = (float)(X87Reg(g<float>(0x00790a38)) - at<float>(car, 0xe0));
+        h = (float)(X87Reg(gCamera_790a38) - at<float>(car, 0xe0));
     else
-        copy(&h, 0x00790a38);
+        copy(&h, (u32)&gCamera_790a38);
     u32 flags = Flags();
     if (flags & 0x3f && flags & 0x1e00) {
-        float dx = (float)((X87Reg(reinterpret_cast<float &>(gCoasterEdit_79c630)) - g<float>(0x00790ac8)) * reinterpret_cast<float &>(gCoasterEdit_79c6ec));
-        float dy = (float)((X87Reg(reinterpret_cast<float &>(gCoasterEdit_79c634)) - g<float>(0x00790acc)) * reinterpret_cast<float &>(gCoasterEdit_79c6a8));
+        float dx = (float)((X87Reg(reinterpret_cast<float &>(gCoasterEdit_79c630)) - gCamera_790ac8) * reinterpret_cast<float &>(gCoasterEdit_79c6ec));
+        float dy = (float)((X87Reg(reinterpret_cast<float &>(gCoasterEdit_79c634)) - gCamera_790acc) * reinterpret_cast<float &>(gCoasterEdit_79c6a8));
         if (flags & 0x2000) {   // (turned by the camera)
             const X87Reg s = sine(scaled(h));
             const float c = (float)sine(scaled_cos(h));
@@ -208,7 +209,7 @@ void __cdecl CoasterEdit_Update() {
             if (flags & 0x400) {
                 float *const p = reinterpret_cast<float * &>(gCoasterEdit_79c6fc);
                 if (hold(p, X87Reg(dy) + reinterpret_cast<float &>(gCoasterEdit_79c6d4), (u32)&gCoasterEdit_79c6e4, (u32)&gCoasterEdit_79c66c) && !(Flags() & 0x2000))
-                    reinterpret_cast<float &>(gCoasterEdit_79c634) = (float)((X87Reg(*p) - reinterpret_cast<float &>(gCoasterEdit_79c6d4)) / reinterpret_cast<float &>(gCoasterEdit_79c6a8) + g<float>(0x00790acc));
+                    reinterpret_cast<float &>(gCoasterEdit_79c634) = (float)((X87Reg(*p) - reinterpret_cast<float &>(gCoasterEdit_79c6d4)) / reinterpret_cast<float &>(gCoasterEdit_79c6a8) + gCamera_790acc);
                 if (float *const q = reinterpret_cast<float * &>(gCoasterEdit_79c6f8)) hold(q, X87Reg(dy) + reinterpret_cast<float &>(gCoasterEdit_79c6d0), (u32)&gCoasterEdit_Update_79c6e8, (u32)&gCoasterEdit_Update_79c670);
             } else if (flags & 0x1000) {
                 float *const p = reinterpret_cast<float * &>(gCoasterEdit_79c6fc);
@@ -234,7 +235,7 @@ void __cdecl CoasterEdit_Update() {
             if (flags & 0x200) {
                 float *const p = reinterpret_cast<float * &>(gCoasterEdit_79c614);
                 if (hold(p, X87Reg(dx) + reinterpret_cast<float &>(gCoasterEdit_79c6f0), (u32)&gCoasterEdit_79c61c, (u32)&gCoasterEdit_79c65c) && !(Flags() & 0x2000))
-                    reinterpret_cast<float &>(gCoasterEdit_79c630) = (float)((X87Reg(*p) - reinterpret_cast<float &>(gCoasterEdit_79c6f0)) / reinterpret_cast<float &>(gCoasterEdit_79c6ec) + g<float>(0x00790ac8));
+                    reinterpret_cast<float &>(gCoasterEdit_79c630) = (float)((X87Reg(*p) - reinterpret_cast<float &>(gCoasterEdit_79c6f0)) / reinterpret_cast<float &>(gCoasterEdit_79c6ec) + gCamera_790ac8);
                 if (float *const q = reinterpret_cast<float * &>(gCoasterEdit_79c610)) hold(q, X87Reg(dx) + reinterpret_cast<float &>(gCoasterEdit_79c6f4), (u32)&gCoasterEdit_Update_79c620, (u32)&gCoasterEdit_Update_79c654);
             } else if (flags & 0x800) {
                 float *const p = reinterpret_cast<float * &>(gCoasterEdit_79c614);

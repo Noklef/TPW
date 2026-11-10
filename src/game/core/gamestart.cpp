@@ -7,6 +7,7 @@
 #include "../render/graphicssettings.h"
 #include "gamewindow.h"
 #include "soundset.h"
+#include "../world/camera.h"
 
 namespace {
 
@@ -66,7 +67,7 @@ void __cdecl Game_Start() {
         return;
     }
     g_calls.Cd(0x0040cb80);
-    if (global<u8>(0x00790ab0) & 0x16) global<u8>(0x00878e84) = 1;
+    if (reinterpret_cast<u8 &>(gCameraFlags) & 0x16) global<u8>(0x00878e84) = 1;
     u32 now;
     g_calls.Cd(0x0067d3f0, &now);
     char line[0x100];

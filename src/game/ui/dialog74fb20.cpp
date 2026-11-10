@@ -145,7 +145,7 @@ u32 __cdecl Dialog74fb20_Handler(u8 *window, u32 message, u32 a, u32 b) {
 }
 
 void __cdecl CameraMode_Leave() {
-    const u32 flags = global<u32>(0x00790ab0);
+    const u32 flags = gCameraFlags;
     if (flags & 2) {
         g_env->walk();
     } else if (flags & 4) {

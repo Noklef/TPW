@@ -76,7 +76,7 @@ inline X87Reg Mul(double a, double b) { return a != a && b != b ? X87Reg(X87_Add
 
 // The angle 0x7909e0 eased to the yaw (a register); within 0.0005 of it, the yaw.
 void EaseAngle(X87Reg yaw, float dt, u32 paused) {
-    float &angle = global<float>(0x007909e0);
+    float &angle = gCamera_7909e0;
     const float limit = paused ? 200.0f : 140.0f;
     const X87Reg s = X87Reg(dt < limit ? dt : limit) * (paused ? kBlendRate : kBlendSlow);
     const X87Reg sum = (X87Reg(kOne) - s) * angle + yaw * s;
@@ -105,9 +105,9 @@ float CellShare(float at_, float step, float scaled, u32 &slot) {
 bool WalkPoint(float dt, u32 &s1c, u32 &s2c, u32 &s40) {
     float &x = global<float>(0x007908f0);
     float &z = global<float>(0x007908f8);
-    const X87Reg dx = X87Reg(dt) * global<float>(0x00790a88);
+    const X87Reg dx = X87Reg(dt) * gCamera_790a88;
     float left = (float)dx;
-    float leftZ = (float)(X87Reg(dt) * global<float>(0x00790a90));
+    float leftZ = (float)(X87Reg(dt) * gCamera_790a90);
     if (dx.v >= kMinusSmall && !(left > kSmall)) left = 0.0f;
     if (leftZ >= kMinusSmall && !(leftZ > kSmall)) leftZ = 0.0f;
     if (Zero(left) && Zero(leftZ)) return false;
@@ -189,21 +189,21 @@ extern "C" {
 void CameraUpdate_SetEnv(const CameraUpdateEnv *env) { gEnv = env ? env : &kGameEnv; }
 
 void __cdecl Camera_Update() {
-    float *const matrix = reinterpret_cast<float *>((uintptr_t)0x00790990);
-    if (global<u8>(0x00790ab0) & 0x80) {
-        global<float *>(0x00790a98) = reinterpret_cast<float *>((uintptr_t)0x007909f0);
-        Mat4_Assign(global<u32 *>(0x0087afe8), nullptr, reinterpret_cast<const u32 *>((uintptr_t)0x007909f0));
+    float *const matrix = gCamera_790990;
+    if (reinterpret_cast<u8 &>(gCameraFlags) & 0x80) {
+        gCamera_790a98 = gCamera_7909f0;
+        Mat4_Assign(global<u32 *>(0x0087afe8), nullptr, reinterpret_cast<const u32 *>(gCamera_7909f0));
     } else {
-        float &yaw = global<float>(0x00790a38);
-        float &angle = global<float>(0x007909e0);
-        float &zoom = global<float>(0x007909ec);
+        float &yaw = gCamera_790a38;
+        float &angle = gCamera_7909e0;
+        float &zoom = gCamera_7909ec;
         float &px = global<float>(0x007908f0);
         float &pz = global<float>(0x007908f8);
-        float &vx = global<float>(0x00790a88);
-        float &vy = global<float>(0x00790a8c);
-        float &vz = global<float>(0x00790a90);
-        u32 &keys = global<u32>(0x00790aac);
-        u32 &flagsNow = global<u32>(0x00790ab0);
+        float &vx = gCamera_790a88;
+        float &vy = gCamera_790a8c;
+        float &vz = gCamera_790a90;
+        u32 &keys = gCamera_790aac;
+        u32 &flagsNow = gCameraFlags;
         const u32 paused = global<u8>(0x0078d912);
         u32 s2c = 0;   // (frame slots read again later, stale)
         const u32 now = gEnv->now(reinterpret_cast<u8 *>((uintptr_t)0x00785970));
@@ -225,15 +225,15 @@ void __cdecl Camera_Update() {
             dt = 0.0f;
             global<u32>(0x007908e8) = 0;
         } else {
-            dt = (float)(X87Reg((double)(u32)(now + 1)) - X87Reg((double)global<s32>(0x007909e4)));
+            dt = (float)(X87Reg((double)(u32)(now + 1)) - X87Reg((double)gCamera_7909e4));
         }
         if (dt > 200.0f) dt = 100.0f;
         if (!(dt > 0.0f)) dt = 1.0f;
 
-        const u32 before = global<u32>(0x007909d0);
+        const u32 before = gCamera_7909d0;
         if (before != keys && !(before & 4) && (keys & 4)) {
-            global<u32>(0x007909d8) = global<u32>(0x00790ac8);
-            global<u32>(0x007909dc) = global<u32>(0x00790acc);
+            gCamera_7909d8 = reinterpret_cast<u32 &>(gCamera_790ac8);
+            gCamera_7909dc = reinterpret_cast<u32 &>(gCamera_790acc);
         }
         keys &= 0xffffff87;
         if (Held(6) || Held(0x12)) keys |= 8;
@@ -252,7 +252,7 @@ void __cdecl Camera_Update() {
             }
         } else {
             if (paused) {
-                const u32 last = global<u8>(0x007909d0);
+                const u32 last = reinterpret_cast<u8 &>(gCamera_7909d0);
                 if ((k & 8) && !(last & 8)) yaw = (float)(X87Reg(yaw) - kMinusHalfPi);
                 if ((k & 0x10) && !(last & 0x10)) yaw = (float)(X87Reg(yaw) - kHalfPi);
             } else {
@@ -263,8 +263,8 @@ void __cdecl Camera_Update() {
             if (k & 0x20) zoom = (float)(zoom - X87Reg(dt) * 0.0500000007f);
         }
         if (k & 0x100) {
-            global<u32>(0x007909ec) = global<u32>(0x006fdd40);
-            global<u32>(0x00790a38) = global<u32>(0x006fdd44);
+            reinterpret_cast<u32 &>(gCamera_7909ec) = global<u32>(0x006fdd40);
+            reinterpret_cast<u32 &>(gCamera_790a38) = global<u32>(0x006fdd44);
             global<u32>(0x007908f0) = global<u32>(0x006fdd48);
             global<u32>(0x007908f4) = global<u32>(0x006fdd4c);
             global<u32>(0x007908f8) = global<u32>(0x006fdd50);
@@ -273,9 +273,9 @@ void __cdecl Camera_Update() {
             keys = k;
             flagsNow = flags;
         }
-        float mx = (float)((X87Reg(global<float>(0x00790ac8)) - global<float>(0x007a1c54)) / global<float>(0x0074d104));   // (the screen's half size, set with the window)
-        float my = (float)X87Reg(-((X87Reg(global<float>(0x00790acc)) - global<float>(0x007a1c58)) / global<float>(0x0074d108)).v);
-        global<u32>(0x007909d0) = k;
+        float mx = (float)((X87Reg(gCamera_790ac8) - global<float>(0x007a1c54)) / global<float>(0x0074d104));   // (the screen's half size, set with the window)
+        float my = (float)X87Reg(-((X87Reg(gCamera_790acc) - global<float>(0x007a1c58)) / global<float>(0x0074d108)).v);
+        gCamera_7909d0 = k;
         u32 pressing = 0, moved = 0;
         if (flags & 0x16) {
             moved = (~flags >> 0xb) & 1;
@@ -311,28 +311,28 @@ void __cdecl Camera_Update() {
                 const u32 follows = flags & 0x3c;
                 if (follows) {
                     if (!(mx >= kMinusInner))
-                        global<float>(0x00790ae0) = (float)((X87Reg(mx) - kMinusInner) * 3.5f);
+                        gCamera_790ae0 = (float)((X87Reg(mx) - kMinusInner) * 3.5f);
                     else if (mx > kInner)
-                        global<float>(0x00790ae0) = (float)((X87Reg(mx) - kInner) * 3.5f);
+                        gCamera_790ae0 = (float)((X87Reg(mx) - kInner) * 3.5f);
                     else
-                        global<float>(0x00790ae0) = 0.0f;
+                        gCamera_790ae0 = 0.0f;
                 } else {
                     if (!(mx >= kMinusOuter)) {
                         const X87Reg t = X87Reg(mx) - kMinusOuter;
-                        global<float>(0x00790ae0) = (float)(t + t);
+                        gCamera_790ae0 = (float)(t + t);
                     } else if (mx > kOuter) {
                         const X87Reg t = X87Reg(mx) - kOuter;
-                        global<float>(0x00790ae0) = (float)(t + t);
+                        gCamera_790ae0 = (float)(t + t);
                     } else {
-                        global<float>(0x00790ae0) = 0.0f;
+                        gCamera_790ae0 = 0.0f;
                     }
                 }
                 if (!(my >= kMinusOuter))
-                    global<float>(0x00790adc) = (float)(X87Reg(-(double)my) - kOuter);
+                    gCamera_790adc = (float)(X87Reg(-(double)my) - kOuter);
                 else if (my > kInner)
-                    global<float>(0x00790adc) = (float)((X87Reg(kInner) - my) * 1.20000005f);
+                    gCamera_790adc = (float)((X87Reg(kInner) - my) * 1.20000005f);
                 else
-                    global<float>(0x00790adc) = 0.0f;
+                    gCamera_790adc = 0.0f;
                 if (grab && !follows) s28 = (float)(X87Reg(s28) - kTiltStep);
             } else {
                 const bool free = global<u8>(0x0078d910) == 0;
@@ -367,16 +367,16 @@ void __cdecl Camera_Update() {
             X87Reg p = 0.0, q = 0.0;
             if (flags & 0x16) {
                 if (flags & 0x3c) {
-                    global<u32>(0x007909e0) = global<u32>(0x00790a38);
+                    reinterpret_cast<u32 &>(gCamera_7909e0) = reinterpret_cast<u32 &>(gCamera_790a38);
                     q = X87Reg(s28);
                     p = s;
                 } else {
-                    const X87Reg r = X87Reg(dt) * global<float>(0x00790ae0) * -0.00120000006f;
+                    const X87Reg r = X87Reg(dt) * gCamera_790ae0 * -0.00120000006f;
                     const float across = (float)s;
                     const X87Reg turned = yaw - r;
                     yaw = (float)turned;
                     const double sine = X87_Sin(turned.v);
-                    global<u32>(0x007909e0) = global<u32>(0x00790a38);
+                    reinterpret_cast<u32 &>(gCamera_7909e0) = reinterpret_cast<u32 &>(gCamera_790a38);
                     const double cosine = X87_Cos((double)yaw);
                     const float fc = (float)cosine, fs = (float)sine;
                     s1c = Bits(fc);
@@ -407,9 +407,9 @@ void __cdecl Camera_Update() {
             if ((edges & 8) && vz > 0.0f) vz = (float)(oldZ / back);
         }
         if (!(std::fabs(vx) >= kSmall) && !(std::fabs(vy) >= kSmall) && !(std::fabs(vz) >= kSmall)) {
-            global<u32>(0x00790a88) = 0;
-            global<u32>(0x00790a8c) = 0;
-            global<u32>(0x00790a90) = 0;
+            reinterpret_cast<u32 &>(gCamera_790a88) = 0;
+            reinterpret_cast<u32 &>(gCamera_790a8c) = 0;
+            reinterpret_cast<u32 &>(gCamera_790a90) = 0;
         }
         if ((flags & 0x16) && !(flags & 0x3c)) {
             if (WalkPoint(dt, s1c, s2c, s40)) {
@@ -430,13 +430,13 @@ void __cdecl Camera_Update() {
                 else if (zoom > 130.0f) zoom = 130.0f;
             }
         }
-        global<u32>(0x00790ab8) = global<u32>(0x007908f0);
-        global<u32>(0x00790abc) = global<u32>(0x007908f4);
-        global<u32>(0x00790ac0) = global<u32>(0x007908f8);
-        float &eyeX = global<float>(0x00790aa0);
-        float &eyeY = global<float>(0x00790aa4);
-        float &eyeZ = global<float>(0x00790aa8);
-        float &tilt = global<float>(0x00790a3c);
+        reinterpret_cast<u32 &>(gCamera_790ab8) = global<u32>(0x007908f0);
+        reinterpret_cast<u32 &>(gCamera_790abc) = global<u32>(0x007908f4);
+        reinterpret_cast<u32 &>(gCamera_790ac0) = global<u32>(0x007908f8);
+        float &eyeX = gCamera_790aa0[0];
+        float &eyeY = gCamera_790aa0[1];
+        float &eyeZ = gCamera_790aa0[2];
+        float &tilt = gCamera_790a3c;
         bool ground = true;
         if (flags & 0x16) {
             eyeX = 0.0f;
@@ -467,8 +467,8 @@ void __cdecl Camera_Update() {
             const X87Reg ey = Mul(sine, (double)back), ez = Mul(cosine, (double)back);
             eyeY = (float)X87Reg(-ey.v);
             eyeZ = (float)ez;
-            const X87Reg h = (X87Reg(gEnv->height(global<u32>(0x007908f0), global<u32>(0x007908f8), 1)) + global<float>(0x00790ae4)) * 0.5f;
-            global<float>(0x00790ae4) = (float)h;
+            const X87Reg h = (X87Reg(gEnv->height(global<u32>(0x007908f0), global<u32>(0x007908f8), 1)) + gCamera_790ae4) * 0.5f;
+            gCamera_790ae4 = (float)h;
             eyeY = (float)(h + eyeY);
             const auto lean = [](float v, float rate, u32 slot) {
                 float &out = global<float>(slot);
@@ -491,48 +491,48 @@ void __cdecl Camera_Update() {
             const float fc = (float)cosine, fs = (float)sine;
             const float oldEyeX = (float)X87Reg(eyeX);
             const X87Reg ex = Mul(sine, (double)eyeZ) + X87Reg(eyeX) * fc;
-            const X87Reg h = X87Reg(global<float>(0x00790abc)) + eyeY;
+            const X87Reg h = X87Reg(gCamera_790abc) + eyeY;
             const X87Reg ec = Mul(cosine, (double)eyeZ);
             eyeX = (float)ex;
-            const X87Reg ax = X87Reg(global<float>(0x00790ab8)) + eyeX;
+            const X87Reg ax = X87Reg(gCamera_790ab8) + eyeX;
             eyeY = (float)h;
             eyeX = (float)ax;
-            eyeZ = (float)((ec - X87Reg(fs) * oldEyeX) + global<float>(0x00790ac0));
+            eyeZ = (float)((ec - X87Reg(fs) * oldEyeX) + gCamera_790ac0);
         }
         if (!(flags & 0x16)) {
             Matrix_FromPitchYaw(matrix, tilt, angle);
             Matrix_RotateEuler(matrix, 9, reinterpret_cast<const float *>((uintptr_t)0x007908e0));
         } else if (!(flags & 0x3c)) {
-            Matrix_FromPitchYaw(matrix, global<float>(0x00790adc), angle);
+            Matrix_FromPitchYaw(matrix, gCamera_790adc, angle);
         } else {
-            const float *const part = global<const float *>(0x00790a30);
+            const float *const part = reinterpret_cast<float * &>(gCamera_790a30);
             std::memcpy(matrix, part, 0x40);
             float t = dt;
             if (dt > 1000.0f) t = 1000.0f;
             if (!(t >= kOne)) t = kOne;
             const float blend = (float)((X87Reg(1000.0f) - X87Reg(t)) * 0.000500000024f);
             const X87Reg rest = X87Reg(kOne) - blend;
-            float *const old = reinterpret_cast<float *>((uintptr_t)0x00790948);
+            float *const old = gCamera_790948;
             for (int i = 0; i < 11; ++i)
                 if ((i & 3) != 3) matrix[i] = (float)(X87Reg(blend) * old[i] + X87Reg(part[i]) * rest);
             std::memcpy(old, part, 0x40);
             float local[16];
             Matrix_Identity(local);
-            const float angles[3] = {global<float>(0x00790adc), global<float>(0x00790ae0), 0.0f};
+            const float angles[3] = {gCamera_790adc, gCamera_790ae0, 0.0f};
             Matrix_RotateEulerFast(local, 4, angles);
             Matrix_PreMul(local, matrix);
         }
-        if (global<u8>(0x00790ab0) & 0x3c) {
-            const u32 *const part = global<const u32 *>(0x00790a30);
-            global<u32>(0x007909c0) = X87_FloatThrough(part[12]);
-            global<u32>(0x007909c4) = X87_FloatThrough(part[13]);
-            global<u32>(0x007909c8) = X87_FloatThrough(part[14]);
+        if (reinterpret_cast<u8 &>(gCameraFlags) & 0x3c) {
+            const u32 *const part = reinterpret_cast<u32 * &>(gCamera_790a30);
+            reinterpret_cast<u32 &>(gCamera_790990[12]) = X87_FloatThrough(part[12]);
+            reinterpret_cast<u32 &>(gCamera_790990[13]) = X87_FloatThrough(part[13]);
+            reinterpret_cast<u32 &>(gCamera_790990[14]) = X87_FloatThrough(part[14]);
         } else {
-            global<u32>(0x007909c0) = global<u32>(0x00790aa0);
-            global<u32>(0x007909c4) = X87_FloatThrough(global<u32>(0x00790aa4));
-            global<u32>(0x007909c8) = X87_FloatThrough(global<u32>(0x00790aa8));
+            reinterpret_cast<u32 &>(gCamera_790990[12]) = reinterpret_cast<u32 &>(gCamera_790aa0[0]);
+            reinterpret_cast<u32 &>(gCamera_790990[13]) = X87_FloatThrough(reinterpret_cast<u32 &>(gCamera_790aa0[1]));
+            reinterpret_cast<u32 &>(gCamera_790990[14]) = X87_FloatThrough(reinterpret_cast<u32 &>(gCamera_790aa0[2]));
         }
-        float *const last = reinterpret_cast<float *>((uintptr_t)0x00790a48);
+        float *const last = gCamera_790a48;
         if (!gEnv->matricesClose(matrix, last)) {
             Mat4_Assign(global<u32 *>(0x0087afe8), nullptr, reinterpret_cast<const u32 *>(matrix));
         } else {
@@ -540,11 +540,11 @@ void __cdecl Camera_Update() {
             angle = (float)std::fmod((double)angle, kTwoPiD);
         }
         std::memcpy(last, matrix, 0x40);
-        global<float *>(0x00790a98) = matrix;
-        global<u32>(0x007909e4) = now;
+        gCamera_790a98 = matrix;
+        reinterpret_cast<u32 &>(gCamera_7909e4) = now;
     }
     float inverse[16];
-    const float *const from = Matrix_Invert(inverse, global<const float *>(0x00790a98));
-    std::memcpy(reinterpret_cast<void *>((uintptr_t)0x00790900), from, 0x40);
+    const float *const from = Matrix_Invert(inverse, gCamera_790a98);
+    std::memcpy(reinterpret_cast<void *>(gCamera_790900), from, 0x40);
 }
 }

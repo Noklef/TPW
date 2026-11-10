@@ -19,6 +19,7 @@
 #include "../render/graphicssettings.h"
 #include "../gfx/texcache.h"
 #include "../coaster/arreplayaction.h"
+#include "../world/camera.h"
 
 namespace {
 
@@ -427,9 +428,9 @@ void FixedSteps() {   // state 0xa
 }
 
 void SoundPlacement() {   // state 0xa
-    const u32 xBits = G<u32>(0x007909c0), yBits = G<u32>(0x007909c4), zBits = G<u32>(0x007909c8);
-    const u32 a0 = G<u32>(0x007909a0), a4 = G<u32>(0x007909a4), a8 = G<u32>(0x007909a8), b0 = G<u32>(0x007909b0), b4 = G<u32>(0x007909b4), b8 = G<u32>(0x007909b8);
-    if (G<u8>(0x00790ab0) & 0x16) {
+    const u32 xBits = reinterpret_cast<u32 &>(gCamera_790990[12]), yBits = reinterpret_cast<u32 &>(gCamera_790990[13]), zBits = reinterpret_cast<u32 &>(gCamera_790990[14]);
+    const u32 a0 = reinterpret_cast<u32 &>(gCamera_790990[4]), a4 = reinterpret_cast<u32 &>(gCamera_790990[5]), a8 = reinterpret_cast<u32 &>(gCamera_790990[6]), b0 = reinterpret_cast<u32 &>(gCamera_790990[8]), b4 = reinterpret_cast<u32 &>(gCamera_790990[9]), b8 = reinterpret_cast<u32 &>(gCamera_790990[10]);
+    if (reinterpret_cast<u8 &>(gCameraFlags) & 0x16) {
         Cd(0x0051c1d0, xBits, yBits, zBits, b0, b4, b8, a0, a4, a8);
         return;
     }
@@ -438,9 +439,9 @@ void SoundPlacement() {   // state 0xa
     std::memcpy(&y, &yBits, 4);
     std::memcpy(&z, &zBits, 4);
     const float &lag = G<const float>(0x00700f88);
-    const X87Reg dz = X87Reg(z) - G<const float>(0x00790ac0);
-    const X87Reg dy = X87Reg(y) - G<const float>(0x00790abc);
-    const X87Reg dx = X87Reg(x) - G<const float>(0x00790ab8);
+    const X87Reg dz = X87Reg(z) - gCamera_790ac0;
+    const X87Reg dy = X87Reg(y) - gCamera_790abc;
+    const X87Reg dx = X87Reg(x) - gCamera_790ab8;
     const X87Reg nz = z - (dz * lag);
     const X87Reg ny = y - (dy * lag);
     const X87Reg sx = dx * lag;
@@ -466,7 +467,7 @@ void Drawing() {   // state 0xa
     Cd(0x00429df0, 0);
     Cd(0x00429df0, 1);
     Cd(0x00599800);
-    const bool camera = (G<u32>(0x00790ab0) & 0x16) != 0;
+    const bool camera = (gCameraFlags & 0x16) != 0;
     const u8 was = G<u8>(0x00878e84);
     if (camera ? was == 0 : was == 1) {
         G<u32>(0x008bcbc8) ^= 0x2080;
@@ -474,7 +475,7 @@ void Drawing() {   // state 0xa
         G<u32>(0x0087502c) = 0x12c;
         G<u32>(0x00875028) = Ticks();
     }
-    const u8 cameraByte = G<u8>(0x00790ab0);
+    const u8 cameraByte = reinterpret_cast<u8 &>(gCameraFlags);
     G<u8>(0x00878e84) = (cameraByte & 0x16) != 0;
     if (G<s32>(0x0087502c) > 0) {
         const u32 surface = at<u32>(G<u32>(0x00879a24), 0x14);

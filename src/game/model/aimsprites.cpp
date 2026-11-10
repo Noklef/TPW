@@ -10,6 +10,7 @@
 #include "../math/matrix.h"
 #include "../math/x87.h"
 #include "../math/sintable.h"
+#include "../world/camera.h"
 
 namespace {
 
@@ -101,7 +102,7 @@ void __cdecl AimSprites_Update(const u8 *instance) {
         g_calls.Cd(0x00475480, slot, at<u32>(matrix, 0x30), at<u32>(matrix, 0x34), at<u32>(matrix, 0x38), 0u);   // SpriteScript_SetPosition
         float view[16];
         Matrix_Invert(view, matrix);
-        Matrix_PreMul(global<const float *>(0x00790a98), view);
+        Matrix_PreMul(gCamera_790a98, view);
         const X87Reg length = X87_Sqrt(X87Reg(view[12]) * X87Reg(view[12]) + X87Reg(view[13]) * view[13] + X87Reg(view[14]) * view[14]);
         const float direction[3] = {(float)(X87Reg(view[12]) / length), (float)(X87Reg(view[13]) / length), (float)(X87Reg(view[14]) / length)};
         if (IsNan(direction[0])) {

@@ -24,6 +24,7 @@
 #include "coastersupdate.h"
 #include "coastersload.h"
 #include "../world/rides.h"
+#include "../world/camera.h"
 
 namespace {
 
@@ -108,8 +109,8 @@ u32 __cdecl CoasterEdit_ToggleAdjustF8() {
     if (!(flags & 4))
         return Off(flags);
     gCoasterEdit_79c618 = 0;
-    gCoasterEdit_79c630 = g<u32>(0x00790ac8);
-    gCoasterEdit_79c634 = g<u32>(0x00790acc);
+    gCoasterEdit_79c630 = reinterpret_cast<u32 &>(gCamera_790ac8);
+    gCoasterEdit_79c634 = reinterpret_cast<u32 &>(gCamera_790acc);
     if (!piece)
         return NoPiece(flags, 4);
     gCoasterEdit_79c6fc = 0;
@@ -161,8 +162,8 @@ u32 __cdecl CoasterEdit_ToggleAdjustE0() {
     if (!(flags & 2))
         return Off(flags);
     gCoasterEdit_79c668 = 0;
-    gCoasterEdit_79c630 = g<u32>(0x00790ac8);
-    gCoasterEdit_79c634 = g<u32>(0x00790acc);
+    gCoasterEdit_79c630 = reinterpret_cast<u32 &>(gCamera_790ac8);
+    gCoasterEdit_79c634 = reinterpret_cast<u32 &>(gCamera_790acc);
     if (!piece)
         return NoPiece(flags, 2);
     gCoasterEdit_79c6fc = 0;
@@ -202,9 +203,9 @@ u32 __cdecl CoasterEdit_ToggleAdjustAngles() {
     if (!(flags & 4))
         return Off(flags);
     gCoasterEdit_79c668 = 0;
-    gCoasterEdit_79c630 = g<u32>(0x00790ac8);
+    gCoasterEdit_79c630 = reinterpret_cast<u32 &>(gCamera_790ac8);
     gCoasterEdit_79c618 = 0;
-    gCoasterEdit_79c634 = g<u32>(0x00790acc);
+    gCoasterEdit_79c634 = reinterpret_cast<u32 &>(gCamera_790acc);
     if (!piece)
         return NoPiece(flags, 4);
     if (at<u32>(Type(piece), 0) & 0x100) {
@@ -274,8 +275,8 @@ u32 __cdecl CoasterEdit_ToggleDrag() {
     }
     if (flags & 1) {
         gCoasterEdit_79c618 = 0;
-        gCoasterEdit_79c630 = g<u32>(0x00790ac8);
-        gCoasterEdit_79c634 = g<u32>(0x00790acc);
+        gCoasterEdit_79c630 = reinterpret_cast<u32 &>(gCamera_790ac8);
+        gCoasterEdit_79c634 = reinterpret_cast<u32 &>(gCamera_790acc);
         if (!piece)
             return NoPiece(flags, 1);
         const double cost = Car_TravelCost(game, 0, piece, nullptr, nullptr, nullptr, nullptr);

@@ -15,6 +15,7 @@
 #include "vertexblock.h"
 #include "../world/mappreview.h"
 #include "../world/focuscell.h"
+#include "../world/camera.h"
 
 namespace {
 
@@ -375,7 +376,7 @@ void __cdecl DynFaces_ReleaseModels() {
 
 void __cdecl DynFaces_Frame() {
     const float moveX = (float)SubM(X87_MulDouble((double)gFocuscell_8186b8, gDynFaces_Frame_700de0), gFocuscell_820afc);
-    const u32 t = global<u32>(0x00790a38);
+    const u32 t = reinterpret_cast<u32 &>(gCamera_790a38);
     static const u32 kConstants[][2] = {{0x871ee8, 0}, {0x871eec, 0}, {0x871ef4, 0x3f800000}, {0x871ef8, 0}, {0x871f00, 0},
                                         {0x871f04, 0x3f800000}, {0x871f0c, 0x3f800000}, {0x871f10, 0x3f800000}, {0x871f18, 0x3f000000},
                                         {0x871f1c, 0x3f000000}, {0x871f24, 0xbecccccd}, {0x871f28, 0xbecccccd}, {0x871f30, 0x3ecccccd},

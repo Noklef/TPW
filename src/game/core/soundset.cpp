@@ -10,6 +10,7 @@
 #include "string.h"
 #include "vcall.h"
 #include "../math/x87.h"
+#include "../world/camera.h"
 
 namespace {
 
@@ -197,7 +198,7 @@ void __cdecl Sound_SetCameraOcclusion(s32 level) {
         functor[1] = 1;
         std::memcpy(&functor[2], &radius, 4);
     };
-    if (global<u8>(0x00790ab0) & 0x16) {
+    if (reinterpret_cast<u8 &>(gCameraFlags) & 0x16) {
         const s32 high = global<s32>(0x00785968), mid = global<s32>(0x00785960), low = global<s32>(0x00785958);
         if (level > high) {
             functor[1] = 1;

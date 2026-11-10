@@ -55,16 +55,16 @@ u32 bits(float f) {
 extern "C" {
 
 u32 __cdecl Camera_Save(Stream *stream) {
-    return Write_Ok(stream, 0x007909ec, 4) && Write_Ok(stream, 0x00790a38, 4) && Write_Ok(stream, 0x00790ab0, 4) && Write_Ok(stream, 0x007908f0, 0xc) &&
-           Write_Ok(stream, 0x00790ad0, 0xc) && Write_Ok(stream, 0x00790a9c, 4);
+    return Write_Ok(stream, (u32)&gCamera_7909ec, 4) && Write_Ok(stream, (u32)&gCamera_790a38, 4) && Write_Ok(stream, (u32)&gCameraFlags, 4) && Write_Ok(stream, 0x007908f0, 0xc) &&
+           Write_Ok(stream, (u32)&gCamera_790ad0[0], 0xc) && Write_Ok(stream, (u32)&gCamera_790a9c, 4);
 }
 
 u32 __cdecl Camera_Load(Stream *stream) {
-    if (!(Read_Ok(stream, 0x007909ec, 4) && Read_Ok(stream, 0x00790a38, 4) && Read_Ok(stream, 0x00790ab0, 4) && Read_Ok(stream, 0x007908f0, 0xc) &&
-          Read_Ok(stream, 0x00790ad0, 0xc) && Read_Ok(stream, 0x00790a9c, 4)))
+    if (!(Read_Ok(stream, (u32)&gCamera_7909ec, 4) && Read_Ok(stream, (u32)&gCamera_790a38, 4) && Read_Ok(stream, (u32)&gCameraFlags, 4) && Read_Ok(stream, 0x007908f0, 0xc) &&
+          Read_Ok(stream, (u32)&gCamera_790ad0[0], 0xc) && Read_Ok(stream, (u32)&gCamera_790a9c, 4)))
         return 0;
-    global<u32>(0x00790ab0) = 0;
-    global<u32>(0x007909e0) = global<u32>(0x00790a38);
+    gCameraFlags = 0;
+    reinterpret_cast<u32 &>(gCamera_7909e0) = reinterpret_cast<u32 &>(gCamera_790a38);
     if (global<u8>(0x0078d912))
         Camera_SnapYaw();
     return 1;

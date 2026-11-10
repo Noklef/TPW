@@ -14,6 +14,7 @@
 #include "land.h"
 #include "../math/sintable.h"
 #include "../world/rides.h"
+#include "../world/camera.h"
 
 namespace {
 
@@ -227,7 +228,7 @@ void __cdecl RayPick_World(float *out, u32 unused, float *out2, u32 *hitFlag) {
     TurnZ(v1, X87Reg(kTurnDown) - X87Reg(aspect));
     TurnZ(v2, X87Reg(aspect) - X87Reg(kTurnDown));
     TurnZ(v3, X87Reg(aspect) - X87Reg(kTurnUp));
-    const float *const camera = reinterpret_cast<const float *>((uintptr_t)0x790990);
+    const float *const camera = gCamera_790990;
     Matrix_TransformVector(camera, v1);
     Matrix_TransformVector(camera, v2);
     Matrix_TransformVector(camera, v3);
@@ -237,8 +238,8 @@ void __cdecl RayPick_World(float *out, u32 unused, float *out2, u32 *hitFlag) {
         v3[k] = (float)(X87Reg(v3[k]) - v1[k]);
     }
     const float width = global<float>(0x7a0c9c), height = global<float>(0x7a162c);
-    const X87Reg u = global<float>(0x790ac8) / (X87Reg(width) + X87Reg(width));
-    const float t = (float)(global<float>(0x790acc) / (X87Reg(height) + X87Reg(height)));
+    const X87Reg u = gCamera_790ac8 / (X87Reg(width) + X87Reg(width));
+    const float t = (float)(gCamera_790acc / (X87Reg(height) + X87Reg(height)));
     dir[0] = (float)((u * v2[0]) + v1[0]);
     dir[1] = (float)((u * v2[1]) + dir[1]);
     const X87Reg z = (u * v2[2]) + dir[2];
@@ -246,7 +247,7 @@ void __cdecl RayPick_World(float *out, u32 unused, float *out2, u32 *hitFlag) {
     dir[1] = (float)((X87Reg(t) * v3[1]) + dir[1]);
     dir[2] = (float)((X87Reg(t) * v3[2]) + z);
 
-    float *const cam = reinterpret_cast<float *>((uintptr_t)0x790aa0);
+    float *const cam = gCamera_790aa0;
     const float camX = cam[0], camY = cam[1], camZ = cam[2];
     const float dx = dir[0], dy = dir[1], dz = dir[2];
     float best = 3.40282347e+38f;   // (the bits 0x7f7fffff)

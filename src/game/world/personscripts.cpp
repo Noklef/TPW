@@ -11,6 +11,7 @@
 #include "../terrain/land.h"
 #include "person.h"
 #include "../ui/dialog74fb20.h"
+#include "camera.h"
 
 namespace {
 
@@ -102,7 +103,7 @@ u32 __fastcall Person_PlaceScript(u8 *person, void *, u32 x, float y, u32 z, u32
 void __fastcall Thoughts_Show(u8 *thoughts, void *, u32 thought, u8 force) {
     const ThoughtsEnv *const E = g_thoughts;
     at<u32>(thoughts, 0) = thought;
-    if (global<u8>(0x00790ab0) & 0x16) return;
+    if (reinterpret_cast<u8 &>(gCameraFlags) & 0x16) return;
     u8 &guard = global<u8>(0x00fb34aa);   // (the mode setting 0xfb3b7c: a function-local static)
     if (!(guard & 1)) {
         guard |= 1;

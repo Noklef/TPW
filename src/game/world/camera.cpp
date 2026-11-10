@@ -45,7 +45,7 @@ void mark_parts(const u8 *inst, u32 set, u32 clear, bool check) {
         const u32 k = j + at<u16>(model, 0x46);
         const u32 n = at<u16>(model, 0x44);
         u32 *face = k < n ? reinterpret_cast<u32 *>(at<u8 *>(model, 0x70) + k * 0xa0) : reinterpret_cast<u32 *>(at<u8 *>(model, 0x74) + (k - n) * 0x58);
-        if (check && !(global<u8>(0x00790ab0) & 0x16)) {
+        if (check && !(reinterpret_cast<u8 &>(gCameraFlags) & 0x16)) {
             *face &= ~0x8000u;
         } else if (*part & set) {
             *face |= 0x8000;
@@ -59,15 +59,15 @@ void mark_parts(const u8 *inst, u32 set, u32 clear, bool check) {
 
 extern "C" {
 
-void __cdecl Camera_InitUnusedOne() { global<float>(0x007909e8) = 1.0f; }
+void __cdecl Camera_InitUnusedOne() { gCamera_7909e8 = 1.0f; }
 
-void __cdecl Camera_InitUnusedEpsilon() { global<float>(0x00790a94) = 1.0f / 8388608.0f; }
+void __cdecl Camera_InitUnusedEpsilon() { gCamera_790a94 = 1.0f / 8388608.0f; }
 
-void __cdecl Camera_Init7909ec() { global<float>(0x007909ec) = 110.0f; }
+void __cdecl Camera_Init7909ec() { gCamera_7909ec = 110.0f; }
 
-void __cdecl Camera_InitYaw() { global<float>(0x00790a38) = 0.0f; }
+void __cdecl Camera_InitYaw() { gCamera_790a38 = 0.0f; }
 
-void __cdecl Camera_Init7909e0() { global<float>(0x007909e0) = 0.0f; }
+void __cdecl Camera_Init7909e0() { gCamera_7909e0 = 0.0f; }
 
 void __cdecl Camera_InitPoint() {
     global<float>(0x007908f0) = 475.0f;
@@ -76,8 +76,8 @@ void __cdecl Camera_InitPoint() {
 }
 
 u32 __cdecl Camera_IsFollowing(const void *thing) {
-    const void *const followed = global<const void *>(0x00790a44);
-    return (global<u8>(0x00790ab0) & 4) && global(0x00790988) && followed && followed == thing;
+    const void *const followed = reinterpret_cast<void * &>(gCamera_790a44);
+    return (reinterpret_cast<u8 &>(gCameraFlags) & 4) && reinterpret_cast<u32 &>(gCamera_790988) && followed && followed == thing;
 }
 
 u32 __cdecl Camera_MatricesClose(const float *a, const float *b) {
@@ -90,7 +90,7 @@ u32 __cdecl Camera_MatricesClose(const float *a, const float *b) {
 }
 
 const void *__cdecl Camera_Followed() {
-    return (global<u8>(0x00790ab0) & 4) && global(0x00790988) ? global<const void *>(0x00790a44) : nullptr;
+    return (reinterpret_cast<u8 &>(gCameraFlags) & 4) && reinterpret_cast<u32 &>(gCamera_790988) ? reinterpret_cast<void * &>(gCamera_790a44) : nullptr;
 }
 
 u8 *__cdecl Camera_PartFace(u8 *const *instance, const u32 *part) {
@@ -102,15 +102,15 @@ u8 *__cdecl Camera_PartFace(u8 *const *instance, const u32 *part) {
 }
 
 void __cdecl Camera_SetView(const u32 *x, const u32 *z, const u32 *zoom, const u32 *yaw, const u32 *other) {
-    global(0x00790a88) = 0;
-    global(0x00790a8c) = 0;
-    global(0x00790a90) = 0;
+    reinterpret_cast<u32 &>(gCamera_790a88) = 0;
+    reinterpret_cast<u32 &>(gCamera_790a8c) = 0;
+    reinterpret_cast<u32 &>(gCamera_790a90) = 0;
     if (x) {
         global(0x007908f0) = *x;
         global(0x007908f8) = *z;  // sic: tests x again, so z is read whenever x is given
     }
-    if (zoom) global(0x007909ec) = *zoom;
-    if (yaw) global(0x00790a38) = *yaw;
+    if (zoom) reinterpret_cast<u32 &>(gCamera_7909ec) = *zoom;
+    if (yaw) reinterpret_cast<u32 &>(gCamera_790a38) = *yaw;
     if (other) global(0x0074c9bc) = *other;
 }
 
@@ -142,18 +142,18 @@ void __cdecl Camera_CentreOnSprite(const u8 *sprite) {
 
 void __cdecl Camera_SetFlag80(u32 on) {
     if (on)
-        global(0x00790ab0) |= 0x80;
+        gCameraFlags |= 0x80;
     else
-        global(0x00790ab0) &= ~0x80u;
+        gCameraFlags &= ~0x80u;
 }
 
 u32 __cdecl Camera_SetControl100() {
-    global(0x00790aac) |= 0x100;
+    gCamera_790aac |= 0x100;
     return 1;
 }
 
 u32 __cdecl Camera_ToggleControl200() {
-    global(0x00790aac) ^= 0x200;
+    gCamera_790aac ^= 0x200;
     return 1;
 }
 
@@ -189,7 +189,7 @@ void __cdecl Camera_CentreOnGlobalThing() {
 }
 
 void __cdecl Camera_ToggleWalkMode() {
-    if (!(global<u8>(0x00790ab0) & 0x16)) {
+    if (!(reinterpret_cast<u8 &>(gCameraFlags) & 0x16)) {
         s32 cx = (s32)(long long)(X87Reg(global<float>(0x007a1c70)) * 0.100000001f).v;  // 0x6fdd58, __ftol
         s32 cz = (s32)(long long)(X87Reg(global<float>(0x007a1c78)) * 0.100000001f).v;
         if (cx < 0) cx = 0;
@@ -202,12 +202,12 @@ void __cdecl Camera_ToggleWalkMode() {
     }
     g_env->setMode(2, 1, 0, 0, nullptr, 0);
     u32 *const point = &global<u32>(0x007908f0);
-    u32 *const saved = &global<u32>(0x00790ad0);
-    if (global<u8>(0x00790ab0) & 0x16) {
+    u32 *const saved = &reinterpret_cast<u32 &>(gCamera_790ad0[0]);
+    if (reinterpret_cast<u8 &>(gCameraFlags) & 0x16) {
         saved[0] = point[0];
         saved[1] = point[1];
         saved[2] = point[2];
-        global<u32>(0x00790a9c) = global<u32>(0x00790a38);
+        gCamera_790a9c = reinterpret_cast<u32 &>(gCamera_790a38);
         point[0] = global<u32>(0x007a1c70);
         point[1] = 0;
         point[2] = global<u32>(0x007a1c78);
@@ -216,7 +216,7 @@ void __cdecl Camera_ToggleWalkMode() {
         point[0] = saved[0];
         point[1] = saved[1];
         point[2] = saved[2];
-        global<u32>(0x00790a38) = global<u32>(0x00790a9c);
+        reinterpret_cast<u32 &>(gCamera_790a38) = gCamera_790a9c;
         g_env->usePark();
     }
 }
@@ -237,7 +237,7 @@ void __cdecl Camera_SnapToRide() {
     x = (float)X87_SubR(X87_MulInt(v & 0x7f, -10.0f), 5.0f);  // 0x6fdd5c, 0x6fdd60
     z = (float)X87_SubR(X87_MulInt(v >> 7, -10.0f), 5.0f);
     const u8 *const world = **reinterpret_cast<u8 *const *const *>(0x007cf6ec);
-    u32 &yaw = global(0x00790a38);
+    u32 &yaw = reinterpret_cast<u32 &>(gCamera_790a38);
     switch (MapCell_Direction(world + 0x294 + id * 0x44) & 0x55) {
     case 1: yaw = 0x40490fdb; break;   // pi
     case 4: yaw = 0x3fc90fdb; break;   // pi / 2
@@ -247,36 +247,36 @@ void __cdecl Camera_SnapToRide() {
 }
 
 void __cdecl Camera_Reset() {
-    global(0x007909ec) = global(0x006fdd40);
-    global(0x00790a38) = global(0x006fdd44);
-    global(0x00790ab0) = 0;
+    reinterpret_cast<u32 &>(gCamera_7909ec) = global(0x006fdd40);
+    reinterpret_cast<u32 &>(gCamera_790a38) = global(0x006fdd44);
+    gCameraFlags = 0;
     global(0x007908f0) = global(0x006fdd48);
     global(0x007908f4) = global(0x006fdd4c);
     global(0x007908f8) = global(0x006fdd50);
-    Matrix_Identity(&global<float>(0x00790990));
-    Matrix_Identity(&global<float>(0x00790a48));
-    Matrix_Identity(&global<float>(0x00790948));
-    global(0x007909c4) = X87_FloatThrough(global(0x007908f4));
-    global(0x007909c0) = global(0x007908f0);
-    global(0x007909c8) = X87_FloatThrough(global(0x007908f8));
-    Mat4_Assign(global<u32 *>(0x0087afe8), nullptr, &global(0x00790990));
+    Matrix_Identity(&gCamera_790990[0]);
+    Matrix_Identity(&gCamera_790a48[0]);
+    Matrix_Identity(&gCamera_790948[0]);
+    reinterpret_cast<u32 &>(gCamera_790990[13]) = X87_FloatThrough(global(0x007908f4));
+    reinterpret_cast<u32 &>(gCamera_790990[12]) = global(0x007908f0);
+    reinterpret_cast<u32 &>(gCamera_790990[14]) = X87_FloatThrough(global(0x007908f8));
+    Mat4_Assign(global<u32 *>(0x0087afe8), nullptr, &reinterpret_cast<u32 &>(gCamera_790990[0]));
     const float fov = (float)(X87Reg(global<float>(0x0074c9b8)) * X87Reg(global<float>(0x006fdd80)));
     Mat4_Perspective(reinterpret_cast<float *>(0x0087b110), nullptr, 0.1f, 1000.0f, fov);
     ViewQuad_SetFov(global<float *>(0x00879d54), nullptr, fov);
-    const u32 flags = (global(0x00790aac) & 0x200) | 0x80;
-    global(0x00790aac) = flags;
-    global(0x007909d0) = flags;
-    global(0x007909e4) = Clocks_RealNow(reinterpret_cast<u8 *>(0x00785970));
-    global(0x00790a88) = 0;
+    const u32 flags = (gCamera_790aac & 0x200) | 0x80;
+    gCamera_790aac = flags;
+    gCamera_7909d0 = flags;
+    reinterpret_cast<u32 &>(gCamera_7909e4) = Clocks_RealNow(reinterpret_cast<u8 *>(0x00785970));
+    reinterpret_cast<u32 &>(gCamera_790a88) = 0;
     global(0x007908e8) = 1;
-    global(0x00790a8c) = 0;
-    global(0x00790a90) = 0;
-    global(0x00790ab0) = 0;
+    reinterpret_cast<u32 &>(gCamera_790a8c) = 0;
+    reinterpret_cast<u32 &>(gCamera_790a90) = 0;
+    gCameraFlags = 0;
 }
 
 void __cdecl Camera_SnapYaw() {
     constexpr float kHalfPi = 1.57079637f, kQuarterPi = 0.785398185f;   // (0x6fdd68 / 0x6fdd98; 0x6fdd88 is the half as a double)
-    float &yaw = global<float>(0x00790a38);
+    float &yaw = gCamera_790a38;
     const X87Reg r = std::fmod((double)yaw, (double)kHalfPi);   // _CIfmod (0x67b24a), exact
     if (!(r.v >= 0.0)) {   // (below 0 or unordered)
         if (!(r.v >= -kQuarterPi))
@@ -294,10 +294,10 @@ void __cdecl Camera_Input(s32 message, u32 param) {
     const s32 height = global<s16>(0x00faa5c4), width = global<s16>(0x00faa5c0);
     const s32 y = (s32)(param >> 16) * height / 2048;       // (idiv by shifts and a magic multiply: truncated)
     const s32 x = (s32)(param & 0xffff) * width / 0x600;
-    u32 &flags = global(0x00790aac);
+    u32 &flags = gCamera_790aac;
     const auto set_point = [x, y] {
-        global<float>(0x00790ac8) = (float)y;
-        global<float>(0x00790acc) = (float)x;
+        gCamera_790ac8 = (float)y;
+        gCamera_790acc = (float)x;
     };
     const auto by_button = [param, &flags](bool on) {   // (buttons 0, 1, 2: bits 1, 4, 2)
         const u32 bit = param == 0 ? 1 : param == 1 ? 4 : param == 2 ? 2 : 0;
@@ -306,8 +306,8 @@ void __cdecl Camera_Input(s32 message, u32 param) {
     switch (message) {
     case 0x1e:
         if (flags & 2) {
-            float &yaw = global<float>(0x00790a38);
-            yaw = (float)((((X87Reg(global<float>(0x00790ac8)) * 2048.0f) / X87Reg((double)height)) - 1024.0f) * global<float>(0x0074c9c0) + yaw);
+            float &yaw = gCamera_790a38;
+            yaw = (float)((((X87Reg(gCamera_790ac8) * 2048.0f) / X87Reg((double)height)) - 1024.0f) * global<float>(0x0074c9c0) + yaw);
         }
         break;
     case 0x20:
@@ -315,14 +315,14 @@ void __cdecl Camera_Input(s32 message, u32 param) {
         break;
     case 0x22:
         flags &= 0xffffff80;
-        global(0x00790ab0) |= 0x100;
+        gCameraFlags |= 0x100;
         break;
     case 0x10001:
-        global(0x00790ab0) &= ~0x100u;
+        gCameraFlags &= ~0x100u;
         set_point();
         break;
     case 0x10002:
-        global(0x00790ab0) |= 0x100;
+        gCameraFlags |= 0x100;
         break;
     case 0x10003:
         set_point();
@@ -334,7 +334,7 @@ void __cdecl Camera_Input(s32 message, u32 param) {
         by_button(true);
         break;
     case 0x1000d: {   // (the wheel: 0x7909ec less -10 for a negative param, less 10 otherwise)
-        float &zoom = global<float>(0x007909ec);
+        float &zoom = gCamera_7909ec;
         zoom = (float)(X87Reg(zoom) - ((s32)param < 0 ? -10.0f : 10.0f));
         break;
     }
@@ -346,14 +346,14 @@ void __cdecl Camera_Input(s32 message, u32 param) {
 void Camera_SetEnv(const CameraEnv *env) { g_env = env ? env : &kGameEnv; }
 
 void __cdecl Camera_StopFollowing() {
-    if ((*reinterpret_cast<const u8 *>((uintptr_t)0x00790ab0) & 4) == 0) return;
+    if ((reinterpret_cast<u8 &>(gCameraFlags) & 4) == 0) return;
     u32 out;
-    g_env->follow(*reinterpret_cast<const u32 *>((uintptr_t)0x00790a44), 0, 0, &out, 1, 0);
+    g_env->follow(gCamera_790a44, 0, 0, &out, 1, 0);
     if (out != 0) g_env->snap();
 }
 
 u32 __cdecl Camera_SetMode(u32 mode, u32 toggle, u32 ride, u32 force, u32 *out, u32 fresh) {
-    u32 &flags = global(0x00790ab0);
+    u32 &flags = gCameraFlags;
     flags &= ~0x800u;
     const u32 was = flags & 0x16;
     u32 enter = 0, leave = 0, changed = 0;
@@ -377,9 +377,9 @@ u32 __cdecl Camera_SetMode(u32 mode, u32 toggle, u32 ride, u32 force, u32 *out, 
                 } else {
                     enter = 1;
                     if (fresh) {
-                        global(0x00790ae0) = 0;
+                        reinterpret_cast<u32 &>(gCamera_790ae0) = 0;
                         flags = f | 0x800;
-                        global(0x00790adc) = 0;
+                        reinterpret_cast<u32 &>(gCamera_790adc) = 0;
                     }
                 }
                 changed = 1;
@@ -416,7 +416,7 @@ u32 __cdecl Camera_SetMode(u32 mode, u32 toggle, u32 ride, u32 force, u32 *out, 
             flags |= 0x200;
             g_env->leaveProcedural();
         }
-        if (u8 *const inst = global<u8 *>(0x00790a34)) {
+        if (u8 *const inst = gCamera_790a34) {
             if (at<u32>(inst, 4) & 0x4000)
                 g_env->addToGrid(at<u8 *>(inst, 8), at<u32>(inst, 0xc0), at<u32>(inst, 0xc4));
             else
@@ -434,26 +434,26 @@ u32 __cdecl Camera_SetMode(u32 mode, u32 toggle, u32 ride, u32 force, u32 *out, 
     for (u32 i = 1; i <= global(0x007a3ebc) + global(0x007a4084); ++i) {
         if (rides[i]) mark_parts(rides[i], 0x4000000, 0x8000000, true);
     }
-    if (ride && (global<u8>(0x00790ab0) & 4) && rides[ride]) mark_parts(rides[ride], 0x10000000, 0x20000000, false);
+    if (ride && (reinterpret_cast<u8 &>(gCameraFlags) & 4) && rides[ride]) mark_parts(rides[ride], 0x10000000, 0x20000000, false);
     flags &= ~0x1000u;
     return changed;
 }
 
 void __cdecl Camera_FollowThing(u32 ride, u32 ground, u32 force, u32 *out, u32 key, u32 fresh) {
     if (out) *out = 0;
-    if (u32 *const part = global<u32 *>(0x00790940)) *part &= ~4u;
-    global(0x00790ab4) = 0;
-    global(0x00790a30) = 0;
-    global(0x00790940) = 0;
-    if (global<u8>(0x00790ab0) & 4) {
-        if (u8 *const followed = global<u8 *>(0x00790988)) at<u32>(followed, 4) &= ~0x2000u;
+    if (u32 *const part = gCamera_790940) *part &= ~4u;
+    reinterpret_cast<u32 &>(gCamera_790ab4) = 0;
+    gCamera_790a30 = 0;
+    reinterpret_cast<u32 &>(gCamera_790940) = 0;
+    if (reinterpret_cast<u8 &>(gCameraFlags) & 4) {
+        if (u8 *const followed = gCamera_790988) at<u32>(followed, 4) &= ~0x2000u;
     }
-    global(0x00790988) = 0;
+    reinterpret_cast<u32 &>(gCamera_790988) = 0;
     if (Ride_Bit18(ride)) ride = CoasterLink_IdValue(ride);
     u8 *const *const rides = gRides_7a4610;
     if (ride) {
         bool follow = true;
-        if (!(global<u8>(0x00790ab0) & 4)) {
+        if (!(reinterpret_cast<u8 &>(gCameraFlags) & 4)) {
             u8 *const inst = rides[ride];
             if (!inst) {
                 follow = false;
@@ -463,22 +463,22 @@ void __cdecl Camera_FollowThing(u32 ride, u32 ground, u32 force, u32 *out, u32 k
                 if (part == 0xffffffff) {
                     follow = false;
                 } else {
-                    global(0x00790a44) = ride;
+                    gCamera_790a44 = ride;
                     u8 *const *const holder = reinterpret_cast<u8 *const *>(inst + 8);
-                    global<u8 *>(0x00790ab4) = Camera_PartFace(holder, &part);
+                    gCamera_790ab4 = Camera_PartFace(holder, &part);
                     u32 *const state = reinterpret_cast<u32 *>(at<u8 *>(at<u8 *>(*holder, 0x28), 4) + part * 0x14);
-                    global<u32 *>(0x00790940) = state;
-                    global(0x00790a30) = at<u32>(at<u8 *>(at<u8 *>(*holder, 0x28), 4), part * 0x14 + 4);
-                    global<u8 *>(0x00790988) = inst;
+                    gCamera_790940 = state;
+                    gCamera_790a30 = at<u32>(at<u8 *>(at<u8 *>(*holder, 0x28), 4), part * 0x14 + 4);
+                    gCamera_790988 = inst;
                     *state |= 4;
                 }
             }
         } else {
-            if (u32 *const part = global<u32 *>(0x00790940)) *part &= ~4u;
-            global(0x00790a44) = 0;
-            global(0x00790ab4) = 0;
-            global(0x00790940) = 0;
-            global(0x00790a30) = 0;
+            if (u32 *const part = gCamera_790940) *part &= ~4u;
+            gCamera_790a44 = 0;
+            reinterpret_cast<u32 &>(gCamera_790ab4) = 0;
+            reinterpret_cast<u32 &>(gCamera_790940) = 0;
+            gCamera_790a30 = 0;
         }
         if (follow && Camera_SetMode(4, 1, ride, force, out, fresh)) {
             u8 *const object = at<u8 *>(rides[ride], 8);
@@ -486,7 +486,7 @@ void __cdecl Camera_FollowThing(u32 ride, u32 ground, u32 force, u32 *out, u32 k
             at<u32>(rides[ride], 4) |= 0x2000;
         }
     }
-    if (ground == 1 || (global<u8>(0x00790ab0) & 2))
+    if (ground == 1 || (reinterpret_cast<u8 &>(gCameraFlags) & 2))
         g_env->useGround();
     else
         g_env->usePark();
@@ -503,7 +503,7 @@ bool SameOrNan(X87Reg x, float y) { return !(x.v < y) && !(x.v > y); }
 }  // namespace
 
 void __fastcall Camera_SetLookAt(u8 *self) {
-    float *const view = reinterpret_cast<float *>((uintptr_t)0x007909f0);
+    float *const view = gCamera_7909f0;
     const float *const position = reinterpret_cast<const float *>(self + 8), *const target = reinterpret_cast<const float *>(self + 0x14);
     Camera_SetFlag80(1);
     Matrix_Identity(view);

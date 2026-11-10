@@ -37,6 +37,7 @@
 #include "../gfx/texcache.h"
 #include "parkmapwindow.h"
 #include "parkmap.h"
+#include "camera.h"
 
 namespace {
 
@@ -569,8 +570,8 @@ void __fastcall ParkMap_Open(u8 *map) {
     env->gridSize(&at<u32>(map, 0x24), &at<u32>(map, 0x28));
 
     const float scale = global<float>(0x0070300c);
-    s32 x = Ftol((X87Reg(global<float>(0x00790ab8)) * scale).v);  // __ftol
-    s32 y = Ftol((X87Reg(global<float>(0x00790ac0)) * scale).v);
+    s32 x = Ftol((X87Reg(gCamera_790ab8) * scale).v);  // __ftol
+    s32 y = Ftol((X87Reg(gCamera_790ac0) * scale).v);
     if (x < 0) x = 0;
     if (y < 0) y = 0;
     if (x >= global<s32>(0x007a0314)) x = global<s32>(0x007a0314) - 1;
