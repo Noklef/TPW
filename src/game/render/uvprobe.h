@@ -21,8 +21,3 @@ void __fastcall UvProbe_Down(u8 *settings);
 // 0x584310 (thiscall): the same with the stripes in columns and the lines read across, +0x40e8.
 void __fastcall UvProbe_Across(u8 *settings);
 }
-
-#include "../core/gamedata.h"
-
-// Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
-GAME_DATA(u32, gUvprobe_8c1644, 0x008c1644, 0x4);

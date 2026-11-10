@@ -28,7 +28,6 @@ void __cdecl RendererFrame_MatrixAtExit();
 #include "../core/gamedata.h"
 
 // Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
-GAME_DATA(float, gRenderer_DrawFrame_8bd478, 0x008bd478, 4);
 
 // Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
 GAME_DATA(const float, gRenderer_DrawFrame_7017f8, 0x007017f8, 0x4);
@@ -39,4 +38,3 @@ GAME_DATA(const float, gRenderer_DrawFrame_701810, 0x00701810, 0x4);
 GAME_DATA(const float, gRenderer_DrawFrame_701814, 0x00701814, 0x4);
 GAME_DATA(const float, gRenderer_DrawFrame_701818, 0x00701818, 0x4);
 GAME_DATA(const float, gRenderer_DrawFrame_70181c, 0x0070181c, 0x4);
-GAME_DATA(float, gRendererframe_8bd4ec, 0x008bd4ec, 0x4);

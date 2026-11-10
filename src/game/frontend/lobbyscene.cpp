@@ -381,7 +381,7 @@ void __fastcall LobbyCamera_Frame(u8 *camera) {
     if (at<s32>(camera, 0x5c) > 0) {
         global<u32>(0x008bcbc8) |= 0x80000;
         const s32 alpha = at<s32>(camera, 0x5c) >> 8;
-        gLobbyscene_8bd4e4 = static_cast<u32>(alpha > 0xff ? 0xff : alpha) << 24;
+        global<u32>(0x008bd4e4) = static_cast<u32>(alpha > 0xff ? 0xff : alpha) << 24;
     } else {
         global<u32>(0x008bcbc8) &= 0xfff7ffff;
     }
@@ -520,7 +520,7 @@ u8 *__fastcall Class702af0_Ctor(u8 *object, void *, s32 count, const char *name,
     }
     at<u32>(object, 4) = 0;
     at<u32 *>(object, 0x58) = list;
-    s32 share = (s32)((u32)count * gClass702af0_Ctor_7858dc) / 100;
+    s32 share = (s32)((u32)count * global<u32>(0x007858dc)) / 100;
     if (share < 1)
         share = 1;
     else if (share > count)

@@ -465,7 +465,7 @@ void __fastcall ParkMap_AddSprites(u8 *map) {
                 continue;
             float size = 1.0f;
             if (kind == 8)
-                size = static_cast<float>(gParkMap_AddSprites_785688);
+                size = static_cast<float>(global<s32>(0x00785688));
             else if (kind == 7)
                 size = static_cast<float>(global<s32>(0x00785640));
             u8 *const sprite = new_inline_sprite(at<u32>(map, 0x20074), 3, 1, static_cast<float>(X87Reg(size) * gParkmap_703030));
@@ -481,7 +481,7 @@ void __fastcall ParkMap_AddSprites(u8 *map) {
     for (u16 h = at<u16>(global<u8 *>(0x007cf83c), 0x1da746); h; ) {
         const u8 *const t = thing(h);
         if (t[0x32] & 0x10) {
-            u8 *const sprite = new_inline_sprite(at<u32>(map, 0x2007c), 5, 3, scaled((u32)&gParkMap_AddSprites_785670));
+            u8 *const sprite = new_inline_sprite(at<u32>(map, 0x2007c), 5, 3, scaled(0x00785670));
             u16 id;
             Thing_MapId(t, nullptr, &id);
             at<u32>(sprite, 0x18) = 0;

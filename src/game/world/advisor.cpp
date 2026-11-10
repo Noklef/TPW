@@ -63,7 +63,7 @@ void end_speech_parts() {
         if (text != reinterpret_cast<u8 *>(0x00f797d0))
             Crt().free(text);
         else
-            gAdvisor_f79bb8 = 0;
+            global<u32>(0x00f79bb8) = 0;
         global<u32>(0x00f797a0) = 0;
         global<u32>(0x00f79794) = 0;
         global<u32>(0x00f7979c) = 0;
@@ -345,7 +345,7 @@ void __cdecl Advisor_ClearSpeechText() {
     if (text != reinterpret_cast<u8 *>(0x00f797d0))
         Crt().free(text);
     else
-        gAdvisor_f79bb8 = 0;
+        global<u32>(0x00f79bb8) = 0;
     global<u32>(0x00f797a0) = 0;
 }
 

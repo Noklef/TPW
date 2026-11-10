@@ -73,7 +73,7 @@ float *__fastcall WorldView_RayPoint(const u8 *view, void *, float *out, const f
     const float zero = global<float>(0x007014a0);
     if (!(d[1] < zero || d[1] > zero))   // (equal or unordered)
         d[1] = global<float>(0x00701488);
-    const X87Reg lim = X87Reg(gGraphicssettings_8bd4c0) * global<float>(0x0070149c);
+    const X87Reg lim = X87Reg(global<float>(0x008bd4c0)) * global<float>(0x0070149c);
     const float first = Held((at<float>(view, 0x30) - X87Reg(at<float>(m, 0x34))) / d[1], zero, lim);
     const float second = Held((at<float>(view, 0x34) - X87Reg(at<float>(m, 0x34))) / d[1], zero, lim);
     X87Reg s = second;

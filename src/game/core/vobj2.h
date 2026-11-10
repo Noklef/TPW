@@ -99,9 +99,3 @@ void VObj2_SetCalls(const AddrCall *table, u32 count);
 extern "C" {
 u32 __fastcall Object_UpdateShadow(u8 *self);
 }
-
-#include "gamedata.h"
-
-// Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
-GAME_DATA(u32, gVobj2_8bd4b4, 0x008bd4b4, 0x4);
-GAME_DATA(u32, gVobj2_8bd4b8, 0x008bd4b8, 0x4);

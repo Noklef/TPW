@@ -127,5 +127,4 @@ u32 __fastcall Records24_Field14(const u8 *records, void *, u32 i);
 #include "../core/gamedata.h"
 
 // Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
-GAME_DATA(u32, gUserslots_f825d0, 0x00f825d0, 0x4);
 GAME_DATA(u8, gUserslots_fb2764, 0x00fb2764, 0x1);

@@ -71,7 +71,7 @@ extern "C" {
 
 u32 __fastcall SpriteQueue_Draw(u8 *queue) {
     const u32 render = global<u32>(0x008bcbc8);
-    reinterpret_cast<u32 &>(gSpritequeue_8bd4fc) = 0;
+    reinterpret_cast<u32 &>(global<u8 *>(0x008bd4fc)) = 0;
     if (render & 0x80) {
         for (u32 i = at<u32>(queue, 0x2404); i--;) {
             if (!g_drawCalls.Th(0x00589f90, at<u32>(queue, i * 4))) return 0;

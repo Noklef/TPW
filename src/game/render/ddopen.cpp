@@ -194,10 +194,10 @@ bool OpenWindowed(u8 *object, s32 width, s32 height, u32 *desc) {
     if (Fails(Com(at<void *>(object, 0x10), 0x70, at<void *>(object, 0xc)))) return false;
     at<u32>(object, 0x780) &= ~1u;
     Com(at<void *>(object, 0x10), 0x58, desc);  // (the result not looked at)
-    gDdopen_8bd4c4 = desc[0x16];
-    gDdopen_8bd4cc = desc[0x17];
-    gDdopen_8bd4d4 = desc[0x18];
-    gDdopen_8bd4dc = desc[0x16] | desc[0x17] | desc[0x18];
+    global<u32>(0x008bd4c4) = desc[0x16];
+    global<u32>(0x008bd4cc) = desc[0x17];
+    global<u32>(0x008bd4d4) = desc[0x18];
+    global<u32>(0x008bd4dc) = desc[0x16] | desc[0x17] | desc[0x18];
     Masks_TopBits(kView);
     Import(0x006fd380, Window(), 0, frame[0], frame[1], frame[2] - frame[0], frame[3] - frame[1], 0x40);
     Import(0x006fd368, Window(), 1);

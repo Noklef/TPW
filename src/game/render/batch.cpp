@@ -211,8 +211,8 @@ u32 __fastcall Model_AddTriangles(u8 *model, void *, u8 *batch, const void *matr
         u8 *dst = at<u8 *>(batch, 0x28) + (base << 5);
         const u8 *src = vertices;
         for (u32 n = at<u16>(settings, 0x58); n; --n, src += 0x10, dst += 0x20) {
-            at<float>(dst, 0) = (float)(X87Reg((double)gBatch_8bd4ac) * X87Reg(at<float>(src, 0)));
-            at<float>(dst, 4) = (float)(X87Reg((double)gBatch_8bd4ac) * X87Reg(at<float>(src, 8)));
+            at<float>(dst, 0) = (float)(X87Reg((double)global<s32>(0x008bd4ac)) * X87Reg(at<float>(src, 0)));
+            at<float>(dst, 4) = (float)(X87Reg((double)global<s32>(0x008bd4ac)) * X87Reg(at<float>(src, 8)));
             at<u32>(dst, 8) = at<u32>(src, 4);
             at<u32>(dst, 0xc) = at<u32>(src, 0xc);
             at<u32>(dst, 0x10) = 0xffffffff;

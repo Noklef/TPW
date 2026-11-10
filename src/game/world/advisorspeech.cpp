@@ -38,7 +38,7 @@ void FreeLipTimes() {
         if (times != 0x00f797d0) {
             g_calls.Cd(0x0067ad90, times);   // CRT_free
         } else {
-            gAdvisor_f79bb8 = 0;
+            global<u32>(0x00f79bb8) = 0;
         }
     }
 }
@@ -77,7 +77,7 @@ void __cdecl Advisor_UpdateSpeech() {
             if ((u32)(uintptr_t)times != 0x00f797d0) {
                 g_calls.Cd(0x0067ad90, times);   // CRT_free
             } else {
-                gAdvisor_f79bb8 = 0;
+                global<u32>(0x00f79bb8) = 0;
             }
             global<u32>(0x00f797a0) = 0;
             global<u32>(0x00f79794) = 0;
@@ -263,8 +263,8 @@ u32 __cdecl Advisor_Say(s32 id) {
             FreeLipTimes();
             const s32 bytes = global<s32>(0x00f79794);
             u32 times;
-            if (bytes < 1000 && !gAdvisor_f79bb8) {
-                gAdvisor_f79bb8 = 1;
+            if (bytes < 1000 && !global<u32>(0x00f79bb8)) {
+                global<u32>(0x00f79bb8) = 1;
                 times = 0x00f797d0;
             } else {
                 times = g_calls.Cd(0x0067dcd0, bytes);   // malloc
@@ -329,8 +329,8 @@ void __cdecl Advisor_Load(Stream *stream) {
     const s32 bytes = global<s32>(0x00f79794);
     if (!bytes) return;
     u32 times;
-    if (bytes < 1000 && !gAdvisor_f79bb8) {
-        gAdvisor_f79bb8 = 1;
+    if (bytes < 1000 && !global<u32>(0x00f79bb8)) {
+        global<u32>(0x00f79bb8) = 1;
         times = 0x00f797d0;
     } else {
         times = g_calls.Cd(0x0067dcd0, bytes);   // malloc

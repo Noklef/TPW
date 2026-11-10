@@ -233,17 +233,17 @@ s32 __fastcall AdvisorScoring_StaffNoPatrol(const u8 *scoring) {
     return at<s32>(scoring, 0x4cc);
 }
 
-s32 __fastcall AdvisorScoring_StaffAtLimit5(const u8 *scoring) { return at_limit(scoring, (u32)&gStaff_7852e8, 0x38c, 5, 0x38c); }
-s32 __fastcall AdvisorScoring_StaffAtLimit6(const u8 *scoring) { return at_limit(scoring, (u32)&gStaff_7852f0, 0x398, 6, 0x398); }
-s32 __fastcall AdvisorScoring_StaffAtLimit4(const u8 *scoring) { return at_limit(scoring, (u32)&gStaff_7852ec, 0x3a4, 4, 0x3a4); }
-s32 __fastcall AdvisorScoring_StaffAtLimit7(const u8 *scoring) { return at_limit(scoring, (u32)&gStaff_7852f4, 0x3b0, 7, 0x3b0); }
-s32 __fastcall AdvisorScoring_StaffAtLimit8(const u8 *scoring) { return at_limit(scoring, (u32)&gStaff_7852f4, 0x3b0, 8, 0x3bc); }  // sic: kind 7's limit
+s32 __fastcall AdvisorScoring_StaffAtLimit5(const u8 *scoring) { return at_limit(scoring, 0x007852e8, 0x38c, 5, 0x38c); }
+s32 __fastcall AdvisorScoring_StaffAtLimit6(const u8 *scoring) { return at_limit(scoring, 0x007852f0, 0x398, 6, 0x398); }
+s32 __fastcall AdvisorScoring_StaffAtLimit4(const u8 *scoring) { return at_limit(scoring, 0x007852ec, 0x3a4, 4, 0x3a4); }
+s32 __fastcall AdvisorScoring_StaffAtLimit7(const u8 *scoring) { return at_limit(scoring, 0x007852f4, 0x3b0, 7, 0x3b0); }
+s32 __fastcall AdvisorScoring_StaffAtLimit8(const u8 *scoring) { return at_limit(scoring, 0x007852f4, 0x3b0, 8, 0x3bc); }  // sic: kind 7's limit
 
-s32 __fastcall AdvisorScoring_StaffFull5(const u8 *scoring) { return full(scoring, (u32)&gStaff_7852e8, 0x38c, 5); }
-s32 __fastcall AdvisorScoring_StaffFull6(const u8 *scoring) { return full(scoring, (u32)&gStaff_7852f0, 0x398, 6); }
-s32 __fastcall AdvisorScoring_StaffFull4(const u8 *scoring) { return full(scoring, (u32)&gStaff_7852ec, 0x3a4, 4); }
-s32 __fastcall AdvisorScoring_StaffFull7(const u8 *scoring) { return full(scoring, (u32)&gStaff_7852f4, 0x3b0, 7); }
-s32 __fastcall AdvisorScoring_StaffFull8(const u8 *scoring) { return full(scoring, (u32)&gStaff_7852f8, 0x3bc, 8); }
+s32 __fastcall AdvisorScoring_StaffFull5(const u8 *scoring) { return full(scoring, 0x007852e8, 0x38c, 5); }
+s32 __fastcall AdvisorScoring_StaffFull6(const u8 *scoring) { return full(scoring, 0x007852f0, 0x398, 6); }
+s32 __fastcall AdvisorScoring_StaffFull4(const u8 *scoring) { return full(scoring, 0x007852ec, 0x3a4, 4); }
+s32 __fastcall AdvisorScoring_StaffFull7(const u8 *scoring) { return full(scoring, 0x007852f4, 0x3b0, 7); }
+s32 __fastcall AdvisorScoring_StaffFull8(const u8 *scoring) { return full(scoring, 0x007852f8, 0x3bc, 8); }
 
 s32 __fastcall AdvisorScoring_StaffLow4(const u8 *scoring) { return low(scoring, 4, 0x10, 0x194); }
 s32 __fastcall AdvisorScoring_StaffLow5(const u8 *scoring) { return low(scoring, 5, 0xc, 0x19c); }

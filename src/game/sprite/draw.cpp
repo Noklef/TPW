@@ -169,9 +169,9 @@ extern "C" u32 __cdecl SpriteDraw_Pick() {
     const u32 row = tile >> 7, column = tile & 0x7f;
     u16 x, y;
     Gui_GetMousePos(&x, &y);
-    gDraw_8bd4f0 = (float)(X87Reg((double)(s16)x) * gSpriteDraw_Pick_700d18 - global<float>(0x00700d10));
-    gDraw_8bd4f4 = (float)(X87Reg((double)(s16)y) * gSpriteDraw_Pick_700d1c - global<float>(0x00700d10));
-    u8 *const picked = gSpritequeue_8bd4fc;
+    global<float>(0x008bd4f0) = (float)(X87Reg((double)(s16)x) * gSpriteDraw_Pick_700d18 - global<float>(0x00700d10));
+    global<float>(0x008bd4f4) = (float)(X87Reg((double)(s16)y) * gSpriteDraw_Pick_700d1c - global<float>(0x00700d10));
+    u8 *const picked = global<u8 *>(0x008bd4fc);
     if (!picked)
         return 0;
     const s32 slot = SpriteScript_FindShown(picked);

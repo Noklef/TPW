@@ -129,8 +129,6 @@ GAME_DATA(const float, gLobbyscene_702c90, 0x00702c90, 0x4);
 GAME_DATA(const float, gLobbyscene_702c94, 0x00702c94, 0x4);
 GAME_DATA(const float, gLobbyscene_702c98, 0x00702c98, 0x4);
 GAME_DATA(const float, gLobbyscene_702ca0, 0x00702ca0, 0x4);
-GAME_DATA(u32, gClass702af0_Ctor_7858dc, 0x007858dc, 0x4);
-GAME_DATA(u32, gLobbyscene_8bd4e4, 0x008bd4e4, 0x4);
 
 // The vtables hold only ports: tpw.exe's loader points their slots at them (.docs/09-globals.md).
 GAME_DATA(void *[1], Class702a50_vtable, 0x00702a50, 0x4);
