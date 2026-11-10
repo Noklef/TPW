@@ -112,6 +112,23 @@ template <Source kSource> u32 Add(const u32 *uv, const u16 *shade, const u32 *de
     return out;
 }
 
+// A row's end: the edges [0xfbe208] (now left) and [0xfbe20c] (now right) step x (both read first), the row pointer -[0xfbe02c],
+// the left edge's u and v (kUv), shade and depth their steps, the depth row [0xfbe228] -[0xfbe030]; returns the row pointer.
+template <bool kUv> u32 NextRow(Edge *&left, const Edge *&right, u32 row) {
+    left = global<Edge *>(0x00fbe208);
+    Edge *const next = global<Edge *>(0x00fbe20c);
+    const u32 rightX = next->x + next->dx, leftX = left->x + left->dx;
+    next->x = rightX;
+    left->x = leftX;
+    right = next;
+    if (kUv)
+        for (int k = 0; k < 2; ++k) left->uv[k] += left->duv[k];
+    for (int k = 0; k < 4; ++k) left->shade[k] = (u16)(left->shade[k] + left->dshade[k]);
+    left->z += left->dz;
+    global<u32>(0x00fbe228) -= global<u32>(0x00fbe030);
+    return row - global<u32>(0x00fbe02c);
+}
+
 // What a drawn pixel writes: the pixel and the next pixel's depth (sic); the pixel and its own depth; the pixel only; both (the
 // next pixel's depth) only above the alpha [0xfbe010] (signed).
 enum Depth { kWriteNext, kWrite, kKeep, kAlphaTest };
@@ -165,17 +182,43 @@ u32 TexRows(bool atLeast, Edge *left, const Edge *right, s32 rows, u32 row) {
                 for (int k = 0; k < 4; ++k) shade[k] = (u16)(shade[k] + shadeStep[k]);
             }
         }
-        left = global<Edge *>(0x00fbe208);
-        Edge *const next = global<Edge *>(0x00fbe20c);
-        const u32 rightX = next->x + next->dx, leftX = left->x + left->dx;
-        next->x = rightX;
-        left->x = leftX;
-        right = next;
-        row -= global<u32>(0x00fbe02c);
-        for (int k = 0; k < 2; ++k) left->uv[k] += left->duv[k];
-        for (int k = 0; k < 4; ++k) left->shade[k] = (u16)(left->shade[k] + left->dshade[k]);
-        left->z += left->dz;
-        global<u32>(0x00fbe228) -= global<u32>(0x00fbe030);
+        row = NextRow<true>(left, right, row);
+    } while (--rows > 0);
+    return row;
+}
+
+// 0x6f4690's row loop: the shade words >> 7, saturated, kept with the next pixel's depth (sic); the shade not prestepped (sic: the
+// prestep is computed, not applied); after a drawn pixel the next one is tested against the drawn one's depth (sic); u and v unused.
+u32 ShadeRows(bool atLeast, Edge *left, const Edge *right, s32 rows, u32 row) {
+    const u16 *const shadeStep = at<const u16>(0x00fbe150);
+    const u32 depthStep = global<u32>(0x00fbe148);
+    do {
+        const u32 start = (left->x + 0x7fff) & 0xffff8000u, end = (right->x + 0x7fff) >> 15;
+        const u32 depthRow = global<u32>(0x00fbe228) + end * 2;
+        global<s32>(0x00fbe1f8) = rows;
+        global<u32>(0x00fbe1fc) = row;
+        s32 i = (s32)((start >> 15) - end);
+        if (i < 0) {
+            const u32 pixels = row + end * 4;
+            u32 z = left->z << 16 | left->z >> 16, test = z;
+            u16 shade[4];
+            for (int k = 0; k < 4; ++k) shade[k] = left->shade[k];
+            for (; i < 0; ++i) {
+                u16 &depth = *at<u16>(depthRow + (u32)i * 2);
+                const bool drawn = atLeast ? depth >= (u16)test : depth <= (u16)test;
+                const u32 here = z;
+                z = StepDepth(z, depthStep);
+                test = drawn ? here : z;
+                if (drawn) {
+                    depth = (u16)z;
+                    u32 out = 0;
+                    for (int k = 0; k < 4; ++k) out |= Saturate((s16)(shade[k] >> 7), k);
+                    *at<u32>(pixels + (u32)i * 4) = out;
+                }
+                for (int k = 0; k < 4; ++k) shade[k] = (u16)(shade[k] + shadeStep[k]);
+            }
+        }
+        row = NextRow<false>(left, right, row);
     } while (--rows > 0);
     return row;
 }
@@ -214,4 +257,6 @@ void __cdecl RasterSpan_BilinearAdd(u32 row) { Parts<TexRows<Add<Filter<true>>, 
 void __cdecl RasterSpan_BilinearBlend(u32 row) { Parts<TexRows<Blend<Filter<true>>, kKeep, false, true>>(row); }
 
 void __cdecl RasterSpan_BilinearBlendLitZ(u32 row) { Parts<TexRows<BlendLit<Filter<false>, false>, kWrite, false, true>>(row); }
+
+void __cdecl RasterSpan_ShadeZ(u32 row) { Parts<ShadeRows>(row); }
 }

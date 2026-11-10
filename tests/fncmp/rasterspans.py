@@ -16,8 +16,8 @@ import x87emu  # noqa: E402
 
 assert x87emu.MMX['PUNPCKHBW'](0x8877665544332211, 0xffeeddccbbaa9988) == 0xff88ee77dd66cc55   # (the high bytes interleaved)
 
-B = Bench([(0x6f1d70, 0x6f4690)])
-SPANS = [0x6f1d70, 0x6f2140, 0x6f2570, 0x6f29d0, 0x6f2de0, 0x6f31c0, 0x6f36d0, 0x6f3be0, 0x6f4140]
+B = Bench([(0x6f1d70, 0x6f49c0)])
+SPANS = [0x6f1d70, 0x6f2140, 0x6f2570, 0x6f29d0, 0x6f2de0, 0x6f31c0, 0x6f36d0, 0x6f3be0, 0x6f4140, 0x6f4690]
 UNMASKED = 0x6f29d0   # (its texel index is not masked: u and v kept to top bytes below 0xe, the texels 0x1000)
 TABLED = [0x6f3be0, 0x6f4140]   # (the blend tables' row from the filtered word: the weights' masks at most 0x3fff)
 LIT = 0x6f4140   # (the row from the shaded word: the shade words kept positive)

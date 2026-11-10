@@ -49,4 +49,9 @@ void __cdecl RasterSpan_BilinearBlend(u32 row);
 // 0x6f4140 (table 0x6f1a0c; row loops 0x6f41b0, 0x6f4450): the filtered texel (the index masked, its neighbours not: + 1, 0x100,
 // 0x101) blended as RasterSpan_TexBlendLit's, by the fourth shaded word >> 2; the depth written is the pixel's own.
 void __cdecl RasterSpan_BilinearBlendLitZ(u32 row);
+
+// 0x6f4690 (table 0x6f1a10; row loops 0x6f4700, 0x6f4890): untextured, each pixel the shade words >> 7, saturated, with the next
+// pixel's depth (sic); the shade is not prestepped (sic), and after a drawn pixel the next is tested against the drawn one's depth
+// (sic); the edges' u and v are not stepped.
+void __cdecl RasterSpan_ShadeZ(u32 row);
 }
