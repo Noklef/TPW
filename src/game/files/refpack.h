@@ -27,13 +27,16 @@ u32 __cdecl ReadBigEndian(const u8 *p, u32 n);
 // dst when src is not null and decode is nonzero. It returns nothing: it reads the header's decoded size into EAX but its POPAD then
 // restores the caller's EAX (and the one caller, 0x677914, ignores it).
 void __cdecl RefPack_DecodeIf(const u8 *src, u8 *dst, s32 decode);
-}
 
-// 0x641a50 (vtable slot 1), not hooked: nothing in the game constructs a codec that encodes,
-// so this is for tools. Same output as the original byte for byte (it reproduces every
-// compressed entry of the shipped .wad files), always with the plain 0x10FB header.
-// dst must hold RefPack_EncodeBound(len) bytes. Returns the encoded size; note the
-// original returned that plus 5.
-u32 RefPack_Encode(u8 *dst, const u8 *src, u32 len);
-// Literal runs cost one byte per 112, every match saves at least one, plus header and end.
-inline u32 RefPack_EncodeBound(u32 len) { return len + len / 112 + 8; }
+// 0x6419e0 (cdecl (dst, value, n)): value's low n bytes at dst, the most significant first (the shift is the CPU's: n above 4 wraps).
+void __cdecl WriteBigEndian(u8 *dst, u32 value, u32 n);
+// 0x641a20 (cdecl (a, b, max)): how many leading bytes of a and b are equal, at most max.
+u32 __cdecl RefPack_MatchLength(const u8 *a, const u8 *b, u32 max);
+
+// 0x641a50 (thiscall on the codec (dst, src, len, workspace), pops 16; vtable 0x703f00 slot 1, no caller: the game's codec only
+// decodes): src encoded into dst with the plain 0x10FB header and the 3-byte size; greedy LZ over a 128 KB window with CRC-16
+// (0x779c60) hash chains in the workspace (0x10000 heads, then 0x20000 links by position & 0x1ffff: 0xc0000 bytes). No workspace:
+// one of the codec's slot 3 size from Mem_Alloc, freed after (none got: 0). Returns the encoded size + 5 (sic). The hash reads two
+// bytes past the input near its end and the candidate test a byte past the longest match (sic).
+u32 __fastcall RefPack_Encode(u8 *codec, void *, u8 *dst, const u8 *src, u32 len, s32 *workspace);
+}

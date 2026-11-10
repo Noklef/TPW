@@ -1,7 +1,11 @@
-// EA RefPack: reimplementation of the decoder (0x641f10, 0x642110, the video library's 0x67850c) and encoder (0x641a50).
+// EA RefPack: reimplementation of the decoder (0x641f10, 0x642110, the video library's 0x67850c) and encoder (0x641a50, 0x6419e0,
+// 0x641a20).
 #include "refpack.h"
 
-#include <vector>
+#include <cstdint>
+
+#include "../core/gameheap.h"
+#include "../core/vcall.h"
 
 namespace {
 
@@ -66,116 +70,127 @@ extern "C" u32 __stdcall RefPack_DecodedSize(const u8 *src) {
     return be24(src + (((u32)src[0] << 8 | src[1]) == 0x10fb ? 2 : 5));
 }
 
-// The encoder: greedy LZ77 over a 128 KB window, candidates found through 3-byte hash
-// chains (head table of 64K entries, links by position & 0x1ffff: the 0xc0000-byte
-// workspace that vtable slot 3 reports).
-namespace {
-
-// The CRC-16 (reflected poly 0xA001) table at 0x779c60, used as the 3-byte hash.
-struct Crc16Table {
-    u32 t[256];
-    Crc16Table() {
-        for (u32 i = 0; i < 256; ++i) {
-            u32 c = i;
-            for (int k = 0; k < 8; ++k) c = (c & 1) ? (c >> 1) ^ 0xa001 : c >> 1;
-            t[i] = c;
-        }
+extern "C" void __cdecl WriteBigEndian(u8 *dst, u32 value, u32 n) {
+    u32 v = value << ((32 - 8 * n) & 31);  // (the CPU's shift count: n above 4 wraps, sic)
+    for (; n; --n) {
+        *dst++ = (u8)(v >> 24);
+        v <<= 8;
     }
-};
-
-// Bytes past the end read as 0. The original reads whatever follows the input, but those
-// hashes are only taken with fewer than 3 bytes left, when no match can be chosen.
-inline u32 hash3(const u8 *src, u32 pos, u32 len) {
-    static const Crc16Table crc;
-    u32 b1 = pos + 1 < len ? src[pos + 1] : 0, b2 = pos + 2 < len ? src[pos + 2] : 0;
-    u32 h = crc.t[src[pos]];
-    h = crc.t[(h & 0xff) ^ b1] ^ (h >> 8);
-    return crc.t[(h & 0xff) ^ b2] ^ (h >> 8);
 }
 
-// Literal runs of 4-112 bytes (0xe0-0xfb) until at most 3 are left for the next command.
-u8 *flush_literals(u8 *out, const u8 *&lit, u32 &count) {
-    while (count > 3) {
-        u32 n = count & ~3u;
+extern "C" u32 __cdecl RefPack_MatchLength(const u8 *a, const u8 *b, u32 max) {
+    u32 n = 0;
+    if (max)
+        do {
+            if (a[n] != b[n]) break;
+            ++n;
+        } while (n < max);
+    return n;
+}
+
+namespace {
+
+// REP MOVSD then REP MOVSB, as the original copies (forward, a dword at a time, then the rest).
+void movs(u8 *&out, const u8 *in, u32 n) {
+    for (u32 i = n >> 2; i; --i, in += 4, out += 4) *reinterpret_cast<u32 *>(out) = *reinterpret_cast<const u32 *>(in);
+    for (u32 i = n & 3; i; --i) *out++ = *in++;
+}
+
+// The CRC-16 table at 0x779c60 (writable .data: read live) as the hash of the three bytes at p.
+u32 hash3(const u8 *p) {
+    const u32 *const crc = reinterpret_cast<const u32 *>((uintptr_t)0x00779c60);
+    u32 h = crc[p[0]];
+    h = crc[(h & 0xff) ^ p[1]] ^ (h >> 8);
+    return crc[(h & 0xff) ^ p[2]] ^ (h >> 8);
+}
+
+// Literal runs of 4-112 bytes (0xe0-0xfb) until at most 3 are left.
+void flush_literals(u8 *&out, const u8 *&lit, u32 &lits) {
+    while (lits > 3) {
+        u32 n = lits & ~3u;
         if (n > 0x70) n = 0x70;
-        *out++ = (u8)(0xe0 + (n >> 2) - 1);
-        copy(out, lit, n);
+        lits -= n;
+        *out++ = (u8)((n >> 2) - 0x21);
+        movs(out, lit, n);
         lit += n;
-        count -= n;
     }
-    return out;
 }
 
 }  // namespace
 
-u32 RefPack_Encode(u8 *dst, const u8 *src, u32 len) {
-    std::vector<s32> head(0x10000, -1), link(0x20000);
-    u8 *out = dst;
-    *out++ = 0x10;
-    *out++ = 0xfb;
-    *out++ = (u8)(len >> 16);
-    *out++ = (u8)(len >> 8);
-    *out++ = (u8)len;
+extern "C" u32 __fastcall RefPack_Encode(u8 *codec, void *, u8 *dst, const u8 *src, u32 len, s32 *work) {
+    WriteBigEndian(dst, 0x10fb, 2);
+    WriteBigEndian(dst + 2, len, 3);
+    u8 *out = dst + 5;
+    void *allocated = nullptr;
+    if (!work) {
+        allocated = GameHeap_Alloc(vcall<u32>(codec, 0xc));
+        if (!allocated) return 0;
+        work = static_cast<s32 *>(allocated);
+    }
+    s32 *const link = work + 0x10000;
+    for (u32 i = 0; i < 0x10000; ++i) work[i] = -1;
 
-    auto insert = [&](u32 pos) {
-        u32 h = hash3(src, pos, len);
-        link[pos & 0x1ffff] = head[h];
-        head[h] = (s32)pos;
-    };
-
-    const u8 *lit = src;  // first pending literal
-    u32 lits = 0, pos = 0;
-    while (pos < len) {
-        u32 remaining = len - pos, max = remaining < 0x404 ? remaining : 0x404;
+    const u8 *cur = src, *lit = src;
+    u32 lits = 0;
+    for (u32 left = len; left;) {
         u32 best_len = 2, best_cost = 2, best_off = 0;
-        s32 lowest = pos > 0x1ffff ? (s32)(pos - 0x1ffff) : 0;
-        const u8 *cur = src + pos;
-        for (s32 cand = head[hash3(src, pos, len)]; cand >= lowest; cand = link[cand & 0x1ffff]) {
-            const u8 *m = src + cand;
-            if (best_len >= max || cur[best_len] != m[best_len]) continue;
-            u32 n = 0;
-            while (n < max && cur[n] == m[n]) ++n;
+        const u32 max = left < 0x404 ? left : 0x404;
+        const u32 h = hash3(cur);  // (two bytes past the input near its end, sic)
+        const s32 pos = (s32)(cur - src);
+        const s32 lowest = (s32)((u32)pos - 0x1ffff) > 0 ? (s32)((u32)pos - 0x1ffff) : 0;
+        for (s32 cand = work[h]; cand >= lowest; cand = link[cand & 0x1ffff]) {
+            const u8 *const m = src + cand;
+            if (cur[best_len] != m[best_len]) continue;  // (also at best_len == max: a byte past the match, sic)
+            const u32 n = RefPack_MatchLength(cur, m, max);
             if (n <= best_len) continue;
-            u32 off = (u32)(cur - m) - 1, cost;
+            const u32 off = (u32)(cur - m) - 1;
+            u32 cost;
             if (off < 0x400 && n <= 10) cost = 2;
             else if (off < 0x4000 && n <= 0x43) cost = 3;
             else cost = 4;
-            if (n - cost + 4 > best_len - best_cost + 4) {  // more bytes saved
-                best_len = n, best_cost = cost, best_off = off;
-                if (n >= 0x404) break;
-            }
+            if (n - cost + 4 <= best_len - best_cost + 4) continue;
+            best_len = n, best_cost = cost, best_off = off;
+            if (n >= 0x404) break;
         }
 
         if (best_cost >= best_len) {  // no match worth a command: one more literal
-            insert(pos);
-            ++lits, ++pos;
+            link[pos & 0x1ffff] = work[h];
+            work[h] = pos;
+            ++lits, ++cur, --left;
             continue;
         }
-        out = flush_literals(out, lit, lits);
-        switch (best_cost) {
-        case 2:
-            *out++ = (u8)(((best_len - 3) << 2) + ((best_off >> 3) & 0x60) + lits);
-            break;
-        case 3:
-            *out++ = (u8)(0x80 + best_len - 4);
+        flush_literals(out, lit, lits);
+        u8 last = (u8)best_off;
+        if (best_cost == 2) {
+            *out++ = (u8)(((best_len + 0x3d) << 2) + ((best_off >> 3) & 0xe0) + lits);
+        } else if (best_cost == 3) {
+            *out++ = (u8)(best_len + 0x7c);
             *out++ = (u8)((best_off >> 8) + (lits << 6));
-            break;
-        default:
-            *out++ = (u8)(0xc0 + (((best_len - 5) >> 8) << 2) + ((best_off >> 12) & 0x10) + lits);
+        } else {
+            *out++ = (u8)((((best_len - 5) >> 6) & 0xfc) + ((best_off >> 12) & 0xf0) + lits - 0x40);
             *out++ = (u8)(best_off >> 8);
             *out++ = (u8)best_off;
-            best_off = best_len - 5;  // the last byte below is the length's low byte
-            break;
+            last = (u8)(best_len - 5);
         }
-        *out++ = (u8)best_off;
-        copy(out, lit, lits);
-        lits = 0;
-        for (u32 i = 0; i < best_len; ++i) insert(pos + i);
-        pos += best_len;
-        lit = src + pos;
+        *out++ = last;
+        if (lits) {
+            movs(out, lit, lits);
+            lits = 0;
+        }
+        if ((s32)best_len > 0)
+            for (u32 i = best_len; i; --i, ++cur) {
+                const u32 hh = hash3(cur);
+                const s32 p = (s32)(cur - src);
+                link[p & 0x1ffff] = work[hh];
+                work[hh] = p;
+            }
+        left -= best_len;
+        lit = cur;
     }
-    out = flush_literals(out, lit, lits);
-    *out++ = (u8)(0xfc + lits);
-    copy(out, lit, lits);
-    return (u32)(out - dst);
+    flush_literals(out, lit, lits);
+    *out++ = (u8)(lits - 4);
+    if (lits) movs(out, lit, lits);
+    if (allocated) GameHeap_Free(allocated);
+    return (u32)(out - dst) + 5;
 }

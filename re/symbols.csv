@@ -636,9 +636,9 @@ address,name,kind,confidence,notes
 0x00642100,Const_C0000,function,high,reimplemented (src/game/core/trivial); 0xc0000
 0x00638be0,BufferSource_AttachRefPack,function,high,reimplemented (src/game/files/wrapsources); thiscall (source); reads the whole entry and RefPack_Decodes it into the data
 0x00703f00,RefPackCodec_vtable,data,medium,"slots 0x638c70 (dtor), RefPack_Encode, RefPack_Decode, RefPack_WorkspaceSize, 0x5d60c0, RefPack_DecodedSize, 0x638860, 0x638b60"
-0x00641a50,RefPack_Encode,function,high,"reimplemented, not hooked (unreachable: the only codec object only decodes); thiscall (dst, src, len, workspace) ret 0x10, returns encoded size + 5; greedy LZ over a 128 KB window with CRC-16 hash chains; C++ port reproduces all 6804 shipped .wad blobs"
-0x00641a20,RefPack_MatchLength,function,high,"(a, b, max) -> number of equal leading bytes"
-0x006419e0,WriteBigEndian,function,high,"(dst, value, n): n-byte big-endian store"
+0x00641a50,RefPack_Encode,function,high,"reimplemented (src/game/files/refpack); thiscall (dst, src, len, workspace), pops 16: greedy LZ with CRC-16 hash chains; no workspace: Mem_Alloc of slot 3's size; returns the encoded size + 5"
+0x00641a20,RefPack_MatchLength,function,high,"reimplemented (src/game/files/refpack); cdecl (a, b, max): the count of equal leading bytes, at most max"
+0x006419e0,WriteBigEndian,function,high,"reimplemented (src/game/files/refpack); cdecl (dst, value, n): value's low n bytes, most significant first (the CPU's shift: n above 4 wraps)"
 0x00779c60,gCrc16Table,data,high,"CRC-16 (reflected poly 0xA001) table, u32 entries; the RefPack encoder's 3-byte hash"
 0x00474a20,Curve_BezierTangent,function,high,"reimplemented; derivative of Curve_Bezier"
 0x00474c70,Curve_LinearTangent,function,high,"reimplemented; points[base+i+1] - points[base+i], always from curve+8 (ignores the points argument)"
