@@ -43,6 +43,8 @@ u32 __fastcall SoundEngine_TouchFlagged(u8 *engine);
 
 // 0x6b9e30 (thiscall; the thread 0x6b9ef0 starts, through the jump at 0x6b9d90): until the handshake's byte +4 is set, the mixer touched and Sleep (100 when it touched any, else 250). Then byte +5 = 1.
 void __fastcall SoundEngine_ThreadLoop(u8 *engine);
+// 0x6b9d90 (cdecl (engine); _beginthread's entry; name invented, unconfirmed): SoundEngine_ThreadLoop on the engine, by JMP.
+void __cdecl SoundEngine_ThreadStart(u8 *engine);
 
 // 0x6b9ef0 (thiscall (out, engine), pops 8): with no thread at +0, bytes +4, +5 cleared and _beginthread (0x6b9d90, 0, engine) into +0; 0 fails (*out = -1), otherwise SetThreadPriority (the thread, -1).
 // *out = 0 otherwise. Returns out.

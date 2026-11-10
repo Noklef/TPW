@@ -102,6 +102,8 @@ void __fastcall SoundEngine_ThreadLoop(u8 *engine) {
     at<volatile u8>(SoundHandshake_Instance(), 5) = 1;
 }
 
+void __cdecl SoundEngine_ThreadStart(u8 *engine) { SoundEngine_ThreadLoop(engine); }
+
 u32 *__fastcall SoundHandshake_Start(u8 *handshake, void *, u32 *out, u8 *engine) {
     if (!at<u32>(handshake, 0)) {
         at<u8>(handshake, 4) = 0;
