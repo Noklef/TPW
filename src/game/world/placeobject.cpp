@@ -23,6 +23,7 @@
 #include "mapclick.h"
 #include "focuscell.h"
 #include "demolish.h"
+#include "placeobject.h"
 
 namespace {
 
@@ -34,7 +35,7 @@ const PlaceObjectEnv *g_env = &kGameEnv;
 
 // fild n; fmul [0x700cd0]; fmul [0x700cd8]; __ftol.
 s32 scaled(s32 n) {
-    const double v = (X87Reg(X87_MulIntDouble(n, global<float>(0x00700cd0))) * gDemolish_700cd8).v;
+    const double v = (X87Reg(X87_MulIntDouble(n, gPlaceobject_700cd0)) * gDemolish_700cd8).v;
     return (s32)(long long)v;
 }
 

@@ -21,6 +21,7 @@
 #include "../world/queuepieces.h"
 #include "placecheck.h"
 #include "registry.h"
+#include "../world/ridelist.h"
 
 namespace {
 
@@ -955,7 +956,7 @@ void __cdecl Coaster_PlacePendingPiece(u8 *coaster) {
 }
 
 void __cdecl Coasters_DropPendingPiece() {
-    for (u8 *c = global<u8 *>(0x00790fe0); c; c = at<u8 *>(c, 0x18)) {
+    for (u8 *c = gRidelist_790fe0; c; c = at<u8 *>(c, 0x18)) {
         if (!(at<u8>(c, 0) & 1)) continue;
         u8 *const track = c + 0x3c;
         global<u8 *>(0x00792218) = c;

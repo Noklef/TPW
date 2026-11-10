@@ -10,6 +10,7 @@
 #include "vdtor.h"
 #include "vobj2.h"
 #include "vtables.h"
+#include "../world/parkmap.h"
 
 namespace {
 
@@ -205,7 +206,7 @@ u8 *__fastcall Deleter_Minus2c_569c80(u8 *object, void *, u32 flags) {
 
 u8 *__fastcall Class703088_ScalarDtor(u8 *object, void *, u32 flags) {
     at<u32>(object, 0) = 0x00703088;
-    u8 *const list = global<u8 *>(0x00fa6e38);
+    u8 *const list = reinterpret_cast<u8 * &>(gParkmap_fa6e38);
     u8 *node = at<u8 *>(list, 4);
     while (node && at<u8 *>(node, 0) != object)
         node = at<u8 *>(node, 4);

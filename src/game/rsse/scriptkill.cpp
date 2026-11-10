@@ -11,6 +11,7 @@
 #include "../render/particles.h"
 #include "../world/flyingrides.h"
 #include "../world/objectdefs.h"
+#include "../world/ridelist.h"
 
 namespace {
 
@@ -111,12 +112,12 @@ void __cdecl RSSE_KillScript(s32 id, u32 flags) {
             float box[6], x = 0.0f, y = 0.0f;
             X87Reg z = 0.0;   // (0x700fd8)
             if (at<u32>(c, 0xc8) && Ride_Bounds(at<s32>(c, 0xc8), box)) {
-                const float half = global<float>(0x00700fd0);
+                const float half = gRidelist_700fd0;
                 x = (float)((X87Reg(box[0]) + box[3]) * half);
                 z = (X87Reg(box[2]) + box[5]) * half;
                 y = X87_Through(at<float>(at<u8 *>(at<u8 *>(at<u8 *>(ride(c), 8), 4), 0x78), 0x44));
             }
-            const float scale = global<float>(0x00700fdc);
+            const float scale = gRidelist_700fdc;
             const s32 iz = Ftol(z * scale);
             const s32 iy = Ftol(X87Reg(y) * scale);
             const s32 ix = Ftol(X87Reg(x) * scale);
@@ -125,9 +126,9 @@ void __cdecl RSSE_KillScript(s32 id, u32 flags) {
                 const X87Reg dz = X87Reg(box[5]) - box[2];
                 const X87Reg dy = X87Reg(box[4]) - box[1];
                 const float dx = (float)(X87Reg(box[3]) - box[0]);
-                const s32 jz = Ftol(dz * global<float>(0x00701050));
-                const s32 jy = Ftol(dy * global<float>(0x00701054));
-                const s32 jx = Ftol(X87Reg(dx) * global<float>(0x00701050));
+                const s32 jz = Ftol(dz * gRidelist_701050);
+                const s32 jy = Ftol(dy * gRidelist_701054);
+                const s32 jx = Ftol(X87Reg(dx) * gRidelist_701050);
                 ParticleSystem_SetVectorB((u32)system, jx, jy, jz);
             }
         }

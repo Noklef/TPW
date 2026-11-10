@@ -5,6 +5,7 @@
 
 #include "../files/file.h"
 #include "../math/x87.h"
+#include "../world/ridelist.h"
 
 namespace {
 
@@ -192,7 +193,7 @@ void ReadCoaster(void *stream) {
     Read(stream, Ptr(h), 0x20);
     const u32 flags = From<u32>(h, 0);
     const u32 id = From<u16>(h, 0xa);
-    u32 coaster = G<u32>(0x00790fe0);
+    u32 coaster = reinterpret_cast<u32 &>(gRidelist_790fe0);
     while (coaster && D(coaster, 0x10) != id) coaster = D(coaster, 0x18);
     if (coaster) {
         G<u32>(0x00790fec) = coaster;

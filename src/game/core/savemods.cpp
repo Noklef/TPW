@@ -10,6 +10,7 @@
 #include "../world/camera.h"
 #include "../world/flyingrides.h"
 #include "soundset.h"
+#include "../world/ridelist.h"
 
 namespace {
 
@@ -328,7 +329,7 @@ u32 __cdecl RSSE_Load(Stream *stream) {
         float box[6];
         if (at<u32>(rec, 0xd4) && at<u32>(rec, 0xc8) && Ride_Bounds(at<s32>(rec, 0xc8), box)) {
             const s32 owner = at<s32>(rec, 0xc8);
-            const float half = global<float>(0x00700fd0);
+            const float half = gRidelist_700fd0;
             const float cx = static_cast<float>((X87Reg(box[0]) + box[3]) * half);
             const u8 *const instance = global<u8 *>(0x007a4610 + 4 * owner);
             const float y = X87_Through(at<float>(at<u8 *>(at<u8 *>(at<u8 *>(instance, 8), 4), 0x78), 0x44));

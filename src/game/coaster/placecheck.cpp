@@ -4,6 +4,7 @@
 #include <cstdint>
 
 #include "../math/x87.h"
+#include "../world/ridelist.h"
 
 namespace {
 
@@ -159,7 +160,7 @@ s32 __cdecl CoasterPiece_CanPlaceAt(u32 x, u32 z, u8 *piece, u32 px, u32 pz, u32
     if (ok) {
         const u32 tile = z * width + x;
         const u8 *found = nullptr;
-        for (const u8 *link = global<u8 *>(0x00790fe0); link && !found; link = Ptr(link, 0x18))
+        for (const u8 *link = gRidelist_790fe0; link && !found; link = Ptr(link, 0x18))
             for (found = Ptr(link, 0x4c); found; found = Ptr(found, 0x28))
                 if (!(at<u8>(found, 4) & 5) && at<u32>(found, 8) == tile) break;
         if (found && !piece) {

@@ -31,6 +31,8 @@
 #include "signtext.h"
 #include "staff.h"
 #include "../gfx/texcache.h"
+#include "parkmapwindow.h"
+#include "parkmap.h"
 
 namespace {
 
@@ -80,7 +82,7 @@ void Scroll(u8 *map, u32 direction) { g_env->scroll(map, nullptr, direction, 1.0
 
 void Zoom(u8 *map, float step) {
     const X87Reg z = X87Reg(at<float>(map, 0x5c)) - step;
-    const float low = global<float>(0x00703004), high = global<float>(0x0070302c);
+    const float low = global<float>(0x00703004), high = gParkmapwindow_70302c;
     at<float>(map, 0x5c) = !(z.v >= low) ? low : z.v > high ? high : (float)z;
     g_env->layOut(map);
 }
@@ -113,11 +115,11 @@ void Close(u8 *map) {
 
 void EdgeScroll(u8 *map) {
     const float low = global<float>(0x00703010), one = global<float>(0x00703004);
-    const float nearEdge = global<float>(0x0070301c), farEdge = global<float>(0x00703024), rate = global<float>(0x00703020);
+    const float nearEdge = gParkmapwindow_70301c, farEdge = gParkmapwindow_703024, rate = gParkmapwindow_703020;
     X87Reg x = X87Reg((double)at<s32>(map, 0x10)) * global<float>(0x00703014);
     if (x.v < low) x = low;
     else if (x.v > one) x = one;
-    float y = (float)(X87Reg((double)at<s32>(map, 0x14)) * global<float>(0x00703018));
+    float y = (float)(X87Reg((double)at<s32>(map, 0x14)) * gParkmapwindow_703018);
     if (y < low) y = 0.0f;
     else if (y > one) y = 1.0f;
     if (x.v < nearEdge) {
@@ -184,9 +186,9 @@ void MouseMoved(u8 *map, u8 *window, u32 a) {
     at<u32>(map, 0x20060) = 0;
     at<u32>(map, 0x14) = mouseY;
     const float x = (float)(X87Reg((double)(s32)mouseX) * widthF * global<float>(0x00703014));
-    const float y = (float)(X87Reg((double)(s32)(0x600 - mouseY)) * heightF * global<float>(0x00703018));
+    const float y = (float)(X87Reg((double)(s32)(0x600 - mouseY)) * heightF * gParkmapwindow_703018);
     float best = 100000000.0f;
-    const float reach = global<float>(0x00703040);
+    const float reach = gParkmapwindow_703040;
     for (const u8 *node = at<u8 *>(list, 4); node;) {
         u8 *const item = at<u8 *>(node, 0);
         node = at<u8 *>(node, 4);
@@ -205,9 +207,9 @@ void MouseMoved(u8 *map, u8 *window, u32 a) {
     const u8 *const now = at<u8 *>(map, 0x20060);
     if (previous != now && (ItemIsPerson(previous) || ItemIsPerson(now))) Reload(map);
     const float zoom = at<float>(map, 0x5c);
-    const float half = global<float>(0x00703030);
-    const X87Reg toY = X87_DivR(static_cast<double>(at<s32>(map, 0x28)), global<float>(0x00703048));
-    const X87Reg toX = X87_DivR(static_cast<double>(at<s32>(map, 0x24)), global<float>(0x00703044));
+    const float half = gParkmap_703030;
+    const X87Reg toY = X87_DivR(static_cast<double>(at<s32>(map, 0x28)), gParkmap_703048);
+    const X87Reg toX = X87_DivR(static_cast<double>(at<s32>(map, 0x24)), gParkmap_703044);
     const X87Reg halfH = X87Reg(heightF) * half, halfW = X87Reg(widthF) * half;
     const X87Reg squareY = (X87Reg(y) - halfH) / (toY * zoom) + at<float>(map, 0x58);
     const X87Reg squareX = (X87Reg(x) - halfW) / (toX * zoom) + at<float>(map, 0x54);
@@ -223,14 +225,14 @@ void MouseMoved(u8 *map, u8 *window, u32 a) {
 void MouseClicked(u8 *map) {
     const u32 width = global<u32>(0x007a1968), height = global<u32>(0x007a1930);
     const float zoom = at<float>(map, 0x5c);
-    const float half = global<float>(0x00703030);
-    const X87Reg toX = X87_DivR(static_cast<double>(at<s32>(map, 0x24)), global<float>(0x00703044));
-    const X87Reg toY = X87_DivR(static_cast<double>(at<s32>(map, 0x28)), global<float>(0x00703048));
+    const float half = gParkmap_703030;
+    const X87Reg toX = X87_DivR(static_cast<double>(at<s32>(map, 0x24)), gParkmap_703044);
+    const X87Reg toY = X87_DivR(static_cast<double>(at<s32>(map, 0x28)), gParkmap_703048);
     const float heightF = (float)(double)height;
     const X87Reg wide = X87Reg((double)at<s32>(map, 0x10)) * X87Reg((double)width);
     const X87Reg tall = X87Reg((double)(s32)(0x600 - at<u32>(map, 0x14))) * heightF;
     const float x = (float)(wide * global<float>(0x00703014));
-    const float y = (float)(tall * global<float>(0x00703018));
+    const float y = (float)(tall * gParkmapwindow_703018);
     const X87Reg halfW = X87Reg((double)width) * half, halfH = X87Reg(heightF) * half;
     const X87Reg moveX = (X87Reg(x) - halfW) / (toX * zoom);
     const X87Reg moveY = (X87Reg(y) - halfH) / (toY * zoom);
@@ -286,8 +288,8 @@ s32 __fastcall ParkMap_HandleMouse(u8 *map, void *, u8 *window, u32 message, u32
     switch (message) {
         case 0x1e:
             if (global<u8>(0x0078d910) && at<u32>(map, 0x20084)) {
-                g_env->scroll(map, nullptr, 1, (float)(X87Reg((double)(s32)(at<u32>(map, 0x10) - 0x400)) * global<float>(0x00703034)));
-                g_env->scroll(map, nullptr, 3, (float)(X87Reg((double)(s32)(at<u32>(map, 0x14) - 0x300)) * global<float>(0x00703038)));
+                g_env->scroll(map, nullptr, 1, (float)(X87Reg((double)(s32)(at<u32>(map, 0x10) - 0x400)) * gParkMap_HandleMouse_703034));
+                g_env->scroll(map, nullptr, 3, (float)(X87Reg((double)(s32)(at<u32>(map, 0x14) - 0x300)) * gParkMap_HandleMouse_703038));
             }
             break;
         case 0x10001:
@@ -335,10 +337,10 @@ s32 __fastcall ParkMap_HandleWindow(u8 *map, void *, u8 *window, u32 message, u3
                     Flip(map, 0x20);
                     break;
                 case 0x985:
-                    Zoom(map, global<float>(0x00703030));
+                    Zoom(map, gParkmap_703030);
                     break;
                 case 0x986:
-                    Zoom(map, global<float>(0x00703028));
+                    Zoom(map, gParkMap_703028);
                     break;
                 case 0x987:
                     Flip(map, 1);
@@ -431,10 +433,10 @@ s32 __fastcall ParkMap_HandleWindow(u8 *map, void *, u8 *window, u32 message, u3
                     Scroll(map, 3);
                     break;
                 case 0x6b00:
-                    Zoom(map, global<float>(0x00703028));
+                    Zoom(map, gParkMap_703028);
                     break;
                 case 0x6d00:
-                    Zoom(map, global<float>(0x00703030));
+                    Zoom(map, gParkmap_703030);
                     break;
                 default:
                     break;

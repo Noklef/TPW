@@ -11,6 +11,7 @@
 #include "camera.h"
 #include "../math/x87.h"
 #include "../render/particles.h"
+#include "ridelist.h"
 
 namespace {
 
@@ -172,7 +173,7 @@ void __cdecl Obj_FillLinkedElements(u8 *object) {
 }
 
 void __cdecl Objects_SetRideId(u32 id, u32 value) {
-    u8 *object = *reinterpret_cast<u8 **>(0x00790fe0);
+    u8 *object = gRidelist_790fe0;
     while (object && at<u32>(object, 0x10) != id)
         object = at<u8 *>(object, 0x18);
     if (!object)
@@ -241,7 +242,7 @@ void __cdecl Ride_PlayEffect(s32 id) {
     float box[6];
     if (Ride_Bounds(at<s32>(node, 0xc8), box) == 0)
         return;
-    const float &half = global<float>(0x00700fd0), &scale = global<float>(0x00700fdc);
+    const float &half = gRidelist_700fd0, &scale = gRidelist_700fdc;
     const X87Reg zc = (X87Reg(box[2]) + box[5]) * half;
     const X87Reg xc = (X87Reg(box[0]) + box[3]) * half;
     const u8 *const ride = global<u8 *>(0x007a4610 + 4 * at<u32>(node, 0xc8));
@@ -254,7 +255,7 @@ void __cdecl Ride_PlayEffect(s32 id) {
     const s32 system = Particle_Spawn(effect, ix, iy, iz);
     const s32 index = at<s32>(node, 0xc8);
     if (index != 0 && Ride_Bounds(index, box) != 0) {
-        const float &across = global<float>(0x00701050), &up = global<float>(0x00701054);
+        const float &across = gRidelist_701050, &up = gRidelist_701054;
         const X87Reg dz = X87Reg(box[5]) - box[2];
         const X87Reg dy = X87Reg(box[4]) - box[1];
         const float dx = (float)(X87Reg(box[3]) - box[0]);

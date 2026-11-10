@@ -12,6 +12,7 @@
 #include "../world/trackrides.h"
 #include "rsseexec.h"
 #include "scriptkill.h"
+#include "../world/ridelist.h"
 
 namespace {
 
@@ -90,9 +91,9 @@ void node_step(RsseContext *ctx, u8 *node) {
         float dir[3];
         g_env->partAxes(ctx->owner, &at<u32>(node, 0x14), dir, nullptr);
         g_env->setVector(at<u32>(node, 0xc), (s32)((u32)p.x << 10), (s32)((u32)p.y << 10), (s32)((u32)p.z << 10));
-        const s32 jz = ftol(X87Reg(dir[2]) * global<float>(0x00700fdc));
-        const s32 jy = ftol(X87Reg(dir[1]) * global<float>(0x00700fdc));
-        const s32 jx = ftol(X87Reg(dir[0]) * global<float>(0x00700fdc));
+        const s32 jz = ftol(X87Reg(dir[2]) * gRidelist_700fdc);
+        const s32 jy = ftol(X87Reg(dir[1]) * gRidelist_700fdc);
+        const s32 jx = ftol(X87Reg(dir[0]) * gRidelist_700fdc);
         g_env->setScaled(at<u32>(node, 0xc), jx, jy, jz);
     } else if (kind >= 3 && kind <= 10 && (((u32)ctx->id ^ global<u32>(0x008791a4)) & 7) == 0) {
         const Position p = part_position(ctx, node);

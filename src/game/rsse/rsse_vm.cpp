@@ -17,6 +17,7 @@
 #include "../render/particles.h"
 #include "../world/objectdefs.h"
 #include "../world/personscripts.h"
+#include "../world/ridelist.h"
 
 namespace {
 
@@ -236,7 +237,7 @@ void __cdecl Rsse_MoveWalker(u8 *vm, u8 *slot, s32 from, s32 to, s32 mode, s32 t
     const float &k04 = global<float>(0x00701028), &k3 = global<float>(0x00701044), &k0033 = global<float>(0x00701040);
     const float a = (float)(k04 - X87Reg((double)(s32)(h & 7)) * global<float>(0x00701024));
     const float b = (float)(k04 - X87Reg((double)(s32)(h & 3)) * global<float>(0x0070102c));
-    const float c = (float)(global<float>(0x00700fd0) - X87Reg((double)at<s16>(vm, 0xc0)) * global<float>(0x00700fcc));
+    const float c = (float)(gRidelist_700fd0 - X87Reg((double)at<s16>(vm, 0xc0)) * global<float>(0x00700fcc));
     const float d = (float)(X87Reg((double)at<u16>(vm, 0x88)) * k0001);
     const float e = (float)(X87Reg((double)at<u16>(vm, 0x8a)) * k0001);
     u8 *const clock = reinterpret_cast<u8 *>(0x00785970);
@@ -361,7 +362,7 @@ s32 __cdecl Rsse_Trigger(u8 *vm, s32 kind, s32 key, u32 what, u32 extra) {
         u32 effect = what;
         if (what & 0x8000)
             effect = Obj_GetIndexed4e0(ThingDef(vm), nullptr, what & 0x7fff);
-        const float &scale = global<float>(0x00700fdc);
+        const float &scale = gRidelist_700fdc;
         s32 system;
         if (kind == 1) {
             const s32 z = Ftol(X87Reg(place[2]) * scale);
