@@ -25,3 +25,10 @@ extern "C" {
 // moves it to the centre; 0x11 with the flag +0x139 at 1, 0x14 with that flag or the state word 1: ParticlePool2_Finish; 0x10002: ParticlePool2_Empty.
 u32 __cdecl GuiMessageFx_Handler(u8 *window, u32 message, u32 a, u32 b);
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(const float, gGuimessagefx_6ff154, 0x006ff154, 0x4);
+GAME_DATA(const u32, gGuiMessageFx_Handler_6ff158, 0x006ff158, 0x4);
+GAME_DATA(const u32, gGuiMessageFx_Handler_6ff15c, 0x006ff15c, 0x4);

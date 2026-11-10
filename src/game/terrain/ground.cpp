@@ -17,6 +17,7 @@
 #include "../render/meshlist.h"
 #include "../render/transformer.h"
 #include "gridquad.h"
+#include "../render/renderer.h"
 #include "../gfx/texcache.h"
 
 using gridquad::Fan;
@@ -155,7 +156,7 @@ extern "C" u32 __fastcall TerrainGround_Draw(u8 *self) {
     if (at<s32>(self, 0x128) > at<s32>(self, 0x12c) || !(global<u32>(0x008bd508) & 0xc0000000)) return 1;
     const u32 stride = gGround_7014b4;
     global<u32>(0x00879dec) = 0;
-    g_env->drain(at<u8 *>(global<u8 *>(0x0087a6d0), 0x2c));
+    g_env->drain(at<u8 *>(gRenderer_87a6d0, 0x2c));
     g_env->setView(gMeshlist_87a248, nullptr, reinterpret_cast<const u32 *>((uintptr_t)0x0087b090), 0);
     g_env->light(self);
     static const float kUvs[4][2] = {{0, 0}, {0, 1}, {1, 1}, {1, 0}};

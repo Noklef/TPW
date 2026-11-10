@@ -23,3 +23,13 @@ extern "C" {
 // The timer 0x80083 of 2000 set and, when that answers (AX), started; Advisor_PostId (0x11d).
 void __cdecl Dialog7ca168_Open(u32 tab, u32 selected);
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(const float, gDialog7ca168_Open_6ff6f4, 0x006ff6f4, 0x4);
+GAME_DATA(const float, gDialog7ca168_Open_6ff6f8, 0x006ff6f8, 0x4);
+GAME_DATA(u32, gDialog7ca168_Open_751188, 0x00751188, 0x4);
+GAME_DATA(u8 *, gDialog7ca168_7ca164, 0x007ca164, 0x4);
+GAME_DATA(u8 *, gDialog7ca168_7ca168, 0x007ca168, 0x4);
+GAME_DATA(u32, gDialog7ca168_7ca16c, 0x007ca16c, 0x4);

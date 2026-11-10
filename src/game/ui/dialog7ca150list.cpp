@@ -11,6 +11,7 @@
 #include "window7059f0.h"
 #include "window7059f0texts.h"
 #include "windowtimers.h"
+#include "dialog7ca150.h"
 
 namespace {
 
@@ -93,7 +94,7 @@ s32 __cdecl Dialog7ca150_ListHandler(u8 *window, u32 message, u32 a, u32 b) {
     if (message == 0x15) {
         if (static_cast<u16>(g_env->setTimer(window, nullptr, 0x80083, 0x7d0)) != 0) g_env->startTimer(window, nullptr, 0x80083);
     } else if (message == 0x10 && a == 0x80083) {
-        const u32 tab = *reinterpret_cast<const u32 *>((uintptr_t)0x007ca154);
+        const u32 tab = gDialog7ca150_7ca154;
         if (tab < 3 && window) {
             for (s32 row = *reinterpret_cast<const s32 *>(window + 0x150) - 1; row >= 0; --row) {
                 if (tab == 0) Tab0(window, row);

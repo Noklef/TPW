@@ -22,3 +22,10 @@ void __cdecl ThingPreview_Hide();
 // made a copy of that script slot (SpriteScript_CopyFrom).
 void __cdecl Global7c24d8_CopyScript();
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(const float, gThingPreview_Show_6ff160, 0x006ff160, 0x4);
+GAME_DATA(s32, gThingpreview_7c24a0, 0x007c24a0, 0x4);
+GAME_DATA(u32, gThingpreview_7c24d8, 0x007c24d8, 0x4);

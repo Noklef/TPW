@@ -471,7 +471,7 @@ void __fastcall TextPart6ff350_SetLayout(u8 *part, void *, u32 flags, const u8 *
         // fild; fmul by the floats 1 / 1024 (0x6ff2c4) and 100 (0x6ff2d0), at the FPU's 24-bit precision; fstp to the double argument
         const s32 value = *reinterpret_cast<const s32 *>(info);
         const X87Reg scaled = value < 0 ? X87Reg(-X87_MulInt(0u - (u32)value, 1.0f / 1024)) : X87Reg(X87_MulInt((u32)value, 1.0f / 1024));
-        Crt().swprintf(text, reinterpret_cast<const u16 *>((uintptr_t)0x007506a8), (scaled * 100.0f).v);
+        Crt().swprintf(text, gText_TextPart6ff350_SetLayout_7506a8, (scaled * 100.0f).v);
     } else {
         return TextPart_SetLayout(part, nullptr, flags, info);
     }

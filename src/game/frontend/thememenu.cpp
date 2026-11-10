@@ -20,6 +20,10 @@
 #include "../ui/dialog7cc4b4open.h"
 #include "../ui/dialog7cc4b4update.h"
 #include "lobbyscript.h"
+#include "frame.h"
+#include "../online/chatlists.h"
+#include "../online/chatcommand.h"
+#include "../coaster/arreplayaction.h"
 
 namespace {
 
@@ -45,7 +49,7 @@ u8 *Singleton(u32 address, u32 size, u8 *(__fastcall *ctor)(u8 *)) {
     return object;
 }
 
-u8 *Session() { return Singleton(0x00f7d88c, 0x404, g_env->online); }
+u8 *Session() { return Singleton(reinterpret_cast<uintptr_t>(&gChatcommand_f7d88c), 0x404, g_env->online); }
 
 void WideFrom(WString *wide, const char *text) {
     String narrow;
@@ -73,7 +77,7 @@ void RefreshItem(u8 *item) {
     WString a, b;
     WString_Ctor(&a);
     WString_Ctor(&b);
-    if (at<s32>(Singleton(0x00f81ebc, 0x110, g_env->userSlots), 0x60) == -1) {
+    if (at<s32>(Singleton(reinterpret_cast<uintptr_t>(&gChatlists_f81ebc), 0x110, g_env->userSlots), 0x60) == -1) {
         WString key;
         WString_Ctor(&key);
         WideFrom(&key, at<const char *>(item, 0x30));
@@ -82,7 +86,7 @@ void RefreshItem(u8 *item) {
     } else {
         String name;
         String_CtorStr(&name, nullptr, at<const char *>(item, 0x30));
-        u8 *const info = Singleton(0x00f7c58c, 0x50, g_env->globalSave);
+        u8 *const info = Singleton(reinterpret_cast<uintptr_t>(&gArreplayaction_f7c58c), 0x50, g_env->globalSave);
         u8 *const record = g_env->themeGet(info, nullptr, reinterpret_cast<const u8 *>(&name));
         String_Dtor(&name);
         u16 text[0x100];
@@ -145,14 +149,14 @@ void __fastcall ThemeMenu_Enter(u8 *self) {
     if (vcall<s32>(self, 0x24)) return;
     if (!vcall<s32>(self, 0x24)) {
         at<u32>(self, 4) = 1;
-        g_env->holder(global<u8 *>(0x00f83774));
-        g_env->ambient(global<u8 *>(0x00f83778), nullptr, 1, 0x444444);
+        g_env->holder(gFrame_f83774);
+        g_env->ambient(gFrame_f83778, nullptr, 1, 0x444444);
         const u32 colour = 0xeeeeee;
-        g_env->light(global<u8 *>(0x00f83778), nullptr, 1, &colour, nullptr, 1);
-        Fn_5e1bb0(global<u8 *>(0x00f83778), nullptr, 0x40000000, 0x41000000, 1);
-        at<float>(global<u8 *>(0x00f83778), 4) = at<float>(at<u8 *>(global<u8 *>(0x00f82884), 0x10), 4);
-        Render_FogOn(global<u8 *>(0x00f83778));
-        Render_SetFog(global<u8 *>(0x00f83778), nullptr, 0xff44ddff, 0x42480000, 0x437a0000);
+        g_env->light(gFrame_f83778, nullptr, 1, &colour, nullptr, 1);
+        Fn_5e1bb0(gFrame_f83778, nullptr, 0x40000000, 0x41000000, 1);
+        at<float>(gFrame_f83778, 4) = at<float>(at<u8 *>(global<u8 *>(0x00f82884), 0x10), 4);
+        Render_FogOn(gFrame_f83778);
+        Render_SetFog(gFrame_f83778, nullptr, 0xff44ddff, 0x42480000, 0x437a0000);
         at<u32>(self, 0x14) = 0;
         at<u32>(self, 0xc) = 0;
         at<u32>(self, 0x10) = 0;
@@ -188,8 +192,8 @@ void __fastcall ThemeMenu_Enter(u8 *self) {
     g_env->refresh(self);
     u8 *const chosen = at<u8 *>(self, 0xc);
     if (chosen) {
-        at<u32>(chosen, 0x1c) = g_env->play(at<u32>(chosen, 0x1c), at<u32>(global<u8 *>(0x00803a4c), at<u32>(chosen, 0x18) * 8 + 4), 1, 0, 0, 0);
-        at<u32>(chosen, 0x20) = g_env->play(at<u32>(chosen, 0x20), at<u32>(global<u8 *>(0x00803a4c), at<u32>(chosen, 0x18) * 8), 2, 0, 0, 0);
+        at<u32>(chosen, 0x1c) = g_env->play(at<u32>(chosen, 0x1c), at<u32>(gSoundset_803a4c, at<u32>(chosen, 0x18) * 8 + 4), 1, 0, 0, 0);
+        at<u32>(chosen, 0x20) = g_env->play(at<u32>(chosen, 0x20), at<u32>(gSoundset_803a4c, at<u32>(chosen, 0x18) * 8), 2, 0, 0, 0);
         g_env->applySound();
     }
 }

@@ -1,8 +1,9 @@
 #include "base64.h"
+#include "../online/postcardmail.h"
 
 namespace {
 
-const char *Table() { return reinterpret_cast<const char *>(0x00773d80); }
+const char *Table() { return gPostcardmail_773d80.base64; }
 
 }  // namespace
 

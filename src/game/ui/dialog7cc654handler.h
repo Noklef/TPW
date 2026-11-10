@@ -37,3 +37,8 @@ extern "C" {
 // (+0x24 of [0x7cc660], its +0xc, null the empty one) as wide and 0x7558f0; Dialog7cc654_FitText, 0x4bc270. Last, but for the one above, Dialog_BaseHandler with the arguments as they came; its answer.
 s32 __cdecl Dialog7cc654_Handler(u8 *window, u32 message, u32 a, u32 b);
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(char[4], gDialog7cc654handler_7558f0, 0x007558f0, 0x4);

@@ -6,6 +6,7 @@
 #include "../math/x87.h"
 #include "../sprite/screenmatrix.h"
 #include "../sprite/script.h"
+#include "guimessagefx.h"
 
 namespace {
 
@@ -26,35 +27,35 @@ u32 FtolLow(X87Reg x) { return (u32)(long long)x.v; }
 extern "C" {
 
 u32 __cdecl ThingPreview_Show(const u8 *rect, u8 *thing, s32 depth, u32 scale) {
-    if (global<u32>(0x007c24d8)) SpriteScript_Kill(global<s32>(0x007c24a0));
-    global<u8 *>(0x007c24d8) = thing;
+    if (gThingpreview_7c24d8) SpriteScript_Kill(gThingpreview_7c24a0);
+    reinterpret_cast<u8 * &>(gThingpreview_7c24d8) = thing;
     const s32 script = at<s32>(thing, 0xc);
     if (!script) {
-        global<u32>(0x007c24d8) = 0;
+        gThingpreview_7c24d8 = 0;
         return (u32)(uintptr_t)thing;
     }
     const s32 left = at<s16>(rect, 4), top = at<s16>(rect, 6), right = at<s16>(rect, 8), bottom = at<s16>(rect, 0xa);
-    const float x = (float)X87_MulIntDouble(((right - left) >> 1) + left - 1016, global<float>(0x006ff154));  // / 1024
+    const float x = (float)X87_MulIntDouble(((right - left) >> 1) + left - 1016, gGuimessagefx_6ff154);  // / 1024
     float lift;
     std::memcpy(&lift, &scale, 4);
-    const u32 sunk = FtolLow(X87Reg(lift) * X87Reg(global<float>(0x006ff160)));  // * -0.25
+    const u32 sunk = FtolLow(X87Reg(lift) * X87Reg(gThingPreview_Show_6ff160));  // * -0.25
     const u32 row = (u32)((bottom - top) >> 2) - sunk - (u32)bottom + 0x300;
     const float y = (float)X87_MulIntDouble((s32)row, global<float>(0x006ff150));  // / 768
     const float z = (float)Sprite_FlipY(depth);
     const s32 slot = SpriteScript_Clone(script, bits(x), bits(y), bits(z), scale);
-    global<s32>(0x007c24a0) = slot;
+    gThingpreview_7c24a0 = slot;
     return (u32)slot;
 }
 
 void __cdecl ThingPreview_Hide() {
-    if (!global<u32>(0x007c24d8)) return;
-    SpriteScript_Kill(global<s32>(0x007c24a0));
-    global<u32>(0x007c24d8) = 0;
+    if (!gThingpreview_7c24d8) return;
+    SpriteScript_Kill(gThingpreview_7c24a0);
+    gThingpreview_7c24d8 = 0;
 }
 
 void __cdecl Global7c24d8_CopyScript() {
-    u8 *object = global<u8 *>(0x007c24d8);
+    u8 *object = reinterpret_cast<u8 * &>(gThingpreview_7c24d8);
     if (object && at<u32>(object, 0xc))
-        SpriteScript_CopyFrom((s32)global<u32>(0x007c24a0), (s32)at<u32>(object, 0xc));
+        SpriteScript_CopyFrom((s32)reinterpret_cast<u32 &>(gThingpreview_7c24a0), (s32)at<u32>(object, 0xc));
 }
 }

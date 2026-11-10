@@ -474,3 +474,9 @@ void __fastcall Window_AdjustRect(u8 *window, void *, u32 dl, u32 dt, u32 dr, u3
 // state cleared. Returns 0 but for 12.
 u32 __cdecl Window_DefaultProc(u8 *window, u32 message, u32 a, u32 b);
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(u8 *, gWindow_faa5ec, 0x00faa5ec, 0x4);
+GAME_DATA(u32[2], gWindow_DefaultProc_faa618, 0x00faa618, 0x8);

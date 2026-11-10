@@ -21,6 +21,9 @@
 #include "hoverlabel.h"
 #include "window.h"
 #include "windowscript.h"
+#include "../online/chatcommand.h"
+#include "../coaster/arreplayaction.h"
+#include "dialog7cc984.h"
 
 namespace {
 
@@ -35,11 +38,11 @@ const Dialog7cc984OpenEnv *g_env = &kGameEnv;
 
 const u16 *wide(const wchar_t *text) { return reinterpret_cast<const u16 *>(text); }
 
-u8 *dialog() { return global<u8 *>(0x007cc984); }
+u8 *dialog() { return gDialog7cc984_7cc984; }
 
 // The session's holder, made when none (inlined each time).
 u8 *holder() {
-    u8 *&made = global<u8 *>(0x00f7d88c);
+    u8 *&made = gChatcommand_f7d88c;
     if (!made) {
         u8 *const block = static_cast<u8 *>(GameHeap_Alloc(0x404));
         made = block ? g_env->holderCtor(block) : nullptr;
@@ -49,7 +52,7 @@ u8 *holder() {
 
 // The global save info, made when none (inlined each time).
 u8 *save() {
-    u8 *&made = global<u8 *>(0x00f7c58c);
+    u8 *&made = gArreplayaction_f7c58c;
     if (!made) {
         u8 *const block = static_cast<u8 *>(GameHeap_Alloc(0x50));
         made = block ? g_env->saveCtor(block) : nullptr;
@@ -175,7 +178,7 @@ void __cdecl Dialog7cc984_Open(const u8 *record, u8 *parent, u32 callback, u32 a
         down = 0;
     }
     const s32 depth = g_env->topDepth(nullptr, nullptr);
-    global<u8 *>(0x007cc984) = g_env->build(parent, nullptr, game<u8 *>(0x00759170), 0x004c0880);
+    gDialog7cc984_7cc984 = g_env->build(parent, nullptr, game<u8 *>(0x00759170), 0x004c0880);
     g_env->setDepth(dialog(), nullptr, depth + 4);
     g_env->offset(dialog(), nullptr, 0, down);
     u8 *const box = Window_FindChild(dialog(), nullptr, 0xe5932);

@@ -12,6 +12,7 @@
 #include "ridelist.h"
 #include "things.h"
 #include "world.h"
+#include "../ui/dialog74fb20.h"
 
 namespace {
 
@@ -25,10 +26,10 @@ bool modeIsOne() {
     u8 &guard = global<u8>(0x00fb34b8);
     if (!(guard & 1)) {
         guard |= 1;
-        g_env->readMode(reinterpret_cast<u8 *>((uintptr_t)0x00fb3b7c));
+        g_env->readMode(reinterpret_cast<u8 *>(&gDialog74fb20_fb3b7c));
         g_env->atExit(reinterpret_cast<void(__cdecl *)()>((uintptr_t)0x005d1750));
     }
-    return global<u32>(0x00fb3b7c) == 1;
+    return gDialog74fb20_fb3b7c == 1;
 }
 
 void store(float &field, X87Reg value) {

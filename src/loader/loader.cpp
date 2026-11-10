@@ -8,7 +8,8 @@
 // C runtime and C++ initialisers:
 //   1. copies the exe in (CopyExe) and checks that every hooked function's first bytes are this exe's;
 //   2. fills the exe's import table with the real DLLs' addresses (a missing DLL or function: Missing);
-//   3. points each code slot of the data at its port (codeslots.h, generated at build time by tools/gen_loader_slots.py);
+//   3. points each code slot of the data at its port (codeslots.h, generated at build time by tools/gen_loader_slots.py), and each pointer
+//      into a global tpw.exe has as an object of its own at that object (kGameDataFixups, tools/gamedata.py); zeroes those globals' ranges;
 //   4. installs the handler for calls into the copy (OnFault): the port's address, or a trap that names the original address and stops;
 // then it starts the C runtime, whose WinMain runs the original's start-up (mainCRTStartup 0x67ee10) by the game's addresses.
 #define WIN32_LEAN_AND_MEAN
@@ -20,13 +21,17 @@
 #include <cstring>
 
 #include "../game/core/addrcalls.h"
+#include "../game/core/gamedata.h"
 #include "../game/core/staticinit.h"
 #include "../hook/hooks.h"
 #include "codeslots.h"
 
-// gamedata_object.cpp (tools/gamedata.py): the original's address and size of each global tpw.exe has as an object of its own.
+// gamedata_object.cpp (tools/gamedata.py): the original's address and size of each global tpw.exe has as an object of its own, and the
+// fixups for the pointers into them and for their code addresses.
 extern "C" const u32 kGameDataRanges[][2];
 extern "C" const u32 kGameDataRangeCount;
+extern "C" const GameDataFixup kGameDataFixups[];
+extern "C" const u32 kGameDataFixupCount;
 
 namespace {
 
@@ -187,12 +192,21 @@ void MapPorts() {
 
     g_thunkCode = static_cast<u8 *>(VirtualAlloc(nullptr, 0x1000, MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE));
     if (!g_thunkCode) Fail("tpw: out of memory");
-    for (const u32 slot : kCodeSlots) {
+    auto toPort = [](u32 slot) {
         u32 &value = G<u32>(slot);
         u32 target = Resolve(value);
         if (!target) target = MakeThunk(value);
         if (!target) Fail("tpw: the code-slot table is stale (rebuild tpw): %08X holds %08X, which has no port", slot, value);
         value = target;
+    };
+    for (const u32 slot : kCodeSlots) toPort(slot);
+    for (u32 i = 0; i < kGameDataFixupCount; ++i) {   // pointers into tpw.exe's own globals, and the code slots in them (gamedata.h)
+        const GameDataFixup &f = kGameDataFixups[i];
+        const u32 slot = f.object ? (u32)(uintptr_t)f.object + f.offset : f.offset;
+        if (f.target)
+            G<u32>(slot) = (u32)(uintptr_t)f.target;
+        else
+            toPort(slot);
     }
     Protect((u32)(uintptr_t)g_thunkCode, 0x1000, PAGE_EXECUTE_READ);
 }
@@ -308,9 +322,9 @@ extern "C" __declspec(safebuffers) int __cdecl LoaderEntry(void *peb) {
         if (!SetProcessDEPPolicy(PROCESS_DEP_ENABLE)) Fail("tpw: DEP is off for this process, so the copy's code could run (error %u)", GetLastError());
     FindExe();
     const IMAGE_NT_HEADERS32 &nt = CopyExe();
-    for (u32 i = 0; i < kGameDataRangeCount; ++i)   // the globals tpw.exe has as objects stay zero here: no port uses these addresses
-        std::memset((void *)(uintptr_t)kGameDataRanges[i][0], 0, kGameDataRanges[i][1]);
     MapPorts();
+    for (u32 i = 0; i < kGameDataRangeCount; ++i)   // the globals tpw.exe has as objects stay zero here: no port uses these addresses
+        std::memset((void *)(uintptr_t)kGameDataRanges[i][0], 0, kGameDataRanges[i][1]);   // (after MapPorts: code slots in them are not stale)
     FillImports(nt);
     // The copy as tp.exe's sections are (read-only or read-write; never executable); no access around it, so a pointer past the game's
     // image faults as in tp.exe.

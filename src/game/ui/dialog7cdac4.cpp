@@ -18,13 +18,14 @@
 #include "window.h"
 #include "window705a20.h"
 #include "windowreg.h"
+#include "dialog74fb20.h"
 
 namespace {
 const Dialog7cdac4Env kGameEnv = {Window7c24c8_Close, Dialog_Create, Window_SetDepth, TextPart6ff4d0_Ctor, Window_SetImpl, Language_Font, Window_Set4c, Window705a20_SetBuffer, GuiWindows_FindByName, Window705a20_SetCaret, NamedObjects_SetThemeLabelAnsi, Window_Notify3000,
                                   Window_NotifyC00, Language_WideText, HoverLabel_Attach, Class702da0_Push};
 const Dialog7cdac4Env *g_env = &kGameEnv;
 
-u8 *&dialog() { return *reinterpret_cast<u8 **>((uintptr_t)0x007cdac4); }
+u8 *&dialog() { return gDialog7cdac4_7cdac4; }
 
 // A child with its part and font 7 (the first thing each of the two gets).
 u8 *editChild(u32 id) {
@@ -56,7 +57,7 @@ void __cdecl Dialog7cdac4_Open() {
     dialog() = g_env->create(reinterpret_cast<u8 *>((uintptr_t)0x007595b0), 0x004c4480, 0);
     g_env->setDepth(dialog(), nullptr, (u16)(*reinterpret_cast<u16 *>(dialog() + 0xe0) + 4));
     u8 *child = editChild(0x11e4);
-    g_env->setBuffer(child, nullptr, 0x007cd850, 0xf);
+    g_env->setBuffer(child, nullptr, reinterpret_cast<uintptr_t>(&gDialog7cdac4_7cd850), 0xf);
     setCaret(child);
     WString label;
     WString_Ctor(&label);
@@ -66,7 +67,7 @@ void __cdecl Dialog7cdac4_Open() {
     child = editChild(0x11e3);
     g_env->notify3000(child, nullptr, 1, 0);
     g_env->notifyC00(child, nullptr, 0, 0);
-    g_env->setBuffer(child, nullptr, 0x007cd480, 0x7e);
+    g_env->setBuffer(child, nullptr, reinterpret_cast<uintptr_t>(&gDialog7cdac4_7cd480), 0x7e);
     setCaret(child);
     vcall<void>(child, 0x24, (u32)(uintptr_t)g_env->wideText(0xdc));
     g_env->attachLabel(dialog(), 0x11e5, (u32)(uintptr_t)g_env->wideText(0xda));
@@ -90,16 +91,16 @@ s32 __cdecl Dialog7cdac4_Handler(u8 *window, u32 message, u32 a, u32 b) {
     case 0x100:
         if (a == 0xfffffffe || a == 0xffffffff) {
             if (a == 0xffffffff) {
-                u8 &guard = *reinterpret_cast<u8 *>((uintptr_t)0x00fb34bb);
+                u8 &guard = gDialog7cdac4_Handler_fb34bb;
                 const u8 bits = guard;
                 if (!(bits & 1)) {
                     guard = bits | 1;
-                    env->readMode(reinterpret_cast<u8 *>((uintptr_t)0x00fb3b7c));
+                    env->readMode(reinterpret_cast<u8 *>(&gDialog74fb20_fb3b7c));
                     env->atExit(reinterpret_cast<void(__cdecl *)()>((uintptr_t)0x005d1750));
                 }
-                const u32 modeTwo = *reinterpret_cast<u32 *>((uintptr_t)0x00fb3b7c) == 2;
+                const u32 modeTwo = gDialog74fb20_fb3b7c == 2;
                 const u32 first = *reinterpret_cast<u32 *>((uintptr_t)0x00f82840), second = wordAt(0x00f82888, 8);
-                env->chatSend(env->chat(), nullptr, first, second, 0x007cd850, 0x007cd480, modeTwo, 0x004c4470, 0);
+                env->chatSend(env->chat(), nullptr, first, second, reinterpret_cast<uintptr_t>(&gDialog7cdac4_7cd850), reinterpret_cast<uintptr_t>(&gDialog7cdac4_7cd480), modeTwo, 0x004c4470, 0);
             }
             env->clearQueue(pointerAt(0x00f85614, 0x14));
             env->send(dialog(), 4, 0, 0);

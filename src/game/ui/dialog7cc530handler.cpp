@@ -11,6 +11,8 @@
 #include "focus.h"
 #include "window.h"
 #include "window7059f0.h"
+#include "../online/postcardsend.h"
+#include "dialog7cc530open.h"
 
 namespace {
 
@@ -19,8 +21,8 @@ template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((ui
 const Dialog7cc530HandlerEnv kGameEnv = {&Window_SendMessage, &Focus_Restore, &Dialog_BaseHandler, &Window7059f0_NthItemData, &Dialog7cc5f4_Create, &Dialog7cc5f4_CreateFrom, &DialupList_Fill};
 const Dialog7cc530HandlerEnv *g_env = &kGameEnv;
 
-u8 *&dialog() { return global<u8 *>(0x007cc530); }
-u32 &owner() { return global<u32>(0x007cc52c); }
+u8 *&dialog() { return gDialog7cc530open_7cc530; }
+u32 &owner() { return gDialog7cc530open_7cc52c; }
 u8 *frontWindow() { return *reinterpret_cast<u8 **>(global<u8 *>(0x00f82884) + 4); }
 
 }  // namespace
@@ -55,8 +57,8 @@ s32 __cdecl Dialog7cc530_Handler(u8 *window, u32 message, u32 a, u32 b) {
                 g_env->createFrom(value, properties);
                 return 0;
             }
-            global<u8>(0x007cc53c) = 1;
-            Crt().sprintf(reinterpret_cast<char *>((uintptr_t)0x007cc4f0), reinterpret_cast<const char *>((uintptr_t)0x0074f8c4), properties + 0x212);
+            gDialog7cc530handler_7cc53c = 1;
+            Crt().sprintf(reinterpret_cast<char *>(gDialog7cc530handler_7cc4f0), gPostcardsend_74f8c4, properties + 0x212);
         }
         g_env->send(dialog(), 4, 0, 0);
         g_env->create(owner());

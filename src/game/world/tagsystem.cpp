@@ -10,6 +10,7 @@
 #include "messagecentre.h"
 #include "objectdefs.h"
 #include "things.h"
+#include "../ui/window7cc8c0handler.h"
 #include "tagsystem.h"
 
 namespace {
@@ -79,7 +80,7 @@ extern "C" u8 *__fastcall TagSystem_Ctor(u8 *tags) {
 extern "C" u8 __fastcall TagSystem_FormatTag(u8 *self, void *, const u8 *record, u32 a, u32 b, const u8 *c) {
     u16 *const dest = &at<u16>(self, 0xc);
     if (!record) {
-        Crt().swprintf(dest, text(0x0078a374));
+        Crt().swprintf(dest, text(reinterpret_cast<uintptr_t>(&gWindow7cc8c0handler_78a374)));
         return 0;
     }
     Arg x, y, z, w, s, t;
@@ -90,7 +91,7 @@ extern "C" u8 __fastcall TagSystem_FormatTag(u8 *self, void *, const u8 *record,
         return 1;
     case 1:
         if ((u16)a == 0 || at<u32>(reinterpret_cast<void *>((uintptr_t)0x007cfb90), 20 * (u16)a) == 0) return 0;
-        Crt().swprintf(dest, text(0x0075ec64));
+        Crt().swprintf(dest, gText_TagSystem_HandleMessage_75ec64);
         return 1;
     case 2:
         if ((u16)b == 0) return 0;
@@ -100,7 +101,7 @@ extern "C" u8 __fastcall TagSystem_FormatTag(u8 *self, void *, const u8 *record,
         format(self, record, number(x, 1, (s32)b));
         return 1;
     case 4:
-        Crt().swprintf(dest, text(0x0075ebe0));
+        Crt().swprintf(dest, gText_TagSystem_HandleMessage_75ebe0);
         return 1;
     case 5:
         format(self, record, number(x, 1, global<s32>(0x00785790)));

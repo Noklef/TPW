@@ -27,3 +27,9 @@ extern "C" {
 // child 0x1e0ef gets a 0x6ff530 text part likewise, font 0, C00 (1, 1), slot 9 (0x75817c), 40000 (0xfc, 0xe8, 7, 0xff); 0x4bbbd0.
 void __cdecl Dialog7cc4b4_Open();
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(u8 *, gDialog7cc4b4open_7cc4b4, 0x007cc4b4, 0x4);
+GAME_DATA(s32, gDialog7cc4b4_7cc4b8, 0x007cc4b8, 0x4);

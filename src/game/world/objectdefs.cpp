@@ -17,6 +17,8 @@
 #include "../core/soundset.h"
 #include "../render/particles.h"
 #include "../core/textarg.h"
+#include "../ui/dialog74fb20.h"
+#include "../ui/window7cc8c0handler.h"
 #include "objectdefs.h"
 
 namespace {
@@ -468,7 +470,7 @@ void __fastcall ObjectDef_LoadText(u8 *def, void *, Stream *stream) {
 }
 
 u8 __fastcall ObjectText_FullName(u16 *self, void *, u32 id, u16 *out, s32 size) {
-    const u16 *const none = &global<u16>(0x0078a374);  // (an empty bss string, the format)
+    const u16 *const none = &reinterpret_cast<u16 &>(gWindow7cc8c0handler_78a374);  // (an empty bss string, the format)
     if (const u8 *row = object_text_row(id))
         format_text(self, 0x40, at<u32>(row, 4));
     else
@@ -591,10 +593,10 @@ u32 settingMode() {
     u8 &made = gObjectdefs_fb3b78;
     if (!(made & 1)) {
         made |= 1;
-        g_loadCalls.Th(0x00550ca0, 0x00fb3b7cu);
+        g_loadCalls.Th(0x00550ca0, reinterpret_cast<uintptr_t>(&gDialog74fb20_fb3b7c));
         g_loadCalls.Cd(0x0067a7d0, 0x005d1750u);
     }
-    return global<u32>(0x00fb3b7c);
+    return gDialog74fb20_fb3b7c;
 }
 
 struct DefLoad {

@@ -9,6 +9,7 @@
 #include "../math/mat4.h"
 #include "../math/x87.h"
 #include "engineerrors.h"
+#include "../frontend/lobbysky.h"
 
 namespace {
 
@@ -80,10 +81,10 @@ u32 __cdecl Meshes_CreateObject() {
         at<u32>(block, 0) = 0;
         at<u32>(block, 0x28) = 0;
         at<u32>(block, 0x2c) = 0xffffffff;
-        global<u32>(0x00879dd8) = 0x3f800000;
-        global<u32>(0x00879ddc) = 0x3e19999a;
-        global<u32>(0x00879de0) = 0x3e19999a;
-        global<u32>(0x00879de4) = 0x3e19999a;
+        gLobbysky_879dd8[0] = 0x3f800000;
+        gLobbysky_879dd8[1] = 0x3e19999a;
+        gLobbysky_879dd8[2] = 0x3e19999a;
+        gLobbysky_879dd8[3] = 0x3e19999a;
         float x, kStep;
         const u32 start = 0xb1800000;
         std::memcpy(&x, &start, 4);
@@ -159,7 +160,7 @@ u32 __fastcall Meshes_SetView(u8 *object, void *, const u32 *matrix, u32) {
 
 void __fastcall Meshes_LightAt(u32 seed, void *, const float *normal, float x, float y, float z) {
     for (u32 k = 0; k < 0x10; k += 4)
-        global<u32>(0x00879db0 + k) = global<u32>(0x00879dd8 + k);
+        global<u32>(0x00879db0 + k) = gLobbysky_879dd8[k / 4];
     u32 spill = seed;   // (the stack slot of the ECX pushed for room: d below)
     for (const u8 *light = global<u8 *>(0x00879dec); light; light = at<u8 *>(light, 0x58)) {
         const u32 kind = at<u32>(light, 0x50) & 0xf;

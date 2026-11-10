@@ -25,3 +25,15 @@ u32 __fastcall OnlineList_GetParkById(const u8 *list, void *, void *city, u32 re
 // 0x5bcce0 (thiscall; city, request; pops 8): City::GetParkInWorldByName (0x6fd550) with (0, the list's +0x3c (a wide name), request, 0).
 u32 __fastcall OnlineList_GetParkByName(const u8 *list, void *, void *city, u32 request);
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(char[32], gOnlineList_GetCities_773b90, 0x00773b90, 0x20);
+GAME_DATA(char[40], gOnlineList_GetParksInCity_773bb0, 0x00773bb0, 0x28);
+GAME_DATA(char[48], gOnlineList_GetTop10Parks_773bd8, 0x00773bd8, 0x30);
+GAME_DATA(char[52], gOnlineList_GetParkByName_773c08, 0x00773c08, 0x34);
+GAME_DATA(char[48], gOnlineList_GetParkById_773c3c, 0x00773c3c, 0x30);
+GAME_DATA(char[32], gOnlineList_GetThemes_773c6c, 0x00773c6c, 0x20);
+GAME_DATA(char[36], gOnlineList_GetServers_773c8c, 0x00773c8c, 0x24);
+GAME_DATA(char[32], gOnlineList_GetRides_773cb0, 0x00773cb0, 0x20);

@@ -32,3 +32,9 @@ s32 __cdecl Dialog7cc188_Handler(u8 *window, u32 message, u32 a, u32 b);
 // 0x4a7bc0 (cdecl (index)): the string index gone from the list +0x100 of UserSlots_Instance (List_EraseNthCounted), Dialog7cc188_FillList(1). Answer 1.
 u32 __cdecl Dialog7cc188_EraseName(u32 index);
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(u8[128], gDialog7cc188handler_7cbeb8, 0x007cbeb8, 0x80);
+GAME_DATA(u8 *, gDialog7cc188handler_7cc188, 0x007cc188, 0x4);

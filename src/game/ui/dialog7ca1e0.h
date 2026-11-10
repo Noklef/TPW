@@ -27,3 +27,9 @@ void Dialog7ca1e0_SetEnv(const Dialog7ca1e0Env *env);
 // and Dialog7cb2b8_ResetChild21(1). Every message then goes to Window_CallDefault, its answer returned.
 s32 __cdecl Dialog7ca1e0_Handler(u8 *window, u32 message, u32 a, u32 b);
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(u8[120], gDialog7ca1e0_Create_751720, 0x00751720, 0x78);
+GAME_DATA(u8 *, gDialog7ca1e0_7ca1e0, 0x007ca1e0, 0x4);

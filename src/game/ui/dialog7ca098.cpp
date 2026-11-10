@@ -20,6 +20,7 @@
 #include "msgboxbutton.h"
 #include "window.h"
 #include "windowreg.h"
+#include "dialog7cb2b8build.h"
 
 namespace {
 
@@ -29,7 +30,7 @@ const Dialog7ca098Env kGameEnv = {Camera_CentreOnThing, Camera_CentreOnCell, Dia
                                   Window_PostMessage, Dialog7cb2b8_ResetChild21, Window_CallDefault};
 const Dialog7ca098Env *g_env = &kGameEnv;
 
-u8 *box() { return global<u8 *>(0x007ca098); }
+u8 *box() { return gDialogs_7ca098; }
 u8 *button(u32 id) { return Window_FindChild(box(), nullptr, id); }
 void depthUp(u32 id) {
     u8 *const child = button(id);
@@ -47,7 +48,7 @@ void refresh(u8 *window) {
         if (Window_DwordA0(box(), nullptr, 4) == 0x1b) {
             vcall<void>(button(0x10d2e), 0x14, 0u);
         } else {
-            u8 *const erase = reinterpret_cast<u8 *>((uintptr_t)g_env->findByName(reinterpret_cast<const char *>((uintptr_t)0x00750614)));
+            u8 *const erase = reinterpret_cast<u8 *>((uintptr_t)g_env->findByName(gDialog7ca098_750614));
             g_env->setObject(button(0x10d2e), nullptr, erase);
             vcall<void>(button(0x10d2e), 0x14, 1u);
         }
@@ -55,18 +56,18 @@ void refresh(u8 *window) {
     depthUp(0x10d30);
     depthUp(0x10d2f);
     depthUp(0x10d2e);
-    global<u32>(0x007ca090) = global<u32>(0x007ca094);
-    g_env->runScript(global<u8 *>(0x007ca094), nullptr, reinterpret_cast<u8 *>((uintptr_t)0x007502b8), 100);
+    reinterpret_cast<u32 &>(gDialog7ca098_7ca090) = reinterpret_cast<u32 &>(gDialog7ca098_7ca094);
+    g_env->runScript(gDialog7ca098_7ca094, nullptr, gDialog7ca098_7502b8, 100);
 }
 
 // The button's action (its kind the dword kindAt), what the answer asks for.
 void clicked(u8 *window, u32 kindAt) {
-    u8 *const open = global<u8 *>(0x007ca090);
+    u8 *const open = gDialog7ca098_7ca090;
     const u32 a = Window_DwordA0(window, nullptr, 2), b = Window_DwordA0(window, nullptr, 5);
     const u32 answer = Dialog7ca098_RunAction(Window_DwordA0(window, nullptr, kindAt), a, b);
-    if (answer == 2) g_env->send(global<u8 *>(0x007cb2c4), 0x100002, (u32)(uintptr_t)open, 0);
+    if (answer == 2) g_env->send(gDialog7cb2b8build_7cb2c4, 0x100002, (u32)(uintptr_t)open, 0);
     else if (answer != 1) return;
-    if (global<u32>(0x007ca090)) g_env->resetChild21(0);
+    if (reinterpret_cast<u32 &>(gDialog7ca098_7ca090)) g_env->resetChild21(0);
 }
 }  // namespace
 
@@ -100,23 +101,23 @@ u32 __cdecl Dialog7ca098_RunAction(u32 kind, u32 a, u32 b) {
 
 s32 __cdecl Dialog7ca098_Handler(u8 *window, u32 message, u32 a, u32 b) {
     if (message == 0x1d) {
-        if (a == 1) global<u32>(0x007ca094) = 0;
+        if (a == 1) reinterpret_cast<u32 &>(gDialog7ca098_7ca094) = 0;
     } else if (message == 0x1001d9) {
         refresh(window);
     } else if (message == 0x1001d8) {
-        if (u8 *const open = global<u8 *>(0x007ca090)) g_env->stopScript(open);
+        if (u8 *const open = gDialog7ca098_7ca090) g_env->stopScript(open);
         Game_CancelAdvisor(0x11c);
-        global<u32>(0x007ca090) = 0;
+        reinterpret_cast<u32 &>(gDialog7ca098_7ca090) = 0;
     } else if (message == 0x100) {
         if (a == 0x10d30) {
             clicked(window, 3);
         } else if (a == 0x10d2f) {
             clicked(window, 4);
         } else if (a == 0x10d2e) {
-            if (u8 *const open = global<u8 *>(0x007ca090)) {
+            if (u8 *const open = gDialog7ca098_7ca090) {
                 vcall<void>(open, 0x14, 0u);
-                g_env->post(global<u8 *>(0x007cb2c4), 0x100002, global<u32>(0x007ca090), 0);
-                if (global<u32>(0x007ca090)) g_env->resetChild21(0);
+                g_env->post(gDialog7cb2b8build_7cb2c4, 0x100002, reinterpret_cast<u32 &>(gDialog7ca098_7ca090), 0);
+                if (reinterpret_cast<u32 &>(gDialog7ca098_7ca090)) g_env->resetChild21(0);
             }
         }
     }

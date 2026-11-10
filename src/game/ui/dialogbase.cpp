@@ -17,7 +17,7 @@ namespace {
 const DialogKeyEnv kGameKeyEnv = {Window_SendMessage, reinterpret_cast<u8 *(__fastcall *)(const u8 *)>(GameTable7cfb90_Get1da71c_5194d0), reinterpret_cast<u32(__fastcall *)(u8 *)>((uintptr_t)0x0059ab50), Actions_FireDown, Actions_FireUp, Window7c24c8_Set, Window_CallDefault};
 const DialogKeyEnv *g_keys = &kGameKeyEnv;
 
-u8 *actions() { return *reinterpret_cast<u8 **>(static_cast<uintptr_t>(0x0078721c)); }
+u8 *actions() { return gKeymap_78721c; }
 
 AddrCalls g_calls;
 
@@ -33,7 +33,7 @@ void boxButton(u8 *window, u32 index, u32 kind, u32 callback) {
         g_calls.Th(0x0065d9dd, button, 0u);
         return;
     }
-    const u32 impl = kind == 1 ? g_calls.Cd(0x00659bc9, 0x0074f9c4u) : kind == 2 ? g_calls.Cd(0x00659bc9, 0x0074f9ccu) : 0;
+    const u32 impl = kind == 1 ? g_calls.Cd(0x00659bc9, reinterpret_cast<uintptr_t>(&gDialogbase_74f9c4)) : kind == 2 ? g_calls.Cd(0x00659bc9, reinterpret_cast<uintptr_t>(&gDialogbase_74f9cc)) : 0;
     g_calls.Th(0x0065d070, button, impl);
     g_calls.Th(0x0065d9dd, button, 1u);
     setSlot(window, index, callback);
@@ -88,7 +88,7 @@ s32 __cdecl Dialog_BoxHandler(u8 *window, u32 message, u32 a, u32 b) {
 }
 
 u8 *__cdecl Dialog_Box(const u8 *record, u32 kind0, u32 callback0, u32 kind1, u32 callback1, u32 kind2, u32 callback2, u8 keysKept) {
-    u8 *const window = reinterpret_cast<u8 *>(static_cast<uintptr_t>(g_calls.Cd(0x0047ed80, 0x0074f920u, 0x0047eed0u, 1u)));   // Dialog_Create
+    u8 *const window = reinterpret_cast<u8 *>(static_cast<uintptr_t>(g_calls.Cd(0x0047ed80, reinterpret_cast<uintptr_t>(&gDialog_Box_74f920), 0x0047eed0u, 1u)));   // Dialog_Create
     if (!window) return nullptr;
     const u32 self = (u32)(uintptr_t)window;
     u8 text[0xc];   // (a string: made and destroyed, not otherwise used)
@@ -139,7 +139,7 @@ u8 *__cdecl Dialog_Create(u8 *script, u32 handler, u32 shaded) {
     if (shaded) {
         depth = Gui_TopDepth(nullptr, nullptr);
         Window_SetImpl(frame, nullptr,
-                       reinterpret_cast<u8 *>(static_cast<uintptr_t>(GuiWindows_FindByName(reinterpret_cast<const char *>(static_cast<uintptr_t>(0x0074f9bc))))));
+                       reinterpret_cast<u8 *>(static_cast<uintptr_t>(GuiWindows_FindByName(gDialogbase_74f9bc))));
     } else {
         u8 rect[0xc];
         GuiRect_Ctor(rect);

@@ -38,8 +38,8 @@ const SourcesEnv kGameEnv = {
 #undef SLOT
 const SourcesEnv *g_env = &kGameEnv;
 
-void *const *const kFileSourceVtable = reinterpret_cast<void *const *>(0x00703e30);
-void *const *const kMmioSourceVtable = reinterpret_cast<void *const *>(0x00703e60);
+void *const *const kFileSourceVtable = FileSource_vtable;
+void *const *const kMmioSourceVtable = MmioSource_vtable;
 void *const kInvalid = reinterpret_cast<void *>(static_cast<std::uintptr_t>(0xffffffff));
 constexpr u32 kPathSize = 0x104;
 constexpr u32 kOpenExisting = 3, kOpenAlways = 4, kCreateNew = 1, kCreateAlways = 2;

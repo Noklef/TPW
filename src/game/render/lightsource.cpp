@@ -10,6 +10,7 @@
 #include "../model/m3d2.h"
 #include "renderer.h"
 #include "state.h"
+#include "../frontend/lobbysky.h"
 
 namespace {
 
@@ -21,7 +22,7 @@ u8 *virtualBase(u8 *part) { return part ? part + at<s32>(at<u8 *>(part, 0), 4) :
 
 // The part at light + offset out of the renderer's tag 0x70 list, then deleted when there is one.
 void releasePart(u8 *light, u32 offset) {
-    Renderer_RemoveFromSlot(global<u8 *>(0x0087a6d0), nullptr, (u32)(uintptr_t)virtualBase(at<u8 *>(light, offset)), 0x70);
+    Renderer_RemoveFromSlot(gRenderer_87a6d0, nullptr, (u32)(uintptr_t)virtualBase(at<u8 *>(light, offset)), 0x70);
     if (u8 *const part = at<u8 *>(light, offset)) vcall<void>(virtualBase(part), 0, 1u);
 }
 
@@ -35,10 +36,10 @@ void __cdecl LightSource_Destroy(u8 *light) {
         M3D2_DataErrorBox(reinterpret_cast<const char *>((uintptr_t)0x0074d0dc));
         return;
     case 1:
-        global<u32>(0x00879dd8) = 0x3f800000;  // 1.0f
-        global<u32>(0x00879ddc) = 0;
-        global<u32>(0x00879de0) = 0;
-        global<u32>(0x00879de4) = 0;
+        gLobbysky_879dd8[0] = 0x3f800000;  // 1.0f
+        gLobbysky_879dd8[1] = 0;
+        gLobbysky_879dd8[2] = 0;
+        gLobbysky_879dd8[3] = 0;
         // fall through
     case 2:
         releasePart(light, 4);
@@ -140,10 +141,10 @@ u32 *__cdecl LightSource_Create(u32 kind, u32 colour, const u32 *point, const u3
         M3D2_DataErrorBox(reinterpret_cast<const char *>((uintptr_t)0x0074d0dc));
         return nullptr;   // (the block kept by nobody: sic)
     case 1:
-        global<u32>(0x00879dd8) = 0x3f800000;   // 1.0f
-        global<float>(0x00879ddc) = (float)X87_MulInt(colour >> 16 & 0xff, k);
-        global<float>(0x00879de0) = (float)X87_MulInt(colour >> 8 & 0xff, k);
-        global<float>(0x00879de4) = (float)X87_MulInt(colour & 0xff, k);
+        gLobbysky_879dd8[0] = 0x3f800000;   // 1.0f
+        reinterpret_cast<float &>(gLobbysky_879dd8[1]) = (float)X87_MulInt(colour >> 16 & 0xff, k);
+        reinterpret_cast<float &>(gLobbysky_879dd8[2]) = (float)X87_MulInt(colour >> 8 & 0xff, k);
+        reinterpret_cast<float &>(gLobbysky_879dd8[3]) = (float)X87_MulInt(colour & 0xff, k);
         break;
     case 2:
     case 3: {
@@ -193,7 +194,7 @@ u32 *__cdecl LightSource_Create(u32 kind, u32 colour, const u32 *point, const u3
         to[0] = x;
         to[1] = y;
         to[2] = z;
-        Renderer_Add(global<u8 *>(0x0087a6d0), nullptr, virtualBase(part), 0x70);
+        Renderer_Add(gRenderer_87a6d0, nullptr, virtualBase(part), 0x70);
         light[kind == 2 ? 1 : 3] = (u32)(uintptr_t)part;
         break;
     }
@@ -225,12 +226,12 @@ void __cdecl LightSource_UpdateMain(u32 update) {
     const X87Reg sum = X87Reg(v[0]) * v[0] + X87Reg(v[1]) * v[1] + X87Reg(v[2]) * v[2];
     const float length = (float)X87_Sqrt(sum);
     const u32 ambient = global<u32>(0x007a0b44);
-    global<u32>(0x00879dd8) = 0x3f800000;   // 1.0f
+    gLobbysky_879dd8[0] = 0x3f800000;   // 1.0f
     const float scale = (float)(X87Reg(global<float>(0x0074d0d8)) / length);
     const float k = gLightSource_6fe53c;
-    global<float>(0x00879ddc) = (float)X87_MulInt(ambient >> 16 & 0xff, k);
-    global<float>(0x00879de0) = (float)X87_MulInt(ambient >> 8 & 0xff, k);
-    global<float>(0x00879de4) = (float)X87_MulInt(ambient & 0xff, k);
+    reinterpret_cast<float &>(gLobbysky_879dd8[1]) = (float)X87_MulInt(ambient >> 16 & 0xff, k);
+    reinterpret_cast<float &>(gLobbysky_879dd8[2]) = (float)X87_MulInt(ambient >> 8 & 0xff, k);
+    reinterpret_cast<float &>(gLobbysky_879dd8[3]) = (float)X87_MulInt(ambient & 0xff, k);
     const float x = (float)(X87Reg(v[0]) * scale), y = (float)(X87Reg(v[1]) * scale), z = (float)(X87Reg(v[2]) * scale);
     v[0] = x;
     v[1] = y;
@@ -273,7 +274,7 @@ void __fastcall LightSlot_Set(u8 *slot, void *, u32 on, const u32 *colour, const
     const auto base = [](u8 *light) { return light ? light + at<s32>(at<u8 *>(light, 0), 4) : nullptr; };
     if (!on) {
         if (u8 *const light = at<u8 *>(slot, 0x20)) {
-            Renderer_RemoveFromSlot(global<u8 *>(0x0087a6d0), nullptr, (u32)(uintptr_t)base(light), 0x70);
+            Renderer_RemoveFromSlot(gRenderer_87a6d0, nullptr, (u32)(uintptr_t)base(light), 0x70);
             if (u8 *const again = at<u8 *>(slot, 0x20))
                 vcall<void>(base(again), 0, 1u);
             at<u32>(slot, 0x20) = 0;
@@ -309,7 +310,7 @@ void __fastcall LightSlot_Set(u8 *slot, void *, u32 on, const u32 *colour, const
     u8 *const light = at<u8 *>(slot, 0x20);
     SceneFlags_Touch(reinterpret_cast<u32 *>(0x008bd508));
     std::memcpy(&at<float>(light, 0x2c), out, 12);
-    Renderer_Add(global<u8 *>(0x0087a6d0), nullptr, base(at<u8 *>(slot, 0x20)), 0x70);
+    Renderer_Add(gRenderer_87a6d0, nullptr, base(at<u8 *>(slot, 0x20)), 0x70);
     at<u32>(slot, 0x24) = value;
 }
 }

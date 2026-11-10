@@ -27,7 +27,7 @@ u32 &global(u32 address) { return *reinterpret_cast<u32 *>(address); }
 const u8 *pointer(u32 address) { return *reinterpret_cast<const u8 *const *>(address); }
 
 u32 &render_flags() { return global(0x008bd550); }
-u32 &terrain_flags() { return global(0x007a1a8c); }
+u32 &terrain_flags() { return gGraphicssettings_7a1a8c; }
 
 AddrCalls g_calls;
 
@@ -169,7 +169,7 @@ u32 __fastcall TerrainTex_SetView(u8 *tex) {
     Obj_Set30_34(const_cast<u8 *>(pointer(0x00879d54)), nullptr, at<u32>(header, 0x20), at<u32>(header, 0x24));
     WorldView_UpdateDiagonal(const_cast<u8 *>(pointer(0x00879d54)));
     header = at<const u8 *>(tex, 0);
-    Renderer_MakeFrameBuffer(const_cast<u8 *>(pointer(0x0087a6d0)), nullptr, at<s32>(header, 0x18), at<s32>(header, 0x1c));
+    Renderer_MakeFrameBuffer(const_cast<u8 *>(pointer(reinterpret_cast<uintptr_t>(&gRenderer_87a6d0))), nullptr, at<s32>(header, 0x18), at<s32>(header, 0x1c));
     return 1;
 }
 
@@ -456,6 +456,6 @@ extern "C" u32 __cdecl TerrainTex_InitGlobal(u32 a, u32 b) {
         if (texture) return g_calls.Th(0x0056e550, texture, a, b);
         return 1;
     }
-    if (*reinterpret_cast<u32 *>((uintptr_t)0x008bd508) & 0x02000000) g_calls.Cd(0x005645e0, 0x00768320u);
+    if (*reinterpret_cast<u32 *>((uintptr_t)0x008bd508) & 0x02000000) g_calls.Cd(0x005645e0, (u32)(uintptr_t)gText_TerrainTex_InitGlobal_768320);
     return 1;
 }

@@ -18,6 +18,7 @@
 #include "dialog7cb2fcopen.h"
 #include "dialog7cb3f8.h"
 #include "dialogs.h"
+#include "panel7c2534menus.h"
 
 namespace {
 
@@ -31,11 +32,11 @@ const Panel7c2534OnlineEnv kGameEnv = {game<void(__fastcall *)(u8 *)>(0x00409300
                                        game<void(__fastcall *)(u8 *)>(0x005b6070), reinterpret_cast<s32(__fastcall *)(const u8 *, void *, u32, u32)>(&KeyMap_FindKey), Class702da0_Push, WindowAt10_Handler};
 const Panel7c2534OnlineEnv *g_env = &kGameEnv;
 
-u8 *&menu() { return global<u8 *>(0x007c2534); }
+u8 *&menu() { return gPanel7c2534menus_7c2534; }
 u8 *place(u32 offset) { return at<u8 *>(global<u8 *>(0x00f85614), offset); }
 
 void close() {
-    if (!global<u32>(0x00786ba4) && !global<u8>(0x007c2518)) {
+    if (!global<u32>(0x00786ba4) && !gPanel7c2534menus_7c2518) {
         global<u32>(0x00786ba4) = 1;
         g_env->controls(&global<u8>(0x00786b68));
         g_env->f662420();
@@ -83,7 +84,7 @@ extern "C" {
 
 s32 __cdecl Panel7c2534_OnlineHandler(u8 *window, u32 message, u32 a, u32 b) {
     if (message == 0x1000b) {
-        if (a == 0x1b || !static_cast<u16>(g_env->findKey(global<u8 *>(0x0078721c), nullptr, a, (b >> 16) & 0xff))) {
+        if (a == 0x1b || !static_cast<u16>(g_env->findKey(gKeymap_78721c, nullptr, a, (b >> 16) & 0xff))) {
             close();
             return 0;
         }

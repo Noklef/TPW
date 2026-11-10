@@ -36,3 +36,5 @@ void __fastcall TagSystem_HandleMessage(u8 *self, void *, u8 *msg);
 GAME_DATA(char[32], gText_TagSystem_HandleMessage_75eb20, 0x0075eb20, 0x20);
 GAME_DATA(char[40], gText_TagSystem_HandleMessage_75eb40, 0x0075eb40, 0x28);
 GAME_DATA(char[36], gText_TagSystem_HandleMessage_75eb68, 0x0075eb68, 0x24);
+GAME_DATA(u16[28], gText_TagSystem_HandleMessage_75ebe0, 0x0075ebe0, 0x38);
+GAME_DATA(u16[33], gText_TagSystem_HandleMessage_75ec64, 0x0075ec64, 0x42);

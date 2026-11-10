@@ -47,3 +47,11 @@ u32 __cdecl Dialog7ca098_RunAction(u32 kind, u32 a, u32 b);
 // a 0x10d2e with [0x7ca090]: its slot 5 (0), [0x7cb2c4] posted 0x100002 (it, 0), below. Below: with [0x7ca090] (read again), Dialog7cb2b8_ResetChild21 (0). Every message then goes to Window_CallDefault, whose answer is returned.
 s32 __cdecl Dialog7ca098_Handler(u8 *window, u32 message, u32 a, u32 b);
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(u8[56], gDialog7ca098_7502b8, 0x007502b8, 0x38);
+GAME_DATA(char[12], gDialog7ca098_750614, 0x00750614, 0xc);
+GAME_DATA(u8 *, gDialog7ca098_7ca090, 0x007ca090, 0x4);
+GAME_DATA(u8 *, gDialog7ca098_7ca094, 0x007ca094, 0x4);

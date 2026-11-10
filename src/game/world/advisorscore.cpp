@@ -6,6 +6,9 @@
 #include "../core/options.h"
 #include "../core/savegame.h"
 #include "objectdefs.h"
+#include "../ui/dialog7cc2ec.h"
+#include "../ui/dialog74fb20.h"
+#include "../ui/quitconfirm.h"
 #include "advisorscore.h"
 
 namespace {
@@ -16,7 +19,7 @@ template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((ui
 // The message's fields in save order (Save_Field each); a load reads the first the same way and the rest by size through Save_ReadU32 or
 // Save_ReadU8.
 const SaveSpec kMessage[] = {{0, 2, (u32)&gText_Advisorscore_76e2f4}, {4, 4, (u32)&gText_Advisorscore_76e2e8}, {0xc, 4, (u32)&gText_Advisorscore_76e2dc}, {0x10, 4, (u32)&gText_Advisorscore_76e2d4},
-                             {0x14, 1, (u32)&gText_Advisorscore_75e6b8}, {8, 4, 0x0076e2c8}, {0x15, 1, (u32)&gText_Advisorscore_76e2b4}, {0x16, 1, (u32)&gText_Advisorscore_76e2a0}};
+                             {0x14, 1, (u32)&gText_Advisorscore_75e6b8}, {8, 4, (u32)&gText_Advisorscore_76e2c8}, {0x15, 1, (u32)&gText_Advisorscore_76e2b4}, {0x16, 1, (u32)&gText_Advisorscore_76e2a0}};
 
 const AdvisorScoreEnv kGameEnv = {reinterpret_cast<s32(__cdecl *)(void(__cdecl *)())>(0x0067a7d0)};
 const AdvisorScoreEnv *g_env = &kGameEnv;
@@ -24,7 +27,7 @@ const AdvisorScoreEnv *g_env = &kGameEnv;
 }  // namespace
 
 extern "C" void __fastcall Obj7b51f0_CheckOnline(void *, void *, u8 flag) {
-    if (flag) AdvisorScore_ModeSetting(0x00fb34c9);   // (2 or not, only the empty assert 0x5da3c0 differs)
+    if (flag) AdvisorScore_ModeSetting(reinterpret_cast<uintptr_t>(&gDialog7cc2ec_fb34c9));   // (2 or not, only the empty assert 0x5da3c0 differs)
 }
 
 namespace {
@@ -34,9 +37,9 @@ bool applies(u32 record) {
     const u32 when = global<u32>(record + 0xc);
     if (when == 2)
         return true;
-    if (when == 0 && AdvisorScore_ModeSetting(0x00fb34bc) == 0)
+    if (when == 0 && AdvisorScore_ModeSetting(reinterpret_cast<uintptr_t>(&gQuitconfirm_fb34bc)) == 0)
         return true;
-    return global<u32>(record + 0xc) == 1 && AdvisorScore_ModeSetting(0x00fb34bc) == 2;
+    return global<u32>(record + 0xc) == 1 && AdvisorScore_ModeSetting(reinterpret_cast<uintptr_t>(&gQuitconfirm_fb34bc)) == 2;
 }
 
 s32 call(u8 *self, u32 record) {
@@ -53,10 +56,10 @@ u32 AdvisorScore_ModeSetting(u32 guard_address) {
     const u8 bits = guard;
     if (!(bits & 1)) {
         guard = bits | 1;
-        Setting_ReadMode(reinterpret_cast<u8 *>(0x00fb3b7c));
+        Setting_ReadMode(reinterpret_cast<u8 *>(&gDialog74fb20_fb3b7c));
         g_env->atExit(reinterpret_cast<void(__cdecl *)()>(0x005d1750));
     }
-    return global<u32>(0x00fb3b7c);
+    return gDialog74fb20_fb3b7c;
 }
 
 u8 *AdvisorScoring_Instance() {

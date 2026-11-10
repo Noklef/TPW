@@ -27,3 +27,13 @@ void __cdecl TextPool_Release(u8 *row);
 // copied into it (wcscpy; Take's rows are longer than the length, so the terminator fits); returns the row or 0.
 u16 *__cdecl TextPool_Dup(const u16 *text);
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(u8 *, gTextpool_faa63c, 0x00faa63c, 0x4);
+GAME_DATA(s32, gTextpool_faa640, 0x00faa640, 0x4);
+GAME_DATA(u8 *, gTextpool_faa644, 0x00faa644, 0x4);
+GAME_DATA(s32, gTextpool_faa648, 0x00faa648, 0x4);
+GAME_DATA(s32, gTextpool_faa64c, 0x00faa64c, 0x4);
+GAME_DATA(s32, gTextpool_faa650, 0x00faa650, 0x4);

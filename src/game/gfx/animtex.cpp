@@ -4,14 +4,15 @@
 
 #include "../core/vcall.h"
 #include "../math/x87.h"
+#include "../render/screen.h"
 
 namespace {
 
 u32 *frames() { return reinterpret_cast<u32 *>((uintptr_t)0x008c4b98); }
 u32 *counts() { return reinterpret_cast<u32 *>((uintptr_t)0x008c4b80); }
 
-u32 screenWidthNow() { return *reinterpret_cast<const u32 *>((uintptr_t)0x007a1968); }
-u32 screenHeightNow() { return *reinterpret_cast<const u32 *>((uintptr_t)0x007a1930); }
+u32 screenWidthNow() { return gScreen_7a1968; }
+u32 screenHeightNow() { return gScreen_7a1930; }
 
 // Under the mode 4 (0x8bd524): the frame wholly inside the rectangle of 0x8bcbd0, 0x8bcbd4; its corners tried from the top left.
 bool frame_inside(float x, float y, float wide, float tall) {

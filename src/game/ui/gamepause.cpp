@@ -15,6 +15,7 @@
 #include "focus.h"
 #include "guisettings.h"
 #include "window.h"
+#include "dialog7cc184handler.h"
 
 namespace {
 
@@ -56,12 +57,12 @@ const GamePauseEnv *g_env = &kGameEnv;
 
 // The setting's first read, its guard the bit 0xfb34bf here. The answer: is it 1.
 bool SettingOne() {
-    if (!(global<u8>(0x00fb34bf) & 1)) {
-        global<u8>(0x00fb34bf) |= 1;
-        g_env->readMode(object(0x00fb3b7c));
+    if (!(gGamepause_fb34bf & 1)) {
+        gGamepause_fb34bf |= 1;
+        g_env->readMode(object(reinterpret_cast<uintptr_t>(&gDialog74fb20_fb3b7c)));
         g_env->atExit(0x005d1750);
     }
-    return global<u32>(0x00fb3b7c) == 1;
+    return gDialog74fb20_fb3b7c == 1;
 }
 
 }  // namespace
@@ -72,25 +73,25 @@ void GamePause_SetEnv(const GamePauseEnv *env) { g_env = env ? env : &kGameEnv; 
 
 void __cdecl GamePause_RemakePicture() {
     const GamePauseEnv *const E = g_env;
-    u8 *const old = global<u8 *>(0x007cc18c);
+    u8 *const old = gDialog7cc184handler_7cc18c;
     if (old) {
         E->blocksFree(old);
         E->release(old);
     }
     u8 *const block = static_cast<u8 *>(E->alloc(0x70));
     u8 *const made = block ? E->blocksCtor(block) : nullptr;
-    global<u8 *>(0x007cc18c) = made;
+    gDialog7cc184handler_7cc18c = made;
     E->fn5d47a0(made);
     u8 desc[0x7c];
     E->fn564430(global<u8 *>(0x00879a24), nullptr, reinterpret_cast<SurfaceDesc *>(desc));
-    E->shrink(global<u8 *>(0x007cc18c), nullptr, reinterpret_cast<const SurfaceDesc *>(desc));
+    E->shrink(gDialog7cc184handler_7cc18c, nullptr, reinterpret_cast<const SurfaceDesc *>(desc));
     E->storeCom(global<u8 *>(0x00879a24));
-    E->panelReset(global<u8 *>(0x007cc18c));
+    E->panelReset(gDialog7cc184handler_7cc18c);
 }
 
 void __cdecl GamePause_Resume() {
     const GamePauseEnv *const E = g_env;
-    global<u32>(0x007cc1a0) = 0;
+    gDialog7cc184handler_7cc1a0 = 0;
     if (!SettingOne()) {
         global<u32>(0x00786ba4) = 1;
         E->enter(object(0x00786b68));
@@ -103,12 +104,12 @@ void __cdecl GamePause_Resume() {
         E->selectFirst();
     else if (E->overlayState())
         E->overlayToggle();
-    if (!global<u8>(0x007cc194)) {
+    if (!gGamePause_Resume_7cc194) {
         global<u32(__stdcall *)(u32, u32)>(0x006fd14c)(0x200, 0x007cb958);
-        global<u8>(0x007cc194) = 1;
+        gGamePause_Resume_7cc194 = 1;
     }
     E->openDialog();
-    global<u32>(0x007cc190) = 0;
+    gGamepause_7cc190 = 0;
 }
 
 void __cdecl GamePause_Hide() {
@@ -124,7 +125,7 @@ void __cdecl GamePause_Hide() {
     E->cursorSlot3();
     E->finish();
     E->fn5996d0(1);
-    global<u32>(0x007cc190) = 1;
-    global<u32>(0x007cc150) = 3;
+    gGamepause_7cc190 = 1;
+    reinterpret_cast<u32 &>(gGamepause_7cc150) = 3;
 }
 }

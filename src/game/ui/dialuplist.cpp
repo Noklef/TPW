@@ -6,6 +6,9 @@
 #include "../core/language.h"
 #include "window.h"
 #include "window7059f0.h"
+#include "dialog7cc654handler.h"
+#include "guistartup.h"
+#include "dialog7cc530open.h"
 
 namespace {
 
@@ -25,7 +28,7 @@ const DialupListEnv *g_env = &kGameEnv;
 void DialupList_SetEnv(const DialupListEnv *env) { g_env = env ? env : &kGameEnv; }
 
 void __cdecl DialupList_Fill(u8 shown) {
-    u8 *const list = Window_FindChild(global<u8 *>(0x007cc530), nullptr, 0xc);
+    u8 *const list = Window_FindChild(gDialog7cc530open_7cc530, nullptr, 0xc);
     g_env->clear(list);
     if (!shown) {
         g_env->setShown(list, nullptr, 0);
@@ -33,7 +36,7 @@ void __cdecl DialupList_Fill(u8 shown) {
     }
     g_env->setShown(list, nullptr, 1);
     u32 message = 0xffffffff;
-    if (!global<u32>(0x007c24d4)) {
+    if (!gGuistartup_7c24d4) {
         message = 0xe7;
     } else if (const s32 count = g_env->count(dialup())) {
         for (s32 i = 0; i < count; ++i) {
@@ -49,7 +52,7 @@ void __cdecl DialupList_Fill(u8 shown) {
     }
     if (message != 0xffffffff) {
         g_env->wideText(message);
-        const u16 *const separators = reinterpret_cast<const u16 *>((uintptr_t)0x007558f0);
+        const u16 *const separators = reinterpret_cast<const u16 *>(gDialog7cc654handler_7558f0);
         u16 *word = g_env->token(reinterpret_cast<u16 *>((uintptr_t)0x007ba058), separators);
         while (word) {
             const u32 texts[2] = {(u32)(uintptr_t)word, 0};

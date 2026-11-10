@@ -26,6 +26,9 @@
 #include "items.h"
 #include "listrequest.h"
 #include "sessionlogin.h"
+#include "chatlists.h"
+#include "chatcommand.h"
+#include "../ui/window7cc8c0handler.h"
 
 namespace {
 
@@ -51,7 +54,7 @@ void FreeNews(u8 *session) {
         GameHeap_Free(news);
     }
     at<u32>(session, 0x6c) = 0;
-    Say(0x007733f0);
+    Say(reinterpret_cast<uintptr_t>(&gSession_7733f0));
 }
 
 // A list member's state reset: +4 = -1, +8 to +0x20 cleared.
@@ -81,7 +84,7 @@ void ReleaseCity(u8 *session) {
             GameHeap_Free(city);
         }
         at<u32>(session, 0xd4) = 0;
-        Say(0x0077386c);
+        Say(reinterpret_cast<uintptr_t>(&gSession_77386c));
     }
 }
 
@@ -111,11 +114,11 @@ namespace {
 void ClearLogin(u8 *session) {
     for (u32 offset : {0x64u, 0x60u, 0x68u, 4u, 8u})
         at<u32>(session, offset) = 0;
-    vcall<void>(session + 0xc, 0x14, 0x0078a374u);
-    vcall<void>(session + 0x20, 0x14, 0x0078a374u);
+    vcall<void>(session + 0xc, 0x14, reinterpret_cast<uintptr_t>(&gWindow7cc8c0handler_78a374));
+    vcall<void>(session + 0x20, 0x14, reinterpret_cast<uintptr_t>(&gWindow7cc8c0handler_78a374));
     at<u32>(session, 0x34) = 0;
     at<u32>(session, 0x38) = 0;
-    vcall<void>(session + 0x3c, 0x14, 0x0078a374u);
+    vcall<void>(session + 0x3c, 0x14, reinterpret_cast<uintptr_t>(&gWindow7cc8c0handler_78a374));
     at<u32>(session, 0x50) = 0;
 }
 
@@ -128,10 +131,10 @@ void ClearNews(u8 *session) {
     vcall<void>(session + 0x7c, 0x14, 0x00786de4u);
     at<u32>(session, 0x90) = 0xffffffff;
     at<u32>(session, 0x94) = 0;
-    vcall<void>(session + 0x98, 0x14, 0x0078a374u);
+    vcall<void>(session + 0x98, 0x14, reinterpret_cast<uintptr_t>(&gWindow7cc8c0handler_78a374));
     at<u32>(session, 0xac) = 0xffffffff;
     at<u32>(session, 0xb0) = 0;
-    vcall<void>(session + 0xb4, 0x14, 0x0078a374u);
+    vcall<void>(session + 0xb4, 0x14, reinterpret_cast<uintptr_t>(&gWindow7cc8c0handler_78a374));
     at<u32>(session, 0xd0) = 0;
 }
 
@@ -146,7 +149,7 @@ void __fastcall Online_ReleaseLogin(u8 *session) {
         GameHeap_Free(auth);
     }
     at<u32>(session, 0) = 0;
-    Say(0x0077345c);
+    Say(reinterpret_cast<uintptr_t>(&gOnline_ReleaseLogin_77345c));
 }
 
 void __fastcall Online_ReleaseNews(u8 *session) {
@@ -179,8 +182,8 @@ void __fastcall Online_ResetUpload(u8 *session) {
     Online_ReleaseUpload(session);
     for (u32 offset : {0x328u, 0x320u, 0x324u, 0x32cu, 0x344u})
         at<u32>(session, offset) = 0;
-    vcall<void>(session + 0x348, 0x14, 0x0078a374u);
-    vcall<void>(session + 0x35c, 0x14, 0x0078a374u);
+    vcall<void>(session + 0x348, 0x14, reinterpret_cast<uintptr_t>(&gWindow7cc8c0handler_78a374));
+    vcall<void>(session + 0x35c, 0x14, reinterpret_cast<uintptr_t>(&gWindow7cc8c0handler_78a374));
     for (u32 offset = 0x370; offset <= 0x380; offset += 4)
         at<u32>(session, offset) = 0;
 }
@@ -189,7 +192,7 @@ namespace {
 
 // "Reseting" said; the object at +0x3a0 deleted, the block at +0x39c freed, both cleared.
 void DropDownload(u8 *session) {
-    Say(0x007733d0);
+    Say(reinterpret_cast<uintptr_t>(&gSession_7733d0));
     if (u8 *const object = at<u8 *>(session, 0x3a0)) {
         at<u32>(session, 0x3a0) = 0;
         vcall<void>(object, 0, 1u);
@@ -214,7 +217,7 @@ void __fastcall Online_LoginResult(u8 *session, void *, s32 status, u32, u32, u8
     u32 error;
     switch (status) {
     case 60:
-        Say(0x00773480);
+        Say(reinterpret_cast<uintptr_t>(&gOnline_LoginResult_773480));
         at<u32>(session, 0x34) = at<u32>(record, 0);
         at<u32>(session, 0x38) = at<u32>(record, 4);
         vcall<void>(session + 0x3c, 0x14, record + 0x30);
@@ -273,18 +276,18 @@ u8 *__fastcall Online_OpenCity(u8 *session) {
         city = (*reinterpret_cast<const Ctor *>((uintptr_t)0x006fd4e4))(city, nullptr);   // City::City
     }
     at<u8 *>(session, 0xd4) = city;
-    Say(0x007738b0);
+    Say(reinterpret_cast<uintptr_t>(&gOnline_OpenCity_7738b0));
     const u32 name = *reinterpret_cast<const u32 *>((uintptr_t)0x007a1524);
     const u32 server = name ? name : 0x006fe5b0;
     const u32 port = (name & 0xffff0000) | *reinterpret_cast<const u16 *>((uintptr_t)0x007a1556);   // (mov ax: the high half left)
     using Connect = u32(__fastcall *)(u8 *, void *, u32, u8 *, u32, u32);
     const u8 *const picked = Global7cc53c_Pick7cc4f0();
     if ((*reinterpret_cast<const Connect *>((uintptr_t)0x006fd534))(at<u8 *>(session, 0xd4), nullptr, server, const_cast<u8 *>(picked), port, 0x005b72c0) != 1) {
-        Say(0x00773890);
+        Say(reinterpret_cast<uintptr_t>(&gOnline_OpenCity_773890));
         ReleaseCity(session);
         return at<u8 *>(session, 0xd4);
     }
-    Say(0x00773854);
+    Say(reinterpret_cast<uintptr_t>(&gOnline_OpenCity_773854));
     at<u32>(session, 0xd8) = Time_GetMs();
     const u32 a = at<u32>(session, 0x34), b = at<u32>(session, 0x38), c = at<u32>(session, 0x28);
     const u32 language = Language_Id(reinterpret_cast<const u8 *>((uintptr_t)0x0078b530));
@@ -396,7 +399,7 @@ void __fastcall Online_DownloadEvent(u8 *session, void *, u32 kind, u32 value) {
     if (!at<u32>(session, 0x3a0) || kind == 0)
         return;
     if ((kind == 1 || kind == 3) && !value) {
-        Say(kind == 1 ? 0x00773ae0 : 0x00773ab8);
+        Say(kind == 1 ? reinterpret_cast<uintptr_t>(&gOnline_DownloadEvent_773ae0) : reinterpret_cast<uintptr_t>(&gOnline_DownloadEvent_773ab8));
         g_start->downloadNext(session);
         return;
     }
@@ -422,7 +425,7 @@ u32 __fastcall Online_UploadConnect(u8 *session) {
     using Make = u32(__fastcall *)(void *, void *);
     void *const block = GameHeap_Alloc(0xc);
     at<u32>(session, 0x104) = block ? (*reinterpret_cast<const Make *>((uintptr_t)0x006fd5dc))(block, nullptr) : 0;
-    Say(0x00773a1c);
+    Say(reinterpret_cast<uintptr_t>(&gOnline_UploadConnect_773a1c));
     WString wide;
     WString_CtorStr(&wide, nullptr, at<const u16 *>(g_start->findKind(at<u8 *>(session, 0xfc)), 0x2c));
     String host;
@@ -434,13 +437,13 @@ u32 __fastcall Online_UploadConnect(u8 *session) {
     const s32 answer = (*reinterpret_cast<const Connect *>((uintptr_t)0x006fd5e0))(at<void *>(session, 0x104), nullptr, host.data, Global7cc53c_Pick7cc4f0(), port, 0x005b8260);
     u32 result = 0;
     if (answer == 1) {
-        Say(0x007739dc);
+        Say(reinterpret_cast<uintptr_t>(&gOnline_UploadConnect_7739dc));
         using Lobby = void(__fastcall *)(void *, void *, u32, u32, u32, u32);
         const u32 language = Language_Id(reinterpret_cast<const u8 *>((uintptr_t)0x0078b530));
         (*reinterpret_cast<const Lobby *>((uintptr_t)0x006fd5e4))(at<void *>(session, 0x104), nullptr, language, at<u32>(session, 0x34), at<u32>(session, 0x38), at<u32>(session, 0x28));
         result = 1;
     } else {
-        Say(0x007739f8);
+        Say(reinterpret_cast<uintptr_t>(&gOnline_UploadConnect_7739f8));
     }
     String_Dtor(&host);
     WString_Dtor(&wide);
@@ -471,16 +474,16 @@ void UploadGiveUp(u8 *session, u32 code) {
 
 void __fastcall Online_UploadStart(u8 *session) {
     if (!(at<u8>(session, 0x58) & 0x10)) {
-        Say(0x007738d0);
+        Say(reinterpret_cast<uintptr_t>(&gOnline_UploadStart_7738d0));
         UploadGiveUp(session, 0x4e);
         return;
     }
     if (!at<u32>(session, 0x104) && !g_start->uploadConnect(session)) {
-        Say(0x00773940);
+        Say(reinterpret_cast<uintptr_t>(&gOnline_UploadStart_773940));
         UploadGiveUp(session, 0x4f);
         return;
     }
-    Say(0x00773924);
+    Say(reinterpret_cast<uintptr_t>(&gOnline_UploadStart_773924));
     at<u32>(session, 0x324) = 1;
     u8 request[0x430];
     request[4] = 0;
@@ -493,7 +496,7 @@ void __fastcall Online_UploadStart(u8 *session) {
     request[5] = at<u8>(session, 0x370);
     using Send = void(__fastcall *)(void *, void *, u32, u8 *, u32);
     (*reinterpret_cast<const Send *>((uintptr_t)0x006fd5d0))(at<void *>(session, 0x104), nullptr, at<u32>(session, 0x338), request, 0);
-    Say(0x00773900);
+    Say(reinterpret_cast<uintptr_t>(&gOnline_UploadStart_773900));
 }
 
 void __fastcall Online_UploadEvent(u8 *session, void *, u32 code, u32, u32, u8 *record) {
@@ -505,13 +508,13 @@ void __fastcall Online_UploadEvent(u8 *session, void *, u32 code, u32, u32, u8 *
                 at<u32>(record, 0) = 0;
                 GameHeap_Free(record);
             }
-            Say(0x007739a4);
+            Say(reinterpret_cast<uintptr_t>(&gOnline_UploadEvent_7739a4));
             using Next = void(__fastcall *)(void *, void *, u32, u32);
             (*reinterpret_cast<const Next *>((uintptr_t)0x006fd5e8))(at<void *>(session, 0x104), nullptr, at<u32>(session, 0x338), 0);
             return;
         }
         case 0:
-            Say(0x00773980);
+            Say(reinterpret_cast<uintptr_t>(&gOnline_UploadEvent_773980));
             at<u32>(session, 0x32c) = 1;
             at<u32>(session, 0x328) = 1;
             return;
@@ -840,7 +843,7 @@ void QueueMissing(u8 *session, u32 number) {
     WString_CtorCopy(&prefixed, nullptr, &plain);
     vcall<void>(&plain, 0x20, name);
     vcall<void>(&plain, 0x20, extension);
-    vcall<void>(&prefixed, 0x20, 0x00773ab4u);
+    vcall<void>(&prefixed, 0x20, reinterpret_cast<uintptr_t>(&gSession_773ab4));
     vcall<void>(&prefixed, 0x20, name);
     vcall<void>(&prefixed, 0x20, extension);
     String plainText;
@@ -853,7 +856,7 @@ void QueueMissing(u8 *session, u32 number) {
         void *const memory = GameHeap_Alloc(0x14);
         WString *const entry = memory ? WString_Ctor(static_cast<WString *>(memory)) : nullptr;
         vcall<void>(entry, 0x14, folder);
-        vcall<void>(entry, 0x20, 0x00773ab4u);
+        vcall<void>(entry, 0x20, reinterpret_cast<uintptr_t>(&gSession_773ab4));
         vcall<void>(entry, 0x20, name);
         vcall<void>(entry, 0x20, extension);
         QueueBack(session, entry);
@@ -873,7 +876,7 @@ void ConnectClient(u8 *session) {
     at<u32 *>(session, 0x39c) = listener;
     void *const memory = GameHeap_Alloc(0x2780);
     at<u32 *>(session, 0x3a0) = memory ? g_fetch->ftpCtor(static_cast<u32 *>(memory), nullptr, at<void *>(session, 0x39c), 1) : nullptr;
-    Say(0x00773a8c);
+    Say(reinterpret_cast<uintptr_t>(&gSession_773a8c));
     const u8 *const kind = g_fetch->findKind1(at<u8 *>(session, 0xfc));
     WString wideHost;
     WString_CtorStr(&wideHost, nullptr, at<const u16 *>(kind, 0x2c));
@@ -887,7 +890,7 @@ void ConnectClient(u8 *session) {
     String_AssignFromWide(&password, &widePassword);
     at<u32>(session, 0x38c) = 1;
     const char *const bind = reinterpret_cast<const char *>(g_fetch->pick());
-    g_fetch->ftpConnect(at<void *>(session, 0x3a0), nullptr, host.data, reinterpret_cast<const char *>((uintptr_t)0x00773a80), password.data, bind);
+    g_fetch->ftpConnect(at<void *>(session, 0x3a0), nullptr, host.data, gSession_773a80, password.data, bind);
     String_Dtor(&password);
     WString_Dtor(&widePassword);
     String_Dtor(&host);
@@ -899,7 +902,7 @@ void Online_SetDownloadStartEnv(const OnlineDownloadStartEnv *env) { g_fetch = e
 
 void __fastcall Online_DownloadStart(u8 *session, void *, const u8 *item) {
     if (item) g_fetch->assign(at<u8 *>(session, 0x3a4), nullptr, item);
-    Say(0x007733d0);
+    Say(reinterpret_cast<uintptr_t>(&gSession_7733d0));
     if (void *const client = at<void *>(session, 0x3a0)) {
         at<u32>(session, 0x3a0) = 0;
         vcall<void>(client, 0, 1u);
@@ -910,7 +913,7 @@ void __fastcall Online_DownloadStart(u8 *session, void *, const u8 *item) {
     }
     const u8 flags = at<u8>(session, 0x58);
     if (!(at<u32>(at<u8 *>(session, 0x3a4), 0x78) ? flags & 4 : flags & 8)) {
-        Say(0x00773a40);
+        Say(reinterpret_cast<uintptr_t>(&gOnline_DownloadStart_773a40));
         at<u32>(session, 0x398) = 0x4e;
         g_fetch->downloadEnd(session, nullptr, 1);
         return;
@@ -923,9 +926,9 @@ void __fastcall Online_DownloadStart(u8 *session, void *, const u8 *item) {
             if (bits[byte] & 1 << bit) QueueMissing(session, bit - 8 * byte + 0xf9);
         }
     }
-    if (!at<u32>(0, 0x00f81ebc)) {
+    if (!at<u32>(0, reinterpret_cast<uintptr_t>(&gChatlists_f81ebc))) {
         void *const memory = GameHeap_Alloc(0x110);
-        at<u8 *>(0, 0x00f81ebc) = memory ? g_fetch->slotsCtor(static_cast<u8 *>(memory)) : nullptr;
+        at<u8 *>(0, reinterpret_cast<uintptr_t>(&gChatlists_f81ebc)) = memory ? g_fetch->slotsCtor(static_cast<u8 *>(memory)) : nullptr;
     }
     WString folder;
     g_fetch->folder(&folder);
@@ -950,7 +953,7 @@ void __fastcall Online_DownloadStart(u8 *session, void *, const u8 *item) {
 
 void __fastcall Online_DownloadNext(u8 *session) {
     if (at<u32>(session, 0x3d4)) {
-        Say(0x00773b64);
+        Say(reinterpret_cast<uintptr_t>(&gOnline_DownloadNext_773b64));
         u8 *item = nullptr;
         if (u8 *const node = at<u8 *>(session, 0x3cc)) {
             u8 *const next = at<u8 *>(node, 4);
@@ -988,7 +991,7 @@ void __fastcall Online_DownloadNext(u8 *session) {
         return;
     }
     if (at<u32>(session, 0x3d8)) {
-        Say(0x00773b3c);
+        Say(reinterpret_cast<uintptr_t>(&gOnline_DownloadNext_773b3c));
         WString url;
         ServerFolder(session, &url);
         const u8 *const key = g_next->findByKey(at<u8 *>(session, 0xe0), nullptr, at<u32>(at<u8 *>(session, 0x3a4), 0x48));
@@ -1005,7 +1008,7 @@ void __fastcall Online_DownloadNext(u8 *session) {
         WString_Dtor(&url);
         return;
     }
-    Say(0x00773b00);
+    Say(reinterpret_cast<uintptr_t>(&gOnline_DownloadNext_773b00));
     g_next->finish(at<void *>(session, 0x3a0));
     at<u32>(session, 0x394) = 1;
 }
@@ -1036,7 +1039,7 @@ void __fastcall Online_CityPoll(u8 *session) {
             GameHeap_Free(city);
         }
         at<u32>(session, 0xd4) = 0;
-        Say(0x0077386c);
+        Say(reinterpret_cast<uintptr_t>(&gSession_77386c));
         return;
     }
     at<u32>(session, 0xd8) = g_cityPoll->now();
@@ -1118,7 +1121,7 @@ u8 *__fastcall Online_Construct(u8 *session) {
         at<u32>(named, 0) = 0x00702838;
         WString_Ctor(reinterpret_cast<WString *>(named + 0x34));
         at<u32>(named, 0) = 0x00702828;
-        vcall<void>(named + 0x34, 0x14, 0x0078a374u);
+        vcall<void>(named + 0x34, 0x14, reinterpret_cast<uintptr_t>(&gWindow7cc8c0handler_78a374));
     }
     at<u8 *>(session, 0xec) = named;
     at<u8 *>(session, 0xf0) = NewList(0x38, 0x00702818);
@@ -1131,8 +1134,8 @@ u8 *__fastcall Online_Construct(u8 *session) {
     at<u32>(session, 0x108) = 0;
     for (u32 offset : {0x328u, 0x320u, 0x324u, 0x32cu, 0x344u})
         at<u32>(session, offset) = 0;
-    vcall<void>(session + 0x348, 0x14, 0x0078a374u);
-    vcall<void>(session + 0x35c, 0x14, 0x0078a374u);
+    vcall<void>(session + 0x348, 0x14, reinterpret_cast<uintptr_t>(&gWindow7cc8c0handler_78a374));
+    vcall<void>(session + 0x35c, 0x14, reinterpret_cast<uintptr_t>(&gWindow7cc8c0handler_78a374));
     for (u32 offset = 0x370; offset <= 0x380; offset += 4)
         at<u32>(session, offset) = 0;
     at<u32>(session, 0x39c) = 0;
@@ -1143,7 +1146,7 @@ u8 *__fastcall Online_Construct(u8 *session) {
 }
 
 u8 *__cdecl Online_Instance() {
-    u8 *&session = *reinterpret_cast<u8 **>((uintptr_t)0x00f7d88c);
+    u8 *&session = gChatcommand_f7d88c;
     if (session) return session;
     u8 *const memory = static_cast<u8 *>(GameHeap_Alloc(0x404));
     session = memory ? g_instance->ctor(memory) : nullptr;
@@ -1197,43 +1200,43 @@ extern "C" void __fastcall Online_ListAnswered(u8 *session, void *, s32 code, s3
     case -2: failed = true; error = 0x4b; break;
     case -1: failed = true; error = 0x37; break;
     case 2:
-        if (!OfferList(session, 0xe0, request, data, 0x0077382c, kCityRelease)) {
-            Say(0x007737fc);
+        if (!OfferList(session, 0xe0, request, data, reinterpret_cast<uintptr_t>(&gOnline_ListAnswered_77382c), kCityRelease)) {
+            Say(reinterpret_cast<uintptr_t>(&gOnline_ListAnswered_7737fc));
             DropData(data, kCityDtor);
         }
         break;
     case 3:
-        if (!OfferList(session, 0xe4, request, data, 0x007737cc, kParkRelease) && !OfferList(session, 0xe8, request, data, 0x007737a0, kParkRelease) &&
-            !OfferList(session, 0xec, request, data, 0x00773770, kParkRelease) && !OfferList(session, 0xf0, request, data, 0x00773740, kParkRelease) &&
-            !OfferList(session, 0xf4, request, data, 0x00773708, kParkRelease)) {
-            Say(0x007736c8);
+        if (!OfferList(session, 0xe4, request, data, reinterpret_cast<uintptr_t>(&gOnline_ListAnswered_7737cc), kParkRelease) && !OfferList(session, 0xe8, request, data, reinterpret_cast<uintptr_t>(&gOnline_ListAnswered_7737a0), kParkRelease) &&
+            !OfferList(session, 0xec, request, data, reinterpret_cast<uintptr_t>(&gOnline_ListAnswered_773770), kParkRelease) && !OfferList(session, 0xf0, request, data, reinterpret_cast<uintptr_t>(&gOnline_ListAnswered_773740), kParkRelease) &&
+            !OfferList(session, 0xf4, request, data, reinterpret_cast<uintptr_t>(&gOnline_ListAnswered_773708), kParkRelease)) {
+            Say(reinterpret_cast<uintptr_t>(&gOnline_ListAnswered_7736c8));
             DropData(data, kParkDtor);
         }
         break;
     case 4:
-        if (!OfferList(session, 0xfc, request, data, 0x00773644, kServerRelease)) {
-            Say(0x00773610);
+        if (!OfferList(session, 0xfc, request, data, reinterpret_cast<uintptr_t>(&gOnline_ListAnswered_773644), kServerRelease)) {
+            Say(reinterpret_cast<uintptr_t>(&gOnline_ListAnswered_773610));
             DropData(data, kServerDtor);
         }
         break;
     case 5:
-        if (!OfferList(session, 0xf8, request, data, 0x007736a0, kThemeRelease)) {
-            Say(0x0077366c);
+        if (!OfferList(session, 0xf8, request, data, reinterpret_cast<uintptr_t>(&gOnline_ListAnswered_7736a0), kThemeRelease)) {
+            Say(reinterpret_cast<uintptr_t>(&gOnline_ListAnswered_77366c));
             DropData(data, kThemeDtor);
         }
         break;
     case 6:
-        if (!OfferList(session, 0x100, request, data, 0x007735e8, kRideRelease)) {
-            Say(0x007735b8);
+        if (!OfferList(session, 0x100, request, data, reinterpret_cast<uintptr_t>(&gOnline_ListAnswered_7735e8), kRideRelease)) {
+            Say(reinterpret_cast<uintptr_t>(&gOnline_ListAnswered_7735b8));
             DropData(data, kRideDtor);
         }
         break;
     case 7:
-        Say(0x007735a0);
+        Say(reinterpret_cast<uintptr_t>(&gOnline_ListAnswered_7735a0));
         failed = true;
         break;
     case 8:
-        Say(0x00773584);
+        Say(reinterpret_cast<uintptr_t>(&gOnline_ListAnswered_773584));
         break;
     default:
         break;

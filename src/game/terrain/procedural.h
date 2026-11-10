@@ -131,3 +131,4 @@ GAME_DATA(const u32, gTerrainTex_CullView_7014c0, 0x007014c0, 0x4);
 GAME_DATA(float, gTerrain_InitUnusedOne_7a0b28, 0x007a0b28, 0x4);
 GAME_DATA(float, gTerrain_InitUnusedEpsilon_7a0b48, 0x007a0b48, 0x4);
 GAME_DATA(s8[4], gTerrainViewBox_8bd4e8, 0x008bd4e8, 0x4);
+GAME_DATA(char[84], gText_TerrainTex_InitGlobal_768320, 0x00768320, 0x54);

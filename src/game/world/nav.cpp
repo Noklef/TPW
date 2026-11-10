@@ -161,7 +161,6 @@ void __cdecl Nav_VisitNeighbours(const u8 *nav, s32 radius, void(__cdecl *visit)
 }
 void __fastcall Nav_Update(u8 *nav) {
     typedef s32 *(__fastcall *Steer)(void *behaviour, void *, s32 *out, const u8 *nav);  // a behaviour's slot 0 (thiscall)
-    typedef s32(__cdecl *Passable)(s32 from, s32 to, u32 flags);
     s32 sum[2] = {0, 0};
     for (u32 entry = *reinterpret_cast<u32 *>(0x007cf078); entry != *reinterpret_cast<u32 *>(0x007cf07c); entry += 8) {
         u8 *const behaviour = at<u8 *>(reinterpret_cast<void *>(entry), 4);
@@ -183,7 +182,7 @@ void __fastcall Nav_Update(u8 *nav) {
     IntPair_FromFixed(to, next[0], next[1]);
     const s32 toId = Map_IdAt((s32)to[0], (s32)to[1]);
     const s32 fromId = Map_IdAt((s32)from[0], (s32)from[1]);
-    if ((*reinterpret_cast<Passable *>(0x00762190))(fromId, toId, at<u32>(nav, 0xb4)) == 0) {
+    if (gNav_Passable_762190(fromId, toId, at<u32>(nav, 0xb4)) == 0) {
         at<u32>(nav, 0xb0) = (at<u32>(nav, 0xb0) << 1) | 1;  // blocked: the position is kept
     } else {
         at<u32>(nav, 8) = next[0];

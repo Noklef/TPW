@@ -143,3 +143,12 @@ struct WadDirEnv {
 };
 // The tree's calls go through env (nullptr: the game's).
 void WadDir_SetEnv(const WadDirEnv *env);
+
+// Globals by address, by hand (.docs/09-globals.md). The vtables hold only ports: tpw.exe's loader points their slots at them.
+GAME_DATA(void *[1], StringList2_vtable, 0x006fe67c, 0x4);
+GAME_DATA(void *[1], StringList_vtable, 0x006fe680, 0x4);
+GAME_DATA(void *[1], WadStringList_vtable, 0x0070393c, 0x4);
+GAME_DATA(void *[1], WadFileList_vtable, 0x00703e90, 0x4);
+GAME_DATA(void *[1], WadFolderList_vtable, 0x00703e94, 0x4);
+GAME_DATA(void *[1], WadFolderListBase_vtable, 0x00703e98, 0x4);
+GAME_DATA(void *[1], WadFileListBase_vtable, 0x00703e9c, 0x4);

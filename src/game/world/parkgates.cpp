@@ -14,12 +14,14 @@
 #include "thingscan.h"
 #include "visitorsteps.h"
 #include "world.h"
+#include "../ui/dialog7cb25c.h"
+#include "../ui/dialog74fb20.h"
 #include "parkgates.h"
 
 namespace {
 
 const SaveSpec kRate[] = {{0x0, 4, (u32)&gText_Parkgates_759b98}};
-const SaveSpec kRest[] = {{0x8, 4, (u32)&gText_Parkgates_759b80}, {0xc, 4, (u32)&gText_Parkgates_759b70}, {0x10, 1, 0x00759b64}, {0x11, 1, (u32)&gText_Parkgates_759b58}};
+const SaveSpec kRest[] = {{0x8, 4, (u32)&gText_Parkgates_759b80}, {0xc, 4, (u32)&gText_Parkgates_759b70}, {0x10, 1, (u32)&gText_Parkgates_759b64}, {0x11, 1, (u32)&gText_Parkgates_759b58}};
 
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
 template <typename T> T &at(u8 *p, u32 offset) { return *reinterpret_cast<T *>(p + offset); }
@@ -44,13 +46,13 @@ u8 *World() { return global<u8 *>(0x0080239c); }
 
 // The mode setting at 0xfb3b7c, a function-local static (the guard 0xfb34c2 & 1).
 u32 Mode() {
-    u8 &guard = global<u8>(0x00fb34c2);
+    u8 &guard = gDialog7cb25c_fb34c2;
     if (!(guard & 1)) {
         guard |= 1;
-        g_env->readMode(reinterpret_cast<u8 *>((uintptr_t)0x00fb3b7c));
+        g_env->readMode(reinterpret_cast<u8 *>(&gDialog74fb20_fb3b7c));
         g_env->atExit(0x005d1750);
     }
-    return global<u32>(0x00fb3b7c);
+    return gDialog74fb20_fb3b7c;
 }
 
 // The arrival told to the world; the answer (the slot given) is not read.

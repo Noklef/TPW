@@ -26,10 +26,10 @@ const BankAccountCtorEnv *g_env = &kGameEnv;
 u32 &dword(u8 *object, u32 at) { return *reinterpret_cast<u32 *>(object + at); }
 
 // The head's fields as saved (Save_Field each); a load reads the first three the same way and the rest through Save_ReadU32.
-const SaveSpec kHead[] = {{0x118, 4, (u32)&gText_Bankaccount_759df4}, {0xc, 4, (u32)&gText_Bankaccount_759de8}, {0x10, 4, (u32)&gText_Bankaccount_759dd8}, {0x114, 4, 0x00759dc4},
-                          {0x11c, 4, (u32)&gText_Bankaccount_759db4}, {0x120, 4, 0x00759da4}, {0x124, 4, (u32)&gText_Bankaccount_759d94}};
+const SaveSpec kHead[] = {{0x118, 4, (u32)&gText_Bankaccount_759df4}, {0xc, 4, (u32)&gText_Bankaccount_759de8}, {0x10, 4, (u32)&gText_Bankaccount_759dd8}, {0x114, 4, (u32)&gText_Bankaccount_759dc4},
+                          {0x11c, 4, (u32)&gText_Bankaccount_759db4}, {0x120, 4, (u32)&gText_Bankaccount_759da4}, {0x124, 4, (u32)&gText_Bankaccount_759d94}};
 // A loan's eight dwords (the first loan's offsets; the others 0x20 on).
-const SaveSpec kLoan[] = {{0x14, 4, 0x00759d78}, {0x18, 4, (u32)&gText_Bankaccount_759d58}, {0x1c, 4, (u32)&gText_Bankaccount_759d3c}, {0x20, 4, (u32)&gText_Bankaccount_759d14},
+const SaveSpec kLoan[] = {{0x14, 4, (u32)&gText_Bankaccount_759d78}, {0x18, 4, (u32)&gText_Bankaccount_759d58}, {0x1c, 4, (u32)&gText_Bankaccount_759d3c}, {0x20, 4, (u32)&gText_Bankaccount_759d14},
                           {0x24, 4, (u32)&gText_Bankaccount_759cf4}, {0x28, 4, (u32)&gText_Bankaccount_759cd8}, {0x2c, 4, (u32)&gText_Bankaccount_759cbc}, {0x30, 4, (u32)&gText_Bankaccount_759c9c}};
 
 bool ReadU32s(Stream *stream, u8 *object, const SaveSpec *spec, u32 count) {

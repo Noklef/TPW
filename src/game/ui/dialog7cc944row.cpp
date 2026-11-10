@@ -2,6 +2,7 @@
 #include "dialog7cc944row.h"
 
 #include <cstdint>
+#include "dialog7cc944.h"
 
 namespace {
 
@@ -17,7 +18,7 @@ const Dialog7cc944RowEnv *g_env = &kGameEnv;
 void Dialog7cc944Row_SetEnv(const Dialog7cc944RowEnv *env) { g_env = env ? env : &kGameEnv; }
 
 extern "C" void __cdecl Dialog7cc944_SetWaitingRow(u32 value) {
-    u8 *const dialog = global<u8 *>(0x007cc944);
+    u8 *const dialog = gDialog7cc944_7cc944;
     if (!dialog) return;
     u8 *const list = g_env->findChild(dialog, nullptr, 0xe05b);
     u32 data;

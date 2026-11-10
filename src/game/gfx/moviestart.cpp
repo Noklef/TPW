@@ -6,6 +6,8 @@
 
 #include "../core/vcall.h"
 #include "../core/accessors.h"
+#include "../render/screen.h"
+#include "../render/graphicssettings.h"
 
 namespace {
 
@@ -74,11 +76,11 @@ u32 __cdecl Movie_Start(u32 file, u32 mode, s32 x, s32 y, u32 overlay) {
     if (query(at<u8 *>(global<u8 *>(0x00879a24), 0x10), 0x00707210, &front_surface)) return 0;
     if (query(front_surface, 0x00707220, &front())) return 0;
     if (query(back_surface, 0x00707220, &back())) return 0;
-    settings.field70 = global<u32>(0x007a1968);
+    settings.field70 = gScreen_7a1968;
     settings.fieldA8 = 2;
     settings.kind = 1;
-    settings.field74 = global<u32>(0x007a1930) * 352 / 480;
-    u32 f = global<u8>(0x007a1a8c) & 1 ? 0x0b030180 : 0x03030180;
+    settings.field74 = gScreen_7a1930 * 352 / 480;
+    u32 f = reinterpret_cast<u8 &>(gGraphicssettings_7a1a8c) & 1 ? 0x0b030180 : 0x03030180;
     if (x == -1) {
         f |= 4;
     } else {

@@ -10,6 +10,7 @@
 #include "../sprite/scriptref.h"
 #include "../terrain/land.h"
 #include "person.h"
+#include "../ui/dialog74fb20.h"
 
 namespace {
 
@@ -105,10 +106,10 @@ void __fastcall Thoughts_Show(u8 *thoughts, void *, u32 thought, u8 force) {
     u8 &guard = global<u8>(0x00fb34aa);   // (the mode setting 0xfb3b7c: a function-local static)
     if (!(guard & 1)) {
         guard |= 1;
-        E->readMode(reinterpret_cast<u8 *>((uintptr_t)0x00fb3b7c));
+        E->readMode(reinterpret_cast<u8 *>(&gDialog74fb20_fb3b7c));
         E->atExit(reinterpret_cast<void(__cdecl *)()>((uintptr_t)0x005d1750));
     }
-    if (global<u32>(0x00fb3b7c) == 1 && force == 0) return;
+    if (gDialog74fb20_fb3b7c == 1 && force == 0) return;
     if (at<u32>(thoughts, 0x84) != 0) {
         E->kill(at<s32>(thoughts, 0x84));
         at<u32>(thoughts, 0x84) = 0;

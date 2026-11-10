@@ -19,3 +19,10 @@ extern "C" {
 // 0x2df [0x7cc2e0] red, 0x2e0 [0x7cc2e4] = [0x7cc2dc] - [0x7cc2e0] red, 0x2e4 [0x7cc2d4] - [0x7cc2dc]. The label 0x2da the text 0x93. The mode setting 0xfb3b7c, read the first time (the guard 0xfb34c9 & 1), 2: the child 0x2dd's slot 5 (0).
 void __cdecl Dialog7cc2ec_Open();
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(char[16], gDialog7cc2ec_750e00, 0x00750e00, 0x10);
+GAME_DATA(u8 *, gDialog7cc2ec_7cc2ec, 0x007cc2ec, 0x4);
+GAME_DATA(u8, gDialog7cc2ec_fb34c9, 0x00fb34c9, 0x1);

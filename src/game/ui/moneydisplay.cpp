@@ -12,6 +12,7 @@
 #include "guirect.h"
 #include "window.h"
 #include "windowarea.h"
+#include "panel7b9940.h"
 
 namespace {
 
@@ -44,11 +45,11 @@ void ShowMoney(u8 *window, s32 money) {
     s32 index = (money + 999) / 1000;
     if (index < 0) index = 0;
     if (index > 5) index = 5;
-    global<s32>(0x007cb27c) = index;
-    if (index != global<s32>(0x00752e2c)) {
+    gMoneydisplay_7cb27c = index;
+    if (index != gMoneydisplay_752e2c) {
         const u32 entry = 0x00752e30 + 4 * static_cast<u32>(index);
         E->notify40000(window, nullptr, global<u8>(entry), global<u8>(entry + 1), global<u8>(entry + 2), 0xff);
-        global<s32>(0x00752e2c) = global<s32>(0x007cb27c);
+        gMoneydisplay_752e2c = gMoneydisplay_7cb27c;
     }
     vcall<void>(window, 0x1c, static_cast<u32>(money < 0 ? -money : money));
     u8 area[0x18], own[0x18], cost[0x18];
@@ -63,7 +64,7 @@ void ShowMoney(u8 *window, s32 money) {
     const u32 x = at<u32>(cost, 4) - at<u32>(cost, 8) + at<u32>(area, 8);
     E->moveTo(child, nullptr, reinterpret_cast<const s16 *>(&x), nullptr);
     E->notify1(Window_FindChild(window, nullptr, 0x32), nullptr, money < 0 ? 1 : 0);
-    global<s32>(0x007cb2dc) = money;
+    gMoneydisplay_7cb2dc = money;
     GuiRect_Dtor(cost);
     GuiRect_Dtor(own);
     GuiRect_Dtor(area);
@@ -71,7 +72,7 @@ void ShowMoney(u8 *window, s32 money) {
 
 void EnsureHolder() {
     const MoneyDisplayEnv *const E = g_env;
-    if (global<u8 *>(0x007b05e8)) return;
+    if (gPanel7b9940_7b05e8) return;
     u8 *const holder = static_cast<u8 *>(GameHeap_Alloc(1));
     if (holder) {
         u8 *const block = static_cast<u8 *>(GameHeap_Alloc(8));
@@ -79,7 +80,7 @@ void EnsureHolder() {
         global<s32>(0x007b05e0) = -1;
         global<s32>(0x007b05d4) = -1;
     }
-    global<u8 *>(0x007b05e8) = holder;
+    gPanel7b9940_7b05e8 = holder;
 }
 
 }  // namespace
@@ -91,7 +92,7 @@ void MoneyDisplay_SetEnv(const MoneyDisplayEnv *env) { g_env = env ? env : &kGam
 void __cdecl MoneyDisplay_Update(u8 *window) {
     const MoneyDisplayEnv *const E = g_env;
     const s32 money = static_cast<s32>(E->amount(reinterpret_cast<u8 *>((uintptr_t)E->money(*global<u8 **>(0x007cf6ec)))));
-    if (money != global<s32>(0x007cb2dc)) ShowMoney(window, money);
+    if (money != gMoneydisplay_7cb2dc) ShowMoney(window, money);
     EnsureHolder();
 
     u8 *const mode = global<u8 *>(0x007b05d8);

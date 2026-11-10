@@ -61,3 +61,12 @@ u32 __cdecl Overlay7cb2b4_Toggle();
 u32 __fastcall Obj7b51f0_ToggleOverlay(void *self);
 u32 __fastcall Obj7b51f0_CloseOverlay(void *self);
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(u8[44], gWindow7cb2cc_Open_752e00, 0x00752e00, 0x2c);
+GAME_DATA(u8 *, gFocus_7c24c8, 0x007c24c8, 0x4);
+GAME_DATA(u8 *, gFocus_7cb2b4, 0x007cb2b4, 0x4);
+GAME_DATA(u8 *, gFocus_7cb2cc, 0x007cb2cc, 0x4);
+GAME_DATA(u32, gFocus_7cb2e8, 0x007cb2e8, 0x4);

@@ -6,6 +6,7 @@
 
 #include "../core/vcall.h"
 #include "../math/x87.h"
+#include "frame.h"
 
 namespace {
 
@@ -38,7 +39,7 @@ extern "C" {
 u8 *__fastcall LobbyFlight_Ctor(u8 *self, void *, u8 *owner, u32 a, u32 b, const u32 *centre, const u32 *spread, u32 e, u32 f) {
     at<u32>(self, 0) = 0x00702ae8;
     at<u8 *>(self, 4) = owner;
-    const u32 model = g_calls.Th(0x005d8870, global<u32>(0x00f83774), a, b, 0u, 1u, 0u, 0u);
+    const u32 model = g_calls.Th(0x005d8870, reinterpret_cast<u32 &>(gFrame_f83774), a, b, 0u, 1u, 0u, 0u);
     at<u32>(self, 8) = model;
     g_calls.Th(0x005d83f0, model, 0u, 1u);
     at<u32>(self, 0xc) = 0;

@@ -5,7 +5,7 @@
 
 namespace {
 
-void *const *const kMemorySourceVtable = reinterpret_cast<void *const *>(0x00703868);
+void *const *const kMemorySourceVtable = MemorySource_vtable;
 
 // REP MOVSD then REP MOVSB, forward.
 void copy(u8 *dst, const u8 *src, u32 n) {

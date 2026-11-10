@@ -70,3 +70,9 @@ void __fastcall Obj7b51f0_ShowDate(void *, void *, u32, u32, u32, u32 day, u32 m
 // Dialog7cb2b8_ShowDate (day, the month as it came, the year less 0x76c).
 void __cdecl Obj7b51f0_ShowNow();
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(const float, gDialog7cb2b8_BarHandler_6ffa34, 0x006ffa34, 0x4);
+GAME_DATA(const float, gDialog7cb2b8_BarHandler_6ffa38, 0x006ffa38, 0x4);

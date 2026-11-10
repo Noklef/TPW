@@ -9,6 +9,7 @@
 #include "../world/world.h"
 #include "dialog7ca210.h"
 #include "window7059f0.h"
+#include "dialog7ca150.h"
 
 namespace {
 
@@ -18,7 +19,7 @@ template <typename T> T &at(u8 *p, u32 offset) { return *reinterpret_cast<T *>(p
 const Dialog7ca150RowsEnv kGameEnv = {&Object_GetDef, &Object_Rating, &Object_Field48AsInt, &Object_HistoryDifference, &Obj_Diff180_184, &Object_HistoryAverage, &ObjectControls_GetWord18, &Window7059f0_FindItemData, &Window7059f0_AddItem};
 const Dialog7ca150RowsEnv *g_env = &kGameEnv;
 
-u8 *listOfDialog() { return global<u8 *>(0x007ca14c); }
+u8 *listOfDialog() { return gDialog7ca150_7ca14c; }
 
 // The row's first texts: the thing's name (the figures' definition asked first) and the newest-30 sum of the figures' ring +0x1a8.
 void nameAndSum(u32 *texts, u8 *thing, u8 *figures) {

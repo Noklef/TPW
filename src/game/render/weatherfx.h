@@ -183,3 +183,4 @@ GAME_DATA(const float, gWeatherFx_DrawDrops_701d24, 0x00701d24, 0x4);
 GAME_DATA(char[36], gText_WeatherFx_7651d0, 0x007651d0, 0x24);
 GAME_DATA(char[36], gText_WeatherFx_7651f4, 0x007651f4, 0x24);
 GAME_DATA(char[32], gText_WeatherFx_765218, 0x00765218, 0x20);
+GAME_DATA(char[32], gText_WeatherFx_ReloadEffects_765238, 0x00765238, 0x20);

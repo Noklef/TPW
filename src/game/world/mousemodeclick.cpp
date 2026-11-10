@@ -2,6 +2,8 @@
 #include "mousemodeclick.h"
 
 #include <cstdint>
+#include "../ui/dialog74fb20.h"
+#include "../ui/panel7b9940.h"
 
 namespace {
 
@@ -10,7 +12,7 @@ AddrCalls g_calls;
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
 template <typename T> T &at(u32 address, u32 offset) { return *reinterpret_cast<T *>((uintptr_t)address + offset); }
 
-const u32 kHolder = 0x007b05e8;
+const u32 kHolder = reinterpret_cast<uintptr_t>(&gPanel7b9940_7b05e8);
 
 u32 level() { return global<u32>(0x007cf83c); }
 u16 tileId() { return global<u16>(0x007b05cc); }
@@ -66,10 +68,10 @@ bool onlineGame() {
     u8 &made = global<u8>(0x00fb3518);
     if (!(made & 1)) {
         made |= 1;
-        g_calls.Th(0x00550ca0, 0x00fb3b7cu);
+        g_calls.Th(0x00550ca0, reinterpret_cast<uintptr_t>(&gDialog74fb20_fb3b7c));
         g_calls.Cd(0x0067a7d0, 0x005d1750u);
     }
-    return global<u32>(0x00fb3b7c) == 1;
+    return gDialog74fb20_fb3b7c == 1;
 }
 
 bool tilePasses(u32 tile) {

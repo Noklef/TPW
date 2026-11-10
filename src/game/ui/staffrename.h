@@ -46,3 +46,8 @@ void __fastcall StaffRename_Open(u8 *self);
 s32 __cdecl StaffRename_Handler(u8 *window, u32 message, s32 a, u32 b);
 
 }  // extern "C"
+
+#include "../core/gamedata.h"
+
+// Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(u8[224], gStaffRename_Open_7572e8, 0x007572e8, 0xe0);

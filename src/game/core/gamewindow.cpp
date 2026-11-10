@@ -1,6 +1,8 @@
 #include "gamewindow.h"
 
 #include <cstdint>
+#include "../render/screen.h"
+#include "../render/graphicssettings.h"
 #include "../gfx/texcache.h"
 
 namespace {
@@ -21,9 +23,9 @@ u32 MakeWindow() {
     const auto create = [](u32 style, s32 width, s32 height) {
         return global<CreateWindowExA>(0x006fd398)(0, kWindowName, kWindowName, style, 0x80000000u, 0x80000000u, width, height, 0, 0, global<u32>(0x007a1a44), 0);
     };
-    if (global<u8>(0x007a1a8c) & 1)
-        return create(0x90000000u, global<s32>(0x007a1968), global<s32>(0x007a1930));
-    s32 rect[4] = {0, 0, global<s32>(0x007a1968), global<s32>(0x007a1930)};
+    if (reinterpret_cast<u8 &>(gGraphicssettings_7a1a8c) & 1)
+        return create(0x90000000u, reinterpret_cast<s32 &>(gScreen_7a1968), reinterpret_cast<s32 &>(gScreen_7a1930));
+    s32 rect[4] = {0, 0, reinterpret_cast<s32 &>(gScreen_7a1968), reinterpret_cast<s32 &>(gScreen_7a1930)};
     global<u32(__stdcall *)(s32 *, u32, u32)>(0x006fd384)(rect, 0xcf0000, 0);   // AdjustWindowRect
     return create(0xcf0000, rect[2] - rect[0], rect[3] - rect[1]);
 }
@@ -39,10 +41,10 @@ extern "C" u32 __cdecl GameWindow_Create() {
     if ((u16)global<u32(__stdcall *)(const u32 *)>(0x006fd394)(windowClass) == 0)   // RegisterClassA
         return Fail(4);
     const u32 window = MakeWindow();
-    global<u32>(0x007a130c) = window;
+    gGamewindow_7a130c = window;
     if (window == 0) return Fail(4);
     global<u32(__stdcall *)(u32, u32)>(0x006fd368)(window, 5);   // ShowWindow
-    global<u32(__stdcall *)(u32)>(0x006fd36c)(global<u32>(0x007a130c));   // UpdateWindow
+    global<u32(__stdcall *)(u32)>(0x006fd36c)(gGamewindow_7a130c);   // UpdateWindow
 
     if (global<u32>(0x0078d968) == 1) {
         const u32 settings = global<u32>(0x0079d86c);
@@ -52,7 +54,7 @@ extern "C" u32 __cdecl GameWindow_Create() {
     } else {
         g_calls.Cd(0x0044de20);   // GraphicsSettings_LoadForOptions
     }
-    const u32 flags = global<u32>(0x007a1a8c);
+    const u32 flags = gGraphicssettings_7a1a8c;
     if (g_calls.Cd(0x0044df20, flags & 0x200000 ? 0x20u : 0x10u, flags >> 12 & 1, flags & 1, ((flags & 0x400000) | 0x800000) >> 22) == 0)   // Engine_Start
         return Fail(0xc);
 
@@ -70,7 +72,7 @@ extern "C" u32 __cdecl GameWindow_Create() {
     g_calls.Th(0x00423b50, kOptions, on ? 1u : 0u);   // Obj_SetFirst
     u32 &settings = global<u32>(0x0079d86c);
     settings = (settings & ~(on ? 0x40u : 0x80u)) | (on ? 0x80u : 0x40u);
-    if (!on) global<u32>(0x007a1a8c) &= ~0x6000u;
+    if (!on) gGraphicssettings_7a1a8c &= ~0x6000u;
     if (global<u32>(0x0078d8e4) == 1 && *reinterpret_cast<s32 *>(global<u8 *>(0x00879a24) + 0x788) <= 1)
         g_calls.Th(0x00423b80, kOptions, 0u);   // Options_SetC
     return 1;

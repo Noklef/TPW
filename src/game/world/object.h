@@ -386,3 +386,5 @@ GAME_DATA(char[12], gText_Object_Serialize_75b5ec, 0x0075b5ec, 0xc);
 GAME_DATA(char[16], gText_Object_Serialize_75b5f8, 0x0075b5f8, 0x10);
 GAME_DATA(char[8], gText_Object_Serialize_75b608, 0x0075b608, 0x8);
 GAME_DATA(char[8], gText_Object_Serialize_75b614, 0x0075b614, 0x8);
+GAME_DATA(char[4], gText_Object_Serialize_75b610, 0x0075b610, 0x4);
+GAME_DATA(char[16], gText_Object_Serialize_75b4d0, 0x0075b4d0, 0x10);

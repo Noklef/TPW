@@ -11,6 +11,7 @@
 #include "../math/x87.h"
 #include "d3dresult.h"
 #include "d3dviewport.h"
+#include "../frontend/lobbysky.h"
 
 using namespace d3dresult;
 
@@ -66,11 +67,11 @@ bool Build(u8 *self, u32 flags) {
         return false;
     }
     logged((u32)&gText_D3dsetup_7689b0);
-    noted(0x00768998);
+    noted((u32)&gText_D3dsetup_768998);
     keep(comcall<u32>(draw, 0, 0x00707520u, self + 4));
     if (result()) return false;
     if (flags & 0x10) {
-        logged(0x00768988);
+        logged((u32)&gText_D3dsetup_768988);
         u32 format[8];
         ZeroDwords(format, 8);
         format[1] = 0x400;
@@ -172,7 +173,7 @@ u32 __fastcall D3dSetup_Clear(u8 *base) {
     rect[3] = rect[1] + global<s32>(0x008bcbec);
     u32 targets = (caps & 0x80000000u) ? 0 : 1;
     if (at<u32>(base - 8, 0) & 0x10) targets |= 2;
-    const u32 colour = (caps & 0x4002000) ? global<u32>(0x008bd47c) : 0;
+    const u32 colour = (caps & 0x4002000) ? gLobbysky_8bd47c : 0;
     keep(comcall<u32>(at<u8 *>(base - kVirtualBase, 0xc), 0x50, 1u, rect, targets, colour, 0x3f800000u, 0u));
     return pushed(2);
 }

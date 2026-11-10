@@ -305,3 +305,49 @@ u32 __fastcall Online_UnpublishPark(u8 *session, void *, u32 park);
 // with that request gets +0x18 = the error, +0x14 = 0, +0x10 = 1. Other codes do nothing.
 void __fastcall Online_ListAnswered(u8 *session, void *, s32 code, s32 request, u32, u8 *data);
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(char[32], gSession_7733d0, 0x007733d0, 0x20);
+GAME_DATA(char[36], gSession_7733f0, 0x007733f0, 0x24);
+GAME_DATA(char[36], gOnline_ReleaseLogin_77345c, 0x0077345c, 0x24);
+GAME_DATA(char[32], gOnline_LoginResult_773480, 0x00773480, 0x20);
+GAME_DATA(char[28], gOnline_ListAnswered_773584, 0x00773584, 0x1c);
+GAME_DATA(char[24], gOnline_ListAnswered_7735a0, 0x007735a0, 0x18);
+GAME_DATA(char[48], gOnline_ListAnswered_7735b8, 0x007735b8, 0x30);
+GAME_DATA(char[40], gOnline_ListAnswered_7735e8, 0x007735e8, 0x28);
+GAME_DATA(char[52], gOnline_ListAnswered_773610, 0x00773610, 0x34);
+GAME_DATA(char[40], gOnline_ListAnswered_773644, 0x00773644, 0x28);
+GAME_DATA(char[52], gOnline_ListAnswered_77366c, 0x0077366c, 0x34);
+GAME_DATA(char[40], gOnline_ListAnswered_7736a0, 0x007736a0, 0x28);
+GAME_DATA(char[64], gOnline_ListAnswered_7736c8, 0x007736c8, 0x40);
+GAME_DATA(char[56], gOnline_ListAnswered_773708, 0x00773708, 0x38);
+GAME_DATA(char[48], gOnline_ListAnswered_773740, 0x00773740, 0x30);
+GAME_DATA(char[48], gOnline_ListAnswered_773770, 0x00773770, 0x30);
+GAME_DATA(char[44], gOnline_ListAnswered_7737a0, 0x007737a0, 0x2c);
+GAME_DATA(char[48], gOnline_ListAnswered_7737cc, 0x007737cc, 0x30);
+GAME_DATA(char[48], gOnline_ListAnswered_7737fc, 0x007737fc, 0x30);
+GAME_DATA(char[40], gOnline_ListAnswered_77382c, 0x0077382c, 0x28);
+GAME_DATA(char[24], gOnline_OpenCity_773854, 0x00773854, 0x18);
+GAME_DATA(char[36], gSession_77386c, 0x0077386c, 0x24);
+GAME_DATA(char[32], gOnline_OpenCity_773890, 0x00773890, 0x20);
+GAME_DATA(char[32], gOnline_OpenCity_7738b0, 0x007738b0, 0x20);
+GAME_DATA(char[48], gOnline_UploadStart_7738d0, 0x007738d0, 0x30);
+GAME_DATA(char[36], gOnline_UploadStart_773900, 0x00773900, 0x24);
+GAME_DATA(char[28], gOnline_UploadStart_773924, 0x00773924, 0x1c);
+GAME_DATA(char[64], gOnline_UploadStart_773940, 0x00773940, 0x40);
+GAME_DATA(char[36], gOnline_UploadEvent_773980, 0x00773980, 0x24);
+GAME_DATA(char[56], gOnline_UploadEvent_7739a4, 0x007739a4, 0x38);
+GAME_DATA(char[28], gOnline_UploadConnect_7739dc, 0x007739dc, 0x1c);
+GAME_DATA(char[36], gOnline_UploadConnect_7739f8, 0x007739f8, 0x24);
+GAME_DATA(char[36], gOnline_UploadConnect_773a1c, 0x00773a1c, 0x24);
+GAME_DATA(char[64], gOnline_DownloadStart_773a40, 0x00773a40, 0x40);
+GAME_DATA(char[12], gSession_773a80, 0x00773a80, 0xc);
+GAME_DATA(char[40], gSession_773a8c, 0x00773a8c, 0x28);
+GAME_DATA(char[4], gSession_773ab4, 0x00773ab4, 0x4);
+GAME_DATA(char[40], gOnline_DownloadEvent_773ab8, 0x00773ab8, 0x28);
+GAME_DATA(char[32], gOnline_DownloadEvent_773ae0, 0x00773ae0, 0x20);
+GAME_DATA(char[60], gOnline_DownloadNext_773b00, 0x00773b00, 0x3c);
+GAME_DATA(char[40], gOnline_DownloadNext_773b3c, 0x00773b3c, 0x28);
+GAME_DATA(char[44], gOnline_DownloadNext_773b64, 0x00773b64, 0x2c);

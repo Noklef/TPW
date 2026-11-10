@@ -10,6 +10,7 @@
 #include "string.h"
 #include "trivial.h"
 #include "wtraits.h"
+#include "../ui/window7cc8c0handler.h"
 
 extern "C" u32 __cdecl CRT_wcslen(const u16 *text);   // (online/chatlists)
 
@@ -373,7 +374,7 @@ u8 *__fastcall WScanner_Construct(u8 *scanner, void *, u8 *tokens, StdWString *o
         StdString_Tidy(reinterpret_cast<StdString *>(token), nullptr, 1);
     }
     at<u8 *>(tokens, 8) = first;
-    const u16 *const text = reinterpret_cast<const u16 *>(0x0078a374);
+    const u16 *const text = reinterpret_cast<const u16 *>(gWindow7cc8c0handler_78a374);
     u32 n = 0;
     while (text[n])
         ++n;
@@ -441,7 +442,7 @@ u8 __fastcall WScanner_Keyword06(u8 *scanner) {
     if (WScanner_NextToken(scanner, nullptr, &word)) {
         pushCopy(scanner, &word);
     } else {   // (the rest below then throws in the game: the position is past the text's end)
-        const u16 *const text = reinterpret_cast<const u16 *>(0x0078a374);
+        const u16 *const text = reinterpret_cast<const u16 *>(gWindow7cc8c0handler_78a374);
         u32 n = 0;
         while (text[n]) ++n;
         StdWString copy{};

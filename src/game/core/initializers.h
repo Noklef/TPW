@@ -246,3 +246,9 @@ u8 *__fastcall Class6fefc8_DeletingDtor(u8 *object, void *, u32 flags);
 // 0x6175c0 (thiscall): Class7037e8_Ctor, then +0x6c, +0x70, +0x74, +0x78 and +0x80 cleared, +0x84 = 0x703730 and the vtable +0 = 0x703710. Returns the object.
 u8 *__fastcall Class703710_Ctor(u8 *object);
 }  // extern "C"
+
+#include "gamedata.h"
+
+// Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(u32, gInitializers_f827ec, 0x00f827ec, 0x4);
+GAME_DATA(u32, gInitializers_f827f0, 0x00f827f0, 0x4);

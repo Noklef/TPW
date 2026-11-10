@@ -14,6 +14,10 @@
 #include "window.h"
 #include "window7059f0.h"
 #include "window705a50.h"
+#include "../online/chatcommand.h"
+#include "window7cc8c0handler.h"
+#include "../coaster/arreplayaction.h"
+#include "dialog7cc944.h"
 
 extern "C" const u16 *__cdecl Language_WideText(u32 id);
 
@@ -44,8 +48,8 @@ u8 *Made(u32 holder, u32 size, u8 *(__fastcall *ctor)(u8 *)) {
     }
     return global<u8 *>(holder);
 }
-u8 *Save() { return Made(0x00f7c58c, 0x50, g_env->saveCtor); }
-u8 *Online() { return Made(0x00f7d88c, 0x404, g_env->onlineCtor); }
+u8 *Save() { return Made(reinterpret_cast<uintptr_t>(&gArreplayaction_f7c58c), 0x50, g_env->saveCtor); }
+u8 *Online() { return Made(reinterpret_cast<uintptr_t>(&gChatcommand_f7d88c), 0x404, g_env->onlineCtor); }
 
 }  // namespace
 
@@ -55,8 +59,8 @@ void Dialog7cc944List_SetEnv(const Dialog7cc944ListEnv *env) { g_env = env ? env
 
 void __cdecl Dialog7cc944_FillList(const u8 *reply) {
     const Dialog7cc944ListEnv *const E = g_env;
-    if (!global<u8 *>(0x007cc944)) return;
-    u8 *const list = Window_FindChild(global<u8 *>(0x007cc944), nullptr, 0xe05b);
+    if (!gDialog7cc944_7cc944) return;
+    u8 *const list = Window_FindChild(gDialog7cc944_7cc944, nullptr, 0xe05b);
     E->clear(list);
     u32 count = at<u32>(reply, 0xc);
     const u8 *node = at<const u8 *>(reply, 4);
@@ -66,8 +70,8 @@ void __cdecl Dialog7cc944_FillList(const u8 *reply) {
     u32 row[6];
     if (!count) {
         row[0] = reinterpret_cast<u32>(E->wideText(0x133));
-        row[1] = 0x0078a374;
-        row[2] = 0x0078a374;
+        row[1] = reinterpret_cast<uintptr_t>(&gWindow7cc8c0handler_78a374);
+        row[2] = reinterpret_cast<uintptr_t>(&gWindow7cc8c0handler_78a374);
         row[3] = 0;
         row[4] = 0;
         row[5] = 0;
@@ -105,7 +109,7 @@ void __cdecl Dialog7cc944_FillList(const u8 *reply) {
             WString_Dtor(&label);
         }
     }
-    E->setState(Window_FindChild(global<u8 *>(0x007cc944), nullptr, 0xe059), nullptr, 0, 1);
+    E->setState(Window_FindChild(gDialog7cc944_7cc944, nullptr, 0xe059), nullptr, 0, 1);
     if (text.ptr) {
         u8 *const refs = reinterpret_cast<u8 *>(text.ptr) - 1;
         if (*refs == 0 || *refs == 0xff)

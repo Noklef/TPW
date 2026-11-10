@@ -156,11 +156,11 @@ bool sameSub(const StdWString *a, const StdWString *b) {
 u8 *makeSession() {
     u8 *const block = static_cast<u8 *>(GameHeap_Alloc(0x404));
     u8 *const session = block ? g_env->makeSession(block) : nullptr;
-    global<u8 *>(0x00f7d88c) = session;
+    gChatcommand_f7d88c = session;
     return session;
 }
 u8 *session() {
-    u8 *const s = global<u8 *>(0x00f7d88c);
+    u8 *const s = gChatcommand_f7d88c;
     return s ? s : makeSession();
 }
 
@@ -180,18 +180,18 @@ void vote(u8 *avatar) {
     if (at<u32>(Owner2c_FindByKey(at<u8 *>(session(), 0xe0), nullptr, key), 0x60))
         return;
     if (at<u32>(avatar, 0xec4)) {
-        debugLine(0x0075c61c);
+        debugLine(reinterpret_cast<uintptr_t>(&gChatcommand_75c61c));
         return;
     }
     u32 guid[4];
-    for (u32 k = 0; k < 4; ++k) guid[k] = global<u32>(0x007005d8 + 4 * k);
+    for (u32 k = 0; k < 4; ++k) guid[k] = gChatcommand_7005d8[k];
     u8 *const block = static_cast<u8 *>(GameHeap_Alloc(0xc));
     using Ctor = u32(__fastcall *)(u8 *, void *);
     const u32 made = block ? (*reinterpret_cast<const Ctor *>((uintptr_t)0x006fd5f4))(block, nullptr) : 0;
     at<u32>(avatar, 0xec4) = made;
     if (!made)
         return;
-    debugLine(0x0075c600);
+    debugLine(reinterpret_cast<uintptr_t>(&gChatcommand_75c600));
     Window7cc8bc_SetC3129(1);
     const char *host = global<const char *>(0x007a1544);
     if (!host) host = reinterpret_cast<const char *>(0x006fe5b0);
@@ -200,8 +200,8 @@ void vote(u8 *avatar) {
     using Connect = u32(__fastcall *)(u32, void *, const char *, u32, u32, u32);
     if ((*reinterpret_cast<const Connect *>((uintptr_t)0x006fd5f8))(at<u32>(avatar, 0xec4), nullptr, host, pick, port, 0x004e4fc0) != 1)
         return;
-    debugLine(0x0075c5f0);
-    u8 *s = global<u8 *>(0x00f7d88c);   // (made up to three times: twice, then once more for the third getter)
+    debugLine(reinterpret_cast<uintptr_t>(&gChatcommand_75c5f0));
+    u8 *s = gChatcommand_f7d88c;   // (made up to three times: twice, then once more for the third getter)
     if (!s && !(s = makeSession()))
         s = makeSession();
     u8 *const first = s;
@@ -215,13 +215,13 @@ void vote(u8 *avatar) {
     const u32 y = at<u32>(reinterpret_cast<u8 *>((uintptr_t)Obj_Get3a4(session())), 8);
     using Send = u32(__fastcall *)(u32, void *, u32, u32 *, u32, u32);
     (*reinterpret_cast<const Send *>((uintptr_t)0x006fd600))(at<u32>(avatar, 0xec4), nullptr, y, guid, 1, 0);
-    debugLine(0x0075c5e4);
+    debugLine(reinterpret_cast<uintptr_t>(&gChatcommand_75c5e4));
 }
 
 // 0x13: Goto.
 void gotoName(u8 *avatar, const u8 *tokens) {
     if (at<u8>(avatar, 0xef8) == 1) {
-        debugLine(0x0075c418);
+        debugLine(reinterpret_cast<uintptr_t>(&gChatcommand_75c418));
         return;
     }
     if (count(tokens) <= 1) {
@@ -609,7 +609,7 @@ void __fastcall ChatAvatar_RunCommand(u8 *avatar, void *, const u8 *tokens) {
             StdWString own;
             ownAndKey(avatar, tokens, &key, &own);
             if (WStdString_Compare(&key, nullptr, &own) == 0) {
-                debugLine(0x0075c680);
+                debugLine(reinterpret_cast<uintptr_t>(&gChatAvatar_RunCommand_75c680));
                 notice(avatar, 0xb1);
             } else if (hasText(tokens, 1)) {
                 tellText(0x006fd484, avatar, tokens, 1);
@@ -625,7 +625,7 @@ void __fastcall ChatAvatar_RunCommand(u8 *avatar, void *, const u8 *tokens) {
             StdWString key, own;
             ownAndKey(avatar, tokens, &key, &own);
             if (WStdString_Compare(&key, nullptr, &own) == 0) {
-                debugLine(0x0075c660);
+                debugLine(reinterpret_cast<uintptr_t>(&gChatAvatar_RunCommand_75c660));
                 notice(avatar, 0xb0);
             } else if (hasText(tokens, 1)) {
                 tellText(0x006fd4a0, avatar, tokens, 1);

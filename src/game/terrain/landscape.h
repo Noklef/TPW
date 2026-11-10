@@ -121,3 +121,6 @@ GAME_DATA(const float, gLandscape_701f88, 0x00701f88, 0x4);
 GAME_DATA(const float, gLandscape_701f94, 0x00701f94, 0x4);
 GAME_DATA(u32, gLandscapeMatrixGuard_fb3440, 0x00fb3440, 0x4);
 GAME_DATA(float[16], gLandscapeMatrix_fb3460, 0x00fb3460, 0x40);
+GAME_DATA(char[16], gText_Landscape_LoadSky_768d80, 0x00768d80, 0x10);
+GAME_DATA(char[16], gText_Landscape_LoadSky_768d90, 0x00768d90, 0x10);
+GAME_DATA(char[12], gText_Landscape_LoadSky_768da0, 0x00768da0, 0xc);

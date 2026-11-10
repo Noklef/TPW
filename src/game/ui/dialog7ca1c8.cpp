@@ -21,6 +21,7 @@
 #include "window.h"
 #include "windowreg.h"
 #include "windowscript.h"
+#include "panel7b9940.h"
 
 namespace {
 
@@ -53,7 +54,7 @@ u8 *newBaseMode() {
 
 // MouseModes_EnsureHolder, inline in the original.
 void ensureHolder() {
-    u8 *&holder = *reinterpret_cast<u8 **>((uintptr_t)0x007b05e8);
+    u8 *&holder = gPanel7b9940_7b05e8;
     if (holder) return;
     u8 *const block = static_cast<u8 *>(g_reset->alloc(1));
     if (block) {
@@ -68,7 +69,7 @@ void ensureHolder() {
 void Dialog7ca1c8_SetResetEnv(const Dialog7ca1c8ResetEnv *env) { g_reset = env ? env : &kResetGameEnv; }
 
 void __cdecl Dialog7ca1c8_ResetMouseMode() {
-    *reinterpret_cast<u32 *>((uintptr_t)0x007ca1d0) = 0;
+    *reinterpret_cast<u32 *>(&gDialog7ca1c8_7ca1d0) = 0;
     if (g_reset->mode() == 3) return;
     ensureHolder();
     u8 *const current = *reinterpret_cast<u8 **>((uintptr_t)0x007b05d8);
@@ -126,7 +127,7 @@ void button(u32 a, u32 b) {
 
 void fire(u32(__fastcall *call)(u8 *, void *, u32, u32), u32 a, u32 b) {
     const u32 third = (b >> 16) & 0xff;
-    if (!call(*reinterpret_cast<u8 **>((uintptr_t)0x00787c14), nullptr, a, third)) call(*reinterpret_cast<u8 **>((uintptr_t)0x00787294), nullptr, a, third);
+    if (!call(gKeymap_787c14, nullptr, a, third)) call(gKeymap_787294, nullptr, a, third);
 }
 }  // namespace
 
@@ -137,7 +138,7 @@ extern "C" {
 s32 __cdecl Dialog7ca1c8_Handler(u8 *window, u32 message, u32 a, u32 b) {
     switch (message) {
     case 0x14: *reinterpret_cast<u32 *>((uintptr_t)0x007ca1c8) = 0; break;
-    case 0x1d: *reinterpret_cast<u8 *>((uintptr_t)0x007ca1d4) = a == 1; break;
+    case 0x1d: gDialog7ca1c8_7ca1d4 = a == 1; break;
     case 0x101:
         if (a - 0x19 <= 8) button(a, b);
         break;
@@ -164,9 +165,9 @@ void __cdecl Dialog7ca1c8_Hide() {
 }
 
 void __cdecl Dialog7ca1c8_OpenFor(u8 *thing) {
-    if (global<u32>(0x007ca1cc) && global<u8 *>(0x007ca1d0) == thing) return;
-    if (global<u8>(0x007ca1d4)) return;
-    global<u8 *>(0x007ca1d0) = thing;
+    if (global<u32>(0x007ca1cc) && gDialog7ca1c8_7ca1d0 == thing) return;
+    if (gDialog7ca1c8_7ca1d4) return;
+    gDialog7ca1c8_7ca1d0 = thing;
     Global7c2654_Set((u32)(uintptr_t)thing);
     g_open->focusCell(1);
     if (!global<u32>(0x00785a2c)) {
@@ -178,7 +179,7 @@ void __cdecl Dialog7ca1c8_OpenFor(u8 *thing) {
     if (!g_open->linkOpen(thing)) {
         g_open->enterTile();
     } else {
-        g_open->editRide(global<u8 *>(0x007ca1d0), 1);
+        g_open->editRide(gDialog7ca1c8_7ca1d0, 1);
         g_open->ensureMode();
         g_open->cursor(0xc);
         Global7c2654_Set((u32)(uintptr_t)thing);
@@ -199,7 +200,7 @@ void __cdecl Dialog7ca1c8_SetChecks(u32 flags) {
     u8 *const panel = Window_FindChild(global<u8 *>(0x007ca1c8), nullptr, 0x18);
     setCheck(panel, 0x1f, (flags & 1) != 0);
     bool second = (flags & 2) != 0;
-    if (second && at<u8>(global<u8 *>(0x007ca1d0), 0x50) == 0) second = false;
+    if (second && at<u8>(gDialog7ca1c8_7ca1d0, 0x50) == 0) second = false;
     setCheck(panel, 0x20, second);
     setCheck(panel, 0x1b, (flags & 4) != 0);
     setCheck(panel, 0x19, (flags & 8) != 0);
@@ -242,7 +243,7 @@ void __cdecl Dialog7ca1c8_UpdateLoopButton() {
     u8 *const button = Window_FindChild(Window_FindChild(global<u8 *>(0x007ca1c8), nullptr, 0x18), nullptr, 0x20);
     using Show = void(__fastcall *)(u8 *, void *, u32);
     const auto show = [button](u32 on) { reinterpret_cast<Show>(at<void **>(button, 0)[5])(button, nullptr, on); };
-    if (at<u8>(global<u8 *>(0x007ca1d0), 0x50) == 0) {
+    if (at<u8>(gDialog7ca1c8_7ca1d0, 0x50) == 0) {
         Window_SetObject98(button, nullptr, nullptr);
         show(0);
         return;

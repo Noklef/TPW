@@ -111,11 +111,11 @@ void __stdcall OnlineChat_QueueCallback(u32 code, u32, u32, u32) {
         CountedBuf_Reset(reinterpret_cast<u8 *>(&pair.wide), nullptr, 1);
         StdString_Tidy(&pair.narrow, nullptr, 1);
     }
-    u8 *chat = *reinterpret_cast<u8 **>((uintptr_t)0x007cddec);
+    u8 *chat = gChat_7cddec;
     if (!chat) {
         u8 *const block = static_cast<u8 *>(GameHeap_Alloc(0xf0c));
         chat = block ? OnlineChat_Ctor(block) : nullptr;
-        *reinterpret_cast<u8 **>((uintptr_t)0x007cddec) = chat;
+        gChat_7cddec = chat;
     }
     queueVector(chat, vec);
     const u32 first = at<u32>(vec, 4), last = at<u32>(vec, 8);

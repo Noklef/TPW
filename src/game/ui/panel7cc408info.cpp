@@ -11,6 +11,7 @@
 #include "../world/person.h"
 #include "hoverlabel.h"
 #include "window.h"
+#include "panel7cc218.h"
 
 namespace {
 
@@ -34,7 +35,7 @@ void show(u8 *page, u32 id, u32 value) {
 void Panel7cc408Info_SetEnv(const Panel7cc408InfoEnv *env) { g_env = env ? env : &kGameEnv; }
 
 void __fastcall Panel7cc408_ShowVisitor(u8 *self) {
-    const u8 *const visitor = global<const u8 *>(0x007c2658);
+    const u8 *const visitor = gPanel7cc218_7c2658;
     if (!visitor) {
         vcall<void>(self, 0x2c);
         return;

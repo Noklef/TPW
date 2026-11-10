@@ -19,6 +19,7 @@
 #include "window.h"
 #include "window7059f0.h"
 #include "window7059f0texts.h"
+#include "dialog7ca168.h"
 
 namespace {
 
@@ -28,7 +29,7 @@ const Dialog7ca168HandlerEnv kGameEnv = {&Window_SendMessage, &Window7059f0_NthI
                                          &Game_CancelAdvisor, &Dialog7cb398_Create, &Dialog7ca150_Open, &Dialog7ca13c_Open, &Thing_GetHandle, &Camera_CentreOnThing, &Panel7cc3b0_Show};
 const Dialog7ca168HandlerEnv *g_env = &kGameEnv;
 
-u8 *&dialog() { return global<u8 *>(0x007ca168); }
+u8 *&dialog() { return gDialog7ca168_7ca168; }
 
 void UpdateRows() {
     u8 *const list = Window_FindChild(dialog(), nullptr, 0x321);
@@ -112,7 +113,7 @@ s32 __cdecl Dialog7ca168_WindowHandler(u8 *window, u32 message, u32 a, u32 b) {
         break;
     }
     case 0x406:
-        global<u32>(0x0075118c) = b;
+        reinterpret_cast<u32 &>(gDialog7ca168_75118c) = b;
         break;
     default:
         break;

@@ -27,8 +27,8 @@ const SaveDialogCreateEnv kGameEnv = {game<void(__fastcall *)(u8 *, void *, u32,
                                       &Window7059f0_SetHighlight, &LoadDialog_FillList, &SaveDialog_FillList, &TextPart6ff4d0_Ctor, &Window_SetImpl, &Window_Set4c, &Language_Font, &Window705a20_SetBuffer, &Window705a20_SetCaret, &Fn_66781a, &KeyMaps_ResetAllAndSetFlag};
 const SaveDialogCreateEnv *g_env = &kGameEnv;
 
-const u32 kLoadDialog = 0x007cb244;
-const u32 kSaveDialog = 0x007cb248;
+const u32 kLoadDialog = reinterpret_cast<uintptr_t>(&gSavedialog_7cb244);
+const u32 kSaveDialog = reinterpret_cast<uintptr_t>(&gSavedialog_7cb248);
 const char *hilight() { return reinterpret_cast<const char *>((uintptr_t)0x0074fa84); }
 
 // The controls off and any other window gone; the dialog made in its global, with its label.
@@ -74,7 +74,7 @@ void __cdecl SaveDialog_Create() {
     u8 *const memory = static_cast<u8 *>(GameHeap_Alloc(0x1a4));
     g_env->setImpl(edit, nullptr, memory ? g_env->part(memory, nullptr, 0) : nullptr);
     g_env->set4c(edit, nullptr, g_env->font(7));
-    g_env->setBuffer(edit, nullptr, 0x007ca720, 0xf);
+    g_env->setBuffer(edit, nullptr, reinterpret_cast<uintptr_t>(&gSavedialog_7ca720), 0xf);
     g_env->setCaret(edit, nullptr, reinterpret_cast<u8 *>((uintptr_t)g_env->findByName(hilight())));
     const u32 text = static_cast<u32>(reinterpret_cast<uintptr_t>(g_env->wideText(0xce)));
     vcall<void>(edit, 0x24, text);

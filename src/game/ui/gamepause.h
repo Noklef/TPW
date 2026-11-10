@@ -47,3 +47,11 @@ void __cdecl GamePause_RemakePicture();
 // ParticlePool2_Finish, 0x5996d0(1), the flag 0x7cc190 1 and the countdown 0x7cc150 3.
 void __cdecl GamePause_Hide();
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(s32, gGamepause_7cc150, 0x007cc150, 0x4);
+GAME_DATA(u32, gGamepause_7cc190, 0x007cc190, 0x4);
+GAME_DATA(u8, gGamePause_Resume_7cc194, 0x007cc194, 0x1);
+GAME_DATA(u8, gGamepause_fb34bf, 0x00fb34bf, 0x1);

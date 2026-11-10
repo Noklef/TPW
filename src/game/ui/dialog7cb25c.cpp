@@ -27,10 +27,12 @@
 #include "window7059f0.h"
 #include "windowreg.h"
 #include "windowscript.h"
+#include "dialog74fb20.h"
+#include "panel7b9940.h"
 
 namespace {
 
-u8 *dialog() { return *reinterpret_cast<u8 **>((uintptr_t)0x007cb25c); }
+u8 *dialog() { return gDialog7cb25c_7cb25c; }
 
 const Dialog7cb25cOpenEnv kOpenGameEnv = {reinterpret_cast<s32(__cdecl *)(void(__cdecl *)())>((uintptr_t)0x0067a7d0), &HoverLabel_Attach, &Money_LoanOffer,
                                           &Window7059f0_BuildRows, &Dialog7cb25c_FillList, &RadioGroup_Select, &Dialog7cb25c_SetTexts};
@@ -88,7 +90,7 @@ s32 __cdecl Dialog7cb25c_Handler(u8 *window, u32 message, u32 a, u32 b) {
         g_handler->send(dialog(), 4, 0, 0);
         return 1;
     case 0x14:
-        *reinterpret_cast<u8 **>((uintptr_t)0x007cb25c) = nullptr;
+        gDialog7cb25c_7cb25c = nullptr;
         g_handler->cancel(0xc3);
         break;
     case 0x100:
@@ -127,18 +129,18 @@ s32 __cdecl Dialog7cb25c_Handler(u8 *window, u32 message, u32 a, u32 b) {
 
 void __cdecl Dialog7cb25c_Open() {
     if (dialog()) return;
-    u8 &guard = *reinterpret_cast<u8 *>((uintptr_t)0x00fb34c2);
+    u8 &guard = gDialog7cb25c_fb34c2;
     if (!(guard & 1)) {
         guard |= 1;
-        Setting_ReadMode(reinterpret_cast<u8 *>((uintptr_t)0x00fb3b7c));
+        Setting_ReadMode(reinterpret_cast<u8 *>(&gDialog74fb20_fb3b7c));
         g_open->atExit(reinterpret_cast<void(__cdecl *)()>((uintptr_t)0x005d1750));
     }
-    if (*reinterpret_cast<u32 *>((uintptr_t)0x00fb3b7c) == 2) return;
+    if (gDialog74fb20_fb3b7c == 2) return;
     Window7c24c8_Close();
     Global7cb28c_Select(3, 8);
-    u8 *const built = WindowScript_Build(*reinterpret_cast<u8 **>((uintptr_t)0x007cb2ac), nullptr, reinterpret_cast<u8 *>((uintptr_t)0x007525a0), 0x0049f4e0);
+    u8 *const built = WindowScript_Build(gPanel7b9940_7cb2ac, nullptr, reinterpret_cast<u8 *>((uintptr_t)0x007525a0), 0x0049f4e0);
     if (!built) return;
-    *reinterpret_cast<u8 **>((uintptr_t)0x007cb25c) = built;
+    gDialog7cb25c_7cb25c = built;
     Window7c24c8_Set(built);
     g_open->attach(dialog(), 0x12c4ca, (u32)(uintptr_t)Language_WideText(0xaa));
     if (u8 *const figures = Window_FindChild(dialog(), nullptr, 0x12c4c1)) {
@@ -180,7 +182,7 @@ void __cdecl Dialog7cb25c_Open() {
     static const struct {
         u32 id, text, value;
     } kButtons[3] = {{0x10, 0xac, 0xde}, {0x13, 0xaf, 0xe1}, {0x14, 0xb0, 0xe2}};
-    u32 &font = *reinterpret_cast<u32 *>((uintptr_t)0x00752938);
+    u32 &font = gDialog7cb25c_Open_752938;
     for (const auto &button : kButtons) {
         u8 *const child = Window_FindChild(list, nullptr, button.id);
         ButtonText_Init(child, (u32)(uintptr_t)Language_WideText(button.text), font, 0xff, 0xef, 0, button.value);
@@ -188,7 +190,7 @@ void __cdecl Dialog7cb25c_Open() {
     static const u32 kBlank[3] = {0x11, 0x12, 0x15};
     for (u32 id : kBlank) ButtonText_Init(Window_FindChild(list, nullptr, id), 0, font, 0xff, 0xef, 0, 0xffffffff);
     u8 *const group = Window_FindChild(list, nullptr, 0x12c4be);
-    g_open->selectRadio(group, nullptr, *reinterpret_cast<u32 *>((uintptr_t)0x007cb260) ? 0x12c4bf : 0x12c4c0);
+    g_open->selectRadio(group, nullptr, gDialog7cb25c_7cb260 ? 0x12c4bf : 0x12c4c0);
     g_open->setTexts();
     Advisor_PostId(0xc3);
 }
@@ -198,7 +200,7 @@ void __cdecl Dialog7cb25c_SetTexts() {
     u8 *const panel = Window_FindChild(dialog(), nullptr, 0x12c4bd);
     static const u32 kPlain[3][3] = {{0x11, 0xae, 0xdf}, {0x12, 0xad, 0xe0}, {0x15, 0xb1, 0xe3}};
     static const u32 kFlagged[3][3] = {{0x11, 0xb2, 0xe5}, {0x12, 0xb3, 0xe6}, {0x15, 0xb4, 0xe7}};
-    const bool flagged = *reinterpret_cast<u32 *>((uintptr_t)0x007cb260) != 0;
+    const bool flagged = gDialog7cb25c_7cb260 != 0;
     for (const auto &row : flagged ? kFlagged : kPlain) {
         u8 *const child = Window_FindChild(panel, nullptr, row[0]);
         Window_NotifyImpl100(child, nullptr, (u32)(uintptr_t)Language_WideText(row[1]));
@@ -216,7 +218,7 @@ void __cdecl Dialog7cb25c_FillList(u8 *list) {
         const u32 *const got = Money_LoanOffer(reinterpret_cast<u8 *>((uintptr_t)GameTable7cfb90_Get1da726_5195d0(
                                                    *reinterpret_cast<u8 **>((uintptr_t)0x007cf83c))), nullptr, offer, i);
         for (u32 k = 0; k < 8; k++) offer[k] = got[k];
-        const u32 flag = *reinterpret_cast<const u32 *>((uintptr_t)0x007cb260);
+        const u32 flag = gDialog7cb25c_7cb260;
         u32 data;
         u32 left;   // (the months left: the term, less those paid for a loan taken)
         if (flag == 0 && offer[5] == 0 && offer[0] != 0) {
@@ -235,13 +237,13 @@ void __cdecl Dialog7cb25c_FillList(u8 *list) {
 }
 
 void __cdecl Dialog7cb25c_Refresh() {
-    if (dialog() && *reinterpret_cast<const u32 *>((uintptr_t)0x007cb260) == 1)
+    if (dialog() && gDialog7cb25c_7cb260 == 1)
         Dialog7cb25c_FillList(Window_FindChild(dialog(), nullptr, 0x12c4bd));
 }
 
 s32 __cdecl Dialog7cb25c_ListProc(u8 *list, u32 message, u32 a, u32 b) {
     if (message != 0x15 && message == 0x101 && b == 1) {
-        *reinterpret_cast<u32 *>((uintptr_t)0x007cb260) = a == 0x12c4bf ? 1 : 0;
+        gDialog7cb25c_7cb260 = a == 0x12c4bf ? 1 : 0;
         Dialog7cb25c_FillList(list);
         Dialog7cb25c_SetTexts();
     }

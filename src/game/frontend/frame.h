@@ -60,3 +60,10 @@ u32 __fastcall Class7029f0_Close(u8 *frame);
 // +0xc, the flag cleared; else its +4, after the dialog 0x7cb3f8 when the user slots' +0x60 is -1. Last slot 7 of its +0x14. Returns +0x14.
 u32 __fastcall Frame_Start(u8 *frame);
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(u8 *, gFrame_f83774, 0x00f83774, 0x4);
+GAME_DATA(u8 *, gFrame_f83778, 0x00f83778, 0x4);
+GAME_DATA(u8 *, gFrame_f83784, 0x00f83784, 0x4);

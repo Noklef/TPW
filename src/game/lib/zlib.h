@@ -164,9 +164,18 @@ void exe_message(z_stream_s *z, const char *before);
 #include "../core/gamedata.h"
 
 // Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(char[16], gText_Zlib_779a88, 0x00779a88, 0x10);
 GAME_DATA(char[24], gText_Zlib_779a98, 0x00779a98, 0x18);
 GAME_DATA(char[24], gText_Zlib_779ab0, 0x00779ab0, 0x18);
+GAME_DATA(char[20], gText_Zlib_779ac8, 0x00779ac8, 0x14);
 GAME_DATA(char[28], gText_Zlib_779adc, 0x00779adc, 0x1c);
+GAME_DATA(char[24], gText_Zlib_779b38, 0x00779b38, 0x18);
+GAME_DATA(char[16], gText_Zlib_779b50, 0x00779b50, 0x10);
+GAME_DATA(char[20], gText_Zlib_779b60, 0x00779b60, 0x14);
+GAME_DATA(char[12], gText_Zlib_779b74, 0x00779b74, 0xc);
+GAME_DATA(char[16], gText_Zlib_779b80, 0x00779b80, 0x10);
+GAME_DATA(char[12], gText_Zlib_779b90, 0x00779b90, 0xc);
+GAME_DATA(char[12], gText_Zlib_779b9c, 0x00779b9c, 0xc);
 GAME_DATA(unsigned[6], gZlibStaticLDesc_779ba8, 0x00779ba8, 0x18);
 GAME_DATA(unsigned[6], gZlibStaticDDesc_779bc0, 0x00779bc0, 0x18);
 GAME_DATA(unsigned[5], gZlibStaticBlDesc_779bd8, 0x00779bd8, 0x14);
@@ -175,6 +184,9 @@ GAME_DATA(char[36], gText_Zlib_779c08, 0x00779c08, 0x24);
 GAME_DATA(char[32], gText_Zlib_779c2c, 0x00779c2c, 0x20);
 GAME_DATA(char[20], gText_Zlib_779c4c, 0x00779c4c, 0x14);
 GAME_DATA(char[24], gText_Zlib_77a060, 0x0077a060, 0x18);
+GAME_DATA(char[32], gText_Zlib_77a078, 0x0077a078, 0x20);
+GAME_DATA(char[36], gText_Zlib_77b1a0, 0x0077b1a0, 0x24);
+GAME_DATA(char[40], gText_Zlib_77b1c4, 0x0077b1c4, 0x28);
 GAME_DATA(char[32], gText_Zlib_77b1ec, 0x0077b1ec, 0x20);
 GAME_DATA(char[36], gText_Zlib_77b20c, 0x0077b20c, 0x24);
 GAME_DATA(char[36], gText_Zlib_77b230, 0x0077b230, 0x24);

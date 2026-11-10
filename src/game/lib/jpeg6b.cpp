@@ -8,6 +8,7 @@
 #include <cstdio>
 #include "../render/enginedebug.h"
 
+
 // (jpeglib.h declares the two table allocators with its untagged JQUANT_TBL / JHUFF_TBL, which jpeg6b.h names by tags of its own:
 // jpeglib.h's declarations of them are renamed away here, where nothing calls them)
 #define jpeg_alloc_quant_table jpeglib_h_jpeg_alloc_quant_table

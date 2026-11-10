@@ -4,6 +4,11 @@
 
 #include "gameheap.h"
 #include "string.h"
+#include "../online/chatlists.h"
+#include "../online/chatcommand.h"
+#include "../online/chat.h"
+#include "../ui/windowproc.h"
+#include "../render/screen.h"
 
 namespace {
 
@@ -14,13 +19,13 @@ template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((ui
 const u32 kLanguage = 0x0078b530;
 const u32 kStopped = 2, kStarted = 4;
 
-u32 &Flags() { return global<u32>(0x007a1a14); }
+u32 &Flags() { return gWindowproc_7a1a14; }
 
 // new UserSlots: the constructor's answer, or 0 with no block.
 u32 MakeSlots() {
     void *const block = GameHeap_Alloc(0x110);
     const u32 slots = block ? g_calls.Th(0x005c7420, (u32)(uintptr_t)block) : 0;   // UserSlots_Ctor
-    global<u32>(0x00f81ebc) = slots;
+    reinterpret_cast<u32 &>(gChatlists_f81ebc) = slots;
     return slots;
 }
 
@@ -35,7 +40,7 @@ bool StartGame() {
     g_calls.Th(0x00408470, 0x00786b68u);   // NamedObjects_AddFixedFolders
     g_calls.Cd(0x00449eb0);   // SinTable_BuildGame
     g_calls.Cd(0x00449ec0);   // Screen_Init
-    g_calls.Th(0x0041a5a0, kLanguage, global<u32>(0x007a1968));   // Language_SetFontSet
+    g_calls.Th(0x0041a5a0, kLanguage, gScreen_7a1968);   // Language_SetFontSet
     if (g_calls.Cd(0x0044e080) == 0) return stop();   // GameWindow_Create
     g_calls.Cd(0x0054dcf0);   // Game_Start
     Flags() |= kStarted;
@@ -44,11 +49,11 @@ bool StartGame() {
 
 void Frame() {
     if (!(Flags() & kStarted) && !StartGame()) return;
-    if (global<u32>(0x00f7d88c) == 0) {
+    if (reinterpret_cast<u32 &>(gChatcommand_f7d88c) == 0) {
         void *const block = GameHeap_Alloc(0x404);
-        global<u32>(0x00f7d88c) = block ? g_calls.Th(0x005b50b0, (u32)(uintptr_t)block) : 0;   // Online_Construct
+        reinterpret_cast<u32 &>(gChatcommand_f7d88c) = block ? g_calls.Th(0x005b50b0, (u32)(uintptr_t)block) : 0;   // Online_Construct
     }
-    g_calls.Th(0x005b5bf0, global<u32>(0x00f7d88c));   // Online_Poll (the session in ECX)
+    g_calls.Th(0x005b5bf0, reinterpret_cast<u32 &>(gChatcommand_f7d88c));   // Online_Poll (the session in ECX)
     Flags() |= g_calls.Cd(0x0054e360);   // Game_RunFrame
 }
 
@@ -71,17 +76,17 @@ extern "C" u32 __stdcall Game_WinMain(u32 instance, u32 previous, u32 commandLin
         g_calls.Cd(0x005c0d00, &result);   // Registry_LoadLanguage
         g_calls.Cd(0x005c2ce0, &result, g_calls.Th(0x005c5520, 0x00f816c0u));   // NamedObjects_AddSubfolders of Obj_Self
         g_calls.Cd(0x0045b1f0);   // Options_LoadBalanceFiles
-        if (const u32 slots = global<u32>(0x00f81ebc)) {
+        if (const u32 slots = reinterpret_cast<u32 &>(gChatlists_f81ebc)) {
             g_calls.Th(0x005c74b0, slots);
             GameHeap_Free(reinterpret_cast<void *>((uintptr_t)slots));
         }
-        global<u32>(0x00f81ebc) = 0;
+        reinterpret_cast<u32 &>(gChatlists_f81ebc) = 0;
         g_calls.Th(0x005c7590, MakeSlots());
-        if (const u32 online = global<u32>(0x00f7d88c)) {
+        if (const u32 online = reinterpret_cast<u32 &>(gChatcommand_f7d88c)) {
             g_calls.Th(0x005b5920, online);   // Online_Dtor
             GameHeap_Free(reinterpret_cast<void *>((uintptr_t)online));
         }
-        global<u32>(0x00f7d88c) = 0;
+        reinterpret_cast<u32 &>(gChatcommand_f7d88c) = 0;
         g_calls.Cd(0x00449df0);   // Options_LoadStartup
         Flags() |= 1;
         g_calls.Cd(0x0045ba20);   // GlobalMem_InitUnusedFlag
@@ -91,7 +96,7 @@ extern "C" u32 __stdcall Game_WinMain(u32 instance, u32 previous, u32 commandLin
         String_Dtor(&path);
         global<u32>(0x007a1c5c) = global<u32(__stdcall *)(u32)>(0x006fd350)(0x0074d11c);   // RegisterWindowMessageA ("MSWHEEL_ROLLMSG")
 
-        if (!(global<u8>(0x007a1a14) & kStopped)) {
+        if (!(reinterpret_cast<u8 &>(gWindowproc_7a1a14) & kStopped)) {
             const auto peek = global<u32(__stdcall *)(u32 *, u32, u32, u32, u32)>(0x006fd354);
             const auto translate = global<u32(__stdcall *)(const u32 *)>(0x006fd358);
             const auto dispatch = global<u32(__stdcall *)(const u32 *)>(0x006fd35c);
@@ -106,23 +111,23 @@ extern "C" u32 __stdcall Game_WinMain(u32 instance, u32 previous, u32 commandLin
                     dispatch(message);
                 }
                 if (!quit && (Flags() & 1)) Frame();
-            } while (!quit && !(global<u8>(0x007a1a14) & kStopped));
+            } while (!quit && !(reinterpret_cast<u8 &>(gWindowproc_7a1a14) & kStopped));
         }
     }
 
     g_calls.Cd(0x0051af90);   // Global8023d8_Release
     g_calls.Cd(0x0044a1d0);   // Screen_Shutdown
     g_calls.Cd(0x005503f0);   // Game_Shutdown
-    u32 slots = global<u32>(0x00f81ebc);
+    u32 slots = reinterpret_cast<u32 &>(gChatlists_f81ebc);
     if (!slots) slots = MakeSlots();
     // (the original then makes them again if none: not reachable, the read of +0x60 faults first)
     if (*reinterpret_cast<s32 *>((uintptr_t)slots + 0x60) != -1) {
         g_calls.Th(0x005c8650, slots);
-        if (const u32 chat = global<u32>(0x007cddec)) {
+        if (const u32 chat = reinterpret_cast<u32 &>(gChat_7cddec)) {
             g_calls.Th(0x004e5950, chat);   // ChatClient_Dtor
             GameHeap_Free(reinterpret_cast<void *>((uintptr_t)chat));
         }
-        global<u32>(0x007cddec) = 0;
+        reinterpret_cast<u32 &>(gChat_7cddec) = 0;
     }
     g_calls.Cd(0x0044e560);   // Game_ShutdownEngine
     g_calls.Th(0x00405750, 0x00785de8u);   // GameError_Show

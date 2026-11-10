@@ -35,3 +35,8 @@ u8 *__fastcall WindowScript_Run(u8 *window, void *, u8 *script);
 // (WindowScript_Run); a handler not 0 becomes the last child's when there is one (Window_SetHandler). Returns that child.
 u8 *__fastcall WindowScript_Build(u8 *window, void *, u8 *script, u32 handler);
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(u32, gWindowscript_faa620, 0x00faa620, 0x4);

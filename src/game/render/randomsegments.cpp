@@ -5,6 +5,7 @@
 #include "../core/gameheap.h"
 #include "../core/vdtor.h"
 #include "../math/x87.h"
+#include "../frontend/frame.h"
 
 namespace {
 
@@ -60,7 +61,7 @@ u8 *__fastcall RandomSegments_Ctor(u8 *object) {
     }
     at<u8 *>(object, 8) = block;
     for (u32 i = 0xc; i < 0x28; i += 4) at<u32>(object, i) = 0;
-    const u8 *const source = global<const u8 *>(0x00f83778);
+    const u8 *const source = gFrame_f83778;
     for (u32 i = 0; i < 0xc; i += 4) {
         at<u32>(object, 0x34 + i) = at<u32>(source, 8 + i);
         at<u32>(object, 0x28 + i) = at<u32>(source, 8 + i);

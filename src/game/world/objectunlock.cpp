@@ -18,6 +18,7 @@
 #include "thingmsg.h"
 #include "thingscan.h"
 #include "world.h"
+#include "../ui/dialog74fb20.h"
 
 namespace {
 
@@ -140,10 +141,10 @@ void __fastcall ObjectUnlock_Step(u8 *self) {
     u8 &guard = *reinterpret_cast<u8 *>((uintptr_t)0x00fb34ba);
     if (!(guard & 1)) {
         guard |= 1;
-        g_step->readMode(reinterpret_cast<u8 *>((uintptr_t)0x00fb3b7c));
+        g_step->readMode(reinterpret_cast<u8 *>(&gDialog74fb20_fb3b7c));
         g_step->atExit(reinterpret_cast<void(__cdecl *)()>((uintptr_t)0x005d1750));
     }
-    if (*reinterpret_cast<const u32 *>((uintptr_t)0x00fb3b7c) != 0) return;
+    if (gDialog74fb20_fb3b7c != 0) return;
     g_step->checkThemes(self);
     g_step->checkScores(self);
     g_step->store(*reinterpret_cast<u8 **>((uintptr_t)0x0080239c));

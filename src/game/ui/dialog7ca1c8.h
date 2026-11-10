@@ -110,3 +110,9 @@ void __cdecl Dialog7ca1c8_UpdateLoopButton();
 // (Window_SetDwordA0) and hidden (Window_SetShown(0)); none of it checked.
 void __cdecl Dialog7ca1c8_Create();
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(u8 *, gDialog7ca1c8_7ca1d0, 0x007ca1d0, 0x4);
+GAME_DATA(u8, gDialog7ca1c8_7ca1d4, 0x007ca1d4, 0x1);

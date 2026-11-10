@@ -12,6 +12,7 @@
 #include "objectdefs.h"
 #include "objectmsg.h"
 #include "world.h"
+#include "../ui/panel7cc218.h"
 
 namespace {
 
@@ -71,7 +72,7 @@ u32 __cdecl Object_Status(u8 *object, s32 count) {
 }
 
 u32 __fastcall ObjectStatus_ShowOnPanel(u8 *panel) {
-    const u32 shown = *reinterpret_cast<const u32 *>(0x007c2658);
+    const u32 shown = *reinterpret_cast<const u32 *>(&gPanel7cc218_7c2658);
     if (shown == 0) return 0;
     u8 *const window = at<u8 *>(panel, 0x1c);
     if (window == nullptr) return shown;

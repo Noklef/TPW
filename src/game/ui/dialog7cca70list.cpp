@@ -13,6 +13,7 @@
 #include "../online/session.h"
 #include "window.h"
 #include "window7059f0.h"
+#include "../online/chatcommand.h"
 
 namespace {
 
@@ -63,7 +64,7 @@ void __cdecl Dialog7cca70_FillList(const u8 *answer) {
         WString label;
         WString_Ctor(&label);
         const u32 key = at<u32>(item, 0x4c);
-        u8 *&holder = global<u8 *>(0x00f7d88c);
+        u8 *&holder = gChatcommand_f7d88c;
         if (!holder) {
             u8 *const block = static_cast<u8 *>(GameHeap_Alloc(0x404));
             holder = block ? g_env->holderCtor(block) : nullptr;

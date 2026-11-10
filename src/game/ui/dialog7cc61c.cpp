@@ -15,6 +15,7 @@
 #include "radiogroup.h"
 #include "window.h"
 #include "window705b20.h"
+#include "../online/chatcommand.h"
 
 namespace {
 
@@ -31,7 +32,7 @@ const Dialog7cc61cTextEnv kGameTextEnv = {&GameHeap_Alloc, reinterpret_cast<u8 *
 const Dialog7cc61cTextEnv *g_textEnv = &kGameTextEnv;
 
 u8 *Holder() {
-    u8 *&holder = global<u8 *>(0x00f7d88c);
+    u8 *&holder = gChatcommand_f7d88c;
     if (!holder) {
         u8 *const memory = static_cast<u8 *>(g_textEnv->alloc(0x404));
         holder = memory ? g_textEnv->holderCtor(memory, nullptr) : nullptr;
@@ -56,10 +57,10 @@ extern "C" void __cdecl Dialog7cc61c_FitText() {
     const s32 bounds[4] = {0, 0, ((s32)at<s16>(rect, 8) - at<s16>(rect, 4)) * global<s16>(0x00faa5c4) / 0x800,
                            ((s32)at<s16>(rect, 0xa) - at<s16>(rect, 6)) * scaleY / 0x600};
     s32 box[4] = {0, 0, 0, 0};
-    g_textEnv->measure(text, bounds, global<u8>(0x00758870), 0, 0, 1, box);
+    g_textEnv->measure(text, bounds, reinterpret_cast<u8 &>(gDialog7cc61c_758870), 0, 0, 1, box);
     const s32 room = (s32)at<s16>(rect, 0xa) - at<s16>(rect, 6);
     const s32 height = box[3] * 0x600 / global<s16>(0x00faa5c0);
-    const s32 line = (s16)vcall<u32>(g_textEnv->font(global<u32>(0x00758870)), 4) * 0x600 / global<s16>(0x00faa5c0);
+    const s32 line = (s16)vcall<u32>(g_textEnv->font(gDialog7cc61c_758870), 4) * 0x600 / global<s16>(0x00faa5c0);
     if (height > room) {
         g_textEnv->setShown(bar, nullptr, 1);
         g_textEnv->setRange(bar, nullptr, (height - room) / line, 0);
@@ -102,7 +103,7 @@ extern "C" void __cdecl Dialog7cc61c_Open() {
     Window_SetDepth(dialog, nullptr, (u16)(at<u16>(dialog, 0xe0) + 4));
     u8 *const panel = Window_FindChild(dialog, nullptr, 0x5b7f);
     setPart(panel);
-    g_open->set4c(panel, nullptr, g_open->font(global<u32>(0x00758870)));
+    g_open->set4c(panel, nullptr, g_open->font(gDialog7cc61c_758870));
     g_open->notify100(panel, nullptr, 0);
     g_open->notify3000(panel, nullptr, 1, 0);
     g_open->notifyC00(panel, nullptr, 0, 0);
@@ -126,7 +127,7 @@ void Dialog7cc61c_SetPanelEnv(const Dialog7cc61cPanelEnv *env) { g_panel = env ?
 
 extern "C" s32 __cdecl Dialog7cc61c_PanelHandler(u8 *window, u32 message, u32 a, u32 b) {
     if (message == 0x800) {
-        const s32 line = (s16)vcall<u32>(g_panel->font(global<u32>(0x00758870)), 4);
+        const s32 line = (s16)vcall<u32>(g_panel->font(gDialog7cc61c_758870), 4);
         g_panel->scroll(window, nullptr, 0, (u32)((s32)((0u - (u32)line * b * 3) << 9) / global<s16>(0x00faa5c0)));
         const bool first = global<u8>(0x007cc620) != 0;
         vcall<void>(window, 0x24, at<const u16 *>(g_panel->online(), first ? 0xa0 : 0xbc));

@@ -20,6 +20,12 @@
 #include "window705a20.h"
 #include "windowreg.h"
 #include "windowscript.h"
+#include "../online/chatcommand.h"
+#include "dialog7cc184handler.h"
+#include "dialog74fb20.h"
+#include "gamepause.h"
+#include "window7cc8bc.h"
+#include "panel7b9940.h"
 
 namespace {
 
@@ -31,13 +37,13 @@ const Dialog7cc184OpenEnv kGameEnv = {Setting_ReadMode, reinterpret_cast<s32(__c
 const Dialog7cc184OpenEnv *g_open = &kGameEnv;
 
 bool settingIsOne() {
-    u8 &guard = global<u8>(0x00fb34bf);
+    u8 &guard = gGamepause_fb34bf;
     if (!(guard & 1)) {
         guard |= 1;
-        g_open->readMode(reinterpret_cast<u8 *>((uintptr_t)0x00fb3b7c));
+        g_open->readMode(reinterpret_cast<u8 *>(&gDialog74fb20_fb3b7c));
         g_open->atExit(reinterpret_cast<void(__cdecl *)()>((uintptr_t)0x005d1750));
     }
-    return global<u32>(0x00fb3b7c) == 1;
+    return gDialog74fb20_fb3b7c == 1;
 }
 
 u8 *newEditPart() {
@@ -67,10 +73,10 @@ void showPicture(u8 *picture) {
     GuiRect_Ctor(rect);
     s32 width, height;
     u8 *const surface = reinterpret_cast<u8 *>((uintptr_t)g_open->slot7(picture, nullptr, (u32)(uintptr_t)&width, (u32)(uintptr_t)&height));
-    if (surface && global<u8 *>(0x007cc18c)) {
-        g_open->reset(global<u8 *>(0x007cc18c));
+    if (surface && gDialog7cc184handler_7cc18c) {
+        g_open->reset(gDialog7cc184handler_7cc18c);
         const u32 mode = global<u32>(0x008bd554);
-        if (mode == 2 || mode == 3) g_open->shrink(global<u8 *>(0x007cc18c), nullptr, surface, width, height, mode == 2 ? 2 : 1);
+        if (mode == 2 || mode == 3) g_open->shrink(gDialog7cc184handler_7cc18c, nullptr, surface, width, height, mode == 2 ? 2 : 1);
         g_open->slot6(picture);
     }
     GuiRect_Dtor(rect);
@@ -81,9 +87,9 @@ void showPicture(u8 *picture) {
 void Dialog7cc184_SetOpenEnv(const Dialog7cc184OpenEnv *env) { g_open = env ? env : &kGameEnv; }
 
 extern "C" void __cdecl Dialog7cc184_Open() {
-    u8 *&dialog = global<u8 *>(0x007cc184);
+    u8 *&dialog = gDialog7cc184handler_7cc184;
     if (dialog) return;
-    u8 *&session = global<u8 *>(0x00f7d88c);
+    u8 *&session = gChatcommand_f7d88c;
     if (!session) {
         u8 *const memory = static_cast<u8 *>(g_open->alloc(0x404));
         session = memory ? g_open->holderCtor(memory, nullptr) : nullptr;
@@ -94,12 +100,12 @@ extern "C" void __cdecl Dialog7cc184_Open() {
     }
     u8 *parent;
     if (settingIsOne()) {
-        parent = global<u8 *>(0x007cc8c0);
+        parent = gWindow7cc8bc_7cc8c0;
     } else {
         g_open->closeModal();
-        parent = global<u8 *>(0x007cb2ac);
+        parent = gPanel7b9940_7cb2ac;
     }
-    if (u8 *const window = g_open->build(parent, nullptr, reinterpret_cast<u8 *>((uintptr_t)0x007540d8), 0x004a7d70)) {
+    if (u8 *const window = g_open->build(parent, nullptr, gDialog7cc184_Open_7540d8, 0x004a7d70)) {
         dialog = window;
         if (!settingIsOne()) g_open->setModal(dialog);
         g_open->attach(dialog, 0x5d9e, (u32)(uintptr_t)g_open->text(0xd0));
@@ -108,7 +114,7 @@ extern "C" void __cdecl Dialog7cc184_Open() {
         if (u8 *const edit = Window_FindChild(dialog, nullptr, 0x5da3)) dressEdit(edit, 0x007cbf48, 0x80, 0xff, 1, 0xd2, false);
         if (u8 *const picture = Window_FindChild(dialog, nullptr, 0x5d9f)) showPicture(picture);
     }
-    global<u8>(0x007cbf40) = 0;
-    global<u8>(0x007cbf3c) = 0;
+    gDialog7cc184_7cbf40 = 0;
+    gDialog7cc184_7cbf3c = 0;
     if (!settingIsOne()) g_open->advisor(0x133);
 }

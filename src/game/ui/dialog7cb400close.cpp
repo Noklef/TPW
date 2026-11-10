@@ -15,6 +15,7 @@
 #include "dialog7cc4b4update.h"
 #include "dialogbase.h"
 #include "window.h"
+#include "dialog74fb20.h"
 
 namespace {
 
@@ -62,13 +63,13 @@ void __cdecl Dialog7cb400_Close(u32 cancelled) {
     g_env->clearQueue(*reinterpret_cast<u8 **>(scenes() + 0x14));
     if (cancelled) return;
     if (*reinterpret_cast<s32 *>(UserSlots_Instance() + 0x60) != -1 && global<u32>(0x007cb3fc) != 0) {
-        u8 &guard = global<u8>(0x00fb34c0);
+        u8 &guard = gDialog7cb400_Close_fb34c0;
         if (!(guard & 1)) {
             guard |= 1;
-            g_env->readMode(reinterpret_cast<u8 *>((uintptr_t)0x00fb3b7c));
+            g_env->readMode(reinterpret_cast<u8 *>(&gDialog74fb20_fb3b7c));
             g_env->atExit(game<void(__cdecl *)()>(0x005d1750));
         }
-        if (global<u32>(0x00fb3b7c) == 2) {
+        if (gDialog74fb20_fb3b7c == 2) {
             g_env->push(*reinterpret_cast<u8 **>(scenes() + 0x14), nullptr, 0x18a, 1);
         } else {
             g_env->saveCount(g_env->saveInstance());
