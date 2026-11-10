@@ -7665,6 +7665,7 @@ const Hook kHooks[] = {
     {"KeyFilter_DeletingDtorThunk", 0x006336c0, (void *)&KeyFilter_DeletingDtorThunk, {0x83, 0xe9, 0x0c, 0xe9, 0x38}},
     {"CharFilter_DeletingDtorThunk", 0x00634210, (void *)&CharFilter_DeletingDtorThunk, {0x83, 0xe9, 0x0c, 0xe9, 0xe8}},
     {"DeviceFilter_DeletingDtorThunk", 0x0063e9d0, (void *)&DeviceFilter_DeletingDtorThunk, {0x83, 0xe9, 0x10, 0xe9, 0x48}},
+    {"CharFilter_OnDeviceEvent",  0x00634110, (void *)&CharFilter_OnDeviceEvent, {0x8b, 0x44, 0x24, 0x08, 0x83}},
     {"KeyPool_Dtor",              0x00634a50, (void *)&KeyPool_Dtor, {0x53, 0x56, 0x57, 0x8b, 0xf9}},
     {"MousePool_Dtor",            0x00634b40, (void *)&MousePool_Dtor, {0x53, 0x56, 0x57, 0x8b, 0xf9}},
     {"KeyPool_Next",              0x00634d00, (void *)&KeyPool_Next, {0x83, 0xec, 0x08, 0x55, 0x56}},

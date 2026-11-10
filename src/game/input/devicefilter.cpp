@@ -478,6 +478,10 @@ u8 *__fastcall BaseFilter_DeletingDtor(u8 *self, void *, u32 flags) {
 
 void __fastcall KeyFilter_OnDeviceEvent(u8 *self, void *, u32, const u32 *message) { KeyFilter_ReadState(self - 0xc, nullptr, message[1]); }
 
+void __fastcall CharFilter_OnDeviceEvent(u8 *self, void *, u32, const u32 *message) {
+    KeyFilter_ReadModifiers(self - 0xc, nullptr, reinterpret_cast<u8 *>((uintptr_t)message[1]));
+}
+
 u32 *__fastcall KeyFilter_SetKeyboard(u8 *self, void *, u32 *result, u8 *holder) {
     setHolder(self, 0x11c, holder);
     *result = 0;

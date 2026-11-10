@@ -112,6 +112,8 @@ u8 *__fastcall BaseFilter_DeletingDtor(u8 *self, void *, u32 flags);
 // 0x633540 (thiscall on +0xc; unused, message, pops 8): ReadState with the message's +4. 0x633560 / 0x6335b0 (thiscall; result out, holder, pops 8): the holder kept at +0x11c / +0x120 (slot 4),
 // the old one released (slot 0), the state read from it. 0: returned.
 void __fastcall KeyFilter_OnDeviceEvent(u8 *self, void *, u32 unused, const u32 *message);
+// 0x634110 (thiscall on +0xc; unused, message, pops 8; slot 0 of the vtable 0x703c98; name invented): KeyFilter_ReadModifiers with the message's +4.
+void __fastcall CharFilter_OnDeviceEvent(u8 *self, void *, u32 unused, const u32 *message);
 u32 *__fastcall KeyFilter_SetKeyboard(u8 *self, void *, u32 *result, u8 *holder);
 u32 *__fastcall KeyFilter_SetMouse(u8 *self, void *, u32 *result, u8 *holder);
 

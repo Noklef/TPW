@@ -7088,6 +7088,7 @@ address,name,kind,confidence,notes
 0x006336c0,KeyFilter_DeletingDtorThunk,function,low,"reimplemented (src/game/input/devicefilter); thiscall (flags), pops 4: this less 0xc, then KeyFilter_DeletingDtor (an adjustor)"
 0x00634210,CharFilter_DeletingDtorThunk,function,low,"reimplemented (src/game/input/devicefilter); thiscall (flags), pops 4: this less 0xc, then CharFilter_DeletingDtor (an adjustor)"
 0x0063e9d0,DeviceFilter_DeletingDtorThunk,function,low,"reimplemented (src/game/input/devicefilter); thiscall (flags), pops 4: this less 0x10, then DeviceFilter_DeletingDtor (an adjustor)"
+0x00634110,CharFilter_OnDeviceEvent,function,low,reimplemented (src/game/input/devicefilter); slot 0 of the vtable 0x703c98 (this-adjusting): KeyFilter_ReadModifiers on this - 0xc with the message's +4
 0x00634a50,KeyPool_Dtor,function,low,reimplemented (src/game/input/messagepool); thiscall: the pool's destructor (vtable 0x703d1c): the messages and nodes freed; name invented
 0x00634b40,MousePool_Dtor,function,low,reimplemented (src/game/input/messagepool); thiscall: the pool's destructor (vtable 0x703d14); name invented
 0x00634d00,KeyPool_Next,function,low,"reimplemented (src/game/input/messagepool); thiscall: the next free message round the list, a new one when none; name invented"
