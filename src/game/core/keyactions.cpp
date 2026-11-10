@@ -192,4 +192,23 @@ u32 __cdecl KeyAction_GuiManagerSlotAndFlag() {
     Obj7b51f0_GuiManagerSlotAndFlag(reinterpret_cast<void *>((uintptr_t)0x007b51f0));
     return 1;
 }
+
+// The shortcut table's entries: each calls its entry point with ECX 0x7b51f0, as the original leaves it.
+u32 __cdecl KeyAction_Postcard() { g_calls.Th(0x4a9380, 0x7b51f0u); return 1; }   // (0x481500 is a JMP to GamePause_Hide)
+u32 __cdecl KeyAction_Menu() { g_calls.Th(0x4816d0, 0x7b51f0u); return 1; }
+u32 __cdecl KeyAction_Buy() { g_calls.Th(0x4816e0, 0x7b51f0u); return 1; }
+u32 __cdecl KeyAction_Hire() { g_calls.Th(0x481700, 0x7b51f0u); return 1; }
+u32 __cdecl KeyAction_ParkStatus() { g_calls.Th(0x481710, 0x7b51f0u); return 1; }
+u32 __cdecl KeyAction_AllItems() { g_calls.Th(0x481720, 0x7b51f0u); return 1; }
+u32 __cdecl KeyAction_AllStaff() { g_calls.Th(0x481730, 0x7b51f0u); return 1; }
+u32 __cdecl KeyAction_AllPeeps() { g_calls.Th(0x481740, 0x7b51f0u); return 1; }
+u32 __cdecl KeyAction_FinanceInfo() { g_calls.Th(0x481750, 0x7b51f0u); return 1; }
+u32 __cdecl KeyAction_Loans() { g_calls.Th(0x481760, 0x7b51f0u); return 1; }
+u32 __cdecl KeyAction_StaffCosts() { g_calls.Th(0x481770, 0x7b51f0u); return 1; }
+u32 __cdecl KeyAction_EntryPrice() { g_calls.Th(0x481780, 0x7b51f0u); return 1; }
+u32 __cdecl KeyAction_Map() { g_calls.Th(0x481510, 0x7b51f0u); return 1; }
+u32 __cdecl KeyAction_StaffLoc() { g_calls.Th(0x481790, 0x7b51f0u); return 1; }
+u32 __cdecl KeyAction_PeepLoc() { g_calls.Th(0x4817c0, 0x7b51f0u); return 1; }
+u32 __cdecl KeyAction_Research() { g_calls.Th(0x4817e0, 0x7b51f0u); return 1; }
+u32 __cdecl KeyAction_Camcorder() { g_calls.Th(0x481a10, 0x7b51f0u); return 1; }
 }

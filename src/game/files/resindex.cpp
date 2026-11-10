@@ -91,14 +91,14 @@ u8 *__fastcall ResIndex_Ctor(u8 *index) {
     Class70a078_Ctor(index);
     Handle_Ctor(HandleAt(index, 0x10));
     at<u32>(index, 0x10) = 0x6fd9e8;
-    at<u32>(index, 0) = 0x70a128;
+    at<u32>(index, 0) = (u32)(uintptr_t)ResIndex_vtable;
     at<u32>(index, 8) = 0;
     at<u32>(index, 0xc) = 0;
     return index;
 }
 
 void __fastcall ResIndex_Dtor(u8 *index) {
-    at<u32>(index, 0) = 0x70a128;
+    at<u32>(index, 0) = (u32)(uintptr_t)ResIndex_vtable;
     ResIndex_ReleaseAll(index);
     Handle_Dtor(HandleAt(index, 0x10));
     at<u32>(index, 0) = 0x70a078;

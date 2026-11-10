@@ -25,7 +25,7 @@ s32 *__fastcall BitmapFont_Load(u8 *, void *, s32 *result, u8 *stream, u8 **obje
     u8 *const font = static_cast<u8 *>(GameHeap_Alloc(0xc));
     if (font) {
         Class70a078_Ctor(font);
-        at<u32>(font, 0) = 0x70a140;
+        at<u32>(font, 0) = (u32)(uintptr_t)&TextStyleHolder_vtable[1];   // (0x70a140)
         font[8] = lead;
         at<u16>(font, 0xa) = at<u16>(header, 6);
     }
@@ -36,7 +36,7 @@ s32 *__fastcall BitmapFont_Load(u8 *, void *, s32 *result, u8 *stream, u8 **obje
 
 u8 *__fastcall FontBase_Ctor(u8 *font) {
     Class70a078_Ctor(font);
-    at<u32>(font, 0) = 0x70a208;
+    at<u32>(font, 0) = (u32)(uintptr_t)FontBase_vtable;
     return font;
 }
 
@@ -45,7 +45,7 @@ u8 *__fastcall Font_Ctor(u8 *font, void *, u8 *data, u8 *index) {
     at<u8 *>(font, 8) = data;
     at<u8 *>(font, 0xc) = data;
     at<u8 *>(font, 0x10) = data + 8;
-    at<u32>(font, 0) = 0x70a158;
+    at<u32>(font, 0) = (u32)(uintptr_t)Font_vtable;
     u8 *const record = ResIndex_Find(index, nullptr, 1);
     if (Record_Word4OrSix(record) == 0) {
         s32 slot;

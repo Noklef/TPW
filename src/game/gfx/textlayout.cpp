@@ -8,6 +8,7 @@
 #include "../core/seqs.h"
 #include "../core/trivial.h"
 #include "../core/vcall.h"
+#include "../files/fontloaders.h"
 #include "../files/wrapsources.h"
 #include "../math/rect.h"
 #include "surface.h"
@@ -187,13 +188,13 @@ s32 __fastcall TextStyle_FontKind(u8 *style) {
 
 u8 *__fastcall TextStyleHolder_Ctor(u8 *holder) {
     TextStyle_Ctor(holder + 4);
-    at<u32>(holder, 0) = 0x0070a13c;
+    at<u32>(holder, 0) = (u32)(uintptr_t)TextStyleHolder_vtable;
     at<u32>(holder, 0x54) = 0;
     return holder;
 }
 
 void __fastcall TextStyleHolder_Dtor(u8 *holder) {
-    at<u32>(holder, 0) = 0x0070a13c;
+    at<u32>(holder, 0) = (u32)(uintptr_t)TextStyleHolder_vtable;
     TextStyle_Dtor(holder + 4);
 }
 
