@@ -3,6 +3,17 @@
 
 #include "crtfile.h"
 
+// MSVC6's struct _stat.
+struct CrtStat {
+    u32 dev;
+    u16 ino, mode;
+    s16 nlink, uid, gid;
+    u32 rdev;
+    s32 size;
+    u32 atime, mtime, ctime;
+};
+static_assert(sizeof(CrtStat) == 0x24, "struct _stat");
+
 extern "C" {
 
 // 0x6868a0: _getstream: under lock 2 the first stream of the table [0xfb3cbc] (of [0xfb4cc0]) not in use, locked (one that a thread took meanwhile is passed by); an empty
@@ -101,5 +112,11 @@ char *__cdecl CRT_fullpath(char *buffer, const char *path, u32 size);
 
 // 0x689560: _getdrive: GetCurrentDirectoryA into 0x104 bytes; "X:...": toupper(X) - 0x40, else 0.
 s32 __cdecl CRT_getdrive();
+
+// 0x67e900: _stat: a wildcard ([0x708a48] by _mbspbrk) or a bare "X:": errno and __doserrno 2, -1. The drive: _mbctolower(the letter, a signed char) - 0x60 for "X:...", else _getdrive.
+// FindFirstFileA; none: a path of the characters [0x708a44], its _fullpath 3 long or IsRootUNCName, GetDriveTypeA above 1: a directory of size 0, all times
+// _loctotime_t(1980, 1, 1, ...), else ENOENT. Found: the write time by local and system time and _loctotime_t, the access and creation times the same way or the
+// write time when zero; a failed conversion: _dosmaperr(GetLastError()), FindClose, -1. Then mode (_dtoxmode), nlink 1, dev and rdev the drive - 1, the low size word.
+s32 __cdecl CRT_stat(const char *path, CrtStat *out);
 
 }

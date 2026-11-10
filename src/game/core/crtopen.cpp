@@ -6,6 +6,7 @@
 #include "crt.h"
 #include "crtmbstring.h"
 #include "crtstream.h"
+#include "crttime.h"
 
 namespace {
 
@@ -40,6 +41,33 @@ s32 failed_open(s32 fd) {
     CRT_dosmaperr(last_error());
     CRT_unlock_fhandle(fd);
     return -1;
+}
+
+struct FindData {   // WIN32_FIND_DATAA
+    u32 attributes, created[2], accessed[2], written[2], size_high, size_low, reserved[2];
+    char name[0x104], short_name[0xe];
+};
+
+// _stat's ENOENT: errno and __doserrno 2.
+s32 no_entry() {
+    *CRT_errno() = 2;
+    *CRT_doserrno() = 2;
+    return -1;
+}
+
+s32 failed_find(u32 handle) {
+    CRT_dosmaperr(last_error());
+    import_slot<s32(__stdcall *)(u32)>(0x006fd104)(handle);   // FindClose
+    return -1;
+}
+
+// A FILETIME by FileTimeToLocalFileTime, FileTimeToSystemTime and _loctotime_t; false when a conversion fails.
+bool file_time(const u32 *time, u32 *out) {
+    u32 local[2];
+    u16 when[8];
+    if (!import_slot<u32(__stdcall *)(const u32 *, u32 *)>(0x006fd15c)(time, local) || !import_slot<u32(__stdcall *)(const u32 *, u16 *)>(0x006fd0bc)(local, when)) return false;
+    *out = CRT_loctotime_t(when[0], when[1], when[3], when[4], when[5], when[6], -1);
+    return true;
 }
 
 }  // namespace
@@ -760,6 +788,54 @@ s32 __cdecl CRT_getdrive() {
     char path[0x104];
     if (!import_slot<u32(__stdcall *)(u32, char *)>(0x006fd118)(0x104, path) || path[1] != ':') return 0;   // GetCurrentDirectoryA
     return CRT_toupper(static_cast<u8>(path[0])) - 0x40;
+}
+
+s32 __cdecl CRT_stat(const char *path, CrtStat *out) {
+    if (CRT_mbspbrk(path, reinterpret_cast<const char *>(0x00708a48))) return no_entry();
+    s32 drive;
+    if (path[1] == ':') {
+        if (path[0] && !path[2]) return no_entry();
+        drive = static_cast<s32>(CRT_mbctolower(static_cast<u32>(static_cast<s32>(static_cast<signed char>(path[0]))))) - 0x60;
+    } else {
+        drive = CRT_getdrive();
+    }
+    FindData found;
+    const u32 handle = import_slot<u32(__stdcall *)(const char *, FindData *)>(0x006fd100)(path, &found);   // FindFirstFileA
+    if (handle == 0xffffffff) {
+        if (!CRT_mbspbrk(path, reinterpret_cast<const char *>(0x00708a44))) return no_entry();
+        char full[0x104];
+        const char *const root = CRT_fullpath(full, path, 0x104);
+        if (!root) return no_entry();
+        if (std::strlen(root) != 3 && !CRT_IsRootUNCName(root)) return no_entry();
+        if (import_slot<u32(__stdcall *)(const char *)>(0x006fd09c)(root) <= 1) return no_entry();   // GetDriveTypeA
+        found.attributes = 0x10;
+        found.size_high = 0;
+        found.size_low = 0;
+        found.name[0] = 0;
+        out->ctime = out->atime = out->mtime = CRT_loctotime_t(0x7bc, 1, 1, 0, 0, 0, -1);
+    } else {
+        u32 time = 0;
+        if (!file_time(found.written, &time)) return failed_find(handle);
+        out->mtime = time;
+        if ((found.accessed[0] || found.accessed[1]) && !file_time(found.accessed, &time)) return failed_find(handle);
+        out->atime = time;
+        if (!found.created[0] && !found.created[1]) {
+            out->ctime = out->mtime;
+        } else {
+            if (!file_time(found.created, &time)) return failed_find(handle);
+            out->ctime = time;
+        }
+        import_slot<s32(__stdcall *)(u32)>(0x006fd104)(handle);   // FindClose
+    }
+    out->mode = static_cast<u16>(CRT_dtoxmode(found.attributes, path));
+    out->nlink = 1;
+    out->dev = static_cast<u32>(drive - 1);
+    out->rdev = static_cast<u32>(drive - 1);
+    out->size = static_cast<s32>(found.size_low);
+    out->ino = 0;
+    out->gid = 0;
+    out->uid = 0;
+    return 0;
 }
 
 }
