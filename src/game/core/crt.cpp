@@ -627,6 +627,14 @@ unsigned long long __cdecl CRT_Getcvt() {
     return static_cast<unsigned long long>(page) << 32 | hand;
 }
 
+unsigned long long __cdecl CRT_Getcoll() {
+    const bool locked = locale_enter();
+    const u32 hand = global_u32(0x00fb143c);
+    const u32 page = global_u32(0x00fb1450);
+    locale_leave(locked);
+    return static_cast<unsigned long long>(page) << 32 | hand;
+}
+
 u32 *__cdecl CRT_Getctype(u32 *out) {
     const bool locked = locale_enter();
     const u32 hand = global_u32(0x00fb143c);

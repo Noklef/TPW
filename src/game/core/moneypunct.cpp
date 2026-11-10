@@ -162,6 +162,12 @@ void *__fastcall MoneypunctW_Ctor(u8 *facet, void *, const void *locinfo, u32 re
     return facet;
 }
 
+void *__fastcall MoneypunctWIntl_Ctor(u8 *facet, void *, const void *locinfo, u32 refs) {
+    MoneypunctW_Ctor(facet, nullptr, locinfo, refs, 1);
+    *reinterpret_cast<u32 *>(facet) = 0x00709da4;
+    return facet;
+}
+
 StdString *__fastcall Facet_Grouping(const u8 *self, void *, StdString *out) { return narrow_string(out, text_at(self, 8)); }
 StdString *__fastcall MoneypunctC_CurrSymbol(const u8 *self, void *, StdString *out) { return narrow_string(out, text_at(self, 0x10)); }
 StdString *__fastcall MoneypunctC_PositiveSign(const u8 *self, void *, StdString *out) { return narrow_string(out, text_at(self, 0x14)); }

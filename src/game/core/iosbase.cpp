@@ -5,6 +5,7 @@
 
 #include "crt.h"
 #include "initializers.h"
+#include "localefacet.h"
 #include "narrowfilebuf.h"
 #include "stdstring.h"
 #include "vcall.h"
@@ -27,8 +28,8 @@ const IosBaseEnv kGameEnv = {
     game<s32(__cdecl *)(void(__cdecl *)())>(0x0067a7d0),
     game<void(__cdecl *)(void *, u32, void *, void *)>(0x00694120),
     game<void *(__fastcall *)(void *, void *, u32, u32, u32)>(0x005cfb60),
-    game<void(__cdecl *)(void *, u32, void *, void *)>(0x006a67f0),
-    game<void(__cdecl *)(void *, u32, void *, void *)>(0x0069a7a0),
+    reinterpret_cast<void(__cdecl *)(void *, u32, void *, void *)>(&Locimp_Makexloc),
+    reinterpret_cast<void(__cdecl *)(void *, u32, void *, void *)>(&Locimp_Makewloc),
     game<void *(__fastcall *)(void *, void *, u32)>(0x00695910),
     game<void *(__fastcall *)(void *, void *, u32)>(0x0069c680),
 };

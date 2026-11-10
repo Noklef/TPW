@@ -2068,6 +2068,7 @@ address,name,kind,confidence,notes
 0x0067a5c0,CRT_isalnum,function,low,"reimplemented (src/game/core/crt); isalnum: the same, & 0x107"
 0x0067a6c0,CRT_atof,function,low,"reimplemented (src/game/core/crt); atof: past white space, _fltin2's double"
 0x0067a730,CRT_iswspace,function,low,"reimplemented (src/game/core/crt); iswspace: iswctype(c, 8)"
+0x006ac9a0,CRT_Getcoll,function,low,"reimplemented (src/game/core/crt); _Getcoll: the LC_COLLATE id and the code page by value in EDX:EAX, under the locale's lock"
 0x00f7a7d0,gCdVolumeLabel,data,medium,"const char *: the CD's volume label, looked for on the CD-ROM drives by the CD check (0x5aa585)"
 0x005f8ae0,RegKey_Open,function,high,"reimplemented (src/game/core/regkey); thiscall (&out, subkey or null, nonzero: HKCU else HKLM); the company key (0x775748) made, then the subkey in it; a held key closed first"
 0x005f8b70,RegKey_Dtor,function,high,reimplemented (src/game/core/regkey); thiscall; RegKey_Close
@@ -6275,6 +6276,7 @@ address,name,kind,confidence,notes
 0x0069c9d0,MoneypunctW_PositiveSign,function,low,reimplemented (src/game/core/moneypunct); do_positive_sign
 0x006a1b20,MoneypunctW_NegativeSign,function,low,reimplemented (src/game/core/moneypunct); do_negative_sign
 0x006a0370,WFacet709c0c_Get,function,low,reimplemented (src/game/core/moneypunct); the facet's do_get
+0x006a1ee0,MoneypunctWIntl_Ctor,function,low,"reimplemented (src/game/core/moneypunct); moneypunct<wchar_t, true>'s constructor: international, Init, then the vtable 0x709da4"
 0x0068bad0,CRT_abstract_cw,function,low,reimplemented (src/game/core/crtfloat); _abstract_cw
 0x0068bb70,CRT_hw_cw,function,low,reimplemented (src/game/core/crtfloat); _hw_cw
 0x0068f9d0,CRT_addl,function,low,reimplemented (src/game/core/crtfloat); __addl
@@ -6505,6 +6507,15 @@ address,name,kind,confidence,notes
 0x00695be0,Numpunct_DeletingDtor,function,low,reimplemented (src/game/core/localefacet); deleting dtor
 0x0069caa0,WNumpunct_DeletingDtor,function,low,reimplemented (src/game/core/localefacet); deleting dtor
 0x006a0460,WFacet709c0c_DeletingDtor,function,low,reimplemented (src/game/core/localefacet); deleting dtor
+0x006a67f0,Locimp_Makexloc,function,low,"reimplemented (src/game/core/localefacet); _Locimp::_Makexloc: the char facets past ctype, numeric and codecvt (collate, messages, the small numeric two, moneypunct both, the time two), each new without a locale, else the locale's own or the classic one"
+0x0069a7a0,Locimp_Makewloc,function,low,"reimplemented (src/game/core/localefacet); _Locimp::_Makewloc: the wchar_t facets, each new without a locale, else the locale's own or the classic one"
+0x006a6fc0,CollateC_Ctor,function,low,"reimplemented (src/game/core/localefacet); collate<char>'s constructor: refs, the vtable 0x709fc4, _Getcoll's block at +8 under a _Locinfo of the name at 0x75c74c"
+0x0069ff10,CollateW_Ctor,function,low,reimplemented (src/game/core/localefacet); collate<wchar_t>'s constructor: the same with the vtable 0x709c24
+0x006ab0e0,Facet70a044_Ctor,function,low,"reimplemented (src/game/core/localefacet); the facet of the vtable 0x70a044's constructor: refs, the _Timevec's block from _Gettnames at +8"
+0x006a4490,Facet709ef4_Ctor,function,low,reimplemented (src/game/core/localefacet); the facet of the vtable 0x709ef4's constructor: the same
+0x006abe80,UseFacet_70a044,function,low,"reimplemented (src/game/core/localefacet); use_facet of the facet of the vtable 0x70a044: the locale's, else the classic one made once and held to exit"
+0x006a5720,UseFacet_709ef4,function,low,reimplemented (src/game/core/localefacet); use_facet of the facet of the vtable 0x709ef4: the same
+0x006a54a0,UseFacet_TimeW,function,low,"reimplemented (src/game/core/localefacet); use_facet of the wchar_t time facet (vtable 0x709ed4): the same, the day and month names widened"
 0x006895b0,CRT_mbctolower,function,low,reimplemented (src/game/core/crtmbstring); _mbctolower
 0x00689650,CRT_mbspbrk,function,low,reimplemented (src/game/core/crtmbstring); _mbspbrk
 0x00689400,CRT_mbsrchr,function,low,reimplemented (src/game/core/crtmbstring); _mbsrchr
@@ -6689,6 +6700,9 @@ address,name,kind,confidence,notes
 0x00696ce0,NumGet_DoGetLong,function,low,reimplemented (src/game/core/numget); num_get::do_get (long)
 0x006970e0,NumGet_DoGetUlong,function,low,reimplemented (src/game/core/numget); num_get::do_get (unsigned long)
 0x006981f0,NumGet_DoGetPointer,function,low,reimplemented (src/game/core/numget); num_get::do_get (void *)
+0x006974e0,NumGet_DoGetFloat,function,low,"reimplemented (src/game/core/numget); num_get<char>::do_get of a float: the text scanned as below, _Stold, stored as a float"
+0x00697930,NumGet_DoGetDouble,function,low,"reimplemented (src/game/core/numget); num_get<char>::do_get of a double: the same scan, _Stod"
+0x00697d90,NumGet_DoGetLongDouble,function,low,"reimplemented (src/game/core/numget); num_get<char>::do_get of a long double (a double): the same scan, _Stold"
 0x00633900,OwnedSection_Ctor,function,low,reimplemented (src/game/core/sectionlock); thiscall: a block of 0x18 made a critical section at *self; name invented
 0x00633920,OwnedSection_Dtor,function,low,"reimplemented (src/game/core/sectionlock); thiscall: the section deleted, its block freed; name invented"
 0x00633940,SectionGuard_Dtor,function,low,"reimplemented (src/game/core/sectionlock); thiscall: the guard's destructor, Leave; name invented"
@@ -6712,6 +6726,8 @@ address,name,kind,confidence,notes
 0x006323c0,WaitThread_DeletingDtor,function,low,"reimplemented (src/game/core/waitthread); thiscall (flags): the destructor, bit 0 frees; name invented"
 0x006326e0,WaitThread_OpenAndStart,function,low,"reimplemented (src/game/core/waitthread); thiscall (out), pops 4: OpenEvents, then Start when it did not fail; out the first failure (negative), else 0"
 0x006a7920,MoneyGet_Getmfld,function,low,reimplemented (src/game/core/moneyget); money_get<char>::_Getmfld: a money field read off a stream by the facet's negative pattern
+0x006a7550,MoneyGet_DoGetLongDouble,function,low,"reimplemented (src/game/core/moneyget); money_get<char>::do_get of a long double (a double): _Getmfld's digits copied, then _Stold"
+0x006a7760,MoneyGet_DoGetString,function,low,reimplemented (src/game/core/moneyget); money_get<char>::do_get of a string: _Getmfld's digits assigned
 0x0050ffe0,Nav_Ctor,function,high,reimplemented (src/game/world/nav); constants constructor with five integer pairs
 0x0050f200,Nav_Dtor,function,high,reimplemented (src/game/world/nav); thiscall: the five IntPairs at +0x64 destroyed with Stub_Ret (CRT_VectorDtorIterator); also via 0x4f7c30 (+0xd4) and 0x4f8ad0
 0x004f7c30,Nav_DtorAtD4,function,low,reimplemented (src/game/world/nav); thiscall adjustor: Nav_Dtor on this + 0xd4
@@ -10074,6 +10090,12 @@ address,name,kind,confidence,notes
 0x0068cc30,CRT_abort,function,low,"reimplemented (src/game/core/crtsignal); abort: message 10, raise(SIGABRT), _exit(3)"
 0x0068a710,CRT_input,function,low,"reimplemented (src/game/core/crtinput); _input: the format's directives against a file's characters; fields assigned, -1 at the end before any match"
 0x0067f620,CRT_sscanf,function,low,reimplemented (src/game/core/crtinput); sscanf: _input over a string file on the text
+0x006ab3b0,TimeGet_Getloctxt,function,low,"reimplemented (src/game/core/timeget); _Getloctxt<char>: the stream matched against a list of names led by their first character; the index of the one that ended, -1 or -2"
+0x006a4a30,WTimeGet_Getloctxt,function,low,reimplemented (src/game/core/timeget); _Getloctxt<wchar_t>: the same
+0x006aaa90,TimeGet_DoGetWeekday,function,low,"reimplemented (src/game/core/timeget); time_get<char>::do_get_weekday: _Getloctxt over the day names, halved into tm_wday"
+0x006aaaf0,TimeGet_DoGetMonthname,function,low,"reimplemented (src/game/core/timeget); time_get<char>::do_get_monthname: _Getloctxt over the month names, halved into tm_mon"
+0x006a3de0,WTimeGet_DoGetWeekday,function,low,reimplemented (src/game/core/timeget); time_get<wchar_t>::do_get_weekday: the same
+0x006a3e40,WTimeGet_DoGetMonthname,function,low,reimplemented (src/game/core/timeget); time_get<wchar_t>::do_get_monthname: the same
 0x00faac68,gDctVlc_faac68,data,low,"GAME_DATA (src/game/gfx/dctvlc): u32, named for its use in DctVlc_BeginFrame, DctVlc_BuildTables (tools/gamedata_codemod.py)"
 0x00faac64,gMadVideo_DecodeFrame_faac64,data,low,"GAME_DATA (src/game/gfx/madvideo): u32, named for its use in MadVideo_DecodeFrame (tools/gamedata_codemod.py)"
 0x00fab484,gMmxBlit_Copy32_fab484,data,low,"GAME_DATA (src/game/gfx/mmxblit): u32, named for its use in MmxBlit_Copy32 (tools/gamedata_codemod.py)"

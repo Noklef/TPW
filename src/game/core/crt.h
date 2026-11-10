@@ -217,6 +217,8 @@ u16 *__cdecl CRT_wcsset(u16 *text, u16 unit);
 
 // 0x69a560: _Getcvt: the current block, by value in EDX:EAX, under the locale's lock.
 unsigned long long __cdecl CRT_Getcvt();
+// 0x6ac9a0: _Getcoll: { the LC_COLLATE id (0xfb143c), the code page } by value in EDX:EAX, under the locale's lock.
+unsigned long long __cdecl CRT_Getcoll();
 
 // 0x699bd0 (cdecl (&result)): _Getctype: { the LC_CTYPE id (0xfb143c), the code page, a copy of the table _pctype (0x200 bytes from malloc), 1 } or, with no block, the table itself and 0. Returns &result.
 u32 *__cdecl CRT_Getctype(u32 *out);
