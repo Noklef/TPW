@@ -406,3 +406,22 @@ char *__cdecl CRT_ultoa(u32 value, char *out, u32 radix);
 s32 __cdecl CRT_genfname(char *name);  // 0x67ff00: tmpfile's genfname, the next name in base 32
 
 }  // extern "C"
+
+#include "gamedata.h"
+
+// Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(const char[4], CRT_text_empty_708da4, 0x00708da4, 0x4);
+GAME_DATA(const u16[2], CRT_text_empty_wide_708da8, 0x00708da8, 0x4);
+GAME_DATA(s32, CRT_mb_cur_max, 0x0077e7dc, 0x4);
+GAME_DATA(char[2], CRT_decimal_point, 0x0077e7e0, 0x2);
+GAME_DATA(u32, CRT_cflush, 0x00fb1350, 0x4);
+GAME_DATA(u32, CRT_old_except_filter, 0x00fb1454, 0x4);
+GAME_DATA(u32, CRT_newmode, 0x00fb1548, 0x4);
+GAME_DATA(u32, CRT_LCMapStringW_use_fb1550, 0x00fb1550, 0x4);
+GAME_DATA(u32, CRT_LCMapStringA_use_fb1554, 0x00fb1554, 0x4);
+GAME_DATA(u32, CRT_GetStringTypeW_use_fb188c, 0x00fb188c, 0x4);
+GAME_DATA(u32, CRT_GetStringTypeA_use_fb1890, 0x00fb1890, 0x4);
+GAME_DATA(s32, CRT_setlc_active, 0x00fb3ca4, 0x4);
+GAME_DATA(u32, CRT_unguarded_readlc_active, 0x00fb3ca8, 0x4);
+GAME_DATA(u32, CRT_onexitend, 0x00fb3cb0, 0x4);
+GAME_DATA(u32, CRT_onexitbegin, 0x00fb3cb4, 0x4);

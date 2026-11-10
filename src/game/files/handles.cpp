@@ -6,10 +6,10 @@
 
 namespace {
 
-void *const *const kRefObjectVtable = reinterpret_cast<void *const *>(0x00703838);
-void *const *const kRefObject2Vtable = reinterpret_cast<void *const *>(0x00703898);
-void *const *const kStreamVtable = reinterpret_cast<void *const *>(0x00703100);
-void *const *const kHandleVtable = reinterpret_cast<void *const *>(0x00703180);
+void *const *const kRefObjectVtable = RefObject_vtable;
+void *const *const kRefObject2Vtable = RefObject2_vtable;
+void *const *const kStreamVtable = StreamBase_vtable;
+void *const *const kHandleVtable = Handle_vtable;
 
 const HandlesEnv kGameEnv = {
     reinterpret_cast<s32(__stdcall *const *)(s32 *)>(0x006fd0c0),

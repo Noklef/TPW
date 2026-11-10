@@ -5,6 +5,7 @@
 #include <cstring>
 
 #include "../core/vcall.h"
+#include "handles.h"
 
 namespace {
 
@@ -14,7 +15,7 @@ char *base() { return gBaseDir; }
 char *pathBuffer() { return gPathBuffer; }
 Timer *clock() { return reinterpret_cast<Timer *>(&gClock); }
 
-void *const *const kStreamVtable = reinterpret_cast<void *const *>(0x00703100);
+void *const *const kStreamVtable = StreamBase_vtable;
 void *const *const kFileStreamVtable = reinterpret_cast<void *const *>(0x006fd930);
 
 template <typename T>

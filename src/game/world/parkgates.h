@@ -55,3 +55,4 @@ GAME_DATA(char[12], gText_Parkgates_759b58, 0x00759b58, 0xc);
 GAME_DATA(char[16], gText_Parkgates_759b70, 0x00759b70, 0x10);
 GAME_DATA(char[24], gText_Parkgates_759b80, 0x00759b80, 0x18);
 GAME_DATA(char[16], gText_Parkgates_759b98, 0x00759b98, 0x10);
+GAME_DATA(char[12], gText_Parkgates_759b64, 0x00759b64, 0xc);

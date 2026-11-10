@@ -103,3 +103,4 @@ s32 *__fastcall ResFolder_GetFont(u8 *folder, void *, s32 *result, u8 **object, 
 // Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
 GAME_DATA(char[12], gText_ResFolder_LoadIndex_782d14, 0x00782d14, 0xc);
 GAME_DATA(u32[6], gResIndex_Load_782d20, 0x00782d20, 0x18);
+GAME_DATA(void *[5], ResIndex_vtable, 0x0070a128, 0x14);   // (only ports: the AddRef / Release slots JMP thunks to them)

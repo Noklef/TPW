@@ -56,3 +56,22 @@ u32 __cdecl CRT_loctotime_t(s32 year, s32 month, s32 day, s32 hour, s32 minute, 
 u32 __cdecl CRT_time(u32 *out);
 
 }  // extern "C"
+
+// A daylight saving transition of one year (_tzset's transitiondate): the year (-1: not worked out), its day of the year, ms into it.
+struct CrtDstTime {
+    s32 year;
+    s32 yearday;
+    s32 ms;
+};
+
+#include "gamedata.h"
+
+// Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(CrtDstTime, CRT_dststart, 0x00781470, 0xc);
+GAME_DATA(CrtDstTime, CRT_dstend, 0x00781480, 0xc);
+GAME_DATA(s32, CRT_time_dst_fb1338, 0x00fb1338, 0x4);
+GAME_DATA(u16[8], CRT_time_last_fb1340, 0x00fb1340, 0x10);
+GAME_DATA(u32, CRT_tzset_done_fb1510, 0x00fb1510, 0x4);
+GAME_DATA(s32[9], CRT_tm_buffer, 0x00fb1518, 0x24);
+GAME_DATA(u32, CRT_alternate_form, 0x00fb192c, 0x4);
+GAME_DATA(u32, CRT_no_lead_zeros, 0x00fb1930, 0x4);

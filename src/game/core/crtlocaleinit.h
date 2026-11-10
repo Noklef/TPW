@@ -16,3 +16,10 @@ s32 __cdecl CRT_init_monetary();
 // 1: failed (the blocks freed).
 s32 __cdecl CRT_init_ctype();
 }
+
+#include "gamedata.h"
+
+// Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(u32 *, CRT_monetary_owned_fb18ac, 0x00fb18ac, 0x4);
+GAME_DATA(void *, CRT_ctype_owned_fb18b0, 0x00fb18b0, 0x4);
+GAME_DATA(void *, CRT_ctype_wide_owned_fb18b4, 0x00fb18b4, 0x4);

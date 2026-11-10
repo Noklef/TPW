@@ -155,7 +155,7 @@ u32 __fastcall RECell_Serialize(u8 *cell, void *, Stream *stream, u32 save, s32 
     if (version < 0 || version > 1)
         return 0;
     for (u32 i = 0; i < 5; ++i)
-        if (!Save_Field(stream, save, cell + i * 2, 2, 0x0075e120))
+        if (!Save_Field(stream, save, cell + i * 2, 2, (u32)&gText_RECell_Serialize_75e120))
             return 1;
     return 0;
 }

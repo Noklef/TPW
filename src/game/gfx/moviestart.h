@@ -35,7 +35,32 @@ void __cdecl Movie_Stop();
 void __cdecl Movie_Forbid();
 }
 
+// The 0x7b8 bytes of settings Movie_Start hands the movie library: the fields it sets (names unconfirmed).
+struct MovieSettings {
+    u32 unknown0;
+    u32 flags;           // +4
+    u32 kind;            // +8: 1, 7 with an overlay
+    u32 renderer;        // +0xc: the renderer's dword 0
+    u32 unknown10;
+    u8 *front;           // +0x14: the front surface's interface
+    u8 *back;            // +0x18: the back surface's
+    u32 unknown1c[14];
+    u32 sound;           // +0x54: the sound word
+    u32 unknown58[4];
+    s32 x;               // +0x68
+    s32 y;               // +0x6c
+    u32 field70;         // +0x70: [0x7a1968]
+    u32 field74;         // +0x74: [0x7a1930] * 352 / 480
+    u32 unknown78[12];
+    u32 fieldA8;         // +0xa8: 2
+    u32 unknownAc[0x1c3];
+};
+
 #include "../core/gamedata.h"
+
+// Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(u32, gMovieStart_8023e8, 0x008023e8, 0x4);
+GAME_DATA(MovieSettings, gMovieStart_Settings_8023f0, 0x008023f0, 0x7b8);
 
 // Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
 GAME_DATA(u32, gMovie_Start_802bb0, 0x00802bb0, 4);

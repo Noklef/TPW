@@ -10,7 +10,7 @@
 
 namespace {
 
-void *const *const kTextWriterVtable = reinterpret_cast<void *const *>(0x00703e08);
+void *const *const kTextWriterVtable = TextWriter_vtable;
 
 void set_length(TextWriter *w, u32 length) { vcall<void>(w, 4, length); }
 

@@ -18,7 +18,7 @@ const WadFindEnv kGameEnv = {
 };
 const WadFindEnv *g_env = &kGameEnv;
 
-const void *const kFinderListVtable = at<const void *>(0x0070393c);
+const void *const kFinderListVtable = WadStringList_vtable;
 const char kSeparators[] = "\\/";  // 0x775704
 
 const StringView *view(const String *s) { return reinterpret_cast<const StringView *>(s); }

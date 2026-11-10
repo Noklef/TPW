@@ -155,3 +155,7 @@ GAME_DATA(const s32[2], gInputFilter_SubscribeC90_703c90, 0x00703c90, 0x8);
 GAME_DATA(const s32[2], gMouseFilter_Subscribe_703cc0, 0x00703cc0, 0x8);
 GAME_DATA(const u32[4], gGuidSysMouse_707c40, 0x00707c40, 0x10);
 GAME_DATA(const u32[192], gGuidTable_707c50, 0x00707c50, 0x300);
+// The vtables hold only ports: tpw.exe's loader points their slots at them.
+GAME_DATA(void *[2], KeyFilter_vtableC, 0x00703c38, 0x8);
+GAME_DATA(void *[7], KeyFilter_vtable, 0x00703c40, 0x1c);
+GAME_DATA(void *[7], MouseFilter_vtable, 0x00703cc8, 0x1c);

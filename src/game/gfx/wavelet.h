@@ -185,3 +185,8 @@ GAME_DATA(u32, gWavelet_c67218, 0x00c67218, 4);
 GAME_DATA(u32, gWavelet_d70a28, 0x00d70a28, 4);
 GAME_DATA(u32, gWavelet_f74a48, 0x00f74a48, 4);
 GAME_DATA(u32, gWaveletCodec_ReadCoefficients_f75ad4, 0x00f75ad4, 4);
+
+// Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(const double, gWavelet_CbBlue_702640, 0x00702640, 0x8);
+GAME_DATA(const double, gWavelet_CrGreen_702650, 0x00702650, 0x8);
+GAME_DATA(const double, gWavelet_CrRed_702658, 0x00702658, 0x8);

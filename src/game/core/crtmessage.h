@@ -28,3 +28,23 @@ char *__cdecl CRT_mbsnbcpy(char *to, const char *from, u32 n);
 void __cdecl CRT__splitpath(const char *path, char *drive, char *dir, char *name, char *ext);
 
 }
+
+// user32's functions __crtMessageBoxA finds on first use, and the hook _FF_MSGBANNER calls first.
+using CrtMessageBoxFn = s32(__stdcall *)(u32, const char *, const char *, u32);
+using CrtGetActiveWindowFn = u32(__stdcall *)();
+using CrtGetLastActivePopupFn = u32(__stdcall *)(u32);
+using CrtMessageHookFn = void(__cdecl *)();
+
+#include "gamedata.h"
+
+// Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(const char[0x28], CRT_text_runtime_library_709034, 0x00709034, 0x28);
+GAME_DATA(const char[0x14], CRT_text_GetLastActivePopup_7096f4, 0x007096f4, 0x14);
+GAME_DATA(const char[0x10], CRT_text_GetActiveWindow_709708, 0x00709708, 0x10);
+GAME_DATA(const char[0xc], CRT_text_user32_709724, 0x00709724, 0xc);
+GAME_DATA(u32, CRT_app_type, 0x0077ea84, 0x4);
+GAME_DATA(u32, CRT_error_mode_fb135c, 0x00fb135c, 0x4);
+GAME_DATA(CrtMessageHookFn, CRT_msgbanner_hook_fb1888, 0x00fb1888, 0x4);
+GAME_DATA(CrtMessageBoxFn, CRT_pfnMessageBox, 0x00fb1900, 0x4);
+GAME_DATA(CrtGetActiveWindowFn, CRT_pfnGetActiveWindow, 0x00fb1904, 0x4);
+GAME_DATA(CrtGetLastActivePopupFn, CRT_pfnGetLastActivePopup, 0x00fb1908, 0x4);

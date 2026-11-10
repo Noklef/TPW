@@ -132,3 +132,23 @@ char *__cdecl CRT_cftog(const u32 *value, char *buffer, s32 decimals, s32 caps);
 char *__cdecl CRT_cfltcvt(const u32 *value, char *buffer, s32 format, s32 decimals, s32 caps);
 
 }  // extern "C"
+
+#include "gamedata.h"
+
+// Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(const double, CRT_minus_one_7089b8, 0x007089b8, 0x8);
+GAME_DATA(const double, CRT_one_708a70, 0x00708a70, 0x8);
+GAME_DATA(const char[0x1c], CRT_text_IsProcessorFeaturePresent_708a78, 0x00708a78, 0x1c);
+GAME_DATA(const char[0xc], CRT_text_KERNEL32_708a94, 0x00708a94, 0xc);
+GAME_DATA(const double, CRT_zero_708aa0, 0x00708aa0, 0x8);
+GAME_DATA(const char[8], CRT_text_exponent_708aa8, 0x00708aa8, 0x8);
+GAME_DATA(const double, CRT_zero_708ce0, 0x00708ce0, 0x8);
+GAME_DATA(const char[8], CRT_text_QNAN_709730, 0x00709730, 0x8);
+GAME_DATA(const char[8], CRT_text_INF_709738, 0x00709738, 0x8);
+GAME_DATA(const char[8], CRT_text_IND_709740, 0x00709740, 0x8);
+GAME_DATA(const char[8], CRT_text_SNAN_709748, 0x00709748, 0x8);
+GAME_DATA(const double, CRT_ten_70a050, 0x0070a050, 0x8);
+GAME_DATA(const double, CRT_tenth_70a058, 0x0070a058, 0x8);
+GAME_DATA(const double, CRT_zero_711c28, 0x00711c28, 0x8);
+GAME_DATA(double, CRT_HUGE, 0x00784c10, 0x8);
+GAME_DATA(s32, CRT_adjust_fdiv, 0x00fb1334, 0x4);

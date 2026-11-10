@@ -1260,10 +1260,10 @@ u8 *__fastcall WaveletCodec_Construct(u8 *codec, void *, u32 mostDerived) {
     }
     for (u32 i = 0; i < 0x100; ++i) {
         const s32 v = (s32)i - 0x80;
-        global<s32>(0xbe6808 + 4 * i) = (s32)X87_MulIntDouble(v, global<double>(0x702640));
-        global<s32>(0xcefa28 + 4 * i) = (s32)X87_MulIntDouble(v, global<double>(0x702648));
-        global<s32>(0xcf0628 + 4 * i) = (s32)X87_MulIntDouble(v, global<double>(0x702650));
-        global<s32>(0xc26c08 + 4 * i) = (s32)X87_MulIntDouble(v, global<double>(0x702658));
+        global<s32>(0xbe6808 + 4 * i) = (s32)X87_MulIntDouble(v, gWavelet_CbBlue_702640);
+        global<s32>(0xcefa28 + 4 * i) = (s32)X87_MulIntDouble(v, global<double>(0x702648));   // (its low dword reads as a code address: the fixup round)
+        global<s32>(0xcf0628 + 4 * i) = (s32)X87_MulIntDouble(v, gWavelet_CrGreen_702650);
+        global<s32>(0xc26c08 + 4 * i) = (s32)X87_MulIntDouble(v, gWavelet_CrRed_702658);
     }
     at<void *>(codec, 0x4c) = GameHeap_Alloc(0x62a39);
     u8 *const block = static_cast<u8 *>(GameHeap_Alloc(0x40000));

@@ -596,7 +596,7 @@ extern "C" void __cdecl WeatherFx_ReloadEffects() {
         g_reload->load(*reinterpret_cast<u8 **>((uintptr_t)0x008bcbac), nullptr, 3, name);
     }
     if (u8 *const queue = *reinterpret_cast<u8 **>((uintptr_t)0x008c47a0))
-        g_reload->queueLoad(queue, nullptr, TextAt(0x00765238));
+        g_reload->queueLoad(queue, nullptr, gText_WeatherFx_ReloadEffects_765238);
     const u8 *const lock = g_reload->getLock(reinterpret_cast<u8 *>((uintptr_t)0x00f816c0));
     s32 status;
     if (*g_reload->open(h, nullptr, &status, at<u32>(lock, 8)) >= 0) {
@@ -633,7 +633,7 @@ void WeatherFx_SetBoltCalls(const AddrCall *table, u32 count) { g_boltCalls.Set(
 
 extern "C" void __cdecl KidShadow_LoadTexture() {
     const u32 queue = global<u32>(0x008c47a0);
-    if (queue) g_boltCalls.Th(0x0058a5c0, queue, 0x00765238u);
+    if (queue) g_boltCalls.Th(0x0058a5c0, queue, (u32)&gText_WeatherFx_ReloadEffects_765238);
 }
 
 extern "C" {

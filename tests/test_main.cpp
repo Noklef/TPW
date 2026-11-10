@@ -1293,7 +1293,8 @@ static void test_hook_table(const char *exe_path) {
 #include "codeslots.h"
 
 // tpw.exe's code-slot table (tools/gen_loader_slots.py) against a rescan of the exe here: every dword of a data section whose value is a
-// hooked function, the empty Debug_Printf 0x5da3c0 or an adjustor thunk (SUB ECX,[ECX-4] / SUB ECX,n / ADD ECX,n ; JMP) to a hooked one.
+// hooked function, the empty Debug_Printf 0x5da3c0, a JMP thunk (16-aligned, at most three JMP rel32s) to one, or an adjustor thunk (SUB ECX,[ECX-4] /
+// SUB ECX,n / ADD ECX,n ; JMP) to either.
 static void test_code_slots(const char *exe_path) {
     std::ifstream f(exe_path, std::ios::binary);
     if (!f) { ++g_failures; return; }
@@ -1303,6 +1304,15 @@ static void test_code_slots(const char *exe_path) {
     for (std::size_t i = 0; i < tpw::hook::kHookCount; ++i) hooked.push_back(tpw::hook::kHooks[i].address);
     std::sort(hooked.begin(), hooked.end());
     auto is_hooked = [&](std::uint32_t a) { return std::binary_search(hooked.begin(), hooked.end(), a); };
+    auto resolves = [&](std::uint32_t a) {   // a hooked function or Debug_Printf, or one reached by JMP rel32s (the loader's Resolve: four looks)
+        for (int hop = 0; hop < 4; ++hop) {
+            if (is_hooked(a) || a == 0x5da3c0) return true;
+            std::uint8_t j[5] = {};
+            if (!read_va(pe, a, j, 5) || j[0] != 0xE9) return false;
+            a += 5 + std::uint32_t(j[1] | j[2] << 8 | j[3] << 16 | j[4] << 24);
+        }
+        return false;
+    };
 
     const std::uint32_t nt = u32(0x3C), base = u32(nt + 0x34), nsec = pe[nt + 6] | pe[nt + 7] << 8;
     const std::uint32_t sec0 = nt + 0x18 + (pe[nt + 0x14] | pe[nt + 0x15] << 8);
@@ -1321,9 +1331,9 @@ static void test_code_slots(const char *exe_path) {
             if (v < t0 || v >= t1) continue;
             std::uint8_t b[8] = {};
             int kind = is_hooked(v) ? 0 : v == 0x5da3c0 ? 1 : -1;
-            if (kind < 0 && read_va(pe, v, b, 8) && b[3] == 0xE9 &&
-                ((b[0] == 0x2B && b[1] == 0x49 && b[2] == 0xFC) || (b[0] == 0x83 && (b[1] == 0xE9 || b[1] == 0xC1))) &&
-                is_hooked(v + 8 + std::uint32_t(b[4] | b[5] << 8 | b[6] << 16 | b[7] << 24)))
+            if (kind < 0 && (((v & 15) == 0 && resolves(v)) || (read_va(pe, v, b, 8) && b[3] == 0xE9 &&
+                                             ((b[0] == 0x2B && b[1] == 0x49 && b[2] == 0xFC) || (b[0] == 0x83 && (b[1] == 0xE9 || b[1] == 0xC1))) &&
+                                             resolves(v + 8 + std::uint32_t(b[4] | b[5] << 8 | b[6] << 16 | b[7] << 24)))))
                 kind = 2;
             if (kind < 0) continue;
             ++kinds[kind];
@@ -1334,6 +1344,45 @@ static void test_code_slots(const char *exe_path) {
     std::printf("  code slots: %u hooked, %u Debug_Printf, %u thunks; table %u\n", kinds[0], kinds[1], kinds[2], unsigned(n));
     CHECK(found.size() == n && std::equal(found.begin(), found.end(), kCodeSlots));
     static_assert(sizeof kCodeSlots / sizeof kCodeSlots[0] >= 4262, "the survey's count (.docs/07-standalone-survey.md); hooks only add slots");
+}
+
+#include "gamedata_fixups.h"
+
+// tpw.exe's start-up fixups (tools/gamedata.py pointers()) against a rescan of the exe here: every 4-aligned dword of a data section whose
+// value lies inside a converted global (0x6fd000-0xfc1000), and every code slot (test_code_slots) inside one. (Settled text and the
+// errors are gamedata.py's own: it fails the build on them; kFixupText lists the first.)
+static void test_gamedata_fixups(const char *exe_path) {
+    std::ifstream f(exe_path, std::ios::binary);
+    if (!f) { ++g_failures; return; }
+    std::vector<unsigned char> pe((std::istreambuf_iterator<char>(f)), std::istreambuf_iterator<char>());
+    auto u32 = [&](size_t o) { std::uint32_t v; std::memcpy(&v, &pe[o], 4); return v; };
+    auto converted = [](std::uint32_t a) {
+        for (unsigned i = 0; i < kFixupRangeCount; ++i)
+            if (a - kFixupRanges[i][0] < kFixupRanges[i][1]) return true;
+        return false;
+    };
+    const std::uint32_t nt = u32(0x3C), base = u32(nt + 0x34), nsec = pe[nt + 6] | pe[nt + 7] << 8;
+    const std::uint32_t sec0 = nt + 0x18 + (pe[nt + 0x14] | pe[nt + 0x15] << 8);
+    std::vector<std::pair<std::uint32_t, std::uint32_t>> found;
+    unsigned code = 0;
+    for (std::uint32_t i = 0, s = sec0; i < nsec; ++i, s += 40) {
+        char name[9] = {};
+        std::memcpy(name, &pe[s], 8);
+        if (!std::strcmp(name, ".text") || !std::strcmp(name, "cseg") || !std::strcmp(name, ".rsrc")) continue;
+        const std::uint32_t va = base + u32(s + 12), rs = u32(s + 16), raw = u32(s + 20);
+        for (std::uint32_t o = 0; o + 4 <= rs; o += 4) {
+            const std::uint32_t v = u32(raw + o);
+            const bool into = v >= 0x6fd000 && v < 0xfc1000 && converted(v) &&
+                              std::find(kFixupText, kFixupText + kFixupTextCount, va + o) == kFixupText + kFixupTextCount;
+            const bool code_in = converted(va + o) && std::binary_search(std::begin(kCodeSlots), std::end(kCodeSlots), va + o);
+            if (into || code_in) found.push_back({va + o, v});
+            code += code_in;
+        }
+    }
+    std::printf("  gamedata fixups: %u pointers into %u globals, %u code addresses in them; table %u\n", unsigned(found.size()) - code,
+                kFixupRangeCount, code, kFixupCount);
+    CHECK(found.size() == kFixupCount);
+    for (std::size_t i = 0; i < found.size() && i < kFixupCount; ++i) CHECK(found[i].first == kFixups[i][0] && found[i].second == kFixups[i][1]);
 }
 #endif
 
@@ -1366,6 +1415,7 @@ int main(int argc, char **argv) {
     if (argc > 1) test_hook_table(argv[1]);
 #ifdef TPW_CODE_SLOTS
     if (argc > 1) test_code_slots(argv[1]);
+    if (argc > 1) test_gamedata_fixups(argv[1]);
 #endif
     std::printf(g_failures ? "%d FAILED\n" : "all tests passed\n", g_failures);
     return g_failures ? 1 : 0;

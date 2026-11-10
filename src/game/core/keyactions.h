@@ -90,4 +90,24 @@ u32 __cdecl KeyAction_MarkScore0();
 u32 __cdecl KeyAction_MarkScore1();
 u32 __cdecl KeyAction_MarkScore2();
 u32 __cdecl KeyAction_MarkScore3();
+
+// 0x40c4c0-0x40c5c0, the shortcut table 0x748378's entries (names from its key names "postcard" .. "camcorder"; invented, unconfirmed):
+// each calls one entry point with ECX 0x7b51f0 (the front end; the entry points are cdecl and do not read it) and returns 1.
+u32 __cdecl KeyAction_Postcard();      // 0x40c4c0: 0x481500, a JMP to GamePause_Hide 0x4a9380
+u32 __cdecl KeyAction_Menu();          // 0x40c4d0: FrontEnd_PanelMenu 0x4816d0
+u32 __cdecl KeyAction_Buy();           // 0x40c4e0: 0x4816e0 (Dialog7cc1f8_Open (-1, 0))
+u32 __cdecl KeyAction_Hire();          // 0x40c4f0: 0x481700 (Dialog7ca308_Open (-1))
+u32 __cdecl KeyAction_ParkStatus();    // 0x40c500: 0x481710 (Dialog7cb398_Create)
+u32 __cdecl KeyAction_AllItems();      // 0x40c510: 0x481720 (Dialog7ca150_Open (-1, 0))
+u32 __cdecl KeyAction_AllStaff();      // 0x40c520: 0x481730 (Dialog7ca168_Open (-1, 0))
+u32 __cdecl KeyAction_AllPeeps();      // 0x40c530: 0x481740 (Dialog7ca13c_Open (0))
+u32 __cdecl KeyAction_FinanceInfo();   // 0x40c540: FrontEnd_Dialog7ca2e8 0x481750
+u32 __cdecl KeyAction_Loans();         // 0x40c550: FrontEnd_Dialog7cb25c 0x481760
+u32 __cdecl KeyAction_StaffCosts();    // 0x40c560: FrontEnd_Dialog7cc2ec 0x481770
+u32 __cdecl KeyAction_EntryPrice();    // 0x40c570: FrontEnd_Dialog7ca210 0x481780
+u32 __cdecl KeyAction_Map();           // 0x40c580: FrontEnd_Other5f0b40 0x481510
+u32 __cdecl KeyAction_StaffLoc();      // 0x40c590: ThingBrowser_OpenShown 0x481790
+u32 __cdecl KeyAction_PeepLoc();       // 0x40c5a0: FrontEnd_Browser 0x4817c0
+u32 __cdecl KeyAction_Research();      // 0x40c5b0: FrontEnd_Research 0x4817e0
+u32 __cdecl KeyAction_Camcorder();     // 0x40c5c0: MouseMode_Enter6fead0 0x481a10
 }

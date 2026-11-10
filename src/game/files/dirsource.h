@@ -83,3 +83,6 @@ struct DirSourceEnv {
 };
 // The calls go through env (nullptr: the game's).
 void DirSource_SetEnv(const DirSourceEnv *env);
+
+// Globals by address, by hand (.docs/09-globals.md). The vtable holds only ports: tpw.exe's loader points its slots at them.
+GAME_DATA(void *[14], DirSource_vtable, 0x007038d0, 0x38);

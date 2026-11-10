@@ -4,6 +4,7 @@
 #include <cstring>
 
 #include "crt.h"
+#include "crtopen.h"
 
 namespace {
 
@@ -160,7 +161,7 @@ int64_t __cdecl CRT_lseeki64(u32 fd, int64_t offset, u32 origin) {
 }
 
 s32 __cdecl CRT_isatty(u32 fd) {
-    if (fd >= global<u32>(0x00fb3ca0)) return 0;
+    if (fd >= CRT_nhandle) return 0;
     return crt_handle(static_cast<s32>(fd))[4] & 0x40;
 }
 
@@ -224,7 +225,7 @@ s32 __cdecl CRT_write(u32 fd, const char *data, u32 count) {
 }
 
 void __cdecl CRT_getbuf(CrtFile *file) {
-    ++global<u32>(0x00fb1350);
+    ++CRT_cflush;
     file->base = static_cast<char *>(CRT_malloc(0x1000));
     if (file->base) {
         file->flags |= 8;

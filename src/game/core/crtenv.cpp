@@ -4,6 +4,9 @@
 #include <cstring>
 
 #include "crt.h"
+#include "crtmbstring.h"
+#include "crtlocale.h"
+#include "crttime.h"
 
 namespace {
 
@@ -11,9 +14,9 @@ template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((ui
 
 template <typename F> F import_slot(u32 slot) { return *reinterpret_cast<F *>((uintptr_t)slot); }
 
-bool lead_byte(u8 c) { return reinterpret_cast<const u8 *>((uintptr_t)0x00fb1669)[c] & 4; }
+bool lead_byte(u8 c) { return (&CRT_mbctype[1])[c] & 4; }
 
-char **&environment() { return global<char **>(0x00fb1380); }
+char **&environment() { return CRT_environ; }
 
 s32 compare_a(u32 locale, u32 flags, u32 a, s32 a_length, u32 b, s32 b_length) {
     return import_slot<s32(__stdcall *)(u32, u32, u32, s32, u32, s32)>(0x006fd270)(locale, flags, a, a_length, b, b_length);
@@ -51,17 +54,18 @@ bool digit(char c) { return c >= '0' && c <= '9'; }
 extern "C" {
 
 s32 __cdecl CRT_crtCompareStringA(u32 locale, u32 flags, const char *a, s32 a_length, const char *b, s32 b_length, u32 code_page) {
-    if (!global<u32>(0x00fb1910)) {
-        if (compare_w(0, 0, 0x00708da8, 1, 0x00708da8, 1)) global<u32>(0x00fb1910) = 1;
-        else if (compare_a(0, 0, 0x00708da4, 1, 0x00708da4, 1)) global<u32>(0x00fb1910) = 2;
+    if (!CRT_CompareString_use_fb1910) {
+        const u32 wide = (u32)(uintptr_t)CRT_text_empty_wide_708da8, narrow = (u32)(uintptr_t)CRT_text_empty_708da4;
+        if (compare_w(0, 0, wide, 1, wide, 1)) CRT_CompareString_use_fb1910 = 1;
+        else if (compare_a(0, 0, narrow, 1, narrow, 1)) CRT_CompareString_use_fb1910 = 2;
         else return 0;
     }
     if (a_length > 0) a_length = static_cast<s32>(CRT_strncnt(a, static_cast<u32>(a_length)));
     if (b_length > 0) b_length = static_cast<s32>(CRT_strncnt(b, static_cast<u32>(b_length)));
-    const u32 mode = global<u32>(0x00fb1910);
+    const u32 mode = CRT_CompareString_use_fb1910;
     if (mode == 2) return compare_a(locale, flags, static_cast<u32>(reinterpret_cast<uintptr_t>(a)), a_length, static_cast<u32>(reinterpret_cast<uintptr_t>(b)), b_length);
     if (mode != 1) return static_cast<s32>(mode);
-    if (!code_page) code_page = global<u32>(0x00fb1450);
+    if (!code_page) code_page = CRT_lc_codepage;
     if (!a_length || !b_length) {
         if (a_length == b_length) return 2;
         if (b_length > 1) return 1;
@@ -104,12 +108,12 @@ s32 __cdecl CRT_crtCompareStringA(u32 locale, u32 flags, const char *a, s32 a_le
 
 s32 __cdecl CRT_mbsnbicoll(const char *a, const char *b, u32 n) {
     if (!n) return 0;
-    const s32 result = CRT_crtCompareStringA(global<u32>(0x00fb1874), 1, a, static_cast<s32>(n), b, static_cast<s32>(n), global<u32>(0x00fb1870));
+    const s32 result = CRT_crtCompareStringA(CRT_mblcid, 1, a, static_cast<s32>(n), b, static_cast<s32>(n), CRT_mbcodepage);
     return result ? result - 2 : 0x7fffffff;
 }
 
 const char *__cdecl CRT_mbschr(const char *text, u32 value) {
-    if (!global<u32>(0x00fb1870)) return CRT_strchr(text, static_cast<s32>(value));
+    if (!CRT_mbcodepage) return CRT_strchr(text, static_cast<s32>(value));
     CrtInner().lock(0x19);
     const char *at = text;
     u32 c = static_cast<u8>(*at);
@@ -171,18 +175,18 @@ s32 __cdecl CRT_crtsetenv(char *option, s32 primary) {
     const char *const equals = CRT_mbschr(option, '=');
     if (!equals || equals == option) return -1;
     const bool remove = !equals[1];
-    if (environment() == global<char **>(0x00fb1384)) environment() = CRT_copy_environ(environment());
+    if (environment() == CRT_initenv) environment() = CRT_copy_environ(environment());
     if (!environment()) {
-        if (primary && global<void *>(0x00fb1388)) {
+        if (primary && CRT_wenviron) {
             if (CRT_wtomb_environ()) return -1;
         } else {
             if (remove) return 0;
             environment() = static_cast<char **>(CRT_malloc(4));
             if (!environment()) return -1;
             *environment() = nullptr;
-            if (!global<void *>(0x00fb1388)) {
-                void **const wide = static_cast<void **>(CRT_malloc(4));
-                global<void **>(0x00fb1388) = wide;
+            if (!CRT_wenviron) {
+                u16 **const wide = static_cast<u16 **>(CRT_malloc(4));
+                CRT_wenviron = wide;
                 if (!wide) return -1;
                 *wide = nullptr;
             }
@@ -222,7 +226,7 @@ s32 __cdecl CRT_crtsetenv(char *option, s32 primary) {
 }
 
 s32 __cdecl CRT_wtomb_environ() {
-    const u16 **entry = global<const u16 **>(0x00fb1388);
+    u16 **entry = CRT_wenviron;
     for (; *entry; ++entry) {
         const s32 size = to_narrow(1, 0, *entry, -1, nullptr, 0, nullptr, nullptr);
         if (!size) return -1;
@@ -237,7 +241,7 @@ s32 __cdecl CRT_wtomb_environ() {
 char *__cdecl CRT_getenv(const char *name) {
     char **entry = environment();
     if (!entry) {
-        if (!global<void *>(0x00fb1388)) return nullptr;
+        if (!CRT_wenviron) return nullptr;
         if (CRT_wtomb_environ()) return nullptr;
         entry = environment();
         if (!entry) return nullptr;
@@ -271,7 +275,7 @@ void __cdecl CRT_setenvp() {
         if (*at != '=') ++names;
     }
     char **next = static_cast<char **>(CRT_malloc(names * 4 + 4));
-    *reinterpret_cast<char ***>((uintptr_t)0x00fb1380) = next;
+    CRT_environ = next;
     if (!next) CrtInner().amsgExit(9);
     for (const char *at = block; *at; at += std::strlen(at) + 1) {
         if (*at == '=') continue;
@@ -290,7 +294,7 @@ char *__cdecl CRT_crtGetEnvironmentStringsA() {
     using GetW = u16 *(__stdcall *)();
     using GetA = char *(__stdcall *)();
     using Release = s32(__stdcall *)(void *);
-    u32 &mode = global<u32>(0x00fb1660);
+    u32 &mode = CRT_GetEnvironmentStrings_use_fb1660;
     u16 *wide = nullptr;
     char *narrow = nullptr;
     if (!mode) {
@@ -342,15 +346,15 @@ char *__cdecl CRT_crtGetEnvironmentStringsA() {
 
 u32 __cdecl CRT_wcstombs_lk(char *to, const u16 *from, u32 n) {
     s32 lossy = 0;
-    const u32 code_page = global<u32>(0x00fb1450);
+    const u32 code_page = CRT_lc_codepage;
     if (to && !n) return 0;
     if (!to) {
-        if (!global<u32>(0x00fb1440)) return Crt().wcslen(from);
+        if (!CRT_lc_handle[2]) return Crt().wcslen(from);
         const s32 size = to_narrow(code_page, 0x220, from, -1, nullptr, 0, nullptr, &lossy);
         if (!size || lossy) return unconvertible();
         return static_cast<u32>(size) - 1;
     }
-    if (!global<u32>(0x00fb1440)) {
+    if (!CRT_lc_handle[2]) {
         for (u32 i = 0; i < n; ++i) {
             if (from[i] > 0xff) return unconvertible();
             to[i] = static_cast<char>(from[i]);
@@ -358,7 +362,7 @@ u32 __cdecl CRT_wcstombs_lk(char *to, const u16 *from, u32 n) {
         }
         return n;
     }
-    const s32 widest = global<s32>(0x0077e7dc);
+    const s32 widest = CRT_mb_cur_max;
     if (widest == 1) {
         const u32 units = CRT_wcsncnt(from, n);
         const s32 size = to_narrow(code_page, 0x220, from, static_cast<s32>(units), to, static_cast<s32>(units), nullptr, &lossy);
@@ -374,7 +378,7 @@ u32 __cdecl CRT_wcstombs_lk(char *to, const u16 *from, u32 n) {
     u32 done = 0;
     while (done < n) {
         char one[16];   // (sic: the original's is the argument's slot on the stack, room for 8 bytes before the return address)
-        const s32 got = to_narrow(global<u32>(0x00fb1450), 0, from, 1, one, global<s32>(0x0077e7dc), nullptr, &lossy);
+        const s32 got = to_narrow(CRT_lc_codepage, 0, from, 1, one, CRT_mb_cur_max, nullptr, &lossy);
         if (!got || lossy) return unconvertible();
         if (static_cast<u32>(got) + done > n) return done;
         for (s32 i = 0; i < got; ++i) {
@@ -388,10 +392,10 @@ u32 __cdecl CRT_wcstombs_lk(char *to, const u16 *from, u32 n) {
 }
 
 u32 __cdecl CRT_wcstombs(char *to, const u16 *from, u32 n) {
-    const u32 readers = 0x00fb3ca8;
+    const u32 readers = (u32)(uintptr_t)&CRT_unguarded_readlc_active;
     const auto decrement = import_slot<s32(__stdcall *)(u32)>(0x006fd12c);
     import_slot<s32(__stdcall *)(u32)>(0x006fd0c0)(readers);
-    const bool locked = global<u32>(0x00fb3ca4) != 0;
+    const bool locked = CRT_setlc_active != 0;
     if (locked) {
         decrement(readers);
         CrtInner().lock(0x13);
@@ -404,41 +408,41 @@ u32 __cdecl CRT_wcstombs(char *to, const u16 *from, u32 n) {
 
 void __cdecl CRT_tzset() {
     CrtInner().lock(0xc);
-    global<u32>(0x00fb1458) = 0;
-    global<u32>(0x00781480) = 0xffffffff;
-    global<u32>(0x00781470) = 0xffffffff;
-    const char *zone = CRT_getenv(reinterpret_cast<const char *>((uintptr_t)0x00708da0));
+    CRT_tzapiused = 0;
+    CRT_dstend.year = -1;
+    CRT_dststart.year = -1;
+    const char *zone = CRT_getenv(CRT_text_TZ_708da0);
     char *&standard = global<char *>(0x00781468);
     char *&daylight = global<char *>(0x0078146c);
-    s32 &offset = global<s32>(0x007813d8);
+    s32 &offset = CRT_timezone;
     if (!zone) {
         CrtInner().unlock(0xc);
-        if (import_slot<s32(__stdcall *)(u32)>(0x006fd21c)(0x00fb1460) == -1) return;
-        const s32 bias = global<s32>(0x00fb14b4);
-        global<u32>(0x00fb1458) = 1;
-        offset = global<s32>(0x00fb1460) * 60;
-        if (global<u16>(0x00fb14a6)) offset += bias * 60;
-        if (global<u16>(0x00fb14fa) && global<s32>(0x00fb1508)) {
-            global<u32>(0x007813dc) = 1;
-            global<s32>(0x007813e0) = (global<s32>(0x00fb1508) - bias) * 60;
+        if (import_slot<s32(__stdcall *)(u32)>(0x006fd21c)((u32)(uintptr_t)&CRT_tzinfo) == -1) return;
+        const s32 bias = CRT_tzinfo.standard_bias;
+        CRT_tzapiused = 1;
+        offset = CRT_tzinfo.bias * 60;
+        if (CRT_tzinfo.standard_date[1]) offset += bias * 60;
+        if (CRT_tzinfo.daylight_date[1] && CRT_tzinfo.daylight_bias) {
+            CRT_daylight = 1;
+            CRT_dstbias = (CRT_tzinfo.daylight_bias - bias) * 60;
         } else {
-            global<u32>(0x007813dc) = 0;
-            global<u32>(0x007813e0) = 0;
+            CRT_daylight = 0;
+            CRT_dstbias = 0;
         }
-        CRT_wcstombs(standard, reinterpret_cast<const u16 *>((uintptr_t)0x00fb1464), 0x40);
-        CRT_wcstombs(daylight, reinterpret_cast<const u16 *>((uintptr_t)0x00fb14b8), 0x40);
+        CRT_wcstombs(standard, CRT_tzinfo.standard_name, 0x40);
+        CRT_wcstombs(daylight, CRT_tzinfo.daylight_name, 0x40);
         daylight[0x3f] = 0;
         standard[0x3f] = 0;
         return;
     }
-    char *const last = global<char *>(0x00fb150c);
+    char *const last = CRT_lastTZ;
     if (!*zone || (last && !std::strcmp(zone, last))) {
         CrtInner().unlock(0xc);
         return;
     }
     Crt().free(last);
     char *const copy = static_cast<char *>(CRT_malloc(static_cast<u32>(std::strlen(zone)) + 1));
-    global<char *>(0x00fb150c) = copy;
+    CRT_lastTZ = copy;
     if (!copy) {
         CrtInner().unlock(0xc);
         return;
@@ -464,7 +468,7 @@ void __cdecl CRT_tzset() {
     }
     if (negative) offset = -offset;
     const s32 more = *zone;
-    global<s32>(0x007813dc) = more;
+    CRT_daylight = more;
     if (more) {
         Crt().strncpy(daylight, zone, 3);
         daylight[3] = 0;

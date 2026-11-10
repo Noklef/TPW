@@ -56,3 +56,6 @@ void __fastcall MemorySource_Teardown(MemorySource *m);
 // 0x619240 (vtable +0x2c): the semaphore.
 Semaphore *__fastcall MemorySource_GetLock(MemorySource *m);
 }
+
+// Globals by address, by hand (.docs/09-globals.md). The vtable holds only ports: tpw.exe's loader points its slots at them.
+GAME_DATA(void *[12], MemorySource_vtable, 0x00703868, 0x30);

@@ -33,3 +33,13 @@ void *__cdecl CRT_heap_alloc(u32 size);
 void *__cdecl CRT_nh_malloc(u32 size, s32 mode);
 
 }
+
+// _set_new_handler's handler (_pnhHeap): asked for more memory when an allocation fails.
+using CrtNewHandlerFn = s32(__cdecl *)(u32);
+
+#include "gamedata.h"
+
+// Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(u32, CRT_sbh_threshold, 0x00780dc4, 0x4);
+GAME_DATA(CrtNewHandlerFn, CRT_pnhHeap, 0x00fb154c, 0x4);
+GAME_DATA(u32, CRT_crtheap, 0x00fb3cac, 0x4);

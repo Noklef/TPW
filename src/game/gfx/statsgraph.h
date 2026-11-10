@@ -59,3 +59,8 @@ u32 __cdecl StatsGraph_Handler(u8 *window, u32 message, u32 a, u32 b);
 // clears it, then the marks' y (0, the greatest, 10); 0x101, a = 0x4a68c2, 0x4a68c3, 0x4a68c4: kinds 2, 0, 1, as 0x49a2e0. Drawn with 0x4a4750 after it.
 u32 __cdecl StatsGraph7cb318_Handler(u8 *window, u32 message, u32 a, u32 b);
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(const float, gStatsGraph_Zero_6ff0a4, 0x006ff0a4, 0x4);

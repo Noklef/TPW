@@ -79,7 +79,7 @@ void __cdecl StatsGraph_PlotU32(u8 *gauge, const u8 *line, const u8 *colour, s32
 
 void __cdecl StatsGraph_PlotFloat(u8 *gauge, const u8 *line, const u8 *colour, s32 step, u32 kind) {
     const auto truncated = [](float x) { return (u32)(long long)x; };
-    plot(gauge, line, colour, step, kind, truncated(global<float>(0x006ff0a4)), [line, truncated](s32 i) { return truncated(*reinterpret_cast<const float *>(line + 4 + i * 4)); });
+    plot(gauge, line, colour, step, kind, truncated(gStatsGraph_Zero_6ff0a4), [line, truncated](s32 i) { return truncated(*reinterpret_cast<const float *>(line + 4 + i * 4)); });
 }
 
 void __cdecl StatsGraph_Lines(u8 *gauge) {

@@ -28,7 +28,7 @@ constexpr u32 kKind = (u32)-0x28, kWidth = (u32)-0x24, kHeight = (u32)-0x22, kSt
 extern "C" {
 
 u32 __fastcall WctImage_Read(u8 *image, void *, u8 *stream) {
-    u8 *const header = reinterpret_cast<u8 *>((uintptr_t)0x00879a38);
+    u8 *const header = reinterpret_cast<u8 *>(&gWctImage_Header_879a38);
     Object_CallSlot8Product((u32)(uintptr_t)header, 0x2c, 1, stream);
     at<u8>(image, 6) = 0x20;
     at<u16>(image, 8) = at<u16>(header, 4);

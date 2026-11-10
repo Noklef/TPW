@@ -29,12 +29,12 @@ void set_infinity(u32 *x, u32 sign) {
 }
 
 bool is_digit(u8 c) {
-    if (global<s32>(0x0077e7dc) > 1) return CRT_isctype(c, 4) != 0;
+    if (CRT_mb_cur_max > 1) return CRT_isctype(c, 4) != 0;
     return (global<const u8 *>(0x0077ea90)[c * 2u] & 4) != 0;
 }
 
 bool is_space(u8 c) {
-    if (global<s32>(0x0077e7dc) > 1) return CRT_isctype(c, 8) != 0;
+    if (CRT_mb_cur_max > 1) return CRT_isctype(c, 8) != 0;
     return (global<const u8 *>(0x0077ea90)[c * 2u] & 8) != 0;
 }
 
@@ -363,16 +363,16 @@ s32 __cdecl CRT_i10_output(u32 low, u32 high, u32 sign_exp, s32 digits, u32 flag
     };
     if (!exponent && !high && !low) return zero();
     if (exponent == 0x7fff) {
-        const auto text = [&](u32 address, u8 length) {
-            std::memcpy(out + 4, reinterpret_cast<const void *>((uintptr_t)address), length + 1u);
+        const auto text = [&](const char *name, u8 length) {
+            std::memcpy(out + 4, name, length + 1u);
             out[3] = length;
             return 0;
         };
         point = 1;
-        if ((high != 0x80000000 || low) && !(high & 0x40000000)) return text(0x00709748, 6);
-        if (negative && high == 0xc0000000 && !low) return text(0x00709740, 5);
-        if (high == 0x80000000 && !low) return text(0x00709738, 5);
-        return text(0x00709730, 6);
+        if ((high != 0x80000000 || low) && !(high & 0x40000000)) return text(CRT_text_SNAN_709748, 6);
+        if (negative && high == 0xc0000000 && !low) return text(CRT_text_IND_709740, 5);
+        if (high == 0x80000000 && !low) return text(CRT_text_INF_709738, 5);
+        return text(CRT_text_QNAN_709730, 6);
     }
     u32 man[3] = {low << 16, low >> 16 | high << 16, high >> 16 | exponent << 16};
     const u32 estimate = (exponent >> 8) + (high >> 24) * 2;
@@ -498,7 +498,7 @@ u32 __cdecl CRT_strgtold12(u32 *out, const char **end, const char *text, u32 kee
     bool found_digit = false, found_point = false, found_exponent = false;
     while (*p == ' ' || *p == '\t' || *p == '\n' || *p == '\r') ++p;
     s32 state = kStart;
-    const auto point = [] { return global<char>(0x0077e7e0); };
+    const auto point = [] { return CRT_decimal_point[0]; };
     const auto after_digits = [&](char c) {
         if (c == '+' || c == '-') {
             --p;
@@ -765,14 +765,14 @@ s32 __cdecl CRT_atoflt(u32 *out, const char *text) {
 }
 
 u32 __cdecl CRT_hextodec(u32 c) {
-    const bool digit = *reinterpret_cast<const s32 *>((uintptr_t)0x0077e7dc) > 1 ? CRT_isctype(static_cast<s32>(c), 4) != 0 : ((*reinterpret_cast<const u16 *const *>((uintptr_t)0x0077ea90))[c] & 4) != 0;
+    const bool digit = CRT_mb_cur_max > 1 ? CRT_isctype(static_cast<s32>(c), 4) != 0 : ((*reinterpret_cast<const u16 *const *>((uintptr_t)0x0077ea90))[c] & 4) != 0;
     return digit ? c : (c & ~0x20u) - 7;
 }
 
 double __cdecl CRT_Stod(const char *text, const char **end, s32 power) {
     double value = CRT_strtod(text, end);
-    for (s32 i = power; i > 0; --i) value = X87_MulDouble(value, *reinterpret_cast<const double *>((uintptr_t)0x0070a050));
-    for (s32 i = power; i < 0; ++i) value = X87_MulDouble(value, *reinterpret_cast<const double *>((uintptr_t)0x0070a058));
+    for (s32 i = power; i > 0; --i) value = X87_MulDouble(value, CRT_ten_70a050);
+    for (s32 i = power; i < 0; ++i) value = X87_MulDouble(value, CRT_tenth_70a058);
     return value;
 }
 
@@ -792,14 +792,14 @@ s32 __cdecl CRT_ms_p5_test_fdiv() {
         fsubr x
         fstp rest
     }
-    return rest > global<const double>(0x00708a70) ? 1 : 0;
+    return rest > CRT_one_708a70 ? 1 : 0;
 }
 
 s32 __cdecl CRT_ms_p5_mp_test_fdiv() {
-    const u32 kernel = (*reinterpret_cast<u32(__stdcall *const *)(const char *)>((uintptr_t)0x006fd238))(reinterpret_cast<const char *>((uintptr_t)0x00708a94));    // GetModuleHandleA("KERNEL32")
+    const u32 kernel = (*reinterpret_cast<u32(__stdcall *const *)(const char *)>((uintptr_t)0x006fd238))(CRT_text_KERNEL32_708a94);    // GetModuleHandleA("KERNEL32")
     if (kernel) {
         using Present = s32(__stdcall *)(u32);
-        const Present present = (*reinterpret_cast<Present(__stdcall *const *)(u32, const char *)>((uintptr_t)0x006fd0b0))(kernel, reinterpret_cast<const char *>((uintptr_t)0x00708a78));    // GetProcAddress
+        const Present present = (*reinterpret_cast<Present(__stdcall *const *)(u32, const char *)>((uintptr_t)0x006fd0b0))(kernel, CRT_text_IsProcessorFeaturePresent_708a78);    // GetProcAddress
         if (present) return present(0);    // IsProcessorFeaturePresent(PF_FLOATING_POINT_PRECISION_ERRATA)
     }
     return CRT_ms_p5_test_fdiv();
@@ -807,7 +807,7 @@ s32 __cdecl CRT_ms_p5_mp_test_fdiv() {
 
 void __cdecl CRT_FPinit() {
     Fn_67a610();
-    global<s32>(0x00fb1334) = CRT_ms_p5_mp_test_fdiv();
+    CRT_adjust_fdiv = CRT_ms_p5_mp_test_fdiv();
     CRT_setdefaultprecision();
     __asm fnclex
 }
@@ -821,10 +821,10 @@ double __cdecl CRT_strtod(const char *text, const char **end) {
     const u32 flags = got[0];
     if (flags & 0x240) {
         if (end) *end = text;
-        return global<const double>(0x00711c28);
+        return CRT_zero_711c28;
     }
     if (flags & 0x81) {
-        const double huge = *from == '-' ? -global<const double>(0x00784c10) : global<const double>(0x00784c10);
+        const double huge = *from == '-' ? -CRT_HUGE : CRT_HUGE;
         *CRT_errno() = 0x22;
         return huge;
     }
@@ -882,11 +882,11 @@ void __cdecl CRT_forcdecpt(char *text) {
     if (CRT_tolower(static_cast<s8>(*at)) != 0x65) {
         do {
             ++at;
-        } while (global<s32>(0x0077e7dc) > 1 ? CRT_isctype(static_cast<s8>(*at), 4) != 0
+        } while (CRT_mb_cur_max > 1 ? CRT_isctype(static_cast<s8>(*at), 4) != 0
                                              : (global<const u8 *>(0x0077ea90)[static_cast<s8>(*at) * 2] & 4) != 0);
     }
     char held = *at;
-    *at = global<char>(0x0077e7e0);
+    *at = CRT_decimal_point[0];
     char stored;
     do {
         ++at;
@@ -898,7 +898,7 @@ void __cdecl CRT_forcdecpt(char *text) {
 }
 
 void __cdecl CRT_cropzeros(char *text) {
-    const char point = global<char>(0x0077e7e0);
+    const char point = CRT_decimal_point[0];
     char *at = text;
     while (*at && *at != point) ++at;
     if (!*at++) return;
@@ -919,7 +919,7 @@ double __cdecl CRT_frexp(u32 low, u32 high, s32 *exp) {
     const u32 words[2] = {low, high};
     double value;
     std::memcpy(&value, words, sizeof value);
-    const double zero = global<double>(0x00708ce0);
+    const double zero = CRT_zero_708ce0;
     if (!(value < zero) && !(value > zero)) {
         *exp = 0;
         return 0.0;
@@ -958,7 +958,7 @@ s32 __cdecl CRT_fpclass(u32 low, u32 high) {
     const u32 words[2] = {low, high};
     double value;
     std::memcpy(&value, words, sizeof value);
-    if (value == global<double>(0x007089b8)) return negative ? 0x20 : 0x40;
+    if (value == CRT_minus_one_7089b8) return negative ? 0x20 : 0x40;
     return negative ? 8 : 0x100;
 }
 
@@ -982,11 +982,11 @@ char *__cdecl CRT_cftoe2(char *buffer, s32 decimals, s32 caps, const s32 *number
     if (decimals > 0) {
         at[0] = at[1];
         ++at;
-        *at = global<char>(0x0077e7e0);
+        *at = CRT_decimal_point[0];
     }
     char *const tail = at + decimals + (g_format ? 0 : 1);
-    *reinterpret_cast<u32 *>(tail) = global<u32>(0x00708aa8);   // "e+000"
-    *reinterpret_cast<u16 *>(tail + 4) = global<u16>(0x00708aac);
+    *reinterpret_cast<u32 *>(tail) = *reinterpret_cast<const u32 *>(&CRT_text_exponent_708aa8[0]);   // "e+000"
+    *reinterpret_cast<u16 *>(tail + 4) = *reinterpret_cast<const u16 *>(&CRT_text_exponent_708aa8[4]);
     if (caps) *tail = 0x45;
     if (**reinterpret_cast<const char *const *>(number + 3) != 0x30) {
         s32 power = static_cast<s32>(static_cast<u32>(number[1]) - 1);
@@ -1026,7 +1026,7 @@ char *__cdecl CRT_cftof2(char *buffer, s32 decimals, const s32 *number, u8 g_for
     }
     if (decimals > 0) {
         CRT_shift(at, 1);
-        *at++ = global<char>(0x0077e7e0);
+        *at++ = CRT_decimal_point[0];
         if (number[1] < 0) {
             const s32 zeros = -number[1];
             const s32 count = g_format || decimals >= zeros ? zeros : decimals;
@@ -1078,6 +1078,6 @@ char *__cdecl CRT_cfltcvt(const u32 *value, char *buffer, s32 format, s32 decima
     return CRT_cftog(value, buffer, decimals, caps);
 }
 
-s32 __cdecl CRT_positive(const double *value) { return *value >= global<double>(0x00708aa0); }
+s32 __cdecl CRT_positive(const double *value) { return *value >= CRT_zero_708aa0; }
 
 }  // extern "C"

@@ -122,3 +122,8 @@ u32 __cdecl Surface_LoadTga(const char *name, u8 *surface, u32 *frames);
 }  // extern "C"
 
 void Image_SetCalls(const AddrCall *table, u32 count);
+
+#include "../core/gamedata.h"
+
+// Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(const double, gImageOps_Factor_702f28, 0x00702f28, 0x8);

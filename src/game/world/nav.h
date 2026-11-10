@@ -103,3 +103,6 @@ GAME_DATA(char[12], gText_Nav_Serialize_762064, 0x00762064, 0xc);
 GAME_DATA(char[12], gText_Nav_Serialize_762070, 0x00762070, 0xc);
 GAME_DATA(char[16], gText_Nav_Serialize_76207c, 0x0076207c, 0x10);
 GAME_DATA(char[8], gText_Nav_Serialize_76208c, 0x0076208c, 0x8);
+// The step test (MapCell_StepOpen 0x510510, a port: tpw.exe's loader points the pointer at it).
+typedef s32(__cdecl *NavPassable)(s32 from, s32 to, u32 flags);
+GAME_DATA(NavPassable, gNav_Passable_762190, 0x00762190, 0x4);

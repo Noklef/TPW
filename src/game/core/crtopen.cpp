@@ -8,6 +8,8 @@
 #include "crtmbstring.h"
 #include "crtstream.h"
 #include "crttime.h"
+#include "crtstartup.h"
+#include "crtmessage.h"
 
 namespace {
 
@@ -15,11 +17,11 @@ template <typename F> F import_slot(u32 slot) { return *reinterpret_cast<F *>((u
 
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
 
-CrtFile *&stream(s32 index) { return global<CrtFile **>(0x00fb3cbc)[index]; }
+CrtFile *&stream(s32 index) { return CRT_piob[index]; }
 
-u8 *&handle_block(u32 index) { return reinterpret_cast<u8 **>((uintptr_t)0x00fb3ba0)[index]; }
+u8 *&handle_block(u32 index) { return CRT_pioinfo[index]; }
 
-u32 &handle_count() { return global<u32>(0x00fb3ca0); }
+u32 &handle_count() { return CRT_nhandle; }
 
 void init_section(void *section) { import_slot<void(__stdcall *)(void *)>(0x006fd144)(section); }
 void enter_section(void *section) { import_slot<void(__stdcall *)(void *)>(0x006fd140)(section); }
@@ -29,7 +31,7 @@ u32 last_error() { return import_slot<u32(__stdcall *)()>(0x006fd138)(); }
 s32 close_handle(u32 handle) { return import_slot<s32(__stdcall *)(u32)>(0x006fd13c)(handle); }
 
 void set_std_handle(u32 fd, u32 handle) {
-    if (global<u32>(0x0077ea84) == 1 && fd <= 2) import_slot<void(__stdcall *)(s32, u32)>(0x006fd268)(-10 - static_cast<s32>(fd), handle);
+    if (CRT_app_type == 1 && fd <= 2) import_slot<void(__stdcall *)(s32, u32)>(0x006fd268)(-10 - static_cast<s32>(fd), handle);
 }
 
 s32 invalid_open() {
@@ -78,7 +80,7 @@ extern "C" {
 CrtFile *__cdecl CRT_getstream() {
     CrtFile *found = nullptr;
     CrtInner().lock(2);
-    for (s32 i = 0; i < global<s32>(0x00fb4cc0); ++i) {
+    for (s32 i = 0; i < CRT_nstream; ++i) {
         if (!stream(i)) {
             stream(i) = static_cast<CrtFile *>(CRT_malloc(0x38));
             if (stream(i)) {
@@ -112,7 +114,7 @@ CrtFile *__cdecl CRT_getstream() {
 
 CrtFile *__cdecl CRT_openfile(const char *name, const char *mode, u32 share, CrtFile *file) {
     u32 oflag;
-    u32 flags = global<u32>(0x00fb1894);
+    u32 flags = CRT_commode;
     switch (*mode) {
     case 'a':
         oflag = 0x109;
@@ -195,7 +197,7 @@ CrtFile *__cdecl CRT_openfile(const char *name, const char *mode, u32 share, Crt
     }
     const s32 fd = CRT_sopen(name, oflag, share, 0x1a4);
     if (fd < 0) return nullptr;
-    ++global<u32>(0x00fb1350);
+    ++CRT_cflush;
     file->flags = flags;
     file->count = 0;
     file->ptr = nullptr;
@@ -222,7 +224,7 @@ s32 __cdecl CRT_sopen(const char *path, u32 oflag, u32 shflag, u32 pmode) {
         u32 inherit;
     } security = {0xc, nullptr, oflag & 0x80 ? 0u : 1u};
     u8 flags = oflag & 0x80 ? 0x10 : 0;
-    if (!(oflag & 0x8000) && (oflag & 0x4000 || global<u32>(0x00fb1914) != 0x8000)) flags |= 0x80;
+    if (!(oflag & 0x8000) && (oflag & 0x4000 || CRT_fmode != 0x8000)) flags |= 0x80;
     u32 desired;
     switch (oflag & 3) {
     case 0: desired = 0x80000000; break;
@@ -241,7 +243,7 @@ s32 __cdecl CRT_sopen(const char *path, u32 oflag, u32 shflag, u32 pmode) {
     static const u32 kCreation[8] = {3, 4, 5, 2, 3, 1, 5, 1};
     const u32 creation = kCreation[oflag >> 8 & 7];
     u32 attributes = 0x80;
-    if (oflag & 0x100 && !(pmode & ~global<u32>(0x00fb1360) & 0x80)) attributes = 1;
+    if (oflag & 0x100 && !(pmode & ~CRT_umaskval & 0x80)) attributes = 1;
     if (oflag & 0x40) {
         attributes |= 0x4000000;
         desired |= 0x10000;
@@ -454,7 +456,7 @@ s32 __cdecl CRT_setvbuf(CrtFile *file, char *buffer, u32 type, u32 size) {
     } else {
         base = static_cast<char *>(CRT_malloc(size));
         if (!base) {
-            ++global<u32>(0x00fb1350);
+            ++CRT_cflush;
             CrtInner().unlockFile(file);
             return -1;
         }
@@ -485,7 +487,7 @@ s32 __cdecl CRT_fflush(CrtFile *file) {
 s32 __cdecl CRT_flsall(s32 mode) {
     s32 flushed = 0, error = 0;
     CrtInner().lock(2);
-    for (s32 i = 0; i < global<s32>(0x00fb4cc0); ++i) {
+    for (s32 i = 0; i < CRT_nstream; ++i) {
         if (!stream(i) || !(stream(i)->flags & 0x83)) continue;
         CrtInner().lockFile2(i, stream(i));
         CrtFile *const file = stream(i);
@@ -512,9 +514,9 @@ u32 __cdecl CRT_dtoxmode(u32 attributes, const char *path) {
     mode |= (2 | (~attributes & 1)) << 7;
     const char *const extension = CRT_mbsrchr(path, 0x2e);
     if (extension) {
-        const u32 texts[] = {0x00708a3c, 0x00708a34, 0x00708a2c, 0x00708a24};
-        for (const u32 text : texts) {
-            if (!CRT_mbsicmp(extension, reinterpret_cast<const char *>((uintptr_t)text))) {
+        const char *const texts[] = {CRT_text_exe_708a3c, CRT_text_cmd_708a34, CRT_text_bat_708a2c, CRT_text_com_708a24};
+        for (const char *const text : texts) {
+            if (!CRT_mbsicmp(extension, text)) {
                 mode |= 0x40;
                 break;
             }
@@ -560,7 +562,7 @@ s32 __cdecl CRT_fclose_lk(CrtFile *file) {
 s32 __cdecl CRT_fcloseall() {
     s32 count = 0;
     CrtInner().lock(2);
-    for (s32 i = 3; i < global<s32>(0x00fb4cc0); ++i) {
+    for (s32 i = 3; i < CRT_nstream; ++i) {
         if (!stream(i)) continue;
         if (stream(i)->flags & 0x83 && CRT_fclose(stream(i)) != -1) ++count;
         if (i >= 0x14) {
@@ -675,8 +677,8 @@ void __cdecl CRT_ioinit() {
 }
 
 void __cdecl CRT_initstdio() {
-    s32 &count = global<s32>(0x00fb4cc0);
-    u32 *&table = global<u32 *>(0x00fb3cbc);
+    s32 &count = CRT_nstream;
+    u32 *&table = reinterpret_cast<u32 *&>(CRT_piob);   // (the _iob records by address)
     if (!count)
         count = 0x200;
     else if (count < 0x14)
@@ -696,11 +698,11 @@ void __cdecl CRT_initstdio() {
 
 void __cdecl CRT_endstdio() {
     CRT_flushall();
-    if (global<u8>(0x00fb1398)) CRT_fcloseall();
+    if (CRT_exitflag) CRT_fcloseall();
 }
 
 void __cdecl CRT_init_namebuf(s32 flag) {
-    char *const name = reinterpret_cast<char *>((uintptr_t)(flag ? 0x00fb13b8 : 0x00fb13a8));
+    char *const name = flag ? CRT_tmpfile_buffer : CRT_tmpnam_buffer;
     *reinterpret_cast<u16 *>(name) = global<u16>(0x007477fc);
     char *at = name + 1;
     if (name[0] != '\\' && name[0] != '/') *at++ = '\\';
@@ -710,7 +712,7 @@ void __cdecl CRT_init_namebuf(s32 flag) {
 }
 
 CrtFile *__cdecl CRT_tmpfile() {
-    char *const name = reinterpret_cast<char *>((uintptr_t)0x00fb13b8);
+    char *const name = CRT_tmpfile_buffer;
     CrtInner().getptd();   // (its answer unused, sic)
     CrtInner().lock(3);
     if (!name[0]) {
@@ -732,7 +734,7 @@ CrtFile *__cdecl CRT_tmpfile() {
             file->count = 0;
             file->ptr = nullptr;
             file->base = nullptr;
-            file->flags = global<u32>(0x00fb1894) | 0x80;
+            file->flags = CRT_commode | 0x80;
             file->fd = fd;
             CrtInner().unlockFile(file);
             CrtInner().unlock(3);
@@ -748,7 +750,7 @@ CrtFile *__cdecl CRT_tmpfile() {
 s32 __cdecl CRT_rmtmp() {
     s32 count = 0;
     CrtInner().lock(2);
-    for (s32 i = 0; i < global<s32>(0x00fb4cc0); ++i) {
+    for (s32 i = 0; i < CRT_nstream; ++i) {
         if (!stream(i)) continue;
         CrtInner().lockFile2(i, stream(i));
         CrtFile *const file = stream(i);
@@ -838,7 +840,7 @@ s32 __cdecl CRT_getdrive() {
 }
 
 s32 __cdecl CRT_stat(const char *path, CrtStat *out) {
-    if (CRT_mbspbrk(path, reinterpret_cast<const char *>(0x00708a48))) return no_entry();
+    if (CRT_mbspbrk(path, CRT_text_wildcards_708a48)) return no_entry();
     s32 drive;
     if (path[1] == ':') {
         if (path[0] && !path[2]) return no_entry();

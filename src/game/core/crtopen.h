@@ -128,3 +128,19 @@ s32 __cdecl CRT_getdrive();
 s32 __cdecl CRT_stat(const char *path, CrtStat *out);
 
 }
+
+#include "gamedata.h"
+
+// Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(const char[8], CRT_text_com_708a24, 0x00708a24, 0x8);
+GAME_DATA(const char[8], CRT_text_bat_708a2c, 0x00708a2c, 0x8);
+GAME_DATA(const char[8], CRT_text_cmd_708a34, 0x00708a34, 0x8);
+GAME_DATA(const char[8], CRT_text_exe_708a3c, 0x00708a3c, 0x8);
+GAME_DATA(const char[4], CRT_text_wildcards_708a48, 0x00708a48, 0x4);
+GAME_DATA(u32, CRT_umaskval, 0x00fb1360, 0x4);
+GAME_DATA(char[14], CRT_tmpnam_buffer, 0x00fb13a8, 0xe);
+GAME_DATA(char[14], CRT_tmpfile_buffer, 0x00fb13b8, 0xe);
+GAME_DATA(u32, CRT_commode, 0x00fb1894, 0x4);
+GAME_DATA(u32, CRT_fmode, 0x00fb1914, 0x4);
+GAME_DATA(CrtFile **, CRT_piob, 0x00fb3cbc, 0x4);
+GAME_DATA(s32, CRT_nstream, 0x00fb4cc0, 0x4);

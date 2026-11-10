@@ -30,3 +30,12 @@ u8 *__fastcall Font_Ctor(u8 *font, void *, u8 *data, u8 *index);
 // freed and -1. Else a Font constructed in the block on that data and the index (Font_Ctor), *object the block, 0. Returns &result.
 s32 *__fastcall Font_Load(u8 *loader, void *, s32 *result, u8 *stream, u8 **object, u32 key, u8 *index);
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address, by hand (.docs/09-globals.md). The vtables hold only ports (the AddRef / Release slots JMP thunks to them): tpw.exe's
+// loader points their slots at the ports. BitmapFont's 0x70a140 is the text-style holder's 0x70a13c from its slot 1 on (gfx/textlayout),
+// so the two are one object.
+GAME_DATA(void *[6], TextStyleHolder_vtable, 0x0070a13c, 0x18);
+GAME_DATA(void *[12], Font_vtable, 0x0070a158, 0x30);
+GAME_DATA(void *[12], FontBase_vtable, 0x0070a208, 0x30);

@@ -22,10 +22,10 @@ s32 __cdecl CRT_raise(s32 sig) {
     u8 *data = nullptr;
     bool locked = true;
     switch (sig) {
-    case 2: action = &global<u32>(0x00fb1918); break;
-    case 21: action = &global<u32>(0x00fb191c); break;
-    case 22: action = &global<u32>(0x00fb1920); break;
-    case 15: action = &global<u32>(0x00fb1924); break;
+    case 2: action = &CRT_ctrlc_action; break;
+    case 21: action = &CRT_ctrlbreak_action; break;
+    case 22: action = &CRT_abort_action; break;
+    case 15: action = &CRT_term_action; break;
     case 4:
     case 8:
     case 11:
@@ -56,7 +56,7 @@ s32 __cdecl CRT_raise(s32 sig) {
         }
     }
     if (sig == 8) {
-        for (s32 i = global<s32>(0x00781508); i < global<s32>(0x00781508) + global<s32>(0x0078150c); ++i) {
+        for (s32 i = CRT_First_FPE_Indx; i < CRT_First_FPE_Indx + CRT_Num_FPE; ++i) {
             (*reinterpret_cast<u32 **>(data + 0x50))[i * 3 + 2] = 0;
         }
     } else {

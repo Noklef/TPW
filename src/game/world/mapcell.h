@@ -323,3 +323,4 @@ GAME_DATA(char[16], gText_MapCell_Serialize_75af50, 0x0075af50, 0x10);
 GAME_DATA(char[20], gText_MapCell_Serialize_75af60, 0x0075af60, 0x14);
 GAME_DATA(char[8], gText_MapCell_Serialize_75af74, 0x0075af74, 0x8);
 GAME_DATA(char[16], gText_TrackCell_Serialize_761e3c, 0x00761e3c, 0x10);
+GAME_DATA(char[12], gText_RECell_Serialize_75e120, 0x0075e120, 0xc);

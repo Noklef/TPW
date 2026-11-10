@@ -16,6 +16,7 @@
 #include "drives.h"
 #include "file.h"
 #include "handles.h"
+#include "waddir.h"
 
 namespace {
 
@@ -275,12 +276,12 @@ extern "C" bool __cdecl GamePaths_CheckDisc() {
     if (!(guard & 1)) {
         list[1] = list[2] = list[3] = 0;
         guard |= 1;
-        list[0] = 0x006fe67c;
+        list[0] = (u32)(std::uintptr_t)StringList2_vtable;
         g_calls.Th(0x005f8790, (u32)&gGamePaths_CheckDisc_fb34f0);   // SystemInfo_Ctor
         g_calls.Cd(0x0067a7d0, 0x0045d810u);   // atexit: the list's destructor
     }
     u32 copy[0xe];
-    copy[0] = 0x006fe67c;
+    copy[0] = (u32)(std::uintptr_t)StringList2_vtable;
     std::memcpy(copy + 1, statics + 4, 0x31);
     const bool found = g_calls.Th(0x005aa500, static_cast<u32>(reinterpret_cast<std::uintptr_t>(copy))) == 1;   // GamePaths_FindDisc
     for (u32 node = copy[1]; node;) {

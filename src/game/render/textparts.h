@@ -132,3 +132,4 @@ void __fastcall TextPart6ff500_SetLayout(u8 *part, void *, u32 flags, const u8 *
 
 // Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
 GAME_DATA(u16[2], gText_TextPart6ff500_SetLayout_7506b8, 0x007506b8, 0x4);
+GAME_DATA(u16[2], gText_TextPart6ff350_SetLayout_7506a8, 0x007506a8, 0x4);

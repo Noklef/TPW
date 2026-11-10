@@ -227,7 +227,7 @@ u32 __fastcall AnalyserVal_Serialize(u8 *val, void *, Stream *stream, u32 save, 
 }
 
 u32 __fastcall AnalyserCell_Serialize(u8 *cell, void *, Stream *stream, u32 save, s32 version, u32 unused) {
-    static const SaveSpec kHead[] = {{0x0, 4, 0x00759aec}, {0x4, 4, 0x00759ae4}, {0x8, 4, (u32)&gText_AnalyserCell_Serialize_759adc}, {0xc, 4, (u32)&gText_AnalyserCell_Serialize_759ad4}};
+    static const SaveSpec kHead[] = {{0x0, 4, (u32)&gText_AnalyserCell_Serialize_759aec}, {0x4, 4, (u32)&gText_AnalyserCell_Serialize_759ae4}, {0x8, 4, (u32)&gText_AnalyserCell_Serialize_759adc}, {0xc, 4, (u32)&gText_AnalyserCell_Serialize_759ad4}};
     if (version < 0 || version > 1) return 0;
     if (save != 0) {
         if (!Save_Fields(stream, save, cell, kHead, 4)) return 1;
@@ -251,8 +251,8 @@ u32 __fastcall ParkAnalyser_Serialize(u8 *analyser, void *, Stream *stream, u32 
     static const SaveSpec kHead[] = {{0xc, 4, (u32)&gText_ParkAnalyser_Serialize_759ac0}, {0x10, 4, (u32)&gText_ParkAnalyser_Serialize_759ab4}, {0x14, 4, (u32)&gText_ParkAnalyser_Serialize_759aa8}, {0x18, 4, (u32)&gText_ParkAnalyser_Serialize_759a9c},
                                      {0x1c, 4, (u32)&gText_ParkAnalyser_Serialize_759a90}};   // mMapSquaresPerCell, mGridSizeX / Y, mMapSizeX / Y
     static const SaveSpec kTail[] = {{0x0, 4, (u32)&gText_ParkAnalyser_Serialize_759a28}, {0x4, 4, (u32)&gText_ParkAnalyser_Serialize_759a04}, {0x8, 4, (u32)&gText_ParkAnalyser_Serialize_7599ec}, {0xc, 4, (u32)&gText_ParkAnalyser_Serialize_7599d8},
-                                     {0x14, 8, 0x007599cc}, {0x1c, 8, (u32)&gText_ParkAnalyser_Serialize_7599c0}, {0x24, 8, (u32)&gText_ParkAnalyser_Serialize_7599b4}, {0x2c, 8, 0x007599a4},
-                                     {0x34, 8, (u32)&gText_ParkAnalyser_Serialize_759990}, {0x3c, 8, 0x00759980}, {0x44, 4, (u32)&gText_ParkAnalyser_Serialize_75996c}, {0x48, 4, 0x0075995c},
+                                     {0x14, 8, (u32)&gText_ParkAnalyser_Serialize_7599cc}, {0x1c, 8, (u32)&gText_ParkAnalyser_Serialize_7599c0}, {0x24, 8, (u32)&gText_ParkAnalyser_Serialize_7599b4}, {0x2c, 8, (u32)&gText_ParkAnalyser_Serialize_7599a4},
+                                     {0x34, 8, (u32)&gText_ParkAnalyser_Serialize_759990}, {0x3c, 8, (u32)&gText_ParkAnalyser_Serialize_759980}, {0x44, 4, (u32)&gText_ParkAnalyser_Serialize_75996c}, {0x48, 4, (u32)&gText_ParkAnalyser_Serialize_75995c},
                                      {0x4c, 4, (u32)&gText_ParkAnalyser_Serialize_75994c}};   // from +0x21bfc: mMisbehavingKids ..., mLastStrike ...
     if (Thing_Serialize(analyser, nullptr, stream, save, version, unused)) return 1;
     if (version < 0 || version > 1) return 0;

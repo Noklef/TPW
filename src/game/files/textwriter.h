@@ -44,3 +44,8 @@ TextWriter *__fastcall TextWriter_AppendStr(TextWriter *w, void *edx, const char
 TextWriter *__fastcall TextWriter_AppendChar(TextWriter *w, void *edx, const char *c);
 TextWriter *__fastcall TextWriter_Append(TextWriter *w, void *edx, const String *s);
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address, by hand (.docs/09-globals.md). The vtable holds only ports: tpw.exe's loader points its slots at them.
+GAME_DATA(void *[9], TextWriter_vtable, 0x00703e08, 0x24);
