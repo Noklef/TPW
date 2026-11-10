@@ -60,7 +60,7 @@ u32 *__fastcall Mp2StreamSample_Open(u8 *sample, void *, u32 *out) {
     u8 *const decoder = static_cast<u8 *>(Mp2StreamPool_New(0x2c80));
     if (decoder) {
         Init_6c9260(decoder);
-        at<u32>(decoder, 0) = 0x0070af00;
+        at<u32>(decoder, 0) = (u32)(uintptr_t)Class70af00_vtable;
     }
     at<u8 *>(sample, 0x34) = decoder;
     if (Mp2StreamDecoder_Open(decoder, nullptr, static_cast<u32>(reinterpret_cast<uintptr_t>(sample + 0x40)), at<s32>(sample, 0x18)) == -1)
@@ -145,7 +145,7 @@ void __fastcall Mp2Sample_FreeDecoder(u8 *sample) {
 
 u8 *__fastcall Mp2Sample_Ctor(u8 *sample, void *, const u8 *record, u8 *source) {
     SoundSample_Ctor(sample, nullptr, const_cast<u8 *>(record), source);
-    at<u32>(sample, 0) = 0x0070ae30;
+    at<u32>(sample, 0) = (u32)(uintptr_t)Mp2Sample_vtable;
     at<u32>(sample, 0x2c) = 0;
     at<u32>(sample, 0x34) = 0;
     sample[0x3c] = 1;
@@ -165,8 +165,8 @@ u8 *__fastcall Mp2Sample_DeletingDtor(u8 *sample, void *, u32 flags) {
 u8 *__fastcall Mp2StreamSample_Ctor(u8 *sample, void *, const u8 *stream, const u8 *record, u32 start, u8 *source) {
     Mp2Sample_Ctor(sample, nullptr, record, source);
     SubStream_CtorAt(sample + 0x40, nullptr, stream, start);
-    at<u32>(sample, 0x40) = 0x0070aef0;
-    at<u32>(sample, 0) = 0x0070ae90;
+    at<u32>(sample, 0x40) = ((u32)(uintptr_t)Mp2StreamSample_vtable + 0x60);
+    at<u32>(sample, 0) = (u32)(uintptr_t)Mp2StreamSample_vtable;
     return sample;
 }
 

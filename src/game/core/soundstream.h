@@ -92,3 +92,9 @@ void __fastcall SoundStream_SetFormat(u8 *stream, void *, const u8 *format);
 u8 *__stdcall SoundStream_BuildChain(u8 *record, const u8 *format, u8 *stream);
 
 }  // extern "C"
+
+#include "gamedata.h"
+
+// The vtables hold only ports: tpw.exe's loader points their slots at them (.docs/09-globals.md).
+GAME_DATA(void *[19], Class70a678_vtable, 0x0070a678, 0x4c);
+GAME_DATA(void *[12], Class70a748_vtable, 0x0070a748, 0x30);

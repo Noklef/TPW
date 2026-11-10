@@ -107,7 +107,7 @@ void __fastcall SoundOccluders_Clear(u8 *list) {
 
 void __fastcall OccluderList_Dtor(u8 *list) {
     u8 *node = at<u8 *>(list, 4);
-    at<u32>(list, 0) = 0x70aa70;
+    at<u32>(list, 0) = (u32)(uintptr_t)SoundOccluders_vtable;
     at<u32>(list, 8) = 0;
     at<u32>(list, 4) = 0;
     while (node) {

@@ -12,6 +12,7 @@
 #include "vtables.h"
 #include "../world/parkmap.h"
 #include "localefacet.h"
+#include "soundindex.h"
 
 namespace {
 
@@ -396,7 +397,7 @@ u8 * __fastcall ScalarDelete703748_617930(u8 *o, void *, u32 v0) {
 }
 
 u8 * __fastcall ScalarDelete703770_617ae0(u8 *o, void *, u32 v0) {
-    at<u32>(o, 0x0) = 0x00703770; if (v0 & 1) GameHeap_Free(o); return o;
+    at<u32>(o, 0x0) = (u32)(uintptr_t)Class703770_vtable; if (v0 & 1) GameHeap_Free(o); return o;
 }
 
 u8 * __fastcall ScalarDeleteVia407c30_407c70(u8 *o, void *, u32 v0) {

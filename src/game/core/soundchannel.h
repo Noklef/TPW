@@ -264,3 +264,8 @@ u32 *__fastcall SoundChannel_QueryWord0(u8 *channel, void *, u32 *out, u32 *valu
 u32 *__fastcall SoundChannel_Refresh(u8 *channel, void *, u32 *out, u32 a);
 
 }  // extern "C"
+
+#include "gamedata.h"
+
+// The vtables hold only ports: tpw.exe's loader points their slots at them (.docs/09-globals.md).
+GAME_DATA(void *[15], SoundChannel_vtable, 0x0070a5d8, 0x3c);

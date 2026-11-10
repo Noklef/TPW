@@ -12,6 +12,7 @@
 #include "../core/vcall.h"
 #include "../core/vdtor.h"
 #include "../math/x87.h"
+#include "../core/soundindex.h"
 
 namespace {
 
@@ -273,7 +274,7 @@ void __fastcall InputFilter_Dtor(u8 *self) {
     at<u32>(self, 0) = 0x00703c18;
     if (u8 *const sink = at<u8 *>(self, 0xc)) vcall<void>(sink, 0);
     InputFilter_CloseHandle(self);
-    at<u32>(self, 0) = 0x00703770;
+    at<u32>(self, 0) = (u32)(uintptr_t)Class703770_vtable;
 }
 
 u8 *__fastcall KeyFilter_Ctor(u8 *self) {

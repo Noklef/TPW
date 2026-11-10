@@ -13,6 +13,7 @@
 #include "../model/holder.h"
 #include "../terrain/land.h"
 #include "../frontend/frame.h"
+#include "soundindex.h"
 
 namespace {
 
@@ -137,7 +138,7 @@ void Dtor(u8 *object) {
     at<u32>(object, 0) = 0x00703780;
     if (u8 *member = at<u8 *>(object, 8))
         vcall<u32>(member, 0);
-    at<u32>(object, 0) = 0x00703770;
+    at<u32>(object, 0) = (u32)(uintptr_t)Class703770_vtable;
 }
 
 u8 *NewList(u32 vtable) {

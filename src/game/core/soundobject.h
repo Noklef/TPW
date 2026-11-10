@@ -96,3 +96,8 @@ u8 *__fastcall SoundObject_CreateChannel(u8 *object);
 u8 *__fastcall SoundObjectEax_CreateChannel(u8 *object);
 
 }  // extern "C"
+
+#include "gamedata.h"
+
+// The vtables hold only ports: tpw.exe's loader points their slots at them (.docs/09-globals.md).
+GAME_DATA(void *[14], Class70a630_vtable, 0x0070a630, 0x38);

@@ -5,6 +5,7 @@
 #include "soundset.h"
 #include "vcall.h"
 #include "../world/ridelist.h"
+#include "soundcmd.h"
 
 namespace {
 
@@ -18,7 +19,7 @@ struct PlayCommand {
 
 u32 post(u32 owner, u32 category, u32 sound, s32 x, s32 y, s32 z, float range) {
     PlayCommand cmd;
-    cmd.vtable = 0x00700b90;
+    cmd.vtable = ((u32)(uintptr_t)SoundCmd_vtables + 0x64);
     cmd.category = category;
     cmd.sound = sound;
     cmd.x = (float)x;   // fild; fstp

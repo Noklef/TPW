@@ -10,6 +10,9 @@
 #include "iosbase.h"
 #include "narrowfilebuf.h"
 #include "wfilebuf.h"
+#include "mp2decoder.h"
+#include "soundsource.h"
+#include "soundstream.h"
 
 namespace {
 
@@ -190,7 +193,7 @@ u8 * __fastcall Init_6c6d30(u8 *o) {
 
 u8 * __fastcall Init_6c9260(u8 *o) {
     at<u8>(o, 0x243c) = 0x0;
-    at<u32>(o, 0x0) = 0x7118e0;
+    at<u32>(o, 0x0) = (u32)(uintptr_t)Mp2Decoder_vtable;
     return o;
 }
 
@@ -199,7 +202,7 @@ u8 * __fastcall Init_6d6c50(u8 *o) {
     at<u32>(o, 0x8) = 0x2;
     at<u32>(o, 0xc) = 0x5622;
     at<u32>(o, 0x10) = 0;
-    at<u32>(o, 0x0) = 0x7119b8;
+    at<u32>(o, 0x0) = (u32)(uintptr_t)SoundSourceBase_vtable;
     return o;
 }
 
@@ -500,7 +503,7 @@ u32 __fastcall Fn_6c6a00(u8 *o, void *, u32 v0, u32 v1) {
     at<u32>(o, 0x8) = 0x0;
     at<u32>(o, 0xc) = 0x0;
     at<u32>(o, 0x14) = v1;
-    at<u32>(o, 0x0) = 0x70a678;
+    at<u32>(o, 0x0) = (u32)(uintptr_t)Class70a678_vtable;
     at<u32>(o, 0x1c) = at<u32>(reinterpret_cast<u8 *>((uintptr_t)v0), 0x20);
     at<u32>(o, 0x20) = at<u32>(reinterpret_cast<u8 *>((uintptr_t)v0), 0x24);
     at<u32>(o, 0x0) = 0x70aba8;

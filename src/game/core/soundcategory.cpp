@@ -17,6 +17,7 @@
 #include "stdtree.h"
 #include "string.h"
 #include "vcall.h"
+#include "soundindex.h"
 
 namespace {
 
@@ -336,7 +337,7 @@ s32 *__fastcall SoundCategory_ReadBankMap(u8 *category, void *, s32 *result, Str
                     String_CtorStr(reinterpret_cast<String *>(bank + 0xc), nullptr, reinterpret_cast<const char *>(Ptr(Get<u32>(entry, 5))));
                     Put<u32>(bank, 0x20, entry[9]);
                     Handle_Ctor(reinterpret_cast<Handle *>(bank + 0x24));
-                    Put<u32>(bank, 0, 0x70a960);
+                    Put<u32>(bank, 0, (u32)(uintptr_t)Class70a960_vtable);
                 }
                 SoundCategory_OpenBankFolder(category, nullptr, &found, &name);
                 if (found.found) {
@@ -406,11 +407,11 @@ s32 *__fastcall SoundCategory_Load(u8 *category, void *, s32 *result, const char
             Put<u32>(record, 8, 0);
             String_Ctor(reinterpret_cast<String *>(record + 0xc));
             Put<u32>(record, 0x20, slot);
-            Put<u32>(record, 0x24, 0x70a948);   // (an empty PtrList)
+            Put<u32>(record, 0x24, (u32)(uintptr_t)BankList_vtable);   // (an empty PtrList)
             Put<u32>(record, 0x28, 0);
             Put<u32>(record, 0x2c, 0);
             Put<u32>(record, 0x30, 0);
-            Put<u32>(record, 0, 0x70a950);
+            Put<u32>(record, 0, (u32)(uintptr_t)Class70a950_vtable);
         }
         String *const title = reinterpret_cast<String *>(record + 0xc);
         String_AssignStr(title, nullptr, folder);
@@ -446,7 +447,7 @@ s32 *__fastcall SoundCategory_Load(u8 *category, void *, s32 *result, const char
 void __fastcall Bank_Dtor(u8 *bank) {
     Handle_Dtor(reinterpret_cast<Handle *>(bank + 0x24));
     String_Dtor(reinterpret_cast<String *>(bank + 0xc));
-    Put<u32>(bank, 0, 0x703770);
+    Put<u32>(bank, 0, (u32)(uintptr_t)Class703770_vtable);
 }
 
 u8 *__fastcall Bank_DeletingDtor(u8 *bank, void *, u32 flags) {
@@ -490,16 +491,16 @@ u8 *__fastcall SoundCategory_Ctor(u8 *category) {
     Init_5ec210(category + 0xac);   // (deque C's end iterator)
     for (u32 offset = 0xbc; offset <= 0xc4; offset += 4) Put<u32>(category, offset, 0);
     Put<u32>(category, 0xc8, 1);
-    Put<u32>(category, 0, 0x70a95c);
+    Put<u32>(category, 0, (u32)(uintptr_t)SoundCategory_vtable);
     u8 *record = static_cast<u8 *>(GameHeap_Alloc(0x34));   // (the first category record)
     if (record) {
         Class703770_Ctor(record);
         Put<u32>(record, 8, 0);
         String_Ctor(reinterpret_cast<String *>(record + 0xc));
         Put<u32>(record, 0x20, 0);
-        Put<u32>(record, 0x24, 0x70a948);   // (its bank list)
+        Put<u32>(record, 0x24, (u32)(uintptr_t)BankList_vtable);   // (its bank list)
         for (u32 offset = 0x28; offset <= 0x30; offset += 4) Put<u32>(record, offset, 0);
-        Put<u32>(record, 0, 0x70a950);
+        Put<u32>(record, 0, (u32)(uintptr_t)Class70a950_vtable);
     }
     Put<u32>(record, 8, Addr(GameHeap_Alloc(0x18)));   // (a null record: the fault, sic)
     Put<u32>(Ptr(Get<u32>(record, 8)), 0, 0);
@@ -524,7 +525,7 @@ u8 *__fastcall SoundCategory_Ctor(u8 *category) {
 }
 
 void __fastcall SoundCategory_Dtor(u8 *category) {
-    Put<u32>(category, 0, 0x70a95c);
+    Put<u32>(category, 0, (u32)(uintptr_t)SoundCategory_vtable);
     u8 it[16];
     std::memcpy(it, category + 0x3c, sizeof it);   // (deque A's begin)
     DequeIter_Advance(it, nullptr, 0);
@@ -675,7 +676,7 @@ u8 *__fastcall CategoryRecord_DeletingDtor(u8 *record, void *, u32 flags) {
 }
 
 void __fastcall CategoryRecord_Dtor(u8 *record) {
-    Put<u32>(record, 0, 0x70a950);
+    Put<u32>(record, 0, (u32)(uintptr_t)Class70a950_vtable);
     u32 status;
     SoundCategory_UnloadRecord(SoundCategory_Get(), nullptr, &status, record);
     if (Get<u32>(record, 8)) {
@@ -693,7 +694,7 @@ void __fastcall CategoryRecord_Dtor(u8 *record) {
     Put<u32>(record, 0x30, 0);
     BankList_Dtor(record + 0x24);
     String_Dtor(reinterpret_cast<String *>(record + 0xc));
-    Put<u32>(record, 0, 0x703770);
+    Put<u32>(record, 0, (u32)(uintptr_t)Class703770_vtable);
 }
 
 u32 *__stdcall SoundCategory_ReleaseRecordBanks(u32 *out, const u8 *record) {
@@ -780,7 +781,7 @@ u32 *__fastcall SoundCategory_UnloadRecord(u8 *category, void *, u32 *out, u8 *r
 
 void __fastcall BankList_Dtor(u8 *list) {
     u8 *node = Ptr(Get<u32>(list, 4));
-    Put<u32>(list, 0, 0x70a948);
+    Put<u32>(list, 0, (u32)(uintptr_t)BankList_vtable);
     Put<u32>(list, 8, 0);
     Put<u32>(list, 4, 0);
     while (node) {

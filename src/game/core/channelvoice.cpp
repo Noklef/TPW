@@ -69,11 +69,11 @@ u8 __fastcall ChannelVoice_Release(u8 *voice, void *, u32 value) {
 }
 
 void __fastcall ChannelVoice_Dtor(u8 *voice) {
-    at<u32>(voice, 0) = 0x0070a7a8;
+    at<u32>(voice, 0) = (u32)(uintptr_t)Class70a7a8_vtable;
     Import<OnObject>(0x006fd0d0)(voice + 0x74);   // DeleteCriticalSection
     Import<OnObject>(0x006fd13c)(reinterpret_cast<void *>(static_cast<uintptr_t>(at<u32>(voice, 0x6c))));   // CloseHandle
     GameHeap_Free(at<u8 *>(voice, 0x64));
-    at<u32>(voice, 0) = 0x0070a778;
+    at<u32>(voice, 0) = (u32)(uintptr_t)Class70a778_vtable;
 }
 
 u8 *__fastcall ChannelVoice_DeletingDtor(u8 *voice, void *, u32 flags) {
@@ -220,7 +220,7 @@ u8 *__fastcall ChannelVoice_Ctor(u8 *voice) {
     at<u32>(voice, 4) = 0;
     at<u32>(voice, 8) = 0;
     at<u32>(voice, 0xc) = 0;
-    at<u32>(voice, 0) = 0x0070a778;
+    at<u32>(voice, 0) = (u32)(uintptr_t)Class70a778_vtable;
     at<u32>(voice, 0x10) = 0;
     at<u32>(voice, 0x18) = 0;
     at<u32>(voice, 0x1c) = 0;
@@ -236,7 +236,7 @@ u8 *__fastcall ChannelVoice_Ctor(u8 *voice) {
     at<u32>(voice, 0x6c) = Import<CreateEvent>(0x006fd0d4)(nullptr, 1, 0, nullptr);   // CreateEventA
     Import<OnObject>(0x006fd144)(voice + 0x74);   // InitializeCriticalSection
     at<u32>(voice, 0x58) = 0;
-    at<u32>(voice, 0) = 0x0070a7a8;
+    at<u32>(voice, 0) = (u32)(uintptr_t)Class70a7a8_vtable;
     return voice;
 }
 
@@ -394,7 +394,7 @@ u8 *__fastcall ChannelVoices_CreateStream(u8 *, void *, u8 *voice, u32 *play) {
             }
         } else if (u8 *const block = static_cast<u8 *>(MemorySamplePool_New(0x2c))) {   // PCM in memory
             stream = SoundSample_Ctor(block, nullptr, reinterpret_cast<u8 *>(record), Source(ref));
-            at<u32>(stream, 0) = 0x0070a6f8;
+            at<u32>(stream, 0) = (u32)(uintptr_t)Class70a6f8_vtable;
         }
         if (stream) stream = SoundStream_BuildChain(reinterpret_cast<u8 *>(play), header, stream);
         if (stream) {
@@ -406,7 +406,7 @@ u8 *__fastcall ChannelVoices_CreateStream(u8 *, void *, u8 *voice, u32 *play) {
                     wrap[3] = 0;
                     wrap[4] = 0;
                     wrap[6] = play[0x13];
-                    wrap[0] = 0x0070a6c8;
+                    wrap[0] = (u32)(uintptr_t)Class70a6c8_vtable;
                 }
                 stream = SoundStream_Chain(stream, reinterpret_cast<u8 *>(wrap));
                 play[5] &= ~0x800u;

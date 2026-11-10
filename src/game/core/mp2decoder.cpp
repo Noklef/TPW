@@ -145,7 +145,7 @@ s32 __fastcall Mp2StreamDecoder_Open(u8 *decoder, void *, u32 stream, s32 bytes)
 }
 
 void __fastcall Mp2Decoder_Dtor(u8 *decoder, void *) {
-    *reinterpret_cast<u32 *>(decoder) = 0x007118e0;
+    *reinterpret_cast<u32 *>(decoder) = (u32)(uintptr_t)Mp2Decoder_vtable;
     if (decoder[0x243c]) Mp2Decoder_Close(decoder, nullptr);
 }
 

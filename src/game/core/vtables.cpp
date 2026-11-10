@@ -8,6 +8,8 @@
 #include "localefacet.h"
 #include "narrowwriter.h"
 #include "nstream.h"
+#include "channelvoice.h"
+#include "soundindex.h"
 
 namespace {
 
@@ -23,7 +25,7 @@ extern "C" {
 
 void __fastcall Vtbl703748_Set(u8 *object) { at<u32>(object, 0) = 0x00703748; }
 
-void __fastcall Vtbl703770_Set(u8 *object) { at<u32>(object, 0) = 0x00703770; }
+void __fastcall Vtbl703770_Set(u8 *object) { at<u32>(object, 0) = (u32)(uintptr_t)Class703770_vtable; }
 
 u32 __fastcall VirtualBase_SetVtbl7099dc(u8 *object) {
     const u32 vtable = at<u32>(object, (u32)-8);
@@ -190,6 +192,6 @@ void __fastcall Vtbl70a258_Set_6b4a90(u8 *o) {
 }
 
 void __fastcall Vtbl70a778_Set_6c7090(u8 *o) {
-    at<u32>(o, 0) = 0x0070a778;
+    at<u32>(o, 0) = (u32)(uintptr_t)Class70a778_vtable;
 }
 }  // extern "C"

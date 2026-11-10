@@ -342,3 +342,16 @@ u32 *__fastcall SoundVoice_Save(u8 *voice, void *, u32 *out, u8 *stream, u32 tim
 u32 *__fastcall SoundVoice_Load(u8 *voice, void *, u32 *out, u8 *stream, u32 time);
 
 }  // extern "C"
+
+#include "gamedata.h"
+
+// The vtables hold only ports: tpw.exe's loader points their slots at them (.docs/09-globals.md).
+GAME_DATA(void *[22], Voice70a2e0_vtable, 0x0070a2e0, 0x58);
+GAME_DATA(void *[21], Voice70a338_vtable, 0x0070a338, 0x54);
+GAME_DATA(void *[22], Voice70a390_vtable, 0x0070a390, 0x58);
+GAME_DATA(void *[21], Voice70a3e8_vtable, 0x0070a3e8, 0x54);
+GAME_DATA(void *[21], Voice70a4f0_vtable, 0x0070a4f0, 0x54);
+GAME_DATA(void *[21], Voice70a878_vtable, 0x0070a878, 0x54);
+GAME_DATA(void *[21], Voice70a8d0_vtable, 0x0070a8d0, 0x54);
+GAME_DATA(void *[21], LinkedVoice_vtable, 0x0070a970, 0x54);
+GAME_DATA(void *[21], LinkedSwitchVoice_vtable, 0x0070a9e0, 0x54);

@@ -235,9 +235,9 @@ u8 *__fastcall SoundSource711b08_DeletingDtor(u8 *source, void *, u32 flags) {
 }
 
 void __fastcall SoundSource711b08_Dtor(u8 *source) {
-    at<u32>(source, 0) = 0x00711b08;
+    at<u32>(source, 0) = (u32)(uintptr_t)SoundSource711b08_vtable;
     import(0x006fd0d0, source + 0x38);
-    at<u32>(source, 0) = 0x007119b8;
+    at<u32>(source, 0) = (u32)(uintptr_t)SoundSourceBase_vtable;
     SoundHelper_Free();
 }
 }

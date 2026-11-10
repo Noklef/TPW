@@ -10,6 +10,7 @@
 #include "soundnames.h"
 #include "soundvoice.h"
 #include "vcall.h"
+#include "soundworker.h"
 
 namespace {
 
@@ -36,7 +37,7 @@ void __fastcall SoundMixer_Update(u8 *mixer) {
             SoundMixer_Retire(mixer, nullptr, voice);
         } else if (at<u32>(voice, 0x30) & 0x100) {
             u32 out;
-            u32 functor[2] = {0x0070a2d0, at<u32>(voice, 0x24)};
+            u32 functor[2] = {((u32)(uintptr_t)SoundWorker_vtable + 0x4), at<u32>(voice, 0x24)};
             vcall<void>(voice, 0x18, &out, functor);
         } else if (!(voice[0x30] & 0x40) && SoundVoice_CategoryEnabled(voice)) {
             if (mixer[0x50] && at<u32>(voice, 0x30) & 0x400) vcall<void>(voice, 0x2c);
@@ -51,7 +52,7 @@ void __fastcall SoundMixer_Update(u8 *mixer) {
 }
 
 void __fastcall SoundMixer_Dtor(u8 *mixer) {
-    at<u32>(mixer, 0) = 0x0070a2cc;
+    at<u32>(mixer, 0) = (u32)(uintptr_t)SoundWorker_vtable;
     mixer[0x35] = 1;
     Import<u32(__stdcall *)(void *, u32)>(0x006fd200)(mixer + 0x38, 1);   // InterlockedExchange
     while (!*reinterpret_cast<volatile u8 *>(mixer + 0x34)) {
@@ -74,7 +75,7 @@ u8 *__fastcall SoundMixer_DeletingDtor(u8 *mixer, void *, u32 flags) {
 }
 
 u8 *__fastcall VoicePage_DeletingDtor(u8 *page, void *, u32 flags) {
-    at<u32>(page, 0) = 0x0070a2d8;
+    at<u32>(page, 0) = (u32)(uintptr_t)Class70a2d8_vtable;
     if (flags & 1) GameHeap_Free(page);
     return page;
 }
@@ -103,7 +104,7 @@ void __fastcall SoundMixer_ForEachActive(u8 *mixer, void *, u32 arg) {
             vcall<void>(voice, 0x30, value);
             continue;
         }
-        u32 functor[2] = {0x0070a2d0, at<u32>(voice, 0x24)};
+        u32 functor[2] = {((u32)(uintptr_t)SoundWorker_vtable + 0x4), at<u32>(voice, 0x24)};
         vcall<void>(voice, 0x18, &arg, functor);
     }
 }
@@ -134,7 +135,7 @@ s32 *__cdecl VoicePage_New(s32 *status, u8 **out, u32 count) {
         if (block) {
             at<u32>(block, 4) = size;
             at<u32>(block, 8) = 0;
-            at<u32>(block, 0) = 0x0070a2d8;
+            at<u32>(block, 0) = (u32)(uintptr_t)Class70a2d8_vtable;
             *out = block;
             *status = 0;
             return status;
@@ -291,7 +292,7 @@ u32 *__fastcall SoundMixer_Load(u8 *mixer, void *, u32 *out, u8 *stream, u32 res
     for (u8 *voice = at<u8 *>(mixer, 0x24); voice;) {
         u8 *const next = at<u8 *>(voice, 0x34);
         u32 result;
-        u32 functor[2] = {0x0070a2d0, at<u32>(voice, 0x24)};
+        u32 functor[2] = {((u32)(uintptr_t)SoundWorker_vtable + 0x4), at<u32>(voice, 0x24)};
         vcall<void>(voice, 0x18, &result, functor);
         SoundMixer_Retire(mixer, nullptr, voice);
         voice = next;
@@ -320,20 +321,20 @@ u32 *__fastcall SoundMixer_Load(u8 *mixer, void *, u32 *out, u8 *stream, u32 res
         u8 *const voice = Chain20_Find2c(mixer, nullptr, slot & 0xffff);
         if (!voice || type - 1 > 5) continue;
         switch (type) {
-        case 1: Class70a7e0_Ctor(voice); at<u32>(voice, 0) = 0x0070a498; break;
-        case 2: Class70a7e0_Ctor(voice); at<u32>(voice, 0) = 0x0070a440; break;
-        case 3: Class70a7e0_Ctor(voice); at<u32>(voice, 0) = 0x0070a3e8; break;
+        case 1: Class70a7e0_Ctor(voice); at<u32>(voice, 0) = (u32)(uintptr_t)SwitchVoice_vtable; break;
+        case 2: Class70a7e0_Ctor(voice); at<u32>(voice, 0) = (u32)(uintptr_t)SequenceVoice_vtable; break;
+        case 3: Class70a7e0_Ctor(voice); at<u32>(voice, 0) = (u32)(uintptr_t)Voice70a3e8_vtable; break;
         case 4:
             Class70a7e0_Ctor(voice);
-            at<u32>(voice, 0) = 0x0070a390;
+            at<u32>(voice, 0) = (u32)(uintptr_t)Voice70a390_vtable;
             SoundVoice_EnsureParams(voice);
             break;
-        case 5: Class70a7e0_Ctor(voice); at<u32>(voice, 0) = 0x0070a338; break;
+        case 5: Class70a7e0_Ctor(voice); at<u32>(voice, 0) = (u32)(uintptr_t)Voice70a338_vtable; break;
         default:
             Voice70a3e8_Ctor(voice);
-            at<u32>(voice, 0) = 0x0070a390;
+            at<u32>(voice, 0) = (u32)(uintptr_t)Voice70a390_vtable;
             SoundVoice_EnsureParams(voice);
-            at<u32>(voice, 0) = 0x0070a2e0;
+            at<u32>(voice, 0) = (u32)(uintptr_t)Voice70a2e0_vtable;
             break;
         }
         u32 result;
