@@ -40,6 +40,8 @@ void __fastcall ChannelVoices_WaitLoop(u8 *pool) {
     flags = flags & ~2u;
 }
 
+void __cdecl ChannelVoices_ThreadStart(u8 *arg) { ChannelVoices_WaitLoop(at<u8 *>(arg, 0x10)); }
+
 void __fastcall SoundSource_WaitLoop(u8 *source) {
     volatile u32 &flags = at<volatile u32>(source, 8);
     flags = flags | 0x80;

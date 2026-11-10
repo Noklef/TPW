@@ -5996,6 +5996,7 @@ address,name,kind,confidence,notes
 0x006ba020,SoundEngine_SetThreaded,function,low,reimplemented (src/game/core/soundwait); the object's bit 0x400 and the thread on or off
 0x006b7190,SoundLock_Delete,function,low,"reimplemented (src/game/core/soundwait); DeleteCriticalSection on this, for unwinding"
 0x006b9d90,SoundEngine_ThreadStart,function,low,"reimplemented (src/game/core/soundwait); _beginthread's entry (cdecl, the engine): SoundEngine_ThreadLoop by JMP"
+0x006ba220,ChannelVoices_ThreadStart,function,low,"reimplemented (src/game/core/soundwait); the voice pool thread's entry (cdecl, an object whose +0x10 is the pool): ChannelVoices_WaitLoop on that by JMP"
 0x006b70b0,SoundGuard_DropSlot2,function,low,"reimplemented (src/game/core/soundguard); the held object's slot 2 (3), unless null"
 0x006b70c0,SoundGuard_FreeBlock,function,low,reimplemented (src/game/core/soundguard); the held block freed
 0x006bafd0,SoundGuard_DeleteArray,function,low,"reimplemented (src/game/core/soundguard); the held object's slot 0 (3), unless null"
