@@ -274,6 +274,7 @@ add_library(tpw_game STATIC
     src/game/core/crtinput.cpp
     src/game/core/timeget.cpp
     src/game/core/collate.cpp
+    src/game/core/timeput.cpp
     src/game/gfx/text.cpp
     src/game/gfx/canvas.cpp
     src/game/gfx/canvasdraw.cpp
