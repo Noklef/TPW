@@ -31,3 +31,5 @@ void __cdecl Dialog7cc944_Open(u32 value);
 
 // Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
 GAME_DATA(u8[32], gDialog7cc944_7cc908, 0x007cc908, 0x20);
+GAME_DATA(u8 *, gDialog7cc944_7cc944, 0x007cc944, 0x4);
+GAME_DATA(u32, gDialog7cc944_7cc948, 0x007cc948, 0x4);

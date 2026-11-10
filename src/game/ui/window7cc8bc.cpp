@@ -185,7 +185,7 @@ void __cdecl Window7cc8bc_Create() {
         Window_SetHandler(edit, nullptr, 0x004be3a0);
         u8 *const memory = static_cast<u8 *>(GameHeap_Alloc(0x1a4));
         Window_SetImpl(edit, nullptr, memory ? TextPart6ff4d0_Ctor(memory, nullptr, 0) : nullptr);
-        Window_Set4c(edit, nullptr, Language_Font(global<u32>(0x00758f08)));
+        Window_Set4c(edit, nullptr, Language_Font(gWindow7cc8bc_Create_758f08));
         Window705a20_SetBuffer(edit, nullptr, reinterpret_cast<uintptr_t>(&gWindow7cc8bc_7cc6a8), 0xff);
         Window705a20_SetCaret(edit, nullptr, hilight());
         vcall<void>(edit, 0x24, reinterpret_cast<uintptr_t>(&gWindow7cc8c0handler_78a374));
@@ -228,7 +228,7 @@ void __cdecl Window7cc8cc_PlaceAtMouse(u32, u8 *window) {
 void __cdecl Window7cc8bc_ChatAdd(u16 *text, u32 data) {
     if (!gWindow7cc8bc_7cc8bc) return;
     u8 *const list = Window_FindChild(Window_FindChild(window(reinterpret_cast<uintptr_t>(&gWindow7cc8bc_7cc8bc)), nullptr, 0xc3123), nullptr, 0xc312b);
-    u8 *const font = Language_Font(global<u32>(0x00758f04));
+    u8 *const font = Language_Font(gListrows_758f04);
     u16 first = 0, second = 0;   // (sic: the original's are the stack's leftovers when ColumnSpan fails)
     Window7059f0_ColumnSpan(list, nullptr, 0, &first, &second);
     const s32 width = (s32)((u32)((s32)(s16)second - (s16)first) * (u32)(s32)global<s16>(0x00faa5c4)) / 2048;
@@ -255,7 +255,7 @@ void __cdecl Window7cc8bc_ChatAdd(u16 *text, u32 data) {
         text[last + 1] = kept;
         start = last + 1;
     }
-    for (s32 count = *reinterpret_cast<const s32 *>(list + 0x150); count >= global<s32>(0x00758f0c); --count)
+    for (s32 count = *reinterpret_cast<const s32 *>(list + 0x150); count >= gWindow7cc8bc_ChatAdd_758f0c; --count)
         Window7059f0_RemoveItem(list, nullptr, 0);
     Window7059f0_ScrollTo(list, nullptr, *reinterpret_cast<const s32 *>(list + 0x150) - 1);
 }

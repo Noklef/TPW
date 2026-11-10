@@ -28,7 +28,7 @@ u32 __fastcall Obj_NonZeroAt8_4Or5(const u8 *object) { return at<u32>(object, 8)
 
 u32 __fastcall Obj_NonZeroAt8_14Or3(const u8 *object) { return at<u32>(object, 8) ? 14 : 3; }
 
-u8 *__cdecl Global7cc53c_Pick7cc4f0() { return global<u8>(0x007cc53c) ? gDialog7cc530handler_7cc4f0 : nullptr; }
+u8 *__cdecl Global7cc53c_Pick7cc4f0() { return gDialog7cc530handler_7cc53c ? gDialog7cc530handler_7cc4f0 : nullptr; }
 
 u32 __fastcall Obj_Inc30(u8 *object) { return ++at<u32>(object, 0x30); }
 

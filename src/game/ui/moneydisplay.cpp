@@ -46,10 +46,10 @@ void ShowMoney(u8 *window, s32 money) {
     if (index < 0) index = 0;
     if (index > 5) index = 5;
     gMoneydisplay_7cb27c = index;
-    if (index != global<s32>(0x00752e2c)) {
+    if (index != gMoneydisplay_752e2c) {
         const u32 entry = 0x00752e30 + 4 * static_cast<u32>(index);
         E->notify40000(window, nullptr, global<u8>(entry), global<u8>(entry + 1), global<u8>(entry + 2), 0xff);
-        global<s32>(0x00752e2c) = gMoneydisplay_7cb27c;
+        gMoneydisplay_752e2c = gMoneydisplay_7cb27c;
     }
     vcall<void>(window, 0x1c, static_cast<u32>(money < 0 ? -money : money));
     u8 area[0x18], own[0x18], cost[0x18];

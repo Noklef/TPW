@@ -33,7 +33,7 @@ void boxButton(u8 *window, u32 index, u32 kind, u32 callback) {
         g_calls.Th(0x0065d9dd, button, 0u);
         return;
     }
-    const u32 impl = kind == 1 ? g_calls.Cd(0x00659bc9, 0x0074f9c4u) : kind == 2 ? g_calls.Cd(0x00659bc9, 0x0074f9ccu) : 0;
+    const u32 impl = kind == 1 ? g_calls.Cd(0x00659bc9, reinterpret_cast<uintptr_t>(&gDialogbase_74f9c4)) : kind == 2 ? g_calls.Cd(0x00659bc9, reinterpret_cast<uintptr_t>(&gDialogbase_74f9cc)) : 0;
     g_calls.Th(0x0065d070, button, impl);
     g_calls.Th(0x0065d9dd, button, 1u);
     setSlot(window, index, callback);
@@ -139,7 +139,7 @@ u8 *__cdecl Dialog_Create(u8 *script, u32 handler, u32 shaded) {
     if (shaded) {
         depth = Gui_TopDepth(nullptr, nullptr);
         Window_SetImpl(frame, nullptr,
-                       reinterpret_cast<u8 *>(static_cast<uintptr_t>(GuiWindows_FindByName(reinterpret_cast<const char *>(static_cast<uintptr_t>(0x0074f9bc))))));
+                       reinterpret_cast<u8 *>(static_cast<uintptr_t>(GuiWindows_FindByName(gDialogbase_74f9bc))));
     } else {
         u8 rect[0xc];
         GuiRect_Ctor(rect);

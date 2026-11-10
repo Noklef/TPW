@@ -48,7 +48,7 @@ void __cdecl Postcard_Send() {
     Crt().sprintf(buffer(reinterpret_cast<uintptr_t>(&gPostcard_Send_7cbcb0)), text(reinterpret_cast<uintptr_t>(&gPostcardsend_74d320)), text(0x007cb958), text(reinterpret_cast<uintptr_t>(&gMailbox_75447c)));
     g_env->savePicture(gDialog7cc184handler_7cc18c, nullptr, text(reinterpret_cast<uintptr_t>(&gPostcard_Send_7cbcb0)));
     char local[0x100];
-    Crt().sprintf(local, text(reinterpret_cast<uintptr_t>(&gPostcard_Send_754470)), text(0x007cb958), global<u32>(0x007cbf38)++);
+    Crt().sprintf(local, text(reinterpret_cast<uintptr_t>(&gPostcard_Send_754470)), text(0x007cb958), gPostcard_Send_7cbf38++);
     (*reinterpret_cast<s32(__stdcall *const *)(const char *, const char *, s32)>((uintptr_t)0x006fd158))(text(reinterpret_cast<uintptr_t>(&gPostcard_Send_7cbcb0)), local, 0);
 
     u8 *const memory = static_cast<u8 *>(GameHeap_Alloc(0x94));

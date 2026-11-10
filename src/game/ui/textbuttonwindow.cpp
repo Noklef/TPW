@@ -7,6 +7,7 @@
 #include "../core/gameheap.h"
 #include "window.h"
 #include "windowreg.h"
+#include "dialogbase.h"
 
 namespace {
 
@@ -33,7 +34,7 @@ void __fastcall TextButton_CreateWindow(u8 *object, void *, u32 handler, u32 sec
     }
     if (!window) return;
     g_env->setHandler(window, nullptr, handler);
-    g_env->setObject98(window, nullptr, reinterpret_cast<u8 *>((uintptr_t)g_env->find(reinterpret_cast<const char *>((uintptr_t)0x0074f9bc))));
+    g_env->setObject98(window, nullptr, reinterpret_cast<u8 *>((uintptr_t)g_env->find(gDialogbase_74f9bc)));
     g_env->setDword(window, nullptr, 0, (u32)(uintptr_t)object);
     if (second) *reinterpret_cast<u32 *>(object) = second;
     g_env->setShown(window, nullptr, 0);

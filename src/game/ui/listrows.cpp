@@ -175,7 +175,7 @@ u8 *__cdecl List7cb264_NewRow() {
 }
 
 u8 *__cdecl List7cc250_NewRow() {
-    u8 *const window = newRow(1, 0x64, cachedHeight(0x007cc250, fontAt(0x0075583c)));
+    u8 *const window = newRow(1, 0x64, cachedHeight(0x007cc250, fontAt(reinterpret_cast<uintptr_t>(&gList7cc250_75583c))));
     if (window) child(window, 1, 1, 1, 0x64, 0, 0xc8, global<u16>(0x007cc250));
     return window;
 }
@@ -192,7 +192,7 @@ u8 *__cdecl List7cc654_NewRow() {
 }
 
 u8 *__cdecl List7ca158_NewRow() {
-    u8 *const window = newRow(0, 0, cachedHeight(reinterpret_cast<uintptr_t>(&gList7ca158_NewRow_7ca158), fontAt(0x00750d54)));
+    u8 *const window = newRow(0, 0, cachedHeight(reinterpret_cast<uintptr_t>(&gList7ca158_NewRow_7ca158), fontAt(reinterpret_cast<uintptr_t>(&gList7ca158_750d54))));
     Window_SetHandler(window, nullptr, 0x004959c0);   // (sic: not checked)
     if (!window) return window;
     switch (gDialog7ca150_7ca154) {
@@ -266,11 +266,11 @@ void __cdecl List7cb24c_InitRow(u8 *row) {
 
 void __cdecl List7cc250_InitRow(u8 *row) {
     setPart(row, TextPart_Ctor);
-    Window_Set4c(row, nullptr, Language_Font(global<u32>(0x0075583c)));
+    Window_Set4c(row, nullptr, Language_Font(gList7cc250_75583c));
     Window_Notify40000(row, nullptr, 0xff, 0xff, 0xff, 0xff);
     u8 *const text = firstChild(row);
     setPart(text, TextPart6ff410_Ctor);
-    Window_Set4c(text, nullptr, Language_Font(global<u32>(0x0075583c)));
+    Window_Set4c(text, nullptr, Language_Font(gList7cc250_75583c));
     Window_NotifyC00(text, nullptr, 2, 1);
     vcall<void>(text, 0x1c, 0u);
 }
@@ -294,7 +294,7 @@ void __cdecl List7cc654_InitRow(u8 *row) {
 }
 
 u8 *__cdecl List7cc94c_NewRow() {
-    u8 *const window = newRow(0, 0, cachedHeight(0x007cc94c, &kFont7));
+    u8 *const window = newRow(0, 0, cachedHeight(reinterpret_cast<uintptr_t>(&gList7cc94c_NewRow_7cc94c), &kFont7));
     for (u32 id = 2; id <= 6; id++) child(window, 1, 1, id);   // (sic: not checked)
     return window;
 }
@@ -367,13 +367,13 @@ void __cdecl List7cb264_InitRow(u8 *row) {
 
 void __cdecl List7ca158_InitRow(u8 *row) {
     setPart(row, TextPart_Ctor);
-    Window_Set4c(row, nullptr, Language_Font(global<u32>(0x00750d54)));
+    Window_Set4c(row, nullptr, Language_Font(gList7ca158_750d54));
     Window_NotifyImpl100(row, nullptr, 0);
     u8 *window = firstChild(row);
     const u32 state = gDialog7ca150_7ca154;
     if (state > 3) return;
     setPart(window, TextPart6ff350_Ctor);
-    Window_Set4c(window, nullptr, Language_Font(global<u32>(0x00750d54)));
+    Window_Set4c(window, nullptr, Language_Font(gList7ca158_750d54));
     vcall<void>(window, 0x1c, 0u);
     Window_NotifyC00(window, nullptr, 1, 1);
     if (state == 3) return;
@@ -386,7 +386,7 @@ void __cdecl List7ca158_InitRow(u8 *row) {
         } else {
             setPart(window, TextPart6ff3b0_Ctor);
             Window_NotifyC00(window, nullptr, 2, 1);
-            Window_Set4c(window, nullptr, Language_Font(global<u32>(0x00750d54)));
+            Window_Set4c(window, nullptr, Language_Font(gList7ca158_750d54));
         }
         vcall<void>(window, 0x1c, 0u);
     }
@@ -459,7 +459,7 @@ u32 __cdecl List7cb264_RowProc(u8 *window, u32 message, u32 a, u32 b) {
 }
 
 u8 *__cdecl List758f04_NewRow() {
-    const u32 height = (u32)((s32)(s16)fontHeight(global<u32>(0x00758f04)) * 0x600 / (s32)global<s16>(0x00faa5c0) + 4);
+    const u32 height = (u32)((s32)(s16)fontHeight(gListrows_758f04) * 0x600 / (s32)global<s16>(0x00faa5c0) + 4);
     u8 *const window = static_cast<u8 *>(GameHeap_Alloc(0x138));
     return window ? build(window, height) : nullptr;
 }
@@ -478,7 +478,7 @@ u8 *__cdecl List758f04_NewRowB() {
 
 void __cdecl List758f04_InitRow(u8 *row) {
     setPart(row, TextPart_Ctor);
-    Window_Set4c(row, nullptr, Language_Font(global<u32>(0x00758f04)));
+    Window_Set4c(row, nullptr, Language_Font(gListrows_758f04));
     Window_Notify40000(row, nullptr, 0xff, 0xff, 0xff, 0xff);
 }
 

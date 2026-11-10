@@ -9,6 +9,8 @@
 #include "dialogbase.h"
 #include "focus.h"
 #include "window.h"
+#include "dialog7cc534handler.h"
+#include "dialog7cc530open.h"
 
 namespace {
 
@@ -31,15 +33,15 @@ void connect(u8 *window) {
     record[4] = record[5] = record[6] = 0xff;
     at<u32>(record, 8) = 4;
     at<u32>(record, 0xc) = id;
-    global<u32>(0x007cc50c) = id;
-    global<s32>(0x007cc508) = -1;
-    global<s32>(0x007cc504) = -1;
+    gDialog7cc5f4dial_7cc50c = id;
+    gDialog7cc534handler_7cc508 = -1;
+    gDialog7cc5f4dial_7cc504 = -1;
     u8 *const box = g_env->box(record, 2, 0x004b9f30, 0, 0, 0, 0, 0);
-    global<u8 *>(0x007cc534) = box;
+    gDialog7cc534handler_7cc534 = box;
     g_env->setHandler(box, nullptr, 0x004b9f70);
     if (!global<u32(__fastcall *)(void *, void *, u32, u32, u32, u32, u32)>(0x006fd5b4)(reinterpret_cast<void *>((uintptr_t)0x007c24c0), nullptr, id, 0x004b9f60, 0x007cc590, 0x007cc548, id)) {
         u16 *const text = g_env->text(0x1d8);
-        u8 *const shown = global<u8 *>(0x007cc534);
+        u8 *const shown = gDialog7cc534handler_7cc534;
         (*reinterpret_cast<void(__fastcall **)(u8 *, void *, u16 *)>(at<uintptr_t>(shown, 0) + 0x24))(shown, nullptr, text);
     }
 }
@@ -61,7 +63,7 @@ extern "C" s32 __cdecl Dialog7cc5f4_DialHandler(u8 *window, u32 message, u32 a, 
         case 0x100:
             if (a == 0xfffffffe) {
                 g_env->send(window, 4, 0, 0);
-                if (void(__cdecl *const done)() = global<void(__cdecl *)()>(0x007cc52c)) done();
+                if (void(__cdecl *const done)() = global<void(__cdecl *)()>(reinterpret_cast<uintptr_t>(&gDialog7cc530open_7cc52c))) done();
                 return 0;
             }
             if (a == 0xffffffff && Crt().wcslen(wide(0x007cc590)) && Crt().wcslen(wide(0x007cc548))) {

@@ -26,3 +26,4 @@ s32 __cdecl Dialog7cc530_Handler(u8 *window, u32 message, u32 a, u32 b);
 
 // Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
 GAME_DATA(u8[20], gDialog7cc530handler_7cc4f0, 0x007cc4f0, 0x14);
+GAME_DATA(u8, gDialog7cc530handler_7cc53c, 0x007cc53c, 0x1);

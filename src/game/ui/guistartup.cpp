@@ -91,10 +91,10 @@ void __cdecl Gui_Startup() {
         E->fn5f55c0(local);
         E->fn5f5600(local);
         gGui_7b9fe0 = 0;
-        global<u32>(0x007b9fe4) = 0;
-        global<u32>(0x007b9fe8) = 0;
-        global<u32>(0x007b9fec) = 0;
-        global<u32>(0x007b9ff0) = 0x00486c70;
+        gGui_Startup_7b9fe4 = 0;
+        gGui_Startup_7b9fe8 = 0;
+        gGui_Startup_7b9fec = 0;
+        gGui_Startup_7b9ff0 = 0x00486c70;
         E->fn47e7d0();
     }
     const s32 screenY = global<s16>(0x00faa5c0);

@@ -46,10 +46,10 @@ struct Tab {
 };
 
 const Tab kTabs[4] = {
-    {reinterpret_cast<uintptr_t>(&gDialog7ca150_750ab8), 0, 5, 0x00750d5c, {0x80, 0x2000}, {0x00493e90, 0x00493eb0}, 0x52, {0x69, 0x6a, 0x6b, 0x6c, 0x6d}},
-    {reinterpret_cast<uintptr_t>(&gDialog7ca150_750ab8), 1, 5, 0x00750d60, {0x200, 0}, {0x00493f30, 0}, 0x57, {0x69, 0x248, 0x249, 0x24a, 0x24b}},
-    {0x00750ba0, 2, 6, 0x00750d64, {0x100, 0}, {0x00494070, 0}, 0x5c, {0x69, 0x248, 0x6b, 0x249, 0x24a, 0x24b}},
-    {reinterpret_cast<uintptr_t>(&gDialog7ca150_750ca0), 3, 2, 0x00750d68, {0x400, 0}, {0x004941e0, 0}, 0x62, {0x69, 0x24c}},
+    {reinterpret_cast<uintptr_t>(&gDialog7ca150_750ab8), 0, 5, reinterpret_cast<uintptr_t>(&gDialog7ca150_750d5c[0]), {0x80, 0x2000}, {0x00493e90, 0x00493eb0}, 0x52, {0x69, 0x6a, 0x6b, 0x6c, 0x6d}},
+    {reinterpret_cast<uintptr_t>(&gDialog7ca150_750ab8), 1, 5, reinterpret_cast<uintptr_t>(&gDialog7ca150_750d5c[1]), {0x200, 0}, {0x00493f30, 0}, 0x57, {0x69, 0x248, 0x249, 0x24a, 0x24b}},
+    {0x00750ba0, 2, 6, reinterpret_cast<uintptr_t>(&gDialog7ca150_750d5c[2]), {0x100, 0}, {0x00494070, 0}, 0x5c, {0x69, 0x248, 0x6b, 0x249, 0x24a, 0x24b}},
+    {reinterpret_cast<uintptr_t>(&gDialog7ca150_750ca0), 3, 2, reinterpret_cast<uintptr_t>(&gDialog7ca150_750d5c[3]), {0x400, 0}, {0x004941e0, 0}, 0x62, {0x69, 0x24c}},
 };
 
 void show_tab(u32 selected, const Tab &tab) {
@@ -75,7 +75,7 @@ void show_tab(u32 selected, const Tab &tab) {
     }
     for (s32 i = 0; i < tab.columns; ++i) {   // (the header buttons: the list's children 0x10 on)
         u8 *const button = Window_FindChild(list, nullptr, 0x10 + (u32)i);
-        const u32 font = global<u32>(0x00750d58);
+        const u32 font = gDialog7ca150_750d58;
         u16 *const text = Language_WideText(tab.first_text + (u32)i);
         ButtonText_Init(button, (u32)(uintptr_t)text, font, 0xff, 0xef, 0, tab.values[i]);
     }
@@ -124,7 +124,7 @@ u32 __cdecl Dialog7ca150_Handler(u8 *window, u32 message, u32 a, u32 b) {
     }
     case 0x406: {
         const u32 tab = gDialog7ca150_7ca154;
-        if (tab <= 3) global<u32>(0x00750d5c + 4 * tab) = b;
+        if (tab <= 3) gDialog7ca150_750d5c[tab] = b;
         break;
     }
     }

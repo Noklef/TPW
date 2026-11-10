@@ -17,6 +17,7 @@
 #include "../online/chatcommand.h"
 #include "window7cc8c0handler.h"
 #include "../coaster/arreplayaction.h"
+#include "dialog7cc944.h"
 
 extern "C" const u16 *__cdecl Language_WideText(u32 id);
 
@@ -58,8 +59,8 @@ void Dialog7cc944List_SetEnv(const Dialog7cc944ListEnv *env) { g_env = env ? env
 
 void __cdecl Dialog7cc944_FillList(const u8 *reply) {
     const Dialog7cc944ListEnv *const E = g_env;
-    if (!global<u8 *>(0x007cc944)) return;
-    u8 *const list = Window_FindChild(global<u8 *>(0x007cc944), nullptr, 0xe05b);
+    if (!gDialog7cc944_7cc944) return;
+    u8 *const list = Window_FindChild(gDialog7cc944_7cc944, nullptr, 0xe05b);
     E->clear(list);
     u32 count = at<u32>(reply, 0xc);
     const u8 *node = at<const u8 *>(reply, 4);
@@ -108,7 +109,7 @@ void __cdecl Dialog7cc944_FillList(const u8 *reply) {
             WString_Dtor(&label);
         }
     }
-    E->setState(Window_FindChild(global<u8 *>(0x007cc944), nullptr, 0xe059), nullptr, 0, 1);
+    E->setState(Window_FindChild(gDialog7cc944_7cc944, nullptr, 0xe059), nullptr, 0, 1);
     if (text.ptr) {
         u8 *const refs = reinterpret_cast<u8 *>(text.ptr) - 1;
         if (*refs == 0 || *refs == 0xff)

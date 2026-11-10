@@ -79,8 +79,8 @@ void __cdecl ThingBrowser_ShowDetail() {
     if (!thing) return;
     if (is_staff(thing[2])) {
         const u32 code = Index_ToCode485ec0(Mode19c_ToIndex(thing));
-        if (code == global<u32>(0x00756b98)) return;
-        global<u32>(0x00756b98) = code;
+        if (code == gThingBrowser_ShowDetail_756b98) return;
+        gThingBrowser_ShowDetail_756b98 = code;
         Window_Notify1(Window_FindChild(gThingbrowser_7cc304, nullptr, 0x148), nullptr, code);
         return;
     }

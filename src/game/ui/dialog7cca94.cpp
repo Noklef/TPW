@@ -32,7 +32,7 @@ void __cdecl Dialog7cca94_Show(const u16 *string) {
     }
     dialog() = WindowScript_Build(*reinterpret_cast<u8 **>((uintptr_t)0x00faa5d8), nullptr, gDialog7cca94_Show_759548, 0x004c23c0);
     u8 *memory = static_cast<u8 *>(GameHeap_Alloc(0x124));
-    Window_SetImpl(dialog(), nullptr, memory ? MeshOverlay_Construct(memory, nullptr, reinterpret_cast<const char *>(0x007595a0)) : nullptr);
+    Window_SetImpl(dialog(), nullptr, memory ? MeshOverlay_Construct(memory, nullptr, gDialog7cca94_Show_7595a0) : nullptr);
     vcall<void>(dialog(), 0x1c, 0u);
     memory = static_cast<u8 *>(GameHeap_Alloc(0x1a4));
     u8 *const part = memory ? TextPart_Ctor(memory, nullptr, 0) : nullptr;
