@@ -19,6 +19,7 @@
 #include "../render/graphicssettings.h"
 #include "../gfx/texcache.h"
 #include "../coaster/arreplayaction.h"
+#include "gamestart.h"
 #include "../world/thingmsg.h"
 
 namespace {
@@ -107,13 +108,13 @@ bool Stopped() { return (u16)Cd(0x006595a8) != 0 || Key(0x1b) || Key(0x20); }
 
 void LoadText() {
     const u32 text = Th(0x0041a820, 0x0078b530);   // Language_Buffer, (its result and the two after it are the call's)
-    Th(0x00587380, kLoadScreen, text, 0x00764fe4, 0x1f4);
+    Th(0x00587380, kLoadScreen, text, (u32)(uintptr_t)&gGameframe_764fe4, 0x1f4);
 }
 
 void Particles() {
     Cd(0x0051faa0, 0, G<u32>(0x007858c8), 0x800);   // Particles_Init
     Cd(0x0051fd80, G<u32>(0x0078d8e0) == 0 ? 1 : 0);   // Particles_SetReduced
-    Cd(0x0051f370, Cd(0x0044a280, 0x007651b8, 1, 0));   // ParticleLib_Load of Quickload_Locate
+    Cd(0x0051f370, Cd(0x0044a280, (u32)(uintptr_t)&gGameframe_7651b8, 1, 0));   // ParticleLib_Load of Quickload_Locate
 }
 
 void Post(u32 kind) {   // a ThingMsg13 (0x40f630; vtable 0x6fd810) to the message centre
@@ -173,7 +174,7 @@ void Frontend() {   // state 1
     Cd(0x00462870, 1);   // WorldVerts_Alloc
     Th(0x00402ed0, kClocks);   // GameClock_Unfreeze
     Th(0x00481400, kPanel);
-    Crt().sprintf(line, reinterpret_cast<const char *>(0x0074d0c4), at<const char *>(Th(0x00619240, kPaths), 8));
+    Crt().sprintf(line, gGameframe_74d0c4, at<const char *>(Th(0x00619240, kPaths), 8));
     Cd(0x00429ba0, line, 0, 0, 0);   // ModelSlot_LoadAdvisor
     Cd(0x005989c0);   // Advisor_Init
     Particles();
@@ -259,14 +260,14 @@ void FrontendEnd() {   // state 3
 }
 
 void WaitForChat() {   // state 9, mode 1
-    Say(0x00765190);
+    Say((u32)(uintptr_t)&gGameframe_765190);
     const u32 start = Cd(0x005f5fa0);   // Time_GetMs
     Th(0x004e5be0, Chat());
     for (;;) {
         Th(0x004e6560, Chat());   // ChatAvatar_PumpEvents
         if (at<u8>(Chat(), 0x28) == 1) {
             Th(0x004e5ef0, Chat());
-            Say(0x0076512c);
+            Say((u32)(uintptr_t)&gGameframe_76512c);
             return;
         }
         if ((u8)Th(0x004e6150, Chat())) {   // OnlineChat_Get2a
@@ -276,7 +277,7 @@ void WaitForChat() {   // state 9, mode 1
         if (Cd(0x005f5fa0) - start > 0x493e0) {
             Th(0x004e6130, Chat());   // OnlineChat_Set29And2a
             G<u32>(kState) = 0xb;
-            Say(0x007650ec);
+            Say((u32)(uintptr_t)&gGameframe_7650ec);
             return;
         }
     }
@@ -522,7 +523,7 @@ void ParkFrame() {   // state 0xa
     G<u32>(0x0087868c) = took;
     const u32 total = (G<u32>(0x0087907c) += took);
     Shift(0x008780a8, total);
-    Crt().sprintf(reinterpret_cast<char *>(0x00877eb8), reinterpret_cast<const char *>(0x007650b4), Mean(0x00878088), Mean(0x008780a8), sc8, se8, s108);
+    Crt().sprintf(reinterpret_cast<char *>(0x00877eb8), gGameframe_7650b4, Mean(0x00878088), Mean(0x008780a8), sc8, se8, s108);
     const s32 ending = G<s32>(0x00879088);
     if (ending == 1)
         G<u32>(kState) = 0xd;
@@ -633,7 +634,7 @@ u32 __cdecl Game_RunFrame() {
         ++G<u32>(0x008786dc);
     else
         G<u32>(0x008786dc) = 0;
-    if (!G<u32>(0x00879068)) return result;
+    if (!gGamestart_879068) return result;
     switch (G<u32>(kState)) {
     case 1: Frontend(); break;
     case 2: FrontendFrame(); break;

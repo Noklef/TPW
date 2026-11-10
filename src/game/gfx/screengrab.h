@@ -47,4 +47,5 @@ void ScreenGrab_SetCalls(const AddrCall *table, u32 count);
 #include "../core/gamedata.h"
 
 // Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(char[0x10], gScreengrab_7650dc, 0x007650dc, 0x10);
 GAME_DATA(s32, gScreenGrab_Count_879084, 0x00879084, 0x4);

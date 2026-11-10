@@ -62,3 +62,10 @@ void __fastcall Mp2StreamSample_Dtor(u8 *sample);
 u8 *__fastcall Mp2StreamSample_DeletingDtor(u8 *sample, void *, u32 flags);
 
 }  // extern "C"
+
+#include "gamedata.h"
+
+// The vtables hold only ports: tpw.exe's loader points their slots at them (.docs/09-globals.md).
+GAME_DATA(void *[24], Mp2Sample_vtable, 0x0070ae30, 0x60);
+GAME_DATA(void *[27], Mp2StreamSample_vtable, 0x0070ae90, 0x6c);
+GAME_DATA(void *[6], Class70af00_vtable, 0x0070af00, 0x18);

@@ -32,3 +32,9 @@ u8 *__fastcall SoundWorker_Ctor(u8 *worker, void *, u32 count);
 // 0x6b8380 (thiscall; returns this): +4 to +0x18 0, +0x1c = 12, +0x20 = a new SoundWorker of 12 (null when the allocation fails), +0x24 to +0x30 0, vtable 0x70a588.
 u8 *__fastcall SoundWorkerHost_Ctor(u8 *host);
 }
+
+#include "gamedata.h"
+
+// The vtables hold only ports: tpw.exe's loader points their slots at them (.docs/09-globals.md).
+GAME_DATA(void *[3], SoundWorker_vtable, 0x0070a2cc, 0xc);
+GAME_DATA(void *[16], SoundWorkerHost_vtable, 0x0070a588, 0x40);

@@ -27,6 +27,7 @@
 #include "session.h"
 #include "chatevents.h"
 #include "../render/enginedebug.h"
+#include "../core/swearfilter.h"
 
 namespace {
 
@@ -528,7 +529,7 @@ u8 __fastcall Mailbox_Open(u8 *self, void *, const char *folder) {
     g_env->iosInit(ios);
     g_env->istreamCtor(stream, nullptr, buffer, 0, 0);
     g_env->fileCtor(buffer, nullptr, nullptr);
-    at<u32>(IosOf(stream), 0) = 0x00702960;
+    at<u32>(IosOf(stream), 0) = (u32)(uintptr_t)Class702960_vtable;
     ClearNumbers(self + 0x58);
     ClearNumbers(self + 0x64);
     ClearNumbers(self + 0x70);
@@ -569,7 +570,7 @@ u8 __fastcall AddressBook_Load(u8 *self, void *, const char *folder) {
     g_env->iosInit(ios);
     g_env->istreamCtor(stream, nullptr, buffer, 0, 0);
     g_env->fileCtor(buffer, nullptr, nullptr);
-    at<u32>(IosOf(stream), 0) = 0x00702960;
+    at<u32>(IosOf(stream), 0) = (u32)(uintptr_t)Class702960_vtable;
     StdString path;
     StdString_Tidy(&path, nullptr, 0);
     StdString_AssignChars(&path, nullptr, folder, CRT_strlen(folder));
@@ -623,7 +624,7 @@ u8 __fastcall AddressBook_Save(u8 *self, void *, const char *folder) {
     g_env->iosInit(ios);
     g_env->ostreamCtor(stream, nullptr, buffer, 0, 1, 0);
     g_env->fileCtor(buffer, nullptr, nullptr);
-    at<u32>(IosOf(stream), 0) = 0x00702970;
+    at<u32>(IosOf(stream), 0) = (u32)(uintptr_t)Class702970_vtable;
     StdString path;
     StdString_Tidy(&path, nullptr, 0);
     StdString_AssignChars(&path, nullptr, folder, CRT_strlen(folder));
@@ -648,9 +649,9 @@ u8 __fastcall AddressBook_Save(u8 *self, void *, const char *folder) {
         g_env->clear(state, nullptr, at<u32>(state, 4) | 2, 0);
     }
     StdString_Tidy(&path, nullptr, 1);
-    at<u32>(IosOf(stream), 0) = 0x00702970;
+    at<u32>(IosOf(stream), 0) = (u32)(uintptr_t)Class702970_vtable;
     g_env->fileDtor(buffer);
-    at<u32>(IosOf(stream), 0) = 0x0070995c;
+    at<u32>(IosOf(stream), 0) = (u32)(uintptr_t)Class70995c_vtable;
     NIos_Dtor(ios);
     return 1;
 }
@@ -706,7 +707,7 @@ u8 __fastcall Mailbox_SaveMessage(u8 *self) {
     g_env->iosInit(ios);
     g_env->ostreamCtor(stream, nullptr, buffer, 0, 1, 0);
     g_env->fileCtor(buffer, nullptr, nullptr);
-    at<u32>(IosOf(stream), 0) = 0x00702970;
+    at<u32>(IosOf(stream), 0) = (u32)(uintptr_t)Class702970_vtable;
     u32 number = 0;
     if (at<u32>(self, 0x60)) {
         u8 *const head = at<u8 *>(self, 0x5c);
@@ -721,7 +722,7 @@ u8 __fastcall Mailbox_SaveMessage(u8 *self) {
     if (!g_env->open(buffer, nullptr, TextOf(path), 0x12)) g_env->setState(IosOf(stream), nullptr, 2, 0);
     if (!at<void *>(stream, 0x54)) {
         g_env->ofstreamDtor(ios);
-        at<u32>(ios, 0) = 0x00709954;
+        at<u32>(ios, 0) = (u32)(uintptr_t)NIos_vtable;
         g_env->iosDtor(ios);
         StdString_Tidy(&picture, nullptr, 1);
         StdString_Tidy(&path, nullptr, 1);
@@ -813,7 +814,7 @@ u8 __fastcall Mailbox_DropFirst(u8 *self, void *, u8 *target) {
 }
 
 void __fastcall NIos_Dtor(u8 *self) {
-    at<u32>(self, 0) = 0x00709954;
+    at<u32>(self, 0) = (u32)(uintptr_t)NIos_vtable;
     g_env->iosDtor(self);
 }
 
@@ -827,7 +828,7 @@ u8 __fastcall Mailbox_SaveOutbox(u8 *self) {
     g_env->iosInit(ios);
     g_env->ostreamCtor(stream, nullptr, buffer, 0, 1, 0);
     g_env->fileCtor(buffer, nullptr, nullptr);
-    at<u32>(IosOf(stream), 0) = 0x00702970;
+    at<u32>(IosOf(stream), 0) = (u32)(uintptr_t)Class702970_vtable;
     StdString_AssignSub(&path, nullptr, reinterpret_cast<const StdString *>(self), 0, npos());
     const char *const name = gMailbox_7740b4;
     StdString_AppendChars(&path, nullptr, name, CRT_strlen(name));
@@ -849,10 +850,10 @@ u8 __fastcall Mailbox_SaveOutbox(u8 *self) {
         g_env->fileInit(buffer, nullptr, nullptr, 2);
     else
         g_env->setState(IosOf(stream), nullptr, 2, 0);
-    at<u32>(IosOf(stream), 0) = 0x00702970;
+    at<u32>(IosOf(stream), 0) = (u32)(uintptr_t)Class702970_vtable;
     g_env->fileDtor(buffer);
-    at<u32>(IosOf(stream), 0) = 0x0070995c;
-    at<u32>(ios, 0) = 0x00709954;
+    at<u32>(IosOf(stream), 0) = (u32)(uintptr_t)Class70995c_vtable;
+    at<u32>(ios, 0) = (u32)(uintptr_t)NIos_vtable;
     g_env->iosDtor(ios);
     StdString_Tidy(&path, nullptr, 1);
     return 1;
@@ -870,7 +871,7 @@ u8 __fastcall Mailbox_LoadMessage(u8 *self, void *, u32 number) {
     g_env->iosInit(ios);
     g_env->istreamCtor(stream, nullptr, buffer, 0, 0);
     g_env->fileCtor(buffer, nullptr, nullptr);
-    at<u32>(IosOf(stream), 0) = 0x00702960;
+    at<u32>(IosOf(stream), 0) = (u32)(uintptr_t)Class702960_vtable;
     StdString_AssignSub(&path, nullptr, reinterpret_cast<const StdString *>(self), 0, npos());
     char line[0x100];
     CRT_sprintf(line, gMailbox_7740d8, number);

@@ -32,3 +32,17 @@ u32 __stdcall GuardFile_Close(u8 *file);
 // up to that boundary written straight to the file (short: a message and the count so far), the rest put in the buffer. Answers the count.
 s32 __stdcall GuardFile_Write(u8 *file, const char *data, s32 count);
 }
+
+#include "gamedata.h"
+
+// Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(char[0x8], gGuardfile_7749f0, 0x007749f0, 0x8);
+GAME_DATA(char[0x3c], gGuardfile_7749f8, 0x007749f8, 0x3c);
+GAME_DATA(char[0x30], gGuardfile_774a34, 0x00774a34, 0x30);
+GAME_DATA(char[0x8], gGuardfile_774a64, 0x00774a64, 0x8);
+GAME_DATA(char[0x38], gGuardfile_774a6c, 0x00774a6c, 0x38);
+GAME_DATA(char[0x3c], gGuardfile_774aa4, 0x00774aa4, 0x3c);
+GAME_DATA(char[0x8], gGuardfile_774ae0, 0x00774ae0, 0x8);
+GAME_DATA(char[0x8], gGuardfile_774ae8, 0x00774ae8, 0x8);
+GAME_DATA(char[0x24], gGuardfile_774af0, 0x00774af0, 0x24);
+GAME_DATA(char[0x1c], gGuardfile_774b14, 0x00774b14, 0x1c);

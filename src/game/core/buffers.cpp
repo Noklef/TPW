@@ -271,7 +271,7 @@ u8 __fastcall Blocks7_ShrinkSurface(u8 *object, void *, const SurfaceDesc *desc)
 }
 
 u8 __fastcall Blocks7_LoadAll(u8 *object) {
-    static const u32 kNames[5] = {0x007748d4, 0x007748b8, 0x007748a0, 0x00774888, 0x00774870};
+    static const u32 kNames[5] = {(u32)(uintptr_t)&gBuffers_7748d4, (u32)(uintptr_t)&gBuffers_7748b8, (u32)(uintptr_t)&gBuffers_7748a0, (u32)(uintptr_t)&gBuffers_774888, (u32)(uintptr_t)&gBuffers_774870};
     for (u32 i = 0; i < 5; ++i)
         g_loadEnv->load(object + 0x10 * i, nullptr, reinterpret_cast<const char *>((uintptr_t)0x00786de4), g_loadEnv->locate(reinterpret_cast<const char *>((uintptr_t)kNames[i]), 1, nullptr));
     if (at<void *>(object, 0x5c)) GameHeap_Free(at<void *>(object, 0x5c));

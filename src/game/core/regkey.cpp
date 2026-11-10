@@ -181,7 +181,7 @@ s32 *__cdecl Registry_LoadLanguage(s32 *out) {
         *reinterpret_cast<u32 *>(0x0079d868) = flag;
         u32 bit = 0;
         while ((flag >> bit & 1) == 0) ++bit;
-        std::strcpy(reinterpret_cast<char *>(0x00f7f230), *reinterpret_cast<const char *const *>(0x00f7ec30 + bit * 0x14));
+        std::strcpy(gLanguage_f7f230, *reinterpret_cast<const char *const *>(0x00f7ec30 + bit * 0x14));
         Language_SetId(reinterpret_cast<u8 *>(0x0078b530), nullptr, value);
     }
     *out = 0;

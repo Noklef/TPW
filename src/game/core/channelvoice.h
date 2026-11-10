@@ -151,3 +151,11 @@ void ChannelVoices_SetEnv(const ChannelVoicesEnv *env);
 u32 *__fastcall ChannelVoiceHandle_Resume(const u8 *self, void *, u32 *out, u8 *owner);
 
 }  // extern "C"
+
+#include "gamedata.h"
+
+// The vtables hold only ports: tpw.exe's loader points their slots at them (.docs/09-globals.md).
+GAME_DATA(void *[12], Class70a6c8_vtable, 0x0070a6c8, 0x30);
+GAME_DATA(void *[20], Class70a6f8_vtable, 0x0070a6f8, 0x50);
+GAME_DATA(void *[12], Class70a778_vtable, 0x0070a778, 0x30);
+GAME_DATA(void *[13], Class70a7a8_vtable, 0x0070a7a8, 0x34);

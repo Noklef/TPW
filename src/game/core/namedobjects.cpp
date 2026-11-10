@@ -21,6 +21,7 @@
 #include "../world/things.h"
 #include "../world/world.h"
 #include "../ui/windowproc.h"
+#include "vdtor.h"
 
 namespace {
 
@@ -100,7 +101,7 @@ void __fastcall NamedObjects_Dtor(u8 *self) {
     }
     if (u8 *const block = at<u8 *>(self, 0x38)) GameHeap_Free(block);  // (its destructor, 0x5da3c0, is empty)
     u8 *node = at<u8 *>(self, 0x28);
-    at<u32>(self, 0x24) = 0x006fd708;
+    at<u32>(self, 0x24) = (u32)(uintptr_t)ListDtor6fd708_vtable;
     at<u32>(self, 0x2c) = 0;
     at<u32>(self, 0x28) = 0;
     while (node) {
@@ -115,7 +116,7 @@ void __fastcall NamedObjects_Dtor(u8 *self) {
 s32 *__cdecl NamedObjects_AddSubfolders(s32 *out, const String *folder) {
     Handle handle;
     Handle_Ctor(&handle);
-    handle.vtable = reinterpret_cast<void *const *>(0x006fd9e8);
+    handle.vtable = reinterpret_cast<void *const *>(((u32)(uintptr_t)ListDtor6fd9e4_vtable + 0x4));
     u8 entry[0x124];   // (a DirEntry: +0x20 its name pointer, +0x24 the path buffer; the rest as the search leaves it)
     *reinterpret_cast<u8 **>(entry + 0x20) = entry + 0x24;
     entry[0x24] = 0;

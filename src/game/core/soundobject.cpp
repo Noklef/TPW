@@ -15,6 +15,7 @@
 #include "soundmixer.h"
 #include "string.h"
 #include "vcall.h"
+#include "soundworker.h"
 
 namespace {
 
@@ -63,7 +64,7 @@ u32 *__fastcall SoundObject_Broadcast(u8 *object, void *, u32 *out) {
         return out;
     }
     u32 functor[2];   // (the second dword left unset, sic)
-    functor[0] = 0x0070a5b0;
+    functor[0] = ((u32)(uintptr_t)SoundWorkerHost_vtable + 0x28);
     vcall<void>(channel, 0x10, out, functor);
     return out;
 }
@@ -80,14 +81,14 @@ u32 *__fastcall SoundObject_BroadcastValue(u8 *object, void *, u32 *out, u32 val
 }
 
 void __fastcall SoundObject_Dtor(u8 *object) {
-    at<u32>(object, 0) = 0x0070a588;
+    at<u32>(object, 0) = (u32)(uintptr_t)SoundWorkerHost_vtable;
     if (u8 *const channel = at<u8 *>(object, 0x24)) vcall<void>(channel, 0);
     if (u8 *const mixer = at<u8 *>(object, 0x20)) vcall<void>(mixer, 0, 1u);
 }
 
-u32 *__fastcall SoundObject_SendVoiceFunctor1(u8 *object, void *, u32 *out, u32 id) { return SendVoiceFunctor(object, out, id, 0x0070a2d0); }
-u32 *__fastcall SoundObject_SendVoiceFunctor2(u8 *object, void *, u32 *out, u32 id) { return SendVoiceFunctor(object, out, id, 0x0070a5b8); }
-u32 *__fastcall SoundObject_SendVoiceFunctor3(u8 *object, void *, u32 *out, u32 id) { return SendVoiceFunctor(object, out, id, 0x0070a5c0); }
+u32 *__fastcall SoundObject_SendVoiceFunctor1(u8 *object, void *, u32 *out, u32 id) { return SendVoiceFunctor(object, out, id, ((u32)(uintptr_t)SoundWorker_vtable + 0x4)); }
+u32 *__fastcall SoundObject_SendVoiceFunctor2(u8 *object, void *, u32 *out, u32 id) { return SendVoiceFunctor(object, out, id, ((u32)(uintptr_t)SoundWorkerHost_vtable + 0x30)); }
+u32 *__fastcall SoundObject_SendVoiceFunctor3(u8 *object, void *, u32 *out, u32 id) { return SendVoiceFunctor(object, out, id, ((u32)(uintptr_t)SoundWorkerHost_vtable + 0x38)); }
 
 u32 *__fastcall SoundObject_VoiceInfo(u8 *object, void *, u32 *out, u32 id, u32 *result) {
     if (u8 *const mixer = at<u8 *>(object, 0x20)) {
@@ -265,7 +266,7 @@ u8 *__fastcall SoundObjectEax_CreateChannel(u8 *object) {
         SoundChannel_Ctor(channel);
         at<u32>(channel, 0x68) = 0;
         at<u32>(channel, 0x6c) = 0;
-        at<u32>(channel, 0) = 0x0070a630;
+        at<u32>(channel, 0) = (u32)(uintptr_t)Class70a630_vtable;
     }
     at<u8 *>(object, 0x24) = channel;
     return channel;

@@ -176,3 +176,8 @@ u32 __stdcall StoreThrough_ffffffff_6d27a0(u32 v0);
 // 0x6d29e0: *first argument = 0xffffffff; returns that pointer.
 u32 __stdcall StoreThrough_ffffffff_6d29e0(u32 v0, u32 v1, u32 v2, u32 v3);
 }  // extern "C"
+
+#include "gamedata.h"
+
+// The vtables hold only ports: tpw.exe's loader points their slots at them (.docs/09-globals.md).
+GAME_DATA(void *[21], Class70a7e0_vtable, 0x0070a7e0, 0x54);

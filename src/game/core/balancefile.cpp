@@ -205,20 +205,20 @@ void __cdecl BalanceHoardingsA_StaticDtor() { destroy(0x00784e30, 0x006fd618); }
 void __cdecl BalanceHoardingsB_StaticDtor() { destroy(0x00784c20, 0x006fd618); }
 void __cdecl BalanceLevel_StaticDtor() { destroy(0x00785040, 0x006fd620); }
 void __cdecl BalanceOnline_StaticDtor() { destroy(0x00785828, 0x006fd628); }
-void __cdecl BalanceGraphics_StaticDtor() { destroy(0x00785868, 0x006fd630); }
-void __cdecl BalanceResolution_StaticDtor() { destroy(0x007858e0, 0x006fd638); }
-void __cdecl BalanceSound_StaticDtor() { destroy(0x007858f0, 0x006fd640); }
+void __cdecl BalanceGraphics_StaticDtor() { destroy(0x00785868, (u32)(uintptr_t)BalanceGraphics_vtable); }
+void __cdecl BalanceResolution_StaticDtor() { destroy(0x007858e0, ((u32)(uintptr_t)BalanceGraphics_vtable + 0x8)); }
+void __cdecl BalanceSound_StaticDtor() { destroy(0x007858f0, ((u32)(uintptr_t)BalanceGraphics_vtable + 0x10)); }
 
 void __fastcall ObjectDefBalance_Dtor(u8 *self) {
-    at<u32>(self, 0) = 0x006fd8a8;
+    at<u32>(self, 0) = (u32)(uintptr_t)ObjectDefBalance_vtable;
     BalanceFile_Release(self);
 }
 void __fastcall TrackTypeBalance_Dtor(u8 *self) {
-    at<u32>(self, 0) = 0x006fd8b0;
+    at<u32>(self, 0) = (u32)(uintptr_t)TrackTypeBalance_vtable;
     BalanceFile_Release(self);
 }
 void __fastcall BalanceGraphics_Dtor(u8 *self) {
-    at<u32>(self, 0) = 0x006fd630;
+    at<u32>(self, 0) = (u32)(uintptr_t)BalanceGraphics_vtable;
     BalanceFile_Release(self);
 }
 
@@ -226,7 +226,7 @@ const u8 *__fastcall AdvisorScoring_GetSchema(const void *, void *, u32 index) {
 
 void __fastcall ThemeRecord_Dtor(u8 *self) {
     if (u8 *const file = at<u8 *>(self, 0x1c)) {
-        at<u32>(file, 0) = 0x00702800;
+        at<u32>(file, 0) = (u32)(uintptr_t)ThemeRecord_vtable;
         BalanceFile_Release(file);
         GameHeap_Free(file);
     }
@@ -244,18 +244,18 @@ u8 __fastcall ThemeRecord_LoadGlobalSam(u8 *self) {
         return 1;
     u8 *file = static_cast<u8 *>(GameHeap_Alloc(0x1c));
     if (file) {
-        at<u32>(file, 0) = 0x00702800;
+        at<u32>(file, 0) = (u32)(uintptr_t)ThemeRecord_vtable;
         BalanceFile_Init(file);
     }
     at<u8 *>(self, 0x1c) = file;
     if (!file)
         return 0;
     char path[0x104];
-    Crt().sprintf(path, reinterpret_cast<const char *>(0x007733b4), at<const char *>(self, 0x28));   // "data\levels\%s\global.sam"
+    Crt().sprintf(path, gBalancefile_7733b4, at<const char *>(self, 0x28));   // "data\levels\%s\global.sam"
     if (BalanceFile_Load(at<u8 *>(self, 0x1c), nullptr, path, 0))
         return 1;
     if (u8 *const loaded = at<u8 *>(self, 0x1c)) {
-        at<u32>(loaded, 0) = 0x00702800;
+        at<u32>(loaded, 0) = (u32)(uintptr_t)ThemeRecord_vtable;
         BalanceFile_Release(loaded);
         GameHeap_Free(loaded);
     }
@@ -264,12 +264,12 @@ u8 __fastcall ThemeRecord_LoadGlobalSam(u8 *self) {
 }
 
 void __fastcall AdvisorScoring_Dtor(u8 *self) {
-    at<u32>(self, 0xc) = 0x006fd958;
+    at<u32>(self, 0xc) = (u32)(uintptr_t)AdvisorScoringFile_vtable;
     BalanceFile_Release(self + 0xc);
 }
 
 void __fastcall AdvisorScoringFile_Dtor(u8 *self) {
-    at<u32>(self, 0) = 0x006fd958;
+    at<u32>(self, 0) = (u32)(uintptr_t)AdvisorScoringFile_vtable;
     BalanceFile_Release(self);
 }
 
@@ -277,10 +277,10 @@ void __cdecl AdvisorScoring_StaticDtor() { AdvisorScoring_Dtor(reinterpret_cast<
 
 u8 *__fastcall AdvisorScoring_Construct(u8 *self) {
     u8 *const file = self + 0xc;
-    at<u32>(file, 0) = 0x006fd958;
+    at<u32>(file, 0) = (u32)(uintptr_t)AdvisorScoringFile_vtable;
     BalanceFile_Init(file);
     at<u32>(self, 0) = 0;
-    BalanceFile_Load(file, nullptr, reinterpret_cast<const char *>(0x00773014), 0);   // (failing: Debug_Printf, empty in this build)
+    BalanceFile_Load(file, nullptr, gBalancefile_773014, 0);   // (failing: Debug_Printf, empty in this build)
     return self;
 }
 
@@ -291,11 +291,11 @@ u32 __cdecl BalanceFile_ParseMap(const char **text, u8 **map, const char **error
     while (*s && Crt().iswspace((u32)(s32)(s16)(s8)*s)) ++s;
     while (*s && *s != '\n') ++s;
     if (!*s) {
-        *error = reinterpret_cast<const char *>(0x00739b80);  // "Missing map description"
+        *error = gBalancefile_739b80;  // "Missing map description"
         return 0;
     }
     if (s[1] != '-' || s[2] != '-' || s[3] != '-') {
-        *error = reinterpret_cast<const char *>(0x00739b08);  // "Missing map description initial marker"
+        *error = gBalancefile_739b08;  // "Missing map description initial marker"
         return 0;
     }
     const char *p = s + 3;
@@ -328,25 +328,25 @@ u32 __cdecl BalanceFile_ParseMap(const char **text, u8 **map, const char **error
             return 1;
         }
         if (!c) {
-            *error = reinterpret_cast<const char *>(0x00739b68);  // "Missing map delimter"
+            *error = gBalancefile_739b68;  // "Missing map delimter"
             return 0;
         }
         s32 column = 0;
         while (c != '\n') {
             if (c != ' ') {
                 if (base == 0x190) {
-                    *error = reinterpret_cast<const char *>(0x00739b58);  // "Map too high"
+                    *error = gBalancefile_739b58;  // "Map too high"
                     return 0;
                 }
                 s32 i = 0;
                 if (count > 0)
                     while (i < count && (char)symbols[i * 0xc] != c) ++i;
                 if (i == count) {  // (a negative count takes the first symbol, sic)
-                    *error = reinterpret_cast<const char *>(0x00739b40);  // "Illegal map character"
+                    *error = gBalancefile_739b40;  // "Illegal map character"
                     return 0;
                 }
                 if (column == 0x14) {
-                    *error = reinterpret_cast<const char *>(0x00739b30);  // "Map too wide"
+                    *error = gBalancefile_739b30;  // "Map too wide"
                     return 0;
                 }
                 u8 *const cell = grid + 8 + (column + base) * 8;

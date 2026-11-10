@@ -584,7 +584,7 @@ void __fastcall Online_Dtor(u8 *session) {
     if (u8 *const object = at<u8 *>(session, 0x3a4)) vcall<void>(object, 0, 1u);   // sic: +0x3a4 stays
     g_dtor->stringDtor(session + 0x3dc);
     u8 *node = at<u8 *>(session, 0x3cc);
-    at<u32>(session, 0x3c8) = 0x007028a0;
+    at<u32>(session, 0x3c8) = (u32)(uintptr_t)ListDtor7028a0_vtable;
     at<u32>(session, 0x3d0) = 0;
     at<u32>(session, 0x3cc) = 0;
     while (node) {

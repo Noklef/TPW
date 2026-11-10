@@ -81,3 +81,12 @@ u32 __fastcall SoundResourceRef_ReadRecord(u8 *ref, void *, u32 record, u32 i);
 u32 __stdcall SoundResourceHandle_ReadRecord(u32 record, const u32 *handle);
 
 }  // extern "C"
+
+#include "gamedata.h"
+
+// The vtables hold only ports: tpw.exe's loader points their slots at them (.docs/09-globals.md).
+GAME_DATA(void *[3], Class703770_vtable, 0x00703770, 0xc);
+GAME_DATA(void *[16], Class70aa80_vtable, 0x0070aa80, 0x40);
+GAME_DATA(void *[16], Class70aac0_vtable, 0x0070aac0, 0x40);
+GAME_DATA(void *[16], SoundResource_vtable, 0x0070ab00, 0x40);
+GAME_DATA(void *[3], SoundResourceRef_vtable, 0x0070af18, 0xc);

@@ -108,3 +108,10 @@ u32 *__fastcall SoundMixer_Save(u8 *mixer, void *, u32 *out, u8 *stream);
 u32 *__fastcall SoundMixer_Load(u8 *mixer, void *, u32 *out, u8 *stream, u32 restore);
 
 }  // extern "C"
+
+#include "gamedata.h"
+
+// The vtables hold only ports: tpw.exe's loader points their slots at them (.docs/09-globals.md).
+GAME_DATA(void *[1], Class70a2d8_vtable, 0x0070a2d8, 0x4);
+GAME_DATA(void *[21], SequenceVoice_vtable, 0x0070a440, 0x54);
+GAME_DATA(void *[21], SwitchVoice_vtable, 0x0070a498, 0x54);

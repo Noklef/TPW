@@ -92,3 +92,23 @@ void __cdecl Options_LoadBalanceFiles();
 // to 2.
 void __fastcall Options_NoteChanges(u8 *options);
 }
+
+#include "gamedata.h"
+
+// Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(char[0xc], gOptions_74c798, 0x0074c798, 0xc);
+GAME_DATA(char[0xc], gOptions_74c7a4, 0x0074c7a4, 0xc);
+GAME_DATA(char[0xc], gOptions_74c7b0, 0x0074c7b0, 0xc);
+GAME_DATA(char[0x10], gOptions_74c7bc, 0x0074c7bc, 0x10);
+GAME_DATA(char[0xc], gOptions_74c7cc, 0x0074c7cc, 0xc);
+GAME_DATA(char[0xc], gOptions_74c7d8, 0x0074c7d8, 0xc);
+GAME_DATA(char[0xc], gOptions_74c7e4, 0x0074c7e4, 0xc);
+GAME_DATA(char[0xc], gOptions_74c7f0, 0x0074c7f0, 0xc);
+GAME_DATA(char[0x10], gOptions_74c7fc, 0x0074c7fc, 0x10);
+GAME_DATA(char[0xc], gOptions_74c80c, 0x0074c80c, 0xc);
+GAME_DATA(char[0xc], gOptions_74c818, 0x0074c818, 0xc);
+GAME_DATA(char[0x10], gOptions_74c824, 0x0074c824, 0x10);
+GAME_DATA(char[0xc], gOptions_74c834, 0x0074c834, 0xc);
+GAME_DATA(char[0x14], gOptions_74c840, 0x0074c840, 0x14);
+GAME_DATA(char[0x10], gOptions_74c854, 0x0074c854, 0x10);
+GAME_DATA(char[0x10], gOptions_74c864, 0x0074c864, 0x10);

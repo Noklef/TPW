@@ -19,3 +19,8 @@ u8 *__fastcall VoiceEvents_DeletingDtor(u8 *self, void *, u32 flags);
 u32 __fastcall VoiceEvents_Stop(u8 *self);
 
 }  // extern "C"
+
+#include "gamedata.h"
+
+// The vtables hold only ports: tpw.exe's loader points their slots at them (.docs/09-globals.md).
+GAME_DATA(void *[1], VoiceEvents_vtable, 0x0070ab50, 0x4);

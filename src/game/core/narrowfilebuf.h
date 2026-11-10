@@ -49,3 +49,11 @@ void __fastcall NFileBuf_InitConversion(u8 *buf);
 // 0x5d08e0 (thiscall (name, mode), pops 8; basic_filebuf<char>::open, by its shape): 0 with a file already, or when Std_Fiopen fails. Otherwise NFileBuf_Init (file, 1) (inline in the original), NFileBuf_InitConversion. Returns the buffer.
 u8 *__fastcall NFileBuf_Open(u8 *buf, void *, const char *name, u32 mode);
 }
+
+#include "gamedata.h"
+
+// The vtables hold only ports: tpw.exe's loader points their slots at them (.docs/09-globals.md).
+GAME_DATA(void *[1], Class702970_vtable, 0x00702970, 0x4);
+GAME_DATA(void *[13], Class7098dc_vtable, 0x007098dc, 0x34);
+GAME_DATA(void *[13], Class709914_vtable, 0x00709914, 0x34);
+GAME_DATA(void *[7], NCodecvt_vtable, 0x00709b8c, 0x1c);

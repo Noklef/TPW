@@ -8,6 +8,13 @@
 
 #include "addrcalls.h"
 #include "../math/x87.h"
+#include "iosbase.h"
+#include "nstream.h"
+#include "vdel.h"
+#include "balancefile.h"
+#include "textarg.h"
+#include "vtables.h"
+#include "../gfx/textlayout.h"
 #include "../ui/panel7ca178.h"
 #include "../ui/panel7cc298.h"
 #include "../render/spritequeue.h"
@@ -719,7 +726,7 @@ void __cdecl Exit_47f320() {   // 0x47f320
     return;
 }
 void __cdecl Exit_4856c0() {   // 0x4856c0
-    M<u32>(0x7b9948u) = 0x6fdce8u;
+    M<u32>(0x7b9948u) = (u32)(uintptr_t)Class6fdce8_vtable;
     return;
 }
 void __cdecl Exit_485700() {   // 0x485700
@@ -813,7 +820,7 @@ L_5408b2:
 L_5408bc:
     M<u32>(sp - 0x8) = eax;
     eax = g_calls.Cd(0x00577600, M<u32>(sp - 0x8));   // LiveObjects_Remove
-    M<u32>(0x876440u) = 0x6fdce8u;
+    M<u32>(0x876440u) = (u32)(uintptr_t)Class6fdce8_vtable;
     esi = 0;
     return;
 }
@@ -829,7 +836,7 @@ void __cdecl Exit_54be10() {   // 0x54be10
     return;
 }
 void __cdecl Exit_598890() {   // 0x598890
-    M<u32>(0xf75b28u) = 0x6fdce8u;
+    M<u32>(0xf75b28u) = (u32)(uintptr_t)Class6fdce8_vtable;
     return;
 }
 void __cdecl Exit_5c0b90() {   // 0x5c0b90
@@ -869,7 +876,7 @@ void __cdecl Exit_692000() {   // 0x692000
     u32 eax = 0, ecx = 0;
     eax = M<u32>(0xfb1a90u);
     ecx = M<u32>(eax + 0x4u);
-    M<u32>(ecx + 0xfb1a90u) = 0x70994cu;
+    M<u32>(ecx + 0xfb1a90u) = (u32)(uintptr_t)Class70994c_vtable;
     ecx = 0xfb1a98u;
     g_calls.Th(0x005cde40, ecx);   // NIos_Dtor (tail)
     return;
@@ -878,7 +885,7 @@ void __cdecl Exit_6920d0() {   // 0x6920d0
     u32 eax = 0, ecx = 0;
     eax = M<u32>(0xfb1a00u);
     ecx = M<u32>(eax + 0x4u);
-    M<u32>(ecx + 0xfb1a00u) = 0x70995cu;
+    M<u32>(ecx + 0xfb1a00u) = (u32)(uintptr_t)Class70995c_vtable;
     ecx = 0xfb1a04u;
     g_calls.Th(0x005cde40, ecx);   // NIos_Dtor (tail)
     return;
@@ -887,7 +894,7 @@ void __cdecl Exit_692160() {   // 0x692160
     u32 eax = 0, ecx = 0;
     eax = M<u32>(0xfb1b28u);
     ecx = M<u32>(eax + 0x4u);
-    M<u32>(ecx + 0xfb1b28u) = 0x70995cu;
+    M<u32>(ecx + 0xfb1b28u) = (u32)(uintptr_t)Class70995c_vtable;
     ecx = 0xfb1b2cu;
     g_calls.Th(0x005cde40, ecx);   // NIos_Dtor (tail)
     return;
@@ -896,7 +903,7 @@ void __cdecl Exit_6921b0() {   // 0x6921b0
     u32 eax = 0, ecx = 0;
     eax = M<u32>(0xfb1970u);
     ecx = M<u32>(eax + 0x4u);
-    M<u32>(ecx + 0xfb1970u) = 0x70995cu;
+    M<u32>(ecx + 0xfb1970u) = (u32)(uintptr_t)Class70995c_vtable;
     ecx = 0xfb1974u;
     g_calls.Th(0x005cde40, ecx);   // NIos_Dtor (tail)
     return;
@@ -905,7 +912,7 @@ void __cdecl Exit_692ad0() {   // 0x692ad0
     u32 eax = 0, ecx = 0;
     eax = M<u32>(0xfb1bd8u);
     ecx = M<u32>(eax + 0x4u);
-    M<u32>(ecx + 0xfb1bd8u) = 0x7099dcu;
+    M<u32>(ecx + 0xfb1bd8u) = (u32)(uintptr_t)Class7099dc_vtable;
     ecx = 0xfb1be0u;
     g_calls.Th(0x004f0100, ecx);   // BasicIosW_Dtor (tail)
     return;
@@ -914,7 +921,7 @@ void __cdecl Exit_692ba0() {   // 0x692ba0
     u32 eax = 0, ecx = 0;
     eax = M<u32>(0xfb1cc8u);
     ecx = M<u32>(eax + 0x4u);
-    M<u32>(ecx + 0xfb1cc8u) = 0x7099ecu;
+    M<u32>(ecx + 0xfb1cc8u) = (u32)(uintptr_t)Class7099ec_vtable;
     ecx = 0xfb1cccu;
     g_calls.Th(0x004f0100, ecx);   // BasicIosW_Dtor (tail)
     return;
@@ -923,7 +930,7 @@ void __cdecl Exit_692bf0() {   // 0x692bf0
     u32 eax = 0, ecx = 0;
     eax = M<u32>(0xfb1b60u);
     ecx = M<u32>(eax + 0x4u);
-    M<u32>(ecx + 0xfb1b60u) = 0x7099ecu;
+    M<u32>(ecx + 0xfb1b60u) = (u32)(uintptr_t)Class7099ec_vtable;
     ecx = 0xfb1b64u;
     g_calls.Th(0x004f0100, ecx);   // BasicIosW_Dtor (tail)
     return;
@@ -932,7 +939,7 @@ void __cdecl Exit_692c40() {   // 0x692c40
     u32 eax = 0, ecx = 0;
     eax = M<u32>(0xfb1ba0u);
     ecx = M<u32>(eax + 0x4u);
-    M<u32>(ecx + 0xfb1ba0u) = 0x7099ecu;
+    M<u32>(ecx + 0xfb1ba0u) = (u32)(uintptr_t)Class7099ec_vtable;
     ecx = 0xfb1ba4u;
     g_calls.Th(0x004f0100, ecx);   // BasicIosW_Dtor (tail)
     return;
@@ -7478,7 +7485,7 @@ void __cdecl Init_402bc0() {   // 0x402bc0
     alignas(4) u8 frame[0x4];
     const u32 sp = (u32)(uintptr_t)(frame + sizeof frame);
     ecx = 0x785868u;
-    M<u32>(0x785868u) = 0x6fd630u;
+    M<u32>(0x785868u) = (u32)(uintptr_t)BalanceGraphics_vtable;
     eax = g_calls.Th(0x00401030, ecx);   // BalanceFile_Init
     M<u32>(sp - 0x4) = 0x402c10u;
     eax = g_calls.Cd(0x0067a7d0, M<u32>(sp - 0x4));   // CRT_atexit
@@ -7489,7 +7496,7 @@ void __cdecl Init_402c30() {   // 0x402c30
     alignas(4) u8 frame[0x4];
     const u32 sp = (u32)(uintptr_t)(frame + sizeof frame);
     ecx = 0x7858e0u;
-    M<u32>(0x7858e0u) = 0x6fd638u;
+    M<u32>(0x7858e0u) = ((u32)(uintptr_t)BalanceGraphics_vtable + 0x8);
     eax = g_calls.Th(0x00401030, ecx);   // BalanceFile_Init
     M<u32>(sp - 0x4) = 0x402c80u;
     eax = g_calls.Cd(0x0067a7d0, M<u32>(sp - 0x4));   // CRT_atexit
@@ -7500,7 +7507,7 @@ void __cdecl Init_402ca0() {   // 0x402ca0
     alignas(4) u8 frame[0x4];
     const u32 sp = (u32)(uintptr_t)(frame + sizeof frame);
     ecx = 0x7858f0u;
-    M<u32>(0x7858f0u) = 0x6fd640u;
+    M<u32>(0x7858f0u) = ((u32)(uintptr_t)BalanceGraphics_vtable + 0x10);
     eax = g_calls.Th(0x00401030, ecx);   // BalanceFile_Init
     M<u32>(sp - 0x4) = 0x402cf0u;
     eax = g_calls.Cd(0x0067a7d0, M<u32>(sp - 0x4));   // CRT_atexit
@@ -8504,7 +8511,7 @@ void __cdecl Init_485750() {   // 0x485750
     return;
 }
 void __cdecl Init_489c90() {   // 0x489c90
-    M<u32>(0x7b9864u) = 0x6ff178u;
+    M<u32>(0x7b9864u) = ((u32)(uintptr_t)TextArgString_vtable + 0x4);
     return;
 }
 void __cdecl Init_48b180() {   // 0x48b180
@@ -10713,7 +10720,7 @@ void __cdecl Init_515390() {   // 0x515390
     const u32 sp = (u32)(uintptr_t)(frame + sizeof frame);
     eax = 0;
     M<u32>(sp - 0x4) = 0x5153c0u;
-    M<u32>(0x801f38u) = 0x700a9cu;
+    M<u32>(0x801f38u) = (u32)(uintptr_t)ListScalarDelete700a9c_vtable;
     M<u32>(0x801f3cu) = eax;
     M<u32>(0x801f40u) = eax;
     M<u32>(0x801f44u) = eax;
@@ -14173,31 +14180,31 @@ L_6ac8c1:
 void __cdecl Init_6af770() {   // 0x6af770
     goto L_6af780;
 L_6af780:
-    M<u32>(0xfb1ee8u) = 0x70a110u;
+    M<u32>(0xfb1ee8u) = ((u32)(uintptr_t)TextLayout_vtable + 0x4);
     return;
 }
 void __cdecl Init_6af790() {   // 0x6af790
     goto L_6af7a0;
 L_6af7a0:
-    M<u32>(0xfb1edcu) = 0x70a114u;
+    M<u32>(0xfb1edcu) = ((u32)(uintptr_t)TextLayout_vtable + 0x8);
     return;
 }
 void __cdecl Init_6af7b0() {   // 0x6af7b0
     goto L_6af7c0;
 L_6af7c0:
-    M<u32>(0xfb1eecu) = 0x70a118u;
+    M<u32>(0xfb1eecu) = ((u32)(uintptr_t)TextLayout_vtable + 0xc);
     return;
 }
 void __cdecl Init_6af7d0() {   // 0x6af7d0
     goto L_6af7e0;
 L_6af7e0:
-    M<u32>(0xfb1ee4u) = 0x70a11cu;
+    M<u32>(0xfb1ee4u) = ((u32)(uintptr_t)TextLayout_vtable + 0x10);
     return;
 }
 void __cdecl Init_6af7f0() {   // 0x6af7f0
     goto L_6af800;
 L_6af800:
-    M<u32>(0xfb1ee0u) = 0x70a120u;
+    M<u32>(0xfb1ee0u) = ((u32)(uintptr_t)TextLayout_vtable + 0x14);
     return;
 }
 void __cdecl Init_6b0130() {   // 0x6b0130

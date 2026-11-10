@@ -16,8 +16,8 @@
 
 namespace {
 
-const void *const kStringVtable = reinterpret_cast<const void *>(0x00703090);
-const void *const kWStringVtable = reinterpret_cast<const void *>(0x007030c8);
+const void *const kStringVtable = reinterpret_cast<const void *>((u32)(uintptr_t)String_vtable);
+const void *const kWStringVtable = reinterpret_cast<const void *>((u32)(uintptr_t)WString_vtable);
 const void *const kViewVtable = reinterpret_cast<const void *>(0x007030c0);
 const void *const kWViewVtable = reinterpret_cast<const void *>(0x007030f8);
 

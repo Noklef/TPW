@@ -82,7 +82,7 @@ u8 *__fastcall SoundWorker_Ctor(u8 *worker, void *, u32 count) {
     at<u32>(worker, 0x48) = 0;
     at<u32>(worker, 0x4c) = count < 30 ? count : 30;
     worker[0x50] = 1;
-    at<u32>(worker, 0) = 0x0070a2cc;
+    at<u32>(worker, 0) = (u32)(uintptr_t)SoundWorker_vtable;
     for (u32 i = 0; i < 30; ++i) at<u32>(at<u8 *>(worker, 0x40), i * 4) = 0;
     g_env->beginThread(0x006b6040, 0, worker);
     return worker;
@@ -94,7 +94,7 @@ u8 *__fastcall SoundWorkerHost_Ctor(u8 *host) {
     u8 *const block = static_cast<u8 *>(GameHeap_Alloc(0x54));
     at<u8 *>(host, 0x20) = block ? SoundWorker_Ctor(block, nullptr, at<u32>(host, 0x1c)) : nullptr;
     for (u32 offset = 0x24; offset <= 0x30; offset += 4) at<u32>(host, offset) = 0;
-    at<u32>(host, 0) = 0x0070a588;
+    at<u32>(host, 0) = (u32)(uintptr_t)SoundWorkerHost_vtable;
     return host;
 }
 }

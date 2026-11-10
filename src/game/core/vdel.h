@@ -346,3 +346,11 @@ u8 * __fastcall ListScalarDelete703084_5f46e0(u8 *o, void *, u32 v0);
 // 0x618110 (thiscall; flags, pops 4): Class7037b8_Dtor, then the object freed when bit 0 of the flags is set. Returns the object.
 u8 *__fastcall Class7037b8_ScalarDtor(u8 *object, void *, u32 flags);
 }  // extern "C"
+
+#include "gamedata.h"
+
+// The vtables hold only ports: tpw.exe's loader points their slots at them (.docs/09-globals.md).
+GAME_DATA(void *[1], ListScalarDelete700a9c_vtable, 0x00700a9c, 0x4);
+GAME_DATA(void *[7], Class7018d0_vtable, 0x007018d0, 0x1c);
+GAME_DATA(void *[7], Class701920_vtable, 0x00701920, 0x1c);
+GAME_DATA(void *[6], Class702a90_vtable, 0x00702a90, 0x18);

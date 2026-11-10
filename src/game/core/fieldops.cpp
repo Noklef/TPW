@@ -2,6 +2,7 @@
 
 #include <cstdint>
 #include <initializer_list>
+#include "soundvoice.h"
 
 namespace {
 
@@ -191,7 +192,7 @@ u32 __fastcall Top_Insert(u8 *object, void *, u8 *node) {
 
 u8 *__fastcall Class70a338_Ctor(u8 *object) {
     Class70a7e0_Ctor(object);
-    at<u32>(object, 0) = 0x0070a338;
+    at<u32>(object, 0) = (u32)(uintptr_t)Voice70a338_vtable;
     return object;
 }
 
@@ -209,7 +210,7 @@ u8 *__fastcall Class70a7e0_Ctor(u8 *object) {
     at<u8>(object, 0x45) = 0xff;
     at<u8>(object, 0x46) = 0xff;
     at<u32>(object, 0x4c) = 0;
-    at<u32>(object, 0) = 0x0070a7e0;
+    at<u32>(object, 0) = (u32)(uintptr_t)Class70a7e0_vtable;
     return object;
 }
 

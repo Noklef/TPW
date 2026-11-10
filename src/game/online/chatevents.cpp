@@ -92,7 +92,7 @@ u16 *line(u8 *avatar) { return &at<u16>(avatar, 0x260); }
 
 void textArg(u8 *arg, u32 n, const u16 *s) {
     TextArg_Ctor(arg, nullptr, n);
-    at<u32>(arg, 0) = 0x006ff174;
+    at<u32>(arg, 0) = (u32)(uintptr_t)TextArgString_vtable;
     at<const u16 *>(arg, 0xc) = s;
 }
 template <typename... A> void format(u8 *avatar, u32 entry, A... args) {

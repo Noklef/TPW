@@ -10,6 +10,7 @@
 #include "file.h"
 #include "handles.h"
 #include "userslots.h"
+#include "../core/vdtor.h"
 
 namespace {
 
@@ -188,7 +189,7 @@ u8 *__fastcall UserSaves_List(u8 *self) {
     String_AssignFromWide(&folderPath, &wide);
     Handle folder;
     g_calls.Th(kHandleCtor, word(&folder));
-    folder.vtable = at<void *const *>(0x006fd9e8);
+    folder.vtable = at<void *const *>(((u32)(uintptr_t)ListDtor6fd9e4_vtable + 0x4));
     s32 result;
     if (status(g_calls.Th(kHandleOpen, word(&folder), &result, folderPath.data)) >= 0) {
         Entry entry;
@@ -220,7 +221,7 @@ void __cdecl UserSaves_LoadNewest() {
     String_AssignFromWide(&folderPath, &wide);
     Handle folder;
     g_calls.Th(kHandleCtor, word(&folder));
-    folder.vtable = at<void *const *>(0x006fd9e8);
+    folder.vtable = at<void *const *>(((u32)(uintptr_t)ListDtor6fd9e4_vtable + 0x4));
     s32 result;
     if (status(g_calls.Th(kHandleOpen, word(&folder), &result, folderPath.data)) >= 0) {
         Entry entry;

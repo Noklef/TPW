@@ -12,7 +12,7 @@ T at(u32 address) {
 const FpuEnv kGameEnv = {
     at<void(__cdecl *)(void *)>(0x0067acb0),
     at<void *const *>(0x007035d8),
-    at<void *const *>(0x007035dc),
+    at<void *const *>((u32)(uintptr_t)FpuControl_vtable),
 };
 const FpuEnv *g_env = &kGameEnv;
 
@@ -79,7 +79,7 @@ void __cdecl Fpu_LoadControlFullPrecision(u32 cw) {
 
 void __fastcall Class7035d8_Dtor(u8 *object) {
     FpuControl *control = reinterpret_cast<FpuControl *>(object + 4);
-    control->vtable = reinterpret_cast<void *>(static_cast<std::uintptr_t>(0x007035dc));
+    control->vtable = reinterpret_cast<void *>(static_cast<std::uintptr_t>((u32)(uintptr_t)FpuControl_vtable));
     FpuControl_Restore(control);
 }
 

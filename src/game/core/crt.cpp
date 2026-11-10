@@ -280,7 +280,7 @@ s32 __cdecl CRT_fclose(void *file) {
 
 void __fastcall CRT_exception_Dtor(u32 *self) {
     const u32 owned = self[2];
-    self[0] = 0x007089c4;
+    self[0] = (u32)(uintptr_t)CRT_exception_vtable;
     if (owned) g_inner->memFree(reinterpret_cast<void *>((uintptr_t)self[1]));
 }
 
@@ -297,7 +297,7 @@ u32 *__fastcall CRT_exception_DeletingDtor(u32 *self, void *, u32 flags) {
 }
 
 u32 *__fastcall CRT_exception_Ctor(u32 *self, void *, const char *const *text) {
-    self[0] = 0x007089c4;
+    self[0] = (u32)(uintptr_t)CRT_exception_vtable;
     const u32 size = (u32)strlen(*text) + 1;
     char *const copy = static_cast<char *>(g_inner->memAlloc(size));
     self[1] = (u32)(uintptr_t)copy;
@@ -307,7 +307,7 @@ u32 *__fastcall CRT_exception_Ctor(u32 *self, void *, const char *const *text) {
 }
 
 u32 *__fastcall CRT_exception_Copy(u32 *self, void *, const u32 *from) {
-    self[0] = 0x007089c4;
+    self[0] = (u32)(uintptr_t)CRT_exception_vtable;
     const u32 owned = from[2];
     self[2] = owned;
     if (!owned) {
@@ -1585,7 +1585,7 @@ u8 *__cdecl CRT_AdjustPointer(u8 *object, const s32 *displacement) {
 }
 
 u32 *__cdecl CRT_siglookup(u32 signal, u32 *table) {
-    const u32 count = *reinterpret_cast<u32 *>((uintptr_t)0x00781514);
+    const u32 count = *reinterpret_cast<u32 *>((uintptr_t)(u32)(uintptr_t)&gCrt_781514);
     const u32 first = static_cast<u32>(reinterpret_cast<uintptr_t>(table));
     const u32 end = first + count * 0xc;
     u32 at = first;

@@ -56,3 +56,13 @@ void __cdecl TqiVideo_PixelRowBytes32(const u32 *luma, const u32 *chroma, u32 *o
 // 0x677dad (cdecl (luma, chroma, out, pitch in bytes); name unconfirmed): 16 rows of TqiVideo_PixelRowBytes32 (luma + 0x40 j, chroma + 0x20 (j / 2), out + pitch * j).
 void __cdecl TqiVideo_BlockBytes32(const u32 *luma, const u32 *chroma, u32 *out, s32 pitch);
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(const s32[64], gTqivideo_705c88, 0x00705c88, 0x100);
+GAME_DATA(const s32[64], gTqivideo_705d88, 0x00705d88, 0x100);
+GAME_DATA(u32[256], gTqivideo_fb9330, 0x00fb9330, 0x400);
+GAME_DATA(u32[256], gTqivideo_fb9b30, 0x00fb9b30, 0x400);
+GAME_DATA(u32[256], gTqivideo_fba330, 0x00fba330, 0x400);
+GAME_DATA(u32[0x295], gTqivideo_fbb5ac, 0x00fbb5ac, 0xa54);

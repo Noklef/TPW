@@ -412,7 +412,7 @@ void __fastcall ObjectDef_FindMarkedCells(void *, void *, u8 **def) {
 }
 
 u8 *__fastcall ObjectDef_Ctor(u8 *def) {
-    at<u32>(def, 4) = 0x006fd8a8;
+    at<u32>(def, 4) = (u32)(uintptr_t)ObjectDefBalance_vtable;
     BalanceFile_Init(def + 4);
     static const u32 kCleared[] = {0x494u, 0x498u, 0x4a0u, 0x4a4u, 0x4b0u, 0x4b4u, 0x4f4u, 0x4f8u, 0x4fcu, 0x500u, 0x4e0u, 0x4e4u, 0x4e8u, 0x4ecu, 0x4f0u};
     for (const u32 offset : kCleared)
@@ -676,16 +676,16 @@ u32 loadDefinition(u8 *defs, u8 *entry, u8 *opener, u8 *source, String *path, St
         const u32 flags = at<u32>(def, 0x84) ? 0x4b24a9u : 0xb24a9u;
         at<u32>(def, 0x490) = g_loadCalls.Cd(0x004629d0, folder, sourceName, at<u32>(def, 0x18), at<u32>(def, 0x1c), flags, static_cast<u32>(at<u16>(def, 0)), at<u32>(def, 0x170), 0u, 0u, 0u, 0u);
         if (at<u32>(def, 0x490) && at<u32>(def, 0x9c) == 3) {
-            at<u32>(balance, 0) = 0x006fd8b0;
+            at<u32>(balance, 0) = (u32)(uintptr_t)TrackTypeBalance_vtable;
             g_loadCalls.Th(0x00401030, address(balance));
             Crt().sprintf(name, kPathFormat, handleFolder(handle), global<const char *>(0x0078a0b0));
             if (g_loadCalls.Th(0x0041f330, address(source), streamAt) && !load.read(balance, 0)) {
-                at<u32>(balance, 0) = 0x006fd8b0;
+                at<u32>(balance, 0) = (u32)(uintptr_t)TrackTypeBalance_vtable;
                 g_loadCalls.Th(0x00401250, address(balance));
                 return 0;
             }
             g_loadCalls.Cd(0x0042fad0, at<u32>(def, 0x490), address(path->data), address(balance));
-            at<u32>(balance, 0) = 0x006fd8b0;
+            at<u32>(balance, 0) = (u32)(uintptr_t)TrackTypeBalance_vtable;
             g_loadCalls.Th(0x00401250, address(balance));
         }
     }

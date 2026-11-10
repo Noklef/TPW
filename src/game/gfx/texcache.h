@@ -267,8 +267,12 @@ u32 __fastcall TexCache_ReleaseGraphics(u8 *self);
 #include "../core/gamedata.h"
 
 // Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(const char[0x4], gTexcache_702300, 0x00702300, 0x4);
 GAME_DATA(u32, gTexcache_8c4b44, 0x008c4b44, 0x4);
 GAME_DATA(u32, gTexcache_8c4b5c, 0x008c4b5c, 0x4);
 GAME_DATA(u32, gTexcache_8c4b68, 0x008c4b68, 0x4);
 GAME_DATA(u32, gTexcache_8c4b6c, 0x008c4b6c, 0x4);
 GAME_DATA(u32, gTexcache_8c4b70, 0x008c4b70, 0x4);
+
+// The vtables hold only ports: tpw.exe's loader points their slots at them (.docs/09-globals.md).
+GAME_DATA(void *[10], TexCacheItem_vtable, 0x00702198, 0x28);

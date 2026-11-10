@@ -66,3 +66,12 @@ u32 __fastcall GameClock_Serialize(u8 *clock, void *, Stream *stream, u32 save, 
 // (Not hooked: inlined by its users, Object_AgeDays 0x4dd670 and Staff_AgeDays 0x505b70.) Whole days (signed, toward 0; the low dword) of
 // the world's funny time now (FunnyTime_Now, no fields) less date.
 s32 FunnyTime_DaysSince(const FileTime *date);
+
+#include "gamedata.h"
+
+// Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(char[0x18], gFunnytime_75c790, 0x0075c790, 0x18);
+GAME_DATA(char[0x14], gFunnytime_75c7a8, 0x0075c7a8, 0x14);
+GAME_DATA(char[0x14], gFunnytime_75c7bc, 0x0075c7bc, 0x14);
+GAME_DATA(char[0x10], gFunnytime_75c7d0, 0x0075c7d0, 0x10);
+GAME_DATA(char[0x10], gFunnytime_75c7e0, 0x0075c7e0, 0x10);

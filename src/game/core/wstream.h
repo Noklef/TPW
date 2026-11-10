@@ -40,3 +40,8 @@ u8 *__fastcall WIstream_Getline(u8 *self, void *, u16 *text, s32 count, u32 deli
 u8 *__cdecl WOstream_PutText(u8 *stream, const u16 *text);
 
 }  // extern "C"
+
+#include "gamedata.h"
+
+// The vtables hold only ports: tpw.exe's loader points their slots at them (.docs/09-globals.md).
+GAME_DATA(void *[13], WCtype_vtable, 0x00709cac, 0x34);

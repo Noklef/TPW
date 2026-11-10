@@ -197,23 +197,23 @@ u8 LoadInFrame(u8 *frame, const char *path, u8 *list, u32 flag) {
 
     at<u32>(stream, 0) = 0x00702968;
     Init_4ef830(ios);
-    at<u32>(ios, 0) = 0x00709954;
+    at<u32>(ios, 0) = (u32)(uintptr_t)NIos_vtable;
     NIstream_Ctor(stream, nullptr, buffer, 0, 0);
     NFileBuf_Ctor(buffer, nullptr, nullptr);
-    set_ios_vtable(stream, 0x00702960);
+    set_ios_vtable(stream, (u32)(uintptr_t)Class702960_vtable);
     if (!static_cast<u8>(flag)) {
         NIfstream_DtorOnIos(ios);
-        at<u32>(ios, 0) = 0x00709954;
+        at<u32>(ios, 0) = (u32)(uintptr_t)NIos_vtable;
         IosBase_Dtor(ios);
         return 0;
     }
     if (!g_env->open(buffer, nullptr, path, 0x21))
         BasicIosW_Clear(ios, nullptr, at<u32>(ios, 4) | 2, 0);
     if (!at<u32>(buffer, 0x50)) {
-        set_ios_vtable(stream, 0x00702960);
+        set_ios_vtable(stream, (u32)(uintptr_t)Class702960_vtable);
         NFileBuf_Dtor(buffer);
-        set_ios_vtable(stream, 0x0070994c);
-        at<u32>(ios, 0) = 0x00709954;
+        set_ios_vtable(stream, (u32)(uintptr_t)Class70994c_vtable);
+        at<u32>(ios, 0) = (u32)(uintptr_t)NIos_vtable;
         IosBase_Dtor(ios);
         return 0;
     }
@@ -253,10 +253,10 @@ u8 LoadInFrame(u8 *frame, const char *path, u8 *list, u32 flag) {
     }
     if (!closed)
         BasicIosW_SetState(ios, nullptr, 2, 0);
-    set_ios_vtable(stream, 0x00702960);
+    set_ios_vtable(stream, (u32)(uintptr_t)Class702960_vtable);
     NFileBuf_Dtor(buffer);
-    set_ios_vtable(stream, 0x0070994c);
-    at<u32>(ios, 0) = 0x00709954;
+    set_ios_vtable(stream, (u32)(uintptr_t)Class70994c_vtable);
+    at<u32>(ios, 0) = (u32)(uintptr_t)NIos_vtable;
     IosBase_Dtor(ios);
     return 1;
 }

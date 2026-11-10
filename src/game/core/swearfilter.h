@@ -35,3 +35,8 @@ u8 __fastcall SwearFilter_LoadFile(u8 *self, void *, const char *path, u8 *list,
 // sees the first's units there (sic: a last line without its end, on a place where the first file had a 10, counts as ended). The first file's sees what the stack held: here 0.
 u8 __fastcall SwearFilter_Load(u8 *self, void *, const char *swears, const char *allowed, u32 flag);
 }
+
+#include "gamedata.h"
+
+// The vtables hold only ports: tpw.exe's loader points their slots at them (.docs/09-globals.md).
+GAME_DATA(void *[1], Class702960_vtable, 0x00702960, 0x4);

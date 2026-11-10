@@ -59,7 +59,7 @@ u8 *__fastcall Ime_Ctor(u8 *ime) {
     at<u32>(ime, 0x50) = 0;
     at<u32>(ime, 0x54) = 0xffffffff;
     at<u32>(ime, 0x5c) = 0;
-    at<u32>(ime, 0) = 0x006fef04;
+    at<u32>(ime, 0) = (u32)(uintptr_t)Ime_vtable;
     return ime;
 }
 
@@ -309,7 +309,7 @@ u32 __fastcall ImeContext_Release(const u32 *context) {
 }
 
 void __fastcall Ime_Dtor(u8 *ime) {
-    at<u32>(ime, 0) = 0x006fef04;
+    at<u32>(ime, 0) = (u32)(uintptr_t)Ime_vtable;
     const u32 context = at<u32>(ime, 0x5c);
     if (context) import<u32(__stdcall *)(u32)>(0x006fd07c)(context);
     u8 *const last = at<u8 *>(ime, 0x40);
@@ -388,7 +388,7 @@ void __fastcall ImeHost_InsertResult(u8 *host) {
         const s32 room = (s32)at<s16>(window, 0x13c) - (s16)Window705a50_TextLength(window);
         Ime_SetLimit(ime, nullptr, (u32)room);
         if (room == 0 && length != 0) {
-            import<void(__stdcall *)(const char *)>(0x006fd1e0)(reinterpret_cast<const char *>((uintptr_t)0x0074fa8c));
+            import<void(__stdcall *)(const char *)>(0x006fd1e0)(gIme_74fa8c);
             return;
         }
     }

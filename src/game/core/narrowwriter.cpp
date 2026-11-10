@@ -62,11 +62,11 @@ void __fastcall NarrowWriter_PutWide(u8 *writer, void *, const u16 *text, s32 co
 }
 
 void __fastcall NarrowWriter_Dtor(u8 *writer) {
-    at<u32>(writer, 0) = 0x70a090;
+    at<u32>(writer, 0) = (u32)(uintptr_t)Class70a090_vtable;
     NarrowWriter_Finish(writer);
     if (u8 *const table = at<u8 *>(writer, 0xc))
         vcall<void>(table, 0);
-    at<u32>(writer, 0) = 0x70a0a8;
+    at<u32>(writer, 0) = (u32)(uintptr_t)Class70a0a8_vtable;
 }
 
 u8 *__fastcall NarrowWriter_DeletingDtor(u8 *writer, void *, u32 flags) {

@@ -261,8 +261,8 @@ s32 __cdecl CRT_setmbcp(s32 page) {
         CRT_mbcodepage = wanted;
         CRT_mblcid = CRT_CPtoLCID(wanted);
         CRT_mbulinfo[0] = global<u32>(0x00781594 + i * 0x30);
-        CRT_mbulinfo[1] = global<u32>(0x00781598 + i * 0x30);
-        CRT_mbulinfo[2] = global<u32>(0x0078159c + i * 0x30);
+        CRT_mbulinfo[1] = global<u32>((u32)(uintptr_t)&gCrtmbstring_781598 + i * 0x30);
+        CRT_mbulinfo[2] = global<u32>(((u32)(uintptr_t)&gCrtmbstring_781598 + 0x4) + i * 0x30);
         CRT_setSBUpLow();
         CrtInner().unlock(kMbcsLock);
         return 0;

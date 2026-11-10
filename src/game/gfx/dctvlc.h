@@ -47,3 +47,15 @@ void __fastcall DctVlc_BeginFrame(const u16 *data, s32 *out, s32 quality);
 
 // Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
 GAME_DATA(u32, gDctVlc_faac68, 0x00faac68, 4);
+
+// Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(const u32[0x406], gDctvlc_7061d8, 0x007061d8, 0x1018);
+GAME_DATA(s32 *, gDctvlc_faac60, 0x00faac60, 0x4);
+GAME_DATA(s32[64], gDctvlc_fbc14c, 0x00fbc14c, 0x100);
+GAME_DATA(s32[64], gDctvlc_fbc24c, 0x00fbc24c, 0x100);
+GAME_DATA(u32[64], gDctvlc_fbc34c, 0x00fbc34c, 0x100);
+GAME_DATA(u32[0x440], gDctvlc_fbc44c, 0x00fbc44c, 0x1100);
+GAME_DATA(s32[64], gDctvlc_fbd54c, 0x00fbd54c, 0x100);
+GAME_DATA(const u16 *, gDctvlc_fbd64c, 0x00fbd64c, 0x4);
+GAME_DATA(u32, gDctvlc_fbd650, 0x00fbd650, 0x4);
+GAME_DATA(s32, gDctvlc_fbd654, 0x00fbd654, 0x4);

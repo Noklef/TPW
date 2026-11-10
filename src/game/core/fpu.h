@@ -53,3 +53,8 @@ void __cdecl Fpu_LoadControl(u32 cw);
 // holding that word; the caller drops it.
 void __cdecl Fpu_LoadControlFullPrecision(u32 cw);
 }
+
+#include "gamedata.h"
+
+// The vtables hold only ports: tpw.exe's loader points their slots at them (.docs/09-globals.md).
+GAME_DATA(void *[10], FpuControl_vtable, 0x007035dc, 0x28);

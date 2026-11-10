@@ -10,6 +10,7 @@
 #include "../core/gameheap.h"
 #include "../math/x87.h"
 #include "../render/ddopen.h"
+#include "../core/vobj2.h"
 
 namespace {
 
@@ -133,7 +134,7 @@ u8 *__fastcall TexSurfaceA_Ctor(u8 *surface, void *, u32 mostDerived) {
         at<u32>(surface, 0) = 0x00702218;
         TexCacheItem_Ctor(surface + 0x3c);
     }
-    at<u32>(surface, BaseOffset(surface)) = 0x007021f0;
+    at<u32>(surface, BaseOffset(surface)) = (u32)(uintptr_t)Class7021f0_vtable;
     const u32 offset = BaseOffset(surface);
     at<u32>(surface, offset - 4) = offset - 0x3c;
     for (u32 i = 0; i < 4; i++) {
@@ -153,7 +154,7 @@ u8 *__fastcall TexSurfaceB_Ctor(u8 *surface, void *, u32 mostDerived) {
         at<u32>(surface, 0) = 0x00702278;
         TexCacheItem_Ctor(surface + 0x10);
     }
-    at<u32>(surface, BaseOffset(surface)) = 0x00702250;
+    at<u32>(surface, BaseOffset(surface)) = (u32)(uintptr_t)Class702250_vtable;
     const u32 offset = BaseOffset(surface);
     at<u32>(surface, offset - 4) = offset - 0x10;
     at<u32>(surface, BaseOffset(surface) + 0xc) = 0;
@@ -221,12 +222,12 @@ u32 __fastcall TexSurfaceB_FreePixels(u8 *sub) {
 
 u8 *__fastcall TexSurfaceB_DeletingDtor(u8 *sub, void *, u32 flags) {
     u8 *const surface = sub - 0x10;
-    at<u32>(surface, BaseOffset(surface)) = 0x00702250;
+    at<u32>(surface, BaseOffset(surface)) = (u32)(uintptr_t)Class702250_vtable;
     const u32 offset = BaseOffset(surface);
     at<u32>(surface, offset - 4) = offset - 0x10;
     u8 *const base = surface + BaseOffset(surface);
     reinterpret_cast<u32(__fastcall *)(u8 *)>(at<void **>(base, 0)[1])(base);
-    at<u32>(surface, 0x10) = 0x00702198;
+    at<u32>(surface, 0x10) = (u32)(uintptr_t)TexCacheItem_vtable;
     if (flags & 1)
         GameHeap_Free(surface);
     return surface;

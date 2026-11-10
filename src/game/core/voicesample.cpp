@@ -82,7 +82,7 @@ void __fastcall VoiceSample_Open(u8 *sample, void *, const u8 *data) {
     if (!at<u8 *>(sample, 0x2c)) {
         u32 *const reader = static_cast<u32 *>(GameHeap_Alloc(8));
         if (reader) {
-            reader[0] = 0x70adb8;
+            reader[0] = (u32)(uintptr_t)Class70adb8_vtable;
             reader[1] = 0;
         }
         at<u32 *>(sample, 0x2c) = reader;
@@ -96,7 +96,7 @@ void __fastcall VoiceStream_Open(u8 *sample, void *, u32) {
         u8 *const reader = static_cast<u8 *>(GameHeap_Alloc(0x200c));
         if (reader) {
             at<u32>(reader, 4) = 0;
-            at<u32>(reader, 0) = 0x70ae28;
+            at<u32>(reader, 0) = (u32)(uintptr_t)Class70ae28_vtable;
             at<u8 *>(reader, 0x2008) = sample + 0x40;   // (the sub-stream; the original tests the sample for null first)
         }
         at<u8 *>(sample, 0x2c) = reader;
@@ -137,7 +137,7 @@ u8 *__fastcall VoiceSample_Ctor(u8 *sample, void *, const u8 *record, u8 *source
     at<u32>(sample, 0x2c) = 0;
     at<u32>(sample, 0x34) = 0;
     at<void *>(sample, 0x38) = GameHeap_Alloc(0x1a7c);
-    at<u32>(sample, 0) = 0x0070ad60;
+    at<u32>(sample, 0) = (u32)(uintptr_t)VoiceSample_vtable;
     at<u32>(sample, 0x3c) = at<u32>(record, 4) + at<u32>(sample, 0x10);
     if (record[0x1b] & 4) at<u32>(sample, 0x34) |= 1;
     return sample;
@@ -147,7 +147,7 @@ u8 *__fastcall VoiceStream_Ctor(u8 *sample, void *, const u8 *stream, const u8 *
     VoiceSample_Ctor(sample, nullptr, record, source);
     SubStream_Ctor(sample + 0x40, nullptr, stream);
     at<u32>(sample, 0x40) = 0x0070ae18;
-    at<u32>(sample, 0) = 0x0070adc0;
+    at<u32>(sample, 0) = (u32)(uintptr_t)VoiceStream_vtable;
     return sample;
 }
 

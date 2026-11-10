@@ -17,6 +17,8 @@
 #include "streampool.h"
 #include "vcall.h"
 #include "vtables.h"
+#include "channelvoice.h"
+#include "soundindex.h"
 
 namespace {
 
@@ -52,9 +54,9 @@ u8 __fastcall SoundSample_ScheduleEnd(u8 *sample, void *, u32 flag, u32 bytes) {
 u32 __fastcall SoundSample_Drained(u8 *sample) { return Time_GetMs() >= at<u32>(sample, 0x1c) ? 1 : 0; }
 
 void __fastcall SoundSample_Dtor(u8 *sample) {
-    at<u32>(sample, 0) = 0x70ac50;
+    at<u32>(sample, 0) = (u32)(uintptr_t)Class70ac50_vtable;
     if (u8 *const source = at<u8 *>(sample, 0x24)) vcall<void>(source, 0);
-    at<u32>(sample, 0) = 0x70a778;
+    at<u32>(sample, 0) = (u32)(uintptr_t)Class70a778_vtable;
 }
 
 u8 *__fastcall SoundSample_Ctor(u8 *sample, void *, u8 *record, u8 *source) {
@@ -62,14 +64,14 @@ u8 *__fastcall SoundSample_Ctor(u8 *sample, void *, u8 *record, u8 *source) {
     s[1] = 0;
     s[2] = 0;
     s[3] = 0;
-    s[0] = 0x0070aca0;
+    s[0] = (u32)(uintptr_t)Class70aca0_vtable;
     s[5] = 0;
     s[4] = static_cast<u32>(reinterpret_cast<uintptr_t>(record + 0x28));
     s[6] = *reinterpret_cast<const u32 *>(record + 4);
     s[7] = 0;
     s[9] = static_cast<u32>(reinterpret_cast<uintptr_t>(source));
     vcall<u32>(source, 4);
-    s[0] = 0x0070ac50;
+    s[0] = (u32)(uintptr_t)Class70ac50_vtable;
     SoundStream_SetFormat(sample, nullptr, record);
     return sample;
 }
@@ -116,10 +118,10 @@ u32 __fastcall SoundSample_RewindFile(u8 *sample) { return SubStream_Rewind(samp
 
 u8 *__fastcall FileSample_Ctor(u8 *sample, void *, const u8 *stream, u8 *record, u32 start, u8 *source) {
     SoundSample_Ctor(sample, nullptr, record, source);
-    at<u32>(sample, 0) = 0x0070a6f8;
+    at<u32>(sample, 0) = (u32)(uintptr_t)Class70a6f8_vtable;
     SubStream_CtorAt(sample + 0x2c, nullptr, stream, start);
-    at<u32>(sample, 0x2c) = 0x0070ad40;
-    at<u32>(sample, 0) = 0x0070acf0;
+    at<u32>(sample, 0x2c) = ((u32)(uintptr_t)Class70acf0_vtable + 0x50);
+    at<u32>(sample, 0) = (u32)(uintptr_t)Class70acf0_vtable;
     return sample;
 }
 
@@ -140,7 +142,7 @@ u8 *__fastcall FileSample_DeletingDtor(u8 *sample, void *, u32 flags) {
 u8 *__fastcall SampleCopier_Install(u8 *self) {
     const bool mmx = *reinterpret_cast<u32 *>(static_cast<uintptr_t>(0x00fb2704)) != 0;
     u32 *const copier = static_cast<u32 *>(GameHeap_Alloc(4));
-    if (copier) *copier = mmx ? 0x0070aa38 : 0x0070aa34;
+    if (copier) *copier = mmx ? (u32)(uintptr_t)Class70aa38_vtable : (u32)(uintptr_t)Class70aa34_vtable;
     *reinterpret_cast<u32 **>(static_cast<uintptr_t>(0x00fb2018)) = copier;
     return self;
 }
@@ -163,17 +165,17 @@ u8 *__fastcall SoundSample70a548_DeletingDtor(u8 *self, void *, u32 flags) {
 void SampleCopier_Free() { GameHeap_Free(*reinterpret_cast<void **>(static_cast<uintptr_t>(0x00fb2018))); }
 
 void __fastcall SoundSample70a548_Dtor(u8 *self) {
-    *reinterpret_cast<u32 *>(self) = 0x0070a548;
+    *reinterpret_cast<u32 *>(self) = (u32)(uintptr_t)SoundSample70a548_vtable;
     SoundChannel_ReleaseAll(self);
     GameHeap_Free(*reinterpret_cast<void **>(static_cast<uintptr_t>(0x00fb2018)));
-    *reinterpret_cast<u32 *>(self) = 0x00703770;
+    *reinterpret_cast<u32 *>(self) = (u32)(uintptr_t)Class703770_vtable;
 }
 
 u8 *__fastcall SoundSample70a548_Ctor(u8 *self) {
     Class703770_Ctor(self);
     for (u32 offset = 8; offset <= 0x20; offset += 4) at<u32>(self, offset) = 0;
     SampleCopier_Install(self + 0x24);
-    at<u32>(self, 0) = 0x0070a548;
+    at<u32>(self, 0) = (u32)(uintptr_t)SoundSample70a548_vtable;
     return self;
 }
 

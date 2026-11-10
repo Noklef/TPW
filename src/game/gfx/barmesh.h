@@ -73,3 +73,9 @@ void __fastcall BarMesh_Apply(u8 *bar, void *, u32 flags, const u8 *desc);
 // level * 0.01 (the pointers and the level read again as it goes).
 void __fastcall MeshOverlay_Apply(u8 *mesh, void *, u32 flags, const u8 *desc);
 }
+
+#include "../core/gamedata.h"
+
+// The vtables hold only ports: tpw.exe's loader points their slots at them (.docs/09-globals.md).
+GAME_DATA(void *[11], BarMesh_vtable, 0x006fee88, 0x2c);
+GAME_DATA(void *[9], MeshOverlay_vtable, 0x006feeb8, 0x24);

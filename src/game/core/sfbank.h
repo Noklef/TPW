@@ -30,3 +30,8 @@ void __fastcall SfBank_Dtor(u8 *self);
 u8 *__fastcall SfBank_DeletingDtor(u8 *self, void *, u32 flags);
 
 }  // extern "C"
+
+#include "gamedata.h"
+
+// The vtables hold only ports: tpw.exe's loader points their slots at them (.docs/09-globals.md).
+GAME_DATA(void *[16], SfBank_vtable, 0x00711ba8, 0x40);

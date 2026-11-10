@@ -31,6 +31,7 @@
 #include "visitoroption.h"
 #include "world.h"
 #include "visitorsteps.h"
+#include "../core/vtables.h"
 
 namespace {
 
@@ -576,7 +577,7 @@ void __fastcall Visitor_StepIdle(u8 *visitor) {
             Ring_PushUnique(ring, nullptr, 0xf, 0);
             const u16 me = handleOf(visitor);
             alignas(4) u8 msg[0x10] = {};
-            at<u32>(msg, 0) = 0x007007a8;
+            at<u32>(msg, 0) = (u32)(uintptr_t)Class7007a8_vtable;
             at<u16>(msg, 8) = me;
             at<u32>(msg, 0xc) = me % 3u;
             g_env->post(MessageCentre_Instance(), nullptr, msg);

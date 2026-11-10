@@ -97,3 +97,25 @@ void *__cdecl MemorySamplePool_New(u32 size);
 void __cdecl MemorySamplePool_Delete(void *block, u32 size);
 
 }  // extern "C"
+
+#include "gamedata.h"
+
+// A pool's two globals: its free list's first block and its lock's block.
+struct StreamPoolGlobals {
+    u32 list;
+    u32 lock;
+};
+
+// Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(StreamPoolGlobals, gStreampool_Filter_fb2068, 0x00fb2068, 0x8);
+GAME_DATA(StreamPoolGlobals, gStreampool_Silence_fb2074, 0x00fb2074, 0x8);
+GAME_DATA(StreamPoolGlobals, gStreampool_Loop_fb2080, 0x00fb2080, 0x8);
+GAME_DATA(StreamPoolGlobals, gStreampool_70abf8_fb208c, 0x00fb208c, 0x8);
+GAME_DATA(StreamPoolGlobals, gStreampool_MemorySample_fb2098, 0x00fb2098, 0x8);
+GAME_DATA(StreamPoolGlobals, gStreampool_70a6c8_fb20a4, 0x00fb20a4, 0x8);
+GAME_DATA(StreamPoolGlobals, gStreampool_FileSample_fb20b0, 0x00fb20b0, 0x8);
+GAME_DATA(StreamPoolGlobals, gStreampool_VoiceSample_fb20bc, 0x00fb20bc, 0x8);
+GAME_DATA(StreamPoolGlobals, gStreampool_VoiceStream_fb20c8, 0x00fb20c8, 0x8);
+GAME_DATA(StreamPoolGlobals, gStreampool_Mp2Sample_fb26d8, 0x00fb26d8, 0x8);
+GAME_DATA(StreamPoolGlobals, gStreampool_Mp2Stream_fb26e4, 0x00fb26e4, 0x8);
+GAME_DATA(StreamPoolGlobals, gStreampool_Callback_fb26f0, 0x00fb26f0, 0x8);

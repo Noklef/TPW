@@ -5,6 +5,7 @@
 #include "string.h"
 #include "vcall.h"
 #include "../files/memsource.h"
+#include "gamestart.h"
 
 namespace {
 
@@ -37,7 +38,7 @@ void __cdecl Game_RemoveTempFolder() {
 }
 
 void __cdecl Game_Shutdown() {
-    if (!global<u32>(0x00879068)) return;
+    if (!gGamestart_879068) return;
     if (global<u32>(0x0087906c) == 0xa) {
         global<u32>(0x0087906c) = 0xb;
         g_calls.Cd(0x0054e360);

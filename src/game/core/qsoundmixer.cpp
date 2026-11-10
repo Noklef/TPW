@@ -172,7 +172,7 @@ u32 *__fastcall SoundSource711920_SetListenerVelocity(u8 *source, void *, u32 *o
 u32 *__fastcall SoundSource711920_SetFrequencyStep(u8 *source, void *, u32 *out, u32 frequency, u32 channel, s32 step) {
     u32 value = frequency;
     if (step) {
-        const float factor = global<float>(step > 0 ? 0x00782f40 + 4 * step : 0x00783540 - 4 * step);
+        const float factor = global<float>(step > 0 ? (u32)(uintptr_t)&gQsoundmixer_782f40 + 4 * step : ((u32)(uintptr_t)&gQsoundmixer_782f40 + 0x600) - 4 * step);
         const float scaled = static_cast<float>(X87_MulUIntDouble(frequency, factor));
         value = static_cast<u32>(_mm_cvtss_si32(_mm_set_ss(scaled)));   // (fld; fistp)
     }
@@ -197,7 +197,7 @@ u32 *__fastcall SoundSource711920_SetDistanceMapping(u8 *source, void *, u32 *ou
 
 u32 *__fastcall SoundSource711920_SetVolume(u8 *source, void *, u32 *out, u32 channel, s32 volume) {
     if (!is_open(source) || channel > at<u32>(source, 4) || volume < 0 || volume > 0x7f) return fail(out);
-    return answer(out, library(0x006fd2a0, session(source), channel, 0u, (u32)global<u16>(0x00782e40 + 2 * volume)));
+    return answer(out, library(0x006fd2a0, session(source), channel, 0u, (u32)gQsoundmixer_782e40[volume]));
 }
 
 u8 *__fastcall SoundSourceBase_DeletingDtor(u8 *source, void *, u32 flags) {

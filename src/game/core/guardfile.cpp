@@ -48,7 +48,7 @@ void Flush(u8 *file) {
     if (at<u32>(file, 0x1c) && at<u32>(file, 0x18)) {
         g_env->fseek(at<void *>(file, 0), at<s32>(file, 0xc), 0);
         const s32 wrote = g_env->fwrite(file + kBuffer, 1, static_cast<s32>(at<u8 *>(file, 0x14) - file - kBuffer), at<void *>(file, 0));
-        if (wrote < static_cast<s32>(at<u8 *>(file, 0x14) - file - kBuffer)) message()(text(0x00774af0));
+        if (wrote < static_cast<s32>(at<u8 *>(file, 0x14) - file - kBuffer)) message()(text((u32)(uintptr_t)&gGuardfile_774af0));
         at<u32>(file, 0x1c) = 0;
     }
     at<u8 *>(file, 0x14) = file + kBuffer;
@@ -66,7 +66,7 @@ u8 *__stdcall GuardFile_Open(const char *name) {
     u32 mode = *reinterpret_cast<const u32 *>((uintptr_t)0x007748f0);
     void *handle = nullptr;
     char working[0x200];   // (the original's frame has this much: a longer name overruns it there too)
-    if (!CRT_strncmp(name, text(0x007749f0), 4)) {
+    if (!CRT_strncmp(name, text((u32)(uintptr_t)&gGuardfile_7749f0), 4)) {
         handle = reinterpret_cast<void *>((uintptr_t)0x0077e820);
         mode = 0;
         working[0] = 0;
@@ -74,23 +74,23 @@ u8 *__stdcall GuardFile_Open(const char *name) {
         u8 status[0x24];
         const bool readOnly = g_env->stat(name, status) != -1 && (at<u16>(status, 6) & 0x180) == 0x100;
         if (readOnly) {
-            message()(text(0x00774aa4), name);
+            message()(text((u32)(uintptr_t)&gGuardfile_774aa4), name);
         } else if (g_env->stat(name, status) != -1 && (at<u16>(status, 6) & 0x4000)) {
-            message()(text(0x00774a6c), name);
+            message()(text((u32)(uintptr_t)&gGuardfile_774a6c), name);
         } else {
             Copy(working, name);
-            if (mode == 2 || mode == 3) ChangeExtension(working, text(0x00774a64));
+            if (mode == 2 || mode == 3) ChangeExtension(working, text((u32)(uintptr_t)&gGuardfile_774a64));
             handle = g_env->fopen(working, text(0x00766128));
             if (!handle) {
                 handle = g_env->fopen(working, text(0x0074cfb4));
-                message()(text(0x00774a34), working);
+                message()(text((u32)(uintptr_t)&gGuardfile_774a34), working);
             }
         }
     }
     if (!handle) return nullptr;
     u8 *const file = static_cast<u8 *>(GuardHeap_Alloc(kBlockSize));
     if (!file) {
-        message()(text(0x007749f8), name);
+        message()(text((u32)(uintptr_t)&gGuardfile_7749f8), name);
         return nullptr;
     }
     at<u32>(file, 4) = 0;
@@ -118,14 +118,14 @@ u32 __stdcall GuardFile_Close(u8 *file) {
             const char *const name = reinterpret_cast<const char *>(file + 0x24);
             char old[0x200], kept[0x200];   // (the original's frame has this much: a longer name overruns it there too)
             Copy(old, name);
-            ChangeExtension(old, text(0x00774ae8));
+            ChangeExtension(old, text((u32)(uintptr_t)&gGuardfile_774ae8));
             g_env->remove(old);
             g_env->rename(name, old);
             worked = g_env->rename(reinterpret_cast<const char *>(file + 0x224), name) == 0;
             if (worked) {
                 if (mode == 2) {
                     Copy(kept, name);
-                    ChangeExtension(kept, text(0x00774ae0));
+                    ChangeExtension(kept, text((u32)(uintptr_t)&gGuardfile_774ae0));
                     g_env->remove(kept);
                     g_env->rename(old, kept);
                 } else {
@@ -170,7 +170,7 @@ s32 __stdcall GuardFile_Write(u8 *file, const char *data, s32 count) {
     g_env->fseek(at<void *>(file, 0), at<s32>(file, 4), 0);
     const s32 straight = g_env->fwrite(data, 1, boundary - at<s32>(file, 4), at<void *>(file, 0));
     if (straight < boundary - at<s32>(file, 4)) {
-        message()(text(0x00774b14));
+        message()(text((u32)(uintptr_t)&gGuardfile_774b14));
         return total + straight;
     }
     at<s32>(file, 4) += straight;

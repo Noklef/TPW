@@ -77,3 +77,8 @@ struct InverseMapEnv {
 };
 // The calls and statics go through env (nullptr: the game's).
 void InverseMap_SetEnv(const InverseMapEnv *env);
+
+#include "../core/gamedata.h"
+
+// The vtables hold only ports: tpw.exe's loader points their slots at them (.docs/09-globals.md).
+GAME_DATA(void *[1], InverseMap_vtable, 0x00704ac0, 0x4);

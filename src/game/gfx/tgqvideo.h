@@ -110,5 +110,10 @@ void __fastcall TgqVideo_SetupTables(u8 *player);
 #include "../core/gamedata.h"
 
 // Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(u32[0x248], gTgqvideo_fb7000, 0x00fb7000, 0x920);
+GAME_DATA(const u8 *, gTgqvideo_fb7920, 0x00fb7920, 0x4);
 GAME_DATA(u32, gTgqvideo_fb7924, 0x00fb7924, 0x4);
 GAME_DATA(u32, gTgqvideo_fb7928, 0x00fb7928, 0x4);
+GAME_DATA(u32[128], gTgqvideo_fb7930, 0x00fb7930, 0x200);
+GAME_DATA(u32[128], gTgqvideo_fb7b30, 0x00fb7b30, 0x200);
+GAME_DATA(u32[128], gTgqvideo_fb7d30, 0x00fb7d30, 0x200);

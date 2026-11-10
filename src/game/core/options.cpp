@@ -25,7 +25,7 @@ u32 global(u32 address) { return *reinterpret_cast<const u32 *>(static_cast<uint
 const char *name(u32 address) { return reinterpret_cast<const char *>(static_cast<uintptr_t>(address)); }
 
 // The save game's field names of the switches +0x34..+0x3a (AdvisorOn .. IsometricOn).
-const u32 kFlagNames[7] = {0x0074c7e4, 0x0074c7d8, 0x0074c7cc, 0x0074c7bc, 0x0074c7b0, 0x0074c7a4, 0x0074c798};
+const u32 kFlagNames[7] = {(u32)(uintptr_t)&gOptions_74c7e4, (u32)(uintptr_t)&gOptions_74c7d8, (u32)(uintptr_t)&gOptions_74c7cc, (u32)(uintptr_t)&gOptions_74c7bc, (u32)(uintptr_t)&gOptions_74c7b0, (u32)(uintptr_t)&gOptions_74c7a4, (u32)(uintptr_t)&gOptions_74c798};
 
 // count bytes written / read in full, without an error.
 bool write(Stream *stream, const void *p, s32 count) {
@@ -171,8 +171,8 @@ void __fastcall Options_Defaults(u8 *options) {
 
 u32 __fastcall Options_SerializeSound(u8 *options, void *, Stream *stream, u32 saving, u32) {
     if (!saving) {
-        if (Save_Read8Bytes(stream, options + 0x10, name(0x0074c818), 1) || Save_Read8Bytes(stream, options + 0x18, name(0x0074c80c), 1) ||
-            Save_Read8Bytes(stream, options + 0x20, name(0x0074c7fc), 1) || Save_Read8Bytes(stream, options + 0x28, name(0x0074c7f0), 1))
+        if (Save_Read8Bytes(stream, options + 0x10, name((u32)(uintptr_t)&gOptions_74c818), 1) || Save_Read8Bytes(stream, options + 0x18, name((u32)(uintptr_t)&gOptions_74c80c), 1) ||
+            Save_Read8Bytes(stream, options + 0x20, name((u32)(uintptr_t)&gOptions_74c7fc), 1) || Save_Read8Bytes(stream, options + 0x28, name((u32)(uintptr_t)&gOptions_74c7f0), 1))
             return 1;
         for (u32 k = 0; k < 7; k++)   // (AdvisorOn .. IsometricOn: +0x34..+0x3a)
             if (Save_ReadU8(stream, options + 0x34 + k, name(kFlagNames[k]), 1))
@@ -197,8 +197,8 @@ u32 __fastcall Options_SerializeDisplay(u8 *options, void *, Stream *stream, u32
     } else {
         if (!read(stream, options, 4) || !read(stream, options + 4, 4) || !read(stream, options + 8, 4))
             return 1;
-        if (Save_ReadU32(stream, options + 0xc, name(0x0074c834), 1) || Save_Read8Bytes(stream, options + 0x28, name(0x0074c7f0), 1) ||
-            Save_ReadU32(stream, options + 0x30, name(0x0074c824), 1))
+        if (Save_ReadU32(stream, options + 0xc, name((u32)(uintptr_t)&gOptions_74c834), 1) || Save_Read8Bytes(stream, options + 0x28, name((u32)(uintptr_t)&gOptions_74c7f0), 1) ||
+            Save_ReadU32(stream, options + 0x30, name((u32)(uintptr_t)&gOptions_74c824), 1))
             return 1;
     }
     Options_ApplySound();
@@ -214,8 +214,8 @@ u32 __fastcall Options_SerializeMisc(u8 *options, void *, Stream *stream, u32 sa
     }
     if (!read(stream, options + 0x78, 4) || !read(stream, options + 0x7c, 4) || !read(stream, options + 0x80, 4))
         return 1;
-    if (Save_ReadU32(stream, options + 0x84, name(0x0074c864), 1) || Save_ReadU32(stream, options + 0x88, name(0x0074c854), 1) ||
-        Save_ReadU32(stream, options + 0x8c, name(0x0074c840), 1))
+    if (Save_ReadU32(stream, options + 0x84, name((u32)(uintptr_t)&gOptions_74c864), 1) || Save_ReadU32(stream, options + 0x88, name((u32)(uintptr_t)&gOptions_74c854), 1) ||
+        Save_ReadU32(stream, options + 0x8c, name((u32)(uintptr_t)&gOptions_74c840), 1))
         return 1;
     return 0;
 }
@@ -269,7 +269,7 @@ u32 __fastcall Options_LoadMiscFile(u8 *options, void *, const u8 *path) {
 
 u8 __fastcall Options_CheckGraphicsMode(u8 *options, void *, u32 mode) {
     u8 file[0x78];   // (a graphics balance file on the stack)
-    at<u32>(file, 0) = 0x006fd630;
+    at<u32>(file, 0) = (u32)(uintptr_t)BalanceGraphics_vtable;
     BalanceFile_Init(file);
     String path;
     String_Ctor(&path);
@@ -283,7 +283,7 @@ u8 __fastcall Options_CheckGraphicsMode(u8 *options, void *, u32 mode) {
         vcall<void>(&path, 0x28, 0x0078e5c0u);
     if (!BalanceFile_Load(file, nullptr, path.data, 0)) {
         String_Dtor(&path);
-        at<u32>(file, 0) = 0x006fd630;
+        at<u32>(file, 0) = (u32)(uintptr_t)BalanceGraphics_vtable;
         BalanceFile_Release(file);
         return 0;
     }
@@ -298,7 +298,7 @@ u8 __fastcall Options_CheckGraphicsMode(u8 *options, void *, u32 mode) {
     differs(global(0x007858a8), at<u32>(file, 0x40));
     differs(global(0x007858ac), at<u32>(file, 0x44));
     String_Dtor(&path);
-    at<u32>(file, 0) = 0x006fd630;
+    at<u32>(file, 0) = (u32)(uintptr_t)BalanceGraphics_vtable;
     BalanceFile_Release(file);
     return 1;
 }

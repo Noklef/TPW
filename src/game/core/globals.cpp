@@ -35,7 +35,7 @@ u32 __cdecl Global8bb628_SetOne() {
 }
 
 u32 __cdecl Global8bba78_SetOne() {
-    global<u32>(0x008bba78) = 0x3f800000;
+    gGlobals_8bba78[0] = 0x3f800000;
     return 0x3f800000;
 }
 
@@ -57,23 +57,23 @@ u32 __fastcall Id_Get(u32 *id) {
 }
 
 void __cdecl Global7ced44_Release() {
-    u8 *shared = global<u8 *>(0x007ced44);
+    u8 *shared = global<u8 *>((u32)(uintptr_t)&gGlobals_7ced44);
     const u32 count = at<u32>(shared, 4);
     if (count != 0 && count != 0xffffffffu)
         at<u32>(shared, 4) = count - 1;
     if (at<u32>(shared, 4) == 0)
         vcall<u32>(shared, 0, 1u);
-    global<u32>(0x007ced44) = 0;
+    gGlobals_7ced44 = 0;
 }
 
 void __cdecl Globalf827dc_Release() {
-    u8 *shared = global<u8 *>(0x00f827dc);
+    u8 *shared = global<u8 *>((u32)(uintptr_t)&gGlobals_f827dc);
     const u32 count = at<u32>(shared, 4);
     if (count != 0 && count != 0xffffffffu)
         at<u32>(shared, 4) = count - 1;
     if (at<u32>(shared, 4) == 0)
         vcall<u32>(shared, 0, 1u);
-    global<u32>(0x00f827dc) = 0;
+    gGlobals_f827dc = 0;
 }
 
 u32 __cdecl Global879a24_Free() {
@@ -180,39 +180,39 @@ u32 __cdecl Global81af64_Get_52f850() {
 }
 
 u32 __cdecl Global81b6dc_Set_52fb10(u32 v0) {
-    global<u32>(0x0081b6dc) = v0;
+    gGlobals_81b6dc = v0;
     return v0;
 }
 
 u32 __cdecl Global81b6dc_Get_52fb20() {
-    return global<u32>(0x0081b6dc);
+    return gGlobals_81b6dc;
 }
 
 u32 __cdecl Global81ea14_Set_52fb30(u32 v0) {
-    global<u32>(0x0081ea14) = v0;
+    gGlobals_81ea14 = v0;
     return v0;
 }
 
 u32 __cdecl Global81ea14_Get_52fb40() {
-    return global<u32>(0x0081ea14);
+    return gGlobals_81ea14;
 }
 
 u32 __cdecl Global81aebc_Set_52fb50(u32 v0) {
-    global<u32>(0x0081aebc) = v0;
+    gGlobals_81aebc = v0;
     return v0;
 }
 
 u32 __cdecl Global81aebc_Get_52fb60() {
-    return global<u32>(0x0081aebc);
+    return gGlobals_81aebc;
 }
 
 u32 __cdecl Global81b43c_Set_52fb70(u32 v0) {
-    global<u32>(0x0081b43c) = v0;
+    gGlobals_81b43c = v0;
     return v0;
 }
 
 u32 __cdecl Global81b43c_Get_52fb80() {
-    return global<u32>(0x0081b43c);
+    return gGlobals_81b43c;
 }
 
 u32 __cdecl Global81af4c_Set_52fb90(u32 v0) {
@@ -243,7 +243,7 @@ u32 __cdecl Global781fc8_Get_691530() {
 }
 
 u32 __cdecl Globalfb2708_Set_6d1bc0(u32 v0) {
-    global<u32>(0x00fb2708) = v0;
+    gGlobals_fb2708 = v0;
     return v0;
 }
 
@@ -303,15 +303,15 @@ u32 __cdecl CreateGlobal8bcbb8_5804b0() { return CreateGlobal(0x008bcbb8, 0x1400
 u32 __cdecl CreateGlobal8c47d4_58aff0() { return CreateGlobal(0x008c47d4, 0xc, 0xffffffff); }
 u32 __cdecl Table879d08_FillFrom() {
     const u32 start = global<u32>(0x008bcc40) & 0xf;
-    global<u32>(0x00879d48) = start;
+    gGlobals_879d48 = start;
     for (u32 i = 0; i < 16; i++)
-        global<u32>(0x00879d08 + 4 * ((i + start) & 0xf)) = 16 - i;
+        gGlobals_879d08[((i + start) & 0xf)] = 16 - i;
     return 0;
 }
 
 u32 __cdecl Table879d08_Fill() {
     for (u32 i = 0; i < 16; i++)
-        global<u32>(0x00879d08 + 4 * i) = 16 - i;
+        gGlobals_879d08[i] = 16 - i;
     return 0;
 }
 

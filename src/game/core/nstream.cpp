@@ -122,7 +122,7 @@ extern "C" {
 
 u8 *__fastcall NCtype_Ctor(u8 *self, void *, u8 *table, u32 del, u32 refs) {
     at<u32>(self, 4) = refs;
-    at<u32>(self, 0) = 0x00709b1c;
+    at<u32>(self, 0) = (u32)(uintptr_t)NCtype_vtable;
     u8 info[0x48];
     g_env->locinfoCtor(info, nullptr, gLocalefacet_C_75c74c);
     u32 out[4];
@@ -148,9 +148,9 @@ u8 *__fastcall NCtype_Ctor(u8 *self, void *, u8 *table, u32 del, u32 refs) {
 }
 
 void __fastcall NCtype_Dtor(u8 *self) {
-    at<u32>(self, 0) = 0x00709b1c;
+    at<u32>(self, 0) = (u32)(uintptr_t)NCtype_vtable;
     if (at<u32>(self, 0x14)) Crt().free(at<void *>(self, 0x10));
-    at<u32>(self, 0) = 0x00709b44;
+    at<u32>(self, 0) = (u32)(uintptr_t)LocaleFacet_vtable;
 }
 
 u8 *__fastcall NCtype_DeletingDtor(u8 *self, void *, u32 flags) {
@@ -176,12 +176,12 @@ char *__fastcall NCtype_ToUpperRange(u8 *self, void *, char *first, char *last) 
 }
 
 void __fastcall NIstream_DtorVb(u8 *self) {
-    *reinterpret_cast<u32 *>(self + base_of(self)) = 0x0070994c;
+    *reinterpret_cast<u32 *>(self + base_of(self)) = (u32)(uintptr_t)Class70994c_vtable;
     g_env->iosDtor(self + 8);
 }
 
 void __fastcall NOstream_DtorVb(u8 *self) {
-    *reinterpret_cast<u32 *>(self + base_of(self)) = 0x0070995c;
+    *reinterpret_cast<u32 *>(self + base_of(self)) = (u32)(uintptr_t)Class70995c_vtable;
     g_env->iosDtor(self + 4);
 }
 
@@ -203,7 +203,7 @@ u8 *__fastcall NIos_DeletingDtor(u8 *self, void *, u32 flags) {
 
 u8 *__fastcall NOstream_DeletingDtorOnIos(u8 *ios, void *, u32 flags) {
     u8 *const self = ios - 4;
-    *reinterpret_cast<u32 *>(self + base_of(self)) = 0x0070995c;
+    *reinterpret_cast<u32 *>(self + base_of(self)) = (u32)(uintptr_t)Class70995c_vtable;
     g_env->iosDtor(ios);
     if (flags & 1) GameHeap_Free(self);
     return self;
@@ -211,7 +211,7 @@ u8 *__fastcall NOstream_DeletingDtorOnIos(u8 *ios, void *, u32 flags) {
 
 u8 *__fastcall NIstream_DeletingDtorOnIos(u8 *ios, void *, u32 flags) {
     u8 *const self = ios - 8;
-    *reinterpret_cast<u32 *>(self + base_of(self)) = 0x0070994c;
+    *reinterpret_cast<u32 *>(self + base_of(self)) = (u32)(uintptr_t)Class70994c_vtable;
     g_env->iosDtor(ios);
     if (flags & 1) GameHeap_Free(self);
     return self;
@@ -248,9 +248,9 @@ u8 *__fastcall NOstream_Ctor(u8 *self, void *, u8 *buffer, u32 addstd, u32 init,
     if (derived) {
         at<u32>(self, 0) = 0x00702980;
         at<u32>(self, 0x28) = 0;
-        at<u32>(self, 4) = 0x00709954;
+        at<u32>(self, 4) = (u32)(uintptr_t)NIos_vtable;
     }
-    *reinterpret_cast<u32 *>(self + base_of(self)) = 0x0070995c;
+    *reinterpret_cast<u32 *>(self + base_of(self)) = (u32)(uintptr_t)Class70995c_vtable;
     if (static_cast<u8>(init)) init_ios(self + base_of(self), buffer, addstd);
     return self;
 }
@@ -259,10 +259,10 @@ u8 *__fastcall NIstream_Ctor(u8 *self, void *, u8 *buffer, u32 addstd, u32 deriv
     if (derived) {
         at<u32>(self, 0) = 0x00702988;
         at<u32>(self, 0x2c) = 0;
-        at<u32>(self, 8) = 0x00709954;
+        at<u32>(self, 8) = (u32)(uintptr_t)NIos_vtable;
     }
     at<u32>(self, 4) = 0;
-    *reinterpret_cast<u32 *>(self + base_of(self)) = 0x0070994c;
+    *reinterpret_cast<u32 *>(self + base_of(self)) = (u32)(uintptr_t)Class70994c_vtable;
     init_ios(self + base_of(self), buffer, addstd);
     return self;
 }

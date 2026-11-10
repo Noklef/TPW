@@ -99,3 +99,8 @@ void VObj2_SetCalls(const AddrCall *table, u32 count);
 extern "C" {
 u32 __fastcall Object_UpdateShadow(u8 *self);
 }
+
+#include "gamedata.h"
+
+// The vtables hold only ports: tpw.exe's loader points their slots at them (.docs/09-globals.md).
+GAME_DATA(void *[10], Class7021f0_vtable, 0x007021f0, 0x28);

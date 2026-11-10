@@ -124,6 +124,11 @@ u8 *__fastcall Vtbl70a0a8_DeletingDtor(u8 *self, void *, u32 flags);
 #include "gamedata.h"
 
 // Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(const char[0x8], gLocalefacet_709b60, 0x00709b60, 0x8);
+GAME_DATA(const char[0x8], gLocalefacet_709b68, 0x00709b68, 0x8);
+GAME_DATA(const char[0x4], gLocalefacet_709d08, 0x00709d08, 0x4);
+GAME_DATA(const char[0x4], gLocalefacet_709d0c, 0x00709d0c, 0x4);
+GAME_DATA(const char[0x88], gLocalefacet_709df0, 0x00709df0, 0x88);
 GAME_DATA(const char[0x15], gLocalefacet_MissingFacet_75c734, 0x0075c734, 0x15);
 GAME_DATA(const char[2], gLocalefacet_C_75c74c, 0x0075c74c, 0x2);
 GAME_DATA(u32, gLocalefacet_7ced3c, 0x007ced3c, 0x4);
@@ -206,3 +211,19 @@ GAME_DATA(u32, gLocalefacet_fb1ed0, 0x00fb1ed0, 0x4);
 GAME_DATA(u32, gLocalefacet_fb1ed4, 0x00fb1ed4, 0x4);
 GAME_DATA(u32, gLocalefacet_fb1ed8, 0x00fb1ed8, 0x4);
 GAME_DATA(u32, gLocalefacet_fb275c, 0x00fb275c, 0x4);
+
+// The vtables hold only ports: tpw.exe's loader points their slots at them (.docs/09-globals.md).
+GAME_DATA(void *[6], Numpunct_vtable, 0x00709aac, 0x18);
+GAME_DATA(void *[7], NumPut_vtable, 0x00709acc, 0x1c);
+GAME_DATA(void *[10], NumGet_vtable, 0x00709aec, 0x28);
+GAME_DATA(void *[1], LocaleFacet_vtable, 0x00709b44, 0x4);
+GAME_DATA(void *[10], Class709bbc_vtable, 0x00709bbc, 0x28);
+GAME_DATA(void *[4], WFacet709c0c_vtable, 0x00709c0c, 0x10);
+GAME_DATA(void *[4], CollateW_vtable, 0x00709c24, 0x10);
+GAME_DATA(void *[6], WNumpunct_vtable, 0x00709c3c, 0x18);
+GAME_DATA(void *[7], WNumGet_vtable, 0x00709c5c, 0x1c);
+GAME_DATA(void *[10], Class709f2c_vtable, 0x00709f2c, 0x28);
+GAME_DATA(void *[10], Class709f5c_vtable, 0x00709f5c, 0x28);
+GAME_DATA(void *[3], Facet709f8c_vtable, 0x00709f8c, 0xc);
+GAME_DATA(void *[3], Facet709f9c_vtable, 0x00709f9c, 0xc);
+GAME_DATA(void *[4], Facet709fac_vtable, 0x00709fac, 0x10);

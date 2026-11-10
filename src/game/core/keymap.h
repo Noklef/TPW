@@ -88,6 +88,11 @@ struct KeyMapEntry {
 
 // Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
 GAME_DATA(KeyMapEntry[17], gKeyMap_Shortcuts_748378, 0x00748378, 0x154);
+GAME_DATA(char[0xc], gKeymap_7486dc, 0x007486dc, 0xc);
+GAME_DATA(char[0x8], gKeymap_7486e8, 0x007486e8, 0x8);
+GAME_DATA(char[0x8], gKeymap_7486f0, 0x007486f0, 0x8);
+GAME_DATA(char[0x8], gKeymap_7486f8, 0x007486f8, 0x8);
+GAME_DATA(char[0x8], gKeymap_748700, 0x00748700, 0x8);
 
 // Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
 GAME_DATA(u8 *, gKeymap_78718c, 0x0078718c, 0x4);

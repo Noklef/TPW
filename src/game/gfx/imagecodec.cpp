@@ -2,6 +2,7 @@
 #include "imagecodec.h"
 
 #include <cstdint>
+#include "../core/fpu.h"
 
 namespace {
 
@@ -15,7 +16,7 @@ const ImageCodecEnv kGameEnv = {
     at<s32(__fastcall *)(StreamBase *, void *, s32, u32)>(0x005f7210),
     at<s32 *(__fastcall *)(StreamBase *, void *, s32 *, const char *, const char *)>(0x0062fa40),
     at<s32 *(__fastcall *)(StreamBase *, void *, s32 *, StreamBase *, u32)>(0x0062fd30),
-    0x007035e0,
+    ((u32)(uintptr_t)FpuControl_vtable + 0x4),
     0x00703608,
     0x00703630,
     at<s32 *(__fastcall *)(TgaReader *, void *, s32 *, StreamBase *, TgaCodec *)>(0x00630150),

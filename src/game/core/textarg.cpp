@@ -16,7 +16,7 @@ const u32 kTag = 0x5641524d;  // 'MRAV'
 extern "C" {
 
 u8 *__fastcall TextArg_Ctor(u8 *arg, void *, u32 n) {
-    at<u32>(arg, 0) = 0x006ffb34;
+    at<u32>(arg, 0) = (u32)(uintptr_t)TextArg_vtable;
     at<u32>(arg, 4) = kTag;
     at<u32>(arg, 8) = n;
     return arg;
@@ -26,14 +26,14 @@ u8 *__fastcall TextArgString_Ctor(u8 *arg, void *, u32 n, u32 string) {
     at<u32>(arg, 4) = kTag;
     at<u32>(arg, 8) = n;
     at<u32>(arg, 0xc) = string;
-    at<u32>(arg, 0) = 0x006ff174;
+    at<u32>(arg, 0) = (u32)(uintptr_t)TextArgString_vtable;
     return arg;
 }
 
 u8 *__fastcall TextArgInt_Ctor(u8 *arg, void *, u32 n, s32 value, u32 isSigned) {
     at<u32>(arg, 8) = n;
     at<u32>(arg, 4) = kTag;
-    at<u32>(arg, 0) = 0x006ff170;
+    at<u32>(arg, 0) = (u32)(uintptr_t)TextArgInt_vtable;
     if (isSigned != 0 && value < 0) {
         at<u32>(arg, 0xc) = 0u - (u32)value;
         at<u32>(arg, 0x10) = 1;

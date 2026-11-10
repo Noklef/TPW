@@ -4,6 +4,7 @@
 #include <cstdint>
 
 #include "../core/string.h"
+#include "../core/vdtor.h"
 
 namespace {
 
@@ -17,7 +18,7 @@ const FileStreamEnv kGameEnv = {
 const FileStreamEnv *g_env = &kGameEnv;
 
 const char kSeparators[] = "\\/";  // 0x775704
-void *const *const kFolderHandleVtable = at<void *const *>(0x006fd9e8);
+void *const *const kFolderHandleVtable = at<void *const *>(((u32)(uintptr_t)ListDtor6fd9e4_vtable + 0x4));
 
 }  // namespace
 

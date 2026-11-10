@@ -259,20 +259,20 @@ void __fastcall BarMesh_SetTopTexCoords(const u8 *bar) {
     at<u32>(t, 0x34) = v;
 }
 
-void __fastcall BarMesh_Dtor(u8 *bar) { Mesh_Dtor(bar, 0x006fee88); }
+void __fastcall BarMesh_Dtor(u8 *bar) { Mesh_Dtor(bar, (u32)(uintptr_t)BarMesh_vtable); }
 
-u8 *__fastcall BarMesh_ScalarDtor(u8 *bar, void *, u32 flags) { return Mesh_ScalarDtor(bar, 0x006fee88, flags); }
+u8 *__fastcall BarMesh_ScalarDtor(u8 *bar, void *, u32 flags) { return Mesh_ScalarDtor(bar, (u32)(uintptr_t)BarMesh_vtable, flags); }
 
-void __fastcall MeshOverlay_Dtor(u8 *mesh) { Mesh_Dtor(mesh, 0x006feeb8); }
+void __fastcall MeshOverlay_Dtor(u8 *mesh) { Mesh_Dtor(mesh, (u32)(uintptr_t)MeshOverlay_vtable); }
 
-u8 *__fastcall MeshOverlay_ScalarDtor(u8 *mesh, void *, u32 flags) { return Mesh_ScalarDtor(mesh, 0x006feeb8, flags); }
+u8 *__fastcall MeshOverlay_ScalarDtor(u8 *mesh, void *, u32 flags) { return Mesh_ScalarDtor(mesh, (u32)(uintptr_t)MeshOverlay_vtable, flags); }
 
 void __fastcall BarMesh_Apply(u8 *bar, void *, u32 flags, const u8 *desc) { Mesh_Apply(bar, flags, desc, false); }
 
 void __fastcall MeshOverlay_Apply(u8 *mesh, void *, u32 flags, const u8 *desc) { Mesh_Apply(mesh, flags, desc, true); }
 
 u8 *__fastcall BarMesh_Construct(u8 *bar, void *, const char *name) {
-    if (!Mesh_ConstructStart(bar, name, 0x006fee88))
+    if (!Mesh_ConstructStart(bar, name, (u32)(uintptr_t)BarMesh_vtable))
         return bar;
     u8 *v = at<u8 *>(bar, 0x7c);
     at<u32>(v, 0) = 0;  // vertices 0-2 and 6-7
@@ -331,7 +331,7 @@ u8 *__fastcall BarMesh_Construct(u8 *bar, void *, const char *name) {
 }
 
 u8 *__fastcall MeshOverlay_Construct(u8 *mesh, void *, const char *name) {
-    if (!Mesh_ConstructStart(mesh, name, 0x006feeb8))
+    if (!Mesh_ConstructStart(mesh, name, (u32)(uintptr_t)MeshOverlay_vtable))
         return mesh;
     u8 *v = at<u8 *>(mesh, 0x7c);
     at<u32>(v, 0) = 0;  // vertices 0, 6, 1 and 7, 3

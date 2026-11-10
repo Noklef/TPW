@@ -19,3 +19,9 @@ extern "C" {
 // (the original's slot is unset when no message was asked for; here 0).
 u32 __stdcall Game_WinMain(u32 instance, u32 previous, u32 commandLine, u32 show);
 }
+
+#include "gamedata.h"
+
+// Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(char[0x10], gGamemain_74d11c, 0x0074d11c, 0x10);
+GAME_DATA(char[0x10], gGamemain_74d12c, 0x0074d12c, 0x10);
