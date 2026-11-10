@@ -1332,7 +1332,7 @@ address,name,kind,confidence,notes
 0x0067c080,CRT_strstr,function,high,reimplemented (src/game/core/crt); strstr
 0x0067bfc0,CRT_strchr,function,high,reimplemented (src/game/core/crt); strchr
 0x0067a520,CRT_atoi,function,high,MSVC6 atoi
-0x0067f330,CRT_iswctype,function,high,MSVC6 iswctype (wint_t is 16 bits; the upper half of the argument is ignored)
+0x0067f330,CRT_iswctype,function,high,reimplemented (src/game/core/crt); iswctype: a wide character's class
 0x0067c1e0,CRT_vsprintf,function,high,reimplemented (src/game/core/crt); vsprintf
 0x0067acd0,CRT_wcslen,function,high,reimplemented (src/game/online/chatlists); wcslen
 0x0067bf10,CRT_wcscpy,function,high,reimplemented (src/game/core/crt); wcscpy
@@ -2047,6 +2047,12 @@ address,name,kind,confidence,notes
 0x0067e0d0,CRT_threadstart,function,high,reimplemented (src/game/core/crt); _threadstart: _beginthread's entry
 0x0067f800,CRT_threadstartex,function,high,reimplemented (src/game/core/crt); _threadstartex: _beginthreadex's entry
 0x0067f780,CRT_beginthreadex,function,high,reimplemented (src/game/core/crt); _beginthreadex: a thread with its own data
+0x00688d00,CRT_LCMapStringW,function,high,"reimplemented (src/game/core/crt); __crtLCMapStringW: LCMapStringW, or through LCMapStringA"
+0x0068a440,CRT_GetStringTypeW,function,high,"reimplemented (src/game/core/crt); __crtGetStringTypeW: GetStringTypeW, or through GetStringTypeA"
+0x0067e670,CRT_towlowerLocked,function,high,reimplemented (src/game/core/crt); _towlower_lk: a wide character in lower case
+0x0067ed90,CRT_towupperLocked,function,high,reimplemented (src/game/core/crt); _towupper_lk: a wide character in upper case
+0x0067e5d0,CRT_towlower,function,high,reimplemented (src/game/core/crt); towlower: _towlower_lk under the locale's lock
+0x0067ed00,CRT_towupper,function,high,reimplemented (src/game/core/crt); towupper: _towupper_lk under the locale's lock
 0x00f7a7d0,gCdVolumeLabel,data,medium,"const char *: the CD's volume label, looked for on the CD-ROM drives by the CD check (0x5aa585)"
 0x005f8ae0,RegKey_Open,function,high,"reimplemented (src/game/core/regkey); thiscall (&out, subkey or null, nonzero: HKCU else HKLM); the company key (0x775748) made, then the subkey in it; a held key closed first"
 0x005f8b70,RegKey_Dtor,function,high,reimplemented (src/game/core/regkey); thiscall; RegKey_Close

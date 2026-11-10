@@ -1,4 +1,5 @@
 #include "crt.h"
+#include "crtenv.h"
 #include "crtlock.h"
 #include "crtmbstring.h"
 #include "crtstartup.h"
@@ -930,6 +931,137 @@ s32 __cdecl CRT_tolower(s32 c) {
     if (!locale_set()) return c >= 0x41 && c <= 0x5a ? c + 0x20 : c;
     const bool locked = locale_enter();
     const s32 result = CRT_tolowerLocked(c);
+    locale_leave(locked);
+    return result;
+}
+
+s32 __cdecl CRT_LCMapStringW(u32 id, u32 flags, const u16 *from, s32 count, u16 *to, s32 size, u32 page) {
+    using MapW = s32(__stdcall *)(u32, u32, const void *, s32, void *, s32);
+    using MapA = s32(__stdcall *)(u32, u32, const void *, s32, void *, s32);
+    using Widen = s32(__stdcall *)(u32, u32, const char *, s32, u16 *, s32);
+    using Narrow = s32(__stdcall *)(u32, u32, const u16 *, s32, char *, s32, const char *, u32 *);
+    u32 &mode = *reinterpret_cast<u32 *>((uintptr_t)0x00fb1550);
+    if (!mode) {
+        if (import_slot<MapW>(0x006fd198)(0, 0x100, reinterpret_cast<const void *>((uintptr_t)0x00708da8), 1, nullptr, 0))
+            mode = 1;
+        else if (import_slot<MapA>(0x006fd19c)(0, 0x100, reinterpret_cast<const void *>((uintptr_t)0x00708da4), 1, nullptr, 0))
+            mode = 2;
+        else
+            return 0;
+    }
+    if (count > 0) count = static_cast<s32>(CRT_wcsnlen(from, static_cast<u32>(count)));
+    if (mode == 1) return import_slot<MapW>(0x006fd198)(id, flags, from, count, to, size);
+    if (mode != 2) return static_cast<s32>(mode);
+    const u32 code = page ? page : global_u32(0x00fb1450);
+    const s32 bytes = import_slot<Narrow>(0x006fd1dc)(code, 0x220, from, count, nullptr, 0, nullptr, nullptr);
+    if (!bytes) return 0;
+    char *const narrow = static_cast<char *>(CRT_malloc(static_cast<u32>(bytes)));
+    if (!narrow) return 0;
+    char *mapped = nullptr;
+    s32 result = 0;
+    if (import_slot<Narrow>(0x006fd1dc)(code, 0x220, from, count, narrow, bytes, nullptr, nullptr)) {
+        const s32 needed = import_slot<MapA>(0x006fd19c)(id, flags, narrow, bytes, nullptr, 0);
+        if (needed && (mapped = static_cast<char *>(CRT_malloc(static_cast<u32>(needed)))) != nullptr &&
+            import_slot<MapA>(0x006fd19c)(id, flags, narrow, bytes, mapped, needed)) {
+            if (flags & 0x400) {
+                if (size) Crt().strncpy(reinterpret_cast<char *>(to), mapped, static_cast<u32>(size < needed ? size : needed));
+                result = needed;
+            } else {
+                result = size ? import_slot<Widen>(0x006fd174)(code, 1, mapped, needed, to, size) : import_slot<Widen>(0x006fd174)(code, 1, mapped, needed, nullptr, 0);
+            }
+        }
+    }
+    Crt().free(narrow);
+    Crt().free(mapped);
+    return result;
+}
+
+s32 __cdecl CRT_GetStringTypeW(u32 info, const u16 *text, s32 count, u16 *types, u32 page, u32 id) {
+    using TypesW = s32(__stdcall *)(u32, const void *, s32, u16 *);
+    using TypesA = s32(__stdcall *)(u32, u32, const void *, s32, u16 *);
+    using Narrow = s32(__stdcall *)(u32, u32, const u16 *, s32, char *, s32, const char *, u32 *);
+    u32 &mode = *reinterpret_cast<u32 *>((uintptr_t)0x00fb188c);
+    u16 probe[2];
+    if (!mode) {
+        if (import_slot<TypesW>(0x006fd1ec)(1, reinterpret_cast<const void *>((uintptr_t)0x00708da8), 1, probe))
+            mode = 1;
+        else if (import_slot<TypesA>(0x006fd1f0)(0, 1, reinterpret_cast<const void *>((uintptr_t)0x00708da4), 1, probe))
+            mode = 2;
+        else
+            return 0;
+    }
+    if (mode == 1) return import_slot<TypesW>(0x006fd1ec)(info, text, count, types);
+    if (mode != 2) return static_cast<s32>(mode);
+    const u32 code = page ? page : global_u32(0x00fb1450);
+    const s32 bytes = import_slot<Narrow>(0x006fd1dc)(code, 0x220, text, count, nullptr, 0, nullptr, nullptr);
+    if (!bytes) return 0;
+    char *const narrow = static_cast<char *>(g_inner->calloc(1, static_cast<u32>(bytes)));
+    if (!narrow) return 0;
+    u16 *block = nullptr;
+    s32 result = 0;
+    if (import_slot<Narrow>(0x006fd1dc)(code, 0x220, text, count, narrow, bytes, nullptr, nullptr) &&
+        (block = static_cast<u16 *>(CRT_malloc(static_cast<u32>(bytes) * 2 + 2))) != nullptr) {
+        u16 *const end = block + count;   // (by the wide count, sic)
+        end[0] = 0xffff;
+        end[-1] = 0xffff;
+        result = import_slot<TypesA>(0x006fd1f0)(id ? id : global_u32(0x00fb1440), info, narrow, bytes, block);
+        if (end[-1] != 0xffff && end[0] == 0xffff)
+            CRT_memmove(types, block, static_cast<u32>(count) * 2);
+        else
+            result = 0;
+    }
+    Crt().free(narrow);
+    Crt().free(block);
+    return result;
+}
+
+s32 __cdecl CRT_iswctype(u32 c, u32 mask) {
+    const u16 unit = static_cast<u16>(c);
+    if (unit == 0xffff) return 0;
+    u16 type;
+    if (unit < 0x100)
+        type = reinterpret_cast<const u16 *>((uintptr_t)global_u32(0x0077ea94))[unit];
+    else if (!locale_set() || !CRT_GetStringTypeW(1, &unit, 1, &type, 0, 0))
+        return 0;
+    return type & static_cast<u16>(mask);
+}
+
+// What _towlower_lk and _towupper_lk do under a locale: below 0x100 only a character of the `type`; then __crtLCMapStringW.
+static u16 map_wide(u32 c, u32 type, u32 flags) {
+    const u16 unit = static_cast<u16>(c);
+    if (unit < 0x100 && !CRT_iswctype(c, type)) return unit;
+    u16 mapped;
+    return CRT_LCMapStringW(global_u32(0x00fb1440), flags, &unit, 1, &mapped, 1, 0) ? mapped : unit;
+}
+
+static u16 upper_c(u16 unit) { return unit >= 0x61 && unit <= 0x7a ? static_cast<u16>(unit - 0x20) : unit; }
+
+u16 __cdecl CRT_towlowerLocked(u32 c) {
+    const u16 unit = static_cast<u16>(c);
+    if (unit == 0xffff) return unit;
+    return locale_set() ? map_wide(c, 1, 0x100) : fold_c(unit);
+}
+
+u16 __cdecl CRT_towupperLocked(u32 c) {
+    const u16 unit = static_cast<u16>(c);
+    if (unit == 0xffff) return unit;
+    return locale_set() ? map_wide(c, 2, 0x200) : upper_c(unit);
+}
+
+u16 __cdecl CRT_towlower(u32 c) {
+    const u16 unit = static_cast<u16>(c);
+    if (unit == 0xffff) return unit;
+    if (!locale_set()) return fold_c(unit);
+    const bool locked = locale_enter();
+    const u16 result = CRT_towlowerLocked(c);
+    locale_leave(locked);
+    return result;
+}
+
+u16 __cdecl CRT_towupper(u32 c) {
+    if (!locale_set()) return upper_c(static_cast<u16>(c));
+    const bool locked = locale_enter();
+    const u16 result = CRT_towupperLocked(c);
     locale_leave(locked);
     return result;
 }

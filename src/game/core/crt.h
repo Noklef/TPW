@@ -275,6 +275,27 @@ u32 __cdecl CRT_strtoul(const char *text, const char **end, s32 base);
 s32 __cdecl CRT_tolowerLocked(s32 c);
 s32 __cdecl CRT_tolower(s32 c);  // 0x67fa60
 
+// 0x688d00: __crtLCMapStringW: the call found once as for __crtLCMapStringA (0xfb1550). A positive count cut at a terminator (wcsncnt). 1: LCMapStringW. 2: the units narrowed (code page
+// or the current 0xfb1450; a block of malloc), LCMapStringA twice (a block of malloc for the result), then with flag 0x400 the bytes strncpy'd (at most size; none if size is 0), else widened.
+// The size written or needed; 0 if a step fails. Any other value there is returned (sic).
+s32 __cdecl CRT_LCMapStringW(u32 id, u32 flags, const u16 *from, s32 count, u16 *to, s32 size, u32 page);
+
+// 0x68a440: __crtGetStringTypeW: the call found once (0xfb188c). 1: GetStringTypeW. 2: the units narrowed into a block of calloc(1, n), their types by GetStringTypeA into a block of malloc
+// (2n + 2) with 0xffff put at the count's last unit and the one past (by the wide count, sic); copied out only when the first changed and the second did not, else 0. Others returned (sic).
+s32 __cdecl CRT_GetStringTypeW(u32 info, const u16 *text, s32 count, u16 *types, u32 page, u32 id);
+
+// 0x67f330: iswctype: WEOF 0; below 0x100 the table _pwctype ([0x77ea94]); else 0 with no locale, else __crtGetStringTypeW (0 if it fails). Anded with the mask's low 16 bits.
+s32 __cdecl CRT_iswctype(u32 c, u32 mask);
+
+// 0x67e670 / 0x67ed90: _towlower_lk / _towupper_lk: WEOF as it is; no locale: A-Z / a-z only; below 0x100 and not upper / lower case (iswctype 1 / 2): as it is; else __crtLCMapStringW
+// (0x100 / 0x200), c when it fails. Only the low 16 bits count.
+u16 __cdecl CRT_towlowerLocked(u32 c);
+u16 __cdecl CRT_towupperLocked(u32 c);
+
+// 0x67e5d0 / 0x67ed00: towlower / towupper: no locale: A-Z / a-z only (towupper: no WEOF test first); else the same under the locale's count or lock 0x13.
+u16 __cdecl CRT_towlower(u32 c);
+u16 __cdecl CRT_towupper(u32 c);
+
 // 0x67f670: _strnicmp: -1, 0, 1 over at most n bytes. No locale: through A-Z, the bytes as they are when one ends. Else through _tolower_lk under the locale's count or lock 0x13; both
 // words keep what the map left above their bytes (sic), so that an end is not seen under a two-byte answer.
 s32 __cdecl CRT_strnicmp(const char *a, const char *b, u32 n);
