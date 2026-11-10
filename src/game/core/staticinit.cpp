@@ -7291,7 +7291,7 @@ void __cdecl Init_4589a0() {   // 0x4589a0
     return;
 }
 void __cdecl Init_4589c0() {   // 0x4589c0
-    X87Reg x0 = X87Reg(M<float>(0x6fe5a8u));
+    X87Reg53 x0 = X87Reg53(M<float>(0x6fe5a8u));
     x0 = x0 / M<float>(0x6fe578u);
     M<float>(0x7a1964u) = (float)x0;
     return;
@@ -7461,7 +7461,7 @@ void __cdecl Init_464d60() {   // 0x464d60
     return;
 }
 void __cdecl Init_464d80() {   // 0x464d80
-    X87Reg x0 = X87Reg(M<float>(0x6fe758u));
+    X87Reg53 x0 = X87Reg53(M<float>(0x6fe758u));
     x0 = x0 / M<float>(0x6fe728u);
     M<float>(0x7afa44u) = (float)x0;
     return;
@@ -7493,7 +7493,7 @@ void __cdecl Init_46bd30() {   // 0x46bd30
     return;
 }
 void __cdecl Init_46bd50() {   // 0x46bd50
-    X87Reg x0 = X87Reg(M<float>(0x6fe900u));
+    X87Reg53 x0 = X87Reg53(M<float>(0x6fe900u));
     x0 = x0 / M<float>(0x6fe8d0u);
     M<float>(0x7b0478u) = (float)x0;
     return;
@@ -7583,7 +7583,7 @@ void __cdecl Init_46c1d0() {   // 0x46c1d0
     return;
 }
 void __cdecl Init_46c1f0() {   // 0x46c1f0
-    X87Reg x0 = X87Reg(M<float>(0x6fe970u));
+    X87Reg53 x0 = X87Reg53(M<float>(0x6fe970u));
     x0 = x0 / M<float>(0x6fe940u);
     M<float>(0x7b05ecu) = (float)x0;
     return;
@@ -7615,7 +7615,7 @@ void __cdecl Init_46d690() {   // 0x46d690
     return;
 }
 void __cdecl Init_46d6b0() {   // 0x46d6b0
-    X87Reg x0 = X87Reg(M<float>(0x6feb30u));
+    X87Reg53 x0 = X87Reg53(M<float>(0x6feb30u));
     x0 = x0 / M<float>(0x6feb00u);
     M<float>(0x7b0618u) = (float)x0;
     return;
@@ -7631,7 +7631,7 @@ void __cdecl Init_46ddc0() {   // 0x46ddc0
     return;
 }
 void __cdecl Init_46dde0() {   // 0x46dde0
-    X87Reg x0 = X87Reg(M<float>(0x6feb68u));
+    X87Reg53 x0 = X87Reg53(M<float>(0x6feb68u));
     x0 = x0 / M<float>(0x6feb38u);
     M<float>(0x7b0844u) = (float)x0;
     return;
@@ -7647,7 +7647,7 @@ void __cdecl Init_474580() {   // 0x474580
     return;
 }
 void __cdecl Init_4745a0() {   // 0x4745a0
-    X87Reg x0 = X87Reg(M<float>(0x6feca8u));
+    X87Reg53 x0 = X87Reg53(M<float>(0x6feca8u));
     x0 = x0 / M<float>(0x6fec78u);
     M<float>(0x7b4994u) = (float)x0;
     return;
@@ -7679,7 +7679,7 @@ void __cdecl Init_47e290() {   // 0x47e290
     return;
 }
 void __cdecl Init_47e2b0() {   // 0x47e2b0
-    X87Reg x0 = X87Reg(M<float>(0x6fef70u));
+    X87Reg53 x0 = X87Reg53(M<float>(0x6fef70u));
     x0 = x0 / M<float>(0x6fef40u);
     M<float>(0x7b4b80u) = (float)x0;
     return;
@@ -7724,7 +7724,7 @@ void __cdecl Init_47ed40() {   // 0x47ed40
     return;
 }
 void __cdecl Init_47ed60() {   // 0x47ed60
-    X87Reg x0 = X87Reg(M<float>(0x6ff018u));
+    X87Reg53 x0 = X87Reg53(M<float>(0x6ff018u));
     x0 = x0 / M<float>(0x6fefe8u);
     M<float>(0x7b4b90u) = (float)x0;
     return;
@@ -7740,7 +7740,7 @@ void __cdecl Init_47f2b0() {   // 0x47f2b0
     return;
 }
 void __cdecl Init_47f2d0() {   // 0x47f2d0
-    X87Reg x0 = X87Reg(M<float>(0x6ff050u));
+    X87Reg53 x0 = X87Reg53(M<float>(0x6ff050u));
     x0 = x0 / M<float>(0x6ff020u);
     M<float>(0x7b4b9cu) = (float)x0;
     return;
@@ -7797,7 +7797,7 @@ void __cdecl Init_481b80() {   // 0x481b80
     return;
 }
 void __cdecl Init_481ba0() {   // 0x481ba0
-    X87Reg x0 = X87Reg(M<float>(0x6ff110u));
+    X87Reg53 x0 = X87Reg53(M<float>(0x6ff110u));
     x0 = x0 / M<float>(0x6ff0e0u);
     M<float>(0x7b5220u) = (float)x0;
     return;
@@ -7813,7 +7813,7 @@ void __cdecl Init_4837a0() {   // 0x4837a0
     return;
 }
 void __cdecl Init_4837c0() {   // 0x4837c0
-    X87Reg x0 = X87Reg(M<float>(0x6ff14cu));
+    X87Reg53 x0 = X87Reg53(M<float>(0x6ff14cu));
     x0 = x0 / M<float>(0x6ff118u);
     M<float>(0x7ba03cu) = (float)x0;
     return;
@@ -7871,7 +7871,7 @@ void __cdecl Init_48b1b0() {   // 0x48b1b0
     return;
 }
 void __cdecl Init_48b1d0() {   // 0x48b1d0
-    X87Reg x0 = X87Reg(M<float>(0x6ff1b0u));
+    X87Reg53 x0 = X87Reg53(M<float>(0x6ff1b0u));
     x0 = x0 / M<float>(0x6ff180u);
     M<float>(0x7c2514u) = (float)x0;
     return;
@@ -7903,7 +7903,7 @@ void __cdecl Init_48f110() {   // 0x48f110
     return;
 }
 void __cdecl Init_48f130() {   // 0x48f130
-    X87Reg x0 = X87Reg(M<float>(0x6ff2b8u));
+    X87Reg53 x0 = X87Reg53(M<float>(0x6ff2b8u));
     x0 = x0 / M<float>(0x6ff268u);
     M<float>(0x7ca0b0u) = (float)x0;
     return;
@@ -7939,7 +7939,7 @@ void __cdecl Init_492560() {   // 0x492560
     return;
 }
 void __cdecl Init_492580() {   // 0x492580
-    X87Reg x0 = X87Reg(M<float>(0x6ff608u));
+    X87Reg53 x0 = X87Reg53(M<float>(0x6ff608u));
     x0 = x0 / M<float>(0x6ff5d8u);
     M<float>(0x7ca110u) = (float)x0;
     return;
@@ -7972,7 +7972,7 @@ void __cdecl Init_492d40() {   // 0x492d40
     return;
 }
 void __cdecl Init_492d60() {   // 0x492d60
-    X87Reg x0 = X87Reg(M<float>(0x6ff640u));
+    X87Reg53 x0 = X87Reg53(M<float>(0x6ff640u));
     x0 = x0 / M<float>(0x6ff610u);
     M<float>(0x7ca128u) = (float)x0;
     return;
@@ -7988,7 +7988,7 @@ void __cdecl Init_4931f0() {   // 0x4931f0
     return;
 }
 void __cdecl Init_493210() {   // 0x493210
-    X87Reg x0 = X87Reg(M<float>(0x6ff678u));
+    X87Reg53 x0 = X87Reg53(M<float>(0x6ff678u));
     x0 = x0 / M<float>(0x6ff648u);
     M<float>(0x7ca130u) = (float)x0;
     return;
@@ -8004,7 +8004,7 @@ void __cdecl Init_493c90() {   // 0x493c90
     return;
 }
 void __cdecl Init_493cb0() {   // 0x493cb0
-    X87Reg x0 = X87Reg(M<float>(0x6ff6b0u));
+    X87Reg53 x0 = X87Reg53(M<float>(0x6ff6b0u));
     x0 = x0 / M<float>(0x6ff680u);
     M<float>(0x7ca148u) = (float)x0;
     return;
@@ -8020,7 +8020,7 @@ void __cdecl Init_495d60() {   // 0x495d60
     return;
 }
 void __cdecl Init_495d80() {   // 0x495d80
-    X87Reg x0 = X87Reg(M<float>(0x6ff6f0u));
+    X87Reg53 x0 = X87Reg53(M<float>(0x6ff6f0u));
     x0 = x0 / M<float>(0x6ff6c0u);
     M<float>(0x7ca160u) = (float)x0;
     return;
@@ -8036,7 +8036,7 @@ void __cdecl Init_496f30() {   // 0x496f30
     return;
 }
 void __cdecl Init_496f50() {   // 0x496f50
-    X87Reg x0 = X87Reg(M<float>(0x6ff730u));
+    X87Reg53 x0 = X87Reg53(M<float>(0x6ff730u));
     x0 = x0 / M<float>(0x6ff700u);
     M<float>(0x7ca1a4u) = (float)x0;
     return;
@@ -8060,7 +8060,7 @@ void __cdecl Init_4979f0() {   // 0x4979f0
     return;
 }
 void __cdecl Init_497a10() {   // 0x497a10
-    X87Reg x0 = X87Reg(M<float>(0x6ff7b0u));
+    X87Reg53 x0 = X87Reg53(M<float>(0x6ff7b0u));
     x0 = x0 / M<float>(0x6ff780u);
     M<float>(0x7ca1acu) = (float)x0;
     return;
@@ -8076,7 +8076,7 @@ void __cdecl Init_497a30() {   // 0x497a30
     return;
 }
 void __cdecl Init_497a50() {   // 0x497a50
-    X87Reg x0 = X87Reg(M<float>(0x6ff7e8u));
+    X87Reg53 x0 = X87Reg53(M<float>(0x6ff7e8u));
     x0 = x0 / M<float>(0x6ff7b8u);
     M<float>(0x7ca1b8u) = (float)x0;
     return;
@@ -8092,7 +8092,7 @@ void __cdecl Init_497b80() {   // 0x497b80
     return;
 }
 void __cdecl Init_497ba0() {   // 0x497ba0
-    X87Reg x0 = X87Reg(M<float>(0x6ff820u));
+    X87Reg53 x0 = X87Reg53(M<float>(0x6ff820u));
     x0 = x0 / M<float>(0x6ff7f0u);
     M<float>(0x7ca1c4u) = (float)x0;
     return;
@@ -8108,7 +8108,7 @@ void __cdecl Init_498a90() {   // 0x498a90
     return;
 }
 void __cdecl Init_498ab0() {   // 0x498ab0
-    X87Reg x0 = X87Reg(M<float>(0x6ff858u));
+    X87Reg53 x0 = X87Reg53(M<float>(0x6ff858u));
     x0 = x0 / M<float>(0x6ff828u);
     M<float>(0x7ca1dcu) = (float)x0;
     return;
@@ -8124,7 +8124,7 @@ void __cdecl Init_498c20() {   // 0x498c20
     return;
 }
 void __cdecl Init_498c40() {   // 0x498c40
-    X87Reg x0 = X87Reg(M<float>(0x6ff890u));
+    X87Reg53 x0 = X87Reg53(M<float>(0x6ff890u));
     x0 = x0 / M<float>(0x6ff860u);
     M<float>(0x7ca20cu) = (float)x0;
     return;
@@ -8156,7 +8156,7 @@ void __cdecl Init_499790() {   // 0x499790
     return;
 }
 void __cdecl Init_4997b0() {   // 0x4997b0
-    X87Reg x0 = X87Reg(M<float>(0x6ff8c8u));
+    X87Reg53 x0 = X87Reg53(M<float>(0x6ff8c8u));
     x0 = x0 / M<float>(0x6ff898u);
     M<float>(0x7ca220u) = (float)x0;
     return;
@@ -8180,7 +8180,7 @@ void __cdecl Init_499ef0() {   // 0x499ef0
     return;
 }
 void __cdecl Init_499f10() {   // 0x499f10
-    X87Reg x0 = X87Reg(M<float>(0x6ff948u));
+    X87Reg53 x0 = X87Reg53(M<float>(0x6ff948u));
     x0 = x0 / M<float>(0x6ff918u);
     M<float>(0x7ca2d0u) = (float)x0;
     return;
@@ -8274,7 +8274,7 @@ void __cdecl Init_49b570() {   // 0x49b570
     return;
 }
 void __cdecl Init_49b590() {   // 0x49b590
-    X87Reg x0 = X87Reg(M<float>(0x6ff980u));
+    X87Reg53 x0 = X87Reg53(M<float>(0x6ff980u));
     x0 = x0 / M<float>(0x6ff950u);
     M<float>(0x7ca304u) = (float)x0;
     return;
@@ -8290,7 +8290,7 @@ void __cdecl Init_49ca70() {   // 0x49ca70
     return;
 }
 void __cdecl Init_49ca90() {   // 0x49ca90
-    X87Reg x0 = X87Reg(M<float>(0x6ff9c0u));
+    X87Reg53 x0 = X87Reg53(M<float>(0x6ff9c0u));
     x0 = x0 / M<float>(0x6ff990u);
     M<float>(0x7caf8cu) = (float)x0;
     return;
@@ -8306,7 +8306,7 @@ void __cdecl Init_49f420() {   // 0x49f420
     return;
 }
 void __cdecl Init_49f440() {   // 0x49f440
-    X87Reg x0 = X87Reg(M<float>(0x6ff9f8u));
+    X87Reg53 x0 = X87Reg53(M<float>(0x6ff9f8u));
     x0 = x0 / M<float>(0x6ff9c8u);
     M<float>(0x7cb258u) = (float)x0;
     return;
@@ -8322,7 +8322,7 @@ void __cdecl Init_4a07a0() {   // 0x4a07a0
     return;
 }
 void __cdecl Init_4a07c0() {   // 0x4a07c0
-    X87Reg x0 = X87Reg(M<float>(0x6ffa30u));
+    X87Reg53 x0 = X87Reg53(M<float>(0x6ffa30u));
     x0 = x0 / M<float>(0x6ffa00u);
     M<float>(0x7cb2a8u) = (float)x0;
     return;
@@ -8354,7 +8354,7 @@ void __cdecl Init_4a2bb0() {   // 0x4a2bb0
     return;
 }
 void __cdecl Init_4a2bd0() {   // 0x4a2bd0
-    X87Reg x0 = X87Reg(M<float>(0x6ffa8cu));
+    X87Reg53 x0 = X87Reg53(M<float>(0x6ffa8cu));
     x0 = x0 / M<float>(0x6ffa88u);
     M<float>(0x7cb2f8u) = (float)x0;
     return;
@@ -8370,7 +8370,7 @@ void __cdecl Init_4a45a0() {   // 0x4a45a0
     return;
 }
 void __cdecl Init_4a45c0() {   // 0x4a45c0
-    X87Reg x0 = X87Reg(M<float>(0x6ffac0u));
+    X87Reg53 x0 = X87Reg53(M<float>(0x6ffac0u));
     x0 = x0 / M<float>(0x6ffa90u);
     M<float>(0x7cb388u) = (float)x0;
     return;
@@ -8444,7 +8444,7 @@ void __cdecl Init_4a5f20() {   // 0x4a5f20
     return;
 }
 void __cdecl Init_4a5f40() {   // 0x4a5f40
-    X87Reg x0 = X87Reg(M<float>(0x6ffaf8u));
+    X87Reg53 x0 = X87Reg53(M<float>(0x6ffaf8u));
     x0 = x0 / M<float>(0x6ffac8u);
     M<float>(0x7cb3dcu) = (float)x0;
     return;
@@ -8476,7 +8476,7 @@ void __cdecl Init_4a71e0() {   // 0x4a71e0
     return;
 }
 void __cdecl Init_4a7200() {   // 0x4a7200
-    X87Reg x0 = X87Reg(M<float>(0x6ffb30u));
+    X87Reg53 x0 = X87Reg53(M<float>(0x6ffb30u));
     x0 = x0 / M<float>(0x6ffb00u);
     M<float>(0x7cc14cu) = (float)x0;
     return;
@@ -8564,7 +8564,7 @@ void __cdecl Init_4a9570() {   // 0x4a9570
     return;
 }
 void __cdecl Init_4a9590() {   // 0x4a9590
-    X87Reg x0 = X87Reg(M<float>(0x6ffb68u));
+    X87Reg53 x0 = X87Reg53(M<float>(0x6ffb68u));
     x0 = x0 / M<float>(0x6ffb38u);
     M<float>(0x7cc1c4u) = (float)x0;
     return;
@@ -8580,7 +8580,7 @@ void __cdecl Init_4aaf10() {   // 0x4aaf10
     return;
 }
 void __cdecl Init_4aaf30() {   // 0x4aaf30
-    X87Reg x0 = X87Reg(M<float>(0x6ffba0u));
+    X87Reg53 x0 = X87Reg53(M<float>(0x6ffba0u));
     x0 = x0 / M<float>(0x6ffb70u);
     M<float>(0x7cc1f4u) = (float)x0;
     return;
@@ -8603,7 +8603,7 @@ void __cdecl Init_4ad470() {   // 0x4ad470
     return;
 }
 void __cdecl Init_4ad490() {   // 0x4ad490
-    X87Reg x0 = X87Reg(M<float>(0x6ffbd8u));
+    X87Reg53 x0 = X87Reg53(M<float>(0x6ffbd8u));
     x0 = x0 / M<float>(0x6ffba8u);
     M<float>(0x7cc210u) = (float)x0;
     return;
@@ -8629,7 +8629,7 @@ void __cdecl Init_4afa40() {   // 0x4afa40
     return;
 }
 void __cdecl Init_4afa60() {   // 0x4afa60
-    X87Reg x0 = X87Reg(M<float>(0x6ffc58u));
+    X87Reg53 x0 = X87Reg53(M<float>(0x6ffc58u));
     x0 = x0 / M<float>(0x6ffc28u);
     M<float>(0x7cc290u) = (float)x0;
     return;
@@ -8653,7 +8653,7 @@ void __cdecl Init_4b0e70() {   // 0x4b0e70
     return;
 }
 void __cdecl Init_4b0e90() {   // 0x4b0e90
-    X87Reg x0 = X87Reg(M<float>(0x6ffcd8u));
+    X87Reg53 x0 = X87Reg53(M<float>(0x6ffcd8u));
     x0 = x0 / M<float>(0x6ffca8u);
     M<float>(0x7cc2d0u) = (float)x0;
     return;
@@ -8677,7 +8677,7 @@ void __cdecl Init_4b2470() {   // 0x4b2470
     return;
 }
 void __cdecl Init_4b2490() {   // 0x4b2490
-    X87Reg x0 = X87Reg(M<float>(0x6ffd58u));
+    X87Reg53 x0 = X87Reg53(M<float>(0x6ffd58u));
     x0 = x0 / M<float>(0x6ffd28u);
     M<float>(0x7cc2e8u) = (float)x0;
     return;
@@ -8693,7 +8693,7 @@ void __cdecl Init_4b3300() {   // 0x4b3300
     return;
 }
 void __cdecl Init_4b3320() {   // 0x4b3320
-    X87Reg x0 = X87Reg(M<float>(0x6ffd90u));
+    X87Reg53 x0 = X87Reg53(M<float>(0x6ffd90u));
     x0 = x0 / M<float>(0x6ffd60u);
     M<float>(0x7cc2f8u) = (float)x0;
     return;
@@ -8724,7 +8724,7 @@ void __cdecl Init_4b52d0() {   // 0x4b52d0
     return;
 }
 void __cdecl Init_4b52f0() {   // 0x4b52f0
-    X87Reg x0 = X87Reg(M<float>(0x6ffe48u));
+    X87Reg53 x0 = X87Reg53(M<float>(0x6ffe48u));
     x0 = x0 / M<float>(0x6ffe18u);
     M<float>(0x7cc3d4u) = (float)x0;
     return;
@@ -8748,7 +8748,7 @@ void __cdecl Init_4b6430() {   // 0x4b6430
     return;
 }
 void __cdecl Init_4b6450() {   // 0x4b6450
-    X87Reg x0 = X87Reg(M<float>(0x6ffec0u));
+    X87Reg53 x0 = X87Reg53(M<float>(0x6ffec0u));
     x0 = x0 / M<float>(0x6ffe90u);
     M<float>(0x7cc404u) = (float)x0;
     return;
@@ -8772,7 +8772,7 @@ void __cdecl Init_4b6b20() {   // 0x4b6b20
     return;
 }
 void __cdecl Init_4b6b40() {   // 0x4b6b40
-    X87Reg x0 = X87Reg(M<float>(0x6fff38u));
+    X87Reg53 x0 = X87Reg53(M<float>(0x6fff38u));
     x0 = x0 / M<float>(0x6fff08u);
     M<float>(0x7cc438u) = (float)x0;
     return;
@@ -8796,7 +8796,7 @@ void __cdecl Init_4b7a30() {   // 0x4b7a30
     return;
 }
 void __cdecl Init_4b7a50() {   // 0x4b7a50
-    X87Reg x0 = X87Reg(M<float>(0x6fffb0u));
+    X87Reg53 x0 = X87Reg53(M<float>(0x6fffb0u));
     x0 = x0 / M<float>(0x6fff80u);
     M<float>(0x7cc440u) = (float)x0;
     return;
@@ -8812,7 +8812,7 @@ void __cdecl Init_4b8470() {   // 0x4b8470
     return;
 }
 void __cdecl Init_4b8490() {   // 0x4b8490
-    X87Reg x0 = X87Reg(M<float>(0x6fffe8u));
+    X87Reg53 x0 = X87Reg53(M<float>(0x6fffe8u));
     x0 = x0 / M<float>(0x6fffb8u);
     M<float>(0x7cc460u) = (float)x0;
     return;
@@ -8844,7 +8844,7 @@ void __cdecl Init_4b8ad0() {   // 0x4b8ad0
     return;
 }
 void __cdecl Init_4b8af0() {   // 0x4b8af0
-    X87Reg x0 = X87Reg(M<float>(0x700020u));
+    X87Reg53 x0 = X87Reg53(M<float>(0x700020u));
     x0 = x0 / M<float>(0x6ffff0u);
     M<float>(0x7cc498u) = (float)x0;
     return;
@@ -8876,7 +8876,7 @@ void __cdecl Init_4b9910() {   // 0x4b9910
     return;
 }
 void __cdecl Init_4b9930() {   // 0x4b9930
-    X87Reg x0 = X87Reg(M<float>(0x700058u));
+    X87Reg53 x0 = X87Reg53(M<float>(0x700058u));
     x0 = x0 / M<float>(0x700028u);
     M<float>(0x7cc4c8u) = (float)x0;
     return;
@@ -8908,7 +8908,7 @@ void __cdecl Init_4b9cc0() {   // 0x4b9cc0
     return;
 }
 void __cdecl Init_4b9ce0() {   // 0x4b9ce0
-    X87Reg x0 = X87Reg(M<float>(0x700090u));
+    X87Reg53 x0 = X87Reg53(M<float>(0x700090u));
     x0 = x0 / M<float>(0x700060u);
     M<float>(0x7cc510u) = (float)x0;
     return;
@@ -8940,7 +8940,7 @@ void __cdecl Init_4baed0() {   // 0x4baed0
     return;
 }
 void __cdecl Init_4baef0() {   // 0x4baef0
-    X87Reg x0 = X87Reg(M<float>(0x7000c8u));
+    X87Reg53 x0 = X87Reg53(M<float>(0x7000c8u));
     x0 = x0 / M<float>(0x700098u);
     M<float>(0x7cc5d8u) = (float)x0;
     return;
@@ -8972,7 +8972,7 @@ void __cdecl Init_4bb3f0() {   // 0x4bb3f0
     return;
 }
 void __cdecl Init_4bb410() {   // 0x4bb410
-    X87Reg x0 = X87Reg(M<float>(0x700100u));
+    X87Reg53 x0 = X87Reg53(M<float>(0x700100u));
     x0 = x0 / M<float>(0x7000d0u);
     M<float>(0x7cc604u) = (float)x0;
     return;
@@ -9004,7 +9004,7 @@ void __cdecl Init_4bbab0() {   // 0x4bbab0
     return;
 }
 void __cdecl Init_4bbad0() {   // 0x4bbad0
-    X87Reg x0 = X87Reg(M<float>(0x700138u));
+    X87Reg53 x0 = X87Reg53(M<float>(0x700138u));
     x0 = x0 / M<float>(0x700108u);
     M<float>(0x7cc668u) = (float)x0;
     return;
@@ -9058,7 +9058,7 @@ void __cdecl Init_4bce40() {   // 0x4bce40
     return;
 }
 void __cdecl Init_4bce60() {   // 0x4bce60
-    X87Reg x0 = X87Reg(M<float>(0x700180u));
+    X87Reg53 x0 = X87Reg53(M<float>(0x700180u));
     x0 = x0 / M<float>(0x700150u);
     M<float>(0x7cc8b0u) = (float)x0;
     return;
@@ -9090,7 +9090,7 @@ void __cdecl Init_4bf990() {   // 0x4bf990
     return;
 }
 void __cdecl Init_4bf9b0() {   // 0x4bf9b0
-    X87Reg x0 = X87Reg(M<float>(0x7001c8u));
+    X87Reg53 x0 = X87Reg53(M<float>(0x7001c8u));
     x0 = x0 / M<float>(0x700198u);
     M<float>(0x7cc928u) = (float)x0;
     return;
@@ -9122,7 +9122,7 @@ void __cdecl Init_4c0730() {   // 0x4c0730
     return;
 }
 void __cdecl Init_4c0750() {   // 0x4c0750
-    X87Reg x0 = X87Reg(M<float>(0x700200u));
+    X87Reg53 x0 = X87Reg53(M<float>(0x700200u));
     x0 = x0 / M<float>(0x7001d0u);
     M<float>(0x7cc968u) = (float)x0;
     return;
@@ -9164,7 +9164,7 @@ void __cdecl Init_4c19d0() {   // 0x4c19d0
     return;
 }
 void __cdecl Init_4c19f0() {   // 0x4c19f0
-    X87Reg x0 = X87Reg(M<float>(0x700238u));
+    X87Reg53 x0 = X87Reg53(M<float>(0x700238u));
     x0 = x0 / M<float>(0x700208u);
     M<float>(0x7cca74u) = (float)x0;
     return;
@@ -9196,7 +9196,7 @@ void __cdecl Init_4c2380() {   // 0x4c2380
     return;
 }
 void __cdecl Init_4c23a0() {   // 0x4c23a0
-    X87Reg x0 = X87Reg(M<float>(0x700270u));
+    X87Reg53 x0 = X87Reg53(M<float>(0x700270u));
     x0 = x0 / M<float>(0x700240u);
     M<float>(0x7ccaa0u) = (float)x0;
     return;
@@ -9212,7 +9212,7 @@ void __cdecl Init_4c2630() {   // 0x4c2630
     return;
 }
 void __cdecl Init_4c2650() {   // 0x4c2650
-    X87Reg x0 = X87Reg(M<float>(0x7002a8u));
+    X87Reg53 x0 = X87Reg53(M<float>(0x7002a8u));
     x0 = x0 / M<float>(0x700278u);
     M<float>(0x7cd7d4u) = (float)x0;
     return;
@@ -9244,7 +9244,7 @@ void __cdecl Init_4c48b0() {   // 0x4c48b0
     return;
 }
 void __cdecl Init_4c48d0() {   // 0x4c48d0
-    X87Reg x0 = X87Reg(M<float>(0x7002e0u));
+    X87Reg53 x0 = X87Reg53(M<float>(0x7002e0u));
     x0 = x0 / M<float>(0x7002b0u);
     M<float>(0x7cdaf4u) = (float)x0;
     return;
@@ -9276,7 +9276,7 @@ void __cdecl Init_4c5880() {   // 0x4c5880
     return;
 }
 void __cdecl Init_4c58a0() {   // 0x4c58a0
-    X87Reg x0 = X87Reg(M<float>(0x700318u));
+    X87Reg53 x0 = X87Reg53(M<float>(0x700318u));
     x0 = x0 / M<float>(0x7002e8u);
     M<float>(0x7cdb24u) = (float)x0;
     return;
@@ -9292,7 +9292,7 @@ void __cdecl Init_4ceff0() {   // 0x4ceff0
     return;
 }
 void __cdecl Init_4cf010() {   // 0x4cf010
-    X87Reg x0 = X87Reg(M<float>(0x700360u));
+    X87Reg53 x0 = X87Reg53(M<float>(0x700360u));
     x0 = x0 / M<float>(0x700330u);
     M<float>(0x7cdb2cu) = (float)x0;
     return;
@@ -9327,7 +9327,7 @@ void __cdecl Init_4d4210() {   // 0x4d4210
     return;
 }
 void __cdecl Init_4d4230() {   // 0x4d4230
-    X87Reg x0 = X87Reg(M<float>(0x7003d8u));
+    X87Reg53 x0 = X87Reg53(M<float>(0x7003d8u));
     x0 = x0 / M<float>(0x7003a8u);
     M<float>(0x7cdb5cu) = (float)x0;
     return;
@@ -9359,7 +9359,7 @@ void __cdecl Init_4d5d00() {   // 0x4d5d00
     return;
 }
 void __cdecl Init_4d5d20() {   // 0x4d5d20
-    X87Reg x0 = X87Reg(M<float>(0x700418u));
+    X87Reg53 x0 = X87Reg53(M<float>(0x700418u));
     x0 = x0 / M<float>(0x7003e8u);
     M<float>(0x7cdb80u) = (float)x0;
     return;
@@ -9375,7 +9375,7 @@ void __cdecl Init_4d6b20() {   // 0x4d6b20
     return;
 }
 void __cdecl Init_4d6b40() {   // 0x4d6b40
-    X87Reg x0 = X87Reg(M<float>(0x700450u));
+    X87Reg53 x0 = X87Reg53(M<float>(0x700450u));
     x0 = x0 / M<float>(0x700420u);
     M<float>(0x7cdb88u) = (float)x0;
     return;
@@ -9391,7 +9391,7 @@ void __cdecl Init_4d7b70() {   // 0x4d7b70
     return;
 }
 void __cdecl Init_4d7b90() {   // 0x4d7b90
-    X87Reg x0 = X87Reg(M<float>(0x700488u));
+    X87Reg53 x0 = X87Reg53(M<float>(0x700488u));
     x0 = x0 / M<float>(0x700458u);
     M<float>(0x7cdb94u) = (float)x0;
     return;
@@ -9489,7 +9489,7 @@ void __cdecl Init_4d9d70() {   // 0x4d9d70
     return;
 }
 void __cdecl Init_4d9d90() {   // 0x4d9d90
-    X87Reg x0 = X87Reg(M<float>(0x7004d0u));
+    X87Reg53 x0 = X87Reg53(M<float>(0x7004d0u));
     x0 = x0 / M<float>(0x7004a0u);
     M<float>(0x7cdbe8u) = (float)x0;
     return;
@@ -9505,7 +9505,7 @@ void __cdecl Init_4da8e0() {   // 0x4da8e0
     return;
 }
 void __cdecl Init_4da900() {   // 0x4da900
-    X87Reg x0 = X87Reg(M<float>(0x700508u));
+    X87Reg53 x0 = X87Reg53(M<float>(0x700508u));
     x0 = x0 / M<float>(0x7004d8u);
     M<float>(0x7cdbf4u) = (float)x0;
     return;
@@ -9521,7 +9521,7 @@ void __cdecl Init_4db020() {   // 0x4db020
     return;
 }
 void __cdecl Init_4db040() {   // 0x4db040
-    X87Reg x0 = X87Reg(M<float>(0x70054cu));
+    X87Reg53 x0 = X87Reg53(M<float>(0x70054cu));
     x0 = x0 / M<float>(0x700514u);
     M<float>(0x7cdc9cu) = (float)x0;
     return;
@@ -9553,7 +9553,7 @@ void __cdecl Init_4e2fd0() {   // 0x4e2fd0
     return;
 }
 void __cdecl Init_4e2ff0() {   // 0x4e2ff0
-    X87Reg x0 = X87Reg(M<float>(0x700618u));
+    X87Reg53 x0 = X87Reg53(M<float>(0x700618u));
     x0 = x0 / M<float>(0x7005e8u);
     M<float>(0x7cea3cu) = (float)x0;
     return;
@@ -9641,7 +9641,7 @@ void __cdecl Init_4f7ae0() {   // 0x4f7ae0
     return;
 }
 void __cdecl Init_4f7b00() {   // 0x4f7b00
-    X87Reg x0 = X87Reg(M<float>(0x700690u));
+    X87Reg53 x0 = X87Reg53(M<float>(0x700690u));
     x0 = x0 / M<float>(0x700658u);
     M<float>(0x7ced50u) = (float)x0;
     return;
@@ -9673,7 +9673,7 @@ void __cdecl Init_4f8900() {   // 0x4f8900
     return;
 }
 void __cdecl Init_4f8920() {   // 0x4f8920
-    X87Reg x0 = X87Reg(M<float>(0x7006c8u));
+    X87Reg53 x0 = X87Reg53(M<float>(0x7006c8u));
     x0 = x0 / M<float>(0x70069cu);
     M<float>(0x7cedd0u) = (float)x0;
     return;
@@ -9718,7 +9718,7 @@ void __cdecl Init_4fae80() {   // 0x4fae80
     return;
 }
 void __cdecl Init_4faea0() {   // 0x4faea0
-    X87Reg x0 = X87Reg(M<float>(0x700728u));
+    X87Reg53 x0 = X87Reg53(M<float>(0x700728u));
     x0 = x0 / M<float>(0x7006f8u);
     M<float>(0x7cede0u) = (float)x0;
     return;
@@ -9734,7 +9734,7 @@ void __cdecl Init_4fec50() {   // 0x4fec50
     return;
 }
 void __cdecl Init_4fec70() {   // 0x4fec70
-    X87Reg x0 = X87Reg(M<float>(0x700790u));
+    X87Reg53 x0 = X87Reg53(M<float>(0x700790u));
     x0 = x0 / M<float>(0x700760u);
     M<float>(0x7cede8u) = (float)x0;
     return;
@@ -9750,7 +9750,7 @@ void __cdecl Init_5025c0() {   // 0x5025c0
     return;
 }
 void __cdecl Init_5025e0() {   // 0x5025e0
-    X87Reg x0 = X87Reg(M<float>(0x7007e0u));
+    X87Reg53 x0 = X87Reg53(M<float>(0x7007e0u));
     x0 = x0 / M<float>(0x7007b0u);
     M<float>(0x7cedf0u) = (float)x0;
     return;
@@ -9782,7 +9782,7 @@ void __cdecl Init_504a50() {   // 0x504a50
     return;
 }
 void __cdecl Init_504a70() {   // 0x504a70
-    X87Reg x0 = X87Reg(M<float>(0x700828u));
+    X87Reg53 x0 = X87Reg53(M<float>(0x700828u));
     x0 = x0 / M<float>(0x7007f8u);
     M<float>(0x7cee10u) = (float)x0;
     return;
@@ -9798,7 +9798,7 @@ void __cdecl Init_507040() {   // 0x507040
     return;
 }
 void __cdecl Init_507060() {   // 0x507060
-    X87Reg x0 = X87Reg(M<float>(0x7008a0u));
+    X87Reg53 x0 = X87Reg53(M<float>(0x7008a0u));
     x0 = x0 / M<float>(0x700870u);
     M<float>(0x7cf020u) = (float)x0;
     return;
@@ -9814,7 +9814,7 @@ void __cdecl Init_508980() {   // 0x508980
     return;
 }
 void __cdecl Init_5089a0() {   // 0x5089a0
-    X87Reg x0 = X87Reg(M<float>(0x7008d8u));
+    X87Reg53 x0 = X87Reg53(M<float>(0x7008d8u));
     x0 = x0 / M<float>(0x7008a8u);
     M<float>(0x7cf028u) = (float)x0;
     return;
@@ -9830,7 +9830,7 @@ void __cdecl Init_50afa0() {   // 0x50afa0
     return;
 }
 void __cdecl Init_50afc0() {   // 0x50afc0
-    X87Reg x0 = X87Reg(M<float>(0x700910u));
+    X87Reg53 x0 = X87Reg53(M<float>(0x700910u));
     x0 = x0 / M<float>(0x7008e0u);
     M<float>(0x7cf030u) = (float)x0;
     return;
@@ -9862,7 +9862,7 @@ void __cdecl Init_50ba40() {   // 0x50ba40
     return;
 }
 void __cdecl Init_50ba60() {   // 0x50ba60
-    X87Reg x0 = X87Reg(M<float>(0x700948u));
+    X87Reg53 x0 = X87Reg53(M<float>(0x700948u));
     x0 = x0 / M<float>(0x700918u);
     M<float>(0x7cf038u) = (float)x0;
     return;
@@ -9878,7 +9878,7 @@ void __cdecl Init_50c5e0() {   // 0x50c5e0
     return;
 }
 void __cdecl Init_50c600() {   // 0x50c600
-    X87Reg x0 = X87Reg(M<float>(0x700980u));
+    X87Reg53 x0 = X87Reg53(M<float>(0x700980u));
     x0 = x0 / M<float>(0x700950u);
     M<float>(0x7cf040u) = (float)x0;
     return;
@@ -9985,7 +9985,7 @@ void __cdecl Init_5102b0() {   // 0x5102b0
     return;
 }
 void __cdecl Init_5102d0() {   // 0x5102d0
-    X87Reg x0 = X87Reg(M<float>(0x700a08u));
+    X87Reg53 x0 = X87Reg53(M<float>(0x700a08u));
     x0 = x0 / M<float>(0x7009d8u);
     M<float>(0x7cf388u) = (float)x0;
     return;
@@ -10001,7 +10001,7 @@ void __cdecl Init_511f30() {   // 0x511f30
     return;
 }
 void __cdecl Init_511f50() {   // 0x511f50
-    X87Reg x0 = X87Reg(M<float>(0x700a40u));
+    X87Reg53 x0 = X87Reg53(M<float>(0x700a40u));
     x0 = x0 / M<float>(0x700a38u);
     M<float>(0x7cf3d0u) = (float)x0;
     return;
@@ -10017,7 +10017,7 @@ void __cdecl Init_513540() {   // 0x513540
     return;
 }
 void __cdecl Init_513560() {   // 0x513560
-    X87Reg x0 = X87Reg(M<float>(0x700a98u));
+    X87Reg53 x0 = X87Reg53(M<float>(0x700a98u));
     x0 = x0 / M<float>(0x700a68u);
     M<float>(0x8020b4u) = (float)x0;
     return;
@@ -10088,7 +10088,7 @@ void __cdecl Init_51afd0() {   // 0x51afd0
     return;
 }
 void __cdecl Init_51aff0() {   // 0x51aff0
-    X87Reg x0 = X87Reg(M<float>(0x700ae8u));
+    X87Reg53 x0 = X87Reg53(M<float>(0x700ae8u));
     x0 = x0 / M<float>(0x700ab8u);
     M<float>(0x802bacu) = (float)x0;
     return;
@@ -10104,7 +10104,7 @@ void __cdecl Init_51b460() {   // 0x51b460
     return;
 }
 void __cdecl Init_51b480() {   // 0x51b480
-    X87Reg x0 = X87Reg(M<float>(0x700b20u));
+    X87Reg53 x0 = X87Reg53(M<float>(0x700b20u));
     x0 = x0 / M<float>(0x700af0u);
     M<float>(0x802bd0u) = (float)x0;
     return;
@@ -10120,7 +10120,7 @@ void __cdecl Init_51eef0() {   // 0x51eef0
     return;
 }
 void __cdecl Init_51ef10() {   // 0x51ef10
-    X87Reg x0 = X87Reg(M<float>(0x700c00u));
+    X87Reg53 x0 = X87Reg53(M<float>(0x700c00u));
     x0 = x0 / M<float>(0x700bd0u);
     M<float>(0x804368u) = (float)x0;
     return;
@@ -10136,7 +10136,7 @@ void __cdecl Init_5228c0() {   // 0x5228c0
     return;
 }
 void __cdecl Init_5228e0() {   // 0x5228e0
-    X87Reg x0 = X87Reg(M<float>(0x700c64u));
+    X87Reg53 x0 = X87Reg53(M<float>(0x700c64u));
     x0 = x0 / M<float>(0x700c28u);
     M<float>(0x818680u) = (float)x0;
     return;
@@ -10152,7 +10152,7 @@ void __cdecl Init_522ff0() {   // 0x522ff0
     return;
 }
 void __cdecl Init_523010() {   // 0x523010
-    X87Reg x0 = X87Reg(M<float>(0x700c98u));
+    X87Reg53 x0 = X87Reg53(M<float>(0x700c98u));
     x0 = x0 / M<float>(0x700c68u);
     M<float>(0x81869cu) = (float)x0;
     return;
@@ -10184,7 +10184,7 @@ void __cdecl Init_527d00() {   // 0x527d00
     return;
 }
 void __cdecl Init_527d20() {   // 0x527d20
-    X87Reg x0 = X87Reg(M<float>(0x700cd4u));
+    X87Reg53 x0 = X87Reg53(M<float>(0x700cd4u));
     x0 = x0 / M<float>(0x700ca0u);
     M<float>(0x818c34u) = (float)x0;
     return;
@@ -10213,7 +10213,7 @@ void __cdecl Init_52d240() {   // 0x52d240
     return;
 }
 void __cdecl Init_52d260() {   // 0x52d260
-    X87Reg x0 = X87Reg(M<float>(0x700d10u));
+    X87Reg53 x0 = X87Reg53(M<float>(0x700d10u));
     x0 = x0 / M<float>(0x700ce0u);
     M<float>(0x81eb90u) = (float)x0;
     return;
@@ -10268,7 +10268,7 @@ void __cdecl Init_532d90() {   // 0x532d90
     return;
 }
 void __cdecl Init_532db0() {   // 0x532db0
-    X87Reg x0 = X87Reg(M<float>(0x700d50u));
+    X87Reg53 x0 = X87Reg53(M<float>(0x700d50u));
     x0 = x0 / M<float>(0x700d20u);
     M<float>(0x820ab4u) = (float)x0;
     return;
@@ -10284,7 +10284,7 @@ void __cdecl Init_536c60() {   // 0x536c60
     return;
 }
 void __cdecl Init_536c80() {   // 0x536c80
-    X87Reg x0 = X87Reg(M<float>(0x700d90u));
+    X87Reg53 x0 = X87Reg53(M<float>(0x700d90u));
     x0 = x0 / M<float>(0x700d60u);
     M<float>(0x820ae4u) = (float)x0;
     return;
@@ -10300,7 +10300,7 @@ void __cdecl Init_53bfa0() {   // 0x53bfa0
     return;
 }
 void __cdecl Init_53bfc0() {   // 0x53bfc0
-    X87Reg x0 = X87Reg(M<float>(0x700dd8u));
+    X87Reg53 x0 = X87Reg53(M<float>(0x700dd8u));
     x0 = x0 / M<float>(0x700da0u);
     M<float>(0x871edcu) = (float)x0;
     return;
@@ -10330,7 +10330,7 @@ void __cdecl Init_53e960() {   // 0x53e960
     return;
 }
 void __cdecl Init_53e980() {   // 0x53e980
-    X87Reg x0 = X87Reg(M<float>(0x700e60u));
+    X87Reg53 x0 = X87Reg53(M<float>(0x700e60u));
     x0 = x0 / M<float>(0x700e30u);
     M<float>(0x87687cu) = (float)x0;
     return;
@@ -10370,7 +10370,7 @@ void __cdecl Init_542860() {   // 0x542860
     return;
 }
 void __cdecl Init_542880() {   // 0x542880
-    X87Reg x0 = X87Reg(M<float>(0x700eb0u));
+    X87Reg53 x0 = X87Reg53(M<float>(0x700eb0u));
     x0 = x0 / M<float>(0x700e80u);
     M<float>(0x877b98u) = (float)x0;
     return;
@@ -10386,7 +10386,7 @@ void __cdecl Init_54bca0() {   // 0x54bca0
     return;
 }
 void __cdecl Init_54bcc0() {   // 0x54bcc0
-    X87Reg x0 = X87Reg(M<float>(0x700f80u));
+    X87Reg53 x0 = X87Reg53(M<float>(0x700f80u));
     x0 = x0 / M<float>(0x700f30u);
     M<float>(0x878d7cu) = (float)x0;
     return;
@@ -10484,7 +10484,7 @@ void __cdecl Init_5510f0() {   // 0x5510f0
     return;
 }
 void __cdecl Init_551110() {   // 0x551110
-    X87Reg x0 = X87Reg(M<float>(0x700fc8u));
+    X87Reg53 x0 = X87Reg53(M<float>(0x700fc8u));
     x0 = x0 / M<float>(0x700f98u);
     M<float>(0x879198u) = (float)x0;
     return;
@@ -10500,7 +10500,7 @@ void __cdecl Init_55a530() {   // 0x55a530
     return;
 }
 void __cdecl Init_55a550() {   // 0x55a550
-    X87Reg x0 = X87Reg(M<float>(0x701088u));
+    X87Reg53 x0 = X87Reg53(M<float>(0x701088u));
     x0 = x0 / M<float>(0x701058u);
     M<float>(0x87938cu) = (float)x0;
     return;
@@ -10580,7 +10580,7 @@ void __cdecl Init_561800() {   // 0x561800
     return;
 }
 void __cdecl Init_561820() {   // 0x561820
-    X87Reg x0 = X87Reg(M<float>(0x70111cu));
+    X87Reg53 x0 = X87Reg53(M<float>(0x70111cu));
     x0 = x0 / M<float>(0x7010e8u);
     M<float>(0x879a10u) = (float)x0;
     return;
@@ -10596,7 +10596,7 @@ void __cdecl Init_5650b0() {   // 0x5650b0
     return;
 }
 void __cdecl Init_5650d0() {   // 0x5650d0
-    X87Reg x0 = X87Reg(M<float>(0x701214u));
+    X87Reg53 x0 = X87Reg53(M<float>(0x701214u));
     x0 = x0 / M<float>(0x701210u);
     M<float>(0x879aa4u) = (float)x0;
     return;
@@ -10622,7 +10622,7 @@ void __cdecl Init_565180() {   // 0x565180
     return;
 }
 void __cdecl Init_5651a0() {   // 0x5651a0
-    X87Reg x0 = X87Reg(M<float>(0x70124cu));
+    X87Reg53 x0 = X87Reg53(M<float>(0x70124cu));
     x0 = x0 / M<float>(0x701248u);
     M<float>(0x879aacu) = (float)x0;
     return;
@@ -10638,7 +10638,7 @@ void __cdecl Init_5666b0() {   // 0x5666b0
     return;
 }
 void __cdecl Init_5666d0() {   // 0x5666d0
-    X87Reg x0 = X87Reg(M<float>(0x7012e8u));
+    X87Reg53 x0 = X87Reg53(M<float>(0x7012e8u));
     x0 = x0 / M<float>(0x7012d0u);
     M<float>(0x879abcu) = (float)x0;
     return;
@@ -10654,7 +10654,7 @@ void __cdecl Init_569dd0() {   // 0x569dd0
     return;
 }
 void __cdecl Init_569df0() {   // 0x569df0
-    X87Reg x0 = X87Reg(M<float>(0x7013acu));
+    X87Reg53 x0 = X87Reg53(M<float>(0x7013acu));
     x0 = x0 / M<float>(0x7013a8u);
     M<float>(0x879ac8u) = (float)x0;
     return;
@@ -10670,7 +10670,7 @@ void __cdecl Init_56b030() {   // 0x56b030
     return;
 }
 void __cdecl Init_56b050() {   // 0x56b050
-    X87Reg x0 = X87Reg(M<float>(0x701448u));
+    X87Reg53 x0 = X87Reg53(M<float>(0x701448u));
     x0 = x0 / M<float>(0x701418u);
     M<float>(0x879d00u) = (float)x0;
     return;
@@ -10702,7 +10702,7 @@ void __cdecl Init_56b680() {   // 0x56b680
     return;
 }
 void __cdecl Init_56b6a0() {   // 0x56b6a0
-    X87Reg x0 = X87Reg(M<float>(0x701490u));
+    X87Reg53 x0 = X87Reg53(M<float>(0x701490u));
     x0 = x0 / M<float>(0x701480u);
     M<float>(0x879d50u) = (float)x0;
     return;
@@ -10734,7 +10734,7 @@ void __cdecl Init_56ddb0() {   // 0x56ddb0
     return;
 }
 void __cdecl Init_56ddd0() {   // 0x56ddd0
-    X87Reg x0 = X87Reg(M<float>(0x701518u));
+    X87Reg53 x0 = X87Reg53(M<float>(0x701518u));
     x0 = x0 / M<float>(0x7014f0u);
     M<float>(0x879d5cu) = (float)x0;
     return;
@@ -10766,7 +10766,7 @@ void __cdecl Init_572090() {   // 0x572090
     return;
 }
 void __cdecl Init_5720b0() {   // 0x5720b0
-    X87Reg x0 = X87Reg(M<float>(0x701598u));
+    X87Reg53 x0 = X87Reg53(M<float>(0x701598u));
     x0 = x0 / M<float>(0x701570u);
     M<float>(0x879d68u) = (float)x0;
     return;
@@ -10798,7 +10798,7 @@ void __cdecl Init_572740() {   // 0x572740
     return;
 }
 void __cdecl Init_572760() {   // 0x572760
-    X87Reg x0 = X87Reg(M<float>(0x7015f0u));
+    X87Reg53 x0 = X87Reg53(M<float>(0x7015f0u));
     x0 = x0 / M<float>(0x7015a0u);
     M<float>(0x879da0u) = (float)x0;
     return;
@@ -10839,7 +10839,7 @@ void __cdecl Init_573f10() {   // 0x573f10
     return;
 }
 void __cdecl Init_573f30() {   // 0x573f30
-    X87Reg x0 = X87Reg(M<float>(0x7016b4u));
+    X87Reg53 x0 = X87Reg53(M<float>(0x7016b4u));
     x0 = x0 / M<float>(0x7016b0u);
     M<float>(0x879de8u) = (float)x0;
     return;
@@ -10870,7 +10870,7 @@ void __cdecl Init_573f90() {   // 0x573f90
     return;
 }
 void __cdecl Init_573fb0() {   // 0x573fb0
-    X87Reg x0 = X87Reg(M<float>(0x7016c0u));
+    X87Reg53 x0 = X87Reg53(M<float>(0x7016c0u));
     x0 = x0 / M<float>(0x7016bcu);
     M<float>(0x87a244u) = (float)x0;
     return;
@@ -10886,7 +10886,7 @@ void __cdecl Init_5749e0() {   // 0x5749e0
     return;
 }
 void __cdecl Init_574a00() {   // 0x574a00
-    X87Reg x0 = X87Reg(M<float>(0x70174cu));
+    X87Reg53 x0 = X87Reg53(M<float>(0x70174cu));
     x0 = x0 / M<float>(0x701748u);
     M<float>(0x87a258u) = (float)x0;
     return;
@@ -10902,7 +10902,7 @@ void __cdecl Init_576010() {   // 0x576010
     return;
 }
 void __cdecl Init_576030() {   // 0x576030
-    X87Reg x0 = X87Reg(M<float>(0x7017f0u));
+    X87Reg53 x0 = X87Reg53(M<float>(0x7017f0u));
     x0 = x0 / M<float>(0x7017a0u);
     M<float>(0x87a6ccu) = (float)x0;
     return;
@@ -10912,13 +10912,13 @@ void __cdecl Init_576050() {   // 0x576050
     return;
 }
 void __cdecl Init_576060() {   // 0x576060
-    X87Reg x0 = X87Reg(M<float>(0x7017f0u));
+    X87Reg53 x0 = X87Reg53(M<float>(0x7017f0u));
     x0 = x0 - M<float>(0x87a678u);
     M<float>(0x87a67cu) = (float)x0;
     return;
 }
 void __cdecl Init_576080() {   // 0x576080
-    X87Reg x0 = X87Reg(M<float>(0x7017f0u));
+    X87Reg53 x0 = X87Reg53(M<float>(0x7017f0u));
     x0 = x0 / M<float>(0x87a67cu);
     M<float>(0x87a6c8u) = (float)x0;
     return;
@@ -10944,13 +10944,13 @@ void __cdecl Init_577650() {   // 0x577650
     return;
 }
 void __cdecl Init_577660() {   // 0x577660
-    X87Reg x0 = X87Reg(M<float>(0x701870u));
+    X87Reg53 x0 = X87Reg53(M<float>(0x701870u));
     x0 = x0 - M<float>(0x87aee0u);
     M<float>(0x87aee4u) = (float)x0;
     return;
 }
 void __cdecl Init_577680() {   // 0x577680
-    X87Reg x0 = X87Reg(M<float>(0x701870u));
+    X87Reg53 x0 = X87Reg53(M<float>(0x701870u));
     x0 = x0 / M<float>(0x87aee4u);
     M<float>(0x87af4cu) = (float)x0;
     return;
@@ -10966,7 +10966,7 @@ void __cdecl Init_5776a0() {   // 0x5776a0
     return;
 }
 void __cdecl Init_5776c0() {   // 0x5776c0
-    X87Reg x0 = X87Reg(M<float>(0x701870u));
+    X87Reg53 x0 = X87Reg53(M<float>(0x701870u));
     x0 = x0 / M<float>(0x701868u);
     M<float>(0x87af50u) = (float)x0;
     return;
@@ -11000,7 +11000,7 @@ void __cdecl Init_578060() {   // 0x578060
     return;
 }
 void __cdecl Init_578080() {   // 0x578080
-    X87Reg x0 = X87Reg(M<float>(0x701890u));
+    X87Reg53 x0 = X87Reg53(M<float>(0x701890u));
     x0 = x0 / M<float>(0x70188cu);
     M<float>(0x87b150u) = (float)x0;
     return;
@@ -11031,7 +11031,7 @@ void __cdecl Init_5791d0() {   // 0x5791d0
     return;
 }
 void __cdecl Init_5791f0() {   // 0x5791f0
-    X87Reg x0 = X87Reg(M<float>(0x70196cu));
+    X87Reg53 x0 = X87Reg53(M<float>(0x70196cu));
     x0 = x0 / M<float>(0x701968u);
     M<float>(0x87b1e4u) = (float)x0;
     return;
@@ -11047,7 +11047,7 @@ void __cdecl Init_579210() {   // 0x579210
     return;
 }
 void __cdecl Init_579230() {   // 0x579230
-    X87Reg x0 = X87Reg(M<float>(0x701974u));
+    X87Reg53 x0 = X87Reg53(M<float>(0x701974u));
     x0 = x0 / M<float>(0x701970u);
     M<float>(0x87b1ecu) = (float)x0;
     return;
@@ -11063,7 +11063,7 @@ void __cdecl Init_579a40() {   // 0x579a40
     return;
 }
 void __cdecl Init_579a60() {   // 0x579a60
-    X87Reg x0 = X87Reg(M<float>(0x701980u));
+    X87Reg53 x0 = X87Reg53(M<float>(0x701980u));
     x0 = x0 / M<float>(0x70197cu);
     M<float>(0x87b1f4u) = (float)x0;
     return;
@@ -11092,7 +11092,7 @@ void __cdecl Init_579c20() {   // 0x579c20
     return;
 }
 void __cdecl Init_579c40() {   // 0x579c40
-    X87Reg x0 = X87Reg(M<float>(0x7019e8u));
+    X87Reg53 x0 = X87Reg53(M<float>(0x7019e8u));
     x0 = x0 / M<float>(0x701998u);
     M<float>(0x8bb21cu) = (float)x0;
     return;
@@ -11117,7 +11117,7 @@ L_57abc4:
     return;
 }
 void __cdecl Init_57acc0() {   // 0x57acc0
-    X87Reg x0 = X87Reg(M<float>(0x701a60u));
+    X87Reg53 x0 = X87Reg53(M<float>(0x701a60u));
     x0 = x0 / M<float>(0x701a10u);
     M<float>(0x8bb62cu) = (float)x0;
     return;
@@ -11149,7 +11149,7 @@ void __cdecl Init_57b3d0() {   // 0x57b3d0
     return;
 }
 void __cdecl Init_57b3f0() {   // 0x57b3f0
-    X87Reg x0 = X87Reg(M<float>(0x701ab8u));
+    X87Reg53 x0 = X87Reg53(M<float>(0x701ab8u));
     x0 = x0 / M<float>(0x701a68u);
     M<float>(0x8bba3cu) = (float)x0;
     return;
@@ -11181,7 +11181,7 @@ void __cdecl Init_57c320() {   // 0x57c320
     return;
 }
 void __cdecl Init_57c340() {   // 0x57c340
-    X87Reg x0 = X87Reg(M<float>(0x701b20u));
+    X87Reg53 x0 = X87Reg53(M<float>(0x701b20u));
     x0 = x0 / M<float>(0x701accu);
     M<float>(0x8bba44u) = (float)x0;
     return;
@@ -11197,7 +11197,7 @@ void __cdecl Init_57ca80() {   // 0x57ca80
     return;
 }
 void __cdecl Init_57caa0() {   // 0x57caa0
-    X87Reg x0 = X87Reg(M<float>(0x701b98u));
+    X87Reg53 x0 = X87Reg53(M<float>(0x701b98u));
     x0 = x0 / M<float>(0x701b70u);
     M<float>(0x8bba70u) = (float)x0;
     return;
@@ -11219,7 +11219,7 @@ void __cdecl Init_57cac0() {   // 0x57cac0
     return;
 }
 void __cdecl Init_57cb50() {   // 0x57cb50
-    X87Reg x0 = X87Reg(M<float>(0x701becu));
+    X87Reg53 x0 = X87Reg53(M<float>(0x701becu));
     x0 = x0 / M<float>(0x701be8u);
     M<float>(0x8bcb90u) = (float)x0;
     return;
@@ -11238,7 +11238,7 @@ void __cdecl Init_57d0c0() {   // 0x57d0c0
     return;
 }
 void __cdecl Init_57d0e0() {   // 0x57d0e0
-    X87Reg x0 = X87Reg(M<float>(0x701c68u));
+    X87Reg53 x0 = X87Reg53(M<float>(0x701c68u));
     x0 = x0 / M<float>(0x701c14u);
     M<float>(0x8bcba8u) = (float)x0;
     return;
@@ -11254,7 +11254,7 @@ void __cdecl Init_580470() {   // 0x580470
     return;
 }
 void __cdecl Init_580490() {   // 0x580490
-    X87Reg x0 = X87Reg(M<float>(0x701d80u));
+    X87Reg53 x0 = X87Reg53(M<float>(0x701d80u));
     x0 = x0 / M<float>(0x701d30u);
     M<float>(0x8bcbb4u) = (float)x0;
     return;
@@ -11270,7 +11270,7 @@ void __cdecl Init_5821a0() {   // 0x5821a0
     return;
 }
 void __cdecl Init_5821c0() {   // 0x5821c0
-    X87Reg x0 = X87Reg(M<float>(0x701dc4u));
+    X87Reg53 x0 = X87Reg53(M<float>(0x701dc4u));
     x0 = x0 / M<float>(0x701dc0u);
     M<float>(0x8bcbc0u) = (float)x0;
     return;
@@ -11292,7 +11292,7 @@ void __cdecl Init_583500() {   // 0x583500
     return;
 }
 void __cdecl Init_583520() {   // 0x583520
-    X87Reg x0 = X87Reg(M<float>(0x701e10u));
+    X87Reg53 x0 = X87Reg53(M<float>(0x701e10u));
     x0 = x0 / M<float>(0x701de0u);
     M<float>(0x8bd504u) = (float)x0;
     return;
@@ -11308,7 +11308,7 @@ void __cdecl Init_5838b0() {   // 0x5838b0
     return;
 }
 void __cdecl Init_5838d0() {   // 0x5838d0
-    X87Reg x0 = X87Reg(M<float>(0x701e68u));
+    X87Reg53 x0 = X87Reg53(M<float>(0x701e68u));
     x0 = x0 / M<float>(0x701e40u);
     M<float>(0x8c1648u) = (float)x0;
     return;
@@ -11330,7 +11330,7 @@ void __cdecl Init_584a30() {   // 0x584a30
     return;
 }
 void __cdecl Init_584a50() {   // 0x584a50
-    X87Reg x0 = X87Reg(M<float>(0x701eb0u));
+    X87Reg53 x0 = X87Reg53(M<float>(0x701eb0u));
     x0 = x0 / M<float>(0x701e80u);
     M<float>(0x8c1654u) = (float)x0;
     return;
@@ -11386,7 +11386,7 @@ void __cdecl Init_584e80() {   // 0x584e80
     return;
 }
 void __cdecl Init_584ea0() {   // 0x584ea0
-    X87Reg x0 = X87Reg(M<float>(0x701f34u));
+    X87Reg53 x0 = X87Reg53(M<float>(0x701f34u));
     x0 = x0 / M<float>(0x701f30u);
     M<float>(0x8c473cu) = (float)x0;
     return;
@@ -11428,7 +11428,7 @@ void __cdecl Init_586d00() {   // 0x586d00
     return;
 }
 void __cdecl Init_586d20() {   // 0x586d20
-    X87Reg x0 = X87Reg(M<float>(0x701fd0u));
+    X87Reg53 x0 = X87Reg53(M<float>(0x701fd0u));
     x0 = x0 / M<float>(0x701fa0u);
     M<float>(0x8c4784u) = (float)x0;
     return;
@@ -11455,7 +11455,7 @@ void __cdecl Init_587d70() {   // 0x587d70
     return;
 }
 void __cdecl Init_587d90() {   // 0x587d90
-    X87Reg x0 = X87Reg(M<float>(0x702030u));
+    X87Reg53 x0 = X87Reg53(M<float>(0x702030u));
     x0 = x0 / M<float>(0x701fd8u);
     M<float>(0x8c4794u) = (float)x0;
     return;
@@ -11487,7 +11487,7 @@ void __cdecl Init_58a3f0() {   // 0x58a3f0
     return;
 }
 void __cdecl Init_58a410() {   // 0x58a410
-    X87Reg x0 = X87Reg(M<float>(0x7020a8u));
+    X87Reg53 x0 = X87Reg53(M<float>(0x7020a8u));
     x0 = x0 / M<float>(0x702080u);
     M<float>(0x8c479cu) = (float)x0;
     return;
@@ -11519,7 +11519,7 @@ void __cdecl Init_58ab90() {   // 0x58ab90
     return;
 }
 void __cdecl Init_58abb0() {   // 0x58abb0
-    X87Reg x0 = X87Reg(M<float>(0x702108u));
+    X87Reg53 x0 = X87Reg53(M<float>(0x702108u));
     x0 = x0 / M<float>(0x7020e0u);
     M<float>(0x8c47acu) = (float)x0;
     return;
@@ -11551,7 +11551,7 @@ void __cdecl Init_58afb0() {   // 0x58afb0
     return;
 }
 void __cdecl Init_58afd0() {   // 0x58afd0
-    X87Reg x0 = X87Reg(M<float>(0x702174u));
+    X87Reg53 x0 = X87Reg53(M<float>(0x702174u));
     x0 = x0 / M<float>(0x702170u);
     M<float>(0x8c47d0u) = (float)x0;
     return;
@@ -11583,7 +11583,7 @@ void __cdecl Init_58b3a0() {   // 0x58b3a0
     return;
 }
 void __cdecl Init_58b3c0() {   // 0x58b3c0
-    X87Reg x0 = X87Reg(M<float>(0x7021ecu));
+    X87Reg53 x0 = X87Reg53(M<float>(0x7021ecu));
     x0 = x0 / M<float>(0x7021e8u);
     M<float>(0x8c48a4u) = (float)x0;
     return;
@@ -11599,7 +11599,7 @@ void __cdecl Init_58c9b0() {   // 0x58c9b0
     return;
 }
 void __cdecl Init_58c9d0() {   // 0x58c9d0
-    X87Reg x0 = X87Reg(M<float>(0x7022ccu));
+    X87Reg53 x0 = X87Reg53(M<float>(0x7022ccu));
     x0 = x0 / M<float>(0x7022c8u);
     M<float>(0x8c4b38u) = (float)x0;
     return;
@@ -11615,7 +11615,7 @@ void __cdecl Init_58cfb0() {   // 0x58cfb0
     return;
 }
 void __cdecl Init_58cfd0() {   // 0x58cfd0
-    X87Reg x0 = X87Reg(M<float>(0x702324u));
+    X87Reg53 x0 = X87Reg53(M<float>(0x702324u));
     x0 = x0 / M<float>(0x702320u);
     M<float>(0x8c4b40u) = (float)x0;
     return;
@@ -11631,7 +11631,7 @@ void __cdecl Init_58e160() {   // 0x58e160
     return;
 }
 void __cdecl Init_58e180() {   // 0x58e180
-    X87Reg x0 = X87Reg(M<float>(0x7023ecu));
+    X87Reg53 x0 = X87Reg53(M<float>(0x7023ecu));
     x0 = x0 / M<float>(0x7023e8u);
     M<float>(0x8c4b4cu) = (float)x0;
     return;
@@ -11647,7 +11647,7 @@ void __cdecl Init_58e750() {   // 0x58e750
     return;
 }
 void __cdecl Init_58e770() {   // 0x58e770
-    X87Reg x0 = X87Reg(M<float>(0x70245cu));
+    X87Reg53 x0 = X87Reg53(M<float>(0x70245cu));
     x0 = x0 / M<float>(0x702458u);
     M<float>(0x8c4b54u) = (float)x0;
     return;
@@ -11663,7 +11663,7 @@ void __cdecl Init_5906a0() {   // 0x5906a0
     return;
 }
 void __cdecl Init_5906c0() {   // 0x5906c0
-    X87Reg x0 = X87Reg(M<float>(0x7024c4u));
+    X87Reg53 x0 = X87Reg53(M<float>(0x7024c4u));
     x0 = x0 / M<float>(0x7024c0u);
     M<float>(0x8c6398u) = (float)x0;
     return;
@@ -11679,7 +11679,7 @@ void __cdecl Init_5909c0() {   // 0x5909c0
     return;
 }
 void __cdecl Init_5909e0() {   // 0x5909e0
-    X87Reg x0 = X87Reg(M<float>(0x70252cu));
+    X87Reg53 x0 = X87Reg53(M<float>(0x70252cu));
     x0 = x0 / M<float>(0x702528u);
     M<float>(0x8c63a8u) = (float)x0;
     return;
@@ -11695,7 +11695,7 @@ void __cdecl Init_591190() {   // 0x591190
     return;
 }
 void __cdecl Init_5911b0() {   // 0x5911b0
-    X87Reg x0 = X87Reg(M<float>(0x7025bcu));
+    X87Reg53 x0 = X87Reg53(M<float>(0x7025bcu));
     x0 = x0 / M<float>(0x7025b8u);
     M<float>(0x8c67dcu) = (float)x0;
     return;
@@ -11711,7 +11711,7 @@ void __cdecl Init_5915b0() {   // 0x5915b0
     return;
 }
 void __cdecl Init_5915d0() {   // 0x5915d0
-    X87Reg x0 = X87Reg(M<float>(0x7025fcu));
+    X87Reg53 x0 = X87Reg53(M<float>(0x7025fcu));
     x0 = x0 / M<float>(0x7025f8u);
     M<float>(0x8c67f4u) = (float)x0;
     return;
@@ -11721,45 +11721,45 @@ void __cdecl Init_5915f0() {   // 0x5915f0
     return;
 }
 void __cdecl Init_591600() {   // 0x591600
-    X87Reg x0 = M<double>(0x702610u);
-    x0 = X87_Sqrt(x0);
-    X87Reg x1 = M<double>(0x702628u);
-    x1 = X87_Sqrt(x1);
-    x0 = x0 - X87Reg(M<double>(0x702618u));
-    x0 = X87Reg(X87_MulDouble(x0.v, M<double>(0x702620u)));
+    X87Reg53 x0 = M<double>(0x702610u);
+    x0 = X87_Sqrt53(x0);
+    X87Reg53 x1 = M<double>(0x702628u);
+    x1 = X87_Sqrt53(x1);
+    x0 = x0 - X87Reg53(M<double>(0x702618u));
+    x0 = x0 * X87Reg53(M<double>(0x702620u));
     x0 = x0 / x1;
     M<float>(0xc27208u) = (float)x0;
     return;
 }
 void __cdecl Init_591630() {   // 0x591630
-    X87Reg x0 = M<double>(0x702610u);
-    x0 = X87_Sqrt(x0);
-    X87Reg x1 = M<double>(0x702628u);
-    x1 = X87_Sqrt(x1);
-    x0 = x0 - X87Reg(M<double>(0x702630u));
-    x0 = X87Reg(X87_MulDouble(x0.v, M<double>(0x702620u)));
+    X87Reg53 x0 = M<double>(0x702610u);
+    x0 = X87_Sqrt53(x0);
+    X87Reg53 x1 = M<double>(0x702628u);
+    x1 = X87_Sqrt53(x1);
+    x0 = x0 - X87Reg53(M<double>(0x702630u));
+    x0 = x0 * X87Reg53(M<double>(0x702620u));
     x0 = x0 / x1;
     M<float>(0xc2720cu) = (float)x0;
     return;
 }
 void __cdecl Init_591660() {   // 0x591660
-    X87Reg x0 = M<double>(0x702610u);
-    x0 = X87_Sqrt(x0);
-    X87Reg x1 = M<double>(0x702628u);
-    x1 = X87_Sqrt(x1);
-    x0 = X87Reg(M<double>(0x702610u)) - x0;
-    x0 = X87Reg(X87_MulDouble(x0.v, M<double>(0x702620u)));
+    X87Reg53 x0 = M<double>(0x702610u);
+    x0 = X87_Sqrt53(x0);
+    X87Reg53 x1 = M<double>(0x702628u);
+    x1 = X87_Sqrt53(x1);
+    x0 = X87Reg53(M<double>(0x702610u)) - x0;
+    x0 = x0 * X87Reg53(M<double>(0x702620u));
     x0 = x0 / x1;
     M<float>(0xc27210u) = (float)x0;
     return;
 }
 void __cdecl Init_591690() {   // 0x591690
-    X87Reg x0 = M<double>(0x702610u);
-    x0 = X87_Sqrt(x0);
-    X87Reg x1 = M<double>(0x702628u);
-    x1 = X87_Sqrt(x1);
-    x0 = X87Reg(M<double>(0x702638u)) - x0;
-    x0 = X87Reg(X87_MulDouble(x0.v, M<double>(0x702620u)));
+    X87Reg53 x0 = M<double>(0x702610u);
+    x0 = X87_Sqrt53(x0);
+    X87Reg53 x1 = M<double>(0x702628u);
+    x1 = X87_Sqrt53(x1);
+    x0 = X87Reg53(M<double>(0x702638u)) - x0;
+    x0 = x0 * X87Reg53(M<double>(0x702620u));
     x0 = x0 / x1;
     M<float>(0xc27214u) = (float)x0;
     return;
@@ -11775,7 +11775,7 @@ void __cdecl Init_598830() {   // 0x598830
     return;
 }
 void __cdecl Init_598850() {   // 0x598850
-    X87Reg x0 = X87Reg(M<float>(0x702740u));
+    X87Reg53 x0 = X87Reg53(M<float>(0x702740u));
     x0 = x0 / M<float>(0x702710u);
     M<float>(0xf79620u) = (float)x0;
     return;
@@ -11791,7 +11791,7 @@ void __cdecl Init_5988a0() {   // 0x5988a0
     return;
 }
 void __cdecl Init_5988c0() {   // 0x5988c0
-    X87Reg x0 = X87Reg(M<float>(0x7027b0u));
+    X87Reg53 x0 = X87Reg53(M<float>(0x7027b0u));
     x0 = x0 / M<float>(0x702780u);
     M<float>(0xf797ccu) = (float)x0;
     return;
@@ -11807,7 +11807,7 @@ void __cdecl Init_599e00() {   // 0x599e00
     return;
 }
 void __cdecl Init_599e20() {   // 0x599e20
-    X87Reg x0 = X87Reg(M<float>(0x7027e8u));
+    X87Reg53 x0 = X87Reg53(M<float>(0x7027e8u));
     x0 = x0 / M<float>(0x7027b8u);
     M<float>(0xf79bd8u) = (float)x0;
     return;
@@ -12249,7 +12249,7 @@ void __cdecl Init_5d5660() {   // 0x5d5660
     return;
 }
 void __cdecl Init_5d5680() {   // 0x5d5680
-    X87Reg x0 = X87Reg(M<float>(0x7029c8u));
+    X87Reg53 x0 = X87Reg53(M<float>(0x7029c8u));
     x0 = x0 / M<float>(0x702998u);
     M<float>(0xf82868u) = (float)x0;
     return;
@@ -12281,7 +12281,7 @@ void __cdecl Init_5d61c0() {   // 0x5d61c0
     return;
 }
 void __cdecl Init_5d61e0() {   // 0x5d61e0
-    X87Reg x0 = X87Reg(M<float>(0x702a34u));
+    X87Reg53 x0 = X87Reg53(M<float>(0x702a34u));
     x0 = x0 / M<float>(0x702a00u);
     M<float>(0xf834bcu) = (float)x0;
     return;
@@ -12297,7 +12297,7 @@ void __cdecl Init_5d97f0() {   // 0x5d97f0
     return;
 }
 void __cdecl Init_5d9810() {   // 0x5d9810
-    X87Reg x0 = X87Reg(M<float>(0x702ad8u));
+    X87Reg53 x0 = X87Reg53(M<float>(0x702ad8u));
     x0 = x0 / M<float>(0x702aa8u);
     M<float>(0xf83780u) = (float)x0;
     return;
@@ -12313,7 +12313,7 @@ void __cdecl Init_5da5a0() {   // 0x5da5a0
     return;
 }
 void __cdecl Init_5da5c0() {   // 0x5da5c0
-    X87Reg x0 = X87Reg(M<float>(0x702b60u));
+    X87Reg53 x0 = X87Reg53(M<float>(0x702b60u));
     x0 = x0 / M<float>(0x702b30u);
     M<float>(0xf843b4u) = (float)x0;
     return;
@@ -12345,7 +12345,7 @@ void __cdecl Init_5ddbc0() {   // 0x5ddbc0
     return;
 }
 void __cdecl Init_5ddbe0() {   // 0x5ddbe0
-    X87Reg x0 = X87Reg(M<float>(0x702c4cu));
+    X87Reg53 x0 = X87Reg53(M<float>(0x702c4cu));
     x0 = x0 / M<float>(0x702c48u);
     M<float>(0xf852ccu) = (float)x0;
     return;
@@ -12377,7 +12377,7 @@ void __cdecl Init_5e2bf0() {   // 0x5e2bf0
     return;
 }
 void __cdecl Init_5e2c10() {   // 0x5e2c10
-    X87Reg x0 = X87Reg(M<float>(0x702d38u));
+    X87Reg53 x0 = X87Reg53(M<float>(0x702d38u));
     x0 = x0 / M<float>(0x702d08u);
     M<float>(0xf855e4u) = (float)x0;
     return;
@@ -12441,7 +12441,7 @@ void __cdecl Init_5f0600() {   // 0x5f0600
     return;
 }
 void __cdecl Init_5f0620() {   // 0x5f0620
-    X87Reg x0 = X87Reg(M<float>(0x703004u));
+    X87Reg53 x0 = X87Reg53(M<float>(0x703004u));
     x0 = x0 / M<float>(0x703000u);
     M<float>(0xf86d38u) = (float)x0;
     return;
@@ -12451,13 +12451,13 @@ void __cdecl Init_5f0640() {   // 0x5f0640
     return;
 }
 void __cdecl Init_5f0650() {   // 0x5f0650
-    X87Reg x0 = X87Reg(M<float>(0x703004u));
+    X87Reg53 x0 = X87Reg53(M<float>(0x703004u));
     x0 = x0 - M<float>(0xf869d0u);
     M<float>(0xf869d4u) = (float)x0;
     return;
 }
 void __cdecl Init_5f0670() {   // 0x5f0670
-    X87Reg x0 = X87Reg(M<float>(0x703004u));
+    X87Reg53 x0 = X87Reg53(M<float>(0x703004u));
     x0 = x0 / M<float>(0xf869d4u);
     M<float>(0xf86d34u) = (float)x0;
     return;
