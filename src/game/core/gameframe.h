@@ -28,3 +28,9 @@ void GameFrame_SetEnv(const GameFrameCall *table, u32 count);
 //   global save's flag (2 or 0). 0xc: all the singletons freed and 0x7a1a14 | 2, the state kept.
 u32 __cdecl Game_RunFrame();
 }
+
+#include "gamedata.h"
+
+// Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(u32, gGameframe_7858c8, 0x007858c8, 0x4);
+GAME_DATA(u32, gGameframe_878128, 0x00878128, 0x4);

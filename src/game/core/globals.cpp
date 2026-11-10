@@ -16,6 +16,7 @@
 #include "../world/mapclick.h"
 #include "../render/particles.h"
 #include "../render/meshlist.h"
+#include "gameframe.h"
 
 namespace {
 
@@ -232,7 +233,7 @@ u32 __cdecl Global879088_Set_5508b0(u32 v0) {
 }
 
 u32 __cdecl Global878128_Set_550510(u32 v0) {
-    global<u32>(0x00878128) = v0;
+    gGameframe_878128 = v0;
     return v0;
 }
 

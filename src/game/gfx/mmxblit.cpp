@@ -118,11 +118,11 @@ void __cdecl MmxBlit_Dither16(const u8 *source, u8 *out, u32 width, u32 rows, s3
 void __cdecl MmxBlit_Convert16(u8 *source, u8 *out, u32 width, u32 rows, s32 sourcePitch, s32 outPitch, u8 *depth, u32 depthPitch,
                                u32 clear, u32 fill) {
     gMmxBlit_Convert16_fab4d8 = 0u - width;
-    global<u32>(0x00fab4fc) = rows;
+    gMmxblit_fab4fc = rows;
     gMmxBlit_Convert16_fab4b4 = depthPitch;
     const bool clearing = (u8)clear != 0;
     if (clearing) {
-        global<u32>(0x00fac51c) = fill;
+        gMmxblit_fac51c = fill;
         global<u32>(0x00fac518) = fill;
     }
     const uint64_t low = global<uint64_t>(0x00fbe198);
@@ -276,7 +276,7 @@ void __cdecl MmxBlit_Convert16(u8 *source, u8 *out, u32 width, u32 rows, s32 sou
             d = moved(d, outPitch);
             z = moved(z, (s32)depthStep);
         }
-    } while (global<u32>(0x00fab4fc) != ++row);
+    } while (gMmxblit_fab4fc != ++row);
 }
 
 void __cdecl MmxBlit_Copy32(u8 *source, u8 *out, u32 width, u32 rows, s32 sourcePitch, s32 outPitch, u8 *depth, u32 depthPitch,
@@ -285,7 +285,7 @@ void __cdecl MmxBlit_Copy32(u8 *source, u8 *out, u32 width, u32 rows, s32 source
     gMmxBlit_Copy32_fab4a0 = rows;
     gMmxBlit_Copy32_fab4b0 = depthPitch;
     if ((u8)clear == 0) {
-        global<u32>(0x00fac51c) = fillLow;
+        gMmxblit_fac51c = fillLow;
         global<u32>(0x00fac518) = fillLow;
         u32 left = gMmxBlit_Copy32_fab4a0;
         do {

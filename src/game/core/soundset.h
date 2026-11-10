@@ -180,3 +180,13 @@ GAME_DATA(u32, gSoundset_802bc8, 0x00802bc8, 4);
 GAME_DATA(u32, gSoundset_802bd4, 0x00802bd4, 4);
 GAME_DATA(u32, gSoundset_803a48, 0x00803a48, 0x4);
 GAME_DATA(u8 *, gSoundset_803a4c, 0x00803a4c, 0x4);
+
+// Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(s32, gSoundset_785938, 0x00785938, 0x4);
+GAME_DATA(s32, gSoundset_78593c, 0x0078593c, 0x4);
+GAME_DATA(s32, gSoundset_78594c, 0x0078594c, 0x4);
+GAME_DATA(s32, gSoundset_785958, 0x00785958, 0x4);
+GAME_DATA(float, gSoundset_78595c, 0x0078595c, 0x4);
+GAME_DATA(s32, gSoundset_785960, 0x00785960, 0x4);
+GAME_DATA(s32, gSoundset_785968, 0x00785968, 0x4);
+GAME_DATA(u16, gSoundset_803ad2, 0x00803ad2, 0x2);

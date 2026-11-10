@@ -121,7 +121,7 @@ void __fastcall BadAlloc_Doraise(const u32 *self) {
 
 void __cdecl Nomemory() {
     u32 *const made = &global<u32>(0x00fb1e70);
-    u8 &flag = global<u8>(0x00fb1e68);
+    u8 &flag = gLocimp_fb1e68;
     if (!(flag & 1)) {
         flag |= 1;
         BadAlloc_Ctor(made, nullptr, "bad allocation");

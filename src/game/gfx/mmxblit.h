@@ -50,3 +50,7 @@ GAME_DATA(u32, gMmxBlit_Copy32_fab4a0, 0x00fab4a0, 4);
 GAME_DATA(u32, gMmxBlit_Copy32_fab4b0, 0x00fab4b0, 4);
 GAME_DATA(u32, gMmxBlit_Convert16_fab4b4, 0x00fab4b4, 4);
 GAME_DATA(u32, gMmxBlit_Convert16_fab4d8, 0x00fab4d8, 4);
+
+// Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(u32, gMmxblit_fab4fc, 0x00fab4fc, 0x4);
+GAME_DATA(u32, gMmxblit_fac51c, 0x00fac51c, 0x4);

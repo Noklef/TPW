@@ -26,8 +26,9 @@ u32 MakeWindow() {
     if (reinterpret_cast<u8 &>(gGraphicssettings_7a1a8c) & 1)
         return create(0x90000000u, reinterpret_cast<s32 &>(gScreen_7a1968), reinterpret_cast<s32 &>(gScreen_7a1930));
     s32 rect[4] = {0, 0, reinterpret_cast<s32 &>(gScreen_7a1968), reinterpret_cast<s32 &>(gScreen_7a1930)};
-    global<u32(__stdcall *)(s32 *, u32, u32)>(0x006fd384)(rect, 0xcf0000, 0);   // AdjustWindowRect
-    return create(0xcf0000, rect[2] - rect[0], rect[3] - rect[1]);
+    const u32 overlapped = 0xc00000 | 0x80000 | 0x40000 | 0x20000 | 0x10000;   // WS_OVERLAPPEDWINDOW in its parts (one literal lies in a GAME_DATA range)
+    global<u32(__stdcall *)(s32 *, u32, u32)>(0x006fd384)(rect, overlapped, 0);   // AdjustWindowRect
+    return create(overlapped, rect[2] - rect[0], rect[3] - rect[1]);
 }
 
 }  // namespace

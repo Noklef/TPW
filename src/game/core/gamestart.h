@@ -20,3 +20,9 @@ void __cdecl Game_PlayLogoMovie();
 // 0x54e070 (cdecl): as 0x54df20 with a movie by the day of the month (localtime's +0xc, signed, remainder by 8: outside 0..7 the buffer stays), and the display left as it is. Played at the window's client origin, the height 640 (x * 64 / 480).
 void __cdecl Game_PlayDayMovie();
 }
+
+#include "gamedata.h"
+
+// Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(u32, gGamestart_78592c, 0x0078592c, 0x4);
+GAME_DATA(u32, gGamestart_785930, 0x00785930, 0x4);

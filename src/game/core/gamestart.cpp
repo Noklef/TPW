@@ -6,6 +6,7 @@
 #include "../render/screen.h"
 #include "../render/graphicssettings.h"
 #include "gamewindow.h"
+#include "gameframe.h"
 
 namespace {
 
@@ -76,8 +77,8 @@ void __cdecl Game_Start() {
     g_calls.Cd(0x0051b920, global<u32>(0x0078d8e0) ? global<s32>(0x0078591c) : global<s32>(0x0078591c) / 2);
     g_calls.Cd(0x0051b3d0);
     g_calls.Cd(0x0051bb60, 0x64u);
-    g_calls.Cd(0x0051bb80, global<u32>(0x0078592c));
-    g_calls.Cd(0x0051bbc0, global<u32>(0x00785930));
+    g_calls.Cd(0x0051bb80, gGamestart_78592c);
+    g_calls.Cd(0x0051bbc0, gGamestart_785930);
     g_calls.Cd(0x0051bba0, global<u32>(0x00785928));
     g_calls.Cd(0x0051eae0);
     g_calls.Cd(0x0051bfc0, 0u, global<u32>(0x00803a2c), 0xd2u, 0u, 0u, 0u);
@@ -90,7 +91,7 @@ void __cdecl Game_Start() {
     global<u32>(0x0087906c) = gGraphicssettings_7a1a8c & 0x200 ? 4 : 9;
     global<u32>(0x00875034) = g_calls.Th(0x00402d70, kClock);
     g_calls.Cd(0x005989c0);
-    global<u32>(0x00878128) = 0;
+    gGameframe_878128 = 0;
     global<u32>(0x00878d64) = 1;
 }
 

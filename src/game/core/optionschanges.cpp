@@ -109,9 +109,9 @@ void __cdecl Options_LoadStartup() {
     String_Dtor(&path);
     if (loaded) global<u32>(0x0078d968) = 1;
     if (global<u32>(0x0078d968)) {
-        gGraphicssettings_7a1a8c = global<u32>(0x0078d950);
-        global<u32>(0x0079d86c) = global<u32>(0x0078d954);
-        g_calls.Cd(0x00409790, global<u32>(0x0078d95c));
-        global<u32>(0x0079d9c8) = global<u32>(0x0078d964);
+        gGraphicssettings_7a1a8c = gOptionschanges_78d950;
+        global<u32>(0x0079d86c) = gOptionschanges_78d954;
+        g_calls.Cd(0x00409790, gOptionschanges_78d95c);
+        global<u32>(0x0079d9c8) = gOptionschanges_78d964;
     }
 }

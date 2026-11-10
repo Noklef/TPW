@@ -152,7 +152,7 @@ u32 __cdecl KeyAction_AdvisorPostHeld() {
 }
 
 u32 __cdecl KeyAction_Clear78d96c() {
-    global<u32>(0x0078d96c) = 0;
+    gKeyactions_78d96c = 0;
     return 1;
 }
 

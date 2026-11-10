@@ -5,6 +5,7 @@
 
 #include "crt.h"
 #include "crtstream.h"
+#include "initializers.h"
 
 namespace {
 
@@ -265,10 +266,10 @@ s32 __cdecl CRT_output(CrtFile *file, const char *format, char *args) {
                         u64 value;
                         std::memcpy(&value, args, 8);
                         args += 8;
-                        reinterpret_cast<void(__cdecl *)(u64 *, char *, s32, s32, s32)>((uintptr_t)word(0x0077eca0))(&value, buffer, ch, precision, capital);
+                        reinterpret_cast<void(__cdecl *)(u64 *, char *, s32, s32, s32)>((uintptr_t)CRT_cfltcvt_tab[0])(&value, buffer, ch, precision, capital);
                         const u32 alternate = flags & kAlternate;
-                        if (alternate && !precision) reinterpret_cast<TextCall>((uintptr_t)word(0x0077ecac))(buffer);
-                        if (ch == 'g' && !alternate) reinterpret_cast<TextCall>((uintptr_t)word(0x0077eca4))(buffer);
+                        if (alternate && !precision) reinterpret_cast<TextCall>((uintptr_t)CRT_cfltcvt_tab[3])(buffer);
+                        if (ch == 'g' && !alternate) reinterpret_cast<TextCall>((uintptr_t)CRT_cfltcvt_tab[1])(buffer);
                         if (buffer[0] == '-') {
                             flags |= kNegative;
                             text = buffer + 1;
@@ -561,10 +562,10 @@ s32 __cdecl CRT_woutput(CrtFile *file, const u16 *format, char *args) {
                         u64 value;
                         std::memcpy(&value, args, 8);
                         args += 8;
-                        reinterpret_cast<void(__cdecl *)(u64 *, char *, s32, s32, s32)>((uintptr_t)word(0x0077eca0))(&value, buffer, static_cast<s8>(ch), precision, capital);
+                        reinterpret_cast<void(__cdecl *)(u64 *, char *, s32, s32, s32)>((uintptr_t)CRT_cfltcvt_tab[0])(&value, buffer, static_cast<s8>(ch), precision, capital);
                         const u32 alternate = flags & kAlternate;
-                        if (alternate && !precision) reinterpret_cast<TextCall>((uintptr_t)word(0x0077ecac))(buffer);
-                        if (ch == 'g' && !alternate) reinterpret_cast<TextCall>((uintptr_t)word(0x0077eca4))(buffer);
+                        if (alternate && !precision) reinterpret_cast<TextCall>((uintptr_t)CRT_cfltcvt_tab[3])(buffer);
+                        if (ch == 'g' && !alternate) reinterpret_cast<TextCall>((uintptr_t)CRT_cfltcvt_tab[1])(buffer);
                         if (buffer[0] == '-') {
                             flags |= kNegative;
                             text = buffer + 1;

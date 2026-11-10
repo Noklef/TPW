@@ -15,6 +15,7 @@
 #include "../files/memsource.h"
 #include "../online/servers.h"
 #include "../render/graphicssettings.h"
+#include "gamestart.h"
 
 namespace {
 
@@ -148,9 +149,9 @@ void __fastcall Options_Defaults(u8 *options) {
     at<u32>(options, 8) = 1;
     at<u32>(options, 0xc) = 0;
     at<u32>(options, 0x14) = global<u32>(0x00785928);
-    at<u32>(options, 0x1c) = global<u32>(0x0078592c);
-    at<u32>(options, 0x24) = global<u32>(0x00785930);
-    at<u32>(options, 0x2c) = global<u32>(0x00785934);
+    at<u32>(options, 0x1c) = gGamestart_78592c;
+    at<u32>(options, 0x24) = gGamestart_785930;
+    at<u32>(options, 0x2c) = gOptions_785934;
     if (global<u32>(0x00785924) != 0) {
         options[0x10] = 1;
         options[0x18] = 1;

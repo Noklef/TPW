@@ -42,3 +42,8 @@ u8 *__fastcall LiveObject701b30_DeletingDtor(u8 *base, void *, u32 flags);
 // its model unloaded (ObjModel_Unload, model/objmodel), +0x154 = 0x6fdce8 and with flag 1 the object freed. Returns the object.
 u8 *__fastcall LiveObject7019f8_DeletingDtor(u8 *base, void *, u32 flags);
 }
+
+#include "gamedata.h"
+
+// Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(s32, gLiveobjects_87aed8, 0x0087aed8, 0x4);

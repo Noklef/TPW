@@ -6,6 +6,7 @@
 #include "crt.h"
 #include "crtfloat.h"
 #include "crtstream.h"
+#include "initializers.h"
 
 namespace {
 
@@ -356,7 +357,7 @@ s32 __cdecl CRT_input(CrtFile *file, const u8 *format, char *args) {
                 if (!suppress) {
                     ++count;
                     *scan = 0;
-                    reinterpret_cast<void(__cdecl *)(s32, char *, char *)>((uintptr_t)global<u32>(0x0077eca8))(longone - 1, pointer, floatstring);
+                    reinterpret_cast<void(__cdecl *)(s32, char *, char *)>((uintptr_t)CRT_cfltcvt_tab[2])(longone - 1, pointer, floatstring);
                 }
                 break;
             default:   // ('%' or any other character: matched as it is)
