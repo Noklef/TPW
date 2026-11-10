@@ -13059,3 +13059,6 @@ address,name,kind,confidence,notes
 0x0077485c,gText_OnlineServers_Ctor_77485c,data,low,"GAME_DATA (src/game/online/servers): char[0x14], named for its use in OnlineServers_Ctor (tools/gamedata_codemod.py)"
 0x0076410c,gText_Sprites_LoadFolder_76410c,data,low,"GAME_DATA (src/game/sprite/loading): char[0x8], named for its use in Sprites_LoadFolder (tools/gamedata_codemod.py)"
 0x00764160,gText_Sprites_LoadFolder_764160,data,low,"GAME_DATA (src/game/sprite/loading): char[0x8], named for its use in Sprites_LoadFolder (tools/gamedata_codemod.py)"
+0x0074ca70,gSetup_74ca70,data,low,"GAME_DATA (src/game/coaster/setup): u8[0x110], named for its use in CoasterLink_AddCar, CoasterType_Create (tools/gamedata_codemod.py)"
+0x0074cb80,gText_CoasterType_Load_74cb80,data,low,"GAME_DATA (src/game/coaster/setup): char[0xc], named for its use in CoasterType_Load (tools/gamedata_codemod.py)"
+0x0074cb8c,gText_CoasterType_Load_74cb8c,data,low,"GAME_DATA (src/game/coaster/setup): char[0xc], named for its use in CoasterType_Load (tools/gamedata_codemod.py)"

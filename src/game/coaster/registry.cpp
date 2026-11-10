@@ -660,8 +660,8 @@ u8 *__cdecl CoasterLink_AddCar(u8 *train, u32 a, u32 b, float height, u32 flags,
         at<u8 *>(rides[at<u32>(piece, 0x70)], 0xd4) = piece;
         u8 *const ride = rides[at<u32>(piece, 0x70)];
         u8 *layer = at<u8 *>(ride, 0x10);
-        const u32 *const banks = reinterpret_cast<const u32 *>(0x0074ca70);     // 3, 0xa, 2, 9, 0xa
-        const u32 *const entries = reinterpret_cast<const u32 *>(0x0074ca88);   // 0, 0, 0, 0, 1
+        const u32 *const banks = reinterpret_cast<const u32 *>((u32)(uintptr_t)&gSetup_74ca70);     // 3, 0xa, 2, 9, 0xa
+        const u32 *const entries = reinterpret_cast<const u32 *>((u32)(uintptr_t)&gSetup_74ca70 + 0x18);   // 0, 0, 0, 0, 1
         for (u32 i = 0; i < 5; ++i, layer += 0x38) {
             if (!(at<u32>(desc, 0) & (0x20u << i))) continue;
             if (!(ride[(banks[i] + 2) * 0xc] & 3)) continue;
