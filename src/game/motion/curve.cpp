@@ -24,7 +24,7 @@ const Vec3 *own_points(const void *curve, const Vec3 *points) {
     return points ? points : *reinterpret_cast<const Vec3 *const *>(static_cast<const u8 *>(curve) + 8);
 }
 
-u32 game_point_count() { return *reinterpret_cast<const u32 *>(0x007b49e8); }  // gCurvePointCount
+u32 game_point_count() { return gCurvePointCount; }  // gCurvePointCount
 
 }  // namespace
 

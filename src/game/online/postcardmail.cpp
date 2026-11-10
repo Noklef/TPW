@@ -6,6 +6,7 @@
 
 #include "../core/crt.h"
 #include "../core/stdstring.h"
+#include "../files/quickload.h"
 
 namespace {
 
@@ -84,7 +85,7 @@ extern "C" void __fastcall PostcardMail_Build(u8 *mail) {
     Add(to, Text(0x00774088));
     for (const u8 *node = at<const u8 *>(at<const u8 *>(mail, 0x14), 0); node != at<const u8 *>(mail, 0x14);) {
         CutLines(OrNull(at<char *>(node, 0xc)));
-        AddFormat(to, buffer, 0x0074d1f0, OrNull(at<char *>(node, 0xc)));
+        AddFormat(to, buffer, (u32)&gText_Quickload_74d1f0, OrNull(at<char *>(node, 0xc)));
         node = at<const u8 *>(node, 0);
         if (node != at<const u8 *>(mail, 0x14)) Add(to, Text(0x00774084));
     }

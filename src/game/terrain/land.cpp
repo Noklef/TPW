@@ -164,7 +164,7 @@ void __cdecl Terrain_RotateFootprint(s32 *x, s32 *y, s32 angle, s32 *outX, s32 *
 void __cdecl Terrain_PaintAt(s32 x, s32 y, const s32 *paint) {
     const u8 *map = *reinterpret_cast<const u8 *const *>(0x007a0854);
     if (!map || !(at<u8>(map, 0x30) & 2)) return;
-    Terrain_PaintCell(map, reinterpret_cast<const u8 *>(0x0074c8a8), x, y, paint[0], paint[1], (u32)paint[2]);
+    Terrain_PaintCell(map, gLand_74c8a8, x, y, paint[0], paint[1], (u32)paint[2]);
     Frame_AddFlags(1);
 }
 
@@ -197,10 +197,10 @@ void __fastcall Lnd_SetTileSize(u8 *object, void *, u32 size) {
         at<u8>(object, 0) = 0x20;
         at<u8>(object, 1) = 1;
     }
-    if (global<u32>(0x008798c8))
-        GameHeap_Free(reinterpret_cast<void *>(global<u32>(0x008798c8)));
+    if (gTerrainBlendScratch)
+        GameHeap_Free(reinterpret_cast<void *>(gTerrainBlendScratch));
     const u32 side = at<u8>(object, 0);
-    global<u32>(0x008798c8) = (u32)(uintptr_t)GameHeap_Alloc(side * side * 4);
+    gTerrainBlendScratch = (u32)(uintptr_t)GameHeap_Alloc(side * side * 4);
 }
 
 void __fastcall Lnd_Clear(u8 *object) {
@@ -254,11 +254,11 @@ u32 __fastcall Lnd_Read(u8 *object, void *, const char *name) {
         for (s32 i = 0; i < 0x100; i++)
             global<u8>(table + i) = i < lo ? 0 : i > hi ? 0xff : static_cast<u8>((255 * i - 255 * lo) / w);
     };
-    ramp(0x008794a8, at<u8>(object, 0xa), at<u8>(object, 0xb));
-    ramp(0x008793a8, at<u8>(object, 6), at<u8>(object, 7));
-    Lnd_BuildRamp(reinterpret_cast<u8 *>(0x008797a8), at<u8>(object, 8), at<u8>(object, 9));
-    Lnd_BuildRamp(reinterpret_cast<u8 *>(0x008796a8), at<u8>(object, 4), at<u8>(object, 5));
-    Lnd_BuildRamp(reinterpret_cast<u8 *>(0x008795a8), at<u8>(object, 2), at<u8>(object, 3));
+    ramp((u32)&gLand_8794a8, at<u8>(object, 0xa), at<u8>(object, 0xb));
+    ramp((u32)&gLand_8793a8, at<u8>(object, 6), at<u8>(object, 7));
+    Lnd_BuildRamp(gLand_8797a8, at<u8>(object, 8), at<u8>(object, 9));
+    Lnd_BuildRamp(gLand_8796a8, at<u8>(object, 4), at<u8>(object, 5));
+    Lnd_BuildRamp(gLand_8795a8, at<u8>(object, 2), at<u8>(object, 3));
     Array3D_Read(object + 0x14, nullptr, stream);
     at<s32>(object, 0xc) = static_cast<s32>(at<u32>(object, 0x14) - 1) >> 2;
     at<s32>(object, 0x10) = static_cast<s32>(at<u32>(object, 0x18) - 1) >> 2;
@@ -293,9 +293,9 @@ u8 *__fastcall Lnd_Ctor(u8 *object) {
 
 void __fastcall Lnd_Dtor(u8 *object) {
     Lnd_Clear(object);
-    if (global<u32>(0x008798c8)) {
-        GameHeap_Free(reinterpret_cast<void *>(global<u32>(0x008798c8)));
-        global<u32>(0x008798c8) = 0;
+    if (gTerrainBlendScratch) {
+        GameHeap_Free(reinterpret_cast<void *>(gTerrainBlendScratch));
+        gTerrainBlendScratch = 0;
     }
     CRT_VectorDtorIterator(object + 0x24, 0xd8, 3, reinterpret_cast<void(__fastcall *)(void *)>(TileSet_Clear));
     if (at<void *>(object, 0x20))

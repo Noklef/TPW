@@ -36,3 +36,11 @@ void __cdecl Ride_MarkModel(const u32 *index);
 // then its own address. Returns 1.
 u32 __cdecl RideModel_Load(const char *name, u32 flags, u8 **out, char *outName, u32 layers);
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(const s8[92], gRideModel_Letters_6fe6bc, 0x006fe6bc, 0x5c);
+GAME_DATA(char[12], gText_RideModel_Load_74d2a8, 0x0074d2a8, 0xc);
+GAME_DATA(char[16], gText_RideModel_Load_74d2b4, 0x0074d2b4, 0x10);
+GAME_DATA(u32, gRidemodel_7a42ac, 0x007a42ac, 0x4);

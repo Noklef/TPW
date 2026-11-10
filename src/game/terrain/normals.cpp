@@ -7,6 +7,7 @@
 #include "../model/worldverts.h"
 #include "../render/state.h"
 #include "../world/mapcell.h"
+#include "baseload.h"
 
 namespace {
 
@@ -32,8 +33,8 @@ void __cdecl Terrain_ScaleNormals(u8 *node, TerrainMatrix m) {
             const u32 cx = (u32)(long long)(X87Reg(v[0]) * X87Reg(0.100000001f)).v;  // 0x6fe3a0, __ftol
             const u32 cz = (u32)(long long)(X87Reg(v[2]) * X87Reg(0.100000001f)).v;
             if (cx >= width || cz >= height) continue;
-            const bool shaded = global<const u32 *>(0x007a0884)[cz * width + cx] & 0x400;
-            const float length = shaded ? global<const float>(0x0074cf30) : 1.0f;  // 0x6fe380
+            const bool shaded = reinterpret_cast<const u32 * &>(gTerrain_7a0884)[cz * width + cx] & 0x400;
+            const float length = shaded ? gTerrain_ScaleNormals_74cf30 : 1.0f;  // 0x6fe380
             const X87Reg n0 = n[0];
             const X87Reg s = (n0 * n0 + X87Reg(n[1]) * X87Reg(n[1])) + X87Reg(n[2]) * X87Reg(n[2]);
             const float t = (float)X87_Sqrt(s);
@@ -68,6 +69,6 @@ void __cdecl Terrain_ShadeNormals() {
     Matrix_Identity(identity.m);
     Terrain_ScaleNormals(at<u8 *>(global<const u8 *>(0x007a0854), 0x78), identity);
     SceneFlags_Touch(reinterpret_cast<u32 *>(0x008bd508));
-    global<u32>(0x0079f7cc) = 0;
+    gTerrain_ShadeNormals_79f7cc = 0;
 }
 }

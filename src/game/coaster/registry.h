@@ -290,7 +290,13 @@ u32 __cdecl CoasterLink_Create(u32 typeId, u32 ride, u32 height, u32 a3, u32 loa
 #include "../core/gamedata.h"
 
 // Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(u32, gCoasterIdHoles_790b00, 0x00790b00, 0x4);   // the id table: holes
+GAME_DATA(u32, gCoasterIdUsed_790b04, 0x00790b04, 0x4);    // used
+GAME_DATA(u8 *[256], gCoasters_790bd0, 0x00790bd0, 0x400);  // the coasters by index
 GAME_DATA(u32, gRegistry_790fd8, 0x00790fd8, 0x4);
+GAME_DATA(s32, gCoasterXHigh_79104c, 0x0079104c, 0x4);
+GAME_DATA(u32, gCoasterIdNext_791ce0, 0x00791ce0, 0x4);    // next
+GAME_DATA(s32, gCoasterZHigh_791cf8, 0x00791cf8, 0x4);
 GAME_DATA(u32, gRegistry_792214, 0x00792214, 0x4);
 GAME_DATA(u32, gRegistry_79221c, 0x0079221c, 0x4);
 GAME_DATA(u32, gCoasters_AllocTables_792400, 0x00792400, 0x4);

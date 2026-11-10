@@ -39,3 +39,10 @@ u32 __cdecl Model_FindMouthPart(const u8 *model, u32 unused, s32 part);
 // name "sign2.tga", the same for *out2. Later entries override earlier ones.
 void __cdecl Model_FindSignEntries(u8 *model, u32 *out1, u32 *out2);
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(char[12], gText_Model_FindMouthPart_74cee4, 0x0074cee4, 0xc);
+GAME_DATA(char[12], gText_Model_FindMouthPart_74cef0, 0x0074cef0, 0xc);
+GAME_DATA(char[16], gText_Model_FindMouthPart_74cf08, 0x0074cf08, 0x10);

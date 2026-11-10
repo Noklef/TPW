@@ -73,3 +73,20 @@ void __cdecl Highlight_PulseFlashing();
 void __cdecl Highlight_InitUnusedOne();
 void __cdecl Highlight_InitUnusedEpsilon();
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(float[4], gHighlight_Point_7a1c90, 0x007a1c90, 0x10);
+GAME_DATA(u8 *, gHighlight_7a1ce0, 0x007a1ce0, 0x4);
+GAME_DATA(void *, gHighlight_7afd00, 0x007afd00, 0x4);
+GAME_DATA(float, gHighlight_PulseFlashing_7afd04, 0x007afd04, 0x4);
+GAME_DATA(u32, gHighlight_7afd90, 0x007afd90, 0x4);
+GAME_DATA(void *, gHighlight_7afd94, 0x007afd94, 0x4);
+GAME_DATA(u32, gHighlight_7afd9c, 0x007afd9c, 0x4);
+GAME_DATA(u32, gHighlight_7afda4, 0x007afda4, 0x4);
+GAME_DATA(float[24], gHighlightTints_7afdb0, 0x007afdb0, 0x60);
+GAME_DATA(u32, gHighlight_7afe10, 0x007afe10, 0x4);
+GAME_DATA(u8 *, gHighlight_7afe14, 0x007afe14, 0x4);
+GAME_DATA(float, gHighlight_InitUnusedOne_7afe1c, 0x007afe1c, 0x4);
+GAME_DATA(float, gHighlight_InitUnusedEpsilon_7b0464, 0x007b0464, 0x4);

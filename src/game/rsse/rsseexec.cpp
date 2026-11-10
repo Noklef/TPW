@@ -425,9 +425,9 @@ void __cdecl RSSE_ExecuteInstruction(RsseContext *ctx) {
         return;
     }
     switch (instruction ^ 0x80000000) {
-    case 1: global<u32>(0x0087919c) = 1; return;
+    case 1: RSSE_CritLock = 1; return;
     case 2:
-        global<u32>(0x0087919c) = 0;
+        RSSE_CritLock = 0;
         ctx->budget_left = 0;
         return;
     case 3: {

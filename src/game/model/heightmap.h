@@ -42,3 +42,9 @@ void __cdecl HeightMap_ReadOrBuild(u8 *instance, u32 width, u32 height, const ch
 // Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
 GAME_DATA(float, gHeightmap_79fb08, 0x0079fb08, 4);
 GAME_DATA(u32, gHeightmap_79fb0c, 0x0079fb0c, 4);
+
+// Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(const float, gHeightmap_6fe3e4, 0x006fe3e4, 0x4);
+GAME_DATA(s32, gHeightmap_79f7d4, 0x0079f7d4, 0x4);
+GAME_DATA(s32[200], gHeightMap_Rasterize_79f7e8, 0x0079f7e8, 0x320);
+GAME_DATA(float, gHeightmap_79fb20, 0x0079fb20, 0x4);

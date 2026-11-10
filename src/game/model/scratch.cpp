@@ -4,6 +4,7 @@
 
 #include "../core/globalmem.h"
 #include "../math/x87.h"
+#include "rideresource.h"
 
 namespace {
 
@@ -17,29 +18,29 @@ template <typename T> T &at(const void *p, u32 offset) {
 extern "C" {
 
 void __cdecl Model_AllocVertexScratch() {
-    global<void *>(0x0079f7e0) = GlobalMem_Alloc(global<u32>(0x0079f7d0) * 12, 1);
+    gModel_79f7e0 = GlobalMem_Alloc(gRideresource_79f7d0 * 12, 1);
 }
 
 void __cdecl Model_FreeVertexScratch() {
-    GlobalMem_Free(global<void *>(0x0079f7e0));
-    global<void *>(0x0079f7e0) = nullptr;
+    GlobalMem_Free(gModel_79f7e0);
+    gModel_79f7e0 = nullptr;
 }
 
 void __cdecl Model_BeginView(const u8 *view) {
-    global<const u8 *>(0x0079fb18) = view;
+    gScratch_79fb18 = view;
     const u8 *const holder = at<const u8 *>(view, 0x28);
     if (holder && (at<u8>(holder, 0) & 8)) {
-        global<u32>(0x0079fb10) = 2;
+        gScratch_79fb10 = 2;
         Model_FillVertexScratch(view, 0);
         return;
     }
     const u8 *const model = at<const u8 *>(view, 4);
     const float y = at<float>(model, 0xa0);
     if ((at<u8>(model, 0x30) & 0x80) || y < 0.0f || y > 0.0f) {  // fcomp 0: neither equal nor unordered
-        global<u32>(0x0079fb10) = 1;
+        gScratch_79fb10 = 1;
         return;
     }
-    global<u32>(0x0079fb10) = 4;
+    gScratch_79fb10 = 4;
     Model_FillVertexScratch(view, 1);
 }
 
@@ -87,7 +88,7 @@ void __cdecl Model_FillVertexScratch(const u8 *view, s32 mainOnly) {
                 }
                 p = up;
             }
-            float *out = reinterpret_cast<float *>(global<u8 *>(0x0079f7e0) + base * 12);
+            float *out = reinterpret_cast<float *>(static_cast<u8 *>(gModel_79f7e0) + base * 12);
             if (pass == 1) at<u16>((void *)instance, i * 0x14 + 0x10) = (u16)base;
             const u32 n = at<u16>(node, 0x58);
             for (u32 k = 0; k < n; ++k, out += 3) {
@@ -121,11 +122,11 @@ void __cdecl Model_FillVertexScratch(const u8 *view, s32 mainOnly) {
 }
 
 void __cdecl Model_InitUnusedTolerances() {
-    global<u32>(0x0079f7dc) = 0x3ca3d70a;  // 0.02f
-    global<u32>(0x0079fb1c) = 0x3ca3d70a;
+    gModel_InitUnusedTolerances_79f7dc = 0x3ca3d70a;  // 0.02f
+    gModel_InitUnusedTolerances_79fb1c = 0x3ca3d70a;
 }
 
-void __cdecl Model_InitUnusedOne() { global<float>(0x0079fb24) = 1.0f; }
+void __cdecl Model_InitUnusedOne() { gModel_InitUnusedOne_79fb24 = 1.0f; }
 
-void __cdecl Model_InitUnusedEpsilon() { global<float>(0x0079fb28) = 1.0f / 8388608.0f; }
+void __cdecl Model_InitUnusedEpsilon() { gModel_InitUnusedEpsilon_79fb28 = 1.0f / 8388608.0f; }
 }

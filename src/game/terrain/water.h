@@ -22,3 +22,12 @@ extern "C" {
 // Sic: the columns of a row unset, or under 0 or over 126, read and write the original's frame as they fall; a row's first column past its last + 1 and a run of 0 points run away.
 u32 __fastcall TerrainWater_Draw(u8 *self);
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(const float, gTerrainWater_Draw_70153c, 0x0070153c, 0x4);
+GAME_DATA(const float, gTerrainWater_Draw_701540, 0x00701540, 0x4);
+GAME_DATA(float, gTerrainWater_Draw_768318, 0x00768318, 0x4);
+GAME_DATA(float, gTerrainWater_Draw_76831c, 0x0076831c, 0x4);
+GAME_DATA(u32, gTerrainWater_Draw_8bd4bc, 0x008bd4bc, 0x4);

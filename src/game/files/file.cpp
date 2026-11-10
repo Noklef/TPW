@@ -9,10 +9,10 @@
 namespace {
 
 constexpr u32 kMaxPath = 0x104;
-char *commandLine() { return reinterpret_cast<char *>(0x00fa6ec8); }
-char *base() { return reinterpret_cast<char *>(0x00fa6fd0); }
-char *pathBuffer() { return reinterpret_cast<char *>(0x00fa70d8); }
-Timer *clock() { return reinterpret_cast<Timer *>(0x00fa71e0); }
+char *commandLine() { return gCommandLine; }
+char *base() { return gBaseDir; }
+char *pathBuffer() { return gPathBuffer; }
+Timer *clock() { return reinterpret_cast<Timer *>(&gClock); }
 
 void *const *const kStreamVtable = reinterpret_cast<void *const *>(0x00703100);
 void *const *const kFileStreamVtable = reinterpret_cast<void *const *>(0x006fd930);

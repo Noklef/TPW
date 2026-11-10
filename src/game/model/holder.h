@@ -186,3 +186,14 @@ struct AnimatorMeshEnv {
 };
 // nullptr restores the game's.
 void Animator_SetMeshEnv(const AnimatorMeshEnv *env);
+
+#include "../core/gamedata.h"
+
+// Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(float, gAnimator_InitUnusedOne_78ed8c, 0x0078ed8c, 0x4);
+GAME_DATA(float, gAnimator_InitUnusedEpsilon_78f47c, 0x0078f47c, 0x4);
+GAME_DATA(u32, gHolder_79fb2c, 0x0079fb2c, 0x4);
+GAME_DATA(float, gInstance_InitUnusedOne_7a0174, 0x007a0174, 0x4);
+GAME_DATA(float, gInstance_InitUnusedEpsilon_7a086c, 0x007a086c, 0x4);
+GAME_DATA(float, gHolder_InitUnusedOne_7a1cac, 0x007a1cac, 0x4);
+GAME_DATA(float, gHolder_InitUnusedEpsilon_7a1cdc, 0x007a1cdc, 0x4);

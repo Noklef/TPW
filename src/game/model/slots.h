@@ -54,3 +54,10 @@ void __cdecl ModelSlot_LoadAdvisor(const char *folder, const char *c, const char
 // do nothing here. Finally, for a kind other than 0 and while that bit is clear, the flag of the part with the kind as its key is cleared (ModelSlot_ClearPartFlag).
 void __cdecl ModelSlot_ApplySelection(s32 kind);
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(const u32, gModelSlot_LoadAdvisor_6fdcb0, 0x006fdcb0, 0x4);
+GAME_DATA(char[12], gText_ModelSlot_LoadAdvisor_74c938, 0x0074c938, 0xc);
+GAME_DATA(char[16], gText_ModelSlot_LoadAdvisor_74c944, 0x0074c944, 0x10);

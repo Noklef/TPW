@@ -32,3 +32,8 @@ void __cdecl Quat_Slerp(const float *a, const float *b, float t, float *out);
 // 0x474490: rotation matrix between keys index and index + 1 (the last key holds).
 void __cdecl Motion_RotationAt(const RotationKey *keys, u32 index, float t, float *m);
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(u32, gRotationKeyCount, 0x007b4988, 0x4);

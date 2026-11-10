@@ -61,3 +61,16 @@ s32 __cdecl Quickload_Exists(const char *name, u32 flags);
 // returned TexDirs_Set(directory, folder, those directories, c) and 1; else 0.
 u32 __cdecl Quickload_LoadRide(const char *name, const char *folder, const char *c);
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(const u32, gQuickload_6fe228, 0x006fe228, 0x4);
+GAME_DATA(char[4], gText_Quickload_LoadRide_74d1ec, 0x0074d1ec, 0x4);
+GAME_DATA(char[4], gText_Quickload_74d1f0, 0x0074d1f0, 0x4);
+GAME_DATA(char[20], gText_Quickload_LoadRide_74d27c, 0x0074d27c, 0x14);
+GAME_DATA(char[24], gText_Quickload_LoadRide_74d290, 0x0074d290, 0x18);
+GAME_DATA(char[264], gQuickload_Locate_79c9d0, 0x0079c9d0, 0x108);
+GAME_DATA(u32, gQuickload_7a3d3c, 0x007a3d3c, 0x4);
+GAME_DATA(QuickloadIndex *, gQuickload_7a3e5c, 0x007a3e5c, 0x4);
+GAME_DATA(QuickloadIndex *, gQuickload_7a45dc, 0x007a45dc, 0x4);

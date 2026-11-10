@@ -349,15 +349,15 @@ void PlaceSprite(float *v, const float *place) {
 
 // The two statics' matrix (0xfb3460): the identity on the first use, then the landscape's matrix through the transformer's slot 6 with `with`, kept in the landscape.
 void JoinMatrix(u8 *landscape, u32 with) {
-    if (!(G<u32>(0x00fb3440) & 1)) {
-        std::memset(reinterpret_cast<void *>((uintptr_t)0x00fb3460), 0, 0x40);
-        G<u32>(0x00fb3440) |= 1;
-        G<u32>(0x00fb3460) = G<u32>(0x00fb3474) = G<u32>(0x00fb3488) = G<u32>(0x00fb349c) = 0x3f800000;
+    if (!(gLandscapeMatrixGuard_fb3440 & 1)) {
+        std::memset(gLandscapeMatrix_fb3460, 0, 0x40);
+        gLandscapeMatrixGuard_fb3440 |= 1;
+        gLandscapeMatrix_fb3460[0] = gLandscapeMatrix_fb3460[5] = gLandscapeMatrix_fb3460[10] = gLandscapeMatrix_fb3460[15] = 1.0f;
         g_drawEnv->atExit(reinterpret_cast<void(__cdecl *)()>((uintptr_t)0x005d1750));
     }
     u8 *const transformer = G<u8 *>(0x0087b1d8);
-    at<void(__cdecl *)(u8 *, u8 *, u32, u32)>(at<const u8 *>(transformer, 0), 0x18)(transformer, landscape + 0x2ecc, with, 0x00fb3460);
-    std::memcpy(landscape + 0x2ecc, reinterpret_cast<const void *>((uintptr_t)0x00fb3460), 0x40);
+    at<void(__cdecl *)(u8 *, u8 *, u32, u32)>(at<const u8 *>(transformer, 0), 0x18)(transformer, landscape + 0x2ecc, with, (u32)&gLandscapeMatrix_fb3460);
+    std::memcpy(landscape + 0x2ecc, gLandscapeMatrix_fb3460, 0x40);
 }
 
 void TransformPoints(u8 *landscape, u8 *out, const void *points, u32 stride, u32 count) {
@@ -420,9 +420,9 @@ u32 SkyRim(u8 *landscape, u32 colourMask, u32 stride) {
     at<u32>(batch, 0) = 0x21;
     TransformPoints(landscape, at<u8 *>(batch, 0x28), landscape, stride, 0x48);
     const bool reflecting = G<u32>(0x008bcbc8) & 0x2000000;
-    X87Reg q = X87Reg(K(reflecting ? 0x00701f94 : 0x00701f88));
+    X87Reg q = X87Reg(reflecting ? gLandscape_701f94 : gLandscape_701f88);
     const u32 low = reflecting ? 0x3c23d70a : 0x3e2e147b, high = reflecting ? 0x3e428f5c : 0x3eae147b;
-    const float &e = K(0x00701f78);
+    const float &e = gLandscape_701f78;
     const float a = (float)(X87Reg(at<float>(&high, 0)) - e), b = (float)(X87Reg(at<float>(&low, 0)) - e), c = (float)(q - e);
     const float qf = (float)q;
     u8 *vertex = at<u8 *>(batch, 0x28);
@@ -433,14 +433,14 @@ u32 SkyRim(u8 *landscape, u32 colourMask, u32 stride) {
         vertex += stride;
     };
     for (s32 k = 0; k < 0x12; k += 2) {
-        const float t = (float)(X87Reg((double)k) * K(0x00701f60));
+        const float t = (float)(X87Reg((double)k) * gLandscape_701f60);
         put(t, 0x3f7d70a4);
         put(t, at<u32>(&a, 0));
         put(t, at<u32>(&b, 0));
         put(t, at<u32>(&c, 0));
     }
     for (s32 k = 0; k < 0x12; k += 2) {
-        const float t = (float)(X87Reg((double)k) * K(0x00701f60));
+        const float t = (float)(X87Reg((double)k) * gLandscape_701f60);
         put(t, 0x3efae148);
         put(t, high);
         put(t, low);
@@ -496,7 +496,7 @@ u32 __fastcall Landscape_DrawSprites(u8 *landscape, void *, u32 mask) {
     for (s32 i = 0; i < at<s32>(landscape, 0x21dc); i++) {
         const u8 *const entry = landscape + 0x1fdc + i * 0x20;
         if (!(mask & at<u32>(entry, 8))) continue;
-        const float half = (float)(X87Reg(at<float>(entry, 0x18)) * K(0x00701f50));
+        const float half = (float)(X87Reg(at<float>(entry, 0x18)) * gLandscape_DrawSprites_701f50);
         const u8 *const texture = at<const u8 *>(entry, 0);
         if (texture) {
             spec[4] = at<u32>(texture, 8) & 0x1000 ? at<u32>(texture, 0x1c) : 0;
@@ -530,7 +530,7 @@ u32 __fastcall Landscape_DrawSprites(u8 *landscape, void *, u32 mask) {
 u32 __fastcall Landscape_Draw(u8 *landscape) {
     const u8 *const texture = at<const u8 *>(landscape, 0x1fd0);
     if (!at<u32>(landscape, 0x2ec8) || !texture || !at<u32>(landscape, 0x1fd8) || G<u32>(0x008bd524) == 4) return 1;
-    const u32 stride = G<u32>(0x00701ed4);
+    const u32 stride = gLandscape_Draw_701ed4;
     const u32 colourMask = at<u32>(gMeshlist_87a248, 0x2c);
     const u32 id = at<u32>(texture, 8) & 0x1000 ? at<u32>(texture, 0x1c) : 0;
     const u32 flags = (G<u32>(0x008bcbc8) & 8 ? 0x1256 : 0x1556) | 0x400800;

@@ -160,3 +160,9 @@ struct WrapSourcesEnv {
 };
 // The calls go through env (nullptr: the game's).
 void WrapSources_SetEnv(const WrapSourcesEnv *env);
+
+#include "../core/gamedata.h"
+
+// Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(u8, gWrapsources_fa75f8, 0x00fa75f8, 0x1);
+GAME_DATA(u32[3], g_Compressor, 0x00fa75fc, 0xc);

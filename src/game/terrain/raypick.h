@@ -48,3 +48,14 @@ u8 *__cdecl RayPick_Column(s32 x, s32 y, u32 alongX, float atX, float atY, float
 // not coming down with no ground hit never ends.
 void __cdecl RayPick_World(float *out, u32 unused, float *out2, u32 *hitFlag);
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(float, gRayPick_World_74d13c, 0x0074d13c, 0x4);
+GAME_DATA(float[3], gRaypick_7a1c80, 0x007a1c80, 0xc);
+GAME_DATA(u32[3], gRayPick_Column_7a1ca0, 0x007a1ca0, 0xc);
+GAME_DATA(const float *, gRaypick_7a1cb0, 0x007a1cb0, 0x4);
+GAME_DATA(u32[3], gRayPick_7a1cb8, 0x007a1cb8, 0xc);
+GAME_DATA(float[3], gRaypick_7a1cc8, 0x007a1cc8, 0xc);
+GAME_DATA(const float *, gRaypick_7a1cd8, 0x007a1cd8, 0x4);

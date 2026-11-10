@@ -32,3 +32,8 @@ void RideResource_SetEnv(const RideResourceEnv *env);
 extern "C" {
 u32 __cdecl Ride_LoadResource(const char *folder, const char *name, const u8 *cells, const u8 *grid, u32 flags, u32 id, u32 layers, const u8 *def, u32 signArg, u32 width, u32 height);
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(u32, gRideresource_79f7d0, 0x0079f7d0, 0x4);

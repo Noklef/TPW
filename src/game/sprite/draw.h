@@ -63,3 +63,15 @@ void SpriteDraw_SetEnv(const SpriteDrawEnv *env);
 
 // Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
 GAME_DATA(u32, gSpriteDraw_877348, 0x00877348, 4);
+
+// Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(const float, gSpriteDraw_Pick_700d18, 0x00700d18, 0x4);
+GAME_DATA(const float, gSpriteDraw_Pick_700d1c, 0x00700d1c, 0x4);
+GAME_DATA(u8, gSpriteDrawOn, 0x00763f84, 0x1);
+GAME_DATA(u32 *[16], gSpriteDrawLists, 0x00875528, 0x40);
+GAME_DATA(s32, gDraw_875864, 0x00875864, 0x4);
+GAME_DATA(s32[16], gSpriteDrawCounts, 0x00876490, 0x40);
+GAME_DATA(u8 *[512], gSprites, 0x00876b48, 0x800);
+GAME_DATA(u32, gDraw_87734c, 0x0087734c, 0x4);
+GAME_DATA(float, gDraw_8bd4f0, 0x008bd4f0, 0x4);
+GAME_DATA(float, gDraw_8bd4f4, 0x008bd4f4, 0x4);

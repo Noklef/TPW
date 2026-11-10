@@ -5,6 +5,7 @@
 
 #include "../files/file.h"
 #include "../world/ridelist.h"
+#include "registry.h"
 
 namespace {
 
@@ -41,9 +42,9 @@ u32 __cdecl Coasters_Save(Stream *stream) {
     u32 links = 0;
     for (const u8 *link = first; link; link = at<const u8 *>(link, 0x18)) ++links;
     write(stream, &links, 4);
-    write(stream, reinterpret_cast<const void *>(0x00790b04), 4);
-    write(stream, reinterpret_cast<const void *>(0x00790b00), 4);
-    write(stream, reinterpret_cast<const void *>(0x00791ce0), 4);
+    write(stream, &gCoasterIdUsed_790b04, 4);
+    write(stream, &gCoasterIdHoles_790b00, 4);
+    write(stream, &gCoasterIdNext_791ce0, 4);
 
     for (const u8 *link = first; link; link = at<const u8 *>(link, 0x18)) {
         u16 pieces = 0;

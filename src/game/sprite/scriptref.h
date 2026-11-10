@@ -33,3 +33,11 @@ void __fastcall ScriptRef_SetPeriodFor(u8 *ref, void *, float speed);
 // 0x4d4170 (thiscall): the script at +0 killed (SpriteScript_Kill) and +0 = 0.
 void __fastcall Obj_KillSlot(u8 *object);
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(u32[33], gScriptref_75a418, 0x0075a418, 0x84);
+GAME_DATA(char[24], gText_SpriteAnim_Serialize_75a49c, 0x0075a49c, 0x18);
+GAME_DATA(char[12], gText_SpriteAnim_Serialize_75a4b4, 0x0075a4b4, 0xc);
+GAME_DATA(char[16], gText_SpriteAnim_Serialize_75a4c0, 0x0075a4c0, 0x10);

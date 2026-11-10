@@ -147,3 +147,14 @@ double __cdecl Terrain_SurfaceHeight(s32 x, s32 y, u32 *slot);
 // Returns the last height.
 float __cdecl Terrain_RoundedCellHeight(const u8 *cell, float height, s32 x, s32 y);
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(u8[16], gLand_74c8a8, 0x0074c8a8, 0x10);
+GAME_DATA(u8[256], gLand_8793a8, 0x008793a8, 0x100);
+GAME_DATA(u8[256], gLand_8794a8, 0x008794a8, 0x100);
+GAME_DATA(u8[256], gLand_8795a8, 0x008795a8, 0x100);
+GAME_DATA(u8[256], gLand_8796a8, 0x008796a8, 0x100);
+GAME_DATA(u8[256], gLand_8797a8, 0x008797a8, 0x100);
+GAME_DATA(u32, gTerrainBlendScratch, 0x008798c8, 0x4);

@@ -21,3 +21,10 @@ void __stdcall Mouse_Moved(s32 x, s32 y);
 u32 __cdecl Mouse_HandleGuiButton(u32 event, u32 state, u32 unused, s32 x, s32 y);
 
 }  // extern "C"
+
+#include "../core/gamedata.h"
+
+// Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(u32, gMouse_7b05e4, 0x007b05e4, 0x4);
+GAME_DATA(u32, gMouse_7b05f0, 0x007b05f0, 0x4);
+GAME_DATA(u32[3], gMouse_HeldButtons_7c24dc, 0x007c24dc, 0xc);
