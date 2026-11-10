@@ -20,6 +20,7 @@
 #include "window705a20.h"
 #include "windowreg.h"
 #include "windowscript.h"
+#include "../online/chatcommand.h"
 
 namespace {
 
@@ -83,7 +84,7 @@ void Dialog7cc184_SetOpenEnv(const Dialog7cc184OpenEnv *env) { g_open = env ? en
 extern "C" void __cdecl Dialog7cc184_Open() {
     u8 *&dialog = global<u8 *>(0x007cc184);
     if (dialog) return;
-    u8 *&session = global<u8 *>(0x00f7d88c);
+    u8 *&session = gChatcommand_f7d88c;
     if (!session) {
         u8 *const memory = static_cast<u8 *>(g_open->alloc(0x404));
         session = memory ? g_open->holderCtor(memory, nullptr) : nullptr;

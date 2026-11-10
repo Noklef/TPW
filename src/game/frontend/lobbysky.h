@@ -25,10 +25,7 @@ u32 __fastcall LobbySky_Leave(u8 *self);
 #include "../core/gamedata.h"
 
 // Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
-GAME_DATA(u32, gLobbysky_879dd8, 0x00879dd8, 0x4);
-GAME_DATA(u32, gLobbysky_879ddc, 0x00879ddc, 0x4);
-GAME_DATA(u32, gLobbysky_879de0, 0x00879de0, 0x4);
-GAME_DATA(u32, gLobbysky_879de4, 0x00879de4, 0x4);
+GAME_DATA(u32[4], gLobbysky_879dd8, 0x00879dd8, 0x10);
 GAME_DATA(u32, gLobbysky_8bd47c, 0x008bd47c, 0x4);
 GAME_DATA(u32, gLobbysky_8bd490, 0x008bd490, 0x4);
 GAME_DATA(u32, gLobbysky_8bd494, 0x008bd494, 0x4);

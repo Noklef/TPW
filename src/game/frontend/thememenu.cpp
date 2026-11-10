@@ -21,6 +21,8 @@
 #include "../ui/dialog7cc4b4update.h"
 #include "lobbyscript.h"
 #include "frame.h"
+#include "../online/chatlists.h"
+#include "../online/chatcommand.h"
 
 namespace {
 
@@ -46,7 +48,7 @@ u8 *Singleton(u32 address, u32 size, u8 *(__fastcall *ctor)(u8 *)) {
     return object;
 }
 
-u8 *Session() { return Singleton(0x00f7d88c, 0x404, g_env->online); }
+u8 *Session() { return Singleton(reinterpret_cast<uintptr_t>(&gChatcommand_f7d88c), 0x404, g_env->online); }
 
 void WideFrom(WString *wide, const char *text) {
     String narrow;
@@ -74,7 +76,7 @@ void RefreshItem(u8 *item) {
     WString a, b;
     WString_Ctor(&a);
     WString_Ctor(&b);
-    if (at<s32>(Singleton(0x00f81ebc, 0x110, g_env->userSlots), 0x60) == -1) {
+    if (at<s32>(Singleton(reinterpret_cast<uintptr_t>(&gChatlists_f81ebc), 0x110, g_env->userSlots), 0x60) == -1) {
         WString key;
         WString_Ctor(&key);
         WideFrom(&key, at<const char *>(item, 0x30));

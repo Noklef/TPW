@@ -70,7 +70,7 @@ void setData(u32 mode, const u16 *text, u32 data) {
 
 // The chat [0x7cddec], made first when there is none (0xf0c bytes, OnlineChat_Ctor; none when the allocation fails: kept, sic).
 u8 *chat() {
-    u8 *&chat = global<u8 *>(0x007cddec);
+    u8 *&chat = gChat_7cddec;
     if (!chat) {
         u8 *const block = static_cast<u8 *>(GameHeap_Alloc(0xf0c));
         chat = block ? OnlineChat_Ctor(block) : nullptr;
@@ -97,7 +97,7 @@ void __cdecl Window7cc8bc_EnterChat() {
     };
     pack(0x007a1c70, &global<u8>(0x007cc690));
     pack(0x007a1c78, &global<u8>(0x007cc694));
-    const bool had = global<u8 *>(0x007cddec) != nullptr;
+    const bool had = gChat_7cddec != nullptr;
     u8 *const avatar = chat();
     // x's high word EAX's (the __ftol's, or the new chat's); y's 0 (EDX's after a new chat is whatever the allocation left: 0 here)
     const u32 high = had ? last : (u32)(uintptr_t)avatar;

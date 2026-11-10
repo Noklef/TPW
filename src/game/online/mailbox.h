@@ -165,3 +165,16 @@ u32 __fastcall Mailbox_NewAttachment(u8 *target, void *, const char *path);
 // the picture's path. Answers 1 when the attachment was made, else 0.
 u8 __fastcall Mailbox_DropFirst(u8 *self, void *, u8 *target);
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(char[20], gMailbox_75447c, 0x0075447c, 0x14);
+GAME_DATA(char[4], gMailbox_764ff0, 0x00764ff0, 0x4);
+GAME_DATA(char[12], gMailbox_7740b4, 0x007740b4, 0xc);
+GAME_DATA(char[8], gMailbox_Open_7740c0, 0x007740c0, 0x8);
+GAME_DATA(char[4], gMailbox_7740c8, 0x007740c8, 0x4);
+GAME_DATA(char[12], gMailbox_7740cc, 0x007740cc, 0xc);
+GAME_DATA(char[12], gMailbox_7740d8, 0x007740d8, 0xc);
+GAME_DATA(char[16], gMailbox_7740e4, 0x007740e4, 0x10);
+GAME_DATA(char[28], gMailbox_7740f4, 0x007740f4, 0x1c);

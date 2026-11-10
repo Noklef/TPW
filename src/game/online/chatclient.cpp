@@ -11,6 +11,7 @@
 #include "../core/wtraits.h"
 #include "chatlists.h"
 #include "session.h"
+#include "chatavatar.h"
 
 namespace {
 
@@ -130,7 +131,7 @@ void __fastcall ChatClient_Connect(u8 *self) {
     alignas(4) u8 message[8];
     if (!g_env->messageCheck(new_message(message))) at<u8>(self, 0x2b) = 1;
     u16 *const text = reinterpret_cast<u16 *>(self + 0x260);
-    g_env->format(text, reinterpret_cast<const u16 *>((uintptr_t)0x0075c0cc), Online_String14(Online_Instance()));
+    g_env->format(text, reinterpret_cast<const u16 *>(&gChatavatar_75c0cc), Online_String14(Online_Instance()));
     assign(self + 8, text);
     if (!at<u32>(self, 0)) {
         void *const block = GameHeap_Alloc(0xc);
@@ -139,7 +140,7 @@ void __fastcall ChatClient_Connect(u8 *self) {
     const u32 host = at<u32>(self, 0x1c) ? at<u32>(self, 0x1c) : 0x006fe5b0u;
     const s32 port = global<s16>(0x007a1552);
     if (!session_call(0x006fd498, at<u32>(self, 0), host, port, 0x004e61f0u, (u32)(uintptr_t)Global7cc53c_Pick7cc4f0())) {
-        (*reinterpret_cast<void(__stdcall *const *)(u32)>((uintptr_t)0x006fd1e0))(0x0075c0fc);
+        (*reinterpret_cast<void(__stdcall *const *)(u32)>((uintptr_t)0x006fd1e0))(reinterpret_cast<uintptr_t>(&gChatClient_Connect_75c0fc));
     } else {
         const u16 *const name = reinterpret_cast<const u16 *>(Online_String28(Online_Instance()));
         alignas(4) u8 strings[0x20];   // (two wide strings side by side, as the original's: the login's first argument hashes both)

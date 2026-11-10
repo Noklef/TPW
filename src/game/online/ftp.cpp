@@ -73,7 +73,7 @@ void post_command(void *self, u32 command) {
 // The end of the quit: the thread's command 2 too.
 s32 quit_now(void *self) {
     if (field<u32>(self, 4) == 0xffffffffu) return 0x38;
-    Ftp_SendLine(self, nullptr, text_at(0x00774158));
+    Ftp_SendLine(self, nullptr, text_at(reinterpret_cast<uintptr_t>(&gFtp_774158)));
     const s32 code = Ftp_ReadReply(self, nullptr, nullptr, 0, 1);
     if (code != 0 && code != 0xdd) return 0x43;
     Ftp_Close(self);
@@ -94,7 +94,7 @@ s32 retrieve_steps(void *self, bool &keepData) {
     }
     field<u32>(self, 0x1c) = 0;
     field<u32>(self, 0x18) = 0;
-    crt.sprintf(line, text_at(0x0077416c), &field<char>(self, 0x265c));
+    crt.sprintf(line, text_at(reinterpret_cast<uintptr_t>(&gFtp_77416c)), &field<char>(self, 0x265c));
     Ftp_SendLine(self, nullptr, line);
     s32 code = Ftp_ReadReply(self, nullptr, nullptr, 0, 1);
     if (code == 0) return 0x38;
@@ -116,7 +116,7 @@ s32 retrieve_steps(void *self, bool &keepData) {
         }
     }
     field<s32>(self, 0x18) += size;
-    crt.sprintf(line, text_at(0x00774160), &field<char>(self, 0x265c));
+    crt.sprintf(line, text_at(reinterpret_cast<uintptr_t>(&gFtp_774160)), &field<char>(self, 0x265c));
     Ftp_SendLine(self, nullptr, line);
     code = Ftp_ReadReply(self, nullptr, nullptr, 0, 1);
     if (code == 0) return 0x38;
@@ -157,18 +157,18 @@ s32 login_steps(void *self) {
     s32 code = Ftp_ReadReply(self, nullptr, nullptr, 0, 1);
     if (code == 0) return 0x38;
     if (code != 0xdc) return 0x41;
-    crt.sprintf(line, text_at(0x0077414c), &field<char>(self, 0x249c));
+    crt.sprintf(line, text_at(reinterpret_cast<uintptr_t>(&gFtp_77414c)), &field<char>(self, 0x249c));
     Ftp_SendLine(self, nullptr, line);
     code = Ftp_ReadReply(self, nullptr, nullptr, 0, 1);
     if (code == 0) return 0x38;
     if (code == 0x14b || code == 0x14c) {
-        crt.sprintf(line, text_at(0x00774140), &field<char>(self, 0x24fc));
+        crt.sprintf(line, text_at(reinterpret_cast<uintptr_t>(&gFtp_774140)), &field<char>(self, 0x24fc));
         Ftp_SendLine(self, nullptr, line);
         code = Ftp_ReadReply(self, nullptr, nullptr, 0, 1);
         if (code == 0) return 0x38;
         if (code != 0xe6) return 0x42;
     }
-    Ftp_SendLine(self, nullptr, text_at(0x00774134));
+    Ftp_SendLine(self, nullptr, text_at(reinterpret_cast<uintptr_t>(&gFtp_774134)));
     code = Ftp_ReadReply(self, nullptr, nullptr, 0, 1);
     if (code == 0) return 0x38;
     return code == 0xc8 ? 0 : 0x43;
@@ -364,7 +364,7 @@ s32 __fastcall Ftp_DataSetup(void *self) {
     const CrtEnv &crt = Crt();
     s32 addressSize = 0x10;
     char line[0x100];
-    Ftp_SendLine(self, nullptr, text_at(0x0077412c));
+    Ftp_SendLine(self, nullptr, text_at(reinterpret_cast<uintptr_t>(&gFtp_DataSetup_77412c)));
     const s32 code = Ftp_ReadReply(self, nullptr, line, 0x100, 1);
     if (code == 0) return 0x38;
     u16 &port = field<u16>(self, 0x242e);
@@ -394,7 +394,7 @@ s32 __fastcall Ftp_DataSetup(void *self) {
     if (Listen(field<u32>(self, 0x2428), 5) != 0) return 0x34;
     GetSockName(field<u32>(self, 0x2428), &field<u8>(self, 0x242c), &addressSize);
     port = Ntohs(port);
-    crt.sprintf(line, text_at(0x00774110), field<u8>(self, 0x2430), field<u8>(self, 0x2431), field<u8>(self, 0x2432), field<u8>(self, 0x2433), port >> 8, port & 0xff);
+    crt.sprintf(line, text_at(reinterpret_cast<uintptr_t>(&gFtp_DataSetup_774110)), field<u8>(self, 0x2430), field<u8>(self, 0x2431), field<u8>(self, 0x2432), field<u8>(self, 0x2433), port >> 8, port & 0xff);
     port = Htons(port);
     Ftp_SendLine(self, nullptr, line);
     const s32 reply = Ftp_ReadReply(self, nullptr, nullptr, 0, 1);

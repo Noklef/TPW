@@ -9,6 +9,7 @@
 #include "../gfx/texdirs.h"
 #include "textscan.h"
 #include "vfs.h"
+#include "../online/postcardmail.h"
 
 namespace {
 
@@ -229,7 +230,7 @@ u32 __cdecl Quickload_LoadRide(const char *name, const char *folder, const char 
     const u32 n = length(folder);
     Rep_Movs(paths.directories, folder, n + 1);
     const char before = n ? paths.directories[n - 1] : paths.located[0x103];
-    Crt().sprintf(paths.directories + n, reinterpret_cast<const char *>(before == '\\' ? 0x0074d1f0 : 0x0074d1ec),   // "%s" / "\%s"
+    Crt().sprintf(paths.directories + n, reinterpret_cast<const char *>(before == '\\' ? reinterpret_cast<uintptr_t>(&gPostcardmail_74d1f0) : 0x0074d1ec),   // "%s" / "\%s"
                   reinterpret_cast<const char *>(0x007af650));
     if (!directory) return 0;
     TexDirs_Set(directory, folder, paths.directories, c);

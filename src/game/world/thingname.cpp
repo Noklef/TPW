@@ -4,6 +4,7 @@
 #include <cstdint>
 
 #include "../core/crt.h"
+#include "../online/chatavatar.h"
 
 namespace {
 
@@ -18,7 +19,7 @@ void ThingName_SetEnv(const ThingNameEnv *env) { g_env = env ? env : &kGameEnv; 
 
 void __fastcall Thing_NameA(u8 *thing, void *, u16 *to, u32 count) {
     u16 *const text = reinterpret_cast<u16 *>(thing + 0x3c8);
-    const u16 *const format = global_text(0x0075c0cc);
+    const u16 *const format = global_text(reinterpret_cast<uintptr_t>(&gChatavatar_75c0cc));
     s32 length = 0;
     while (text[length]) ++length;
     if (length == 0) {
@@ -37,5 +38,5 @@ void __fastcall Thing_NameA(u8 *thing, void *, u16 *to, u32 count) {
 }
 
 void __fastcall Thing_NameB(u8 *thing, void *, u16 *to, u32 count) {
-    g_env->snwprintf(to, count, global_text(0x0075c0cc), reinterpret_cast<u16 *>(thing + 0x40a));
+    g_env->snwprintf(to, count, global_text(reinterpret_cast<uintptr_t>(&gChatavatar_75c0cc)), reinterpret_cast<u16 *>(thing + 0x40a));
 }

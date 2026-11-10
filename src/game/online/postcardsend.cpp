@@ -13,6 +13,8 @@
 #include "../world/messagecentre.h"
 #include "../world/thingmsg.h"
 #include "session.h"
+#include "mailbox.h"
+#include "chatlists.h"
 
 namespace {
 
@@ -42,30 +44,30 @@ void PostcardSend_SetEnv(const PostcardSendEnv *env) { g_env = env ? env : &kGam
 extern "C" {
 
 void __cdecl Postcard_Send() {
-    Crt().sprintf(buffer(0x007cbcb0), text(0x0074d320), text(0x007cb958), text(0x0075447c));
+    Crt().sprintf(buffer(0x007cbcb0), text(reinterpret_cast<uintptr_t>(&gPostcardsend_74d320)), text(0x007cb958), text(reinterpret_cast<uintptr_t>(&gMailbox_75447c)));
     g_env->savePicture(global<u8 *>(0x007cc18c), nullptr, text(0x007cbcb0));
     char local[0x100];
-    Crt().sprintf(local, text(0x00754470), text(0x007cb958), global<u32>(0x007cbf38)++);
+    Crt().sprintf(local, text(reinterpret_cast<uintptr_t>(&gPostcard_Send_754470)), text(0x007cb958), global<u32>(0x007cbf38)++);
     (*reinterpret_cast<s32(__stdcall *const *)(const char *, const char *, s32)>((uintptr_t)0x006fd158))(text(0x007cbcb0), local, 0);
 
     u8 *const memory = static_cast<u8 *>(GameHeap_Alloc(0x94));
     u8 *const mail = memory ? g_env->mailCtor(memory) : nullptr;
     char addresses[0x200];
     char body[0x64];
-    Crt().sprintf(addresses, text(0x0074f8c4), text(0x007cb4d0));
-    Crt().sprintf(body, text(0x0074f8c4), text(0x007cb408));
+    Crt().sprintf(addresses, text(reinterpret_cast<uintptr_t>(&gPostcardsend_74f8c4)), text(0x007cb4d0));
+    Crt().sprintf(body, text(reinterpret_cast<uintptr_t>(&gPostcardsend_74f8c4)), text(0x007cb408));
     g_env->assign(mail + 0x1c, nullptr, body, static_cast<u32>(strlen(body)));
-    for (char *token = g_env->strtok(addresses, text(0x00754468)); token; token = g_env->strtok(nullptr, text(0x00754468))) g_env->pushToken(mail, nullptr, token);
+    for (char *token = g_env->strtok(addresses, text(reinterpret_cast<uintptr_t>(&gPostcard_Send_754468))); token; token = g_env->strtok(nullptr, text(reinterpret_cast<uintptr_t>(&gPostcard_Send_754468)))) g_env->pushToken(mail, nullptr, token);
     g_env->assign(mail + 0x2c, nullptr, local, static_cast<u32>(strlen(local)));
     g_env->attach(mail, nullptr, local);
     at<u32>(mail, 0x90) = 0x004a7bf0;
 
     if (!Online_LoggedIn(Online_Instance())) {
-        u8 *manager = global<u8 *>(0x00f81ebc);
+        u8 *manager = gChatlists_f81ebc;
         if (!manager) {
             u8 *const block = static_cast<u8 *>(GameHeap_Alloc(0x110));
             manager = block ? g_env->managerCtor(block) : nullptr;
-            global<u8 *>(0x00f81ebc) = manager;
+            gChatlists_f81ebc = manager;
         }
         g_env->useManager(mail, nullptr, manager + 0x64);
         u8 msg[0xc];
@@ -92,7 +94,7 @@ void __cdecl Postcard_Send() {
     if (!host) host = text(0x006fe5b0);
     u32 answer;
     if (!*host)
-        answer = g_env->connect(mail, nullptr, text(0x00754454), 0x19, Global7cc53c_Pick7cc4f0(), 0);
+        answer = g_env->connect(mail, nullptr, text(reinterpret_cast<uintptr_t>(&gPostcardsend_754454)), 0x19, Global7cc53c_Pick7cc4f0(), 0);
     else
         answer = g_env->connect(mail, nullptr, host, static_cast<u32>(static_cast<s32>(global<s16>(0x007a1550))), Global7cc53c_Pick7cc4f0(), 0);
     if (answer) g_env->command(0x39, 0);

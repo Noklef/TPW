@@ -34,3 +34,8 @@ void __fastcall OnlineChat_Set29And2a(u8 *chat);
 // 0x4e6150: the byte +0x2a, read under the lock (in AL only).
 u8 __fastcall OnlineChat_Get2a(u8 *chat);
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(u8 *, gChat_7cddec, 0x007cddec, 0x4);

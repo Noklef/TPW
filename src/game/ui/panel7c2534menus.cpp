@@ -9,6 +9,7 @@
 #include "../world/object.h"
 #include "dialogs.h"
 #include "panel7c2534.h"
+#include "../online/chatcommand.h"
 
 extern "C" const u16 *__cdecl Language_WideText(u32 id);
 
@@ -48,11 +49,11 @@ void NewPanel(u32 handler) {
 }
 
 u8 *Online() {
-    if (!global<u8 *>(0x00f7d88c)) {
+    if (!gChatcommand_f7d88c) {
         u8 *const block = static_cast<u8 *>(GameHeap_Alloc(0x404));
-        global<u8 *>(0x00f7d88c) = block ? g_env->onlineCtor(block) : nullptr;
+        gChatcommand_f7d88c = block ? g_env->onlineCtor(block) : nullptr;
     }
-    return global<u8 *>(0x00f7d88c);
+    return gChatcommand_f7d88c;
 }
 
 s32 Row(s32 top, u32 text, u32 id, u32 colour) {

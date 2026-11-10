@@ -36,10 +36,10 @@ void __cdecl LightSource_Destroy(u8 *light) {
         M3D2_DataErrorBox(reinterpret_cast<const char *>((uintptr_t)0x0074d0dc));
         return;
     case 1:
-        gLobbysky_879dd8 = 0x3f800000;  // 1.0f
-        gLobbysky_879ddc = 0;
-        gLobbysky_879de0 = 0;
-        gLobbysky_879de4 = 0;
+        gLobbysky_879dd8[0] = 0x3f800000;  // 1.0f
+        gLobbysky_879dd8[1] = 0;
+        gLobbysky_879dd8[2] = 0;
+        gLobbysky_879dd8[3] = 0;
         // fall through
     case 2:
         releasePart(light, 4);
@@ -141,10 +141,10 @@ u32 *__cdecl LightSource_Create(u32 kind, u32 colour, const u32 *point, const u3
         M3D2_DataErrorBox(reinterpret_cast<const char *>((uintptr_t)0x0074d0dc));
         return nullptr;   // (the block kept by nobody: sic)
     case 1:
-        gLobbysky_879dd8 = 0x3f800000;   // 1.0f
-        reinterpret_cast<float &>(gLobbysky_879ddc) = (float)X87_MulInt(colour >> 16 & 0xff, k);
-        reinterpret_cast<float &>(gLobbysky_879de0) = (float)X87_MulInt(colour >> 8 & 0xff, k);
-        reinterpret_cast<float &>(gLobbysky_879de4) = (float)X87_MulInt(colour & 0xff, k);
+        gLobbysky_879dd8[0] = 0x3f800000;   // 1.0f
+        reinterpret_cast<float &>(gLobbysky_879dd8[1]) = (float)X87_MulInt(colour >> 16 & 0xff, k);
+        reinterpret_cast<float &>(gLobbysky_879dd8[2]) = (float)X87_MulInt(colour >> 8 & 0xff, k);
+        reinterpret_cast<float &>(gLobbysky_879dd8[3]) = (float)X87_MulInt(colour & 0xff, k);
         break;
     case 2:
     case 3: {
@@ -226,12 +226,12 @@ void __cdecl LightSource_UpdateMain(u32 update) {
     const X87Reg sum = X87Reg(v[0]) * v[0] + X87Reg(v[1]) * v[1] + X87Reg(v[2]) * v[2];
     const float length = (float)X87_Sqrt(sum);
     const u32 ambient = global<u32>(0x007a0b44);
-    gLobbysky_879dd8 = 0x3f800000;   // 1.0f
+    gLobbysky_879dd8[0] = 0x3f800000;   // 1.0f
     const float scale = (float)(X87Reg(global<float>(0x0074d0d8)) / length);
     const float k = global<float>(0x006fe53c);
-    reinterpret_cast<float &>(gLobbysky_879ddc) = (float)X87_MulInt(ambient >> 16 & 0xff, k);
-    reinterpret_cast<float &>(gLobbysky_879de0) = (float)X87_MulInt(ambient >> 8 & 0xff, k);
-    reinterpret_cast<float &>(gLobbysky_879de4) = (float)X87_MulInt(ambient & 0xff, k);
+    reinterpret_cast<float &>(gLobbysky_879dd8[1]) = (float)X87_MulInt(ambient >> 16 & 0xff, k);
+    reinterpret_cast<float &>(gLobbysky_879dd8[2]) = (float)X87_MulInt(ambient >> 8 & 0xff, k);
+    reinterpret_cast<float &>(gLobbysky_879dd8[3]) = (float)X87_MulInt(ambient & 0xff, k);
     const float x = (float)(X87Reg(v[0]) * scale), y = (float)(X87Reg(v[1]) * scale), z = (float)(X87Reg(v[2]) * scale);
     v[0] = x;
     v[1] = y;

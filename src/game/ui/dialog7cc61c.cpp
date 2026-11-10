@@ -15,6 +15,7 @@
 #include "radiogroup.h"
 #include "window.h"
 #include "window705b20.h"
+#include "../online/chatcommand.h"
 
 namespace {
 
@@ -31,7 +32,7 @@ const Dialog7cc61cTextEnv kGameTextEnv = {&GameHeap_Alloc, reinterpret_cast<u8 *
 const Dialog7cc61cTextEnv *g_textEnv = &kGameTextEnv;
 
 u8 *Holder() {
-    u8 *&holder = global<u8 *>(0x00f7d88c);
+    u8 *&holder = gChatcommand_f7d88c;
     if (!holder) {
         u8 *const memory = static_cast<u8 *>(g_textEnv->alloc(0x404));
         holder = memory ? g_textEnv->holderCtor(memory, nullptr) : nullptr;

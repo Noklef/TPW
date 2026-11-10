@@ -18,6 +18,7 @@
 #include "hoverlabel.h"
 #include "window.h"
 #include "windowscript.h"
+#include "../online/chatlists.h"
 
 namespace {
 
@@ -193,11 +194,11 @@ void __cdecl Dialog7cb3f8_Open() {
         finish(done, 3, 0x004a61d0);
         g_env->refresh();
     }
-    u8 *records = global<u8 *>(0x00f81ebc);
+    u8 *records = gChatlists_f81ebc;
     if (!records) {
         u8 *const memory = static_cast<u8 *>(g_env->alloc(0x110));
         records = memory ? g_env->records(memory) : nullptr;
-        global<u8 *>(0x00f81ebc) = records;
+        gChatlists_f81ebc = records;
     }
     if (g_env->countUsed(records)) {
         g_env->push(*reinterpret_cast<u8 **>(global<u8 *>(0x00f85614) + 0x14), nullptr, 0x18e, 1);

@@ -38,7 +38,7 @@ NameCall command(u32 row, u32 b) {
 }
 
 u8 *chat() {
-    u8 *&made = global<u8 *>(0x007cddec);
+    u8 *&made = gChat_7cddec;
     if (!made) {
         u8 *const block = static_cast<u8 *>(GameHeap_Alloc(0xf0c));
         made = block ? g_env->chatCtor(block) : nullptr;

@@ -10,6 +10,7 @@
 #include "../files/userslots.h"
 #include "window.h"
 #include "window7059f0.h"
+#include "../online/postcardsend.h"
 
 namespace {
 
@@ -73,7 +74,7 @@ extern "C" void __cdecl Dialog7cc654_SendChanges(u32 changed) {
     const char *const name = host ? host : reinterpret_cast<const char *>((uintptr_t)0x006fe5b0);
     u8 sent;
     if (*name == 0) {
-        sent = g_env->connect(lists, nullptr, reinterpret_cast<const char *>((uintptr_t)0x00754454), 0x19, g_env->pick());
+        sent = g_env->connect(lists, nullptr, gPostcardsend_754454, 0x19, g_env->pick());
     } else {
         const s32 port = global<s16>(0x007a1550);
         sent = g_env->connect(lists, nullptr, name, port, g_env->pick());

@@ -16,6 +16,7 @@
 #include "file.h"
 #include "gamepaths.h"
 #include "handles.h"
+#include "../online/chatlists.h"
 
 namespace {
 
@@ -427,7 +428,7 @@ u8 *__fastcall UserSlotsPart_Ctor(u8 *self) {
 }
 
 u8 *__cdecl UserSlots_Instance() {
-    u8 *&slots = *reinterpret_cast<u8 **>((uintptr_t)0x00f81ebc);
+    u8 *&slots = gChatlists_f81ebc;
     if (!slots) {
         u8 *const block = static_cast<u8 *>(GameHeap_Alloc(0x110));
         slots = block ? g_env->ctor(block) : nullptr;

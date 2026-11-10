@@ -83,11 +83,11 @@ void FollowPosition() {
     bool left = false;
     if (on && !(last & 0x400)) {
         global<u8>(0x007cc8d4) = 0;
-        u8 *avatar = global<u8 *>(0x007cddec);
+        u8 *avatar = gChat_7cddec;
         if (!avatar) {
             u8 *const block = static_cast<u8 *>(GameHeap_Alloc(0xf0c));
             avatar = block ? g_env->chatCtor(block) : nullptr;
-            global<u8 *>(0x007cddec) = avatar;
+            gChat_7cddec = avatar;
         }
         g_env->say(avatar);
         flags = global<u32>(0x00790ab0);

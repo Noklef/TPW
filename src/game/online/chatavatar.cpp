@@ -78,7 +78,7 @@ u8 *__fastcall ChatPlayer_Ctor(u8 *player, void *, u32 cell, u32 sprite, const u
     g_env->setRegF(at<s32>(player, 0xc), 8, 0x40000000);   // (2.0, the double 0x700688 as a float)
     const u16 *text = at<const u16 *>(name, 4);
     if (!text) text = reinterpret_cast<const u16 *>((uintptr_t)0x006fd6c4);
-    g_env->swprintf(reinterpret_cast<u16 *>(player + 0x19c), reinterpret_cast<const u16 *>((uintptr_t)0x0075c0cc), text);
+    g_env->swprintf(reinterpret_cast<u16 *>(player + 0x19c), reinterpret_cast<const u16 *>(&gChatavatar_75c0cc), text);
     at<u16>(player, 0xc2) = *reinterpret_cast<const u16 *>((uintptr_t)0x0075c7f2);
     at<u32>(player, 0x188) = 1;
     return player;

@@ -21,6 +21,7 @@
 #include "hoverlabel.h"
 #include "window.h"
 #include "windowscript.h"
+#include "../online/chatcommand.h"
 
 namespace {
 
@@ -39,7 +40,7 @@ u8 *dialog() { return global<u8 *>(0x007cc984); }
 
 // The session's holder, made when none (inlined each time).
 u8 *holder() {
-    u8 *&made = global<u8 *>(0x00f7d88c);
+    u8 *&made = gChatcommand_f7d88c;
     if (!made) {
         u8 *const block = static_cast<u8 *>(GameHeap_Alloc(0x404));
         made = block ? g_env->holderCtor(block) : nullptr;

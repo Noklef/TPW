@@ -52,8 +52,8 @@ void AddWideHex(StdString *to, char *buffer, uintptr_t label, const char *wide) 
     const char *from = wide ? wide : kNoName;
     char *out = buffer;
     while (from[0] && !from[1]) {
-        Crt().sprintf(out, Text(0x00774028), (s32)(signed char)from[0]);
-        Crt().sprintf(out + 3, Text(0x00774028), (s32)(signed char)from[1]);
+        Crt().sprintf(out, Text(reinterpret_cast<uintptr_t>(&gPostcardmail_774028)), (s32)(signed char)from[0]);
+        Crt().sprintf(out + 3, Text(reinterpret_cast<uintptr_t>(&gPostcardmail_774028)), (s32)(signed char)from[1]);
         from += 2;
         out += 6;
     }
@@ -62,7 +62,7 @@ void AddWideHex(StdString *to, char *buffer, uintptr_t label, const char *wide) 
 }
 
 void AddAttachment(StdString *to, char *buffer, const char *boundary, const u8 *attachment) {
-    AddFormat(to, buffer, 0x00773e98, boundary);
+    AddFormat(to, buffer, reinterpret_cast<uintptr_t>(&gPostcardmail_773e98), boundary);
     AddFormat(to, buffer, 0x00773e78, OrNull(at<char *>(attachment, 0x14)), OrNull(at<char *>(attachment, 4)));
     Add(to, Text(0x00773e54));
     AddFormat(to, buffer, 0x00773e3c, OrNull(at<char *>(attachment, 4)));
@@ -76,33 +76,33 @@ void AddAttachment(StdString *to, char *buffer, const char *boundary, const u8 *
 extern "C" void __fastcall PostcardMail_Build(u8 *mail) {
     char frame[0xc0];
     char *const buffer = frame, *const boundary = frame + 0x80;
-    Crt().sprintf(boundary, Text(0x0077409c), (*reinterpret_cast<u32(__stdcall **)()>((uintptr_t)0x006fd1d0))());
+    Crt().sprintf(boundary, Text(reinterpret_cast<uintptr_t>(&gPostcardMail_Build_77409c)), (*reinterpret_cast<u32(__stdcall **)()>((uintptr_t)0x006fd1d0))());
     StdString *const to = &at<StdString>(mail, 0x74);
     StdString_AssignChars(to, nullptr, Text(0x00786de4), (u32)std::strlen(Text(0x00786de4)));
     CutLines(OrNull(at<char *>(mail, 4)));
-    AddFormat(to, buffer, 0x00774090, OrNull(at<char *>(mail, 4)));
-    Add(to, Text(0x00774088));
+    AddFormat(to, buffer, reinterpret_cast<uintptr_t>(&gPostcardMail_Build_774090), OrNull(at<char *>(mail, 4)));
+    Add(to, Text(reinterpret_cast<uintptr_t>(&gPostcardMail_Build_774088)));
     for (const u8 *node = at<const u8 *>(at<const u8 *>(mail, 0x14), 0); node != at<const u8 *>(mail, 0x14);) {
         CutLines(OrNull(at<char *>(node, 0xc)));
-        AddFormat(to, buffer, 0x0074d1f0, OrNull(at<char *>(node, 0xc)));
+        AddFormat(to, buffer, reinterpret_cast<uintptr_t>(&gPostcardmail_74d1f0), OrNull(at<char *>(node, 0xc)));
         node = at<const u8 *>(node, 0);
-        if (node != at<const u8 *>(mail, 0x14)) Add(to, Text(0x00774084));
+        if (node != at<const u8 *>(mail, 0x14)) Add(to, Text(reinterpret_cast<uintptr_t>(&gPostcardMail_Build_774084)));
     }
     Add(to, Text(0x00773cdc));
     CutLines(OrNull(at<char *>(mail, 0x20)));
-    AddFormat(to, buffer, 0x00774074, OrNull(at<char *>(mail, 0x20)));
-    AddFormat(to, buffer, 0x0077405c, at<u32>(mail, 0x3c));
-    AddFormat(to, buffer, 0x00774044, at<u32>(mail, 0x40));
-    if (at<u32>(mail, 0x4c)) AddWideHex(to, buffer, 0x00774030, at<char *>(mail, 0x48));
-    if (at<u32>(mail, 0x5c)) AddWideHex(to, buffer, 0x00774014, at<char *>(mail, 0x58));
-    AddFormat(to, buffer, 0x00774000, at<u32>(mail, 0x64));
-    Add(to, Text(0x00773fec));
-    AddFormat(to, buffer, 0x00773fb8, boundary);
-    AddFormat(to, buffer, 0x00773f8c);
-    Add(to, Text(0x00773f00));
-    AddFormat(to, buffer, 0x00773ef4, boundary);
-    Add(to, Text(0x00773ec4));
-    Add(to, Text(0x00773ea4));
+    AddFormat(to, buffer, reinterpret_cast<uintptr_t>(&gPostcardMail_Build_774074), OrNull(at<char *>(mail, 0x20)));
+    AddFormat(to, buffer, reinterpret_cast<uintptr_t>(&gPostcardMail_Build_77405c), at<u32>(mail, 0x3c));
+    AddFormat(to, buffer, reinterpret_cast<uintptr_t>(&gPostcardMail_Build_774044), at<u32>(mail, 0x40));
+    if (at<u32>(mail, 0x4c)) AddWideHex(to, buffer, reinterpret_cast<uintptr_t>(&gPostcardMail_Build_774030), at<char *>(mail, 0x48));
+    if (at<u32>(mail, 0x5c)) AddWideHex(to, buffer, reinterpret_cast<uintptr_t>(&gPostcardMail_Build_774014), at<char *>(mail, 0x58));
+    AddFormat(to, buffer, reinterpret_cast<uintptr_t>(&gPostcardMail_Build_774000), at<u32>(mail, 0x64));
+    Add(to, Text(reinterpret_cast<uintptr_t>(&gPostcardMail_Build_773fec)));
+    AddFormat(to, buffer, reinterpret_cast<uintptr_t>(&gPostcardMail_Build_773fb8), boundary);
+    AddFormat(to, buffer, reinterpret_cast<uintptr_t>(&gPostcardMail_Build_773f8c));
+    Add(to, Text(reinterpret_cast<uintptr_t>(&gPostcardMail_Build_773f00)));
+    AddFormat(to, buffer, reinterpret_cast<uintptr_t>(&gPostcardMail_Build_773ef4), boundary);
+    Add(to, Text(reinterpret_cast<uintptr_t>(&gPostcardMail_Build_773ec4)));
+    Add(to, Text(reinterpret_cast<uintptr_t>(&gPostcardMail_Build_773ea4)));
     Add(to, Text(0x00773d00));
     const u8 *const attachment = at<const u8 *>(mail, 0x68);
     if (attachment && at<char *>(attachment, 0x20)) AddAttachment(to, buffer, boundary, attachment);

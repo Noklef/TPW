@@ -9,6 +9,9 @@
 #include "crt.h"
 #include "gameheap.h"
 #include "string.h"
+#include "../online/chatlists.h"
+#include "../online/chatcommand.h"
+#include "../online/chat.h"
 
 namespace {
 
@@ -78,9 +81,9 @@ u32 Single(u32 slot, u32 size, u32 ctor) {
     }
     return p;
 }
-u32 Chat() { return Single(0x007cddec, 0xf0c, 0x004e5260); }      // OnlineChat_Ctor
-u32 Online() { return Single(0x00f7d88c, 0x404, 0x005b50b0); }
-u32 Records() { return Single(0x00f81ebc, 0x110, 0x005c7420); }
+u32 Chat() { return Single(reinterpret_cast<uintptr_t>(&gChat_7cddec), 0xf0c, 0x004e5260); }      // OnlineChat_Ctor
+u32 Online() { return Single(reinterpret_cast<uintptr_t>(&gChatcommand_f7d88c), 0x404, 0x005b50b0); }
+u32 Records() { return Single(reinterpret_cast<uintptr_t>(&gChatlists_f81ebc), 0x110, 0x005c7420); }
 u32 Saves() { return Single(0x00f7c58c, 0x50, 0x005aef50); }      // GlobalSave_Construct
 u32 Centre() {
     u32 &p = G<u32>(0x00788d3c);
@@ -521,12 +524,12 @@ void ParkFrame() {   // state 0xa
 }
 
 void FreeChat() {
-    const u32 chat = G<u32>(0x007cddec);
+    const u32 chat = reinterpret_cast<u32 &>(gChat_7cddec);
     if (chat) {
         Th(0x004e5950, chat);
         GameHeap_Free(reinterpret_cast<void *>((uintptr_t)chat));
     }
-    G<u32>(0x007cddec) = 0;
+    reinterpret_cast<u32 &>(gChat_7cddec) = 0;
 }
 
 void ParkEnd() {   // state 0xb
@@ -585,8 +588,8 @@ void Shutdown() {   // state 0xc
     }
     G<u32>(0x00788d3c) = 0;
     FreeOf(0x00f7c58c, 0x005af250);
-    FreeOf(0x00f7d88c, 0x005b5920);
-    FreeOf(0x00f81ebc, 0x005c74b0);
+    FreeOf(reinterpret_cast<uintptr_t>(&gChatcommand_f7d88c), 0x005b5920);
+    FreeOf(reinterpret_cast<uintptr_t>(&gChatlists_f81ebc), 0x005c74b0);
     const u32 mouse = G<u32>(0x007b05e8);
     if (mouse) {
         Th(0x0046c350, mouse, 0);   // MouseMode_Set

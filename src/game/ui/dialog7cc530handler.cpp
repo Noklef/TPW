@@ -11,6 +11,7 @@
 #include "focus.h"
 #include "window.h"
 #include "window7059f0.h"
+#include "../online/postcardsend.h"
 
 namespace {
 
@@ -56,7 +57,7 @@ s32 __cdecl Dialog7cc530_Handler(u8 *window, u32 message, u32 a, u32 b) {
                 return 0;
             }
             global<u8>(0x007cc53c) = 1;
-            Crt().sprintf(reinterpret_cast<char *>((uintptr_t)0x007cc4f0), reinterpret_cast<const char *>((uintptr_t)0x0074f8c4), properties + 0x212);
+            Crt().sprintf(reinterpret_cast<char *>((uintptr_t)0x007cc4f0), gPostcardsend_74f8c4, properties + 0x212);
         }
         g_env->send(dialog(), 4, 0, 0);
         g_env->create(owner());

@@ -315,7 +315,7 @@ void __fastcall MouseModeTile_Assign(u8 *self) {
 }
 
 u8 *__cdecl OnlineChat_Instance() {
-    u8 *&chat = *reinterpret_cast<u8 **>(0x007cddec);
+    u8 *&chat = gChat_7cddec;
     if (!chat) {
         u8 *const block = static_cast<u8 *>(GameHeap_Alloc(0xf0c));
         chat = block ? OnlineChat_Ctor(block) : nullptr;

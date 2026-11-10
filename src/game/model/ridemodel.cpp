@@ -13,6 +13,7 @@
 #include "holder.h"
 #include "md2file.h"
 #include "partstate.h"
+#include "../online/postcardsend.h"
 
 namespace {
 
@@ -46,7 +47,7 @@ u32 __cdecl RideModel_Load(const char *name, u32 flags, u8 **out, char *outName,
     if (!dir || (flags & 0x200))
         Crt().sprintf(path, name);   // (sic: the name is the format)
     else
-        Crt().sprintf(path, text(0x0074d320), dir, name);   // "%s%s"
+        Crt().sprintf(path, text(reinterpret_cast<uintptr_t>(&gPostcardsend_74d320)), dir, name);   // "%s%s"
     const char *dot = Crt().strrchr(path, '.');
     if (!dot || dot == path || dot[1] == '\\')
         std::strcat(path, text(0x00747950));   // ".md2"

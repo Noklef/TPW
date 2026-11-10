@@ -13,6 +13,7 @@
 #include "../ui/window.h"
 #include "itemlist.h"
 #include "session.h"
+#include "chatevents.h"
 
 namespace {
 
@@ -59,7 +60,7 @@ void AskRoom(s32 id) {
     typedef u32(__fastcall * RoomInfo)(u8 *, void *, const StdString *, void *);
     String number;
     String_Ctor(&number);
-    String_Format(&number, reinterpret_cast<const char *>((uintptr_t)0x00759920), id);
+    String_Format(&number, gChatevents_759920, id);
     StdString text;
     text.ptr = nullptr;
     text.len = 0;
@@ -91,7 +92,7 @@ void StartRound() {
     // (the callback by its address in the game, which RoomCounts_ChatEvent's hook answers)
     if (!(*reinterpret_cast<const Connect *>((uintptr_t)0x006fd498))(chat(), nullptr, host, port, 0x004c4920, context)) {
         typedef void(__stdcall * Debug)(const char *);
-        (*reinterpret_cast<const Debug *>((uintptr_t)0x006fd1e0))(reinterpret_cast<const char *>((uintptr_t)0x00759924));
+        (*reinterpret_cast<const Debug *>((uintptr_t)0x006fd1e0))(gRoomcounts_759924);
         return;
     }
     ready() = 0;

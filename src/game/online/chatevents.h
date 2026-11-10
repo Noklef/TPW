@@ -75,3 +75,27 @@ struct ChatEventEnv {
     void(__cdecl *setC3129)(u8 value);                                                    // Window7cc8bc_SetC3129 0x4bd450
 };
 void ChatEvents_SetEnv(const ChatEventEnv *env);   // nullptr: the game's
+
+#include "../core/gamedata.h"
+
+// Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(char[4], gChatevents_759920, 0x00759920, 0x4);
+GAME_DATA(char[28], gChatAvatar_GotoFtpDone_75c0d4, 0x0075c0d4, 0x1c);
+GAME_DATA(char[48], gChatAvatar_Update_75c120, 0x0075c120, 0x30);
+GAME_DATA(char[72], gChatAvatar_Update_75c150, 0x0075c150, 0x48);
+GAME_DATA(char[72], gChatAvatar_LobbyEvent_75c198, 0x0075c198, 0x48);
+GAME_DATA(char[48], gChatAvatar_LobbyEvent_75c1e0, 0x0075c1e0, 0x30);
+GAME_DATA(char[56], gChatAvatar_LobbyEvent_75c210, 0x0075c210, 0x38);
+GAME_DATA(char[52], gChatAvatar_LobbyEvent_75c248, 0x0075c248, 0x34);
+GAME_DATA(char[72], gChatAvatar_LobbyEvent_75c27c, 0x0075c27c, 0x48);
+GAME_DATA(char[48], gChatAvatar_LobbyEvent_75c2c4, 0x0075c2c4, 0x30);
+GAME_DATA(char[92], gChatAvatar_LobbyEvent_75c2f4, 0x0075c2f4, 0x5c);
+GAME_DATA(char[52], gChatAvatar_LobbyEvent_75c350, 0x0075c350, 0x34);
+GAME_DATA(char[52], gChatAvatar_LobbyEvent_75c384, 0x0075c384, 0x34);
+GAME_DATA(char[44], gChatAvatar_LobbyEvent_75c3b8, 0x0075c3b8, 0x2c);
+GAME_DATA(char[52], gChatAvatar_LobbyEvent_75c3e4, 0x0075c3e4, 0x34);
+GAME_DATA(char[64], gChatAvatar_HandleEvent_75c448, 0x0075c448, 0x40);
+GAME_DATA(char[64], gChatAvatar_HandleEvent_75c488, 0x0075c488, 0x40);
+GAME_DATA(char[64], gChatAvatar_HandleEvent_75c4c8, 0x0075c4c8, 0x40);
+GAME_DATA(char[76], gChatevents_75c508, 0x0075c508, 0x4c);
+GAME_DATA(char[44], gChatAvatar_ShowResult_75c69c, 0x0075c69c, 0x2c);

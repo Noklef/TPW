@@ -2,6 +2,7 @@
 #include "enginedebug.h"
 
 #include <cstdint>
+#include "../online/mailbox.h"
 
 namespace {
 
@@ -29,7 +30,7 @@ void __cdecl EngineDebug_LogFallback(const char *text) {
         global<u32>(0x00879a28)++;
     }
     if (file != nullptr) {
-        g_env->fprintf(file, text_at(0x00764ff0), text);
+        g_env->fprintf(file, text_at(reinterpret_cast<uintptr_t>(&gMailbox_764ff0)), text);
         g_env->fflush(file);
         g_env->fclose(file);
     }
@@ -44,7 +45,7 @@ void __cdecl EngineDebug_Log(const char *text) {
         global<u32>(0x00879a2c)++;
     }
     if (file != nullptr) {
-        g_env->fprintf(file, text_at(0x00764ff0), text);   // "%s\n"
+        g_env->fprintf(file, text_at(reinterpret_cast<uintptr_t>(&gMailbox_764ff0)), text);   // "%s\n"
         g_env->fflush(file);
         g_env->fclose(file);
     }

@@ -48,10 +48,10 @@ void __fastcall LobbySky_Enter(u8 *self) {
     at<u32>(self, 0x18) = 0;
     at<u32>(self, 0x1c) = kFloat500;
     at<u32>(self, 0x4) = kFloat115;
-    gLobbysky_879dd8 = kFloat1;
-    gLobbysky_879ddc = 0;
-    gLobbysky_879de0 = 0;
-    gLobbysky_879de4 = 0;
+    gLobbysky_879dd8[0] = kFloat1;
+    gLobbysky_879dd8[1] = 0;
+    gLobbysky_879dd8[2] = 0;
+    gLobbysky_879dd8[3] = 0;
     g_env->light(self, nullptr, 0, nullptr, nullptr, 0);
     at<u32>(self, 0x28) = 0;
     at<u32>(self, 0x2c) = 0;
@@ -62,10 +62,10 @@ void __fastcall LobbySky_Enter(u8 *self) {
 }
 
 u32 __fastcall LobbySky_Leave(u8 *self) {
-    gLobbysky_879dd8 = kFloat1;
-    gLobbysky_879ddc = 0;
-    gLobbysky_879de0 = 0;
-    gLobbysky_879de4 = 0;
+    gLobbysky_879dd8[0] = kFloat1;
+    gLobbysky_879dd8[1] = 0;
+    gLobbysky_879dd8[2] = 0;
+    gLobbysky_879dd8[3] = 0;
     g_env->light(self, nullptr, 0, nullptr, nullptr, 0);
     global<u32>(0x008bcbc8) = at<u32>(self, 0x34);
     gLobbysky_8bd47c = at<u32>(self, 0x38);

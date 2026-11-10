@@ -12,6 +12,7 @@
 #include "../core/stdwstring.h"
 #include "../core/vcall.h"
 #include "../core/wtraits.h"
+#include "postcardsend.h"
 
 namespace {
 
@@ -62,9 +63,9 @@ void set_ios_vtable(u8 *stream, u32 vtable) { at<u32>(ios_of(stream), 0) = vtabl
 
 // The object 0xf81ebc (made once) and the online folder's WString; a narrow copy of the name and its suffix; the path from the WString's text.
 void build_path(const u8 *self, const char *name, u8 *folder, StdString *narrow, char *path, u32 wide_suffix, u32 narrow_suffix) {
-    if (!global<u32>(0x00f81ebc)) {
+    if (!reinterpret_cast<u32 &>(gChatlists_f81ebc)) {
         u8 *const block = static_cast<u8 *>(GameHeap_Alloc(0x110));
-        global<u8 *>(0x00f81ebc) = block ? g_env->singletonCtor(block) : nullptr;
+        gChatlists_f81ebc = block ? g_env->singletonCtor(block) : nullptr;
     }
     g_env->onlineFolder(folder);
     vcall<u32>(folder, 0x28, 0x007cebd8u);
@@ -73,7 +74,7 @@ void build_path(const u8 *self, const char *name, u8 *folder, StdString *narrow,
     vcall<u32>(folder, 0x20, wide_suffix);
     StdString_AssignChars(narrow, nullptr, name, (u32)std::strlen(name));
     StdString_AppendChars(narrow, nullptr, text_at(narrow_suffix), (u32)std::strlen(text_at(narrow_suffix)));
-    g_env->format(path, 0x0074f8c4, at<u32>(folder, 8));
+    g_env->format(path, reinterpret_cast<uintptr_t>(&gPostcardsend_74f8c4), at<u32>(folder, 8));
 }
 
 // The file closed and the filebuf told so; false when there was none or fclose failed.
@@ -121,7 +122,7 @@ u8 save_list(u8 *self, const char *name, u32 tree_offset, void(__fastcall *advan
     u8 *it = at<u8 *>(at<u8 *>(self, tree_offset), 0);
     while (it != at<u8 *>(self, tree_offset)) {
         const u32 text = at<u32>(it, 0x10);
-        g_env->formatWide(line, 0x0075c6c8, text ? text : 0x00700624u);
+        g_env->formatWide(line, reinterpret_cast<uintptr_t>(&gChatlists_75c6c8), text ? text : 0x00700624u);
         g_env->writeLine(stream, line);
         advance(&it);
     }
@@ -169,9 +170,9 @@ u32 __cdecl CRT_wcslen(const u16 *text) {
     return (u32)(p - text);
 }
 
-u8 __fastcall ChatLists_SaveBuddies(u8 *self, void *, const char *name) { return save_list(self, name, 0xe94, &StdTree_IncC, 0x0075c6dc, 0x0075c6d0); }
+u8 __fastcall ChatLists_SaveBuddies(u8 *self, void *, const char *name) { return save_list(self, name, 0xe94, &StdTree_IncC, 0x0075c6dc, reinterpret_cast<uintptr_t>(&gChatLists_75c6d0)); }
 
-u8 __fastcall ChatLists_SaveIgnored(u8 *self, void *, const char *name) { return save_list(self, name, 0xea4, &StdTree_IncE, 0x0075c6f4, 0x0075c6e8); }
+u8 __fastcall ChatLists_SaveIgnored(u8 *self, void *, const char *name) { return save_list(self, name, 0xea4, &StdTree_IncE, 0x0075c6f4, reinterpret_cast<uintptr_t>(&gChatLists_75c6e8)); }
 
 u8 __fastcall ChatLists_LoadBuddies(u8 *self, void *, const char *name) {
     if (!at<u32>(self, 0)) return 0;
@@ -185,7 +186,7 @@ u8 __fastcall ChatLists_LoadBuddies(u8 *self, void *, const char *name) {
     at<u32>(ios, 0) = 0x007099e4;
     open_ifstream(stream, buffer);
     StdString_Tidy(&narrow, nullptr, 0);
-    build_path(self, name, folder, &narrow, path, 0x0075c6dc, 0x0075c6d0);
+    build_path(self, name, folder, &narrow, path, 0x0075c6dc, reinterpret_cast<uintptr_t>(&gChatLists_75c6d0));
     bool opened = false;
     if (!at<u32>(buffer, kFile)) {
         const u32 file = g_env->fopen(path, 1);
@@ -228,7 +229,7 @@ u8 __fastcall ChatLists_LoadIgnored(u8 *self, void *, const char *name) {
     Init_4f1bd0(ios);
     open_ifstream(stream, buffer);
     StdString_Tidy(&narrow, nullptr, 0);
-    build_path(self, name, folder, &narrow, path, 0x0075c6f4, 0x0075c6e8);
+    build_path(self, name, folder, &narrow, path, 0x0075c6f4, reinterpret_cast<uintptr_t>(&gChatLists_75c6e8));
     if (!g_env->filebufOpen(buffer, nullptr, path, 1)) g_env->clear(ios_of(stream), nullptr, at<u32>(ios_of(stream), 4) | 2, 0);
     const auto notify = *reinterpret_cast<u32(__fastcall *const *)(u32, u32, u8 *, u8 *)>((uintptr_t)0x006fd484);
     while (stream_good(g_env->getline(stream, nullptr, line, 0x20, g_env->widen(ios_of(stream), nullptr, 10)))) {

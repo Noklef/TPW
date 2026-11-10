@@ -124,3 +124,16 @@ struct ChatCommandEnv {
 void ChatCommand_SetEnv(const ChatCommandEnv *env);   // nullptr: the game's
 const ChatCommandEnv *ChatCommand_Env();
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(const u32[4], gChatcommand_7005d8, 0x007005d8, 0x10);
+GAME_DATA(char[48], gChatcommand_75c418, 0x0075c418, 0x30);
+GAME_DATA(char[12], gChatcommand_75c5e4, 0x0075c5e4, 0xc);
+GAME_DATA(char[16], gChatcommand_75c5f0, 0x0075c5f0, 0x10);
+GAME_DATA(char[28], gChatcommand_75c600, 0x0075c600, 0x1c);
+GAME_DATA(char[68], gChatcommand_75c61c, 0x0075c61c, 0x44);
+GAME_DATA(char[32], gChatAvatar_RunCommand_75c660, 0x0075c660, 0x20);
+GAME_DATA(char[28], gChatAvatar_RunCommand_75c680, 0x0075c680, 0x1c);
+GAME_DATA(u8 *, gChatcommand_f7d88c, 0x00f7d88c, 0x4);

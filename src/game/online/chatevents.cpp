@@ -240,11 +240,11 @@ u8 *sameThing(u8 *thing) {
     return Thing_ByHandle(*Thing_GetHandle(thing, nullptr, &handle));
 }
 u8 *ensureSession() {
-    u8 *session = global<u8 *>(0x00f7d88c);
+    u8 *session = gChatcommand_f7d88c;
     if (!session) {
         u8 *const block = static_cast<u8 *>(GameHeap_Alloc(0x404));
         session = block ? ChatCommand_Env()->makeSession(block) : nullptr;
-        global<u8 *>(0x00f7d88c) = session;
+        gChatcommand_f7d88c = session;
     }
     return session;
 }
@@ -273,14 +273,14 @@ void movePlayer(u8 *avatar, const u8 *tokens) {
         u8 *const thing = sameThing(player);
         if (at<u8>(thing, 2) == 0x12) g_env->placeAt(thing, nullptr, x, y);
     } else {
-        debugLine(0x0075c508);
+        debugLine(reinterpret_cast<uintptr_t>(&gChatevents_75c508));
     }
 }
 
 // 0x52: to the room of token 4, or (already there) to the cell of the person of token 1.
 void goToPerson(u8 *avatar, const u8 *tokens) {
     if (at<u8>(avatar, 0xef8) == 1) {
-        debugLine(0x0075c418);
+        debugLine(reinterpret_cast<uintptr_t>(&gChatcommand_75c418));
         return;
     }
     StdString narrow;
@@ -379,7 +379,7 @@ void __fastcall ChatAvatar_HandleEvent(u8 *avatar, void *, const u8 *tokens) {
         StdWString s;
         assigned(avatar, &s);
         noticeOf(avatar, &s, 7);
-        debugLine(here ? 0x0075c4c8 : 0x0075c488);
+        debugLine(here ? reinterpret_cast<uintptr_t>(&gChatAvatar_HandleEvent_75c4c8) : reinterpret_cast<uintptr_t>(&gChatAvatar_HandleEvent_75c488));
         at<u8>(reinterpret_cast<const void *>((uintptr_t)it), 0x1d) = here;
         done(&s);
         at<u8>(reinterpret_cast<const void *>((uintptr_t)it), 0x1c) = 1;
@@ -410,7 +410,7 @@ void __fastcall ChatAvatar_HandleEvent(u8 *avatar, void *, const u8 *tokens) {
         if (!buddyOfName(avatar, tokens, &it)) break;
         at<u8>(reinterpret_cast<const void *>((uintptr_t)it), 0x1d) = 1;
         tellFlags(avatar, tokens, g_env->listSetData1);
-        debugLine(0x0075c448);
+        debugLine(reinterpret_cast<uintptr_t>(&gChatAvatar_HandleEvent_75c448));
         break;
     }
     case 0x26: {
@@ -660,7 +660,7 @@ void __fastcall ChatAvatar_ShowResult(u8 *avatar, void *, s32 result) {
         break;
     }
     at<u8>(avatar, 0xec0) = 1;
-    debugLine(0x0075c69c);
+    debugLine(reinterpret_cast<uintptr_t>(&gChatAvatar_ShowResult_75c69c));
 }
 
 namespace {
@@ -676,7 +676,7 @@ const u8 *sessionObject() { return reinterpret_cast<const u8 *>((uintptr_t)Obj_G
 // 0x34.
 void joinRoom(u8 *avatar) {
     char room[32];
-    Crt().sprintf(room, reinterpret_cast<const char *>((uintptr_t)0x00759920), at<u32>(sessionObject(), 8));
+    Crt().sprintf(room, gChatevents_759920, at<u32>(sessionObject(), 8));
     tell(0x006fd480, avatar, Online_User5c(ensureSession()));
     StdString name;
     StdString_Tidy(&name, nullptr, 0);
@@ -704,11 +704,11 @@ void __fastcall ChatAvatar_LobbyEvent(u8 *avatar, void *, const u8 *tokens) {
     case 0x2c:
         return;
     case 0x34:
-        debugLine(0x0075c3e4);
+        debugLine(reinterpret_cast<uintptr_t>(&gChatAvatar_LobbyEvent_75c3e4));
         joinRoom(avatar);
         return;
     case 0x31:
-        debugLine(0x0075c3b8);
+        debugLine(reinterpret_cast<uintptr_t>(&gChatAvatar_LobbyEvent_75c3b8));
         at<u8>(avatar, 0x28) = 1;
         g_env->selectSecond();
         return;
@@ -716,19 +716,19 @@ void __fastcall ChatAvatar_LobbyEvent(u8 *avatar, void *, const u8 *tokens) {
         at<u8>(avatar, 0x28) = 1;
         g_env->addName(avatar, nullptr, &at<StdWString>(avatar, 8), 0);
         g_env->startCrowd(global<u8 *>(0x007cf83c));
-        debugLine(0x0075c210);
-        debugLine(0x0075c1e0);
+        debugLine(reinterpret_cast<uintptr_t>(&gChatAvatar_LobbyEvent_75c210));
+        debugLine(reinterpret_cast<uintptr_t>(&gChatAvatar_LobbyEvent_75c1e0));
         g_env->readBuddies(avatar, nullptr, reinterpret_cast<const char *>((uintptr_t)0x00786de4));
         g_env->readIgnored(avatar, nullptr, reinterpret_cast<const char *>((uintptr_t)0x00786de4));
         return;
-    case 0x28: said = 0x0075c248, command = 0xa2; break;
-    case 0x29: said = 0x0075c27c, command = 0xa3; break;
-    case 0x2b: said = 0x0075c2f4, command = 0xa5; break;
-    case 0x2d: said = 0x0075c2c4, command = 0xa8; break;
-    case 0x30: said = 0x0075c248, command = 0xaa; break;
-    case 0x32: said = 0x0075c384, command = 0xae; break;
-    case 0x33: said = 0x0075c350, command = 0xaf; break;
-    default: said = 0x0075c198; break;
+    case 0x28: said = reinterpret_cast<uintptr_t>(&gChatAvatar_LobbyEvent_75c248), command = 0xa2; break;
+    case 0x29: said = reinterpret_cast<uintptr_t>(&gChatAvatar_LobbyEvent_75c27c), command = 0xa3; break;
+    case 0x2b: said = reinterpret_cast<uintptr_t>(&gChatAvatar_LobbyEvent_75c2f4), command = 0xa5; break;
+    case 0x2d: said = reinterpret_cast<uintptr_t>(&gChatAvatar_LobbyEvent_75c2c4), command = 0xa8; break;
+    case 0x30: said = reinterpret_cast<uintptr_t>(&gChatAvatar_LobbyEvent_75c248), command = 0xaa; break;
+    case 0x32: said = reinterpret_cast<uintptr_t>(&gChatAvatar_LobbyEvent_75c384), command = 0xae; break;
+    case 0x33: said = reinterpret_cast<uintptr_t>(&gChatAvatar_LobbyEvent_75c350), command = 0xaf; break;
+    default: said = reinterpret_cast<uintptr_t>(&gChatAvatar_LobbyEvent_75c198); break;
     }
     debugLine(said);
     if (command) g_env->post(command, global<u32>(0x0078bac8));
@@ -776,14 +776,14 @@ void __fastcall ChatAvatar_PumpEvents(u8 *chat) {
 u32 __cdecl ChatAvatar_GotoFtpDone(s32 failed) {
     if (!failed) return Global879088_Set_5508b0(2);
     ChatAvatar_GotoDone(OnlineChat_Instance());
-    return debugLine(0x0075c0d4);
+    return debugLine(reinterpret_cast<uintptr_t>(&gChatAvatar_GotoFtpDone_75c0d4));
 }
 
 void __fastcall ChatAvatar_Update(u8 *chat) {
     using Method = void(__fastcall *)(void *);
     ChatAvatar_PumpEvents(chat);
     if (!at<u32>(chat, 0xec4) || !at<u8>(chat, 0xec0)) return;
-    debugLine(0x0075c150);
+    debugLine(reinterpret_cast<uintptr_t>(&gChatAvatar_Update_75c150));
     (*reinterpret_cast<const Method *>((uintptr_t)0x006fd604))(at<void *>(chat, 0xec4));
     if (void *const vote = at<void *>(chat, 0xec4)) {
         (*reinterpret_cast<const Method *>((uintptr_t)0x006fd608))(vote);
@@ -791,6 +791,6 @@ void __fastcall ChatAvatar_Update(u8 *chat) {
     }
     at<u32>(chat, 0xec4) = 0;
     at<u8>(chat, 0xec0) = 0;
-    debugLine(0x0075c120);
+    debugLine(reinterpret_cast<uintptr_t>(&gChatAvatar_Update_75c120));
     g_env->setC3129(0);
 }

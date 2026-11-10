@@ -21,6 +21,8 @@
 #include "../ui/windowscript.h"
 #include "islandcamera.h"
 #include "lobbyscene.h"
+#include "../online/chatlists.h"
+#include "../online/chatcommand.h"
 
 namespace {
 
@@ -45,7 +47,7 @@ u8 *Make(u32 size, u8 *(__fastcall *ctor)(u8 *)) {
 }
 
 u8 *UserSlots() {
-    u8 *&slots = global<u8 *>(0x00f81ebc);
+    u8 *&slots = gChatlists_f81ebc;
     if (!slots) slots = Make(0x110, g_start->userSlots);
     return slots;
 }
@@ -89,7 +91,7 @@ u32 __fastcall Frame_Start(u8 *frame) {
         node = at<u8 *>(node, 4);
         vcall<void>(object, 4);
     }
-    u8 *&session = global<u8 *>(0x00f7d88c);
+    u8 *&session = gChatcommand_f7d88c;
     if (!session) session = Make(0x404, g_start->online);
     if (at<u32>(session, 0x108)) {
         ShowPanel(0x10);

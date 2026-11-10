@@ -15,3 +15,8 @@ void __stdcall RoomCounts_ChatEvent(s32 type, u32 unused, const u8 *arguments);
 // with the flag [0x7cdb1c] set: Chat::Release, each count handed to the dialog [0x7cdb0c]'s (if any) child 0x16007's child 0x16008-0x1600c by its slot 7, and the flag cleared.
 void __cdecl RoomCounts_Update();
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(char[40], gRoomcounts_759924, 0x00759924, 0x28);

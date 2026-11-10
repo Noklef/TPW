@@ -16,6 +16,7 @@
 #include "drives.h"
 #include "file.h"
 #include "handles.h"
+#include "../online/postcardsend.h"
 
 namespace {
 
@@ -178,7 +179,7 @@ u32 __cdecl GamePaths_FontsFolder(char *out) {
     s32 length = 0;
     while (root[length] != 0)
         ++length;
-    const char *const format = root[length - 1] == '\\' ? at<const char *>(0x0074d320) : at<const char *>(0x007488ac);   // (empty: root[-1], sic)
+    const char *const format = root[length - 1] == '\\' ? at<const char *>(reinterpret_cast<uintptr_t>(&gPostcardsend_74d320)) : at<const char *>(0x007488ac);   // (empty: root[-1], sic)
     Crt().sprintf(out, format, root, at<const char *>(0x0074d6c0));
     return 1;
 }
