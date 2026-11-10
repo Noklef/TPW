@@ -450,6 +450,10 @@ class Emu:
             v = d & low | self.xmm_operand(o[1], 8, False) << 64
         elif mn == 'MOVUPS':
             v = self.xmm_operand(o[1], 16, False)
+        elif mn == 'MULSS':   # the low lane only
+            v = d & ~0xffffffff | _sse_single('MULPS', d & 0xffffffff, self.xmm_operand(o[1], 4, False) & 0xffffffff)
+        elif mn == 'RCPPS':
+            v = int.from_bytes(_native_rcpps()(self.xmm_operand(o[1]).to_bytes(16, 'little')), 'little')
         else:
             s = _lanes128(self.xmm_operand(o[1]))
             a = _lanes128(d)
@@ -462,6 +466,8 @@ class Emu:
             elif mn == 'SHUFPS':
                 n = int(o[2], 16)
                 lanes = [a[n & 3], a[n >> 2 & 3], s[n >> 4 & 3], s[n >> 6 & 3]]
+            elif mn == 'XORPS':
+                lanes = [x ^ y for x, y in zip(a, s)]
             else:
                 lanes = [_sse_single(mn, x, y) for x, y in zip(a, s)]
             v = sum(x << (32 * k) for k, x in enumerate(lanes))
@@ -832,8 +838,10 @@ class Emu:
                 return nxt
             self.push(nxt)
             return target
-        elif mn == 'EMMS':   # marks every x87 register empty
+        elif mn in ('EMMS', 'FEMMS'):   # marks every x87 register empty (FEMMS: 3DNow!'s, the same here)
             self.st = []
+        elif mn in ('PREFETCH', 'PREFETCHW'):   # (3DNow!'s cache hints: no fault, no effect; Ghidra lists SSE's PREFETCHNTA as NOP)
+            pass
         elif mn in MMX:
             self.mmx(mn, o)
         elif mn in SSE:
@@ -847,7 +855,30 @@ class Emu:
         return nxt
 
 
-SSE = ('MOVAPS', 'MOVUPS', 'MOVNTPS', 'MOVSS', 'MOVLPS', 'MOVHPS', 'UNPCKLPS', 'UNPCKHPS', 'SHUFPS', 'MULPS', 'ADDPS')
+SSE = ('MOVAPS', 'MOVUPS', 'MOVNTPS', 'MOVSS', 'MOVLPS', 'MOVHPS', 'UNPCKLPS', 'UNPCKHPS', 'SHUFPS', 'MULPS', 'ADDPS', 'SUBPS', 'XORPS', 'MULSS', 'RCPPS')
+
+
+@functools.lru_cache(None)
+def _native_rcpps():
+    """RCPPS run by this machine's CPU (its approximation's bits differ between CPUs, and a port runs the same instruction): a few
+    bytes of code of our own in executable memory, through ctypes. f(16 bytes in) -> 16 bytes out."""
+    import ctypes
+    k32 = ctypes.WinDLL('kernel32', use_last_error=True)
+    k32.VirtualAlloc.restype = ctypes.c_void_p
+    k32.VirtualAlloc.argtypes = [ctypes.c_void_p, ctypes.c_size_t, ctypes.c_uint32, ctypes.c_uint32]
+    if ctypes.sizeof(ctypes.c_void_p) == 8:   # (source in RCX, out in RDX)
+        code = bytes.fromhex('0f1001' '0f53c0' '0f1102' 'c3')
+    else:   # (cdecl: source, out on the stack)
+        code = bytes.fromhex('8b442404' '8b542408' '0f1000' '0f53c0' '0f1102' 'c3')
+    at = k32.VirtualAlloc(None, 0x1000, 0x3000, 0x40)   # (MEM_COMMIT | MEM_RESERVE, PAGE_EXECUTE_READWRITE)
+    ctypes.memmove(at, code, len(code))
+    fn = ctypes.CFUNCTYPE(None, ctypes.c_char_p, ctypes.c_char_p)(at)
+
+    def rcpps(data):
+        out = ctypes.create_string_buffer(16)
+        fn(bytes(data), out)
+        return out.raw
+    return rcpps
 
 
 def _lanes128(v):
@@ -855,13 +886,13 @@ def _lanes128(v):
 
 
 def _sse_single(mn, a, b):
-    """One lane of ADDPS or MULPS, as bits, exceptions masked: a NaN source wins, the first over the second, made quiet; an invalid operation gives the sign-set default. The double's sum or product
+    """One lane of ADDPS, SUBPS or MULPS, as bits, exceptions masked: a NaN source wins, the first over the second, made quiet; an invalid operation gives the sign-set default. The double's sum or product
     rounds to the single's correctly (53 bits, at least 2 * 24 + 2)."""
     for x in (a, b):
         if x & 0x7f800000 == 0x7f800000 and x & 0x7fffff:
             return x | 0x400000
     x, y = struct.unpack('<2f', struct.pack('<2I', a, b))
-    r = x * y if mn == 'MULPS' else x + y
+    r = x * y if mn == 'MULPS' else x - y if mn == 'SUBPS' else x + y
     if r != r:
         return 0xffc00000
     try:
@@ -918,6 +949,11 @@ MMX = {'PADDW': lambda d, s: _join([a + b for a, b in zip(_lanes(d, 16), _lanes(
                                       for a, b in zip(zip(*[iter(_lanes(d, 16))] * 2), zip(*[iter(_lanes(s, 16))] * 2))], 32),
        'PACKSSDW': lambda d, s: _join([min(0x7fff, max(-0x8000, _signed(x, 32))) for x in _lanes(d, 32) + _lanes(s, 32)], 16),
        'PXOR': lambda d, s: d ^ s, 'PAND': lambda d, s: d & s, 'POR': lambda d, s: d | s,
+       # 3DNow!: two singles a register, as IEEE singles rounded to nearest (its departures, denormals read and made as 0, no infinities or
+       # NaNs, overflow held at the largest normal, are not modelled: keep the values normal). PFACC: the destination's two summed, then the source's.
+       'PFADD': lambda d, s: _join([_sse_single('ADDPS', a, b) for a, b in zip(_lanes(d, 32), _lanes(s, 32))], 32),
+       'PFMUL': lambda d, s: _join([_sse_single('MULPS', a, b) for a, b in zip(_lanes(d, 32), _lanes(s, 32))], 32),
+       'PFACC': lambda d, s: _join([_sse_single('ADDPS', *_lanes(d, 32)), _sse_single('ADDPS', *_lanes(s, 32))], 32),
        'MOVD': lambda d, s: s & 0xffffffff, 'MOVQ': lambda d, s: s}
 
 
