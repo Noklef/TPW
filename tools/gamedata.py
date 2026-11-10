@@ -161,7 +161,8 @@ STATIC = {         # static object: (size, why), where its functions do not say 
                       'initialisers set them)'),
 }
 STATIC_SOURCES = ('staticinit.cpp', 'staticinitmanual.cpp')
-STATIC_TABLE = re.compile(r'^\s*\{0x[0-9a-f]+, [^,{}]+, 0x([0-9a-f]+)u?, 0x([0-9a-f]+),', re.M)   # (kMain: init, text, object, ctor)
+STATIC_TABLE = re.compile(r'^\s*\{0x[0-9a-f]+, [^,{}]+, 0x([0-9a-f]+), &\w+\},', re.M)   # (kMain: init, text, ctor, exit)
+STATIC_OBJECTS = re.compile(r'\bkObjects\[\] = \{([^}]*)\};')                            # (kMain's objects, row by row)
 STATIC_CALL = re.compile(r'\.Th\(0x([0-9a-f]+), 0x([0-9a-f]+)u')   # (an exit thunk's too: g_calls.Th(dtor, object))
 STATIC_REG = re.compile(r'\b(e[a-d]x|e[sd]i|ebp) = 0x([0-9a-f]+)u;|M<u32>\(sp - 0x[0-9a-f]+\) = 0x([0-9a-f]+)u;')
 
@@ -171,8 +172,14 @@ def statics(text):
     base: kMain's object (its constructor), a Th call's this (an exit thunk's: its destructor), a register set to it (the Th calls
     with that register before it is set again), a pushed argument."""
     out = {}
-    for m in STATIC_TABLE.finditer(text):
-        out.setdefault(int(m.group(1), 16), set()).add(int(m.group(2), 16))
+    ctors = [int(m.group(1), 16) for m in STATIC_TABLE.finditer(text)]
+    m = STATIC_OBJECTS.search(text)
+    objects = [e.strip() for e in m.group(1).split(',') if e.strip()] if m else []
+    assert len(objects) == len(ctors), 'kMain and kObjects: %d rows, %d objects' % (len(ctors), len(objects))
+    for ctor, obj in zip(ctors, objects):
+        lit = re.fullmatch(r'0x([0-9a-f]+)u?', obj)
+        if lit:
+            out.setdefault(int(lit.group(1), 16), set()).add(ctor)
     for m in STATIC_CALL.finditer(text):
         out.setdefault(int(m.group(2), 16), set()).add(int(m.group(1), 16))
     for m in STATIC_REG.finditer(text):
@@ -357,7 +364,8 @@ def self_check():
     del NEXT[0x700008]
     # staticinit: a String at 0x900000 (0x14), a register base 0x900100 (an unsized function: to the next base), a pushed 0x900200
     # (to the end), the register set again to 0x900400
-    text = ('    {0x401000, 0x401010, 0x900000u, 0x5f60b0, &Exit_401020},\nvoid Exit_401020() { g_calls.Th(0x005f61e0, 0x900000u); }\nvoid F() {\n'
+    text = ('    {0x401000, 0x401010, 0x5f60b0, &Exit_401020},\n    {0x401030, 0x401010, 0x5f60b0, &Exit_401040},\n'
+            'const u32 kObjects[] = {\n    0x900000, (u32)(uintptr_t)&gNamed,\n};\nvoid Exit_401020() { g_calls.Th(0x005f61e0, 0x900000u); }\nvoid F() {\n'
             '    ecx = 0x900100u; g_calls.Th(0x123456, ecx); ecx = 0x900400u; g_calls.Th(0x5f60b0, ecx);\n'
             '    M<u32>(sp - 0x4) = 0x900200u;\n}\n')
     assert statics(text) == {0x900000: {0x5f60b0, 0x5f61e0}, 0x900100: {0x123456}, 0x900200: set(), 0x900400: {0x5f60b0}}
