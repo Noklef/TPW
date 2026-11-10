@@ -8,7 +8,9 @@
 #include "../world/object.h"
 #include "../world/objectmsg.h"
 #include "../world/objectstatus.h"
+#include "../world/ridesweep.h"
 #include "dialogs.h"
+#include "hoverlabel.h"
 #include "panelparts.h"
 #include "window.h"
 #include "window705a50.h"
@@ -90,5 +92,13 @@ void __fastcall Panel7ca178_Show(u8 *self, void *, u8 *thing) {
     WindowAt10_Create(self, nullptr, reinterpret_cast<u8 *>((uintptr_t)0x00751190), 0x00497640, 0x15bb8, 0x15bba, 0x15bb9);
     const u8 value = (u8)(u32)(long long)*reinterpret_cast<const float *>(thing + 0x44);   // (__ftol's low byte)
     Advisor_PostId(value < 0x19 ? 0xd5 : 0x12b);
+}
+
+void __fastcall Panel7ca178_Open(u8 *self) {
+    if (Things_CountGroup(self, nullptr, *reinterpret_cast<const u32 *>((uintptr_t)0x007ca19c)) < 2) {
+        Window_SetShown(Window_FindChild(root(self), nullptr, 0x15bb6), nullptr, 0);
+        Window_SetShown(Window_FindChild(root(self), nullptr, 0x15bb7), nullptr, 0);
+    }
+    HoverLabel_Bind(self, nullptr, 0x15bc1);
 }
 }
