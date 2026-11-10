@@ -21,12 +21,32 @@ template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((ui
 
 // istreambuf_iterator's operator*, equal and _Inc, and string(n, c), append(n, c), operator[]: the exe's own functions (streambufiter, stdstring).
 StreambufIter *iter(NumGetIter &it) { return reinterpret_cast<StreambufIter *>(&it); }
+WStreambufIter *iter(WNumGetIter &it) { return reinterpret_cast<WStreambufIter *>(&it); }
 
 char deref(NumGetIter &it) { return static_cast<char>(*StreambufIter_Deref(iter(it), nullptr)); }
+u16 deref(WNumGetIter &it) { return *WStreambufIter_Deref(iter(it), nullptr); }
 
 bool equal(NumGetIter &it, NumGetIter &other) { return StreambufIter_Equal(iter(it), nullptr, iter(other)) != 0; }
+bool equal(WNumGetIter &it, WNumGetIter &other) { return WStreambufIter_Equal(iter(it), nullptr, iter(other)) != 0; }
 
 void increment(NumGetIter &it) { StreambufIter_Inc(iter(it), nullptr); }
+void increment(WNumGetIter &it) { WStreambufIter_Inc(iter(it), nullptr); }
+
+// A literal as the stream's unit: wide by btowc, called where the original widens it. A unit as the C library reads it: wide by wctob.
+char lit(const NumGetIter &, char c) { return c; }
+u16 lit(const WNumGetIter &, char c) { return static_cast<u16>(CRT_btowc(static_cast<u32>(c))); }
+
+char narrow(char c) { return c; }
+char narrow(u16 unit) { return static_cast<char>(CRT_Wctob(unit)); }
+
+u8 *numpunct(const NumGetIter &, u8 **locale) { return reinterpret_cast<u8 *>(UseFacet_Numpunct(locale, 0, 1)); }
+u8 *numpunct(const WNumGetIter &, u8 **locale) { return reinterpret_cast<u8 *>(UseFacet_WNumpunct(locale, 0, 1)); }
+
+// Whether the unit at first is the literal c (widened first, as the original does).
+template <typename It> bool is(It &first, char c) {
+    const auto wanted = lit(first, c);
+    return deref(first) == wanted;
+}
 
 // (the allocator byte its own: the original's is a stack byte of the caller's)
 void string_fill(StdString &s, u32 n, u32 c) { StdString_CtorFill(&s, nullptr, n, c, reinterpret_cast<const u8 *>(&s)); }
@@ -40,24 +60,27 @@ u32 base_of(u32 flags) {
     return field == 0x400 ? 8 : field == 0x800 ? 16 : field ? 10 : 0;
 }
 
-// _Getifld's body: the sign, a base's prefix, then up to 0x1f characters of digits into text, separators counted in groups and checked against the grouping. Frees the grouping; the answer is the base.
-u32 scan_integer(char *text, NumGetIter &first, NumGetIter &last, u32 flags, StdString &grouping, char separator) {
-    char *out = text;
-    if (!equal(first, last)) {
-        if (deref(first) == '+') {
-            *out++ = '+';
-            increment(first);
-        } else if (deref(first) == '-') {
-            *out++ = '-';
-            increment(first);
-        }
+template <typename It> void take_sign(char *&out, It &first, It &last) {
+    if (equal(first, last)) return;
+    if (is(first, '+')) {
+        *out++ = '+';
+        increment(first);
+    } else if (is(first, '-')) {
+        *out++ = '-';
+        increment(first);
     }
+}
+
+// _Getifld's body: the sign, a base's prefix, then up to 0x1f characters of digits into text, separators counted in groups and checked against the grouping. Frees the grouping; the answer is the base.
+template <typename It, typename Unit> u32 scan_integer(char *text, It &first, It &last, u32 flags, StdString &grouping, Unit separator, Unit zero) {
+    char *out = text;
+    take_sign(out, first, last);
     u32 base = base_of(flags);
     bool seen = false;
-    if (!equal(first, last) && deref(first) == '0') {
+    if (!equal(first, last) && deref(first) == zero) {
         seen = true;
         increment(first);
-        if (!equal(first, last) && (deref(first) == 'x' || deref(first) == 'X') && (!base || base == 16)) {
+        if (!equal(first, last) && (is(first, 'x') || is(first, 'X')) && (!base || base == 16)) {
             base = 16;
             seen = false;
             increment(first);
@@ -72,7 +95,7 @@ u32 scan_integer(char *text, NumGetIter &first, NumGetIter &last, u32 flags, Std
     bool nonzero = false;
     u32 group = 0;
     while (!equal(first, last)) {
-        const char c = deref(first);
+        const char c = narrow(deref(first));
         *out = c;
         if (CRT_memchr(reinterpret_cast<const char *>((uintptr_t)0x00709b70), static_cast<s32>(c), digits)) {
             if ((nonzero || *out != '0') && out < end) {
@@ -119,17 +142,19 @@ u32 scan_integer(char *text, NumGetIter &first, NumGetIter &last, u32 flags, Std
     return base;
 }
 
-// What each do_get of a number begins with, up to the facet's answers.
-template <typename Scan> void with_facet(u8 **locale, Scan scan) {
-    u8 *const facet = reinterpret_cast<u8 *>(UseFacet_Numpunct(locale, 0, 1));
+// What each do_get of an integer begins with ('0' widened before the facet), then the scan of the integer.
+template <typename It> u32 scan_with_facet(char *text, It &first, It &last, u32 flags, u8 **locale) {
+    using Unit = decltype(deref(first));
+    const Unit zero = lit(first, '0');
+    u8 *const facet = numpunct(first, locale);
     StdString grouping;
     MoneyPunct_Grouping(facet, nullptr, &grouping);
     using Slot = u32(__fastcall *)(u8 *);
-    const char separator = static_cast<char>(reinterpret_cast<const Slot *>((uintptr_t)at<u32>(facet, 0))[2](facet));
-    scan(grouping, separator);
+    const Unit separator = static_cast<Unit>(reinterpret_cast<const Slot *>((uintptr_t)at<u32>(facet, 0))[2](facet));
+    return scan_integer(text, first, last, flags, grouping, separator, zero);
 }
 
-u32 *result(u32 *out, const NumGetIter &first) {
+template <typename It> u32 *result(u32 *out, const It &first) {
     const u32 *const from = reinterpret_cast<const u32 *>(&first);
     out[0] = from[0];
     out[1] = from[1];
@@ -137,14 +162,13 @@ u32 *result(u32 *out, const NumGetIter &first) {
 }
 
 // do_get of an unsigned short or int: the '-' left out of what strtoul reads, and negated after.
-template <typename T> u32 *get_unsigned(u32 *out, NumGetIter &first, NumGetIter &last, u8 *ios, u32 *state, T *value, u32 limit) {
+template <typename It, typename T> u32 *get_unsigned(u32 *out, It &first, It &last, u8 *ios, u32 *state, T *value, u32 limit) {
     *CRT_errno() = 0;
     u8 *locale;
     Obj_ShareMember20(ios, nullptr, &locale);
     const u32 flags = at<u32>(ios, 0xc);
     char text[0x20];
-    u32 base = 0;
-    with_facet(&locale, [&](StdString &grouping, char separator) { base = scan_integer(text, first, last, flags, grouping, separator); });
+    const u32 base = scan_with_facet(text, first, last, flags, &locale);
     CountedRef_Release(&locale);
     const char *const from = text[0] == '-' ? text + 1 : text;
     const char *end;
@@ -159,9 +183,9 @@ template <typename T> u32 *get_unsigned(u32 *out, NumGetIter &first, NumGetIter 
     return result(out, first);
 }
 
-// One character into text at out, which moves on while fewer than room digits are kept; false when it is not a digit (written all the same).
-bool take_digit(char *&out, NumGetIter &first, s32 &digits, s32 room) {
-    const char c = deref(first);
+// One unit into text at out, which moves on while fewer than room digits are kept; false when it is not a digit (written all the same).
+template <typename It> bool take_digit(char *&out, It &first, s32 &digits, s32 room) {
+    const char c = narrow(deref(first));
     *out = c;
     if (!CRT_isdigit(c)) return false;
     if (digits < room) {
@@ -171,31 +195,20 @@ bool take_digit(char *&out, NumGetIter &first, s32 &digits, s32 room) {
     return true;
 }
 
-void take_sign(char *&out, NumGetIter &first, NumGetIter &last) {
-    if (equal(first, last)) return;
-    if (deref(first) == '+') {
-        *out++ = '+';
-        increment(first);
-    } else if (deref(first) == '-') {
-        *out++ = '-';
-        increment(first);
-    }
-}
-
 // Leading zeros dropped, one '0' written for them. Whether there were any.
-bool take_zeros(char *&out, NumGetIter &first, NumGetIter &last) {
+template <typename It, typename Unit> bool take_zeros(char *&out, It &first, It &last, Unit zero) {
     bool seen = false;
-    for (; !equal(first, last) && deref(first) == '0'; increment(first)) seen = true;
+    for (; !equal(first, last) && deref(first) == zero; increment(first)) seen = true;
     if (seen) *out++ = '0';
     return seen;
 }
 
 // _Getffld, inlined in each float do_get: the sign, 0x24 digits kept (the rest counted in the power of ten), the facet's decimal point as the C locale's,
 // zeros after it counted down before any digit, the fraction, then 'e' with a sign and up to 8 digits. Text empty without a digit. The answer is the power.
-s32 scan_float(char *text, NumGetIter &first, NumGetIter &last, u8 *facet) {
+template <typename It, typename Unit> s32 scan_float(char *text, It &first, It &last, u8 *facet, Unit zero) {
     char *out = text;
     take_sign(out, first, last);
-    bool seen = take_zeros(out, first, last);
+    bool seen = take_zeros(out, first, last, zero);
     s32 power = 0;
     s32 digits = 0;
     for (; !equal(first, last); increment(first)) {
@@ -206,14 +219,14 @@ s32 scan_float(char *text, NumGetIter &first, NumGetIter &last, u8 *facet) {
     }
     if (!equal(first, last)) {
         using Slot = u32(__fastcall *)(u8 *);
-        const char point = static_cast<char>(reinterpret_cast<const Slot *>((uintptr_t)at<u32>(facet, 0))[1](facet));
+        const Unit point = static_cast<Unit>(reinterpret_cast<const Slot *>((uintptr_t)at<u32>(facet, 0))[1](facet));
         if (deref(first) == point) {
             *out++ = **reinterpret_cast<const char *const *>((uintptr_t)Global781fc8_Get_691530());
             increment(first);
         }
     }
     if (!digits) {
-        for (; !equal(first, last) && deref(first) == '0'; increment(first)) {
+        for (; !equal(first, last) && deref(first) == zero; increment(first)) {
             --power;
             seen = true;
         }
@@ -223,12 +236,12 @@ s32 scan_float(char *text, NumGetIter &first, NumGetIter &last, u8 *facet) {
         }
     }
     for (; !equal(first, last) && take_digit(out, first, digits, 0x24); increment(first)) seen = true;
-    if (seen && !equal(first, last) && (deref(first) == 'e' || deref(first) == 'E')) {
+    if (seen && !equal(first, last) && (is(first, 'e') || is(first, 'E'))) {
         *out++ = 'e';
         increment(first);
         digits = 0;
         take_sign(out, first, last);
-        seen = take_zeros(out, first, last);
+        seen = take_zeros(out, first, last, zero);
         for (; !equal(first, last) && take_digit(out, first, digits, 8); increment(first)) seen = true;
     }
     if (!seen) out = text;
@@ -237,12 +250,14 @@ s32 scan_float(char *text, NumGetIter &first, NumGetIter &last, u8 *facet) {
 }
 
 // do_get of a float, a double, a long double: the scanned text and its power to _Stod or _Stold, the locale kept over it.
-template <typename T> u32 *get_float(u32 *out, NumGetIter &first, NumGetIter &last, u8 *ios, u32 *state, T *value, double(__cdecl *convert)(const char *, const char **, s32)) {
+template <typename It, typename T> u32 *get_float(u32 *out, It &first, It &last, u8 *ios, u32 *state, T *value, double(__cdecl *convert)(const char *, const char **, s32)) {
     *CRT_errno() = 0;
     u8 *locale;
     Obj_ShareMember20(ios, nullptr, &locale);
     char text[0x3c];
-    const s32 power = scan_float(text, first, last, reinterpret_cast<u8 *>(UseFacet_Numpunct(&locale, 0, 1)));
+    const auto zero = lit(first, '0');
+    u8 *const facet = numpunct(first, &locale);
+    const s32 power = scan_float(text, first, last, facet, zero);
     const char *end;
     const T number = static_cast<T>(convert(text, &end, power));
     CountedRef_Release(&locale);
@@ -256,14 +271,13 @@ template <typename T> u32 *get_float(u32 *out, NumGetIter &first, NumGetIter &la
 }
 
 // do_get of a long or an unsigned long: the whole text to the C library, the locale kept over it.
-template <typename Convert> u32 *get_long(u32 *out, NumGetIter &first, NumGetIter &last, u8 *ios, u32 *state, u32 *value, Convert convert) {
+template <typename It, typename Convert> u32 *get_long(u32 *out, It &first, It &last, u8 *ios, u32 *state, u32 *value, Convert convert) {
     *CRT_errno() = 0;
     u8 *locale;
     Obj_ShareMember20(ios, nullptr, &locale);
     const u32 flags = at<u32>(ios, 0xc);
     char text[0x20];
-    u32 base = 0;
-    with_facet(&locale, [&](StdString &grouping, char separator) { base = scan_integer(text, first, last, flags, grouping, separator); });
+    const u32 base = scan_with_facet(text, first, last, flags, &locale);
     const char *end;
     const u32 number = convert(text, &end, static_cast<s32>(base));
     CountedRef_Release(&locale);
@@ -273,6 +287,24 @@ template <typename Convert> u32 *get_long(u32 *out, NumGetIter &first, NumGetIte
     } else {
         *value = number;
     }
+    return result(out, first);
+}
+
+u32 to_long(const char *text, const char **end, s32 base) { return static_cast<u32>(CRT_strtol(text, end, base)); }
+
+// do_get of a pointer: hexadecimal whatever the stream's flags say. (The original's loop for a second word never runs: one word, then out.)
+template <typename It> u32 *get_pointer(u32 *out, It &first, It &last, u8 *ios, u32 *state, u32 *value) {
+    *CRT_errno() = 0;
+    u8 *locale;
+    Obj_ShareMember20(ios, nullptr, &locale);
+    char text[0x20];
+    scan_with_facet(text, first, last, 0x800, &locale);
+    const char *end;
+    const u32 number = CRT_strtoul(text, &end, 0x10);
+    CountedRef_Release(&locale);
+    if (equal(first, last)) *state |= 1;
+    if (end == text || *CRT_errno()) *state |= 2;
+    if (!(*state & 2)) *value = number;
     return result(out, first);
 }
 
@@ -343,7 +375,7 @@ u32 __cdecl NumGet_Getifld(char *text, NumGetIter *first, NumGetIter *last, u32 
     MoneyPunct_Grouping(facet, nullptr, &grouping);
     using Slot = u32(__fastcall *)(u8 *);
     const char separator = static_cast<char>(reinterpret_cast<const Slot *>((uintptr_t)at<u32>(facet, 0))[2](facet));
-    return scan_integer(text, *first, *last, flags, grouping, separator);
+    return scan_integer(text, *first, *last, flags, grouping, separator, '0');
 }
 
 u32 *__fastcall NumGet_DoGetBool(void *, void *, u32 *out, NumGetIter first, NumGetIter last, u8 *ios, u32 *state, u8 *value) {
@@ -378,34 +410,32 @@ u32 *__fastcall NumGet_DoGetUshort(void *, void *, u32 *out, NumGetIter first, N
 
 u32 *__fastcall NumGet_DoGetUint(void *, void *, u32 *out, NumGetIter first, NumGetIter last, u8 *ios, u32 *state, u32 *value) { return get_unsigned(out, first, last, ios, state, value, 0xffffffff); }
 
-u32 *__fastcall NumGet_DoGetLong(void *, void *, u32 *out, NumGetIter first, NumGetIter last, u8 *ios, u32 *state, u32 *value) {
-    return get_long(out, first, last, ios, state, value, [](const char *text, const char **end, s32 base) { return static_cast<u32>(CRT_strtol(text, end, base)); });
-}
+u32 *__fastcall NumGet_DoGetLong(void *, void *, u32 *out, NumGetIter first, NumGetIter last, u8 *ios, u32 *state, u32 *value) { return get_long(out, first, last, ios, state, value, to_long); }
 
-u32 *__fastcall NumGet_DoGetUlong(void *, void *, u32 *out, NumGetIter first, NumGetIter last, u8 *ios, u32 *state, u32 *value) {
-    return get_long(out, first, last, ios, state, value, [](const char *text, const char **end, s32 base) { return CRT_strtoul(text, end, base); });
-}
+u32 *__fastcall NumGet_DoGetUlong(void *, void *, u32 *out, NumGetIter first, NumGetIter last, u8 *ios, u32 *state, u32 *value) { return get_long(out, first, last, ios, state, value, CRT_strtoul); }
 
-// do_get of a pointer: hexadecimal whatever the stream's flags say. (The original's loop for a second word never runs: one word, then out.)
-u32 *__fastcall NumGet_DoGetPointer(void *, void *, u32 *out, NumGetIter first, NumGetIter last, u8 *ios, u32 *state, u32 *value) {
-    *CRT_errno() = 0;
-    u8 *locale;
-    Obj_ShareMember20(ios, nullptr, &locale);
-    char text[0x20];
-    with_facet(&locale, [&](StdString &grouping, char separator) { scan_integer(text, first, last, 0x800, grouping, separator); });
-    const char *end;
-    const u32 number = CRT_strtoul(text, &end, 0x10);
-    CountedRef_Release(&locale);
-    if (equal(first, last)) *state |= 1;
-    if (end == text || *CRT_errno()) *state |= 2;
-    if (!(*state & 2)) *value = number;
-    return result(out, first);
-}
+u32 *__fastcall NumGet_DoGetPointer(void *, void *, u32 *out, NumGetIter first, NumGetIter last, u8 *ios, u32 *state, u32 *value) { return get_pointer(out, first, last, ios, state, value); }
 
 u32 *__fastcall NumGet_DoGetFloat(void *, void *, u32 *out, NumGetIter first, NumGetIter last, u8 *ios, u32 *state, float *value) { return get_float(out, first, last, ios, state, value, CRT_Stold); }
 
 u32 *__fastcall NumGet_DoGetDouble(void *, void *, u32 *out, NumGetIter first, NumGetIter last, u8 *ios, u32 *state, double *value) { return get_float(out, first, last, ios, state, value, CRT_Stod); }
 
 u32 *__fastcall NumGet_DoGetLongDouble(void *, void *, u32 *out, NumGetIter first, NumGetIter last, u8 *ios, u32 *state, double *value) { return get_float(out, first, last, ios, state, value, CRT_Stold); }
+
+u32 *__fastcall NumGetW_DoGetUshort(void *, void *, u32 *out, WNumGetIter first, WNumGetIter last, u8 *ios, u32 *state, u16 *value) { return get_unsigned(out, first, last, ios, state, value, 0xffff); }
+
+u32 *__fastcall NumGetW_DoGetUint(void *, void *, u32 *out, WNumGetIter first, WNumGetIter last, u8 *ios, u32 *state, u32 *value) { return get_unsigned(out, first, last, ios, state, value, 0xffffffff); }
+
+u32 *__fastcall NumGetW_DoGetLong(void *, void *, u32 *out, WNumGetIter first, WNumGetIter last, u8 *ios, u32 *state, u32 *value) { return get_long(out, first, last, ios, state, value, to_long); }
+
+u32 *__fastcall NumGetW_DoGetUlong(void *, void *, u32 *out, WNumGetIter first, WNumGetIter last, u8 *ios, u32 *state, u32 *value) { return get_long(out, first, last, ios, state, value, CRT_strtoul); }
+
+u32 *__fastcall NumGetW_DoGetPointer(void *, void *, u32 *out, WNumGetIter first, WNumGetIter last, u8 *ios, u32 *state, u32 *value) { return get_pointer(out, first, last, ios, state, value); }
+
+u32 *__fastcall NumGetW_DoGetFloat(void *, void *, u32 *out, WNumGetIter first, WNumGetIter last, u8 *ios, u32 *state, float *value) { return get_float(out, first, last, ios, state, value, CRT_Stold); }
+
+u32 *__fastcall NumGetW_DoGetDouble(void *, void *, u32 *out, WNumGetIter first, WNumGetIter last, u8 *ios, u32 *state, double *value) { return get_float(out, first, last, ios, state, value, CRT_Stod); }
+
+u32 *__fastcall NumGetW_DoGetLongDouble(void *, void *, u32 *out, WNumGetIter first, WNumGetIter last, u8 *ios, u32 *state, double *value) { return get_float(out, first, last, ios, state, value, CRT_Stold); }
 
 }  // extern "C"

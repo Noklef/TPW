@@ -1,4 +1,4 @@
-// The C++ library's num_get of char (MSVC6), over a stream buffer iterator passed by value. Names invented, unconfirmed.
+// The C++ library's num_get of char and of wchar_t (MSVC6), over a stream buffer iterator passed by value. Names invented, unconfirmed.
 #pragma once
 
 #include "../../../re/types.h"
@@ -9,6 +9,14 @@ struct NumGetIter {
     u8 got;
     u8 value;
     u8 pad[2];
+};
+
+// istreambuf_iterator<wchar_t>: the same with a 16-bit unit.
+struct WNumGetIter {
+    u8 *buffer;
+    u8 got;
+    u8 pad;
+    u16 value;
 };
 
 extern "C" {
@@ -35,5 +43,17 @@ u32 *__fastcall NumGet_DoGetPointer(void *self, void *, u32 *out, NumGetIter fir
 u32 *__fastcall NumGet_DoGetFloat(void *self, void *, u32 *out, NumGetIter first, NumGetIter last, u8 *ios, u32 *state, float *value);
 u32 *__fastcall NumGet_DoGetDouble(void *self, void *, u32 *out, NumGetIter first, NumGetIter last, u8 *ios, u32 *state, double *value);
 u32 *__fastcall NumGet_DoGetLongDouble(void *self, void *, u32 *out, NumGetIter first, NumGetIter last, u8 *ios, u32 *state, double *value);
+
+// num_get of wchar_t (pops 0x20), the same as the char ones above: each literal widened by btowc when it is compared ('0' once, before the facet), each unit narrowed by wctob into text, the separator and
+// the decimal point 16-bit, numpunct<wchar_t> by UseFacet_WNumpunct. 0x69d1c0 unsigned short, 0x69d6a0 unsigned int, 0x69db70 long, 0x69e030 unsigned long, 0x69f3c0 pointer, 0x69e4f0 float,
+// 0x69e9e0 double, 0x69eed0 long double.
+u32 *__fastcall NumGetW_DoGetUshort(void *self, void *, u32 *out, WNumGetIter first, WNumGetIter last, u8 *ios, u32 *state, u16 *value);
+u32 *__fastcall NumGetW_DoGetUint(void *self, void *, u32 *out, WNumGetIter first, WNumGetIter last, u8 *ios, u32 *state, u32 *value);
+u32 *__fastcall NumGetW_DoGetLong(void *self, void *, u32 *out, WNumGetIter first, WNumGetIter last, u8 *ios, u32 *state, u32 *value);
+u32 *__fastcall NumGetW_DoGetUlong(void *self, void *, u32 *out, WNumGetIter first, WNumGetIter last, u8 *ios, u32 *state, u32 *value);
+u32 *__fastcall NumGetW_DoGetPointer(void *self, void *, u32 *out, WNumGetIter first, WNumGetIter last, u8 *ios, u32 *state, u32 *value);
+u32 *__fastcall NumGetW_DoGetFloat(void *self, void *, u32 *out, WNumGetIter first, WNumGetIter last, u8 *ios, u32 *state, float *value);
+u32 *__fastcall NumGetW_DoGetDouble(void *self, void *, u32 *out, WNumGetIter first, WNumGetIter last, u8 *ios, u32 *state, double *value);
+u32 *__fastcall NumGetW_DoGetLongDouble(void *self, void *, u32 *out, WNumGetIter first, WNumGetIter last, u8 *ios, u32 *state, double *value);
 
 }  // extern "C"
