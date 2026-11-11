@@ -6761,6 +6761,9 @@ address,name,kind,confidence,notes
 0x006a7920,MoneyGet_Getmfld,function,low,reimplemented (src/game/core/moneyget); money_get<char>::_Getmfld: a money field read off a stream by the facet's negative pattern
 0x006a7550,MoneyGet_DoGetLongDouble,function,low,"reimplemented (src/game/core/moneyget); money_get<char>::do_get of a long double (a double): _Getmfld's digits copied, then _Stold"
 0x006a7760,MoneyGet_DoGetString,function,low,reimplemented (src/game/core/moneyget); money_get<char>::do_get of a string: _Getmfld's digits assigned
+0x006a0900,MoneyGetW_Getmfld,function,low,"reimplemented (src/game/core/moneyget); money_get<wchar_t>::_Getmfld: the symbol, sign, digits and spaces by the facet's pattern over wide units; '-' widened by btowc"
+0x006a0510,MoneyGetW_DoGetLongDouble,function,low,"reimplemented (src/game/core/moneyget); money_get<wchar_t>::do_get of a long double: _Getmfld's digits narrowed by wctob, then _Stold"
+0x006a0730,MoneyGetW_DoGetString,function,low,reimplemented (src/game/core/moneyget); money_get<wchar_t>::do_get of a string: _Getmfld's digits assigned to value
 0x0050ffe0,Nav_Ctor,function,high,reimplemented (src/game/world/nav); constants constructor with five integer pairs
 0x0050f200,Nav_Dtor,function,high,reimplemented (src/game/world/nav); thiscall: the five IntPairs at +0x64 destroyed with Stub_Ret (CRT_VectorDtorIterator); also via 0x4f7c30 (+0xd4) and 0x4f8ad0
 0x004f7c30,Nav_DtorAtD4,function,low,reimplemented (src/game/world/nav); thiscall adjustor: Nav_Dtor on this + 0xd4

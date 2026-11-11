@@ -9,6 +9,9 @@
 // The stream's moneypunct<char, international> and ctype<char> facets (use_facet, inline at each use in the exe): for money_get too.
 u8 *MoneyPut_Facet(u8 *ios, u8 international);
 u8 *MoneyPut_Ctype(u8 *ios);
+// The same of wchar_t: moneypunct<wchar_t, international> and ctype<wchar_t>.
+u8 *MoneyPutW_Facet(u8 *ios, u8 international);
+u8 *MoneyPutW_Ctype(u8 *ios);
 
 extern "C" {
 

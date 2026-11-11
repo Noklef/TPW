@@ -28,7 +28,9 @@ def merged(ranges):
     return out
 
 
-B = Bench(merged(M.RANGES + WIDE), hooks={**M.HOOKS, 0x693bc0: _recorder(MBRTOWC, 5, cdecl=True)})
+RANGES = merged(M.RANGES + WIDE)
+HOOKS = {**M.HOOKS, 0x693bc0: _recorder(MBRTOWC, 5, cdecl=True)}
+B = Bench(RANGES, hooks=HOOKS)
 WCTYPE, WCTYPE_VTABLE, A_IS, WTEXT = RAM + 0x7000, RAM + 0x7020, RAM + 0x7040, RAM + 0x7100
 OPS = [n for n in ('intl', 'local', 'putmfld', 'putmfld', 'putmfld', 'putmfld', 'putmfld', 'putmfld', 'number', 'number', 'number', 'number', 'string', 'string', 'string', 'string')
        if not os.environ.get('OPS') or n in os.environ['OPS'].split(',')]
@@ -69,8 +71,8 @@ def widened(log, r, literals):
     set_return(log, MBRTOWC, r.choice([1, 1, 1, 1, 1, 0, 0xffffffff]))
 
 
-def case(r):
-    name = r.deal(OPS)
+def world(r):
+    """moneyput.py's world with the wide facet, its strings, ids and caches, ctype<wchar_t> (is() a recorder). The log, the regions and the next block offset."""
     log = log_region()
     regions = {LOG: log, HEAP: heap(0x20000),   # (wide blocks are twice the size; an infinity's 5000 zeros, grouped, still run out of it: rare, a crash in both)
                IMPORT_TABLE: import_table(log, {'lcid': (M.LCID, 0x6fd260, 0, 0, 0), 'version': (VERSION, 0x6fd264, 1, 0, 1), 'validcp': (M.VALIDCP, 0x6fd288, 1, 0, 0), 'validlocale': (M.VALIDLOCALE, 0x6fd284, 2, 0, 0),
@@ -113,6 +115,12 @@ def case(r):
     regions[WCTYPE_VTABLE] = struct.pack('<3I', recorder(M.DELETE, 1), 0, recorder(IS, 2))
     regions[WCTYPE] = struct.pack('<2I', WCTYPE_VTABLE, r.choice([0, 1, 0xffffffff])) + bytes(0x10)
     struct.pack_into('<I', log, LOG_BYTES + 4 * IS, 1 << 17)
+    return log, regions, at
+
+
+def case(r):
+    name = r.deal(OPS)
+    log, regions, at = world(r)
     c = r.choice([0, 0x30, 0x41, 0xff, 0x20ac, 0x1ff, r.getrandbits(32)])
     if name in ('intl', 'local'):
         widened(log, r, '.,' + 'x' * 26)

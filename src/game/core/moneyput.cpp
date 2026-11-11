@@ -438,6 +438,10 @@ u8 *MoneyPut_Facet(u8 *ios, u8 international) { return money_facet(ios, internat
 
 u8 *MoneyPut_Ctype(u8 *ios) { return ctype_facet(ios); }
 
+u8 *MoneyPutW_Facet(u8 *ios, u8 international) { return Wide::facet(ios, international); }
+
+u8 *MoneyPutW_Ctype(u8 *ios) { return Wide::ctype(ios); }
+
 extern "C" {
 
 u32 __fastcall Streambuf_Sputc(u8 *buffer, void *, u32 c) {
