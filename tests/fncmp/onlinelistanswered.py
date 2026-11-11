@@ -1,5 +1,6 @@
 # An answer from the online city (src/game/online/session: Online_ListAnswered, 0x5b6da0) against the original: every code of -11..9, a request of one of the nine lists or none, its old native list set or
 # not, the data null or with a count of 1 or more. The imports are recorders: OutputDebugStringA (stdcall) and the lists' Release and destructors (thiscall).
+# Half the cases go through the city's callback Online_CityAnswered (0x5b72c0) instead, the session Online_Instance's [0xf7d88c].
 # usage: onlinelistanswered.py [CASES [SEED]] [--wild|--both] [--show N]
 import os
 import struct
@@ -8,7 +9,7 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
 from fncmp import HEAP, IMPORT_TABLE, LOG, RAM, Bench, Call, heap, log_region, put, recorder  # noqa: E402
 
-B = Bench([(0x5b6da0, 0x5b726b)])
+B = Bench([(0x5b6da0, 0x5b726b), (0x5b72c0, 0x5b72e3), (0x48b390, 0x48b400)])
 SESSION, LISTS, DATA = RAM, RAM + 0x200, RAM + 0x600
 SLOTS = [0x6fd538, 0x6fd4ec, 0x6fd4e8, 0x6fd4f0, 0x6fd528, 0x6fd524, 0x6fd520, 0x6fd51c, 0x6fd518, 0x6fd514]
 CODES = list(range(-11, 10)) + [2, 3, 3, 3, 3, 4, 5, 6]   # (a list kind's codes more often: parks has five lists)
@@ -33,6 +34,9 @@ def case(r):
     regions[DATA] = put(bytearray(r.bytes(0x10)), 0xc, 'I', r.choice([1, 1, 2, 0, r.getrandbits(32)]))
     code = r.deal(CODES)
     request = ids[r.deal(ASKS[code])] if code in ASKS and r.random() < 0.7 else r.choice(ids + [99])
+    if r.deal([0, 1]):   # (Online_CityAnswered: the same answer for Online_Instance's session)
+        regions[0xf7d88c] = struct.pack('<I', SESSION)
+        return Call(0x5b72c0, [code & 0xffffffff, request, r.getrandbits(32), data], regions, conv='s', ret='v')
     return Call(0x5b6da0, [SESSION, code & 0xffffffff, request, r.getrandbits(32), data], regions, conv='t', ret='v')
 
 

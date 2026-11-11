@@ -4170,6 +4170,7 @@ address,name,kind,confidence,notes
 0x0051af90,Global8023d8_Release,function,low,"reimplemented (src/game/core/vwrap); cdecl: with 0x8023d0 set, the COM object 0x8023d8 gets slot 0x80 (0) when 0x8023d4 is set, is released, and 0x8023d0 cleared"
 0x0057c4d0,Global8bba48_ClipAndTouch,function,low,"reimplemented (src/game/core/vwrap); Each of the object's 0x78 entries: its box's clip code stored, and the textures of its records touched"
 0x0047e9b0,Pointer_BeginFlip,function,low,"reimplemented (src/game/core/vwrap); AsyncPointer_BeginFlip of the pointer at 0x7b4b84, if any (name invented, unconfirmed)"
+0x0047e9c0,Pointer_EndFlip,function,low,"reimplemented (src/game/core/vwrap); cdecl: AsyncPointer_EndFlip of the pointer [0x7b4b84], if any (the flip's second handler, stored at 0x8bd514)"
 0x005e3b90,Class702d48_Ctor,function,high,reimplemented (src/game/core/vdtor); constructor that registers the object with a global one
 0x005e3c00,Class702d48_Release,function,high,reimplemented (src/game/core/vdtor); releases the object from a global one
 0x005e3bd0,Class702d48_DeletingDtor,function,high,reimplemented (src/game/core/vdtor); deleting destructor that releases the object from a global one
@@ -6189,6 +6190,7 @@ address,name,kind,confidence,notes
 0x006b87d0,SoundEngine_Play,function,low,reimplemented (src/game/core/soundtrigger); A sound checked against the player and started
 0x006b63a0,SoundMixer_ThreadLoop,function,low,"reimplemented (src/game/core/mixerthread); The sound mixer's thread: voices updated on each signal, until the stop byte"
 0x0054e360,Game_RunFrame,function,low,"reimplemented (src/game/core/gameframe); The game's step each frame, a state machine over the whole session (name invented, unconfirmed)"
+0x0054e2b0,Game_RestoreFrame,function,low,"reimplemented (src/game/core/gameframe); cdecl: the renderer's restore callback: one frame drawn without the world's steps (rides animated, the pick unless the camera's flag 0x16, dynfaces, highlights, Frame_Begin timed, sprite scripts, the mouse's pick)"
 0x00699ce0,Locale_Getfacet,function,low,reimplemented (src/game/core/stdlocale); std::locale::_Getfacet
 0x00699d50,Locale_Iscloc,function,low,reimplemented (src/game/core/stdlocale); std::locale::_Iscloc
 0x004f7620,WCtype_Ctor,function,low,reimplemented (src/game/core/wstream); ctype<wchar_t>'s constructor by its shape
@@ -8512,6 +8514,7 @@ address,name,kind,confidence,notes
 0x005bd800,ListRequest_Login34,function,low,"reimplemented (src/game/online/listrequest); the same, the session's +0x100"
 0x005bc8e0,Online_Has108NoFlag10,function,low,reimplemented (src/game/online/listrequest); +0x108 set and no flag 0x10
 0x005b7910,Online_OpenListItem,function,low,reimplemented (src/game/online/listrequest); a list item's dialog opened by index
+0x004c4fa0,Online_ListItemClosed,function,low,reimplemented (src/game/online/listrequest); cdecl: the callback Online_OpenListItem and the view buttons give their dialogs: [[0xf85614] + 0xc]'s vtable +0x44 (a tail jump)
 0x005cde40,NIos_Dtor,function,low,reimplemented (src/game/online/mailbox); thiscall: basic_ios<char>'s destructor
 0x005cb720,Mailbox_SaveOutbox,function,low,reimplemented (src/game/online/mailbox); thiscall: <folder>/outbox.dat written from the three lists of numbers
 0x005cba70,Mailbox_LoadMessage,function,low,"reimplemented (src/game/online/mailbox); thiscall (number): <folder>/%08x.dat read: three numbers, two texts and the list of lines"
@@ -9739,6 +9742,7 @@ address,name,kind,confidence,notes
 0x0048b620,Panel7c2534_AnswerQuit2,function,low,"reimplemented (src/game/ui/panel7c2534online); a question's answer: name invented, unconfirmed"
 0x0048bc30,Panel7c2534_AnswerMode3,function,low,"reimplemented (src/game/ui/panel7c2534online); a question's answer: name invented, unconfirmed"
 0x0048bc50,Panel7c2534_AnswerSaves,function,low,"reimplemented (src/game/ui/panel7c2534online); a question's answer: name invented, unconfirmed"
+0x0048b310,Panel7c2534_AnswerLogOff,function,low,"reimplemented (src/game/ui/panel7c2534online); cdecl, no arguments: the menu's box 9 callback (rows 8, 0x14, 0x19): the session's 0x5b6070 (Online_Instance), Global879088_Set_5508b0(3), closes; 1"
 0x004bc430,Dialog7cc654_ApplyMarks,function,low,"reimplemented (src/game/ui/dialog7cc654lists); the mailing lists' marks acted on: name invented, unconfirmed"
 0x004bc500,Dialog7cc654_SendChanges,function,low,"reimplemented (src/game/ui/dialog7cc654lists); the mailing lists' changes sent: name invented, unconfirmed"
 0x004bc660,Dialog7cc654_WaitHandler,function,low,"reimplemented (src/game/ui/dialog7cc654lists); the mailing lists' waiting box's handler: name invented, unconfirmed"
@@ -10301,6 +10305,7 @@ address,name,kind,confidence,notes
 0x00773b00,gOnline_DownloadNext_773b00,data,low,"GAME_DATA (src/game/online/session): char[60], named for its use in Online_DownloadNext"
 0x00773b3c,gOnline_DownloadNext_773b3c,data,low,"GAME_DATA (src/game/online/session): char[40], named for its use in Online_DownloadNext"
 0x00773b64,gOnline_DownloadNext_773b64,data,low,"GAME_DATA (src/game/online/session): char[44], named for its use in Online_DownloadNext"
+0x005b72c0,Online_CityAnswered,function,low,"reimplemented (src/game/online/session); stdcall (code, request, c, data), pops 0x10: the callback Online_OpenCity gives City::Connect: Online_ListAnswered on Online_Instance with its four arguments"
 0x00773b90,gOnlineList_GetCities_773b90,data,low,"GAME_DATA (src/game/online/onlinelist): char[32], named for its use in OnlineList_GetCities"
 0x00773bb0,gOnlineList_GetParksInCity_773bb0,data,low,"GAME_DATA (src/game/online/onlinelist): char[40], named for its use in OnlineList_GetParksInCity"
 0x00773bd8,gOnlineList_GetTop10Parks_773bd8,data,low,"GAME_DATA (src/game/online/onlinelist): char[48], named for its use in OnlineList_GetTop10Parks"
@@ -13120,6 +13125,7 @@ address,name,kind,confidence,notes
 0x007537d0,gDialog7cb398_Create_7537d0,data,low,"GAME_DATA (src/game/ui/dialog7cb398): u8[0x478], named for its use, a window script (or a text / table before one): to the next named address"
 0x00753c68,gDialog7cb3f8_Open_753c68,data,low,"GAME_DATA (src/game/ui/dialog7cb3f8): u8[0x2e8], named for its use, a window script (or a text / table before one): to the next named address"
 0x00754490,gResearchPanel_Open_754490,data,low,"GAME_DATA (src/game/ui/levelmeter): u8[0x738], named for its use, a window script (or a text / table before one): to the next named address"
+0x004a9f90,ResearchSlider_OnMessage,function,low,"reimplemented (src/game/ui/levelmeter); cdecl (window, message, a, b): the research panel's slider 0xd2d10's handler: message 0x14 clears [0x7cc1dc]; then Window_CallDefault (its result returned)"
 0x00754cf8,gDialog7cc1f8_Open_754cf8,data,low,"GAME_DATA (src/game/ui/dialog7cc1f8): u8[0x43c], named for its use, a window script (or a text / table before one): to the next named address"
 0x00756400,gDialog7cc2ec_Open_756400,data,low,"GAME_DATA (src/game/ui/dialog7cc2ec): u8[0x550], named for its use, a window script (or a text / table before one): to the next named address"
 0x00756950,gThingBrowser_Create_756950,data,low,"GAME_DATA (src/game/ui/thingbrowser): u8[0x188], named for its use, a window script (or a text / table before one): to the next named address"

@@ -25,6 +25,7 @@
 #include "../world/thingmsg.h"
 #include "../render/d3dsetup.h"
 #include "imports.h"
+#include "../model/highlight.h"
 
 namespace {
 
@@ -619,6 +620,30 @@ extern "C" {
 void GameFrame_SetEnv(const GameFrameCall *table, u32 count) {
     g_table = table;
     g_count = count;
+}
+
+void __cdecl Game_RestoreFrame() {
+    Cd(0x0044e410, 3u);   // Rides_AnimateAll
+    if (!(reinterpret_cast<u8 &>(gCameraFlags) & 0x16)) {
+        Cd(0x0045bf90, 0x007a1c70u, 0x42700000u, Ptr(&gHighlight_Point_7a1c90), 0u);   // RayPick_World (60.0f)
+        Cd(0x0045d560, 0x007a1c70u);   // MouseState_SetTileFromPosition
+        Cd(0x0044e5d0, 0x007a1c70u);   // Frame_SetPoint
+    }
+    Cd(0x0040f220);
+    Cd(0x0053c3f0);   // DynFaces_Frame
+    Cd(0x00469840);   // Highlight_PulseFlashing
+    Cd(0x00469410);   // Highlight_WhitenCurrent
+    Th(0x0046c100, 0x007b05a8u);   // MouseState_NewFrame
+    G<u32>(0x0087868c) = Ticks();
+    Cd(0x0044e510);   // Frame_Begin
+    const u32 ended = Ticks();
+    G<u32>(0x00879064) = 0;
+    const u32 took = ended - G<u32>(0x0087868c);
+    G<u32>(0x0087868c) = took;
+    G<u32>(0x0087907c) = took;
+    Cd(0x00475430);   // SpriteScripts_Draw
+    Th(0x0046c110, 0x007b05a8u);   // MouseState_ResolvePick
+    G<u32>(0x00879080) = 0;
 }
 
 u32 __cdecl Game_RunFrame() {

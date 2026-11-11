@@ -162,4 +162,11 @@ u32 __cdecl Panel7c2534_AnswerSaves() {
     close();
     return 1;
 }
+
+u32 __cdecl Panel7c2534_AnswerLogOff() {
+    g_env->logOff(Online_Instance());
+    g_env->setGlobal(3);
+    close();
+    return 1;
+}
 }

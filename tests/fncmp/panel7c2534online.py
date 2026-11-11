@@ -1,4 +1,4 @@
-# The menu's online rows and its boxes' answers (src/game/ui/panel7c2534online: 0x48bd40, 0x48b400, 0x48b5b0, 0x48b620, 0x48bc30, 0x48bc50) against the originals. Online_Instance, UserSlots_Instance, Obj_Self, WString_Dtor and Mem_Free real; the rest recorders as driver.cpp's kPanel7c2534OnlineEnv, the slots of [0xf85614]'s objects recorders 7, 8, 9, 11.
+# The menu's online rows and its boxes' answers (src/game/ui/panel7c2534online: 0x48bd40, 0x48b310, 0x48b400, 0x48b5b0, 0x48b620, 0x48bc30, 0x48bc50) against the originals. Online_Instance, UserSlots_Instance, Obj_Self, WString_Dtor and Mem_Free real; the rest recorders as driver.cpp's kPanel7c2534OnlineEnv, the slots of [0xf85614]'s objects recorders 7, 8, 9, 11.
 # The WString out of 0x5b8160 filled (its block's address the free's); the table out of 0x51ac20 filled and hashed at Obj_SetNameAndWords.
 # usage: panel7c2534online.py [CASES [SEED]] [--wild|--both] [--show N]
 import os
@@ -13,7 +13,7 @@ SESSION_CTOR = 10
 ASSIGN, SAVE, WORDS, NAME_WORDS, FORGET, SAVES, MODE3, START, LEAVE, ACTIVITY, OPTIONS, TEXT, BOX, LOG_OFF, FIND_KEY, PUSH = range(12, 28)
 HANDLER = 28
 C = lambda k, n: _recorder(k, n, cdecl=True)  # noqa: E731
-B = Bench([(0x48b400, 0x48b5a6), (0x48b5b0, 0x48b61c), (0x48b620, 0x48b691), (0x48bc30, 0x48bc41), (0x48bc50, 0x48bcc3), (0x48bd40, 0x48c12e), (0x5da3c0, 0x5da3c1), (0x5c5520, 0x5c5523), (0x5f6a60, 0x5f6a73), (0x48b390, 0x48b3fd), (0x48bcd0, 0x48bd3d)],
+B = Bench([(0x48b310, 0x48b388), (0x48b400, 0x48b5a6), (0x48b5b0, 0x48b61c), (0x48b620, 0x48b691), (0x48bc30, 0x48bc41), (0x48bc50, 0x48bcc3), (0x48bd40, 0x48c12e), (0x5da3c0, 0x5da3c1), (0x5c5520, 0x5c5523), (0x5f6a60, 0x5f6a73), (0x48b390, 0x48b3fd), (0x48bcd0, 0x48bd3d)],
           hooks={0x409300: _recorder(CONTROLS, 0), 0x662420: C(F662, 0), 0x4931b0: _recorder(HIDE, 0), 0x492e60: _recorder(TELL, 0), 0x5508b0: C(SET_GLOBAL, 1), 0x5b8160: _recorder(SESSION_NAME, 1), 0x5b50b0: _recorder(SESSION_CTOR, 0), 0x424db0: C(ASSIGN, 2), 0x414920: _recorder(SAVE, 3), 0x51ac20: _recorder(WORDS, 1), 0x5b7990: _recorder(NAME_WORDS, 3),
                  0x5c8650: _recorder(FORGET, 0), 0x4a6580: C(SAVES, 0), 0x5d5db0: C(MODE3, 0), 0x5b5cc0: _recorder(START, 2), 0x5b5e40: _recorder(LEAVE, 0), 0x5b6230: _recorder(ACTIVITY, 0), 0x4a3a30: C(OPTIONS, 0), 0x485b00: C(TEXT, 1), 0x47f020: C(BOX, 8), 0x5b6070: _recorder(LOG_OFF, 0), 0x40c870: _recorder(FIND_KEY, 2), 0x5d6110: _recorder(PUSH, 2), 0x492e00: C(HANDLER, 4)})
 WINDOW, MENU, SESSION, SLOTS, HOLDER, VTABLE, PLACES, TURNS, NAME = (RAM + 0x1000 * k for k in range(1, 10))
@@ -45,7 +45,7 @@ def case(r):
     regions[TURNS] = turns
     answers(log, 9, TURNS)
 
-    function = r.deal([0x48bd40] * 12 + [0x48b400, 0x48b5b0, 0x48b620, 0x48bc30, 0x48bc50])
+    function = r.deal([0x48bd40] * 12 + [0x48b400, 0x48b5b0, 0x48b620, 0x48bc30, 0x48bc50, 0x48b310])
     if function != 0x48bd40:
         strings(log, SESSION_NAME, 0, 1 << 0)
         fill(log, SESSION_NAME, 0, struct.pack('<5I', 0, 0, HEAP + 0x800, 0, 0))

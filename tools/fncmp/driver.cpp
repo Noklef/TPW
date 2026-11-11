@@ -1518,7 +1518,7 @@ const AddrCall kTerrainTexCalls[] = {{0x56e550, recorder(20, 2)}, {0x578ca0, rec
 const AddrCall kDeviceCreateCalls[] = {{0x573080, recorder(20, 1)}, {0x573b90, recorder(21, 1)}, {0x678e70, jpeg_recorder(22, 4)}, {0x579b80, jpeg_recorder(23, 1)}, {0x679270, jpeg_recorder(24, 0)}, {0x56af20, recorder(25, 2)}, {0x5645e0, jpeg_recorder(26, 1)}};  // tests/fncmp/devicecreate.py, softcreate.py
 const AddrCall kImageBufferCalls[] = {{0x56a770, jpeg_recorder(1, 1)}, {0x564650, jpeg_recorder(2, 1)}, {0x56af20, recorder(3, 2)}, {0x591270, jpeg_recorder(4, 9)}, {0x574bd0, jpeg_recorder(5, 6)}, {0x579b80, jpeg_recorder(6, 1)}};  // tests/fncmp/imagebuffer.py
 const AddrCall kScrollLayersCalls[] = {{0x590f90, recorder(1, 0)}, {0x58c9f0, recorder(2, 2)}};  // tests/fncmp/scrolllayers.py
-const AddrCall kVWrapCalls[] = {{0x58c9f0, recorder(5, 2)}, {0x561a30, recorder(6, 2)}, {0x5fbd40, recorder(7, 0)}};  // tests/fncmp/vwrapclip.py, vwrapflip.py
+const AddrCall kVWrapCalls[] = {{0x58c9f0, recorder(5, 2)}, {0x561a30, recorder(6, 2)}, {0x5fbd40, recorder(7, 0)}, {0x5fbd90, recorder(8, 0)}};  // tests/fncmp/vwrapclip.py, vwrapflip.py
 const AddrCall kSignRideCalls[] = {{0x467a80, jpeg_recorder(1, 6)}, {0x4e2860, recorder(2, 2)}, {0x4e2920, recorder(3, 2)}, {0x4682b0, jpeg_recorder(4, 3)}};  // tests/fncmp/signrides.py
 const AddrCall kPtrImageCalls[] = {{0x588820, recorder(1, 1)}, {0x588350, recorder(2, 0)}};  // tests/fncmp/ptrarray_addimage.py
 const AddrCall kSpriteQueueDrawCalls[] = {{0x589f90, recorder(1, 0)}, {0x589770, recorder(2, 0)}, {0x589fd0, recorder(3, 0)}, {0x589990, recorder(4, 1)}, {0x5658c0, recorder(5, 1)}, {0x58a770, recorder(6, 0)}, {0x58a010, recorder(7, 0)}};  // tests/fncmp/spritequeuedraw.py, spritequeuepanels.py
@@ -1632,6 +1632,7 @@ const GameFrameCall kGameFrameCalls[] = {  // tests/fncmp/gameframe.py --table
     {0x4093d0, recorder(2, 1)},
     {0x409480, recorder(28, 1)},
     {0x40ef40, jpeg_recorder(23, 0)},
+    {0x40f220, stdcall_recorder(16, 0)},
     {0x40fb10, recorder(26, 1)},
     {0x414d40, recorder(31, 3)},
     {0x41a820, recorder(26, 0)},
@@ -1647,17 +1648,25 @@ const GameFrameCall kGameFrameCalls[] = {  // tests/fncmp/gameframe.py --table
     {0x44e510, jpeg_recorder(4, 0)},
     {0x44e540, jpeg_recorder(5, 0)},
     {0x44e550, jpeg_recorder(6, 0)},
+    {0x44e5d0, jpeg_recorder(20, 1)},
     {0x457a90, jpeg_recorder(21, 0)},
     {0x457c30, jpeg_recorder(22, 0)},
     {0x457d50, jpeg_recorder(3, 1)},
     {0x458590, jpeg_recorder(4, 1)},
+    {0x45bf90, jpeg_recorder(0, 4)},
+    {0x45d560, jpeg_recorder(19, 1)},
     {0x462870, jpeg_recorder(5, 1)},
     {0x4628a0, jpeg_recorder(7, 0)},
+    {0x469410, stdcall_recorder(19, 0)},
+    {0x469840, stdcall_recorder(18, 0)},
     {0x46c0d0, recorder(4, 1)},
+    {0x46c100, recorder(0, 0)},
+    {0x46c110, recorder(3, 0)},
     {0x46c350, recorder(5, 1)},
     {0x473440, jpeg_recorder(8, 0)},
     {0x4752e0, jpeg_recorder(9, 0)},
     {0x475360, jpeg_recorder(10, 0)},
+    {0x475430, stdcall_recorder(20, 0)},
     {0x4813b0, recorder(0, 0)},
     {0x4813e0, recorder(3, 0)},
     {0x4813f0, recorder(6, 0)},
@@ -1701,6 +1710,7 @@ const GameFrameCall kGameFrameCalls[] = {  // tests/fncmp/gameframe.py --table
     {0x51fd20, jpeg_recorder(25, 0)},
     {0x51fd80, jpeg_recorder(14, 1)},
     {0x520130, jpeg_recorder(26, 0)},
+    {0x53c3f0, stdcall_recorder(17, 0)},
     {0x53e760, jpeg_recorder(15, 1)},
     {0x540900, jpeg_recorder(0, 2)},
     {0x541ed0, jpeg_recorder(27, 0)},
