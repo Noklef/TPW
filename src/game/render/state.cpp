@@ -116,9 +116,9 @@ u32 __cdecl Environment_Apply() {
     const s32 c = global<s32>(0x007856e0), e = global<s32>(0x007856e4);
     global<s32>(0x007a006c) = c > 0 ? c : 0;
     global<s32>(0x007a01c0) = e > 0 ? e : 0;
-    global<u32>((u32)(uintptr_t)&gLightsource_7a0b30) = global<u32>(0x007856e8);
-    gEnvironment_Apply_7a0b34 = global<u32>(0x007856ec);
-    gEnvironment_Apply_7a0b38 = global<u32>(0x007856f0);
+    gLightsource_7a0b30[0] = global<u32>(0x007856e8);
+    gLightsource_7a0b30[1] = global<u32>(0x007856ec);
+    gLightsource_7a0b30[2] = global<u32>(0x007856f0);
     reinterpret_cast<u32 &>(gDynFaces_GridAt_870ec8[0]) = global<u32>(0x00785718);
     reinterpret_cast<u32 &>(gDynFaces_GridAt_870ec8[1]) = global<u32>(0x0078571c);
     reinterpret_cast<u32 &>(gDynFaces_GridAt_870ec8[2]) = global<u32>(0x00785720);

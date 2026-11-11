@@ -91,5 +91,5 @@ GAME_DATA(const float, gLightSlot_Set_702a30, 0x00702a30, 0x4);
 GAME_DATA(const float, gLightSlot_Set_702a4c, 0x00702a4c, 0x4);
 GAME_DATA(float, gLightSource_UpdateMain_74d0d8, 0x0074d0d8, 0x4);
 GAME_DATA(char[0x28], gText_LightSource_74d0dc, 0x0074d0dc, 0x28);
-GAME_DATA(u8[0x4], gLightsource_7a0b30, 0x007a0b30, 0x4);
+GAME_DATA(u32[3], gLightsource_7a0b30, 0x007a0b30, 0xc);   // the main light's direction (x, y, z floats): LightSource_Create reads it through the pointer
 GAME_DATA(u8[0x4], gLightSource_7a0b40, 0x007a0b40, 0x4);

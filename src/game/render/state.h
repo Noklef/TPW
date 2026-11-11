@@ -66,7 +66,5 @@ u32 __fastcall Render_FadeFog(u8 *fade);
 #include "../core/gamedata.h"
 
 // Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
-GAME_DATA(u32, gEnvironment_Apply_7a0b34, 0x007a0b34, 0x4);
-GAME_DATA(u32, gEnvironment_Apply_7a0b38, 0x007a0b38, 0x4);
 GAME_DATA(u32, gState_7a0b3c, 0x007a0b3c, 0x4);
 GAME_DATA(u32, gState_7a0b44, 0x007a0b44, 0x4);
