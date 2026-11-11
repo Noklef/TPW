@@ -267,7 +267,8 @@ NEXT = {        # slot: why, for a dword at a converted object's end that points
 }
 NEXT.update({s: 'RTTI: the type descriptor at 0x75c700, after gText_ChatLists_75c6f4' for s in (0x711c30, 0x711c6c, 0x71935c)})
 NEXT.update({s: 'a texture entry: the text "blue.tga" at 0x74ce14, after gCoasterType_Setup_74ce10' for s in (0x74ce04, 0x763b3c)})
-NEXT[0x76403c] = 'gAvatarSprites\' last name: the text "SPR_SU.ESP" at 0x764040, after the array'
+NEXT[0x74c89c] = 'the terrain sets\' second group name: the text "QueueTex" at 0x74c8d8, after gLand_74c8a8'
+NEXT[0x76403c] ='gAvatarSprites\' last name: the text "SPR_SU.ESP" at 0x764040, after the array'
 NEXT.update({s: 'the C library locale tables\' text at 0x711c30, after CRT_zero_711c28'
              for s in (0x711c48, 0x711cf8, 0x711d2c, 0x711d80, 0x712188, 0x7121bc, 0x71237c, 0x7129dc)})
 NEXT.update({s: 'the .bss global at 0xfb3cc0, after CRT_piob' for s in (0x77e800, 0x77e808)})

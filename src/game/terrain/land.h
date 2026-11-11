@@ -151,7 +151,7 @@ float __cdecl Terrain_RoundedCellHeight(const u8 *cell, float height, s32 x, s32
 #include "../core/gamedata.h"
 
 // Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
-GAME_DATA(u8[16], gLand_74c8a8, 0x0074c8a8, 0x10);
+GAME_DATA(u8[0x30], gLand_74c8a8, 0x0074c8a8, 0x30);   // the level's terrain sets: TerrainSets_Load writes to +0x14, Model_AddTerrainSets to +0x2c
 GAME_DATA(u8[256], gLand_8793a8, 0x008793a8, 0x100);
 GAME_DATA(u8[256], gLand_8794a8, 0x008794a8, 0x100);
 GAME_DATA(u8[256], gLand_8795a8, 0x008795a8, 0x100);

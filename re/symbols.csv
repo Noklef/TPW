@@ -11667,7 +11667,7 @@ address,name,kind,confidence,notes
 0x00701f78,gLandscape_701f78,data,low,"GAME_DATA (terrain/landscape): const u32, named for its use in landscape.cpp"
 0x00701f88,gLandscape_701f88,data,low,"GAME_DATA (terrain/landscape): const u32, named for its use in landscape.cpp"
 0x00701f94,gLandscape_701f94,data,low,"GAME_DATA (terrain/landscape): const u32, named for its use in landscape.cpp"
-0x0074c8a8,gLand_74c8a8,data,low,"GAME_DATA (terrain/land): u8[16], named for its use in TerrainSets_LoadLevel, Terrain_PaintAt"
+0x0074c8a8,gLand_74c8a8,data,low,"GAME_DATA (terrain/land): u8[0x30], the level's terrain sets (TerrainSets_Load to +0x14, Model_AddTerrainSets to +0x2c); named for its use in TerrainSets_LoadLevel, Terrain_PaintAt"
 0x0074cf30,gTerrain_ScaleNormals_74cf30,data,low,"GAME_DATA (terrain/normals): float, named for its use in Terrain_ScaleNormals"
 0x0074d13c,gRayPick_World_74d13c,data,low,"GAME_DATA (terrain/raypick): float, named for its use in RayPick_World"
 0x00768318,gTerrainWater_Draw_768318,data,low,"GAME_DATA (terrain/water): float, named for its use in TerrainWater_Draw"
