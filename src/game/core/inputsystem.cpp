@@ -345,7 +345,8 @@ void __fastcall InputBase_OnEvent(u8 *o, void *, u32, const u32 *event) {
     case 4:
         global<void(__stdcall *)(const char *)>(IMPORT(Kernel32_OutputDebugStringA))(gInputsystem_7780d0);
         global<u32(__stdcall *)(u32)>(IMPORT(User32_ShowCursor))(event[1] ? 0 : 1);
-        if (!at<u32>(o, 0x54) && event[1]) InputBase_SetDeviceValue(o, nullptr, &local, event[1]);
+        // (Not the original's: it writes through the null devices when the window is activated before Gui_Startup opens them, or after they close.)
+        if (!at<u32>(o, 0x54) && event[1] && at<u32>(o, 0x58) && at<u32>(o, 0x5c)) InputBase_SetDeviceValue(o, nullptr, &local, event[1]);
         return;
     case 6:
         at<u32>(o, 0x54) = 1;
