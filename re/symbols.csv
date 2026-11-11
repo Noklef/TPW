@@ -10302,6 +10302,7 @@ address,name,kind,confidence,notes
 0x00773b00,gOnline_DownloadNext_773b00,data,low,"GAME_DATA (src/game/online/session): char[60], named for its use in Online_DownloadNext"
 0x00773b3c,gOnline_DownloadNext_773b3c,data,low,"GAME_DATA (src/game/online/session): char[40], named for its use in Online_DownloadNext"
 0x00773b64,gOnline_DownloadNext_773b64,data,low,"GAME_DATA (src/game/online/session): char[44], named for its use in Online_DownloadNext"
+0x005b72c0,Online_CityAnswered,function,low,"reimplemented (src/game/online/session); stdcall (code, request, c, data), pops 0x10: the callback Online_OpenCity gives City::Connect: Online_ListAnswered on Online_Instance with its four arguments"
 0x00773b90,gOnlineList_GetCities_773b90,data,low,"GAME_DATA (src/game/online/onlinelist): char[32], named for its use in OnlineList_GetCities"
 0x00773bb0,gOnlineList_GetParksInCity_773bb0,data,low,"GAME_DATA (src/game/online/onlinelist): char[40], named for its use in OnlineList_GetParksInCity"
 0x00773bd8,gOnlineList_GetTop10Parks_773bd8,data,low,"GAME_DATA (src/game/online/onlinelist): char[48], named for its use in OnlineList_GetTop10Parks"
