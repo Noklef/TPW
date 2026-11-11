@@ -67,11 +67,12 @@ GAME_DATA(const s32 *, gPlaceObject_Footprint_818c18, 0x00818c18, 4);
 
 // Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
 GAME_DATA(const float, gPlaceobject_700cd0, 0x00700cd0, 0x4);
-GAME_DATA(s32, gPlaceObject_Footprint_818c20, 0x00818c20, 4);
-GAME_DATA(s32, gPlaceObject_Footprint_818c24, 0x00818c24, 4);
-GAME_DATA(s32, gPlaceObject_Footprint_818c28, 0x00818c28, 4);
-GAME_DATA(s32, gPlaceObject_Footprint_818c2c, 0x00818c2c, 4);
-GAME_DATA(u8, gPlaceObject_Footprint_818c30, 0x00818c30, 1);
+struct PlaceFootprintPoint {   // the returned point: Cell_ExtendPath reads +0 / +4 / +0x10 through it, 0x52a1a0 +8 / +0xc
+    s32 x, y;                  // the type 9 cell
+    s32 firstX, firstY;        // the first typed cell
+    u8 direction;              // the type 9 cell's
+};
+GAME_DATA(PlaceFootprintPoint, gPlaceObject_Footprint_818c20, 0x00818c20, 0x14);
 GAME_DATA(u16, gPlaceobject_818c38, 0x00818c38, 2);
 GAME_DATA(u16, gPlaceobject_818c3c, 0x00818c3c, 2);
 GAME_DATA(u8 *, gPlaceObject_Footprint_818c40, 0x00818c40, 4);

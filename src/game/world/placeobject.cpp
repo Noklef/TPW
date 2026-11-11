@@ -165,15 +165,15 @@ s32 *__cdecl PlaceObject_Footprint(s32 x, s32 y, u32, s32 angle, u32 place, u32 
     s32 x9 = 0, y9 = 0, xA = 0, yA = 0;   // (the cell behind the type 9 cell, the one ahead of the type 0xa cell)
     u8 dir = 0;                           // (unset in the original until a pass sets it)
     gFocuscell_818c50 = 0;
-    gPlaceObject_Footprint_818c30 = 0;
+    gPlaceObject_Footprint_818c20.direction = 0;
     const u16 id = gActionrec_8186e0;
     gPlaceobject_818c38 = id;
     gFocusCell_StartX_7639e0 = -1;
     gFocusCell_StartY_7639e4 = -1;
-    gPlaceObject_Footprint_818c28 = -1;
-    gPlaceObject_Footprint_818c2c = -1;
-    gPlaceObject_Footprint_818c20 = -1;
-    gPlaceObject_Footprint_818c24 = -1;
+    gPlaceObject_Footprint_818c20.firstX = -1;
+    gPlaceObject_Footprint_818c20.firstY = -1;
+    gPlaceObject_Footprint_818c20.x = -1;
+    gPlaceObject_Footprint_818c20.y = -1;
     u8 *const def = ObjectDefs_Find(reinterpret_cast<u8 *>(0x007890a0), nullptr, id);
     gPlaceObject_Footprint_818c40 = def;
     const s32 *const shape = at<s32 *>(def, 0x18);
@@ -216,8 +216,8 @@ s32 *__cdecl PlaceObject_Footprint(s32 x, s32 y, u32, s32 angle, u32 place, u32 
         if (rows > 0) dir = (u8)(f.o68 + y + 5 - rows);   // (sic: the pass's row coordinate, kept where the direction goes)
         s32 ax, ay;
         spot(f, 0, 0, &ax, &ay);
-        gPlaceObject_Footprint_818c28 = ax;
-        gPlaceObject_Footprint_818c2c = ay;
+        gPlaceObject_Footprint_818c20.firstX = ax;
+        gPlaceObject_Footprint_818c20.firstY = ay;
         gPlaceobject_818c3c = (u16)cellId(ax, ay);
         const u8 *const object = g_fp->create(angle);
         if (!global<u32>(0x00785a2c)) {
@@ -278,10 +278,10 @@ s32 *__cdecl PlaceObject_Footprint(s32 x, s32 y, u32, s32 angle, u32 place, u32 
                 default: break;
                 }
                 if (place) {
-                    gPlaceObject_Footprint_818c20 = px;
-                    gPlaceObject_Footprint_818c24 = py;
+                    gPlaceObject_Footprint_818c20.x = px;
+                    gPlaceObject_Footprint_818c20.y = py;
                     const u8 d = shift(dir, b);
-                    gPlaceObject_Footprint_818c30 = d;
+                    gPlaceObject_Footprint_818c20.direction = d;
                     MapCell_SetDirection(cell, nullptr, d);
                     u8 *const next = Map_StepCellInDirection(reinterpret_cast<const u16 *>(cell), nullptr, Nibble_Scale(MapCell_Direction(cell)));
                     if (next && at<s32>(next, 8) == 1) link(next);
@@ -378,7 +378,7 @@ s32 *__cdecl PlaceObject_Footprint(s32 x, s32 y, u32, s32 angle, u32 place, u32 
         } else if (!place) {
             test(behind, 0x104, 3, out9);
         } else {
-            u8 *const end = cell44(gPlaceObject_Footprint_818c20, gPlaceObject_Footprint_818c24);
+            u8 *const end = cell44(gPlaceObject_Footprint_818c20.x, gPlaceObject_Footprint_818c20.y);
             MapCell_AddNeighbours(end, nullptr, out9);
             MapCell_SetDirection(end, nullptr, out9);
             test(behind, 0x87);
@@ -438,6 +438,6 @@ s32 *__cdecl PlaceObject_Footprint(s32 x, s32 y, u32, s32 angle, u32 place, u32 
         }
         if (!TrackSquare_Check(x2, y2, (u32)angle, place, check, dir)) return nullptr;
     }
-    return &gPlaceObject_Footprint_818c20;
+    return &gPlaceObject_Footprint_818c20.x;
 }
 }
