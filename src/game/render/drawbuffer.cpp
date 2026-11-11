@@ -7,6 +7,7 @@
 #include "clipcodes.h"
 #include "clippoly.h"
 #include "engineerrors.h"
+#include "d3dsetup.h"
 #include "../core/staticobjects.h"
 
 namespace {
@@ -344,7 +345,7 @@ s32 __fastcall DrawBatch_AddClippedTriangles(u8 *object, void *, u32 *vertexCoun
         return 0;
     u8 codes[0x400];
     u32 out;
-    ClipCodes_Compute(global<u32>(0x00879a20), 0, reinterpret_cast<u8 *>(&out), codes, at<u8 *>(batch, 0x28), *vertexCount, 0x20, 0xff);
+    ClipCodes_Compute(global<u32>((u32)(uintptr_t)&gD3dsetup_879a20), 0, reinterpret_cast<u8 *>(&out), codes, at<u8 *>(batch, 0x28), *vertexCount, 0x20, 0xff);
     if ((u8)out)
         return 0;
     u16 *w = at<u16 *>(batch, 0x2c);
@@ -375,7 +376,7 @@ u32 __fastcall DrawBatch_AddPolygon(u8 *object, void *, u8 *vertices, u32 count,
     u32 out;
     if (!codes) {
         u8 scratch[0x400];   // (the original's has 8 bytes before its return address: more vertices run over it, sic)
-        ClipCodes_Compute(global<u32>(0x00879a20), 0, reinterpret_cast<u8 *>(&out), scratch, vertices, count, stride, 0xff);
+        ClipCodes_Compute(global<u32>((u32)(uintptr_t)&gD3dsetup_879a20), 0, reinterpret_cast<u8 *>(&out), scratch, vertices, count, stride, 0xff);
         codes = reinterpret_cast<const u8 *>(&out);
     }
     if (codes[0])

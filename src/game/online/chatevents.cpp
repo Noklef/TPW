@@ -35,6 +35,8 @@
 #include "itemlist.h"
 #include "session.h"
 #include "../ui/window7cc8c0handler.h"
+#include "../world/world.h"
+#include "../core/imports.h"
 #include "../core/staticobjects.h"
 
 namespace {
@@ -77,7 +79,7 @@ template <typename... A> void tell(u32 slot, u8 *avatar, A... args) {
     (*reinterpret_cast<const Method *>((uintptr_t)slot))(at<void *>(avatar, 0), nullptr, args..., avatar);
 }
 
-u32 debugLine(u32 text) { return (*reinterpret_cast<u32(__stdcall *const *)(u32)>((uintptr_t)0x006fd1e0))(text); }
+u32 debugLine(u32 text) { return (*reinterpret_cast<u32(__stdcall *const *)(u32)>((uintptr_t)IMPORT(Kernel32_OutputDebugStringA)))(text); }
 
 const u8 *token(const u8 *tokens, u32 i) { return at<const u8 *>(tokens, 4) + 0x24 * i; }
 s32 word(const u8 *tokens, u32 i) { return at<s32>(token(tokens, i), 0x20); }
@@ -93,7 +95,7 @@ u16 *line(u8 *avatar) { return &at<u16>(avatar, 0x260); }
 
 void textArg(u8 *arg, u32 n, const u16 *s) {
     TextArg_Ctor(arg, nullptr, n);
-    at<u32>(arg, 0) = 0x006ff174;
+    at<u32>(arg, 0) = (u32)(uintptr_t)TextArgString_vtable;
     at<const u16 *>(arg, 0xc) = s;
 }
 template <typename... A> void format(u8 *avatar, u32 entry, A... args) {
@@ -226,7 +228,7 @@ void makePlayer(u32 cell, s32 x, const StdWString *name) {
     if (block) g_env->playerCtor(block, nullptr, cell, x, name, 0);
 }
 u8 *findPlayer(const StdWString *name) {
-    void *const world = global<void *>(0x007cf83c);
+    void *const world = global<void *>((u32)&gWorldPtr);
     u16 handle;
     World_FirstThing(world, nullptr, &handle);
     while (handle) {
@@ -306,9 +308,9 @@ void goToPerson(u8 *avatar, const u8 *tokens) {
     u16 handle;
     if (!g_env->placeAtCell(avatar, nullptr, *Thing_GetHandle(at<u8 *>(avatar, 4), nullptr, &handle), cell)) return;
     const s16 x = (s16)(((cell - 1) & 0x7f) << 8 | 0x80), z = (s16)((u8)((cell - 1) >> 7) << 8 | 0x80);
-    tell(0x006fd4cc, avatar, (s32)x, (s32)z, 1u);
+    tell(IMPORT(Weachatr_Chat_MovePlayer), avatar, (s32)x, (s32)z, 1u);
     at<u8>(avatar, 0xeb1) = 0;
-    tell(0x006fd4bc, avatar);
+    tell(IMPORT(Weachatr_Chat_NotAFK), avatar);
 }
 
 }  // namespace
@@ -405,7 +407,7 @@ void __fastcall ChatAvatar_HandleEvent(u8 *avatar, void *, const u8 *tokens) {
         StdWString name;
         text(tokens, 1, &name);
         u16 entrance;
-        const u32 cell = *Map_EntrancePos(&at<u8>(global<u8 *>(0x007cf83c), 0x2d8), nullptr, &entrance, 1);
+        const u32 cell = *Map_EntrancePos(&at<u8>(gWorldPtr, 0x2d8), nullptr, &entrance, 1);
         makePlayer(cell, x, &name);
         done(&name);
         addToRoom(avatar, tokens);
@@ -440,7 +442,7 @@ void __fastcall ChatAvatar_HandleEvent(u8 *avatar, void *, const u8 *tokens) {
         text(tokens, 1, &name);
         u32 cell = (u32)y;   // (the word in the stack slot of y; its high half stays)
         u16 made;
-        cell = cell & 0xffff0000u | (z == -1 ? *Map_EntrancePos(&at<u8>(global<u8 *>(0x007cf83c), 0x2d8), nullptr, &made, 1) : *Cell_MakeHandle(&made, y / 256, z / 256));
+        cell = cell & 0xffff0000u | (z == -1 ? *Map_EntrancePos(&at<u8>(gWorldPtr, 0x2d8), nullptr, &made, 1) : *Cell_MakeHandle(&made, y / 256, z / 256));
         makePlayer(cell, x, &name);
         done(&name);
         addToRoom(avatar, tokens);
@@ -570,13 +572,13 @@ void __fastcall ChatAvatar_HandleEvent(u8 *avatar, void *, const u8 *tokens) {
         Fn_5ce530(&at<u8>(avatar, 0xe90), nullptr, (u32)(uintptr_t)&it);
         u8 *node = reinterpret_cast<u8 *>((uintptr_t)it), *old;
         while (node != at<u8 *>(avatar, 0xe94)) {
-            tell(0x006fd488, avatar, node + 0xc);
+            tell(IMPORT(Weachatr_Chat_AddBuddy), avatar, node + 0xc);
             StdTreeC_PostInc(&node, nullptr, &old, 0);
         }
         Fn_5ce530(&at<u8>(avatar, 0xea0), nullptr, (u32)(uintptr_t)&it);
         node = reinterpret_cast<u8 *>((uintptr_t)it);
         while (node != at<u8 *>(avatar, 0xea4)) {
-            tell(0x006fd484, avatar, node + 0xc);
+            tell(IMPORT(Weachatr_Chat_Ignore), avatar, node + 0xc);
             StdTreeE_PostInc(&node, nullptr, &old, 0);
         }
         break;
@@ -679,7 +681,7 @@ const u8 *sessionObject() { return reinterpret_cast<const u8 *>((uintptr_t)Obj_G
 void joinRoom(u8 *avatar) {
     char room[32];
     Crt().sprintf(room, gChatevents_759920, at<u32>(sessionObject(), 8));
-    tell(0x006fd480, avatar, Online_User5c(ensureSession()));
+    tell(IMPORT(Weachatr_Chat_SetPlayerData), avatar, Online_User5c(ensureSession()));
     StdString name;
     StdString_Tidy(&name, nullptr, 0);
     StdString_AssignChars(&name, nullptr, room, (u32)strlen(room));
@@ -689,7 +691,7 @@ void joinRoom(u8 *avatar) {
     assignText(&owner, at<const u16 *>(item, 0x14));
     assignText(&global78a374, reinterpret_cast<const u16 *>(gWindow7cc8c0handler_78a374));
     assignText(&own, at<const u16 *>(sessionObject(), 0x14));
-    tell(0x006fd4c4, avatar, &own, &global78a374, &owner, &name, 0x100u);
+    tell(IMPORT(Weachatr_Chat_CreateRoom), avatar, &own, &global78a374, &owner, &name, 0x100u);
     done(&own);
     done(&global78a374);
     done(&owner);
@@ -717,7 +719,7 @@ void __fastcall ChatAvatar_LobbyEvent(u8 *avatar, void *, const u8 *tokens) {
     case 0x36:
         at<u8>(avatar, 0x28) = 1;
         g_env->addName(avatar, nullptr, &at<StdWString>(avatar, 8), 0);
-        g_env->startCrowd(global<u8 *>(0x007cf83c));
+        g_env->startCrowd(gWorldPtr);
         debugLine(reinterpret_cast<uintptr_t>(&gChatAvatar_LobbyEvent_75c210));
         debugLine(reinterpret_cast<uintptr_t>(&gChatAvatar_LobbyEvent_75c1e0));
         g_env->readBuddies(avatar, nullptr, reinterpret_cast<const char *>((uintptr_t)0x00786de4));
@@ -786,9 +788,9 @@ void __fastcall ChatAvatar_Update(u8 *chat) {
     ChatAvatar_PumpEvents(chat);
     if (!at<u32>(chat, 0xec4) || !at<u8>(chat, 0xec0)) return;
     debugLine(reinterpret_cast<uintptr_t>(&gChatAvatar_Update_75c150));
-    (*reinterpret_cast<const Method *>((uintptr_t)0x006fd604))(at<void *>(chat, 0xec4));
+    (*reinterpret_cast<const Method *>((uintptr_t)IMPORT(Weavoter_Vote_Release)))(at<void *>(chat, 0xec4));
     if (void *const vote = at<void *>(chat, 0xec4)) {
-        (*reinterpret_cast<const Method *>((uintptr_t)0x006fd608))(vote);
+        (*reinterpret_cast<const Method *>((uintptr_t)IMPORT(Weavoter_Vote_Dtor)))(vote);
         GameHeap_Free(vote);
     }
     at<u32>(chat, 0xec4) = 0;

@@ -11,6 +11,8 @@
 #include "../world/flyingrides.h"
 #include "soundset.h"
 #include "../world/ridelist.h"
+#include "../render/particles.h"
+#include "../world/rides.h"
 #include "staticobjects.h"
 
 namespace {
@@ -54,16 +56,16 @@ u32 bits(float f) {
 extern "C" {
 
 u32 __cdecl Camera_Save(Stream *stream) {
-    return Write_Ok(stream, 0x007909ec, 4) && Write_Ok(stream, 0x00790a38, 4) && Write_Ok(stream, 0x00790ab0, 4) && Write_Ok(stream, 0x007908f0, 0xc) &&
-           Write_Ok(stream, 0x00790ad0, 0xc) && Write_Ok(stream, 0x00790a9c, 4);
+    return Write_Ok(stream, (u32)&gCamera_7909ec, 4) && Write_Ok(stream, (u32)&gCamera_790a38, 4) && Write_Ok(stream, (u32)&gCameraFlags, 4) && Write_Ok(stream, 0x007908f0, 0xc) &&
+           Write_Ok(stream, (u32)&gCamera_790ad0[0], 0xc) && Write_Ok(stream, (u32)&gCamera_790a9c, 4);
 }
 
 u32 __cdecl Camera_Load(Stream *stream) {
-    if (!(Read_Ok(stream, 0x007909ec, 4) && Read_Ok(stream, 0x00790a38, 4) && Read_Ok(stream, 0x00790ab0, 4) && Read_Ok(stream, 0x007908f0, 0xc) &&
-          Read_Ok(stream, 0x00790ad0, 0xc) && Read_Ok(stream, 0x00790a9c, 4)))
+    if (!(Read_Ok(stream, (u32)&gCamera_7909ec, 4) && Read_Ok(stream, (u32)&gCamera_790a38, 4) && Read_Ok(stream, (u32)&gCameraFlags, 4) && Read_Ok(stream, 0x007908f0, 0xc) &&
+          Read_Ok(stream, (u32)&gCamera_790ad0[0], 0xc) && Read_Ok(stream, (u32)&gCamera_790a9c, 4)))
         return 0;
-    global<u32>(0x00790ab0) = 0;
-    global<u32>(0x007909e0) = global<u32>(0x00790a38);
+    gCameraFlags = 0;
+    reinterpret_cast<u32 &>(gCamera_7909e0) = reinterpret_cast<u32 &>(gCamera_790a38);
     if (global<u8>((u32)(uintptr_t)&gOptions_78d8d8 + 0x3a))
         Camera_SnapYaw();
     return 1;
@@ -71,94 +73,94 @@ u32 __cdecl Camera_Load(Stream *stream) {
 
 u32 __cdecl Particles_Save(Stream *stream, s32 full) {
     WriteValue(stream, 0x5054434c);
-    Write(stream, &global<u32>(0x00816d40), 4);
-    if (global<u32>(0x00816d40) != 0) {
+    Write(stream, &gParticles_816d40, 4);
+    if (gParticles_816d40 != 0) {
         WriteValue(stream, 0x9e68);
-        Write(stream, &global<u8>(0x0080ced0), 0x9e68);
+        Write(stream, &global<u8>((u32)(uintptr_t)&gParticleState), 0x9e68);
         WriteValue(stream, 0x8b60);
-        Write(stream, &global<u8>(0x00804370), 0x8b60);
-        const u32 size = full == 0 ? 0 : global<u32>(0x0080cedc) * 0x34;
+        Write(stream, &global<u8>((u32)(uintptr_t)&gParticleEffects), 0x8b60);
+        const u32 size = full == 0 ? 0 : global<u32>(((u32)(uintptr_t)&gParticleState + 0xc)) * 0x34;
         WriteValue(stream, size);
         if (size != 0)
-            Write(stream, global<void *>(0x0080cef8), size);
+            Write(stream, global<void *>(((u32)(uintptr_t)&gParticleState + 0x28)), size);
     }
     return 0;
 }
 
 u32 __cdecl Particles_Load(Stream *stream) {
-    if (global<u32>(0x00816d40) == 0)
+    if (gParticles_816d40 == 0)
         return 0;
     s32 result;
     u32 slot = (u32)(uintptr_t)stream;  // (the read goes to the same slot every time: a short read leaves the old value)
     Stream_Read(&result, stream, &slot, 4, nullptr);
-    const u32 savedF4 = global<u32>(0x0080cef4), savedEc = global<u32>(0x0080ceec);
+    const u32 savedF4 = global<u32>(((u32)(uintptr_t)&gParticleState + 0x24)), savedEc = global<u32>(((u32)(uintptr_t)&gParticleState + 0x1c));
     if (slot != 0x5054434c)
         return 0;
     Stream_Read(&result, stream, &slot, 4, nullptr);
     if (slot == 0)
         return 0;
-    if (global<void *>(0x0080cef8))
-        Mem_GlobalFree(global<void *>(0x0080cef8));
+    if (global<void *>(((u32)(uintptr_t)&gParticleState + 0x28)))
+        Mem_GlobalFree(global<void *>(((u32)(uintptr_t)&gParticleState + 0x28)));
     Stream_Read(&result, stream, &slot, 4, nullptr);
     if (slot != 0x9e68)
         return 1;
-    Stream_Read(&result, stream, &global<u8>(0x0080ced0), 0x9e68, nullptr);
+    Stream_Read(&result, stream, &global<u8>((u32)(uintptr_t)&gParticleState), 0x9e68, nullptr);
     Stream_Read(&result, stream, &slot, 4, nullptr);
     if (slot != 0x8b60)
         return 1;
-    Stream_Read(&result, stream, &global<u8>(0x00804370), 0x8b60, nullptr);
-    const u32 bytes = global<u32>(0x0080cedc) * 0x34;
-    global<void *>(0x0080cef8) = bytes ? Mem_GlobalAlloc(bytes) : nullptr;
+    Stream_Read(&result, stream, &global<u8>((u32)(uintptr_t)&gParticleEffects), 0x8b60, nullptr);
+    const u32 bytes = global<u32>(((u32)(uintptr_t)&gParticleState + 0xc)) * 0x34;
+    global<void *>(((u32)(uintptr_t)&gParticleState + 0x28)) = bytes ? Mem_GlobalAlloc(bytes) : nullptr;
     u32 count = 0;
     Stream_Read(&result, stream, &count, 4, nullptr);
     if (count != 0) {
-        Stream_Read(&result, stream, global<void *>(0x0080cef8), (s32)count, nullptr);
+        Stream_Read(&result, stream, global<void *>(((u32)(uintptr_t)&gParticleState + 0x28)), (s32)count, nullptr);
     } else {
-        u8 *pool = global<u8 *>(0x0080cef8);
+        u8 *pool = global<u8 *>(((u32)(uintptr_t)&gParticleState + 0x28));
         for (u32 i = 0; i < bytes; ++i)
             pool[i] = 0;
-        global<u32>(0x0080ced0) = 0;
-        global<u16>(0x00816d24) = 0;
-        at<u16>(global<u8 *>(0x0080cef8), 0x32) = 0xffff;
-        at<u16>(global<u8 *>(0x0080cef8), 0x30) = 1;
-        at<u16>(global<u8 *>(0x0080cef8), global<u32>(0x0080cedc) * 0x34 - 4) = 0xffff;
-        at<u16>(global<u8 *>(0x0080cef8), global<u32>(0x0080cedc) * 0x34 - 2) = (u16)(global<u32>(0x0080cedc) - 2);
-        if ((s32)global<u32>(0x0080cedc) - 1 > 1) {
+        global<u32>((u32)(uintptr_t)&gParticleState) = 0;
+        global<u16>(((u32)(uintptr_t)&gParticleState + 0x9e54)) = 0;
+        at<u16>(global<u8 *>(((u32)(uintptr_t)&gParticleState + 0x28)), 0x32) = 0xffff;
+        at<u16>(global<u8 *>(((u32)(uintptr_t)&gParticleState + 0x28)), 0x30) = 1;
+        at<u16>(global<u8 *>(((u32)(uintptr_t)&gParticleState + 0x28)), global<u32>(((u32)(uintptr_t)&gParticleState + 0xc)) * 0x34 - 4) = 0xffff;
+        at<u16>(global<u8 *>(((u32)(uintptr_t)&gParticleState + 0x28)), global<u32>(((u32)(uintptr_t)&gParticleState + 0xc)) * 0x34 - 2) = (u16)(global<u32>(((u32)(uintptr_t)&gParticleState + 0xc)) - 2);
+        if ((s32)global<u32>(((u32)(uintptr_t)&gParticleState + 0xc)) - 1 > 1) {
             s32 i = 1;
             u32 offset = 0x34;
             do {
-                at<u16>(global<u8 *>(0x0080cef8), offset + 0x32) = (u16)(i - 1);
-                at<u16>(global<u8 *>(0x0080cef8), offset + 0x30) = (u16)(i + 1);
+                at<u16>(global<u8 *>(((u32)(uintptr_t)&gParticleState + 0x28)), offset + 0x32) = (u16)(i - 1);
+                at<u16>(global<u8 *>(((u32)(uintptr_t)&gParticleState + 0x28)), offset + 0x30) = (u16)(i + 1);
                 ++i;
                 offset += 0x34;
-            } while (i < (s32)global<u32>(0x0080cedc) - 1);
+            } while (i < (s32)global<u32>(((u32)(uintptr_t)&gParticleState + 0xc)) - 1);
         }
-        for (s32 system = global<s16>(0x00816d1c); system >= 0;) {
-            u8 *entry = reinterpret_cast<u8 *>((uintptr_t)(0x0080cefc + system * 0x140));
+        for (s32 system = global<s16>(((u32)(uintptr_t)&gParticleState + 0x9e4c)); system >= 0;) {
+            u8 *entry = reinterpret_cast<u8 *>((uintptr_t)(((u32)(uintptr_t)&gParticleState + 0x2c) + system * 0x140));
             at<u16>(entry, 8) = 0;
             at<u16>(entry, 6) = 0xffff;
             system = at<s16>(entry, 0xd0);
         }
     }
-    global<u32>(0x0080ceec) = savedEc;
-    global<u32>(0x0080cef4) = savedF4;
+    global<u32>(((u32)(uintptr_t)&gParticleState + 0x1c)) = savedEc;
+    global<u32>(((u32)(uintptr_t)&gParticleState + 0x24)) = savedF4;
     return 0;
 }
 
 u32 __cdecl FlyingRides_Save(Stream *stream) {
     WriteValue(stream, 0x5f594c46);
-    Write(stream, &global<u32>(0x008791ec), 4);
-    if (global<u32>(0x008791ec) != 0) {
+    Write(stream, &gFlyingrides_8791ec, 4);
+    if (gFlyingrides_8791ec != 0) {
         WriteValue(stream, 400);
-        Write(stream, &global<u8>(0x008791f8), 400);
+        Write(stream, reinterpret_cast<u8 *>(gFlyingrides_8791f8), 400);
         for (u32 address = 0x007660b8; address <= 0x007660c4; address += 4)
             Write(stream, &global<u32>(address), 4);
         const u32 pad = 0x5f444150;
         for (int i = 0; i < 5; ++i)
             Write(stream, &pad, 4);
         WriteValue(stream, 0x122c);
-        for (u32 address = 0x008791fc; (s32)address < 0x879388; address += 4) {
-            if (u8 *block = global<u8 *>(address))
+        for (s32 index = 1; index < 100; ++index) {
+            if (u8 *block = gFlyingrides_8791f8[index])
                 Write(stream, block, 0x122c);
         }
     }
@@ -168,18 +170,18 @@ u32 __cdecl FlyingRides_Save(Stream *stream) {
 u32 __cdecl RSSE_Save(Stream *stream) {
     WriteValue(stream, 0x45535352);
     WriteValue(stream, 0x14);
-    Write(stream, &global<u8>(0x008791a0), 0x14);
-    if (global<u32>(0x008791a0) == 0)
+    Write(stream, reinterpret_cast<u8 *>(&gRsseSystem), 0x14);
+    if (gRsseSystem.initialised == 0)
         return 0;
     const u32 pad = 0x5f444150;
     for (int i = 0; i < 5; ++i)
         Write(stream, &pad, 4);
     u32 count = 0;
-    for (const u8 *ctx = global<const u8 *>(0x008791b0); ctx; ctx = at<const u8 *>(ctx, 0))
+    for (const u8 *ctx = reinterpret_cast<u8 * &>(gRsseSystem.scriptList); ctx; ctx = at<const u8 *>(ctx, 0))
         ++count;
     WriteValue(stream, count);
     WriteValue(stream, 0xf4);
-    for (const u8 *ctx = global<const u8 *>(0x008791b0); ctx; ctx = at<const u8 *>(ctx, 0)) {
+    for (const u8 *ctx = reinterpret_cast<u8 * &>(gRsseSystem.scriptList); ctx; ctx = at<const u8 *>(ctx, 0)) {
         Write(stream, ctx, 0xf4);
         u32 size = at<u32>(ctx, 0x50) << 2;
         WriteValue(stream, size);
@@ -232,11 +234,11 @@ u32 __cdecl RSSE_Save(Stream *stream) {
 }
 
 u32 __cdecl RSSE_Load(Stream *stream) {
-    if (global<u32>(0x008791a0)) {
-        for (RsseContext *ctx = global<RsseContext *>(0x008791b0); ctx; ctx = RSSE_FreeContext(ctx, 0)) {
+    if (gRsseSystem.initialised) {
+        for (RsseContext *ctx = gRsseSystem.scriptList; ctx; ctx = RSSE_FreeContext(ctx, 0)) {
         }
-        global<u32>(0x008791b0) = 0;
-        global<u32>(0x008791a0) = 0;
+        gRsseSystem.scriptList = nullptr;
+        gRsseSystem.initialised = 0;
         // (a non-zero 0x8791b8 prints "Something malloced but not freed": Debug_Printf, left out)
     }
     RSSE_Init();   // (inlined in the original)
@@ -246,8 +248,8 @@ u32 __cdecl RSSE_Load(Stream *stream) {
     if (value != 0x45535352)
         return 1;   // ("Load Fail - Missing header": Debug_Printf, left out)
     Read(stream, &value, 4);
-    Read(stream, &global<u8>(0x008791a0), value);
-    global<u32>(0x008791b0) = 0;
+    Read(stream, reinterpret_cast<u8 *>(&gRsseSystem), value);
+    gRsseSystem.scriptList = nullptr;
     for (int i = 0; i < 5; ++i)
         Read(stream, &value, 4);
     Read(stream, &count, 4);
@@ -255,12 +257,12 @@ u32 __cdecl RSSE_Load(Stream *stream) {
     for (s32 n = 0; n < (s32)count; ++n) {
         u8 *const rec = static_cast<u8 *>(Mem_GlobalAlloc(0xf4));
         std::memset(rec, 0, 0xf4);
-        ++global<s32>(0x008791ac);
-        at<u8 *>(rec, 0) = global<u8 *>(0x008791b0);
+        ++gRsseSystem.scriptCount;
+        at<u8 *>(rec, 0) = reinterpret_cast<u8 * &>(gRsseSystem.scriptList);
         at<u8 *>(rec, 4) = nullptr;
-        if (global<u8 *>(0x008791b0))
-            at<u8 *>(global<u8 *>(0x008791b0), 4) = rec;
-        global<u8 *>(0x008791b0) = rec;
+        if (reinterpret_cast<u8 * &>(gRsseSystem.scriptList))
+            at<u8 *>(reinterpret_cast<u8 * &>(gRsseSystem.scriptList), 4) = rec;
+        reinterpret_cast<u8 * &>(gRsseSystem.scriptList) = rec;
         u8 *const next = at<u8 *>(rec, 0), *const prev = at<u8 *>(rec, 4);
         Read(stream, rec, size);   // (the record as saved, its links kept)
         at<u8 *>(rec, 4) = prev;
@@ -332,7 +334,7 @@ u32 __cdecl RSSE_Load(Stream *stream) {
             const s32 owner = at<s32>(rec, 0xc8);
             const float half = gRidelist_700fd0;
             const float cx = static_cast<float>((X87Reg(box[0]) + box[3]) * half);
-            const u8 *const instance = global<u8 *>(0x007a4610 + 4 * owner);
+            const u8 *const instance = gRides_7a4610[owner];
             const float y = X87_Through(at<float>(at<u8 *>(at<u8 *>(at<u8 *>(instance, 8), 4), 0x78), 0x44));
             const float cz = static_cast<float>((X87Reg(box[2]) + box[5]) * half);
             float sizes[6];
@@ -358,7 +360,7 @@ u32 __cdecl RSSE_Load(Stream *stream) {
             if (at<u8 *>(rec, 0xb0))
                 at<u8 *>(at<u8 *>(rec, 0xb0), 4) = node;
             at<u8 *>(rec, 0xb0) = node;
-            ++global<s32>(0x008791b4);
+            ++gRsse_8791b4;
             u8 *const link_prev = at<u8 *>(node, 4), *const link_next = at<u8 *>(node, 0);
             Read(stream, node, value);
             at<u8 *>(node, 0) = link_next;
@@ -380,15 +382,15 @@ u32 __cdecl FlyingRides_Load(Stream *stream) {
         return 0;
     FlyingRides_Init();   // (inlined in the original: the flag is clear here)
     Read(stream, &value, 4);
-    Read(stream, &global<u8>(0x008791f8), value);
+    Read(stream, reinterpret_cast<u8 *>(gFlyingrides_8791f8), value);
     for (u32 address = 0x007660b8; address <= 0x007660c4; address += 4)
         Read(stream, &global<u32>(address), 4);
     for (int i = 0; i < 6; ++i)   // (five pads, then the record size)
         Read(stream, &value, 4);
-    for (u32 address = 0x008791fc; address < 0x00879388; address += 4) {
-        if (global<u32>(address)) {   // (the saved pointer: a record follows)
-            global<void *>(address) = Mem_GlobalAlloc(value);
-            Read(stream, global<void *>(address), value);
+    for (s32 index = 1; index < 100; ++index) {
+        if (gFlyingrides_8791f8[index]) {   // (the saved pointer: a record follows)
+            gFlyingrides_8791f8[index] = static_cast<u8 *>(Mem_GlobalAlloc(value));
+            Read(stream, gFlyingrides_8791f8[index], value);
         }
     }
     return 0;

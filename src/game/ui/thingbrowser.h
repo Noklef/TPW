@@ -100,3 +100,6 @@ GAME_DATA(u8 *, gThingbrowser_7cc300, 0x007cc300, 0x4);
 GAME_DATA(u8 *, gThingbrowser_7cc304, 0x007cc304, 0x4);
 GAME_DATA(u8 *, gThingbrowser_7cc308, 0x007cc308, 0x4);
 GAME_DATA(u32, gThingbrowser_7cc30c, 0x007cc30c, 0x4);
+
+// Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(u8[0x188], gThingBrowser_Create_756950, 0x00756950, 0x188);   // a window script (or a text / table before one): to the next named address

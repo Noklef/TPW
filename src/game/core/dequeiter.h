@@ -113,3 +113,10 @@ u32 *__cdecl Deque32_CopyBackward(u32 *out, DequeIt first, DequeIt last, DequeIt
 // (the begin iterator itself when 0); returns out.
 u32 *__fastcall Deque32_Erase(u8 *deque, void *, u32 *out, DequeIt first, DequeIt last);
 }
+
+#include "gamedata.h"
+
+// The vtables hold only ports: tpw.exe's loader points their slots at them (.docs/09-globals.md).
+GAME_DATA(void *[9], Class703bc8_vtable, 0x00703bc8, 0x24);
+GAME_DATA(void *[9], Class703bf0_vtable, 0x00703bf0, 0x24);
+GAME_DATA(void *[1], Class703c14_vtable, 0x00703c14, 0x4);

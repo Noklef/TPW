@@ -173,3 +173,12 @@ struct PixConvEnv {
 };
 // The calls go through env (nullptr: the game's).
 void PixConv_SetEnv(const PixConvEnv *env);
+
+#include "../core/gamedata.h"
+
+// The vtables hold only ports: tpw.exe's loader points their slots at them (.docs/09-globals.md).
+GAME_DATA(void *[3], PaletteConverter_vtable, 0x007039a0, 0xc);
+GAME_DATA(void *[3], RgbConverter_vtable, 0x007039b0, 0xc);
+GAME_DATA(void *[3], PixelConverter_vtable, 0x007039c0, 0xc);
+GAME_DATA(void *[3], IndexConverter_vtable, 0x00703fa8, 0xc);
+GAME_DATA(void *[3], Rgb16Converter_vtable, 0x00703fb8, 0xc);

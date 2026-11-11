@@ -18,6 +18,7 @@
 #include "window7cc8bc.h"
 #include "panel7c2534menus.h"
 #include "panel7b9940.h"
+#include "../world/camera.h"
 
 namespace {
 
@@ -135,7 +136,7 @@ u32 __cdecl Overlay7cb2b4_Toggle() {
         if (overlay) vcall<void>(overlay, 8, 1u);
         overlay = nullptr;
     } else {
-        if (global<u8>(0x00790ab0) & 0x16) return 0;
+        if (reinterpret_cast<u8 &>(gCameraFlags) & 0x16) return 0;
         if (!overlay) {
             overlay = Window_CreateChild(global<u8 *>(0x00faa5d8), nullptr, 1, 1, 0xddf22, 0, 0, 0x7ff, 0x5ff);
             if (overlay) {

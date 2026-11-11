@@ -11,6 +11,7 @@
 #include "dialog7cc530handler.h"
 #include "dialog7cc5f4dial.h"
 #include "dialog7cc530open.h"
+#include "../core/imports.h"
 
 namespace {
 
@@ -36,7 +37,7 @@ void stage() {
     switch (now) {
         case -4:
             gDialog7cc534handler_7cc538 = 3;
-            if (box()) give(0x0075852c);
+            if (box()) give((u32)(uintptr_t)&gText_Dialog7cc534handler_75852c);
             break;
         case -3: showText(1, 0x108); break;
         case -2: showText(1, 0x10a); break;
@@ -68,7 +69,7 @@ extern "C" s32 __cdecl Dialog7cc534_Handler(u8 *window, u32 message, u32 a, u32 
     } else if (message == 4 && a == 1) {
         g_env->create(gDialog7cc530open_7cc52c);
         u8 properties[0x830];
-        global<u32(__fastcall *)(void *, void *, u32, void *)>(0x006fd5bc)(reinterpret_cast<void *>((uintptr_t)0x007c24c0), nullptr, gDialog7cc5f4dial_7cc50c, properties);
+        global<u32(__fastcall *)(void *, void *, u32, void *)>(IMPORT(Wearasr_Dialup_GetDialupProperties))(reinterpret_cast<void *>((uintptr_t)0x007c24c0), nullptr, gDialog7cc5f4dial_7cc50c, properties);
         Crt().sprintf(reinterpret_cast<char *>(gDialog7cc530handler_7cc4f0), gPostcardsend_74f8c4, properties + 0x212);
         gDialog7cc530handler_7cc53c = 1;
     }

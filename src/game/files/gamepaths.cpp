@@ -17,6 +17,8 @@
 #include "file.h"
 #include "handles.h"
 #include "waddir.h"
+#include "../core/vdtor.h"
+#include "../core/imports.h"
 #include "../core/staticobjects.h"
 
 namespace {
@@ -42,7 +44,7 @@ void __fastcall GamePaths_MakeFolders(void *, void *, const WString *root) {
         String_Append(&path, nullptr, name);
         Handle folder;
         Handle_Ctor(&folder);
-        folder.vtable = at<void *const *>(0x006fd9e8);
+        folder.vtable = at<void *const *>(((u32)(uintptr_t)ListDtor6fd9e4_vtable + 0x4));
         s32 status;
         if (*Handle_Open28(&folder, nullptr, &status, reinterpret_cast<u32>(path.data)) < 0) {
             s32 made;
@@ -101,7 +103,7 @@ void __stdcall GamePaths_MakeFoldersCopying(const WString *root, u32 copy) {
 void __cdecl GamePaths_RemoveTree(const String *path) {
     Handle folder;
     Handle_Ctor(&folder);
-    folder.vtable = at<void *const *>(0x006fd9e8);
+    folder.vtable = at<void *const *>(((u32)(uintptr_t)ListDtor6fd9e4_vtable + 0x4));
     s32 status;
     if (*Handle_Open28(&folder, nullptr, &status, reinterpret_cast<u32>(path->data)) >= 0) {
         alignas(4) u8 buffer[0x124];
@@ -151,7 +153,7 @@ u32 __fastcall GamePaths_FindDisc(u8 *check) {
     vcall<void>(&text, 0x14, Language_Widen(Records_DataIfTerminated(*at<const u8 *const *>((u32)(uintptr_t)&gLanguage_78b530 + 0x558), nullptr, 9)));
     WString_AssignFromAnsi(&caption, reinterpret_cast<const String *>((u32)(uintptr_t)&gString_f7a7c8));
     using Box = s32(__stdcall *)(void *, const u16 *, const u16 *, u32);
-    const Box box = *reinterpret_cast<const Box *>(0x006fd378);   // MessageBoxW (read once, as the original)
+    const Box box = *reinterpret_cast<const Box *>(IMPORT(User32_MessageBoxW));   // MessageBoxW (read once, as the original)
     SystemInfo *const info = reinterpret_cast<SystemInfo *>(check + 0x10);
     StringList *const list = reinterpret_cast<StringList *>(check);
     u32 found = 0;

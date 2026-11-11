@@ -189,13 +189,13 @@ u32 __fastcall TextMetrics_Lookup(u8 *object, void *, u32 key) {
 
 u8 *__fastcall Obj_CtorValue(u8 *object, void *, u32 value) {
     Fn_657d30(object);
-    at<u32>(object, 0) = 0x006ff058;
+    at<u32>(object, 0) = (u32)(uintptr_t)Class6ff058_vtable;
     at<u32>(object, 0x14) = value;
     return object;
 }
 
 void __fastcall TextMetrics_Dtor(u8 *object) {
-    at<u32>(object, 0) = 0x006ff058;
+    at<u32>(object, 0) = (u32)(uintptr_t)Class6ff058_vtable;
     GuiFont_Dtor(object);
 }
 

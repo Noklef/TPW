@@ -8,6 +8,8 @@
 #include "../core/accessors.h"
 #include "../render/screen.h"
 #include "../render/graphicssettings.h"
+#include "../render/d3dsetup.h"
+#include "../core/imports.h"
 
 namespace {
 
@@ -46,7 +48,7 @@ void release_interfaces() {
 void clear_back(u8 *surface, u32 *fx) {
     while (comcall<u32>(surface, 0x14, nullptr, nullptr, nullptr, 0x1000400u, fx) != 0) {
     }
-    g_env->flip(global<u8 *>(0x00879a24));
+    g_env->flip(global<u8 *>((u32)(uintptr_t)&gD3dsetup_879a20 + 0x4));
 }
 
 void stop() {
@@ -69,11 +71,11 @@ u32 __cdecl Movie_Start(u32 file, u32 mode, s32 x, s32 y, u32 overlay) {
     MovieSettings &settings = gMovieStart_Settings_8023f0;
     memset(&settings, 0, sizeof settings);
     gMovieStart_8023e8 = 0;
-    u8 *const renderer = global<u8 *>(0x00879a24);
+    u8 *const renderer = global<u8 *>((u32)(uintptr_t)&gD3dsetup_879a20 + 0x4);
     settings.renderer = at<u32>(renderer, 0);
     u8 *back_surface, *front_surface;
     if (query(at<u8 *>(renderer, 0x14), 0x00707210, &back_surface)) return 0;
-    if (query(at<u8 *>(global<u8 *>(0x00879a24), 0x10), 0x00707210, &front_surface)) return 0;
+    if (query(at<u8 *>(global<u8 *>((u32)(uintptr_t)&gD3dsetup_879a20 + 0x4), 0x10), 0x00707210, &front_surface)) return 0;
     if (query(front_surface, 0x00707220, &front())) return 0;
     if (query(back_surface, 0x00707220, &back())) return 0;
     settings.field70 = gScreen_7a1968;
@@ -120,7 +122,7 @@ u32 __cdecl Movie_Start(u32 file, u32 mode, s32 x, s32 y, u32 overlay) {
 
 u32 __cdecl Movie_Finished() {
     if (!on() || !allowed()) return 1;
-    game<void(__stdcall *const *)(u32)>(0x006fd1d4)[0](10);
+    game<void(__stdcall *const *)(u32)>(IMPORT(Kernel32_Sleep))[0](10);
     const u32 finished = !player() || g_env->playing(player()) == 0;
     if (finished) on() = 0;
     return finished;

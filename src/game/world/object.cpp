@@ -37,6 +37,9 @@
 #include "../ui/dialog74fb20.h"
 #include "object.h"
 #include "mapcell.h"
+#include "cellmessage.h"
+#include "rides.h"
+#include "staff.h"
 #include "../core/staticobjects.h"
 
 namespace {
@@ -198,7 +201,7 @@ u32 __fastcall Kinds_Compatible(const u8 *object, void *, u32 kind) {
     if (kind == 4 && mine == 1)
         return 1;
     if (kind == 3 && mine == 1)
-        return global<u32>(0x00820ab8) == 0 ? 1 : 0;
+        return gCellmessage_820ab8 == 0 ? 1 : 0;
     return 0;
 }
 
@@ -353,7 +356,7 @@ void __fastcall Object_BeginCycle(u8 *object) {
         return;
     }
     const u8 level = (u8)(long long)at<float>(object, 0x48);   // (__ftol, the low byte)
-    u8 *const strip = global<u8 *>(0x007a4610 + 4 * at<u32>(object, 0x20));
+    u8 *const strip = gRides_7a4610[at<u32>(object, 0x20)];
     StripAnim_StartGrow(strip, level ? 2 : 4);
     Object_SetState(object, nullptr, level ? 1 : 4);
 }
@@ -391,7 +394,7 @@ void __fastcall Object_CallQueueHead(u8 *object) {
 }
 
 u32 __fastcall Object_SetOpen(u8 *object, void *, u32 open) {
-    u8 *const *const strips = reinterpret_cast<u8 *const *>(0x007a4610);
+    u8 *const *const strips = gRides_7a4610;
     if (open) {
         if (!(at<u8>(object, 0x32) & 4)) return 0;
         Object_SetState(object, nullptr, 2);
@@ -411,7 +414,7 @@ u32 __fastcall Object_SetOpen(u8 *object, void *, u32 open) {
 void __fastcall Object_Close(u8 *object) {
     Object_CanOpen(object);   // (the original's inline checks pick only a debug print; their calls are kept)
     at<u32>(object, 0x68) = 1;
-    StripAnim_StartShrink(reinterpret_cast<u8 *const *>(0x007a4610)[at<u32>(object, 0x20)]);
+    StripAnim_StartShrink(gRides_7a4610[at<u32>(object, 0x20)]);
     Rides_SetElement(Rides_FindById(at<s32>(object, 0x24)), 6, 0);
     Object_SetState(object, nullptr, 0);
 }
@@ -474,7 +477,7 @@ void __fastcall Object_MechanicDone(u8 *object, void *, u32) {
         Rides_GetElement(record, 7);
         Rides_GetElement(record, 4);
         Rides_SetElement(record, 4, 0);
-        StripAnim_StartShrink(reinterpret_cast<u8 *const *>(0x007a4610)[at<u32>(object, 0x20)]);
+        StripAnim_StartShrink(gRides_7a4610[at<u32>(object, 0x20)]);
     }
     Object_Close(object);
     if (at<s32>(Object_GetDef(object), 0x9c) == 3 && !Object_LinkOtherOpen(object)) Object_RestartRide(object);
@@ -493,7 +496,7 @@ void __fastcall Object_PathChanged(u8 *object) {
     Object_BackOfQueue(object, nullptr, &back);
     const u32 count = Counter7cdb98_Inc();
     Object_BackOfQueue(object, nullptr, &back);
-    Map_SetBlockValue(global<u8 *>(0x007cf83c) + 0x2d8, nullptr, count, back);
+    Map_SetBlockValue(gWorldPtr + 0x2d8, nullptr, count, back);
     for (u16 person = at<u16>(object, 0x3c); person;) {
         u8 *const thing = global<u8 *>(0x007cfb90 + person * 20u);
         const u16 next = at<u16>(thing, 0x228);
@@ -535,7 +538,7 @@ void __fastcall Object_RestartRide(u8 *object) {
     at<u32>(object, 0x68) = 0;
     at<u16>(object, 0x6c) = 0;
     Rides_SetElement(Rides_FindById(at<s32>(object, 0x24)), 6, 1);
-    StripAnim_StartGrow(reinterpret_cast<u8 *const *>(0x007a4610)[at<u32>(object, 0x20)], 1);
+    StripAnim_StartGrow(gRides_7a4610[at<u32>(object, 0x20)], 1);
 }
 
 u32 __cdecl Object_TrackNeighboursOk(const u8 *object) {
@@ -547,7 +550,7 @@ u32 __cdecl Object_TrackNeighboursOk(const u8 *object) {
     // the cell two or so ahead along the track's direction, then the one beside it (Nibble_Scale of the direction in between has no effect)
     auto cellAt = [](s32 column, s32 row) {
         const u32 id = (u32)(((row << 7) + column + 1) & 0xffff);
-        return global<u8 *>(0x007cf83c) + (id + 0x6cde) * 0x28;
+        return gWorldPtr + (id + 0x6cde) * 0x28;
     };
     s32 dx = 0, dy = 0;
     switch (angle) {
@@ -584,7 +587,7 @@ u32 __fastcall Obj_BlockValuesBelowLimit(const u8 *object) {
     u32 best = 0;
     for (u32 k = 0; k < 9; ++k) {
         if (best > at<u32>(object, 0x198)) break;
-        const u8 *const pair = reinterpret_cast<const u8 *>(0x007ced88 + k * 8);
+        const u8 *const pair = reinterpret_cast<const u8 *>(gObject_Around_7ced88[k]);
         const u16 pos = (u16)((u16)(at<u16>(pair, 4) << 7) + back + at<u16>(pair, 0));
         const u32 value = Map_BlockValue(global<u8 *>(0x0080239c) + 0x2d8, nullptr, pos);
         if (!(best > value)) best = value;
@@ -780,12 +783,12 @@ u32 __fastcall Object_FillRate(const u8 *object) {
     const u32 n = at<u32>(object, 0x58);
     if (n != 0) {
         const u32 row = (u32)at<u8>(object, 0x50) << 6;
-        global<float>(0x007cdc54) = (float)(X87Reg((double)n) / X87Reg((double)at<s32>(ObjectDefs_Find(defs, nullptr, id), row + 0x1a8)));
+        gObject_WearRate_7cdc54 = (float)(X87Reg((double)n) / X87Reg((double)at<s32>(ObjectDefs_Find(defs, nullptr, id), row + 0x1a8)));
     } else {
-        global<float>(0x007cdc54) = 1.0f;
+        gObject_WearRate_7cdc54 = 1.0f;
     }
     const float per = at<float>(ObjectDefs_Find(defs, nullptr, id), ((u32)at<u8>(object, 0x50) << 6) + 0x1b4);  // (its debug check of above 0 is left out)
-    X87Reg rate = X87Reg((double)at<u8>(object, 0x5d)) * X87Reg(per) * X87Reg(global<float>(0x007cdc54)) / X87Reg((double)at<u8>(object, 0x5c));
+    X87Reg rate = X87Reg((double)at<u8>(object, 0x5d)) * X87Reg(per) * X87Reg(gObject_WearRate_7cdc54) / X87Reg((double)at<u8>(object, 0x5c));
     if (!(rate.v > 4.0)) rate = 4.0;  // (a NaN too)
     return (u32)(long long)rate.v;  // __ftol, the low half
 }
@@ -938,7 +941,7 @@ u32 __fastcall Object_Serialize(u8 *object, void *, Stream *stream, u32 save, s3
         if (!Save_Field(stream, save, object + 0x3c8 + i * 2, 2, (u32)&gText_Object_Serialize_75b5ec) || !Save_Field(stream, save, object + 0x40a + i * 2, 2, (u32)&gText_Object_Serialize_75b5e0))
             return 1;
     static const SaveSpec kIds[] = {{0x24, 4, (u32)&gText_Object_Serialize_75b5cc}, {0x28, 4, (u32)&gText_Object_Serialize_75b5b8}, {0x19c, 4, (u32)&gText_Object_75b5b0}, {0x34, 2, (u32)&gText_Object_Serialize_75b5a4}, {0x36, 2, (u32)&gText_Object_Serialize_75b598},
-                                    {0xc, 2, 0x0075a4f4},  {0x5e, 2, (u32)&gText_Object_Serialize_75b580}, {0x3a, 2, (u32)&gText_Object_Serialize_75b570},  {0x68, 4, (u32)&gText_Object_Serialize_75b564}, {0x38, 2, (u32)&gText_Object_Serialize_75b558},
+                                    {0xc, 2, (u32)(uintptr_t)&gText_Staff_75a4f4},  {0x5e, 2, (u32)&gText_Object_Serialize_75b580}, {0x3a, 2, (u32)&gText_Object_Serialize_75b570},  {0x68, 4, (u32)&gText_Object_Serialize_75b564}, {0x38, 2, (u32)&gText_Object_Serialize_75b558},
                                     {0x3c, 2, (u32)&gText_Object_Serialize_75b54c}, {0x2c, 4, (u32)&gText_Object_Serialize_75b538}, {0x30, 2, (u32)&gText_Object_Serialize_75b528}};
     if (!Save_Fields(stream, save, object, kIds, 13))
         return 1;
@@ -1021,7 +1024,7 @@ u32 __fastcall Object_InPoorCondition(const u8 *object) {
 }
 
 void __fastcall Object_Wear(u8 *object, void *, u32 amount) {
-    u8 &guard = global<u8>(0x00fb34b8);   // (the mode setting 0xfb3b7c: a function-local static)
+    u8 &guard = gObject_fb34b8;   // (the mode setting 0xfb3b7c: a function-local static)
     if (!(guard & 1)) {
         guard |= 1;
         Setting_ReadMode(reinterpret_cast<u8 *>(&gDialog74fb20_fb3b7c));

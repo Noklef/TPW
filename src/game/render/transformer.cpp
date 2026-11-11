@@ -5,6 +5,7 @@
 #include "../core/gameheap.h"
 #include "../math/transform.h"
 #include "../math/x87.h"
+#include "../core/vdel.h"
 #include "../core/staticobjects.h"
 
 namespace {
@@ -33,9 +34,9 @@ u32 __cdecl Transformer_Create() {
     global<u32>(0x0087b154) = 0x0087af68;
     global<u32>(0x0087b088) = 0x0087b158;
     global<u32>(0x0087af5c) = 0x0087b078;
-    u32 kind = 1, table = 0x007018f0, vtable = 0x007018d0;
+    u32 kind = 1, table = 0x007018f0, vtable = (u32)(uintptr_t)Class7018d0_vtable;
     if ((global<u32>((u32)(uintptr_t)&gCpuInfo_8bd530 + 0x4) & 0x2000000) && Transform_SseProbe())
-        kind = 3, table = 0x00701960, vtable = 0x00701920;
+        kind = 3, table = 0x00701960, vtable = (u32)(uintptr_t)Class701920_vtable;
     else if (global<u32>((u32)(uintptr_t)&gCpuInfo_8bd530 + 0xc) != 0)
         kind = 2, table = 0x00701918, vtable = 0x007018f8;
     u8 *const block = static_cast<u8 *>(GameHeap_Alloc(0x10));

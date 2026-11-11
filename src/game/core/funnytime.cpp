@@ -9,6 +9,7 @@
 #include "../world/thingmsg.h"
 #include "filetime.h"
 #include "savegame.h"
+#include "imports.h"
 
 namespace {
 
@@ -113,7 +114,7 @@ u8 *__fastcall FunnyTime_Construct(u8 *clock) {
     at<s32>(clock, 0x14) = -1;
     at<u32>(clock, 0x18) = 0;
     u16 st[8];  // SYSTEMTIME: year, month, day of the week, day, hour, minute, second, ms
-    (*reinterpret_cast<void(__stdcall *const *)(u16 *)>(0x006fd164))(st);  // GetLocalTime
+    (*reinterpret_cast<void(__stdcall *const *)(u16 *)>(IMPORT(Kernel32_GetLocalTime)))(st);  // GetLocalTime
     FileTime_FromSystemTime(session, nullptr, &result, st[0], st[1], st[3], st[4], st[5], st[6], st[7]);
     return clock;
 }
@@ -149,9 +150,9 @@ FileTime *__fastcall FunnyTime_SpanSince(const u8 *clock, void *, FileTime *out,
 u32 __fastcall GameClock_Serialize(u8 *clock, void *, Stream *stream, u32 save, s32 version, u32) {
     if (version < 0 || version > 1)
         return 0;
-    if (!Save_Field(stream, save, clock, 8, 0x0075c7e0) || !Save_Field(stream, save, clock + 8, 8, 0x0075c7d0) ||
-        !Save_Field(stream, save, clock + 0x10, 4, 0x0075c7bc) || !Save_Field(stream, save, clock + 0x14, 4, 0x0075c7a8) ||
-        !Save_Field(stream, save, clock + 0x1c, 4, 0x0075c790))
+    if (!Save_Field(stream, save, clock, 8, (u32)(uintptr_t)&gFunnytime_75c7e0) || !Save_Field(stream, save, clock + 8, 8, (u32)(uintptr_t)&gFunnytime_75c7d0) ||
+        !Save_Field(stream, save, clock + 0x10, 4, (u32)(uintptr_t)&gFunnytime_75c7bc) || !Save_Field(stream, save, clock + 0x14, 4, (u32)(uintptr_t)&gFunnytime_75c7a8) ||
+        !Save_Field(stream, save, clock + 0x1c, 4, (u32)(uintptr_t)&gFunnytime_75c790))
         return 1;
     return 0;
 }

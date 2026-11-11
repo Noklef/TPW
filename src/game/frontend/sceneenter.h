@@ -52,3 +52,7 @@ void __fastcall Scene702dd0_Enter(u8 *self);
 
 // The vtables hold only ports: tpw.exe's loader points their slots at them (.docs/09-globals.md).
 GAME_DATA(void *[1], Class702bb4_vtable, 0x00702bb4, 0x4);
+
+// Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(char[0x14], gText_Sceneenter_774c80, 0x00774c80, 0x14);
+GAME_DATA(u8[0x20], gSceneenter_774ca8, 0x00774ca8, 0x20);

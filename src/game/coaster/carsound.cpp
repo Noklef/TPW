@@ -61,7 +61,7 @@ void __cdecl CoasterCar_StartSounds(u8 *coaster, u8 *car, u32 quiet) {
         const auto ftol = [](float f) { return (s32)(long long)f; };   // __ftol
         for (s32 k = 0; k < 2; ++k) {
             const s32 z = ftol(at<float>(car, 0x50)), y = ftol(at<float>(car, 0x4c)), x = ftol(at<float>(car, 0x48));
-            at<u32>(car, 0x64 + 4 * k) = Sound_PlayRideElement(at<s32>(coaster, 0x24), 0, *reinterpret_cast<const u32 *>(0x00803a3c), k, x, y, z);
+            at<u32>(car, 0x64 + 4 * k) = Sound_PlayRideElement(at<s32>(coaster, 0x24), 0, gSoundCategories.themeRides, k, x, y, z);
         }
     }
     if (!quiet) CoasterCar_SetSoundMode(car, 2, 100);

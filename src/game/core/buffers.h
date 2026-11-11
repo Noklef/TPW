@@ -170,3 +170,12 @@ u8 *__fastcall CountedVector14_CtorCopy(u8 *object, void *, const u8 *x);
 // (CountedVector14_Assign) and CountedVector14_Clear for the strings', the counts the byte spans divided by 0x24 (signed, truncating).
 void __fastcall CountedVector14Vector_InsertN(u8 *vector, void *, u8 *position, u32 n, const u8 *x);
 }  // extern "C"
+
+#include "gamedata.h"
+
+// Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(char[0x18], gBuffers_774870, 0x00774870, 0x18);
+GAME_DATA(char[0x18], gBuffers_774888, 0x00774888, 0x18);
+GAME_DATA(char[0x18], gBuffers_7748a0, 0x007748a0, 0x18);
+GAME_DATA(char[0x1c], gBuffers_7748b8, 0x007748b8, 0x1c);
+GAME_DATA(char[0x1c], gBuffers_7748d4, 0x007748d4, 0x1c);

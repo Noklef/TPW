@@ -356,6 +356,7 @@ template <typename C> u32 *put_bool(u32 *out, u32 failed, u8 *buffer, u8 *ios, u
 }  // namespace
 
 u8 *NumPut_NumpunctOf(u8 **locale) { return numpunct_of<NarrowChars>(locale); }
+u8 *NumPutW_NumpunctOf(u8 **locale) { return numpunct_of<WideChars>(locale); }
 
 extern "C" {
 

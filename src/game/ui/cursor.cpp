@@ -11,6 +11,7 @@
 #include "guisettings.h"
 #include "window7cc8bc.h"
 #include "panel7b9940.h"
+#include "../world/cellbuild.h"
 
 namespace {
 
@@ -121,24 +122,24 @@ void __cdecl Gui_SetCursorTable(u8 *table) {
     if (!table || table == gGui_faa604) return;
     if (gCursor_faa608) vcall<void>(gCursor_faa608, 0x10, 0u);
     gGui_faa604 = table;
-    u8 *const cursor = CursorTable_Get(gGui_faa604, nullptr, global<u16>(0x0077c484));
+    u8 *const cursor = CursorTable_Get(gGui_faa604, nullptr, global<u16>((u32)(uintptr_t)&gGui_77c484));
     if (cursor) vcall<void>(cursor, 0x10, 1u);
     gCursor_faa608 = cursor;
 }
 
 void __cdecl Gui_SetCursor(u32 id) {
     if (!gGui_faa604) return;
-    if ((s16)id == global<s16>(0x0077c484)) return;
+    if ((s16)id == global<s16>((u32)(uintptr_t)&gGui_77c484)) return;
     if ((s16)id == -1) id = gGui_faa600;
     u8 had = 0;
-    if (u8 *const old = CursorTable_Get(gGui_faa604, nullptr, global<u16>(0x0077c484))) {
+    if (u8 *const old = CursorTable_Get(gGui_faa604, nullptr, global<u16>((u32)(uintptr_t)&gGui_77c484))) {
         vcall<void>(old, 0x10, 0u);
         had = Fn_66190a(old);
     }
     u8 *c = CursorTable_Get(gGui_faa604, nullptr, (u16)id);
     if (!c) c = CursorTable_Get(gGui_faa604, nullptr, gGui_faa600);
     gCursor_faa608 = c;
-    global<u16>(0x0077c484) = (u16)id;
+    global<u16>((u32)(uintptr_t)&gGui_77c484) = (u16)id;
     if (!c) return;
     vcall<void>(c, 0x10, 1u);
     if (had) vcall<void>(c, 0x8);
@@ -169,8 +170,8 @@ void __fastcall Obj7b51f0_SetCursor(void *, void *, u32 id) {
 
 void __cdecl GameCursor_Update() {
     const auto pick = [](u32 otherwise) -> u32 {
-        if (global<u32>(0x00816d60)) return 5;
-        if (global<u32>(0x00816d4c)) return 0x12;
+        if (gCellbuild_816d60) return 5;
+        if (gCellbuild_816d4c) return 0x12;
         return otherwise;
     };
     switch (global<u32>(0x0081ae2c)) {
@@ -178,15 +179,15 @@ void __cdecl GameCursor_Update() {
     case 0x03: GameCursor_Set(pick(4)); break;
     case 0x0b:
     case 0x10: GameCursor_Set(pick(6)); break;
-    case 0x15: GameCursor_Set(global<u32>(0x00816d4c) ? 0x12 : 0xb); break;
-    case 0x16: GameCursor_Set(global<u32>(0x00816d4c) ? 0x12 : 0x11); break;
+    case 0x15: GameCursor_Set(gCellbuild_816d4c ? 0x12 : 0xb); break;
+    case 0x16: GameCursor_Set(gCellbuild_816d4c ? 0x12 : 0x11); break;
     case 0x04:
     case 0x3b: GameCursor_Set(7); break;
     case 0x39: GameCursor_Set(3); break;
     default: break;
     }
     if (Global816d48_Get()) GameCursor_Set(8);
-    if (global<u32>(0x00816d5c)) GameCursor_Set(0x14);
+    if (gCellbuild_816d5c) GameCursor_Set(0x14);
 }
 
 void __cdecl GameCursors_LoadAni() {

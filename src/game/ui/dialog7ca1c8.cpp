@@ -259,7 +259,7 @@ void __cdecl Dialog7ca1c8_UpdateLoopButton() {
 }
 
 void __cdecl Dialog7ca1c8_Create() {
-    global<u8 *>(0x007ca1c8) = WindowScript_Build(global<u8 *>(0x00faa5d8), nullptr, reinterpret_cast<u8 *>(0x00751530), 0x004982a0);
+    global<u8 *>(0x007ca1c8) = WindowScript_Build(global<u8 *>(0x00faa5d8), nullptr, gDialog7ca1c8_Create_751530, 0x004982a0);
     Window_Unlink(global<u8 *>(0x007ca1c8));
     Window_SetDwordA0(global<u8 *>(0x007ca1c8), nullptr, 0, 2);
     Window_SetShown(global<u8 *>(0x007ca1c8), nullptr, 0);

@@ -215,6 +215,7 @@
 #include "../game/core/balancefile.h"
 #include "../game/core/channelvoice.h"
 #include "../game/core/cmdline.h"
+#include "../game/core/collate.h"
 #include "../game/core/gameerror.h"
 #include "../game/core/timesig.h"
 #include "../game/core/countedpair.h"
@@ -320,6 +321,7 @@
 #include "../game/core/themenames.h"
 #include "../game/core/themesaves.h"
 #include "../game/core/timeget.h"
+#include "../game/core/timeput.h"
 #include "../game/core/voicecodec.h"
 #include "../game/core/voiceevents.h"
 #include "../game/core/voicesample.h"
@@ -7016,6 +7018,7 @@ const Hook kHooks[] = {
     {"UseFacet_70a044",           0x006abe80, (void *)&UseFacet_70a044, {0x6a, 0xff, 0x68, 0x46, 0x53}},
     {"UseFacet_709ef4",           0x006a5720, (void *)&UseFacet_709ef4, {0x6a, 0xff, 0x68, 0x66, 0x4b}},
     {"UseFacet_TimeW",            0x006a54a0, (void *)&UseFacet_TimeW, {0x6a, 0xff, 0x68, 0x1b, 0x4b}},
+    {"UseFacet_WNumpunct",        0x006a4790, (void *)&UseFacet_WNumpunct, {0x6a, 0xff, 0x68, 0x0b, 0x4a}},
     {"CRT_mbctolower",            0x006895b0, (void *)&CRT_mbctolower, {0x83, 0xec, 0x08, 0x53, 0x8b}},
     {"CRT_mbspbrk",               0x00689650, (void *)&CRT_mbspbrk, {0xa1, 0x70, 0x18, 0xfb, 0x00}},
     {"CRT_mbsrchr",               0x00689400, (void *)&CRT_mbsrchr, {0xa1, 0x70, 0x18, 0xfb, 0x00}},
@@ -7203,6 +7206,16 @@ const Hook kHooks[] = {
     {"NumGet_DoGetFloat",         0x006974e0, (void *)&NumGet_DoGetFloat, {0x6a, 0xff, 0x68, 0x78, 0x3f}},
     {"NumGet_DoGetDouble",        0x00697930, (void *)&NumGet_DoGetDouble, {0x6a, 0xff, 0x68, 0x98, 0x3f}},
     {"NumGet_DoGetLongDouble",    0x00697d90, (void *)&NumGet_DoGetLongDouble, {0x6a, 0xff, 0x68, 0xb8, 0x3f}},
+    {"NumGetW_DoGetUshort",       0x0069d1c0, (void *)&NumGetW_DoGetUshort, {0x6a, 0xff, 0x68, 0xf8, 0x44}},
+    {"NumGetW_DoGetUint",         0x0069d6a0, (void *)&NumGetW_DoGetUint, {0x6a, 0xff, 0x68, 0x28, 0x45}},
+    {"NumGetW_DoGetLong",         0x0069db70, (void *)&NumGetW_DoGetLong, {0x6a, 0xff, 0x68, 0x58, 0x45}},
+    {"NumGetW_DoGetUlong",        0x0069e030, (void *)&NumGetW_DoGetUlong, {0x6a, 0xff, 0x68, 0x88, 0x45}},
+    {"NumGetW_DoGetPointer",      0x0069f3c0, (void *)&NumGetW_DoGetPointer, {0x6a, 0xff, 0x68, 0x18, 0x46}},
+    {"NumGetW_DoGetFloat",        0x0069e4f0, (void *)&NumGetW_DoGetFloat, {0x6a, 0xff, 0x68, 0xa8, 0x45}},
+    {"NumGetW_DoGetDouble",       0x0069e9e0, (void *)&NumGetW_DoGetDouble, {0x6a, 0xff, 0x68, 0xc8, 0x45}},
+    {"NumGetW_DoGetLongDouble",   0x0069eed0, (void *)&NumGetW_DoGetLongDouble, {0x6a, 0xff, 0x68, 0xe8, 0x45}},
+    {"NumGetW_Getifld",           0x0069f8b0, (void *)&NumGetW_Getifld, {0x6a, 0xff, 0x68, 0x53, 0x46}},
+    {"NumGetW_DoGetBool",         0x0069cb60, (void *)&NumGetW_DoGetBool, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"OwnedSection_Ctor",         0x00633900, (void *)&OwnedSection_Ctor, {0x56, 0x8b, 0xf1, 0x6a, 0x18}},
     {"OwnedSection_Dtor",         0x00633920, (void *)&OwnedSection_Dtor, {0x56, 0x8b, 0xf1, 0x8b, 0x06}},
     {"SectionGuard_Dtor",         0x00633940, (void *)&SectionGuard_Dtor, {0xe9, 0x2b, 0x00, 0x00, 0x00}},
@@ -7251,6 +7264,17 @@ const Hook kHooks[] = {
     {"TimeGet_DoGetMonthname",    0x006aaaf0, (void *)&TimeGet_DoGetMonthname, {0x8b, 0x41, 0x0c, 0x8d, 0x4c}},
     {"WTimeGet_DoGetWeekday",     0x006a3de0, (void *)&WTimeGet_DoGetWeekday, {0x8b, 0x41, 0x08, 0x8d, 0x4c}},
     {"WTimeGet_DoGetMonthname",   0x006a3e40, (void *)&WTimeGet_DoGetMonthname, {0x8b, 0x41, 0x0c, 0x8d, 0x4c}},
+    {"TimeGet_Getint",            0x006aade0, (void *)&TimeGet_Getint, {0x83, 0xec, 0x24, 0x53, 0x55}},
+    {"TimeGet_DoGetTime",         0x006aa370, (void *)&TimeGet_DoGetTime, {0x83, 0xec, 0x24, 0x8d, 0x44}},
+    {"TimeGet_DoGetDate",         0x006aa730, (void *)&TimeGet_DoGetDate, {0x83, 0xec, 0x30, 0x8b, 0x44}},
+    {"TimeGet_DoGetYear",         0x006aab50, (void *)&TimeGet_DoGetYear, {0x83, 0xec, 0x24, 0x8d, 0x44}},
+    {"WTimeGet_Getint",           0x006a4160, (void *)&WTimeGet_Getint, {0x83, 0xec, 0x24, 0x53, 0x55}},
+    {"WTimeGet_DoGetTime",        0x006a3600, (void *)&WTimeGet_DoGetTime, {0x83, 0xec, 0x28, 0x53, 0x55}},
+    {"WTimeGet_DoGetDate",        0x006a3a30, (void *)&WTimeGet_DoGetDate, {0x83, 0xec, 0x30, 0x8b, 0x44}},
+    {"WTimeGet_DoGetYear",        0x006a3ea0, (void *)&WTimeGet_DoGetYear, {0x83, 0xec, 0x24, 0x8d, 0x44}},
+    {"Collate_DoTransform",       0x006a7080, (void *)&Collate_DoTransform, {0x6a, 0xff, 0x68, 0xc8, 0x4e}},
+    {"TimePut_DoPut",             0x006ab160, (void *)&TimePut_DoPut, {0x6a, 0xff, 0x68, 0x18, 0x52}},
+    {"WTimePut_DoPut",            0x006a4540, (void *)&WTimePut_DoPut, {0x6a, 0xff, 0x68, 0xc8, 0x49}},
     {"Nav_Ctor",          0x0050ffe0, (void *)&Nav_Ctor, {0x6a, 0xff, 0x68, 0x2d, 0xe6}},
     {"Nav_Dtor",                  0x0050f200, (void *)&Nav_Dtor, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"Nav_DtorAtD4",              0x004f7c30, (void *)&Nav_DtorAtD4, {0x81, 0xc1, 0xd4, 0x00, 0x00}},

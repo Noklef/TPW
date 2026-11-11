@@ -5,10 +5,11 @@
 #include "dialog7cc5f4dial.h"
 #include "dialog7cc534handler.h"
 #include "dialog7cc530open.h"
+#include "../core/imports.h"
 
 namespace {
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
-void hangUp(u32 handle) { global<u32(__fastcall *)(void *, void *, u32)>(0x006fd5b8)(reinterpret_cast<void *>((uintptr_t)0x007c24c0), nullptr, handle); }
+void hangUp(u32 handle) { global<u32(__fastcall *)(void *, void *, u32)>(IMPORT(Wearasr_Dialup_Disconnect))(reinterpret_cast<void *>((uintptr_t)0x007c24c0), nullptr, handle); }
 }  // namespace
 
 extern "C" {

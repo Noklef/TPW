@@ -53,6 +53,7 @@
 #include "dialog7cc654handler.h"
 #include "dialog74fb20.h"
 #include "panel7b9940.h"
+#include "dialog7cc188.h"
 #include "../core/staticobjects.h"
 
 using namespace panelparts;
@@ -275,7 +276,7 @@ void __fastcall Panel7cc218_SetUpGauges(u8 *self) {
 
 void __fastcall Panel7cc218_Show(u8 *self, void *, u8 *thing) {
     *reinterpret_cast<u8 **>((uintptr_t)0x007cc208) = thing;
-    WindowAt10_Create(self, nullptr, reinterpret_cast<u8 *>((uintptr_t)0x00755150), 0x004af600, 0x3e24, 0x3e15, 0x3e25);
+    WindowAt10_Create(self, nullptr, reinterpret_cast<u8 *>((uintptr_t)&gPanel7cc218_Show_755150), 0x004af600, 0x3e24, 0x3e15, 0x3e25);
     at<u32>(self, 0x24) = 0;
     const u8 value = (u8)(u32)(long long)at<float>(thing, 0x44);   // (__ftol's low byte)
     Advisor_PostId(value <= 0x14 && value != 0 ? 0x129 : 0xcf);
@@ -333,7 +334,7 @@ void __fastcall Panel7cc218_UpdateButtons(u8 *self) {
 
 u32 __fastcall Panel7cc218_Choose(u8 *, void *, s32 index, u8 close) {
     u8 *const thing = gPanel7cc218_7c2658;
-    u8 *const game = *reinterpret_cast<u8 **>(0x007cf83c);
+    u8 *const game = *&gWorldPtr;
     const s32 balance = (s32)Source_Field0c(reinterpret_cast<const TrackedSource *>((uintptr_t)GameTable7cfb90_Get1da726_5195d0(game)));
     if (close == 1) {
         Object_SetOpen(thing, nullptr, 0);
@@ -424,7 +425,7 @@ bool modeIsTwo() {
     return gDialog74fb20_fb3b7c == 2;
 }
 
-u8 *controlsTable() { return global<u8 *>(0x007cf83c) + 0x1d943c; }
+u8 *controlsTable() { return gWorldPtr + 0x1d943c; }
 
 void addRow(u8 *list, u32 first, u32 second, u32 data) {
     const u32 texts[2] = {first, second};
@@ -432,7 +433,7 @@ void addRow(u8 *list, u32 first, u32 second, u32 data) {
 }
 
 void formatLevel(u32 entry, u32 value) {
-    const u32 arg[5] = {0x006ff170, 0x5641524d, 0, value, 0};   // (TextArgInt_Ctor (0, the value, unsigned), inline)
+    const u32 arg[5] = {(u32)(uintptr_t)TextArgInt_vtable, 0x5641524d, 0, value, 0};   // (TextArgInt_Ctor (0, the value, unsigned), inline)
     g_levels->format(global<u8 *>((u32)(uintptr_t)&gLanguage_78b530 + 0x564), wideBuffer(), 0x3fff, entry, arg);
 }
 
@@ -453,7 +454,7 @@ void showBufferSum(u8 *gauge, const u8 *buffer) {
 
 void showAge(u8 *label, const u8 *object) {
     const s32 age = g_figures->age(object);
-    const u32 arg[5] = {0x006ff170, 0x5641524d, 8, static_cast<u32>(age < 0 ? -age : age), age < 0 ? 1u : 0u};   // (TextArgInt_Ctor (8, the size, its sign), inline)
+    const u32 arg[5] = {(u32)(uintptr_t)TextArgInt_vtable, 0x5641524d, 8, static_cast<u32>(age < 0 ? -age : age), age < 0 ? 1u : 0u};   // (TextArgInt_Ctor (8, the size, its sign), inline)
     u16 text[0x20];
     g_figures->format(global<u8 *>((u32)(uintptr_t)&gLanguage_78b530 + 0x564), text, 0x1f, 0x1b1, arg);
     g_figures->notify(label, nullptr, static_cast<u32>(reinterpret_cast<uintptr_t>(text)));
@@ -592,7 +593,7 @@ void __fastcall Panel7cc218_OpenLevelBox(u8 *self) {
     g_levelBox->buildRows(list, nullptr, reinterpret_cast<u8 *(__cdecl *)()>((uintptr_t)0x004ae700), reinterpret_cast<void(__cdecl *)(u8 *)>((uintptr_t)0x004ae7d0));
     Window7059f0_SetColumnBottom(list, nullptr, 0, 0);
     Window7059f0_SetColumnBottom(list, nullptr, 1, 1);
-    Window7059f0_SetHighlight(list, nullptr, reinterpret_cast<u8 *>((uintptr_t)GuiWindows_FindByName(reinterpret_cast<const char *>(0x0074fa84))));
+    Window7059f0_SetHighlight(list, nullptr, reinterpret_cast<u8 *>((uintptr_t)GuiWindows_FindByName(reinterpret_cast<const char *>((u32)(uintptr_t)&gText_Dialog7cc188_74fa84))));
     u8 *const thing = gPanel7cc218_7c2658;
     g_levelBox->levels(at<u16>(thing, 0xe), list, 0, thing);
 }

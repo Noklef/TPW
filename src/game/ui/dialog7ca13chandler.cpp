@@ -19,6 +19,7 @@
 #include "window7059f0.h"
 #include "window7059f0texts.h"
 #include "dialog7ca13c.h"
+#include "../world/world.h"
 #include "../core/staticobjects.h"
 
 namespace {
@@ -40,7 +41,7 @@ void updateRows() {
         const u8 *const guest = reinterpret_cast<const u8 *>((uintptr_t)data);
         const u32 ticks = g_env->timeInPark(guest) << 2;
         FileTime span;
-        const FileTime *const s = g_env->span(global<u8 *>(0x007cf83c) + 0x2a0, nullptr, &span, ticks);
+        const FileTime *const s = g_env->span(gWorldPtr + 0x2a0, nullptr, &span, ticks);
         const long long hours = (long long)(((unsigned long long)s->high << 32) | s->low) / 36000000000LL;   // (_alldiv: an hour of ticks)
         const u32 left = field<u32>(guest, 0x30);
         const u32 happy = (u32)(long long)field<float>(guest, 0x19c) & 0xff;   // (FLD, __ftol's low byte)

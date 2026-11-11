@@ -13,6 +13,8 @@
 #include "../model/holder.h"
 #include "../terrain/land.h"
 #include "../frontend/frame.h"
+#include "soundindex.h"
+#include "inputsystem.h"
 #include "../render/randomsegments.h"
 #include "../frontend/lobbyflight.h"
 #include "../frontend/lobbymake.h"
@@ -23,6 +25,7 @@
 #include "../online/ftp.h"
 #include "../online/items.h"
 #include "../online/session.h"
+#include "imports.h"
 
 namespace {
 
@@ -50,11 +53,11 @@ u8 *Finish(u8 *object, u32 flags) {
 // The destructor the 0x7028xx classes share, for the vtable pointer they set: their shared arrays hold the WEACITYR records of the online lists,
 // each class's own kind (its element size and its destructor's import slot).
 void Class7028_Dtor(u8 *object, u32 vtable) {
-    u32 size = 0x30, slot = 0x006fd500;  // ccCityInfo
-    if (vtable == 0x00702890) size = 0x66, slot = 0x006fd504;  // ccParkInfo
-    if (vtable == 0x007028d0) size = 0x10, slot = 0x006fd50c;  // ccThemeInfo
-    if (vtable == 0x007028f8) size = 0x26, slot = 0x006fd508;  // ccServerInfo
-    if (vtable == 0x00702920) size = 0x34, slot = 0x006fd510;  // the rides'
+    u32 size = 0x30, slot = IMPORT(Weacityr_ccCityInfo_Dtor);  // ccCityInfo
+    if (vtable == (u32)(uintptr_t)Class702890_vtable) size = 0x66, slot = IMPORT(Weacityr_ccParkInfo_Dtor);  // ccParkInfo
+    if (vtable == (u32)(uintptr_t)Class7028d0_vtable) size = 0x10, slot = IMPORT(Weacityr_ccThemeInfo_Dtor);  // ccThemeInfo
+    if (vtable == (u32)(uintptr_t)Class7028f8_vtable) size = 0x26, slot = IMPORT(Weacityr_ccServerInfo_Dtor);  // ccServerInfo
+    if (vtable == (u32)(uintptr_t)Class702920_vtable) size = 0x34, slot = IMPORT(Weacityr_ccRideInfo_Dtor);  // the rides'
     u8 *shared = at<u8 *>(object, 0x30);
     at<u32>(object, 0) = vtable;
     if (shared) {
@@ -147,7 +150,7 @@ void Dtor(u8 *object) {
     at<u32>(object, 0) = (u32)(uintptr_t)Class703780_vtable;
     if (u8 *member = at<u8 *>(object, 8))
         vcall<u32>(member, 0);
-    at<u32>(object, 0) = 0x00703770;
+    at<u32>(object, 0) = (u32)(uintptr_t)Class703770_vtable;
 }
 
 u8 *NewList(u32 vtable) {
@@ -236,18 +239,18 @@ u8 *__fastcall Class702d48_DeletingDtor(u8 *object, void *, u32 flags) {
 }
 
 u8 *__fastcall Class7029d0_Ctor(u8 *object) {
-    at<u32>(object, 0) = 0x007029d0;
+    at<u32>(object, 0) = (u32)(uintptr_t)Class7029d0_vtable;
     vcall<u32>(global<u8 *>(0x00f82884), 0, object);
     return object;
 }
 
 u32 __fastcall Class7029d0_Release(u8 *object) {
-    at<u32>(object, 0) = 0x007029d0;
+    at<u32>(object, 0) = (u32)(uintptr_t)Class7029d0_vtable;
     return vcall<u32>(global<u8 *>(0x00f82884), 4, object);
 }
 
 u8 *__fastcall Class7029d0_DeletingDtor(u8 *object, void *, u32 flags) {
-    at<u32>(object, 0) = 0x007029d0;
+    at<u32>(object, 0) = (u32)(uintptr_t)Class7029d0_vtable;
     vcall<u32>(global<u8 *>(0x00f82884), 4, object);
     return Finish(object, flags);
 }
@@ -290,48 +293,48 @@ u32 __fastcall VBase_CallSlot8(u8 *object, void *, u32 a, u32) {
     return vcall<u32>(target, 8, a);
 }
 
-void __fastcall Class702880_Dtor(u8 *object) { Class7028_Dtor(object, 0x00702880); }
-void __fastcall Class702890_Dtor(u8 *object) { Class7028_Dtor(object, 0x00702890); }
-void __fastcall Class7028d0_Dtor(u8 *object) { Class7028_Dtor(object, 0x007028d0); }
-void __fastcall Class7028f8_Dtor(u8 *object) { Class7028_Dtor(object, 0x007028f8); }
-void __fastcall Class702920_Dtor(u8 *object) { Class7028_Dtor(object, 0x00702920); }
+void __fastcall Class702880_Dtor(u8 *object) { Class7028_Dtor(object, (u32)(uintptr_t)Class702880_vtable); }
+void __fastcall Class702890_Dtor(u8 *object) { Class7028_Dtor(object, (u32)(uintptr_t)Class702890_vtable); }
+void __fastcall Class7028d0_Dtor(u8 *object) { Class7028_Dtor(object, (u32)(uintptr_t)Class7028d0_vtable); }
+void __fastcall Class7028f8_Dtor(u8 *object) { Class7028_Dtor(object, (u32)(uintptr_t)Class7028f8_vtable); }
+void __fastcall Class702920_Dtor(u8 *object) { Class7028_Dtor(object, (u32)(uintptr_t)Class702920_vtable); }
 
 void __fastcall Class702828_Dtor(u8 *object) {
     at<u32>(object, 0) = (u32)(uintptr_t)Class702828_vtable;
     WString_Dtor((WString *)(object + 0x34));
-    Class7028_Dtor(object, 0x00702890);
+    Class7028_Dtor(object, (u32)(uintptr_t)Class702890_vtable);
 }
 
 u8 *__fastcall Class702880_DeletingDtor(u8 *object, void *, u32 flags) {
-    Class7028_Dtor(object, 0x00702880);
+    Class7028_Dtor(object, (u32)(uintptr_t)Class702880_vtable);
     return Finish(object, flags);
 }
 
 u8 *__fastcall Class702890_DeletingDtor(u8 *object, void *, u32 flags) {
-    Class7028_Dtor(object, 0x00702890);
+    Class7028_Dtor(object, (u32)(uintptr_t)Class702890_vtable);
     return Finish(object, flags);
 }
 
 u8 *__fastcall Class7028d0_DeletingDtor(u8 *object, void *, u32 flags) {
-    Class7028_Dtor(object, 0x007028d0);
+    Class7028_Dtor(object, (u32)(uintptr_t)Class7028d0_vtable);
     return Finish(object, flags);
 }
 
 u8 *__fastcall Class7028f8_DeletingDtor(u8 *object, void *, u32 flags) {
-    Class7028_Dtor(object, 0x007028f8);
+    Class7028_Dtor(object, (u32)(uintptr_t)Class7028f8_vtable);
     return Finish(object, flags);
 }
 
 u8 *__fastcall Class702920_DeletingDtor(u8 *object, void *, u32 flags) {
-    Class7028_Dtor(object, 0x00702920);
+    Class7028_Dtor(object, (u32)(uintptr_t)Class702920_vtable);
     return Finish(object, flags);
 }
 
 u8 *__fastcall Class702bc8_Ctor(u8 *object) {
     Class702d48_Ctor(object);
-    at<u32>(object, 0) = 0x00702bc8;
-    at<u8 *>(object, 8) = Helper(0x00702bc0);
-    at<u8 *>(object, 0x6c) = Helper(0x00702bbc);
+    at<u32>(object, 0) = (u32)(uintptr_t)Class702bc8_vtable;
+    at<u8 *>(object, 8) = Helper((u32)(uintptr_t)Class702bc0_vtable);
+    at<u8 *>(object, 0x6c) = Helper((u32)(uintptr_t)Class702bbc_vtable);
     at<u32>(object, 0x78) = 0;
     at<u32>(object, 0x74) = 0;
     at<u32>(object, 0x1c) = 0x3ecccccd;
@@ -346,11 +349,11 @@ u8 *__fastcall Class702bc8_Ctor(u8 *object) {
     return object;
 }
 
-u8 *__fastcall Class7028b8_Ctor(u8 *object) { return Class7028_Ctor(object, 0x007028d0, 0x007028c8, 0x007028b8); }
+u8 *__fastcall Class7028b8_Ctor(u8 *object) { return Class7028_Ctor(object, (u32)(uintptr_t)Class7028d0_vtable, (u32)(uintptr_t)Class7028c8_vtable, (u32)(uintptr_t)Class7028b8_vtable); }
 
-u8 *__fastcall Class7028e0_Ctor(u8 *object) { return Class7028_Ctor(object, 0x007028f8, 0x007028f0, 0x007028e0); }
+u8 *__fastcall Class7028e0_Ctor(u8 *object) { return Class7028_Ctor(object, (u32)(uintptr_t)Class7028f8_vtable, (u32)(uintptr_t)Class7028f0_vtable, (u32)(uintptr_t)Class7028e0_vtable); }
 
-u8 *__fastcall Class702908_Ctor(u8 *object) { return Class7028_Ctor(object, 0x00702920, 0x00702918, 0x00702908); }
+u8 *__fastcall Class702908_Ctor(u8 *object) { return Class7028_Ctor(object, (u32)(uintptr_t)Class702920_vtable, (u32)(uintptr_t)Class702918_vtable, (u32)(uintptr_t)Class702908_vtable); }
 
 void __fastcall Class702938_Dtor(u8 *object) {
     at<u32>(object, 0) = (u32)(uintptr_t)Class702938_vtable;
@@ -411,20 +414,20 @@ void __fastcall Class703780_DtorF(u8 *object) { Dtor(object); }
 
 u8 *__fastcall Class702b08_Ctor(u8 *object) {
     Class7029d0_Ctor(object);
-    at<u32>(object, 0) = 0x00702b08;
-    at<u8 *>(object, 4) = NewList(0x00702b00);
+    at<u32>(object, 0) = (u32)(uintptr_t)Class702b08_vtable;
+    at<u8 *>(object, 4) = NewList((u32)(uintptr_t)Class702b00_vtable);
     return object;
 }
 
 u8 *__fastcall Class702d78_Ctor(u8 *object) {
     Class7029d0_Ctor(object);
-    at<u32>(object, 0) = 0x00702d78;
-    at<u8 *>(object, 0x18) = NewList(0x00702d70);
+    at<u32>(object, 0) = (u32)(uintptr_t)Class702d78_vtable;
+    at<u8 *>(object, 0x18) = NewList((u32)(uintptr_t)Class702d70_vtable);
     return object;
 }
 
 void __fastcall Class702b08_Dtor(u8 *object) {
-    at<u32>(object, 0) = 0x00702b08;
+    at<u32>(object, 0) = (u32)(uintptr_t)Class702b08_vtable;
     DrainList(object, 4);
     Class7029d0_Release(object);
 }
@@ -436,22 +439,22 @@ void __fastcall Class702cb0_Dtor(u8 *object) {
 }
 
 void __fastcall Class702d78_Dtor(u8 *object) {
-    at<u32>(object, 0) = 0x00702d78;
+    at<u32>(object, 0) = (u32)(uintptr_t)Class702d78_vtable;
     DrainList(object, 0x18);
     Class7029d0_Release(object);
 }
 
 void __fastcall Class7029f0_Dtor(u8 *object) {
-    at<u32>(object, 0) = 0x007029f0;
+    at<u32>(object, 0) = (u32)(uintptr_t)Class7029f0_vtable;
     DrainList(object, 0x18);
 }
 
 u8 *__fastcall Class7029f0_Ctor(u8 *object) {
     at<u32>(object, 0x20) = 0;
     at<u32>(object, 0x24) = 0;
-    at<u32>(object, 0) = 0x007029f0;
+    at<u32>(object, 0) = (u32)(uintptr_t)Class7029f0_vtable;
     at<u32>(object, 0x14) = 0;
-    at<u8 *>(object, 0x18) = Helper(0x007029e8);
+    at<u8 *>(object, 0x18) = Helper((u32)(uintptr_t)Class7029e8_vtable);
     at<u32>(object, 4) = 0;
     at<u32>(object, 0xc) = 0;
     at<u32>(object, 0x10) = 0;
@@ -486,7 +489,7 @@ void __fastcall Class702e20_Dtor(u8 *object) {
 }
 
 void __fastcall Class7037b8_Dtor(u8 *object) {
-    at<u32>(object, 0) = 0x007037b8;
+    at<u32>(object, 0) = (u32)(uintptr_t)Class7037b8_vtable;
     u8 *const head = at<u8 *>(object, 8);
     for (u8 *node = at<u8 *>(head, 0); node != at<u8 *>(object, 8); node = at<u8 *>(node, 0))
         GameHeap_Free(at<void *>(node, 8));
@@ -510,110 +513,110 @@ u8 *__fastcall Class702958_Ctor(u8 *object) {
     at<u32>(object, 0x18) = 0;
     at<u32>(object, 0x1c) = 0;
     at<u32>(object, 0x420) = 0;
-    at<u32>(object, 0) = 0x00702958;
+    at<u32>(object, 0) = (u32)(uintptr_t)Class702958_vtable;
     for (u32 i = 0; i < 0x100; ++i)
         at<u32>(object, 0x20 + 4 * i) = 0;
     return object;
 }
 
-u8 *__fastcall Class702880_Ctor(u8 *object) { return Class7028_Ctor(object, 0x00702880, 0x007028a8); }
+u8 *__fastcall Class702880_Ctor(u8 *object) { return Class7028_Ctor(object, (u32)(uintptr_t)Class702880_vtable, (u32)(uintptr_t)Class7028a8_vtable); }
 
-u8 *__fastcall Class702890_Ctor(u8 *object) { return Class7028_Ctor(object, 0x00702890, 0x007028ac); }
+u8 *__fastcall Class702890_Ctor(u8 *object) { return Class7028_Ctor(object, (u32)(uintptr_t)Class702890_vtable, (u32)(uintptr_t)Class7028ac_vtable); }
 
 void __fastcall ListDtor6fd708_407c30(u8 *o) {
-    const u32 first = at<u32>(o, 4); at<u32>(o, 0) = 0x006fd708; at<u32>(o, 8) = 0; at<u32>(o, 4) = 0; for (u32 node = first; node;) { const u32 next = at<u32>(reinterpret_cast<const u8 *>(node), 4); GameHeap_Free(reinterpret_cast<void *>(node)); node = next; } at<u32>(o, 0xc) = 0;
+    const u32 first = at<u32>(o, 4); at<u32>(o, 0) = (u32)(uintptr_t)ListDtor6fd708_vtable; at<u32>(o, 8) = 0; at<u32>(o, 4) = 0; for (u32 node = first; node;) { const u32 next = at<u32>(reinterpret_cast<const u8 *>(node), 4); GameHeap_Free(reinterpret_cast<void *>(node)); node = next; } at<u32>(o, 0xc) = 0;
 }
 
 void __fastcall ListDtor6fd9e4_41c9a0(u8 *o) {
-    const u32 first = at<u32>(o, 4); at<u32>(o, 0) = 0x006fd9e4; at<u32>(o, 8) = 0; at<u32>(o, 4) = 0; for (u32 node = first; node;) { const u32 next = at<u32>(reinterpret_cast<const u8 *>(node), 4); GameHeap_Free(reinterpret_cast<void *>(node)); node = next; } at<u32>(o, 0xc) = 0;
+    const u32 first = at<u32>(o, 4); at<u32>(o, 0) = (u32)(uintptr_t)ListDtor6fd9e4_vtable; at<u32>(o, 8) = 0; at<u32>(o, 4) = 0; for (u32 node = first; node;) { const u32 next = at<u32>(reinterpret_cast<const u8 *>(node), 4); GameHeap_Free(reinterpret_cast<void *>(node)); node = next; } at<u32>(o, 0xc) = 0;
 }
 
 void __fastcall ListDtor6fdb08_41eb50(u8 *o) {
-    const u32 first = at<u32>(o, 4); at<u32>(o, 0) = 0x006fdb08; at<u32>(o, 8) = 0; at<u32>(o, 4) = 0; for (u32 node = first; node;) { const u32 next = at<u32>(reinterpret_cast<const u8 *>(node), 4); GameHeap_Free(reinterpret_cast<void *>(node)); node = next; } at<u32>(o, 0xc) = 0;
+    const u32 first = at<u32>(o, 4); at<u32>(o, 0) = (u32)(uintptr_t)ListDtor6fdb08_vtable; at<u32>(o, 8) = 0; at<u32>(o, 4) = 0; for (u32 node = first; node;) { const u32 next = at<u32>(reinterpret_cast<const u8 *>(node), 4); GameHeap_Free(reinterpret_cast<void *>(node)); node = next; } at<u32>(o, 0xc) = 0;
 }
 
 void __fastcall ListDtor6fdb10_421640(u8 *o) {
-    const u32 first = at<u32>(o, 4); at<u32>(o, 0) = 0x006fdb10; at<u32>(o, 8) = 0; at<u32>(o, 4) = 0; for (u32 node = first; node;) { const u32 next = at<u32>(reinterpret_cast<const u8 *>(node), 4); GameHeap_Free(reinterpret_cast<void *>(node)); node = next; } at<u32>(o, 0xc) = 0;
+    const u32 first = at<u32>(o, 4); at<u32>(o, 0) = (u32)(uintptr_t)ListDtor6fdb10_vtable; at<u32>(o, 8) = 0; at<u32>(o, 4) = 0; for (u32 node = first; node;) { const u32 next = at<u32>(reinterpret_cast<const u8 *>(node), 4); GameHeap_Free(reinterpret_cast<void *>(node)); node = next; } at<u32>(o, 0xc) = 0;
 }
 
 void __fastcall ListDtor700aa0_5193d0(u8 *o) {
-    const u32 first = at<u32>(o, 4); at<u32>(o, 0) = 0x00700aa0; at<u32>(o, 8) = 0; at<u32>(o, 4) = 0; for (u32 node = first; node;) { const u32 next = at<u32>(reinterpret_cast<const u8 *>(node), 4); GameHeap_Free(reinterpret_cast<void *>(node)); node = next; } at<u32>(o, 0xc) = 0;
+    const u32 first = at<u32>(o, 4); at<u32>(o, 0) = (u32)(uintptr_t)ListDtor700aa0_vtable; at<u32>(o, 8) = 0; at<u32>(o, 4) = 0; for (u32 node = first; node;) { const u32 next = at<u32>(reinterpret_cast<const u8 *>(node), 4); GameHeap_Free(reinterpret_cast<void *>(node)); node = next; } at<u32>(o, 0xc) = 0;
 }
 
 void __fastcall ListDtor7027fc_5ac550(u8 *o) {
-    const u32 first = at<u32>(o, 4); at<u32>(o, 0) = 0x007027fc; at<u32>(o, 8) = 0; at<u32>(o, 4) = 0; for (u32 node = first; node;) { const u32 next = at<u32>(reinterpret_cast<const u8 *>(node), 4); GameHeap_Free(reinterpret_cast<void *>(node)); node = next; } at<u32>(o, 0xc) = 0;
+    const u32 first = at<u32>(o, 4); at<u32>(o, 0) = (u32)(uintptr_t)ListDtor7027fc_vtable; at<u32>(o, 8) = 0; at<u32>(o, 4) = 0; for (u32 node = first; node;) { const u32 next = at<u32>(reinterpret_cast<const u8 *>(node), 4); GameHeap_Free(reinterpret_cast<void *>(node)); node = next; } at<u32>(o, 0xc) = 0;
 }
 
 void __fastcall ListDtor7027fc_5ac590(u8 *o) {
-    const u32 first = at<u32>(o, 4); at<u32>(o, 0) = 0x007027fc; at<u32>(o, 8) = 0; at<u32>(o, 4) = 0; for (u32 node = first; node;) { const u32 next = at<u32>(reinterpret_cast<const u8 *>(node), 4); GameHeap_Free(reinterpret_cast<void *>(node)); node = next; } at<u32>(o, 0xc) = 0;
+    const u32 first = at<u32>(o, 4); at<u32>(o, 0) = (u32)(uintptr_t)ListDtor7027fc_vtable; at<u32>(o, 8) = 0; at<u32>(o, 4) = 0; for (u32 node = first; node;) { const u32 next = at<u32>(reinterpret_cast<const u8 *>(node), 4); GameHeap_Free(reinterpret_cast<void *>(node)); node = next; } at<u32>(o, 0xc) = 0;
 }
 
 void __fastcall ListDtor7028a0_5b58c0(u8 *o) {
-    const u32 first = at<u32>(o, 4); at<u32>(o, 0) = 0x007028a0; at<u32>(o, 8) = 0; at<u32>(o, 4) = 0; for (u32 node = first; node;) { const u32 next = at<u32>(reinterpret_cast<const u8 *>(node), 4); GameHeap_Free(reinterpret_cast<void *>(node)); node = next; } at<u32>(o, 0xc) = 0;
+    const u32 first = at<u32>(o, 4); at<u32>(o, 0) = (u32)(uintptr_t)ListDtor7028a0_vtable; at<u32>(o, 8) = 0; at<u32>(o, 4) = 0; for (u32 node = first; node;) { const u32 next = at<u32>(reinterpret_cast<const u8 *>(node), 4); GameHeap_Free(reinterpret_cast<void *>(node)); node = next; } at<u32>(o, 0xc) = 0;
 }
 
 void __fastcall ListDtor7028b0_5b9a80(u8 *o) {
-    const u32 first = at<u32>(o, 4); at<u32>(o, 0) = 0x007028b0; at<u32>(o, 8) = 0; at<u32>(o, 4) = 0; for (u32 node = first; node;) { const u32 next = at<u32>(reinterpret_cast<const u8 *>(node), 4); GameHeap_Free(reinterpret_cast<void *>(node)); node = next; } at<u32>(o, 0xc) = 0;
+    const u32 first = at<u32>(o, 4); at<u32>(o, 0) = (u32)(uintptr_t)ListDtor7028b0_vtable; at<u32>(o, 8) = 0; at<u32>(o, 4) = 0; for (u32 node = first; node;) { const u32 next = at<u32>(reinterpret_cast<const u8 *>(node), 4); GameHeap_Free(reinterpret_cast<void *>(node)); node = next; } at<u32>(o, 0xc) = 0;
 }
 
 void __fastcall ListDtor7028b4_5b9ac0(u8 *o) {
-    const u32 first = at<u32>(o, 4); at<u32>(o, 0) = 0x007028b4; at<u32>(o, 8) = 0; at<u32>(o, 4) = 0; for (u32 node = first; node;) { const u32 next = at<u32>(reinterpret_cast<const u8 *>(node), 4); GameHeap_Free(reinterpret_cast<void *>(node)); node = next; } at<u32>(o, 0xc) = 0;
+    const u32 first = at<u32>(o, 4); at<u32>(o, 0) = (u32)(uintptr_t)ListDtor7028b4_vtable; at<u32>(o, 8) = 0; at<u32>(o, 4) = 0; for (u32 node = first; node;) { const u32 next = at<u32>(reinterpret_cast<const u8 *>(node), 4); GameHeap_Free(reinterpret_cast<void *>(node)); node = next; } at<u32>(o, 0xc) = 0;
 }
 
 void __fastcall ListDtor70294c_5beae0(u8 *o) {
-    const u32 first = at<u32>(o, 4); at<u32>(o, 0) = 0x0070294c; at<u32>(o, 8) = 0; at<u32>(o, 4) = 0; for (u32 node = first; node;) { const u32 next = at<u32>(reinterpret_cast<const u8 *>(node), 4); GameHeap_Free(reinterpret_cast<void *>(node)); node = next; } at<u32>(o, 0xc) = 0;
+    const u32 first = at<u32>(o, 4); at<u32>(o, 0) = (u32)(uintptr_t)ListDtor70294c_vtable; at<u32>(o, 8) = 0; at<u32>(o, 4) = 0; for (u32 node = first; node;) { const u32 next = at<u32>(reinterpret_cast<const u8 *>(node), 4); GameHeap_Free(reinterpret_cast<void *>(node)); node = next; } at<u32>(o, 0xc) = 0;
 }
 
 void __fastcall ListDtor702950_5beb20(u8 *o) {
-    const u32 first = at<u32>(o, 4); at<u32>(o, 0) = 0x00702950; at<u32>(o, 8) = 0; at<u32>(o, 4) = 0; for (u32 node = first; node;) { const u32 next = at<u32>(reinterpret_cast<const u8 *>(node), 4); GameHeap_Free(reinterpret_cast<void *>(node)); node = next; } at<u32>(o, 0xc) = 0;
+    const u32 first = at<u32>(o, 4); at<u32>(o, 0) = (u32)(uintptr_t)ListDtor702950_vtable; at<u32>(o, 8) = 0; at<u32>(o, 4) = 0; for (u32 node = first; node;) { const u32 next = at<u32>(reinterpret_cast<const u8 *>(node), 4); GameHeap_Free(reinterpret_cast<void *>(node)); node = next; } at<u32>(o, 0xc) = 0;
 }
 
 void __fastcall ListDtor702954_5beb60(u8 *o) {
-    const u32 first = at<u32>(o, 4); at<u32>(o, 0) = 0x00702954; at<u32>(o, 8) = 0; at<u32>(o, 4) = 0; for (u32 node = first; node;) { const u32 next = at<u32>(reinterpret_cast<const u8 *>(node), 4); GameHeap_Free(reinterpret_cast<void *>(node)); node = next; } at<u32>(o, 0xc) = 0;
+    const u32 first = at<u32>(o, 4); at<u32>(o, 0) = (u32)(uintptr_t)ListDtor702954_vtable; at<u32>(o, 8) = 0; at<u32>(o, 4) = 0; for (u32 node = first; node;) { const u32 next = at<u32>(reinterpret_cast<const u8 *>(node), 4); GameHeap_Free(reinterpret_cast<void *>(node)); node = next; } at<u32>(o, 0xc) = 0;
 }
 
 void __fastcall ListDtor7029f8_5d5800(u8 *o) {
-    const u32 first = at<u32>(o, 4); at<u32>(o, 0) = 0x007029f8; at<u32>(o, 8) = 0; at<u32>(o, 4) = 0; for (u32 node = first; node;) { const u32 next = at<u32>(reinterpret_cast<const u8 *>(node), 4); GameHeap_Free(reinterpret_cast<void *>(node)); node = next; } at<u32>(o, 0xc) = 0;
+    const u32 first = at<u32>(o, 4); at<u32>(o, 0) = (u32)(uintptr_t)ListDtor7029f8_vtable; at<u32>(o, 8) = 0; at<u32>(o, 4) = 0; for (u32 node = first; node;) { const u32 next = at<u32>(reinterpret_cast<const u8 *>(node), 4); GameHeap_Free(reinterpret_cast<void *>(node)); node = next; } at<u32>(o, 0xc) = 0;
 }
 
 void __fastcall ListDtor702a88_5d8610(u8 *o) {
-    const u32 first = at<u32>(o, 4); at<u32>(o, 0) = 0x00702a88; at<u32>(o, 8) = 0; at<u32>(o, 4) = 0; for (u32 node = first; node;) { const u32 next = at<u32>(reinterpret_cast<const u8 *>(node), 4); GameHeap_Free(reinterpret_cast<void *>(node)); node = next; } at<u32>(o, 0xc) = 0;
+    const u32 first = at<u32>(o, 4); at<u32>(o, 0) = (u32)(uintptr_t)ListDtor702a88_vtable; at<u32>(o, 8) = 0; at<u32>(o, 4) = 0; for (u32 node = first; node;) { const u32 next = at<u32>(reinterpret_cast<const u8 *>(node), 4); GameHeap_Free(reinterpret_cast<void *>(node)); node = next; } at<u32>(o, 0xc) = 0;
 }
 
 void __fastcall ListDtor702a8c_5d8650(u8 *o) {
-    const u32 first = at<u32>(o, 4); at<u32>(o, 0) = 0x00702a8c; at<u32>(o, 8) = 0; at<u32>(o, 4) = 0; for (u32 node = first; node;) { const u32 next = at<u32>(reinterpret_cast<const u8 *>(node), 4); GameHeap_Free(reinterpret_cast<void *>(node)); node = next; } at<u32>(o, 0xc) = 0;
+    const u32 first = at<u32>(o, 4); at<u32>(o, 0) = (u32)(uintptr_t)ListDtor702a8c_vtable; at<u32>(o, 8) = 0; at<u32>(o, 4) = 0; for (u32 node = first; node;) { const u32 next = at<u32>(reinterpret_cast<const u8 *>(node), 4); GameHeap_Free(reinterpret_cast<void *>(node)); node = next; } at<u32>(o, 0xc) = 0;
 }
 
 void __fastcall ListDtor702afc_5d9f10(u8 *o) {
-    const u32 first = at<u32>(o, 4); at<u32>(o, 0) = 0x00702afc; at<u32>(o, 8) = 0; at<u32>(o, 4) = 0; for (u32 node = first; node;) { const u32 next = at<u32>(reinterpret_cast<const u8 *>(node), 4); GameHeap_Free(reinterpret_cast<void *>(node)); node = next; } at<u32>(o, 0xc) = 0;
+    const u32 first = at<u32>(o, 4); at<u32>(o, 0) = (u32)(uintptr_t)ListDtor702afc_vtable; at<u32>(o, 8) = 0; at<u32>(o, 4) = 0; for (u32 node = first; node;) { const u32 next = at<u32>(reinterpret_cast<const u8 *>(node), 4); GameHeap_Free(reinterpret_cast<void *>(node)); node = next; } at<u32>(o, 0xc) = 0;
 }
 
 void __fastcall ListDtor702b28_5da2b0(u8 *o) {
-    const u32 first = at<u32>(o, 4); at<u32>(o, 0) = 0x00702b28; at<u32>(o, 8) = 0; at<u32>(o, 4) = 0; for (u32 node = first; node;) { const u32 next = at<u32>(reinterpret_cast<const u8 *>(node), 4); GameHeap_Free(reinterpret_cast<void *>(node)); node = next; } at<u32>(o, 0xc) = 0;
+    const u32 first = at<u32>(o, 4); at<u32>(o, 0) = (u32)(uintptr_t)ListDtor702b28_vtable; at<u32>(o, 8) = 0; at<u32>(o, 4) = 0; for (u32 node = first; node;) { const u32 next = at<u32>(reinterpret_cast<const u8 *>(node), 4); GameHeap_Free(reinterpret_cast<void *>(node)); node = next; } at<u32>(o, 0xc) = 0;
 }
 
 void __fastcall ListDtor702c0c_5dc6c0(u8 *o) {
-    const u32 first = at<u32>(o, 4); at<u32>(o, 0) = 0x00702c0c; at<u32>(o, 8) = 0; at<u32>(o, 4) = 0; for (u32 node = first; node;) { const u32 next = at<u32>(reinterpret_cast<const u8 *>(node), 4); GameHeap_Free(reinterpret_cast<void *>(node)); node = next; } at<u32>(o, 0xc) = 0;
+    const u32 first = at<u32>(o, 4); at<u32>(o, 0) = (u32)(uintptr_t)ListDtor702c0c_vtable; at<u32>(o, 8) = 0; at<u32>(o, 4) = 0; for (u32 node = first; node;) { const u32 next = at<u32>(reinterpret_cast<const u8 *>(node), 4); GameHeap_Free(reinterpret_cast<void *>(node)); node = next; } at<u32>(o, 0xc) = 0;
 }
 
 void __fastcall ListDtor702c10_5dc700(u8 *o) {
-    const u32 first = at<u32>(o, 4); at<u32>(o, 0) = 0x00702c10; at<u32>(o, 8) = 0; at<u32>(o, 4) = 0; for (u32 node = first; node;) { const u32 next = at<u32>(reinterpret_cast<const u8 *>(node), 4); GameHeap_Free(reinterpret_cast<void *>(node)); node = next; } at<u32>(o, 0xc) = 0;
+    const u32 first = at<u32>(o, 4); at<u32>(o, 0) = (u32)(uintptr_t)ListDtor702c10_vtable; at<u32>(o, 8) = 0; at<u32>(o, 4) = 0; for (u32 node = first; node;) { const u32 next = at<u32>(reinterpret_cast<const u8 *>(node), 4); GameHeap_Free(reinterpret_cast<void *>(node)); node = next; } at<u32>(o, 0xc) = 0;
 }
 
 void __fastcall ListDtor702d00_5e0370(u8 *o) {
-    const u32 first = at<u32>(o, 4); at<u32>(o, 0) = 0x00702d00; at<u32>(o, 8) = 0; at<u32>(o, 4) = 0; for (u32 node = first; node;) { const u32 next = at<u32>(reinterpret_cast<const u8 *>(node), 4); GameHeap_Free(reinterpret_cast<void *>(node)); node = next; } at<u32>(o, 0xc) = 0;
+    const u32 first = at<u32>(o, 4); at<u32>(o, 0) = (u32)(uintptr_t)ListDtor702d00_vtable; at<u32>(o, 8) = 0; at<u32>(o, 4) = 0; for (u32 node = first; node;) { const u32 next = at<u32>(reinterpret_cast<const u8 *>(node), 4); GameHeap_Free(reinterpret_cast<void *>(node)); node = next; } at<u32>(o, 0xc) = 0;
 }
 
 void __fastcall ListDtor702d98_5e3cd0(u8 *o) {
-    const u32 first = at<u32>(o, 4); at<u32>(o, 0) = 0x00702d98; at<u32>(o, 8) = 0; at<u32>(o, 4) = 0; for (u32 node = first; node;) { const u32 next = at<u32>(reinterpret_cast<const u8 *>(node), 4); GameHeap_Free(reinterpret_cast<void *>(node)); node = next; } at<u32>(o, 0xc) = 0;
+    const u32 first = at<u32>(o, 4); at<u32>(o, 0) = (u32)(uintptr_t)ListDtor702d98_vtable; at<u32>(o, 8) = 0; at<u32>(o, 4) = 0; for (u32 node = first; node;) { const u32 next = at<u32>(reinterpret_cast<const u8 *>(node), 4); GameHeap_Free(reinterpret_cast<void *>(node)); node = next; } at<u32>(o, 0xc) = 0;
 }
 
 void __fastcall ListDtor702f10_5e40a0(u8 *o) {
-    const u32 first = at<u32>(o, 4); at<u32>(o, 0) = 0x00702f10; at<u32>(o, 8) = 0; at<u32>(o, 4) = 0; for (u32 node = first; node;) { const u32 next = at<u32>(reinterpret_cast<const u8 *>(node), 4); GameHeap_Free(reinterpret_cast<void *>(node)); node = next; } at<u32>(o, 0xc) = 0;
+    const u32 first = at<u32>(o, 4); at<u32>(o, 0) = (u32)(uintptr_t)ListDtor702f10_vtable; at<u32>(o, 8) = 0; at<u32>(o, 4) = 0; for (u32 node = first; node;) { const u32 next = at<u32>(reinterpret_cast<const u8 *>(node), 4); GameHeap_Free(reinterpret_cast<void *>(node)); node = next; } at<u32>(o, 0xc) = 0;
 }
 
 void __fastcall ListDtor703084_5f3900(u8 *o) {
-    const u32 first = at<u32>(o, 4); at<u32>(o, 0) = 0x00703084; at<u32>(o, 8) = 0; at<u32>(o, 4) = 0; for (u32 node = first; node;) { const u32 next = at<u32>(reinterpret_cast<const u8 *>(node), 4); GameHeap_Free(reinterpret_cast<void *>(node)); node = next; } at<u32>(o, 0xc) = 0;
+    const u32 first = at<u32>(o, 4); at<u32>(o, 0) = (u32)(uintptr_t)ListDtor703084_vtable; at<u32>(o, 8) = 0; at<u32>(o, 4) = 0; for (u32 node = first; node;) { const u32 next = at<u32>(reinterpret_cast<const u8 *>(node), 4); GameHeap_Free(reinterpret_cast<void *>(node)); node = next; } at<u32>(o, 0xc) = 0;
 }
 }  // extern "C"
 
@@ -663,7 +666,7 @@ u8 *__fastcall Class702af0_DeletingDtor(u8 *object, void *, u32 flags) {
 }
 
 void __fastcall Class702bc8_Dtor(u8 *object) {
-    at<u32>(object, 0) = 0x00702bc8;
+    at<u32>(object, 0) = (u32)(uintptr_t)Class702bc8_vtable;
     DrainMemberList(object, 8);
     DrainMemberList(object, 0x6c);
     Class702d48_Release(object);

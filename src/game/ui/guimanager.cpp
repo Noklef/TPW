@@ -8,7 +8,7 @@
 
 namespace {
 
-u8 *manager() { return *reinterpret_cast<u8 **>((uintptr_t)0x0077c48c); }
+u8 *manager() { return *reinterpret_cast<u8 **>((uintptr_t)&gGuisettings_77c48c); }
 
 u32 callSlot(u32 slot) {
     u8 *const m = manager();
@@ -34,7 +34,7 @@ u32 __fastcall Obj7b51f0_GuiManagerSlotAndFlag(void *) {
 }
 
 u32 __cdecl GuiClock_Now() {
-    u8 *const clock = *reinterpret_cast<u8 **>((uintptr_t)0x0077c490);
+    u8 *const clock = *reinterpret_cast<u8 **>((uintptr_t)&gGuisettings_77c48c + 0x4);
     return reinterpret_cast<u32(__fastcall *)(u8 *, void *)>((*reinterpret_cast<void ***>(clock))[0])(clock, nullptr);
 }
 

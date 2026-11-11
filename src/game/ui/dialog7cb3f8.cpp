@@ -19,6 +19,7 @@
 #include "window.h"
 #include "windowscript.h"
 #include "../online/chatlists.h"
+#include "../core/textarg.h"
 #include "../core/staticobjects.h"
 
 namespace {
@@ -126,7 +127,7 @@ s32 __cdecl Dialog7cb3f8_SlotHandler(u8 *window, u32 message, u32 a, u32 b) {
     if (message == 0x100) {
         const u32 slot = g_env->dwordA0(window, nullptr, 0);
         const u32 name = *reinterpret_cast<const u32 *>(g_env->ifUsed(g_env->slots(), nullptr, slot) + 8);
-        const u32 tag[4] = {0x006ff174, 0x5641524d, 4, name};
+        const u32 tag[4] = {(u32)(uintptr_t)TextArgString_vtable, 0x5641524d, 4, name};
         g_env->format(global<u8 *>((u32)(uintptr_t)&gLanguage_78b530 + 0x564), reinterpret_cast<u16 *>((uintptr_t)0x007ba058), 0x3fff, 0x18f, tag);
         ask(reinterpret_cast<const void *>((uintptr_t)0x007ba058), g_env->dwordA0(window, nullptr, 0), 0x004a61b0);
         return 0;
@@ -181,7 +182,7 @@ u32 __cdecl Dialog7cb3f8_DoneConfirmed() {
 void __cdecl Dialog7cb3f8_Open() {
     g_env->resetKeys();
     g_env->setShown(*reinterpret_cast<u8 **>(global<u8 *>(0x00f82884) + 4), nullptr, 0);
-    u8 *const dialog = g_env->build(global<u8 *>(0x00faa5d8), nullptr, reinterpret_cast<u8 *>((uintptr_t)0x00753c68), 0x004a5fc0);
+    u8 *const dialog = g_env->build(global<u8 *>(0x00faa5d8), nullptr, gDialog7cb3f8_Open_753c68, 0x004a5fc0);
     global<u8 *>(0x007cb3f8) = dialog;
     if (dialog) {
         g_env->setFocus(dialog, nullptr, 0);

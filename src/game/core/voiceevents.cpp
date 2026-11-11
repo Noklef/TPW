@@ -3,6 +3,7 @@
 #include <cstdint>
 
 #include "gameheap.h"
+#include "imports.h"
 
 namespace {
 
@@ -21,13 +22,13 @@ u8 *__fastcall VoiceEvents_Ctor(u8 *self, void *, u8 *voices, u32 count) {
     at<u32>(self, 8) = count + 1;
     at<void *>(self, 0x10) = GameHeap_Alloc((count + 1) * 4);
     at<u32>(self, 0x14) = 0;
-    at<u32>(self, 0) = 0x0070ab50;
+    at<u32>(self, 0) = (u32)(uintptr_t)VoiceEvents_vtable;
     return self;
 }
 
 void __fastcall VoiceEvents_Dtor(u8 *self) {
-    at<u32>(self, 0) = 0x0070ab50;
-    for (u32 i = 0; i < at<u32>(self, 8); ++i) Import<OnHandle>(0x006fd13c)(at<u32 *>(self, 0x10)[i]);   // CloseHandle
+    at<u32>(self, 0) = (u32)(uintptr_t)VoiceEvents_vtable;
+    for (u32 i = 0; i < at<u32>(self, 8); ++i) Import<OnHandle>(IMPORT(Kernel32_CloseHandle))(at<u32 *>(self, 0x10)[i]);   // CloseHandle
     GameHeap_Free(at<void *>(self, 0x10));
 }
 
@@ -39,7 +40,7 @@ u8 *__fastcall VoiceEvents_DeletingDtor(u8 *self, void *, u32 flags) {
 
 u32 __fastcall VoiceEvents_Stop(u8 *self) {
     at<u32>(self, 0x14) |= 1;
-    return static_cast<u32>(Import<OnHandle>(0x006fd124)(at<u32 *>(self, 0x10)[at<u32>(self, 0xc)]));   // SetEvent
+    return static_cast<u32>(Import<OnHandle>(IMPORT(Kernel32_SetEvent))(at<u32 *>(self, 0x10)[at<u32>(self, 0xc)]));   // SetEvent
 }
 
 }  // extern "C"

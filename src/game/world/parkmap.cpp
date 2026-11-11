@@ -28,6 +28,8 @@
 #include "things.h"
 #include "../render/screen.h"
 #include "parkmap.h"
+#include "world.h"
+#include "parkmapwindow.h"
 #include "../core/staticobjects.h"
 
 namespace {
@@ -35,7 +37,7 @@ namespace {
 template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cast<T *>((uintptr_t)p + offset); }
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
 
-u8 *cell44(u32 id) { return global<u8 *>(0x007cf83c) + 0x2d8 + (id & 0xffff) * 0x44 - 0x44; }
+u8 *cell44(u32 id) { return gWorldPtr + 0x2d8 + (id & 0xffff) * 0x44 - 0x44; }
 u8 *thing(u32 handle) { return global<u8 *>(0x007cfb90 + (handle & 0xffff) * 20); }
 
 // The owner's things: the first that tells a kind sets the entry; 1 when one did.
@@ -108,7 +110,7 @@ u8 *new_inline_sprite(u32 image, u32 a, u32 c, float size) {
 // One coordinate of the origin kept for ParkMap_Scroll: below the floor [0x703010] or a NaN the floor, past limit (the integer, compared
 // exactly) the limit rounded to a float.
 float clamp_scroll(float v, s32 limit) {
-    const float floor = global<float>(0x00703010);
+    const float floor = gParkmapwindow_703010;
     if (!(v >= floor)) return X87_Through(floor);
     return (double)v <= (double)limit ? v : (float)limit;
 }
@@ -306,7 +308,7 @@ void __fastcall ParkMap_Classify(u8 *map) {
                 u16 owner;
                 if (MapHandle_IsTypeBDOr10Or12Or19(handle)) {
                     const u8 *e = MapHandle_Entry28(handle);
-                    if (MapCell_IsTypeCOr11(e)) e = global<u8 *>(0x007cf83c) + (static_cast<u32>(at<u16>(e, 0x10)) + 0x6cde) * 0x28;
+                    if (MapCell_IsTypeCOr11(e)) e = gWorldPtr + (static_cast<u32>(at<u16>(e, 0x10)) + 0x6cde) * 0x28;
                     owner = at<u16>(e, 0x10);
                 } else {
                     owner = at<u16>(cell, 0x10);
@@ -424,7 +426,7 @@ void __fastcall ParkMap_LayOut(const u8 *map) {
 }
 
 void __fastcall ParkMap_AddSprites(u8 *map) {
-    void *const world = global<void *>(0x007cf83c);
+    void *const world = global<void *>((u32)&gWorldPtr);
     u16 handle;
     World_FirstThing(world, nullptr, &handle);
     while (handle) {
@@ -453,11 +455,11 @@ void __fastcall ParkMap_AddSprites(u8 *map) {
         }
         if (t[2] == 1 || (t[2] >= 4 && t[2] <= 7))
             place_at_thing(map, sprite, t);
-        handle = *World_NextThing(global<void *>(0x007cf83c), nullptr, &handle, t);
+        handle = *World_NextThing(global<void *>((u32)&gWorldPtr), nullptr, &handle, t);
     }
 
     // The squares: one for each cell of a kind (+0x2c), its size 1, or 0x785688's int for kind 8, 0x785640's for 7.
-    u8 *const cells = global<u8 *>(0x007cf83c) + 0x2d8;
+    u8 *const cells = gWorldPtr + 0x2d8;
     for (s32 y = 0; y < at<s32>(map, 0x28); ++y) {
         for (s32 x = 0; x < at<s32>(map, 0x24); ++x) {
             const u32 id = ((u32)x + ((u32)y << 7) + 1) & 0xffff;
@@ -479,7 +481,7 @@ void __fastcall ParkMap_AddSprites(u8 *map) {
     }
 
     // The things on the list from the world's +0x1da746 (linked by +0xc) whose flags +0x32 have 0x10: one at their map square.
-    for (u16 h = at<u16>(global<u8 *>(0x007cf83c), 0x1da746); h; ) {
+    for (u16 h = at<u16>(gWorldPtr, 0x1da746); h; ) {
         const u8 *const t = thing(h);
         if (t[0x32] & 0x10) {
             u8 *const sprite = new_inline_sprite(at<u32>(map, 0x2007c), 5, 3, scaled((u32)(uintptr_t)&gBalanceLevel + 0x630));

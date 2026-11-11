@@ -16,6 +16,7 @@
 #include "windowreg.h"
 #include "windowscript.h"
 #include "panel7cc218.h"
+#include "dialog7cc188.h"
 #include "../core/staticobjects.h"
 
 namespace {
@@ -54,7 +55,7 @@ void __fastcall StaffRename_Open(u8 *self) {
     g_env->set4c(edit, nullptr, g_env->font(7));
     g_env->notify40000(edit, nullptr, 0xff, 0xff, 0xff, 0xff);
     g_env->setBuffer(edit, nullptr, (u32)(uintptr_t)&gStatic_7cc328 + 0x38, 0x20);
-    g_env->setCaret(edit, nullptr, reinterpret_cast<u8 *>((uintptr_t)g_env->findByName(reinterpret_cast<const char *>((uintptr_t)0x0074fa84))));
+    g_env->setCaret(edit, nullptr, reinterpret_cast<u8 *>((uintptr_t)g_env->findByName(reinterpret_cast<const char *>((uintptr_t)&gText_Dialog7cc188_74fa84))));
     vcall<void>(edit, 0x24, g_env->staffName(thing));
     g_env->selectAll(edit);
     g_env->keysOff();

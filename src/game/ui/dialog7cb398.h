@@ -74,3 +74,6 @@ s32 __cdecl Dialog7cb398_Handler(u8 *window, u32 message, u32 a, u32 b);
 GAME_DATA(u32, gDialog7cb398_753c48, 0x00753c48, 0x4);
 GAME_DATA(char[8], gDialog7cb398_Create_753c4c, 0x00753c4c, 0x8);
 GAME_DATA(char[20], gDialog7cb398_Create_753c54, 0x00753c54, 0x14);
+
+// Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(u8[0x478], gDialog7cb398_Create_7537d0, 0x007537d0, 0x478);   // a window script (or a text / table before one): to the next named address

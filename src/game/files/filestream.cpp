@@ -4,6 +4,8 @@
 #include <cstdint>
 
 #include "../core/string.h"
+#include "../core/vdtor.h"
+#include "../core/imports.h"
 
 namespace {
 
@@ -12,12 +14,12 @@ T at(u32 address) {
     return reinterpret_cast<T>(static_cast<std::uintptr_t>(address));
 }
 const FileStreamEnv kGameEnv = {
-    at<s32(__stdcall *const *)(u32)>(0x006fd154),
+    at<s32(__stdcall *const *)(u32)>(IMPORT(Kernel32_IsDBCSLeadByte)),
 };
 const FileStreamEnv *g_env = &kGameEnv;
 
 const char kSeparators[] = "\\/";  // 0x775704
-void *const *const kFolderHandleVtable = at<void *const *>(0x006fd9e8);
+void *const *const kFolderHandleVtable = at<void *const *>(((u32)(uintptr_t)ListDtor6fd9e4_vtable + 0x4));
 
 }  // namespace
 

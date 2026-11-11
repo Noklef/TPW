@@ -18,13 +18,14 @@
 #include "trackrides.h"
 #include "world.h"
 #include "demolish.h"
+#include "../core/soundset.h"
 #include "../core/staticobjects.h"
 
 namespace {
 
 template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cast<T *>((uintptr_t)p + offset); }
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
-u8 *cellAt(u32 id) { return global<u8 *>(0x007cf83c) + 0x294 + (id & 0xffff) * 0x44; }
+u8 *cellAt(u32 id) { return gWorldPtr + 0x294 + (id & 0xffff) * 0x44; }
 bool lineType(s32 type) { return type == 4 || type == 9 || type == 10; }
 
 const DemolishEnv kGameEnv = {&Path_CheckDeadEnds,
@@ -65,7 +66,7 @@ void unflag(u8 *next, u8 d) {
     if (queues <= 1 && !(next[0x26] & 8)) MapCell_ClearFlags(next, nullptr, 0x20);
 }
 
-u8 *money() { return reinterpret_cast<u8 *>((uintptr_t)GameTable7cfb90_Get1da726_5195d0(global<u8 *>(0x007cf83c))); }
+u8 *money() { return reinterpret_cast<u8 *>((uintptr_t)GameTable7cfb90_Get1da726_5195d0(gWorldPtr)); }
 
 }  // namespace
 
@@ -224,6 +225,6 @@ void __cdecl Path_CheckDeadEnds(s32 x, s32 y, u32 flag) {
     const s32 z = Ftol(X87_MulIntDouble(row, scale));
     const s32 across = Ftol(X87_MulIntDouble(col, scale));
     const u32 sound = count < 4 ? 0x96 : count < 8 ? 0x97 : count < 16 ? 0x98 : 0x99;
-    Sound_PlayAt(0, global<u32>(0x00803a2c), sound, across, 0, z);
+    Sound_PlayAt(0, gSoundCategories.ui, sound, across, 0, z);
 }
 }

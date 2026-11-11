@@ -8,6 +8,9 @@
 #include "../model/scratch.h"
 #include "../render/particles.h"
 #include "../terrain/land.h"
+#include "collobj.h"
+#include "rides.h"
+#include "../math/intsin.h"
 
 namespace {
 
@@ -33,8 +36,8 @@ const float kTwoPi = 0x1.921fb6p+2f;     // (0x700eec)
 
 X87Reg fild(s32 n) { return X87Reg((double)n); }
 s32 ftol(X87Reg x) { return (s32)(long long)x.v; }
-s32 sine(u32 i) { return global<s32>(0x877358 + 4 * (i & 0x1ff)); }
-u8 *model_of(u32 index) { return at<u8 *>(at<u8 *>(at<u8 *>(global<u8 *>(0x7a4610 + 4 * index), 8), 4), 0x78); }
+s32 sine(u32 i) { return global<s32>((uintptr_t)gIntSinTable + 4 * (i & 0x1ff)); }
+u8 *model_of(u32 index) { return at<u8 *>(at<u8 *>(at<u8 *>(gRides_7a4610[index], 8), 4), 0x78); }
 float *matrix_of(u8 *model) { return reinterpret_cast<float *>(model + 0x10); }
 
 void set_wheel(Wheel &w, const u8 *car, float x, float z) {
@@ -169,14 +172,14 @@ void TrakPose_SetEnv(const TrakPoseEnv *env) { g_env = env ? env : &kPortEnv; }
 extern "C" void __cdecl TrakRide_PoseCars(u32 handle, float a) {
     if (!(a <= 1.0f)) a = 1.0f;
     else if (a < -1.0f) a = -1.0f;
-    const bool loaded = global<u32>(0x877b58) == 0x4a454647;
-    const u8 *const ride = loaded ? global<u8 *>(0x877b60) + (handle & 0xff) * 0xd0 : nullptr;
+    const bool loaded = gTrackPools.tag == 0x4a454647;
+    const u8 *const ride = loaded ? gTrackPools.rides + (handle & 0xff) * 0xd0 : nullptr;
     if (handle != (loaded ? (handle & 0xff) | at<u32>(ride, 0) << 8 : 0)) return;
-    u8 *car = global<u8 *>(0x877b68);
+    u8 *car = gTrackPools.cars;
     if (!car) return;
     Wheel wheels[0x100];
     s32 count = 0;
-    for (u32 left = global<u32>(0x877b6c); left; car += 0xac) {
+    for (u32 left = (u32)gTrackPools.carCount; left; car += 0xac) {
         if (!(car[0] & 1)) continue;
         left--;
         if (at<const u8 *>(car, 0x9c) != ride) continue;

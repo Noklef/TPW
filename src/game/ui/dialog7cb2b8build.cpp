@@ -15,6 +15,7 @@
 #include "windowscript.h"
 #include "dialog74fb20.h"
 #include "panel7b9940.h"
+#include "window7cb2a4.h"
 
 namespace {
 
@@ -74,7 +75,7 @@ void buildMoney(u8 *window) {   // (the child 0x2f)
     u32 align = 0;
     Language_MirrorAlign(&align);
     const s32 bounds[4] = {0, 0, 0xfde8, 0xfde8};
-    g_env->measure(reinterpret_cast<const u16 *>((uintptr_t)0x00752f10), bounds, 1, align, 0, 0, box);
+    g_env->measure(reinterpret_cast<const u16 *>((uintptr_t)&gText_Dialog7cb2b8build_752f10), bounds, 1, align, 0, 0, box);
     const s32 height = box[3] * 0x600 / global<s16>(0x00faa5c0) + 0x10;
     Window_GetRect(window, nullptr, rect, 1);
     Window_GetRect(Window_FindChild(window, nullptr, 0x32), nullptr, slot, 1);
@@ -141,7 +142,7 @@ void __cdecl Dialog7cb2b8_Build() {
     gDialog7cb2b8build_7cb28c = 1;
     gDialog7cb2b8build_7cb2a0 = 3;
     gDialog7cb2b8build_7cb290 = 0xa;
-    if (WindowScript_Build(gPanel7b9940_7cb2ac, nullptr, reinterpret_cast<u8 *>((uintptr_t)0x00752940), 0)) {
+    if (WindowScript_Build(gPanel7b9940_7cb2ac, nullptr, gDialog7cb2b8_Build_752940, 0)) {
         u8 *const top = gDialog7cb2b8_Build_7cb2a4 = Window_FindChild(gPanel7b9940_7cb2ac, nullptr, 0x33);
         Window_SetDepth(top, nullptr, 0);
         vcall<void>(gDialog7cb2b8_Build_7cb2a4, 0x14, 0u);
@@ -173,7 +174,7 @@ void __cdecl Dialog7cb2b8_Build() {
         g_env->setHandler(graph, nullptr, 0x004a0a90);
         if (u8 *const bars = Window_FindChild(graph, nullptr, 0x1f)) {
             u8 *const memory = static_cast<u8 *>(GameHeap_Alloc(0x124));
-            g_env->setObject(bars, nullptr, memory ? g_env->barMesh(memory, nullptr, reinterpret_cast<const char *>((uintptr_t)0x00752f04)) : nullptr);
+            g_env->setObject(bars, nullptr, memory ? g_env->barMesh(memory, nullptr, reinterpret_cast<const char *>((uintptr_t)&gWindow7cb2a4_752ef8 + 0xc)) : nullptr);
             g_env->setHandler(bars, nullptr, 0x004a1cd0);
             vcall<void>(bars, 0x14, 0u);
         }

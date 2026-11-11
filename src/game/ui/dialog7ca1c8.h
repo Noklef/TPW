@@ -116,3 +116,6 @@ void __cdecl Dialog7ca1c8_Create();
 // Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
 GAME_DATA(u8 *, gDialog7ca1c8_7ca1d0, 0x007ca1d0, 0x4);
 GAME_DATA(u8, gDialog7ca1c8_7ca1d4, 0x007ca1d4, 0x1);
+
+// Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(u8[0x1d8], gDialog7ca1c8_Create_751530, 0x00751530, 0x1d8);   // a window script (or a text / table before one): to the next named address

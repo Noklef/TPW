@@ -14,7 +14,7 @@ const CursorEnv kGameEnv = {
     at<Cursor *>(0x00fa7a80),
     at<u8 *>(0x00fa7a78),
     at<u8 *>(0x00775874),
-    0x00703640,
+    (u32)(uintptr_t)Cursor_vtable,
     at<s32(__cdecl *)(void(__cdecl *)())>(0x0067a7d0),
     at<void(__cdecl *)()>(0x005fadc0),
     at<void(__cdecl *)(void *)>(0x0067acb0),

@@ -136,3 +136,22 @@ u32 __fastcall BalanceFile_LoadStream(u8 *self, void *, const char *name, Stream
 // 0x5b0d40 (stdcall; i): the address of 60-byte record i of the table at 0x73f8a8.
 u32 __stdcall Table73f8a8_At(u32 i);
 }
+
+#include "gamedata.h"
+
+// The vtables hold only ports: tpw.exe's loader points their slots at them (.docs/09-globals.md).
+GAME_DATA(void *[6], BalanceGraphics_vtable, 0x006fd630, 0x18);
+GAME_DATA(void *[2], ObjectDefBalance_vtable, 0x006fd8a8, 0x8);
+GAME_DATA(void *[2], TrackTypeBalance_vtable, 0x006fd8b0, 0x8);
+GAME_DATA(void *[2], AdvisorScoringFile_vtable, 0x006fd958, 0x8);
+GAME_DATA(void *[2], ThemeRecord_vtable, 0x00702800, 0x8);
+
+// Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(char[0x28], gBalancefile_739b08, 0x00739b08, 0x28);
+GAME_DATA(char[0x10], gBalancefile_739b30, 0x00739b30, 0x10);
+GAME_DATA(char[0x18], gBalancefile_739b40, 0x00739b40, 0x18);
+GAME_DATA(char[0x10], gBalancefile_739b58, 0x00739b58, 0x10);
+GAME_DATA(char[0x18], gBalancefile_739b68, 0x00739b68, 0x18);
+GAME_DATA(char[0x18], gBalancefile_739b80, 0x00739b80, 0x18);
+GAME_DATA(char[0x1c], gBalancefile_773014, 0x00773014, 0x1c);
+GAME_DATA(char[0x1c], gBalancefile_7733b4, 0x007733b4, 0x1c);

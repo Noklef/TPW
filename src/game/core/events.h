@@ -83,3 +83,8 @@ void __cdecl EventQueue_PostKind4(u32 value);
 // of 0x7b4ac0 released and cleared (Obj_ReleaseTwoComMembers inlined: +0xa8 / +0xa4 cleared first).
 void __cdecl EventQueue_PostScreenReset();
 }
+
+#include "gamedata.h"
+
+// The vtables hold only ports: tpw.exe's loader points their slots at them (.docs/09-globals.md).
+GAME_DATA(void *[49], EventList_vtable, 0x0070364c, 0xc4);

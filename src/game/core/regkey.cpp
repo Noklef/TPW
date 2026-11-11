@@ -5,6 +5,7 @@
 #include <cstring>
 
 #include "language.h"
+#include "imports.h"
 #include "staticobjects.h"
 
 namespace {
@@ -15,10 +16,10 @@ T at(u32 address) {
 }
 const RegKeyEnv kGameEnv = {
     at<void(__fastcall *)(RegKey *)>(0x00581da0),
-    at<s32(__stdcall *const *)(u32)>(0x006fd000),
-    at<s32(__stdcall *const *)(u32, const char *, u32 *)>(0x006fd004),
-    at<s32(__stdcall *const *)(u32, const char *, u32 *, u32 *, void *, u32 *)>(0x006fd008),
-    at<s32(__stdcall *const *)(u32, const char *, u32, char *, u32, u32, void *, u32 *, u32 *)>(0x006fd00c),
+    at<s32(__stdcall *const *)(u32)>(IMPORT(Advapi32_RegCloseKey)),
+    at<s32(__stdcall *const *)(u32, const char *, u32 *)>(IMPORT(Advapi32_RegOpenKeyA)),
+    at<s32(__stdcall *const *)(u32, const char *, u32 *, u32 *, void *, u32 *)>(IMPORT(Advapi32_RegQueryValueExA)),
+    at<s32(__stdcall *const *)(u32, const char *, u32, char *, u32, u32, void *, u32 *, u32 *)>(IMPORT(Advapi32_RegCreateKeyExA)),
     at<const char *>(0x00775748),
 };
 const RegKeyEnv *g_env = &kGameEnv;
@@ -182,7 +183,7 @@ s32 *__cdecl Registry_LoadLanguage(s32 *out) {
         *reinterpret_cast<u32 *>(0x0079d868) = flag;
         u32 bit = 0;
         while ((flag >> bit & 1) == 0) ++bit;
-        std::strcpy(reinterpret_cast<char *>(0x00f7f230), *reinterpret_cast<const char *const *>(((u32)(uintptr_t)&gString_f7ec28 + 0x8) + bit * 0x14));
+        std::strcpy(gLanguage_f7f230, *reinterpret_cast<const char *const *>(((u32)(uintptr_t)&gString_f7ec28 + 0x8) + bit * 0x14));
         Language_SetId(reinterpret_cast<u8 *>((u32)(uintptr_t)&gLanguage_78b530), nullptr, value);
     }
     *out = 0;

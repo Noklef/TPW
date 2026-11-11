@@ -87,7 +87,7 @@ u32 NextRandom() {
 }
 
 // A draw as 0 to 1 (fild; fmul 2^-30).
-X87Reg RandomUnit() { return X87_MulInt(NextRandom() & 0x3fffffff, global<float>(0x00702c58)); }
+X87Reg RandomUnit() { return X87_MulInt(NextRandom() & 0x3fffffff, gLobbyscene_702c58); }
 
 void Copy3(void *to, const void *from) { std::memcpy(to, from, 12); }
 
@@ -146,14 +146,14 @@ void Follow(u8 *object) {
     u8 *const camera = gFrame_f83778;
     const u8 *const model = at<const u8 *>(object, 0xc);
     const u8 *const place = at<const u8 *>(global<u8 *>(0x00f82884), 0x10);
-    const float pi = global<float>(0x00702c18);
-    const float eight = global<float>(0x00702c68);
+    const float pi = gLobbyscene_702c18;
+    const float eight = gLobbyscene_702c68;
     float &angle = at<float>(object, 0x18);
     const u32 state = at<u32>(object, 0x14);
     if (state == 2) {
         angle = (float)(X87Reg(at<float>(model, 0x14)) + pi);
-        at<float>(object, 0x20) = (float)(at<float>(object, 0x20) - X87Reg(FrameScale()) * at<float>(object, 0x20) * global<float>(0x00702c60));   // 0.07
-        at<float>(object, 0x24) = (float)(at<float>(object, 0x24) - X87Reg(FrameScale()) * at<float>(object, 0x24) * global<float>(0x00702c64));   // 0.6
+        at<float>(object, 0x20) = (float)(at<float>(object, 0x20) - X87Reg(FrameScale()) * at<float>(object, 0x20) * gLobbyscene_702c60);   // 0.07
+        at<float>(object, 0x24) = (float)(at<float>(object, 0x24) - X87Reg(FrameScale()) * at<float>(object, 0x24) * gLobbyscene_702c64);   // 0.6
         if (Below(X87Reg(at<float>(object, 0x20)), eight)) {
             at<u32>(camera, 0x60) = 0x10000;
             vcall<u32>(object, 0x48);
@@ -162,13 +162,13 @@ void Follow(u8 *object) {
         X87Reg range = X87Reg(at<float>(place, 0xc)) - eight;
         if (EqualOr(range, 0.0f))
             range = 1.0;
-        X87Reg left = (global<float>(0x00702c4c) - (X87Reg(at<float>(object, 0x20)) - eight) / range) * global<float>(0x00702c6c);   // (1 - that) * 65536
+        X87Reg left = (global<float>(0x00702c4c) - (X87Reg(at<float>(object, 0x20)) - eight) / range) * gLobbyscene_702c6c;   // (1 - that) * 65536
         if (Below(left, 0.0f)) {
             at<u32>(camera, 0x60) = 0;
             return;
         }
-        if (!NotAbove(left, global<float>(0x00702c70)))   // 65535
-            left = X87Reg(global<float>(0x00702c70));
+        if (!NotAbove(left, gLobbyscene_702c70))   // 65535
+            left = X87Reg(gLobbyscene_702c70);
         at<s32>(camera, 0x60) = (s32)(long long)left.v;
     } else if (state == 1) {
         at<u32>(camera, 0x60) = 0;
@@ -178,7 +178,7 @@ void Follow(u8 *object) {
         const X87Reg off = Wrap(X87Reg(angle) - heading, full);
         const X87Reg rate = X87Reg(FrameScale()) * gLobbyscene_702c78;   // 0.05
         const float step = (float)rate;
-        const X87Reg half = rate * global<float>(0x00702c5c);   // 0.5
+        const X87Reg half = rate * gLobbyscene_702c5c;   // 0.5
         if (!(off.v >= half.v) || off.v > (full - half).v) {
             g_env->play(at<const u8 *>(model, 8), nullptr, 0, 0);
             at<u32>(object, 0x14) = 2;
@@ -221,7 +221,7 @@ void Roam(u8 *object, s32 count) {
         for (u32 k = 0; k < 3; ++k) {
             const float extent = at<float>(object, 0x64 + 4 * k);
             const X87Reg spread = RandomUnit() * extent;
-            target[k] = (float)((spread - X87Reg(extent) * global<float>(0x00702c5c)) + at<float>(object, 0x58 + 4 * k));
+            target[k] = (float)((spread - X87Reg(extent) * gLobbyscene_702c5c) + at<float>(object, 0x58 + 4 * k));
         }
     }
     Copy3(camera + 8, pos);
@@ -304,11 +304,11 @@ void Ambience(u8 *object) {
         const float z2 = (float)(((RandomUnit() * twenty) + z1) - ten);
         g_env->weatherBurst(weather, nullptr, x2, 0.0f, z2, x1, 500.0f, z1, 0x1f4, 1);
         WeatherFx_RequestReload(weather);
-        g_env->playAt(0, gSoundset_803a48, 1, 0, 0, 0);
+        g_env->playAt(0, gSoundCategories.lobbySfx, 1, 0, 0, 0);
     }
     if ((NextRandom() & 0xf) == 1) {
         const u32 sound = 3 + NextRandom() % 3;
-        g_env->playAt(0, at<u32>(gSoundset_803a4c, at<u32>(model, 0x18) * 8), sound, 0, 0, 0);
+        g_env->playAt(0, at<u32>(gSoundCategories.lobbyPairs, at<u32>(model, 0x18) * 8), sound, 0, 0, 0);
     }
     Copy3(camera + 0x50, model + 0x64);
     for (const u8 *node = at<const u8 *>(at<const u8 *>(object, 8), 4); node; node = at<const u8 *>(node, 4)) {
@@ -353,7 +353,7 @@ u8 *__fastcall Class702a60_Ctor(u8 *object) {
     g_env->baseCtor(object);
     at<u32>(object, 0) = (u32)(uintptr_t)Class702a60_vtable;
     String name;
-    g_env->stringCtor(&name, nullptr, reinterpret_cast<const char *>((uintptr_t)0x00774c64));
+    g_env->stringCtor(&name, nullptr, reinterpret_cast<const char *>((uintptr_t)&gText_Class702a60_Ctor_774c64));
     g_env->joinPath(reinterpret_cast<u8 *>((uintptr_t)&gStrings5_f816c0), nullptr, reinterpret_cast<const StringView *>(&name));
     g_env->stringDtor(&name);
     g_env->terrainLoad(1, 0);

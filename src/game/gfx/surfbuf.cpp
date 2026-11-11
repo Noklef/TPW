@@ -6,7 +6,7 @@
 namespace {
 
 const SurfaceBufferEnv kGameEnv = {
-    0x00703998,
+    (u32)(uintptr_t)SurfaceBuffer_vtable,
     reinterpret_cast<void(__cdecl *)(void *)>(static_cast<std::uintptr_t>(0x0067acb0)),
 };
 const SurfaceBufferEnv *g_env = &kGameEnv;

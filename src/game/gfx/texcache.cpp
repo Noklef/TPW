@@ -34,8 +34,8 @@ const u8 *Next(const u8 *item) { return at<const u8 *>(item, 4); }
 // off its +0x10 and cleared, its s32 +0x14 halved (an arithmetic shift).
 void DecaySlot(u8 *item) {
     u8 *const base = item + at<s32>(at<u8 *>(item, 0), 4);
-    at<u32>(base, 0x10) -= at<u8>(base, global<u32>(0x00879d48));
-    at<u8>(base, global<u32>(0x00879d48)) = 0;
+    at<u32>(base, 0x10) -= at<u8>(base, static_cast<u32>(gGlobals_879d48));
+    at<u8>(base, static_cast<u32>(gGlobals_879d48)) = 0;
     at<s32>(base, 0x14) >>= 1;
 }
 
@@ -298,7 +298,7 @@ u8 *__fastcall TexCacheEntry_Ctor(u8 *entry) {
 }
 
 u8 *__fastcall TexCacheItem_Ctor(u8 *item) {
-    at<u32>(item, 0) = 0x00702198;
+    at<u32>(item, 0) = (u32)(uintptr_t)TexCacheItem_vtable;
     at<u32>(item, 4) = 0;
     return item;
 }
@@ -668,7 +668,7 @@ u32 __fastcall TexCache_CreateSurfaces(u8 *cache) {
 
 u32 __fastcall TexCache_ChooseBudget(u8 *cache) {
     const s32 *const sizes = reinterpret_cast<const s32 *>(0x007022d8);
-    const s32 *const limits = reinterpret_cast<const s32 *>(0x00702300);
+    const s32 *const limits = reinterpret_cast<const s32 *>((u32)(uintptr_t)&gTexcache_702300);
     s32 memory = (s32)vcall<u32>(at<u8 *>(nullptr, 0x008bd52c), 8);
     u32 added = 1;
     s32 count;
@@ -892,7 +892,7 @@ void __fastcall TexCache_TouchItem(u8 *cache, void *, u8 *item, float weight) {
         TexCache_UnlinkItem(cache, nullptr, item);
     at<u32>(item, 8) |= 0x40000000;
     u8 *const base = item + at<s32>(at<u8 *>(item, 0), 4);
-    u8 &slot = base[global<s32>(0x00879d48)];
+    u8 &slot = base[gGlobals_879d48];
     if (slot < 0xff) {
         slot++;
         at<u32>(base, 0x10)++;

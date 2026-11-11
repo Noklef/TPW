@@ -3,6 +3,7 @@
 #include "handles.h"
 
 #include "../core/vcall.h"
+#include "../core/imports.h"
 
 namespace {
 
@@ -12,8 +13,8 @@ void *const *const kStreamVtable = StreamBase_vtable;
 void *const *const kHandleVtable = Handle_vtable;
 
 const HandlesEnv kGameEnv = {
-    reinterpret_cast<s32(__stdcall *const *)(s32 *)>(0x006fd0c0),
-    reinterpret_cast<s32(__stdcall *const *)(s32 *)>(0x006fd12c),
+    reinterpret_cast<s32(__stdcall *const *)(s32 *)>(IMPORT(Kernel32_InterlockedIncrement)),
+    reinterpret_cast<s32(__stdcall *const *)(s32 *)>(IMPORT(Kernel32_InterlockedDecrement)),
     reinterpret_cast<void *(__cdecl *)(u32)>(0x0067acc0),
     reinterpret_cast<void(__cdecl *)(void *)>(0x0067acb0),
     reinterpret_cast<RefObject2 *(__fastcall *)(void *)>(0x00619950),

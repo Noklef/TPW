@@ -5,6 +5,7 @@
 
 #include "../core/vcall.h"
 #include "ddopen.h"
+#include "d3dsetup.h"
 #include "../core/staticobjects.h"
 
 namespace {
@@ -19,7 +20,7 @@ u32 address_of(const void *p) { return (u32)(uintptr_t)p; }
 bool screen_format(u32 *format) {
     std::memset(format, 0, 0x20);
     format[0] = 0x20;
-    const u32 surface = at<u32>(reinterpret_cast<const void *>((uintptr_t)global(0x00879a24)), 0x10);
+    const u32 surface = at<u32>(reinterpret_cast<const void *>((uintptr_t)global((u32)(uintptr_t)&gD3dsetup_879a20 + 0x4)), 0x10);
     const u32 answer = comcall<u32>(reinterpret_cast<void *>((uintptr_t)surface), 0x54, format);
     global((u32)&gDdopen_879cd4) = answer;
     if ((s32)answer < 0)

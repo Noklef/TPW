@@ -41,3 +41,10 @@ char *__cdecl GuiToken_ReadDword(char *text, u32 *out);
 // with count, sign-extended from 16 bits.
 char *__cdecl GuiToken_ReadString(char *text, char *out, u32 count);
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(u8[0x70], gGuiToken_ReadCommand_77c4d0, 0x0077c4d0, 0x70);
+GAME_DATA(u8[0x150], gGuiToken_77c540, 0x0077c540, 0x150);
+GAME_DATA(char[0x8], gText_GuiToken_ReadPoint_77c6a4, 0x0077c6a4, 0x8);

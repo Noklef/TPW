@@ -15,3 +15,9 @@ u32 __fastcall ObserverList0_Add(u8 *object, void *, u8 *item);
 // 0x421680 (thiscall; item, pops 4): +8 = item, then ObserverList0_Add of the object with it. Returns what that returns.
 u32 __fastcall Obj_SetAt8AndAdd(u8 *object, void *, u8 *item);
 }  // extern "C"
+
+#include "gamedata.h"
+
+// The vtables hold only ports: tpw.exe's loader points their slots at them (.docs/09-globals.md).
+GAME_DATA(void *[1], Class6fdb04_vtable, 0x006fdb04, 0x4);
+GAME_DATA(void *[1], Class6fdb0c_vtable, 0x006fdb0c, 0x4);

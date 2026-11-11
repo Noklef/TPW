@@ -7,6 +7,7 @@
 #include "../model/partstate.h"
 #include "helpers.h"
 #include "nodeangles.h"
+#include "../world/rides.h"
 
 namespace {
 
@@ -18,7 +19,7 @@ const BendMeshEnv *g_env = &kPortEnv;
 const u32 kFrame = 0xa0;
 const u32 kExtraFrame = 0x58;
 
-u8 *RideOf(const u8 *car) { return *reinterpret_cast<u8 **>((uintptr_t)(0x007a4610 + at<u32>(car, 0xc) * 4)); }
+u8 *RideOf(const u8 *car) { return gRides_7a4610[at<u32>(car, 0xc)]; }
 
 // The table's value at the place: the entries at w and w + 1 mixed by f and g.
 X87Reg Mixed(const float *table, s32 w, float f, float g) { return (X87Reg(table[w]) * g) + (X87Reg(table[w + 1]) * f); }

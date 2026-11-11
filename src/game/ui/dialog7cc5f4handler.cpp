@@ -8,6 +8,7 @@
 #include "dialogbase.h"
 #include "focus.h"
 #include "window.h"
+#include "dialog7cc5f4dial.h"
 
 namespace {
 
@@ -45,7 +46,7 @@ s32 __cdecl Dialog7cc5f4_Message(u8 *window, u32 message, u32 a, u32) {
         break;
     case 0x100:
         if (a == 0xfffffffe) return closed();
-        if (a == 0xffffffff) g_env->apply(g_env->online(), nullptr, reinterpret_cast<u8 *>((uintptr_t)0x007cc590), reinterpret_cast<u8 *>((uintptr_t)0x007cc548));
+        if (a == 0xffffffff) g_env->apply(g_env->online(), nullptr, reinterpret_cast<u8 *>((uintptr_t)0x007cc590), gDialog7cc5f4dial_7cc548);
         break;
     case 0x802:
         if (a == 0x49) g_env->focus(g_env->find(window, nullptr, 0x4b), nullptr, 0);

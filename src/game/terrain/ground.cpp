@@ -19,6 +19,7 @@
 #include "gridquad.h"
 #include "../render/renderer.h"
 #include "../gfx/texcache.h"
+#include "../render/d3dsetup.h"
 #include "../core/staticobjects.h"
 
 using gridquad::Fan;
@@ -65,7 +66,7 @@ void FillRow(u8 *self, s32 row, u8 *points, u8 *codes) {
     const u32 count = (u32)(last - first + 1);
     g_env->transform(global<void *>(0x0087b088), nullptr, (u32)(uintptr_t)start, (u32)(uintptr_t)start, kPoint, kPoint, 0, count);
     u32 result;
-    ClipCodes_Run(global<u32>(0x00879a20), 0, reinterpret_cast<u8 *>(&result), codes + first, start, count, kPoint, 0xff);
+    ClipCodes_Run(global<u32>((u32)(uintptr_t)&gD3dsetup_879a20), 0, reinterpret_cast<u8 *>(&result), codes + first, start, count, kPoint, 0xff);
 }
 
 u32 CellColour(const u8 *self, s32 row, s32 column, bool halved) {
@@ -156,7 +157,7 @@ extern "C" u32 __fastcall TerrainGround_PrepareTextures(u8 *self) {
 extern "C" u32 __fastcall TerrainGround_Draw(u8 *self) {
     if (at<s32>(self, 0x128) > at<s32>(self, 0x12c) || !(global<u32>(0x008bd508) & 0xc0000000)) return 1;
     const u32 stride = gGround_7014b4;
-    global<u32>(0x00879dec) = 0;
+    global<u32>((u32)(uintptr_t)&gMeshlist_879dec) = 0;
     g_env->drain(at<u8 *>(gRenderer_87a6d0, 0x2c));
     g_env->setView(gMeshlist_87a248, nullptr, reinterpret_cast<const u32 *>((uintptr_t)0x0087b090), 0);
     g_env->light(self);

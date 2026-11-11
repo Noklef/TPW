@@ -85,3 +85,8 @@ void __fastcall TextMetrics_Dtor(u8 *object);
 // Returns the object.
 u8 *__fastcall TextMetrics_DeletingDtor(u8 *object, void *, u32 flags);
 }
+
+#include "../core/gamedata.h"
+
+// The vtables hold only ports: tpw.exe's loader points their slots at them (.docs/09-globals.md).
+GAME_DATA(void *[5], Class6ff058_vtable, 0x006ff058, 0x14);

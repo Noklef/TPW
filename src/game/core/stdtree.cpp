@@ -876,7 +876,7 @@ void __fastcall StdMapH_ClearAt(u8 *map, void *, u32 key) {
     vcall<void>(StdMapH_Index(map, nullptr, &key), 0x14, reinterpret_cast<const char *>(0x00786de4));
 }
 
-void __cdecl StdTree_InitUnusedOne() { *reinterpret_cast<float *>(0x007899b4) = 1.0f; }
+void __cdecl StdTree_InitUnusedOne() { gStdTree_7899b4 = 1.0f; }
 
-void __cdecl StdTree_InitUnusedEpsilon() { *reinterpret_cast<float *>(0x0078a0bc) = 1.0f / 8388608.0f; }
+void __cdecl StdTree_InitUnusedEpsilon() { gStdTree_78a0bc = 1.0f / 8388608.0f; }
 }  // extern "C"

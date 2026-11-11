@@ -17,6 +17,7 @@
 #include "window7059f0.h"
 #include "window705a20.h"
 #include "windowreg.h"
+#include "dialog7cc188.h"
 #include "../core/staticobjects.h"
 
 namespace {
@@ -30,7 +31,7 @@ const SaveDialogCreateEnv *g_env = &kGameEnv;
 
 const u32 kLoadDialog = reinterpret_cast<uintptr_t>(&gSavedialog_7cb244);
 const u32 kSaveDialog = reinterpret_cast<uintptr_t>(&gSavedialog_7cb248);
-const char *hilight() { return reinterpret_cast<const char *>((uintptr_t)0x0074fa84); }
+const char *hilight() { return reinterpret_cast<const char *>((uintptr_t)&gText_Dialog7cc188_74fa84); }
 
 // The controls off and any other window gone; the dialog made in its global, with its label.
 u8 *Open(u32 dialog, u32 handler, u32 text) {

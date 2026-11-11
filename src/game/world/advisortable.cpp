@@ -1,6 +1,7 @@
 #include "advisortable.h"
 
 #include <cstdint>
+#include "objectdefs.h"
 
 namespace {
 
@@ -368,7 +369,7 @@ const Row kRows[] = {
 }  // namespace
 
 void AdvisorTable_Fill() {
-    u32 *record = reinterpret_cast<u32 *>((uintptr_t)0x0076e300);
+    u32 *record = reinterpret_cast<u32 *>((uintptr_t)&gObjectdefs_76e300);
     u32 id = 0;
     for (const Row &row : kRows) {
         if (id != 0) {   // sic: record 0 keeps the zeros of its first four fields, not written

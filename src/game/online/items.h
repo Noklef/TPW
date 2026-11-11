@@ -65,3 +65,6 @@ GAME_DATA(void *[1], Class70293c_vtable, 0x0070293c, 0x4);
 GAME_DATA(void *[1], Class702940_vtable, 0x00702940, 0x4);
 GAME_DATA(void *[1], Class702944_vtable, 0x00702944, 0x4);
 GAME_DATA(void *[1], Class702948_vtable, 0x00702948, 0x4);
+
+// Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(const double, gItems_702930, 0x00702930, 0x8);

@@ -16,6 +16,9 @@
 #include "guisettings.h"
 #include "window.h"
 #include "dialog7cc184handler.h"
+#include "../render/d3dsetup.h"
+#include "../online/postcardsend.h"
+#include "../core/imports.h"
 #include "../core/staticobjects.h"
 
 namespace {
@@ -84,9 +87,9 @@ void __cdecl GamePause_RemakePicture() {
     gDialog7cc184handler_7cc18c = made;
     E->fn5d47a0(made);
     u8 desc[0x7c];
-    E->fn564430(global<u8 *>(0x00879a24), nullptr, reinterpret_cast<SurfaceDesc *>(desc));
+    E->fn564430(global<u8 *>((u32)(uintptr_t)&gD3dsetup_879a20 + 0x4), nullptr, reinterpret_cast<SurfaceDesc *>(desc));
     E->shrink(gDialog7cc184handler_7cc18c, nullptr, reinterpret_cast<const SurfaceDesc *>(desc));
-    E->storeCom(global<u8 *>(0x00879a24));
+    E->storeCom(global<u8 *>((u32)(uintptr_t)&gD3dsetup_879a20 + 0x4));
     E->panelReset(gDialog7cc184handler_7cc18c);
 }
 
@@ -106,7 +109,7 @@ void __cdecl GamePause_Resume() {
     else if (E->overlayState())
         E->overlayToggle();
     if (!gGamePause_Resume_7cc194) {
-        global<u32(__stdcall *)(u32, u32)>(0x006fd14c)(0x200, 0x007cb958);
+        global<u32(__stdcall *)(u32, u32)>(IMPORT(Kernel32_GetTempPathA))(0x200, (u32)(uintptr_t)&gPostcardsend_7cb958);
         gGamePause_Resume_7cc194 = 1;
     }
     E->openDialog();

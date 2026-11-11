@@ -88,4 +88,13 @@ void __cdecl IntPair_NorthWestAtExit();
 #include "../core/gamedata.h"
 
 // Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+// The eight unit steps above, (x, y) each, each its own static object.
+GAME_DATA(s32[2], gStepN_7cdba0, 0x007cdba0, 0x8);
+GAME_DATA(s32[2], gStepS_7cdba8, 0x007cdba8, 0x8);
+GAME_DATA(s32[2], gStepSW_7cdbb0, 0x007cdbb0, 0x8);
+GAME_DATA(s32[2], gStepSE_7cdbb8, 0x007cdbb8, 0x8);
+GAME_DATA(s32[2], gStepNW_7cdbc0, 0x007cdbc0, 0x8);
+GAME_DATA(s32[2], gStepE_7cdbc8, 0x007cdbc8, 0x8);
+GAME_DATA(s32[2], gStepW_7cdbd0, 0x007cdbd0, 0x8);
+GAME_DATA(s32[2], gStepNE_7cdbd8, 0x007cdbd8, 0x8);
 GAME_DATA(u8, gIntpair_7cdbe0, 0x007cdbe0, 0x1);

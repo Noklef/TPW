@@ -11,6 +11,9 @@
 #include "trackrides.h"
 #include "trakcarroute.h"
 #include "collobj.h"
+#include "rides.h"
+#include "world.h"
+#include "../math/intsin.h"
 
 namespace {
 
@@ -42,9 +45,9 @@ u32 sent_off(u32 flags) { return flags & 0xffffffa1 | 0x10020; }
 // The point in an area the car can reach: a place in the other's area or the module's areas stands, else the nearest area's rim.
 void onto_areas(const u8 *other, s32 &x, s32 &y) {
     if (IntArea_Contains(x, y, at<const s32 *>(other, 0x98))) return;
-    const u8 *area = global<const u8 *>(0x00877b70);
+    const u8 *area = gTrackPools.nodes;
     if (area) {
-        for (s32 left = global<s32>(0x00877b74); left != 0; area += 0x20) {
+        for (s32 left = gTrackPools.nodeCount; left != 0; area += 0x20) {
             if (!(at<u32>(area, 0) & 1)) continue;
             left--;
             if (!(at<u32>(area, 0) & 0x40) && IntArea_Contains(x, y, reinterpret_cast<const s32 *>(area))) return;
@@ -63,7 +66,7 @@ void chase(u8 *car, u8 *ride) {
     const u32 before = flags;
     const s32 left = at<s32>(car, 0x8c) - 1;
     at<s32>(car, 0x8c) = left;
-    const u8 *const other = global<u8 *>(0x00877b68) + at<u32>(car, 0x80) * 0xac;
+    const u8 *const other = gTrackPools.cars + at<u32>(car, 0x80) * 0xac;
     if (left < 1 || (at<u32>(other, 0) & 0x40021) != 1) {
         g_env->chooseRoute(ride, car);
         return;
@@ -90,7 +93,7 @@ void leave(u8 *car, u8 *ride) {
             flags &= 0xffffff81;
             if (motion != 0xc) {
                 at<u32>(car, 0x10) = 0xc;
-                u8 *const *const instances = reinterpret_cast<u8 *const *>(0x007a4610);
+                u8 *const *const instances = gRides_7a4610;
                 if (at<u32>(car, 8)) g_env->clearQueue(instances[at<u32>(car, 8)], 0);
                 if (at<u32>(car, 8)) g_env->play(instances[at<u32>(car, 8)], 0xc, 0, 2, 1.0f, 0);
             }
@@ -116,13 +119,13 @@ void next_node(u8 *car, const u8 *node) {
     at<u32>(car, 0x7c) = at<u32>(node, 4);
     at<u32>(car, 0x78) = at<u32>(car, 0x74);
     const u32 span = at<u32>(ride, 0x68);
-    at<s32>(car, 0x74) = (s32)((u32)((s32)span / 2) - (u32)World_Rand(global<u8 *>(0x007cf83c)) % span);
+    at<s32>(car, 0x74) = (s32)((u32)((s32)span / 2) - (u32)World_Rand(gWorldPtr) % span);
     at<u32>(car, 0) |= 0x10000;
 }
 
 void follow_nodes(u8 *car) {
     u32 &flags = at<u32>(car, 0);
-    const u8 *const node = global<u8 *>(0x00877b78) + at<u32>(car, 0x7c) * 0x1c;
+    const u8 *const node = gTrackPools.buoys + at<u32>(car, 0x7c) * 0x1c;
     if (!(at<u8>(node, 0) & 1)) return;
     const s32 gap = g_env->steerTo(car, at<s32>(node, 8), at<s32>(node, 0xc));
     const u32 now = flags;
@@ -144,7 +147,7 @@ void follow_nodes(u8 *car) {
         return;
     }
     if (!(now & 8)) {
-        if (now & 0x10) at<u32>(car, 0x7c) = (u32)World_Rand(global<u8 *>(0x007cf83c)) % global<u32>(0x00877b7c);
+        if (now & 0x10) at<u32>(car, 0x7c) = (u32)World_Rand(gWorldPtr) % (u32)gTrackPools.buoyCount;
     } else if (now & 0x40) {
         if (gap <= reach / 4) {
             at<u32>(car, 0x7c) = at<u32>(at<u8 *>(ride, 0xa4), 4);
@@ -197,7 +200,7 @@ void __cdecl TrakCar_Update(u8 *car) {
         chase(car, ride);
     } else if (flags & 0x20) {
         leave(car, ride);
-    } else if ((flags & 0x58) && global<u32>(0x00877b78)) {
+    } else if ((flags & 0x58) && (u32)gTrackPools.buoys) {
         follow_nodes(car);
     }
 }
@@ -212,7 +215,7 @@ constexpr u32 kCarSize = 0xac;
 
 s32 cars_ftol(X87Reg x) { return (s32)(long long)x.v; }
 s32 times(s32 a, s32 b) { return (s32)((u32)a * (u32)b); }
-s32 sine(s32 index) { return reinterpret_cast<const s32 *>(0x00877358)[index & 0x1ff]; }
+s32 sine(s32 index) { return reinterpret_cast<const s32 *>((uintptr_t)gIntSinTable)[index & 0x1ff]; }
 
 // A's and B's speeds changed and the bounce's state set, c their angle, a the bearing.
 void cars_bounce(u8 *a, u8 *b, s32 c, s32 bearing, s32 vx, s32 vy) {
@@ -281,7 +284,7 @@ void cars_timer(u8 *a) {
         at<u32>(a, 0x7c) = at<u32>(node, 4);
         at<u32>(a, 0x78) = at<u32>(a, 0x74);
         const u32 span = at<u32>(ride, 0x68);
-        at<s32>(a, 0x74) = (s32)((u32)((s32)span / 2) - (u32)World_Rand(global<u8 *>(0x007cf83c)) % span);
+        at<s32>(a, 0x74) = (s32)((u32)((s32)span / 2) - (u32)World_Rand(gWorldPtr) % span);
         at<u32>(a, 0) |= 0x10000;
     }
     at<s32>(a, 0xa4) = 0;
@@ -293,23 +296,23 @@ void cars_timer(u8 *a) {
 void TrakCars_SetEnv(const TrakCarsEnv *env) { g_carsEnv = env ? env : &kCarsPortEnv; }
 
 void __cdecl TrakCars_Update() {
-    if (global<u32>(0x00877b58) != 0x4a454647) return;
-    ++global<u32>(0x00877b5c);
-    u8 *car = global<u8 *>(0x00877b68);
-    for (u32 left = global<u32>(0x00877b6c); left != 0; car += kCarSize) {
+    if (gTrackPools.tag != 0x4a454647) return;
+    ++gTrackPools.frame;
+    u8 *car = gTrackPools.cars;
+    for (u32 left = (u32)gTrackPools.carCount; left != 0; car += kCarSize) {
         if (!(at<u32>(car, 0) & 1)) continue;
         --left;
         at<u32>(car, 0) &= 0xffdfffff;
         g_carsEnv->update(car);
         if (at<u8>(car, 0) & 1) g_carsEnv->move(car);
     }
-    u8 *a = global<u8 *>(0x00877b68);
-    for (u32 left = global<u32>(0x00877b6c); left != 0; a += kCarSize) {
+    u8 *a = gTrackPools.cars;
+    for (u32 left = (u32)gTrackPools.carCount; left != 0; a += kCarSize) {
         if (!(at<u32>(a, 0) & 1)) continue;
         --left;
         if (!(*at<u8 *>(a, 0x98) & 0x80) && !(at<u32>(a, 0) & 0x200)) {
-            u8 *b = global<u8 *>(0x00877b68);
-            for (u32 others = global<u32>(0x00877b6c); others != 0; b += kCarSize) {
+            u8 *b = gTrackPools.cars;
+            for (u32 others = (u32)gTrackPools.carCount; others != 0; b += kCarSize) {
                 const u32 flags = at<u32>(b, 0);
                 if (!(flags & 1)) continue;
                 --others;

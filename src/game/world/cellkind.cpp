@@ -16,6 +16,9 @@
 #include "thingscan.h"
 #include "world.h"
 #include "mapclick.h"
+#include "cellbuild.h"
+#include "../math/intpair.h"
+#include "focuscell.h"
 #include "../core/staticobjects.h"
 
 namespace {
@@ -26,7 +29,7 @@ template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((ui
 const CellKindEnv kGameEnv = {&Object_PathChanged, &Path_CheckDeadEnds};
 const CellKindEnv *g_env = &kGameEnv;
 
-u8 *World() { return global<u8 *>(0x007cf83c); }
+u8 *World() { return gWorldPtr; }
 u8 *OwnerCell(const u8 *cell) { return World() + 0x294 + (u32)at<u16>(cell, 0x10) * 0x44; }
 u8 *ThingAt(u32 handle) { return global<u8 *>(0x007cfb90 + 20 * (handle & 0xffff)); }
 u8 *WorldMoney() { return reinterpret_cast<u8 *>((uintptr_t)GameTable7cfb90_Get1da726_5195d0(World())); }
@@ -198,9 +201,9 @@ void Removed(u8 *cell, u32 &slot, u32 price, u8 models) {
         at<u16>(cell, 0x24) = 0xffff;
     }
     MapCell_ApplyModel(cell);
-    ClearOwned(cell, 0x007cdba8, models);
-    ClearOwned(cell, 0x007cdbc8, models);
-    ClearOwned(cell, 0x007cdbb8, models);
+    ClearOwned(cell, (u32)gStepS_7cdba8, models);
+    ClearOwned(cell, (u32)gStepE_7cdbc8, models);
+    ClearOwned(cell, (u32)gStepSE_7cdbb8, models);
 }
 
 // The line's start cell: each direction not among its bits whose cell two steps out joins the line (JoinsLine) faces it and joins its
@@ -265,14 +268,14 @@ u32 __fastcall MapCell_SetTrackKind(u8 *cell, void *, u32 kind) {
     const u32 count = Counter7cdb98_Inc();
     Map_SetBlockValue(World() + 0x2d8, nullptr, count, at<u16>(cell, 0));   // (the high half: a local's unset stack bytes; the callee reads the low)
     const u32 now = at<u32>(cell, 8);
-    if ((now == 0xb || now == 0x10) && global<u32>(0x00820ad0)) {
+    if ((now == 0xb || now == 0x10) && gCellbuild_820ad0) {
         u8 *const here = MapHandle_Cell44(reinterpret_cast<const u16 *>(cell));
         if (here) {
-            u8 *const east = Map_StepCell(reinterpret_cast<const u16 *>(here), nullptr, PairX(0x007cdbc8), PairY(0x007cdbc8), 1);
+            u8 *const east = Map_StepCell(reinterpret_cast<const u16 *>(here), nullptr, PairX((u32)gStepE_7cdbc8), PairY((u32)gStepE_7cdbc8), 1);
             if (east) {
-                u8 *const corner = Map_StepCell(reinterpret_cast<const u16 *>(here), nullptr, PairX(0x007cdbb8), PairY(0x007cdbb8), 1);
+                u8 *const corner = Map_StepCell(reinterpret_cast<const u16 *>(here), nullptr, PairX((u32)gStepSE_7cdbb8), PairY((u32)gStepSE_7cdbb8), 1);
                 if (corner) {
-                    u8 *const south = Map_StepCell(reinterpret_cast<const u16 *>(here), nullptr, PairX(0x007cdba8), PairY(0x007cdba8), 1);
+                    u8 *const south = Map_StepCell(reinterpret_cast<const u16 *>(here), nullptr, PairX((u32)gStepS_7cdba8), PairY((u32)gStepS_7cdba8), 1);
                     if (south && PathOrEmpty(here) && PathOrEmpty(east) && PathOrEmpty(corner) && PathOrEmpty(south)) {
                         MapCell_Clear(here, nullptr, 0, 0);
                         MapCell_Clear(east, nullptr, 0, 0);
@@ -289,7 +292,7 @@ u32 __fastcall MapCell_SetTrackKind(u8 *cell, void *, u32 kind) {
 
 void __fastcall TrackCell_ClearBlock(u8 *cell) {
     EmptyTrackCell(cell);
-    static const u32 kSteps[] = {0x007cdba8u, 0x007cdbc8u, 0x007cdbb8u};   // (south, east, south-east)
+    static const u32 kSteps[] = {(u32)gStepS_7cdba8, (u32)gStepE_7cdbc8, (u32)gStepSE_7cdbb8};   // (south, east, south-east)
     for (const u32 table : kSteps) {
         u8 *const next = Map_StepCell28(reinterpret_cast<const u16 *>(cell), nullptr, PairX(table), PairY(table), 1);
         if (next) EmptyTrackCell(next);
@@ -357,10 +360,10 @@ void __fastcall TrackCell_Remove(u8 *cell, void *, s32 a, s32 b, u32 models) {
     if (at<u32>(cell, 8) == 0xc || at<u32>(cell, 8) == 0x11) {
         TrackCell_Remove(WorldCell28(at<u16>(cell, 0x10)), nullptr, a, b, 1);
     } else {
-        if (Map_InBounds(global<s32>(0x007639e0), global<s32>(0x007639e4)))
-            start = (u16)(((u32)global<s32>(0x007639e4) << 7) + (u32)global<s32>(0x007639e0) + 1);
-        if (Map_InBounds(global<s32>(0x007639e8), global<s32>(0x007639ec)))
-            end = (u16)(((u32)global<s32>(0x007639ec) << 7) + (u32)global<s32>(0x007639e8) + 1);
+        if (Map_InBounds(gFocusCell_StartX_7639e0, gFocusCell_StartY_7639e4))
+            start = (u16)(((u32)gFocusCell_StartY_7639e4 << 7) + (u32)gFocusCell_StartX_7639e0 + 1);
+        if (Map_InBounds(gFocusCell_EndX_7639e8, gFocusCell_EndY_7639ec))
+            end = (u16)(((u32)gFocusCell_EndY_7639ec << 7) + (u32)gFocusCell_EndX_7639e8 + 1);
         if (LineKind(at<u32>(cell, 8))) {   // (the jump tables 0x53babc / 0x53baa4)
             if (CountDown(cell, a, b, start, end, slotA)) MapCell_ApplyModel(cell);
             const s16 count = at<s16>(cell, 0x20);

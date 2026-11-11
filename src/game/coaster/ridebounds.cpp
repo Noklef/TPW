@@ -6,6 +6,7 @@
 #include "../model/parts.h"
 #include "../render/particles.h"
 #include "../world/objectdefs.h"
+#include "../world/rides.h"
 
 namespace {
 
@@ -20,7 +21,7 @@ s32 Ftol(X87Reg x) { return (s32)(long long)x.v; }
 extern "C" {
 
 u32 __cdecl Ride_Bounds(s32 index, float *out) {
-    const u8 *const ride = reinterpret_cast<const u8 *const *>(0x007a4610)[index];
+    const u8 *const ride = gRides_7a4610[index];
     if (!ride) return 0;
     const u8 *const block = at<const u8 *>(ride, 0xcc);
     if (!block) return 0;
@@ -44,7 +45,7 @@ u32 __cdecl Ride_Centre(const s32 *handle, float *x, float *y, float *z) {
         *x = 0.0f;
         return 1;
     }
-    const u8 *const ride = reinterpret_cast<const u8 *const *>(0x007a4610)[*handle];
+    const u8 *const ride = gRides_7a4610[*handle];
     const float cx = (float)((X87Reg(box[0]) + box[3]) * 0.5f);
     const float cz = (float)((X87Reg(box[2]) + box[5]) * 0.5f);
     *y = X87_Through(at<float>(at<const u8 *>(at<const u8 *>(at<const u8 *>(ride, 8), 4), 0x78), 0x44));
@@ -72,7 +73,7 @@ void __cdecl Ride_SetEffect(u8 *context, u32 on) {
     float box[6], x = 0.0f, y = 0.0f;
     X87Reg z = 0.0;
     if (index && Ride_Bounds(index, box)) {
-        const u8 *const ride = reinterpret_cast<const u8 *const *>(0x007a4610)[index];
+        const u8 *const ride = gRides_7a4610[index];
         x = (float)((X87Reg(box[0]) + box[3]) * 0.5f);
         z = (X87Reg(box[2]) + box[5]) * 0.5f;
         y = X87_Through(at<float>(at<const u8 *>(at<const u8 *>(at<const u8 *>(ride, 8), 4), 0x78), 0x44));
@@ -84,7 +85,7 @@ void __cdecl Ride_SetEffect(u8 *context, u32 on) {
 }
 
 u32 __cdecl Ride_PartPlace(const u8 *obj, float *pos, float *dir, s32 key, u32 mask) {
-    const u8 *const *const rides = reinterpret_cast<const u8 *const *>(0x007a4610);
+    const u8 *const *const rides = gRides_7a4610;
     const u32 index = at<u32>(obj, 0xc8);
     if (key < 0 || index == 0) {
         float box[6];
@@ -136,7 +137,7 @@ u32 __cdecl Ride_PartPlace(const u8 *obj, float *pos, float *dir, s32 key, u32 m
 }
 
 void __cdecl Ride_PartAxes(s32 index, const u32 *part, float *dir, float *up) {
-    const u8 *const ride = reinterpret_cast<const u8 *const *>(0x007a4610)[index];
+    const u8 *const ride = gRides_7a4610[index];
     const u8 *const entry = at<const u8 *>(at<const u8 *>(at<const u8 *>(ride, 8), 0x28), 4) + *part * 0x14;
     const u8 *const node = at<const u8 *>(entry, 4);
     if (!node) {

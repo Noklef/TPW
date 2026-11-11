@@ -20,7 +20,7 @@ const SoundManagerEnv *g_makeEnv = &kMakeEnv;
 extern "C" {
 
 void __fastcall SoundManager_Dtor(u8 *manager) {
-    at<u32>(manager, 0) = 0x0070a288;
+    at<u32>(manager, 0) = (u32)(uintptr_t)SoundManager_vtable;
     u8 *const engine = at<u8 *>(manager, 4);
     if (!engine) return;
     vcall<void>(engine, 0, 1u);
@@ -33,7 +33,7 @@ u32 *__cdecl SoundManager_Make(u32 *out, u32 a, u8 **manager) {
     u8 *const block = static_cast<u8 *>(GameHeap_Alloc(0x34));
     if (block) {
         g_makeEnv->engineCtor(block);
-        at<u32>(block, 0) = 0x0070a2a0;
+        at<u32>(block, 0) = (u32)(uintptr_t)Class70a2a0_vtable;
     }
     u32 status;
     SoundManager_Create(&status, manager, block, a);
@@ -51,7 +51,7 @@ u32 *__stdcall SoundManager_Create(u32 *out, u8 **manager, u8 *engine, u32 a) {
     u8 *m = static_cast<u8 *>(GameHeap_Alloc(8));
     if (m) {
         at<u32>(m, 4) = 0;
-        at<u32>(m, 0) = 0x0070a288;
+        at<u32>(m, 0) = (u32)(uintptr_t)SoundManager_vtable;
     }
     *manager = m;
     if (!m) {

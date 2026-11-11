@@ -5,6 +5,9 @@
 
 #include "../core/crt.h"
 #include "../core/gamewindow.h"
+#include "../world/rides.h"
+#include "../world/world.h"
+#include "../core/imports.h"
 #include "../core/staticobjects.h"
 
 namespace {
@@ -158,9 +161,9 @@ u32 draw(u8 *renderer, u8 *object, const char *folder, const char *style, const 
 
     const u32 mode = global<u32>((u32)(uintptr_t)&gTexSettings_8bd550 + 0x4);
     const u32 params[7] = {address(lines[0]), address(lines[1]), at<u32>(textures[0], 0x12), at<u32>(textures[1], 0x12), 0x80u, 0x80u, mode == 2 ? 2u : mode == 3 ? 1u : 2u};
-    const u32 dc = slot<u32(__stdcall *)(u32)>(0x006fd34c)(gGamewindow_7a130c);   // GetDC
+    const u32 dc = slot<u32(__stdcall *)(u32)>(IMPORT(User32_GetDC))(gGamewindow_7a130c);   // GetDC
     g_calls.Th(0x005ecb40, address(renderer), dc, address(params));
-    slot<u32(__stdcall *)(u32, u32)>(0x006fd348)(gGamewindow_7a130c, dc);   // ReleaseDC
+    slot<u32(__stdcall *)(u32, u32)>(IMPORT(User32_ReleaseDC))(gGamewindow_7a130c, dc);   // ReleaseDC
 
     at<u32>(model, 0x30) |= 0x8000;
     if (!(at<u32>(object, 4) & 1)) at<u32>(object, 4) |= 0x8000000;
@@ -187,7 +190,7 @@ extern "C" u32 __cdecl Sign_ApplyObject(u8 *object, const u16 *text, const u16 *
     if (!path) return 0;
     char fonts[0x104];
     Crt().sprintf(fonts, path[std::strlen(path) - 1] == '\\' ? "%s%s" : "%s\\%s", path, "Data\\Fonts");   // (an empty path reads the byte before it, sic)
-    u8 *const holder = global<u8 *>(0x007a4610 + 4 * index);
+    u8 *const holder = gRides_7a4610[index];
     u32 result = 1;
     if (global<u32>((u32)(uintptr_t)&gOptions_78d8d8)) {
         u8 wide[0x14], name[0x14];
@@ -217,7 +220,7 @@ extern "C" u32 __cdecl Ride_ApplySign(u32 id, u32 a1, u32 a2, u32 a3, u32 a4) {
     if (!folder) return 0;
     char fonts[0x104];
     Crt().sprintf(fonts, folder[std::strlen(folder) - 1] == '\\' ? "%s%s" : "%s\\%s", folder, "Data\\Fonts");   // (an empty folder reads the byte before it, sic)
-    const u32 ride = global<u32>(0x007a4610 + 4 * id);
+    const u32 ride = (u32)(uintptr_t)gRides_7a4610[id];
     u32 result = 1;
     if (global<u32>((u32)(uintptr_t)&gOptions_78d8d8)) result = g_rideCalls.Cd(0x467a80, ride, a1, a2, address(fonts), a3, a4);
     if (ride && !(at<u32>((void *)(uintptr_t)ride, 4) & 1)) at<u32>((void *)(uintptr_t)ride, 4) |= 0x8000000;
@@ -225,10 +228,10 @@ extern "C" u32 __cdecl Ride_ApplySign(u32 id, u32 a1, u32 a2, u32 a3, u32 a4) {
 }
 
 extern "C" void __cdecl Rides_ReapplySigns() {
-    u32 index = at<u16>(global<u8 *>(0x007cf83c), 0x1da746);
+    u32 index = at<u16>(gWorldPtr, 0x1da746);
     while (index) {
         u8 *const thing = global<u8 *>(0x007cfb90 + index * 0x14);
-        u8 *const holder = global<u8 *>(0x007a4610 + 4 * at<u32>(thing, 0x20));
+        u8 *const holder = gRides_7a4610[at<u32>(thing, 0x20)];
         if (holder && (at<u32>(holder, 4) & 0x8000000)) {
             u16 first[0x100], second[0x100];
             g_rideCalls.Th(0x4e2860, address(thing), address(first), 0x100u);

@@ -60,3 +60,9 @@ u32 *__fastcall SoundSource711920_SetSpeedOfSound(u8 *source, void *, u32 *out, 
 // 0x6d2d20 (slot 25, (out, object); needs open): QSWaveMixSetSpeakerPlacement (session, the object's slot 0's answer), answered.
 u32 *__fastcall SoundSource711920_SetSpeakerPlacement(u8 *source, void *, u32 *out, u8 *object);
 }
+
+#include "gamedata.h"
+
+// Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(u16[128], gQsoundmixer_782e40, 0x00782e40, 0x100);
+GAME_DATA(float[0x300], gQsoundmixer_782f40, 0x00782f40, 0xc00);   // (the factors up, then down at +0x600: one object, the step is not clamped)

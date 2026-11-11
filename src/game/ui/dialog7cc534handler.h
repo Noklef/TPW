@@ -26,3 +26,6 @@ s32 __cdecl Dialog7cc534_Handler(u8 *window, u32 message, u32 a, u32 b);
 GAME_DATA(s32, gDialog7cc534handler_7cc508, 0x007cc508, 0x4);
 GAME_DATA(u8 *, gDialog7cc534handler_7cc534, 0x007cc534, 0x4);
 GAME_DATA(u32, gDialog7cc534handler_7cc538, 0x007cc538, 0x4);
+
+// Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(u16[0x3e], gText_Dialog7cc534handler_75852c, 0x0075852c, 0x7c);   // L"Disconnecting ...", to its zero

@@ -59,3 +59,9 @@ u32 *__cdecl SoundManager_Make(u32 *out, u32 a, u8 **manager);
 u8 *__fastcall SoundManager_DeletingDtor(u8 *manager, void *, u32 flags);
 
 }  // extern "C"
+
+#include "gamedata.h"
+
+// The vtables hold only ports: tpw.exe's loader points their slots at them (.docs/09-globals.md).
+GAME_DATA(void *[5], SoundManager_vtable, 0x0070a288, 0x14);
+GAME_DATA(void *[10], Class70a2a0_vtable, 0x0070a2a0, 0x28);

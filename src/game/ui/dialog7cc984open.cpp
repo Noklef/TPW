@@ -115,9 +115,9 @@ void plainRows(u8 *box, u8 *row, WString *text) {
     WString_AssignStr(text, nullptr, g_env->text(0x115));
     WString_AppendStr(text, nullptr, wide(L" : "));
     // (TextArgInt_Ctor (n, the word, unsigned), inline)
-    const u32 first[5] = {0x006ff170, 0x5641524d, 0x12, global<u16>((u32)(uintptr_t)&gClass70293c_7cc988 + 0xac), 0};
-    const u32 second[5] = {0x006ff170, 0x5641524d, 0x11, global<u16>((u32)(uintptr_t)&gClass70293c_7cc988 + 0xaa), 0};
-    const u32 third[5] = {0x006ff170, 0x5641524d, 0x10, global<u16>((u32)(uintptr_t)&gClass70293c_7cc988 + 0xa8), 0};
+    const u32 first[5] = {(u32)(uintptr_t)TextArgInt_vtable, 0x5641524d, 0x12, global<u16>((u32)(uintptr_t)&gClass70293c_7cc988 + 0xac), 0};
+    const u32 second[5] = {(u32)(uintptr_t)TextArgInt_vtable, 0x5641524d, 0x11, global<u16>((u32)(uintptr_t)&gClass70293c_7cc988 + 0xaa), 0};
+    const u32 third[5] = {(u32)(uintptr_t)TextArgInt_vtable, 0x5641524d, 0x10, global<u16>((u32)(uintptr_t)&gClass70293c_7cc988 + 0xa8), 0};
     u16 *const buffer = reinterpret_cast<u16 *>((uintptr_t)0x007ba058);
     TextFormat().format(global<void *>((u32)(uintptr_t)&gLanguage_78b530 + 0x564), buffer, 0x3fff, 0x1c0, third, second, first);
     WString_AppendStr(text, nullptr, buffer);
@@ -179,7 +179,7 @@ void __cdecl Dialog7cc984_Open(const u8 *record, u8 *parent, u32 callback, u32 a
         down = 0;
     }
     const s32 depth = g_env->topDepth(nullptr, nullptr);
-    gDialog7cc984_7cc984 = g_env->build(parent, nullptr, game<u8 *>(0x00759170), 0x004c0880);
+    gDialog7cc984_7cc984 = g_env->build(parent, nullptr, game<u8 *>((u32)(uintptr_t)&gDialog7cc984open_759170), 0x004c0880);
     g_env->setDepth(dialog(), nullptr, depth + 4);
     g_env->offset(dialog(), nullptr, 0, down);
     u8 *const box = Window_FindChild(dialog(), nullptr, 0xe5932);

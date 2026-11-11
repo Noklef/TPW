@@ -9,6 +9,8 @@
 #include "engineerrors.h"
 #include "../frontend/lobbysky.h"
 #include "graphicssettings.h"
+#include "lightsource.h"
+#include "../core/imports.h"
 #include "../core/staticobjects.h"
 
 namespace {
@@ -28,7 +30,7 @@ void __fastcall SceneFlags_Touch(u32 *flags) {
 u32 __cdecl RenderDevice_Call0() { return vcall<u32>(global<u8 *>(0x008bd52c), 0); }
 
 u32 __cdecl Display_RestoreIfFocused() {
-    u32(__stdcall *const getFocus)() = *reinterpret_cast<u32(__stdcall *const *)()>((uintptr_t)0x006fd328);
+    u32(__stdcall *const getFocus)() = *reinterpret_cast<u32(__stdcall *const *)()>((uintptr_t)IMPORT(User32_GetFocus));
     if (getFocus() != global<u32>(0x008bd518))
         return 1;
     const u32 generation = global<u32>((u32)(uintptr_t)&gView_8bcbc8 + 0x78) + 1;
@@ -109,14 +111,14 @@ u32 __cdecl Options_Apply() {
 
 u32 __cdecl Environment_Apply() {
     global<u32>((u32)(uintptr_t)&gView_8bcbc8 + 0x8b4) = global<u32>((u32)(uintptr_t)&gBalanceLevel + 0x694);
-    global<u32>(0x007a0b44) = global<u32>((u32)(uintptr_t)&gBalanceLevel + 0x698);
-    global<u32>(0x007a0b3c) = global<u32>((u32)(uintptr_t)&gBalanceLevel + 0x69c);
+    gState_7a0b44 = global<u32>((u32)(uintptr_t)&gBalanceLevel + 0x698);
+    gState_7a0b3c = global<u32>((u32)(uintptr_t)&gBalanceLevel + 0x69c);
     const s32 c = global<s32>((u32)(uintptr_t)&gBalanceLevel + 0x6a0), e = global<s32>((u32)(uintptr_t)&gBalanceLevel + 0x6a4);
     global<s32>(0x007a006c) = c > 0 ? c : 0;
     global<s32>(0x007a01c0) = e > 0 ? e : 0;
-    global<u32>(0x007a0b30) = global<u32>((u32)(uintptr_t)&gBalanceLevel + 0x6a8);
-    global<u32>(0x007a0b34) = global<u32>((u32)(uintptr_t)&gBalanceLevel + 0x6ac);
-    global<u32>(0x007a0b38) = global<u32>((u32)(uintptr_t)&gBalanceLevel + 0x6b0);
+    global<u32>((u32)(uintptr_t)&gLightsource_7a0b30) = global<u32>((u32)(uintptr_t)&gBalanceLevel + 0x6a8);
+    gEnvironment_Apply_7a0b34 = global<u32>((u32)(uintptr_t)&gBalanceLevel + 0x6ac);
+    gEnvironment_Apply_7a0b38 = global<u32>((u32)(uintptr_t)&gBalanceLevel + 0x6b0);
     global<u32>(0x00870ec8) = global<u32>((u32)(uintptr_t)&gBalanceLevel + 0x6d8);
     global<u32>(0x00870ecc) = global<u32>((u32)(uintptr_t)&gBalanceLevel + 0x6dc);
     global<u32>(0x00870ed0) = global<u32>((u32)(uintptr_t)&gBalanceLevel + 0x6e0);

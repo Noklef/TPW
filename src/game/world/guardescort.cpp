@@ -9,6 +9,7 @@
 #include "staff.h"
 #include "visitorsteps.h"
 #include "world.h"
+#include "../core/soundset.h"
 
 namespace {
 
@@ -25,7 +26,7 @@ u32 parkSide() { return at<u32>(global<u8 *>(0x0080239c), 0x1da70c) & 1; }
 
 void givenUp(u8 *guard) {
     g_env->tally(record(), nullptr, 0);
-    at<u16>(guard, 0xc2) = global<u16>(0x0075c7f0);
+    at<u16>(guard, 0xc2) = global<u16>((u32)(uintptr_t)&gStaff_75c7f0);
     g_env->setState(guard, nullptr, 0);
     at<u16>(guard, 0x212) = 0;
 }
@@ -42,7 +43,7 @@ extern "C" {
 
 void __fastcall Guard_Send(u8 *guard, void *, u32 handle) {
     if (g_env->tooTired(guard)) return;
-    g_env->playSound(guard, nullptr, global<u32>(0x00803a30), 0x88);
+    g_env->playSound(guard, nullptr, gSoundCategories.staff, 0x88);
     at<u16>(guard, 0x212) = (u16)handle;
     if (g_env->setDestination(guard, nullptr, cellOf(thingOf(handle)))) g_env->setState(guard, nullptr, 0x10);
 }
@@ -72,10 +73,10 @@ void __fastcall Guard_Chase(u8 *guard) {
         givenUp(guard);
         return;
     }
-    at<u16>(guard, 0xc2) = global<u16>(0x0075c7f0);
+    at<u16>(guard, 0xc2) = global<u16>((u32)(uintptr_t)&gStaff_75c7f0);
     Set4_4217f0(guard + 0xc, nullptr, 0x16);
     g_env->tally(record(), nullptr, 2);
-    g_env->playSound(guard, nullptr, global<u32>(0x00803a30), 0x89);
+    g_env->playSound(guard, nullptr, gSoundCategories.staff, 0x89);
     g_env->killScripts(visitor);
     if (toBooth(guard)) {
         g_env->setState(guard, nullptr, 0x12);

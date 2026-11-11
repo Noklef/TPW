@@ -6,6 +6,7 @@
 #include "../core/gameheap.h"
 #include "../core/savegame.h"
 #include "../core/vcall.h"
+#include "../core/initializers.h"
 
 namespace {
 
@@ -16,7 +17,7 @@ template <typename T> const T &at(const void *p, u32 offset) { return *reinterpr
 extern "C" {
 
 void __fastcall GuiFont_Dtor(u8 *font) {
-    *reinterpret_cast<u32 *>(font) = 0x007058d8;
+    *reinterpret_cast<u32 *>(font) = (u32)(uintptr_t)Class7058d8_vtable;
     u8 *const glyphs = *reinterpret_cast<u8 **>(font + 0xc);
     if (glyphs) GameHeap_Free(glyphs);
 }

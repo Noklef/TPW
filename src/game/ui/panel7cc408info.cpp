@@ -12,6 +12,8 @@
 #include "hoverlabel.h"
 #include "window.h"
 #include "panel7cc218.h"
+#include "../world/world.h"
+#include "../core/textarg.h"
 #include "../core/staticobjects.h"
 
 namespace {
@@ -45,7 +47,7 @@ void __fastcall Panel7cc408_ShowVisitor(u8 *self) {
         const u32 id = at<u32>(visitor, 0x1d8);
         at<u32>(self, 0x24) = id;
         if (id) {
-            const u32 arg[5] = {0x006ff170, 0x5641524d, 0x18, id, 0};
+            const u32 arg[5] = {(u32)(uintptr_t)TextArgInt_vtable, 0x5641524d, 0x18, id, 0};
             g_env->format(global<u8 *>((u32)(uintptr_t)&gLanguage_78b530 + 0x564), buffer(), 0x3fff, 0x1c8, arg);
             g_env->attach(at<u8 *>(self, 0x10), 0x3736, 0x007ba058);
         }
@@ -54,7 +56,7 @@ void __fastcall Panel7cc408_ShowVisitor(u8 *self) {
         show(page, 0x3724, at<u32>(visitor, 0x1a0));
         if (u8 *const child = Window_FindChild(page, nullptr, 0x372d)) {
             FileTime span;
-            const FileTime *const s = g_env->spanOf(global<u8 *>(0x007cf83c) + 0x2a0, nullptr, &span, g_env->timeInPark(visitor) << 2);
+            const FileTime *const s = g_env->spanOf(gWorldPtr + 0x2a0, nullptr, &span, g_env->timeInPark(visitor) << 2);
             vcall<void>(child, 0x1c, (u32)((long long)(((unsigned long long)s->high << 32) | s->low) / 36000000000LL));   // (_alldiv: an hour of ticks)
         }
         show(page, 0x372e, at<u32>(visitor, 0x1c4));
@@ -70,7 +72,7 @@ void __fastcall Panel7cc408_ShowVisitor(u8 *self) {
         if (kind == 0x10) {
             u8 name[0x40];
             g_env->copyName(*reinterpret_cast<u8 **>((uintptr_t)(0x007cfb90 + 0x14 * at<u16>(visitor, 0x1dc))), nullptr, name, 0x40);
-            const u32 arg[4] = {0x006ff174, 0x5641524d, 0, (u32)(uintptr_t)name};
+            const u32 arg[4] = {(u32)(uintptr_t)TextArgString_vtable, 0x5641524d, 0, (u32)(uintptr_t)name};
             g_env->format(global<u8 *>((u32)(uintptr_t)&gLanguage_78b530 + 0x570), buffer(), 0x3fff, kind, arg);
         } else {
             g_env->formatPlain(global<u8 *>((u32)(uintptr_t)&gLanguage_78b530 + 0x570), buffer(), 0x3fff, kind);

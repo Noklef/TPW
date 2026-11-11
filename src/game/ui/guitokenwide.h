@@ -16,3 +16,8 @@ extern "C" {
 // the format 0x77c690. Returns past the token.
 char *__cdecl GuiToken_ReadWide(char *text, u16 *out, u32 count);
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(u8[0x14], gGuiToken_77c690, 0x0077c690, 0x14);

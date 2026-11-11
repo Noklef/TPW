@@ -134,3 +134,6 @@ GAME_DATA(char[20], gText_Challenges_LoadSam_75a1f4, 0x0075a1f4, 0x14);
 
 // The vtables hold only ports: tpw.exe's loader points their slots at them (.docs/09-globals.md).
 GAME_DATA(void *[2], BalanceChallenges_vtable, 0x00700398, 0x8);
+
+// Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(u8[0x310], gBalanceChallenges_GetSchema_739b98, 0x00739b98, 0x310);

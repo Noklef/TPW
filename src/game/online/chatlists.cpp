@@ -13,6 +13,9 @@
 #include "../core/vcall.h"
 #include "../core/wtraits.h"
 #include "postcardsend.h"
+#include "../core/iosbase.h"
+#include "../core/wfilebuf.h"
+#include "../core/imports.h"
 #include "../core/staticobjects.h"
 
 namespace {
@@ -108,7 +111,7 @@ u8 save_list(u8 *self, const char *name, u32 tree_offset, void(__fastcall *advan
     Init_4f1bd0(ios);
     g_env->ostreamCtor(stream, nullptr, buffer, 0, 1, 0);
     g_env->filebufCtor(buffer, nullptr, 0);
-    set_ios_vtable(stream, 0x0070062c);
+    set_ios_vtable(stream, (u32)(uintptr_t)Class70062c_vtable);
     StdString_Tidy(&narrow, nullptr, 0);
     build_path(self, name, folder, &narrow, path, wide_suffix, narrow_suffix);
     if (!g_env->filebufOpen(buffer, nullptr, path, 0x12)) g_env->setState(ios_of(stream), nullptr, 2, 0);
@@ -116,7 +119,7 @@ u8 save_list(u8 *self, const char *name, u32 tree_offset, void(__fastcall *advan
         g_env->wstringDtor(folder);
         StdString_Tidy(&narrow, nullptr, 1);
         g_env->ofstreamDtor(ios);
-        at<u32>(ios, 0) = 0x007099e4;
+        at<u32>(ios, 0) = (u32)(uintptr_t)BasicIosW_vtable;
         g_env->iosBaseDtor(ios);
         return 0;
     }
@@ -130,9 +133,9 @@ u8 save_list(u8 *self, const char *name, u32 tree_offset, void(__fastcall *advan
     if (!close_file(buffer)) g_env->clear(ios_of(stream), nullptr, at<u32>(ios_of(stream), 4) | 2, 0);
     g_env->wstringDtor(folder);
     release_narrow(&narrow);
-    set_ios_vtable(stream, 0x0070062c);
+    set_ios_vtable(stream, (u32)(uintptr_t)Class70062c_vtable);
     g_env->filebufDtor(buffer);
-    set_ios_vtable(stream, 0x007099ec);
+    set_ios_vtable(stream, (u32)(uintptr_t)Class7099ec_vtable);
     g_env->iosDtor(ios);
     return 1;
 }
@@ -156,7 +159,7 @@ void open_ifstream(u8 *stream, u8 *buffer) {
     at<u32>(stream, 0) = 0x00700640;
     g_env->istreamCtor(stream, nullptr, buffer, 0, 0);
     g_env->filebufCtor(buffer, nullptr, 0);
-    set_ios_vtable(stream, 0x00700638);
+    set_ios_vtable(stream, (u32)(uintptr_t)Class700638_vtable);
 }
 
 }  // namespace
@@ -171,7 +174,7 @@ u32 __cdecl CRT_wcslen(const u16 *text) {
     return (u32)(p - text);
 }
 
-u8 __fastcall ChatLists_SaveBuddies(u8 *self, void *, const char *name) { return save_list(self, name, 0xe94, &StdTree_IncC, 0x0075c6dc, reinterpret_cast<uintptr_t>(&gChatLists_75c6d0)); }
+u8 __fastcall ChatLists_SaveBuddies(u8 *self, void *, const char *name) { return save_list(self, name, 0xe94, &StdTree_IncC, (u32)(uintptr_t)&gText_ChatLists_75c6dc, reinterpret_cast<uintptr_t>(&gChatLists_75c6d0)); }
 
 u8 __fastcall ChatLists_SaveIgnored(u8 *self, void *, const char *name) { return save_list(self, name, 0xea4, &StdTree_IncE, 0x0075c6f4, reinterpret_cast<uintptr_t>(&gChatLists_75c6e8)); }
 
@@ -184,10 +187,10 @@ u8 __fastcall ChatLists_LoadBuddies(u8 *self, void *, const char *name) {
     char path[kPathSize];
     u16 line[0x20];
     Init_4ef830(ios);
-    at<u32>(ios, 0) = 0x007099e4;
+    at<u32>(ios, 0) = (u32)(uintptr_t)BasicIosW_vtable;
     open_ifstream(stream, buffer);
     StdString_Tidy(&narrow, nullptr, 0);
-    build_path(self, name, folder, &narrow, path, 0x0075c6dc, reinterpret_cast<uintptr_t>(&gChatLists_75c6d0));
+    build_path(self, name, folder, &narrow, path, (u32)(uintptr_t)&gText_ChatLists_75c6dc, reinterpret_cast<uintptr_t>(&gChatLists_75c6d0));
     bool opened = false;
     if (!at<u32>(buffer, kFile)) {
         const u32 file = g_env->fopen(path, 1);
@@ -211,10 +214,10 @@ u8 __fastcall ChatLists_LoadBuddies(u8 *self, void *, const char *name) {
     if (!close_file(buffer)) g_env->setState(ios_of(stream), nullptr, 2, 0);
     g_env->wstringDtor(folder);
     StdString_Tidy(&narrow, nullptr, 1);
-    set_ios_vtable(stream, 0x00700638);
+    set_ios_vtable(stream, (u32)(uintptr_t)Class700638_vtable);
     g_env->filebufDtor(buffer);
-    set_ios_vtable(stream, 0x007099dc);
-    at<u32>(ios, 0) = 0x007099e4;
+    set_ios_vtable(stream, (u32)(uintptr_t)Class7099dc_vtable);
+    at<u32>(ios, 0) = (u32)(uintptr_t)BasicIosW_vtable;
     g_env->iosBaseDtor(ios);
     return 1;
 }
@@ -232,7 +235,7 @@ u8 __fastcall ChatLists_LoadIgnored(u8 *self, void *, const char *name) {
     StdString_Tidy(&narrow, nullptr, 0);
     build_path(self, name, folder, &narrow, path, 0x0075c6f4, reinterpret_cast<uintptr_t>(&gChatLists_75c6e8));
     if (!g_env->filebufOpen(buffer, nullptr, path, 1)) g_env->clear(ios_of(stream), nullptr, at<u32>(ios_of(stream), 4) | 2, 0);
-    const auto notify = *reinterpret_cast<u32(__fastcall *const *)(u32, u32, u8 *, u8 *)>((uintptr_t)0x006fd484);
+    const auto notify = *reinterpret_cast<u32(__fastcall *const *)(u32, u32, u8 *, u8 *)>((uintptr_t)IMPORT(Weachatr_Chat_Ignore));
     while (stream_good(g_env->getline(stream, nullptr, line, 0x20, g_env->widen(ios_of(stream), nullptr, 10)))) {
         CountedBuf_Reset(wide, nullptr, 0);
         g_env->assign(wide, nullptr, line, CRT_wcslen(line));
@@ -250,9 +253,9 @@ u8 __fastcall ChatLists_LoadIgnored(u8 *self, void *, const char *name) {
     if (!close_file(buffer)) g_env->setState(ios_of(stream), nullptr, 2, 0);
     g_env->wstringDtor(folder);
     StdString_Tidy(&narrow, nullptr, 1);
-    set_ios_vtable(stream, 0x00700638);
+    set_ios_vtable(stream, (u32)(uintptr_t)Class700638_vtable);
     g_env->filebufDtor(buffer);
-    set_ios_vtable(stream, 0x007099dc);
+    set_ios_vtable(stream, (u32)(uintptr_t)Class7099dc_vtable);
     g_env->iosDtor(ios);
     return 1;
 }

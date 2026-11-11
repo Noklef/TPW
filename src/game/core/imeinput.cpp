@@ -11,6 +11,7 @@
 #include "stdtree.h"
 #include "stdwstring.h"
 #include "../ui/window7cc8c0handler.h"
+#include "imports.h"
 
 namespace {
 
@@ -19,11 +20,11 @@ AddrCalls g_calls;
 template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cast<T *>((uintptr_t)p + offset); }
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
 
-u32 ImmGetContext(u32 window) { return global<u32(__stdcall *)(u32)>(0x006fd084)(window); }
-u32 ImmReleaseContext(u32 window, u32 context) { return global<u32(__stdcall *)(u32, u32)>(0x006fd080)(window, context); }
-u32 ImmNotifyIME(u32 context, u32 action, u32 index, u32 value) { return global<u32(__stdcall *)(u32, u32, u32, u32)>(0x006fd068)(context, action, index, value); }
-s32 Widen(const char *text, s32 count, u16 *out, s32 size) { return global<s32(__stdcall *)(u32, u32, const char *, s32, u16 *, s32)>(0x006fd174)(0, 0, text, count, out, size); }
-u32 DefaultProc(u32 window, u32 message, u32 wparam, u32 lparam) { return global<u32(__stdcall *)(u32, u32, u32, u32)>(0x006fd340)(window, message, wparam, lparam); }
+u32 ImmGetContext(u32 window) { return global<u32(__stdcall *)(u32)>(IMPORT(Imm32_ImmGetContext))(window); }
+u32 ImmReleaseContext(u32 window, u32 context) { return global<u32(__stdcall *)(u32, u32)>(IMPORT(Imm32_ImmReleaseContext))(window, context); }
+u32 ImmNotifyIME(u32 context, u32 action, u32 index, u32 value) { return global<u32(__stdcall *)(u32, u32, u32, u32)>(IMPORT(Imm32_ImmNotifyIME))(context, action, index, value); }
+s32 Widen(const char *text, s32 count, u16 *out, s32 size) { return global<s32(__stdcall *)(u32, u32, const char *, s32, u16 *, s32)>(IMPORT(Kernel32_MultiByteToWideChar))(0, 0, text, count, out, size); }
+u32 DefaultProc(u32 window, u32 message, u32 wparam, u32 lparam) { return global<u32(__stdcall *)(u32, u32, u32, u32)>(IMPORT(User32_DefWindowProcA))(window, message, wparam, lparam); }
 
 const u32 kNarrowNpos = 0x006fe5ac, kWideNpos = 0x006fef00;
 const u16 *EmptyText() { return reinterpret_cast<const u16 *>(gWindow7cc8c0handler_78a374); }
@@ -53,7 +54,7 @@ void ClearComposition(u8 *ime) {
 
 // `text` narrowed into s, sized by a first call; the second call's answer.
 s32 Narrow(StdString *s, const u16 *text) {
-    const auto convert = global<s32(__stdcall *)(u32, u32, const u16 *, s32, char *, s32, u32, u32)>(0x006fd1dc);
+    const auto convert = global<s32(__stdcall *)(u32, u32, const u16 *, s32, char *, s32, u32, u32)>(IMPORT(Kernel32_WideCharToMultiByte));
     const s32 n = convert(0, 0, text, -1, nullptr, 0, 0, 0);
     StdString temp;
     StdString_Tidy(&temp, nullptr, 0);
@@ -106,7 +107,7 @@ extern "C" {
 
 s32 __fastcall ImeContext_ReadComposition(const u32 *context, void *, u32 kind, u16 *out, s32 size) {
     char buffer[0x40];
-    const s32 n = global<s32(__stdcall *)(u32, u32, char *, u32)>(0x006fd064)(context[1], kind, buffer, 0x40);
+    const s32 n = global<s32(__stdcall *)(u32, u32, char *, u32)>(IMPORT(Imm32_ImmGetCompositionStringA))(context[1], kind, buffer, 0x40);
     if (n < 0) return n;
     buffer[n] = 0;
     s32 length = 0;
@@ -138,7 +139,7 @@ s32 __fastcall ImeContext_SetComposition(const u32 *context, void *, u32 index, 
         }
     }
     if (result >= 0)
-        result = global<s32(__stdcall *)(u32, u32, const char *, u32, const char *, u32)>(0x006fd094)(context[1], index, firstChars, firstLength, secondChars, secondLength);
+        result = global<s32(__stdcall *)(u32, u32, const char *, u32, const char *, u32)>(IMPORT(Imm32_ImmSetCompositionStringA))(context[1], index, firstChars, firstLength, secondChars, secondLength);
     StdString_Tidy(&first, nullptr, 1);
     StdString_Tidy(&second, nullptr, 1);
     return result;
@@ -165,8 +166,8 @@ void __fastcall Ime_OnComposition(u8 *ime, void *, u32 window, u32, u32 flags) {
     context[1] = ImmGetContext(window);
     if (!context[1]) return;
     char description[0x100];
-    global<u32(__stdcall *)(u32, char *, u32)>(0x006fd088)(global<u32(__stdcall *)(u32)>(0x006fd304)(0), description, 0x100);
-    const bool ime98 = Crt().strncmp(description, reinterpret_cast<const char *>((uintptr_t)0x0074f8b0), 0x10) == 0;
+    global<u32(__stdcall *)(u32, char *, u32)>(IMPORT(Imm32_ImmGetDescriptionA))(global<u32(__stdcall *)(u32)>(IMPORT(User32_GetKeyboardLayout))(0), description, 0x100);
+    const bool ime98 = Crt().strncmp(description, gImeinput_74f8b0, 0x10) == 0;
     const u32 limit = at<u32>(ime, 0x58);
     if (at<u32>(ime, 0x10) > limit) {
         StdWString kept;
@@ -187,7 +188,7 @@ void __fastcall Ime_OnComposition(u8 *ime, void *, u32 window, u32, u32 flags) {
 void __fastcall Ime_ResetIfClosed(u8 *ime, void *, u32 window) {
     const u32 context = ImmGetContext(window);
     if (!context) return;
-    if (!global<u32(__stdcall *)(u32)>(0x006fd06c)(context)) {   // ImmGetOpenStatus
+    if (!global<u32(__stdcall *)(u32)>(IMPORT(Imm32_ImmGetOpenStatus))(context)) {   // ImmGetOpenStatus
         u8 *const first = at<u8 *>(ime, 0x3c);
         CountedVector14_ClearRange(first, at<u8 *>(ime, 0x40));
         at<u8 *>(ime, 0x40) = first;
@@ -196,7 +197,7 @@ void __fastcall Ime_ResetIfClosed(u8 *ime, void *, u32 window) {
         form[0] = 2;
         form[1] = 0;
         form[2] = 0;
-        global<u32(__stdcall *)(u32, const u32 *)>(0x006fd074)(context, form);   // ImmSetCompositionWindow
+        global<u32(__stdcall *)(u32, const u32 *)>(IMPORT(Imm32_ImmSetCompositionWindow))(context, form);   // ImmSetCompositionWindow
     }
     ImmReleaseContext(window, context);
 }
@@ -205,8 +206,8 @@ void __fastcall Ime_Detach(u8 *ime) {
     const u32 window = at<u32>(ime, 0x4c);
     if (!window) return;
     const u32 context = ImmGetContext(window);
-    if (context) global<u32(__stdcall *)(u32, u32)>(0x006fd070)(context, 0);   // ImmSetOpenStatus
-    global<u32(__stdcall *)(u32, s32, u32)>(0x006fd388)(at<u32>(ime, 0x4c), -4, at<u32>(ime, 0x50));   // SetWindowLongA
+    if (context) global<u32(__stdcall *)(u32, u32)>(IMPORT(Imm32_ImmSetOpenStatus))(context, 0);   // ImmSetOpenStatus
+    global<u32(__stdcall *)(u32, s32, u32)>(IMPORT(User32_SetWindowLongA))(at<u32>(ime, 0x4c), -4, at<u32>(ime, 0x50));   // SetWindowLongA
     if (TakeMapGuard()) {
         global<u8>(0x007b4a48) = 0;
         StdTree_CtorA(ImeMap());
@@ -223,7 +224,7 @@ u32 *__fastcall Ime_Attach(u8 *ime, void *, u32 *out, u32 window) {
     *out = 0xffffffff;
     if (at<u32>(ime, 0x4c)) return out;
     if (!at<u32>(ime, 0x5c)) {
-        at<u32>(ime, 0x5c) = global<u32(__stdcall *)()>(0x006fd090)();   // ImmCreateContext
+        at<u32>(ime, 0x5c) = global<u32(__stdcall *)()>(IMPORT(Imm32_ImmCreateContext))();   // ImmCreateContext
         if (!at<u32>(ime, 0x5c)) return out;
     }
     for (u32 i = 0; i < 0x40; ++i) at<u32>(ime, 0x60 + i * 4) = 0;
@@ -240,7 +241,7 @@ u32 *__fastcall Ime_Attach(u8 *ime, void *, u32 *out, u32 window) {
     u32 *const value = StdMapA_Index(ImeMap(), nullptr, &window);
     value[0] = (u32)(uintptr_t)ime;
     value[1] = 0xffffffff;
-    const u32 old = global<u32(__stdcall *)(u32, s32, u32)>(0x006fd388)(window, -4, 0x0047a880);   // SetWindowLongA
+    const u32 old = global<u32(__stdcall *)(u32, s32, u32)>(IMPORT(User32_SetWindowLongA))(window, -4, 0x0047a880);   // SetWindowLongA
     at<u32>(ime, 0x50) = old;
     if (!old) {
         s32 error;
@@ -259,7 +260,7 @@ u32 *__fastcall Ime_Attach(u8 *ime, void *, u32 *out, u32 window) {
 }
 
 u32 __fastcall Ime_ReadCandidates(u8 *ime, void *, const u32 *context, u32 index) {
-    const auto list = global<u32(__stdcall *)(u32, u32, u8 *, u32)>(0x006fd078);   // ImmGetCandidateListA
+    const auto list = global<u32(__stdcall *)(u32, u32, u8 *, u32)>(IMPORT(Imm32_ImmGetCandidateListA));   // ImmGetCandidateListA
     u8 *const entry = at<u8 *>(ime, 0x3c) + index * 0x24;
     u8 *const strings = entry + 0x10;
     StdWStringVector_Erase(strings, nullptr, at<StdWString *>(strings, 4), at<StdWString *>(strings, 8));
@@ -335,7 +336,7 @@ void __fastcall Ime_ChangeCandidates(u8 *ime, void *, u32 window, u32 mask) {
 }
 
 u32 __cdecl Ime_PickLayout(u32 layout) {
-    const auto layouts = global<s32(__stdcall *)(s32, u32 *)>(0x006fd310);   // GetKeyboardLayoutList
+    const auto layouts = global<s32(__stdcall *)(s32, u32 *)>(IMPORT(User32_GetKeyboardLayoutList));   // GetKeyboardLayoutList
     const s32 n = layouts(0, nullptr);
     if (!n) return 0;
     const u32 zero = 0;
@@ -360,7 +361,7 @@ u32 __cdecl Ime_PickLayout(u32 layout) {
             ImeVector_InsertN(vector, nullptr, at<u32 *>(vector, 8), 1, p);
         }
         for (u32 *p = at<u32 *>(vector, 4); p != at<u32 *>(vector, 8); ++p) {
-            if (!(global<u32(__stdcall *)(u32, u32)>(0x006fd08c)(*p, 4) & 0x30000)) {   // ImmGetProperty
+            if (!(global<u32(__stdcall *)(u32, u32)>(IMPORT(Imm32_ImmGetProperty))(*p, 4) & 0x30000)) {   // ImmGetProperty
                 result = *p;
                 break;
             }
@@ -421,13 +422,13 @@ u32 __fastcall Ime_OnMessage(u8 *ime, void *, u32 window, u32 message, u32 wpara
         }
         case 5: {   // IMN_OPENCANDIDATE, then the messages waiting (at most 200)
             Ime_OpenCandidates(ime, nullptr, window, lparam);
-            const auto peek = global<u32(__stdcall *)(u32 *, u32, u32, u32, u32)>(0x006fd354);
+            const auto peek = global<u32(__stdcall *)(u32 *, u32, u32, u32, u32)>(IMPORT(User32_PeekMessageA));
             u32 waiting[7];   // MSG
             s32 left = 200;
             if (peek(waiting, 0, 0, 0, 1)) {
                 while (left-- != 0) {
-                    global<u32(__stdcall *)(const u32 *)>(0x006fd358)(waiting);   // TranslateMessage
-                    global<u32(__stdcall *)(const u32 *)>(0x006fd35c)(waiting);   // DispatchMessageA
+                    global<u32(__stdcall *)(const u32 *)>(IMPORT(User32_TranslateMessage))(waiting);   // TranslateMessage
+                    global<u32(__stdcall *)(const u32 *)>(IMPORT(User32_DispatchMessageA))(waiting);   // DispatchMessageA
                     if (!peek(waiting, 0, 0, 0, 1)) break;
                 }
             }

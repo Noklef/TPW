@@ -4,6 +4,7 @@
 #include <cstdint>
 #include "../ui/dialog74fb20.h"
 #include "../ui/panel7b9940.h"
+#include "world.h"
 #include "mousemode.h"
 
 namespace {
@@ -15,7 +16,7 @@ template <typename T> T &at(u32 address, u32 offset) { return *reinterpret_cast<
 
 const u32 kHolder = reinterpret_cast<uintptr_t>(&gPanel7b9940_7b05e8);
 
-u32 level() { return global<u32>(0x007cf83c); }
+u32 level() { return global<u32>((u32)&gWorldPtr); }
 u16 tileId() { return global<u16>(0x007b05cc); }
 u32 tileOf(u16 id) { return level() + 0x294 + (u32)id * 0x44; }
 u32 alloc(u32 size) { return g_calls.Cd(0x0067acc0, size); }
@@ -66,7 +67,7 @@ u32 holderMade() {
 }
 
 bool onlineGame() {
-    u8 &made = global<u8>(0x00fb3518);
+    u8 &made = gMousemodeclick_fb3518;
     if (!(made & 1)) {
         made |= 1;
         g_calls.Th(0x00550ca0, reinterpret_cast<uintptr_t>(&gDialog74fb20_fb3b7c));

@@ -32,7 +32,7 @@ const Dialog7cc654HandlerEnv *g_env = &kGameEnv;
 const u32 kMark1 = 0x1000000;
 const u32 kMark2 = 0x2000000;
 
-u16 *addresses() { return reinterpret_cast<u16 *>((uintptr_t)0x007cb4d0); }
+u16 *addresses() { return reinterpret_cast<u16 *>((uintptr_t)&gDialog7cc654_7cb4d0); }
 
 void store(u8 *list, s32 row, u32 data, u32 refresh) {
     u32 texts[4];   // (the first two unset: the mask leaves them out)

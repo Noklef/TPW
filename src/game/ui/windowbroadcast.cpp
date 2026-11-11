@@ -26,16 +26,16 @@ void __cdecl WindowTree_PostActive(u8 *window, u32 on) {
 }
 
 void __cdecl Gui_TellActive() {
-    if (global<u8 *>(0x00faa5d8) && !global<u32>(0x0077c488)) {
+    if (global<u8 *>(0x00faa5d8) && !gWindowbroadcast_77c488) {
         WindowTree_PostActive(global<u8 *>(0x00faa5d8), 1);
-        global<u32>(0x0077c488) = 1;
+        gWindowbroadcast_77c488 = 1;
     }
 }
 
 void __cdecl Gui_TellInactive() {
-    if (global<u8 *>(0x00faa5d8) && global<u32>(0x0077c488)) {
+    if (global<u8 *>(0x00faa5d8) && gWindowbroadcast_77c488) {
         WindowTree_PostActive(global<u8 *>(0x00faa5d8), 0);
-        global<u32>(0x0077c488) = 0;
+        gWindowbroadcast_77c488 = 0;
     }
     global<u16>(0x00faa5bc) = 0;
 }

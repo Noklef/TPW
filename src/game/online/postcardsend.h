@@ -38,3 +38,6 @@ GAME_DATA(char[8], gPostcard_Send_754468, 0x00754468, 0x8);
 GAME_DATA(char[12], gPostcard_Send_754470, 0x00754470, 0xc);
 GAME_DATA(u8[512], gPostcard_Send_7cbcb0, 0x007cbcb0, 0x200);
 GAME_DATA(u32, gPostcard_Send_7cbf38, 0x007cbf38, 0x4);
+
+// Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(u8[0x200], gPostcardsend_7cb958, 0x007cb958, 0x200);   // a path buffer of 0x200

@@ -39,3 +39,8 @@ u8 *__fastcall SoundOccluders_DeletingDtor(u8 *list, void *, u32 flags);
 void SoundOccluders_SingletonDtor();
 
 }  // extern "C"
+
+#include "gamedata.h"
+
+// The vtables hold only ports: tpw.exe's loader points their slots at them (.docs/09-globals.md).
+GAME_DATA(void *[1], SoundOccluders_vtable, 0x0070aa70, 0x4);

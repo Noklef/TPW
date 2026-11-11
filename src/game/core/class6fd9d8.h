@@ -186,3 +186,22 @@ u8 *__fastcall Class6fdad8_Ctor(u8 *object, void *, const WString *name, const W
 u8 *__fastcall Class6fdae8_Ctor(u8 *object, void *, const WString *name, const WString *folder);
 u8 *__fastcall Class6fdaf8_Ctor(u8 *object, void *, const WString *name, const WString *folder);
 }  // extern "C"
+
+#include "gamedata.h"
+
+// The vtables hold only ports: tpw.exe's loader points their slots at them (.docs/09-globals.md).
+GAME_DATA(void *[1], Class6fd9d4_vtable, 0x006fd9d4, 0x4);
+GAME_DATA(void *[3], Class6fd9d8_vtable, 0x006fd9d8, 0xc);
+GAME_DATA(void *[3], Class6fda48_vtable, 0x006fda48, 0xc);
+GAME_DATA(void *[3], Class6fda58_vtable, 0x006fda58, 0xc);
+GAME_DATA(void *[3], Class6fda68_vtable, 0x006fda68, 0xc);
+GAME_DATA(void *[3], Class6fda78_vtable, 0x006fda78, 0xc);
+GAME_DATA(void *[3], Class6fda88_vtable, 0x006fda88, 0xc);
+GAME_DATA(void *[3], Class6fda98_vtable, 0x006fda98, 0xc);
+GAME_DATA(void *[1], Class6fdaa4_vtable, 0x006fdaa4, 0x4);
+GAME_DATA(void *[3], Class6fdaa8_vtable, 0x006fdaa8, 0xc);
+GAME_DATA(void *[3], Class6fdab8_vtable, 0x006fdab8, 0xc);
+GAME_DATA(void *[3], Class6fdac8_vtable, 0x006fdac8, 0xc);
+GAME_DATA(void *[3], Class6fdad8_vtable, 0x006fdad8, 0xc);
+GAME_DATA(void *[3], Class6fdae8_vtable, 0x006fdae8, 0xc);
+GAME_DATA(void *[3], Class6fdaf8_vtable, 0x006fdaf8, 0xc);

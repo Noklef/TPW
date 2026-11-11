@@ -19,8 +19,13 @@
 #include "../render/graphicssettings.h"
 #include "../gfx/texcache.h"
 #include "../coaster/arreplayaction.h"
+#include "../world/camera.h"
+#include "../world/world.h"
+#include "gamestart.h"
 #include "../world/thingmsg.h"
 #include "staticobjects.h"
+#include "../render/d3dsetup.h"
+#include "imports.h"
 
 namespace {
 
@@ -62,9 +67,9 @@ const u32 kClocks = (u32)(uintptr_t)&gObj_785970, kPanel = 0x007b51f0, kOwner = 
           kCameraMode = (u32)(uintptr_t)&gStatic_f7b560, kPaths = (u32)(uintptr_t)&gStrings5_f816c0, kState = 0x0087906c;
 
 u32 Now() { return Th(0x00402d70, kClocks); }            // Clocks_Now
-u32 Ticks() { return G<u32(__stdcall *)()>(0x006fd1d0)(); }   // timeGetTime
-bool Key(s32 key) { return G<u16(__stdcall *)(s32)>(0x006fd320)(key) != 0; }   // GetAsyncKeyState, its word
-void Say(u32 text) { G<void(__stdcall *)(u32)>(0x006fd1e0)(text); }   // OutputDebugStringA
+u32 Ticks() { return G<u32(__stdcall *)()>(IMPORT(Kernel32_GetTickCount))(); }   // timeGetTime
+bool Key(s32 key) { return G<u16(__stdcall *)(s32)>(IMPORT(User32_GetAsyncKeyState))(key) != 0; }   // GetAsyncKeyState, its word
+void Say(u32 text) { G<void(__stdcall *)(u32)>(IMPORT(Kernel32_OutputDebugStringA))(text); }   // OutputDebugStringA
 u32 Bits(float f) {
     u32 b;
     std::memcpy(&b, &f, 4);
@@ -109,13 +114,13 @@ bool Stopped() { return (u16)Cd(0x006595a8) != 0 || Key(0x1b) || Key(0x20); }
 
 void LoadText() {
     const u32 text = Th(0x0041a820, (u32)(uintptr_t)&gLanguage_78b530);   // Language_Buffer, (its result and the two after it are the call's)
-    Th(0x00587380, kLoadScreen, text, 0x00764fe4, 0x1f4);
+    Th(0x00587380, kLoadScreen, text, (u32)(uintptr_t)&gGameframe_764fe4, 0x1f4);
 }
 
 void Particles() {
     Cd(0x0051faa0, 0, G<u32>((u32)(uintptr_t)&gBalanceGraphics + 0x60), 0x800);   // Particles_Init
     Cd(0x0051fd80, G<u32>((u32)(uintptr_t)&gOptions_78d8d8 + 0x8) == 0 ? 1 : 0);   // Particles_SetReduced
-    Cd(0x0051f370, Cd(0x0044a280, 0x007651b8, 1, 0));   // ParticleLib_Load of Quickload_Locate
+    Cd(0x0051f370, Cd(0x0044a280, (u32)(uintptr_t)&gGameframe_7651b8, 1, 0));   // ParticleLib_Load of Quickload_Locate
 }
 
 void Post(u32 kind) {   // a ThingMsg13 (0x40f630; vtable 0x6fd810) to the message centre
@@ -175,7 +180,7 @@ void Frontend() {   // state 1
     Cd(0x00462870, 1);   // WorldVerts_Alloc
     Th(0x00402ed0, kClocks);   // GameClock_Unfreeze
     Th(0x00481400, kPanel);
-    Crt().sprintf(line, reinterpret_cast<const char *>(0x0074d0c4), at<const char *>(Th(0x00619240, kPaths), 8));
+    Crt().sprintf(line, gGameframe_74d0c4, at<const char *>(Th(0x00619240, kPaths), 8));
     Cd(0x00429ba0, line, 0, 0, 0);   // ModelSlot_LoadAdvisor
     Cd(0x005989c0);   // Advisor_Init
     Particles();
@@ -261,14 +266,14 @@ void FrontendEnd() {   // state 3
 }
 
 void WaitForChat() {   // state 9, mode 1
-    Say(0x00765190);
+    Say((u32)(uintptr_t)&gGameframe_765190);
     const u32 start = Cd(0x005f5fa0);   // Time_GetMs
     Th(0x004e5be0, Chat());
     for (;;) {
         Th(0x004e6560, Chat());   // ChatAvatar_PumpEvents
         if (at<u8>(Chat(), 0x28) == 1) {
             Th(0x004e5ef0, Chat());
-            Say(0x0076512c);
+            Say((u32)(uintptr_t)&gGameframe_76512c);
             return;
         }
         if ((u8)Th(0x004e6150, Chat())) {   // OnlineChat_Get2a
@@ -278,7 +283,7 @@ void WaitForChat() {   // state 9, mode 1
         if (Cd(0x005f5fa0) - start > 0x493e0) {
             Th(0x004e6130, Chat());   // OnlineChat_Set29And2a
             G<u32>(kState) = 0xb;
-            Say(0x007650ec);
+            Say((u32)(uintptr_t)&gGameframe_7650ec);
             return;
         }
     }
@@ -383,9 +388,9 @@ void WorldStep() {   // state 0xa: every eighth step
     if (ran < 3) {
         G<u32>(0x00879064) = ran + 1;
         if (Mode() == 0 || Mode() == 2) {
-            Timed(0x00878688, 0x00878088, [] { Th(0x00516380, G<u32>(0x007cf83c)); });   // World_Tick
+            Timed(0x00878688, 0x00878088, [] { Th(0x00516380, G<u32>((u32)&gWorldPtr)); });   // World_Tick
         } else if (Mode() == 1) {
-            Th(0x005166b0, G<u32>(0x007cf83c));
+            Th(0x005166b0, G<u32>((u32)&gWorldPtr));
             Th(0x004e6170, Chat());
         }
     }
@@ -396,13 +401,13 @@ void MusicLevels() {   // state 0xa: every 32nd step
     constexpr u32 kKind = 0x001da738;
     s32 count = (s32)Th(0x004c81e0, Th(0x00519510, G<u32>(G<u32>(0x007cf6ec))));   // ParkAnalyser_Kind1OnPlainHalf of GameTable7cfb90_Get1da720
     if (count > 0x59) count = 0x59;
-    if (at<u32>(G<u32>(0x007cf83c), kKind) == 4) count = 0;
+    if (at<u32>(G<u32>((u32)&gWorldPtr), kKind) == 4) count = 0;
     Cd(0x0051e790, count);   // Sound_SetMusicLevel
     const u32 word = G<u16>(0x007b05cc);   // (pushed over a stale high word)
-    const u32 table = Th(0x00519510, G<u32>(0x007cf83c));
+    const u32 table = Th(0x00519510, G<u32>((u32)&gWorldPtr));
     s32 around = (s32)Th(0x004c8d30, table, 1, word, 4, 0);   // Things_CountOfKindAround
     if (around > 0x64) around = 0x64;
-    if (at<u32>(G<u32>(0x007cf83c), kKind) == 4) around = 0;
+    if (at<u32>(G<u32>((u32)&gWorldPtr), kKind) == 4) around = 0;
     Cd(0x0051e7b0, around);   // Sound_SetKidsLevel
     Cd(0x0055ab50);   // FlyingRide_SetBounds
 }
@@ -430,9 +435,9 @@ void FixedSteps() {   // state 0xa
 }
 
 void SoundPlacement() {   // state 0xa
-    const u32 xBits = G<u32>(0x007909c0), yBits = G<u32>(0x007909c4), zBits = G<u32>(0x007909c8);
-    const u32 a0 = G<u32>(0x007909a0), a4 = G<u32>(0x007909a4), a8 = G<u32>(0x007909a8), b0 = G<u32>(0x007909b0), b4 = G<u32>(0x007909b4), b8 = G<u32>(0x007909b8);
-    if (G<u8>(0x00790ab0) & 0x16) {
+    const u32 xBits = reinterpret_cast<u32 &>(gCamera_790990[12]), yBits = reinterpret_cast<u32 &>(gCamera_790990[13]), zBits = reinterpret_cast<u32 &>(gCamera_790990[14]);
+    const u32 a0 = reinterpret_cast<u32 &>(gCamera_790990[4]), a4 = reinterpret_cast<u32 &>(gCamera_790990[5]), a8 = reinterpret_cast<u32 &>(gCamera_790990[6]), b0 = reinterpret_cast<u32 &>(gCamera_790990[8]), b4 = reinterpret_cast<u32 &>(gCamera_790990[9]), b8 = reinterpret_cast<u32 &>(gCamera_790990[10]);
+    if (reinterpret_cast<u8 &>(gCameraFlags) & 0x16) {
         Cd(0x0051c1d0, xBits, yBits, zBits, b0, b4, b8, a0, a4, a8);
         return;
     }
@@ -441,9 +446,9 @@ void SoundPlacement() {   // state 0xa
     std::memcpy(&y, &yBits, 4);
     std::memcpy(&z, &zBits, 4);
     const float &lag = G<const float>(0x00700f88);
-    const X87Reg dz = X87Reg(z) - G<const float>(0x00790ac0);
-    const X87Reg dy = X87Reg(y) - G<const float>(0x00790abc);
-    const X87Reg dx = X87Reg(x) - G<const float>(0x00790ab8);
+    const X87Reg dz = X87Reg(z) - gCamera_790ac0;
+    const X87Reg dy = X87Reg(y) - gCamera_790abc;
+    const X87Reg dx = X87Reg(x) - gCamera_790ab8;
     const X87Reg nz = z - (dz * lag);
     const X87Reg ny = y - (dy * lag);
     const X87Reg sx = dx * lag;
@@ -459,9 +464,9 @@ void Drawing() {   // state 0xa
     Cd(0x00599880);
     Th(0x004813b0, kPanel);
     Cd(0x00557ab0);   // Rsse_UpdateAll
-    Th(0x00519060, G<u32>(0x007cf83c), ScaledSigned((s32)(G<u32>(0x008786bc) - G<u32>(0x00878c74)), 0x00700f8c));   // Things_PoseRides
+    Th(0x00519060, G<u32>((u32)&gWorldPtr), ScaledSigned((s32)(G<u32>(0x008786bc) - G<u32>(0x00878c74)), 0x00700f8c));   // Things_PoseRides
     Cd(0x0055ce60, ScaledSigned((s32)(G<u32>(0x008786bc) - G<u32>(0x0087879c)), 0x00700f90));   // FlyingRides_LerpSlots
-    Th(0x00518f90, G<u32>(0x007cf83c), ScaledSigned((s32)(G<u32>(0x008786bc) - G<u32>(0x00878a1c)), 0x00700f94));   // World_PlaceSprites
+    Th(0x00518f90, G<u32>((u32)&gWorldPtr), ScaledSigned((s32)(G<u32>(0x008786bc) - G<u32>(0x00878a1c)), 0x00700f94));   // World_PlaceSprites
     Cd(0x00443340);   // CoasterEdit_Update
     Cd(0x00435a30);
     Cd(0x0044e410, 2);
@@ -469,7 +474,7 @@ void Drawing() {   // state 0xa
     Cd(0x00429df0, 0);
     Cd(0x00429df0, 1);
     Cd(0x00599800);
-    const bool camera = (G<u32>(0x00790ab0) & 0x16) != 0;
+    const bool camera = (gCameraFlags & 0x16) != 0;
     const u8 was = G<u8>(0x00878e84);
     if (camera ? was == 0 : was == 1) {
         G<u32>((u32)(uintptr_t)&gView_8bcbc8) ^= 0x2080;
@@ -477,10 +482,10 @@ void Drawing() {   // state 0xa
         G<u32>(0x0087502c) = 0x12c;
         G<u32>(0x00875028) = Ticks();
     }
-    const u8 cameraByte = G<u8>(0x00790ab0);
+    const u8 cameraByte = reinterpret_cast<u8 &>(gCameraFlags);
     G<u8>(0x00878e84) = (cameraByte & 0x16) != 0;
     if (G<s32>(0x0087502c) > 0) {
-        const u32 surface = at<u32>(G<u32>(0x00879a24), 0x14);
+        const u32 surface = at<u32>(G<u32>((u32)(uintptr_t)&gD3dsetup_879a20 + 0x4), 0x14);
         u32 out;
         G<u32(__stdcall *)(u32, u32, u32 *)>(G<u32>(surface))(surface, 0x00707210, &out);   // QueryInterface
         Cd(0x0053e760, out);
@@ -524,7 +529,7 @@ void ParkFrame() {   // state 0xa
     G<u32>(0x0087868c) = took;
     const u32 total = (G<u32>(0x0087907c) += took);
     Shift(0x008780a8, total);
-    Crt().sprintf(reinterpret_cast<char *>(0x00877eb8), reinterpret_cast<const char *>(0x007650b4), Mean(0x00878088), Mean(0x008780a8), sc8, se8, s108);
+    Crt().sprintf(reinterpret_cast<char *>(0x00877eb8), gGameframe_7650b4, Mean(0x00878088), Mean(0x008780a8), sc8, se8, s108);
     const s32 ending = G<s32>(0x00879088);
     if (ending == 1)
         G<u32>(kState) = 0xd;
@@ -635,7 +640,7 @@ u32 __cdecl Game_RunFrame() {
         ++G<u32>(0x008786dc);
     else
         G<u32>(0x008786dc) = 0;
-    if (!G<u32>(0x00879068)) return result;
+    if (!gGamestart_879068) return result;
     switch (G<u32>(kState)) {
     case 1: Frontend(); break;
     case 2: FrontendFrame(); break;

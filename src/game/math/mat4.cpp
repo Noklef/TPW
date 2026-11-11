@@ -78,9 +78,9 @@ void transform(u32 in, u32 by, u32 out) {
 void inverse_through(u32 from, u32 inverse, u32 result) {
     copy16(inverse, from);
     Mat4_Invert(&global<u32>(inverse));
-    static_matrix((u32)&gPointsprites_fb33e0, 0x00fb3400);
-    transform(inverse, 0x0087b110, 0x00fb3400);
-    copy16(result, 0x00fb3400);
+    static_matrix((u32)&gPointsprites_fb33e0, (u32)(uintptr_t)&gMat4_fb3400);
+    transform(inverse, 0x0087b110, (u32)(uintptr_t)&gMat4_fb3400);
+    copy16(result, (u32)(uintptr_t)&gMat4_fb3400);
     static_matrix((u32)&gLandscapeMatrixGuard_fb3440, (u32)&gLandscapeMatrix_fb3460);
     transform(result, 0x0087b0d0, (u32)&gLandscapeMatrix_fb3460);
     copy16(result, (u32)&gLandscapeMatrix_fb3460);

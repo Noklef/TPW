@@ -10,6 +10,8 @@
 #include "../files/handles.h"
 #include "../render/d3dresult.h"
 #include "../render/engineerrors.h"
+#include "../render/enginedebug.h"
+#include "../render/d3dsetup.h"
 #include "../core/staticobjects.h"
 
 namespace {
@@ -73,7 +75,7 @@ u32 __fastcall ScreenGrab_TakeFront(u8 *grab, void *) {
         EngineErrors_Push(reinterpret_cast<u8 *>((uintptr_t)0x00879ad0), nullptr, 2, 0xb0754000);
         return 0;
     }
-    u8 *const front = at<u8 *>(global<u8 *>(0x00879a24), 0x14);
+    u8 *const front = at<u8 *>(global<u8 *>((u32)(uintptr_t)&gD3dsetup_879a20 + 0x4), 0x14);
     u32 desc[0x1f] = {0x7c};
     d3dresult::keep(comcall<u32>(front, 0x64, nullptr, desc, 1u, nullptr));
     if (d3dresult::result()) return 0;
@@ -110,7 +112,7 @@ void __cdecl ScreenGrab_NextName() {
     stream.vtable = reinterpret_cast<void *const *>((u32)(uintptr_t)FileStream_vtable);
     do {
         StreamBase_Close(&stream);
-        Crt().sprintf(name, reinterpret_cast<const char *>(0x007650dc), ++gScreenGrab_Count_879084);   // "Scr%05ld.tga"
+        Crt().sprintf(name, gScreengrab_7650dc, ++gScreenGrab_Count_879084);   // "Scr%05ld.tga"
     } while (*FileStream_OpenPath(&stream, nullptr, &result, name, 0x80000001) >= 0);
     StreamBase_Close(&stream);
     ScreenGrab_SetName(reinterpret_cast<u8 *>(0x008798d0), nullptr, name);
@@ -122,7 +124,7 @@ u32 __fastcall ScreenGrab_WriteTga(u8 *grab, void *, const char *path) {
     at<u16>(header, 0xc) = global<u16>((u32)(uintptr_t)&gView_8bcbc8 + 0x8);
     at<u16>(header, 0xe) = global<u16>((u32)(uintptr_t)&gView_8bcbc8 + 0xc);
     header[0x10] = 0x18;
-    const u32 file = g_calls.Cd(0x0067b8a0, path, 0x00766128u);
+    const u32 file = g_calls.Cd(0x0067b8a0, path, (u32)(uintptr_t)&gText_Enginedebug_766128);
     if (!file) {
         g_calls.Th(0x0056af20, 0x00879ad0u, 2u, 0xb0754002u);
         return 0;

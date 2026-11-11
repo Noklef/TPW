@@ -3,6 +3,7 @@
 #include "../core/staticobjects.h"
 
 #include <cstdint>
+#include "world.h"
 
 namespace {
 
@@ -12,7 +13,7 @@ const u32 kActions = (u32)(uintptr_t)&gActionRec_785a08, kClock = (u32)(uintptr_
 
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
 
-u32 level() { return global<u32>(0x007cf83c); }
+u32 level() { return global<u32>((u32)&gWorldPtr); }
 
 void positions(Stream *stream) {
     Stream_Tell(stream);

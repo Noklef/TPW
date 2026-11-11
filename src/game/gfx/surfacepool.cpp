@@ -5,6 +5,7 @@
 
 #include "../core/vcall.h"
 #include "../render/ddopen.h"
+#include "../render/d3dsetup.h"
 
 namespace {
 
@@ -97,7 +98,7 @@ extern "C" u32 __fastcall SurfacePool_ReleaseAll(u8 *pool) {
 }
 
 extern "C" u32 __fastcall SurfacePool_MakeSurfaces(u8 *pool, void *, s32 side, u32 format) {
-    u8 *const device = at<u8 *>(global32p(0x00879a24), 8);
+    u8 *const device = at<u8 *>(global32p((u32)(uintptr_t)&gD3dsetup_879a20 + 0x4), 8);
     const s32 index = SurfacePool_SideIndex(side);
     u8 desc[0x7c] = {};
     at<u32>(desc, 0) = 0x7c;

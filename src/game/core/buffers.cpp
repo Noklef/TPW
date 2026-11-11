@@ -9,6 +9,8 @@
 #include "gameheap.h"
 #include "stdwstring.h"
 #include "string.h"
+#include "../world/objectdefs.h"
+#include "imports.h"
 
 namespace {
 
@@ -271,7 +273,7 @@ u8 __fastcall Blocks7_ShrinkSurface(u8 *object, void *, const SurfaceDesc *desc)
 }
 
 u8 __fastcall Blocks7_LoadAll(u8 *object) {
-    static const u32 kNames[5] = {0x007748d4, 0x007748b8, 0x007748a0, 0x00774888, 0x00774870};
+    static const u32 kNames[5] = {(u32)(uintptr_t)&gBuffers_7748d4, (u32)(uintptr_t)&gBuffers_7748b8, (u32)(uintptr_t)&gBuffers_7748a0, (u32)(uintptr_t)&gBuffers_774888, (u32)(uintptr_t)&gBuffers_774870};
     for (u32 i = 0; i < 5; ++i)
         g_loadEnv->load(object + 0x10 * i, nullptr, reinterpret_cast<const char *>((uintptr_t)0x00786de4), g_loadEnv->locate(reinterpret_cast<const char *>((uintptr_t)kNames[i]), 1, nullptr));
     if (at<void *>(object, 0x5c)) GameHeap_Free(at<void *>(object, 0x5c));
@@ -319,23 +321,23 @@ u8 *__fastcall Counted_CopyCtor(u8 *object, void *, const u8 *from) {
 
 void Shared_Release(u8 *object, u32 elementSize, u32 destructorAt) { SharedRelease(object, elementSize, destructorAt); }
 
-void __fastcall Shared_Release66(u8 *object) { SharedRelease(object, 0x66, 0x006fd504); }
+void __fastcall Shared_Release66(u8 *object) { SharedRelease(object, 0x66, IMPORT(Weacityr_ccParkInfo_Dtor)); }
 
-void __fastcall Shared_Release10(u8 *object) { SharedRelease(object, 0x10, 0x006fd50c); }
+void __fastcall Shared_Release10(u8 *object) { SharedRelease(object, 0x10, IMPORT(Weacityr_ccThemeInfo_Dtor)); }
 
 void __fastcall Obj_FreeFourBuffers(u8 *object) {
     for (u32 offset = 0x4f4, i = 0; i < 4; ++i, offset += 4) {
         u8 *buffer = at<u8 *>(object, offset);
-        if (buffer && buffer != reinterpret_cast<u8 *>(0x006fd880)) {
+        if (buffer && buffer != reinterpret_cast<u8 *>((u32)(uintptr_t)&gObjectdefs_6fd880)) {
             Mem_GlobalFree(buffer);
             at<u32>(object, offset) = 0;
         }
     }
 }
 
-void __fastcall Obj_ResetAndRelease26(u8 *object, void *, u32 a, u32 b) { ResetAndRelease(object, a, b, 0x26, 0x006fd508); }
+void __fastcall Obj_ResetAndRelease26(u8 *object, void *, u32 a, u32 b) { ResetAndRelease(object, a, b, 0x26, IMPORT(Weacityr_ccServerInfo_Dtor)); }
 
-void __fastcall Obj_ResetAndRelease34(u8 *object, void *, u32 a, u32 b) { ResetAndRelease(object, a, b, 0x34, 0x006fd510); }
+void __fastcall Obj_ResetAndRelease34(u8 *object, void *, u32 a, u32 b) { ResetAndRelease(object, a, b, 0x34, IMPORT(Weacityr_ccRideInfo_Dtor)); }
 
 void __fastcall IntArray_SetSize(u8 *array, void *, s32 newSize, s32 growBy) {
     if (growBy != -1) at<s32>(array, 0xc) = growBy;

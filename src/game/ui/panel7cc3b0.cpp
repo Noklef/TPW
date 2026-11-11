@@ -52,7 +52,7 @@ void __fastcall Panel7cc3b0_Open(u8 *self) {
 
 void __fastcall Panel7cc3b0_Show(u8 *self, void *, u8 *thing) {
     *reinterpret_cast<u8 **>((uintptr_t)&gStatic_7cc328 + 0x7c) = thing;
-    WindowAt10_Create(self, nullptr, reinterpret_cast<u8 *>((uintptr_t)0x00756f48), 0x004b5cb0, 0x511, 0x512, 0);
+    WindowAt10_Create(self, nullptr, reinterpret_cast<u8 *>((uintptr_t)&gPanel7cc3b0_Show_756f48), 0x004b5cb0, 0x511, 0x512, 0);
     Window_SetHandler(*reinterpret_cast<u8 **>(self + 0x18), nullptr, 0x004b5c80);
     Advisor_PostId(0xc0);
 }
@@ -84,7 +84,7 @@ void __fastcall Panel7cc3b0_ShowStats(u8 *self) {
     u32 index = Mode19c_ToIndex(staff);
     const s32 days = Staff_AgeDays(staff);
     u8 age[0x14];   // (a number argument, as TextArgInt_Ctor builds it inline)
-    *reinterpret_cast<u32 *>(age) = 0x006ff170;
+    *reinterpret_cast<u32 *>(age) = (u32)(uintptr_t)TextArgInt_vtable;
     *reinterpret_cast<u32 *>(age + 4) = 0x5641524d;
     *reinterpret_cast<u32 *>(age + 8) = 8;
     *reinterpret_cast<s32 *>(age + 0xc) = days;

@@ -18,6 +18,8 @@
 #include "vobj3.h"
 #include "wfilebuf.h"
 #include "localefacet.h"
+#include "nstream.h"
+#include "swearfilter.h"
 
 namespace {
 
@@ -104,13 +106,13 @@ extern "C" {
 u8 *__fastcall NFileBuf_Ctor(u8 *buf, void *, u8 *file) {
     LocaleRef_Ctor(reinterpret_cast<u32 *>(buf + 0x34));
     set_slot_pointers(buf);
-    at<u32>(buf, 0) = 0x00709914;
+    at<u32>(buf, 0) = (u32)(uintptr_t)Class709914_vtable;
     at<u32>(buf, 8) = 0;
     at<u32>(buf, 0x18) = 0;
     at<u32>(buf, 0x28) = 0;
     Targets3_Set(buf, nullptr, 0, 0, 0);
     LocaleRef_Ctor(reinterpret_cast<u32 *>(buf + 0x4c));
-    at<u32>(buf, 0) = 0x007098dc;
+    at<u32>(buf, 0) = (u32)(uintptr_t)Class7098dc_vtable;
     buf[0x48] = 0;
     lose_use(at<u8 *>(buf, 0x4c));
     LocaleRef_Ctor(reinterpret_cast<u32 *>(buf + 0x4c));
@@ -151,7 +153,7 @@ u8 *__fastcall NFileBuf_DeletingDtor(u8 *buf, void *, u32 flags) {
 }
 
 void __fastcall NFileBuf_Dtor(u8 *buf) {
-    at<u32>(buf, 0) = 0x007098dc;
+    at<u32>(buf, 0) = (u32)(uintptr_t)Class7098dc_vtable;
     if (buf[0x48] && at<void *>(buf, 0x50) && g_env->fclose(at<void *>(buf, 0x50)) == 0) {
         buf[0x48] = 0;
         Wstreambuf_InitPointers(buf);
@@ -162,22 +164,22 @@ void __fastcall NFileBuf_Dtor(u8 *buf) {
         GameHeap_Free(name);
     }
     lose_use(at<u8 *>(buf, 0x4c));
-    at<u32>(buf, 0) = 0x00709914;
+    at<u32>(buf, 0) = (u32)(uintptr_t)Class709914_vtable;
     lose_use(at<u8 *>(buf, 0x34));
 }
 
 void __fastcall NIfstream_DtorOnIos(u8 *ios) {
     u8 *const stream = ios - 0x5c;
-    set_ios_vtable(stream, 0x00702960);
+    set_ios_vtable(stream, (u32)(uintptr_t)Class702960_vtable);
     NFileBuf_Dtor(stream + 8);
-    set_ios_vtable(stream, 0x0070994c);
+    set_ios_vtable(stream, (u32)(uintptr_t)Class70994c_vtable);
 }
 
 void __fastcall NOfstream_DtorOnIos(u8 *ios) {
     u8 *const stream = ios - 0x58;
-    set_ios_vtable(stream, 0x00702970);
+    set_ios_vtable(stream, (u32)(uintptr_t)Class702970_vtable);
     NFileBuf_Dtor(stream + 4);
-    set_ios_vtable(stream, 0x0070995c);
+    set_ios_vtable(stream, (u32)(uintptr_t)Class70995c_vtable);
 }
 
 s32 __fastcall NFileBuf_PutBack(u8 *buf, void *, s32 c) {
@@ -268,7 +270,7 @@ s32 __fastcall NFileBuf_Uflow(u8 *buf) {
 
 u8 *__fastcall NCodecvt_Ctor(u8 *self, void *, u32 refs) {
     at<u32>(self, 4) = refs;
-    at<u32>(self, 0) = 0x00709b8c;
+    at<u32>(self, 0) = (u32)(uintptr_t)NCodecvt_vtable;
     u8 info[0x48];
     g_env->locinfoCtor(info, nullptr, gLocalefacet_C_75c74c);
     const unsigned long long conversion = CRT_Getcvt();

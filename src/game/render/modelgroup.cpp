@@ -13,6 +13,7 @@
 #include "fixedverts.h"
 #include "texcoords.h"
 #include "meshlist.h"
+#include "d3dsetup.h"
 #include "../core/staticobjects.h"
 
 namespace {
@@ -153,7 +154,7 @@ u32 __fastcall ModelGroup_AddToBatch(u8 *model, void *, u8 *batch, u32 group, s3
         const u32 indexLimit = at<u32>(renderer, 0x2c) - 0x30;
         u32 result;
         u8 codes[0x1ff0];
-        ClipCodes_Compute(global<u32>(0x00879a20), 0, reinterpret_cast<u8 *>(&result), codes, base, count, (u32)stride, at<u32>(model, 8));
+        ClipCodes_Compute(global<u32>((u32)(uintptr_t)&gD3dsetup_879a20), 0, reinterpret_cast<u8 *>(&result), codes, base, count, (u32)stride, at<u32>(model, 8));
         if ((u8)result) {
             at<u32>(batch, 0x20) = old;
             return 1;

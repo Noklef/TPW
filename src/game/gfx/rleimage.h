@@ -34,3 +34,8 @@ u8 *__fastcall RleImage_DeletingDtor(u8 *part, void *, u32 flags);
 // Returns the object.
 u8 *__fastcall Obj_CtorVirtual5646c0(u8 *object, void *, u32 mostDerived);
 }
+
+#include "../core/gamedata.h"
+
+// The vtables hold only ports: tpw.exe's loader points their slots at them (.docs/09-globals.md).
+GAME_DATA(void *[8], Class701168_vtable, 0x00701168, 0x20);

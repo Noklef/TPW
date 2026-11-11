@@ -6,6 +6,8 @@
 #include "../core/movs.h"
 #include "../math/x87.h"
 #include "../coaster/rideanimate.h"
+#include "../world/rides.h"
+#include "../core/imports.h"
 
 namespace {
 
@@ -16,7 +18,7 @@ template <typename T> T &at(const void *p, u32 offset) {
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>(address); }
 
 u8 *&current() { return gHighlight_7a1ce0; }
-u8 *&target() { return global<u8 *>(0x007afda0); }
+u8 *&target() { return gRides_7afda0; }
 u32 *saved() { return reinterpret_cast<u32 * &>(gHighlight_7afd94); }
 u8 *model(const u8 *holder) { return at<u8 *>(at<const u8 *>(holder, 8), 4); }
 u8 *&flashing() { return gHighlight_7afe14; }
@@ -188,7 +190,7 @@ void __cdecl Highlight_WhitenCurrent() {
     if (!h) return;
     const u8 *const m = model(h);
     const u8 *mesh = at<const u8 *>(m, 0x70);
-    (*reinterpret_cast<u32(__stdcall *const *)()>(0x006fd1d0))();   // GetTickCount (its result dropped)
+    (*reinterpret_cast<u32(__stdcall *const *)()>(IMPORT(Kernel32_GetTickCount)))();   // GetTickCount (its result dropped)
     for (u32 i = 0; i < at<u16>(m, 0x44); ++i, mesh += 0xa0) {
         for (u32 j = 0; j < at<u16>(mesh, 0x5e); ++j) {
             if (!(at<u32>(mesh, 0) & 0x4000)) at<u32 *>(mesh, 0x64)[j] = 0xffffffff;

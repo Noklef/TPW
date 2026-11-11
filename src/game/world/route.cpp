@@ -12,10 +12,10 @@ namespace {
 template <typename T> T &at(void *p, u32 offset) { return *reinterpret_cast<T *>((uintptr_t)p + offset); }
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
 
-u8 StepX(u32 d) { return global<u8>(0x007622b0 + d * 2); }
-u8 StepY(u32 d) { return global<u8>(0x007622b1 + d * 2); }
+u8 StepX(u32 d) { return gRoute_7622b0[d * 2]; }
+u8 StepY(u32 d) { return gRoute_7622b0[d * 2 + 1]; }
 
-u32 Blocked(u8 x, u8 y, u32 dir) { return MapCell_StepBlocked(x, y, dir, global<s32>(0x007cf3c0)); }
+u32 Blocked(u8 x, u8 y, u32 dir) { return MapCell_StepBlocked(x, y, dir, gRoute_Mode_7cf3c0); }
 
 // Whether the straight walk (LineStep_Init's) from one cell reaches the other.
 bool Reaches(u16 from, u16 to) {
@@ -25,13 +25,13 @@ bool Reaches(u16 from, u16 to) {
     bool first = true;
     while (x != (u8)to || y != (u8)(to >> 8)) {
         const u32 previous = dir;
-        s32 &sum = global<s32>(0x007cf398);
-        if (sum >= global<s32>(0x007cf3a8)) {
-            dir = global<u32>(0x007cf3b4);
-            sum -= global<s32>(0x007cf3a8);
+        s32 &sum = gLineStep_Sum_7cf398;
+        if (sum >= gLineStep_AbsX_7cf3a8) {
+            dir = gLineStep_RowDir_7cf3b4;
+            sum -= gLineStep_AbsX_7cf3a8;
         } else {
-            dir = global<u32>(0x007cf3b0);
-            sum += global<s32>(0x007cf3ac);
+            dir = gLineStep_ColumnDir_7cf3b0;
+            sum += gLineStep_AbsY_7cf3ac;
         }
         if (Blocked(x, y, dir))
             return false;
@@ -123,20 +123,20 @@ u32 __cdecl Route_Straighten(u8 *route, u32 first) {
 }
 
 u32 __cdecl Route_Search(u8 *route, u32 from, u32 limit) {
-    u32 &steps = global<u32>(0x007cf3a4);
+    u32 &steps = gRoute_Steps_7cf3a4;
     u8 x = (u8)from, y = (u8)(from >> 8);
     u32 dir = 0;
     bool first = true;
     LineStep_Init(from, at<u16>(route, 4));
     for (; steps < limit && (x != route[4] || y != route[5]); ++steps) {
         const u32 previous = dir;
-        s32 &sum = global<s32>(0x007cf398);
-        if (sum >= global<s32>(0x007cf3a8)) {
-            sum -= global<s32>(0x007cf3a8);
-            dir = global<u32>(0x007cf3b4);
+        s32 &sum = gLineStep_Sum_7cf398;
+        if (sum >= gLineStep_AbsX_7cf3a8) {
+            sum -= gLineStep_AbsX_7cf3a8;
+            dir = gLineStep_RowDir_7cf3b4;
         } else {
-            sum += global<s32>(0x007cf3ac);
-            dir = global<u32>(0x007cf3b0);
+            sum += gLineStep_AbsY_7cf3ac;
+            dir = gLineStep_ColumnDir_7cf3b0;
         }
         if (!Blocked(x, y, dir)) {
             const u8 lastX = x, lastY = y;
@@ -161,10 +161,10 @@ u32 __cdecl Route_Search(u8 *route, u32 from, u32 limit) {
             continue;
         }
         // Blocked: the cell kept and two walkers sent round the edge, one each way, till one is back on the line.
-        if (global<u32>(0x007cf3c8) != 0) {
-            global<u8>(0x007cf3a0) = route[0];
-            global<u32>(0x007cf3b8) = steps;
-            global<u8>(0x007cf39c) = (u8)dir;
+        if (gRoute_Record_7cf3c8 != 0) {
+            gRoute_BlockedCount_7cf3a0 = route[0];
+            gRoute_BlockedSteps_7cf3b8 = steps;
+            gRoute_BlockedDir_7cf39c = (u8)dir;
         }
         const u16 cell = (u16)(x | y << 8);
         Append(route, cell);
@@ -185,15 +185,15 @@ u32 __cdecl Route_Search(u8 *route, u32 from, u32 limit) {
                 if (leftDir == 0x32) {
                     if (!TakeWalk(route, left))
                         return Fail(route, x, y);
-                    if (global<u32>(0x007cf3c8) != 0)
-                        global<u8>(0x007cf3bc) = 0xff;
+                    if (gRoute_Record_7cf3c8 != 0)
+                        gRoute_WalkSide_7cf3bc =0xff;
                     break;
                 }
                 if (rightDir == 0x32) {
                     if (!TakeWalk(route, right))
                         return Fail(route, x, y);
-                    if (global<u32>(0x007cf3c8) != 0)
-                        global<u8>(0x007cf3bc) = 1;
+                    if (gRoute_Record_7cf3c8 != 0)
+                        gRoute_WalkSide_7cf3bc =1;
                     break;
                 }
                 if (leftDir == 0x33 && rightDir == 0x33)
@@ -219,11 +219,11 @@ u32 __cdecl Route_Search(u8 *route, u32 from, u32 limit) {
 }
 
 u32 __cdecl Route_SearchFrom(u8 *route, u32 mode) {
-    global<u32>(0x007cf3c0) = mode;
+    gRoute_Mode_7cf3c0 = (s32)mode;
     route[0] = 0;
-    global<u32>(0x007cf3a4) = 0;
-    if (global<u32>(0x007cf3c8) != 0)
-        global<u8>(0x007cf3a0) = 0xff;
+    gRoute_Steps_7cf3a4 = 0;
+    if (gRoute_Record_7cf3c8 != 0)
+        gRoute_BlockedCount_7cf3a0 = 0xff;
     return Route_Search(route, at<u16>(route, 2), 60000);
 }
 
@@ -238,9 +238,9 @@ u32 __cdecl Route_Refine(u8 *route, u32 result) {
             local[0] = 0;
             at<u16>(local, 2) = i == 0 ? at<u16>(route, 2) : at<u16>(route, 4 + i * 2);
             at<u16>(local, 4) = at<u16>(route, 8 + i * 2);
-            global<u32>(0x007cf3a4) = 0;
-            if (global<u32>(0x007cf3c8) != 0)
-                global<u8>(0x007cf3a0) = 0xff;
+            gRoute_Steps_7cf3a4 = 0;
+            if (gRoute_Record_7cf3c8 != 0)
+                gRoute_BlockedCount_7cf3a0 = 0xff;
             if (Route_Search(local, at<u16>(local, 2) | (u32)at<u16>(local, 4) << 16, 60000) == 0x70000000)
                 continue;
             const u32 n = local[0];
@@ -300,11 +300,11 @@ corners:
 }
 
 u32 __cdecl Route_Find(u8 *route, u32 mode) {
-    global<u32>(0x007cf3c0) = mode;
+    gRoute_Mode_7cf3c0 = (s32)mode;
     route[0] = 0;
-    global<u32>(0x007cf3a4) = 0;
-    if (global<u32>(0x007cf3c8) != 0)
-        global<u8>(0x007cf3a0) = 0xff;
+    gRoute_Steps_7cf3a4 = 0;
+    if (gRoute_Record_7cf3c8 != 0)
+        gRoute_BlockedCount_7cf3a0 = 0xff;
     return Route_Refine(route, Route_Search(route, at<u16>(route, 2), 60000));
 }
 

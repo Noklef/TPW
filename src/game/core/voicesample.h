@@ -57,3 +57,11 @@ u8 *__fastcall VoiceStream_Ctor(u8 *sample, void *, const u8 *stream, const u8 *
 u32 __fastcall VoiceStreamWindow_Read(u8 *window, void *, u8 *buffer, u32 count);
 
 }  // extern "C"
+
+#include "gamedata.h"
+
+// The vtables hold only ports: tpw.exe's loader points their slots at them (.docs/09-globals.md).
+GAME_DATA(void *[21], VoiceSample_vtable, 0x0070ad60, 0x54);
+GAME_DATA(void *[2], Class70adb8_vtable, 0x0070adb8, 0x8);
+GAME_DATA(void *[21], VoiceStream_vtable, 0x0070adc0, 0x54);
+GAME_DATA(void *[2], Class70ae28_vtable, 0x0070ae28, 0x8);

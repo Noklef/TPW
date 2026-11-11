@@ -11,6 +11,8 @@
 #include "soundobject.h"
 #include "soundworker.h"
 #include "vcall.h"
+#include "soundmanager.h"
+#include "imports.h"
 
 namespace {
 
@@ -30,7 +32,7 @@ void __fastcall ChannelVoices_WaitLoop(u8 *pool) {
     volatile u32 &flags = at<volatile u32>(pool, 0x14);
     flags = flags | 2;
     if (!(flags & 1)) {
-        const WaitForMultipleObjectsFn wait = global<WaitForMultipleObjectsFn>(0x006fd160);
+        const WaitForMultipleObjectsFn wait = global<WaitForMultipleObjectsFn>(IMPORT(Kernel32_WaitForMultipleObjects));
         do {
             const u32 index = wait(at<u32>(pool, 8), at<void *>(pool, 0x10), 0, 0xffffffffu);
             if (index == at<u32>(pool, 0xc)) break;
@@ -46,7 +48,7 @@ void __fastcall SoundSource_WaitLoop(u8 *source) {
     volatile u32 &flags = at<volatile u32>(source, 8);
     flags = flags | 0x80;
     if (flags & 0x40) {
-        const WaitForMultipleObjectsFn wait = global<WaitForMultipleObjectsFn>(0x006fd160);
+        const WaitForMultipleObjectsFn wait = global<WaitForMultipleObjectsFn>(IMPORT(Kernel32_WaitForMultipleObjects));
         do {
             const u32 index = wait(at<u32>(source, 0x30), at<void *>(source, 0x2c), 0, 0xffffffffu);
             if (index == at<u32>(source, 0x30) - 1) break;
@@ -79,9 +81,9 @@ u8 *__cdecl SoundHandshake_Instance() {
 }
 
 void __fastcall SoundEngine_Dtor(u8 *engine) {
-    at<u32>(engine, 0) = 0x0070a2a0;
+    at<u32>(engine, 0) = (u32)(uintptr_t)Class70a2a0_vtable;
     SoundHandshake_Wait(SoundHandshake_Instance());
-    at<u32>(engine, 0) = 0x0070a588;
+    at<u32>(engine, 0) = (u32)(uintptr_t)SoundWorkerHost_vtable;
     if (u8 *const inner = at<u8 *>(engine, 0x24)) vcall<void>(inner, 0);
     if (u8 *const inner = at<u8 *>(engine, 0x20)) vcall<void>(inner, 0, 1u);
 }
@@ -96,7 +98,7 @@ u32 __fastcall SoundEngine_TouchFlagged(u8 *engine) { return SoundMixer_TouchFla
 
 void __fastcall SoundEngine_ThreadLoop(u8 *engine) {
     if (!at<volatile u8>(SoundHandshake_Instance(), 4)) {
-        const auto nap = global<void(__stdcall *)(u32)>(0x006fd1d4);   // Sleep
+        const auto nap = global<void(__stdcall *)(u32)>(IMPORT(Kernel32_Sleep));   // Sleep
         do {
             nap(SoundEngine_TouchFlagged(engine) ? 100 : 250);
         } while (!at<volatile u8>(SoundHandshake_Instance(), 4));
@@ -116,7 +118,7 @@ u32 *__fastcall SoundHandshake_Start(u8 *handshake, void *, u32 *out, u8 *engine
             *out = 0xffffffff;
             return out;
         }
-        global<u32(__stdcall *)(u32, s32)>(0x006fd1fc)(thread, -1);   // SetThreadPriority
+        global<u32(__stdcall *)(u32, s32)>(IMPORT(Kernel32_SetThreadPriority))(thread, -1);   // SetThreadPriority
     }
     *out = 0;
     return out;
@@ -148,4 +150,4 @@ u32 *__fastcall SoundEngine_SetThreaded(u8 *engine, void *, u32 *out, u32 on) {
     return out;
 }
 
-void __fastcall SoundLock_Delete(void *lock) { global<void(__stdcall *)(void *)>(0x006fd0d0)(lock); }   // DeleteCriticalSection
+void __fastcall SoundLock_Delete(void *lock) { global<void(__stdcall *)(void *)>(IMPORT(Kernel32_DeleteCriticalSection))(lock); }   // DeleteCriticalSection

@@ -132,3 +132,6 @@ GAME_DATA(u32, gLevelmeter_7cc1d4, 0x007cc1d4, 0x4);
 GAME_DATA(u8 *, gLevelmeter_7cc1d8, 0x007cc1d8, 0x4);
 GAME_DATA(u8 *, gResearchPanel_Open_7cc1dc, 0x007cc1dc, 0x4);
 GAME_DATA(u8, gResearchPanel_Open_fb34be, 0x00fb34be, 0x1);
+
+// Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(u8[0x738], gResearchPanel_Open_754490, 0x00754490, 0x738);   // a window script (or a text / table before one): to the next named address

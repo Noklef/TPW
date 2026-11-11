@@ -23,6 +23,7 @@
 #include "globalsave.h"
 #include "thunks.h"
 #include "vcall.h"
+#include "soundset.h"
 #include "staticobjects.h"
 
 namespace {
@@ -60,10 +61,10 @@ u32 __cdecl KeyAction_ClickCell() {
         const u32 id = global<u16>(0x007b05cc);
         const s32 column = static_cast<s32>((id - 1) & 0x7f), row = static_cast<s32>((id - 1) >> 7);
         // (The original reads the game mode once more here, 0x52f840, the answer unused.)
-        if (MapCell_IsType1(global<u8 *>(0x007cf83c) + id * 0x44 + 0x294) == 0) return 1;
+        if (MapCell_IsType1(gWorldPtr + id * 0x44 + 0x294) == 0) return 1;
         const s32 z = (s32)(long long)(X87Reg((double)row) * 10.0f).v;   // (0x6fd764; fild, fmul, __ftol: the row's first)
         const s32 x = (s32)(long long)(X87Reg((double)column) * 10.0f).v;
-        g_cancelEnv->playAt(0, global<u32>(0x00803a2c), 0x5f, x, 0, z);
+        g_cancelEnv->playAt(0, gSoundCategories.ui, 0x5f, x, 0, z);
         g_cancelEnv->setMode(0x32, 1);
         g_cancelEnv->mapClick(column, row, 0, 0);
         g_cancelEnv->setMode(0, 1);
@@ -106,7 +107,7 @@ u32 __cdecl KeyAction_ClockNormal() {
 }
 
 u32 __cdecl KeyAction_Credit10000() {
-    Money_Credit(reinterpret_cast<u8 *>((uintptr_t)GameTable7cfb90_Get1da726_5195d0(global<u8 *>(0x007cf83c))), nullptr, 10000);
+    Money_Credit(reinterpret_cast<u8 *>((uintptr_t)GameTable7cfb90_Get1da726_5195d0(gWorldPtr)), nullptr, 10000);
     return 1;
 }
 
@@ -138,17 +139,17 @@ u32 __cdecl KeyAction_HideFrontEnd() {
 }
 
 u32 __cdecl KeyAction_OpenParkNew() {
-    g_calls.Th(0x519ef0, global<u32>(0x007cf83c), 1u, 0u);
+    g_calls.Th(0x519ef0, global<u32>((u32)&gWorldPtr), 1u, 0u);
     return 1;
 }
 
 u32 __cdecl KeyAction_OpenParkLast() {
-    g_calls.Th(0x519ef0, global<u32>(0x007cf83c), 0u, 0u);
+    g_calls.Th(0x519ef0, global<u32>((u32)&gWorldPtr), 0u, 0u);
     return 1;
 }
 
 u32 __cdecl KeyAction_AdvisorPostHeld() {
-    g_calls.Th(0x59ab50, g_calls.Th(0x5194d0, global<u32>(0x007cf83c)));
+    g_calls.Th(0x59ab50, g_calls.Th(0x5194d0, global<u32>((u32)&gWorldPtr)));
     return 1;
 }
 
@@ -180,7 +181,7 @@ u32 __cdecl KeyAction_MarkScore2() { GlobalSave_MarkScore(GlobalSave_Instance(),
 u32 __cdecl KeyAction_MarkScore3() { GlobalSave_MarkScore(GlobalSave_Instance(), nullptr, 3, 100); return 1; }
 
 u32 __cdecl KeyAction_FlagResearchControls() {
-    ResearchLab_FlagProjectControls(reinterpret_cast<const u8 *>((uintptr_t)GameTable7cfb90_Get1da722_519550(global<u8 *>(0x007cf83c))));
+    ResearchLab_FlagProjectControls(reinterpret_cast<const u8 *>((uintptr_t)GameTable7cfb90_Get1da722_519550(gWorldPtr)));
     return 1;
 }
 

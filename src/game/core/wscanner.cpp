@@ -99,7 +99,7 @@ u8 *__fastcall WScanner_ConstructBase(u8 *scanner) {
     StdTree_CtorG(scanner + 0x14);
     at<u8>(scanner, 0x2c) = 0;
     StdTree_CtorG(scanner + 0x24);
-    at<u32>(scanner, 0) = 0x702f18;
+    at<u32>(scanner, 0) = (u32)(uintptr_t)Class702f18_vtable;
     for (const u32 set : {0x24u, 0x14u}) {
         for (const u16 c : {u16(0x20), u16(0xa), u16(9), u16(0xd)}) {
             u8 *result[2];
@@ -115,7 +115,7 @@ void __fastcall WScanner_Destruct(u8 *scanner) {
 }
 
 void __fastcall WScanner_DestructBase(u8 *scanner) {
-    at<u32>(scanner, 0) = 0x702f18;
+    at<u32>(scanner, 0) = (u32)(uintptr_t)Class702f18_vtable;
     StdTree_DtorG(scanner + 0x24);
     StdTree_DtorG(scanner + 0x14);
     if (u16 *const chars = at<u16 *>(scanner, 8)) {
@@ -367,7 +367,7 @@ u8 *__fastcall WScanner_Construct(u8 *scanner, void *, u8 *tokens, StdWString *o
     at<u32>(scanner, 0x4c) = 0;
     at<u8 *>(scanner, 0x50) = tokens;
     at<StdWString *>(scanner, 0x54) = out;
-    at<u32>(scanner, 0) = 0x702f14;
+    at<u32>(scanner, 0) = (u32)(uintptr_t)Class702f14_vtable;
     u8 *const first = at<u8 *>(tokens, 4);
     u8 *const last = at<u8 *>(tokens, 8);
     for (u8 *token = first; token != last; token += 0x24) {

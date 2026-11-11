@@ -264,13 +264,13 @@ s32 __fastcall AdvisorScoring_CrowdAverage490(u8 *scoring) { return crowdAverage
 s32 __fastcall AdvisorScoring_InDebt(u8 *scoring) {
     const u32 entry = GameTable7cfb90_Get1da726_5195d0(game());
     if ((s32)g_criteria->field0c(reinterpret_cast<const TrackedSource *>((uintptr_t)entry)) >= 0) return 0;
-    const u32 money = GameTable7cfb90_Get1da726_5195d0(*reinterpret_cast<u8 **>((uintptr_t)0x007cf83c));
+    const u32 money = GameTable7cfb90_Get1da726_5195d0(*&gWorldPtr);
     return g_criteria->anyLoan(reinterpret_cast<u8 *>((uintptr_t)money)) != 0 ? at<s32>(scoring, 0x340) : 0;
 }
 
 s32 __fastcall AdvisorScoring_CutOffObject(u8 *scoring) {
     u16 handle;
-    const u32 entry = GameTable7cfb90_Get1da720_519510(*reinterpret_cast<u8 **>((uintptr_t)0x007cf83c));
+    const u32 entry = GameTable7cfb90_Get1da720_519510(*&gWorldPtr);
     const u16 found = *g_criteria->findCutOff(reinterpret_cast<u8 *>((uintptr_t)entry), nullptr, &handle, 0);
     at<u16>(scoring, 4) = found;
     return found != 0 ? at<s32>(scoring, 0x388) : 0;
@@ -465,7 +465,7 @@ s32 __fastcall AdvisorScoring_Const9999(const u8 *) { return 9999; }
 
 namespace {
 
-u8 *world_table() { return reinterpret_cast<u8 *>((uintptr_t)GameTable7cfb90_Get1da720_519510(*reinterpret_cast<u8 **>((uintptr_t)0x007cf83c))); }
+u8 *world_table() { return reinterpret_cast<u8 *>((uintptr_t)GameTable7cfb90_Get1da720_519510(*&gWorldPtr)); }
 
 s32 global_s32(u32 address) { return *reinterpret_cast<const s32 *>((uintptr_t)address); }
 
@@ -716,7 +716,7 @@ s32 __fastcall AdvisorScoring_RingRatio(const u8 *scoring) {
     const FileTime *const elapsed = reinterpret_cast<const FileTime *>((uintptr_t)g_calls.Th(0x004f8800, (u32)(uintptr_t)(**reinterpret_cast<u8 ***>((uintptr_t)0x007cf6ec) + 0x2a0), &out));   // FunnyTime_Elapsed
     const long long time = (long long)(((unsigned long long)elapsed->high << 32) | elapsed->low);
     if ((s32)(time / 0x1792f8648000LL) < 3) return 0;
-    const u8 *const rings = reinterpret_cast<const u8 *>((uintptr_t)GameTable7cfb90_Get1da720_519510(*reinterpret_cast<u8 **>((uintptr_t)0x007cf83c)));
+    const u8 *const rings = reinterpret_cast<const u8 *>((uintptr_t)GameTable7cfb90_Get1da720_519510(*&gWorldPtr));
     s32 used;
     const s32 first = history_average(rings + 0x1f7f0, at<s32>(scoring, 0x358), used);
     if (used == 0) return 0;
@@ -740,13 +740,13 @@ s32 __fastcall AdvisorScoring_AgedPerStaff(const u8 *scoring) {
 
 namespace {
 
-u8 *criterion(s32 index) { return reinterpret_cast<u8 *>((uintptr_t)0x0076e300 + (u32)index * 0x38); }
+u8 *criterion(s32 index) { return reinterpret_cast<u8 *>((uintptr_t)&gObjectdefs_76e300 + (u32)index * 0x38); }
 
 // The criterion of an id: its place in the table when that one holds the id or any other does (sic: the address by the id all the same); the two out of range or unknown, none.
 const u8 *find_criterion(s32 id) {
     if (id == 0x160 || id == 0x15f) return nullptr;
     if (at<s32>(criterion(id), 4) == id) return criterion(id);
-    for (u32 entry = 0x0076e304; entry < 0x00772fcc; entry += 0x38)
+    for (u32 entry = ((u32)(uintptr_t)&gObjectdefs_76e300 + 0x4); entry < ((u32)(uintptr_t)&gObjectdefs_76e300 + 0x4ccc); entry += 0x38)
         if (*reinterpret_cast<const s32 *>((uintptr_t)entry) == id) return criterion(id);
     return nullptr;
 }
@@ -802,7 +802,7 @@ extern "C" s32 __fastcall AdvisorScoring_RingDrop(const u8 *scoring) {
     const FileTime *const elapsed = reinterpret_cast<const FileTime *>((uintptr_t)g_calls.Th(0x004f8800, (u32)(uintptr_t)(**reinterpret_cast<u8 ***>((uintptr_t)0x007cf6ec) + 0x2a0), &out));   // FunnyTime_Elapsed
     const long long time = (long long)(((unsigned long long)elapsed->high << 32) | elapsed->low);
     const s32 months = (s32)(time / 0x1792f8648000LL);
-    const u8 *const ring = reinterpret_cast<const u8 *>((uintptr_t)GameTable7cfb90_Get1da720_519510(*reinterpret_cast<u8 **>((uintptr_t)0x007cf83c))) + 0x216d8;
+    const u8 *const ring = reinterpret_cast<const u8 *>((uintptr_t)GameTable7cfb90_Get1da720_519510(*&gWorldPtr)) + 0x216d8;
     const bool wrapped = at<u8>(ring, 0x20) != 0;
     const s32 size = at<s32>(ring, 0x1c), cursor = at<s32>(ring, 0x18);
     if ((wrapped ? size : cursor) + 1 <= 1 || months >= at<s32>(scoring, 0x3c8)) return 0;
@@ -829,7 +829,7 @@ extern "C" s32 __fastcall AdvisorScoring_RingDrop(const u8 *scoring) {
 namespace {
 
 // The game table entries of the two game pointers, for the calls through g_calls.
-u8 *game2() { return *reinterpret_cast<u8 **>((uintptr_t)0x007cf83c); }
+u8 *game2() { return *&gWorldPtr; }
 u32 park() { return (u32)(uintptr_t)table(); }
 u32 park2() { return (u32)GameTable7cfb90_Get1da720_519510(game2()); }
 u32 funds() { return (u32)GameTable7cfb90_Get1da726_5195d0(game()); }

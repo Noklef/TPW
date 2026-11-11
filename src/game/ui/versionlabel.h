@@ -20,3 +20,9 @@ extern "C" {
 // the font entry of [0x78b534] (0x78b5dc, 0x138 each) as its +0x4c, and the text sent.
 void __cdecl VersionLabel_Create(u8 front);
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(u8[0x10], gVersionlabel_750080, 0x00750080, 0x10);   // a window script (or a text / table before one): to the next named address
+GAME_DATA(u8[0x110], gSignNameDialog_750090, 0x00750090, 0x110);   // a window script (or a text / table before one): to the next named address

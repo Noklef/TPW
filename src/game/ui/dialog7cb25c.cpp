@@ -29,6 +29,8 @@
 #include "windowscript.h"
 #include "dialog74fb20.h"
 #include "panel7b9940.h"
+#include "../core/textarg.h"
+#include "dialog7cc188.h"
 #include "../core/staticobjects.h"
 
 namespace {
@@ -44,11 +46,11 @@ const Dialog7cb25cHandlerEnv kHandlerGameEnv = {&Window_SendMessage, &Game_Cance
                                                 reinterpret_cast<void(__cdecl *)(const u8 *, u32, u32, u32, u32, u32, u32, u32)>((uintptr_t)0x0047f020), &Dialog7ca210_Open, &Dialog7ca2e8_Open, &Dialog7cc2ec_Open, &Dialog_KeyHandler};
 const Dialog7cb25cHandlerEnv *g_handler = &kHandlerGameEnv;
 
-u8 *game() { return *reinterpret_cast<u8 **>((uintptr_t)0x007cf83c); }
+u8 *game() { return *&gWorldPtr; }
 
 // The text of the number formatted into text and a box of it (the white record, its last colour byte never written, sic).
 void loanBox(u16 *text, u32 entry, u32 value, u32 buttons, u32 index, u32 callback) {
-    const u32 arg[5] = {0x006ff170, 0x5641524d, 1, value, 0};   // (TextArgInt_Ctor (1, the value, unsigned), inline)
+    const u32 arg[5] = {(u32)(uintptr_t)TextArgInt_vtable, 0x5641524d, 1, value, 0};   // (TextArgInt_Ctor (1, the value, unsigned), inline)
     g_handler->format(*reinterpret_cast<u8 **>((uintptr_t)&gLanguage_78b530 + 0x564), text, 0xff, entry, arg);
     struct {
         u16 *text;
@@ -145,7 +147,7 @@ void __cdecl Dialog7cb25c_Open() {
     Window7c24c8_Set(built);
     g_open->attach(dialog(), 0x12c4ca, (u32)(uintptr_t)Language_WideText(0xaa));
     if (u8 *const figures = Window_FindChild(dialog(), nullptr, 0x12c4c1)) {
-        u8 *const game = *reinterpret_cast<u8 **>((uintptr_t)0x007cf83c);
+        u8 *const game = *&gWorldPtr;
         const u8 *const rings = reinterpret_cast<const u8 *>((uintptr_t)GameTable7cfb90_Get1da720_519510(game));
         panelparts::text(figures, 0x12c4c4, 0x165);
         panelparts::redText(figures, 0x12c4c9, 0x168);
@@ -157,7 +159,7 @@ void __cdecl Dialog7cb25c_Open() {
         u32 sum = 0;
         for (u32 i = 0; i < 8; ++i) {
             u32 out[8];
-            u8 *const money = reinterpret_cast<u8 *>((uintptr_t)GameTable7cfb90_Get1da726_5195d0(*reinterpret_cast<u8 **>((uintptr_t)0x007cf83c)));
+            u8 *const money = reinterpret_cast<u8 *>((uintptr_t)GameTable7cfb90_Get1da726_5195d0(*&gWorldPtr));
             const u32 *const offer = g_open->loanOffer(money, nullptr, out, i);
             if (offer[5]) sum += offer[4];
         }
@@ -177,7 +179,7 @@ void __cdecl Dialog7cb25c_Open() {
     g_open->buildRows(list, nullptr, reinterpret_cast<u8 *(__cdecl *)()>((uintptr_t)0x004a02b0), reinterpret_cast<void(__cdecl *)(u8 *)>((uintptr_t)0x004a03d0));   // (List7cb264_NewRow, List7cb264_InitRow, by the original's addresses: the hooks)
     Window7059f0_SetColumnBottom(list, nullptr, 0, 0);
     for (u32 column = 1; column < 6; ++column) Window7059f0_SetColumnBottom(list, nullptr, column, 1);
-    Window7059f0_SetHighlight(list, nullptr, reinterpret_cast<u8 *>((uintptr_t)GuiWindows_FindByName(reinterpret_cast<const char *>(0x0074fa84))));
+    Window7059f0_SetHighlight(list, nullptr, reinterpret_cast<u8 *>((uintptr_t)GuiWindows_FindByName(reinterpret_cast<const char *>((u32)(uintptr_t)&gText_Dialog7cc188_74fa84))));
     Window_SetHandler(list, nullptr, 0x004a06b0);
     g_open->fillList(list);
     static const struct {
@@ -217,7 +219,7 @@ void __cdecl Dialog7cb25c_FillList(u8 *list) {
     for (u32 i = 0; i < 8; i++) {
         u32 offer[8];
         const u32 *const got = Money_LoanOffer(reinterpret_cast<u8 *>((uintptr_t)GameTable7cfb90_Get1da726_5195d0(
-                                                   *reinterpret_cast<u8 **>((uintptr_t)0x007cf83c))), nullptr, offer, i);
+                                                   *&gWorldPtr)), nullptr, offer, i);
         for (u32 k = 0; k < 8; k++) offer[k] = got[k];
         const u32 flag = gDialog7cb25c_7cb260;
         u32 data;
@@ -252,7 +254,7 @@ s32 __cdecl Dialog7cb25c_ListProc(u8 *list, u32 message, u32 a, u32 b) {
 }
 
 static u8 *money() {
-    return reinterpret_cast<u8 *>((uintptr_t)GameTable7cfb90_Get1da726_5195d0(*reinterpret_cast<u8 **>((uintptr_t)0x007cf83c)));
+    return reinterpret_cast<u8 *>((uintptr_t)GameTable7cfb90_Get1da726_5195d0(*&gWorldPtr));
 }
 
 u32 __cdecl Dialog7cb25c_PayOffLoan(u32 index) {

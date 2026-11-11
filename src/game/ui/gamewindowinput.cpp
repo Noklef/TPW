@@ -7,6 +7,7 @@
 #include "focus.h"
 #include "panel7c2534menus.h"
 #include "window.h"
+#include "../world/world.h"
 
 namespace {
 
@@ -61,7 +62,7 @@ s32 __cdecl GameWindow_Input(u8 *window, u32 message, u32 a, u32 b) {
         case 0x1000b: {
             E->fireUp(gKeymap_787c14, nullptr, a, mods);
             const bool plainEscape = a == 0x1b && !(b & 0xff0000);
-            if (at<u32>(global<u8 *>(0x007cf83c), 0x1da738) == 4) {
+            if (at<u32>(gWorldPtr, 0x1da738) == 4) {
                 if (plainEscape) E->openPanel(0);
                 return 0;
             }

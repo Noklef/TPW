@@ -51,12 +51,12 @@ void __cdecl FixedVerts_PackRounded(u8 *verts, u32 count, s32 stride) {
     if (count == 0) return;
     u8 *src = verts, *dst = verts;
     do {
-        at<s32>(dst, 0) = Rounded(at<float>(src, 0), xy, 0x00fb34a0);
-        at<s32>(dst, 4) = Rounded(at<float>(src, 4), xy, 0x00fb34a0);
-        at<s32>(dst, 8) = Rounded(at<float>(src, 8), 32768.0f, 0x00fb34a4);  // 0x701148
+        at<s32>(dst, 0) = Rounded(at<float>(src, 0), xy, (u32)(uintptr_t)&gFixedVerts_fb34a0);
+        at<s32>(dst, 4) = Rounded(at<float>(src, 4), xy, (u32)(uintptr_t)&gFixedVerts_fb34a0);
+        at<s32>(dst, 8) = Rounded(at<float>(src, 8), 32768.0f, (u32)(uintptr_t)&gFixedVerts_fb34a4);  // 0x701148
         at<u32>(dst, 0xc) = at<u32>(src, 0x10);
-        at<s32>(dst, 0x10) = Rounded(at<float>(src, 0x18), 16.0f, 0x00fb34a4);  // 0x701144
-        at<s32>(dst, 0x14) = Rounded(at<float>(src, 0x1c), 16.0f, 0x00fb34a4);
+        at<s32>(dst, 0x10) = Rounded(at<float>(src, 0x18), 16.0f, (u32)(uintptr_t)&gFixedVerts_fb34a4);  // 0x701144
+        at<s32>(dst, 0x14) = Rounded(at<float>(src, 0x1c), 16.0f, (u32)(uintptr_t)&gFixedVerts_fb34a4);
         src += stride;
         dst += 0x18;
     } while (--count);

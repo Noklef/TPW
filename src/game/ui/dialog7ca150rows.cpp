@@ -92,7 +92,7 @@ u32 __cdecl Dialog7ca150_AddControlRow(u8 *thing) {
     g_env->def(thing);
     u32 texts[2];
     texts[0] = (u32)(uintptr_t)Thing_NameBuffer7ba058(thing);
-    GameTable7cfb90_Get1da720_519510(global<u8 *>(0x007cf83c));   // (its answer only the ECX of the stdcall)
+    GameTable7cfb90_Get1da720_519510(gWorldPtr);   // (its answer only the ECX of the stdcall)
     texts[1] = g_env->control(at<u16>(thing, 0xe));
     g_env->add(list, nullptr, texts, (u32)(uintptr_t)thing, -1, 0);
     return 1;

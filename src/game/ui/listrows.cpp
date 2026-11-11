@@ -488,7 +488,7 @@ void __cdecl List758f04_InitRowJumpB(u8 *row) { List758f04_InitRow(row); }
 
 u32 __cdecl List758f04_RowProcA(u8 *window, u32 message, u32 a, u32 b) {
     if (message == 0x403) {
-        const u32 colour = global<u32>(!(b & 1) ? 0x00758f30 : !(b & 2) ? 0x00758f3c : !(b & 4) ? 0x00758f34 : 0x00758f38);
+        const u32 colour = global<u32>(!(b & 1) ? ((u32)(uintptr_t)&gListrows_758f10 + 0x20) : !(b & 2) ? ((u32)(uintptr_t)&gListrows_758f10 + 0x2c) : !(b & 4) ? ((u32)(uintptr_t)&gListrows_758f10 + 0x24) : ((u32)(uintptr_t)&gListrows_758f10 + 0x28));
         Window_Notify40000(window, nullptr, colour & 0xff, colour >> 8 & 0xff, colour >> 16 & 0xff, 0xff);
     }
     return (u32)Window_CallDefault(window, nullptr, message, a, b);
@@ -496,7 +496,7 @@ u32 __cdecl List758f04_RowProcA(u8 *window, u32 message, u32 a, u32 b) {
 
 u32 __cdecl List758f04_RowProcB(u8 *window, u32 message, u32 a, u32 b) {
     if (message == 0x403) {
-        const u8 *const colour = reinterpret_cast<const u8 *>((uintptr_t)(0x00758f10 + (b & 7) * 4));
+        const u8 *const colour = reinterpret_cast<const u8 *>((uintptr_t)((u32)(uintptr_t)&gListrows_758f10 + (b & 7) * 4));
         Window_Notify40000(window, nullptr, colour[0], colour[1], colour[2], 0xff);
     }
     return (u32)Window_CallDefault(window, nullptr, message, a, b);

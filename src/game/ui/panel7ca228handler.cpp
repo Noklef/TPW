@@ -57,7 +57,7 @@ void Refresh() {
     u8 *const word = Window_FindChild(window, nullptr, 0x1586);
     if (word) {
         const u32 id = 0x80000u | at<u16>(thing, 0xe);  // (the word in the low half of a's stack slot)
-        const u32 value = E->word18(reinterpret_cast<u8 *>((uintptr_t)E->analyser(global<u8 *>(0x007cf83c))), nullptr, id);
+        const u32 value = E->word18(reinterpret_cast<u8 *>((uintptr_t)E->analyser(gWorldPtr)), nullptr, id);
         vcall<void>(word, 0x1c, value);
     }
     u8 *const refund = Window_FindChild(global<u8 *>((u32)(uintptr_t)&gStatic_7ca228 + 0x14), nullptr, 0x1584);

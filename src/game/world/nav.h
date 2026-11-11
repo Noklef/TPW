@@ -80,6 +80,20 @@ u32 __fastcall Nav_PathToPoint(u8 *nav, void *, s32 x, s32 y);
 #include "../core/gamedata.h"
 
 // Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(char[4], gText_Nav_Serialize_761f34, 0x00761f34, 4);
+GAME_DATA(char[16], gText_Nav_Serialize_761f38, 0x00761f38, 0x10);
+GAME_DATA(char[20], gText_Nav_Serialize_761f48, 0x00761f48, 0x14);
+// Nav_PathTo's route (Route_Find's): +0 the cell count (at most 0xfc), +2 from, +4 to, +6 the cells, (x, y) bytes.
+GAME_DATA(u8[0x1fe], gNav_Route_7cf108, 0x007cf108, 0x1fe);
+GAME_DATA(char[8], gText_Nav_Serialize_761f5c, 0x00761f5c, 8);
+GAME_DATA(char[4], gText_Nav_Serialize_761f64, 0x00761f64, 4);
+GAME_DATA(char[16], gText_Nav_Serialize_761f68, 0x00761f68, 0x10);
+GAME_DATA(char[20], gText_Nav_Serialize_761f78, 0x00761f78, 0x14);
+GAME_DATA(char[16], gText_Nav_Serialize_761f8c, 0x00761f8c, 0x10);
+GAME_DATA(char[16], gText_Nav_Serialize_761f9c, 0x00761f9c, 0x10);
+GAME_DATA(char[16], gText_Nav_Serialize_761fac, 0x00761fac, 0x10);
+GAME_DATA(char[20], gText_Nav_Serialize_761fbc, 0x00761fbc, 0x14);
+GAME_DATA(char[20], gText_Nav_Serialize_761fd0, 0x00761fd0, 0x14);
 GAME_DATA(char[20], gText_Nav_Serialize_761fe4, 0x00761fe4, 0x14);
 GAME_DATA(char[16], gText_Nav_Serialize_761ff8, 0x00761ff8, 0x10);
 GAME_DATA(char[12], gText_Nav_Serialize_762008, 0x00762008, 0xc);

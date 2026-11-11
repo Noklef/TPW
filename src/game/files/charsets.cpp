@@ -221,19 +221,19 @@ s32 __fastcall Charset_Format(u8 *charset, void *, u8 *writer, u32 entry, u8 **a
 
 s32 __cdecl Charset_FormatNarrow(u8 *charset, u8 *dest, u32 size, u32 entry, ...) {
     u8 writer[0x14];
-    at<u32>(writer, 0) = 0x70a0a8;
+    at<u32>(writer, 0) = (u32)(uintptr_t)Class70a0a8_vtable;
     at<u8 *>(writer, 4) = dest;
     at<u8 *>(writer, 8) = dest + size;
     u8 *const table = at<u8 *>(charset, 0x14);
     at<u8 *>(writer, 0xc) = table;
     if (table) vcall<void>(table, 4);
     at<u8>(writer, 0x10) = 0;
-    at<u32>(writer, 0) = 0x70a090;
+    at<u32>(writer, 0) = (u32)(uintptr_t)Class70a090_vtable;
     va_list args;
     va_start(args, entry);
     const s32 result = Charset_Format(charset, nullptr, writer, entry, reinterpret_cast<u8 **>(args));
     va_end(args);
-    at<u32>(writer, 0) = 0x70a090;
+    at<u32>(writer, 0) = (u32)(uintptr_t)Class70a090_vtable;
     NarrowWriter_Finish(writer);
     if (u8 *const held = at<u8 *>(writer, 0xc)) vcall<void>(held, 0);
     return result;
@@ -241,19 +241,19 @@ s32 __cdecl Charset_FormatNarrow(u8 *charset, u8 *dest, u32 size, u32 entry, ...
 
 s32 __cdecl Charset_FormatWide(u8 *charset, u16 *dest, u32 size, u32 entry, ...) {
     u8 writer[0x14];
-    at<u32>(writer, 0) = 0x70a0a8;
+    at<u32>(writer, 0) = (u32)(uintptr_t)Class70a0a8_vtable;
     at<u16 *>(writer, 4) = dest;
     at<u16 *>(writer, 8) = dest + size;
     u8 *const table = at<u8 *>(charset, 0x10);
     at<u8 *>(writer, 0xc) = table;
     if (table) vcall<void>(table, 4);
     at<u8>(writer, 0x10) = 0;
-    at<u32>(writer, 0) = 0x70a0c0;
+    at<u32>(writer, 0) = (u32)(uintptr_t)Class70a0c0_vtable;
     va_list args;
     va_start(args, entry);
     const s32 result = Charset_Format(charset, nullptr, writer, entry, reinterpret_cast<u8 **>(args));
     va_end(args);
-    at<u32>(writer, 0) = 0x70a0c0;
+    at<u32>(writer, 0) = (u32)(uintptr_t)Class70a0c0_vtable;
     WideWriter_Finish(writer);
     if (u8 *const held = at<u8 *>(writer, 0xc)) vcall<void>(held, 0);
     return result;

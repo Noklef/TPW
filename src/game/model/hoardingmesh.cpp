@@ -148,7 +148,7 @@ extern "C" void __cdecl HoardingMesh_Build(const char *level, u8 *object, const 
 
     g_env->format(folder, gHoardingMesh_Build_74cfc0, level);
     gHoardingMesh_Build_74d010 = folder;
-    g_env->create(animator, reinterpret_cast<u8 *>((uintptr_t)0x0074d008), gText_HoardingMesh_Build_74d080, 1);
+    g_env->create(animator, reinterpret_cast<u8 *>((uintptr_t)&gHoardingmesh_74d008), gText_HoardingMesh_Build_74d080, 1);
     Matrix_Identity(at<float *>(part, 0x28));
     u8 *const range = at<u8 *>(part, 0x2c);
     at<u32>(range, 0) = gHoardingMesh_Build_74d020;

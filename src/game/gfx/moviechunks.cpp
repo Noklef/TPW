@@ -6,6 +6,7 @@
 #include "../core/imaadpcm.h"
 #include "../core/xaadpcm.h"
 #include "movieplayer.h"
+#include "../core/imports.h"
 
 namespace {
 
@@ -17,9 +18,9 @@ const MovieChunksEnv *g_env = &kGameEnv;
 u8 *settings(u8 *player) { return at<u8 *>(player, 0); }
 u32 file(u8 *player) { return at<u32>(settings(player), 0xa4); }
 
-s32 mmioRead(u32 file, void *buffer, u32 size) { return (*reinterpret_cast<s32(__stdcall *const *)(u32, void *, u32)>((uintptr_t)0x006fd3e0))(file, buffer, size); }
-s32 mmioSeek(u32 file, u32 offset, u32 origin) { return (*reinterpret_cast<s32(__stdcall *const *)(u32, u32, u32)>((uintptr_t)0x006fd3d8))(file, offset, origin); }
-void increment(u8 *player, u32 offset) { (*reinterpret_cast<s32(__stdcall *const *)(u32 *)>((uintptr_t)0x006fd0c0))(&at<u32>(player, offset)); }
+s32 mmioRead(u32 file, void *buffer, u32 size) { return (*reinterpret_cast<s32(__stdcall *const *)(u32, void *, u32)>((uintptr_t)IMPORT(Winmm_mmioRead)))(file, buffer, size); }
+s32 mmioSeek(u32 file, u32 offset, u32 origin) { return (*reinterpret_cast<s32(__stdcall *const *)(u32, u32, u32)>((uintptr_t)IMPORT(Winmm_mmioSeek)))(file, offset, origin); }
+void increment(u8 *player, u32 offset) { (*reinterpret_cast<s32(__stdcall *const *)(u32 *)>((uintptr_t)IMPORT(Kernel32_InterlockedIncrement)))(&at<u32>(player, offset)); }
 
 // The usual answers of a read: 0 (with +0x39c set) gives -1, -1 gives -2; 0 for one that went well.
 s32 readFailed(u8 *player, s32 result) {

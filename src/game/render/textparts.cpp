@@ -213,7 +213,7 @@ namespace {
 
 // The number classes' SetLayouts: the text id's text with the number argument n (value, minus flag) into 0x3f characters on the stack.
 void format_number(u16 *text, u32 id, u32 n, u32 value, u32 minus) {
-    u32 number[5] = {0x006ff170, 0x5641524d, n, value, minus};
+    u32 number[5] = {(u32)(uintptr_t)TextArgInt_vtable, 0x5641524d, n, value, minus};
     TextFormat().format(*reinterpret_cast<void **>((uintptr_t)&gLanguage_78b530 + 0x564), text, 0x3f, id, number);
 }
 

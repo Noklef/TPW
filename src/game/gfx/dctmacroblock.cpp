@@ -26,12 +26,12 @@ void decoded(u32 buffer, s32 pitch) {
 void DctMacroblock_SetEnv(const DctMacroblockEnv *env) { g_env = env ? env : &kGameEnv; }
 
 void __fastcall DctVideo_DecodeMacroblock(u8 *reference, u8 *out, s32 pitch) {
-    static const u32 kLuma[4] = {0x00faa860, 0x00faa880, 0x00faaa60, 0x00faaa80};
+    static const u32 kLuma[4] = {(u32)(uintptr_t)&gDctmacroblock_faa860, ((u32)(uintptr_t)&gDctmacroblock_faa860 + 0x20), ((u32)(uintptr_t)&gDctmacroblock_faa860 + 0x200), ((u32)(uintptr_t)&gDctmacroblock_faa860 + 0x220)};
     const s32 half = pitch >> 1;
     u32 mode = 0;
     s32 swapped = 0;
-    if (global<u32>(0x00faac60)) {
-        const u32 bits = global<u32>(0x00fbd650);
+    if (global<u32>((u32)(uintptr_t)&gDctvlc_faac60)) {
+        const u32 bits = gDctvlc_fbd650;
         if (!(bits & 0xc0000000)) {
             DctVlc_Skip(2);
         } else {
@@ -57,7 +57,7 @@ void __fastcall DctVideo_DecodeMacroblock(u8 *reference, u8 *out, s32 pitch) {
         }
     }
     for (u32 i = 0; i < 2; ++i) {
-        const u32 buffer = i ? 0x00faa760 : 0x00faa660;
+        const u32 buffer = i ? (u32)(uintptr_t)&gDctmacroblock_faa760 : (u32)(uintptr_t)&gDctmacroblock_faa660;
         if (mode & (0x10u << i)) {
             const s32 bias = DctVlc_ReadCode() - 0x40;
             RefBlock_Copy8((s32)(uintptr_t)reference, i ? 0 : 1, half, reinterpret_cast<u8 *>((uintptr_t)buffer), static_cast<u8>(bias));
@@ -65,5 +65,5 @@ void __fastcall DctVideo_DecodeMacroblock(u8 *reference, u8 *out, s32 pitch) {
             decoded(buffer, 8);
         }
     }
-    g_env->bytes(reinterpret_cast<const u32 *>((uintptr_t)0x00faa860), reinterpret_cast<const u32 *>((uintptr_t)0x00faa660), reinterpret_cast<u32 *>(out), half * 4);
+    g_env->bytes(gDctmacroblock_faa860, gDctmacroblock_faa660, reinterpret_cast<u32 *>(out), half * 4);
 }

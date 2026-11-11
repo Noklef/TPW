@@ -25,6 +25,7 @@
 #include "../online/chatcommand.h"
 #include "../coaster/arreplayaction.h"
 #include "../core/staticobjects.h"
+#include "../core/imports.h"
 
 namespace {
 
@@ -62,7 +63,7 @@ void WideFrom(WString *wide, const char *text) {
 void ClearFonts() {
     u8 *&end = global<u8 *>(0x00789c20);
     u8 *const begin = global<u8 *>(0x00789c1c);
-    const auto remove = *reinterpret_cast<u32(__stdcall **)(const char *)>((uintptr_t)0x006fd058);
+    const auto remove = *reinterpret_cast<u32(__stdcall **)(const char *)>((uintptr_t)IMPORT(Gdi32_RemoveFontResourceA));
     for (u8 *font = begin; font != end; font += 0x14) {
         remove(at<const char *>(font, 8));
         s32 result;
@@ -193,8 +194,8 @@ void __fastcall ThemeMenu_Enter(u8 *self) {
     g_env->refresh(self);
     u8 *const chosen = at<u8 *>(self, 0xc);
     if (chosen) {
-        at<u32>(chosen, 0x1c) = g_env->play(at<u32>(chosen, 0x1c), at<u32>(gSoundset_803a4c, at<u32>(chosen, 0x18) * 8 + 4), 1, 0, 0, 0);
-        at<u32>(chosen, 0x20) = g_env->play(at<u32>(chosen, 0x20), at<u32>(gSoundset_803a4c, at<u32>(chosen, 0x18) * 8), 2, 0, 0, 0);
+        at<u32>(chosen, 0x1c) = g_env->play(at<u32>(chosen, 0x1c), at<u32>(gSoundCategories.lobbyPairs, at<u32>(chosen, 0x18) * 8 + 4), 1, 0, 0, 0);
+        at<u32>(chosen, 0x20) = g_env->play(at<u32>(chosen, 0x20), at<u32>(gSoundCategories.lobbyPairs, at<u32>(chosen, 0x18) * 8), 2, 0, 0, 0);
         g_env->applySound();
     }
 }

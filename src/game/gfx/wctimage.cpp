@@ -7,6 +7,7 @@
 #include "../files/vfs.h"
 #include "../math/x87.h"
 #include "wavelet.h"
+#include "rleimage.h"
 #include "../core/staticobjects.h"
 
 namespace {
@@ -80,7 +81,7 @@ u32 __fastcall Texture_DecodeWctInto(const u8 *part, void *, u32 *surface, u32 f
 
 u8 *__fastcall WctImage_DeletingDtor(u8 *part, void *, u32 flags) {
     u8 *image = part - 0x2c;
-    at<u32>(image, at<u32>(at<u8 *>(image, 0), 4)) = 0x007011c8;
+    at<u32>(image, at<u32>(at<u8 *>(image, 0), 4)) = (u32)(uintptr_t)Class7011c8_vtable;
     const u32 base = at<u32>(at<u8 *>(image, 0), 4);
     at<u32>(image, base - 4) = base - 0x2c;
     if (at<u32>(image, 0x20)) {
@@ -92,7 +93,7 @@ u8 *__fastcall WctImage_DeletingDtor(u8 *part, void *, u32 flags) {
         at<u32>(image, 0x24) = 0;
     }
     for (u32 offset = 4; offset < 0x20; offset += 4) at<u32>(image, offset) = 0;
-    at<u32>(image, 0x2c) = 0x00701178;
+    at<u32>(image, 0x2c) = ((u32)(uintptr_t)Class701168_vtable + 0x10);
     if (flags & 1) GameHeap_Free(image);
     return image;
 }
@@ -100,9 +101,9 @@ u8 *__fastcall WctImage_DeletingDtor(u8 *part, void *, u32 flags) {
 u8 *__fastcall Obj_CtorVirtual564ba0(u8 *object, void *, u32 mostDerived) {
     if (mostDerived) {
         at<u32>(object, 0) = 0x007011d8;
-        at<u32>(object, 0x2c) = 0x00701178;
+        at<u32>(object, 0x2c) = ((u32)(uintptr_t)Class701168_vtable + 0x10);
     }
-    at<u32>(object, at<u32>(at<u8 *>(object, 0), 4)) = 0x007011c8;
+    at<u32>(object, at<u32>(at<u8 *>(object, 0), 4)) = (u32)(uintptr_t)Class7011c8_vtable;
     const u32 base = at<u32>(at<u8 *>(object, 0), 4);
     at<u32>(object, base - 4) = base - 0x2c;
     for (u32 i = 0; i < 7; i++)

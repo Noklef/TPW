@@ -11,6 +11,7 @@
 #include "../files/direntry.h"
 #include "../files/handles.h"
 #include "../files/vfs.h"
+#include "vdtor.h"
 #include "staticobjects.h"
 
 namespace {
@@ -59,7 +60,7 @@ u8 *Finish(u8 *object, u32 flags) {
 }
 
 void BaseFinish(u8 *object) {
-    at<u32>(object, 0) = 0x006fda58;
+    at<u32>(object, 0) = (u32)(uintptr_t)Class6fda58_vtable;
     Handle_Dtor(reinterpret_cast<Handle *>(object + 0x40));
     Class6fd9d8_Dtor(object);
 }
@@ -69,7 +70,7 @@ void BaseCtor(u8 *object, const WString *name, const WString *folder) {
     String *const path = reinterpret_cast<String *>(object + 0x18);
     String_Ctor(first);
     String_Ctor(path);
-    at<u32>(object, 0) = 0x006fd9d8;
+    at<u32>(object, 0) = (u32)(uintptr_t)Class6fd9d8_vtable;
     vcall<void>(first, 0x18, name);
     vcall<void>(path, 0x18, folder);
     String_EnsureTrailingBackslash(path);
@@ -78,7 +79,7 @@ void BaseCtor(u8 *object, const WString *name, const WString *folder) {
     u32 *const list = static_cast<u32 *>(GameHeap_Alloc(0x10));
     if (list != nullptr) {
         list[1] = list[2] = list[3] = 0;
-        list[0] = 0x006fd9d4;
+        list[0] = (u32)(uintptr_t)Class6fd9d4_vtable;
     }
     at<u32 *>(object, 0x2c) = list;
 }
@@ -114,7 +115,7 @@ void Derived(u8 *object, u32 vtable) {
 extern "C" {
 
 void __fastcall Class6fd9d8_Dtor(u8 *object) {
-    at<u32>(object, 0) = 0x006fd9d8;
+    at<u32>(object, 0) = (u32)(uintptr_t)Class6fd9d8_vtable;
     if (u8 *member = at<u8 *>(object, 0x3c))
         vcall<u32>(member, 0xc, 1u);
     u8 *list = at<u8 *>(object, 0x2c);
@@ -147,32 +148,32 @@ void __fastcall Class6fd9d8_Dtor(u8 *object) {
 }
 
 void __fastcall Class6fda48_Dtor(u8 *object) {
-    *reinterpret_cast<u32 *>(object) = 0x006fda48;
+    *reinterpret_cast<u32 *>(object) = (u32)(uintptr_t)Class6fda48_vtable;
     Class6fd9d8_Dtor(object);
 }
 
 void __fastcall Class6fda68_Dtor(u8 *object) {
-    *reinterpret_cast<u32 *>(object) = 0x006fda68;
+    *reinterpret_cast<u32 *>(object) = (u32)(uintptr_t)Class6fda68_vtable;
     Class6fd9d8_Dtor(object);
 }
 
 void __fastcall Class6fdaa8_Dtor(u8 *object) {
-    *reinterpret_cast<u32 *>(object) = 0x006fdaa8;
+    *reinterpret_cast<u32 *>(object) = (u32)(uintptr_t)Class6fdaa8_vtable;
     Class6fd9d8_Dtor(object);
 }
 
 void __fastcall Class6fdab8_Dtor(u8 *object) {
-    *reinterpret_cast<u32 *>(object) = 0x006fdab8;
+    *reinterpret_cast<u32 *>(object) = (u32)(uintptr_t)Class6fdab8_vtable;
     Class6fd9d8_Dtor(object);
 }
 
 void __fastcall Class6fdae8_Dtor(u8 *object) {
-    *reinterpret_cast<u32 *>(object) = 0x006fdae8;
+    *reinterpret_cast<u32 *>(object) = (u32)(uintptr_t)Class6fdae8_vtable;
     Class6fd9d8_Dtor(object);
 }
 
 void __fastcall Class6fdaf8_Dtor(u8 *object) {
-    *reinterpret_cast<u32 *>(object) = 0x006fdaf8;
+    *reinterpret_cast<u32 *>(object) = (u32)(uintptr_t)Class6fdaf8_vtable;
     Class6fd9d8_Dtor(object);
 }
 
@@ -212,21 +213,21 @@ void __fastcall Class6fda58_DtorB(u8 *object) { BaseFinish(object); }
 
 void __fastcall Class6fda58_DtorC(u8 *object) { BaseFinish(object); }
 
-void __fastcall Class6fda88_FullDtor(u8 *object) { Derived(object, 0x006fda88); }
+void __fastcall Class6fda88_FullDtor(u8 *object) { Derived(object, (u32)(uintptr_t)Class6fda88_vtable); }
 
-void __fastcall Class6fdac8_FullDtor(u8 *object) { Derived(object, 0x006fdac8); }
+void __fastcall Class6fdac8_FullDtor(u8 *object) { Derived(object, (u32)(uintptr_t)Class6fdac8_vtable); }
 
 u8 *__fastcall Class6fdaa4_Ctor(u8 *object, void *, const DirEntry *entry, const String *path) {
     String_Ctor(reinterpret_cast<String *>(object + 4));
     String_Ctor(reinterpret_cast<String *>(object + 0x18));
     Handle_Ctor(reinterpret_cast<Handle *>(object + 0x2c));
-    at<u32>(object, 0) = 0x006fdaa4;
+    at<u32>(object, 0) = (u32)(uintptr_t)Class6fdaa4_vtable;
     Class6fdaa4_SetEntry(object, nullptr, entry, path);
     return object;
 }
 
 void __fastcall Class6fdaa4_Dtor(u8 *object) {
-    at<u32>(object, 0) = 0x006fdaa4;
+    at<u32>(object, 0) = (u32)(uintptr_t)Class6fdaa4_vtable;
     Handle_Dtor(reinterpret_cast<Handle *>(object + 0x2c));
     String_Dtor(reinterpret_cast<String *>(object + 0x18));
     String_Dtor(reinterpret_cast<String *>(object + 4));
@@ -293,7 +294,7 @@ void Hold(u8 *object, Handle *h) {
 extern "C" {
 
 void __fastcall Class6fd9d8_AddFolder(u8 *object, void *, const String *path) {
-    Handle *const h = NewHandle(0x006fd9e8);
+    Handle *const h = NewHandle(((u32)(uintptr_t)ListDtor6fd9e4_vtable + 0x4));
     if (!h)
         return;
     s32 result;
@@ -308,7 +309,7 @@ void __fastcall Class6fd9d8_AddFolder(u8 *object, void *, const String *path) {
 }
 
 void __fastcall Class6fd9d8_AddWad(u8 *object, void *, const String *path) {
-    Handle *const h = NewHandle(0x006fda18);
+    Handle *const h = NewHandle(((u32)(uintptr_t)ListDtor6fd9e4_vtable + 0x34));
     if (!h)
         return;
     s32 result;
@@ -508,7 +509,7 @@ u8 __fastcall Class6fd9d8_FindFirstMatch(u8 *object, void *, const StringView *b
 }
 
 void __fastcall Class6fda98_Dtor(u8 *object) {
-    at<u32>(object, 0) = 0x006fda98;
+    at<u32>(object, 0) = (u32)(uintptr_t)Class6fda98_vtable;
     if (u8 *list = at<u8 *>(object, 0x4c)) {
         while (at<u32>(list, 0xc) > 0) {
             u8 *const node = at<u8 *>(list, 4);
@@ -664,10 +665,10 @@ void __fastcall Class6fdaa4_SetEntry(u8 *object, void *, const DirEntry *entry, 
     s32 result;
     const s32 *got;
     if (DirEntry_IsWad(entry)) {
-        *reinterpret_cast<u32 *>(&opened) = 0x006fda18;
+        *reinterpret_cast<u32 *>(&opened) = ((u32)(uintptr_t)ListDtor6fd9e4_vtable + 0x34);
         got = Handle_OpenE0(&opened, nullptr, &result, (u32)(uintptr_t)folder.data, 0);
     } else {
-        *reinterpret_cast<u32 *>(&opened) = 0x006fd9e8;
+        *reinterpret_cast<u32 *>(&opened) = ((u32)(uintptr_t)ListDtor6fd9e4_vtable + 0x4);
         got = Handle_Open28(&opened, nullptr, &result, (u32)(uintptr_t)folder.data);
     }
     if (*got >= 0) {
@@ -708,25 +709,25 @@ u32 __fastcall Class6fdaa4_HasAllParts(u8 *object) {
     return 1;
 }
 
-u8 *__fastcall Class6fda48_Ctor(u8 *object, void *, const WString *name, const WString *folder) { return Plain(object, name, folder, 0x006fda48); }
-u8 *__fastcall Class6fda68_Ctor(u8 *object, void *, const WString *name, const WString *folder) { return Plain(object, name, folder, 0x006fda68); }
-u8 *__fastcall Class6fdaa8_Ctor(u8 *object, void *, const WString *name, const WString *folder) { return Plain(object, name, folder, 0x006fdaa8); }
-u8 *__fastcall Class6fdab8_Ctor(u8 *object, void *, const WString *name, const WString *folder) { return Plain(object, name, folder, 0x006fdab8); }
-u8 *__fastcall Class6fdae8_Ctor(u8 *object, void *, const WString *name, const WString *folder) { return Plain(object, name, folder, 0x006fdae8); }
-u8 *__fastcall Class6fdaf8_Ctor(u8 *object, void *, const WString *name, const WString *folder) { return Plain(object, name, folder, 0x006fdaf8); }
-u8 *__fastcall Class6fda58_Ctor(u8 *object, void *, const WString *name, const WString *folder) { return WithHandle(object, name, folder, 0x006fda58); }
-u8 *__fastcall Class6fdad8_Ctor(u8 *object, void *, const WString *name, const WString *folder) { return WithHandle(object, name, folder, 0x006fdad8); }
+u8 *__fastcall Class6fda48_Ctor(u8 *object, void *, const WString *name, const WString *folder) { return Plain(object, name, folder, (u32)(uintptr_t)Class6fda48_vtable); }
+u8 *__fastcall Class6fda68_Ctor(u8 *object, void *, const WString *name, const WString *folder) { return Plain(object, name, folder, (u32)(uintptr_t)Class6fda68_vtable); }
+u8 *__fastcall Class6fdaa8_Ctor(u8 *object, void *, const WString *name, const WString *folder) { return Plain(object, name, folder, (u32)(uintptr_t)Class6fdaa8_vtable); }
+u8 *__fastcall Class6fdab8_Ctor(u8 *object, void *, const WString *name, const WString *folder) { return Plain(object, name, folder, (u32)(uintptr_t)Class6fdab8_vtable); }
+u8 *__fastcall Class6fdae8_Ctor(u8 *object, void *, const WString *name, const WString *folder) { return Plain(object, name, folder, (u32)(uintptr_t)Class6fdae8_vtable); }
+u8 *__fastcall Class6fdaf8_Ctor(u8 *object, void *, const WString *name, const WString *folder) { return Plain(object, name, folder, (u32)(uintptr_t)Class6fdaf8_vtable); }
+u8 *__fastcall Class6fda58_Ctor(u8 *object, void *, const WString *name, const WString *folder) { return WithHandle(object, name, folder, (u32)(uintptr_t)Class6fda58_vtable); }
+u8 *__fastcall Class6fdad8_Ctor(u8 *object, void *, const WString *name, const WString *folder) { return WithHandle(object, name, folder, (u32)(uintptr_t)Class6fdad8_vtable); }
 
 u8 *__fastcall Class6fda88_Ctor(u8 *object, void *, const WString *name, const WString *folder) {
-    return WithTwoHandles(object, name, folder, 0x006fda78, 0x006fda88);
+    return WithTwoHandles(object, name, folder, (u32)(uintptr_t)Class6fda78_vtable, (u32)(uintptr_t)Class6fda88_vtable);
 }
 
 u8 *__fastcall Class6fdac8_Ctor(u8 *object, void *, const WString *name, const WString *folder) {
-    return WithTwoHandles(object, name, folder, 0x006fda58, 0x006fdac8);
+    return WithTwoHandles(object, name, folder, (u32)(uintptr_t)Class6fda58_vtable, (u32)(uintptr_t)Class6fdac8_vtable);
 }
 
 u8 *__fastcall Class6fda98_Ctor(u8 *object, void *, const WString *name, const WString *folder) {
-    WithHandle(object, name, folder, 0x006fda98);
+    WithHandle(object, name, folder, (u32)(uintptr_t)Class6fda98_vtable);
     at<u32>(object, 0x4c) = 0;
     at<u32>(object, 0x48) = 0;
     return object;

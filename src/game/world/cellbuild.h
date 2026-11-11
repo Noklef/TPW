@@ -40,4 +40,12 @@ u32 __fastcall MapCell_CanBuildTrack(u8 *cell, void *, u32 kind, u32 alone, u32 
 #include "../core/gamedata.h"
 
 // Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(u32, gCellbuild_816d4c, 0x00816d4c, 4);
+GAME_DATA(u32, gCellbuild_816d50, 0x00816d50, 4);
+GAME_DATA(u32, gCellbuild_816d54, 0x00816d54, 4);
+GAME_DATA(u32, gCellbuild_816d58, 0x00816d58, 4);
+GAME_DATA(u32, gCellbuild_816d5c, 0x00816d5c, 4);
+GAME_DATA(u32, gCellbuild_816d60, 0x00816d60, 4);
 GAME_DATA(s32, gCellbuild_818c14, 0x00818c14, 0x4);
+GAME_DATA(u32, gCellbuild_820ac8, 0x00820ac8, 4);
+GAME_DATA(u32, gCellbuild_820ad0, 0x00820ad0, 4);

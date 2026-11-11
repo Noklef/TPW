@@ -9,6 +9,7 @@
 #include "../world/thingscan.h"
 #include "registry.h"
 #include "../world/ridelist.h"
+#include "../world/rides.h"
 
 namespace {
 
@@ -85,7 +86,7 @@ void __cdecl CoasterTrain_Unload(u8 *coaster, u8 *train, u32 side) {
         u32 &count = at<u32>(car, side ? 0x30 : 0x34);
         for (u32 j = 0; j < count; ++j) {
             push(boarding(coaster), riders[j]);
-            u8 *const ride = reinterpret_cast<u8 *const *>(0x007a4610)[at<u32>(car, 0xc)];
+            u8 *const ride = gRides_7a4610[at<u32>(car, 0xc)];
             PartStates_Release(at<u8 *>(ride, 8), at<const u32 *>(at<u8 *>(car, 4), 0x2c)[j]);
             --at<u32>(train, 0x10);
             riders[j] = 0;

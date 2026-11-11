@@ -50,7 +50,7 @@ template <typename T> T &at(void *p, u32 offset) { return *reinterpret_cast<T *>
 // A research group's level: 0 without a current project (ResearchLab_CurrentObjId's id 0), else the lab's Table_ScaledBySum of it; the
 // lab the game [0x7cf83c]'s (GameTable7cfb90_Get1da722_519550), found again for each.
 u32 researchLevel(s32 group) {
-    u8 *const lab = reinterpret_cast<u8 *>((uintptr_t)GameTable7cfb90_Get1da722_519550(global<u8 *>(0x007cf83c)));
+    u8 *const lab = reinterpret_cast<u8 *>((uintptr_t)GameTable7cfb90_Get1da722_519550(gWorldPtr));
     u16 id;
     if (*ResearchLab_CurrentObjId(lab, nullptr, &id, (u32)group) == 0) return 0;
     return Table_ScaledBySum(lab, nullptr, group);
@@ -67,7 +67,7 @@ void showLevel(s32 group, u32 level) {
 extern "C" {
 
 void __cdecl ResearchMeters_ShowProgress(u32 group) {
-    const u8 *const lab = reinterpret_cast<u8 *>((uintptr_t)GameTable7cfb90_Get1da722_519550(global<u8 *>(0x007cf83c)));
+    const u8 *const lab = reinterpret_cast<u8 *>((uintptr_t)GameTable7cfb90_Get1da722_519550(gWorldPtr));
     const s32 done = 100 - (s32)ResearchLab_LeftPercent(lab, nullptr, group);
     if (group > 4) return;
     u8 *const meter = Window_FindChild(gLevelmeter_7cc1d8, nullptr, kMeter[group]);
@@ -93,7 +93,7 @@ void __cdecl ResearchMeters_Update(s32 group) {
 
 void __cdecl ResearchMeters_ShowName(u32 group) {
     u8 *const defs = reinterpret_cast<u8 *>((uintptr_t)0x007890a0);
-    u8 *const lab = reinterpret_cast<u8 *>((uintptr_t)GameTable7cfb90_Get1da722_519550(global<u8 *>(0x007cf83c)));
+    u8 *const lab = reinterpret_cast<u8 *>((uintptr_t)GameTable7cfb90_Get1da722_519550(gWorldPtr));
     u32 id = 0;   // (the original's dword: its high word not set, and not read)
     ResearchLab_CurrentObjId(lab, nullptr, reinterpret_cast<u16 *>(&id), group);
     u8 *gauge = nullptr;
@@ -110,17 +110,17 @@ void __cdecl ResearchMeters_ShowName(u32 group) {
     at<u32>(count, 4) = at<u32>(title, 4) = 0x5641524d;
     at<u32>(title, 0xc) = (u32)(uintptr_t)name;
     at<u32>(count, 8) = 0xd;
-    at<u32>(count, 0) = 0x006ff170;
+    at<u32>(count, 0) = (u32)(uintptr_t)TextArgInt_vtable;
     at<u32>(count, 0x10) = 0;
     at<u32>(title, 8) = 0xe;
-    at<u32>(title, 0) = 0x006ff174;
+    at<u32>(title, 0) = (u32)(uintptr_t)TextArgString_vtable;
     u16 text[0x80];
     TextFormat().format(global<void *>((u32)(uintptr_t)&gLanguage_78b530 + 0x564), text, 0x7f, 0x1be, title, count);
     Window_NotifyImpl100(gauge, nullptr, (u32)(uintptr_t)text);
 }
 
 void __cdecl ResearchMeters_Refresh(u32 group) {
-    u8 *const lab = reinterpret_cast<u8 *>((uintptr_t)GameTable7cfb90_Get1da722_519550(global<u8 *>(0x007cf83c)));
+    u8 *const lab = reinterpret_cast<u8 *>((uintptr_t)GameTable7cfb90_Get1da722_519550(gWorldPtr));
     if (!ResearchLab_CurrentNotDone(lab, nullptr, group)) ResearchLab_NextProject(lab, nullptr, group);
     if (!gLevelmeter_7cc1d8) return;
     ResearchMeters_ShowName(group);
@@ -132,7 +132,7 @@ void __fastcall Obj7b51f0_RefreshResearch(void *, void *, u32 group) { ResearchM
 // The five project arrows' handlers, one for each group (the original has five copies).
 static s32 arrowProc(u32 group, u8 *window, u32 message, u32 a, u32 b) {
     if (message == 0x100) {
-        u8 *const lab = reinterpret_cast<u8 *>((uintptr_t)GameTable7cfb90_Get1da722_519550(global<u8 *>(0x007cf83c)));
+        u8 *const lab = reinterpret_cast<u8 *>((uintptr_t)GameTable7cfb90_Get1da722_519550(gWorldPtr));
         if (a == 0xd2d03) ResearchLab_PrevProject(lab, nullptr, group);
         else ResearchLab_NextProject(lab, nullptr, group);
         ResearchMeters_ShowName(group);
@@ -212,7 +212,7 @@ const ResearchPanelEnv *g_panel = &kGamePanelEnv;
 
 u32 &word(u32 at) { return *reinterpret_cast<u32 *>(static_cast<uintptr_t>(at)); }
 u8 *panel() { return reinterpret_cast<u8 *>(static_cast<uintptr_t>(reinterpret_cast<u32 &>(gLevelmeter_7cc1d8))); }
-u8 *gameRecord() { return reinterpret_cast<u8 *>(static_cast<uintptr_t>(word(0x007cf83c))); }
+u8 *gameRecord() { return reinterpret_cast<u8 *>(static_cast<uintptr_t>(word((u32)&gWorldPtr))); }
 u8 *panelChild(u32 id) { return g_panel->child(panel(), nullptr, id); }
 
 void showAllProgress() {
@@ -314,11 +314,11 @@ void __cdecl ResearchPanel_Open() {
         refuse(0x1d4);
         return;
     }
-    if (at<u16>(global<u8 *>(0x007cf83c), 0x1da742) == 0) {
+    if (at<u16>(gWorldPtr, 0x1da742) == 0) {
         refuse(0x1d3);
         return;
     }
-    u8 *const panel = WindowScript_Build(gPanel7b9940_7cb2ac, nullptr, reinterpret_cast<u8 *>((uintptr_t)0x00754490), 0x004a96b0);
+    u8 *const panel = WindowScript_Build(gPanel7b9940_7cb2ac, nullptr, gResearchPanel_Open_754490, 0x004a96b0);
     gLevelmeter_7cc1d8 = panel;
     if (!panel) return;
     Window7c24c8_Set(panel);
@@ -360,12 +360,12 @@ void __cdecl ResearchPanel_Open() {
         Window_Notify40000(label, nullptr, 0xe0, 0x56, 0x56, 0xff);
         Window_NotifyImpl100(label, nullptr, 0);
     }
-    g_open->table(global<u8 *>(0x007cf83c));
+    g_open->table(gWorldPtr);
     gLevelmeter_7cc1b4 = g_open->times();
-    g_open->table(global<u8 *>(0x007cf83c));
+    g_open->table(gWorldPtr);
     const s32 sum = static_cast<s32>(g_open->sum());
     reinterpret_cast<s32 &>(gLevelmeter_7cc1c8) = sum;
-    const u8 *lab = reinterpret_cast<const u8 *>((uintptr_t)g_open->lab(global<u8 *>(0x007cf83c)));
+    const u8 *lab = reinterpret_cast<const u8 *>((uintptr_t)g_open->lab(gWorldPtr));
     u8 *child = Window_FindChild(gLevelmeter_7cc1d8, nullptr, 0xd2d10);
     const s32 limit = static_cast<s32>(static_cast<u32>((100 - sum) / 3 + sum) << 10) / gLevelmeter_7cc1b4;
     const s32 position = static_cast<s32>(static_cast<u32>(*reinterpret_cast<const s32 *>(lab + 0x1460) - 0x46) * static_cast<u32>(limit)) / 30;
@@ -375,7 +375,7 @@ void __cdecl ResearchPanel_Open() {
     static const u32 kGroups[5] = {0, 4, 1, 2, 3};
     for (u32 group : kGroups) g_open->showName(group);
     for (u32 group : kGroups) g_open->showProgress(group);
-    lab = reinterpret_cast<const u8 *>((uintptr_t)g_open->lab(global<u8 *>(0x007cf83c)));
+    lab = reinterpret_cast<const u8 *>((uintptr_t)g_open->lab(gWorldPtr));
     for (u32 i = 0; i < 5; ++i) {
         if (u8 *const slider = Window_FindChild(gLevelmeter_7cc1d8, nullptr, kSliders[i])) vcall<void>(slider, 0x1c, g_open->effort(lab, nullptr, kGroups[i]));
     }

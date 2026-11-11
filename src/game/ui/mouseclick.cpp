@@ -20,6 +20,8 @@
 #include "panel7cc3b0.h"
 #include "panel7cc408.h"
 #include "thingpanel.h"
+#include "../core/soundset.h"
+#include "../core/imports.h"
 #include "../core/staticobjects.h"
 
 namespace {
@@ -32,7 +34,7 @@ const MouseClickEnv kGameEnv = {Global7c2534_HasSource, Map_ObjectOrEntranceAt, 
                                 Panel7cc408_Show, Panel7cc3b0_Show, Dialog7ca210_Open, Dialog7ca1c8_OpenFor, FocusCell_Update, Cell_FirstObject};
 const MouseClickEnv *g_env = &kGameEnv;
 
-u8 *game() { return global<u8 *>(0x007cf83c); }
+u8 *game() { return gWorldPtr; }
 u8 *thingOf(u32 handle) { return global<u8 *>(0x007cfb90 + (handle & 0xffff) * 20); }
 u8 *cellOf(u32 tile) { return game() + tile * 0x44 + 0x294; }
 u8 *recordOf(u32 tile) { return game() + (tile + 0x6cde) * 40; }
@@ -63,7 +65,7 @@ u32 clickObject(u32 tile) {
     g_env->objectAt(&handle, place & 0x7f, place >> 7);
     if (!handle) return 1;
     using KeyStateFn = s16(__stdcall *)(s32);
-    if (global<KeyStateFn>(0x006fd320)(0x11) >= 0) {
+    if (global<KeyStateFn>(IMPORT(User32_GetAsyncKeyState))(0x11) >= 0) {
         g_env->thingPanel(reinterpret_cast<u8 *>((uintptr_t)Global7c2654_Get()));
         return 1;
     }
@@ -71,7 +73,7 @@ u32 clickObject(u32 tile) {
     const u16 id = at<u16>(thing, 0xe);
     const s32 price = at<s32>(g_env->find(game() + 0x1d943c, nullptr, id, 0), 4);
     if (price > (s32)g_env->money(g_env->table26(game()))) {
-        g_env->playAt(0, global<u32>(0x00803a2c), 0x1d, 0, 0, 0);
+        g_env->playAt(0, gSoundCategories.ui, 0x1d, 0, 0, 0);
         return 0;
     }
     u8 *const block = static_cast<u8 *>(GameHeap_Alloc(0x14));

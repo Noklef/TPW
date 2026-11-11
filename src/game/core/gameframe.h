@@ -32,4 +32,11 @@ u32 __cdecl Game_RunFrame();
 #include "gamedata.h"
 
 // Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(char[0x14], gGameframe_74d0c4, 0x0074d0c4, 0x14);
+GAME_DATA(char[0xc], gGameframe_764fe4, 0x00764fe4, 0xc);
+GAME_DATA(char[0x28], gGameframe_7650b4, 0x007650b4, 0x28);
+GAME_DATA(char[0x40], gGameframe_7650ec, 0x007650ec, 0x40);
+GAME_DATA(char[0x18], gGameframe_76512c, 0x0076512c, 0x18);
+GAME_DATA(char[0x1c], gGameframe_765190, 0x00765190, 0x1c);
+GAME_DATA(char[0x18], gGameframe_7651b8, 0x007651b8, 0x18);
 GAME_DATA(u32, gGameframe_878128, 0x00878128, 0x4);

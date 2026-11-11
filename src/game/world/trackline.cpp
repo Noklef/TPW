@@ -7,13 +7,16 @@
 #include "cellmodel.h"
 #include "mapcell.h"
 #include "tracktextures.h"
+#include "focuscell.h"
+#include "../math/intpair.h"
+#include "world.h"
 
 namespace {
 
 template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cast<T *>((uintptr_t)p + offset); }
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
 
-u8 *World() { return global<u8 *>(0x007cf83c); }
+u8 *World() { return gWorldPtr; }
 // The world's 0x28-byte cell at (x, y): (id + 0x6cde) * 0x28, the id cut to a word.
 u8 *CellAt(s32 x, s32 y) { return World() + (((((u32)y << 7) + (u32)x + 1) & 0xffff) + 0x6cde) * 0x28; }
 
@@ -25,7 +28,7 @@ struct Block {
 Block BlockOf(const u8 *cell) {
     Block b;
     b.cells[0] = MapHandle_Cell44(reinterpret_cast<const u16 *>(cell));
-    static const u32 kTables[3] = {0x007cdba8, 0x007cdbb8, 0x007cdbc8};
+    static const u32 kTables[3] = {(u32)gStepS_7cdba8, (u32)gStepSE_7cdbb8, (u32)gStepE_7cdbc8};
     for (int i = 0; i < 3; ++i)
         b.cells[i + 1] = Map_StepCell(reinterpret_cast<const u16 *>(b.cells[0]), nullptr, global<s32>(kTables[i]), global<s32>(kTables[i] + 4), 1);
     return b;
@@ -52,11 +55,11 @@ void Beside(const u8 *cell) {
 extern "C" {
 
 void __cdecl TrackLine_Prune() {
-    s32 x = global<s32>(0x007639f0), y = global<s32>(0x007639f4);
+    s32 x = gFocusCell_PointAX_7639f0, y = gFocusCell_PointAY_7639f4;
     bool done = false;
     s32 steps = 0;
     u8 facing = 4;   // (a stack slot's low byte; its other bytes unset)
-    global<u8>(0x00818c50) = 4;
+    gFocuscell_818c50 = 4;
     bool northEnded = false;   // (set once, never reset)
     do {
         u8 *const cell = CellAt(x, y);

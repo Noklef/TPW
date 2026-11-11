@@ -49,7 +49,9 @@
 #include "crt.h"
 #include "keymap.h"
 #include "../world/nav.h"
+#include "../world/object.h"
 #include "iosbase.h"
+#include "../model/hoardingmesh.h"
 #include "staticobjects.h"
 
 namespace {
@@ -89,7 +91,7 @@ u32 __cdecl Wrap_Flags7a1a14_Update_40f220() {
 }
 
 u32 __cdecl Wrap_Dword_ClearBit0_454540() {
-    return Dword_ClearBit0(reinterpret_cast<u32 *>(0x74d008));
+    return Dword_ClearBit0(reinterpret_cast<u32 *>((u32)(uintptr_t)&gHoardingmesh_74d008));
 }
 
 u32 __cdecl Wrap_Global7c2650_Get_481590() {
@@ -145,11 +147,11 @@ u8 * __cdecl Wrap_Init_6c4fb0_6c4900() {
 }
 
 u8 * __fastcall Wrap_Fn_669fa8_492020(u8 *o) {
-    Fn_669fa8(reinterpret_cast<u8 *>(o)); at<u32>(o, 0x0) = 0x6ff598; at<u32>(o, 0x18) = 0x0; return o;
+    Fn_669fa8(reinterpret_cast<u8 *>(o)); at<u32>(o, 0x0) = (u32)(uintptr_t)Class6ff598_vtable; at<u32>(o, 0x18) = 0x0; return o;
 }
 
 u32 __fastcall Wrap_Fn_669fee_492060(u8 *o) {
-    at<u32>(o, 0x0) = 0x6ff598; return Fn_669fee(reinterpret_cast<u8 *>(o));
+    at<u32>(o, 0x0) = (u32)(uintptr_t)Class6ff598_vtable; return Fn_669fee(reinterpret_cast<u8 *>(o));
 }
 
 u32 __fastcall Wrap_Set4_4217f0_4fa460(u8 *o) {
@@ -161,35 +163,35 @@ void __fastcall Wrap_Vtbl70a078_Set_6b4a50_6b0470(u8 *o) {
 }
 
 u8 * __fastcall Wrap_Init_6b4a60_6b0710(u8 *o) {
-    Init_6b4a60(reinterpret_cast<u8 *>(o)); at<u32>(o, 0x0) = 0x70a188; return o;
+    Init_6b4a60(reinterpret_cast<u8 *>(o)); at<u32>(o, 0x0) = (u32)(uintptr_t)Class70a188_vtable; return o;
 }
 
 void __fastcall Wrap_Vtbl70a258_Set_6b4a90_6b0750(u8 *o) {
-    at<u32>(o, 0x0) = 0x70a188; Vtbl70a258_Set_6b4a90(reinterpret_cast<u8 *>(o));
+    at<u32>(o, 0x0) = (u32)(uintptr_t)Class70a188_vtable; Vtbl70a258_Set_6b4a90(reinterpret_cast<u8 *>(o));
 }
 
 u8 * __fastcall Wrap_Init_6b4a60_6b1de0(u8 *o) {
-    Init_6b4a60(reinterpret_cast<u8 *>(o)); at<u32>(o, 0x0) = 0x70a1a8; return o;
+    Init_6b4a60(reinterpret_cast<u8 *>(o)); at<u32>(o, 0x0) = (u32)(uintptr_t)Class70a1a8_vtable; return o;
 }
 
 void __fastcall Wrap_Vtbl70a258_Set_6b4a90_6b1e20(u8 *o) {
-    at<u32>(o, 0x0) = 0x70a1a8; Vtbl70a258_Set_6b4a90(reinterpret_cast<u8 *>(o));
+    at<u32>(o, 0x0) = (u32)(uintptr_t)Class70a1a8_vtable; Vtbl70a258_Set_6b4a90(reinterpret_cast<u8 *>(o));
 }
 
 u8 * __fastcall Wrap_Init_6b4a60_6b2a10(u8 *o) {
-    Init_6b4a60(reinterpret_cast<u8 *>(o)); at<u32>(o, 0x0) = 0x70a1c8; return o;
+    Init_6b4a60(reinterpret_cast<u8 *>(o)); at<u32>(o, 0x0) = (u32)(uintptr_t)Class70a1c8_vtable; return o;
 }
 
 void __fastcall Wrap_Vtbl70a258_Set_6b4a90_6b2a50(u8 *o) {
-    at<u32>(o, 0x0) = 0x70a1c8; Vtbl70a258_Set_6b4a90(reinterpret_cast<u8 *>(o));
+    at<u32>(o, 0x0) = (u32)(uintptr_t)Class70a1c8_vtable; Vtbl70a258_Set_6b4a90(reinterpret_cast<u8 *>(o));
 }
 
 u8 * __fastcall Wrap_Init_6b4a60_6b3c00(u8 *o) {
-    Init_6b4a60(reinterpret_cast<u8 *>(o)); at<u32>(o, 0x0) = 0x70a1e8; return o;
+    Init_6b4a60(reinterpret_cast<u8 *>(o)); at<u32>(o, 0x0) = (u32)(uintptr_t)Class70a1e8_vtable; return o;
 }
 
 void __fastcall Wrap_Vtbl70a258_Set_6b4a90_6b3c40(u8 *o) {
-    at<u32>(o, 0x0) = 0x70a1e8; Vtbl70a258_Set_6b4a90(reinterpret_cast<u8 *>(o));
+    at<u32>(o, 0x0) = (u32)(uintptr_t)Class70a1e8_vtable; Vtbl70a258_Set_6b4a90(reinterpret_cast<u8 *>(o));
 }
 
 u8 * __cdecl Wrap_Wrap_Init_6b4a60_6b0710_6b0140() {
@@ -551,7 +553,7 @@ u8 *__cdecl Wrap_SystemInfo_Ctor_5f8a40() {
 }
 
 void __cdecl Wrap_Array7ced88_Dtor_4fa750() {
-    CRT_VectorDtorIterator(reinterpret_cast<u8 *>((uintptr_t)0x007ced88), 8, 9, reinterpret_cast<void(__fastcall *)(void *)>((uintptr_t)0x005d1750));
+    CRT_VectorDtorIterator(reinterpret_cast<u8 *>((uintptr_t)(u32)&gObject_Around_7ced88[0][0]), 8, 9, reinterpret_cast<void(__fastcall *)(void *)>((uintptr_t)0x005d1750));
 }
 
 void __cdecl Wrap_Array81ed40_Dtor_532bb0() {

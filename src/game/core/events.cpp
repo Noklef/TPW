@@ -5,6 +5,8 @@
 
 #include "vobj2.h"
 #include "../render/screen.h"
+#include "../gfx/pointer.h"
+#include "imports.h"
 #include "staticobjects.h"
 
 namespace {
@@ -15,16 +17,16 @@ T at(u32 address) {
 }
 const EventQueueEnv kGameEnv = {
     at<EventQueue *>(0x00fa7cb0),
-    0x00703648,
-    0x0070364c,
+    ((u32)(uintptr_t)AsyncPointer_vtable + 0x4),
+    (u32)(uintptr_t)EventList_vtable,
     at<void *(__cdecl *)(u32)>(0x0067acc0),
     at<void(__cdecl *)(void *)>(0x0067acb0),
     at<s32(__cdecl *)(void(__cdecl *)())>(0x0067a7d0),
     at<void(__cdecl *)()>(0x005fbe10),
-    at<void(__stdcall *const *)(void *)>(0x006fd144),
-    at<void(__stdcall *const *)(void *)>(0x006fd0d0),
-    at<void(__stdcall *const *)(void *)>(0x006fd140),
-    at<void(__stdcall *const *)(void *)>(0x006fd130),
+    at<void(__stdcall *const *)(void *)>(IMPORT(Kernel32_InitializeCriticalSection)),
+    at<void(__stdcall *const *)(void *)>(IMPORT(Kernel32_DeleteCriticalSection)),
+    at<void(__stdcall *const *)(void *)>(IMPORT(Kernel32_EnterCriticalSection)),
+    at<void(__stdcall *const *)(void *)>(IMPORT(Kernel32_LeaveCriticalSection)),
 };
 const EventQueueEnv *g_env = &kGameEnv;
 

@@ -27,15 +27,15 @@ u8 *__stdcall SoundResource_New(const u8 *owner, const u32 *desc, u8 *source) {
 
 u8 *__fastcall SoundResourceRef_Ctor(u8 *ref, void *, u8 *resource) {
     Class703770_Ctor(ref);
-    at<u32>(ref, 0) = 0x0070af18;
+    at<u32>(ref, 0) = (u32)(uintptr_t)SoundResourceRef_vtable;
     at<u8 *>(ref, 8) = resource;
     return ref;
 }
 
 void __fastcall SoundResourceRef_Dtor(u8 *ref) {
-    at<u32>(ref, 0) = 0x0070af18;
+    at<u32>(ref, 0) = (u32)(uintptr_t)SoundResourceRef_vtable;
     vcall<void>(at<u8 *>(ref, 8), 0);
-    at<u32>(ref, 0) = 0x00703770;
+    at<u32>(ref, 0) = (u32)(uintptr_t)Class703770_vtable;
 }
 
 u32 __fastcall SoundResourceRef_Slot11(u8 *ref) {
@@ -95,14 +95,14 @@ u8 *__fastcall SoundResource_Ctor(u8 *self, void *, u8 *source) {
     at<u32>(self, 0xc) = 0;
     at<u8 *>(self, 0x10) = source;
     vcall<void>(source, 4);
-    at<u32>(self, 0) = 0x0070ab00;
+    at<u32>(self, 0) = (u32)(uintptr_t)SoundResource_vtable;
     return self;
 }
 
 void __fastcall SoundResource_Dtor(u8 *self) {
-    at<u32>(self, 0) = 0x0070ab00;
+    at<u32>(self, 0) = (u32)(uintptr_t)SoundResource_vtable;
     if (u8 *const source = at<u8 *>(self, 0x10)) vcall<void>(source, 0);
-    at<u32>(self, 0) = 0x00703770;
+    at<u32>(self, 0) = (u32)(uintptr_t)Class703770_vtable;
 }
 
 u8 *__fastcall SoundResource_DeletingDtor(u8 *self, void *, u32 flags) {
@@ -147,7 +147,7 @@ u32 *__fastcall SoundStreamIndex_ReadRecord(u8 *self, void *, u32 *out, u8 *cons
 }
 
 void __fastcall SoundStreamIndex_Dtor(u8 *self) {
-    at<u32>(self, 0) = 0x0070aa80;
+    at<u32>(self, 0) = (u32)(uintptr_t)Class70aa80_vtable;
     SoundStreamIndex_Unload(self);
     StreamBase_Dtor(reinterpret_cast<StreamBase *>(self + 0x14));
     SoundResource_Dtor(self);
@@ -185,7 +185,7 @@ void __fastcall SoundMapIndex_Unmap(u8 *self) {
 }
 
 void __fastcall SoundMapIndex_Dtor(u8 *self) {
-    at<u32>(self, 0) = 0x0070aac0;
+    at<u32>(self, 0) = (u32)(uintptr_t)Class70aac0_vtable;
     SoundMapIndex_Unmap(self);
     StreamBase_Dtor(reinterpret_cast<StreamBase *>(self + 0x18));
     SoundResource_Dtor(self);
@@ -206,7 +206,7 @@ u32 *__stdcall SoundResource_Create(u32 *out, u8 **resource, const u8 *owner, co
             const StreamBase *const stream = reinterpret_cast<const StreamBase *>((uintptr_t)desc[2]);
             SoundResource_Ctor(p, nullptr, source);
             StreamBase_CopyCtor(reinterpret_cast<StreamBase *>(p + 0x14), nullptr, stream);
-            at<u32>(p, 0) = 0x0070aa80;
+            at<u32>(p, 0) = (u32)(uintptr_t)Class70aa80_vtable;
         }
         *resource = p;
         break;
@@ -218,7 +218,7 @@ u32 *__stdcall SoundResource_Create(u32 *out, u8 **resource, const u8 *owner, co
             SoundResource_Ctor(p, nullptr, source);
             at<u32>(p, 0x14) = 0;
             StreamBase_CopyCtor(reinterpret_cast<StreamBase *>(p + 0x18), nullptr, stream);
-            at<u32>(p, 0) = 0x0070aac0;
+            at<u32>(p, 0) = (u32)(uintptr_t)Class70aac0_vtable;
         }
         *resource = p;
         break;

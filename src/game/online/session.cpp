@@ -29,6 +29,7 @@
 #include "chatlists.h"
 #include "chatcommand.h"
 #include "../ui/window7cc8c0handler.h"
+#include "../core/imports.h"
 #include "../core/staticobjects.h"
 
 namespace {
@@ -38,7 +39,7 @@ template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cas
 // OutputDebugStringA (0x6fd1e0) with the game's text at address text.
 void Say(u32 text) {
     using Output = void(__stdcall *)(const char *);
-    (*reinterpret_cast<const Output *>((uintptr_t)0x006fd1e0))(reinterpret_cast<const char *>((uintptr_t)text));
+    (*reinterpret_cast<const Output *>((uintptr_t)IMPORT(Kernel32_OutputDebugStringA)))(reinterpret_cast<const char *>((uintptr_t)text));
 }
 
 // A WEA*R import with no arguments (__thiscall: the object in ECX) through its slot.
@@ -49,9 +50,9 @@ void CallImport(u32 slot, void *object) {
 
 // The News connection (+0x6c, set) released (News::Release), destroyed (News::~News) and freed when still set, +0x6c cleared.
 void FreeNews(u8 *session) {
-    CallImport(0x006fd58c, at<u8 *>(session, 0x6c));
+    CallImport(IMPORT(Weanewsr_News_Release), at<u8 *>(session, 0x6c));
     if (u8 *const news = at<u8 *>(session, 0x6c)) {
-        CallImport(0x006fd588, news);
+        CallImport(IMPORT(Weanewsr_News_Dtor), news);
         GameHeap_Free(news);
     }
     at<u32>(session, 0x6c) = 0;
@@ -79,9 +80,9 @@ void ResetNativeList(u8 *list, u32 release) {
 // Connection released" said.
 void ReleaseCity(u8 *session) {
     if (at<u8 *>(session, 0xd4)) {
-        CallImport(0x006fd4f4, at<u8 *>(session, 0xd4));   // City::Release
+        CallImport(IMPORT(Weacityr_City_Release), at<u8 *>(session, 0xd4));   // City::Release
         if (u8 *const city = at<u8 *>(session, 0xd4)) {
-            CallImport(0x006fd540, city);   // City::~City
+            CallImport(IMPORT(Weacityr_City_Dtor), city);   // City::~City
             GameHeap_Free(city);
         }
         at<u32>(session, 0xd4) = 0;
@@ -144,9 +145,9 @@ void ClearNews(u8 *session) {
 void __fastcall Online_ReleaseLogin(u8 *session) {
     if (!at<u8 *>(session, 0))
         return;
-    CallImport(0x006fd45c, at<u8 *>(session, 0));   // Auth::Release
+    CallImport(IMPORT(Weaauthr_Auth_Release), at<u8 *>(session, 0));   // Auth::Release
     if (u8 *const auth = at<u8 *>(session, 0)) {
-        CallImport(0x006fd460, auth);   // Auth::~Auth
+        CallImport(IMPORT(Weaauthr_Auth_Dtor), auth);   // Auth::~Auth
         GameHeap_Free(auth);
     }
     at<u32>(session, 0) = 0;
@@ -166,7 +167,7 @@ void __fastcall Online_ResetNews(u8 *session) {
 }
 
 u8 *__fastcall Auth_DeletingDtor(u8 *auth, void *, u32 flags) {
-    CallImport(0x006fd460, auth);   // Auth::~Auth
+    CallImport(IMPORT(Weaauthr_Auth_Dtor), auth);   // Auth::~Auth
     if (flags & 1)
         GameHeap_Free(auth);
     return auth;
@@ -174,7 +175,7 @@ u8 *__fastcall Auth_DeletingDtor(u8 *auth, void *, u32 flags) {
 
 void __fastcall Online_ReleaseUpload(u8 *session) {
     if (u8 *const upload = at<u8 *>(session, 0x104)) {
-        CallImport(0x006fd5ec, upload);   // Upload::Release
+        CallImport(IMPORT(Weauploadr_Upload_Release), upload);   // Upload::Release
         at<u32>(session, 0x104) = 0;
     }
 }
@@ -255,9 +256,9 @@ void __fastcall Online_ResetCity(u8 *session) {
     at<u32>(session, 0xd8) = Time_GetMs();
     at<u32>(session, 0xdc) = 1;
     ReleaseCity(session);
-    ResetNativeList(at<u8 *>(session, 0xe0), 0x006fd538);   // ccCityList::Release
+    ResetNativeList(at<u8 *>(session, 0xe0), IMPORT(Weacityr_ccCityList_Release));   // ccCityList::Release
     for (u32 offset = 0xe4; offset <= 0xec; offset += 4)
-        ResetNativeList(at<u8 *>(session, offset), 0x006fd4e8);   // ccParkList::Release
+        ResetNativeList(at<u8 *>(session, offset), IMPORT(Weacityr_ccParkList_Release));   // ccParkList::Release
     ResetList(at<u8 *>(session, 0xf0));
     Shared_Release66(at<u8 *>(session, 0xf0));
     ResetList(at<u8 *>(session, 0xf4));
@@ -274,7 +275,7 @@ u8 *__fastcall Online_OpenCity(u8 *session) {
     u8 *city = static_cast<u8 *>(GameHeap_Alloc(0xc));
     if (city) {
         using Ctor = u8 *(__fastcall *)(u8 *, void *);
-        city = (*reinterpret_cast<const Ctor *>((uintptr_t)0x006fd4e4))(city, nullptr);   // City::City
+        city = (*reinterpret_cast<const Ctor *>((uintptr_t)IMPORT(Weacityr_City_Ctor)))(city, nullptr);   // City::City
     }
     at<u8 *>(session, 0xd4) = city;
     Say(reinterpret_cast<uintptr_t>(&gOnline_OpenCity_7738b0));
@@ -283,7 +284,7 @@ u8 *__fastcall Online_OpenCity(u8 *session) {
     const u32 port = (name & 0xffff0000) | *reinterpret_cast<const u16 *>((uintptr_t)&gOnlineServers_7a14f0 + 0x66);   // (mov ax: the high half left)
     using Connect = u32(__fastcall *)(u8 *, void *, u32, u8 *, u32, u32);
     const u8 *const picked = Global7cc53c_Pick7cc4f0();
-    if ((*reinterpret_cast<const Connect *>((uintptr_t)0x006fd534))(at<u8 *>(session, 0xd4), nullptr, server, const_cast<u8 *>(picked), port, 0x005b72c0) != 1) {
+    if ((*reinterpret_cast<const Connect *>((uintptr_t)IMPORT(Weacityr_City_Connect)))(at<u8 *>(session, 0xd4), nullptr, server, const_cast<u8 *>(picked), port, 0x005b72c0) != 1) {
         Say(reinterpret_cast<uintptr_t>(&gOnline_OpenCity_773890));
         ReleaseCity(session);
         return at<u8 *>(session, 0xd4);
@@ -293,7 +294,7 @@ u8 *__fastcall Online_OpenCity(u8 *session) {
     const u32 a = at<u32>(session, 0x34), b = at<u32>(session, 0x38), c = at<u32>(session, 0x28);
     const u32 language = Language_Id(reinterpret_cast<const u8 *>((uintptr_t)&gLanguage_78b530));
     using SetSessionInfo = void(__fastcall *)(u8 *, void *, u32, u32, u32, u32);
-    (*reinterpret_cast<const SetSessionInfo *>((uintptr_t)0x006fd53c))(at<u8 *>(session, 0xd4), nullptr, language, a, b, c);
+    (*reinterpret_cast<const SetSessionInfo *>((uintptr_t)IMPORT(Weacityr_City_SetSessionInfo)))(at<u8 *>(session, 0xd4), nullptr, language, a, b, c);
     at<u32>(session, 0xdc) = 1;
     return at<u8 *>(session, 0xd4);
 }
@@ -302,7 +303,7 @@ u32 __fastcall Online_UnpublishPark(u8 *session, void *, u32 park) {
     if (!Online_OpenCity(session))
         return 0;
     using Unpublish = u32(__fastcall *)(u8 *, void *, u32, u32, u32);
-    return (*reinterpret_cast<const Unpublish *>((uintptr_t)0x006fd4fc))(at<u8 *>(session, 0xd4), nullptr, 0, park, at<u32>(session, 0x34));
+    return (*reinterpret_cast<const Unpublish *>((uintptr_t)IMPORT(Weacityr_City_UnpublishPark)))(at<u8 *>(session, 0xd4), nullptr, 0, park, at<u32>(session, 0x34));
 }
 }
 
@@ -420,12 +421,12 @@ void __fastcall Online_ResetAll(u8 *session) {
 
 u32 __fastcall Online_UploadConnect(u8 *session) {
     if (void *const old = at<void *>(session, 0x104)) {
-        CallImport(0x006fd5ec, old);
+        CallImport(IMPORT(Weauploadr_Upload_Release), old);
         at<u32>(session, 0x104) = 0;
     }
     using Make = u32(__fastcall *)(void *, void *);
     void *const block = GameHeap_Alloc(0xc);
-    at<u32>(session, 0x104) = block ? (*reinterpret_cast<const Make *>((uintptr_t)0x006fd5dc))(block, nullptr) : 0;
+    at<u32>(session, 0x104) = block ? (*reinterpret_cast<const Make *>((uintptr_t)IMPORT(Weauploadr_Upload_Ctor)))(block, nullptr) : 0;
     Say(reinterpret_cast<uintptr_t>(&gOnline_UploadConnect_773a1c));
     WString wide;
     WString_CtorStr(&wide, nullptr, at<const u16 *>(g_start->findKind(at<u8 *>(session, 0xfc)), 0x2c));
@@ -435,13 +436,13 @@ u32 __fastcall Online_UploadConnect(u8 *session) {
     const u8 *const record = g_start->findKind(at<u8 *>(session, 0xfc));
     const u32 port = (static_cast<u32>(reinterpret_cast<uintptr_t>(record)) & 0xffff0000u) | at<u16>(record, 0x3c);  // (sic)
     using Connect = s32(__fastcall *)(void *, void *, const char *, u8 *, u32, u32);
-    const s32 answer = (*reinterpret_cast<const Connect *>((uintptr_t)0x006fd5e0))(at<void *>(session, 0x104), nullptr, host.data, Global7cc53c_Pick7cc4f0(), port, 0x005b8260);
+    const s32 answer = (*reinterpret_cast<const Connect *>((uintptr_t)IMPORT(Weauploadr_Upload_Connect)))(at<void *>(session, 0x104), nullptr, host.data, Global7cc53c_Pick7cc4f0(), port, 0x005b8260);
     u32 result = 0;
     if (answer == 1) {
         Say(reinterpret_cast<uintptr_t>(&gOnline_UploadConnect_7739dc));
         using Lobby = void(__fastcall *)(void *, void *, u32, u32, u32, u32);
         const u32 language = Language_Id(reinterpret_cast<const u8 *>((uintptr_t)&gLanguage_78b530));
-        (*reinterpret_cast<const Lobby *>((uintptr_t)0x006fd5e4))(at<void *>(session, 0x104), nullptr, language, at<u32>(session, 0x34), at<u32>(session, 0x38), at<u32>(session, 0x28));
+        (*reinterpret_cast<const Lobby *>((uintptr_t)IMPORT(Weauploadr_Upload_SetSessionInfo)))(at<void *>(session, 0x104), nullptr, language, at<u32>(session, 0x34), at<u32>(session, 0x38), at<u32>(session, 0x28));
         result = 1;
     } else {
         Say(reinterpret_cast<uintptr_t>(&gOnline_UploadConnect_7739f8));
@@ -466,7 +467,7 @@ void UploadGiveUp(u8 *session, u32 code) {
     if (at<u32>(session, 0x320)) Online_ResetAll(session);
     if (callback) callback(1, user);
     if (void *const upload = at<void *>(session, 0x104)) {
-        CallImport(0x006fd5ec, upload);
+        CallImport(IMPORT(Weauploadr_Upload_Release), upload);
         at<u32>(session, 0x104) = 0;
     }
 }
@@ -496,7 +497,7 @@ void __fastcall Online_UploadStart(u8 *session) {
     request[4] = static_cast<u8>(g_start->findLast(at<u8 *>(session, 0xf8), nullptr, at<const char *>(session, 0x114)));
     request[5] = at<u8>(session, 0x370);
     using Send = void(__fastcall *)(void *, void *, u32, u8 *, u32);
-    (*reinterpret_cast<const Send *>((uintptr_t)0x006fd5d0))(at<void *>(session, 0x104), nullptr, at<u32>(session, 0x338), request, 0);
+    (*reinterpret_cast<const Send *>((uintptr_t)IMPORT(Weauploadr_Upload_UploadParkRequest)))(at<void *>(session, 0x104), nullptr, at<u32>(session, 0x338), request, 0);
     Say(reinterpret_cast<uintptr_t>(&gOnline_UploadStart_773900));
 }
 
@@ -511,7 +512,7 @@ void __fastcall Online_UploadEvent(u8 *session, void *, u32 code, u32, u32, u8 *
             }
             Say(reinterpret_cast<uintptr_t>(&gOnline_UploadEvent_7739a4));
             using Next = void(__fastcall *)(void *, void *, u32, u32);
-            (*reinterpret_cast<const Next *>((uintptr_t)0x006fd5e8))(at<void *>(session, 0x104), nullptr, at<u32>(session, 0x338), 0);
+            (*reinterpret_cast<const Next *>((uintptr_t)IMPORT(Weauploadr_Upload_UploadParkFile)))(at<void *>(session, 0x104), nullptr, at<u32>(session, 0x338), 0);
             return;
         }
         case 0:
@@ -585,7 +586,7 @@ void __fastcall Online_Dtor(u8 *session) {
     if (u8 *const object = at<u8 *>(session, 0x3a4)) vcall<void>(object, 0, 1u);   // sic: +0x3a4 stays
     g_dtor->stringDtor(session + 0x3dc);
     u8 *node = at<u8 *>(session, 0x3cc);
-    at<u32>(session, 0x3c8) = 0x007028a0;
+    at<u32>(session, 0x3c8) = (u32)(uintptr_t)ListDtor7028a0_vtable;
     at<u32>(session, 0x3d0) = 0;
     at<u32>(session, 0x3cc) = 0;
     while (node) {
@@ -641,7 +642,7 @@ void __fastcall Online_DownloadEnd(u8 *session, void *, u32 failed) {
         const u32 size = at<u32>(at<u8 *>(session, 0x3a4), 8);
         if (g_end->openCity(session)) {
             using Start = void(__fastcall *)(void *, void *, u32, u32, u32);
-            (*reinterpret_cast<const Start *>((uintptr_t)0x006fd52c))(at<void *>(session, 0xd4), nullptr, 0, size, at<u32>(session, 0x34));
+            (*reinterpret_cast<const Start *>((uintptr_t)IMPORT(Weacityr_City_MarkParkVisited)))(at<void *>(session, 0xd4), nullptr, 0, size, at<u32>(session, 0x34));
         }
         at<u32>(session, 0x3f0) = 1;
     } else if (at<u32>(session, 0x388)) {
@@ -664,13 +665,13 @@ void __fastcall Online_UploadPoll(u8 *session) {
     if (!at<u32>(session, 0x104) || !at<u32>(session, 0x324)) return;
     if (!at<u32>(session, 0x328)) {
         using Current = u32(__fastcall *)(void *, void *, u32);
-        const Current current = *reinterpret_cast<const Current *>((uintptr_t)0x006fd5d4);
+        const Current current = *reinterpret_cast<const Current *>((uintptr_t)IMPORT(Weauploadr_Upload_GetCurrentMessage));
         u32 id = current(at<void *>(session, 0x104), nullptr, 0);
         if (!id) id = current(at<void *>(session, 0x104), nullptr, 1);
         g_end->showText(0x101);
         s32 done = 0, total = 0;
         using Progress = void(__fastcall *)(void *, void *, u32, s32 *, s32 *);
-        (*reinterpret_cast<const Progress *>((uintptr_t)0x006fd5d8))(at<void *>(session, 0x104), nullptr, id, &done, &total);
+        (*reinterpret_cast<const Progress *>((uintptr_t)IMPORT(Weauploadr_Upload_MonitorMessage)))(at<void *>(session, 0x104), nullptr, id, &done, &total);
         if (total > 0) g_end->setProgress(static_cast<s32>(static_cast<u32>(done) * 100u) / total);
         return;
     }
@@ -943,7 +944,7 @@ void __fastcall Online_DownloadStart(u8 *session, void *, const u8 *item) {
         const u32 size = at<u32>(at<u8 *>(session, 0x3a4), 8);
         if (g_fetch->openCity(session)) {
             using Start = void(__fastcall *)(void *, void *, u32, u32, u32);
-            (*reinterpret_cast<const Start *>((uintptr_t)0x006fd52c))(at<void *>(session, 0xd4), nullptr, 0, size, at<u32>(session, 0x34));
+            (*reinterpret_cast<const Start *>((uintptr_t)IMPORT(Weacityr_City_MarkParkVisited)))(at<void *>(session, 0xd4), nullptr, 0, size, at<u32>(session, 0x34));
         }
         at<u32>(session, 0x3f0) = 1;
     } else {
@@ -1034,9 +1035,9 @@ void __fastcall Online_CityPoll(u8 *session) {
         g_cityPoll->message4();
         if (static_cast<s32>(g_cityPoll->now() - at<u32>(session, 0xd8)) <= 0x57e40) return;
         if (!at<u32>(session, 0xd4)) return;
-        CallImport(0x006fd4f4, at<void *>(session, 0xd4));
+        CallImport(IMPORT(Weacityr_City_Release), at<void *>(session, 0xd4));
         if (void *const city = at<void *>(session, 0xd4)) {
-            CallImport(0x006fd540, city);
+            CallImport(IMPORT(Weacityr_City_Dtor), city);
             GameHeap_Free(city);
         }
         at<u32>(session, 0xd4) = 0;
@@ -1045,7 +1046,7 @@ void __fastcall Online_CityPoll(u8 *session) {
     }
     at<u32>(session, 0xd8) = g_cityPoll->now();
     using Current = u32(__fastcall *)(void *, void *, u32);
-    const Current current = *reinterpret_cast<const Current *>((uintptr_t)0x006fd4f8);
+    const Current current = *reinterpret_cast<const Current *>((uintptr_t)IMPORT(Weacityr_City_GetCurrentMessage));
     u32 id = current(at<void *>(session, 0xd4), nullptr, 0);
     if (!id) id = current(at<void *>(session, 0xd4), nullptr, 1);
     const struct { u32 offset, text; } kTexts[] = {{0xe0, 0xf9}, {0xe4, 0xfa}, {0xe8, 0xfb}, {0xec, 0xfc}, {0xf4, 0xfd}, {0xf8, 0xfe}, {0xfc, 0xff}, {0x100, 0x100}};
@@ -1060,7 +1061,7 @@ void __fastcall Online_CityPoll(u8 *session) {
     if (!shown) g_cityPoll->message4();
     s32 done, total;
     using Progress = void(__fastcall *)(void *, void *, u32, s32 *, s32 *);
-    (*reinterpret_cast<const Progress *>((uintptr_t)0x006fd4e0))(at<void *>(session, 0xd4), nullptr, id, &done, &total);
+    (*reinterpret_cast<const Progress *>((uintptr_t)IMPORT(Weacityr_City_MonitorMessage)))(at<void *>(session, 0xd4), nullptr, id, &done, &total);
     if (total <= 0) return;
     const s32 percent = static_cast<s32>(static_cast<u32>(done) * 100u) / total;
     g_cityPoll->setProgress(percent);
@@ -1157,8 +1158,8 @@ u8 *__cdecl Online_Instance() {
 namespace {
 
 // The answer's kinds of native list: 0xe0: cities, 0xe4-0xf4: parks, 0xf8: themes, 0xfc: servers, 0x100: rides; the imports' slots.
-constexpr u32 kCityRelease = 0x006fd538, kCityDtor = 0x006fd4ec, kParkRelease = 0x006fd4e8, kParkDtor = 0x006fd4f0, kThemeRelease = 0x006fd528, kThemeDtor = 0x006fd524,
-              kServerRelease = 0x006fd520, kServerDtor = 0x006fd51c, kRideRelease = 0x006fd518, kRideDtor = 0x006fd514;
+const u32 kCityRelease = IMPORT(Weacityr_ccCityList_Release), kCityDtor = IMPORT(Weacityr_ccCityList_Dtor), kParkRelease = IMPORT(Weacityr_ccParkList_Release), kParkDtor = IMPORT(Weacityr_ccParkList_Dtor), kThemeRelease = IMPORT(Weacityr_ccThemeList_Release), kThemeDtor = IMPORT(Weacityr_ccThemeList_Dtor),
+          kServerRelease =IMPORT(Weacityr_ccServerList_Release), kServerDtor = IMPORT(Weacityr_ccServerList_Dtor), kRideRelease = IMPORT(Weacityr_ccRideList_Release), kRideDtor = IMPORT(Weacityr_ccRideList_Dtor);
 
 void HandList(u8 *list, u8 *data, u32 release) {
     if (at<u8 *>(list, 0x30)) {

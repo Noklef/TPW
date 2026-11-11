@@ -9,6 +9,7 @@
 #include "globals.h"
 #include "iosbase.h"
 #include "wtraits.h"
+#include "localefacet.h"
 
 namespace {
 
@@ -69,7 +70,7 @@ void tidy(u32 *self, u32 vtable) {
     self[0] = vtable;
     const u32 slots[] = {2, 4, 5, 6};
     for (const u32 slot : slots) IosBase_Env().memFree(reinterpret_cast<void *>((uintptr_t)self[slot]));
-    self[0] = 0x00709b44;
+    self[0] = (u32)(uintptr_t)LocaleFacet_vtable;
 }
 
 }  // namespace
@@ -128,9 +129,9 @@ u32 *__fastcall Moneypunct_Makepat(u8 *facet, void *, u32 *out, u32 space, u32 p
     return out;
 }
 
-void __fastcall MoneypunctW_Tidy(u32 *self, void *) { tidy(self, 0x00709d74); }
+void __fastcall MoneypunctW_Tidy(u32 *self, void *) { tidy(self, (u32)(uintptr_t)MoneypunctW_vtable); }
 
-void __fastcall MoneypunctC_Tidy(u32 *self, void *) { tidy(self, 0x00709fdc); }
+void __fastcall MoneypunctC_Tidy(u32 *self, void *) { tidy(self, (u32)(uintptr_t)MoneypunctC_vtable); }
 
 void __fastcall MoneypunctC_Init(u8 *facet, void *, const void *) {
     const u8 *const lconv = lconv_now();
@@ -149,7 +150,7 @@ void __fastcall MoneypunctW_Init(u8 *facet, void *, const void *) {
 void *__fastcall MoneypunctC_Ctor(u8 *facet, void *, const void *locinfo, u32 refs, u8 international) {
     *reinterpret_cast<u32 *>(facet + 4) = refs;
     facet[0x28] = international;
-    *reinterpret_cast<u32 *>(facet) = 0x00709fdc;
+    *reinterpret_cast<u32 *>(facet) = (u32)(uintptr_t)MoneypunctC_vtable;
     MoneypunctC_Init(facet, nullptr, locinfo);
     return facet;
 }
@@ -157,14 +158,14 @@ void *__fastcall MoneypunctC_Ctor(u8 *facet, void *, const void *locinfo, u32 re
 void *__fastcall MoneypunctW_Ctor(u8 *facet, void *, const void *locinfo, u32 refs, u8 international) {
     *reinterpret_cast<u32 *>(facet + 4) = refs;
     facet[0x28] = international;
-    *reinterpret_cast<u32 *>(facet) = 0x00709d74;
+    *reinterpret_cast<u32 *>(facet) = (u32)(uintptr_t)MoneypunctW_vtable;
     MoneypunctW_Init(facet, nullptr, locinfo);
     return facet;
 }
 
 void *__fastcall MoneypunctWIntl_Ctor(u8 *facet, void *, const void *locinfo, u32 refs) {
     MoneypunctW_Ctor(facet, nullptr, locinfo, refs, 1);
-    *reinterpret_cast<u32 *>(facet) = 0x00709da4;
+    *reinterpret_cast<u32 *>(facet) = (u32)(uintptr_t)Class709da4_vtable;
     return facet;
 }
 

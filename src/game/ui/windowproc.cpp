@@ -4,6 +4,7 @@
 #include "../render/screen.h"
 #include "../gfx/texcache.h"
 #include "../core/keymap.h"
+#include "../core/imports.h"
 #include "../core/staticobjects.h"
 
 namespace {
@@ -16,7 +17,7 @@ s32 point_x(u32 lparam) { return static_cast<s32>((lparam & 0xffff) << 11) / glo
 s32 point_y(u32 lparam) { return static_cast<s32>((lparam >> 16) * 0x600) / global<s16>(0x00faa5c0); }
 
 u32 modifiers() {
-    const auto keyState = global<u32(__stdcall *)(u32)>(0x006fd324);
+    const auto keyState = global<u32(__stdcall *)(u32)>(IMPORT(User32_GetKeyState));
     u32 held = 0;
     if (static_cast<s16>(keyState(0x10)) < 0) held = 3;
     if (static_cast<s16>(keyState(0x11)) < 0) held |= 0xc;
@@ -31,7 +32,7 @@ void key_event(u32 wparam, u32 lparam, u32 gui, u32 fire) {
     if (word == 0x6b || word == 0x6d || word == 0x6a || word == 0x6f || word == 0x6e) {
         key = (wparam & 0xff) << 8;
     } else {
-        const u32 mapped = global<u32(__stdcall *)(s32, u32)>(0x006fd344)(static_cast<s16>(word), 2);
+        const u32 mapped = global<u32(__stdcall *)(s32, u32)>(IMPORT(User32_MapVirtualKeyA))(static_cast<s16>(word), 2);
         if (static_cast<u16>(mapped)) key = mapped;
         if (lparam & 0x1000000) key = (key & 0xff) << 8;
     }
@@ -74,7 +75,7 @@ u32 __stdcall GameWindow_Proc(u32 window, u32 message, u32 wparam, u32 lparam) {
                 gWindowproc_7a1a14 |= 8;
                 g_calls.Cd(0x00659333);
                 if (global<u32>(0x00f82884)) g_calls.Cd(0x0051bd30);
-                if (global<u32>(0x007b4b88)) global<u32(__stdcall *)(u32)>(0x006fd30c)(0);
+                if (global<u32>(0x007b4b88)) global<u32(__stdcall *)(u32)>(IMPORT(User32_ShowCursor))(0);
             } else {
                 gWindowproc_7a1a14 &= ~8u;
                 g_calls.Cd(0x0051b350);
@@ -83,7 +84,7 @@ u32 __stdcall GameWindow_Proc(u32 window, u32 message, u32 wparam, u32 lparam) {
                 else g_calls.Th(0x004092a0, (u32)(uintptr_t)&gNamedObjects_786b68, 1u, 1u);
             }
             g_calls.Cd(0x0047e9d0, wparam);
-            return global<u32(__stdcall *)(u32, u32, u32, u32)>(0x006fd340)(window, 0x1c, wparam, lparam);
+            return global<u32(__stdcall *)(u32, u32, u32, u32)>(IMPORT(User32_DefWindowProcA))(window, 0x1c, wparam, lparam);
         case 0x14:
         case 0x20:
             return 1;
@@ -97,7 +98,7 @@ u32 __stdcall GameWindow_Proc(u32 window, u32 message, u32 wparam, u32 lparam) {
             return 0;
         case 0x102: {
             u32 bytes = wparam, unit = 0;
-            if (global<s32(__stdcall *)(u32, u32, const u32 *, s32, u32 *, s32)>(0x006fd174)(0, 0, &bytes, -1, &unit, 2) <= 0) return 0;
+            if (global<s32(__stdcall *)(u32, u32, const u32 *, s32, u32 *, s32)>(IMPORT(Kernel32_MultiByteToWideChar))(0, 0, &bytes, -1, &unit, 2) <= 0) return 0;
             if (static_cast<u16>(unit) < 0x20) return 0;
             if (static_cast<u8>(g_calls.Th(0x0041a850, (u32)(uintptr_t)&gLanguage_78b530))) unit = g_calls.Cd(0x0046b460, unit);
             g_calls.Cd(0x00658c96, unit, (lparam & 0xffff) | ((lparam & 0x40000000) ? 1u << 24 : 0));

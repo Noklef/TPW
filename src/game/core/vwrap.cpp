@@ -15,6 +15,8 @@
 #include "../ui/panel7cc218.h"
 #include "../gfx/texcache.h"
 #include "../render/spritegroups.h"
+#include "vtables.h"
+#include "../render/d3dsetup.h"
 #include "staticobjects.h"
 
 namespace {
@@ -48,7 +50,7 @@ u32 __fastcall Global8bba48_ClipAndTouch(u8 *self, void *) {
         if (v[0] != 0 || v[1] != 0 || v[2] != 0 || v[3] != 0 || v[4] != 0 || v[5] != 0) {
             float out[6];
             for (s32 j = 0; j < 6; j++) out[j] = (float)((double)v[j] * gSpritegroups_701b24);
-            code = (u8)g_calls.Th(0x00561a30, global<u32>(0x00879a20), (u32)(uintptr_t)out, global<u32>(0x0087b088));
+            code = (u8)g_calls.Th(0x00561a30, global<u32>((u32)(uintptr_t)&gD3dsetup_879a20), (u32)(uintptr_t)out, global<u32>(0x0087b088));
         }
         at<u8>(self, i - 0x98) = code;
         const u32 records = reinterpret_cast<Entry>(at<u32>(self, 0u - 0x10))(i);
@@ -178,7 +180,7 @@ u32 __cdecl Global879acc_Create() {
         at<u32>(object, 0) = 0x00701410;
         Class701260_Ctor(object + 8);
         const s32 offset = at<s32>(at<u8 *>(object, 0), 4);
-        at<u32>(object, offset) = 0x007013c8;
+        at<u32>(object, offset) = (u32)(uintptr_t)Class7013c8_vtable;
         const s32 again = at<s32>(at<u8 *>(object, 0), 4);
         at<s32>(object, again - 4) = again - 8;
         at<u32>(object, at<s32>(at<u8 *>(object, 0), 4) + 0xc) = 0x1000;
@@ -234,7 +236,7 @@ void __cdecl Globals7cc2fc_Release() {
 }
 
 void __cdecl Table7c26b0_ReleaseIdle() {
-    for (u32 record = 0x007c26b0; (s32)record < reinterpret_cast<uintptr_t>(&gMsgtags_7c3b00); record += 0x208) {
+    for (u32 record = (u32)(uintptr_t)&gMsgtags_7c26b0; (s32)record < reinterpret_cast<uintptr_t>(&gMsgtags_7c3b00); record += 0x208) {
         if (global<u16>(record + 4) == 0 && global<u8 *>(record)) {
             vcall<u32>(global<u8 *>(record), 8, 1u);
             global<u32>(record) = 0;
@@ -247,8 +249,8 @@ u32 __cdecl Global8bba48_Create() {
     u8 *object = static_cast<u8 *>(GameHeap_Alloc(0xa8));
     if (object) {
         at<u32>(object, 0) = 0x00701b40;
-        at<u32>(object, 0xa4) = 0x006fdce8;
-        at<u32>(object, at<s32>(at<u8 *>(object, 0), 4)) = 0x00701b30;
+        at<u32>(object, 0xa4) = (u32)(uintptr_t)Class6fdce8_vtable;
+        at<u32>(object, at<s32>(at<u8 *>(object, 0), 4)) = (u32)(uintptr_t)Class701b30_vtable;
         const s32 offset = at<s32>(at<u8 *>(object, 0), 4);
         at<s32>(object, offset - 4) = offset - 0xa4;
         at<u32>(object, 4) = 0xffffffff;

@@ -20,6 +20,7 @@
 #include "thingmsg.h"
 #include "things.h"
 #include "world.h"
+#include "rides.h"
 
 namespace {
 
@@ -219,7 +220,7 @@ u8 *__fastcall Object_Construct(u8 *object, void *, u32 cell, u32 id, s32 angle,
         at<u32>(object, 0x68) = 0;
         at<u16>(object, 0x6c) = 0;
         E->setElement(E->findRide(at<s32>(object, 0x24)), 6, 1);
-        E->startGrow(global<u8 *>(0x007a4610 + 4 * at<u32>(object, 0x20)), 1);
+        E->startGrow(gRides_7a4610[at<u32>(object, 0x20)], 1);
     }
     E->stampTime(reinterpret_cast<u8 *>((uintptr_t)E->analyser(World())));
     return object;

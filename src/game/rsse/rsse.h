@@ -166,5 +166,14 @@ GAME_DATA(char[8], gText_RsseScript_EventName_74d19c, 0x0074d19c, 0x8);
 GAME_DATA(char[8], gText_RsseScript_EventName_74d6d4, 0x0074d6d4, 0x8);
 GAME_DATA(u32[214], RSSE_OpcodeNameTable, 0x00765280, 0x358);
 GAME_DATA(u32, RSSE_CritLock, 0x0087919c, 0x4);
-GAME_DATA(u32, RSSE_TickCounter, 0x008791a4, 0x4);
-GAME_DATA(u32, gRSSE_8791a8, 0x008791a8, 0x4);
+GAME_DATA(s32, gRsse_8791b4, 0x008791b4, 4);
+
+// The script system (0x8791a0; RSSE_Save writes its 0x14 bytes, RSSE_Load reads them back).
+struct RsseSystem {
+    u32 initialised;          // +0x00 RSSE_Initialised
+    u32 tickCounter;          // +0x04 RSSE_TickCounter
+    u32 flag08;               // +0x08 set to 1 by RSSE_Init
+    s32 scriptCount;          // +0x0c RSSE_ScriptCount
+    RsseContext *scriptList;  // +0x10 RSSE_ScriptList: the live contexts, doubly linked (+0 next, +4 previous)
+};
+GAME_DATA(RsseSystem, gRsseSystem, 0x008791a0, 0x14);

@@ -6,6 +6,7 @@
 
 #include "../core/app.h"
 #include "../core/vcall.h"
+#include "../core/imports.h"
 
 namespace {
 
@@ -27,19 +28,19 @@ const ScreenEnv kGameEnv = {
     at<void(__fastcall *)(void *, void *, u32, const u32 *)>(0x005fbf80),
     at<void *(__cdecl *)(u32)>(0x0067acc0),
     at<void(__cdecl *)(void *)>(0x0067acb0),
-    at<const char *>(0x00775840),
-    at<const char *>(0x0077584c),
+    at<const char *>((u32)(uintptr_t)&gScreen_775840),
+    at<const char *>((u32)(uintptr_t)&gScreen_77584c),
     at<void *>(0x005fa540),
     at<void *(__stdcall *const *)(u32, const char *, const char *, u32, s32, s32, s32, s32, void *, void *, void *,
-                                  void *)>(0x006fd398),
-    at<s32(__stdcall *const *)(s32)>(0x006fd338),
-    at<s32(__stdcall *const *)(void *)>(0x006fd33c),
-    at<void *(__stdcall *const *)(void *, const char *)>(0x006fd364),
-    at<void *(__stdcall *const *)(s32)>(0x006fd054),
-    at<u16(__stdcall *const *)(const void *)>(0x006fd394),
-    at<s32(__stdcall *const *)(void *, u32, u32, s32)>(0x006fd340),
-    at<void *(__stdcall *const *)(void *)>(0x006fd334),
-    at<s32(__stdcall *const *)(const void *, void **, void *)>(0x006fd018),
+                                  void *)>(IMPORT(User32_CreateWindowExA)),
+    at<s32(__stdcall *const *)(s32)>(IMPORT(User32_GetSystemMetrics)),
+    at<s32(__stdcall *const *)(void *)>(IMPORT(User32_DestroyWindow)),
+    at<void *(__stdcall *const *)(void *, const char *)>(IMPORT(User32_LoadIconA)),
+    at<void *(__stdcall *const *)(s32)>(IMPORT(Gdi32_GetStockObject)),
+    at<u16(__stdcall *const *)(const void *)>(IMPORT(User32_RegisterClassA)),
+    at<s32(__stdcall *const *)(void *, u32, u32, s32)>(IMPORT(User32_DefWindowProcA)),
+    at<void *(__stdcall *const *)(void *)>(IMPORT(User32_SetCursor)),
+    at<s32(__stdcall *const *)(const void *, void **, void *)>(IMPORT(Ddraw_DirectDrawCreate)),
 };
 const ScreenEnv *g_env = &kGameEnv;
 

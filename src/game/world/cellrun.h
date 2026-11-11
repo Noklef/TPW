@@ -135,3 +135,6 @@ GAME_DATA(s32, gCellrun_8186e4, 0x008186e4, 0x4);
 GAME_DATA(s32, gCellrun_8186e8, 0x008186e8, 0x4);
 GAME_DATA(s32, gCellrun_818c08, 0x00818c08, 0x4);
 GAME_DATA(s32, gCellrun_818c0c, 0x00818c0c, 0x4);
+GAME_DATA(s32, gCellrun_820a8c, 0x00820a8c, 4);
+GAME_DATA(s32, gCellrun_820a90, 0x00820a90, 4);
+GAME_DATA(u32, gCellrun_820a94, 0x00820a94, 4);

@@ -5,6 +5,8 @@
 #include "../math/x87.h"
 #include "movieidct.h"
 #include "tgqvideo.h"
+#include "moviepixels.h"
+#include "moviedisplay.h"
 
 namespace {
 
@@ -19,7 +21,7 @@ s32 fixmul(s32 value, s32 factor) {
 
 s32 ftol(X87Reg x) { return (s32)(long long)x.v; }   // __ftol (0x67a830): truncated, its low dword
 
-s32 idct_scale(u32 i) { return global<s32>(0x00705c88 + i * 4); }
+s32 idct_scale(u32 i) { return gTqivideo_705c88[i]; }
 
 // The 32 bits at the bit position (SHLD by its low 5 bits; the second dword read whatever the count).
 u32 peek(const u32 *bits, u32 position) {
@@ -29,14 +31,14 @@ u32 peek(const u32 *bits, u32 position) {
 
 // The entry of the 17 bits code (nonzero, at least 0x20): by its first bit set.
 u32 coefficientEntry(u32 code) {
-    if (code >= 0x8000) return global<u32>(0x00fbb69c + (code >> 13) * 4);
-    if (code >= 0x800) return global<u32>(0x00fbb6cc + (code >> 9) * 4);
-    if (code >= 0x400) return global<u32>(0x00fbb7ac + (code >> 7) * 4);
-    if (code >= 0x200) return global<u32>(0x00fbb7ac + (code >> 5) * 4);
-    if (code >= 0x100) return global<u32>(0x00fbb7ec + (code >> 4) * 4);
-    if (code >= 0x80) return global<u32>(0x00fbb82c + (code >> 3) * 4);
-    if (code >= 0x40) return global<u32>(0x00fbb86c + (code >> 2) * 4);
-    return global<u32>(0x00fbb8ac + (code >> 1) * 4);
+    if (code >= 0x8000) return gTqivideo_fbb5ac[60 + (code >> 13)];
+    if (code >= 0x800) return gTqivideo_fbb5ac[72 + (code >> 9)];
+    if (code >= 0x400) return gTqivideo_fbb5ac[128 + (code >> 7)];
+    if (code >= 0x200) return gTqivideo_fbb5ac[128 + (code >> 5)];
+    if (code >= 0x100) return gTqivideo_fbb5ac[144 + (code >> 4)];
+    if (code >= 0x80) return gTqivideo_fbb5ac[160 + (code >> 3)];
+    if (code >= 0x40) return gTqivideo_fbb5ac[176 + (code >> 2)];
+    return gTqivideo_fbb5ac[192 + (code >> 1)];
 }
 
 // A DC difference: `bits` top bits of the stream index `table`'s bytes (the code's length, the number of bits that follow).
@@ -59,12 +61,12 @@ template <typename Out, typename Row> void macroblock(Out *out, s32 pitch, u8 *s
     for (u32 j = 0; j < 16; ++j) row(blocks + 0x10 * j, blocks + 0x100 + 8 * (j / 2), reinterpret_cast<Out *>(reinterpret_cast<u8 *>(out) + static_cast<s32>(j) * pitch));
 }
 
-u32 yuy2Part(u32 index) { return global<u32>(0x00fb8730 + index * 8); }
+u32 yuy2Part(u32 index) { return global<u32>(((u32)(uintptr_t)&gMoviedisplay_fb7f30 + 0x800) + index * 8); }
 
 // The pixel of a sum: its bits 23-31, 11-19 and 0-8 through their tables.
-u32 rgbOf(u32 sum) { return global<u32>(0x00fba730 + (sum >> 0x17) * 4) | global<u32>(0x00fbabf8 + ((sum & 0xff800) >> 0xb) * 4) | global<u32>(0x00fbb010 + (sum & 0x1ff) * 4); }
-u32 chromaSum(const u32 *chroma, u32 k) { return global<u32>(0x00fb9b30 + chroma[k] * 4) + global<u32>(0x00fba330 + chroma[k + 0x40] * 4); }
-u32 lumaPart(u32 luma) { return global<u32>(0x00fb9330 + luma * 4); }
+u32 rgbOf(u32 sum) { return gMoviepixels_fba730[(sum >> 0x17)] | gMoviepixels_fba730[306 + ((sum & 0xff800) >> 0xb)] | gMoviepixels_fba730[568 + (sum & 0x1ff)]; }
+u32 chromaSum(const u32 *chroma, u32 k) { return gTqivideo_fb9b30[chroma[k]] + gTqivideo_fba330[chroma[k + 0x40]]; }
+u32 lumaPart(u32 luma) { return gTqivideo_fb9330[luma]; }
 
 }  // namespace
 
@@ -72,8 +74,8 @@ extern "C" {
 
 u32 __cdecl TqiVideo_ReadBlocks(u8 *state, const u32 *bits, u32 position, u32 *blocks) {
     static const struct { u32 offset, predictor, table, indexBits; s32 pitch; } kBlocks[6] = {
-        {0, 0x100, 0xfbb92c, 7, 0x40}, {0x20, 0x100, 0xfbb92c, 7, 0x40}, {0x200, 0x100, 0xfbb92c, 7, 0x40}, {0x220, 0x100, 0xfbb92c, 7, 0x40},
-        {0x400, 0x104, 0xfbb9ac, 8, 0x20}, {0x500, 0x108, 0xfbb9ac, 8, 0x20}};
+        {0, 0x100, ((u32)(uintptr_t)&gTqivideo_fbb5ac + 0x380), 7, 0x40}, {0x20, 0x100, ((u32)(uintptr_t)&gTqivideo_fbb5ac + 0x380), 7, 0x40}, {0x200, 0x100, ((u32)(uintptr_t)&gTqivideo_fbb5ac + 0x380), 7, 0x40}, {0x220, 0x100, ((u32)(uintptr_t)&gTqivideo_fbb5ac + 0x380), 7, 0x40},
+        {0x400, 0x104, ((u32)(uintptr_t)&gTqivideo_fbb5ac + 0x400), 8, 0x20}, {0x500, 0x108, ((u32)(uintptr_t)&gTqivideo_fbb5ac + 0x400), 8, 0x20}};
     const s32 *const quant = reinterpret_cast<const s32 *>(state);
     for (const auto &block : kBlocks) {
         s32 &predictor = *reinterpret_cast<s32 *>(state + block.predictor);
@@ -112,7 +114,7 @@ u32 __cdecl TqiVideo_DecodeBlock(s32 dc, const s32 *quant, const u32 *bits, u32 
             ++position;
             if (code >> ((0x10 - length) & 31) & 1) level = -level;
         }
-        const u32 place = global<u32>(0x00fbb5b0 + index * 4u);
+        const u32 place = global<u32>(((u32)(uintptr_t)&gTqivideo_fbb5ac + 0x4) + index * 4u);
         block[place] = (s32)((u32)level * (u32)quant[place]);
     }
     if (index == 0x3f) {
@@ -133,7 +135,7 @@ void __cdecl TqiVideo_SetQuality(s32 *out, s32 quality) {
     } else {
         const float scale = (float)(X87_SubR(X87Reg((double)quality), X87Reg(107.0)) * X87Reg(0.0625f));
         for (u32 i = 0; i < 0x40; ++i) {
-            const s32 factor = ftol(X87Reg((double)global<s32>(0x00705d88 + i * 4)) * X87Reg(scale) * X87Reg(65536.0f));
+            const s32 factor = ftol(X87Reg((double)gTqivideo_705d88[i]) * X87Reg(scale) * X87Reg(65536.0f));
             out[i] = fixmul(idct_scale(i), factor);
         }
     }
@@ -171,7 +173,7 @@ void __cdecl TqiVideo_DecodeMacroblockTable16(u16 *out, s32 pitch, u8 *state) {
 }
 
 void __cdecl TqiVideo_PixelRowBytes32(const u32 *luma, const u32 *chroma, u32 *out) {
-    const auto mapped = [](u32 value) -> u32 { return global<u8>(0x00fb7f30 + (value >> 16 & 0xff)); };
+    const auto mapped = [](u32 value) -> u32 { return global<u8>((u32)(uintptr_t)&gMoviedisplay_fb7f30 + (value >> 16 & 0xff)); };
     for (u32 k = 0; k < 8; ++k) {
         out[k] = mapped(luma[2 * k]) << 24 | mapped(luma[2 * k + 1]) << 16 | mapped(chroma[k]) << 8 | mapped(chroma[0x40 + k]);
     }

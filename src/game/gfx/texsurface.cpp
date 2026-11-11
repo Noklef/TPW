@@ -10,6 +10,8 @@
 #include "../core/gameheap.h"
 #include "../math/x87.h"
 #include "../render/ddopen.h"
+#include "../core/vobj2.h"
+#include "../render/d3dsetup.h"
 #include "../core/staticobjects.h"
 
 namespace {
@@ -56,9 +58,9 @@ u32 LevelResult(u32 result) {
 
 // The device's CreateSurface timed by the free video memory.
 u32 CreateTimed(u8 *device, u8 *sub, u32 *desc) {
-    const u32 before = g_calls.Th(0x005645a0, global<u32>(0x00879a24));   // Obj_FreeVideoMemory
+    const u32 before = g_calls.Th(0x005645a0, global<u32>((u32)(uintptr_t)&gD3dsetup_879a20 + 0x4));   // Obj_FreeVideoMemory
     gDdopen_879cd4 = comcall<u32>(device, 0x18, desc, sub - 0x28, 0u);
-    global<u32>(0x008c4898) = before - g_calls.Th(0x005645a0, global<u32>(0x00879a24));
+    global<u32>(0x008c4898) = before - g_calls.Th(0x005645a0, global<u32>((u32)(uintptr_t)&gD3dsetup_879a20 + 0x4));
     return gDdopen_879cd4;
 }
 
@@ -91,7 +93,7 @@ double __fastcall TexSurface_LockRate(u8 *sub) {
 }
 
 u32 __fastcall TexSurfaceA_Create(u8 *sub, void *, u32 width, u32 height, u32 format, u32 levels) {
-    u8 *const device = at<u8 *>(global<u8 *>(0x00879a24), 8);
+    u8 *const device = at<u8 *>(global<u8 *>((u32)(uintptr_t)&gD3dsetup_879a20 + 0x4), 8);
     u32 desc[0x1f] = {};
     desc[3] = width;
     desc[0] = 0x7c;
@@ -134,7 +136,7 @@ u8 *__fastcall TexSurfaceA_Ctor(u8 *surface, void *, u32 mostDerived) {
         at<u32>(surface, 0) = 0x00702218;
         TexCacheItem_Ctor(surface + 0x3c);
     }
-    at<u32>(surface, BaseOffset(surface)) = 0x007021f0;
+    at<u32>(surface, BaseOffset(surface)) = (u32)(uintptr_t)Class7021f0_vtable;
     const u32 offset = BaseOffset(surface);
     at<u32>(surface, offset - 4) = offset - 0x3c;
     for (u32 i = 0; i < 4; i++) {
@@ -154,7 +156,7 @@ u8 *__fastcall TexSurfaceB_Ctor(u8 *surface, void *, u32 mostDerived) {
         at<u32>(surface, 0) = 0x00702278;
         TexCacheItem_Ctor(surface + 0x10);
     }
-    at<u32>(surface, BaseOffset(surface)) = 0x00702250;
+    at<u32>(surface, BaseOffset(surface)) = (u32)(uintptr_t)Class702250_vtable;
     const u32 offset = BaseOffset(surface);
     at<u32>(surface, offset - 4) = offset - 0x10;
     at<u32>(surface, BaseOffset(surface) + 0xc) = 0;
@@ -222,12 +224,12 @@ u32 __fastcall TexSurfaceB_FreePixels(u8 *sub) {
 
 u8 *__fastcall TexSurfaceB_DeletingDtor(u8 *sub, void *, u32 flags) {
     u8 *const surface = sub - 0x10;
-    at<u32>(surface, BaseOffset(surface)) = 0x00702250;
+    at<u32>(surface, BaseOffset(surface)) = (u32)(uintptr_t)Class702250_vtable;
     const u32 offset = BaseOffset(surface);
     at<u32>(surface, offset - 4) = offset - 0x10;
     u8 *const base = surface + BaseOffset(surface);
     reinterpret_cast<u32(__fastcall *)(u8 *)>(at<void **>(base, 0)[1])(base);
-    at<u32>(surface, 0x10) = 0x00702198;
+    at<u32>(surface, 0x10) = (u32)(uintptr_t)TexCacheItem_vtable;
     if (flags & 1)
         GameHeap_Free(surface);
     return surface;

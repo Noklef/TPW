@@ -5,8 +5,16 @@
 #include "dequeiter.h"
 #include "gameheap.h"
 #include "../gfx/surface.h"
+#include "../render/particles.h"
 #include "../ui/panel7cc218.h"
 #include "../world/cellrun.h"
+#include "iosbase.h"
+#include "narrowfilebuf.h"
+#include "wfilebuf.h"
+#include "mp2decoder.h"
+#include "soundsource.h"
+#include "soundstream.h"
+#include "inputsystem.h"
 #include "../input/devicefilter.h"
 #include "../online/ftp.h"
 
@@ -74,19 +82,19 @@ u8 * __fastcall Init_4d3ed0(u8 *o) {
 
 u8 * __fastcall Init_4ef830(u8 *o) {
     at<u32>(o, 0x24) = 0x0;
-    at<u32>(o, 0x0) = 0x709964;
+    at<u32>(o, 0x0) = (u32)(uintptr_t)IosBase_vtable;
     return o;
 }
 
 u8 * __fastcall Init_4f1890(u8 *o, void *, u32 v0) {
     at<u32>(o, 0x4) = v0;
-    at<u32>(o, 0x0) = 0x709b4c;
+    at<u32>(o, 0x0) = (u32)(uintptr_t)Class709b4c_vtable;
     return o;
 }
 
 u8 * __fastcall Init_4f1bd0(u8 *o) {
     at<u32>(o, 0x24) = 0x0;
-    at<u32>(o, 0x0) = 0x7099e4;
+    at<u32>(o, 0x0) = (u32)(uintptr_t)BasicIosW_vtable;
     return o;
 }
 
@@ -101,13 +109,13 @@ u8 * __fastcall Init_5ac510(u8 *o) {
     at<u32>(o, 0x4) = 0;
     at<u32>(o, 0x8) = 0;
     at<u32>(o, 0xc) = 0;
-    at<u32>(o, 0x0) = 0x7027f8;
+    at<u32>(o, 0x0) = (u32)(uintptr_t)Class7027f8_vtable;
     return o;
 }
 
 u8 * __fastcall Init_5cfd80(u8 *o) {
     at<u32>(o, 0x24) = 0x0;
-    at<u32>(o, 0x0) = 0x709954;
+    at<u32>(o, 0x0) = (u32)(uintptr_t)NIos_vtable;
     return o;
 }
 
@@ -126,23 +134,23 @@ u8 * __fastcall Init_5ec210(u8 *o) {
 }
 
 u8 * __fastcall Init_691ee0(u8 *o, void *, u32 v0) {
-    at<u32>(o, 0x0) = 0x7098dc;
+    at<u32>(o, 0x0) = (u32)(uintptr_t)Class7098dc_vtable;
     return o;
 }
 
 u8 * __fastcall Init_692970(u8 *o, void *, u32 v0) {
-    at<u32>(o, 0x0) = 0x70996c;
+    at<u32>(o, 0x0) = (u32)(uintptr_t)Class70996c_vtable;
     return o;
 }
 
 u8 * __fastcall Init_69fef0(u8 *o, void *, u32 v0) {
     at<u32>(o, 0x4) = v0;
-    at<u32>(o, 0x0) = 0x709d04;
+    at<u32>(o, 0x0) = (u32)(uintptr_t)Class709d04_vtable;
     return o;
 }
 
 u8 * __fastcall Init_6b4a60(u8 *o) {
-    at<u32>(o, 0x0) = 0x70a238;
+    at<u32>(o, 0x0) = (u32)(uintptr_t)Class70a238_vtable;
     return o;
 }
 
@@ -166,7 +174,7 @@ u8 * __fastcall Init_6c4fb0(u8 *o) {
     at<u32>(o, 0x4) = 0;
     at<u32>(o, 0x8) = 0;
     at<u32>(o, 0xc) = 0;
-    at<u32>(o, 0x0) = 0x70aa7c;
+    at<u32>(o, 0x0) = (u32)(uintptr_t)Class70aa7c_vtable;
     at<u32>(o, 0x14) = 0;
     at<u8>(o, 0x18) = 0x1;
     return o;
@@ -183,13 +191,13 @@ u8 * __fastcall Init_6c6d30(u8 *o) {
     at<u32>(o, 0x4) = 0;
     at<u32>(o, 0x8) = 0;
     at<u32>(o, 0xc) = 0;
-    at<u32>(o, 0x0) = 0x70abf8;
+    at<u32>(o, 0x0) = (u32)(uintptr_t)Class70abf8_vtable;
     return o;
 }
 
 u8 * __fastcall Init_6c9260(u8 *o) {
     at<u8>(o, 0x243c) = 0x0;
-    at<u32>(o, 0x0) = 0x7118e0;
+    at<u32>(o, 0x0) = (u32)(uintptr_t)Mp2Decoder_vtable;
     return o;
 }
 
@@ -198,7 +206,7 @@ u8 * __fastcall Init_6d6c50(u8 *o) {
     at<u32>(o, 0x8) = 0x2;
     at<u32>(o, 0xc) = 0x5622;
     at<u32>(o, 0x10) = 0;
-    at<u32>(o, 0x0) = 0x7119b8;
+    at<u32>(o, 0x0) = (u32)(uintptr_t)SoundSourceBase_vtable;
     return o;
 }
 
@@ -219,7 +227,7 @@ u32 __fastcall Fn_47f910(u8 *o, void *, u32 v0) {
 }
 
 u32 __fastcall Fn_48c9e0(u8 *o) {
-    at<u32>(o, 0x0) = 0x6ff1f0;
+    at<u32>(o, 0x0) = (u32)(uintptr_t)Class6ff1f0_vtable;
     reinterpret_cast<u32 &>(gPanel7cc218_7c2658) = 0x0;
     at<u32>(o, 0x10) = 0x0;
     at<u32>(o, 0x18) = 0x0;
@@ -314,15 +322,16 @@ u32 __fastcall Fn_5ebef0(u8 *o) {
 }
 
 u32 __cdecl Fn_5eda40(u32 v0, u32 v1) {
-    global<u32>(0x00f86988) = v0;
-    global<u32>(0x00f8698c) = v1;
-    global<u32>(0x00f86990) = v0;
-    global<u32>(0x00f86994) = v1;
+    ParticlePool &p = gParticlePools_f86900[2];
+    reinterpret_cast<u32 &>(p.fromX) = v0;
+    reinterpret_cast<u32 &>(p.fromY) = v1;
+    reinterpret_cast<u32 &>(p.toX) = v0;
+    reinterpret_cast<u32 &>(p.toY) = v1;
     return v1;
 }
 
 u32 __cdecl Fn_64a450(u32 v0, u32 v1, u32 v2, u32 v3) {
-    at<u32>(reinterpret_cast<u8 *>((uintptr_t)v0), 0x0) = global<u32>(0x0077a098);
+    at<u32>(reinterpret_cast<u8 *>((uintptr_t)v0), 0x0) = global<u32>((u32)(uintptr_t)&gInitializers_77a098);
     at<u32>(reinterpret_cast<u8 *>((uintptr_t)v1), 0x0) = global<u32>(0x0077a09c);
     at<u32>(reinterpret_cast<u8 *>((uintptr_t)v2), 0x0) = 0x77a0a0;
     at<u32>(reinterpret_cast<u8 *>((uintptr_t)v3), 0x0) = 0x77b0a0;
@@ -347,7 +356,7 @@ u32 __cdecl Fn_64dd60(u32 v0) {
 }
 
 u32 __fastcall Fn_657d30(u8 *o) {
-    at<u32>(o, 0x0) = 0x7058d8;
+    at<u32>(o, 0x0) = (u32)(uintptr_t)Class7058d8_vtable;
     at<u32>(o, 0xc) = 0x0;
     at<u16>(o, 0x4) = 0x0;
     at<u16>(o, 0x6) = 0x2;
@@ -356,22 +365,22 @@ u32 __fastcall Fn_657d30(u8 *o) {
 }
 
 u32 __fastcall Fn_659770(u8 *o) {
-    at<u32>(o, 0x0) = 0x7058f0;
+    at<u32>(o, 0x0) = (u32)(uintptr_t)Class7058f0_vtable;
     return (u32)(uintptr_t)o;
 }
 
 u32 __fastcall Fn_65a9d0(u8 *o) {
-    at<u32>(o, 0x0) = 0x705938;
+    at<u32>(o, 0x0) = (u32)(uintptr_t)Class705938_vtable;
     return (u32)(uintptr_t)o;
 }
 
 u32 __fastcall Fn_6617d0(u8 *o, void *, u32 v0) {
-    at<u32>(o, 0x0) = 0x705938;
+    at<u32>(o, 0x0) = (u32)(uintptr_t)Class705938_vtable;
     return (u32)(uintptr_t)o;
 }
 
 u32 __fastcall Fn_661870(u8 *o) {
-    at<u32>(o, 0x0) = 0x7059b0;
+    at<u32>(o, 0x0) = (u32)(uintptr_t)Class7059b0_vtable;
     at<u8>(o, 0x5) = 0x0;
     at<u8>(o, 0x6) = 0x0;
     at<u8>(o, 0x4) = 0x1;
@@ -380,7 +389,7 @@ u32 __fastcall Fn_661870(u8 *o) {
 }
 
 u32 __fastcall Fn_6618a6(u8 *o) {
-    at<u32>(o, 0x0) = 0x7059b0;
+    at<u32>(o, 0x0) = (u32)(uintptr_t)Class7059b0_vtable;
     return (u32)(uintptr_t)o;
 }
 
@@ -405,7 +414,7 @@ u32 __fastcall Fn_669c41(u8 *o) {
 }
 
 u32 __fastcall Fn_669fa8(u8 *o) {
-    at<u32>(o, 0x0) = 0x705a80;
+    at<u32>(o, 0x0) = (u32)(uintptr_t)Class705a80_vtable;
     at<u16>(o, 0x4) = 0x1;
     at<u16>(o, 0x6) = 0x0;
     at<u32>(o, 0x14) = 0x0;
@@ -415,12 +424,12 @@ u32 __fastcall Fn_669fa8(u8 *o) {
 }
 
 u32 __fastcall Fn_669fee(u8 *o) {
-    at<u32>(o, 0x0) = 0x705a80;
+    at<u32>(o, 0x0) = (u32)(uintptr_t)Class705a80_vtable;
     return (u32)(uintptr_t)o;
 }
 
 u32 __fastcall Fn_66bff7(u8 *o) {
-    at<u32>(o, 0x0) = 0x705938;
+    at<u32>(o, 0x0) = (u32)(uintptr_t)Class705938_vtable;
     return (u32)(uintptr_t)o;
 }
 
@@ -499,10 +508,10 @@ u32 __fastcall Fn_6c6a00(u8 *o, void *, u32 v0, u32 v1) {
     at<u32>(o, 0x8) = 0x0;
     at<u32>(o, 0xc) = 0x0;
     at<u32>(o, 0x14) = v1;
-    at<u32>(o, 0x0) = 0x70a678;
+    at<u32>(o, 0x0) = (u32)(uintptr_t)Class70a678_vtable;
     at<u32>(o, 0x1c) = at<u32>(reinterpret_cast<u8 *>((uintptr_t)v0), 0x20);
     at<u32>(o, 0x20) = at<u32>(reinterpret_cast<u8 *>((uintptr_t)v0), 0x24);
-    at<u32>(o, 0x0) = 0x70aba8;
+    at<u32>(o, 0x0) = (u32)(uintptr_t)Class70aba8_vtable;
     return (u32)(uintptr_t)o;
 }
 
@@ -615,7 +624,7 @@ u8 *__fastcall Class7037e8_Ctor(u8 *object) {
     at<u32>(object, 0x60) = 0;
     at<u32>(object, 0x64) = 0;
     at<u32>(object, 0x68) = 0;
-    at<u32>(object, 0x0) = 0x7037e8;
+    at<u32>(object, 0x0) = (u32)(uintptr_t)Class7037e8_vtable;
     return object;
 }
 
@@ -626,7 +635,7 @@ u8 *__fastcall Class6fefc8_Ctor(u8 *object) {
     at<u32>(object, 0x34) = 0;
     at<u32>(object, 0x38) = 0;
     SurfaceInfo_Ctor(reinterpret_cast<SurfaceInfo *>(object + 0x3c));
-    at<u32>(object, 0x0) = 0x6fefc8;
+    at<u32>(object, 0x0) = (u32)(uintptr_t)Class6fefc8_vtable;
     at<u8>(object, 0x4) = 0;
     at<u32>(object, 0x8) = 0;
     at<u32>(object, 0xc) = 0;
@@ -635,7 +644,7 @@ u8 *__fastcall Class6fefc8_Ctor(u8 *object) {
 }
 
 u32 __fastcall Class6fefc8_Dtor(u8 *object) {
-    at<u32>(object, 0x0) = 0x6fefc8;
+    at<u32>(object, 0x0) = (u32)(uintptr_t)Class6fefc8_vtable;
     if (at<u8>(object, 0x7) != 0 && at<u32>(object, 0x64) != 0) {
         s32 result;
         Surface_Release(&result, reinterpret_cast<Surface *>(object + 0x14));
@@ -657,7 +666,7 @@ u8 *__fastcall Class703710_Ctor(u8 *object) {
     at<u32>(object, 0x78) = 0;
     at<u32>(object, 0x80) = 0;
     at<u32>(object, 0x84) = 0x703730;
-    at<u32>(object, 0x0) = 0x703710;
+    at<u32>(object, 0x0) = (u32)(uintptr_t)Class703710_vtable;
     return object;
 }
 }  // extern "C"

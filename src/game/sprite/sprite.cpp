@@ -11,6 +11,7 @@
 #include "../world/random.h"
 #include "loading.h"
 #include "draw.h"
+#include "../world/world.h"
 #include "../core/staticobjects.h"
 
 namespace {
@@ -20,7 +21,7 @@ template <typename T> T &at(void *p, u32 offset) { return *reinterpret_cast<T *>
 u32 folderFirst(u32 folder) { return gSpriteFolders[folder].first; }
 u32 folderCount(u32 folder) { return (u32)gSpriteFolders[folder].count; }
 u8 *sprite(u32 index) { return gSprites[index]; }
-u8 *world() { return *reinterpret_cast<u8 **>(0x007cf83c); }                  // gWorldPtr
+u8 *world() { return *&gWorldPtr; }                  // gWorldPtr
 
 }  // namespace
 

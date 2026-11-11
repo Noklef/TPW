@@ -26,6 +26,8 @@
 #include "edittools.h"
 #include "coastersupdate.h"
 #include "coastersload.h"
+#include "../world/rides.h"
+#include "../world/camera.h"
 #include "../core/staticobjects.h"
 
 namespace {
@@ -42,14 +44,14 @@ const TrainEnv kGameEnv = {&Animator_Update, &Train_RemoveCar, &Highlight_Unflas
                            &Contacts_MarkLostPair, &Model_FitToGrid};
 const TrainEnv *g_trainEnv = &kGameEnv;
 
-u8 *RideAt(u32 index) { return reinterpret_cast<u8 *const *>(0x007a4610)[index]; }
+u8 *RideAt(u32 index) { return gRides_7a4610[index]; }
 
 }  // namespace
 
 extern "C" {
 
 void __cdecl Train_SetCouplings(u32, u8 *train) {
-    if (*reinterpret_cast<const u32 *>(0x00790afc)) return;
+    if (gCamera_790afc) return;
     for (u32 i = 0; i < at<u32>(train, 0x30); ++i) {
         u8 *car = at<u8 *>(train, 0x34 + 4 * i);
         const u32 count = at<u32>(train, 0x30);
@@ -93,7 +95,7 @@ void __cdecl Car_SetChannelRates(u32, u8 *car) {
     const auto set = [ride, ranges](u32 channel, u32 range, X87Reg rate) {
         if (!(rate.v >= at<float>(ranges, range))) rate = at<float>(ranges, range);   // (fcom; test ah, 1: a NaN too)
         if (rate.v > at<float>(ranges, range + 4)) rate = at<float>(ranges, range + 4);
-        u8 *const block = at<u8 *>(reinterpret_cast<u8 *const *>(0x007a4610)[ride], 0x10) + channel;
+        u8 *const block = at<u8 *>(gRides_7a4610[ride], 0x10) + channel;
         at<float>(block, 0x20) = (float)(X87Reg(at<float>(block, 0x1c)) * rate);
     };
     float &t = at<float>(car, 0xe8);
@@ -170,7 +172,7 @@ void __cdecl Train_RestoreSaved(const u8 *owner, u8 *train) {
 
 void __cdecl Train_RemoveCar(const u8 *owner, const u8 *car) {
     const auto ride_value = [](const u8 *c) -> float & {   // (the car's ride +8, +4, +0x78, +0x44)
-        const u8 *const ride = reinterpret_cast<const u8 *const *>(0x007a4610)[at<u32>(c, 0x70)];
+        const u8 *const ride = gRides_7a4610[at<u32>(c, 0x70)];
         return at<float>(at<const u8 *>(at<const u8 *>(at<const u8 *>(ride, 8), 4), 0x78), 0x44);
     };
     u8 *const train = at<u8 *>(car, 0x100);
@@ -206,7 +208,7 @@ void __cdecl Train_RemoveCar(const u8 *owner, const u8 *car) {
 }
 
 u8 *__cdecl Ride_Train(u32 index, u32 *cars) {
-    const u8 *ride = reinterpret_cast<const u8 *const *>(0x007a4610)[index];
+    const u8 *ride = gRides_7a4610[index];
     if (!(at<u32>(ride, 4) & 0x80000)) {
         *cars = 0;
         return nullptr;
@@ -583,7 +585,7 @@ u32 __cdecl Pylon_FindBraceLevel(float wanted, const u8 *train, u32 *level, floa
 }
 
 void __cdecl Train_PlaceCars(const u8 *type, u8 *train, u32 force, u32 keep) {
-    if (global<u32>(0x00790afc) && !force) return;
+    if (gCamera_790afc && !force) return;
     for (u32 i = 0; i < at<u32>(train, 0x30); ++i) {
         u8 *const car = at<u8 *>(train, 0x34 + 4 * i);
         if (!keep) {

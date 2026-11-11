@@ -4,6 +4,7 @@
 #include <cstdint>
 
 #include "vcall.h"
+#include "imports.h"
 
 namespace {
 
@@ -55,19 +56,19 @@ extern "C" {
 
 u32 __fastcall SoundMixer_AddVoiceSignal(u8 *mixer, void *, u8 *owner, u8 *definition, u8 *sound) {
     if (!g_env->addVoice(mixer, nullptr, owner, definition, sound)) return 0;
-    return (*reinterpret_cast<u32(__stdcall *const *)(u8 *, u32)>((uintptr_t)0x006fd200))(mixer + 0x38, 1);
+    return (*reinterpret_cast<u32(__stdcall *const *)(u8 *, u32)>((uintptr_t)IMPORT(Kernel32_InterlockedExchange)))(mixer + 0x38, 1);
 }
 
 u32 __fastcall SoundMixer_Start(u8 *mixer, void *, u8 *owner, u8 *definition, u8 *sound) {
     u8 *const section = mixer + 4;
-    (*reinterpret_cast<void(__stdcall *const *)(u8 *)>((uintptr_t)0x006fd140))(section);
+    (*reinterpret_cast<void(__stdcall *const *)(u8 *)>((uintptr_t)IMPORT(Kernel32_EnterCriticalSection)))(section);
     u32 taken = 0;
     u8 *const voice = g_env->takeVoice(mixer, nullptr, &taken);
     if (voice) {
         const SoundVoiceMaker make = vcall<u32>(sound, 0) == 1 ? g_env->makeOne : pick_maker(definition);
         make(owner, voice, definition, sound);
     }
-    (*reinterpret_cast<void(__stdcall *const *)(u8 *)>((uintptr_t)0x006fd130))(section);
+    (*reinterpret_cast<void(__stdcall *const *)(u8 *)>((uintptr_t)IMPORT(Kernel32_LeaveCriticalSection)))(section);
     return taken;
 }
 

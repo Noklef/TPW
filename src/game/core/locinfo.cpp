@@ -6,6 +6,7 @@
 #include "crt.h"
 #include "crtlocale.h"
 #include "stdstring.h"
+#include "imports.h"
 
 namespace {
 
@@ -54,9 +55,9 @@ void *__fastcall Lockit_Ctor(void *self) {
     u32 state = word(lock_state);
     if (state != 2) {
         if (!state) {
-            const u32 was = import_slot<u32(__stdcall *)(u32, u32)>(0x006fd200)(lock_state, 1);
+            const u32 was = import_slot<u32(__stdcall *)(u32, u32)>(IMPORT(Kernel32_InterlockedExchange))(lock_state, 1);
             if (!was) {
-                import_slot<void(__stdcall *)(u32)>(0x006fd144)(lock_section);
+                import_slot<void(__stdcall *)(u32)>(IMPORT(Kernel32_InitializeCriticalSection))(lock_section);
                 CRT_atexit(reinterpret_cast<void *>((uintptr_t)0x00691e70));
                 state = 2;
                 word(lock_state) = state;
@@ -68,21 +69,21 @@ void *__fastcall Lockit_Ctor(void *self) {
             }
         }
         while (state == 1) {
-            import_slot<void(__stdcall *)(u32)>(0x006fd1d4)(1);
+            import_slot<void(__stdcall *)(u32)>(IMPORT(Kernel32_Sleep))(1);
             state = word(lock_state);
         }
         if (state != 2) return self;
     }
-    import_slot<void(__stdcall *)(u32)>(0x006fd140)(lock_section);
+    import_slot<void(__stdcall *)(u32)>(IMPORT(Kernel32_EnterCriticalSection))(lock_section);
     return self;
 }
 
 void __fastcall Lockit_Dtor(void *) {
-    if (word(lock_state) == 2) import_slot<void(__stdcall *)(u32)>(0x006fd130)(lock_section);
+    if (word(lock_state) == 2) import_slot<void(__stdcall *)(u32)>(IMPORT(Kernel32_LeaveCriticalSection))(lock_section);
 }
 
 void __cdecl Lockit_Term() {
-    if (import_slot<u32(__stdcall *)(u32, u32)>(0x006fd200)(lock_state, 3) == 2) import_slot<void(__stdcall *)(u32)>(0x006fd0d0)(lock_section);   // DeleteCriticalSection
+    if (import_slot<u32(__stdcall *)(u32, u32)>(IMPORT(Kernel32_InterlockedExchange))(lock_state, 3) == 2) import_slot<void(__stdcall *)(u32)>(IMPORT(Kernel32_DeleteCriticalSection))(lock_section);   // DeleteCriticalSection
 }
 
 void *__fastcall Locinfo_Ctor(void *self, void *, const char *name) {

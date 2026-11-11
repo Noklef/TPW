@@ -10,6 +10,7 @@
 #include "../gfx/texture.h"
 #include "../gfx/texman.h"
 #include "../gfx/texcache.h"
+#include "../core/vtables.h"
 #include "../core/staticobjects.h"
 
 namespace {
@@ -180,7 +181,7 @@ u8 *__fastcall SpriteSet_DeletingDtor(u8 *plus20, void *, u32 flags) {
     at<s32>(set, again - 4) = again - 0x20;
     TrackedArray_Free(set);
     LiveObjects_Remove(set ? set + at<s32>(at<u8 *>(set, 0), 4) : nullptr);   // (the base read again after the release)
-    at<u32>(set, 0x20) = 0x006fdce8;
+    at<u32>(set, 0x20) = (u32)(uintptr_t)Class6fdce8_vtable;
     if (flags & 1)
         GameHeap_Free(set);
     return set;
@@ -193,7 +194,7 @@ void __fastcall SpriteSet_Dtor(u8 *set) {
     at<s32>(set, again - 4) = again - 0x20;
     TrackedArray_Free(set);
     LiveObjects_Remove(set ? set + at<s32>(at<u8 *>(set, 0), 4) : nullptr);   // (the base read again after the release)
-    at<u32>(set, 0x20) = 0x006fdce8;
+    at<u32>(set, 0x20) = (u32)(uintptr_t)Class6fdce8_vtable;
 }
 
 u32 __cdecl SpriteQueue_Create() {

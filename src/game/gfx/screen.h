@@ -106,3 +106,9 @@ struct ScreenEnv {
 // The state and calls go through env (nullptr: the game's).
 void Screen_SetEnv(const ScreenEnv *env);
 const ScreenEnv *Screen_GetEnv();
+
+#include "../core/gamedata.h"
+
+// Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(char[0xc], gScreen_775840, 0x00775840, 0xc);
+GAME_DATA(char[0x14], gScreen_77584c, 0x0077584c, 0x14);

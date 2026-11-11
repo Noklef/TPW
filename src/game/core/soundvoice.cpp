@@ -18,6 +18,9 @@
 #include "soundcategory.h"
 #include "soundchannel.h"
 #include "vcall.h"
+#include "soundcmd.h"
+#include "soundmixer.h"
+#include "soundworker.h"
 
 namespace {
 
@@ -80,7 +83,7 @@ u32 next_random() {
 // A sound stopped: the sound system's slot 4 with the stack functor (0x70a2d0, the sound).
 void stop_sound(u32 sound) {
     u32 out;
-    u32 functor[2] = {0x0070a2d0, sound};
+    u32 functor[2] = {((u32)(uintptr_t)SoundWorker_vtable + 0x4), sound};
     vcall<void>(system(), 0x10, &out, functor);
 }
 
@@ -520,19 +523,19 @@ u8 *__cdecl Voice70a878_Create(u8 *owner, u8 *memory, u8 *definition, u8 *info) 
 
 u8 *__fastcall SwitchVoice_Ctor(u8 *voice) {
     Class70a7e0_Ctor(voice);
-    at<u32>(voice, 0) = 0x0070a498;
+    at<u32>(voice, 0) = (u32)(uintptr_t)SwitchVoice_vtable;
     return voice;
 }
 
 u8 *__fastcall SequenceVoice_Ctor(u8 *voice) {
     Class70a7e0_Ctor(voice);
-    at<u32>(voice, 0) = 0x0070a440;
+    at<u32>(voice, 0) = (u32)(uintptr_t)SequenceVoice_vtable;
     return voice;
 }
 
 u8 *__fastcall LinkedVoice_Ctor(u8 *voice, void *, u8 *parent) {
     Class70a7e0_Ctor(voice);
-    at<u32>(voice, 0) = 0x0070a970;
+    at<u32>(voice, 0) = (u32)(uintptr_t)LinkedVoice_vtable;
     SoundVoice_EnsureParams(voice);
     at<u8 *>(at<u8 *>(voice, 0x4c), 0x1c) = parent;
     return voice;
@@ -540,7 +543,7 @@ u8 *__fastcall LinkedVoice_Ctor(u8 *voice, void *, u8 *parent) {
 
 u8 *__fastcall Voice70a878_Ctor(u8 *voice) {
     Class70a7e0_Ctor(voice);
-    at<u32>(voice, 0) = 0x0070a878;
+    at<u32>(voice, 0) = (u32)(uintptr_t)Voice70a878_vtable;
     SoundVoice_EnsureParams(voice);
     at<u32>(at<u8 *>(voice, 0x4c), 0x1c) = 0;   // (no block when the allocation fails: a fault, sic)
     return voice;
@@ -553,7 +556,7 @@ u8 *__cdecl Voice70a8d0_Create(u8 *owner, u8 *memory, u8 *definition, u8 *info) 
 
 u8 *__fastcall Voice70a8d0_Ctor(u8 *voice, void *, const u8 *info) {
     Class70a7e0_Ctor(voice);
-    at<u32>(voice, 0) = 0x0070a8d0;
+    at<u32>(voice, 0) = (u32)(uintptr_t)Voice70a8d0_vtable;
     SoundVoice_EnsureParams(voice);
     u8 *queue = nullptr;   // (no block: +0x1c 0)
     if (u8 *const block = static_cast<u8 *>(GameHeap_Alloc(0xc))) {
@@ -569,22 +572,22 @@ u8 *__fastcall Voice70a8d0_Ctor(u8 *voice, void *, const u8 *info) {
 
 u8 *__fastcall Voice70a390_Ctor(u8 *voice) {
     Class70a7e0_Ctor(voice);
-    at<u32>(voice, 0) = 0x0070a390;
+    at<u32>(voice, 0) = (u32)(uintptr_t)Voice70a390_vtable;
     SoundVoice_EnsureParams(voice);
     return voice;
 }
 
 u8 *__fastcall Voice70a2e0_Ctor(u8 *voice) {
     Class70a7e0_Ctor(voice);
-    at<u32>(voice, 0) = 0x0070a390;
+    at<u32>(voice, 0) = (u32)(uintptr_t)Voice70a390_vtable;
     SoundVoice_EnsureParams(voice);
-    at<u32>(voice, 0) = 0x0070a2e0;
+    at<u32>(voice, 0) = (u32)(uintptr_t)Voice70a2e0_vtable;
     return voice;
 }
 
 u8 *__fastcall LinkedSwitchVoice_Ctor(u8 *voice, void *, u8 *parent) {
     LinkedVoice_Ctor(voice, nullptr, parent);
-    at<u32>(voice, 0) = 0x0070a9e0;
+    at<u32>(voice, 0) = (u32)(uintptr_t)LinkedSwitchVoice_vtable;
     return voice;
 }
 
@@ -906,13 +909,13 @@ u8 __fastcall SoundVoice_ShuffleVariation(u8 *voice, void *, u32) {
 
 u8 *__fastcall Voice70a3e8_Ctor(u8 *voice) {
     Class70a7e0_Ctor(voice);
-    at<u32>(voice, 0) = 0x0070a3e8;
+    at<u32>(voice, 0) = (u32)(uintptr_t)Voice70a3e8_vtable;
     return voice;
 }
 
 u8 *__fastcall Voice70a4f0_Ctor(u8 *voice) {
     Class70a7e0_Ctor(voice);
-    at<u32>(voice, 0) = 0x0070a4f0;
+    at<u32>(voice, 0) = (u32)(uintptr_t)Voice70a4f0_vtable;
     return voice;
 }
 
@@ -940,7 +943,7 @@ u8 *__fastcall Voice70a2e0_NewLinkedSwitch(u8 *voice) {
 
 void __fastcall Class70a7e0_Dtor(u8 *voice) {
     u8 *const params = at<u8 *>(voice, 0x4c);
-    at<u32>(voice, 0) = 0x0070a7e0;
+    at<u32>(voice, 0) = (u32)(uintptr_t)Class70a7e0_vtable;
     at<u32>(voice, 0x2c) &= 0xffff;
     if (params) GameHeap_Free(params);
     if (u8 *const owner = at<u8 *>(voice, 0x28)) vcall<void>(owner, 0);
@@ -953,12 +956,12 @@ u8 *__fastcall Class70a7e0_DeletingDtor(u8 *voice, void *, u8 flags) {
 }
 
 void __fastcall Voice70a3e8_Dtor(u8 *voice) {
-    at<u32>(voice, 0) = 0x0070a3e8;
+    at<u32>(voice, 0) = (u32)(uintptr_t)Voice70a3e8_vtable;
     Class70a7e0_Dtor(voice);
 }
 
 void __fastcall Voice70a338_Dtor(u8 *voice) {
-    at<u32>(voice, 0) = 0x0070a338;
+    at<u32>(voice, 0) = (u32)(uintptr_t)Voice70a338_vtable;
     Class70a7e0_Dtor(voice);
 }
 
@@ -986,9 +989,9 @@ u8 *__fastcall Voice70a4f0_VectorDeletingDtor(u8 *voice, void *, u8 flags) {
 }
 
 void __fastcall Voice70a878_Dtor(u8 *voice) {
-    at<u32>(voice, 0) = 0x0070a878;
+    at<u32>(voice, 0) = (u32)(uintptr_t)Voice70a878_vtable;
     if (u8 *const bag = at<u8 *>(at<u8 *>(voice, 0x4c), 0x1c)) GameHeap_Free(bag);
-    at<u32>(voice, 0) = 0x0070a338;
+    at<u32>(voice, 0) = (u32)(uintptr_t)Voice70a338_vtable;
     Class70a7e0_Dtor(voice);
 }
 
@@ -999,12 +1002,12 @@ u8 *__fastcall Voice70a878_DeletingDtor(u8 *voice, void *, u8 flags) {
 }
 
 void __fastcall Voice70a8d0_Dtor(u8 *voice) {
-    at<u32>(voice, 0) = 0x0070a8d0;
+    at<u32>(voice, 0) = (u32)(uintptr_t)Voice70a8d0_vtable;
     if (u8 *const bag = at<u8 *>(at<u8 *>(voice, 0x4c), 0x1c)) {
         GameHeap_Free(at<u8 *>(bag, 8));
         GameHeap_Free(bag);
     }
-    at<u32>(voice, 0) = 0x0070a338;
+    at<u32>(voice, 0) = (u32)(uintptr_t)Voice70a338_vtable;
     Class70a7e0_Dtor(voice);
 }
 
@@ -1033,7 +1036,7 @@ u8 __fastcall Voice70a8d0_PickQueuedSound(u8 *voice, void *, u32) {
     if (!record) return 0;
     const u32 *const sounds = at<u32 *>(record, 8);
     if (!sounds) return 0;
-    u32 command[7] = {0x00700b90, category, sound, at<u32>(voice, 0x10), at<u32>(voice, 0x14), at<u32>(voice, 0x18), 0};
+    u32 command[7] = {((u32)(uintptr_t)SoundCmd_vtables + 0x64), category, sound, at<u32>(voice, 0x10), at<u32>(voice, 0x14), at<u32>(voice, 0x18), 0};
     u8 *const found = SfxSounds_Find(nullptr, nullptr, sounds, reinterpret_cast<u8 *>(command));
     if (!found) return 0;
     at<u8 *>(voice, 4) = found;
@@ -1042,13 +1045,13 @@ u8 __fastcall Voice70a8d0_PickQueuedSound(u8 *voice, void *, u32) {
 
 // (the children: the parameter block's +0x18, each the next's in its own block's +0x18)
 void __fastcall Voice70a390_Dtor(u8 *voice) {
-    at<u32>(voice, 0) = 0x0070a390;
+    at<u32>(voice, 0) = (u32)(uintptr_t)Voice70a390_vtable;
     for (u8 *child = at<u8 *>(at<u8 *>(voice, 0x4c), 0x18); child;) {
         u8 *const next = at<u8 *>(at<u8 *>(child, 0x4c), 0x18);
         vcall<void>(child, 8, 1u);
         child = next;
     }
-    at<u32>(voice, 0) = 0x0070a3e8;
+    at<u32>(voice, 0) = (u32)(uintptr_t)Voice70a3e8_vtable;
     Class70a7e0_Dtor(voice);
 }
 
@@ -1059,7 +1062,7 @@ u8 *__fastcall Voice70a390_DeletingDtor(u8 *voice, void *, u32 flags) {
 }
 
 void __fastcall Voice70a2e0_Dtor(u8 *voice) {
-    at<u32>(voice, 0) = 0x0070a2e0;
+    at<u32>(voice, 0) = (u32)(uintptr_t)Voice70a2e0_vtable;
     Voice70a390_Dtor(voice);
 }
 

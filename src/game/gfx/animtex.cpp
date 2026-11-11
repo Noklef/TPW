@@ -5,6 +5,7 @@
 #include "../core/vcall.h"
 #include "../math/x87.h"
 #include "../render/screen.h"
+#include "../world/camera.h"
 #include "../core/staticobjects.h"
 
 namespace {
@@ -43,7 +44,7 @@ void __cdecl AnimTextures_Clear() {
 
 void __cdecl AnimTextures_DrawSheet() {
     if (!*reinterpret_cast<const u8 *>((uintptr_t)0x008c639c)) return;
-    float y = (float)(X87Reg(*reinterpret_cast<const float *>((uintptr_t)0x00790acc)) * -4.0f);
+    float y = (float)(X87Reg(gCamera_790acc) * -4.0f);
     u32 scroll = 0;
     float wide = 0.0f, tall = 0.0f;   // sic: the original's tall is a stack slot not yet written until an animation of over one frame sets it
     do {

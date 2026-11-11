@@ -20,6 +20,10 @@
 #include "windowreg.h"
 #include "windowscript.h"
 #include "panel7cc218.h"
+#include "../world/world.h"
+#include "dialog7cc188.h"
+#include "versionlabel.h"
+#include "../core/imports.h"
 
 namespace {
 
@@ -38,14 +42,14 @@ const SignNameDialogOpenEnv kOpenGameEnv = {WindowScript_Build, Window_SetDwordA
                                             Window705a20_SetBuffer, GuiWindows_FindByName, Window705a20_SetCaret, reinterpret_cast<NameFn>((uintptr_t)0x004e2860), reinterpret_cast<NameFn>((uintptr_t)0x004e2920), Window705a20_SelectAll, KeyMaps_ResetAllAndSetFlag, Window_SetFocus};
 const SignNameDialogOpenEnv *g_open = &kOpenGameEnv;
 
-s32 __stdcall RemoveFont(const char *path) { return global<s32(__stdcall *)(const char *)>(0x006fd058)(path); }
+s32 __stdcall RemoveFont(const char *path) { return global<s32(__stdcall *)(const char *)>(IMPORT(Gdi32_RemoveFontResourceA))(path); }
 
 const SignNameDialogHandlerEnv kHandlerGameEnv = {KeyMaps_EnableAllAndClearFlag, Focus_Restore, reinterpret_cast<SetNameFn>((uintptr_t)0x004e2950), reinterpret_cast<SetNameFn>((uintptr_t)0x004e2a50), reinterpret_cast<void(__cdecl *)(u8 *, const u16 *, const u16 *)>((uintptr_t)0x004682b0),
                                                   RemoveFont, File_Delete, GlobalSave_Instance, GlobalSave_SetSignNameA, GlobalSave_SetSignNameB, CheatSystem_Construct,reinterpret_cast<s32(__cdecl *)(void(__cdecl *)())>((uintptr_t)0x0067a7d0),
                                                   CheatSystem_SetOn, Thing_NameBuffer7ba058, Window_PostMessage, Window_SendMessage, Window_SetFocus};
 const SignNameDialogHandlerEnv *g_handler = &kHandlerGameEnv;
 
-u8 *tableThing() { return reinterpret_cast<u8 **>((uintptr_t)0x007cfb90)[at<u16>(global<u8 *>(0x007cf83c), 0x1da732) * 5]; }
+u8 *tableThing() { return reinterpret_cast<u8 **>((uintptr_t)0x007cfb90)[at<u16>(gWorldPtr, 0x1da732) * 5]; }
 
 void dressEdit(u8 *edit, u16 *buffer, u8 *thing, NameFn name) {
     u8 *const memory = static_cast<u8 *>(g_open->alloc(0x1a4));
@@ -53,7 +57,7 @@ void dressEdit(u8 *edit, u16 *buffer, u8 *thing, NameFn name) {
     g_open->set4c(edit, nullptr, g_open->font(7));
     g_open->notify40000(edit, nullptr, 0xff, 0xff, 0xff, 0xff);
     g_open->setBuffer(edit, nullptr, (u32)(uintptr_t)buffer, 0xe);
-    g_open->setCaret(edit, nullptr, reinterpret_cast<u8 *>((uintptr_t)g_open->findByName(reinterpret_cast<const char *>((uintptr_t)0x0074fa84))));
+    g_open->setCaret(edit, nullptr, reinterpret_cast<u8 *>((uintptr_t)g_open->findByName(reinterpret_cast<const char *>((uintptr_t)&gText_Dialog7cc188_74fa84))));
     name(thing, nullptr, kNameBuffer, 0x3fff);
     vcall<void>(edit, 0x24, kNameBuffer);
 }
@@ -138,7 +142,7 @@ void __fastcall SignNameDialog_Open(u8 *self) {
     if (!thing || at<u8>(thing, 2) != 3) return;
     u8 *const parent = at<u8 *>(self, 0x10);
     const s32 depth = at<s16>(parent, 0xe0) + 0x11;
-    u8 *const window = g_open->build(parent, nullptr, reinterpret_cast<u8 *>((uintptr_t)0x00750090), 0x0048d640);
+    u8 *const window = g_open->build(parent, nullptr, gSignNameDialog_750090, 0x0048d640);
     at<u8 *>(self, 0xc) = window;
     Window_SetDepth(window, nullptr, (u16)depth);
     g_open->setDword(window, nullptr, 0, (u32)(uintptr_t)thing);

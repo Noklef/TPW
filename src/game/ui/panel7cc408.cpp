@@ -14,6 +14,7 @@
 #include "thingpreview.h"
 #include "window.h"
 #include "panel7cc218.h"
+#include "../core/soundset.h"
 #include "../core/staticobjects.h"
 
 using namespace panelparts;
@@ -56,8 +57,8 @@ void __fastcall Panel7cc408_ShowPreview(u8 *self) {
 
 void __fastcall Panel7cc408_Show(u8 *self, void *, u8 *thing) {
     *reinterpret_cast<u8 **>((uintptr_t)&gStatic_7cc408 + 0x28) = thing;
-    WindowAt10_Create(self, nullptr, reinterpret_cast<u8 *>((uintptr_t)0x007575e0), 0x004b7720, 0x3722, 0x3723, 0);
-    Sound_PlayAt(0, *reinterpret_cast<const u32 *>((uintptr_t)0x00803a24), 0x81, 0, 0, 0);
+    WindowAt10_Create(self, nullptr, reinterpret_cast<u8 *>((uintptr_t)&gPanel7cc408_Show_7575e0), 0x004b7720, 0x3722, 0x3723, 0);
+    Sound_PlayAt(0, gSoundCategories.kids, 0x81, 0, 0, 0);
     Advisor_PostId(0x12e);
 }
 

@@ -76,4 +76,5 @@ void Dialog7cc61c_SetOpenEnv(const Dialog7cc61cOpenEnv *env);
 #include "../core/gamedata.h"
 
 // Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(u8[0x180], gDialog7cc61c_Open_7586f0, 0x007586f0, 0x180);
 GAME_DATA(u32, gDialog7cc61c_758870, 0x00758870, 0x4);

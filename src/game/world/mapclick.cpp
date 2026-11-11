@@ -38,6 +38,8 @@
 #include "gamemode.h"
 #include "focuscell.h"
 #include "tracktextures.h"
+#include "../core/soundset.h"
+#include "pathdrag.h"
 #include "../core/staticobjects.h"
 
 namespace {
@@ -108,7 +110,7 @@ const MapClickEnv kGameEnv = {
 };
 const MapClickEnv *g_env = &kGameEnv;
 
-u8 *World() { return global<u8 *>(0x007cf83c); }
+u8 *World() { return gWorldPtr; }
 u8 *CurThing() { return gFocuscell_8186ac; }
 s32 &StartX() { return global<s32>(0x0081ede4); }
 s32 &StartY() { return global<s32>(0x0081ede8); }
@@ -132,7 +134,7 @@ s32 Abs32(s32 v) {
 
 // fild v; fmul [0x700c9c]; __ftol (the FPU at 24 bits).
 s32 Scaled(s32 v) {
-    const float k = global<float>(0x00700c9c);
+    const float k = gMapclick_700c9c;
     const double r = v < 0 ? -X87_MulInt(0u - (u32)v, k) : X87_MulInt((u32)v, k);
     return (s32)(long long)r;
 }
@@ -140,7 +142,7 @@ s32 Scaled(s32 v) {
 void PlaySound(const MapClickEnv *E, u32 sound, s32 x, s32 y) {
     const s32 sy = Scaled(y);
     const s32 sx = Scaled(x);
-    E->soundPlayAt(0, global<u32>(0x00803a2c), sound, sx, 0, sy);
+    E->soundPlayAt(0, gSoundCategories.ui, sound, sx, 0, sy);
 }
 
 // The focus cell from the thing [0x8186ac]: [0x818698] its cell id (row +7, column +5); 0x7639a4 / 0x7639a8 its column and row, and
@@ -150,20 +152,20 @@ void FocusFromCurThing() {
     global<u16>(0x00818698) = (u16)(((u32)at<u8>(thing, 7) << 7) + at<u8>(thing, 5) + 1);
     const u32 f = (global<u32>(0x00818698) & 0xffff) - 1;
     const u32 fx = f & 0x7f, fy = f >> 7;
-    global<u32>(0x007639a4) = fx;
-    global<u32>(0x007639e0) = fx;
-    global<u32>(0x007639a8) = fy;
-    global<u32>(0x007639e4) = fy;
+    reinterpret_cast<u32 &>(gFocusCell_X_7639a4) = fx;
+    reinterpret_cast<u32 &>(gFocusCell_StartX_7639e0) = fx;
+    reinterpret_cast<u32 &>(gFocusCell_Y_7639a8) = fy;
+    reinterpret_cast<u32 &>(gFocusCell_StartY_7639e4) = fy;
     const u32 facing = at<u32>(thing, 0x10);
-    global<u32>(0x007639e8) = fx;
-    global<u32>(0x007639ac) = facing;
-    global<u32>(0x007639ec) = fy;
+    reinterpret_cast<u32 &>(gFocusCell_EndX_7639e8) = fx;
+    reinterpret_cast<u32 &>(gFocusCell_Facing_7639ac) = facing;
+    reinterpret_cast<u32 &>(gFocusCell_EndY_7639ec) = fy;
 }
 
 void StepFocus(const MapClickEnv *E, bool keep) {
-    const u32 a = E->stepA(&global<s32>(0x007639e0), &global<s32>(0x007639e4), global<s32>(0x007639ac));
-    if (keep) global<u8>(0x00818c50) = (u8)a;
-    E->stepB(&global<s32>(0x007639e8), &global<s32>(0x007639ec), global<s32>(0x007639ac));
+    const u32 a = E->stepA(&gFocusCell_StartX_7639e0, &gFocusCell_StartY_7639e4, gFocusCell_Facing_7639ac);
+    if (keep) gFocuscell_818c50 = (u8)a;
+    E->stepB(&gFocusCell_EndX_7639e8, &gFocusCell_EndY_7639ec, gFocusCell_Facing_7639ac);
 }
 
 // The run's start set from the thing (its +0x2c = 0x52a970 (a)), animated from start (b) when set, else from 0 both ways; with a run, an
@@ -200,10 +202,10 @@ u8 FacingBit(s32 facing) {
 
 // The direction bit from the focus's two steps: 0x40 / 4 as the first column is less / more than the second, else 1 / 0x10 by the rows.
 u8 StepBit() {
-    const s32 dx = (s32)(global<u32>(0x007639e0) - global<u32>(0x007639e8));
+    const s32 dx = (s32)(reinterpret_cast<u32 &>(gFocusCell_StartX_7639e0) - reinterpret_cast<u32 &>(gFocusCell_EndX_7639e8));
     if (dx < 0) return 0x40;
     if (dx > 0) return 4;
-    const s32 dy = (s32)(global<u32>(0x007639e4) - global<u32>(0x007639ec));
+    const s32 dy = (s32)(reinterpret_cast<u32 &>(gFocusCell_StartY_7639e4) - reinterpret_cast<u32 &>(gFocusCell_EndY_7639ec));
     if (dy < 0) return 1;
     if (dy > 0) return 0x10;
     return 0;
@@ -232,7 +234,7 @@ void EntrancePiece(const MapClickEnv *E, s32 x, s32 y, bool queue, u32 &endFlag)
         return;
     }
     if (Global81ecac_IfNoFlag() != 0) {
-        reinterpret_cast<u8 * &>(gMapclick_8186c0) = E->extendPath(reinterpret_cast<const s32 *>((uintptr_t)point), &global<s32>(0x007639b8), &global<s32>(0x007639bc));
+        reinterpret_cast<u8 * &>(gMapclick_8186c0) = E->extendPath(reinterpret_cast<const s32 *>((uintptr_t)point), &gMapClick_PathX_7639b8, &gMapClick_PathY_7639bc);
         if (Global81ecac_IfNoFlag() != 3) {
             const u32 kind = Global81ecac_IfNoFlag();
             u8 *const entrance = E->entranceLines(reinterpret_cast<const u8 *>((uintptr_t)point), &StartX(), &StartY(), kind);
@@ -259,13 +261,13 @@ void EntrancePiece(const MapClickEnv *E, s32 x, s32 y, bool queue, u32 &endFlag)
             Line(E, 0x81, lx, ly);
             PairTable_Add((u32)lx, (u32)ly);
             const u32 f = (global<u32>(0x00818698) & 0xffff) - 1;
-            global<u32>(0x007639e0) = f & 0x7f;
-            global<u32>(0x007639e8) = f & 0x7f;
-            global<u32>(0x007639e4) = f >> 7;
-            global<u32>(0x007639ec) = f >> 7;
+            reinterpret_cast<u32 &>(gFocusCell_StartX_7639e0) = f & 0x7f;
+            reinterpret_cast<u32 &>(gFocusCell_EndX_7639e8) = f & 0x7f;
+            reinterpret_cast<u32 &>(gFocusCell_StartY_7639e4) = f >> 7;
+            reinterpret_cast<u32 &>(gFocusCell_EndY_7639ec) = f >> 7;
             StepFocus(E, false);
-            lx = global<s32>(0x007639e8);
-            ly = global<s32>(0x007639ec);
+            lx = gFocusCell_EndX_7639e8;
+            ly = gFocusCell_EndY_7639ec;
             const u8 bit = StepBit();
             Line(E, 0x87, lx, ly);
             Line(E, Global81ae2c_Get_52f840(), lx, ly);
@@ -301,8 +303,8 @@ void EntrancePiece(const MapClickEnv *E, s32 x, s32 y, bool queue, u32 &endFlag)
     Line6(E, 0x83, lx, ly);
     Line6(E, 0x81, lx, ly);
     E->f4de1f0(CurThing());
-    global<u32>(0x00763ac0) = 0x80;
-    global<u32>(0x00763ac4) = 0x80;
+    gMapClick_763ac0 = 0x80;
+    gMapClick_763ac4 = 0x80;
     if (Record29c(id) == 1) {
         E->f52f200(0, 0);
         endFlag = 1;   // (the flags' test only)
@@ -318,7 +320,7 @@ void __cdecl GameMode_MapClick(s32 x, s32 y, u32 flags, u32 useStored) {
     ActionRec *const record = reinterpret_cast<ActionRec *>((uintptr_t)&gActionRec_785a08);
     // (x and y both 0: Debug_Printf "HUH?", left out)
     if (global<u32>((u32)(uintptr_t)&gActionRec_785a08 + 0x24) != 0 && global<u8>(0x0081b4cc) == 0) {
-        global<u32>(0x00816d50) = 0;
+        gCellbuild_816d50 = 0;
         if (gMapclick_8187f8 == 0) E->click5234d0(x, y, flags);
     }
     gMapclick_8186d4 = 0;
@@ -326,7 +328,7 @@ void __cdecl GameMode_MapClick(s32 x, s32 y, u32 flags, u32 useStored) {
         x = gFocuscell_8186b8;
         y = gFocuscell_8186b4;
     }
-    if ((global<u32>(0x00816d48) == 0 && global<u8>(0x0081b4cc) == 0) || Global81ae2c_Equals(0x16) != 0) {
+    if ((gFocuscell_816d48 == 0 && global<u8>(0x0081b4cc) == 0) || Global81ae2c_Equals(0x16) != 0) {
         if ((u16)flags == 0)
             E->writeBB(record, nullptr, 0x14, (u32)x, (u32)y);
         else
@@ -334,15 +336,15 @@ void __cdecl GameMode_MapClick(s32 x, s32 y, u32 flags, u32 useStored) {
     }
     u32 lineEnded = 0;   // (ESI: the last line answered 0)
     if (Global81ae2c_Equals(0) != 0) gGameMode_MapClick_8186b0 = Wrap_Global7c2650_Get_481590();
-    if (Global81ae2c_Equals(0x38) == 0 && global<u32>(0x00816d48) != 0) {
+    if (Global81ae2c_Equals(0x38) == 0 && gFocuscell_816d48 != 0) {
         if (global<u32>((u32)(uintptr_t)&gActionRec_785a08 + 0x24) == 0 && gGameMode_8186d8 != 0) PlaySound(E, 0xaf, x, y);
         switch (Global81ae2c_Get_52f840()) {
         case 1: case 3: case 0xb: case 0xe: case 0x10: case 0x13: case 0x36:
             goto clear_end;
         case 0x16:
             E->f446050();
-            global<u32>(0x00816d48) = 0;
-            global<u8>(0x00818c54) = 0;
+            gFocuscell_816d48 = 0;
+            gPathdrag_818c54 = 0;
             gGameMode_8186d8 = 0;
             return;
         default:
@@ -415,7 +417,7 @@ void __cdecl GameMode_MapClick(s32 x, s32 y, u32 flags, u32 useStored) {
         }
         Snap(sx, sy, x, y);
         s32 ex = sx, ey = sy;
-        if (sx != x || sy != y || (global<s32>(0x007639f0) == x && global<s32>(0x007639f4) == y)) {
+        if (sx != x || sy != y || (gFocusCell_PointAX_7639f0 == x && gFocusCell_PointAY_7639f4 == y)) {
             E->applyLine(Global81ae2c_Get_52f840(), sx, sy, &x, &y);
             FromStart(E, 0x80, x, y);
             FromStart(E, 0x82, x, y);
@@ -429,7 +431,7 @@ void __cdecl GameMode_MapClick(s32 x, s32 y, u32 flags, u32 useStored) {
         if (ex == x && ey == y) {
             StartX() = -1;
             StartY() = -1;
-            global<u32>(0x00763ac0) = 0x80;
+            gMapClick_763ac0 = 0x80;
             gGamemode_763b00 = 0x80;
             gGamemode_763b04 = 0x80;
             E->f52f200(0, 0);
@@ -446,8 +448,8 @@ void __cdecl GameMode_MapClick(s32 x, s32 y, u32 flags, u32 useStored) {
         if (cx >= w) cx = w;
         const s32 h = (s32)(global<u32>(0x0081b1b0) - 3);
         if (cy >= h) cy = h;
-        x = Even(cx, global<s32>(0x007639f0));
-        y = Even(cy, global<s32>(0x007639f4));
+        x = Even(cx, gFocusCell_PointAX_7639f0);
+        y = Even(cy, gFocusCell_PointAY_7639f4);
         const s32 sx = StartX(), sy = StartY();
         if (sx == -1 && sy == -1) {
             StartX() = x;
@@ -541,38 +543,38 @@ void __cdecl GameMode_MapClick(s32 x, s32 y, u32 flags, u32 useStored) {
     }
     if (Global81ae2c_Equals(0xe) != 0 || Global81ae2c_Equals(0x13) != 0) goto ride_entrance;
     if (Global81ae2c_Equals(0x1a) != 0) {
-        x = Even(x, global<s32>(0x007639a4));
-        y = Even(y, global<s32>(0x007639a8));
+        x = Even(x, gFocusCell_X_7639a4);
+        y = Even(y, gFocusCell_Y_7639a8);
         gFocuscell_8186b8 = x;
         gFocuscell_8186b4 = y;
-        if (global<u16>(0x007639b0) == 0xffff) {
+        if (gMapClick_StartWord_7639b0 == 0xffff) {
             global<u16>(0x00818694) = (u16)(((u32)y << 7) + (u32)x + 1);
-            global<u16>(0x007639b0) = E->word24(CellOf(global<u32>(0x00818694)));
+            gMapClick_StartWord_7639b0 = E->word24(CellOf(global<u32>(0x00818694)));
             if (E->f539760(CellOf(global<u32>(0x00818694)), nullptr, 0x1a, 0, 0) != 1) goto end;
             global<u16>(0x00818694) = 0;
-            global<u16>(0x007639b0) = 0xffff;
+            gMapClick_StartWord_7639b0 = 0xffff;
             goto end;
         }
         global<u16>(0x00818684) = (u16)(((u32)y << 7) + (u32)x + 1);
-        global<u16>(0x007639b4) = E->word24(CellOf(global<u32>(0x00818684)));
+        gMapClick_EndWord_7639b4 = E->word24(CellOf(global<u32>(0x00818684)));
         u8 *cell = CellOf(global<u32>(0x00818684));
         if (E->isTypeC(cell) != 0) cell = Parent(cell);
         if (E->f539760(cell, nullptr, 0x1a, 0, 0) != 9) {
             global<u16>(0x00818684) = global<u16>(0x00818694);
-            global<u16>(0x007639b4) = global<u16>(0x007639b0);
+            gMapClick_EndWord_7639b4 = gMapClick_StartWord_7639b0;
             goto end;
         }
         u32 joined;
-        if ((s16)global<u16>(0x007639b0) > (s16)global<u16>(0x007639b4))
+        if ((s16)gMapClick_StartWord_7639b0 > (s16)gMapClick_EndWord_7639b4)
             joined = E->f52b400(CellOf(global<u32>(0x00818684)), CellOf(global<u32>(0x00818694)), 1);
         else
             joined = E->f52b400(CellOf(global<u32>(0x00818694)), CellOf(global<u32>(0x00818684)), 1);
         global<u16>(0x00818694) = 0;
-        global<u16>(0x007639b0) = 0xffff;
+        gMapClick_StartWord_7639b0 = 0xffff;
         global<u16>(0x00818684) = 0;
-        global<u16>(0x007639b4) = 0xffff;
+        gMapClick_EndWord_7639b4 = 0xffff;
         StartX() = (s32)(((u32)at<u16>(cell, 0) - 1) & 0x7f);
-        global<u32>(0x007639c0) = 0;
+        gMapClick_7639c0 = 0;
         StartY() = (s32)(((u32)at<u16>(cell, 0) - 1) >> 7);
         if (joined == 0xffffffff) goto end;
         E->corners();
@@ -595,8 +597,8 @@ void __cdecl GameMode_MapClick(s32 x, s32 y, u32 flags, u32 useStored) {
         E->f435570(0);
         if (gMapclick_8186c0 == 0) goto clear_end;
         E->f52f580(3, 0);
-        StartX() = global<s32>(0x007639b8);
-        StartY() = global<s32>(0x007639bc);
+        StartX() = gMapClick_PathX_7639b8;
+        StartY() = gMapClick_PathY_7639bc;
         if (StartX() == x && StartY() == y && Global820a8c_Get_52fbe0() != 1) goto end;
         s32 lx = StartX(), ly = StartY();
         const u32 id = (u16)(((u32)ly << 7) + (u32)lx + 1);
@@ -605,14 +607,14 @@ void __cdecl GameMode_MapClick(s32 x, s32 y, u32 flags, u32 useStored) {
         Line6(E, 0x86, lx, ly);
         Line6(E, 0x83, lx, ly);
         Line6(E, 0x81, lx, ly);
-        global<u32>(0x00763ac0) = 0x80;
-        global<u32>(0x00763ac4) = 0x80;
+        gMapClick_763ac0 = 0x80;
+        gMapClick_763ac4 = 0x80;
         gMapclick_8186c0 = 0;
         if (Record29c(id) != 1) goto end;
         goto clear_end;
     }
     if (Global81ae2c_Equals(0x16) == 0) goto end;
-    if (global<u8>(0x00818c54) == 0) {
+    if (gPathdrag_818c54 == 0) {
         E->f446300(0);
         goto end;
     }
@@ -625,8 +627,8 @@ void __cdecl GameMode_MapClick(s32 x, s32 y, u32 flags, u32 useStored) {
         u8 *const cell = CellAt(x, y);
         at<u32>(cell, 4) = E->f445a70(x, y);
     }
-    global<u32>(0x007639a0) = 0xffffffff;
-    global<u8>(0x00818c54) = 0;
+    reinterpret_cast<u32 &>(gMapClick_Mode_7639a0) = 0xffffffff;
+    gPathdrag_818c54 = 0;
     goto end;
 
 ride_entrance: {   // modes 0xe and 0x13
@@ -635,7 +637,7 @@ ride_entrance: {   // modes 0xe and 0x13
         E->traceA(CurThing());
         goto entrance_modes;
     }
-    if (global<u16>(0x007639b0) == 0xffff) {
+    if (gMapClick_StartWord_7639b0 == 0xffff) {
         u8 *cell = CellAt(x, y);
         if (E->isTypeC(cell) != 0) cell = Parent(cell);
         if (cell == nullptr || E->isTypeD(cell) != 0) goto entrance_tail;
@@ -647,10 +649,10 @@ ride_entrance: {   // modes 0xe and 0x13
             gFocuscell_8186b4 = ny;
         }
         global<u16>(0x00818694) = (u16)(((u32)y << 7) + (u32)x + 1);
-        global<u16>(0x007639b0) = E->word24(cell);
+        gMapClick_StartWord_7639b0 = E->word24(cell);
         if (E->f539760(cell, nullptr, 0xe, 0, 0) == 1) {
             global<u16>(0x00818694) = 0;
-            global<u16>(0x007639b0) = 0xffff;
+            gMapClick_StartWord_7639b0 = 0xffff;
         }
         const u32 run = E->f52a970(1);
         at<u32>(CurThing(), 0x2c) = run;
@@ -670,23 +672,23 @@ ride_entrance: {   // modes 0xe and 0x13
             gFocuscell_8186b4 = ny;
         }
         global<u16>(0x00818684) = (u16)(((u32)y << 7) + (u32)x + 1);
-        global<u16>(0x007639b4) = E->word24(CellOf(global<u32>(0x00818684)));
+        gMapClick_EndWord_7639b4 = E->word24(CellOf(global<u32>(0x00818684)));
         u8 *exit = CellOf(global<u32>(0x00818684));
         if (E->isTypeC(exit) != 0) exit = Parent(exit);
         if (E->f539760(exit, nullptr, 0xe, 0, 0) != 9) {
             E->f52f200(0, 0);
             goto entrance_tail;
         }
-        if ((s16)global<u16>(0x007639b0) > (s16)global<u16>(0x007639b4))
+        if ((s16)gMapClick_StartWord_7639b0 > (s16)gMapClick_EndWord_7639b4)
             E->f52b400(CellOf(global<u32>(0x00818684)), CellOf(global<u32>(0x00818694)), 1);
         else
             E->f52b400(CellOf(global<u32>(0x00818694)), CellOf(global<u32>(0x00818684)), 1);
         E->f52fc80(0);
         if (E->f52c6f0(CurThing(), 1, 0, 0) == 0) E->f52ccb0(CurThing(), 0, 0, 0);
         global<u16>(0x00818694) = 0;
-        global<u16>(0x007639b0) = 0xffff;
+        gMapClick_StartWord_7639b0 = 0xffff;
         global<u16>(0x00818684) = 0;
-        global<u16>(0x007639b4) = 0xffff;
+        gMapClick_EndWord_7639b4 = 0xffff;
         StartX() = (s32)(((u32)at<u16>(exit, 0) - 1) & 0x7f);
         StartY() = (s32)(((u32)at<u16>(exit, 0) - 1) >> 7);
         const u32 run = SetRun(E, 0, 1);
@@ -719,7 +721,7 @@ track: {   // modes 0xb and 0x10
         goto end;
     }
     Snap(sx, sy, x, y);
-    if (sx != x || sy != y || (global<s32>(0x007639e0) == x && global<s32>(0x007639e4) == y)) {
+    if (sx != x || sy != y || (gFocusCell_StartX_7639e0 == x && gFocusCell_StartY_7639e4 == y)) {
         E->applyLine(0x87, sx, sy, &x, &y);
         FromStart(E, Global81ae2c_Get_52f840(), x, y);
         FromStart(E, 0x80, x, y);
@@ -755,35 +757,35 @@ track: {   // modes 0xb and 0x10
     }
     StartX() = -1;
     StartY() = -1;
-    global<u32>(0x00763ac0) = 0x80;
+    gMapClick_763ac0 = 0x80;
     gGamemode_763b00 = 0x80;
     gGamemode_763b04 = 0x80;
     if (gMapclick_8186c0 == 0) {
         if ((u16)flags == 0xc) goto end;
         goto clear_end;
     }
-    StartX() = global<s32>(0x007639b8);
-    StartY() = global<s32>(0x007639bc);
+    StartX() = gMapClick_PathX_7639b8;
+    StartY() = gMapClick_PathY_7639bc;
     global<u16>(0x00818694) = 0;
-    global<u16>(0x007639b0) = 0xffff;
+    gMapClick_StartWord_7639b0 = 0xffff;
     global<u16>(0x00818684) = 0;
-    global<u16>(0x007639b4) = 0xffff;
-    global<u32>(0x007639a0) = 0xffffffff;
+    gMapClick_EndWord_7639b4 = 0xffff;
+    reinterpret_cast<u32 &>(gMapClick_Mode_7639a0) = 0xffffffff;
     gMapclick_8187f8 = 0;
     global<u32>(0x0081b604) = 0;
     Fn_52fbd0();
     E->f52f580(3, 0);
     if (StartX() == x && StartY() == y && Global820a8c_Get_52fbe0() != 1) goto end;
-    PairTable_Add(global<u32>(0x007639b8), global<u32>(0x007639bc));
+    PairTable_Add(reinterpret_cast<u32 &>(gMapClick_PathX_7639b8), reinterpret_cast<u32 &>(gMapClick_PathY_7639bc));
     if (gMapclick_8186c0 != 0) gMapclick_8186c0 = 0;
-    s32 &ex = global<s32>(0x007639b8);
-    s32 &ey = global<s32>(0x007639bc);
+    s32 &ex = gMapClick_PathX_7639b8;
+    s32 &ey = gMapClick_PathY_7639bc;
     Line6(E, 0x85, ex, ey);
     Line6(E, 0x86, ex, ey);
     Line6(E, 0x83, ex, ey);
     Line6(E, 0x81, ex, ey);
-    global<u32>(0x00763ac0) = 0x80;
-    global<u32>(0x00763ac4) = 0x80;
+    gMapClick_763ac0 = 0x80;
+    gMapClick_763ac4 = 0x80;
     if (Record29c(((u32)ey << 7) + (u32)ex + 1) != 1) goto end;
     goto clear_end;
 }
@@ -830,7 +832,7 @@ drag: {   // modes 1 and 3
     }
     if (Global81ae2c_Equals(3) != 0) {
         E->f4de1f0(CurThing());
-        if (global<u32>((u32)(uintptr_t)&gActionRec_785a08 + 0x24) == 0 && global<u32>(0x00816d60) != 0) PlaySound(E, 0x8b, x, y);
+        if (global<u32>((u32)(uintptr_t)&gActionRec_785a08 + 0x24) == 0 && gCellbuild_816d60 != 0) PlaySound(E, 0x8b, x, y);
     }
     if ((StartX() != x || StartY() != y) && lineEnded == 0) {
         StartX() = x;
@@ -840,12 +842,12 @@ drag: {   // modes 1 and 3
     gMapclick_8186d0 = 0;
     StartX() = -1;
     StartY() = -1;
-    global<u32>(0x00763ac0) = 0x80;
+    gMapClick_763ac0 = 0x80;
     gGamemode_763b00 = 0x80;
     gGamemode_763b04 = 0x80;
     const bool three = Global81ae2c_Equals(3) != 0;
     E->f52f200(0, 0);
-    if (!three || global<u32>((u32)(uintptr_t)&gActionRec_785a08 + 0x24) != 0 || global<u32>(0x00816d60) != 0) goto end;
+    if (!three || global<u32>((u32)(uintptr_t)&gActionRec_785a08 + 0x24) != 0 || gCellbuild_816d60 != 0) goto end;
     E->advise(0x151);
     goto end;
 }

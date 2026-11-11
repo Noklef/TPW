@@ -23,6 +23,8 @@
 #include "placecar.h"
 #include "coastersupdate.h"
 #include "coastersload.h"
+#include "../world/rides.h"
+#include "../world/camera.h"
 #include "../core/staticobjects.h"
 
 namespace {
@@ -63,7 +65,7 @@ u32 EndCarHas(const u8 *game, u32 on, u32 off) {
 // A car's ride part entry's +0x34 (the train type's +0x2c a 0x14-byte index into its ride's model (+8) +0x28 -> +4, its +4), or
 // [0x6fe1b4] for none: fld / fstp, as bits.
 u32 PartEntryValue(const u8 *car) {
-    const u8 *const model = at<const u8 *>(reinterpret_cast<const u8 *const *>(0x007a4610)[at<u32>(car, 0x70)], 8);
+    const u8 *const model = at<const u8 *>(gRides_7a4610[at<u32>(car, 0x70)], 8);
     const u32 part = at<u32>(at<const u8 *>(at<const u8 *>(car, 0x100), 0x18), 0x2c);
     const u8 *const entry = at<const u8 *>(at<const u8 *>(at<const u8 *>(model, 0x28), 4), part * 0x14 + 4);
     return X87_FloatThrough(entry ? at<u32>(entry, 0x34) : gEdittools_6fe1b4);
@@ -108,8 +110,8 @@ u32 __cdecl CoasterEdit_ToggleAdjustF8() {
     if (!(flags & 4))
         return Off(flags);
     gCoasterEdit_79c618 = 0;
-    gCoasterEdit_79c630 = g<u32>(0x00790ac8);
-    gCoasterEdit_79c634 = g<u32>(0x00790acc);
+    gCoasterEdit_79c630 = reinterpret_cast<u32 &>(gCamera_790ac8);
+    gCoasterEdit_79c634 = reinterpret_cast<u32 &>(gCamera_790acc);
     if (!piece)
         return NoPiece(flags, 4);
     gCoasterEdit_79c6fc = 0;
@@ -161,8 +163,8 @@ u32 __cdecl CoasterEdit_ToggleAdjustE0() {
     if (!(flags & 2))
         return Off(flags);
     gCoasterEdit_79c668 = 0;
-    gCoasterEdit_79c630 = g<u32>(0x00790ac8);
-    gCoasterEdit_79c634 = g<u32>(0x00790acc);
+    gCoasterEdit_79c630 = reinterpret_cast<u32 &>(gCamera_790ac8);
+    gCoasterEdit_79c634 = reinterpret_cast<u32 &>(gCamera_790acc);
     if (!piece)
         return NoPiece(flags, 2);
     gCoasterEdit_79c6fc = 0;
@@ -202,9 +204,9 @@ u32 __cdecl CoasterEdit_ToggleAdjustAngles() {
     if (!(flags & 4))
         return Off(flags);
     gCoasterEdit_79c668 = 0;
-    gCoasterEdit_79c630 = g<u32>(0x00790ac8);
+    gCoasterEdit_79c630 = reinterpret_cast<u32 &>(gCamera_790ac8);
     gCoasterEdit_79c618 = 0;
-    gCoasterEdit_79c634 = g<u32>(0x00790acc);
+    gCoasterEdit_79c634 = reinterpret_cast<u32 &>(gCamera_790acc);
     if (!piece)
         return NoPiece(flags, 4);
     if (at<u32>(Type(piece), 0) & 0x100) {
@@ -274,8 +276,8 @@ u32 __cdecl CoasterEdit_ToggleDrag() {
     }
     if (flags & 1) {
         gCoasterEdit_79c618 = 0;
-        gCoasterEdit_79c630 = g<u32>(0x00790ac8);
-        gCoasterEdit_79c634 = g<u32>(0x00790acc);
+        gCoasterEdit_79c630 = reinterpret_cast<u32 &>(gCamera_790ac8);
+        gCoasterEdit_79c634 = reinterpret_cast<u32 &>(gCamera_790acc);
         if (!piece)
             return NoPiece(flags, 1);
         const double cost = Car_TravelCost(game, 0, piece, nullptr, nullptr, nullptr, nullptr);
@@ -305,7 +307,7 @@ u32 __cdecl CoasterEdit_ToggleDrag() {
     }
     if (!g<u32>((u32)(uintptr_t)&gActionRec_785a08 + 0x24)) {
         const s32 steps = Float_RoundUp(static_cast<float>(Car_TravelCost(game, 0, piece, nullptr, nullptr, nullptr, nullptr)));
-        u8 *const money = reinterpret_cast<u8 *>(GameTable7cfb90_Get1da726_5195d0(g<u8 *>(0x007cf83c)));
+        u8 *const money = reinterpret_cast<u8 *>(GameTable7cfb90_Get1da726_5195d0(gWorldPtr));
         Money_Credit(money, nullptr, (s32)(long long)gEdittools_79c698);   // __ftol
         Source_Field0c(reinterpret_cast<const TrackedSource *>(money));   // (its result unused)
         Money_Debit(money, nullptr, steps);
@@ -982,12 +984,12 @@ u32 __cdecl CoasterEdit_PlaceSelected(s32 x, s32 y) {
                 const u8 *const sel = gEdittools_79c6a4;
                 cost = Float_RoundUp(static_cast<float>(env->travelCost(game, 0, sel, &outX, &outY, nullptr, nullptr)));
                 cost += Float_RoundUp(static_cast<float>(env->travelCost(game, 0, at<const u8 *>(sel, 0x64), nullptr, nullptr, &outX, &outY)));
-                money = reinterpret_cast<u8 *>(GameTable7cfb90_Get1da726_5195d0(g<u8 *>(0x007cf83c)));
+                money = reinterpret_cast<u8 *>(GameTable7cfb90_Get1da726_5195d0(gWorldPtr));
                 Money_Credit(money, nullptr, (s32)(long long)gEdittools_79c698);   // __ftol
                 Money_Credit(money, nullptr, (s32)(long long)gEdittools_79c64c);   // (behind a test of its address: always)
             } else {
                 cost = Float_RoundUp(static_cast<float>(env->travelCost(game, 0, gEdittools_79c6a4, &outX, &outY, nullptr, nullptr)));
-                money = reinterpret_cast<u8 *>(GameTable7cfb90_Get1da726_5195d0(g<u8 *>(0x007cf83c)));
+                money = reinterpret_cast<u8 *>(GameTable7cfb90_Get1da726_5195d0(gWorldPtr));
                 Money_Credit(money, nullptr, (s32)(long long)gEdittools_79c698);
             }
             Source_Field0c(reinterpret_cast<const TrackedSource *>(money));   // (its result unused)

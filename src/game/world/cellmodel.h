@@ -73,3 +73,22 @@ void __fastcall MapCell_ApplyModel(u8 *cell);
 // groups nothing more.
 void __fastcall MapCell_PlaceRide(u8 *cell);
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(s32[3], gCellmodel_820aa8, 0x00820aa8, 0xc);
+GAME_DATA(u8, gCellmodel_820ac0, 0x00820ac0, 1);
+GAME_DATA(s32[3], gCellmodel_820ad8, 0x00820ad8, 0xc);
+GAME_DATA(s32, gCellmodel_820aec, 0x00820aec, 4);
+GAME_DATA(u32, gCellmodel_820af0, 0x00820af0, 4);
+
+// Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(const s32, gMapCell_PickModel_700c18, 0x00700c18, 0x4);
+GAME_DATA(const s32, gMapCell_PickModel_700c1c, 0x00700c1c, 0x4);
+GAME_DATA(const s32, gMapCell_PickPathModel_700c20, 0x00700c20, 0x4);
+GAME_DATA(const s32, gMapCell_700c24, 0x00700c24, 0x4);
+GAME_DATA(u8[0xc0], gMapCell_PickModel_762f30, 0x00762f30, 0xc0);   // 16 rows of 12 ([0x700c18])
+GAME_DATA(u8[0xc0], gMapCell_PickModel_762ff0, 0x00762ff0, 0xc0);   // 16 rows of 12 ([0x700c1c])
+GAME_DATA(u8[0x84], gMapCell_PickPathModel_7630b0, 0x007630b0, 0x84);   // 11 rows of 12 ([0x700c20])
+GAME_DATA(u8[0x24c], gMapCell_763138, 0x00763138, 0x24c);   // 49 rows of 12 ([0x700c24])

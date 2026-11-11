@@ -8,6 +8,7 @@
 #include "screen.h"
 #include "../core/gamewindow.h"
 #include "ddopen.h"
+#include "d3dsetup.h"
 #include "../core/staticobjects.h"
 
 namespace {
@@ -115,7 +116,7 @@ u32 init(u32 d) { return g_calls.Cd(0x00572780, d, 0x092f2266u, 0u); }
 void EngineStart_SetCalls(const AddrCall *table, u32 count) { g_calls.Set(table, count); }
 
 u32 __cdecl Engine_OpenDirectDraw(u32 x0, u32 x1, u32 x2, u32 x3, u32 x4, u32 x5) {
-    if (global<u32>(0x00879a24))
+    if (global<u32>((u32)(uintptr_t)&gD3dsetup_879a20 + 0x4))
         return 0;
     u8 *const object = static_cast<u8 *>(GameHeap_Alloc(0x790));
     if (object) {
@@ -126,7 +127,7 @@ u32 __cdecl Engine_OpenDirectDraw(u32 x0, u32 x1, u32 x2, u32 x3, u32 x4, u32 x5
         at<u32>(object, 0x78c) = 0;
         at<u32>(object, 0x784) = 1;
     }
-    global<u8 *>(0x00879a24) = object;
+    global<u8 *>((u32)(uintptr_t)&gD3dsetup_879a20 + 0x4) = object;
     if (!object) {
         pushError(0xb0754000);
         return 0;
@@ -134,12 +135,12 @@ u32 __cdecl Engine_OpenDirectDraw(u32 x0, u32 x1, u32 x2, u32 x3, u32 x4, u32 x5
     global<u32>(0x008bd518) = x0;
     if (g_calls.Th(0x00563460, address(object), x1, x2, x3, x4, x5, (u32)(kind() == 1)))
         return 1;
-    u8 *const held = global<u8 *>(0x00879a24);
+    u8 *const held = global<u8 *>((u32)(uintptr_t)&gD3dsetup_879a20 + 0x4);
     if (held) {
         g_calls.Th(0x005640a0, address(held));
         GameHeap_Free(held);
     }
-    global<u32>(0x00879a24) = 0;
+    global<u32>((u32)(uintptr_t)&gD3dsetup_879a20 + 0x4) = 0;
     pushError(0xb0754004);
     return 0;
 }

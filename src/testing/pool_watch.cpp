@@ -5,8 +5,10 @@
 #include <cstdint>
 #include <cstring>
 
+#include "../game/core/streampool.h"
 #include "../hook/patch.h"
 #include "log.h"
+#include "../game/core/imports.h"
 
 namespace tpw::testing {
 
@@ -18,17 +20,19 @@ struct Pool {
     DWORD lock, list, size, next;
     DWORD seen;   // the list's first block at the last look (under the lock)
 };
+#define POOL(text, g, size, next) {text, (DWORD)(uintptr_t)&g.lock, (DWORD)(uintptr_t)&g.list, size, next, 0}
 Pool g_pools[] = {
-    {"StreamFilter", 0xfb206c, 0xfb2068, 0x18, 0x10, 0}, {"LoopStream", 0xfb2084, 0xfb2080, 0x24, 0x18, 0},
-    {"Stream70abf8", 0xfb2090, 0xfb208c, 0x14, 0x10, 0}, {"Stream70a6c8", 0xfb20a8, 0xfb20a4, 0x1c, 0x14, 0},
-    {"VoiceSample", 0xfb20c0, 0xfb20bc, 0x40, 0x28, 0},  {"VoiceStream", 0xfb20cc, 0xfb20c8, 0x5c, 0x58, 0},
-    {"SilenceStream", 0xfb2078, 0xfb2074, 0x30, 0x28, 0}, {"FileSample", 0xfb20b4, 0xfb20b0, 0x48, 0x44, 0},
-    {"Mp2StreamSample", 0xfb26e8, 0xfb26e4, 0x5c, 0x58, 0}, {"Mp2Sample", 0xfb26dc, 0xfb26d8, 0x40, 0x28, 0},
-    {"NotifyStream", 0xfb26f4, 0xfb26f0, 0x1c, 0x14, 0}, {"MemorySample", 0xfb209c, 0xfb2098, 0x2c, 0x28, 0},
+    POOL("StreamFilter", gStreampool_Filter_fb2068, 0x18, 0x10), POOL("LoopStream", gStreampool_Loop_fb2080, 0x24, 0x18),
+    POOL("Stream70abf8", gStreampool_70abf8_fb208c, 0x14, 0x10), POOL("Stream70a6c8", gStreampool_70a6c8_fb20a4, 0x1c, 0x14),
+    POOL("VoiceSample", gStreampool_VoiceSample_fb20bc, 0x40, 0x28), POOL("VoiceStream", gStreampool_VoiceStream_fb20c8, 0x5c, 0x58),
+    POOL("SilenceStream", gStreampool_Silence_fb2074, 0x30, 0x28), POOL("FileSample", gStreampool_FileSample_fb20b0, 0x48, 0x44),
+    POOL("Mp2StreamSample", gStreampool_Mp2Stream_fb26e4, 0x5c, 0x58), POOL("Mp2Sample", gStreampool_Mp2Sample_fb26d8, 0x40, 0x28),
+    POOL("NotifyStream", gStreampool_Callback_fb26f0, 0x1c, 0x14), POOL("MemorySample", gStreampool_MemorySample_fb2098, 0x2c, 0x28),
 };
+#undef POOL
 
 constexpr DWORD kFree = 0x67ad90, kFreeBody = 0x67ad96, kMemFree = 0x67acba, kMemAlloc = 0x67acc0, kNhMalloc = 0x67dcf0;
-constexpr DWORD kLeaveSlot = 0x6fd130;
+const DWORD kLeaveSlot = IMPORT(Kernel32_LeaveCriticalSection);
 constexpr DWORD kGameText = 0x401000, kGameTextEnd = 0x6e7000;
 constexpr int kMaxLines = 200;
 constexpr DWORD kWalk = 0x10000;   // (a list with a cycle ends here)

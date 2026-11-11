@@ -19,6 +19,7 @@
 #include "window705a20.h"
 #include "windowreg.h"
 #include "dialog74fb20.h"
+#include "dialog7cc188.h"
 #include "../core/staticobjects.h"
 
 namespace {
@@ -37,7 +38,7 @@ u8 *editChild(u32 id) {
     return child;
 }
 
-void setCaret(u8 *child) { g_env->setCaret(child, nullptr, reinterpret_cast<u8 *>((uintptr_t)g_env->findByName(reinterpret_cast<const char *>((uintptr_t)0x0074fa84)))); }
+void setCaret(u8 *child) { g_env->setCaret(child, nullptr, reinterpret_cast<u8 *>((uintptr_t)g_env->findByName(reinterpret_cast<const char *>((uintptr_t)&gText_Dialog7cc188_74fa84)))); }
 
 const Dialog7cdac4HandlerEnv kGameHandlerEnv = {Window_SendMessage, Window_PostMessage, KeyMaps_EnableAllAndClearFlag, KeyMaps_ResetAllAndSetFlag, Focus_Restore, Dialog_BaseHandler, Setting_ReadMode,
                                                 reinterpret_cast<s32(__cdecl *)(void(__cdecl *)())>((uintptr_t)0x0067a7d0), Online_Instance,
@@ -55,7 +56,7 @@ extern "C" {
 
 void __cdecl Dialog7cdac4_Open() {
     g_env->closeWindow();
-    dialog() = g_env->create(reinterpret_cast<u8 *>((uintptr_t)0x007595b0), 0x004c4480, 0);
+    dialog() = g_env->create(reinterpret_cast<u8 *>((uintptr_t)&gDialog7cdac4_Open_7595b0), 0x004c4480, 0);
     g_env->setDepth(dialog(), nullptr, (u16)(*reinterpret_cast<u16 *>(dialog() + 0xe0) + 4));
     u8 *child = editChild(0x11e4);
     g_env->setBuffer(child, nullptr, reinterpret_cast<uintptr_t>(&gDialog7cdac4_7cd850), 0xf);

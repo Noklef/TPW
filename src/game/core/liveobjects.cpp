@@ -5,6 +5,7 @@
 
 #include "gameheap.h"
 #include "../model/objmodel.h"
+#include "vtables.h"
 #include "../render/spritequeue.h"
 
 namespace {
@@ -49,11 +50,11 @@ u32 __cdecl LiveObjects_Remove(void *object) {
 u8 *__fastcall LiveObject7019f8_Construct(u8 *o, void *, u32 most_derived) {
     if (most_derived) {
         at<u32>(o, 0) = 0x00701a08;
-        at<u32>(o, 0x154) = 0x006fdce8;
+        at<u32>(o, 0x154) = (u32)(uintptr_t)Class6fdce8_vtable;
     }
     Identity(o + 0x10);
     Identity(o + 0x50);
-    at<u32>(o, at<u32>(at<u8 *>(o, 0), 4)) = 0x007019f8;
+    at<u32>(o, at<u32>(at<u8 *>(o, 0), 4)) = (u32)(uintptr_t)Class7019f8_vtable;
     const u32 offset = at<u32>(at<u8 *>(o, 0), 4);
     at<u32>(o, offset - 4) = offset - 0x154;
     at<s32>(o, 0x90) = -1;
@@ -67,7 +68,7 @@ u8 *__fastcall LiveObject7019f8_Construct(u8 *o, void *, u32 most_derived) {
 u8 *__fastcall LiveObject6ff308_Construct(u8 *o, void *, u32 most_derived) {
     if (most_derived) {
         at<u32>(o, 0) = 0x006ff318;
-        at<u32>(o, 0x20) = 0x006fdce8;
+        at<u32>(o, 0x20) = (u32)(uintptr_t)Class6fdce8_vtable;
     }
     at<u32>(o, at<u32>(at<u8 *>(o, 0), 4)) = (u32)(uintptr_t)Class6ff308_vtable;
     const u32 base = at<u32>(at<u8 *>(o, 0), 4);
@@ -84,11 +85,11 @@ u8 *__fastcall LiveObject6ff308_Construct(u8 *o, void *, u32 most_derived) {
 
 u8 *__fastcall LiveObject701b30_DeletingDtor(u8 *base, void *, u32 flags) {
     u8 *o = base - 0xa4;
-    at<u32>(o, at<u32>(at<u8 *>(o, 0), 4)) = 0x00701b30;
+    at<u32>(o, at<u32>(at<u8 *>(o, 0), 4)) = (u32)(uintptr_t)Class701b30_vtable;
     const u32 offset = at<u32>(at<u8 *>(o, 0), 4);
     at<u32>(o, offset - 4) = offset - 0xa4;
     LiveObjects_Remove(o ? o + at<u32>(at<u8 *>(o, 0), 4) : nullptr);
-    at<u32>(o, 0xa4) = 0x006fdce8;
+    at<u32>(o, 0xa4) = (u32)(uintptr_t)Class6fdce8_vtable;
     if (flags & 1)
         GameHeap_Free(o);
     return o;
@@ -96,12 +97,12 @@ u8 *__fastcall LiveObject701b30_DeletingDtor(u8 *base, void *, u32 flags) {
 
 u8 *__fastcall LiveObject7019f8_DeletingDtor(u8 *base, void *, u32 flags) {
     u8 *o = base - 0x154;
-    at<u32>(o, at<u32>(at<u8 *>(o, 0), 4)) = 0x007019f8;
+    at<u32>(o, at<u32>(at<u8 *>(o, 0), 4)) = (u32)(uintptr_t)Class7019f8_vtable;
     const u32 offset = at<u32>(at<u8 *>(o, 0), 4);
     at<u32>(o, offset - 4) = offset - 0x154;
     LiveObjects_Remove(o ? o + at<u32>(at<u8 *>(o, 0), 4) : nullptr);
     ObjModel_Unload(o);
-    at<u32>(o, 0x154) = 0x006fdce8;
+    at<u32>(o, 0x154) = (u32)(uintptr_t)Class6fdce8_vtable;
     if (flags & 1)
         GameHeap_Free(o);
     return o;

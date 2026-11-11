@@ -260,7 +260,7 @@ void __cdecl Global81d7a4_SetRecorded(u32 value, u32 force) {
 
 void __cdecl Global8186e0_SetRecorded(const u16 *id, u32 flag) {
     ActionRec_WriteWB(gActionRec(), nullptr, 5, *id, flag);
-    World_MarkRideBuilt(global<u8 *>(0x007cf83c), nullptr, *id);
+    World_MarkRideBuilt(gWorldPtr, nullptr, *id);
     gTracktextures_8186ec = gActionrec_8186e0;
     gMapclick_8187f8 = flag;
     gActionrec_8186e0 = *id;

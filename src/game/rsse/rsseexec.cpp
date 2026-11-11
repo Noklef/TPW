@@ -32,6 +32,8 @@
 #include "scream.h"
 #include "scriptfile.h"
 #include "scriptkill.h"
+#include "../world/rides.h"
+#include "../world/world.h"
 #include "../core/staticobjects.h"
 
 namespace {
@@ -69,7 +71,7 @@ void set_result(RsseContext *ctx, u32 word, s32 value) {
 u32 fetch(RsseContext *ctx) { return RSSE_FetchWord(ctx); }
 s32 value(RsseContext *ctx) { return RSSE_OperandValue(ctx, RSSE_FetchWord(ctx)); }
 
-u8 *ride(const RsseContext *ctx) { return global<u8 *>(0x007a4610 + (u32)ctx->owner * 4); }
+u8 *ride(const RsseContext *ctx) { return gRides_7a4610[(u32)ctx->owner]; }
 u32 now() { return g_env->clock(reinterpret_cast<u8 *>((uintptr_t)&gObj_785970)); }
 s32 ftol(X87Reg x) { return (s32)(long long)x.v; }
 u32 float_bits(float f) {
@@ -79,7 +81,7 @@ u32 float_bits(float f) {
 }
 // fild n; fmul 0.01 (0x700fe0); the float stored.
 float hundredths(s32 n) { return (float)X87Reg(X87_MulIntDouble(n, (double)0.01f)); }
-s32 rand_half() { return (s32)((u32)World_Rand(global<u8 *>(0x007cf83c)) >> 1); }
+s32 rand_half() { return (s32)((u32)World_Rand(gWorldPtr) >> 1); }
 
 // Animator_Play with an owner (0 without).
 s32 play(RsseContext *ctx, u32 bank, u32 entry, u32 mode, float speed, u32 index) { return ctx->owner != 0 ? (s32)g_env->play(ride(ctx), bank, entry, mode, speed, index) : 0; }
@@ -152,7 +154,7 @@ u8 *new_node(RsseContext *ctx) {
     at<u32>(node, 4) = 0;
     if (ctx->objects != nullptr) at<u8 *>(ctx->objects, 4) = node;
     ctx->objects = node;
-    global<s32>(0x008791b4)++;
+    gRsse_8791b4++;
     at<s32>(node, 8) = value(ctx);
     at<s32>(node, 0x10) = value(ctx);
     return node;
@@ -170,15 +172,15 @@ void remove_nodes(RsseContext *ctx, s32 key, void(__cdecl *stop)(u32)) {
             if (at<u8 *>(node, 0) != nullptr) at<u8 *>(at<u8 *>(node, 0), 4) = at<u8 *>(node, 4);
             if (node == ctx->objects) ctx->objects = at<u8 *>(node, 0);
             g_env->free(node);
-            global<s32>(0x008791b4)--;
+            gRsse_8791b4--;
         }
         node = next;
     }
 }
 
 RsseContext *find_script(s32 id) {
-    if (global<u32>(0x008791a0) == 0) return nullptr;
-    RsseContext *p = global<RsseContext *>(0x008791b0);
+    if (gRsseSystem.initialised == 0) return nullptr;
+    RsseContext *p = gRsseSystem.scriptList;
     while (p != nullptr && p->id != id) p = p->next;
     return p;
 }
@@ -242,14 +244,14 @@ void pick_script(RsseContext *ctx, u32 word, u32 out) {
     if (base == nullptr) return;
     const char *const name = base + (word ^ kString);
     s32 count = 0;
-    for (const RsseContext *p = global<RsseContext *>(0x008791b0); p != nullptr; p = p->next) {
+    for (const RsseContext *p = gRsseSystem.scriptList; p != nullptr; p = p->next) {
         if (name_matches(p, name)) count++;
     }
     if (count == 0) return;
     s32 pick = rand_half() % count;
     if (pick < 0) pick = -pick;
     s32 seen = 0;
-    for (const RsseContext *p = global<RsseContext *>(0x008791b0); p != nullptr; p = p->next) {
+    for (const RsseContext *p = gRsseSystem.scriptList; p != nullptr; p = p->next) {
         if (name_matches(p, name) && ++seen == pick + 1) {
             ctx->result = p->id;
             if ((out & kVar) == kVar) at<s32>(ctx->vars, out * 4) = p->id;
@@ -1042,8 +1044,8 @@ void __cdecl RSSE_ExecuteInstruction(RsseContext *ctx) {
         if (v != 0) {
             g_env->getVector(ride(ctx), reinterpret_cast<u32 *>(&x), reinterpret_cast<u32 *>(&y), reinterpret_cast<u32 *>(&z));
             const s32 sz = ftol(X87Reg(z)), sy = ftol(X87Reg(y)), sx = ftol(X87Reg(x));
-            g_env->playAt(0, global<u32>(0x00803a28), 0x6f, sx, sy, sz);
-            g_env->playAt(0, global<u32>(0x00803a28), 0xd3, sx, sy, sz);
+            g_env->playAt(0, gSoundCategories.rides, 0x6f, sx, sy, sz);
+            g_env->playAt(0, gSoundCategories.rides, 0xd3, sx, sy, sz);
         } else if ((s32)ctx->var_count > 5) {
             const s32 level = ctx->vars[5];
             g_env->getVector(ride(ctx), reinterpret_cast<u32 *>(&x), reinterpret_cast<u32 *>(&y), reinterpret_cast<u32 *>(&z));

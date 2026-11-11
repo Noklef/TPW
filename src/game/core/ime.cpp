@@ -10,6 +10,7 @@
 #include "../ui/window.h"
 #include "../ui/window705a20.h"
 #include "../ui/window705a50.h"
+#include "imports.h"
 #include "staticobjects.h"
 
 namespace {
@@ -60,7 +61,7 @@ u8 *__fastcall Ime_Ctor(u8 *ime) {
     at<u32>(ime, 0x50) = 0;
     at<u32>(ime, 0x54) = 0xffffffff;
     at<u32>(ime, 0x5c) = 0;
-    at<u32>(ime, 0) = 0x006fef04;
+    at<u32>(ime, 0) = (u32)(uintptr_t)Ime_vtable;
     return ime;
 }
 
@@ -278,8 +279,8 @@ void __fastcall ImeHost_OnWindow(u8 *host, void *, u8 *window) {
 }
 
 u32 __fastcall Ime_OnChar(u8 *ime, void *, u32 window, u32 character, u32 lparam) {
-    if (!import<u32(__stdcall *)(u32)>(0x006fd154)(character)) return 0;   // (IsDBCSLeadByte of the whole dword, as pushed)
-    const auto peek = import<u32(__stdcall *)(Message *, u32, u32, u32, u32)>(0x006fd354);
+    if (!import<u32(__stdcall *)(u32)>(IMPORT(Kernel32_IsDBCSLeadByte))(character)) return 0;   // (IsDBCSLeadByte of the whole dword, as pushed)
+    const auto peek = import<u32(__stdcall *)(Message *, u32, u32, u32, u32)>(IMPORT(User32_PeekMessageA));
     Message message;
     s32 tries = 10;
     while (!peek(&message, window, 0x102, 0x102, 1)) {
@@ -287,32 +288,32 @@ u32 __fastcall Ime_OnChar(u8 *ime, void *, u32 window, u32 character, u32 lparam
     }
     u32 bytes = (u8)character | (u32)(u8)message.wparam << 8;
     u32 wide = 0;
-    if (import<s32(__stdcall *)(u32, u32, const u32 *, s32, u32 *, s32)>(0x006fd174)(0, 0, &bytes, 2, &wide, 1) != 1) return 1;
+    if (import<s32(__stdcall *)(u32, u32, const u32 *, s32, u32 *, s32)>(IMPORT(Kernel32_MultiByteToWideChar))(0, 0, &bytes, 2, &wide, 1) != 1) return 1;
     const auto handler = at<u32(__stdcall *)(u32, u32, u32, u32)>(ime, 0x50);
     if (handler) {
         handler(window, 0x410, wide & 0xffff, lparam);
     } else {
-        import<u32(__stdcall *)(u32, u32, u32, u32)>(0x006fd340)(window, 0x410, wide & 0xffff, lparam);
+        import<u32(__stdcall *)(u32, u32, u32, u32)>(IMPORT(User32_DefWindowProcA))(window, 0x410, wide & 0xffff, lparam);
     }
     return 1;
 }
 
 u32 *__fastcall ImeContext_Get(u32 *context, void *, u32 window) {
     context[0] = window;
-    context[1] = import<u32(__stdcall *)(u32)>(0x006fd084)(window);
+    context[1] = import<u32(__stdcall *)(u32)>(IMPORT(Imm32_ImmGetContext))(window);
     return context;
 }
 
 u32 __fastcall ImeContext_Release(const u32 *context) {
     const u32 himc = context[1];
     if (!himc) return 0;
-    return import<u32(__stdcall *)(u32, u32)>(0x006fd080)(context[0], himc);
+    return import<u32(__stdcall *)(u32, u32)>(IMPORT(Imm32_ImmReleaseContext))(context[0], himc);
 }
 
 void __fastcall Ime_Dtor(u8 *ime) {
-    at<u32>(ime, 0) = 0x006fef04;
+    at<u32>(ime, 0) = (u32)(uintptr_t)Ime_vtable;
     const u32 context = at<u32>(ime, 0x5c);
-    if (context) import<u32(__stdcall *)(u32)>(0x006fd07c)(context);
+    if (context) import<u32(__stdcall *)(u32)>(IMPORT(Imm32_ImmDestroyContext))(context);
     u8 *const last = at<u8 *>(ime, 0x40);
     for (u8 *entry = at<u8 *>(ime, 0x3c); entry != last; entry += 0x24) CountedVector4_Clear(entry + 0x10);
     GameHeap_Free(at<void *>(ime, 0x3c));
@@ -343,26 +344,26 @@ u8 *__fastcall Ime_DeletingDtor(u8 *ime, void *, u32 flags) {
 
 void __fastcall Ime_SelectCandidate(u8 *ime, void *, u32 value) {
     const u32 window = at<u32>(ime, 0x4c);
-    const u32 context = import<u32(__stdcall *)(u32)>(0x006fd084)(window);
+    const u32 context = import<u32(__stdcall *)(u32)>(IMPORT(Imm32_ImmGetContext))(window);
     if (!context) return;
     const u32 index = at<u32>(ime, 0x54);
-    const auto notify = import<u32(__stdcall *)(u32, u32, u32, u32)>(0x006fd068);
+    const auto notify = import<u32(__stdcall *)(u32, u32, u32, u32)>(IMPORT(Imm32_ImmNotifyIME));
     notify(context, 0x12, index, value);
     notify(context, 0x11, index, 0);
-    import<u32(__stdcall *)(u32, u32)>(0x006fd080)(window, context);
+    import<u32(__stdcall *)(u32, u32)>(IMPORT(Imm32_ImmReleaseContext))(window, context);
 }
 
 void __fastcall Ime_SetCandidatePage(u8 *ime, void *, u32 first, u32 last, u32) {
     const u32 window = at<u32>(ime, 0x4c);
-    const u32 context = import<u32(__stdcall *)(u32)>(0x006fd084)(window);
+    const u32 context = import<u32(__stdcall *)(u32)>(IMPORT(Imm32_ImmGetContext))(window);
     if (!context) return;
     const u32 index = at<u32>(ime, 0x54);
-    const auto notify = import<u32(__stdcall *)(u32, u32, u32, u32)>(0x006fd068);
+    const auto notify = import<u32(__stdcall *)(u32, u32, u32, u32)>(IMPORT(Imm32_ImmNotifyIME));
     notify(context, 0x17, index, last - first);
     notify(context, 0x16, index, first);
     char description[0x100];
-    import<u32(__stdcall *)(u32, char *, u32)>(0x006fd088)(import<u32(__stdcall *)(u32)>(0x006fd304)(0), description, 0x100);
-    const auto widen = import<s32(__stdcall *)(u32, u32, const char *, s32, u16 *, s32)>(0x006fd174);
+    import<u32(__stdcall *)(u32, char *, u32)>(IMPORT(Imm32_ImmGetDescriptionA))(import<u32(__stdcall *)(u32)>(IMPORT(User32_GetKeyboardLayout))(0), description, 0x100);
+    const auto widen = import<s32(__stdcall *)(u32, u32, const char *, s32, u16 *, s32)>(IMPORT(Kernel32_MultiByteToWideChar));
     StdWString *const name = reinterpret_cast<StdWString *>(ime + 0x28);
     const s32 count = widen(0, 0, description, -1, nullptr, 0);
     if (count) {
@@ -376,7 +377,7 @@ void __fastcall Ime_SetCandidatePage(u8 *ime, void *, u32 first, u32 last, u32) 
     }
     const u16 *const characters = name->ptr ? name->ptr : reinterpret_cast<const u16 *>((uintptr_t)0x006fd6c4);
     Crt().wcscmp(characters, reinterpret_cast<const u16 *>((uintptr_t)0x006feee8));   // (the answer unused, sic)
-    import<u32(__stdcall *)(u32, u32)>(0x006fd080)(window, context);
+    import<u32(__stdcall *)(u32, u32)>(IMPORT(Imm32_ImmReleaseContext))(window, context);
 }
 
 void __fastcall ImeHost_InsertResult(u8 *host) {
@@ -389,7 +390,7 @@ void __fastcall ImeHost_InsertResult(u8 *host) {
         const s32 room = (s32)at<s16>(window, 0x13c) - (s16)Window705a50_TextLength(window);
         Ime_SetLimit(ime, nullptr, (u32)room);
         if (room == 0 && length != 0) {
-            import<void(__stdcall *)(const char *)>(0x006fd1e0)(reinterpret_cast<const char *>((uintptr_t)0x0074fa8c));
+            import<void(__stdcall *)(const char *)>(IMPORT(Kernel32_OutputDebugStringA))(gIme_74fa8c);
             return;
         }
     }
@@ -434,10 +435,10 @@ s32 __cdecl ImeHost_WindowProc(u8 *window, u32 message, u32 a, u32 b) {
 }
 
 s32 __stdcall Imm_SetCompositionStringA(u32 context, u32 index, void *comp, u32 comp_length, void *read, u32 read_length) {
-    return import<s32(__stdcall *)(u32, u32, void *, u32, void *, u32)>(0x006fd094)(context, index, comp, comp_length, read, read_length);
+    return import<s32(__stdcall *)(u32, u32, void *, u32, void *, u32)>(IMPORT(Imm32_ImmSetCompositionStringA))(context, index, comp, comp_length, read, read_length);
 }
 
 u32 __stdcall Imm_GetCandidateListA(u32 context, u32 index, void *list, u32 length) {
-    return import<u32(__stdcall *)(u32, u32, void *, u32)>(0x006fd078)(context, index, list, length);
+    return import<u32(__stdcall *)(u32, u32, void *, u32)>(IMPORT(Imm32_ImmGetCandidateListA))(context, index, list, length);
 }
 }

@@ -25,11 +25,11 @@ const PixConvEnv kGameEnv = {
 };
 const PixConvEnv *g_env = &kGameEnv;
 
-void *const *const kBaseVtable = at<void *const *>(0x007039c0);
-void *const *const kIndexVtable = at<void *const *>(0x00703fa8);
-void *const *const kRgb16Vtable = at<void *const *>(0x00703fb8);
-void *const *const kRgbVtable = at<void *const *>(0x007039b0);
-void *const *const kPaletteVtable = at<void *const *>(0x007039a0);
+void *const *const kBaseVtable = at<void *const *>((u32)(uintptr_t)PixelConverter_vtable);
+void *const *const kIndexVtable = at<void *const *>((u32)(uintptr_t)IndexConverter_vtable);
+void *const *const kRgb16Vtable = at<void *const *>((u32)(uintptr_t)Rgb16Converter_vtable);
+void *const *const kRgbVtable = at<void *const *>((u32)(uintptr_t)RgbConverter_vtable);
+void *const *const kPaletteVtable = at<void *const *>((u32)(uintptr_t)PaletteConverter_vtable);
 
 // A mask's top set bit and the length of the run of set bits under it (mask != 0).
 void run(u32 mask, s32 *top, s32 *width) {

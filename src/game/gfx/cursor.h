@@ -98,3 +98,8 @@ void __fastcall Cursor_Update(Cursor *c, void *edx, const s32 *pos, u32 unused, 
 // background onto dst; the shown one's target becomes target; unparks.
 void __fastcall Cursor_Restore(Cursor *c, void *edx, Surface *target, Surface *dst, u8 erase, u8 useParked);
 }
+
+#include "../core/gamedata.h"
+
+// The vtables hold only ports: tpw.exe's loader points their slots at them (.docs/09-globals.md).
+GAME_DATA(void *[1], Cursor_vtable, 0x00703640, 0x4);

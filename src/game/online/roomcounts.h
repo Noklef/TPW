@@ -21,3 +21,4 @@ void __cdecl RoomCounts_Update();
 // Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
 GAME_DATA(char[40], gRoomcounts_759924, 0x00759924, 0x28);
 GAME_DATA(u8[20], gRoomcounts_7cdac8, 0x007cdac8, 0x14);
+GAME_DATA(s32, gRoomcounts_7cdae0, 0x007cdae0, 0x4);

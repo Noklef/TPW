@@ -33,6 +33,8 @@
 #include "windowscript.h"
 #include "windowtimers.h"
 #include "panel7b9940.h"
+#include "../core/textarg.h"
+#include "dialog7cc188.h"
 #include "../core/staticobjects.h"
 
 namespace {
@@ -104,7 +106,7 @@ void __cdecl Dialog7ca308_FillList(u32 kind, u32 clear) {
         u16 name[0x28];
     } row;
     for (u32 i = 0; i < 0x20; ++i) {
-        const u8 *const entry = StaffPool_ValidEntry(global<u8 *>(0x007cf83c), nullptr, i);
+        const u8 *const entry = StaffPool_ValidEntry(gWorldPtr, nullptr, i);
         if (!entry || at<u32>(entry, 0) != kind) continue;
         g_env->formatName(entry, nullptr, row.name, 0x27);
         row.texts[0] = (u32)(uintptr_t)row.name;
@@ -119,13 +121,13 @@ void __cdecl Dialog7ca308_StaffChanged(u32 index) {
     if (!window) return;
     u8 *const list = Window_FindChild(window, nullptr, 0x248e);
     const s32 position = g_env->findItem(list, nullptr, index);
-    const u8 *const entry = StaffPool_ValidEntry(global<u8 *>(0x007cf83c), nullptr, index);
+    const u8 *const entry = StaffPool_ValidEntry(gWorldPtr, nullptr, index);
     struct Row {   // (the original's frame: the texts just before the name)
         u32 texts[2];
         u16 name[0x2c];
     } row;
     const auto add = [&]() {
-        const u8 *const again = StaffPool_ValidEntry(global<u8 *>(0x007cf83c), nullptr, index);
+        const u8 *const again = StaffPool_ValidEntry(gWorldPtr, nullptr, index);
         g_env->formatName(again, nullptr, row.name, 0x28);
         row.texts[0] = (u32)(uintptr_t)row.name;
         row.texts[1] = (u32)g_env->wage(again);
@@ -149,7 +151,7 @@ void __cdecl Dialog7ca308_ShowStaff(u32 index) {
     const float x = (float)X87_MulIntDouble(((right - left) >> 1) + left - 0x3f8, global<float>(0x006ff984));
     const float y = (float)X87_MulIntDouble(((bottom - top) >> 2) - bottom + 0x300, global<float>(0x006ff988));
     const float z = (float)Sprite_FlipY(at<s16>(child, 0xe0) + 1);
-    const u8 *const entry = StaffPool_ValidEntry(global<u8 *>(0x007cf83c), nullptr, index);
+    const u8 *const entry = StaffPool_ValidEntry(gWorldPtr, nullptr, index);
     if (entry) {
         const u32 type = at<u32>(entry, 0), sprite = entry[9];
         if (type != gDialog7ca308_7523e8 || sprite != gDialog7ca308_7523ec) {
@@ -179,7 +181,7 @@ void __cdecl Dialog7ca308_Open(u32 kind) {
         g_env->fillList(gDialog7ca308_7ca30c, 1);
         return;
     }
-    u8 *const dialog = WindowScript_Build(gPanel7b9940_7cb2ac, nullptr, reinterpret_cast<u8 *>((uintptr_t)0x00751fa8), 0x0049b650);
+    u8 *const dialog = WindowScript_Build(gPanel7b9940_7cb2ac, nullptr, gDialog7ca308_Open_751fa8, 0x0049b650);
     if (!dialog) return;
     if (kind == 0xffffffff) kind = gDialog7ca308_7ca30c;
     gDialog7ca308_7ca30c = kind;
@@ -187,8 +189,8 @@ void __cdecl Dialog7ca308_Open(u32 kind) {
     Window7c24c8_Set(dialog);
     // the money line: a number argument 13, its size, in the text 0x1cb when negative (0x1ca else)
     u8 *child = Window_FindChild(gDialog7ca308_7ca308, nullptr, 0x2496);
-    const s32 money = (s32)Source_Field0c(reinterpret_cast<const TrackedSource *>((uintptr_t)GameTable7cfb90_Get1da726_5195d0(global<u8 *>(0x007cf83c))));
-    u32 number[5] = {0x006ff170, 0x5641524d, 0xd, money < 0 ? 0u - (u32)money : (u32)money, 0};
+    const s32 money = (s32)Source_Field0c(reinterpret_cast<const TrackedSource *>((uintptr_t)GameTable7cfb90_Get1da726_5195d0(gWorldPtr)));
+    u32 number[5] = {(u32)(uintptr_t)TextArgInt_vtable, 0x5641524d, 0xd, money < 0 ? 0u - (u32)money : (u32)money, 0};
     g_env->format(global<u8 *>((u32)(uintptr_t)&gLanguage_78b530 + 0x564), reinterpret_cast<u16 *>((uintptr_t)0x007ba058), 0x3fff, money < 0 ? 0x1cbu : 0x1cau, number);
     u8 *const memory = static_cast<u8 *>(GameHeap_Alloc(0x1a4));
     Window_SetObject98(child, nullptr, memory ? TextPart6ff530_Ctor(memory, nullptr, 0) : nullptr);
@@ -201,7 +203,7 @@ void __cdecl Dialog7ca308_Open(u32 kind) {
         Window7059f0_BuildRows(list, nullptr, &List7ca314_NewRowJump, &List7ca314_InitRow);
         Window7059f0_SetColumnBottom(list, nullptr, 0, 0);
         Window7059f0_SetColumnBottom(list, nullptr, 1, 1);
-        Window7059f0_SetHighlight(list, nullptr, reinterpret_cast<u8 *>((uintptr_t)GuiWindows_FindByName(reinterpret_cast<const char *>(0x0074fa84))));
+        Window7059f0_SetHighlight(list, nullptr, reinterpret_cast<u8 *>((uintptr_t)GuiWindows_FindByName(reinterpret_cast<const char *>((u32)(uintptr_t)&gText_Dialog7cc188_74fa84))));
         Window_SetHandler(list, nullptr, 0x0049bc80);
         Window7059f0_SortBy(list, nullptr, gDialog7ca308_7523e4, 0);
         child = Window_FindChild(list, nullptr, 0x10);
@@ -219,7 +221,7 @@ void __cdecl Dialog7ca308_Open(u32 kind) {
     }
     // the figures
     if (u8 *const figures = Window_FindChild(gDialog7ca308_7ca308, nullptr, 0x2485)) {
-        const u8 *const rings = reinterpret_cast<const u8 *>((uintptr_t)GameTable7cfb90_Get1da720_519510(global<u8 *>(0x007cf83c)));
+        const u8 *const rings = reinterpret_cast<const u8 *>((uintptr_t)GameTable7cfb90_Get1da720_519510(gWorldPtr));
         panelparts::text(figures, 0x2488, 0x165);
         redText(figures, 0x248d, 0x166);
         redText(figures, 0x248a, 0x167);
@@ -254,8 +256,8 @@ u8 *addr(u32 at) { return reinterpret_cast<u8 *>(static_cast<uintptr_t>(word(at)
 
 void showMoney(u8 *window) {
     u8 *const label = g_handler->child(window, nullptr, 0x2496);
-    const s32 money = static_cast<s32>(g_handler->money(g_handler->table26(addr(0x007cf83c))));
-    u32 arg[5] = {0x006ff170, 0x5641524d, 0xd, static_cast<u32>(money < 0 ? -money : money), 0};   // (TextArgInt_Ctor (0xd, the value, unsigned), inline)
+    const s32 money = static_cast<s32>(g_handler->money(g_handler->table26(addr((u32)&gWorldPtr))));
+    u32 arg[5] = {(u32)(uintptr_t)TextArgInt_vtable, 0x5641524d, 0xd, static_cast<u32>(money < 0 ? -money : money), 0};   // (TextArgInt_Ctor (0xd, the value, unsigned), inline)
     g_handler->format(addr((u32)(uintptr_t)&gLanguage_78b530 + 0x564), reinterpret_cast<u16 *>(static_cast<uintptr_t>(0x007ba058)), 0x3fff, money < 0 ? 0x1cb : 0x1ca, arg);
     vcall<void>(label, 0x24, 0x007ba058u);
 }
@@ -265,13 +267,13 @@ void onRowHighlighted(u8 *window, u32 message, u32 a, u32 b) {
     if (!list || b == 0xffffffffu) return;
     u32 data = message;   // (the original's out is its message argument's slot)
     g_handler->nth(list, nullptr, static_cast<s32>(b), &data);
-    u8 *entry = g_handler->entry(addr(0x007cf83c), nullptr, data);
+    u8 *entry = g_handler->entry(addr((u32)&gWorldPtr), nullptr, data);
     u8 *const bar = g_handler->child(addr(reinterpret_cast<uintptr_t>(&gDialog7ca308_7ca308)), nullptr, 0x2481);
     if (bar && entry) {
         const u32 level = entry[8];
         vcall<void>(g_handler->child(bar, nullptr, 0x2482), 0x1c, static_cast<s32>(level << 10) / 5);
     }
-    entry = g_handler->entry(addr(0x007cf83c), nullptr, data);
+    entry = g_handler->entry(addr((u32)&gWorldPtr), nullptr, data);
     u8 *const wages = g_handler->child(addr(reinterpret_cast<uintptr_t>(&gDialog7ca308_7ca308)), nullptr, 0x2485);
     if (wages && entry) {
         const u32 wage = static_cast<u32>(g_handler->wage(entry));
@@ -320,7 +322,7 @@ extern "C" s32 __cdecl Dialog7ca308_Handler(u8 *window, u32 message, u32 a, u32 
         if (!list || b == 0xffffffffu) break;
         u32 data = b;   // (the original's out is its b argument's slot)
         g_handler->nth(list, nullptr, static_cast<s32>(b), &data);
-        g_handler->hire(addr(0x007cf83c), nullptr, data);
+        g_handler->hire(addr((u32)&gWorldPtr), nullptr, data);
         g_handler->send(addr(reinterpret_cast<uintptr_t>(&gDialog7ca308_7ca308)), 4, 0, 0);
         g_handler->post(0x135);
         return 0;

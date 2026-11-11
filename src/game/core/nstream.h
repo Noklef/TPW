@@ -82,3 +82,9 @@ u8 *__fastcall NIstream_Read(u8 *self, void *, char *text, u32 count);
 // the flags' 0x1c0; after it otherwise), the buffer's slot 0x1c writes the text, the width cleared; any failure badbit; a failed NOstream_Opfx badbit alone. Then with no exception uncaught (Fn_6a65e0) and unitbuf (2) the stream is flushed. Returns the stream.
 u8 *__cdecl NOstream_PutText(u8 *stream, const char *text);
 }
+
+#include "gamedata.h"
+
+// The vtables hold only ports: tpw.exe's loader points their slots at them (.docs/09-globals.md).
+GAME_DATA(void *[1], Class70994c_vtable, 0x0070994c, 0x4);
+GAME_DATA(void *[5], NCtype_vtable, 0x00709b1c, 0x14);

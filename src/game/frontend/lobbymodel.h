@@ -39,3 +39,10 @@ u32 __fastcall LobbyModel_TimeLeft(const u8 *model);
 // position (LobbyModel_SetPosition).
 void __fastcall LobbyFlyer_Step(u8 *flyer);
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(const float, gLobbyFlyer_Step_702adc, 0x00702adc, 0x4);
+GAME_DATA(const float, gLobbyFlyer_Step_702ae0, 0x00702ae0, 0x4);
+GAME_DATA(const float, gLobbyFlyer_Step_702ae4, 0x00702ae4, 0x4);

@@ -20,6 +20,7 @@
 #include "../ui/dialog74fb20.h"
 #include "../ui/window7cc8c0handler.h"
 #include "../coaster/arreplayaction.h"
+#include "../core/vdtor.h"
 #include "../core/staticobjects.h"
 
 namespace {
@@ -305,7 +306,7 @@ void __fastcall UserSlots_Scan(u8 *self) {
     String_AssignFromWide(&online, &onlineWide);
     Handle handle;
     Handle_Ctor(&handle);
-    handle.vtable = reinterpret_cast<void *const *>(0x006fd9e8);
+    handle.vtable = reinterpret_cast<void *const *>(((u32)(uintptr_t)ListDtor6fd9e4_vtable + 0x4));
     s32 status;
     const auto path = [](const String &s) { return static_cast<u32>(reinterpret_cast<uintptr_t>(s.data)); };
     if (*g_scan->open(&handle, nullptr, &status, path(save)) < 0) {

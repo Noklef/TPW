@@ -83,3 +83,13 @@ void SampleCopier_Free();
 void __fastcall SoundSample70a548_Choose3DVoices(u8 *object, void *, u8 *settings);
 
 }  // extern "C"
+
+#include "gamedata.h"
+
+// The vtables hold only ports: tpw.exe's loader points their slots at them (.docs/09-globals.md).
+GAME_DATA(void *[7], SoundSample70a548_vtable, 0x0070a548, 0x1c);
+GAME_DATA(void *[1], Class70aa34_vtable, 0x0070aa34, 0x4);
+GAME_DATA(void *[1], Class70aa38_vtable, 0x0070aa38, 0x4);
+GAME_DATA(void *[20], Class70ac50_vtable, 0x0070ac50, 0x50);
+GAME_DATA(void *[19], Class70aca0_vtable, 0x0070aca0, 0x4c);
+GAME_DATA(void *[23], Class70acf0_vtable, 0x0070acf0, 0x5c);

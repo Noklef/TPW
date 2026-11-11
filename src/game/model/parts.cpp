@@ -90,9 +90,9 @@ u32 __cdecl Model_FindMouthPart(const u8 *model, u32, s32 part) {
     const char *wanted;
     switch (part) {
     case 1: wanted = gText_Model_FindMouthPart_74cf08; break;
-    case 2: wanted = reinterpret_cast<const char *>(0x0074cf18); break;
-    case 3: wanted = reinterpret_cast<const char *>(0x0074cf24); break;
-    case 4: wanted = reinterpret_cast<const char *>(0x0074cefc); break;
+    case 2: wanted = reinterpret_cast<const char *>((u32)(uintptr_t)&gText_Model_FindMouthPart_74cf18); break;
+    case 3: wanted = reinterpret_cast<const char *>((u32)(uintptr_t)&gText_Model_FindMouthPart_74cf24); break;
+    case 4: wanted = reinterpret_cast<const char *>((u32)(uintptr_t)&gText_Model_FindMouthPart_74cefc); break;
     case 5: wanted = gText_Model_FindMouthPart_74cee4; break;
     case -1: wanted = gText_Model_FindMouthPart_74cef0; break;
     default: return 0;

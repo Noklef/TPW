@@ -4,10 +4,12 @@
 #include <cstring>
 
 #include "../files/file.h"
+#include "../render/particles.h"
 #include "crt.h"
 #include "gameheap.h"
 #include "textarg.h"
 #include "../ui/dialog74fb20.h"
+#include "imports.h"
 #include "staticobjects.h"
 
 namespace {
@@ -120,7 +122,7 @@ void __cdecl KeyMaps_ResetAll() {
 }
 
 void __cdecl KeyRecord_Push(u32 index, u32 shift, u32 a, u32 b, u32 c) {
-    const u32 record = 0x00f86918 + 68 * index;
+    const u32 record = (u32)&gParticlePools_f86900[0].spin + 68 * index;
     u32 second;
     if (shift) {
         global<u32>(record + 4) = a;
@@ -148,12 +150,12 @@ void __cdecl KeyMaps_ResetAllAndSetFlag() {
 void __cdecl KeyMaps_Init() {
     // (the maps, their static entry tables and counts, and their names in the game's data: "system", "game", "camera", "cheat",
     // "coaster", "shortcuts")
-    gKeymap_78718c = NewMap(0x00747f38, 0xc, 0x00748700);
-    gKeymap_787a60 = NewMap(0x00748028, 0xf, 0x007486f8);
-    gKeymap_787c14 = NewMap(0x00748158, 0x19, 0x007486f0);
-    gKeymap_78733c = NewMap(0x007484d0, 0xc, 0x007486e8);
+    gKeymap_78718c = NewMap(0x00747f38, 0xc, (u32)(uintptr_t)&gKeymap_748700);
+    gKeymap_787a60 = NewMap(0x00748028, 0xf, (u32)(uintptr_t)&gKeymap_7486f8);
+    gKeymap_787c14 = NewMap(0x00748158, 0x19, (u32)(uintptr_t)&gKeymap_7486f0);
+    gKeymap_78733c = NewMap(0x007484d0, 0xc, (u32)(uintptr_t)&gKeymap_7486e8);
     gKeymap_787294 = NewMap(0x00748350, 2, 0x00747940);
-    u8 *map = NewMap(reinterpret_cast<uintptr_t>(gKeyMap_Shortcuts_748378), 0x11, 0x007486dc);
+    u8 *map = NewMap(reinterpret_cast<uintptr_t>(gKeyMap_Shortcuts_748378), 0x11, (u32)(uintptr_t)&gKeymap_7486dc);
     gKeymap_78721c = map;
     // the shortcuts' actions 1-4: their keys from the texts 0-3 (a null map faults, sic)
     u32 slot = 0;   // (the original's stack slot: the formatter's two characters land over it)
@@ -223,7 +225,7 @@ u32 Modifiers(u32 slot) {
 }  // namespace
 
 extern "C" {
-u32 __cdecl KeyMap_Modifiers() { return Modifiers(0x006fd324); }
+u32 __cdecl KeyMap_Modifiers() { return Modifiers(IMPORT(User32_GetKeyState)); }
 
-u32 __cdecl KeyMap_AsyncModifiers() { return Modifiers(0x006fd320); }
+u32 __cdecl KeyMap_AsyncModifiers() { return Modifiers(IMPORT(User32_GetAsyncKeyState)); }
 }

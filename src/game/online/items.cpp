@@ -25,7 +25,7 @@ void List(u8 *item) { PtrList_Append(at<PtrList *>(at<u8 *>(item, 4), 0x2c), nul
 
 // fld float; fmul double [0x702930] (1.01); fstp float.
 float Scaled(const u8 *record, u32 offset) {
-    return static_cast<float>(X87_MulFloatDouble(at<float>(record, offset), *reinterpret_cast<const double *>((uintptr_t)0x00702930)));
+    return static_cast<float>(X87_MulFloatDouble(at<float>(record, offset), gItems_702930));
 }
 
 template <u8 *(__fastcall *Ctor)(u8 *, void *, const u8 *, u8 *)> void AddAll(u8 *owner, const u32 *array, u32 size, u32 stride) {

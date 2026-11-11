@@ -22,6 +22,9 @@
 #include "things.h"
 #include "world.h"
 #include "advisor.h"
+#include "advisorspeech.h"
+#include "advisorsend.h"
+#include "../core/imports.h"
 #include "../core/staticobjects.h"
 
 namespace {
@@ -106,7 +109,7 @@ void Advisor_SetCalls(const AddrCall *table, u32 count) { g_calls.Set(table, cou
 extern "C" {
 
 u32 __cdecl Table768fb8_Lookup(u32 id) {
-    for (u32 entry = 0x00768fb8; global<u32>(entry) != 0x270f; entry += 0x20) {
+    for (u32 entry = (u32)(uintptr_t)&gAdvisorResponses; global<u32>(entry) != 0x270f; entry += 0x20) {
         if (global<u32>(entry) == id)
             return global<u32>(entry + 0x1c);
     }
@@ -252,14 +255,14 @@ void __fastcall Advisor_HandleCode(u8 *self, void *, u32 code) {
     switch (code) {
     case 0:
         post(self, 0, 0, 0);
-        if (AdvisorScore_ModeSetting(0x00fb2765) == 2) post(self, 0x143, 0, 0);
+        if (AdvisorScore_ModeSetting((u32)(uintptr_t)&gAdvisorsend_fb2765) == 2) post(self, 0x143, 0, 0);
         break;
     case 2: post(self, 0x6a, 0, 0); break;
     case 3: post(self, 0x80, 0, 0); break;
     case 4: post(self, 0x81, 0, 0); break;
     case 10: {
         using Output = void(__stdcall *)(const char *);
-        (*reinterpret_cast<const Output *>((uintptr_t)0x006fd1e0))(gText_Advisor_HandleCode_76e190);
+        (*reinterpret_cast<const Output *>((uintptr_t)IMPORT(Kernel32_OutputDebugStringA)))(gText_Advisor_HandleCode_76e190);
         for (u32 i = 0; i < 0x15f; ++i) {
             u8 *const record = self + 0xe0 + 0x10 * i;
             at<u32>(record, 0xc) = 0;
@@ -305,7 +308,7 @@ void __fastcall Advisor_HandleMessage(u8 *self, void *, u8 *event) {
 u8 __cdecl Advisor_PostId(u32 id) {
     u8 message[0x18];   // (its bytes +2, +3 and +0x17 never written, sic)
     AdvisorMsg_Init(message, nullptr, id, 0, 0, 0xffffffffu, 0, -1);
-    u8 *const advisor = reinterpret_cast<u8 *>((uintptr_t)GameTable7cfb90_Get1da71c_5194d0(global<u8 *>(0x007cf83c)));
+    u8 *const advisor = reinterpret_cast<u8 *>((uintptr_t)GameTable7cfb90_Get1da71c_5194d0(gWorldPtr));
     return Advisor_Post(advisor, nullptr, message);
 }
 
@@ -424,9 +427,9 @@ void __cdecl Advisor_StopSpeech() {
     }
     if (!had) return;
     const s32 k = Crt().rand() % 3;   // (each tested in turn; the voice re-read, 0 by now)
-    if (k == 0) Sound_PlayAt(global<u32>(0x00f79680), global<u32>(0x00803a34), 0x27f, 0, 0, 0);
-    if (k == 1) Sound_PlayAt(global<u32>(0x00f79680), global<u32>(0x00803a34), 0x280, 0, 0, 0);
-    if (k == 2) Sound_PlayAt(global<u32>(0x00f79680), global<u32>(0x00803a34), 0x281, 0, 0, 0);
+    if (k == 0) Sound_PlayAt(global<u32>(0x00f79680), gSoundCategories.speech, 0x27f, 0, 0, 0);
+    if (k == 1) Sound_PlayAt(global<u32>(0x00f79680), gSoundCategories.speech, 0x280, 0, 0, 0);
+    if (k == 2) Sound_PlayAt(global<u32>(0x00f79680), gSoundCategories.speech, 0x281, 0, 0, 0);
 }
 
 u8 __fastcall Advisor_Cancel(u8 *self, void *, u32 id) {
@@ -491,7 +494,7 @@ void __cdecl Advisor_UpdateHighlight() {
         KeyRecord_Push(0, 1, 0x3c23d70a, 0x3e4ccccd, 0x3f800000);
         break;
     case 0x40000:
-        Sound_PlayAt(0, global<u32>(0x00803a2c), 0xc5, 0, 0, 0);
+        Sound_PlayAt(0, gSoundCategories.ui, 0xc5, 0, 0, 0);
         ParticlePool_Resize(0, 2, 0x31);
         ParticlePool_Move(0, 0, 0.0f, 0.0f, time());
         KeyRecord_Push(0, 0, 0x3f19999a, 0x3ecccccd, 0x40000000);

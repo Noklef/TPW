@@ -7,6 +7,7 @@
 #include "../core/gameclock.h"
 #include "../core/indexed.h"
 #include "../core/soundplay.h"
+#include "../core/soundset.h"
 #include "../files/file.h"
 #include "../math/sintable.h"
 #include "../math/x87.h"
@@ -18,6 +19,7 @@
 #include "../world/objectdefs.h"
 #include "../world/personscripts.h"
 #include "../world/ridelist.h"
+#include "../world/rides.h"
 #include "../core/staticobjects.h"
 
 namespace {
@@ -53,7 +55,7 @@ void Puff(const float *place) {
     Particle_Spawn(0x13, x, y, z);
 }
 
-u8 *Ride(const u8 *vm) { return global<u8 *>(0x007a4610 + 4 * at<u32>(vm, 0xc8)); }
+u8 *Ride(const u8 *vm) { return gRides_7a4610[at<u32>(vm, 0xc8)]; }
 
 // The definition (ObjectDefs_Find of 0x7890a0 by its type +0xe) of the vm's thing (the u16 +0xac; 0x7cfb90, 20 bytes each).
 u8 *ThingDef(const u8 *vm) {
@@ -92,13 +94,13 @@ s32 __cdecl RSSE_OperandValue(RsseContext *ctx, u32 word) {
 }
 
 void __cdecl RSSE_Init() {
-    if (global<u32>(0x008791a0))
+    if (gRsseSystem.initialised)
         return;   // Original: Debug_Printf("RSSE: Tried to Initialise twice") (compiled out in retail).
-    global<u32>(0x008791a0) = 1;
-    gRSSE_8791a8 = 1;
-    global<u32>(0x008791b0) = 0;
-    global<u32>(0x008791ac) = 0;
-    RSSE_TickCounter = 0;
+    gRsseSystem.initialised = 1;
+    gRsseSystem.flag08 = 1;
+    gRsseSystem.scriptList = nullptr;
+    gRsseSystem.scriptCount = 0;
+    gRsseSystem.tickCounter = 0;
     RSSE_ScriptVersion = 0;
     RSSE_CritLock = 0;
     // The checksum runs over the names in the opcode table one pointer at a time (the table holds a mnemonic and an
@@ -355,7 +357,9 @@ void __cdecl Rsse_UpdateWalkers(u8 *vm) {
 }
 
 s32 __cdecl Rsse_Trigger(u8 *vm, s32 kind, s32 key, u32 what, u32 extra) {
-    static const u32 categories[7] = {0x00803a3c, 0x00803a38, 0x00803a28, 0x00803a24, 0x00803a30, 0x00803a20, 0x00803a2c};   // kinds 3-9
+    static u32 SoundCategories::*const categories[7] = {&SoundCategories::themeRides, &SoundCategories::themeAmbient, &SoundCategories::rides,
+                                                        &SoundCategories::kids, &SoundCategories::staff, &SoundCategories::ambient,
+                                                        &SoundCategories::ui};   // kinds 3-9
     float place[3], dir[3];
     if (kind == 1 || kind == 2) {
         if (Ride_PartPlace(vm, place, kind == 2 ? dir : nullptr, key, 0x100) == 0)
@@ -399,7 +403,7 @@ s32 __cdecl Rsse_Trigger(u8 *vm, s32 kind, s32 key, u32 what, u32 extra) {
     const s32 y = Ftol(X87Reg(place[1]));
     const s32 x = Ftol(X87Reg(place[0]));
     if (kind != 10)
-        category = global<u32>(categories[kind - 3]);
+        category = gSoundCategories.*categories[kind - 3];
     return (s32)Sound_PlayAt(0, category, what, x, y, z);
 }
 
@@ -420,13 +424,13 @@ u32 __cdecl Rsse_TriggerNode(u8 *vm, u8 *node, u32 what, u32 extra, u32 value) {
     if (at<u8 *>(vm, 0xb0) == node)
         at<u8 *>(vm, 0xb0) = next;
     Mem_GlobalFree(node);
-    return --global<u32>(0x008791b4);
+    return --reinterpret_cast<u32 &>(gRsse_8791b4);
 }
 
 void __cdecl Rsse_UpdateAll() {
-    if (global<u32>(0x008791a0) == 0)
+    if (gRsseSystem.initialised == 0)
         return;
-    for (u8 *vm = global<u8 *>(0x008791b0); vm; vm = at<u8 *>(vm, 0)) {
+    for (u8 *vm = reinterpret_cast<u8 * &>(gRsseSystem.scriptList); vm; vm = at<u8 *>(vm, 0)) {
         for (s32 i = 0; i < at<s32>(vm, 0x64); ++i) {
             const u8 *const entry = at<u8 *>(vm, 0x28) + 0x10 * i;
             if (at<u32>(entry, 0) == 0)

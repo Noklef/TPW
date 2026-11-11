@@ -30,7 +30,7 @@ const Dialog7cc2ecEnv *g_env = &kGameEnv;
 void bar(u32 id, u32 index, u32 kind) {
     u8 *const window = Window_FindChild(dialog(), nullptr, id);
     panelparts::rangedNumber(window, 25);
-    const u8 *const table = reinterpret_cast<const u8 *>((uintptr_t)GameTable7cfb90_Get1da718_519450(global<u8 *>(0x007cf83c)));
+    const u8 *const table = reinterpret_cast<const u8 *>((uintptr_t)GameTable7cfb90_Get1da718_519450(gWorldPtr));
     vcall<void>(window, 0x1c, *reinterpret_cast<const u32 *>(table + 0xc + index * 4));
     u8 *const memory = static_cast<u8 *>(GameHeap_Alloc(0x124));
     u8 *const mesh = memory ? MeshOverlay_Construct(memory, nullptr, gDialog7cc2ec_750e00) : nullptr;
@@ -47,17 +47,17 @@ void __cdecl Dialog7cc2ec_Open() {
     if (dialog()) return;
     Window7c24c8_Close();
     Global7cb28c_Select(3, 9);
-    u8 *const built = WindowScript_Build(gPanel7b9940_7cb2ac, nullptr, reinterpret_cast<u8 *>((uintptr_t)0x00756400), 0x004b24b0);
+    u8 *const built = WindowScript_Build(gPanel7b9940_7cb2ac, nullptr, gDialog7cc2ec_Open_756400, 0x004b24b0);
     if (!built) return;
     gDialog7cc2ec_7cc2ec = built;
     Window7c24c8_Set(built);
-    GameTable7cfb90_Get1da720_519510(global<u8 *>(0x007cf83c));
+    GameTable7cfb90_Get1da720_519510(gWorldPtr);
     static const struct {
         u32 id, kind;
     } kBars[5] = {{0x2e7, 5}, {0x2ec, 4}, {0x2ea, 6}, {0x2eb, 7}, {0x2ed, 8}};
     for (u32 i = 0; i < 5; ++i) bar(kBars[i].id, i, kBars[i].kind);
     if (u8 *const figures = Window_FindChild(dialog(), nullptr, 0x2de)) {
-        const u8 *const rings = reinterpret_cast<const u8 *>((uintptr_t)GameTable7cfb90_Get1da720_519510(global<u8 *>(0x007cf83c)));
+        const u8 *const rings = reinterpret_cast<const u8 *>((uintptr_t)GameTable7cfb90_Get1da720_519510(gWorldPtr));
         panelparts::text(figures, 0x2e3, 0x165);
         panelparts::redText(figures, 0x2e6, 0x166);
         panelparts::redText(figures, 0x2e1, 0x167);

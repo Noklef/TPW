@@ -141,7 +141,7 @@ u32 __fastcall Batch_Flush(u8 *object, void *) {
         for (u32 count = at<u32>(batch, 0x20); count != 0; --count) {
             for (u32 axis = 0; axis < 8; axis += 4) {
                 const s32 n = _mm_cvtss_si32(_mm_set_ss(at<float>(vertex, axis)));
-                global<s32>(0x00fb34a4) = n;
+                gFixedVerts_fb34a4 = n;
                 at<float>(vertex, axis) = (float)(X87Reg((double)n) - half);
             }
             vertex += at<u32>(object, 0x1c);

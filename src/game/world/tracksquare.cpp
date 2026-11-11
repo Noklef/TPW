@@ -6,11 +6,12 @@
 #include "../core/globals.h"
 #include "cellmessage.h"
 #include "mapcell.h"
+#include "world.h"
 
 namespace {
 
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
-u8 *cellAt(u32 id) { return global<u8 *>(0x007cf83c) + 0x294 + (id & 0xffff) * 0x44; }
+u8 *cellAt(u32 id) { return gWorldPtr + 0x294 + (id & 0xffff) * 0x44; }
 
 const TrackSquareEnv kGameEnv = {&MapCell_HandleMessage};
 const TrackSquareEnv *g_env = &kGameEnv;

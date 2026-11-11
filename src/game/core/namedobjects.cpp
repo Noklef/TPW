@@ -22,6 +22,7 @@
 #include "../world/world.h"
 #include "../ui/windowproc.h"
 #include "staticobjects.h"
+#include "vdtor.h"
 
 namespace {
 
@@ -104,7 +105,7 @@ void __fastcall NamedObjects_Dtor(u8 *self) {
     }
     if (u8 *const block = at<u8 *>(self, 0x38)) GameHeap_Free(block);  // (its destructor, 0x5da3c0, is empty)
     u8 *node = at<u8 *>(self, 0x28);
-    at<u32>(self, 0x24) = 0x006fd708;
+    at<u32>(self, 0x24) = (u32)(uintptr_t)ListDtor6fd708_vtable;
     at<u32>(self, 0x2c) = 0;
     at<u32>(self, 0x28) = 0;
     while (node) {
@@ -119,7 +120,7 @@ void __fastcall NamedObjects_Dtor(u8 *self) {
 s32 *__cdecl NamedObjects_AddSubfolders(s32 *out, const String *folder) {
     Handle handle;
     Handle_Ctor(&handle);
-    handle.vtable = reinterpret_cast<void *const *>(0x006fd9e8);
+    handle.vtable = reinterpret_cast<void *const *>(((u32)(uintptr_t)ListDtor6fd9e4_vtable + 0x4));
     u8 entry[0x124];   // (a DirEntry: +0x20 its name pointer, +0x24 the path buffer; the rest as the search leaves it)
     *reinterpret_cast<u8 **>(entry + 0x20) = entry + 0x24;
     entry[0x24] = 0;
@@ -366,7 +367,7 @@ void __fastcall NamedObjects_AddFixedFolders(u8 *self) {
 u32 __fastcall NamedObjects_CreateWorld(u8 *) {
     u8 *const block = static_cast<u8 *>(GameHeap_Alloc(0x1da748));
     u8 *const world = block ? World_Ctor(block) : nullptr;
-    *reinterpret_cast<u8 **>(0x007cf83c) = world;
+    *&gWorldPtr = world;
     if (!world) return 0;
     return World_Attach(world) != 0;
 }
@@ -440,7 +441,7 @@ u32 __cdecl GameOwner_SelectMode(u32 which) {
 
 u32 __fastcall NamedObjects_StartLevel(u8 *self, void *, u32 level) {
     if (!g_calls.Th(0x00413140, 0x007890a0u, level)) return 0;
-    if (!g_calls.Th(0x005156a0, *reinterpret_cast<const u32 *>((uintptr_t)0x007cf83c), level)) return 0;
+    if (!g_calls.Th(0x005156a0, *reinterpret_cast<const u32 *>((uintptr_t)(u32)&gWorldPtr), level)) return 0;
     if (*reinterpret_cast<const u32 *>((uintptr_t)0x00788160)) {
         String name;
         String_CtorStr(&name, nullptr, reinterpret_cast<const char *>((uintptr_t)0x00788164));

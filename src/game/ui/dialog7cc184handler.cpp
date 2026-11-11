@@ -22,6 +22,7 @@
 #include "gamepause.h"
 #include "window7cc8c0handler.h"
 #include "dialog7cc184.h"
+#include "dialog7cc654.h"
 #include "../core/staticobjects.h"
 
 namespace {
@@ -54,7 +55,7 @@ bool modeOne() {
 // All addresses good: each with an '@' past its start and a '.' more than one place past that.
 bool addressesGood(u16 *text) {
     if (!*text) return false;
-    const u16 *const separators = reinterpret_cast<const u16 *>((uintptr_t)0x00754448);
+    const u16 *const separators = reinterpret_cast<const u16 *>((uintptr_t)&gDialog7cc184handler_754448);
     for (u16 *token = g_env->token(text, separators); token; token = g_env->token(nullptr, separators)) {
         u16 *const at = find(token, 0x40);
         if (at <= token) return false;
@@ -141,7 +142,7 @@ s32 __cdecl Dialog7cc184_Handler(u8 *window, u32 message, u32 a, u32 b) {
             if (!gDialog7cc184_7cbf3c) g_env->format(global<u8 *>((u32)(uintptr_t)&gLanguage_78b530 + 0x564), reinterpret_cast<u16 *>((uintptr_t)0x007cb408), 0x60, 0xd8);
             g_env->show(g_env->find(window, nullptr, 0x5d9f));
             u16 text[0x200];
-            Crt().wcscpy(text, reinterpret_cast<const u16 *>((uintptr_t)0x007cb4d0));
+            Crt().wcscpy(text, reinterpret_cast<const u16 *>((uintptr_t)&gDialog7cc654_7cb4d0));
             if (addressesGood(text)) {
                 g_env->sendCard();
                 g_env->send(gDialog7cc184handler_7cc184, 4, 0, 0);

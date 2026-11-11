@@ -4,6 +4,7 @@
 #include <cstring>
 
 #include "gameheap.h"
+#include "imports.h"
 
 namespace {
 
@@ -12,8 +13,8 @@ template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((ui
 using OnLock = void(__stdcall *)(void *);
 OnLock Import(u32 slot) { return *reinterpret_cast<const OnLock *>((uintptr_t)slot); }
 
-void Enter(void *lock) { Import(0x006fd140)(lock); }   // EnterCriticalSection
-void Leave(void *lock) { Import(0x006fd130)(lock); }   // LeaveCriticalSection
+void Enter(void *lock) { Import(IMPORT(Kernel32_EnterCriticalSection))(lock); }   // EnterCriticalSection
+void Leave(void *lock) { Import(IMPORT(Kernel32_LeaveCriticalSection))(lock); }   // LeaveCriticalSection
 
 struct Pool {
     u32 lock;    // the global holding the lock's block
@@ -29,7 +30,7 @@ u8 *&Next(u8 *block, const Pool &p) { return *reinterpret_cast<u8 **>(block + p.
 void Init(const Pool &p) {
     void *const lock = GameHeap_Alloc(0x18);
     global<void *>(p.lock) = lock;
-    Import(0x006fd144)(lock);   // InitializeCriticalSection
+    Import(IMPORT(Kernel32_InitializeCriticalSection))(lock);   // InitializeCriticalSection
 }
 
 void Purge(const Pool &p) {
@@ -43,7 +44,7 @@ void Purge(const Pool &p) {
 
 void Shutdown(const Pool &p) {
     Purge(p);
-    Import(0x006fd0d0)(global<void *>(p.lock));   // DeleteCriticalSection
+    Import(IMPORT(Kernel32_DeleteCriticalSection))(global<void *>(p.lock));   // DeleteCriticalSection
     GameHeap_Free(global<void *>(p.lock));
     global<void *>(p.lock) = nullptr;
 }

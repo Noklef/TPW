@@ -20,6 +20,7 @@
 #include "windowtimers.h"
 #include "dialog7cb2b8build.h"
 #include "panel7b9940.h"
+#include "../core/soundset.h"
 #include "../core/staticobjects.h"
 
 namespace {
@@ -115,7 +116,7 @@ s32 __cdecl Dialog7cb2b8_BoxHandler(u8 *window, u32 message, u32 a, u32 b) {
             window[0x134] = 2;
             u8 *const close = Window_FindChild(window, nullptr, 0x24);
             if (close) vcall<void>(close, 0x14, 1u);
-            Sound_PlayAt(0, global<u32>(0x00803a2c), 0x1c, 0, 0, 0);
+            Sound_PlayAt(0, gSoundCategories.ui, 0x1c, 0, 0, 0);
             Window_SendMessage(tag, 0x1001d9, 0, 0);
         }
         GuiRect_Dtor(rect);
@@ -140,7 +141,7 @@ s32 __cdecl Dialog7cb2b8_BoxHandler(u8 *window, u32 message, u32 a, u32 b) {
         window[0x134] = a == 0xffffffff ? 4 : 3;
         u8 *const close = Window_FindChild(window, nullptr, 0x24);
         if (close) vcall<void>(close, 0x14, 0u);
-        Sound_PlayAt(0, global<u32>(0x00803a2c), 0x1c, 0, 0, 0);
+        Sound_PlayAt(0, gSoundCategories.ui, 0x1c, 0, 0, 0);
         GuiRect_Dtor(target);
         GuiRect_Dtor(rect);
         break;
@@ -220,9 +221,9 @@ void __cdecl Dialog7cb2b8_ShowDate(u32 day, u32 month, u32 year) {
     if (!gDialog7cb2b8build_7cb2b8) return;
     u8 *const label = Window_FindChild(gDialog7cb2b8build_7cb2b8, nullptr, 0x20);
     // (the three number arguments built inline, unsigned: %16 the day, %17 the month, %18 the year from 1900)
-    u32 years[5] = {0x006ff170, 0x5641524d, 0x12, year + 1900, 0};
-    u32 months[5] = {0x006ff170, 0x5641524d, 0x11, month, 0};
-    u32 days[5] = {0x006ff170, 0x5641524d, 0x10, day, 0};
+    u32 years[5] = {(u32)(uintptr_t)TextArgInt_vtable, 0x5641524d, 0x12, year + 1900, 0};
+    u32 months[5] = {(u32)(uintptr_t)TextArgInt_vtable, 0x5641524d, 0x11, month, 0};
+    u32 days[5] = {(u32)(uintptr_t)TextArgInt_vtable, 0x5641524d, 0x10, day, 0};
     u8 text[0x20];
     TextFormat().formatNarrow(global<void *>((u32)(uintptr_t)&gLanguage_78b530 + 0x564), text, 0x1f, 0x1c0, days, months, years);
     Window_NotifyImpl100(label, nullptr, (u32)(uintptr_t)Language_Widen(text));
@@ -239,7 +240,7 @@ void __fastcall Obj7b51f0_ShowDate(void *, void *, u32, u32, u32, u32 day, u32 m
 
 void __cdecl Obj7b51f0_ShowNow() {
     const auto field = [](uintptr_t address) { return reinterpret_cast<u32 *>(address); };
-    const auto game = [] { return *reinterpret_cast<u8 **>((uintptr_t)0x007cf83c); };
+    const auto game = [] { return *&gWorldPtr; };
     g_nowEnv->clear();
     if (*reinterpret_cast<u32 *>(game() + 0x1da738) == 4) g_nowEnv->open();
     g_nowEnv->enableKeys();

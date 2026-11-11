@@ -5,8 +5,10 @@
 #include <cstring>
 
 #include "../core/vcall.h"
+#include "world.h"
 #include "../files/handles.h"
 #include "../core/staticobjects.h"
+#include "../core/imports.h"
 
 namespace {
 
@@ -16,7 +18,7 @@ const u32 kFileVtable = (u32)(uintptr_t)FileStream_vtable, kMemoryVtable = 0x006
 
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
 
-u32 level() { return global<u32>(0x007cf83c); }
+u32 level() { return global<u32>((u32)&gWorldPtr); }
 u32 alloc(u32 size) { return g_calls.Cd(0x0067acc0, size); }
 void release(u32 block) { g_calls.Cd(0x0067acb0, block); }
 bool failed(u32 status) { return *reinterpret_cast<const s32 *>((uintptr_t)status) < 0; }
@@ -50,7 +52,7 @@ bool get(Stream *stream, void *to, s32 size) {
 }
 
 const u32 kLanguageNames[] = {0x0074bdc8, 0x0074bdc0, 0x0074bdb8, 0x0074bdb0, 0x0074bda8, 0x0074bda0, 0x0074bd94};
-const u32 kLanguages = (u32)(uintptr_t)&gWString_78a460, kGameId = 0x00802080;
+const u32 kLanguages = (u32)(uintptr_t)&gWString_78a460;
 
 u8 languageNumber(u8 *text) {
     for (u8 i = 0; i < 7; ++i) {
@@ -67,9 +69,9 @@ bool headerWritten(Stream *stream, u8 *park, u8 *text) {
     const u8 number = (u8)language;
     if (!put(stream, &number, 1) || !put(stream, wide, 0x500)) return false;
     u8 id[0x100] = {};
-    memcpy(id, reinterpret_cast<const void *>((uintptr_t)kGameId), 0x20);
+    memcpy(id, gWorld_802080, 0x20);
     if (!put(stream, id, 0x100)) return false;
-    const u32 version = global<u32(__stdcall *)(u32)>(0x006fd3fc)(global<u32>(0x00749870));
+    const u32 version = global<u32(__stdcall *)(u32)>(IMPORT(Wsock32_htonl))(global<u32>(0x00749870));
     if (!put(stream, &version, 4)) return false;
     const u32 hasPark = park ? 1 : 0;
     if (!put(stream, &hasPark, 4)) return false;
@@ -91,7 +93,7 @@ u32 __fastcall SaveGame_Save(u8 *self, void *, const char *name, u32 header, u32
         error = 1;
         return 0;
     }
-    Stream_Write(&status, start, reinterpret_cast<const void *>((uintptr_t)0x006fd928), 4, nullptr);   // (its status is 0 or 1: never the negative the original tests)
+    Stream_Write(&status, start, reinterpret_cast<const void *>((uintptr_t)&gSaveGame_Save_6fd928), 4, nullptr);   // (its status is 0 or 1: never the negative the original tests)
     if (!g_calls.Th(0x00415f50, me, start, header)) {
         g_calls.Cd(0x005f5b80, &status, start);
         g_calls.Cd(0x005f5d60, &status, name);
@@ -269,10 +271,10 @@ u32 __fastcall SaveGame_ReadHeader(u8 *self, void *, Stream *stream, u32 mode, u
         *reinterpret_cast<u32 *>(self + 4) = 8;
         return 0;
     }
-    memcpy(reinterpret_cast<void *>((uintptr_t)kGameId), id, 0x20);
+    memcpy(gWorld_802080, id, 0x20);
     u32 version = 0;
     if (!get(stream, &version, 4)) return 0;
-    if (global<u32(__stdcall *)(u32)>(0x006fd400)(version) != global<u32>(0x00749870)) {
+    if (global<u32(__stdcall *)(u32)>(IMPORT(Wsock32_ntohl))(version) != global<u32>(0x00749870)) {
         *reinterpret_cast<u32 *>(self + 4) = 6;
         return 0;
     }
@@ -300,7 +302,7 @@ void __fastcall SaveGame_AfterLoad(void *) {
     s32 status;
     for (u32 font = global<u32>(0x00789c1c); font != last; font += 0x14) {
         const char *path = *reinterpret_cast<const char **>((uintptr_t)font + 8);
-        global<s32(__stdcall *)(const char *)>(0x006fd058)(path);
+        global<s32(__stdcall *)(const char *)>(IMPORT(Gdi32_RemoveFontResourceA))(path);
         g_calls.Cd(0x005f5d60, &status, *reinterpret_cast<const char **>((uintptr_t)font + 8));
     }
     const u32 first = global<u32>(0x00789c1c), end = last;

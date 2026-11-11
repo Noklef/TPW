@@ -36,7 +36,7 @@ void __cdecl Dialog7cc1f8_ShowFigures(const s16 *id) {
     u8 *const panel = Window_FindChild(global<u8 *>(0x007cc1f8), nullptr, 0x1ed);
     if (!panel || *id < 0) return;
     const u8 *const def = g_env->find(reinterpret_cast<u8 *>((uintptr_t)0x007890a0), nullptr, (u16)*id);
-    GameTable7cfb90_Get1da720_519510(global<u8 *>(0x007cf83c));   // (its answer only the ECX of the stdcall)
+    GameTable7cfb90_Get1da720_519510(gWorldPtr);   // (its answer only the ECX of the stdcall)
     const u32 control = g_env->control((u16)*id);
     u16 text[10];
     if (control) Crt().swprintf(text, numberFormat(), control);

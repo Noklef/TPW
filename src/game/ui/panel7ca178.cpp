@@ -90,7 +90,7 @@ void __fastcall Panel7ca178_DressTip(u8 *self) { panelparts::tip(self); }
 
 void __fastcall Panel7ca178_Show(u8 *self, void *, u8 *thing) {
     *reinterpret_cast<u8 **>((uintptr_t)&gStatic_7ca178 + 0x24) = thing;
-    WindowAt10_Create(self, nullptr, reinterpret_cast<u8 *>((uintptr_t)0x00751190), 0x00497640, 0x15bb8, 0x15bba, 0x15bb9);
+    WindowAt10_Create(self, nullptr, reinterpret_cast<u8 *>((uintptr_t)&gPanel7ca178_Show_751190), 0x00497640, 0x15bb8, 0x15bba, 0x15bb9);
     const u8 value = (u8)(u32)(long long)*reinterpret_cast<const float *>(thing + 0x44);   // (__ftol's low byte)
     Advisor_PostId(value < 0x19 ? 0xd5 : 0x12b);
 }

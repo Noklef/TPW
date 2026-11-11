@@ -69,4 +69,5 @@ u32 __stdcall Ime_WindowProc(u32 window, u32 message, u32 wparam, u32 lparam);
 #include "gamedata.h"
 
 // Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(char[0x14], gImeinput_74f8b0, 0x0074f8b0, 0x14);
 GAME_DATA(u8, gImeinput_7b4a38, 0x007b4a38, 0x1);

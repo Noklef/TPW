@@ -22,3 +22,10 @@ struct Window7cb2a4Env {
     s32(__cdecl *format)(u16 *to, const u16 *format, s32 value);             // swprintf 0x67af00
 };
 void Window7cb2a4_SetEnv(const Window7cb2a4Env *env);
+
+#include "../core/gamedata.h"
+
+// Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(s32, gWindow7cb2a4_Handler_752ec4, 0x00752ec4, 0x4);
+GAME_DATA(s32, gWindow7cb2a4_Handler_752ec8, 0x00752ec8, 0x4);
+GAME_DATA(u8[0x18], gWindow7cb2a4_752ef8, 0x00752ef8, 0x18);

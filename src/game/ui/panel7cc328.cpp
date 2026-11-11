@@ -53,8 +53,8 @@ void __fastcall Panel7cc328_ShowStaff(u8 *panel, void *, const u8 *staff) {
     u8 *const child = Window_FindChild(at<u8 *>(panel, 0x10), nullptr, 0x1e84);
     Window_GetSavedRect(child, nullptr, rect);
     const s32 left = at<s16>(rect, 4), top = at<s16>(rect, 6), right = at<s16>(rect, 8), bottom = at<s16>(rect, 0xa);
-    const float x = (float)X87_MulIntDouble(((right - left) >> 1) + left - 0x3f8, global<float>(0x006ffdcc));
-    const float y = (float)X87_MulIntDouble(((bottom - top) >> 2) - bottom + 0x300, global<float>(0x006ffdd0));
+    const float x = (float)X87_MulIntDouble(((right - left) >> 1) + left - 0x3f8, gPanel7cc328_ShowStaff_6ffdcc);
+    const float y = (float)X87_MulIntDouble(((bottom - top) >> 2) - bottom + 0x300, gPanel7cc328_ShowStaff_6ffdd0);
     const float z = (float)Sprite_FlipY(at<s16>(child, 0xe0) + 1);
     const u32 folder = at<u32>(staff, 0x24), sprite = at<u32>(staff, 0x20);
     if (folder != at<u32>(panel, 0x28) || sprite != at<u32>(panel, 0x2c)) {
@@ -147,7 +147,7 @@ void __fastcall Panel7cc328_OnStaff(void *, void *, u32 handle, u32 added) {
 
 void __fastcall Panel7cc328_Show(u8 *self, void *, u8 *thing) {
     gPanel7cc328_Show_7cc318 = thing;
-    WindowAt10_Create(self, nullptr, reinterpret_cast<u8 *>((uintptr_t)0x00756ba0), 0x004b4fc0, 0x1e84, 0x1e89, 0);
+    WindowAt10_Create(self, nullptr, reinterpret_cast<u8 *>((uintptr_t)&gPanel7cc328_Show_756ba0), 0x004b4fc0, 0x1e84, 0x1e89, 0);
     Advisor_PostId(0x12c);
 }
 

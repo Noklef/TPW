@@ -48,7 +48,7 @@ void __fastcall IslandCamera_LoadSettings(u8 *settings) {
     for (const char *cursor = text; cursor < end;) {
         static const struct {
             u32 key, length, offset;
-        } kFloats[] = {{reinterpret_cast<uintptr_t>(&gIslandCamera_LoadSettings_774d40), 10, 4}, {reinterpret_cast<uintptr_t>(&gIslandCamera_LoadSettings_774d34), 10, 8}, {reinterpret_cast<uintptr_t>(&gIslandCamera_LoadSettings_774d28), 11, 0xc}, {reinterpret_cast<uintptr_t>(&gIslandCamera_LoadSettings_774d18), 15, 0x10}, {0x00774d08, 15, 0x14}, {0x00774cf8, 14, 0x18}};
+        } kFloats[] = {{reinterpret_cast<uintptr_t>(&gIslandCamera_LoadSettings_774d40), 10, 4}, {reinterpret_cast<uintptr_t>(&gIslandCamera_LoadSettings_774d34), 10, 8}, {reinterpret_cast<uintptr_t>(&gIslandCamera_LoadSettings_774d28), 11, 0xc}, {reinterpret_cast<uintptr_t>(&gIslandCamera_LoadSettings_774d18), 15, 0x10}, {(u32)(uintptr_t)&gText_IslandCamera_LoadSettings_774d08, 15, 0x14}, {(u32)(uintptr_t)&gText_IslandCamera_LoadSettings_774cf8, 14, 0x18}};
         bool matched = false;
         for (const auto &k : kFloats) {
             if (Crt().strncmp(reinterpret_cast<const char *>((uintptr_t)k.key), cursor, k.length) == 0) {   // ISLANDFOV( .. GLOBERADIUSIN(
@@ -58,7 +58,7 @@ void __fastcall IslandCamera_LoadSettings(u8 *settings) {
                 break;
             }
         }
-        if (!matched && Crt().strncmp(reinterpret_cast<const char *>((uintptr_t)0x00774ce0), cursor, 0x15) == 0) {   // ISLANDCAMERAPOSITION(
+        if (!matched && Crt().strncmp(reinterpret_cast<const char *>((uintptr_t)&gText_IslandCamera_LoadSettings_774ce0), cursor, 0x15) == 0) {   // ISLANDCAMERAPOSITION(
             open_paren(&cursor);
             String token;
             String_ReadToken(&token, &cursor, 0x2c);

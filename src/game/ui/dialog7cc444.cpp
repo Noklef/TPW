@@ -44,7 +44,7 @@ extern "C" {
 void __cdecl Dialog7cc444_Create() {
     if (dialog()) return;
     Window7c24c8_Close();
-    u8 *const built = WindowScript_Build(gPanel7b9940_7cb2ac, nullptr, reinterpret_cast<u8 *>(0x007579c8), 0x004b7a70);
+    u8 *const built = WindowScript_Build(gPanel7b9940_7cb2ac, nullptr, gDialog7cc444_Create_7579c8, 0x004b7a70);
     if (!built) return;
     dialog() = built;
     Window7c24c8_Set(built);
@@ -60,7 +60,7 @@ void __cdecl Dialog7cc444_Create() {
         Window_NotifyImpl100(child, nullptr, (u32)(uintptr_t)Language_WideText(t[2]));
     }
     const u8 *const analyser =
-        reinterpret_cast<const u8 *>((uintptr_t)GameTable7cfb90_Get1da720_519510(*reinterpret_cast<u8 **>((uintptr_t)0x007cf83c)));
+        reinterpret_cast<const u8 *>((uintptr_t)GameTable7cfb90_Get1da720_519510(*&gWorldPtr));
     u32 figure = last;   // (EBX: the figure before when a sample is not there, sic)
     for (u32 i = 0; i < 2; ++i) {
         u8 *const child = Window_FindChild(panel, nullptr, i ? 0xadac : 0xada8);

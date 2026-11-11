@@ -22,3 +22,8 @@ extern "C" {
 // clamp of k (-0x200..0x1ff) to -0x80..0x7f, plus 0x80, at (k - 0x180) & 0x3ff; +0x3c 1.
 void __fastcall MovieDisplay_Prepare(u8 *player);
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(u32[0x400], gMoviedisplay_fb7f30, 0x00fb7f30, 0x1000);

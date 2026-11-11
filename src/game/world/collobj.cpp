@@ -1,12 +1,14 @@
 #include "collobj.h"
 
 #include <cstdint>
+#include <cstring>
 
 #include "../core/crt.h"
 #include "../math/intsin.h"
 #include "../math/vec2.h"
 #include "../math/x87.h"
 #include "collobj.h"
+#include "../core/imports.h"
 
 namespace {
 
@@ -66,28 +68,29 @@ extern "C" {
 void __cdecl CollPool_Reset() {
     u8 *next = nullptr;
     for (s32 offset = 0x4fec; offset >= 0; offset -= 0x14) {
-        u8 *const object = global<u8 *>(0x00877b88) + offset;  // the pool reread each time
+        u8 *const object = gTrackPools.links + offset;  // the pool reread each time
         at<u8 *>(object, 0x10) = next;
         next = object;
     }
-    global<u8 *>(0x00877b8c) = global<u8 *>(0x00877b88);
+    gTrackPools.freeLinks = gTrackPools.links;
 }
 
 u32 __cdecl CollPool_Startup() {
     IntSin_BuildTable();
-    void *(__stdcall *const allocate)(u32, u32) = global<void *(__stdcall *)(u32, u32)>(0x006fd1cc);
-    for (u32 i = 0; i < 0xf; i++) global<u32>(0x00877b58 + i * 4) = 0;
-    global<u32>(0x00877b58) = 0x4a454647;
-    static const struct { u32 address, size; } kPools[] = {{0x00877b60, 0x3400}, {0x00877b68, 0xac00}, {0x00877b70, 0x10000}, {0x00877b78, 0x7000}, {0x00877b80, 0xa000}, {0x00877b88, 0x5000}};
-    for (const auto &pool : kPools) global<void *>(pool.address) = allocate(0x40, pool.size);
+    void *(__stdcall *const allocate)(u32, u32) = global<void *(__stdcall *)(u32, u32)>(IMPORT(Kernel32_GlobalAlloc));
+    memset(&gTrackPools, 0, sizeof gTrackPools);
+    gTrackPools.tag = 0x4a454647;
+    static const struct { u8 *TrackPools::*block; u32 size; } kPools[] = {{&TrackPools::rides, 0x3400}, {&TrackPools::cars, 0xac00}, {&TrackPools::nodes, 0x10000},
+                                                                         {&TrackPools::buoys, 0x7000}, {&TrackPools::sections, 0xa000}, {&TrackPools::links, 0x5000}};
+    for (const auto &pool : kPools) gTrackPools.*pool.block = static_cast<u8 *>(allocate(0x40, pool.size));
     CollPool_Reset();
-    global<s32>(0x00877b90) = Crt().rand();
-    return global<u32>(0x00877b90);
+    reinterpret_cast<s32 &>(gTrackPools.seed) = Crt().rand();
+    return gTrackPools.seed;
 }
 
 void __cdecl Collider_ReleaseC0(u8 *collider) {
     for (u8 *node = at<u8 *>(collider, 0xc0); node; node = at<u8 *>(node, 0x14)) {
-        --global<s32>(0x00877b74);
+        --gTrackPools.nodeCount;
         at<u32>(node, 0) = 0;
     }
 }
@@ -107,7 +110,7 @@ void __cdecl Collider_KeepA8(u8 *collider, u32 mask) {
             }
         } else {
             --at<s32>(collider, 0xac);
-            --global<s32>(0x00877b7c);
+            --gTrackPools.buoyCount;
             at<u32>(node, 0) &= ~1u;
         }
         u8 *const next = at<u8 *>(node, 0x14);
@@ -121,21 +124,21 @@ void __cdecl Pool_FreeAll(u8 *owner) {
     while (u8 *chunk = at<u8 *>(owner, 0xbc)) {
         while (u8 *node = at<u8 *>(chunk, 0x1c)) {
             at<u32>(chunk, 0x1c) = at<u32>(node, 0x14);
-            global<u32>(0x00877b74)--;
+            gTrackPools.nodeCount--;
             at<u32>(node, 0) &= 0xfffffffe;
         }
         at<u32>(owner, 0xbc) = at<u32>(chunk, 0x24);
         at<u32>(chunk, 0) &= 0xfffffffe;
-        global<u32>(0x00877b84)--;
+        gTrackPools.sectionCount--;
     }
 }
 
 // The moved point in no blocker (bit 0 and 0x40) of the table.
 static bool blocked(s32 x, s32 y) {
-    u8 *node = global<u8 *>(0x00877b70);
+    u8 *node = gTrackPools.nodes;
     if (!node)
         return false;
-    u32 left = global<u32>(0x00877b74);
+    u32 left = (u32)gTrackPools.nodeCount;
     if (!left)
         return false;
     do {
@@ -151,10 +154,10 @@ static bool blocked(s32 x, s32 y) {
 }
 
 u8 *__cdecl CollArea_FindNearest(const s32 *area, s32 x, s32 y, u32 self) {
-    u8 *node = global<u8 *>(0x00877b70);
+    u8 *node = gTrackPools.nodes;
     if (!node)
         return nullptr;
-    u32 left = global<u32>(0x00877b74);
+    u32 left = (u32)gTrackPools.nodeCount;
     if (!left)
         return nullptr;
     s32 best = 0x7fffffff;
@@ -188,11 +191,11 @@ u8 *__cdecl CollArea_FindNearest(const s32 *area, s32 x, s32 y, u32 self) {
 }
 
 void __cdecl Collider_BounceOffBlockers(u8 *car) {
-    u8 *node = global<u8 *>(0x00877b70);
-    u32 left = global<u32>(0x00877b74);
+    u8 *node = gTrackPools.nodes;
+    u32 left = (u32)gTrackPools.nodeCount;
     if (!node || !left)
         return;
-    const s32 *const sine = reinterpret_cast<const s32 *>((uintptr_t)0x00877358);
+    const s32 *const sine = reinterpret_cast<const s32 *>(gIntSinTable);
     do {
         const u32 flags = at<u32>(node, 0);
         if (flags & 1) {
@@ -229,8 +232,8 @@ void __cdecl Collider_KeepInArea(u8 *car) {
     if (IntArea_Contains(x, y, at<const s32 *>(car, 0x98)))
         return;
     u8 *found = nullptr;
-    u8 *node = global<u8 *>(0x00877b70);
-    u32 left = global<u32>(0x00877b74);
+    u8 *node = gTrackPools.nodes;
+    u32 left = (u32)gTrackPools.nodeCount;
     if (node && left) {
         for (;;) {
             const u32 flags = at<u32>(node, 0);
@@ -280,7 +283,7 @@ void __cdecl Collider_KeepInArea(u8 *car) {
         const s32 away = (s32)(long long)X87_Add(down, -RideAtan(dx, (s32)(0u - (u32)dy), down));
         const u32 mirror = (0xffffff80u - (u32)away) & 0x1ff, back = ((u32)heading - 0x100) & 0x1ff;
         const u32 turn = (mirror * 2 - 0x100 - back - (u32)heading) & 0x1ff;
-        const s32 *const sine = reinterpret_cast<const s32 *>((uintptr_t)0x00877358);
+        const s32 *const sine = reinterpret_cast<const s32 *>(gIntSinTable);
         const u32 k = at<u32>(kind, 0x2c);
         const s32 vy = (s32)(k * at<u32>(car, 0x40)) / 1024, vx = (s32)(k * at<u32>(car, 0x3c)) / 1024;
         const u32 s = (u32)sine[turn], c = (u32)sine[(turn + 0x80) & 0x1ff];
@@ -298,8 +301,8 @@ void __cdecl Collider_KeepInArea(u8 *car) {
 s32 __cdecl Collider_SteerTo(u8 *car, s32 x, s32 y) {
     if ((at<u32>(car, 0) & 0x10000) && at<u32>(car, 0x98)) {
         u8 *found = nullptr;
-        u8 *node = global<u8 *>(0x00877b70);
-        u32 left = global<u32>(0x00877b74);
+        u8 *node = gTrackPools.nodes;
+        u32 left = (u32)gTrackPools.nodeCount;
         if (node && left) {
             for (;;) {
                 const u32 flags = at<u32>(node, 0);
@@ -367,7 +370,7 @@ s32 __cdecl Collider_SteerTo(u8 *car, s32 x, s32 y) {
         if ((at<u32>(at<const u8 *>(car, 0x98), 0) & 0x1e) != 0x1e)
             speed = (s32)((u32)speed * 3) / 4;
         const u32 heading = at<u32>(car, 0x50);
-        const s32 *const sine = reinterpret_cast<const s32 *>((uintptr_t)0x00877358);
+        const s32 *const sine = reinterpret_cast<const s32 *>(gIntSinTable);
         const s32 vy = (s32)((u32)sine[(heading + 0x80) & 0x1ff] * (u32)speed << 2) / 1024;
         const s32 vx = (s32)((u32)sine[heading & 0x1ff] * (u32)speed << 2) / 1024;
         at<u32>(car, 0x3c) += (u32)vx;

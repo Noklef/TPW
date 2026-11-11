@@ -37,6 +37,7 @@
 #include "window7cc8bc.h"
 #include "panel7cc218.h"
 #include "panel7b9940.h"
+#include "dialog7cc654.h"
 #include "../core/staticobjects.h"
 
 namespace {
@@ -118,7 +119,7 @@ s32 __cdecl Dialog7cdb0c_Child16007Message6Off() {
 
 void __cdecl Dialog7ca098_Create() {
     const Dialog7ca098CreateEnv *const env = g_createEnv;
-    gDialogs_7ca098 = env->build(window(0x00faa5d8), nullptr, reinterpret_cast<u8 *>((uintptr_t)0x007501a0), 0x0048e2f0);
+    gDialogs_7ca098 = env->build(window(0x00faa5d8), nullptr, gDialog7ca098_Create_7501a0, 0x0048e2f0);
     env->unlink(window(reinterpret_cast<uintptr_t>(&gDialogs_7ca098)));
     env->setDwordA0(window(reinterpret_cast<uintptr_t>(&gDialogs_7ca098)), nullptr, 0, 1);
     env->setShown(window(reinterpret_cast<uintptr_t>(&gDialogs_7ca098)), nullptr, 0);
@@ -162,7 +163,7 @@ void __cdecl Dialog7ca168_ShowStaffAverage(u32 tab) {
     u8 *const bar = Window_FindChild(Window_FindChild(window(reinterpret_cast<uintptr_t>(&gDialog7ca168_7ca168)), nullptr, 0x329), nullptr, 0x32d);
     const u32 kind = tab <= 4 ? kKinds[tab] : tab;
     void *const *const table = *reinterpret_cast<void *const *const *>(bar);
-    GameTable7cfb90_Get1da720_519510(*reinterpret_cast<u8 *const *>((uintptr_t)0x007cf83c));   // (its answer only the ECX of the stdcall)
+    GameTable7cfb90_Get1da720_519510(*&gWorldPtr);   // (its answer only the ECX of the stdcall)
     const s32 average = Things_AverageStat1f8OfKind(kind);
     reinterpret_cast<void(__fastcall *)(u8 *, void *, s32)>(table[7])(bar, nullptr, (s32)((u32)average << 10) / 100);
 }
@@ -229,7 +230,7 @@ void __cdecl Dialog7cc4c4_ShowThing(u8 *thing) {
     }
     vcall<void>(Window_FindChild(window(reinterpret_cast<uintptr_t>(&gDialogs_7cc4c4)), nullptr, 0x16c11), 0x24, *reinterpret_cast<u32 *>(thing + 0x14));
     u8 arg[0x14];   // (a number argument, as TextArgInt_Ctor builds it inline)
-    *reinterpret_cast<u32 *>(arg) = 0x006ff170;
+    *reinterpret_cast<u32 *>(arg) = (u32)(uintptr_t)TextArgInt_vtable;
     *reinterpret_cast<u32 *>(arg + 4) = 0x5641524d;
     *reinterpret_cast<u32 *>(arg + 8) = 0x1b;
     *reinterpret_cast<u32 *>(arg + 0xc) = *reinterpret_cast<u32 *>(thing + 0x40);
@@ -259,7 +260,7 @@ s32 __cdecl Window_DefaultHandler(u8 *window, u32 message, u32 a, u32 b) { retur
 s32 __cdecl WindowText7cb4d0_Handler(u8 *window, u32 message, u32 a, u32 b) {
     if (message == 0x800) {
         Window_NotifyC000(window, nullptr, 0, (u32)-(s32)b);
-        vcall<void>(window, 0x24, 0x007cb4d0u);
+        vcall<void>(window, 0x24, (u32)(uintptr_t)&gDialog7cc654_7cb4d0);
     }
     return Window_CallDefault(window, nullptr, message, a, b);
 }
@@ -309,7 +310,7 @@ void __cdecl Windows7cc8bc_SelectFirst() {
 }
 
 void __cdecl Windows7c26b0_Message5() {
-    for (u32 entry = 0x007c26b0; entry < reinterpret_cast<uintptr_t>(&gMsgtags_7c3b00); entry += 0x208)
+    for (u32 entry = (u32)(uintptr_t)&gMsgtags_7c26b0; entry < reinterpret_cast<uintptr_t>(&gMsgtags_7c3b00); entry += 0x208)
         if (*reinterpret_cast<u16 *>((uintptr_t)entry + 4)) Window_SendMessage(*reinterpret_cast<u8 **>((uintptr_t)entry), 5, 0, 0);
 }
 
@@ -389,7 +390,7 @@ void __cdecl Window7ca2e8_ClearButtons(u32 mode) {
 void __cdecl Dialog7cc4c4_Create() {
     if (window(reinterpret_cast<uintptr_t>(&gDialogs_7cc4c4))) return;
     u8 *const frame = window(0x00f82884);
-    u8 *const dialog = WindowScript_Build(*reinterpret_cast<u8 **>(frame + 4), nullptr, reinterpret_cast<u8 *>(0x007581a0), 0x004b9950);
+    u8 *const dialog = WindowScript_Build(*reinterpret_cast<u8 **>(frame + 4), nullptr, gDialogs_7581a0, 0x004b9950);
     gDialogs_7cc4c4 = dialog;
     dressText(Window_FindChild(dialog, nullptr, 0x16c11), 5);
     dressText(Window_FindChild(window(reinterpret_cast<uintptr_t>(&gDialogs_7cc4c4)), nullptr, 0x16c12), 8);

@@ -3,6 +3,8 @@
 #include <cstdint>
 #include "../frontend/lobbysky.h"
 #include "ddopen.h"
+#include "d3dsetup.h"
+#include "../core/imports.h"
 #include "../core/staticobjects.h"
 
 namespace {
@@ -64,8 +66,8 @@ void windowed(u8 *engine) {
     global<u32>(0x008bd508) &= ~kInvalidate;
     s32 from[4] = {0, 0, global<s32>((u32)(uintptr_t)&gView_8bcbc8 + 0x8), global<s32>((u32)(uintptr_t)&gView_8bcbc8 + 0xc)};
     s32 window[4], client[4];
-    global<WindowRect>(0x006fd390)(global<u32>(0x008bd518), window);
-    global<WindowRect>(0x006fd38c)(global<u32>(0x008bd518), client);
+    global<WindowRect>(IMPORT(User32_GetClientRect))(global<u32>(0x008bd518), window);
+    global<WindowRect>(IMPORT(User32_GetWindowRect))(global<u32>(0x008bd518), client);
     const s32 border = (client[2] - window[2] - client[0] + window[0]) >> 1;
     const s32 x = client[0] + border, y = client[3] - window[3] + window[1] - border;
     s32 to[4] = {window[0] + x, window[1] + y, window[2] + x, window[3] + y};
@@ -94,7 +96,7 @@ u32 __fastcall Device_Present(u8 *engine) {
     return gDdopen_879cd4 == 0;
 }
 
-u32 __cdecl Present_Engine() { return g_calls.Th(0x00564210, global<u32>(0x00879a24)); }
+u32 __cdecl Present_Engine() { return g_calls.Th(0x00564210, global<u32>((u32)(uintptr_t)&gD3dsetup_879a20 + 0x4)); }
 
 namespace {
 
@@ -112,7 +114,7 @@ bool answered(u32 result) {
 }  // namespace
 
 u32 __fastcall Present_Picture(u8 *picture) {
-    u8 *const surface = at<u8 *>(global<u8 *>(0x00879a24), 0x14);
+    u8 *const surface = at<u8 *>(global<u8 *>((u32)(uintptr_t)&gD3dsetup_879a20 + 0x4), 0x14);
     u32 desc[0x1f] = {0x7c};
     const u8 *const vtable = at<const u8 *>(surface, 0);
     if (!answered(at<u32(__stdcall *)(u8 *, void *, void *, u32, void *)>(vtable, 0x64)(surface, nullptr, desc, 1, nullptr))) return 0;
@@ -124,6 +126,6 @@ u32 __fastcall Present_Picture(u8 *picture) {
         g_calls.Cd(global<u32>((u32)(uintptr_t)&gView_8bcbc8 + 0x1c) == 0x20 ? 0x00678c20 : 0x006787f0, from, bits, width, rows, width * 4, pitch, at<u32>(picture, (u32)-0x10), width * 2, 1u, mask);
     }
     if (!answered(at<u32(__stdcall *)(u8 *, void *)>(at<const u8 *>(surface, 0), 0x80)(surface, nullptr))) return 0;
-    return g_calls.Th(0x00564210, global<u32>(0x00879a24));
+    return g_calls.Th(0x00564210, global<u32>((u32)(uintptr_t)&gD3dsetup_879a20 + 0x4));
 }
 }

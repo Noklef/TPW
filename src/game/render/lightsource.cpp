@@ -11,6 +11,7 @@
 #include "renderer.h"
 #include "state.h"
 #include "../frontend/lobbysky.h"
+#include "../core/vtables.h"
 #include "../model/slots.h"
 
 namespace {
@@ -34,7 +35,7 @@ extern "C" {
 void __cdecl LightSource_Destroy(u8 *light) {
     switch (at<u32>(light, 0)) {
     case 0:
-        M3D2_DataErrorBox(reinterpret_cast<const char *>((uintptr_t)0x0074d0dc));
+        M3D2_DataErrorBox(reinterpret_cast<const char *>((uintptr_t)&gText_LightSource_74d0dc));
         return;
     case 1:
         gLobbysky_879dd8[0] = 0x3f800000;  // 1.0f
@@ -53,7 +54,7 @@ void __cdecl LightSource_Destroy(u8 *light) {
     }
 }
 
-void __cdecl LightSource_DestroyMain() { LightSource_Destroy(global<u8 *>(0x007a0b40)); }
+void __cdecl LightSource_DestroyMain() { LightSource_Destroy(global<u8 *>((u32)(uintptr_t)&gLightSource_7a0b40)); }
 
 void __cdecl LightSource_SetColour(u8 *const *holder, u32 r, u32 g, u32 b) {
     u8 *const object = *holder;
@@ -99,7 +100,7 @@ void __fastcall LightPart_SetColour(u8 *part, void *, u32 a, u32 r, u32 g, u32 b
 u8 *__fastcall Obj_CtorVirtual(u8 *object, void *, u32 mostDerived) {
     if (mostDerived) {
         at<u32>(object, 0) = 0x006fe570;
-        at<u32>(object, 0x60) = 0x006fdce8;
+        at<u32>(object, 0x60) = (u32)(uintptr_t)Class6fdce8_vtable;
     }
     at<u32>(object, at<u32>(at<u8 *>(object, 0), 4)) = (u32)(uintptr_t)Class6fdcd8_vtable;
     const u32 base = at<u32>(at<u8 *>(object, 0), 4);
@@ -139,7 +140,7 @@ u32 *__cdecl LightSource_Create(u32 kind, u32 colour, const u32 *point, const u3
     const float k = gLightSource_6fe53c;
     switch (kind) {
     case 0:
-        M3D2_DataErrorBox(reinterpret_cast<const char *>((uintptr_t)0x0074d0dc));
+        M3D2_DataErrorBox(reinterpret_cast<const char *>((uintptr_t)&gText_LightSource_74d0dc));
         return nullptr;   // (the block kept by nobody: sic)
     case 1:
         gLobbysky_879dd8[0] = 0x3f800000;   // 1.0f
@@ -155,7 +156,7 @@ u32 *__cdecl LightSource_Create(u32 kind, u32 colour, const u32 *point, const u3
         if (part && kind == 2) {   // (the constructors inline)
             at<u32>(part, 0) = 0x006fdd00;
             at<u32>(part, 0xc) = 0x006fdcf8;
-            at<u32>(part, 8) = 0x006fdce8;
+            at<u32>(part, 8) = (u32)(uintptr_t)Class6fdce8_vtable;
             at<u32>(part, offset(0xc, 4) + 0xc) = (u32)(uintptr_t)Class6fdcd8_vtable;
             at<s32>(part, offset(0xc, 4) + 8) = offset(0xc, 4) - 0x60;
             at<u32>(part, 0x5c) = 0;
@@ -167,7 +168,7 @@ u32 *__cdecl LightSource_Create(u32 kind, u32 colour, const u32 *point, const u3
         } else if (part) {
             at<u32>(part, 0) = 0x006fe560;
             at<u32>(part, 0xc) = 0x006fe558;
-            at<u32>(part, 8) = 0x006fdce8;
+            at<u32>(part, 8) = (u32)(uintptr_t)Class6fdce8_vtable;
             Obj_CtorVirtual(part + 0xc, nullptr, 0);
             at<u32>(part, offset(0, 4)) = (u32)(uintptr_t)Class6fe548_vtable;
             at<s32>(part, offset(0, 4) - 4) = offset(0, 4) - 8;
@@ -208,27 +209,27 @@ u32 *__cdecl LightSource_Create(u32 kind, u32 colour, const u32 *point, const u3
 }
 
 void __cdecl LightSource_CreateMain() {
-    float *const v = &global<float>(0x007a0b30);
+    float *const v = &global<float>((u32)(uintptr_t)&gLightsource_7a0b30);
     const X87Reg sum = X87Reg(v[0]) * v[0] + X87Reg(v[1]) * v[1] + X87Reg(v[2]) * v[2];
     const float length = (float)X87_Sqrt(sum);
     const float x = (float)(X87Reg(v[0]) / length), y = (float)(X87Reg(v[1]) / length), z = (float)(X87Reg(v[2]) / length);
     v[0] = x;
     v[1] = y;
     v[2] = z;
-    u32 *const light = LightSource_Create(2, global<u32>(0x007a0b3c), nullptr, &global<u32>(0x007a0b30));
-    global<u32 *>(0x007a0b40) = light;
+    u32 *const light = LightSource_Create(2, gState_7a0b3c, nullptr, &global<u32>((u32)(uintptr_t)&gLightsource_7a0b30));
+    global<u32 *>((u32)(uintptr_t)&gLightSource_7a0b40) = light;
     u8 *const part = reinterpret_cast<u8 *>((uintptr_t)light[1]);
     at<u32>(part + at<s32>(at<u8 *>(part, 0), 8), 0x50) |= 0x20;
 }
 
 void __cdecl LightSource_UpdateMain(u32 update) {
     if (!update) return;
-    float *const v = &global<float>(0x007a0b30);
+    float *const v = &global<float>((u32)(uintptr_t)&gLightsource_7a0b30);
     const X87Reg sum = X87Reg(v[0]) * v[0] + X87Reg(v[1]) * v[1] + X87Reg(v[2]) * v[2];
     const float length = (float)X87_Sqrt(sum);
-    const u32 ambient = global<u32>(0x007a0b44);
+    const u32 ambient = gState_7a0b44;
     gLobbysky_879dd8[0] = 0x3f800000;   // 1.0f
-    const float scale = (float)(X87Reg(global<float>(0x0074d0d8)) / length);
+    const float scale = (float)(X87Reg(gLightSource_UpdateMain_74d0d8) / length);
     const float k = gLightSource_6fe53c;
     reinterpret_cast<float &>(gLobbysky_879dd8[1]) = (float)X87_MulInt(ambient >> 16 & 0xff, k);
     reinterpret_cast<float &>(gLobbysky_879dd8[2]) = (float)X87_MulInt(ambient >> 8 & 0xff, k);
@@ -238,7 +239,7 @@ void __cdecl LightSource_UpdateMain(u32 update) {
     v[1] = y;
     v[2] = z;
     const auto base = [] {   // (the light's part, +4, at its virtual base)
-        u8 *const part = reinterpret_cast<u8 *>((uintptr_t)global<u32 *>(0x007a0b40)[1]);
+        u8 *const part = reinterpret_cast<u8 *>((uintptr_t)global<u32 *>((u32)(uintptr_t)&gLightSource_7a0b40)[1]);
         return part + at<s32>(at<u8 *>(part, 0), 8);
     };
     u8 *b = base();
@@ -247,7 +248,7 @@ void __cdecl LightSource_UpdateMain(u32 update) {
     at<float>(b, 0x30) = y;
     at<float>(b, 0x34) = z;
     const float factor = gLightSource_6fe50c;
-    const u32 colour = global<u32>(0x007a0b3c);
+    const u32 colour = gState_7a0b3c;
     b = base();
     SceneFlags_Touch(reinterpret_cast<u32 *>(0x008bd508));
     at<u32>(b, 0x54) = colour;
@@ -258,7 +259,7 @@ void __cdecl LightSource_UpdateMain(u32 update) {
 }
 void __fastcall LightSlot_Set(u8 *slot, void *, u32 on, const u32 *colour, const u32 *direction, u32 value) {
     const auto paint = [](u8 *light, u32 c) {   // the colour's channels (high byte first) * [0x702a30] * [0x702a4c] at +4..+0x10, itself at +0x54
-        const float scale = global<float>(0x00702a30), k = global<float>(0x00702a4c);
+        const float scale = gLightSlot_Set_702a30, k = gLightSlot_Set_702a4c;
         SceneFlags_Touch(reinterpret_cast<u32 *>(0x008bd508));
         at<u32>(light, 0x54) = c;
         at<float>(light, 4) = (float)(X87Reg(X87_MulInt(c >> 24, scale)) * k);

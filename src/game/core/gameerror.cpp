@@ -4,6 +4,7 @@
 
 #include "crt.h"
 #include "fieldops.h"
+#include "imports.h"
 #include "staticobjects.h"
 
 namespace {
@@ -40,7 +41,7 @@ void __fastcall GameError_Show(u8 *report) {
         g_calls.Cd(0x006acd60, *reinterpret_cast<const u32 *>((uintptr_t)&gLanguage_78b530 + 0x558), text, 0x100u, static_cast<u32>(kEntries[index]));
     if (report[0xc]) Crt().swprintf(text, reinterpret_cast<const u16 *>((uintptr_t)0x007477d0), text, report + 0xc);
     using MessageBox = s32(__stdcall *)(void *, const u16 *, const u16 *, u32);
-    (*reinterpret_cast<const MessageBox *>((uintptr_t)0x006fd378))(nullptr, text, reinterpret_cast<const u16 *>((uintptr_t)0x007477ac), 0x10010);
+    (*reinterpret_cast<const MessageBox *>((uintptr_t)IMPORT(User32_MessageBoxW)))(nullptr, text, reinterpret_cast<const u16 *>((uintptr_t)0x007477ac), 0x10010);
 }
 
 

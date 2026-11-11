@@ -163,7 +163,7 @@ extern "C" s32 __cdecl Panel7cc3e0_Handler(u8 *window, u32 message, u32 a, u32 b
             if (!global<u8 *>((u32)(uintptr_t)&gStatic_7cc3e0 + 0x14)) break;
             if (u8 *const child = Window_FindChild(global<u8 *>((u32)(uintptr_t)&gStatic_7cc3e0 + 0x14), nullptr, 0x5210)) {
                 const SetValue set = (*reinterpret_cast<SetValue *const *>(child))[7];
-                g_env->table(global<u8 *>(0x007cf83c));   // (its answer only the ECX of the stdcall)
+                g_env->table(gWorldPtr);   // (its answer only the ECX of the stdcall)
                 set(child, nullptr, g_env->control((a & 0xffff0000) | *reinterpret_cast<const u16 *>(thing + 0xe)));
             }
             u8 *const child = Window_FindChild(global<u8 *>((u32)(uintptr_t)&gStatic_7cc3e0 + 0x14), nullptr, 0x520e);

@@ -12,7 +12,9 @@
 #include "stdlist.h"
 #include "vcall.h"
 #include "vdtor.h"
+#include "../gfx/screensurfaces.h"
 #include "../input/devicefilter.h"
+#include "imports.h"
 
 namespace {
 
@@ -124,9 +126,9 @@ u8 *__fastcall InputSystem_DeletingDtor(u8 *o, void *, u32 flags) {
 }
 
 void __fastcall InputSystem_Dtor(u8 *o) {
-    at<u32>(o, 0) = 0x703710;
+    at<u32>(o, 0) = (u32)(uintptr_t)Class703710_vtable;
     if (u8 *const part = at<u8 *>(o, 0x80)) vcall<u8 *>(part, 4, 1u);
-    at<u32>(o, 0x84) = 0x6fef90;
+    at<u32>(o, 0x84) = (u32)(uintptr_t)SurfaceSource_vtable;
     release(at<u8 *>(o, 0x78));
     release(at<u8 *>(o, 0x74));
     release(at<u8 *>(o, 0x70));
@@ -217,11 +219,11 @@ u32 *__cdecl InputSystem_CreateDevice74(u32 *out, u8 **object) {
     u8 *const part = made + 0x10, *const list = part + 4;
     const u8 listAllocator = 0, blockAllocator = 0;   // (stack bytes in the original; nothing reads what they set)
     Sentinel_Ctor(list, nullptr, &listAllocator);
-    at<u32>(part, 0) = 0x7037b8;
+    at<u32>(part, 0) = (u32)(uintptr_t)Class7037b8_vtable;
     u32 entry = 0;
     if (u8 *const block = alloc(0x14)) {
         at<u32>(block, 8) = 0;
-        at<u32>(block, 0) = 0x7037b4;
+        at<u32>(block, 0) = (u32)(uintptr_t)Class7037b4_vtable;
         entry = static_cast<u32>(reinterpret_cast<uintptr_t>(block));
     }
     StdListDword_PushBack(list, nullptr, &entry);
@@ -230,7 +232,7 @@ u32 *__cdecl InputSystem_CreateDevice74(u32 *out, u8 **object) {
     at<u32>(part, 0x10) = head;
     Fn_4f0150(made + 0x24, nullptr, static_cast<u32>(reinterpret_cast<uintptr_t>(&blockAllocator)));
     g_env->c633900(made + 0x34);
-    at<u32>(made, 0) = 0x7037a0;
+    at<u32>(made, 0) = (u32)(uintptr_t)Class7037a0_vtable;
     at<u32>(part, 0) = ((u32)(uintptr_t)Class703780_vtable + 0x1c);
     return finish(out, object, made, g_env->f633340);
 }
@@ -243,7 +245,7 @@ u8 *__fastcall InputDevice74_DeletingDtor(u8 *o, void *, u32 flags) {
 u8 *__fastcall InputDevice74_DeletingDtorThunk(u8 *part, void *, u32 flags) { return InputDevice74_DeletingDtor(part - 0x10, nullptr, flags); }
 
 void __fastcall InputDevice74_Dtor(u8 *o) {
-    at<u32>(o, 0) = 0x7037a0;
+    at<u32>(o, 0) = (u32)(uintptr_t)Class7037a0_vtable;
     at<u32>(o, 0x10) = ((u32)(uintptr_t)Class703780_vtable + 0x1c);
     g_env->f633920(o + 0x34);
     GameHeap_Free(at<void *>(o, 0x28));
@@ -260,7 +262,7 @@ u8 *__fastcall InputBase_DeletingDtor(u8 *o, void *, u32 flags) {
 }
 
 void __fastcall InputBase_Dtor(u8 *o) {
-    at<u32>(o, 0) = 0x7037e8;
+    at<u32>(o, 0) = (u32)(uintptr_t)Class7037e8_vtable;
     u32 local;
     InputBase_CloseDevice5c(o, nullptr, &local);
     InputBase_CloseDevice58(o, nullptr, &local);
@@ -341,8 +343,8 @@ void __fastcall InputBase_OnEvent(u8 *o, void *, u32, const u32 *event) {
     u32 local;
     switch (event[0]) {
     case 4:
-        global<void(__stdcall *)(const char *)>(0x6fd1e0)(reinterpret_cast<const char *>((uintptr_t)0x7780d0));
-        global<u32(__stdcall *)(u32)>(0x6fd30c)(event[1] ? 0 : 1);
+        global<void(__stdcall *)(const char *)>(IMPORT(Kernel32_OutputDebugStringA))(gInputsystem_7780d0);
+        global<u32(__stdcall *)(u32)>(IMPORT(User32_ShowCursor))(event[1] ? 0 : 1);
         if (!at<u32>(o, 0x54) && event[1]) InputBase_SetDeviceValue(o, nullptr, &local, event[1]);
         return;
     case 6:
@@ -407,7 +409,7 @@ u32 *__cdecl InputBase_CreateDevice64(u32 *out, u8 **object) {
     at<u32>(made, 0x6c) = 0;
     at<u32>(made, 0x70) = 0;
     at<u32>(made, 0x68) = (u32)(uintptr_t)InputSubs_vtable;
-    at<u32>(made, 0) = 0x703810;
+    at<u32>(made, 0) = (u32)(uintptr_t)InputChain64_vtable;
     at<u32>(made, 0x64) = 0x703808;
     return finish(out, object, made, g_env->f6345a0);
 }
@@ -420,7 +422,7 @@ u8 *__fastcall InputChain64_DeletingDtor(u8 *o, void *, u32 flags) {
 u8 *__fastcall InputChain64_DeletingDtorThunk(u8 *part, void *, u32 flags) { return InputChain64_DeletingDtor(part - 0x64, nullptr, flags); }
 
 void __fastcall InputChain64_Dtor(u8 *o) {
-    at<u32>(o, 0) = 0x703810;
+    at<u32>(o, 0) = (u32)(uintptr_t)InputChain64_vtable;
     at<u32>(o, 0x64) = 0x703808;
     g_env->f6336f0(o + 0x68);
     at<u32>(o, 0x64) = (u32)(uintptr_t)KeyFilter_vtable_703748;

@@ -20,6 +20,7 @@
 #include "vcall.h"
 #include "voiceevents.h"
 #include "voicesample.h"
+#include "imports.h"
 #include "staticobjects.h"
 
 namespace {
@@ -29,8 +30,8 @@ template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cas
 template <typename F> F Import(u32 slot) { return *reinterpret_cast<const F *>((uintptr_t)slot); }
 using OnObject = s32(__stdcall *)(void *);
 
-void Enter(u8 *voice) { Import<OnObject>(0x006fd140)(voice + 0x74); }   // EnterCriticalSection
-void Leave(u8 *voice) { Import<OnObject>(0x006fd130)(voice + 0x74); }   // LeaveCriticalSection
+void Enter(u8 *voice) { Import<OnObject>(IMPORT(Kernel32_EnterCriticalSection))(voice + 0x74); }   // EnterCriticalSection
+void Leave(u8 *voice) { Import<OnObject>(IMPORT(Kernel32_LeaveCriticalSection))(voice + 0x74); }   // LeaveCriticalSection
 
 // A sound resource reference's resource (+8: 0x41a830) and its stream (slot 11).
 u8 *Source(u8 *ref) { return reinterpret_cast<u8 *>(static_cast<uintptr_t>(Language_Id(ref))); }
@@ -42,9 +43,9 @@ extern "C" {
 
 void __cdecl ChannelVoiceCount_Reset() { *reinterpret_cast<s32 *>((uintptr_t)0x00fb2058) = 0; }
 
-s32 __fastcall ChannelVoiceCount_Increment(s32 *count) { return Import<OnObject>(0x006fd0c0)(count); }
+s32 __fastcall ChannelVoiceCount_Increment(s32 *count) { return Import<OnObject>(IMPORT(Kernel32_InterlockedIncrement))(count); }
 
-s32 __fastcall ChannelVoiceCount_Decrement(s32 *count) { return Import<OnObject>(0x006fd12c)(count); }
+s32 __fastcall ChannelVoiceCount_Decrement(s32 *count) { return Import<OnObject>(IMPORT(Kernel32_InterlockedDecrement))(count); }
 
 u8 *__fastcall ChannelVoice_Sound(u8 *voice) {
     Enter(voice);
@@ -70,11 +71,11 @@ u8 __fastcall ChannelVoice_Release(u8 *voice, void *, u32 value) {
 }
 
 void __fastcall ChannelVoice_Dtor(u8 *voice) {
-    at<u32>(voice, 0) = 0x0070a7a8;
-    Import<OnObject>(0x006fd0d0)(voice + 0x74);   // DeleteCriticalSection
-    Import<OnObject>(0x006fd13c)(reinterpret_cast<void *>(static_cast<uintptr_t>(at<u32>(voice, 0x6c))));   // CloseHandle
+    at<u32>(voice, 0) = (u32)(uintptr_t)Class70a7a8_vtable;
+    Import<OnObject>(IMPORT(Kernel32_DeleteCriticalSection))(voice + 0x74);   // DeleteCriticalSection
+    Import<OnObject>(IMPORT(Kernel32_CloseHandle))(reinterpret_cast<void *>(static_cast<uintptr_t>(at<u32>(voice, 0x6c))));   // CloseHandle
     GameHeap_Free(at<u8 *>(voice, 0x64));
-    at<u32>(voice, 0) = 0x0070a778;
+    at<u32>(voice, 0) = (u32)(uintptr_t)Class70a778_vtable;
 }
 
 u8 *__fastcall ChannelVoice_DeletingDtor(u8 *voice, void *, u32 flags) {
@@ -221,7 +222,7 @@ u8 *__fastcall ChannelVoice_Ctor(u8 *voice) {
     at<u32>(voice, 4) = 0;
     at<u32>(voice, 8) = 0;
     at<u32>(voice, 0xc) = 0;
-    at<u32>(voice, 0) = 0x0070a778;
+    at<u32>(voice, 0) = (u32)(uintptr_t)Class70a778_vtable;
     at<u32>(voice, 0x10) = 0;
     at<u32>(voice, 0x18) = 0;
     at<u32>(voice, 0x1c) = 0;
@@ -234,10 +235,10 @@ u8 *__fastcall ChannelVoice_Ctor(u8 *voice) {
     at<u32>(voice, 0x64) = static_cast<u32>(block);
     at<u32>(voice, 0x68) = static_cast<u32>((block + 0x1f) & ~static_cast<uintptr_t>(0x1f));
     using CreateEvent = u32(__stdcall *)(void *, u32, u32, const char *);
-    at<u32>(voice, 0x6c) = Import<CreateEvent>(0x006fd0d4)(nullptr, 1, 0, nullptr);   // CreateEventA
-    Import<OnObject>(0x006fd144)(voice + 0x74);   // InitializeCriticalSection
+    at<u32>(voice, 0x6c) = Import<CreateEvent>(IMPORT(Kernel32_CreateEventA))(nullptr, 1, 0, nullptr);   // CreateEventA
+    Import<OnObject>(IMPORT(Kernel32_InitializeCriticalSection))(voice + 0x74);   // InitializeCriticalSection
     at<u32>(voice, 0x58) = 0;
-    at<u32>(voice, 0) = 0x0070a7a8;
+    at<u32>(voice, 0) = (u32)(uintptr_t)Class70a7a8_vtable;
     return voice;
 }
 
@@ -277,7 +278,7 @@ const ChannelVoicesEnv *g_voices = &kVoicesEnv;
 
 u32 createEvent() {
     using Create = u32(__stdcall *)(void *, u32, u32, const char *);
-    return Import<Create>(0x006fd0d4)(nullptr, 1, 0, nullptr);   // CreateEventA
+    return Import<Create>(IMPORT(Kernel32_CreateEventA))(nullptr, 1, 0, nullptr);   // CreateEventA
 }
 
 }  // namespace
@@ -298,7 +299,7 @@ u32 *__fastcall ChannelVoices_Start(u8 *pool, void *, u32 *out, u32 requested) {
     *stop = createEvent();
     const u32 thread = g_voices->beginThread(0x006ba220, 0, pool);
     using SetPriority = s32(__stdcall *)(u32, s32);
-    Import<SetPriority>(0x006fd1fc)(thread, 0);   // SetThreadPriority
+    Import<SetPriority>(IMPORT(Kernel32_SetThreadPriority))(thread, 0);   // SetThreadPriority
     *out = thread ? 0 : 0xffffffffu;
     return out;
 }
@@ -309,8 +310,8 @@ u32 *__fastcall ChannelVoiceHandle_Resume(const u8 *self, void *, u32 *out, u8 *
     SemaphoreLock_Acquire(&lock, nullptr, 1);
     u32 handle = at<u32>(self, 4);
     u8 *const voice = handle ? g_voices->find(at<u8 *>(owner, 0x14), nullptr, &handle) : nullptr;
-    if (voice && Import<OnObject>(0x006fd168)(reinterpret_cast<void *>(static_cast<uintptr_t>(at<u32>(voice, 0x6c)))) &&   // ResetEvent
-        Import<OnObject>(0x006fd124)(reinterpret_cast<void *>(static_cast<uintptr_t>(*at<u32 *>(voice, 0x70))))) {          // SetEvent
+    if (voice && Import<OnObject>(IMPORT(Kernel32_ResetEvent))(reinterpret_cast<void *>(static_cast<uintptr_t>(at<u32>(voice, 0x6c)))) &&   // ResetEvent
+        Import<OnObject>(IMPORT(Kernel32_SetEvent))(reinterpret_cast<void *>(static_cast<uintptr_t>(*at<u32 *>(voice, 0x70))))) {          // SetEvent
         vcall<void>(at<u8 *>(owner, 0x18), 0x24, out, voice);
     } else {
         *out = 0xffffffffu;
@@ -323,8 +324,8 @@ u32 __fastcall ChannelVoice_Refill(u8 *voice) {
     u32 done;   // (the read's out: not read after)
     const u32 read = vcall<u32>(voice, 0x1c, at<u32>(voice, 0x68), 0x2400u, &done, 0u);
     at<u32>(voice, 0x30) = read != 1;
-    Import<OnObject>(0x006fd168)(reinterpret_cast<void *>(static_cast<uintptr_t>(*at<u32 *>(voice, 0x70))));   // ResetEvent
-    Import<OnObject>(0x006fd124)(reinterpret_cast<void *>(static_cast<uintptr_t>(at<u32>(voice, 0x6c))));    // SetEvent
+    Import<OnObject>(IMPORT(Kernel32_ResetEvent))(reinterpret_cast<void *>(static_cast<uintptr_t>(*at<u32 *>(voice, 0x70))));   // ResetEvent
+    Import<OnObject>(IMPORT(Kernel32_SetEvent))(reinterpret_cast<void *>(static_cast<uintptr_t>(at<u32>(voice, 0x6c))));    // SetEvent
     return at<u32>(voice, 0x30);
 }
 
@@ -395,7 +396,7 @@ u8 *__fastcall ChannelVoices_CreateStream(u8 *, void *, u8 *voice, u32 *play) {
             }
         } else if (u8 *const block = static_cast<u8 *>(MemorySamplePool_New(0x2c))) {   // PCM in memory
             stream = SoundSample_Ctor(block, nullptr, reinterpret_cast<u8 *>(record), Source(ref));
-            at<u32>(stream, 0) = 0x0070a6f8;
+            at<u32>(stream, 0) = (u32)(uintptr_t)Class70a6f8_vtable;
         }
         if (stream) stream = SoundStream_BuildChain(reinterpret_cast<u8 *>(play), header, stream);
         if (stream) {
@@ -407,7 +408,7 @@ u8 *__fastcall ChannelVoices_CreateStream(u8 *, void *, u8 *voice, u32 *play) {
                     wrap[3] = 0;
                     wrap[4] = 0;
                     wrap[6] = play[0x13];
-                    wrap[0] = 0x0070a6c8;
+                    wrap[0] = (u32)(uintptr_t)Class70a6c8_vtable;
                 }
                 stream = SoundStream_Chain(stream, reinterpret_cast<u8 *>(wrap));
                 play[5] &= ~0x800u;
@@ -428,7 +429,7 @@ u8 *__fastcall ChannelVoices_CreateStream(u8 *, void *, u8 *voice, u32 *play) {
     return nullptr;
 }
 
-void __fastcall CriticalSectionLock_Leave(void **lock) { Import<OnObject>(0x006fd130)(*lock); }
+void __fastcall CriticalSectionLock_Leave(void **lock) { Import<OnObject>(IMPORT(Kernel32_LeaveCriticalSection))(*lock); }
 
 void __fastcall ChannelVoice_SoundAndValue(u8 *voice, void *, u32 *sound, u32 *value) {
     Enter(voice);
@@ -450,14 +451,14 @@ u32 *__fastcall ChannelVoice_Send(u8 *voice, void *, u32 *out, u32 handle, u32 v
 
 u32 __fastcall ChannelVoice_Mix(u8 *voice, void *, u8 *dest, u32 size) {
     using Wait = u32(__stdcall *)(u32, u32);
-    if (Import<Wait>(0x006fd128)(at<u32>(voice, 0x6c), 500) == 0x102) {   // (WaitForSingleObject: timed out, silence)
+    if (Import<Wait>(IMPORT(Kernel32_WaitForSingleObject))(at<u32>(voice, 0x6c), 500) == 0x102) {   // (WaitForSingleObject: timed out, silence)
         std::memset(dest, 0, size);
         return 1;
     }
     u8 *const copier = *reinterpret_cast<u8 **>(static_cast<uintptr_t>(0x00fb2018));
     vcall<void>(copier, 0, dest, at<u32>(voice, 0x68), size);
-    Import<OnObject>(0x006fd168)(reinterpret_cast<void *>(static_cast<uintptr_t>(at<u32>(voice, 0x6c))));   // ResetEvent
-    if (at<u32>(voice, 0x30)) Import<OnObject>(0x006fd124)(reinterpret_cast<void *>(static_cast<uintptr_t>(*at<u32 *>(voice, 0x70))));   // SetEvent
+    Import<OnObject>(IMPORT(Kernel32_ResetEvent))(reinterpret_cast<void *>(static_cast<uintptr_t>(at<u32>(voice, 0x6c))));   // ResetEvent
+    if (at<u32>(voice, 0x30)) Import<OnObject>(IMPORT(Kernel32_SetEvent))(reinterpret_cast<void *>(static_cast<uintptr_t>(*at<u32 *>(voice, 0x70))));   // SetEvent
     return at<u32>(voice, 0x30);
 }
 

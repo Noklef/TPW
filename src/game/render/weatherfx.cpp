@@ -20,6 +20,8 @@
 #include "spritequeue.h"
 #include "../gfx/texcache.h"
 #include "meshlist.h"
+#include "../world/camera.h"
+#include "../core/vdtor.h"
 #include "../core/staticobjects.h"
 
 namespace {
@@ -586,7 +588,7 @@ extern "C" void __cdecl WeatherFx_ReloadEffects() {
     u32 handle[2];
     Handle *const h = reinterpret_cast<Handle *>(handle);
     g_reload->ctor(h);
-    handle[0] = 0x006fd9e8;
+    handle[0] = ((u32)(uintptr_t)ListDtor6fd9e4_vtable + 0x4);
     if (*reinterpret_cast<u8 **>((uintptr_t)0x008bcbac)) {
         const char *name = g_reload->locate(TextAt((u32)&gText_WeatherFx_765218), 1, nullptr);
         g_reload->load(*reinterpret_cast<u8 **>((uintptr_t)0x008bcbac), nullptr, 2, name);
@@ -730,7 +732,7 @@ u32 __fastcall WeatherFx_Frame(u8 *fx) {
     if (!g_boltCalls.Th(0x0057ee30, (u32)(uintptr_t)fx)) return 0;
     if (!at<u32>(fx, 0x3318)) return 1;
 
-    const float scale = global<u8>(0x00790ab0) & 0x16 ? 0.3f : at<float>(fx, 0x3340);   // 0x3e99999a
+    const float scale = reinterpret_cast<u8 &>(gCameraFlags) & 0x16 ? 0.3f : at<float>(fx, 0x3340);   // 0x3e99999a
     const u8 *const cam = global<u8 *>(0x0087afe8);
     const X87Reg x = fixed_place(X87Reg(at<float>(cam, 0x30)) * scale);
     const X87Reg y = fixed_place(X87Reg(-(X87Reg(at<float>(cam, 0x34)) * scale).v));

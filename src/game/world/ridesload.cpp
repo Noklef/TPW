@@ -4,6 +4,7 @@
 #include <cstdint>
 
 #include "../files/file.h"
+#include "rides.h"
 
 namespace {
 
@@ -125,7 +126,7 @@ const u8 *LoadRecord(const u8 *record, u32 serial) {
         desc[3] = 0;
     }
     const u32 id = g_calls.Cd(0x00463060, type, at<const u32>(record, 0x14), desc, 0u, at<const u32>(record, 0x18), 0u, sizeX, sizeY, serial, 1u);   // Ride_Create
-    u8 *const ride = g<u8 *>(0x007a4610 + 4 * id);
+    u8 *const ride = gRides_7a4610[id];
     u8 *const held = at<u8 *>(ride, 8);
     u8 *const model = at<u8 *>(held, 4);
     const bool same = at<const u16>(counts, 6) == at<u16>(model, 0x48) && at<const u16>(counts, 4) == at<u16>(model, 0x42);
@@ -216,7 +217,7 @@ u32 __cdecl RideSystem_Load(Stream *stream) {
 u32 __cdecl RideSystem_Save(Stream *stream) {
     u32 size = 0xc;
     for (u32 i = 0; i < g<u32>(0x007a3ebc) + g<u32>(0x007a4084); ++i) {
-        const u8 *const ride = g<u8 *>(0x007a4614 + 4 * i);
+        const u8 *const ride = gRides_7a4610[i + 1];
         ++size;
         if (ride) {
             const u8 *const model = at<u8 *>(at<u8 *>(ride, 8), 4);
@@ -229,7 +230,7 @@ u32 __cdecl RideSystem_Save(Stream *stream) {
     at<u32>(block, 8) = g<u32>(0x007aedf4);
     u8 *cursor = block + 0xc;
     for (u32 i = 0; i < g<u32>(0x007a3ebc) + g<u32>(0x007a4084); ++i) {
-        u8 *const ride = g<u8 *>(0x007a4614 + 4 * i);
+        u8 *const ride = gRides_7a4610[i + 1];
         *cursor++ = ride ? 1 : 0;
         if (ride) cursor = SaveRecord(cursor, ride);
     }

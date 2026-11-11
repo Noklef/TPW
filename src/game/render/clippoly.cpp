@@ -5,6 +5,7 @@
 
 #include "../math/x87.h"
 #include "clipedge.h"
+#include "d3dsetup.h"
 
 namespace {
 
@@ -93,7 +94,7 @@ u16 *__stdcall ClipPoly_TriangleFan(s32 flags, u16 *end, u8 *vertices, u32 *vert
     ClipPolygon poly;
     poly.count = 3;
     poly.idx = end - 3;
-    ClipPoly_Indexed(global<void *>(0x00879a20), nullptr, flags, vertices, &poly, vertexCount, stride);
+    ClipPoly_Indexed(global<void *>((u32)(uintptr_t)&gD3dsetup_879a20), nullptr, flags, vertices, &poly, vertexCount, stride);
     const s32 n = poly.count;
     u16 *const idx = end - 3;
     if (n <= 3)

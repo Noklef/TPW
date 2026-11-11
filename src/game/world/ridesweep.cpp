@@ -9,6 +9,7 @@
 #include "things.h"
 #include "../ui/panel7cc218.h"
 #include "ridesweep.h"
+#include "world.h"
 
 namespace {
 
@@ -23,7 +24,7 @@ u16 DefWord(const u8 *thing) {
 
 // The things of the table newest first (the world at [0x7cf83c]) that pass the test, the callback called for each; how many.
 template <typename Test> s32 Walk(ObjectCallback callback, Test test) {
-    u8 *world = global<u8 *>(0x007cf83c);
+    u8 *world = gWorldPtr;
     s32 count = 0;
     u16 handle;
     World_FirstThing(world, nullptr, &handle);
@@ -47,7 +48,7 @@ template <typename Test> s32 Sweep(ObjectCallback callback, Test test) {
 s32 StaffList(u16 *(__fastcall *first)(const u8 *, void *, u16 *), ObjectCallback callback) {
     s32 count = 0;
     u16 handle;
-    first(global<u8 *>(0x007cf83c), nullptr, &handle);
+    first(gWorldPtr, nullptr, &handle);
     while (handle != 0) {
         u8 *const thing = Thing_ByHandle(handle);
         callback(thing);

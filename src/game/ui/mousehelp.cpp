@@ -19,6 +19,8 @@
 #include "cursor.h"
 #include "mouseclick.h"
 #include "window7cc8c0handler.h"
+#include "../world/world.h"
+#include "../core/textarg.h"
 #include "../core/staticobjects.h"
 
 namespace {
@@ -56,7 +58,7 @@ void format(u32 entry, const u32 *argument) { g_env->format(global<u8 *>((u32)(u
 
 // The entry formatted with a string argument, shown.
 void showWith(u32 entry, const void *text) {
-    const u32 argument[4] = {0x006ff174, 0x5641524d, 2, (u32)(uintptr_t)text};
+    const u32 argument[4] = {(u32)(uintptr_t)TextArgString_vtable, 0x5641524d, 2, (u32)(uintptr_t)text};
     format(entry, argument);
     g_env->help(kBuffer);
 }
@@ -82,7 +84,7 @@ void overRideMode() {
     if (!global<u32>(0x007a1c7c)) {
         const u32 tile = global<u16>(0x007b05cc);
         if (!tile) return;
-        u8 *const world = global<u8 *>(0x007cf83c);
+        u8 *const world = gWorldPtr;
         const u8 *const cell = cellOf(world, tile);
         if (at<u32>(cell, 8) != 0x15) return;
         u16 out;
@@ -120,7 +122,7 @@ void overTile(u32 previous) {
         g_env->cursor(0);
         return;
     }
-    u8 *const world = global<u8 *>(0x007cf83c);
+    u8 *const world = gWorldPtr;
     u8 *const map = world + 0x2d8;
     u16 entrance0, entrance1, booth0, booth1;
     g_env->entrance(map, nullptr, &entrance0, 0);
@@ -267,7 +269,7 @@ void overPerson(u8 *under, u32 previous) {
             if (!id) {
                 format(0x22a, nullptr);
             } else {
-                const u32 argument[5] = {0x006ff170, 0x5641524d, 3, id, 0};
+                const u32 argument[5] = {(u32)(uintptr_t)TextArgInt_vtable, 0x5641524d, 3, id, 0};
                 format(0x229, argument);
             }
             g_env->help(kBuffer);

@@ -5,6 +5,8 @@
 
 #include "../core/crt.h"
 #include "rastertriangle.h"
+#include "rasterspans.h"
+#include "../core/imports.h"
 #include "../core/staticobjects.h"
 
 namespace {
@@ -48,20 +50,20 @@ void setFormat(u32 red, u32 green, u32 blue) {
     gRasterformat_fbe098 = ~both;
     gRasterformat_fbe07c[0] = halves;
     gRasterformat_fbe090 = ~halves;
-    const OutputDebugStringFn print = *reinterpret_cast<const OutputDebugStringFn *>((uintptr_t)0x006fd1e0);
+    const OutputDebugStringFn print = *reinterpret_cast<const OutputDebugStringFn *>((uintptr_t)IMPORT(Kernel32_OutputDebugStringA));
     char text[0x74];
-    Crt().sprintf(text, reinterpret_cast<const char *>((uintptr_t)0x0077e5ec), redBits, greenBits, blueBits);
+    Crt().sprintf(text, reinterpret_cast<const char *>((uintptr_t)&gText_Rasterformat_77e5ec), redBits, greenBits, blueBits);
     print(text);
-    Crt().sprintf(text, reinterpret_cast<const char *>((uintptr_t)0x0077e5cc), redLow, greenLow, blueLow);
+    Crt().sprintf(text, reinterpret_cast<const char *>((uintptr_t)&gText_Rasterformat_77e5cc), redLow, greenLow, blueLow);
     print(text);
     for (int n = 1; n <= 4; ++n)
         gRasterformat_fbe07c[n] = spread(static_cast<s32>(red), static_cast<s32>(green), static_cast<s32>(blue), n);
     const bool fiveGreen = greenBits == 5;
-    global<u32>(0x00fbe1a8) = fiveGreen ? 6 : 5;
-    global<u32>(0x00fbe190) = global<u32>(0x00fbe194) = fiveGreen ? 0x20000008 : 0x40000008;
-    global<u32>(0x00fbe198) = global<u32>(0x00fbe19c) = ((u32)(uintptr_t)&gString_f800e8 + 0x10);
-    global<u32>(0x00fbe1a0) = global<u32>(0x00fbe1a4) = fiveGreen ? 0xf800 : 0xfc00;
-    global<u32>(0x00fbe1ac) = 0;
+    global<u32>((u32)(uintptr_t)&gRasterspans_fbe138 + 0x70) = fiveGreen ? 6 : 5;
+    global<u32>((u32)(uintptr_t)&gRasterspans_fbe138 + 0x58) = global<u32>((u32)(uintptr_t)&gRasterspans_fbe138 + 0x5c) = fiveGreen ? 0x20000008 : 0x40000008;
+    global<u32>((u32)(uintptr_t)&gRasterspans_fbe138 + 0x60) = global<u32>((u32)(uintptr_t)&gRasterspans_fbe138 + 0x64) = ((u32)(uintptr_t)&gString_f800e8 + 0x10);
+    global<u32>((u32)(uintptr_t)&gRasterspans_fbe138 + 0x68) = global<u32>((u32)(uintptr_t)&gRasterspans_fbe138 + 0x6c) = fiveGreen ? 0xf800 : 0xfc00;
+    global<u32>((u32)(uintptr_t)&gRasterspans_fbe138 + 0x74) = 0;
 }
 
 }  // namespace
@@ -87,7 +89,7 @@ u32 __cdecl RasterFormat_LowBit(u32 mask) {
 
 void __cdecl RasterFormat_BlendTables() {
     u32 *const shares = reinterpret_cast<u32 *>((uintptr_t)&gRastertriangle_fbe240 + 0xa0);
-    u32 *const rests = reinterpret_cast<u32 *>((uintptr_t)0x00fbe4e0);
+    u32 *const rests = reinterpret_cast<u32 *>((uintptr_t)&gRasterspans_fbe4e0);
     for (s32 i = 0; i < 0x40; ++i) {
         const s32 share = i * 0x10000 / 255;
         const s32 rest = 0x4000 - share;

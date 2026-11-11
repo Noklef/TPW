@@ -18,6 +18,8 @@
 #include "dialog7cc188address.h"
 #include "dialog7cc184handler.h"
 #include "window7cc8c0handler.h"
+#include "../core/textarg.h"
+#include "dialog7cc654.h"
 #include "../core/staticobjects.h"
 
 namespace {
@@ -31,7 +33,7 @@ const Dialog7cc188HandlerEnv kGameEnv = {&UserSlots_Instance, &Window7059f0_NthI
                                          &List_EraseNthCounted, &Dialog7cc188_FillList};
 const Dialog7cc188HandlerEnv *g_env = &kGameEnv;
 
-u16 *recipients() { return reinterpret_cast<u16 *>((uintptr_t)0x007cb4d0); }
+u16 *recipients() { return reinterpret_cast<u16 *>((uintptr_t)&gDialog7cc654_7cb4d0); }
 
 const char *textOf(const StdString *string) {
     const char *const text = at<const char *>(string, 4);
@@ -58,7 +60,7 @@ const u16 *nameOf(u8 *list, s32 row, u32 *data) {
     const char *text = textOf(StdListString_First(strings));
     for (; count; --count) text = textOf(StdListString_Next(strings));
     u16 *const name = reinterpret_cast<u16 *>(gDialog7cc188handler_7cbeb8);
-    Crt().swprintf(name, reinterpret_cast<const u16 *>((uintptr_t)0x0075442c), text);
+    Crt().swprintf(name, reinterpret_cast<const u16 *>((uintptr_t)&gDialog7cc188handler_75442c), text);
     return name;
 }
 
@@ -73,7 +75,7 @@ void askDelete() {
         u32 tag;
         u32 number;
         const u16 *text;
-    } arg = {0x006ff174, 0x5641524d, 3, name};
+    } arg = {(u32)(uintptr_t)TextArgString_vtable, 0x5641524d, 3, name};
     u16 text[0x80];
     g_env->format(global<u8 *>((u32)(uintptr_t)&gLanguage_78b530 + 0x564), text, 0x7f, 0xd7, &arg);
     struct {

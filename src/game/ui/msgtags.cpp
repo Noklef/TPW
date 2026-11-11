@@ -18,6 +18,7 @@
 #include "windowtimers.h"
 #include "dialog7cb2b8build.h"
 #include "panel7b9940.h"
+#include "../core/soundset.h"
 
 namespace {
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
@@ -30,7 +31,7 @@ const MsgTagHandlerEnv *g_handler = &kGameHandlerEnv;
 // The first of the ten records that holds the window, or -1.
 s32 recordOf(const u8 *window) {
     for (s32 i = 0; i < 10; ++i)
-        if (global<const u8 *>(0x007c26b0 + (u32)i * 0x208) == window) return i;
+        if (global<const u8 *>((u32)(uintptr_t)&gMsgtags_7c26b0 + (u32)i * 0x208) == window) return i;
     return -1;
 }
 
@@ -59,7 +60,7 @@ s32 closed(u8 *window, u32 message, u32 a) {
     if (particleLive(particle)) g_handler->end(particle);
     g_handler->stopTimer(window, nullptr, 0x80080);
     g_handler->stopTimer(window, nullptr, 0x80081);
-    u16 &used = global<u16>(0x007c26b4 + (u32)index * 0x208);
+    u16 &used = global<u16>(((u32)(uintptr_t)&gMsgtags_7c26b0 + 0x4) + (u32)index * 0x208);
     if (!used) return 0;
     used = 0;
     --gMsgtags_7ca09c;
@@ -71,9 +72,9 @@ s32 closed(u8 *window, u32 message, u32 a) {
     if (a) {
         for (u8 *tag = reinterpret_cast<u8 *>((uintptr_t)Fn_65d56b(window)); tag; tag = reinterpret_cast<u8 *>((uintptr_t)Fn_65d56b(tag))) {
             g_handler->offset(tag, nullptr, 0, height);
-            if (!tag[0x135]) g_handler->runScript(tag, nullptr, reinterpret_cast<u8 *>((uintptr_t)0x007502f0), 0x14);
+            if (!tag[0x135]) g_handler->runScript(tag, nullptr, gMsgtags_7502f0, 0x14);
         }
-        if (u8 *const child = Window_FindChild(gDialog7cb2b8build_7cb2c4, nullptr, 0x2e)) g_handler->runScript(child, nullptr, reinterpret_cast<u8 *>((uintptr_t)0x007502f0), 0x32);
+        if (u8 *const child = Window_FindChild(gDialog7cb2b8build_7cb2c4, nullptr, 0x2e)) g_handler->runScript(child, nullptr, gMsgtags_7502f0, 0x32);
     }
     g_handler->unlink(window);
     resetWhenShown(window);
@@ -131,7 +132,7 @@ u8 *__cdecl MsgTag_NewWindow(u32 id) {
 
 void __cdecl MsgTags_Create() {
     for (u32 i = 0; i < 10; i++) {
-        u8 *const record = reinterpret_cast<u8 *>((uintptr_t)(0x007c26b0 + 0x208 * i));
+        u8 *const record = reinterpret_cast<u8 *>((uintptr_t)((u32)(uintptr_t)&gMsgtags_7c26b0 + 0x208 * i));
         *reinterpret_cast<u16 *>(record + 4) = 0;
         u8 *const window = MsgTag_NewWindow(0x384 + i);
         *reinterpret_cast<u8 **>(record) = window;
@@ -182,7 +183,7 @@ u8 *__cdecl MsgTags_Add(const u8 *message) {
     s16 width;
     Window_GetSize(gDialog7cb2b8build_7cb2c4, nullptr, &width, nullptr, 1);
     u8 *tag = nullptr;
-    for (u8 *record = reinterpret_cast<u8 *>((uintptr_t)0x007c26b0); record < reinterpret_cast<u8 *>(&gMsgtags_7c3b00); record += 0x208) {
+    for (u8 *record = reinterpret_cast<u8 *>((uintptr_t)&gMsgtags_7c26b0); record < reinterpret_cast<u8 *>(&gMsgtags_7c3b00); record += 0x208) {
         if (*reinterpret_cast<u16 *>(record + 4)) continue;
         *reinterpret_cast<u16 *>(record + 4) = 1;
         tag = *reinterpret_cast<u8 **>(record);
@@ -214,7 +215,7 @@ u8 *__cdecl MsgTags_Add(const u8 *message) {
     Window_SetDwordA0(tag, nullptr, 10, 0);
     Window_PostMessage(gDialog7cb2b8build_7cb2c4, 0x100001, (u32)(uintptr_t)tag, 0);
     gMsgtags_7ca09c++;
-    Sound_PlayAt(0, global<u32>(0x00803a2c), 0x1e, 0, 0, 0);
+    Sound_PlayAt(0, gSoundCategories.ui, 0x1e, 0, 0, 0);
     return tag;
 }
 
@@ -229,7 +230,7 @@ u32 __cdecl MsgTags_Post(const u8 *message) {
 void __cdecl MsgTags_AddVersion() {
     u16 text[16];
     u8 message[0x28];
-    Crt().swprintf(text, reinterpret_cast<const u16 *>((uintptr_t)0x00750694), 2, 0);
+    Crt().swprintf(text, reinterpret_cast<const u16 *>((uintptr_t)&gMsgTags_AddVersion_750694), 2, 0);
     *reinterpret_cast<u32 *>(message + 0) = 0x17e;
     *reinterpret_cast<u32 *>(message + 4) = 0x17e;
     *reinterpret_cast<u16 **>(message + 8) = text;
@@ -280,12 +281,12 @@ u32 __cdecl MsgTags_Load(Stream *stream) {
 
 s32 *__cdecl MsgTags_Save(Stream *stream) {
     s32 count = 0;
-    for (u32 entry = 0x007c26b4; entry < 0x007c3b04; entry += 0x208)
+    for (u32 entry = ((u32)(uintptr_t)&gMsgtags_7c26b0 + 0x4); entry < 0x007c3b04; entry += 0x208)
         if (*reinterpret_cast<u16 *>((uintptr_t)entry)) ++count;
     s32 result, done;
     s32 *answer = Stream_Write(&result, stream, &count, 4, &done);
     u8 record[0x21c];
-    for (u8 *entry = reinterpret_cast<u8 *>((uintptr_t)0x007c26b0); entry < reinterpret_cast<u8 *>(&gMsgtags_7c3b00); entry += 0x208) {
+    for (u8 *entry = reinterpret_cast<u8 *>((uintptr_t)&gMsgtags_7c26b0); entry < reinterpret_cast<u8 *>(&gMsgtags_7c3b00); entry += 0x208) {
         if (!at<u16>(entry, 4)) continue;
         u8 *const window = at<u8 *>(entry, 0);
         *reinterpret_cast<u32 *>(record + 0) = Window_DwordA0(window, nullptr, 1);
@@ -356,7 +357,7 @@ s32 __cdecl MsgTags_WindowHandler(u8 *window, u32 message, u8 *tag, u32 b) {
             Window_SetDwordA0(window, nullptr, 0, first);
             Window_SetDwordA0(window, nullptr, 1, second);
             u8 *const child = Window_FindChild(window, nullptr, 0x2e);
-            if (child && !child[0x135]) Window_RunScript(child, nullptr, reinterpret_cast<u8 *>(0x00752e48), 0x32);
+            if (child && !child[0x135]) Window_RunScript(child, nullptr, gMsgtags_752e48, 0x32);
             GuiRect_Dtor(tagRect);
             GuiRect_Dtor(rect);
         }
@@ -371,7 +372,7 @@ s32 __cdecl MsgTag_Handler(u8 *window, u32 message, u32 a, u32 b) {
     case 5: return closed(window, message, a);
     case 6: {
         const s32 index = recordOf(window);
-        if (index < 0 || !global<u16>(0x007c26b4 + (u32)index * 0x208)) return 0;
+        if (index < 0 || !global<u16>(((u32)(uintptr_t)&gMsgtags_7c26b0 + 0x4) + (u32)index * 0x208)) return 0;
         break;
     }
     case 0x10: timer(window, a); break;
@@ -399,8 +400,8 @@ s32 __cdecl MsgTag_Handler(u8 *window, u32 message, u32 a, u32 b) {
     case 0x14: {
         const s32 index = recordOf(window);
         if (index != -1) {
-            global<u16>(0x007c26b4 + (u32)index * 0x208) = 0;
-            global<u32>(0x007c26b0 + (u32)index * 0x208) = 0;
+            global<u16>(((u32)(uintptr_t)&gMsgtags_7c26b0 + 0x4) + (u32)index * 0x208) = 0;
+            global<u32>((u32)(uintptr_t)&gMsgtags_7c26b0 + (u32)index * 0x208) = 0;
         }
         break;
     }

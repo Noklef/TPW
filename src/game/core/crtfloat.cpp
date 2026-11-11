@@ -6,6 +6,7 @@
 
 #include <cstdint>
 #include <cstring>
+#include "imports.h"
 
 namespace {
 
@@ -796,10 +797,10 @@ s32 __cdecl CRT_ms_p5_test_fdiv() {
 }
 
 s32 __cdecl CRT_ms_p5_mp_test_fdiv() {
-    const u32 kernel = (*reinterpret_cast<u32(__stdcall *const *)(const char *)>((uintptr_t)0x006fd238))(CRT_text_KERNEL32_708a94);    // GetModuleHandleA("KERNEL32")
+    const u32 kernel = (*reinterpret_cast<u32(__stdcall *const *)(const char *)>((uintptr_t)IMPORT(Kernel32_GetModuleHandleA)))(CRT_text_KERNEL32_708a94);    // GetModuleHandleA("KERNEL32")
     if (kernel) {
         using Present = s32(__stdcall *)(u32);
-        const Present present = (*reinterpret_cast<Present(__stdcall *const *)(u32, const char *)>((uintptr_t)0x006fd0b0))(kernel, CRT_text_IsProcessorFeaturePresent_708a78);    // GetProcAddress
+        const Present present = (*reinterpret_cast<Present(__stdcall *const *)(u32, const char *)>((uintptr_t)IMPORT(Kernel32_GetProcAddress)))(kernel, CRT_text_IsProcessorFeaturePresent_708a78);    // GetProcAddress
         if (present) return present(0);    // IsProcessorFeaturePresent(PF_FLOATING_POINT_PRECISION_ERRATA)
     }
     return CRT_ms_p5_test_fdiv();

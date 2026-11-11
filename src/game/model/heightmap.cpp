@@ -5,6 +5,8 @@
 #include "../math/matrix.h"
 #include "../math/x87.h"
 #include "../motion/animator.h"
+#include "../world/advisorspeech.h"
+#include "../online/ftp.h"
 
 namespace {
 
@@ -248,7 +250,7 @@ static void copy_grid(u8 *to, const u8 *from, u32 bytes) {
 void __cdecl HeightMap_ReadOrBuild(u8 *instance, u32 width, u32 height, const char *path, const u8 *flags, u32 useScale) {
     u32 got = 0;
     u8 *map = nullptr;
-    if (const u32 stream = g_calls.Cd(0x005c4d50, path, 0x0074cfb8u)) {
+    if (const u32 stream = g_calls.Cd(0x005c4d50, path, (u32)(uintptr_t)&gText_Advisorspeech_74cfb8)) {
         const u32 size = g_calls.Cd(0x005c5000, stream);
         map = reinterpret_cast<u8 *>((uintptr_t)g_calls.Cd(0x0045b9d0, size, 1u));
         if (map) got = g_calls.Cd(0x005c4f60, map, size, 1u, stream);
@@ -279,7 +281,7 @@ void __cdecl HeightMap_ReadOrBuild(u8 *instance, u32 width, u32 height, const ch
             at<u32>(block, 0xc) = 0x30;
             at<u32>(block, 0x10) = 0x30 + cells * 25;
             at<u32>(block, 0x14) = 0x30 + cells * 26;
-            if (const u32 file = g_calls.Cd(0x0067b8a0, path, 0x0074cfb4u)) {
+            if (const u32 file = g_calls.Cd(0x0067b8a0, path, (u32)(uintptr_t)&gText_Ftp_74cfb4)) {
                 g_calls.Cd(0x0067b6d0, block, total, 1u, file);
                 g_calls.Cd(0x0067b620, file);
             }

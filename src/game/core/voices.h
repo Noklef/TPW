@@ -42,5 +42,3 @@ void __cdecl Emitters_Reset();
 
 #include "gamedata.h"
 
-// Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
-GAME_DATA(u32, gEmitters_Reset_80cee4, 0x0080cee4, 4);

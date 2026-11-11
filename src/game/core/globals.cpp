@@ -16,8 +16,10 @@
 #include "../world/mapclick.h"
 #include "../render/particles.h"
 #include "../render/meshlist.h"
+#include "../world/cellrun.h"
 #include "gameframe.h"
 #include "localefacet.h"
+#include "../render/d3dsetup.h"
 #include "staticobjects.h"
 
 namespace {
@@ -36,7 +38,7 @@ u32 __cdecl Global8bb628_SetOne() {
 }
 
 u32 __cdecl Global8bba78_SetOne() {
-    global<u32>(0x008bba78) = 0x3f800000;
+    gGlobals_8bba78[0] = 0x3f800000;
     return 0x3f800000;
 }
 
@@ -58,46 +60,46 @@ u32 __fastcall Id_Get(u32 *id) {
 }
 
 void __cdecl Global7ced44_Release() {
-    u8 *shared = global<u8 *>(0x007ced44);
+    u8 *shared = global<u8 *>((u32)(uintptr_t)&gGlobals_7ced44);
     const u32 count = at<u32>(shared, 4);
     if (count != 0 && count != 0xffffffffu)
         at<u32>(shared, 4) = count - 1;
     if (at<u32>(shared, 4) == 0)
         vcall<u32>(shared, 0, 1u);
-    global<u32>(0x007ced44) = 0;
+    gGlobals_7ced44 = 0;
 }
 
 void __cdecl Globalf827dc_Release() {
-    u8 *shared = global<u8 *>(0x00f827dc);
+    u8 *shared = global<u8 *>((u32)(uintptr_t)&gGlobals_f827dc);
     const u32 count = at<u32>(shared, 4);
     if (count != 0 && count != 0xffffffffu)
         at<u32>(shared, 4) = count - 1;
     if (at<u32>(shared, 4) == 0)
         vcall<u32>(shared, 0, 1u);
-    global<u32>(0x00f827dc) = 0;
+    gGlobals_f827dc = 0;
 }
 
 u32 __cdecl Global879a24_Free() {
-    u8 *object = global<u8 *>(0x00879a24);
+    u8 *object = global<u8 *>((u32)(uintptr_t)&gD3dsetup_879a20 + 0x4);
     if (!object)
         return 0;
     Obj_ReleaseSevenComMembers(object);
-    object = global<u8 *>(0x00879a24);
+    object = global<u8 *>((u32)(uintptr_t)&gD3dsetup_879a20 + 0x4);
     if (object) {
         Obj_ReleaseSevenComMembers(object);
         GameHeap_Free(object);
     }
-    global<u32>(0x00879a24) = 0;
+    global<u32>((u32)(uintptr_t)&gD3dsetup_879a20 + 0x4) = 0;
     return 1;
 }
 
 void __cdecl Globals816d40_Free() {
-    if (!global<u32>(0x00816d40))
+    if (!gParticles_816d40)
         return;
-    global<u32>(0x0080ced0) = 0;
-    Mem_FreeChecked(global<void *>(0x0080cef8));
+    global<u32>((u32)(uintptr_t)&gParticleState) = 0;
+    Mem_FreeChecked(global<void *>(((u32)(uintptr_t)&gParticleState + 0x28)));
     const u32 other = gParticles_816d38;
-    global<u32>(0x00816d40) = 0;
+    gParticles_816d40 = 0;
     Mem_FreeChecked((void *)(uintptr_t)other);
 }
 
@@ -128,7 +130,7 @@ u32 __cdecl Global81af4c_Add(u32 amount) {
     return amount;
 }
 
-u32 __cdecl Global879a24_Get4c4() { return at<u32>(reinterpret_cast<const u8 *>(global<u32>(0x00879a24)), 0x4c4); }
+u32 __cdecl Global879a24_Get4c4() { return at<u32>(reinterpret_cast<const u8 *>(global<u32>((u32)(uintptr_t)&gD3dsetup_879a20 + 0x4)), 0x4c4); }
 
 u32 __cdecl Global786b80_SetAndMode3() {
     const u32 target = global<u32>(0x00f82884);
@@ -181,39 +183,39 @@ u32 __cdecl Global81af64_Get_52f850() {
 }
 
 u32 __cdecl Global81b6dc_Set_52fb10(u32 v0) {
-    global<u32>(0x0081b6dc) = v0;
+    gGlobals_81b6dc = v0;
     return v0;
 }
 
 u32 __cdecl Global81b6dc_Get_52fb20() {
-    return global<u32>(0x0081b6dc);
+    return gGlobals_81b6dc;
 }
 
 u32 __cdecl Global81ea14_Set_52fb30(u32 v0) {
-    global<u32>(0x0081ea14) = v0;
+    gGlobals_81ea14 = v0;
     return v0;
 }
 
 u32 __cdecl Global81ea14_Get_52fb40() {
-    return global<u32>(0x0081ea14);
+    return gGlobals_81ea14;
 }
 
 u32 __cdecl Global81aebc_Set_52fb50(u32 v0) {
-    global<u32>(0x0081aebc) = v0;
+    gGlobals_81aebc = v0;
     return v0;
 }
 
 u32 __cdecl Global81aebc_Get_52fb60() {
-    return global<u32>(0x0081aebc);
+    return gGlobals_81aebc;
 }
 
 u32 __cdecl Global81b43c_Set_52fb70(u32 v0) {
-    global<u32>(0x0081b43c) = v0;
+    gGlobals_81b43c = v0;
     return v0;
 }
 
 u32 __cdecl Global81b43c_Get_52fb80() {
-    return global<u32>(0x0081b43c);
+    return gGlobals_81b43c;
 }
 
 u32 __cdecl Global81af4c_Set_52fb90(u32 v0) {
@@ -226,7 +228,7 @@ u32 __cdecl Global81af4c_Get_52fbc0() {
 }
 
 u32 __cdecl Global820a8c_Get_52fbe0() {
-    return global<u32>(0x00820a8c);
+    return reinterpret_cast<u32 &>(gCellrun_820a8c);
 }
 
 u32 __cdecl Global879088_Set_5508b0(u32 v0) {
@@ -244,12 +246,12 @@ u32 __cdecl Global781fc8_Get_691530() {
 }
 
 u32 __cdecl Globalfb2708_Set_6d1bc0(u32 v0) {
-    global<u32>(0x00fb2708) = v0;
+    gGlobals_fb2708 = v0;
     return v0;
 }
 
 u32 __cdecl FreeGlobal879a20_561a00() {
-    const u32 p = global<u32>(0x00879a20); if (!p) return 0; GameHeap_Free(reinterpret_cast<void *>(p)); global<u32>(0x00879a20) = 0; return 1;
+    const u32 p = global<u32>((u32)(uintptr_t)&gD3dsetup_879a20); if (!p) return 0; GameHeap_Free(reinterpret_cast<void *>(p)); global<u32>((u32)(uintptr_t)&gD3dsetup_879a20) = 0; return 1;
 }
 
 u32 __cdecl CreateGlobal879d54_56b6c0() {
@@ -304,15 +306,15 @@ u32 __cdecl CreateGlobal8bcbb8_5804b0() { return CreateGlobal(0x008bcbb8, 0x1400
 u32 __cdecl CreateGlobal8c47d4_58aff0() { return CreateGlobal(0x008c47d4, 0xc, 0xffffffff); }
 u32 __cdecl Table879d08_FillFrom() {
     const u32 start = global<u32>((u32)(uintptr_t)&gView_8bcbc8 + 0x78) & 0xf;
-    global<u32>(0x00879d48) = start;
+    gGlobals_879d48 = start;
     for (u32 i = 0; i < 16; i++)
-        global<u32>(0x00879d08 + 4 * ((i + start) & 0xf)) = 16 - i;
+        gGlobals_879d08[((i + start) & 0xf)] = 16 - i;
     return 0;
 }
 
 u32 __cdecl Table879d08_Fill() {
     for (u32 i = 0; i < 16; i++)
-        global<u32>(0x00879d08 + 4 * i) = 16 - i;
+        gGlobals_879d08[i] = 16 - i;
     return 0;
 }
 

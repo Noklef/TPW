@@ -119,7 +119,7 @@ u8 *__fastcall Class703c14_Ctor(u8 *object) {
         at<u32>(object, offset) = 0;
     at<u8>(object, 0x24) = top;
     at<u8>(object, 0x34) = top;
-    at<u32>(object, 0) = 0x00703c14;
+    at<u32>(object, 0) = (u32)(uintptr_t)Class703c14_vtable;
     return object;
 }
 
@@ -311,12 +311,12 @@ void __fastcall Deque32_Clear(u8 *deque) {
 
 u8 *__fastcall LockedQueue_Ctor(u8 *self) {
     Class703770_Ctor(self);
-    at<u32>(self, 0) = 0x00703bf0;
+    at<u32>(self, 0) = (u32)(uintptr_t)Class703bf0_vtable;
     at<u32>(self, 8) = 0;
     at<u32>(self, 0xc) = 0;
     for (u32 offset = 0x14; offset <= 0x3c; offset += 4) at<u32>(self, offset) = 0;
     OwnedSection_Ctor(&at<u32>(self, 0x40));
-    at<u32>(self, 0) = 0x00703bc8;
+    at<u32>(self, 0) = (u32)(uintptr_t)Class703bc8_vtable;
     return self;
 }
 
@@ -346,7 +346,7 @@ void __fastcall LockedQueue_Push(u8 *self, void *, u32 value) {
 void __fastcall LockedQueue_PushThunk(u8 *self, void *, u32 value) { LockedQueue_Push(self, nullptr, value); }
 
 void __fastcall LockedQueue_Dtor(u8 *self) {
-    at<u32>(self, 0) = 0x00703bc8;
+    at<u32>(self, 0) = (u32)(uintptr_t)Class703bc8_vtable;
     for (u32 count = static_cast<u32>(DequeIter_Diff(&at<u32>(self, 0x24), nullptr, &at<u32>(self, 0x14))); count; --count) Deque32_PopBack(self + 0x10);
     OwnedSection_Dtor(&at<u32>(self, 0x40));
     Deque32_Clear(self + 0x10);

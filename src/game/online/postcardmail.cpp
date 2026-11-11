@@ -7,6 +7,7 @@
 #include "../core/crt.h"
 #include "../core/stdstring.h"
 #include "../files/quickload.h"
+#include "../core/imports.h"
 
 namespace {
 
@@ -58,7 +59,7 @@ void AddWideHex(StdString *to, char *buffer, uintptr_t label, const char *wide) 
         from += 2;
         out += 6;
     }
-    Crt().sprintf(out, Text(0x00773cdc));
+    Crt().sprintf(out, Text((u32)(uintptr_t)&gText_Postcardmail_773cdc));
     Add(to, buffer);
 }
 
@@ -77,7 +78,7 @@ void AddAttachment(StdString *to, char *buffer, const char *boundary, const u8 *
 extern "C" void __fastcall PostcardMail_Build(u8 *mail) {
     char frame[0xc0];
     char *const buffer = frame, *const boundary = frame + 0x80;
-    Crt().sprintf(boundary, Text(reinterpret_cast<uintptr_t>(&gPostcardMail_Build_77409c)), (*reinterpret_cast<u32(__stdcall **)()>((uintptr_t)0x006fd1d0))());
+    Crt().sprintf(boundary, Text(reinterpret_cast<uintptr_t>(&gPostcardMail_Build_77409c)), (*reinterpret_cast<u32(__stdcall **)()>((uintptr_t)IMPORT(Kernel32_GetTickCount)))());
     StdString *const to = &at<StdString>(mail, 0x74);
     StdString_AssignChars(to, nullptr, Text(0x00786de4), (u32)std::strlen(Text(0x00786de4)));
     CutLines(OrNull(at<char *>(mail, 4)));
@@ -89,7 +90,7 @@ extern "C" void __fastcall PostcardMail_Build(u8 *mail) {
         node = at<const u8 *>(node, 0);
         if (node != at<const u8 *>(mail, 0x14)) Add(to, Text(reinterpret_cast<uintptr_t>(&gPostcardMail_Build_774084)));
     }
-    Add(to, Text(0x00773cdc));
+    Add(to, Text((u32)(uintptr_t)&gText_Postcardmail_773cdc));
     CutLines(OrNull(at<char *>(mail, 0x20)));
     AddFormat(to, buffer, reinterpret_cast<uintptr_t>(&gPostcardMail_Build_774074), OrNull(at<char *>(mail, 0x20)));
     AddFormat(to, buffer, reinterpret_cast<uintptr_t>(&gPostcardMail_Build_77405c), at<u32>(mail, 0x3c));
@@ -104,7 +105,7 @@ extern "C" void __fastcall PostcardMail_Build(u8 *mail) {
     AddFormat(to, buffer, reinterpret_cast<uintptr_t>(&gPostcardMail_Build_773ef4), boundary);
     Add(to, Text(reinterpret_cast<uintptr_t>(&gPostcardMail_Build_773ec4)));
     Add(to, Text(reinterpret_cast<uintptr_t>(&gPostcardMail_Build_773ea4)));
-    Add(to, Text(0x00773d00));
+    Add(to, Text((u32)(uintptr_t)&gText_PostcardMail_Build_773d00));
     const u8 *const attachment = at<const u8 *>(mail, 0x68);
     if (attachment && at<char *>(attachment, 0x20)) AddAttachment(to, buffer, boundary, attachment);
     AddFormat(to, buffer, reinterpret_cast<uintptr_t>(gPostcardmail_773d80.f60), boundary);

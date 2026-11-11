@@ -88,3 +88,11 @@ struct SoundMakeEnv {
     u8 *(__fastcall *ctorA)(u8 *source);                    // SoundSource711920_Ctor 0x6d1e30
 };
 void SoundSource_SetMakeEnv(const SoundMakeEnv *env);
+
+#include "gamedata.h"
+
+// The vtables hold only ports: tpw.exe's loader points their slots at them (.docs/09-globals.md).
+GAME_DATA(void *[3], Class711910_vtable, 0x00711910, 0xc);
+GAME_DATA(void *[38], SoundSource711920_vtable, 0x00711920, 0x98);
+GAME_DATA(void *[38], SoundSourceBase_vtable, 0x007119b8, 0x98);
+GAME_DATA(void *[38], SoundSource711b08_vtable, 0x00711b08, 0x98);

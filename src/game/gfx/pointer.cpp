@@ -7,6 +7,8 @@
 #include "../files/file.h"
 #include "imageops.h"
 #include "../render/screen.h"
+#include "../render/d3dsetup.h"
+#include "../core/imports.h"
 #include "../core/staticobjects.h"
 
 namespace {
@@ -16,17 +18,17 @@ T at(u32 address) {
     return reinterpret_cast<T>(static_cast<std::uintptr_t>(address));
 }
 const AsyncPointerEnv kGameEnv = {
-    0x00703644,
+    (u32)(uintptr_t)AsyncPointer_vtable,
     at<void(__cdecl *)(void *)>(0x0067acb0),
     at<u32(__stdcall *)(void *)>(0x005fba00),
     at<void *(__cdecl *)(void *, u32, u32(__stdcall *)(void *), void *, u32, u32 *)>(0x0067f780),
     at<void(__cdecl *)(u32)>(0x0067f8b0),
-    at<s32(__stdcall *const *)(void *, u32 *)>(0x006fd0b8),
-    at<u32(__stdcall *const *)(void *, u32)>(0x006fd128),
-    at<s32(__stdcall *const *)(void *)>(0x006fd13c),
-    at<void(__stdcall *const *)(const char *)>(0x006fd1e0),
+    at<s32(__stdcall *const *)(void *, u32 *)>(IMPORT(Kernel32_GetExitCodeThread)),
+    at<u32(__stdcall *const *)(void *, u32)>(IMPORT(Kernel32_WaitForSingleObject)),
+    at<s32(__stdcall *const *)(void *)>(IMPORT(Kernel32_CloseHandle)),
+    at<void(__stdcall *const *)(const char *)>(IMPORT(Kernel32_OutputDebugStringA)),
     at<const char *>(0x007758a4),
-    at<const char *>(0x00775878),
+    at<const char *>((u32)(uintptr_t)&gPointer_775878),
 };
 const AsyncPointerEnv *g_env = &kGameEnv;
 
@@ -248,7 +250,7 @@ u32 __cdecl AsyncPointer_Make() {
     const u32 position = g_calls.Cd(0x005f5640);
     u8 reply[8];
     g_calls.Th(0x005fbbd0, pointer, reply, position);
-    const u8 *card = *reinterpret_cast<const u8 **>((uintptr_t)0x00879a24);
+    const u8 *card = *reinterpret_cast<const u8 **>((uintptr_t)&gD3dsetup_879a20 + 0x4);
     const bool paused = (*reinterpret_cast<const u32 *>(card + 0x428) == 0x121a && *reinterpret_cast<const u32 *>(card + 0x42c) < 5) || *reinterpret_cast<const u32 *>((uintptr_t)0x0078826c);
     g_calls.Th(0x005fbc80, pointer, reply, paused ? 1u : 0u);
     reply[0] = 0xff;

@@ -12,6 +12,8 @@
 #include "../world/flyingrides.h"
 #include "../world/objectdefs.h"
 #include "../world/ridelist.h"
+#include "rsse.h"
+#include "../world/rides.h"
 
 namespace {
 
@@ -20,7 +22,7 @@ template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((ui
 
 s32 Ftol(X87Reg x) { return (s32)(long long)x.v; }
 
-u8 *ride(u8 *c) { return global<u8 *>(0x007a4610 + 4 * at<u32>(c, 0xc8)); }
+u8 *ride(u8 *c) { return gRides_7a4610[at<u32>(c, 0xc8)]; }
 
 // The ride's part of the key (mask 0x80) released, when found (the ride read again for each call).
 void release(u8 *c, u32 key) {
@@ -30,8 +32,8 @@ void release(u8 *c, u32 key) {
 
 // The record of the id (null for none, or without the system: that prints, left out).
 RsseContext *find(s32 id) {
-    if (!global<u32>(0x008791a0)) return nullptr;
-    RsseContext *v = global<RsseContext *>(0x008791b0);
+    if (!gRsseSystem.initialised) return nullptr;
+    RsseContext *v = gRsseSystem.scriptList;
     while (v && v->id != id) v = v->next;
     return v;
 }
@@ -65,7 +67,7 @@ RsseContext *__cdecl RSSE_FreeContext(RsseContext *ctx, u32 flags) {
             at<u16>(w, 0x18) = 0;
         }
     }
-    --global<s32>(0x008791ac);
+    --gRsseSystem.scriptCount;
     if (ctx->prev) ctx->prev->next = ctx->next;
     if (ctx->next) ctx->next->prev = ctx->prev;
     for (u32 off = 0x18; off <= 0x38; off += 4)
@@ -88,19 +90,19 @@ RsseContext *__cdecl RSSE_FreeContext(RsseContext *ctx, u32 flags) {
         u8 *const next = at<u8 *>(node, 0);
         if (node == head) at<u8 *>(c, 0xb0) = next;
         Mem_GlobalFree(node);
-        --global<s32>(0x008791b4);
+        --gRsse_8791b4;
         node = next;
     }
-    RsseContext *const first = global<RsseContext *>(0x008791b0);
+    RsseContext *const first = gRsseSystem.scriptList;
     RsseContext *const next = ctx->next;
-    if (ctx == first) global<RsseContext *>(0x008791b0) = next;
+    if (ctx == first) gRsseSystem.scriptList = next;
     Mem_GlobalFree(ctx);
     return next;
 }
 
 void __cdecl RSSE_KillScript(s32 id, u32 flags) {
-    if (!global<u32>(0x008791a0)) return;   // ("Cant kill a script - system is not initialised": Debug_Printf, left out)
-    RsseContext *ctx = global<RsseContext *>(0x008791b0);
+    if (!gRsseSystem.initialised) return;   // ("Cant kill a script - system is not initialised": Debug_Printf, left out)
+    RsseContext *ctx = gRsseSystem.scriptList;
     while (ctx && ctx->id != id) ctx = ctx->next;
     if (!ctx) return;
     u8 *const c = reinterpret_cast<u8 *>(ctx);
@@ -147,12 +149,12 @@ void __cdecl RSSE_KillScript(s32 id, u32 flags) {
 }
 
 void __cdecl RSSE_CheckLeaks() {
-    if (global<u32>(0x008791a0)) {
-        for (RsseContext *ctx = global<RsseContext *>(0x008791b0); ctx;)   // (the head read once)
+    if (gRsseSystem.initialised) {
+        for (RsseContext *ctx = gRsseSystem.scriptList; ctx;)   // (the head read once)
             ctx = RSSE_FreeContext(ctx, 0);
-        global<RsseContext *>(0x008791b0) = nullptr;
+        gRsseSystem.scriptList = nullptr;
     }
-    global<u32>(0x008791a0) = 0;
+    gRsseSystem.initialised = 0;
     // (with blocks still counted, 0x8791b8, the original prints "Something malloced but not freed": left out)
 }
 }

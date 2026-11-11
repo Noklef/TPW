@@ -25,3 +25,11 @@ void __fastcall OnlineServers_Dtor(u8 *servers);
 // string through a temporary built from the C string and assigned whole.
 void __cdecl Online_ApplyBalance();
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(char[0x1c], gText_OnlineServers_Ctor_77481c, 0x0077481c, 0x1c);
+GAME_DATA(char[0xc], gText_OnlineServers_Ctor_774838, 0x00774838, 0xc);
+GAME_DATA(char[0x18], gText_OnlineServers_Ctor_774844, 0x00774844, 0x18);
+GAME_DATA(char[0x14], gText_OnlineServers_Ctor_77485c, 0x0077485c, 0x14);

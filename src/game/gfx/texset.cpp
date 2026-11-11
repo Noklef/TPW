@@ -10,6 +10,7 @@
 #include "texman.h"
 #include "texture.h"
 #include "../render/ddopen.h"
+#include "../render/d3dsetup.h"
 #include "../core/staticobjects.h"
 
 namespace {
@@ -31,7 +32,7 @@ u8 **deferredSets() { return reinterpret_cast<u8 **>((uintptr_t)0x0087a270); }
 void TexSet_SetBltCalls(const AddrCall *table, u32 count) { g_bltCalls.Set(table, count); }
 
 extern "C" u32 __fastcall TexSet_BltToBack(u8 *self) {
-    u8 *const target = at<u8 *>(global<u8 *>(0x00879a24), 0x14);
+    u8 *const target = at<u8 *>(global<u8 *>((u32)(uintptr_t)&gD3dsetup_879a20 + 0x4), 0x14);
     u32 answer = comcall<u32>(target, 0x14, 0u, at<u32>(self, 0), 0u, 0x1000000u, 0u);
     gDdopen_879cd4 = answer;
     if ((s32)answer < 0) {

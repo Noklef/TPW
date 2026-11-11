@@ -12,6 +12,7 @@
 #include "things.h"
 #include "../ui/window7cc8c0handler.h"
 #include "tagsystem.h"
+#include "../core/imports.h"
 #include "../core/staticobjects.h"
 
 namespace {
@@ -22,7 +23,7 @@ template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cas
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
 u8 *defs() { return reinterpret_cast<u8 *>((uintptr_t)0x007890a0); }
 const u16 *text(u32 address) { return reinterpret_cast<const u16 *>((uintptr_t)address); }
-void Debug_Line(u32 address) { (*reinterpret_cast<void(__stdcall *const *)(u32)>((uintptr_t)0x006fd1e0))(address); }  // (OutputDebugStringA, an import)
+void Debug_Line(u32 address) { (*reinterpret_cast<void(__stdcall *const *)(u32)>((uintptr_t)IMPORT(Kernel32_OutputDebugStringA)))(address); }  // (OutputDebugStringA, an import)
 
 // (The formatter's arguments: a number is 0x14 bytes, signed; a string 0x10, kept in a number's room here.)
 struct Arg {

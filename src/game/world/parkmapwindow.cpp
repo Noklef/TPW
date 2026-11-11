@@ -38,6 +38,9 @@
 #include "parkmapwindow.h"
 #include "parkmap.h"
 #include "../core/staticobjects.h"
+#include "camera.h"
+#include "world.h"
+#include "../core/textarg.h"
 
 namespace {
 
@@ -119,9 +122,9 @@ void Close(u8 *map) {
 }
 
 void EdgeScroll(u8 *map) {
-    const float low = global<float>(0x00703010), one = global<float>(0x00703004);
+    const float low = gParkmapwindow_703010, one = global<float>(0x00703004);
     const float nearEdge = gParkmapwindow_70301c, farEdge = gParkmapwindow_703024, rate = gParkmapwindow_703020;
-    X87Reg x = X87Reg((double)at<s32>(map, 0x10)) * global<float>(0x00703014);
+    X87Reg x = X87Reg((double)at<s32>(map, 0x10)) * gParkmapwindow_703014;
     if (x.v < low) x = low;
     else if (x.v > one) x = one;
     float y = (float)(X87Reg((double)at<s32>(map, 0x14)) * gParkmapwindow_703018);
@@ -164,7 +167,7 @@ void ShowName(const u8 *map, u8 *window) {
             if (!owner) {
                 g_env->formatWide(charset, text, 0x3fff, 0x1c9);
             } else {
-                const u32 argument[5] = {0x006ff170, 0x5641524d, 0x18, owner, 0};
+                const u32 argument[5] = {(u32)(uintptr_t)TextArgInt_vtable, 0x5641524d, 0x18, owner, 0};
                 g_env->formatWide(charset, text, 0x3fff, 0x1c8, argument);
             }
             vcall<void>(&name, 0x14, text);
@@ -190,7 +193,7 @@ void MouseMoved(u8 *map, u8 *window, u32 a) {
     u8 *const previous = at<u8 *>(map, 0x20060);
     at<u32>(map, 0x20060) = 0;
     at<u32>(map, 0x14) = mouseY;
-    const float x = (float)(X87Reg((double)(s32)mouseX) * widthF * global<float>(0x00703014));
+    const float x = (float)(X87Reg((double)(s32)mouseX) * widthF * gParkmapwindow_703014);
     const float y = (float)(X87Reg((double)(s32)(0x600 - mouseY)) * heightF * gParkmapwindow_703018);
     float best = 100000000.0f;
     const float reach = gParkmapwindow_703040;
@@ -236,7 +239,7 @@ void MouseClicked(u8 *map) {
     const float heightF = (float)(double)height;
     const X87Reg wide = X87Reg((double)at<s32>(map, 0x10)) * X87Reg((double)width);
     const X87Reg tall = X87Reg((double)(s32)(0x600 - at<u32>(map, 0x14))) * heightF;
-    const float x = (float)(wide * global<float>(0x00703014));
+    const float x = (float)(wide * gParkmapwindow_703014);
     const float y = (float)(tall * gParkmapwindow_703018);
     const X87Reg halfW = X87Reg((double)width) * half, halfH = X87Reg(heightF) * half;
     const X87Reg moveX = (X87Reg(x) - halfW) / (toX * zoom);
@@ -279,7 +282,7 @@ const u32 kOpenMap = (u32)(uintptr_t)&gSurfaceInfo_f86db8;
 
 // One coordinate of the origin as ParkMap_Open keeps it: below the floor [0x703010] the floor, past limit (compared exactly) the limit rounded to a float.
 float open_origin(float v, s32 limit) {
-    const float floor = global<float>(0x00703010);
+    const float floor = gParkmapwindow_703010;
     if (v < floor) return X87_Through(floor);
     return (double)v <= (double)limit ? v : (float)limit;
 }
@@ -457,7 +460,7 @@ s32 __fastcall ParkMap_HandleWindow(u8 *map, void *, u8 *window, u32 message, u3
 }
 
 void __fastcall ParkMap_PrepareSprites(u8 *map) {
-    u8 *const world = global<u8 *>(0x007cf83c);
+    u8 *const world = gWorldPtr;
     s32 count = 0;
     u16 id;
     g_sprites->firstThing(world, nullptr, &id);
@@ -521,7 +524,7 @@ void __fastcall ParkMap_Open(u8 *map) {
     env->releaseItems(reinterpret_cast<u8 * &>(gTexcache_8c4b44), nullptr, 0);
     env->focusClose();
     env->send(gPanel7b9940_7cb2ac, 6, 0, 0);
-    u8 *const window = env->build(global<u8 *>(0x00faa5d8), nullptr, reinterpret_cast<u8 *>((uintptr_t)0x00774da0), 0x005f0b00);
+    u8 *const window = env->build(global<u8 *>(0x00faa5d8), nullptr, gParkMap_Open_774da0, 0x005f0b00);
     env->focusSet(window);
     at<u8 *>(map, 4) = window;
     env->setFocus(window, nullptr, 0);
@@ -569,9 +572,9 @@ void __fastcall ParkMap_Open(u8 *map) {
     at<u32>(map, 0x20084) = 0;
     env->gridSize(&at<u32>(map, 0x24), &at<u32>(map, 0x28));
 
-    const float scale = global<float>(0x0070300c);
-    s32 x = Ftol((X87Reg(global<float>(0x00790ab8)) * scale).v);  // __ftol
-    s32 y = Ftol((X87Reg(global<float>(0x00790ac0)) * scale).v);
+    const float scale = gParkMap_Open_70300c;
+    s32 x = Ftol((X87Reg(gCamera_790ab8) * scale).v);  // __ftol
+    s32 y = Ftol((X87Reg(gCamera_790ac0) * scale).v);
     if (x < 0) x = 0;
     if (y < 0) y = 0;
     if (x >= global<s32>(0x007a0314)) x = global<s32>(0x007a0314) - 1;

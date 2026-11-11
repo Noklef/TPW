@@ -125,6 +125,7 @@ GAME_DATA(char[12], gCursor_74ffd0, 0x0074ffd0, 0xc);
 GAME_DATA(char[12], gCursor_74ffdc, 0x0074ffdc, 0xc);
 GAME_DATA(char[12], gCursor_74ffe8, 0x0074ffe8, 0xc);
 GAME_DATA(char[12], gCursor_74fff4, 0x0074fff4, 0xc);
+GAME_DATA(u8[0x2], gGui_77c484, 0x0077c484, 0x2);
 GAME_DATA(s32, gGameCursor_Set_7cb2d8, 0x007cb2d8, 0x4);
 GAME_DATA(u8 *, gGui_faa604, 0x00faa604, 0x4);
 GAME_DATA(u8 *, gCursor_faa608, 0x00faa608, 0x4);

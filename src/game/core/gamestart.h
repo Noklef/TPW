@@ -20,3 +20,22 @@ void __cdecl Game_PlayLogoMovie();
 // 0x54e070 (cdecl): as 0x54df20 with a movie by the day of the month (localtime's +0xc, signed, remainder by 8: outside 0..7 the buffer stays), and the display left as it is. Played at the window's client origin, the height 640 (x * 64 / 480).
 void __cdecl Game_PlayDayMovie();
 }
+
+#include "gamedata.h"
+
+// Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(char[0x20], gGamestart_764fac, 0x00764fac, 0x20);
+GAME_DATA(char[0xc], gGamestart_764fcc, 0x00764fcc, 0xc);
+GAME_DATA(char[0xc], gGamestart_764fd8, 0x00764fd8, 0xc);
+GAME_DATA(char[0x14], gGamestart_764ff4, 0x00764ff4, 0x14);
+GAME_DATA(char[0x18], gGamestart_765008, 0x00765008, 0x18);
+GAME_DATA(char[0x14], gGamestart_765020, 0x00765020, 0x14);
+GAME_DATA(char[0x18], gGamestart_765034, 0x00765034, 0x18);
+GAME_DATA(char[0x14], gGamestart_76504c, 0x0076504c, 0x14);
+GAME_DATA(char[0x14], gGamestart_765060, 0x00765060, 0x14);
+GAME_DATA(char[0x18], gGamestart_765074, 0x00765074, 0x18);
+GAME_DATA(char[0x14], gGamestart_76508c, 0x0076508c, 0x14);
+GAME_DATA(char[0x14], gGamestart_7650a0, 0x007650a0, 0x14);
+GAME_DATA(char[0x100], gGamestart_8782d0, 0x008782d0, 0x100);
+GAME_DATA(u32, gGamestart_878d64, 0x00878d64, 0x4);
+GAME_DATA(u32, gGamestart_879068, 0x00879068, 0x4);

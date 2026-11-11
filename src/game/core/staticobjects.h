@@ -3567,14 +3567,6 @@ GAME_DATA(u8[0x14], gString_7cece0, 0x007cece0, 0x14);   // String_CtorStr, Stri
 GAME_DATA(u8[0x14], gString_7cecf8, 0x007cecf8, 0x14);   // String_CtorStr, String_Dtor
 GAME_DATA(u8[0x14], gString_7ced10, 0x007ced10, 0x14);   // String_CtorStr, String_Dtor
 GAME_DATA(u8[0x14], gWString_7cedf8, 0x007cedf8, 0x14);   // WString_CtorStr, WString_Dtor
-GAME_DATA(u8[0x28], gSteerSeek_7cf050, 0x007cf050, 0x28);   // SteerSeek_Ctor; to the next
-GAME_DATA(u8[0x10], gBlock50_7cf078, 0x007cf078, 0x10);   // Block50_Ctor; to the next
-GAME_DATA(u8[0x28], gSteerAvoidWalls_7cf088, 0x007cf088, 0x28);   // SteerAvoidWalls_Ctor; to the next
-GAME_DATA(u8[0x28], gSteerArrival_7cf0b0, 0x007cf0b0, 0x28);   // SteerArrival_Ctor; to the next
-GAME_DATA(u8[0x30], gSteerSeparation_7cf0d8, 0x007cf0d8, 0x30);   // SteerSeparation_Ctor
-GAME_DATA(u8[0x30], gSteerFollowPath_7cf308, 0x007cf308, 0x30);   // SteerFollowPath_Ctor; to the next
-GAME_DATA(u8[0x28], gSteerRepelObstacle_7cf338, 0x007cf338, 0x28);   // SteerRepelObstacle_Ctor; to the next
-GAME_DATA(u8[0x2c], gSteerAvoidObstacle_7cf360, 0x007cf360, 0x2c);   // SteerAvoidObstacle_Ctor
 GAME_DATA(u8[0x14], gString_7cf3d8, 0x007cf3d8, 0x14);   // String_CtorStr, String_Dtor
 GAME_DATA(u8[0x14], gWString_7cf3f0, 0x007cf3f0, 0x14);   // WString_CtorStr, WString_Dtor
 GAME_DATA(u8[0x14], gString_7cf408, 0x007cf408, 0x14);   // String_CtorStr, String_Dtor

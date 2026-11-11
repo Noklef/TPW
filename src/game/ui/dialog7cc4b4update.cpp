@@ -117,7 +117,7 @@ void __cdecl Dialog7cc4b4_Update() {
     } else if (g_env->countLevels(info()) > 0) {
         g_env->setShown(second, nullptr, 1);
         if (dialog()) showFour(1);
-        g_env->swprintf(reinterpret_cast<u16 *>((uintptr_t)0x007ba058), reinterpret_cast<const u16 *>((uintptr_t)0x00758194), g_env->countLevels(info()));
+        g_env->swprintf(reinterpret_cast<u16 *>((uintptr_t)0x007ba058), reinterpret_cast<const u16 *>((uintptr_t)&gText_Dialog7cc4b4update_758194), g_env->countLevels(info()));
         vcall<void>(Window_FindChild(second, nullptr, 0x1e0ee), 0x24, 0x007ba058);
     } else {
         g_env->setShown(second, nullptr, 0);

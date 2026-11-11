@@ -6,6 +6,7 @@
 
 #include "../core/vcall.h"
 #include "handles.h"
+#include "../core/imports.h"
 
 namespace {
 
@@ -24,24 +25,24 @@ T iat(u32 slot) {
 }
 const FileEnv kGameEnv = {
     reinterpret_cast<void *(__cdecl *)(u32)>(0x0067acc0),
-    iat<char *(__stdcall *const *)()>(0x006fd1e4),
-    iat<s32(__stdcall *const *)(const char *, void *)>(0x006fd120),
-    iat<s32(__stdcall *const *)(const char *)>(0x006fd114),
-    iat<s32(__stdcall *const *)(const char *, u32)>(0x006fd108),
-    iat<void *(__stdcall *const *)(const char *, void *)>(0x006fd100),
-    iat<s32(__stdcall *const *)(void *)>(0x006fd104),
-    iat<u32(__stdcall *const *)(const char *)>(0x006fd10c),
-    iat<s32(__stdcall *const *)(const char *)>(0x006fd0c4),
-    iat<s32(__stdcall *const *)(const char *, const char *)>(0x006fd11c),
-    iat<s32(__stdcall *const *)(const char *, const char *, s32)>(0x006fd158),
-    iat<s32(__stdcall *const *)(const void *, const void *)>(0x006fd110),
-    iat<s32(__stdcall *const *)(std::int64_t *)>(0x006fd0ac),
-    iat<s32(__stdcall *const *)(std::int64_t *)>(0x006fd0cc),
-    iat<u32(__stdcall *const *)()>(0x006fd3ec),
-    iat<void(__stdcall *const *)(u32)>(0x006fd1d4),
-    iat<void *(__stdcall *const *)(u32, u32)>(0x006fd1cc),
-    iat<void *(__stdcall *const *)(void *)>(0x006fd26c),
-    iat<s32(__stdcall *const *)(void *, void *)>(0x006fd0c8),
+    iat<char *(__stdcall *const *)()>(IMPORT(Kernel32_GetCommandLineA)),
+    iat<s32(__stdcall *const *)(const char *, void *)>(IMPORT(Kernel32_CreateDirectoryA)),
+    iat<s32(__stdcall *const *)(const char *)>(IMPORT(Kernel32_RemoveDirectoryA)),
+    iat<s32(__stdcall *const *)(const char *, u32)>(IMPORT(Kernel32_SetFileAttributesA)),
+    iat<void *(__stdcall *const *)(const char *, void *)>(IMPORT(Kernel32_FindFirstFileA)),
+    iat<s32(__stdcall *const *)(void *)>(IMPORT(Kernel32_FindClose)),
+    iat<u32(__stdcall *const *)(const char *)>(IMPORT(Kernel32_GetFileAttributesA)),
+    iat<s32(__stdcall *const *)(const char *)>(IMPORT(Kernel32_DeleteFileA)),
+    iat<s32(__stdcall *const *)(const char *, const char *)>(IMPORT(Kernel32_MoveFileA)),
+    iat<s32(__stdcall *const *)(const char *, const char *, s32)>(IMPORT(Kernel32_CopyFileA)),
+    iat<s32(__stdcall *const *)(const void *, const void *)>(IMPORT(Kernel32_CompareFileTime)),
+    iat<s32(__stdcall *const *)(std::int64_t *)>(IMPORT(Kernel32_QueryPerformanceFrequency)),
+    iat<s32(__stdcall *const *)(std::int64_t *)>(IMPORT(Kernel32_QueryPerformanceCounter)),
+    iat<u32(__stdcall *const *)()>(IMPORT(Winmm_timeGetTime)),
+    iat<void(__stdcall *const *)(u32)>(IMPORT(Kernel32_Sleep)),
+    iat<void *(__stdcall *const *)(u32, u32)>(IMPORT(Kernel32_GlobalAlloc)),
+    iat<void *(__stdcall *const *)(void *)>(IMPORT(Kernel32_GlobalFree)),
+    iat<s32(__stdcall *const *)(void *, void *)>(IMPORT(Kernel32_FindNextFileA)),
 };
 const FileEnv *g_env = &kGameEnv;
 

@@ -126,7 +126,7 @@ void __fastcall Panel7cc258_Update(u8 *self) {
 
 void __fastcall Panel7cc258_Show(u8 *self, void *, u8 *thing) {
     *reinterpret_cast<u8 **>((uintptr_t)&gStatic_7cc258 + 0x30) = thing;
-    WindowAt10_Create(self, nullptr, reinterpret_cast<u8 *>((uintptr_t)0x00755908), 0x004b0b30, 0xc06c, 0xc06f, 0xc06d);
+    WindowAt10_Create(self, nullptr, reinterpret_cast<u8 *>((uintptr_t)&gPanel7cc258_Show_755908), 0x004b0b30, 0xc06c, 0xc06f, 0xc06d);
     Advisor_PostId(0xd1);
 }
 
@@ -150,13 +150,13 @@ void __fastcall Panel7cc258_ShowStats(u8 *self) {
         const double sum0 = CircBufU32_30_SumVia(thing + 0x1a8, &seen0);
         const double sum1 = CircBufU32_30_SumVia(thing + 0x230, &seen1);
         u8 both[0x14], recent[0x14];   // (number arguments, as TextArgInt_Ctor builds them inline)
-        at<u32>(both, 0) = 0x006ff170;
+        at<u32>(both, 0) = (u32)(uintptr_t)TextArgInt_vtable;
         at<u32>(both, 4) = 0x5641524d;
         at<u32>(both, 8) = 0x1a;
         at<u32>(both, 0xc) = (u32)(long long)sum0 + (u32)(long long)sum1;  // (__ftol, the low halves)
         at<u32>(both, 0x10) = 0;
         const double sum2 = CircBufU32_30_SumVia(thing + 0x1a8, &seen2);
-        at<u32>(recent, 0) = 0x006ff170;
+        at<u32>(recent, 0) = (u32)(uintptr_t)TextArgInt_vtable;
         at<u32>(recent, 4) = 0x5641524d;
         at<u32>(recent, 8) = 0x19;
         at<u32>(recent, 0xc) = (u32)(long long)sum2;
@@ -180,7 +180,7 @@ void __fastcall Panel7cc258_ShowStats(u8 *self) {
         u8 *const grad = Window_FindChild(at<u8 *>(self, 0x14), nullptr, 0xc07c);
         // the cell id a word over the slot's upper half (sic: the dword is passed)
         const u32 cell = (slot & 0xffff0000u) | (u16)(((u32)thing[7] << 7) + thing[5] + 1);
-        u8 *const analyser = reinterpret_cast<u8 *>((uintptr_t)GameTable7cfb90_Get1da720_519510(global<u8 *>(0x007cf83c)));
+        u8 *const analyser = reinterpret_cast<u8 *>((uintptr_t)GameTable7cfb90_Get1da720_519510(gWorldPtr));
         const s32 people = ParkAnalyser_AveragePersonStat19c(analyser, nullptr, cell, 1);
         vcall<void>(grad, 0x1c, (u32)((s32)((u32)people << 10) / 100));
     }

@@ -80,6 +80,27 @@ void __cdecl Collider_KeepInArea(u8 *car);
 
 #include "../core/gamedata.h"
 
+// The track rides' pools (0x877b58, 15 dwords; CollPool_Startup clears them, tags them and allocates the six blocks, the unload frees
+// the blocks and clears them again): each block's records with their count in use.
+struct TrackPools {
+    u32 tag;            // +0x00 0x4a454647 while loaded
+    u32 frame;          // +0x04 stepped by each cars' update
+    u8 *rides;          // +0x08 0x40 records of 0xd0 bytes
+    s32 rideCount;      // +0x0c
+    u8 *cars;           // +0x10 0x100 records of 0xac bytes
+    s32 carCount;       // +0x14
+    u8 *nodes;          // +0x18 0x800 collision nodes of 0x20 bytes
+    s32 nodeCount;      // +0x1c
+    u8 *buoys;          // +0x20 0x400 records of 0x1c bytes
+    s32 buoyCount;      // +0x24
+    u8 *sections;       // +0x28 0x400 records of 0x28 bytes
+    u32 sectionCount;   // +0x2c
+    u8 *links;          // +0x30 0x400 nodes of 0x14 bytes
+    u8 *freeLinks;      // +0x34 their free list's head (chained by +0x10)
+    u32 seed;           // +0x38 the game's own rand
+};
+GAME_DATA(TrackPools, gTrackPools, 0x00877b58, 0x3c);
+
 // Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
 GAME_DATA(const double, gCollobj_700eb8, 0x00700eb8, 0x8);
 GAME_DATA(const double, gCollobj_700ec0, 0x00700ec0, 0x8);

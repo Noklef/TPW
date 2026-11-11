@@ -18,6 +18,9 @@
 #include "../world/mousemode.h"
 #include "../world/things.h"
 #include "../world/signtext.h"
+#include "../world/world.h"
+#include "../world/staff.h"
+#include "../core/imports.h"
 
 namespace {
 
@@ -26,14 +29,14 @@ template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cas
 // Chat::MovePlayer(int x, int y, int mode, void *context) (__thiscall on the Chat) through its import slot.
 u32 movePlayer(u8 *avatar, s32 x, s32 y, s32 mode) {
     using Method = u32(__fastcall *)(void *, void *, s32, s32, s32, void *);
-    return (*reinterpret_cast<const Method *>((uintptr_t)0x006fd4cc))(at<void *>(avatar, 0), nullptr, x, y, mode, avatar);
+    return (*reinterpret_cast<const Method *>((uintptr_t)IMPORT(Weachatr_Chat_MovePlayer)))(at<void *>(avatar, 0), nullptr, x, y, mode, avatar);
 }
 
 // The byte +0xeb1 cleared, then Chat::NotAFK(void *context) (__thiscall on the Chat) through its import slot with the avatar.
 void notAfk(u8 *avatar) {
     at<u8>(avatar, 0xeb1) = 0;
     using Method = u32(__fastcall *)(void *, void *, void *);
-    (*reinterpret_cast<const Method *>((uintptr_t)0x006fd4bc))(at<void *>(avatar, 0), nullptr, avatar);
+    (*reinterpret_cast<const Method *>((uintptr_t)IMPORT(Weachatr_Chat_NotAFK)))(at<void *>(avatar, 0), nullptr, avatar);
 }
 
 // The thing in the thing table's slot (0x7cfb90, 20 bytes each) for the handle's low word. (The debug check of the table left out.)
@@ -80,7 +83,7 @@ u8 *__fastcall ChatPlayer_Ctor(u8 *player, void *, u32 cell, u32 sprite, const u
     const u16 *text = at<const u16 *>(name, 4);
     if (!text) text = reinterpret_cast<const u16 *>((uintptr_t)0x006fd6c4);
     g_env->swprintf(reinterpret_cast<u16 *>(player + 0x19c), gText_Signtext_75c0cc, text);
-    at<u16>(player, 0xc2) = *reinterpret_cast<const u16 *>((uintptr_t)0x0075c7f2);
+    at<u16>(player, 0xc2) = *reinterpret_cast<const u16 *>((uintptr_t)&gStaff_75c7f0 + 0x2);
     at<u32>(player, 0x188) = 1;
     return player;
 }
@@ -171,7 +174,7 @@ void __fastcall ChatAvatar_GotoRoom(u8 *avatar) {
         name.len = n;
     }
     using Method = u32(__fastcall *)(void *, void *, StdWString *, void *);
-    (*reinterpret_cast<const Method *>((uintptr_t)0x006fd490))(at<void *>(avatar, 0), nullptr, &name, avatar);
+    (*reinterpret_cast<const Method *>((uintptr_t)IMPORT(Weachatr_Chat_Goto)))(at<void *>(avatar, 0), nullptr, &name, avatar);
     if (name.ptr) {  // _Tidy(true), inlined
         u8 &refs = *reinterpret_cast<u8 *>(reinterpret_cast<uintptr_t>(name.ptr) - 1);
         if (refs != 0 && refs != 0xff)
@@ -223,12 +226,12 @@ u8 __fastcall ChatPlayer_NameIs(const u8 *thing, void *, const u8 *name) {
 
 u8 *__stdcall ChatPlayers_FindByName(const u8 *name) {
     u16 out;
-    u16 handle = *World_FirstThing(at<void *>(reinterpret_cast<void *>((uintptr_t)0x007cf83c), 0), nullptr, &out);
+    u16 handle = *World_FirstThing(at<void *>(reinterpret_cast<void *>((uintptr_t)(u32)&gWorldPtr), 0), nullptr, &out);
     while (handle) {
         u8 *const thing = slotThing(handle);
         if (thing[2] == 0x12 && ChatPlayer_NameIs(thing, nullptr, name))
             return thing;
-        handle = *World_NextThing(at<void *>(reinterpret_cast<void *>((uintptr_t)0x007cf83c), 0), nullptr, &out, thing);
+        handle = *World_NextThing(at<void *>(reinterpret_cast<void *>((uintptr_t)(u32)&gWorldPtr), 0), nullptr, &out, thing);
     }
     return nullptr;
 }

@@ -6,12 +6,13 @@
 
 #include "log.h"
 #include "profiler.h"
+#include "../game/world/camera.h"
 
 namespace tpw::testing {
 
 namespace {
 
-const BYTE *const kEye = reinterpret_cast<const BYTE *>(0x007909c0);   // the camera's eye: x, y, z (floats)
+const BYTE *eye_now() { return reinterpret_cast<const BYTE *>(&gCamera_790990[12]); }   // the camera's eye: x, y, z (floats)
 constexpr LONG kMaxOpensLogged = 4000;
 
 volatile LONG g_opens;
@@ -29,10 +30,10 @@ DWORD WINAPI timer_thread(void *) {
             if (!pressed) continue;
             running = true;
             started = log_seconds();
-            std::memcpy(eye, kEye, sizeof eye);
+            std::memcpy(eye, eye_now(), sizeof eye);
             reset_profile();
             log_line("[%6.1fs] level load: F9, timer started", started);
-        } else if (pressed || std::memcmp(eye, kEye, sizeof eye) != 0) {
+        } else if (pressed || std::memcmp(eye, eye_now(), sizeof eye) != 0) {
             log_line("[%6.1fs] level load: %.2f s, ended by %s", log_seconds(), log_seconds() - started, pressed ? "F9" : "the camera's eye moving");
             log_profile();
             reset_profile();

@@ -19,6 +19,7 @@
 #include "dialog7cb3f8.h"
 #include "dialogs.h"
 #include "panel7c2534menus.h"
+#include "../world/world.h"
 #include "../core/staticobjects.h"
 
 namespace {
@@ -132,7 +133,7 @@ u32 __cdecl Panel7c2534_AnswerSave() {
     g_env->save(reinterpret_cast<u8 *>((uintptr_t)0x0078a450), nullptr, global<u32>((u32)(uintptr_t)&gString_f82838 + 0x8), buffer, 1);
     g_env->setGlobal(2);
     u16 table[0x100];
-    g_env->words(global<u8 *>(0x007cf83c), nullptr, table);
+    g_env->words(gWorldPtr, nullptr, table);
     u8 *const text = at<u8 *>(Obj_Self(reinterpret_cast<u8 *>((uintptr_t)&gNamedObjects_786b68)), 8);
     g_env->setNameWords(Online_Instance(), nullptr, 1, text, table);
     close();

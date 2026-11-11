@@ -44,7 +44,7 @@ u8 *__fastcall SilenceStream_Ctor(u8 *stream, void *, u32 ms, const u8 *format) 
     at<u32>(stream, 0x14) = 0;
     at<u32>(stream, 0x24) = 0;
     stream[0x2c] = 0;
-    at<u32>(stream, 0) = 0x70ab58;
+    at<u32>(stream, 0) = (u32)(uintptr_t)SilenceStream_vtable;
     SoundStream_SetFormat(stream, nullptr, format);
     const u8 flags = stream[0x20];
     at<u32>(stream, 0x18) = ms;

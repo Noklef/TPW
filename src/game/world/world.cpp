@@ -20,7 +20,7 @@ template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((ui
 u8 *const gObjectDefs = reinterpret_cast<u8 *>(0x007890a0);
 
 // Ride number n (1 on) set in a bitset: bit (n - 1) & 7 of byte (n - 1) >> 3.
-void set_ride(u32 bitset, u32 n) { global<u8>(bitset + ((n - 1) >> 3)) |= (u8)(1 << ((n - 1) & 7)); }
+void set_ride(u8 *bitset, u32 n) { bitset[(n - 1) >> 3] |= (u8)(1 << ((n - 1) & 7)); }
 
 }  // namespace
 
@@ -64,18 +64,18 @@ u32 __fastcall World_AddVisitorToDate(u8 *world) {
 
 void __fastcall World_MarkRideBuilt(u8 *, void *, u32 id) {
     const u32 n = at<u32>(ObjectDefs_Find(gObjectDefs, nullptr, (u16)id), 0x94);
-    if (n != 0) set_ride(0x00802080, n);
+    if (n != 0) set_ride(gWorld_802080, n);
 }
 
 u32 __fastcall World_HasRides(u8 *, void *, const u8 *wanted, u32 leave_out) {
-    for (u32 i = 0; i < 0x20; ++i) global<u8>(0x007cfb70 + i) = 0;
+    for (u8 &b : gWorld_7cfb70) b = 0;
     for (const u8 *def = ObjectDefs_First(gObjectDefs); def; def = ObjectDefs_Next(gObjectDefs)) {
         const u32 n = at<u32>(def, 0x94);
-        if (n != 0 && (at<u32>(def, 0x98) == 0 || leave_out == 0)) set_ride(0x007cfb70, n);
+        if (n != 0 && (at<u32>(def, 0x98) == 0 || leave_out == 0)) set_ride(gWorld_7cfb70, n);
     }
     for (u32 i = 0; i < 0x20; ++i) {
         for (s32 bit = 1; bit < 0x100; bit <<= 1) {
-            if (((s8)wanted[i] & bit) == 1 && !((s8)global<u8>(0x007cfb70 + i) & bit)) return 0;  // sic
+            if (((s8)wanted[i] & bit) == 1 && !((s8)gWorld_7cfb70[i] & bit)) return 0;  // sic
         }
     }
     return 1;
