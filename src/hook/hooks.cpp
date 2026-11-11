@@ -238,6 +238,7 @@
 #include "../game/core/crtsignal.h"
 #include "../game/core/crtstartup.h"
 #include "../game/core/crtstream.h"
+#include "../game/core/crtterminate.h"
 #include "../game/core/crttime.h"
 #include "../game/core/dsoundsource.h"
 #include "../game/core/filebuf.h"
@@ -7282,6 +7283,7 @@ const Hook kHooks[] = {
     {"Collate_DoTransform",       0x006a7080, (void *)&Collate_DoTransform, {0x6a, 0xff, 0x68, 0xc8, 0x4e}},
     {"TimePut_DoPut",             0x006ab160, (void *)&TimePut_DoPut, {0x6a, 0xff, 0x68, 0x18, 0x52}},
     {"WTimePut_DoPut",            0x006a4540, (void *)&WTimePut_DoPut, {0x6a, 0xff, 0x68, 0xc8, 0x49}},
+    {"CRT_terminate",             0x00682590, (void *)&CRT_terminate, {0x55, 0x8b, 0xec, 0x6a, 0xff}},
     {"Nav_Ctor",          0x0050ffe0, (void *)&Nav_Ctor, {0x6a, 0xff, 0x68, 0x2d, 0xe6}},
     {"Nav_Dtor",                  0x0050f200, (void *)&Nav_Dtor, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"Nav_DtorAtD4",              0x004f7c30, (void *)&Nav_DtorAtD4, {0x81, 0xc1, 0xd4, 0x00, 0x00}},

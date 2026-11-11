@@ -10662,6 +10662,7 @@ address,name,kind,confidence,notes
 0x006a7080,Collate_DoTransform,function,low,"reimplemented (src/game/core/collate); collate<char>::do_transform: the characters first to last copied into a local string grown with zeros until they fit, then trimmed to them and assigned to out"
 0x006ab160,TimePut_DoPut,function,low,"reimplemented (src/game/core/timeput); time_put<char>::do_put: ""!%[mod]fmt"" by _Strftime into a string grown 16, 32, 64...; the characters after the '!' to the buffer, out = {failed, buffer}"
 0x006a4540,WTimePut_DoPut,function,low,"reimplemented (src/game/core/timeput); time_put<wchar_t>::do_put: as the char one, each character widened by btowc"
+0x00682590,CRT_terminate,function,high,"reimplemented (src/game/core/crtterminate); cdecl: terminate: the thread's handler (_getptd +0x60), when set, called inside a __try taking every exception; then abort"
 0x0074f9bc,gDialogbase_74f9bc,data,low,"GAME_DATA (src/game/ui/dialogbase): char[8], named for its use in Dialog_Create, TextButton_CreateWindow"
 0x0074f9c4,gDialogbase_74f9c4,data,low,"GAME_DATA (src/game/ui/dialogbase): char[8], named for its use in dialogbase.cpp"
 0x0074f9cc,gDialogbase_74f9cc,data,low,"GAME_DATA (src/game/ui/dialogbase): char[8], named for its use in dialogbase.cpp"
