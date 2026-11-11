@@ -291,6 +291,8 @@ u32 *__fastcall InputBase_Init(u8 *o, void *, u32 *out) {
     return out;
 }
 
+static u32 g_activatedWhileClosed;   // (not the original's: see InputBase_OnEvent; the devices are acquired only after this value reaches them)
+
 u32 *__fastcall InputBase_OpenDevice5c(u8 *o, void *, u32 *out) {
     if (at<u32>(o, 0x5c)) {
         *out = kOpenAlready;
@@ -305,6 +307,10 @@ u32 *__fastcall InputBase_OpenDevice5c(u8 *o, void *, u32 *out) {
     }
     g_env->f633250(at<u8 *>(o, 0x5c), nullptr, at<u32>(o, 0x60));
     g_env->f633b90(at<u8 *>(o, 0x5c) + 0x10, nullptr, &local);
+    if (g_activatedWhileClosed && at<u32>(o, 0x58)) {   // (the second device to open, Gui_Startup's order)
+        InputBase_SetDeviceValue(o, nullptr, &local, g_activatedWhileClosed);
+        g_activatedWhileClosed = 0;
+    }
     *out = 0;
     return out;
 }
@@ -345,8 +351,13 @@ void __fastcall InputBase_OnEvent(u8 *o, void *, u32, const u32 *event) {
     case 4:
         global<void(__stdcall *)(const char *)>(IMPORT(Kernel32_OutputDebugStringA))(gInputsystem_7780d0);
         global<u32(__stdcall *)(u32)>(IMPORT(User32_ShowCursor))(event[1] ? 0 : 1);
-        // (Not the original's: it writes through the null devices when the window is activated before Gui_Startup opens them, or after they close.)
-        if (!at<u32>(o, 0x54) && event[1] && at<u32>(o, 0x58) && at<u32>(o, 0x5c)) InputBase_SetDeviceValue(o, nullptr, &local, event[1]);
+        // (Not the original's: it writes through the null devices when the window is activated before Gui_Startup opens them, or after they
+        // close. Here the activation waits for the devices.)
+        if (at<u32>(o, 0x58) && at<u32>(o, 0x5c)) {
+            if (!at<u32>(o, 0x54) && event[1]) InputBase_SetDeviceValue(o, nullptr, &local, event[1]);
+        } else {
+            g_activatedWhileClosed = event[1];
+        }
         return;
     case 6:
         at<u32>(o, 0x54) = 1;
