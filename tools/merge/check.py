@@ -15,7 +15,7 @@ In order:
      are not checked, and an address it lost is kept when another bench has it (or, for a range's end, the range's start).
      --accept-lost PATH:ITEM (repeatable): one lost item checked by hand; printed, and to be named in the merge commit;
   3. hooks: rows the branch added (its own count, for checking an agent's report against);
-  4. build, tpw_tests, retcheck, convcheck;
+  4. build, tpw_tests, retcheck, convcheck, callcheck;
   5. each bench the merge touches, J at a time (default 4), at N cases (default 1000) seed 5, --both: every run must show 0 differ. Every bench importing a
      touched module runs too (a bench's case() reused by another, or a helper module with no main, e.g. thingenv.py, which needs one).
      A slow bench runs fewer: as many as fit S seconds (default 300) for both runs at its per-case time in the last coverage gate
@@ -229,11 +229,11 @@ def main():
     out = (lambda p: p.stdout + p.stderr)(run([os.path.join(ROOT, 'build', 'tpw_tests.exe'), EXE]))
     if 'all tests passed' not in out.lower():
         fail('tpw_tests\n' + '\n'.join(l for l in out.splitlines() if re.search(r'fail|mismatch', l, re.I))[:3000])
-    for tool in ('retcheck', 'convcheck'):
+    for tool in ('retcheck', 'convcheck', 'callcheck'):
         p = run([sys.executable, '-I', os.path.join(ROOT, 'tools', tool + '.py')])
         if p.returncode:
             fail(tool + '\n' + p.stdout.strip()[-3000:])
-    print('build, tpw_tests, retcheck, convcheck: passed')
+    print('build, tpw_tests, retcheck, convcheck, callcheck: passed')
 
     if '--no-bench' in a:
         print('benches: skipped (--no-bench)')

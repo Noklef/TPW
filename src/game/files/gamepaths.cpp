@@ -228,6 +228,8 @@ WString *__stdcall GamePaths_OnlineFolder(WString *out) {
     return out;
 }
 
+extern "C" void __cdecl GamePaths_Base_AtExit() { String_Dtor(at<String *>((u32)&gGamePaths_Base_788028)); }
+
 void GamePaths_SetCalls(const AddrCall *table, u32 count) { g_calls.Set(table, count); }
 
 extern "C" const char *__cdecl GamePaths_Base() {
@@ -244,7 +246,7 @@ extern "C" const char *__cdecl GamePaths_Base() {
     vcall<void>(path, 0x28, at<const StringView *>(0x00787f50));
     String_EnsureTrailingBackslash(path);
     vcall<void>(path, 0x28, at<const StringView *>(0x00786b68));
-    return *at<const char *const *>((u32)&gGamePaths_Base_788030);
+    return *at<const char *const *>((u32)&gGamePaths_Base_788028 + 8);
 }
 
 s32 __cdecl GamePaths_ShareTexFolder(char *out) {

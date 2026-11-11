@@ -92,11 +92,11 @@ void __cdecl Gui_Startup() {
         E->setWindow(reinterpret_cast<void * &>(gGamewindow_7a130c));
         E->fn5f55c0(local);
         E->fn5f5600(local);
-        gGui_7b9fe0 = 0;
-        gGui_Startup_7b9fe4 = 0;
-        gGui_Startup_7b9fe8 = 0;
-        gGui_Startup_7b9fec = 0;
-        gGui_Startup_7b9ff0 = 0x00486c70;
+        gGui_7b9fe0[0] = 0;
+        gGui_7b9fe0[1] = 0;
+        gGui_7b9fe0[2] = 0;
+        gGui_7b9fe0[3] = 0;
+        gGui_7b9fe0[4] = 0x00486c70;
         E->fn47e7d0();
     }
     const s32 screenY = global<s16>(0x00faa5c0);

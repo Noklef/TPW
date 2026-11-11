@@ -2,6 +2,7 @@
 
 #include <cstdint>
 #include "imports.h"
+#include "../terrain/land.h"
 
 namespace {
 
@@ -34,9 +35,9 @@ void *__cdecl GlobalMem_FreeAtB0(const u8 *owner) {
 }
 
 void __cdecl GlobalMem_FreeThree_427bb0() {
-    static const u32 kSlots[3] = {0x0074c8d4, 0x0074c8c0, 0x0074c8b8};
-    for (const u32 slot : kSlots) {
-        void *&block = *reinterpret_cast<void **>((uintptr_t)slot);
+    static const u32 kOffsets[3] = {0x2c, 0x18, 0x10};
+    for (const u32 offset : kOffsets) {   // the terrain sets' blocks (0x74c8d4, 0x74c8c0, 0x74c8b8)
+        void *&block = *reinterpret_cast<void **>(gLand_74c8a8 + offset);
         GlobalMem_Free(block);
         block = nullptr;
     }

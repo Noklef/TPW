@@ -23,6 +23,7 @@
 #include "../ui/panel7ca178.h"
 #include "../ui/panel7cc298.h"
 #include "../render/spritequeue.h"
+#include "../sprite/loading.h"
 
 namespace {
 
@@ -11029,8 +11030,8 @@ void __cdecl Init_540ba0() {   // 0x540ba0
     alignas(4) u8 frame[0x4];
     const u32 sp = (u32)(uintptr_t)(frame + sizeof frame);
     M<u32>(sp - 0x4) = 0x540bc0u;
-    M<u32>(0x875058u) = 0x87505cu;
-    M<u8>(0x87505cu) = 0x0u;
+    M<u32>((u32)&gSpriteFindRecord_875038[0x20]) = (u32)&gSpriteFindRecord_875038[0x24];
+    M<u8>((u32)&gSpriteFindRecord_875038[0x24]) = 0x0u;
     eax = g_calls.Cd(0x0067a7d0, M<u32>(sp - 0x4));   // CRT_atexit
     return;
 }

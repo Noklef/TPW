@@ -71,6 +71,9 @@ extern "C" {
 // 0x40ef40 (cdecl; name unconfirmed): the static String at 0x788028 (made at the first call, guard bit 0 of 0x7887e4, its destructor 0x40eff0 registered with
 // atexit) given the String at 0xf816e8, a "\" (asked twice, sic), the String at 0x787f50, a "\" and the String of 0x786b68: its text is returned.
 const char *__cdecl GamePaths_Base();
+
+// 0x40eff0 (cdecl; name invented): GamePaths_Base's atexit entry: the static String 0x788028 destroyed (String_Dtor).
+void __cdecl GamePaths_Base_AtExit();
 }
 
 // 0x46e650 (cdecl; out; name invented, unconfirmed): sprintf(out, "%s\\%s", 0x40ef40's text, the text at 0x7af720). Returns sprintf's result.
@@ -92,8 +95,7 @@ GAME_DATA(char[12], gText_GamePaths_SetTextureFolders_74d6e8, 0x0074d6e8, 0xc);
 GAME_DATA(char[12], gText_GamePaths_SetTextureFolders_74d6f4, 0x0074d6f4, 0xc);
 GAME_DATA(u16[2], gText_GamePaths_SetSecondRoot_77316c, 0x0077316c, 0x4);
 GAME_DATA(char[12], gText_GamePaths_MakeFoldersCopying_773cd0, 0x00773cd0, 0xc);
-GAME_DATA(u32[2], gGamePaths_Base_788028, 0x00788028, 0x8);
-GAME_DATA(u32, gGamePaths_Base_788030, 0x00788030, 0x4);
+GAME_DATA(u32[5], gGamePaths_Base_788028, 0x00788028, 0x14);   // a String (its text pointer at +8): one object
 GAME_DATA(u8, gGamePaths_Base_7887e4, 0x007887e4, 0x1);
 GAME_DATA(char[16], gGamePaths_7af720, 0x007af720, 0x10);
 GAME_DATA(u8, gGamePaths_CheckDisc_fb34ca, 0x00fb34ca, 0x1);

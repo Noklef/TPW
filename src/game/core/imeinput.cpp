@@ -478,4 +478,6 @@ u32 __stdcall Ime_WindowProc(u32 window, u32 message, u32 wparam, u32 lparam) {
     if (ime) return Ime_OnMessage(ime, nullptr, window, message, wparam, lparam);
     return DefaultProc(window, message, wparam, lparam);
 }
+
+void __cdecl ImeMap_AtExit() { StdTree_DtorA(ImeMap()); }
 }

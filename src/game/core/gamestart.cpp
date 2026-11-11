@@ -87,7 +87,8 @@ void __cdecl Game_Start() {
     g_calls.Cd(0x0051bfc0, 0u, gSoundCategories.ui, 0xd2u, 0u, 0u, 0u);
     g_calls.Cd(0x0051bd70);
     g_calls.Cd(0x0053e920);
-    g_calls.Th(0x00587380, kLoadScreen, g_calls.Th(0x0041a820, 0x0078b530u, (u32)(uintptr_t)&gGameframe_764fe4, 0x1f4u));
+    const u32 text = g_calls.Th(0x0041a820, 0x0078b530u);   // Language_Buffer
+    g_calls.Th(0x00587380, kLoadScreen, text, (u32)(uintptr_t)&gGameframe_764fe4, 0x1f4u);   // LoadScreen_Show
     g_calls.Th(0x004813c0, 0x007b51f0u);
     g_calls.Th(0x005879c0, kLoadScreen);
     global<u32>(0x00875030) = 0;
