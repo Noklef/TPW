@@ -13121,6 +13121,7 @@ address,name,kind,confidence,notes
 0x007537d0,gDialog7cb398_Create_7537d0,data,low,"GAME_DATA (src/game/ui/dialog7cb398): u8[0x478], named for its use, a window script (or a text / table before one): to the next named address"
 0x00753c68,gDialog7cb3f8_Open_753c68,data,low,"GAME_DATA (src/game/ui/dialog7cb3f8): u8[0x2e8], named for its use, a window script (or a text / table before one): to the next named address"
 0x00754490,gResearchPanel_Open_754490,data,low,"GAME_DATA (src/game/ui/levelmeter): u8[0x738], named for its use, a window script (or a text / table before one): to the next named address"
+0x004a9f90,ResearchSlider_OnMessage,function,low,"reimplemented (src/game/ui/levelmeter); cdecl (window, message, a, b): the research panel's slider 0xd2d10's handler: message 0x14 clears [0x7cc1dc]; then Window_CallDefault (its result returned)"
 0x00754cf8,gDialog7cc1f8_Open_754cf8,data,low,"GAME_DATA (src/game/ui/dialog7cc1f8): u8[0x43c], named for its use, a window script (or a text / table before one): to the next named address"
 0x00756400,gDialog7cc2ec_Open_756400,data,low,"GAME_DATA (src/game/ui/dialog7cc2ec): u8[0x550], named for its use, a window script (or a text / table before one): to the next named address"
 0x00756950,gThingBrowser_Create_756950,data,low,"GAME_DATA (src/game/ui/thingbrowser): u8[0x188], named for its use, a window script (or a text / table before one): to the next named address"
