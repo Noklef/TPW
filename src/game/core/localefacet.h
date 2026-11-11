@@ -220,6 +220,8 @@ GAME_DATA(void *[7], NumPut_vtable, 0x00709acc, 0x1c);
 GAME_DATA(void *[10], NumGet_vtable, 0x00709aec, 0x28);
 GAME_DATA(void *[1], LocaleFacet_vtable, 0x00709b44, 0x4);
 GAME_DATA(void *[10], Class709bbc_vtable, 0x00709bbc, 0x28);
+GAME_DATA(void *[3], MoneyPutW_vtable, 0x00709bec, 0xc);
+GAME_DATA(void *[3], MoneyGetW_vtable, 0x00709bfc, 0xc);
 GAME_DATA(void *[4], WFacet709c0c_vtable, 0x00709c0c, 0x10);
 GAME_DATA(void *[4], CollateW_vtable, 0x00709c24, 0x10);
 GAME_DATA(void *[6], WNumpunct_vtable, 0x00709c3c, 0x18);
