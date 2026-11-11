@@ -32,4 +32,4 @@ u32 __fastcall ObjectStatus_ShowOnPanel(u8 *panel);
 
 // Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
 GAME_DATA(u8[0x70], gObjectstatus_74fb50, 0x0074fb50, 0x70);
-GAME_DATA(u8[0x70], gObjectStatus_Show_74fbc0, 0x0074fbc0, 0x70);
+GAME_DATA(u8[0x6c], gObjectStatus_Show_74fbc0, 0x0074fbc0, 0x6c);   // 27 text ids; 0x74fc2c is the park view handler's flag

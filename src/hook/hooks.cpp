@@ -847,6 +847,7 @@
 #include "../game/ui/window705a50handler.h"
 #include "../game/ui/window705b20thumb.h"
 #include "../game/ui/window7cb2a4.h"
+#include "../game/ui/window7cb2achandler.h"
 #include "../game/ui/window7cb2b0handler.h"
 #include "../game/ui/window7cb2cc.h"
 #include "../game/ui/window7cc8bc.h"
@@ -10189,6 +10190,7 @@ const Hook kHooks[] = {
     {"GameWindow_Proc",           0x0046b600, (void *)&GameWindow_Proc, {0x66, 0x83, 0x3d, 0xc4, 0xa5}},
     {"GameWindow_ClassProc",      0x0046bcb0, (void *)&GameWindow_ClassProc, {0x53, 0x55, 0x56, 0x8b, 0x74}},
     {"PanelKeys_HandleMessage",   0x005e41c0, (void *)&PanelKeys_HandleMessage, {0x8b, 0x44, 0x24, 0x04, 0x53}},
+    {"Window7cb2ac_Handler",      0x004881a0, (void *)&Window7cb2ac_Handler, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"jdmarker_examine_app14",    0x0063bf50, (void *)&jdmarker_examine_app14, {0x8b, 0x4c, 0x24, 0x0c, 0x53}},
     {"jdmarker_examine_app0",     0x0063bcc0, (void *)&jdmarker_examine_app0, {0x8b, 0x44, 0x24, 0x0c, 0x8b}},
     {"jdmarker_get_interesting_appn", 0x0063bb80, (void *)&jdmarker_get_interesting_appn, {0x8b, 0x44, 0x24, 0x04, 0x83}},
