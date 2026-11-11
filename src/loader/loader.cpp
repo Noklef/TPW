@@ -153,7 +153,14 @@ u32 Resolve(u32 address) {
         if (void(__cdecl *const exit)() = StaticInit_Exit(address)) return (u32)(uintptr_t)exit;
         for (u32 i = 0; i < g_thunkCount; ++i)
             if (g_thunks[i].address == address) return g_thunks[i].code;
-        if (address < kCode || address > kCodeEnd - 5 || G<u8>(address) != 0xe9) return 0;
+        if (address < kCode || address > kCodeEnd - 6) return 0;
+        if (G<u16>(address) == 0x25ff) {   // JMP [slot] (an import thunk): what the slot holds, a DLL function when outside the image
+            const u32 to = G<u32>(G<u32>(address + 2));
+            if (to < kBase || to >= kImageEnd) return to;
+            address = to;
+            continue;
+        }
+        if (G<u8>(address) != 0xe9) return 0;
         address += 5 + G<u32>(address + 1);   // JMP rel32: its target
     }
     return 0;
@@ -325,7 +332,11 @@ LONG CALLBACK OnFault(EXCEPTION_POINTERS *e) {
         c.Eip = target;
         return EXCEPTION_CONTINUE_EXECUTION;
     }
-    Fail("tpw: no port for the original's %08X (called from %08X; build\\tpw.map names tpw.exe's addresses)", at, from);
+    u32 back[6] = {}, found = 0;   // the stack's next code addresses (tpw.exe's or the original's), for a caller outside both
+    for (u32 p = c.Esp + 4; found < 6 && p < c.Esp + 0x400 && !IsBadReadPtr((void *)(uintptr_t)p, 4); p += 4)
+        if (const u32 v = G<u32>(p); (v >= 0x00011000 && v < kBase) || (v >= kCode && v < kCodeEnd)) back[found++] = v;
+    Fail("tpw: no port for the original's %08X (called from %08X; build\\tpw.map names tpw.exe's addresses)\nstack: %08X %08X %08X %08X %08X %08X", at,
+         from, back[0], back[1], back[2], back[3], back[4], back[5]);
 }
 
 }  // namespace
