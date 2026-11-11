@@ -4389,7 +4389,7 @@ GAME_DATA(u8[0x940], gView_8bcbc8, 0x008bcbc8, 0x940);   // View_Defaults
 GAME_DATA(u8[0x20], gCpuInfo_8bd530, 0x008bd530, 0x20);   // CpuInfo_Ctor, CpuInfo_TicksPerMs; to the next
 GAME_DATA(u8[0x4108], gTexSettings_8bd550, 0x008bd550, 0x4108);   // TexSettings_Init; to the next
 GAME_DATA(u8[0x2f20], gLandscape_8c1828, 0x008c1828, 0x2f20);   // Landscape_Init, Landscape_FreeTextures
-GAME_DATA(u8[0x80], gSurfacePool_8c47d8, 0x008c47d8, 0x80);   // SurfacePool_ReleaseAll; to the next
+GAME_DATA(u8[0xc0], gSurfacePool_8c47d8, 0x008c47d8, 0xc0);   // SurfacePool_ReleaseAll
 GAME_DATA(u8[0x68], gPanel7b9940_f75b20, 0x00f75b20, 0x68);   // Panel7b9940_Ctor
 GAME_DATA(u8[0x14], gWString_f79bc0, 0x00f79bc0, 0x14);   // WString_CtorStr, WString_Dtor
 GAME_DATA(u8[0x14], gWString_f79be0, 0x00f79be0, 0x14);   // WString_CtorStr, WString_Dtor

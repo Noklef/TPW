@@ -1,4 +1,5 @@
 #include "crt.h"
+#include "addrcalls.h"
 #include "crtenv.h"
 #include "crtfloat.h"
 #include "crtlock.h"
@@ -51,9 +52,14 @@ const CrtEnv kGameCrt = {
 };
 const CrtEnv *g_crt = &kGameCrt;
 
+void Tables_ToPorts();
+
 }  // namespace
 
-const CrtEnv &Crt() { return *g_crt; }
+const CrtEnv &Crt() {
+    if (g_crt == &kGameCrt && g_addressTarget) Tables_ToPorts();
+    return *g_crt;
+}
 
 void Crt_SetEnv(const CrtEnv *env) { g_crt = env ? env : &kGameCrt; }
 
@@ -89,6 +95,21 @@ const CrtInnerEnv kGameInner = {
     game<s32(__cdecl *)(void *, const char *, void *)>(0x00680c00),
 };
 const CrtInnerEnv *g_inner = &kGameInner;
+
+// tpw.exe: a call through an original's address is an execute fault for the loader to redirect (about 2 million in a park load): the
+// tables' entries (all function pointers) become the ports once. No g_addressTarget in the hook DLL and the benches.
+template <typename Env> const Env *to_ports(const Env &game, Env &ports) {
+    for (u32 i = 0; i < sizeof(Env) / 4; ++i)
+        reinterpret_cast<u32 *>(&ports)[i] = g_addressTarget(reinterpret_cast<const u32 *>(&game)[i]);
+    return &ports;
+}
+
+void Tables_ToPorts() {
+    static CrtInnerEnv inner;
+    static CrtEnv crt;
+    if (g_inner == &kGameInner) g_inner = to_ports(kGameInner, inner);
+    g_crt = to_ports(kGameCrt, crt);
+}
 
 u32 &exit_table_end() { return CRT_onexitend; }
 u32 &exit_table() { return CRT_onexitbegin; }

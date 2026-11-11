@@ -17289,7 +17289,7 @@ address,name,kind,confidence,notes
 0x008bd530,gCpuInfo_8bd530,data,low,"GAME_DATA (core/staticobjects): u8[0x20], the static object CpuInfo_Ctor, CpuInfo_TicksPerMs, named for CpuInfo_Ctor (tools/gen_static_init.py)"
 0x008bd550,gTexSettings_8bd550,data,low,"GAME_DATA (core/staticobjects): u8[0x4108], the static object TexSettings_Init, named for TexSettings_Init (tools/gen_static_init.py)"
 0x008c1828,gLandscape_8c1828,data,low,"GAME_DATA (core/staticobjects): u8[0x2f20], the static object Landscape_Init, Landscape_FreeTextures, named for Landscape_Init (tools/gen_static_init.py)"
-0x008c47d8,gSurfacePool_8c47d8,data,low,"GAME_DATA (core/staticobjects): u8[0x80], the static object SurfacePool_ReleaseAll, named for SurfacePool_ReleaseAll (tools/gen_static_init.py)"
+0x008c47d8,gSurfacePool_8c47d8,data,low,"GAME_DATA (core/staticobjects): u8[0xc0], the static object SurfacePool_ReleaseAll, named for SurfacePool_ReleaseAll (tools/gen_static_init.py)"
 0x00f75b20,gPanel7b9940_f75b20,data,low,"GAME_DATA (core/staticobjects): u8[0x68], the static object Panel7b9940_Ctor, named for Panel7b9940_Ctor (tools/gen_static_init.py)"
 0x00f79bc0,gWString_f79bc0,data,low,"GAME_DATA (core/staticobjects): u8[0x14], the static object WString_CtorStr, WString_Dtor, named for WString_CtorStr (tools/gen_static_init.py)"
 0x00f79be0,gWString_f79be0,data,low,"GAME_DATA (core/staticobjects): u8[0x14], the static object WString_CtorStr, WString_Dtor, named for WString_CtorStr (tools/gen_static_init.py)"

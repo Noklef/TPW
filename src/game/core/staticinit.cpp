@@ -20336,7 +20336,7 @@ void __cdecl Init_58b070() {   // 0x58b070
     const u32 sp = (u32)(uintptr_t)(frame + sizeof frame);
     ecx = 0x10u;
     eax = 0;
-    edi = 0x8c4858u;
+    edi = ((u32)(uintptr_t)&gSurfacePool_8c47d8 + 0x80);
     for (; ecx; --ecx, edi += 4) M<u32>(edi) = eax;
     ecx = 0x20u;
     edi = (u32)(uintptr_t)&gSurfacePool_8c47d8;

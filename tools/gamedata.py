@@ -145,7 +145,7 @@ STATIC = {         # static object: (size, why), where its functions do not say 
     0x7b0562: (0x3a, 'the loop pointer of 10 records of 5 bytes from 0x7b0560; the colour ramps (0x7b0480) end with 0x7b0594 and 0x7b0598'),
     0x879df0: (0x40, 'staticinit zeroes 0x10 dwords from it'),
     0x87b0d0: (0x40, 'staticinit zeroes 0x10 dwords from it'),
-    0x8c4858: (0x40, 'staticinit zeroes 0x10 dwords from it'),
+    0x8c47d8: (0xc0, 'the surface pool: two surfaces a side, then at +0x80 the turns SurfacePool_Next reads; staticinit zeroes 0x10 dwords from +0x80'),
     0x7ca178: (0x50, 'the panel (Fn_48c9e0 writes +0-+0x1c, its code reaches +0x2c); 0x7ca1c8 is the dialog\'s window pointer, a global of its '
                      'own (ui/dialog7ca1c8.h)'),
     0x7cc298: (0x50, 'the panel (Fn_48c9e0 writes +0-+0x1c, its code reaches +0x34); 0x7cc2e8 is a float staticinit sets on its own'),
