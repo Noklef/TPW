@@ -11,6 +11,7 @@
 #include "../online/session.h"
 #include "../ui/dialogs.h"
 #include "frame.h"
+#include "../core/staticobjects.h"
 
 namespace {
 
@@ -43,7 +44,7 @@ void LeaveView(u8 *self) {
     ObjList_Drain(self, 8);
     ObjList_Drain(self, 0x6c);
     g_env->drain0c(gFrame_f83774);
-    global<u32>(0x008bcbc8) &= 0xfdffffff;
+    global<u32>((u32)(uintptr_t)&gView_8bcbc8) &= 0xfdffffff;
     g_env->stop(at<u32>(self, 0x74));
     g_env->stop(at<u32>(self, 0x78));
     at<u32>(self, 0x78) = 0;

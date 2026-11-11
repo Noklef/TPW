@@ -8,6 +8,7 @@
 #include "../world/rides.h"
 #include "../world/world.h"
 #include "../core/imports.h"
+#include "../core/staticobjects.h"
 
 namespace {
 
@@ -152,13 +153,13 @@ u32 draw(u8 *renderer, u8 *object, const char *folder, const char *style, const 
         const char *last = Crt().strrchr(base, 0x5c);
         name = last ? last + 1 : base;
     }
-    const char *language = reinterpret_cast<const char *>((uintptr_t)g_calls.Th(0x0041a820, 0x0078b530u));
+    const char *language = reinterpret_cast<const char *>((uintptr_t)g_calls.Th(0x0041a820, (u32)(uintptr_t)&gLanguage_78b530));
     Crt().sprintf(path, "%s\\%s_%s.sgn", base, language, name);
     if (!g_calls.Cd(0x0046f120, address(path))) Crt().sprintf(path, "%s\\%s.sgn", base, name);
     g_calls.Th(0x005ec3a0, address(renderer), address(path));
     g_calls.Th(0x005ec680, address(renderer), address(fonts));
 
-    const u32 mode = global<u32>(0x008bd554);
+    const u32 mode = global<u32>((u32)(uintptr_t)&gTexSettings_8bd550 + 0x4);
     const u32 params[7] = {address(lines[0]), address(lines[1]), at<u32>(textures[0], 0x12), at<u32>(textures[1], 0x12), 0x80u, 0x80u, mode == 2 ? 2u : mode == 3 ? 1u : 2u};
     const u32 dc = slot<u32(__stdcall *)(u32)>(IMPORT(User32_GetDC))(gGamewindow_7a130c);   // GetDC
     g_calls.Th(0x005ecb40, address(renderer), dc, address(params));
@@ -185,13 +186,13 @@ extern "C" u32 __cdecl Sign_ApplyObject(u8 *object, const u16 *text, const u16 *
     const u32 index = at<u32>(object, 0x20);
     u8 *const definition = reinterpret_cast<u8 *>((uintptr_t)g_calls.Th(0x004dd4e0, address(object)));   // Object_GetDef
     if (!definition || !index) return 0;
-    const char *const path = at<const char *>(reinterpret_cast<const void *>((uintptr_t)0x00f816c0), 8);
+    const char *const path = at<const char *>(reinterpret_cast<const void *>((uintptr_t)&gStrings5_f816c0), 8);
     if (!path) return 0;
     char fonts[0x104];
     Crt().sprintf(fonts, path[std::strlen(path) - 1] == '\\' ? "%s%s" : "%s\\%s", path, "Data\\Fonts");   // (an empty path reads the byte before it, sic)
     u8 *const holder = gRides_7a4610[index];
     u32 result = 1;
-    if (global<u32>(0x0078d8d8)) {
+    if (global<u32>((u32)(uintptr_t)&gOptions_78d8d8)) {
         u8 wide[0x14], name[0x14];
         g_calls.Th(0x005f6980, address(wide), address(definition + 0x390));   // WString_CtorStr
         g_calls.Th(0x005f61a0, address(name));   // String_Ctor
@@ -215,13 +216,13 @@ void Sign_SetRideCalls(const AddrCall *table, u32 count) { g_rideCalls.Set(table
 
 extern "C" u32 __cdecl Ride_ApplySign(u32 id, u32 a1, u32 a2, u32 a3, u32 a4) {
     if (!id) return 0;
-    const char *const folder = at<const char *>(reinterpret_cast<const void *>((uintptr_t)0x00f816c0), 8);
+    const char *const folder = at<const char *>(reinterpret_cast<const void *>((uintptr_t)&gStrings5_f816c0), 8);
     if (!folder) return 0;
     char fonts[0x104];
     Crt().sprintf(fonts, folder[std::strlen(folder) - 1] == '\\' ? "%s%s" : "%s\\%s", folder, "Data\\Fonts");   // (an empty folder reads the byte before it, sic)
     const u32 ride = (u32)(uintptr_t)gRides_7a4610[id];
     u32 result = 1;
-    if (global<u32>(0x0078d8d8)) result = g_rideCalls.Cd(0x467a80, ride, a1, a2, address(fonts), a3, a4);
+    if (global<u32>((u32)(uintptr_t)&gOptions_78d8d8)) result = g_rideCalls.Cd(0x467a80, ride, a1, a2, address(fonts), a3, a4);
     if (ride && !(at<u32>((void *)(uintptr_t)ride, 4) & 1)) at<u32>((void *)(uintptr_t)ride, 4) |= 0x8000000;
     return result;
 }

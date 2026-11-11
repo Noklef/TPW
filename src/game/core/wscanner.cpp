@@ -11,6 +11,7 @@
 #include "trivial.h"
 #include "wtraits.h"
 #include "../ui/window7cc8c0handler.h"
+#include "staticobjects.h"
 
 extern "C" u32 __cdecl CRT_wcslen(const u16 *text);   // (online/chatlists)
 
@@ -173,7 +174,7 @@ extern "C" {
 
 void __fastcall WKeywords_Add(u8 *self, void *, u32 id, u32 handler) {
     u16 text[0x80];
-    g_keywords->format(*reinterpret_cast<u8 **>(0x0078bac8), text, 0x80, id);
+    g_keywords->format(*reinterpret_cast<u8 **>((u32)(uintptr_t)&gLanguage_78b530 + 0x598), text, 0x80, id);
     // The original's allocator byte is an unset stack byte: it reaches the node's +8 (the wstring's allocator, never read). 0 here.
     const u8 allocator = 0;
     StdWString key;

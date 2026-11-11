@@ -22,6 +22,7 @@
 #include "window705af0.h"
 #include "window705b20.h"
 #include "panel7cc218.h"
+#include "../core/staticobjects.h"
 
 using namespace panelparts;
 
@@ -31,7 +32,7 @@ template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cas
 u8 *window(u8 *self) { return *reinterpret_cast<u8 **>(self + 0x14); }
 u8 *root(u8 *self) { return *reinterpret_cast<u8 **>(self + 0x10); }
 using Slot = void(__fastcall *)(u8 *, void *, u32);
-u8 *selected() { return *reinterpret_cast<u8 **>((uintptr_t)0x007cc288); }
+u8 *selected() { return *reinterpret_cast<u8 **>((uintptr_t)&gStatic_7cc258 + 0x30); }
 
 // Panel7cc258_Open's text child `id` when found: a part made by ctor, the bytes 1, 1 as 0xc00, font 6, 0, 0, 0, 0xff as 0x40000.
 u8 *label(u8 *window, PartCtor ctor, u32 id) {
@@ -124,7 +125,7 @@ void __fastcall Panel7cc258_Update(u8 *self) {
 }
 
 void __fastcall Panel7cc258_Show(u8 *self, void *, u8 *thing) {
-    *reinterpret_cast<u8 **>((uintptr_t)0x007cc288) = thing;
+    *reinterpret_cast<u8 **>((uintptr_t)&gStatic_7cc258 + 0x30) = thing;
     WindowAt10_Create(self, nullptr, reinterpret_cast<u8 *>((uintptr_t)&gPanel7cc258_Show_755908), 0x004b0b30, 0xc06c, 0xc06f, 0xc06d);
     Advisor_PostId(0xd1);
 }
@@ -132,9 +133,9 @@ void __fastcall Panel7cc258_Show(u8 *self, void *, u8 *thing) {
 u32 __cdecl Panel7cc258_ApplyToThing(u8 *thing) {
     const u8 *const shown = *reinterpret_cast<u8 *const *>(&gPanel7cc218_7c2658);
     if (*reinterpret_cast<const u16 *>(thing + 0xe) == *reinterpret_cast<const u16 *>(shown + 0xe)) {
-        Set198_4e21e0(thing, nullptr, *reinterpret_cast<const u32 *>((uintptr_t)0x007cc280));
-        Object_SetQualityOfGoods(thing, nullptr, (u8)(*reinterpret_cast<const s8 *>((uintptr_t)0x007cc27c) * 0x32));   // (IMUL CL: the low byte)
-        Obj_Set194(thing, nullptr, *reinterpret_cast<const u32 *>((uintptr_t)0x007cc284));
+        Set198_4e21e0(thing, nullptr, *reinterpret_cast<const u32 *>((uintptr_t)&gStatic_7cc258 + 0x28));
+        Object_SetQualityOfGoods(thing, nullptr, (u8)(*reinterpret_cast<const s8 *>((uintptr_t)&gStatic_7cc258 + 0x24) * 0x32));   // (IMUL CL: the low byte)
+        Obj_Set194(thing, nullptr, *reinterpret_cast<const u32 *>((uintptr_t)&gStatic_7cc258 + 0x2c));
     }
     return 1;
 }
@@ -160,7 +161,7 @@ void __fastcall Panel7cc258_ShowStats(u8 *self) {
         at<u32>(recent, 8) = 0x19;
         at<u32>(recent, 0xc) = (u32)(long long)sum2;
         at<u32>(recent, 0x10) = 0;
-        TextFormat().format(global<void *>(0x0078ba94), reinterpret_cast<u16 *>((uintptr_t)0x007ba058), 0x3fff, 0x1cc, recent, both);
+        TextFormat().format(global<void *>((u32)(uintptr_t)&gLanguage_78b530 + 0x564), reinterpret_cast<u16 *>((uintptr_t)0x007ba058), 0x3fff, 0x1cc, recent, both);
         vcall<void>(text, 0x24, 0x007ba058u);
         u8 *const settings = Window_FindChild(at<u8 *>(self, 0x14), nullptr, 0xc076);
         // the stack slot the ring +0x70's look backs write to next: first the setting +0x24 * 50

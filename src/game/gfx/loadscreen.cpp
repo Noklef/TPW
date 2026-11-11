@@ -12,6 +12,7 @@
 #include "mmxfill.h"
 #include "../render/d3dsetup.h"
 #include "../core/imports.h"
+#include "../core/staticobjects.h"
 
 namespace {
 
@@ -37,7 +38,7 @@ void close(u8 *screen) {
         GameHeap_Free(block);
         *reinterpret_cast<u32 **>(screen + offset) = nullptr;
     }
-    global<u32>(0x008bcbc8) &= ~0x40000000u;
+    global<u32>((u32)(uintptr_t)&gView_8bcbc8) &= ~0x40000000u;
 }
 
 const char *text(u32 address) { return reinterpret_cast<const char *>((uintptr_t)address); }
@@ -92,12 +93,12 @@ u32 __fastcall LoadScreen_ShowImage(u8 *image) {
     }
     if (global<u32>(0x008bd524) == 4) {
         u32 *out = *reinterpret_cast<u32 **>(global<u8 *>(0x00879dac) + 8);
-        for (s32 y = 0; y < global<s32>(0x008bcbd4); ++y) {
-            for (s32 x = 0; x < global<s32>(0x008bcbd0); ++x) {
+        for (s32 y = 0; y < global<s32>((u32)(uintptr_t)&gView_8bcbc8 + 0xc); ++y) {
+            for (s32 x = 0; x < global<s32>((u32)(uintptr_t)&gView_8bcbc8 + 0x8); ++x) {
                 const s32 width = *reinterpret_cast<const s32 *>(image + 4);
-                const s32 rows = global<s32>(0x008bcbd4);
+                const s32 rows = global<s32>((u32)(uintptr_t)&gView_8bcbc8 + 0xc);
                 const s32 from = (rows - y - 1) * *reinterpret_cast<const s32 *>(image + 8) / rows;
-                *out++ = reinterpret_cast<const u32 *>(pixels)[from * width + x * width / global<s32>(0x008bcbd0)];
+                *out++ = reinterpret_cast<const u32 *>(pixels)[from * width + x * width / global<s32>((u32)(uintptr_t)&gView_8bcbc8 + 0x8)];
             }
         }
     }
@@ -117,7 +118,7 @@ u32 __fastcall LoadScreen_Show(u8 *self, void *, const char *name, const char *f
     u32 shown = (u32)ms;
 
     char size[0x14], path[0x80], splash[0x80], stampFirst[0x80], stampLater[0x80];
-    const s32 width = global<s32>(0x008bcbd0);
+    const s32 width = global<s32>((u32)(uintptr_t)&gView_8bcbc8 + 0x8);
     if (width == 400 || width == 512 || width == 640 || width == 800 || width == 1024)
         Crt().sprintf(size, text((u32)(uintptr_t)&gLoadscreen_768dd4), width);
     else
@@ -162,7 +163,7 @@ u32 __fastcall LoadScreen_Show(u8 *self, void *, const char *name, const char *f
     g_calls.Th(0x00586f40, (u32)(uintptr_t)block, first ? stampFirst : stampLater, 0u, y);
     ++global<u32>(0x008c4788);
     ++global<u32>(0x008c478c);
-    global<u32>(0x008bcbc8) |= 0x40000000;
+    global<u32>((u32)(uintptr_t)&gView_8bcbc8) |= 0x40000000;
     at<s32>(self, 4) = -1;
     at<u32>(self, 0xc) = 0;
     if (global<u32>(0x008c4788) == 1) {
@@ -181,7 +182,7 @@ void __cdecl LoadScreen_StaticDtor() { close(reinterpret_cast<u8 *>((uintptr_t)0
 
 u32 __fastcall LoadScreen_DrawBar(u8 *screen) {
     const s32 percent = (s32)(long long)(X87Reg((double)*reinterpret_cast<s32 *>(screen)) * *reinterpret_cast<float *>(screen + 0x18)).v;  // __ftol
-    const u32 w = global<u32>(0x008bcbd0), h = global<u32>(0x008bcbd4);
+    const u32 w = global<u32>((u32)(uintptr_t)&gView_8bcbc8 + 0x8), h = global<u32>((u32)(uintptr_t)&gView_8bcbc8 + 0xc);
     const s32 scale = (s32)(w << 16) / 640;
     const s32 b = (s32)(h * 11) / 480;
     const s32 left = (s32)(w * 14) / 640;
@@ -216,7 +217,7 @@ u32 __fastcall LoadScreen_Tick(u8 *screen) {
         at<u32>(screen, 0x2c) = 0;
         if (global<u32>(0x008bd524) == 4) {
             if (u8 *const buffer = at<u8 *>(global<u8 *>(0x00879dac), 4))
-                Mmx_FillRows(global<s32>(0x008bcbd0), global<u32>(0x008bcbd4), buffer, global<s32>(0x008bcbd0) * 2);
+                Mmx_FillRows(global<s32>((u32)(uintptr_t)&gView_8bcbc8 + 0x8), global<u32>((u32)(uintptr_t)&gView_8bcbc8 + 0xc), buffer, global<s32>((u32)(uintptr_t)&gView_8bcbc8 + 0x8) * 2);
         }
     }
     timeGetTime();   // (its answer unused)

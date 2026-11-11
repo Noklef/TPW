@@ -14,6 +14,7 @@
 #include "cellbuild.h"
 #include "pathdrag.h"
 #include "world.h"
+#include "../core/staticobjects.h"
 
 namespace {
 
@@ -29,7 +30,7 @@ void MapPress_SetEnv(const MapPressEnv *env) { g_env = env ? env : &kGame; }
 
 extern "C" void __cdecl GameMode_MapPress(s32 x, s32 y, u32 flags, u32 useStored) {
     gGameMode_8186d8 = 1;
-    if (global<u32>(0x00785a2c) != 0) {
+    if (global<u32>((u32)(uintptr_t)&gActionRec_785a08 + 0x24) != 0) {
         gCellbuild_816d50 = 0;
         if (gMapclick_8187f8 == 0) g_env->preview(x, y, flags);
     }
@@ -37,7 +38,7 @@ extern "C" void __cdecl GameMode_MapPress(s32 x, s32 y, u32 flags, u32 useStored
         x = gFocuscell_8186b8;
         y = gFocuscell_8186b4;
     }
-    ActionRec *const record = reinterpret_cast<ActionRec *>((uintptr_t)0x00785a08);
+    ActionRec *const record = reinterpret_cast<ActionRec *>((uintptr_t)&gActionRec_785a08);
     if (gFocuscell_816d48 == 0) {
         if ((u16)flags == 0) g_env->writeBB(record, nullptr, 0xf, (u32)x, (u32)y);
         else g_env->writeBBW(record, nullptr, 0x28, (u32)x, (u32)y, flags);

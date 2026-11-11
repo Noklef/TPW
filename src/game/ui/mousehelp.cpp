@@ -21,6 +21,7 @@
 #include "window7cc8c0handler.h"
 #include "../world/world.h"
 #include "../core/textarg.h"
+#include "../core/staticobjects.h"
 
 namespace {
 
@@ -44,16 +45,16 @@ u8 *recordOf(u8 *world, u32 tile) { return world + (tile + 0x6cde) * 40; }
 
 // The entry's text in the buffer (widened when the converter [0x78ba80] is on; the buffer as it was when not); null with none.
 const u16 *entryText(u32 entry) {
-    const u8 *const source = g_env->records(global<u8 *>(0x0078ba98), nullptr, entry);
+    const u8 *const source = g_env->records(global<u8 *>((u32)(uintptr_t)&gLanguage_78b530 + 0x568), nullptr, entry);
     if (!source) return nullptr;
-    if (global<u32>(0x0078ba80)) {
+    if (global<u32>((u32)(uintptr_t)&gLanguage_78b530 + 0x550)) {
         u32 status;
-        g_env->widen(global<u8 *>(0x0078ba7c), nullptr, &status, kBuffer, source, 0x200);
+        g_env->widen(global<u8 *>((u32)(uintptr_t)&gLanguage_78b530 + 0x54c), nullptr, &status, kBuffer, source, 0x200);
     }
     return kBuffer;
 }
 
-void format(u32 entry, const u32 *argument) { g_env->format(global<u8 *>(0x0078ba98), kBuffer, kTextSize, entry, argument); }
+void format(u32 entry, const u32 *argument) { g_env->format(global<u8 *>((u32)(uintptr_t)&gLanguage_78b530 + 0x568), kBuffer, kTextSize, entry, argument); }
 
 // The entry formatted with a string argument, shown.
 void showWith(u32 entry, const void *text) {

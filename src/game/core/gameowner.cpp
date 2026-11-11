@@ -3,13 +3,14 @@
 
 #include <cstdint>
 #include "../ui/panel7b9940.h"
+#include "staticobjects.h"
 #include "../world/world.h"
 
 namespace {
 
 AddrCalls g_calls;
 
-const u32 kFrontEnd = 0x007b51f0, kClocks = 0x00785970;
+const u32 kFrontEnd = 0x007b51f0, kClocks = (u32)(uintptr_t)&gObj_785970;
 
 template <typename T>
 T &at(const void *p, u32 offset) {
@@ -97,8 +98,8 @@ u32 __fastcall GameOwner_Shutdown(u8 *self) {
         global<u32>((u32)&gWorldPtr) = 0;
     }
     g_calls.Th(0x00412d50, 0x007890a0u);   // ObjectDefs_Free
-    g_calls.Th(0x00585e20, 0x008c1828u);   // Landscape_FreeTextures
-    if (global<u32>(0x008bcbc8) & 0x400000) {
+    g_calls.Th(0x00585e20, (u32)(uintptr_t)&gLandscape_8c1828);   // Landscape_FreeTextures
+    if (global<u32>((u32)(uintptr_t)&gView_8bcbc8) & 0x400000) {
         if (at<u32>(self, 0x38)) {
             g_calls.Th(0x00418d70, at<u32>(self, 0x38));   // Landscape_RemoveTextureList
             const u32 list = at<u32>(self, 0x38);

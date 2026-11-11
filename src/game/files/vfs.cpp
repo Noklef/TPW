@@ -11,6 +11,7 @@
 #include "../core/vwrap.h"
 #include "file.h"
 #include "handles.h"
+#include "../core/staticobjects.h"
 
 namespace {
 
@@ -21,7 +22,7 @@ T at(u32 address) {
 
 // The leading copies of the global "\" (0x78bee0) dropped from s, one at a time.
 void drop_leading_backslashes(String *s) {
-    const String *const backslash = at<const String *>(0x0078bee0);
+    const String *const backslash = at<const String *>((u32)(uintptr_t)&gString_78bee0);
     StringView view;
     while (String_Equals(reinterpret_cast<const String *>(String_Left(s, nullptr, &view, backslash->length)), nullptr,
                          reinterpret_cast<const StringView *>(backslash))) {
@@ -39,8 +40,8 @@ bool names_equal(const String *a, const String *b) {
 extern "C" {
 
 u32 __cdecl Path_StripBase(String *path, String *base, String *out) {
-    const String *const wadTail = at<const String *>(0x0078bf40);
-    const String *const wad = at<const String *>(0x0078c810);
+    const String *const wadTail = at<const String *>((u32)(uintptr_t)&gString_78bf40);
+    const String *const wad = at<const String *>((u32)(uintptr_t)&gString_78c810);
     String a, b;
     String_Ctor(&a);
     String_Ctor(&b);
@@ -67,7 +68,7 @@ u32 __cdecl Path_StripBase(String *path, String *base, String *out) {
             result = 1;
         }
     }
-    if (!result) vcall<void>(out, 0x18, at<const String *>(0x0078be50));
+    if (!result) vcall<void>(out, 0x18, at<const String *>((u32)(uintptr_t)&gString_78be50));
     String_Dtor(&b);
     String_Dtor(&a);
     return result;
@@ -76,7 +77,7 @@ u32 __cdecl Path_StripBase(String *path, String *base, String *out) {
 StreamBase *__cdecl VFS_Open(const char *name) {
     void *const block = GameHeap_Alloc(8);
     StreamBase *const stream = block ? StreamBase_Ctor(static_cast<StreamBase *>(block)) : nullptr;
-    u8 *const source = reinterpret_cast<u8 *>(static_cast<std::uintptr_t>(StreamBase_GetSource(*at<u8 **>(0x00786b9c))));
+    u8 *const source = reinterpret_cast<u8 *>(static_cast<std::uintptr_t>(StreamBase_GetSource(*at<u8 **>((u32)(uintptr_t)&gNamedObjects_786b68 + 0x34))));
     if (source) {
         u8 *const archive = reinterpret_cast<u8 *>(static_cast<std::uintptr_t>(Get38_41ce90(source)));
         if (archive) {
@@ -103,7 +104,7 @@ StreamBase *__cdecl VFS_Open(const char *name) {
     }
     String path;
     String_CtorStr(&path, nullptr, name);
-    const bool opened = ListRef_AnyHandles(*at<u8 ***>(0x00786b9c), nullptr, static_cast<u32>(reinterpret_cast<std::uintptr_t>(stream)),
+    const bool opened = ListRef_AnyHandles(*at<u8 ***>((u32)(uintptr_t)&gNamedObjects_786b68 + 0x34), nullptr, static_cast<u32>(reinterpret_cast<std::uintptr_t>(stream)),
                                            static_cast<u32>(reinterpret_cast<std::uintptr_t>(&path))) == 1;
     String_Dtor(&path);
     return opened ? stream : nullptr;
@@ -111,7 +112,7 @@ StreamBase *__cdecl VFS_Open(const char *name) {
 
 bool __cdecl VFS_ArchiveName(const String *name, String *out) {
     if (!VFS_Open(name->data)) return false;
-    u8 *const source = reinterpret_cast<u8 *>(static_cast<std::uintptr_t>(StreamBase_GetSource(*at<u8 **>(0x00786b9c))));
+    u8 *const source = reinterpret_cast<u8 *>(static_cast<std::uintptr_t>(StreamBase_GetSource(*at<u8 **>((u32)(uintptr_t)&gNamedObjects_786b68 + 0x34))));
     u8 *const archive = reinterpret_cast<u8 *>(static_cast<std::uintptr_t>(Get38_41ce90(source)));
     String root, path;
     String_CtorCopy(&root, nullptr, reinterpret_cast<const StringView *>(source + 0x18));

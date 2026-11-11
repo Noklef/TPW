@@ -9,6 +9,7 @@
 #include "gameerror.h"
 #include "gameheap.h"
 #include "string.h"
+#include "staticobjects.h"
 
 namespace {
 
@@ -201,13 +202,13 @@ void __fastcall BalanceFile_Init(u8 *self) {
     BalanceFile_SetDefaults(self, nullptr, 1);
 }
 
-void __cdecl BalanceHoardingsA_StaticDtor() { destroy(0x00784e30, 0x006fd618); }
-void __cdecl BalanceHoardingsB_StaticDtor() { destroy(0x00784c20, 0x006fd618); }
-void __cdecl BalanceLevel_StaticDtor() { destroy(0x00785040, 0x006fd620); }
-void __cdecl BalanceOnline_StaticDtor() { destroy(0x00785828, 0x006fd628); }
-void __cdecl BalanceGraphics_StaticDtor() { destroy(0x00785868, (u32)(uintptr_t)BalanceGraphics_vtable); }
-void __cdecl BalanceResolution_StaticDtor() { destroy(0x007858e0, ((u32)(uintptr_t)BalanceGraphics_vtable + 0x8)); }
-void __cdecl BalanceSound_StaticDtor() { destroy(0x007858f0, ((u32)(uintptr_t)BalanceGraphics_vtable + 0x10)); }
+void __cdecl BalanceHoardingsA_StaticDtor() { destroy((u32)(uintptr_t)&gBalanceHoardingsA, 0x006fd618); }
+void __cdecl BalanceHoardingsB_StaticDtor() { destroy((u32)(uintptr_t)&gBalanceHoardingsB, 0x006fd618); }
+void __cdecl BalanceLevel_StaticDtor() { destroy((u32)(uintptr_t)&gBalanceLevel, 0x006fd620); }
+void __cdecl BalanceOnline_StaticDtor() { destroy((u32)(uintptr_t)&gBalanceOnline, 0x006fd628); }
+void __cdecl BalanceGraphics_StaticDtor() { destroy((u32)(uintptr_t)&gBalanceGraphics, (u32)(uintptr_t)BalanceGraphics_vtable); }
+void __cdecl BalanceResolution_StaticDtor() { destroy((u32)(uintptr_t)&gBalanceResolution, ((u32)(uintptr_t)BalanceGraphics_vtable + 0x8)); }
+void __cdecl BalanceSound_StaticDtor() { destroy((u32)(uintptr_t)&gBalanceSound, ((u32)(uintptr_t)BalanceGraphics_vtable + 0x10)); }
 
 void __fastcall ObjectDefBalance_Dtor(u8 *self) {
     at<u32>(self, 0) = (u32)(uintptr_t)ObjectDefBalance_vtable;

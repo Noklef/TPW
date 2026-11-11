@@ -23,6 +23,7 @@
 #include "window705af0.h"
 #include "window705b20.h"
 #include "panel7cc218.h"
+#include "../core/staticobjects.h"
 
 namespace {
 
@@ -91,7 +92,7 @@ void __fastcall Panel7cc298_Dress(u8 *self) {
 void __fastcall Panel7cc298_DressTip(u8 *self) { panelparts::tip(self); }
 
 void __fastcall Panel7cc298_Open(u8 *self) {
-    if (Things_CountGroup(self, nullptr, *reinterpret_cast<const u32 *>((uintptr_t)0x007cc2c8)) < 2) {
+    if (Things_CountGroup(self, nullptr, *reinterpret_cast<const u32 *>((uintptr_t)&gStatic_7cc298 + 0x30)) < 2) {
         Window_SetShown(child(self, 0xa08c), nullptr, 0);
         Window_SetShown(child(self, 0xa08d), nullptr, 0);
     }
@@ -130,7 +131,7 @@ void __fastcall Panel7cc298_Open(u8 *self) {
 }
 
 void __fastcall Panel7cc298_Show(u8 *self, void *, u8 *thing) {
-    *reinterpret_cast<u8 **>((uintptr_t)0x007cc2c8) = thing;
+    *reinterpret_cast<u8 **>((uintptr_t)&gStatic_7cc298 + 0x30) = thing;
     WindowAt10_Create(self, nullptr, reinterpret_cast<u8 *>((uintptr_t)&gPanel7cc298_Show_755e80), 0x004b2150, 0xa0a2, 0xa091, 0xa0a3);
     Advisor_PostId(0xd0);
 }
@@ -146,10 +147,10 @@ void __fastcall Panel7cc298_ApplyToShown(u8 *self) {
 
 u32 __cdecl Panel7cc298_ApplyToThing(u8 *thing) {
     if (at<u16>(thing, 0xe) == at<u16>(gPanel7cc218_7c2658, 0xe)) {
-        Obj_Set194(thing, nullptr, global<u32>(0x007cc2c4));
+        Obj_Set194(thing, nullptr, global<u32>((u32)(uintptr_t)&gStatic_7cc298 + 0x2c));
         if (!at<u32>(Object_GetDef(thing), 0x10c)) {
-            Object_SetChanceOfWinning(thing, nullptr, global<u8>(0x007cc2bc));
-            Obj_Set188(thing, nullptr, global<u32>(0x007cc2c0));
+            Object_SetChanceOfWinning(thing, nullptr, global<u8>((u32)(uintptr_t)&gStatic_7cc298 + 0x24));
+            Obj_Set188(thing, nullptr, global<u32>((u32)(uintptr_t)&gStatic_7cc298 + 0x28));
         }
     }
     return 1;
@@ -179,7 +180,7 @@ void __fastcall Panel7cc298_ShowStats(u8 *self) {
         at<u32>(recent, 8) = 0x19;
         at<u32>(recent, 0xc) = (u32)(long long)sum2;
         at<u32>(recent, 0x10) = 0;
-        TextFormat().format(global<void *>(0x0078ba94), reinterpret_cast<u16 *>((uintptr_t)0x007ba058), 0x3fff, 0x1cc, recent, both);
+        TextFormat().format(global<void *>((u32)(uintptr_t)&gLanguage_78b530 + 0x564), reinterpret_cast<u16 *>((uintptr_t)0x007ba058), 0x3fff, 0x1cc, recent, both);
         vcall<void>(text, 0x24, 0x007ba058u);  // (not checked)
         if (u8 *const bar = Window_FindChild(window14(self), nullptr, 0xa096))
             vcall<void>(bar, 0x1c, (u32)((s32)(Object_HistoryPercent(thing) << 10) / 100));

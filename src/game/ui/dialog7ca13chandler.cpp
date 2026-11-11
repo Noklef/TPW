@@ -20,6 +20,7 @@
 #include "window7059f0texts.h"
 #include "dialog7ca13c.h"
 #include "../world/world.h"
+#include "../core/staticobjects.h"
 
 namespace {
 
@@ -89,7 +90,7 @@ extern "C" s32 __cdecl Dialog7ca13c_Handler(u8 *window, u32 message, u32 a, u32 
             if (child && b != 0xffffffff) {
                 u32 data;
                 g_env->nth(child, nullptr, static_cast<s32>(b), &data);
-                g_env->show(reinterpret_cast<u8 *>((uintptr_t)0x007cc408), nullptr, reinterpret_cast<u8 *>((uintptr_t)data));
+                g_env->show(reinterpret_cast<u8 *>((uintptr_t)&gStatic_7cc408), nullptr, reinterpret_cast<u8 *>((uintptr_t)data));
             }
             return 0;
         }

@@ -22,6 +22,7 @@
 #include "meshlist.h"
 #include "../world/camera.h"
 #include "../core/vdtor.h"
+#include "../core/staticobjects.h"
 
 namespace {
 
@@ -67,7 +68,7 @@ void SetPoint(s32 i, float angle, float a, float b, float strength, float &x, fl
     const X87Reg cosine = X87_Cos(((X87Reg(angle) - b) * kPi * kPerDegree).v);
     x = (float)(sine * strength);
     z = (float)(cosine * strength);
-    Landscape_SetPoint(reinterpret_cast<u8 *>((uintptr_t)0x008c1828), nullptr, i, Bits(x), 0xbf800000, Bits(z));
+    Landscape_SetPoint(reinterpret_cast<u8 *>((uintptr_t)&gLandscape_8c1828), nullptr, i, Bits(x), 0xbf800000, Bits(z));
 }
 
 }  // namespace
@@ -95,7 +96,7 @@ void __fastcall WeatherFx_SetWind(u8 *fx, void *, float angle, float strength) {
     const X87Reg a = turned * kPi * kPerDegree;
     const float x0 = (float)(X87Reg(X87_Sin(a.v)) * s);
     const float z0 = (float)(X87Reg(X87_Cos(a.v)) * s);
-    Landscape_SetPoint(reinterpret_cast<u8 *>((uintptr_t)0x008c1828), nullptr, 0, Bits(x0), 0xbf800000, Bits(z0));
+    Landscape_SetPoint(reinterpret_cast<u8 *>((uintptr_t)&gLandscape_8c1828), nullptr, 0, Bits(x0), 0xbf800000, Bits(z0));
     float x, z;
     SetPoint(1, from, 1.9f, 2.3f, s, x, z);     // 0x701cac, 0x701cb0
     SetPoint(2, from, 1.2f, -1.7f, s, x, z);    // 0x701cb4, 0x701cb8
@@ -408,7 +409,7 @@ void ShakenPlaces(const u8 *fx, Place *places, float x, float y, float z) {
 void WeatherFx_SetDropsEnv(const WeatherDropsEnv *env) { g_dropsEnv = env ? env : &kDropsPortEnv; }
 
 u32 __fastcall WeatherFx_DrawDrops(u8 *fx, void *, float x, float y, float z) {
-    const float across = (float)(X87Reg(*reinterpret_cast<const float *>((uintptr_t)0x008bcbcc)) * at<float>(fx, 0x3354));
+    const float across = (float)(X87Reg(*reinterpret_cast<const float *>((uintptr_t)&gView_8bcbc8 + 0x4)) * at<float>(fx, 0x3354));
     const u32 highBits = X87_FloatThrough(at<u32>(fx, 0x3354));
     const float &high = at<float>(&highBits, 0);
     const u32 colour = at<u32>(gMeshlist_87a248, 0x2c);
@@ -431,7 +432,7 @@ u32 __fastcall WeatherFx_DrawDrops(u8 *fx, void *, float x, float y, float z) {
     vs[2] = (float)(X87Reg(vs[0]) + t);
 
     Place places[0x400];
-    if (*reinterpret_cast<const u32 *>((uintptr_t)0x008bcbc8) & 0x100) SwirledPlaces(fx, places, x, y, z);
+    if (*reinterpret_cast<const u32 *>((uintptr_t)&gView_8bcbc8) & 0x100) SwirledPlaces(fx, places, x, y, z);
     else ShakenPlaces(fx, places, x, y, z);
 
     u8 *const transformer = *reinterpret_cast<u8 **>((uintptr_t)0x0087b1d8);
@@ -504,7 +505,7 @@ u32 __fastcall WeatherFx_DrawStreaks(u8 *fx, void *, float x, float y, float z) 
 
     u8 *const transformer = *reinterpret_cast<u8 **>((uintptr_t)0x0087b1d8);
     at<void(__cdecl *)(u8 *, u8 *, Streak *, Streak *, u32, u32, s32, u32)>(at<const u8 *>(transformer, 0), 4)(transformer, fx + 0x9d58, streaks, streaks, 0xc, 0xc, count * 2, 2);
-    const u32 flags = (*reinterpret_cast<const u32 *>((uintptr_t)0x008bcbc8) & 2) ? 0x200d22 : 0x200d52;
+    const u32 flags = (*reinterpret_cast<const u32 *>((uintptr_t)&gView_8bcbc8) & 2) ? 0x200d22 : 0x200d52;
     u8 *const batch = g_dropsEnv->begin(BatchObject(), nullptr, at<u32>(fx, 0x330c), 4, 0x1c4, flags, id);
     if (!batch) return 1;
 
@@ -598,14 +599,14 @@ extern "C" void __cdecl WeatherFx_ReloadEffects() {
     }
     if (u8 *const queue = *reinterpret_cast<u8 **>((uintptr_t)0x008c47a0))
         g_reload->queueLoad(queue, nullptr, gText_WeatherFx_ReloadEffects_765238);
-    const u8 *const lock = g_reload->getLock(reinterpret_cast<u8 *>((uintptr_t)0x00f816c0));
+    const u8 *const lock = g_reload->getLock(reinterpret_cast<u8 *>((uintptr_t)&gStrings5_f816c0));
     s32 status;
     if (*g_reload->open(h, nullptr, &status, at<u32>(lock, 8)) >= 0) {
         u8 entry[0x128];
         at<u8 *>(entry, 0x20) = entry + 0x24;
         entry[0x24] = 0;
-        if (*g_reload->first(h, nullptr, &status, *reinterpret_cast<u32 *>((uintptr_t)0x00878ec0), (u32)(uintptr_t)entry) < 0)
-            g_reload->close(h, nullptr, &status, *reinterpret_cast<u32 *>((uintptr_t)0x00878ec0));
+        if (*g_reload->first(h, nullptr, &status, *reinterpret_cast<u32 *>((uintptr_t)&gString_878eb8 + 0x8), (u32)(uintptr_t)entry) < 0)
+            g_reload->close(h, nullptr, &status, *reinterpret_cast<u32 *>((uintptr_t)&gString_878eb8 + 0x8));
     }
     g_reload->setRamps();
     g_reload->dtor(h);
@@ -720,7 +721,7 @@ u32 __fastcall WeatherFx_AddBolt(u8 *fx, void *, u32 ax, u32 ay, u32 az, u32 bx,
 
 u32 __fastcall WeatherFx_Frame(u8 *fx) {
     u32 old = at<u32>(fx, 0x3344);
-    const u32 now = g_boltCalls.Th(0x00402d70, 0x00785970);
+    const u32 now = g_boltCalls.Th(0x00402d70, (u32)(uintptr_t)&gObj_785970);
     at<u32>(fx, 0x3344) = now;
     if ((s32)(now - old) > 500) old = now - 500;
     const s32 gap = (s32)(now - old);

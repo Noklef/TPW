@@ -17,6 +17,7 @@
 #include "texcache.h"
 #include "../render/graphicssettings.h"
 #include "../render/d3dsetup.h"
+#include "../core/staticobjects.h"
 
 namespace {
 
@@ -27,7 +28,7 @@ template <typename T> T &at(const void *p, u32 offset) {
 u32 &global(u32 address) { return *reinterpret_cast<u32 *>(address); }
 const u8 *pointer(u32 address) { return *reinterpret_cast<const u8 *const *>(address); }
 
-u32 &render_flags() { return global(0x008bd550); }
+u32 &render_flags() { return global((u32)(uintptr_t)&gTexSettings_8bd550); }
 u32 &terrain_flags() { return gGraphicssettings_7a1a8c; }
 
 AddrCalls g_calls;
@@ -138,7 +139,7 @@ u32 __fastcall TerrainTex_Setup(u8 *tex, void *, const u8 *land) {
     else
         at<float>(tex, 0x18) = (float)(X87Reg(1.0f) / span);
     at<u32>(tex, 0x12968) = 0;
-    if (global(0x008bcbc8) & 0x10000) {
+    if (global((u32)(uintptr_t)&gView_8bcbc8) & 0x10000) {
         if (at<u32>(tex, 0x12970)) {
             TrackedGlobal_Free(at<u32>(tex, 0x12970));
             at<u32>(tex, 0x12970) = 0;
@@ -195,7 +196,7 @@ u32 __fastcall TerrainTex_Unload(u8 *tex) {
 void __cdecl Terrain_ProceduralEnter() {
     const u32 flags = terrain_flags();
     if (!(flags & 0x2000) || (flags & 0x4000)) return;
-    const u32 option = global(0x0078d8d8);
+    const u32 option = global((u32)(uintptr_t)&gOptions_78d8d8);
     if (option == 1) {
         terrain_flags() = flags | 0x4000;
         TerrainTex_Enable();
@@ -354,7 +355,7 @@ u32 __fastcall TerrainTex_Init(u8 *tex, void *, const char *name, u32 size) {
         g_calls.Th(0x0056af20, (u32)(uintptr_t)gEngineErrors_879ad0, 2u, 0xb0754000u);
         return 0;
     }
-    if (!g_calls.Th(0x00572110, (u32)(uintptr_t)cache, global(0x008c162c), size))
+    if (!g_calls.Th(0x00572110, (u32)(uintptr_t)cache, global((u32)(uintptr_t)&gTexSettings_8bd550 + 0x40dc), size))
         return 0;   // sic: the cache is kept
     if (g_calls.Th(0x005723f0, (u32)(uintptr_t)at<u8 *>(tex, 0x230), name))
         return 1;
@@ -367,7 +368,7 @@ static s32 ftol(const X87Reg &x) { return (s32)(long long)x.v; }
 static s32 keep_within(s32 value, s32 low, s32 high) { return value < low ? low : value > high ? high : value; }
 
 u32 __fastcall TerrainTex_CullView(u8 *self) {
-    const u32 far_bits = global(0x008bcbc8) & 0x2000 ? global(0x008bd4c0) : 0x43e60000;   // 460.0
+    const u32 far_bits = global((u32)(uintptr_t)&gView_8bcbc8) & 0x2000 ? global((u32)(uintptr_t)&gView_8bcbc8 + 0x8f8) : 0x43e60000;   // 460.0
     const float distance = *reinterpret_cast<const float *>(&far_bits);
     g_calls.Th(0x00578ca0, 0x0087b110, 0x447a0000u);   // 1000.0
     g_calls.Cd(0x005783b0);
@@ -379,7 +380,7 @@ u32 __fastcall TerrainTex_CullView(u8 *self) {
         lows[i] = 0x7f;
         highs[i] = 0xff;
     }
-    if (*reinterpret_cast<const u8 *>(0x008bcbc8) & 0x20) {
+    if (*reinterpret_cast<const u8 *>((u32)(uintptr_t)&gView_8bcbc8) & 0x20) {
         const u8 *const tex = at<const u8 *>(self, 0);
         TerrainTex_CullRect(self, nullptr, 0, 0, at<s32>(tex, 0x18), at<s32>(tex, 0x1c));
     } else {
@@ -440,7 +441,7 @@ u32 __fastcall TerrainTex_CullView(u8 *self) {
     const s32 right = ftol((X87Reg(at<float>(view, 0x30)) - less - ox) * at<float>(self, 0x10));
     const s32 top = ftol((X87Reg(at<float>(view, 0x38)) - half - oz) * at<float>(self, 0x14));
     const s32 bottom = ftol((X87Reg(at<float>(view, 0x38)) - less - oz) * at<float>(self, 0x14));
-    u8 *const box = reinterpret_cast<u8 *>((uintptr_t)0x008bd4e8);
+    u8 *const box = reinterpret_cast<u8 *>((uintptr_t)&gView_8bcbc8 + 0x920);
     box[0] = (u8)keep_within(left, -0x80, 0x7f);
     box[1] = (u8)keep_within(top, -0x80, 0x7f);
     box[2] = (u8)keep_within(right, -0x80, 0x7f);
@@ -452,7 +453,7 @@ u32 __fastcall TerrainTex_CullView(u8 *self) {
 void TerrainTex_SetCalls(const AddrCall *table, u32 count) { g_calls.Set(table, count); }
 
 extern "C" u32 __cdecl TerrainTex_InitGlobal(u32 a, u32 b) {
-    if (!(*reinterpret_cast<u32 *>((uintptr_t)0x008bd550) & 0x10000000)) {
+    if (!(*reinterpret_cast<u32 *>((uintptr_t)&gTexSettings_8bd550) & 0x10000000)) {
         const u32 texture = *reinterpret_cast<u32 *>((uintptr_t)0x00879d60);
         if (texture) return g_calls.Th(0x0056e550, texture, a, b);
         return 1;

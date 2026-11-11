@@ -9,6 +9,7 @@
 #include "../render/screen.h"
 #include "../render/d3dsetup.h"
 #include "../core/imports.h"
+#include "../core/staticobjects.h"
 
 namespace {
 
@@ -239,12 +240,12 @@ u32 __cdecl AsyncPointer_Make() {
     event.c = 0x10;
     event.d = 0;
     g_calls.Th(0x005fbf80, 0x00fa7cb0u, 0u, &event);
-    g_calls.Th(0x0047e460, 0x007b4ac0u);
+    g_calls.Th(0x0047e460, (u32)(uintptr_t)&gScreenSurfaces_7b4ac0);
     s32 clip[4] = {0, 0, (s32)height - 1, (s32)width - 1};
     g_calls.Cd(0x005f5650, clip);
     pointer = 0;
     const u32 block = g_calls.Cd(0x0067acc0, 0x24u);
-    pointer = block ? g_calls.Th(0x005fb8e0, block, 0x007b4ac0u) : 0;
+    pointer = block ? g_calls.Th(0x005fb8e0, block, (u32)(uintptr_t)&gScreenSurfaces_7b4ac0) : 0;
     if (!pointer) return 0;
     const u32 position = g_calls.Cd(0x005f5640);
     u8 reply[8];

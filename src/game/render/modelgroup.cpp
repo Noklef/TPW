@@ -14,6 +14,7 @@
 #include "texcoords.h"
 #include "meshlist.h"
 #include "d3dsetup.h"
+#include "../core/staticobjects.h"
 
 namespace {
 
@@ -68,7 +69,7 @@ u32 __fastcall ModelGroup_AddToBatch(u8 *model, void *, u8 *batch, u32 group, s3
     const u8 *const entry = at<const u8 *>(settings, 0x6c) + group * 16;
     const u8 *const material = at<const u8 *>(entry, 0);
     const u8 *const set = material ? at<const u8 *>(material, 4) : nullptr;
-    const u32 number = material && (global<u8>(0x008bd550) & 0x40) ? at<u16>(material, 2) : 0;
+    const u32 number = material && (global<u8>((u32)(uintptr_t)&gTexSettings_8bd550) & 0x40) ? at<u16>(material, 2) : 0;
     const u8 *const texture = set ? reinterpret_cast<const u8 *>((uintptr_t)TexSet_Texture(set, nullptr, (s32)number)) : nullptr;
     const u32 first = at<u16>(entry, 8), count = at<u16>(entry, 0xa) - first + 1;
     const u16 *const table = at<const u16 *>(settings, 0x94);
@@ -201,7 +202,7 @@ u32 __fastcall ModelGroup_AddToBatch(u8 *model, void *, u8 *batch, u32 group, s3
         if (flag == 2)
             at<u32>(batch, 0x30) = X87_FloatThrough(gModelGroup_AddToBatch_701d8c);
         else
-            at<float>(batch, 0x30) = (float)(X87Reg((double)(s32)(at<u32>(batch, 0x20) - old)) * global<float>(0x008bcc14) - gModelGroup_AddToBatch_701d90);
+            at<float>(batch, 0x30) = (float)(X87Reg((double)(s32)(at<u32>(batch, 0x20) - old)) * global<float>((u32)(uintptr_t)&gView_8bcbc8 + 0x4c) - gModelGroup_AddToBatch_701d90);
     }
     if (texture && (at<u32>(texture, 8) & 0x4000000))
         at<u32>(batch, 0) |= 0x400;

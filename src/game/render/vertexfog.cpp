@@ -7,6 +7,7 @@
 #include "../frontend/lobbysky.h"
 #include "d3dprobe.h"
 #include "fixedverts.h"
+#include "../core/staticobjects.h"
 
 namespace {
 
@@ -27,20 +28,20 @@ void __stdcall VertexFog_Colour(u8 *vertices, u32 count, s32 stride) {
     for (u8 *v = vertices; count != 0; --count, v += stride) {
         const float z = *reinterpret_cast<const float *>(v + 8);
         u32 &diffuse = *reinterpret_cast<u32 *>(v + 0x10), &specular = *reinterpret_cast<u32 *>(v + 0x14);
-        if (!(z > reinterpret_cast<float &>(At<u32>(0x008bd490)))) {
+        if (!(z > reinterpret_cast<float &>(At<u32>((u32)(uintptr_t)&gView_8bcbc8 + 0x8c8)))) {
             specular = 0;
             continue;
         }
-        if (z >= reinterpret_cast<float &>(At<u32>(0x008bd494))) {
+        if (z >= reinterpret_cast<float &>(At<u32>((u32)(uintptr_t)&gView_8bcbc8 + 0x8cc))) {
             diffuse &= 0xff000000;
-            specular = At<u32>(0x008bd47c);
+            specular = At<u32>((u32)(uintptr_t)&gView_8bcbc8 + 0x8b4);
             continue;
         }
-        const X87Reg t = (X87Reg(z) - reinterpret_cast<float &>(At<u32>(0x008bd490))) * At<float>(0x008bd498);
+        const X87Reg t = (X87Reg(z) - reinterpret_cast<float &>(At<u32>((u32)(uintptr_t)&gView_8bcbc8 + 0x8c8))) * At<float>((u32)(uintptr_t)&gView_8bcbc8 + 0x8d0);
         const float tf = (float)t;
-        const s32 r = Fistp((float)(t * At<float>(0x008bd484)));
-        const s32 g = Fistp((float)(X87Reg(tf) * At<float>(0x008bd488)));
-        const s32 b = Fistp((float)(X87Reg(tf) * At<float>(0x008bd48c)));
+        const s32 r = Fistp((float)(t * At<float>((u32)(uintptr_t)&gView_8bcbc8 + 0x8bc)));
+        const s32 g = Fistp((float)(X87Reg(tf) * At<float>((u32)(uintptr_t)&gView_8bcbc8 + 0x8c0)));
+        const s32 b = Fistp((float)(X87Reg(tf) * At<float>((u32)(uintptr_t)&gView_8bcbc8 + 0x8c4)));
         specular = ((u32)b & 0xff) | ((u32)r & 0xff0000) | ((u32)g & 0xff00);
         const X87Reg keep = X87Reg(1.0f) - tf;  // 0x7016c0
         const u32 d = diffuse;
@@ -56,12 +57,12 @@ void __stdcall VertexFog_Alpha(u8 *vertices, u32 count, s32 stride) {
     for (u8 *v = vertices; count != 0; --count, v += stride) {
         const float z = *reinterpret_cast<const float *>(v + 8);
         u32 &specular = *reinterpret_cast<u32 *>(v + 0x14);
-        if (!(z > reinterpret_cast<float &>(At<u32>(0x008bd490))))
+        if (!(z > reinterpret_cast<float &>(At<u32>((u32)(uintptr_t)&gView_8bcbc8 + 0x8c8))))
             specular = 0xff000000;
-        else if (z >= reinterpret_cast<float &>(At<u32>(0x008bd494)))
+        else if (z >= reinterpret_cast<float &>(At<u32>((u32)(uintptr_t)&gView_8bcbc8 + 0x8cc)))
             specular = 0;
         else
-            specular = (u32)Fistp((float)(((X87Reg(reinterpret_cast<float &>(At<u32>(0x008bd494))) - z) * At<float>(0x008bd498)) * 255.0f)) << 24;  // 0x7016e4
+            specular = (u32)Fistp((float)(((X87Reg(reinterpret_cast<float &>(At<u32>((u32)(uintptr_t)&gView_8bcbc8 + 0x8cc))) - z) * At<float>((u32)(uintptr_t)&gView_8bcbc8 + 0x8d0)) * 255.0f)) << 24;  // 0x7016e4
     }
 }
 }

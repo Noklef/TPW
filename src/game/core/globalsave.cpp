@@ -13,6 +13,7 @@
 #include "../files/file.h"
 #include "../files/memsource.h"
 #include "../coaster/arreplayaction.h"
+#include "staticobjects.h"
 
 namespace {
 
@@ -278,7 +279,7 @@ void __fastcall GlobalSave_Dtor(u8 *info) {
 u32 __fastcall GlobalSave_Serialize(u8 *info, void *, Stream *stream, u32 saving, u32 third) {
     const bool save = saving != 0;
     const u32 streamAt = (u32)(uintptr_t)stream;
-    const u32 kOptions = 0x0078d8d8;
+    const u32 kOptions = (u32)(uintptr_t)&gOptions_78d8d8;
     for (u32 i = 0; i < 4; ++i)
         if (!Field(stream, info + 0x18 + i, 1, save))
             return 1;
@@ -488,8 +489,8 @@ extern "C" u32 __fastcall GlobalSave_ReadFile(u8 *info, void *, const char *path
     if (at<u8>(GlobalSave_Instance(), 0x25) != 0) {
         char swears[0x104], alloweds[0x104];
         const auto format = [](char *to, u32 pattern) {
-            const char *const root = at<const char *>(MemorySource_GetLock(reinterpret_cast<MemorySource *>((uintptr_t)0x00f816c0)), 8);
-            g_calls.Cd(0x0067a650, to, pattern, root, Language_Buffer(reinterpret_cast<const u8 *>((uintptr_t)0x0078b530)));   // CRT_sprintf
+            const char *const root = at<const char *>(MemorySource_GetLock(reinterpret_cast<MemorySource *>((uintptr_t)&gStrings5_f816c0)), 8);
+            g_calls.Cd(0x0067a650, to, pattern, root, Language_Buffer(reinterpret_cast<const u8 *>((uintptr_t)&gLanguage_78b530)));   // CRT_sprintf
         };
         format(swears, 0x0077318c);   // "%s\Language\%s\swears.txt"
         format(alloweds, 0x00773170);   // "%s\Language\%s\alloweds.txt"

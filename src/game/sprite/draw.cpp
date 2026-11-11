@@ -12,6 +12,7 @@
 #include "../world/things.h"
 #include "../render/spritequeue.h"
 #include "loading.h"
+#include "../core/staticobjects.h"
 #include "../world/camera.h"
 #include "../world/world.h"
 
@@ -82,7 +83,7 @@ extern "C" void __cdecl SpriteDraw_Begin() {
 extern "C" void __cdecl SpriteDraw_End() {
     if (gSpriteDraw_877348) {
         for (u32 i = 0; i < 16; ++i) global<s32>(0x008751f4 + 0x24 * i) = counts()[i];
-        global<s32>(0x00876424) = overlayCount();
+        global<s32>((u32)(uintptr_t)&gLiveObject6ff308_876420 + 0x4) = overlayCount();
     }
     const u32 thing = env().pick();
     env().setPicked(gThings_877350);
@@ -171,15 +172,15 @@ extern "C" u32 __cdecl SpriteDraw_Pick() {
     const u32 row = tile >> 7, column = tile & 0x7f;
     u16 x, y;
     Gui_GetMousePos(&x, &y);
-    global<float>(0x008bd4f0) = (float)(X87Reg((double)(s16)x) * gSpriteDraw_Pick_700d18 - global<float>(0x00700d10));
-    global<float>(0x008bd4f4) = (float)(X87Reg((double)(s16)y) * gSpriteDraw_Pick_700d1c - global<float>(0x00700d10));
-    u8 *const picked = global<u8 *>(0x008bd4fc);
+    global<float>((u32)(uintptr_t)&gView_8bcbc8 + 0x928) = (float)(X87Reg((double)(s16)x) * gSpriteDraw_Pick_700d18 - global<float>(0x00700d10));
+    global<float>((u32)(uintptr_t)&gView_8bcbc8 + 0x92c) = (float)(X87Reg((double)(s16)y) * gSpriteDraw_Pick_700d1c - global<float>(0x00700d10));
+    u8 *const picked = global<u8 *>((u32)(uintptr_t)&gView_8bcbc8 + 0x934);
     if (!picked)
         return 0;
     const s32 slot = SpriteScript_FindShown(picked);
     if (!slot)
         return 0;
-    for (u32 pair = 0x0081ed44; pair < 0x0081ed8c; pair += 8) {
+    for (u32 pair = 0x0081ed44; pair <= 0x0081ed84; pair += 8) {   // (the end, 0x81ed8c, is inside the String that follows)
         const s32 cx = global<s32>(pair - 4) + (s32)column;
         const s32 cy = global<s32>(pair) + (s32)row;
         if (!Map_InBounds(cx, cy))

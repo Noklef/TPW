@@ -13,6 +13,7 @@
 #include "thingmsg.h"
 #include "world.h"
 #include "money.h"
+#include "../core/staticobjects.h"
 
 namespace {
 
@@ -147,7 +148,7 @@ void __fastcall BankAccount_HandleMessage(u8 *money, void *, u8 *message) {
             return;
         }
         if (at<u32>(message, 8) == 0xa) {
-            at<u32>(money, 0xc) = global<u32>(0x007851d8);
+            at<u32>(money, 0xc) = global<u32>((u32)(uintptr_t)&gBalanceLevel + 0x198);
             at<u32>(money, 0x10) = 0;
         }
         return;

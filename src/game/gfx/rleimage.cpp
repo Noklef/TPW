@@ -4,6 +4,7 @@
 #include <initializer_list>
 #include "../core/gameheap.h"
 #include "../core/vwrap.h"
+#include "../core/staticobjects.h"
 
 namespace {
 
@@ -58,7 +59,7 @@ template <typename Pixel> u8 *SampleRow(const u8 *row, u32 count, s32 step, u8 *
 extern "C" {
 
 u32 __fastcall RleImage_DrawScaled(const u8 *image, void *, const u32 *dest) {
-    const u32 size = reinterpret_cast<const u32 *>((uintptr_t)0x00701158)[*reinterpret_cast<const u32 *>((uintptr_t)0x008bd554)];
+    const u32 size = reinterpret_cast<const u32 *>((uintptr_t)0x00701158)[*reinterpret_cast<const u32 *>((uintptr_t)&gTexSettings_8bd550 + 0x4)];
     const s32 width = field<s32>(image, -0xc);
     const s32 height = field<s32>(image, -8);
     const u8 *codes = field<const u8 *>(image, -0x14);

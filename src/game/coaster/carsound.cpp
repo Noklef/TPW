@@ -10,12 +10,13 @@
 #include "../world/camera.h"
 #include "../world/ridelist.h"
 #include "../world/ridelist.h"
+#include "../core/staticobjects.h"
 
 namespace {
 
 template <typename T> T &at(u8 *p, u32 offset) { return *reinterpret_cast<T *>(p + offset); }
 
-bool Silenced() { return *reinterpret_cast<const u32 *>(0x00785a2c) != 0; }
+bool Silenced() { return *reinterpret_cast<const u32 *>((u32)(uintptr_t)&gActionRec_785a08 + 0x24) != 0; }
 
 const CarSoundUpdateEnv kUpdatePorts = {&Camera_Followed, &Sound_SetParam, &Sound_SetPosition, &CoasterCar_UpdateScream};
 const CarSoundUpdateEnv *g_updateEnv = &kUpdatePorts;

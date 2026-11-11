@@ -11,6 +11,7 @@
 #include "window.h"
 #include "window7059f0.h"
 #include "../online/postcardsend.h"
+#include "../core/staticobjects.h"
 
 namespace {
 
@@ -70,13 +71,13 @@ extern "C" void __cdecl Dialog7cc654_SendChanges(u32 changed) {
     g_env->prepare(lists);
     if (!static_cast<u8>(changed)) return;
 
-    const char *const host = global<const char *>(0x007a14f4);
+    const char *const host = global<const char *>((u32)(uintptr_t)&gOnlineServers_7a14f0 + 0x4);
     const char *const name = host ? host : reinterpret_cast<const char *>((uintptr_t)0x006fe5b0);
     u8 sent;
     if (*name == 0) {
         sent = g_env->connect(lists, nullptr, gPostcardsend_754454, 0x19, g_env->pick());
     } else {
-        const s32 port = global<s16>(0x007a1550);
+        const s32 port = global<s16>((u32)(uintptr_t)&gOnlineServers_7a14f0 + 0x60);
         sent = g_env->connect(lists, nullptr, name, port, g_env->pick());
     }
     if (sent) {

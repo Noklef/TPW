@@ -6,6 +6,7 @@
 #include "vcall.h"
 #include "../files/memsource.h"
 #include "gamestart.h"
+#include "staticobjects.h"
 
 namespace {
 
@@ -19,7 +20,7 @@ void GameShutdown_SetCalls(const AddrCall *table, u32 count) { g_calls.Set(table
 
 extern "C" {
 
-u32 __cdecl Game_ShutdownOwner() { return g_calls.Th(0x00409150, 0x00786b68u); }
+u32 __cdecl Game_ShutdownOwner() { return g_calls.Th(0x00409150, (u32)(uintptr_t)&gNamedObjects_786b68); }
 
 u32 __cdecl Game_ShutdownEngine() {
     g_calls.Cd(0x00572b60);
@@ -30,9 +31,9 @@ u32 __cdecl Game_ShutdownEngine() {
 void __cdecl Game_RemoveTempFolder() {
     String path;
     String_Ctor(&path);
-    vcall<void>(&path, 0x18, MemorySource_GetLock(reinterpret_cast<MemorySource *>((uintptr_t)0x00f816c0)));
+    vcall<void>(&path, 0x18, MemorySource_GetLock(reinterpret_cast<MemorySource *>((uintptr_t)&gStrings5_f816c0)));
     String_EnsureTrailingBackslash(&path);
-    vcall<void>(&path, 0x28, reinterpret_cast<const void *>((uintptr_t)0x00878eb8));
+    vcall<void>(&path, 0x28, reinterpret_cast<const void *>((uintptr_t)&gString_878eb8));
     g_calls.Cd(0x005c5250, &path);
     String_Dtor(&path);
 }

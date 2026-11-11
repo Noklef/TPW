@@ -12,6 +12,7 @@
 #include "wfilebuf.h"
 #include "nstream.h"
 #include "wstream.h"
+#include "staticobjects.h"
 
 namespace {
 
@@ -308,54 +309,54 @@ static void wide_finish(u8 *stream, u32 vtable, u32 buffer) {
 
 u8 *__fastcall Ios_InitCtor(u8 *self) {
     if (!init_first((u32)(uintptr_t)&gIos_7822b0)) return self;
-    narrow_filebuf(0x00fb1ad0, 0x0077e800);
-    narrow_filebuf(0x00fb19a8, 0x0077e820);
-    u8 *const cin = std_stream(0x00fb1a90, 0x00702988);
+    narrow_filebuf((u32)(uintptr_t)&gNFileBuf_fb1ad0, 0x0077e800);
+    narrow_filebuf((u32)(uintptr_t)&gNFileBuf_fb19a8, 0x0077e820);
+    u8 *const cin = std_stream((u32)(uintptr_t)&gIstream_fb1a90, 0x00702988);
     Init_5cfd80(cin + 8);
     at<u32>(cin, 4) = 0;
-    narrow_finish(cin, (u32)(uintptr_t)Class70994c_vtable, 0x00fb1ad0);
-    u8 *const cout = std_stream(0x00fb1a00, 0x00702980);
+    narrow_finish(cin, (u32)(uintptr_t)Class70994c_vtable, (u32)(uintptr_t)&gNFileBuf_fb1ad0);
+    u8 *const cout = std_stream((u32)(uintptr_t)&gOstream_fb1a00, 0x00702980);
     Init_5cfd80(cout + 4);
-    narrow_finish(cout, (u32)(uintptr_t)Class70995c_vtable, 0x00fb19a8);
-    std_tie(cin, 0x00fb1a00);
-    narrow_filebuf(0x00fb1a38, 0x0077e840);
-    u8 *const cerr = std_stream(0x00fb1b28, 0x00702980);
+    narrow_finish(cout, (u32)(uintptr_t)Class70995c_vtable, (u32)(uintptr_t)&gNFileBuf_fb19a8);
+    std_tie(cin, (u32)(uintptr_t)&gOstream_fb1a00);
+    narrow_filebuf((u32)(uintptr_t)&gNFileBuf_fb1a38, 0x0077e840);
+    u8 *const cerr = std_stream((u32)(uintptr_t)&gOstream_fb1b28, 0x00702980);
     Init_4ef830(cerr + 4);
     at<u32>(cerr, 4) = (u32)(uintptr_t)NIos_vtable;
-    narrow_finish(cerr, (u32)(uintptr_t)Class70995c_vtable, 0x00fb1a38);
-    std_tie(cerr, 0x00fb1a00);
+    narrow_finish(cerr, (u32)(uintptr_t)Class70995c_vtable, (u32)(uintptr_t)&gNFileBuf_fb1a38);
+    std_tie(cerr, (u32)(uintptr_t)&gOstream_fb1a00);
     at<u32>(std_ios(cerr), 0xc) |= 2;
-    u8 *const clog = std_stream(0x00fb1970, 0x00702980);
+    u8 *const clog = std_stream((u32)(uintptr_t)&gOstream_fb1970, 0x00702980);
     Init_4ef830(clog + 4);
     at<u32>(clog, 4) = (u32)(uintptr_t)NIos_vtable;
-    narrow_finish(clog, (u32)(uintptr_t)Class70995c_vtable, 0x00fb1a38);
-    std_tie(clog, 0x00fb1a00);
+    narrow_finish(clog, (u32)(uintptr_t)Class70995c_vtable, (u32)(uintptr_t)&gNFileBuf_fb1a38);
+    std_tie(clog, (u32)(uintptr_t)&gOstream_fb1a00);
     return self;
 }
 
 u8 *__fastcall Ios_WinitCtor(u8 *self) {
     if (!init_first(0x0078240c)) return self;
-    wide_filebuf(0x00fb1c70, 0x0077e800);
-    wide_filebuf(0x00fb1c18, 0x0077e820);
-    wide_filebuf(0x00fb1d00, 0x0077e840);
-    u8 *const cin = std_stream(0x00fb1bd8, 0x00700650);
+    wide_filebuf((u32)(uintptr_t)&gWFileBuf_fb1c70, 0x0077e800);
+    wide_filebuf((u32)(uintptr_t)&gWFileBuf_fb1c18, 0x0077e820);
+    wide_filebuf((u32)(uintptr_t)&gWFileBuf_fb1d00, 0x0077e840);
+    u8 *const cin = std_stream((u32)(uintptr_t)&gIstreamW_fb1bd8, 0x00700650);
     Init_4f1bd0(cin + 8);
     at<u32>(cin, 4) = 0;
-    wide_finish(cin, (u32)(uintptr_t)Class7099dc_vtable, 0x00fb1c70);
+    wide_finish(cin, (u32)(uintptr_t)Class7099dc_vtable, (u32)(uintptr_t)&gWFileBuf_fb1c70);
     u8 *const cout = std_stream((u32)(uintptr_t)&gIosbase_fb1cc8, 0x00700648);
     Init_4f1bd0(cout + 4);
-    wide_finish(cout, (u32)(uintptr_t)Class7099ec_vtable, 0x00fb1c18);
+    wide_finish(cout, (u32)(uintptr_t)Class7099ec_vtable, (u32)(uintptr_t)&gWFileBuf_fb1c18);
     std_tie(cin, (u32)(uintptr_t)&gIosbase_fb1cc8);
-    u8 *const cerr = std_stream(0x00fb1b60, 0x00700648);
+    u8 *const cerr = std_stream((u32)(uintptr_t)&gOstreamW_fb1b60, 0x00700648);
     Init_4ef830(cerr + 4);
     at<u32>(cerr, 4) = (u32)(uintptr_t)BasicIosW_vtable;
-    wide_finish(cerr, (u32)(uintptr_t)Class7099ec_vtable, 0x00fb1d00);
+    wide_finish(cerr, (u32)(uintptr_t)Class7099ec_vtable, (u32)(uintptr_t)&gWFileBuf_fb1d00);
     std_tie(cerr, (u32)(uintptr_t)&gIosbase_fb1cc8);
     at<u32>(std_ios(cerr), 0xc) |= 2;
-    u8 *const clog = std_stream(0x00fb1ba0, 0x00700648);
+    u8 *const clog = std_stream((u32)(uintptr_t)&gOstreamW_fb1ba0, 0x00700648);
     Init_4ef830(clog + 4);
     at<u32>(clog, 4) = (u32)(uintptr_t)BasicIosW_vtable;
-    wide_finish(clog, (u32)(uintptr_t)Class7099ec_vtable, 0x00fb1d00);
+    wide_finish(clog, (u32)(uintptr_t)Class7099ec_vtable, (u32)(uintptr_t)&gWFileBuf_fb1d00);
     std_tie(clog, (u32)(uintptr_t)&gIosbase_fb1cc8);
     return self;
 }
@@ -377,9 +378,9 @@ static void flush_streams(u32 counter, u32 a, u32 b, u32 c) {
     }
 }
 
-void __fastcall Ios_InitDtor(void *) { flush_streams((u32)(uintptr_t)&gIos_7822b0, 0x00fb1a00, 0x00fb1b28, 0x00fb1970); }
+void __fastcall Ios_InitDtor(void *) { flush_streams((u32)(uintptr_t)&gIos_7822b0, (u32)(uintptr_t)&gOstream_fb1a00, (u32)(uintptr_t)&gOstream_fb1b28, (u32)(uintptr_t)&gOstream_fb1970); }
 
-void __fastcall Ios_WinitDtor(void *) { flush_streams(0x0078240c, (u32)(uintptr_t)&gIosbase_fb1cc8, 0x00fb1b60, 0x00fb1ba0); }
+void __fastcall Ios_WinitDtor(void *) { flush_streams(0x0078240c, (u32)(uintptr_t)&gIosbase_fb1cc8, (u32)(uintptr_t)&gOstreamW_fb1b60, (u32)(uintptr_t)&gOstreamW_fb1ba0); }
 
 void __fastcall IosBase_Callfns(u8 *self, void *, u32 event) {
     for (u8 *node = at<u8 *>(self, 0x1c); node; node = at<u8 *>(node, 0))

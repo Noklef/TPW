@@ -27,6 +27,7 @@
 #include "../core/soundset.h"
 #include "cellbuild.h"
 #include "world.h"
+#include "../core/staticobjects.h"
 
 namespace {
 
@@ -220,7 +221,7 @@ s32 *__cdecl PlaceObject_Footprint(s32 x, s32 y, u32, s32 angle, u32 place, u32 
         gPlaceObject_Footprint_818c20.firstY = ay;
         gPlaceobject_818c3c = (u16)cellId(ax, ay);
         const u8 *const object = g_fp->create(angle);
-        if (!global<u32>(0x00785a2c)) {
+        if (!global<u32>((u32)(uintptr_t)&gActionRec_785a08 + 0x24)) {
             const float scale = gDemolish_700cd8;
             const s32 z = (s32)(long long)X87_MulIntDouble(y, scale);   // (__ftol)
             const s32 across = (s32)(long long)X87_MulIntDouble(x, scale);

@@ -21,6 +21,7 @@
 #include "panel7cc218.h"
 #include "dialog7cc188.h"
 #include "panel7cc328handler.h"
+#include "../core/staticobjects.h"
 
 namespace {
 
@@ -88,15 +89,15 @@ s32 __cdecl Panel7cc328_OnMessage(u8 *window, u32 message, u32 id, u32 b) {
     if (message == 0x101 && b == 1 && id - 0x1e7d <= 4) {
         static const u32 kTab[5] = {0, 4, 2, 1, 3}, kMask[5] = {2, 0x20, 0x10, 4, 8};   // (by id - 0x1e7d: the tab and its staff group)
         const u32 k = id - 0x1e7d;
-        u8 *const list = Window_FindChild(global<u8 *>(0x007cc338), nullptr, 0x1e7b);
+        u8 *const list = Window_FindChild(global<u8 *>((u32)(uintptr_t)&gStatic_7cc328 + 0x10), nullptr, 0x1e7b);
         Window7059f0_Clear(list);
         gPanel7cc328_7cc314 = list;
         u16 handle;
         gPanel7cc328_7cc310 = *Thing_GetHandle(gPanel7cc218_7c2658, nullptr, &handle);
-        global<u32>(0x007cc358) = kTab[k];
+        global<u32>((u32)(uintptr_t)&gStatic_7cc328 + 0x30) = kTab[k];
         Things_ForEachSelected(kMask[k], reinterpret_cast<ObjectCallback>(&Panel7cc328_AddStaffRow));
         Window7059f0_RefreshRows(list);
-        vcall<void>(reinterpret_cast<u8 *>((uintptr_t)0x007cc328), 0x20);
+        vcall<void>(reinterpret_cast<u8 *>((uintptr_t)&gStatic_7cc328), 0x20);
     }
     return Window_CallDefault(window, nullptr, message, id, b);
 }
@@ -106,13 +107,13 @@ void __fastcall Panel7cc328_Reopen(u8 *self) {
     const u32 value = vcall<u32>(self, 0x34);
     reinterpret_cast<void(__fastcall *)(u8 *, void *, u32)>(vtable[9])(at<u8 *>(self, 0x20), nullptr, value);
     vcall<void>(self, 0x18);
-    const u32 tab = global<u32>(0x007cc358);
+    const u32 tab = global<u32>((u32)(uintptr_t)&gStatic_7cc328 + 0x30);
     u8 *const list = Window_FindChild(at<u8 *>(self, 0x10), nullptr, 0x1e7b);
     Window7059f0_Clear(list);
     gPanel7cc328_7cc314 = list;
     u16 handle;
     gPanel7cc328_7cc310 = *Thing_GetHandle(gPanel7cc218_7c2658, nullptr, &handle);
-    global<u32>(0x007cc358) = tab;
+    global<u32>((u32)(uintptr_t)&gStatic_7cc328 + 0x30) = tab;
     static const u32 kMask[5] = {2, 4, 0x10, 8, 0x20};   // (by the tab)
     if (tab <= 4) Things_ForEachSelected(kMask[tab], reinterpret_cast<ObjectCallback>(&Panel7cc328_AddStaffRow));
     Window7059f0_RefreshRows(list);
@@ -124,7 +125,7 @@ void __fastcall Panel7cc328_AddStaff(u8 *self, void *, u8 *staff) {
     if (!at<u8 *>(self, 0x10)) return;
     u8 *const list = Window_FindChild(at<u8 *>(self, 0x10), nullptr, 0x1e7b);
     if (!Staff_IsState3At(staff, nullptr, gPanel7cc328_7cc310)) return;
-    if (Byte2_ToIndex(staff) != global<u32>(0x007cc358)) return;
+    if (Byte2_ToIndex(staff) != global<u32>((u32)(uintptr_t)&gStatic_7cc328 + 0x30)) return;
     u32 texts[2];
     texts[0] = (u32)(uintptr_t)Staff_GetName(staff);
     const u32 low = (u32)(long long)at<float>(staff, 0x1fc) & 0xff;   // (__ftol's low byte)
@@ -141,7 +142,7 @@ void __fastcall Panel7cc328_RemoveStaff(u8 *self, void *, u8 *staff) {
 
 void __fastcall Panel7cc328_OnStaff(void *, void *, u32 handle, u32 added) {
     u8 *const staff = global<u8 *>(0x007cfb90 + (handle & 0xffff) * 20u);
-    u8 *const panel = reinterpret_cast<u8 *>((uintptr_t)0x007cc328);
+    u8 *const panel = reinterpret_cast<u8 *>((uintptr_t)&gStatic_7cc328);
     if (added)
         Panel7cc328_AddStaff(panel, nullptr, staff);
     else
@@ -179,19 +180,19 @@ void __fastcall Panel7cc328_Refresh(u8 *self) {
         const u32 font = global<u32>(0x00756f3c);
         c.Cd(0x486660, child, c.Cd(0x485b00, b[1]), font, 0xffu, 0xefu, 0u, b[2]);
     }
-    const u32 tab = global<u32>(0x007cc358);
+    const u32 tab = global<u32>((u32)(uintptr_t)&gStatic_7cc328 + 0x30);
     const u32 rows = c.Th(0x65d7d0, at<u32>(self, 0x10), 0x1e7bu);
     gPanel7cc328_7cc314 = reinterpret_cast<u8 *>((uintptr_t)rows);
     u16 handle;
     gPanel7cc328_7cc310 = *reinterpret_cast<const u16 *>((uintptr_t)c.Th(0x50b350, (u32)(uintptr_t)(u8 *)gPanel7cc218_7c2658, (u32)(uintptr_t)&handle));
-    global<u32>(0x007cc358) = tab;
+    global<u32>((u32)(uintptr_t)&gStatic_7cc328 + 0x30) = tab;
     static const u32 kMask[5] = {2, 4, 0x10, 8, 0x20};   // (by the tab)
     if (tab <= 4) c.Cd(0x481bc0, kMask[tab], 0x004b47e0u);   // (Panel7cc328_AddStaffRow)
     c.Th(0x663324, rows);
     vcall<void>(self, 0x20);
     const u32 radio = c.Th(0x65d7d0, list, 0x1e7cu);
     static const u32 kRadio[5] = {0x1e7d, 0x1e80, 0x1e7f, 0x1e81, 0x1e7e};   // (by the tab)
-    const u32 now = global<u32>(0x007cc358);
+    const u32 now = global<u32>((u32)(uintptr_t)&gStatic_7cc328 + 0x30);
     if (now <= 4) c.Th(0x66a295, radio, kRadio[now]);
     c.Th(0x48d290, me, 0x1e82u);
 }

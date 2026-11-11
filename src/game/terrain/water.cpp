@@ -14,6 +14,7 @@
 #include "../render/rendererframe.h"
 #include "ground.h"
 #include "../render/d3dsetup.h"
+#include "../core/staticobjects.h"
 
 using gridquad::FacingClipped;
 using gridquad::FacingOpen;
@@ -29,7 +30,7 @@ template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((ui
 const TerrainWaterEnv kPortEnv = {&Batch_Begin, &Batch_Close, &Transformer_Transform, &ClipPoly_Vertices};
 const TerrainWaterEnv *g_env = &kPortEnv;
 
-u8 *LandscapeObject() { return reinterpret_cast<u8 *>((uintptr_t)0x008c1828); }
+u8 *LandscapeObject() { return reinterpret_cast<u8 *>((uintptr_t)&gLandscape_8c1828); }
 
 const u32 kPoint = 0x10; // a point's bytes: x, y, z, w
 
@@ -61,7 +62,7 @@ void FillRow(u8 *self, s32 row, u8 *points, u8 *codes) {
     const s32 last = at<s8>(self, row + 0xa8);
     if (first == 0x7f || last == -1) return;
     const u8 *const heights = at<u32>(self, 0x12970) ? at<u8 *>(self, 0x12970) : at<u8 *>(at<u8 *>(self, 0), 0x28);
-    const float lift = global<float>(0x008bd4ec);
+    const float lift = global<float>((u32)(uintptr_t)&gView_8bcbc8 + 0x924);
     const float z = (float)(X87Reg((double)row) * at<float>(at<u8 *>(self, 0), 0x14) + at<float>(at<u8 *>(self, 0), 0xc));
     const u32 base = at<u32>(self, 8) * (u32)row;
     u8 *const start = points + (u32)first * kPoint;
@@ -91,9 +92,9 @@ extern "C" u32 __fastcall TerrainWater_Draw(u8 *self) {
     const u8 *const texture = reinterpret_cast<const u8 *>((uintptr_t)Landscape_List(LandscapeObject()));
     if (texture == nullptr) return 1;
     const u32 stride = gGround_7014b4;
-    const u32 batchFlags = global<u32>(0x008bcbc8) & 0x2000 ? 0x60 : 0x20;
+    const u32 batchFlags = global<u32>((u32)(uintptr_t)&gView_8bcbc8) & 0x2000 ? 0x60 : 0x20;
     u32 flags = (Texture_FormatBits(texture) | 0x800) & ~0x400u;
-    if (global<u32>(0x008bcbc8) & 0x2000) flags |= 0x100000;
+    if (global<u32>((u32)(uintptr_t)&gView_8bcbc8) & 0x2000) flags |= 0x100000;
     const u32 extra = at<u32>(texture, 8) & 0x1000 ? at<u32>(texture, 0x1c) : 0;
     u8 *const batch = g_env->begin(global<u8 *>(0x00879ab0), nullptr, 1, 4, 0x1c4, flags, extra);
     at<u8 *>(self, 0x2958) = batch;
@@ -137,7 +138,7 @@ extern "C" u32 __fastcall TerrainWater_Draw(u8 *self) {
             const float u1 = (float)(((X87Reg(at<float>(point, 0)) - gTerrainWater_Draw_70153c) - wrapped) * gTerrainWater_Draw_768318);
             const float v0 = (float)((X87Reg(at<float>(point, 8)) - across) * gTerrainWater_Draw_76831c);
             const float v1 = (float)(((X87Reg(at<float>(point, 8)) - gTerrainWater_Draw_70153c) - across) * gTerrainWater_Draw_76831c);
-            const u32 colour = global<u32>(0x008bd4bc);
+            const u32 colour = global<u32>((u32)(uintptr_t)&gView_8bcbc8 + 0x8f4);
             const u32 lastColour = row ? colour : colour & 0xffffff, nextColour = next ? colour : colour & 0xffffff;
 
             struct Corner {

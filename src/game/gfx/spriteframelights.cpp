@@ -7,6 +7,7 @@
 #include "../math/x87.h"
 #include "../render/batchquad.h"
 #include "../render/lightlist.h"
+#include "../core/staticobjects.h"
 
 namespace {
 
@@ -39,7 +40,7 @@ void TextureInto(u8 *spec, const u8 *texture) {
     }
 }
 
-bool ByLight() { return (global<u32>(0x008bcbc8) & 0x100000) != 0; }
+bool ByLight() { return (global<u32>((u32)(uintptr_t)&gView_8bcbc8) & 0x100000) != 0; }
 
 }  // namespace
 
@@ -85,7 +86,7 @@ u32 __fastcall SpriteFrame_DrawLightQuadsInPlace(u8 *frame, void *, const u8 *te
         at<u32>(spec, 0xc) |= 0x20000;
     for (u8 *light = g_env->first(kLights); light; light = g_env->next(kLights)) {
         const u32 colour = g_env->groundQuad(frame, nullptr, reinterpret_cast<float *>(points), (u32)(uintptr_t)light, 1.0f, 1.0f);
-        if (global<u32>(0x008bcbc8) & 0x40000) {
+        if (global<u32>((u32)(uintptr_t)&gView_8bcbc8) & 0x40000) {
             at<u32>(spec, 0xc) = (at<u32>(spec, 0xc) & ~0xffu) | 0x13;
             at<u32>(spec, 8) = (0xffffffffu - (u32)((s32)colour >> 24) * 0x10101u) | 0xff000000;
         } else {

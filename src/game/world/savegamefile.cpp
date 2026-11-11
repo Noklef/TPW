@@ -7,13 +7,14 @@
 #include "../core/vcall.h"
 #include "world.h"
 #include "../files/handles.h"
+#include "../core/staticobjects.h"
 #include "../core/imports.h"
 
 namespace {
 
 AddrCalls g_calls;
 
-const u32 kFileVtable = (u32)(uintptr_t)FileStream_vtable, kMemoryVtable = 0x006fd6a0, kUi = 0x007b51f0, kClock = 0x00785970;
+const u32 kFileVtable = (u32)(uintptr_t)FileStream_vtable, kMemoryVtable = 0x006fd6a0, kUi = 0x007b51f0, kClock = (u32)(uintptr_t)&gObj_785970;
 
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
 
@@ -51,7 +52,7 @@ bool get(Stream *stream, void *to, s32 size) {
 }
 
 const u32 kLanguageNames[] = {0x0074bdc8, 0x0074bdc0, 0x0074bdb8, 0x0074bdb0, 0x0074bda8, 0x0074bda0, 0x0074bd94};
-const u32 kLanguages = 0x0078a460;
+const u32 kLanguages = (u32)(uintptr_t)&gWString_78a460;
 
 u8 languageNumber(u8 *text) {
     for (u8 i = 0; i < 7; ++i) {
@@ -253,7 +254,7 @@ u32 __fastcall SaveGame_Load(u8 *self, void *, const char *name, u32 header, u32
 
 u32 __fastcall SaveGame_WriteHeader(void *, void *, Stream *stream, u8 *park) {
     u8 text[0x14];
-    g_calls.Th(0x005f60b0, (u32)(uintptr_t)text, g_calls.Th(0x0041a820, 0x0078b530u));
+    g_calls.Th(0x005f60b0, (u32)(uintptr_t)text, g_calls.Th(0x0041a820, (u32)(uintptr_t)&gLanguage_78b530));
     const bool written = headerWritten(stream, park, text);
     g_calls.Th(0x005f61e0, (u32)(uintptr_t)text);
     return written ? 1 : 0;
@@ -309,7 +310,7 @@ void __fastcall SaveGame_AfterLoad(void *) {
     last = first;
     g_calls.Th(0x004815e0, kUi);
     g_calls.Cd(0x005996d0, 1u);
-    g_calls.Cd(0x0051fd80, global<u32>(0x0078d8e0) ? 0u : 1u);
+    g_calls.Cd(0x0051fd80, global<u32>((u32)(uintptr_t)&gOptions_78d8d8 + 0x8) ? 0u : 1u);
     g_calls.Cd(0x00475f40);
     g_calls.Cd(0x0051c1c0, 0u);
 }

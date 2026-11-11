@@ -13,6 +13,7 @@
 #include "../ui/window.h"
 #include "../ui/windowfactory.h"
 #include "../ui/windowreg.h"
+#include "../core/staticobjects.h"
 
 namespace {
 
@@ -70,7 +71,7 @@ u32 __fastcall HelpBg_MoveTo(u8 *self, void *, u32 x, u32 y) {
 }
 
 u32 __cdecl HelpBg_Place(u32 x, u32 y) {
-    u8 *const self = reinterpret_cast<u8 *>((uintptr_t)0x007ca0c0);
+    u8 *const self = reinterpret_cast<u8 *>((uintptr_t)&gStatic_7ca0c0);
     if ((u16)x == 0xffff && (u16)y == 0xffff) return HelpBg_RestoreRect(self);
     return HelpBg_MoveTo(self, nullptr, x, y);
 }
@@ -90,7 +91,7 @@ s32 __cdecl HelpBg_WindowHandler(u8 *window, u32 message, u32 a, u32 b) {
 }
 
 void __cdecl HelpBg_SetText(const u16 *text) {
-    u8 *const bg = reinterpret_cast<u8 *>(0x007ca0c0);
+    u8 *const bg = reinterpret_cast<u8 *>((u32)(uintptr_t)&gStatic_7ca0c0);
     if (!at<u16>(bg, 0xc) || !at<u16>(bg, 4)) return;
     const u16 *p = text;
     while (*p && *p != '\n') ++p;  // wcschr(text, '\n') (0x67c2f0), inlined

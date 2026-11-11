@@ -7,12 +7,13 @@
 #include "../files/userslots.h"
 #include "../ui/windowproc.h"
 #include "../render/graphicssettings.h"
+#include "staticobjects.h"
 
 namespace {
 
 AddrCalls g_calls;
 
-constexpr u32 kSaves = 0x00f7b560;
+const u32 kSaves = (u32)(uintptr_t)&gStatic_f7b560;
 
 template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cast<T *>((uintptr_t)p + offset); }
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
@@ -49,13 +50,13 @@ void __fastcall Options_ApplyChanges(u8 *options) {
     const s32 level = at<s32>(options, 0x94);
     if (level == 1) {
         const u32 flags = at<u32>(options, 0x98);
-        if (!global<u32>(0x00f82884)) g_calls.Th(0x005ac630, kSaves, 0x0078dcf0u);
+        if (!global<u32>(0x00f82884)) g_calls.Th(0x005ac630, kSaves, (u32)(uintptr_t)&gWString_78dcf0);
         if (flags & 1) g_calls.Cd(0x0051bc70);
         g_calls.Cd(0x0051b920, at<u32>(options, 0x30));
-        if (!global<u32>(0x00f82884)) g_calls.Th(0x005ac5f0, kSaves, 0x0078dcf0u);
+        if (!global<u32>(0x00f82884)) g_calls.Th(0x005ac5f0, kSaves, (u32)(uintptr_t)&gWString_78dcf0);
     } else if (level == 2) {
         u16 text[0x100];
-        g_calls.Cd(0x006acd60, global<u32>(0x0078ba94), text, 0xffu, 0x193u);
+        g_calls.Cd(0x006acd60, global<u32>((u32)(uintptr_t)&gLanguage_78b530 + 0x564), text, 0xffu, 0x193u);
         Box box;
         box.text = text;
         box.colour[0] = box.colour[1] = box.colour[2] = 0xff;
@@ -75,8 +76,8 @@ void __fastcall Options_ApplyChanges(u8 *options) {
         vcall<void>(&path, 0x18, ptr<const WString *>(made));
         WString_Dtor(&folder);
     }
-    vcall<void>(&path, 0x28, ptr<const WString *>(0x0078e6f8));
-    vcall<void>(&path, 0x28, ptr<const WString *>(0x0078e230));
+    vcall<void>(&path, 0x28, ptr<const WString *>((u32)(uintptr_t)&gWString_78e6f8));
+    vcall<void>(&path, 0x28, ptr<const WString *>((u32)(uintptr_t)&gWString_78e230));
     String_AssignFromWide(&narrow, &path);
     writeFile(options, narrow.data);
     if (at<u8>(options, 0x3a)) g_calls.Cd(0x0042aff0);
@@ -89,12 +90,12 @@ void __fastcall Options_ApplyChanges(u8 *options) {
 u32 __cdecl Options_ConfirmSave() {
     g_calls.Cd(0x005508b0, 2u);
     const u32 session = global<u32>(0x00f82884);
-    global<u32>(0x00786b80) = 1;
+    global<u32>((u32)(uintptr_t)&gNamedObjects_786b68 + 0x18) = 1;
     if (session) {
         at<u32>(ptr<void *>(session), 0x14) = 3;
     } else {
-        g_calls.Th(0x005ac610, kSaves, 0x0078da20u);
-        global<u32>(0x00786b80) = 1;
+        g_calls.Th(0x005ac610, kSaves, (u32)(uintptr_t)&gWString_78da20);
+        global<u32>((u32)(uintptr_t)&gNamedObjects_786b68 + 0x18) = 1;
     }
     g_calls.Cd(0x004a4580);
     return 1;
@@ -105,13 +106,13 @@ void __cdecl Options_LoadStartup() {
     gGraphicssettings_7a1a8c = 0x000c0e15;
     String path;
     String_CtorStr(&path, nullptr, ptr<const char *>(0x0074ce84));
-    const bool loaded = g_calls.Th(0x00424a60, 0x0078d8d8u, &path) == 1;
+    const bool loaded = g_calls.Th(0x00424a60, (u32)(uintptr_t)&gOptions_78d8d8, &path) == 1;
     String_Dtor(&path);
-    if (loaded) global<u32>(0x0078d968) = 1;
-    if (global<u32>(0x0078d968)) {
-        gGraphicssettings_7a1a8c = global<u32>(0x0078d950);
-        global<u32>(0x0079d86c) = global<u32>(0x0078d954);
-        g_calls.Cd(0x00409790, global<u32>(0x0078d95c));
-        global<u32>(0x0079d9c8) = global<u32>(0x0078d964);
+    if (loaded) global<u32>((u32)(uintptr_t)&gOptions_78d8d8 + 0x90) = 1;
+    if (global<u32>((u32)(uintptr_t)&gOptions_78d8d8 + 0x90)) {
+        gGraphicssettings_7a1a8c = global<u32>((u32)(uintptr_t)&gOptions_78d8d8 + 0x78);
+        global<u32>(0x0079d86c) = global<u32>((u32)(uintptr_t)&gOptions_78d8d8 + 0x7c);
+        g_calls.Cd(0x00409790, global<u32>((u32)(uintptr_t)&gOptions_78d8d8 + 0x84));
+        global<u32>(0x0079d9c8) = global<u32>((u32)(uintptr_t)&gOptions_78d8d8 + 0x8c);
     }
 }

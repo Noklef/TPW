@@ -4,6 +4,7 @@
 #include <mmintrin.h>
 
 #include "../math/x87.h"
+#include "../core/staticobjects.h"
 
 namespace {
 
@@ -56,13 +57,13 @@ u32 __stdcall Setting569f30_Set(u32, u32 value) {
 
 u32 __stdcall SoftRenderer_PixelAt(s32 x, s32 y, u32 *out) {
     const u32 *buffer = at<const u32 *>(global<u8 *>(0x00879dac), 8);
-    *out = buffer[(u32)y * global<u32>(0x008bcbd0) + (u32)x];
+    *out = buffer[(u32)y * global<u32>((u32)(uintptr_t)&gView_8bcbc8 + 0x8) + (u32)x];
     return 1;
 }
 }
 
 double __cdecl Rasteriser_SpeedTest() {
-    const u32 width = global<u32>(0x008bcbd0), height = global<u32>(0x008bcbd4);
+    const u32 width = global<u32>((u32)(uintptr_t)&gView_8bcbc8 + 0x8), height = global<u32>((u32)(uintptr_t)&gView_8bcbc8 + 0xc);
     const s32 pixels = (s32)(height * width * 50);
     const u32 right = width << 4, bottom = height << 4;
     gRasteriser_fbe044 = global<u32>(0x006f1a10);

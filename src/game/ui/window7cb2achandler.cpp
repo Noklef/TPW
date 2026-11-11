@@ -21,6 +21,7 @@
 #include "mousehelp.h"
 #include "panel7b9940.h"
 #include "window.h"
+#include "../core/staticobjects.h"
 
 namespace {
 
@@ -64,7 +65,7 @@ void Window7cb2acHandler_SetEnv(const Window7cb2acHandlerEnv *env) { g_env = env
 
 extern "C" s32 __cdecl Window7cb2ac_Handler(u8 *window, u32 message, u32 a, u32 b) {
     toCamera() = 1;
-    if (!global<u8>(0x0078d911)) {
+    if (!global<u8>((u32)(uintptr_t)&gOptions_78d8d8 + 0x39)) {
         if (a == 1 && message == 0x10005) g_env->capture(window);
         else if (a == 1 && message == 0x10004) g_env->release(window);
     } else if (message == 0x1e) {

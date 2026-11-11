@@ -16,6 +16,7 @@
 #include "windowscript.h"
 #include "dialog74fb20.h"
 #include "panel7b9940.h"
+#include "../core/staticobjects.h"
 
 namespace {
 
@@ -62,16 +63,16 @@ void __cdecl Dialog7cc2ec_Open() {
         panelparts::redText(figures, 0x2e1, 0x167);
         panelparts::text(figures, 0x2e5, 0x169);
         const u32 first = panelparts::newestOfRing(rings + 0x1fc94);
-        global<u32>(0x007cc2d4) = first;
+        global<u32>((u32)(uintptr_t)&gStatic_7cc298 + 0x3c) = first;
         vcall<void>(panelparts::numberPart(figures, 0x2e2), 0x1c, first);
         const u32 second = panelparts::newestOfRing(rings + 0x1f7f4);
-        global<u32>(0x007cc2e0) = second;
+        global<u32>((u32)(uintptr_t)&gStatic_7cc298 + 0x48) = second;
         u8 *child = panelparts::numberPart(figures, 0x2df);
         vcall<void>(child, 0x1c, second);
         panelparts::red(child);
         const u32 third = panelparts::newestOfRing(rings + 0x1f5a4);
-        global<u32>(0x007cc2dc) = third;
-        global<u32>(0x007cc2e4) = third - second;
+        global<u32>((u32)(uintptr_t)&gStatic_7cc298 + 0x44) = third;
+        global<u32>((u32)(uintptr_t)&gStatic_7cc298 + 0x4c) = third - second;
         child = panelparts::numberPart(figures, 0x2e0);
         vcall<void>(child, 0x1c, third - second);
         panelparts::red(child);

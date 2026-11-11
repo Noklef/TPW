@@ -18,6 +18,7 @@
 #include "window7cc8c0handler.h"
 #include "../coaster/arreplayaction.h"
 #include "dialog7cc944.h"
+#include "../core/staticobjects.h"
 
 extern "C" const u16 *__cdecl Language_WideText(u32 id);
 
@@ -95,7 +96,7 @@ void __cdecl Dialog7cc944_FillList(const u8 *reply) {
                 const u32 value = E->valueByKey(at<u8 *>(Online(), 0xf8), nullptr, key);
                 String theme;
                 String_CtorStr(&theme, nullptr, reinterpret_cast<const char *>((uintptr_t)value));
-                E->themeLabel(reinterpret_cast<u8 *>((uintptr_t)0x00786b68), nullptr, &theme, reinterpret_cast<u8 *>(&label));
+                E->themeLabel(reinterpret_cast<u8 *>((uintptr_t)&gNamedObjects_786b68), nullptr, &theme, reinterpret_cast<u8 *>(&label));
                 String_Dtor(&theme);
             }
             row[1] = at<u32>(&label, 8);

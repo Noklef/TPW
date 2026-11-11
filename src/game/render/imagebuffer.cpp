@@ -7,6 +7,7 @@
 #include "../core/vcall.h"
 #include "ddopen.h"
 #include "d3dsetup.h"
+#include "../core/staticobjects.h"
 
 namespace {
 
@@ -35,7 +36,7 @@ bool screen_format(u32 *format) {
 // A channel table of the format for driver kind 1 (into table); else the table at 0x8c05d8.
 u32 channel_table(const u32 *format, u8 *table) {
     if (global(0x008bd524) != 1)
-        return 0x008c05d8;
+        return ((u32)(uintptr_t)&gTexSettings_8bd550 + 0x3088);
     g_calls.Cd(0x00591270, address_of(table), format[0], format[1], format[2], format[3], format[4], format[5], format[6], format[7]);
     return address_of(table);
 }

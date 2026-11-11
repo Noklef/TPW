@@ -10,6 +10,7 @@
 #include "../render/texformat.h"
 #include "color.h"
 #include "wctimage.h"
+#include "../core/staticobjects.h"
 
 namespace {
 
@@ -45,7 +46,7 @@ extern "C" {
 
 u8 *__cdecl TexFile_Load(const char *name, u32 *width, u32 *height, u32 flags, const u32 *table, s32 pixelSize) {
     const u32 *const formats =
-        table ? table : reinterpret_cast<const u32 *>(TexFormat_Table(reinterpret_cast<u8 *>((uintptr_t)0x008bd550)));
+        table ? table : reinterpret_cast<const u32 *>(TexFormat_Table(reinterpret_cast<u8 *>((uintptr_t)&gTexSettings_8bd550)));
     state() = 0;
     Header header;
     if (flags & 1) {
@@ -117,7 +118,7 @@ u8 *__cdecl TexFile_Load(const char *name, u32 *width, u32 *height, u32 flags, c
         Object_FinishAndDelete(stream);
     }
     if (!data) return nullptr;
-    const s32 pixel = pixelSize ? pixelSize : reinterpret_cast<const s32 *>((uintptr_t)0x007016f8)[global<u32>(0x008bd554)];
+    const s32 pixel = pixelSize ? pixelSize : reinterpret_cast<const s32 *>((uintptr_t)0x007016f8)[global<u32>((u32)(uintptr_t)&gTexSettings_8bd550 + 0x4)];
     *width = (u32)header.width();
     *height = (u32)header.height();
     const u32 flip = header.descriptor() >> 5 & 1;

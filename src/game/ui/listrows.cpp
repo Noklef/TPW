@@ -13,6 +13,7 @@
 #include "windowfactory.h"
 #include "windowreg.h"
 #include "dialog7ca150.h"
+#include "../core/staticobjects.h"
 
 namespace {
 
@@ -115,7 +116,7 @@ void __cdecl HilightList_InitRow(u8 *row) { initRow(row); }
 void __cdecl List7cc188_InitRow(u8 *row) { initRow(row); }
 
 u8 *__cdecl List7cc338_NewRow() {
-    u8 *const window = newRow(0, 0x64, cachedHeight(0x007cc35c, fontAt(reinterpret_cast<uintptr_t>(&gList7cc338_756f38))));
+    u8 *const window = newRow(0, 0x64, cachedHeight((u32)(uintptr_t)&gStatic_7cc328 + 0x34, fontAt(reinterpret_cast<uintptr_t>(&gList7cc338_756f38))));
     if (window) child(window, 9, 0x11, 1, 0x64, 0, 0xc8, 0x32);
     return window;
 }
@@ -175,8 +176,8 @@ u8 *__cdecl List7cb264_NewRow() {
 }
 
 u8 *__cdecl List7cc250_NewRow() {
-    u8 *const window = newRow(1, 0x64, cachedHeight(0x007cc250, fontAt(reinterpret_cast<uintptr_t>(&gList7cc250_75583c))));
-    if (window) child(window, 1, 1, 1, 0x64, 0, 0xc8, global<u16>(0x007cc250));
+    u8 *const window = newRow(1, 0x64, cachedHeight((u32)(uintptr_t)&gStatic_7cc218 + 0x38, fontAt(reinterpret_cast<uintptr_t>(&gList7cc250_75583c))));
+    if (window) child(window, 1, 1, 1, 0x64, 0, 0xc8, global<u16>((u32)(uintptr_t)&gStatic_7cc218 + 0x38));
     return window;
 }
 

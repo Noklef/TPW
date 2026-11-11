@@ -15,6 +15,7 @@
 #include "../files/memsource.h"
 #include "../online/servers.h"
 #include "../render/graphicssettings.h"
+#include "staticobjects.h"
 
 namespace {
 
@@ -101,7 +102,7 @@ u32 __cdecl Graphics_Tier() {
         if (depth == 8 || depth == 0x10) return 2;
         return depth == 0x20 ? 1 : 0;
     }
-    return *reinterpret_cast<u32 *>(0x007858d0) == 0 ? 1 : 2;  // (a jump table: 0 -> 1, 1..3 -> 2; above 3 -> 2)
+    return *reinterpret_cast<u32 *>((u32)(uintptr_t)&gBalanceGraphics + 0x68) == 0 ? 1 : 2;  // (a jump table: 0 -> 1, 1..3 -> 2; above 3 -> 2)
 }
 
 u32 __cdecl Graphics_Level() {
@@ -111,7 +112,7 @@ u32 __cdecl Graphics_Level() {
         if (depth == 0x10) return 6;
         return depth == 0x20 ? 4 : 0;
     }
-    switch (*reinterpret_cast<u32 *>(0x007858d0)) {
+    switch (*reinterpret_cast<u32 *>((u32)(uintptr_t)&gBalanceGraphics + 0x68)) {
     case 0: return 2;
     case 1: return 4;
     case 2: return 6;
@@ -120,7 +121,7 @@ u32 __cdecl Graphics_Level() {
 }
 
 void __cdecl Options_ApplySound() {
-    const u8 *const o = reinterpret_cast<const u8 *>((uintptr_t)0x0078d8d8);
+    const u8 *const o = reinterpret_cast<const u8 *>((uintptr_t)&gOptions_78d8d8);
     if (o[0x18]) {
         Sound_Set803adc(1);
         Sound_Set803ac0(at<u32>(o, 0x1c));
@@ -147,18 +148,18 @@ void __fastcall Options_Defaults(u8 *options) {
     at<u32>(options, 4) = 1;
     at<u32>(options, 8) = 1;
     at<u32>(options, 0xc) = 0;
-    at<u32>(options, 0x14) = global<u32>(0x00785928);
-    at<u32>(options, 0x1c) = global<u32>(0x0078592c);
-    at<u32>(options, 0x24) = global<u32>(0x00785930);
-    at<u32>(options, 0x2c) = global<u32>(0x00785934);
-    if (global<u32>(0x00785924) != 0) {
+    at<u32>(options, 0x14) = global<u32>((u32)(uintptr_t)&gBalanceSound + 0x38);
+    at<u32>(options, 0x1c) = global<u32>((u32)(uintptr_t)&gBalanceSound + 0x3c);
+    at<u32>(options, 0x24) = global<u32>((u32)(uintptr_t)&gBalanceSound + 0x40);
+    at<u32>(options, 0x2c) = global<u32>((u32)(uintptr_t)&gBalanceSound + 0x44);
+    if (global<u32>((u32)(uintptr_t)&gBalanceSound + 0x34) != 0) {
         options[0x10] = 1;
         options[0x18] = 1;
         options[0x20] = 1;
         options[0x28] = 1;
     }
     options[0x34] = 1;
-    at<u32>(options, 0x30) = global<u32>(0x0078591c);
+    at<u32>(options, 0x30) = global<u32>((u32)(uintptr_t)&gBalanceSound + 0x2c);
     options[0x35] = 1;
     options[0x36] = 1;
     options[0x37] = 1;
@@ -273,14 +274,14 @@ u8 __fastcall Options_CheckGraphicsMode(u8 *options, void *, u32 mode) {
     BalanceFile_Init(file);
     String path;
     String_Ctor(&path);
-    vcall<void>(&path, 0x18, MemorySource_GetLock(reinterpret_cast<MemorySource *>((uintptr_t)0x00f816c0)));   // (String's AssignWide)
+    vcall<void>(&path, 0x18, MemorySource_GetLock(reinterpret_cast<MemorySource *>((uintptr_t)&gStrings5_f816c0)));   // (String's AssignWide)
     String_EnsureTrailingBackslash(&path);
     if (mode == 0)
-        vcall<void>(&path, 0x28, 0x0078e338u);
+        vcall<void>(&path, 0x28, (u32)(uintptr_t)&gString_78e338);
     else if (mode == 1)
-        vcall<void>(&path, 0x28, 0x0078e368u);
+        vcall<void>(&path, 0x28, (u32)(uintptr_t)&gString_78e368);
     else if (mode == 2)
-        vcall<void>(&path, 0x28, 0x0078e5c0u);
+        vcall<void>(&path, 0x28, (u32)(uintptr_t)&gString_78e5c0);
     if (!BalanceFile_Load(file, nullptr, path.data, 0)) {
         String_Dtor(&path);
         at<u32>(file, 0) = (u32)(uintptr_t)BalanceGraphics_vtable;
@@ -291,12 +292,12 @@ u8 __fastcall Options_CheckGraphicsMode(u8 *options, void *, u32 mode) {
         if (current != loaded && at<s32>(options, 0x94) < 2)
             at<s32>(options, 0x94) = 2;
     };
-    differs(global(0x00785874), at<u32>(file, 0xc));
-    differs(global(0x007858d0), at<u32>(file, 0x68));
-    differs(global(0x0078589c), at<u32>(file, 0x34));
-    differs(global(0x007858a4), at<u32>(file, 0x3c));
-    differs(global(0x007858a8), at<u32>(file, 0x40));
-    differs(global(0x007858ac), at<u32>(file, 0x44));
+    differs(global((u32)(uintptr_t)&gBalanceGraphics + 0xc), at<u32>(file, 0xc));
+    differs(global((u32)(uintptr_t)&gBalanceGraphics + 0x68), at<u32>(file, 0x68));
+    differs(global((u32)(uintptr_t)&gBalanceGraphics + 0x34), at<u32>(file, 0x34));
+    differs(global((u32)(uintptr_t)&gBalanceGraphics + 0x3c), at<u32>(file, 0x3c));
+    differs(global((u32)(uintptr_t)&gBalanceGraphics + 0x40), at<u32>(file, 0x40));
+    differs(global((u32)(uintptr_t)&gBalanceGraphics + 0x44), at<u32>(file, 0x44));
     String_Dtor(&path);
     at<u32>(file, 0) = (u32)(uintptr_t)BalanceGraphics_vtable;
     BalanceFile_Release(file);
@@ -307,20 +308,20 @@ void __cdecl Options_LoadBalanceFiles() {
     String folder, path;
     String_Ctor(&folder);
     String_Ctor(&path);
-    vcall<void>(&folder, 0x18, MemorySource_GetLock(reinterpret_cast<MemorySource *>((uintptr_t)0x00f816c0)));   // (String's AssignWide)
+    vcall<void>(&folder, 0x18, MemorySource_GetLock(reinterpret_cast<MemorySource *>((uintptr_t)&gStrings5_f816c0)));   // (String's AssignWide)
     String_EnsureTrailingBackslash(&folder);
     vcall<void>(&path, 0x18, &folder);
-    vcall<void>(&path, 0x28, 0x007a1c28u);
-    if (BalanceFile_Load(reinterpret_cast<u8 *>((uintptr_t)0x007858f0), nullptr, path.data, 0) == 1) {   // gBalanceSound
-        Options_Defaults(reinterpret_cast<u8 *>((uintptr_t)0x0078d8d8));
+    vcall<void>(&path, 0x28, (u32)(uintptr_t)&gString_7a1c28);
+    if (BalanceFile_Load(reinterpret_cast<u8 *>((uintptr_t)&gBalanceSound), nullptr, path.data, 0) == 1) {   // gBalanceSound
+        Options_Defaults(reinterpret_cast<u8 *>((uintptr_t)&gOptions_78d8d8));
         vcall<void>(&path, 0x18, &folder);
-        vcall<void>(&path, 0x28, 0x007a0c58u);
-        if (BalanceFile_Load(reinterpret_cast<u8 *>((uintptr_t)0x00785828), nullptr, path.data, 0) == 1) {   // gBalanceOnline
+        vcall<void>(&path, 0x28, (u32)(uintptr_t)&gString_7a0c58);
+        if (BalanceFile_Load(reinterpret_cast<u8 *>((uintptr_t)&gBalanceOnline), nullptr, path.data, 0) == 1) {   // gBalanceOnline
             Online_ApplyBalance();
             vcall<void>(&path, 0x18, &folder);
-            vcall<void>(&path, 0x28, 0x007a17c8u);
+            vcall<void>(&path, 0x28, (u32)(uintptr_t)&gString_7a17c8);
             if (File_Exists(path.data) == 1)
-                BalanceFile_Load(reinterpret_cast<u8 *>((uintptr_t)0x007858e0), nullptr, path.data, 0);   // gBalanceResolution
+                BalanceFile_Load(reinterpret_cast<u8 *>((uintptr_t)&gBalanceResolution), nullptr, path.data, 0);   // gBalanceResolution
         }
     }
     String_Dtor(&path);
@@ -330,7 +331,7 @@ void __cdecl Options_LoadBalanceFiles() {
 void __fastcall Options_NoteChanges(u8 *options) {
     if (at<u32>(options, 8) != at<u32>(options, 0x44))
         Options_CheckGraphicsMode(options, nullptr, at<u32>(options, 8));
-    const s32 limit = (s32)global(0x00785910);
+    const s32 limit = (s32)global((u32)(uintptr_t)&gBalanceSound + 0x20);
     if ((at<s32>(options, 0x6c) > limit) != (at<s32>(options, 0x30) > limit)) {   // (across gBalanceSound's +0x20 one way or the other)
         if (at<s32>(options, 0x94) < 1)
             at<s32>(options, 0x94) = 1;

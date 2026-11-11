@@ -14,6 +14,7 @@
 #include "window.h"
 #include "window7059f0.h"
 #include "../online/chatcommand.h"
+#include "../core/staticobjects.h"
 
 namespace {
 
@@ -71,7 +72,7 @@ void __cdecl Dialog7cca70_FillList(const u8 *answer) {
         }
         String theme;
         String_CtorStr(&theme, nullptr, reinterpret_cast<const char *>((uintptr_t)g_env->valueByKey(at<u8 *>(holder, 0xf8), nullptr, key)));
-        g_env->setTheme(&global<u8>(0x00786b68), nullptr, &theme, reinterpret_cast<u8 *>(&label));
+        g_env->setTheme(&global<u8>((u32)(uintptr_t)&gNamedObjects_786b68), nullptr, &theme, reinterpret_cast<u8 *>(&label));
         String_Dtor(&theme);
         row[1] = (u32)(uintptr_t)label.data;
         row[2] = at<u32>(item, 0xb8);

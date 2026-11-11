@@ -24,6 +24,7 @@
 #include "thingpreview.h"
 #include "window.h"
 #include "windowtimers.h"
+#include "../core/staticobjects.h"
 
 namespace {
 
@@ -36,8 +37,8 @@ void __fastcall SetFlag(u8 *panel, void *, u32 flag) { ThingPanel_SetFlag64_48ce
 const ThingPanelHandlerEnv kGameEnv = {&WindowAt10_Message4, &Panel7cc258_ShowStats, &Panel7cc298_ShowStats, &ThingPanel_Handler_48d200, &Window_SetTimer, &Window_StartTimer, &Game_CancelAdvisor, &Sign_Swing, &Dialog7ca150_Open, &Things_StepGroup, &Things_StepGroupBack, &ThingPanel_RestartOrClose_48ccf0, &ThingGoto_Start, &Panel7cc218_EnterMoveMode, &ForEach, &Panel7ca178_ShowStats, &SetFlag, &Global7c24d8_CopyScript, &Panel7cc408_ShowVisitor, &ThingBrowser_Open, &Dialog7ca13c_Open, &Object_GetDef, &GameTable7cfb90_Get1da720_519510, &ObjectControls_GetWord18, &Object_ScrapRefund};
 const ThingPanelHandlerEnv *g_env = &kGameEnv;
 
-u8 *self() { return reinterpret_cast<u8 *>((uintptr_t)0x007cc258); }
-u8 *other() { return reinterpret_cast<u8 *>((uintptr_t)0x007cc298); }
+u8 *self() { return reinterpret_cast<u8 *>((uintptr_t)&gStatic_7cc258); }
+u8 *other() { return reinterpret_cast<u8 *>((uintptr_t)&gStatic_7cc298); }
 
 void startStatsTimer(u8 *window) {
     if ((u16)g_env->setTimer(window, nullptr, 0x80080, 0xfa0)) g_env->startTimer(window, nullptr, 0x80080);
@@ -48,7 +49,7 @@ void startStatsTimer(u8 *window) {
 void ThingPanelHandlers_SetEnv(const ThingPanelHandlerEnv *env) { g_env = env ? env : &kGameEnv; }
 
 extern "C" s32 __cdecl Panel7ca178_Handler(u8 *window, u32 message, u32 a, u32 b) {
-    u8 *const panel = reinterpret_cast<u8 *>((uintptr_t)0x007ca178);
+    u8 *const panel = reinterpret_cast<u8 *>((uintptr_t)&gStatic_7ca178);
     switch (message) {
     case 5:
         g_env->close(panel);
@@ -104,7 +105,7 @@ extern "C" s32 __cdecl Panel7ca178_Handler(u8 *window, u32 message, u32 a, u32 b
 }
 
 extern "C" s32 __cdecl Panel7cc408_Handler(u8 *window, u32 message, u32 a, u32 b) {
-    u8 *const panel = reinterpret_cast<u8 *>((uintptr_t)0x007cc408);
+    u8 *const panel = reinterpret_cast<u8 *>((uintptr_t)&gStatic_7cc408);
     switch (message) {
     case 5:
         g_env->close(panel);
@@ -150,7 +151,7 @@ extern "C" s32 __cdecl Panel7cc408_Handler(u8 *window, u32 message, u32 a, u32 b
 
 extern "C" s32 __cdecl Panel7cc3e0_Handler(u8 *window, u32 message, u32 a, u32 b) {
     using SetValue = void(__fastcall *)(u8 *, void *, u32);
-    u8 *const panel = reinterpret_cast<u8 *>((uintptr_t)0x007cc3e0);
+    u8 *const panel = reinterpret_cast<u8 *>((uintptr_t)&gStatic_7cc3e0);
     switch (message) {
     case 5:
         g_env->close(panel);
@@ -159,13 +160,13 @@ extern "C" s32 __cdecl Panel7cc3e0_Handler(u8 *window, u32 message, u32 a, u32 b
         if (a == 0x80080) {
             const u8 *const thing = gPanel7cc218_7c2658;
             g_env->def(thing);
-            if (!global<u8 *>(0x007cc3f4)) break;
-            if (u8 *const child = Window_FindChild(global<u8 *>(0x007cc3f4), nullptr, 0x5210)) {
+            if (!global<u8 *>((u32)(uintptr_t)&gStatic_7cc3e0 + 0x14)) break;
+            if (u8 *const child = Window_FindChild(global<u8 *>((u32)(uintptr_t)&gStatic_7cc3e0 + 0x14), nullptr, 0x5210)) {
                 const SetValue set = (*reinterpret_cast<SetValue *const *>(child))[7];
                 g_env->table(gWorldPtr);   // (its answer only the ECX of the stdcall)
                 set(child, nullptr, g_env->control((a & 0xffff0000) | *reinterpret_cast<const u16 *>(thing + 0xe)));
             }
-            u8 *const child = Window_FindChild(global<u8 *>(0x007cc3f4), nullptr, 0x520e);
+            u8 *const child = Window_FindChild(global<u8 *>((u32)(uintptr_t)&gStatic_7cc3e0 + 0x14), nullptr, 0x520e);
             const SetValue set = (*reinterpret_cast<SetValue *const *>(child))[7];
             set(child, nullptr, g_env->refund(thing));
         }
@@ -228,14 +229,14 @@ extern "C" s32 __cdecl Panel7cc258_Handler(u8 *window, u32 message, u32 a, u32 b
         break;
     case 0x800:
         if (a == 0xc06b) {
-            global<u32>(0x007cc27c) = b;
-            vcall<void>(Window_FindChild(global<u8 *>(0x007cc268), nullptr, 0xc07f), 0x1c, 1u << (b & 0x1f));
+            global<u32>((u32)(uintptr_t)&gStatic_7cc258 + 0x24) = b;
+            vcall<void>(Window_FindChild(global<u8 *>((u32)(uintptr_t)&gStatic_7cc258 + 0x10), nullptr, 0xc07f), 0x1c, 1u << (b & 0x1f));
             vcall<void>(self(), 0x14);
         } else if (a == 0xc085) {
-            global<u32>(0x007cc284) = b;
+            global<u32>((u32)(uintptr_t)&gStatic_7cc258 + 0x2c) = b;
             vcall<void>(self(), 0x14);
         } else if (a == 0xc086) {
-            global<u32>(0x007cc280) = b;
+            global<u32>((u32)(uintptr_t)&gStatic_7cc258 + 0x28) = b;
             vcall<void>(self(), 0x14);
         }
         break;
@@ -297,13 +298,13 @@ extern "C" s32 __cdecl Panel7cc298_Handler(u8 *window, u32 message, u32 a, u32 b
         break;
     case 0x800:
         if (a == 0xa08e) {
-            global<u32>(0x007cc2bc) = b;
+            global<u32>((u32)(uintptr_t)&gStatic_7cc298 + 0x24) = b;
             vcall<void>(other(), 0x14);
         } else if (a == 0xa08f) {
-            global<u32>(0x007cc2c4) = b;
+            global<u32>((u32)(uintptr_t)&gStatic_7cc298 + 0x2c) = b;
             vcall<void>(other(), 0x14);
         } else if (a == 0xa090) {
-            global<u32>(0x007cc2c0) = b;
+            global<u32>((u32)(uintptr_t)&gStatic_7cc298 + 0x28) = b;
             vcall<void>(other(), 0x14);
         }
         break;

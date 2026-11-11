@@ -15,6 +15,7 @@
 #include "../rsse/rsse.h"
 #include "rides.h"
 #include "world.h"
+#include "../core/staticobjects.h"
 
 namespace {
 
@@ -284,6 +285,6 @@ void __cdecl RideScripts_SetReverb() {
             }
         }
     }
-    Sound_SetEaxRecord(global<u32>(0x0078578c));   // (gBalanceLevel's reverb)
+    Sound_SetEaxRecord(global<u32>((u32)(uintptr_t)&gBalanceLevel + 0x74c));   // (gBalanceLevel's reverb)
 }
 }  // extern "C"

@@ -6,6 +6,7 @@
 #include "batchquad.h"
 #include "../math/x87.h"
 #include "../gfx/texcache.h"
+#include "../core/staticobjects.h"
 
 namespace {
 
@@ -133,7 +134,7 @@ u32 __fastcall TileGrid_Draw(u8 *object, void *) {
                 const X87Reg startU = trimU + at<float>(spec, 0x18);
                 at<float>(spec, 0x18) = (float)startU;
                 at<float>(spec, 0x20) = (float)(endU - trimU);
-                const X87Reg trim = X87Reg(global<u8>(0x008bcbc8) & 2 ? kOne : kTrim);
+                const X87Reg trim = X87Reg(global<u8>((u32)(uintptr_t)&gView_8bcbc8) & 2 ? kOne : kTrim);
                 const X87Reg endV = X87Reg(at<float>(spec, 0x1c));
                 const X87Reg trimV = trim / X87Reg((double)at<s32>(texture, 0xc));
                 at<float>(spec, 0x1c) = (float)(endV - trimV);

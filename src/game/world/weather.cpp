@@ -17,6 +17,7 @@
 #include "thingmsg.h"
 #include "things.h"
 #include "world.h"
+#include "../core/staticobjects.h"
 
 namespace {
 
@@ -36,7 +37,7 @@ u8 *world() { return gWorldPtr; }
 u8 *fx() { return global<u8 *>(0x008bcbac); }
 
 // The year's quarter's row of the table 0x7854c4: base, spread, percent.
-const u32 *intensityRow() { return &global<const u32>(0x007854c4) + 3 * FunnyTime_Quarter(world() + 0x2a0); }
+const u32 *intensityRow() { return &global<const u32>((u32)(uintptr_t)&gBalanceLevel + 0x484) + 3 * FunnyTime_Quarter(world() + 0x2a0); }
 
 // The funny time now past t.
 bool nowPast(const FileTime *t) {
@@ -100,11 +101,11 @@ void __fastcall Weather_Update(u8 *weather) {
     if (!weather[0x2c]) {
         FileTime span, due;
         s32 result;
-        FileTime_FromSpan(&span, nullptr, &result, atLeast0(global<u32>(0x007854fc), global<u32>(0x007854f8)), 0, 0, 0, 0);
+        FileTime_FromSpan(&span, nullptr, &result, atLeast0(global<u32>((u32)(uintptr_t)&gBalanceLevel + 0x4bc), global<u32>((u32)(uintptr_t)&gBalanceLevel + 0x4b8)), 0, 0, 0, 0);
         FileTime_Add(reinterpret_cast<const FileTime *>(weather + 0x10), nullptr, &due, &span);
         if (nowPast(&due)) {
             const u32 value = Weather_NextIntensity(weather);
-            ThingMsg02_Ctor(msg, nullptr, global<u32>(0x007854f8), value);
+            ThingMsg02_Ctor(msg, nullptr, global<u32>((u32)(uintptr_t)&gBalanceLevel + 0x4b8), value);
             g_env->post(MessageCentre_Instance(), nullptr, msg);
         }
     }
@@ -113,33 +114,33 @@ void __fastcall Weather_Update(u8 *weather) {
         const s32 drops = at<s32>(weather, 0x30);
         const s32 apart = (s32)((u32)drops - (u32)target);
         const s32 gap = apart < 0 ? (s32)(0u - (u32)apart) : apart;
-        const s32 step = global<s32>(0x00785500);
+        const s32 step = global<s32>((u32)(uintptr_t)&gBalanceLevel + 0x4c0);
         if (gap >= step) {
             const s32 now = (s32)(drops < target ? (u32)drops + (u32)step : (u32)drops - (u32)step);
             at<s32>(weather, 0x30) = now;
-            const s32 most = global<s32>(0x00785530);
+            const s32 most = global<s32>((u32)(uintptr_t)&gBalanceLevel + 0x4f0);
             const s32 floor = now < 0 ? 0 : now;
             WeatherFx_SetDropCount(fx(), nullptr, floor < most ? floor : most);
-            g_env->ambientLevel((s32)((u32)now * 100) / global<s32>(0x00785530));
+            g_env->ambientLevel((s32)((u32)now * 100) / global<s32>((u32)(uintptr_t)&gBalanceLevel + 0x4f0));
         } else if (target == 0) {
             Weather_SetMode(weather, nullptr, 2);
             g_env->ambientLevel(0);
         }
     }
     if (weather[0x38]) {
-        const s32 wait = (s32)(at<u32>(weather, 0x3c) - global<u32>(0x0078551c));
+        const s32 wait = (s32)(at<u32>(weather, 0x3c) - global<u32>((u32)(uintptr_t)&gBalanceLevel + 0x4dc));
         at<s32>(weather, 0x3c) = wait;
         if (wait < 0) {
             u32 start[3], end[3];
             Weather_RandomBolt(weather, nullptr, reinterpret_cast<float *>(start), reinterpret_cast<float *>(end), at<u32>(weather, 0x44));
-            g_env->strike(fx(), nullptr, start[0], start[1], start[2], end[0], end[1], end[2], global<u32>(0x00785524), 1);
+            g_env->strike(fx(), nullptr, start[0], start[1], start[2], end[0], end[1], end[2], global<u32>((u32)(uintptr_t)&gBalanceLevel + 0x4e4), 1);
             if (at<s32>(weather, 0x44) <= 0) {
-                const u32 keep = atLeast0(global<u32>(0x00785528), at<u32>(weather, 0x40));
-                at<u32>(weather, 0x44) = (u32)World_Rand(world()) % global<u32>(0x0078552c) + keep;
+                const u32 keep = atLeast0(global<u32>((u32)(uintptr_t)&gBalanceLevel + 0x4e8), at<u32>(weather, 0x40));
+                at<u32>(weather, 0x44) = (u32)World_Rand(world()) % global<u32>((u32)(uintptr_t)&gBalanceLevel + 0x4ec) + keep;
                 std::memcpy(weather + 0x48, end, 12);
             }
             ++at<u32>(weather, 0x40);
-            at<u32>(weather, 0x3c) = (u32)World_Rand(world()) % global<u32>(0x00785520);
+            at<u32>(weather, 0x3c) = (u32)World_Rand(world()) % global<u32>((u32)(uintptr_t)&gBalanceLevel + 0x4e0);
         }
     } else {
         at<u32>(weather, 0x40) = 0;
@@ -215,7 +216,7 @@ void __fastcall Weather_SetIntensity(u8 *weather, void *, s32 value) {
     FileTime time;
     const FileTime *now = FunnyTime_Now(world + 0x2a0, nullptr, &time, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr);
     *reinterpret_cast<FileTime *>(weather + 0x10) = *now;
-    const s32 *range = reinterpret_cast<const s32 *>(0x00785504);   // (three [low, high] pairs)
+    const s32 *range = reinterpret_cast<const s32 *>((u32)(uintptr_t)&gBalanceLevel + 0x4c4);   // (three [low, high] pairs)
     bool a = v >= range[0] && v <= range[1];
     bool b = v >= range[2] && v <= range[3];
     weather[0x38] = v >= range[4] && v <= range[5];
@@ -231,7 +232,7 @@ void __fastcall Weather_SetIntensity(u8 *weather, void *, s32 value) {
         const s32 low = a ? range[0] : range[2], span = (s32)((u32)(a ? range[1] : range[3]) - (u32)low);
         const s32 share = span ? (s32)(((u32)v - (u32)low) * 100) / span : 100;
         Weather_SetMode(weather, nullptr, a ? 1 : 0);
-        const s32 most = *reinterpret_cast<const s32 *>(0x00785530);
+        const s32 most = *reinterpret_cast<const s32 *>((u32)(uintptr_t)&gBalanceLevel + 0x4f0);
         const s32 drops = (s32)((u32)(100 - share) * (u32)most) / 100;
         *reinterpret_cast<s32 *>(weather + 0x34) = drops >= most ? most : drops;
         WeatherFx_SetFallSpeed(fx, nullptr, a ? 0x3f4ccccd : 0x40200000);   // 0.8, 2.5

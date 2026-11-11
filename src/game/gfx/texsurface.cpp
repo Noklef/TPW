@@ -13,6 +13,7 @@
 #include "../render/ddopen.h"
 #include "../core/vobj2.h"
 #include "../render/d3dsetup.h"
+#include "../core/staticobjects.h"
 
 namespace {
 
@@ -73,7 +74,7 @@ extern "C" {
 u32 __fastcall TexSurfaceA_LockNext(u8 *sub) {
     for (u32 i = 0; i < 0x1f; i++) global<u32>(0x008c48a8 + i * 4) = 0;
     global<u32>(0x008c48a8) = 0x7c;
-    const u32 made = g_calls.Th(0x0058b1f0, 0x008c47d8u, at<u32>(sub, at<u32>(back<const u8 *>(sub, 0x3c), 4) - 0x34), back<u32>(sub, 0xc));
+    const u32 made = g_calls.Th(0x0058b1f0, (u32)(uintptr_t)&gSurfacePool_8c47d8, at<u32>(sub, at<u32>(back<const u8 *>(sub, 0x3c), 4) - 0x34), back<u32>(sub, 0xc));
     back<u32>(sub, 0x18) = made;
     return LevelResult(comcall<u32>(reinterpret_cast<void *>((uintptr_t)made), 0x64, 0u, 0x008c48a8u, 1u, 0u)) == 0;
 }
@@ -174,7 +175,7 @@ u32 __fastcall TexSurfaceA_BuildMips(u8 *sub) {
     u8 *made = nullptr;
     u32 level = 0, result;
     for (s32 left = back<s32>(sub, 0x10) - 1; left != 0; --left) {
-        made = reinterpret_cast<u8 *>((uintptr_t)g_calls.Th(0x0058b1f0, 0x008c47d8u, (u32)side, back<u32>(sub, 0xc)));   // the pool's surface
+        made = reinterpret_cast<u8 *>((uintptr_t)g_calls.Th(0x0058b1f0, (u32)(uintptr_t)&gSurfacePool_8c47d8, (u32)side, back<u32>(sub, 0xc)));   // the pool's surface
         if ((result = LevelResult(comcall<u32>(made, 0x64, 0u, desc, 1u, 0u)))) goto failed;
         g_calls.Th(0x0058b890, (u32)(uintptr_t)(sub - 0x3c), desc, 0x008c48a8u);   // the last level halved into it
         if ((result = LevelResult(comcall<u32>(back<u8 *>(sub, 0x18), 0x80, 0u)))) goto failed;
@@ -247,7 +248,7 @@ u32 __fastcall TexSurfaceB_AllocPixels(u8 *sub, void *, u32 width, u32 height, u
     back<u32>(sub + SubBaseOffset(sub), 8) = width;
     back<u32>(sub + SubBaseOffset(sub), 4) = height;
     at<u32>(sub + SubBaseOffset(sub), 0) = 0x100;
-    back<u32>(sub, 8) = reinterpret_cast<const u32 *>((uintptr_t)0x00702220)[*reinterpret_cast<const u32 *>((uintptr_t)0x008bd554)];
+    back<u32>(sub, 8) = reinterpret_cast<const u32 *>((uintptr_t)0x00702220)[*reinterpret_cast<const u32 *>((uintptr_t)&gTexSettings_8bd550 + 0x4)];
     return 1;
 }
 

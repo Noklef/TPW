@@ -37,6 +37,7 @@
 #include "../ui/window7cc8c0handler.h"
 #include "../world/world.h"
 #include "../core/imports.h"
+#include "../core/staticobjects.h"
 
 namespace {
 
@@ -98,7 +99,7 @@ void textArg(u8 *arg, u32 n, const u16 *s) {
     at<const u16 *>(arg, 0xc) = s;
 }
 template <typename... A> void format(u8 *avatar, u32 entry, A... args) {
-    g_env->format(global<u8 *>(0x0078bac8), line(avatar), 0x400, entry, args...);
+    g_env->format(global<u8 *>((u32)(uintptr_t)&gLanguage_78b530 + 0x598), line(avatar), 0x400, entry, args...);
 }
 void format1(u8 *avatar, u32 entry, const u16 *s) {
     u8 arg[16];
@@ -734,7 +735,7 @@ void __fastcall ChatAvatar_LobbyEvent(u8 *avatar, void *, const u8 *tokens) {
     default: said = reinterpret_cast<uintptr_t>(&gChatAvatar_LobbyEvent_75c198); break;
     }
     debugLine(said);
-    if (command) g_env->post(command, global<u32>(0x0078bac8));
+    if (command) g_env->post(command, global<u32>((u32)(uintptr_t)&gLanguage_78b530 + 0x598));
     OnlineChat_Set29And2a(OnlineChat_Instance());
 }
 

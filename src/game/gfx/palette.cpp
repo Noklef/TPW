@@ -3,6 +3,7 @@
 
 #include <cstdint>
 #include <intrin.h>
+#include "../core/staticobjects.h"
 
 namespace {
 
@@ -84,8 +85,9 @@ void __fastcall PalColour_Set(u8 *colour, void *, u32 red, u32 green, u32 blue) 
 }
 
 void __cdecl ColourRamps_SetFromPalette() {
-    static const u32 kColours[][2] = {{0x007b0550, 0x85}, {0x007b0546, 0x87}, {0x007b053c, 0x89}, {0x007b0532, 0x8b},
-                                      {0x007b04e0, 0xa7}, {0x007b04d6, 0xa9}, {0x007b04cc, 0xab}, {0x007b04c2, 0xad}};
+    // (not static: the name's address makes it a dynamic initialiser)
+    const u32 kColours[][2] = {{(u32)(uintptr_t)&gColourRamps_7b0480 + 0xd0, 0x85}, {(u32)(uintptr_t)&gColourRamps_7b0480 + 0xc6, 0x87}, {(u32)(uintptr_t)&gColourRamps_7b0480 + 0xbc, 0x89}, {(u32)(uintptr_t)&gColourRamps_7b0480 + 0xb2, 0x8b},
+                                      {(u32)(uintptr_t)&gColourRamps_7b0480 + 0x60, 0xa7}, {(u32)(uintptr_t)&gColourRamps_7b0480 + 0x56, 0xa9}, {(u32)(uintptr_t)&gColourRamps_7b0480 + 0x4c, 0xab}, {(u32)(uintptr_t)&gColourRamps_7b0480 + 0x42, 0xad}};
     for (const auto &c : kColours) {
         const u8 *const e = reinterpret_cast<const u8 *>(0x00fa71f8) + 4 * c[1];
         u8 *const colour = reinterpret_cast<u8 *>((uintptr_t)c[0]);

@@ -20,6 +20,7 @@
 #include "../render/state.h"
 #include "../render/meshlist.h"
 #include "../terrain/texcache.h"
+#include "../core/staticobjects.h"
 
 namespace {
 
@@ -570,7 +571,7 @@ u32 __fastcall TexCache_AddSurfaces(u8 *cache, void *, s32 side, s32 *made, u32 
     s32 count = 0;
     bool failed = false;
     const s32 index = SurfacePool_SideIndex(side);
-    s32 area = (s32)(at<u32>(nullptr, 0x007022d8 + 4 * at<u32>(nullptr, 0x008bd554)) * (u32)side * (u32)side);
+    s32 area = (s32)(at<u32>(nullptr, 0x007022d8 + 4 * at<u32>(nullptr, (u32)(uintptr_t)&gTexSettings_8bd550 + 0x4)) * (u32)side * (u32)side);
     if (levels > 1)
         area = (s32)((u32)area * 4) / 3;
     s32 &step = at<s32>(nullptr, 0x008c4898);
@@ -635,7 +636,7 @@ u32 __fastcall TexCache_CreateSurfaces(u8 *cache) {
     const s32 *const sides = reinterpret_cast<const s32 *>(0x007022e8);
     const auto add = [&](s32 i) {
         s32 made;
-        return TexCache_AddSurfaces(cache, nullptr, sides[i], &made, at<u32>(nullptr, 0x008bd554), at<s32>(cache, 0x18e8));
+        return TexCache_AddSurfaces(cache, nullptr, sides[i], &made, at<u32>(nullptr, (u32)(uintptr_t)&gTexSettings_8bd550 + 0x4), at<s32>(cache, 0x18e8));
     };
     for (s32 pass = 0; pass < 2; ++pass) {
         for (s32 i = 0; i < 6; ++i) {
@@ -672,17 +673,17 @@ u32 __fastcall TexCache_ChooseBudget(u8 *cache) {
     u32 added = 1;
     s32 count;
     if (memory == 0) {
-        const s32 budget = at<s32>(nullptr, 0x008c1620);
+        const s32 budget = at<s32>(nullptr, (u32)(uintptr_t)&gTexSettings_8bd550 + 0x40d0);
         at<s32>(cache, 0x1860) = budget ? budget : 0x2000000;
-        added = TexCache_AddSurfaces(cache, nullptr, 0x100, &count, at<u32>(nullptr, 0x008bd554), 0);
-        memory = (s32)((u32)sizes[at<u32>(nullptr, 0x008bd554)] * (u32)count << 16);
+        added = TexCache_AddSurfaces(cache, nullptr, 0x100, &count, at<u32>(nullptr, (u32)(uintptr_t)&gTexSettings_8bd550 + 0x4), 0);
+        memory = (s32)((u32)sizes[at<u32>(nullptr, (u32)(uintptr_t)&gTexSettings_8bd550 + 0x4)] * (u32)count << 16);
         debugLog("Amount of texture space safely allocated %x", memory);
         Object_FreeSixPointerArrays(cache);
     } else {
-        count = (memory >> 16) / sizes[at<u32>(nullptr, 0x008bd554)];
+        count = (memory >> 16) / sizes[at<u32>(nullptr, (u32)(uintptr_t)&gTexSettings_8bd550 + 0x4)];
         if (count > 0x2000000) count = 0x2000000;
     }
-    global<s32>(0x008c1624) = memory;
+    global<s32>((u32)(uintptr_t)&gTexSettings_8bd550 + 0x40d4) = memory;
     if (const s32 fixed = at<s32>(cache, 0x1920)) {
         at<s32>(cache, 0x18f4) = fixed;
     } else {
@@ -692,7 +693,7 @@ u32 __fastcall TexCache_ChooseBudget(u8 *cache) {
         }
         at<s32>(cache, 0x18f8) = limits[2 * level + 1];
     }
-    if (!added || count < 0x40 / sizes[at<u32>(nullptr, 0x008bd554)]) {
+    if (!added || count < 0x40 / sizes[at<u32>(nullptr, (u32)(uintptr_t)&gTexSettings_8bd550 + 0x4)]) {
         EngineErrors_Push(gEngineErrors_879ad0, nullptr, 3, 0xb075400f);
         return 0;
     }
@@ -758,7 +759,7 @@ s32 __fastcall TexCacheEntry_Score(u8 *entry, void *, u32) {
     }
     TexCacheItem_SetFlags(surface, nullptr, (keep ? 1 : 0) | (filtered ? 2 : 0) | (whole ? 4 : 0));
     at<s32>(entry, 8) -= sum;
-    const s32 age = at<s32>(nullptr, 0x008bcc40) - at<s32>(entry, 0x14);
+    const s32 age = at<s32>(nullptr, (u32)(uintptr_t)&gView_8bcbc8 + 0x78) - at<s32>(entry, 0x14);
     const s32 fresh = age < 0x10 ? 0x10 - age : 0;
     const s32 score = weighted + area * fresh + 2 * (count + 2 * (at<s32>(entry, 0xc) + 2 * (sum + 2 * tagged)));
     at<s32>(entry, 0x10) = score;
@@ -793,8 +794,8 @@ u32 __fastcall TexCache_PlaceTexture(u8 *cache, void *, u8 *entry, const s32 *pl
     const auto value = [](u32 address) { return X87Reg(at<float>(nullptr, address)); };
     if (at<u32>(nullptr, 0x008bd524) == 4) {
         const bool filtered = (flags & 0x30000) != 0, alt = (flags & 0x4000000) != 0;
-        const X87Reg b = X87_Through(at<float>(nullptr, filtered ? (flags & 0x10000 ? 0x00702474 : 0x008c1628) : alt ? 0x008c1630 : 0x008c1628));
-        const X87Reg a = value(filtered ? (flags & 0x20000 ? 0x00702474 : 0x008c1628) : alt ? 0x008c1634 : 0x008c1628);
+        const X87Reg b = X87_Through(at<float>(nullptr, filtered ? (flags & 0x10000 ? 0x00702474 : ((u32)(uintptr_t)&gTexSettings_8bd550 + 0x40d8)) : alt ? ((u32)(uintptr_t)&gTexSettings_8bd550 + 0x40e0) : ((u32)(uintptr_t)&gTexSettings_8bd550 + 0x40d8)));
+        const X87Reg a = value(filtered ? (flags & 0x20000 ? 0x00702474 : ((u32)(uintptr_t)&gTexSettings_8bd550 + 0x40d8)) : alt ? ((u32)(uintptr_t)&gTexSettings_8bd550 + 0x40e4) : ((u32)(uintptr_t)&gTexSettings_8bd550 + 0x40d8));
         at<float>(texture, 0x28) = (float)b;
         at<float>(texture, 0x2c) = (float)a;
         at<float>(texture, 0x20) = (float)(X87Reg((double)w) - (b + b));
@@ -806,8 +807,8 @@ u32 __fastcall TexCache_PlaceTexture(u8 *cache, void *, u8 *entry, const s32 *pl
         const X87Reg scale = at<float>(cache, 0x1900);
         const X87Reg width = (double)at<s32>(surface, 8), height = (double)at<s32>(surface, 0xc);
         if ((flags & 0x30000) && (!(flags & 0x400) || at<u32>(texture, 0x3c))) {
-            const X87Reg a = value(flags & 0x10000 ? 0x00702474 : 0x008c1628);
-            const X87Reg b = value(flags & 0x20000 ? 0x00702474 : 0x008c1628);
+            const X87Reg a = value(flags & 0x10000 ? 0x00702474 : ((u32)(uintptr_t)&gTexSettings_8bd550 + 0x40d8));
+            const X87Reg b = value(flags & 0x20000 ? 0x00702474 : ((u32)(uintptr_t)&gTexSettings_8bd550 + 0x40d8));
             const X87Reg p = X87_DivR(width, scale) * a;
             const X87Reg q = X87_DivR(height, scale) * b;
             at<float>(texture, 0x28) = (float)p;
@@ -816,8 +817,8 @@ u32 __fastcall TexCache_PlaceTexture(u8 *cache, void *, u8 *entry, const s32 *pl
             at<float>(texture, 0x24) = (float)X87_SubR(q + q, X87Reg(1.0));
         } else {
             const bool alt = (flags & 0x4000000) != 0;
-            const X87Reg c = value(alt ? 0x008c1634 : 0x008c1628), d = value(alt ? 0x008c1638 : 0x00702474);
-            const X87Reg e = alt ? value(0x008c163c) : X87Reg(0.0), f = value(alt ? 0x008c1630 : 0x008c1628);
+            const X87Reg c = value(alt ? ((u32)(uintptr_t)&gTexSettings_8bd550 + 0x40e4) : ((u32)(uintptr_t)&gTexSettings_8bd550 + 0x40d8)), d = value(alt ? ((u32)(uintptr_t)&gTexSettings_8bd550 + 0x40e8) : 0x00702474);
+            const X87Reg e = alt ? value((u32)(uintptr_t)&gTexSettings_8bd550 + 0x40ec) : X87Reg(0.0), f = value(alt ? ((u32)(uintptr_t)&gTexSettings_8bd550 + 0x40e0) : ((u32)(uintptr_t)&gTexSettings_8bd550 + 0x40d8));
             const X87Reg down = (e + c) + X87Reg((double)y), across = (d + f) + X87Reg((double)x);
             at<float>(texture, 0x2c) = (float)(down / height * scale);
             at<float>(texture, 0x28) = (float)(across / width * scale);
@@ -826,7 +827,7 @@ u32 __fastcall TexCache_PlaceTexture(u8 *cache, void *, u8 *entry, const s32 *pl
         }
         at<u32>(texture, 0x1c) = reinterpret_cast<u32(__fastcall *)(u8 *)>(at<void **>(surface, 0)[2])(surface);
     }
-    at<u32>(texture, 0xc) = at<u32>(nullptr, 0x008bcc40);
+    at<u32>(texture, 0xc) = at<u32>(nullptr, (u32)(uintptr_t)&gView_8bcbc8 + 0x78);
     return 1;
 }
 }
@@ -864,9 +865,9 @@ void __fastcall TexCache_TraceItem(u8 *cache, void *, const u8 *item) {
         file = g_traceEnv->fopen("c:\\tcache.log", "w+b");
         if (!file)
             return;
-        g_traceEnv->fwrite(&global<u8>(0x008bd550), 1, 0x40f0, file);
+        g_traceEnv->fwrite(&global<u8>((u32)(uintptr_t)&gTexSettings_8bd550), 1, 0x40f0, file);
         g_traceEnv->fwrite(&global<u32>(0x008bd508), 1, 4, file);
-        g_traceEnv->fwrite(&global<u32>(0x008bcbc8), 1, 4, file);
+        g_traceEnv->fwrite(&global<u32>((u32)(uintptr_t)&gView_8bcbc8), 1, 4, file);
     }
     if (!file)
         return;
@@ -916,7 +917,7 @@ void __fastcall TexCache_TouchItem(u8 *cache, void *, u8 *item, float weight) {
     }
     if (at<u32>(item, 8) & 0x800000)
         TexCache_TouchItem(cache, nullptr, item + 0x60, weight);
-    if (global<u8>(0x008bd550) & 0x80)
+    if (global<u8>((u32)(uintptr_t)&gTexSettings_8bd550) & 0x80)
         TexCache_TraceItem(cache, nullptr, item);
 }
 }
@@ -1485,7 +1486,7 @@ s32 __fastcall TexCache_PlacePending(u8 *cache) {
 }
 
 u32 __fastcall TexCache_Update(u8 *cache) {
-    if (global<u8>(0x008bd550) & 0x80)
+    if (global<u8>((u32)(uintptr_t)&gTexSettings_8bd550) & 0x80)
         TexCache_TraceUpdate(cache);
     if (!at<u8 *>(cache, 0x18c4))
         return 1;
@@ -1505,7 +1506,7 @@ extern "C" u32 __cdecl TexCache_Destroy() {
     if (!cache) return 0;
     g_destroyCalls.Th(0x0058dd60, address(cache), 1u);   // TexCache_ReleaseItems
     g_destroyCalls.Th(0x0058d380, address(cache));       // Object_FreeSixPointerArrays
-    g_destroyCalls.Th(0x0058b280, 0x008c47d8u);          // SurfacePool_ReleaseAll
+    g_destroyCalls.Th(0x0058b280, (u32)(uintptr_t)&gSurfacePool_8c47d8);          // SurfacePool_ReleaseAll
     at<u32>(cache, 0x18cc) &= ~0x20000000u;
     g_destroyCalls.Cd(0x0067acb0, gTexcache_8c4b44);
     gTexcache_8c4b44 = 0;
@@ -1515,7 +1516,7 @@ extern "C" u32 __cdecl TexCache_Destroy() {
 extern "C" u32 __fastcall TexCache_ReleaseGraphics(u8 *self) {
     g_destroyCalls.Th(0x0058dd60, gTexcache_8c4b44, 1u);
     g_destroyCalls.Th(0x0058d380, address(self));
-    g_destroyCalls.Th(0x0058b280, 0x008c47d8u);
+    g_destroyCalls.Th(0x0058b280, (u32)(uintptr_t)&gSurfacePool_8c47d8);
     at<u32>(self, 0x18cc) &= ~0x20000000u;
     return 1;
 }
@@ -1523,15 +1524,15 @@ extern "C" u32 __fastcall TexCache_ReleaseGraphics(u8 *self) {
 extern "C" u32 __fastcall TexCache_Setup(u8 *self, void *, u32 format) {
     debugLog("\n\n ***** Texture Cache Initialization");
     debugLog("Surfaceformat chosen %d", format);
-    if (global<u8>(0x8bd550) & 2) {
+    if (global<u8>((u32)(uintptr_t)&gTexSettings_8bd550) & 2) {
         at<u32>(self, 0x18e8) = 4;
         at<u32>(self, 0x18cc) |= 2;
     }
     if (global<u32>(0x8bd524) == 4) {
-        global<u32>(0x8bd554) = 3;
+        global<u32>((u32)(uintptr_t)&gTexSettings_8bd550 + 0x4) = 3;
     } else {
-        global<u32>(0x8bd554) = format;
-        if (!g_setupCalls.Th(0x0058b220, 0x008c47d8u, global<u32>(0x7022e8), at<u32>(self, 0x18e8), format)) return 0;   // SurfacePool_MakeLevels
+        global<u32>((u32)(uintptr_t)&gTexSettings_8bd550 + 0x4) = format;
+        if (!g_setupCalls.Th(0x0058b220, (u32)(uintptr_t)&gSurfacePool_8c47d8, global<u32>(0x7022e8), at<u32>(self, 0x18e8), format)) return 0;   // SurfacePool_MakeLevels
     }
     if (!g_setupCalls.Th(0x0058d400, (u32)(uintptr_t)self)) return 0;   // TexCache_ChooseBudget
     if (!g_setupCalls.Th(0x0058d670, (u32)(uintptr_t)self)) return 0;   // TexCache_CreateSurfaces
@@ -1555,12 +1556,12 @@ extern "C" u32 __fastcall TexCache_ChangeFormat(u8 *self, void *, u32 format) {
     if (at<u32>(self, 0x18cc) & 0x20000000) {
         g_setupCalls.Th(0x0058dd60, gTexcache_8c4b44, 1u);   // TexCache_ReleaseItems
         g_setupCalls.Th(0x0058d380, (u32)(uintptr_t)self);   // Object_FreeSixPointerArrays
-        g_setupCalls.Th(0x0058b280, 0x008c47d8u);   // SurfacePool_ReleaseAll
+        g_setupCalls.Th(0x0058b280, (u32)(uintptr_t)&gSurfacePool_8c47d8);   // SurfacePool_ReleaseAll
         at<u32>(self, 0x18cc) &= 0xdfffffff;
     }
     if (format != 0xffffffff) {
-        global<u32>(0x8bd554) = format;
-        if (global<u32>(0x8bd524) == 1 && !g_setupCalls.Th(0x0058b220, 0x008c47d8u, global<u32>(0x7022e8), at<u32>(self, 0x18e8), format)) return 0;
+        global<u32>((u32)(uintptr_t)&gTexSettings_8bd550 + 0x4) = format;
+        if (global<u32>(0x8bd524) == 1 && !g_setupCalls.Th(0x0058b220, (u32)(uintptr_t)&gSurfacePool_8c47d8, global<u32>(0x7022e8), at<u32>(self, 0x18e8), format)) return 0;
     }
     return g_setupCalls.Th(0x0058d670, (u32)(uintptr_t)self);
 }

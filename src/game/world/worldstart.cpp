@@ -11,6 +11,7 @@
 #include "things.h"
 #include "../ui/dialog74fb20.h"
 #include "worldstart.h"
+#include "../core/staticobjects.h"
 
 namespace {
 
@@ -46,7 +47,7 @@ const struct {
     u32 size, word;
 } kThings[10] = {{0x68, 0x1da718}, {0xe, 0x1da71a}, {0x16f0, 0x1da71c}, {0x80e, 0x1da71e}, {0x21c50, 0x1da720}, {0x146c, 0x1da722}, {0x68, 0x1da724}, {0x128, 0x1da726}, {0xc, 0x1da728}, {0x3e8, 0x1da736}};
 
-const u32 kBalanceFile = 0x00785040;
+const u32 kBalanceFile = (u32)(uintptr_t)&gBalanceLevel;
 
 void read_setting_once() {
     u8 &guard = gWorldStart_fb34a9;
@@ -78,7 +79,7 @@ extern "C" u32 __fastcall World_Start(u8 *world, void *, const char *level) {
     at<u32>(world, 0x1da738) = 1;
     u32 ok = 1;
     g_env->objectControlsInit(gWorldPtr + 0x1d943c);
-    g_env->actionRestart(address(0x00785a08));
+    g_env->actionRestart(address((u32)(uintptr_t)&gActionRec_785a08));
     for (u8 &b : gWorld_802080) b = 0;
     read_setting_once();
     char path[260];
@@ -92,7 +93,7 @@ extern "C" u32 __fastcall World_Start(u8 *world, void *, const char *level) {
         if (!load_balance(path, 1)) ok = 0;
         read_setting_once();
         if (gDialog74fb20_fb3b7c == 2) {
-            Crt().sprintf(path, gText_Objectdefs_7488a4, level, global<const char *>(0x007cf4a0), gText_World_Start_76255c);
+            Crt().sprintf(path, gText_Objectdefs_7488a4, level, global<const char *>((u32)(uintptr_t)&gString_7cf498 + 0x8), gText_World_Start_76255c);
             load_balance(path, 1);   // (its failure only printed)
         }
     }
@@ -108,8 +109,8 @@ extern "C" u32 __fastcall World_Start(u8 *world, void *, const char *level) {
         at<u16>(world, kThings[i].word) = *Thing_GetHandle(thing, nullptr, &handle);
     }
     for (u32 word = 0x1da72a; word <= 0x1da730; word += 2) at<u16>(world, word) = 0;
-    at<u16>(world, 0x1da732) = make_named_object(0x008021b0);
-    at<u16>(world, 0x1da734) = make_named_object(0x007cf938);
+    at<u16>(world, 0x1da732) = make_named_object((u32)(uintptr_t)&gWString_8021a8 + 0x8);
+    at<u16>(world, 0x1da734) = make_named_object((u32)(uintptr_t)&gWString_7cf930 + 0x8);
     g_env->researchInit(global<u8 *>(0x007cfb90 + 20 * at<u16>(world, 0x1da722)));
     g_env->mathTables();
     g_env->setPathBehaviours();

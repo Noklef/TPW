@@ -11,6 +11,7 @@
 #include "../core/soundset.h"
 #include "../math/intpair.h"
 #include "world.h"
+#include "../core/staticobjects.h"
 
 namespace {
 
@@ -71,7 +72,7 @@ void LinkSide(u8 *cell, const Side &s, bool models, s32 column) {
     } else if (kind == 3) {
         if ((MapCell_Neighbours(next) & s.back) && models) {
             MapCell_ApplyPathModel(next);
-            if (!global<u32>(0x00785a2c)) {
+            if (!global<u32>((u32)(uintptr_t)&gActionRec_785a08 + 0x24)) {
                 const float scale = gCellmessage_700d54;
                 const s32 z = ftol((double)column * scale);
                 const s32 x = ftol((double)column * scale);   // (the second local: the column too, sic)

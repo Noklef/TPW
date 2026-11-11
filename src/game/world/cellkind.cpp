@@ -19,6 +19,7 @@
 #include "cellbuild.h"
 #include "../math/intpair.h"
 #include "focuscell.h"
+#include "../core/staticobjects.h"
 
 namespace {
 
@@ -162,7 +163,7 @@ bool CountDown(u8 *cell, s32 a, s32 b, u16 start, u16 end, u32 &slot) {
 // Emptied (the count 0): the scrap credit, the neighbours dropped both ways, the env's 0x527ee0 for flag 0x10, then cleared, its owned cells too.
 void Removed(u8 *cell, u32 &slot, u32 price, u8 models) {
     at<u16>(cell, 0x20) = 0;
-    if (at<u32>(cell, 8) != 0x19 && !global<u32>(0x00785a2c)) {
+    if (at<u32>(cell, 8) != 0x19 && !global<u32>((u32)(uintptr_t)&gActionRec_785a08 + 0x24)) {
         const u8 *const c44 = MapHandle_Cell44(reinterpret_cast<const u16 *>(WorldCell28(at<u16>(cell, 0x10))));
         Cell_FirstObject(c44, nullptr, reinterpret_cast<u16 *>(&slot));   // (the slot's word read, found or not)
         const u32 value = Object_ScrapValue(ThingAt(slot));
@@ -260,7 +261,7 @@ u32 __fastcall MapCell_SetTrackKind(u8 *cell, void *, u32 kind) {
         return 1;
     }
     bool affordable = true;
-    if (!global<u32>(0x00785a2c))
+    if (!global<u32>((u32)(uintptr_t)&gActionRec_785a08 + 0x24))
         affordable = (s32)(Source_Field0c(reinterpret_cast<const TrackedSource *>(WorldMoney())) - price) >= 0;
     if (kind != 0x19 && !affordable && kind != 0 && kind != 7) return 0;
     at<u32>(cell, 8) = kind;
@@ -412,7 +413,7 @@ u32 __fastcall MapCell_SetKind(u8 *cell, void *, u32 kind) {
         }
     }
     bool affordable = true;
-    if (!global<u32>(0x00785a2c))
+    if (!global<u32>((u32)(uintptr_t)&gActionRec_785a08 + 0x24))
         affordable = (s32)(Source_Field0c(reinterpret_cast<const TrackedSource *>(WorldMoney())) - price) >= 0;
     if ((kind == 1 || kind == 3) && !affordable) return 0;
     at<u32>(cell, 8) = kind;

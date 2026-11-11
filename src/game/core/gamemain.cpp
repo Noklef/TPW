@@ -9,6 +9,7 @@
 #include "../online/chat.h"
 #include "../ui/windowproc.h"
 #include "../render/screen.h"
+#include "staticobjects.h"
 #include "imports.h"
 
 namespace {
@@ -17,7 +18,7 @@ AddrCalls g_calls;
 
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
 
-const u32 kLanguage = 0x0078b530;
+const u32 kLanguage = (u32)(uintptr_t)&gLanguage_78b530;
 const u32 kStopped = 2, kStarted = 4;
 
 u32 &Flags() { return gWindowproc_7a1a14; }
@@ -38,7 +39,7 @@ bool StartGame() {
     };
     if (g_calls.Th(0x00419710, kLanguage) == 0) return stop();   // Language_Load
     if ((u8)g_calls.Cd(0x0045f7a0) == 0) return stop();   // GamePaths_CheckDisc
-    g_calls.Th(0x00408470, 0x00786b68u);   // NamedObjects_AddFixedFolders
+    g_calls.Th(0x00408470, (u32)(uintptr_t)&gNamedObjects_786b68);   // NamedObjects_AddFixedFolders
     g_calls.Cd(0x00449eb0);   // SinTable_BuildGame
     g_calls.Cd(0x00449ec0);   // Screen_Init
     g_calls.Th(0x0041a5a0, kLanguage, gScreen_7a1968);   // Language_SetFontSet
@@ -75,7 +76,7 @@ extern "C" u32 __stdcall Game_WinMain(u32 instance, u32 previous, u32 commandLin
         u32 result;
         g_calls.Cd(0x005c0c10, &result);   // GamePaths_SetRoots
         g_calls.Cd(0x005c0d00, &result);   // Registry_LoadLanguage
-        g_calls.Cd(0x005c2ce0, &result, g_calls.Th(0x005c5520, 0x00f816c0u));   // NamedObjects_AddSubfolders of Obj_Self
+        g_calls.Cd(0x005c2ce0, &result, g_calls.Th(0x005c5520, (u32)(uintptr_t)&gStrings5_f816c0));   // NamedObjects_AddSubfolders of Obj_Self
         g_calls.Cd(0x0045b1f0);   // Options_LoadBalanceFiles
         if (const u32 slots = reinterpret_cast<u32 &>(gChatlists_f81ebc)) {
             g_calls.Th(0x005c74b0, slots);
@@ -93,7 +94,7 @@ extern "C" u32 __stdcall Game_WinMain(u32 instance, u32 previous, u32 commandLin
         g_calls.Cd(0x0045ba20);   // GlobalMem_InitUnusedFlag
         String path;
         String_CtorStr(&path, nullptr, gGamemain_74d12c);   // "save\config.tcf"
-        g_calls.Th(0x00424930, 0x0078d8d8u, &path);   // Options_LoadFile
+        g_calls.Th(0x00424930, (u32)(uintptr_t)&gOptions_78d8d8, &path);   // Options_LoadFile
         String_Dtor(&path);
         global<u32>(0x007a1c5c) = global<u32(__stdcall *)(u32)>(IMPORT(User32_RegisterWindowMessageA))((u32)(uintptr_t)&gGamemain_74d11c);   // RegisterWindowMessageA ("MSWHEEL_ROLLMSG")
 

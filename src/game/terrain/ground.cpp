@@ -20,6 +20,7 @@
 #include "../render/renderer.h"
 #include "../gfx/texcache.h"
 #include "../render/d3dsetup.h"
+#include "../core/staticobjects.h"
 
 using gridquad::Fan;
 using gridquad::FacingClipped;
@@ -114,9 +115,9 @@ extern "C" u32 __fastcall TerrainGround_PrepareTextures(u8 *self) {
         memcpy(self + 0x128, block + 0xc4, 0x108);
         memcpy(self + 0x20, block + 0x1cc, 0x108);
     }
-    const u32 format = gTerrainGround_PrepareTextures_7014c8[global<u32>(0x8bd554)];
+    const u32 format = gTerrainGround_PrepareTextures_7014c8[global<u32>((u32)(uintptr_t)&gTexSettings_8bd550 + 0x4)];
     if (at<s32>(self, 0x128) > at<s32>(self, 0x12c)) return 1;
-    if ((global<u8>(0x8bd550) & 4) && !at<u32>(self, 0x230)) global<u32>(0x8bd550) &= ~4u;
+    if ((global<u8>((u32)(uintptr_t)&gTexSettings_8bd550) & 4) && !at<u32>(self, 0x230)) global<u32>((u32)(uintptr_t)&gTexSettings_8bd550) &= ~4u;
 
     u32 records[0x9c4][5];   // the original's frame. Each: texture, its width and height, format, the cell's first word (only the first and last without a texture)
     s32 taken = 0;
@@ -125,7 +126,7 @@ extern "C" u32 __fastcall TerrainGround_PrepareTextures(u8 *self) {
             const u8 *const map = at<const u8 *>(self, 0);
             u8 *const cell = at<u8 *>(map, 0x2c) + 4 * (u32)(at<s32>(map, 0x18) * y + x);
             if (at<u8>(cell, 0) & 1) continue;
-            if ((global<u8>(0x8bd550) & 4) && x >= at<s32>(self, 0x234) && x <= at<s32>(self, 0x23c) && y >= at<s32>(self, 0x238) && y <= at<s32>(self, 0x240)) {
+            if ((global<u8>((u32)(uintptr_t)&gTexSettings_8bd550) & 4) && x >= at<s32>(self, 0x234) && x <= at<s32>(self, 0x23c) && y >= at<s32>(self, 0x238) && y <= at<s32>(self, 0x240)) {
                 if (taken >= 0x9c4) continue;
                 at<u32>(self, 0x248 + taken * 4) = ((y - at<s32>(self, 0x238)) << 8) + x - at<s32>(self, 0x234);
                 u32 *const record = records[taken];
@@ -148,7 +149,7 @@ extern "C" u32 __fastcall TerrainGround_PrepareTextures(u8 *self) {
             }
         }
     }
-    if ((global<u8>(0x8bd550) & 4) && taken > 0) g_prepareCalls.Th(0x00572440, at<u32>(self, 0x230), self + 0x248, records, taken);   // TerrainTexCache_Update
+    if ((global<u8>((u32)(uintptr_t)&gTexSettings_8bd550) & 4) && taken > 0) g_prepareCalls.Th(0x00572440, at<u32>(self, 0x230), self + 0x248, records, taken);   // TerrainTexCache_Update
     at<u32>(self, 0x1296c) = taken;
     return 1;
 }
@@ -169,7 +170,7 @@ extern "C" u32 __fastcall TerrainGround_Draw(u8 *self) {
     Run runs[0x4000];
     g_env->collect(self, nullptr, ids, &idCount, textures);
     u8 *const object = global<u8 *>(0x00879ab0);
-    u8 *const batch = g_env->begin(object, nullptr, 1, 4, 0x1c4, global<u32>(0x008bcbc8) & 0x2000 ? 0x101256 : 0x1256, ids[0]);
+    u8 *const batch = g_env->begin(object, nullptr, 1, 4, 0x1c4, global<u32>((u32)(uintptr_t)&gView_8bcbc8) & 0x2000 ? 0x101256 : 0x1256, ids[0]);
     if (!batch) return 1;
 
     u8 thisRow[0x800], lastRow[0x800], codes[0x80], lastCodes[0x80], quad[0xe0], source[0x2a0];
@@ -197,7 +198,7 @@ extern "C" u32 __fastcall TerrainGround_Draw(u8 *self) {
             const X87Reg offsetU = X87Reg(texture ? at<float>(texture, 0x28) : gTerrainGround_Draw_701520);
             const X87Reg offsetV = X87Reg(texture ? at<float>(texture, 0x2c) : gTerrainGround_Draw_701520);
             const u32 extra = texture ? at<u32>(texture, 0x44) : 0xffffffff;
-            const bool halved = !(global<u32>(0x008bcbc8) & 0x800) && (reinterpret_cast<const u8 *>(cell)[1] & 4);
+            const bool halved = !(global<u32>((u32)(uintptr_t)&gView_8bcbc8) & 0x800) && (reinterpret_cast<const u8 *>(cell)[1] & 4);
 
             struct Corner {
                 const u8 *from;
@@ -260,7 +261,7 @@ extern "C" u32 __fastcall TerrainGround_Draw(u8 *self) {
     }
 
     at<s32>(batch, 0x20) = vertices;
-    if (global<u32>(0x008bcbc8) & 0x2000) g_env->fog(object, nullptr);
+    if (global<u32>((u32)(uintptr_t)&gView_8bcbc8) & 0x2000) g_env->fog(object, nullptr);
     const u32 flags = at<u32>(batch, 4);
     g_env->transformVertices(global<u8 *>(0x00879ab0), nullptr, 0);
     if (global<u32>(0x008bd524) == 4) g_env->pack(at<u8 *>(batch, 0x28), at<u32>(batch, 0x20), (s32)stride);

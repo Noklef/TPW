@@ -15,6 +15,7 @@
 #include "../world/mappreview.h"
 #include "../world/focuscell.h"
 #include "dynfaces.h"
+#include "../core/staticobjects.h"
 
 namespace {
 
@@ -223,7 +224,7 @@ u8 *__fastcall VertexBlock_Construct(u8 *block, void *, u32 cubes, u32 quads, u3
         for (u32 i = 0; i <= n; ++i)
             path[i] = from[i];
     }
-    append(path, at<const char *>(Obj_Self(reinterpret_cast<u8 *>(0x00786b68)), 8));
+    append(path, at<const char *>(Obj_Self(reinterpret_cast<u8 *>((u32)(uintptr_t)&gNamedObjects_786b68)), 8));
     append(path, reinterpret_cast<const char *>(Flag54dcc0_Test() ? (u32)(uintptr_t)&gText_VertexBlock_Construct_763ec0 : (u32)(uintptr_t)&gText_VertexBlock_Construct_763eac));
     at<u32>(block, 0x10) = (u32)(uintptr_t)&gVertexBlock_Path_871f68;
     at<u32>(block, 0x14) = (u32)(uintptr_t)&gVertexBlock_Construct_763b38;

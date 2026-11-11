@@ -17,6 +17,7 @@
 #include "windowscript.h"
 #include "panel7cc218.h"
 #include "dialog7cc188.h"
+#include "../core/staticobjects.h"
 
 namespace {
 
@@ -53,7 +54,7 @@ void __fastcall StaffRename_Open(u8 *self) {
     g_env->setImpl(edit, nullptr, memory ? g_env->editPart(memory, nullptr, 0) : nullptr);
     g_env->set4c(edit, nullptr, g_env->font(7));
     g_env->notify40000(edit, nullptr, 0xff, 0xff, 0xff, 0xff);
-    g_env->setBuffer(edit, nullptr, 0x007cc360, 0x20);
+    g_env->setBuffer(edit, nullptr, (u32)(uintptr_t)&gStatic_7cc328 + 0x38, 0x20);
     g_env->setCaret(edit, nullptr, reinterpret_cast<u8 *>((uintptr_t)g_env->findByName(reinterpret_cast<const char *>((uintptr_t)&gText_Dialog7cc188_74fa84))));
     vcall<void>(edit, 0x24, g_env->staffName(thing));
     g_env->selectAll(edit);
@@ -72,7 +73,7 @@ s32 __cdecl StaffRename_Handler(u8 *window, u32 message, s32 a, u32 b) {
     } else if (message == 0x100) {
         if (a == -1) {
             Staff_SetName(reinterpret_cast<u8 *>((uintptr_t)Window_DwordA0(window, nullptr, 0)), nullptr,
-                          reinterpret_cast<const u16 *>((uintptr_t)0x007cc360));
+                          reinterpret_cast<const u16 *>((uintptr_t)&gStatic_7cc328 + 0x38));
             vcall<void>(reinterpret_cast<u8 *>((uintptr_t)Window_DwordA0(window, nullptr, 1)), 4);
             Window_SendMessage(window, 4, 0, 0);
             return 0;

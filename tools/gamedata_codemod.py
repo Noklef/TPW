@@ -12,6 +12,9 @@ usage: gamedata_codemod.py list                 the candidates by owner folder, 
        gamedata_codemod.py object-skips [--avoid F]           each group left alone with its reason
        gamedata_codemod.py apply-objects N [DIR...] [--avoid F]  convert the first N objects (whole headers) whose owner header's path
                                                 starts with src/game/DIR
+       gamedata_codemod.py names [--avoid F]    every literal inside a converted object (gamedata.py check's "use the name"), with the
+                                                literals it leaves and why; apply-names rewrites them to the name and offset (round 78: the
+                                                static objects of tools/gen_static_init.py, which other code reaches by their literals)
 
 The objects mode: an object starts at a literal address and runs to the end its uses reach: a typed scalar's size, the largest constant
 offset (+ 4), a text's zero (padded to 4 with zeros), else (an index, a pointer passed on) to the next base of unknown extent in src, a
@@ -249,7 +252,8 @@ def apply(cands):
     edits = collections.defaultdict(list)    # path -> [(start, end, text)]
     incs = collections.defaultdict(set)      # path -> headers to include
     for c in cands:
-        lines_by_header[c['header']].append('GAME_DATA(%s, %s, %#010x, %#x);' % (c['type'], c['name'], c['addr'], c['size']))
+        if not c.get('declared'):
+            lines_by_header[c['header']].append('GAME_DATA(%s, %s, %#010x, %#x);' % (c['type'], c['name'], c['addr'], c['size']))
         for p, s, e, text in c.get('edits') or [(u[0], u[1], u[2], c['name']) for u in c['uses']]:
             edits[p].append((s, e, text))
             if p != c['header'] and owner_header(p) != c['header'] and c['header'] not in includes(p, read(p)):
@@ -362,6 +366,57 @@ def unsafe(path, c, inside_fn, s, e, avoid):
     if re.search(r'\bconstexpr\b|\b__asm\b', statement) or '__asm' in c[max(0, s - 400):s] and c.rfind('}', 0, s) < c.rfind('__asm', 0, s):
         return 'a constant expression, a template argument or asm'
     return None
+
+
+def address_edit(c, u, name, off):
+    """(path, start, end, text): the literal of the use u (in the cleaned text c) as the address of name + off."""
+    e = u[7] + len(re.match(r'[uU]?', c[u[7]:]).group(0))
+    if re.search(r'\(\s*(?:std::)?uintptr_t\s*\)\s*$', c[max(0, u[6] - 30):u[6]]):   # ((uintptr_t)0xADDRESS: the cast is there)
+        return (u[0], u[6], e, '&%s' % name if not off else '&%s + %#x' % (name, off))
+    bare = re.search(r'[(,{]\s*$', c[max(0, u[6] - 8):u[6]]) and re.match(r'\s*[),}]', c[e:e + 8])   # (a whole argument: no parentheses)
+    return (u[0], u[6], e, '(u32)(uintptr_t)&%s' % name if not off else ('(u32)(uintptr_t)&%s + %#x' if bare else '((u32)(uintptr_t)&%s + %#x)') % (name, off))
+
+
+def names(avoid=()):
+    """(objects, notes): every literal of src inside a static object of core/staticobjects.h (what gamedata.py check rejects), rewritten
+    to the object's name and offset (the address forms of objects()), as apply() takes them; notes: (path, line, address, what) for each
+    literal: 'named: ...', or 'left: why': an unsafe place (unsafe()), a value rather than an address (address_use(), not an argument of a
+    call by address), staticinit* (generated: tools/gen_static_init.py names its own)."""
+    from pe_read import PE
+    pe = PE(os.path.join(ROOT, '.data', 'nocd', 'tp.exe'))
+    decls = [d for d in gamedata.declarations() if os.path.basename(d[4]) == 'staticobjects.h']
+    inside, by_name = gamedata.finder(decls), {d[1]: d for d in decls}
+    memory = asm_refs()
+    texts, fns, objs, skips = {}, {}, {}, []
+    for v, us in scan().items():
+        name = inside(v)
+        if not name:
+            continue
+        for u in us:
+            if os.path.basename(u[0]) == 'staticobjects.h':   # (the declarations)
+                continue
+            if u[0] not in texts:
+                texts[u[0]] = clean(read(u[0]))
+                fns[u[0]] = bodies(texts[u[0]])
+            c = texts[u[0]]
+            line = c.count('\n', 0, u[6]) + 1
+            if B_FILES.match(os.path.basename(u[0])):
+                why = 'staticinit* (gen_static_init.py)'
+            else:
+                why = unsafe(u[0], c, any(lo <= u[1] < hi for lo, hi in fns[u[0]]), u[6], u[7], avoid)
+            if not why and re.search(r'[&|^]\s*\(?\s*$', c[max(0, u[6] - 8):u[6]]):   # (the static objects' literals elsewhere: addresses)
+                why = 'a value: a bitwise operand'
+            if why:
+                skips.append((rel(u[0]), line, v, 'left: ' + why))
+                continue
+            d = by_name[name]
+            skips.append((rel(u[0]), line, v, 'named: %s + %#x' % (name, v - d[2])))
+            o = objs.setdefault(name, dict(addr=d[2], type=d[0], size=d[3], name=name, header=d[4], edits=[], uses=[], declared=True, new=False,
+                                            members=set()))
+            o['edits'].append(address_edit(c, u, name, v - d[2]))
+            o['uses'].append(u)
+            o['members'].add(v)
+    return objs, skips
 
 
 def objects(avoid=()):
@@ -514,14 +569,7 @@ def objects(avoid=()):
             if scalar and u[3]:
                 edits.append((u[0], u[1], u[2], name))
             else:
-                c = texts[u[0]]
-                e = u[7] + len(re.match(r'[uU]?', c[u[7]:]).group(0))
-                if re.search(r'\(\s*(?:std::)?uintptr_t\s*\)\s*$', c[max(0, u[6] - 30):u[6]]):   # ((uintptr_t)0xADDRESS: the cast is there)
-                    edits.append((u[0], u[6], e, '&%s' % name if w == a else '&%s + %#x' % (name, w - a)))
-                else:   # (no parentheses around a sum that is a whole argument)
-                    bare = re.search(r'[(,]\s*$', c[max(0, u[6] - 8):u[6]]) and re.match(r'\s*[),]', c[e:e + 8])
-                    edits.append((u[0], u[6], e, '(u32)(uintptr_t)&%s' % name if w == a else ('(u32)(uintptr_t)&%s + %#x' if bare else
-                                                                                              '((u32)(uintptr_t)&%s + %#x)') % (name, w - a)))
+                edits.append(address_edit(texts[u[0]], u, name, w - a))
         objs[a] = dict(addr=a, type=t, size=n, name=name, how=how, header=header, uses=[u for _, u in us], files=files, edits=edits,
                        new=a not in names, members=members)
     # what gamedata.py would reject: a static object's member, a pointer the fixups cannot express, a literal base that reaches one
@@ -596,6 +644,15 @@ def main():
         i = a.index('--avoid')
         avoid = set(read(a[i + 1]).split())
         del a[i:i + 2]
+    if a[:1] in (['names'], ['apply-names']):
+        objs, skips = names(avoid)
+        for s in skips:
+            print('%s:%d: %#x %s' % s)
+        print('%d objects, %d literals to their names; %d left' % (len(objs), sum(len(o['edits']) for o in objs.values()),
+                                                                  sum(s[3].startswith('left') for s in skips)))
+        if a[0] == 'apply-names':
+            apply(list(objs.values()))
+        return
     if a[:1] in (['objects'], ['object-skips'], ['apply-objects']):
         objs, skips = objects(avoid)
         if a[0] == 'objects':

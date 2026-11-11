@@ -4,6 +4,7 @@
 
 #include "../core/accessors.h"
 #include "guisettings.h"
+#include "../core/staticobjects.h"
 
 namespace {
 
@@ -28,7 +29,7 @@ u32 __cdecl GuiManager_CallSlot4Or3() { return callSlot(Fn_659790(manager()) != 
 u32 __fastcall Obj7b51f0_GuiManagerSlotAndFlag(void *) {
     GuiManager_CallSlot4Or3();
     const u32 set = GuiManager_Word4Set();
-    *reinterpret_cast<u8 *>((uintptr_t)0x0078d90e) = (u8)set;
+    *reinterpret_cast<u8 *>((uintptr_t)&gOptions_78d8d8 + 0x36) = (u8)set;
     return set;
 }
 

@@ -14,6 +14,7 @@
 #include "../core/stringmapsrecord.h"
 #include "../core/sync.h"
 #include "../world/mousemode.h"
+#include "../core/staticobjects.h"
 
 namespace {
 
@@ -71,7 +72,7 @@ u8 *__fastcall OnlineChat_Ctor(u8 *chat) {
     }
     // +0x18 = the string at 0x7a1500: assign(x, 0, npos) inlined (no max_size check)
     StdString *const s = reinterpret_cast<StdString *>(chat + 0x18);
-    const StdString *const x = reinterpret_cast<const StdString *>((uintptr_t)0x007a1500);
+    const StdString *const x = reinterpret_cast<const StdString *>((uintptr_t)&gOnlineServers_7a14f0 + 0x10);
     const u32 len = x->len, npos = *reinterpret_cast<const u32 *>((uintptr_t)0x006fe5ac);
     const u32 count = npos < len ? npos : len;
     const char *const empty = reinterpret_cast<const char *>((uintptr_t)0x006fe5b0);

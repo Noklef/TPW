@@ -10,6 +10,7 @@
 #include "textarg.h"
 #include "../ui/dialog74fb20.h"
 #include "imports.h"
+#include "staticobjects.h"
 
 namespace {
 
@@ -90,7 +91,7 @@ u16 __fastcall KeyMap_IsHeld(const u8 *keys, void *, s16 action) {
 void __fastcall KeyMap_SetKeyFromText(u8 *keys, void *, u32 action, u32 text) {
     if ((s16)action < 0 || (s16)action >= at<s16>(keys, 4)) return;
     u32 slot = action;  // (the original's own argument slot: the formatter's two characters land over it)
-    TextFormat().format(global<void *>(0x0078ba84), reinterpret_cast<u16 *>(&slot), 2, text);
+    TextFormat().format(global<void *>((u32)(uintptr_t)&gLanguage_78b530 + 0x554), reinterpret_cast<u16 *>(&slot), 2, text);
     u8 *const entries = at<u8 *>(keys, 0);
     const s16 a = (s16)action;
     if (at<s16>(entries, a * 0x14) == a) {
@@ -163,7 +164,7 @@ void __cdecl KeyMaps_Init() {
             map = gKeymap_78721c;
         if (at<s16>(map, 4) <= action)
             continue;
-        TextFormat().format(global<void *>(0x0078ba84), reinterpret_cast<u16 *>(&slot), 2, (u32)(action - 1));
+        TextFormat().format(global<void *>((u32)(uintptr_t)&gLanguage_78b530 + 0x554), reinterpret_cast<u16 *>(&slot), 2, (u32)(action - 1));
         u8 *const entries = at<u8 *>(map, 0);
         if (at<s16>(entries, action * 0x14) == action) {
             at<u16>(entries, action * 0x14 + 2) = (u16)slot;

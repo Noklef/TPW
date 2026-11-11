@@ -7,6 +7,7 @@
 #include "things.h"
 #include "../ui/dialog74fb20.h"
 #include "worldstart.h"
+#include "../core/staticobjects.h"
 
 namespace {
 
@@ -122,7 +123,7 @@ void __fastcall World_Update(u8 *world) {
     check_gates(world);
     Things_ReleaseDeleted();
     g_env->tick(world);
-    g_env->actionTick(address(0x00785a08));
+    g_env->actionTick(address((u32)(uintptr_t)&gActionRec_785a08));
 }
 
 void __fastcall World_UpdateInMode1(u8 *world) {

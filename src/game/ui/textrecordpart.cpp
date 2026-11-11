@@ -8,6 +8,7 @@
 #include "../core/methods.h"
 #include "window.h"
 #include "window7cc8c0handler.h"
+#include "../core/staticobjects.h"
 
 namespace {
 
@@ -31,7 +32,7 @@ void __fastcall TextRecordPart_Refresh(u8 *part) {
     u16 *text = at<u16 *>(record, 4);
     if (!text) {
         const u32 index = at<u32>(record, 0);
-        text = index == 0xffffffff ? reinterpret_cast<u16 *>(gWindow7cc8c0handler_78a374) : g_env->widen(g_env->record(global<u8 *>(0x0078ba98), nullptr, index));
+        text = index == 0xffffffff ? reinterpret_cast<u16 *>(gWindow7cc8c0handler_78a374) : g_env->widen(g_env->record(global<u8 *>((u32)(uintptr_t)&gLanguage_78b530 + 0x568), nullptr, index));
     }
     bool newline = false;
     for (const u16 *unit = text; *unit; ++unit)

@@ -5,6 +5,7 @@
 #include <cstdint>
 
 #include "x87.h"
+#include "../core/staticobjects.h"
 
 namespace {
 
@@ -120,10 +121,10 @@ void __cdecl SseMath_Multiply(void *, const float *a, const float *b, float *out
 
 double __cdecl SseMath_ProjectToScreen(void *, u8 *v, s32 stride, u32 count, u32 mode) {
     const u32 times = count;
-    __m128 scale = _mm_loadl_pi(_mm_setzero_ps(), reinterpret_cast<const __m64 *>((uintptr_t)0x008bcc00));
-    __m128 offset = _mm_loadl_pi(_mm_setzero_ps(), reinterpret_cast<const __m64 *>((uintptr_t)0x008bcbf0));
+    __m128 scale = _mm_loadl_pi(_mm_setzero_ps(), reinterpret_cast<const __m64 *>((uintptr_t)&gView_8bcbc8 + 0x38));
+    __m128 offset = _mm_loadl_pi(_mm_setzero_ps(), reinterpret_cast<const __m64 *>((uintptr_t)&gView_8bcbc8 + 0x28));
     if (mode == 1) {
-        __m128 k = _mm_load_ss(Float(0x008bcc3c));
+        __m128 k = _mm_load_ss(Float((u32)(uintptr_t)&gView_8bcbc8 + 0x74));
         offset = _mm_add_ps(offset, _mm_shuffle_ps(k, k, 0x45));
         do {
             const __m128 p = _mm_loadu_ps(reinterpret_cast<const float *>(v));
@@ -132,11 +133,11 @@ double __cdecl SseMath_ProjectToScreen(void *, u8 *v, s32 stride, u32 count, u32
             _mm_storeu_ps(reinterpret_cast<float *>(v), _mm_shuffle_ps(s, _mm_shuffle_ps(r, offset, 0xaa), 0x64));
             v += stride;
         } while (--count);
-        return X87_MulIntDouble(static_cast<s32>(times), *Float(0x008bcc3c));
+        return X87_MulIntDouble(static_cast<s32>(times), *Float((u32)(uintptr_t)&gView_8bcbc8 + 0x74));
     }
     __m128 sum = _mm_setzero_ps();
     if (mode == 2) {
-        __m128 k = _mm_load_ss(Float(0x008bcc20));
+        __m128 k = _mm_load_ss(Float((u32)(uintptr_t)&gView_8bcbc8 + 0x58));
         scale = _mm_add_ps(scale, _mm_shuffle_ps(k, k, 0x45));
         do {
             const __m128 p = _mm_loadu_ps(reinterpret_cast<const float *>(v));
@@ -149,11 +150,11 @@ double __cdecl SseMath_ProjectToScreen(void *, u8 *v, s32 stride, u32 count, u32
             v += stride;
         } while (--count);
     } else {
-        const __m128 nearZ = _mm_add_ps(_mm_load_ss(Float(0x008bcc34)), _mm_load_ps(Float((u32)(uintptr_t)&gSseMath_ProjectToScreen_7754d0)));
-        const __m128 farZ = _mm_add_ps(_mm_load_ss(Float(0x008bcc2c)), _mm_load_ps(Float((u32)(uintptr_t)&gSseMath_ProjectToScreen_7754d0)));
-        const __m128 nearScale = _mm_shuffle_ps(scale, nearZ, 0x44), nearOffset = _mm_shuffle_ps(offset, _mm_load_ss(Float(0x008bcc38)), 0x44);
-        const __m128 farScale = _mm_shuffle_ps(scale, farZ, 0x44), farOffset = _mm_shuffle_ps(offset, _mm_load_ss(Float(0x008bcc30)), 0x44);
-        const u32 limit = *reinterpret_cast<const u32 *>((uintptr_t)0x008bcc28);
+        const __m128 nearZ = _mm_add_ps(_mm_load_ss(Float((u32)(uintptr_t)&gView_8bcbc8 + 0x6c)), _mm_load_ps(Float((u32)(uintptr_t)&gSseMath_ProjectToScreen_7754d0)));
+        const __m128 farZ = _mm_add_ps(_mm_load_ss(Float((u32)(uintptr_t)&gView_8bcbc8 + 0x64)), _mm_load_ps(Float((u32)(uintptr_t)&gSseMath_ProjectToScreen_7754d0)));
+        const __m128 nearScale = _mm_shuffle_ps(scale, nearZ, 0x44), nearOffset = _mm_shuffle_ps(offset, _mm_load_ss(Float((u32)(uintptr_t)&gView_8bcbc8 + 0x70)), 0x44);
+        const __m128 farScale = _mm_shuffle_ps(scale, farZ, 0x44), farOffset = _mm_shuffle_ps(offset, _mm_load_ss(Float((u32)(uintptr_t)&gView_8bcbc8 + 0x68)), 0x44);
+        const u32 limit = *reinterpret_cast<const u32 *>((uintptr_t)&gView_8bcbc8 + 0x60);
         do {
             const bool far = limit < *reinterpret_cast<const u32 *>(v + 8);
             const __m128 p = _mm_loadu_ps(reinterpret_cast<const float *>(v));

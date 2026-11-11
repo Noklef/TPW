@@ -9,6 +9,7 @@
 #include "registry.h"
 #include "../world/rides.h"
 #include "../world/camera.h"
+#include "../core/staticobjects.h"
 
 namespace {
 
@@ -140,7 +141,7 @@ void AddEntries() {   // flag 1
         g_calls.Cd(0x00434060, link, D(link, 0x1c), D(link, 0x24), D(link, 0x20), how, 0u, 0u, 0u, 0u);   // CoasterLink_AddCar
     }
     D(reinterpret_cast<u32 &>(gCoastersload_790fec), 0) |= 0x1001;
-    if (!G<u32>(0x00785a2c)) g_calls.Cd(0x00442880, 0x10u);   // CoasterEdit_SetTools
+    if (!G<u32>((u32)(uintptr_t)&gActionRec_785a08 + 0x24)) g_calls.Cd(0x00442880, 0x10u);   // CoasterEdit_SetTools
     g_calls.Cd(0x00435730, reinterpret_cast<u32 &>(gCoastersload_790fec), 2u);   // Coaster_SetState
 }
 

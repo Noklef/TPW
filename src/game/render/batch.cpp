@@ -11,6 +11,7 @@
 #include "vertexfog.h"
 #include "texformat.h"
 #include "../gfx/texset.h"
+#include "../core/staticobjects.h"
 
 namespace {
 
@@ -38,7 +39,7 @@ u8 *__fastcall Model_BeginBatch(u8 *model, void *, u32 index, u32 *size) {
     const u8 *const entry = at<u8 *>(settings, 0x6c) + (index << 4);
     const u8 *const material = at<u8 *>(entry, 0);
     const u8 *const set = material ? at<u8 *>(material, 4) : nullptr;
-    const u32 i = material && (global<u8>(0x008bd550) & 0x40) ? at<u16>(material, 2) : 0;
+    const u32 i = material && (global<u8>((u32)(uintptr_t)&gTexSettings_8bd550) & 0x40) ? at<u16>(material, 2) : 0;
     const u8 *const texture = set ? reinterpret_cast<const u8 *>((uintptr_t)TexSet_Texture(set, nullptr, (s32)i)) : nullptr;
     const bool shaded = texture && (at<u32>(texture, 8) & 0x400) && !at<u32>(texture, 0x3c);
     const u32 kind = (at<u32>(settings, 0) & 0x2000000) || shaded ? 0x2c4 : 0x1c4;
@@ -103,7 +104,7 @@ void fog(u8 *object, u32 render, u8 *vertices, u32 count) {
 }  // namespace
 
 void __fastcall Batch_FogVertices(u8 *object, void *, u8 *vertices, u32 count) {
-    const u32 render = global<u32>(0x008bcbc8);
+    const u32 render = global<u32>((u32)(uintptr_t)&gView_8bcbc8);
     if (render & 0x2000)
         fog(object, render, vertices, count);
 }
@@ -112,7 +113,7 @@ void __fastcall Batch_Fog(u8 *object, void *) {
     if (global<u32>(0x008bd524) != 1)
         return;
     u8 *batch = at<u8 *>(object, 0x20);
-    fog(object, global<u32>(0x008bcbc8), at<u8 *>(batch, 0x28), at<u32>(batch, 0x20));
+    fog(object, global<u32>((u32)(uintptr_t)&gView_8bcbc8), at<u8 *>(batch, 0x28), at<u32>(batch, 0x20));
 }
 
 void __fastcall Batch_TransformVertices(u8 *object, void *, u32 arg) {
@@ -135,7 +136,7 @@ u32 __fastcall Batch_Flush(u8 *object, void *) {
     u8 *batch = at<u8 *>(object, 0x20);
     if ((at<u32>(batch, 0) & 0x400) && at<u32>(batch, 0x20)) {
         const s32 kind = global<s32>(0x008bd524);
-        const float half = kind == 4 || (global<u32>(0x008bcbc8) & 0x8000002) ? 0.0f : 0.5f;
+        const float half = kind == 4 || (global<u32>((u32)(uintptr_t)&gView_8bcbc8) & 0x8000002) ? 0.0f : 0.5f;
         u8 *vertex = at<u8 *>(batch, 0x28);
         for (u32 count = at<u32>(batch, 0x20); count != 0; --count) {
             for (u32 axis = 0; axis < 8; axis += 4) {
@@ -211,8 +212,8 @@ u32 __fastcall Model_AddTriangles(u8 *model, void *, u8 *batch, const void *matr
         u8 *dst = at<u8 *>(batch, 0x28) + (base << 5);
         const u8 *src = vertices;
         for (u32 n = at<u16>(settings, 0x58); n; --n, src += 0x10, dst += 0x20) {
-            at<float>(dst, 0) = (float)(X87Reg((double)global<s32>(0x008bd4ac)) * X87Reg(at<float>(src, 0)));
-            at<float>(dst, 4) = (float)(X87Reg((double)global<s32>(0x008bd4ac)) * X87Reg(at<float>(src, 8)));
+            at<float>(dst, 0) = (float)(X87Reg((double)global<s32>((u32)(uintptr_t)&gView_8bcbc8 + 0x8e4)) * X87Reg(at<float>(src, 0)));
+            at<float>(dst, 4) = (float)(X87Reg((double)global<s32>((u32)(uintptr_t)&gView_8bcbc8 + 0x8e4)) * X87Reg(at<float>(src, 8)));
             at<u32>(dst, 8) = at<u32>(src, 4);
             at<u32>(dst, 0xc) = at<u32>(src, 0xc);
             at<u32>(dst, 0x10) = 0xffffffff;

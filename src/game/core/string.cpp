@@ -14,6 +14,7 @@
 #include "vcall.h"
 #include "wtraits.h"
 #include "imports.h"
+#include "staticobjects.h"
 
 namespace {
 
@@ -811,7 +812,7 @@ void __fastcall Strings5_Dtor(u8 *object) {
 }
 
 u32 __cdecl Text_NarrowToGlobalBuffer(const u16 *text) {
-    if (const u32 table = global<u32>(0x0078ba80)) {
+    if (const u32 table = global<u32>((u32)(uintptr_t)&gLanguage_78b530 + 0x550)) {
         u32 status;
         Narrow_FromWide(reinterpret_cast<const u8 *>(table), nullptr, &status, reinterpret_cast<u8 *>(0x007b5378), text, 0x3fff);
     }
@@ -889,8 +890,8 @@ String *__cdecl String_StripSuffix(const String *suffix, String *s) {
 }
 
 String *__cdecl String_SkipDotPrefix(String *s) {
-    const String *const dot = reinterpret_cast<const String *>((uintptr_t)0x0078c648);
-    const String *const backslash = reinterpret_cast<const String *>((uintptr_t)0x0078bee0);
+    const String *const dot = reinterpret_cast<const String *>((uintptr_t)&gString_78c648);
+    const String *const backslash = reinterpret_cast<const String *>((uintptr_t)&gString_78bee0);
     StringView view;
     String part;
     String_CtorCopy(&part, nullptr, String_Left(s, nullptr, &view, dot->length));
@@ -918,7 +919,7 @@ String *__cdecl String_SkipDotPrefix(String *s) {
 }
 
 void __cdecl String_EnsureTrailingBackslash(String *s) {
-    const String *const backslash = reinterpret_cast<const String *>((uintptr_t)0x00f80be0);
+    const String *const backslash = reinterpret_cast<const String *>((uintptr_t)&gString_f80be0);
     StringView view;
     String tail;
     String_CtorCopy(&tail, nullptr, String_Right(s, nullptr, &view, backslash->length));

@@ -12,6 +12,7 @@
 #include "windowfactory.h"
 #include "windowreg.h"
 #include "windowscript.h"
+#include "../core/staticobjects.h"
 
 namespace {
 const DialogKeyEnv kGameKeyEnv = {Window_SendMessage, reinterpret_cast<u8 *(__fastcall *)(const u8 *)>(GameTable7cfb90_Get1da71c_5194d0), reinterpret_cast<u32(__fastcall *)(u8 *)>((uintptr_t)0x0059ab50), Actions_FireDown, Actions_FireUp, Window7c24c8_Set, Window_CallDefault};
@@ -21,7 +22,7 @@ u8 *actions() { return gKeymap_78721c; }
 
 AddrCalls g_calls;
 
-const u32 kGameOwner = 0x00786b68, kFirstButton = 0x009873c8;
+const u32 kGameOwner = (u32)(uintptr_t)&gNamedObjects_786b68, kFirstButton = 0x009873c8;
 
 u32 &global(u32 address) { return *reinterpret_cast<u32 *>(static_cast<uintptr_t>(address)); }
 u32 slot(u8 *window, u32 index) { return g_calls.Th(0x0065e705, (u32)(uintptr_t)window, index); }
@@ -69,8 +70,8 @@ s32 __cdecl Dialog_KeyHandler(u8 *window, u32 message, u32 a, u32 b) {
 s32 __cdecl Dialog_BoxHandler(u8 *window, u32 message, u32 a, u32 b) {
     if (message == 0x14) {
         if (slot(window, 4) != 0xffffffffu) g_calls.Cd(slot(window, 4) ? 0x00486b70 : 0x00486b60);
-        if (slot(window, 5) && !global(0x00786ba4) && !global(0x00f82884)) {
-            global(0x00786ba4) = 1;
+        if (slot(window, 5) && !global((u32)(uintptr_t)&gNamedObjects_786b68 + 0x3c) && !global(0x00f82884)) {
+            global((u32)(uintptr_t)&gNamedObjects_786b68 + 0x3c) = 1;
             g_calls.Th(0x00409300, kGameOwner);
             g_calls.Cd(0x00662420);
         }
@@ -112,9 +113,9 @@ u8 *__cdecl Dialog_Box(const u8 *record, u32 kind0, u32 callback0, u32 kind1, u3
         g_calls.Cd(0x00486b70);   // KeyMaps_ResetAllAndSetFlag
     }
     setSlot(window, 5, 0);
-    if (global(0x00786ba4) == 1 && !global(0x00f82884)) {
+    if (global((u32)(uintptr_t)&gNamedObjects_786b68 + 0x3c) == 1 && !global(0x00f82884)) {
         g_calls.Th(0x004092a0, kGameOwner, 0u, 0u);   // GameOwner_Pause
-        global(0x00786ba4) = 0;
+        global((u32)(uintptr_t)&gNamedObjects_786b68 + 0x3c) = 0;
         g_calls.Cd(0x00662411);
         setSlot(window, 5, 1);
     }

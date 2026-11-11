@@ -19,6 +19,7 @@
 #include "../ui/thingbrowser.h"
 #include "thingscan.h"
 #include "world.h"
+#include "../core/staticobjects.h"
 
 namespace {
 
@@ -220,7 +221,7 @@ u32 __cdecl Things_SumChain() {
     u32 handle = at<u16>(global<u8 *>(0x0080239c), 0x1da742);
     while (handle) {
         const u8 *thing = global<u8 *>(0x007cfb90 + 20 * handle);
-        sum += global<u32>(0x0078545c + 12 * at<u32>(thing, 0x1e4));
+        sum += global<u32>(((u32)(uintptr_t)&gBalanceLevel + 0x41c) + 12 * at<u32>(thing, 0x1e4));
         handle = at<u16>(thing, 0x210);
     }
     return sum;
@@ -668,8 +669,8 @@ u16 *__cdecl Map_ObjectAtCell(u16 *out, s32 *x, s32 *y) {
 }
 
 u16 *__cdecl Map_ObjectOrEntranceAt(u16 *out, s32 x, s32 y) {
-    const s32 first = (s32)(global<u32>(0x007855bc) - 1), last = (s32)(global<u32>(0x007855c4) + 1);  // (wrapping)
-    if (x >= first && x <= last && y == global<s32>(0x007855c0)) {
+    const s32 first = (s32)(global<u32>((u32)(uintptr_t)&gBalanceLevel + 0x57c) - 1), last = (s32)(global<u32>((u32)(uintptr_t)&gBalanceLevel + 0x584) + 1);  // (wrapping)
+    if (x >= first && x <= last && y == global<s32>((u32)(uintptr_t)&gBalanceLevel + 0x580)) {
         *out = at<u16>(gWorldPtr, 0x1da732);
         return out;
     }

@@ -6,6 +6,7 @@
 #include "../math/x87.h"
 #include "../render/screen.h"
 #include "../world/camera.h"
+#include "../core/staticobjects.h"
 
 namespace {
 
@@ -17,8 +18,8 @@ u32 screenHeightNow() { return gScreen_7a1930; }
 
 // Under the mode 4 (0x8bd524): the frame wholly inside the rectangle of 0x8bcbd0, 0x8bcbd4; its corners tried from the top left.
 bool frame_inside(float x, float y, float wide, float tall) {
-    const float limitX = (float)*reinterpret_cast<const s32 *>((uintptr_t)0x008bcbd0);
-    const float limitY = (float)*reinterpret_cast<const s32 *>((uintptr_t)0x008bcbd4);
+    const float limitX = (float)*reinterpret_cast<const s32 *>((uintptr_t)&gView_8bcbc8 + 0x8);
+    const float limitY = (float)*reinterpret_cast<const s32 *>((uintptr_t)&gView_8bcbc8 + 0xc);
     if (!(x >= 0.0f) || !(x < limitX) || !(y >= 0.0f) || !(y < limitY)) return false;
     return (X87Reg(wide) + x).v < (double)limitX && (X87Reg(tall) + y).v < (double)limitY;
 }

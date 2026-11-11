@@ -29,6 +29,7 @@
 #include "edittools.h"
 #include "coastersload.h"
 #include "lists.h"
+#include "../core/staticobjects.h"
 
 namespace {
 
@@ -257,7 +258,7 @@ void __cdecl CoasterEdit_SetTool(u32 tool) {
     u32 &mode = gEdittools_79c664;
     u32 &selected = gEdittools_79c644;
     if (tool != 2) {
-        ActionRec_Write(reinterpret_cast<ActionRec *>(0x00785a08), nullptr, 0x37);
+        ActionRec_Write(reinterpret_cast<ActionRec *>((u32)(uintptr_t)&gActionRec_785a08), nullptr, 0x37);
         at<u32>(*current, 0) &= ~0x2000u;
         if (selected == 2 && mode == 2 && *current && (*at<const u8 *>(*current, 4) & 2)) flags &= ~0x40u;
         mode = 0;
@@ -265,7 +266,7 @@ void __cdecl CoasterEdit_SetTool(u32 tool) {
         CoasterEdit_SetBounds();
         return;
     }
-    ActionRec_Write(reinterpret_cast<ActionRec *>(0x00785a08), nullptr, 0x38);
+    ActionRec_Write(reinterpret_cast<ActionRec *>((u32)(uintptr_t)&gActionRec_785a08), nullptr, 0x38);
     at<u32>(*current, 0) &= ~0x2000u;
     const u8 *const link = *current;
     const bool typed = link && (*at<const u8 *>(link, 4) & 2);

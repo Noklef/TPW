@@ -1,21 +1,29 @@
 """Generates src/game/core/staticinit.cpp: the C++ static initialisers of tp.exe's CRT table __xc_a..__xc_z (0x727000-0x72e0e8, which
-CRT_initterm 0x67fa40 runs from 0x67f90d before WinMain) and the exit thunks they register with CRT_atexit 0x67a7d0.
+CRT_initterm 0x67fa40 runs from 0x67f90d before WinMain) and the exit thunks they register with CRT_atexit 0x67a7d0; and
+src/game/core/staticobjects.h: the static objects they construct as GAME_DATA objects (.docs/09-globals.md), which staticinit.cpp names.
 
 Each table slot is zero, a hooked function (ported already) or a compiler-generated initialiser (the C++ library's in 0x679000-0x6b0000
 too), generated here; the C library callees they call that are not hooked (no arguments) are lifted as Sub_ helpers:
 - the main shape `PUSH text ; MOV ECX,object ; CALL ctor ; PUSH exit ; CALL 0x67a7d0 ; ADD ESP,4 ; RET` (ctor a thiscall of one stack
   argument) is a row of a data table, run by one generic runner;
-- an exit thunk `MOV ECX,object ; JMP dtor` (dtor a thiscall of no stack arguments) is the template ExitThunk<object, dtor>;
+- an exit thunk `MOV ECX,object ; JMP dtor` (dtor a thiscall of no stack arguments) is a one-line function Exit_<address>;
 - anything else is lifted instruction by instruction (registers as locals, the stack as a local frame, x87 through X87Reg53 in an
   initialiser (the CRT's start-up precision, PC53) and X87Reg in an exit thunk (the game's, PC24), calls through
   AddrCalls' Cd / Th by address, each callee's convention from its hook's declaration). An instruction or a value the lifter cannot
   reproduce exactly (an undefined register or stack slot read, a stack argument a tail call would pass on, an indirect call) refuses
   the function: those are listed in MANUAL and ported by hand in src/game/core/staticinitmanual.cpp.
 
-usage: gen_static_init.py [--check]   (--check: exit 1 when the generated file differs from what is committed)
-       gen_static_init.py --stats     (the counts and the refusals)
+The static objects: every base tools/gamedata.py's statics() finds in the generated text (and MANUAL_OBJECTS for the file by hand) with a
+function called on it as this (a constructor, a destructor, a method), of gamedata.static_extents()' extent (cut at its section's end),
+unless a declared global lies inside it (gamedata.py check reports that). A pushed or stored base with no function called on it stays a
+literal. The name: re/symbols.csv's data row, else g<the first function's prefix>_<address> (a new symbols.csv row, low). Every literal
+of the generated code inside a declared global (these and the others) becomes the name and its offset.
+
+usage: gen_static_init.py [--check]   (--check: exit 1 when a generated file differs from what is committed)
+       gen_static_init.py --stats     (the counts, the refusals, the objects by extent, the in-range values that are not addresses)
 analyse() is what tests/fncmp/staticinit*.py read: the slots, the generated functions, their callees.
 """
+import bisect
 import os
 import re
 import struct
@@ -23,10 +31,18 @@ import sys
 
 ROOT = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'))
 sys.path.insert(0, os.path.join(ROOT, 'tools'))
+import gamedata  # noqa: E402
 import wave  # noqa: E402
 import x87emu  # noqa: E402
 
 OUT = os.path.join(ROOT, 'src', 'game', 'core', 'staticinit.cpp')
+HEADER = os.path.join(ROOT, 'src', 'game', 'core', 'staticobjects.h')
+SYMBOLS = os.path.join(ROOT, 're', 'symbols.csv')
+# The static objects staticinitmanual.cpp constructs by hand: {base: the functions called on it}
+MANUAL_OBJECTS = {0x8bd530: {0x55e470, 0x55e570}}
+GENERIC = ('Fn', 'Init', 'Wrap', 'Sub')   # (a function name prefix that says nothing of the object: gStatic_)
+GROUP = 'one initializer\'s'              # (an object's extent: what one lifted initializer or thunk reaches)
+BELOW = 0x10                              # (a register's displacement up to this below an object: the object's, at a negative offset)
 TABLE, TABLE_END = 0x727000, 0x72e0e8
 CLIB_LOW, CLIB_HIGH = 0x679000, 0x6b0000
 ATEXIT = 0x67a7d0
@@ -640,10 +656,100 @@ class Gen:
         self.bodies = {}
         self.generated = set()
         self.import_names = import_names()
+        self.objs = []        # the static objects: (address, size, name, how, functions, new)
+        self.named = None     # (decls, finder) of every declared global while the output names them; None: literals
+        self.used = set()     # the names the output uses
 
     def thunk_name(self, address):
-        t = self.thunks[address]
-        return 'ExitThunk<0x%x, 0x%x>' % (t[1], t[2]) if t[0] == 'template' else 'StaticInit_%06x' % address if t[0] == 'manual' else 'Exit_%06x' % address
+        return 'StaticInit_%06x' % address if self.thunks[address][0] == 'manual' else 'Exit_%06x' % address
+
+    # --- the static objects
+    def objects(self):
+        """The static objects of the generated text (literals) and MANUAL_OBJECTS: self.objs, then self.named for the output."""
+        from pe_read import PE
+        pe = PE(os.path.join(ROOT, '.data', 'nocd', 'tp.exe'))
+        others = [d for d in gamedata.declarations() if os.path.normcase(os.path.normpath(d[4])) != os.path.normcase(HEADER)]
+        bases = gamedata.statics(gamedata.NOISE.sub('', self.cpp()))
+        for b, fs in MANUAL_OBJECTS.items():
+            bases.setdefault(b, set()).update(fs)
+        inside, starts = gamedata.finder(others), [d[2] for d in others]
+        rows, functions = {}, set()
+        for line in open(SYMBOLS, encoding='utf-8'):
+            f = line.split(',', 3)
+            if len(f) > 2 and f[2] == 'data':
+                rows[int(f[0], 16)] = f[1]
+            elif len(f) > 2:
+                functions.add(f[1])
+        taken = {d[1] for d in others} | functions
+        spans = []   # [start, end, how, base] of each constructed base, then of each lifted function's group
+        for b, (end, how) in sorted(gamedata.static_extents(bases).items()):
+            if bases[b]:   # (no function on it: a pushed or stored base, a literal)
+                s = pe.section_of(b)
+                spans.append([b, min(end, s[1] + s[2]), how, b])
+        constructed = {sp[0] for sp in spans}
+        settled = [sp for sp in spans if sp[2] == 'STATIC']   # (STATIC's extent stands: a group leaves its objects out)
+        for v in self.lifted:   # (one initializer's or thunk's bases and the memory it reaches by address: one object, an array, a struct)
+            text = '\n'.join(self.function('F', v))
+            group = [sp for sp in spans if sp[3] in gamedata.statics(text) and sp not in settled]
+            if group:
+                reached = [(int(m.group(2), 16), SIZES[{'u8': 'byte', 'u16': 'word', 'u32': 'dword'}.get(m.group(1), m.group(1))])
+                           for m in re.finditer(r'\bM<(\w+)>\(0x([0-9a-f]+)u\)', text)]
+                reached = [(a, n) for a, n in reached if not any(sp[0] <= a < sp[1] for sp in settled)]
+                spans.append([min([g[0] for g in group] + [a for a, _ in reached]), max([g[1] for g in group] + [a + n for a, n in reached]),
+                              GROUP, min(g[3] for g in group)])
+        merged = []   # (overlapping spans: one object)
+        for sp in sorted(spans):
+            if merged and sp[0] < merged[-1][1]:
+                merged[-1][1] = max(merged[-1][1], sp[1])
+                merged[-1][2].append(sp)
+            else:
+                merged.append([sp[0], sp[1], [sp]])
+        self.objs = []
+        for b, end, parts in merged:
+            first = min(p[3] for p in parts)
+            single = len({(p[0], p[1], p[3]) for p in parts}) == 1
+            how = next(p[2] for p in parts if p[2] != GROUP) if single else GROUP
+            fs = set().union(*[bases[c] for c in constructed if b <= c < end])
+            i = bisect.bisect_left(starts, b)
+            if inside(b) or i < len(starts) and starts[i] < end:   # (a declared global inside: gamedata.py check reports it)
+                continue
+            fnames = [self.hooks[f][0] if f in self.hooks else 'Fn_%06x' % f for f in sorted(fs, key=lambda f: (f not in bases[first], f))]
+            name = rows.get(b)
+            if not name or name in taken or not re.fullmatch(r'[A-Za-z_]\w*', name):
+                prefix = next((n.split('_')[0] for n in fnames if n.split('_')[0] not in GENERIC), 'Static')
+                name = 'g%s_%06x' % (prefix, b)
+            taken.add(name)
+            self.objs.append((b, end - b, name, how, fnames, b not in rows))
+        decls = sorted(others + [('u8[0x%x]' % n, name, b, n, HEADER) for b, n, name, _, _, _ in self.objs], key=lambda d: d[2])
+        self.named = (decls, gamedata.finder(decls), {d[1]: d for d in decls})
+
+    def ref(self, v):
+        """The name expression of the address v inside a declared global, else None."""
+        if not self.named or not gamedata.DATA_LO <= v < gamedata.DATA_HI:
+            return None
+        name = self.named[1](v)
+        if not name:
+            return None
+        self.used.add(name)
+        off = v - self.named[2][name][2]
+        return '(u32)(uintptr_t)&%s' % name if not off else '((u32)(uintptr_t)&%s + 0x%x)' % (name, off)
+
+    def value(self, v):
+        return self.ref(v) or hx(v)
+
+    def names(self, line):
+        """A lifted line with each literal inside a declared global as its name and offset; a register's displacement just below a
+        global (an object's virtual base reached through its offset: [EAX + object - 4]) as the global's name less the distance."""
+        def name(m):
+            v = int(m.group(2), 16)
+            r = self.ref(v)
+            if not r and m.group(1) and self.named and gamedata.DATA_LO <= v < gamedata.DATA_HI:
+                above = self.named[1](v + BELOW)
+                if above and self.named[2][above][2] > v:
+                    self.used.add(above)
+                    r = '((u32)(uintptr_t)&%s - 0x%x)' % (above, self.named[2][above][2] - v)
+            return (m.group(1) or '') + (r or m.group(0)[len(m.group(1) or ''):])
+        return re.sub(r'(\be[a-z]{2}(?: \* \d)? \+ )?\b0x([0-9a-f]+)u?\b', name, line)
 
     def run(self):
         inits = []
@@ -751,55 +857,58 @@ class Gen:
             out.append('    alignas(4) u8 frame[0x%x];' % frame)
             out.append('    const u32 sp = (u32)(uintptr_t)(frame + sizeof frame);')
         for line in lines:
-            out.append(('' if line.startswith('L_') else '    ') + line)
+            out.append(('' if line.startswith('L_') else '    ') + self.names(line))
         out.append('}')
         return out
 
+    def column(self, v):   # (a kMain address: the name expression, else the literal)
+        return self.ref(v) or '0x%06x' % v
+
     def cpp(self):
-        o = ['// GENERATED by tools/gen_static_init.py from tp.exe\'s C++ initialiser table (0x727000-0x72e0e8) and _re/text.asm: do not edit.',
-             '// The compiler-generated static initialisers and the exit thunks they register with atexit. Main shape: a row of kMain run by',
-             '// RunMain; exit thunks MOV ECX,object ; JMP dtor: ExitThunk<object, dtor>; the rest lifted instruction by instruction.',
-             '#include "staticinit.h"',
-             '',
-             '#include <algorithm>',
-             '#include <cstdint>',
-             '',
-             '#include "addrcalls.h"',
-             '#include "../math/x87.h"',
-             '',
+        """The generated source; with self.named, every literal inside a declared global as its name."""
+        self.used = set()
+        o = ['',
              'namespace {',
              '',
              'AddrCalls g_calls;',
              '',
              'template <typename T> T &M(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }',
              'u32 Fn(void(__cdecl *fn)()) { return (u32)(uintptr_t)fn; }',
-             '',
-             '// MOV ECX,Object ; JMP Dtor (a thiscall of no stack arguments).',
-             'template <u32 Object, u32 Dtor> void __cdecl ExitThunk() { g_calls.Th(Dtor, Object); }',
              '']
         helpers = sorted(h for h in self.helpers if h in self.lifted)
         if helpers:
             o.append('// The C library\'s callees of the initialisers (no arguments; called directly).')
             o += ['void __cdecl Sub_%06x();' % h for h in helpers]
             o.append('')
-        for h in helpers:
-            o += self.function('Sub_%06x' % h, h)
+        o.append('// The exit thunks MOV ECX,object ; JMP dtor (a thiscall of no stack arguments).')
+        for t in sorted(self.thunks):
+            if self.thunks[t][0] == 'template':
+                o.append('void __cdecl Exit_%06x() { g_calls.Th(0x%08x, %s); }' % (t, self.thunks[t][2], self.value(self.thunks[t][1])))
+        o.append('')
         lifted_thunks = [t for t in sorted(self.thunks) if self.thunks[t][0] == 'lifted' and t in self.lifted]
         for t in lifted_thunks:
             o += self.function('Exit_%06x' % t, t)
+        for h in helpers:
+            o += self.function('Sub_%06x' % h, h)
         o.append('')
         o.append('// PUSH text ; MOV ECX,object ; CALL ctor ; PUSH exit ; CALL atexit 0x67a7d0 ; ADD ESP,4 ; RET')
         o.append('struct MainInit {')
-        o.append('    u32 address, text, object, ctor;')
+        o.append('    u32 address, text, ctor;')
         o.append('    void(__cdecl *exit)();')
         o.append('};')
         o.append('const MainInit kMain[] = {')
         for v, text, obj, ctor, ex in self.main:
-            o.append('    {0x%06x, 0x%06x, 0x%06x, 0x%06x, &%s},' % (v, text, obj, ctor, self.thunk_name(ex)))
+            o.append('    {0x%06x, %s, 0x%06x, &%s},' % (v, self.column(text), ctor, self.thunk_name(ex)))
         o.append('};')
+        o.append('// kMain\'s objects, row by row: a dynamic initialiser (after the names\' constant ones), apart from kMain, which stays constant')
+        o.append('// (a row with a name in it made the compiler initialise the whole table by code: 55 bytes a row).')
+        o.append('const u32 kObjects[] = {')
+        o += ['    %s,' % ', '.join(self.column(r[2]) for r in self.main[i:i + 4]) for i in range(0, len(self.main), 4)]
+        o.append('};')
+        o.append('static_assert(sizeof kObjects / sizeof kObjects[0] == sizeof kMain / sizeof kMain[0], "a row\'s object");')
         o.append('')
         o.append('void RunMain(const MainInit &e) {')
-        o.append('    g_calls.Th(e.ctor, e.object, e.text);')
+        o.append('    g_calls.Th(e.ctor, kObjects[&e - kMain], e.text);')
         o.append('    g_calls.Cd(0x%08x, Fn(e.exit));' % ATEXIT)
         o.append('}')
         o.append('')
@@ -867,7 +976,41 @@ class Gen:
         o.append('}  // extern "C"')
         o.append('')
         o.append('const AddrCalls &StaticInit_Calls() { return g_calls; }')
+        here = os.path.dirname(OUT)
+        headers = sorted({os.path.relpath(self.named[2][n][4], here).replace('\\', '/') for n in self.used})
+        o = ['// GENERATED by tools/gen_static_init.py from tp.exe\'s C++ initialiser table (0x727000-0x72e0e8) and _re/text.asm: do not edit.',
+             '// The compiler-generated static initialisers and the exit thunks they register with atexit. Main shape: a row of kMain run by',
+             '// RunMain; exit thunks MOV ECX,object ; JMP dtor: Exit_<address>; the rest lifted instruction by instruction. The objects they',
+             '// construct are named (staticobjects.h), as is every other declared global they reach.',
+             '#include "staticinit.h"',
+             '',
+             '#include <algorithm>',
+             '#include <cstdint>',
+             '',
+             '#include "addrcalls.h"',
+             '#include "../math/x87.h"'] + ['#include "%s"' % h for h in headers] + o
         return '\r\n'.join(o) + '\r\n'
+
+    def header(self):
+        o = ['// GENERATED by tools/gen_static_init.py: do not edit. The static objects tp.exe\'s C++ initialisers construct (staticinit.cpp,',
+             '// staticinitmanual.cpp), as GAME_DATA objects (.docs/09-globals.md). The extent: the size STATIC_FUNCS (tools/gamedata.py) gives',
+             '// the functions called on it, or STATIC the object, else up to the next static base (marked "to the next"), joined with what',
+             '// one lifted initializer or thunk reaches with it (an array, a struct, a virtual base: "one initializer\'s"). After each: the',
+             '// functions called on it. A name ending in its address is named for them (unconfirmed).',
+             '#pragma once',
+             '',
+             '#include "gamedata.h"',
+             '#include "../../../re/types.h"',
+             '']
+        for b, n, name, how, fnames, _ in self.objs:
+            o.append('GAME_DATA(u8[0x%x], %s, 0x%08x, 0x%x);   // %s%s' % (
+                n, name, b, n, ', '.join(fnames), {'the next static base': '; to the next', GROUP: '; ' + GROUP}.get(how, '')))
+        return '\r\n'.join(o) + '\r\n'
+
+    def symbol_rows(self):
+        """re/symbols.csv's rows for the new names."""
+        return ['0x%08x,%s,data,low,"GAME_DATA (core/staticobjects): u8[0x%x], the static object %s, named for %s (tools/gen_static_init.py)"' % (
+            b, name, n, ', '.join(fnames), fnames[0]) for b, n, name, how, fnames, new in self.objs if new]
 
 
 _GEN = None
@@ -877,6 +1020,7 @@ def analyse():
     global _GEN
     if _GEN is None:
         _GEN = Gen().run()
+        _GEN.objects()
     return _GEN
 
 
@@ -890,14 +1034,26 @@ def main():
         for r, n in reasons.most_common():
             print(n, r, [hex(a) for a, x in g.refused.items() if x == r][:6])
         print('helpers', len(g.helpers), 'lifted', len([h for h in g.helpers if h in g.lifted]))
+        print('objects', len(g.objs), Counter(o[3] for o in g.objs), 'bytes', sum(o[1] for o in g.objs), 'new names', sum(o[5] for o in g.objs))
+        for line in g.cpp().split('\r\n'):   # (a name stored or pushed as a value: an address, or a value that lies in the range?)
+            if re.match(r'\s*M<\w+>\((?!sp )[^=]*\) = \(*\(u32\)\(uintptr_t\)&', line):
+                print('  value', line.strip()[:120])
         return
-    text = g.cpp()
+    files = {OUT: g.cpp(), HEADER: g.header()}
     if '--check' in sys.argv:
-        old = open(OUT, 'rb').read().decode() if os.path.exists(OUT) else ''
-        sys.exit(0 if old == text else 1)
-    with open(OUT, 'wb') as f:
-        f.write(text.encode())
-    print('wrote', OUT, len(g.main), 'main,', len([v for v in g.kinds if g.kinds[v] == 'lifted']), 'lifted,', len(g.refused), 'refused')
+        sys.exit(0 if all(os.path.exists(p) and open(p, 'rb').read().decode() == t for p, t in files.items()) else 1)
+    for p, t in files.items():
+        with open(p, 'wb') as f:
+            f.write(t.encode())
+    text = open(SYMBOLS, encoding='utf-8', newline='').read()
+    have = set(re.findall(r'^(0x[0-9a-f]{8}),', text, re.M))
+    rows = [r for r in g.symbol_rows() if r[:10] not in have]
+    if rows:
+        nl = '\r\n' if '\r\n' in text else '\n'
+        with open(SYMBOLS, 'w', encoding='utf-8', newline='') as f:
+            f.write(text.rstrip('\r\n') + nl + nl.join(rows) + nl)
+    print('wrote', OUT, len(g.main), 'main,', len([v for v in g.kinds if g.kinds[v] == 'lifted']), 'lifted,', len(g.refused), 'refused;',
+          HEADER, len(g.objs), 'objects,', len(rows), 'symbols.csv rows')
 
 
 if __name__ == '__main__':

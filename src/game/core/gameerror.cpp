@@ -6,6 +6,7 @@
 #include "crt.h"
 #include "fieldops.h"
 #include "imports.h"
+#include "staticobjects.h"
 
 namespace {
 
@@ -23,7 +24,7 @@ extern "C" {
 
 void __fastcall GameError_Show(u8 *report) {
     u32 *const fields = reinterpret_cast<u32 *>(report);
-    if (!fields[0] || !*reinterpret_cast<const u32 *>((uintptr_t)0x0078b530)) return;
+    if (!fields[0] || !*reinterpret_cast<const u32 *>((uintptr_t)&gLanguage_78b530)) return;
     const u32 index = fields[1];
     if (index == 0xc) {
         u8 *const errors = gEngineErrors_879ad0;
@@ -38,7 +39,7 @@ void __fastcall GameError_Show(u8 *report) {
     }
     u16 text[0x100];   // the original's frame, 0x200 (left unset for an index without an entry, sic)
     if (index <= 0x2a && index != 0xd)
-        g_calls.Cd(0x006acd60, *reinterpret_cast<const u32 *>((uintptr_t)0x0078ba88), text, 0x100u, static_cast<u32>(kEntries[index]));
+        g_calls.Cd(0x006acd60, *reinterpret_cast<const u32 *>((uintptr_t)&gLanguage_78b530 + 0x558), text, 0x100u, static_cast<u32>(kEntries[index]));
     if (report[0xc]) Crt().swprintf(text, reinterpret_cast<const u16 *>((uintptr_t)0x007477d0), text, report + 0xc);
     using MessageBox = s32(__stdcall *)(void *, const u16 *, const u16 *, u32);
     (*reinterpret_cast<const MessageBox *>((uintptr_t)IMPORT(User32_MessageBoxW)))(nullptr, text, reinterpret_cast<const u16 *>((uintptr_t)0x007477ac), 0x10010);

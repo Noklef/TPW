@@ -8,6 +8,7 @@
 #include "gamepause.h"
 #include "window.h"
 #include "panel7b9940.h"
+#include "../core/staticobjects.h"
 
 namespace {
 
@@ -67,7 +68,7 @@ s32 __cdecl Window7cb2b0_Handler(u8 *window, u32 message, u32 a, u32 b) {
             break;
         }
         case 0x10006:
-            if (global<u8>(0x78d911) && a == 1) LetCameraGo(window);
+            if (global<u8>((u32)(uintptr_t)&gOptions_78d8d8 + 0x39) && a == 1) LetCameraGo(window);
             break;
         case 0x1000a:
             E->fireDown(Actions(), nullptr, a, (b >> 16) & 0xff);

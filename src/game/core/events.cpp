@@ -7,6 +7,7 @@
 #include "../render/screen.h"
 #include "../gfx/pointer.h"
 #include "imports.h"
+#include "staticobjects.h"
 
 namespace {
 
@@ -217,7 +218,7 @@ void __cdecl EventQueue_PostScreenReset() {
     reinterpret_cast<u8 *>(event)[0xc] = 0x10;
     event[4] = 0;
     EventQueue_Post(g_env->instance, nullptr, 0, event);
-    Obj_ReleaseTwoComMembers(reinterpret_cast<u8 *>(0x007b4ac0));
+    Obj_ReleaseTwoComMembers(reinterpret_cast<u8 *>((u32)(uintptr_t)&gScreenSurfaces_7b4ac0));
 }
 
 }  // extern "C"

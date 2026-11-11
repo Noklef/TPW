@@ -11,6 +11,7 @@
 #include "texture.h"
 #include "../render/ddopen.h"
 #include "../render/d3dsetup.h"
+#include "../core/staticobjects.h"
 
 namespace {
 
@@ -156,7 +157,7 @@ u32 __fastcall TexSet_Init(u8 *set, void *, const u8 *def, const u8 *info) {
         return 0;
     }
     at<u16>(set, 0xc) = at<u16>(info, 0xa);
-    if (global<u32>(0x008bd550) & 0x40000000) {
+    if (global<u32>((u32)(uintptr_t)&gTexSettings_8bd550) & 0x40000000) {
         const s32 n = deferred();
         if (n < 0x100) {
             deferredSets()[n] = set;

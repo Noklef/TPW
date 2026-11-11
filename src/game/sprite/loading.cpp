@@ -13,6 +13,7 @@
 #include "../render/renderer.h"
 #include "../world/things.h"
 #include "draw.h"
+#include "../core/staticobjects.h"
 
 namespace {
 
@@ -34,7 +35,7 @@ u8 use_frames(u32 kind, u32 suffixOn, u32 suffixOff) {
         const u32 wide = gLoading_763f28 ? suffixOn : suffixOff;
         gLoading_763f80 = kind;
         String_AssignWide(&suffix, nullptr, reinterpret_cast<const WString *>((uintptr_t)wide));
-        if (g_env->find(*reinterpret_cast<u8 ***>((uintptr_t)0x00786b9c), nullptr, reinterpret_cast<const u8 *>((uintptr_t)0x00876960),
+        if (g_env->find(*reinterpret_cast<u8 ***>((uintptr_t)&gNamedObjects_786b68 + 0x34), nullptr, reinterpret_cast<const u8 *>((uintptr_t)&gString_876960),
                         &folder) == 1) {
             u8 **sprites = gSprites;
             for (s32 i = 0; i < (s32)gLoading_876b28; ++i) {
@@ -101,7 +102,7 @@ void list_files(u8 *folder, String *path, const String *folderName) {
     String_EnsureTrailingBackslash(path);
     vcall<void>(path, 0x28, folderName);
     String_EnsureTrailingBackslash(path);
-    vcall<void>(path, 0x28, reinterpret_cast<const String *>((uintptr_t)0x008757f0));
+    vcall<void>(path, 0x28, reinterpret_cast<const String *>((uintptr_t)&gString_8757f0));
     if (g_calls.Th(0x0041d570, (u32)(uintptr_t)folder, path, (u32)&gSpriteFindRecord_875038) != 1) return;
     do {
         const u32 current = Get34_41ce80(folder);
@@ -171,7 +172,7 @@ u32 __cdecl Sprites_LoadFolder(u8 *folder, const String *folderName) {
     std::strcat(buffer, backslash);
     vcall<void>(&path, 0x14, reinterpret_cast<const char *>((uintptr_t)&gText_Sprites_LoadFolder_764160));
     list_files(folder, &path, folderName);
-    const String *const root = reinterpret_cast<const String *>((uintptr_t)0x00786b68);   // (a wide string: Obj_Self; its data read as chars, sic)
+    const String *const root = reinterpret_cast<const String *>((uintptr_t)&gNamedObjects_786b68);   // (a wide string: Obj_Self; its data read as chars, sic)
     std::strcpy(buffer, root->data);
     std::strcat(buffer, backslash);
     std::strcat(buffer, folderName->data);
@@ -258,12 +259,12 @@ void __cdecl Sprites_FreeAll() {
     }
     for (u32 k = 0; k < 16; ++k)
         TrackedArray_Free(reinterpret_cast<u8 *>((uintptr_t)(0x008751f0 + 0x24 * k)));
-    TrackedArray_Free(reinterpret_cast<u8 *>((uintptr_t)0x00876420));
+    TrackedArray_Free(reinterpret_cast<u8 *>((uintptr_t)&gLiveObject6ff308_876420));
 }
 
-u8 __cdecl Sprites_UseGroundFrames() { return use_frames(0, 0x00875fe8, 0x00875598); }
+u8 __cdecl Sprites_UseGroundFrames() { return use_frames(0, (u32)(uintptr_t)&gString_875fe8, (u32)(uintptr_t)&gString_875598); }
 
-u8 __cdecl Sprites_UseParkFrames() { return use_frames(1, 0x00876270, 0x008757a8); }
+u8 __cdecl Sprites_UseParkFrames() { return use_frames(1, (u32)(uintptr_t)&gString_876270, (u32)(uintptr_t)&gString_8757a8); }
 }
 
 void SpriteLoading_SetEnv(const SpriteLoadingEnv *env) { g_env = env ? env : &kGameEnv; }
@@ -271,7 +272,7 @@ void SpriteLoading_SetEnv(const SpriteLoadingEnv *env) { g_env = env ? env : &kG
 extern "C" bool __cdecl Sprites_LoadAll(u8 onlyLast) {
     u32 folder = 0;
     gLoading_87626c = 0;
-    if (g_calls.Th(0x00421770, global<u32>(0x00786b9c), 0x00876960u, &folder) != 1)   // NamedList_Find
+    if (g_calls.Th(0x00421770, global<u32>((u32)(uintptr_t)&gNamedObjects_786b68 + 0x34), (u32)(uintptr_t)&gString_876960, &folder) != 1)   // NamedList_Find
         return false;
     for (SpriteFolder *entry = &gSpriteFolders[onlyLast ? 13 : 0]; entry < gSpriteFolders + 14; ++entry) {
         entry->first = (u32)gLoading_87626c;
@@ -286,12 +287,12 @@ extern "C" bool __cdecl Sprites_LoadAll(u8 onlyLast) {
 
 extern "C" bool __cdecl Sprites_Setup(u32 mode, u32 onlyLast) {
     const u32 map = global<u32>(global<u32>(0x007a0854) + 0x6c);
-    global<u32>(0x008bcbc8) |= 0x1000000;
+    global<u32>((u32)(uintptr_t)&gView_8bcbc8) |= 0x1000000;
     gSpriteDrawOn = 1;
     gThings_877350 = 0;
     reinterpret_cast<u32 &>(gSpriteHeading) = 0;
-    reinterpret_cast<u32 &>(global<float>(0x008bd4f0)) = 0;
-    reinterpret_cast<u32 &>(global<float>(0x008bd4f4)) = 0;
+    reinterpret_cast<u32 &>(global<float>((u32)(uintptr_t)&gView_8bcbc8 + 0x928)) = 0;
+    reinterpret_cast<u32 &>(global<float>((u32)(uintptr_t)&gView_8bcbc8 + 0x92c)) = 0;
     gLoading_8768fc = mode & 0xff;
     gLoading_763f80 = (mode & 0xff) == 0;
     g_calls.Cd(0x00541d90, onlyLast);
@@ -312,9 +313,9 @@ extern "C" bool __cdecl Sprites_Setup(u32 mode, u32 onlyLast) {
             g_calls.Th(0x00576620, reinterpret_cast<u32 &>(gRenderer_87a6d0), y * across, x * down, right, bottom, cell + global<u32>(global<u32>(cell) + 4), 0u);
         }
     }
-    reinterpret_cast<u32 &>(gSpriteDrawOverlay) = g_calls.Th(0x0058a4f0, 0x00876420u, 0x20u);
-    global<u32>(0x00876424) = 0;
-    g_calls.Th(0x00576410, reinterpret_cast<u32 &>(gRenderer_87a6d0), 0x00876420u + global<u32>(global<u32>(0x00876420) + 4), 0x20u);
+    reinterpret_cast<u32 &>(gSpriteDrawOverlay) = g_calls.Th(0x0058a4f0, (u32)(uintptr_t)&gLiveObject6ff308_876420, 0x20u);
+    global<u32>((u32)(uintptr_t)&gLiveObject6ff308_876420 + 0x4) = 0;
+    g_calls.Th(0x00576410, reinterpret_cast<u32 &>(gRenderer_87a6d0), (u32)(uintptr_t)&gLiveObject6ff308_876420 + global<u32>(global<u32>((u32)(uintptr_t)&gLiveObject6ff308_876420) + 4), 0x20u);
     return true;
 }
 

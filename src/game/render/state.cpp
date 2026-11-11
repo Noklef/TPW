@@ -12,6 +12,7 @@
 #include "lightsource.h"
 #include "../core/imports.h"
 #include "dynfaces.h"
+#include "../core/staticobjects.h"
 
 namespace {
 
@@ -23,7 +24,7 @@ template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cas
 extern "C" {
 
 void __fastcall SceneFlags_Touch(u32 *flags) {
-    flags[1] = global<u32>(0x008bcc40);
+    flags[1] = global<u32>((u32)(uintptr_t)&gView_8bcbc8 + 0x78);
     flags[0] |= 0x40000000;
 }
 
@@ -33,10 +34,10 @@ u32 __cdecl Display_RestoreIfFocused() {
     u32(__stdcall *const getFocus)() = *reinterpret_cast<u32(__stdcall *const *)()>((uintptr_t)IMPORT(User32_GetFocus));
     if (getFocus() != global<u32>(0x008bd518))
         return 1;
-    const u32 generation = global<u32>(0x008bcc40) + 1;
+    const u32 generation = global<u32>((u32)(uintptr_t)&gView_8bcbc8 + 0x78) + 1;
     u8 *const device = global<u8 *>(0x008bd52c);
-    global<u32>(0x008bcc44) = 0;
-    global<u32>(0x008bcc40) = generation;
+    global<u32>((u32)(uintptr_t)&gView_8bcbc8 + 0x7c) = 0;
+    global<u32>((u32)(uintptr_t)&gView_8bcbc8 + 0x78) = generation;
     if (vcall<u32>(device, 4))
         return 1;
     return EngineErrors_DropSurfaceLost(gEngineErrors_879ad0);
@@ -53,15 +54,15 @@ u32 __cdecl Display_Restore() {
     return 1;
 }
 
-void __fastcall Render_FogOn(void *) { global<u32>(0x008bcbc8) |= 0x2000; }
+void __fastcall Render_FogOn(void *) { global<u32>((u32)(uintptr_t)&gView_8bcbc8) |= 0x2000; }
 
-void __fastcall Render_FogOff(void *) { global<u32>(0x008bcbc8) &= ~0x2000u; }
+void __fastcall Render_FogOff(void *) { global<u32>((u32)(uintptr_t)&gView_8bcbc8) &= ~0x2000u; }
 
 // The start and end are floats, moved as dwords.
 void __fastcall Render_SetFog(void *, void *, u32 colour, u32 start, u32 end) {
-    global<u32>(0x008bd47c) = colour;
-    global<u32>(0x008bd490) = start;
-    global<u32>(0x008bd494) = end;
+    global<u32>((u32)(uintptr_t)&gView_8bcbc8 + 0x8b4) = colour;
+    global<u32>((u32)(uintptr_t)&gView_8bcbc8 + 0x8c8) = start;
+    global<u32>((u32)(uintptr_t)&gView_8bcbc8 + 0x8cc) = end;
 }
 
 void __fastcall Render_SetAmbient(void *, void *, u32 on, u32 colour) {
@@ -80,23 +81,23 @@ void __fastcall Render_SetAmbient(void *, void *, u32 on, u32 colour) {
 
 u32 __cdecl Options_Apply() {
     const u32 a = global<u32>(0x0079d86c);
-    u32 render = global<u32>(0x008bcbc8);
+    u32 render = global<u32>((u32)(uintptr_t)&gView_8bcbc8);
     render = (a & 0x100) ? render | 0x10000 : render & 0xfffeffff;
     const u32 b = gGraphicssettings_7a1a8c;
-    global<u32>(0x008bcbc8) = render;
+    global<u32>((u32)(uintptr_t)&gView_8bcbc8) = render;
     render = (b & 0x8000) ? render | 1 : render & 0xfffffffe;
-    global<u32>(0x008bcbc8) = render;
-    u32 settings = global<u32>(0x008bd550);
+    global<u32>((u32)(uintptr_t)&gView_8bcbc8) = render;
+    u32 settings = global<u32>((u32)(uintptr_t)&gTexSettings_8bd550);
     settings = (b & 0x80000) ? settings | 2 : settings & 0xfffffffd;
-    global<u32>(0x008bd550) = settings;
+    global<u32>((u32)(uintptr_t)&gTexSettings_8bd550) = settings;
     const u32 shifted = global<u32>(0x0079d9c8);
     if (shifted)
-        global<u32>(0x008c1620) = shifted << 20;
+        global<u32>((u32)(uintptr_t)&gTexSettings_8bd550 + 0x40d0) = shifted << 20;
     u32 scene = global<u32>(0x008bd508);
     scene = (b & 2) ? scene & 0xffffffbf : scene | 0x40;
     global<u32>(0x008bd508) = scene;
     if (a & 0x40) {
-        Obj_SetFirst(reinterpret_cast<u8 *>(0x0078d8d8), nullptr, 0);
+        Obj_SetFirst(reinterpret_cast<u8 *>((u32)(uintptr_t)&gOptions_78d8d8), nullptr, 0);
         const u32 options = global<u32>(0x0079d86c) & 0xfffff8ff;
         const u32 flags = gGraphicssettings_7a1a8c & 0xffe50fff;
         global<u32>(0x008bd524) = 4;
@@ -104,38 +105,38 @@ u32 __cdecl Options_Apply() {
         gGraphicssettings_7a1a8c = flags;
         return flags;
     }
-    Obj_SetFirst(reinterpret_cast<u8 *>(0x0078d8d8), nullptr, 1);
+    Obj_SetFirst(reinterpret_cast<u8 *>((u32)(uintptr_t)&gOptions_78d8d8), nullptr, 1);
     global<u32>(0x008bd524) = 1;
     return 1;
 }
 
 u32 __cdecl Environment_Apply() {
-    global<u32>(0x008bd47c) = global<u32>(0x007856d4);
-    gState_7a0b44 = global<u32>(0x007856d8);
-    gState_7a0b3c = global<u32>(0x007856dc);
-    const s32 c = global<s32>(0x007856e0), e = global<s32>(0x007856e4);
+    global<u32>((u32)(uintptr_t)&gView_8bcbc8 + 0x8b4) = global<u32>((u32)(uintptr_t)&gBalanceLevel + 0x694);
+    gState_7a0b44 = global<u32>((u32)(uintptr_t)&gBalanceLevel + 0x698);
+    gState_7a0b3c = global<u32>((u32)(uintptr_t)&gBalanceLevel + 0x69c);
+    const s32 c = global<s32>((u32)(uintptr_t)&gBalanceLevel + 0x6a0), e = global<s32>((u32)(uintptr_t)&gBalanceLevel + 0x6a4);
     global<s32>(0x007a006c) = c > 0 ? c : 0;
     global<s32>(0x007a01c0) = e > 0 ? e : 0;
-    gLightsource_7a0b30[0] = global<u32>(0x007856e8);
-    gLightsource_7a0b30[1] = global<u32>(0x007856ec);
-    gLightsource_7a0b30[2] = global<u32>(0x007856f0);
-    reinterpret_cast<u32 &>(gDynFaces_GridAt_870ec8[0]) = global<u32>(0x00785718);
-    reinterpret_cast<u32 &>(gDynFaces_GridAt_870ec8[1]) = global<u32>(0x0078571c);
-    reinterpret_cast<u32 &>(gDynFaces_GridAt_870ec8[2]) = global<u32>(0x00785720);
+    gLightsource_7a0b30[0] = global<u32>((u32)(uintptr_t)&gBalanceLevel + 0x6a8);
+    gLightsource_7a0b30[1] = global<u32>((u32)(uintptr_t)&gBalanceLevel + 0x6ac);
+    gLightsource_7a0b30[2] = global<u32>((u32)(uintptr_t)&gBalanceLevel + 0x6b0);
+    reinterpret_cast<u32 &>(gDynFaces_GridAt_870ec8[0]) = global<u32>((u32)(uintptr_t)&gBalanceLevel + 0x6d8);
+    reinterpret_cast<u32 &>(gDynFaces_GridAt_870ec8[1]) = global<u32>((u32)(uintptr_t)&gBalanceLevel + 0x6dc);
+    reinterpret_cast<u32 &>(gDynFaces_GridAt_870ec8[2]) = global<u32>((u32)(uintptr_t)&gBalanceLevel + 0x6e0);
     for (u32 i = 0; i < 4; i++) {
-        global<u32>(0x00f797a4 + 4 * i) = global<u32>(0x007856f4 + 8 * i);
-        global<u32>(0x00f797b4 + 4 * i) = global<u32>(0x007856f8 + 8 * i);
+        global<u32>(0x00f797a4 + 4 * i) = global<u32>(((u32)(uintptr_t)&gBalanceLevel + 0x6b4) + 8 * i);
+        global<u32>(0x00f797b4 + 4 * i) = global<u32>(((u32)(uintptr_t)&gBalanceLevel + 0x6b8) + 8 * i);
     }
-    Global81b6dc_Set_52fb10(global<u32>(0x00785600));
-    Global81ea14_Set_52fb30(global<u32>(0x007855fc));
-    Global81aebc_Set_52fb50(global<u32>(0x00785604));
-    Global81b43c_Set_52fb70(global<u32>(0x00785608));
+    Global81b6dc_Set_52fb10(global<u32>((u32)(uintptr_t)&gBalanceLevel + 0x5c0));
+    Global81ea14_Set_52fb30(global<u32>((u32)(uintptr_t)&gBalanceLevel + 0x5bc));
+    Global81aebc_Set_52fb50(global<u32>((u32)(uintptr_t)&gBalanceLevel + 0x5c4));
+    Global81b43c_Set_52fb70(global<u32>((u32)(uintptr_t)&gBalanceLevel + 0x5c8));
     return 1;
 }
 
 u32 __fastcall Render_FadeFog(u8 *fade) {
-    u32 colour = global<u32>(0x008bd47c);
-    if (global<s32>(0x00785888) > 1 && global<u32>(0x0078d8d8) == 1) {
+    u32 colour = global<u32>((u32)(uintptr_t)&gView_8bcbc8 + 0x8b4);
+    if (global<s32>((u32)(uintptr_t)&gBalanceGraphics + 0x20) > 1 && global<u32>((u32)(uintptr_t)&gOptions_78d8d8) == 1) {
         const s32 a = at<s32>(fade, 0x44), b = at<s32>(fade, 0x48), c = at<s32>(fade, 0x4c);
         const s32 targetB = at<s32>(fade, 0x54), targetC = at<s32>(fade, 0x58);
         if (a != at<s32>(fade, 0x50) || b != targetB || c != targetC) {
@@ -149,7 +150,7 @@ u32 __fastcall Render_FadeFog(u8 *fade) {
         }
     }
     for (u32 i = 0; i < 0x100; i++)
-        global<u32>(0x008c2788 + 4 * i) = colour;
+        global<u32>(((u32)(uintptr_t)&gLandscape_8c1828 + 0xf60) + 4 * i) = colour;
     return colour;
 }
 }

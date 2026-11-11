@@ -21,6 +21,7 @@
 #include "itemlist.h"
 #include "session.h"
 #include "../core/imports.h"
+#include "../core/staticobjects.h"
 
 namespace {
 
@@ -109,9 +110,9 @@ u16 *format(u8 *avatar, u32 entry, const u16 *chars, bool withText) {
         TextArg_Ctor(arg, nullptr, 0);
         at<u32>(arg, 0) = (u32)(uintptr_t)TextArgString_vtable;
         at<const u16 *>(arg, 0xc) = chars;
-        g_env->format(global<u8 *>(0x0078bac8), buffer, 0x400, entry, arg);
+        g_env->format(global<u8 *>((u32)(uintptr_t)&gLanguage_78b530 + 0x598), buffer, 0x400, entry, arg);
     } else {
-        g_env->format(global<u8 *>(0x0078bac8), buffer, 0x400, entry);
+        g_env->format(global<u8 *>((u32)(uintptr_t)&gLanguage_78b530 + 0x598), buffer, 0x400, entry);
     }
     return buffer;
 }
@@ -194,9 +195,9 @@ void vote(u8 *avatar) {
         return;
     debugLine(reinterpret_cast<uintptr_t>(&gChatcommand_75c600));
     Window7cc8bc_SetC3129(1);
-    const char *host = global<const char *>(0x007a1544);
+    const char *host = global<const char *>((u32)(uintptr_t)&gOnlineServers_7a14f0 + 0x54);
     if (!host) host = reinterpret_cast<const char *>(0x006fe5b0);
-    const u32 port = global<u16>(0x007a155a);
+    const u32 port = global<u16>((u32)(uintptr_t)&gOnlineServers_7a14f0 + 0x6a);
     const u32 pick = (u32)(uintptr_t)Global7cc53c_Pick7cc4f0();
     using Connect = u32(__fastcall *)(u32, void *, const char *, u32, u32, u32);
     if ((*reinterpret_cast<const Connect *>((uintptr_t)IMPORT(Weavoter_Vote_Connect)))(at<u32>(avatar, 0xec4), nullptr, host, pick, port, 0x004e4fc0) != 1)

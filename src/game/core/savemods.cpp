@@ -13,6 +13,7 @@
 #include "../world/ridelist.h"
 #include "../render/particles.h"
 #include "../world/rides.h"
+#include "staticobjects.h"
 
 namespace {
 
@@ -65,7 +66,7 @@ u32 __cdecl Camera_Load(Stream *stream) {
         return 0;
     gCameraFlags = 0;
     reinterpret_cast<u32 &>(gCamera_7909e0) = reinterpret_cast<u32 &>(gCamera_790a38);
-    if (global<u8>(0x0078d912))
+    if (global<u8>((u32)(uintptr_t)&gOptions_78d8d8 + 0x3a))
         Camera_SnapYaw();
     return 1;
 }

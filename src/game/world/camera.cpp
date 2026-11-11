@@ -23,6 +23,7 @@
 #include "../ui/panel7cc218.h"
 #include "camera.h"
 #include "rides.h"
+#include "../core/staticobjects.h"
 
 namespace {
 
@@ -266,7 +267,7 @@ void __cdecl Camera_Reset() {
     const u32 flags = (gCamera_790aac & 0x200) | 0x80;
     gCamera_790aac = flags;
     gCamera_7909d0 = flags;
-    reinterpret_cast<u32 &>(gCamera_7909e4) = Clocks_RealNow(reinterpret_cast<u8 *>(0x00785970));
+    reinterpret_cast<u32 &>(gCamera_7909e4) = Clocks_RealNow(reinterpret_cast<u8 *>((u32)(uintptr_t)&gObj_785970));
     reinterpret_cast<u32 &>(gCamera_790a88) = 0;
     global(0x007908e8) = 1;
     reinterpret_cast<u32 &>(gCamera_790a8c) = 0;

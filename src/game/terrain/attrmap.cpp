@@ -9,6 +9,7 @@
 #include "../files/chunkfile.h"
 #include "../world/world.h"
 #include "../core/vdtor.h"
+#include "../core/staticobjects.h"
 
 namespace {
 template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cast<T *>((uintptr_t)p + offset); }
@@ -32,7 +33,7 @@ u32 __fastcall AttrMapHandler_MatchTag(u8 *handler, void *, u32 tag) { return ta
 void __fastcall AttrMap_ReadMapChunk(u8 *handler, void *, const u8 *chunk, u32) {
     const s32 w = at<s32>(chunk, 0), h = at<s32>(chunk, 4);
     const u8 *data = chunk + 0x1c;
-    const s32 x0 = *reinterpret_cast<const s32 *>(0x00785584), y0 = *reinterpret_cast<const s32 *>(0x00785588);
+    const s32 x0 = *reinterpret_cast<const s32 *>((u32)(uintptr_t)&gBalanceLevel + 0x544), y0 = *reinterpret_cast<const s32 *>((u32)(uintptr_t)&gBalanceLevel + 0x548);
     for (s32 r = 0; r < h; ++r) {
         const s32 x = r - x0;
         for (s32 c = 0; c < w; ++c, ++data) {

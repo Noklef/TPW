@@ -6,6 +6,7 @@
 #include "ddopen.h"
 #include "d3dsetup.h"
 #include "../core/imports.h"
+#include "../core/staticobjects.h"
 
 namespace {
 
@@ -43,14 +44,14 @@ void full_screen(u8 *engine) {
                 result = blt(engine, nullptr, nullptr, kBltWait);
             } while (result);
         } else {
-            result = blt(engine, nullptr, nullptr, ~global<u32>(0x008bcbc8) & 1);
+            result = blt(engine, nullptr, nullptr, ~global<u32>((u32)(uintptr_t)&gView_8bcbc8) & 1);
             if (result == kWasStillDrawing || result == kWasSurfaceLost) {
                 result = 0;
                 gDdopen_879cd4 = 0;
             }
         }
     } else {
-        const u32 flag = ~global<u32>(0x008bcbc8) & 1;
+        const u32 flag = ~global<u32>((u32)(uintptr_t)&gView_8bcbc8) & 1;
         s32 budget = 50000000;
         do {
             u8 *const front = at<u8 *>(engine, 0x10);
@@ -64,7 +65,7 @@ void full_screen(u8 *engine) {
 
 void windowed(u8 *engine) {
     global<u32>(0x008bd508) &= ~kInvalidate;
-    s32 from[4] = {0, 0, global<s32>(0x008bcbd0), global<s32>(0x008bcbd4)};
+    s32 from[4] = {0, 0, global<s32>((u32)(uintptr_t)&gView_8bcbc8 + 0x8), global<s32>((u32)(uintptr_t)&gView_8bcbc8 + 0xc)};
     s32 window[4], client[4];
     global<WindowRect>(IMPORT(User32_GetClientRect))(global<u32>(0x008bd518), window);
     global<WindowRect>(IMPORT(User32_GetWindowRect))(global<u32>(0x008bd518), client);
@@ -118,12 +119,12 @@ u32 __fastcall Present_Picture(u8 *picture) {
     u32 desc[0x1f] = {0x7c};
     const u8 *const vtable = at<const u8 *>(surface, 0);
     if (!answered(at<u32(__stdcall *)(u8 *, void *, void *, u32, void *)>(vtable, 0x64)(surface, nullptr, desc, 1, nullptr))) return 0;
-    const u32 width = global<u32>(0x008bcbd0), mode = global<u32>(0x008bcbc8), pitch = desc[4], bits = desc[9], rows = global<u32>(0x008bcbd4), from = at<u32>(picture, (u32)-0xc);
+    const u32 width = global<u32>((u32)(uintptr_t)&gView_8bcbc8 + 0x8), mode = global<u32>((u32)(uintptr_t)&gView_8bcbc8), pitch = desc[4], bits = desc[9], rows = global<u32>((u32)(uintptr_t)&gView_8bcbc8 + 0xc), from = at<u32>(picture, (u32)-0xc);
     if (mode & 0x40000000) {
-        g_calls.Cd(global<u32>(0x008bcbe4) == 0x20 ? 0x00678790 : 0x00678d70, from, bits, width, rows, width * 4, pitch);
+        g_calls.Cd(global<u32>((u32)(uintptr_t)&gView_8bcbc8 + 0x1c) == 0x20 ? 0x00678790 : 0x00678d70, from, bits, width, rows, width * 4, pitch);
     } else {
-        const u32 mask = mode & 0x4002000 ? global<u32>(0x008bd47c) : 0;
-        g_calls.Cd(global<u32>(0x008bcbe4) == 0x20 ? 0x00678c20 : 0x006787f0, from, bits, width, rows, width * 4, pitch, at<u32>(picture, (u32)-0x10), width * 2, 1u, mask);
+        const u32 mask = mode & 0x4002000 ? global<u32>((u32)(uintptr_t)&gView_8bcbc8 + 0x8b4) : 0;
+        g_calls.Cd(global<u32>((u32)(uintptr_t)&gView_8bcbc8 + 0x1c) == 0x20 ? 0x00678c20 : 0x006787f0, from, bits, width, rows, width * 4, pitch, at<u32>(picture, (u32)-0x10), width * 2, 1u, mask);
     }
     if (!answered(at<u32(__stdcall *)(u8 *, void *)>(at<const u8 *>(surface, 0), 0x80)(surface, nullptr))) return 0;
     return g_calls.Th(0x00564210, global<u32>((u32)(uintptr_t)&gD3dsetup_879a20 + 0x4));

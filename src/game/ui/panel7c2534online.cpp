@@ -20,6 +20,7 @@
 #include "dialogs.h"
 #include "panel7c2534menus.h"
 #include "../world/world.h"
+#include "../core/staticobjects.h"
 
 namespace {
 
@@ -37,9 +38,9 @@ u8 *&menu() { return gPanel7c2534menus_7c2534; }
 u8 *place(u32 offset) { return at<u8 *>(global<u8 *>(0x00f85614), offset); }
 
 void close() {
-    if (!global<u32>(0x00786ba4) && !gPanel7c2534menus_7c2518) {
-        global<u32>(0x00786ba4) = 1;
-        g_env->controls(&global<u8>(0x00786b68));
+    if (!global<u32>((u32)(uintptr_t)&gNamedObjects_786b68 + 0x3c) && !gPanel7c2534menus_7c2518) {
+        global<u32>((u32)(uintptr_t)&gNamedObjects_786b68 + 0x3c) = 1;
+        g_env->controls(&global<u8>((u32)(uintptr_t)&gNamedObjects_786b68));
         g_env->f662420();
     }
     g_env->hide(menu());
@@ -126,14 +127,14 @@ s32 __cdecl Panel7c2534_OnlineHandler(u8 *window, u32 message, u32 a, u32 b) {
 
 u32 __cdecl Panel7c2534_AnswerSave() {
     WString name;
-    g_env->assign(reinterpret_cast<String *>((uintptr_t)0x00f82838), g_env->sessionName(Online_Instance(), nullptr, &name));
+    g_env->assign(reinterpret_cast<String *>((uintptr_t)&gString_f82838), g_env->sessionName(Online_Instance(), nullptr, &name));
     WString_Dtor(&name);
     u8 buffer[0x3d4];
-    g_env->save(reinterpret_cast<u8 *>((uintptr_t)0x0078a450), nullptr, global<u32>(0x00f82840), buffer, 1);
+    g_env->save(reinterpret_cast<u8 *>((uintptr_t)0x0078a450), nullptr, global<u32>((u32)(uintptr_t)&gString_f82838 + 0x8), buffer, 1);
     g_env->setGlobal(2);
     u16 table[0x100];
     g_env->words(gWorldPtr, nullptr, table);
-    u8 *const text = at<u8 *>(Obj_Self(reinterpret_cast<u8 *>((uintptr_t)0x00786b68)), 8);
+    u8 *const text = at<u8 *>(Obj_Self(reinterpret_cast<u8 *>((uintptr_t)&gNamedObjects_786b68)), 8);
     g_env->setNameWords(Online_Instance(), nullptr, 1, text, table);
     close();
     return 1;

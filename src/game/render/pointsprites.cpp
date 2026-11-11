@@ -6,6 +6,7 @@
 
 #include "../math/mat4.h"
 #include "../math/x87.h"
+#include "../core/staticobjects.h"
 
 namespace {
 
@@ -47,7 +48,7 @@ u32 __fastcall PointSprites_Draw(const u8 *self) {
     const u8 *const texture = at<const u8 *>(self, 8);
     const u32 key = at<u32>(texture, 8) & 0x1000 ? at<u32>(texture, 0x1c) : 0;
     const float size = at<float>(self, 0x10);
-    const float halfWidth = (float)(X87Reg(global<float>(0x008bcbcc)) * size);
+    const float halfWidth = (float)(X87Reg(global<float>((u32)(uintptr_t)&gView_8bcbc8 + 0x4)) * size);
     const float *const view = global<const float *>(0x0087b088);
     const float *const matrix = at<const float *>(self, 0x18);
     float combined[16];

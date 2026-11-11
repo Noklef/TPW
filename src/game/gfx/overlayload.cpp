@@ -7,6 +7,7 @@
 #include "../ui/windowreg.h"
 #include "overlay.h"
 #include "texdirs.h"
+#include "../core/staticobjects.h"
 
 namespace {
 
@@ -28,7 +29,7 @@ u8 *loaded(String *path, const WString *directory, const char *name, u8 **holder
 }
 
 // The name less the length [0x7b96bc] (the extension's) of chars.
-StringView *withoutSuffix(const String *name, StringView *view) { return String_Left(name, nullptr, view, name->length - global<u32>(0x007b96bc)); }
+StringView *withoutSuffix(const String *name, StringView *view) { return String_Left(name, nullptr, view, name->length - global<u32>((u32)(uintptr_t)&gString_7b96b8 + 0x4)); }
 }  // namespace
 
 void OverlayLoad_SetEnv(const OverlayLoadEnv *env) { g_env = env ? env : &kGameEnv; }
@@ -41,7 +42,7 @@ u8 *__cdecl OverlayLoad_Button(OverlayFile file, u32, const String *directory) {
     StringView view;
     String_Assign(&shorter, nullptr, withoutSuffix(&shorter, &view));
     const u8 *const name = reinterpret_cast<const u8 *>(&shorter);
-    bool known = Names_Equal(name, fixed(0x007b9ab8)) || Names_Equal(name, fixed(0x007b9a80));
+    bool known = Names_Equal(name, fixed(0x007b9ab8)) || Names_Equal(name, fixed((u32)(uintptr_t)&gString_7b9a80));
     if (!known) {
         String cbut;
         String_CtorStr(&cbut, nullptr, reinterpret_cast<const char *>(0x0074fdf0));
@@ -74,7 +75,7 @@ u8 *__cdecl OverlayLoad_Slider(OverlayFile file, u32, const String *directory) {
     StringView view;
     String shorter;
     String_CtorCopy(&shorter, nullptr, withoutSuffix(&name, &view));
-    const u32 equal = Names_Equal(reinterpret_cast<const u8 *>(&shorter), fixed(0x007b93a8));
+    const u32 equal = Names_Equal(reinterpret_cast<const u8 *>(&shorter), fixed((u32)(uintptr_t)&gString_7b93a8));
     String_Dtor(&shorter);
     if (!equal) {
         String_Dtor(&name);

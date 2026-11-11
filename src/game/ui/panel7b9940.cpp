@@ -27,6 +27,7 @@
 #include "../model/slots.h"
 #include "../render/lightsource.h"
 #include "../world/cameraupdate.h"
+#include "../core/staticobjects.h"
 
 namespace {
 
@@ -81,13 +82,13 @@ u8 *__fastcall Panel7b9940_Ctor(u8 *self, void *, u32 complete) {
 
 u32 __cdecl Panel7b9940_Detach() {
     GuiManager_CallSlot4();
-    const u8 *const table = global<const u8 *>(0x007b9940);
-    const u32 base = 0x007b9940 + *reinterpret_cast<const u32 *>(table + 4);
+    const u8 *const table = global<const u8 *>((u32)(uintptr_t)&gPanel7b9940_7b9940);
+    const u32 base = (u32)(uintptr_t)&gPanel7b9940_7b9940 + *reinterpret_cast<const u32 *>(table + 4);
     return Renderer_RemoveFromSlot(gRenderer_87a6d0, nullptr, base, 0x20);
 }
 
 void __cdecl Panel7b9940_Open() {
-    u8 *const self = reinterpret_cast<u8 *>((uintptr_t)0x007b9940);
+    u8 *const self = reinterpret_cast<u8 *>((uintptr_t)&gPanel7b9940_7b9940);
     g_open->resetQueues();
     g_open->msgTags();
     if (!gPanel7b9940_7b05e8) {
@@ -144,7 +145,7 @@ void __cdecl Panel7b9940_Open() {
     g_open->create7ca1c8();
     reinterpret_cast<u32 &>(gFocus_7c24c8) = 0;
     g_open->focus();
-    if (global<u8>(0x0078d90e)) g_open->slot3();
+    if (global<u8>((u32)(uintptr_t)&gOptions_78d8d8 + 0x36)) g_open->slot3();
     else g_open->slot4();
 }
 
@@ -156,8 +157,8 @@ u32 __cdecl Panel7b9940_Exit() {
 
 void __cdecl Panel7b9940_Close() {
     Windows7c26b0_Message5();
-    const u8 *const table = global<const u8 *>(0x007b9940);
-    const u32 base = 0x007b9940 + *reinterpret_cast<const u32 *>(table + 4);
+    const u8 *const table = global<const u8 *>((u32)(uintptr_t)&gPanel7b9940_7b9940);
+    const u32 base = (u32)(uintptr_t)&gPanel7b9940_7b9940 + *reinterpret_cast<const u32 *>(table + 4);
     Renderer_RemoveFromSlot(gRenderer_87a6d0, nullptr, base, 0x20);
     GuiManager_CallSlot4();
     Global7ca1e0_Release();
@@ -171,7 +172,7 @@ void __cdecl Panel7b9940_Close() {
 }
 
 u32 __cdecl Panel7b9940_Show() {
-    u8 *const self = reinterpret_cast<u8 *>((uintptr_t)0x007b9940);
+    u8 *const self = reinterpret_cast<u8 *>((uintptr_t)&gPanel7b9940_7b9940);
     Gui_ResetQueues();
     const u32 one = gPanel7b9940_6ff148;
     u8 *base = self + vbase(self, 0, 8);
@@ -184,11 +185,11 @@ u32 __cdecl Panel7b9940_Show() {
     at<u32>(base, 0x30) = 0xbf000000;  // -0.5f
     at<u32>(base, 0x34) = 0x3f4ccccd;  // 0.8f
     Renderer_Add(gRenderer_87a6d0, nullptr, self + vbase(self, 0, 4), 0x20);
-    return global<u8>(0x0078d90e) ? GuiManager_CallSlot3() : GuiManager_CallSlot4();
+    return global<u8>((u32)(uintptr_t)&gOptions_78d8d8 + 0x36) ? GuiManager_CallSlot3() : GuiManager_CallSlot4();
 }
 
 u32 __cdecl Panel7b9940_ShowWindow() {
-    u8 *const self = reinterpret_cast<u8 *>((uintptr_t)0x007b9940);
+    u8 *const self = reinterpret_cast<u8 *>((uintptr_t)&gPanel7b9940_7b9940);
     g_open->resetQueues();
     const u32 one = gPanel7b9940_6ff148;
     u8 *base = self + vbase(self, 0, 8);
@@ -209,7 +210,7 @@ u32 __cdecl Panel7b9940_ShowWindow() {
         g_open->setCursor(made, nullptr, 0x15);
         g_open->build(gPanel7b9940_7cb2b0, nullptr, gPanel7b9940_74fa98, 0);
     }
-    return global<u8>(0x0078d90e) ? g_open->slot3() : g_open->slot4();
+    return global<u8>((u32)(uintptr_t)&gOptions_78d8d8 + 0x36) ? g_open->slot3() : g_open->slot4();
 }
 
 void __cdecl Panel7b9940_SizeAtExit() {}

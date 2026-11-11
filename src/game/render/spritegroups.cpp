@@ -7,6 +7,7 @@
 #include "../gfx/texture.h"
 #include "../math/mat4.h"
 #include "../math/x87.h"
+#include "../core/staticobjects.h"
 
 namespace {
 
@@ -38,7 +39,7 @@ void Prepare(const u8 *sprite, u8 *spec, u8 *points) {
         at<u32>(spec, 0x18) = 0;
         const u32 alpha = at<u32>(sprite, 0xc) & 0xff000000;
         at<u32>(spec, 0xc) = alpha == 0 || alpha >= 0xf0000000 ? 0x1256 : 0x556;
-        halfWidth = (float)(X87Reg(halfWidth) * global<float>(0x008bcbcc));
+        halfWidth = (float)(X87Reg(halfWidth) * global<float>((u32)(uintptr_t)&gView_8bcbc8 + 0x4));
     } else {
         const u8 *const texture = at<const u8 *>(holder, 0);
         if (texture) {
@@ -107,7 +108,7 @@ u32 __fastcall SpriteGroups_Draw(u8 *object, void *) {
     typedef s32(__cdecl * CountFn)(u32);
     typedef u8 *(__cdecl * ListFn)(u32);
     typedef void(__cdecl * ReleaseFn)(u8 *);
-    const u32 frame = global<u32>(0x008bcc40), part = global<u32>(0x008bcc44);
+    const u32 frame = global<u32>((u32)(uintptr_t)&gView_8bcbc8 + 0x78), part = global<u32>((u32)(uintptr_t)&gView_8bcbc8 + 0x7c);
     if (at<u32>(object, 4) == frame && at<u32>(object, 8) == part)
         return 1;
     at<u32>(object, 4) = frame;

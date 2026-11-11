@@ -15,6 +15,7 @@
 #include "../world/signtext.h"
 #include "../world/world.h"
 #include "../core/imports.h"
+#include "../core/staticobjects.h"
 
 namespace {
 
@@ -141,7 +142,7 @@ void __fastcall ChatClient_Connect(u8 *self) {
         at<u32>(self, 0) = block ? session_call(IMPORT(Weachatr_Chat_Ctor), (u32)(uintptr_t)block) : 0;
     }
     const u32 host = at<u32>(self, 0x1c) ? at<u32>(self, 0x1c) : 0x006fe5b0u;
-    const s32 port = global<s16>(0x007a1552);
+    const s32 port = global<s16>((u32)(uintptr_t)&gOnlineServers_7a14f0 + 0x62);
     if (!session_call(IMPORT(Weachatr_Chat_Connect), at<u32>(self, 0), host, port, 0x004e61f0u, (u32)(uintptr_t)Global7cc53c_Pick7cc4f0())) {
         (*reinterpret_cast<void(__stdcall *const *)(u32)>((uintptr_t)IMPORT(Kernel32_OutputDebugStringA)))(reinterpret_cast<uintptr_t>(&gChatClient_Connect_75c0fc));
     } else {

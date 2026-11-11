@@ -7,6 +7,7 @@
 #include "gameheap.h"
 #include "movs.h"
 #include "../world/steering.h"
+#include "staticobjects.h"
 
 namespace {
 
@@ -279,7 +280,7 @@ void __fastcall Bands_CollectTextures(u8 *object, void *, u32 *ids, s32 *count, 
             if (cell[0] & 1)
                 continue;
             u32 texture;
-            if ((*reinterpret_cast<const u8 *>((uintptr_t)0x008bd550) & 4) && column >= at<s32>(object, 0x234) &&
+            if ((*reinterpret_cast<const u8 *>((uintptr_t)&gTexSettings_8bd550) & 4) && column >= at<s32>(object, 0x234) &&
                 column <= at<s32>(object, 0x23c) && row >= at<s32>(object, 0x238) && row <= at<s32>(object, 0x240)) {
                 texture = at<u32>(object, 0x248 + 4 * overrides++);
             } else {

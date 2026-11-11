@@ -10,6 +10,7 @@
 #include "gauge.h"
 #include "../ui/dialog7cb398.h"
 #include "../ui/dialog7ca2e8.h"
+#include "../core/staticobjects.h"
 
 namespace {
 
@@ -40,7 +41,7 @@ void SetMarksXOfKind(u8 *gauge, u32 kind) {
 // A message 0x101's id's kind: -1 for another id.
 s32 KindOfRadio(u32 index) { return index == 0 ? 2 : index == 1 ? 0 : index == 2 ? 1 : -1; }
 
-u8 *Graph1() { return reinterpret_cast<u8 *>((uintptr_t)0x007ca250); }
+u8 *Graph1() { return reinterpret_cast<u8 *>((uintptr_t)&gStatic_7ca228 + 0x28); }
 u8 *Graph2() { return reinterpret_cast<u8 *>((uintptr_t)0x007cb318); }
 
 void SetMarksY1() {
@@ -83,7 +84,7 @@ void __cdecl StatsGraph_PlotFloat(u8 *gauge, const u8 *line, const u8 *colour, s
 }
 
 void __cdecl StatsGraph_Lines(u8 *gauge) {
-    static const u32 kColours[8] = {0x007ca2b0, 0x007ca2c0, 0x007ca2c8, 0x007ca2d8, 0x007ca2a8, 0x007ca2e0, 0x007ca298, 0x007ca2b8};
+    static const u32 kColours[8] = {(u32)(uintptr_t)&gPalColour_7ca298 + 0x18, (u32)(uintptr_t)&gPalColour_7ca298 + 0x28, (u32)(uintptr_t)&gPalColour_7ca298 + 0x30, (u32)(uintptr_t)&gPalColour_7ca298 + 0x40, (u32)(uintptr_t)&gPalColour_7ca298 + 0x10, (u32)(uintptr_t)&gPalColour_7ca298 + 0x48, (u32)(uintptr_t)&gPalColour_7ca298, (u32)(uintptr_t)&gPalColour_7ca298 + 0x20};
     const u8 *const record = reinterpret_cast<const u8 *>((uintptr_t)GameTable7cfb90_Get1da720_519510(gWorldPtr));
     for (u32 k = 0; k < 8; ++k)
         if (reinterpret_cast<u8 &>(gDialog7ca2e8_751fa0) & (1u << k)) StatsGraph_PlotU32(gauge, record + kLines[k], reinterpret_cast<const u8 *>((uintptr_t)kColours[k]), 1, global<u32>(0x007ca2ec));
@@ -117,7 +118,7 @@ s32 __cdecl StatsGraph7cb318_ShownMax() {
 void __cdecl StatsGraph_Redraw() {
     u8 *const dialog = global<u8 *>(0x007ca2e8);
     if (!dialog) return;
-    u8 *const gauge = reinterpret_cast<u8 *>((uintptr_t)0x007ca250);
+    u8 *const gauge = reinterpret_cast<u8 *>((uintptr_t)&gStatic_7ca228 + 0x28);
     const s32 high = StatsGraph_ShownMax();
     Gauge_SetMarksY(gauge, nullptr, (u32)StatsGraph_ShownMin(), (u32)high, 10);
     Gauge_DrawInWindow(Window_FindChild(dialog, nullptr, 0x12272), gauge, g_env->lines49aa30);

@@ -8,6 +8,7 @@
 #include "../math/x87.h"
 #include "../gfx/texcache.h"
 #include "fixedverts.h"
+#include "../core/staticobjects.h"
 
 namespace {
 
@@ -53,7 +54,7 @@ X87Reg AnchoredY(const u8 *object, const u8 *panel, u32 flags, float y, float sc
 float AnchoredX(const u8 *object, const u8 *panel, u32 flags, float x) {
     if (!(flags & 0x70000000))
         return x;
-    const X87Reg part = X87Reg(at<float>(object, 0x2c)) / X87Reg((double)at<u16>(panel, 0xc)) * X87Reg((double)at<s16>(object, 0x30)) * global<float>(0x008bcbcc);
+    const X87Reg part = X87Reg(at<float>(object, 0x2c)) / X87Reg((double)at<u16>(panel, 0xc)) * X87Reg((double)at<s16>(object, 0x30)) * global<float>((u32)(uintptr_t)&gView_8bcbc8 + 0x4);
     const X87Reg twice = part + part;
     if (flags & 0x20000000)
         return (float)(x - twice * kHalf);
@@ -82,18 +83,18 @@ u32 __fastcall TiledPanel_Draw(u8 *object, void *) {
     at<u32>(spec, 8) = at<u32>(object, 0x24);
     at<u32>(spec, 0x28) = 2;
 
-    const float screenH = (float)X87Reg((double)global<s32>(0x008bcbd4));
+    const float screenH = (float)X87Reg((double)global<s32>((u32)(uintptr_t)&gView_8bcbc8 + 0xc));
     const X87Reg top = AnchoredY(object, panel, flags, at<float>(object, 0x18), screenH);
     const float x = AnchoredX(object, panel, flags, at<float>(object, 0x14));
     const s32 tile = Tile();
     s32 pixelY = Pixel(top - kLessOne, screenH);
-    const float toX = (float)(kOne / X87Reg((double)global<s32>(0x008bcbd0)));
-    const float toY = (float)(kOne / X87Reg((double)global<s32>(0x008bcbd4)));
+    const float toX = (float)(kOne / X87Reg((double)global<s32>((u32)(uintptr_t)&gView_8bcbc8 + 0x8)));
+    const float toY = (float)(kOne / X87Reg((double)global<s32>((u32)(uintptr_t)&gView_8bcbc8 + 0xc)));
     if (rows <= 0)
         return 1;
     const float left = (float)(X87Reg(x) - kLessOne);
     for (s32 row = 0; row < rows; ++row, pixelY += tile) {
-        s32 pixelX = Pixel(X87Reg((double)global<s32>(0x008bcbd0)), left);
+        s32 pixelX = Pixel(X87Reg((double)global<s32>((u32)(uintptr_t)&gView_8bcbc8 + 0x8)), left);
         if (columns <= 0)
             continue;
         const float upper = (float)(X87Reg((double)(s32)((u32)pixelY * 2)) * toY - kOne);

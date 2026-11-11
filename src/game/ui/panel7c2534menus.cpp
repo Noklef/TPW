@@ -12,6 +12,7 @@
 #include "../online/chatcommand.h"
 #include "dialog74fb20.h"
 #include "../world/world.h"
+#include "../core/staticobjects.h"
 
 extern "C" const u16 *__cdecl Language_WideText(u32 id);
 
@@ -128,9 +129,9 @@ void __cdecl Panel7c2534_Open(u32 flag) {
     } else {
         g_open->buildMain();
         g_open->resetChild(1);
-        if (global<u32>(0x00786ba4) == 1) {
-            g_open->leave(reinterpret_cast<u8 *>((uintptr_t)0x00786b68), nullptr, 0, 0);
-            global<u32>(0x00786ba4) = 0;
+        if (global<u32>((u32)(uintptr_t)&gNamedObjects_786b68 + 0x3c) == 1) {
+            g_open->leave(reinterpret_cast<u8 *>((uintptr_t)&gNamedObjects_786b68), nullptr, 0, 0);
+            global<u32>((u32)(uintptr_t)&gNamedObjects_786b68 + 0x3c) = 0;
             gPanel7c2534menus_7c2518 = 0;
             g_open->refresh();
             g_open->show(gPanel7c2534menus_7c2534, nullptr, flag);

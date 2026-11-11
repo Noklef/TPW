@@ -9,6 +9,7 @@
 #include "../online/session.h"
 #include "focus.h"
 #include "window.h"
+#include "../core/staticobjects.h"
 
 namespace {
 
@@ -30,7 +31,7 @@ void closeDialog() {
 s32 cancel(u8 *window) {
     if (parentOf(window) == global<u8 *>(0x00faa5d8)) g_env->send(ownerWindow(), 6, 1, 0);
     closeDialog();
-    if (const auto callback = global<void(__cdecl *)()>(0x007cca48)) callback();
+    if (const auto callback = global<void(__cdecl *)()>((u32)(uintptr_t)&gClass70293c_7cc988 + 0xc0)) callback();
     return 0;
 }
 
@@ -52,11 +53,11 @@ extern "C" s32 __cdecl Dialog7cc984_Handler(u8 *window, u32 message, u32 a, u32 
         if (a == 0xfffffffe) return cancel(window);
         if (a == 0xe592e) {
             closeFromParent(window);
-            g_env->request(g_env->online(), nullptr, 0x007cc988, 0x004c07d0, 0);
+            g_env->request(g_env->online(), nullptr, (u32)(uintptr_t)&gClass70293c_7cc988, 0x004c07d0, 0);
             return 0;
         }
         if (a == 0xe592f) {
-            const u32 park = global<u32>(0x007cc990);
+            const u32 park = global<u32>((u32)(uintptr_t)&gClass70293c_7cc988 + 0x8);
             g_env->unpublish(g_env->online(), nullptr, park);
             closeFromParent(window);
             g_env->send(ownerWindow(), 6, 1, 0);

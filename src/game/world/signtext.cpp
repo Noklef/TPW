@@ -7,6 +7,7 @@
 #include "../ui/dialog74fb20.h"
 #include "signtext.h"
 #include "object.h"
+#include "../core/staticobjects.h"
 
 namespace {
 
@@ -49,7 +50,7 @@ void set_line(u8 *sign, const u16 *text, u32 offset, void(__fastcall *save_line)
     u16 *const line = reinterpret_cast<u16 *>(sign + offset);
     g_env->copy(line, text, 0x21);
     if (!mode_is_one() && is_own(sign)) save_line(g_env->save(), nullptr, text);
-    u8 *const net = reinterpret_cast<u8 *>((uintptr_t)0x00785a08);
+    u8 *const net = reinterpret_cast<u8 *>((uintptr_t)&gActionRec_785a08);
     const u32 cell = is_own(sign) ? 0xea60 : (((u32)at<u8>(sign, 7) << 7) + at<u8>(sign, 5) + 1) & 0xffff;
     g_env->send(net, nullptr, message, cell, CRT_wcslen(line), text);
 }

@@ -15,6 +15,7 @@
 #include "window.h"
 #include "panel7cc218.h"
 #include "../core/soundset.h"
+#include "../core/staticobjects.h"
 
 using namespace panelparts;
 
@@ -30,7 +31,7 @@ void Panel7cc408_SetEnv(const Panel7cc408Env *env) { g_env = env ? env : &kGameE
 extern "C" {
 
 void __fastcall Panel7cc408_Refresh(u8 *self) {
-    g_env->countGroup(self, nullptr, *reinterpret_cast<const u32 *>((uintptr_t)0x007cc430));
+    g_env->countGroup(self, nullptr, *reinterpret_cast<const u32 *>((uintptr_t)&gStatic_7cc408 + 0x28));
     u8 *const child = Window_FindChild(*reinterpret_cast<u8 **>(self + 0x10), nullptr, 0x3734);
     u8 *const memory = static_cast<u8 *>(GameHeap_Alloc(0x1a4));
     g_env->setImpl(child, nullptr, memory ? g_env->partText(memory, nullptr, 0) : nullptr);
@@ -55,7 +56,7 @@ void __fastcall Panel7cc408_ShowPreview(u8 *self) {
 }
 
 void __fastcall Panel7cc408_Show(u8 *self, void *, u8 *thing) {
-    *reinterpret_cast<u8 **>((uintptr_t)0x007cc430) = thing;
+    *reinterpret_cast<u8 **>((uintptr_t)&gStatic_7cc408 + 0x28) = thing;
     WindowAt10_Create(self, nullptr, reinterpret_cast<u8 *>((uintptr_t)&gPanel7cc408_Show_7575e0), 0x004b7720, 0x3722, 0x3723, 0);
     Sound_PlayAt(0, gSoundCategories.kids, 0x81, 0, 0, 0);
     Advisor_PostId(0x12e);

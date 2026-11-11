@@ -15,6 +15,7 @@
 #include "dialog7cc2ec.h"
 #include "dialogbase.h"
 #include "window.h"
+#include "../core/staticobjects.h"
 
 namespace {
 
@@ -34,7 +35,7 @@ void showBudget() {
     s32 total = 0;
     for (u32 i = 0; i < 5; ++i) total += budget()[i];
     vcall<void>(Window_FindChild(figures, nullptr, 0x2df), 0x1c, total);
-    vcall<void>(Window_FindChild(figures, nullptr, 0x2e4), 0x1c, global<s32>(0x007cc2d4) - total - global<s32>(0x007cc2e4));
+    vcall<void>(Window_FindChild(figures, nullptr, 0x2e4), 0x1c, global<s32>((u32)(uintptr_t)&gStatic_7cc298 + 0x3c) - total - global<s32>((u32)(uintptr_t)&gStatic_7cc298 + 0x4c));
 }
 
 }  // namespace

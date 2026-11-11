@@ -19,6 +19,7 @@
 #include "../render/d3dsetup.h"
 #include "../online/postcardsend.h"
 #include "../core/imports.h"
+#include "../core/staticobjects.h"
 
 namespace {
 
@@ -96,8 +97,8 @@ void __cdecl GamePause_Resume() {
     const GamePauseEnv *const E = g_env;
     gDialog7cc184handler_7cc1a0 = 0;
     if (!SettingOne()) {
-        global<u32>(0x00786ba4) = 1;
-        E->enter(object(0x00786b68));
+        global<u32>((u32)(uintptr_t)&gNamedObjects_786b68 + 0x3c) = 1;
+        E->enter(object((u32)(uintptr_t)&gNamedObjects_786b68));
     }
     GamePause_RemakePicture();
     E->setShown(global<u8 *>(0x00faa5d8), nullptr, 1);
@@ -121,8 +122,8 @@ void __cdecl GamePause_Hide() {
     if (SettingOne()) {
         E->choose();
     } else {
-        E->leave(object(0x00786b68), nullptr, 0, 0);
-        global<u32>(0x00786ba4) = 0;
+        E->leave(object((u32)(uintptr_t)&gNamedObjects_786b68), nullptr, 0, 0);
+        global<u32>((u32)(uintptr_t)&gNamedObjects_786b68 + 0x3c) = 0;
     }
     E->setShown(global<u8 *>(0x00faa5d8), nullptr, 0);
     E->cursorSlot3();

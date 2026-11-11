@@ -23,6 +23,7 @@
 #include "session.h"
 #include "../ui/window7cc8c0handler.h"
 #include "../core/imports.h"
+#include "../core/staticobjects.h"
 
 namespace {
 
@@ -57,7 +58,7 @@ u32 Connect(u32 slot, u8 *connection, u32 hostAt, u32 portAt, u32 callback) {
     return (*reinterpret_cast<const Method *>((uintptr_t)slot))(connection, nullptr, host, picked, port, callback);
 }
 
-u32 LanguageId() { return Language_Id(reinterpret_cast<const u8 *>((uintptr_t)0x0078b530)); }
+u32 LanguageId() { return Language_Id(reinterpret_cast<const u8 *>((uintptr_t)&gLanguage_78b530)); }
 
 // News::GetGameServerDetails / GetGameNews through the slot (language, the game's GUID 0x702808, 0).
 u32 NewsRequest(u32 slot, u8 *news) {
@@ -88,7 +89,7 @@ void __fastcall Online_LogIn(u8 *session, void *, const u16 *name, const u16 *pa
     Online_ReleaseLogin(session);
     at<u8 *>(session, 0) = NewConnection(IMPORT(Weaauthr_Auth_Ctor));   // Auth::Auth
     Say(reinterpret_cast<uintptr_t>(&gOnline_LogIn_77343c));
-    if (Connect(IMPORT(Weaauthr_Auth_Connect), at<u8 *>(session, 0), 0x007a1514, 0x007a1554, 0x005b5ce0) != 1) {
+    if (Connect(IMPORT(Weaauthr_Auth_Connect), at<u8 *>(session, 0), (u32)(uintptr_t)&gOnlineServers_7a14f0 + 0x24, (u32)(uintptr_t)&gOnlineServers_7a14f0 + 0x64, 0x005b5ce0) != 1) {
         at<u32>(session, 0x68) = 0x4f;
         Online_LoginFinish(session, nullptr, 0);
         return;
@@ -139,7 +140,7 @@ void __fastcall Online_OpenNews(u8 *session) {
     at<u8 *>(session, 0x6c) = NewConnection(IMPORT(Weanewsr_News_Ctor));   // News::News
     Say(reinterpret_cast<uintptr_t>(&gOnline_OpenNews_7734e8));
     g_env->showText(0xf4);
-    if (Connect(IMPORT(Weanewsr_News_Connect), at<u8 *>(session, 0x6c), 0x007a1534, 0x007a1558, 0x005b6630) != 1) {
+    if (Connect(IMPORT(Weanewsr_News_Connect), at<u8 *>(session, 0x6c), (u32)(uintptr_t)&gOnlineServers_7a14f0 + 0x44, (u32)(uintptr_t)&gOnlineServers_7a14f0 + 0x68, 0x005b6630) != 1) {
         Say(reinterpret_cast<uintptr_t>(&gOnline_OpenNews_7734c8));
         at<u32>(session, 0xd0) = 0x4f;
         Online_NewsFinish(session);
@@ -232,9 +233,9 @@ void __fastcall Online_NewsFinish(u8 *session) {
         return;
     }
     String path;
-    String_CtorCopy(&path, nullptr, reinterpret_cast<const StringView *>((uintptr_t)0x00f816e8));
-    vcall<void>(&path, 0x28, 0x00f7cd80u);
-    vcall<void>(&path, 0x28, 0x00f7c9f0u);
+    String_CtorCopy(&path, nullptr, reinterpret_cast<const StringView *>((uintptr_t)&gStrings5_f816c0 + 0x28));
+    vcall<void>(&path, 0x28, (u32)(uintptr_t)&gString_f7cd80);
+    vcall<void>(&path, 0x28, (u32)(uintptr_t)&gString_f7c9f0);
     StreamBase stream;
     StreamBase_Ctor(&stream);
     stream.vtable = reinterpret_cast<void *const *>((u32)(uintptr_t)FileStream_vtable);
@@ -243,7 +244,7 @@ void __fastcall Online_NewsFinish(u8 *session) {
     u8 *const inner = at<u8 *>(&stream, 4);
     const s32 written = inner ? vcall<s32>(inner, 8, at<u32>(session, 0x84), at<u32>(session, 0x80)) : -1;
     StreamBase_Close(&stream);
-    if (written >= 0 && g_env->loadBalance(reinterpret_cast<u8 *>((uintptr_t)0x00785828), nullptr, path.data, 1) == 1)
+    if (written >= 0 && g_env->loadBalance(reinterpret_cast<u8 *>((uintptr_t)&gBalanceOnline), nullptr, path.data, 1) == 1)
         g_env->applyBalance();
     Online_ReleaseNews(session);
     if (!at<u32>(session, 0x70)) {

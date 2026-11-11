@@ -15,6 +15,7 @@
 #include "staffsteps.h"
 #include "staffwork.h"
 #include "../core/soundset.h"
+#include "../core/staticobjects.h"
 
 namespace {
 
@@ -47,7 +48,7 @@ bool arrived(u8 *staff, u32 sound) {
 // The rest over: true past the level's wait (from +0x200).
 bool restOver(u8 *staff, u32 sound) {
     sometimesSound(staff, sound);
-    return tick() > global<u32>(0x00785330 + (at<u32>(staff, 0x1e4) << 4)) + at<u32>(staff, 0x200);
+    return tick() > global<u32>(((u32)(uintptr_t)&gBalanceLevel + 0x2f0) + (at<u32>(staff, 0x1e4) << 4)) + at<u32>(staff, 0x200);
 }
 
 void guardWork(u8 *guard) {
@@ -102,7 +103,7 @@ void __fastcall Handyman_Step(u8 *handyman) {
     case 0xa: g_env->toJob(handyman); break;
     case 0xb:
         g_env->tireB(handyman);
-        if (tick() > global<u32>(0x007853ec + at<u32>(handyman, 0x1e4) * 12) + at<u32>(handyman, 0x214)) {
+        if (tick() > global<u32>(((u32)(uintptr_t)&gBalanceLevel + 0x3ac) + at<u32>(handyman, 0x1e4) * 12) + at<u32>(handyman, 0x214)) {
             u8 *const object = global<u8 *>(0x007cfb90 + at<u16>(handyman, 0x21a) * 20u);
             g_env->resetCondition(object);
             g_env->close(object);
@@ -126,7 +127,7 @@ void __fastcall Entertainer_Step(u8 *entertainer) {
     case 3: g_env->atRest(entertainer); break;
     case 0xe:
         g_env->tireB(entertainer);
-        if (tick() > global<u32>(0x00785398 + (at<u32>(entertainer, 0x1e4) << 4)) + at<u32>(entertainer, 0x214)) {
+        if (tick() > global<u32>(((u32)(uintptr_t)&gBalanceLevel + 0x358) + (at<u32>(entertainer, 0x1e4) << 4)) + at<u32>(entertainer, 0x214)) {
             float x, y, z;
             u32 r15;
             g_env->position(at<s32>(entertainer, 0xc), reinterpret_cast<u32 *>(&x), reinterpret_cast<u32 *>(&y), reinterpret_cast<u32 *>(&z), &r15);

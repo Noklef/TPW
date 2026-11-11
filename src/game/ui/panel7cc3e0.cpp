@@ -12,6 +12,7 @@
 #include "panelparts.h"
 #include "window.h"
 #include "panel7cc218.h"
+#include "../core/staticobjects.h"
 
 using namespace panelparts;
 
@@ -22,7 +23,7 @@ u8 *window(u8 *self) { return *reinterpret_cast<u8 **>(self + 0x14); }
 extern "C" {
 
 void __fastcall Panel7cc3e0_Open(u8 *self) {
-    if (Things_CountGroup(self, nullptr, *reinterpret_cast<const u32 *>((uintptr_t)0x007cc3d8)) < 2) {
+    if (Things_CountGroup(self, nullptr, *reinterpret_cast<const u32 *>((uintptr_t)&gStatic_7cc3b0 + 0x28)) < 2) {
         Window_SetShown(Window_FindChild(*reinterpret_cast<u8 **>(self + 0x10), nullptr, 0x520a), nullptr, 0);
         Window_SetShown(Window_FindChild(*reinterpret_cast<u8 **>(self + 0x10), nullptr, 0x520b), nullptr, 0);
     }
@@ -30,7 +31,7 @@ void __fastcall Panel7cc3e0_Open(u8 *self) {
 }
 
 void __fastcall Panel7cc3e0_Show(u8 *self, void *, u8 *thing) {
-    *reinterpret_cast<u8 **>((uintptr_t)0x007cc3d8) = thing;
+    *reinterpret_cast<u8 **>((uintptr_t)&gStatic_7cc3b0 + 0x28) = thing;
     WindowAt10_Create(self, nullptr, reinterpret_cast<u8 *>((uintptr_t)&gPanel7cc3e0_Show_7573c8), 0x004b67f0, 0x520c, 0x520d, 0);
     Advisor_PostId(0x12d);
 }

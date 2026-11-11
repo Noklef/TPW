@@ -1,6 +1,7 @@
 #include "mode.h"
 
 #include <cstdint>
+#include "../core/staticobjects.h"
 
 namespace {
 
@@ -35,9 +36,9 @@ void __cdecl RenderMode_InitUnusedOne() { *reinterpret_cast<float *>(0x0079d9c4)
 void __cdecl RenderMode_InitUnusedEpsilon() { *reinterpret_cast<float *>(0x0079d9cc) = 1.0f / 8388608.0f; }
 
 u8 __cdecl Flag54dcc0_Test() {
-    if (global<u32>(0x0078d968))
+    if (global<u32>((u32)(uintptr_t)&gOptions_78d8d8 + 0x90))
         return (u8)((global<u32>(0x0079d86c) >> 11) & 1);
-    const u32 mode = global<u32>(0x00785874);
+    const u32 mode = global<u32>((u32)(uintptr_t)&gBalanceGraphics + 0xc);
     return mode == 0 || mode == 1 ? 1 : 0;
 }
 }

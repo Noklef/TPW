@@ -17,6 +17,7 @@
 #include "cellmessage.h"
 #include "../math/intpair.h"
 #include "focuscell.h"
+#include "../core/staticobjects.h"
 
 namespace {
 
@@ -177,7 +178,7 @@ u32 __fastcall MapCell_CanBuild(u8 *cell, void *, u32 kind, u32 alone) {
     }
     if (Kinds_Compatible(cell, nullptr, kind) && type(cell) != kind && gMapclick_8186d4 == 0 && !(kind == 3 && type(cell) == 1))
         Global81af4c_Add(price);
-    if (global<u32>(0x00785a2c) == 0 && Global81af4c_Get_52fbc0() != 0) {
+    if (global<u32>((u32)(uintptr_t)&gActionRec_785a08 + 0x24) == 0 && Global81af4c_Get_52fbc0() != 0) {
         const s32 have = (s32)money();
         if ((s32)Global81af4c_Get_52fbc0() > have) {
             gCellbuild_816d50 = 1;
@@ -322,7 +323,7 @@ u32 __fastcall MapCell_CanBuildTrack(u8 *cell, void *, u32 kind, u32 alone, u32 
     else
         add = (kind == 0 || t == 0) && t != kind;
     if (add && gMapclick_8186d4 == 0) Global81af4c_Add(price);
-    if (global<u32>(0x00785a2c) == 0 && kind != 0xe && kind != 0x13) {
+    if (global<u32>((u32)(uintptr_t)&gActionRec_785a08 + 0x24) == 0 && kind != 0xe && kind != 0x13) {
         const s32 have = (s32)money();
         if ((s32)Global81af4c_Get_52fbc0() > have) {
             if (alone == 0) {

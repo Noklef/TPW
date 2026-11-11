@@ -20,6 +20,7 @@
 #include "../render/spritequeue.h"
 #include "../render/rendererframe.h"
 #include "../sprite/draw.h"
+#include "../core/staticobjects.h"
 
 namespace {
 
@@ -149,7 +150,7 @@ u8 *__fastcall SpriteFrame_Init(u8 *frame) {
 }
 
 u32 __fastcall SpriteImage_AllocPixels(u8 *image, void *, u32 width, u32 height) {
-    const u32 pixel = reinterpret_cast<const u32 *>((uintptr_t)0x00701fe0)[*reinterpret_cast<const u32 *>((uintptr_t)0x008bd554)];
+    const u32 pixel = reinterpret_cast<const u32 *>((uintptr_t)0x00701fe0)[*reinterpret_cast<const u32 *>((uintptr_t)&gTexSettings_8bd550 + 0x4)];
     at<u16>(image, 0xe) = (u16)height;
     at<u16>(image, 0xc) = (u16)width;
     at<u32>(image, 4) = TrackedGlobal_Alloc(pixel * (height & 0xffff) * (width & 0xffff));
@@ -252,7 +253,7 @@ u32 __fastcall SpriteImage_MakeTextures(u8 *image, void *, u32 x, u32 y) {
             at<u32>(at<u8 *>(image, 0) + offset, 8) = 0x5180200;
             Texture_SetSize(at<u8 *>(image, 0) + offset, nullptr, width, height);
             at<u16>(at<u8 *>(image, 0) + offset, 0x34) = at<u16>(image, 0xc);
-            const u32 pixel = reinterpret_cast<const u32 *>((uintptr_t)0x00701fe0)[global<u32>(0x008bd554)];
+            const u32 pixel = reinterpret_cast<const u32 *>((uintptr_t)0x00701fe0)[global<u32>((u32)(uintptr_t)&gTexSettings_8bd550 + 0x4)];
             at<u32>(at<u8 *>(image, 0) + offset, 0x40) = (y * at<u16>(image, 0xc) + x + column) * pixel + at<u32>(image, 4);
         }
     }
@@ -339,8 +340,8 @@ u32 __fastcall SpriteFrames_Load(u8 *set, void *, u8 *stream, u32) {
         at<u32>(set, 0xc) = TrackedGlobal_Alloc(0x400);
         if (!at<u32>(set, 0xc)) return failed();
         Object_CallSlot8Product(at<u32>(set, 0xc), 0x400, 1, stream);
-        if (global<u32>(0x008bd554) == 2) {   // the palette's dwords made pixels of this format, in place
-            const u8 *const table = TexFormat_Table(reinterpret_cast<u8 *>((uintptr_t)0x008bd550));
+        if (global<u32>((u32)(uintptr_t)&gTexSettings_8bd550 + 0x4) == 2) {   // the palette's dwords made pixels of this format, in place
+            const u8 *const table = TexFormat_Table(reinterpret_cast<u8 *>((uintptr_t)&gTexSettings_8bd550));
             u8 *const palette = at<u8 *>(set, 0xc);
             for (u32 i = 0; i < 0x100; ++i) {
                 const u32 colour = at<u32>(palette, i * 4);
@@ -410,7 +411,7 @@ void __fastcall SpriteFrame_SetSize30(u8 *frame, void *, s32 width, s32 height) 
 }
 
 u32 __fastcall SpriteFrame_PlaceQuad(u8 *frame, void *, float *quad, float width, float height) {
-    const X87Reg w = NonZero(X87Reg(width)) ? X87Reg(width) : X87Reg(at<float>(frame, 0x2c)) * 20.0f * global<float>(0x008bcbcc);
+    const X87Reg w = NonZero(X87Reg(width)) ? X87Reg(width) : X87Reg(at<float>(frame, 0x2c)) * 20.0f * global<float>((u32)(uintptr_t)&gView_8bcbc8 + 0x4);
     const float h = NonZero(X87Reg(height)) ? height : (float)(X87Reg(at<float>(frame, 0x2c)) * 20.0f);   // 0x70200c
     const u8 *const image = at<const u8 *>(frame, 0x28);
     const s32 offsetX = at<s16>(image, 0x14);
@@ -439,10 +440,10 @@ u32 __fastcall SpriteFrame_PlaceQuad(u8 *frame, void *, float *quad, float width
     quad[12] = x0f;
     quad[4] = (float)x1;
     quad[8] = (float)x1;
-    if ((at<u32>(frame, 0x10) & 0x200) && (global<u32>(0x008bcbc8) & 0x1000000)) {
+    if ((at<u32>(frame, 0x10) & 0x200) && (global<u32>((u32)(uintptr_t)&gView_8bcbc8) & 0x1000000)) {
         const X87Reg inverse = X87Reg(1.0f) / quad[3];   // 0x702030
-        const X87Reg dx = X87_SubR(inverse * x0f, X87Reg(global<float>(0x008bd4f0)));
-        const X87Reg dy = X87_SubR(X87Reg(quad[1]) * inverse, X87Reg(global<float>(0x008bd4f4)));
+        const X87Reg dx = X87_SubR(inverse * x0f, X87Reg(global<float>((u32)(uintptr_t)&gView_8bcbc8 + 0x928)));
+        const X87Reg dy = X87_SubR(X87Reg(quad[1]) * inverse, X87Reg(global<float>((u32)(uintptr_t)&gView_8bcbc8 + 0x92c)));
         const X87Reg dxx = dx * dx;
         const X87Reg across = X87Reg(right) - left;
         const float dyf = (float)dy;
@@ -457,9 +458,9 @@ u32 __fastcall SpriteFrame_PlaceQuad(u8 *frame, void *, float *quad, float width
         const X87Reg reach = (dd + aaf) * 0.0002f;   // 0x70203c
         const float distance = (float)(dyy + dxxf);
         if (reach.v > distance) {
-            const u8 *const picked = global<u8 *>(0x008bd4fc);
+            const u8 *const picked = global<u8 *>((u32)(uintptr_t)&gView_8bcbc8 + 0x934);
             if (!picked || !(quad[3] >= at<float>(picked, 0xc)))
-                global<u8 *>(0x008bd4fc) = frame;
+                global<u8 *>((u32)(uintptr_t)&gView_8bcbc8 + 0x934) = frame;
         }
     }
     if (at<u32>(frame, 0x10) & 0x80000) {
@@ -472,7 +473,7 @@ u32 __fastcall SpriteFrame_PlaceQuad(u8 *frame, void *, float *quad, float width
         quad[14] = (float)z2;
         quad[10] = z2f;
         for (u32 i = 1; i < 16; i += 4)
-            quad[i] = (float)(X87Reg(global<float>(0x008bd4ec)) + quad[i]);
+            quad[i] = (float)(X87Reg(global<float>((u32)(uintptr_t)&gView_8bcbc8 + 0x924)) + quad[i]);
         if (at<u8>(frame, 0x10) & 0x80)
             Quad_TurnXZ(quad, at<float>(frame, 0x30));
         return result;
@@ -515,7 +516,7 @@ u32 __fastcall SpriteFrame_FillItem(u8 *frame, void *, u8 *item) {
     at<u32>(item, 0) = 0;   // (sic: the flag 4 just set is lost)
     const u32 flags = at<u32>(frame, 0x10);
     if (flags & 0x400)
-        at<float>(frame, 0x18) = (float)(GroundAt(at<float>(frame, 0x14), at<float>(frame, 0x1c)) + global<float>(0x008bd4ec) +
+        at<float>(frame, 0x18) = (float)(GroundAt(at<float>(frame, 0x14), at<float>(frame, 0x1c)) + global<float>((u32)(uintptr_t)&gView_8bcbc8 + 0x924) +
                                          at<float>(frame, 0x18));
     u32 placed;
     if (flags & 0x40000) {
@@ -532,7 +533,7 @@ u32 __fastcall SpriteFrame_FillItem(u8 *frame, void *, u8 *item) {
         at<u32>(item, 0x28) = 2;
         SpreadVertex(item);
         const float scale = (float)(X87Reg(at<float>(frame, 0x2c)) * gSpriteFrame_Twentieth_702008);
-        const float wide = (float)(X87Reg(global<float>(0x008bcbcc)) * scale);
+        const float wide = (float)(X87Reg(global<float>((u32)(uintptr_t)&gView_8bcbc8 + 0x4)) * scale);
         placed = SpriteFrame_PlaceQuad(frame, nullptr, at<float *>(item, 4), wide, scale);
     } else {
         at<u32>(item, 0x28) = 0;
@@ -551,7 +552,7 @@ u32 __fastcall SpriteFrame_FillItem(u8 *frame, void *, u8 *item) {
                 at<u32>(quad, k) = at<u32>(frame, k);
             SpreadVertex(item);
             placed = SpriteFrame_PlaceQuad(frame, nullptr, at<float *>(item, 4), 0.0f, 0.0f);
-            if ((at<u32>(frame, 0x10) & 0x200) && !(global<u32>(0x008bcbc8) & 0x2000)) {
+            if ((at<u32>(frame, 0x10) & 0x200) && !(global<u32>((u32)(uintptr_t)&gView_8bcbc8) & 0x2000)) {
                 u8 *q = at<u8 *>(item, 4);
                 const X87Reg last = at<float>(q, 0x38);
                 at<float>(q, 0x38) = (float)X87_SubR(X87_DivR(last - global<float>(0x00702038), gSpriteFrame_Fifth_702044), last);
@@ -581,7 +582,7 @@ u32 __fastcall SpriteFrame_GroundQuad(u8 *frame, void *, float *quad, u32 matrix
     const u8 *const image = at<u8 *>(frame, 0x28);
     const X87Reg big = X87Reg(at<float>(frame, 0x2c)) * gSpriteFrame_Twenty_70200c;   // 20
     const float bigf = (float)big;
-    const X87Reg wide = big * global<float>(0x008bcbcc);
+    const X87Reg wide = big * global<float>((u32)(uintptr_t)&gView_8bcbc8 + 0x4);
     const s32 offX = at<s16>(image, 0x14), offY = at<s16>(image, 0x16);
     const u32 fullW = at<u16>(image, 0x10), fullH = at<u16>(image, 0x12);
     float left = (float)(X87Reg((double)offX) / (double)(s32)fullW * wide * width);
@@ -631,7 +632,7 @@ u32 __fastcall SpriteFrame_GroundQuad(u8 *frame, void *, float *quad, u32 matrix
     }
     TransformQuad(matrix, quad);
     const X87Reg base = X87Reg((at<u32>(frame, 0x10) & 0x800) ? at<float>(frame, 0x20) : gSpriteFrame_Zero_702034) +
-                        global<float>(0x008bd4ec);
+                        global<float>((u32)(uintptr_t)&gView_8bcbc8 + 0x924);
     for (s32 k = 3; k >= 0; --k)
         quad[4 * k + 1] = (float)(GroundAt(quad[4 * k], quad[4 * k + 2]) + base + quad[4 * k + 1]);
     TransformQuad(global<u32>(0x0087b088), quad);

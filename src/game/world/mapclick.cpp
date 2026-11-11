@@ -40,6 +40,7 @@
 #include "tracktextures.h"
 #include "../core/soundset.h"
 #include "pathdrag.h"
+#include "../core/staticobjects.h"
 
 namespace {
 
@@ -316,9 +317,9 @@ void MapClick_SetEnv(const MapClickEnv *e) { g_env = e ? e : &kGameEnv; }
 
 void __cdecl GameMode_MapClick(s32 x, s32 y, u32 flags, u32 useStored) {
     const MapClickEnv *const E = g_env;
-    ActionRec *const record = reinterpret_cast<ActionRec *>((uintptr_t)0x00785a08);
+    ActionRec *const record = reinterpret_cast<ActionRec *>((uintptr_t)&gActionRec_785a08);
     // (x and y both 0: Debug_Printf "HUH?", left out)
-    if (global<u32>(0x00785a2c) != 0 && global<u8>(0x0081b4cc) == 0) {
+    if (global<u32>((u32)(uintptr_t)&gActionRec_785a08 + 0x24) != 0 && global<u8>(0x0081b4cc) == 0) {
         gCellbuild_816d50 = 0;
         if (gMapclick_8187f8 == 0) E->click5234d0(x, y, flags);
     }
@@ -336,7 +337,7 @@ void __cdecl GameMode_MapClick(s32 x, s32 y, u32 flags, u32 useStored) {
     u32 lineEnded = 0;   // (ESI: the last line answered 0)
     if (Global81ae2c_Equals(0) != 0) gGameMode_MapClick_8186b0 = Wrap_Global7c2650_Get_481590();
     if (Global81ae2c_Equals(0x38) == 0 && gFocuscell_816d48 != 0) {
-        if (global<u32>(0x00785a2c) == 0 && gGameMode_8186d8 != 0) PlaySound(E, 0xaf, x, y);
+        if (global<u32>((u32)(uintptr_t)&gActionRec_785a08 + 0x24) == 0 && gGameMode_8186d8 != 0) PlaySound(E, 0xaf, x, y);
         switch (Global81ae2c_Get_52f840()) {
         case 1: case 3: case 0xb: case 0xe: case 0x10: case 0x13: case 0x36:
             goto clear_end;
@@ -581,7 +582,7 @@ void __cdecl GameMode_MapClick(s32 x, s32 y, u32 flags, u32 useStored) {
         goto end;
     }
     if (Global81ae2c_Equals(0x15) != 0) {
-        if (global<u32>(0x00785a2c) == 0) PlaySound(E, 0x65, x, y);
+        if (global<u32>((u32)(uintptr_t)&gActionRec_785a08 + 0x24) == 0) PlaySound(E, 0x65, x, y);
         E->f446300(0);
         E->advise(0xcd);
         PairTable_Add((u32)x, (u32)y);
@@ -709,7 +710,7 @@ entrance_tail:
 }
 
 track: {   // modes 0xb and 0x10
-    if (global<u32>(0x00785a2c) == 0) PlaySound(E, 0xce, x, y);
+    if (global<u32>((u32)(uintptr_t)&gActionRec_785a08 + 0x24) == 0) PlaySound(E, 0xce, x, y);
     s32 sx = StartX(), sy = StartY();
     if (sx == -1 && sy == -1) {
         StartX() = x;
@@ -790,7 +791,7 @@ track: {   // modes 0xb and 0x10
 }
 
 drag: {   // modes 1 and 3
-    if (global<u32>(0x00785a2c) == 0) PlaySound(E, 0x65, x, y);
+    if (global<u32>((u32)(uintptr_t)&gActionRec_785a08 + 0x24) == 0) PlaySound(E, 0x65, x, y);
     if (Global81ae2c_Equals(1) != 0) gMapclick_818c10 = 2;
     if (Global81ae2c_Equals(3) != 0) gMapclick_818c10 = 3;
     s32 sy = StartY();
@@ -831,7 +832,7 @@ drag: {   // modes 1 and 3
     }
     if (Global81ae2c_Equals(3) != 0) {
         E->f4de1f0(CurThing());
-        if (global<u32>(0x00785a2c) == 0 && gCellbuild_816d60 != 0) PlaySound(E, 0x8b, x, y);
+        if (global<u32>((u32)(uintptr_t)&gActionRec_785a08 + 0x24) == 0 && gCellbuild_816d60 != 0) PlaySound(E, 0x8b, x, y);
     }
     if ((StartX() != x || StartY() != y) && lineEnded == 0) {
         StartX() = x;
@@ -846,7 +847,7 @@ drag: {   // modes 1 and 3
     gGamemode_763b04 = 0x80;
     const bool three = Global81ae2c_Equals(3) != 0;
     E->f52f200(0, 0);
-    if (!three || global<u32>(0x00785a2c) != 0 || gCellbuild_816d60 != 0) goto end;
+    if (!three || global<u32>((u32)(uintptr_t)&gActionRec_785a08 + 0x24) != 0 || gCellbuild_816d60 != 0) goto end;
     E->advise(0x151);
     goto end;
 }

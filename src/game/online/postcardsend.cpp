@@ -19,6 +19,7 @@
 #include "../files/gamepaths.h"
 #include "../ui/dialog7cc654.h"
 #include "../core/imports.h"
+#include "../core/staticobjects.h"
 
 namespace {
 
@@ -94,13 +95,13 @@ void __cdecl Postcard_Send() {
     string = reinterpret_cast<const u16 *>(Online_String28(Online_Instance()));
     g_env->assignWide(mail + 0x54, nullptr, string, Crt().wcslen(string));
     at<u32>(mail, 0x64) = 9;
-    const char *host = global<const char *>(0x007a14f4);
+    const char *host = global<const char *>((u32)(uintptr_t)&gOnlineServers_7a14f0 + 0x4);
     if (!host) host = text(0x006fe5b0);
     u32 answer;
     if (!*host)
         answer = g_env->connect(mail, nullptr, text(reinterpret_cast<uintptr_t>(&gPostcardsend_754454)), 0x19, Global7cc53c_Pick7cc4f0(), 0);
     else
-        answer = g_env->connect(mail, nullptr, host, static_cast<u32>(static_cast<s32>(global<s16>(0x007a1550))), Global7cc53c_Pick7cc4f0(), 0);
+        answer = g_env->connect(mail, nullptr, host, static_cast<u32>(static_cast<s32>(global<s16>((u32)(uintptr_t)&gOnlineServers_7a14f0 + 0x60))), Global7cc53c_Pick7cc4f0(), 0);
     if (answer) g_env->command(0x39, 0);
 }
 }

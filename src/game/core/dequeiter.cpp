@@ -14,6 +14,7 @@
 #include "language.h"
 #include "methods.h"
 #include "vcall.h"
+#include "staticobjects.h"
 
 namespace {
 
@@ -123,8 +124,8 @@ u8 *__fastcall Class703c14_Ctor(u8 *object) {
 }
 
 u32 __cdecl CommandQueue_ShowNext() {
-    u8 *const q = reinterpret_cast<u8 *>(0x007b4ba8);
-    u8 *const lock = reinterpret_cast<u8 *>(0x007b4bd8);
+    u8 *const q = reinterpret_cast<u8 *>((u32)(uintptr_t)&gDeque8_7b4ba8);
+    u8 *const lock = reinterpret_cast<u8 *>((u32)(uintptr_t)&gDeque8_7b4ba8 + 0x30);
     CritSec_Enter(lock);
     if (at<u32>(q, 0x2c) == 0) {
         CritSec_Leave(lock);
@@ -139,8 +140,8 @@ u32 __cdecl CommandQueue_ShowNext() {
 }
 
 void __cdecl CommandQueue_OpenBox() {
-    u8 *const q = reinterpret_cast<u8 *>(0x007b4ba8);
-    u8 *const lock = reinterpret_cast<u8 *>(0x007b4bd8);
+    u8 *const q = reinterpret_cast<u8 *>((u32)(uintptr_t)&gDeque8_7b4ba8);
+    u8 *const lock = reinterpret_cast<u8 *>((u32)(uintptr_t)&gDeque8_7b4ba8 + 0x30);
     CritSec_Enter(lock);
     if (at<u32>(q, 0x2c) != 0 && Dword(0x007b4ba0) == 0 && (s32)g_calls.Cd(0x00659409, 0u, 0u) < 0x23) {
         const u32 *const element = at<const u32 *>(q, 0xc);
@@ -193,9 +194,9 @@ void __fastcall Deque8_Clear(u8 *deque) {
 }
 
 u32 __cdecl CommandQueue_Post(u32 code, u32 param) {
-    if (!param) param = *reinterpret_cast<const u32 *>(0x0078ba88);
-    u8 *const q = reinterpret_cast<u8 *>(0x007b4ba8);  // the begin iterator at +4, the end one at +0x14, the map +0x24, its size +0x28, the count +0x2c
-    CritSec_Enter(reinterpret_cast<u8 *>(0x007b4bd8));
+    if (!param) param = *reinterpret_cast<const u32 *>((u32)(uintptr_t)&gLanguage_78b530 + 0x558);
+    u8 *const q = reinterpret_cast<u8 *>((u32)(uintptr_t)&gDeque8_7b4ba8);  // the begin iterator at +4, the end one at +0x14, the map +0x24, its size +0x28, the count +0x2c
+    CritSec_Enter(reinterpret_cast<u8 *>((u32)(uintptr_t)&gDeque8_7b4ba8 + 0x30));
     u32 cur;
     if (at<u32>(q, 0x2c) != 0 && at<u32>(q, 0x1c) != at<u32>(q, 0x18)) {
         cur = at<u32>(q, 0x1c);
@@ -253,7 +254,7 @@ u32 __cdecl CommandQueue_Post(u32 code, u32 param) {
         at<u32>((void *)(uintptr_t)cur, 4) = code;
     }
     ++at<u32>(q, 0x2c);
-    return CritSec_Leave(reinterpret_cast<u8 *>(0x007b4bd8));
+    return CritSec_Leave(reinterpret_cast<u8 *>((u32)(uintptr_t)&gDeque8_7b4ba8 + 0x30));
 }
 
 void __fastcall Deque32_AllocMap(u8 *deque) {

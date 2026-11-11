@@ -17,6 +17,7 @@
 #include "windowscript.h"
 #include "panel7b9940.h"
 #include "../world/world.h"
+#include "../core/staticobjects.h"
 
 namespace {
 
@@ -115,7 +116,7 @@ u32 __cdecl Dialog74fb20_Handler(u8 *window, u32 message, u32 a, u32 b) {
         gDialog74fb20_7c2508 = g_env->clock();
         break;
     case 0x10006:
-        if (a == 1 && global<u8>(0x0078d911) && (s32)(g_env->clock() - gDialog74fb20_7c2508) > 0x7d0 && gDialog74fb20_7c24cc) {
+        if (a == 1 && global<u8>((u32)(uintptr_t)&gOptions_78d8d8 + 0x39) && (s32)(g_env->clock() - gDialog74fb20_7c2508) > 0x7d0 && gDialog74fb20_7c24cc) {
             closing(window);
             u8 *const dialog = build();
             g_env->enableKeys();
@@ -185,7 +186,7 @@ u32 __cdecl Dialog74faf0_Handler(u8 *window, u32 message, u32 a, u32 b) {
         gDialog74fb20_7c2508 = g_env->clock();
         break;
     case 0x10006:
-        if (a == 1 && global<u8>(0x0078d911) && (s32)(g_env->clock() - gDialog74fb20_7c2508) > 0x7d0) {
+        if (a == 1 && global<u8>((u32)(uintptr_t)&gOptions_78d8d8 + 0x39) && (s32)(g_env->clock() - gDialog74fb20_7c2508) > 0x7d0) {
             closingB(window, a);
             return 0;
         }

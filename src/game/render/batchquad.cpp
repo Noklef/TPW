@@ -9,6 +9,7 @@
 #include "../math/x87.h"
 #include "meshlist.h"
 #include "d3dsetup.h"
+#include "../core/staticobjects.h"
 
 namespace {
 
@@ -51,7 +52,7 @@ u32 __fastcall SpriteFrame_DrawQuadInPlace(u8 *frame) {
 }
 
 u32 __fastcall Batch_DrawQuadInPlace(u8 *object, void *, u8 *spec, u32 mask) {
-    if (global<u32>(0x008bcbc8) & 0x2000) at<u32>(spec, 0xc) |= 0x100000;
+    if (global<u32>((u32)(uintptr_t)&gView_8bcbc8) & 0x2000) at<u32>(spec, 0xc) |= 0x100000;
     u32 result;
     u8 codes[4];
     ClipCodes_Compute(global<u32>((u32)(uintptr_t)&gD3dsetup_879a20), 0, reinterpret_cast<u8 *>(&result), codes, at<const u8 *>(spec, 4), 4, 0x10, mask);
@@ -105,7 +106,7 @@ u32 __fastcall Batch_DrawQuadInPlace(u8 *object, void *, u8 *spec, u32 mask) {
 }
 
 u32 __fastcall Batch_DrawQuad(u8 *object, void *, u8 *spec, u32 mask) {
-    if (global<u32>(0x008bcbc8) & 0x2000) at<u32>(spec, 0xc) |= 0x100000;
+    if (global<u32>((u32)(uintptr_t)&gView_8bcbc8) & 0x2000) at<u32>(spec, 0xc) |= 0x100000;
     u32 result;
     u8 codes[4];
     ClipCodes_Compute(global<u32>((u32)(uintptr_t)&gD3dsetup_879a20), 0, reinterpret_cast<u8 *>(&result), codes, at<const u8 *>(spec, 4), 4, 0x10, mask);

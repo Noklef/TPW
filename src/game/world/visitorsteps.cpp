@@ -33,6 +33,7 @@
 #include "visitorsteps.h"
 #include "../core/soundset.h"
 #include "../core/vtables.h"
+#include "../core/staticobjects.h"
 
 namespace {
 
@@ -291,15 +292,15 @@ u8 *__fastcall Visitor_Ctor(u8 *visitor, void *, u32 cell) {
     at<u32>(visitor, 0x1d8) = 0;
     at<u32>(visitor, 0x1d4) = at<u32>(world(), 0x1da70c);
     // (gBalanceLevel: the exit level and its variance, the peep types' count and table, the cash percentage, the prankery likelihood)
-    at<s32>(visitor, 0x1bc) = global<s32>(0x0078504c);
-    const s32 variance = global<s32>(0x00785050);
+    at<s32>(visitor, 0x1bc) = global<s32>((u32)(uintptr_t)&gBalanceLevel + 0xc);
+    const s32 variance = global<s32>((u32)(uintptr_t)&gBalanceLevel + 0x10);
     at<s32>(visitor, 0x1bc) += World_Rand(world()) % (variance * 2) - variance;
-    const s32 type = World_Rand(world()) % global<s32>(0x007851d4);
+    const s32 type = World_Rand(world()) % global<s32>((u32)(uintptr_t)&gBalanceLevel + 0x194);
     at<u8>(visitor, 0x1f0) = (u8)type;
-    const u32 base = global<u32>(0x007850e8 + 12 * (u32)type);
-    const s32 percent = global<s32>(0x00785054);
+    const u32 base = global<u32>(((u32)(uintptr_t)&gBalanceLevel + 0xa8) + 12 * (u32)type);
+    const s32 percent = global<s32>((u32)(uintptr_t)&gBalanceLevel + 0x14);
     const s32 roll = World_Rand(world()) % (percent * 2 + 1);
-    const s32 cash = (s32)((u32)(roll - global<s32>(0x00785054) + 100) * base) / 100;   // (imul, wrapping; signed / 100)
+    const s32 cash = (s32)((u32)(roll - global<s32>((u32)(uintptr_t)&gBalanceLevel + 0x14) + 100) * base) / 100;   // (imul, wrapping; signed / 100)
     at<s32>(visitor, 0x1a0) = cash < 0 ? 0 : cash;
     at<u32>(visitor, 0x19c) = 0x42480000u;   // 50.0f
     at<float>(visitor, 0x1a4) = (float)(long long)((u32)World_Rand(world()) % 50u);   // (fild qword: the high dword 0)
@@ -310,7 +311,7 @@ u8 *__fastcall Visitor_Ctor(u8 *visitor, void *, u32 cell) {
     at<u32>(visitor, 0x1b8) = 0;
     at<float>(visitor, 0x1ac) = (float)(long long)r30;
     World_Rand(world());
-    const u8 prank = (u32)World_Rand(world()) % 100u < global<u32>(0x007850dc) ? 100 : 0;
+    const u8 prank = (u32)World_Rand(world()) % 100u < global<u32>((u32)(uintptr_t)&gBalanceLevel + 0x9c) ? 100 : 0;
     at<u8>(visitor, 0x1c0) = prank;
     if (prank == 100) at<u8>(visitor, 0x1c0) += (u8)(handleOf(visitor) % 3u);
     at<u16>(visitor, 0x1dc) = 0;
@@ -555,7 +556,7 @@ void __fastcall Visitor_StepIdle(u8 *visitor) {
         u8 *const cell = world() + 0x294 + own * 0x44;
         bool done = false;
         if (chance == 0x64) {
-            if (rnd % 100 < global<u32>(0x007850e0)) {
+            if (rnd % 100 < global<u32>((u32)(uintptr_t)&gBalanceLevel + 0xa0)) {
                 g_env->cellEffect(cell, nullptr, 8);
                 g_env->playSound(visitor, nullptr, gSoundCategories.kids, 0xcf);
                 done = true;
@@ -778,21 +779,21 @@ void __fastcall Visitor_Update(u8 *visitor) {
 u32 __fastcall Visitor_JudgeEntryFee() {
     u8 *const analyser = reinterpret_cast<u8 *>((uintptr_t)GameTable7cfb90_Get1da720_519510(world()));
     const u32 income = g_env->analyserIncome(analyser);
-    const u32 base = global<u32>(0x0078507c);
+    const u32 base = global<u32>((u32)(uintptr_t)&gBalanceLevel + 0x3c);
     const u32 divisor = (u32)World_Rand(world()) % ((base >> 1) + 1) + base;
     const u32 price = at<u32>(reinterpret_cast<u8 *>((uintptr_t)GameTable7cfb90_Get1da726_5195d0(world())), 0x118);
-    const u32 least = global<u32>(0x00785080);
+    const u32 least = global<u32>((u32)(uintptr_t)&gBalanceLevel + 0x40);
     const u32 worth = income / divisor + least;
     if (worth <= least && price <= least) return 3;
     const X87Reg w((double)worth), p((double)price);
     u32 answer;
     u32 value;
-    if (!(p.v >= (X87Reg(global<float>(0x00785088)) * w).v)) {
-        answer = p.v > (X87Reg(global<float>(0x00785084)) * w).v ? 3 : 2;
-        value = global<u8>(answer == 3 ? 0x007850d8 : 0x007850d4);
+    if (!(p.v >= (X87Reg(global<float>((u32)(uintptr_t)&gBalanceLevel + 0x48)) * w).v)) {
+        answer = p.v > (X87Reg(global<float>((u32)(uintptr_t)&gBalanceLevel + 0x44)) * w).v ? 3 : 2;
+        value = global<u8>(answer == 3 ? ((u32)(uintptr_t)&gBalanceLevel + 0x98) : ((u32)(uintptr_t)&gBalanceLevel + 0x94));
     } else {
-        answer = !(p.v >= (X87Reg(global<float>(0x0078508c)) * w).v) ? 1 : 0;
-        value = global<u8>(answer == 1 ? 0x007850d0 : 0x007850cc);
+        answer = !(p.v >= (X87Reg(global<float>((u32)(uintptr_t)&gBalanceLevel + 0x4c)) * w).v) ? 1 : 0;
+        value = global<u8>(answer == 1 ? ((u32)(uintptr_t)&gBalanceLevel + 0x90) : ((u32)(uintptr_t)&gBalanceLevel + 0x8c));
     }
     ParkAnalyser_Record(analyser, nullptr, 0, value);
     return answer;

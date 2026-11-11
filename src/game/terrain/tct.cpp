@@ -10,6 +10,7 @@
 #include "../files/textscan.h"
 #include "../files/vfs.h"
 #include "land.h"
+#include "../core/staticobjects.h"
 
 namespace {
 
@@ -182,7 +183,7 @@ void TerrainSets_SetLevelCalls(const AddrCall *table, u32 count) { g_levelCalls.
 extern "C" u32 __cdecl TerrainSets_LoadLevel(u32 model) {
     const CrtEnv &crt = Crt();
     char path[0x104];
-    const char *const name = *reinterpret_cast<const char **>((uintptr_t)0x00786b70);
+    const char *const name = *reinterpret_cast<const char **>((uintptr_t)&gNamedObjects_786b68 + 0x8);
     const char *const base = reinterpret_cast<const char *>((uintptr_t)g_levelCalls.Cd(0x0040ef40));
     crt.sprintf(path, "%s\\Terrain\\%s.tct", base, name);
     const u32 found = g_levelCalls.Cd(0x0044a280, address(path), 1u, 0u);

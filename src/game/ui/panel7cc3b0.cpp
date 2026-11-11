@@ -22,6 +22,7 @@
 #include "window.h"
 #include "window705a50.h"
 #include "panel7cc218.h"
+#include "../core/staticobjects.h"
 
 using namespace panelparts;
 
@@ -42,7 +43,7 @@ void __fastcall Panel7cc3b0_ShowPreview(u8 *self) {
 }
 
 void __fastcall Panel7cc3b0_Open(u8 *self) {
-    if (Things_CountGroup(self, nullptr, *reinterpret_cast<const u32 *>((uintptr_t)0x007cc3a4)) < 2) {
+    if (Things_CountGroup(self, nullptr, *reinterpret_cast<const u32 *>((uintptr_t)&gStatic_7cc328 + 0x7c)) < 2) {
         Window_SetShown(Window_FindChild(*reinterpret_cast<u8 **>(self + 0x10), nullptr, 0x50d), nullptr, 0);
         Window_SetShown(Window_FindChild(*reinterpret_cast<u8 **>(self + 0x10), nullptr, 0x50f), nullptr, 0);
     }
@@ -50,7 +51,7 @@ void __fastcall Panel7cc3b0_Open(u8 *self) {
 }
 
 void __fastcall Panel7cc3b0_Show(u8 *self, void *, u8 *thing) {
-    *reinterpret_cast<u8 **>((uintptr_t)0x007cc3a4) = thing;
+    *reinterpret_cast<u8 **>((uintptr_t)&gStatic_7cc328 + 0x7c) = thing;
     WindowAt10_Create(self, nullptr, reinterpret_cast<u8 *>((uintptr_t)&gPanel7cc3b0_Show_756f48), 0x004b5cb0, 0x511, 0x512, 0);
     Window_SetHandler(*reinterpret_cast<u8 **>(self + 0x18), nullptr, 0x004b5c80);
     Advisor_PostId(0xc0);
@@ -88,7 +89,7 @@ void __fastcall Panel7cc3b0_ShowStats(u8 *self) {
     *reinterpret_cast<u32 *>(age + 8) = 8;
     *reinterpret_cast<s32 *>(age + 0xc) = days;
     *reinterpret_cast<u32 *>(age + 0x10) = 0;
-    TextFormat().format(*reinterpret_cast<void **>((uintptr_t)0x0078ba94), reinterpret_cast<u16 *>((uintptr_t)0x007ba058), 0x3fff, 0x1bb, age);
+    TextFormat().format(*reinterpret_cast<void **>((uintptr_t)&gLanguage_78b530 + 0x564), reinterpret_cast<u16 *>((uintptr_t)0x007ba058), 0x3fff, 0x1bb, age);
     vcall<void>(Window_FindChild(window(self), nullptr, 0x51b), 0x24, 0x007ba058u);   // (none of the children checked)
     u8 *child = Window_FindChild(window(self), nullptr, 0x51e);
     vcall<void>(child, 0x1c, (u32)Staff_GetWage(staff));

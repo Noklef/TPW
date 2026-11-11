@@ -20,6 +20,7 @@
 #include "windowreg.h"
 #include "dialog74fb20.h"
 #include "dialog7cc188.h"
+#include "../core/staticobjects.h"
 
 namespace {
 const Dialog7cdac4Env kGameEnv = {Window7c24c8_Close, Dialog_Create, Window_SetDepth, TextPart6ff4d0_Ctor, Window_SetImpl, Language_Font, Window_Set4c, Window705a20_SetBuffer, GuiWindows_FindByName, Window705a20_SetCaret, NamedObjects_SetThemeLabelAnsi, Window_Notify3000,
@@ -62,7 +63,7 @@ void __cdecl Dialog7cdac4_Open() {
     setCaret(child);
     WString label;
     WString_Ctor(&label);
-    u8 *const named = reinterpret_cast<u8 *>((uintptr_t)0x00786b68);
+    u8 *const named = reinterpret_cast<u8 *>((uintptr_t)&gNamedObjects_786b68);
     g_env->setTheme(named, nullptr, reinterpret_cast<const String *>(named), reinterpret_cast<u8 *>(&label));
     vcall<void>(child, 0x24, (u32)(uintptr_t)label.data);
     child = editChild(0x11e3);
@@ -100,7 +101,7 @@ s32 __cdecl Dialog7cdac4_Handler(u8 *window, u32 message, u32 a, u32 b) {
                     env->atExit(reinterpret_cast<void(__cdecl *)()>((uintptr_t)0x005d1750));
                 }
                 const u32 modeTwo = gDialog74fb20_fb3b7c == 2;
-                const u32 first = *reinterpret_cast<u32 *>((uintptr_t)0x00f82840), second = wordAt(0x00f82888, 8);
+                const u32 first = *reinterpret_cast<u32 *>((uintptr_t)&gString_f82838 + 0x8), second = wordAt(0x00f82888, 8);
                 env->chatSend(env->chat(), nullptr, first, second, reinterpret_cast<uintptr_t>(&gDialog7cdac4_7cd850), reinterpret_cast<uintptr_t>(&gDialog7cdac4_7cd480), modeTwo, 0x004c4470, 0);
             }
             env->clearQueue(pointerAt(0x00f85614, 0x14));

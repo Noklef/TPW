@@ -7,6 +7,7 @@
 #include "../core/crt.h"
 #include "../core/gameheap.h"
 #include "../render/engineerrors.h"
+#include "../core/staticobjects.h"
 
 namespace {
 
@@ -178,7 +179,7 @@ u8 *__fastcall TexManager_Load(u8 *manager, void *, const char *name) {
     default:
         break;
     }
-    const s32 level = reinterpret_cast<const s32 *>((uintptr_t)0x007016f8)[global<u32>(0x008bd554)] * (s32)height * (s32)width;
+    const s32 level = reinterpret_cast<const s32 *>((uintptr_t)0x007016f8)[global<u32>((u32)(uintptr_t)&gTexSettings_8bd550 + 0x4)] * (s32)height * (s32)width;
     u8 *pixels = data;
     for (s32 i = 0; i <= levels(); ++i) {
         u8 *const texture = textures + 0x60 * i;

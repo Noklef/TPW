@@ -16,6 +16,7 @@
 #include "../world/mappreview.h"
 #include "../world/focuscell.h"
 #include "../world/camera.h"
+#include "../core/staticobjects.h"
 
 namespace {
 
@@ -423,7 +424,7 @@ void __cdecl DynFaces_Frame() {
     VertexBlock_TakeFaces(gDynFaces_871ee4);
     VertexBlock_TakeFaces(gDynFaces_871ed8);
     gDynfaces_871ee0 = 0;
-    u8 *const clock = reinterpret_cast<u8 *>(0x00785970);
+    u8 *const clock = reinterpret_cast<u8 *>((u32)(uintptr_t)&gObj_785970);
     if (Wrap_Obj_Get30_402df0(clock))
         return;
     gDynfaces_874fc0 = (float)(X87Reg(gDynfaces_874fc0) - gDynFaces_Frame_700df8);

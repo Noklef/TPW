@@ -11,6 +11,7 @@
 #include "../ui/window705a20.h"
 #include "../ui/window705a50.h"
 #include "imports.h"
+#include "staticobjects.h"
 
 namespace {
 
@@ -430,7 +431,7 @@ s32 __fastcall ImeHost_OnMessage(u8 *host, void *, u8 *window, u32 message, u32 
 }
 
 s32 __cdecl ImeHost_WindowProc(u8 *window, u32 message, u32 a, u32 b) {
-    return ImeHost_OnMessage(reinterpret_cast<u8 *>((uintptr_t)0x007b4e38), nullptr, window, message, a, b);
+    return ImeHost_OnMessage(reinterpret_cast<u8 *>((uintptr_t)&gImeHost_7b4e38), nullptr, window, message, a, b);
 }
 
 s32 __stdcall Imm_SetCompositionStringA(u32 context, u32 index, void *comp, u32 comp_length, void *read, u32 read_length) {

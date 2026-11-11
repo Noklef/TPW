@@ -9,6 +9,7 @@
 #include "../math/x87.h"
 #include "coastersload.h"
 #include "../world/rides.h"
+#include "../core/staticobjects.h"
 
 namespace {
 
@@ -119,7 +120,7 @@ void __cdecl RideObject_Orient(u8 *object, const float *angles, float *v) {
 }
 
 void __cdecl RideObject_Swing(u8 *object) {
-    u8 *const clock = reinterpret_cast<u8 *>((uintptr_t)0x00785970);
+    u8 *const clock = reinterpret_cast<u8 *>((uintptr_t)&gObj_785970);
     if (*reinterpret_cast<u32 *>(object)) {
         *reinterpret_cast<u32 *>(object + 0x70) = Clocks_Now(clock);
         *reinterpret_cast<u32 *>(object) = 0;

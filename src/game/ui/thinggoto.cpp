@@ -11,6 +11,7 @@
 #include "../world/gamemode.h"
 #include "../world/mapclick.h"
 #include "panel7cc218.h"
+#include "../core/staticobjects.h"
 
 namespace {
 
@@ -32,7 +33,7 @@ void go(const u8 *thing) {
 void ThingGoto_SetEnv(const ThingGotoEnv *env) { g_env = env ? env : &kGameEnv; }
 
 void __fastcall ThingGoto_Start(u8 *panel) {
-    if (global<u8>(0x0078d90f)) {
+    if (global<u8>((u32)(uintptr_t)&gOptions_78d8d8 + 0x37)) {
         struct Question {
             u16 *text;
             u8 colour[4];

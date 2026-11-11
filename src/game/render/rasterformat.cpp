@@ -7,6 +7,7 @@
 #include "rastertriangle.h"
 #include "rasterspans.h"
 #include "../core/imports.h"
+#include "../core/staticobjects.h"
 
 namespace {
 
@@ -60,7 +61,7 @@ void setFormat(u32 red, u32 green, u32 blue) {
     const bool fiveGreen = greenBits == 5;
     global<u32>((u32)(uintptr_t)&gRasterspans_fbe138 + 0x70) = fiveGreen ? 6 : 5;
     global<u32>((u32)(uintptr_t)&gRasterspans_fbe138 + 0x58) = global<u32>((u32)(uintptr_t)&gRasterspans_fbe138 + 0x5c) = fiveGreen ? 0x20000008 : 0x40000008;
-    global<u32>((u32)(uintptr_t)&gRasterspans_fbe138 + 0x60) = global<u32>((u32)(uintptr_t)&gRasterspans_fbe138 + 0x64) = 0xf800f8;
+    global<u32>((u32)(uintptr_t)&gRasterspans_fbe138 + 0x60) = global<u32>((u32)(uintptr_t)&gRasterspans_fbe138 + 0x64) = ((u32)(uintptr_t)&gString_f800e8 + 0x10);
     global<u32>((u32)(uintptr_t)&gRasterspans_fbe138 + 0x68) = global<u32>((u32)(uintptr_t)&gRasterspans_fbe138 + 0x6c) = fiveGreen ? 0xf800 : 0xfc00;
     global<u32>((u32)(uintptr_t)&gRasterspans_fbe138 + 0x74) = 0;
 }

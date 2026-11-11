@@ -2,6 +2,7 @@
 #include "modellist.h"
 
 #include <cstdint>
+#include "../core/staticobjects.h"
 
 namespace {
 
@@ -100,7 +101,7 @@ u32 __fastcall ModelList_Draw(const u8 *list) {
         for (u32 left = groupCount; left; --left, source -= 0x10, ++group) {
             const u8 *const material = at<const u8 *>(source, 0);
             const u32 set = material ? at<u32>(material, 4) : 0;
-            const u32 mip = material && (global<u8>(0x008bd550) & 0x40) ? at<u16>(material, 2) : 0;
+            const u32 mip = material && (global<u8>((u32)(uintptr_t)&gTexSettings_8bd550) & 0x40) ? at<u16>(material, 2) : 0;
             const u32 texture = set ? g_calls.Th(0x00575f90, set, mip) : 0;   // TexSet_Texture
             group->texture = texture;
             u32 key = 0;

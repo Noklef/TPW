@@ -9,12 +9,13 @@
 #include "../files/file.h"
 #include "advisorspeech.h"
 #include "advisor.h"
+#include "../core/staticobjects.h"
 
 namespace {
 
 AddrCalls g_calls;
 
-const u32 kClock = 0x00785970;
+const u32 kClock = (u32)(uintptr_t)&gObj_785970;
 
 template <typename T>
 T &global(u32 address) {
@@ -217,7 +218,7 @@ u32 __cdecl Advisor_QueueAnim(s32 index, s32 length) {
 }
 
 u32 __cdecl Advisor_Say(s32 id) {
-    if (!global<u8>(0x0078d90c) || Speaking()) return 0;
+    if (!global<u8>((u32)(uintptr_t)&gOptions_78d8d8 + 0x34) || Speaking()) return 0;
     u32 entry = (u32)(uintptr_t)&gAdvisorResponses;
     while (global<s32>(entry) != id) {
         if (global<s32>(entry) == 0x270f) return 0;

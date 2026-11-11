@@ -15,6 +15,7 @@
 #include "session.h"
 #include "chatevents.h"
 #include "../core/imports.h"
+#include "../core/staticobjects.h"
 
 namespace {
 
@@ -87,8 +88,8 @@ void StartRound() {
     chat() = NewChat();
     if (!chat()) chat() = NewChat();
     typedef u32(__fastcall * Connect)(u8 *, void *, const char *, s32, u32, u8 *);
-    const char *const host = Text(global<const char *>(0x007a1504));
-    const s32 port = global<s16>(0x007a1552);
+    const char *const host = Text(global<const char *>((u32)(uintptr_t)&gOnlineServers_7a14f0 + 0x14));
+    const s32 port = global<s16>((u32)(uintptr_t)&gOnlineServers_7a14f0 + 0x62);
     u8 *const context = Global7cc53c_Pick7cc4f0();
     // (the callback by its address in the game, which RoomCounts_ChatEvent's hook answers)
     if (!(*reinterpret_cast<const Connect *>((uintptr_t)IMPORT(Weachatr_Chat_Connect)))(chat(), nullptr, host, port, 0x004c4920, context)) {

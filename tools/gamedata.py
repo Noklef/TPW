@@ -121,6 +121,7 @@ STATIC_FUNCS = {   # function: (size, why) of the object it reaches from this, f
     0x5f6980: (0x14, 'WString_CtorStr: WString is 0x14 bytes (core/string.h asserts it)'),
     0x5f6a60: (0x14, 'WString_Dtor: WString'),
     0x5fa680: (0x28, 'SurfaceInfo_Ctor: SurfaceInfo is 0x28 bytes (gfx/surface.h asserts it)'),
+    0x5fa6a0: (0x28, 'SurfaceInfo_Init: SurfaceInfo (writes up to +0x24)'),
     0x6307e0: (0x4, 'Semaphore_Dtor: the semaphore\'s handle (CloseHandle on +0, nothing else)'),
     0x4f08c0: (0x58, 'WFileBuf_Dtor: basic_filebuf<wchar_t>, 0x58 bytes: the static ones at 0xfb1c18 and 0xfb1c70 lie 0x58 apart, and the '
                      'destructor reaches +0x54'),
@@ -148,25 +149,45 @@ STATIC = {         # static object: (size, why), where its functions do not say 
     0x7ca178: (0x50, 'the panel (Fn_48c9e0 writes +0-+0x1c, its code reaches +0x2c); 0x7ca1c8 is the dialog\'s window pointer, a global of its '
                      'own (ui/dialog7ca1c8.h)'),
     0x7cc298: (0x50, 'the panel (Fn_48c9e0 writes +0-+0x1c, its code reaches +0x34); 0x7cc2e8 is a float staticinit sets on its own'),
-    0x7b4e38: (0x3ac, 'ImeHost (its code reaches +0x1aa); 0x7b51e4 and 0x7b51e8 are float constants of their own (core/floatconsts: their own '
+    0x785a08: (0x3d8, 'ActionRec (ActionRec_Ctor writes up to +0x3d0); 0x785de0 and 0x785de4 are a tree\'s globals (core/stdtree), 0x785de8 '
+                      'the game error'),
+    0x7b4ac0: (0xc4,'ScreenSurfaces (ScreenSurfaces_Ctor writes up to +0xb0); 0x7b4b84 is the pointer\'s global (gfx/pointer)'),
+    0x7cc408: (0x3c, 'the panel (Fn_48c9e0 writes +0-+0x1c); the dialog at 0x7cc444 follows (ui/dialog7cc444)'),
+    0x7cf0d8: (0x30, 'SteerSeparation (its constructor writes the vtable and the name at +4); the route at 0x7cf108 follows (world/nav)'),
+    0x7cf360: (0x2c, 'SteerAvoidObstacle (its constructor writes the vtable and the name at +4); 0x7cf38c on are the line stepper\'s '
+                     'and mapcell\'s globals (world/linestep, world/mapcell)'),
+    0x8bcbc8: (0x940, 'the view (View_Defaults writes up to +0x924); 0x8bd508-0x8bd52c are the renderer\'s globals '
+                      '(staticinitmanual sets them on their own)'),
+    0x8c1828: (0x2f20, 'the landscape (Landscape_Init writes up to +0x2ecc); the load screen at 0x8c4748 follows (gfx/loadscreen)'),
+    0xf75b20: (0x68, 'Panel7b9940, as the one at 0x7b9940 (0x68 to the next static object; Panel7b9940_Ctor writes up to +0x5c); the '
+                     'advisor\'s globals follow (0xf79660 on)'),
+    0x7b4e38: (0x3ac,'ImeHost (its code reaches +0x1aa); 0x7b51e4 and 0x7b51e8 are float constants of their own (core/floatconsts: their own '
                       'initialisers set them)'),
+    0x784e30: (0x210, 'balance file (hoardings A), to the level\'s file'),
+    0x785040: (0x7e8, 'balance file (the level: its challenge indices reach +0x7e4), to the online file'),
+    **{0xf869e0 + 0x24 * i: (0x24, 'a park-map colour of 23 (Init_5f0700): four colour bytes and 0x10 zeroed (Init_5ec210 on +4, '
+                                   'or Fn_5f0970), nine dwords copied (texsprite)') for i in range(23)},
 }
 STATIC_SOURCES = ('staticinit.cpp', 'staticinitmanual.cpp')
-STATIC_TABLE = re.compile(r'^\s*\{0x[0-9a-f]+, 0x[0-9a-f]+, 0x([0-9a-f]+), 0x([0-9a-f]+),', re.M)   # (kMain: init, text, object, ctor)
-STATIC_THUNK = re.compile(r'ExitThunk<0x([0-9a-f]+), 0x([0-9a-f]+)>')
-STATIC_CALL = re.compile(r'\.Th\(0x([0-9a-f]+), 0x([0-9a-f]+)u')
+STATIC_TABLE = re.compile(r'^\s*\{0x[0-9a-f]+, [^,{}]+, 0x([0-9a-f]+), &\w+\},', re.M)   # (kMain: init, text, ctor, exit)
+STATIC_OBJECTS = re.compile(r'\bkObjects\[\] = \{([^}]*)\};')                            # (kMain's objects, row by row)
+STATIC_CALL = re.compile(r'\.Th\(0x([0-9a-f]+), 0x([0-9a-f]+)u')   # (an exit thunk's too: g_calls.Th(dtor, object))
 STATIC_REG = re.compile(r'\b(e[a-d]x|e[sd]i|ebp) = 0x([0-9a-f]+)u;|M<u32>\(sp - 0x[0-9a-f]+\) = 0x([0-9a-f]+)u;')
 
 
 def statics(text):
     """{base: the functions called with it as this} of the static objects that staticinit's text constructs or touches by a literal
-    base: kMain's object (its constructor), an exit thunk's (its destructor), a Th call's this, a register set to it (the Th calls
+    base: kMain's object (its constructor), a Th call's this (an exit thunk's: its destructor), a register set to it (the Th calls
     with that register before it is set again), a pushed argument."""
     out = {}
-    for m in STATIC_TABLE.finditer(text):
-        out.setdefault(int(m.group(1), 16), set()).add(int(m.group(2), 16))
-    for m in STATIC_THUNK.finditer(text):
-        out.setdefault(int(m.group(1), 16), set()).add(int(m.group(2), 16))
+    ctors = [int(m.group(1), 16) for m in STATIC_TABLE.finditer(text)]
+    m = STATIC_OBJECTS.search(text)
+    objects = [e.strip() for e in m.group(1).split(',') if e.strip()] if m else []
+    assert len(objects) == len(ctors), 'kMain and kObjects: %d rows, %d objects' % (len(ctors), len(objects))
+    for ctor, obj in zip(ctors, objects):
+        lit = re.fullmatch(r'0x([0-9a-f]+)u?', obj)
+        if lit:
+            out.setdefault(int(lit.group(1), 16), set()).add(ctor)
     for m in STATIC_CALL.finditer(text):
         out.setdefault(int(m.group(2), 16), set()).add(int(m.group(1), 16))
     for m in STATIC_REG.finditer(text):
@@ -175,25 +196,42 @@ def statics(text):
             end = re.compile(r'\b%s = |^\}' % m.group(1), re.M).search(text, m.end())
             body = text[m.end():end.start() if end else len(text)]
             base |= {int(f, 16) for f in re.findall(r'\.Th\(0x([0-9a-f]+), %s\b' % m.group(1), body)}
+    for s, (n, _) in STATIC.items():   # (a base inside a STATIC object is a member: a colour's Init_5ec210 on +4)
+        for b in [b for b in out if s < b < s + n]:
+            out.setdefault(s, set()).update(out.pop(b))
     return {b: fs for b, fs in out.items() if DATA_LO <= b < DATA_HI}
+
+
+def static_extents(bases):
+    """{base: (end, how)} of the static objects (statics()): STATIC's size, else the largest of STATIC_FUNCS' sizes when every function
+    called on it has one, else up to the next static base. tools/gen_static_init.py declares the constructed ones so."""
+    order = sorted(bases)
+    out = {}
+    for i, b in enumerate(order):
+        fs = bases[b]
+        if b in STATIC:
+            out[b] = (b + STATIC[b][0], 'STATIC')
+        elif fs and all(f in STATIC_FUNCS for f in fs):
+            out[b] = (b + max(STATIC_FUNCS[f][0] for f in fs), 'STATIC_FUNCS')
+        else:
+            out[b] = (order[i + 1] if i + 1 < len(order) else DATA_HI, 'the next static base')
+    return out
 
 
 def static_errors(decls, text):
     """A converted object inside a static object that staticinit reaches by its literal base: the object's code writes the original
-    address and the name reads its copy in tpw.exe (the hook DLL binds both to the original, so no bench sees it). The extent: STATIC's
-    size, else the largest of STATIC_FUNCS' sizes when every function called on it has one, else up to the next static base."""
+    address and the name reads its copy in tpw.exe (the hook DLL binds both to the original, so no bench sees it). The extent:
+    static_extents(). The static objects staticinit constructs are GAME_DATA objects of that extent (core/staticobjects.h, generated):
+    staticinit names them, so this checks only the ones left literal (their next static base: a literal one or a declared one), and the
+    overlap check keeps the rest from declaring their members."""
     bases = statics(text)
-    order = sorted(bases)
+    named = {d[2] for d in decls if os.path.basename(d[4]) == 'staticobjects.h'}
     starts = [d[2] for d in decls]
     errors = []
-    for i, b in enumerate(order):
-        fs = bases[b]
-        if b in STATIC:
-            end = b + STATIC[b][0]
-        elif fs and all(f in STATIC_FUNCS for f in fs):
-            end = b + max(STATIC_FUNCS[f][0] for f in fs)
-        else:
-            end = order[i + 1] if i + 1 < len(order) else DATA_HI
+    for b, (end, _) in sorted(static_extents({**{n: set() for n in named}, **bases}).items()):
+        fs = bases.get(b)
+        if fs is None:
+            continue
         for j in range(bisect.bisect_right(starts, b), bisect.bisect_left(starts, end)):
             errors.append('%s %#x is inside the static object at %#x (to %#x; staticinit: %s): convert the object as a whole, return '
                           'the member to a literal, or settle the extent in STATIC / STATIC_FUNCS' % (
@@ -226,8 +264,18 @@ def address(out):
     write(out, lines)
 
 
-TEXT = {        # slot: why, for a dword of text whose bytes read as a pointer into a converted range (left as it is)
+TEXT = {        # slot: why, for a dword of text whose bytes read as a pointer into a converted range or to its end (left as it is)
     0x74a418: 'a code page table\'s u16 pairs (0x2013, 0x7b), not a pointer into gSinTable',
+    0x73d864: '"dex" of "PointBlockIndex", not a pointer to gString_786550\'s end',   # (round 78: the static objects)
+    0x73dbe8: '"dex" of "...ossSectionIndex"',
+    0x73eae8: '"dex" of "...ontCarTypeIndex"',
+    0x745300: '"dex" of "TypeStringIndex"',
+    0x747b10: '"dTex" of "Small_SharedTex", not a pointer into gString_786550',
+    0x74c8e8: '"hTex" of "PathTex"',
+    0x75af4c: '"dex" of "mPylonIndex"',
+    0x7740c4: '"tbox" of "/outbox", not a pointer into gString_786f50',
+    0x779684: '" fix" of "..., please fix", not a pointer into gWString_786958',
+    0x77b350: '" fix" of "..., please fix"',
     0x7247fc: 'text "leep"', 0x74868c: 'text "help"', 0x75170c: 'text "loop"', 0x768984: 'text " bpp"',
     0x7740b0: 'text "%08x"', 0x7785bc: 'text "%02x"', 0x778b0c: 'text "%02x"', 0x77be98: 'text "%02x"', 0x77c334: 'text "%02x"',
 }
@@ -251,6 +299,9 @@ NOT_INTO_SLOTS = set()   # (the slots NOT_INTO left as they are: tpw_tests' cros
 POINTERS = {}   # slot: why, for a pointer whose bytes read as text
 NEXT = {        # slot: why, for a dword at a converted object's end that points at what follows it (left as it is), not an end pointer
     0x7061c4: 'the text "DDERR_UN..." at 0x77dd30, after gImaAdpcmState',
+    0x7655d0: 'a name of RSSE_OpcodeNameTable: 0x786de4 (.bss, after gString_786dd0, a String of 0x14), a global of its own',
+    0x779b18: 'a name table\'s entry: 0x786de4, the global after gString_786dd0',
+    0x779b34: 'a name table\'s entry: 0x786de4, the global after gString_786dd0',
     0x751a38: 'its wide text at 0x751a3c, after the pointer itself',
     0x763750: 'gPieceTables\' last row\'s name, the text "ho_fob4..." after the tables',
     0x7655c8: 'RSSE_OpcodeNameTable\'s last name, the text after the table',
@@ -305,7 +356,7 @@ def pointers(pe, decls, code_slots):
         raw = pe.d[ro:ro + rs]
         for o in range(0, len(raw) - 3, 4):
             slot, v = va + o, struct.unpack_from('<I', raw, o)[0]
-            if v in ends and slot not in NEXT:
+            if v in ends and slot not in NEXT and slot not in TEXT:
                 errors.append('%#x holds %#x, the end of %s: an end pointer (the fixups cannot express it) or the next global\'s address '
                               '(settle it in NEXT)' % (slot, v, ends[v]))
             into = DATA_LO <= v < DATA_HI and inside(v)
@@ -357,7 +408,8 @@ def self_check():
     del NEXT[0x700008]
     # staticinit: a String at 0x900000 (0x14), a register base 0x900100 (an unsized function: to the next base), a pushed 0x900200
     # (to the end), the register set again to 0x900400
-    text = ('    {0x401000, 0x401010, 0x900000, 0x5f60b0, &ExitThunk<0x900000, 0x5f61e0>},\nvoid F() {\n'
+    text = ('    {0x401000, 0x401010, 0x5f60b0, &Exit_401020},\n    {0x401030, 0x401010, 0x5f60b0, &Exit_401040},\n'
+            'const u32 kObjects[] = {\n    0x900000, (u32)(uintptr_t)&gNamed,\n};\nvoid Exit_401020() { g_calls.Th(0x005f61e0, 0x900000u); }\nvoid F() {\n'
             '    ecx = 0x900100u; g_calls.Th(0x123456, ecx); ecx = 0x900400u; g_calls.Th(0x5f60b0, ecx);\n'
             '    M<u32>(sp - 0x4) = 0x900200u;\n}\n')
     assert statics(text) == {0x900000: {0x5f60b0, 0x5f61e0}, 0x900100: {0x123456}, 0x900200: set(), 0x900400: {0x5f60b0}}

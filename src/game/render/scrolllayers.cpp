@@ -4,6 +4,7 @@
 
 #include "../math/x87.h"
 #include "../gfx/texcache.h"
+#include "../core/staticobjects.h"
 
 namespace {
 
@@ -28,7 +29,7 @@ void ScrollLayers_SetCalls(const AddrCall *table, u32 count) { g_calls.Set(table
 extern "C" {
 
 u32 __fastcall ScrollLayers_Update(u8 *self) {
-    if (!at<u32>(self, 0x2ec8) || !at<u32>(self, 0x1fd0) || !at<u32>(self, 0x1fd8) || global(0x008bd524) == 4 || (global(0x008bcbc8) & 0x80000000))
+    if (!at<u32>(self, 0x2ec8) || !at<u32>(self, 0x1fd0) || !at<u32>(self, 0x1fd8) || global(0x008bd524) == 4 || (global((u32)(uintptr_t)&gView_8bcbc8) & 0x80000000))
         return 1;
     if (global(0x008bd508) & 0xc0000000)
         g_calls.Th(0x00590f90, at<u32>(self, 0x1fd0));

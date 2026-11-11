@@ -6,6 +6,7 @@
 #include "../math/x87.h"
 #include "../render/graphicssettings.h"
 #include "levelsetup.h"
+#include "../core/staticobjects.h"
 
 namespace {
 
@@ -37,14 +38,14 @@ u32 __cdecl Level_LoadTerrainAndAdvisor() {
     const u32 texture = flags & 4 ? 0x10u : flags & 2 ? 0x20u : flags & 1 ? 0x40u : 0x20u;
     g_calls.Cd(0x00462870, 1u);   // WorldVerts_Alloc
     g_calls.Cd(0x004504c0, 0u, texture);   // Terrain_Load
-    crt.sprintf(first, "%s\\Global\\Advisor", global<const char *>(0xf816f0));   // MemorySource_GetLock inlined: 0xf816c0 + 0x28, its +8
+    crt.sprintf(first, "%s\\Global\\Advisor", global<const char *>((u32)(uintptr_t)&gStrings5_f816c0 + 0x30));   // MemorySource_GetLock inlined: 0xf816c0 + 0x28, its +8
     crt.sprintf(second, "%s\\Advisor\\%s", GamePath(), advisorName);
     g_calls.Cd(0x00429ba0, first, second, 0u, 0u);   // ModelSlot_LoadAdvisor
     language[0] = '_';
     language[1] = 0;
-    CRT_strncat(language, global<const char *>(0x786b70), 3);   // Obj_Self inlined: 0x786b68, its +8
+    CRT_strncat(language, global<const char *>((u32)(uintptr_t)&gNamedObjects_786b68 + 0x8), 3);   // Obj_Self inlined: 0x786b68, its +8
     crt.sprintf(first, "%s\\Advisor", GamePath());
-    crt.sprintf(second, "%s\\Global\\Advisor\\%s", global<const char *>(0xf816f0), advisorName);
+    crt.sprintf(second, "%s\\Global\\Advisor\\%s", global<const char *>((u32)(uintptr_t)&gStrings5_f816c0 + 0x30), advisorName);
     g_calls.Cd(0x00429ba0, first, second, language, 1u);
     g_calls.Cd(0x005989c0);   // Advisor_Init
     g_calls.Cd(0x004584d0);   // LightSource_CreateMain

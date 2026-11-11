@@ -4,6 +4,7 @@
 
 #include "../core/string.h"
 #include "../terrain/landscape.h"
+#include "../core/staticobjects.h"
 
 namespace {
 
@@ -28,19 +29,19 @@ const LobbySkyEnv *g_env = &kGameEnv;
 void LobbySky_SetEnv(const LobbySkyEnv *env) { g_env = env ? env : &kGameEnv; }
 
 void __fastcall LobbySky_Enter(u8 *self) {
-    at<u32>(self, 0x34) = global<u32>(0x008bcbc8);
-    at<u32>(self, 0x38) = global<u32>(0x008bd47c);
-    at<u32>(self, 0x3c) = global<u32>(0x008bd490);
-    at<u32>(self, 0x40) = global<u32>(0x008bd494);
+    at<u32>(self, 0x34) = global<u32>((u32)(uintptr_t)&gView_8bcbc8);
+    at<u32>(self, 0x38) = global<u32>((u32)(uintptr_t)&gView_8bcbc8 + 0x8b4);
+    at<u32>(self, 0x3c) = global<u32>((u32)(uintptr_t)&gView_8bcbc8 + 0x8c8);
+    at<u32>(self, 0x40) = global<u32>((u32)(uintptr_t)&gView_8bcbc8 + 0x8cc);
     String folder;
     String_CtorStr(&folder, nullptr, reinterpret_cast<const char *>((uintptr_t)&gText_LobbySky_Enter_774c6c));
-    void *const landscape = reinterpret_cast<void *>((uintptr_t)0x008c1828);
+    void *const landscape = reinterpret_cast<void *>((uintptr_t)&gLandscape_8c1828);
     g_env->loadSky(landscape, nullptr, folder.data);
     g_env->turnSky(landscape, nullptr, 0, kFloat180, 0);
-    global<u32>(0x008bd47c) = 0xff44ddff;
-    global<u32>(0x008bd490) = kFloat50;
-    global<u32>(0x008bcbc8) = (global<u32>(0x008bcbc8) & 0xfffeffff & ~0x2000u) | 0x4000000;
-    global<u32>(0x008bd494) = kFloat300;
+    global<u32>((u32)(uintptr_t)&gView_8bcbc8 + 0x8b4) = 0xff44ddff;
+    global<u32>((u32)(uintptr_t)&gView_8bcbc8 + 0x8c8) = kFloat50;
+    global<u32>((u32)(uintptr_t)&gView_8bcbc8) = (global<u32>((u32)(uintptr_t)&gView_8bcbc8) & 0xfffeffff & ~0x2000u) | 0x4000000;
+    global<u32>((u32)(uintptr_t)&gView_8bcbc8 + 0x8cc) = kFloat300;
     at<u32>(self, 0x8) = kFloat500;
     at<u32>(self, 0xc) = kFloat100;
     at<u32>(self, 0x10) = kFloat500;
@@ -67,9 +68,9 @@ u32 __fastcall LobbySky_Leave(u8 *self) {
     gLobbysky_879dd8[2] = 0;
     gLobbysky_879dd8[3] = 0;
     g_env->light(self, nullptr, 0, nullptr, nullptr, 0);
-    global<u32>(0x008bcbc8) = at<u32>(self, 0x34);
-    global<u32>(0x008bd47c) = at<u32>(self, 0x38);
-    global<u32>(0x008bd490) = at<u32>(self, 0x3c);
-    global<u32>(0x008bd494) = at<u32>(self, 0x40);
-    return g_env->resetDome(reinterpret_cast<u8 *>((uintptr_t)0x008c1828));
+    global<u32>((u32)(uintptr_t)&gView_8bcbc8) = at<u32>(self, 0x34);
+    global<u32>((u32)(uintptr_t)&gView_8bcbc8 + 0x8b4) = at<u32>(self, 0x38);
+    global<u32>((u32)(uintptr_t)&gView_8bcbc8 + 0x8c8) = at<u32>(self, 0x3c);
+    global<u32>((u32)(uintptr_t)&gView_8bcbc8 + 0x8cc) = at<u32>(self, 0x40);
+    return g_env->resetDome(reinterpret_cast<u8 *>((uintptr_t)&gLandscape_8c1828));
 }

@@ -233,7 +233,7 @@ u32 __fastcall World_Load(u8 *world, void *, Stream *stream) {
     }
     // (the free list, slot 0 aside)
     u32 lastFree = 0xffffffffu, index = 1;
-    for (u8 *s = reinterpret_cast<u8 *>((uintptr_t)(kSlots + kSlotSize)); (uintptr_t)s < 0x00801b90; s += kSlotSize, ++index) {
+    for (u8 *s = reinterpret_cast<u8 *>((uintptr_t)(kSlots + kSlotSize)); (uintptr_t)s < kSlots + 0x2800 * kSlotSize; s += kSlotSize, ++index) {
         at<u32>(s, 0x10) = 0;
         if (at<u32>(s, 0)) continue;
         if (lastFree == 0xffffffffu) global<u8 *>(0x00801bbc) = s;
