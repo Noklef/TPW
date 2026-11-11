@@ -287,6 +287,20 @@ HMODULE Load(const char *dll) {   // as tp.exe from its folder: that folder firs
     return LoadLibraryA(dll);
 }
 
+// Test only: with TPW_TRACE set, a failed CreateFileA goes to the trace (its error and path), to find a missing or misnamed file.
+HANDLE WINAPI TracedCreateFileA(LPCSTR path, DWORD access, DWORD share, LPSECURITY_ATTRIBUTES security, DWORD creation, DWORD flags, HANDLE model) {
+    const HANDLE h = CreateFileA(path, access, share, security, creation, flags, model);
+    if (h == INVALID_HANDLE_VALUE && g_trace != INVALID_HANDLE_VALUE) {
+        const DWORD error = GetLastError();
+        char line[300];
+        const int n = wsprintfA(line, "CreateFileA failed (%u): %.260s\r\n", error, path ? path : "(null)");
+        DWORD written;
+        WriteFile(g_trace, line, (DWORD)n, &written, nullptr);
+        SetLastError(error);
+    }
+    return h;
+}
+
 // Each slot twice: in the copy (its code calls through it) and in gImports (the ports' IMPORT(member)), at the same offset into the table.
 void FillImports(const IMAGE_NT_HEADERS32 &nt) {
     const IMAGE_DATA_DIRECTORY &dir = nt.OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_IMPORT];
@@ -301,7 +315,8 @@ void FillImports(const IMAGE_NT_HEADERS32 &nt) {
         for (u32 *slot = &G<u32>(kBase + desc->FirstThunk); *names; ++names, ++slot) {
             const char *const name = IMAGE_SNAP_BY_ORDINAL32(*names) ? MAKEINTRESOURCEA(IMAGE_ORDINAL32(*names))
                                                                      : reinterpret_cast<const char *>((uintptr_t)kBase + *names + 2);
-            const FARPROC fn = module ? GetProcAddress(module, name) : nullptr;
+            FARPROC fn = module ? GetProcAddress(module, name) : nullptr;
+            if (fn && !IMAGE_SNAP_BY_ORDINAL32(*names) && !lstrcmpA(name, "CreateFileA")) fn = reinterpret_cast<FARPROC>(&TracedCreateFileA);
             *slot = fn ? (u32)(uintptr_t)fn : AddMissing(dll, name);
             *reinterpret_cast<u32 *>(own + ((u32)(uintptr_t)slot - first)) = *slot;
         }
@@ -325,6 +340,17 @@ LONG CALLBACK OnFault(EXCEPTION_POINTERS *e) {
                                     g_lastFault[1], c.Esp, G<u32>(c.Esp), G<u32>(c.Esp + 4), G<u32>(c.Esp + 8), G<u32>(c.Esp + 12));
             DWORD written;
             WriteFile(g_trace, line, (DWORD)n, &written, nullptr);
+            // The likely callers: stack words (up to 0x800 bytes, below the stack's base) that point into tpw.exe's code.
+            const auto *const image = reinterpret_cast<const u8 *>(GetModuleHandleA(nullptr));
+            const auto &own = *reinterpret_cast<const IMAGE_NT_HEADERS32 *>(image + reinterpret_cast<const IMAGE_DOS_HEADER *>(image)->e_lfanew);
+            const u32 codeStart = (u32)(uintptr_t)image + own.OptionalHeader.BaseOfCode, codeEnd = codeStart + own.OptionalHeader.SizeOfCode;
+            const u32 stackBase = __readfsdword(4);
+            char callers[200] = "  stack callers:";
+            int m = lstrlenA(callers);
+            for (u32 a = c.Esp, found = 0; a + 4 <= stackBase && a < c.Esp + 0x800 && found < 16; a += 4)
+                if (const u32 v = G<u32>(a); v >= codeStart && v < codeEnd) m += wsprintfA(callers + m, " %08X", v), ++found;
+            callers[m++] = '\r', callers[m++] = '\n';
+            WriteFile(g_trace, callers, (DWORD)m, &written, nullptr);
         }
         return EXCEPTION_CONTINUE_SEARCH;
     }
