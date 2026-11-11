@@ -81,6 +81,12 @@ void __cdecl ThingBrowser_Create();
 // Window7c24c8_Set's).
 void __cdecl ThingBrowser_Open(u8 *thing);
 
+// 0x4b4280 (cdecl, no arguments; name invented, unconfirmed): the browser opened on its people page with nothing shown (the front end's entry,
+// FrontEnd_Browser's other path): the window [0x7cc300] posted to the dialog's child 0x21, the page [0x7cc30c] 6, [0x7cc2f0] 2, its group 0x95d's
+// selection cleared, [0x7cc308] 0, the panel's child 0x148 hidden and 0x14a shown, [0x7c24c8] closed, the mouse modes as ThingBrowser_Open's,
+// then Advisor_PostId(0x11f).
+void __cdecl ThingBrowser_OpenPeople();
+
 // 0x481790 (cdecl, no arguments; name invented; called at 0x40c595 with ECX 0x7b51f0, not read): ThingBrowser_Open on the shown thing
 // [0x7c2658] when [0x7cc3c0] is set, else on none.
 void __cdecl ThingBrowser_OpenShown();

@@ -9714,6 +9714,7 @@ const Hook kHooks[] = {
     {"ThingBrowser_OpenShown",    0x00481790, (void *)&ThingBrowser_OpenShown, {0xa1, 0xc0, 0xc3, 0x7c, 0x00}},
     {"ThingBrowser_SendPatrolLines", 0x004b3640, (void *)&ThingBrowser_SendPatrolLines, {0xa1, 0x08, 0xc3, 0x7c, 0x00}},
     {"ThingBrowser_Handler",      0x004b3790, (void *)&ThingBrowser_Handler, {0x53, 0x8b, 0x5c, 0x24, 0x14}},
+    {"ThingBrowser_OpenPeople",   0x004b4280, (void *)&ThingBrowser_OpenPeople, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"Panel7cc218_Dress",         0x004ad890, (void *)&Panel7cc218_Dress, {0x6a, 0xff, 0x68, 0x8a, 0xac}},
     {"Panel7cc218_DressTip",      0x004ad720, (void *)&Panel7cc218_DressTip, {0x6a, 0xff, 0x68, 0xbb, 0xab}},
     {"Panel7cc218_UpdateButtons", 0x004ad4e0, (void *)&Panel7cc218_UpdateButtons, {0xa1, 0x58, 0x26, 0x7c, 0x00}},

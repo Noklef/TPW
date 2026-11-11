@@ -193,6 +193,26 @@ void __cdecl ThingBrowser_Open(u8 *thing) {
     }
 }
 
+void __cdecl ThingBrowser_OpenPeople() {
+    Dialog7cb2b8_Child21Post((u32)(uintptr_t)gThingbrowser_7cc300);   // (a second argument 0 pushed, unread)
+    gThingbrowser_7cc30c = 6;
+    gThingbrowser_7cc2f0 = 2;
+    RadioGroup_Select(Window_FindChild(gThingbrowser_7cc300, nullptr, 0x95d), nullptr, 0xffffffffu);
+    gThingbrowser_7cc308 = nullptr;
+    Window_SetShown(Window_FindChild(gThingbrowser_7cc304, nullptr, 0x148), nullptr, 0);
+    Window_SetShown(Window_FindChild(gThingbrowser_7cc304, nullptr, 0x14a), nullptr, 1);
+    Window7c24c8_Close();
+    MouseModes_EnsureHolder();
+    u8 *const current = global<u8 *>(0x007b05d8);
+    if ((current ? vcall<s32>(current, 0x24) : 0) == 9) {
+        u8 *const block = static_cast<u8 *>(GameHeap_Alloc(8));
+        u8 *const mode = block ? MouseModeOnlineBase_Ctor(block) : nullptr;
+        MouseModes_EnsureHolder();
+        MouseMode_Set(mode);
+    }
+    Advisor_PostId(0x11f);
+}
+
 void __cdecl ThingBrowser_SendPatrolLines() {
     if (!gThingbrowser_7cc308 || !(gCameraFlags & 0x1000)) return;
     g_patrol->centre(gThingbrowser_7cc308);
