@@ -50,15 +50,43 @@ u8 g_game[kImageEnd - 0x00011000];
 template <typename T> T &G(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
 
 // Test only: with TPW_TRACE=path set, the last 64 calls by an original address are kept (a ring, no writes while the game runs) and
-// written there at an access violation or a trap, with failed file opens and the fault's stack, to find where a run stops.
+// written there at an access violation, a trap or ExitProcess, with failed file opens, the fault's stack and the redirect counts, to find
+// where a run stops or spends its time.
 HANDLE g_trace = INVALID_HANDLE_VALUE;
 u32 g_recent[64];
 volatile LONG g_recentNext;
 
 void Trace(u32 address) { g_recent[(u32)InterlockedIncrement(&g_recentNext) & 63] = address; }
 
+// The calls into the copy that an execute fault redirected (the slow path), by address, written with the last calls.
+struct Redirect {
+    u32 address, count;
+};
+Redirect g_redirects[4096];
+
+void CountRedirect(u32 address) {   // shortcut: not thread-safe and stops counting new addresses past 4096; test only
+    for (u32 i = (address * 2654435761u) >> 20, n = 0; n < 4096; ++n, i = (i + 1) & 4095) {
+        if (g_redirects[i].address == address) return void(++g_redirects[i].count);
+        if (!g_redirects[i].address) return void(g_redirects[i] = {address, 1});
+    }
+}
+
+void WriteRedirects() {
+    static Redirect most[4096];
+    std::memcpy(most, g_redirects, sizeof most);
+    std::partial_sort(most, most + 16, most + 4096, [](const Redirect &a, const Redirect &b) { return a.count > b.count; });
+    u32 total = 0;
+    for (const Redirect &r : g_redirects) total += r.count;
+    char text[16 * 20 + 64];
+    int n = wsprintfA(text, "redirects into the copy: %u; the most:\r\n", total);
+    for (int i = 0; i < 16 && most[i].count; ++i) n += wsprintfA(text + n, "%08x %u\r\n", most[i].address, most[i].count);
+    DWORD written;
+    WriteFile(g_trace, text, (DWORD)n, &written, nullptr);
+}
+
 void WriteRecent() {   // oldest first
     if (g_trace == INVALID_HANDLE_VALUE) return;
+    WriteRedirects();
     char text[64 * 10 + 32] = "last calls:\r\n";
     int n = lstrlenA(text);
     const u32 last = (u32)g_recentNext;
@@ -308,6 +336,11 @@ HANDLE WINAPI TracedCreateFileA(LPCSTR path, DWORD access, DWORD share, LPSECURI
     return h;
 }
 
+void WINAPI TracedExitProcess(UINT code) {   // (a clean exit writes the redirect counts too)
+    WriteRecent();
+    ExitProcess(code);
+}
+
 // Each slot twice: in the copy (its code calls through it) and in gImports (the ports' IMPORT(member)), at the same offset into the table.
 void FillImports(const IMAGE_NT_HEADERS32 &nt) {
     const IMAGE_DATA_DIRECTORY &dir = nt.OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_IMPORT];
@@ -324,6 +357,7 @@ void FillImports(const IMAGE_NT_HEADERS32 &nt) {
                                                                      : reinterpret_cast<const char *>((uintptr_t)kBase + *names + 2);
             FARPROC fn = module ? GetProcAddress(module, name) : nullptr;
             if (fn && !IMAGE_SNAP_BY_ORDINAL32(*names) && !lstrcmpA(name, "CreateFileA")) fn = reinterpret_cast<FARPROC>(&TracedCreateFileA);
+            if (fn && !IMAGE_SNAP_BY_ORDINAL32(*names) && !lstrcmpA(name, "ExitProcess")) fn = reinterpret_cast<FARPROC>(&TracedExitProcess);
             *slot = fn ? (u32)(uintptr_t)fn : AddMissing(dll, name);
             *reinterpret_cast<u32 *>(own + ((u32)(uintptr_t)slot - first)) = *slot;
         }
@@ -378,6 +412,7 @@ LONG CALLBACK OnFault(EXCEPTION_POINTERS *e) {
     }
     if (at < kBase || at >= kImageEnd) return EXCEPTION_CONTINUE_SEARCH;
     if (const u32 target = Resolve(at)) {
+        if (g_trace != INVALID_HANDLE_VALUE) CountRedirect(at);
         c.Eip = target;
         return EXCEPTION_CONTINUE_EXECUTION;
     }

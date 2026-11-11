@@ -212,3 +212,14 @@ GAME_DATA(void *[1], Class7099ec_vtable, 0x007099ec, 0x4);
 GAME_DATA(void *[3], Class7099fc_vtable, 0x007099fc, 0xc);
 GAME_DATA(void *[3], Error709a44_vtable, 0x00709a44, 0xc);
 GAME_DATA(void *[3], BadCast_vtable, 0x00709b34, 0xc);
+
+// Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(const char[0x10], gText_Std_Xlen_709890, 0x00709890, 0x10);
+GAME_DATA(const char[0x18], gText_Std_Xran_7098c0, 0x007098c0, 0x18);
+GAME_DATA(const char[0x10], gText_IosBase_Clear_709a2c, 0x00709a2c, 0x10);
+GAME_DATA(const u8[0x58], gStd_FiopenTable_709a50, 0x00709a50, 0x58);      // (14 open modes and the 0 that ends them, then 7 of their fopen texts)
+GAME_DATA(const u8[0x10], gLogicError_Raise_71f310, 0x0071f310, 0x10);      // (the throw's _ThrowInfo)
+GAME_DATA(s32, gIos_7822b0, 0x007822b0, 0x4);                               // (ios_base::Init's count)
+GAME_DATA(u8[0x38], gStd_FiopenTable_782590, 0x00782590, 0x38);             // (the 14 modes' fopen texts)
+GAME_DATA(u8[0x38], gIosbase_fb1cc8, 0x00fb1cc8, 0x38);                     // (wcout, up to the filebuf at 0xfb1d00)
+GAME_DATA(u8 *, gIosbase_fb1dc8, 0x00fb1dc8, 0x4);

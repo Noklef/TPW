@@ -6503,8 +6503,8 @@ address,name,kind,confidence,notes
 0x00695910,Numpunct_Ctor,function,low,reimplemented (src/game/core/localefacet); numpunct<char>'s constructor
 0x0069c680,WNumpunct_Ctor,function,low,reimplemented (src/game/core/localefacet); numpunct<wchar_t>'s constructor
 0x0069c7e0,WNumpunct_Init,function,low,reimplemented (src/game/core/localefacet); numpunct<wchar_t>::_Init
-0x0069b490,WNumGet_Ctor,function,low,reimplemented (src/game/core/localefacet); num_get<wchar_t>'s constructor
-0x0069cb00,WNumPut_Ctor,function,low,reimplemented (src/game/core/localefacet); num_put<wchar_t>'s constructor
+0x0069b490,NumPutW_Ctor,function,low,reimplemented (src/game/core/localefacet); num_put<wchar_t>'s constructor
+0x0069cb00,NumGetW_Ctor,function,low,reimplemented (src/game/core/localefacet); num_get<wchar_t>'s constructor
 0x0069b460,WCodecvt_Ctor,function,low,"reimplemented (src/game/core/localefacet); codecvt<wchar_t, char, int>'s constructor"
 0x00695c00,Numpunct_Tidy,function,low,reimplemented (src/game/core/localefacet); numpunct<char>'s destructor body
 0x0069cac0,WNumpunct_Tidy,function,low,reimplemented (src/game/core/localefacet); numpunct<wchar_t>'s destructor body
@@ -6588,6 +6588,11 @@ address,name,kind,confidence,notes
 0x006a9260,MoneyPut_DoPutNumber,function,low,reimplemented (src/game/core/moneyput); money_put<char>::do_put of a number
 0x006a9480,MoneyPut_DoPutString,function,low,reimplemented (src/game/core/moneyput); money_put<char>::do_put of a string
 0x006a9700,MoneyPut_Putmfld,function,low,reimplemented (src/game/core/moneyput); money_put<char>::_Putmfld
+0x006a1bf0,MoneyPunctIntlW_Ctor,function,low,"reimplemented (src/game/core/moneyput); moneypunct<wchar_t, true>'s constructor on a _Locinfo of ""C"" (MoneypunctW_Init); final vtable 0x709da4"
+0x006a2150,MoneyPunctLocalW_Ctor,function,low,"reimplemented (src/game/core/moneyput); moneypunct<wchar_t, false>'s constructor on a _Locinfo of ""C"" (MoneypunctW_Init); final vtable 0x709bbc"
+0x006a2940,MoneyPutW_Putmfld,function,low,"reimplemented (src/game/core/moneyput); money_put<wchar_t>::_Putmfld: the digits with grouping, sign, symbol and padding by the facet's pattern, each literal widened by btowc"
+0x006a2690,MoneyPutW_DoPutString,function,low,"reimplemented (src/game/core/moneyput); money_put<wchar_t>::do_put of a string: a minus and the digits (ctype<wchar_t>::is), or ""0"", then _Putmfld"
+0x006a2450,MoneyPutW_DoPutNumber,function,low,"reimplemented (src/game/core/moneyput); money_put<wchar_t>::do_put of a number: the value as text without its sign (scaled past 1e35), widened, then _Putmfld"
 0x005cec80,NFileBuf_Dtor,function,low,reimplemented (src/game/core/narrowfilebuf); the narrow file buffer's destructor
 0x005cefe0,NFileBuf_PutBack,function,low,reimplemented (src/game/core/narrowfilebuf); the narrow file buffer's pbackfail
 0x005cf200,NFileBuf_Uflow,function,low,reimplemented (src/game/core/narrowfilebuf); the narrow file buffer's uflow
@@ -6769,6 +6774,9 @@ address,name,kind,confidence,notes
 0x006a7920,MoneyGet_Getmfld,function,low,reimplemented (src/game/core/moneyget); money_get<char>::_Getmfld: a money field read off a stream by the facet's negative pattern
 0x006a7550,MoneyGet_DoGetLongDouble,function,low,"reimplemented (src/game/core/moneyget); money_get<char>::do_get of a long double (a double): _Getmfld's digits copied, then _Stold"
 0x006a7760,MoneyGet_DoGetString,function,low,reimplemented (src/game/core/moneyget); money_get<char>::do_get of a string: _Getmfld's digits assigned
+0x006a0900,MoneyGetW_Getmfld,function,low,"reimplemented (src/game/core/moneyget); money_get<wchar_t>::_Getmfld: the symbol, sign, digits and spaces by the facet's pattern over wide units; '-' widened by btowc"
+0x006a0510,MoneyGetW_DoGetLongDouble,function,low,"reimplemented (src/game/core/moneyget); money_get<wchar_t>::do_get of a long double: _Getmfld's digits narrowed by wctob, then _Stold"
+0x006a0730,MoneyGetW_DoGetString,function,low,reimplemented (src/game/core/moneyget); money_get<wchar_t>::do_get of a string: _Getmfld's digits assigned to value
 0x0050ffe0,Nav_Ctor,function,high,reimplemented (src/game/world/nav); constants constructor with five integer pairs
 0x0050f200,Nav_Dtor,function,high,reimplemented (src/game/world/nav); thiscall: the five IntPairs at +0x64 destroyed with Stub_Ret (CRT_VectorDtorIterator); also via 0x4f7c30 (+0xd4) and 0x4f8ad0
 0x004f7c30,Nav_DtorAtD4,function,low,reimplemented (src/game/world/nav); thiscall adjustor: Nav_Dtor on this + 0xd4
@@ -11723,8 +11731,7 @@ address,name,kind,confidence,notes
 0x00816d5c,gCellbuild_816d5c,data,low,"GAME_DATA (world/cellbuild): u32, named for its use in MapCell_CanBuild, MapCell_CanBuildTrack"
 0x00816d60,gCellbuild_816d60,data,low,"GAME_DATA (world/cellbuild): u32, named for its use in MapCell_CanBuild, MapCell_CanBuildTrack"
 0x00816d64,gCellmessage_816d64,data,low,"GAME_DATA (world/cellmessage): u32, named for its use in cellmessage.cpp, trackmessage.cpp"
-0x00816d68,gTracktextures_816d68,data,low,"GAME_DATA (world/tracktextures): u32, named for its use in tracktextures.cpp, queuepieces.cpp"
-0x00816d6c,gTracktextures_816d6c,data,low,"GAME_DATA (world/tracktextures): u32, named for its use in tracktextures.cpp"
+0x00816d68,gTracktextures_816d68,data,low,"GAME_DATA (world/tracktextures): u32[2], a cell grid's width and height (TrackTextures_LoadQueue, TrackQueuePiece_Place), named for its use in tracktextures.cpp, queuepieces.cpp"
 0x00818c20,gPlaceObject_Footprint_818c20,data,low,"GAME_DATA (world/placeobject): s32, named for its use in PlaceObject_Footprint (the type 9 cell's column; its address the result)"
 0x00818c24,gPlaceObject_Footprint_818c24,data,low,"GAME_DATA (world/placeobject): s32, named for its use in PlaceObject_Footprint (the type 9 cell's row)"
 0x00818c28,gPlaceObject_Footprint_818c28,data,low,"GAME_DATA (world/placeobject): s32, named for its use in PlaceObject_Footprint (the first cell's column)"
@@ -12183,6 +12190,11 @@ address,name,kind,confidence,notes
 0x00708b1c,CRT_nullstring_text,data,low,"GAME_DATA (core/crtoutput): const char[7], (null), what __nullstring points at, named for its use"
 0x0070a078,Class70a078_vtable,data,low,"GAME_DATA (core/refcounted): void *[3], the text library's counted base's vtable (Release, AddRef, its deleting destructor; all ported), named for its use"
 0x00748378,gKeyMap_Shortcuts_748378,data,low,"GAME_DATA (core/keymap): KeyMapEntry[17], the shortcuts map's 17 entries (KeyMapEntry), each with its name's pointer and handlers (all ported), named for its use"
+0x00747f38,gKeyMap_System_747f38,data,low,"GAME_DATA (core/keymap): KeyMapEntry[12], the system map's entries (KeyMaps_Init's count), named for its use"
+0x00748028,gKeyMap_Game_748028,data,low,"GAME_DATA (core/keymap): KeyMapEntry[15], the game map's entries, named for its use"
+0x00748158,gKeyMap_Camera_748158,data,low,"GAME_DATA (core/keymap): KeyMapEntry[25], the camera map's entries, named for its use"
+0x00748350,gKeyMap_Coaster_748350,data,low,"GAME_DATA (core/keymap): KeyMapEntry[2], the coaster map's entries, named for its use"0x00702218,TexSurfaceA_vbtable,data,low,"GAME_DATA (gfx/texsurface): const u32[2], TexSurfaceA's virtual base table (0, 0x3c); name invented"
+0x00702278,TexSurfaceB_vbtable,data,low,"GAME_DATA (gfx/texsurface): const u32[2], TexSurfaceB's virtual base table (0, 0x10); name invented"
 0x0077ea90,CRT_pctype,data,low,"GAME_DATA (core/crt): u16 *, _pctype (MSVC): the ctype table in use (the static one's entry 0, or a locale's)"
 0x0077ea94,CRT_pwctype,data,low,"GAME_DATA (core/crt): u16 *, _pwctype (MSVC): the wide ctype table in use"
 0x0077ea98,CRT_ctype,data,low,"GAME_DATA (core/crt): u16[257], _ctype (MSVC): the static ctype table (entry 0 for EOF)"
@@ -12198,6 +12210,8 @@ address,name,kind,confidence,notes
 0x007b4a38,gImeinput_7b4a38,data,low,"GAME_DATA (core/imeinput): u8, named for its use"
 0x00803ad2,gSoundset_803ad2,data,low,"GAME_DATA (core/soundset): u16, named for its use"
 0x00878128,gGameframe_878128,data,low,"GAME_DATA (core/gameframe): u32, named for its use"
+0x00878088,gGameframe_SampleRings_878088,data,low,"GAME_DATA (core/gameframe): u32[40], 5 rings of the last 8 step times (world, frame, RSSE, 0x520130, sprite scripts), named for its use"
+0x00878688,gGameframe_SampleStarts_878688,data,low,"GAME_DATA (core/gameframe): u32[5], the timed steps' starts, then what each took, named for its use"
 0x00879a64,gWavelet_Codec_879a64,data,low,"GAME_DATA (gfx/wavelet): u8 *, wavelet: the codec object WctImage decodes with, named for its use"
 0x00879a68,gWavelet_Block_879a68,data,low,"GAME_DATA (gfx/wavelet): u32, wavelet: the locked draw buffer block of the decoder, named for its use"
 0x0087a24c,gTexfile_87a24c,data,low,"GAME_DATA (gfx/texfile): u32, named for its use"
@@ -12229,7 +12243,6 @@ address,name,kind,confidence,notes
 0x00e74a48,gWavelet_ScaledCr_e74a48,data,low,"GAME_DATA (gfx/wavelet): float[0x10000], wavelet: the scaled Cr plane, named for its use"
 0x00faa534,gGameheap_faa534,data,low,"GAME_DATA (core/gameheap): u32, named for its use"
 0x00fab4fc,gMmxblit_fab4fc,data,low,"GAME_DATA (gfx/mmxblit): u32, named for its use"
-0x00fac51c,gMmxblit_fac51c,data,low,"GAME_DATA (gfx/mmxblit): u32, named for its use"
 0x00fb1e68,gLocimp_fb1e68,data,low,"GAME_DATA (core/locimp): u8, named for its use"
 0x00fb2768,gWavelet_fb2768,data,low,"GAME_DATA (gfx/wavelet): u32, named for its use"
 0x00fb276c,gWavelet_fb276c,data,low,"GAME_DATA (gfx/wavelet): u32, named for its use"
@@ -12455,7 +12468,7 @@ address,name,kind,confidence,notes
 0x00709c0c,WFacet709c0c_vtable,data,low,"GAME_DATA (core/localefacet): the vtable (4 slots, all ported); name invented"
 0x00709c24,CollateW_vtable,data,low,"GAME_DATA (core/localefacet): the vtable (4 slots, all ported); name invented"
 0x00709c3c,WNumpunct_vtable,data,low,"GAME_DATA (core/localefacet): the vtable (6 slots, all ported); name invented"
-0x00709c5c,WNumGet_vtable,data,low,"GAME_DATA (core/localefacet): the vtable (7 slots, all ported); name invented"
+0x00709c5c,NumPutW_vtable,data,low,"GAME_DATA (core/localefacet): the vtable (7 slots, all ported); name invented"
 0x00709cac,WCtype_vtable,data,low,"GAME_DATA (core/wstream): the vtable (13 slots, all ported); name invented"
 0x00709ce4,CodecvtW_vtable,data,low,"GAME_DATA (core/wfilebuf): the vtable (7 slots, all ported); name invented"
 0x00709d74,MoneypunctW_vtable,data,low,"GAME_DATA (core/moneypunct): the vtable (10 slots, all ported); name invented"
@@ -12835,6 +12848,10 @@ address,name,kind,confidence,notes
 0x00779a68,gIosbase_779a68,data,low,"GAME_DATA (core/iosbase): char[0x1c], the text ""invalid vector<T> subscript"", named for its use"
 0x0077a098,gInitializers_77a098,data,low,"GAME_DATA (core/initializers): char[0x4], the text ""	"", named for its use"
 0x00781514,gCrt_781514,data,low,"GAME_DATA (core/crt): u32, the signal action table's count (10), named for its use"
+0x00781588,gCRT_setmbcp_781588,data,low,"GAME_DATA (core/crtmbstring): u8[0xf8], __rgctypeflag (4 bytes, then 4 of padding) and __rgcode_page_info (MSVC): 5 code pages of 0x30 bytes, named for its use in CRT_setmbcp"
+0x00781680,CRT_NMSG_table,data,low,"GAME_DATA (core/crtmessage): s32[36], rterrs (MSVC): 18 (code, text) pairs (_NMSG_WRITE compares a code past them with crtinput's scan set after it, sic)"
+0x00780dc8,CRT_c_locale,data,low,"GAME_DATA (core/crtlocale): char[8], ""C"", the locale every category starts with"
+0x00780dd0,CRT_lc_category,data,low,"GAME_DATA (core/crtlocale): u8[0x48], __lc_category (MSVC): 6 categories of 12 bytes (name, locale, init function)"
 0x00782e40,gQsoundmixer_782e40,data,low,"GAME_DATA (core/qsoundmixer): u16[128], the QSound volume table, named for its use"
 0x00782f40,gQsoundmixer_782f40,data,low,"GAME_DATA (core/qsoundmixer): float[0x300], the QSound pitch factors up, named for its use"
 0x007899b4,gStdTree_7899b4,data,low,"GAME_DATA (core/stdtree): float, an unused float set to 1 at start-up, named for its use"
@@ -12902,6 +12919,38 @@ address,name,kind,confidence,notes
 0x00fbe0b0,gRastertriangle_fbe0b0,data,low,"GAME_DATA (src/game/render/rastertriangle): u8[0x88], named for its use in rastertriangle.cpp (tools/gamedata_codemod.py)"
 0x00fbe240,gRastertriangle_fbe240,data,low,"GAME_DATA (src/game/render/rastertriangle): u8[0x2a0], named for its use in rastertriangle.cpp (tools/gamedata_codemod.py)"
 0x00fbe6f0,gRastertriangle_fbe6f0,data,low,"GAME_DATA (src/game/render/rastertriangle): u8[0x110], named for its use in rastertriangle.cpp (tools/gamedata_codemod.py)"
+0x007396c8,gBalancefile_7396c8,data,low,"GAME_DATA (src/game/core/balancefile): u8[0xe4] (0x13 map symbols of 0xc bytes), named for its use in balancefile.cpp (tools/gamedata_codemod.py)"
+0x007397b0,gBalancefile_7397b0,data,low,"GAME_DATA (src/game/core/balancefile): u8[0xc0] (0x10 map symbols of 0xc bytes), named for its use in balancefile.cpp (tools/gamedata_codemod.py)"
+0x0073f8a8,gTable73f8a8_At_73f8a8,data,low,"GAME_DATA (src/game/core/balancefile): u8[0x298], named for its use in Table73f8a8_At (tools/gamedata_codemod.py)"
+0x0073fb40,gBalanceHoardings_GetSchema_73fb40,data,low,"GAME_DATA (src/game/core/balancefile): u8[0x130], named for its use in BalanceHoardings_GetSchema (tools/gamedata_codemod.py)"
+0x0073fc70,gBalanceLevel_GetSchema_73fc70,data,low,"GAME_DATA (src/game/core/balancefile): u8[0x4290], named for its use in BalanceLevel_GetSchema (tools/gamedata_codemod.py)"
+0x00743f00,gBalanceOnline_GetSchema_743f00,data,low,"GAME_DATA (src/game/core/balancefile): u8[0x3c0], named for its use in BalanceOnline_GetSchema (tools/gamedata_codemod.py)"
+0x007442c0,gBalanceGraphics_GetSchema_7442c0,data,low,"GAME_DATA (src/game/core/balancefile): u8[0x780], named for its use in BalanceGraphics_GetSchema (tools/gamedata_codemod.py)"
+0x00744a40,gBalanceResolution_GetSchema_744a40,data,low,"GAME_DATA (src/game/core/balancefile): u8[0xf0], named for its use in BalanceResolution_GetSchema (tools/gamedata_codemod.py)"
+0x00781968,gCRT_get_qualified_locale_781968,data,low,"GAME_DATA (src/game/core/crtlocale): u8[0xb8], named for its use in CRT_get_qualified_locale (tools/gamedata_codemod.py)"
+0x00781a20,gCRT_781a20,data,low,"GAME_DATA (src/game/core/crtlocale): u8[0x4bc], named for its use in CRT_TestDefaultCountry, CRT_crtGetLocaleInfoA (tools/gamedata_codemod.py)"
+0x00709890,gText_Std_Xlen_709890,data,low,"GAME_DATA (src/game/core/iosbase): const char[0x10], named for its use in Std_Xlen (tools/gamedata_codemod.py)"
+0x007098c0,gText_Std_Xran_7098c0,data,low,"GAME_DATA (src/game/core/iosbase): const char[0x18], named for its use in Std_Xran (tools/gamedata_codemod.py)"
+0x00709a2c,gText_IosBase_Clear_709a2c,data,low,"GAME_DATA (src/game/core/iosbase): const char[0x10], named for its use in IosBase_Clear (tools/gamedata_codemod.py)"
+0x00709a50,gStd_FiopenTable_709a50,data,low,"GAME_DATA (src/game/core/iosbase): const u8[0x58], 14 open modes and their 0, then 7 of their fopen texts, named for its use in Std_FiopenTable (tools/gamedata_codemod.py)"
+0x0071f310,gLogicError_Raise_71f310,data,low,"GAME_DATA (src/game/core/iosbase): const u8[0x10], the throw's _ThrowInfo, named for its use in LogicError_Raise (tools/gamedata_codemod.py)"
+0x007822b0,gIos_7822b0,data,low,"GAME_DATA (src/game/core/iosbase): s32, ios_base::Init's count, named for its use in Ios_InitCtor, Ios_InitDtor (tools/gamedata_codemod.py)"
+0x00782590,gStd_FiopenTable_782590,data,low,"GAME_DATA (src/game/core/iosbase): u8[0x38], the 14 modes' fopen texts, named for its use in Std_FiopenTable (tools/gamedata_codemod.py)"
+0x00fb1cc8,gIosbase_fb1cc8,data,low,"GAME_DATA (src/game/core/iosbase): u8[0x38], wcout, named for its use in iosbase.cpp (tools/gamedata_codemod.py)"
+0x00fb1dc8,gIosbase_fb1dc8,data,low,"GAME_DATA (src/game/core/iosbase): u8 *, named for its use in iosbase.cpp (tools/gamedata_codemod.py)"
+0x00700f84,gGame_RunFrame_700f84,data,low,"GAME_DATA (src/game/core/gameframe): const float, named for its use in Game_RunFrame (tools/gamedata_codemod.py)"
+0x00700f88,gGameframe_700f88,data,low,"GAME_DATA (src/game/core/gameframe): const float, named for its use in gameframe.cpp (tools/gamedata_codemod.py)"
+0x00700f8c,gGameframe_700f8c,data,low,"GAME_DATA (src/game/core/gameframe): const u8[0x40], named for its use in gameframe.cpp (tools/gamedata_codemod.py)"
+0x007651ac,gGameframe_7651ac,data,low,"GAME_DATA (src/game/core/gameframe): u8[0xc], named for its use in gameframe.cpp (tools/gamedata_codemod.py)"
+0x00879088,gGameframe_879088,data,low,"GAME_DATA (src/game/core/gameframe): u8[0x4], named for its use in gameframe.cpp (tools/gamedata_codemod.py)"
+0x00802bcc,gSoundset_802bcc,data,low,"GAME_DATA (src/game/core/soundset): u8[0x4], named for its use in soundset.cpp (tools/gamedata_codemod.py)"
+0x00803ad8,gSound_803ad8,data,low,"GAME_DATA (src/game/core/soundset): u8[0x20], named for its use in Sound_ApplySettings, Sound_Set803ad8, Sound_Set803adc, Sound_Set803ae0, Sound_Start (tools/gamedata_codemod.py)"
+0x00783b80,gVoicecodec_783b80,data,low,"GAME_DATA (src/game/core/voicecodec): u8[0x128], named for its use in voicecodec.cpp (tools/gamedata_codemod.py)"
+0x00783ca8,gVoiceCodec_Excitation_783ca8,data,low,"GAME_DATA (src/game/core/voicecodec): u8[0x200], named for its use in VoiceCodec_Excitation (tools/gamedata_codemod.py)"
+0x00783ea8,gVoiceCodec_Excitation_783ea8,data,low,"GAME_DATA (src/game/core/voicecodec): u8[0x168], named for its use in VoiceCodec_Excitation (tools/gamedata_codemod.py)"
+0x0077e540,gMmxblit_77e540,data,low,"GAME_DATA (src/game/gfx/mmxblit): u8[0x8c], named for its use in MmxBlit_Convert16, MmxBlit_Copy32, MmxBlit_Dither16, Mmx_FillRows (tools/gamedata_codemod.py)"
+0x00fab4e0,gMmxBlit_fab4e0,data,low,"GAME_DATA (src/game/gfx/mmxblit): u8[0x1c], named for its use in MmxBlit_Convert16, MmxBlit_Dither16 (tools/gamedata_codemod.py)"
+0x00fac518,gMmxBlit_fac518,data,low,"GAME_DATA (src/game/gfx/mmxblit): u8[0x8] (a dword written, a qword read), named for its use in MmxBlit_Convert16, MmxBlit_Copy32 (tools/gamedata_codemod.py)"
 0x00fb2765,gAdvisorsend_fb2765,data,low,"GAME_DATA (src/game/world/advisorsend): u8[0x3], named for its use in advisorsend.cpp (tools/gamedata_codemod.py)"
 0x0074cfb8,gText_Advisorspeech_74cfb8,data,low,"GAME_DATA (src/game/world/advisorspeech): char[0x4], named for its use in Advisor_Say, HeightMap_ReadOrBuild, MailAttachment_Ctor (tools/gamedata_codemod.py)"
 0x0076dc18,gAdvisor_QueueAnim_76dc18,data,low,"GAME_DATA (src/game/world/advisorspeech): u8[0x4b4], named for its use in Advisor_QueueAnim (tools/gamedata_codemod.py)"

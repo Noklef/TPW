@@ -254,16 +254,17 @@ s32 __cdecl CRT_setmbcp(s32 page) {
         CrtInner().unlock(kMbcsLock);
         return 0;
     }
-    for (u32 i = 0, at = 0x00781590; at < 0x00781680; at += 0x30, ++i) {
+    const u32 base = (u32)(uintptr_t)&gCRT_setmbcp_781588;
+    for (u32 i = 0, at = base + 8; at < base + 0xf8; at += 0x30, ++i) {
         if (global<u32>(at) != wanted) continue;
         clear();
-        for (u32 range = 0; range < 4; ++range) mark(&global<u8>(0x007815a0 + i * 0x30 + range * 8), global<u8>(0x00781588 + range));
+        for (u32 range = 0; range < 4; ++range) mark(&global<u8>(base + 0x18 + i * 0x30 + range * 8), global<u8>(base + range));
         CRT_ismbcodepage = 1;
         CRT_mbcodepage = wanted;
         CRT_mblcid = CRT_CPtoLCID(wanted);
-        CRT_mbulinfo[0] = global<u32>(0x00781594 + i * 0x30);
-        CRT_mbulinfo[1] = global<u32>(0x00781598 + i * 0x30);
-        CRT_mbulinfo[2] = global<u32>(0x0078159c + i * 0x30);
+        CRT_mbulinfo[0] = global<u32>(base + 0xc + i * 0x30);
+        CRT_mbulinfo[1] = global<u32>(base + 0x10 + i * 0x30);
+        CRT_mbulinfo[2] = global<u32>(base + 0x14 + i * 0x30);
         CRT_setSBUpLow();
         CrtInner().unlock(kMbcsLock);
         return 0;

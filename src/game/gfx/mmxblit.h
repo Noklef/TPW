@@ -45,12 +45,14 @@ void __cdecl MmxBlit_Convert16(u8 *source, u8 *out, u32 width, u32 rows, s32 sou
 #include "../core/gamedata.h"
 
 // Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(u8[0x8c], gMmxblit_77e540, 0x0077e540, 0x8c);
 GAME_DATA(u32, gMmxBlit_Copy32_fab484, 0x00fab484, 4);
 GAME_DATA(u32, gMmxBlit_Copy32_fab4a0, 0x00fab4a0, 4);
 GAME_DATA(u32, gMmxBlit_Copy32_fab4b0, 0x00fab4b0, 4);
 GAME_DATA(u32, gMmxBlit_Convert16_fab4b4, 0x00fab4b4, 4);
 GAME_DATA(u32, gMmxBlit_Convert16_fab4d8, 0x00fab4d8, 4);
+GAME_DATA(u8[0x1c], gMmxBlit_fab4e0, 0x00fab4e0, 0x1c);
+GAME_DATA(u8[0x8], gMmxBlit_fac518, 0x00fac518, 0x8);   // (the fill: its dwords written, the qword read)
 
 // Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
 GAME_DATA(u32, gMmxblit_fab4fc, 0x00fab4fc, 0x4);
-GAME_DATA(u32, gMmxblit_fac51c, 0x00fac51c, 0x4);

@@ -23,6 +23,7 @@
 #include "../ui/panel7ca178.h"
 #include "../ui/panel7cc298.h"
 #include "../render/spritequeue.h"
+#include "gameframe.h"
 #include "../sprite/loading.h"
 
 namespace {
@@ -289,7 +290,7 @@ void __cdecl Sub_692b00() {   // 0x692b00
     const u32 sp = (u32)(uintptr_t)(frame + sizeof frame);
     M<u32>(sp - 0x4) = 0x1u;
     M<u32>(sp - 0x8) = 0x0u;
-    ecx = 0xfb1cc8u;
+    ecx = (u32)(uintptr_t)&gIosbase_fb1cc8;
     eax = g_calls.Th(0x00692b10, ecx, M<u32>(sp - 0x8), M<u32>(sp - 0x4));   // OstreamW_CtorUninit
     return;
 }
@@ -925,10 +926,10 @@ void __cdecl Exit_692ad0() {   // 0x692ad0
 }
 void __cdecl Exit_692ba0() {   // 0x692ba0
     u32 eax = 0, ecx = 0;
-    eax = M<u32>(0xfb1cc8u);
+    eax = M<u32>((u32)(uintptr_t)&gIosbase_fb1cc8);
     ecx = M<u32>(eax + 0x4u);
-    M<u32>(ecx + 0xfb1cc8u) = (u32)(uintptr_t)Class7099ec_vtable;
-    ecx = 0xfb1cccu;
+    M<u32>(ecx + (u32)(uintptr_t)&gIosbase_fb1cc8) = (u32)(uintptr_t)Class7099ec_vtable;
+    ecx = (u32)(uintptr_t)&gIosbase_fb1cc8 + 0x4u;
     g_calls.Th(0x004f0100, ecx);   // BasicIosW_Dtor (tail)
     return;
 }
@@ -11160,8 +11161,8 @@ void __cdecl Init_5510f0() {   // 0x5510f0
     return;
 }
 void __cdecl Init_551110() {   // 0x551110
-    X87Reg53 x0 = X87Reg53(M<float>(0x700fc8u));
-    x0 = x0 / M<float>(0x700f98u);
+    X87Reg53 x0 = X87Reg53(M<float>((u32)(uintptr_t)&gGameframe_700f8c + 0x3c));
+    x0 = x0 / M<float>((u32)(uintptr_t)&gGameframe_700f8c + 0xc);
     M<float>(0x879198u) = (float)x0;
     return;
 }

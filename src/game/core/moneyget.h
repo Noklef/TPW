@@ -3,6 +3,7 @@
 
 #include "../../../re/types.h"
 #include "stdstring.h"
+#include "stdwstring.h"
 
 // istreambuf_iterator<char> by value: { streambuf, got, value }.
 struct MoneyGetIter {
@@ -22,4 +23,11 @@ u32 *__fastcall MoneyGet_DoGetLongDouble(void *self, void *, u32 *out, MoneyGetI
 
 // 0x6a7760 (pops 0x24): do_get of a string: the same, the digits assigned to value (their block shared when it can be).
 u32 *__fastcall MoneyGet_DoGetString(void *self, void *, u32 *out, MoneyGetIter first, MoneyGetIter last, u8 international, u8 *ios, u32 *state, StdString *value);
+
+// money_get<wchar_t> (names invented, unconfirmed): the char ones over wide strings and the wide iterator (the same 8 bytes), ctype<wchar_t>'s is() (slot +8), the facets
+// moneypunct<wchar_t, intl> and ctype<wchar_t>; '0' and '-' widened by btowc where used (each zero), the digits to _Stold narrowed by wctob. The groups' counts stay a char string.
+// 0x6a0900 (pops 0x14) _Getmfld, 0x6a0510 (pops 0x24) a long double, 0x6a0730 (pops 0x24) a string.
+StdWString *__fastcall MoneyGetW_Getmfld(void *self, void *, StdWString *out, u8 *first, u8 *last, u8 international, u8 *ios);
+u32 *__fastcall MoneyGetW_DoGetLongDouble(void *self, void *, u32 *out, MoneyGetIter first, MoneyGetIter last, u8 international, u8 *ios, u32 *state, double *value);
+u32 *__fastcall MoneyGetW_DoGetString(void *self, void *, u32 *out, MoneyGetIter first, MoneyGetIter last, u8 international, u8 *ios, u32 *state, StdWString *value);
 }

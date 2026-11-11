@@ -247,6 +247,7 @@ TEXT[0xfbb9a8] ='the TQI DC code bytes 0x76 0x76 0x87 0 (TqiVideo_ReadBlocks), n
 # Run-time buffers no data of the exe points into: a value inside one is a number (a dialog template's u16 pair, a colour, a float, a
 # CRT_ctype entry such as 0x00820081), left as it is. (2026-11-11: about 180 such dwords were taken for pointers and rewritten.)
 NOT_INTO = ('gWavelet_', 'gDynFaces_Faces_820b00', 'gParticleState', 'gIntSinTable')
+NOT_INTO_SLOTS = set()   # (the slots NOT_INTO left as they are: tpw_tests' cross-check skips them as it skips TEXT)
 POINTERS = {}   # slot: why, for a pointer whose bytes read as text
 NEXT = {        # slot: why, for a dword at a converted object's end that points at what follows it (left as it is), not an end pointer
     0x7061c4: 'the text "DDERR_UN..." at 0x77dd30, after gImaAdpcmState',
@@ -310,6 +311,7 @@ def pointers(pe, decls, code_slots):
             into = DATA_LO <= v < DATA_HI and inside(v)
             if into and into.startswith(NOT_INTO):
                 into = None
+                NOT_INTO_SLOTS.add(slot)
             if not (into or slot in code_slots and (inside(slot) or inside(slot + 3))) or slot in TEXT:
                 continue
             if inside(slot) != inside(slot + 3):
@@ -418,8 +420,8 @@ def obj(exe, out, fixups_h):
                      'const std::uint32_t kFixupRanges[][2] = {%s};' % ranges, 'const unsigned kFixupRangeCount = %d;' % len(decls),
                      'const std::uint32_t kFixups[][2] = {%s};' % (', '.join('{%#010x, %#010x}' % f for f in found) or '{0, 0}'),
                      'const unsigned kFixupCount = %d;' % len(found),
-                     'const std::uint32_t kFixupText[] = {%s};' % (', '.join('%#010x' % t for t in sorted(TEXT)) or '0'),
-                     'const unsigned kFixupTextCount = %d;' % len(TEXT)])
+                     'const std::uint32_t kFixupText[] = {%s};' % (', '.join('%#010x' % t for t in sorted(set(TEXT) | NOT_INTO_SLOTS)) or '0'),
+                     'const unsigned kFixupTextCount = %d;' % len(set(TEXT) | NOT_INTO_SLOTS)])
 
 
 def main():

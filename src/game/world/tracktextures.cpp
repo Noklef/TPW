@@ -55,8 +55,8 @@ void TrackTextures_SetEnv(const TrackTexturesEnv *env) { g_env = env ? env : &kG
 extern "C" {
 
 void __cdecl TrackTextures_LoadQueue() {
-    gTracktextures_816d68 = 1;
-    gTracktextures_816d6c = 1;
+    gTracktextures_816d68[0] = 1;
+    gTracktextures_816d68[1] = 1;
     char folder[0x104];
     g_env->format(folder, (u32)(uintptr_t)&gText_TrackTextures_LoadQueue_76394c, g_env->basePath());
     u32 open = 0;
@@ -65,7 +65,7 @@ void __cdecl TrackTextures_LoadQueue() {
         const u32 name = global<u32>(slot);
         if (!open) open = g_env->openFolder(name, folder, open);
         const u32 flags = global<u8>(slot + 5) ? 0x112423 : 0x12423;
-        global<u32>(slot - 4) = g_env->load(folder, name, &gTracktextures_816d68, &gTracktextures_816d68, flags, id, 1, 0, 0, 0, 0);
+        global<u32>(slot - 4) = g_env->load(folder, name, gTracktextures_816d68, gTracktextures_816d68, flags, id, 1, 0, 0, 0, 0);
     }
 }
 

@@ -9,7 +9,7 @@ namespace {
 
 template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cast<T *>((uintptr_t)p + offset); }
 
-u32 Mask(u32 n) { return at<u32>(nullptr, 0x00783b80u + 4 * n); }
+u32 Mask(u32 n) { return at<u32>(nullptr, (u32)(uintptr_t)&gVoicecodec_783b80 + 4 * n); }
 
 // The reader's slots: 0 skip, 1 read (state, n).
 void Skip(void *reader, u32 *state, u32 n) { vcall<u32>(static_cast<u8 *>(reader), 0, state, n); }
@@ -306,8 +306,8 @@ void __fastcall VoiceCodec_Excitation(void *reader, void *, u32 *state, u32 code
     }
     u32 last = 0;
     for (s32 i = 0; i < 0x6c;) {
-        const u32 code = at<u8>(nullptr, 0x00783ca8u + (last << 8) + (state[1] & 0xff));
-        const u32 *const entry = &at<u32>(nullptr, 0x00783ea8u + 12 * code);
+        const u32 code = at<u8>(nullptr, (u32)(uintptr_t)&gVoiceCodec_Excitation_783ca8 + (last << 8) + (state[1] & 0xff));
+        const u32 *const entry = &at<u32>(nullptr, (u32)(uintptr_t)&gVoiceCodec_Excitation_783ea8 + 12 * code);
         last = entry[0];
         Skip(reader, state, entry[1]);
         if (static_cast<s32>(code) > 3) {
@@ -412,15 +412,15 @@ void __fastcall VoiceCodec_DecodeChannel(void *reader, void *, u8 *decoder, u8 *
     u32 *const state = reinterpret_cast<u32 *>(decoder);
     u32 delta[12];
     u32 v = Read(reader, state, 6);
-    delta[0] = Quarter(0x00783ba8u + 4 * v, channel + 0x104);
+    delta[0] = Quarter(((u32)(uintptr_t)&gVoicecodec_783b80 + 0x28) + 4 * v, channel + 0x104);
     const u32 coded = v < at<u32>(channel, 0);
     for (u32 i = 1; i < 4; ++i) {
         v = Read(reader, state, 6);
-        delta[i] = Quarter(0x00783ba8u + 4 * v, channel + 0x104 + 4 * i);
+        delta[i] = Quarter(((u32)(uintptr_t)&gVoicecodec_783b80 + 0x28) + 4 * v, channel + 0x104 + 4 * i);
     }
     for (u32 i = 4; i < 12; ++i) {
         v = Read(reader, state, 5);
-        delta[i] = Quarter(0x00783be8u + 4 * v, channel + 0x104 + 4 * i);
+        delta[i] = Quarter(((u32)(uintptr_t)&gVoicecodec_783b80 + 0x68) + 4 * v, channel + 0x104 + 4 * i);
     }
     u8 *out = channel + 0x674;
     for (u32 position = 0xd8; position < 0x288; position += 0x6c, out += 0x6c * 4) {
