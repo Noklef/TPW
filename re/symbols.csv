@@ -10167,7 +10167,7 @@ address,name,kind,confidence,notes
 0x00f75ad4,gWaveletCodec_ReadCoefficients_f75ad4,data,low,"GAME_DATA (src/game/gfx/wavelet): u32, named for its use in WaveletCodec_ReadCoefficients (tools/gamedata_codemod.py)"
 0x0079fb08,gHeightmap_79fb08,data,low,"GAME_DATA (src/game/model/heightmap): float, named for its use in heightmap.cpp (tools/gamedata_codemod.py)"
 0x0079fb0c,gHeightmap_79fb0c,data,low,"GAME_DATA (src/game/model/heightmap): u32, named for its use in heightmap.cpp (tools/gamedata_codemod.py)"
-0x008bb620,gObjModel_DrawOrQueue_8bb620,data,low,"GAME_DATA (src/game/model/objmodel): s32, named for its use in ObjModel_DrawOrQueue (tools/gamedata_codemod.py)"
+0x008bb220,gMeshQueue_8bb220,data,low,"GAME_DATA (src/game/render/meshqueue): MeshQueue (0x100 dword entries, the s32 count at +0x400), the renderer's first mesh queue (ObjModel_DrawOrQueue, MeshQueue_Clear, 0x579c80)"
 0x007b0468,gRelease_InitUnusedOne_7b0468,data,low,"GAME_DATA (src/game/model/release): float, named for its use in Release_InitUnusedOne (tools/gamedata_codemod.py)"
 0x007b046c,gRelease_InitUnusedEpsilon_7b046c,data,low,"GAME_DATA (src/game/model/release): float, named for its use in Release_InitUnusedEpsilon (tools/gamedata_codemod.py)"
 0x0080436c,gParticles_Tick_80436c,data,low,"GAME_DATA (src/game/render/particles): u32, named for its use in Particles_Tick (tools/gamedata_codemod.py)"

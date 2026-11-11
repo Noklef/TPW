@@ -25,3 +25,12 @@ u8 *__fastcall Render3d_Init(u8 *object);
 // 0x57c270 (thiscall, the second queue; mesh): appended when there is room; 1, or 0 when full.
 u32 __fastcall MeshQueue2_Add(u32 *queue, void *, u32 mesh);
 }
+
+#include "../core/gamedata.h"
+
+// The first queue as one object: MeshQueue_Clear and 0x579c80 reach the count through the queue's address.
+struct MeshQueue {
+    u32 entries[0x100];
+    s32 count;
+};
+GAME_DATA(MeshQueue, gMeshQueue_8bb220, 0x008bb220, 0x404);

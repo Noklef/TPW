@@ -10,6 +10,7 @@
 #include "renderer.h"
 #include "../gfx/texcache.h"
 #include "meshlist.h"
+#include "meshqueue.h"
 #include "../core/vwrap.h"
 #include "../world/camera.h"
 #include "../core/imports.h"
@@ -56,7 +57,7 @@ bool DrawViewSteps(u8 *renderer, const u32 *view) {
     g_calls.Th(0x0058a630, global<u32>(0x008c47a0));   // SpriteQueue_Clear
     g_calls.Th(0x00582390, global<u32>(0x008bcbc4), (global<u32>(kSceneFlags) & 0xc0000000) ? 3u : 2u);   // DrawBuffer_Reset
     at<u32>(renderer, 0x30) = 0;
-    g_calls.Th(0x00579c70, 0x008bb220u);   // MeshQueue_Clear
+    g_calls.Th(0x00579c70, (u32)(uintptr_t)&gMeshQueue_8bb220);   // MeshQueue_Clear
     Slot(Device(), 0x18, global<u32>(0x008bd490), global<u32>(0x008bd494), global<u32>(0x008bd47c));
     if (!Slot(Device(), 0x1c)) return false;
     if ((view[0] & 0x10) && !g_calls.Th(0x00576910, (u32)(uintptr_t)renderer)) return false;   // Renderer_DrawCellLists
@@ -82,7 +83,7 @@ bool DrawViewSteps(u8 *renderer, const u32 *view) {
         at<u32>(renderer, 0x74) = global<u32>(0x008bcc40);
     }
     g_calls.Th(0x0058a720, global<u32>(0x008c47a0));   // SpriteQueue_ShowAll
-    g_calls.Th(0x00579c80, 0x008bb220u);   // Pointers_MarkAndCallSlot4
+    g_calls.Th(0x00579c80, (u32)(uintptr_t)&gMeshQueue_8bb220);   // Pointers_MarkAndCallSlot4
     if (!g_calls.Th(0x0058cf40, gTexcache_8c4b44)) return false;   // TexCache_Update
     if (view[0] & 0x10) {
         if (!g_calls.Th(0x005863c0, 0x008c1828u)) return false;   // Landscape_Draw
