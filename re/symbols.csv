@@ -1999,6 +1999,7 @@ address,name,kind,confidence,notes
 0x005c0c10,GamePaths_SetRoots,function,low,reimplemented (src/game/files/gamepaths); The paths object strings set from the base folder and the global roots at start-up
 0x0046e650,GamePaths_ShareTexFolder,function,low,"reimplemented (src/game/files/gamepaths); The share textures' folder path (name invented, unconfirmed)"
 0x0040ef40,GamePaths_Base,function,low,"reimplemented (src/game/files/gamepaths); cdecl; the static String 0x788028: root, ""\"", 0x787f50, ""\"", 0x786b68's String; its text"
+0x0040eff0,GamePaths_Base_AtExit,function,low,"reimplemented (src/game/files/gamepaths); cdecl: GamePaths_Base's atexit entry, String_Dtor of the static String 0x788028 (name invented)"
 0x0045f7a0,GamePaths_CheckDisc,function,low,"reimplemented (src/game/files/gamepaths); cdecl: the disc looked for on a copy of the statics at 0xfb34e0, made the first time; the copy's list freed; true when GamePaths_FindDisc answered 1; name invented, unconfirmed"
 0x005c8190,GamePaths_MakeFoldersCopying,function,low,"reimplemented (src/game/files/gamepaths); the listed folders made, a file copied into each"
 0x005c5250,GamePaths_RemoveTree,function,low,reimplemented (src/game/files/gamepaths); a folder removed with all under it
@@ -4658,6 +4659,7 @@ address,name,kind,confidence,notes
 0x00478720,StdTree_CtorFullA,function,low,"reimplemented (src/game/core/stdtree); Tree A's other constructor: byte +8 0, then StdTree_CtorA."
 0x0047cde0,StdTree_EraseSubtreeA,function,low,reimplemented (src/game/core/stdtree); Tree A's _Erase.
 0x0047c540,StdTree_EraseRangeA,function,low,"reimplemented (src/game/core/stdtree); tree A's erase(first, last), as tree B's (name invented, unconfirmed)"
+0x004787e0,ImeMap_AtExit,function,low,"reimplemented (src/game/core/imeinput); cdecl: the IME map 0x7b4a40's atexit entry, StdTree_DtorA on it (name invented)"
 0x004787f0,StdTree_DtorA,function,low,"reimplemented (src/game/core/stdtree); thiscall: tree A's destructor (map counter 0x7b4a50, nil node 0x7b4a54), as StdTree_DtorC"
 0x00617f40,Class7037b8_Dtor,function,high,reimplemented (src/game/core/vdtor); frees the list of blocks
 0x005d48d0,Panel_Reset,function,high,reimplemented (src/game/gfx/imageops); fills the panel image and blends the six parts onto it
@@ -10629,7 +10631,7 @@ address,name,kind,confidence,notes
 0x007596b0,gDialog7cdb0c_Create_7596b0,data,low,"GAME_DATA (src/game/ui/dialogs): u8[624], named for its use in Dialog7cdb0c_Create"
 0x0077c4b8,gWindow7059f0_Proc_77c4b8,data,low,"GAME_DATA (src/game/ui/window7059f0): u8[24], named for its use in Window7059f0_Proc"
 0x0078a374,gWindow7cc8c0handler_78a374,data,low,"GAME_DATA (src/game/ui/window7cc8c0handler): u8[108], named for its use in window7cc8c0handler.cpp"
-0x007b9fe0,gGui_7b9fe0,data,low,"GAME_DATA (src/game/ui/guistartup): u32, named for its use in Gui_Frame, Gui_Startup"
+0x007b9fe0,gGui_7b9fe0,data,low,"GAME_DATA (src/game/ui/guistartup): u32[5], the record Gui_Frame passes to the update (+0x10 the button hook 0x486c70)"
 0x007ca720,gSavedialog_7ca720,data,low,"GAME_DATA (src/game/ui/savedialog): u8[72], named for its use in savedialog.cpp"
 0x007cb8d8,gDialog7cc188_7cb8d8,data,low,"GAME_DATA (src/game/ui/dialog7cc188): u8[128], named for its use in dialog7cc188.cpp"
 0x007cbcb0,gPostcard_Send_7cbcb0,data,low,"GAME_DATA (src/game/online/postcardsend): u8[512], named for its use in Postcard_Send"
@@ -10674,10 +10676,6 @@ address,name,kind,confidence,notes
 0x00758f08,gWindow7cc8bc_Create_758f08,data,low,"GAME_DATA (src/game/ui/window7cc8bc): u32, named for its use in Window7cc8bc_Create"
 0x00758f0c,gWindow7cc8bc_ChatAdd_758f0c,data,low,"GAME_DATA (src/game/ui/window7cc8bc): s32, named for its use in Window7cc8bc_ChatAdd"
 0x007595a0,gDialog7cca94_Show_7595a0,data,low,"GAME_DATA (src/game/ui/dialog7cca94): char[16], named for its use in Dialog7cca94_Show"
-0x007b9fe4,gGui_Startup_7b9fe4,data,low,"GAME_DATA (src/game/ui/guistartup): u32, named for its use in Gui_Startup"
-0x007b9fe8,gGui_Startup_7b9fe8,data,low,"GAME_DATA (src/game/ui/guistartup): u32, named for its use in Gui_Startup"
-0x007b9fec,gGui_Startup_7b9fec,data,low,"GAME_DATA (src/game/ui/guistartup): u32, named for its use in Gui_Startup"
-0x007b9ff0,gGui_Startup_7b9ff0,data,low,"GAME_DATA (src/game/ui/guistartup): u32, named for its use in Gui_Startup"
 0x007cbf38,gPostcard_Send_7cbf38,data,low,"GAME_DATA (src/game/online/postcardsend): u32, named for its use in Postcard_Send"
 0x007cbf3c,gDialog7cc184_7cbf3c,data,low,"GAME_DATA (src/game/ui/dialog7cc184): u8, named for its use in Dialog7cc184_Handler, Dialog7cc184_Open"
 0x007cbf40,gDialog7cc184_7cbf40,data,low,"GAME_DATA (src/game/ui/dialog7cc184): u8, named for its use in Dialog7cc184_Handler, Dialog7cc184_Open"

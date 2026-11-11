@@ -71,6 +71,9 @@ extern "C" {
 // 0x40ef40 (cdecl; name unconfirmed): the static String at 0x788028 (made at the first call, guard bit 0 of 0x7887e4, its destructor 0x40eff0 registered with
 // atexit) given the String at 0xf816e8, a "\" (asked twice, sic), the String at 0x787f50, a "\" and the String of 0x786b68: its text is returned.
 const char *__cdecl GamePaths_Base();
+
+// 0x40eff0 (cdecl; name invented): GamePaths_Base's atexit entry: the static String 0x788028 destroyed (String_Dtor).
+void __cdecl GamePaths_Base_AtExit();
 }
 
 // 0x46e650 (cdecl; out; name invented, unconfirmed): sprintf(out, "%s\\%s", 0x40ef40's text, the text at 0x7af720). Returns sprintf's result.

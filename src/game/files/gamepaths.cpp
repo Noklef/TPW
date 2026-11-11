@@ -228,6 +228,8 @@ WString *__stdcall GamePaths_OnlineFolder(WString *out) {
     return out;
 }
 
+extern "C" void __cdecl GamePaths_Base_AtExit() { String_Dtor(at<String *>((u32)&gGamePaths_Base_788028)); }
+
 void GamePaths_SetCalls(const AddrCall *table, u32 count) { g_calls.Set(table, count); }
 
 extern "C" const char *__cdecl GamePaths_Base() {

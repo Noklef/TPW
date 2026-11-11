@@ -64,6 +64,9 @@ u32 __fastcall Ime_OnMessage(u8 *ime, void *, u32 window, u32 message, u32 wpara
 
 // 0x47a880 (stdcall; the window procedure): Ime_OnMessage of the window's IME on the map, or DefWindowProcA.
 u32 __stdcall Ime_WindowProc(u32 window, u32 message, u32 wparam, u32 lparam);
+
+// 0x4787e0 (cdecl; name invented): the map 0x7b4a40's atexit entry: StdTree_DtorA on it.
+void __cdecl ImeMap_AtExit();
 }
 
 #include "gamedata.h"
