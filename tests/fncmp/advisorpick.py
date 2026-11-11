@@ -9,7 +9,7 @@ from fncmp import LOG, RAM, Bench, Call, _recorder, answers, log_fold, log_regio
 
 ENTRY, READY, INIT, ATEXIT, CRITERION = 2, 3, 4, 5, 6
 TABLE, COUNT = 0x76e300, 0x15f
-B = Bench([(0x59c680, 0x59c855), (0x5da3c0, 0x5da3c1)], hooks={0x5194d0: _recorder(ENTRY, 2), 0x59abc0: _recorder(READY, 0), 0x550ca0: _recorder(INIT, 0), 0x67a7d0: _recorder(ATEXIT, 1, cdecl=True)})
+B = Bench([(0x59c680, 0x59c855), (0x5da3c0, 0x5da3c1)], hooks={0x5194d0: _recorder(ENTRY, 0), 0x59abc0: _recorder(READY, 2), 0x550ca0: _recorder(INIT, 0), 0x67a7d0: _recorder(ATEXIT, 1, cdecl=True)})
 SELF, POINTER, GAME, SCORES, READIES = RAM, RAM + 0x400, RAM + 0x440, RAM + 0x800, RAM + 0x900
 ID_NONE = 0x500   # (no entry has it)
 
