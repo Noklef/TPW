@@ -13,7 +13,7 @@ LOCALTIME, FREEZE, FOLDERS, AUTH, ADDR, GET0, PARSE, ERROR, KEYS, TIME, SPRINTF,
 TICKS, CLIENT = 40, 41
 CD = {0x67d8e0: (LOCALTIME, 1), 0x4688b0: (FOLDERS, 1), 0x5d55a0: (AUTH, 0), 0x40f000: (PARSE, 2), 0x40cb80: (KEYS, 0), 0x67d3f0: (TIME, 1), 0x67a650: (SPRINTF, 5), 0x67b5b0: (SRAND, 1), 0x51b660: (SOUND, 2), 0x51b920: (CAMERA, 1), 0x51b3d0: (G802, 0), 0x51bb60: (S8, 1),
       0x51bb80: (S0, 1), 0x51bbc0: (S4, 1), 0x51bba0: (SC, 1), 0x51eae0: (CATS, 0), 0x51bfc0: (PLAY, 6), 0x51bd70: (APPLY, 0), 0x53e920: (TV, 0), 0x5989c0: (ADVISOR, 0), 0x583790: (DISPLAY, 0), 0x5c5110: (ARCHIVE, 2), 0x51b010: (MOVIE, 5)}
-TH = {0x402ea0: (FREEZE, 1), 0x4056f0: (ADDR, 0), 0x4056e0: (GET0, 0), 0x405750: (ERROR, 0), 0x41a820: (LANG, 2), 0x587380: (SHOW, 1), 0x4813c0: (GUI, 0), 0x5879c0: (CLOSE, 0), 0x402d70: (CLOCK, 0)}
+TH = {0x402ea0: (FREEZE, 1), 0x4056f0: (ADDR, 0), 0x4056e0: (GET0, 0), 0x405750: (ERROR, 0), 0x41a820: (LANG, 0), 0x587380: (SHOW, 3), 0x4813c0: (GUI, 0), 0x5879c0: (CLOSE, 0), 0x402d70: (CLOCK, 0)}
 HOOKS = {a: _recorder(k, n, cdecl=True) for a, (k, n) in CD.items()}
 HOOKS.update({a: _recorder(k, n) for a, (k, n) in TH.items()})
 B = Bench([(0x54dcf0, 0x54df17), (0x54df20, 0x54e064), (0x54e070, 0x54e2a8), (0x5da3c0, 0x5da3c1), (0x5f5660, 0x5f5690), (0x5f56f0, 0x5f5710)] + gamestring.B_RANGES, hooks=HOOKS)
