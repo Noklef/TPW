@@ -6190,6 +6190,7 @@ address,name,kind,confidence,notes
 0x006b87d0,SoundEngine_Play,function,low,reimplemented (src/game/core/soundtrigger); A sound checked against the player and started
 0x006b63a0,SoundMixer_ThreadLoop,function,low,"reimplemented (src/game/core/mixerthread); The sound mixer's thread: voices updated on each signal, until the stop byte"
 0x0054e360,Game_RunFrame,function,low,"reimplemented (src/game/core/gameframe); The game's step each frame, a state machine over the whole session (name invented, unconfirmed)"
+0x0054e2b0,Game_RestoreFrame,function,low,"reimplemented (src/game/core/gameframe); cdecl: the renderer's restore callback: one frame drawn without the world's steps (rides animated, the pick unless the camera's flag 0x16, dynfaces, highlights, Frame_Begin timed, sprite scripts, the mouse's pick)"
 0x00699ce0,Locale_Getfacet,function,low,reimplemented (src/game/core/stdlocale); std::locale::_Getfacet
 0x00699d50,Locale_Iscloc,function,low,reimplemented (src/game/core/stdlocale); std::locale::_Iscloc
 0x004f7620,WCtype_Ctor,function,low,reimplemented (src/game/core/wstream); ctype<wchar_t>'s constructor by its shape

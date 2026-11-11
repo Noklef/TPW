@@ -27,6 +27,11 @@ void GameFrame_SetEnv(const GameFrameCall *table, u32 count);
 // - 0xb: the park's end: to 0xc (0x879088 3 or no 0x200 in 0x7a1a8c), else 9 or 1 by the session's +0x3f0; sounds and scripts released; in mode 1 the chat freed and without +0x3f0 the mode set by the
 //   global save's flag (2 or 0). 0xc: all the singletons freed and 0x7a1a14 | 2, the state kept.
 u32 __cdecl Game_RunFrame();
+
+// 0x54e2b0 (cdecl; name invented, unconfirmed): the renderer's restore callback (Renderer_SetRestoreCallback, by address): one frame drawn without the world's steps. Rides_AnimateAll(3);
+// without the camera's flag 0x16 the pick at 0x7a1c70 (RayPick_World(0x7a1c70, 60.0f, 0x7a1c90, 0), MouseState_SetTileFromPosition, Frame_SetPoint); 0x40f220, DynFaces_Frame, the
+// highlight's pulse and whitening, MouseState_NewFrame (0x7b05a8); Frame_Begin timed into 0x87868c and 0x87907c (0x879064 = 0); SpriteScripts_Draw, MouseState_ResolvePick; 0x879080 = 0.
+void __cdecl Game_RestoreFrame();
 }
 
 #include "gamedata.h"

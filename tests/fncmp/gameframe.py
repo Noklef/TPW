@@ -1,6 +1,7 @@
 # The game's step each frame (src/game/core/gameframe: 0x54e360) against the original. Every state; its callees recorders (driver.cpp's kGameFrameCalls, made from the lists below: gameframe.py --table prints them), but for
 # the real strings, the grab's name (screengrab.py's file imports) and the C library's sprintf. Answers: the clock, the keys, the timers, each decision's call; the singletons had or made (their allocation failing now and then);
 # the steps behind and the step counter about the steps every 2, 8 and 32; the wait for the chat: its 300 s in the park's short path (a longer one fills the log, whose count freezes the answers), else ended by the chat at once.
+# State -1: the renderer's restore callback (0x54e2b0, Game_RestoreFrame) on the same world (the camera's flag 0x16 decides the pick).
 # usage: gameframe.py [CASES [SEED]] [--wild|--both] [--show N]   (env STATES=9,10)
 import os
 import struct
@@ -27,14 +28,17 @@ THIS0 = [0x4813b0, 0x4813e0, 0x4813f0, 0x481400, 0x481410, 0x481420, 0x481430,  
          0x576820,
          0x4e5950, 0x4e5be0, 0x4e5ef0, 0x4e6130, 0x4e6170, 0x4e6560,   # the chat
          0x516380, 0x5166b0, 0x519510,   # the world
-         0x5accf0, 0x5b5920, 0x5b96a0, 0x5c74b0, 0x5c8650, 0x5af250, 0x5b0cc0, 0x550ca0]
+         0x5accf0, 0x5b5920, 0x5b96a0, 0x5c74b0, 0x5c8650, 0x5af250, 0x5b0cc0, 0x550ca0,
+         0x46c100, 0x46c110]   # (0x7b05a8's: the restore callback's)
 THIS1 = [0x402ea0, 0x404140, 0x4093d0, 0x46c0d0, 0x46c350, 0x518f90, 0x519060, 0x550d80, 0x56b790, 0x576260, 0x5765c0, 0x58dd60, 0x5ac5f0, 0x5ac610, 0x5c5560, 0x5c83b0]
 THIS3 = [0x578be0, 0x587380]
 # Cdecl of no arguments: past the cdecl slots, stdcall ones (nothing to pop).
 PLAIN0 = [0x42b1c0, 0x435a30, 0x436490, 0x443340, 0x44e510, 0x44e540, 0x44e550, 0x4628a0, 0x473440, 0x4752e0, 0x475360, 0x48aff0, 0x51b350, 0x51bcb0, 0x51bd70, 0x51e730, 0x51e770, 0x51eda0, 0x51ee40, 0x51fd20, 0x520130, 0x541ed0,
-          0x546c80, 0x54df20, 0x54e070, 0x550950, 0x550b30, 0x551600, 0x5516b0, 0x557ab0, 0x5584b0, 0x55a470, 0x55a5a0, 0x55ab50, 0x55abf0, 0x55d4d0, 0x598ad0, 0x5989c0, 0x599800, 0x599880, 0x6591e3, 0x659201]
-PLAIN = {1: [0x429df0, 0x429e20, 0x44e410, 0x457d50, 0x458590, 0x462870, 0x51c700, 0x51e6f0, 0x51e790, 0x51e7b0, 0x51e830, 0x51ec50, 0x51f370, 0x51fd80, 0x53e760, 0x55ce60, 0x5996d0, 0x67a7d0],
-         2: [0x540900], 3: [0x44a280, 0x51faa0], 9: [0x51c1d0]}
+          0x546c80, 0x54df20, 0x54e070, 0x550950, 0x550b30, 0x551600, 0x5516b0, 0x557ab0, 0x5584b0, 0x55a470, 0x55a5a0, 0x55ab50, 0x55abf0, 0x55d4d0, 0x598ad0, 0x5989c0, 0x599800, 0x599880, 0x6591e3, 0x659201,
+          0x40f220, 0x53c3f0, 0x469840, 0x469410, 0x475430]   # (the restore callback's)
+PLAIN = {1: [0x429df0, 0x429e20, 0x44e410, 0x457d50, 0x458590, 0x462870, 0x51c700, 0x51e6f0, 0x51e790, 0x51e7b0, 0x51e830, 0x51ec50, 0x51f370, 0x51fd80, 0x53e760, 0x55ce60, 0x5996d0, 0x67a7d0,
+             0x45d560, 0x44e5d0],
+         2: [0x540900], 3: [0x44a280, 0x51faa0], 4: [0x45bf90], 9: [0x51c1d0]}
 
 
 def table():
@@ -59,8 +63,8 @@ def table():
 
 CALLS = table()
 HOOKS = {addr: _recorder(k, n, com=kind == 'S', cdecl=kind == 'C') for addr, (kind, n, k) in CALLS.items()}
-B = Bench(sorted(set([(0x54e360, 0x5503a2), (0x40f630, 0x40f649), (0x5617c0, 0x5617fe)] + fileopen.RANGES)), hooks=HOOKS)
-STATES = [int(k) for k in os.environ.get('STATES', '0,1,1,2,2,3,3,4,5,5,6,6,7,7,8,8,9,9,9,9,9,9,10,10,10,10,10,10,10,10,11,11,11,12,12,13,14,15,16').split(',')]
+B = Bench(sorted(set([(0x54e2b0, 0x54e360), (0x54e360, 0x5503a2), (0x40f630, 0x40f649), (0x5617c0, 0x5617fe)] + fileopen.RANGES)), hooks=HOOKS)
+STATES = [int(k) for k in os.environ.get('STATES', '0,1,1,2,2,3,3,4,5,5,6,6,7,7,8,8,9,9,9,9,9,9,10,10,10,10,10,10,10,10,11,11,11,12,12,13,14,15,16,-1,-1,-1').split(',')]
 IMPORTS = dict(fileopen.IMPORTS)
 IMPORTS.update({'GetAsyncKeyState': (KEY, 0x6fd320, 1, 0, 0), 'timeGetTime': (TICKS, 0x6fd1d0, 0, 0, 0), 'OutputDebugStringA': (SAY, 0x6fd1e0, 1, 1, 0)})
 OBJECT, COM, COMVT, CHAT, RECORDS, SAVES, GET3A4, TEXT, TEXT2, PATHSOBJ, TABLE = RAM, RAM + 0x40, RAM + 0x80, RAM + 0x100, RAM + 0x200, RAM + 0x300, RAM + 0x400, RAM + 0x480, RAM + 0x500, RAM + 0x580, RAM + 0x5c0
@@ -221,6 +225,8 @@ def case(r):
     # (0x38 for the object in state 1, a singleton elsewhere: a null one faults on its next use in both)
     fail = 1 if (state == 1 and r.random() < 0.2) or (state in (9, 11, 12) and r.random() < 0.03) else 0
     regions[HEAP] = heap(size, fail=fail)
+    if state == -1:
+        return Call(0x54e2b0, [], regions, ret='v')
     return Call(0x54e360, [], regions, ret='a')
 
 
