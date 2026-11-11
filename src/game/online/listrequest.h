@@ -50,6 +50,10 @@ void __cdecl ListRequest_Login34(u32 flag);
 // item's dialog opened (Dialog7cc984_Open(item, 0, 0x4c4fa0, 0x4c0830, 0)).
 void __fastcall Online_OpenListItem(u8 *session, void *, s32 index);
 
+// 0x4c4fa0 (cdecl; name invented, unconfirmed): the callback Online_OpenListItem and the view buttons give their dialogs: [[0xf85614] + 0xc]'s
+// vtable +0x44 called (a tail jump; the dialogs call it with no arguments).
+void __cdecl Online_ListItemClosed();
+
 // 0x5bc8e0 (cdecl): the session's +0x108 set and its user flags without 0x10: 1. Else 0.
 u32 __cdecl Online_Has108NoFlag10();
 

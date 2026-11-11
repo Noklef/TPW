@@ -8513,6 +8513,7 @@ address,name,kind,confidence,notes
 0x005bd800,ListRequest_Login34,function,low,"reimplemented (src/game/online/listrequest); the same, the session's +0x100"
 0x005bc8e0,Online_Has108NoFlag10,function,low,reimplemented (src/game/online/listrequest); +0x108 set and no flag 0x10
 0x005b7910,Online_OpenListItem,function,low,reimplemented (src/game/online/listrequest); a list item's dialog opened by index
+0x004c4fa0,Online_ListItemClosed,function,low,reimplemented (src/game/online/listrequest); cdecl: the callback Online_OpenListItem and the view buttons give their dialogs: [[0xf85614] + 0xc]'s vtable +0x44 (a tail jump)
 0x005cde40,NIos_Dtor,function,low,reimplemented (src/game/online/mailbox); thiscall: basic_ios<char>'s destructor
 0x005cb720,Mailbox_SaveOutbox,function,low,reimplemented (src/game/online/mailbox); thiscall: <folder>/outbox.dat written from the three lists of numbers
 0x005cba70,Mailbox_LoadMessage,function,low,"reimplemented (src/game/online/mailbox); thiscall (number): <folder>/%08x.dat read: three numbers, two texts and the list of lines"

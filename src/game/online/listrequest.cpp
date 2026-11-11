@@ -191,6 +191,8 @@ void __fastcall Online_OpenListItem(u8 *session, void *, s32 index) {
     g_env->open(item, nullptr, 0x004c4fa0, 0x004c0830, 0);
 }
 
+void __cdecl Online_ListItemClosed() { vcall<void>(at<u8 *>(*reinterpret_cast<u8 **>(0x00f85614), 0xc), 0x44); }
+
 u32 __cdecl Online_Has108NoFlag10() {
     if (!at<u32>(Online_Instance(), 0x108))
         return 0;
