@@ -5,6 +5,7 @@
 #include "../core/string.h"
 #include "../terrain/landscape.h"
 #include "../core/staticobjects.h"
+#include "../core/addrcalls.h"
 
 namespace {
 
@@ -20,8 +21,8 @@ T &global(uintptr_t address) {
 
 constexpr u32 kFloat500 = 0x43fa0000, kFloat100 = 0x42c80000, kFloat180 = 0x43340000, kFloat115 = 0x42e60000, kFloat50 = 0x42480000, kFloat300 = 0x43960000, kFloat1 = 0x3f800000;
 
-const LobbySkyEnv kGameEnv = {reinterpret_cast<void(__fastcall *)(void *, void *, const char *)>((uintptr_t)0x005852b0), reinterpret_cast<void(__fastcall *)(void *, void *, u32, u32, u32)>((uintptr_t)0x00585690),
-                              reinterpret_cast<void(__fastcall *)(u8 *, void *, u32, const u32 *, const u32 *, u32)>((uintptr_t)0x005d92e0), reinterpret_cast<void(__fastcall *)(u8 *)>((uintptr_t)0x005d8de0), &Landscape_ResetDomeCentre};
+const LobbySkyEnv kGameEnv = {GameAddress<void(__fastcall *)(void *, void *, const char *)>(0x005852b0), GameAddress<void(__fastcall *)(void *, void *, u32, u32, u32)>(0x00585690),
+                              GameAddress<void(__fastcall *)(u8 *, void *, u32, const u32 *, const u32 *, u32)>(0x005d92e0), GameAddress<void(__fastcall *)(u8 *)>(0x005d8de0), &Landscape_ResetDomeCentre};
 const LobbySkyEnv *g_env = &kGameEnv;
 
 }  // namespace

@@ -10,6 +10,7 @@
 #include "filetime.h"
 #include "savegame.h"
 #include "imports.h"
+#include "addrcalls.h"
 
 namespace {
 
@@ -41,7 +42,7 @@ struct GameDate {
     u32 second, minute, hour, day, month, year, dayOfWeek, rest[2];
 };
 
-const FunnyTimeEnv kGameEnv = {&MessageCentre_Post, &Obj7b51f0_ShowDate, reinterpret_cast<void(__cdecl *)(u32)>((uintptr_t)0x004a5e10),
+const FunnyTimeEnv kGameEnv = {&MessageCentre_Post, &Obj7b51f0_ShowDate, GameAddress<void(__cdecl *)(u32)>(0x004a5e10),
                                reinterpret_cast<void(__cdecl *)(u32)>(&StatsGraph_Redraw), reinterpret_cast<void(__cdecl *)(u32)>(&Dialog7cb25c_Refresh)};
 const FunnyTimeEnv *g_env = &kGameEnv;
 

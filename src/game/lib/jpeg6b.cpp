@@ -17,6 +17,7 @@ extern "C" {
 #define JPEG_INTERNALS
 #include "jpeglib.h"
 }
+#include "../core/addrcalls.h"
 #undef jpeg_alloc_quant_table
 #undef jpeg_alloc_huff_table
 
@@ -416,20 +417,20 @@ void __cdecl jinit_master_decompress(j_decompress_ptr cinfo) {
 // jpeg_open_backing_store (wrap/jpeg-6b/jmemmgr.c); jerror.c's sprintf, exit and fprintf (wrap/jpeg-6b/jerror.c).
 namespace {
 const Jpeg6bCrtEnv kExeCrt = {
-    reinterpret_cast<void *(__cdecl *)(size_t)>((uintptr_t)0x0067dcd0),
-    reinterpret_cast<void(__cdecl *)(void *)>((uintptr_t)0x0067ad90),
-    reinterpret_cast<char *(__cdecl *)(const char *)>((uintptr_t)0x0067fbf0),
-    reinterpret_cast<int(__cdecl *)(const char *, const char *, long *, char *)>((uintptr_t)0x0067f620),
-    reinterpret_cast<void(__cdecl *)(jpeg_common_struct *, void *, long)>((uintptr_t)0x006429c0),
-    reinterpret_cast<int(__cdecl *)(char *, const char *, const char *)>((uintptr_t)0x0067a650),
-    reinterpret_cast<int(__cdecl *)(char *, const char *, int, int, int, int, int, int, int, int)>((uintptr_t)0x0067a650),
-    reinterpret_cast<void *(__cdecl *)()>((uintptr_t)0x0067fd60),
-    reinterpret_cast<int(__cdecl *)(void *, long, int)>((uintptr_t)0x0067c100),
-    reinterpret_cast<size_t(__cdecl *)(void *, size_t, size_t, void *)>((uintptr_t)0x0067e1d0),
-    reinterpret_cast<size_t(__cdecl *)(const void *, size_t, size_t, void *)>((uintptr_t)0x0067b6d0),
-    reinterpret_cast<int(__cdecl *)(void *)>((uintptr_t)0x0067b620),
-    reinterpret_cast<void(__cdecl *)(int)>((uintptr_t)0x0067f920),
-    reinterpret_cast<int(__cdecl *)(void *, const char *, const char *)>((uintptr_t)0x0067dad0)};
+    GameAddress<void *(__cdecl *)(size_t)>(0x0067dcd0),
+    GameAddress<void(__cdecl *)(void *)>(0x0067ad90),
+    GameAddress<char *(__cdecl *)(const char *)>(0x0067fbf0),
+    GameAddress<int(__cdecl *)(const char *, const char *, long *, char *)>(0x0067f620),
+    GameAddress<void(__cdecl *)(jpeg_common_struct *, void *, long)>(0x006429c0),
+    GameAddress<int(__cdecl *)(char *, const char *, const char *)>(0x0067a650),
+    GameAddress<int(__cdecl *)(char *, const char *, int, int, int, int, int, int, int, int)>(0x0067a650),
+    GameAddress<void *(__cdecl *)()>(0x0067fd60),
+    GameAddress<int(__cdecl *)(void *, long, int)>(0x0067c100),
+    GameAddress<size_t(__cdecl *)(void *, size_t, size_t, void *)>(0x0067e1d0),
+    GameAddress<size_t(__cdecl *)(const void *, size_t, size_t, void *)>(0x0067b6d0),
+    GameAddress<int(__cdecl *)(void *)>(0x0067b620),
+    GameAddress<void(__cdecl *)(int)>(0x0067f920),
+    GameAddress<int(__cdecl *)(void *, const char *, const char *)>(0x0067dad0)};
 const Jpeg6bCrtEnv *g_crt = &kExeCrt;
 }  // namespace
 

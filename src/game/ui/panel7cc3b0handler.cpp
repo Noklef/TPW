@@ -20,6 +20,7 @@
 #include "windowtimers.h"
 #include "panel7cc218.h"
 #include "../core/staticobjects.h"
+#include "../core/addrcalls.h"
 
 namespace {
 
@@ -32,7 +33,7 @@ u8 *thing() { return gPanel7cc218_7c2658; }
 void closePanel() { reinterpret_cast<void(__fastcall *)(u8 *)>((*reinterpret_cast<uintptr_t **>(kPanel))[11])(kPanel); }
 
 const Panel7cc3b0HandlerEnv kGameEnv = {ThingPanel_Handler_48d200, WindowAt10_Message4, Game_CancelAdvisor, Window_SetTimer, Window_StartTimer, AnalyserRecord_ChecksCell, Global7c24d8_CopyScript, Panel7cc3b0_ShowStats, Byte2_ToIndex, Dialog7ca168_Open, Things_StepGroup, Things_StepGroupBack, Panel7cc3b0_SetPatrol, Language_WideText,
-                                        reinterpret_cast<void(__cdecl *)(const u8 *, u32, u32, u32, u32, u32, u32, u32)>((uintptr_t)0x0047f020), Staff_Dismiss, Global7c2650_Set, Staff_PickUp, ThingBrowser_Open};
+                                        GameAddress<void(__cdecl *)(const u8 *, u32, u32, u32, u32, u32, u32, u32)>(0x0047f020), Staff_Dismiss, Global7c2650_Set, Staff_PickUp, ThingBrowser_Open};
 const Panel7cc3b0HandlerEnv *g_env = &kGameEnv;
 
 }  // namespace

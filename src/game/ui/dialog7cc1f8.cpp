@@ -125,7 +125,7 @@ void __cdecl Dialog7cc1f8_Open(u32 kind, u32 selected) {
         raise(child);
         if (u8 *const list = Window_FindChild(global<u8 *>(0x007cc1f8), nullptr, 0x1f8)) {
             Window_SetHandler(list, nullptr, 0x004aca60);
-            g_open->buildRows(list, nullptr, reinterpret_cast<u8 *(__cdecl *)()>((uintptr_t)0x004ad240), reinterpret_cast<void(__cdecl *)(u8 *)>((uintptr_t)0x004ad340));   // (List7cc200_NewRow, List7cc200_InitRow, by the original's addresses: the hooks)
+            g_open->buildRows(list, nullptr, GameAddress<u8 *(__cdecl *)()>(0x004ad240), reinterpret_cast<void(__cdecl *)(u8 *)>((uintptr_t)0x004ad340));   // (List7cc200_NewRow, List7cc200_InitRow, by the original's addresses: the hooks)
             Window7059f0_SetColumnBottom(list, nullptr, 0, 0);
             Window7059f0_SetColumnBottom(list, nullptr, 1, 1);
             Window7059f0_SetColumnBottom(list, nullptr, 2, 1);

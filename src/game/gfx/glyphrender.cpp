@@ -12,6 +12,7 @@
 #include "color.h"
 #include "display.h"
 #include "textlayout.h"
+#include "../core/addrcalls.h"
 
 namespace {
 template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cast<T *>((uintptr_t)p + offset); }
@@ -163,7 +164,7 @@ void Solid8888(u32 *p, u32 colour, u32 c) {
     if (c) *p = c << 28 | c << 24 | (colour & 0xffffff);
 }
 
-const GlyphRenderEnv kGameEnv = {reinterpret_cast<s32(__cdecl *)(void(__cdecl *)())>((uintptr_t)0x0067a7d0)};
+const GlyphRenderEnv kGameEnv = {GameAddress<s32(__cdecl *)(void(__cdecl *)())>(0x0067a7d0)};
 const GlyphRenderEnv *g_env = &kGameEnv;
 
 // The decoded glyph's buffer, shared by every draw: grown, never shrunk; its release (0x6b5560) handed to atexit on first use.

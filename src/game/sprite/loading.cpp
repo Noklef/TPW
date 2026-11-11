@@ -14,11 +14,12 @@
 #include "../world/things.h"
 #include "draw.h"
 #include "../core/staticobjects.h"
+#include "../core/addrcalls.h"
 
 namespace {
 
 const SpriteLoadingEnv kGameEnv = {&NamedList_Find, &SpriteFrames_Free,
-                                   reinterpret_cast<u32(__fastcall *)(u8 *, void *, StreamBase *, String *)>((uintptr_t)0x0041e740),
+                                   GameAddress<u32(__fastcall *)(u8 *, void *, StreamBase *, String *)>(0x0041e740),
                                    reinterpret_cast<u32(__fastcall *)(u8 *, void *, StreamBase *, u32)>(&SpriteFrames_Load),
                                    &SpriteFrames_MarkTextures};
 const SpriteLoadingEnv *g_env = &kGameEnv;

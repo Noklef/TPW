@@ -26,6 +26,7 @@
 #include "window7cc8bc.h"
 #include "../core/textarg.h"
 #include "../core/staticobjects.h"
+#include "../core/addrcalls.h"
 
 namespace {
 
@@ -66,8 +67,8 @@ const Window7cc8c0HandlerEnv kGameEnv = {
     Window_KillFocus,
     reinterpret_cast<s32(__fastcall *)(const u8 *, void *, u32, u32)>(&KeyMap_FindKey),
     reinterpret_cast<void(__cdecl *)(u32, u32, s32, s32, u32)>(&Mouse_HandleButton),
-    reinterpret_cast<void(__cdecl *)()>((uintptr_t)0x004a9380),
-    reinterpret_cast<void(__cdecl *)(u32)>((uintptr_t)0x0048c830),
+    GameAddress<void(__cdecl *)()>(0x004a9380),
+    GameAddress<void(__cdecl *)(u32)>(0x0048c830),
     Window_CallDefault,
 };
 const Window7cc8c0HandlerEnv *g_env = &kGameEnv;

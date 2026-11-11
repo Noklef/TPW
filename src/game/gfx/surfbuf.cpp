@@ -2,12 +2,13 @@
 #include "surfbuf.h"
 
 #include <cstdint>
+#include "../core/addrcalls.h"
 
 namespace {
 
 const SurfaceBufferEnv kGameEnv = {
     (u32)(uintptr_t)SurfaceBuffer_vtable,
-    reinterpret_cast<void(__cdecl *)(void *)>(static_cast<std::uintptr_t>(0x0067acb0)),
+    GameAddress<void(__cdecl *)(void *)>(0x0067acb0),
 };
 const SurfaceBufferEnv *g_env = &kGameEnv;
 

@@ -21,6 +21,7 @@
 #include "object.h"
 #include "research.h"
 #include "../core/staticobjects.h"
+#include "../core/addrcalls.h"
 
 namespace {
 
@@ -79,7 +80,7 @@ template <bool back> void chooseProject(u8 *lab, u32 group) {
 // The research lab: the game object's ([0x80239c]) entry GameTable7cfb90_Get1da722_519550.
 const u8 *labOfGame() { return reinterpret_cast<const u8 *>(GameTable7cfb90_Get1da722_519550(*reinterpret_cast<u8 *const *>(0x0080239c))); }
 
-const ResearchEnv kGameEnv = {reinterpret_cast<s32(__cdecl *)(void(__cdecl *)())>((uintptr_t)0x0067a7d0)};
+const ResearchEnv kGameEnv = {GameAddress<s32(__cdecl *)(void(__cdecl *)())>(0x0067a7d0)};
 const ResearchEnv *g_env = &kGameEnv;
 
 // The mode setting (0xfb3b7c), read the first time under the handler's guard bit (0xfb34ac & 1), its empty destructor 0x5d1750 given to atexit.

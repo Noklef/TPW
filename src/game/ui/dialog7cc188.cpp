@@ -25,6 +25,7 @@
 #include "dialog74fb20.h"
 #include "gamepause.h"
 #include "window7cc8c0handler.h"
+#include "../core/addrcalls.h"
 
 namespace {
 
@@ -33,7 +34,7 @@ template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cas
 
 s32 __cdecl Swprintf(u16 *to, const u16 *format, const char *text) { return Crt().swprintf(to, format, text); }
 
-const Dialog7cc188ListEnv kGameEnv = {&UserSlots_Instance,&Swprintf, reinterpret_cast<s32(__cdecl *)(void(__cdecl *)())>((uintptr_t)0x0067a7d0), &Window7059f0_Clear, &Window7059f0_AddItem, &Window7059f0_RefreshRows, &Language_WideText};
+const Dialog7cc188ListEnv kGameEnv = {&UserSlots_Instance,&Swprintf, GameAddress<s32(__cdecl *)(void(__cdecl *)())>(0x0067a7d0), &Window7059f0_Clear, &Window7059f0_AddItem, &Window7059f0_RefreshRows, &Language_WideText};
 const Dialog7cc188ListEnv *g_env = &kGameEnv;
 
 const char *textOf(const StdString *string) {
@@ -66,7 +67,7 @@ void __cdecl Dialog7cc188_Open() {
     g_open->hoverYellow(Window_FindChild(window, nullptr, 0x27));
     Window_SetDepth(window, nullptr, (u16)(at<u16>(gDialog7cc184handler_7cc184, 0xe0) + 0xa));
     u8 *const list = Window_FindChild(window, nullptr, 0x26);
-    g_open->buildRows(list, nullptr, reinterpret_cast<u8 *(__cdecl *)()>((uintptr_t)0x004a8380), reinterpret_cast<void(__cdecl *)(u8 *)>((uintptr_t)0x004a8420));
+    g_open->buildRows(list, nullptr, GameAddress<u8 *(__cdecl *)()>(0x004a8380), reinterpret_cast<void(__cdecl *)(u8 *)>((uintptr_t)0x004a8420));
     g_open->columnBottom(list, nullptr, 0, 0);
     g_open->setHighlight(list, nullptr, reinterpret_cast<u8 *>((uintptr_t)g_open->findByName(reinterpret_cast<const char *>((uintptr_t)&gText_Dialog7cc188_74fa84))));
     g_open->fillList(0);

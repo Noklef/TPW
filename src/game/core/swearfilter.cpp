@@ -12,6 +12,7 @@
 #include "nstream.h"
 #include "stdlist.h"
 #include "wtraits.h"
+#include "addrcalls.h"
 
 namespace {
 
@@ -19,7 +20,7 @@ template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cas
 
 u16 *const kNullStr = reinterpret_cast<u16 *>(0x006fd6c4);  // _Nullstr
 
-const SwearFilterEnv kGameEnv = {reinterpret_cast<u32(__cdecl *)(u32)>((uintptr_t)0x0067e5d0), &NFileBuf_Open, &CRT_fclose};
+const SwearFilterEnv kGameEnv = {GameAddress<u32(__cdecl *)(u32)>(0x0067e5d0), &NFileBuf_Open, &CRT_fclose};
 const SwearFilterEnv *g_env = &kGameEnv;
 
 u16 lower(u16 c) { return static_cast<u16>(g_env->lower(c)); }

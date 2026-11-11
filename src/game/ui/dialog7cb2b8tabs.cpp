@@ -8,10 +8,11 @@
 #include "menuactions.h"
 #include "window.h"
 #include "../core/staticobjects.h"
+#include "../core/addrcalls.h"
 
 namespace {
 
-const Dialog7cb2b8TabsEnv kGameEnv = {DialogTabs_Reopen, Dialog7ca1e0_Post_498bb0, Dialog7ca1e0_Cancel_498bd0, reinterpret_cast<void(__fastcall *)(u8 *)>((uintptr_t)0x005f0b40), ResearchPanel_Open, Window_CallDefault};
+const Dialog7cb2b8TabsEnv kGameEnv = {DialogTabs_Reopen, Dialog7ca1e0_Post_498bb0, Dialog7ca1e0_Cancel_498bd0, GameAddress<void(__fastcall *)(u8 *)>(0x005f0b40), ResearchPanel_Open, Window_CallDefault};
 const Dialog7cb2b8TabsEnv *g_env = &kGameEnv;
 
 }  // namespace

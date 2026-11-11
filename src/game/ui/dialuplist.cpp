@@ -10,6 +10,7 @@
 #include "guistartup.h"
 #include "dialog7cc530open.h"
 #include "../core/imports.h"
+#include "../core/addrcalls.h"
 
 namespace {
 
@@ -21,7 +22,7 @@ u32 __fastcall Count(void *object) { return global<u32(__fastcall *)(void *)>(IM
 u32 __fastcall Properties(void *object, void *, u32 index, void *out) { return global<u32(__fastcall *)(void *, void *, u32, void *)>(IMPORT(Wearasr_Dialup_GetDialupProperties))(object, nullptr, index, out); }
 void __fastcall SetShown(u8 *window, void *, u32 shown) { Window_SetShown(window, nullptr, static_cast<u16>(shown)); }
 
-const DialupListEnv kGameEnv = {&Count, &Properties, &Window7059f0_Clear, &SetShown, &Window7059f0_AddItem, &Window7059f0_RefreshRows, &Language_WideText, reinterpret_cast<u16 *(__cdecl *)(u16 *, const u16 *)>((uintptr_t)0x0067c430)};
+const DialupListEnv kGameEnv = {&Count, &Properties, &Window7059f0_Clear, &SetShown, &Window7059f0_AddItem, &Window7059f0_RefreshRows, &Language_WideText, GameAddress<u16 *(__cdecl *)(u16 *, const u16 *)>(0x0067c430)};
 const DialupListEnv *g_env = &kGameEnv;
 
 }  // namespace

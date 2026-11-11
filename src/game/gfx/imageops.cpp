@@ -9,13 +9,14 @@
 #include "array3d.h"
 #include "imagecodec.h"
 #include "../math/x87.h"
+#include "../core/addrcalls.h"
 
 namespace {
 
 template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cast<T *>((uintptr_t)p + offset); }
 
-const PanelSaveEnv kSaveEnv = {&GuardFile_Open, &GuardFile_Close, reinterpret_cast<void(__stdcall *)(u32 *, u8 *, const char *, u32)>((uintptr_t)0x0064c202),
-                               reinterpret_cast<void(__stdcall *)(u32, const u32 *, u8 *, u32)>((uintptr_t)0x0064c258), reinterpret_cast<void(__stdcall *)(u32)>((uintptr_t)0x0064c5c4)};
+const PanelSaveEnv kSaveEnv = {&GuardFile_Open, &GuardFile_Close, GameAddress<void(__stdcall *)(u32 *, u8 *, const char *, u32)>(0x0064c202),
+                               GameAddress<void(__stdcall *)(u32, const u32 *, u8 *, u32)>(0x0064c258), GameAddress<void(__stdcall *)(u32)>(0x0064c5c4)};
 const PanelSaveEnv *g_save = &kSaveEnv;
 
 // The window of the radius around i inside [0, size): the maximum (start 0) or minimum (start 0xff) of the bytes in it; for the minimum, 0 within the radius of the ends.

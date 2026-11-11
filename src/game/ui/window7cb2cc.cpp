@@ -9,13 +9,14 @@
 #include "window.h"
 #include "focus.h"
 #include "../core/staticobjects.h"
+#include "../core/addrcalls.h"
 
 namespace {
 
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
 template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cast<T *>((uintptr_t)p + offset); }
 
-const Window7cb2ccEnv kGameEnv = {KeyMap_FindKey, reinterpret_cast<void(__fastcall *)(u8 *, void *, u32)>((uintptr_t)0x00409350), Window_GetRect, Window_SetWordsE4, Window_RunScript, Dialog_BaseHandler};
+const Window7cb2ccEnv kGameEnv = {KeyMap_FindKey, GameAddress<void(__fastcall *)(u8 *, void *, u32)>(0x00409350), Window_GetRect, Window_SetWordsE4, Window_RunScript, Dialog_BaseHandler};
 const Window7cb2ccEnv *g_env = &kGameEnv;
 
 }  // namespace

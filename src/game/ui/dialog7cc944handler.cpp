@@ -15,13 +15,14 @@
 #include "window7cc8c0handler.h"
 #include "dialog7cc944.h"
 #include "../core/imports.h"
+#include "../core/addrcalls.h"
 
 namespace {
 
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
 template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cast<T *>((uintptr_t)p + offset); }
 
-const Dialog7cc944HandlerEnv kGameEnv = {&Window_SetFocus, &Class702da0_Clear, &Window_SendMessage, &Window_PostMessage, reinterpret_cast<void(__fastcall *)(u8 *, void *, u32, u32, u32)>((uintptr_t)0x005bcbc0), &Window7059f0_Clear, &Language_WideText,
+const Dialog7cc944HandlerEnv kGameEnv = {&Window_SetFocus, &Class702da0_Clear, &Window_SendMessage, &Window_PostMessage, GameAddress<void(__fastcall *)(u8 *, void *, u32, u32, u32)>(0x005bcbc0), &Window7059f0_Clear, &Language_WideText,
                                          &Window7059f0_AddItem, &Window7059f0_NthItemData, &Dialog7cc984_Open, &Window705a50_StateWord, &Window705a50_SetState, &Window705a20_SelectAll, &Window_CallDefault};
 const Dialog7cc944HandlerEnv *g_env = &kGameEnv;
 

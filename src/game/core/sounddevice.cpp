@@ -7,6 +7,7 @@
 #include "vcall.h"
 #include "waveformat.h"
 #include "imports.h"
+#include "addrcalls.h"
 
 namespace {
 
@@ -15,7 +16,7 @@ template <typename F> F import(std::uintptr_t slot) { return *reinterpret_cast<c
 u8 *Ptr(u32 address) { return reinterpret_cast<u8 *>(static_cast<uintptr_t>(address)); }
 using AtExitFn = void(__cdecl *)();
 
-const SoundDeviceEnv kGameEnv = {reinterpret_cast<s32(__cdecl *)(AtExitFn)>((uintptr_t)0x0067a7d0)};
+const SoundDeviceEnv kGameEnv = {GameAddress<s32(__cdecl *)(AtExitFn)>(0x0067a7d0)};
 const SoundDeviceEnv *g_env = &kGameEnv;
 
 }  // namespace

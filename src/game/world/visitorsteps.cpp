@@ -34,6 +34,7 @@
 #include "../core/soundset.h"
 #include "../core/vtables.h"
 #include "../core/staticobjects.h"
+#include "../core/addrcalls.h"
 
 namespace {
 
@@ -47,7 +48,7 @@ const VisitorStepsEnv kGameEnv = {&Sprite_WalkNav,       &Sprite_SetDestination,
                                   &Visitor_ChooseMinorDest, &Visitor_RatingGap,          &Visitor_WontPay,
                                   &Visitor_VisitObject,  &Thing_PlaceAt,         &Object_Reopen,
                                   &MapCell_StartEffect,
-                                  reinterpret_cast<u32(__cdecl *)(s32, s32)>((uintptr_t)0x006e7074),
+                                  GameAddress<u32(__cdecl *)(s32, s32)>(0x006e7074),
                                   &Things_HeadForNearestFlag40, &Things_NearestFlag80Close,
                                   [](u8 *, void *, u32 kind, u32 cell, s32 radius) -> s32 { return Things_AnyOfKindAround(kind, cell, radius); },
                                   &Staff_NearestInList1da740, &Person_JumpScript210, &Person_SetRandomDest, &Visitor_ChooseMajorDest,

@@ -19,6 +19,7 @@
 #include "../coaster/arreplayaction.h"
 #include "dialog7cc944.h"
 #include "../core/staticobjects.h"
+#include "../core/addrcalls.h"
 
 extern "C" const u16 *__cdecl Language_WideText(u32 id);
 
@@ -33,8 +34,8 @@ const Dialog7cc944ListEnv kGameEnv = {
     &Window7059f0_AddItem,
     &GlobalSave_Construct,
     &GlobalSave_Byte25,
-    reinterpret_cast<void(__fastcall *)(u8 *, void *, StdWString *, u32)>((uintptr_t)0x005d3230),
-    reinterpret_cast<u8 *(__fastcall *)(u8 *)>((uintptr_t)0x005b50b0),
+    GameAddress<void(__fastcall *)(u8 *, void *, StdWString *, u32)>(0x005d3230),
+    GameAddress<u8 *(__fastcall *)(u8 *)>(0x005b50b0),
     &Owner2c_ValueByKey,
     &NamedObjects_SetThemeLabelAnsi,
     &Owner2c_FindByKey,

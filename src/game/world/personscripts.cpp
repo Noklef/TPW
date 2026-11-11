@@ -12,13 +12,14 @@
 #include "person.h"
 #include "../ui/dialog74fb20.h"
 #include "camera.h"
+#include "../core/addrcalls.h"
 
 namespace {
 
 template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cast<T *>((uintptr_t)p + offset); }
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
 
-const ThoughtsEnv kThoughtsGame = {&Setting_ReadMode, reinterpret_cast<s32(__cdecl *)(void(__cdecl *)())>((uintptr_t)0x0067a7d0), &SpriteScript_Kill,
+const ThoughtsEnv kThoughtsGame = {&Setting_ReadMode, GameAddress<s32(__cdecl *)(void(__cdecl *)())>(0x0067a7d0), &SpriteScript_Kill,
                                    reinterpret_cast<s32(__cdecl *)(u32, u32, u32, u32, u32, u32, u32)>(&SpriteScript_Start)};
 const ThoughtsEnv *g_thoughts = &kThoughtsGame;
 

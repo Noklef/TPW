@@ -15,6 +15,7 @@
 #include "../world/world.h"
 #include "../core/textarg.h"
 #include "../core/staticobjects.h"
+#include "../core/addrcalls.h"
 
 namespace {
 
@@ -24,7 +25,7 @@ template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cas
 s32 __cdecl Format(u8 *charset, u16 *dest, u32 size, u32 entry, const u32 *arg) { return Charset_FormatWide(charset, dest, size, entry, arg); }
 s32 __cdecl FormatPlain(u8 *charset, u16 *dest, u32 size, u32 entry) { return Charset_FormatWide(charset, dest, size, entry); }
 
-const Panel7cc408InfoEnv kGameEnv = {&Format, &FormatPlain, &HoverLabel_Attach, &Visitor_TimeInPark, &FunnyTime_SpanOf, reinterpret_cast<void(__fastcall *)(u8 *, void *, u8 *, u32)>((uintptr_t)0x004e2780), &Window_Notify1, &Records_DataIfTerminated, &Language_Widen};
+const Panel7cc408InfoEnv kGameEnv = {&Format, &FormatPlain, &HoverLabel_Attach, &Visitor_TimeInPark, &FunnyTime_SpanOf, GameAddress<void(__fastcall *)(u8 *, void *, u8 *, u32)>(0x004e2780), &Window_Notify1, &Records_DataIfTerminated, &Language_Widen};
 const Panel7cc408InfoEnv *g_env = &kGameEnv;
 
 u16 *buffer() { return reinterpret_cast<u16 *>((uintptr_t)0x007ba058); }

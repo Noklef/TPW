@@ -55,6 +55,7 @@
 #include "iosbase.h"
 #include "../model/hoardingmesh.h"
 #include "staticobjects.h"
+#include "addrcalls.h"
 
 namespace {
 
@@ -75,7 +76,7 @@ SurfaceInfo *StaticSurface(u32 base) {
     return SurfaceInfo_Ctor(reinterpret_cast<SurfaceInfo *>((uintptr_t)(base + 0x18)));
 }
 
-const ThunksEnv kGameEnv = {reinterpret_cast<s32(__cdecl *)(void *)>((uintptr_t)0x0067a7d0), &CRT_beginthread};
+const ThunksEnv kGameEnv = {GameAddress<s32(__cdecl *)(void *)>(0x0067a7d0), &CRT_beginthread};
 const ThunksEnv *g_env = &kGameEnv;
 
 }  // namespace

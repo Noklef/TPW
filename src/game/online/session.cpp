@@ -31,6 +31,7 @@
 #include "../ui/window7cc8c0handler.h"
 #include "../core/imports.h"
 #include "../core/staticobjects.h"
+#include "../core/addrcalls.h"
 
 namespace {
 
@@ -786,7 +787,7 @@ void ServerFolder(u8 *session, WString *url) {
 void Online_SetNextEnv(const OnlineNextEnv *env) { g_next = env ? env : &kNextGameEnv; }
 
 namespace {
-const OnlineDownloadStartEnv kDownloadStartGameEnv = {&Class70293c_Assign, &Owner2c_FindByPair, reinterpret_cast<void(__cdecl *)(const u16 *, u16 *, u16 *, u16 *, u16 *)>((uintptr_t)0x0067dda0),
+const OnlineDownloadStartEnv kDownloadStartGameEnv = {&Class70293c_Assign, &Owner2c_FindByPair, GameAddress<void(__cdecl *)(const u16 *, u16 *, u16 *, u16 *, u16 *)>(0x0067dda0),
                                                       &UserSlots_Ctor, &GamePaths_OnlineFolder, &File_Exists, &FtpClient_Ctor, &Ftp_Connect, &Online_DownloadEnd, &Online_OpenCity, &Owner2c_FindKind1,
                                                       &Global7cc53c_Pick7cc4f0};
 const OnlineDownloadStartEnv *g_fetch = &kDownloadStartGameEnv;

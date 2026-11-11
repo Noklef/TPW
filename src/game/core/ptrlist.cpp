@@ -18,7 +18,7 @@
 namespace {
 
 const PtrListEnv kGameEnv = {
-    reinterpret_cast<void *(__cdecl *)(u32)>(static_cast<std::uintptr_t>(0x0067acc0)),
+    GameAddress<void *(__cdecl *)(u32)>(0x0067acc0),
 };
 const PtrListEnv *g_env = &kGameEnv;
 

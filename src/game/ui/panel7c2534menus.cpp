@@ -13,6 +13,7 @@
 #include "dialog74fb20.h"
 #include "../world/world.h"
 #include "../core/staticobjects.h"
+#include "../core/addrcalls.h"
 
 extern "C" const u16 *__cdecl Language_WideText(u32 id);
 
@@ -23,12 +24,12 @@ template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((ui
 
 const Panel7c2534MenusEnv kGameEnv = {
     &Class492d80_Ctor,
-    reinterpret_cast<void(__fastcall *)(u8 *, void *, u32, u32)>((uintptr_t)0x00492e80),
+    GameAddress<void(__fastcall *)(u8 *, void *, u32, u32)>(0x00492e80),
     &Setting_ReadMode,
-    reinterpret_cast<u32(__cdecl *)(u32)>((uintptr_t)0x0067a7d0),
+    GameAddress<u32(__cdecl *)(u32)>(0x0067a7d0),
     &Language_WideText,
     &Panel7c2534_AddRow,
-    reinterpret_cast<u8 *(__fastcall *)(u8 *)>((uintptr_t)0x005b50b0),
+    GameAddress<u8 *(__fastcall *)(u8 *)>(0x005b50b0),
     &Online_LoggedIn,
     &Obj_HasActivity,
 };
@@ -38,7 +39,7 @@ const Panel7c2534OpenEnv kOpenEnv = {
     &Panel7c2534_BuildMain,
     &Panel7c2534_BuildOnline,
     &Dialog7cb2b8_ResetChild21,
-    reinterpret_cast<void(__fastcall *)(u8 *, void *, u32, u32)>((uintptr_t)0x004092a0),
+    GameAddress<void(__fastcall *)(u8 *, void *, u32, u32)>(0x004092a0),
     &Fn_662411,
     &WindowAt10_Show,
 };

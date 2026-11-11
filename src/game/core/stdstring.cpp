@@ -4,6 +4,7 @@
 #include <cstring>
 
 #include "movs.h"
+#include "addrcalls.h"
 
 namespace {
 
@@ -13,10 +14,10 @@ const u32 kMaxSize = 0xfffffffd;  // the allocator's 0xffffffff less 2
 const char *const kNullStr = reinterpret_cast<const char *>(0x006fe5b0);
 
 const StdStringEnv kGameEnv = {
-    reinterpret_cast<void *(__cdecl *)(u32)>(0x0067acc0),
-    reinterpret_cast<void(__cdecl *)(void *)>(0x0067acb0),
-    reinterpret_cast<void(__cdecl *)()>(0x006918f0),
-    reinterpret_cast<void(__cdecl *)()>(0x00691ba0),
+    GameAddress<void *(__cdecl *)(u32)>(0x0067acc0),
+    GameAddress<void(__cdecl *)(void *)>(0x0067acb0),
+    GameAddress<void(__cdecl *)()>(0x006918f0),
+    GameAddress<void(__cdecl *)()>(0x00691ba0),
 };
 const StdStringEnv *g_env = &kGameEnv;
 

@@ -16,6 +16,7 @@
 #include "window.h"
 #include "window705b20.h"
 #include "../online/chatcommand.h"
+#include "../core/addrcalls.h"
 
 namespace {
 
@@ -28,7 +29,7 @@ void __cdecl Measure(const u16 *text, const s32 *rect, u32 font, u32 hAlign, u32
     GuiText_Measure(text, rect, (s8)font, (s8)hAlign, (s8)vAlign, fit, box);
 }
 
-const Dialog7cc61cTextEnv kGameTextEnv = {&GameHeap_Alloc, reinterpret_cast<u8 *(__fastcall *)(u8 *, void *)>((uintptr_t)0x005b50b0), &Measure, &Language_Font, &Window_SetShown, &Window705b20_SetRange};
+const Dialog7cc61cTextEnv kGameTextEnv = {&GameHeap_Alloc, GameAddress<u8 *(__fastcall *)(u8 *, void *)>(0x005b50b0), &Measure, &Language_Font, &Window_SetShown, &Window705b20_SetRange};
 const Dialog7cc61cTextEnv *g_textEnv = &kGameTextEnv;
 
 u8 *Holder() {

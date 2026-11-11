@@ -21,6 +21,7 @@
 #include "../core/textarg.h"
 #include "dialog7cc654.h"
 #include "../core/staticobjects.h"
+#include "../core/addrcalls.h"
 
 namespace {
 
@@ -29,7 +30,7 @@ template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cas
 
 const Dialog7cc188HandlerEnv kGameEnv = {&UserSlots_Instance, &Window7059f0_NthItemData, &Window_SendMessage, &Game_CancelAdvisor, &Language_WideText,
                                          reinterpret_cast<s32(__cdecl *)(u8 *, u16 *, u32, u32, const void *)>(&Charset_FormatWide),
-                                         reinterpret_cast<void(__cdecl *)(const u8 *, u32, u32, u32, u32, u32, u32, u32)>((uintptr_t)0x0047f020), &Window_CallDefault,
+                                         GameAddress<void(__cdecl *)(const u8 *, u32, u32, u32, u32, u32, u32, u32)>(0x0047f020), &Window_CallDefault,
                                          &List_EraseNthCounted, &Dialog7cc188_FillList};
 const Dialog7cc188HandlerEnv *g_env = &kGameEnv;
 

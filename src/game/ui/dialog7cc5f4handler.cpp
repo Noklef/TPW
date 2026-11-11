@@ -9,13 +9,14 @@
 #include "focus.h"
 #include "window.h"
 #include "dialog7cc5f4dial.h"
+#include "../core/addrcalls.h"
 
 namespace {
 
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
 template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cast<T *>((uintptr_t)p + offset); }
 
-const Dialog7cc5f4HandlerEnv kGameEnv = {Window_SendMessage, Window_PostMessage, Focus_Restore, KeyMaps_EnableAllAndClearFlag, KeyMaps_ResetAllAndSetFlag, Online_Instance, reinterpret_cast<void(__fastcall *)(u8 *, void *, u8 *, u8 *)>((uintptr_t)0x005b5d10), Window_FindChild, Window_SetFocus, Dialog_BaseHandler};
+const Dialog7cc5f4HandlerEnv kGameEnv = {Window_SendMessage, Window_PostMessage, Focus_Restore, KeyMaps_EnableAllAndClearFlag, KeyMaps_ResetAllAndSetFlag, Online_Instance, GameAddress<void(__fastcall *)(u8 *, void *, u8 *, u8 *)>(0x005b5d10), Window_FindChild, Window_SetFocus, Dialog_BaseHandler};
 const Dialog7cc5f4HandlerEnv *g_env = &kGameEnv;
 
 u8 *mainWindow() { return at<u8 *>(global<u8 *>(0x00f82884), 4); }

@@ -22,6 +22,7 @@
 #include "voicesample.h"
 #include "imports.h"
 #include "staticobjects.h"
+#include "addrcalls.h"
 
 namespace {
 
@@ -273,7 +274,7 @@ u8 *__fastcall ChannelVoices_Ctor(u8 *pool, void *, u8 *channel, u32 count) {
 
 namespace {
 
-const ChannelVoicesEnv kVoicesEnv = {reinterpret_cast<u32(__cdecl *)(u32, u32, void *)>((uintptr_t)0x0067e050), ChannelVoices_Find};
+const ChannelVoicesEnv kVoicesEnv = {GameAddress<u32(__cdecl *)(u32, u32, void *)>(0x0067e050), ChannelVoices_Find};
 const ChannelVoicesEnv *g_voices = &kVoicesEnv;
 
 u32 createEvent() {

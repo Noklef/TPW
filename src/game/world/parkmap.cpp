@@ -31,6 +31,7 @@
 #include "world.h"
 #include "parkmapwindow.h"
 #include "../core/staticobjects.h"
+#include "../core/addrcalls.h"
 
 namespace {
 
@@ -190,7 +191,7 @@ void DrawSpriteBox(const u8 *map, Canvas &canvas, const u8 *sprite, s32 cellW, s
 void ParkMap_SetEnv(const ParkMapEnv *env) { g_env = env ? env : &kPorts; }
 
 namespace {
-const ParkMapPictureEnv kPicturePorts = {reinterpret_cast<const char *(__cdecl *)()>((uintptr_t)0x0040ef40), &ImageCodec_InfoFromFile, &SurfaceInfo_Alloc,
+const ParkMapPictureEnv kPicturePorts = {GameAddress<const char *(__cdecl *)()>(0x0040ef40), &ImageCodec_InfoFromFile, &SurfaceInfo_Alloc,
                                          &ImageCodec_LoadFromFile, &SurfaceInfo_Convert, &SurfaceInfo_Free};
 const ParkMapPictureEnv *g_picture = &kPicturePorts;
 }  // namespace

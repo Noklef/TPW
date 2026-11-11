@@ -30,6 +30,7 @@
 #include "mousemode.h"
 #include "world.h"
 #include "mousemodeclick.h"
+#include "../core/addrcalls.h"
 
 namespace {
 
@@ -41,9 +42,9 @@ u32 bits(float f) {
     return u;
 }
 
-const MouseModeEnv kGameEnv = {reinterpret_cast<void(__cdecl *)(void *)>(0x0067acb0),
-                                reinterpret_cast<s32(__cdecl *)(void(__cdecl *)())>(0x0067a7d0),
-                                reinterpret_cast<void(__cdecl *)(s32, s32, u32)>(0x005234d0),
+const MouseModeEnv kGameEnv = {GameAddress<void(__cdecl *)(void *)>(0x0067acb0),
+                                GameAddress<s32(__cdecl *)(void(__cdecl *)())>(0x0067a7d0),
+                                GameAddress<void(__cdecl *)(s32, s32, u32)>(0x005234d0),
                                 &GameMode_Set};
 const MouseModeEnv *g_env = &kGameEnv;
 AddrCalls g_calls;

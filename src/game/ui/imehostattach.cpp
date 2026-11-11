@@ -8,13 +8,14 @@
 #include "window.h"
 #include "window705a50.h"
 #include "../core/gamewindow.h"
+#include "../core/addrcalls.h"
 
 namespace {
 
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
 template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cast<T *>((uintptr_t)p + offset); }
 
-const ImeHostAttachEnv kGameEnv = {reinterpret_cast<void(__fastcall *)(u8 *, void *, s32 *, u32)>((uintptr_t)0x0047a3a0), reinterpret_cast<void(__fastcall *)(u8 *)>((uintptr_t)0x0047a570), Window705a50_TextLength, Ime_SetLimit, Fn_668564, Window_SendMessage};
+const ImeHostAttachEnv kGameEnv = {GameAddress<void(__fastcall *)(u8 *, void *, s32 *, u32)>(0x0047a3a0), GameAddress<void(__fastcall *)(u8 *)>(0x0047a570), Window705a50_TextLength, Ime_SetLimit, Fn_668564, Window_SendMessage};
 const ImeHostAttachEnv *g_env = &kGameEnv;
 
 }  // namespace

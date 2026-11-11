@@ -10,6 +10,7 @@
 #include "window.h"
 #include "dialog7cb2b8build.h"
 #include "dialog74fb20.h"
+#include "../core/addrcalls.h"
 
 namespace {
 
@@ -17,7 +18,7 @@ template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((ui
 
 s32 __cdecl Format(u16 *to, const u16 *format, s32 value) { return Crt().swprintf(to, format, value); }
 
-const Window7cb2a4Env kGameEnv = {Setting_ReadMode, reinterpret_cast<s32(__cdecl *)(void(__cdecl *)())>((uintptr_t)0x0067a7d0), GlobalSave_Instance, GlobalSave_CountSetLevel, GlobalSave_CountSetLeft, Window_SetShown, Format};
+const Window7cb2a4Env kGameEnv = {Setting_ReadMode, GameAddress<s32(__cdecl *)(void(__cdecl *)())>(0x0067a7d0), GlobalSave_Instance, GlobalSave_CountSetLevel, GlobalSave_CountSetLeft, Window_SetShown, Format};
 const Window7cb2a4Env *g_env = &kGameEnv;
 
 void show(u8 *window, u32 number, u32 back, u32 shown) {

@@ -32,6 +32,7 @@
 #include "dialog74fb20.h"
 #include "panel7b9940.h"
 #include "../core/staticobjects.h"
+#include "../core/addrcalls.h"
 
 namespace {
 
@@ -287,8 +288,8 @@ void onSlider(u32 a, u32 b) {
 
 namespace {
 
-const ResearchOpenEnv kOpenGameEnv = {reinterpret_cast<s32(__cdecl *)(void(__cdecl *)())>((uintptr_t)0x0067a7d0),
-                                      reinterpret_cast<void(__cdecl *)(const u8 *, u32, u32, u32, u32, u32, u32, u32)>((uintptr_t)0x0047f020), &SoundUi_Play, &Global7852f8_Times78548c, &Things_SumChain,
+const ResearchOpenEnv kOpenGameEnv = {GameAddress<s32(__cdecl *)(void(__cdecl *)())>(0x0067a7d0),
+                                      GameAddress<void(__cdecl *)(const u8 *, u32, u32, u32, u32, u32, u32, u32)>(0x0047f020), &SoundUi_Play, &Global7852f8_Times78548c, &Things_SumChain,
                                       &GameTable7cfb90_Get1da720_519510, &GameTable7cfb90_Get1da722_519550, &ResearchMeters_ShowName, &ResearchMeters_ShowProgress, &ResearchMeters_Update, &ResearchLab_GroupEffort};
 const ResearchOpenEnv *g_open = &kOpenGameEnv;
 

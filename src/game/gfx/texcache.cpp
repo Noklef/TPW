@@ -834,10 +834,10 @@ u32 __fastcall TexCache_PlaceTexture(u8 *cache, void *, u8 *entry, const s32 *pl
 
 namespace {
 
-const TexCacheTraceEnv kGameTraceEnv = {reinterpret_cast<void *(__cdecl *)(const char *, const char *)>((uintptr_t)0x0067b8a0),
-                                        reinterpret_cast<u32(__cdecl *)(const void *, u32, u32, void *)>((uintptr_t)0x0067b6d0),
-                                        reinterpret_cast<s32(__cdecl *)(void *)>((uintptr_t)0x0067d070),
-                                        reinterpret_cast<s32(__cdecl *)(void *)>((uintptr_t)0x0067b620)};
+const TexCacheTraceEnv kGameTraceEnv = {GameAddress<void *(__cdecl *)(const char *, const char *)>(0x0067b8a0),
+                                        GameAddress<u32(__cdecl *)(const void *, u32, u32, void *)>(0x0067b6d0),
+                                        GameAddress<s32(__cdecl *)(void *)>(0x0067d070),
+                                        GameAddress<s32(__cdecl *)(void *)>(0x0067b620)};
 const TexCacheTraceEnv *g_traceEnv = &kGameTraceEnv;
 
 #pragma pack(push, 1)

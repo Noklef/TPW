@@ -22,6 +22,7 @@
 #include "../coaster/arreplayaction.h"
 #include "../core/vdtor.h"
 #include "../core/staticobjects.h"
+#include "../core/addrcalls.h"
 
 namespace {
 
@@ -32,7 +33,7 @@ const WString *wide(u32 address) { return reinterpret_cast<const WString *>((uin
 // Appended through the wide string's vtable (WString_Append).
 void append(WString *s, const WString *tail) { vcall<void>(s, 0x28, tail); }
 
-const UserSlotsEnv kGameEnv = {&UserSlots_Ctor, reinterpret_cast<u16 *(__cdecl *)(s32, u16 *, s32)>((uintptr_t)0x0067e010), &GamePaths_RemoveTree};
+const UserSlotsEnv kGameEnv = {&UserSlots_Ctor, GameAddress<u16 *(__cdecl *)(s32, u16 *, s32)>(0x0067e010), &GamePaths_RemoveTree};
 const UserSlotsEnv *g_env = &kGameEnv;
 
 }  // namespace
@@ -41,8 +42,8 @@ void UserSlots_SetEnv(const UserSlotsEnv *env) { g_env = env ? env : &kGameEnv; 
 
 namespace {
 const UserSlotsScanEnv kScanGameEnv = {&GamePaths_SaveFolder, &GamePaths_UsersFolder, &GamePaths_OnlineFolder, &Handle_Open28, &Handle_Vfn1, &Handle_Vfn2, &Dir_Create, &DirEntry_IsRealDir,
-                                       reinterpret_cast<s32(__cdecl *)(s32)>((uintptr_t)0x0067a560), reinterpret_cast<s32(__cdecl *)(const char *)>((uintptr_t)0x0067a520), &UserSlots_SlotFolder, &GlobalSave_Construct,
-                                       reinterpret_cast<void(__fastcall *)(u8 *)>((uintptr_t)0x005af250), reinterpret_cast<void(__fastcall *)(u8 *, void *, const char *)>((uintptr_t)0x005afd70), &GlobalSave_Byte24, &GamePaths_MakeFolders};
+                                       GameAddress<s32(__cdecl *)(s32)>(0x0067a560), GameAddress<s32(__cdecl *)(const char *)>(0x0067a520), &UserSlots_SlotFolder, &GlobalSave_Construct,
+                                       GameAddress<void(__fastcall *)(u8 *)>(0x005af250), GameAddress<void(__fastcall *)(u8 *, void *, const char *)>(0x005afd70), &GlobalSave_Byte24, &GamePaths_MakeFolders};
 const UserSlotsScanEnv *g_scan = &kScanGameEnv;
 
 void DeleteGlobalSave() {
@@ -110,20 +111,20 @@ void WalkUsers(u8 *self, Handle *handle) {
 void UserSlots_SetScanEnv(const UserSlotsScanEnv *env) { g_scan = env ? env : &kScanGameEnv; }
 
 namespace {
-const UserSlotsChoiceEnv kChoiceGameEnv = {reinterpret_cast<void(__fastcall *)(u8 *, void *, const char *)>((uintptr_t)0x005cb230),
-                                           reinterpret_cast<void(__fastcall *)(u8 *, void *, const char *)>((uintptr_t)0x005cd9c0),
-                                           reinterpret_cast<void(__fastcall *)(u8 *, void *, const char *)>((uintptr_t)0x005cd710),
-                                           reinterpret_cast<void(__fastcall *)(u8 *)>((uintptr_t)0x005cb720),
-                                           reinterpret_cast<void(__fastcall *)(u8 *, void *, const char *)>((uintptr_t)0x005afc60),
+const UserSlotsChoiceEnv kChoiceGameEnv = {GameAddress<void(__fastcall *)(u8 *, void *, const char *)>(0x005cb230),
+                                           GameAddress<void(__fastcall *)(u8 *, void *, const char *)>(0x005cd9c0),
+                                           GameAddress<void(__fastcall *)(u8 *, void *, const char *)>(0x005cd710),
+                                           GameAddress<void(__fastcall *)(u8 *)>(0x005cb720),
+                                           GameAddress<void(__fastcall *)(u8 *, void *, const char *)>(0x005afc60),
                                            &GlobalSave_Instance,
                                            &GlobalSave_ThemeGet,
-                                           reinterpret_cast<void(__fastcall *)(void *)>((uintptr_t)0x00550ca0),
-                                           reinterpret_cast<void(__fastcall *)(void *, void *, u32)>((uintptr_t)0x00550d80),
-                                           reinterpret_cast<s32(__cdecl *)(u32)>((uintptr_t)0x0067a7d0),
-                                           reinterpret_cast<void(__fastcall *)(void *, void *, const String *)>((uintptr_t)0x00424820),
-                                           reinterpret_cast<void(__fastcall *)(u8 *, void *, const WString *, u32)>((uintptr_t)0x005c8190),
-                                           reinterpret_cast<void(__fastcall *)(u8 *, void *, u32)>((uintptr_t)0x005afc50),
-                                           reinterpret_cast<void(__fastcall *)(u8 *)>((uintptr_t)0x005cb030)};
+                                           GameAddress<void(__fastcall *)(void *)>(0x00550ca0),
+                                           GameAddress<void(__fastcall *)(void *, void *, u32)>(0x00550d80),
+                                           GameAddress<s32(__cdecl *)(u32)>(0x0067a7d0),
+                                           GameAddress<void(__fastcall *)(void *, void *, const String *)>(0x00424820),
+                                           GameAddress<void(__fastcall *)(u8 *, void *, const WString *, u32)>(0x005c8190),
+                                           GameAddress<void(__fastcall *)(u8 *, void *, u32)>(0x005afc50),
+                                           GameAddress<void(__fastcall *)(u8 *)>(0x005cb030)};
 const UserSlotsChoiceEnv *g_choice = &kChoiceGameEnv;
 
 // The global save info, made when there is none.

@@ -35,6 +35,7 @@
 #include "../world/rides.h"
 #include "../world/world.h"
 #include "../core/staticobjects.h"
+#include "../core/addrcalls.h"
 
 namespace {
 
@@ -42,7 +43,7 @@ template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cas
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
 
 s32 __cdecl PortTime(s32 *t) { return Crt().time(t); }
-const u8 *__cdecl PortLocalTime(const s32 *t) { return reinterpret_cast<const u8 *(__cdecl *)(const s32 *)>((uintptr_t)0x0067d8e0)(t); }
+const u8 *__cdecl PortLocalTime(const s32 *t) { return GameAddress<const u8 *(__cdecl *)(const s32 *)>(0x0067d8e0)(t); }
 
 const RsseExecEnv kPortEnv = {
     &Clocks_Now, &Mem_AllocLogged, &Mem_GlobalFree, &Rsse_Trigger, &Rsse_TriggerNode, &ParticleSystem_SetAge, &Sound_Forward6, &Sound_Stop, &Sound_SetParam, &Layer_ClearQueue, &Animator_Play, &Layer_GetFlags,

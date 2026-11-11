@@ -4,11 +4,12 @@
 #include <cstdint>
 
 #include "../core/accessors.h"
+#include "../core/addrcalls.h"
 
 namespace {
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
 
-const WindowBroadcastEnv kGameEnv = {reinterpret_cast<u32(__cdecl *)(u8 *, u32, u32, u32)>((uintptr_t)0x00658ccc)};
+const WindowBroadcastEnv kGameEnv = {GameAddress<u32(__cdecl *)(u8 *, u32, u32, u32)>(0x00658ccc)};
 const WindowBroadcastEnv *g_env = &kGameEnv;
 }  // namespace
 

@@ -8,12 +8,13 @@
 #include "window7059f0.h"
 #include "window705a50.h"
 #include "window7cc8bc.h"
+#include "../core/addrcalls.h"
 
 namespace {
 
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
 
-const Window7cc8bcMenuEnv kGameEnv = {Window7059f0_NthItemData, Window7059f0_NthItemCell, OnlineChat_Instance, reinterpret_cast<u8(__fastcall *)(u8 *, void *, u32)>((uintptr_t)0x004ea9a0), reinterpret_cast<void(__cdecl *)(u32, u8 *)>(Window7cc8cc_PlaceAtMouse), Window705a50_SetState, Window_SetDwordA0, Window_CallDefault};
+const Window7cc8bcMenuEnv kGameEnv = {Window7059f0_NthItemData, Window7059f0_NthItemCell, OnlineChat_Instance, GameAddress<u8(__fastcall *)(u8 *, void *, u32)>(0x004ea9a0), reinterpret_cast<void(__cdecl *)(u32, u8 *)>(Window7cc8cc_PlaceAtMouse), Window705a50_SetState, Window_SetDwordA0, Window_CallDefault};
 const Window7cc8bcMenuEnv *g_env = &kGameEnv;
 
 }  // namespace

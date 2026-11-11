@@ -17,6 +17,7 @@
 #include "dialog74fb20.h"
 #include "panel7b9940.h"
 #include "../core/staticobjects.h"
+#include "../core/addrcalls.h"
 
 namespace {
 
@@ -24,7 +25,7 @@ template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((ui
 
 u8 *dialog() { return gDialog7cc2ec_7cc2ec; }
 
-const Dialog7cc2ecEnv kGameEnv = {reinterpret_cast<s32(__cdecl *)(void(__cdecl *)())>((uintptr_t)0x0067a7d0), &HoverLabel_Attach, &Things_AverageOfKind};
+const Dialog7cc2ecEnv kGameEnv = {GameAddress<s32(__cdecl *)(void(__cdecl *)())>(0x0067a7d0), &HoverLabel_Attach, &Things_AverageOfKind};
 const Dialog7cc2ecEnv *g_env = &kGameEnv;
 
 void bar(u32 id, u32 index, u32 kind) {

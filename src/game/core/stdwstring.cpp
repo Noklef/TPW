@@ -8,6 +8,7 @@
 #include "stdstring.h"
 #include "trivial.h"
 #include "wtraits.h"
+#include "addrcalls.h"
 
 namespace {
 
@@ -401,8 +402,8 @@ const u32 kMinSize = 0x1f;
 const u32 kMaxSize = 0x7ffffffd;  // max_size (0x4f6080)
 const u16 *const kNullStr = reinterpret_cast<const u16 *>(0x00700624);
 
-void xlen() { reinterpret_cast<void(__cdecl *)()>(0x006918f0)(); }  // std::_Xlen: throws length_error
-void xran() { reinterpret_cast<void(__cdecl *)()>(0x00691ba0)(); }  // std::_Xran: throws out_of_range
+void xlen() { GameAddress<void(__cdecl *)()>(0x006918f0)(); }  // std::_Xlen: throws length_error
+void xran() { GameAddress<void(__cdecl *)()>(0x00691ba0)(); }  // std::_Xran: throws out_of_range
 
 u8 &refs(const u16 *p) { return *reinterpret_cast<u8 *>((uintptr_t)p - 1); }
 

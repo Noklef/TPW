@@ -5,10 +5,11 @@
 #include "vcall.h"
 #include "localefacet.h"
 #include "globals.h"
+#include "addrcalls.h"
 
 namespace {
 
-const SharedGlobalsEnv kGameEnv = {reinterpret_cast<s32(__cdecl *)(void(__cdecl *)())>((uintptr_t)0x0067a7d0)};
+const SharedGlobalsEnv kGameEnv = {GameAddress<s32(__cdecl *)(void(__cdecl *)())>(0x0067a7d0)};
 const SharedGlobalsEnv *g_env = &kGameEnv;
 
 template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cast<T *>((uintptr_t)p + offset); }

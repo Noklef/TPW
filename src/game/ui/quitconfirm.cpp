@@ -5,12 +5,13 @@
 
 #include "../core/options.h"
 #include "dialog74fb20.h"
+#include "../core/addrcalls.h"
 
 namespace {
 
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
 
-const QuitConfirmEnv kGameEnv = {Setting_ReadMode, reinterpret_cast<s32(__cdecl *)(void(__cdecl *)())>((uintptr_t)0x0067a7d0), Setting_SetMode};
+const QuitConfirmEnv kGameEnv = {Setting_ReadMode, GameAddress<s32(__cdecl *)(void(__cdecl *)())>(0x0067a7d0), Setting_SetMode};
 const QuitConfirmEnv *g_env = &kGameEnv;
 
 }  // namespace

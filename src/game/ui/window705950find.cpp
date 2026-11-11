@@ -2,9 +2,10 @@
 #include "window705950find.h"
 
 #include <cstdint>
+#include "../core/addrcalls.h"
 
 namespace {
-const Window705950FindEnv kGameEnv = {reinterpret_cast<s32(__cdecl *)(const void *, const void *)>((uintptr_t)0x0067c290)};
+const Window705950FindEnv kGameEnv = {GameAddress<s32(__cdecl *)(const void *, const void *)>(0x0067c290)};
 const Window705950FindEnv *g_env = &kGameEnv;
 }  // namespace
 

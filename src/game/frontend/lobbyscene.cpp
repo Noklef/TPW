@@ -25,6 +25,7 @@
 #include "lobbymodel.h"
 #include "frame.h"
 #include "../core/staticobjects.h"
+#include "../core/addrcalls.h"
 
 namespace {
 
@@ -37,7 +38,7 @@ const LobbySceneEnv kPorts = {&Ride_Destroy,
                               &LobbyModel_Play,
                               &LobbyModel_TimeLeft,
                               &Sound_PlayAt,
-                              reinterpret_cast<int(__cdecl *)()>((uintptr_t)0x0067b5c0),
+                              GameAddress<int(__cdecl *)()>(0x0067b5c0),
                               reinterpret_cast<decltype(LobbySceneEnv::weatherBurst)>((uintptr_t)0x00580320),
                               &LobbyFlight_Ctor,
                               &RideUser_Acquire,

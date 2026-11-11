@@ -18,6 +18,7 @@
 #include "../ui/dialog74fb20.h"
 #include "parkgates.h"
 #include "../core/staticobjects.h"
+#include "../core/addrcalls.h"
 
 namespace {
 
@@ -33,14 +34,14 @@ const ParkGatesEnv kGameEnv = {&Game1da70c_MinusAt0Quarters,
                                &GameTable7cfb90_Get1da724_519590,
                                &Game_TakeRideElement1,
                                &World_BusStopBlocked,
-                               reinterpret_cast<void(__fastcall *)(u8 *, void *, u8 *, u32)>((uintptr_t)0x0051a2f0),
+                               GameAddress<void(__fastcall *)(u8 *, void *, u8 *, u32)>(0x0051a2f0),
                                &World_ArrivalVehicleNotSize1,
                                &Map_BusStopPos,
                                &Visitor_Ctor,
                                &ParkAnalyser_CountKind1OnPlainCell,
                                &RideUpkeep_Total,
                                &Setting_ReadMode,
-                               reinterpret_cast<s32(__cdecl *)(u32)>((uintptr_t)0x0067a7d0)};
+                               GameAddress<s32(__cdecl *)(u32)>(0x0067a7d0)};
 const ParkGatesEnv *g_env = &kGameEnv;
 
 u8 *World() { return global<u8 *>(0x0080239c); }

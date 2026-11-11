@@ -9,6 +9,7 @@
 #include "dialog7cc4b4update.h"
 #include "window.h"
 #include "windowscript.h"
+#include "../core/addrcalls.h"
 
 namespace {
 
@@ -16,7 +17,7 @@ template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((ui
 template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cast<T *>((uintptr_t)p + offset); }
 
 const Dialog7cc4b4OpenEnv kGameEnv = {&WindowScript_Build, &TextPart_Ctor, &TextPart6ff530_Ctor, &Window_SetImpl, &Language_Font, &Window_Set4c, &Window_NotifyImpl100, &Window_NotifyC00, &Window_Notify1, &Window_SetShown, &Dialog7cc4b4_Update, &Window_Notify40000,
-                                      reinterpret_cast<void(__cdecl *)()>((uintptr_t)0x004bbbd0)};
+                                      GameAddress<void(__cdecl *)()>(0x004bbbd0)};
 const Dialog7cc4b4OpenEnv *g_env = &kGameEnv;
 
 u8 *dialog() { return gDialog7cc4b4open_7cc4b4; }

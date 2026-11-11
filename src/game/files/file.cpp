@@ -7,6 +7,7 @@
 #include "../core/vcall.h"
 #include "handles.h"
 #include "../core/imports.h"
+#include "../core/addrcalls.h"
 
 namespace {
 
@@ -24,7 +25,7 @@ T iat(u32 slot) {
     return reinterpret_cast<T>(static_cast<uintptr_t>(slot));
 }
 const FileEnv kGameEnv = {
-    reinterpret_cast<void *(__cdecl *)(u32)>(0x0067acc0),
+    GameAddress<void *(__cdecl *)(u32)>(0x0067acc0),
     iat<char *(__stdcall *const *)()>(IMPORT(Kernel32_GetCommandLineA)),
     iat<s32(__stdcall *const *)(const char *, void *)>(IMPORT(Kernel32_CreateDirectoryA)),
     iat<s32(__stdcall *const *)(const char *)>(IMPORT(Kernel32_RemoveDirectoryA)),

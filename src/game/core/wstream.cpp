@@ -14,6 +14,7 @@
 #include "vobj3.h"
 #include "vstream.h"
 #include "localefacet.h"
+#include "addrcalls.h"
 
 extern "C" u32 __cdecl CRT_wcslen(const u16 *text);   // (online/chatlists)
 
@@ -22,11 +23,11 @@ namespace {
 template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cast<T *>((uintptr_t)p + offset); }
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
 
-const WStreamEnv kGameEnv = {reinterpret_cast<void(__stdcall *)(void *, const void *)>((uintptr_t)0x0067d3a0),
-                             reinterpret_cast<void *(__fastcall *)(void *, void *, const char *)>((uintptr_t)0x00698fc0),
-                             reinterpret_cast<void *(__fastcall *)(void *)>((uintptr_t)0x00699100),
-                             reinterpret_cast<const u32 *(__cdecl *)(u32 *)>((uintptr_t)0x00699bd0),
-                             reinterpret_cast<u32(__fastcall *)(u8 *)>((uintptr_t)0x005d1190)};
+const WStreamEnv kGameEnv = {GameAddress<void(__stdcall *)(void *, const void *)>(0x0067d3a0),
+                             GameAddress<void *(__fastcall *)(void *, void *, const char *)>(0x00698fc0),
+                             GameAddress<void *(__fastcall *)(void *)>(0x00699100),
+                             GameAddress<const u32 *(__cdecl *)(u32 *)>(0x00699bd0),
+                             GameAddress<u32(__fastcall *)(u8 *)>(0x005d1190)};
 const WStreamEnv *g_env = &kGameEnv;
 
 u32 base_of(const u8 *stream) { return at<u32>(at<u8 *>(stream, 0), 4); }

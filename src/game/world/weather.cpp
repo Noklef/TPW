@@ -18,6 +18,7 @@
 #include "things.h"
 #include "world.h"
 #include "../core/staticobjects.h"
+#include "../core/addrcalls.h"
 
 namespace {
 
@@ -50,7 +51,7 @@ bool nowPast(const FileTime *t) {
 u32 atLeast0(u32 a, u32 b) { return (s32)(a - b) < 0 ? 0 : a - b; }
 
 const WeatherEnv kGameEnv = {&MessageCentre_Post, &WeatherFx_ReloadTextures,
-                             reinterpret_cast<void(__fastcall *)(u8 *, void *, u32, u32, u32, u32, u32, u32, u32, u32)>((uintptr_t)0x00580320), &Sound_SetAmbientLevel};
+                             GameAddress<void(__fastcall *)(u8 *, void *, u32, u32, u32, u32, u32, u32, u32, u32)>(0x00580320), &Sound_SetAmbientLevel};
 const WeatherEnv *g_env = &kGameEnv;
 
 }  // namespace

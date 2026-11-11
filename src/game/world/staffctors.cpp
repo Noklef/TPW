@@ -12,11 +12,12 @@
 #include "staff.h"
 #include "staffwork.h"
 #include "../core/staticobjects.h"
+#include "../core/addrcalls.h"
 
 namespace {
 
 const StaffCtorsEnv kGameEnv = {&Staff_CtorTyped, &Staff_Ctor, &Charset_FormatWide, &World_AddHandyman, &World_AddMechanic, &World_AddEntertainer, &Mechanic_SetState, &Map_SpreadAdd, &MessageCentre_AddThing, &Handyman_PickWork, &Mechanic_PickWork, &Entertainer_PickWork, &World_AddGuard, &SpriteFolder_RandomSprite,
-    reinterpret_cast<u32(__fastcall *)(u8 *)>(0x00506a40), &Person_SetRandomDest, &Guard_SetState};
+    GameAddress<u32(__fastcall *)(u8 *)>(0x00506a40), &Person_SetRandomDest, &Guard_SetState};
 const StaffCtorsEnv *g_env = &kGameEnv;
 
 template <typename T>

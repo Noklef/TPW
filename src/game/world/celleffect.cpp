@@ -10,13 +10,14 @@
 #include "mapcell.h"
 #include "random.h"
 #include "../ui/dialog74fb20.h"
+#include "../core/addrcalls.h"
 
 namespace {
 
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
 template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cast<T *>((uintptr_t)p + offset); }
 
-const CellEffectEnv kGameEnv = {Setting_ReadMode, reinterpret_cast<s32(__cdecl *)(void(__cdecl *)())>((uintptr_t)0x0067a7d0), Map_SpreadAdd, SpriteScript_Start, World_SetSeed, World_Rand, SpriteScript_SetPosition, Particle_Spawn};
+const CellEffectEnv kGameEnv = {Setting_ReadMode, GameAddress<s32(__cdecl *)(void(__cdecl *)())>(0x0067a7d0), Map_SpreadAdd, SpriteScript_Start, World_SetSeed, World_Rand, SpriteScript_SetPosition, Particle_Spawn};
 const CellEffectEnv *g_env = &kGameEnv;
 
 u32 scriptOf(u32 kind, u32 word) {

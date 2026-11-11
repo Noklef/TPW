@@ -21,6 +21,7 @@
 #include "dialog74fb20.h"
 #include "dialog7cc188.h"
 #include "../core/staticobjects.h"
+#include "../core/addrcalls.h"
 
 namespace {
 const Dialog7cdac4Env kGameEnv = {Window7c24c8_Close, Dialog_Create, Window_SetDepth, TextPart6ff4d0_Ctor, Window_SetImpl, Language_Font, Window_Set4c, Window705a20_SetBuffer, GuiWindows_FindByName, Window705a20_SetCaret, NamedObjects_SetThemeLabelAnsi, Window_Notify3000,
@@ -41,8 +42,8 @@ u8 *editChild(u32 id) {
 void setCaret(u8 *child) { g_env->setCaret(child, nullptr, reinterpret_cast<u8 *>((uintptr_t)g_env->findByName(reinterpret_cast<const char *>((uintptr_t)&gText_Dialog7cc188_74fa84)))); }
 
 const Dialog7cdac4HandlerEnv kGameHandlerEnv = {Window_SendMessage, Window_PostMessage, KeyMaps_EnableAllAndClearFlag, KeyMaps_ResetAllAndSetFlag, Focus_Restore, Dialog_BaseHandler, Setting_ReadMode,
-                                                reinterpret_cast<s32(__cdecl *)(void(__cdecl *)())>((uintptr_t)0x0067a7d0), Online_Instance,
-                                                reinterpret_cast<void(__fastcall *)(u8 *, void *, u32, u32, u32, u32, u32, u32, u32)>((uintptr_t)0x005b7ba0), Class702da0_Clear, Window_SetFocus};
+                                                GameAddress<s32(__cdecl *)(void(__cdecl *)())>(0x0067a7d0), Online_Instance,
+                                                GameAddress<void(__fastcall *)(u8 *, void *, u32, u32, u32, u32, u32, u32, u32)>(0x005b7ba0), Class702da0_Clear, Window_SetFocus};
 const Dialog7cdac4HandlerEnv *g_handler = &kGameHandlerEnv;
 
 u8 *pointerAt(u32 address, u32 offset) { return *reinterpret_cast<u8 **>(*reinterpret_cast<u8 **>((uintptr_t)address) + offset); }

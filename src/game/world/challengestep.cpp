@@ -13,13 +13,14 @@
 #include "../ui/dialog7ca2e8.h"
 #include "../ui/dialog74fb20.h"
 #include "../core/staticobjects.h"
+#include "../core/addrcalls.h"
 
 namespace {
 
 template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cast<T *>((uintptr_t)p + offset); }
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
 
-const ChallengeStepEnv kGameEnv = {reinterpret_cast<s32(__cdecl *)(void(__cdecl *)())>((uintptr_t)0x0067a7d0), &Challenge_Met, &Challenges_Won, &Challenges_Lost, &Challenges_OfferNext, &MessageCentre_Post};
+const ChallengeStepEnv kGameEnv = {GameAddress<s32(__cdecl *)(void(__cdecl *)())>(0x0067a7d0), &Challenge_Met, &Challenges_Won, &Challenges_Lost, &Challenges_OfferNext, &MessageCentre_Post};
 const ChallengeStepEnv *g_env = &kGameEnv;
 
 u8 *world() { return global<u8 *>(0x0080239c); }

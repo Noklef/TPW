@@ -24,13 +24,14 @@
 #include "dialog7cc184.h"
 #include "dialog7cc654.h"
 #include "../core/staticobjects.h"
+#include "../core/addrcalls.h"
 
 namespace {
 
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
 
-const Dialog7cc184HandlerEnv kGameEnv = {&Window_SendMessage, &Blocks7_Free, reinterpret_cast<s32(__cdecl *)(void(__cdecl *)())>((uintptr_t)0x0067a7d0), &Windows7cc8bc_Message6Pair, &Game_CancelAdvisor, &Focus_Restore, &KeyMaps_EnableAllAndClearFlag, &KeyMaps_ResetAllAndSetFlag, &Dialog7cc188_Open, &Window_FindChild,
-                                         reinterpret_cast<s32(__cdecl *)(u8 *, u16 *, u32, u32)>(&Charset_FormatWide), &TextPanel7cc18c_Show, reinterpret_cast<u16 *(__cdecl *)(u16 *, const u16 *)>((uintptr_t)0x0067c430), &Language_WideText, reinterpret_cast<void(__cdecl *)(const void *, u32, u32, u32, u32, u32, u32, u32)>((uintptr_t)0x0047f020),
+const Dialog7cc184HandlerEnv kGameEnv = {&Window_SendMessage, &Blocks7_Free, GameAddress<s32(__cdecl *)(void(__cdecl *)())>(0x0067a7d0), &Windows7cc8bc_Message6Pair, &Game_CancelAdvisor, &Focus_Restore, &KeyMaps_EnableAllAndClearFlag, &KeyMaps_ResetAllAndSetFlag, &Dialog7cc188_Open, &Window_FindChild,
+                                         reinterpret_cast<s32(__cdecl *)(u8 *, u16 *, u32, u32)>(&Charset_FormatWide), &TextPanel7cc18c_Show, GameAddress<u16 *(__cdecl *)(u16 *, const u16 *)>(0x0067c430), &Language_WideText, GameAddress<void(__cdecl *)(const void *, u32, u32, u32, u32, u32, u32, u32)>(0x0047f020),
                                          &Postcard_Send, &Dialog_KeyHandler, &Window_CallDefault, &Window_CaptureMouse, &Window_ReleaseMouse};
 const Dialog7cc184HandlerEnv *g_env = &kGameEnv;
 

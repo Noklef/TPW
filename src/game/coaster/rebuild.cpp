@@ -15,6 +15,7 @@
 #include "trackmesh.h"
 #include "coastersupdate.h"
 #include "coastersload.h"
+#include "../core/addrcalls.h"
 
 namespace {
 
@@ -28,7 +29,7 @@ const CoasterRebuildEnv kPorts = {&Coaster_PoseCars,
                                   &Coaster_BuildNodes,
                                   &Coaster_TestRun,
                                   &Contacts_UpdateBounds,
-                                  reinterpret_cast<void(__cdecl *)(u8 *)>((uintptr_t)0x00439ab0),
+                                  GameAddress<void(__cdecl *)(u8 *)>(0x00439ab0),
                                   &Owner_DisposeChildren,
                                   &TrackMesh_PlaceSections,
                                   reinterpret_cast<void(__cdecl *)(u8 *, u8 *, u32)>(&CoasterSearch_Reset),

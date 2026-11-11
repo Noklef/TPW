@@ -21,6 +21,7 @@
 #include "window7cc8c0handler.h"
 #include "dialog7cc188.h"
 #include "../core/staticobjects.h"
+#include "../core/addrcalls.h"
 
 namespace {
 
@@ -51,7 +52,7 @@ void __cdecl Dialog7cc944_Open(u32 value) {
     vcall<void>(edit, 0x24, (u32)(uintptr_t)Online_String14(Online_Instance()));
     g_env->setFocus(edit, nullptr, 0);
     u8 *const list = Window_FindChild(gDialog7cc944_7cc944, nullptr, 0xe05b);
-    g_env->buildRows(list, nullptr, reinterpret_cast<u8 *(__cdecl *)()>((uintptr_t)0x004c02d0), reinterpret_cast<void(__cdecl *)(u8 *)>((uintptr_t)0x004c03e0));
+    g_env->buildRows(list, nullptr, GameAddress<u8 *(__cdecl *)()>(0x004c02d0), reinterpret_cast<void(__cdecl *)(u8 *)>((uintptr_t)0x004c03e0));
     for (u32 column = 0; column < 6; ++column) g_env->setColumn(list, nullptr, column, column >= 3);
     g_env->setHighlight(list, nullptr, hilight());
     for (u32 i = 0; i < 6; ++i) {

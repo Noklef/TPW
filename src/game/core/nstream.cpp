@@ -15,22 +15,23 @@
 #include "vobj3.h"
 #include "vstream.h"
 #include "localefacet.h"
+#include "addrcalls.h"
 
 namespace {
 
 template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cast<T *>((uintptr_t)p + offset); }
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
 
-const NStreamEnv kGameEnv = {reinterpret_cast<void(__stdcall *)(void *, const void *)>((uintptr_t)0x0067d3a0),
-                             reinterpret_cast<void *(__fastcall *)(void *, void *, const char *)>((uintptr_t)0x00698fc0),
-                             reinterpret_cast<void *(__fastcall *)(void *)>((uintptr_t)0x00699100),
-                             reinterpret_cast<const u32 *(__cdecl *)(u32 *)>((uintptr_t)0x00699bd0),
+const NStreamEnv kGameEnv = {GameAddress<void(__stdcall *)(void *, const void *)>(0x0067d3a0),
+                             GameAddress<void *(__fastcall *)(void *, void *, const char *)>(0x00698fc0),
+                             GameAddress<void *(__fastcall *)(void *)>(0x00699100),
+                             GameAddress<const u32 *(__cdecl *)(u32 *)>(0x00699bd0),
                              &CRT_atexit,
                              &IosBase_Init,
                              &IosBase_Addstd,
-                             reinterpret_cast<void(__fastcall *)(u8 *)>((uintptr_t)0x005cde40),
-                             reinterpret_cast<void(__fastcall *)(u8 *)>((uintptr_t)0x005ce920),
-                             reinterpret_cast<void(__fastcall *)(u8 *)>((uintptr_t)0x005cf630),
+                             GameAddress<void(__fastcall *)(u8 *)>(0x005cde40),
+                             GameAddress<void(__fastcall *)(u8 *)>(0x005ce920),
+                             GameAddress<void(__fastcall *)(u8 *)>(0x005cf630),
                              &CRT_TolowerLocking,
                              &CRT_ToupperLocking};
 const NStreamEnv *g_env = &kGameEnv;

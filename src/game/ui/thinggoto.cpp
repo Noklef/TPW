@@ -12,12 +12,13 @@
 #include "../world/mapclick.h"
 #include "panel7cc218.h"
 #include "../core/staticobjects.h"
+#include "../core/addrcalls.h"
 
 namespace {
 
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
 
-const ThingGotoEnv kGameEnv = {reinterpret_cast<void(__cdecl *)(const u8 *, u32, u32, u32, u32, u32, u32, u32)>((uintptr_t)0x0047f020), &Language_WideText, &Global7c2654_Set, &FocusCell_Update, &GameMode_Set, &GameMode_MapClick};
+const ThingGotoEnv kGameEnv = {GameAddress<void(__cdecl *)(const u8 *, u32, u32, u32, u32, u32, u32, u32)>(0x0047f020), &Language_WideText, &Global7c2654_Set, &FocusCell_Update, &GameMode_Set, &GameMode_MapClick};
 const ThingGotoEnv *g_env = &kGameEnv;
 
 void go(const u8 *thing) {

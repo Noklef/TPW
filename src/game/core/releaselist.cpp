@@ -4,13 +4,14 @@
 
 #include "gameheap.h"
 #include "imports.h"
+#include "addrcalls.h"
 
 namespace {
 
 template <typename F> F Import(u32 slot) { return *reinterpret_cast<const F *>((uintptr_t)slot); }
 using OnLock = u32(__stdcall *)(void *);
 
-const ReleaseListEnv kGameEnv = {reinterpret_cast<s32(__cdecl *)(void(__cdecl *)())>((uintptr_t)0x0067a7d0)};
+const ReleaseListEnv kGameEnv = {GameAddress<s32(__cdecl *)(void(__cdecl *)())>(0x0067a7d0)};
 const ReleaseListEnv *g_env = &kGameEnv;
 
 ReleaseList *instance() { return reinterpret_cast<ReleaseList *>((uintptr_t)0x00fb2730); }

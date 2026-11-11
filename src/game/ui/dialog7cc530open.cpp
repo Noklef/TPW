@@ -17,6 +17,7 @@
 #include "windowreg.h"
 #include "dialog7cc530handler.h"
 #include "dialog7cc188.h"
+#include "../core/addrcalls.h"
 
 namespace {
 
@@ -65,7 +66,7 @@ void __cdecl Dialog7cc530_Open(u32 value) {
     dressButton(group, 0xf, 0xe4);
     g_env->select(group, nullptr, 0xe);
     u8 *const list = Window_FindChild(gDialog7cc530open_7cc530, nullptr, 0xc);
-    g_env->buildRows(list, nullptr, reinterpret_cast<u8 *(__cdecl *)()>((uintptr_t)0x004bacc0), reinterpret_cast<void(__cdecl *)(u8 *)>((uintptr_t)0x004bad70));
+    g_env->buildRows(list, nullptr, GameAddress<u8 *(__cdecl *)()>(0x004bacc0), reinterpret_cast<void(__cdecl *)(u8 *)>((uintptr_t)0x004bad70));
     g_env->setColumn(list, nullptr, 0, 0);
     g_env->setColumn(list, nullptr, 1, 1);
     g_env->setHighlight(list, nullptr, reinterpret_cast<u8 *>((uintptr_t)g_env->findByName(reinterpret_cast<const char *>((uintptr_t)&gText_Dialog7cc188_74fa84))));

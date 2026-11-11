@@ -17,6 +17,7 @@
 #include "windowscript.h"
 #include "dialog74fb20.h"
 #include "panel7b9940.h"
+#include "../core/addrcalls.h"
 
 namespace {
 
@@ -24,8 +25,8 @@ template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((ui
 
 u8 *dialog() { return gDialog7ca210_7ca210; }
 
-const Dialog7ca210Env kGameEnv = {reinterpret_cast<s32(__cdecl *)(void(__cdecl *)())>((uintptr_t)0x0067a7d0), &HoverLabel_Attach,
-                                  reinterpret_cast<void(__fastcall *)(u8 *, void *, u8 *, u32)>((uintptr_t)0x004e2780),
+const Dialog7ca210Env kGameEnv = {GameAddress<s32(__cdecl *)(void(__cdecl *)())>(0x0067a7d0), &HoverLabel_Attach,
+                                  GameAddress<void(__fastcall *)(u8 *, void *, u8 *, u32)>(0x004e2780),
                                   &SignNameDialog7ca214_Open, &HoverLabel_SetYellow, &Window_Notify40000, &Window_CallDefault};
 const Dialog7ca210Env *g_env = &kGameEnv;
 

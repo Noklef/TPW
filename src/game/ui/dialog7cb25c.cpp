@@ -32,18 +32,19 @@
 #include "../core/textarg.h"
 #include "dialog7cc188.h"
 #include "../core/staticobjects.h"
+#include "../core/addrcalls.h"
 
 namespace {
 
 u8 *dialog() { return gDialog7cb25c_7cb25c; }
 
-const Dialog7cb25cOpenEnv kOpenGameEnv = {reinterpret_cast<s32(__cdecl *)(void(__cdecl *)())>((uintptr_t)0x0067a7d0), &HoverLabel_Attach, &Money_LoanOffer,
+const Dialog7cb25cOpenEnv kOpenGameEnv = {GameAddress<s32(__cdecl *)(void(__cdecl *)())>(0x0067a7d0), &HoverLabel_Attach, &Money_LoanOffer,
                                           &Window7059f0_BuildRows, &Dialog7cb25c_FillList, &RadioGroup_Select, &Dialog7cb25c_SetTexts};
 const Dialog7cb25cOpenEnv *g_open = &kOpenGameEnv;
 
 const Dialog7cb25cHandlerEnv kHandlerGameEnv = {&Window_SendMessage, &Game_CancelAdvisor, &Window_FindChild, &Window7059f0_NthItemData, &GameTable7cfb90_Get1da726_5195d0, &Money_LoanOffer,
                                                 reinterpret_cast<u32(__fastcall *)(u32)>(&Source_Field0c), &Charset_FormatWide,
-                                                reinterpret_cast<void(__cdecl *)(const u8 *, u32, u32, u32, u32, u32, u32, u32)>((uintptr_t)0x0047f020), &Dialog7ca210_Open, &Dialog7ca2e8_Open, &Dialog7cc2ec_Open, &Dialog_KeyHandler};
+                                                GameAddress<void(__cdecl *)(const u8 *, u32, u32, u32, u32, u32, u32, u32)>(0x0047f020), &Dialog7ca210_Open, &Dialog7ca2e8_Open, &Dialog7cc2ec_Open, &Dialog_KeyHandler};
 const Dialog7cb25cHandlerEnv *g_handler = &kHandlerGameEnv;
 
 u8 *game() { return *&gWorldPtr; }
@@ -176,7 +177,7 @@ void __cdecl Dialog7cb25c_Open() {
         vcall<void>(panelparts::numberPart(figures, 0x12c4c3), 0x1c, first - third);
     }
     u8 *const list = Window_FindChild(dialog(), nullptr, 0x12c4bd);
-    g_open->buildRows(list, nullptr, reinterpret_cast<u8 *(__cdecl *)()>((uintptr_t)0x004a02b0), reinterpret_cast<void(__cdecl *)(u8 *)>((uintptr_t)0x004a03d0));   // (List7cb264_NewRow, List7cb264_InitRow, by the original's addresses: the hooks)
+    g_open->buildRows(list, nullptr, GameAddress<u8 *(__cdecl *)()>(0x004a02b0), reinterpret_cast<void(__cdecl *)(u8 *)>((uintptr_t)0x004a03d0));   // (List7cb264_NewRow, List7cb264_InitRow, by the original's addresses: the hooks)
     Window7059f0_SetColumnBottom(list, nullptr, 0, 0);
     for (u32 column = 1; column < 6; ++column) Window7059f0_SetColumnBottom(list, nullptr, column, 1);
     Window7059f0_SetHighlight(list, nullptr, reinterpret_cast<u8 *>((uintptr_t)GuiWindows_FindByName(reinterpret_cast<const char *>((u32)(uintptr_t)&gText_Dialog7cc188_74fa84))));

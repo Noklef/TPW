@@ -25,6 +25,7 @@
 #include "windowscript.h"
 #include "dialog74fb20.h"
 #include "panel7b9940.h"
+#include "../core/addrcalls.h"
 
 namespace {
 
@@ -33,7 +34,7 @@ u8 *&dialog() { return *reinterpret_cast<u8 **>((uintptr_t)0x007ca2e8); }
 const Dialog7ca2e8HandlerEnv kGameEnv = {&Window_SendMessage, &Game_CancelAdvisor, &Language_WideText, &HoverLabel_Attach, &Dialog_KeyHandler, &Dialog7cb25c_Open, &Dialog7cc2ec_Open, &Dialog7ca210_Open};
 const Dialog7ca2e8HandlerEnv *g_env = &kGameEnv;
 
-const Dialog7ca2e8OpenEnv kOpenGameEnv = {reinterpret_cast<s32(__cdecl *)(void(__cdecl *)())>((uintptr_t)0x0067a7d0), &RadioGroup_Select, &Window705a50_SetState};
+const Dialog7ca2e8OpenEnv kOpenGameEnv = {GameAddress<s32(__cdecl *)(void(__cdecl *)())>(0x0067a7d0), &RadioGroup_Select, &Window705a50_SetState};
 const Dialog7ca2e8OpenEnv *g_open = &kOpenGameEnv;
 
 void button(u8 *parent, u32 id, u32 text) {

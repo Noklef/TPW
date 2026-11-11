@@ -20,6 +20,7 @@
 #include "world.h"
 #include "../ui/dialog74fb20.h"
 #include "../core/staticobjects.h"
+#include "../core/addrcalls.h"
 
 namespace {
 
@@ -49,7 +50,7 @@ void check_score(u8 *self, u32 group, s32 value, u32 limit) {
 void ObjectUnlock_SetScoresEnv(const ObjectUnlockScoresEnv *env) { g_scores = env ? env : &kScoresGameEnv; }
 
 namespace {
-const ObjectUnlockStepEnv kStepGameEnv = {&Setting_ReadMode, reinterpret_cast<s32(__cdecl *)(void(__cdecl *)())>((uintptr_t)0x0067a7d0), &ObjectUnlock_CheckThemes, &ObjectUnlock_CheckScores, &GameTable7cfb90_Get1da720_519510,
+const ObjectUnlockStepEnv kStepGameEnv = {&Setting_ReadMode, GameAddress<s32(__cdecl *)(void(__cdecl *)())>(0x0067a7d0), &ObjectUnlock_CheckThemes, &ObjectUnlock_CheckScores, &GameTable7cfb90_Get1da720_519510,
                                           &GlobalSave_Byte26, &Map_PercentWithRE, &GlobalSave_MarkExtra, &ObjectUnlock_AdviseExtraLevel};
 const ObjectUnlockStepEnv *g_step = &kStepGameEnv;
 }  // namespace

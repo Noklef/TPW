@@ -24,6 +24,7 @@
 #include "dialog7cc188.h"
 #include "versionlabel.h"
 #include "../core/imports.h"
+#include "../core/addrcalls.h"
 
 namespace {
 
@@ -42,8 +43,8 @@ const SignNameDialogOpenEnv *g_open = &kOpenGameEnv;
 
 s32 __stdcall RemoveFont(const char *path) { return global<s32(__stdcall *)(const char *)>(IMPORT(Gdi32_RemoveFontResourceA))(path); }
 
-const SignNameDialogHandlerEnv kHandlerGameEnv = {KeyMaps_EnableAllAndClearFlag, Focus_Restore, reinterpret_cast<SetNameFn>((uintptr_t)0x004e2950), reinterpret_cast<SetNameFn>((uintptr_t)0x004e2a50), reinterpret_cast<void(__cdecl *)(u8 *, const u16 *, const u16 *)>((uintptr_t)0x004682b0),
-                                                  RemoveFont, File_Delete, GlobalSave_Instance, GlobalSave_SetSignNameA, GlobalSave_SetSignNameB, CheatSystem_Construct,reinterpret_cast<s32(__cdecl *)(void(__cdecl *)())>((uintptr_t)0x0067a7d0),
+const SignNameDialogHandlerEnv kHandlerGameEnv = {KeyMaps_EnableAllAndClearFlag, Focus_Restore, reinterpret_cast<SetNameFn>((uintptr_t)0x004e2950), reinterpret_cast<SetNameFn>((uintptr_t)0x004e2a50), GameAddress<void(__cdecl *)(u8 *, const u16 *, const u16 *)>(0x004682b0),
+                                                  RemoveFont, File_Delete, GlobalSave_Instance, GlobalSave_SetSignNameA, GlobalSave_SetSignNameB, CheatSystem_Construct,GameAddress<s32(__cdecl *)(void(__cdecl *)())>(0x0067a7d0),
                                                   CheatSystem_SetOn, Thing_NameBuffer7ba058, Window_PostMessage, Window_SendMessage, Window_SetFocus};
 const SignNameDialogHandlerEnv *g_handler = &kHandlerGameEnv;
 

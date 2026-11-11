@@ -15,6 +15,7 @@
 #include "wtraits.h"
 #include "imports.h"
 #include "staticobjects.h"
+#include "addrcalls.h"
 
 namespace {
 
@@ -30,8 +31,8 @@ void __cdecl game_free(void *block) { GameHeap_Free(block); }
 const StringEnv kGameEnv = {
     &game_alloc,
     &game_free,
-    reinterpret_cast<s32(__cdecl *)(char *, const char *, va_list)>(0x0067c1e0),
-    reinterpret_cast<s32(__cdecl *)(u16 *, const u16 *, va_list)>(0x0067f4d0),
+    GameAddress<s32(__cdecl *)(char *, const char *, va_list)>(0x0067c1e0),
+    GameAddress<s32(__cdecl *)(u16 *, const u16 *, va_list)>(0x0067f4d0),
 };
 const StringEnv *g_env = &kGameEnv;
 

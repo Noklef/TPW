@@ -10,6 +10,7 @@
 #include "guardheap.h"
 #include "../render/enginedebug.h"
 #include "../online/ftp.h"
+#include "addrcalls.h"
 
 namespace {
 
@@ -18,15 +19,15 @@ const char *text(u32 address) { return reinterpret_cast<const char *>((uintptr_t
 
 const u32 kBuffer = 0x424, kBlockSize = 0x2424, kPage = 0x2000;
 
-const GuardFileEnv kGameEnv = {reinterpret_cast<s32(__cdecl *)(const char *, void *)>((uintptr_t)0x0067e900),
+const GuardFileEnv kGameEnv = {GameAddress<s32(__cdecl *)(const char *, void *)>(0x0067e900),
                                reinterpret_cast<void *(__cdecl *)(const char *, const char *)>(&CRT_fopen),
                                reinterpret_cast<s32(__cdecl *)(void *, s32, s32)>(&CRT_fseek),
                                reinterpret_cast<s32(__cdecl *)(const void *, u32, s32, void *)>(&CRT_fwrite),
                                reinterpret_cast<s32(__cdecl *)(void *, u32, s32, void *)>(&CRT_fread),
                                reinterpret_cast<s32(__cdecl *)(void *)>(&CRT_fflush),
                                reinterpret_cast<s32(__cdecl *)(void *)>(&CRT_fclose),
-                               reinterpret_cast<s32(__cdecl *)(const char *)>((uintptr_t)0x0067e530),
-                               reinterpret_cast<s32(__cdecl *)(const char *, const char *)>((uintptr_t)0x0067ecc0)};
+                               GameAddress<s32(__cdecl *)(const char *)>(0x0067e530),
+                               GameAddress<s32(__cdecl *)(const char *, const char *)>(0x0067ecc0)};
 const GuardFileEnv *g_env = &kGameEnv;
 
 using Message = void(__cdecl *)(const char *, ...);

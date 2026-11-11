@@ -11,6 +11,7 @@
 #include "registry.h"
 #include "train.h"
 #include "../world/world.h"
+#include "../core/addrcalls.h"
 
 namespace {
 
@@ -18,12 +19,12 @@ template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cas
 
 const ArReplayEnv kGame = {&CoasterEdit_Tool1,
                            &CoasterEdit_Tool2,
-                           reinterpret_cast<void(__cdecl *)()>((uintptr_t)0x00447d30),
-                           reinterpret_cast<void(__cdecl *)()>((uintptr_t)0x00447d90),
+                           GameAddress<void(__cdecl *)()>(0x00447d30),
+                           GameAddress<void(__cdecl *)()>(0x00447d90),
                            &GameMode_MapPress,
                            &GameMode_MapClick,
-                           reinterpret_cast<void(__fastcall *)(u8 *, void *, u32, u32)>((uintptr_t)0x00404d80),
-                           reinterpret_cast<void(__fastcall *)(u8 *, void *, u32, u32, u32, const u16 *)>((uintptr_t)0x00404f70),
+                           GameAddress<void(__fastcall *)(u8 *, void *, u32, u32)>(0x00404d80),
+                           GameAddress<void(__fastcall *)(u8 *, void *, u32, u32, u32, const u16 *)>(0x00404f70),
                            &Global8186e0_SetRecorded,
                            &Car_ApplyLengthAt,
                            &Car_ApplyE0At,

@@ -55,6 +55,7 @@
 #include "panel7b9940.h"
 #include "dialog7cc188.h"
 #include "../core/staticobjects.h"
+#include "../core/addrcalls.h"
 
 using namespace panelparts;
 
@@ -405,8 +406,8 @@ namespace {
 template <typename T>
 T &global(uintptr_t address) { return *reinterpret_cast<T *>(address); }
 
-const Panel7cc218LevelsEnv kGameLevelsEnv = {Window7059f0_Clear, ObjectDefs_First, ObjectDefs_Next, Setting_ReadMode, reinterpret_cast<s32(__cdecl *)(void(__cdecl *)())>((uintptr_t)0x0067a7d0), ObjectControls_Find, ObjectDefs_GetFullName, Window7059f0_AddItem, Object_GetDef,
-                                             Is19c_Eq2_4e03e0, Charset_FormatWide, Language_WideText, reinterpret_cast<u16 *(__cdecl *)(u16 *, const u16 *)>((uintptr_t)0x0067c430), Window7059f0_RefreshRows};
+const Panel7cc218LevelsEnv kGameLevelsEnv = {Window7059f0_Clear, ObjectDefs_First, ObjectDefs_Next, Setting_ReadMode, GameAddress<s32(__cdecl *)(void(__cdecl *)())>(0x0067a7d0), ObjectControls_Find, ObjectDefs_GetFullName, Window7059f0_AddItem, Object_GetDef,
+                                             Is19c_Eq2_4e03e0, Charset_FormatWide, Language_WideText, GameAddress<u16 *(__cdecl *)(u16 *, const u16 *)>(0x0067c430), Window7059f0_RefreshRows};
 const Panel7cc218LevelsEnv *g_levels = &kGameLevelsEnv;
 const Panel7cc218FiguresEnv kGameFiguresEnv = {Object_GetDef, Window_FindChild, Object_AgeDays, Charset_FormatWide, Window_NotifyImpl100, Object_ComputeRating, Object_DefRowPercent, Object_ScrapRefund, Object_Status, Panel7cc218_UpdateButtons, Panel7cc218_ShowRide, Panel7cc218_FillLevels};
 const Panel7cc218FiguresEnv *g_figures = &kGameFiguresEnv;
@@ -590,7 +591,7 @@ void __fastcall Panel7cc218_OpenLevelBox(u8 *self) {
     vcall<void>(label, 0x24, (u32)(uintptr_t)Language_WideText(0x1f));
     HoverLabel_SetYellow(Window_FindChild(at<u8 *>(self, 0x24), nullptr, 0x1f4e));
     u8 *const list = Window_FindChild(at<u8 *>(self, 0x24), nullptr, 0x1f4d);
-    g_levelBox->buildRows(list, nullptr, reinterpret_cast<u8 *(__cdecl *)()>((uintptr_t)0x004ae700), reinterpret_cast<void(__cdecl *)(u8 *)>((uintptr_t)0x004ae7d0));
+    g_levelBox->buildRows(list, nullptr, GameAddress<u8 *(__cdecl *)()>(0x004ae700), reinterpret_cast<void(__cdecl *)(u8 *)>((uintptr_t)0x004ae7d0));
     Window7059f0_SetColumnBottom(list, nullptr, 0, 0);
     Window7059f0_SetColumnBottom(list, nullptr, 1, 1);
     Window7059f0_SetHighlight(list, nullptr, reinterpret_cast<u8 *>((uintptr_t)GuiWindows_FindByName(reinterpret_cast<const char *>((u32)(uintptr_t)&gText_Dialog7cc188_74fa84))));

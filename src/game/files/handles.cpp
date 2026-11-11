@@ -4,6 +4,7 @@
 
 #include "../core/vcall.h"
 #include "../core/imports.h"
+#include "../core/addrcalls.h"
 
 namespace {
 
@@ -15,15 +16,15 @@ void *const *const kHandleVtable = Handle_vtable;
 const HandlesEnv kGameEnv = {
     reinterpret_cast<s32(__stdcall *const *)(s32 *)>(IMPORT(Kernel32_InterlockedIncrement)),
     reinterpret_cast<s32(__stdcall *const *)(s32 *)>(IMPORT(Kernel32_InterlockedDecrement)),
-    reinterpret_cast<void *(__cdecl *)(u32)>(0x0067acc0),
-    reinterpret_cast<void(__cdecl *)(void *)>(0x0067acb0),
-    reinterpret_cast<RefObject2 *(__fastcall *)(void *)>(0x00619950),
-    reinterpret_cast<s32 *(__fastcall *)(RefObject2 *, void *, s32 *, u32)>(0x00619d70),
-    reinterpret_cast<RefObject2 *(__fastcall *)(void *)>(0x0061a060),
-    reinterpret_cast<s32 *(__fastcall *)(RefObject2 *, void *, s32 *, u32, u32)>(0x0061a250),
-    reinterpret_cast<RefObject *(__fastcall *)(void *, void *, u32)>(0x00618df0),
-    reinterpret_cast<void *(__fastcall *)(void *, void *, char *, u32, u32)>(0x00636bc0),
-    reinterpret_cast<void(__fastcall *)(void *)>(0x00636c70),
+    GameAddress<void *(__cdecl *)(u32)>(0x0067acc0),
+    GameAddress<void(__cdecl *)(void *)>(0x0067acb0),
+    GameAddress<RefObject2 *(__fastcall *)(void *)>(0x00619950),
+    GameAddress<s32 *(__fastcall *)(RefObject2 *, void *, s32 *, u32)>(0x00619d70),
+    GameAddress<RefObject2 *(__fastcall *)(void *)>(0x0061a060),
+    GameAddress<s32 *(__fastcall *)(RefObject2 *, void *, s32 *, u32, u32)>(0x0061a250),
+    GameAddress<RefObject *(__fastcall *)(void *, void *, u32)>(0x00618df0),
+    GameAddress<void *(__fastcall *)(void *, void *, char *, u32, u32)>(0x00636bc0),
+    GameAddress<void(__fastcall *)(void *)>(0x00636c70),
 };
 const HandlesEnv *g_env = &kGameEnv;
 

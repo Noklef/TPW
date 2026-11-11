@@ -511,11 +511,11 @@ namespace {
 AnimatorEnv game_env() {
     AnimatorEnv env{gMotionFlags, *reinterpret_cast<u32 **>(0x007aecd4),
                     gMotionTime, gMotionRealTime,
-                    reinterpret_cast<void(__cdecl *)(u8 *, u32, s32)>(0x0045bd30)};
+                    GameAddress<void(__cdecl *)(u8 *, u32, s32)>(0x0045bd30)};
     env.track = &Track_Apply;
     env.material = &Motion_ApplyMaterial;
-    env.idle = reinterpret_cast<void(__cdecl *)(u8 *)>(0x0045bdd0);
-    env.idleAt = reinterpret_cast<void(__cdecl *)(u8 *, u32, u32)>(0x0045be80);
+    env.idle = GameAddress<void(__cdecl *)(u8 *)>(0x0045bdd0);
+    env.idleAt = GameAddress<void(__cdecl *)(u8 *, u32, u32)>(0x0045be80);
     env.sceneFlags = reinterpret_cast<u32 *>(0x008bd508);
     env.attach = GameAddress<void(__cdecl *)(u8 *)>(0x0044ab30);
     return env;

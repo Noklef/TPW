@@ -31,6 +31,7 @@
 #include "../core/swearfilter.h"
 #include "../world/advisorspeech.h"
 #include "../core/imports.h"
+#include "../core/addrcalls.h"
 
 namespace {
 
@@ -39,16 +40,16 @@ template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cas
 const MailboxEnv kGameEnv = {&Init_5cfd80, &NOstream_Ctor, &NIstream_Ctor, &NFileBuf_Ctor, &NFileBuf_Open, &BasicIosW_SetState,
                              &NOfstream_DtorOnIos, &NIfstream_DtorOnIos, &NIos_Widen, &NIstream_Getline,
                              &NOstream_PutText, &CRT_fclose, &NFileBuf_Init, &NFileBuf_Close, &NFileBuf_Dtor, &IosBase_Dtor,
-                             reinterpret_cast<s32(__cdecl *)(const char *)>((uintptr_t)0x0067a520), &List_EraseNodeCounted, &StdListString_Insert,
-                             &NumberList_Erase, reinterpret_cast<u32 *(__fastcall *)(u8 *, void *, u32 *, u32, const s32 *)>((uintptr_t)0x00634c60), &BasicIosW_Clear,
-                             &Language_Id, &StdListString_PushBack, &StdListString_Sort, &StdListString_Unique, &StdListString_AddSorted, &ByteString_Compare, reinterpret_cast<void(__fastcall *)(void *)>((uintptr_t)0x00634bf0),
-                             reinterpret_cast<u32(__cdecl *)(u32 *)>((uintptr_t)0x0067d3f0), reinterpret_cast<u8 *(__cdecl *)(const u32 *)>((uintptr_t)0x0067d8e0)};
+                             GameAddress<s32(__cdecl *)(const char *)>(0x0067a520), &List_EraseNodeCounted, &StdListString_Insert,
+                             &NumberList_Erase, GameAddress<u32 *(__fastcall *)(u8 *, void *, u32 *, u32, const s32 *)>(0x00634c60), &BasicIosW_Clear,
+                             &Language_Id, &StdListString_PushBack, &StdListString_Sort, &StdListString_Unique, &StdListString_AddSorted, &ByteString_Compare, GameAddress<void(__fastcall *)(void *)>(0x00634bf0),
+                             GameAddress<u32(__cdecl *)(u32 *)>(0x0067d3f0), GameAddress<u8 *(__cdecl *)(const u32 *)>(0x0067d8e0)};
 const MailboxEnv *g_env = &kGameEnv;
 
-const MailboxDropEnv kGameDropEnv = {&NumberList_Erase, reinterpret_cast<s32(__cdecl *)(const char *)>((uintptr_t)0x0067e560), &Mailbox_SaveOutbox, &Mailbox_LoadMessage,
+const MailboxDropEnv kGameDropEnv = {&NumberList_Erase, GameAddress<s32(__cdecl *)(const char *)>(0x0067e560), &Mailbox_SaveOutbox, &Mailbox_LoadMessage,
                                      &Mailbox_DeleteMessage, &Online_Instance, &Online_UserName, &Get34_41ce80, &Get38_41ce90, &Online_String14, &Online_String28, &TokenList_PushChars,
                                      reinterpret_cast<void *(__fastcall *)(void *, void *, const u16 *, u32)>(&StdWString_AssignChars), &Mailbox_NewAttachment,
-                                     reinterpret_cast<u8 *(__fastcall *)(void *, void *, const char *)>((uintptr_t)0x005c9720)};
+                                     GameAddress<u8 *(__fastcall *)(void *, void *, const char *)>(0x005c9720)};
 const MailboxDropEnv *g_drop = &kGameDropEnv;
 
 const MailClientEnv kGameClientEnv = {reinterpret_cast<void *(__cdecl *)(const char *, const char *)>(&CRT_fopen), reinterpret_cast<s32(__cdecl *)(void *, s32, s32)>(&CRT_fseek), reinterpret_cast<s32(__cdecl *)(void *)>(&CRT_ftell),

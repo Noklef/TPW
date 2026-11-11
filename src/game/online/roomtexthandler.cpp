@@ -7,12 +7,13 @@
 #include "../ui/window.h"
 #include "roomcounts.h"
 #include "session.h"
+#include "../core/addrcalls.h"
 
 namespace {
 
 template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cast<T *>((uintptr_t)p + offset); }
 
-const RoomTextHandlerEnv kGameEnv = {&Online_Instance, reinterpret_cast<u32(__fastcall *)(u8 *, void *, u32)>(&Window_DwordA0), reinterpret_cast<void(__fastcall *)(u8 *, void *, s32)>((uintptr_t)0x005b7910), &RoomCounts_Update,
+const RoomTextHandlerEnv kGameEnv = {&Online_Instance, reinterpret_cast<u32(__fastcall *)(u8 *, void *, u32)>(&Window_DwordA0), GameAddress<void(__fastcall *)(u8 *, void *, s32)>(0x005b7910), &RoomCounts_Update,
                                      reinterpret_cast<u32(__fastcall *)(u8 *, void *, u32, u32, u32)>(&Window_CallDefault)};
 const RoomTextHandlerEnv *g_env = &kGameEnv;
 

@@ -26,6 +26,7 @@
 #include "../coaster/arreplayaction.h"
 #include "../core/staticobjects.h"
 #include "../core/imports.h"
+#include "../core/addrcalls.h"
 
 namespace {
 
@@ -33,8 +34,8 @@ template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cas
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
 
 const ThemeMenuEnv kGameEnv = {&UserSlots_Ctor, &GlobalSave_Construct, &GlobalSave_ThemeGet, &ThemeRecord_Name, &ThemeRecord_Suffix,
-                               reinterpret_cast<void(__fastcall *)(u8 *, void *, WString *, WString *, WString *)>((uintptr_t)0x00409b10),
-                               reinterpret_cast<void(__fastcall *)(u8 *, void *, const u16 *, const u16 *)>((uintptr_t)0x005d8470),
+                               GameAddress<void(__fastcall *)(u8 *, void *, WString *, WString *, WString *)>(0x00409b10),
+                               GameAddress<void(__fastcall *)(u8 *, void *, const u16 *, const u16 *)>(0x005d8470),
                                &File_Delete, &Online_Construct, &Owner2c_ValueByKey,
                                reinterpret_cast<void(__fastcall *)(u8 *, void *, const char *, u32, s32, u32, u32)>(&LobbyScript_Load),
                                &HolderUser_Acquire, &Render_SetAmbient, &LightSlot_Set, &Online_Instance, &Online_ResetConnections, &Dialog7cc4b4_Open, &Dialog7cc4b4_ShowTheme, &Time_GetMs, &ThemeMenu_Refresh, &Sound_PlayAt, &Sound_ApplySettings};

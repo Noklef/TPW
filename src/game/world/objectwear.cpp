@@ -13,13 +13,14 @@
 #include "things.h"
 #include "world.h"
 #include "../ui/dialog74fb20.h"
+#include "../core/addrcalls.h"
 
 namespace {
 
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
 template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cast<T *>((uintptr_t)p + offset); }
 
-const ObjectWearEnv kGameEnv = {ObjectDefs_Find, Setting_ReadMode, reinterpret_cast<s32(__cdecl *)(void(__cdecl *)())>((uintptr_t)0x0067a7d0), Rides_FindById, Rides_GetElement, Rides_GetWordC0, Object_DefRowScore, Rides_SetElement, Thing_GetHandle, GameTable7cfb90_Get1da71c_5194d0, Advisor_Post};
+const ObjectWearEnv kGameEnv = {ObjectDefs_Find, Setting_ReadMode, GameAddress<s32(__cdecl *)(void(__cdecl *)())>(0x0067a7d0), Rides_FindById, Rides_GetElement, Rides_GetWordC0, Object_DefRowScore, Rides_SetElement, Thing_GetHandle, GameTable7cfb90_Get1da71c_5194d0, Advisor_Post};
 const ObjectWearEnv *g_env = &kGameEnv;
 
 bool modeIsOne() {

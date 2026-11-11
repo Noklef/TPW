@@ -9,13 +9,14 @@
 #include "window.h"
 #include "window7059f0.h"
 #include "dialog7cca70.h"
+#include "../core/addrcalls.h"
 
 namespace {
 
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
 template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cast<T *>((uintptr_t)p + offset); }
 
-const Dialog7cca70HandlerEnv kGameEnv = {&Window_SetFocus, reinterpret_cast<void(__fastcall *)(u8 *)>((uintptr_t)0x005b6070), &Class702da0_Clear, &Window_SendMessage, &Window7059f0_NthItemData, &Dialog7cc984_Open, &Window_CallDefault};
+const Dialog7cca70HandlerEnv kGameEnv = {&Window_SetFocus, GameAddress<void(__fastcall *)(u8 *)>(0x005b6070), &Class702da0_Clear, &Window_SendMessage, &Window7059f0_NthItemData, &Dialog7cc984_Open, &Window_CallDefault};
 const Dialog7cca70HandlerEnv *g_env = &kGameEnv;
 
 void close() {

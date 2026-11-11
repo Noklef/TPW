@@ -3,16 +3,17 @@
 
 #include <cstdint>
 #include "d3dsetup.h"
+#include "../core/addrcalls.h"
 
 namespace {
 
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
 const char *text_at(u32 address) { return reinterpret_cast<const char *>((uintptr_t)address); }
 
-const EngineDebugEnv kGameEnv = {reinterpret_cast<void *(__cdecl *)(const char *, const char *)>((uintptr_t)0x0067b8a0),
-                                 reinterpret_cast<s32(__cdecl *)(void *, const char *, ...)>((uintptr_t)0x0067dad0),
-                                 reinterpret_cast<s32(__cdecl *)(void *)>((uintptr_t)0x0067d070),
-                                 reinterpret_cast<s32(__cdecl *)(void *)>((uintptr_t)0x0067b620)};
+const EngineDebugEnv kGameEnv = {GameAddress<void *(__cdecl *)(const char *, const char *)>(0x0067b8a0),
+                                 GameAddress<s32(__cdecl *)(void *, const char *, ...)>(0x0067dad0),
+                                 GameAddress<s32(__cdecl *)(void *)>(0x0067d070),
+                                 GameAddress<s32(__cdecl *)(void *)>(0x0067b620)};
 const EngineDebugEnv *g_env = &kGameEnv;
 
 }  // namespace

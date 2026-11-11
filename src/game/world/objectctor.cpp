@@ -21,6 +21,7 @@
 #include "things.h"
 #include "world.h"
 #include "rides.h"
+#include "../core/addrcalls.h"
 
 namespace {
 
@@ -45,7 +46,7 @@ const ObjectCtorEnv kGameEnv = {
     &Money_Debit,
     &Object_SetState,
     &Object_ClaimRide,
-    reinterpret_cast<void(__fastcall *)(u8 *)>((uintptr_t)0x004dcf90),
+    GameAddress<void(__fastcall *)(u8 *)>(0x004dcf90),
     &Rides_FindById,
     &Rides_SetWordC0,
     &Object_SetCapacity,

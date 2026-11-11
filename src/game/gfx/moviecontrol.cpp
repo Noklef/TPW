@@ -4,12 +4,13 @@
 
 #include "moviechunks.h"
 #include "../core/imports.h"
+#include "../core/addrcalls.h"
 
 namespace {
 
 template <typename T> T &at(u8 *base, u32 offset) { return *reinterpret_cast<T *>(base + offset); }
 
-const MovieControlEnv kGameEnv = {&MovieChunks_Next, reinterpret_cast<u32(__cdecl *)(u32, u32, u8 *)>((uintptr_t)0x0067e050)};
+const MovieControlEnv kGameEnv = {&MovieChunks_Next, GameAddress<u32(__cdecl *)(u32, u32, u8 *)>(0x0067e050)};
 const MovieControlEnv *g_env = &kGameEnv;
 
 u32 exchange(u32 *target, u32 value) { return (*reinterpret_cast<u32(__stdcall *const *)(u32 *, u32)>((uintptr_t)IMPORT(Kernel32_InterlockedExchange)))(target, value); }

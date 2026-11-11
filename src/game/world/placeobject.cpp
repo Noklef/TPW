@@ -35,7 +35,7 @@ namespace {
 template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cast<T *>((uintptr_t)p + offset); }
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
 
-const PlaceObjectEnv kGameEnv = {reinterpret_cast<u8 *(__fastcall *)(u8 *, void *, u32, u32, s32, u32)>((uintptr_t)0x004db090)};
+const PlaceObjectEnv kGameEnv = {GameAddress<u8 *(__fastcall *)(u8 *, void *, u32, u32, s32, u32)>(0x004db090)};
 const PlaceObjectEnv *g_env = &kGameEnv;
 
 // fild n; fmul [0x700cd0]; fmul [0x700cd8]; __ftol.

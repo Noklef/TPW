@@ -4,6 +4,7 @@
 
 #include "../core/crt.h"
 #include "guitokenwide.h"
+#include "../core/addrcalls.h"
 
 namespace {
 
@@ -14,8 +15,8 @@ char *tokenEnd(char *text) {
     return end;
 }
 
-const GuiTokenEnv kGameEnv = {reinterpret_cast<s32(__cdecl *)(const char *, const char *, s32 *, s32 *, s32 *, s32 *)>((uintptr_t)0x0067f620),
-                              reinterpret_cast<s32(__cdecl *)(const char *, const char *, s32 *, s32 *)>((uintptr_t)0x0067f620)};
+const GuiTokenEnv kGameEnv = {GameAddress<s32(__cdecl *)(const char *, const char *, s32 *, s32 *, s32 *, s32 *)>(0x0067f620),
+                              GameAddress<s32(__cdecl *)(const char *, const char *, s32 *, s32 *)>(0x0067f620)};
 const GuiTokenEnv *g_env = &kGameEnv;
 
 }  // namespace

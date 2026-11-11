@@ -11,13 +11,14 @@
 #include "dialog7cc4b4open.h"
 #include "dialog74fb20.h"
 #include "../core/soundset.h"
+#include "../core/addrcalls.h"
 
 namespace {
 
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
 template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cast<T *>((uintptr_t)p + offset); }
 
-const Dialog7cc4b4SparkleEnv kGameEnv = {Setting_ReadMode, reinterpret_cast<s32(__cdecl *)(void(__cdecl *)())>((uintptr_t)0x0067a7d0), Window_GetRect, Particle_Spawn, Sound_PlayAt};
+const Dialog7cc4b4SparkleEnv kGameEnv = {Setting_ReadMode, GameAddress<s32(__cdecl *)(void(__cdecl *)())>(0x0067a7d0), Window_GetRect, Particle_Spawn, Sound_PlayAt};
 const Dialog7cc4b4SparkleEnv *g_env = &kGameEnv;
 
 }  // namespace

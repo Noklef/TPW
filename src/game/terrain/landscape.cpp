@@ -325,7 +325,7 @@ namespace {
 template <typename T> T &G(uintptr_t address) { return *reinterpret_cast<T *>(address); }
 const float &K(uintptr_t address) { return *reinterpret_cast<const float *>(address); }
 
-const LandscapeDrawEnv kDrawPortEnv = {&Batch_Begin, &DrawBatch_AddClippedTriangles, &Batch_Close, reinterpret_cast<s32(__cdecl *)(void(__cdecl *)())>((uintptr_t)0x0067a7d0)};
+const LandscapeDrawEnv kDrawPortEnv = {&Batch_Begin, &DrawBatch_AddClippedTriangles, &Batch_Close, GameAddress<s32(__cdecl *)(void(__cdecl *)())>(0x0067a7d0)};
 const LandscapeDrawEnv *g_drawEnv = &kDrawPortEnv;
 const u32 kFarBits = 0x4cbebc20;  // (the depth of the sky's layers: 1e8)
 

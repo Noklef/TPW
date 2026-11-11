@@ -12,6 +12,7 @@
 #include "window7cc8bc.h"
 #include "panel7b9940.h"
 #include "../world/cellbuild.h"
+#include "../core/addrcalls.h"
 
 namespace {
 
@@ -19,8 +20,8 @@ template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((ui
 template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cast<T *>((uintptr_t)p + offset); }
 
 const GameCursorsEnv kGameEnv = {
-    reinterpret_cast<u8 *(__cdecl *)(const char *)>((uintptr_t)0x004895b0),
-    reinterpret_cast<u8 *(__cdecl *)(const char *)>((uintptr_t)0x00489670),
+    GameAddress<u8 *(__cdecl *)(const char *)>(0x004895b0),
+    GameAddress<u8 *(__cdecl *)(const char *)>(0x00489670),
 };
 const GameCursorsEnv *g_env = &kGameEnv;
 

@@ -8,6 +8,7 @@
 #include "soundvoice.h"
 #include "vcall.h"
 #include "imports.h"
+#include "addrcalls.h"
 
 namespace {
 
@@ -19,7 +20,7 @@ OnObject import(u32 slot) { return global<OnObject>(slot); }
 void Enter(void *section) { import(IMPORT(Kernel32_EnterCriticalSection))(section); }
 void Leave(void *section) { import(IMPORT(Kernel32_LeaveCriticalSection))(section); }
 
-const SoundWorkerEnv kGameEnv = {reinterpret_cast<u32(__cdecl *)(u32, u32, void *)>((uintptr_t)0x0067e050)};
+const SoundWorkerEnv kGameEnv = {GameAddress<u32(__cdecl *)(u32, u32, void *)>(0x0067e050)};
 const SoundWorkerEnv *g_env = &kGameEnv;
 
 }  // namespace

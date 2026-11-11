@@ -14,13 +14,14 @@
 #include "things.h"
 #include "thingscan.h"
 #include "visitorsteps.h"
+#include "../core/addrcalls.h"
 
 namespace {
 
 template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cast<T *>((uintptr_t)p + offset); }
 
 const ParkOpenEnv kGameEnv = {&Object_Close,
-                              reinterpret_cast<void(__fastcall *)(void *, void *, u8 *)>((uintptr_t)0x00481b50)};
+                              GameAddress<void(__fastcall *)(void *, void *, u8 *)>(0x00481b50)};
 const ParkOpenEnv *g_env = &kGameEnv;
 
 const ParkCrowdEnv kCrowdGameEnv = {&Game_OpenPark, &Map_TicketBoothPos, &Map_EntrancePos, &Things_CountByDef4ac, &Visitor_Ctor, &Mechanic_CtorLoad, &Entertainer_CtorLoad};

@@ -263,7 +263,7 @@ s32 __cdecl CRT_ValidateExecute(const void *code) { return !import_slot<s32(__st
 s32 __stdcall CRT_CxxUnhandledExceptionFilter(const u32 *const *pointers) {
     const u32 *const record = pointers[0];
     if (record[0] == 0xe06d7363 && record[4] == 3 && record[5] == 0x19930520) {
-        reinterpret_cast<void(__cdecl *)()>((uintptr_t)0x00682590)();   // terminate (the C++ EH runtime, not ported)
+        GameAddress<void(__cdecl *)()>(0x00682590)();   // terminate (the C++ EH runtime, not ported)
         return 1;
     }
     const u32 previous = CRT_old_except_filter;
@@ -438,7 +438,7 @@ static void thread_fpinit() {
     if (const auto init = *reinterpret_cast<void(__cdecl *const *)()>((uintptr_t)0x0077e71c)) init();
 }
 
-static s32 thread_filter(u32 code, void *pointers) { return reinterpret_cast<s32(__cdecl *)(u32, void *)>((uintptr_t)0x00688800)(code, pointers); }   // _XcptFilter (the SEH runtime)
+static s32 thread_filter(u32 code, void *pointers) { return GameAddress<s32(__cdecl *)(u32, void *)>(0x00688800)(code, pointers); }   // _XcptFilter (the SEH runtime)
 
 u32 __stdcall CRT_threadstart(u32 *data) {
     thread_data(data);

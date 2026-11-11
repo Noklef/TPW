@@ -16,26 +16,27 @@
 #include "vcall.h"
 #include "vobj3.h"
 #include "localefacet.h"
+#include "addrcalls.h"
 
 namespace {
 
 template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cast<T *>((uintptr_t)p + offset); }
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
 
-const WFileBufEnv kGameEnv = {reinterpret_cast<u32(__cdecl *)()>((uintptr_t)0x00699da0),
+const WFileBufEnv kGameEnv = {GameAddress<u32(__cdecl *)()>(0x00699da0),
                               CRT_fclose,
-                              reinterpret_cast<u32(__cdecl *)(const void *, u32, u32, u32)>((uintptr_t)0x0067b6d0),
-                              reinterpret_cast<u32(__cdecl *)(u32, u32)>((uintptr_t)0x0067c9f0),
-                              reinterpret_cast<u32(__cdecl *)(u32, u32)>((uintptr_t)0x0067cca0),
-                              reinterpret_cast<s32(__cdecl *)(u32, u32)>((uintptr_t)0x0067cbe0),
-                              reinterpret_cast<s32(__cdecl *)(u32)>((uintptr_t)0x0067cb90),
-                              reinterpret_cast<u32(__cdecl *)(u32)>((uintptr_t)0x0067cdf0),
+                              GameAddress<u32(__cdecl *)(const void *, u32, u32, u32)>(0x0067b6d0),
+                              GameAddress<u32(__cdecl *)(u32, u32)>(0x0067c9f0),
+                              GameAddress<u32(__cdecl *)(u32, u32)>(0x0067cca0),
+                              GameAddress<s32(__cdecl *)(u32, u32)>(0x0067cbe0),
+                              GameAddress<s32(__cdecl *)(u32)>(0x0067cb90),
+                              GameAddress<u32(__cdecl *)(u32)>(0x0067cdf0),
                               CRT_Mbrtowc,
                               CRT_Wcrtomb,
-                              reinterpret_cast<void(__stdcall *)(void *, const void *)>((uintptr_t)0x0067d3a0),
-                              reinterpret_cast<void *(__fastcall *)(void *, void *, const char *)>((uintptr_t)0x00698fc0),
-                              reinterpret_cast<void *(__fastcall *)(void *)>((uintptr_t)0x00699100),
-                              reinterpret_cast<u8 **(__fastcall *)(u8 **, void *, u8 *, u32, u32)>((uintptr_t)0x00693f50)};
+                              GameAddress<void(__stdcall *)(void *, const void *)>(0x0067d3a0),
+                              GameAddress<void *(__fastcall *)(void *, void *, const char *)>(0x00698fc0),
+                              GameAddress<void *(__fastcall *)(void *)>(0x00699100),
+                              GameAddress<u8 **(__fastcall *)(u8 **, void *, u8 *, u32, u32)>(0x00693f50)};
 const WFileBufEnv *g_env = &kGameEnv;
 constexpr u32 kFile = 0x50;
 

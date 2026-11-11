@@ -16,13 +16,14 @@
 #include "../core/textarg.h"
 #include "dialog7cc188.h"
 #include "../core/staticobjects.h"
+#include "../core/addrcalls.h"
 
 namespace {
 
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
 template <typename T> T &at(u8 *p, u32 offset) { return *reinterpret_cast<T *>(p + offset); }
 
-void __fastcall Request(u8 *object, void *, u32 a, u32 callback, u32 b) { reinterpret_cast<void(__fastcall *)(u8 *, void *, u32, u32, u32)>((uintptr_t)0x005bcd10)(object, nullptr, a, callback, b); }
+void __fastcall Request(u8 *object, void *, u32 a, u32 callback, u32 b) { GameAddress<void(__fastcall *)(u8 *, void *, u32, u32, u32)>(0x005bcd10)(object, nullptr, a, callback, b); }
 s32 __cdecl FormatWide(u8 *charset, u16 *dest, u32 size, u32 entry, const u32 *arg) { return Charset_FormatWide(charset, dest, size, entry, arg); }
 
 const Dialog7cca70Env kGameEnv = {&Request, &Window_SetFocus, &Window7059f0_BuildRows, &Window7059f0_SetColumnBottom, &Window7059f0_SetHighlight, &ButtonText_Init, &FormatWide, &HoverLabel_Attach, &Class702da0_Push};
@@ -37,7 +38,7 @@ void __cdecl Dialog7cca70_Open(u32 value) {
     gDialog7cca70_7cca8c = value;
     global<u8 *>(0x007cca70) = built;
     u8 *const list = Window_FindChild(built, nullptr, 0x14beb);
-    g_env->buildRows(list, nullptr, reinterpret_cast<u8 *(__cdecl *)()>((uintptr_t)0x004c1b30), reinterpret_cast<void(__cdecl *)(u8 *)>((uintptr_t)0x004c1c30));
+    g_env->buildRows(list, nullptr, GameAddress<u8 *(__cdecl *)()>(0x004c1b30), reinterpret_cast<void(__cdecl *)(u8 *)>((uintptr_t)0x004c1c30));
     for (u32 column = 0; column < 5; ++column) g_env->setColumn(list, nullptr, column, column >= 2);
     g_env->setHighlight(list, nullptr, reinterpret_cast<u8 *>((uintptr_t)GuiWindows_FindByName(reinterpret_cast<const char *>((u32)(uintptr_t)&gText_Dialog7cc188_74fa84))));
     for (u32 i = 0; i < 5; ++i) {

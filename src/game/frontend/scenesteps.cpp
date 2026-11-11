@@ -25,6 +25,7 @@
 #include "../ui/dialog74fb20.h"
 #include "../coaster/arreplayaction.h"
 #include "../core/staticobjects.h"
+#include "../core/addrcalls.h"
 
 namespace {
 
@@ -32,11 +33,11 @@ template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cas
 
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
 
-const SceneStepsEnv kPorts = {&LobbyModel_Play,   &FrontEnd_Dialog7cc4b4Child, &Dialog7cc4b4_ShowTheme, &Setting_ReadMode, reinterpret_cast<s32(__cdecl *)(void(__cdecl *)())>((uintptr_t)0x0067a7d0),
+const SceneStepsEnv kPorts = {&LobbyModel_Play,   &FrontEnd_Dialog7cc4b4Child, &Dialog7cc4b4_ShowTheme, &Setting_ReadMode, GameAddress<s32(__cdecl *)(void(__cdecl *)())>(0x0067a7d0),
                               &Class702cb0_NextItem, &Class702cb0_PreviousItem, &Online_ResetConnections, &Dialog7cc47c_Message6On, &Dialog7cc47c_Message6Off, &Dialog7cc984_Open, &Setting_SetMode,
                               &Class702cb0_Step, &Dialog7cc47cInfo_Show, &UserSlots_Instance, &Class702da0_Show, &Class702bb8_Ctor, &Class702da0_Push,
                               &String_CtorStr, &GlobalSave_ThemeGet, &String_Dtor, &GlobalSave_Construct, &GlobalSave_CountSetLevel, &ThemeRecord_GlobalSamField14,
-                              reinterpret_cast<void(__fastcall *)(void *, void *, String *)>((uintptr_t)0x00409480), &Dialog7cc4b4_Sparkle, &Dialog7cc4b4_Message6Off, &ThemeMenu_Load};
+                              GameAddress<void(__fastcall *)(void *, void *, String *)>(0x00409480), &Dialog7cc4b4_Sparkle, &Dialog7cc4b4_Message6Off, &ThemeMenu_Load};
 const SceneStepsEnv *g_env = &kPorts;
 
 u8 *Setting() {

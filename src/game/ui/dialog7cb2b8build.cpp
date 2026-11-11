@@ -16,6 +16,7 @@
 #include "dialog74fb20.h"
 #include "panel7b9940.h"
 #include "window7cb2a4.h"
+#include "../core/addrcalls.h"
 
 namespace {
 
@@ -26,7 +27,7 @@ void __cdecl Measure(const u16 *text, const s32 *rect, u32 font, u32 hAlign, u32
     GuiText_Measure(text, rect, (s8)font, (s8)hAlign, (s8)vAlign, fit, box);
 }
 
-const Dialog7cb2b8BuildEnv kGameEnv = {reinterpret_cast<s32(__cdecl *)(void(__cdecl *)())>((uintptr_t)0x0067a7d0), &Measure, &BarMesh_Construct, &Window_SetObject98, &Window_SetHandler};
+const Dialog7cb2b8BuildEnv kGameEnv = {GameAddress<s32(__cdecl *)(void(__cdecl *)())>(0x0067a7d0), &Measure, &BarMesh_Construct, &Window_SetObject98, &Window_SetHandler};
 const Dialog7cb2b8BuildEnv *g_env = &kGameEnv;
 
 using PartCtor = u8 *(__fastcall *)(u8 *, void *, u32);

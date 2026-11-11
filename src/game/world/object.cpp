@@ -41,6 +41,7 @@
 #include "rides.h"
 #include "staff.h"
 #include "../core/staticobjects.h"
+#include "../core/addrcalls.h"
 
 namespace {
 
@@ -1028,7 +1029,7 @@ void __fastcall Object_Wear(u8 *object, void *, u32 amount) {
     if (!(guard & 1)) {
         guard |= 1;
         Setting_ReadMode(reinterpret_cast<u8 *>(&gDialog74fb20_fb3b7c));
-        reinterpret_cast<s32(__cdecl *)(void(__cdecl *)())>(0x0067a7d0)(reinterpret_cast<void(__cdecl *)()>(0x005d1750));
+        GameAddress<s32(__cdecl *)(void(__cdecl *)())>(0x0067a7d0)(reinterpret_cast<void(__cdecl *)()>(0x005d1750));
     }
     if (gDialog74fb20_fb3b7c == 1) {
         if (Object_InPoorCondition(object))

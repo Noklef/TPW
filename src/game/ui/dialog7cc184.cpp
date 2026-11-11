@@ -29,12 +29,13 @@
 #include "dialog7cc188.h"
 #include "dialog7cc654.h"
 #include "../core/staticobjects.h"
+#include "../core/addrcalls.h"
 
 namespace {
 
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
 
-const Dialog7cc184OpenEnv kGameEnv = {Setting_ReadMode, reinterpret_cast<s32(__cdecl *)(void(__cdecl *)())>((uintptr_t)0x0067a7d0), GameHeap_Alloc, reinterpret_cast<u8 *(__fastcall *)(u8 *, void *)>((uintptr_t)0x005b50b0), Online_Restricted,
+const Dialog7cc184OpenEnv kGameEnv = {Setting_ReadMode, GameAddress<s32(__cdecl *)(void(__cdecl *)())>(0x0067a7d0), GameHeap_Alloc, GameAddress<u8 *(__fastcall *)(u8 *, void *)>(0x005b50b0), Online_Restricted,
                                       CommandQueue_Post, Window7c24c8_Close, Window7c24c8_Set, WindowScript_Build, Language_WideText, HoverLabel_Attach, TextPart6ff4d0_Ctor, Window705a20_SetBuffer, Window_SetImpl, Language_Font, Window_Set4c,
                                       Window_Notify40000, Window_Notify3000, Window_NotifyC00, GuiWindows_FindByName, Window705a20_SetCaret, Window_SetHandler, RendererPart_Ctor, Window_ImplSlot7, Panel_Reset, Panel_ShrinkInto, Window_ImplSlot6, Advisor_PostId};
 const Dialog7cc184OpenEnv *g_open = &kGameEnv;

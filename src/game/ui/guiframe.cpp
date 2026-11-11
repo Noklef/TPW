@@ -15,27 +15,28 @@
 #include "cursor.h"
 #include "guistartup.h"
 #include "../core/staticobjects.h"
+#include "../core/addrcalls.h"
 
 namespace {
 
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
 
 const GuiFrameEnv kGameEnv = {
-    reinterpret_cast<void(__cdecl *)()>((uintptr_t)0x0047f620),
+    GameAddress<void(__cdecl *)()>(0x0047f620),
     &WindowTimers_FireAll,
     &Fn_669c30,
     &Countdown7cc150_Step,
-    reinterpret_cast<void(__cdecl *)()>((uintptr_t)0x004a9180),
+    GameAddress<void(__cdecl *)()>(0x004a9180),
     &MsgQueue_Pump,
     &Window_FireTimers,
     &Window_PostMessage,
-    reinterpret_cast<void(__cdecl *)()>((uintptr_t)0x00658f6c),
+    GameAddress<void(__cdecl *)()>(0x00658f6c),
     &Global7b4b88_Get_47eaa0,
     &GuiClock_Now,
-    reinterpret_cast<u32(__cdecl *)(u32)>((uintptr_t)0x0067a7d0),
+    GameAddress<u32(__cdecl *)(u32)>(0x0067a7d0),
     &Wrap_Obj_Get64Plus10_5f5640,
     &Gui_MouseMove,
-    reinterpret_cast<void(__cdecl *)(u32, u32, u32, u32)>((uintptr_t)0x005f5590),
+    GameAddress<void(__cdecl *)(u32, u32, u32, u32)>(0x005f5590),
     &MsgQueue_PumpSecond,
     &ImeHost_Update,
 };

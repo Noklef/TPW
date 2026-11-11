@@ -12,12 +12,13 @@
 #include "dialog7cc5f4dial.h"
 #include "dialog7cc530open.h"
 #include "../core/imports.h"
+#include "../core/addrcalls.h"
 
 namespace {
 
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
 
-const Dialog7cc534HandlerEnv kGameEnv = {&Language_WideText, &Window_PostMessage, &Dialog7cc5f4_Create, reinterpret_cast<s32(__cdecl *)(u8 *, u32, u32, u32)>((uintptr_t)0x0047eed0)};
+const Dialog7cc534HandlerEnv kGameEnv = {&Language_WideText, &Window_PostMessage, &Dialog7cc5f4_Create, GameAddress<s32(__cdecl *)(u8 *, u32, u32, u32)>(0x0047eed0)};
 const Dialog7cc534HandlerEnv *g_env = &kGameEnv;
 
 u8 *box() { return gDialog7cc534handler_7cc534; }

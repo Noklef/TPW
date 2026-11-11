@@ -7,6 +7,7 @@
 #include "objectdefs.h"
 #include "things.h"
 #include "../core/staticobjects.h"
+#include "../core/addrcalls.h"
 
 namespace {
 
@@ -14,8 +15,8 @@ template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cas
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
 
 const EndThingEnv kGameEnv = {
-    reinterpret_cast<u8 *(__fastcall *)(u8 *, void *, u32, u32, s32, u32)>((uintptr_t)0x004db090),
-    reinterpret_cast<void(__fastcall *)(void *, void *, u8 *)>((uintptr_t)0x00481b60),
+    GameAddress<u8 *(__fastcall *)(u8 *, void *, u32, u32, s32, u32)>(0x004db090),
+    GameAddress<void(__fastcall *)(void *, void *, u8 *)>(0x00481b60),
 };
 const EndThingEnv *g_env = &kGameEnv;
 

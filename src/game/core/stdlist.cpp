@@ -11,13 +11,14 @@
 #include "string.h"
 #include "stdstring.h"
 #include "stdwstring.h"
+#include "addrcalls.h"
 
 namespace {
 
 template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cast<T *>((uintptr_t)p + offset); }
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
 
-const StdListEnv kGameEnv = {reinterpret_cast<void(__fastcall *)(u8 *)>((uintptr_t)0x00634bf0)};
+const StdListEnv kGameEnv = {GameAddress<void(__fastcall *)(u8 *)>(0x00634bf0)};
 const StdListEnv *g_env = &kGameEnv;
 
 // A new node of `size` bytes linked in front of `before` (its +0 the next, +4 the previous; a null `before` or previous node is taken to be the node itself).

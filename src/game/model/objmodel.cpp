@@ -59,7 +59,7 @@ bool same(const char *a, const char *b) {
     return false;
 }
 
-const ObjModelEnv kGameEnv = {reinterpret_cast<s32(__cdecl *)(void(__cdecl *)())>(0x0067a7d0)};
+const ObjModelEnv kGameEnv = {GameAddress<s32(__cdecl *)(void(__cdecl *)())>(0x0067a7d0)};
 const ObjModelEnv *g_env = &kGameEnv;
 
 // The engine's static matrix (0xfb3400): the identity, built the first time under the guard 0xfb33e0 & 1.

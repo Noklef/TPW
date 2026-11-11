@@ -7,12 +7,13 @@
 #include "../core/crt.h"
 #include "../files/refpack.h"
 #include "movieplayer.h"
+#include "../core/addrcalls.h"
 
 namespace {
 
 template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cast<T *>((uintptr_t)p + offset); }
 
-const MovieFrameEnv kGameEnv = {reinterpret_cast<void *(__cdecl *)(u32)>((uintptr_t)0x0067dcd0), RefPack_DecodeIf};
+const MovieFrameEnv kGameEnv = {GameAddress<void *(__cdecl *)(u32)>(0x0067dcd0), RefPack_DecodeIf};
 const MovieFrameEnv *g_env = &kGameEnv;
 
 void release(u8 *player, u32 offset) {

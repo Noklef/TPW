@@ -17,6 +17,7 @@
 #include "dialog7cc4b4open.h"
 #include "dialog74fb20.h"
 #include "../coaster/arreplayaction.h"
+#include "../core/addrcalls.h"
 
 namespace {
 
@@ -25,7 +26,7 @@ template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cas
 
 s32 __cdecl Swprintf(u16 *to, const u16 *format, s32 value) { return Crt().swprintf(to, format, value); }
 
-const Dialog7cc4b4UpdateEnv kGameEnv = {reinterpret_cast<s32(__cdecl *)(void(__cdecl *)())>((uintptr_t)0x0067a7d0), &GlobalSave_Construct, reinterpret_cast<u8 *(__fastcall *)(u8 *, void *, const String *)>((uintptr_t)0x005b09c0), &GlobalSave_Instance, &GlobalSave_CountSetLevel, &ThemeRecord_GlobalSamField14, &Window_SetShown, &Window_Notify1, &Window_GetRect, &Particle_Spawn, &ParticleSystem_End, &Swprintf, &Dialog7cc4b4_SetFlag, reinterpret_cast<void(__fastcall *)(u8 *, void *, u16 *, u32)>((uintptr_t)0x005b12e0)};
+const Dialog7cc4b4UpdateEnv kGameEnv = {GameAddress<s32(__cdecl *)(void(__cdecl *)())>(0x0067a7d0), &GlobalSave_Construct, GameAddress<u8 *(__fastcall *)(u8 *, void *, const String *)>(0x005b09c0), &GlobalSave_Instance, &GlobalSave_CountSetLevel, &ThemeRecord_GlobalSamField14, &Window_SetShown, &Window_Notify1, &Window_GetRect, &Particle_Spawn, &ParticleSystem_End, &Swprintf, &Dialog7cc4b4_SetFlag, GameAddress<void(__fastcall *)(u8 *, void *, u16 *, u32)>(0x005b12e0)};
 const Dialog7cc4b4UpdateEnv *g_env = &kGameEnv;
 
 u8 *&dialog() { return gDialog7cc4b4open_7cc4b4; }

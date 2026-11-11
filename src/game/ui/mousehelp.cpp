@@ -22,6 +22,7 @@
 #include "../world/world.h"
 #include "../core/textarg.h"
 #include "../core/staticobjects.h"
+#include "../core/addrcalls.h"
 
 namespace {
 
@@ -29,7 +30,7 @@ template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((ui
 template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cast<T *>((uintptr_t)p + offset); }
 
 const MouseHelpEnv kGameEnv = {MouseModes_EnsureHolder, Global7cc2f0_Get_4b4480, Global81ae2c_Get_52f840, Global7c2654_Get, Highlight_Update, HelpBg_SetText, GameCursor_Set, Map_EntrancePos, Map_TicketBoothPos, Cell_FirstObject, Map_ObjectOrEntranceAt, Object_GetDef, Object_DefWord284,
-                               reinterpret_cast<void(__fastcall *)(u8 *, void *, u16 *, u32)>((uintptr_t)0x004e2780), Staff_GetName, Staff_Settle, MapCell_IsType9, MapCell_IsTypeA, MapCell_IsType4, MapCell_IsType0,
+                               GameAddress<void(__fastcall *)(u8 *, void *, u16 *, u32)>(0x004e2780), Staff_GetName, Staff_Settle, MapCell_IsType9, MapCell_IsTypeA, MapCell_IsType4, MapCell_IsType0,
                                reinterpret_cast<s32(__cdecl *)(u8 *, u16 *, u32, u32, const u32 *)>(Charset_FormatWide), Records_DataIfTerminated, Wide_FromNarrow};
 const MouseHelpEnv *g_env = &kGameEnv;
 

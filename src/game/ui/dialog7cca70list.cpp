@@ -15,6 +15,7 @@
 #include "window7059f0.h"
 #include "../online/chatcommand.h"
 #include "../core/staticobjects.h"
+#include "../core/addrcalls.h"
 
 namespace {
 
@@ -25,12 +26,12 @@ const Dialog7cca70ListEnv kGameEnv = {
     Window7059f0_Clear,
     Window7059f0_AddItem,
     Window7059f0_RefreshRows,
-    reinterpret_cast<void(__fastcall *)(u8 *, void *, StdWString *, u32)>((uintptr_t)0x005d3230),
-    reinterpret_cast<u8 *(__fastcall *)(u8 *)>((uintptr_t)0x005b50b0),
+    GameAddress<void(__fastcall *)(u8 *, void *, StdWString *, u32)>(0x005d3230),
+    GameAddress<u8 *(__fastcall *)(u8 *)>(0x005b50b0),
     Owner2c_ValueByKey,
     NamedObjects_SetThemeLabelAnsi,
     Online_Instance,
-    reinterpret_cast<void(__fastcall *)(u8 *)>((uintptr_t)0x005b6070),
+    GameAddress<void(__fastcall *)(u8 *)>(0x005b6070),
     reinterpret_cast<void(__fastcall *)(u8 *)>(&Class702da0_Clear),
     Window_SendMessage,
 };

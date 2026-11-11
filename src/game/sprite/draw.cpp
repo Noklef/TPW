@@ -54,12 +54,12 @@ s32 cell(u32 position, s32 size) {
 }
 
 void __cdecl game_set_picked(u32 thing) {
-    reinterpret_cast<void(__fastcall *)(void *, void *, u32)>(0x00423b50)(reinterpret_cast<void *>(0x007b05a8),
+    GameAddress<void(__fastcall *)(void *, void *, u32)>(0x00423b50)(reinterpret_cast<void *>(0x007b05a8),
                                                                           nullptr, thing);
 }
 const SpriteDrawEnv kGameEnv = {
     GameAddress<double(__cdecl *)(u32, u32)>(0x004527f0),
-    reinterpret_cast<u32(__cdecl *)()>(0x00532bd0),
+    GameAddress<u32(__cdecl *)()>(0x00532bd0),
     &game_set_picked,
 };
 const SpriteDrawEnv *g_env = &kGameEnv;

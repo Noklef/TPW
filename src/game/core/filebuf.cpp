@@ -6,6 +6,7 @@
 #include "accessors.h"
 #include "stdstring.h"
 #include "vcall.h"
+#include "addrcalls.h"
 
 namespace {
 
@@ -14,9 +15,9 @@ T &at(const void *p, u32 offset) {
     return *reinterpret_cast<T *>(reinterpret_cast<uintptr_t>(p) + offset);
 }
 
-const FileBufEnv kGameEnv = {reinterpret_cast<s32(__cdecl *)(s32, void *)>((uintptr_t)0x0067e570), reinterpret_cast<u32(__cdecl *)(const void *, u32, u32, void *)>((uintptr_t)0x0067b6d0),
-                             reinterpret_cast<s32(__cdecl *)(void *, const void *)>((uintptr_t)0x0067cf70), reinterpret_cast<s32(__cdecl *)(void *, s32, s32)>((uintptr_t)0x0067c100),
-                             reinterpret_cast<s32(__cdecl *)(void *, void *)>((uintptr_t)0x0067cf40), reinterpret_cast<s32(__cdecl *)(void *, char *, u32, u32)>((uintptr_t)0x0067cf90)};
+const FileBufEnv kGameEnv = {GameAddress<s32(__cdecl *)(s32, void *)>(0x0067e570), GameAddress<u32(__cdecl *)(const void *, u32, u32, void *)>(0x0067b6d0),
+                             GameAddress<s32(__cdecl *)(void *, const void *)>(0x0067cf70), GameAddress<s32(__cdecl *)(void *, s32, s32)>(0x0067c100),
+                             GameAddress<s32(__cdecl *)(void *, void *)>(0x0067cf40), GameAddress<s32(__cdecl *)(void *, char *, u32, u32)>(0x0067cf90)};
 const FileBufEnv *g_env = &kGameEnv;
 
 u32 &NoPos() { return at<u32>(nullptr, 0x006fe5ac); }

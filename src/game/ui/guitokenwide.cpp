@@ -4,10 +4,11 @@
 #include <cstdint>
 
 #include "../core/crt.h"
+#include "../core/addrcalls.h"
 
 namespace {
-const GuiTokenWideEnv kGameEnv = {reinterpret_cast<u32(__cdecl *)(const char *)>((uintptr_t)0x0067ff70),
-                                  reinterpret_cast<s32(__cdecl *)(u16 *, const u16 *, const char *)>((uintptr_t)0x0067af00)};
+const GuiTokenWideEnv kGameEnv = {GameAddress<u32(__cdecl *)(const char *)>(0x0067ff70),
+                                  GameAddress<s32(__cdecl *)(u16 *, const u16 *, const char *)>(0x0067af00)};
 const GuiTokenWideEnv *g_env = &kGameEnv;
 }  // namespace
 

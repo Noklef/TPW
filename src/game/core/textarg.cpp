@@ -4,6 +4,7 @@
 
 #include "crt.h"
 #include "vcall.h"
+#include "addrcalls.h"
 
 namespace {
 
@@ -59,8 +60,8 @@ s32 __fastcall TextArgString_Write(u8 *arg, void *, u8 *writer, void *) {
 }
 
 namespace {
-const TextFormatEnv kGameTextFormat = {reinterpret_cast<u32(__cdecl *)(void *, u16 *, u32, u32, ...)>((uintptr_t)0x006acd60),
-                                       reinterpret_cast<u32(__cdecl *)(void *, u8 *, u32, u32, ...)>((uintptr_t)0x006acca0)};
+const TextFormatEnv kGameTextFormat = {GameAddress<u32(__cdecl *)(void *, u16 *, u32, u32, ...)>(0x006acd60),
+                                       GameAddress<u32(__cdecl *)(void *, u8 *, u32, u32, ...)>(0x006acca0)};
 const TextFormatEnv *g_textFormat = &kGameTextFormat;
 }  // namespace
 

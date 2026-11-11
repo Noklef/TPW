@@ -8,6 +8,7 @@
 #include "panel7c2534menus.h"
 #include "window.h"
 #include "../world/world.h"
+#include "../core/addrcalls.h"
 
 namespace {
 
@@ -25,7 +26,7 @@ const GameWindowInputEnv kGameEnv = {
     &Panel7c2534_Open,
     reinterpret_cast<s32(__fastcall *)(const u8 *, void *, u32, u32)>(&KeyMap_FindKey),
     &Overlay7cb2b4_Toggle,
-    reinterpret_cast<void(__cdecl *)()>((uintptr_t)0x004a9380),
+    GameAddress<void(__cdecl *)()>(0x004a9380),
 };
 const GameWindowInputEnv *g_env = &kGameEnv;
 

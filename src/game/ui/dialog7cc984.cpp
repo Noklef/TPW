@@ -10,13 +10,14 @@
 #include "focus.h"
 #include "window.h"
 #include "../core/staticobjects.h"
+#include "../core/addrcalls.h"
 
 namespace {
 
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
 template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cast<T *>((uintptr_t)p + offset); }
 
-const Dialog7cc984Env kGameEnv = {Window_SendMessage, Class702da0_Clear, Online_Instance, Online_UnpublishPark, reinterpret_cast<u32(__fastcall *)(u8 *, void *, u32, u32, u32)>((uintptr_t)0x005b86a0), Window_SetFocus, Focus_Restore};
+const Dialog7cc984Env kGameEnv = {Window_SendMessage, Class702da0_Clear, Online_Instance, Online_UnpublishPark, GameAddress<u32(__fastcall *)(u8 *, void *, u32, u32, u32)>(0x005b86a0), Window_SetFocus, Focus_Restore};
 const Dialog7cc984Env *g_env = &kGameEnv;
 
 u8 *parentOf(u8 *window) { return reinterpret_cast<u8 *>((uintptr_t)Fn_65d55a(window)); }

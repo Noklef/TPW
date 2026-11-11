@@ -327,15 +327,15 @@ s32 __cdecl game_now() {
 }
 
 const SpriteScriptEnv kGameEnv = {
-    reinterpret_cast<void *(__cdecl *)(u32)>(0x005f5660),
-    reinterpret_cast<void(__cdecl *)(void *)>(0x005f5680),
+    GameAddress<void *(__cdecl *)(u32)>(0x005f5660),
+    GameAddress<void(__cdecl *)(void *)>(0x005f5680),
     &game_now,
-    reinterpret_cast<u32(__cdecl *)(u8 *)>(0x00475010),
-    reinterpret_cast<void(__cdecl *)()>(0x00540ab0),
+    GameAddress<u32(__cdecl *)(u8 *)>(0x00475010),
+    GameAddress<void(__cdecl *)()>(0x00540ab0),
     GameAddress<void(__cdecl *)(u8 *)>(0x00542010),
-    reinterpret_cast<void(__cdecl *)()>(0x00540b30),
-    reinterpret_cast<void(__cdecl *)(u32 *, void *, const void *, u32, u32)>(0x005f5e50),
-    reinterpret_cast<void(__cdecl *)(u32 *, void *, void *, u32, u32)>(0x005f5e20),
+    GameAddress<void(__cdecl *)()>(0x00540b30),
+    GameAddress<void(__cdecl *)(u32 *, void *, const void *, u32, u32)>(0x005f5e50),
+    GameAddress<void(__cdecl *)(u32 *, void *, void *, u32, u32)>(0x005f5e20),
     nullptr,
 };
 const SpriteScriptEnv *g_env = &kGameEnv;

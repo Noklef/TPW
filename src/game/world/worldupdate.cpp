@@ -8,6 +8,7 @@
 #include "../ui/dialog74fb20.h"
 #include "worldstart.h"
 #include "../core/staticobjects.h"
+#include "../core/addrcalls.h"
 
 namespace {
 
@@ -31,12 +32,12 @@ const WorldUpdateEnv kGameEnv = {
     method(0x00512880),
     method(0x004d1e90),
     method(0x00550ca0),
-    reinterpret_cast<s32(__cdecl *)(void *)>((uintptr_t)0x0067a7d0),
+    GameAddress<s32(__cdecl *)(void *)>(0x0067a7d0),
     Rides_FindById,
     Rides_GetElement,
     Rides_SetElement,
-    reinterpret_cast<u32(__fastcall *)(u8 *)>((uintptr_t)0x004c9130),
-    reinterpret_cast<u32(__fastcall *)(u8 *)>((uintptr_t)0x004fa990),
+    GameAddress<u32(__fastcall *)(u8 *)>(0x004c9130),
+    GameAddress<u32(__fastcall *)(u8 *)>(0x004fa990),
     method(0x004d7b20),
     method(0x004041d0),
 };

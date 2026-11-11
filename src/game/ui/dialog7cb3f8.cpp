@@ -21,6 +21,7 @@
 #include "../online/chatlists.h"
 #include "../core/textarg.h"
 #include "../core/staticobjects.h"
+#include "../core/addrcalls.h"
 
 namespace {
 
@@ -32,7 +33,7 @@ const Dialog7cb3f8Env kGameEnv = {
     &WindowScript_Build,
     &Window_SetFocus,
     &Window_FindChild,
-    reinterpret_cast<void *(__cdecl *)(u32)>((uintptr_t)0x0067acc0),
+    GameAddress<void *(__cdecl *)(u32)>(0x0067acc0),
     &TextPart6ff530_Ctor,
     &Window_SetImpl,
     &Language_Font,
@@ -44,7 +45,7 @@ const Dialog7cb3f8Env kGameEnv = {
     &Window_SetHandler,
     &Language_WideText,
     &Dialog7cb3f8_RefreshSlots,
-    reinterpret_cast<u8 *(__fastcall *)(u8 *)>((uintptr_t)0x005c7420),
+    GameAddress<u8 *(__fastcall *)(u8 *)>(0x005c7420),
     &Records24_CountUsed,
     &Class702da0_Push,
     &Class702cb0_PlayFirst,
@@ -53,12 +54,12 @@ const Dialog7cb3f8Env kGameEnv = {
     &UserSlots_Instance,
     &Records24_IfUsed,
     reinterpret_cast<s32(__cdecl *)(u8 *, u16 *, u32, u32, const u32 *)>(&Charset_FormatWide),
-    reinterpret_cast<void(__cdecl *)(const void *, u32, u32, u32, u32, u32, u32, u32)>((uintptr_t)0x0047f020),
+    GameAddress<void(__cdecl *)(const void *, u32, u32, u32, u32, u32, u32, u32)>(0x0047f020),
     &Dialog7cb400_Open,
-    reinterpret_cast<void(__fastcall *)(u8 *, void *, u32)>((uintptr_t)0x005c83b0),
+    GameAddress<void(__fastcall *)(u8 *, void *, u32)>(0x005c83b0),
     &GuiManager_CallSlot3,
     &GuiManager_CallSlot4,
-    reinterpret_cast<void(__fastcall *)(u8 *, void *, u32)>((uintptr_t)0x005c7e90),
+    GameAddress<void(__fastcall *)(u8 *, void *, u32)>(0x005c7e90),
     &Global786b80_SetAndMode3,
     &Dialog7cb400_Close,
 };

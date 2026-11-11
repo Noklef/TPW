@@ -2,10 +2,11 @@
 #include "windowname.h"
 
 #include <cstdint>
+#include "../core/addrcalls.h"
 
 namespace {
-const WindowNameEnv kGameEnv = {reinterpret_cast<void *(__cdecl *)(void *, const void *, u32)>((uintptr_t)0x0067b0d0),
-                                reinterpret_cast<void *(__cdecl *)(void *, const void *)>((uintptr_t)0x0067bf10)};
+const WindowNameEnv kGameEnv = {GameAddress<void *(__cdecl *)(void *, const void *, u32)>(0x0067b0d0),
+                                GameAddress<void *(__cdecl *)(void *, const void *)>(0x0067bf10)};
 const WindowNameEnv *g_env = &kGameEnv;
 }  // namespace
 

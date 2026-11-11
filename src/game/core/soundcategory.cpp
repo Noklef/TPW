@@ -19,6 +19,7 @@
 #include "vcall.h"
 #include "soundindex.h"
 #include "vdtor.h"
+#include "addrcalls.h"
 
 namespace {
 
@@ -94,7 +95,7 @@ void EraseAll(u8 *deque) {
 const StringView *View(const String *s) { return reinterpret_cast<const StringView *>(s); }
 void *const *Vtable(u32 address) { return reinterpret_cast<void *const *>(static_cast<uintptr_t>(address)); }
 
-const SoundCategoryEnv kGameEnv = {reinterpret_cast<s32(__cdecl *)(void(__cdecl *)())>((uintptr_t)0x0067a7d0)};
+const SoundCategoryEnv kGameEnv = {GameAddress<s32(__cdecl *)(void(__cdecl *)())>(0x0067a7d0)};
 const SoundCategoryEnv *g_env = &kGameEnv;
 
 }  // namespace

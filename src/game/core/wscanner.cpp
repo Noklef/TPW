@@ -12,6 +12,7 @@
 #include "wtraits.h"
 #include "../ui/window7cc8c0handler.h"
 #include "staticobjects.h"
+#include "addrcalls.h"
 
 extern "C" u32 __cdecl CRT_wcslen(const u16 *text);   // (online/chatlists)
 
@@ -164,7 +165,7 @@ u8 *__fastcall WKeywordPair_Ctor(u8 *pair, void *, StdWString key, u32 v0, u32 v
 }  // extern "C"
 
 namespace {
-const WKeywordsEnv kKeywordsPorts = {Charset_FormatWide, reinterpret_cast<u32(__cdecl *)(u32)>((uintptr_t)0x0067ed00), reinterpret_cast<void(__fastcall *)(u8 *)>((uintptr_t)0x004ea7e0)};
+const WKeywordsEnv kKeywordsPorts = {Charset_FormatWide, GameAddress<u32(__cdecl *)(u32)>(0x0067ed00), GameAddress<void(__fastcall *)(u8 *)>(0x004ea7e0)};
 const WKeywordsEnv *g_keywords = &kKeywordsPorts;
 }  // namespace
 

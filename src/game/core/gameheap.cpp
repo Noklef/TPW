@@ -3,11 +3,12 @@
 #include <cstdint>
 
 #include "../files/file.h"
+#include "addrcalls.h"
 
 namespace {
 
-const GameHeapEnv kGameEnv = {reinterpret_cast<void *(__cdecl *)(u32)>((uintptr_t)0x0067acc0),
-                              reinterpret_cast<void(__cdecl *)(void *)>((uintptr_t)0x0067acb0)};
+const GameHeapEnv kGameEnv = {GameAddress<void *(__cdecl *)(u32)>(0x0067acc0),
+                              GameAddress<void(__cdecl *)(void *)>(0x0067acb0)};
 const GameHeapEnv *g_env = &kGameEnv;
 
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }

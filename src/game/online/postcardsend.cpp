@@ -20,6 +20,7 @@
 #include "../ui/dialog7cc654.h"
 #include "../core/imports.h"
 #include "../core/staticobjects.h"
+#include "../core/addrcalls.h"
 
 namespace {
 
@@ -28,17 +29,17 @@ template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((ui
 const char *text(u32 address) { return reinterpret_cast<const char *>((uintptr_t)address); }
 char *buffer(u32 address) { return reinterpret_cast<char *>((uintptr_t)address); }
 
-const PostcardSendEnv kGameEnv = {reinterpret_cast<void(__fastcall *)(u8 *, void *, const char *)>((uintptr_t)0x005d4a30),
-                                  reinterpret_cast<u8 *(__fastcall *)(u8 *)>((uintptr_t)0x005c93c0),
+const PostcardSendEnv kGameEnv = {GameAddress<void(__fastcall *)(u8 *, void *, const char *)>(0x005d4a30),
+                                  GameAddress<u8 *(__fastcall *)(u8 *)>(0x005c93c0),
                                   reinterpret_cast<void *(__fastcall *)(u8 *, void *, const char *, u32)>(&StdString_AssignChars),
-                                  reinterpret_cast<char *(__cdecl *)(char *, const char *)>((uintptr_t)0x0067c4e0),
+                                  GameAddress<char *(__cdecl *)(char *, const char *)>(0x0067c4e0),
                                   &TokenList_PushChars,
-                                  reinterpret_cast<void(__fastcall *)(u8 *, void *, const char *)>((uintptr_t)0x005c99f0),
-                                  reinterpret_cast<u8 *(__fastcall *)(u8 *)>((uintptr_t)0x005c7420),
-                                  reinterpret_cast<void(__fastcall *)(u8 *, void *, u8 *)>((uintptr_t)0x005ca010),
+                                  GameAddress<void(__fastcall *)(u8 *, void *, const char *)>(0x005c99f0),
+                                  GameAddress<u8 *(__fastcall *)(u8 *)>(0x005c7420),
+                                  GameAddress<void(__fastcall *)(u8 *, void *, u8 *)>(0x005ca010),
                                   &MessageCentre_Post,
-                                  reinterpret_cast<void *(__fastcall *)(u8 *, void *, const u16 *, u32)>((uintptr_t)0x004051d0),
-                                  reinterpret_cast<u32(__fastcall *)(u8 *, void *, const char *, u32, u8 *, u32)>((uintptr_t)0x005c9f10),
+                                  GameAddress<void *(__fastcall *)(u8 *, void *, const u16 *, u32)>(0x004051d0),
+                                  GameAddress<u32(__fastcall *)(u8 *, void *, const char *, u32, u8 *, u32)>(0x005c9f10),
                                   &CommandQueue_Post};
 const PostcardSendEnv *g_env = &kGameEnv;
 

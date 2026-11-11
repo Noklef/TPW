@@ -44,7 +44,7 @@ const ChatCommandEnv kGameEnv = {&Charset_FormatWide,
                                  game<void(__cdecl *)(u8 *, u32, u32, u32, u32, u32, u32, u32)>(0x0047f020)};
 const ChatCommandEnv *g_env = &kGameEnv;
 
-void xlen() { reinterpret_cast<void(__cdecl *)()>(0x006918f0)(); }  // std::_Xlen: throws length_error
+void xlen() { GameAddress<void(__cdecl *)()>(0x006918f0)(); }  // std::_Xlen: throws length_error
 
 void reset(StdWString *s, u32 release) { CountedBuf_Reset(reinterpret_cast<u8 *>(s), nullptr, release); }
 

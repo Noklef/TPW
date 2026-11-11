@@ -12,6 +12,7 @@
 #include "dialog7cc534handler.h"
 #include "dialog7cc530open.h"
 #include "../core/imports.h"
+#include "../core/addrcalls.h"
 
 namespace {
 
@@ -19,7 +20,7 @@ template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((ui
 template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cast<T *>((uintptr_t)p + offset); }
 
 const Dialog7cc5f4DialEnv kGameEnv = {&KeyMaps_EnableAllAndClearFlag, &Focus_Restore, &Window_SendMessage, &Window_PostMessage, &Window_DwordA0, &Language_WideText,
-                                      reinterpret_cast<u8 *(__cdecl *)(const u8 *, u32, u32, u32, u32, u32, u32, u32)>((uintptr_t)0x0047f020), &Window_SetHandler, &Window_SetFocus, &Dialog_BaseHandler};
+                                      GameAddress<u8 *(__cdecl *)(const u8 *, u32, u32, u32, u32, u32, u32, u32)>(0x0047f020), &Window_SetHandler, &Window_SetFocus, &Dialog_BaseHandler};
 const Dialog7cc5f4DialEnv *g_env = &kGameEnv;
 
 u8 *front() { return at<u8 *>(global<u8 *>(0x00f82884), 4); }

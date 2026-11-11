@@ -20,14 +20,15 @@
 #include "localefacet.h"
 #include "nstream.h"
 #include "swearfilter.h"
+#include "addrcalls.h"
 
 namespace {
 
-const NarrowFileBufEnv kGameEnv = {reinterpret_cast<s32(__cdecl *)(void *)>((uintptr_t)0x0067b620), reinterpret_cast<s32(__cdecl *)(u32, u32)>((uintptr_t)0x0067cbe0), reinterpret_cast<s32(__cdecl *)(u32)>((uintptr_t)0x0067cb90),
-                                   reinterpret_cast<void(__stdcall *)(void *, const void *)>((uintptr_t)0x0067d3a0),
-                                   reinterpret_cast<void *(__fastcall *)(void *, void *, const char *)>((uintptr_t)0x00698fc0),
-                                   reinterpret_cast<void *(__fastcall *)(void *)>((uintptr_t)0x00699100),
-                                   reinterpret_cast<u8 **(__fastcall *)(u8 **, void *, u8 *, u32, u32)>((uintptr_t)0x00693f50)};
+const NarrowFileBufEnv kGameEnv = {GameAddress<s32(__cdecl *)(void *)>(0x0067b620), GameAddress<s32(__cdecl *)(u32, u32)>(0x0067cbe0), GameAddress<s32(__cdecl *)(u32)>(0x0067cb90),
+                                   GameAddress<void(__stdcall *)(void *, const void *)>(0x0067d3a0),
+                                   GameAddress<void *(__fastcall *)(void *, void *, const char *)>(0x00698fc0),
+                                   GameAddress<void *(__fastcall *)(void *)>(0x00699100),
+                                   GameAddress<u8 **(__fastcall *)(u8 **, void *, u8 *, u32, u32)>(0x00693f50)};
 const NarrowFileBufEnv *g_env = &kGameEnv;
 
 template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cast<T *>((uintptr_t)p + offset); }
