@@ -116,8 +116,8 @@ void list_files(u8 *folder, String *path, const String *folderName) {
             void *const block = GameHeap_Alloc(8);
             e.value = block ? g_calls.Th(0x005f8240, (u32)(uintptr_t)block) : 0;
             std::memcpy(file, gSpriteFindRecord_875038, 0x20);
-            std::strcpy(reinterpret_cast<char *>(file + 0x24), reinterpret_cast<const char *>((uintptr_t)0x0087505c));
-            *reinterpret_cast<u32 *>(file + 0x20) = (u32)(uintptr_t)file + global<u32>(0x00875058) - 0x0087505c + 0x24;
+            std::strcpy(reinterpret_cast<char *>(file + 0x24), reinterpret_cast<const char *>(gSpriteFindRecord_875038 + 0x24));
+            *reinterpret_cast<u32 *>(file + 0x20) = (u32)(uintptr_t)file + *reinterpret_cast<u32 *>(gSpriteFindRecord_875038 + 0x20) - (u32)(uintptr_t)(gSpriteFindRecord_875038 + 0x24) + 0x24;
             g_calls.Th(0x005f82b0, e.value, current);
             gSpriteFileCount_875430++;
         }

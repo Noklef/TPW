@@ -108,7 +108,7 @@ GAME_DATA(u32, gLoading_763f80, 0x00763f80, 0x4);
 GAME_DATA(SpriteFolder[14], gSpriteFolders, 0x00763f88, 0xa8);
 GAME_DATA(char[16], gSprites_LoadFolder_764168, 0x00764168, 0x10);
 GAME_DATA(u32, gSprites_LoadFolder_78baec, 0x0078baec, 0x4);
-GAME_DATA(u8[32], gSpriteFindRecord_875038, 0x00875038, 0x20);
+GAME_DATA(u8[0x128], gSpriteFindRecord_875038, 0x00875038, 0x128);   // head 0x20, the name pointer at +0x20 (0x875058), the name at +0x24 (0x87505c)
 GAME_DATA(s32, gSpriteFileCount_875430, 0x00875430, 0x4);
 GAME_DATA(SpriteFileEntry[128], gSpriteFiles_875970, 0x00875970, 0x600);
 GAME_DATA(s32, gSpriteCellDepth, 0x0087614c, 0x4);

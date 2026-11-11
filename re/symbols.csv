@@ -11581,7 +11581,7 @@ address,name,kind,confidence,notes
 0x007b4a1c,gSpriteScripts_InitUnusedOne_7b4a1c,data,low,"GAME_DATA (sprite/script): float, named for its use in SpriteScripts_InitUnusedOne"
 0x007b4a20,gSpriteScripts_InitUnusedEpsilon_7b4a20,data,low,"GAME_DATA (sprite/script): float, named for its use in SpriteScripts_InitUnusedEpsilon"
 0x007cdbe0,gIntpair_7cdbe0,data,low,"GAME_DATA (math/intpair): u8, named for its use in intpair.cpp"
-0x00875038,gSpriteFindRecord_875038,data,low,"GAME_DATA (sprite/loading): u8[32], the found file's record (Sprites_LoadFolder copies 0x20 of it)"
+0x00875038,gSpriteFindRecord_875038,data,low,"GAME_DATA (sprite/loading): u8[0x128], the found file's record (head 0x20, the name pointer 0x875058, the name 0x87505c)"
 0x00875430,gSpriteFileCount_875430,data,low,"GAME_DATA (sprite/loading): s32, named for its use, by hand"
 0x00875864,gDraw_875864,data,low,"GAME_DATA (sprite/draw): s32, named for its use in draw.cpp"
 0x00875970,gSpriteFiles_875970,data,low,"GAME_DATA (sprite/loading): SpriteFileEntry[128], named for its use, by hand"
