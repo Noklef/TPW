@@ -183,7 +183,7 @@ u8 *__cdecl MsgTags_Add(const u8 *message) {
     s16 width;
     Window_GetSize(gDialog7cb2b8build_7cb2c4, nullptr, &width, nullptr, 1);
     u8 *tag = nullptr;
-    for (u8 *record = reinterpret_cast<u8 *>((uintptr_t)&gMsgtags_7c26b0); record < reinterpret_cast<u8 *>(&gMsgtags_7c3b00); record += 0x208) {
+    for (u8 *record = reinterpret_cast<u8 *>((uintptr_t)&gMsgtags_7c26b0); record < reinterpret_cast<u8 *>(&gMsgtags_7c26b0) + sizeof gMsgtags_7c26b0; record += 0x208) {
         if (*reinterpret_cast<u16 *>(record + 4)) continue;
         *reinterpret_cast<u16 *>(record + 4) = 1;
         tag = *reinterpret_cast<u8 **>(record);
@@ -281,12 +281,12 @@ u32 __cdecl MsgTags_Load(Stream *stream) {
 
 s32 *__cdecl MsgTags_Save(Stream *stream) {
     s32 count = 0;
-    for (u32 entry = ((u32)(uintptr_t)&gMsgtags_7c26b0 + 0x4); entry < (u32)(uintptr_t)&gMsgtags_7c3b00 + 0x4; entry += 0x208)
+    for (u32 entry = ((u32)(uintptr_t)&gMsgtags_7c26b0 + 0x4); entry < (u32)(uintptr_t)&gMsgtags_7c26b0 + sizeof gMsgtags_7c26b0 + 0x4; entry += 0x208)
         if (*reinterpret_cast<u16 *>((uintptr_t)entry)) ++count;
     s32 result, done;
     s32 *answer = Stream_Write(&result, stream, &count, 4, &done);
     u8 record[0x21c];
-    for (u8 *entry = reinterpret_cast<u8 *>((uintptr_t)&gMsgtags_7c26b0); entry < reinterpret_cast<u8 *>(&gMsgtags_7c3b00); entry += 0x208) {
+    for (u8 *entry = reinterpret_cast<u8 *>((uintptr_t)&gMsgtags_7c26b0); entry < reinterpret_cast<u8 *>(&gMsgtags_7c26b0) + sizeof gMsgtags_7c26b0; entry += 0x208) {
         if (!at<u16>(entry, 4)) continue;
         u8 *const window = at<u8 *>(entry, 0);
         *reinterpret_cast<u32 *>(record + 0) = Window_DwordA0(window, nullptr, 1);

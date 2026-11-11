@@ -129,7 +129,6 @@ void MsgTag_SetHandlerEnv(const MsgTagHandlerEnv *env);
 GAME_DATA(s32, gMsgTags_Add_750610, 0x00750610, 4);
 GAME_DATA(u8[0x14], gMsgTags_AddVersion_750694, 0x00750694, 0x14);
 GAME_DATA(u8[0x1450], gMsgtags_7c26b0, 0x007c26b0, 0x1450);
-GAME_DATA(u32, gMsgtags_7c3b00, 0x007c3b00, 0x4);
 GAME_DATA(s32, gMsgtags_7ca09c, 0x007ca09c, 0x4);
 GAME_DATA(u8 *, gMsgtags_7cb2c8, 0x007cb2c8, 0x4);
 
