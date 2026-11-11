@@ -244,7 +244,7 @@ extern "C" const char *__cdecl GamePaths_Base() {
     vcall<void>(path, 0x28, at<const StringView *>(0x00787f50));
     String_EnsureTrailingBackslash(path);
     vcall<void>(path, 0x28, at<const StringView *>(0x00786b68));
-    return *at<const char *const *>((u32)&gGamePaths_Base_788030);
+    return *at<const char *const *>((u32)&gGamePaths_Base_788028 + 8);
 }
 
 s32 __cdecl GamePaths_ShareTexFolder(char *out) {
