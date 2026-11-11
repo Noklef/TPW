@@ -13119,7 +13119,7 @@ address,name,kind,confidence,notes
 0x0074cfb4,gText_Ftp_74cfb4,data,low,"GAME_DATA (src/game/online/ftp): char[0x4], named for its use in Ftp_Receive, GuardFile_Open, HeightMap_ReadOrBuild (tools/gamedata_codemod.py)"
 0x00773ce0,gText_Ftp_773ce0,data,low,"GAME_DATA (src/game/online/ftp): char[0x10], named for its use in ftp.cpp (tools/gamedata_codemod.py)"
 0x00773cf0,gText_Ftp_LocalAddress_773cf0,data,low,"GAME_DATA (src/game/online/ftp): char[0x10], named for its use in Ftp_LocalAddress (tools/gamedata_codemod.py)"
-0x00774810,gFtp_WsaErrorBox_774810,data,low,"GAME_DATA (src/game/online/ftp): u8[0x1], named for its use in Ftp_WsaErrorBox (tools/gamedata_codemod.py)"
+0x00774810,gFtp_WsaErrorBox_774810,data,low,"GAME_DATA (src/game/online/ftp): char[0xc], the text ""IP Error"" (the message box's title), named for its use in Ftp_WsaErrorBox (tools/gamedata_codemod.py)"
 0x00702930,gItems_702930,data,low,"GAME_DATA (src/game/online/items): const double, named for its use in items.cpp (tools/gamedata_codemod.py)"
 0x00773cdc,gText_Postcardmail_773cdc,data,low,"GAME_DATA (src/game/online/postcardmail): char[0x4], named for its use in postcardmail.cpp (tools/gamedata_codemod.py)"
 0x007cdae0,gRoomcounts_7cdae0,data,low,"GAME_DATA (src/game/online/roomcounts): s32[5] (the five room ids), named for its use in roomcounts.cpp (tools/gamedata_codemod.py)"
