@@ -35,7 +35,7 @@ void __cdecl Track_ResetMap(s32 columns, s32 rows);
 #include "../core/gamedata.h"
 
 // Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
-GAME_DATA(u32[2], gTracktextures_816d68, 0x00816d68, 8);   // (a cell grid's width and height: Ride_LoadResource reads +4)
+GAME_DATA(u32[0x322], gTracktextures_816d68, 0x00816d68, 0xc88);   // (a cell grid: width, height, 20 x 20 cells of 8 bytes; RideBase_Prepare reads the cells)
 GAME_DATA(u16, gTracktextures_8186ec, 0x008186ec, 0x2);
 GAME_DATA(s32, gTracktextures_81d740, 0x0081d740, 0x4);
 
