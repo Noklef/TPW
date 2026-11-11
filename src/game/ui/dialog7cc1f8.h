@@ -36,6 +36,9 @@ struct Dialog7cc1f8OpenEnv {
 };
 void Dialog7cc1f8_SetOpenEnv(const Dialog7cc1f8OpenEnv *env);
 
+struct AddrCall;
+void Dialog7cc1f8_SetHandlerCalls(const AddrCall *table, u32 count);   // (Dialog7cc1f8_Handler's callees by address: the comparison driver's seam)
+
 extern "C" {
 
 // 0x4aaf70 (cdecl (kind, clear); name invented): the dialog [0x7cc1f8]'s list 0x1f8 (no dialog or list: nothing; the store GameTable7cfb90_Get1da720_519510 asked first) cleared when clear is set, the
@@ -48,6 +51,16 @@ void __cdecl Dialog7cc1f8_FillList(u32 kind, u32 clear);
 // 0x4aca60 (cdecl (window, message, a, b); the tabs' handler, name invented): message 0x101 with b 1 and a 0x1fa, 0x1fb, 0x1fc or 0x1fd picks the kind 2, 0, 3 or 1: Dialog7cc1f8_ShowStats (kind), Dialog7cc1f8_FillList (kind, 1), the dialog's
 // child 0x1fe labelled with the text 0x77 + kind. Always then the default handler, its result.
 u32 __cdecl Dialog7cc1f8_TabHandler(u8 *window, u32 message, u32 a, u32 b);
+
+// 0x4ac270 (cdecl (window, message, a, b); the dialog's handler, set by Dialog7cc1f8_Open's script; name invented). 5: [0x7cc1f8] sent (4, 0, 0), answers 1. 0x10 with a 0x80080 (its timer):
+// the list 0x1f8's rows refreshed, the money line 0x200 told (slot 9) the balance formatted into 0x7ba058 (as Dialog7cc1f8_Open's). 0x14: [0x7cc1f8] 0, Sign_Destroy, Game_CancelAdvisor(0xbc).
+// 0x15: Dialog7cc1f8_DressStats, Dialog7cc1f8_ShowStats([0x7cc1fc]), the timer 0x80080 set (1000) and started. 0x1e: the preview of [0x7cc1e4] shown after 0x1f4 ticks (the word then 0),
+// Sign_Swing, the tip of [0x7cc1e8] when set. 0x100: a -2 the dialog sent 4 and a 0x1ff Dialog7ca308_Open(-1), both answering 0. 0x400 (a row picked; the child a, b not -1): the row's data
+// (Window7059f0_NthItemData): an object id whose price +0xc4 is set without the key (GlobalSave_HasKey) and locked (ObjectDef_IsUnlocked), or which costs (its control's +4) more than the
+// balance: SoundUi_Play1d; else a tile mode of kind 4 for it, the dialog sent 4, Advisor_PostId 0xc9 when its +0x4c is 0 and no thing of category 0x80 exists, else 0xce. -1 / -2: the tile
+// modes 0x39 / 0x3a with the advice 0x15a / 0x159; any other the dialog sent 4; those answer 0. 0x401 (a row under the mouse): its data's word to [0x7cc1e4] (when new, with the clock at
+// [0x7cc1f0]) and [0x7cc1e8], Dialog7cc1f8_ShowFigures on it. 0x406: [0x755140] = b. Then Dialog_KeyHandler, its answer.
+s32 __cdecl Dialog7cc1f8_Handler(u8 *window, u32 message, u32 a, u32 b);
 
 // 0x4acb70 (cdecl (window, message, a, b); name invented): a list row's handler. Message 0x403 colours the row for the item b (Window_Notify40000) before the default handler: a word below 0 (e7 ef 4b ff); an object
 // with a price +0xc4 and no key (GlobalSave_HasKey): ff, e0 or 0 by ObjectDef_IsUnlocked, 0, ff; else by its cost +4 against the balance: above it ff 0 0 ff, else white.

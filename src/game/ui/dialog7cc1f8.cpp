@@ -3,6 +3,7 @@
 #include <cstdint>
 
 #include "../core/accessors.h"
+#include "../core/addrcalls.h"
 #include "../core/gameheap.h"
 #include "../core/globalsave.h"
 #include "../core/language.h"
@@ -15,6 +16,7 @@
 #include "../render/renderer.h"
 #include "../render/textparts.h"
 #include "../world/advisor.h"
+#include "../world/mousemode.h"
 #include "../world/objectdefs.h"
 #include "../world/objectunlock.h"
 #include "../world/world.h"
@@ -153,6 +155,120 @@ u32 __cdecl Dialog7cc1f8_TabHandler(u8 *window, u32 message, u32 a, u32 b) {
         g_tab->attach(*reinterpret_cast<u8 **>((uintptr_t)0x007cc1f8), 0x1fe, (u32)(uintptr_t)text);
     }
     return (u32)g_tab->callDefault(window, nullptr, message, a, b);
+}
+
+namespace {
+AddrCalls g_handler;
+
+u32 CloseDialog() { return g_handler.Cd(0x00658d9f, global<u32>(0x007cc1f8), 4u, 0u, 0u); }   // Window_SendMessage (4, 0, 0)
+u32 Child(u8 *window, u32 id) { return g_handler.Th(0x0065d7d0, (u32)(uintptr_t)window, id); }   // Window_FindChild
+s32 Balance() { return (s32)g_handler.Th(0x006ad810, g_handler.Th(0x005195d0, (u32)(uintptr_t)gWorldPtr)); }   // Source_Field0c of the money record
+
+// A 0x14-byte tile mode (none when the allocation fails) made current, the holder made first; then Advisor_PostId(advice).
+void SetTileMode(u32 kind, u32 arg, u32 advice) {
+    u8 *const block = static_cast<u8 *>(GameHeap_Alloc(0x14));
+    u8 *const mode = !block ? nullptr : kind ? MouseModeTile_CtorKind(block, nullptr, kind, (u16)arg) : MouseModeTile_Ctor(block, nullptr, arg);
+    MouseModes_EnsureHolder();
+    g_handler.St(0x0046c350, (u32)(uintptr_t)mode);   // MouseMode_Set
+    if (advice) g_handler.Cd(0x00486b00, advice);
+}
+}  // namespace
+
+void Dialog7cc1f8_SetHandlerCalls(const AddrCall *table, u32 count) { g_handler.Set(table, count); }
+
+s32 __cdecl Dialog7cc1f8_Handler(u8 *window, u32 message, u32 a, u32 b) {
+    switch (message) {
+    case 5:
+        CloseDialog();
+        return 1;
+    case 0x10:
+        if (a == 0x80080) {
+            g_handler.Th(0x00663324, Child(window, 0x1f8));   // Window7059f0_RefreshRows
+            u8 *const money = (u8 *)(uintptr_t)Child(window, 0x200);
+            const s32 balance = Balance();
+            u32 number[5] = {(u32)(uintptr_t)TextArgInt_vtable, 0x5641524d, 0xd, balance < 0 ? 0u - (u32)balance : (u32)balance, 0};
+            g_handler.Cd(0x006acd60, global<u32>(0x0078ba94), 0x007ba058u, 0x3fffu, balance < 0 ? 0x1cbu : 0x1cau, (u32)(uintptr_t)number);   // Charset_FormatWide
+            vcall<void>(money, 0x24, 0x007ba058u);
+        }
+        break;
+    case 0x14:
+        global<u8 *>(0x007cc1f8) = nullptr;
+        g_handler.Cd(0x00486510);           // Sign_Destroy
+        g_handler.Cd(0x00486b40, 0xbcu);    // Game_CancelAdvisor
+        break;
+    case 0x15:
+        g_handler.Cd(0x004ab6b0);                                // Dialog7cc1f8_DressStats
+        g_handler.Cd(0x004abfb0, global<u32>(0x007cc1fc));       // Dialog7cc1f8_ShowStats
+        if ((u16)g_handler.Th(0x0065ef90, (u32)(uintptr_t)window, 0x80080u, 0x3e8u)) g_handler.Th(0x0065f024, (u32)(uintptr_t)window, 0x80080u);   // Window_SetTimer, _StartTimer
+        break;
+    case 0x1e:
+        if (reinterpret_cast<u16 &>(gDialog7cc1f8_Open_7cc1e4) && (s32)(g_handler.Cd(0x0065968e) - gDialog7cc1f8_Open_7cc1f0) > 0x1f4) {
+            g_handler.Cd(0x004ab1b0, (u32)(uintptr_t)&gDialog7cc1f8_Open_7cc1e4);   // Dialog7cc1f8_ShowPreview
+            reinterpret_cast<u16 &>(gDialog7cc1f8_Open_7cc1e4) = 0;
+        }
+        g_handler.Cd(0x004864f0);   // Sign_Swing
+        if (gDialog7cc1f8_Open_7cc1e8) g_handler.Cd(0x004abc80, (u32)(uintptr_t)&gDialog7cc1f8_Open_7cc1e8);   // Dialog7cc1f8_ShowItemTip
+        break;
+    case 0x100:
+        if (a == 0xfffffffe) {
+            CloseDialog();
+            return 0;
+        }
+        if (a == 0x1ff) {
+            g_handler.Cd(0x0049bdd0, 0xffffffffu);   // Dialog7ca308_Open
+            return 0;
+        }
+        break;
+    case 0x400: {
+        const u32 list = Child(window, a);
+        if (!list || b == 0xffffffff) break;
+        const s32 balance = Balance();
+        s32 item;
+        g_handler.Th(0x00664c71, list, b, (u32)(uintptr_t)&item);   // Window7059f0_NthItemData
+        if (item > 0) {
+            const u8 *const controls = (const u8 *)(uintptr_t)g_handler.Th(0x004d3d10, (u32)(uintptr_t)gWorldPtr + 0x1d943c, (u32)item, 0u);   // ObjectControls_Find
+            const u32 id = (u16)item;   // (the original pushes the dword whose low word it set: stack garbage above)
+            if (at<u32>((u8 *)(uintptr_t)g_handler.Th(0x00412e90, 0x007890a0u, id), 0xc4) && !(u8)g_handler.St(0x004d4b70, id)) {   // ObjectDefs_Find, GlobalSave_HasKey
+                if (!(u8)g_handler.St(0x004d4b90, id)) {   // ObjectDef_IsUnlocked
+                    g_handler.Cd(0x00486ae0);   // SoundUi_Play1d
+                    break;
+                }
+            } else if (balance < *reinterpret_cast<const s32 *>(controls + 4)) {
+                g_handler.Cd(0x00486ae0);
+                break;
+            }
+            SetTileMode(4, id, 0);
+            CloseDialog();
+            const bool first = !at<u32>((u8 *)(uintptr_t)g_handler.Th(0x00412e90, 0x007890a0u, id), 0x4c) && !g_handler.Cd(0x004824d0, 0x80u, 0u);   // Things_FindNextOfCategory
+            g_handler.Cd(0x00486b00, first ? 0xc9u : 0xceu);   // Advisor_PostId
+            return 0;
+        }
+        if (item == -1) SetTileMode(0, 0x39, 0x15a);
+        else if (item == -2) SetTileMode(0, 0x3a, 0x159);
+        CloseDialog();
+        return 0;
+    }
+    case 0x401: {
+        const u32 list = Child(window, a);
+        if (!list || b == 0xffffffff) break;
+        u32 item;
+        g_handler.Th(0x00664c71, list, b, (u32)(uintptr_t)&item);
+        if ((u16)item != reinterpret_cast<u16 &>(gDialog7cc1f8_Open_7cc1e4)) {
+            reinterpret_cast<u16 &>(gDialog7cc1f8_Open_7cc1e4) = (u16)item;
+            gDialog7cc1f8_Open_7cc1f0 = g_handler.Cd(0x0065968e);   // GuiClock_Now
+        }
+        gDialog7cc1f8_Open_7cc1e8 = (u16)item;
+        u32 shown = (u16)item;   // (the original's word in the argument a's slot)
+        g_handler.Cd(0x004abb00, (u32)(uintptr_t)&shown);   // Dialog7cc1f8_ShowFigures
+        break;
+    }
+    case 0x406:
+        gDialog7cc1f8_Open_755140 = (s32)b;
+        break;
+    default:
+        break;
+    }
+    return (s32)g_handler.Cd(0x00488ba0, (u32)(uintptr_t)window, message, a, b);   // Dialog_KeyHandler
 }
 
 extern "C" {

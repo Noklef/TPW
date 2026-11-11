@@ -1522,6 +1522,14 @@ const AddrCall kImageBufferCalls[] = {{0x56a770, jpeg_recorder(1, 1)}, {0x564650
 const AddrCall kScrollLayersCalls[] = {{0x590f90, recorder(1, 0)}, {0x58c9f0, recorder(2, 2)}};  // tests/fncmp/scrolllayers.py
 const AddrCall kVWrapCalls[] = {{0x58c9f0, recorder(5, 2)}, {0x561a30, recorder(6, 2)}, {0x5fbd40, recorder(7, 0)}, {0x5fbd90, recorder(8, 0)}};  // tests/fncmp/vwrapclip.py, vwrapflip.py
 const AddrCall kCrtTerminateCalls[] = {{0x682460, jpeg_recorder(1, 0)}, {0x68cc30, jpeg_recorder(3, 0)}};  // tests/fncmp/crtterminate.py
+// The build dialog's handler (tests/fncmp/dialog7cc1f8handler.py).
+const AddrCall kDialog7cc1f8HandlerCalls[] = {
+    {0x65d7d0, recorder(1, 1)},  {0x663324, recorder(2, 0)},  {0x5195d0, recorder(3, 0)},  {0x6ad810, recorder(4, 0)},  {0x65ef90, recorder(5, 2)},
+    {0x65f024, recorder(6, 1)},  {0x664c71, recorder(7, 2)},  {0x4d3d10, recorder(8, 2)},  {0x412e90, recorder(10, 1)}, {0x4d4b70, stdcall_recorder(11, 1)},
+    {0x4d4b90, stdcall_recorder(12, 1)}, {0x658d9f, jpeg_recorder(13, 4)}, {0x6acd60, jpeg_recorder(14, 5)}, {0x486510, jpeg_recorder(15, 0)}, {0x486b40, jpeg_recorder(16, 1)},
+    {0x4ab6b0, jpeg_recorder(17, 0)}, {0x4abfb0, jpeg_recorder(18, 1)}, {0x65968e, jpeg_recorder(19, 0)}, {0x4ab1b0, jpeg_recorder(20, 1)}, {0x4864f0, jpeg_recorder(21, 0)},
+    {0x4abc80, jpeg_recorder(22, 1)}, {0x49bdd0, jpeg_recorder(23, 1)}, {0x486ae0, jpeg_recorder(25, 0)}, {0x4824d0, jpeg_recorder(26, 2)}, {0x486b00, jpeg_recorder(27, 1)},
+    {0x4abb00, jpeg_recorder(28, 1)}, {0x488ba0, jpeg_recorder(29, 4)}, {0x46c350, stdcall_recorder(31, 1)}};
 const AddrCall kSignRideCalls[] = {{0x467a80, jpeg_recorder(1, 6)}, {0x4e2860, recorder(2, 2)}, {0x4e2920, recorder(3, 2)}, {0x4682b0, jpeg_recorder(4, 3)}};  // tests/fncmp/signrides.py
 const AddrCall kPtrImageCalls[] = {{0x588820, recorder(1, 1)}, {0x588350, recorder(2, 0)}};  // tests/fncmp/ptrarray_addimage.py
 const AddrCall kSpriteQueueDrawCalls[] = {{0x589f90, recorder(1, 0)}, {0x589770, recorder(2, 0)}, {0x589fd0, recorder(3, 0)}, {0x589990, recorder(4, 1)}, {0x5658c0, recorder(5, 1)}, {0x58a770, recorder(6, 0)}, {0x58a010, recorder(7, 0)}};  // tests/fncmp/spritequeuedraw.py, spritequeuepanels.py
@@ -2984,6 +2992,7 @@ int main(int argc, char **argv) {
     ObjModel_SetDrawCalls(kObjModelDrawCalls, sizeof(kObjModelDrawCalls) / sizeof(kObjModelDrawCalls[0]));
     VWrap_SetCalls(kVWrapCalls, sizeof(kVWrapCalls) / sizeof(kVWrapCalls[0]));
     CrtTerminate_SetCalls(kCrtTerminateCalls, sizeof(kCrtTerminateCalls) / sizeof(kCrtTerminateCalls[0]));
+    Dialog7cc1f8_SetHandlerCalls(kDialog7cc1f8HandlerCalls, sizeof(kDialog7cc1f8HandlerCalls) / sizeof(kDialog7cc1f8HandlerCalls[0]));
     RideAnimate_SetCalls(kRideAnimateCalls, sizeof(kRideAnimateCalls) / sizeof(kRideAnimateCalls[0]));
     Sign_SetRideCalls(kSignRideCalls, sizeof(kSignRideCalls) / sizeof(kSignRideCalls[0]));
     TileGrid_SetCalls(kTextureTouchCalls, sizeof(kTextureTouchCalls) / sizeof(kTextureTouchCalls[0]));
