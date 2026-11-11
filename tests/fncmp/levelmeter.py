@@ -30,8 +30,9 @@
 # records), the message 0x100 mostly (else 0x101, 0x1d, 0 or any but 0x1e: OnMessage's default handler), the arrow 0xd2d03 (back) or
 # another; the window random, no children, its default handler +0x118 the cdecl recorder 5. Arrows1-4 (0x4aa360, 0x4aa3c0, 0x4aa420,
 # 0x4aa300): the same for the groups 1-4 (Refresh's group swapped into that one).
+# Slider (0x4a9f90, the slider 0xd2d10's handler): OnMessage's window, the message 0x14 mostly, [0x7cc1dc] random.
 # usage: levelmeter.py [CASES [SEED]] [--wild|--both] [--show N]
-#        (env OPS=SetLevel,OnMessage,Research,Progress,Name,Refresh,Refresh481520,Arrows,Arrows1,Arrows2,Arrows3,Arrows4)
+#        (env OPS=SetLevel,OnMessage,Research,Progress,Name,Refresh,Refresh481520,Arrows,Arrows1,Arrows2,Arrows3,Arrows4,Slider)
 import os
 import struct
 import sys
@@ -43,10 +44,11 @@ import research  # noqa: E402
 from fncmp import LOG, RAM, Bench, Call, _cdecl_log4, blob_bytes, blob_inner_text, log_region, put, recorder, set_return, strings, text_args, vtable  # noqa: E402
 
 CALLS = {'SetLevel': 0x4a95b0, 'OnMessage': 0x4a9fc0, 'Research': 0x4a9c70, 'Progress': 0x4a9bd0, 'Name': 0x4aa120, 'Refresh': 0x4aaec0,
-         'Refresh481520': 0x481520, 'Arrows': 0x4aa0c0, 'Arrows1': 0x4aa360, 'Arrows2': 0x4aa3c0, 'Arrows3': 0x4aa420, 'Arrows4': 0x4aa300}
+         'Refresh481520': 0x481520, 'Arrows': 0x4aa0c0, 'Arrows1': 0x4aa360, 'Arrows2': 0x4aa3c0, 'Arrows3': 0x4aa420, 'Arrows4': 0x4aa300,
+         'Slider': 0x4a9f90}
 OPS = [k for k in os.environ.get('OPS', ','.join(CALLS)).split(',') if k]
 B = Bench([(0x409410, 0x409490), (0x410ac0, 0x410b20), (0x412e90, 0x412f00), (0x412fb0, 0x413030), (0x414670, 0x414690), (0x4146b0, 0x414800),
-           (0x47d460, 0x47d4b0), (0x481520, 0x481540), (0x485b00, 0x485b50), (0x4a95b0, 0x4a96c0), (0x4a9bd0, 0x4a9f84), (0x4a9fc0, 0x4aa0b1),
+           (0x47d460, 0x47d4b0), (0x481520, 0x481540), (0x485b00, 0x485b50), (0x4a95b0, 0x4a96c0), (0x4a9bd0, 0x4a9f84), (0x4a9f90, 0x4a9fb8), (0x4a9fc0, 0x4aa0b1),
            (0x4aa0c0, 0x4aa480), (0x4aaec0, 0x4aaf20), (0x4c9e60, 0x4c9ef0), (0x4d3d10, 0x4d3df0), (0x4d4b70, 0x4d4ba0), (0x5034f0, 0x503850),
            (0x503980, 0x503b40), (0x504040, 0x5040a0), (0x519510, 0x5195a0), (0x51bc40, 0x51bc80), (0x5aef50, 0x5af0f0), (0x5af780, 0x5af800),
            (0x5b30b0, 0x5b3120), (0x5da3c0, 0x5da3c1), (0x65968e, 0x6596a2), (0x65d3a3, 0x65d40e), (0x65d7bc, 0x65d832), (0x65e6d5, 0x65e73d),
@@ -353,6 +355,9 @@ def case(r):
         level = r.choice([0] * 5 + [r.randrange(1, 101)] * 6 + [r.randrange(-40, 0), r.getrandbits(32), 0x7fff, 0x8000])
         return Call(CALLS[op], [WINDOW, level & 0xffffffff], regions, ret='v')
     message = r.choice([0x1e] * 6 + [0x1d, 0x1f, 0, r.getrandbits(32)])
+    if op == 'Slider':
+        message = r.choice([0x14] * 3 + [0x1e, 0x15, 0x13, r.getrandbits(32)])
+        regions[0x7cc1dc] = r.bytes(4)
     return Call(CALLS[op], [WINDOW, message, r.getrandbits(32), r.getrandbits(32)], regions, ret='a')
 
 

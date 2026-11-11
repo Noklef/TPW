@@ -681,7 +681,7 @@ u32 __cdecl TrakRide_Create(s32 kind, s32 x, s32 y, u32 orientation, u32 handle,
     }
     if (!ride)
         return NameOfRide(ride);  // (faults: the original reads the first dword of the missing ride)
-    const u32 *from = reinterpret_cast<const u32 *>((uintptr_t)(0x00764178 - (u32)(kind + 1) * 0xd0));
+    const u32 *from = reinterpret_cast<const u32 *>((uintptr_t)((u32)(uintptr_t)&gTrakRide_Templates_764178 - (u32)(kind + 1) * 0xd0));
     for (u32 i = 0; i < 0x34; ++i)
         at<u32>(ride, 4 * i) = from[i];
     gTrackPools.rideCount += 1;

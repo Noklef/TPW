@@ -101,6 +101,26 @@ void __fastcall Cursor_DrawArrow(u8 *cursor, void *, u32 x, u32 y);
 #include "../core/gamedata.h"
 
 // Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(char[16], gCursor_74fe38, 0x0074fe38, 0x10);
+GAME_DATA(char[12], gCursor_74fe48, 0x0074fe48, 0xc);
+GAME_DATA(char[12], gCursor_74fe54, 0x0074fe54, 0xc);
+GAME_DATA(char[16], gCursor_74fe60, 0x0074fe60, 0x10);
+GAME_DATA(char[16], gCursor_74fe70, 0x0074fe70, 0x10);
+GAME_DATA(char[12], gCursor_74fe80, 0x0074fe80, 0xc);
+GAME_DATA(char[12], gCursor_74feac, 0x0074feac, 0xc);
+GAME_DATA(char[12], gCursor_74fed0, 0x0074fed0, 0xc);
+GAME_DATA(char[12], gCursor_74fedc, 0x0074fedc, 0xc);
+GAME_DATA(char[12], gCursor_74fee8, 0x0074fee8, 0xc);
+GAME_DATA(char[12], gCursor_74ff10, 0x0074ff10, 0xc);
+GAME_DATA(char[12], gCursor_74ff28, 0x0074ff28, 0xc);
+GAME_DATA(char[12], gCursor_750000, 0x00750000, 0xc);
+GAME_DATA(char[12], gCursor_75000c, 0x0075000c, 0xc);
+GAME_DATA(char[12], gCursor_750018, 0x00750018, 0xc);
+GAME_DATA(char[12], gCursor_750024, 0x00750024, 0xc);
+GAME_DATA(char[12], gCursor_750030, 0x00750030, 0xc);
+GAME_DATA(char[12], gCursor_75003c, 0x0075003c, 0xc);
+GAME_DATA(char[12], gCursor_750048, 0x00750048, 0xc);
+GAME_DATA(char[12], gCursor_750054, 0x00750054, 0xc);
 GAME_DATA(char[16], gCursor_74fe8c, 0x0074fe8c, 0x10);
 GAME_DATA(char[16], gCursor_74fe9c, 0x0074fe9c, 0x10);
 GAME_DATA(char[12], gCursor_74feb8, 0x0074feb8, 0xc);

@@ -70,7 +70,7 @@ bool Build(u8 *self, u32 flags) {
     }
     logged((u32)&gText_D3dsetup_7689b0);
     noted((u32)&gText_D3dsetup_768998);
-    keep(comcall<u32>(draw, 0, 0x00707520u, self + 4));
+    keep(comcall<u32>(draw, 0, (u32)(uintptr_t)&gD3dsetup_707520, self + 4));
     if (result()) return false;
     if (flags & 0x10) {
         logged((u32)&gText_D3dsetup_768988);

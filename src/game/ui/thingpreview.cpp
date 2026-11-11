@@ -40,7 +40,7 @@ u32 __cdecl ThingPreview_Show(const u8 *rect, u8 *thing, s32 depth, u32 scale) {
     std::memcpy(&lift, &scale, 4);
     const u32 sunk = FtolLow(X87Reg(lift) * X87Reg(gThingPreview_Show_6ff160));  // * -0.25
     const u32 row = (u32)((bottom - top) >> 2) - sunk - (u32)bottom + 0x300;
-    const float y = (float)X87_MulIntDouble((s32)row, global<float>(0x006ff150));  // / 768
+    const float y = (float)X87_MulIntDouble((s32)row, gGuimessagefx_6ff150);  // / 768
     const float z = (float)Sprite_FlipY(depth);
     const s32 slot = SpriteScript_Clone(script, bits(x), bits(y), bits(z), scale);
     gThingpreview_7c24a0 = slot;

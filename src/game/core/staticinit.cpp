@@ -12,6 +12,7 @@
 #include "../gfx/textlayout.h"
 #include "../math/intpair.h"
 #include "../render/spritequeue.h"
+#include "../sprite/loading.h"
 #include "../ui/panel7ca178.h"
 #include "../ui/panel7cc298.h"
 #include "../world/object.h"
@@ -19,6 +20,7 @@
 #include "../world/steering.h"
 #include "../world/world.h"
 #include "balancefile.h"
+#include "gameframe.h"
 #include "imports.h"
 #include "iosbase.h"
 #include "nstream.h"
@@ -6880,10 +6882,10 @@ void __cdecl Exit_692ad0() {   // 0x692ad0
 }
 void __cdecl Exit_692ba0() {   // 0x692ba0
     u32 eax = 0, ecx = 0;
-    eax = M<u32>((u32)(uintptr_t)&gOstreamW_fb1cc8);
+    eax = M<u32>((u32)(uintptr_t)&gIosbase_fb1cc8);
     ecx = M<u32>(eax + 0x4u);
-    M<u32>(ecx + (u32)(uintptr_t)&gOstreamW_fb1cc8) = (u32)(uintptr_t)&Class7099ec_vtable;
-    ecx = ((u32)(uintptr_t)&gOstreamW_fb1cc8 + 0x4);
+    M<u32>(ecx + (u32)(uintptr_t)&gIosbase_fb1cc8) = (u32)(uintptr_t)&Class7099ec_vtable;
+    ecx = ((u32)(uintptr_t)&gIosbase_fb1cc8 + 0x4);
     g_calls.Th(0x004f0100, ecx);   // BasicIosW_Dtor (tail)
     return;
 }
@@ -7108,7 +7110,7 @@ void __cdecl Sub_692b00() {   // 0x692b00
     const u32 sp = (u32)(uintptr_t)(frame + sizeof frame);
     M<u32>(sp - 0x4) = 0x1u;
     M<u32>(sp - 0x8) = 0x0u;
-    ecx = (u32)(uintptr_t)&gOstreamW_fb1cc8;
+    ecx = (u32)(uintptr_t)&gIosbase_fb1cc8;
     eax = g_calls.Th(0x00692b10, ecx, M<u32>(sp - 0x8), M<u32>(sp - 0x4));   // OstreamW_CtorUninit
     return;
 }
@@ -19130,8 +19132,8 @@ void __cdecl Init_540ba0() {   // 0x540ba0
     alignas(4) u8 frame[0x4];
     const u32 sp = (u32)(uintptr_t)(frame + sizeof frame);
     M<u32>(sp - 0x4) = 0x540bc0u;
-    M<u32>(0x875058u) = 0x87505cu;
-    M<u8>(0x87505cu) = 0x0u;
+    M<u32>(((u32)(uintptr_t)&gSpriteFindRecord_875038 + 0x20)) = ((u32)(uintptr_t)&gSpriteFindRecord_875038 + 0x24);
+    M<u8>(((u32)(uintptr_t)&gSpriteFindRecord_875038 + 0x24)) = 0x0u;
     eax = g_calls.Cd(0x0067a7d0, M<u32>(sp - 0x4));   // CRT_atexit
     return;
 }
@@ -19260,8 +19262,8 @@ void __cdecl Init_5510f0() {   // 0x5510f0
     return;
 }
 void __cdecl Init_551110() {   // 0x551110
-    X87Reg53 x0 = X87Reg53(M<float>(0x700fc8u));
-    x0 = x0 / M<float>(0x700f98u);
+    X87Reg53 x0 = X87Reg53(M<float>(((u32)(uintptr_t)&gGameframe_700f8c + 0x3c)));
+    x0 = x0 / M<float>(((u32)(uintptr_t)&gGameframe_700f8c + 0xc));
     M<float>(0x879198u) = (float)x0;
     return;
 }

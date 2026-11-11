@@ -49,7 +49,7 @@ struct Tab {
 const Tab kTabs[4] = {
     {reinterpret_cast<uintptr_t>(&gDialog7ca150_750ab8), 0, 5, reinterpret_cast<uintptr_t>(&gDialog7ca150_750d5c[0]), {0x80, 0x2000}, {0x00493e90, 0x00493eb0}, 0x52, {0x69, 0x6a, 0x6b, 0x6c, 0x6d}},
     {reinterpret_cast<uintptr_t>(&gDialog7ca150_750ab8), 1, 5, reinterpret_cast<uintptr_t>(&gDialog7ca150_750d5c[1]), {0x200, 0}, {0x00493f30, 0}, 0x57, {0x69, 0x248, 0x249, 0x24a, 0x24b}},
-    {0x00750ba0, 2, 6, reinterpret_cast<uintptr_t>(&gDialog7ca150_750d5c[2]), {0x100, 0}, {0x00494070, 0}, 0x5c, {0x69, 0x248, 0x6b, 0x249, 0x24a, 0x24b}},
+    {reinterpret_cast<uintptr_t>(&gDialog7ca150_750ba0), 2, 6, reinterpret_cast<uintptr_t>(&gDialog7ca150_750d5c[2]), {0x100, 0}, {0x00494070, 0}, 0x5c, {0x69, 0x248, 0x6b, 0x249, 0x24a, 0x24b}},
     {reinterpret_cast<uintptr_t>(&gDialog7ca150_750ca0), 3, 2, reinterpret_cast<uintptr_t>(&gDialog7ca150_750d5c[3]), {0x400, 0}, {0x004941e0, 0}, 0x62, {0x69, 0x24c}},
 };
 

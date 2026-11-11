@@ -19,6 +19,7 @@
 #include "waddir.h"
 #include "../core/vdtor.h"
 #include "../core/imports.h"
+#include "../world/objectdefs.h"
 #include "../core/staticobjects.h"
 
 namespace {
@@ -182,7 +183,7 @@ u32 __cdecl GamePaths_FontsFolder(char *out) {
     s32 length = 0;
     while (root[length] != 0)
         ++length;
-    const char *const format = root[length - 1] == '\\' ? at<const char *>((u32)&gText_Gamepaths_74d320) : at<const char *>(0x007488ac);   // (empty: root[-1], sic)
+    const char *const format = root[length - 1] == '\\' ? at<const char *>((u32)&gText_Gamepaths_74d320) : at<const char *>((u32)&gText_Objectdefs_7488ac);   // (empty: root[-1], sic)
     Crt().sprintf(out, format, root, at<const char *>((u32)&gText_GamePaths_FontsFolder_74d6c0));
     return 1;
 }
@@ -228,6 +229,8 @@ WString *__stdcall GamePaths_OnlineFolder(WString *out) {
     return out;
 }
 
+extern "C" void __cdecl GamePaths_Base_AtExit() { String_Dtor(at<String *>((u32)&gGamePaths_Base_788028)); }
+
 void GamePaths_SetCalls(const AddrCall *table, u32 count) { g_calls.Set(table, count); }
 
 extern "C" const char *__cdecl GamePaths_Base() {
@@ -244,12 +247,12 @@ extern "C" const char *__cdecl GamePaths_Base() {
     vcall<void>(path, 0x28, at<const StringView *>((u32)(uintptr_t)&gString_787f50));
     String_EnsureTrailingBackslash(path);
     vcall<void>(path, 0x28, at<const StringView *>((u32)(uintptr_t)&gNamedObjects_786b68));
-    return *at<const char *const *>((u32)&gGamePaths_Base_788030);
+    return *at<const char *const *>((u32)&gGamePaths_Base_788028 + 8);
 }
 
 s32 __cdecl GamePaths_ShareTexFolder(char *out) {
     const u32 root = g_calls.Cd(0x0040ef40);
-    return Crt().sprintf(out, reinterpret_cast<const char *>((uintptr_t)0x007488ac), reinterpret_cast<const char *>((uintptr_t)root), gGamePaths_7af720);
+    return Crt().sprintf(out, gText_Objectdefs_7488ac,reinterpret_cast<const char *>((uintptr_t)root), gGamePaths_7af720);
 }
 
 u32 *__cdecl GamePaths_SetRoots(u32 *result) {

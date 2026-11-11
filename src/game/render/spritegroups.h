@@ -23,5 +23,7 @@ u32 __fastcall SpriteGroups_Draw(u8 *object, void *);
 #include "../core/gamedata.h"
 
 // Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(const float, gSpritegroups_Size_701ac8, 0x00701ac8, 0x4);   // 1/1024
+GAME_DATA(const float, gSpritegroups_Turn_701ad0, 0x00701ad0, 0x4);   // 1/65536
 GAME_DATA(const float, gSpritegroups_701b24, 0x00701b24, 0x4);
 GAME_DATA(const float, gSpritegroups_701b28, 0x00701b28, 0x4);

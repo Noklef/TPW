@@ -125,7 +125,7 @@ u32 __fastcall VertexBlock_AddFace(u8 *block, void *, u32 x, u32 y, u32 z, u32 f
     default: corner[0] = first; corner[1] = first + 1; corner[2] = first + 2; corner[3] = first + 3; break;
     }
     const auto vertex = [&](u32 px, u32 py, u32 pz, u32 k) {
-        const u32 *const uv = reinterpret_cast<const u32 *>(0x00871ee8 + 0xc * corner[k]);
+        const u32 *const uv = reinterpret_cast<const u32 *>(gDynFaces_Uv_871ee8[corner[k]]);
         add(block, nullptr, px, py, pz, uv[0], uv[1], wave, nullptr);
     };
     const auto past = [&](u32 p) { return bits((float)(X87Reg(step) + X87Reg(value(p)))); };   // fld step; fadd p
@@ -215,7 +215,7 @@ u8 *__fastcall VertexBlock_Construct(u8 *block, void *, u32 cubes, u32 quads, u3
     at<u32>(block, 4) = 0;
     at<u16>(block, 8) = (u16)quads;
     at<u32>(block, 0xc) = Flag54dcc0_Test() ? (u32)(uintptr_t)&gText_VertexBlock_Construct_763ee4 : (u32)(uintptr_t)&gText_Vertexblock_74cb98;
-    char *const path = reinterpret_cast<char *>(0x00871f68);
+    char *const path = gVertexBlock_Path_871f68;
     {
         const char *const from = reinterpret_cast<const char *>((u32)(uintptr_t)&gText_VertexBlock_Construct_763ed4);
         u32 n = 0;
@@ -226,8 +226,8 @@ u8 *__fastcall VertexBlock_Construct(u8 *block, void *, u32 cubes, u32 quads, u3
     }
     append(path, at<const char *>(Obj_Self(reinterpret_cast<u8 *>((u32)(uintptr_t)&gNamedObjects_786b68)), 8));
     append(path, reinterpret_cast<const char *>(Flag54dcc0_Test() ? (u32)(uintptr_t)&gText_VertexBlock_Construct_763ec0 : (u32)(uintptr_t)&gText_VertexBlock_Construct_763eac));
-    at<u32>(block, 0x10) = 0x871f68;
-    at<u32>(block, 0x14) = 0x763b38;
+    at<u32>(block, 0x10) = (u32)(uintptr_t)&gVertexBlock_Path_871f68;
+    at<u32>(block, 0x14) = (u32)(uintptr_t)&gVertexBlock_Construct_763b38;
     at<u32>(block, 0x54) = 3;
     at<u16>(block, 0x58) = 1;
     at<u8 *>(block, 0x5c) = block + 0x24;
@@ -290,8 +290,8 @@ u32 __fastcall VertexBlock_TakeFaces(u8 *block) {
     u32 count = 0;
     bool found = false;
     for (s32 n = 0; n < *reinterpret_cast<const s32 *>(&gDynfaces_871ee0); ++n) {
-        const u32 index = reinterpret_cast<const u32 *>(0x00872168)[n];
-        const u8 *const face = reinterpret_cast<const u8 *>((uintptr_t)(0x00820b00u + (index >> 5) * 0xa0u));
+        const u32 index = gDynFaces_Tags_872168[n];
+        const u8 *const face = reinterpret_cast<const u8 *>((uintptr_t)((u32)(uintptr_t)&gDynFaces_Faces_820b00 + (index >> 5) * 0xa0u));
         if (at<u32>(face, 0x90) != at<u32>(block, 0)) {
             if (found)
                 break;

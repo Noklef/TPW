@@ -2,7 +2,8 @@
 # recorders (busy, ask, take), an owner of 0-3 items, a native answer as reset_city() makes them; the callback a recorder of 3 cdecl arguments, the command queue and
 # the login dialog recorders by hook and env.
 # Open (0x5b7910): that world's list as the session's +0xf4, an index in or past its items, the dialog a recorder by hook and env.
-# usage: listrequest.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Done,Start,Text,Member,Login,LoginMember,Has108,Open)
+# Closed (0x4c4fa0, the dialogs' callback): [[0xf85614] + 0xc]'s vtable +0x44 a recorder (k 17).
+# usage: listrequest.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Done,Start,Text,Member,Login,LoginMember,Has108,Open,Closed)
 import os
 import struct
 import sys
@@ -16,11 +17,11 @@ import session  # noqa: E402
 DIALOG, POST, OPEN = 16, 25, 26
 C = lambda k, n: _recorder(k, n, cdecl=True)  # noqa: E731
 B = Bench([(0x5b5000, 0x5be000), (0x5f5f10, 0x5f5faa), (0x67afa0, 0x67b0d0), (0x4bae30, 0x4bae62), (0x41a830, 0x41a834), (0x4c25e0, 0x4c25f9), (0x658d9f, 0x658e04), (0x659710, 0x659740),
-           (0x65f697, 0x65f6e1), (0x48b390, 0x48b440)],
+           (0x65f697, 0x65f6e1), (0x48b390, 0x48b440), (0x4c4fa0, 0x4c4fad)],
           hooks={0x4ba980: C(DIALOG, 1), 0x47f410: C(POST, 2), 0x4c0ae0: C(OPEN, 5)})
 KINDS = [(0x5b9b00, 0x5bc7d0, 0x5bc710), (0x5b9d60, 0x5bcd10, 0x5bca70)]
 MEMBERS = [(0x5ba030, 0x5bd070, 0x5bcfb0, 0xf8), (0x5ba2f0, 0x5bd4b0, 0x5bd3f0, 0xfc), (0x5ba560, 0x5bd8c0, 0x5bd800, 0x100)]
-OPS = [k for k in os.environ.get('OPS', 'Done,Start,Text,Member,Login,LoginMember,Has108,Open').split(',') if k]
+OPS = [k for k in os.environ.get('OPS', 'Done,Start,Text,Member,Login,LoginMember,Has108,Open,Closed').split(',') if k]
 MAIN, OWNER, NODES, ITEMS, VT2, VT3, NATIVE, ARRAY = (RAM + 0x10000 + 0x400 * k for k in range(8))
 CALLBACK = recorder(20, 3, cdecl=True)
 SIZES = {0x5b9b00: 0x30, 0x5b9d60: 0x66, 0x5ba030: 0x10, 0x5ba2f0: 0x26, 0x5ba560: 0x34}
@@ -103,6 +104,11 @@ def case(r):
         regions[RAM + 0x20400] = vtable({0x12: 0})
         count = struct.unpack_from('<I', regions[OWNER], 0xc)[0]
         return Call(0x5b7910, [session.SESSION, r.choice([0, 1, count, count - 1, r.randrange(count + 2), -1 if count == 0 else 0])], regions, conv='t', ret='v')
+    if op == 'Closed':
+        regions[0xf85614] = struct.pack('<I', RAM + 0x20000)
+        regions[RAM + 0x20000] = r.bytes(0xc) + struct.pack('<I', RAM + 0x20010) + struct.pack('<I', RAM + 0x20400) + r.bytes(0xc)
+        regions[RAM + 0x20400] = vtable({})
+        return Call(0x4c4fa0, [], regions, ret='v')
     return Call(0x5bc8e0, [], regions, ret='a')
 
 

@@ -54,11 +54,13 @@ void __cdecl CRT_FF_MSGBANNER() {
 }
 
 void __cdecl CRT_NMSG_WRITE(s32 code) {
-    const s32 *const table = reinterpret_cast<const s32 *>((uintptr_t)0x00781680);
+    const s32 *const table = &CRT_NMSG_table[0];
     s32 entry = 0;
     while (entry < 18 && code != table[2 * entry]) ++entry;
-    if (code != table[2 * entry]) return;
-    const char *const text = reinterpret_cast<const char *>((uintptr_t)static_cast<u32>(table[2 * entry + 1]));
+    // (sic: a code past them is compared with the two words after the table, crtinput's scan set at 0x781710: no code matches it)
+    const s32 *const pair = entry < 18 ? table + 2 * entry : reinterpret_cast<const s32 *>((uintptr_t)0x00781710);
+    if (code != pair[0]) return;
+    const char *const text = reinterpret_cast<const char *>((uintptr_t)static_cast<u32>(pair[1]));
     const u32 mode = CRT_error_mode_fb135c;
     if (mode == 1 || (mode == 0 && CRT_app_type == 1)) {
         const u8 *const block = CRT_pioinfo[0];

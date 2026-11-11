@@ -6,6 +6,7 @@
 #include "../files/quickload.h"
 #include "cursor.h"
 #include "../core/imports.h"
+#include "../world/objectdefs.h"
 
 namespace {
 
@@ -18,7 +19,7 @@ const CursorFilesEnv *g_env = &kGameEnv;
 
 char *locate(u32 folder, const char *name) {
     char path[0x100];
-    g_env->sprintf(path, reinterpret_cast<const char *>((uintptr_t)0x007488ac), global<const char *>(folder), name);
+    g_env->sprintf(path, gText_Objectdefs_7488ac, global<const char *>(folder), name);
     return g_env->locate(path, 1, nullptr);
 }
 
@@ -29,7 +30,7 @@ void CursorFiles_SetEnv(const CursorFilesEnv *env) { g_env = env ? env : &kGameE
 extern "C" {
 
 u8 *__cdecl CursorFiles_LoadSystem(const char *name) {
-    char *const file = locate(0x0074fc30, name);
+    char *const file = locate((u32)(uintptr_t)&gCursorFiles_SystemFolder_74fc30, name);
     if (!file) return nullptr;
     void *const room = g_env->alloc(0x18);
     u8 *const cursor = room ? g_env->systemCtor(room) : nullptr;
@@ -40,7 +41,7 @@ u8 *__cdecl CursorFiles_LoadSystem(const char *name) {
 }
 
 u8 *__cdecl CursorFiles_LoadPicture(const char *name) {
-    char *const file = locate(0x0074fc34, name);
+    char *const file = locate((u32)(uintptr_t)&gCursorFiles_PictureFolder_74fc34, name);
     if (!file) return nullptr;
     void *const room = g_env->alloc(0x68);
     u8 *const cursor = room ? g_env->pictureCtor(room) : nullptr;

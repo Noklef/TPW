@@ -304,6 +304,10 @@ u32 __fastcall Online_UnpublishPark(u8 *session, void *, u32 park);
 // failures (error 0x56, 0x4e, 0x4d, 0x4c, 0x4b, 0x37, 0; 7 says "CRC match", 8 "No CRC match" and ends): the first list of +0xe0 to +0x100
 // with that request gets +0x18 = the error, +0x14 = 0, +0x10 = 1. Other codes do nothing.
 void __fastcall Online_ListAnswered(u8 *session, void *, s32 code, s32 request, u32, u8 *data);
+
+// 0x5b72c0 (stdcall (code, request, c, data), pops 0x10; name invented, unconfirmed): the callback Online_OpenCity gives City::Connect:
+// Online_ListAnswered on Online_Instance with its four arguments.
+void __stdcall Online_CityAnswered(s32 code, s32 request, u32 c, u8 *data);
 }
 
 #include "../core/gamedata.h"

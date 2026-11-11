@@ -82,8 +82,8 @@ void __cdecl ModelSlot_Free(u32 slot) {
 
 u8 *__fastcall ModelSlot_Ctor(u8 *slot) {
     u8 *const part = slot + 0x48;
-    at<u32>(part, 0) = 0x006fdd00;
-    at<u32>(part, 0xc) = 0x006fdcf8;
+    at<u32>(part, 0) = (u32)(uintptr_t)&Vbtable_6fdd00;
+    at<u32>(part, 0xc) = (u32)(uintptr_t)&Vbtable_6fdcf8;
     at<u32>(part, 8) = (u32)(uintptr_t)Class6fdce8_vtable;
     // The offsets come through the vbtable pointers just stored, read again for each store as the original does.
     at<u32>(part, at<u32>(at<u8 *>(part, 0xc), 4) + 0xc) = (u32)(uintptr_t)Class6fdcd8_vtable;

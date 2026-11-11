@@ -43,6 +43,7 @@ GAME_DATA(const char[0x14], CRT_text_GetLastActivePopup_7096f4, 0x007096f4, 0x14
 GAME_DATA(const char[0x10], CRT_text_GetActiveWindow_709708, 0x00709708, 0x10);
 GAME_DATA(const char[0xc], CRT_text_user32_709724, 0x00709724, 0xc);
 GAME_DATA(u32, CRT_app_type, 0x0077ea84, 0x4);
+GAME_DATA(s32[36], CRT_NMSG_table, 0x00781680, 0x90);   // (rterrs: 18 (code, text) pairs)
 GAME_DATA(u32, CRT_error_mode_fb135c, 0x00fb135c, 0x4);
 GAME_DATA(CrtMessageHookFn, CRT_msgbanner_hook_fb1888, 0x00fb1888, 0x4);
 GAME_DATA(CrtMessageBoxFn, CRT_pfnMessageBox, 0x00fb1900, 0x4);

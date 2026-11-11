@@ -64,10 +64,9 @@ bool find_cell(u8 *grid, u32 kind, s32 *column, s32 *row) {
 
 // The object text table's row for the id (0x7488d8 .. 0x749850, 0xc bytes a row; an id 0 ends it), or none.
 const u8 *object_text_row(u32 id) {
-    for (u32 row = 0x007488d8; row < 0x00749850; row += 0xc) {
-        const u32 k = global<u32>(row);
-        if (k == 0) break;
-        if (k == id) return reinterpret_cast<const u8 *>((uintptr_t)row);
+    for (const u32 *row : gObjectTexts_7488d8) {
+        if (row[0] == 0) break;
+        if (row[0] == id) return reinterpret_cast<const u8 *>(row);
     }
     return nullptr;
 }
@@ -283,7 +282,7 @@ u8 *__fastcall ObjectDefs_Next(u8 *defs) {
 }
 
 const u8 *__fastcall ObjectDef_GetSchema(const void *, void *, u32 index) {
-    return reinterpret_cast<const u8 *>(0x00744b30) + index * 0x3c;
+    return reinterpret_cast<const u8 *>((u32)(uintptr_t)&gObjectDef_GetSchema_744b30) + index * 0x3c;
 }
 
 const u8 *__fastcall TrackType_GetSchema(const void *, void *, u32 index) {
@@ -586,8 +585,6 @@ AddrCalls g_loadCalls;
 
 u32 address(const void *p) { return static_cast<u32>(reinterpret_cast<uintptr_t>(p)); }
 
-const char *const kPathFormat = reinterpret_cast<const char *>((uintptr_t)0x007488ac);    // "%s\\%s"
-const char *const kPrefixedFormat = reinterpret_cast<const char *>((uintptr_t)0x007488a4);   // "%s\\%s%s"
 
 const char *handleFolder(u8 *handle) { return vcall<const char *>(handle, 0x18); }
 
@@ -608,12 +605,12 @@ struct DefLoad {
     char *name;
 
     void namePath(const char *file) {
-        Crt().sprintf(name, kPathFormat, handleFolder(source + 0x2c), file);
+        Crt().sprintf(name, gText_Objectdefs_7488ac, handleFolder(source + 0x2c), file);
     }
     void namePrefixed(u32 prefixText) {
         const char *const file = at<const char *>(source, 0xc);
         const char *const prefix = global<const char *>(prefixText);
-        Crt().sprintf(name, kPrefixedFormat, handleFolder(source + 0x2c), prefix, file);
+        Crt().sprintf(name, gText_Objectdefs_7488a4, handleFolder(source + 0x2c), prefix, file);
     }
     // The stream read into a balance file; failed: the error, unless silent.
     bool read(u8 *balance, u32 keep, bool silent = false) {
@@ -681,7 +678,7 @@ u32 loadDefinition(u8 *defs, u8 *entry, u8 *opener, u8 *source, String *path, St
         if (at<u32>(def, 0x490) && at<u32>(def, 0x9c) == 3) {
             at<u32>(balance, 0) = (u32)(uintptr_t)TrackTypeBalance_vtable;
             g_loadCalls.Th(0x00401030, address(balance));
-            Crt().sprintf(name, kPathFormat, handleFolder(handle), global<const char *>((u32)(uintptr_t)&gString_78a0a8 + 0x8));
+            Crt().sprintf(name, gText_Objectdefs_7488ac, handleFolder(handle), global<const char *>((u32)(uintptr_t)&gString_78a0a8 + 0x8));
             if (g_loadCalls.Th(0x0041f330, address(source), streamAt) && !load.read(balance, 0)) {
                 at<u32>(balance, 0) = (u32)(uintptr_t)TrackTypeBalance_vtable;
                 g_loadCalls.Th(0x00401250, address(balance));

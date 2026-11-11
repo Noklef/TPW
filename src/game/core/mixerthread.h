@@ -15,4 +15,7 @@ extern "C" {
 // 0x6b63a0 (thiscall; pops nothing): every 40 ms the import 0x6fd200 takes the signal +0x38 (leaving 0). While it was 1: with the stop byte +0x35 set, byte +0x34 = 1 and the end; otherwise every voice in the array +0x40 (+0x4c entries): when audible, its method 0x14 (out, now);
 // the object +0x28's method 0 and both its pointers cleared.
 void __fastcall SoundMixer_ThreadLoop(u8 *mixer);
+
+// 0x6b6040 (cdecl; the thread function the mixer gives _beginthread): SoundMixer_ThreadLoop on its argument.
+void __cdecl SoundMixer_ThreadStart(u8 *mixer);
 }

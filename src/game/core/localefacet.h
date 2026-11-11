@@ -14,8 +14,8 @@ u32 *__fastcall NumPut_Ctor(u32 *self, void *, u32 refs);
 u32 *__fastcall NumGet_Ctor(u32 *self, void *, u32 refs);
 
 // 0x69b490 / 0x69cb00 (pops 4): num_get's / num_put's constructors of wchar_t: as those of char. 0x69b460 (pops 8, the first not read): codecvt<wchar_t, char, int>'s constructor: refs, the vtable 0x709ce4, _Getcvt at +8.
-u32 *__fastcall WNumGet_Ctor(u32 *self, void *, u32 refs);
-u32 *__fastcall WNumPut_Ctor(u32 *self, void *, u32 refs);
+u32 *__fastcall NumPutW_Ctor(u32 *self, void *, u32 refs);
+u32 *__fastcall NumGetW_Ctor(u32 *self, void *, u32 refs);
 u32 *__fastcall WCodecvt_Ctor(u32 *self, void *, const void *, u32 refs);
 
 // 0x695910 / 0x69c680 (pops 4): numpunct<char> / <wchar_t>'s constructor: refs, the vtable, then _Init (inlined) under a _Locinfo of the name at 0x75c74c.
@@ -220,10 +220,12 @@ GAME_DATA(void *[7], NumPut_vtable, 0x00709acc, 0x1c);
 GAME_DATA(void *[10], NumGet_vtable, 0x00709aec, 0x28);
 GAME_DATA(void *[1], LocaleFacet_vtable, 0x00709b44, 0x4);
 GAME_DATA(void *[10], Class709bbc_vtable, 0x00709bbc, 0x28);
+GAME_DATA(void *[3], MoneyPutW_vtable, 0x00709bec, 0xc);
+GAME_DATA(void *[3], MoneyGetW_vtable, 0x00709bfc, 0xc);
 GAME_DATA(void *[4], WFacet709c0c_vtable, 0x00709c0c, 0x10);
 GAME_DATA(void *[4], CollateW_vtable, 0x00709c24, 0x10);
 GAME_DATA(void *[6], WNumpunct_vtable, 0x00709c3c, 0x18);
-GAME_DATA(void *[7], WNumGet_vtable, 0x00709c5c, 0x1c);
+GAME_DATA(void *[7], NumPutW_vtable,0x00709c5c, 0x1c);
 GAME_DATA(void *[10], NumGetW_vtable, 0x00709c7c, 0x28);
 GAME_DATA(void *[10], Class709f2c_vtable, 0x00709f2c, 0x28);
 GAME_DATA(void *[10], Class709f5c_vtable, 0x00709f5c, 0x28);

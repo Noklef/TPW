@@ -11,6 +11,8 @@
 #include "vtables.h"
 #include "../gfx/texsurface.h"
 #include "liveobjects.h"
+#include "fpu.h"
+#include "inputsystem.h"
 #include "../gfx/texture.h"
 #include "../render/rasteriser.h"
 #include "../render/softrender.h"
@@ -707,5 +709,9 @@ s32 __cdecl AtExit_5f5580() { return g_env->atExit(reinterpret_cast<void *>((uin
 s32 __cdecl AtExit_5d1750() { return g_env->atExit(reinterpret_cast<void *>((uintptr_t)0x005d1750)); }
 s32 __cdecl AtExit_5fa010() { return g_env->atExit(reinterpret_cast<void *>((uintptr_t)0x005fa010)); }
 s32 __cdecl AtExit_618cc0() { return g_env->atExit(reinterpret_cast<void *>((uintptr_t)0x00618cc0)); }
+void __cdecl ExitDtor_5f5580() { InputSystem_Dtor(reinterpret_cast<u8 *>(0x00fa6e40)); }
+void __cdecl ExitDtor_5fa010() { Class7035d8_Dtor(reinterpret_cast<u8 *>(0x00fa78e8)); }
+void __cdecl ExitDtor_618cc0() {}
+void __cdecl ExitDtor_6c4540() {}
 u32 __cdecl Thread_Begin(void *proc, void *arg) { return g_env->beginThread(proc, 0, arg); }
 }  // extern "C"

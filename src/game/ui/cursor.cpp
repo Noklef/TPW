@@ -34,36 +34,36 @@ const CursorFile kAniCursors[] = {
     {reinterpret_cast<uintptr_t>(&gCursor_74ff4c), 0x0},   // c_norm.ani
     {reinterpret_cast<uintptr_t>(&gCursor_74ff40), 0x1},   // c_busy.ani
     {reinterpret_cast<uintptr_t>(&gCursor_74ff34), 0x3},   // c_path.ani
-    {0x0074ff28, 0x4},   // c_queue.ani
+    {reinterpret_cast<uintptr_t>(&gCursor_74ff28), 0x4},   // c_queue.ani
     {reinterpret_cast<uintptr_t>(&gCursor_74ff1c), 0x5},   // c_link.ani
-    {0x0074ff10, 0x7},   // c_place.ani
+    {reinterpret_cast<uintptr_t>(&gCursor_74ff10), 0x7},   // c_place.ani
     {reinterpret_cast<uintptr_t>(&gCursor_74ff00), 0x8},   // c_noplace.cur
     {reinterpret_cast<uintptr_t>(&gCursor_74fef4), 0x2},   // c_pick.ani
-    {0x0074fee8, 0x9},   // c_carry.ani
-    {0x0074fedc, 0xa},   // c_erase.ani
-    {0x0074fed0, 0xb},   // c_pylon.ani
+    {reinterpret_cast<uintptr_t>(&gCursor_74fee8), 0x9},   // c_carry.ani
+    {reinterpret_cast<uintptr_t>(&gCursor_74fedc), 0xa},   // c_erase.ani
+    {reinterpret_cast<uintptr_t>(&gCursor_74fed0), 0xb},   // c_pylon.ani
     {reinterpret_cast<uintptr_t>(&gCursor_74fec4), 0x13},   // c_cam.ani
     {reinterpret_cast<uintptr_t>(&gCursor_74feb8), 0x14},   // c_cash.ani
-    {0x0074feac, 0x6},   // c_track.ani
+    {reinterpret_cast<uintptr_t>(&gCursor_74feac), 0x6},   // c_track.ani
     {reinterpret_cast<uintptr_t>(&gCursor_74fe9c), 0xc},   // c_height.ani
     {reinterpret_cast<uintptr_t>(&gCursor_74fe8c), 0xd},   // c_rotate.ani
-    {0x0074fe80, 0xe},   // c_pivot.ani
-    {0x0074fe70, 0xf},   // c_swapdown.ani
-    {0x0074fe60, 0x10},   // c_swapup.ani
-    {0x0074fe54, 0x12},   // c_end.ani
-    {0x0074fe48, 0x11},   // c_move.ani
-    {0x0074fe38, 0x15},   // c_crosshair.ani
+    {reinterpret_cast<uintptr_t>(&gCursor_74fe80), 0xe},   // c_pivot.ani
+    {reinterpret_cast<uintptr_t>(&gCursor_74fe70), 0xf},   // c_swapdown.ani
+    {reinterpret_cast<uintptr_t>(&gCursor_74fe60), 0x10},   // c_swapup.ani
+    {reinterpret_cast<uintptr_t>(&gCursor_74fe54), 0x12},   // c_end.ani
+    {reinterpret_cast<uintptr_t>(&gCursor_74fe48), 0x11},   // c_move.ani
+    {reinterpret_cast<uintptr_t>(&gCursor_74fe38), 0x15},   // c_crosshair.ani
 };
 
 const CursorFile kTgaCursors[] = {
-    {0x00750054, 0x0},   // CNor.tga
-    {0x00750048, 0x1},   // Cbus.tga
-    {0x0075003c, 0x3},   // Cpat.tga
-    {0x00750030, 0x4},   // Cque.tga
-    {0x00750024, 0x5},   // Clin.tga
-    {0x00750018, 0x7},   // Cpla.tga
-    {0x0075000c, 0x8},   // Cnog.tga
-    {0x00750000, 0x2},   // Cpic.tga
+    {reinterpret_cast<uintptr_t>(&gCursor_750054), 0x0},   // CNor.tga
+    {reinterpret_cast<uintptr_t>(&gCursor_750048), 0x1},   // Cbus.tga
+    {reinterpret_cast<uintptr_t>(&gCursor_75003c), 0x3},   // Cpat.tga
+    {reinterpret_cast<uintptr_t>(&gCursor_750030), 0x4},   // Cque.tga
+    {reinterpret_cast<uintptr_t>(&gCursor_750024), 0x5},   // Clin.tga
+    {reinterpret_cast<uintptr_t>(&gCursor_750018), 0x7},   // Cpla.tga
+    {reinterpret_cast<uintptr_t>(&gCursor_75000c), 0x8},   // Cnog.tga
+    {reinterpret_cast<uintptr_t>(&gCursor_750000), 0x2},   // Cpic.tga
     {reinterpret_cast<uintptr_t>(&gCursor_74fff4), 0x9},   // Ccar.tga
     {reinterpret_cast<uintptr_t>(&gCursor_74ffe8), 0xa},   // Cera.tga
     {reinterpret_cast<uintptr_t>(&gCursor_74ffdc), 0xb},   // Cpyl.tga

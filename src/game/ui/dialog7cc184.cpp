@@ -114,7 +114,7 @@ extern "C" void __cdecl Dialog7cc184_Open() {
         g_open->attach(dialog, 0x5d9e, (u32)(uintptr_t)g_open->text(0xd0));
         if (u8 *const edit = Window_FindChild(dialog, nullptr, 0x5da5)) dressEdit(edit, (u32)(uintptr_t)&gDialog7cc654_7cb4d0, 0x100, 0x1ff, 1, 0xd3, true);
         if (u8 *const edit = Window_FindChild(dialog, nullptr, 0x5da4)) dressEdit(edit, 0x007cb408, 0x30, 0x5f, 0, 0xd1, false);
-        if (u8 *const edit = Window_FindChild(dialog, nullptr, 0x5da3)) dressEdit(edit, 0x007cbf48, 0x80, 0xff, 1, 0xd2, false);
+        if (u8 *const edit = Window_FindChild(dialog, nullptr, 0x5da3)) dressEdit(edit, (u32)(uintptr_t)&gDialog7cc184_7cbf48, 0x80, 0xff, 1, 0xd2, false);
         if (u8 *const picture = Window_FindChild(dialog, nullptr, 0x5d9f)) showPicture(picture);
     }
     gDialog7cc184_7cbf40 = 0;

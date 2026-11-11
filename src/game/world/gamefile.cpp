@@ -94,41 +94,41 @@ u32 __fastcall GameFile_Save(void *, void *, Stream *stream, u32 mode) {
     positions(stream);
     if (mode == 1) return 1;
     if (!g_calls.Th(0x00516c80, level(), stream)) return 0;   // World_Save
-    tagged(stream, 0x006fd8b8);
+    tagged(stream, (u32)(uintptr_t)&gGameFile_Tags_6fd8b8[0]);
     g_calls.Cd(0x00475650, stream);   // SpriteScripts_Save
-    tagged(stream, 0x006fd8bc);
+    tagged(stream, (u32)(uintptr_t)&gGameFile_Tags_6fd8b8[1]);
     if (g_calls.Cd(0x0051f680, stream, 0u)) return 0;   // Particles_Save
-    tagged(stream, 0x006fd8c0);
+    tagged(stream, (u32)(uintptr_t)&gGameFile_Tags_6fd8b8[2]);
     if (g_calls.Th(0x0040fc80, g_calls.Cd(0x00415e00), &stream)) return 0;   // MessageCentre_Save
-    tagged(stream, 0x006fd8c4);
+    tagged(stream, (u32)(uintptr_t)&gGameFile_Tags_6fd8b8[3]);
     if (!g_calls.Th(0x00402e00, kClock, stream)) return 0;   // Clock_Save
-    tagged(stream, 0x006fd8d8);
+    tagged(stream, (u32)(uintptr_t)&gGameFile_Tags_6fd8b8[8]);
     if (!g_calls.Th(0x00403220, kVanillaTime, stream)) return 0;   // VanillaTime_Save
-    tagged(stream, 0x006fd8dc);
+    tagged(stream, (u32)(uintptr_t)&gGameFile_Tags_6fd8b8[9]);
     if (!g_calls.Cd(0x00550520, stream)) return 0;   // GameSystem_Save
-    tagged(stream, 0x006fd8e0);
+    tagged(stream, (u32)(uintptr_t)&gGameFile_Tags_6fd8b8[10]);
     if (!g_calls.Cd(0x00464140, stream)) return 0;   // RideSystem_Save
-    tagged(stream, 0x006fd8e4);
+    tagged(stream, (u32)(uintptr_t)&gGameFile_Tags_6fd8b8[11]);
     if (!g_calls.Cd(0x005428e0, stream)) return 0;   // TrackRides_Save
-    tagged(stream, 0x006fd8c8);
+    tagged(stream, (u32)(uintptr_t)&gGameFile_Tags_6fd8b8[4]);
     if (g_calls.Cd(0x0055de70, stream)) return 0;   // FlyingRides_Save
-    tagged(stream, 0x006fd8cc);
+    tagged(stream, (u32)(uintptr_t)&gGameFile_Tags_6fd8b8[5]);
     if (g_calls.Cd(0x00559350, stream)) return 0;   // RSSE_Save
-    tagged(stream, 0x006fd8d0);
+    tagged(stream, (u32)(uintptr_t)&gGameFile_Tags_6fd8b8[6]);
     if (!g_calls.Cd(0x0042cdc0, stream)) return 0;   // Camera_Save
-    tagged(stream, 0x006fd8d4);
+    tagged(stream, (u32)(uintptr_t)&gGameFile_Tags_6fd8b8[7]);
     if (!g_calls.Cd(0x00437300, stream)) return 0;   // Coasters_Save
-    tagged(stream, 0x006fd8e8);
+    tagged(stream, (u32)(uintptr_t)&gGameFile_Tags_6fd8b8[12]);
     g_calls.Cd(0x00599c30, stream);   // Advisor_Save
-    tagged(stream, 0x006fd8f0);
+    tagged(stream, (u32)(uintptr_t)&gGameFile_Tags_6fd8b8[14]);
     g_calls.Cd(0x0051c350, stream);   // Sound_Save
-    tagged(stream, 0x006fd8ec);
+    tagged(stream, (u32)(uintptr_t)&gGameFile_Tags_6fd8b8[13]);
     cheatsMade();
     if (!g_calls.Th(0x004055d0, kCheats, &stream)) return 0;   // CheatSystem_Save
-    tagged(stream, 0x006fd8f4);
+    tagged(stream, (u32)(uintptr_t)&gGameFile_Tags_6fd8b8[15]);
     scoringMade();
     if (!g_calls.Th(0x0059c890, kScoring, &stream)) return 0;   // AdvisorScoring_Save
-    tagged(stream, 0x006fd8f8);
+    tagged(stream, (u32)(uintptr_t)&gGameFile_Tags_6fd8b8[16]);
     g_calls.Th(0x004816a0, kUi, stream);   // Wrap_MsgTags_Save_4816a0
     positions(stream);
     return 1;

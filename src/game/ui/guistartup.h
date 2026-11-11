@@ -62,11 +62,7 @@ u32 __cdecl Gui_Teardown();
 #include "../core/gamedata.h"
 
 // Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
-GAME_DATA(u32, gGui_7b9fe0, 0x007b9fe0, 0x4);
-GAME_DATA(u32, gGui_Startup_7b9fe4, 0x007b9fe4, 0x4);
-GAME_DATA(u32, gGui_Startup_7b9fe8, 0x007b9fe8, 0x4);
-GAME_DATA(u32, gGui_Startup_7b9fec, 0x007b9fec, 0x4);
-GAME_DATA(u32, gGui_Startup_7b9ff0, 0x007b9ff0, 0x4);
+GAME_DATA(u32[5], gGui_7b9fe0, 0x007b9fe0, 0x14);   // one record: Gui_Frame passes it to the update, which calls +0x10 (0x486c70) for the buttons
 GAME_DATA(u32, gGui_Teardown_7c231c, 0x007c231c, 0x4);
 GAME_DATA(u32, gGuistartup_7c249c, 0x007c249c, 0x4);
 GAME_DATA(u32, gGuistartup_7c24d4, 0x007c24d4, 0x4);

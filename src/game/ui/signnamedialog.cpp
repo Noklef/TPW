@@ -33,8 +33,6 @@ template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cas
 using NameFn = void(__fastcall *)(u8 *, void *, u16 *, u32);
 using SetNameFn = void(__fastcall *)(u8 *, void *, const u16 *);
 
-u16 *const kNameA = reinterpret_cast<u16 *>((uintptr_t)0x007c2668);
-u16 *const kNameB = reinterpret_cast<u16 *>((uintptr_t)0x007c2688);
 u16 *const kNameBuffer = reinterpret_cast<u16 *>((uintptr_t)0x007ba058);
 const u32 kLabel = 0x3943e, kEditA = 0x3943c, kEditB = 0x3943d;
 
@@ -76,18 +74,18 @@ void dressLabel(u8 *window) {
 
 void dressEdits(u8 *window, u8 *thing) {
     u8 *const first = Window_FindChild(window, nullptr, kEditA);
-    dressEdit(first, kNameA, thing, g_open->nameA);
+    dressEdit(first, gSignNameDialog_NameA_7c2668, thing, g_open->nameA);
     g_open->selectAll(first);
-    dressEdit(Window_FindChild(window, nullptr, kEditB), kNameB, thing, g_open->nameB);
+    dressEdit(Window_FindChild(window, nullptr, kEditB), gSignNameDialog_NameB_7c2688, thing, g_open->nameB);
     g_open->resetKeys();
     g_open->setFocus(Window_FindChild(window, nullptr, kEditA), nullptr, 0);
 }
 
 // The thing told the two names and the fonts gone (the vector's elements destroyed, its block kept).
 void applyNames(u8 *thing) {
-    g_handler->setNameA(thing, nullptr, kNameA);
-    g_handler->setNameB(thing, nullptr, kNameB);
-    g_handler->announce(thing, kNameA, kNameB);
+    g_handler->setNameA(thing, nullptr, gSignNameDialog_NameA_7c2668);
+    g_handler->setNameB(thing, nullptr, gSignNameDialog_NameB_7c2688);
+    g_handler->announce(thing, gSignNameDialog_NameA_7c2668, gSignNameDialog_NameB_7c2688);
     u8 *font = global<u8 *>(0x00789c1c);
     u8 *end = global<u8 *>(0x00789c20);
     if (font != end) {
@@ -185,11 +183,11 @@ s32 __cdecl SignNameDialog7ca214_Handler(u8 *window, u32 message, u32 a, u32 b) 
         g_handler->restoreFocus();
     } else if (message == 0x100 && a == 0xffffffff) {
         applyNames(tableThing());
-        g_handler->saveNameA(g_handler->save(), nullptr, kNameA);
-        g_handler->saveNameB(g_handler->save(), nullptr, kNameB);
-        scramble(kNameA);
-        scramble(kNameB);
-        if (!Crt().wcscmp(gSignNameDialog7ca214_Handler_751a34, kNameA) && !Crt().wcscmp(gSignNameDialog7ca214_Handler_751a38, kNameB)) {
+        g_handler->saveNameA(g_handler->save(), nullptr, gSignNameDialog_NameA_7c2668);
+        g_handler->saveNameB(g_handler->save(), nullptr, gSignNameDialog_NameB_7c2688);
+        scramble(gSignNameDialog_NameA_7c2668);
+        scramble(gSignNameDialog_NameB_7c2688);
+        if (!Crt().wcscmp(gSignNameDialog7ca214_Handler_751a34, gSignNameDialog_NameA_7c2668) && !Crt().wcscmp(gSignNameDialog7ca214_Handler_751a38, gSignNameDialog_NameB_7c2688)) {
             u8 &guard = gSignNameDialog7ca214_Handler_fb34c4;
             u8 *const cheats = reinterpret_cast<u8 *>((uintptr_t)0x00fb3520);
             if (!(guard & 1)) {

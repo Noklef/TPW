@@ -21,8 +21,8 @@ const TiledPanelEnv *g_env = &kPortEnv;
 // The constants, as the game's memory holds them: 1, -1, -0.5, 0.5.
 const float &kOne = global<float>(0x00702030);
 const float &kLessOne = global<float>(0x00702038);
-const float &kLessHalf = global<float>(0x0070204c);
-const float &kHalf = global<float>(0x00702050);
+const float &kLessHalf = gTiledPanel_LessHalf_70204c;
+const float &kHalf = gTiledPanel_Half_702050;
 
 // a * b / 2, then fistp: round to nearest, through the dword 0xfb34a4.
 s32 Pixel(X87Reg a, float b) {

@@ -143,7 +143,7 @@ u32 __stdcall JpegWrite_Image(const u8 *handle, const u8 *info, const u8 *pixels
     g_calls.Cd(kSetDefaults, cinfo);
     g_calls.Cd(kSetQuality, cinfo, quality, 1u);
     g_calls.Cd(kStart, cinfo, 1u);
-    if (at<u32>(info, 0x428) & 1) g_calls.Cd(kWriteMarker, cinfo, 0xedu, 0x0077b2d4u, 9u);
+    if (at<u32>(info, 0x428) & 1) g_calls.Cd(kWriteMarker, cinfo, 0xedu, (u32)(uintptr_t)&gText_Jpegwrite_77b2d4, 9u);
     u8 *const row = reinterpret_cast<u8 *>((uintptr_t)g_calls.Th(kAlloc, 0u, static_cast<u32>(width * components)));
     if (row) {
         for (s32 y = 0; y < at<s32>(cinfo, 0x1c); ++y) {

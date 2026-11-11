@@ -6527,6 +6527,5 @@ GAME_DATA(u8[0x38], gOstreamW_fb1ba0, 0x00fb1ba0, 0x38);   // OstreamW_CtorUnini
 GAME_DATA(u8[0x40], gIstreamW_fb1bd8, 0x00fb1bd8, 0x40);   // IstreamW_CtorUninit, BasicIosW_Dtor; one initializer's
 GAME_DATA(u8[0x58], gWFileBuf_fb1c18, 0x00fb1c18, 0x58);   // WFileBuf_Dtor
 GAME_DATA(u8[0x58], gWFileBuf_fb1c70, 0x00fb1c70, 0x58);   // WFileBuf_Dtor
-GAME_DATA(u8[0x38], gOstreamW_fb1cc8, 0x00fb1cc8, 0x38);   // OstreamW_CtorUninit, BasicIosW_Dtor; one initializer's
 GAME_DATA(u8[0x58], gWFileBuf_fb1d00, 0x00fb1d00, 0x58);   // WFileBuf_Dtor
 GAME_DATA(u8[0x5], gSemaphore_fb205c, 0x00fb205c, 0x5);   // Semaphore_Dtor; one initializer's

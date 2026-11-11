@@ -93,7 +93,8 @@ void Mat4_SetCalls(const AddrCall *table, u32 count) { g_calls.Set(table, count)
 extern "C" {
 
 void __cdecl Mat4_InitGlobals() {
-    for (u32 address : {0x87b090u, 0x87b110u, 0x87aff0u, 0x87b030u, 0x87af68u, 0x87afa8u, 0x87b158u, 0x87b198u})
+    for (u32 address : {0x87b090u, 0x87b110u, (u32)(uintptr_t)&gMatrices_Update_87aff0, (u32)(uintptr_t)&gMatrices_Update_87b030, (u32)(uintptr_t)&gMatrices_Update_87af68,
+                        (u32)(uintptr_t)&gMatrices_Update_87afa8, (u32)(uintptr_t)&gMatrices_Update_87b158, (u32)(uintptr_t)&gMatrices_Update_87b198})
         Mat4_Identity(reinterpret_cast<u32 *>((uintptr_t)address));
 }
 
@@ -197,19 +198,19 @@ void __cdecl Mat4_LuDecompose(float *a, s32 *index, float *sign) {
 }
 
 u32 __cdecl Matrices_Update() {
-    inverse_through(0x0087aff0, 0x0087af68, 0x0087b158);
+    inverse_through((u32)(uintptr_t)&gMatrices_Update_87aff0, (u32)(uintptr_t)&gMatrices_Update_87af68, (u32)(uintptr_t)&gMatrices_Update_87b158);
     const float one = global<float>(0x00701890), zero = gMatrices_Update_70189c;
-    const float a = global<float>(0x0087af70), b = global<float>(0x0087af90);
+    const float a = gMatrices_Update_87af68[2], b = gMatrices_Update_87af68[10];
     X87Reg s = (X87Reg(b) * b) + (X87Reg(a) * a);
     if (s.v == zero || s.v != s.v) s = X87Reg(one);
     const X87Reg unit = X87Reg(one) / X87_Sqrt(s);
-    global<float>(0x0087b078) = (float)(unit * a);
-    global<float>(0x0087b07c) = (float)(unit * b);
+    gMatrices_Update_87b078[0] = (float)(unit * a);
+    gMatrices_Update_87b078[1] = (float)(unit * b);
     if (global<u32>(0x008bd508) & 0x20000000) {
-        inverse_through(0x0087b030, 0x0087afa8, 0x0087b198);
-        global<u32>(0x0087b080) = global<u32>(0x0087afb0);
-        global<u32>(0x0087b084) = global<u32>(0x0087afd0);
-        Vec2_Normalize(&global<float>(0x0087b080));
+        inverse_through((u32)(uintptr_t)&gMatrices_Update_87b030, (u32)(uintptr_t)&gMatrices_Update_87afa8, (u32)(uintptr_t)&gMatrices_Update_87b198);
+        reinterpret_cast<u32 &>(gMatrices_Update_87b080[0]) = reinterpret_cast<u32 &>(gMatrices_Update_87afa8[2]);
+        reinterpret_cast<u32 &>(gMatrices_Update_87b080[1]) = reinterpret_cast<u32 &>(gMatrices_Update_87afa8[10]);
+        Vec2_Normalize(gMatrices_Update_87b080);
     }
     Mat4_Identity(&global<u32>(0x0087b090));
     const float *const m = global<const float *>(0x0087afe8);

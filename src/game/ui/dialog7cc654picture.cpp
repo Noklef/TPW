@@ -52,7 +52,7 @@ void Dialog7cc654Picture_SetEnv(const Dialog7cc654PictureEnv *env) { g_env = env
 extern "C" void __cdecl Dialog7cc654_ShowPicture() {
     Loader loader;
     g_env->surfaceCtor(loader.info);
-    loader.vtable = 0x00700140;
+    loader.vtable = (u32)(uintptr_t)JpegCodec_vtable;
     Information information;
     g_env->surfaceCtor(information.info);
     u8 *const window = g_env->findChild(global<u8 *>(0x007cc654), nullptr, 0xee4);

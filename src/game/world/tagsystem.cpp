@@ -17,7 +17,7 @@
 
 namespace {
 
-constexpr u32 kTable = 0x75eca8, kTableEnd = 0x761c68;
+u32 table() { return (u32)(uintptr_t)&gTagTable_75eca8; }
 
 template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cast<T *>((uintptr_t)p + offset); }
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
@@ -64,9 +64,9 @@ u32 *Record(u32 address) { return reinterpret_cast<u32 *>((uintptr_t)address); }
 
 extern "C" u32 *__fastcall TagTable_Find(void *, void *, u32 id) {
     if (id == 0x17f || id == 0x17e) return nullptr;
-    u32 *direct = Record(kTable + (id << 5));
+    u32 *direct = Record(table() + (id << 5));
     if (*direct == id) return direct;
-    for (u32 address = kTable; (s32)address < (s32)kTableEnd; address += 0x20)
+    for (u32 address = table(); (s32)address < (s32)(table() + sizeof(gTagTable_75eca8)); address += 0x20)
         if (*Record(address) == id) return Record(address);
     return nullptr;
 }

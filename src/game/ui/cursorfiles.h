@@ -23,3 +23,9 @@ u8 *__cdecl CursorFiles_LoadSystem(const char *name);
 // 0x489670 (cdecl (name)): the same with the folder [0x74fc34]: a picture cursor of 0x68 bytes made and the file loaded into it.
 u8 *__cdecl CursorFiles_LoadPicture(const char *name);
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address, by hand (a name ending in its address is named for its use, unconfirmed). Both hold 0x74fde0 at first.
+GAME_DATA(const char *, gCursorFiles_SystemFolder_74fc30, 0x0074fc30, 0x4);
+GAME_DATA(const char *, gCursorFiles_PictureFolder_74fc34, 0x0074fc34, 0x4);

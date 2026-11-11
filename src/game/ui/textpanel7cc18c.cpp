@@ -7,6 +7,7 @@
 #include "guirect.h"
 #include "window.h"
 #include "dialog7cc184handler.h"
+#include "dialog7cc184.h"
 #include "../core/staticobjects.h"
 
 namespace {
@@ -30,7 +31,7 @@ void __cdecl TextPanel7cc18c_Show(u8 *window) {
     if (image && gDialog7cc184handler_7cc18c) {
         g_env->reset(gDialog7cc184handler_7cc18c);
         u8 *const panel = gDialog7cc184handler_7cc18c;
-        g_env->draw(reinterpret_cast<const u16 *>((uintptr_t)0x007cbf48), *reinterpret_cast<u32 *>(panel + 0x5c), *reinterpret_cast<u32 *>(panel + 0x50), *reinterpret_cast<u32 *>(panel + 0x54), 0x142, 0x5e, 0x27c, 0xd7, 0xff0000cc);
+        g_env->draw(gDialog7cc184_7cbf48, *reinterpret_cast<u32 *>(panel + 0x5c), *reinterpret_cast<u32 *>(panel + 0x50), *reinterpret_cast<u32 *>(panel + 0x54), 0x142, 0x5e, 0x27c, 0xd7, 0xff0000cc);
         const u32 mode = global<u32>((u32)(uintptr_t)&gTexSettings_8bd550 + 0x4);
         if (mode == 2) g_env->shrink(gDialog7cc184handler_7cc18c, nullptr, image, width, height, 2);
         else if (mode == 3) g_env->shrink(gDialog7cc184handler_7cc18c, nullptr, image, width, height, 1);

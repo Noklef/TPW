@@ -27,6 +27,11 @@ void GameFrame_SetEnv(const GameFrameCall *table, u32 count);
 // - 0xb: the park's end: to 0xc (0x879088 3 or no 0x200 in 0x7a1a8c), else 9 or 1 by the session's +0x3f0; sounds and scripts released; in mode 1 the chat freed and without +0x3f0 the mode set by the
 //   global save's flag (2 or 0). 0xc: all the singletons freed and 0x7a1a14 | 2, the state kept.
 u32 __cdecl Game_RunFrame();
+
+// 0x54e2b0 (cdecl; name invented, unconfirmed): the renderer's restore callback (Renderer_SetRestoreCallback, by address): one frame drawn without the world's steps. Rides_AnimateAll(3);
+// without the camera's flag 0x16 the pick at 0x7a1c70 (RayPick_World(0x7a1c70, 60.0f, 0x7a1c90, 0), MouseState_SetTileFromPosition, Frame_SetPoint); 0x40f220, DynFaces_Frame, the
+// highlight's pulse and whitening, MouseState_NewFrame (0x7b05a8); Frame_Begin timed into 0x87868c and 0x87907c (0x879064 = 0); SpriteScripts_Draw, MouseState_ResolvePick; 0x879080 = 0.
+void __cdecl Game_RestoreFrame();
 }
 
 #include "gamedata.h"
@@ -39,4 +44,13 @@ GAME_DATA(char[0x40], gGameframe_7650ec, 0x007650ec, 0x40);
 GAME_DATA(char[0x18], gGameframe_76512c, 0x0076512c, 0x18);
 GAME_DATA(char[0x1c], gGameframe_765190, 0x00765190, 0x1c);
 GAME_DATA(char[0x18], gGameframe_7651b8, 0x007651b8, 0x18);
+GAME_DATA(u32[40], gGameframe_SampleRings_878088, 0x00878088, 0xa0);   // (5 rings of the last 8 times: world, frame, RSSE, 0x520130, sprite scripts)
 GAME_DATA(u32, gGameframe_878128, 0x00878128, 0x4);
+GAME_DATA(u32[5], gGameframe_SampleStarts_878688, 0x00878688, 0x14);   // (their steps' starts, then what each took)
+
+// Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(const float, gGame_RunFrame_700f84, 0x00700f84, 0x4);
+GAME_DATA(const float, gGameframe_700f88, 0x00700f88, 0x4);
+GAME_DATA(const u8[0x40], gGameframe_700f8c, 0x00700f8c, 0x40);
+GAME_DATA(u8[0xc], gGameframe_7651ac, 0x007651ac, 0xc);
+GAME_DATA(u8[0x4], gGameframe_879088, 0x00879088, 0x4);

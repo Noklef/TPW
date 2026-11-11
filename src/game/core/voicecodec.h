@@ -61,3 +61,10 @@ void __fastcall VoiceCodec_DecodeChannel(void *reader, void *, u8 *decoder, u8 *
 void __fastcall VoiceCodec_DecodeFrame(void *reader, void *, u8 *decoder);
 
 }  // extern "C"
+
+#include "gamedata.h"
+
+// Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(u8[0x128], gVoicecodec_783b80, 0x00783b80, 0x128);
+GAME_DATA(u8[0x200], gVoiceCodec_Excitation_783ca8, 0x00783ca8, 0x200);
+GAME_DATA(u8[0x168], gVoiceCodec_Excitation_783ea8, 0x00783ea8, 0x168);

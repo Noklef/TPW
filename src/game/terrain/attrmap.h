@@ -24,5 +24,11 @@ u32 __fastcall TP2M_ReadChunks(u8 *cells, void *, const char *name);
 u32 __cdecl TerrainAttrMap_Load();
 }
 
+#include "../core/gamedata.h"
+
+// The vtables hold only ports: tpw.exe's loader points their slots at them (.docs/09-globals.md). Names invented, unconfirmed.
+GAME_DATA(void *[2], AttrMapHandler_vtable, 0x00700aa8, 0x8);   // AttrMapHandler_MatchTag, AttrMap_ReadMapChunk
+GAME_DATA(void *[1], AttrMapFile_vtable, 0x00700ab0, 0x4);      // its scalar deleting destructor
+
 struct AddrCall;
 void AttrMap_SetCalls(const AddrCall *table, u32 count);   // tests/fncmp/attrmapload.py

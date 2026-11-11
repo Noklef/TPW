@@ -1255,3 +1255,7 @@ extern "C" void __fastcall Online_ListAnswered(u8 *session, void *, s32 code, s3
         }
     }
 }
+
+extern "C" void __stdcall Online_CityAnswered(s32 code, s32 request, u32 c, u8 *data) {
+    Online_ListAnswered(Online_Instance(), nullptr, code, request, c, data);
+}

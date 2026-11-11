@@ -203,6 +203,11 @@ s32 __cdecl LevelMeter_OnMessage(u8 *window, u32 message, u32 a, u32 b) {
     }
     return Window_CallDefault(window, nullptr, message, a, b);
 }
+
+s32 __cdecl ResearchSlider_OnMessage(u8 *window, u32 message, u32 a, u32 b) {
+    if (message == 0x14) gResearchPanel_Open_7cc1dc = nullptr;
+    return Window_CallDefault(window, nullptr, message, a, b);
+}
 }
 
 namespace {

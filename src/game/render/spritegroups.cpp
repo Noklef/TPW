@@ -18,10 +18,10 @@ const SpriteGroupsEnv kPortEnv = {&Batch_DrawQuad};
 const SpriteGroupsEnv *g_env = &kPortEnv;
 
 // The constants, as the game's memory holds them: 1/1024, 1/2, 1/4096 (a place), 1/65536 (a turn).
-const float &kSize = global<float>(0x00701ac8);
+const float &kSize = gSpritegroups_Size_701ac8;
 const float &kHalf = gSpritegroups_701b28;
 const float &kPlace = gSpritegroups_701b24;
-const float &kTurn = global<float>(0x00701ad0);
+const float &kTurn = gSpritegroups_Turn_701ad0;
 
 const u32 kGroups = 0x78;
 

@@ -177,3 +177,4 @@ GAME_DATA(char[12], gMailbox_7740cc, 0x007740cc, 0xc);
 GAME_DATA(char[12], gMailbox_7740d8, 0x007740d8, 0xc);
 GAME_DATA(char[16], gMailbox_7740e4, 0x007740e4, 0x10);
 GAME_DATA(char[28], gMailbox_7740f4, 0x007740f4, 0x1c);
+GAME_DATA(const s32[2], Vbtable_702978, 0x00702978, 0x8);   // the output file stream's vbtable (0, the ios at +0x58)

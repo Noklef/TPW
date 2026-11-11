@@ -11,6 +11,7 @@
 #include "graphicssettings.h"
 #include "lightsource.h"
 #include "../core/imports.h"
+#include "dynfaces.h"
 #include "../core/staticobjects.h"
 
 namespace {
@@ -119,9 +120,9 @@ u32 __cdecl Environment_Apply() {
     global<u32>((u32)(uintptr_t)&gLightsource_7a0b30) = global<u32>((u32)(uintptr_t)&gBalanceLevel + 0x6a8);
     gEnvironment_Apply_7a0b34 = global<u32>((u32)(uintptr_t)&gBalanceLevel + 0x6ac);
     gEnvironment_Apply_7a0b38 = global<u32>((u32)(uintptr_t)&gBalanceLevel + 0x6b0);
-    global<u32>(0x00870ec8) = global<u32>((u32)(uintptr_t)&gBalanceLevel + 0x6d8);
-    global<u32>(0x00870ecc) = global<u32>((u32)(uintptr_t)&gBalanceLevel + 0x6dc);
-    global<u32>(0x00870ed0) = global<u32>((u32)(uintptr_t)&gBalanceLevel + 0x6e0);
+    reinterpret_cast<u32 &>(gDynFaces_GridAt_870ec8[0]) = global<u32>((u32)(uintptr_t)&gBalanceLevel + 0x6d8);
+    reinterpret_cast<u32 &>(gDynFaces_GridAt_870ec8[1]) = global<u32>((u32)(uintptr_t)&gBalanceLevel + 0x6dc);
+    reinterpret_cast<u32 &>(gDynFaces_GridAt_870ec8[2]) = global<u32>((u32)(uintptr_t)&gBalanceLevel + 0x6e0);
     for (u32 i = 0; i < 4; i++) {
         global<u32>(0x00f797a4 + 4 * i) = global<u32>(((u32)(uintptr_t)&gBalanceLevel + 0x6b4) + 8 * i);
         global<u32>(0x00f797b4 + 4 * i) = global<u32>(((u32)(uintptr_t)&gBalanceLevel + 0x6b8) + 8 * i);

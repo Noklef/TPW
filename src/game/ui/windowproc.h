@@ -23,6 +23,10 @@ extern "C" {
 // 0x20a, and with 1 as the answer the message [0x7a1c5c]: Gui_MouseWheel(wparam's high word signed / 120, x, y, 0) with x and y as above (whatever the flag).
 // 0x410: Gui_KeyChar(wparam, 0). Answers 0. All else: 1.
 u32 __stdcall GameWindow_Proc(u32 window, u32 message, u32 wparam, u32 lparam);
+
+// 0x46bcb0 (stdcall): the window class's procedure (gamewindow.cpp registers it by address). 2 (WM_DESTROY): PostQuitMessage(0), answers 0. Else GameWindow_Proc; its 1 goes to
+// DefWindowProcA, anything else answers 0.
+u32 __stdcall GameWindow_ClassProc(u32 window, u32 message, u32 wparam, u32 lparam);
 }
 
 #include "../core/gamedata.h"

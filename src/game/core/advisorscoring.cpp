@@ -783,8 +783,8 @@ s32 __fastcall AdvisorScoring_PickNext(s32 *cursor, void *, s32 steps) {
             const s32 score = at<Score>(entry, 0x10)(reinterpret_cast<u8 *>(cursor) + at<u32>(entry, 0x14), nullptr);
             if (score > best) {
                 const u32 id = at<u32>(criterion(*cursor), 4);
-                const u32 record = g_calls.Th(0x005194d0, **reinterpret_cast<u32 **>((uintptr_t)0x007cf6ec), id, 0u);
-                if ((u8)g_calls.Th(0x0059abc0, record)) {
+                const u32 record = g_calls.Th(0x005194d0, **reinterpret_cast<u32 **>((uintptr_t)0x007cf6ec));   // (the pushes of id, 0 are the next call's)
+                if ((u8)g_calls.Th(0x0059abc0, record, id, 0u)) {
                     best = score;
                     chosen = at<s32>(criterion(*cursor), 4);
                 }

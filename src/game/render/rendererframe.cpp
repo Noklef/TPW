@@ -11,9 +11,9 @@
 #include "../gfx/texcache.h"
 #include "meshlist.h"
 #include "../core/vwrap.h"
-#include "../core/staticobjects.h"
 #include "../world/camera.h"
 #include "../core/imports.h"
+#include "../core/staticobjects.h"
 
 namespace {
 
@@ -22,7 +22,7 @@ AddrCalls g_calls;
 template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cast<T *>((uintptr_t)p + offset); }
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
 
-const u32 kViewFlags = (u32)(uintptr_t)&gView_8bcbc8, kSceneFlags = 0x008bd508, kMode = 0x008bd524, kDevice = 0x00879ab0, kWorldRender = reinterpret_cast<uintptr_t>(&gRenderer_87a6d0), kCamera = 0x0087aff0;
+const u32 kViewFlags = (u32)(uintptr_t)&gView_8bcbc8, kSceneFlags = 0x008bd508, kMode = 0x008bd524, kDevice = 0x00879ab0, kWorldRender = reinterpret_cast<uintptr_t>(&gRenderer_87a6d0), kCamera = reinterpret_cast<uintptr_t>(&gMatrices_Update_87aff0);
 
 template <typename... A>
 u32 Slot(u32 object, u32 offset, A... args) {

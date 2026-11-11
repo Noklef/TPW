@@ -154,8 +154,8 @@ u32 *__cdecl LightSource_Create(u32 kind, u32 colour, const u32 *point, const u3
         u8 *const part = static_cast<u8 *>(GameHeap_Alloc(0x68));
         const auto offset = [part](u32 table, u32 slot) { return at<s32>(at<u8 *>(part, table), slot); };
         if (part && kind == 2) {   // (the constructors inline)
-            at<u32>(part, 0) = 0x006fdd00;
-            at<u32>(part, 0xc) = 0x006fdcf8;
+            at<u32>(part, 0) = (u32)(uintptr_t)&Vbtable_6fdd00;
+            at<u32>(part, 0xc) = (u32)(uintptr_t)&Vbtable_6fdcf8;
             at<u32>(part, 8) = (u32)(uintptr_t)Class6fdce8_vtable;
             at<u32>(part, offset(0xc, 4) + 0xc) = (u32)(uintptr_t)Class6fdcd8_vtable;
             at<s32>(part, offset(0xc, 4) + 8) = offset(0xc, 4) - 0x60;
@@ -166,8 +166,8 @@ u32 *__cdecl LightSource_Create(u32 kind, u32 colour, const u32 *point, const u3
             Obj_SetVectorAt2c(part + offset(0, 8), nullptr, 0, 0, one);
             LightPart_SetColour(part + offset(0, 8), nullptr, one, one, one, one);
         } else if (part) {
-            at<u32>(part, 0) = 0x006fe560;
-            at<u32>(part, 0xc) = 0x006fe558;
+            at<u32>(part, 0) = (u32)(uintptr_t)&Vbtable_6fe560;
+            at<u32>(part, 0xc) = (u32)(uintptr_t)&Vbtable_6fe558;
             at<u32>(part, 8) = (u32)(uintptr_t)Class6fdce8_vtable;
             Obj_CtorVirtual(part + 0xc, nullptr, 0);
             at<u32>(part, offset(0, 4)) = (u32)(uintptr_t)Class6fe548_vtable;

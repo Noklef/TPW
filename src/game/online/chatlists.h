@@ -63,3 +63,6 @@ GAME_DATA(u8 *, gChatlists_f81ebc, 0x00f81ebc, 0x4);
 
 // Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
 GAME_DATA(u16[6], gText_ChatLists_75c6dc, 0x0075c6dc, 0xc);   // L".bud"
+GAME_DATA(u16[6], gText_ChatLists_75c6f4, 0x0075c6f4, 0xc);   // L".ign"
+GAME_DATA(const s32[2], Vbtable_700630, 0x00700630, 0x8);   // {0, 0x58}: the wide output file stream's
+GAME_DATA(const s32[2], Vbtable_700640, 0x00700640, 0x8);   // {0, 0x5c}: the wide input file stream's

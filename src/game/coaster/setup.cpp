@@ -85,14 +85,14 @@ u32 __cdecl CoasterType_Setup(u8 *coaster, u32 id, const u8 *source) {
     u8 *const a = static_cast<u8 *>(GlobalMem_Alloc(0x30, 1));
     u8 *const b = static_cast<u8 *>(GlobalMem_Alloc(0x40, 1));
     u8 *const c = static_cast<u8 *>(GlobalMem_Alloc(0x20, 1));
-    u8 *entry = static_cast<u8 *>(GlobalMem_Alloc((n + global(0x0074ce10)) << 4, 1));
+    u8 *entry = static_cast<u8 *>(GlobalMem_Alloc((n + gCoasterType_Setup_74ce10) << 4, 1));
     at<u8 *>(b, 8) = a;
     at<u32>(a, 0) = 3;
     at<u32>(b, 0) = 3;
     at<u16>(b, 4) = 1;
     at<u32>(c, 0) = 0;
     at<u8 *>(c, 0x10) = entry;
-    at<u16>(c, 4) = (u16)(n + global(0x0074ce10));
+    at<u16>(c, 4) = (u16)(n + gCoasterType_Setup_74ce10);
     at<u32>(c, 8) = id;
     const u8 *from = source + 0xc;
     for (u32 i = 0; i < n; ++i, from += 0xc, entry += 0x10) {
@@ -104,8 +104,8 @@ u32 __cdecl CoasterType_Setup(u8 *coaster, u32 id, const u8 *source) {
         }
         at<char *>(entry, 4) = copyName(at<const char *>(from, 0));
     }
-    for (u32 j = 0; j < global(0x0074ce10); ++j, entry += 0x10)
-        for (u32 k = 0; k < 0x10; k += 4) at<u32>(entry, k) = global(0x0074cde0 + 0x10 * j + k);
+    for (u32 j = 0; j < gCoasterType_Setup_74ce10; ++j, entry += 0x10)
+        for (u32 k = 0; k < 0x10; k += 4) at<u32>(entry, k) = gCoasterType_Setup_74cde0[j][k / 4];
     at<u8 *>(coaster, 0x18) = b;
     at<u8 *>(coaster, 0x1c) = c;
     at<u8 *>(coaster, 0x14) = at<u8 *>(b, 8);
@@ -281,7 +281,7 @@ void __cdecl CoasterTypes_FreeAll() {
         if (last != first) releaseBlock(last, 0x2c);
         releaseBlock(t, 0x308);
         const u8 *const c = at<u8 *>(t, 0x1c);
-        u32 n = at<u16>(c, 4) - global(0x0074ce10);
+        u32 n = at<u16>(c, 4) - gCoasterType_Setup_74ce10;
         for (u8 *e = at<u8 *>(c, 0x10) + 4; n; --n, e += 0x10) releaseBlock(e, 0);
         Dword_ClearBit0(at<u32 *>(t, 0x1c));
         Animator_Dispose(at<u8 *>(t, 0x18));
