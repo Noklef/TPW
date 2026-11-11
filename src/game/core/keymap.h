@@ -87,6 +87,10 @@ struct KeyMapEntry {
 };
 
 // Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(KeyMapEntry[12], gKeyMap_System_747f38, 0x00747f38, 0xf0);   // (KeyMaps_Init's entry tables, by the counts it passes)
+GAME_DATA(KeyMapEntry[15], gKeyMap_Game_748028, 0x00748028, 0x12c);
+GAME_DATA(KeyMapEntry[25], gKeyMap_Camera_748158, 0x00748158, 0x1f4);
+GAME_DATA(KeyMapEntry[2], gKeyMap_Coaster_748350, 0x00748350, 0x28);
 GAME_DATA(KeyMapEntry[17], gKeyMap_Shortcuts_748378, 0x00748378, 0x154);
 GAME_DATA(char[0xc], gKeymap_7486dc, 0x007486dc, 0xc);
 GAME_DATA(char[0x8], gKeymap_7486e8, 0x007486e8, 0x8);

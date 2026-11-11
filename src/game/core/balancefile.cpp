@@ -136,11 +136,11 @@ void __fastcall BalanceFile_Release(u8 *self) {
     }
 }
 
-const u8 *__fastcall BalanceHoardings_GetSchema(const void *, void *, u32 index) { return reinterpret_cast<const u8 *>(0x0073fb40) + index * 0x3c; }
-const u8 *__fastcall BalanceLevel_GetSchema(const void *, void *, u32 index) { return reinterpret_cast<const u8 *>(0x0073fc70) + index * 0x3c; }
-const u8 *__fastcall BalanceOnline_GetSchema(const void *, void *, u32 index) { return reinterpret_cast<const u8 *>(0x00743f00) + index * 0x3c; }
-const u8 *__fastcall BalanceGraphics_GetSchema(const void *, void *, u32 index) { return reinterpret_cast<const u8 *>(0x007442c0) + index * 0x3c; }
-const u8 *__fastcall BalanceResolution_GetSchema(const void *, void *, u32 index) { return reinterpret_cast<const u8 *>(0x00744a40) + index * 0x3c; }
+const u8 *__fastcall BalanceHoardings_GetSchema(const void *, void *, u32 index) { return reinterpret_cast<const u8 *>((u32)(uintptr_t)&gBalanceHoardings_GetSchema_73fb40) + index * 0x3c; }
+const u8 *__fastcall BalanceLevel_GetSchema(const void *, void *, u32 index) { return reinterpret_cast<const u8 *>((u32)(uintptr_t)&gBalanceLevel_GetSchema_73fc70) + index * 0x3c; }
+const u8 *__fastcall BalanceOnline_GetSchema(const void *, void *, u32 index) { return reinterpret_cast<const u8 *>((u32)(uintptr_t)&gBalanceOnline_GetSchema_743f00) + index * 0x3c; }
+const u8 *__fastcall BalanceGraphics_GetSchema(const void *, void *, u32 index) { return reinterpret_cast<const u8 *>((u32)(uintptr_t)&gBalanceGraphics_GetSchema_7442c0) + index * 0x3c; }
+const u8 *__fastcall BalanceResolution_GetSchema(const void *, void *, u32 index) { return reinterpret_cast<const u8 *>((u32)(uintptr_t)&gBalanceResolution_GetSchema_744a40) + index * 0x3c; }
 const u8 *__fastcall BalanceSound_GetSchema(const void *, void *, u32 index) { return reinterpret_cast<const u8 *>(0x00746a20) + index * 0x3c; }
 
 void __fastcall BalanceFile_Init(u8 *self) {
@@ -455,10 +455,10 @@ bool parse_line(u8 *self, char *&line, char *p, LineNames &names, const char *&m
             u32 ok = 0;
             switch (at<u32>(key(self, index), 0x38)) {
             case 1:
-                ok = BalanceFile_ParseMap(const_cast<const char **>(&line), &map, &map_error, reinterpret_cast<const u8 *>(0x007396c8), 0x13);
+                ok = BalanceFile_ParseMap(const_cast<const char **>(&line), &map, &map_error, reinterpret_cast<const u8 *>((u32)(uintptr_t)&gBalancefile_7396c8), 0x13);
                 break;
             case 2:
-                ok = BalanceFile_ParseMap(const_cast<const char **>(&line), &map, &map_error, reinterpret_cast<const u8 *>(0x007397b0), 0x10);
+                ok = BalanceFile_ParseMap(const_cast<const char **>(&line), &map, &map_error, reinterpret_cast<const u8 *>((u32)(uintptr_t)&gBalancefile_7397b0), 0x10);
                 break;
             default:  // (asserts: no map_type or an unknown one)
                 break;
@@ -594,5 +594,5 @@ u32 __fastcall BalanceFile_LoadStream(u8 *self, void *, const char *name, Stream
     return ok;
 }
 
-u32 __stdcall Table73f8a8_At(u32 i) { return 0x0073f8a8 + 60 * i; }
+u32 __stdcall Table73f8a8_At(u32 i) { return (u32)(uintptr_t)&gTable73f8a8_At_73f8a8 + 60 * i; }
 }

@@ -322,9 +322,9 @@ void __fastcall WNumpunct_Init(u32 *self, void *, const void *) {
     self[5] = static_cast<u32>(reinterpret_cast<uintptr_t>(Facet_WidenedCopy(reinterpret_cast<const char *>((uintptr_t)(u32)(uintptr_t)&gLocalefacet_709b60))));
 }
 
-u32 *__fastcall WNumGet_Ctor(u32 *self, void *, u32 refs) { return refs_facet(self, refs, (u32)(uintptr_t)WNumGet_vtable); }
+u32 *__fastcall NumPutW_Ctor(u32 *self, void *, u32 refs) { return refs_facet(self, refs, (u32)(uintptr_t)NumPutW_vtable); }
 
-u32 *__fastcall WNumPut_Ctor(u32 *self, void *, u32 refs) { return refs_facet(self, refs, (u32)(uintptr_t)NumGetW_vtable); }
+u32 *__fastcall NumGetW_Ctor(u32 *self, void *, u32 refs) { return refs_facet(self, refs, (u32)(uintptr_t)NumGetW_vtable); }
 
 u32 *__fastcall WCodecvt_Ctor(u32 *self, void *, const void *, u32 refs) {
     self[1] = refs;
@@ -389,7 +389,7 @@ void __fastcall WFacet709c0c_Tidy(u32 *self, void *) {
     self[0] = (u32)(uintptr_t)LocaleFacet_vtable;
 }
 
-u32 *__fastcall WFacet709bfc_Ctor(u32 *self, void *, u32 refs) { return refs_facet(self, refs, 0x00709bfc); }
+u32 *__fastcall WFacet709bfc_Ctor(u32 *self, void *, u32 refs) { return refs_facet(self, refs, (u32)(uintptr_t)MoneyGetW_vtable); }
 
 void __fastcall Facet709fac_Init(u32 *self, void *, const void *) {
     self[2] = static_cast<u32>(reinterpret_cast<uintptr_t>(Numpunct_Copy(reinterpret_cast<const char *>((uintptr_t)(u32)(uintptr_t)&gLocalefacet_709d0c))));
@@ -471,7 +471,7 @@ u32 *__cdecl UseFacet_709bec(u8 **loc, u32, u32 flag) {
     return use_facet(loc, flag, (u32)(uintptr_t)&gLocalefacet_fb1e08, (u32)(uintptr_t)&gLocalefacet_fb1e40, (u32)(uintptr_t)&gLocalefacet_fb1e3c, 8, 0x006a6360, [](u32 *facet) {
         u32 info[0x10];
         Locinfo_Ctor(info, nullptr, "C");
-        facet[0] = 0x00709bec;
+        facet[0] = (u32)(uintptr_t)MoneyPutW_vtable;
         Locinfo_Dtor(info);
     });
 }
@@ -769,11 +769,11 @@ void __cdecl Locimp_Makewloc(void *info, u32 cats, Locimp *imp, u8 **loc) {
     if (cats & 8) {
         add_numeric(imp, loc, (u32)(uintptr_t)NumGetW_vtable,(u32)(uintptr_t)&gLocalefacet_fb1dfc, (u32)(uintptr_t)&gLocalefacet_fb1e24, []() {
             u32 *const object = alloc_facet(8);
-            return as_facet(Globalfb1e58_Set(reinterpret_cast<u8 *>(object ? WNumPut_Ctor(object, nullptr, 0) : nullptr)));
+            return as_facet(Globalfb1e58_Set(reinterpret_cast<u8 *>(object ? NumGetW_Ctor(object, nullptr, 0) : nullptr)));
         });
-        add_numeric(imp, loc, (u32)(uintptr_t)WNumGet_vtable, (u32)(uintptr_t)&gLocalefacet_fb1dec, (u32)(uintptr_t)&gLocalefacet_fb1e20, []() {
+        add_numeric(imp, loc, (u32)(uintptr_t)NumPutW_vtable, (u32)(uintptr_t)&gLocalefacet_fb1dec, (u32)(uintptr_t)&gLocalefacet_fb1e20, []() {
             u32 *const object = alloc_facet(8);
-            return as_facet(Globalfb1e54_Set(reinterpret_cast<u8 *>(object ? WNumGet_Ctor(object, nullptr, 0) : nullptr)));
+            return as_facet(Globalfb1e54_Set(reinterpret_cast<u8 *>(object ? NumPutW_Ctor(object, nullptr, 0) : nullptr)));
         });
         add_facet(imp, loc, (u32)(uintptr_t)&gLocalefacet_fb1ddc, (u32)(uintptr_t)&gLocalefacet_fb1e1c, [info]() {
             u32 *const object = alloc_facet(0x18);
@@ -809,7 +809,7 @@ void __cdecl Locimp_Makewloc(void *info, u32 cats, Locimp *imp, u8 **loc) {
         });
     }
     if (cats & 4) {
-        add_numeric(imp, loc, 0x00709bfc, (u32)(uintptr_t)&gLocalefacet_fb1de0, (u32)(uintptr_t)&gLocalefacet_fb1e10, []() {
+        add_numeric(imp, loc, (u32)(uintptr_t)MoneyGetW_vtable, (u32)(uintptr_t)&gLocalefacet_fb1de0, (u32)(uintptr_t)&gLocalefacet_fb1e10, []() {
             u32 *const object = alloc_facet(8);
             return as_facet(Globalfb1e64_Set(reinterpret_cast<u8 *>(object ? WFacet709bfc_Ctor(object, nullptr, 0) : nullptr)));
         });
@@ -817,7 +817,7 @@ void __cdecl Locimp_Makewloc(void *info, u32 cats, Locimp *imp, u8 **loc) {
             u32 *const object = alloc_facet(8);
             if (object) {
                 object[1] = 0;
-                object[0] = 0x00709bec;
+                object[0] = (u32)(uintptr_t)MoneyPutW_vtable;
             }
             return as_facet(object);
         }, UseFacet_709bec);

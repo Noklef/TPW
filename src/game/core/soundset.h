@@ -177,7 +177,9 @@ void __cdecl Sound_SetPlacement(u32 x, u32 y, u32 z, u32 dx, u32 dy, u32 dz, u32
 
 // Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
 GAME_DATA(u32, gSoundset_802bc8, 0x00802bc8, 4);
+GAME_DATA(u8[0x4], gSoundset_802bcc, 0x00802bcc, 0x4);
 GAME_DATA(u32, gSoundset_802bd4, 0x00802bd4, 4);
+GAME_DATA(u8[0x20], gSound_803ad8, 0x00803ad8, 0x20);
 
 // The sound categories above (0x803a20; Sound_Start clears its 0x34 bytes): each a Sound_QueryFound handle, 0 when not registered.
 struct SoundCategories {

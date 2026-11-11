@@ -119,6 +119,8 @@ u32 __fastcall TexSurfaceA_LockNext(u8 *sub);
 
 // Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
 GAME_DATA(const float, gTexSurface_Zero_702248, 0x00702248, 0x4);
+GAME_DATA(const u32[2], TexSurfaceA_vbtable, 0x00702218, 0x8);   // (the virtual base table: 0, then the base at +0x3c)
+GAME_DATA(const u32[2], TexSurfaceB_vbtable, 0x00702278, 0x8);   // (0, then the base at +0x10)
 
 // The vtables hold only ports: tpw.exe's loader points their slots at them (.docs/09-globals.md).
 GAME_DATA(void *[10], Class702250_vtable, 0x00702250, 0x28);

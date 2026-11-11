@@ -127,6 +127,10 @@ void Post(u32 kind) {   // a ThingMsg13 (0x40f630; vtable 0x6fd810) to the messa
     Th(0x0040fb10, Centre(), message);
 }
 
+// The frame's sample rings (the last eight times each: world, frame, RSSE, 0x520130, sprite scripts) and their steps' starts.
+u32 Ring(u32 i) { return (u32)(uintptr_t)&gGameframe_SampleRings_878088 + 0x20 * i; }
+u32 Start(u32 i) { return (u32)(uintptr_t)&gGameframe_SampleStarts_878688 + 4 * i; }
+
 void Shift(u32 first, u32 value) {   // the last eight times, a new one in
     for (u32 i = 0; i < 7; ++i) G<u32>(first + 4 * i) = G<u32>(first + 4 * i + 4);
     G<u32>(first + 0x1c) = value;
@@ -317,7 +321,7 @@ u32 ParkLoad() {   // state 9
             const u32 name = Th(0x005b6480, kOwner);   // Online_String14
             if (!Th(0x005c7d00, Records(), 0)) {   // Records24_IfUsed
                 WString text;
-                WString_CtorStr(&text, nullptr, reinterpret_cast<const u16 *>(0x007651ac));
+                WString_CtorStr(&text, nullptr, reinterpret_cast<const u16 *>((u32)(uintptr_t)&gGameframe_7651ac));
                 Th(0x005c7f40, Records(), 0, &text, 0);
                 WString_Dtor(&text);
             }
@@ -347,7 +351,7 @@ u32 ParkLoad() {   // state 9
                 G<u32>(0x00879080) = 1;
                 Cd(0x00458590, 1);   // LightSource_UpdateMain
                 G<u32>(kState) = 0xf;
-                G<u32>(0x00879088) = 0;
+                G<u32>((u32)(uintptr_t)&gGameframe_879088) = 0;
             }
         }
     }
@@ -387,7 +391,7 @@ void WorldStep() {   // state 0xa: every eighth step
     if (ran < 3) {
         G<u32>(0x00879064) = ran + 1;
         if (Mode() == 0 || Mode() == 2) {
-            Timed(0x00878688, 0x00878088, [] { Th(0x00516380, G<u32>((u32)&gWorldPtr)); });   // World_Tick
+            Timed(Start(0), Ring(0), [] { Th(0x00516380, G<u32>((u32)&gWorldPtr)); });   // World_Tick
         } else if (Mode() == 1) {
             Th(0x005166b0, G<u32>((u32)&gWorldPtr));
             Th(0x004e6170, Chat());
@@ -418,13 +422,13 @@ void FixedSteps() {   // state 0xa
         G<s32>(0x00878c74) = (s32)((u32)last + 0x1f);
         ++G<u32>(0x00877d34);
         if ((flags & 8) || !(reinterpret_cast<u8 &>(gGraphicssettings_7a1a8c) & 1)) {
-            Timed(0x00878694, 0x008780e8, [] { Cd(0x00520130); });
+            Timed(Start(3), Ring(3), [] { Cd(0x00520130); });
             Cd(0x00546c80);   // TrakCars_Update
-            Timed(0x00878690, 0x008780c8, [] { Cd(0x005516b0); });   // RSSE_Tick
+            Timed(Start(2), Ring(2), [] { Cd(0x005516b0); });   // RSSE_Tick
             if (!(G<u8>(0x00877d34) & 1)) {
                 G<u32>(0x0087879c) = G<u32>(0x00878c74);
                 Cd(0x0055abf0);   // FlyingRides_Update
-                Timed(0x00878698, 0x00878108, [] { Cd(0x00475360); });   // SpriteScripts_Update
+                Timed(Start(4), Ring(4), [] { Cd(0x00475360); });   // SpriteScripts_Update
             }
             if (!(G<u8>(0x00877d34) & 7)) WorldStep();
             if (!(G<u8>(0x00877d34) & 0x1f)) MusicLevels();
@@ -444,7 +448,7 @@ void SoundPlacement() {   // state 0xa
     std::memcpy(&x, &xBits, 4);
     std::memcpy(&y, &yBits, 4);
     std::memcpy(&z, &zBits, 4);
-    const float &lag = G<const float>(0x00700f88);
+    const float &lag = gGameframe_700f88;
     const X87Reg dz = X87Reg(z) - gCamera_790ac0;
     const X87Reg dy = X87Reg(y) - gCamera_790abc;
     const X87Reg dx = X87Reg(x) - gCamera_790ab8;
@@ -463,9 +467,9 @@ void Drawing() {   // state 0xa
     Cd(0x00599880);
     Th(0x004813b0, kPanel);
     Cd(0x00557ab0);   // Rsse_UpdateAll
-    Th(0x00519060, G<u32>((u32)&gWorldPtr), ScaledSigned((s32)(G<u32>(0x008786bc) - G<u32>(0x00878c74)), 0x00700f8c));   // Things_PoseRides
-    Cd(0x0055ce60, ScaledSigned((s32)(G<u32>(0x008786bc) - G<u32>(0x0087879c)), 0x00700f90));   // FlyingRides_LerpSlots
-    Th(0x00518f90, G<u32>((u32)&gWorldPtr), ScaledSigned((s32)(G<u32>(0x008786bc) - G<u32>(0x00878a1c)), 0x00700f94));   // World_PlaceSprites
+    Th(0x00519060, G<u32>((u32)&gWorldPtr), ScaledSigned((s32)(G<u32>(0x008786bc) - G<u32>(0x00878c74)), (u32)(uintptr_t)&gGameframe_700f8c));   // Things_PoseRides
+    Cd(0x0055ce60, ScaledSigned((s32)(G<u32>(0x008786bc) - G<u32>(0x0087879c)), (u32)(uintptr_t)&gGameframe_700f8c + 0x4));   // FlyingRides_LerpSlots
+    Th(0x00518f90, G<u32>((u32)&gWorldPtr), ScaledSigned((s32)(G<u32>(0x008786bc) - G<u32>(0x00878a1c)), (u32)(uintptr_t)&gGameframe_700f8c + 0x8));   // World_PlaceSprites
     Cd(0x00443340);   // CoasterEdit_Update
     Cd(0x00435a30);
     Cd(0x0044e410, 2);
@@ -492,10 +496,10 @@ void Drawing() {   // state 0xa
         G<u32>(0x0087502c) += G<u32>(0x00875028) - ticks;
         G<u32>(0x00875028) = Ticks();
     } else {
-        G<u32>(0x0087868c) = Ticks();
+        G<u32>(Start(1)) = Ticks();
         Cd(0x0044e540);
-        const u32 took = Ticks() - G<u32>(0x0087868c);
-        G<u32>(0x0087868c) = took;
+        const u32 took = Ticks() - G<u32>(Start(1));
+        G<u32>(Start(1)) = took;
         G<u32>(0x0087907c) += took;
     }
     Cd(0x00436490);   // Coasters_DropPendingPiece
@@ -520,16 +524,16 @@ void ParkFrame() {   // state 0xa
     if ((reinterpret_cast<u8 &>(gWindowproc_7a1a14) & 8) || !(reinterpret_cast<u8 &>(gGraphicssettings_7a1a8c) & 1)) Drawing();
     if (gGameframe_878128) ScreenGrab_NextName();
     G<u32>(0x00879064) = 0;
-    G<u32>(0x0087868c) = Ticks();
+    G<u32>(Start(1)) = Ticks();
     Cd(0x0044e550);
     const u32 ended = Ticks();
-    const u32 s108 = Mean(0x00878108), se8 = Mean(0x008780e8), sc8 = Mean(0x008780c8);
-    const u32 took = ended - G<u32>(0x0087868c);
-    G<u32>(0x0087868c) = took;
+    const u32 s108 = Mean(Ring(4)), se8 = Mean(Ring(3)), sc8 = Mean(Ring(2));
+    const u32 took = ended - G<u32>(Start(1));
+    G<u32>(Start(1)) = took;
     const u32 total = (G<u32>(0x0087907c) += took);
-    Shift(0x008780a8, total);
-    Crt().sprintf(reinterpret_cast<char *>(0x00877eb8), gGameframe_7650b4, Mean(0x00878088), Mean(0x008780a8), sc8, se8, s108);
-    const s32 ending = G<s32>(0x00879088);
+    Shift(Ring(1), total);
+    Crt().sprintf(reinterpret_cast<char *>(0x00877eb8), gGameframe_7650b4, Mean(Ring(0)), Mean(Ring(1)), sc8, se8, s108);
+    const s32 ending = G<s32>((u32)(uintptr_t)&gGameframe_879088);
     if (ending == 1)
         G<u32>(kState) = 0xd;
     else if (ending > 1 && ending <= 3)
@@ -559,7 +563,7 @@ void ParkEnd() {   // state 0xb
     Th(0x00409180, kOwner);
     Cd(0x00457d50, 0);
     Cd(0x004752e0);   // SpriteScripts_Shutdown
-    if (G<u32>(0x00879088) != 3 && (gGraphicssettings_7a1a8c & 0x200))
+    if (G<u32>((u32)(uintptr_t)&gGameframe_879088) != 3 && (gGraphicssettings_7a1a8c & 0x200))
         G<u32>(kState) = at<u32>(Online(), 0x3f0) ? 9 : 1;
     else
         G<u32>(kState) = 0xc;
@@ -634,12 +638,12 @@ void __cdecl Game_RestoreFrame() {
     Cd(0x00469840);   // Highlight_PulseFlashing
     Cd(0x00469410);   // Highlight_WhitenCurrent
     Th(0x0046c100, 0x007b05a8u);   // MouseState_NewFrame
-    G<u32>(0x0087868c) = Ticks();
+    G<u32>(Start(1)) = Ticks();
     Cd(0x0044e510);   // Frame_Begin
     const u32 ended = Ticks();
     G<u32>(0x00879064) = 0;
-    const u32 took = ended - G<u32>(0x0087868c);
-    G<u32>(0x0087868c) = took;
+    const u32 took = ended - G<u32>(Start(1));
+    G<u32>(Start(1)) = took;
     G<u32>(0x0087907c) = took;
     Cd(0x00475430);   // SpriteScripts_Draw
     Th(0x0046c110, 0x007b05a8u);   // MouseState_ResolvePick
@@ -651,7 +655,7 @@ u32 __cdecl Game_RunFrame() {
     const u32 dt = Now() - G<u32>(0x00875034);
     G<u32>(0x00875030) = dt;
     if (G<u32>(0x007b05d0)) {
-        const X87Reg rate = G<const float>(0x00700f84) / X87Reg((double)dt);   // (fild qword of it; fdivr)
+        const X87Reg rate = gGame_RunFrame_700f84 / X87Reg((double)dt);   // (fild qword of it; fdivr)
         Th(0x0046c0d0, 0x007b05a8, Bits((float)rate));   // MouseState_ShowFps
     }
     G<u32>(0x00875034) = Now();
@@ -695,7 +699,7 @@ u32 __cdecl Game_RunFrame() {
         Cd(0x005996d0, 1);
         Th(0x005ac5f0, kCameraMode, 0x00878a68);
         G<u32>(kState) = 0xa;
-        G<u32>(0x00879088) = 0;
+        G<u32>((u32)(uintptr_t)&gGameframe_879088) = 0;
         break;
     case 0xf:
         if (Mode() != 1) Cd(0x00550b30);
