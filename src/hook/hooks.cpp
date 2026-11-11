@@ -6101,6 +6101,7 @@ const Hook kHooks[] = {
     {"AdvisorScoring_LoanUnderSpare", 0x0059e910, (void *)&AdvisorScoring_LoanUnderSpare, {0x83, 0xec, 0x0c, 0xa1, 0xec}},
     {"AdvisorScoring_PeopleShare2", 0x005a0930, (void *)&AdvisorScoring_PeopleShare2, {0xa1, 0xec, 0xf6, 0x7c, 0x00}},
     {"AdvisorScoring_PeopleShare3", 0x005a09b0, (void *)&AdvisorScoring_PeopleShare3, {0xa1, 0xec, 0xf6, 0x7c, 0x00}},
+    {"AdvisorScoring_Field62c",   0x005a0a30, (void *)&AdvisorScoring_Field62c, {0x8b, 0x81, 0x2c, 0x06, 0x00}},
     {"ParkInfo_Serialize",        0x00418da0, (void *)&ParkInfo_Serialize, {0x51, 0x8b, 0x44, 0x24, 0x0c}},
     {"AuthStamp_Text",           0x005d55a0, (void *)&AuthStamp_Text, {0x53, 0x56, 0x57, 0xbe, 0xd8}},
     {"Mp2Decoder_ParseHeader",   0x006cc7b0, (void *)&Mp2Decoder_ParseHeader, {0x83, 0xec, 0x0c, 0x53, 0x56}},
