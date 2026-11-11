@@ -14,12 +14,11 @@ template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((ui
 template <typename F> F import_slot(u32 slot) { return *reinterpret_cast<F *>((uintptr_t)slot); }
 
 // __lc_category: six entries of 12 bytes: the name, the locale string, the init routine.
-const char *category_name(s32 category) { return global<const char *>(0x00780dd0 + category * 12); }
-char *&category_locale(s32 category) { return global<char *>(0x00780dd4 + category * 12); }
-s32 category_init(s32 category) { return global<s32(__cdecl *)()>(0x00780dd8 + category * 12)(); }
+const char *category_name(s32 category) { return global<const char *>((u32)(uintptr_t)&CRT_lc_category + category * 12); }
+char *&category_locale(s32 category) { return global<char *>((u32)(uintptr_t)&CRT_lc_category + 4 + category * 12); }
+s32 category_init(s32 category) { return global<s32(__cdecl *)()>((u32)(uintptr_t)&CRT_lc_category + 8 + category * 12)(); }
 u32 &category_id(s32 category) { return CRT_lc_handle[category]; }
 
-char *const c_locale = reinterpret_cast<char *>((uintptr_t)0x00780dc8);
 
 const char *&language() { return CRT_language; }
 const char *&country() { return CRT_country; }
@@ -270,7 +269,7 @@ s32 __cdecl CRT_get_qualified_locale(const char *names, u16 *id, char *out) {
         language() = names;
         if (*names) CRT_TranslateName(reinterpret_cast<void *>((uintptr_t)0x00781760), 0x40, &language());
         country() = names + 0x40;
-        if (*country()) CRT_TranslateName(reinterpret_cast<void *>((uintptr_t)0x00781968), 0x16, &country());
+        if (*country()) CRT_TranslateName(reinterpret_cast<void *>((uintptr_t)&gCRT_get_qualified_locale_781968), 0x16, &country());
         lcid_state() = 0;
         if (language() && *language()) {
             if (country() && *country()) {
@@ -373,7 +372,7 @@ char *__cdecl CRT_setlocale_set_cat(s32 category, const char *locale) {
         CRT_lc_codepage = old_page;
         return nullptr;
     }
-    if (old != c_locale) Crt().free(old);
+    if (old != &CRT_c_locale[0]) Crt().free(old);
     return category_locale(category);
 }
 
@@ -396,7 +395,7 @@ u32 __cdecl CRT_TestDefaultLanguage(u32 lcid, u32 primary) {
 }
 
 u32 __cdecl CRT_TestDefaultCountry(u32 lcid) {
-    const u16 *const languages = reinterpret_cast<const u16 *>((uintptr_t)0x00781a20);
+    const u16 *const languages = reinterpret_cast<const u16 *>((uintptr_t)&gCRT_781a20);
     for (u32 i = 0; i < 10; ++i) {
         if (languages[i] == static_cast<u16>(lcid)) return 0;
     }
@@ -477,7 +476,7 @@ s32 __stdcall CRT_crtGetLocaleInfoA(u32 lcid, u32 what, char *out, s32 room) {
     s32 low = 0, high = 0x1a;
     while (low <= high) {
         const s32 middle = (low + high) / 2;
-        const uintptr_t entry = 0x00781a38 + middle * 0x2c;
+        const uintptr_t entry = ((u32)(uintptr_t)&gCRT_781a20 + 0x18) + middle * 0x2c;
         const u32 key = *reinterpret_cast<const u32 *>(entry);
         if (lcid == key) {
             const char *text = nullptr;

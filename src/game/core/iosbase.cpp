@@ -113,9 +113,9 @@ const IosBaseEnv &IosBase_Env() { return *g_env; }
 
 extern "C" {
 
-void __cdecl Std_Xlen() { throw_error(reinterpret_cast<const char *>((uintptr_t)0x00709890), (u32)(uintptr_t)Class709884_vtable, 0x00720468); }
+void __cdecl Std_Xlen() { throw_error(reinterpret_cast<const char *>((uintptr_t)&gText_Std_Xlen_709890), (u32)(uintptr_t)Class709884_vtable, 0x00720468); }
 
-void __cdecl Std_Xran() { throw_error(reinterpret_cast<const char *>((uintptr_t)0x007098c0), (u32)(uintptr_t)Class7098b4_vtable, 0x0071f298); }
+void __cdecl Std_Xran() { throw_error(reinterpret_cast<const char *>((uintptr_t)&gText_Std_Xran_7098c0), (u32)(uintptr_t)Class7098b4_vtable, 0x0071f298); }
 
 void __cdecl Vector_Xran() { throw_error(gIosbase_779a68, (u32)(uintptr_t)Class7098b4_vtable, 0x0071f298); }
 
@@ -131,7 +131,7 @@ u32 *__fastcall OutOfRange_Copy(u32 *self, void *, const u32 *from) { return cop
 void __fastcall LogicError_Raise(const u32 *self) {
     u32 local[7];
     LogicError_Copy(local, nullptr, self);
-    g_env->cxxThrow(local, reinterpret_cast<const void *>((uintptr_t)0x0071f310));
+    g_env->cxxThrow(local, reinterpret_cast<const void *>((uintptr_t)&gLogicError_Raise_71f310));
 }
 
 void __fastcall OutOfRange_Raise(const u32 *self) {
@@ -164,7 +164,7 @@ void __fastcall IosBase_Clear(u8 *self, void *, u32 state, u32 reraise) {
         g_env->cxxThrow(nullptr, nullptr);
         return;
     }
-    const u32 text = cause & 4 ? 0x00709a2c : cause & 2 ? (u32)(uintptr_t)&gIosbase_709a18 : (u32)(uintptr_t)&gIosbase_709a08;
+    const u32 text = cause & 4 ? (u32)(uintptr_t)&gText_IosBase_Clear_709a2c : cause & 2 ? (u32)(uintptr_t)&gIosbase_709a18 : (u32)(uintptr_t)&gIosbase_709a08;
     throw_error(reinterpret_cast<const char *>((uintptr_t)text), (u32)(uintptr_t)Class7099fc_vtable, 0x00720720);
 }
 
@@ -307,7 +307,7 @@ static void wide_finish(u8 *stream, u32 vtable, u32 buffer) {
 }
 
 u8 *__fastcall Ios_InitCtor(u8 *self) {
-    if (!init_first(0x007822b0)) return self;
+    if (!init_first((u32)(uintptr_t)&gIos_7822b0)) return self;
     narrow_filebuf(0x00fb1ad0, 0x0077e800);
     narrow_filebuf(0x00fb19a8, 0x0077e820);
     u8 *const cin = std_stream(0x00fb1a90, 0x00702988);
@@ -342,21 +342,21 @@ u8 *__fastcall Ios_WinitCtor(u8 *self) {
     Init_4f1bd0(cin + 8);
     at<u32>(cin, 4) = 0;
     wide_finish(cin, (u32)(uintptr_t)Class7099dc_vtable, 0x00fb1c70);
-    u8 *const cout = std_stream(0x00fb1cc8, 0x00700648);
+    u8 *const cout = std_stream((u32)(uintptr_t)&gIosbase_fb1cc8, 0x00700648);
     Init_4f1bd0(cout + 4);
     wide_finish(cout, (u32)(uintptr_t)Class7099ec_vtable, 0x00fb1c18);
-    std_tie(cin, 0x00fb1cc8);
+    std_tie(cin, (u32)(uintptr_t)&gIosbase_fb1cc8);
     u8 *const cerr = std_stream(0x00fb1b60, 0x00700648);
     Init_4ef830(cerr + 4);
     at<u32>(cerr, 4) = (u32)(uintptr_t)BasicIosW_vtable;
     wide_finish(cerr, (u32)(uintptr_t)Class7099ec_vtable, 0x00fb1d00);
-    std_tie(cerr, 0x00fb1cc8);
+    std_tie(cerr, (u32)(uintptr_t)&gIosbase_fb1cc8);
     at<u32>(std_ios(cerr), 0xc) |= 2;
     u8 *const clog = std_stream(0x00fb1ba0, 0x00700648);
     Init_4ef830(clog + 4);
     at<u32>(clog, 4) = (u32)(uintptr_t)BasicIosW_vtable;
     wide_finish(clog, (u32)(uintptr_t)Class7099ec_vtable, 0x00fb1d00);
-    std_tie(clog, 0x00fb1cc8);
+    std_tie(clog, (u32)(uintptr_t)&gIosbase_fb1cc8);
     return self;
 }
 
@@ -377,9 +377,9 @@ static void flush_streams(u32 counter, u32 a, u32 b, u32 c) {
     }
 }
 
-void __fastcall Ios_InitDtor(void *) { flush_streams(0x007822b0, 0x00fb1a00, 0x00fb1b28, 0x00fb1970); }
+void __fastcall Ios_InitDtor(void *) { flush_streams((u32)(uintptr_t)&gIos_7822b0, 0x00fb1a00, 0x00fb1b28, 0x00fb1970); }
 
-void __fastcall Ios_WinitDtor(void *) { flush_streams(0x0078240c, 0x00fb1cc8, 0x00fb1b60, 0x00fb1ba0); }
+void __fastcall Ios_WinitDtor(void *) { flush_streams(0x0078240c, (u32)(uintptr_t)&gIosbase_fb1cc8, 0x00fb1b60, 0x00fb1ba0); }
 
 void __fastcall IosBase_Callfns(u8 *self, void *, u32 event) {
     for (u8 *node = at<u8 *>(self, 0x1c); node; node = at<u8 *>(node, 0))
@@ -446,11 +446,11 @@ void __fastcall IosBase_Dtor(u8 *self) {
 void *__cdecl Std_FiopenTable(const char *name, u32 mode) {
     const u32 ate = mode & 4;
     const u32 wanted = mode & ~4u;
-    const u32 *const modes = reinterpret_cast<const u32 *>((uintptr_t)0x00709a50);
+    const u32 *const modes = reinterpret_cast<const u32 *>((uintptr_t)&gStd_FiopenTable_709a50);
     u32 i = 0;
     while (modes[i] && modes[i] != wanted) ++i;
     if (!modes[i]) return nullptr;
-    void *const file = g_env->fopen(name, reinterpret_cast<const char *const *>((uintptr_t)0x00782590)[i]);
+    void *const file = g_env->fopen(name, reinterpret_cast<const char *const *>((uintptr_t)&gStd_FiopenTable_782590)[i]);
     if (!file) return nullptr;
     if (ate && g_env->fseek(file, 0, 2)) {
         g_env->fclose(file);
@@ -650,7 +650,7 @@ void *__cdecl Std_LocaleInit() {
         u32 &uses = at<u32>(held, 4);
         if (uses < 0xffffffffu) ++uses;
         g_env->unlockit(&inner);
-        global<u8 *>(0x00fb1dc8) = gLocalefacet_fb1dcc;
+        global<u8 *>((u32)(uintptr_t)&gIosbase_fb1dc8) = gLocalefacet_fb1dcc;
     }
     u8 *const answer = classic;
     g_env->unlockit(&lock);

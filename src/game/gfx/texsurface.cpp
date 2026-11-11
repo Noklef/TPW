@@ -131,7 +131,7 @@ u32 __fastcall TexSurfaceA_Create(u8 *sub, void *, u32 width, u32 height, u32 fo
 
 u8 *__fastcall TexSurfaceA_Ctor(u8 *surface, void *, u32 mostDerived) {
     if (mostDerived) {
-        at<u32>(surface, 0) = 0x00702218;
+        at<u32>(surface, 0) = (u32)(uintptr_t)TexSurfaceA_vbtable;
         TexCacheItem_Ctor(surface + 0x3c);
     }
     at<u32>(surface, BaseOffset(surface)) = (u32)(uintptr_t)Class7021f0_vtable;
@@ -151,7 +151,7 @@ u8 *__fastcall TexSurfaceA_Ctor(u8 *surface, void *, u32 mostDerived) {
 
 u8 *__fastcall TexSurfaceB_Ctor(u8 *surface, void *, u32 mostDerived) {
     if (mostDerived) {
-        at<u32>(surface, 0) = 0x00702278;
+        at<u32>(surface, 0) = (u32)(uintptr_t)TexSurfaceB_vbtable;
         TexCacheItem_Ctor(surface + 0x10);
     }
     at<u32>(surface, BaseOffset(surface)) = (u32)(uintptr_t)Class702250_vtable;

@@ -39,4 +39,13 @@ GAME_DATA(char[0x40], gGameframe_7650ec, 0x007650ec, 0x40);
 GAME_DATA(char[0x18], gGameframe_76512c, 0x0076512c, 0x18);
 GAME_DATA(char[0x1c], gGameframe_765190, 0x00765190, 0x1c);
 GAME_DATA(char[0x18], gGameframe_7651b8, 0x007651b8, 0x18);
+GAME_DATA(u32[40], gGameframe_SampleRings_878088, 0x00878088, 0xa0);   // (5 rings of the last 8 times: world, frame, RSSE, 0x520130, sprite scripts)
 GAME_DATA(u32, gGameframe_878128, 0x00878128, 0x4);
+GAME_DATA(u32[5], gGameframe_SampleStarts_878688, 0x00878688, 0x14);   // (their steps' starts, then what each took)
+
+// Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(const float, gGame_RunFrame_700f84, 0x00700f84, 0x4);
+GAME_DATA(const float, gGameframe_700f88, 0x00700f88, 0x4);
+GAME_DATA(const u8[0x40], gGameframe_700f8c, 0x00700f8c, 0x40);
+GAME_DATA(u8[0xc], gGameframe_7651ac, 0x007651ac, 0xc);
+GAME_DATA(u8[0x4], gGameframe_879088, 0x00879088, 0x4);

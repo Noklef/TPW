@@ -229,7 +229,7 @@ u32 __cdecl Global820a8c_Get_52fbe0() {
 }
 
 u32 __cdecl Global879088_Set_5508b0(u32 v0) {
-    global<u32>(0x00879088) = v0;
+    global<u32>((u32)(uintptr_t)&gGameframe_879088) = v0;
     return v0;
 }
 

@@ -42,7 +42,7 @@ char *__cdecl CRT_mbsrchr(const char *text, u32 c);
 #include "gamedata.h"
 
 // Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
-GAME_DATA(char[0x8], gCrtmbstring_781598, 0x00781598, 0x8);
+GAME_DATA(u8[0xf8], gCRT_setmbcp_781588, 0x00781588, 0xf8);   // (__rgctypeflag, 4 bytes of padding, then 5 code pages of 0x30 bytes)
 GAME_DATA(u8[0x101], CRT_mbctype, 0x00fb1668, 0x101);
 GAME_DATA(u8[0x100], CRT_mbcasemap, 0x00fb1770, 0x100);
 GAME_DATA(u32, CRT_mbcodepage, 0x00fb1870, 0x4);

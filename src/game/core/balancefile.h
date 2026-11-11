@@ -155,3 +155,13 @@ GAME_DATA(char[0x18], gBalancefile_739b68, 0x00739b68, 0x18);
 GAME_DATA(char[0x18], gBalancefile_739b80, 0x00739b80, 0x18);
 GAME_DATA(char[0x1c], gBalancefile_773014, 0x00773014, 0x1c);
 GAME_DATA(char[0x1c], gBalancefile_7733b4, 0x007733b4, 0x1c);
+
+// Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(u8[0xe4], gBalancefile_7396c8, 0x007396c8, 0xe4);   // (BalanceFile_ParseMap's symbols: 0x13 of 0xc bytes)
+GAME_DATA(u8[0xc0], gBalancefile_7397b0, 0x007397b0, 0xc0);   // (0x10 of 0xc bytes)
+GAME_DATA(u8[0x298], gTable73f8a8_At_73f8a8, 0x0073f8a8, 0x298);
+GAME_DATA(u8[0x130], gBalanceHoardings_GetSchema_73fb40, 0x0073fb40, 0x130);
+GAME_DATA(u8[0x4290], gBalanceLevel_GetSchema_73fc70, 0x0073fc70, 0x4290);
+GAME_DATA(u8[0x3c0], gBalanceOnline_GetSchema_743f00, 0x00743f00, 0x3c0);
+GAME_DATA(u8[0x780], gBalanceGraphics_GetSchema_7442c0, 0x007442c0, 0x780);
+GAME_DATA(u8[0xf0], gBalanceResolution_GetSchema_744a40, 0x00744a40, 0xf0);

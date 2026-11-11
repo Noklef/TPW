@@ -148,11 +148,11 @@ void __cdecl KeyMaps_ResetAllAndSetFlag() {
 void __cdecl KeyMaps_Init() {
     // (the maps, their static entry tables and counts, and their names in the game's data: "system", "game", "camera", "cheat",
     // "coaster", "shortcuts")
-    gKeymap_78718c = NewMap(0x00747f38, 0xc, (u32)(uintptr_t)&gKeymap_748700);
-    gKeymap_787a60 = NewMap(0x00748028, 0xf, (u32)(uintptr_t)&gKeymap_7486f8);
-    gKeymap_787c14 = NewMap(0x00748158, 0x19, (u32)(uintptr_t)&gKeymap_7486f0);
+    gKeymap_78718c = NewMap((u32)(uintptr_t)&gKeyMap_System_747f38, 0xc, (u32)(uintptr_t)&gKeymap_748700);
+    gKeymap_787a60 = NewMap((u32)(uintptr_t)&gKeyMap_Game_748028, 0xf, (u32)(uintptr_t)&gKeymap_7486f8);
+    gKeymap_787c14 = NewMap((u32)(uintptr_t)&gKeyMap_Camera_748158, 0x19, (u32)(uintptr_t)&gKeymap_7486f0);
     gKeymap_78733c = NewMap(0x007484d0, 0xc, (u32)(uintptr_t)&gKeymap_7486e8);
-    gKeymap_787294 = NewMap(0x00748350, 2, 0x00747940);
+    gKeymap_787294 = NewMap((u32)(uintptr_t)&gKeyMap_Coaster_748350, 2, 0x00747940);
     u8 *map = NewMap(reinterpret_cast<uintptr_t>(gKeyMap_Shortcuts_748378), 0x11, (u32)(uintptr_t)&gKeymap_7486dc);
     gKeymap_78721c = map;
     // the shortcuts' actions 1-4: their keys from the texts 0-3 (a null map faults, sic)

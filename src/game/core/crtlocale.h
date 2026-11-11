@@ -90,6 +90,8 @@ using LocaleInfo = s32(__stdcall *)(u32 locale, u32 what, char *out, s32 room);
 #include "gamedata.h"
 
 // Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(char[0x8], CRT_c_locale, 0x00780dc8, 0x8);     // ("C": every category's locale at start)
+GAME_DATA(u8[0x48], CRT_lc_category, 0x00780dd0, 0x48);  // (__lc_category: 6 of 12 bytes: name, locale, init function)
 GAME_DATA(char[0x83], CRT_cachein, 0x00780e18, 0x83);
 GAME_DATA(char[0x83], CRT_cacheout, 0x00780ea0, 0x83);
 GAME_DATA(CrtLcId, CRT_qualified_id_fb142c, 0x00fb142c, 0x6);
@@ -106,3 +108,7 @@ GAME_DATA(const char *, CRT_country, 0x00fb18f0, 0x4);
 GAME_DATA(u32, CRT_lcid_state, 0x00fb18f4, 0x4);
 GAME_DATA(u32, CRT_lcid_country, 0x00fb18f8, 0x4);
 GAME_DATA(LocaleInfo, CRT_pfnGetLocaleInfoA, 0x00fb18fc, 0x4);
+
+// Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(u8[0xb8], gCRT_get_qualified_locale_781968, 0x00781968, 0xb8);
+GAME_DATA(u8[0x4bc], gCRT_781a20, 0x00781a20, 0x4bc);
