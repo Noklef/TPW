@@ -897,9 +897,9 @@ target_link_libraries(tpw_game PRIVATE tpw_zlib tpw_jpeg6b tpw_jpeg6a)
 # fails the build when a converted address is still used as a literal anywhere in src.
 find_program(TPW_PYTHON NAMES py python REQUIRED)
 file(GLOB_RECURSE tpw_sources CONFIGURE_DEPENDS src/*.h src/*.cpp)
-add_custom_command(OUTPUT ${CMAKE_BINARY_DIR}/gamedata_address.cpp
-    COMMAND ${TPW_PYTHON} -I ${CMAKE_SOURCE_DIR}/tools/gamedata.py address ${CMAKE_BINARY_DIR}/gamedata_address.cpp
-    DEPENDS ${CMAKE_SOURCE_DIR}/tools/gamedata.py ${tpw_sources}
+add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/gamedata_address.cpp
+    COMMAND ${TPW_PYTHON} -I ${CMAKE_CURRENT_SOURCE_DIR}/tools/gamedata.py address ${CMAKE_CURRENT_BINARY_DIR}/gamedata_address.cpp
+    DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/tools/gamedata.py ${tpw_sources}
     COMMENT "The game's globals at their addresses")
 
 # Proxy dinput.dll that loads into tp.exe and installs the hooks.
@@ -910,7 +910,7 @@ add_library(tpw_hook SHARED
     src/hook/patch.cpp
     src/hook/regthunks.cpp
     src/hook/dinput.def
-    ${CMAKE_BINARY_DIR}/gamedata_address.cpp
+    ${CMAKE_CURRENT_BINARY_DIR}/gamedata_address.cpp
 )
 set_target_properties(tpw_hook PROPERTIES OUTPUT_NAME dinput)
 target_link_libraries(tpw_hook PRIVATE tpw_game)
@@ -949,7 +949,7 @@ add_executable(tpw_tests
     src/hook/hooks.cpp
     src/hook/patch.cpp
     src/hook/regthunks.cpp
-    ${CMAKE_BINARY_DIR}/gamedata_address.cpp
+    ${CMAKE_CURRENT_BINARY_DIR}/gamedata_address.cpp
 )
 target_link_libraries(tpw_tests PRIVATE tpw_game)
 
@@ -957,30 +957,30 @@ target_link_libraries(tpw_tests PRIVATE tpw_game)
 # Fixed at 0x10000 like the driver below, so its code ends below 0x400000 and its .game section covers the game's image; its entry point
 # runs before its C runtime. Its code-slot table is generated at build time from the user's exe (tools/gen_loader_slots.py; tpw_tests
 # checks it), and so are its globals' initial values (tools/gamedata.py); without the exe at TPW_EXE tpw.exe is left out.
-set(TPW_EXE "${CMAKE_SOURCE_DIR}/.data/nocd/tp.exe" CACHE FILEPATH "The user's decrypted tp.exe, read for tpw.exe's code-slot table")
+set(TPW_EXE "${CMAKE_CURRENT_SOURCE_DIR}/.data/nocd/tp.exe" CACHE FILEPATH "The user's decrypted tp.exe, read for tpw.exe's code-slot table")
 if(EXISTS "${TPW_EXE}")
-    add_custom_command(OUTPUT ${CMAKE_BINARY_DIR}/codeslots.h
-        COMMAND ${TPW_PYTHON} -I ${CMAKE_SOURCE_DIR}/tools/gen_loader_slots.py ${TPW_EXE} ${CMAKE_BINARY_DIR}/codeslots.h
-        DEPENDS ${CMAKE_SOURCE_DIR}/tools/gen_loader_slots.py ${CMAKE_SOURCE_DIR}/src/hook/hooks.cpp ${TPW_EXE}
+    add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/codeslots.h
+        COMMAND ${TPW_PYTHON} -I ${CMAKE_CURRENT_SOURCE_DIR}/tools/gen_loader_slots.py ${TPW_EXE} ${CMAKE_CURRENT_BINARY_DIR}/codeslots.h
+        DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/tools/gen_loader_slots.py ${CMAKE_CURRENT_SOURCE_DIR}/src/hook/hooks.cpp ${TPW_EXE}
         COMMENT "tpw.exe's code-slot table from tp.exe")
-    add_custom_command(OUTPUT ${CMAKE_BINARY_DIR}/gamedata_object.cpp ${CMAKE_BINARY_DIR}/gamedata_fixups.h
-        COMMAND ${TPW_PYTHON} -I ${CMAKE_SOURCE_DIR}/tools/gamedata.py object ${TPW_EXE} ${CMAKE_BINARY_DIR}/gamedata_object.cpp ${CMAKE_BINARY_DIR}/gamedata_fixups.h
-        DEPENDS ${CMAKE_SOURCE_DIR}/tools/gamedata.py ${tpw_sources} ${TPW_EXE}
+    add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/gamedata_object.cpp ${CMAKE_CURRENT_BINARY_DIR}/gamedata_fixups.h
+        COMMAND ${TPW_PYTHON} -I ${CMAKE_CURRENT_SOURCE_DIR}/tools/gamedata.py object ${TPW_EXE} ${CMAKE_CURRENT_BINARY_DIR}/gamedata_object.cpp ${CMAKE_CURRENT_BINARY_DIR}/gamedata_fixups.h
+        DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/tools/gamedata.py ${tpw_sources} ${TPW_EXE}
         COMMENT "tpw.exe's globals, their initial values from tp.exe")
     add_executable(tpw WIN32
         src/loader/loader.cpp
         src/hook/hooks.cpp
         src/hook/regthunks.cpp
-        ${CMAKE_BINARY_DIR}/codeslots.h
-        ${CMAKE_BINARY_DIR}/gamedata_object.cpp
+        ${CMAKE_CURRENT_BINARY_DIR}/codeslots.h
+        ${CMAKE_CURRENT_BINARY_DIR}/gamedata_object.cpp
     )
-    target_include_directories(tpw PRIVATE ${CMAKE_BINARY_DIR})
+    target_include_directories(tpw PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
     target_link_libraries(tpw PRIVATE tpw_game)
     # /MANIFESTUAC:NO: no requestedExecutionLevel, as tp.exe, so Windows keeps registry virtualization: the game opens
     # HKLM\software\Bullfrog Productions Ltd with KEY_ALL_ACCESS, which fails without it (Startup_CheckCanRun then quits).
     target_link_options(tpw PRIVATE /FIXED /DYNAMICBASE:NO /BASE:0x10000 /NXCOMPAT /ENTRY:LoaderEntry /MAP /INCREMENTAL:NO /OPT:REF /MANIFESTUAC:NO)
-    target_sources(tpw_tests PRIVATE ${CMAKE_BINARY_DIR}/codeslots.h ${CMAKE_BINARY_DIR}/gamedata_fixups.h)
-    target_include_directories(tpw_tests PRIVATE ${CMAKE_BINARY_DIR})
+    target_sources(tpw_tests PRIVATE ${CMAKE_CURRENT_BINARY_DIR}/codeslots.h ${CMAKE_CURRENT_BINARY_DIR}/gamedata_fixups.h)
+    target_include_directories(tpw_tests PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
     target_compile_definitions(tpw_tests PRIVATE TPW_CODE_SLOTS)
 else()
     message(STATUS "tpw.exe left out: no exe at TPW_EXE (${TPW_EXE})")
@@ -996,7 +996,7 @@ add_executable(tpw_fncmp
     src/hook/hooks.cpp
     src/hook/patch.cpp
     src/hook/regthunks.cpp
-    ${CMAKE_BINARY_DIR}/gamedata_address.cpp
+    ${CMAKE_CURRENT_BINARY_DIR}/gamedata_address.cpp
 )
 target_link_libraries(tpw_fncmp PRIVATE tpw_game)
 # Not incremental: an incremental link keeps an old, larger .bss when a static shrinks, and a case's wild pointer reads the driver's own
