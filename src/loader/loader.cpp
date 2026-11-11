@@ -332,9 +332,15 @@ LONG CALLBACK OnFault(EXCEPTION_POINTERS *e) {
         c.Eip = target;
         return EXCEPTION_CONTINUE_EXECUTION;
     }
-    u32 back[6] = {}, found = 0;   // the stack's next code addresses (tpw.exe's or the original's), for a caller outside both
-    for (u32 p = c.Esp + 4; found < 6 && p < c.Esp + 0x400 && !IsBadReadPtr((void *)(uintptr_t)p, 4); p += 4)
-        if (const u32 v = G<u32>(p); (v >= 0x00011000 && v < kBase) || (v >= kCode && v < kCodeEnd)) back[found++] = v;
+    // The stack's next return addresses into tpw.exe or the original (after a CALL: E8 rel32, FF /2 with 2, 3 or 6 bytes), for a caller
+    // outside both.
+    const auto afterCall = [](u32 v) {
+        return G<u8>(v - 5) == 0xe8 || (G<u8>(v - 2) == 0xff && (G<u8>(v - 1) & 0x38) == 0x10) ||
+               (G<u8>(v - 3) == 0xff && (G<u8>(v - 2) & 0x38) == 0x10) || (G<u8>(v - 6) == 0xff && (G<u8>(v - 5) & 0x38) == 0x10);
+    };
+    u32 back[6] = {}, found = 0;
+    for (u32 p = c.Esp + 4; found < 6 && p < c.Esp + 0x10000 && !IsBadReadPtr((void *)(uintptr_t)p, 4); p += 4)
+        if (const u32 v = G<u32>(p); ((v >= 0x00011006 && v < kBase) || (v >= kCode + 6 && v < kCodeEnd)) && afterCall(v)) back[found++] = v;
     Fail("tpw: no port for the original's %08X (called from %08X; build\\tpw.map names tpw.exe's addresses)\nstack: %08X %08X %08X %08X %08X %08X", at,
          from, back[0], back[1], back[2], back[3], back[4], back[5]);
 }
