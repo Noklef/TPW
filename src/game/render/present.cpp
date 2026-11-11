@@ -1,4 +1,5 @@
 #include "present.h"
+#include "engineerrors.h"
 
 #include <cstdint>
 #include "../frontend/lobbysky.h"
@@ -91,7 +92,7 @@ u32 __fastcall Device_Present(u8 *engine) {
         windowed(engine);
     run_hook(0x008bd514);
     const u32 result = gDdopen_879cd4;
-    if (!full && result) g_calls.Th(0x0056af20, 0x00879ad0u, 3u, result);
+    if (!full && result) g_calls.Th(0x0056af20, (u32)(uintptr_t)gEngineErrors_879ad0, 3u, result);
     return gDdopen_879cd4 == 0;
 }
 
@@ -106,7 +107,7 @@ bool answered(u32 result) {
         g_calls.Cd(0x00564650, g_calls.Cd(0x0056a770, result));
         result = gDdopen_879cd4;
     }
-    if (result) g_calls.Th(0x0056af20, 0x00879ad0u, 2u, result);
+    if (result) g_calls.Th(0x0056af20, (u32)(uintptr_t)gEngineErrors_879ad0, 2u, result);
     return !result;
 }
 

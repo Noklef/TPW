@@ -111,7 +111,7 @@ u8 *__fastcall PtrArray_AddImage(u8 *object, void *, const char *name) {
     u8 *image = static_cast<u8 *>(GameHeap_Alloc(0x18));
     if (image) image = SpriteImage_Init(image);
     if (!image) {
-        EngineErrors_Push(reinterpret_cast<u8 *>((uintptr_t)0x00879ad0), nullptr, 2, 0xb0754000);
+        EngineErrors_Push(gEngineErrors_879ad0, nullptr, 2, 0xb0754000);
         return nullptr;
     }
     if (!g_imageCalls.Th(0x588820, (u32)(uintptr_t)image, name)) {
@@ -128,7 +128,7 @@ u8 *__fastcall PtrArray_AddSpriteFrame(u8 *object, void *, u32 image) {
     u8 *frame = static_cast<u8 *>(GameHeap_Alloc(0x44));
     if (frame) frame = SpriteFrame_Init(frame);
     if (!frame) {
-        EngineErrors_Push(reinterpret_cast<u8 *>((uintptr_t)0x00879ad0), nullptr, 2, 0xb0754000);
+        EngineErrors_Push(gEngineErrors_879ad0, nullptr, 2, 0xb0754000);
         return nullptr;
     }
     at<u32>(frame, 0x24) = 0xffffffff;
@@ -256,7 +256,7 @@ u32 __fastcall PtrArray_ReleaseAll(u8 *object, void *) {
 u32 __cdecl PtrArray_DecodedTexturesAtExit() { return PtrArray_ReleaseAll(reinterpret_cast<u8 *>((uintptr_t)0x00879ce0), nullptr); }
 
 u32 __fastcall PtrArray_Init(u8 *object, void *, u32 frames, u32 images) {
-    u8 *const errors = reinterpret_cast<u8 *>((uintptr_t)0x00879ad0);
+    u8 *const errors = gEngineErrors_879ad0;
     if (at<u32>(object, 0x10)) {
         EngineErrors_Push(errors, nullptr, 2, 0xb0754015);
         return 0;

@@ -1,4 +1,5 @@
 #include "imagebuffer.h"
+#include "engineerrors.h"
 
 #include <cstdint>
 #include <cstring>
@@ -25,7 +26,7 @@ bool screen_format(u32 *format) {
     if ((s32)answer < 0)
         g_calls.Cd(0x00564650, g_calls.Cd(0x0056a770, answer));
     if (const u32 now = global((u32)&gDdopen_879cd4)) {
-        g_calls.Th(0x0056af20, 0x00879ad0, 2u, now);
+        g_calls.Th(0x0056af20, (u32)(uintptr_t)gEngineErrors_879ad0, 2u, now);
         return false;
     }
     return true;

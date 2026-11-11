@@ -20,7 +20,7 @@ inline void keep(u32 hr) {
 
 // The kept result, unless 0, also on the engine's error list: whether it was 0.
 inline u32 pushed(u32 kind) {
-    if (result() != 0) EngineErrors_Push(reinterpret_cast<u8 *>((uintptr_t)0x00879ad0), nullptr, kind, result());
+    if (result() != 0) EngineErrors_Push(gEngineErrors_879ad0, nullptr, kind, result());
     return result() == 0;
 }
 

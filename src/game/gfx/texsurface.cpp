@@ -1,4 +1,5 @@
 #include "texsurface.h"
+#include "../render/engineerrors.h"
 
 #include <cstdint>
 #include <initializer_list>
@@ -41,7 +42,7 @@ AddrCalls g_calls;
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
 
 u32 CreateFailed(u32 code) {
-    g_calls.Th(0x0056af20, 0x00879ad0u, 2u, code);   // EngineErrors_Push
+    g_calls.Th(0x0056af20, (u32)(uintptr_t)gEngineErrors_879ad0, 2u, code);   // EngineErrors_Push
     return 0;
 }
 

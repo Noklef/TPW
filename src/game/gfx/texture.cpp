@@ -26,7 +26,7 @@ u32 __fastcall Texture_Alloc(u8 *texture, void *, u32 size, u32 flags) {
     const u32 pixel = reinterpret_cast<const u32 *>((uintptr_t)0x007024e0)[*reinterpret_cast<const u32 *>((uintptr_t)0x008bd554)];
     at<u32>(texture, 0x40) = TrackedGlobal_Alloc(pixel * size * size);
     if (!at<u32>(texture, 0x40)) {
-        EngineErrors_Push(reinterpret_cast<u8 *>((uintptr_t)0x00879ad0), nullptr, 2, 0xb0754000);
+        EngineErrors_Push(gEngineErrors_879ad0, nullptr, 2, 0xb0754000);
         return 0;
     }
     const s16 side = (s16)size;

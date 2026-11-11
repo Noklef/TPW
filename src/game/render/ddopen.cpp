@@ -1,5 +1,6 @@
 // The display's DirectDraw start-up: see ddopen.h.
 #include "ddopen.h"
+#include "engineerrors.h"
 
 #include <cstdint>
 #include <cstring>
@@ -31,7 +32,7 @@ T &global(uintptr_t address) {
 }
 
 u8 *const kView = reinterpret_cast<u8 *>((uintptr_t)0x008bcbc8);
-u8 *const kErrors = reinterpret_cast<u8 *>((uintptr_t)0x00879ad0);
+u8 *const kErrors = gEngineErrors_879ad0;
 const u32 kTextLog = 0x1000000, kStepLog = 0x2000000;
 const u32 kDescSize = 0x7c;
 const uintptr_t kIidDraw2 = 0x007071f0, kIidDraw4 = 0x00707200;

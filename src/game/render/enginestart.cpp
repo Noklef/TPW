@@ -32,7 +32,7 @@ void logStage(const char *text) {
     g_calls.Cd(0x005645e0, address(line));
 }
 
-void pushError(u32 code) { EngineErrors_Push(reinterpret_cast<u8 *>((uintptr_t)0x00879ad0), nullptr, 3, code); }
+void pushError(u32 code) { EngineErrors_Push(gEngineErrors_879ad0, nullptr, 3, code); }
 
 bool createParts(u32 a, u32 c) {
     if (!g_calls.Cd(0x0056b6c0) || !g_calls.Cd(0x005781d0))

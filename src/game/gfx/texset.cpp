@@ -39,7 +39,7 @@ extern "C" u32 __fastcall TexSet_BltToBack(u8 *self) {
         answer = gDdopen_879cd4;
     }
     if (answer) {
-        g_bltCalls.Th(0x0056af20, 0x00879ad0u, 2u, answer);
+        g_bltCalls.Th(0x0056af20, (u32)(uintptr_t)gEngineErrors_879ad0, 2u, answer);
         return 0;
     }
     return 1;
@@ -56,7 +56,7 @@ u32 __fastcall TexSet_InitShared(u8 *set, void *, u32 array) {
     const u32 list = TrackedGlobal_Alloc(4);
     at<u32>(set, 8) = list;
     if (!list) {
-        EngineErrors_Push(reinterpret_cast<u8 *>((uintptr_t)0x00879ad0), nullptr, 2, 0xb0754000);
+        EngineErrors_Push(gEngineErrors_879ad0, nullptr, 2, 0xb0754000);
         return 0;
     }
     at<u16>(set, 0xc) = 0x8000;
@@ -152,7 +152,7 @@ u32 __fastcall TexSet_Init(u8 *set, void *, const u8 *def, const u8 *info) {
             }
             Texture_DestroyArray(textures);
         }
-        EngineErrors_Push(reinterpret_cast<u8 *>((uintptr_t)0x00879ad0), nullptr, 2, 0xb0754000);
+        EngineErrors_Push(gEngineErrors_879ad0, nullptr, 2, 0xb0754000);
         return 0;
     }
     at<u16>(set, 0xc) = at<u16>(info, 0xa);

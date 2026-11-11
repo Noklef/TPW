@@ -22,3 +22,8 @@ void __fastcall EngineErrors_Push(u8 *list, void *, u32 kind, u32 code);
 // flag 0x10000000 of the scene flags (0x8bd508) set and 1; else 0.
 u32 __fastcall EngineErrors_DropSurfaceLost(u8 *list);
 }
+
+#include "../core/gamedata.h"
+
+// The game's list as one object: EngineErrors_Push reads the count at +0x200 through the list's address.
+GAME_DATA(u8[0x204], gEngineErrors_879ad0, 0x00879ad0, 0x204);

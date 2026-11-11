@@ -34,7 +34,7 @@ u32 __fastcall ScreenGrab_ToRgb24(u8 *grab, void *) {
         if (!out) {
             TrackedGlobal_Free(at<u32>(grab, 0));
             at<u32>(grab, 0) = 0;
-            EngineErrors_Push(reinterpret_cast<u8 *>((uintptr_t)0x00879ad0), nullptr, 2, 0xb0754000);
+            EngineErrors_Push(gEngineErrors_879ad0, nullptr, 2, 0xb0754000);
             return 0;
         }
         const u32 maskA = global<u32>(0x008bcc54), maskB = global<u32>(0x008bcc6c), maskC = global<u32>(0x008bcc60);
@@ -71,7 +71,7 @@ u32 __fastcall ScreenGrab_TakeFront(u8 *grab, void *) {
     const u32 pixels = TrackedGlobal_Alloc(global<u32>(0x008bcbe4) * count);   // (the depth in bits: eight times the room, sic)
     at<u32>(grab, 0) = pixels;
     if (!pixels) {
-        EngineErrors_Push(reinterpret_cast<u8 *>((uintptr_t)0x00879ad0), nullptr, 2, 0xb0754000);
+        EngineErrors_Push(gEngineErrors_879ad0, nullptr, 2, 0xb0754000);
         return 0;
     }
     u8 *const front = at<u8 *>(global<u8 *>((u32)(uintptr_t)&gD3dsetup_879a20 + 0x4), 0x14);
@@ -125,7 +125,7 @@ u32 __fastcall ScreenGrab_WriteTga(u8 *grab, void *, const char *path) {
     header[0x10] = 0x18;
     const u32 file = g_calls.Cd(0x0067b8a0, path, (u32)(uintptr_t)&gText_Enginedebug_766128);
     if (!file) {
-        g_calls.Th(0x0056af20, 0x00879ad0u, 2u, 0xb0754002u);
+        g_calls.Th(0x0056af20, (u32)(uintptr_t)gEngineErrors_879ad0, 2u, 0xb0754002u);
         return 0;
     }
     g_calls.Cd(0x0067b6d0, header, 1u, 0x12u, file);

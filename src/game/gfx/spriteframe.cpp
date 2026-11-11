@@ -127,7 +127,7 @@ u32 TextureFrom(u8 *image, u8 *source, u8 *texture) {
     return 0;
 }
 
-void PushNoMemory() { EngineErrors_Push(reinterpret_cast<u8 *>((uintptr_t)0x00879ad0), nullptr, 2, 0xb0754000); }
+void PushNoMemory() { EngineErrors_Push(gEngineErrors_879ad0, nullptr, 2, 0xb0754000); }
 
 const SpriteFramesEnv kGameFramesEnv = {&LoadScreen_Tick};
 const SpriteFramesEnv *g_framesEnv = &kGameFramesEnv;
@@ -154,7 +154,7 @@ u32 __fastcall SpriteImage_AllocPixels(u8 *image, void *, u32 width, u32 height)
     at<u16>(image, 0xc) = (u16)width;
     at<u32>(image, 4) = TrackedGlobal_Alloc(pixel * (height & 0xffff) * (width & 0xffff));
     if (!at<u32>(image, 4)) {
-        EngineErrors_Push(reinterpret_cast<u8 *>((uintptr_t)0x00879ad0), nullptr, 2, 0xb0754000);
+        EngineErrors_Push(gEngineErrors_879ad0, nullptr, 2, 0xb0754000);
         return 0;
     }
     return 1;
@@ -171,7 +171,7 @@ u32 __fastcall SpriteImage_SetTexture(u8 *image, void *, u32 pixels, u32 palette
         }
         at<u8 *>(image, 0) = texture;
         if (texture == nullptr) {
-            EngineErrors_Push(reinterpret_cast<u8 *>((uintptr_t)0x00879ad0), nullptr, 2, 0xb0754000);
+            EngineErrors_Push(gEngineErrors_879ad0, nullptr, 2, 0xb0754000);
             return 0;
         }
     } else {

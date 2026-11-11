@@ -143,7 +143,7 @@ u32 __fastcall ObjModel_Unload(u8 *object) {
 }
 
 u32 __fastcall ObjModel_Load(u8 *object, void *, u8 *model) {
-    u8 *const errors = reinterpret_cast<u8 *>((uintptr_t)0x00879ad0);
+    u8 *const errors = gEngineErrors_879ad0;
     at<u8 *>(object, 8) = model;
     at<u32>(object, 4) = 0;
     if (at<u8>(model, 0x30) & 2) {
@@ -306,7 +306,7 @@ u32 __fastcall ObjModel_BlendTerrainTiles(u8 *object, void *, s32 x0, s32 y0, s3
                                reinterpret_cast<void *>((uintptr_t)0x00575bf0));
     }
     at<u8 *>(object, 0x128) = sets;
-    u8 *const errors = reinterpret_cast<u8 *>((uintptr_t)0x00879ad0);
+    u8 *const errors = gEngineErrors_879ad0;
     if (!at<u32>(object, 0x124) && !sets) {
         Object_ReleaseSavedPairs(object);
         EngineErrors_Push(errors, nullptr, 2, 0xb0754000);

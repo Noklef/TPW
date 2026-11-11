@@ -19,7 +19,7 @@ u32 address(const void *p) { return (u32)(uintptr_t)p; }
 u32 *stream(const u8 *buffer, u32 n) { return reinterpret_cast<u32 *>((uintptr_t)buffer + n * 24 - 0x10); }
 u32 *current(const u8 *buffer) { return stream(buffer, at<u32>(buffer, 4)); }
 
-void PushError() { EngineErrors_Push(reinterpret_cast<u8 *>((uintptr_t)0x00879ad0), nullptr, 3, 0xb0754000); }
+void PushError() { EngineErrors_Push(gEngineErrors_879ad0, nullptr, 3, 0xb0754000); }
 
 // The three sorts' keys and tests. A NaN passes `!(v >= p)`, so a float's scan runs over it. A NaN pivot recurses for ever, as in the original.
 struct ByDword8 {
@@ -414,7 +414,7 @@ u32 __fastcall DrawBuffer_DrawAll(u8 *buffer) {
     if (!count) return 1;
     u32 *const order = reinterpret_cast<u32 *>((uintptr_t)g_drawAllCalls.Cd(0x00579b40, count * 4));   // TrackedGlobal_Alloc
     if (!order) {
-        g_drawAllCalls.Th(0x0056af20, 0x00879ad0u, 3u, 0xb0754000u);
+        g_drawAllCalls.Th(0x0056af20, (u32)(uintptr_t)gEngineErrors_879ad0, 3u, 0xb0754000u);
         return 0;
     }
     s32 n = 0;

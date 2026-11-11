@@ -63,7 +63,7 @@ u32 __cdecl ClipCodes_InitTable() {
     }
     *block = static_cast<u8 *>(GameHeap_Alloc(8));
     if (*block) return 1;
-    EngineErrors_Push(reinterpret_cast<u8 *>((uintptr_t)0x00879ad0), nullptr, 3, 0xb0754000);
+    EngineErrors_Push(gEngineErrors_879ad0, nullptr, 3, 0xb0754000);
     return 0;
 }
 }

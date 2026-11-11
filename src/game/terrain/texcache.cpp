@@ -55,7 +55,7 @@ u32 __fastcall TerrainTexCache_Init(u8 *cache, void *, s32 count, u32 size) {
     if (video < 0x3000000 || memory < (s32)(unit * 3)) size = 0x10;
     if ((video < 0x4000000 || memory < (s32)(unit * 5)) && size == 0x40) size = 0x20;
     if (*reinterpret_cast<const u32 *>((uintptr_t)0x008bd524) == 4) return 1;
-    u8 *const errors = reinterpret_cast<u8 *>((uintptr_t)0x00879ad0);
+    u8 *const errors = gEngineErrors_879ad0;
     void *const block = GameHeap_Alloc(0x2ac);
     u8 *const land = block ? Lnd_Ctor(static_cast<u8 *>(block)) : nullptr;
     at<u8 *>(cache, 0) = land;
@@ -159,7 +159,7 @@ extern "C" {
 u32 __fastcall TerrainTexCache_ReadLnd(u8 *cache, void *, const char *name) {
     g_calls.Th(0x0055f720, at<u32>(cache, 0), at<u32>(cache, 4));   // Lnd_SetTileSize
     if (!(u8)g_calls.Th(0x00560ff0, at<u32>(cache, 0), name)) {   // Lnd_Read
-        g_calls.Th(0x0056af20, 0x00879ad0u, 2u, 0xb0754001u);   // EngineErrors_Push
+        g_calls.Th(0x0056af20, (u32)(uintptr_t)gEngineErrors_879ad0, 2u, 0xb0754001u);   // EngineErrors_Push
         return 0;
     }
     *reinterpret_cast<u32 *>((uintptr_t)0x008bd550) |= 4;

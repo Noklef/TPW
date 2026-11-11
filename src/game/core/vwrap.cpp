@@ -192,7 +192,7 @@ u32 __cdecl Global879acc_Create() {
     }
     global<u8 *>(0x00879acc) = base;
     if (!base) {
-        EngineErrors_Push(reinterpret_cast<u8 *>((uintptr_t)0x00879ad0), nullptr, 3, 0xb0754000);
+        EngineErrors_Push(gEngineErrors_879ad0, nullptr, 3, 0xb0754000);
         return 0;
     }
     vcall<u32>(base, 4);
@@ -209,7 +209,7 @@ u32 __cdecl Global879ac0_Create() {
     }
     global<u8 *>(0x00879ac0) = base;
     if (!base) {
-        EngineErrors_Push(reinterpret_cast<u8 *>((uintptr_t)0x00879ad0), nullptr, 3, 0xb0754000);
+        EngineErrors_Push(gEngineErrors_879ad0, nullptr, 3, 0xb0754000);
         return 0;
     }
     vcall<u32>(base, 4);
@@ -270,7 +270,7 @@ u32 __cdecl Global8bba48_Create() {
     }
     reinterpret_cast<u8 * &>(gVwrap_8bba48) = object;
     if (!object) {
-        EngineErrors_Push(reinterpret_cast<u8 *>((uintptr_t)0x00879ad0), nullptr, 3, 0xb0754000);
+        EngineErrors_Push(gEngineErrors_879ad0, nullptr, 3, 0xb0754000);
         return 0;
     }
     return 1;

@@ -1,4 +1,5 @@
 #include "surfacepool.h"
+#include "../render/engineerrors.h"
 
 #include <cstdint>
 #include <cstring>
@@ -119,7 +120,7 @@ extern "C" u32 __fastcall SurfacePool_MakeSurfaces(u8 *pool, void *, s32 side, u
             if (!result)
                 continue;
         }
-        g_poolCalls.Th(0x0056af20, 0x00879ad0u, 3u, result);
+        g_poolCalls.Th(0x0056af20, (u32)(uintptr_t)gEngineErrors_879ad0, 3u, result);
         return 0;
     }
     return 1;

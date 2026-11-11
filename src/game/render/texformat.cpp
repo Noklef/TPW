@@ -23,7 +23,7 @@ u32 __fastcall TexFormat_Record(void *, void *, u32 *out, s32 index) {
             return 1;
         }
     }
-    EngineErrors_Push(reinterpret_cast<u8 *>((uintptr_t)0x00879ad0), nullptr, 2, 0xb0754003);
+    EngineErrors_Push(gEngineErrors_879ad0, nullptr, 2, 0xb0754003);
     return 0;
 }
 
@@ -160,7 +160,7 @@ void __cdecl TexFormat_ConvertSquare(u16 *to, const u32 *from, u32 side) {
         for (u32 i = 0; i < side; ++i) out[i] = from[i];  // side dwords, not side * side (sic)
         return;
     }
-    default: EngineErrors_Push(reinterpret_cast<u8 *>((uintptr_t)0x00879ad0), nullptr, 2, 0xb0754003);
+    default: EngineErrors_Push(gEngineErrors_879ad0, nullptr, 2, 0xb0754003);
     }
 }
 

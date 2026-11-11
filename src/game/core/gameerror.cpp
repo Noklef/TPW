@@ -1,4 +1,5 @@
 #include "gameerror.h"
+#include "../render/engineerrors.h"
 
 #include <cstdint>
 
@@ -25,7 +26,7 @@ void __fastcall GameError_Show(u8 *report) {
     if (!fields[0] || !*reinterpret_cast<const u32 *>((uintptr_t)0x0078b530)) return;
     const u32 index = fields[1];
     if (index == 0xc) {
-        u8 *const errors = reinterpret_cast<u8 *>((uintptr_t)0x00879ad0);
+        u8 *const errors = gEngineErrors_879ad0;
         u32 code = 0;
         while (const u8 *const entry = Entries8_Pop(errors))
             if (*reinterpret_cast<const u32 *>(entry) == 3) code = *reinterpret_cast<const u32 *>(entry + 4);

@@ -67,7 +67,7 @@ u8 *LoadSky(u8 *landscape, u32 offset, const char *folder, const char *file) {
     u8 *const textures = TexManager_Load(*reinterpret_cast<u8 *const *>(&gTexman_87a268), nullptr, located);
     at<u8 *>(landscape, offset) = textures;
     if (textures == nullptr) {
-        u8 *const errors = reinterpret_cast<u8 *>((uintptr_t)0x00879ad0);
+        u8 *const errors = gEngineErrors_879ad0;
         EngineErrors_Push(errors, nullptr, 1, 0xb0754001);
         EngineErrors_Push(errors, nullptr, 1, 0xb0754001);
     } else {
@@ -268,7 +268,7 @@ u32 __fastcall Landscape_RemoveTexture(u8 *landscape, void *, u8 *textures) {
 }
 
 u32 __fastcall Landscape_AddTexture(u8 *landscape, void *, u8 **out, const char *name, u32 a, u32 b, u32 c, u32 d, u32 e, u32 f) {
-    u8 *const errors = reinterpret_cast<u8 *>((uintptr_t)0x00879ad0);
+    u8 *const errors = gEngineErrors_879ad0;
     const s32 count = at<s32>(landscape, 0x21dc);
     if (count >= 0x10) {
         EngineErrors_Push(errors, nullptr, 1, 0xb0754012);

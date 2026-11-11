@@ -1,4 +1,5 @@
 #include "devicereset.h"
+#include "engineerrors.h"
 
 #include <cstdint>
 
@@ -40,7 +41,7 @@ u32 __cdecl Engine_ResetDevice() {
     g_calls.Th(0x0058dc10, gTexcache_8c4b44);
     g_calls.Cd(0x00583700);
     g_calls.Th(0x005640a0, global<u32>((u32)(uintptr_t)&gD3dsetup_879a20 + 0x4));
-    g_calls.Th(0x0056af20, 0x00879ad0u, 3u, 0xb0754014u);   // EngineErrors_Push
+    g_calls.Th(0x0056af20, (u32)(uintptr_t)gEngineErrors_879ad0, 3u, 0xb0754014u);   // EngineErrors_Push
     return 0;
 }
 

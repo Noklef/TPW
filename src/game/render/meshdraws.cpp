@@ -18,7 +18,7 @@ extern "C" {
 u32 __fastcall MeshDraws_Add(u8 *list, void *, u32 matrix, u32, u32, u8 *mesh, u32 flags) {
     const s32 count = at<s32>(list, 0);
     if (count >= 0x1000) {
-        EngineErrors_Push(reinterpret_cast<u8 *>((uintptr_t)0x00879ad0), nullptr, 1, 0xb0754008);
+        EngineErrors_Push(gEngineErrors_879ad0, nullptr, 1, 0xb0754008);
         return 0;
     }
     const u32 vertices = at<u16>(mesh, 0x58);

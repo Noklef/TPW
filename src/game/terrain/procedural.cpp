@@ -62,7 +62,7 @@ u32 __cdecl TerrainTex_Create() {
     }
     tex = p;
     if (!p) {
-        EngineErrors_Push(reinterpret_cast<u8 *>(0x00879ad0), nullptr, 3, 0xb0754000);
+        EngineErrors_Push(gEngineErrors_879ad0, nullptr, 3, 0xb0754000);
         return 0;
     }
     return 1;
@@ -351,7 +351,7 @@ u32 __fastcall TerrainTex_Init(u8 *tex, void *, const char *name, u32 size) {
     u8 *const cache = block ? TerrainTexCache_Ctor(static_cast<u8 *>(block)) : nullptr;
     at<u8 *>(tex, 0x230) = cache;
     if (!cache) {
-        g_calls.Th(0x0056af20, 0x00879ad0, 2u, 0xb0754000u);
+        g_calls.Th(0x0056af20, (u32)(uintptr_t)gEngineErrors_879ad0, 2u, 0xb0754000u);
         return 0;
     }
     if (!g_calls.Th(0x00572110, (u32)(uintptr_t)cache, global(0x008c162c), size))

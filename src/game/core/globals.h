@@ -171,7 +171,6 @@ u32 __fastcall Obj_Flags1cAnd(const u8 *object, void *, u32 mask);
 #include "gamedata.h"
 
 // Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
-GAME_DATA(u32, gTable879ad0_Clear_879cd0, 0x00879cd0, 4);
 GAME_DATA(u32, gGlobal8bb628_SetOne_8bb628, 0x008bb628, 4);
 GAME_DATA(u32, gGlobals8bcb80_SetOne_8bcb80, 0x008bcb80, 4);
 GAME_DATA(u32, gGlobals8bcb80_SetOne_8bcb84, 0x008bcb84, 4);

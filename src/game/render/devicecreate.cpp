@@ -1,4 +1,5 @@
 #include "devicecreate.h"
+#include "engineerrors.h"
 
 #include <cstdint>
 #include <initializer_list>
@@ -21,7 +22,7 @@ const u32 kD3d = 0x00879da8, kSoft = 0x00879dac, kVirtualBase = 0x008bd52c;
 // The table's second dword: the virtual base's place in the object.
 u32 base_offset(const u8 *object) { return at<u32>(at<const u8 *>(object, 0), 4); }
 
-void push_error(u32 code) { g_calls.Th(0x0056af20, 0x00879ad0, 3u, code); }
+void push_error(u32 code) { g_calls.Th(0x0056af20, (u32)(uintptr_t)gEngineErrors_879ad0, 3u, code); }
 
 void note_virtual_base(u32 object) {
     global(kVirtualBase) = object ? object + base_offset(reinterpret_cast<const u8 *>((uintptr_t)object)) : 0;

@@ -149,7 +149,7 @@ u32 __cdecl Renderer_Create() {
     }
     gRenderer_87a6d0 = renderer;
     if (!renderer) {
-        EngineErrors_Push(reinterpret_cast<u8 *>((uintptr_t)0x00879ad0), nullptr, 3, 0xb0754000);
+        EngineErrors_Push(gEngineErrors_879ad0, nullptr, 3, 0xb0754000);
         return 0;
     }
     return 1;
@@ -191,7 +191,7 @@ u32 __fastcall Renderer_MakeFrameBuffer(u8 *renderer, void *, s32 width, s32 hei
     at<u32>(renderer, 0x10) = TrackedGlobal_Alloc(size);
     u8 *const frame = reinterpret_cast<u8 *>((uintptr_t)at<u32>(renderer, 0x10));
     if (!frame) {
-        EngineErrors_Push(reinterpret_cast<u8 *>((uintptr_t)0x00879ad0), nullptr, 3, 0xb0754000);
+        EngineErrors_Push(gEngineErrors_879ad0, nullptr, 3, 0xb0754000);
         return 0;
     }
     for (u32 i = 0; i < size; ++i)

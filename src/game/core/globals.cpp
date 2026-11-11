@@ -111,11 +111,11 @@ void __fastcall Obj_ApplyToGlobalObject(u8 *object) {
 }
 
 void __cdecl Table879ad0_Clear() {
-    for (u32 address = 0x00879ad0, i = 0; i < 0x40; ++i, address += 8) {
-        global<u32>(address) = 0;
-        global<u32>(address + 4) = 0;
+    for (u32 i = 0; i < 0x40; ++i) {
+        at<u32>(gEngineErrors_879ad0, 8 * i) = 0;
+        at<u32>(gEngineErrors_879ad0, 8 * i + 4) = 0;
     }
-    gTable879ad0_Clear_879cd0 = 0;
+    at<u32>(gEngineErrors_879ad0, 0x200) = 0;
 }
 
 u32 __cdecl Global81ae2c_Equals(u32 value) { return global<u32>(0x0081ae2c) == value; }
@@ -264,7 +264,7 @@ u32 __cdecl CreateGlobal879d54_56b6c0() {
     }
     block = p;
     if (!p) {
-        EngineErrors_Push(reinterpret_cast<u8 *>((uintptr_t)0x00879ad0), nullptr, 3, 0xb0754000);
+        EngineErrors_Push(gEngineErrors_879ad0, nullptr, 3, 0xb0754000);
         return 0;
     }
     return 1;
@@ -294,7 +294,7 @@ static u32 CreateGlobal(u32 slot, u32 size, u32 fill) {
     if (p) *p = fill;
     block = (u32)(uintptr_t)p;
     if (!p) {
-        EngineErrors_Push(reinterpret_cast<u8 *>((uintptr_t)0x00879ad0), nullptr, 3, 0xb0754000);
+        EngineErrors_Push(gEngineErrors_879ad0, nullptr, 3, 0xb0754000);
         return 0;
     }
     return 1;

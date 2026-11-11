@@ -1,4 +1,5 @@
 #include "rendererframe.h"
+#include "engineerrors.h"
 
 #include <cstdint>
 #include <cstring>
@@ -162,7 +163,7 @@ u32 __fastcall Renderer_DrawFrame(u8 *renderer) {
     }
     if (global<u32>(kSceneFlags) & 0x10000000) {
         if (!g_calls.Cd(0x005774c0)) {   // Engine_ResetDevice
-            g_calls.Th(0x0056af20, 0x00879ad0u, 3u, 0xb0754013u);   // EngineErrors_Push
+            g_calls.Th(0x0056af20, (u32)(uintptr_t)gEngineErrors_879ad0, 3u, 0xb0754013u);   // EngineErrors_Push
             return 0;
         }
         global<u32>(kSceneFlags) &= ~0x10000000u;
@@ -254,7 +255,7 @@ u32 __fastcall Renderer_DrawFrame(u8 *renderer) {
     if (!drawn) {
         global<u32>(kViewFlags) = savedView;
         global<u32>(kSceneFlags) = savedScene;
-        return g_calls.Th(0x0056afc0, 0x00879ad0u);   // EngineErrors_DropSurfaceLost
+        return g_calls.Th(0x0056afc0, (u32)(uintptr_t)gEngineErrors_879ad0);   // EngineErrors_DropSurfaceLost
     }
     g_calls.Th(0x00561760, 0x008798d0u);   // ScreenGrab_Save
     global<u32>(kSceneFlags) &= 0x3fffffff;

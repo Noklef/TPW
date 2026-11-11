@@ -693,7 +693,7 @@ u32 __fastcall TexCache_ChooseBudget(u8 *cache) {
         at<s32>(cache, 0x18f8) = limits[2 * level + 1];
     }
     if (!added || count < 0x40 / sizes[at<u32>(nullptr, 0x008bd554)]) {
-        EngineErrors_Push(reinterpret_cast<u8 *>((uintptr_t)0x00879ad0), nullptr, 3, 0xb075400f);
+        EngineErrors_Push(gEngineErrors_879ad0, nullptr, 3, 0xb075400f);
         return 0;
     }
     u32 &flags = at<u32>(cache, 0x18cc);
@@ -1496,7 +1496,7 @@ u32 __fastcall TexCache_Update(u8 *cache) {
     TexCache_Rebalance(cache);
     if (TexCache_PlacePending(cache))
         return 1;
-    EngineErrors_Push(reinterpret_cast<u8 *>((uintptr_t)0x00879ad0), nullptr, 2, 0xb0754011);
+    EngineErrors_Push(gEngineErrors_879ad0, nullptr, 2, 0xb0754011);
     return 0;
 }
 
@@ -1547,7 +1547,7 @@ extern "C" u32 __cdecl TexCache_Create(u32 format) {
     const u32 cache = block ? g_setupCalls.Th(0x0058d0f0, (u32)(uintptr_t)block) : 0;   // TexCache_InitDefaults
     gTexcache_8c4b44 = cache;
     if (cache) return TexCache_Setup(reinterpret_cast<u8 *>((uintptr_t)cache), nullptr, format);
-    g_setupCalls.Th(0x0056af20, 0x00879ad0u, 3u, 0xb0754000u);   // EngineErrors_Push
+    g_setupCalls.Th(0x0056af20, (u32)(uintptr_t)gEngineErrors_879ad0, 3u, 0xb0754000u);   // EngineErrors_Push
     return 0;
 }
 

@@ -1,4 +1,5 @@
 #include "weathertables.h"
+#include "engineerrors.h"
 
 #include <cstdint>
 
@@ -35,7 +36,7 @@ u32 __cdecl WeatherFx_Create() {
     const u32 made = block ? g_calls.Th(0x0057d1d0, (u32)(uintptr_t)block) : 0;
     global<u32>(0x008bcbac) = made;
     if (!made) {
-        g_calls.Th(0x0056af20, 0x00879ad0u, 3u, 0xb0754000u);
+        g_calls.Th(0x0056af20, (u32)(uintptr_t)gEngineErrors_879ad0, 3u, 0xb0754000u);
         return 0;
     }
     WeatherFx_FillTables(reinterpret_cast<u8 *>((uintptr_t)made));

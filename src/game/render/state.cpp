@@ -39,7 +39,7 @@ u32 __cdecl Display_RestoreIfFocused() {
     global<u32>(0x008bcc40) = generation;
     if (vcall<u32>(device, 4))
         return 1;
-    return EngineErrors_DropSurfaceLost(reinterpret_cast<u8 *>((uintptr_t)0x00879ad0));
+    return EngineErrors_DropSurfaceLost(gEngineErrors_879ad0);
 }
 
 u32 __cdecl Display_Restore() {

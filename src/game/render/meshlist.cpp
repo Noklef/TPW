@@ -99,7 +99,7 @@ u32 __cdecl Meshes_CreateObject() {
     }
     gMeshlist_87a248 = block;
     if (block) return 1;
-    EngineErrors_Push(reinterpret_cast<u8 *>(0x00879ad0), nullptr, 3, 0xb0754000);
+    EngineErrors_Push(gEngineErrors_879ad0, nullptr, 3, 0xb0754000);
     return 0;
 }
 

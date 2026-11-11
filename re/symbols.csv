@@ -10108,7 +10108,7 @@ address,name,kind,confidence,notes
 0x00802bc0,gAccessors_802bc0,data,low,"GAME_DATA (src/game/core/accessors): u32, named for its use in accessors.cpp (tools/gamedata_codemod.py)"
 0x008186e0,gActionrec_8186e0,data,low,"GAME_DATA (src/game/core/actionrec): u16, named for its use in actionrec.cpp (tools/gamedata_codemod.py)"
 0x00788270,gCmdline_788270,data,low,"GAME_DATA (src/game/core/cmdline): u32, named for its use in cmdline.cpp (tools/gamedata_codemod.py)"
-0x00879cd0,gTable879ad0_Clear_879cd0,data,low,"GAME_DATA (src/game/core/globals): u32, named for its use in Table879ad0_Clear (tools/gamedata_codemod.py)"
+0x00879ad0,gEngineErrors_879ad0,data,low,"GAME_DATA (src/game/render/engineerrors): u8[0x204], the engine's error list: 0x40 (kind, code) pairs, the count at +0x200 (EngineErrors_Push, Table879ad0_Clear)"
 0x008bb628,gGlobal8bb628_SetOne_8bb628,data,low,"GAME_DATA (src/game/core/globals): u32, named for its use in Global8bb628_SetOne (tools/gamedata_codemod.py)"
 0x008bcb80,gGlobals8bcb80_SetOne_8bcb80,data,low,"GAME_DATA (src/game/core/globals): u32, named for its use in Globals8bcb80_SetOne (tools/gamedata_codemod.py)"
 0x008bcb84,gGlobals8bcb80_SetOne_8bcb84,data,low,"GAME_DATA (src/game/core/globals): u32, named for its use in Globals8bcb80_SetOne (tools/gamedata_codemod.py)"

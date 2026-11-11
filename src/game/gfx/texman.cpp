@@ -56,7 +56,7 @@ u32 __cdecl TexManager_Create() {
     }
     gTexman_87a268 = manager;
     if (!manager) {
-        EngineErrors_Push(reinterpret_cast<u8 *>((uintptr_t)0x00879ad0), nullptr, 3, 0xb0754000);
+        EngineErrors_Push(gEngineErrors_879ad0, nullptr, 3, 0xb0754000);
         return 0;
     }
     const u32 path = g_createCalls.Cd(0x0044a280, (u32)(uintptr_t)"Data\\Generic\\defaulttexture\\notfound.tga", 1u, 0u);

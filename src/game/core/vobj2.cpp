@@ -220,7 +220,7 @@ u32 __fastcall Object_MakeBlock13c(u8 *object) {
         }
         at<u32>(object, 0x13c) = 0;
     }
-    EngineErrors_Push(reinterpret_cast<u8 *>((uintptr_t)0x00879ad0), nullptr, 2, 0xb0754000);
+    EngineErrors_Push(gEngineErrors_879ad0, nullptr, 2, 0xb0754000);
     return 0;
 }
 

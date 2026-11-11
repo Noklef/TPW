@@ -209,7 +209,7 @@ u32 __cdecl SpriteQueue_Create() {
     }
     slot = queue;
     if (!queue) {
-        EngineErrors_Push(reinterpret_cast<u8 *>((uintptr_t)0x00879ad0), nullptr, 3, 0xb0754000);
+        EngineErrors_Push(gEngineErrors_879ad0, nullptr, 3, 0xb0754000);
         return 0;
     }
     return 1;
