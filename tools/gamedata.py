@@ -295,11 +295,15 @@ TEXT.update({s: 'wide text (u16 pairs), not a pointer into CRT_small_block_heap 
 TEXT.update({s: 'a C library month or day name ("Nov", "Oct", "Sep", "Sat", "Wed"), not a pointer' for s in (0x7097e8, 0x7097ec, 0x7097f0, 0x709858, 0x709860)})
 TEXT.update({s: 'u16 pairs (wide text, a code page table, a cursor table\'s (1, 0x75)), not a pointer' for s in (0x747f0c, 0x747f60, 0x747f74, 0x74a444, 0x74a468, 0x75342c, 0x753560, 0x753694, 0x753784)})
 TEXT[0xfbb9a8] ='the TQI DC code bytes 0x76 0x76 0x87 0 (TqiVideo_ReadBlocks), not a pointer into gIntSinTable'
+TEXT.update({s: 'the track schema\'s key name "fNx" (20 rows of 0x1a4), not a pointer into a static object' for s in range(0x73a0c8, 0x73bff5, 0x1a4)})
+TEXT.update({s: 'wide text or u16 pairs, not a pointer' for s in (0x747a70, 0x747a98, 0x747ab0, 0x747ef8, 0x748324, 0x7549c8, 0x75853c, 0x75855c, 0x758574, 0x758590, 0x75ebe0, 0x75ec68, 0x75ec80, 0x75ec90, 0x774cac)})
+TEXT.update({s: 'binary table data, not a pointer' for s in (0x70c758, 0x70c778, 0x70ec24, 0x7500b8, 0x751950, 0x75119c, 0x7517a4, 0x751a74, 0x75438c, 0x75582c, 0x756f54, 0x7573b4, 0x7573d4, 0x7575ec, 0x758124, 0x758224)})
+TEXT.update({s: 'CRT_ctype entries (u16 pairs of 0x82), not a pointer' for s in (0x77eb5c, 0x77eb60, 0x77eb64)})
 # Run-time buffers no data of the exe points into: a value inside one is a number (a dialog template's u16 pair, a colour, a float, a
 # CRT_ctype entry such as 0x00820081), left as it is. (2026-11-11: about 180 such dwords were taken for pointers and rewritten.)
 NOT_INTO = ('gWavelet_', 'gDynFaces_Faces_820b00', 'gParticleState', 'gIntSinTable')
 NOT_INTO_SLOTS = set()   # (the slots NOT_INTO left as they are: tpw_tests' cross-check skips them as it skips TEXT)
-POINTERS = {}   # slot: why, for a pointer whose bytes read as text
+POINTERS = {s: 'the C library\'s pointer to CRT_ctype + 2, an odd address on purpose' for s in (0x77ea90, 0x77ea94)}   # slot: why, for a pointer whose bytes read as text or that is not dword-aligned
 NEXT = {        # slot: why, for a dword at a converted object's end that points at what follows it (left as it is), not an end pointer
     0x7061c4: 'the text "DDERR_UN..." at 0x77dd30, after gImaAdpcmState',
     0x7655d0: 'a name of RSSE_OpcodeNameTable: 0x786de4 (.bss, after gString_786dd0, a String of 0x14), a global of its own',
@@ -370,8 +374,8 @@ def pointers(pe, decls, code_slots):
                 continue
             if inside(slot) != inside(slot + 3):
                 errors.append('%#x holds %#x across the edge of %s' % (slot, v, inside(slot) or inside(slot + 3)))
-            elif into and o and all(map(printable, raw[o - 1:o + 3])) and slot not in POINTERS:
-                errors.append('%#x holds %#x (%s), which reads as text %r: settle it in TEXT or POINTERS' % (slot, v, into, bytes(raw[o - 1:o + 3])))
+            elif into and slot not in POINTERS and (v % 4 or o and all(map(printable, raw[o - 1:o + 3]))):
+                errors.append('%#x holds %#x (%s), not dword-aligned or reads as text %r: settle it in TEXT or POINTERS' % (slot, v, into, bytes(raw[o - 1:o + 3])))
             else:
                 found.append((slot, v))
     return found, errors
