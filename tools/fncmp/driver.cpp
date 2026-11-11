@@ -363,6 +363,7 @@
 #include "../../src/game/ui/dialog7ca150list.h"
 #include "../../src/game/ui/dialog7cb3f8slots.h"
 #include "../../src/game/ui/panel7cc328handler.h"
+#include "../../src/game/ui/panel7cc328.h"
 #include "../../src/game/ui/savedialog.h"
 #include "../../src/game/ui/savedialogcreate.h"
 #include "../../src/game/ui/window7059f0texts.h"
@@ -1533,6 +1534,12 @@ const AddrCall kDialog7cc1f8HandlerCalls[] = {
     {0x4ab6b0, jpeg_recorder(17, 0)}, {0x4abfb0, jpeg_recorder(18, 1)}, {0x65968e, jpeg_recorder(19, 0)}, {0x4ab1b0, jpeg_recorder(20, 1)}, {0x4864f0, jpeg_recorder(21, 0)},
     {0x4abc80, jpeg_recorder(22, 1)}, {0x49bdd0, jpeg_recorder(23, 1)}, {0x486ae0, jpeg_recorder(25, 0)}, {0x4824d0, jpeg_recorder(26, 2)}, {0x486b00, jpeg_recorder(27, 1)},
     {0x4abb00, jpeg_recorder(28, 1)}, {0x488ba0, jpeg_recorder(29, 4)}, {0x46c350, stdcall_recorder(31, 1)}};
+// The staff panel's refresh (tests/fncmp/panel7cc328refresh.py).
+const AddrCall kPanel7cc328RefreshCalls[] = {
+    {0x48ca00, recorder(10, 1)}, {0x65d7d0, recorder(11, 1)}, {0x65d9dd, recorder(12, 1)}, {0x6639cb, recorder(13, 2)}, {0x6636b2, recorder(14, 2)},
+    {0x659bc9, jpeg_recorder(15, 1)}, {0x662eee, recorder(16, 1)}, {0x65e526, recorder(17, 1)}, {0x6659af, recorder(18, 2)}, {0x485b00, jpeg_recorder(19, 1)},
+    {0x486660, jpeg_recorder(20, 7)}, {0x50b350, recorder(21, 1)}, {0x481bc0, jpeg_recorder(22, 2)}, {0x663324, recorder(23, 0)}, {0x66a295, recorder(24, 1)},
+    {0x48d290, recorder(25, 1)}};
 const AddrCall kSignRideCalls[] = {{0x467a80, jpeg_recorder(1, 6)}, {0x4e2860, recorder(2, 2)}, {0x4e2920, recorder(3, 2)}, {0x4682b0, jpeg_recorder(4, 3)}};  // tests/fncmp/signrides.py
 const AddrCall kPtrImageCalls[] = {{0x588820, recorder(1, 1)}, {0x588350, recorder(2, 0)}};  // tests/fncmp/ptrarray_addimage.py
 const AddrCall kSpriteQueueDrawCalls[] = {{0x589f90, recorder(1, 0)}, {0x589770, recorder(2, 0)}, {0x589fd0, recorder(3, 0)}, {0x589990, recorder(4, 1)}, {0x5658c0, recorder(5, 1)}, {0x58a770, recorder(6, 0)}, {0x58a010, recorder(7, 0)}};  // tests/fncmp/spritequeuedraw.py, spritequeuepanels.py
@@ -2996,6 +3003,7 @@ int main(int argc, char **argv) {
     VWrap_SetCalls(kVWrapCalls, sizeof(kVWrapCalls) / sizeof(kVWrapCalls[0]));
     CrtTerminate_SetCalls(kCrtTerminateCalls, sizeof(kCrtTerminateCalls) / sizeof(kCrtTerminateCalls[0]));
     Dialog7cc1f8_SetHandlerCalls(kDialog7cc1f8HandlerCalls, sizeof(kDialog7cc1f8HandlerCalls) / sizeof(kDialog7cc1f8HandlerCalls[0]));
+    Panel7cc328_SetRefreshCalls(kPanel7cc328RefreshCalls, sizeof(kPanel7cc328RefreshCalls) / sizeof(kPanel7cc328RefreshCalls[0]));
     RideAnimate_SetCalls(kRideAnimateCalls, sizeof(kRideAnimateCalls) / sizeof(kRideAnimateCalls[0]));
     Sign_SetRideCalls(kSignRideCalls, sizeof(kSignRideCalls) / sizeof(kSignRideCalls[0]));
     TileGrid_SetCalls(kTextureTouchCalls, sizeof(kTextureTouchCalls) / sizeof(kTextureTouchCalls[0]));

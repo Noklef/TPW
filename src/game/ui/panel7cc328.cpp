@@ -19,8 +19,12 @@
 #include "window.h"
 #include "window7059f0.h"
 #include "panel7cc218.h"
+#include "dialog7cc188.h"
+#include "panel7cc328handler.h"
 
 namespace {
+
+AddrCalls g_refresh;
 
 template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cast<T *>((uintptr_t)p + offset); }
 
@@ -154,4 +158,43 @@ void __fastcall Panel7cc328_Dress(u8 *self) {
     panelparts::text(at<u8 *>(self, 0x14), 0x1e8b, 0x38);
     panelparts::part(at<u8 *>(self, 0x14), TextPart6ff3b0_Ctor, 0x1e8a, 0);
 }
+
+void __fastcall Panel7cc328_Refresh(u8 *self) {
+    const AddrCalls &c = g_refresh;
+    const u32 me = (u32)(uintptr_t)self;
+    if ((s32)c.Th(0x48ca00, me, (u32)(uintptr_t)(u8 *)gPanel7cc328_Show_7cc318) < 2) {
+        c.Th(0x65d9dd, c.Th(0x65d7d0, at<u32>(self, 0x10), 0x1e85u), 0u);
+        c.Th(0x65d9dd, c.Th(0x65d7d0, at<u32>(self, 0x10), 0x1e86u), 0u);
+    }
+    const u32 list = c.Th(0x65d7d0, at<u32>(self, 0x10), 0x1e7bu);
+    c.Th(0x6639cb, list, 0x004b4c70u, 0x004b4d40u);   // (List7cc338_NewRow, List7cc338_InitRow)
+    c.Th(0x6636b2, list, 0u, 0u);
+    c.Th(0x6636b2, list, 1u, 1u);
+    c.Th(0x662eee, list, c.Cd(0x659bc9, (u32)(uintptr_t)&gText_Dialog7cc188_74fa84));
+    c.Th(0x65e526, list, 0x004b4850u);   // (Panel7cc328_OnMessage)
+    c.Th(0x6659af, list, (u32)gPanel7cc328_Handler_756f40, 0u);
+    static const u32 kButtons[2][3] = {{0x10, 0x39, 0x43}, {0x11, 0x3a, 0x44}};   // (the child, its text, the last argument)
+    for (const auto &b : kButtons) {
+        const u32 child = c.Th(0x65d7d0, list, b[0]);
+        const u32 font = global<u32>(0x00756f3c);
+        c.Cd(0x486660, child, c.Cd(0x485b00, b[1]), font, 0xffu, 0xefu, 0u, b[2]);
+    }
+    const u32 tab = global<u32>(0x007cc358);
+    const u32 rows = c.Th(0x65d7d0, at<u32>(self, 0x10), 0x1e7bu);
+    gPanel7cc328_7cc314 = reinterpret_cast<u8 *>((uintptr_t)rows);
+    u16 handle;
+    gPanel7cc328_7cc310 = *reinterpret_cast<const u16 *>((uintptr_t)c.Th(0x50b350, (u32)(uintptr_t)(u8 *)gPanel7cc218_7c2658, (u32)(uintptr_t)&handle));
+    global<u32>(0x007cc358) = tab;
+    static const u32 kMask[5] = {2, 4, 0x10, 8, 0x20};   // (by the tab)
+    if (tab <= 4) c.Cd(0x481bc0, kMask[tab], 0x004b47e0u);   // (Panel7cc328_AddStaffRow)
+    c.Th(0x663324, rows);
+    vcall<void>(self, 0x20);
+    const u32 radio = c.Th(0x65d7d0, list, 0x1e7cu);
+    static const u32 kRadio[5] = {0x1e7d, 0x1e80, 0x1e7f, 0x1e81, 0x1e7e};   // (by the tab)
+    const u32 now = global<u32>(0x007cc358);
+    if (now <= 4) c.Th(0x66a295, radio, kRadio[now]);
+    c.Th(0x48d290, me, 0x1e82u);
+}
 }  // extern "C"
+
+void Panel7cc328_SetRefreshCalls(const AddrCall *table, u32 count) { g_refresh.Set(table, count); }

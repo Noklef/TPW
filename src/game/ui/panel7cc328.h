@@ -63,7 +63,20 @@ void __fastcall Panel7cc328_Dress(u8 *self);
 // 0x4b5290 (thiscall (thing), pops 4; slot 10 of the vtable 0x6ffdd8; name invented): the selected thing [0x7cc318] = thing, the
 // window built (WindowAt10_Create: the script 0x756ba0, the handler 0x4b4fc0, the children 0x1e84 and 0x1e89, no inner one), then the advisor posted 0x12c (Advisor_PostId).
 void __fastcall Panel7cc328_Show(u8 *self, void *, u8 *thing);
+
+// 0x4b4a50 (thiscall; slot 0 of the vtable 0x6ffdd8; the name is invented, as 0x6fff40's slot 0 Panel7cc408_Refresh): with fewer than 2 of
+// the group [0x7cc318] (Things_CountGroup, signed) the window +0x10's children 0x1e85 and 0x1e86 hidden (Window_SetShown 0). Its list 0x1e7b
+// (none checked): rows by 0x4b4c70 / 0x4b4d40 (Window7059f0_BuildRows), columns 0 and 1 bottom 0 and 1, the highlight the GUI window
+// named [0x74fa84], the handler 0x4b4850, sorted by [0x756f40] (0); its children 0x10 and 0x11 ButtonText_Init with the texts 0x39 / 0x3a,
+// the font [0x756f3c], 0xff, 0xef, 0, 0x43 / 0x44. Then as Panel7cc328_Reopen: the list (found again) at [0x7cc314], the area [0x7cc310],
+// the tab [0x7cc358] written back, the tab's staff group swept (0x4b47e0), the rows refreshed; its slot 8; the list's child 0x1e7c's
+// RadioGroup_Select of the tab's button 0x1e7d, 0x1e80, 0x1e7f, 0x1e81, 0x1e7e (none for a tab past 4); HoverLabel_Bind 0x1e82.
+void __fastcall Panel7cc328_Refresh(u8 *self);
 }  // extern "C"
+
+#include "../core/addrcalls.h"
+
+void Panel7cc328_SetRefreshCalls(const AddrCall *table, u32 count);   // (Panel7cc328_Refresh's callees by address: the comparison driver's seam)
 
 #include "../core/gamedata.h"
 

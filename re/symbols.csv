@@ -13005,6 +13005,7 @@ address,name,kind,confidence,notes
 0x006ffdcc,gPanel7cc328_ShowStaff_6ffdcc,data,low,"GAME_DATA (src/game/ui/panel7cc328): const float, named for its use in Panel7cc328_ShowStaff (tools/gamedata_codemod.py)"
 0x006ffdd0,gPanel7cc328_ShowStaff_6ffdd0,data,low,"GAME_DATA (src/game/ui/panel7cc328): const float, named for its use in Panel7cc328_ShowStaff (tools/gamedata_codemod.py)"
 0x00756ba0,gPanel7cc328_Show_756ba0,data,low,"GAME_DATA (src/game/ui/panel7cc328): u8[0x398], named for its use in Panel7cc328_Show (tools/gamedata_codemod.py)"
+0x004b4a50,Panel7cc328_Refresh,function,low,"reimplemented (src/game/ui/panel7cc328); thiscall: slot 0 of the staff panel's vtable 0x6ffdd8: the list 0x1e7b built, the tab's staff swept, the tab button selected"
 0x00756f48,gPanel7cc3b0_Show_756f48,data,low,"GAME_DATA (src/game/ui/panel7cc3b0): u8[0x3a0], named for its use in Panel7cc3b0_Show (tools/gamedata_codemod.py)"
 0x007573c8,gPanel7cc3e0_Show_7573c8,data,low,"GAME_DATA (src/game/ui/panel7cc3e0): u8[0x218], named for its use in Panel7cc3e0_Show (tools/gamedata_codemod.py)"
 0x007575e0,gPanel7cc408_Show_7575e0,data,low,"GAME_DATA (src/game/ui/panel7cc408): u8[0x3e8], named for its use in Panel7cc408_Show (tools/gamedata_codemod.py)"
