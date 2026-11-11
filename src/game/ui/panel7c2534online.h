@@ -55,4 +55,8 @@ u32 __cdecl Panel7c2534_AnswerMode3();
 
 // 0x48bc50 (cdecl, no arguments): UserSlots_Instance's 0x5c8650, Dialog7cb3f8_Open, closes. Answer 1.
 u32 __cdecl Panel7c2534_AnswerSaves();
+
+// 0x48b310 (cdecl, no arguments; name invented, unconfirmed): the box 9's callback (rows 8, 0x14, 0x19): the session's 0x5b6070 (Online_Instance),
+// Global879088_Set_5508b0(3), closes. Answer 1.
+u32 __cdecl Panel7c2534_AnswerLogOff();
 }

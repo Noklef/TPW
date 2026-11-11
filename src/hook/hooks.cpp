@@ -10094,6 +10094,7 @@ const Hook kHooks[] = {
     {"Panel7c2534_AnswerQuit2",   0x0048b620, (void *)&Panel7c2534_AnswerQuit2, {0x56, 0x6a, 0x01, 0xe8, 0x88}},
     {"Panel7c2534_AnswerMode3",   0x0048bc30, (void *)&Panel7c2534_AnswerMode3, {0x8b, 0x0d, 0x84, 0x28, 0xf8}},
     {"Panel7c2534_AnswerSaves",   0x0048bc50, (void *)&Panel7c2534_AnswerSaves, {0x56, 0xe8, 0x7a, 0x00, 0x00}},
+    {"Panel7c2534_AnswerLogOff",  0x0048b310, (void *)&Panel7c2534_AnswerLogOff, {0x56, 0xe8, 0x7a, 0x00, 0x00}},
     {"Dialog7cc654_ApplyMarks",   0x004bc430, (void *)&Dialog7cc654_ApplyMarks, {0x83, 0xec, 0x10, 0x55, 0x33}},
     {"Dialog7cc654_SendChanges",  0x004bc500, (void *)&Dialog7cc654_SendChanges, {0x83, 0xec, 0x10, 0x53, 0x55}},
     {"Dialog7cc654_WaitHandler",  0x004bc660, (void *)&Dialog7cc654_WaitHandler, {0x56, 0x8b, 0x74, 0x24, 0x0c}},

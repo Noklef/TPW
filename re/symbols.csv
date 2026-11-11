@@ -9741,6 +9741,7 @@ address,name,kind,confidence,notes
 0x0048b620,Panel7c2534_AnswerQuit2,function,low,"reimplemented (src/game/ui/panel7c2534online); a question's answer: name invented, unconfirmed"
 0x0048bc30,Panel7c2534_AnswerMode3,function,low,"reimplemented (src/game/ui/panel7c2534online); a question's answer: name invented, unconfirmed"
 0x0048bc50,Panel7c2534_AnswerSaves,function,low,"reimplemented (src/game/ui/panel7c2534online); a question's answer: name invented, unconfirmed"
+0x0048b310,Panel7c2534_AnswerLogOff,function,low,"reimplemented (src/game/ui/panel7c2534online); cdecl, no arguments: the menu's box 9 callback (rows 8, 0x14, 0x19): the session's 0x5b6070 (Online_Instance), Global879088_Set_5508b0(3), closes; 1"
 0x004bc430,Dialog7cc654_ApplyMarks,function,low,"reimplemented (src/game/ui/dialog7cc654lists); the mailing lists' marks acted on: name invented, unconfirmed"
 0x004bc500,Dialog7cc654_SendChanges,function,low,"reimplemented (src/game/ui/dialog7cc654lists); the mailing lists' changes sent: name invented, unconfirmed"
 0x004bc660,Dialog7cc654_WaitHandler,function,low,"reimplemented (src/game/ui/dialog7cc654lists); the mailing lists' waiting box's handler: name invented, unconfirmed"
