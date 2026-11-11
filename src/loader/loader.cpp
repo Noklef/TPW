@@ -49,12 +49,32 @@ u8 g_game[kImageEnd - 0x00011000];
 
 template <typename T> T &G(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
 
+// Test only: with TPW_TRACE=path set, the last 64 calls by an original address are kept (a ring, no writes while the game runs) and
+// written there at an access violation or a trap, with failed file opens and the fault's stack, to find where a run stops.
+HANDLE g_trace = INVALID_HANDLE_VALUE;
+u32 g_recent[64];
+volatile LONG g_recentNext;
+
+void Trace(u32 address) { g_recent[(u32)InterlockedIncrement(&g_recentNext) & 63] = address; }
+
+void WriteRecent() {   // oldest first
+    if (g_trace == INVALID_HANDLE_VALUE) return;
+    char text[64 * 10 + 32] = "last calls:\r\n";
+    int n = lstrlenA(text);
+    const u32 last = (u32)g_recentNext;
+    for (u32 i = last + 1; i != last + 65; ++i)
+        if (const u32 a = g_recent[i & 63]) n += wsprintfA(text + n, "%08x\r\n", a);
+    DWORD written;
+    WriteFile(g_trace, text, (DWORD)n, &written, nullptr);
+}
+
 [[noreturn]] void Fail(const char *format, ...) {
     char text[512];
     va_list args;
     va_start(args, format);
     wvsprintfA(text, format, args);
     va_end(args);
+    WriteRecent();
     OutputDebugStringA(text);
     MessageBoxA(nullptr, text, "tpw", MB_ICONERROR | MB_SETFOREGROUND);
     ExitProcess(3);
@@ -164,19 +184,6 @@ u32 Resolve(u32 address) {
         address += 5 + G<u32>(address + 1);   // JMP rel32: its target
     }
     return 0;
-}
-
-// Test only: with TPW_TRACE=path set, each call by an original address is written there (one hex address a line, unbuffered so an
-// ExitProcess keeps it), to find where a run stops.
-HANDLE g_trace = INVALID_HANDLE_VALUE;
-
-void Trace(u32 address) {
-    char line[12];
-    static const char hex[] = "0123456789abcdef";
-    for (int i = 0; i < 8; ++i) line[i] = hex[address >> (28 - 4 * i) & 0xf];
-    line[8] = '\r', line[9] = '\n';
-    DWORD written;
-    WriteFile(g_trace, line, 10, &written, nullptr);
 }
 
 u32 __cdecl ResolveOrSelf(u32 address) {   // AddrCalls' g_addressTarget: the address itself when there is no port (the call then traps)
@@ -351,6 +358,7 @@ LONG CALLBACK OnFault(EXCEPTION_POINTERS *e) {
                 if (const u32 v = G<u32>(a); v >= codeStart && v < codeEnd) m += wsprintfA(callers + m, " %08X", v), ++found;
             callers[m++] = '\r', callers[m++] = '\n';
             WriteFile(g_trace, callers, (DWORD)m, &written, nullptr);
+            WriteRecent();
         }
         return EXCEPTION_CONTINUE_SEARCH;
     }
