@@ -37,7 +37,6 @@ extern "C" const u32 kGameDataFixupCount;
 namespace {
 
 const u32 kBase = 0x00400000, kCode = 0x00401000, kCodeEnd = 0x006fc800;   // the game's image base; .text and cseg
-const u32 kTextEnd = 0x006e7000;                                             // .text's end (cseg, which holds data the ports read, follows)
 const u32 kImageEnd = 0x00fc6000;                                            // its SizeOfImage 0xbc6000 past the base
 const u32 kDebugPrintf = 0x005da3c0;                                         // Debug_Printf: a RET (in many vtables)
 
@@ -192,12 +191,6 @@ Thunk g_thunks[64];
 u32 g_thunkCount;
 u8 *g_thunkCode;
 
-u8 *g_text;   // the exe's .text as in the file, once JumpsToPorts has replaced the copy's
-
-const u8 *FileCode(u32 address) {
-    return g_text && address < kTextEnd ? g_text + (address - kCode) : reinterpret_cast<const u8 *>((uintptr_t)address);
-}
-
 // The address to run for a call to the original's address, 0 when there is none: a hooked function's port, the empty Debug_Printf, a
 // generated exit thunk (StaticInit_Exit), a remade adjustor thunk, or what a plain JMP there leads to.
 u32 Resolve(u32 address) {
@@ -209,15 +202,14 @@ u32 Resolve(u32 address) {
         for (u32 i = 0; i < g_thunkCount; ++i)
             if (g_thunks[i].address == address) return g_thunks[i].code;
         if (address < kCode || address > kCodeEnd - 6) return 0;
-        const u8 *const code = FileCode(address);
-        if (*reinterpret_cast<const u16 *>(code) == 0x25ff) {   // JMP [slot] (an import thunk): what the slot holds, a DLL function when outside the image
-            const u32 to = G<u32>(*reinterpret_cast<const u32 *>(code + 2));
+        if (G<u16>(address) == 0x25ff) {   // JMP [slot] (an import thunk): what the slot holds, a DLL function when outside the image
+            const u32 to = G<u32>(G<u32>(address + 2));
             if (to < kBase || to >= kImageEnd) return to;
             address = to;
             continue;
         }
-        if (*code != 0xe9) return 0;
-        address += 5 + *reinterpret_cast<const u32 *>(code + 1);   // JMP rel32: its target
+        if (G<u8>(address) != 0xe9) return 0;
+        address += 5 + G<u32>(address + 1);   // JMP rel32: its target
     }
     return 0;
 }
@@ -274,23 +266,6 @@ void MapPorts() {
             toPort(slot);
     }
     Protect((u32)(uintptr_t)g_thunkCode, 0x1000, PAGE_EXECUTE_READ);
-}
-
-// Callbacks and tables still hold the original's addresses, and each call through one was an exception (5.5 million in one session). The
-// copy's .text becomes int3s, so an address with no port still stops in OnFault, with a JMP to the port at each hooked function.
-void JumpsToPorts() {
-    const u32 size = kTextEnd - kCode;
-    u8 *const text = static_cast<u8 *>(VirtualAlloc(nullptr, size, MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE));
-    if (!text) Fail("tpw: out of memory");
-    std::memcpy(text, (const void *)(uintptr_t)kCode, size);
-    g_text = text;
-    std::memset((void *)(uintptr_t)kCode, 0xcc, size);
-    for (u32 i = 0; i < g_portCount; ++i) {
-        const u32 a = g_ports[i].address;
-        if (a < kCode || a + 5 > kTextEnd || (i + 1 < g_portCount && g_ports[i + 1].address - a < 5)) continue;   // (no room: OnFault takes it)
-        G<u8>(a) = 0xe9;
-        G<u32>(a + 1) = g_ports[i].target - (a + 5);
-    }
 }
 
 // --- imports -----------------------------------------------------------------------------------------------------------------------
@@ -421,10 +396,9 @@ LONG CALLBACK OnFault(EXCEPTION_POINTERS *e) {
         }
         return EXCEPTION_CONTINUE_SEARCH;
     }
-    const u32 at = (u32)(uintptr_t)r.ExceptionAddress, from = G<u32>(c.Esp);   // (from: the return address a CALL left)
-    const bool intoText = r.ExceptionCode == EXCEPTION_BREAKPOINT && at >= kCode && at < kTextEnd;   // (JumpsToPorts' int3s)
-    if (!intoText && (r.ExceptionCode != EXCEPTION_ACCESS_VIOLATION || r.NumberParameters < 2 || r.ExceptionInformation[0] != EXCEPTION_EXECUTE_FAULT))
+    if (r.ExceptionCode != EXCEPTION_ACCESS_VIOLATION || r.NumberParameters < 2 || r.ExceptionInformation[0] != EXCEPTION_EXECUTE_FAULT)
         return EXCEPTION_CONTINUE_SEARCH;
+    const u32 at = c.Eip, from = G<u32>(c.Esp);   // (from: the return address a CALL left)
     if (g_missingBase && at - g_missingBase < g_missingCount) {
         const Missing &m = g_missing[at - g_missingBase];
         if (!m.known) {
@@ -471,19 +445,18 @@ extern "C" __declspec(safebuffers) int __cdecl LoaderEntry(void *peb) {
     FindExe();
     const IMAGE_NT_HEADERS32 &nt = CopyExe();
     MapPorts();
-    JumpsToPorts();
-    for (u32 i = 0; i < kGameDataRangeCount; ++i)  // the globals tpw.exe has as objects stay zero here: no port uses these addresses
+    for (u32 i = 0; i < kGameDataRangeCount; ++i)   // the globals tpw.exe has as objects stay zero here: no port uses these addresses
         std::memset((void *)(uintptr_t)kGameDataRanges[i][0], 0, kGameDataRanges[i][1]);   // (after MapPorts: code slots in them are not stale)
     FillImports(nt);
-    // The copy as tp.exe's sections are (read-only or read-write; executable only .text, which no longer holds the game's code); no access
-    // around it, so a pointer past the game's image faults as in tp.exe.
+    // The copy as tp.exe's sections are (read-only or read-write; never executable); no access around it, so a pointer past the game's
+    // image faults as in tp.exe.
     Protect(lo, kBase - lo, PAGE_NOACCESS);
     Protect(kBase, kCode - kBase, PAGE_READONLY);
     const IMAGE_SECTION_HEADER *const sections = IMAGE_FIRST_SECTION(&nt);
     for (u32 i = 0; i < nt.FileHeader.NumberOfSections; ++i) {
         const IMAGE_SECTION_HEADER &s = sections[i];
         const u32 size = (std::max<u32>(s.Misc.VirtualSize, s.SizeOfRawData) + 0xfff) & ~0xfffu;
-        Protect(kBase + s.VirtualAddress, size, kBase + s.VirtualAddress == kCode ? PAGE_EXECUTE_READ : s.Characteristics & IMAGE_SCN_MEM_WRITE ? PAGE_READWRITE : PAGE_READONLY);
+        Protect(kBase + s.VirtualAddress, size, s.Characteristics & IMAGE_SCN_MEM_WRITE ? PAGE_READWRITE : PAGE_READONLY);
     }
     Protect(kImageEnd, end - kImageEnd, PAGE_NOACCESS);
     if (!AddVectoredExceptionHandler(1, &OnFault)) Fail("tpw: cannot install the fault handler");

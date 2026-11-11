@@ -33,7 +33,7 @@
 
 ## Calls into the copy
 
-The copy's `.text` holds only int3s and, at each hooked function, a JMP to its port (`JumpsToPorts`; the file's bytes are kept for `Resolve`). A call to any other address in the copy faults: an int3 in `.text`, a DEP execute fault elsewhere. The vectored handler sends the call to the port for that address, or stops with the address. Most by-address calls in the ports skip this: `AddrCalls` (`Cd`/`Th`/`St`) asks the loader's resolver (`g_addressTarget`, which is null in the hook DLL and the tests). The resolver handles these cases:
+A call to an address in the copy faults: it is a DEP execute fault. The vectored handler sends the call to the port for that address. Most by-address calls in the ports skip this: `AddrCalls` (`Cd`/`Th`/`St`) asks the loader's resolver (`g_addressTarget`, which is null in the hook DLL and the tests). The resolver handles these cases:
 
 - a hooked function: the port
 - `0x5da3c0`: the empty function
