@@ -310,9 +310,17 @@ void FillImports(const IMAGE_NT_HEADERS32 &nt) {
 
 // --- calls into the copy -----------------------------------------------------------------------------------------------------------
 
+// The last other access violation (its EIP, the address, read 0 / write 1), for the trap box: a thread's SEH filter (_XcptFilter
+// 0x688800) traps after it.
+u32 g_lastFault[3];
+
 LONG CALLBACK OnFault(EXCEPTION_POINTERS *e) {
     const EXCEPTION_RECORD &r = *e->ExceptionRecord;
     CONTEXT &c = *e->ContextRecord;
+    if (r.ExceptionCode == EXCEPTION_ACCESS_VIOLATION && r.NumberParameters >= 2 && r.ExceptionInformation[0] != EXCEPTION_EXECUTE_FAULT) {
+        g_lastFault[0] = c.Eip, g_lastFault[1] = (u32)r.ExceptionInformation[1], g_lastFault[2] = (u32)r.ExceptionInformation[0];
+        return EXCEPTION_CONTINUE_SEARCH;
+    }
     if (r.ExceptionCode != EXCEPTION_ACCESS_VIOLATION || r.NumberParameters < 2 || r.ExceptionInformation[0] != EXCEPTION_EXECUTE_FAULT)
         return EXCEPTION_CONTINUE_SEARCH;
     const u32 at = c.Eip, from = G<u32>(c.Esp);   // (from: the return address a CALL left)
@@ -341,8 +349,8 @@ LONG CALLBACK OnFault(EXCEPTION_POINTERS *e) {
     u32 back[6] = {}, found = 0;
     for (u32 p = c.Esp + 4; found < 6 && p < c.Esp + 0x10000 && !IsBadReadPtr((void *)(uintptr_t)p, 4); p += 4)
         if (const u32 v = G<u32>(p); ((v >= 0x00011006 && v < kBase) || (v >= kCode + 6 && v < kCodeEnd)) && afterCall(v)) back[found++] = v;
-    Fail("tpw: no port for the original's %08X (called from %08X; build\\tpw.map names tpw.exe's addresses)\nstack: %08X %08X %08X %08X %08X %08X", at,
-         from, back[0], back[1], back[2], back[3], back[4], back[5]);
+    Fail("tpw: no port for the original's %08X (called from %08X; build\\tpw.map names tpw.exe's addresses)\nstack: %08X %08X %08X %08X %08X %08X\nlast access violation: EIP %08X, %s %08X", at,
+         from, back[0], back[1], back[2], back[3], back[4], back[5], g_lastFault[0], g_lastFault[2] ? "writing" : "reading", g_lastFault[1]);
 }
 
 }  // namespace
