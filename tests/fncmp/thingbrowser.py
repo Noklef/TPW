@@ -22,7 +22,8 @@
 # PostId surroundings for 0x11f / 0xc6 (its message's unwritten bytes masked, +0x16d0 too), [0x7c24c8] none, focus.py's mouse modes (the
 # setting 0xfb3b7c 1, the current mode's slot 9 answering 9 mostly, the heap failing now and then).
 # OpenShown (0x481790): Open's world, the thing the shown one [0x7c2658] when the flag [0x7cc3c0] is set (else none, [0x7c2658] any).
-# usage: thingbrowser.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=ShowName,ShowDetail,GroupHandler,Create,Open,OpenShown)
+# OpenPeople (0x4b4280): Open's world with no thing, the window [0x7cc300] the group's.
+# usage: thingbrowser.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=ShowName,ShowDetail,GroupHandler,Create,Open,OpenShown,OpenPeople)
 import os
 import struct
 import sys
@@ -44,9 +45,9 @@ from msgtags import ADVISOR_RANGES  # noqa: E402
 from window import RANGES  # noqa: E402
 from personsprite import THING, centre_env, sprite_env  # noqa: E402
 
-CALLS = {'ShowName': 0x4b3490, 'ShowDetail': 0x4b3580, 'GroupHandler': 0x4b3b90, 'Create': 0x4b3cf0, 'Open': 0x4b3f60, 'OpenShown': 0x481790}
+CALLS = {'ShowName': 0x4b3490, 'ShowDetail': 0x4b3580, 'GroupHandler': 0x4b3b90, 'Create': 0x4b3cf0, 'Open': 0x4b3f60, 'OpenShown': 0x481790, 'OpenPeople': 0x4b4280}
 B = Bench(merged(RANGES + radiogroup.RANGES + dialogbuild.ALL_RANGES + listrows.REG_RANGES + CURSOR_RANGES + focus.MODES + ADVISOR_RANGES + [
-           (0x4b3f60, 0x4b4255), (0x65f447, 0x65f538), (0x65f345, 0x65f410),(0x4b3cf0, 0x4b3f1b), (0x65f538, 0x65f5b7),(0x4b3b90, 0x4b3c09), (0x65d55a, 0x65d56b), (0x475480, 0x4754f0), (0x4d8c50, 0x4d8c70), (0x4f9f00, 0x4fa2b0), (0x4fe900, 0x4fe960), (0x50b350, 0x50b370), (0x510160, 0x510190),
+           (0x4b3f60, 0x4b4255), (0x4b4280, 0x4b4463), (0x65f447, 0x65f538), (0x65f345, 0x65f410),(0x4b3cf0, 0x4b3f1b), (0x65f538, 0x65f5b7),(0x4b3b90, 0x4b3c09), (0x65d55a, 0x65d56b), (0x475480, 0x4754f0), (0x4d8c50, 0x4d8c70), (0x4f9f00, 0x4fa2b0), (0x4fe900, 0x4fe960), (0x50b350, 0x50b370), (0x510160, 0x510190),
            (0x53c8d0, 0x53c9d0), (0x5da3c0, 0x5da3c1), (0x486860, 0x4868c1), (0x42aab0, 0x42ab1d),
            (0x4b3490, 0x4b3576), (0x4b3580, 0x4b3612), (0x65d7bc, 0x65d832), (0x65d3a3, 0x65d40c), (0x506860, 0x506867), (0x5064f0, 0x506523),
            (0x485ec0, 0x485eea), (0x481790, 0x4817b3)]), hooks={0x6acd60: _cdecl_log4})
@@ -148,8 +149,8 @@ def plain(r, ident, nxt=0, parent=0):
     return w
 
 
-def open_case(r, shown=False):
-    """Open's world; shown: OpenShown's (the thing [0x7c2658] when [0x7cc3c0] is set, else none)"""
+def open_case(r, shown=False, people=False):
+    """Open's world; shown: OpenShown's (the thing [0x7c2658] when [0x7cc3c0] is set, else none); people: OpenPeople's (no thing, the window [0x7cc300])"""
     log = log_region()
     regions = {LOG: log}
     thing = sprite_env(r, regions)
@@ -186,7 +187,9 @@ def open_case(r, shown=False):
     put(g, 0x8c, 'I', 0x95d)
     regions[BROWSER] = put(plain(r, 0x95c), 0x5c, 'I', radiogroup.GROUP)
     regions[EMPTY] = plain(r, 0x963)
-    chosen = 0x7cc300 if arg and thing[2] == 1 else 0x7cc2fc
+    if people:
+        arg = 0
+    chosen = 0x7cc300 if people or (arg and thing[2] == 1) else 0x7cc2fc
     windows = {chosen: BROWSER, chosen ^ 0x7cc300 ^ 0x7cc2fc: r.choice([BROWSER, EMPTY])}
     ident = (SELECT.get(thing[2]) if arg else 0xffffffff)
     selected = struct.unpack_from('<I', g, 0x138)[0]
@@ -224,13 +227,15 @@ def open_case(r, shown=False):
     regions[0xfb3b7c] = struct.pack('<I', 1)
     if shown:
         return Call(CALLS['OpenShown'], [], regions, ret='v', masks=masks)
+    if people:
+        return Call(CALLS['OpenPeople'], [], regions, ret='v', masks=masks)
     return Call(CALLS['Open'], [arg], regions, ret='v', masks=masks)
 
 
 def case(r):
     op = r.deal(OPS)
-    if op in ('Open', 'OpenShown'):
-        return open_case(r, op == 'OpenShown')
+    if op in ('Open', 'OpenShown', 'OpenPeople'):
+        return open_case(r, op == 'OpenShown', op == 'OpenPeople')
     if op == 'GroupHandler':
         return group_case(r)
     if op == 'Create':

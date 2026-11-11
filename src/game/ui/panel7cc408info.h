@@ -25,4 +25,8 @@ extern "C" {
 // the child 0x3733 (not checked) its slot 9: the text of [0x78baa0] at the +0x220, and for 0x10 made of the name (0x4e2780 of the table [0x7cfb90] at the word +0x1dc, 0x14 bytes each; 0x40 bytes) as the argument. Last, of the window's child 0x3734: its child 0x3735's Window_Notify1 (+0x30 less 1, or 0x3e7 for none), and its own slot 9 the text of
 // [0x78ba9c] at the +0x30, widened.
 void __fastcall Panel7cc408_ShowVisitor(u8 *self);
+
+// 0x4b7660 (thiscall; slot 1 of the vtable 0x6fff40; the name is invented, as 0x6ffdd8's slot 1 Panel7cc328_Reopen): none shown ([0x7c2658] clear): its slot 0xb, nothing more. Else its slots 6 and 5,
+// then the visitor's (read again) +0x1d8 to its +0x24, and the text of [0x78ba94] (the buffer 0x7ba058; 0x1c8 made of that id, 0x1c9 for 0) is the hover label 0x3736 of its window +0x10.
+void __fastcall Panel7cc408_Reopen(u8 *self);
 }

@@ -456,6 +456,7 @@ s32 __fastcall AdvisorScoring_Field578(const u8 *scoring) { return at<s32>(scori
 s32 __fastcall AdvisorScoring_Field5b4(const u8 *scoring) { return at<s32>(scoring, 0x5b4); }
 s32 __fastcall AdvisorScoring_Field5c0(const u8 *scoring) { return at<s32>(scoring, 0x5c0); }
 s32 __fastcall AdvisorScoring_Field5f8(const u8 *scoring) { return at<s32>(scoring, 0x5f8); }
+s32 __fastcall AdvisorScoring_Field62c(const u8 *scoring) { return at<s32>(scoring, 0x62c); }
 
 s32 __fastcall AdvisorScoring_Const10000(const u8 *) { return 10000; }
 s32 __fastcall AdvisorScoring_Const9999(const u8 *) { return 9999; }
@@ -479,6 +480,18 @@ s32 scaled(u32 address, float f) {
 }
 
 bool theme_clear(u32 i) { return GlobalSave_ThemeByte(GlobalSave_Instance(), nullptr, i) == 0; }
+
+// 0x5a08b0's shape: not flagged, [0x785794] not 0, the people on plain cells' share of it (asked again when not over 100; else 100) above +bound: +bound+4.
+s32 people_share(const u8 *scoring, u32 bound) {
+    if (Get1da710_51a280(game()) != 0 || global_s32(0x00785794) == 0)
+        return 0;
+    s32 p = share(Things_CountKind1OnPlainCell(), global_s32(0x00785794));
+    if (p > 100)
+        p = 100;
+    else
+        p = share(Things_CountKind1OnPlainCell(), global_s32(0x00785794));
+    return p > at<s32>(scoring, bound) ? at<s32>(scoring, bound + 4) : 0;
+}
 
 s32 idle_share(const u8 *scoring, s32 value, u32 bound) {
     const s32 n = Things_CountByDef4ac(value, 0);
@@ -565,16 +578,9 @@ s32 __fastcall AdvisorScoring_ControlsPercentHigh(const u8 *scoring) {
     return ObjectDefs_PercentWithControls() > at<s32>(scoring, 0x60c) ? at<s32>(scoring, 0x610) : 0;
 }
 
-s32 __fastcall AdvisorScoring_PeopleShare(const u8 *scoring) {
-    if (Get1da710_51a280(game()) != 0 || global_s32(0x00785794) == 0)
-        return 0;
-    s32 p = share(Things_CountKind1OnPlainCell(), global_s32(0x00785794));
-    if (p > 100)
-        p = 100;
-    else
-        p = share(Things_CountKind1OnPlainCell(), global_s32(0x00785794));
-    return p > at<s32>(scoring, 0x614) ? at<s32>(scoring, 0x618) : 0;
-}
+s32 __fastcall AdvisorScoring_PeopleShare(const u8 *scoring) { return people_share(scoring, 0x614); }
+s32 __fastcall AdvisorScoring_PeopleShare2(const u8 *scoring) { return people_share(scoring, 0x61c); }
+s32 __fastcall AdvisorScoring_PeopleShare3(const u8 *scoring) { return people_share(scoring, 0x624); }
 
 
 s32 __fastcall AdvisorScoring_LatestCountBusStop(u8 *scoring) {
@@ -886,6 +892,15 @@ s32 research_waiting(const u8 *scoring, u32 kind, u32 base, u32 rate) {
     return (s32)((u32)age_in(kDay) * at<u32>(scoring, rate) + at<u32>(scoring, base));
 }
 
+// With definitions of the kind with controls, +0x634 days since 0x21c30, `other`'s count times the float +rate over the kind's (fcompp: unordered not over) and the money over +money: +money+4.
+s32 controls_ratio_money(const u8 *scoring, u32 kind, u32 other, u32 rate, u32 money) {
+    const s32 all = (s32)with_controls(kind);
+    if (!all || days_21c30() < at<s32>(scoring, 0x634)) return 0;
+    const X87Reg ratio = X87Reg((double)(s32)with_controls(other)) * at<float>(scoring, rate);
+    if (!(ratio.v > (double)all)) return 0;
+    return (s32)g_calls.Th(0x006ad810, funds()) > at<s32>(scoring, money) ? at<s32>(scoring, money + 4) : 0;
+}
+
 // In the red (Source_Field0c negative) with no loan offer: the months of it (Money_TimeInRed of [0x7cf83c]'s money), signed and truncated, in `months`.
 bool months_in_red(s32 &months) {
     if ((s32)g_calls.Th(0x006ad810, funds()) >= 0) return false;
@@ -937,6 +952,12 @@ s32 __fastcall AdvisorScoring_PatrolCover4(const u8 *scoring) {
     return uncovered(scoring, 4, 2, 0x13c, 0x140);
 }
 
+s32 __fastcall AdvisorScoring_PlainHalfNoStaff7(const u8 *scoring) {
+    if (flagged() || days_21c38() < at<s32>(scoring, 0x630) || staff_count(7) > 0) return 0;
+    return (s32)((g_calls.Th(0x004c81e0, park()) - at<u32>(scoring, 0xf0)) * at<u32>(scoring, 0xf4));   // ParkAnalyser_Kind1OnPlainHalfClamped
+}
+
+s32 __fastcall AdvisorScoring_PatrolShare4(const u8 *scoring) { return patrol_share(scoring, 4, 0x138, 0x12c, 0x130, 0x134); }
 s32 __fastcall AdvisorScoring_PatrolShare5(const u8 *scoring) { return patrol_share(scoring, 5, 0x150, 0x144, 0x148, 0x14c); }
 s32 __fastcall AdvisorScoring_PatrolCover5(const u8 *scoring) { return patrol_cover(scoring, 5, 3, 0x150, 0x154, 0x158); }
 s32 __fastcall AdvisorScoring_PatrolShare7(const u8 *scoring) { return patrol_share(scoring, 7, 0x170, 0x164, 0x168, 0x16c); }
@@ -963,6 +984,25 @@ s32 __fastcall AdvisorScoring_ResearchShare2(const u8 *scoring) { return researc
 s32 __fastcall AdvisorScoring_ResearchWaiting1(const u8 *scoring) { return research_waiting(scoring, 1, 0x28c, 0x290); }
 s32 __fastcall AdvisorScoring_ResearchShare3(const u8 *scoring) { return research_share(scoring, 0x004ca5d0, 3, 0x2a0, 0x2a4, 0x2a8); }
 s32 __fastcall AdvisorScoring_ResearchWaiting2(const u8 *scoring) { return research_waiting(scoring, 2, 0x2b0, 0x2b4); }
+s32 __fastcall AdvisorScoring_ControlsRatioMoney1(const u8 *scoring) { return controls_ratio_money(scoring, 1, 1, 0x270, 0x274); }   // (sic: kind 1 against itself)
+s32 __fastcall AdvisorScoring_ControlsRatioMoney2(const u8 *scoring) { return controls_ratio_money(scoring, 2, 0, 0x294, 0x298); }
+
+s32 __fastcall AdvisorScoring_PeopleStat1acShare(const u8 *scoring) {
+    if (!(u8)g_calls.Th(0x004c9050, park()) || g_calls.Th(0x004c9ee0, park())) return 0;   // Game_Field1da710IsZero, Game_RecountKind3Flag1
+    const s32 above = (s32)g_calls.Th(0x004c9290, park(), (u32)at<u8>(scoring, 0x2b8));   // Things_CountPeopleStat1acAbove (the original's high bytes: EDX's)
+    const s32 total = (s32)g_calls.Th(0x004c9130, park());   // Things_CountKind1OnPlainCell
+    if (!total) return 0;
+    return (s32)((u32)above * 100u) / total > at<s32>(scoring, 0x2bc) ? at<s32>(scoring, 0x2c0) : 0;
+}
+
+s32 __fastcall AdvisorScoring_LoanUnderSpare(const u8 *scoring) {
+    const s32 money = (s32)g_calls.Th(0x006ad810, funds());
+    const float spare = (float)(s32)((u32)money - g_calls.Th(0x004d0a00, funds()));   // Money_TotalOwed
+    const s32 loan = (s32)g_calls.Th(0x004d09a0, funds());   // Obj_SmallestEntry
+    if (loan < 0) return 0;
+    const u32 owed = g_calls.Th(0x004d0970, funds(), (u32)loan);   // Money_LoanOwed (fild qword: unsigned)
+    return X87_MulInt(owed, at<float>(scoring, 0x338)) >= (double)spare ? 0 : at<s32>(scoring, 0x33c);   // (fcomp's C0: unordered under)
+}
 
 s32 __fastcall AdvisorScoring_MoneyOverLoanless(const u8 *scoring) {
     if ((s32)g_calls.Th(0x006ad810, funds()) <= at<s32>(scoring, 0x330)) return 0;

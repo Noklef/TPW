@@ -76,6 +76,7 @@
 #include "../../src/game/ui/window7cb2cc.h"
 #include "../../src/game/ui/window7cc8bcmenu.h"
 #include "../../src/game/ui/window7cc8c0handler.h"
+#include "../../src/game/ui/window7cb2achandler.h"
 #include "../../src/game/ui/dialog7cc47cinfo.h"
 #include "../../src/game/ui/guitokenwide.h"
 #include "../../src/game/ui/guistaticobjects.h"
@@ -362,6 +363,7 @@
 #include "../../src/game/ui/dialog7ca150list.h"
 #include "../../src/game/ui/dialog7cb3f8slots.h"
 #include "../../src/game/ui/panel7cc328handler.h"
+#include "../../src/game/ui/panel7cc328.h"
 #include "../../src/game/ui/savedialog.h"
 #include "../../src/game/ui/savedialogcreate.h"
 #include "../../src/game/ui/window7059f0texts.h"
@@ -496,6 +498,7 @@
 #include "../../src/game/math/mat4.h"
 #include "../../src/game/core/vobj2.h"
 #include "../../src/game/core/vwrap.h"
+#include "../../src/game/core/crtterminate.h"
 #include "../../src/game/coaster/rideanimate.h"
 #include "../../src/game/render/spritequeue.h"
 #include "../../src/game/sprite/loading.h"
@@ -1399,7 +1402,10 @@ const AddrCall kAdvisorRingCalls[] ={{0x4f8800, recorder(1, 1)}, {0x5194d0, reco
                                      {0x4c9960, recorder(6, 1)}, {0x4c81b0, recorder(7, 1)}, {0x4c9b40, recorder(8, 1)}, {0x4cd500, recorder(9, 2)}, {0x4c90d0, recorder(10, 0)}, {0x4c9070, recorder(11, 0)},
                                      {0x4c9ed0, recorder(12, 0)}, {0x4c9e40, recorder(13, 1)}, {0x4c9e60, recorder(14, 0)}, {0x4ca8e0, recorder(15, 2)}, {0x4ca7b0, recorder(16, 2)}, {0x4ca450, recorder(17, 1)},
                                      {0x4ca4c0, recorder(18, 1)}, {0x4ca510, recorder(19, 1)}, {0x4ca570, recorder(20, 1)}, {0x4ca5d0, recorder(21, 1)}, {0x503980, recorder(22, 1)}, {0x6ad810, recorder(23, 0)},
-                                     {0x4d0690, recorder(24, 0)}, {0x4d0810, recorder(25, 0)}, {0x4d0260, recorder(26, 1)}, {0x4c9aa0, recorder(27, 0)}, {0x4c9a10, recorder(28, 0)}};
+                                     {0x4d0690, recorder(24, 0)}, {0x4d0810, recorder(25, 0)}, {0x4d0260, recorder(26, 1)}, {0x4c9aa0, recorder(27, 0)}, {0x4c9a10, recorder(28, 0)},
+                                     // (advisorscoringcalls.py's: 2-4, 27 and 28 again, the benches that use those calling none of these)
+                                     {0x4c81e0, recorder(2, 0)}, {0x4c9050, recorder(3, 0)}, {0x4c9ee0, recorder(4, 0)}, {0x4c9290, recorder(27, 1)}, {0x4c9130, recorder(28, 0)},
+                                     {0x4d0a00, recorder(29, 0)}, {0x4d09a0, recorder(30, 0)}, {0x4d0970, recorder(31, 1)}};
 const AddrCall kSpriteFrameShowCalls[] ={{0x588ba0, recorder(1, 0)}, {0x5889b0, recorder(2, 2)}, {0x58c9f0, recorder(3, 2)}, {0x58a6b0, recorder(4, 1)}, {0x58a6e0, recorder(5, 1)}, {0x578d20, recorder(6, 3)}, {0x574bd0, jpeg_recorder(7, 6)}, {0x588410, recorder(8, 7)}, {0x579b80, jpeg_recorder(9, 1)}};
 const AddrCall kTerrainTexUpdateCalls[] ={{0x590da0, recorder(1, 0)}, {0x590d40, recorder(2, 0)}, {0x55f780, recorder(3, 4)}, {0x562f70, jpeg_recorder(4, 3)}, {0x58dc50, recorder(5, 1)}, {0x590f90, recorder(6, 0)}, {0x58c9f0, recorder(7, 2)}, {0x55f720, recorder(8, 1)}, {0x560ff0, recorder(9, 1)}, {0x56af20, recorder(10, 2)}};
 const AddrCall kDynFacesCalls[] ={{0x53d790, recorder(1, 11)}, {0x424ec0, jpeg_recorder(2, 1)}, {0x424ed0, jpeg_recorder(3, 1)}};
@@ -1519,6 +1525,21 @@ const AddrCall kDeviceCreateCalls[] = {{0x573080, recorder(20, 1)}, {0x573b90, r
 const AddrCall kImageBufferCalls[] = {{0x56a770, jpeg_recorder(1, 1)}, {0x564650, jpeg_recorder(2, 1)}, {0x56af20, recorder(3, 2)}, {0x591270, jpeg_recorder(4, 9)}, {0x574bd0, jpeg_recorder(5, 6)}, {0x579b80, jpeg_recorder(6, 1)}};  // tests/fncmp/imagebuffer.py
 const AddrCall kScrollLayersCalls[] = {{0x590f90, recorder(1, 0)}, {0x58c9f0, recorder(2, 2)}};  // tests/fncmp/scrolllayers.py
 const AddrCall kVWrapCalls[] = {{0x58c9f0, recorder(5, 2)}, {0x561a30, recorder(6, 2)}, {0x5fbd40, recorder(7, 0)}, {0x5fbd90, recorder(8, 0)}};  // tests/fncmp/vwrapclip.py, vwrapflip.py
+const AddrCall kCrtTerminateCalls[] = {{0x682460, jpeg_recorder(1, 0)}, {0x68cc30, jpeg_recorder(3, 0)}};  // tests/fncmp/crtterminate.py
+// The build dialog's handler (tests/fncmp/dialog7cc1f8handler.py).
+const AddrCall kDialog7cc1f8HandlerCalls[] = {
+    {0x65d7d0, recorder(1, 1)},  {0x663324, recorder(2, 0)},  {0x5195d0, recorder(3, 0)},  {0x6ad810, recorder(4, 0)},  {0x65ef90, recorder(5, 2)},
+    {0x65f024, recorder(6, 1)},  {0x664c71, recorder(7, 2)},  {0x4d3d10, recorder(8, 2)},  {0x412e90, recorder(10, 1)}, {0x4d4b70, stdcall_recorder(11, 1)},
+    {0x4d4b90, stdcall_recorder(12, 1)}, {0x658d9f, jpeg_recorder(13, 4)}, {0x6acd60, jpeg_recorder(14, 5)}, {0x486510, jpeg_recorder(15, 0)}, {0x486b40, jpeg_recorder(16, 1)},
+    {0x4ab6b0, jpeg_recorder(17, 0)}, {0x4abfb0, jpeg_recorder(18, 1)}, {0x65968e, jpeg_recorder(19, 0)}, {0x4ab1b0, jpeg_recorder(20, 1)}, {0x4864f0, jpeg_recorder(21, 0)},
+    {0x4abc80, jpeg_recorder(22, 1)}, {0x49bdd0, jpeg_recorder(23, 1)}, {0x486ae0, jpeg_recorder(25, 0)}, {0x4824d0, jpeg_recorder(26, 2)}, {0x486b00, jpeg_recorder(27, 1)},
+    {0x4abb00, jpeg_recorder(28, 1)}, {0x488ba0, jpeg_recorder(29, 4)}, {0x46c350, stdcall_recorder(31, 1)}};
+// The staff panel's refresh (tests/fncmp/panel7cc328refresh.py).
+const AddrCall kPanel7cc328RefreshCalls[] = {
+    {0x48ca00, recorder(10, 1)}, {0x65d7d0, recorder(11, 1)}, {0x65d9dd, recorder(12, 1)}, {0x6639cb, recorder(13, 2)}, {0x6636b2, recorder(14, 2)},
+    {0x659bc9, jpeg_recorder(15, 1)}, {0x662eee, recorder(16, 1)}, {0x65e526, recorder(17, 1)}, {0x6659af, recorder(18, 2)}, {0x485b00, jpeg_recorder(19, 1)},
+    {0x486660, jpeg_recorder(20, 7)}, {0x50b350, recorder(21, 1)}, {0x481bc0, jpeg_recorder(22, 2)}, {0x663324, recorder(23, 0)}, {0x66a295, recorder(24, 1)},
+    {0x48d290, recorder(25, 1)}};
 const AddrCall kSignRideCalls[] = {{0x467a80, jpeg_recorder(1, 6)}, {0x4e2860, recorder(2, 2)}, {0x4e2920, recorder(3, 2)}, {0x4682b0, jpeg_recorder(4, 3)}};  // tests/fncmp/signrides.py
 const AddrCall kPtrImageCalls[] = {{0x588820, recorder(1, 1)}, {0x588350, recorder(2, 0)}};  // tests/fncmp/ptrarray_addimage.py
 const AddrCall kSpriteQueueDrawCalls[] = {{0x589f90, recorder(1, 0)}, {0x589770, recorder(2, 0)}, {0x589fd0, recorder(3, 0)}, {0x589990, recorder(4, 1)}, {0x5658c0, recorder(5, 1)}, {0x58a770, recorder(6, 0)}, {0x58a010, recorder(7, 0)}};  // tests/fncmp/spritequeuedraw.py, spritequeuepanels.py
@@ -1968,6 +1989,10 @@ const GuiStaticObjectsEnv kGuiStaticObjectsEnv = {Rec{recorder(10, 0)}, Rec{reco
 const GuiTokenWideEnv kGuiTokenWideEnv = {Rec{jpeg_recorder(10, 1)}, Rec{jpeg_recorder(11, 3)}};
 const Dialog7cc47cInfoEnv kDialog7cc47cInfoEnv = {Rec{recorder(30, 1)}, Rec{jpeg_recorder(31, 3)}, Rec{recorder(21, 2)}};
 const Window7cc8c0HandlerEnv kWindow7cc8c0HandlerEnv = {Rec{recorder(12, 2)}, Rec{jpeg_recorder(15, 2)}, Rec{jpeg_recorder(20, 4)}, Rec{jpeg_recorder(25, 4)}, Rec{recorder(13, 0)}, Rec{recorder(14, 0)}, Rec{jpeg_recorder(28, 3)}, Rec{recorder(15, 0)}, Rec{recorder(16, 0)}, Rec{jpeg_recorder(31, 0)}, Rec{recorder(17, 2)}, Rec{recorder(18, 2)}, Rec{jpeg_recorder(29, 3)}, Rec{recorder(19, 1)}, Rec{recorder(20, 0)}, Rec{recorder(21, 1)}, Rec{jpeg_recorder(27, 1)}, Rec{jpeg_recorder(30, 5)}, Rec{jpeg_recorder(13, 1)}, Rec{jpeg_recorder(12, 0)}, Rec{jpeg_recorder(19, 0)}, Rec{jpeg_recorder(14, 0)}, Rec{recorder(23, 2)}, Rec{recorder(24, 2)}, Rec{recorder(25, 1)}, Rec{recorder(26, 1)}, Rec{recorder(27, 2)}, Rec{jpeg_recorder(16, 5)}, Rec{jpeg_recorder(17, 0)}, Rec{jpeg_recorder(18, 1)}, Rec{recorder(28, 3)}};
+// The park view's handler (tests/fncmp/window7cb2achandler.py: thiscall 12-18, cdecl 19-28, Mouse_Moved stdcall 29).
+const Window7cb2acHandlerEnv kWindow7cb2acHandlerEnv = {Rec{recorder(12, 0)}, Rec{recorder(13, 0)}, Rec{jpeg_recorder(19, 0)}, Rec{jpeg_recorder(20, 3)}, Rec{jpeg_recorder(21, 2)}, Rec{jpeg_recorder(22, 0)},
+                                                        Rec{stdcall_recorder(29, 2)}, Rec{jpeg_recorder(23, 0)}, Rec{jpeg_recorder(24, 1)}, Rec{jpeg_recorder(25, 0)}, Rec{recorder(14, 2)}, Rec{recorder(15, 2)},
+                                                        Rec{jpeg_recorder(26, 5)}, Rec{jpeg_recorder(27, 0)}, Rec{recorder(17, 0)}, reinterpret_cast<s32(__cdecl *)(void *)>((uintptr_t)(kStubs + 0x50)), Rec{recorder(16, 0)}, Rec{recorder(18, 3)}};   // (atexit: stub_cdecl_log, as the modes')
 const Window7cc8bcMenuEnv kWindow7cc8bcMenuEnv = {Rec{recorder(10, 2)}, Rec{recorder(11, 3)}, Rec{jpeg_recorder(12, 0)}, Rec{recorder(13, 1)}, Rec{jpeg_recorder(14, 2)}, Rec{recorder(15, 2)}, Rec{recorder(16, 2)}, Rec{recorder(17, 3)}};
 const Dialog7cb2b8TabsEnv kDialog7cb2b8TabsEnv = {Rec{jpeg_recorder(10, 1)}, Rec{jpeg_recorder(11, 0)}, Rec{jpeg_recorder(12, 0)}, Rec{recorder(13, 0)}, Rec{jpeg_recorder(14, 0)}, Rec{recorder(15, 3)}};
 const Dialog7cc4b4SparkleEnv kDialog7cc4b4SparkleEnv = {Rec{recorder(10, 0)}, Rec{jpeg_recorder(11, 1)}, Rec{recorder(12, 2)}, Rec{jpeg_recorder(13, 4)}, Rec{jpeg_recorder(14, 6)}};
@@ -2976,6 +3001,9 @@ int main(int argc, char **argv) {
     DrawBuffer_SetDrawAllCalls(kDrawAllCalls, sizeof(kDrawAllCalls) / sizeof(kDrawAllCalls[0]));
     ObjModel_SetDrawCalls(kObjModelDrawCalls, sizeof(kObjModelDrawCalls) / sizeof(kObjModelDrawCalls[0]));
     VWrap_SetCalls(kVWrapCalls, sizeof(kVWrapCalls) / sizeof(kVWrapCalls[0]));
+    CrtTerminate_SetCalls(kCrtTerminateCalls, sizeof(kCrtTerminateCalls) / sizeof(kCrtTerminateCalls[0]));
+    Dialog7cc1f8_SetHandlerCalls(kDialog7cc1f8HandlerCalls, sizeof(kDialog7cc1f8HandlerCalls) / sizeof(kDialog7cc1f8HandlerCalls[0]));
+    Panel7cc328_SetRefreshCalls(kPanel7cc328RefreshCalls, sizeof(kPanel7cc328RefreshCalls) / sizeof(kPanel7cc328RefreshCalls[0]));
     RideAnimate_SetCalls(kRideAnimateCalls, sizeof(kRideAnimateCalls) / sizeof(kRideAnimateCalls[0]));
     Sign_SetRideCalls(kSignRideCalls, sizeof(kSignRideCalls) / sizeof(kSignRideCalls[0]));
     TileGrid_SetCalls(kTextureTouchCalls, sizeof(kTextureTouchCalls) / sizeof(kTextureTouchCalls[0]));
@@ -3195,6 +3223,7 @@ int main(int argc, char **argv) {
     Window7cb2cc_SetEnv(&kWindow7cb2ccEnv);
     Window7cc8bc_SetMenuEnv(&kWindow7cc8bcMenuEnv);
     Window7cc8c0Handler_SetEnv(&kWindow7cc8c0HandlerEnv);
+    Window7cb2acHandler_SetEnv(&kWindow7cb2acHandlerEnv);
     Dialog7cc47cInfo_SetEnv(&kDialog7cc47cInfoEnv);
     GuiTokenWide_SetEnv(&kGuiTokenWideEnv);
     GuiStaticObjects_SetEnv(&kGuiStaticObjectsEnv);

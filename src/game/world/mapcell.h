@@ -301,8 +301,17 @@ u32 __cdecl MapCell_StepOpen(u32 from, u32 to, s32 mode);
 
 // Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
 GAME_DATA(u32, gMapCell_StepOpenWarned_7cf38c, 0x007cf38c, 4);
-GAME_DATA(u8[0x100], gMapGrid_MarkEdges_8186f0, 0x008186f0, 0x100);
-GAME_DATA(u8[0x400], gMapGrid_ClassifyTypes_818800, 0x00818800, 0x400);
+// The returned grids: callers read the width and height after the cells through the pointer (0x4ab1b0 +0x400 / +0x404).
+struct MapGridMarks {
+    u8 cells[0x100];
+    s32 width, height;
+};
+struct MapGridTypes {
+    u32 cells[0x100];
+    s32 width, height;
+};
+GAME_DATA(MapGridMarks, gMapGrid_MarkEdges_8186f0, 0x008186f0, 0x108);
+GAME_DATA(MapGridTypes, gMapGrid_ClassifyTypes_818800, 0x00818800, 0x408);
 // The memory ranges MemRanges_Set fills ({first, end} by index: 0 the world, 2 the 0x44-byte cells, 3 the 0x28-byte cells) and the strides.
 struct MemRanges {
     u32 range[4][2];
@@ -310,10 +319,6 @@ struct MemRanges {
     u32 cells28Stride;
 };
 GAME_DATA(MemRanges, gMemRanges_7cdb30, 0x007cdb30, 0x28);
-GAME_DATA(s32, gMapGrid_MarkEdges_8187f0, 0x008187f0, 4);
-GAME_DATA(s32, gMapGrid_MarkEdges_8187f4, 0x008187f4, 4);
-GAME_DATA(s32, gMapGrid_ClassifyTypes_818c00, 0x00818c00, 4);
-GAME_DATA(s32, gMapGrid_ClassifyTypes_818c04, 0x00818c04, 4);
 
 // Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
 GAME_DATA(char[20], gText_MapCellBase_Serialize_75a020, 0x0075a020, 0x14);

@@ -470,7 +470,7 @@ void __cdecl DynFaces_InitModels() {
     reinterpret_cast<u32 &>(gDynFaces_WavePhase_871f60) = 0;
     gDynFaces_763c98 = 1;
     reinterpret_cast<u32 &>(gDynFaces_874fc8) = 0;
-    for (u32 address = (u32)(uintptr_t)&gDynFaces_871d18; address < (u32)(uintptr_t)&gDynFaces_871ed0; address += 4)
+    for (u32 address = (u32)(uintptr_t)&gDynFaces_871d18; address < (u32)(uintptr_t)&gDynFaces_871d18 + sizeof gDynFaces_871d18; address += 4)
         global<s32>(address) = Crt().rand() % 3 + 0xf;
     s32 result = 0;   // sic: in the original a stack slot not yet written, read when the first allocation fails
     reinterpret_cast<u32 &>(gDynFaces_871f64) = MakeModel(0x600, &result, (u32)(uintptr_t)&gText_Dynfaces_763e54, 0);

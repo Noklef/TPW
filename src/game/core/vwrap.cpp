@@ -240,7 +240,7 @@ void __cdecl Globals7cc2fc_Release() {
 }
 
 void __cdecl Table7c26b0_ReleaseIdle() {
-    for (u32 record = (u32)(uintptr_t)&gMsgtags_7c26b0; (s32)record < reinterpret_cast<uintptr_t>(&gMsgtags_7c3b00); record += 0x208) {
+    for (u32 record = (u32)(uintptr_t)&gMsgtags_7c26b0; (s32)record < reinterpret_cast<uintptr_t>(&gMsgtags_7c26b0) + sizeof gMsgtags_7c26b0; record += 0x208) {
         if (global<u16>(record + 4) == 0 && global<u8 *>(record)) {
             vcall<u32>(global<u8 *>(record), 8, 1u);
             global<u32>(record) = 0;

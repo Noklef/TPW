@@ -134,7 +134,7 @@ GAME_DATA(char[12], gFtp_77414c, 0x0077414c, 0xc);
 GAME_DATA(char[8], gFtp_774158, 0x00774158, 0x8);
 GAME_DATA(char[12], gFtp_774160, 0x00774160, 0xc);
 GAME_DATA(char[12], gFtp_77416c, 0x0077416c, 0xc);
-GAME_DATA(u8[0x1], gFtp_WsaErrorBox_774810, 0x00774810, 0x1);
+GAME_DATA(char[0xc], gFtp_WsaErrorBox_774810, 0x00774810, 0xc);   // "IP Error", the message box's title
 
 // The vtables hold only ports: tpw.exe's loader points their slots at them (.docs/09-globals.md).
 GAME_DATA(void *[1], Class70295c_vtable, 0x0070295c, 0x4);

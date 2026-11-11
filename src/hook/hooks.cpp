@@ -238,6 +238,7 @@
 #include "../game/core/crtsignal.h"
 #include "../game/core/crtstartup.h"
 #include "../game/core/crtstream.h"
+#include "../game/core/crtterminate.h"
 #include "../game/core/crttime.h"
 #include "../game/core/dsoundsource.h"
 #include "../game/core/filebuf.h"
@@ -846,6 +847,7 @@
 #include "../game/ui/window705a50handler.h"
 #include "../game/ui/window705b20thumb.h"
 #include "../game/ui/window7cb2a4.h"
+#include "../game/ui/window7cb2achandler.h"
 #include "../game/ui/window7cb2b0handler.h"
 #include "../game/ui/window7cb2cc.h"
 #include "../game/ui/window7cc8bc.h"
@@ -3335,6 +3337,7 @@ const Hook kHooks[] = {
     {"Panel7cc328_ShowStaff",     0x004b4510, (void *)&Panel7cc328_ShowStaff, {0x6a, 0xff, 0x68, 0xe8, 0xb1}},
     {"Panel7cc328_Show",          0x004b5290, (void *)&Panel7cc328_Show, {0x8b, 0x44, 0x24, 0x04, 0x6a}},
     {"Panel7cc328_ShowRefund",    0x004b47a0, (void *)&Panel7cc328_ShowRefund, {0x8b, 0x49, 0x14, 0x53, 0x56}},
+    {"Panel7cc328_Refresh",       0x004b4a50, (void *)&Panel7cc328_Refresh, {0x51, 0xa1, 0x18, 0xc3, 0x7c}},
     {"Global7cc698_Choose",       0x004bcec0, (void *)&Global7cc698_Choose, {0xa1, 0xb8, 0xc8, 0x7c, 0x00}},
     {"PairTable_Add",             0x0052fbf0, (void *)&PairTable_Add, {0xa1, 0x8c, 0x0a, 0x82, 0x00}},
     {"Obj_SmallestEntry",         0x004d09a0, (void *)&Obj_SmallestEntry, {0x53, 0x55, 0x56, 0x57, 0x83}},
@@ -6093,6 +6096,15 @@ const Hook kHooks[] = {
     {"AdvisorScoring_TotalNoExtra", 0x005a0530, (void *)&AdvisorScoring_TotalNoExtra, {0xa1, 0x3c, 0xf8, 0x7c, 0x00}},
     {"AdvisorScoring_MeanQueueUnused", 0x0059e420, (void *)&AdvisorScoring_MeanQueueUnused, {0xa1, 0xec, 0xf6, 0x7c, 0x00}},
     {"AdvisorScoring_AgedPerStaff", 0x0059f9c0, (void *)&AdvisorScoring_AgedPerStaff, {0x83, 0xec, 0x08, 0x8d, 0x44}},
+    {"AdvisorScoring_PlainHalfNoStaff7", 0x0059ccb0, (void *)&AdvisorScoring_PlainHalfNoStaff7, {0xa1, 0xec, 0xf6, 0x7c, 0x00}},
+    {"AdvisorScoring_PatrolShare4", 0x0059d0c0, (void *)&AdvisorScoring_PatrolShare4, {0x83, 0xec, 0x08, 0x8d, 0x44}},
+    {"AdvisorScoring_ControlsRatioMoney1", 0x0059de80, (void *)&AdvisorScoring_ControlsRatioMoney1, {0x83, 0xec, 0x08, 0xa1, 0xec}},
+    {"AdvisorScoring_ControlsRatioMoney2", 0x0059e110, (void *)&AdvisorScoring_ControlsRatioMoney2, {0x83, 0xec, 0x08, 0xa1, 0xec}},
+    {"AdvisorScoring_PeopleStat1acShare", 0x0059e380, (void *)&AdvisorScoring_PeopleStat1acShare, {0xa1, 0xec, 0xf6, 0x7c, 0x00}},
+    {"AdvisorScoring_LoanUnderSpare", 0x0059e910, (void *)&AdvisorScoring_LoanUnderSpare, {0x83, 0xec, 0x0c, 0xa1, 0xec}},
+    {"AdvisorScoring_PeopleShare2", 0x005a0930, (void *)&AdvisorScoring_PeopleShare2, {0xa1, 0xec, 0xf6, 0x7c, 0x00}},
+    {"AdvisorScoring_PeopleShare3", 0x005a09b0, (void *)&AdvisorScoring_PeopleShare3, {0xa1, 0xec, 0xf6, 0x7c, 0x00}},
+    {"AdvisorScoring_Field62c",   0x005a0a30, (void *)&AdvisorScoring_Field62c, {0x8b, 0x81, 0x2c, 0x06, 0x00}},
     {"ParkInfo_Serialize",        0x00418da0, (void *)&ParkInfo_Serialize, {0x51, 0x8b, 0x44, 0x24, 0x0c}},
     {"AuthStamp_Text",           0x005d55a0, (void *)&AuthStamp_Text, {0x53, 0x56, 0x57, 0xbe, 0xd8}},
     {"Mp2Decoder_ParseHeader",   0x006cc7b0, (void *)&Mp2Decoder_ParseHeader, {0x83, 0xec, 0x0c, 0x53, 0x56}},
@@ -7292,6 +7304,7 @@ const Hook kHooks[] = {
     {"Collate_DoTransform",       0x006a7080, (void *)&Collate_DoTransform, {0x6a, 0xff, 0x68, 0xc8, 0x4e}},
     {"TimePut_DoPut",             0x006ab160, (void *)&TimePut_DoPut, {0x6a, 0xff, 0x68, 0x18, 0x52}},
     {"WTimePut_DoPut",            0x006a4540, (void *)&WTimePut_DoPut, {0x6a, 0xff, 0x68, 0xc8, 0x49}},
+    {"CRT_terminate",             0x00682590, (void *)&CRT_terminate, {0x55, 0x8b, 0xec, 0x6a, 0xff}},
     {"Nav_Ctor",          0x0050ffe0, (void *)&Nav_Ctor, {0x6a, 0xff, 0x68, 0x2d, 0xe6}},
     {"Nav_Dtor",                  0x0050f200, (void *)&Nav_Dtor, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"Nav_DtorAtD4",              0x004f7c30, (void *)&Nav_DtorAtD4, {0x81, 0xc1, 0xd4, 0x00, 0x00}},
@@ -9724,6 +9737,7 @@ const Hook kHooks[] = {
     {"ThingBrowser_OpenShown",    0x00481790, (void *)&ThingBrowser_OpenShown, {0xa1, 0xc0, 0xc3, 0x7c, 0x00}},
     {"ThingBrowser_SendPatrolLines", 0x004b3640, (void *)&ThingBrowser_SendPatrolLines, {0xa1, 0x08, 0xc3, 0x7c, 0x00}},
     {"ThingBrowser_Handler",      0x004b3790, (void *)&ThingBrowser_Handler, {0x53, 0x8b, 0x5c, 0x24, 0x14}},
+    {"ThingBrowser_OpenPeople",   0x004b4280, (void *)&ThingBrowser_OpenPeople, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"Panel7cc218_Dress",         0x004ad890, (void *)&Panel7cc218_Dress, {0x6a, 0xff, 0x68, 0x8a, 0xac}},
     {"Panel7cc218_DressTip",      0x004ad720, (void *)&Panel7cc218_DressTip, {0x6a, 0xff, 0x68, 0xbb, 0xab}},
     {"Panel7cc218_UpdateButtons", 0x004ad4e0, (void *)&Panel7cc218_UpdateButtons, {0xa1, 0x58, 0x26, 0x7c, 0x00}},
@@ -9761,6 +9775,7 @@ const Hook kHooks[] = {
     {"Dialog7cc1f8_TabHandler",   0x004aca60, (void *)&Dialog7cc1f8_TabHandler, {0x53, 0x8b, 0x5c, 0x24, 0x14}},
     {"Dialog7cc1f8_Open",         0x004acc70, (void *)&Dialog7cc1f8_Open, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"Dialog7cc1f8_RowHandler",   0x004acb70, (void *)&Dialog7cc1f8_RowHandler, {0x8b, 0x44, 0x24, 0x08, 0x53}},
+    {"Dialog7cc1f8_Handler",      0x004ac270, (void *)&Dialog7cc1f8_Handler, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"Panel7cc408_Dress",         0x004b6c20, (void *)&Panel7cc408_Dress, {0x6a, 0xff, 0x68, 0x90, 0xb4}},
     {"Panel7cc408_ShowPreview",   0x004b6b90, (void *)&Panel7cc408_ShowPreview, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"Panel7cc408_Show",          0x004b79b0, (void *)&Panel7cc408_Show, {0x8b, 0x44, 0x24, 0x04, 0x6a}},
@@ -9969,6 +9984,7 @@ const Hook kHooks[] = {
     {"ThingGoto_Start",           0x0048cd10, (void *)&ThingGoto_Start, {0xa0, 0x0f, 0xd9, 0x78, 0x00}},
     {"DialupList_Fill",           0x004ba850, (void *)&DialupList_Fill, {0x81, 0xec, 0x48, 0x08, 0x00}},
     {"Panel7cc408_ShowVisitor",   0x004b72a0, (void *)&Panel7cc408_ShowVisitor, {0x81, 0xec, 0x98, 0x00, 0x00}},
+    {"Panel7cc408_Reopen",        0x004b7660, (void *)&Panel7cc408_Reopen, {0xa1, 0x58, 0x26, 0x7c, 0x00}},
     {"Dialog7cc4b4_Update",       0x004b9340, (void *)&Dialog7cc4b4_Update, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"Dialog7cc4b4_ShowTheme",    0x004b90f0, (void *)&Dialog7cc4b4_ShowTheme, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"Dialog7cb2b8_Build",        0x004a1d70, (void *)&Dialog7cb2b8_Build, {0x64, 0xa1, 0x00, 0x00, 0x00}},
@@ -10196,6 +10212,7 @@ const Hook kHooks[] = {
     {"GameWindow_Proc",           0x0046b600, (void *)&GameWindow_Proc, {0x66, 0x83, 0x3d, 0xc4, 0xa5}},
     {"GameWindow_ClassProc",      0x0046bcb0, (void *)&GameWindow_ClassProc, {0x53, 0x55, 0x56, 0x8b, 0x74}},
     {"PanelKeys_HandleMessage",   0x005e41c0, (void *)&PanelKeys_HandleMessage, {0x8b, 0x44, 0x24, 0x04, 0x53}},
+    {"Window7cb2ac_Handler",      0x004881a0, (void *)&Window7cb2ac_Handler, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"jdmarker_examine_app14",    0x0063bf50, (void *)&jdmarker_examine_app14, {0x8b, 0x4c, 0x24, 0x0c, 0x53}},
     {"jdmarker_examine_app0",     0x0063bcc0, (void *)&jdmarker_examine_app0, {0x8b, 0x44, 0x24, 0x0c, 0x8b}},
     {"jdmarker_get_interesting_appn", 0x0063bb80, (void *)&jdmarker_get_interesting_appn, {0x8b, 0x44, 0x24, 0x04, 0x83}},
