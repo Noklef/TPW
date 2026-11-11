@@ -224,6 +224,7 @@ s32 __fastcall AdvisorScoring_Field578(const u8 *scoring);
 s32 __fastcall AdvisorScoring_Field5b4(const u8 *scoring);
 s32 __fastcall AdvisorScoring_Field5c0(const u8 *scoring);
 s32 __fastcall AdvisorScoring_Field5f8(const u8 *scoring);
+s32 __fastcall AdvisorScoring_Field62c(const u8 *scoring);
 // 0x59f9a0 and 0x59f9b0 (thiscall, the object unread; names invented): the constants 10000 and 9999.
 s32 __fastcall AdvisorScoring_Const10000(const u8 *scoring);
 s32 __fastcall AdvisorScoring_Const9999(const u8 *scoring);
@@ -264,6 +265,9 @@ s32 __fastcall AdvisorScoring_ControlsPercentHigh(const u8 *scoring);
 // 0x5a08b0: not flagged, [0x785794] not 0 and the people on plain cells' share of it (Things_CountKind1OnPlainCell, asked again when
 // the first share is not above 100; else 100) above +0x614: +0x618.
 s32 __fastcall AdvisorScoring_PeopleShare(const u8 *scoring);
+// 0x5a0930 / 0x5a09b0: the same against +0x61c / +0x624: +0x620 / +0x628.
+s32 __fastcall AdvisorScoring_PeopleShare2(const u8 *scoring);
+s32 __fastcall AdvisorScoring_PeopleShare3(const u8 *scoring);
 
 // More park criteria (thiscall on the scoring; names invented). 0x59f440: the analyser's (of [0x7cf83c]) count at +0x216d8 (as
 // 0x5a0780 has it) above 0, and the buffer's newest sample (size +0x1c above 0; the cursor +0x18 if not negative, else, with the byte
@@ -319,6 +323,7 @@ s32 __fastcall AdvisorScoring_ChainShareStaff8(const u8 *scoring);
 // 0x59d180: from the month +0x138, +0x12c staff of kind 4, some with a patrol: (100 - PatrolCoverage_Percent(4, 2) of [0x7cf83c]'s) * +0x140, or 0 under +0x13c.
 s32 __fastcall AdvisorScoring_PatrolCover4(const u8 *scoring);
 // 0x59d250, 0x59d400, 0x59d4c0 (kinds 5, 7, 6): from the month +0x150 / 0x170 / 0x188, +0x144 / 0x164 / 0x17c staff of the kind: unless the share with a patrol (signed, per cent) is over +0x148 / 0x168 / 0x180, (100 - it) * +0x14c / 0x16c / 0x184. No staff and a bound at most 0: the division faults (sic).
+s32 __fastcall AdvisorScoring_PatrolShare4(const u8 *scoring);   // 0x59d0c0: kind 4, from the month +0x138, +0x12c staff, over +0x130, * +0x134
 s32 __fastcall AdvisorScoring_PatrolShare5(const u8 *scoring);
 s32 __fastcall AdvisorScoring_PatrolShare7(const u8 *scoring);
 s32 __fastcall AdvisorScoring_PatrolShare6(const u8 *scoring);
@@ -338,6 +343,16 @@ s32 __fastcall AdvisorScoring_ResearchIdleStaff8(const u8 *scoring);
 s32 __fastcall AdvisorScoring_ResearchWaiting0(const u8 *scoring);
 s32 __fastcall AdvisorScoring_ResearchWaiting1(const u8 *scoring);
 s32 __fastcall AdvisorScoring_ResearchWaiting2(const u8 *scoring);
+// 0x59ccb0: not flagged, +0x630 days since 0x21c38, no staff of kind 7: (ParkAnalyser_Kind1OnPlainHalfClamped - +0xf0) * +0xf4.
+s32 __fastcall AdvisorScoring_PlainHalfNoStaff7(const u8 *scoring);
+// 0x59de80 / 0x59e110: definitions of kind 1 / 2 with controls (ObjectDefs_CountKindWithControls), +0x634 days since 0x21c30, those of kind 1 (sic) / 0 times the float
+// +0x270 / +0x294 over them (fcompp; unordered: not) and Source_Field0c of the money over +0x274 / +0x298: +0x278 / +0x29c.
+s32 __fastcall AdvisorScoring_ControlsRatioMoney1(const u8 *scoring);
+s32 __fastcall AdvisorScoring_ControlsRatioMoney2(const u8 *scoring);
+// 0x59e380: Game_Field1da710IsZero (its low byte) and no Game_RecountKind3Flag1: +0x2c0 when Things_CountPeopleStat1acAbove(the byte +0x2b8) * 100 / the people on plain cells (signed; none: 0) is over +0x2bc.
+s32 __fastcall AdvisorScoring_PeopleStat1acShare(const u8 *scoring);
+// 0x59e910: with a loan (Obj_SmallestEntry not negative), its Money_LoanOwed times the float +0x338 under (or unordered with) the money less Money_TotalOwed, as a float: +0x33c.
+s32 __fastcall AdvisorScoring_LoanUnderSpare(const u8 *scoring);
 // 0x59e8d0: Source_Field0c of the money over +0x330 and Obj_Count28s_4d0690 of [0x7cf83c]'s money 0: +0x334.
 s32 __fastcall AdvisorScoring_MoneyOverLoanless(const u8 *scoring);
 // 0x59e9f0, 0x59ea70, 0x59eaf0: in the red (Source_Field0c negative), no loan offer (Money_AnyLoanOffer), the months of it (Money_TimeInRed) under 3, 3 or 4, or 5: +0x344, +0x348, +0x34c.
