@@ -102,7 +102,7 @@ u8 *new_inline_sprite(u32 image, u32 a, u32 c, float size) {
     Obj_SetShown(sprite, nullptr, 0);
     at<float>(sprite, 0x24) = size;
     at<u32>(reinterpret_cast<u8 *>((uintptr_t)Fn_56b620(at<u32>(sprite, 0x28))), 0x10) |= 0x30000;
-    PtrList_Append(gParkmap_fa6e38, nullptr, sprite);
+    PtrList_Append(at<PtrList *>(gSurfaceInfo_f86db8, 0x20080), nullptr, sprite);
     return sprite;
 }
 

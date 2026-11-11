@@ -15,6 +15,7 @@
 #include "signrect.h"
 #include "window.h"
 #include "dialog7cc1f8.h"
+#include "../core/staticobjects.h"
 
 namespace {
 
@@ -97,7 +98,7 @@ void __cdecl Dialog7cc1f8_ShowPreview(const u16 *id) {
             g_env->unlock(image);
         }
         u8 *const label = Window_FindChild(panel, nullptr, 0x1ec);
-        vcall<void>(label, 0x24, (u32)(uintptr_t)g_env->widen(g_env->record(gDialog7cc1f8_78bad0, nullptr, at<u32>(def, 0x90))));
+        vcall<void>(label, 0x24, (u32)(uintptr_t)g_env->widen(g_env->record(at<u8 *>(gLanguage_78b530, 0x5a0), nullptr, at<u32>(def, 0x90))));
     } else {
         if (clearImage(image, &info, &width, &height)) {
             DrawColour colour;

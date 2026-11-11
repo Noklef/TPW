@@ -130,8 +130,8 @@ STATIC_FUNCS = {   # function: (size, why) of the object it reaches from this, f
     0x5c8ba0: (0x18, 'CritSec_Dtor: a CRITICAL_SECTION (0x18 bytes)'),
     0x492020: (0x1c, 'Wrap_Fn_669fa8_492020: Fn_669fa8 writes +0-+0x14, then +0 and +0x18'),
     0x565110: (0x28, 'Vec3_DirectionsFromAngle: writes +4-+0x24 (staticinit the angle +0 before it)'),
-    0x419570: (0x5a0, 'Language_Ctor: the language object, its last field +0x59c (core/language.h)'),
-    0x4196a0: (0x5a0, 'Language_Dtor: the language object'),
+    0x419570: (0x5a8, 'Language_Ctor: the language object: Language_FreeFonts releases +0x5a0 and +0x5a4 (0x78bad0, 0x78bad4, the record tables)'),
+    0x4196a0: (0x5a8, 'Language_Dtor: the language object'),
     0x659d00: (0xc, 'GuiRect_Ctor: the vtable and four words (a dialog holds two 0xc apart, +0x14 and +0x20)'),
     0x659d90: (0xc, 'GuiRect_Dtor: GuiRect'),
 }
@@ -161,6 +161,9 @@ STATIC = {         # static object: (size, why), where its functions do not say 
     0x8c1828: (0x2f20, 'the landscape (Landscape_Init writes up to +0x2ecc); the load screen at 0x8c4748 follows (gfx/loadscreen)'),
     0xf75b20: (0x68, 'Panel7b9940, as the one at 0x7b9940 (0x68 to the next static object; Panel7b9940_Ctor writes up to +0x5c); the '
                      'advisor\'s globals follow (0xf79660 on)'),
+    0xf86db8: (0x20088, 'the park map: its methods reach +0x20084, the pointer list at +0x20080 (0xfa6e38); 0xfa6e40 is the next object'),
+    0x874fd8: (0x50, 'a Surface (0x50 bytes, its SurfaceInfo at +0x28, 0x875000): TvStatic_Draw passes 0x874fd8 to Surface_Attach; staticinit '
+                     'zeroes its +0x10-+0x14 and +0x20-+0x24, as for the one at 0x7b4a68'),
     0x7b4e38: (0x3ac,'ImeHost (its code reaches +0x1aa); 0x7b51e4 and 0x7b51e8 are float constants of their own (core/floatconsts: their own '
                       'initialisers set them)'),
     0x784e30: (0x210, 'balance file (hoardings A), to the level\'s file'),

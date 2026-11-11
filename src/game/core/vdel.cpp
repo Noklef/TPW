@@ -19,6 +19,7 @@
 #include "../world/thingmsg.h"
 #include "../frontend/frame.h"
 #include "../input/devicefilter.h"
+#include "staticobjects.h"
 
 namespace {
 
@@ -214,7 +215,7 @@ u8 *__fastcall Deleter_Minus2c_569c80(u8 *object, void *, u32 flags) {
 
 u8 *__fastcall Class703088_ScalarDtor(u8 *object, void *, u32 flags) {
     at<u32>(object, 0) = (u32)(uintptr_t)Class703088_vtable;
-    u8 *const list = reinterpret_cast<u8 * &>(gParkmap_fa6e38);
+    u8 *const list = at<u8 *>(gSurfaceInfo_f86db8, 0x20080);
     u8 *node = at<u8 *>(list, 4);
     while (node && at<u8 *>(node, 0) != object)
         node = at<u8 *>(node, 4);

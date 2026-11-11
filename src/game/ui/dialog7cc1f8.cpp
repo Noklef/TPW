@@ -436,7 +436,7 @@ void __cdecl Dialog7cc1f8_ShowItemTip(const s16 *item) {
                 TextFormat().format(texts, text, 0x80, 0x98);
             } else {   // (2: too dear, 3: affordable) the definition's name (+0x90) as the argument 0
                 u16 name[0x40];
-                TextFormat().format(*reinterpret_cast<void * *>(&gDialog7cc1f8_78bad0), name, 0x3f,
+                TextFormat().format(at<void *>(gLanguage_78b530, 0x5a0), name, 0x3f,
                                     *reinterpret_cast<const u32 *>(ObjectDefs_Find(defs, nullptr, (u16)*item) + 0x90));
                 u8 arg[0x14];
                 TextArgString_Ctor(arg, nullptr, 0, (u32)(uintptr_t)name);

@@ -218,7 +218,7 @@ void __fastcall NamedObjects_SetThemeLabel(u8 *, void *, const WString *theme, u
                               {(u32)(uintptr_t)&gWString_7869e8, 3}};
     for (const auto &t : kThemes) {
         if (WNames_Equal(reinterpret_cast<const u8 *>(theme), reinterpret_cast<const u8 *>((uintptr_t)t[0]))) {
-            const u8 *const table = *reinterpret_cast<u8 *const *>((uintptr_t)0x0078bad4);
+            const u8 *const table = *reinterpret_cast<u8 *const *>((uintptr_t)&gLanguage_78b530 + 0x5a4);
             vcall<void>(label, 0x14, Language_Widen(Records_DataIfTerminated(table, nullptr, t[1])));
             break;
         }

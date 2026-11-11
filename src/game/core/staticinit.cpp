@@ -19086,14 +19086,14 @@ void __cdecl Init_53bfc0() {   // 0x53bfc0
 void __cdecl Init_53e620() {   // 0x53e620
     u32 eax = 0, ecx = 0;
     eax = 0;
-    ecx = ((u32)(uintptr_t)&gSurfaceInfo_874fe8 + 0x18);
-    M<u8>((u32)(uintptr_t)&gSurfaceInfo_874fe8) = (u8)eax;
-    M<u8>(((u32)(uintptr_t)&gSurfaceInfo_874fe8 + 0x1)) = (u8)eax;
-    M<u8>(((u32)(uintptr_t)&gSurfaceInfo_874fe8 + 0x2)) = (u8)eax;
-    M<u8>(((u32)(uintptr_t)&gSurfaceInfo_874fe8 + 0x3)) = (u8)eax;
-    M<u8>(((u32)(uintptr_t)&gSurfaceInfo_874fe8 + 0x4)) = (u8)eax;
-    M<u32>(((u32)(uintptr_t)&gSurfaceInfo_874fe8 + 0x10)) = eax;
-    M<u32>(((u32)(uintptr_t)&gSurfaceInfo_874fe8 + 0x14)) = eax;
+    ecx = ((u32)(uintptr_t)&gSurfaceInfo_874fd8 + 0x28);
+    M<u8>(((u32)(uintptr_t)&gSurfaceInfo_874fd8 + 0x10)) = (u8)eax;
+    M<u8>(((u32)(uintptr_t)&gSurfaceInfo_874fd8 + 0x11)) = (u8)eax;
+    M<u8>(((u32)(uintptr_t)&gSurfaceInfo_874fd8 + 0x12)) = (u8)eax;
+    M<u8>(((u32)(uintptr_t)&gSurfaceInfo_874fd8 + 0x13)) = (u8)eax;
+    M<u8>(((u32)(uintptr_t)&gSurfaceInfo_874fd8 + 0x14)) = (u8)eax;
+    M<u32>(((u32)(uintptr_t)&gSurfaceInfo_874fd8 + 0x20)) = eax;
+    M<u32>(((u32)(uintptr_t)&gSurfaceInfo_874fd8 + 0x24)) = eax;
     g_calls.Th(0x005fa680, ecx);   // SurfaceInfo_Ctor (tail)
     return;
 }

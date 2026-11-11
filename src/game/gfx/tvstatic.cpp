@@ -9,6 +9,7 @@
 #include "palette.h"
 #include "../render/screen.h"
 #include "../render/d3dsetup.h"
+#include "../core/staticobjects.h"
 
 namespace {
 
@@ -65,7 +66,7 @@ void __cdecl TvStatic_Draw(void *screen) {
     white.index = Palette_Nearest(palette, 0xff, 0xff, 0xff);
     grey.rgb = 0xff969696;
     grey.index = Palette_Nearest(palette, 0x96, 0x96, 0x96);
-    Surface *target = reinterpret_cast<Surface *>((uintptr_t)0x00874fd8);
+    Surface *target = reinterpret_cast<Surface *>((uintptr_t)&gSurfaceInfo_874fd8);
     s32 out;
     Surface_Attach(&out, screen, target);
     Surface_Lock(&out, gTvStatic_874fd0, nullptr);

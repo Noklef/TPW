@@ -827,7 +827,7 @@ GAME_DATA(u8[0x14], gString_78b3a8, 0x0078b3a8, 0x14);   // String_CtorStr, Stri
 GAME_DATA(u8[0x14], gString_78b3c0, 0x0078b3c0, 0x14);   // String_CtorStr, String_Dtor
 GAME_DATA(u8[0x140], gString_78b3d8, 0x0078b3d8, 0x140);   // String_CtorStr; one initializer's
 GAME_DATA(u8[0x14], gString_78b518, 0x0078b518, 0x14);   // String_CtorStr, String_Dtor
-GAME_DATA(u8[0x5a0], gLanguage_78b530, 0x0078b530, 0x5a0);   // Language_Ctor, Language_Dtor
+GAME_DATA(u8[0x5a8], gLanguage_78b530, 0x0078b530, 0x5a8);   // Language_Ctor, Language_Dtor
 GAME_DATA(u8[0x14], gString_78bad8, 0x0078bad8, 0x14);   // String_CtorStr, String_Dtor
 GAME_DATA(u8[0x14], gString_78baf0, 0x0078baf0, 0x14);   // String_CtorStr, String_Dtor
 GAME_DATA(u8[0x14], gString_78bb08, 0x0078bb08, 0x14);   // String_CtorStr, String_Dtor
@@ -4058,7 +4058,7 @@ GAME_DATA(u8[0x14], gString_820130, 0x00820130, 0x14);   // String_CtorStr, Stri
 GAME_DATA(u8[0x14], gString_820148, 0x00820148, 0x14);   // String_CtorStr, String_Dtor
 GAME_DATA(u8[0x14], gString_820160, 0x00820160, 0x14);   // String_CtorStr, String_Dtor
 GAME_DATA(u8[0x14], gString_820a78, 0x00820a78, 0x14);   // String_CtorStr, String_Dtor
-GAME_DATA(u8[0x40], gSurfaceInfo_874fe8, 0x00874fe8, 0x40);   // SurfaceInfo_Ctor; one initializer's
+GAME_DATA(u8[0x50], gSurfaceInfo_874fd8, 0x00874fd8, 0x50);   // SurfaceInfo_Ctor
 GAME_DATA(u8[0x14], gString_875160, 0x00875160, 0x14);   // String_CtorStr, String_Dtor
 GAME_DATA(u8[0x14], gString_875178, 0x00875178, 0x14);   // String_CtorStr, String_Dtor
 GAME_DATA(u8[0x14], gString_875190, 0x00875190, 0x14);   // String_CtorStr, String_Dtor
@@ -6512,7 +6512,7 @@ GAME_DATA(u8[0x24], gStatic_f86cd4, 0x00f86cd4, 0x24);   // Fn_5f0970
 GAME_DATA(u8[0x24], gStatic_f86cf8, 0x00f86cf8, 0x24);   // Fn_5f0970
 GAME_DATA(u8[0x14], gString_f86d20, 0x00f86d20, 0x14);   // String_CtorStr, String_Dtor
 GAME_DATA(u8[0x78], gString_f86d40, 0x00f86d40, 0x78);   // String_CtorStr; one initializer's
-GAME_DATA(u8[0x20064], gSurfaceInfo_f86db8, 0x00f86db8, 0x20064);   // SurfaceInfo_Ctor; one initializer's
+GAME_DATA(u8[0x20088], gSurfaceInfo_f86db8, 0x00f86db8, 0x20088);   // SurfaceInfo_Ctor
 GAME_DATA(u8[0x38], gOstream_fb1970, 0x00fb1970, 0x38);   // Ostream_CtorUninit, NIos_Dtor; one initializer's
 GAME_DATA(u8[0x58], gNFileBuf_fb19a8, 0x00fb19a8, 0x58);   // NFileBuf_Dtor; to the next
 GAME_DATA(u8[0x38], gOstream_fb1a00, 0x00fb1a00, 0x38);   // Ostream_CtorUninit, NIos_Dtor; one initializer's

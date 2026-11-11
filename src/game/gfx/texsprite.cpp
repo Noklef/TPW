@@ -40,7 +40,7 @@ u8 *__fastcall TexSprite_Ctor(u8 *object, void *, u32 image, u32 a, u32 b, u32 c
     at<u32>(object, 0x24) = d;
     own = reinterpret_cast<u8 *>((uintptr_t)Fn_56b620(at<u32>(object, 0x28)));
     at<u32>(own, 0x10) |= 0x30000;
-    PtrList_Append(gParkmap_fa6e38, nullptr, object);
+    PtrList_Append(at<PtrList *>(gSurfaceInfo_f86db8, 0x20080), nullptr, object);
     return object;
 }
 
