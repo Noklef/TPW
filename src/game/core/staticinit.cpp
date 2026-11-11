@@ -8,6 +8,11 @@
 
 #include "addrcalls.h"
 #include "../math/x87.h"
+#include "../world/placeobject.h"
+#include "../world/steering.h"
+#include "../math/intpair.h"
+#include "../world/object.h"
+#include "../world/world.h"
 #include "iosbase.h"
 #include "nstream.h"
 #include "vdel.h"
@@ -19,6 +24,7 @@
 #include "../ui/panel7cc298.h"
 #include "../render/spritequeue.h"
 #include "gameframe.h"
+#include "../sprite/loading.h"
 
 namespace {
 
@@ -771,15 +777,15 @@ void __cdecl Exit_50cdd0() {   // 0x50cdd0
     bool zf = false;
     alignas(4) u8 frame[0x4];
     const u32 sp = (u32)(uintptr_t)(frame + sizeof frame);
-    ecx = (ecx & 0xffffff00u) | (u8)(M<u8>(0x7cf330u));
+    ecx = (ecx & 0xffffff00u) | (u8)(M<u8>((u32)&gSteering_BehavioursGuard_7cf330));
     eax = (eax & 0xffffff00u) | (u8)(0x1u);
     zf = ((u8)eax & (u8)ecx) == 0;
     if (!zf) goto L_50cdf4;
     edx = (edx & 0xffffff00u) | (u8)((u8)ecx);
     edx = (edx & 0xffffff00u) | (u8)((u8)edx | (u8)eax);
-    eax = M<u32>(0x7cf078u);
+    eax = M<u32>((u32)&gSteering_Behaviours_7cf078);
     M<u32>(sp - 0x4) = eax;
-    M<u8>(0x7cf330u) = (u8)edx;
+    M<u8>((u32)&gSteering_BehavioursGuard_7cf330) = (u8)edx;
     eax = g_calls.Cd(0x0067acb0, M<u32>(sp - 0x4));   // Mem_Free
 L_50cdf4:
     return;
@@ -10072,8 +10078,8 @@ void __cdecl Init_4d9a60() {   // 0x4d9a60
     alignas(4) u8 frame[0x4];
     const u32 sp = (u32)(uintptr_t)(frame + sizeof frame);
     M<u32>(sp - 0x4) = 0x4d9a90u;
-    M<u32>(0x7cdba0u) = 0x0u;
-    M<u32>(0x7cdba4u) = 0xffffffffu;
+    M<u32>((u32)gStepN_7cdba0) = 0x0u;
+    M<u32>((u32)&gStepN_7cdba0[1]) = 0xffffffffu;
     eax = g_calls.Cd(0x0067a7d0, M<u32>(sp - 0x4));   // CRT_atexit
     return;
 }
@@ -10082,8 +10088,8 @@ void __cdecl Init_4d9ab0() {   // 0x4d9ab0
     alignas(4) u8 frame[0x4];
     const u32 sp = (u32)(uintptr_t)(frame + sizeof frame);
     M<u32>(sp - 0x4) = 0x4d9ae0u;
-    M<u32>(0x7cdbd8u) = 0x1u;
-    M<u32>(0x7cdbdcu) = 0xffffffffu;
+    M<u32>((u32)gStepNE_7cdbd8) = 0x1u;
+    M<u32>((u32)&gStepNE_7cdbd8[1]) = 0xffffffffu;
     eax = g_calls.Cd(0x0067a7d0, M<u32>(sp - 0x4));   // CRT_atexit
     return;
 }
@@ -10092,8 +10098,8 @@ void __cdecl Init_4d9b00() {   // 0x4d9b00
     alignas(4) u8 frame[0x4];
     const u32 sp = (u32)(uintptr_t)(frame + sizeof frame);
     M<u32>(sp - 0x4) = 0x4d9b30u;
-    M<u32>(0x7cdbc8u) = 0x1u;
-    M<u32>(0x7cdbccu) = 0x0u;
+    M<u32>((u32)gStepE_7cdbc8) = 0x1u;
+    M<u32>((u32)&gStepE_7cdbc8[1]) = 0x0u;
     eax = g_calls.Cd(0x0067a7d0, M<u32>(sp - 0x4));   // CRT_atexit
     return;
 }
@@ -10103,8 +10109,8 @@ void __cdecl Init_4d9b50() {   // 0x4d9b50
     const u32 sp = (u32)(uintptr_t)(frame + sizeof frame);
     eax = 0x1u;
     M<u32>(sp - 0x4) = 0x4d9b70u;
-    M<u32>(0x7cdbb8u) = eax;
-    M<u32>(0x7cdbbcu) = eax;
+    M<u32>((u32)gStepSE_7cdbb8) = eax;
+    M<u32>((u32)&gStepSE_7cdbb8[1]) = eax;
     eax = g_calls.Cd(0x0067a7d0, M<u32>(sp - 0x4));   // CRT_atexit
     return;
 }
@@ -10113,8 +10119,8 @@ void __cdecl Init_4d9b90() {   // 0x4d9b90
     alignas(4) u8 frame[0x4];
     const u32 sp = (u32)(uintptr_t)(frame + sizeof frame);
     M<u32>(sp - 0x4) = 0x4d9bc0u;
-    M<u32>(0x7cdba8u) = 0x0u;
-    M<u32>(0x7cdbacu) = 0x1u;
+    M<u32>((u32)gStepS_7cdba8) = 0x0u;
+    M<u32>((u32)&gStepS_7cdba8[1]) = 0x1u;
     eax = g_calls.Cd(0x0067a7d0, M<u32>(sp - 0x4));   // CRT_atexit
     return;
 }
@@ -10123,8 +10129,8 @@ void __cdecl Init_4d9be0() {   // 0x4d9be0
     alignas(4) u8 frame[0x4];
     const u32 sp = (u32)(uintptr_t)(frame + sizeof frame);
     M<u32>(sp - 0x4) = 0x4d9c10u;
-    M<u32>(0x7cdbb0u) = 0xffffffffu;
-    M<u32>(0x7cdbb4u) = 0x1u;
+    M<u32>((u32)gStepSW_7cdbb0) = 0xffffffffu;
+    M<u32>((u32)&gStepSW_7cdbb0[1]) = 0x1u;
     eax = g_calls.Cd(0x0067a7d0, M<u32>(sp - 0x4));   // CRT_atexit
     return;
 }
@@ -10133,8 +10139,8 @@ void __cdecl Init_4d9c30() {   // 0x4d9c30
     alignas(4) u8 frame[0x4];
     const u32 sp = (u32)(uintptr_t)(frame + sizeof frame);
     M<u32>(sp - 0x4) = 0x4d9c60u;
-    M<u32>(0x7cdbd0u) = 0xffffffffu;
-    M<u32>(0x7cdbd4u) = 0x0u;
+    M<u32>((u32)gStepW_7cdbd0) = 0xffffffffu;
+    M<u32>((u32)&gStepW_7cdbd0[1]) = 0x0u;
     eax = g_calls.Cd(0x0067a7d0, M<u32>(sp - 0x4));   // CRT_atexit
     return;
 }
@@ -10144,8 +10150,8 @@ void __cdecl Init_4d9c80() {   // 0x4d9c80
     const u32 sp = (u32)(uintptr_t)(frame + sizeof frame);
     eax = 0xffffffffu;
     M<u32>(sp - 0x4) = 0x4d9ca0u;
-    M<u32>(0x7cdbc0u) = eax;
-    M<u32>(0x7cdbc4u) = eax;
+    M<u32>((u32)gStepNW_7cdbc0) = eax;
+    M<u32>((u32)&gStepNW_7cdbc0[1]) = eax;
     eax = g_calls.Cd(0x0067a7d0, M<u32>(sp - 0x4));   // CRT_atexit
     return;
 }
@@ -10357,24 +10363,24 @@ void __cdecl Init_4fa6d0() {   // 0x4fa6d0
     ecx = 0x1u;
     eax = 0;
     M<u32>(sp - 0x4) = 0x4fa750u;
-    M<u32>(0x7ced88u) = edx;
-    M<u32>(0x7ced8cu) = ecx;
-    M<u32>(0x7ced90u) = eax;
-    M<u32>(0x7ced94u) = ecx;
-    M<u32>(0x7ced98u) = ecx;
-    M<u32>(0x7ced9cu) = ecx;
-    M<u32>(0x7ceda0u) = edx;
-    M<u32>(0x7ceda4u) = eax;
-    M<u32>(0x7ceda8u) = eax;
-    M<u32>(0x7cedacu) = eax;
-    M<u32>(0x7cedb0u) = ecx;
-    M<u32>(0x7cedb4u) = eax;
-    M<u32>(0x7cedb8u) = edx;
-    M<u32>(0x7cedbcu) = edx;
-    M<u32>(0x7cedc0u) = eax;
-    M<u32>(0x7cedc4u) = edx;
-    M<u32>(0x7cedc8u) = ecx;
-    M<u32>(0x7cedccu) = edx;
+    M<u32>((u32)&gObject_Around_7ced88[0][0]) = edx;
+    M<u32>((u32)&gObject_Around_7ced88[0][1]) = ecx;
+    M<u32>((u32)&gObject_Around_7ced88[1][0]) = eax;
+    M<u32>((u32)&gObject_Around_7ced88[1][1]) = ecx;
+    M<u32>((u32)&gObject_Around_7ced88[2][0]) = ecx;
+    M<u32>((u32)&gObject_Around_7ced88[2][1]) = ecx;
+    M<u32>((u32)&gObject_Around_7ced88[3][0]) = edx;
+    M<u32>((u32)&gObject_Around_7ced88[3][1]) = eax;
+    M<u32>((u32)&gObject_Around_7ced88[4][0]) = eax;
+    M<u32>((u32)&gObject_Around_7ced88[4][1]) = eax;
+    M<u32>((u32)&gObject_Around_7ced88[5][0]) = ecx;
+    M<u32>((u32)&gObject_Around_7ced88[5][1]) = eax;
+    M<u32>((u32)&gObject_Around_7ced88[6][0]) = edx;
+    M<u32>((u32)&gObject_Around_7ced88[6][1]) = edx;
+    M<u32>((u32)&gObject_Around_7ced88[7][0]) = eax;
+    M<u32>((u32)&gObject_Around_7ced88[7][1]) = edx;
+    M<u32>((u32)&gObject_Around_7ced88[8][0]) = ecx;
+    M<u32>((u32)&gObject_Around_7ced88[8][1]) = edx;
     eax = g_calls.Cd(0x0067a7d0, M<u32>(sp - 0x4));   // CRT_atexit
     return;
 }
@@ -10558,7 +10564,7 @@ void __cdecl Init_50cdb0() {   // 0x50cdb0
     u32 eax = 0, ecx = 0;
     alignas(4) u8 frame[0x4];
     const u32 sp = (u32)(uintptr_t)(frame + sizeof frame);
-    ecx = 0x7cf078u;
+    ecx = (u32)&gSteering_Behaviours_7cf078;
     eax = g_calls.Th(0x005101f0, ecx);   // Block50_Ctor
     M<u32>(sp - 0x4) = Fn(Exit_50cdd0);
     eax = g_calls.Cd(0x0067a7d0, M<u32>(sp - 0x4));   // CRT_atexit
@@ -10570,8 +10576,8 @@ void __cdecl Init_50ce00() {   // 0x50ce00
     const u32 sp = (u32)(uintptr_t)(frame + sizeof frame);
     eax = 0;
     M<u32>(sp - 0x4) = 0x50ce20u;
-    M<u32>(0x7cf100u) = eax;
-    M<u32>(0x7cf104u) = eax;
+    M<u32>((u32)&gSteering_Force_7cf100[0]) = eax;
+    M<u32>((u32)&gSteering_Force_7cf100[1]) = eax;
     eax = g_calls.Cd(0x0067a7d0, M<u32>(sp - 0x4));   // CRT_atexit
     return;
 }
@@ -10579,7 +10585,7 @@ void __cdecl Init_50ce30() {   // 0x50ce30
     u32 eax = 0, ecx = 0;
     alignas(4) u8 frame[0x4];
     const u32 sp = (u32)(uintptr_t)(frame + sizeof frame);
-    ecx = 0x7cf050u;
+    ecx = (u32)&gSteerSeek_7cf050;
     eax = g_calls.Th(0x0050ce50, ecx);   // SteerSeek_Ctor
     M<u32>(sp - 0x4) = 0x50ce90u;
     eax = g_calls.Cd(0x0067a7d0, M<u32>(sp - 0x4));   // CRT_atexit
@@ -10589,7 +10595,7 @@ void __cdecl Init_50ceb0() {   // 0x50ceb0
     u32 eax = 0, ecx = 0;
     alignas(4) u8 frame[0x4];
     const u32 sp = (u32)(uintptr_t)(frame + sizeof frame);
-    ecx = 0x7cf0b0u;
+    ecx = (u32)&gSteerArrival_7cf0b0;
     eax = g_calls.Th(0x0050ced0, ecx);   // SteerArrival_Ctor
     M<u32>(sp - 0x4) = 0x50cf10u;
     eax = g_calls.Cd(0x0067a7d0, M<u32>(sp - 0x4));   // CRT_atexit
@@ -10599,7 +10605,7 @@ void __cdecl Init_50cf20() {   // 0x50cf20
     u32 eax = 0, ecx = 0;
     alignas(4) u8 frame[0x4];
     const u32 sp = (u32)(uintptr_t)(frame + sizeof frame);
-    ecx = 0x7cf0d8u;
+    ecx = (u32)&gSteerSeparation_7cf0d8;
     eax = g_calls.Th(0x0050cf40, ecx);   // SteerSeparation_Ctor
     M<u32>(sp - 0x4) = 0x50cf80u;
     eax = g_calls.Cd(0x0067a7d0, M<u32>(sp - 0x4));   // CRT_atexit
@@ -10609,7 +10615,7 @@ void __cdecl Init_50cf90() {   // 0x50cf90
     u32 eax = 0, ecx = 0;
     alignas(4) u8 frame[0x4];
     const u32 sp = (u32)(uintptr_t)(frame + sizeof frame);
-    ecx = 0x7cf360u;
+    ecx = (u32)&gSteerAvoidObstacle_7cf360;
     eax = g_calls.Th(0x0050cfb0, ecx);   // SteerAvoidObstacle_Ctor
     M<u32>(sp - 0x4) = 0x50cff0u;
     eax = g_calls.Cd(0x0067a7d0, M<u32>(sp - 0x4));   // CRT_atexit
@@ -10619,7 +10625,7 @@ void __cdecl Init_50d000() {   // 0x50d000
     u32 eax = 0, ecx = 0;
     alignas(4) u8 frame[0x4];
     const u32 sp = (u32)(uintptr_t)(frame + sizeof frame);
-    ecx = 0x7cf338u;
+    ecx = (u32)&gSteerRepelObstacle_7cf338;
     eax = g_calls.Th(0x0050d020, ecx);   // SteerRepelObstacle_Ctor
     M<u32>(sp - 0x4) = 0x50d060u;
     eax = g_calls.Cd(0x0067a7d0, M<u32>(sp - 0x4));   // CRT_atexit
@@ -10629,7 +10635,7 @@ void __cdecl Init_50d070() {   // 0x50d070
     u32 eax = 0, ecx = 0;
     alignas(4) u8 frame[0x4];
     const u32 sp = (u32)(uintptr_t)(frame + sizeof frame);
-    ecx = 0x7cf088u;
+    ecx = (u32)&gSteerAvoidWalls_7cf088;
     eax = g_calls.Th(0x0050d090, ecx);   // SteerAvoidWalls_Ctor
     M<u32>(sp - 0x4) = 0x50d0d0u;
     eax = g_calls.Cd(0x0067a7d0, M<u32>(sp - 0x4));   // CRT_atexit
@@ -10639,7 +10645,7 @@ void __cdecl Init_50d0e0() {   // 0x50d0e0
     u32 eax = 0, ecx = 0;
     alignas(4) u8 frame[0x4];
     const u32 sp = (u32)(uintptr_t)(frame + sizeof frame);
-    ecx = 0x7cf308u;
+    ecx = (u32)&gSteerFollowPath_7cf308;
     eax = g_calls.Th(0x0050d100, ecx);   // SteerFollowPath_Ctor
     M<u32>(sp - 0x4) = 0x50d140u;
     eax = g_calls.Cd(0x0067a7d0, M<u32>(sp - 0x4));   // CRT_atexit
@@ -10694,7 +10700,7 @@ void __cdecl Init_513560() {   // 0x513560
     return;
 }
 void __cdecl Init_515350() {   // 0x515350
-    M<u32>(0x7cf6ecu) = 0x7cf83cu;
+    M<u32>(0x7cf6ecu) = (u32)&gWorldPtr;
     return;
 }
 void __cdecl Init_515360() {   // 0x515360
@@ -10870,7 +10876,7 @@ void __cdecl Init_529df0() {   // 0x529df0
     return;
 }
 void __cdecl Init_529e00() {   // 0x529e00
-    M<u16>(0x818c3cu) = 0x0u;
+    M<u16>((u32)&gPlaceobject_818c3c) = 0x0u;
     return;
 }
 void __cdecl Init_52d240() {   // 0x52d240
@@ -11025,8 +11031,8 @@ void __cdecl Init_540ba0() {   // 0x540ba0
     alignas(4) u8 frame[0x4];
     const u32 sp = (u32)(uintptr_t)(frame + sizeof frame);
     M<u32>(sp - 0x4) = 0x540bc0u;
-    M<u32>(0x875058u) = 0x87505cu;
-    M<u8>(0x87505cu) = 0x0u;
+    M<u32>((u32)&gSpriteFindRecord_875038[0x20]) = (u32)&gSpriteFindRecord_875038[0x24];
+    M<u8>((u32)&gSpriteFindRecord_875038[0x24]) = 0x0u;
     eax = g_calls.Cd(0x0067a7d0, M<u32>(sp - 0x4));   // CRT_atexit
     return;
 }

@@ -83,3 +83,13 @@ GAME_DATA(const float, gLightSource_6fe53c, 0x006fe53c, 0x4);
 // The vtables hold only ports: tpw.exe's loader points their slots at them (.docs/09-globals.md).
 GAME_DATA(void *[4], Class6fdcd8_vtable, 0x006fdcd8, 0x10);
 GAME_DATA(void *[4], Class6fe548_vtable, 0x006fe548, 0x10);
+GAME_DATA(const s32[2], Vbtable_6fe558, 0x006fe558, 0x8);   // (a vbtable: model/slots.h)
+GAME_DATA(const s32[3], Vbtable_6fe560, 0x006fe560, 0xc);
+
+// Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(const float, gLightSlot_Set_702a30, 0x00702a30, 0x4);
+GAME_DATA(const float, gLightSlot_Set_702a4c, 0x00702a4c, 0x4);
+GAME_DATA(float, gLightSource_UpdateMain_74d0d8, 0x0074d0d8, 0x4);
+GAME_DATA(char[0x28], gText_LightSource_74d0dc, 0x0074d0dc, 0x28);
+GAME_DATA(u8[0x4], gLightsource_7a0b30, 0x007a0b30, 0x4);
+GAME_DATA(u8[0x4], gLightSource_7a0b40, 0x007a0b40, 0x4);

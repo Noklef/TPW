@@ -49,3 +49,8 @@ void __fastcall Panel7cc3b0_Update(u8 *self);
 // inlined) and the mode set (MouseMode_Set), this panel's slot 11 called, the advisor posted 0xc1 (Advisor_PostId); 1 returned.
 u32 __fastcall Panel7cc3b0_SetPatrol(u8 *self, void *, u32 on);
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(u8[0x3a0], gPanel7cc3b0_Show_756f48, 0x00756f48, 0x3a0);

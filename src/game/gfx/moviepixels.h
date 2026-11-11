@@ -43,7 +43,7 @@ void __fastcall MoviePixels_ReadFormat(void *unused, void *surface, u32 *out);
 #include "../core/gamedata.h"
 
 // Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
-GAME_DATA(u32[256], gMoviepixels_fb8f30, 0x00fb8f30, 0x400);
-GAME_DATA(u32[256], gMoviepixels_fb9730, 0x00fb9730, 0x400);
-GAME_DATA(u32[256], gMoviepixels_fb9f30, 0x00fb9f30, 0x400);
+// The YUV tables 0xfb8f30 / 0xfb9730 / 0xfb9f30: 512 entries each (MoviePixels_BuildTables writes 0x800 bytes from each), one object;
+// TQI reads their upper halves (0xfb9330, 0xfb9b30, 0xfba330).
+GAME_DATA(u32[0x600], gMoviepixels_fb8f30, 0x00fb8f30, 0x1800);
 GAME_DATA(u32[0x39a], gMoviepixels_fba730, 0x00fba730, 0xe68);

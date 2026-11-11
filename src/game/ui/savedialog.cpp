@@ -62,7 +62,7 @@ void Fill(u8 *window, u32 dayAt, u32 monthAt, u32 yearAt) {
         u16 text[0x20];
         g_env->format(global<u8 *>(0x0078ba94), text, 0x20, 0x1c0, &args[dayAt], &args[monthAt], &args[yearAt]);
         u16 *const row = reinterpret_cast<u16 *>((uintptr_t)0x007ba058);
-        Crt().swprintf(row, reinterpret_cast<const u16 *>((uintptr_t)0x00752564), text, hour, minute);
+        Crt().swprintf(row, reinterpret_cast<const u16 *>((uintptr_t)&gText_Savedialog_752564), text, hour, minute);
         texts[1] = static_cast<u32>(reinterpret_cast<uintptr_t>(row));
         g_env->addItem(window, nullptr, texts, index++, -1, 1);
     }

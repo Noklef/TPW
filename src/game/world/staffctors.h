@@ -51,3 +51,9 @@ u8 *__fastcall Guard_Ctor(u8 *guard, void *, u32 cell, u32 type, u32 sprite, u32
 // Then, unless 0x506a40 answers: with the ticks & 3 and 0x4f9490 answering, state 1 (Guard_SetState), else 0.
 void __fastcall Guard_Init(u8 *guard);
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(s32, gEntertainer_NextSprite_7cdb60, 0x007cdb60, 4);   // Entertainer_CtorLoad's sprite, 0 .. 2 in turn
+GAME_DATA(u8, gMechanic_Sprite_7cdbec, 0x007cdbec, 1);           // Mechanic_CtorLoad's sprite (read only)

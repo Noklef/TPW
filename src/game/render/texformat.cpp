@@ -51,7 +51,7 @@ void __fastcall TexFormat_FillTables(u8 *settings) {
 s32 __stdcall TexFormat_Classify(const u32 *pixels) {
     u32 mask, class0, class1, class2;
     if (*reinterpret_cast<u32 *>(0x008bd524) == 4) {
-        mask = 0x808080;
+        mask = 0x800000 | 0x8080;   // (0x808080, a mask: written so that gamedata.py does not take it for gParticleEffects + 0x3d10)
         class0 = 0x800000;
         class1 = 0x8000;
         class2 = 0x80;

@@ -84,9 +84,27 @@ GAME_DATA(const float, gDynFaces_Frame_700de8, 0x00700de8, 0x4);
 GAME_DATA(const float, gDynFaces_Frame_700df0, 0x00700df0, 0x4);
 GAME_DATA(const float, gDynFaces_Frame_700df4, 0x00700df4, 0x4);
 GAME_DATA(const float, gDynFaces_Frame_700df8, 0x00700df8, 0x4);
+GAME_DATA(u32[8], gDynFaces_763c78, 0x00763c78, 0x20);   // the textures' record: flags, count 20, the folder 0x74cb98, 0, the entries 0x763b38
+GAME_DATA(u8, gDynFaces_763c98, 0x00763c98, 0x1);
+GAME_DATA(float[8][4], gDynFaces_Frame_763cf0, 0x00763cf0, 0x80);   // the turned grids' rows (-1, x, y, z)
+GAME_DATA(u8[0x806][0xa0], gDynFaces_Faces_820b00, 0x00820b00, 0x503c0);   // the face queue (at most 0x806 faces)
+GAME_DATA(float[3], gDynFaces_GridAt_870ec8, 0x00870ec8, 0xc);   // the grid's place (x, y, z)
+GAME_DATA(float, gDynFaces_871ed0, 0x00871ed0, 0x4);   // the ripple's phase
 GAME_DATA(u8 *, gDynFaces_871ed8, 0x00871ed8, 0x4);
 GAME_DATA(u32, gDynfaces_871ee0, 0x00871ee0, 0x4);
 GAME_DATA(u8 *, gDynFaces_871ee4, 0x00871ee4, 0x4);
+GAME_DATA(float[10][3], gDynFaces_Uv_871ee8, 0x00871ee8, 0x78);   // the corners' uv rows (0xc each; rows 5-8 turned each frame)
+GAME_DATA(float, gDynFaces_WavePhase_871f60, 0x00871f60, 0x4);
+GAME_DATA(u8 *, gDynFaces_871f64, 0x00871f64, 0x4);   // the third model
+GAME_DATA(u32[0x806], gDynFaces_Tags_872168, 0x00872168, 0x2018);   // the faces' sort tags (index << 5 | tag)
 GAME_DATA(float, gDynfaces_874fc0, 0x00874fc0, 0x4);
 GAME_DATA(s32, gDynFaces_874fc8, 0x00874fc8, 0x4);
 GAME_DATA(u32, gDynFaces_874fcc, 0x00874fcc, 0x4);
+
+// Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(char[0xc], gText_DynFaces_InitModels_763e3c, 0x00763e3c, 0xc);
+GAME_DATA(char[0xc], gText_DynFaces_InitModels_763e48, 0x00763e48, 0xc);
+GAME_DATA(char[0x10], gText_Dynfaces_763e54, 0x00763e54, 0x10);
+GAME_DATA(u8[0xe40], gDynFaces_870ed8, 0x00870ed8, 0xe40);
+GAME_DATA(u8[0x1b8], gDynFaces_871d18, 0x00871d18, 0x1b8);
+GAME_DATA(u8[0xe40], gDynFaces_874180, 0x00874180, 0xe40);

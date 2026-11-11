@@ -83,7 +83,7 @@ const ResearchEnv *g_env = &kGameEnv;
 
 // The mode setting (0xfb3b7c), read the first time under the handler's guard bit (0xfb34ac & 1), its empty destructor 0x5d1750 given to atexit.
 u32 modeSetting() {
-    u8 &guard = *reinterpret_cast<u8 *>((uintptr_t)0x00fb34ac);
+    u8 &guard = gResearch_fb34ac;
     const u8 bits = guard;
     if (!(bits & 1)) {
         guard = bits | 1;
@@ -231,7 +231,7 @@ void __fastcall ResearchLab_Spend(u8 *lab, void *, s32 amount) {
         double v = intQuotient(weight, (s32)sum);
         v = X87_MulIntDouble(*reinterpret_cast<const s32 *>(lab + 0x1460), v);
         v = X87_MulIntDouble(amount, v);
-        v = X87_MulFloatDouble(*reinterpret_cast<const float *>(0x007007e4), v);
+        v = X87_MulFloatDouble(gResearchLab_Spend_7007e4, v);
         ResearchProject_AddResearch(lab + current * 20 + 0xc, nullptr, (float)v);
     }
 }

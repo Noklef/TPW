@@ -1,4 +1,5 @@
 #include "objectdefs.h"
+#include "world.h"
 
 #include <cstdint>
 #include <cstring>
@@ -62,10 +63,9 @@ bool find_cell(u8 *grid, u32 kind, s32 *column, s32 *row) {
 
 // The object text table's row for the id (0x7488d8 .. 0x749850, 0xc bytes a row; an id 0 ends it), or none.
 const u8 *object_text_row(u32 id) {
-    for (u32 row = 0x007488d8; row < 0x00749850; row += 0xc) {
-        const u32 k = global<u32>(row);
-        if (k == 0) break;
-        if (k == id) return reinterpret_cast<const u8 *>((uintptr_t)row);
+    for (const u32 *row : gObjectTexts_7488d8) {
+        if (row[0] == 0) break;
+        if (row[0] == id) return reinterpret_cast<const u8 *>(row);
     }
     return nullptr;
 }
@@ -281,20 +281,20 @@ u8 *__fastcall ObjectDefs_Next(u8 *defs) {
 }
 
 const u8 *__fastcall ObjectDef_GetSchema(const void *, void *, u32 index) {
-    return reinterpret_cast<const u8 *>(0x00744b30) + index * 0x3c;
+    return reinterpret_cast<const u8 *>((u32)(uintptr_t)&gObjectDef_GetSchema_744b30) + index * 0x3c;
 }
 
 const u8 *__fastcall TrackType_GetSchema(const void *, void *, u32 index) {
-    return reinterpret_cast<const u8 *>(0x00739ea8) + index * 0x3c;
+    return reinterpret_cast<const u8 *>((u32)(uintptr_t)&gTrackType_GetSchema_739ea8) + index * 0x3c;
 }
 
 u8 __stdcall Table76e300_GetByte(u32 id) {
     if (id == 0x160 || id == 0x15f)
         return 0;
-    const u32 slot = 0x0076e300 + 56 * id;
+    const u32 slot = (u32)(uintptr_t)&gObjectdefs_76e300 + 56 * id;
     if (global<u32>(slot + 4) == id)
         return global<u8>(slot + 0x20);
-    for (u32 p = 0x0076e304; (s32)p < 0x00772fcc; p += 0x38) {
+    for (u32 p = ((u32)(uintptr_t)&gObjectdefs_76e300 + 0x4); (s32)p < (s32)((u32)(uintptr_t)&gObjectdefs_76e300 + 0x4ccc); p += 0x38) {
         if (global<u32>(p) == id)
             return global<u8>(slot + 0x20);
     }
@@ -318,10 +318,10 @@ u8 __fastcall Table76e300_ObjectDwordSet(const u8 *object, void *, u32 id) {
 extern "C" u32 Table76e300_FindRecord(u32 id) {
     if (id == 0x160 || id == 0x15f)
         return 0;
-    const u32 slot = 0x0076e300 + 56 * id;
+    const u32 slot = (u32)(uintptr_t)&gObjectdefs_76e300 + 56 * id;
     if (global<u32>(slot + 4) == id)
         return slot;
-    for (u32 p = 0x0076e304; (s32)p < 0x00772fcc; p += 0x38) {
+    for (u32 p = ((u32)(uintptr_t)&gObjectdefs_76e300 + 0x4); (s32)p < (s32)((u32)(uintptr_t)&gObjectdefs_76e300 + 0x4ccc); p += 0x38) {
         if (global<u32>(p) == id)
             return slot;
     }
@@ -350,10 +350,10 @@ u32 __fastcall Obj_DefKind123(const u8 *object) {
 
 u8 __stdcall Record_IsActive(u32 id) {
     if (id == 0x160 || id == 0x15f) return 0;
-    const u8 *const record = reinterpret_cast<const u8 *>(0x0076e300 + id * 0x38);
+    const u8 *const record = reinterpret_cast<const u8 *>((u32)(uintptr_t)&gObjectdefs_76e300 + id * 0x38);
     if (at<u32>(record, 4) != id) {
         bool found = false;
-        for (u32 scan = 0x0076e304; (s32)scan < 0x00772fcc; scan += 0x38) {
+        for (u32 scan = ((u32)(uintptr_t)&gObjectdefs_76e300 + 0x4); (s32)scan < (s32)((u32)(uintptr_t)&gObjectdefs_76e300 + 0x4ccc); scan += 0x38) {
             if (global<u32>(scan) == id) { found = true; break; }
         }
         if (!found) return 0;  // (the original prints that it was not found)
@@ -441,14 +441,14 @@ void __fastcall ObjectDefs_ReleaseEffects(u8 *defs) {
 
 void __fastcall ObjectDef_LoadText(u8 *def, void *, Stream *stream) {
     u16 **const fields = reinterpret_cast<u16 **>(def + 0x4f4);
-    for (u32 i = 0; i < 4; ++i) fields[i] = reinterpret_cast<u16 *>((uintptr_t)0x006fd880);
+    for (u32 i = 0; i < 4; ++i) fields[i] = reinterpret_cast<u16 *>((uintptr_t)&gObjectdefs_6fd880);
     const s32 size = vcall<s32>(stream, 0x14);
     if (size % 2 != 0) return;
     u16 *const text = static_cast<u16 *>(Mem_GlobalAlloc((u32)(size + 2)));
     const s32 got = vcall<s32>(stream, 8, text, size);
     if (!text || !got) return;
     text[size / 2] = 0;
-    const u16 *const *const keys = reinterpret_cast<const u16 *const *>((uintptr_t)0x007487f8);
+    const u16 *const *const keys = reinterpret_cast<const u16 *const *>((uintptr_t)&gObjectDef_LoadText_7487f8);
     const u16 *p = text[0] == 0xfeff ? text + 1 : text;
     while (*p) {
         s32 index = -1;
@@ -510,7 +510,7 @@ u8 __fastcall ObjectText_Suffix(void *, void *, u32 id, u16 *out, u32 size) {
 void __fastcall ObjectDefs_GetFullName(u8 *defs, void *, u32 id, u16 *out, u32 size) {
     if (u8 *def = ObjectDefs_Find(defs, nullptr, (u16)id)) {
         const u16 *text = at<const u16 *>(def, 0x4f4);
-        if (text && text != reinterpret_cast<const u16 *>((uintptr_t)0x006fd880)) {
+        if (text && text != reinterpret_cast<const u16 *>((uintptr_t)&gObjectdefs_6fd880)) {
             Crt().wcsncpy(out, text, size);
             return;
         }
@@ -536,7 +536,7 @@ void __fastcall ObjectDefs_Free(u8 *defs) {
         u8 **const slot = reinterpret_cast<u8 **>(defs + 4 * i);
         u16 **const texts = reinterpret_cast<u16 **>(*slot + 0x4f4);   // (a null entry: a fault, sic)
         for (u32 k = 0; k < 4; ++k) {
-            if (texts[k] && texts[k] != reinterpret_cast<u16 *>((uintptr_t)0x006fd880)) {   // (not the shared "MISSING STRING")
+            if (texts[k] && texts[k] != reinterpret_cast<u16 *>((uintptr_t)&gObjectdefs_6fd880)) {   // (not the shared "MISSING STRING")
                 Mem_GlobalFree(texts[k]);
                 texts[k] = nullptr;
             }
@@ -559,7 +559,7 @@ void __cdecl ObjectDefs_FreeAll() {
 s32 __stdcall ObjectDefs_ListBuiltNumbers(u16 *out) {
     std::memset(out, 0, 0x200);
     u8 *const defs = reinterpret_cast<u8 *>(0x007890a0);
-    const u8 *const built = reinterpret_cast<const u8 *>(0x00802080);
+    const u8 *const built = gWorld_802080;
     u32 count = 0;
     for (u32 index = 0; index < 0x20; ++index) {
         for (u32 bit = 0; bit < 8; ++bit) {
@@ -584,8 +584,6 @@ AddrCalls g_loadCalls;
 
 u32 address(const void *p) { return static_cast<u32>(reinterpret_cast<uintptr_t>(p)); }
 
-const char *const kPathFormat = reinterpret_cast<const char *>((uintptr_t)0x007488ac);    // "%s\\%s"
-const char *const kPrefixedFormat = reinterpret_cast<const char *>((uintptr_t)0x007488a4);   // "%s\\%s%s"
 
 const char *handleFolder(u8 *handle) { return vcall<const char *>(handle, 0x18); }
 
@@ -606,12 +604,12 @@ struct DefLoad {
     char *name;
 
     void namePath(const char *file) {
-        Crt().sprintf(name, kPathFormat, handleFolder(source + 0x2c), file);
+        Crt().sprintf(name, gText_Objectdefs_7488ac, handleFolder(source + 0x2c), file);
     }
     void namePrefixed(u32 prefixText) {
         const char *const file = at<const char *>(source, 0xc);
         const char *const prefix = global<const char *>(prefixText);
-        Crt().sprintf(name, kPrefixedFormat, handleFolder(source + 0x2c), prefix, file);
+        Crt().sprintf(name, gText_Objectdefs_7488a4, handleFolder(source + 0x2c), prefix, file);
     }
     // The stream read into a balance file; failed: the error, unless silent.
     bool read(u8 *balance, u32 keep, bool silent = false) {
@@ -637,7 +635,7 @@ u32 loadDefinition(u8 *defs, u8 *entry, u8 *opener, u8 *source, String *path, St
         const u32 size = static_cast<u32>(std::strlen(from)) + 1;
         std::memcpy(def + 0x28c, from, size);
     }
-    Crt().swprintf(reinterpret_cast<u16 *>(def + 0x390), reinterpret_cast<const u16 *>((uintptr_t)0x007488b4), at<const char *>(source, 0xc));
+    Crt().swprintf(reinterpret_cast<u16 *>(def + 0x390), reinterpret_cast<const u16 *>((uintptr_t)&gText_Objectdefs_7488b4), at<const char *>(source, 0xc));
     DefLoad load = {source, stream, name};
     u8 *const handle = source + 0x2c;
     const u32 streamAt = address(stream);
@@ -679,7 +677,7 @@ u32 loadDefinition(u8 *defs, u8 *entry, u8 *opener, u8 *source, String *path, St
         if (at<u32>(def, 0x490) && at<u32>(def, 0x9c) == 3) {
             at<u32>(balance, 0) = (u32)(uintptr_t)TrackTypeBalance_vtable;
             g_loadCalls.Th(0x00401030, address(balance));
-            Crt().sprintf(name, kPathFormat, handleFolder(handle), global<const char *>(0x0078a0b0));
+            Crt().sprintf(name, gText_Objectdefs_7488ac, handleFolder(handle), global<const char *>(0x0078a0b0));
             if (g_loadCalls.Th(0x0041f330, address(source), streamAt) && !load.read(balance, 0)) {
                 at<u32>(balance, 0) = (u32)(uintptr_t)TrackTypeBalance_vtable;
                 g_loadCalls.Th(0x00401250, address(balance));

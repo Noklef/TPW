@@ -25,6 +25,7 @@
 #include "windowtimers.h"
 #include "dialog7ca168handler.h"
 #include "panel7b9940.h"
+#include "dialog7cc188.h"
 
 namespace {
 
@@ -45,7 +46,7 @@ extern "C" {
 void __cdecl Dialog7ca168_Open(u32 tab, u32 selected) {
     Window7c24c8_Close();
     Global7cb28c_Select(2, 4);
-    u8 *const built = WindowScript_Build(gPanel7b9940_7cb2ac, nullptr, reinterpret_cast<u8 *>((uintptr_t)0x00750e10), 0x00495da0);
+    u8 *const built = WindowScript_Build(gPanel7b9940_7cb2ac, nullptr, gDialog7ca168_Open_750e10, 0x00495da0);
     if (!built) return;
     gDialog7ca168_7ca168 = built;
     Window7c24c8_Set(built);
@@ -56,7 +57,7 @@ void __cdecl Dialog7ca168_Open(u32 tab, u32 selected) {
         Window7059f0_SetColumnBottom(list, nullptr, 2, 1);
         Window7059f0_SetColumnBottom(list, nullptr, 3, 1);
         Window7059f0_SetColumnBottom(list, nullptr, 4, 1);
-        Window7059f0_SetHighlight(list, nullptr, reinterpret_cast<u8 *>((uintptr_t)GuiWindows_FindByName(reinterpret_cast<const char *>(0x0074fa84))));
+        Window7059f0_SetHighlight(list, nullptr, reinterpret_cast<u8 *>((uintptr_t)GuiWindows_FindByName(reinterpret_cast<const char *>((u32)(uintptr_t)&gText_Dialog7cc188_74fa84))));
         Window_SetHandler(list, nullptr, 0x004960a0);
         Window7059f0_SortBy(list, nullptr, gDialog7ca168_75118c, 0);
         for (u32 i = 0; i < 5; ++i) {
@@ -88,7 +89,7 @@ void __cdecl Dialog7ca168_Open(u32 tab, u32 selected) {
     Window_SaveInsetRect(bar, 0, 8);
     u8 *const last = static_cast<u8 *>(GameHeap_Alloc(0x124));   // (the argument's slot holds it: the kind past the tabs below)
     Window_SetImpl(bar, nullptr, last ? MeshOverlay_Construct(last, nullptr, panelparts::kHappyGrad) : nullptr);
-    void *const stats = reinterpret_cast<void *>((uintptr_t)GameTable7cfb90_Get1da720_519510(global<u8 *>(0x007cf83c)));
+    void *const stats = reinterpret_cast<void *>((uintptr_t)GameTable7cfb90_Get1da720_519510(gWorldPtr));
     const double value = X87_MulDouble(g_env->average(stats, nullptr, 0) * gDialog7ca168_Open_6ff6f4, gDialog7ca168_Open_6ff6f8);
     vcall<void>(bar, 0x1c, (u32)(long long)value);   // (__ftol's low half)
     const u32 shown = gDialog7ca168_7ca16c;
@@ -96,7 +97,7 @@ void __cdecl Dialog7ca168_Open(u32 tab, u32 selected) {
     u8 *const average = Window_FindChild(Window_FindChild(dialog(), nullptr, 0x329), nullptr, 0x32d);
     static const u32 kKinds[5] = {5, 4, 6, 7, 8};
     const u32 kind = shown <= 4 ? kKinds[shown] : (u32)(uintptr_t)last;
-    GameTable7cfb90_Get1da720_519510(global<u8 *>(0x007cf83c));   // (its answer only the ECX of the stdcall)
+    GameTable7cfb90_Get1da720_519510(gWorldPtr);   // (its answer only the ECX of the stdcall)
     vcall<void>(average, 0x1c, (s32)((u32)g_env->averageOfKind(kind) << 10) / 100);
     if ((u16)Window_SetTimer(dialog(), nullptr, 0x80083, 2000)) Window_StartTimer(dialog(), nullptr, 0x80083);
     Advisor_PostId(0x11d);

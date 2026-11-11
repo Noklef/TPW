@@ -10,6 +10,7 @@
 #include "../ui/dialog74fb20.h"
 #include "../ui/quitconfirm.h"
 #include "advisorscore.h"
+#include "advisorsend.h"
 
 namespace {
 
@@ -63,7 +64,7 @@ u32 AdvisorScore_ModeSetting(u32 guard_address) {
 }
 
 u8 *AdvisorScoring_Instance() {
-    u8 &guard = global<u8>(0x00fb2766);
+    u8 &guard = global<u8>((u32)(uintptr_t)&gAdvisorsend_fb2765 + 0x1);
     const u8 bits = guard;
     u8 *const scoring = reinterpret_cast<u8 *>(0x00fb3540);
     if (!(bits & 1)) {

@@ -51,9 +51,9 @@ void __fastcall MoviePixels_BuildTables(const u32 *format, u8 *player) {
         *reinterpret_cast<u32 *>((uintptr_t)((u32)(uintptr_t)&gMoviepixels_fb8f30 + at)) = (((u32)c << 12) + (u32)c << 11) + (u32)c + 0x4883d8a9;
         const double x = (double)(float)c - -0.5;
         const u32 a = (u32)(s32)(0.5 - x * 0.3441), b = (u32)(s32)(0.5 - x * -1.772);
-        *reinterpret_cast<u32 *>((uintptr_t)((u32)(uintptr_t)&gMoviepixels_fb9730 + at)) = ((a & 0x1ff) << 11) + (b & 0x1ff);
+        *reinterpret_cast<u32 *>((uintptr_t)(((u32)(uintptr_t)&gMoviepixels_fb8f30 + 0x800) + at)) = ((a & 0x1ff) << 11) + (b & 0x1ff);
         const u32 d = (u32)(s32)(0.5 - x * 0.7141), e = (u32)(s32)(0.5 - x * -1.402);
-        *reinterpret_cast<u32 *>((uintptr_t)((u32)(uintptr_t)&gMoviepixels_fb9f30 + at)) = ((d & 0x1ff) + ((e & 0x1ff) << 12)) << 11;
+        *reinterpret_cast<u32 *>((uintptr_t)(((u32)(uintptr_t)&gMoviepixels_fb8f30 + 0x1000) + at)) = ((d & 0x1ff) + ((e & 0x1ff) << 12)) << 11;
     }
     channel_table((u32)(uintptr_t)&gMoviepixels_fba730, -0xb1, 0x132, format, 0, player);
     channel_table(((u32)(uintptr_t)&gMoviepixels_fba730 + 0x4c8), -0x85, 0x106, format, 1, player);
@@ -63,7 +63,7 @@ void __fastcall MoviePixels_BuildTables(const u32 *format, u8 *player) {
 void __cdecl MoviePixels_FromYuv(const u32 *source, u32 *out, u32 count) {
     do {
         const u32 v = *source++;
-        const u32 chroma = table((u32)(uintptr_t)&gMoviepixels_fb9f30, v & 0xff) + table((u32)(uintptr_t)&gMoviepixels_fb9730, v >> 8 & 0xff);
+        const u32 chroma = table(((u32)(uintptr_t)&gMoviepixels_fb8f30 + 0x1000), v & 0xff) + table(((u32)(uintptr_t)&gMoviepixels_fb8f30 + 0x800), v >> 8 & 0xff);
         const u32 first = pixel(chroma + table((u32)(uintptr_t)&gMoviepixels_fb8f30, v >> 24));
         const u32 second = pixel(chroma + table((u32)(uintptr_t)&gMoviepixels_fb8f30, v >> 16 & 0xff));
         *out++ = (second & 0xffff0000) | (first & 0xffff);

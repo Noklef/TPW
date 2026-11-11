@@ -15,6 +15,8 @@
 #include "window.h"
 #include "window705a20.h"
 #include "windowreg.h"
+#include "dialog7cc188.h"
+#include "savedialogcreate.h"
 
 namespace {
 
@@ -56,8 +58,8 @@ void __cdecl Dialog7cb400_Open(u32 value) {
         g_env->set4c(edit, nullptr, Language_Font(6));
         g_env->notify40000(edit, nullptr, 0xff, 0xff, 0xff, 0xff);
         g_env->notify3000(edit, nullptr, 0, 0);
-        g_env->setCaret(edit, nullptr, reinterpret_cast<u8 *>((uintptr_t)g_env->findByName(reinterpret_cast<const char *>(0x0074fa84))));
-        Fn_66781a(edit, nullptr, 0x00752588);
+        g_env->setCaret(edit, nullptr, reinterpret_cast<u8 *>((uintptr_t)g_env->findByName(reinterpret_cast<const char *>((u32)(uintptr_t)&gText_Dialog7cc188_74fa84))));
+        Fn_66781a(edit, nullptr, (u32)(uintptr_t)&gText_Savedialogcreate_752588);
         slot9Text(edit, 0xf3);
         g_env->setFocus(edit, nullptr, 0);
         g_env->selectAll(edit);

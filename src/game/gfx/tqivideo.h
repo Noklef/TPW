@@ -62,7 +62,4 @@ void __cdecl TqiVideo_BlockBytes32(const u32 *luma, const u32 *chroma, u32 *out,
 // Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
 GAME_DATA(const s32[64], gTqivideo_705c88, 0x00705c88, 0x100);
 GAME_DATA(const s32[64], gTqivideo_705d88, 0x00705d88, 0x100);
-GAME_DATA(u32[256], gTqivideo_fb9330, 0x00fb9330, 0x400);
-GAME_DATA(u32[256], gTqivideo_fb9b30, 0x00fb9b30, 0x400);
-GAME_DATA(u32[256], gTqivideo_fba330, 0x00fba330, 0x400);
 GAME_DATA(u32[0x295], gTqivideo_fbb5ac, 0x00fbb5ac, 0xa54);

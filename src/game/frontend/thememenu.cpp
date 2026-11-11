@@ -193,8 +193,8 @@ void __fastcall ThemeMenu_Enter(u8 *self) {
     g_env->refresh(self);
     u8 *const chosen = at<u8 *>(self, 0xc);
     if (chosen) {
-        at<u32>(chosen, 0x1c) = g_env->play(at<u32>(chosen, 0x1c), at<u32>(gSoundset_803a4c, at<u32>(chosen, 0x18) * 8 + 4), 1, 0, 0, 0);
-        at<u32>(chosen, 0x20) = g_env->play(at<u32>(chosen, 0x20), at<u32>(gSoundset_803a4c, at<u32>(chosen, 0x18) * 8), 2, 0, 0, 0);
+        at<u32>(chosen, 0x1c) = g_env->play(at<u32>(chosen, 0x1c), at<u32>(gSoundCategories.lobbyPairs, at<u32>(chosen, 0x18) * 8 + 4), 1, 0, 0, 0);
+        at<u32>(chosen, 0x20) = g_env->play(at<u32>(chosen, 0x20), at<u32>(gSoundCategories.lobbyPairs, at<u32>(chosen, 0x18) * 8), 2, 0, 0, 0);
         g_env->applySound();
     }
 }

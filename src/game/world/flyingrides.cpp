@@ -20,12 +20,14 @@
 #include "../render/particles.h"
 #include "../terrain/land.h"
 #include "flyingrides.h"
+#include "rides.h"
+#include "world.h"
 
 namespace {
 
 template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cast<T *>((uintptr_t)p + offset); }
 
-u8 *const *table() { return reinterpret_cast<u8 *const *>(0x008791f8); }
+u8 *const *table() { return gFlyingrides_8791f8; }
 
 // The record for index, null for one outside 1-99 or an empty entry.
 u8 *record(s32 index) { return index > 0 && index < 100 ? table()[index] : nullptr; }
@@ -40,7 +42,7 @@ void release(u8 *s, s32 step) {
     if (count == 0) return;
     const s32 key = (at<s32>(s, 0xd8) + step) % count + 1;
     if (at<u32>(s, 0xc0) == 0) return;
-    u8 *const *rides = reinterpret_cast<u8 *const *>(0x007a4610);
+    u8 *const *rides = gRides_7a4610;
     const u32 part = Model_FindPartByKey4(rides[at<u32>(s, 0xc0)], 0x80, (u32)key);
     if (part == 0xffffffff) return;
     PartStates_Release(at<u8 *>(rides[at<u32>(s, 0xc0)], 8), part);
@@ -63,7 +65,7 @@ void __cdecl FlyingRide_PlaySlotMotion(s32 index, u32 slotIndex, u32 bank, u32 e
     const u32 ride = at<u32>(s, 0xc0);
     if (ride == 0) return;
     if (at<u32>(s, 0xcc) == bank && at<u32>(s, 0xd0) == entry && at<u32>(s, 0xd4) == loop) return;
-    u8 *const *rides = reinterpret_cast<u8 *const *>(0x007a4610);
+    u8 *const *rides = gRides_7a4610;
     Animator_Play(rides[ride], bank, entry, loop != 0 ? 1 : 0, 1.0f, 0);
     at<u32>(s, 0xcc) = bank;
     at<u32>(s, 0xd0) = entry;
@@ -160,7 +162,7 @@ u32 __cdecl FlyingRide_AddToSlot(s32 index, u32 value) {
     if (parts != 0) {
         const s32 key = (s32)((u32)at<s32>(s, 0xd8) + (u32)at<s32>(s, 0x8c)) % parts + 1;
         if (at<u32>(s, 0xc0) != 0) {
-            u8 *const *rides = reinterpret_cast<u8 *const *>(0x007a4610);
+            u8 *const *rides = gRides_7a4610;
             const u32 part = Model_FindPartByKey4(rides[at<u32>(s, 0xc0)], 0x80, (u32)key);
             if (part != 0xffffffff) PartStates_Activate(at<u8 *>(rides[at<u32>(s, 0xc0)], 8), part, value);
         }
@@ -344,7 +346,7 @@ void __cdecl FlyingRide_PickWaypoint(u8 *rec) {
     at<s32>(rec, 0x5c) = at<s32>(rec, 0x50);
     at<s32>(rec, 0x60) = z;
     s32 limit = wrap_add(at<s32>(rec, 8), 5000);
-    if (magnitude(World_Rand(*reinterpret_cast<u8 **>(0x007cf83c))) % 4 != 0 && FlyingRides_FloorAt(wrap_add(x, stepX), wrap_add(z, stepZ)) < limit) {
+    if (magnitude(World_Rand(*&gWorldPtr)) % 4 != 0 && FlyingRides_FloorAt(wrap_add(x, stepX), wrap_add(z, stepZ)) < limit) {
         x = wrap_add(square_centre(x), stepX);
         z = wrap_add(square_centre(z), stepZ);
     } else {
@@ -385,7 +387,6 @@ void __cdecl FlyingRide_PickWaypoint(u8 *rec) {
 
 namespace {
 
-float &global_float(u32 address) { return *reinterpret_cast<float *>((uintptr_t)address); }
 u32 bits_of(float f) { u32 b; std::memcpy(&b, &f, 4); return b; }
 
 const float kPerUnit = 1.0f / 300;   // 0x7010bc
@@ -419,7 +420,7 @@ float ease_angle(float now, float last, s32 weight) {
     return (float)(((b * (weight - 1) + a) / weight) & 0xfff);
 }
 
-u8 *ride_of(u32 index) { return reinterpret_cast<u8 *const *>(0x007a4610)[index]; }
+u8 *ride_of(u32 index) { return gRides_7a4610[index]; }
 float *ride_matrix(u32 index) { return at<float *>(at<u8 *>(at<u8 *>(ride_of(index), 8), 4), 0x78); }
 
 }
@@ -428,10 +429,10 @@ extern "C" {
 
 void __cdecl FlyingRides_LerpSlots(float t) {
     if (t > 2.0f) t = 2.0f;   // 0x7010b8
-    float &x = global_float(0x008791e0), &y = global_float(0x008791f4), &z = global_float(0x008791d8);
-    float &a = global_float(0x008791e8), &b = global_float(0x008791c4), &c = global_float(0x008791c0);
-    for (u32 address = 0x008791fc; address < 0x00879388; address += 4) {
-        u8 *const rec = *reinterpret_cast<u8 *const *>((uintptr_t)address);
+    float &x = gFlyingrides_8791e0, &y = gFlyingrides_8791f4, &z = gFlyingrides_8791d8;
+    float &a = gFlyingrides_8791e8, &b = gFlyingrides_8791c4, &c = gFlyingrides_8791c0;
+    for (s32 index = 1; index < 100; ++index) {
+        u8 *const rec = gFlyingrides_8791f8[index];
         if (!rec) continue;
         for (u32 i = 0; i < 20; ++i) {
             u8 *const s = slot(rec, i);
@@ -496,13 +497,13 @@ void __cdecl FlyingRides_LerpSlots(float t) {
 }
 
 void __cdecl FlyingRides_Init() {
-    u32 *const flag = reinterpret_cast<u32 *>(0x008791ec);
+    u32 *const flag = &gFlyingrides_8791ec;
     if (*flag)
         return;
     *flag = 1;
-    *reinterpret_cast<u32 *>(0x008791f0) = 1;
-    std::memset(reinterpret_cast<void *>(0x008791f8), 0, 0x64 * 4);
-    u32 *volatile *const sines = reinterpret_cast<u32 *volatile *>(0x008791c8);
+    gFlyingrides_8791f0 = 1;
+    std::memset(gFlyingrides_8791f8, 0, sizeof gFlyingrides_8791f8);
+    u32 *volatile *const sines = reinterpret_cast<u32 *volatile *>(&gFlyingrides_8791c8);
     *sines = static_cast<u32 *>(Mem_GlobalAlloc(0x4000));
     const double step = gFlyingRides_Init_701090, scale = gFlyingRides_Init_701098,
                  half = gFlyingRides_Init_7010a0;
@@ -524,11 +525,11 @@ void __cdecl FlyingRide_SetMode(s32 index, s32 mode) {
         if (at<u32>(rec, 0x114) != 0) {
             FlyingRide_PlaySlotMotion(index, 0, 0xa, 0, 0);
             at<u32>(rec, 0x114) = 0;
-            Sound_PlayAt(0, *reinterpret_cast<const u32 *>(0x00803a28), 0xbb, at<s32>(rec, 0x60) / 300, at<s32>(rec, 0x64) / 300,
+            Sound_PlayAt(0, gSoundCategories.rides, 0xbb, at<s32>(rec, 0x60) / 300, at<s32>(rec, 0x64) / 300,
                          at<s32>(rec, 0x68) / 300);
         }
         if (at<u32>(rec, 0xd8) != 0) {
-            const s32 n = World_Rand(*reinterpret_cast<u8 *const *>(0x007cf83c));
+            const s32 n = World_Rand(*&gWorldPtr);
             const s32 size = n < 0 ? (s32)(0u - (u32)n) : n;
             at<s32>(rec, 0xd8) = size % 100 + at<s32>(rec, 0x28);
         }
@@ -572,14 +573,14 @@ extern "C" void __cdecl FlyingRide_Free(s32 index) {
         FlyingRide_ClearSlot(index, i);
     }
     Mem_GlobalFree(table()[index]);
-    reinterpret_cast<u8 **>(0x008791f8)[index] = nullptr;
+    gFlyingrides_8791f8[index] = nullptr;
 }
 
 extern "C" void __cdecl FlyingRides_Shutdown() {
-    u32 *const flag = reinterpret_cast<u32 *>(0x008791ec);
+    u32 *const flag = &gFlyingrides_8791ec;
     if (!*flag)
         return;
-    void **const sines = reinterpret_cast<void **>(0x008791c8);
+    void **const sines = reinterpret_cast<void **>(&gFlyingrides_8791c8);
     Mem_GlobalFree(*sines);
     *sines = nullptr;
     for (s32 index = 1; index < 100; ++index)

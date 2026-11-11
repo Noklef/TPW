@@ -73,3 +73,29 @@ void __fastcall Weather_HandleMessage(u8 *weather, void *, u8 *message);
 // textures freed (WeatherFx_FreeTextures, a tail jump): returns its 1.
 u32 __fastcall Weather_Detach(u8 *weather);
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(char[12], gText_Weather_Serialize_7622b8, 0x007622b8, 0xc);
+GAME_DATA(char[11], gText_Weather_Serialize_7622c4, 0x007622c4, 0xb);
+GAME_DATA(char[9], gText_Weather_Serialize_7622d0, 0x007622d0, 9);
+GAME_DATA(char[7], gText_Weather_Serialize_7622dc, 0x007622dc, 7);
+GAME_DATA(char[17], gText_Weather_Serialize_7622e4, 0x007622e4, 0x11);
+GAME_DATA(char[23], gText_Weather_Serialize_7622f8, 0x007622f8, 0x17);
+GAME_DATA(char[18], gText_Weather_Serialize_762310, 0x00762310, 0x12);
+GAME_DATA(char[24], gText_Weather_Serialize_762324, 0x00762324, 0x18);
+GAME_DATA(char[20], gText_Weather_Serialize_76233c, 0x0076233c, 0x14);
+GAME_DATA(char[11], gText_Weather_Serialize_762350, 0x00762350, 0xb);
+GAME_DATA(char[13], gText_Weather_Serialize_76235c, 0x0076235c, 0xd);
+GAME_DATA(char[14], gText_Weather_Serialize_76236c, 0x0076236c, 0xe);
+GAME_DATA(char[16], gText_Weather_Serialize_76237c, 0x0076237c, 0x10);
+GAME_DATA(char[13], gText_Weather_Serialize_76238c, 0x0076238c, 0xd);
+GAME_DATA(char[9], gText_Weather_Serialize_76239c, 0x0076239c, 9);
+
+// Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(const u32, gWeather_SetIntensity_700a3c, 0x00700a3c, 0x4);
+GAME_DATA(const float, gWeather_SetIntensity_700a58, 0x00700a58, 0x4);
+GAME_DATA(const float, gWeather_SetIntensity_700a5c, 0x00700a5c, 0x4);
+GAME_DATA(const float, gWeather_SetIntensity_700a60, 0x00700a60, 0x4);
+GAME_DATA(const float, gWeather_SetIntensity_700a64, 0x00700a64, 0x4);

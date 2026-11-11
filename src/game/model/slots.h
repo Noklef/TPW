@@ -64,3 +64,7 @@ GAME_DATA(char[16], gText_ModelSlot_LoadAdvisor_74c944, 0x0074c944, 0x10);
 
 // The vtables hold only ports: tpw.exe's loader points their slots at them (.docs/09-globals.md).
 GAME_DATA(void *[4], Class6fdcc8_vtable, 0x006fdcc8, 0x10);
+
+// Virtual base tables (vbtables: 0, then each virtual base's displacement from the pointer), stored into objects by their constructors.
+GAME_DATA(const s32[2], Vbtable_6fdcf8, 0x006fdcf8, 0x8);
+GAME_DATA(const s32[3], Vbtable_6fdd00, 0x006fdd00, 0xc);

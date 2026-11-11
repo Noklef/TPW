@@ -4,6 +4,7 @@
 #include "../render/screen.h"
 #include "../render/graphicssettings.h"
 #include "../gfx/texcache.h"
+#include "../render/d3dsetup.h"
 #include "imports.h"
 
 namespace {
@@ -75,7 +76,7 @@ extern "C" u32 __cdecl GameWindow_Create() {
     u32 &settings = global<u32>(0x0079d86c);
     settings = (settings & ~(on ? 0x40u : 0x80u)) | (on ? 0x80u : 0x40u);
     if (!on) gGraphicssettings_7a1a8c &= ~0x6000u;
-    if (global<u32>(0x0078d8e4) == 1 && *reinterpret_cast<s32 *>(global<u8 *>(0x00879a24) + 0x788) <= 1)
+    if (global<u32>(0x0078d8e4) == 1 && *reinterpret_cast<s32 *>(global<u8 *>((u32)(uintptr_t)&gD3dsetup_879a20 + 0x4) + 0x788) <= 1)
         g_calls.Th(0x00423b80, kOptions, 0u);   // Options_SetC
     return 1;
 }

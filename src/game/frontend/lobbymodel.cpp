@@ -7,12 +7,13 @@
 #include "../math/x87.h"
 #include "../model/holder.h"
 #include "../motion/animator.h"
+#include "../world/rides.h"
 
 namespace {
 
 template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cast<T *>((uintptr_t)p + offset); }
 
-u8 *entry(const u8 *model) { return reinterpret_cast<u8 *const *>(0x007a4610)[at<u32>(model, 4)]; }
+u8 *entry(const u8 *model) { return gRides_7a4610[at<u32>(model, 4)]; }
 
 float *matrix(const u8 *model) {
     return reinterpret_cast<float *>(at<u8 *>(at<u8 *>(at<u8 *>(entry(model), 8), 4), 0x78) + 0x10);
@@ -108,7 +109,7 @@ void __fastcall LobbyFlyer_Step(u8 *flyer) {
     for (u32 k = 0; k < 3; ++k)
         wanted[k] = d[k];
     Normalise(wanted);
-    const X87Reg turn = X87Reg(at<float>(global<u8 *>(0x00f82884), 8)) * global<float>(0x00702ae4);   // 0.1
+    const X87Reg turn = X87Reg(at<float>(global<u8 *>(0x00f82884), 8)) * gLobbyFlyer_Step_702ae4;   // 0.1
     for (u32 k = 0; k < 3; ++k)
         heading[k] = (float)((X87Reg(wanted[k]) - heading[k]) * turn + heading[k]);
     Normalise(heading);
@@ -129,8 +130,8 @@ void __fastcall LobbyFlyer_Step(u8 *flyer) {
             const u32 turned = next >> 13 | next << 19;
             at<u32>(scene, 0x34) = turned;
             const float extent = at<float>(flyer, 0x1c + 4 * k);
-            const X87Reg r = X87Reg((double)(turned & 0x3fffffff)) * global<float>(0x00702adc) * extent;   // 2^-30
-            at<float>(flyer, 0x3c + 4 * k) = (float)(r - X87Reg(extent) * global<float>(0x00702ae0) + at<float>(flyer, 0x10 + 4 * k));   // 0.5
+            const X87Reg r = X87Reg((double)(turned & 0x3fffffff)) * gLobbyFlyer_Step_702adc * extent;   // 2^-30
+            at<float>(flyer, 0x3c + 4 * k) = (float)(r - X87Reg(extent) * gLobbyFlyer_Step_702ae0 + at<float>(flyer, 0x10 + 4 * k));   // 0.5
         }
     }
     LobbyModel_AlignTo(at<u8 *>(flyer, 8), nullptr, heading);

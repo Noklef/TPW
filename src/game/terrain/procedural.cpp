@@ -16,6 +16,7 @@
 #include "land.h"
 #include "texcache.h"
 #include "../render/graphicssettings.h"
+#include "../render/d3dsetup.h"
 
 namespace {
 
@@ -268,7 +269,7 @@ void __fastcall TerrainTex_CullRect(u8 *self, void *, s32 x0, s32 y0, s32 x1, s3
     reinterpret_cast<Transform>(at<u32>(at<u8 *>(object, 0), 4))(object, global(0x0087b088), out[0], points[0], 0x10, 0xc, 8, 0);
     u32 result;
     u8 codes[8];
-    ClipCodes_Compute(global(0x00879a20), 0, reinterpret_cast<u8 *>(&result), codes, reinterpret_cast<const u8 *>(out), 8, 0x10, 0xff);
+    ClipCodes_Compute(global((u32)(uintptr_t)&gD3dsetup_879a20), 0, reinterpret_cast<u8 *>(&result), codes, reinterpret_cast<const u8 *>(out), 8, 0x10, 0xff);
     if (result & 0xff) return;
     if ((result & 0xff00) && area != 1) {
         const s32 xm = (x1 + x0) >> 1, ym = (y1 + y0) >> 1;

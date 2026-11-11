@@ -13,6 +13,7 @@
 #include "session.h"
 #include "../ui/panel7b9940.h"
 #include "../world/signtext.h"
+#include "../world/world.h"
 #include "../core/imports.h"
 
 namespace {
@@ -164,7 +165,7 @@ void __fastcall ChatClient_Connect(u8 *self) {
 
 void __fastcall ChatClient_EnterWorld(u8 *self) {
     u32 cell = 0;
-    g_env->entrance(global<u8 *>(0x007cf83c) + 0x2d8, nullptr, &cell, 0);
+    g_env->entrance(gWorldPtr + 0x2d8, nullptr, &cell, 0);
     u8 *const memory = static_cast<u8 *>(GameHeap_Alloc(0x3a8));
     u8 *player = nullptr;
     if (memory) {
@@ -177,7 +178,7 @@ void __fastcall ChatClient_EnterWorld(u8 *self) {
     const u32 word = cell & 0xffff;
     const u32 column = 0x80u | ((((u8)cell - 1) & 0x7f) << 8);
     const u32 row = 0x80u | (((word - 1) >> 7 & 0xff) << 8);
-    u8 *const thing = g_env->byHandle(global<u8 *>(0x007cf83c), nullptr, id);
+    u8 *const thing = g_env->byHandle(gWorldPtr, nullptr, id);
     if (at<u8>(thing, 2) == 0x12) {
         g_env->placeAt(thing, nullptr, column, row);
         session_call(IMPORT(Weachatr_Chat_MovePlayer), at<u32>(self, 0), (s32)(s16)column, (s32)(s16)row, 1u, (u32)(uintptr_t)self);

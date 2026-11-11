@@ -38,3 +38,4 @@ GAME_DATA(char[40], gText_TagSystem_HandleMessage_75eb40, 0x0075eb40, 0x28);
 GAME_DATA(char[36], gText_TagSystem_HandleMessage_75eb68, 0x0075eb68, 0x24);
 GAME_DATA(u16[28], gText_TagSystem_HandleMessage_75ebe0, 0x0075ebe0, 0x38);
 GAME_DATA(u16[33], gText_TagSystem_HandleMessage_75ec64, 0x0075ec64, 0x42);
+GAME_DATA(u32[382][8], gTagTable_75eca8, 0x0075eca8, 0x2fc0);   // the tag records (0x20 each, the id first; to 0x761c68)

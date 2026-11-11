@@ -8,13 +8,16 @@
 #include "mapcell.h"
 #include "cellmessage.h"
 #include "focuscell.h"
+#include "../core/soundset.h"
+#include "../math/intpair.h"
+#include "world.h"
 
 namespace {
 
 template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cast<T *>((uintptr_t)p + offset); }
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
 
-u8 *World() { return global<u8 *>(0x007cf83c); }
+u8 *World() { return gWorldPtr; }
 u32 Kind(const u8 *cell) { return at<u32>(cell, 8); }
 
 // The cell a direction pair away (the pair of ints at table: 0x7cdba0...), scale 1.
@@ -72,7 +75,7 @@ void LinkSide(u8 *cell, const Side &s, bool models, s32 column) {
                 const float scale = gCellmessage_700d54;
                 const s32 z = ftol((double)column * scale);
                 const s32 x = ftol((double)column * scale);   // (the second local: the column too, sic)
-                Sound_PlayAt(0, global<u32>(0x00803a2c), 0x8b, x, 0, z);
+                Sound_PlayAt(0, gSoundCategories.ui, 0x8b, x, 0, z);
             }
         }
     }
@@ -95,18 +98,18 @@ void LinkPath(u8 *cell, u32 models) {
         Map_SetBlockValue(World() + 0x2d8, nullptr, count, at<u16>(cell, 0));   // (the high half the mode's: 0)
     }
     const bool on = (models & 0xff) != 0;
-    static const Side kN = {0x007cdba0, 1, 0x10, 0x007cdbb8, 4, 8, 0x007cdbb0, 0x40, 0x20};
-    static const Side kE = {0x007cdbc8, 4, 0x40, 0x007cdbc0, 1, 0x80, 0x007cdbb0, 0x10, 0x20};
-    static const Side kS = {0x007cdba8, 0x10, 1, 0x007cdbd8, 4, 2, 0x007cdbc0, 0x40, 0x80};
-    static const Side kW = {0x007cdbd0, 0x40, 4, 0x007cdbd8, 1, 2, 0x007cdbb8, 0x10, 8};
+    static const Side kN = {(u32)gStepN_7cdba0, 1, 0x10, (u32)gStepSE_7cdbb8, 4, 8, (u32)gStepSW_7cdbb0, 0x40, 0x20};
+    static const Side kE = {(u32)gStepE_7cdbc8, 4, 0x40, (u32)gStepNW_7cdbc0, 1, 0x80, (u32)gStepSW_7cdbb0, 0x10, 0x20};
+    static const Side kS = {(u32)gStepS_7cdba8, 0x10, 1, (u32)gStepNE_7cdbd8, 4, 2, (u32)gStepNW_7cdbc0, 0x40, 0x80};
+    static const Side kW = {(u32)gStepW_7cdbd0, 0x40, 4, (u32)gStepNE_7cdbd8, 1, 2, (u32)gStepSE_7cdbb8, 0x10, 8};
     LinkSide(cell, kN, on, column);
-    LinkDiagonal(cell, 0x007cdbd8, 0x007cdba0, 0x007cdbc8, 2, 0x20, on);
+    LinkDiagonal(cell, (u32)gStepNE_7cdbd8, (u32)gStepN_7cdba0, (u32)gStepE_7cdbc8, 2, 0x20, on);
     LinkSide(cell, kE, on, column);
-    LinkDiagonal(cell, 0x007cdbb8, 0x007cdba8, 0x007cdbc8, 8, 0x80, on);
+    LinkDiagonal(cell, (u32)gStepSE_7cdbb8, (u32)gStepS_7cdba8, (u32)gStepE_7cdbc8, 8, 0x80, on);
     LinkSide(cell, kS, on, column);
-    LinkDiagonal(cell, 0x007cdbb0, 0x007cdba8, 0x007cdbd0, 0x20, 2, on);
+    LinkDiagonal(cell, (u32)gStepSW_7cdbb0, (u32)gStepS_7cdba8, (u32)gStepW_7cdbd0, 0x20, 2, on);
     LinkSide(cell, kW, on, column);
-    LinkDiagonal(cell, 0x007cdbc0, 0x007cdba0, 0x007cdbd0, 0x80, 8, on);
+    LinkDiagonal(cell, (u32)gStepNW_7cdbc0, (u32)gStepN_7cdba0, (u32)gStepW_7cdbd0, 0x80, 8, on);
     // the sides with a cell of kind 3 or 9 that way drop the diagonals beside them (the direction in a stack slot's low byte; the callees
     // read only that)
     u8 d = 1;
@@ -144,15 +147,15 @@ void DragSide(u8 *cell, u32 mode, u32 table, u32 bit, u32 back, u32 dropA, u32 d
 
 void Drag(u8 *cell, u32 mode, s32 dx, s32 dy) {
     const u8 *const target = World() + 0x294 + (u32)at<u16>(gFocuscell_8186ac, 0x36) * 0x44;
-    if (global<u32>(0x00820aa4)) {
-        static const u32 kTables[4] = {0x007cdba0, 0x007cdbc8, 0x007cdba8, 0x007cdbd0};
+    if (gCellmessage_820aa4) {
+        static const u32 kTables[4] = {(u32)gStepN_7cdba0, (u32)gStepE_7cdbc8, (u32)gStepS_7cdba8, (u32)gStepW_7cdbd0};
         static const u8 kFacing[4] = {0x10, 0x40, 1, 4};
         static const u32 kBits[4] = {1, 4, 0x10, 0x40};
         for (int i = 0; i < 4; ++i) {
             u8 *const next = Step(cell, kTables[i]);
             if (next && MapCell_Direction(next) == kFacing[i] && next == target) Join(cell, kBits[i], next, kFacing[i]);
         }
-        const s32 x = global<s32>(0x00763ac0), y = global<s32>(0x00763ac4);
+        const s32 x = reinterpret_cast<s32 &>(gMapClick_763ac0), y = reinterpret_cast<s32 &>(gMapClick_763ac4);
         if (x == 0x80 || y == 0x80) {
             dx = 0;
             dy = 0;
@@ -161,10 +164,10 @@ void Drag(u8 *cell, u32 mode, s32 dx, s32 dy) {
             dy = y;
         }
     }
-    if (dy == 1) DragSide(cell, mode, 0x007cdba0, 1, 0x10, 2, 0x80);
-    if (dx == -1) DragSide(cell, mode, 0x007cdbc8, 4, 0x40, 2, 8);
-    if (dy == -1) DragSide(cell, mode, 0x007cdba8, 0x10, 1, 8, 0x20);
-    if (dx == 1) DragSide(cell, mode, 0x007cdbd0, 0x40, 4, 0x80, 0x20);
+    if (dy == 1) DragSide(cell, mode, (u32)gStepN_7cdba0, 1, 0x10, 2, 0x80);
+    if (dx == -1) DragSide(cell, mode, (u32)gStepE_7cdbc8, 4, 0x40, 2, 8);
+    if (dy == -1) DragSide(cell, mode, (u32)gStepS_7cdba8, 0x10, 1, 8, 0x20);
+    if (dx == 1) DragSide(cell, mode, (u32)gStepW_7cdbd0, 0x40, 4, 0x80, 0x20);
 }
 
 }  // namespace
@@ -174,7 +177,7 @@ extern "C" {
 void __fastcall MapCell_LinkPath(u8 *cell, void *, u32 mode, s32 dx, s32 dy, u32 models) {
     if (mode == 1) LinkPath(cell, models);
     else if (mode == 0 || mode == 3) Drag(cell, mode, dx, dy);
-    global<s32>(0x00763ac0) = dx;
-    global<s32>(0x00763ac4) = dy;
+    reinterpret_cast<s32 &>(gMapClick_763ac0) = dx;
+    reinterpret_cast<s32 &>(gMapClick_763ac4) = dy;
 }
 }

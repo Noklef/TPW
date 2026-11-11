@@ -14,6 +14,7 @@
 #include "window.h"
 #include "window705a50handler.h"
 #include "../core/ime.h"
+#include "../core/soundset.h"
 
 namespace {
 
@@ -44,7 +45,7 @@ struct Box {
         bottom = words[3];
     }
     u32 CentreX() const { return Bits(Scaled((right - left) / 2 + left - 0x400, reinterpret_cast<uintptr_t>(&gGuimessagefx_6ff154))); }
-    u32 CentreY() const { return Bits(Scaled((bottom - top) / 2 + top - 0x300, 0x006ff150)); }
+    u32 CentreY() const { return Bits(Scaled((bottom - top) / 2 + top - 0x300, reinterpret_cast<uintptr_t>(&gGuimessagefx_6ff150))); }
 };
 
 }  // namespace
@@ -56,7 +57,7 @@ extern "C" {
 u32 __cdecl GuiMessageFx_Handler(u8 *window, u32 message, u32 a, u32) {
     u8 rect[12];
     GuiRect_Ctor(rect);
-    if (message == 0x100) g_env->playAt(0, global<u32>(0x00803a2c), (Fn_65d57c(window) & 0x10) ? 0xbd : 0x1f, 0, 0, 0);
+    if (message == 0x100) g_env->playAt(0, gSoundCategories.ui, (Fn_65d57c(window) & 0x10) ? 0xbd : 0x1f, 0, 0, 0);
     if (message == 0x1f) {
         if (Kind(window) == 5) g_env->attach(Host(), nullptr, window);
     } else if (message == 0x14 || message == 0x20) {

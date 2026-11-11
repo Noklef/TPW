@@ -67,3 +67,4 @@ u32 __fastcall MapCell_HandleTrackMessage(u8 *cell, void *, u32 message, u32 a, 
 // Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
 GAME_DATA(const float, gTrackmessage_700d94, 0x00700d94, 0x4);
 GAME_DATA(const float, gTrackmessage_700d9c, 0x00700d9c, 0x4);
+GAME_DATA(u32, gTrackmessage_820ae8, 0x00820ae8, 4);

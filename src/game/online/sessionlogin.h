@@ -79,3 +79,6 @@ GAME_DATA(char[36], gOnline_NewsResult_773508, 0x00773508, 0x24);
 GAME_DATA(char[28], gOnline_NewsResult_77352c, 0x0077352c, 0x1c);
 GAME_DATA(char[32], gOnline_NewsResult_773548, 0x00773548, 0x20);
 GAME_DATA(char[28], gOnline_NewsResult_773568, 0x00773568, 0x1c);
+
+// Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(const u8[0x10], gSessionlogin_702808, 0x00702808, 0x10);   // a GUID passed to the news request

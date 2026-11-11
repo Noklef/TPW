@@ -91,6 +91,10 @@ void __cdecl Panel7b9940_SizeAtExit();
 #include "../core/gamedata.h"
 
 // Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(const u32, gPanel7b9940_6ff148, 0x006ff148, 0x4);
 GAME_DATA(u8 *, gPanel7b9940_7b05e8, 0x007b05e8, 0x4);
 GAME_DATA(u8 *, gPanel7b9940_7cb2ac, 0x007cb2ac, 0x4);
 GAME_DATA(u8 *, gPanel7b9940_7cb2b0, 0x007cb2b0, 0x4);
+
+// Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(u8[0x58], gPanel7b9940_74fa98, 0x0074fa98, 0x58);   // a window script (or a text / table before one): to the next named address

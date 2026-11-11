@@ -3,6 +3,7 @@
 #include <cstdint>
 
 #include "mapcell.h"
+#include "../math/intpair.h"
 
 namespace {
 
@@ -18,7 +19,7 @@ void __fastcall Object_NeighbourCellId(const u8 *object, void *, u16 *out) {
     const u32 bits = MapCell_Neighbours(cell) & 0xff;
     // the column and row delta globals of each direction bit
     static const struct { u32 bit, column, row; } kSteps[] = {
-        {1, 0x007cdba0, 0x007cdba4}, {0x10, 0x007cdba8, 0x007cdbac}, {0x40, 0x007cdbd0, 0x007cdbd4}, {4, 0x007cdbc8, 0x007cdbcc}};
+        {1, (u32)gStepN_7cdba0, (u32)&gStepN_7cdba0[1]}, {0x10, (u32)gStepS_7cdba8, (u32)&gStepS_7cdba8[1]}, {0x40, (u32)gStepW_7cdbd0, (u32)&gStepW_7cdbd0[1]}, {4, (u32)gStepE_7cdbc8, (u32)&gStepE_7cdbc8[1]}};
     for (const auto &step : kSteps) {
         if (bits & step.bit) {
             const u32 column = *reinterpret_cast<const u32 *>(step.column), row = *reinterpret_cast<const u32 *>(step.row);

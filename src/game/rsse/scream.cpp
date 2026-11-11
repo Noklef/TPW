@@ -24,7 +24,7 @@ u32 __cdecl RSSE_StartScream(u32 scream, s32 level, s32 a, s32 b, s32 x, s32 y, 
     if (level == 0)
         return 0;
     const u32 sound = level == 1 ? 0x47 : level < 4 ? 0x48 : level < 8 ? 0x49 : 0x4a;
-    const u32 played = Sound_PlayAt(0, global<u32>(0x00803a24), sound, x, y, z);
+    const u32 played = Sound_PlayAt(0, gSoundCategories.kids, sound, x, y, z);
     if (played)
         Sound_SetParam(played, 6, static_cast<u32>(volume(a, b)));
     return played;

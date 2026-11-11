@@ -39,7 +39,7 @@ float position(u32 coordinate) {
 void CellEffect_SetEnv(const CellEffectEnv *env) { g_env = env ? env : &kGameEnv; }
 
 extern "C" void __fastcall MapCell_StartEffect(u8 *cell, void *, u32 kind) {
-    u8 &guard = global<u8>(0x00fb34b9);
+    u8 &guard = gCellEffect_fb34b9;
     if (!(guard & 1)) {
         guard |= 1;
         g_env->readMode(reinterpret_cast<u8 *>(&gDialog74fb20_fb3b7c));

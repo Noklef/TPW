@@ -12,6 +12,8 @@
 #include "../world/things.h"
 #include "../render/spritequeue.h"
 #include "loading.h"
+#include "../world/camera.h"
+#include "../world/world.h"
 
 namespace {
 
@@ -69,11 +71,11 @@ extern "C" void __cdecl SpriteDraw_Begin() {
     for (u32 i = 0; i < 16; ++i) counts()[i] = 0;
     overlayCount() = 0;
     gSpriteDraw_877348 = 1;
-    if (global<u8>(0x00790ab0) & 0x16) {
-        heading() = (float)Matrix_Heading(global<const float *>(0x00790a98));
+    if (reinterpret_cast<u8 &>(gCameraFlags) & 0x16) {
+        heading() = (float)Matrix_Heading(gCamera_790a98);
         return;
     }
-    heading() = (float)std::fmod((double)global<float>(0x00790a38), kTwoPi);  // _CIfmod, exact
+    heading() = (float)std::fmod((double)gCamera_790a38, kTwoPi);  // _CIfmod, exact
     if (!(heading() >= 0.0f)) heading() = (float)X87_Round((double)heading() - (double)kNegTwoPi);
 }
 
@@ -183,7 +185,7 @@ extern "C" u32 __cdecl SpriteDraw_Pick() {
         if (!Map_InBounds(cx, cy))
             continue;
         const u32 cell = ((u32)cy << 7) + (u32)cx + 1;
-        for (u16 thing = at<u16>(global<u8 *>(0x007cf83c), (cell & 0xffff) * 0x44 + 0x2b8); thing;) {
+        for (u16 thing = at<u16>(gWorldPtr, (cell & 0xffff) * 0x44 + 0x2b8); thing;) {
             u8 *const record = global<u8 *>(0x007cfb90 + 0x14 * (u32)thing);
             const u8 kind = record[2];
             if ((kind == 1 || kind == 4 || kind == 5 || kind == 6 || kind == 8 || kind == 7 || kind == 0x12) && at<s32>(record, 0xc) == slot)

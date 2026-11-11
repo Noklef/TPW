@@ -43,6 +43,7 @@ s32 __cdecl Dialog7cc184_Handler(u8 *window, u32 message, u32 a, u32 b);
 #include "../core/gamedata.h"
 
 // Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(u8[0xc], gDialog7cc184handler_754448, 0x00754448, 0xc);
 GAME_DATA(u8 *, gDialog7cc184handler_7cc184, 0x007cc184, 0x4);
 GAME_DATA(u8 *, gDialog7cc184handler_7cc18c, 0x007cc18c, 0x4);
 GAME_DATA(s32, gDialog7cc184_PictureHandler_7cc198, 0x007cc198, 0x4);

@@ -65,8 +65,8 @@ u32 yuy2Part(u32 index) { return global<u32>(((u32)(uintptr_t)&gMoviedisplay_fb7
 
 // The pixel of a sum: its bits 23-31, 11-19 and 0-8 through their tables.
 u32 rgbOf(u32 sum) { return gMoviepixels_fba730[(sum >> 0x17)] | gMoviepixels_fba730[306 + ((sum & 0xff800) >> 0xb)] | gMoviepixels_fba730[568 + (sum & 0x1ff)]; }
-u32 chromaSum(const u32 *chroma, u32 k) { return gTqivideo_fb9b30[chroma[k]] + gTqivideo_fba330[chroma[k + 0x40]]; }
-u32 lumaPart(u32 luma) { return gTqivideo_fb9330[luma]; }
+u32 chromaSum(const u32 *chroma, u32 k) { return gMoviepixels_fb8f30[0x300 + chroma[k]] + gMoviepixels_fb8f30[0x500 + chroma[k + 0x40]]; }
+u32 lumaPart(u32 luma) { return gMoviepixels_fb8f30[0x100 + luma]; }
 
 }  // namespace
 

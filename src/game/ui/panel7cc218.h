@@ -233,6 +233,7 @@ void __fastcall Panel7cc218_RefreshFigures(u8 *self);
 #include "../core/gamedata.h"
 
 // Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(u8[0x600], gPanel7cc218_Show_755150, 0x00755150, 0x600);
 GAME_DATA(u8[236], gPanel7cc218_OpenLevelBox_755750, 0x00755750, 0xec);
 GAME_DATA(char[20], gPanel7cc218_7558f4, 0x007558f4, 0x14);
 GAME_DATA(u8 *, gPanel7cc218_7c2658, 0x007c2658, 0x4);

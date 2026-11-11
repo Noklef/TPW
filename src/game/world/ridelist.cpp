@@ -12,6 +12,9 @@
 #include "../math/x87.h"
 #include "../render/particles.h"
 #include "ridelist.h"
+#include "../rsse/rsse.h"
+#include "rides.h"
+#include "world.h"
 
 namespace {
 
@@ -20,10 +23,10 @@ template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((ui
 
 s32 Ftol(X87Reg x) { return (s32)(long long)x.v; }
 
-bool system() { return global<u32>(0x008791a0) != 0; }
+bool system() { return gRsseSystem.initialised != 0; }
 
 u8 *find(s32 id) {
-    for (u8 *node = global<u8 *>(0x008791b0); node; node = at<u8 *>(node, 0))
+    for (u8 *node = reinterpret_cast<u8 * &>(gRsseSystem.scriptList); node; node = at<u8 *>(node, 0))
         if (at<s32>(node, 8) == id)
             return node;
     return nullptr;
@@ -186,7 +189,7 @@ u32 __fastcall Obj_RollChance(const u8 *object, void *, u32) {
     // The original finds the object's definition (which makes it the cache's) and reads a dword of it for its debug print.
     const volatile u32 forPrint = at<u32>(ObjectDefs_Find(reinterpret_cast<u8 *>(0x007890a0), nullptr, at<u16>(object, 0xe)), 0x4ac);
     (void)forPrint;
-    const u32 roll = (u32)World_Rand(*reinterpret_cast<u8 **>(0x007cf83c)) % 100;
+    const u32 roll = (u32)World_Rand(*&gWorldPtr) % 100;
     const u32 hit = at<u8>(object, 0x190) >= roll ? 1 : 0;
     Rides_SetElement(Rides_FindById(at<s32>(object, 0x24)), 0xb, hit);
     return hit;
@@ -223,7 +226,7 @@ s32 __fastcall Game_GetRideElement1(const u8 *game) {
 void __cdecl Ride_SetRecordId(u32 index, u32 value) {
     if (!index)
         return;
-    u8 *const ride = reinterpret_cast<u8 *const *>(0x007a4610)[index];
+    u8 *const ride = gRides_7a4610[index];
     at<u32>(ride, 0xd4) = value;
     if (at<u32>(ride, 4) & 0x40000)
         Objects_SetRideId(index, value);
@@ -245,7 +248,7 @@ void __cdecl Ride_PlayEffect(s32 id) {
     const float &half = gRidelist_700fd0, &scale = gRidelist_700fdc;
     const X87Reg zc = (X87Reg(box[2]) + box[5]) * half;
     const X87Reg xc = (X87Reg(box[0]) + box[3]) * half;
-    const u8 *const ride = global<u8 *>(0x007a4610 + 4 * at<u32>(node, 0xc8));
+    const u8 *const ride = gRides_7a4610[at<u32>(node, 0xc8)];
     const float z = (float)zc;
     const float y = at<float>(at<u8 *>(at<u8 *>(at<u8 *>(ride, 8), 4), 0x78), 0x44);
     const float x = (float)xc;
@@ -267,13 +270,13 @@ void __cdecl Ride_PlayEffect(s32 id) {
     const s32 sz = Ftol(X87Reg(z));
     const s32 sy = Ftol(X87Reg(y));
     const s32 sx = Ftol(X87Reg(x));
-    Sound_PlayAt(0, global<u32>(0x00803a28), 0xb8, sx, sy, sz);
+    Sound_PlayAt(0, gSoundCategories.rides, 0xb8, sx, sy, sz);
 }
 
 void __cdecl RideScripts_SetReverb() {
     const u32 followed = (u32)(uintptr_t)Camera_Followed();
     if (followed) {   // (the system's flag not looked at)
-        for (u8 *node = global<u8 *>(0x008791b0); node; node = at<u8 *>(node, 0)) {
+        for (u8 *node = reinterpret_cast<u8 * &>(gRsseSystem.scriptList); node; node = at<u8 *>(node, 0)) {
             if (at<u32>(node, 0xc8) == followed && !at<u32>(node, 0x10) && at<s32>(node, 0xd8)) {
                 if (at<s32>(node, 0xd8) >= 0)
                     Sound_SetEaxRecord(at<u32>(node, 0xd8));

@@ -5,13 +5,15 @@
 #include "../core/accessors.h"
 #include "cellmodel.h"
 #include "mapcell.h"
+#include "world.h"
+#include "focuscell.h"
 
 namespace {
 
 template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cast<T *>((uintptr_t)p + offset); }
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
 
-u8 *World() { return global<u8 *>(0x007cf83c); }
+u8 *World() { return gWorldPtr; }
 // The offset of the world's 0x28-byte cell at (x, y): (id + 0x6cde) * 0x28, the id cut to a word.
 u32 CellOffset(s32 x, s32 y) { return ((u32)(u16)(((u32)y << 7) + (u32)x + 1) + 0x6cde) * 0x28; }
 u32 WithLowByte(u32 slot, u8 low) { return (slot & 0xffffff00) | low; }
@@ -49,8 +51,8 @@ extern "C" {
 void __cdecl TrackCell_ResetEnds(u8 *cell, s32 ax, s32 ay, s32 bx, s32 by) {
     u8 *const first = Map_StepCell28(reinterpret_cast<const u16 *>(cell), nullptr, ax, ay, 2);
     u8 *const second = Map_StepCell28(reinterpret_cast<const u16 *>(cell), nullptr, bx, by, 2);
-    Map_InBounds(global<s32>(0x007639e0), global<s32>(0x007639e4));
-    Map_InBounds(global<s32>(0x007639e8), global<s32>(0x007639ec));
+    Map_InBounds(gFocusCell_StartX_7639e0, gFocusCell_StartY_7639e4);
+    Map_InBounds(gFocusCell_EndX_7639e8, gFocusCell_EndY_7639ec);
     // (the cell argument's slot when the direction is none of the four, sic: by then it holds the address of the second pair's stack
     // copy, here a local's)
     s32 copy[2] = {bx, by};
@@ -78,7 +80,7 @@ u8 *__cdecl LineEnd_Unlink(s32 x, s32 y, u32 dir) {
     u8 *cell = World() + offset;
     u8 d = MapCell_Direction(cell);
     u32 slot = WithLowByte((u32)x, d);   // (x's stack slot)
-    if (x == global<s32>(0x007639e8) && y == global<s32>(0x007639ec)) {
+    if (x == gFocusCell_EndX_7639e8 && y == gFocusCell_EndY_7639ec) {
         d = (u8)(MapCell_Neighbours(cell) & ~d);
         slot = WithLowByte(slot, d);
         if (d) Cut(cell, slot);
@@ -86,11 +88,11 @@ u8 *__cdecl LineEnd_Unlink(s32 x, s32 y, u32 dir) {
     }
     if ((u8)dir) slot = WithLowByte(slot, d = (u8)dir);
     if (d) Cut(cell, slot);
-    const s32 sx = global<s32>(0x007639e0), sy = global<s32>(0x007639e4);
+    const s32 sx = gFocusCell_StartX_7639e0, sy = gFocusCell_StartY_7639e4;
     const bool beside = ((u32)x + 2 == (u32)sx && y == sy) || (x == sx && (u32)y + 2 == (u32)sy) || ((u32)x - 2 == (u32)sx && y == sy) ||
                         (x == sx && (u32)y - 2 == (u32)sy);
     if (!beside || !Map_InBounds(sx, sy)) return World() + offset;
-    offset = CellOffset(global<s32>(0x007639e0), global<s32>(0x007639e4));
+    offset = CellOffset(gFocusCell_StartX_7639e0, gFocusCell_StartY_7639e4);
     cell = World() + offset;
     static const u32 kKinds[] = {0xd, 0x12};
     static const u32 kSides[] = {1, 4, 0x10, 0x40};

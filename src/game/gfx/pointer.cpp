@@ -7,6 +7,7 @@
 #include "../files/file.h"
 #include "imageops.h"
 #include "../render/screen.h"
+#include "../render/d3dsetup.h"
 #include "../core/imports.h"
 
 namespace {
@@ -248,7 +249,7 @@ u32 __cdecl AsyncPointer_Make() {
     const u32 position = g_calls.Cd(0x005f5640);
     u8 reply[8];
     g_calls.Th(0x005fbbd0, pointer, reply, position);
-    const u8 *card = *reinterpret_cast<const u8 **>((uintptr_t)0x00879a24);
+    const u8 *card = *reinterpret_cast<const u8 **>((uintptr_t)&gD3dsetup_879a20 + 0x4);
     const bool paused = (*reinterpret_cast<const u32 *>(card + 0x428) == 0x121a && *reinterpret_cast<const u32 *>(card + 0x42c) < 5) || *reinterpret_cast<const u32 *>((uintptr_t)0x0078826c);
     g_calls.Th(0x005fbc80, pointer, reply, paused ? 1u : 0u);
     reply[0] = 0xff;

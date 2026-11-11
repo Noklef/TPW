@@ -59,3 +59,6 @@ void __fastcall Meshes_LightMesh(u8 *object, void *, u32 *colours, const u8 *mes
 
 // Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
 GAME_DATA(u8 *, gMeshlist_87a248, 0x0087a248, 0x4);
+
+// Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(u8[0x4], gMeshlist_879dec, 0x00879dec, 0x4);

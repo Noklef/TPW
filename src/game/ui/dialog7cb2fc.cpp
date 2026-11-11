@@ -48,7 +48,7 @@ void __cdecl Dialog7cb2fc_SetValueRow(u32 id, u32 label, s32 value) {
     u8 *const row = Window_FindChild(dialog(), nullptr, id);
     u16 state[10];
     if (value < 0) Crt().swprintf(state, reinterpret_cast<const u16 *>(gDialog7cb2fc_7537c8), Language_WideText(0x14e));
-    else Crt().swprintf(state, reinterpret_cast<const u16 *>((uintptr_t)0x007537b8), value);
+    else Crt().swprintf(state, reinterpret_cast<const u16 *>((uintptr_t)&gDialog7cb2fcopen_7537b8), value);
     Language_WideText(label);
     u16 *const text = reinterpret_cast<u16 *>((uintptr_t)0x007ba058);
     Crt().wcscat(text, state);

@@ -37,7 +37,7 @@ void __cdecl Gui_CursorSlot3() { CursorSlot(3); }
 
 void __cdecl Gui_CursorSlot2() { CursorSlot(2); }
 
-void __cdecl Gui_SetPointer48c(u32 value) { global<u32>(0x0077c48c) = value ? value : 0x00faa550; }
+void __cdecl Gui_SetPointer48c(u32 value) { global<u32>((u32)(uintptr_t)&gGuisettings_77c48c) = value ? value : 0x00faa550; }
 
-void __cdecl Gui_SetPointer490(u32 value) { global<u32>(0x0077c490) = value ? value : 0x00faa580; }
+void __cdecl Gui_SetPointer490(u32 value) { global<u32>((u32)(uintptr_t)&gGuisettings_77c48c + 0x4) = value ? value : 0x00faa580; }
 }

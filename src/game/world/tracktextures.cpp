@@ -5,6 +5,9 @@
 #include "focuscell.h"
 #include "queuepieces.h"
 #include "tracktextures.h"
+#include "cellbuild.h"
+#include "cellrun.h"
+#include "world.h"
 
 namespace {
 
@@ -52,25 +55,25 @@ void TrackTextures_SetEnv(const TrackTexturesEnv *env) { g_env = env ? env : &kG
 extern "C" {
 
 void __cdecl TrackTextures_LoadQueue() {
-    global<u32>(0x00816d68) = 1;
-    global<u32>(0x00816d6c) = 1;
+    gTracktextures_816d68 = 1;
+    gTracktextures_816d6c = 1;
     char folder[0x104];
-    g_env->format(folder, 0x0076394c, g_env->basePath());
+    g_env->format(folder, (u32)(uintptr_t)&gText_TrackTextures_LoadQueue_76394c, g_env->basePath());
     u32 open = 0;
     u32 id = 0x4268;
     for (u32 slot = pieces(4); slot < pieces(0x64); slot += 0xc, ++id) {
         const u32 name = global<u32>(slot);
         if (!open) open = g_env->openFolder(name, folder, open);
         const u32 flags = global<u8>(slot + 5) ? 0x112423 : 0x12423;
-        global<u32>(slot - 4) = g_env->load(folder, name, &global<u32>(0x00816d68), &global<u32>(0x00816d68), flags, id, 1, 0, 0, 0, 0);
+        global<u32>(slot - 4) = g_env->load(folder, name, &gTracktextures_816d68, &gTracktextures_816d68, flags, id, 1, 0, 0, 0, 0);
     }
 }
 
-void __cdecl TrackTextures_LoadGoKarts() { load_table(0x008179f8, 0x00763958, pieces(0x60), pieces(0x150), 0x42cc, 0x10422, true); }
+void __cdecl TrackTextures_LoadGoKarts() { load_table(0x008179f8, (u32)(uintptr_t)&gText_TrackTextures_LoadGoKarts_763958, pieces(0x60), pieces(0x150), 0x42cc, 0x10422, true); }
 
-void __cdecl TrackTextures_LoadWaterRide() { load_table(0x008179f8, 0x0076396c, pieces(0x150), pieces(0x27c), 0x4330, 0x10422, true); }
+void __cdecl TrackTextures_LoadWaterRide() { load_table(0x008179f8, (u32)(uintptr_t)&gText_TrackTextures_LoadWaterRide_76396c, pieces(0x150), pieces(0x27c), 0x4330, 0x10422, true); }
 
-void __cdecl TrackTextures_LoadHoarding() { load_table(0x008179f8, 0x00763980, pieces(0x280), pieces(0x3d0), 0x4394, 0x422, false); }
+void __cdecl TrackTextures_LoadHoarding() { load_table(0x008179f8, (u32)(uintptr_t)&gText_TrackTextures_LoadHoarding_763980, pieces(0x280), pieces(0x3d0), 0x4394, 0x422, false); }
 
 void __cdecl Track_ResetMap(s32 columns, s32 rows) {
     global<s32>(0x0081ede4) = -1;
@@ -89,16 +92,16 @@ void __cdecl Track_ResetMap(s32 columns, s32 rows) {
         const u32 base = ((u32)row << 7) + 1;
         for (s32 column = 0; column < columns; ++column) {
             const u32 cell = ((u32)column + base) & 0xffff;
-            g_env->cellReset(global<u8 *>(0x007cf83c) + cell * 0x44 + 0x294, nullptr, 1);
-            g_env->trackReset(global<u8 *>(0x007cf83c) + (cell + 0x6cde) * 0x28);
+            g_env->cellReset(gWorldPtr + cell * 0x44 + 0x294, nullptr, 1);
+            g_env->trackReset(gWorldPtr + (cell + 0x6cde) * 0x28);
         }
     }
     g_env->setList(0);
-    global<u32>(0x00816d50) = 0;
-    global<u32>(0x00816d58) = 0;
-    global<u32>(0x00816d60) = 0;
-    global<u32>(0x00816d5c) = 0;
-    global<u32>(0x00816d4c) = 0;
+    gCellbuild_816d50 = 0;
+    gCellbuild_816d58 = 0;
+    gCellbuild_816d60 = 0;
+    gCellbuild_816d5c = 0;
+    gCellbuild_816d4c = 0;
     global<u32>(0x0081b0cc) = 1;
     global<u32>(0x0081ecac) = 0;
     global<u32>(0x0081d7a8) = 0;
@@ -107,7 +110,7 @@ void __cdecl Track_ResetMap(s32 columns, s32 rows) {
     TrackTextures_LoadGoKarts();
     TrackTextures_LoadWaterRide();
     TrackTextures_LoadHoarding();
-    global<u32>(0x00820a8c) = 0;
+    reinterpret_cast<u32 &>(gCellrun_820a8c) = 0;
     reinterpret_cast<u32 &>(gFocuscell_8186ac) = 0;
     global<u16>(0x00818698) = 0;
     g_env->layEntrance();

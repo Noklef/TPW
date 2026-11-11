@@ -417,7 +417,7 @@ GAME_DATA(char[2], CRT_decimal_point, 0x0077e7e0, 0x2);
 GAME_DATA(u16 *, CRT_pctype, 0x0077ea90, 0x4);
 GAME_DATA(u16 *, CRT_pwctype, 0x0077ea94, 0x4);
 GAME_DATA(u16[257], CRT_ctype, 0x0077ea98, 0x202);
-GAME_DATA(char[0x4], gCrt_781514, 0x00781514, 0x4);
+GAME_DATA(u32, gCrt_781514, 0x00781514, 0x4);
 GAME_DATA(u32, CRT_cflush, 0x00fb1350, 0x4);
 GAME_DATA(u32, CRT_old_except_filter, 0x00fb1454, 0x4);
 GAME_DATA(u32, CRT_newmode, 0x00fb1548, 0x4);

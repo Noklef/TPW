@@ -22,7 +22,7 @@ char *__cdecl GuiToken_ReadWide(char *text, u16 *out, u32 count) {
     const char kept = *end;
     *end = 0;
     if (out && g_env->strlen(text) < static_cast<u32>(static_cast<s32>(static_cast<s16>(count)) * 2)) {
-        g_env->swprintf(out, reinterpret_cast<const u16 *>((uintptr_t)0x0077c690), text);
+        g_env->swprintf(out, reinterpret_cast<const u16 *>((uintptr_t)&gGuiToken_77c690), text);
     }
     *end = kept;
     return end + 1;

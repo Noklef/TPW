@@ -29,6 +29,7 @@ u32 __cdecl GuiMessageFx_Handler(u8 *window, u32 message, u32 a, u32 b);
 #include "../core/gamedata.h"
 
 // Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(const float, gGuimessagefx_6ff150, 0x006ff150, 0x4);   // 1/768
 GAME_DATA(const float, gGuimessagefx_6ff154, 0x006ff154, 0x4);
 GAME_DATA(const u32, gGuiMessageFx_Handler_6ff158, 0x006ff158, 0x4);
 GAME_DATA(const u32, gGuiMessageFx_Handler_6ff15c, 0x006ff15c, 0x4);

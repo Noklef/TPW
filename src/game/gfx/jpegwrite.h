@@ -40,3 +40,8 @@ u32 __cdecl JpegDest_Empty(u8 *cinfo);
 // 0x64dd00 (cdecl), term_destination: what the buffer holds written; short, ERREXIT 0x24.
 void __cdecl JpegDest_Term(u8 *cinfo);
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address (a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(char[0xc], gText_Jpegwrite_77b2d4, 0x0077b2d4, 0xc);   // "GIMEXARGB", the marker 0xed's 9 bytes

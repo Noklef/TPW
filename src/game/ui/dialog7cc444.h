@@ -22,3 +22,8 @@ extern "C" {
 // part's own pointer), for the others the one the last figure was (the first: the 0xadb0 part's pointer).
 void __cdecl Dialog7cc444_Create();
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(u8[0x3c0], gDialog7cc444_Create_7579c8, 0x007579c8, 0x3c0);   // a window script (or a text / table before one): to the next named address

@@ -13,6 +13,8 @@
 #include "window705a20.h"
 #include "windowreg.h"
 #include "window7cc8c0handler.h"
+#include "dialog7cc188.h"
+#include "dialog7cc5f4dial.h"
 
 namespace {
 
@@ -34,7 +36,7 @@ void field(u8 *entry, u32 buffer, u32 size, Ctor ctor, u32 text, u32 label, u32 
     Window_Notify40000(entry, nullptr, 0xff, 0xff, 0xff, 0xff);
     Window_NotifyC00(entry, nullptr, 0, 0);
     Window705a20_SetCaret(entry, nullptr,
-                          reinterpret_cast<u8 *>((uintptr_t)GuiWindows_FindByName(reinterpret_cast<const char *>((uintptr_t)0x0074fa84))));
+                          reinterpret_cast<u8 *>((uintptr_t)GuiWindows_FindByName(reinterpret_cast<const char *>((uintptr_t)&gText_Dialog7cc188_74fa84))));
     vcall<void>(entry, 0x24, text);
     u8 *const impl = part(TextPart_Ctor);
     Window_SetImpl(Window_FindChild(entry, nullptr, label), nullptr, impl);
@@ -60,8 +62,8 @@ void __cdecl Dialog7cc5f4_Create(u32 owner) {
     *reinterpret_cast<u32 *>((uintptr_t)0x007cc5fc) = owner;
     dialog() = built;
     u8 *const name = Window_FindChild(built, nullptr, 0x49);
-    field(name, 0x007cc590, 0x10, TextPart6ff4d0_Ctor, reinterpret_cast<uintptr_t>(&gWindow7cc8c0handler_78a374), 0x4a, 0xed);
-    field(Window_FindChild(dialog(), nullptr, 0x4b), 0x007cc548, 0x10, TextPart6ff380_Ctor, reinterpret_cast<uintptr_t>(&gWindow7cc8c0handler_78a374), 0x4c, 0xee);
+    field(name, (u32)(uintptr_t)&gDialog7cc5f4dial_7cc590, 0x10,TextPart6ff4d0_Ctor, reinterpret_cast<uintptr_t>(&gWindow7cc8c0handler_78a374), 0x4a, 0xed);
+    field(Window_FindChild(dialog(), nullptr, 0x4b), (u32)(uintptr_t)&gDialog7cc5f4dial_7cc548, 0x10, TextPart6ff380_Ctor, reinterpret_cast<uintptr_t>(&gWindow7cc8c0handler_78a374), 0x4c, 0xee);
     Window_SetFocus(name, nullptr, 0);
     yellow(Window_FindChild(dialog(), nullptr, 0x4d), 0xec);
 }
@@ -76,8 +78,8 @@ u32 __cdecl Dialog7cc5f4_Finish(u32 value) {
 void __cdecl Dialog7cc5f4_CreateFrom(u32 value, u8 *data) {
     u8 *const built = Dialog_Create(gDialog7cc5f4_CreateFrom_7583e8, 0x004b9d00, 0);
     u8 *const name = Window_FindChild(built, nullptr, 0x49);
-    field(name, 0x007cc590, 0x20, TextPart6ff4d0_Ctor, (u32)(uintptr_t)(data + 0x234), 0x4a, 0xea);
-    field(Window_FindChild(built, nullptr, 0x4b), 0x007cc548, 0x20, TextPart6ff380_Ctor, (u32)(uintptr_t)(data + 0x436), 0x4c, 0xeb);
+    field(name, (u32)(uintptr_t)&gDialog7cc5f4dial_7cc590, 0x20,TextPart6ff4d0_Ctor, (u32)(uintptr_t)(data + 0x234), 0x4a, 0xea);
+    field(Window_FindChild(built, nullptr, 0x4b), (u32)(uintptr_t)&gDialog7cc5f4dial_7cc548, 0x20, TextPart6ff380_Ctor, (u32)(uintptr_t)(data + 0x436), 0x4c, 0xeb);
     Window_SetFocus(name, nullptr, 0);
     yellow(Window_FindChild(built, nullptr, 0x4d), 0xe9);
     Window_SetDwordA0(built, nullptr, 0, value);

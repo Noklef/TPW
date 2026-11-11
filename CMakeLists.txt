@@ -974,7 +974,9 @@ if(EXISTS "${TPW_EXE}")
     )
     target_include_directories(tpw PRIVATE ${CMAKE_BINARY_DIR})
     target_link_libraries(tpw PRIVATE tpw_game)
-    target_link_options(tpw PRIVATE /FIXED /DYNAMICBASE:NO /BASE:0x10000 /NXCOMPAT /ENTRY:LoaderEntry /MAP /INCREMENTAL:NO /OPT:REF)
+    # /MANIFESTUAC:NO: no requestedExecutionLevel, as tp.exe, so Windows keeps registry virtualization: the game opens
+    # HKLM\software\Bullfrog Productions Ltd with KEY_ALL_ACCESS, which fails without it (Startup_CheckCanRun then quits).
+    target_link_options(tpw PRIVATE /FIXED /DYNAMICBASE:NO /BASE:0x10000 /NXCOMPAT /ENTRY:LoaderEntry /MAP /INCREMENTAL:NO /OPT:REF /MANIFESTUAC:NO)
     target_sources(tpw_tests PRIVATE ${CMAKE_BINARY_DIR}/codeslots.h ${CMAKE_BINARY_DIR}/gamedata_fixups.h)
     target_include_directories(tpw_tests PRIVATE ${CMAKE_BINARY_DIR})
     target_compile_definitions(tpw_tests PRIVATE TPW_CODE_SLOTS)

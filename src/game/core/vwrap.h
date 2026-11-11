@@ -130,6 +130,9 @@ void __fastcall Obj7b51f0_PassThingTo7cc218(u8 *object, void *, u32 handle);
 
 // 0x47e9b0 (cdecl; name invented, unconfirmed): AsyncPointer_BeginFlip of the pointer [0x7b4b84], if any.
 void __cdecl Pointer_BeginFlip();
+
+// 0x47e9c0 (cdecl; name invented, unconfirmed): AsyncPointer_EndFlip of the pointer [0x7b4b84], if any (the flip's second handler, [0x8bd514]).
+void __cdecl Pointer_EndFlip();
 }  // extern "C"
 
 #include "gamedata.h"

@@ -153,13 +153,34 @@ u32 Resolve(u32 address) {
         if (void(__cdecl *const exit)() = StaticInit_Exit(address)) return (u32)(uintptr_t)exit;
         for (u32 i = 0; i < g_thunkCount; ++i)
             if (g_thunks[i].address == address) return g_thunks[i].code;
-        if (address < kCode || address > kCodeEnd - 5 || G<u8>(address) != 0xe9) return 0;
+        if (address < kCode || address > kCodeEnd - 6) return 0;
+        if (G<u16>(address) == 0x25ff) {   // JMP [slot] (an import thunk): what the slot holds, a DLL function when outside the image
+            const u32 to = G<u32>(G<u32>(address + 2));
+            if (to < kBase || to >= kImageEnd) return to;
+            address = to;
+            continue;
+        }
+        if (G<u8>(address) != 0xe9) return 0;
         address += 5 + G<u32>(address + 1);   // JMP rel32: its target
     }
     return 0;
 }
 
+// Test only: with TPW_TRACE=path set, each call by an original address is written there (one hex address a line, unbuffered so an
+// ExitProcess keeps it), to find where a run stops.
+HANDLE g_trace = INVALID_HANDLE_VALUE;
+
+void Trace(u32 address) {
+    char line[12];
+    static const char hex[] = "0123456789abcdef";
+    for (int i = 0; i < 8; ++i) line[i] = hex[address >> (28 - 4 * i) & 0xf];
+    line[8] = '\r', line[9] = '\n';
+    DWORD written;
+    WriteFile(g_trace, line, 10, &written, nullptr);
+}
+
 u32 __cdecl ResolveOrSelf(u32 address) {   // AddrCalls' g_addressTarget: the address itself when there is no port (the call then traps)
+    if (g_trace != INVALID_HANDLE_VALUE) Trace(address);
     const u32 target = Resolve(address);
     return target ? target : address;
 }
@@ -289,9 +310,24 @@ void FillImports(const IMAGE_NT_HEADERS32 &nt) {
 
 // --- calls into the copy -----------------------------------------------------------------------------------------------------------
 
+// The last other access violation (its EIP, the address, read 0 / write 1), for the trap box: a thread's SEH filter (_XcptFilter
+// 0x688800) traps after it.
+u32 g_lastFault[3];
+
 LONG CALLBACK OnFault(EXCEPTION_POINTERS *e) {
     const EXCEPTION_RECORD &r = *e->ExceptionRecord;
     CONTEXT &c = *e->ContextRecord;
+    if (r.ExceptionCode == EXCEPTION_ACCESS_VIOLATION && r.NumberParameters >= 2 && r.ExceptionInformation[0] != EXCEPTION_EXECUTE_FAULT) {
+        g_lastFault[0] = c.Eip, g_lastFault[1] = (u32)r.ExceptionInformation[1], g_lastFault[2] = (u32)r.ExceptionInformation[0];
+        if (g_trace != INVALID_HANDLE_VALUE) {   // (the game's own unhandled filter, 0x687bc0, replaces the loader's: the trace keeps it)
+            char line[96];
+            const int n = wsprintfA(line, "AV at EIP %08X %s %08X, ESP %08X: %08X %08X %08X %08X\r\n", c.Eip, g_lastFault[2] ? "writing" : "reading",
+                                    g_lastFault[1], c.Esp, G<u32>(c.Esp), G<u32>(c.Esp + 4), G<u32>(c.Esp + 8), G<u32>(c.Esp + 12));
+            DWORD written;
+            WriteFile(g_trace, line, (DWORD)n, &written, nullptr);
+        }
+        return EXCEPTION_CONTINUE_SEARCH;
+    }
     if (r.ExceptionCode != EXCEPTION_ACCESS_VIOLATION || r.NumberParameters < 2 || r.ExceptionInformation[0] != EXCEPTION_EXECUTE_FAULT)
         return EXCEPTION_CONTINUE_SEARCH;
     const u32 at = c.Eip, from = G<u32>(c.Esp);   // (from: the return address a CALL left)
@@ -311,7 +347,17 @@ LONG CALLBACK OnFault(EXCEPTION_POINTERS *e) {
         c.Eip = target;
         return EXCEPTION_CONTINUE_EXECUTION;
     }
-    Fail("tpw: no port for the original's %08X (called from %08X; build\\tpw.map names tpw.exe's addresses)", at, from);
+    // The stack's next return addresses into tpw.exe or the original (after a CALL: E8 rel32, FF /2 with 2, 3 or 6 bytes), for a caller
+    // outside both.
+    const auto afterCall = [](u32 v) {
+        return G<u8>(v - 5) == 0xe8 || (G<u8>(v - 2) == 0xff && (G<u8>(v - 1) & 0x38) == 0x10) ||
+               (G<u8>(v - 3) == 0xff && (G<u8>(v - 2) & 0x38) == 0x10) || (G<u8>(v - 6) == 0xff && (G<u8>(v - 5) & 0x38) == 0x10);
+    };
+    u32 back[6] = {}, found = 0;
+    for (u32 p = c.Esp + 4; found < 6 && p < c.Esp + 0x10000 && !IsBadReadPtr((void *)(uintptr_t)p, 4); p += 4)
+        if (const u32 v = G<u32>(p); ((v >= 0x00011006 && v < kBase) || (v >= kCode + 6 && v < kCodeEnd)) && afterCall(v)) back[found++] = v;
+    Fail("tpw: no port for the original's %08X (called from %08X; build\\tpw.map names tpw.exe's addresses)\nstack: %08X %08X %08X %08X %08X %08X\nlast access violation: EIP %08X, %s %08X", at,
+         from, back[0], back[1], back[2], back[3], back[4], back[5], g_lastFault[0], g_lastFault[2] ? "writing" : "reading", g_lastFault[1]);
 }
 
 }  // namespace
@@ -345,6 +391,16 @@ extern "C" __declspec(safebuffers) int __cdecl LoaderEntry(void *peb) {
     }
     Protect(kImageEnd, end - kImageEnd, PAGE_NOACCESS);
     if (!AddVectoredExceptionHandler(1, &OnFault)) Fail("tpw: cannot install the fault handler");
+    SetUnhandledExceptionFilter([](EXCEPTION_POINTERS *e) -> LONG {   // (a fault no __except takes: say where, not just exit 0xC0000005)
+        const EXCEPTION_RECORD &r = *e->ExceptionRecord;
+        Fail("tpw: exception %08X at EIP %08X (%s %08X; build\\tpw.map names tpw.exe's addresses)\nESP %08X: %08X %08X %08X %08X", r.ExceptionCode,
+             e->ContextRecord->Eip, r.NumberParameters >= 2 && r.ExceptionInformation[0] ? "writing" : "reading",
+             r.NumberParameters >= 2 ? (u32)r.ExceptionInformation[1] : 0u, e->ContextRecord->Esp, G<u32>(e->ContextRecord->Esp),
+             G<u32>(e->ContextRecord->Esp + 4), G<u32>(e->ContextRecord->Esp + 8), G<u32>(e->ContextRecord->Esp + 12));
+    });
+    char tracePath[MAX_PATH];
+    if (GetEnvironmentVariableA("TPW_TRACE", tracePath, MAX_PATH) - 1u < MAX_PATH - 1u)
+        g_trace = CreateFileA(tracePath, GENERIC_WRITE, FILE_SHARE_READ, nullptr, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr);
     g_addressTarget = &ResolveOrSelf;
     return WinMainCRTStartup(peb);
 }

@@ -3,15 +3,16 @@
 #include <cstdint>
 
 #include "mapcell.h"
+#include "route.h"
 
 namespace {
 
 template <typename T> T &at(void *p, u32 offset) { return *reinterpret_cast<T *>((uintptr_t)p + offset); }
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
 
-// The column and row steps of direction d (the table at 0x7622b0, read past its four entries as the original does).
-u8 StepX(u32 d) { return global<u8>(0x007622b0 + d * 2); }
-u8 StepY(u32 d) { return global<u8>(0x007622b1 + d * 2); }
+// The column and row steps of direction d (the table gRoute_7622b0, read past its four entries as the original does).
+u8 StepX(u32 d) { return gRoute_7622b0[d * 2]; }
+u8 StepY(u32 d) { return gRoute_7622b0[d * 2 + 1]; }
 
 // The walker's cell recorded; true when that makes more than 0xfb.
 bool Record(u8 *walker) {
@@ -27,7 +28,7 @@ void __cdecl WallFollower_Step(u8 *walker) {
     u32 &dir = at<u32>(walker, 0x200);
     if (dir == 0x33)
         return;
-    const u32 mode = global<u32>(0x007cf3c0);
+    const u32 mode = (u32)gRoute_Mode_7cf3c0;
     u8 &x = walker[0x208], &y = walker[0x209];
     if (MapCell_StepBlocked((mode & 0xffffff00) | x, y, dir, (s32)mode)) {  // sic: the mode's upper bytes ride on x
         dir = (dir - at<u32>(walker, 0x204)) & 3;

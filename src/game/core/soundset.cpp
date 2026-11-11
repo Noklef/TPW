@@ -10,6 +10,7 @@
 #include "string.h"
 #include "vcall.h"
 #include "../math/x87.h"
+#include "../world/camera.h"
 #include "soundcmd.h"
 
 namespace {
@@ -198,7 +199,7 @@ void __cdecl Sound_SetCameraOcclusion(s32 level) {
         functor[1] = 1;
         std::memcpy(&functor[2], &radius, 4);
     };
-    if (global<u8>(0x00790ab0) & 0x16) {
+    if (reinterpret_cast<u8 &>(gCameraFlags) & 0x16) {
         const s32 high = global<s32>(0x00785968), mid = global<s32>(0x00785960), low = global<s32>(0x00785958);
         if (level > high) {
             functor[1] = 1;
@@ -258,16 +259,16 @@ s32 __cdecl Sound_RegisterLobbyCategories(const char *name) {
     }
     const u32 music = Sound_QueryFound(text((u32)(uintptr_t)&gSoundset_762c40), found);   // "cat_locallobbymusic"
     const u32 sfx = Sound_QueryFound(text((u32)(uintptr_t)&gSoundset_762c2c), found);     // "cat_locallobbysfx"
-    const u32 count = ++global<u32>((u32)(uintptr_t)&gSound_803a50);
+    const u32 count = (u32)++gSoundCategories.lobbyPairCount;
     u8 *const pairs = reinterpret_cast<u8 *>((uintptr_t)Sound_Alloc(count * 8));
-    if (gSoundset_803a4c) {
-        memcpy(pairs, gSoundset_803a4c, global<u32>((u32)(uintptr_t)&gSound_803a50) * 8 - 8);   // (rep movsd / movsb)
-        Sound_Free(gSoundset_803a4c);
+    if (gSoundCategories.lobbyPairs) {
+        memcpy(pairs, gSoundCategories.lobbyPairs, (u32)gSoundCategories.lobbyPairCount * 8 - 8);   // (rep movsd / movsb)
+        Sound_Free(gSoundCategories.lobbyPairs);
     }
-    gSoundset_803a4c = pairs;
-    *reinterpret_cast<u32 *>(pairs + global<u32>((u32)(uintptr_t)&gSound_803a50) * 8 - 4) = music;
-    *reinterpret_cast<u32 *>(gSoundset_803a4c + global<u32>((u32)(uintptr_t)&gSound_803a50) * 8 - 8) = sfx;
-    const s32 index = global<s32>((u32)(uintptr_t)&gSound_803a50) - 1;
+    gSoundCategories.lobbyPairs = pairs;
+    *reinterpret_cast<u32 *>(pairs + (u32)gSoundCategories.lobbyPairCount * 8 - 4) = music;
+    *reinterpret_cast<u32 *>(gSoundCategories.lobbyPairs + (u32)gSoundCategories.lobbyPairCount * 8 - 8) = sfx;
+    const s32 index = gSoundCategories.lobbyPairCount - 1;
     String_Dtor(&key);
     return index;
 }
@@ -275,20 +276,20 @@ s32 __cdecl Sound_RegisterLobbyCategories(const char *name) {
 void __cdecl Sound_RegisterGlobalCategories() {
     u8 *found = nullptr;
     if (find_folder(reinterpret_cast<const void *>(0x008030d8), &found)) {
-        global<u32>(0x00803a20) = Sound_QueryFound(text((u32)(uintptr_t)&gSoundset_762c8c), found);   // "cat_ambient"
-        global<u32>(0x00803a28) = Sound_QueryFound(text((u32)(uintptr_t)&gSoundset_762c80), found);   // "cat_rides"
-        global<u32>(0x00803a2c) = Sound_QueryFound(text((u32)(uintptr_t)&gSoundset_762c78), found);   // "cat_ui"
-        global<u32>(0x00803a24) = Sound_QueryFound(text((u32)(uintptr_t)&gSoundset_762c6c), found);   // "cat_kids"
-        global<u32>(0x00803a30) = Sound_QueryFound(text((u32)(uintptr_t)&gSoundset_762c60), found);   // "cat_staff"
+        gSoundCategories.ambient = Sound_QueryFound(text((u32)(uintptr_t)&gSoundset_762c8c), found);   // "cat_ambient"
+        gSoundCategories.rides = Sound_QueryFound(text((u32)(uintptr_t)&gSoundset_762c80), found);   // "cat_rides"
+        gSoundCategories.ui = Sound_QueryFound(text((u32)(uintptr_t)&gSoundset_762c78), found);   // "cat_ui"
+        gSoundCategories.kids = Sound_QueryFound(text((u32)(uintptr_t)&gSoundset_762c6c), found);   // "cat_kids"
+        gSoundCategories.staff = Sound_QueryFound(text((u32)(uintptr_t)&gSoundset_762c60), found);   // "cat_staff"
     }
     if (find_folder(reinterpret_cast<const void *>(0x00803558), &found))
-        global<u32>(0x00803a34) = Sound_QueryFound(text((u32)(uintptr_t)&gSoundset_762c54), found);   // "cat_speech"
+        gSoundCategories.speech = Sound_QueryFound(text((u32)(uintptr_t)&gSoundset_762c54), found);   // "cat_speech"
 }
 
 void __cdecl Sound_RegisterGlobalLobbySfx() {
     u8 *found = nullptr;
     if (find_folder(reinterpret_cast<const void *>(0x008030d8), &found))
-        gSoundset_803a48 = Sound_QueryFound(text((u32)(uintptr_t)&gSoundset_762bcc), found);   // "cat_globallobbysfx"
+        gSoundCategories.lobbySfx = Sound_QueryFound(text((u32)(uintptr_t)&gSoundset_762bcc), found);   // "cat_globallobbysfx"
 }
 
 void __cdecl Sound_RegisterThemeCategories(const StringView *theme) {
@@ -297,47 +298,50 @@ void __cdecl Sound_RegisterThemeCategories(const StringView *theme) {
     u8 *found = nullptr;
     String_Append(&key, nullptr, theme);
     if (find_folder(&key, &found)) {
-        global<u32>(0x00803a38) = Sound_QueryFound(text((u32)(uintptr_t)&gSoundset_762c8c), found);   // "cat_ambient"
-        global<u32>(0x00803a3c) = Sound_QueryFound(text((u32)(uintptr_t)&gSoundset_762c80), found);   // "cat_rides"
+        gSoundCategories.themeAmbient = Sound_QueryFound(text((u32)(uintptr_t)&gSoundset_762c8c), found);   // "cat_ambient"
+        gSoundCategories.themeRides = Sound_QueryFound(text((u32)(uintptr_t)&gSoundset_762c80), found);   // "cat_rides"
     }
     String_AssignWide(&key, nullptr, reinterpret_cast<const WString *>(0x008039c0));   // (slot 6: its data as chars, length bytes)
     String_Append(&key, nullptr, theme);
-    if (find_folder(&key, &found)) global<u32>(0x00803a40) = Sound_QueryFound(text((u32)(uintptr_t)&gSoundset_762c54), found);   // "cat_speech"
+    if (find_folder(&key, &found)) gSoundCategories.themeSpeech = Sound_QueryFound(text((u32)(uintptr_t)&gSoundset_762c54), found);   // "cat_speech"
     String_AssignWide(&key, nullptr, reinterpret_cast<const WString *>(0x00802e68));
     String_Append(&key, nullptr, theme);
-    if (find_folder(&key, &found)) global<u32>(0x00803a44) = Sound_QueryFound(text((u32)(uintptr_t)&gSoundset_762e68), found);   // "cat_music"
+    if (find_folder(&key, &found)) gSoundCategories.music = Sound_QueryFound(text((u32)(uintptr_t)&gSoundset_762e68), found);   // "cat_music"
     String_Dtor(&key);
 }
 
 void __cdecl Sound_ReleaseLobbySfx() {
-    const u32 sfx = gSoundset_803a48;
+    const u32 sfx = gSoundCategories.lobbySfx;
     if (!sfx) return;
     SoundCategory_Release(sfx);
-    gSoundset_803a48 = 0;
+    gSoundCategories.lobbySfx = 0;
 }
 
 void __cdecl Sound_ReleaseLobbyCategories() {
-    if (!reinterpret_cast<u32 &>(gSoundset_803a4c)) return;
-    for (s32 i = 0; i < global<s32>((u32)(uintptr_t)&gSound_803a50); ++i) {
-        SoundCategory_Release(reinterpret_cast<u32 *>(gSoundset_803a4c)[2 * i]);
-        SoundCategory_Release(reinterpret_cast<u32 *>(gSoundset_803a4c)[2 * i + 1]);
+    if (!reinterpret_cast<u32 &>(gSoundCategories.lobbyPairs)) return;
+    for (s32 i = 0; i < gSoundCategories.lobbyPairCount; ++i) {
+        SoundCategory_Release(reinterpret_cast<u32 *>(gSoundCategories.lobbyPairs)[2 * i]);
+        SoundCategory_Release(reinterpret_cast<u32 *>(gSoundCategories.lobbyPairs)[2 * i + 1]);
     }
-    Sound_Free(reinterpret_cast<void *>(gSoundset_803a4c));
-    reinterpret_cast<u32 &>(gSoundset_803a4c) = 0;
-    global<u32>((u32)(uintptr_t)&gSound_803a50) = 0;
+    Sound_Free(reinterpret_cast<void *>(gSoundCategories.lobbyPairs));
+    reinterpret_cast<u32 &>(gSoundCategories.lobbyPairs) = 0;
+    gSoundCategories.lobbyPairCount = 0;
 }
 
 void __cdecl Sound_ReleaseGlobalCategories() {
-    static const u32 kCats[6] = {0x00803a20, 0x00803a28, 0x00803a2c, 0x00803a24, 0x00803a30, 0x00803a34};
-    for (const u32 cat : kCats)
-        if (global<u32>(cat)) SoundCategory_Release(global<u32>(cat));
-    for (const u32 cat : kCats) global<u32>(cat) = 0;
+    static u32 SoundCategories::*const kCats[6] = {&SoundCategories::ambient, &SoundCategories::rides, &SoundCategories::ui,
+                                                   &SoundCategories::kids, &SoundCategories::staff, &SoundCategories::speech};
+    for (u32 SoundCategories::*const cat : kCats)
+        if (gSoundCategories.*cat) SoundCategory_Release(gSoundCategories.*cat);
+    for (u32 SoundCategories::*const cat : kCats) gSoundCategories.*cat = 0;
 }
 
 void __cdecl Sound_ReleaseThemeCategories() {
-    for (u32 cat = 0x00803a38; cat <= 0x00803a44; cat += 4)
-        if (global<u32>(cat)) SoundCategory_Release(global<u32>(cat));
-    for (u32 cat = 0x00803a38; cat <= 0x00803a44; cat += 4) global<u32>(cat) = 0;
+    static u32 SoundCategories::*const kCats[4] = {&SoundCategories::themeAmbient, &SoundCategories::themeRides,
+                                                   &SoundCategories::themeSpeech, &SoundCategories::music};
+    for (u32 SoundCategories::*const cat : kCats)
+        if (gSoundCategories.*cat) SoundCategory_Release(gSoundCategories.*cat);
+    for (u32 SoundCategories::*const cat : kCats) gSoundCategories.*cat = 0;
 }
 
 void __cdecl Sound_Save(u8 *stream) {
@@ -496,7 +500,7 @@ u32 __cdecl Sound_Start(u32 a, u32 on) {
     gSoundset_802bc8 = on;
     if (!on || gSoundset_802bd4) return 0;
     global<u32>(0x00802bd8) = 0;
-    memset(&global<u32>(0x00803a20), 0, 0x34);
+    memset(&gSoundCategories, 0, sizeof gSoundCategories);
     memset(&global<u32>(0x00803aa0), 0, 0x54);
     if ((s32)*g_start->make(&on, a, &global<u8 *>((u32)(uintptr_t)&gSoundset_802bcc)) < 0) return 0;
     u32 functor[2] = {((u32)(uintptr_t)SoundCmd_vtables + 0x8), 0x3f800000};

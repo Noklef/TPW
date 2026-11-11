@@ -12,6 +12,7 @@
 #include "cars.h"
 #include "rating.h"
 #include "setup.h"
+#include "../world/rides.h"
 
 namespace {
 
@@ -160,7 +161,7 @@ void trains(u8 *coaster, float time) {
     u32 count = fit < 1 ? 1 : (u32)fit;
     if (!(count < at<u32>(type, 0x2e8))) count = at<u32>(type, 0x2e8);
     g_env->setTrainCount(coaster, count);
-    u8 *const *const strips = reinterpret_cast<u8 *const *>(0x007a4610);
+    u8 *const *const strips = gRides_7a4610;
     u8 *train = at<u8 *>(coaster, 0x128);
     for (u32 t = 0; t < at<u32>(at<u8 *>(coaster, 4), 0x2e8); ++t, train += 0x80) {
         if (t < at<u32>(coaster, 0xf4)) {

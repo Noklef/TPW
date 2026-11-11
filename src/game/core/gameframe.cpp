@@ -19,9 +19,13 @@
 #include "../render/graphicssettings.h"
 #include "../gfx/texcache.h"
 #include "../coaster/arreplayaction.h"
+#include "../world/camera.h"
+#include "../world/world.h"
 #include "gamestart.h"
 #include "../world/thingmsg.h"
+#include "../render/d3dsetup.h"
 #include "imports.h"
+#include "../model/highlight.h"
 
 namespace {
 
@@ -387,9 +391,9 @@ void WorldStep() {   // state 0xa: every eighth step
     if (ran < 3) {
         G<u32>(0x00879064) = ran + 1;
         if (Mode() == 0 || Mode() == 2) {
-            Timed(Start(0), Ring(0), [] { Th(0x00516380, G<u32>(0x007cf83c)); });   // World_Tick
+            Timed(Start(0), Ring(0), [] { Th(0x00516380, G<u32>((u32)&gWorldPtr)); });   // World_Tick
         } else if (Mode() == 1) {
-            Th(0x005166b0, G<u32>(0x007cf83c));
+            Th(0x005166b0, G<u32>((u32)&gWorldPtr));
             Th(0x004e6170, Chat());
         }
     }
@@ -400,13 +404,13 @@ void MusicLevels() {   // state 0xa: every 32nd step
     constexpr u32 kKind = 0x001da738;
     s32 count = (s32)Th(0x004c81e0, Th(0x00519510, G<u32>(G<u32>(0x007cf6ec))));   // ParkAnalyser_Kind1OnPlainHalf of GameTable7cfb90_Get1da720
     if (count > 0x59) count = 0x59;
-    if (at<u32>(G<u32>(0x007cf83c), kKind) == 4) count = 0;
+    if (at<u32>(G<u32>((u32)&gWorldPtr), kKind) == 4) count = 0;
     Cd(0x0051e790, count);   // Sound_SetMusicLevel
     const u32 word = G<u16>(0x007b05cc);   // (pushed over a stale high word)
-    const u32 table = Th(0x00519510, G<u32>(0x007cf83c));
+    const u32 table = Th(0x00519510, G<u32>((u32)&gWorldPtr));
     s32 around = (s32)Th(0x004c8d30, table, 1, word, 4, 0);   // Things_CountOfKindAround
     if (around > 0x64) around = 0x64;
-    if (at<u32>(G<u32>(0x007cf83c), kKind) == 4) around = 0;
+    if (at<u32>(G<u32>((u32)&gWorldPtr), kKind) == 4) around = 0;
     Cd(0x0051e7b0, around);   // Sound_SetKidsLevel
     Cd(0x0055ab50);   // FlyingRide_SetBounds
 }
@@ -434,9 +438,9 @@ void FixedSteps() {   // state 0xa
 }
 
 void SoundPlacement() {   // state 0xa
-    const u32 xBits = G<u32>(0x007909c0), yBits = G<u32>(0x007909c4), zBits = G<u32>(0x007909c8);
-    const u32 a0 = G<u32>(0x007909a0), a4 = G<u32>(0x007909a4), a8 = G<u32>(0x007909a8), b0 = G<u32>(0x007909b0), b4 = G<u32>(0x007909b4), b8 = G<u32>(0x007909b8);
-    if (G<u8>(0x00790ab0) & 0x16) {
+    const u32 xBits = reinterpret_cast<u32 &>(gCamera_790990[12]), yBits = reinterpret_cast<u32 &>(gCamera_790990[13]), zBits = reinterpret_cast<u32 &>(gCamera_790990[14]);
+    const u32 a0 = reinterpret_cast<u32 &>(gCamera_790990[4]), a4 = reinterpret_cast<u32 &>(gCamera_790990[5]), a8 = reinterpret_cast<u32 &>(gCamera_790990[6]), b0 = reinterpret_cast<u32 &>(gCamera_790990[8]), b4 = reinterpret_cast<u32 &>(gCamera_790990[9]), b8 = reinterpret_cast<u32 &>(gCamera_790990[10]);
+    if (reinterpret_cast<u8 &>(gCameraFlags) & 0x16) {
         Cd(0x0051c1d0, xBits, yBits, zBits, b0, b4, b8, a0, a4, a8);
         return;
     }
@@ -445,9 +449,9 @@ void SoundPlacement() {   // state 0xa
     std::memcpy(&y, &yBits, 4);
     std::memcpy(&z, &zBits, 4);
     const float &lag = gGameframe_700f88;
-    const X87Reg dz = X87Reg(z) - G<const float>(0x00790ac0);
-    const X87Reg dy = X87Reg(y) - G<const float>(0x00790abc);
-    const X87Reg dx = X87Reg(x) - G<const float>(0x00790ab8);
+    const X87Reg dz = X87Reg(z) - gCamera_790ac0;
+    const X87Reg dy = X87Reg(y) - gCamera_790abc;
+    const X87Reg dx = X87Reg(x) - gCamera_790ab8;
     const X87Reg nz = z - (dz * lag);
     const X87Reg ny = y - (dy * lag);
     const X87Reg sx = dx * lag;
@@ -463,9 +467,9 @@ void Drawing() {   // state 0xa
     Cd(0x00599880);
     Th(0x004813b0, kPanel);
     Cd(0x00557ab0);   // Rsse_UpdateAll
-    Th(0x00519060, G<u32>(0x007cf83c), ScaledSigned((s32)(G<u32>(0x008786bc) - G<u32>(0x00878c74)), (u32)(uintptr_t)&gGameframe_700f8c));   // Things_PoseRides
+    Th(0x00519060, G<u32>((u32)&gWorldPtr), ScaledSigned((s32)(G<u32>(0x008786bc) - G<u32>(0x00878c74)), (u32)(uintptr_t)&gGameframe_700f8c));   // Things_PoseRides
     Cd(0x0055ce60, ScaledSigned((s32)(G<u32>(0x008786bc) - G<u32>(0x0087879c)), (u32)(uintptr_t)&gGameframe_700f8c + 0x4));   // FlyingRides_LerpSlots
-    Th(0x00518f90, G<u32>(0x007cf83c), ScaledSigned((s32)(G<u32>(0x008786bc) - G<u32>(0x00878a1c)), (u32)(uintptr_t)&gGameframe_700f8c + 0x8));   // World_PlaceSprites
+    Th(0x00518f90, G<u32>((u32)&gWorldPtr), ScaledSigned((s32)(G<u32>(0x008786bc) - G<u32>(0x00878a1c)), (u32)(uintptr_t)&gGameframe_700f8c + 0x8));   // World_PlaceSprites
     Cd(0x00443340);   // CoasterEdit_Update
     Cd(0x00435a30);
     Cd(0x0044e410, 2);
@@ -473,7 +477,7 @@ void Drawing() {   // state 0xa
     Cd(0x00429df0, 0);
     Cd(0x00429df0, 1);
     Cd(0x00599800);
-    const bool camera = (G<u32>(0x00790ab0) & 0x16) != 0;
+    const bool camera = (gCameraFlags & 0x16) != 0;
     const u8 was = G<u8>(0x00878e84);
     if (camera ? was == 0 : was == 1) {
         G<u32>(0x008bcbc8) ^= 0x2080;
@@ -481,10 +485,10 @@ void Drawing() {   // state 0xa
         G<u32>(0x0087502c) = 0x12c;
         G<u32>(0x00875028) = Ticks();
     }
-    const u8 cameraByte = G<u8>(0x00790ab0);
+    const u8 cameraByte = reinterpret_cast<u8 &>(gCameraFlags);
     G<u8>(0x00878e84) = (cameraByte & 0x16) != 0;
     if (G<s32>(0x0087502c) > 0) {
-        const u32 surface = at<u32>(G<u32>(0x00879a24), 0x14);
+        const u32 surface = at<u32>(G<u32>((u32)(uintptr_t)&gD3dsetup_879a20 + 0x4), 0x14);
         u32 out;
         G<u32(__stdcall *)(u32, u32, u32 *)>(G<u32>(surface))(surface, 0x00707210, &out);   // QueryInterface
         Cd(0x0053e760, out);
@@ -620,6 +624,30 @@ extern "C" {
 void GameFrame_SetEnv(const GameFrameCall *table, u32 count) {
     g_table = table;
     g_count = count;
+}
+
+void __cdecl Game_RestoreFrame() {
+    Cd(0x0044e410, 3u);   // Rides_AnimateAll
+    if (!(reinterpret_cast<u8 &>(gCameraFlags) & 0x16)) {
+        Cd(0x0045bf90, 0x007a1c70u, 0x42700000u, Ptr(&gHighlight_Point_7a1c90), 0u);   // RayPick_World (60.0f)
+        Cd(0x0045d560, 0x007a1c70u);   // MouseState_SetTileFromPosition
+        Cd(0x0044e5d0, 0x007a1c70u);   // Frame_SetPoint
+    }
+    Cd(0x0040f220);
+    Cd(0x0053c3f0);   // DynFaces_Frame
+    Cd(0x00469840);   // Highlight_PulseFlashing
+    Cd(0x00469410);   // Highlight_WhitenCurrent
+    Th(0x0046c100, 0x007b05a8u);   // MouseState_NewFrame
+    G<u32>(Start(1)) = Ticks();
+    Cd(0x0044e510);   // Frame_Begin
+    const u32 ended = Ticks();
+    G<u32>(0x00879064) = 0;
+    const u32 took = ended - G<u32>(Start(1));
+    G<u32>(Start(1)) = took;
+    G<u32>(0x0087907c) = took;
+    Cd(0x00475430);   // SpriteScripts_Draw
+    Th(0x0046c110, 0x007b05a8u);   // MouseState_ResolvePick
+    G<u32>(0x00879080) = 0;
 }
 
 u32 __cdecl Game_RunFrame() {

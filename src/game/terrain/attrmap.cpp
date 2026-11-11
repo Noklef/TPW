@@ -7,6 +7,7 @@
 #include "../core/gameheap.h"
 #include "../core/stdlist.h"
 #include "../files/chunkfile.h"
+#include "../world/world.h"
 #include "../core/vdtor.h"
 
 namespace {
@@ -20,7 +21,7 @@ extern "C" u32 __cdecl TerrainAttrMap_Load() {
     char path[0x104];
     Crt().sprintf(path, "%s\\Terrain\\Base.map", reinterpret_cast<const char *>((uintptr_t)g_calls.Cd(0x0040ef40)));
     const u32 located = g_calls.Cd(0x0044a280, (u32)(uintptr_t)path, 1u, 0u);
-    const u32 cells = *reinterpret_cast<u32 *>((uintptr_t)0x007cf83c) + 0x2d8;
+    const u32 cells = *reinterpret_cast<u32 *>((uintptr_t)(u32)&gWorldPtr) + 0x2d8;
     return g_calls.Th(0x005192d0, cells, located) != 0;
 }
 
@@ -44,8 +45,8 @@ void __fastcall AttrMap_ReadMapChunk(u8 *handler, void *, const u8 *chunk, u32) 
 }
 
 u32 __fastcall TP2M_ReadChunks(u8 *cells, void *, const char *name) {
-    u32 file[5] = {0x00700ab0, 0, 0, 0, 0x4d325054};   // ("TP2M")
-    u32 handler[3] = {0x00700aa8, 0x2050414d, static_cast<u32>(reinterpret_cast<uintptr_t>(cells))};   // ("MAP ")
+    u32 file[5] = {(u32)(uintptr_t)AttrMapFile_vtable, 0, 0, 0, 0x4d325054};   // ("TP2M")
+    u32 handler[3] = {(u32)(uintptr_t)AttrMapHandler_vtable, 0x2050414d, static_cast<u32>(reinterpret_cast<uintptr_t>(cells))};   // ("MAP ")
     List_PushHeadForward(reinterpret_cast<u8 *>(file), nullptr, static_cast<u32>(reinterpret_cast<uintptr_t>(handler)));
     const u32 result = ChunkFile_Open(reinterpret_cast<u8 *>(file), nullptr, name);
     file[0] = (u32)(uintptr_t)ListDtor700aa0_vtable;

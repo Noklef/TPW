@@ -305,6 +305,15 @@ void Person_SetEnv(const PersonEnv *env);
 // Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
 GAME_DATA(u32, gVisitor_UseObject_75d0f0, 0x0075d0f0, 4);
 GAME_DATA(u32, gVisitor_UseObject_75d0f4, 0x0075d0f4, 4);
+GAME_DATA(char[0x14], gText_Visitor_Serialize_75d1f4, 0x0075d1f4, 0x14);
+GAME_DATA(char[0xc], gText_Visitor_Serialize_75d208, 0x0075d208, 0xc);
+GAME_DATA(char[0x10], gText_Visitor_Serialize_75d214, 0x0075d214, 0x10);
+GAME_DATA(char[0x18], gText_Visitor_Serialize_75d224, 0x0075d224, 0x18);
+GAME_DATA(char[0xc], gText_Visitor_Serialize_75d23c, 0x0075d23c, 0xc);
+GAME_DATA(char[0x10], gText_Visitor_Serialize_75d248, 0x0075d248, 0x10);
+GAME_DATA(char[0x8], gText_Visitor_Serialize_75d258, 0x0075d258, 0x8);
+GAME_DATA(char[0x8], gText_Visitor_Serialize_75d260, 0x0075d260, 0x8);
+GAME_DATA(char[0x1c], gText_Visitor_Serialize_75d268, 0x0075d268, 0x1c);
 
 // Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
 GAME_DATA(const double, gPerson_700758, 0x00700758, 0x8);
@@ -348,3 +357,5 @@ GAME_DATA(char[20], gText_Thoughts_Serialize_761dd4, 0x00761dd4, 0x14);
 GAME_DATA(char[20], gText_Thoughts_Serialize_761de8, 0x00761de8, 0x14);
 GAME_DATA(char[12], gText_Visitor_Serialize_75d2a8, 0x0075d2a8, 0xc);
 GAME_DATA(char[24], gText_Visitor_Serialize_75d2b4, 0x0075d2b4, 0x18);
+GAME_DATA(u32, gPerson_BobRow_7cedd4, 0x007cedd4, 4);     // the bob table's row, one on each 1.0 of gPerson_BobTime_7cedd8
+GAME_DATA(float, gPerson_BobTime_7cedd8, 0x007cedd8, 4);

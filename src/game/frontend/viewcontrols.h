@@ -98,6 +98,10 @@ void __fastcall Obj_SetOrKeepC(u8 *object, void *, u32 value);
 #include "../core/gamedata.h"
 
 // Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(const float, gViewcontrols_702b7c, 0x00702b7c, 0x4);
+GAME_DATA(const float, gViewcontrols_702b80, 0x00702b80, 0x4);
+GAME_DATA(const float, gViewcontrols_702b84, 0x00702b84, 0x4);
+GAME_DATA(const float, gViewcontrols_702b88, 0x00702b88, 0x4);
 GAME_DATA(const float, gViewcontrols_702b8c, 0x00702b8c, 0x4);
 GAME_DATA(const float, gViewcontrols_702b90, 0x00702b90, 0x4);
 GAME_DATA(const float, gViewcontrols_702b94, 0x00702b94, 0x4);

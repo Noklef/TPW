@@ -59,6 +59,10 @@ void __cdecl LevelMeter_SetLevel(u8 *window, u32 level);
 // position and the clock (GuiClock_Now) are kept. Every message then goes to Window_CallDefault (its result returned).
 s32 __cdecl LevelMeter_OnMessage(u8 *window, u32 message, u32 a, u32 b);
 
+// 0x4a9f90 (cdecl (window, message, a, b); name invented, unconfirmed): the research panel's slider 0xd2d10's handler: message 0x14 clears
+// [0x7cc1dc]; every message then goes to Window_CallDefault (its result returned).
+s32 __cdecl ResearchSlider_OnMessage(u8 *window, u32 message, u32 a, u32 b);
+
 // 0x4a9c70 (cdecl (group); name unconfirmed): the research panel [0x7cc1d8]'s meters. A group's level is 0 without a current project
 // (ResearchLab_CurrentObjId's id 0), else the lab's Table_ScaledBySum of the group; the lab the game [0x7cf83c]'s, found again for each.
 // Group -1: the groups 0, 4, 1, 2, 3 each shown on its meter (0xd2d01, 0xd2d07, 0xd2d08, 0xd2d09, 0xd2d0a: Window_FindChild, not checked;
@@ -132,3 +136,6 @@ GAME_DATA(u32, gLevelmeter_7cc1d4, 0x007cc1d4, 0x4);
 GAME_DATA(u8 *, gLevelmeter_7cc1d8, 0x007cc1d8, 0x4);
 GAME_DATA(u8 *, gResearchPanel_Open_7cc1dc, 0x007cc1dc, 0x4);
 GAME_DATA(u8, gResearchPanel_Open_fb34be, 0x00fb34be, 0x1);
+
+// Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(u8[0x738], gResearchPanel_Open_754490, 0x00754490, 0x738);   // a window script (or a text / table before one): to the next named address

@@ -24,3 +24,8 @@ void __fastcall MouseMode6fead0_Hover(void *, void *, u32, u32, u32, u32);
 // one, the cursor 0) set on the holder, made by MouseModeHolder_Ctor; that ends it. Else a tile that passes: Camera_ToggleWalkMode, the same mode set, the holder made inline, the cursor 0; one that fails: the cursor 8.
 void __fastcall MouseMode6fead0_Click(void *, void *, u32, u32);
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(u8, gMousemodeclick_fb3518, 0x00fb3518, 0x1);

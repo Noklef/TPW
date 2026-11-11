@@ -78,12 +78,12 @@ void __fastcall ViewCtl702bc8_Enter(u8 *self) {
     at<u32>(View(), 0x50) = 0xf30000;
     at<u32>(View(), 0x54) = 0xcb0000;
     at<u32>(View(), 0x58) = 0xbf0000;
-    at<u32>(self, 0x74) = g_env->playAt(0, gSoundset_803a48, 2, 0, 0, 0);
-    at<u32>(self, 0x78) = g_env->playAt(0, gSoundset_803a48, 3, 0, 0, 0);
+    at<u32>(self, 0x74) = g_env->playAt(0, gSoundCategories.lobbySfx, 2, 0, 0, 0);
+    at<u32>(self, 0x78) = g_env->playAt(0, gSoundCategories.lobbySfx, 3, 0, 0, 0);
     u8 *const part = static_cast<u8 *>(GameHeap_Alloc(0x18));
     if (part) {
         at<u32>(part, 0) = (u32)(uintptr_t)Class702bb4_vtable;
-        u8 *const model = g_env->makeModel(gFrame_f83774, nullptr, reinterpret_cast<const char *>(0x00774c80), reinterpret_cast<const char *>(0x00774cc0), 1, 1, 0, 0);
+        u8 *const model = g_env->makeModel(gFrame_f83774, nullptr, reinterpret_cast<const char *>((u32)(uintptr_t)&gText_Sceneenter_774c80), reinterpret_cast<const char *>((u32)(uintptr_t)&gSceneenter_774ca8 + 0x18), 1, 1, 0, 0);
         at<u8 *>(part, 4) = model;
         g_env->acquire(model);
         at<u8 *>(part, 8) = self;
@@ -131,7 +131,7 @@ void __fastcall Scene702dd0_Enter(u8 *self) {
     u8 *const item = at<u8 *>(self, 0xc);
     if (!item)
         return;
-    u8 *const table = gSoundset_803a4c;
+    u8 *const table = gSoundCategories.lobbyPairs;
     at<u32>(item, 0x1c) = g_env->playAt(at<u32>(item, 0x1c), at<u32>(table, at<u32>(item, 0x18) * 8 + 4), 1, 0, 0, 0);
     at<u32>(item, 0x20) = g_env->playAt(at<u32>(item, 0x20), at<u32>(table, at<u32>(item, 0x18) * 8), 2, 0, 0, 0);
     g_env->apply();

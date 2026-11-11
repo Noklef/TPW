@@ -8,6 +8,7 @@
 #include "display.h"
 #include "palette.h"
 #include "../render/screen.h"
+#include "../render/d3dsetup.h"
 
 namespace {
 
@@ -34,7 +35,7 @@ Surface *__cdecl TvStatic_CreateSurface() {
     desc[3] = 0x140;
     desc[0x1a] = 0x840;
     void *surface = s;  // (the original's out slot held the Surface)
-    u8 *directDraw = *global<u8 **>(0x00879a24);
+    u8 *directDraw = *global<u8 **>((u32)(uintptr_t)&gD3dsetup_879a20 + 0x4);
     s32 result;
     if (comcall<s32>(directDraw, 0x18, desc, &surface, nullptr) != 0)
         result = -1;

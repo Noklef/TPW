@@ -9,6 +9,7 @@
 #include "../gfx/texdirs.h"
 #include "textscan.h"
 #include "vfs.h"
+#include "../world/objectdefs.h"
 
 namespace {
 
@@ -155,7 +156,7 @@ u32 __cdecl Quickload_LoadRide(const char *name, const char *folder, const char 
     loaded() = 0;
     LoadPaths paths;
     if (folder)
-        Crt().sprintf(paths.located, reinterpret_cast<const char *>(0x007488ac), folder, name);   // "%s\%s"
+        Crt().sprintf(paths.located, gText_Objectdefs_7488ac, folder, name);   // "%s\%s"
     else
         Crt().sprintf(paths.located, name);   // (sic: the name is the format)
     s32 index;

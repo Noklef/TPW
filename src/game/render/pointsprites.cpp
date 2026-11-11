@@ -24,7 +24,7 @@ const u32 kWhite = 0xffffffff;
 
 // The static result of the matrix and the view.
 const float *Combined(const float *matrix, const float *view) {
-    float *const result = reinterpret_cast<float *>((uintptr_t)0x00fb3400);
+    float *const result = reinterpret_cast<float *>((uintptr_t)&gMat4_fb3400);
     u8 &guard = gPointsprites_fb33e0;
     if (!(guard & 1)) {
         memset(result, 0, 0x40);

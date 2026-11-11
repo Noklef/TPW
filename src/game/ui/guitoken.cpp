@@ -3,6 +3,7 @@
 #include <cstdint>
 
 #include "../core/crt.h"
+#include "guitokenwide.h"
 
 namespace {
 
@@ -30,9 +31,9 @@ char *__cdecl GuiToken_ReadCommand(char *text, u16 *out) {
     const char kept = *end;
     *end = 0;
     bool found = false;
-    const s16 count = *reinterpret_cast<const s16 *>((uintptr_t)0x0077c598);
+    const s16 count = *reinterpret_cast<const s16 *>((uintptr_t)&gGuiToken_77c540 + 0x58);
     for (s32 i = 0; i < count && !found; ++i) {
-        const u8 *const entry = reinterpret_cast<const u8 *>((uintptr_t)(0x0077c4d0 + 8 * i));
+        const u8 *const entry = reinterpret_cast<const u8 *>((uintptr_t)((u32)(uintptr_t)&gGuiToken_ReadCommand_77c4d0 + 8 * i));
         if (Crt().strcmp(text, *reinterpret_cast<const char *const *>(entry)) == 0) {
             if (out) *out = *reinterpret_cast<const u16 *>(entry + 4);
             found = true;
@@ -47,7 +48,7 @@ char *__cdecl GuiToken_ReadRect(char *text, s32 *a, s32 *b, s32 *c, s32 *d) {
     if (!end) return end;
     const char kept = *end;
     *end = 0;
-    if (a && b && c && d) g_env->scanFour(text, reinterpret_cast<const char *>((uintptr_t)0x0077c698), a, b, c, d);
+    if (a && b && c && d) g_env->scanFour(text, reinterpret_cast<const char *>((uintptr_t)&gGuiToken_77c690 + 0x8), a, b, c, d);
     *end = kept;
     return end + 1;
 }
@@ -57,7 +58,7 @@ char *__cdecl GuiToken_ReadPoint(char *text, s32 *a, s32 *b) {
     if (!end) return end;
     const char kept = *end;
     *end = 0;
-    if (a && b) g_env->scanTwo(text, reinterpret_cast<const char *>((uintptr_t)0x0077c6a4), a, b);
+    if (a && b) g_env->scanTwo(text, reinterpret_cast<const char *>((uintptr_t)&gText_GuiToken_ReadPoint_77c6a4), a, b);
     *end = kept;
     return end + 1;
 }
@@ -73,9 +74,9 @@ char *__cdecl GuiToken_ReadKind(char *text, u16 *out) {
     const char kept = *end;
     *end = 0;
     bool found = false;
-    const s16 count = *reinterpret_cast<const s16 *>((uintptr_t)0x0077c59c);
+    const s16 count = *reinterpret_cast<const s16 *>((uintptr_t)&gGuiToken_77c540 + 0x5c);
     for (s32 i = 0; i < count && !found; ++i) {
-        const u8 *const entry = reinterpret_cast<const u8 *>((uintptr_t)(0x0077c540 + 8 * i));
+        const u8 *const entry = reinterpret_cast<const u8 *>((uintptr_t)((u32)(uintptr_t)&gGuiToken_77c540 + 8 * i));
         if (Crt().strcmp(text, *reinterpret_cast<const char *const *>(entry)) == 0) {
             if (out) *out = *reinterpret_cast<const u16 *>(entry + 4);
             found = true;

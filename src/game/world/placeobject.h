@@ -67,3 +67,14 @@ GAME_DATA(const s32 *, gPlaceObject_Footprint_818c18, 0x00818c18, 4);
 
 // Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
 GAME_DATA(const float, gPlaceobject_700cd0, 0x00700cd0, 0x4);
+GAME_DATA(s32, gPlaceObject_Footprint_818c20, 0x00818c20, 4);
+GAME_DATA(s32, gPlaceObject_Footprint_818c24, 0x00818c24, 4);
+GAME_DATA(s32, gPlaceObject_Footprint_818c28, 0x00818c28, 4);
+GAME_DATA(s32, gPlaceObject_Footprint_818c2c, 0x00818c2c, 4);
+GAME_DATA(u8, gPlaceObject_Footprint_818c30, 0x00818c30, 1);
+GAME_DATA(u16, gPlaceobject_818c38, 0x00818c38, 2);
+GAME_DATA(u16, gPlaceobject_818c3c, 0x00818c3c, 2);
+GAME_DATA(u8 *, gPlaceObject_Footprint_818c40, 0x00818c40, 4);
+GAME_DATA(s32, gPlaceObject_Footprint_818c44, 0x00818c44, 4);
+GAME_DATA(s32, gPlaceObject_Footprint_818c48, 0x00818c48, 4);
+GAME_DATA(s32, gPlaceObject_Footprint_818c4c, 0x00818c4c, 4);

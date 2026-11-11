@@ -25,7 +25,7 @@ void __cdecl Dialog7cc654_FitText() {
     const s32 gw = *reinterpret_cast<const s16 *>((uintptr_t)0x00faa5c4), gh = *reinterpret_cast<const s16 *>((uintptr_t)0x00faa5c0);
     const s32 area[4] = {0, 0, (word(rect, 8) - word(rect, 4)) * gw / 2048, (word(rect, 0xa) - word(rect, 6)) * gh / 1536};
     s32 box[4] = {0, 0, 0, 0};
-    GuiText_Measure(reinterpret_cast<const u16 *>((uintptr_t)0x007cb4d0), area, 6, 0, 0, 1, box);
+    GuiText_Measure(reinterpret_cast<const u16 *>((uintptr_t)&gDialog7cc654_7cb4d0), area, 6, 0, 0, 1, box);
     const s32 height = word(rect, 0xa) - word(rect, 6);
     const s32 needed = (s32)((u32)box[3] * 1536u) / gh;
     if (needed > height) {
@@ -34,7 +34,7 @@ void __cdecl Dialog7cc654_FitText() {
     } else {
         Window_SetShown(bar, nullptr, 0);
     }
-    if (!(u16)vcall<u32>(bar, 0x1c, 0u)) vcall<void>(window, 0x24, 0x007cb4d0u);
+    if (!(u16)vcall<u32>(bar, 0x1c, 0u)) vcall<void>(window, 0x24, (u32)(uintptr_t)&gDialog7cc654_7cb4d0);
     GuiRect_Dtor(rect);
 }
 }

@@ -123,6 +123,9 @@ s32 __fastcall Ftp_WsaCleanup(void *self);
 #include "../core/gamedata.h"
 
 // Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(char[0x4], gText_Ftp_74cfb4, 0x0074cfb4, 0x4);
+GAME_DATA(char[0x10], gText_Ftp_773ce0, 0x00773ce0, 0x10);
+GAME_DATA(char[0x10], gText_Ftp_LocalAddress_773cf0, 0x00773cf0, 0x10);
 GAME_DATA(char[28], gFtp_DataSetup_774110, 0x00774110, 0x1c);
 GAME_DATA(char[8], gFtp_DataSetup_77412c, 0x0077412c, 0x8);
 GAME_DATA(char[12], gFtp_774134, 0x00774134, 0xc);
@@ -131,6 +134,7 @@ GAME_DATA(char[12], gFtp_77414c, 0x0077414c, 0xc);
 GAME_DATA(char[8], gFtp_774158, 0x00774158, 0x8);
 GAME_DATA(char[12], gFtp_774160, 0x00774160, 0xc);
 GAME_DATA(char[12], gFtp_77416c, 0x0077416c, 0xc);
+GAME_DATA(u8[0x1], gFtp_WsaErrorBox_774810, 0x00774810, 0x1);
 
 // The vtables hold only ports: tpw.exe's loader points their slots at them (.docs/09-globals.md).
 GAME_DATA(void *[1], Class70295c_vtable, 0x0070295c, 0x4);

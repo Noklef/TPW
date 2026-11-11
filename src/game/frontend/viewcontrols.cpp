@@ -58,11 +58,11 @@ const ViewCtlEnv *g_viewCtlEnv = &kViewCtlPorts;
 void pickThing(u8 *self) {
     const u8 *const input = *reinterpret_cast<u8 **>((uintptr_t)0x00f82884);
     const float kOne = *reinterpret_cast<float *>((uintptr_t)0x00702b60);
-    const float kScale = *reinterpret_cast<float *>((uintptr_t)0x00702b80);
+    const float kScale = gViewcontrols_702b80;
     float in[3], out[3];
-    in[0] = (float)((X87Reg(X87_MulIntDouble(*reinterpret_cast<const s32 *>(input + 0x20), *reinterpret_cast<float *>((uintptr_t)0x00702b7c))) - kOne) * kScale);
+    in[0] = (float)((X87Reg(X87_MulIntDouble(*reinterpret_cast<const s32 *>(input + 0x20), gViewcontrols_702b7c)) - kOne) * kScale);
     in[2] = X87_Through(kOne);
-    in[1] = (float)((X87Reg(X87_MulIntDouble(0x600 - *reinterpret_cast<const s32 *>(input + 0x24), *reinterpret_cast<float *>((uintptr_t)0x00702b84))) - kOne) *
+    in[1] = (float)((X87Reg(X87_MulIntDouble(0x600 - *reinterpret_cast<const s32 *>(input + 0x24), gViewcontrols_702b84)) - kOne) *
                     *reinterpret_cast<float *>((uintptr_t)0x008bcbcc) * kScale);
     Mat4_Transform(*reinterpret_cast<const float **>((uintptr_t)0x0087afe8), nullptr, out, in, 2);
     const float *const camera = reinterpret_cast<const float *>(gFrame_f83778 + 8);
@@ -114,7 +114,7 @@ void pickThing(u8 *self) {
 void edgeScroll(u8 *self) {
     const u8 *const input = *reinterpret_cast<u8 **>((uintptr_t)0x00f82884);
     float &v48 = *reinterpret_cast<float *>(self + 0x48), &v50 = *reinterpret_cast<float *>(self + 0x50);
-    const float kZero = *reinterpret_cast<float *>((uintptr_t)0x00702b88), kOne = *reinterpret_cast<float *>((uintptr_t)0x00702b60);
+    const float kZero = gViewcontrols_702b88, kOne = *reinterpret_cast<float *>((uintptr_t)0x00702b60);
     const float kLow = gViewcontrols_702ba8, kHigh = gViewcontrols_702bac;
     float fx = (float)X87_MulIntDouble(*reinterpret_cast<const s32 *>(input + 0x20), gViewcontrols_702b9c);
     if (fx < kZero) fx = 0.0f;
@@ -140,8 +140,8 @@ extern "C" void __fastcall ViewCtl702bc8_Update(u8 *self) {
     if (dragging == 0) edgeScroll(self);
     if (*reinterpret_cast<u8 *>((uintptr_t)0x0078d910) != 0 && Obj_Flags1cAnd(input(), nullptr, 2)) {
         const float step = *reinterpret_cast<float *>(self + 0x10);
-        v48 = (float)(X87Reg(X87_MulIntDouble(*reinterpret_cast<s32 *>(input() + 0x20) - 0x400, *reinterpret_cast<float *>((uintptr_t)0x00702b7c))) * step + v48);
-        v50 = (float)X87_SubR(X87Reg(X87_MulIntDouble(*reinterpret_cast<s32 *>(input() + 0x24) - 0x300, *reinterpret_cast<float *>((uintptr_t)0x00702b84))) * step, v50);
+        v48 = (float)(X87Reg(X87_MulIntDouble(*reinterpret_cast<s32 *>(input() + 0x20) - 0x400, gViewcontrols_702b7c)) * step + v48);
+        v50 = (float)X87_SubR(X87Reg(X87_MulIntDouble(*reinterpret_cast<s32 *>(input() + 0x24) - 0x300, gViewcontrols_702b84)) * step, v50);
     }
     const float factor = *reinterpret_cast<float *>(self + 0x18);
     const X87Reg a = X87Reg(v48) * factor, b = X87Reg(v50) * factor;

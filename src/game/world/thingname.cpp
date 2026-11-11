@@ -28,7 +28,7 @@ void __fastcall Thing_NameA(u8 *thing, void *, u16 *to, u32 count) {
         return;
     }
     if (length > 1 && text[length - 1] == '-' && text[length - 2] == '-') {
-        u16 *const copy = global_text(0x007cdc58);
+        u16 *const copy = gThingName_Copy_7cdc58;
         copy[0x20] = 0;
         g_env->snwprintf(copy, 0x21, format, text);
         copy[length - 1] = 0;

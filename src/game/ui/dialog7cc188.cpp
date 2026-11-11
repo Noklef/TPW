@@ -68,7 +68,7 @@ void __cdecl Dialog7cc188_Open() {
     u8 *const list = Window_FindChild(window, nullptr, 0x26);
     g_open->buildRows(list, nullptr, reinterpret_cast<u8 *(__cdecl *)()>((uintptr_t)0x004a8380), reinterpret_cast<void(__cdecl *)(u8 *)>((uintptr_t)0x004a8420));
     g_open->columnBottom(list, nullptr, 0, 0);
-    g_open->setHighlight(list, nullptr, reinterpret_cast<u8 *>((uintptr_t)g_open->findByName(reinterpret_cast<const char *>((uintptr_t)0x0074fa84))));
+    g_open->setHighlight(list, nullptr, reinterpret_cast<u8 *>((uintptr_t)g_open->findByName(reinterpret_cast<const char *>((uintptr_t)&gText_Dialog7cc188_74fa84))));
     g_open->fillList(0);
     u8 *const edit = Window_FindChild(window, nullptr, 0x25);
     u8 *const memory = static_cast<u8 *>(g_open->alloc(0x1a4));
@@ -78,7 +78,7 @@ void __cdecl Dialog7cc188_Open() {
     g_open->notifyC00(edit, nullptr, 0, 0);
     g_open->setHandler(edit, nullptr, 0x004a77c0);
     g_open->setBuffer(edit, nullptr, reinterpret_cast<uintptr_t>(&gDialog7cc188_7cb8d8), 0x3f);
-    g_open->setCaret(edit, nullptr, reinterpret_cast<u8 *>((uintptr_t)g_open->findByName(reinterpret_cast<const char *>((uintptr_t)0x0074fa84))));
+    g_open->setCaret(edit, nullptr, reinterpret_cast<u8 *>((uintptr_t)g_open->findByName(reinterpret_cast<const char *>((uintptr_t)&gText_Dialog7cc188_74fa84))));
     vcall<void>(edit, 0x24, reinterpret_cast<const void *>(gWindow7cc8c0handler_78a374));
     g_open->post(0x134);
 }
@@ -91,7 +91,7 @@ void __cdecl Dialog7cc188_FillList(u32 clear) {
     u32 texts[1];
     for (u32 index = 0; *text; ++index) {
         u16 buffer[0x40];
-        g_env->swprintf(buffer, reinterpret_cast<const u16 *>((uintptr_t)0x0075442c), text);
+        g_env->swprintf(buffer, reinterpret_cast<const u16 *>((uintptr_t)&gDialog7cc188handler_75442c), text);
         texts[0] = (u32)(uintptr_t)buffer;
         g_env->add(list, nullptr, texts, index, -1, 0);
         text = textOf(StdListString_Next(strings));

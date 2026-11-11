@@ -28,6 +28,7 @@
 #include "chatevents.h"
 #include "../render/enginedebug.h"
 #include "../core/swearfilter.h"
+#include "../world/advisorspeech.h"
 #include "../core/imports.h"
 
 namespace {
@@ -411,7 +412,7 @@ u8 *__fastcall MailAttachment_Ctor(u8 *self, void *, const char *path) {
     StdString_Zero(self + 0x10);
     u8 *data = nullptr;
     s32 size = static_cast<s32>(reinterpret_cast<uintptr_t>(path));   // (no file: the path's address is the length, sic)
-    void *const file = g_client->fopen(path, reinterpret_cast<const char *>((uintptr_t)0x0074cfb8));
+    void *const file = g_client->fopen(path, reinterpret_cast<const char *>((uintptr_t)&gText_Advisorspeech_74cfb8));
     if (file) {
         g_client->fseek(file, 0, 2);
         size = g_client->ftell(file);
@@ -621,7 +622,7 @@ u8 __fastcall AddressBook_Save(u8 *self, void *, const char *folder) {
     u8 stream[0x8c];   // (+0 the vbtable, +4 the file buffer, its file at +0x54, +0x58 the ios)
     u8 *const buffer = stream + 4;
     u8 *const ios = stream + 0x58;
-    at<u32>(stream, 0) = 0x00702978;
+    at<u32>(stream, 0) = (u32)(uintptr_t)&Vbtable_702978;
     g_env->iosInit(ios);
     g_env->ostreamCtor(stream, nullptr, buffer, 0, 1, 0);
     g_env->fileCtor(buffer, nullptr, nullptr);
@@ -704,7 +705,7 @@ u8 __fastcall Mailbox_SaveMessage(u8 *self) {
     u8 stream[0x8c];   // (+0 the vbtable, +4 the file buffer, its file at +0x54, +0x58 the ios)
     u8 *const buffer = stream + 4;
     u8 *const ios = stream + 0x58;
-    at<u32>(stream, 0) = 0x00702978;
+    at<u32>(stream, 0) = (u32)(uintptr_t)&Vbtable_702978;
     g_env->iosInit(ios);
     g_env->ostreamCtor(stream, nullptr, buffer, 0, 1, 0);
     g_env->fileCtor(buffer, nullptr, nullptr);
@@ -825,7 +826,7 @@ u8 __fastcall Mailbox_SaveOutbox(u8 *self) {
     u8 stream[0x8c];   // (+0 the vbtable, +4 the file buffer, its file at +0x54, +0x58 the ios: the original's frame has this much)
     u8 *const buffer = stream + 4;
     u8 *const ios = stream + 0x58;
-    at<u32>(stream, 0) = 0x00702978;
+    at<u32>(stream, 0) = (u32)(uintptr_t)&Vbtable_702978;
     g_env->iosInit(ios);
     g_env->ostreamCtor(stream, nullptr, buffer, 0, 1, 0);
     g_env->fileCtor(buffer, nullptr, nullptr);

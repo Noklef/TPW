@@ -273,7 +273,7 @@ void __fastcall Challenges_Lost(u8 *challenges) {
 }
 
 const u8 *__fastcall BalanceChallenges_GetSchema(const u8 *, void *, u32 index) {
-    return reinterpret_cast<const u8 *>(0x00739b98) + index * 0x3c;
+    return reinterpret_cast<const u8 *>((u32)(uintptr_t)&gBalanceChallenges_GetSchema_739b98) + index * 0x3c;
 }
 u32 __fastcall Challenge_Serialize(u8 *challenge, void *, Stream *stream, u32 save, s32 version, u32) {
     static const SaveSpec kFields[] = {{0x0, 4, (u32)&gText_Challenges_75a034},  {0x4, 4, (u32)&gText_Challenge_Serialize_75a168},  {0x8, 4, (u32)&gText_Challenge_Serialize_75a15c},  {0xc, 2, (u32)&gText_Challenge_Serialize_75a150},  {0xe, 2, (u32)&gText_Challenge_Serialize_75a144},

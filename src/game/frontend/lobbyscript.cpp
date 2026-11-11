@@ -98,7 +98,7 @@ void FlyingMesh(u8 *self, const char *&cursor) {
     const u32 from = *reinterpret_cast<u32 *>(self + 0x10) + 0x3c;
     FlyingPoints points;
     points.start[0] = G<u32>(from);
-    const float y = (float)(X87Reg(G<const float>(from + 4)) - X87Reg(G<const double>(0x00702d40)));
+    const float y = (float)(X87Reg(G<const float>(from + 4)) - X87Reg(gLobbyscript_702d40));
     points.start[1] = FloatBits(y);
     points.start[2] = G<u32>(from + 8);
     points.end[0] = FloatToken(cursor, ',');

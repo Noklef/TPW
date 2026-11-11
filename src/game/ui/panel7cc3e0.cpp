@@ -31,7 +31,7 @@ void __fastcall Panel7cc3e0_Open(u8 *self) {
 
 void __fastcall Panel7cc3e0_Show(u8 *self, void *, u8 *thing) {
     *reinterpret_cast<u8 **>((uintptr_t)0x007cc3d8) = thing;
-    WindowAt10_Create(self, nullptr, reinterpret_cast<u8 *>((uintptr_t)0x007573c8), 0x004b67f0, 0x520c, 0x520d, 0);
+    WindowAt10_Create(self, nullptr, reinterpret_cast<u8 *>((uintptr_t)&gPanel7cc3e0_Show_7573c8), 0x004b67f0, 0x520c, 0x520d, 0);
     Advisor_PostId(0x12d);
 }
 
@@ -50,7 +50,7 @@ void __fastcall Panel7cc3e0_ShowValues(u8 *self) {
     if (!window(self)) return;
     if (u8 *const child = Window_FindChild(window(self), nullptr, 0x5210)) {
         const SetValue set = (*reinterpret_cast<SetValue const *const *>(child))[7];
-        GameTable7cfb90_Get1da720_519510(*reinterpret_cast<u8 *const *>((uintptr_t)0x007cf83c));   // (its answer only the ECX of the stdcall)
+        GameTable7cfb90_Get1da720_519510(*&gWorldPtr);   // (its answer only the ECX of the stdcall)
         set(child, nullptr, ObjectControls_GetWord18(*reinterpret_cast<const u16 *>(thing + 0xe)));
     }
     u8 *const child = Window_FindChild(window(self), nullptr, 0x520e);

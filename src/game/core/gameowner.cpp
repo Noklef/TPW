@@ -3,6 +3,7 @@
 
 #include <cstdint>
 #include "../ui/panel7b9940.h"
+#include "../world/world.h"
 
 namespace {
 
@@ -86,14 +87,14 @@ void __fastcall GameOwner_TogglePause(u8 *self, void *, u32 flag) {
 }
 
 u32 __fastcall GameOwner_Shutdown(u8 *self) {
-    if (global<u32>(0x007cf83c)) {
-        g_calls.Th(0x00515dd0, global<u32>(0x007cf83c));   // World_ClearLevel
-        const u32 level = global<u32>(0x007cf83c);
+    if (global<u32>((u32)&gWorldPtr)) {
+        g_calls.Th(0x00515dd0, global<u32>((u32)&gWorldPtr));   // World_ClearLevel
+        const u32 level = global<u32>((u32)&gWorldPtr);
         if (level) {
             g_calls.Th(0x00409240, level);   // its destructor
             g_calls.Cd(0x0067acb0, level);   // Mem_Free
         }
-        global<u32>(0x007cf83c) = 0;
+        global<u32>((u32)&gWorldPtr) = 0;
     }
     g_calls.Th(0x00412d50, 0x007890a0u);   // ObjectDefs_Free
     g_calls.Th(0x00585e20, 0x008c1828u);   // Landscape_FreeTextures

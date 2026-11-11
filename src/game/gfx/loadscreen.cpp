@@ -10,6 +10,7 @@
 #include "../math/x87.h"
 #include "../render/state.h"
 #include "mmxfill.h"
+#include "../render/d3dsetup.h"
 #include "../core/imports.h"
 
 namespace {
@@ -75,7 +76,7 @@ u32 __fastcall LoadScreen_ShowImage(u8 *image) {
     if (!pixels)
         return 1;
     if (global<u32>(0x008bd524) == 1) {
-        void *const surface = *reinterpret_cast<void **>(global<u8 *>(0x00879a24) + 0x14);
+        void *const surface = *reinterpret_cast<void **>(global<u8 *>((u32)(uintptr_t)&gD3dsetup_879a20 + 0x4) + 0x14);
         u32 desc[0x1f] = {};
         desc[0] = 0x7c;
         if (reinterpret_cast<s32(__stdcall *)(void *, void *, u32 *, u32, u32)>((*reinterpret_cast<void ***>(surface))[0x19])(surface, nullptr, desc, 1, 0))

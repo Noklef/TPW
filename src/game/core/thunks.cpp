@@ -11,6 +11,8 @@
 #include "vtables.h"
 #include "../gfx/texsurface.h"
 #include "liveobjects.h"
+#include "fpu.h"
+#include "inputsystem.h"
 #include "../gfx/texture.h"
 #include "../render/rasteriser.h"
 #include "../render/softrender.h"
@@ -49,7 +51,9 @@
 #include "crt.h"
 #include "keymap.h"
 #include "../world/nav.h"
+#include "../world/object.h"
 #include "iosbase.h"
+#include "../model/hoardingmesh.h"
 
 namespace {
 
@@ -88,7 +92,7 @@ u32 __cdecl Wrap_Flags7a1a14_Update_40f220() {
 }
 
 u32 __cdecl Wrap_Dword_ClearBit0_454540() {
-    return Dword_ClearBit0(reinterpret_cast<u32 *>(0x74d008));
+    return Dword_ClearBit0(reinterpret_cast<u32 *>((u32)(uintptr_t)&gHoardingmesh_74d008));
 }
 
 u32 __cdecl Wrap_Global7c2650_Get_481590() {
@@ -550,7 +554,7 @@ u8 *__cdecl Wrap_SystemInfo_Ctor_5f8a40() {
 }
 
 void __cdecl Wrap_Array7ced88_Dtor_4fa750() {
-    CRT_VectorDtorIterator(reinterpret_cast<u8 *>((uintptr_t)0x007ced88), 8, 9, reinterpret_cast<void(__fastcall *)(void *)>((uintptr_t)0x005d1750));
+    CRT_VectorDtorIterator(reinterpret_cast<u8 *>((uintptr_t)(u32)&gObject_Around_7ced88[0][0]), 8, 9, reinterpret_cast<void(__fastcall *)(void *)>((uintptr_t)0x005d1750));
 }
 
 void __cdecl Wrap_Array81ed40_Dtor_532bb0() {
@@ -704,5 +708,9 @@ s32 __cdecl AtExit_5f5580() { return g_env->atExit(reinterpret_cast<void *>((uin
 s32 __cdecl AtExit_5d1750() { return g_env->atExit(reinterpret_cast<void *>((uintptr_t)0x005d1750)); }
 s32 __cdecl AtExit_5fa010() { return g_env->atExit(reinterpret_cast<void *>((uintptr_t)0x005fa010)); }
 s32 __cdecl AtExit_618cc0() { return g_env->atExit(reinterpret_cast<void *>((uintptr_t)0x00618cc0)); }
+void __cdecl ExitDtor_5f5580() { InputSystem_Dtor(reinterpret_cast<u8 *>(0x00fa6e40)); }
+void __cdecl ExitDtor_5fa010() { Class7035d8_Dtor(reinterpret_cast<u8 *>(0x00fa78e8)); }
+void __cdecl ExitDtor_618cc0() {}
+void __cdecl ExitDtor_6c4540() {}
 u32 __cdecl Thread_Begin(void *proc, void *arg) { return g_env->beginThread(proc, 0, arg); }
 }  // extern "C"

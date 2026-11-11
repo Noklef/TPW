@@ -211,14 +211,41 @@ void __cdecl Particles_Init(u32 callback, u32 flag, s32 count);
 #include "../core/gamedata.h"
 
 // Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(const float, gParticlePool2_Setup_702f98, 0x00702f98, 0x4);
 GAME_DATA(u32, gParticles_Tick_80436c, 0x0080436c, 4);
-GAME_DATA(u32, gParticles_80ced8, 0x0080ced8, 4);
+GAME_DATA(u32, gParticles_816d40, 0x00816d40, 4);
 
 // Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
 GAME_DATA(float, gParticlePool2_Setup_774d8c, 0x00774d8c, 0x4);
 GAME_DATA(float, gParticlePool2_Setup_774d90, 0x00774d90, 0x4);
-GAME_DATA(s16, gParticles_816d1e, 0x00816d1e, 0x2);
-GAME_DATA(s16, gParticles_816d20, 0x00816d20, 0x2);
-GAME_DATA(s16, gParticles_816d22, 0x00816d22, 0x2);
+// The particle library's two blocks, each saved and loaded whole (SaveMods: 0x9e68 bytes from 0x80ced0, then 0x8b60 from 0x804370):
+// the 0x69 effect definitions of 0x140 bytes with the 20 effectors of 0x68 after them (0x80c6b0; TrackTypeSlot_ReadIntoFree walks the
+// definitions' +0x118 bytes past their end into the effectors, sic), and the live state. Other fields are reached by offset.
+GAME_DATA(u8[0x8b60], gParticleEffects, 0x00804370, 0x8b60);
+struct ParticleState {
+    u8 head[8];             // +0x00 0x80ced0 the live count, +4
+    u32 x08;                // +0x08
+    u8 x0c[8];              // +0x0c the emitter count, +0x10 the random seed
+    u32 x14;                // +0x14 (Emitters_Reset)
+    u8 body[0x9e4e - 0x18]; // +0x18 the sine table pointer +0x1c, the callback +0x24, the emitters +0x28, the systems (0x140 each) +0x2c, ...
+    s16 x9e4e;              // +0x9e4e 0x816d1e
+    s16 x9e50;              // +0x9e50 0x816d20 the free list's head
+    s16 x9e52;              // +0x9e52 0x816d22
+    u8 tail[0x9e68 - 0x9e54];
+};
+GAME_DATA(ParticleState, gParticleState, 0x0080ced0, 0x9e68);
 GAME_DATA(u32, gParticles_816d38, 0x00816d38, 0x4);
 GAME_DATA(u32, gParticles_816d3c, 0x00816d3c, 0x4);
+// The three particle pools (ParticlePools_Reset zeroes the 0x33 dwords; a pool's handles past the fifth run into the next pool, sic).
+struct ParticlePool {
+    float fromX, fromY;          // +0x00
+    float toX, toY;              // +0x08
+    float startTime;             // +0x10
+    float duration;              // +0x14
+    float spin;                  // +0x18
+    float radiusX0, radiusY0;    // +0x1c
+    float radiusX1, radiusY1;    // +0x24
+    s32 count;                   // +0x2c
+    u32 handles[5];              // +0x30
+};
+GAME_DATA(ParticlePool[3], gParticlePools_f86900, 0x00f86900, 0xcc);

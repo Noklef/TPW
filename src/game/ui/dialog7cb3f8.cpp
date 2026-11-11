@@ -181,7 +181,7 @@ u32 __cdecl Dialog7cb3f8_DoneConfirmed() {
 void __cdecl Dialog7cb3f8_Open() {
     g_env->resetKeys();
     g_env->setShown(*reinterpret_cast<u8 **>(global<u8 *>(0x00f82884) + 4), nullptr, 0);
-    u8 *const dialog = g_env->build(global<u8 *>(0x00faa5d8), nullptr, reinterpret_cast<u8 *>((uintptr_t)0x00753c68), 0x004a5fc0);
+    u8 *const dialog = g_env->build(global<u8 *>(0x00faa5d8), nullptr, gDialog7cb3f8_Open_753c68, 0x004a5fc0);
     global<u8 *>(0x007cb3f8) = dialog;
     if (dialog) {
         g_env->setFocus(dialog, nullptr, 0);

@@ -10,6 +10,9 @@
 #include "mapcell.h"
 #include "queuepieces.h"
 #include "random.h"
+#include "rides.h"
+#include "world.h"
+#include "focuscell.h"
 
 namespace {
 
@@ -73,18 +76,18 @@ u32 __fastcall MapCell_PickModel(const u8 *cell, void *, s32 *angle) {
     u32 model;
     switch (size) {
     case 3:
-    case 0xb: model = search(0x00762f30, global<s32>(0x00700c18), bits, turn_of(cell, direction), angle); break;
-    case 0x10: model = search(0x00762ff0, global<s32>(0x00700c1c), bits, turn_of(cell, direction), angle); break;
+    case 0xb: model = search((u32)(uintptr_t)&gMapCell_PickModel_762f30, gMapCell_PickModel_700c18, bits, turn_of(cell, direction), angle); break;
+    case 0x10: model = search((u32)(uintptr_t)&gMapCell_PickModel_762ff0, gMapCell_PickModel_700c1c, bits, turn_of(cell, direction), angle); break;
     case 0x19: {
         const u32 index = static_cast<u32>(at<u16>(cell, 0)) - 1;
         const s32 x = static_cast<s32>(index & 0x7f), y = static_cast<s32>(index >> 7);
         const s32 turn = turn_of(cell, direction);
-        if ((x == global<s32>(0x007639f0) && y == global<s32>(0x007639f4)) || (x == global<s32>(0x007639f8) && y == global<s32>(0x007639fc)))
+        if ((x == gFocusCell_PointAX_7639f0 && y == gFocusCell_PointAY_7639f4) || (x == gFocusCell_PointBX_7639f8 && y == gFocusCell_PointBY_7639fc))
             bits |= static_cast<u8>(Nibble_Scale(bits));
-        model = search(0x00762ff0, global<s32>(0x00700c1c), bits, turn, angle);
+        model = search((u32)(uintptr_t)&gMapCell_PickModel_762ff0, gMapCell_PickModel_700c1c, bits, turn, angle);
         break;
     }
-    default: model = search(0x00763138, global<s32>(0x00700c24), bits, 0, angle); break;
+    default: model = search((u32)(uintptr_t)&gMapCell_763138, gMapCell_700c24, bits, 0, angle); break;
     }
 
     if (!MapCell_CornerNeighbours(cell) && !MapCell_JunctionNeighbours(cell)) {
@@ -122,11 +125,11 @@ u32 __fastcall MapCell_PickModel(const u8 *cell, void *, s32 *angle) {
         }
     }
     if (MapCell_StraightNeighbours(cell) && !(at<u8>(cell, 0xe) & 0xf)) {
-        const s32 counter = global<s32>(0x00820aec);
+        const s32 counter = gCellmodel_820aec;
         const u32 variant = counter < 0x12 ? 0 : counter < 0x18 ? 0x14 : counter < 0x1e ? 0x17 : static_cast<u32>(reinterpret_cast<uintptr_t>(angle));
-        if (global<u32>(0x00820af0) != variant) model += variant;
-        global<u32>(0x00820af0) = variant;
-        global<u32>(0x00820aec) = static_cast<u32>(World_Rand(global<u8 *>(0x007cf83c))) % 30;
+        if (gCellmodel_820af0 != variant) model += variant;
+        gCellmodel_820af0 = variant;
+        reinterpret_cast<u32 &>(gCellmodel_820aec) = static_cast<u32>(World_Rand(gWorldPtr)) % 30;
     }
     return (model & 0xffff) | 0x50000;
 }
@@ -144,19 +147,19 @@ u32 __fastcall MapCell_PickPathModel(const u8 *cell, void *, s32 *angle) {
     u32 model;
     if (size == 3) {
         const s32 turn = MapCell_StraightNeighbours(cell) && direction != 0x40 && direction != 0x10 ? 0xb4 : 0;
-        model = search(0x007630b0, global<s32>(0x00700c20), bits, turn, angle);
+        model = search((u32)(uintptr_t)&gMapCell_PickPathModel_7630b0, gMapCell_PickPathModel_700c20, bits, turn, angle);
     } else {
-        model = search(0x00763138, global<s32>(0x00700c24), bits, 0, angle);
+        model = search((u32)(uintptr_t)&gMapCell_763138, gMapCell_700c24, bits, 0, angle);
     }
     if (type == 3 && MapCell_CornerNeighbours(cell)) {
         const u8 d = MapCell_Direction(cell), b = MapCell_Neighbours(cell);
         if ((d == 0x40 && b == 0x50) || (d == 0x10 && b == 0x14) || (d == 1 && b == 0x41) || (d == 4 && b == 5)) ++model;
     }
-    if (global<u8>(0x00820ac0) && (model & 0xffff0000u) == 0x10000) {
+    if (gCellmodel_820ac0 && (model & 0xffff0000u) == 0x10000) {
         if ((model & 0xffff) == 2) model += 0x11;
         if ((model & 0xffff) == 0xa) model += 0xa;
     }
-    global<u8>(0x00820ac0) = static_cast<u8>(Crt().rand() % 2);
+    gCellmodel_820ac0 = static_cast<u8>(Crt().rand() % 2);
     if ((model & 0xffff0000u) != 0x20000) return model;
     const u16 *const handle = reinterpret_cast<const u16 *>(cell);
     u8 side = 1;
@@ -166,7 +169,7 @@ u32 __fastcall MapCell_PickPathModel(const u8 *cell, void *, s32 *angle) {
             if (next && at<s32>(next, 8) == 1 && (MapCell_Neighbours(next) & static_cast<u8>(Nibble_Scale(side)))) {
                 const u8 *entry = MapHandle_Entry28(handle);
                 if (MapCell_IsTypeCOr11(entry))
-                    entry = global<u8 *>(0x007cf83c) + (static_cast<u32>(at<u16>(MapHandle_Entry28(handle), 0x10)) + 0x6cde) * 0x28;
+                    entry = gWorldPtr + (static_cast<u32>(at<u16>(MapHandle_Entry28(handle), 0x10)) + 0x6cde) * 0x28;
                 if (!MapCell_HasLowFlags(entry)) model += 3;
             }
         }
@@ -181,7 +184,7 @@ void __fastcall MapCell_ApplyPathModel(u8 *cell) {
     u32 model = 0x37;
     if (kind > 0 && kind != 5)
         model = MapCell_PickPathModel(cell, nullptr, &angle);
-    s32 *const paint = reinterpret_cast<s32 *>(0x00820aa8);
+    s32 *const paint = gCellmodel_820aa8;
     paint[0] = static_cast<s32>(model) >> 16;
     paint[1] = static_cast<s32>(model & 0xffff);
     paint[2] = angle;
@@ -222,7 +225,7 @@ void __fastcall MapCell_ApplyModel(u8 *cell) {
     const s32 kind = at<s32>(cell, 8);
     if (kind > 0 && kind != 5)
         model = MapCell_PickModel(cell, nullptr, &angle);
-    s32 *const kept = reinterpret_cast<s32 *>(0x00820ad8);
+    s32 *const kept = gCellmodel_820ad8;
     kept[0] = static_cast<s32>(model) >> 16;
     kept[1] = static_cast<s32>(model & 0xffff);
     kept[2] = angle;
@@ -238,7 +241,7 @@ void __fastcall MapCell_ApplyModel(u8 *cell) {
         const auto place = group == 3 ? g_env->place3 : g_env->place4;
         const u32 ride = place(x, y, at<s32>(cell, 0x14), at<s32>(cell, 0x18), at<s32>(cell, 0x1c), 0);
         at<u32>(cell, 4) = ride;
-        if (group == 4 && ride) Animator_Play(global<u8 *>(0x007a4610 + 4 * ride), 0xc, 0, 7, 1.0f, 0);
+        if (group == 4 && ride) Animator_Play(gRides_7a4610[ride], 0xc, 0, 7, 1.0f, 0);
     } else if (group == 5) {
         if (at<u32>(cell, 4) && at<u32>(MapHandle_Cell44(reinterpret_cast<const u16 *>(cell)), 8) != 0x15) remove_ride(cell);
         at<u32>(cell, 4) = g_env->place5(x, y, at<s32>(cell, 0x14), at<s32>(cell, 0x18), at<s32>(cell, 0x1c), 0);

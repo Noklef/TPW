@@ -20,3 +20,8 @@ extern "C" {
 // The answer always Dialog_BaseHandler's.
 s32 __cdecl Window7cb2cc_Handler(u8 *window, u32 message, u32 a, u32 b);
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(u8[0x28], gWindow7cb2cc_Handler_752ed0, 0x00752ed0, 0x28);   // a window script (or a text / table before one): to the next named address

@@ -26,7 +26,7 @@ extern "C" {
 void __cdecl VersionLabel_Create(u8 front) {
     u8 *const parent = front ? global<u8 *>(0x00faa5d8) : *reinterpret_cast<u8 **>(global<u8 *>(0x00f82884) + 4);
     u16 text[8];
-    Crt().swprintf(text, reinterpret_cast<const u16 *>((uintptr_t)0x00750080), 2, 0);
+    Crt().swprintf(text, reinterpret_cast<const u16 *>((uintptr_t)(u32)(uintptr_t)&gVersionlabel_750080), 2, 0);
     const s32 rect[4] = {0, 0, 0x7d00, 0x7d00};
     s32 box[4] = {0, 0, 0, 0};
     g_env->measure(text, rect, 6, 0, 0, 0, box);

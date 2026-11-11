@@ -24,6 +24,7 @@
 #include "windowreg.h"
 #include "windowscript.h"
 #include "panel7b9940.h"
+#include "dialog7cc188.h"
 
 namespace {
 
@@ -48,7 +49,7 @@ struct Tab {
 const Tab kTabs[4] = {
     {reinterpret_cast<uintptr_t>(&gDialog7ca150_750ab8), 0, 5, reinterpret_cast<uintptr_t>(&gDialog7ca150_750d5c[0]), {0x80, 0x2000}, {0x00493e90, 0x00493eb0}, 0x52, {0x69, 0x6a, 0x6b, 0x6c, 0x6d}},
     {reinterpret_cast<uintptr_t>(&gDialog7ca150_750ab8), 1, 5, reinterpret_cast<uintptr_t>(&gDialog7ca150_750d5c[1]), {0x200, 0}, {0x00493f30, 0}, 0x57, {0x69, 0x248, 0x249, 0x24a, 0x24b}},
-    {0x00750ba0, 2, 6, reinterpret_cast<uintptr_t>(&gDialog7ca150_750d5c[2]), {0x100, 0}, {0x00494070, 0}, 0x5c, {0x69, 0x248, 0x6b, 0x249, 0x24a, 0x24b}},
+    {reinterpret_cast<uintptr_t>(&gDialog7ca150_750ba0), 2, 6, reinterpret_cast<uintptr_t>(&gDialog7ca150_750d5c[2]), {0x100, 0}, {0x00494070, 0}, 0x5c, {0x69, 0x248, 0x6b, 0x249, 0x24a, 0x24b}},
     {reinterpret_cast<uintptr_t>(&gDialog7ca150_750ca0), 3, 2, reinterpret_cast<uintptr_t>(&gDialog7ca150_750d5c[3]), {0x400, 0}, {0x004941e0, 0}, 0x62, {0x69, 0x24c}},
 };
 
@@ -64,7 +65,7 @@ void show_tab(u32 selected, const Tab &tab) {
     Window_SetHandler(list, nullptr, 0x004955e0);
     Window7059f0_BuildRows(list, nullptr, &List7ca158_NewRow, &List7ca158_InitRow);   // (0x4944d0, 0x494690: only called, not stored)
     for (s32 i = 0; i < tab.columns; ++i) Window7059f0_SetColumnBottom(list, nullptr, (u32)i, i ? 1u : 0u);
-    Window7059f0_SetHighlight(list, nullptr, reinterpret_cast<u8 *>((uintptr_t)GuiWindows_FindByName(reinterpret_cast<const char *>(0x0074fa84))));
+    Window7059f0_SetHighlight(list, nullptr, reinterpret_cast<u8 *>((uintptr_t)GuiWindows_FindByName(reinterpret_cast<const char *>((u32)(uintptr_t)&gText_Dialog7cc188_74fa84))));
     Window7059f0_SortBy(list, nullptr, global<s32>(tab.sort), 0);
     gDialog7ca150_7ca14c = list;
     for (s32 i = 0; i < 2 && tab.masks[i]; ++i) Things_ForEachSelected(tab.masks[i], reinterpret_cast<ObjectCallback>((uintptr_t)tab.callbacks[i]));
@@ -143,7 +144,7 @@ void __cdecl Dialog7ca150_Open(s32 tab, u32 selected) {
     if (tab == -1) tab = reinterpret_cast<s32 &>(gDialog7ca150_7ca154);
     Window7c24c8_Close();
     Global7cb28c_Select(2, 5);
-    gDialog7ca150_7ca150 = WindowScript_Build(gPanel7b9940_7cb2ac, nullptr, reinterpret_cast<u8 *>((uintptr_t)0x007508e0), 0x00495290);
+    gDialog7ca150_7ca150 = WindowScript_Build(gPanel7b9940_7cb2ac, nullptr, gDialog7ca150_Open_7508e0, 0x00495290);
     Window7c24c8_Set(gDialog7ca150_7ca150);
     u8 *const group = Window_FindChild(Window_FindChild(gDialog7ca150_7ca150, nullptr, 0x12c4b8), nullptr, 0x12c4b9);
     switch ((u32)tab) {

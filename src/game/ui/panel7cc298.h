@@ -57,3 +57,6 @@ void __fastcall Panel7cc298_ShowStats(u8 *self);
 
 // The vtables hold only ports: tpw.exe's loader points their slots at them (.docs/09-globals.md).
 GAME_DATA(void *[16], Panel7cc298_vtable, 0x006ffce8, 0x40);
+
+// Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(u8[0x580], gPanel7cc298_Show_755e80, 0x00755e80, 0x580);

@@ -55,3 +55,14 @@ u8 *__fastcall VertexBlock_Construct(u8 *block, void *, u32 cubes, u32 quads, u3
 // +0xa the word +0x9c less 1, and the count goes up. Last the words +0x28 2 * count, +0x2a and +0x2c 4 * count; returns 4 * count.
 u32 __fastcall VertexBlock_TakeFaces(u8 *block);
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(char[0x20], gText_Vertexblock_74cb98, 0x0074cb98, 0x20);
+GAME_DATA(u32[20][4], gVertexBlock_Construct_763b38, 0x00763b38, 0x140);   // the textures' entries (flags, a name's address, 0, 0)
+GAME_DATA(char[0x14], gText_VertexBlock_Construct_763eac, 0x00763eac, 0x14);
+GAME_DATA(char[0x14], gText_VertexBlock_Construct_763ec0, 0x00763ec0, 0x14);
+GAME_DATA(char[0x10], gText_VertexBlock_Construct_763ed4, 0x00763ed4, 0x10);
+GAME_DATA(char[0x20], gText_VertexBlock_Construct_763ee4, 0x00763ee4, 0x20);
+GAME_DATA(char[0x200], gVertexBlock_Path_871f68, 0x00871f68, 0x200);   // the texture path built: to the face tags

@@ -27,3 +27,9 @@ u32 __cdecl ObjectStatus_Show(u8 *window, u32 status);
 // (ObjectStatus_Show), whose EAX is returned (else [0x7c2658] or 0, as EAX was left).
 u32 __fastcall ObjectStatus_ShowOnPanel(u8 *panel);
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(u8[0x70], gObjectstatus_74fb50, 0x0074fb50, 0x70);
+GAME_DATA(u8[0x70], gObjectStatus_Show_74fbc0, 0x0074fbc0, 0x70);

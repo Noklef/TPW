@@ -60,3 +60,8 @@ struct ThoughtsEnv {
 };
 // nullptr restores the game's.
 void Thoughts_SetEnv(const ThoughtsEnv *env);
+
+#include "../core/gamedata.h"
+
+// Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(u8, gPersonScripts_fb34aa, 0x00fb34aa, 0x1);   // a function-local static's guard

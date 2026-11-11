@@ -35,3 +35,9 @@ u32 __fastcall LightList_Add(u8 *list, void *, float x, float y, float z);
 // 0x584b00 (cdecl; name invented, unconfirmed): the atexit entry of the light list 0x8c1658 (its static initialiser 0x584a70): nothing.
 void __cdecl LightList_AtExit();
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(float, gLightList_Add_768ab0, 0x00768ab0, 0x4);
+GAME_DATA(float, gLightList_Add_768ab8, 0x00768ab8, 0x4);

@@ -53,3 +53,4 @@ void Dialog7cc184_SetOpenEnv(const Dialog7cc184OpenEnv *env);
 GAME_DATA(u8[480], gDialog7cc184_Open_7540d8, 0x007540d8, 0x1e0);
 GAME_DATA(u8, gDialog7cc184_7cbf3c, 0x007cbf3c, 0x1);
 GAME_DATA(u8, gDialog7cc184_7cbf40, 0x007cbf40, 0x1);
+GAME_DATA(u16[0x102], gDialog7cc184_7cbf48, 0x007cbf48, 0x204);   // the edit box's text: to the next named address

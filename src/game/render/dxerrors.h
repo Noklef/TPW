@@ -155,3 +155,4 @@ GAME_DATA(char[72], gText_DxResult_Message_768254, 0x00768254, 0x48);
 GAME_DATA(char[68], gText_DxResult_Message_76829c, 0x0076829c, 0x44);
 GAME_DATA(char[20], gText_DxResult_Message_7682e0, 0x007682e0, 0x14);
 GAME_DATA(char[24], gText_DxResult_Message_7682f4, 0x007682f4, 0x18);
+GAME_DATA(char[0x70], gText_DxResult_Message_766f04, 0x00766f04, 0x70);

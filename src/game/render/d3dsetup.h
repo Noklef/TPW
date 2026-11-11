@@ -34,6 +34,7 @@ u32 __stdcall D3dSetup_OnZFormat(const u32 *format, u32 *wanted);
 #include "../core/gamedata.h"
 
 // Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(const u32[4], gD3dsetup_707520, 0x00707520, 0x10);   // a GUID (IID_IDirect3D3's bytes)
 GAME_DATA(char[40], gText_D3dSetup_PickFormat_7688c4, 0x007688c4, 0x28);
 GAME_DATA(char[36], gText_D3dSetup_Open_7688ec, 0x007688ec, 0x24);
 GAME_DATA(char[72], gText_D3dsetup_768910, 0x00768910, 0x48);
@@ -43,3 +44,7 @@ GAME_DATA(char[16], gText_D3dsetup_768988, 0x00768988, 0x10);
 GAME_DATA(char[24], gText_D3dsetup_768998, 0x00768998, 0x18);
 GAME_DATA(char[32], gText_D3dsetup_7689b0, 0x007689b0, 0x20);
 GAME_DATA(char[40], gText_D3dsetup_7689d0, 0x007689d0, 0x28);
+
+// Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(const u8[0x38], gD3dSetup_PickFormat_7015f8, 0x007015f8, 0x38);
+GAME_DATA(u8[0x18], gD3dsetup_879a20, 0x00879a20, 0x18);

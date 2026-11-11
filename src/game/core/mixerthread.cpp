@@ -52,4 +52,6 @@ void __fastcall SoundMixer_ThreadLoop(u8 *mixer) {
         } while (take_signal(mixer) == 1);
     }
 }
+
+void __cdecl SoundMixer_ThreadStart(u8 *mixer) { SoundMixer_ThreadLoop(mixer); }
 }

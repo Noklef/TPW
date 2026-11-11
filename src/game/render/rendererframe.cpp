@@ -11,6 +11,7 @@
 #include "../gfx/texcache.h"
 #include "meshlist.h"
 #include "../core/vwrap.h"
+#include "../world/camera.h"
 #include "../core/imports.h"
 
 namespace {
@@ -20,7 +21,7 @@ AddrCalls g_calls;
 template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cast<T *>((uintptr_t)p + offset); }
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
 
-const u32 kViewFlags = 0x008bcbc8, kSceneFlags = 0x008bd508, kMode = 0x008bd524, kDevice = 0x00879ab0, kWorldRender = reinterpret_cast<uintptr_t>(&gRenderer_87a6d0), kCamera = 0x0087aff0;
+const u32 kViewFlags = 0x008bcbc8, kSceneFlags = 0x008bd508, kMode = 0x008bd524, kDevice = 0x00879ab0, kWorldRender = reinterpret_cast<uintptr_t>(&gRenderer_87a6d0), kCamera = reinterpret_cast<uintptr_t>(&gMatrices_Update_87aff0);
 
 template <typename... A>
 u32 Slot(u32 object, u32 offset, A... args) {
@@ -41,7 +42,7 @@ bool DrawViewSteps(u8 *renderer, const u32 *view) {
         if (global<u32>(kMode) == 4) reinterpret_cast<u32 &>(global<float>(0x008bd4ec)) = 0x3e800000;
     }
     if ((view[0] & 0x1000) && at<u32>(renderer, 0x34)) g_calls.Th(0x00575fb0, at<u32>(renderer, 0x34));   // TexSet_BltToBack
-    if (global<u8>(0x00790ab0) & 0x16) global<u32>(kSceneFlags) |= 0x100;
+    if (reinterpret_cast<u8 &>(gCameraFlags) & 0x16) global<u32>(kSceneFlags) |= 0x100;
     if (global<u32>(kSceneFlags) & 0x100) {
         const u32 terrain = global<u32>(0x00879d60);
         g_calls.Th(0x0056ea90, terrain);   // TerrainTex_CullView
@@ -171,10 +172,10 @@ u32 __fastcall Renderer_DrawFrame(u8 *renderer) {
     bool drawn = true;
     if (global<u8>(kViewFlags) & 4) {
         if (global<u8>(kViewFlags) & 8) {
-            global<u32>(0x00768aac) = 3;
-        } else if (global<u32>(0x00768aac) != 2) {
+            gRenderer_DrawFrame_768aac = 3;
+        } else if (gRenderer_DrawFrame_768aac != 2) {
             g_calls.Cd(0x00583790);   // Display_Restore
-            global<u32>(0x00768aac) = 2;
+            gRenderer_DrawFrame_768aac = 2;
         }
         g_calls.Th(0x005836b0, kSceneFlags);   // SceneFlags_Touch
         for (s32 i = 0; drawn && i < at<s32>(renderer, 0x70); ++i) {
@@ -230,8 +231,8 @@ u32 __fastcall Renderer_DrawFrame(u8 *renderer) {
             if (drawn) global<u32>(kViewFlags) = savedFlags;
         }
     } else {
-        if (global<u32>(0x00768aac) != 1) {
-            global<u32>(0x00768aac) = 1;
+        if (gRenderer_DrawFrame_768aac != 1) {
+            gRenderer_DrawFrame_768aac = 1;
             g_calls.Th(0x005836b0, kSceneFlags);   // SceneFlags_Touch
         } else if (at<s32>(renderer, 0x70) == 1) {
             u8 *const lastCamera = reinterpret_cast<u8 *>((uintptr_t)0x0087a680);

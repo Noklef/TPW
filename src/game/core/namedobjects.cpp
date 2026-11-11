@@ -359,7 +359,7 @@ void __fastcall NamedObjects_AddFixedFolders(u8 *self) {
 u32 __fastcall NamedObjects_CreateWorld(u8 *) {
     u8 *const block = static_cast<u8 *>(GameHeap_Alloc(0x1da748));
     u8 *const world = block ? World_Ctor(block) : nullptr;
-    *reinterpret_cast<u8 **>(0x007cf83c) = world;
+    *&gWorldPtr = world;
     if (!world) return 0;
     return World_Attach(world) != 0;
 }
@@ -432,7 +432,7 @@ u32 __cdecl GameOwner_SelectMode(u32 which) {
 
 u32 __fastcall NamedObjects_StartLevel(u8 *self, void *, u32 level) {
     if (!g_calls.Th(0x00413140, 0x007890a0u, level)) return 0;
-    if (!g_calls.Th(0x005156a0, *reinterpret_cast<const u32 *>((uintptr_t)0x007cf83c), level)) return 0;
+    if (!g_calls.Th(0x005156a0, *reinterpret_cast<const u32 *>((uintptr_t)(u32)&gWorldPtr), level)) return 0;
     if (*reinterpret_cast<const u32 *>((uintptr_t)0x00788160)) {
         String name;
         String_CtorStr(&name, nullptr, reinterpret_cast<const char *>((uintptr_t)0x00788164));

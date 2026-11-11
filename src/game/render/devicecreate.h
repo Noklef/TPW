@@ -42,3 +42,9 @@ GAME_DATA(u32, gDevicecreate_fbe034, 0x00fbe034, 0x4);
 // The vtables hold only ports: tpw.exe's loader points their slots at them (.docs/09-globals.md).
 GAME_DATA(void *[7], Class701630_vtable, 0x00701630, 0x1c);
 GAME_DATA(void *[7], Class701688_vtable, 0x00701688, 0x1c);
+GAME_DATA(void *[7], Class701650_vtable, 0x00701650, 0x1c);   // (the virtual base's: _purecall in every slot)
+GAME_DATA(const s32[2], Vbtable_7016a8, 0x007016a8, 0x8);
+
+// Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(u8[0x4], gDevicecreate_fbe024, 0x00fbe024, 0x4);
+GAME_DATA(u8[0x4], gDevicecreate_fbe02c, 0x00fbe02c, 0x4);

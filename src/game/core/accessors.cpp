@@ -11,7 +11,12 @@
 #include "../ui/windowtimers.h"
 #include "../world/focuscell.h"
 #include "../render/dynfaces.h"
+#include "../world/pathdrag.h"
+#include "../world/cellrun.h"
 #include "../world/thingmsg.h"
+#include "../world/objectstatus.h"
+#include "../ui/windowbroadcast.h"
+#include "../render/meshlist.h"
 
 namespace {
 
@@ -86,11 +91,11 @@ u32 __cdecl Global7c2650_Set(u32 value) {
 u32 __cdecl Global8186ac_Get() { return reinterpret_cast<u32 &>(gFocuscell_8186ac); }
 
 u32 __cdecl Global816d48_Set(u32 value) {
-    global<u32>(0x00816d48) = value;
+    gFocuscell_816d48 = value;
     return value;
 }
 
-u32 __cdecl Global816d48_Get() { return global<u32>(0x00816d48); }
+u32 __cdecl Global816d48_Get() { return gFocuscell_816d48; }
 
 u32 __cdecl Global80239c_Get() { return global<u32>(0x0080239c); }
 
@@ -105,7 +110,7 @@ void __cdecl Global871ee0_Clear() { gDynfaces_871ee0 = 0; }
 
 u8 __cdecl Global7c24d0_GetByte() { return gDialog74fb20_7c24d0; }
 
-u32 __cdecl Table74fb50_Get(u32 i) { return reinterpret_cast<u32 *>(0x0074fb50)[i]; }
+u32 __cdecl Table74fb50_Get(u32 i) { return reinterpret_cast<u32 *>((u32)(uintptr_t)&gObjectstatus_74fb50)[i]; }
 
 u32 __cdecl Counter7cdb98_Inc() { return ++global<u32>(0x007cdb98); }
 
@@ -131,8 +136,8 @@ u32 __cdecl Byte_ShiftLog2(u32 a, u32 b) {
 
 u32 __fastcall MeshPlus60_Ready(u8 *sub) {
     if (!(at<u32>(sub, (u32)-0x10) & 0x10000000)) {
-        at<u32>(sub, (u32)-8) = global<u32>(0x00879dec);
-        global<u32>(0x00879dec) = (u32)(uintptr_t)(sub - 0x60);
+        at<u32>(sub, (u32)-8) = global<u32>((u32)(uintptr_t)&gMeshlist_879dec);
+        global<u32>((u32)(uintptr_t)&gMeshlist_879dec) = (u32)(uintptr_t)(sub - 0x60);
     }
     return 1;
 }
@@ -446,11 +451,11 @@ u16 __fastcall Fn_50b080(u8 *o, void *, u32 v0) {
 }
 
 void __cdecl Fn_52c2a0() {
-    global<u8>(0x00818c54) = 0x0;
+    gPathdrag_818c54 = 0x0;
 }
 
 void __cdecl Fn_52fbd0() {
-    global<u32>(0x00820a8c) = 0x0;
+    reinterpret_cast<u32 &>(gCellrun_820a8c) = 0x0;
 }
 
 u32 __stdcall Fn_56b620(u32 v0) {
@@ -481,7 +486,7 @@ u32 __cdecl Fn_6590ea(u32 v0) {
 }
 
 u32 __cdecl Fn_6593ff() {
-    return global<u32>(0x0077c488);
+    return gWindowbroadcast_77c488;
 }
 
 u16 __cdecl Fn_6595a8() {

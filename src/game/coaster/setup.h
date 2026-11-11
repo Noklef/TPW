@@ -94,3 +94,10 @@ GAME_DATA(s32, gSetup_790fd0, 0x00790fd0, 0x4);
 GAME_DATA(u8 *[50], gCoasterTypes_790b08, 0x00790b08, 0xc8);   // the coaster types (count 0x790fe8)
 GAME_DATA(u32, gSetup_790fe8, 0x00790fe8, 0x4);
 GAME_DATA(u32, gCoasterLinkWordsMax_791cfc, 0x00791cfc, 0x4);   // the links' largest word count (CoasterType_Load)
+
+// Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(u8[0x110], gSetup_74ca70, 0x0074ca70, 0x110);
+GAME_DATA(char[0xc], gText_CoasterType_Load_74cb80, 0x0074cb80, 0xc);
+GAME_DATA(char[0xc], gText_CoasterType_Load_74cb8c, 0x0074cb8c, 0xc);
+GAME_DATA(u32[3][4], gCoasterType_Setup_74cde0, 0x0074cde0, 0x30);   // the static entries (7, a texture name's address, 0, 0)
+GAME_DATA(u32, gCoasterType_Setup_74ce10, 0x0074ce10, 0x4);          // their count

@@ -101,3 +101,7 @@ void __cdecl RasterSpan_ShadeNoZ(u32 row);
 
 // Globals by address, by hand (.docs/09-globals.md; a name ending in its address is named for its use, unconfirmed).
 GAME_DATA(u16[4], gRasterspans_fbe000, 0x00fbe000, 0x8);
+
+// Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(u8[0x108], gRasterspans_fbe138, 0x00fbe138, 0x108);
+GAME_DATA(u8[0x210], gRasterspans_fbe4e0, 0x00fbe4e0, 0x210);

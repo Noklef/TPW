@@ -49,7 +49,7 @@ void ReleaseAt(u8 *self, u32 offset) {
 }
 
 void CloseAll(u8 *self) {
-    Obj_DeleteAttached(global<u8 *>(0x00879a24));
+    Obj_DeleteAttached(global<u8 *>((u32)(uintptr_t)&gD3dsetup_879a20 + 0x4));
     ReleaseAt(self, 0x10);
     ReleaseAt(self, 0xc);
     ReleaseAt(self, 8);
@@ -62,14 +62,14 @@ void ZeroDwords(u32 *to, u32 count) {
 }
 
 bool Build(u8 *self, u32 flags) {
-    u8 *const draw = at<u8 *>(global<u8 *>(0x00879a24), 8);
-    if (at<u32>(global<u8 *>(0x00879a24), 0x428) == 0x121a && at<u32>(global<u8 *>(0x00879a24), 0x42c) == 1) {
+    u8 *const draw = at<u8 *>(global<u8 *>((u32)(uintptr_t)&gD3dsetup_879a20 + 0x4), 8);
+    if (at<u32>(global<u8 *>((u32)(uintptr_t)&gD3dsetup_879a20 + 0x4), 0x428) == 0x121a && at<u32>(global<u8 *>((u32)(uintptr_t)&gD3dsetup_879a20 + 0x4), 0x42c) == 1) {
         noted((u32)&gText_D3dsetup_7689d0);
         return false;
     }
     logged((u32)&gText_D3dsetup_7689b0);
     noted((u32)&gText_D3dsetup_768998);
-    keep(comcall<u32>(draw, 0, 0x00707520u, self + 4));
+    keep(comcall<u32>(draw, 0, (u32)(uintptr_t)&gD3dsetup_707520, self + 4));
     if (result()) return false;
     if (flags & 0x10) {
         logged((u32)&gText_D3dsetup_768988);
@@ -90,13 +90,13 @@ bool Build(u8 *self, u32 flags) {
         u32 surface;
         keep(comcall<u32>(draw, 0x18, description, &surface, 0u));
         if (result()) return false;
-        Obj_AddAttached(global<u8 *>(0x00879a24), nullptr, surface);
+        Obj_AddAttached(global<u8 *>((u32)(uintptr_t)&gD3dsetup_879a20 + 0x4), nullptr, surface);
         at<u32>(self, 0x220) |= 0x10;
     } else {
         logged((u32)&gText_D3dsetup_768958);
         at<u32>(self, 0x220) &= ~0x10u;
     }
-    keep(comcall<u32>(at<u8 *>(self, 4), 0x20, self + 0x18, at<u32>(global<u8 *>(0x00879a24), 0x14), self + 8, 0u));
+    keep(comcall<u32>(at<u8 *>(self, 4), 0x20, self + 0x18, at<u32>(global<u8 *>((u32)(uintptr_t)&gD3dsetup_879a20 + 0x4), 0x14), self + 8, 0u));
     if (result()) return false;
     ZeroDwords(&at<u32>(self, 0x28), 0x3f);
     ZeroDwords(&at<u32>(self, 0x124), 0x3f);
@@ -190,7 +190,7 @@ u32 __cdecl D3dSetup_Teardown() {
 }
 
 u32 __stdcall D3dSetup_PickFormat(u32, const u32 *format, u32) {
-    const s16 *entry = reinterpret_cast<const s16 *>((uintptr_t)0x007015f8);
+    const s16 *entry = reinterpret_cast<const s16 *>((uintptr_t)&gD3dSetup_PickFormat_7015f8);
     for (s32 i = 0; i < 4; ++i, entry += 4) {
         if ((s32)Bits_Count(format[4]) != entry[1] || (s32)Bits_Count(format[5]) != entry[2] || (s32)Bits_Count(format[6]) != entry[3] || (s32)Bits_Count(format[7]) != entry[0]) continue;
         CopyFormat(reinterpret_cast<u32 *>((uintptr_t)0x008bd558) + i * 8, format);

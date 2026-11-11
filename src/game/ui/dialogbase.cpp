@@ -54,7 +54,7 @@ s32 __cdecl Dialog_KeyHandler(u8 *window, u32 message, u32 a, u32 b) {
     const u32 state = (b >> 16) & 0xff;
     if (message == 0x1000b) {
         if (a == 0x1b && !state) g_keys->send(window, 4, 0, 0);
-        else if (a == 0x70 && !state) g_keys->helpKey(g_keys->advisor(*reinterpret_cast<const u8 **>(static_cast<uintptr_t>(0x007cf83c))));
+        else if (a == 0x70 && !state) g_keys->helpKey(g_keys->advisor(*reinterpret_cast<const u8 **>(static_cast<uintptr_t>((u32)&gWorldPtr))));
         else g_keys->fireUp(actions(), nullptr, a, state);
         return 0;
     }

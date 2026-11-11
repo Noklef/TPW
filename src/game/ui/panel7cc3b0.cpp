@@ -51,7 +51,7 @@ void __fastcall Panel7cc3b0_Open(u8 *self) {
 
 void __fastcall Panel7cc3b0_Show(u8 *self, void *, u8 *thing) {
     *reinterpret_cast<u8 **>((uintptr_t)0x007cc3a4) = thing;
-    WindowAt10_Create(self, nullptr, reinterpret_cast<u8 *>((uintptr_t)0x00756f48), 0x004b5cb0, 0x511, 0x512, 0);
+    WindowAt10_Create(self, nullptr, reinterpret_cast<u8 *>((uintptr_t)&gPanel7cc3b0_Show_756f48), 0x004b5cb0, 0x511, 0x512, 0);
     Window_SetHandler(*reinterpret_cast<u8 **>(self + 0x18), nullptr, 0x004b5c80);
     Advisor_PostId(0xc0);
 }

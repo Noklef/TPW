@@ -18,3 +18,10 @@ extern "C" {
 // to the panel's size, with mask -1; an answer 0 returns. The polygon flag 4 of a texture's 0x100000 stays for the later tiles (sic). Texture_FormatBits' answer is overwritten in the original: left out.
 u32 __fastcall TiledPanel_Draw(u8 *object, void *);
 }
+
+#include "../core/gamedata.h"
+
+// Globals by address, by hand (named for their values). 1 at 0x702030 and -1 at 0x702038 stay literals: core/staticinit.cpp
+// (agent A's) and gfx/spriteframe.cpp (agent B's) read them too.
+GAME_DATA(const float, gTiledPanel_LessHalf_70204c, 0x0070204c, 0x4);
+GAME_DATA(const float, gTiledPanel_Half_702050, 0x00702050, 0x4);

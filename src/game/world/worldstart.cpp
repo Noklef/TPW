@@ -7,6 +7,7 @@
 #include "../core/gameheap.h"
 #include "objectdefs.h"
 #include "thingmsg.h"
+#include "world.h"
 #include "things.h"
 #include "../ui/dialog74fb20.h"
 #include "worldstart.h"
@@ -48,7 +49,7 @@ const struct {
 const u32 kBalanceFile = 0x00785040;
 
 void read_setting_once() {
-    u8 &guard = global<u8>(0x00fb34a9);
+    u8 &guard = gWorldStart_fb34a9;
     if (guard & 1) return;
     guard |= 1;
     g_env->settingReadMode(address(reinterpret_cast<uintptr_t>(&gDialog74fb20_fb3b7c)));
@@ -76,22 +77,22 @@ void WorldStart_SetEnv(const WorldStartEnv *env) { g_env = env ? env : &kGameEnv
 extern "C" u32 __fastcall World_Start(u8 *world, void *, const char *level) {
     at<u32>(world, 0x1da738) = 1;
     u32 ok = 1;
-    g_env->objectControlsInit(global<u8 *>(0x007cf83c) + 0x1d943c);
+    g_env->objectControlsInit(gWorldPtr + 0x1d943c);
     g_env->actionRestart(address(0x00785a08));
-    for (u32 i = 0; i < 8; ++i) global<u32>(0x00802080 + 4 * i) = 0;
+    for (u8 &b : gWorld_802080) b = 0;
     read_setting_once();
     char path[260];
     if (gDialog74fb20_fb3b7c == 1) {
         if (!load_balance(gText_World_Start_76259c, 0)) ok = 0;
-        Crt().sprintf(path, reinterpret_cast<const char *>(0x007488ac), level, gText_World_Start_762588);
+        Crt().sprintf(path, gText_Objectdefs_7488ac, level, gText_World_Start_762588);
         if (!load_balance(path, 1)) ok = 0;
     } else {
         if (!load_balance(gText_World_Start_76256c, 0)) ok = 0;
-        Crt().sprintf(path, reinterpret_cast<const char *>(0x007488ac), level, gText_World_Start_76255c);
+        Crt().sprintf(path, gText_Objectdefs_7488ac, level, gText_World_Start_76255c);
         if (!load_balance(path, 1)) ok = 0;
         read_setting_once();
         if (gDialog74fb20_fb3b7c == 2) {
-            Crt().sprintf(path, reinterpret_cast<const char *>(0x007488a4), level, global<const char *>(0x007cf4a0), gText_World_Start_76255c);
+            Crt().sprintf(path, gText_Objectdefs_7488a4, level, global<const char *>(0x007cf4a0), gText_World_Start_76255c);
             load_balance(path, 1);   // (its failure only printed)
         }
     }

@@ -17,6 +17,7 @@
 #include "window7059f0.h"
 #include "window705a20.h"
 #include "windowreg.h"
+#include "dialog7cc188.h"
 
 namespace {
 
@@ -29,14 +30,14 @@ const SaveDialogCreateEnv *g_env = &kGameEnv;
 
 const u32 kLoadDialog = reinterpret_cast<uintptr_t>(&gSavedialog_7cb244);
 const u32 kSaveDialog = reinterpret_cast<uintptr_t>(&gSavedialog_7cb248);
-const char *hilight() { return reinterpret_cast<const char *>((uintptr_t)0x0074fa84); }
+const char *hilight() { return reinterpret_cast<const char *>((uintptr_t)&gText_Dialog7cc188_74fa84); }
 
 // The controls off and any other window gone; the dialog made in its global, with its label.
 u8 *Open(u32 dialog, u32 handler, u32 text) {
     g_env->disable(reinterpret_cast<u8 *>((uintptr_t)0x00786b68), nullptr, 0, 0);
     global<u32>(0x00786ba4) = 0;
     g_env->closeOther();
-    u8 *const window = g_env->create(reinterpret_cast<u8 *>((uintptr_t)0x007523f0), handler, 1);
+    u8 *const window = g_env->create(gSavedialogcreate_7523f0, handler, 1);
     global<u8 *>(dialog) = window;
     if (!window) return nullptr;
     g_env->setFocus(window, nullptr, 0);
@@ -78,7 +79,7 @@ void __cdecl SaveDialog_Create() {
     g_env->setCaret(edit, nullptr, reinterpret_cast<u8 *>((uintptr_t)g_env->findByName(hilight())));
     const u32 text = static_cast<u32>(reinterpret_cast<uintptr_t>(g_env->wideText(0xce)));
     vcall<void>(edit, 0x24, text);
-    g_env->setRefused(edit, nullptr, 0x00752588);
+    g_env->setRefused(edit, nullptr, (u32)(uintptr_t)&gText_Savedialogcreate_752588);
     g_env->setFocus(edit, nullptr, 0);
     u8 *const list = Window_FindChild(global<u8 *>(kSaveDialog), nullptr, 0x23bce0);
     if (list) {

@@ -78,3 +78,15 @@ GAME_DATA(const float, gMatrices_Update_701888, 0x00701888, 0x4);
 GAME_DATA(const float, gMatrices_Update_70189c, 0x0070189c, 0x4);
 GAME_DATA(const double, gMatrices_Update_7018a0, 0x007018a0, 0x8);
 GAME_DATA(u32, gMat4_Perspective_768acc, 0x00768acc, 0x4);
+// The camera's matrices and their inverses (Matrices_Update; the transformer points [0x87afe8], [0x87b154], [0x87b088], [0x87af5c] at some).
+GAME_DATA(float[16], gMatrices_Update_87af68, 0x0087af68, 0x40);
+GAME_DATA(float[16], gMatrices_Update_87afa8, 0x0087afa8, 0x40);
+GAME_DATA(float[16], gMatrices_Update_87aff0, 0x0087aff0, 0x40);
+GAME_DATA(float[16], gMatrices_Update_87b030, 0x0087b030, 0x40);
+GAME_DATA(float[2], gMatrices_Update_87b078, 0x0087b078, 0x8);   // a unit vector from the first matrix
+GAME_DATA(float[2], gMatrices_Update_87b080, 0x0087b080, 0x8);   // the same from the second
+GAME_DATA(float[16], gMatrices_Update_87b158, 0x0087b158, 0x40);
+GAME_DATA(float[16], gMatrices_Update_87b198, 0x0087b198, 0x40);
+
+// Globals by address (tools/gamedata_codemod.py; a name ending in its address is named for its use, unconfirmed).
+GAME_DATA(u8[0x40], gMat4_fb3400, 0x00fb3400, 0x40);

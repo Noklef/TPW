@@ -24,6 +24,9 @@
 #include "windowscript.h"
 #include "window7cc8c0handler.h"
 #include "../render/screen.h"
+#include "../world/camera.h"
+#include "../world/cameraupdate.h"
+#include "dialog7cc188.h"
 
 namespace {
 
@@ -31,7 +34,7 @@ u8 *window(uintptr_t global) { return *reinterpret_cast<u8 **>(global); }
 
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
 
-u8 *hilight() { return reinterpret_cast<u8 *>((uintptr_t)GuiWindows_FindByName(reinterpret_cast<const char *>(0x0074fa84))); }
+u8 *hilight() { return reinterpret_cast<u8 *>((uintptr_t)GuiWindows_FindByName(reinterpret_cast<const char *>((u32)(uintptr_t)&gText_Dialog7cc188_74fa84))); }
 
 // [slot] built hidden on the GUI root from script with the handler 0x4bed60, unlinked, its child id the handler 0x4bede0.
 void buildHidden(u32 script, u32 slot, u32 id) {
@@ -104,15 +107,15 @@ void __cdecl Window7cc8bc_EnterChat() {
     // x's high word EAX's (the __ftol's, or the new chat's); y's 0 (EDX's after a new chat is whatever the allocation left: 0 here)
     const u32 high = had ? last : (u32)(uintptr_t)avatar;
     ChatAvatar_Arrive(avatar, nullptr, (high & 0xffff0000u) | global<u16>(0x007cc690), global<u16>(0x007cc694));
-    if (global<u8>(0x00790ab0) & 4) ChatAvatar_SayPosition(chat());
+    if (reinterpret_cast<u8 &>(gCameraFlags) & 4) ChatAvatar_SayPosition(chat());
     gWindow7cc8bc_7cc8d4 = 1;
-    gWindow7cc8bc_7cc8ac = global<u32>(0x00790ab0);
+    gWindow7cc8bc_7cc8ac = gCameraFlags;
     gWindow7cc8c0handler_7cc8d8 = 5;
     GuiRect_Dtor(rect);
 }
 
 void __cdecl Window7cc8bc_LeaveChat() {
-    if (global<u32>(0x00790ab0) & 0x400) return;
+    if (gCameraFlags & 0x400) return;
     const bool first = gWindow7cc8bc_7cc8b8 == reinterpret_cast<u32 &>(gWindow7cc8bc_7cc8bc);
     Window_SendMessage(window(reinterpret_cast<uintptr_t>(&gWindow7cc8bc_7cc8bc)), 6, first, 0);
     Window_SendMessage(window(reinterpret_cast<uintptr_t>(&gWindow7cc8bc_7cc8c0)), 6, !first, 0);
@@ -127,13 +130,13 @@ void __cdecl Window7cc8bc_LeaveChat() {
         last = (u32)(s32)(long long)((tenths - X87Reg((double)(whole & 0xff))) * 256.0f).v;  // 0x700188
         out[0] = (u8)last;
     };
-    pack(0x00790aa0, &global<u8>(0x007cc690));
-    pack(0x00790aa8, &global<u8>(0x007cc694));
+    pack((u32)&gCamera_790aa0[0], &global<u8>(0x007cc690));
+    pack((u32)&gCamera_790aa0[2], &global<u8>(0x007cc694));
     ChatAvatar_Enter(chat(), nullptr, global<u16>(0x007cc690), (last & 0xffff0000u) | global<u16>(0x007cc694));
     gWindow7cc8bc_7cc8d4 = 0;
     // (fraction / 256 + whole) * 10, exact before the store)
-    global<float>(0x00790ad0) = (float)(((double)global<u8>(0x007cc690) * 0.00390625 + global<u8>(0x007cc691)) * 10.0);
-    global<float>(0x00790ad8) = (float)(((double)global<u8>(0x007cc694) * 0.00390625 + global<u8>(0x007cc695)) * 10.0);
+    gCamera_790ad0[0] = (float)(((double)global<u8>(0x007cc690) * 0.00390625 + global<u8>(0x007cc691)) * 10.0);
+    gCamera_790ad0[2] = (float)(((double)global<u8>(0x007cc694) * 0.00390625 + global<u8>(0x007cc695)) * 10.0);
 }
 
 void __cdecl Window7cc8bc_ListAdd(const u16 *text, u32 data) { add(0, text, data); }
@@ -195,8 +198,8 @@ void __cdecl Window7cc8bc_Create() {
         Window_GetRect(gWindow7cc8bc_7cc8bc, nullptr, rect, 1);
         global<u32>(0x007a1c54) = reinterpret_cast<u32 &>(gScreen_7a192c);
         global<u32>(0x007a1c58) = reinterpret_cast<u32 &>(gScreen_7a194c);
-        global<u32>(0x0074d108) = global<u32>(0x007a162c);
-        global<u32>(0x0074d104) = global<u32>(0x007a0c9c);
+        global<u32>((u32)(uintptr_t)&gCameraupdate_74d108) = global<u32>(0x007a162c);
+        global<u32>((u32)(uintptr_t)&gCameraupdate_74d104) = global<u32>(0x007a0c9c);
         GuiRect_Dtor(rect);
     }
     buildHidden(reinterpret_cast<uintptr_t>(&gWindow7cc8bc_Create_758cd8), reinterpret_cast<uintptr_t>(&gWindow7cc8bc_7cc8c4), 0x1789);

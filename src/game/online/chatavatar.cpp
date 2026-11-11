@@ -18,6 +18,8 @@
 #include "../world/mousemode.h"
 #include "../world/things.h"
 #include "../world/signtext.h"
+#include "../world/world.h"
+#include "../world/staff.h"
 #include "../core/imports.h"
 
 namespace {
@@ -81,7 +83,7 @@ u8 *__fastcall ChatPlayer_Ctor(u8 *player, void *, u32 cell, u32 sprite, const u
     const u16 *text = at<const u16 *>(name, 4);
     if (!text) text = reinterpret_cast<const u16 *>((uintptr_t)0x006fd6c4);
     g_env->swprintf(reinterpret_cast<u16 *>(player + 0x19c), gText_Signtext_75c0cc, text);
-    at<u16>(player, 0xc2) = *reinterpret_cast<const u16 *>((uintptr_t)0x0075c7f2);
+    at<u16>(player, 0xc2) = *reinterpret_cast<const u16 *>((uintptr_t)&gStaff_75c7f0 + 0x2);
     at<u32>(player, 0x188) = 1;
     return player;
 }
@@ -224,12 +226,12 @@ u8 __fastcall ChatPlayer_NameIs(const u8 *thing, void *, const u8 *name) {
 
 u8 *__stdcall ChatPlayers_FindByName(const u8 *name) {
     u16 out;
-    u16 handle = *World_FirstThing(at<void *>(reinterpret_cast<void *>((uintptr_t)0x007cf83c), 0), nullptr, &out);
+    u16 handle = *World_FirstThing(at<void *>(reinterpret_cast<void *>((uintptr_t)(u32)&gWorldPtr), 0), nullptr, &out);
     while (handle) {
         u8 *const thing = slotThing(handle);
         if (thing[2] == 0x12 && ChatPlayer_NameIs(thing, nullptr, name))
             return thing;
-        handle = *World_NextThing(at<void *>(reinterpret_cast<void *>((uintptr_t)0x007cf83c), 0), nullptr, &out, thing);
+        handle = *World_NextThing(at<void *>(reinterpret_cast<void *>((uintptr_t)(u32)&gWorldPtr), 0), nullptr, &out, thing);
     }
     return nullptr;
 }

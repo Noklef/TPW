@@ -10,6 +10,7 @@
 #include "../math/x87.h"
 #include "engineerrors.h"
 #include "../frontend/lobbysky.h"
+#include "fixedverts.h"
 
 namespace {
 
@@ -45,7 +46,7 @@ float of(u32 b) {
 // fld m32; fistp [0xfb34a4]: rounded to nearest even, 0x80000000 when out of range (as cvtss2si does), kept in the dword.
 s32 Fistp(float f) {
     const s32 n = _mm_cvtss_si32(_mm_set_ss(f));
-    global<s32>(0x00fb34a4) = n;
+    gFixedVerts_fb34a4 = n;
     return n;
 }
 
@@ -108,8 +109,8 @@ u32 __fastcall Meshes_Ready(u8 *object, void *, const u32 *list) {
         if (at<u32>(mesh, 0x50) & 0x20)
             at<u32>(object, 0x30) = (u32)(uintptr_t)mesh + 0x38;
         if (!(at<u32>(mesh, 0x50) & 0x10000000)) {
-            at<u32>(mesh, 0x58) = *reinterpret_cast<u32 *>(0x00879dec);
-            *reinterpret_cast<u32 *>(0x00879dec) = (u32)(uintptr_t)mesh;
+            at<u32>(mesh, 0x58) = *reinterpret_cast<u32 *>((u32)(uintptr_t)&gMeshlist_879dec);
+            *reinterpret_cast<u32 *>((u32)(uintptr_t)&gMeshlist_879dec) = (u32)(uintptr_t)mesh;
         }
     }
     return 1;
@@ -132,7 +133,7 @@ void __fastcall Meshes_SetDirection(u8 *object, void *, u32 x, u32 y, u32 z) {
 }
 
 u32 __fastcall Meshes_SetView(u8 *object, void *, const u32 *matrix, u32) {
-    u8 *mesh = *reinterpret_cast<u8 **>((uintptr_t)0x00879dec);
+    u8 *mesh = *reinterpret_cast<u8 **>((uintptr_t)&gMeshlist_879dec);
     *reinterpret_cast<const u32 **>((uintptr_t)0x00879dcc) = matrix;
     u32 *const view = reinterpret_cast<u32 *>((uintptr_t)0x00879df0);
     for (int i = 0; i < 16; ++i) view[i] = matrix[i];
@@ -162,7 +163,7 @@ void __fastcall Meshes_LightAt(u32 seed, void *, const float *normal, float x, f
     for (u32 k = 0; k < 0x10; k += 4)
         global<u32>(0x00879db0 + k) = gLobbysky_879dd8[k / 4];
     u32 spill = seed;   // (the stack slot of the ECX pushed for room: d below)
-    for (const u8 *light = global<u8 *>(0x00879dec); light; light = at<u8 *>(light, 0x58)) {
+    for (const u8 *light = global<u8 *>((u32)(uintptr_t)&gMeshlist_879dec); light; light = at<u8 *>(light, 0x58)) {
         const u32 kind = at<u32>(light, 0x50) & 0xf;
         if (kind == 2) {
             const X87Reg a = X87Reg(at<float>(light, 0x38)) * normal[0];

@@ -6,6 +6,7 @@
 #include "../math/x87.h"
 #include "../frontend/lobbysky.h"
 #include "d3dprobe.h"
+#include "fixedverts.h"
 
 namespace {
 
@@ -14,7 +15,7 @@ template <typename T> T &At(u32 address) { return *reinterpret_cast<T *>((uintpt
 // fld m32; fistp [0xfb34a4]: rounded to nearest even, 0x80000000 when out of range (as cvtss2si does), kept in the dword.
 s32 Fistp(float f) {
     const s32 n = _mm_cvtss_si32(_mm_set_ss(f));
-    At<s32>(0xfb34a4) = n;
+    gFixedVerts_fb34a4 = n;
     return n;
 }
 

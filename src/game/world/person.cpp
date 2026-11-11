@@ -34,6 +34,8 @@
 #include "world.h"
 #include "object.h"
 #include "person.h"
+#include "../core/soundset.h"
+#include "../math/intpair.h"
 
 namespace {
 
@@ -64,7 +66,7 @@ void RecordMargin(u32 ring, u32 willing, u32 price) {
     u32 value = (willing + 5) * 10 - price * 10;
     if (value >= 100)
         value = 100;
-    u8 *const analyser = reinterpret_cast<u8 *>((uintptr_t)GameTable7cfb90_Get1da720_519510(*reinterpret_cast<u8 **>(0x007cf83c)));
+    u8 *const analyser = reinterpret_cast<u8 *>((uintptr_t)GameTable7cfb90_Get1da720_519510(*&gWorldPtr));
     ParkAnalyser_Record(analyser, nullptr, ring, value);
 }
 
@@ -166,7 +168,7 @@ void __fastcall Visitor_QuitQueue(u8 *visitor) {
 void __fastcall Visitor_SendAway(u8 *visitor) {
     Ring_PushUnique(visitor + 0x30, nullptr, 6, at<u16>(visitor, 0x1dc));
     u16 handle;
-    if (!(*Thing_GetHandle(visitor, nullptr, &handle) & 7)) Sprite_PlaySound(visitor, nullptr, global<u32>(0x00803a24), 0x80);
+    if (!(*Thing_GetHandle(visitor, nullptr, &handle) & 7)) Sprite_PlaySound(visitor, nullptr, gSoundCategories.kids, 0x80);
     Visitor_Lower19c(visitor, nullptr, 1);
     at<u16>(visitor, 0x22a) = 0;
     at<u16>(visitor, 0x228) = 0;
@@ -229,8 +231,8 @@ u8 *__fastcall MovingPerson_Ctor(u8 *sprite, void *, u32 cell, u32 kind) {
     at<u32>(sprite, 0x194) = 0;
     at<u32>(sprite, 0x198) = 0;
     const u32 pick = (u32)World_Rand(global<u8 *>(0x0080239c)) % 5;
-    at<u16>(sprite, 0xc0) = global<u16>(0x0075c7f8 + pick * 2);
-    at<u16>(sprite, 0xc2) = global<u16>(0x0075c7f0);
+    at<u16>(sprite, 0xc0) = global<u16>(((u32)(uintptr_t)&gStaff_75c7f0 + 0x8) + pick * 2);
+    at<u16>(sprite, 0xc2) = global<u16>((u32)(uintptr_t)&gStaff_75c7f0);
     MessageCentre_AddThing(MessageCentre_Instance(), nullptr, sprite, 0xa);
     at<u16>(sprite, 0xcc) = (u16)cell;
     const u32 id = cell & 0xffff;
@@ -312,8 +314,8 @@ u32 __fastcall Person_SetRandomDest(u8 *person) {
             u8 *const cell = cellOf(here);
             const u32 bits = MapCell_Neighbours(cell) & 0x55u;
             s32 count = (s32)MapCell_SideNeighbourCount(cell);
-            u16 next[4] = {(u16)(bits & 0x10 ? step(0x007cdba8) : 0), (u16)(bits & 4 ? step(0x007cdbc8) : 0), (u16)(bits & 1 ? step(0x007cdba0) : 0),
-                           (u16)(bits & 0x40 ? step(0x007cdbd0) : 0)};
+            u16 next[4] = {(u16)(bits & 0x10 ? step((u32)gStepS_7cdba8) : 0), (u16)(bits & 4 ? step((u32)gStepE_7cdbc8) : 0), (u16)(bits & 1 ? step((u32)gStepN_7cdba0) : 0),
+                           (u16)(bits & 0x40 ? step((u32)gStepW_7cdbd0) : 0)};
             if (staff && !outside)
                 for (u16 &n : next)
                     if (n && !Staff_InPatrolRegion(person, nullptr, n)) {
@@ -462,13 +464,13 @@ u32 __fastcall Visitor_Serialize(u8 *visitor, void *, Stream *stream, u32 save, 
                                      {0x1bc, 4, (u32)&gText_Visitor_Serialize_75d33c}, {0x19c, 4, kSaveStatName},  {0x1a8, 4, kSaveStatName},  {0x218, 4, (u32)&gText_Visitor_Serialize_75d330}, {0x21c, 4, (u32)&gText_Visitor_Serialize_75d324},
                                      {0x1b4, 4, kSaveStatName},  {0x1dc, 2, (u32)&gText_Visitor_Serialize_75d318}, {0x1c4, 4, (u32)&gText_Visitor_Serialize_75d30c}, {0x1c8, 4, (u32)&gText_Visitor_Serialize_75d300}, {0x1cc, 4, (u32)&gText_Visitor_Serialize_75d2f0},
                                      {0x1d0, 4, (u32)&gText_Visitor_Serialize_75d2dc}, {0x204, 4, (u32)&gText_Visitor_Serialize_75d2cc}, {0x200, 4, (u32)&gText_Visitor_Serialize_75d2b4}, {0x1f0, 1, (u32)&gText_Visitor_Serialize_75d2a8}, {0x1c0, 1, (u32)&gText_Visitor_Serialize_75d298}};
-    static const SaveSpec kTail[] = {{0x228, 2, 0x0075d260}, {0x22a, 2, 0x0075d258}, {0x1f4, 4, 0x0075d248}, {0x1f1, 1, 0x0075d23c}, {0x214, 4, 0x0075d224},
-                                     {0x1de, 2, 0x0075d214}, {0x224, 4, 0x0075d208}, {0x220, 4, (u32)&gText_Object_75b5b0}, {0x1a4, 4, kSaveStatName},  {0x208, 4, 0x0075d1f4},
-                                     {0x1fc, 4, 0x0075d1e0}, {0x1b8, 4, kSaveStatName},  {0x1ac, 4, kSaveStatName},  {0x1b0, 4, kSaveStatName}};
+    static const SaveSpec kTail[] = {{0x228, 2, (u32)(uintptr_t)&gText_Visitor_Serialize_75d260}, {0x22a, 2, (u32)(uintptr_t)&gText_Visitor_Serialize_75d258}, {0x1f4, 4, (u32)(uintptr_t)&gText_Visitor_Serialize_75d248}, {0x1f1, 1, (u32)(uintptr_t)&gText_Visitor_Serialize_75d23c}, {0x214, 4, (u32)(uintptr_t)&gText_Visitor_Serialize_75d224},
+                                     {0x1de, 2, (u32)(uintptr_t)&gText_Visitor_Serialize_75d214}, {0x224, 4, (u32)(uintptr_t)&gText_Visitor_Serialize_75d208}, {0x220, 4, (u32)&gText_Object_75b5b0}, {0x1a4, 4, kSaveStatName},  {0x208, 4, (u32)(uintptr_t)&gText_Visitor_Serialize_75d1f4},
+                                     {0x1fc, 4, (u32)(uintptr_t)&gText_Staff_75d1e0}, {0x1b8, 4, kSaveStatName},  {0x1ac, 4, kSaveStatName},  {0x1b0, 4, kSaveStatName}};
     if (!Save_StatFields(stream, save, visitor, kHead, 20))
         return 1;
     for (u32 i = 0; i < 4; ++i)  // the previous rides and the previous temporary rides, a pair at a time
-        if (!Save_Field(stream, save, visitor + 0x1e0 + i * 2, 2, (u32)&gText_Visitor_Serialize_75d284) || !Save_Field(stream, save, visitor + 0x1e8 + i * 2, 2, 0x0075d268))
+        if (!Save_Field(stream, save, visitor + 0x1e0 + i * 2, 2, (u32)&gText_Visitor_Serialize_75d284) || !Save_Field(stream, save, visitor + 0x1e8 + i * 2, 2, (u32)(uintptr_t)&gText_Visitor_Serialize_75d268))
             return 1;
     return Save_StatFields(stream, save, visitor, kTail, 14) ? 0 : 1;
 }
@@ -556,7 +558,7 @@ u32 __fastcall Sprite_WalkNav(u8 *sprite) {
     if (at<u32>(sprite, 0x18c)) return 2;
     if (Nav_PathProgress(nav) == 0x10000) return 0;   // (through the jump 0x510180)
     at<u32>(sprite, 0x1c) = g_env->angle((s32)(x0 - x1), (s32)(y1 - y0)) & 0xffff;
-    const u32 running = at<u16>(sprite, 0xc2) > global<u16>(0x0075c7f0) && (sprite[2] == 1 || sprite[2] == 7) ? 1 : 0;
+    const u32 running = at<u16>(sprite, 0xc2) > global<u16>((u32)(uintptr_t)&gStaff_75c7f0) && (sprite[2] == 1 || sprite[2] == 7) ? 1 : 0;
     u32 code = SpriteCode(0xa8), action = 1;
     if (sprite[2] == 7 && Guard_IsState12(sprite)) {
         code = SpriteCode(0x14d8);
@@ -602,9 +604,9 @@ void __fastcall Visitor_UseObject(u8 *visitor, void *, u8 *object) {
     set100(visitor + 0x1a4, X87Reg(-(double)at<s32>(def, 0x144)) + at<float>(visitor, 0x1a4));
     set100(visitor + 0x1a8, X87Reg(-(double)at<s32>(def, 0x148)) + at<float>(visitor, 0x1a8));
     if (at<s32>(def, 0x144) > at<s32>(def, 0x148))
-        Sprite_PlaySound(visitor, nullptr, global<u32>(0x00803a24), 0x83);
+        Sprite_PlaySound(visitor, nullptr, gSoundCategories.kids, 0x83);
     else if (at<s32>(def, 0x144) < at<s32>(def, 0x148))
-        Sprite_PlaySound(visitor, nullptr, global<u32>(0x00803a24), 0x84);
+        Sprite_PlaySound(visitor, nullptr, gSoundCategories.kids, 0x84);
     set100(visitor + 0x1b0, X87Reg((double)at<s32>(def, 0x14c)) + at<float>(visitor, 0x1b0));
     set100(visitor + 0x19c, X87Reg((double)at<s32>(def, 0x150)) + at<float>(visitor, 0x19c));
     set100(visitor + 0x1b4, X87Reg((double)at<s32>(def, 0x154)) + at<float>(visitor, 0x1b4));
@@ -664,7 +666,7 @@ void __fastcall Visitor_UseObject(u8 *visitor, void *, u8 *object) {
             Ring_PushUnique(ring, nullptr, 0x12, 0);
             at<u32>(visitor, 0x1b0) = 0;
         }
-        at<u16>(visitor, 0xc2) = global<u16>(0x0075c7f2);
+        at<u16>(visitor, 0xc2) = global<u16>((u32)(uintptr_t)&gStaff_75c7f0 + 0x2);
     }
     if (at<s32>(Object_GetDef(object), 0x4ac) == 2) {   // a sideshow won
         ++at<u32>(visitor, 0x1d0);
@@ -680,7 +682,7 @@ void __fastcall Visitor_PayObject(u8 *visitor, void *, u8 *object) {
     const u32 price = Obj_Get194(object);
     if (price == 0) return;
     Object_TakePayment(object, nullptr, (s32)price);
-    Sprite_PlaySound(visitor, nullptr, global<u32>(0x00803a24), 0xd0);
+    Sprite_PlaySound(visitor, nullptr, gSoundCategories.kids, 0xd0);
     at<u32>(visitor, 0x1a0) -= price;
 }
 
@@ -797,22 +799,22 @@ void __fastcall Person_PlaceSprite(u8 *person, void *, float t) {
     // the script +0x210 bobs: a row of the table 0x75c810 (12-byte rows of three floats, the count the dword 0x75c80c) by the handle and
     // the row 0x7cedd4, lower the further the person moved (|dx| + |dz| over the 0.35 since the earlier position)
     u16 handle;
-    const u32 rows = global<u32>(0x0075c80c);
-    const u32 row = ((u32)*Thing_GetHandle(person, nullptr, &handle) + global<u32>(0x007cedd4)) % rows;
+    const u32 rows = global<u32>((u32)(uintptr_t)&gStaff_75c7f0 + 0x1c);
+    const u32 row = ((u32)*Thing_GetHandle(person, nullptr, &handle) + gPerson_BobRow_7cedd4) % rows;
     float h0f;
     std::memcpy(&h0f, &h0, 4);
     const X87Reg moved = (X87Reg(std::fabs((double)(X87Reg(x0) - X87Reg(x1)).v)) + X87Reg(std::fabs((double)(X87Reg(z0) - X87Reg(z1)).v))) / X87Reg(0.5f);
-    const float *const bob = &global<float>(0x0075c810 + 12 * row);
+    const float *const bob = &global<float>(((u32)(uintptr_t)&gStaff_75c7f0 + 0x20) + 12 * row);
     const X87Reg c = X87Reg(bob[2]) * X87Reg(1.5f) + X87Reg(z0);
     const X87Reg b = X87_SubR(moved, X87Reg(1.0f)) + X87Reg(bob[1]) * X87Reg(1.5f) + X87Reg(h0f);
     const X87Reg a = X87Reg(bob[0]) * X87Reg(1.5f) + X87Reg(x0);
     Person_MoveScript(person, nullptr, bits(a), bits(b), bits(c), 0);
-    float &time = global<float>(0x007cedd8);
+    float &time = gPerson_BobTime_7cedd8;
     if (!((double)X87Reg(time).v >= 1.0)) {   // (fcomp 1.0: below or unordered)
         time = (float)(X87Reg(0.1f) + X87Reg(time)).v;
     } else {
-        global<u32>(0x007cedd4) = (global<u32>(0x007cedd4) + 1) % rows;
-        global<u32>(0x007cedd8) = 0;
+        gPerson_BobRow_7cedd4 = (gPerson_BobRow_7cedd4 + 1) % rows;
+        time = 0.0f;   // (the dword 0)
     }
 }
 
@@ -876,7 +878,7 @@ void __fastcall Person_TickSpeed(u8 *person) {
 
 void __fastcall Person_UpdateSpeed(u8 *person) {
     const u32 sum = (u32)at<u16>(person, 0xc2) + at<u16>(person, 0xc0) + at<u16>(person, 0xc4);
-    const X87Reg pace = X87Reg((double)(s32)sum) / X87Reg((double)(global<u32>(0x0075c7fc) & 0xffff));
+    const X87Reg pace = X87Reg((double)(s32)sum) / X87Reg((double)(global<u32>((u32)(uintptr_t)&gStaff_75c7f0 + 0xc) & 0xffff));
     const float speed = (float)((pace - X87Reg(at<float>(person, 0xc8)) * X87Reg(-3.0)) * X87Reg(0.25));
     at<float>(person, 0xc8) = speed;
     Nav_SetSpeed(person + 0xd4, nullptr, speed);
@@ -934,7 +936,7 @@ void __fastcall Visitor_SetState(u8 *visitor, void *, u32 state) {
         at<u32>(visitor, 0x1f4) = (u32)(long long)X87_MulInt(at<u8>(visitor, 0x1f1), gVisitor_SetState_7007a4);   // fild; fmul 1.2f; __ftol
         return;
     case 12:
-        at<u16>(visitor, 0xc2) = global<u16>(0x0075c7f0);
+        at<u16>(visitor, 0xc2) = global<u16>((u32)(uintptr_t)&gStaff_75c7f0);
         Set4_4217f0(ref, nullptr, 1);
         return;
     case 14:
@@ -1014,7 +1016,7 @@ void __fastcall Visitor_Arrive(u8 *visitor, void *, u32 cell) {
     const u32 y = (cell & 0xffff0000u) | (index >> 7 & 0xff) << 8 | 0x80;
     Thing_PlaceAt(visitor, nullptr, x, y);
     ScriptRef_Start(visitor + 0xc, nullptr, 1, at<u32>(visitor, 0x24), at<u32>(visitor, 0x20));
-    Sprite_PlaySound(visitor, nullptr, global<u32>(0x00803a24), 0x80);
+    Sprite_PlaySound(visitor, nullptr, gSoundCategories.kids, 0x80);
     at<u32>(visitor, 0x188) = 1;
     const u8 *const map = global<const u8 *>(0x008023a0);   // (read before the roll)
     const u32 side = (u32)World_Rand(world80239c()) & 1;
@@ -1038,7 +1040,7 @@ void __fastcall Visitor_HandleMessage(u8 *visitor, void *, u8 *message) {
                 ScriptRef_Start(ref, nullptr, 3, at<u32>(visitor, 0x24), at<u32>(visitor, 0x20));
             at<u32>(visitor, 0x28) = 0;
             Ring_PushUnique(visitor + 0x30, nullptr, 0xd, at<u16>(visitor, 0x1dc));
-            Sprite_PlaySound(visitor, nullptr, global<u32>(0x00803a24), 0x80);
+            Sprite_PlaySound(visitor, nullptr, gSoundCategories.kids, 0x80);
         } else if (Visitor_IsState11To14(visitor)) {
             Visitor_SendAway(visitor);
         }

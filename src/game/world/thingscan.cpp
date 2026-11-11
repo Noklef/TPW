@@ -18,6 +18,7 @@
 #include "staff.h"
 #include "../ui/thingbrowser.h"
 #include "thingscan.h"
+#include "world.h"
 
 namespace {
 
@@ -642,7 +643,7 @@ u16 *__cdecl Map_ObjectAtCell(u16 *out, s32 *x, s32 *y) {
         return out;
     }
     const u16 id = (u16)(((u32)*y << 7) + (u32)*x + 1);
-    u8 *const world = global<u8 *>(0x007cf83c);
+    u8 *const world = gWorldPtr;
     const u8 *cell = world + (u32)id * 0x44 + 0x294;
     const u32 type = at<u32>(cell, 8);
     if (type != 4 && type != 9 && type != 0xa) {
@@ -669,7 +670,7 @@ u16 *__cdecl Map_ObjectAtCell(u16 *out, s32 *x, s32 *y) {
 u16 *__cdecl Map_ObjectOrEntranceAt(u16 *out, s32 x, s32 y) {
     const s32 first = (s32)(global<u32>(0x007855bc) - 1), last = (s32)(global<u32>(0x007855c4) + 1);  // (wrapping)
     if (x >= first && x <= last && y == global<s32>(0x007855c0)) {
-        *out = at<u16>(global<u8 *>(0x007cf83c), 0x1da732);
+        *out = at<u16>(gWorldPtr, 0x1da732);
         return out;
     }
     Map_ObjectAtCell(out, &x, &y);
@@ -681,7 +682,7 @@ namespace {
 // The thing in slot (handle & 0xffff) of the thing table (as the finders read it inline, without Thing_ByHandle).
 u8 *slotThing(u16 handle) { return *reinterpret_cast<u8 *const *>(0x007cfb90 + 20 * static_cast<u32>(handle)); }
 
-u8 *categoryWorld() { return *reinterpret_cast<u8 *const *>(0x007cf83c); }
+u8 *categoryWorld() { return *&gWorldPtr; }
 
 // A staff list's next handle: the list head (first) when there is no previous thing, else the previous thing's link word at +0x210.
 u16 staffNext(const u8 *previous, u16 *(__fastcall *first)(const u8 *, void *, u16 *)) {

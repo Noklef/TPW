@@ -3,6 +3,7 @@
 
 #include <cstdint>
 #include "dialog7cc944.h"
+#include "dialog7cc984open.h"
 
 namespace {
 
@@ -25,7 +26,7 @@ extern "C" void __cdecl Dialog7cc944_SetWaitingRow(u32 value) {
     g_env->itemData(list, nullptr, 0, &data);
     if (data != 0xffffffff) return;
     u16 *const text = reinterpret_cast<u16 *>((uintptr_t)0x007ba058);
-    g_env->swprintf(text, reinterpret_cast<const u16 *>((uintptr_t)0x00759160), value);
+    g_env->swprintf(text, reinterpret_cast<const u16 *>((uintptr_t)(u32)(uintptr_t)&gDialog7cc984open_759160), value);
     u32 texts[6];   // (only the second is set)
     texts[1] = static_cast<u32>(reinterpret_cast<uintptr_t>(text));
     g_env->setTexts(list, nullptr, 0, texts, 2, 1, -1);

@@ -26,6 +26,7 @@
 #include "../core/vtables.h"
 #include "../model/slots.h"
 #include "../render/lightsource.h"
+#include "../world/cameraupdate.h"
 
 namespace {
 
@@ -54,8 +55,8 @@ extern "C" {
 
 u8 *__fastcall Panel7b9940_Ctor(u8 *self, void *, u32 complete) {
     if (complete) {
-        at<u32>(self, 0) = 0x6fdd00;
-        at<u32>(self, 0xc) = 0x6fdcf8;
+        at<u32>(self, 0) = (u32)(uintptr_t)&Vbtable_6fdd00;
+        at<u32>(self, 0xc) = (u32)(uintptr_t)&Vbtable_6fdcf8;
         at<u32>(self, 8) = (u32)(uintptr_t)Class6fdce8_vtable;
         at<u32>(self, vbase(self, 0xc, 4) + 0xc) = (u32)(uintptr_t)Class6fdcd8_vtable;
         const u32 d = vbase(self, 0xc, 4);
@@ -102,7 +103,7 @@ void __cdecl Panel7b9940_Open() {
         }
     }
     if (u8 *const object = global<u8 *>(0x007b05d8)) (*reinterpret_cast<void(__fastcall *const *const *)(u8 *)>(object))[9](object);
-    const u32 one = global<u32>(0x006ff148);
+    const u32 one = gPanel7b9940_6ff148;
     u8 *base = self + vbase(self, 0, 8);
     SceneFlags_Touch(kSceneFlags);
     at<u32>(base, 0x54) = 0xffffffff;
@@ -125,15 +126,15 @@ void __cdecl Panel7b9940_Open() {
         const s32 scaleX = global<s16>(0x00faa5c4), scaleY = global<s16>(0x00faa5c0);
         global<float>(0x007a1c54) = (float)((halfWidth + left) * scaleX / 0x800);
         global<float>(0x007a1c58) = (float)((halfHeight + top) * scaleY / 0x600);
-        global<float>(0x0074d104) = (float)(scaleX * halfWidth / 0x800);
-        global<float>(0x0074d108) = (float)(scaleY * halfHeight / 0x600);
+        global<float>((u32)(uintptr_t)&gCameraupdate_74d104) = (float)(scaleX * halfWidth / 0x800);
+        global<float>((u32)(uintptr_t)&gCameraupdate_74d108) = (float)(scaleY * halfHeight / 0x600);
         GuiRect_Dtor(rect);
     }
     if (u8 *const window = g_open->create(global<u8 *>(0x00faa5d8), nullptr, 1, 0, 1, 0, 0, 0x7ff, 0x5ff)) {
         g_open->setHandler(window, nullptr, 0x00488a00);
         gPanel7b9940_7cb2b0 = window;
         g_open->setCursor(window, nullptr, 0x15);
-        g_open->build(gPanel7b9940_7cb2b0, nullptr, reinterpret_cast<u8 *>((uintptr_t)0x0074fa98), 0);
+        g_open->build(gPanel7b9940_7cb2b0, nullptr, gPanel7b9940_74fa98, 0);
     }
     g_open->build7cb2b8();
     g_open->create7ca1e0();
@@ -172,7 +173,7 @@ void __cdecl Panel7b9940_Close() {
 u32 __cdecl Panel7b9940_Show() {
     u8 *const self = reinterpret_cast<u8 *>((uintptr_t)0x007b9940);
     Gui_ResetQueues();
-    const u32 one = global<u32>(0x006ff148);
+    const u32 one = gPanel7b9940_6ff148;
     u8 *base = self + vbase(self, 0, 8);
     SceneFlags_Touch(kSceneFlags);
     at<u32>(base, 0x54) = 0xffffffff;
@@ -189,7 +190,7 @@ u32 __cdecl Panel7b9940_Show() {
 u32 __cdecl Panel7b9940_ShowWindow() {
     u8 *const self = reinterpret_cast<u8 *>((uintptr_t)0x007b9940);
     g_open->resetQueues();
-    const u32 one = global<u32>(0x006ff148);
+    const u32 one = gPanel7b9940_6ff148;
     u8 *base = self + vbase(self, 0, 8);
     SceneFlags_Touch(kSceneFlags);
     at<u32>(base, 0x54) = 0xffffffff;
@@ -206,7 +207,7 @@ u32 __cdecl Panel7b9940_ShowWindow() {
         g_open->setHandler(made, nullptr, 0x488a00);
         gPanel7b9940_7cb2b0 = made;
         g_open->setCursor(made, nullptr, 0x15);
-        g_open->build(gPanel7b9940_7cb2b0, nullptr, reinterpret_cast<u8 *>((uintptr_t)0x0074fa98), 0);
+        g_open->build(gPanel7b9940_7cb2b0, nullptr, gPanel7b9940_74fa98, 0);
     }
     return global<u8>(0x0078d90e) ? g_open->slot3() : g_open->slot4();
 }

@@ -114,4 +114,13 @@ u32 __stdcall GameWindow_Proc(u32 window, u32 message, u32 wparam, u32 lparam) {
             return 1;
     }
 }
+
+u32 __stdcall GameWindow_ClassProc(u32 window, u32 message, u32 wparam, u32 lparam) {
+    if (message == 2) {
+        global<void(__stdcall *)(u32)>(IMPORT(User32_PostQuitMessage))(0);
+        return 0;
+    }
+    if (GameWindow_Proc(window, message, wparam, lparam) != 1) return 0;
+    return global<u32(__stdcall *)(u32, u32, u32, u32)>(IMPORT(User32_DefWindowProcA))(window, message, wparam, lparam);
+}
 }

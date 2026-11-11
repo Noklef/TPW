@@ -5,6 +5,7 @@
 #include <cstring>
 
 #include "../core/crt.h"
+#include "../core/soundset.h"
 #include "../files/file.h"
 #include "advisorspeech.h"
 #include "advisor.h"
@@ -96,7 +97,7 @@ void __cdecl Advisor_UpdateSpeech() {
 
     const s32 sampleAt = global<s32>(0x00f79694);
     if (sampleAt && sampleAt - now <= 0) {
-        const u32 owner = global<u32>(0x00f79678) ? global<u32>(0x00803a40) : global<u32>(0x00803a34);
+        const u32 owner = global<u32>(0x00f79678) ? gSoundCategories.themeSpeech : gSoundCategories.speech;
         Voice() = g_calls.Cd(0x0051bfc0, 0u, owner, global<u32>(0x00f7967c), 0u, 0u, 0u);   // Sound_PlayAt
         global<u32>(0x00f79694) = 0;
         MouthOpen() = 1;
@@ -105,7 +106,7 @@ void __cdecl Advisor_UpdateSpeech() {
     const s32 endAt = global<s32>(0x00f79778);
     if (endAt && endAt - now <= 0) {
         g_calls.Cd(0x00521e60, 0x57u, 0x15f90u, 0u, 0x1b58u);   // Particle_Spawn
-        g_calls.Cd(0x0051bfc0, 0u, global<u32>(0x00803a2c), 0xc6u, 0u, 0u, 0u);
+        g_calls.Cd(0x0051bfc0, 0u, gSoundCategories.ui, 0xc6u, 0u, 0u, 0u);
         g_calls.Cd(0x004b9340);   // Dialog7cc4b4_Update
         global<u32>(0x00f79778) = 0;
     }
@@ -195,7 +196,7 @@ u32 __cdecl Advisor_QueueRandom(s32 length) {
 u32 __cdecl Advisor_QueueAnim(s32 index, s32 length) {
     u32 total = 0, count = 0;
     global<u32>(0x00f79778) = 0;
-    const u32 *step = &global<u32>(0x0076dc18 + index * 0x50);
+    const u32 *step = &global<u32>((u32)(uintptr_t)&gAdvisor_QueueAnim_76dc18 + index * 0x50);
     for (;;) {
         const u32 anim = *step;
         Queued(count) = anim;
@@ -217,7 +218,7 @@ u32 __cdecl Advisor_QueueAnim(s32 index, s32 length) {
 
 u32 __cdecl Advisor_Say(s32 id) {
     if (!global<u8>(0x0078d90c) || Speaking()) return 0;
-    u32 entry = 0x00768fb8;
+    u32 entry = (u32)(uintptr_t)&gAdvisorResponses;
     while (global<s32>(entry) != id) {
         if (global<s32>(entry) == 0x270f) return 0;
         entry += 0x20;
@@ -256,7 +257,7 @@ u32 __cdecl Advisor_Say(s32 id) {
 
     if (g_calls.Cd(0x0044a280, path, 1u, 0u)) {   // Quickload_Locate
         const u32 located = g_calls.Cd(0x0044a280, path, 1u, 0u);
-        const u32 stream = g_calls.Cd(0x005c4d50, located, 0x0074cfb8u);   // VFS_Open
+        const u32 stream = g_calls.Cd(0x005c4d50, located, (u32)(uintptr_t)&gText_Advisorspeech_74cfb8);   // VFS_Open
         global<u32>(0x00f797c8) = stream;
         if (stream) {
             global<u32>(0x00f79794) = g_calls.Cd(0x005c5000, stream);   // Object_CallSlot14: its size
@@ -280,7 +281,7 @@ u32 __cdecl Advisor_Say(s32 id) {
     }
 
     g_calls.Cd(0x0051e6f0, 1u);   // Sound_Set803acc
-    const u32 owner = global<u32>(global<s32>(0x00f79678) ? 0x00803a40 : 0x00803a34);
+    const u32 owner = global<s32>(0x00f79678) ? gSoundCategories.themeSpeech : gSoundCategories.speech;
     Voice() = g_calls.Cd(0x0051bfc0, 0u, owner, global<u32>(0x00f7967c), 0u, 0u, 0u);   // Sound_PlayAt
     const u32 voiced = g_calls.Cd(0x0051c570, Voice()) + 0xc8;   // Sound_VoiceInfo: its length
     if (!voiced) return 0;

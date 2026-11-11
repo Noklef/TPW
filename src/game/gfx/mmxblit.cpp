@@ -2,6 +2,7 @@
 
 #include <cstdint>
 #include "../render/rasterformat.h"
+#include "../render/rasterspans.h"
 
 namespace {
 
@@ -60,7 +61,7 @@ bool next_pass(s32 &count) {
     return sum < 0;
 }
 
-uint64_t weights() { return global<uint64_t>(0x00fbe190); }
+uint64_t weights() { return global<uint64_t>((u32)(uintptr_t)&gRasterspans_fbe138 + 0x58); }
 
 u8 *moved(u8 *p, s32 by) { return reinterpret_cast<u8 *>((uintptr_t)p + (u32)by); }
 
@@ -88,7 +89,7 @@ void __cdecl MmxBlit_Copy16(const u8 *source, u8 *out, u32 width, u32 rows, s32 
 
 void __cdecl MmxBlit_Dither16(const u8 *source, u8 *out, u32 width, u32 rows, s32 sourcePitch, s32 outPitch) {
     const u32 groups = width >> 2;
-    const uint64_t low = global<uint64_t>(0x00fbe198), high = global<uint64_t>(0x00fbe1a0), shift = global<uint64_t>(0x00fbe1a8);
+    const uint64_t low = global<uint64_t>((u32)(uintptr_t)&gRasterspans_fbe138 + 0x60), high = global<uint64_t>((u32)(uintptr_t)&gRasterspans_fbe138 + 0x68), shift = global<uint64_t>((u32)(uintptr_t)&gRasterspans_fbe138 + 0x70);
     u32 row = 0;
     do {
         global<uint64_t>((u32)(uintptr_t)&gMmxBlit_fab4e0) = global<uint64_t>((u32)(uintptr_t)&gMmxblit_77e540 + (row & 3) * 16);
@@ -101,8 +102,8 @@ void __cdecl MmxBlit_Dither16(const u8 *source, u8 *out, u32 width, u32 rows, s3
             a = paddusb(a, global<uint64_t>((u32)(uintptr_t)&gMmxBlit_fab4e0));
             b = paddusb(b, global<uint64_t>((u32)(uintptr_t)&gMmxBlit_fab4e0 + 0x8));
             const uint64_t aHigh = psrld(a & high, shift), bHigh = psrld(b & high, shift);
-            a = psrld(pmaddwd(a & low, global<uint64_t>(0x00fbe190)), 6) | aHigh;
-            b = psrld(pmaddwd(b & low, global<uint64_t>(0x00fbe190)), 6) | bHigh;
+            a = psrld(pmaddwd(a & low, global<uint64_t>((u32)(uintptr_t)&gRasterspans_fbe138 + 0x58)), 6) | aHigh;
+            b = psrld(pmaddwd(b & low, global<uint64_t>((u32)(uintptr_t)&gRasterspans_fbe138 + 0x58)), 6) | bHigh;
             from += 0x10;
             to += 8;
             const uint64_t pairsA = psrlq(a, 16) | a, pairsB = psrlq(b, 16) | b;
@@ -125,9 +126,9 @@ void __cdecl MmxBlit_Convert16(u8 *source, u8 *out, u32 width, u32 rows, s32 sou
         global<u32>((u32)(uintptr_t)&gMmxBlit_fac518 + 4) = fill;
         global<u32>((u32)(uintptr_t)&gMmxBlit_fac518) = fill;
     }
-    const uint64_t low = global<uint64_t>(0x00fbe198);
+    const uint64_t low = global<uint64_t>((u32)(uintptr_t)&gRasterspans_fbe138 + 0x60);
     const uint64_t blank = clearing ? global<uint64_t>((u32)(uintptr_t)&gMmxBlit_fac518) : 0;
-    const uint64_t high = global<uint64_t>(0x00fbe1a0);
+    const uint64_t high = global<uint64_t>((u32)(uintptr_t)&gRasterspans_fbe138 + 0x68);
     const uint64_t far = clearing ? global<uint64_t>((u32)(uintptr_t)&gMmxblit_77e540 + 0x40) : 0;
     const u32 back = gMmxBlit_Convert16_fab4d8;
     u8 *z = moved(depth, (s32)(0u - back * 2)), *d = moved(out, (s32)(0u - back * 2)), *s = moved(source, (s32)(0u - back * 4));
