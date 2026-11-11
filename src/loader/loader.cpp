@@ -319,6 +319,13 @@ LONG CALLBACK OnFault(EXCEPTION_POINTERS *e) {
     CONTEXT &c = *e->ContextRecord;
     if (r.ExceptionCode == EXCEPTION_ACCESS_VIOLATION && r.NumberParameters >= 2 && r.ExceptionInformation[0] != EXCEPTION_EXECUTE_FAULT) {
         g_lastFault[0] = c.Eip, g_lastFault[1] = (u32)r.ExceptionInformation[1], g_lastFault[2] = (u32)r.ExceptionInformation[0];
+        if (g_trace != INVALID_HANDLE_VALUE) {   // (the game's own unhandled filter, 0x687bc0, replaces the loader's: the trace keeps it)
+            char line[96];
+            const int n = wsprintfA(line, "AV at EIP %08X %s %08X, ESP %08X: %08X %08X %08X %08X\r\n", c.Eip, g_lastFault[2] ? "writing" : "reading",
+                                    g_lastFault[1], c.Esp, G<u32>(c.Esp), G<u32>(c.Esp + 4), G<u32>(c.Esp + 8), G<u32>(c.Esp + 12));
+            DWORD written;
+            WriteFile(g_trace, line, (DWORD)n, &written, nullptr);
+        }
         return EXCEPTION_CONTINUE_SEARCH;
     }
     if (r.ExceptionCode != EXCEPTION_ACCESS_VIOLATION || r.NumberParameters < 2 || r.ExceptionInformation[0] != EXCEPTION_EXECUTE_FAULT)
