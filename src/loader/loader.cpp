@@ -384,6 +384,13 @@ extern "C" __declspec(safebuffers) int __cdecl LoaderEntry(void *peb) {
     }
     Protect(kImageEnd, end - kImageEnd, PAGE_NOACCESS);
     if (!AddVectoredExceptionHandler(1, &OnFault)) Fail("tpw: cannot install the fault handler");
+    SetUnhandledExceptionFilter([](EXCEPTION_POINTERS *e) -> LONG {   // (a fault no __except takes: say where, not just exit 0xC0000005)
+        const EXCEPTION_RECORD &r = *e->ExceptionRecord;
+        Fail("tpw: exception %08X at EIP %08X (%s %08X; build\\tpw.map names tpw.exe's addresses)\nESP %08X: %08X %08X %08X %08X", r.ExceptionCode,
+             e->ContextRecord->Eip, r.NumberParameters >= 2 && r.ExceptionInformation[0] ? "writing" : "reading",
+             r.NumberParameters >= 2 ? (u32)r.ExceptionInformation[1] : 0u, e->ContextRecord->Esp, G<u32>(e->ContextRecord->Esp),
+             G<u32>(e->ContextRecord->Esp + 4), G<u32>(e->ContextRecord->Esp + 8), G<u32>(e->ContextRecord->Esp + 12));
+    });
     char tracePath[MAX_PATH];
     if (GetEnvironmentVariableA("TPW_TRACE", tracePath, MAX_PATH) - 1u < MAX_PATH - 1u)
         g_trace = CreateFileA(tracePath, GENERIC_WRITE, FILE_SHARE_READ, nullptr, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr);
