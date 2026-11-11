@@ -9,10 +9,11 @@
 #include "window705b98.h"
 #include "window705bc8.h"
 #include "window705c58.h"
+#include "../core/addrcalls.h"
 
 namespace {
 
-template <typename T> T game(u32 address) { return reinterpret_cast<T>((uintptr_t)address); }
+template <typename T> T game(u32 address) { return GameAddress<T>(address); }
 
 const GuiClassDtorsEnv kGameEnv = {game<void(__fastcall *)(u8 *)>(0x0065c025),
                                    game<void(__fastcall *)(u8 *)>(0x0065b6d6),

@@ -21,12 +21,13 @@
 #include "panel7c2534menus.h"
 #include "../world/world.h"
 #include "../core/staticobjects.h"
+#include "../core/addrcalls.h"
 
 namespace {
 
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
 template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cast<T *>((uintptr_t)p + offset); }
-template <typename T> T game(u32 address) { return reinterpret_cast<T>((uintptr_t)address); }
+template <typename T> T game(u32 address) { return GameAddress<T>(address); }
 
 const Panel7c2534OnlineEnv kGameEnv = {game<void(__fastcall *)(u8 *)>(0x00409300), game<u32(__cdecl *)()>(0x00662420), WindowAt10_Hide, WindowAt10_Message4IfAny, Global879088_Set_5508b0, game<WString *(__fastcall *)(u8 *, void *, WString *)>(0x005b8160), String_AssignFromWide,
                                        game<void(__fastcall *)(u8 *, void *, u32, void *, u32)>(0x00414920), game<void(__fastcall *)(u8 *, void *, u16 *)>(0x0051ac20), Obj_SetNameAndWords, game<void(__fastcall *)(u8 *)>(0x005c8650), Dialog7cb3f8_Open, Global786b80_SetAndMode3,

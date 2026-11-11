@@ -8,12 +8,13 @@
 #include "../gfx/pointer.h"
 #include "imports.h"
 #include "staticobjects.h"
+#include "addrcalls.h"
 
 namespace {
 
 template <typename T>
 T at(u32 address) {
-    return reinterpret_cast<T>(static_cast<std::uintptr_t>(address));
+    return GameAddress<T>(address);
 }
 const EventQueueEnv kGameEnv = {
     at<EventQueue *>(0x00fa7cb0),

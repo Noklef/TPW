@@ -14,11 +14,12 @@
 #include "savedialogcreate.h"
 #include "panel7c2534menus.h"
 #include "../core/staticobjects.h"
+#include "../core/addrcalls.h"
 
 namespace {
 
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
-template <typename T> T game(u32 address) { return reinterpret_cast<T>((uintptr_t)address); }
+template <typename T> T game(u32 address) { return GameAddress<T>(address); }
 
 const Panel7c2534HandlerEnv kGameEnv = {game<void(__fastcall *)(u8 *)>(0x00409300), game<u32(__cdecl *)()>(0x00662420), WindowAt10_Hide, WindowAt10_Message4IfAny, WindowAt10_ScalarDtor, reinterpret_cast<void(__cdecl *)(u32)>(&LoadDialog_Create),
                                         reinterpret_cast<void(__cdecl *)(u32)>(&SaveDialog_Create), Dialog7cb2fc_Open, Language_WideText, game<void(__cdecl *)(const u8 *, u32, u32, u32, u32, u32, u32, u32)>(0x0047f020), Online_Instance, Obj_HasActivity,

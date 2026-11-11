@@ -10,12 +10,13 @@
 #include "../render/graphicssettings.h"
 #include "../render/d3dsetup.h"
 #include "../core/imports.h"
+#include "../core/addrcalls.h"
 
 namespace {
 
 template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cast<T *>((uintptr_t)p + offset); }
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
-template <typename F> F game(u32 address) { return reinterpret_cast<F>((uintptr_t)address); }
+template <typename F> F game(u32 address) { return GameAddress<F>(address); }
 u8 *address(u32 a) { return reinterpret_cast<u8 *>((uintptr_t)a); }
 
 const MovieStartEnv kGameEnv = {

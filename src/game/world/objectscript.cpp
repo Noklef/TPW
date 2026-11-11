@@ -7,11 +7,12 @@
 #include "objectdefs.h"
 #include "objectscript.h"
 #include "../core/staticobjects.h"
+#include "../core/addrcalls.h"
 
 namespace {
 
 template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cast<T *>((uintptr_t)p + offset); }
-template <typename T> T game(u32 address) { return reinterpret_cast<T>((uintptr_t)address); }
+template <typename T> T game(u32 address) { return GameAddress<T>(address); }
 
 u8 *const kDefs = reinterpret_cast<u8 *>((uintptr_t)0x007890a0);
 

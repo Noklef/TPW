@@ -5,9 +5,10 @@
 
 #include "../core/initializers.h"
 #include "../core/imports.h"
+#include "../core/addrcalls.h"
 
 namespace {
-template <typename T> T game(u32 address) { return reinterpret_cast<T>((uintptr_t)address); }
+template <typename T> T game(u32 address) { return GameAddress<T>(address); }
 const GuiStaticObjectsEnv kGameEnv = {&Fn_669fa8, &Fn_669fee, game<u32(__cdecl *)(u32)>(0x0067a7d0)};
 const GuiStaticObjectsEnv *g_env = &kGameEnv;
 }  // namespace

@@ -2,11 +2,12 @@
 #include "dialogf82884child.h"
 
 #include <cstdint>
+#include "../core/addrcalls.h"
 
 namespace {
 
 template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cast<T *>((uintptr_t)p + offset); }
-template <typename T> T game(u32 address) { return reinterpret_cast<T>((uintptr_t)address); }
+template <typename T> T game(u32 address) { return GameAddress<T>(address); }
 
 const DialogF82884ChildEnv kGameEnv = {game<u8 *(__cdecl *)()>(0x0048bcd0), game<u8 *(__fastcall *)(u8 *, void *, u32)>(0x0065d7d0), game<u32(__fastcall *)(u8 *, void *, u32)>(0x0065d9dd)};
 const DialogF82884ChildEnv *g_env = &kGameEnv;

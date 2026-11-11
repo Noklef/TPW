@@ -2,11 +2,12 @@
 #include "movieshow.h"
 
 #include <cstdint>
+#include "../core/addrcalls.h"
 
 namespace {
 
 template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cast<T *>((uintptr_t)p + offset); }
-template <typename T> T game(u32 address) { return reinterpret_cast<T>((uintptr_t)address); }
+template <typename T> T game(u32 address) { return GameAddress<T>(address); }
 
 using Decode = void(__fastcall *)(u8 *, const u8 *, u8 *, u32, u32);
 using Step = void(__fastcall *)(u8 *);

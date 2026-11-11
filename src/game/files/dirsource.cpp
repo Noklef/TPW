@@ -6,12 +6,13 @@
 
 #include "../core/vcall.h"
 #include "file.h"
+#include "../core/addrcalls.h"
 
 namespace {
 
 template <typename T>
 T at(u32 address) {
-    return reinterpret_cast<T>(static_cast<std::uintptr_t>(address));
+    return GameAddress<T>(address);
 }
 const DirSourceEnv kGameEnv = {
     at<RefObject *(__fastcall *)(void *)>(0x00636e40),

@@ -28,6 +28,7 @@
 #include "cellbuild.h"
 #include "world.h"
 #include "../core/staticobjects.h"
+#include "../core/addrcalls.h"
 
 namespace {
 
@@ -91,7 +92,7 @@ u8 *__cdecl PlaceObject_Create(s32 angle) {
 
 namespace {
 
-template <typename F> F game(u32 address) { return reinterpret_cast<F>((uintptr_t)address); }
+template <typename F> F game(u32 address) { return GameAddress<F>(address); }
 const PlaceFootprintEnv kFootprintEnv = {&MapCell_HandleMessage,
                                          &MapCell_Clear,
                                          game<void(__fastcall *)(u8 *)>(0x00536780),

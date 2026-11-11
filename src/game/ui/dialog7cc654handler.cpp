@@ -17,12 +17,13 @@
 #include "window7059f0texts.h"
 #include "window7cc8c0handler.h"
 #include "../core/staticobjects.h"
+#include "../core/addrcalls.h"
 
 namespace {
 
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
 template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cast<T *>((uintptr_t)p + offset); }
-template <typename T> T game(u32 address) { return reinterpret_cast<T>((uintptr_t)address); }
+template <typename T> T game(u32 address) { return GameAddress<T>(address); }
 
 const Dialog7cc654HandlerEnv kGameEnv = {game<s32(__cdecl *)()>(0x004bc430), &Online_Restricted, &CommandQueue_Post, &Window_SendMessage, game<void(__cdecl *)(u32)>(0x004bc500), game<void(__fastcall *)(u8 *)>(0x005b6660),
                                          &Window7059f0_NthItemData, &Window7059f0_SetItemTexts, &Window7059f0_SetNthItemData, &Window7059f0_RefreshRows, reinterpret_cast<void(__fastcall *)(void *)>(&SurfaceInfo_Free), &Focus_Restore,

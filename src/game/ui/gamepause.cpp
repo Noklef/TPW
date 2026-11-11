@@ -20,11 +20,12 @@
 #include "../online/postcardsend.h"
 #include "../core/imports.h"
 #include "../core/staticobjects.h"
+#include "../core/addrcalls.h"
 
 namespace {
 
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
-template <typename F> F byAddress(u32 address) { return reinterpret_cast<F>((uintptr_t)address); }
+template <typename F> F byAddress(u32 address) { return GameAddress<F>(address); }
 u8 *object(u32 address) { return reinterpret_cast<u8 *>((uintptr_t)address); }
 
 void *__cdecl HeapAlloc_(u32 size) { return GameHeap_Alloc(size); }

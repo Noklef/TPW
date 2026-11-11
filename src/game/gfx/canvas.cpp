@@ -3,12 +3,13 @@
 
 #include <cstdint>
 #include "../core/events.h"
+#include "../core/addrcalls.h"
 
 namespace {
 
 template <typename T>
 T at(u32 address) {
-    return reinterpret_cast<T>(static_cast<std::uintptr_t>(address));
+    return GameAddress<T>(address);
 }
 const CanvasEnv kGameEnv = {
     at<SurfaceInfo *(__fastcall *)(SurfaceInfo *)>(0x005fa680),

@@ -2,12 +2,13 @@
 #include "jpeg.h"
 
 #include <cstdint>
+#include "../core/addrcalls.h"
 
 namespace {
 
 template <typename T>
 T at(u32 address) {
-    return reinterpret_cast<T>(static_cast<std::uintptr_t>(address));
+    return GameAddress<T>(address);
 }
 const JpegEnv kGameEnv = {
     at<void *(__cdecl *)(void *)>(0x00631280),

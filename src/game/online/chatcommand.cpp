@@ -22,12 +22,13 @@
 #include "session.h"
 #include "../core/imports.h"
 #include "../core/staticobjects.h"
+#include "../core/addrcalls.h"
 
 namespace {
 
 template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cast<T *>((uintptr_t)p + offset); }
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
-template <typename F> F game(u32 address) { return reinterpret_cast<F>((uintptr_t)address); }
+template <typename F> F game(u32 address) { return GameAddress<F>(address); }
 
 const u16 *const kNullStr = reinterpret_cast<const u16 *>(0x006fd6c4);    // the first wide string copy's _Nullstr
 const u16 *const kNullStr2 = reinterpret_cast<const u16 *>(0x00700624);   // the second copy's

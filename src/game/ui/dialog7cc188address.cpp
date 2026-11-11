@@ -17,11 +17,12 @@
 #include "../core/textarg.h"
 #include "dialog7cc654.h"
 #include "../core/staticobjects.h"
+#include "../core/addrcalls.h"
 
 namespace {
 
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
-template <typename T> T game(u32 address) { return reinterpret_cast<T>((uintptr_t)address); }
+template <typename T> T game(u32 address) { return GameAddress<T>(address); }
 
 const Dialog7cc188AddressEnv kGameEnv = {game<void(__fastcall *)(u8 *, void *, const StdString *)>(0x005cd510), &Dialog7cc188_FillList, &Window7059f0_ScrollTo, &Language_WideText,
                                          reinterpret_cast<s32(__cdecl *)(u8 *, u16 *, u32, u32, const void *)>(&Charset_FormatWide),

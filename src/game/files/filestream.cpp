@@ -6,12 +6,13 @@
 #include "../core/string.h"
 #include "../core/vdtor.h"
 #include "../core/imports.h"
+#include "../core/addrcalls.h"
 
 namespace {
 
 template <typename T>
 T at(u32 address) {
-    return reinterpret_cast<T>(static_cast<std::uintptr_t>(address));
+    return GameAddress<T>(address);
 }
 const FileStreamEnv kGameEnv = {
     at<s32(__stdcall *const *)(u32)>(IMPORT(Kernel32_IsDBCSLeadByte)),

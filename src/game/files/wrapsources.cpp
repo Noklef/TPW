@@ -7,12 +7,13 @@
 #include "../core/semaphore.h"
 #include "../core/vcall.h"
 #include "refpack.h"
+#include "../core/addrcalls.h"
 
 namespace {
 
 template <typename T>
 T at(u32 address) {
-    return reinterpret_cast<T>(static_cast<std::uintptr_t>(address));
+    return GameAddress<T>(address);
 }
 const WrapSourcesEnv kGameEnv = {
     at<void *(__cdecl *)(u32)>(0x0067acc0),

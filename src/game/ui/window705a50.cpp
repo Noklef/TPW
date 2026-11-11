@@ -9,6 +9,7 @@
 #include "guimanager.h"
 #include "textpool.h"
 #include "window.h"
+#include "../core/addrcalls.h"
 
 namespace {
 
@@ -25,7 +26,7 @@ u8 *__fastcall Window705a50_Ctor(u8 *window, void *, u8 *parent, u32 flags, u32 
     window[0x139] = 0;
     at<u32>(window, 0x13c) = 500;
     at<u32>(window, 0x140) = 125;
-    at<u32>(window, 0x114) = 0x668f9c;
+    at<u32>(window, 0x114) = GameCode(0x668f9c);
     at<u32>(window, 0x118) = at<u32>(window, 0x114);
     window[0x15a] = 0;
     at<u32>(window, 0x148) = 0;

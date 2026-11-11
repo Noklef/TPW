@@ -16,12 +16,13 @@
 #include "../world/world.h"
 #include "../core/imports.h"
 #include "../core/staticobjects.h"
+#include "../core/addrcalls.h"
 
 namespace {
 
 template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cast<T *>((uintptr_t)p + offset); }
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
-template <typename F> F game(u32 address) { return reinterpret_cast<F>((uintptr_t)address); }
+template <typename F> F game(u32 address) { return GameAddress<F>(address); }
 
 // The library's method through its import slot (thiscall).
 template <typename... A> u32 session_call(u32 slot, u32 session, A... args) {

@@ -16,6 +16,7 @@
 #include "guisystem.h"
 #include "guisettings.h"
 #include "windowbroadcast.h"
+#include "../core/addrcalls.h"
 
 namespace {
 
@@ -398,8 +399,8 @@ u8 *__fastcall Window_Ctor(u8 *window, void *, u8 *parent, u32 flags, u32 id, u3
     at<u32>(window, 0) = (u32)(uintptr_t)Window_vtable;
     window[4] = 0;
     at<u32>(window, 0x48) = flags;
-    at<u32>(window, 0x114) = 0x65f6d1;
-    at<u32>(window, 0x118) = 0x65f6d1;
+    at<u32>(window, 0x114) = GameCode(0x65f6d1);
+    at<u32>(window, 0x118) = GameCode(0x65f6d1);
     at<u8 *>(window, 0x60) = parent;
     for (const u32 off : {0x54u, 0x5cu, 0x58u, 0x64u, 0x68u, 0xe8u})
         at<u32>(window, off) = 0;

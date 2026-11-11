@@ -8,11 +8,12 @@
 #include "rasterspans.h"
 #include "../core/imports.h"
 #include "../core/staticobjects.h"
+#include "../core/addrcalls.h"
 
 namespace {
 
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
-template <typename T> T game(u32 address) { return reinterpret_cast<T>((uintptr_t)address); }
+template <typename T> T game(u32 address) { return GameAddress<T>(address); }
 
 const RasterFormatEnv kGameEnv = {game<u32(__cdecl *)(u32)>(0x00679150), game<u32(__cdecl *)(u32)>(0x00679170), game<void(__cdecl *)()>(0x00679190),
                                   game<u32(__cdecl *)(u32, u32)>(0x00679230), game<u32(__cdecl *)(u32, u32)>(0x006791f0)};

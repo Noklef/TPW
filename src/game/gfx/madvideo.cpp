@@ -7,12 +7,13 @@
 #include "dctmacroblock.h"
 #include "dctvlc.h"
 #include "moviepixels.h"
+#include "../core/addrcalls.h"
 
 namespace {
 
 template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cast<T *>((uintptr_t)p + offset); }
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
-template <typename T> T game(u32 address) { return reinterpret_cast<T>((uintptr_t)address); }
+template <typename T> T game(u32 address) { return GameAddress<T>(address); }
 
 const MadVideoEnv kGameEnv = {game<void *(__cdecl *)(u32, u32)>(0x0067fcb0), reinterpret_cast<void(__fastcall *)(const u8 *, u32, s32)>(&DctVlc_BeginFrame),
                               reinterpret_cast<void(__fastcall *)(u8 *, u8 *, s32)>(&DctVideo_DecodeMacroblock), reinterpret_cast<void(__cdecl *)(const u8 *, u8 *, u32)>(&MoviePixels_FromYuv)};

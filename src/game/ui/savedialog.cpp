@@ -16,11 +16,12 @@
 #include "../core/textarg.h"
 #include "../core/imports.h"
 #include "../core/staticobjects.h"
+#include "../core/addrcalls.h"
 
 namespace {
 
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
-template <typename T> T game(u32 address) { return reinterpret_cast<T>((uintptr_t)address); }
+template <typename T> T game(u32 address) { return GameAddress<T>(address); }
 
 const SaveDialogEnv kGameEnv = {game<u8 *(__fastcall *)(u8 *)>(0x005ac8f0), game<void(__fastcall *)(u8 *, void *, const WString *)>(0x005ac610), game<void(__fastcall *)(u8 *, void *, u8 *)>(0x005ac5d0), game<void(__fastcall *)(u8 *)>(0x00409300), &Window_SendMessage, &Window_PostMessage,
                                 &Focus_Restore, &KeyMaps_EnableAllAndClearFlag, &Dialog_BaseHandler, &Window7059f0_NthItemData, &Charset_FormatWide, game<void(__cdecl *)(const u8 *, u32, u32, u32, u32, u32, u32, u32)>(0x0047f020), &Window7059f0_AddItem};

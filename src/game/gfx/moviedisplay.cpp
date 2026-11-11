@@ -7,11 +7,12 @@
 #include "moviepixels.h"
 #include "moviesurface.h"
 #include "tgqvideo.h"
+#include "../core/addrcalls.h"
 
 namespace {
 
 template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cast<T *>((uintptr_t)p + offset); }
-template <typename T> T game(u32 address) { return reinterpret_cast<T>((uintptr_t)address); }
+template <typename T> T game(u32 address) { return GameAddress<T>(address); }
 
 const MovieDisplayEnv kGameEnv = {&MovieSurface_PickMode, &MovieSurface_ReadSize, &MoviePixels_ReadFormat, game<void *(__cdecl *)(u32)>(0x0067dcd0), &TgqVideo_SetupTables, &MoviePixels_BuildTables};
 const MovieDisplayEnv *g_env = &kGameEnv;

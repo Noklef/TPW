@@ -4,11 +4,12 @@
 #include <cstdint>
 #include <cstring>
 #include "../core/imports.h"
+#include "../core/addrcalls.h"
 
 namespace {
 
 template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cast<T *>((uintptr_t)p + offset); }
-template <typename T> T game(u32 address) { return reinterpret_cast<T>((uintptr_t)address); }
+template <typename T> T game(u32 address) { return GameAddress<T>(address); }
 template <typename F> F import(u32 slot) { return *reinterpret_cast<F const *>((uintptr_t)slot); }
 
 u32 exchange(void *place, u32 value) { return import<u32(__stdcall *)(void *, u32)>(IMPORT(Kernel32_InterlockedExchange))(place, value); }

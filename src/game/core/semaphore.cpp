@@ -3,12 +3,13 @@
 
 #include <cstdint>
 #include "imports.h"
+#include "addrcalls.h"
 
 namespace {
 
 template <typename T>
 T at(u32 address) {
-    return reinterpret_cast<T>(static_cast<std::uintptr_t>(address));
+    return GameAddress<T>(address);
 }
 const SemaphoreEnv kGameEnv = {
     at<void *(__stdcall *const *)(void *, s32, s32, const char *)>(IMPORT(Kernel32_CreateSemaphoreA)),

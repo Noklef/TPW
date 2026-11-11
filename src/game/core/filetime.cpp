@@ -3,6 +3,7 @@
 
 #include <cstdint>
 #include "imports.h"
+#include "addrcalls.h"
 
 namespace {
 
@@ -10,7 +11,7 @@ typedef unsigned long long u64;
 
 template <typename T>
 T at(u32 address) {
-    return reinterpret_cast<T>(static_cast<std::uintptr_t>(address));
+    return GameAddress<T>(address);
 }
 const FileTimeEnv kGameEnv = {
     at<s32(__stdcall *const *)(const FileTime *, u16 *)>(IMPORT(Kernel32_FileTimeToSystemTime)),

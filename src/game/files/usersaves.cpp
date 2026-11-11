@@ -12,6 +12,7 @@
 #include "userslots.h"
 #include "../core/vdtor.h"
 #include "../core/staticobjects.h"
+#include "../core/addrcalls.h"
 
 namespace {
 
@@ -20,7 +21,7 @@ AddrCalls g_calls;
 constexpr u32 kHandleCtor = 0x005f8240, kHandleOpen = 0x005f8510, kHandleFirst = 0x005f8370, kHandleNext = 0x005f83a0, kHandleDtor = 0x005f82a0;
 constexpr u32 kThemeFolder = 0x005c8890, kBeforeSave = 0x005c8a10, kLoad = 0x00414d40, kSave = 0x00414920, kSaveObject = 0x0078a450;
 
-template <typename T> T at(u32 address) { return reinterpret_cast<T>((uintptr_t)address); }
+template <typename T> T at(u32 address) { return GameAddress<T>(address); }
 u32 word(const void *p) { return static_cast<u32>(reinterpret_cast<uintptr_t>(p)); }
 
 struct Node {

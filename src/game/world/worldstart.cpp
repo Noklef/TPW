@@ -12,12 +12,13 @@
 #include "../ui/dialog74fb20.h"
 #include "worldstart.h"
 #include "../core/staticobjects.h"
+#include "../core/addrcalls.h"
 
 namespace {
 
 template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cast<T *>((uintptr_t)p + offset); }
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
-template <typename F> F game(u32 address) { return reinterpret_cast<F>((uintptr_t)address); }
+template <typename F> F game(u32 address) { return GameAddress<F>(address); }
 u8 *address(u32 a) { return reinterpret_cast<u8 *>((uintptr_t)a); }
 
 using Ctor = u8 *(__fastcall *)(u8 *);

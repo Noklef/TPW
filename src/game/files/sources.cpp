@@ -6,12 +6,13 @@
 #include "../core/vcall.h"
 #include "file.h"
 #include "../core/imports.h"
+#include "../core/addrcalls.h"
 
 namespace {
 
 template <typename T>
 T at(u32 address) {
-    return reinterpret_cast<T>(static_cast<std::uintptr_t>(address));
+    return GameAddress<T>(address);
 }
 #define SLOT(member, address) at<decltype(SourcesEnv::member)>(address)
 const SourcesEnv kGameEnv = {

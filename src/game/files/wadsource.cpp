@@ -9,12 +9,13 @@
 #include "wadfind.h"
 #include "wrapsources.h"
 #include "handles.h"
+#include "../core/addrcalls.h"
 
 namespace {
 
 template <typename T>
 T at(u32 address) {
-    return reinterpret_cast<T>(static_cast<std::uintptr_t>(address));
+    return GameAddress<T>(address);
 }
 const WadSourceEnv kGameEnv = {
     at<void *(__cdecl *)(u32)>(0x0067acc0),

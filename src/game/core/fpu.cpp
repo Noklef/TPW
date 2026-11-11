@@ -2,12 +2,13 @@
 #include "fpu.h"
 
 #include <cstdint>
+#include "addrcalls.h"
 
 namespace {
 
 template <typename T>
 T at(u32 address) {
-    return reinterpret_cast<T>(static_cast<std::uintptr_t>(address));
+    return GameAddress<T>(address);
 }
 const FpuEnv kGameEnv = {
     at<void(__cdecl *)(void *)>(0x0067acb0),

@@ -25,11 +25,12 @@
 #include "../coaster/arreplayaction.h"
 #include "dialog7cc984.h"
 #include "../core/staticobjects.h"
+#include "../core/addrcalls.h"
 
 namespace {
 
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
-template <typename T> T game(u32 address) { return reinterpret_cast<T>((uintptr_t)address); }
+template <typename T> T game(u32 address) { return GameAddress<T>(address); }
 template <typename T> T at(const u8 *object, u32 offset) { return *reinterpret_cast<const T *>(object + offset); }
 
 const Dialog7cc984OpenEnv kGameEnv = {Class70293c_Assign, Gui_TopDepth, WindowScript_Build, Window_SetDepth, Window_Offset, game<u8 *(__fastcall *)(u8 *)>(0x005b50b0), Owner2c_FindByKey, Owner2c_ValueByKey, NamedObjects_SetThemeLabelAnsi,

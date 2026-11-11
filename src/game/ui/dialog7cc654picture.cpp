@@ -3,11 +3,12 @@
 
 #include <cstdint>
 #include "../core/staticobjects.h"
+#include "../core/addrcalls.h"
 
 namespace {
 
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
-template <typename T> T game(u32 address) { return reinterpret_cast<T>((uintptr_t)address); }
+template <typename T> T game(u32 address) { return GameAddress<T>(address); }
 
 const Dialog7cc654PictureEnv kGameEnv = {game<void *(__fastcall *)(void *)>(0x005fa680),
                                          game<u8 *(__fastcall *)(u8 *, void *, u32)>(0x0065d7d0),

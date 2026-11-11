@@ -332,7 +332,7 @@ const SpriteScriptEnv kGameEnv = {
     &game_now,
     reinterpret_cast<u32(__cdecl *)(u8 *)>(0x00475010),
     reinterpret_cast<void(__cdecl *)()>(0x00540ab0),
-    reinterpret_cast<void(__cdecl *)(u8 *)>(0x00542010),
+    GameAddress<void(__cdecl *)(u8 *)>(0x00542010),
     reinterpret_cast<void(__cdecl *)()>(0x00540b30),
     reinterpret_cast<void(__cdecl *)(u32 *, void *, const void *, u32, u32)>(0x005f5e50),
     reinterpret_cast<void(__cdecl *)(u32 *, void *, void *, u32, u32)>(0x005f5e20),

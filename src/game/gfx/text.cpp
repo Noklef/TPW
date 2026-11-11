@@ -9,12 +9,13 @@
 #include "../core/vcall.h"
 #include "../ui/guifont.h"
 #include "../core/staticobjects.h"
+#include "../core/addrcalls.h"
 
 namespace {
 
 template <typename T>
 T at(u32 address) {
-    return reinterpret_cast<T>(static_cast<std::uintptr_t>(address));
+    return GameAddress<T>(address);
 }
 const TextEnv kGameEnv = {
     at<const TextDriver **>(0x00fa76a0),

@@ -19,11 +19,12 @@
 #include "windowreg.h"
 #include "dialog7cc188.h"
 #include "../core/staticobjects.h"
+#include "../core/addrcalls.h"
 
 namespace {
 
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
-template <typename T> T game(u32 address) { return reinterpret_cast<T>((uintptr_t)address); }
+template <typename T> T game(u32 address) { return GameAddress<T>(address); }
 
 const SaveDialogCreateEnv kGameEnv = {game<void(__fastcall *)(u8 *, void *, u32, u32)>(0x004092a0), &Window7c24c8_Close, &Dialog_Create, &Window_SetFocus, &Language_WideText, &HoverLabel_Attach, &Window_SetShown, &Window7059f0_BuildRows, &Window7059f0_SetColumnBottom, &GuiWindows_FindByName,
                                       &Window7059f0_SetHighlight, &LoadDialog_FillList, &SaveDialog_FillList, &TextPart6ff4d0_Ctor, &Window_SetImpl, &Window_Set4c, &Language_Font, &Window705a20_SetBuffer, &Window705a20_SetCaret, &Fn_66781a, &KeyMaps_ResetAllAndSetFlag};

@@ -5,11 +5,12 @@
 
 #include "vcall.h"
 #include "imports.h"
+#include "addrcalls.h"
 
 namespace {
 
 template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cast<T *>((uintptr_t)p + offset); }
-template <typename F> F game(u32 address) { return reinterpret_cast<F>((uintptr_t)address); }
+template <typename F> F game(u32 address) { return GameAddress<F>(address); }
 
 const SoundTriggerEnv kGameEnv = {
     game<u32(__fastcall *)(u8 *, void *, u8 *, u8 *, u8 *)>(0x006b6650),

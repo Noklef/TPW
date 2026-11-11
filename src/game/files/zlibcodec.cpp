@@ -5,12 +5,13 @@
 
 #include "../core/vcall.h"
 #include "handles.h"
+#include "../core/addrcalls.h"
 
 namespace {
 
 template <typename T>
 T at(u32 address) {
-    return reinterpret_cast<T>(static_cast<std::uintptr_t>(address));
+    return GameAddress<T>(address);
 }
 const ZlibEnv kGameEnv = {
     at<s32(__cdecl *)(ZStream *, s32, s32, s32, s32, s32, const char *, s32)>(0x006351a0),

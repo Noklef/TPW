@@ -23,11 +23,12 @@
 #include "../gfx/texcache.h"
 #include "../core/staticobjects.h"
 #include "../render/d3dsetup.h"
+#include "../core/addrcalls.h"
 
 namespace {
 
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
-template <typename T> T game(u32 address) { return reinterpret_cast<T>((uintptr_t)address); }
+template <typename T> T game(u32 address) { return GameAddress<T>(address); }
 
 const Dialog7cb2fcOpenEnv kGameEnv = {Language_WideText, Dialog7cb2fc_SetValueRow, Dialog7cb2fc_SetToggle, Sound_Set803abc, Sound_Set803ac0, Sound_Set803ac4,
                                       game<void(__cdecl *)(u32)>(0x005996d0), Window_SendMessage, HoverLabel_Attach, Dialog7cb2fc_DressRow,

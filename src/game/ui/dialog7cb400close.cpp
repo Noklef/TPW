@@ -16,11 +16,12 @@
 #include "dialogbase.h"
 #include "window.h"
 #include "dialog74fb20.h"
+#include "../core/addrcalls.h"
 
 namespace {
 
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
-template <typename T> T game(u32 address) { return reinterpret_cast<T>((uintptr_t)address); }
+template <typename T> T game(u32 address) { return GameAddress<T>(address); }
 
 const Dialog7cb400CloseEnv kGameEnv = {&Window_SendMessage, &Window_SetFocus, &Window_SetShown, &KeyMaps_EnableAll, &Class702da0_Clear, &Setting_ReadMode, game<s32(__cdecl *)(void(__cdecl *)())>(0x0067a7d0),
                                        &GlobalSave_Instance, &GlobalSave_Inc20, game<void(__fastcall *)(u8 *)>(0x005c8a10), &Class702da0_Push, &Obj_PickByName, game<void(__fastcall *)(u8 *)>(0x005e2010),

@@ -6,10 +6,11 @@
 #include "focus.h"
 #include "panel7cc218.h"
 #include "../core/staticobjects.h"
+#include "../core/addrcalls.h"
 
 namespace {
 
-template <typename T> T game(u32 address) { return reinterpret_cast<T>((uintptr_t)address); }
+template <typename T> T game(u32 address) { return GameAddress<T>(address); }
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
 FrontEndEntriesEnv::Plain plain(u32 address) { return game<FrontEndEntriesEnv::Plain>(address); }
 FrontEndEntriesEnv::One one(u32 address) { return game<FrontEndEntriesEnv::One>(address); }

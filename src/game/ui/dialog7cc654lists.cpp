@@ -12,12 +12,13 @@
 #include "window7059f0.h"
 #include "../online/postcardsend.h"
 #include "../core/staticobjects.h"
+#include "../core/addrcalls.h"
 
 namespace {
 
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
 template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cast<T *>((uintptr_t)p + offset); }
-template <typename T> T game(u32 address) { return reinterpret_cast<T>((uintptr_t)address); }
+template <typename T> T game(u32 address) { return GameAddress<T>(address); }
 
 const Dialog7cc654ListsEnv kGameEnv = {&Window7059f0_NthItemData, game<u8(__fastcall *)(u8 *)>(0x005cc5e0), game<u8(__fastcall *)(u8 *)>(0x005cc600), &List68_EraseMatching, &List74_EraseMatching,
                                        game<void(__fastcall *)(u8 *)>(0x005cc640), game<void(__fastcall *)(u8 *)>(0x005cc770), &UserSlots_Instance, &Language_WideText, game<void(__fastcall *)(u8 *)>(0x005cd0a0),

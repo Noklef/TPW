@@ -12,12 +12,13 @@
 #include "file.h"
 #include "handles.h"
 #include "../core/staticobjects.h"
+#include "../core/addrcalls.h"
 
 namespace {
 
 template <typename T>
 T at(u32 address) {
-    return reinterpret_cast<T>(static_cast<std::uintptr_t>(address));
+    return GameAddress<T>(address);
 }
 
 // The leading copies of the global "\" (0x78bee0) dropped from s, one at a time.

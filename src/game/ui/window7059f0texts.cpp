@@ -5,10 +5,11 @@
 
 #include "../core/wtraits.h"
 #include "window7059f0.h"
+#include "../core/addrcalls.h"
 
 namespace {
 
-template <typename T> T game(u32 address) { return reinterpret_cast<T>((uintptr_t)address); }
+template <typename T> T game(u32 address) { return GameAddress<T>(address); }
 
 const Window7059f0TextsEnv kGameEnv = {game<u8 *(__fastcall *)(u8 *, void *, const u16 *, u32)>(0x004051d0), &Window7059f0_NthItem, &Window7059f0_RefreshRows};
 const Window7059f0TextsEnv *g_env = &kGameEnv;

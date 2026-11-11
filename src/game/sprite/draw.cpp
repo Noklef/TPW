@@ -15,6 +15,7 @@
 #include "../core/staticobjects.h"
 #include "../world/camera.h"
 #include "../world/world.h"
+#include "../core/addrcalls.h"
 
 namespace {
 
@@ -57,7 +58,7 @@ void __cdecl game_set_picked(u32 thing) {
                                                                           nullptr, thing);
 }
 const SpriteDrawEnv kGameEnv = {
-    reinterpret_cast<double(__cdecl *)(u32, u32)>(0x004527f0),
+    GameAddress<double(__cdecl *)(u32, u32)>(0x004527f0),
     reinterpret_cast<u32(__cdecl *)()>(0x00532bd0),
     &game_set_picked,
 };

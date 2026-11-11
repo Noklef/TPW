@@ -20,6 +20,7 @@
 #include "../terrain/land.h"
 #include "camera.h"
 #include "../render/graphicssettings.h"
+#include "../core/addrcalls.h"
 
 namespace {
 
@@ -250,7 +251,7 @@ u32 __cdecl Ride_Create(u32 type, u32 flags, const u32 *desc, u32 mask, u32 d4, 
     if (at<u32>(obj, 0x28) && !(at<u32>(inst, 4) & 0x20000000)) g_env->partStates(obj);
     if ((flags & 0x200) && Table7ae6a8_Bit18(type)) g_env->createLink(type, slot + 1, (u32)cx, (u32)cy, loaded, a5);
     at<u8 *>(at<u8 *>(at<u8 *>(inst, 8), 4), 0xb4) = inst;
-    if (u8 *blend = at<u8 *>(at<u8 *>(inst, 8), 0x1c)) at<u32>(blend, 0x140) = 0x00463030;
+    if (u8 *blend = at<u8 *>(at<u8 *>(inst, 8), 0x1c)) at<u32>(blend, 0x140) = GameCode(0x00463030);
     if (at<u32>(inst, 4) & 0x1000000) g_env->setPlaying(inst);
     if (at<u32>(inst, 4) & 0x2000000) g_env->flash(inst);
     u8 *model = at<u8 *>(at<u8 *>(inst, 8), 4);

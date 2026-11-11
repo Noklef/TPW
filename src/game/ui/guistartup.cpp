@@ -20,13 +20,14 @@
 #include "../render/d3dsetup.h"
 #include "../core/imports.h"
 #include "../core/staticobjects.h"
+#include "../core/addrcalls.h"
 
 namespace {
 
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
 u8 *object(u32 address) { return reinterpret_cast<u8 *>((uintptr_t)address); }
 
-template <typename F> F byAddress(u32 address) { return reinterpret_cast<F>((uintptr_t)address); }
+template <typename F> F byAddress(u32 address) { return GameAddress<F>(address); }
 
 const GuiStartupEnv kStartupEnv = {
     &Screen_Open,
@@ -107,7 +108,7 @@ void __cdecl Gui_Startup() {
     E->fontInit(object((u32)(uintptr_t)&gGuiFont_786de8), nullptr, 0xff, width, 0, height, b);
     E->guiInit(0x80, 0x800, E->isHebrew(object((u32)(uintptr_t)&gLanguage_78b530)));
     E->fn659674(0x007b9864);
-    E->fn6590ea(0x00485780);
+    E->fn6590ea(GameCode(0x00485780));
     E->poolInit(0x40, 0x80, 0x10, 0x80);
     E->outOne(0x100000, 3, 0xd, &gGuistartup_7c249c);
     global<u32(__stdcall *)(u32)>(IMPORT(User32_ShowCursor))(0);

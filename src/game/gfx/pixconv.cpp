@@ -5,12 +5,13 @@
 
 #include <cstdint>
 #include <cstring>
+#include "../core/addrcalls.h"
 
 namespace {
 
 template <typename T>
 T at(u32 address) {
-    return reinterpret_cast<T>(static_cast<std::uintptr_t>(address));
+    return GameAddress<T>(address);
 }
 const PixConvEnv kGameEnv = {
     at<void(__cdecl *)(void *)>(0x0067acb0),

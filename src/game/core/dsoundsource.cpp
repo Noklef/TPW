@@ -14,12 +14,13 @@
 #include "vcall.h"
 #include "waveformat.h"
 #include "imports.h"
+#include "addrcalls.h"
 
 namespace {
 
 template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cast<T *>((uintptr_t)p + offset); }
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
-template <typename F> F game(u32 address) { return reinterpret_cast<F>((uintptr_t)address); }
+template <typename F> F game(u32 address) { return GameAddress<F>(address); }
 void *address(u32 a) { return reinterpret_cast<void *>((uintptr_t)a); }
 template <typename... A> u32 import(u32 slot, A... args) { return (*reinterpret_cast<u32(__stdcall *const *)(A...)>((uintptr_t)slot))(args...); }
 

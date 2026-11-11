@@ -2,6 +2,7 @@
 #pragma once
 
 #include <cstdint>
+#include <type_traits>
 
 #include "../../../re/types.h"
 
@@ -12,6 +13,17 @@ struct AddrCall {
 // What a call to a game address reaches when no table names it: unset (the hook DLL, the tests), the address itself, where the hook's jump
 // takes it to the port; in tpw.exe the loader's resolver (src/loader), the port, or the address when there is none (the call then traps).
 inline u32(__cdecl *g_addressTarget)(u32 address) = nullptr;
+
+// A game function's address as what a call there reaches (above), so in tpw.exe a call through an env table or a stored callback goes
+// straight to the port instead of faulting into the loader each time. Env tables are filled after the loader sets the resolver.
+inline u32 GameCode(u32 address) { return g_addressTarget ? g_addressTarget(address) : address; }
+
+// A game address as the pointer T: GameCode for a function.
+template <typename T>
+T GameAddress(u32 address) {
+    if constexpr (std::is_function_v<std::remove_pointer_t<T>>) address = GameCode(address);
+    return reinterpret_cast<T>(static_cast<std::uintptr_t>(address));
+}
 
 class AddrCalls {
 public:

@@ -21,12 +21,13 @@
 #include "../core/textarg.h"
 #include "dialog7cc188.h"
 #include "../core/staticobjects.h"
+#include "../core/addrcalls.h"
 
 namespace {
 
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
 template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cast<T *>((uintptr_t)p + offset); }
-template <typename T> T game(u32 address) { return reinterpret_cast<T>((uintptr_t)address); }
+template <typename T> T game(u32 address) { return GameAddress<T>(address); }
 
 const Dialog7cc654OpenEnv kGameEnv = {&Dialog_Create, &TextPart_Ctor, &RendererPart_Ctor, &Window_SetImpl, &Language_Font, &Window_Set4c, &Window_NotifyImpl100, &Window_Notify3000, &Window_NotifyC00, &Window_SetHandler, &SurfaceInfo_Alloc,
                                       &Window7059f0_BuildRows, &Window7059f0_SetColumnBottom, &GuiWindows_FindByName, &Window7059f0_SetHighlight, &Language_WideText, &ButtonText_Init, &HoverLabel_Attach,

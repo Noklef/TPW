@@ -5,6 +5,7 @@
 #include "drawimpl.h"
 
 #include <cstdint>
+#include "../core/addrcalls.h"
 
 using namespace draw_impl;
 
@@ -12,7 +13,7 @@ namespace {
 
 template <typename T>
 T at(u32 address) {
-    return reinterpret_cast<T>(static_cast<std::uintptr_t>(address));
+    return GameAddress<T>(address);
 }
 const DrawEnv kGameEnv = {
     at<DrawContext *>(0x00fa76b8),

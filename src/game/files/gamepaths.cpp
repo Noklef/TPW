@@ -21,6 +21,7 @@
 #include "../core/imports.h"
 #include "../world/objectdefs.h"
 #include "../core/staticobjects.h"
+#include "../core/addrcalls.h"
 
 namespace {
 
@@ -28,7 +29,7 @@ AddrCalls g_calls;
 
 template <typename T>
 T at(u32 address) {
-    return reinterpret_cast<T>(static_cast<std::uintptr_t>(address));
+    return GameAddress<T>(address);
 }
 }  // namespace
 

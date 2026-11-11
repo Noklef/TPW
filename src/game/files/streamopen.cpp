@@ -4,12 +4,13 @@
 #include <cstdint>
 #include "../core/vdtor.h"
 #include "../core/imports.h"
+#include "../core/addrcalls.h"
 
 namespace {
 
 template <typename T>
 T at(u32 address) {
-    return reinterpret_cast<T>(static_cast<std::uintptr_t>(address));
+    return GameAddress<T>(address);
 }
 const StreamOpenEnv kGameEnv = {
     at<s32 *(__cdecl *)(s32 *, char *, u32, const char *)>(0x005f5710),

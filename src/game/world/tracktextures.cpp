@@ -8,12 +8,13 @@
 #include "cellbuild.h"
 #include "cellrun.h"
 #include "world.h"
+#include "../core/addrcalls.h"
 
 namespace {
 
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
 u32 pieces(u32 offset) { return (u32)(uintptr_t)gPieceTables + offset; }
-template <typename F> F game(u32 address) { return reinterpret_cast<F>((uintptr_t)address); }
+template <typename F> F game(u32 address) { return GameAddress<F>(address); }
 
 const TrackTexturesEnv kGameEnv = {
     game<u32(__cdecl *)()>(0x0040ef40),

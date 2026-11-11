@@ -16,11 +16,12 @@
 #include "window7cc8c0handler.h"
 #include "window7cc8bc.h"
 #include "panel7b9940.h"
+#include "../core/addrcalls.h"
 
 namespace {
 
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
-template <typename T> T game(u32 address) { return reinterpret_cast<T>((uintptr_t)address); }
+template <typename T> T game(u32 address) { return GameAddress<T>(address); }
 
 const Window7cc8bcEditEnv kGameEnv = {reinterpret_cast<s32(__fastcall *)(const u8 *, void *, u32, u32)>(&KeyMap_FindKey), &Window_KillFocus, &Window_SetFocus, &MouseModeHolder_Ctor, &MMOnline_Ctor, &MouseModeOnlineBase_Ctor,
                                       reinterpret_cast<void(__fastcall *)(u8 *, void *, u8 *)>(&MouseMode_Set), &Window_SetCursor, &Panel7c2534_Open, &Window_SendMessage, &OnlineChat_Instance,

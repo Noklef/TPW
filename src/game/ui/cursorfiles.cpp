@@ -7,11 +7,12 @@
 #include "cursor.h"
 #include "../core/imports.h"
 #include "../world/objectdefs.h"
+#include "../core/addrcalls.h"
 
 namespace {
 
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
-template <typename T> T game(u32 address) { return reinterpret_cast<T>((uintptr_t)address); }
+template <typename T> T game(u32 address) { return GameAddress<T>(address); }
 
 const CursorFilesEnv kGameEnv = {game<s32(__cdecl *)(char *, const char *, ...)>(0x0067a650), &Quickload_Locate, game<void *(__cdecl *)(u32)>(0x0067acc0), reinterpret_cast<u8 *(__fastcall *)(void *)>(&SysCursor_Ctor),
                                  game<u8 *(__fastcall *)(void *)>(0x0047eab0), game<void(__fastcall *)(u8 *, void *, const char *)>(0x0047ec80)};

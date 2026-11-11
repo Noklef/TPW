@@ -3,12 +3,13 @@
 
 #include <cstdint>
 #include <cstring>
+#include "../core/addrcalls.h"
 
 namespace {
 
 template <typename T>
 T at(u32 address) {
-    return reinterpret_cast<T>(static_cast<std::uintptr_t>(address));
+    return GameAddress<T>(address);
 }
 const ConvertEnv kGameEnv = {
     at<PixelConversion *>(0x00fa7d18),

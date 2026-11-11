@@ -5,12 +5,13 @@
 
 #include "cellmodel.h"
 #include "queuepieces.h"
+#include "../core/addrcalls.h"
 
 namespace {
 
 using CellFn = void(__fastcall *)(u8 *);
 
-const MapSweepEnv kGameEnv = {reinterpret_cast<CellFn>((uintptr_t)0x00536780), reinterpret_cast<CellFn>(CellPaint_Apply), reinterpret_cast<CellFn>(MapCell_PlaceRide)};
+const MapSweepEnv kGameEnv = {GameAddress<CellFn>(0x00536780), reinterpret_cast<CellFn>(CellPaint_Apply), reinterpret_cast<CellFn>(MapCell_PlaceRide)};
 const MapSweepEnv *g_env = &kGameEnv;
 
 void sweep(u8 *map, CellFn first, CellFn second) {

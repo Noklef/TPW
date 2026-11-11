@@ -4,11 +4,12 @@
 #include <cstdint>
 #include "dialog7cc944.h"
 #include "dialog7cc984open.h"
+#include "../core/addrcalls.h"
 
 namespace {
 
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
-template <typename T> T game(u32 address) { return reinterpret_cast<T>((uintptr_t)address); }
+template <typename T> T game(u32 address) { return GameAddress<T>(address); }
 
 const Dialog7cc944RowEnv kGameEnv = {game<u8 *(__fastcall *)(u8 *, void *, u32)>(0x0065d7d0), game<void(__fastcall *)(u8 *, void *, u32, u32 *)>(0x00664c71), game<s32(__cdecl *)(u16 *, const u16 *, ...)>(0x0067af00),
                                      game<void(__fastcall *)(u8 *, void *, u32, const u32 *, u32, u32, s32)>(0x006644ea)};
