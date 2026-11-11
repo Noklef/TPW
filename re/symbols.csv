@@ -6490,8 +6490,8 @@ address,name,kind,confidence,notes
 0x00695910,Numpunct_Ctor,function,low,reimplemented (src/game/core/localefacet); numpunct<char>'s constructor
 0x0069c680,WNumpunct_Ctor,function,low,reimplemented (src/game/core/localefacet); numpunct<wchar_t>'s constructor
 0x0069c7e0,WNumpunct_Init,function,low,reimplemented (src/game/core/localefacet); numpunct<wchar_t>::_Init
-0x0069b490,WNumGet_Ctor,function,low,reimplemented (src/game/core/localefacet); num_get<wchar_t>'s constructor
-0x0069cb00,WNumPut_Ctor,function,low,reimplemented (src/game/core/localefacet); num_put<wchar_t>'s constructor
+0x0069b490,NumPutW_Ctor,function,low,reimplemented (src/game/core/localefacet); num_put<wchar_t>'s constructor
+0x0069cb00,NumGetW_Ctor,function,low,reimplemented (src/game/core/localefacet); num_get<wchar_t>'s constructor
 0x0069b460,WCodecvt_Ctor,function,low,"reimplemented (src/game/core/localefacet); codecvt<wchar_t, char, int>'s constructor"
 0x00695c00,Numpunct_Tidy,function,low,reimplemented (src/game/core/localefacet); numpunct<char>'s destructor body
 0x0069cac0,WNumpunct_Tidy,function,low,reimplemented (src/game/core/localefacet); numpunct<wchar_t>'s destructor body
@@ -12263,7 +12263,7 @@ address,name,kind,confidence,notes
 0x00709c0c,WFacet709c0c_vtable,data,low,"GAME_DATA (core/localefacet): the vtable (4 slots, all ported); name invented"
 0x00709c24,CollateW_vtable,data,low,"GAME_DATA (core/localefacet): the vtable (4 slots, all ported); name invented"
 0x00709c3c,WNumpunct_vtable,data,low,"GAME_DATA (core/localefacet): the vtable (6 slots, all ported); name invented"
-0x00709c5c,WNumGet_vtable,data,low,"GAME_DATA (core/localefacet): the vtable (7 slots, all ported); name invented"
+0x00709c5c,NumPutW_vtable,data,low,"GAME_DATA (core/localefacet): the vtable (7 slots, all ported); name invented"
 0x00709cac,WCtype_vtable,data,low,"GAME_DATA (core/wstream): the vtable (13 slots, all ported); name invented"
 0x00709ce4,CodecvtW_vtable,data,low,"GAME_DATA (core/wfilebuf): the vtable (7 slots, all ported); name invented"
 0x00709d74,MoneypunctW_vtable,data,low,"GAME_DATA (core/moneypunct): the vtable (10 slots, all ported); name invented"
