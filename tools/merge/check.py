@@ -189,6 +189,8 @@ def main():
     moved = {m.replace('\\', '/') for i, m in enumerate(a) if i and a[i - 1] == '--moved'}
     for f in benches:
         problems += kept(f, BENCH, base, branch, False, f in moved)
+    for f, pats in TABLES:
+        problems += kept(f, pats, base, branch, True)
     # --accept-lost PATH:ITEM: one item the merger checked by hand (say, a moved case's region now starting a few bytes later); printed,
     # and to be named in the merge commit.
     accepted = [m for i, m in enumerate(a) if i and a[i - 1] == '--accept-lost']
@@ -202,8 +204,6 @@ def main():
             problems[problems.index(p)] = '%s lost %s' % (path, ', '.join(rest)) if rest else None
         problems = [p for p in problems if p]
         print('kept: ACCEPTED as lost by hand: %s' % acc)
-    for f, pats in TABLES:
-        problems += kept(f, pats, base, branch, True)
     lone = len(re.findall(rb'\r(?!\n)', open(os.path.join(ROOT, HOOKS), 'rb').read()))
     if lone:
         problems.append('%s has %d CRs not ending a line (CR CR LF, or a line split or joined)' % (HOOKS, lone))
