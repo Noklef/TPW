@@ -9615,6 +9615,7 @@ address,name,kind,confidence,notes
 0x0048cd10,ThingGoto_Start,function,low,"reimplemented (src/game/ui/thinggoto); thiscall; name invented, unconfirmed: the thing panels' go-to: the question (0x47f020) or the move, the thing forgotten, the panel's slot 0xb"
 0x004ba850,DialupList_Fill,function,low,"reimplemented (src/game/ui/dialuplist); cdecl (shown); name invented, unconfirmed: the online dialog's list of dial-up connections, or the words of the texts 0xe6, 0xe7"
 0x004b72a0,Panel7cc408_ShowVisitor,function,low,"reimplemented (src/game/ui/panel7cc408info); thiscall; slot 5 of the vtable 0x6fff40; name invented, unconfirmed: the people panel's facts about the shown visitor"
+0x004b7660,Panel7cc408_Reopen,function,low,"reimplemented (src/game/ui/panel7cc408info); thiscall: slot 1 of the people panel's vtable 0x6fff40: slots 6 and 5, then the hover label 0x3736 from the visitor's +0x1d8"
 0x004b9340,Dialog7cc4b4_Update,function,low,"reimplemented (src/game/ui/dialog7cc4b4update); cdecl; name invented, unconfirmed: the dialog [0x7cc4b4] brought up to date with the park's theme and the save's levels; see the header"
 0x004b90f0,Dialog7cc4b4_ShowTheme,function,low,"reimplemented (src/game/ui/dialog7cc4b4update); the dialog [0x7cc4b4] shows the park's theme: name invented, unconfirmed"
 0x004a1d70,Dialog7cb2b8_Build,function,low,"reimplemented (src/game/ui/dialog7cb2b8build); cdecl; name invented, unconfirmed: the main bar's windows built once from the script at 0x752940; see the header"
