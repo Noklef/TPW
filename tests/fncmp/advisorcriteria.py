@@ -31,6 +31,7 @@ CALLS = {'Booth': (0x59c8d0, {}), 'No02': (0x59c960, {}), 'Obj0': (0x59ca80, {})
          'K3F1': (0x5a0430, {0x598: PCT}), 'K3F2': (0x5a0490, {0x5a0: PCT}), 'Tal0': (0x5a04f0, {}), 'TotEx': (0x5a0530, {}), 'TotTh': (0x5a05a0, {}),
          'Mood': (0x5a05f0, {}), 'Money': (0x5a0670, {}), 'One': (0x5a0780, {}), 'CtlLo': (0x5a07d0, {0x5fc: PCT, 0x604: PCT}),
          'CtlMid': (0x5a0820, {0x604: PCT, 0x60c: PCT}), 'CtlHi': (0x5a0870, {0x60c: PCT}), 'Share': (0x5a08b0, {0x614: PCT + [99]}),
+         'Share2': (0x5a0930, {0x61c: PCT + [99]}), 'Share3': (0x5a09b0, {0x624: PCT + [99]}),
          'Bus': (0x59f440, {0x410: [0, 1, 2, 5, -1]}), 'Stf1f8': (0x59f590, {0x42c: [0, 1, 2, 3, -1], 0x430: [0, 10, 50, 100, -1]}),
          'Ppl19c': (0x59f5e0, {0x438: [0, 1, 2, 3, -1], 0x43c: [0, 10, 50, 100, -1]}), 'StfE': (0x59fb10, {0x4d0: [0, 1, 2, 3, -1]}),
          'Worn': (0x59e450, {0x2d0: WEAR, 0x2e0: WEAR}), 'Worn5s': (0x59e510, {0x2d8: WEAR, 0x2e8: WEAR}), 'VWorn': (0x59e5d0, {0x2e0: WEAR}),
@@ -39,7 +40,7 @@ CALLS = {'Booth': (0x59c8d0, {}), 'No02': (0x59c960, {}), 'Obj0': (0x59ca80, {})
 WORN = {'Worn', 'Worn5s', 'VWorn', 'VWorn5s'}
 WEAR_AT = {'Worn': (0x2d0, 0x2e0, 0x2d4), 'Worn5s': (0x2d8, 0x2e8, 0x2d4), 'VWorn': (0x2e0, 0, 0x2e4), 'VWorn5s': (0x2e8, 0, 0x2ec)}   # (low, high, weight)
 IDLE = {'Idle0': 0, 'Idle1': 1, 'Idle2': 2, 'K3F1': None, 'K3F2': None}
-LATE = {'Idle0', 'Idle1', 'Idle2', 'K3F1', 'K3F2', 'Tal0', 'TotEx', 'TotTh', 'Mood', 'Money', 'One', 'CtlLo', 'CtlMid', 'CtlHi', 'Share',
+LATE = {'Idle0', 'Idle1', 'Idle2', 'K3F1', 'K3F2', 'Tal0', 'TotEx', 'TotTh', 'Mood', 'Money', 'One', 'CtlLo', 'CtlMid', 'CtlHi', 'Share', 'Share2', 'Share3',
         'Bus', 'Stf1f8', 'Ppl19c', 'StfE'}
 B = Bench([(0x412e60, 0x412f00), (0x41a960, 0x41a980), (0x41a990, 0x41a9c0), (0x4c7fa0, 0x4c8080), (0x4c81e0, 0x4c8250), (0x4c9050, 0x4c9080),
            (0x4c91c0, 0x4c92a0), (0x4c94a0, 0x4c94e0), (0x4c9530, 0x4c9680), (0x4c9750, 0x4c9840), (0x4c9960, 0x4c9ab0), (0x4c9b40, 0x4c9c10),
@@ -53,7 +54,7 @@ B = Bench([(0x412e60, 0x412f00), (0x41a960, 0x41a980), (0x41a990, 0x41a9c0), (0x
            (0x4ca9c0, 0x4caa6e), (0x4d09f0, 0x4d09f7), (0x4e0440, 0x4e044b), (0x5195d0, 0x51960d), (0x5aef50, 0x5af0dc),
            (0x5af7f0, 0x5af7fd), (0x5b1680, 0x5b16a6), (0x5b2fd0, 0x5b2feb), (0x5b3110, 0x5b312b), (0x67a830, 0x67a860),
            (0x5a0530, 0x5a0581), (0x4d4ac0, 0x4d4acc), (0x5af4a0, 0x5af52a),
-           (0x5a02f0, 0x5a0520), (0x5a05a0, 0x5a06c0), (0x5a0780, 0x5a07b7), (0x5a07d0, 0x5a0930),
+           (0x5a02f0, 0x5a0520), (0x5a05a0, 0x5a06c0), (0x5a0780, 0x5a07b7), (0x5a07d0, 0x5a0a30),
            (0x4c7cc0, 0x4c7da9), (0x519450, 0x51948d), (0x59f440, 0x59f4ea), (0x59f590, 0x59f62c),
            (0x59e450, 0x59e7e5), (0x4ca160, 0x4ca214), (0x4ca220, 0x4ca30c), (0x4c9830, 0x4c9912), (0x4c9920, 0x4c9956),
            (0x59ca30, 0x59ca74), (0x59cb40, 0x59cc16), (0x4ca3a0, 0x4ca448), (0x4ccdf0, 0x4ccea6),
@@ -81,7 +82,7 @@ def case(r):
     if deep and name in WORN:
         kinds = kinds + (3, 3, 3)
     regions, _info = parkenv.park(r, kinds=kinds, flag=0 if deep and name in UNFLAGGED else None, rich=deep)
-    s = bytearray(r.bytes(0x620 if name in LATE else 0x4d0))
+    s = bytearray(r.bytes(0x630 if name in LATE else 0x4d0))
     for off in range(0xa0, 0x4d0, 4):   # (most dwords small, so a bound lands about the counts; the weights small or anything)
         if r.random() < 0.7:
             put(s, off, 'I', parkenv.small(r))
@@ -159,7 +160,7 @@ def wear_case(r, regions, info, name):
 
 
 def late_case(r, regions, info, name):
-    """The criteria of 0x5a02f0-0x5a08b0 on case()'s park and scoring (0x620 bytes for them), with: the things' byte +0x32 any of bits 0-1 and
+    """The criteria of 0x5a02f0-0x5a09b0 on case()'s park and scoring (0x630 bytes for them), with: the things' byte +0x32 any of bits 0-1 and
     their +0x68 0 or not (the kind 3 counts and the idle ones), for Mood the people's +0x19c's low byte 0-100 mostly (the average
     Things_AveragePersonStat19c takes), for Idle0-2 and K3F1-2 half the things of other kinds made
     objects (kind 3) and for Idle0-2 the definitions' +0x4ac the criterion's value mostly; the criteria's weights nonzero mostly; the analyser's recount fields (+0x1f0dc-0x1f0e5) and its count at
@@ -183,13 +184,13 @@ def late_case(r, regions, info, name):
                 regions[parkenv.ITEMS + parkenv.ITEM * i + 0x4ac] = struct.pack('<I', IDLE[name])
     regions[POOL] = pool
     s = bytearray(regions[SCORING])
-    for off in range(0x57c, 0x620, 4):
+    for off in range(0x57c, 0x630, 4):
         if r.random() < 0.7:
             put(s, off, 'I', parkenv.small(r, 0x32, 0x64))
     for off, values in CALLS_LATE_BOUNDS.items():
         if r.random() < 0.6:
             put(s, off, 'I', r.choice(values) & 0xffffffff)
-    for off in (0x584, 0x58c, 0x594, 0x59c, 0x5a4, 0x5ac, 0x5c8, 0x5d0, 0x5d8, 0x5f4, 0x600, 0x608, 0x610, 0x618):
+    for off in (0x584, 0x58c, 0x594, 0x59c, 0x5a4, 0x5ac, 0x5c8, 0x5d0, 0x5d8, 0x5f4, 0x600, 0x608, 0x610, 0x618, 0x620, 0x628):
         if r.random() < 0.9:
             put(s, off, 'I', r.choice([1, 5, 100, r.getrandbits(32) | 1]))
     for off in (0x5c4, 0x5cc, 0x5d4):
@@ -281,7 +282,7 @@ def late2(r, regions, info, name, pool):
 
 
 LATE2 = {'Bus', 'Stf1f8', 'Ppl19c', 'StfE'}
-CALLS_LATE_BOUNDS = {0x598: PCT, 0x5a0: PCT, 0x5a8: [0, 1, 2, -1], 0x5fc: PCT, 0x604: PCT, 0x60c: PCT, 0x614: PCT + [99, 99]}
+CALLS_LATE_BOUNDS = {0x598: PCT, 0x5a0: PCT, 0x5a8: [0, 1, 2, -1], 0x5fc: PCT, 0x604: PCT, 0x60c: PCT, 0x614: PCT + [99, 99], 0x61c: PCT + [99, 99], 0x624: PCT + [99, 99]}
 
 
 if __name__ == '__main__':

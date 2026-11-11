@@ -14,6 +14,7 @@ CALLEES = {0x4f8800: (ELAPSED, 1), 0x4c9960: (6, 1), 0x4c81b0: (7, 1), 0x4c9b40:
            0x4c9e60: (14, 0), 0x4ca8e0: (15, 2), 0x4ca7b0: (16, 2), 0x4ca450: (17, 1), 0x4ca4c0: (18, 1), 0x4ca510: (19, 1), 0x4ca570: (20, 1), 0x4ca5d0: (21, 1), 0x503980: (22, 1),
            0x6ad810: (23, 0), 0x4d0690: (24, 0), 0x4d0810: (25, 0), 0x4d0260: (RED, 1),
            0x4c81e0: (2, 0), 0x4c9050: (3, 0), 0x4c9ee0: (4, 0), 0x4c9290: (27, 1), 0x4c9130: (28, 0), 0x4d0a00: (29, 0), 0x4d09a0: (30, 0), 0x4d0970: (31, 1)}
+NEAR = {'Half7', 'Ratio1', 'Ratio2', 'Stat1ac', 'Loan'}
 STAT = 27   # (0x4c9290's argument logged by its low byte: 0x59e380 pushes EDX after MOV DL, the high bytes whatever EDX held)
 CALLS = {'Half7': 0x59ccb0, 'Share4': 0x59d0c0, 'Ratio1': 0x59de80, 'Ratio2': 0x59e110, 'Stat1ac': 0x59e380, 'Loan': 0x59e910,
 'Obj4': 0x59cac0, 'Busy5': 0x59cc20, 'Busy7': 0x59cd90, 'Chain8': 0x59cfe0, 'Cover4': 0x59d180, 'Share5': 0x59d250, 'Cover5': 0x59d310, 'Share7': 0x59d400, 'Share6': 0x59d4c0, 'Cover6': 0x59d580,
@@ -63,7 +64,11 @@ def case(r):
             continue
         answers(log, k, ANSWERS + 0x10 * i)
         table += struct.pack('<4i', *(r.choice([0, 25, 50, 100, 101, -1, r.randrange(0, 200)]) if k == 9 else
-                                      r.choice([0, 1, 1, 2, 2, 3, 3, 5, -1, 10]) for _ in range(4)))
+                                      r.choice([0, 0, 1, 1, 2, 2, 3] if op in NEAR else [0, 1, 1, 2, 2, 3, 3, 5, -1, 10]) for _ in range(4)))
+    if op == 'Stat1ac' and r.random() < 0.8:   # (mostly past its two tests: 0x4c9050's low byte set, 0x4c9ee0 0)
+        slot = [k for k, _n in CALLEES.values()].index
+        put(table, 0x10 * slot(3), '4I', *(r.choice([1, 0x101, 0xff]) for _ in range(4)))
+        put(table, 0x10 * slot(4), '4I', 0, 0, 0, 0)
     for k in (ELAPSED, RED):
         strings(log, k, 0, 1)
         echo(log, k, 0)
@@ -87,6 +92,12 @@ def case(r):
         put(s, DAYS[op] + 8, 'I', r.getrandbits(31) | 1)
     if op == 'Money':
         put(s, 0x330, 'i', r.choice([0, 1, 2, 3]))
+    if op in NEAR:   # (the answers 0-3, so the bounds are met exactly now and then)
+        for off in (0x630, 0x634, 0x274, 0x298):
+            put(s, off, 'i', r.choice([0, 1, 2, 3]))
+        put(s, 0x2bc, 'i', r.choice([0, 33, 50, 66, 100, 150]))
+        for off in (0xf4, 0x278, 0x29c, 0x2c0, 0x33c):   # (the results not 0)
+            put(s, off, 'I', r.getrandbits(31) | 1)
     regions = {LOG: log, SCORING: s, 0x7cf6ec: struct.pack('<I', POINTER), POINTER: struct.pack('<I', GAME1), 0x7cf83c: struct.pack('<I', GAME2), ANSWERS: table,
                GAME1 + 0x1da710: struct.pack('<I', r.choice([0, 0, 0, 0, 1, r.getrandbits(32)])) + game([1, 2, 0, 3])[4:], GAME2 + 0x1da710: bytes(4) + game([4, 0, 0, 5])[4:],
                0x7cfb90: struct.pack('<30I', *[v for t in (0, PARK1, LAB, MONEY1, PARK2, MONEY2) for v in (t, 0, 0, 0, 0)])}
