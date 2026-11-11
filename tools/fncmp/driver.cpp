@@ -496,6 +496,7 @@
 #include "../../src/game/math/mat4.h"
 #include "../../src/game/core/vobj2.h"
 #include "../../src/game/core/vwrap.h"
+#include "../../src/game/core/crtterminate.h"
 #include "../../src/game/coaster/rideanimate.h"
 #include "../../src/game/render/spritequeue.h"
 #include "../../src/game/sprite/loading.h"
@@ -1519,6 +1520,7 @@ const AddrCall kDeviceCreateCalls[] = {{0x573080, recorder(20, 1)}, {0x573b90, r
 const AddrCall kImageBufferCalls[] = {{0x56a770, jpeg_recorder(1, 1)}, {0x564650, jpeg_recorder(2, 1)}, {0x56af20, recorder(3, 2)}, {0x591270, jpeg_recorder(4, 9)}, {0x574bd0, jpeg_recorder(5, 6)}, {0x579b80, jpeg_recorder(6, 1)}};  // tests/fncmp/imagebuffer.py
 const AddrCall kScrollLayersCalls[] = {{0x590f90, recorder(1, 0)}, {0x58c9f0, recorder(2, 2)}};  // tests/fncmp/scrolllayers.py
 const AddrCall kVWrapCalls[] = {{0x58c9f0, recorder(5, 2)}, {0x561a30, recorder(6, 2)}, {0x5fbd40, recorder(7, 0)}, {0x5fbd90, recorder(8, 0)}};  // tests/fncmp/vwrapclip.py, vwrapflip.py
+const AddrCall kCrtTerminateCalls[] = {{0x682460, jpeg_recorder(1, 0)}, {0x68cc30, jpeg_recorder(3, 0)}};  // tests/fncmp/crtterminate.py
 const AddrCall kSignRideCalls[] = {{0x467a80, jpeg_recorder(1, 6)}, {0x4e2860, recorder(2, 2)}, {0x4e2920, recorder(3, 2)}, {0x4682b0, jpeg_recorder(4, 3)}};  // tests/fncmp/signrides.py
 const AddrCall kPtrImageCalls[] = {{0x588820, recorder(1, 1)}, {0x588350, recorder(2, 0)}};  // tests/fncmp/ptrarray_addimage.py
 const AddrCall kSpriteQueueDrawCalls[] = {{0x589f90, recorder(1, 0)}, {0x589770, recorder(2, 0)}, {0x589fd0, recorder(3, 0)}, {0x589990, recorder(4, 1)}, {0x5658c0, recorder(5, 1)}, {0x58a770, recorder(6, 0)}, {0x58a010, recorder(7, 0)}};  // tests/fncmp/spritequeuedraw.py, spritequeuepanels.py
@@ -2976,6 +2978,7 @@ int main(int argc, char **argv) {
     DrawBuffer_SetDrawAllCalls(kDrawAllCalls, sizeof(kDrawAllCalls) / sizeof(kDrawAllCalls[0]));
     ObjModel_SetDrawCalls(kObjModelDrawCalls, sizeof(kObjModelDrawCalls) / sizeof(kObjModelDrawCalls[0]));
     VWrap_SetCalls(kVWrapCalls, sizeof(kVWrapCalls) / sizeof(kVWrapCalls[0]));
+    CrtTerminate_SetCalls(kCrtTerminateCalls, sizeof(kCrtTerminateCalls) / sizeof(kCrtTerminateCalls[0]));
     RideAnimate_SetCalls(kRideAnimateCalls, sizeof(kRideAnimateCalls) / sizeof(kRideAnimateCalls[0]));
     Sign_SetRideCalls(kSignRideCalls, sizeof(kSignRideCalls) / sizeof(kSignRideCalls[0]));
     TileGrid_SetCalls(kTextureTouchCalls, sizeof(kTextureTouchCalls) / sizeof(kTextureTouchCalls[0]));
