@@ -67,6 +67,9 @@ inline unsigned long long X87_Significand(double x, int &e) {
 // value x is the correctly rounded double of. For + - * / of 24-bit operands that double
 // rounding is harmless (53 >= 2 * 24 + 2).
 inline double X87_Round(double x) {
+#ifdef X87_ROUND_SHORTCUT   // a build seam, not defined in this repository's builds: tpw-recompilation returns early for the common case
+    X87_ROUND_SHORTCUT(x)
+#endif
     const unsigned long long b = X87_Bits(x);
     const u32 exponent = (u32)(b >> 52) & 0x7ff;
     if (exponent == 0x7ff) return x;
