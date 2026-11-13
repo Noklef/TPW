@@ -17,7 +17,7 @@ template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((ui
 u8 *address(u32 a) { return reinterpret_cast<u8 *>((uintptr_t)a); }
 
 using Method = WorldUpdateEnv::Method;
-Method method(u32 a) { return reinterpret_cast<Method>((uintptr_t)a); }
+Method method(u32 a) { return GameAddress<Method>(a); }   // (the port in tpw.exe: core/addrcalls.h)
 
 const WorldUpdateEnv kGameEnv = {
     {method(0x00501650), method(0x005019f0)},

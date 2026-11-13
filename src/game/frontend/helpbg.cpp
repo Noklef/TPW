@@ -14,6 +14,7 @@
 #include "../ui/windowfactory.h"
 #include "../ui/windowreg.h"
 #include "../core/staticobjects.h"
+#include "../core/addrcalls.h"
 
 namespace {
 
@@ -119,7 +120,7 @@ void __fastcall HelpBg_Build(u8 *self) {
     Window_SetDwordA0(at<u8 *>(self, 0x18), nullptr, 0, (u32)(uintptr_t)self);
     Window_SetDepth(at<u8 *>(self, 0x18), nullptr, 0x26);
     vcall<void>(at<u8 *>(self, 0x18), 0x14, 0u);
-    Window_SetHandler(at<u8 *>(self, 0x18), nullptr, 0x00491fe0);
+    Window_SetHandler(at<u8 *>(self, 0x18), nullptr, GameCode(0x00491fe0));
     at<u16>(self, 0xc) = 1;
 }
 }  // extern "C"

@@ -15,6 +15,7 @@
 #include "../gfx/screensurfaces.h"
 #include "../input/devicefilter.h"
 #include "imports.h"
+#include "addrcalls.h"
 
 namespace {
 
@@ -30,7 +31,7 @@ T &global(uintptr_t address) {
 
 template <typename F>
 F fn(uintptr_t address) {
-    return reinterpret_cast<F>(address);
+    return GameAddress<F>((u32)address);   // (the port in tpw.exe: core/addrcalls.h)
 }
 
 using Env = InputSystemEnv;

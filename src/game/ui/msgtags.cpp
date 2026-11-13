@@ -19,6 +19,7 @@
 #include "dialog7cb2b8build.h"
 #include "panel7b9940.h"
 #include "../core/soundset.h"
+#include "../core/addrcalls.h"
 
 namespace {
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
@@ -124,7 +125,7 @@ u8 *__cdecl MsgTag_NewWindow(u32 id) {
     u8 *const window = memory ? Window_Ctor(memory, nullptr, nullptr, 0, id, 0, 0, 0x46, 0x41) : nullptr;
     if (window) {
         Window_SetObject98(window, nullptr, reinterpret_cast<u8 *>((uintptr_t)GuiWindows_FindByName("msgtag")));
-        Window_SetHandler(window, nullptr, 0x0048dae0);
+        Window_SetHandler(window, nullptr, GameCode(0x0048dae0));
         *reinterpret_cast<u32 *>(window + 0x90) = 0x1db;
     }
     return window;

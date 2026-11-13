@@ -263,10 +263,10 @@ u32 __cdecl Global8bba48_Create() {
         at<u32>(object, 0x88) = 0x0051faa0;
         at<u32>(object, 0x8c) = 0x0051fd20;
         at<u32>(object, 0x90) = 0x0051f370;
-        at<u32>(object, 0x94) = 0x0051ef30;
-        at<u32>(object, 0x98) = 0x0051f2f0;
+        at<u32>(object, 0x94) = GameCode(0x0051ef30);
+        at<u32>(object, 0x98) = GameCode(0x0051f2f0);
         at<u32>(object, 0x9c) = GameCode(0x0051f240);
-        at<u32>(object, 0x84) = 0x0051f280;
+        at<u32>(object, 0x84) = GameCode(0x0051f280);
         LiveObjects_Add(object + at<s32>(at<u8 *>(object, 0), 4));
     }
     reinterpret_cast<u8 * &>(gVwrap_8bba48) = object;

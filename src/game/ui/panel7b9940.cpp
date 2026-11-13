@@ -28,6 +28,7 @@
 #include "../render/lightsource.h"
 #include "../world/cameraupdate.h"
 #include "../core/staticobjects.h"
+#include "../core/addrcalls.h"
 
 namespace {
 
@@ -117,7 +118,7 @@ void __cdecl Panel7b9940_Open() {
     g_open->add(gRenderer_87a6d0, nullptr, self + vbase(self, 0, 4), 0x20);
     if (u8 *const window = g_open->create(global<u8 *>(0x00faa5d8), nullptr, 1, 0, 0, 0, 0, 0x7ff, 0x5ff)) {
         g_open->setShown(window, nullptr, 1);
-        g_open->setHandler(window, nullptr, 0x004881a0);
+        g_open->setHandler(window, nullptr, GameCode(0x004881a0));
         gPanel7b9940_7cb2ac = window;
         u8 rect[12];
         GuiRect_Ctor(rect);
@@ -132,7 +133,7 @@ void __cdecl Panel7b9940_Open() {
         GuiRect_Dtor(rect);
     }
     if (u8 *const window = g_open->create(global<u8 *>(0x00faa5d8), nullptr, 1, 0, 1, 0, 0, 0x7ff, 0x5ff)) {
-        g_open->setHandler(window, nullptr, 0x00488a00);
+        g_open->setHandler(window, nullptr, GameCode(0x00488a00));
         gPanel7b9940_7cb2b0 = window;
         g_open->setCursor(window, nullptr, 0x15);
         g_open->build(gPanel7b9940_7cb2b0, nullptr, gPanel7b9940_74fa98, 0);
@@ -205,7 +206,7 @@ u32 __cdecl Panel7b9940_ShowWindow() {
     g_open->create7cc8bc();
     u8 *const made = g_open->create(global<u8 *>(0x00faa5d8), nullptr, 1, 0, 1, 0, 0, 0x7ff, 0x5ff);
     if (made) {
-        g_open->setHandler(made, nullptr, 0x488a00);
+        g_open->setHandler(made, nullptr, GameCode(0x488a00));
         gPanel7b9940_7cb2b0 = made;
         g_open->setCursor(made, nullptr, 0x15);
         g_open->build(gPanel7b9940_7cb2b0, nullptr, gPanel7b9940_74fa98, 0);

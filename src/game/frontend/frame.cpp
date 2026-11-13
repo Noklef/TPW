@@ -24,6 +24,7 @@
 #include "../online/chatlists.h"
 #include "../online/chatcommand.h"
 #include "../core/staticobjects.h"
+#include "../core/addrcalls.h"
 
 namespace {
 
@@ -65,11 +66,11 @@ extern "C" {
 u32 __fastcall Frame_Start(u8 *frame) {
     at<u32>(frame, 0x14) = 1;
     if (u8 *const maker = global<u8 *>(0x00faa5d8)) {
-        u8 *const window = g_start->build(maker, nullptr, gFrame_Start_774c18, 0x005d58b0);
+        u8 *const window = g_start->build(maker, nullptr, gFrame_Start_774c18, GameCode(0x005d58b0));
         at<u8 *>(frame, 4) = window;
         g_start->setFocus(window, nullptr, 0);
         u8 *const child = g_start->findChild(at<u8 *>(frame, 4), nullptr, 0xbf432);
-        g_start->setHandler(child, nullptr, 0x005d58e0);
+        g_start->setHandler(child, nullptr, GameCode(0x005d58e0));
         if (!at<u32>(UserSlots(), 0xc4)) g_start->send(child, 6, 0, 0);
         g_start->label(0);
     }

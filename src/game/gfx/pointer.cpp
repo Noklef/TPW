@@ -260,8 +260,8 @@ u32 __cdecl AsyncPointer_Make() {
     reply[3] = 0xff;
     reply[4] = (u8)g_calls.Cd(0x005f73a0, 0x00fa71f8u, 0xffu, 0u, 0xffu);
     g_calls.Th(0x005fb7b0, *reinterpret_cast<u32 *>((uintptr_t)pointer + 0x1c), reply);
-    *reinterpret_cast<u32 *>((uintptr_t)0x008bd510) = 0x0047e9b0;
-    *reinterpret_cast<u32 *>((uintptr_t)0x008bd514) = 0x0047e9c0;
+    *reinterpret_cast<u32 *>((uintptr_t)0x008bd510) = GameCode(0x0047e9b0);
+    *reinterpret_cast<u32 *>((uintptr_t)0x008bd514) = GameCode(0x0047e9c0);
     *reinterpret_cast<u32 *>((uintptr_t)0x007b4b88) = 1;
     return 1;
 }

@@ -338,7 +338,7 @@ u32 ParkLoad() {   // state 9
     if (!Cd(0x00457a90)) {
         result = 2;
     } else {
-        Th(0x00576260, reinterpret_cast<u32 &>(gRenderer_87a6d0), 0x0054e2b0);   // Renderer_SetRestoreCallback
+        Th(0x00576260, reinterpret_cast<u32 &>(gRenderer_87a6d0), GameCode(0x0054e2b0));   // Renderer_SetRestoreCallback
         if (!Th(0x00407d80, kOwner)) {   // NamedObjects_CreateWorld
             result = 2;
         } else {

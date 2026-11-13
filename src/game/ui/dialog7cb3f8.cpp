@@ -106,7 +106,7 @@ void slotRow(u8 *dialog, u32 id, u32 slot) {
     u8 *const window = g_env->child(row, nullptr, 0x7a15);
     label(window);
     vcall<void>(window, 0x24, 0u);
-    finish(window, slot, 0x004a6000);
+    finish(window, slot, GameCode(0x004a6000));
 }
 
 }  // namespace
@@ -183,7 +183,7 @@ u32 __cdecl Dialog7cb3f8_DoneConfirmed() {
 void __cdecl Dialog7cb3f8_Open() {
     g_env->resetKeys();
     g_env->setShown(*reinterpret_cast<u8 **>(global<u8 *>(0x00f82884) + 4), nullptr, 0);
-    u8 *const dialog = g_env->build(global<u8 *>(0x00faa5d8), nullptr, gDialog7cb3f8_Open_753c68, 0x004a5fc0);
+    u8 *const dialog = g_env->build(global<u8 *>(0x00faa5d8), nullptr, gDialog7cb3f8_Open_753c68, GameCode(0x004a5fc0));
     global<u8 *>(0x007cb3f8) = dialog;
     if (dialog) {
         g_env->setFocus(dialog, nullptr, 0);
@@ -194,7 +194,7 @@ void __cdecl Dialog7cb3f8_Open() {
         u8 *const done = g_env->child(global<u8 *>(0x007cb3f8), nullptr, 0x7a1c);
         label(done);
         vcall<void>(done, 0x24, reinterpret_cast<u32>(g_env->text(8)));
-        finish(done, 3, 0x004a61d0);
+        finish(done, 3, GameCode(0x004a61d0));
         g_env->refresh();
     }
     u8 *records = gChatlists_f81ebc;
