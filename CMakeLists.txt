@@ -958,30 +958,55 @@ target_link_libraries(tpw_tests PRIVATE tpw_game)
 # runs before its C runtime. Its code-slot table is generated at build time from the user's exe (tools/gen_loader_slots.py; tpw_tests
 # checks it), and so are its globals' initial values (tools/gamedata.py); without the exe at TPW_EXE tpw.exe is left out.
 set(TPW_EXE "${CMAKE_CURRENT_SOURCE_DIR}/.data/nocd/tp.exe" CACHE FILEPATH "The user's decrypted tp.exe, read for tpw.exe's code-slot table")
+# Two more ways for a project that has TPW as a subdirectory (both off here: this repository's own build is as before):
+# TPW_GAMEDATA_NO_BYTES: the globals are generated without their initial bytes (the loader copies them from the user's exe at
+# start-up either way), so the generated files hold positions only. TPW_PREGENERATED: a folder with codeslots.h and
+# gamedata_object.cpp made that way earlier; with an exe they are written there again, without one tpw.exe is built from them.
+option(TPW_GAMEDATA_NO_BYTES "tpw.exe's globals without their initial bytes from tp.exe" OFF)
+set(TPW_PREGENERATED "" CACHE PATH "A folder with codeslots.h and gamedata_object.cpp to build tpw.exe from when there is no exe")
+set(tpw_generated "")
 if(EXISTS "${TPW_EXE}")
+    set(tpw_generated ${CMAKE_CURRENT_BINARY_DIR})
+    set(tpw_no_bytes "")
+    if(TPW_GAMEDATA_NO_BYTES)
+        set(tpw_no_bytes --no-bytes)
+    endif()
+    set(tpw_keep_slots "")
+    set(tpw_keep_objects "")
+    if(TPW_PREGENERATED AND TPW_GAMEDATA_NO_BYTES)
+        set(tpw_keep_slots COMMAND ${CMAKE_COMMAND} -E copy_if_different ${CMAKE_CURRENT_BINARY_DIR}/codeslots.h ${TPW_PREGENERATED}/codeslots.h)
+        set(tpw_keep_objects COMMAND ${CMAKE_COMMAND} -E copy_if_different ${CMAKE_CURRENT_BINARY_DIR}/gamedata_object.cpp ${TPW_PREGENERATED}/gamedata_object.cpp)
+    endif()
     add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/codeslots.h
         COMMAND ${TPW_PYTHON} -I ${CMAKE_CURRENT_SOURCE_DIR}/tools/gen_loader_slots.py ${TPW_EXE} ${CMAKE_CURRENT_BINARY_DIR}/codeslots.h
+        ${tpw_keep_slots}
         DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/tools/gen_loader_slots.py ${CMAKE_CURRENT_SOURCE_DIR}/src/hook/hooks.cpp ${TPW_EXE}
         COMMENT "tpw.exe's code-slot table from tp.exe")
     add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/gamedata_object.cpp ${CMAKE_CURRENT_BINARY_DIR}/gamedata_fixups.h
-        COMMAND ${TPW_PYTHON} -I ${CMAKE_CURRENT_SOURCE_DIR}/tools/gamedata.py object ${TPW_EXE} ${CMAKE_CURRENT_BINARY_DIR}/gamedata_object.cpp ${CMAKE_CURRENT_BINARY_DIR}/gamedata_fixups.h
+        COMMAND ${TPW_PYTHON} -I ${CMAKE_CURRENT_SOURCE_DIR}/tools/gamedata.py object ${TPW_EXE} ${CMAKE_CURRENT_BINARY_DIR}/gamedata_object.cpp ${CMAKE_CURRENT_BINARY_DIR}/gamedata_fixups.h ${tpw_no_bytes}
+        ${tpw_keep_objects}
         DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/tools/gamedata.py ${tpw_sources} ${TPW_EXE}
         COMMENT "tpw.exe's globals, their initial values from tp.exe")
+    target_sources(tpw_tests PRIVATE ${CMAKE_CURRENT_BINARY_DIR}/codeslots.h ${CMAKE_CURRENT_BINARY_DIR}/gamedata_fixups.h)
+    target_include_directories(tpw_tests PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
+    target_compile_definitions(tpw_tests PRIVATE TPW_CODE_SLOTS)
+elseif(TPW_PREGENERATED AND EXISTS "${TPW_PREGENERATED}/codeslots.h" AND EXISTS "${TPW_PREGENERATED}/gamedata_object.cpp")
+    set(tpw_generated ${TPW_PREGENERATED})
+    message(STATUS "tpw.exe from the tables in ${TPW_PREGENERATED}: no exe at TPW_EXE (${TPW_EXE})")
+endif()
+if(tpw_generated)
     add_executable(tpw WIN32
         src/loader/loader.cpp
         src/hook/hooks.cpp
         src/hook/regthunks.cpp
-        ${CMAKE_CURRENT_BINARY_DIR}/codeslots.h
-        ${CMAKE_CURRENT_BINARY_DIR}/gamedata_object.cpp
+        ${tpw_generated}/codeslots.h
+        ${tpw_generated}/gamedata_object.cpp
     )
-    target_include_directories(tpw PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
+    target_include_directories(tpw PRIVATE ${tpw_generated})
     target_link_libraries(tpw PRIVATE tpw_game)
     # /MANIFESTUAC:NO: no requestedExecutionLevel, as tp.exe, so Windows keeps registry virtualization: the game opens
     # HKLM\software\Bullfrog Productions Ltd with KEY_ALL_ACCESS, which fails without it (Startup_CheckCanRun then quits).
     target_link_options(tpw PRIVATE /FIXED /DYNAMICBASE:NO /BASE:0x10000 /NXCOMPAT /ENTRY:LoaderEntry /MAP /INCREMENTAL:NO /OPT:REF /MANIFESTUAC:NO)
-    target_sources(tpw_tests PRIVATE ${CMAKE_CURRENT_BINARY_DIR}/codeslots.h ${CMAKE_CURRENT_BINARY_DIR}/gamedata_fixups.h)
-    target_include_directories(tpw_tests PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
-    target_compile_definitions(tpw_tests PRIVATE TPW_CODE_SLOTS)
 else()
     message(STATUS "tpw.exe left out: no exe at TPW_EXE (${TPW_EXE})")
 endif()

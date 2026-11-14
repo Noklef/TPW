@@ -31,6 +31,7 @@
 // fixups for the pointers into them and for their code addresses.
 extern "C" const u32 kGameDataRanges[][2];
 extern "C" const u32 kGameDataRangeCount;
+extern "C" unsigned char *const kGameDataObjects[];   // each range's object, in kGameDataRanges' order
 extern "C" const GameDataFixup kGameDataFixups[];
 extern "C" const u32 kGameDataFixupCount;
 
@@ -444,6 +445,10 @@ extern "C" __declspec(safebuffers) int __cdecl LoaderEntry(void *peb) {
         if (!SetProcessDEPPolicy(PROCESS_DEP_ENABLE)) Fail("tpw: DEP is off for this process, so the copy's code could run (error %u)", GetLastError());
     FindExe();
     const IMAGE_NT_HEADERS32 &nt = CopyExe();
+    // Each global tpw.exe has as an object of its own gets its initial bytes from the copy (zero past a section's raw data, as the
+    // copy is). The objects built with their bytes (tools/gamedata.py object without --no-bytes) hold the same already; built
+    // without, tpw.exe holds nothing of the exe's data and gets it here.
+    for (u32 i = 0; i < kGameDataRangeCount; ++i) std::memcpy(kGameDataObjects[i], (const void *)(uintptr_t)kGameDataRanges[i][0], kGameDataRanges[i][1]);
     MapPorts();
     for (u32 i = 0; i < kGameDataRangeCount; ++i)   // the globals tpw.exe has as objects stay zero here: no port uses these addresses
         std::memset((void *)(uintptr_t)kGameDataRanges[i][0], 0, kGameDataRanges[i][1]);   // (after MapPorts: code slots in them are not stale)

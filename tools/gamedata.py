@@ -9,6 +9,8 @@ usage: gamedata.py address OUT        the hook DLL's, the tests' and the driver'
                                       start-up: a data dword (in the copy or in an object) that points into a converted range gets the
                                       object's address, an object's dword that holds a code address the port (pointers()). H: the
                                       same in original addresses for tpw_tests. Fails on a pointer the fixups cannot express.
+                                      A last argument --no-bytes leaves the initial bytes out (the loader copies them from the user's
+                                      exe at start-up either way): the output then holds positions only.
        gamedata.py check              the declarations (in a data section, no overlaps, one name each) and every source of src/: no
                                       literal inside a converted range outside its GAME_DATA line (comments and strings left out).
 """
@@ -438,10 +440,12 @@ def initial(pe, a, n):
     return bytearray(raw) + bytearray(n - len(raw))
 
 
-def obj(exe, out, fixups_h):
+def obj(exe, out, fixups_h, no_bytes=False):
     """tpw.exe's objects and the start-up fixups (kGameDataFixups, src/loader/loader.cpp): a slot in an object is the object and the
     offset, one in the copy its address; the target is the converted object's own address and offset, or null for a code slot (the
-    loader points it at the port). fixups_h: the same in original addresses, for tpw_tests (test_gamedata_fixups)."""
+    loader points it at the port). fixups_h: the same in original addresses, for tpw_tests (test_gamedata_fixups).
+    no_bytes: the objects are written without their initial bytes (all zero): the loader copies them from the user's exe at start-up
+    either way (kGameDataObjects), so the output then holds positions only and nothing of the exe's contents."""
     from pe_read import PE
     pe = PE(exe)
     decls = declarations()
@@ -455,13 +459,14 @@ def obj(exe, out, fixups_h):
     defs = []
     for t, name, a, n, _ in decls:
         data = initial(pe, a, n)
-        init = '{}' if not any(data) else '{' + ','.join('%#x' % b for b in data) + '}'
+        init = '{}' if no_bytes or not any(data) else '{' + ','.join('%#x' % b for b in data) + '}'
         lines.append('alignas(16) unsigned char %s_[%#x] = %s;' % (name, n, init))
         defs.append('GameData<%s> &%s = reinterpret_cast<GameData<%s> &>(%s_);' % (t, name, t, name))
     lines += ['}  // namespace'] + defs
     ranges = ', '.join('{%#010x, %#x}' % (a, n) for _, _, a, n, _ in decls) or '{0, 0}'
     lines.append('extern "C" const uint32_t kGameDataRanges[][2] = {%s};' % ranges)
     lines.append('extern "C" const uint32_t kGameDataRangeCount = %d;' % len(decls))
+    lines.append('extern "C" unsigned char *const kGameDataObjects[] = {%s};' % (', '.join('%s_' % d[1] for d in decls) or 'nullptr'))
     inside, start = finder(decls), {d[1]: d[2] for d in decls}
 
     def at(address):   # (an address inside a converted range: its object's name and offset)
@@ -487,9 +492,9 @@ def main():
     a = sys.argv[1:]
     if a[:1] == ['address'] and len(a) == 2:
         address(a[1])
-    elif a[:1] == ['object'] and len(a) == 4:
+    elif a[:1] == ['object'] and (len(a) == 4 or len(a) == 5 and a[4] == '--no-bytes'):
         self_check()
-        obj(a[1], a[2], a[3])
+        obj(a[1], a[2], a[3], len(a) == 5)
     elif a == ['check']:
         self_check()
         decls = declarations()
