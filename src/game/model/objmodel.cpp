@@ -304,7 +304,7 @@ u32 __fastcall ObjModel_BlendTerrainTiles(u8 *object, void *, s32 x0, s32 y0, s3
         sets = block + 4;
         at<s32>(block, 0) = count;
         CRT_VectorCtorIterator(sets, 0x10, count, reinterpret_cast<void(__fastcall *)(void *)>(&TexSet_Ctor),
-                               reinterpret_cast<void *>((uintptr_t)0x00575bf0));
+                               reinterpret_cast<void *>((uintptr_t)GameCode(0x00575bf0)));
     }
     at<u8 *>(object, 0x128) = sets;
     u8 *const errors = gEngineErrors_879ad0;

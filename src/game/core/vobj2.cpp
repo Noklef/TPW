@@ -1,3 +1,4 @@
+#include "addrcalls.h"
 #include "vobj2.h"
 
 #include <cstdint>
@@ -250,7 +251,7 @@ u32 __fastcall Object_ReleaseSavedPairs(u8 *object) {
             at<u32>(object, 0x124) = 0;
         }
         if (u8 *elements = at<u8 *>(object, 0x128)) {
-            CRT_VectorDtorIterator(elements, 0x10, at<s32>(elements - 4, 0), reinterpret_cast<void(__fastcall *)(void *)>(0x00575bf0));
+            CRT_VectorDtorIterator(elements, 0x10, at<s32>(elements - 4, 0), GameAddress<void(__fastcall *)(void *)>(0x00575bf0));
             GameHeap_Free(elements - 4);
             at<u32>(object, 0x128) = 0;
         }
@@ -270,7 +271,7 @@ u32 __fastcall Object_MakeSavedPairs130(u8 *object, void *, u32 *textures, s32 c
     if (block) {
         *block = static_cast<u32>(count);
         sets = reinterpret_cast<u8 *>(block + 1);
-        CRT_VectorCtorIterator(sets, 0x10, count, reinterpret_cast<void(__fastcall *)(void *)>(&TexSet_Ctor), reinterpret_cast<void *>((uintptr_t)0x00575bf0));
+        CRT_VectorCtorIterator(sets, 0x10, count, reinterpret_cast<void(__fastcall *)(void *)>(&TexSet_Ctor), reinterpret_cast<void *>((uintptr_t)GameCode(0x00575bf0)));
     }
     at<u8 *>(object, 0x134) = sets;
     if (!pairs || !sets) {
@@ -321,7 +322,7 @@ u32 __fastcall Object_ReleaseSavedPairs130(u8 *object) {
         at<u32>(object, 0x130) = 0;
     }
     if (u8 *elements = at<u8 *>(object, 0x134)) {
-        CRT_VectorDtorIterator(elements, 0x10, at<s32>(elements - 4, 0), reinterpret_cast<void(__fastcall *)(void *)>(0x00575bf0));
+        CRT_VectorDtorIterator(elements, 0x10, at<s32>(elements - 4, 0), GameAddress<void(__fastcall *)(void *)>(0x00575bf0));
         GameHeap_Free(elements - 4);
         at<u32>(object, 0x134) = 0;
     }

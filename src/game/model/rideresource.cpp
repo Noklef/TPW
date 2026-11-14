@@ -1,3 +1,4 @@
+#include "../core/addrcalls.h"
 #include "rideresource.h"
 
 #include <cstdint>
@@ -20,17 +21,17 @@ namespace {
 template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cast<T *>((uintptr_t)p + offset); }
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
 
-const RideResourceEnv kPorts = {reinterpret_cast<decltype(RideResourceEnv::modelPath)>((uintptr_t)0x0046e650),
+const RideResourceEnv kPorts = {GameAddress<decltype(RideResourceEnv::modelPath)>(0x0046e650),
                                 Quickload_LoadRide,
                                 RideModel_Load,
                                 RideBase_Prepare,
                                 Face_MarkTextures,
                                 HoardingMesh_Build,
                                 Model_MarkFlag80Faces,
-                                reinterpret_cast<decltype(RideResourceEnv::heightMap)>((uintptr_t)0x00451640),
+                                GameAddress<decltype(RideResourceEnv::heightMap)>(0x00451640),
                                 GamePaths_FontsFolder,
                                 ObjectDefs_FindAt410,
-                                reinterpret_cast<decltype(RideResourceEnv::sign)>((uintptr_t)0x00467a80)};
+                                GameAddress<decltype(RideResourceEnv::sign)>(0x00467a80)};
 const RideResourceEnv *g_env = &kPorts;
 
 const u32 kFlags[][2] = {{0x10, 2},       {0x20, 0x10},     {0x40, 0x20},      {2, 0x40},          {0x100, 1},         {0x200, 0x100},    {4, 0x80},

@@ -1,3 +1,4 @@
+#include "addrcalls.h"
 #include "iosbase.h"
 
 #include <cstdint>
@@ -16,7 +17,7 @@
 
 namespace {
 
-template <typename F> F game(u32 address) { return reinterpret_cast<F>(address); }
+template <typename F> F game(u32 address) { return GameAddress<F>(address); }
 
 const IosBaseEnv kGameEnv = {
     game<void *(__fastcall *)(void *)>(0x00691de0),

@@ -7,6 +7,7 @@
 // (ltree, dtree, and the table it is part way through), so the shims of the functions that build one (inflate_blocks, and inflate,
 // which runs it) point those at the exe's copies: the live state after the call, and a state the call frees before its zfree sees it
 // (z->zfree is wrapped for the call).
+#include "../core/addrcalls.h"
 #include "zlib.h"
 
 #include <cstddef>
@@ -136,7 +137,7 @@ int __cdecl inflate_trees_dynamic(unsigned nl, unsigned nd, unsigned *c, unsigne
 int __cdecl inflateInit2_(z_stream_s *z, int w, const char *version, int stream_size) {
     const int r = zlib_inflateInit2_(z, w, version, stream_size);
     if (inflate_blocks_statef *const s = r == Z_OK ? blocks_of(z) : nullptr)
-        if (s->checkfn == &adler32) s->checkfn = reinterpret_cast<check_func>(kExeAdler32);
+        if (s->checkfn == &adler32) s->checkfn = reinterpret_cast<check_func>((std::uintptr_t)GameCode((u32)kExeAdler32));
     return r;
 }
 

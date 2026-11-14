@@ -49,7 +49,7 @@ void NewPanel(u32 handler) {
     u8 *const block = static_cast<u8 *>(GameHeap_Alloc(0x14));
     u8 *const panel = block ? g_env->ctor(block) : nullptr;
     gPanel7c2534menus_7c2534 = panel;
-    g_env->setHandlers(panel, nullptr, handler, 0x0048b2a0);
+    g_env->setHandlers(panel, nullptr, GameCode(handler), GameCode(0x0048b2a0));
 }
 
 u8 *Online() {
