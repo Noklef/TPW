@@ -1,5 +1,7 @@
 cmake_minimum_required(VERSION 3.20)
 project(tpw C CXX)
+# The generated files (tools/gamedata.py) include the headers by their paths from this folder.
+include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 
 # The hook phase runs inside the original 32-bit tp.exe, and re/types.h is byte-exact for x86.
 if(NOT CMAKE_SIZEOF_VOID_P EQUAL 4)
