@@ -81,7 +81,7 @@ Goal: see the original running on modern Windows, so there's a ground truth to c
 - [x] Ghidra project from the decrypted exe (`_re/ghidra`, 12,124 functions)
 - [x] Full raw decompile export (`_re/decomp-raw/decomp_*.c`, `functions.tsv`): 11,760 functions, 1 failure, ~2.1 MB of code. Regenerate with `tools/ExportDecomp.java`:
   ```
-  "<GHIDRA>\support\analyzeHeadless.bat" C:\git\Noklef\TPW\_re\ghidra TPW -import C:\git\Noklef\TPW\.data\nocd\tp.exe -overwrite -scriptPath C:\git\Noklef\TPW\tools -postScript ExportDecomp.java C:\git\Noklef\TPW\_re\decomp-raw
+  "<GHIDRA>\support\analyzeHeadless.bat" _re\ghidra TPW -import .data\nocd\tp.exe -overwrite -scriptPath tools -postScript ExportDecomp.java _re\decomp-raw
   ```
   Ghidra refuses project paths with a component starting with `.`, which is why the project lives in `_re/` and not `.data/`.
 - [x] Mapped the save/load module order from the decompiled loader (see `01-how-the-game-works.md`)

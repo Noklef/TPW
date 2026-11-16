@@ -3,7 +3,7 @@ original code run by x87emu, on random cases, comparing every byte the cases giv
 
 A test script defines a case generator and calls run():
 
-    import sys; sys.path.insert(0, r'C:/git/Noklef/TPW/tools')
+    import sys; sys.path.insert(0, r'tools')
     from fncmp import *
     B = Bench([(0x43e1b0, 0x43e480)])           # listing ranges the original needs
     def case(r):                               # r: Rand (seeded; r.wild for extreme values)

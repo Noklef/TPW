@@ -17,15 +17,15 @@ Ghidra's auto-analysis misses some things. Apply these once after import, before
 ```
 REM Virtual methods reachable only through vtables (801 functions Ghidra never created).
 REM Regenerate the list with tools/vtables.py + tools/find_vtable_functions.py after big changes.
-"<GHIDRA>\support\analyzeHeadless.bat" C:\git\Noklef\TPW\_re\ghidra TPW -process tp.exe -noanalysis ^
-    -scriptPath C:\git\Noklef\TPW\tools -postScript CreateFunctions.java C:\git\Noklef\TPW\re\vtable_functions.txt
+"<GHIDRA>\support\analyzeHeadless.bat" _re\ghidra TPW -process tp.exe -noanalysis ^
+    -scriptPath tools -postScript CreateFunctions.java re\vtable_functions.txt
 ```
 
 ```
 REM RSSE interpreter jump table: 106 opcode handlers (adds ~19 KB of code to RSSE_ExecuteInstruction)
-"<GHIDRA>\support\analyzeHeadless.bat" C:\git\Noklef\TPW\_re\ghidra TPW -process tp.exe -noanalysis ^
-    -scriptPath C:\git\Noklef\TPW\tools -postScript FixJumpTable.java 0x551d3d 0x5567d8 106 ^
-    C:\git\Noklef\TPW\re\rsse_opcodes.csv RSSE_op_
+"<GHIDRA>\support\analyzeHeadless.bat" _re\ghidra TPW -process tp.exe -noanalysis ^
+    -scriptPath tools -postScript FixJumpTable.java 0x551d3d 0x5567d8 106 ^
+    re\rsse_opcodes.csv RSSE_op_
 ```
 
 ## Naming conventions
@@ -35,15 +35,15 @@ REM RSSE interpreter jump table: 106 opcode handlers (adds ~19 KB of code to RSS
 
 ## Applying to Ghidra
 ```
-"<GHIDRA>\support\analyzeHeadless.bat" C:\git\Noklef\TPW\_re\ghidra TPW -process tp.exe -noanalysis ^
-    -scriptPath C:\git\Noklef\TPW\tools -postScript ApplySymbols.java C:\git\Noklef\TPW\re\symbols.csv
+"<GHIDRA>\support\analyzeHeadless.bat" _re\ghidra TPW -process tp.exe -noanalysis ^
+    -scriptPath tools -postScript ApplySymbols.java re\symbols.csv
 ```
 The script is idempotent: re-run it after every edit to `symbols.csv`.
 
 Types work the same way. The script is also idempotent; re-run it after editing `types.h` or `type_uses.csv`:
 ```
-"<GHIDRA>\support\analyzeHeadless.bat" C:\git\Noklef\TPW\_re\ghidra TPW -process tp.exe -noanalysis ^
-    -scriptPath C:\git\Noklef\TPW\tools -postScript ApplyTypes.java C:\git\Noklef\TPW\re
+"<GHIDRA>\support\analyzeHeadless.bat" _re\ghidra TPW -process tp.exe -noanalysis ^
+    -scriptPath tools -postScript ApplyTypes.java re
 ```
 Ghidra's C parser has no preprocessor, so the script strips `#` lines and the `#ifndef __GHIDRA__` check block. Keep `types.h` plain C. Parameters typed `RsseContext *` are also renamed `ctx`.
 
