@@ -930,6 +930,7 @@ if(TPW_TEST_TOOLING)
         src/testing/shadow.cpp
         src/testing/data_dump.cpp
         src/testing/load_timer.cpp
+        src/testing/scripted_run.cpp
     )
     target_link_libraries(tpw_hook PRIVATE tpw_testing)
     target_compile_definitions(tpw_hook PRIVATE TPW_TEST_TOOLING)

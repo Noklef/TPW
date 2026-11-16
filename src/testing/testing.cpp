@@ -6,6 +6,7 @@
 #include "log.h"
 #include "pool_watch.h"
 #include "profiler.h"
+#include "scripted_run.h"
 #include "shadow.h"
 #include "trace.h"
 
@@ -38,7 +39,10 @@ void after_hooks(const char *ini) {
     start_shadow(ini);
     start_data_dump(ini);
     start_load_timer();
+    start_scripted_run(ini);
 }
+
+void direct_input_made(void *input) { wrap_direct_input(input); }
 
 void stop() {
     log_profile();

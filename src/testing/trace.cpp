@@ -147,7 +147,10 @@ LSTATUS WINAPI t_RegOpenKeyA(HKEY key, LPCSTR name, PHKEY out) {
 
 LSTATUS WINAPI t_RegCreateKeyExA(HKEY key, LPCSTR name, DWORD reserved, LPSTR cls, DWORD options, REGSAM sam,
                                  const LPSECURITY_ATTRIBUTES sa, PHKEY out, LPDWORD disposition) {
-    const LSTATUS r = o_RegCreateKeyExA(key, name, reserved, cls, options, sam, sa, out, disposition);
+    LSTATUS r = o_RegCreateKeyExA(key, name, reserved, cls, options, sam, sa, out, disposition);
+    // (A process started without registry virtualization, as a scripted run's is, gets "access denied" for the game's
+    // KEY_ALL_ACCESS and the game quits: the key is opened to read, which is all the game does with it.)
+    if (r == ERROR_ACCESS_DENIED) r = o_RegCreateKeyExA(key, name, reserved, cls, options, KEY_READ, sa, out, disposition);
     log_line("[%6.1fs] RegCreateKeyExA(%p, \"%s\", access %X) from %08X -> %ld (disposition %u)", log_seconds(), key,
              str(name), sam, CALLER, r, r == 0 && disposition ? *disposition : 0);
     return r;

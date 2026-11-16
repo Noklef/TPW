@@ -20,4 +20,7 @@ void after_hooks(const char *ini);
 
 void stop();
 
+// The DirectInput object the game made (the proxy's DirectInputCreateA): the scripted run wraps its mouse (scripted_run.h).
+void direct_input_made(void *input);
+
 }  // namespace tpw::testing

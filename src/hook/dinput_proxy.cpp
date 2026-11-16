@@ -5,6 +5,10 @@
 // (dgVoodoo2, DDrawCompat) are themselves ddraw.dll proxies, so that name is taken.
 #include <windows.h>
 
+#ifdef TPW_TEST_TOOLING
+#include "../testing/testing.h"
+#endif
+
 namespace {
 
 using DirectInputCreateA_t = HRESULT(WINAPI *)(HINSTANCE, DWORD, void **, void *);
@@ -24,5 +28,9 @@ FARPROC real_proc(const char *name) {
 extern "C" HRESULT WINAPI Proxy_DirectInputCreateA(HINSTANCE inst, DWORD version, void **out, void *outer) {
     auto fn = reinterpret_cast<DirectInputCreateA_t>(real_proc("DirectInputCreateA"));
     if (!fn) return E_FAIL;
-    return fn(inst, version, out, outer);
+    const HRESULT result = fn(inst, version, out, outer);
+#ifdef TPW_TEST_TOOLING
+    if (result == 0 && out) tpw::testing::direct_input_made(*out);
+#endif
+    return result;
 }
